@@ -267,7 +267,7 @@ lemma set_integral_eq_zero_of_forall_eq_zero (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in t, f x ∂μ = 0 :=
 set_integral_eq_zero_of_ae_eq_zero (eventually_of_forall ht_eq)
 
-lemma set_integral_union_eq_left_of_ae_aux (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0)
+lemma integral_union_eq_left_of_ae_aux (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0)
   (haux : strongly_measurable f) (H : integrable_on f (s ∪ t) μ) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
@@ -286,7 +286,7 @@ begin
   filter_upwards [ae_imp_of_ae_restrict ht_eq] with x hx h'x using h'x.2 (hx h'x.1),
 end
 
-lemma set_integral_union_eq_left_of_ae {f : α → E} (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0) :
+lemma integral_union_eq_left_of_ae (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   have ht : integrable_on f t μ,
@@ -298,7 +298,7 @@ begin
       = ∫ (x : α) in s ∪ t, f' x ∂μ : integral_congr_ae H.1.ae_eq_mk
   ... = ∫ x in s, f' x ∂μ :
     begin
-      apply set_integral_union_eq_left_of_ae_aux _ H.1.strongly_measurable_mk
+      apply integral_union_eq_left_of_ae_aux _ H.1.strongly_measurable_mk
         (H.congr_fun' H.1.ae_eq_mk),
       filter_upwards [ht_eq, ae_mono (measure.restrict_mono (subset_union_right s t) le_rfl)
         H.1.ae_eq_mk] with x hx h'x,
@@ -331,7 +331,7 @@ end
 
 /-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
 if `t` is null-measurable. -/
-lemma integrable_on.of_superset_of_eq_zero₀ (hf : integrable_on f s μ)
+lemma integrable_on.of_forall_diff_eq_zero₀ (hf : integrable_on f s μ)
   (ht : null_measurable_set t μ) (h't : ∀ x ∈ t \ s, f x = 0) :
   integrable_on f t μ :=
 begin
@@ -357,18 +357,105 @@ end
 
 /-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
 if `t` is null-measurable. -/
-lemma integrable_on.of_superset_of_eq_zero (hf : integrable_on f s μ)
+lemma integrable_on.of_forall_diff_eq_zero (hf : integrable_on f s μ)
   (ht : measurable_set t) (h't : ∀ x ∈ t \ s, f x = 0) :
   integrable_on f t μ :=
-hf.of_superset_of_eq_zero₀ ht.null_measurable_set h't
+hf.of_forall_diff_eq_zero₀ ht.null_measurable_set h't
 
 /-- If a function is integrable on a set `s` and vanishes on its complement, then it is
 integrable. -/
-lemma integrable_on.integrable_of_eq_zero₀ (hf : integrable_on f s μ)
+lemma integrable_on.integrable_of_forall_not_mem_eq_zero (hf : integrable_on f s μ)
   (h't : ∀ x, x ∉ s → f x = 0) : integrable f μ :=
 begin
   rw ← integrable_on_univ,
-  exact hf.of_superset_of_eq_zero measurable_set.univ (λ x hx, h't x hx.2),
+  exact hf.of_forall_diff_eq_zero measurable_set.univ (λ x hx, h't x hx.2),
+end
+
+lemma set_integral_eq_of_subset_of_forall_diff_eq_zero₀_aux
+  (ht : null_measurable_set t μ) (hts : s ⊆ t) (h't : ∀ x ∈ t \ s, f x = 0)
+  (haux : ∀ x ∈ s, f x ≠ 0) (h'aux : integrable_on f t μ) :
+  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  have A : integrable_on f (to_measurable μ s) μ,
+  { rw [integrable_on, integrable_on.restrict_to_measurable (h'aux.mono hts le_rfl) haux],
+    exact h'aux.mono hts le_rfl },
+  calc ∫ x in t, f x ∂μ = ∫ x in t ∪ to_measurable μ s, f x ∂μ :
+    begin
+      have B : tᶜ ∩ s = ∅ := eq_empty_of_forall_not_mem (λ x hx, hx.1 (hts hx.2)),
+      apply set_integral_congr_set_ae,
+      symmetry,
+      rw [union_comm, union_ae_eq_right, diff_eq, inter_comm,
+        ← measure.restrict_apply₀ (ht.compl.mono measure.restrict_le_self),
+        integrable_on.restrict_to_measurable (h'aux.mono hts le_rfl) haux,
+        measure.restrict_apply₀ (ht.compl.mono measure.restrict_le_self), B, measure_empty],
+    end
+  ... = ∫ x in (t \ to_measurable μ s) ∪ (to_measurable μ s), f x ∂μ : by rw diff_union_self
+  ... = ∫ x in (t \ to_measurable μ s), f x ∂μ + ∫ x in to_measurable μ s, f x ∂μ :
+    by rw integral_union_ae disjoint_sdiff_left.ae_disjoint
+      (measurable_set_to_measurable _ _).null_measurable_set
+      (h'aux.mono (diff_subset _ _) le_rfl) A
+  ... = 0 + ∫ x in s, f x ∂μ :
+    begin
+      congr' 1,
+      { apply set_integral_eq_zero_of_forall_eq_zero,
+        assume x hx,
+        exact h't _ ⟨hx.1, λ h, hx.2 (subset_to_measurable μ s h)⟩ },
+      { rw integrable_on.restrict_to_measurable (h'aux.mono hts le_rfl) haux }
+    end
+  ... = ∫ x in s, f x ∂μ : zero_add _
+end
+
+lemma set_integral_eq_of_subset_of_forall_diff_eq_zero₀_aux2
+  (ht : null_measurable_set t μ) (hts : s ⊆ t) (h't : ∀ x ∈ t \ s, f x = 0)
+  (hf : integrable_on f t μ) :
+  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  let k := f ⁻¹' {0} ∩ t,
+  have A : null_measurable_set k μ, sorry,
+  have B : ∫ x in s, f x ∂μ = ∫ x in s ∩ k, f x ∂μ + ∫ x in s \ k, f x ∂μ,
+  { rw integral_inter_add_diff₀ A,
+    exact hf.mono hts le_rfl },
+  have C : ∫ x in s \ k, f x ∂μ = ∫ x in t, f x ∂μ,
+  { symmetry,
+    apply set_integral_eq_of_subset_of_forall_diff_eq_zero₀_aux ht _ _ _ hf,
+    { apply (inter_subset_left _ _).trans hts },
+    { assume x hx,
+      by_cases h'x : x ∈ s,
+      { have Z := hx.2,
+        simp only [h'x, mem_diff, true_and, not_not, mem_inter_iff, mem_preimage, mem_singleton_iff]
+          at Z,
+        exact Z.1 },
+      { exact h't x ⟨hx.1, h'x⟩ } },
+    { assume x hx h,
+      apply hx.2, } },
+  have D : ∫ x in s ∩ k, f x ∂μ = 0 := set_integral_eq_zero_of_forall_eq_zero (λ x hx, hx.2),
+  rw [C, D, zero_add] at B,
+  exact B.symm,
+end
+
+#exit
+
+
+begin
+  by_cases h : integrable_on f t μ, swap,
+  { have : ¬(integrable_on f s μ) := λ H, h (H.of_forall_diff_eq_zero₀ ht h't),
+    rw [integral_undef h, integral_undef this] },
+  let u := {x ∈ s | f x ≠ 0},
+  calc
+
+end
+
+#exit
+
+  have C : ∫ x in (t \ to_measurable μ s), f x ∂μ + ∫ x in to_measurable μ s, f x ∂μ
+    = ∫ x in (t \ to_measurable μ s) ∪ (to_measurable μ s), f x ∂μ,
+  by rw integral_union_ae disjoint_sdiff_left.ae_disjoint
+      (measurable_set_to_measurable _ _).null_measurable_set
+      (h'aux.mono (diff_subset _ _) le_rfl) A0,
+  rw [A, B, zero_add, diff_union_self] at C,
+  rw C,
+  apply set_integral_congr_set_ae,
+
 end
 
 #exit
@@ -379,6 +466,7 @@ end
 
   }
 end
+
 
 lemma glouk (hf : integrable_on f s μ) (h'f : ∀ x, x ∉ s → f x = 0) : integrable f μ :=
 begin

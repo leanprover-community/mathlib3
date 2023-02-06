@@ -25,11 +25,6 @@ instance [finite V] : is_empty G.end :=
       ⟨by simp only [opposite.unop_op, finset.coe_univ], h⟩,
   end ⟩
 
-
-/--!
-## Ends of locally finite, preconnected graphs
--/
-
 /-
 For a locally finite preconnected graph, the number of components outside of any finite set
 is finite.

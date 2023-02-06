@@ -59,6 +59,13 @@ lemma component_compl_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∉ K)
   (a : G.adj v w) : G.component_compl_mk vK = G.component_compl_mk wK :=
 by { rw [connected_component.eq], apply adj.reachable, exact a }
 
+/--
+In an infinite graph, the set of components out of a finite set is nonempty.
+-/
+lemma component_compl_nonempty_of_infinite (G : simple_graph V) [infinite V] (K : finset V) :
+  nonempty (G.component_compl K) :=
+let ⟨k, kK⟩ := K.finite_to_set.infinite_compl.nonempty in ⟨component_compl_mk _ kK⟩
+
 namespace component_compl
 
 /--
@@ -135,14 +142,6 @@ begin
     p.exists_boundary_dart (C : set V) (G.component_compl_mk_mem vnK) unC,
   exact ynC (mem_of_adj x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy),
 end
-
-/--
-In an infinite graph, the set of components out of a finite set is nonempty.
--/
-lemma component_compl_nonempty_of_infinite {G : simple_graph V} [infinite V] (K : finset V) :
-  nonempty (G.component_compl K) :=
-let ⟨k,kK⟩ := set.infinite.nonempty (set.finite.infinite_compl $ K.finite_to_set) in
-  ⟨component_compl_mk _ kK⟩
 
 /--
 If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.

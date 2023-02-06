@@ -137,6 +137,14 @@ begin
 end
 
 /--
+In an infinite graph, the set of components out of a finite set is nonempty.
+-/
+lemma component_compl_nonempty_of_infinite {G : simple_graph V} [infinite V] (K : finset V) :
+  nonempty (G.component_compl K) :=
+let ⟨k,kK⟩ := set.infinite.nonempty (set.finite.infinite_compl $ K.finite_to_set) in
+  ⟨component_compl_mk _ kK⟩
+
+/--
 If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.
 -/
 @[reducible] def hom (h : K ⊆ L) (C : G.component_compl L) : G.component_compl K :=

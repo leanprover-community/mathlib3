@@ -70,16 +70,6 @@ begin
 end
 
 /--
-In an infinite graph, the set of components out of a finite set is nonempty.
--/
-lemma component_compl_nonempty_of_infinite [infinite V] (K : finset V) :
-  nonempty (G.component_compl K) :=
-begin
-  obtain ⟨k,kK⟩ := set.infinite.nonempty (set.finite.infinite_compl $ K.finite_to_set),
-  exact ⟨component_compl_mk _ kK⟩,
-end
-
-/--
 The `component_compl`s chosen by an end are all infinite.
 -/
 lemma end_component_compl_infinite (e : G.end) (K : (finset V)ᵒᵖ) : (e.val K).supp.infinite :=

@@ -875,13 +875,8 @@ by rw [← hereditarily]
 
 alias hereditarily_iff ↔ hereditarily.def _
 
-lemma hereditarily.self (h : x.hereditarily p) :
-  p x :=
-h.def.1
-
-lemma hereditarily.mem (h : x.hereditarily p) (hy : y ∈ x) :
-  y.hereditarily p :=
-h.def.2 _ hy
+lemma hereditarily.self (h : x.hereditarily p) : p x := h.def.1
+lemma hereditarily.mem (h : x.hereditarily p) (hy : y ∈ x) : y.hereditarily p := h.def.2 _ hy
 
 lemma hereditarily.empty : hereditarily p x → p ∅ :=
 begin

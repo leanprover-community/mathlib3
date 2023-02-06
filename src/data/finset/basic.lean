@@ -1039,6 +1039,10 @@ begin
   exact ⟨i, hic, hi⟩
 end
 
+instance semilattice_sup_subtype_nonempty :
+  semilattice_sup {s : finset α // s.nonempty} :=
+subtype.semilattice_sup $ λ s t hs ht, hs.mono $ subset_union_left _ _
+
 /-! #### inter -/
 
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl

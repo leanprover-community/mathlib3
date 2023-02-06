@@ -225,7 +225,8 @@ begin
   apply component_compl.hom_mk,
 end
 
-lemma infinite_iff_in_eventual_range {K : (finset V)ᵒᵖ} (C : G.component_compl_functor.obj K) :
+lemma component_compl.infinite_iff_in_eventual_range {G : simple_graph V} {K : (finset V)ᵒᵖ}
+  (C : G.component_compl_functor.obj K) :
   C.supp.infinite ↔ C ∈ G.component_compl_functor.eventual_range K :=
 begin
   simp only [C.infinite_iff_in_all_ranges, category_theory.functor.eventual_range,

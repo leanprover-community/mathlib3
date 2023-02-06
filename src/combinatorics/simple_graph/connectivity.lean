@@ -1519,6 +1519,20 @@ by { refine C.ind _, exact (λ _, rfl) }
   (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
 
+/-- An isomorphism of graph induces a bijection of connected components. -/
+def connected_component.iso {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
+  (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+{ to_fun := connected_component.map φ.to_hom,
+  inv_fun := connected_component.map φ.symm.to_hom,
+  left_inv := by
+    { refine connected_component.ind (λ v, _),
+      nth_rewrite_rhs 0 ←equiv.left_inv φ.to_equiv v,
+      refl, },
+  right_inv := by
+    { refine connected_component.ind (λ v, _),
+      nth_rewrite_rhs 0 ←equiv.right_inv φ.to_equiv v,
+      refl, } }
+
 end connected_component
 
 variables {G}

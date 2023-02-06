@@ -1483,4 +1483,10 @@ end iso
 
 end maps
 
+/-- The graph induced on `set.univ` is isomorphic to the original graph. -/
+def induce_univ_iso (G : simple_graph V) : G.induce set.univ ≃g G :=
+{ to_equiv := equiv.set.univ V,
+  map_rel_iff' := by simp only [equiv.set.univ_apply, comap_adj, function.embedding.coe_subtype,
+                                iff_self, set_coe.forall, implies_true_iff] }
+
 end simple_graph

@@ -545,12 +545,11 @@ begin
   constructor,
   rintros U U_open ⟨a, ha⟩,
   obtain ⟨s, ⟨hs, hsU⟩⟩ := is_open_pi_iff.1 U_open a ha,
-  by_contra,
-  suffices : (measure.pi μ) (univ.pi s) = 0,
-  { rw [measure.pi_pi, finset.prod_eq_zero_iff] at this,
-    obtain ⟨i, ⟨_, hi⟩⟩ := this,
-    exact (ne_of_gt ((hs i).1.measure_pos (μ i) ⟨a i, (hs i).2⟩)) hi, },
-  exact measure_mono_null hsU h,
+  refine ne_of_gt (lt_of_lt_of_le _ (measure_mono hsU)),
+  simp only [pi_pi],
+  rw canonically_ordered_comm_semiring.prod_pos,
+  intros i _,
+  apply ((hs i).1.measure_pos (μ i) ⟨a i, (hs i).2⟩),
 end
 
 instance pi.is_finite_measure_on_compacts [Π i, topological_space (α i)]

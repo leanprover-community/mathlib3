@@ -188,14 +188,14 @@ lemma of_real_set_integral_one {α : Type*} {m : measurable_space α} (μ : meas
 of_real_set_integral_one_of_measure_ne_top (measure_ne_top μ s)
 
 lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
-  {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
+  (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
   ∫ x, s.piecewise f g x ∂μ = ∫ x in s, f x ∂μ + ∫ x in sᶜ, g x ∂μ :=
 by rw [← set.indicator_add_compl_eq_piecewise,
   integral_add' (hf.integrable_indicator hs) (hg.integrable_indicator hs.compl),
   integral_indicator hs, integral_indicator hs.compl]
 
 lemma tendsto_set_integral_of_monotone {ι : Type*} [countable ι] [semilattice_sup ι]
-  {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
+  {s : ι → set α} (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
 begin
@@ -218,7 +218,7 @@ begin
     (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
 end
 
-lemma has_sum_integral_Union_ae {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
+lemma has_sum_integral_Union_ae {ι : Type*} [countable ι] {s : ι → set α}
   (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
@@ -227,25 +227,25 @@ begin
   exact has_sum_integral_measure hfi
 end
 
-lemma has_sum_integral_Union {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
+lemma has_sum_integral_Union {ι : Type*} [countable ι] {s : ι → set α}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 has_sum_integral_Union_ae (λ i, (hm i).null_measurable_set) (hd.mono (λ i j h, h.ae_disjoint)) hfi
 
-lemma integral_Union {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
+lemma integral_Union {ι : Type*} [countable ι] {s : ι → set α}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
 (has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
 
-lemma integral_Union_ae {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
+lemma integral_Union_ae {ι : Type*} [countable ι] {s : ι → set α}
   (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
 (has_sum.tsum_eq (has_sum_integral_Union_ae hm hd hfi)).symm
 
-lemma set_integral_eq_zero_of_ae_eq_zero {f : α → E} (ht_eq : ∀ᵐ x ∂μ, x ∈ t → f x = 0) :
+lemma set_integral_eq_zero_of_ae_eq_zero (ht_eq : ∀ᵐ x ∂μ, x ∈ t → f x = 0) :
   ∫ x in t, f x ∂μ = 0 :=
 begin
   by_cases hf : ae_strongly_measurable f (μ.restrict t), swap,
@@ -263,12 +263,11 @@ begin
   exact integral_congr_ae hf.ae_eq_mk,
 end
 
-lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (ht_eq : ∀ x ∈ t, f x = 0) :
+lemma set_integral_eq_zero_of_forall_eq_zero (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in t, f x ∂μ = 0 :=
 set_integral_eq_zero_of_ae_eq_zero (eventually_of_forall ht_eq)
 
-lemma set_integral_union_eq_left_of_ae_aux {f : α → E}
-  (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0)
+lemma set_integral_union_eq_left_of_ae_aux (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0)
   (haux : strongly_measurable f) (H : integrable_on f (s ∪ t) μ) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
@@ -309,11 +308,70 @@ begin
     (ae_mono (measure.restrict_mono (subset_union_left s t) le_rfl) H.1.ae_eq_mk.symm)
 end
 
-lemma glouk_aux (hf : integrable_on f s μ) (h'f : ∀ x, x ∉ s → f x = 0)
-  (h's : ∀ x ∈ s, f x ≠ 0) : integrable f μ :=
+/-- If a function is integrable on a set `s` and nonzero there, then the measurable hull of `s` is
+well behaved: the restriction of the measure to `to_measurable μ s` coincides with its restriction
+to `s`. -/
+lemma integrable_on.restrict_to_measurable (hf : integrable_on f s μ) (h's : ∀ x ∈ s, f x ≠ 0) :
+  μ.restrict (to_measurable μ s) = μ.restrict s :=
 begin
-  let t := to_measurable μ s,
-  have : μ.restrict t = μ.restrict s, sorry,
+  rcases exists_seq_strict_anti_tendsto (0 : ℝ) with ⟨u, u_anti, u_pos, u_lim⟩,
+  let v := λ n, to_measurable (μ.restrict s) {x | u n ≤ ‖f x‖},
+  have A : ∀ n, μ (s ∩ v n) ≠ ∞,
+  { assume n,
+    rw [inter_comm, ← measure.restrict_apply (measurable_set_to_measurable _ _),
+      measure_to_measurable],
+    exact (hf.measure_ge_lt_top (u_pos n)).ne },
+  apply measure.restrict_to_measurable_of_cover _ A,
+  assume x hx,
+  have : 0 < ‖f x‖, by simp only [h's x hx, norm_pos_iff, ne.def, not_false_iff],
+  obtain ⟨n, hn⟩ : ∃ n, u n < ‖f x‖, from ((tendsto_order.1 u_lim).2 _ this).exists,
+  refine mem_Union.2 ⟨n, _⟩,
+  exact subset_to_measurable _ _ hn.le
+end
+
+/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
+if `t` is null-measurable. -/
+lemma integrable_on.of_superset_of_eq_zero₀ (hf : integrable_on f s μ)
+  (ht : null_measurable_set t μ) (h't : ∀ x ∈ t \ s, f x = 0) :
+  integrable_on f t μ :=
+begin
+  let u := {x ∈ s | f x ≠ 0},
+  have hu : integrable_on f u μ := hf.mono (λ x hx, hx.1) le_rfl,
+  let v := to_measurable μ u,
+  have A : integrable_on f v μ,
+  { rw [integrable_on, hu.restrict_to_measurable],
+    { exact hu },
+    { assume x hx, exact hx.2 } },
+  have B : integrable_on f (t \ v) μ,
+  { apply integrable_on_zero.congr,
+    filter_upwards [ae_restrict_mem₀
+      (ht.diff (measurable_set_to_measurable μ u).null_measurable_set)] with x hx,
+    by_cases h'x : x ∈ s,
+    { by_contra H,
+      exact hx.2 (subset_to_measurable μ u ⟨h'x, ne.symm H⟩) },
+    { exact (h't x ⟨hx.1, h'x⟩).symm, } },
+  apply (A.union B).mono _ le_rfl,
+  rw union_diff_self,
+  exact subset_union_right _ _
+end
+
+/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
+if `t` is null-measurable. -/
+lemma integrable_on.of_superset_of_eq_zero (hf : integrable_on f s μ)
+  (ht : measurable_set t) (h't : ∀ x ∈ t \ s, f x = 0) :
+  integrable_on f t μ :=
+hf.of_superset_of_eq_zero₀ ht.null_measurable_set h't
+
+/-- If a function is integrable on a set `s` and vanishes on its complement, then it is
+integrable. -/
+lemma integrable_on.integrable_of_eq_zero₀ (hf : integrable_on f s μ)
+  (h't : ∀ x, x ∉ s → f x = 0) : integrable f μ :=
+begin
+  rw ← integrable_on_univ,
+  exact hf.of_superset_of_eq_zero measurable_set.univ (λ x hx, h't x hx.2),
+end
+
+#exit
   have : integrable_on f t μ,
   { rw [integrable_on, this], exact hf },
   have : integrable_on f (tᶜ) μ,

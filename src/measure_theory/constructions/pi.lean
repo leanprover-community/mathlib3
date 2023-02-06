@@ -567,9 +567,8 @@ begin
 end
 
 @[to_additive]
-instance {ι : Type*} {G : ι → Type*} [fintype ι] [Π i, group (G i)] [Π i, topological_space (G i)]
-  {mG : Π i, measurable_space (G i)} (μ : Π i, measure (G i)) [Π i, is_haar_measure (μ i)]
-  [Π i, sigma_finite (μ i)] [Π i, has_measurable_mul (G i)] :
+instance pi.is_haar_measure [Π i, group (α i)] [Π i, topological_space (α i)]
+  [Π i, is_haar_measure (μ i)] [Π i, has_measurable_mul (α i)] :
   is_haar_measure (measure.pi μ) := {}
 
 end measure

@@ -288,23 +288,23 @@ begin
     rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft, transpose_zero] },
 end
 
-lemma has_sum.matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
+lemma has_sum.matrix_conj_transpose [has_star_add R] [has_continuous_star R]
   {f : X → matrix m n R} {a : matrix m n R} (hf : has_sum f a) :
   has_sum (λ x, (f x)ᴴ) aᴴ :=
 (hf.map (matrix.conj_transpose_add_equiv m n R) continuous_id.matrix_conj_transpose : _)
 
-lemma summable.matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
+lemma summable.matrix_conj_transpose [has_star_add R] [has_continuous_star R]
   {f : X → matrix m n R} (hf : summable f) :
   summable (λ x, (f x)ᴴ) :=
 hf.has_sum.matrix_conj_transpose.summable
 
-@[simp] lemma summable_matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
+@[simp] lemma summable_matrix_conj_transpose [has_star_add R] [has_continuous_star R]
   {f : X → matrix m n R} :
   summable (λ x, (f x)ᴴ) ↔ summable f :=
 (summable.map_iff_of_equiv (matrix.conj_transpose_add_equiv m n R)
   (@continuous_id (matrix m n R) _).matrix_conj_transpose (continuous_id.matrix_conj_transpose) : _)
 
-lemma matrix.conj_transpose_tsum [star_add_monoid R] [has_continuous_star R] [t2_space R]
+lemma matrix.conj_transpose_tsum [has_star_add R] [has_continuous_star R] [t2_space R]
   {f : X → matrix m n R} : (∑' x, f x)ᴴ = ∑' x, (f x)ᴴ :=
 begin
   by_cases hf : summable f,

@@ -99,14 +99,14 @@ by simp_rw [pi.nnnorm_def, matrix.map_apply, hf]
 by { simp_rw [pi.nnnorm_def], exact finset.sup_comm _ _ _ }
 @[simp] lemma norm_transpose (A : matrix m n α) : ‖Aᵀ‖ = ‖A‖ := congr_arg coe $ nnnorm_transpose A
 
-@[simp] lemma nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
+@[simp] lemma nnnorm_conj_transpose [has_star_add α] [normed_star_group α] (A : matrix m n α) :
   ‖Aᴴ‖₊ = ‖A‖₊ :=
 (nnnorm_map_eq _ _ nnnorm_star).trans A.nnnorm_transpose
-@[simp] lemma norm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
+@[simp] lemma norm_conj_transpose [has_star_add α] [normed_star_group α] (A : matrix m n α) :
   ‖Aᴴ‖ = ‖A‖ :=
 congr_arg coe $ nnnorm_conj_transpose A
 
-instance [star_add_monoid α] [normed_star_group α] : normed_star_group (matrix m m α) :=
+instance [has_star_add α] [normed_star_group α] : normed_star_group (matrix m m α) :=
 ⟨norm_conj_transpose⟩
 
 @[simp] lemma nnnorm_col (v : m → α) : ‖col v‖₊ = ‖v‖₊ := by simp [pi.nnnorm_def]
@@ -385,14 +385,14 @@ by { rw [frobenius_nnnorm_def, frobenius_nnnorm_def, finset.sum_comm], refl }
 @[simp] lemma frobenius_norm_transpose (A : matrix m n α) : ‖Aᵀ‖ = ‖A‖ :=
 congr_arg coe $ frobenius_nnnorm_transpose A
 
-@[simp] lemma frobenius_nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α]
+@[simp] lemma frobenius_nnnorm_conj_transpose [has_star_add α] [normed_star_group α]
   (A : matrix m n α) : ‖Aᴴ‖₊ = ‖A‖₊ :=
 (frobenius_nnnorm_map_eq _ _ nnnorm_star).trans A.frobenius_nnnorm_transpose
-@[simp] lemma frobenius_norm_conj_transpose [star_add_monoid α] [normed_star_group α]
+@[simp] lemma frobenius_norm_conj_transpose [has_star_add α] [normed_star_group α]
   (A : matrix m n α) : ‖Aᴴ‖ = ‖A‖ :=
 congr_arg coe $ frobenius_nnnorm_conj_transpose A
 
-instance frobenius_normed_star_group [star_add_monoid α] [normed_star_group α] :
+instance frobenius_normed_star_group [has_star_add α] [normed_star_group α] :
   normed_star_group (matrix m m α) :=
 ⟨frobenius_norm_conj_transpose⟩
 

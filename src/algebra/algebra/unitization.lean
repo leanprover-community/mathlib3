@@ -390,28 +390,28 @@ instance [has_star R] [has_star A] : has_star (unitization R A) :=
 @[simp] lemma snd_star [has_star R] [has_star A] (x : unitization R A) :
   (star x).snd = star x.snd := rfl
 
-@[simp] lemma inl_star [has_star R] [add_monoid A] [star_add_monoid A] (r : R) :
+@[simp] lemma inl_star [has_star R] [add_monoid A] [has_star_add A] (r : R) :
   inl (star r) = star (inl r : unitization R A) :=
 ext rfl (by simp only [snd_star, star_zero, snd_inl])
 
-@[simp] lemma coe_star [add_monoid R] [star_add_monoid R] [has_star A] (a : A) :
+@[simp] lemma coe_star [add_monoid R] [has_star_add R] [has_star A] (a : A) :
   ↑(star a) = star (a : unitization R A) :=
 ext (by simp only [fst_star, star_zero, fst_coe]) rfl
 
-instance [add_monoid R] [add_monoid A] [star_add_monoid R] [star_add_monoid A] :
-  star_add_monoid (unitization R A) :=
+instance [add_monoid R] [add_monoid A] [has_star_add R] [has_star_add A] :
+  has_star_add (unitization R A) :=
 { star_involutive := λ x, ext (star_star x.fst) (star_star x.snd),
   star_add := λ x y, ext (star_add x.fst y.fst) (star_add x.snd y.snd) }
 
-instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A]
+instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [has_star_add A]
   [module R A] [star_module R A] : star_module R (unitization R A) :=
 { star_smul := λ r x, ext (by simp) (by simp) }
 
 instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
   [module R A] [star_module R A] : star_ring (unitization R A) :=
-{ star_mul := λ x y, ext (by simp [star_mul])
-    (by simp [star_mul, add_comm (star x.fst • star y.snd)]),
-  ..unitization.star_add_monoid }
+{ star_mul := λ x y, ext (by simp [has_star_mul])
+    (by simp [has_star_mul, add_comm (star x.fst • star y.snd)]),
+  ..unitization.has_star_add }
 
 end star
 

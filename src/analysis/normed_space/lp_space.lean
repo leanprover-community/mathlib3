@@ -628,7 +628,7 @@ end normed_space
 
 section normed_star_group
 
-variables [Π i, star_add_monoid (E i)] [Π i, normed_star_group (E i)]
+variables [Π i, has_star_add (E i)] [Π i, normed_star_group (E i)]
 
 lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
   (hf : mem_ℓp f p) : mem_ℓp (star f) p :=
@@ -653,7 +653,7 @@ instance : has_star (lp E p) :=
 
 instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
 
-instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
+instance : has_star_add (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
 
 instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
 { norm_star := λ f,
@@ -725,8 +725,8 @@ variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
 
 instance infty_star_ring : star_ring (lp B ∞) :=
 { star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,
-  .. (show star_add_monoid (lp B ∞),
-      by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
+  .. (show has_star_add (lp B ∞),
+      by { letI : Π i, has_star_add (B i) := λ i, infer_instance, apply_instance }) }
 
 instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
 { norm_star_mul_self := λ f,

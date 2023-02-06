@@ -441,7 +441,7 @@ Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C
 section normed_space
 
 variables {α : Type*} {β : Type*}
-variables [topological_space α] [normed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
+variables [topological_space α] [normed_add_comm_group β] [has_star_add β] [normed_star_group β]
 
 lemma _root_.bounded_continuous_function.mk_of_compact_star [compact_space α] (f : C(α, β)) :
   mk_of_compact (star f) = star (mk_of_compact f) := rfl

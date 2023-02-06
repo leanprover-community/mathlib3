@@ -17,7 +17,7 @@ This file defines morphisms between `R`-algebras (unital or non-unital) `A` and 
 `map_star` which guarantees they preserve the star operation. We keep the type classes as generic
 as possible, in keeping with the definition of `non_unital_alg_hom` in the non-unital case. In this
 file, we only assume `has_star` unless we want to talk about the zero map as a
-`non_unital_star_alg_hom`, in which case we need `star_add_monoid`. Note that the scalar ring `R`
+`non_unital_star_alg_hom`, in which case we need `has_star_add`. Note that the scalar ring `R`
 is not required to have a star operation, nor do we need `star_ring` or `star_module` structures on
 `A` and `B`.
 
@@ -184,8 +184,8 @@ end basic
 section zero
 -- the `zero` requires extra type class assumptions because we need `star_zero`
 variables {R A B C D : Type*} [monoid R]
-variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [star_add_monoid A]
-variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [star_add_monoid B]
+variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star_add A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star_add B]
 
 instance : has_zero (A →⋆ₙₐ[R] B) :=
 ⟨{ map_star' := by simp, .. (0 : non_unital_alg_hom R A B) }⟩
@@ -410,9 +410,9 @@ end prod
 section inl_inr
 
 variables (R A B C : Type*) [monoid R]
-  [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [star_add_monoid A]
-  [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [star_add_monoid B]
-  [non_unital_non_assoc_semiring C] [distrib_mul_action R C] [star_add_monoid C]
+  [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star_add A]
+  [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star_add B]
+  [non_unital_non_assoc_semiring C] [distrib_mul_action R C] [has_star_add C]
 
 /-- The left injection into a product is a non-unital algebra homomorphism. -/
 def inl : A →⋆ₙₐ[R] A × B := prod 1 0

@@ -27,7 +27,7 @@ unitary
 In a *-monoid, `unitary R` is the submonoid consisting of all the elements `U` of
 `R` such that `star U * U = 1` and `U * star U = 1`.
 -/
-def unitary (R : Type*) [monoid R] [star_mul R] : submonoid R :=
+def unitary (R : Type*) [monoid R] [has_star_mul R] : submonoid R :=
 { carrier := {U | star U * U = 1 ∧ U * star U = 1},
   one_mem' := by simp only [mul_one, and_self, set.mem_set_of_eq, star_one],
   mul_mem' := λ U B ⟨hA₁, hA₂⟩ ⟨hB₁, hB₂⟩,
@@ -46,7 +46,7 @@ variables {R : Type*}
 namespace unitary
 
 section monoid
-variables [monoid R] [star_mul R]
+variables [monoid R] [has_star_mul R]
 
 lemma mem_iff {U : R} : U ∈ unitary R ↔ star U * U = 1 ∧ U * star U = 1 := iff.rfl
 @[simp] lemma star_mul_self_of_mem {U : R} (hU : U ∈ unitary R) : star U * U = 1 := hU.1
@@ -98,7 +98,7 @@ lemma to_units_injective : function.injective (to_units : unitary R → Rˣ) :=
 end monoid
 
 section comm_monoid
-variables [comm_monoid R] [star_mul R]
+variables [comm_monoid R] [has_star_mul R]
 
 instance : comm_group (unitary R) :=
 { ..unitary.group,
@@ -113,7 +113,7 @@ mem_iff.trans $ and_iff_right_of_imp $ λ h, mul_comm U (star U) ▸ h
 end comm_monoid
 
 section group_with_zero
-variables [group_with_zero R] [star_mul R]
+variables [group_with_zero R] [has_star_mul R]
 
 @[norm_cast] lemma coe_inv (U : unitary R) : ↑(U⁻¹) = (U⁻¹ : R) :=
 eq_inv_of_mul_eq_one_right $ coe_mul_star_self _

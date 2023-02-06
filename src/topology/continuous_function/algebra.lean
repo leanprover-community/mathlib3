@@ -818,17 +818,17 @@ end has_star
 instance [has_involutive_star β] [has_continuous_star β] : has_involutive_star C(α, β) :=
 { star_involutive := λ f, ext $ λ x, star_star _ }
 
-instance [add_monoid β] [has_continuous_add β] [star_add_monoid β] [has_continuous_star β] :
-  star_add_monoid C(α, β) :=
+instance [add_monoid β] [has_continuous_add β] [has_star_add β] [has_continuous_star β] :
+  has_star_add C(α, β) :=
 { star_add := λ f g, ext $ λ x, star_add _ _ }
 
-instance [has_mul β] [has_continuous_mul β] [star_mul β] [has_continuous_star β] :
+instance [has_mul β] [has_continuous_mul β] [has_star_mul β] [has_continuous_star β] :
   star_mul C(α, β) :=
 { star_mul := λ f g, ext $ λ x, star_mul _ _ }
 
 instance [non_unital_semiring β] [topological_semiring β] [star_ring β] [has_continuous_star β] :
   star_ring C(α, β) :=
-{ ..continuous_map.star_add_monoid }
+{ ..continuous_map.has_star_add }
 
 instance [has_star R] [has_star β] [has_smul R β] [star_module R β]
   [has_continuous_star β] [has_continuous_const_smul R β] :

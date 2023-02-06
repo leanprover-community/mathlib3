@@ -326,7 +326,7 @@ section real_imaginary_part
 
 open complex
 
-variables {A : Type*} [add_comm_group A] [module ℂ A] [star_add_monoid A] [star_module ℂ A]
+variables {A : Type*} [add_comm_group A] [module ℂ A] [has_star_add A] [star_module ℂ A]
 
 /-- Create a `self_adjoint` element from a `skew_adjoint` element by multiplying by the scalar
 `-complex.I`. -/

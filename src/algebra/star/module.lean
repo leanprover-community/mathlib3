@@ -30,29 +30,29 @@ This file also provides some lemmas that need `algebra.module.basic` imported to
 section smul_lemmas
 variables {R M : Type*}
 
-@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [star_add_monoid M]
+@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [has_star_add M]
   (n : ℤ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
-map_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
+map_int_cast_smul (star_add_aut : M ≃+ M) R R n x
 
-@[simp] lemma star_nat_cast_smul [semiring R] [add_comm_monoid M] [module R M] [star_add_monoid M]
+@[simp] lemma star_nat_cast_smul [semiring R] [add_comm_monoid M] [module R M] [has_star_add M]
   (n : ℕ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
-map_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
+map_nat_cast_smul (star_add_aut : M ≃+ M) R R n x
 
 @[simp] lemma star_inv_int_cast_smul [division_ring R] [add_comm_group M] [module R M]
-  [star_add_monoid M] (n : ℤ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
-map_inv_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
+  [has_star_add M] (n : ℤ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
+map_inv_int_cast_smul (star_add_aut : M ≃+ M) R R n x
 
 @[simp] lemma star_inv_nat_cast_smul [division_ring R] [add_comm_group M] [module R M]
-  [star_add_monoid M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
-map_inv_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
+  [has_star_add M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
+map_inv_nat_cast_smul (star_add_aut : M ≃+ M) R R n x
 
 @[simp] lemma star_rat_cast_smul [division_ring R] [add_comm_group M] [module R M]
-  [star_add_monoid M] (n : ℚ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
-map_rat_cast_smul (star_add_equiv : M ≃+ M) _ _ _ x
+  [has_star_add M] (n : ℚ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
+map_rat_cast_smul (star_add_aut : M ≃+ M) _ _ _ x
 
-@[simp] lemma star_rat_smul {R : Type*} [add_comm_group R] [star_add_monoid R] [module ℚ R]
+@[simp] lemma star_rat_smul {R : Type*} [add_comm_group R] [has_star_add R] [module ℚ R]
   (x : R) (n : ℚ) : star (n • x) = n • star x :=
-map_rat_smul (star_add_equiv : R ≃+ R) _ _
+map_rat_smul (star_add_aut : R ≃+ R) _ _
 
 end smul_lemmas
 
@@ -64,11 +64,11 @@ def star_linear_equiv (R : Type*) {A : Type*}
     A ≃ₗ⋆[R] A :=
 { to_fun := star,
   map_smul' := star_smul,
-  .. star_add_equiv }
+  .. star_add_aut }
 
 variables (R : Type*) (A : Type*)
-  [semiring R] [star_mul R] [has_trivial_star R]
-  [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]
+  [semiring R] [has_star_mul R] [has_trivial_star R]
+  [add_comm_group A] [module R A] [has_star_add A] [star_module R A]
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
 def self_adjoint.submodule : submodule R A :=
@@ -86,7 +86,7 @@ variables {A} [invertible (2 : R)]
 @[simps] def self_adjoint_part : A →ₗ[R] self_adjoint A :=
 { to_fun := λ x, ⟨(⅟2 : R) • (x + star x),
   by simp only [self_adjoint.mem_iff, star_smul, add_comm,
-                  star_add_monoid.star_add, star_inv', star_bit0,
+                  has_star_add.star_add, star_inv', star_bit0,
                   star_one, star_star, star_inv_of (2 : R), star_trivial]⟩,
   map_add' := λ x y, by { ext, simp [add_add_add_comm] },
   map_smul' := λ r x, by { ext, simp [←mul_smul,
@@ -120,6 +120,6 @@ linear_equiv.of_linear
 
 @[simp]
 lemma algebra_map_star_comm {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
-  [star_mul A] [algebra R A] [star_module R A] (r : R) :
+  [has_star_mul A] [algebra R A] [star_module R A] (r : R) :
   algebra_map R A (star r) = star (algebra_map R A r) :=
 by simp only [algebra.algebra_map_eq_smul_one, star_smul, star_one]

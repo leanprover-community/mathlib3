@@ -15,12 +15,12 @@ variables {R : Type*}
 
 open_locale big_operators
 
-@[simp] lemma star_prod [comm_monoid R] [star_mul R] {α : Type*}
+@[simp] lemma star_prod [comm_monoid R] [has_star_mul R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∏ x in s, f x) = ∏ x in s, star (f x) :=
 map_prod (star_mul_aut : R ≃* R) _ _
 
-@[simp] lemma star_sum [add_comm_monoid R] [star_add_monoid R] {α : Type*}
+@[simp] lemma star_sum [add_comm_monoid R] [has_star_add R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-(star_add_equiv : R ≃+ R).map_sum _ _
+(star_add_aut : R ≃+ R).map_sum _ _

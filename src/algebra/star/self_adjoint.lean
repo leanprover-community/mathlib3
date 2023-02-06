@@ -64,11 +64,11 @@ lemma star_iff [has_involutive_star R] {x : R} : is_self_adjoint (star x) ↔ is
 by simpa only [is_self_adjoint, star_star] using eq_comm
 
 @[simp]
-lemma star_mul_self [has_mul R] [star_mul R] (x : R) : is_self_adjoint (star x * x) :=
+lemma star_mul_self [has_mul R] [has_star_mul R] (x : R) : is_self_adjoint (star x * x) :=
 by simp only [is_self_adjoint, star_mul, star_star]
 
 @[simp]
-lemma mul_star_self [has_mul R] [star_mul R] (x : R) : is_self_adjoint (x * star x) :=
+lemma mul_star_self [has_mul R] [has_star_mul R] (x : R) : is_self_adjoint (x * star x) :=
 by simpa only [star_star] using star_mul_self (star x)
 
 /-- Functions in a `star_hom_class` preserve self-adjoint elements. -/
@@ -77,7 +77,7 @@ lemma star_hom_apply {F R S : Type*} [has_star R] [has_star S] [star_hom_class F
 show star (f x) = f x, from map_star f x ▸ congr_arg f hx
 
 section add_group
-variables [add_group R] [star_add_monoid R]
+variables [add_group R] [has_star_add R]
 
 variables (R)
 
@@ -153,7 +153,7 @@ by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
 end field
 
 section has_smul
-variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
+variables [has_star R] [has_trivial_star R] [add_group A] [has_star_add A]
 
 lemma smul [has_smul R A] [star_module R A] (r : R) {x : A} (hx : is_self_adjoint x) :
   is_self_adjoint (r • x) :=
@@ -166,14 +166,14 @@ end is_self_adjoint
 variables (R)
 
 /-- The self-adjoint elements of a star additive group, as an additive subgroup. -/
-def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
+def self_adjoint [add_group R] [has_star_add R] : add_subgroup R :=
 { carrier := {x | is_self_adjoint x},
   zero_mem' := star_zero R,
   add_mem' := λ _ _ hx, hx.add,
   neg_mem' := λ _ hx, hx.neg }
 
 /-- The skew-adjoint elements of a star additive group, as an additive subgroup. -/
-def skew_adjoint [add_comm_group R] [star_add_monoid R] : add_subgroup R :=
+def skew_adjoint [add_comm_group R] [has_star_add R] : add_subgroup R :=
 { carrier := {x | star x = -x},
   zero_mem' := show star (0 : R) = -0, by simp only [star_zero, neg_zero],
   add_mem' := λ x y (hx : star x = -x) (hy : star y = -y),
@@ -185,7 +185,7 @@ variables {R}
 namespace self_adjoint
 
 section add_group
-variables [add_group R] [star_add_monoid R]
+variables [add_group R] [has_star_add R]
 
 lemma mem_iff {x : R} : x ∈ self_adjoint R ↔ star x = x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
@@ -294,7 +294,7 @@ function.injective.field _ subtype.coe_injective
 end field
 
 section has_smul
-variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
+variables [has_star R] [has_trivial_star R] [add_group A] [has_star_add A]
 
 instance [has_smul R A] [star_module R A] : has_smul R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, x.prop.smul r⟩⟩
@@ -312,7 +312,7 @@ function.injective.distrib_mul_action (self_adjoint A).subtype subtype.coe_injec
 end has_smul
 
 section module
-variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
+variables [has_star R] [has_trivial_star R] [add_comm_group A] [has_star_add A]
 
 instance [semiring R] [module R A] [star_module R A] : module R (self_adjoint A) :=
 function.injective.module R (self_adjoint A).subtype subtype.coe_injective coe_smul
@@ -324,7 +324,7 @@ end self_adjoint
 namespace skew_adjoint
 
 section add_group
-variables [add_comm_group R] [star_add_monoid R]
+variables [add_comm_group R] [has_star_add R]
 
 lemma mem_iff {x : R} : x ∈ skew_adjoint R ↔ star x = -x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
@@ -356,7 +356,7 @@ is_star_normal_of_mem (set_like.coe_mem _)
 end ring
 
 section has_smul
-variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
+variables [has_star R] [has_trivial_star R] [add_comm_group A] [has_star_add A]
 
 lemma smul_mem [monoid R] [distrib_mul_action R A] [star_module R A] (r : R) {x : A}
   (h : x ∈ skew_adjoint A) : r • x ∈ skew_adjoint A :=
@@ -382,19 +382,19 @@ end skew_adjoint
 instance is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
 ⟨by simp only [star_comm_self, star_zero]⟩
 
-instance is_star_normal_one [monoid R] [star_mul R] : is_star_normal (1 : R) :=
+instance is_star_normal_one [monoid R] [has_star_mul R] : is_star_normal (1 : R) :=
 ⟨by simp only [star_comm_self, star_one]⟩
 
-instance is_star_normal_star_self [monoid R] [star_mul R] {x : R} [is_star_normal x] :
+instance is_star_normal_star_self [monoid R] [has_star_mul R] {x : R} [is_star_normal x] :
   is_star_normal (star x) :=
 ⟨show star (star x) * (star x) = (star x) * star (star x), by rw [star_star, star_comm_self']⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_trivial_star.is_star_normal [monoid R] [star_mul R]
+instance has_trivial_star.is_star_normal [monoid R] [has_star_mul R]
   [has_trivial_star R] {x : R} : is_star_normal x :=
 ⟨by rw [star_trivial]⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance comm_monoid.is_star_normal [comm_monoid R] [star_mul R] {x : R} :
+instance comm_monoid.is_star_normal [comm_monoid R] [has_star_mul R] {x : R} :
   is_star_normal x :=
 ⟨mul_comm _ _⟩

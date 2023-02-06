@@ -313,7 +313,7 @@ begin
 end
 
 @[simp] lemma block_diagonal_conj_transpose
-  {α : Type*} [add_monoid α] [star_add_monoid α] (M : o → matrix m n α) :
+  {α : Type*} [add_monoid α] [has_star_add α] (M : o → matrix m n α) :
   (block_diagonal M)ᴴ = block_diagonal (λ k, (M k)ᴴ) :=
 begin
   simp only [conj_transpose, block_diagonal_transpose],
@@ -416,7 +416,7 @@ rfl
 ext $ λ i j, rfl
 
 @[simp] lemma block_diag_conj_transpose
-  {α : Type*} [add_monoid α] [star_add_monoid α] (M : matrix (m × o) (n × o) α) (k : o) :
+  {α : Type*} [add_monoid α] [has_star_add α] (M : matrix (m × o) (n × o) α) (k : o) :
   block_diag Mᴴ k = (block_diag M k)ᴴ :=
 ext $ λ i j, rfl
 
@@ -528,7 +528,7 @@ begin
   split_ifs; cc
 end
 
-@[simp] lemma block_diagonal'_conj_transpose {α} [add_monoid α] [star_add_monoid α]
+@[simp] lemma block_diagonal'_conj_transpose {α} [add_monoid α] [has_star_add α]
   (M : Π i, matrix (m' i) (n' i) α) :
   (block_diagonal' M)ᴴ = block_diagonal' (λ k, (M k)ᴴ) :=
 begin
@@ -637,7 +637,7 @@ rfl
 ext $ λ i j, rfl
 
 @[simp] lemma block_diag'_conj_transpose
-  {α : Type*} [add_monoid α] [star_add_monoid α] (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) :
+  {α : Type*} [add_monoid α] [has_star_add α] (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) :
   block_diag' Mᴴ k = (block_diag' M k)ᴴ :=
 ext $ λ i j, rfl
 

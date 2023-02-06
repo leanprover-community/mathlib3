@@ -281,10 +281,10 @@ hf.has_sum.unop.summable
 end mul_opposite
 
 section has_continuous_star
-variables [star_add_monoid α] [has_continuous_star α]
+variables [has_star_add α] [has_continuous_star α]
 
 lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
-by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
+by simpa only using h.map (star_add_aut : α ≃+ α) continuous_star
 
 lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
 hf.has_sum.star.summable
@@ -590,7 +590,7 @@ end
 end has_continuous_add
 
 section has_continuous_star
-variables [star_add_monoid α] [has_continuous_star α]
+variables [has_star_add α] [has_continuous_star α]
 
 lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
 begin

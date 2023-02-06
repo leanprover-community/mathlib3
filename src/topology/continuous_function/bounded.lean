@@ -1206,10 +1206,10 @@ completeness is guaranteed when `β` is complete (see
 section normed_add_comm_group
 
 variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜] [topological_space α]
-  [seminormed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
+  [seminormed_add_comm_group β] [has_star_add β] [normed_star_group β]
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 
-instance : star_add_monoid (α →ᵇ β) :=
+instance : has_star_add (α →ᵇ β) :=
 { star            := λ f, f.comp star star_normed_add_group_hom.lipschitz,
   star_involutive := λ f, ext $ λ x, star_star (f x),
   star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
@@ -1235,7 +1235,7 @@ variables [non_unital_normed_ring β] [star_ring β]
 
 instance [normed_star_group β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
-  ..bounded_continuous_function.star_add_monoid }
+  ..bounded_continuous_function.has_star_add }
 
 variable [cstar_ring β]
 

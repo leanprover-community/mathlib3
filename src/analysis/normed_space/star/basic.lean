@@ -35,7 +35,7 @@ open_locale topological_space
 local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star group is a normed group with a compatible `star` which is isometric. -/
-class normed_star_group (E : Type*) [seminormed_add_comm_group E] [star_add_monoid E] : Prop :=
+class normed_star_group (E : Type*) [seminormed_add_comm_group E] [has_star_add E] : Prop :=
 (norm_star : ∀ x : E, ‖x⋆‖ = ‖x‖)
 
 export normed_star_group (norm_star)
@@ -44,19 +44,19 @@ attribute [simp] norm_star
 variables {𝕜 E α : Type*}
 
 section normed_star_group
-variables [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
+variables [seminormed_add_comm_group E] [has_star_add E] [normed_star_group E]
 
 @[simp] lemma nnnorm_star (x : E) : ‖star x‖₊ = ‖x‖₊ := subtype.ext $ norm_star _
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
 def star_normed_add_group_hom : normed_add_group_hom E E :=
 { bound' := ⟨1, λ v, le_trans (norm_star _).le (one_mul _).symm.le⟩,
-  .. star_add_equiv }
+  .. star_add_aut }
 
 /-- The `star` map in a normed star group is an isometry -/
 lemma star_isometry : isometry (star : E → E) :=
-show isometry star_add_equiv,
-by exact add_monoid_hom_class.isometry_of_norm star_add_equiv
+show isometry star_add_aut,
+by exact add_monoid_hom_class.isometry_of_norm star_add_aut
     (show ∀ x, ‖x⋆‖ = ‖x‖, from norm_star)
 
 @[priority 100]
@@ -91,7 +91,7 @@ instance to_normed_star_group : normed_star_group E :=
   { simp only [htriv, star_zero] },
   { have hnt : 0 < ‖x‖ := norm_pos_iff.mpr htriv,
     have hnt_star : 0 < ‖x⋆‖ :=
-      norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_equiv).mpr htriv),
+      norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_aut).mpr htriv),
     have h₁ := calc
       ‖x‖ * ‖x‖ = ‖x⋆ * x‖        : norm_star_mul_self.symm
             ... ≤ ‖x⋆‖ * ‖x‖      : norm_mul_le _ _,
@@ -237,7 +237,7 @@ x.prop.nnnorm_pow_two_pow _
 section starₗᵢ
 
 variables [comm_semiring 𝕜] [star_ring 𝕜]
-variables [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
+variables [seminormed_add_comm_group E] [has_star_add E] [normed_star_group E]
 variables [module 𝕜 E] [star_module 𝕜 E]
 
 variables (𝕜)
@@ -245,7 +245,7 @@ variables (𝕜)
 def starₗᵢ : E ≃ₗᵢ⋆[𝕜] E :=
 { map_smul' := star_smul,
   norm_map' := norm_star,
-  .. star_add_equiv }
+  .. star_add_aut }
 
 variables {𝕜}
 

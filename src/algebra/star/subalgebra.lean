@@ -455,7 +455,7 @@ def adjoin_comm_semiring_of_comm {s : set A}
       cases ha; cases hb,
       exacts [hcomm _ ha _ hb, star_star b ▸ hcomm_star _ ha _ hb,
         star_star a ▸ (hcomm_star _ hb _ ha).symm,
-        by simpa only [star_mul, star_star] using congr_arg star (hcomm _ hb _ ha)],
+        by simpa only [has_star_mul, star_star] using congr_arg star (hcomm _ hb _ ha)],
     end,
     exact congr_arg coe (mul_comm (⟨x, hx⟩ : algebra.adjoin R (s ∪ star s)) ⟨y, hy⟩),
   end,

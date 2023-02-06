@@ -69,7 +69,7 @@ variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 
-open_locale real nnreal interval pointwise topological_space
+open_locale real nnreal interval pointwise topology
 open complex measure_theory topological_space metric function set filter asymptotics
 
 /-!

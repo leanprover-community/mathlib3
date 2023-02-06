@@ -28,7 +28,7 @@ generally, see `has_sum.tendsto_sum_nat`.
 
 noncomputable theory
 open finset filter function classical
-open_locale topological_space classical big_operators nnreal
+open_locale topology classical big_operators nnreal
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -162,6 +162,10 @@ begin
   assume b' hb',
   exact if_neg hb'
 end
+
+lemma has_sum_pi_single [decidable_eq β] (b : β) (a : α) :
+  has_sum (pi.single b a) a :=
+show has_sum (λ x, pi.single b a x) a, by simpa only [pi.single_apply] using has_sum_ite_eq b a
 
 lemma equiv.has_sum_iff (e : γ ≃ β) :
   has_sum (f ∘ e) a ↔ has_sum f a :=
@@ -405,6 +409,35 @@ lemma has_sum.sigma_of_has_sum [t3_space α] {γ : β → Type*} {f : (Σ b:β, 
   has_sum f a :=
 by simpa [(hf'.has_sum.sigma hf).unique ha] using hf'.has_sum
 
+/-- Version of `has_sum.update` for `add_comm_monoid` rather than `add_comm_group`.
+Rather than showing that `f.update` has a specific sum in terms of `has_sum`,
+it gives a relationship between the sums of `f` and `f.update` given that both exist. -/
+lemma has_sum.update' {α β : Type*} [topological_space α] [add_comm_monoid α] [t2_space α]
+  [has_continuous_add α] {f : β → α} {a a' : α} (hf : has_sum f a)
+  (b : β) (x : α) (hf' : has_sum (f.update b x) a') : a + x = a' + f b :=
+begin
+  have : ∀ b', f b' + ite (b' = b) x 0 = f.update b x b' + ite (b' = b) (f b) 0,
+  { intro b',
+    split_ifs with hb',
+    { simpa only [function.update_apply, hb', eq_self_iff_true] using add_comm (f b) x },
+    { simp only [function.update_apply, hb', if_false] } },
+  have h := hf.add ((has_sum_ite_eq b x)),
+  simp_rw this at h,
+  exact has_sum.unique h (hf'.add (has_sum_ite_eq b (f b)))
+end
+
+/-- Version of `has_sum_ite_sub_has_sum` for `add_comm_monoid` rather than `add_comm_group`.
+Rather than showing that the `ite` expression has a specific sum in terms of `has_sum`,
+it gives a relationship between the sums of `f` and `ite (n = b) 0 (f n)` given that both exist. -/
+lemma eq_add_of_has_sum_ite {α β : Type*} [topological_space α] [add_comm_monoid α]
+  [t2_space α] [has_continuous_add α] {f : β → α} {a : α} (hf : has_sum f a) (b : β) (a' : α)
+  (hf' : has_sum (λ n, ite (n = b) 0 (f n)) a') : a = a' + f b :=
+begin
+  refine (add_zero a).symm.trans (hf.update' b 0 _),
+  convert hf',
+  exact funext (f.update_apply b 0),
+end
+
 end has_sum
 
 section tsum
@@ -446,6 +479,13 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
 
+lemma sum_eq_tsum_indicator (f : β → α) (s : finset β) :
+  ∑ x in s, f x = ∑' x, set.indicator ↑s f x :=
+have ∀ x ∉ s, set.indicator ↑s f x = 0,
+from λ x hx, set.indicator_apply_eq_zero.2 (λ hx', (hx $ finset.mem_coe.1 hx').elim),
+(finset.sum_congr rfl (λ x hx, (set.indicator_apply_eq_self.2 $
+  λ hx', (hx' $ finset.mem_coe.2 hx).elim).symm)).trans (tsum_eq_sum this).symm
+
 lemma tsum_congr {α β : Type*} [add_comm_monoid α] [topological_space α]
   {f g : β → α} (hfg : ∀ b, f b = g b) : ∑' b, f b = ∑' b, g b :=
 congr_arg tsum (funext hfg)
@@ -469,6 +509,10 @@ calc ∑' b' c', f b' c' = ∑' b', f b' c : tsum_congr $ λ b', tsum_eq_single 
 @[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
+
+@[simp] lemma tsum_pi_single [decidable_eq β] (b : β) (a : α) :
+  ∑' b', pi.single b a b' = a :=
+(has_sum_pi_single b a).tsum_eq
 
 lemma tsum_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
   ∑' (b : β), (if h : P then (0 : α) else x b h) = if h : P then (0 : α) else ∑' (b : β), x b h :=
@@ -568,6 +612,19 @@ lemma tsum_add (hf : summable f) (hg : summable g) : ∑'b, (f b + g b) = (∑'b
 lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (f i)) :
   ∑'b, ∑ i in s, f i b = ∑ i in s, ∑'b, f i b :=
 (has_sum_sum $ assume i hi, (hf i hi).has_sum).tsum_eq
+
+/-- Version of `tsum_eq_add_tsum_ite` for `add_comm_monoid` rather than `add_comm_group`.
+Requires a different convergence assumption involving `function.update`. -/
+lemma tsum_eq_add_tsum_ite' {f : β → α} (b : β) (hf : summable (f.update b 0)) :
+  ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
+calc ∑' x, f x = ∑' x, ((ite (x = b) (f x) 0) + (f.update b 0 x)) :
+    tsum_congr (λ n, by split_ifs; simp [function.update_apply, h])
+  ... = ∑' x, ite (x = b) (f x) 0 + ∑' x, f.update b 0 x :
+    tsum_add ⟨ite (b = b) (f b) 0, has_sum_single b (λ b hb, if_neg hb)⟩ (hf)
+  ... = (ite (b = b) (f b) 0) + ∑' x, f.update b 0 x :
+    by { congr, exact (tsum_eq_single b (λ b' hb', if_neg hb')) }
+  ... = f b + ∑' x, ite (x = b) 0 (f x) :
+    by simp only [function.update, eq_self_iff_true, if_true, eq_rec_constant, dite_eq_ite]
 
 variables [add_comm_monoid δ] [topological_space δ] [t3_space δ] [has_continuous_add δ]
 
@@ -798,7 +855,7 @@ lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :
   summable (f ∘ coe : sᶜ → α) ↔ summable f :=
 (hs.summable f).summable_compl_iff
 
-lemma has_sum_ite_eq_extract [decidable_eq β] (hf : has_sum f a) (b : β) :
+lemma has_sum_ite_sub_has_sum [decidable_eq β] (hf : has_sum f a) (b : β) :
   has_sum (λ n, ite (n = b) 0 (f n)) (a - f b) :=
 begin
   convert hf.update b 0 using 1,
@@ -824,12 +881,12 @@ lemma sum_add_tsum_compl {s : finset β} (hf : summable f) :
 ((s.has_sum f).add_compl (s.summable_compl_iff.2 hf).has_sum).tsum_eq.symm
 
 /-- Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index.
-Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f b` plus the series of the
+Lemma `tsum_eq_add_tsum_ite` writes `Σ f n` as the sum of `f b` plus the series of the
 remaining terms. -/
-lemma tsum_ite_eq_extract [decidable_eq β] (hf : summable f) (b : β) :
+lemma tsum_eq_add_tsum_ite [decidable_eq β] (hf : summable f) (b : β) :
   ∑' n, f n = f b + ∑' n, ite (n = b) 0 (f n) :=
 begin
-  rw (has_sum_ite_eq_extract hf.has_sum b).tsum_eq,
+  rw (has_sum_ite_sub_has_sum hf.has_sum b).tsum_eq,
   exact (add_sub_cancel'_right _ _).symm,
 end
 
@@ -1063,29 +1120,38 @@ by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
 lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
 (h.has_sum.div_const b).summable
 
-lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a₂⁻¹⟩
+lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum (λb, a₂ * f b) (a₂ * a₁) ↔ has_sum f a₁ :=
+⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a₂⁻¹, has_sum.mul_left _⟩
 
-lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, f b * a₂) (a₁ * a₂) :=
-⟨has_sum.mul_right _, λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a₂⁻¹⟩
+lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum (λb, f b * a₂) (a₁ * a₂) ↔ has_sum f a₁ :=
+⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a₂⁻¹, has_sum.mul_right _⟩
 
-lemma summable_mul_left_iff (h : a ≠ 0) : summable f ↔ summable (λb, a * f b) :=
-⟨λ H, H.mul_left _, λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹⟩
+lemma has_sum_div_const_iff (h : a₂ ≠ 0) : has_sum (λb, f b / a₂) (a₁ / a₂) ↔ has_sum f a₁ :=
+by simpa only [div_eq_mul_inv] using has_sum_mul_right_iff (inv_ne_zero h)
 
-lemma summable_mul_right_iff (h : a ≠ 0) : summable f ↔ summable (λb, f b * a) :=
-⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹⟩
+lemma summable_mul_left_iff (h : a ≠ 0) : summable (λb, a * f b) ↔ summable f :=
+⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹, λ H, H.mul_left _⟩
+
+lemma summable_mul_right_iff (h : a ≠ 0) : summable (λb, f b * a) ↔ summable f :=
+⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹, λ H, H.mul_right _⟩
+
+lemma summable_div_const_iff (h : a ≠ 0) : summable (λb, f b / a) ↔ summable f :=
+by simpa only [div_eq_mul_inv] using summable_mul_right_iff (inv_ne_zero h)
 
 lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
 if hf : summable f then hf.tsum_mul_left a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).2 hf), mul_zero]
+  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).mp hf), mul_zero]
 
 lemma tsum_mul_right [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
 if hf : summable f then hf.tsum_mul_right a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]
+  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).mp hf), zero_mul]
+
+lemma tsum_div_const [t2_space α] : (∑' x, f x / a) = (∑' x, f x) / a :=
+by simpa only [div_eq_mul_inv] using tsum_mul_right
 
 end division_ring
 

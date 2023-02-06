@@ -8,6 +8,9 @@ import algebra.star.basic
 
 /-! # Big-operators lemmas about `star` algebraic operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These results are kept separate from `algebra.star.basic` to avoid it needing to import `finset`.
 -/
 

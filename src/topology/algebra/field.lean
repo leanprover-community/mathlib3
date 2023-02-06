@@ -178,7 +178,7 @@ end affine_homeomorph
 section local_extr
 
 variables {α β : Type*} [topological_space α] [linear_ordered_semifield β] {a : α}
-open_locale topological_space
+open_locale topology
 
 lemma is_local_min.inv {f : α → β} {a : α} (h1 : is_local_min f a) (h2 : ∀ᶠ z in 𝓝 a, 0 < f z) :
   is_local_max f⁻¹ a :=

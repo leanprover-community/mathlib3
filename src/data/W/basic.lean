@@ -8,6 +8,9 @@ import logic.equiv.list
 /-!
 # W types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
 inductively defined type of trees where the nodes are labeled by elements of `α` and the children of
 a node labeled `a` are indexed by elements of `β a`.

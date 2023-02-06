@@ -18,6 +18,7 @@ supplied for true NFA's.
 -/
 
 open set
+open_locale computability
 
 universes u v
 
@@ -89,7 +90,7 @@ end
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
   (hlen : fintype.card (set σ) ≤ list.length x) :
   ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
-  {a} * language.star {b} * {c} ≤ M.accepts :=
+    {a} * {b}∗ * {c} ≤ M.accepts :=
 begin
   rw ←to_DFA_correct at hx ⊢,
   exact M.to_DFA.pumping_lemma hx hlen

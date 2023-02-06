@@ -19,7 +19,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal uniformity uniform_convergence
+open_locale topology classical nnreal uniformity uniform_convergence
 
 open set filter metric function
 

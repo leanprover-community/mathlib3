@@ -9,6 +9,9 @@ import data.set.intervals.unordered_interval
 /-!
 # Locally finite orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines locally finite orders.
 
 A locally finite order is an order for which all bounded intervals are finite. This allows to make

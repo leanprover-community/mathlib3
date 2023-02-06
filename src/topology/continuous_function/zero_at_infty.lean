@@ -24,7 +24,7 @@ universes u v w
 
 variables {F : Type*} {α : Type u} {β : Type v} {γ : Type w} [topological_space α]
 
-open_locale bounded_continuous_function topological_space
+open_locale bounded_continuous_function topology
 open filter metric
 
 /-- `C₀(α, β)` is the type of continuous functions `α → β` which vanish at infinity from a

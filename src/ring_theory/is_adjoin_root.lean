@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import data.polynomial.algebra_map
-import field_theory.minpoly.gcd_monoid
+import field_theory.minpoly.is_integrally_closed
 import ring_theory.power_basis
 
 /-!
@@ -289,6 +289,24 @@ protected def is_adjoin_root_monic (hf : monic f) :
   is_adjoin_root_monic (adjoin_root f) f :=
 { monic := hf,
   .. adjoin_root.is_adjoin_root f }
+
+@[simp]
+lemma is_adjoin_root_map_eq_mk :
+  (adjoin_root.is_adjoin_root f).map = adjoin_root.mk f := rfl
+
+@[simp]
+lemma is_adjoin_root_monic_map_eq_mk (hf : f.monic) :
+  (adjoin_root.is_adjoin_root_monic f hf).map = adjoin_root.mk f := rfl
+
+@[simp]
+lemma is_adjoin_root_root_eq_root :
+  (adjoin_root.is_adjoin_root f).root = adjoin_root.root f :=
+by simp only [is_adjoin_root.root, adjoin_root.root, adjoin_root.is_adjoin_root_map_eq_mk]
+
+@[simp]
+lemma is_adjoin_root_monic_root_eq_root (hf : monic f) :
+  (adjoin_root.is_adjoin_root_monic f hf).root = adjoin_root.root f :=
+by simp only [is_adjoin_root.root, adjoin_root.root, adjoin_root.is_adjoin_root_monic_map_eq_mk]
 
 end adjoin_root
 
@@ -627,10 +645,10 @@ end is_adjoin_root
 
 namespace is_adjoin_root_monic
 
-lemma minpoly_eq [is_domain R] [is_domain S] [no_zero_smul_divisors R S] [normalized_gcd_monoid R]
+lemma minpoly_eq [is_domain R] [is_domain S] [no_zero_smul_divisors R S] [is_integrally_closed R]
   (h : is_adjoin_root_monic S f) (hirr : irreducible f) :
   minpoly R h.root = f :=
-let ⟨q, hq⟩ := minpoly.gcd_domain_dvd h.is_integral_root h.monic.ne_zero h.aeval_root in
+let ⟨q, hq⟩ := minpoly.is_integrally_closed_dvd h.is_integral_root h.aeval_root in
 symm $ eq_of_monic_of_associated h.monic (minpoly.monic h.is_integral_root) $
 by convert (associated.mul_left (minpoly R h.root) $
     associated_one_iff_is_unit.2 $ (hirr.is_unit_or_is_unit hq).resolve_left $
@@ -638,5 +656,23 @@ by convert (associated.mul_left (minpoly R h.root) $
   rw mul_one
 
 end is_adjoin_root_monic
+
+section algebra
+
+open adjoin_root is_adjoin_root minpoly power_basis is_adjoin_root_monic algebra
+
+lemma algebra.adjoin.power_basis'_minpoly_gen [is_domain R] [is_domain S]
+  [no_zero_smul_divisors R S] [is_integrally_closed R] {x : S} (hx' : is_integral R x) :
+  minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
+begin
+  haveI := is_domain_of_prime (prime_of_is_integrally_closed hx'),
+  haveI := no_zero_smul_divisors_of_prime_of_degree_ne_zero
+    (prime_of_is_integrally_closed hx') (ne_of_lt (degree_pos hx')).symm,
+  rw [← minpoly_gen_eq, adjoin.power_basis', minpoly_gen_map, minpoly_gen_eq, power_basis'_gen,
+    ← is_adjoin_root_monic_root_eq_root _ (monic hx'), minpoly_eq],
+  exact irreducible hx',
+end
+
+end algebra
 
 end comm_ring

@@ -10,6 +10,9 @@ import data.set.pointwise.basic
 /-!
 # Pointwise star operation on sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the star operation pointwise on sets and provides the basic API.
 Besides basic facts about about how the star operation acts on sets (e.g., `(s ∩ t)⋆ = s⋆ ∩ t⋆`),
 if `s t : set α`, then under suitable assumption on `α`, it is shown

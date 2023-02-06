@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # The topological support of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the topological support of a function `f`, `tsupport f`,
 as the closure of the support of `f`.
 
@@ -28,7 +31,7 @@ Furthermore, we say that `f` has compact support if the topological support of `
 -/
 
 open function set filter
-open_locale topological_space
+open_locale topology
 
 variables {X α α' β γ δ M E R : Type*}
 

@@ -16,10 +16,11 @@ We follow the proof described here:
 http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 -/
 
-
 open real set function fin
 
 noncomputable theory
+
+namespace «82»
 
 variable {n : ℕ}
 
@@ -500,6 +501,10 @@ omit h
 /-- The infinite sequence of cubes contradicts the finiteness of the family. -/
 theorem not_correct : ¬correct cs :=
 λ h, (finite.of_injective _ $ injective_sequence_of_cubes h).false
+
+end «82»
+
+open «82»
 
 /-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :

@@ -308,201 +308,85 @@ begin
     (ae_mono (measure.restrict_mono (subset_union_left s t) le_rfl) H.1.ae_eq_mk.symm)
 end
 
-/-- If a function is integrable on a set `s` and nonzero there, then the measurable hull of `s` is
-well behaved: the restriction of the measure to `to_measurable μ s` coincides with its restriction
-to `s`. -/
-lemma integrable_on.restrict_to_measurable (hf : integrable_on f s μ) (h's : ∀ x ∈ s, f x ≠ 0) :
-  μ.restrict (to_measurable μ s) = μ.restrict s :=
-begin
-  rcases exists_seq_strict_anti_tendsto (0 : ℝ) with ⟨u, u_anti, u_pos, u_lim⟩,
-  let v := λ n, to_measurable (μ.restrict s) {x | u n ≤ ‖f x‖},
-  have A : ∀ n, μ (s ∩ v n) ≠ ∞,
-  { assume n,
-    rw [inter_comm, ← measure.restrict_apply (measurable_set_to_measurable _ _),
-      measure_to_measurable],
-    exact (hf.measure_ge_lt_top (u_pos n)).ne },
-  apply measure.restrict_to_measurable_of_cover _ A,
-  assume x hx,
-  have : 0 < ‖f x‖, by simp only [h's x hx, norm_pos_iff, ne.def, not_false_iff],
-  obtain ⟨n, hn⟩ : ∃ n, u n < ‖f x‖, from ((tendsto_order.1 u_lim).2 _ this).exists,
-  refine mem_Union.2 ⟨n, _⟩,
-  exact subset_to_measurable _ _ hn.le
-end
-
-/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
-if `t` is null-measurable. -/
-lemma integrable_on.of_forall_diff_eq_zero₀ (hf : integrable_on f s μ)
-  (ht : null_measurable_set t μ) (h't : ∀ x ∈ t \ s, f x = 0) :
-  integrable_on f t μ :=
-begin
-  let u := {x ∈ s | f x ≠ 0},
-  have hu : integrable_on f u μ := hf.mono (λ x hx, hx.1) le_rfl,
-  let v := to_measurable μ u,
-  have A : integrable_on f v μ,
-  { rw [integrable_on, hu.restrict_to_measurable],
-    { exact hu },
-    { assume x hx, exact hx.2 } },
-  have B : integrable_on f (t \ v) μ,
-  { apply integrable_on_zero.congr,
-    filter_upwards [ae_restrict_mem₀
-      (ht.diff (measurable_set_to_measurable μ u).null_measurable_set)] with x hx,
-    by_cases h'x : x ∈ s,
-    { by_contra H,
-      exact hx.2 (subset_to_measurable μ u ⟨h'x, ne.symm H⟩) },
-    { exact (h't x ⟨hx.1, h'x⟩).symm, } },
-  apply (A.union B).mono _ le_rfl,
-  rw union_diff_self,
-  exact subset_union_right _ _
-end
-
-/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
-if `t` is null-measurable. -/
-lemma integrable_on.of_forall_diff_eq_zero (hf : integrable_on f s μ)
-  (ht : measurable_set t) (h't : ∀ x ∈ t \ s, f x = 0) :
-  integrable_on f t μ :=
-hf.of_forall_diff_eq_zero₀ ht.null_measurable_set h't
-
-/-- If a function is integrable on a set `s` and vanishes on its complement, then it is
-integrable. -/
-lemma integrable_on.integrable_of_forall_not_mem_eq_zero (hf : integrable_on f s μ)
-  (h't : ∀ x, x ∉ s → f x = 0) : integrable f μ :=
-begin
-  rw ← integrable_on_univ,
-  exact hf.of_forall_diff_eq_zero measurable_set.univ (λ x hx, h't x hx.2),
-end
-
-lemma set_integral_eq_of_subset_of_forall_diff_eq_zero₀_aux
-  (ht : null_measurable_set t μ) (hts : s ⊆ t) (h't : ∀ x ∈ t \ s, f x = 0)
-  (haux : ∀ x ∈ s, f x ≠ 0) (h'aux : integrable_on f t μ) :
-  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
-begin
-  have A : integrable_on f (to_measurable μ s) μ,
-  { rw [integrable_on, integrable_on.restrict_to_measurable (h'aux.mono hts le_rfl) haux],
-    exact h'aux.mono hts le_rfl },
-  calc ∫ x in t, f x ∂μ = ∫ x in t ∪ to_measurable μ s, f x ∂μ :
-    begin
-      have B : tᶜ ∩ s = ∅ := eq_empty_of_forall_not_mem (λ x hx, hx.1 (hts hx.2)),
-      apply set_integral_congr_set_ae,
-      symmetry,
-      rw [union_comm, union_ae_eq_right, diff_eq, inter_comm,
-        ← measure.restrict_apply₀ (ht.compl.mono measure.restrict_le_self),
-        integrable_on.restrict_to_measurable (h'aux.mono hts le_rfl) haux,
-        measure.restrict_apply₀ (ht.compl.mono measure.restrict_le_self), B, measure_empty],
-    end
-  ... = ∫ x in (t \ to_measurable μ s) ∪ (to_measurable μ s), f x ∂μ : by rw diff_union_self
-  ... = ∫ x in (t \ to_measurable μ s), f x ∂μ + ∫ x in to_measurable μ s, f x ∂μ :
-    by rw integral_union_ae disjoint_sdiff_left.ae_disjoint
-      (measurable_set_to_measurable _ _).null_measurable_set
-      (h'aux.mono (diff_subset _ _) le_rfl) A
-  ... = 0 + ∫ x in s, f x ∂μ :
-    begin
-      congr' 1,
-      { apply set_integral_eq_zero_of_forall_eq_zero,
-        assume x hx,
-        exact h't _ ⟨hx.1, λ h, hx.2 (subset_to_measurable μ s h)⟩ },
-      { rw integrable_on.restrict_to_measurable (h'aux.mono hts le_rfl) haux }
-    end
-  ... = ∫ x in s, f x ∂μ : zero_add _
-end
-
-lemma set_integral_eq_of_subset_of_forall_diff_eq_zero₀_aux2
-  (ht : null_measurable_set t μ) (hts : s ⊆ t) (h't : ∀ x ∈ t \ s, f x = 0)
-  (hf : integrable_on f t μ) :
-  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
-begin
-  let k := f ⁻¹' {0} ∩ t,
-  have A : null_measurable_set k μ, sorry,
-  have B : ∫ x in s, f x ∂μ = ∫ x in s ∩ k, f x ∂μ + ∫ x in s \ k, f x ∂μ,
-  { rw integral_inter_add_diff₀ A,
-    exact hf.mono hts le_rfl },
-  have C : ∫ x in s \ k, f x ∂μ = ∫ x in t, f x ∂μ,
-  { symmetry,
-    apply set_integral_eq_of_subset_of_forall_diff_eq_zero₀_aux ht _ _ _ hf,
-    { apply (inter_subset_left _ _).trans hts },
-    { assume x hx,
-      by_cases h'x : x ∈ s,
-      { have Z := hx.2,
-        simp only [h'x, mem_diff, true_and, not_not, mem_inter_iff, mem_preimage, mem_singleton_iff]
-          at Z,
-        exact Z.1 },
-      { exact h't x ⟨hx.1, h'x⟩ } },
-    { assume x hx h,
-      apply hx.2, } },
-  have D : ∫ x in s ∩ k, f x ∂μ = 0 := set_integral_eq_zero_of_forall_eq_zero (λ x hx, hx.2),
-  rw [C, D, zero_add] at B,
-  exact B.symm,
-end
-
-#exit
-
-
-begin
-  by_cases h : integrable_on f t μ, swap,
-  { have : ¬(integrable_on f s μ) := λ H, h (H.of_forall_diff_eq_zero₀ ht h't),
-    rw [integral_undef h, integral_undef this] },
-  let u := {x ∈ s | f x ≠ 0},
-  calc
-
-end
-
-#exit
-
-  have C : ∫ x in (t \ to_measurable μ s), f x ∂μ + ∫ x in to_measurable μ s, f x ∂μ
-    = ∫ x in (t \ to_measurable μ s) ∪ (to_measurable μ s), f x ∂μ,
-  by rw integral_union_ae disjoint_sdiff_left.ae_disjoint
-      (measurable_set_to_measurable _ _).null_measurable_set
-      (h'aux.mono (diff_subset _ _) le_rfl) A0,
-  rw [A, B, zero_add, diff_union_self] at C,
-  rw C,
-  apply set_integral_congr_set_ae,
-
-end
-
-#exit
-  have : integrable_on f t μ,
-  { rw [integrable_on, this], exact hf },
-  have : integrable_on f (tᶜ) μ,
-  { apply integrable_on_zero.congr,
-
-  }
-end
-
-
-lemma glouk (hf : integrable_on f s μ) (h'f : ∀ x, x ∉ s → f x = 0) : integrable f μ :=
-begin
-  set t := {x ∈ s | f x ≠ 0} with ht,
-  have : integrable_on f t μ := hf.mono_set (λ x hx, hx.1),
-  refine glouk_aux this (λ x hx, _) (λ x hx, hx.2),
-  by_cases h'x : x ∈ s,
-  { rw [ht] at hx, simpa [h'x] using hx },
-  { exact h'f x h'x }
-end
-
-
-#exit
-
-lemma set_integral_union_eq_left_of_forall₀ {f : α → E}
+lemma integral_union_eq_left_of_forall₀ {f : α → E}
   (ht : null_measurable_set t μ) (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
-set_integral_union_eq_left_of_ae ((ae_restrict_iff'₀ ht).2 (eventually_of_forall ht_eq))
+integral_union_eq_left_of_ae ((ae_restrict_iff'₀ ht).2 (eventually_of_forall ht_eq))
 
-lemma set_integral_union_eq_left_of_forall {f : α → E}
+lemma integral_union_eq_left_of_forall {f : α → E}
   (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
-set_integral_union_eq_left_of_forall₀ ht.null_measurable_set ht_eq
+integral_union_eq_left_of_forall₀ ht.null_measurable_set ht_eq
 
-lemma set_integral_eq_of_subset₀
-  (hst : s ⊆ t) (ht : null_measurable_set (t \ s) μ) (h : ∀ x ∈ t \ s, f x = 0) :
-  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+lemma set_integral_eq_of_subset_of_ae_diff_eq_zero_aux
+  (hts : s ⊆ t) (h't : ∀ᵐ x ∂μ, x ∈ t \ s → f x = 0)
+  (haux : strongly_measurable f) (h'aux : integrable_on f t μ) :
+  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
-  rw [← union_diff_cancel hst, eq_comm],
-  exact set_integral_union_eq_left_of_forall₀ ht h,
+  let k := f ⁻¹' {0},
+  have hk : measurable_set k,
+  { borelize E, exact haux.measurable (measurable_set_singleton _) },
+  calc
+  ∫ x in t, f x ∂μ
+      = ∫ x in t ∩ k, f x ∂μ + ∫ x in t \ k, f x ∂μ :
+    by rw integral_inter_add_diff hk h'aux
+  ... = ∫ x in t \ k, f x ∂μ :
+    by { rw [set_integral_eq_zero_of_forall_eq_zero (λ x hx, _), zero_add], exact hx.2 }
+  ... = ∫ x in s \ k, f x ∂μ :
+    begin
+      apply set_integral_congr_set_ae,
+      filter_upwards [h't] with x hx,
+      change (x ∈ t \ k) = (x ∈ s \ k),
+      simp only [mem_preimage, mem_singleton_iff, eq_iff_iff, and.congr_left_iff, mem_diff],
+      assume h'x,
+      by_cases xs : x ∈ s,
+      { simp only [xs, hts xs] },
+      { simp only [xs, iff_false],
+        assume xt,
+        exact h'x (hx ⟨xt, xs⟩) }
+    end
+  ... = ∫ x in s ∩ k, f x ∂μ + ∫ x in s \ k, f x ∂μ :
+    begin
+      have : ∀ x ∈ s ∩ k, f x = 0 := λ x hx, hx.2,
+      rw [set_integral_eq_zero_of_forall_eq_zero this, zero_add],
+    end
+  ... = ∫ x in s, f x ∂μ : by rw integral_inter_add_diff hk (h'aux.mono hts le_rfl)
 end
 
-lemma set_integral_eq_of_subset
-  (hst : s ⊆ t) (ht : measurable_set (t \ s)) (h : ∀ x ∈ t \ s, f x = 0) :
-  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
-set_integral_eq_of_subset₀ hst ht.null_measurable_set h
+/-- If a function vanishes almost everywhere on `t \ s` with `s ⊆ t`, then its integrals on `s`
+and `t` coincide if `t` is null-measurable. -/
+lemma set_integral_eq_of_subset_of_ae_diff_eq_zero
+  (ht : null_measurable_set t μ) (hts : s ⊆ t) (h't : ∀ᵐ x ∂μ, x ∈ t \ s → f x = 0) :
+  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  by_cases h : integrable_on f t μ, swap,
+  { have : ¬(integrable_on f s μ) := λ H, h (H.of_ae_diff_eq_zero ht h't),
+    rw [integral_undef h, integral_undef this] },
+  let f' := h.1.mk f,
+  calc ∫ x in t, f x ∂μ
+      = ∫ x in t, f' x ∂μ : integral_congr_ae h.1.ae_eq_mk
+  ... = ∫ x in s, f' x ∂μ :
+    begin
+      apply set_integral_eq_of_subset_of_ae_diff_eq_zero_aux hts _ h.1.strongly_measurable_mk
+        (h.congr h.1.ae_eq_mk),
+      filter_upwards [h't, ae_imp_of_ae_restrict h.1.ae_eq_mk] with x hx h'x h''x,
+      rw [← h'x h''x.1, hx h''x]
+    end
+  ... = ∫ x in s, f x ∂μ :
+    begin
+      apply integral_congr_ae,
+      apply ae_restrict_of_ae_restrict_of_subset hts,
+      exact h.1.ae_eq_mk.symm
+    end
+end
+
+/-- If a function vanishes on `t \ s` with `s ⊆ t`, then its integrals on `s`
+and `t` coincide if `t` is measurable. -/
+lemma set_integral_eq_of_subset_of_forall_diff_eq_zero
+  (ht : measurable_set t) (hts : s ⊆ t) (h't : ∀ x ∈ t \ s, f x = 0) :
+  ∫ x in t, f x ∂μ = ∫ x in s, f x ∂μ :=
+set_integral_eq_of_subset_of_ae_diff_eq_zero ht.null_measurable_set hts
+  (eventually_of_forall (λ x hx, h't x hx))
 
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E]
   {f : α → E} (hf : ae_strongly_measurable f μ) :
@@ -514,7 +398,7 @@ begin
   have B : null_measurable_set {x | f x = 0} μ,
     from hf.null_measurable_set_eq_fun ae_strongly_measurable_zero,
   symmetry,
-  refine set_integral_union_eq_left_of_ae _,
+  refine integral_union_eq_left_of_ae _,
   filter_upwards [ae_restrict_mem₀ B] with x hx using hx,
 end
 

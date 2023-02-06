@@ -239,7 +239,7 @@ end torsion_polynomial
 
 section polynomial
 
-/-! ### Weierstrass polynomials and equations -/
+/-! ### Weierstrass equations -/
 
 open polynomial
 
@@ -290,15 +290,15 @@ begin
 end
 
 @[simp] lemma eval_polynomial (x y : R) :
-  eval x (eval (C y) W.polynomial)
+  (W.polynomial.eval $ C y).eval x
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
 by { simp only [weierstrass_curve.polynomial], eval_simp, rw [add_mul, ← add_assoc] }
 
-@[simp] lemma eval_polynomial_zero : eval 0 (eval 0 W.polynomial) = -W.a₆ :=
+@[simp] lemma eval_polynomial_zero : (W.polynomial.eval 0).eval 0 = -W.a₆ :=
 by simp only [← C_0, eval_polynomial, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
 
 /-- The proposition that an affine point $(x, y)$ lies in `W`. In other words, $W(x, y) = 0$. -/
-def equation (x y : R) : Prop := eval x (eval (C y) W.polynomial) = 0
+def equation (x y : R) : Prop := (W.polynomial.eval $ C y).eval x = 0
 
 lemma equation_iff' (x y : R) :
   W.equation x y ↔ y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) = 0 :=
@@ -326,46 +326,48 @@ noncomputable def polynomial_X : R[X][Y] :=
 C (C W.a₁) * Y - C (C 3 * X ^ 2 + C (2 * W.a₂) * X + C W.a₄)
 
 @[simp] lemma eval_polynomial_X (x y : R) :
-  eval x (eval (C y) W.polynomial_X) = W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) :=
+  (W.polynomial_X.eval $ C y).eval x = W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) :=
 by { simp only [polynomial_X], eval_simp }
 
-@[simp] lemma eval_polynomial_X_zero : eval 0 (eval 0 W.polynomial_X) = -W.a₄ :=
+@[simp] lemma eval_polynomial_X_zero : (W.polynomial_X.eval 0).eval 0 = -W.a₄ :=
 by simp only [← C_0, eval_polynomial_X, zero_add, zero_sub, mul_zero, zero_pow zero_lt_two]
 
 /-- The partial derivative $W_Y(X, Y)$ of $W(X, Y)$ with respect to $Y$. -/
 noncomputable def polynomial_Y : R[X][Y] := C (C 2) * Y + C (C W.a₁ * X + C W.a₃)
 
 @[simp] lemma eval_polynomial_Y (x y : R) :
-  eval x (eval (C y) W.polynomial_Y) = 2 * y + W.a₁ * x + W.a₃ :=
+  (W.polynomial_Y.eval $ C y).eval x = 2 * y + W.a₁ * x + W.a₃ :=
 by { simp only [polynomial_Y], eval_simp, rw [← add_assoc] }
 
-@[simp] lemma eval_polynomial_Y_zero : eval 0 (eval 0 W.polynomial_Y) = W.a₃ :=
+@[simp] lemma eval_polynomial_Y_zero : (W.polynomial_Y.eval 0).eval 0 = W.a₃ :=
 by simp only [← C_0, eval_polynomial_Y, zero_add, mul_zero]
 
 /-- The proposition that an affine point $(x, y)$ on `W` is nonsingular.
 In other words, either $W_X(x, y) \ne 0$ or $W_Y(x, y) \ne 0$. -/
 def nonsingular (x y : R) : Prop :=
-eval x (eval (C y) W.polynomial_X) ≠ 0 ∨ eval x (eval (C y) W.polynomial_Y) ≠ 0
+W.equation x y ∧ ((W.polynomial_X.eval $ C y).eval x ≠ 0 ∨ (W.polynomial_Y.eval $ C y).eval x ≠ 0)
 
 lemma nonsingular_iff' (x y : R) :
   W.nonsingular x y
-    ↔ W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) ≠ 0 ∨ 2 * y + W.a₁ * x + W.a₃ ≠ 0 :=
-by rw [nonsingular, eval_polynomial_X, eval_polynomial_Y]
+    ↔ W.equation x y
+      ∧ (W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) ≠ 0 ∨ 2 * y + W.a₁ * x + W.a₃ ≠ 0) :=
+by rw [nonsingular, equation_iff', eval_polynomial_X, eval_polynomial_Y]
 
 @[simp] lemma nonsingular_iff (x y : R) :
-  W.nonsingular x y ↔ W.a₁ * y ≠ 3 * x ^ 2 + 2 * W.a₂ * x + W.a₄ ∨ y ≠ -y - W.a₁ * x - W.a₃ :=
-by { rw [nonsingular_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1 }
+  W.nonsingular x y
+    ↔ W.equation x y ∧ (W.a₁ * y ≠ 3 * x ^ 2 + 2 * W.a₂ * x + W.a₄ ∨ y ≠ -y - W.a₁ * x - W.a₃) :=
+by { rw [nonsingular_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 4; ring1 }
 
-@[simp] lemma nonsingular_zero : W.nonsingular 0 0 ↔ W.a₃ ≠ 0 ∨ W.a₄ ≠ 0 :=
-by rw [nonsingular, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
+@[simp] lemma nonsingular_zero : W.nonsingular 0 0 ↔ W.a₆ = 0 ∧ (W.a₃ ≠ 0 ∨ W.a₄ ≠ 0) :=
+by rw [nonsingular, equation_zero, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero,
+       or_comm]
 
 lemma nonsingular_iff_variable_change (x y : R) :
   W.nonsingular x y ↔ (W.variable_change 1 x 0 y).nonsingular 0 0 :=
 begin
-  rw [nonsingular_iff', ← neg_ne_zero, or_comm, nonsingular_zero, variable_change_a₃,
-      variable_change_a₄, inv_one, units.coe_one],
-  congr' 3,
-  all_goals { ring1 }
+  rw [nonsingular_iff', equation_iff_variable_change, equation_zero, ← neg_ne_zero, or_comm,
+      nonsingular_zero, variable_change_a₃, variable_change_a₄, inv_one, units.coe_one],
+  congr' 4; ring1
 end
 
 lemma nonsingular_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.nonsingular 0 0 :=
@@ -489,8 +491,8 @@ end
 Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
 protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
 (subsingleton_or_nontrivial R).by_cases (λ _, by exactI default) $ λ _, by exactI
-  (basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
-    fin_congr $ W.nat_degree_polynomial)
+  ((adjoin_root.power_basis' W.monic_polynomial).basis.reindex $
+    fin_congr W.nat_degree_polynomial)
 
 lemma basis_apply [nontrivial R] (n : fin 2) :
   W^.coordinate_ring.basis n

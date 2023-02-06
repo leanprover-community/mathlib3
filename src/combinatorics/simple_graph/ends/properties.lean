@@ -61,6 +61,7 @@ begin
                   finset.mem_coe, mem_neighbor_finset], },
       rw this,
       apply finset.finite_to_set, },
+    -- hence `touch` has a finite domain
     apply finite.of_injective_finite_range touch_inj, },
 end
 

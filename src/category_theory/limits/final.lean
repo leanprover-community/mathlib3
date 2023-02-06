@@ -57,7 +57,7 @@ Dualise condition 3 above and the implications 2 ⇒ 3 and 3 ⇒ 1 to initial fu
 
 noncomputable theory
 
-universes v u
+universes v v₁ v₂ v₃ u₁ u₂ u₃
 
 namespace category_theory
 
@@ -66,8 +66,10 @@ namespace functor
 open opposite
 open category_theory.limits
 
-variables {C : Type v} [small_category C]
-variables {D : Type v} [small_category D]
+section arbitrary_universe
+
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 
 /--
 A functor `F : C ⥤ D` is final if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
@@ -137,7 +139,7 @@ variables (F : C ⥤ D) [final F]
 
 instance (d : D) : nonempty (structured_arrow d F) := is_connected.is_nonempty
 
-variables {E : Type u} [category.{v} E] (G : D ⥤ E)
+variables {E : Type u₃} [category.{v₃} E] (G : D ⥤ E)
 
 /--
 When `F : C ⥤ D` is cofinal, we denote by `lift F d` an arbitrary choice of object in `C` such that
@@ -320,8 +322,14 @@ https://stacks.math.columbia.edu/tag/04E7
 -/
 def colimit_iso' [has_colimit (F ⋙ G)] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
 
-
 end
+
+end final
+end arbitrary_universe
+
+namespace final
+
+variables {C : Type v} [category.{v} C] {D : Type v} [category.{v} D] (F : C ⥤ D) [final F]
 
 /--
 If the universal morphism `colimit (F ⋙ coyoneda.obj (op d)) ⟶ colimit (coyoneda.obj (op d))`
@@ -381,11 +389,11 @@ end final
 
 namespace initial
 
-variables (F : C ⥤ D) [initial F]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (F : C ⥤ D) [initial F]
 
 instance (d : D) : nonempty (costructured_arrow F d) := is_connected.is_nonempty
 
-variables {E : Type u} [category.{v} E] (G : D ⥤ E)
+variables {E : Type u₃} [category.{v₃} E] (G : D ⥤ E)
 
 /--
 When `F : C ⥤ D` is initial, we denote by `lift F d` an arbitrary choice of object in `C` such that

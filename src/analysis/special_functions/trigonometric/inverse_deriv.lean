@@ -13,7 +13,7 @@ Derivatives of `arcsin` and `arccos`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 open_locale real
@@ -34,7 +34,7 @@ begin
       cont_diff_at_const.congr_of_eventually_eq this⟩ },
   cases h₂.lt_or_lt with h₂ h₂,
   { have : 0 < sqrt (1 - x ^ 2) := sqrt_pos.2 (by nlinarith [h₁, h₂]),
-    simp only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
+    simp only [← cos_arcsin, one_div] at this ⊢,
     exact ⟨sin_local_homeomorph.has_strict_deriv_at_symm ⟨h₁, h₂⟩ this.ne'
       (has_strict_deriv_at_sin _),
       sin_local_homeomorph.cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩
@@ -82,7 +82,7 @@ begin
   refine ⟨_, λ h, (has_deriv_within_at_arcsin_Ici h).differentiable_within_at⟩,
   rintro h rfl,
   have : sin ∘ arcsin =ᶠ[𝓝[≥] (-1 : ℝ)] id,
-  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩]
+  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (zero_lt_one' ℝ)⟩]
       with x using sin_arcsin', },
   have := h.has_deriv_within_at.sin.congr_of_eventually_eq this.symm (by simp),
   simpa using (unique_diff_on_Ici _ _ left_mem_Ici).eq_deriv _ this (has_deriv_within_at_id _ _)

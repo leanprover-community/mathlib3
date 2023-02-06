@@ -14,12 +14,12 @@ Extension of uniform continuous functions.
 -/
 
 open filter topological_space set classical
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 
 section
 variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
-universe u
+universes u v
 
 /-- A map `f : α → β` between uniform spaces is called *uniform inducing* if the uniformity filter
 on `α` is the pullback of the uniformity filter on `β` under `prod.map f f`. If `α` is a separated
@@ -169,7 +169,7 @@ begin
   calc comap (prod.map f f) (𝓤 β) ≤ comap (prod.map f f) (𝓟 s) : comap_mono (le_principal_iff.2 hs)
   ... = 𝓟 (prod.map f f ⁻¹' s) : comap_principal
   ... ≤ 𝓟 id_rel : principal_mono.2 _,
-  rintro ⟨x, y⟩, simpa [not_imp_not] using hf x y
+  rintro ⟨x, y⟩, simpa [not_imp_not] using @hf x y
 end
 
 /-- If a map `f : α → β` sends any two distinct points to point that are **not** related by a fixed
@@ -178,7 +178,8 @@ lemma uniform_embedding_of_spaced_out {α} {f : α → β} {s : set (β × β)} 
   (hf : pairwise (λ x y, (f x, f y) ∉ s)) :
   @uniform_embedding α β ⊥ ‹_› f :=
 begin
-  letI : uniform_space α := ⊥, haveI : separated_space α := separated_iff_t2.2 infer_instance,
+  letI : uniform_space α := ⊥, haveI := discrete_topology_bot α,
+  haveI : separated_space α := separated_iff_t2.2 infer_instance,
   exact uniform_inducing.uniform_embedding ⟨comap_uniformity_of_spaced_out hs hf⟩
 end
 
@@ -334,6 +335,13 @@ lemma complete_space_coe_iff_is_complete {s : set α} :
 lemma is_closed.complete_space_coe [complete_space α] {s : set α} (hs : is_closed s) :
   complete_space s :=
 hs.is_complete.complete_space_coe
+
+/-- The lift of a complete space to another universe is still complete. -/
+instance ulift.complete_space [h : complete_space α] : complete_space (ulift α) :=
+begin
+  have : uniform_embedding (@equiv.ulift α), from ⟨⟨rfl⟩, ulift.down_injective⟩,
+  exact (complete_space_congr this).2 h,
+end
 
 lemma complete_space_extension {m : β → α} (hm : uniform_inducing m) (dense : dense_range m)
   (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ 𝓝 x) : complete_space α :=
@@ -504,7 +512,7 @@ by simpa only [dense_inducing.extend] using tendsto_nhds_lim (uniformly_extend_e
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,
 let ⟨s, hs, hs_comp⟩ := (mem_lift'_sets $
-  monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp
+  monotone_id.comp_rel $ monotone_id.comp_rel monotone_id).mp
     (comp_le_uniformity3 hd) in
 have h_pnt : ∀{a m}, m ∈ 𝓝 a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ a) ∈ s ∧ (ψ a, c) ∈ s,
   from assume a m hm,

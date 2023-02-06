@@ -7,6 +7,9 @@ import order.filter.bases
 
 /-!
 # Lift filters along filter and set functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open set
@@ -114,18 +117,13 @@ le_antisymm
   (le_infi₂ $ λ s hs, infi₂_le (m ⁻¹' s) ⟨s, hs, subset.rfl⟩)
   (le_infi₂ $ λ s ⟨s', hs', (h_sub : m ⁻¹' s' ⊆ s)⟩, infi₂_le_of_le s' hs' $ hg h_sub)
 
+lemma lift_map_le {g : set β → filter γ} {m : α → β} :
+  (map m f).lift g ≤ f.lift (g ∘ image m) :=
+le_lift.2 $ λ s hs, lift_le (image_mem_map hs) le_rfl
+
 lemma map_lift_eq2 {g : set β → filter γ} {m : α → β} (hg : monotone g) :
   (map m f).lift g = f.lift (g ∘ image m) :=
-le_antisymm
-  (infi_mono' $ assume s, ⟨image m s,
-    infi_mono' $ assume hs, ⟨
-      f.sets_of_superset hs $ assume a h, mem_image_of_mem _ h,
-      le_rfl⟩⟩)
-  (infi_mono' $ assume t, ⟨preimage m t,
-    infi_mono' $ assume ht, ⟨ht,
-      hg $ assume x, assume h : x ∈ m '' preimage m t,
-        let ⟨y, hy, h_eq⟩ := h in
-        show x ∈ t, from h_eq ▸ hy⟩⟩)
+lift_map_le.antisymm $ le_lift.2 $ λ s hs, lift_le hs $ hg $ image_preimage_subset _ _
 
 lemma lift_comm {g : filter β} {h : set α → set β → filter γ} :
   f.lift (λs, g.lift (h s)) = g.lift (λt, f.lift (λs, h s t)) :=
@@ -274,6 +272,9 @@ lemma map_lift'_eq {m : β → γ} (hh : monotone h) : map m (f.lift' h) = f.lif
 calc map m (f.lift' h) = f.lift (map m ∘ 𝓟 ∘ h) :
     map_lift_eq $ monotone_principal.comp hh
   ... = f.lift' (image m ∘ h) : by simp only [(∘), filter.lift', map_principal, eq_self_iff_true]
+
+lemma lift'_map_le {g : set β → set γ} {m : α → β} : (map m f).lift' g ≤ f.lift' (g ∘ image m) :=
+lift_map_le
 
 lemma map_lift'_eq2 {g : set β → set γ} {m : α → β} (hg : monotone g) :
   (map m f).lift' g = f.lift' (g ∘ image m) :=

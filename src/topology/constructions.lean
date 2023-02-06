@@ -1055,6 +1055,23 @@ lemma is_open_set_pi {i : set ι} {s : Πa, set (π a)} (hi : i.finite) (hs : �
   is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
 
+lemma is_open_pi_iff [finite ι] {s : set (Πa, π a)} :
+  is_open s ↔
+  (∀ f, f ∈ s → ∃ (u : Πa, set (π a)), (∀ a, is_open (u a) ∧ f a ∈ u a) ∧ set.univ.pi u ⊆ s) :=
+begin
+  casesI nonempty_fintype ι,
+  rw is_open_iff_nhds,
+  simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
+  refine ball_congr (λ a h, ⟨_, _⟩),
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨λ i, (h1 i).some, ⟨λ i, ⟨(h1 i).some_spec.2.1, (h1 i).some_spec.2.2⟩,
+        (set.pi_mono (λ i _, (h1 i).some_spec.1)).trans (subset.trans _ h2)⟩⟩,
+    rw ← set.pi_inter_compl (I : set ι),
+    exact inter_subset_left _ _, },
+  { exact λ ⟨u, ⟨h1, _⟩⟩, ⟨finset.univ, u, ⟨λ i, ⟨u i, ⟨rfl.subset, h1 i⟩⟩,
+      by rwa finset.coe_univ⟩⟩, }
+end
+
 lemma is_closed_set_pi {i : set ι} {s : Πa, set (π a)} (hs : ∀a∈i, is_closed (s a)) :
   is_closed (pi i s) :=
 by rw [pi_def];

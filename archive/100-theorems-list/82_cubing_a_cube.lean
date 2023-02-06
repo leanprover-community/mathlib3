@@ -502,10 +502,6 @@ omit h
 theorem not_correct : ¬correct cs :=
 λ h, (finite.of_injective _ $ injective_sequence_of_cubes h).false
 
-end «82»
-
-open «82»
-
 /-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
   ∀ {n : ℕ}, n ≥ 3 →                            -- In ℝ^n for n ≥ 3
@@ -522,3 +518,5 @@ begin
   exact @not_correct n s coe hfin.to_subtype h2.coe_sort
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end
+
+end «82»

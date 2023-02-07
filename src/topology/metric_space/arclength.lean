@@ -19,8 +19,10 @@ noncomputable theory
 
 variables {α E : Type*} [linear_order α] [pseudo_emetric_space E] (f : α → E) {a b c : α}
 
-/-- The length of the arc of the curve `f : α → E` between two points `a` and `b`, defined as
-  the variation of `f` on the closed interval `[a, b]`. Equals zero when `b ≤ a`. -/
+/--
+The length of the arc of the curve `f : α → E` between two points `a` and `b`, defined as
+the variation of `f` on the closed interval `[a, b]`. Equals zero when `b ≤ a`.
+-/
 def arclength (a b : α) : ℝ≥0∞ := evariation_on f (set.Icc a b)
 
 /--

@@ -242,7 +242,7 @@ begin
 end
 
 -- TODO : probably fits here?
-lemma affine_surj_on_I {s t : ℝ} (hst : s ≤ t) :
+lemma affine_surj_on_I {s t : ℝ} :
   set.surj_on (λ u, (t - s) * u + s) I (set.Icc s t) :=
 begin
   convert intermediate_value_Icc zero_le_one (continuous.continuous_on _) using 1,

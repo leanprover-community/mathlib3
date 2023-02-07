@@ -79,7 +79,7 @@ begin
   apply evariation_on.comp_eq_of_monotone_on _ _ (monotone.monotone_on _ _) _ (λ x hx, _),
   { exact (monotone_affine_of_le hst).comp (λ _ _, id) },
   { exact λ x hx, affine_maps_to_I hst x.2 },
-  { obtain ⟨y, hy, h'⟩ := affine_surj_on_I hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
+  { obtain ⟨y, hy, h'⟩ := affine_surj_on_I hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
 end
 
 end path

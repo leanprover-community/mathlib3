@@ -9,6 +9,9 @@ import topology.order.basic
 /-!
 # Projection onto a closed interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the projection `set.proj_Icc f a b h` is a quotient map, and use it
 to show that `Icc_extend h f` is continuous if and only if `f` is continuous.
 -/

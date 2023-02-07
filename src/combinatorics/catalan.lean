@@ -187,8 +187,13 @@ begin
   induction n using nat.case_strong_induction_on with n ih,
   { simp, },
   rw [trees_of_nodes_eq_succ, card_bUnion, catalan_succ'],
-  { apply sum_congr rfl, rintro ⟨i, j⟩ H, simp [ih _ (fst_le H), ih _ (snd_le H)], },
-  { simp_rw disjoint_left, rintros ⟨i, j⟩ _ ⟨i', j'⟩ _, clear_except, tidy, },
+  { apply sum_congr rfl,
+    rintro ⟨i, j⟩ H,
+    simp [ih _ (fst_le H), ih _ (snd_le H)], },
+  { simp_rw disjoint_left,
+    rintros ⟨i, j⟩ _ ⟨i', j'⟩ _,
+    clear_except,
+    tidy, },
 end
 
 end tree

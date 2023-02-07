@@ -154,7 +154,7 @@ end complex
 
 section
 
-open is_R_or_C linear_map
+open is_R_or_C
 /-- polarization identity for symmetric linear maps -/
 lemma is_symmetric.inner_map_polarization
   {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) (x y : E) :

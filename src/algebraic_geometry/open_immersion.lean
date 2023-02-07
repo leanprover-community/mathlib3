@@ -163,16 +163,15 @@ instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : is_open_immersion f] (
     apply_with is_iso.comp_is_iso { instances := ff },
     swap,
     { have : (opens.map g.base).obj (h.functor.obj U) = hf.open_functor.obj U,
-      { dsimp only [opens.map, is_open_map.functor, PresheafedSpace.comp_base],
-        congr' 1,
-        rw [coe_comp, ←set.image_image, set.preimage_image_eq _ hg.base_open.inj] },
+      { ext1,
+        dsimp only [opens.map_coe, is_open_map.functor_obj_coe, comp_base],
+        rw [coe_comp, ← set.image_image, set.preimage_image_eq _ hg.base_open.inj] },
       rw this,
       apply_instance },
     { have : h.functor.obj U = hg.open_functor.obj (hf.open_functor.obj U),
-      { dsimp only [is_open_map.functor],
-        congr' 1,
-        rw [comp_base, coe_comp, ←set.image_image],
-        congr },
+      { ext1,
+        dsimp only [is_open_map.functor_obj_coe],
+        rw [comp_base, coe_comp, ←set.image_image] },
       rw this,
       apply_instance }
   end }
@@ -221,9 +220,9 @@ by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 @[reassoc] lemma app_inv_app' (U : opens Y) (hU : (U : set Y) ⊆ set.range f.base) :
   f.c.app (op U) ≫ H.inv_app ((opens.map f.base).obj U) =
   Y.presheaf.map (eq_to_hom (by
-    { apply has_le.le.antisymm,
+    { apply le_antisymm,
       { exact set.image_preimage_subset f.base U.1 },
-      { change U ⊆ _,
+      { rw [← set_like.coe_subset_coe],
         refine has_le.le.trans_eq _ (@set.image_preimage_eq_inter_range _ _ f.base U.1).symm,
         exact set.subset_inter_iff.mpr ⟨λ _ h, h, hU⟩ } })).op :=
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
@@ -244,11 +243,8 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
   begin
     dsimp,
     have : (opens.map f).obj (hf.is_open_map.functor.obj U) = U,
-    { cases U,
-      dsimp only [opens.map, is_open_map.functor],
-      congr' 1,
-      rw set.preimage_image_eq _ hf.inj,
-      refl },
+    { ext1,
+      exact set.preimage_image_eq _ hf.inj },
     convert (show is_iso (Y.presheaf.map (𝟙 _)), from infer_instance),
     { apply subsingleton.helim,
       rw this },
@@ -1595,7 +1591,7 @@ lemma range_pullback_to_base_of_left :
       set.range f.1.base ∩ set.range g.1.base :=
 begin
   rw [pullback.condition, Scheme.comp_val_base, coe_comp, set.range_comp,
-    range_pullback_snd_of_left, opens.map_obj, subtype.coe_mk, set.image_preimage_eq_inter_range,
+    range_pullback_snd_of_left, opens.map_obj, opens.coe_mk, set.image_preimage_eq_inter_range,
     set.inter_comm],
 end
 
@@ -1604,7 +1600,7 @@ lemma range_pullback_to_base_of_right :
       set.range g.1.base ∩ set.range f.1.base :=
 begin
   rw [Scheme.comp_val_base, coe_comp, set.range_comp, range_pullback_fst_of_right, opens.map_obj,
-    subtype.coe_mk, set.image_preimage_eq_inter_range, set.inter_comm],
+    opens.coe_mk, set.image_preimage_eq_inter_range, set.inter_comm],
 end
 
 /--

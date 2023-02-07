@@ -257,7 +257,7 @@ begin
     simp },
   { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
   { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
-    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index _ _⟩;
+    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index' _ _⟩;
       intros; simp only [zero_smul, add_smul] },
   { rintros c x ⟨a, ha, rfl⟩,
     refine ⟨c • a, λ i, I.mul_mem_left c (ha i), _⟩,
@@ -318,6 +318,17 @@ le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _
 (λ r H, mem_colon'.2 $ supr_le $ λ j, map_le_iff_le_comap.1 $ le_infi $ λ i,
   map_le_iff_le_comap.2 $ mem_colon'.1 $ have _ := ((mem_infi _).1 H i),
   have _ := ((mem_infi _).1 this j), this)
+
+@[simp] lemma mem_colon_singleton {N : submodule R M} {x : M} {r : R} :
+  r ∈ N.colon (submodule.span R {x}) ↔ r • x ∈ N :=
+calc r ∈ N.colon (submodule.span R {x}) ↔ ∀ (a : R), r • (a • x) ∈ N :
+  by simp [submodule.mem_colon, submodule.mem_span_singleton]
+                                    ... ↔ r • x ∈ N :
+  by { simp_rw [smul_comm r]; exact set_like.forall_smul_mem_iff }
+
+@[simp] lemma _root_.ideal.mem_colon_singleton {I : ideal R} {x r : R} :
+  r ∈ I.colon (ideal.span {x}) ↔ r * x ∈ I :=
+by simp [← ideal.submodule_span_eq, submodule.mem_colon_singleton, smul_eq_mul]
 
 end comm_ring
 
@@ -442,6 +453,31 @@ end
 lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
   span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
 by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
+
+lemma span_singleton_mul_right_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I ≤ span {x} * J ↔ I ≤ J :=
+by simp_rw [span_singleton_mul_le_span_singleton_mul, mul_right_inj' hx, exists_prop,
+            exists_eq_right', set_like.le_def]
+
+lemma span_singleton_mul_left_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} ≤ J * span {x} ↔ I ≤ J :=
+by simpa only [mul_comm I, mul_comm J] using span_singleton_mul_right_mono hx
+
+lemma span_singleton_mul_right_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I = span {x} * J ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_right_mono hx]
+
+lemma span_singleton_mul_left_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} = J * span {x} ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_left_mono hx]
+
+lemma span_singleton_mul_right_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective ((*) (span {x} : ideal R)) :=
+λ _ _, (span_singleton_mul_right_inj hx).mp
+
+lemma span_singleton_mul_left_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective (λ I : ideal R, I * span {x}) :=
+λ _ _, (span_singleton_mul_left_inj hx).mp
 
 lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
   I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
@@ -623,6 +659,10 @@ instance {R : Type*} [comm_semiring R] [no_zero_divisors R] : no_zero_divisors (
 lemma prod_eq_bot {R : Type*} [comm_ring R] [is_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 prod_zero_iff_exists_zero
+
+lemma span_pair_mul_span_pair (w x y z : R) :
+  (span {w, x} : ideal R) * span {y, z} = span {w * y, w * z, x * y, x * z} :=
+by simp_rw [span_insert, sup_mul, mul_sup, span_singleton_mul_span_singleton, sup_assoc]
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
@@ -1268,6 +1308,9 @@ begin
   rw [mem_comap, submodule.mem_bot, ← map_zero f] at hx,
   exact eq.symm (hf hx) ▸ (submodule.zero_mem ⊥)
 end
+
+lemma comap_bot_of_injective : ideal.comap f ⊥ = ⊥ :=
+le_bot_iff.mp (ideal.comap_bot_le_of_injective f hf)
 
 end injective
 

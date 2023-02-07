@@ -8,6 +8,9 @@ import order.filter.prod
 /-!
 # N-ary maps of filter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the binary and ternary maps of filters. This is mostly useful to define pointwise
 operations on filters.
 
@@ -362,5 +365,17 @@ lemma map_map₂_right_anticomm {m : α → β' → γ} {n : β → β'} {m' : �
   (h_right_anticomm : ∀ a b, m a (n b) = n' (m' b a)) :
   map₂ m f (g.map n) = (map₂ m' g f).map n' :=
 (map_map₂_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
+
+/-- If `a` is a left identity for `f : α → β → β`, then `pure a` is a left identity for
+`filter.map₂ f`. -/
+lemma map₂_left_identity {f : α → β → β} {a : α} (h : ∀ b, f a b = b) (l : filter β) :
+  map₂ f (pure a) l = l :=
+by rw [map₂_pure_left, show f a = id, from funext h, map_id]
+
+/-- If `b` is a right identity for `f : α → β → α`, then `pure b` is a right identity for
+`filter.map₂ f`. -/
+lemma map₂_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (l : filter α) :
+  map₂ f l (pure b) = l :=
+by rw [map₂_pure_right, funext h, map_id']
 
 end filter

@@ -9,6 +9,9 @@ import order.atoms
 /-!
 # Atoms, Coatoms, Simple Lattices, and Finiteness
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module contains some results on atoms and simple lattices in the finite context.
 
 ## Main results

@@ -17,6 +17,9 @@ import tactic.by_contra
 /-!
 # Prime numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisors are `p` and `1`.
 
 ## Important declarations
@@ -443,6 +446,9 @@ by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
 
 lemma prime.odd_of_ne_two {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) : odd p :=
 hp.eq_two_or_odd'.resolve_left h_two
+
+lemma prime.even_sub_one {p : ℕ} (hp : p.prime) (h2 : p ≠ 2) : even (p - 1) :=
+let ⟨n, hn⟩ := hp.odd_of_ne_two h2 in ⟨n, by rw [hn, nat.add_sub_cancel, two_mul]⟩
 
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=

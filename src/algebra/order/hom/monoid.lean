@@ -13,7 +13,6 @@ import order.hom.basic
 # Ordered monoid and group homomorphisms
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/944
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between (additive) ordered monoids.

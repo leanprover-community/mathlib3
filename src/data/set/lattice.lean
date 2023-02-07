@@ -10,6 +10,9 @@ import order.galois_connection
 /-!
 # The set lattice
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides usual set notation for unions and intersections, a `complete_lattice` instance
 for `set α`, and some more set constructions.
 
@@ -309,9 +312,27 @@ lemma Inter_congr_of_surjective {f : ι → set α} {g : ι₂ → set α} (h : 
   (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
 h1.infi_congr h h2
 
-theorem Union_const [nonempty ι] (s : set β) : (⋃ i : ι, s) = s := supr_const
+lemma Union_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋃ i, s i) = ⋃ i, t i := supr_congr h
+lemma Inter_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋂ i, s i) = ⋂ i, t i := infi_congr h
 
-theorem Inter_const [nonempty ι] (s : set β) : (⋂ i : ι, s) = s := infi_const
+lemma Union₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
+  (⋃ i j, s i j) = ⋃ i j, t i j :=
+Union_congr $ λ i, Union_congr $ h i
+
+lemma Inter₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
+  (⋂ i j, s i j) = ⋂ i j, t i j :=
+Inter_congr $ λ i, Inter_congr $ h i
+
+section nonempty
+variables [nonempty ι] {f : ι → set α} {s : set α}
+
+lemma Union_const (s : set β) : (⋃ i : ι, s) = s := supr_const
+lemma Inter_const (s : set β) : (⋂ i : ι, s) = s := infi_const
+
+lemma Union_eq_const (hf : ∀ i, f i = s) : (⋃ i, f i) = s := (Union_congr hf).trans $ Union_const _
+lemma Inter_eq_const (hf : ∀ i, f i = s) : (⋂ i, f i) = s := (Inter_congr hf).trans $ Inter_const _
+
+end nonempty
 
 @[simp] theorem compl_Union (s : ι → set β) : (⋃ i, s i)ᶜ = (⋂ i, (s i)ᶜ) :=
 compl_supr
@@ -610,17 +631,6 @@ lemma bUnion_mono {s s' : set α} {t t' : α → set β} (hs : s' ⊆ s) (h : �
 lemma bInter_mono {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : ∀ x ∈ s, t x ⊆ t' x) :
   (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
 (bInter_subset_bInter_left hs).trans $ Inter₂_mono h
-
-lemma Union_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋃ i, s i) = ⋃ i, t i := supr_congr h
-lemma Inter_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋂ i, s i) = ⋂ i, t i := infi_congr h
-
-lemma Union₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
-  (⋃ i j, s i j) = ⋃ i j, t i j :=
-Union_congr $ λ i, Union_congr $ h i
-
-lemma Inter₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
-  (⋂ i j, s i j) = ⋂ i j, t i j :=
-Inter_congr $ λ i, Inter_congr $ h i
 
 theorem bUnion_eq_Union (s : set α) (t : Π x ∈ s, set β) :
   (⋃ x ∈ s, t x ‹_›) = (⋃ x : s, t x x.2) :=

@@ -544,6 +544,23 @@ theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f :
   (h : f.has_basis p s) : limsup u f = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
 (h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
 
+lemma blimsup_congr' {f : filter β} {p q : β → Prop} {u : β → α}
+  (h : ∀ᶠ x in f, u x ≠ ⊥ → (p x ↔ q x)) :
+  blimsup u f p = blimsup u f q :=
+begin
+  simp only [blimsup_eq],
+  congr,
+  ext a,
+  refine eventually_congr (h.mono $ λ b hb, _),
+  cases eq_or_ne (u b) ⊥ with hu hu, { simp [hu], },
+  rw hb hu,
+end
+
+lemma bliminf_congr' {f : filter β} {p q : β → Prop} {u : β → α}
+  (h : ∀ᶠ x in f, u x ≠ ⊤ → (p x ↔ q x)) :
+  bliminf u f p = bliminf u f q :=
+@blimsup_congr' αᵒᵈ β _ _ _ _ _ h
+
 lemma blimsup_eq_infi_bsupr {f : filter β} {p : β → Prop} {u : β → α} :
   blimsup u f p = ⨅ s ∈ f, ⨆ b (hb : p b ∧ b ∈ s), u b :=
 begin

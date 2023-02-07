@@ -9,7 +9,6 @@ import logic.equiv.basic
 # Extra lemmas about `ulift` and `plift`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/703
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we provide `subsingleton`, `unique`, `decidable_eq`, and `is_empty` instances for

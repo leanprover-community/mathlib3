@@ -117,7 +117,7 @@ noncomputable def rootable_by_of_pow_left_surj
 rootable_by A α :=
 { root := λ a n, @dite _ (n = 0) (classical.dec _) (λ _, (1 : A)) (λ hn, (H hn a).some),
   root_zero := λ _, by classical; exact dif_pos rfl,
-  root_cancel := λ n a hn, by rw dif_neg hn; exact (H hn a).some_spec }
+  root_cancel := λ n a hn, by { classical, rw dif_neg hn, exact (H hn a).some_spec } }
 
 section pi
 

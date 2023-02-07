@@ -138,9 +138,26 @@ begin
   have hsimp : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
   rw [hsimp, div_eq_iff _] at hsum hsum',
   { simp only [add_mul, finset.sum_mul] at hsum hsum',
+
     sorry, },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
+  { norm_cast,
+    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
+end
+
+lemma zero_eq_quo_add_sum_rem_div_zero {ι : Type*} (s : finset ι) {g : ι → R[X]}
+  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
+  (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
+  (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) :
+    q = 0 ∧ ∀ i ∈ s, r i = 0 :=
+begin
+  have hzero : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
+  rw [hzero, div_eq_iff _] at hsum,
+  { simp only [add_mul, finset.sum_mul] at hsum,
+    let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
+    
+    sorry, },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end

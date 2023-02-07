@@ -267,14 +267,14 @@ theorem lift_strict_mono : strict_mono lift :=
 theorem lift_monotone : monotone lift :=
 lift_strict_mono.monotone
 
-instance : has_zero cardinal.{u} := ⟨lift #(fin 0)⟩
+instance : has_zero cardinal.{u} := ⟨#(ulift (fin 0))⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
 lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
-(equiv.equiv_pempty α).cardinal_eq
+  (equiv.equiv_of_is_empty α _).cardinal_eq
 
-@[simp] theorem lift_zero : lift 0 = 0 := mk_congr (equiv.equiv_pempty _)
+@[simp] theorem lift_zero : lift 0 = 0 := mk_congr (equiv.equiv_of_is_empty _ _)
 
 @[simp] theorem lift_eq_zero {a : cardinal.{v}} : lift.{u} a = 0 ↔ a = 0 :=
 lift_injective.eq_iff' lift_zero
@@ -287,12 +287,12 @@ theorem mk_ne_zero_iff {α : Type u} : #α ≠ 0 ↔ nonempty α :=
 
 @[simp] lemma mk_ne_zero (α : Type u) [nonempty α] : #α ≠ 0 := mk_ne_zero_iff.2 ‹_›
 
-instance : has_one cardinal.{u} := ⟨lift #(fin 1)⟩
+instance : has_one cardinal.{u} := ⟨#(ulift (fin 1))⟩
 
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
-(equiv.equiv_punit α).cardinal_eq
+(equiv.equiv_of_unique α _).cardinal_eq
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,

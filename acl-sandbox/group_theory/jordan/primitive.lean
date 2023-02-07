@@ -104,12 +104,12 @@ open mul_action
 
 section primitive
 
-variables (G : Type*) (X : Type*) [has_smul G X]
+variables (G : Type*) (X : Type*)
 
 -- Note : if the action is degenerate, singletons may not be blocks.
 /-- An action is preprimitive if it is pretransitive and
 the only blocks are the trivial ones -/
-class is_preprimitive
+class is_preprimitive [has_smul G X]
 extends is_pretransitive G X : Prop :=
 (has_trivial_blocks' : ∀ {B : set X}, (is_block G B) → is_trivial_block B)
 
@@ -171,7 +171,8 @@ begin
     rw hB,
     rw eq_top_iff,
     intros x _,
-    use ⟨g⁻¹ • x, set.mem_univ _, smul_inv_smul g x⟩ }
+    rw set.mem_smul_set_iff_inv_smul_mem,
+    exact set.mem_univ _, }
 end
 
 lemma is_trivial_block_of_block_iff {B : set X} (g : G) :

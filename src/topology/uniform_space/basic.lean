@@ -10,6 +10,9 @@ import topology.nhds_set
 /-!
 # Uniform spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Uniform spaces are a generalization of metric spaces and topological groups. Many concepts directly
 generalize to uniform spaces, e.g.
 

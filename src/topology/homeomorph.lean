@@ -10,6 +10,9 @@ import topology.support
 /-!
 # Homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between two topological spaces. They are bijections with both
 directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 

@@ -3,6 +3,7 @@ Copyright (c) 2023 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
+import topology.homeomorph
 import topology.order.lattice
 import order.hom.complete_lattice
 

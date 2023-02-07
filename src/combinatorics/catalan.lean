@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import algebra.big_operators.fin
+import algebra.big_operators.nat_antidiagonal
 import algebra.char_zero.lemmas
 import data.finset.nat_antidiagonal
 import data.nat.choose.central
@@ -62,12 +63,8 @@ by rw catalan
 
 lemma catalan_succ' (n : ℕ) :
   catalan (n + 1) = ∑ ij in nat.antidiagonal n, catalan ij.1 * catalan ij.2 :=
-begin
-  rw [catalan_succ, ← sum_range (λ i, catalan i * catalan (n - i))],
-  exact sum_bij' (λ b _, (b, n - b)) (λ a, by simpa [nat.lt_succ_iff] using @nat.add_sub_of_le a n)
-     (λ _ _, rfl) (λ (ij : ℕ × ℕ) _, ij.1) (λ _ h, by simpa [nat.lt_succ_iff] using fst_le h)
-     (λ _ _, rfl) (by tidy),
-end
+by rw [catalan_succ, nat.sum_antidiagonal_eq_sum_range_succ (λ x y, catalan x * catalan y) n,
+    sum_range]
 
 @[simp] lemma catalan_one : catalan 1 = 1 := by simp [catalan_succ]
 

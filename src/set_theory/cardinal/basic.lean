@@ -267,7 +267,7 @@ theorem lift_strict_mono : strict_mono lift :=
 theorem lift_monotone : monotone lift :=
 lift_strict_mono.monotone
 
-instance : has_zero cardinal.{u} := ⟨#pempty⟩
+instance : has_zero cardinal.{u} := ⟨lift #(fin 0)⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
@@ -287,7 +287,7 @@ theorem mk_ne_zero_iff {α : Type u} : #α ≠ 0 ↔ nonempty α :=
 
 @[simp] lemma mk_ne_zero (α : Type u) [nonempty α] : #α ≠ 0 := mk_ne_zero_iff.2 ‹_›
 
-instance : has_one cardinal.{u} := ⟨#punit⟩
+instance : has_one cardinal.{u} := ⟨lift #(fin 1)⟩
 
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
@@ -307,7 +307,7 @@ instance : has_add cardinal.{u} := ⟨map₂ sum $ λ α β γ δ, equiv.sum_con
 
 theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
-instance : has_nat_cast cardinal.{u} := ⟨nat.unary_cast⟩
+instance : has_nat_cast cardinal.{u} := ⟨λ n, lift #(fin n)⟩
 
 @[simp] lemma mk_sum (α : Type u) (β : Type v) :
   #(α ⊕ β) = lift.{v u} (#α) + lift.{u v} (#β) :=

@@ -307,7 +307,7 @@ instance : has_add cardinal.{u} := ⟨map₂ sum $ λ α β γ δ, equiv.sum_con
 
 theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
-instance : has_nat_cast cardinal.{u} := ⟨λ n, lift #(fin n)⟩
+instance : has_nat_cast cardinal.{u} := ⟨λ n, #(ulift (fin n))⟩
 
 @[simp] lemma mk_sum (α : Type u) (β : Type v) :
   #(α ⊕ β) = lift.{v u} (#α) + lift.{u v} (#β) :=

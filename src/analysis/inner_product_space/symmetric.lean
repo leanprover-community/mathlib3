@@ -155,7 +155,8 @@ end complex
 section
 
 open is_R_or_C linear_map
-lemma linear_map.is_symmetric.inner_map_polarization
+/-- polarization identity for symmetric linear maps -/
+lemma is_symmetric.inner_map_polarization
   {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) (x y : E) :
   ⟪x, T y⟫ = (⟪x + y, T (x + y)⟫ - ⟪x - y, T (x - y)⟫ -
     I * ⟪x + (I : 𝕜) • y, T (x + (I : 𝕜) • y)⟫ +
@@ -177,6 +178,7 @@ begin
     ring, }
 end
 
+/-- if `T` is symmetric, then `∀ x, ⟪x, T x⟫ = 0` if and only if `T = 0` -/
 lemma is_symmetric.inner_self_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
   (∀ x, ⟪x, T x⟫ = 0) ↔ T = 0 :=
 begin

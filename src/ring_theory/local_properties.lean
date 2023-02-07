@@ -244,8 +244,8 @@ begin
   rw [← _root_.map_mul, ← sub_eq_zero, ← map_sub] at eq,
   obtain ⟨⟨m, hm⟩, eq⟩ := (is_localization.map_eq_zero_iff P.prime_compl _ _).mp eq,
   refine hs ((hP.is_prime.mem_or_mem (le (ideal.mem_colon_singleton.mpr _))).resolve_right hm),
-  simp only [subtype.coe_mk, sub_mul, sub_eq_zero, mul_assoc] at eq,
-  simpa only [eq, mul_comm] using J.mul_mem_right m ha
+  simp only [subtype.coe_mk, mul_sub, sub_eq_zero, mul_comm x s, mul_left_comm] at eq,
+  simpa only [mul_assoc, eq] using J.mul_mem_left m ha
 end
 
 /-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is equal to
@@ -307,8 +307,8 @@ begin
   rw [← (algebra_map R S).map_zero] at hx',
   obtain ⟨m', hm'⟩ := (is_localization.eq_iff_exists M S).mp hx',
   apply_fun (*m'^n) at hm',
-  simp only [mul_assoc, zero_mul] at hm',
-  rw [mul_comm, ← pow_succ, ← mul_pow] at hm',
+  simp only [mul_assoc, zero_mul, mul_zero] at hm',
+  rw [← mul_left_comm, ← pow_succ, ← mul_pow] at hm',
   replace hm' := is_nilpotent.eq_zero ⟨_, hm'.symm⟩,
   rw [← (is_localization.map_units S m).mul_left_inj, hx, zero_mul,
     is_localization.map_eq_zero_iff M],
@@ -361,8 +361,8 @@ begin
   erw is_localization.map_mk' at e',
   rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, subtype.coe_mk, subtype.coe_mk, ← map_mul] at e',
   obtain ⟨⟨_, n', rfl⟩, e''⟩ := (is_localization.eq_iff_exists (submonoid.powers (f r)) _).mp e',
-  rw [subtype.coe_mk, mul_assoc, ← map_pow, ← map_mul, ← map_mul, ← pow_add, mul_comm] at e'',
-  exact ⟨n + n', _, e''.symm⟩
+  rw [subtype.coe_mk, mul_comm x, ←mul_assoc, ← map_pow, ← map_mul, ← map_mul, ← pow_add] at e'',
+  exact ⟨n' + n, _, e''.symm⟩
 end
 
 end surjective
@@ -454,9 +454,9 @@ begin
   convert (submodule.span R (is_localization.finset_integer_multiple
     (submonoid.map (algebra_map R S) M) s : set S)).smul_mem a hx' using 1,
   convert ha₂.symm,
-  { rw [mul_comm (y' • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul],
+  { rw [subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul],
     exact algebra.smul_def _ _ },
-  { rw mul_comm, exact algebra.smul_def _ _ }
+  { exact algebra.smul_def _ _ }
 end
 
 /-- If `S` is an `R' = M⁻¹R` algebra, and `x ∈ span R' s`,
@@ -613,10 +613,9 @@ begin
   rw [algebra.smul_def, ← _root_.map_mul] at hx'',
   obtain ⟨a, ha₂⟩ := (is_localization.eq_iff_exists M S').mp hx'',
   use a * y ^ n,
-  convert A.mul_mem hx' (hA₂ a.2),
-  convert ha₂.symm,
-  simp only [submonoid.smul_def, submonoid.coe_pow, smul_eq_mul, submonoid.coe_mul],
-  ring,
+  convert A.mul_mem hx' (hA₂ a.prop),
+  rw [submonoid.smul_def, smul_eq_mul, submonoid.coe_mul, submonoid.coe_pow, mul_assoc, ←ha₂,
+    mul_comm],
 end
 
 /--

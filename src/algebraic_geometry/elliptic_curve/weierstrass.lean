@@ -39,6 +39,7 @@ splitting field of `R` are precisely the $X$-coordinates of the non-zero 2-torsi
  * `weierstrass_curve.nonsingular`: the nonsingular condition at a point on a Weierstrass curve.
  * `weierstrass_curve.coordinate_ring`: the coordinate ring of a Weierstrass curve.
  * `weierstrass_curve.function_field`: the function field of a Weierstrass curve.
+ * `weierstrass_curve.coordinate_ring.basis`: the power basis of the coordinate ring over `R[X]`.
  * `elliptic_curve`: an elliptic curve over a commutative ring.
  * `elliptic_curve.j`: the j-invariant of an elliptic curve.
 
@@ -50,6 +51,8 @@ splitting field of `R` are precisely the $X$-coordinates of the non-zero 2-torsi
     if its discriminant is non-zero.
  * `weierstrass_curve.coordinate_ring.is_domain`: the coordinate ring of a Weierstrass curve is
     an integral domain.
+ * `weierstrass_curve.coordinate_ring.degree_norm_smul_basis`: the degree of the norm of an element
+    in the coordinate ring in terms of the power basis.
  * `elliptic_curve.nonsingular`: an elliptic curve is nonsingular at every point.
  * `elliptic_curve.variable_change_j`: the j-invariant of an elliptic curve is invariant under an
     admissible linear change of variables.
@@ -320,7 +323,9 @@ end
 
 /-! ### Nonsingularity of Weierstrass curves -/
 
-/-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$. -/
+/-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$.
+
+TODO: define this in terms of `polynomial.derivative`. -/
 noncomputable def polynomial_X : R[X][Y] :=
 C (C W.a₁) * Y - C (C 3 * X ^ 2 + C (2 * W.a₂) * X + C W.a₄)
 
@@ -331,7 +336,9 @@ by { simp only [polynomial_X], eval_simp }
 @[simp] lemma eval_polynomial_X_zero : (W.polynomial_X.eval 0).eval 0 = -W.a₄ :=
 by simp only [← C_0, eval_polynomial_X, zero_add, zero_sub, mul_zero, zero_pow zero_lt_two]
 
-/-- The partial derivative $W_Y(X, Y)$ of $W(X, Y)$ with respect to $Y$. -/
+/-- The partial derivative $W_Y(X, Y)$ of $W(X, Y)$ with respect to $Y$.
+
+TODO: define this in terms of `polynomial.derivative`. -/
 noncomputable def polynomial_Y : R[X][Y] := C (C 2) * Y + C (C W.a₁ * X + C W.a₃)
 
 @[simp] lemma eval_polynomial_Y (x y : R) :
@@ -398,9 +405,6 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20c
 
 namespace coordinate_ring
 
-instance [subsingleton R] : subsingleton W.coordinate_ring :=
-(adjoin_root.mk_surjective W.monic_polynomial).subsingleton
-
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr $
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
@@ -439,8 +443,12 @@ ideal.span {X_class W x, Y_class W y}
 /-! ### The coordinate ring as an `R[X]`-algebra -/
 
 noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+
 noncomputable instance algebra' : algebra R W.coordinate_ring := ideal.quotient.algebra R
+
 instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_tower R R[X] _
+
+instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
 @[simps] noncomputable def of_quotient_XY_ideal {x : R} {y : R[X]}
   (h : (W.polynomial.eval y).eval x = 0) :
@@ -493,18 +501,19 @@ protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
   ((adjoin_root.power_basis' W.monic_polynomial).basis.reindex $
     fin_congr W.nat_degree_polynomial)
 
-lemma basis_apply [nontrivial R] (n : fin 2) :
-  W^.coordinate_ring.basis n
-    = (adjoin_root.power_basis' W.monic_polynomial).gen
-      ^ ((fin_congr W.nat_degree_polynomial).symm n : ℕ) :=
-by rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
-         by exactI not_subsingleton R h, basis.reindex_apply, power_basis.basis_eq_pow]
+lemma basis_apply (n : fin 2) :
+  W^.coordinate_ring.basis n = (adjoin_root.power_basis' W.monic_polynomial).gen ^ (n : ℕ) :=
+begin
+  classical,
+  nontriviality R,
+  simpa only [coordinate_ring.basis, or.by_cases, dif_neg (not_subsingleton R),
+              basis.reindex_apply, power_basis.basis_eq_pow]
+end
 
-lemma basis_zero : W^.coordinate_ring.basis 0 = 1 :=
-by { nontriviality R, simpa only [basis_apply] using pow_zero _ }
+lemma basis_zero : W^.coordinate_ring.basis 0 = 1 := by simpa only [basis_apply] using pow_zero _
 
-lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial Y :=
-by { nontriviality R, simpa only [basis_apply] using pow_one _ }
+lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
+by simpa only [basis_apply] using pow_one _
 
 @[simp] lemma coe_basis :
   (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial Y] :=

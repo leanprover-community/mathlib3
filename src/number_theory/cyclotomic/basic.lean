@@ -660,7 +660,7 @@ instance [ne_zero ((n : ℕ) : A)] :
       simp only [map_mul] }
   end,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
-    λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
+    λ ⟨c, hc⟩, by rw mul_left_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
 
 lemma eq_adjoin_primitive_root {μ : (cyclotomic_field n K)} (h : is_primitive_root μ n) :
   cyclotomic_ring n A K = adjoin A ({μ} : set ((cyclotomic_field n K))) :=

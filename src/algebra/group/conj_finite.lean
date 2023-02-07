@@ -10,6 +10,9 @@ import data.fintype.units
 
 /-!
 # Conjugacy of elements of finite groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*} [monoid α]

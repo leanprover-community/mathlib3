@@ -22,9 +22,9 @@ $[A:B:C]$ defined over `F` in the projective plane satisfying the homogeneous cu
 $B^2C + a_1ABC + a_3BC^2 = A^3 + a_2A^2C + a_4AC^2 + a_6C^3$. Any such point either lies in the
 affine chart $C \ne 0$ and satisfies the Weierstrass equation obtained by setting $X := A/C$ and
 $Y := B/C$, or is the unique point at infinity $0 := [0:1:0]$ when $C = 0$. With this new
-description, a nonsingular rational point on `W` is either $\mathcal{O}$ or an affine point $(x, y)$
-where the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not both vanish. For a field extension
-`K` of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
+description, a nonsingular rational point on `W` is either $0$ or an affine point $(x, y)$ where
+the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not both vanish. For a field extension `K`
+of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
 
 The set of nonsingular rational points forms an abelian group under a secant-and-tangent process.
  * The identity point is `0`.
@@ -37,13 +37,13 @@ The set of nonsingular rational points forms an abelian group under a secant-and
       * If $x_1 = x_2$ and `P = -Q`, then this line is vertical and `P + Q` is `0`.
       * If $x_1 = x_2$ and `P ≠ -Q`, then this line is the tangent of `W` at `P = Q`, and has slope
         $\ell := (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$.
-      * Otherwise $x_1 \ne x_2$ then this line is the secant of `W` through `P` and `Q`, and has
+      * Otherwise $x_1 \ne x_2$, then this line is the secant of `W` through `P` and `Q`, and has
         slope $\ell := (y_1 - y_2) / (x_1 - x_2)$.
     In the latter two cases, the $X$-coordinate of `P + Q` is then the unique third solution of the
     equation obtained by substituting the line $Y = \ell(X - x_1) + y_1$ into the Weierstrass
     equation, and can be written down explicitly as $x := \ell^2 + a_1\ell - a_2 - x_1 - x_2$ by
     inspecting the $X^2$ terms. The $Y$-coordinate of `P + Q`, after applying the final negation
-    that maps $Y$ to $-Y - a_1X - a_3$, is precisely $y := -(\ell(x - x_1) + y_1) - x - a_3$.
+    that maps $Y$ to $-Y - a_1X - a_3$, is precisely $y := -(\ell(x - x_1) + y_1) - a_1x - a_3$.
 The group law on this set is then uniquely determined by these constructions.
 
 ## Main definitions
@@ -164,7 +164,7 @@ This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
 where the line through them is not vertical and has a slope of $L$.
 
 This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
-@[simp] def add_Y : R := -W.add_Y' x₁ x₂ y₁ L - W.a₁ * W.add_X x₁ x₂ L - W.a₃
+@[simp] def add_Y : R := W.neg_Y (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
 
 lemma XY_ideal_add_eq :
   XY_ideal W (W.add_X x₁ x₂ L) (C (W.add_Y x₁ x₂ y₁ L))
@@ -211,7 +211,7 @@ inductive point
 | zero
 | some {x y : R} (h : W.nonsingular x y)
 
-localized "notation W⟮K⟯ := (W.base_change K).point" in weierstrass_curve
+localized "notation W⟮S⟯ := (W.base_change S).point" in weierstrass_curve
 
 namespace point
 
@@ -429,8 +429,8 @@ noncomputable def add : W.point → W.point → W.point
 | P                      0                      := P
 | (@some _ _ _ x₁ y₁ h₁) (@some _ _ _ x₂ y₂ h₂) :=
 if hx : x₁ = x₂ then if hy : y₁ = W.neg_Y x₂ y₂ then 0
-else some (nonsingular_add h₁ h₂ $ λ _, hy)
-else some (nonsingular_add h₁ h₂ $ λ h, (hx h).elim)
+else some $ nonsingular_add h₁ h₂ $ λ _, hy
+else some $ nonsingular_add h₁ h₂ $ λ h, (hx h).elim
 
 noncomputable instance : has_add W.point := ⟨add⟩
 

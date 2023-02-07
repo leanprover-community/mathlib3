@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.order.field.basic
+import analysis.specific_limits.basic
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
 import topology.continuous_function.compact

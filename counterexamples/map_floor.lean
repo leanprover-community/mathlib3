@@ -41,9 +41,9 @@ open_locale polynomial
 /-- The integers with infinitesimals adjoined. -/
 @[derive [comm_ring, nontrivial, inhabited]] def int_with_epsilon := ℤ[X]
 
-notation `ℤ[ε]` := int_with_epsilon
+local notation `ℤ[ε]` := int_with_epsilon
 
-notation `ε` := (X : ℤ[ε])
+local notation `ε` := (X : ℤ[ε])
 
 namespace int_with_epsilon
 

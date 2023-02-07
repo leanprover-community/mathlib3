@@ -135,7 +135,14 @@ lemma zero_eq_quo_add_sum_rem_div_unique {ι : Type*} (s : finset ι) {g : ι �
   (hsum' : (0 : K) = ↑q' + ∑ i in s, ↑(r' i) / ↑(g i)) :
     q = q' ∧ ∀ i ∈ s, r i = r' i :=
 begin
-  sorry
+  have hsimp : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
+  rw [hsimp, div_eq_iff _] at hsum hsum',
+  { simp only [add_mul, finset.sum_mul] at hsum hsum',
+    sorry, },
+  { norm_cast,
+    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
+  { norm_cast,
+    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
 
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}

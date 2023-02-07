@@ -1064,7 +1064,7 @@ begin
   simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
   refine ball_congr (λ a h, ⟨_, _⟩),
   { rintros ⟨I, t, ⟨h1, h2⟩⟩,
-    refine ⟨λ i, (h1 i).some, ⟨λ i, ⟨(h1 i).some_spec.2.1, (h1 i).some_spec.2.2⟩,
+    refine ⟨λ i, (h1 i).some, ⟨λ i, (h1 i).some_spec.2,
         (set.pi_mono (λ i _, (h1 i).some_spec.1)).trans (subset.trans _ h2)⟩⟩,
     rw ← set.pi_inter_compl (I : set ι),
     exact inter_subset_left _ _, },

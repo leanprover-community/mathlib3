@@ -141,7 +141,7 @@ This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
 where the line through them is not vertical and has a slope of $L$.
 
 This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
-@[simp] def add_Y : R := -W.add_Y' x₁ x₂ y₁ L - W.a₁ * W.add_X x₁ x₂ L - W.a₃
+@[simp] def add_Y : R := W.neg_Y (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
 
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
@@ -422,7 +422,7 @@ namespace point
 
 @[simp] lemma add_eq_zero (P Q : W.point) : P + Q = 0 ↔ P = -Q :=
 begin
-  rcases ⟨P, Q⟩ with ⟨_ | @⟨x₁, y₁, h₁, h₁'⟩, _ | @⟨x₂, y₂, h₂, h₂'⟩⟩,
+  rcases ⟨P, Q⟩ with ⟨_ | @⟨x₁, y₁, h₁⟩, _ | @⟨x₂, y₂, h₂⟩⟩,
   any_goals { refl },
   { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
   { simp only [neg_some],
@@ -431,11 +431,11 @@ begin
       by_cases hx : x₁ = x₂,
       { by_cases hy : y₁ = W.neg_Y x₂ y₂,
         { exact ⟨hx, hy⟩ },
-        { rw [some_add_some_of_Y_ne h₁ h₂ h₁' h₂' hx hy] at h,
+        { rw [some_add_some_of_Y_ne h₁ h₂ hx hy] at h,
           contradiction } },
-      { rw [some_add_some_of_X_ne h₁ h₂ h₁' h₂' hx] at h,
+      { rw [some_add_some_of_X_ne h₁ h₂ hx] at h,
         contradiction } },
-    { exact λ ⟨hx, hy⟩, some_add_some_of_Y_eq h₁ h₂ h₁' h₂' hx hy } }
+    { exact λ ⟨hx, hy⟩, some_add_some_of_Y_eq h₁ h₂ hx hy } }
 end
 
 @[simp] lemma add_left_neg (P : W.point) : -P + P = 0 := by rw [add_eq_zero]

@@ -246,7 +246,8 @@ section polynomial
 
 open polynomial
 
-localized "notation (name := outer_variable) `Y` := X" in polynomial_polynomial
+localized "notation (name := outer_variable) `Y` := @polynomial.X (polynomial hole!) hole!"
+  in polynomial_polynomial
 
 localized "notation (name := polynomial_polynomial) R`[X][Y]` := polynomial (polynomial R)"
   in polynomial_polynomial

@@ -365,7 +365,8 @@ theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
 induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.sum_arrow_equiv_prod_arrow β γ α
 
 instance : comm_semiring cardinal.{u} :=
-{ zero          := 0,
+{ nat_cast := coe,
+  zero          := 0,
   one           := 1,
   add           := (+),
   mul           := (*),

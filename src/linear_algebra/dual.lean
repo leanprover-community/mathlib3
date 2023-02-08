@@ -394,7 +394,7 @@ lemma eval_range {ι : Type*} [_root_.finite ι] (b : basis ι R M) : (eval R M)
 begin
   classical,
   casesI nonempty_fintype ι,
-  rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
+  rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, submodule.map_top, to_dual_range _],
   apply_instance
 end
 

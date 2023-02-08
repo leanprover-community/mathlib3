@@ -1112,7 +1112,7 @@ lemma Gamma_mul_Gamma_eq_beta_integral {s t : ℂ} (hs : 0 < re s) (ht : 0 < re 
   Gamma s * Gamma t = Gamma (s + t) * beta_integral s t :=
 begin
   have conv_int := integral_pos_convolution (Gamma_integral_convergent hs)
-    (Gamma_integral_convergent ht)(continuous_linear_map.mul ℝ ℂ),
+    (Gamma_integral_convergent ht) (continuous_linear_map.mul ℝ ℂ),
   simp_rw continuous_linear_map.mul_apply' at conv_int,
   have hst : 0 < re (s + t),
   { rw add_re, exact add_pos hs ht },

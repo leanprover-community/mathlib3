@@ -96,25 +96,6 @@ end
   of_direct_sum x.to_direct_sum = x :=
 alg_hom.congr_fun of_direct_sum_comp_to_direct_sum x
 
-@[simp] lemma graded_monoid.mk_eq_one {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A]
-  (i : ι) (x : A i) :
-  graded_monoid.mk i x = 1 ↔ ∃ h : i = 0, x = h.symm.rec graded_monoid.ghas_one.one :=
-begin
-  split,
-  { rintro (h : _ = graded_monoid.mk _ _),
-    injection h with hi hx,
-    refine ⟨hi, _⟩,
-    subst hi,
-    apply eq_of_heq hx, },
-  { rintro ⟨rfl, rfl⟩,
-    refl }
-end
-
-@[simp] lemma graded_monoid.one_eq_mk {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A]
-  (i : ι) (x : A i) :
-    1 = graded_monoid.mk i x ↔ ∃ h : 0 = i, h.rec graded_monoid.ghas_one.one = x :=
-by simp [graded_monoid.mk_eq_one, eq_comm]
-
 @[simp] lemma mk_reindex_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
   graded_monoid.mk m (pi_tensor_product.reindex R M (equiv.cast $ congr_arg fin h) x) =
     graded_monoid.mk n x :=
@@ -125,37 +106,41 @@ eq.symm (pi_tensor_product.graded_monoid_eq_of_reindex_cast h rfl)
     graded_monoid.mk n x :=
 by rw [fin.cast_to_equiv, mk_reindex_cast h]
 
+-- TODO(eric-wieser): move after the port
+/-- Appending a one-tuple to the left is the same as cons. -/
+lemma _root_.fin.append_left_eq_cons {α} {n} (x₀ : fin 1 → α) (x : fin n → α):
+  fin.append x₀ x = fin.cons (x₀ 0) x ∘ fin.cast (add_comm _ _) :=
+begin
+  ext i,
+  refine fin.add_cases _ _ i; clear i,
+  { intro i,
+    rw [subsingleton.elim i 0, fin.append_left, function.comp_apply, eq_comm],
+    exact fin.cons_zero _ _, },
+  { intro i,
+    rw [fin.append_right, function.comp_apply, fin.cast_nat_add, eq_comm, fin.add_nat_one],
+    exact fin.cons_succ _ _ _ },
+end
+
 lemma _root_.tensor_power.graded_monoid_mk_prod_single (n : ℕ) (x : fin n → M) :
   @graded_monoid.mk _ (λ i, ⨂[R]^i M) _ ((list.fin_range n).dprod (λ a : fin n, 1)
     (λ a, pi_tensor_product.tprod R (λ i : fin 1, x a))) =
   graded_monoid.mk n (pi_tensor_product.tprod R x) :=
 begin
-  induction n,
-  { rw [subsingleton.elim x fin.elim0, list.fin_range_zero, list.dprod_nil],
+  rw graded_monoid.mk_list_dprod,
+  refine fin.cons_induction _ _ x; clear x,
+  { rw [list.fin_range_zero, list.map_nil, list.prod_nil],
     refl, },
-  { rw [list.fin_range_succ_eq_map],
-    rw [list.dprod_cons],
-    set x' := fin.append (λ i : fin 1, x 0) (x ∘ fin.succ) with hx',
-    set e := (fin.cast (add_comm 1 n_n)).to_equiv with he,
-    have : x = λ i, x' (e.symm i),
-    { apply funext,
-      refine e.surjective.forall.2 _,
-      simp_rw [equiv.symm_apply_apply, hx'],
-      refine fin.add_cases (λ i, _) (λ i, _),
-      { rw subsingleton.elim i 0,
-        simp only [he, rel_iso.coe_fn_to_equiv, fin.append_left],
-        refine congr_arg x _,
-        ext,
-        simp, },
-      { simp [he] } },
-    conv_rhs {rw [this, ←pi_tensor_product.reindex_tprod e] },
-    dsimp only [list.dprod_index_cons],
-    rw [←graded_monoid.mk_mul_mk,hx', ← tensor_power.tprod_mul_tprod,
-        he, mk_reindex_fin_cast, ←graded_monoid.mk_mul_mk],
+  { intros n x₀ x ih,
+    rw [list.fin_range_succ_eq_map, list.map_cons, list.prod_cons, list.map_map, function.comp],
+    simp_rw [fin.cons_zero, fin.cons_succ],
+    rw [ih, graded_monoid.mk_mul_mk, tensor_power.tprod_mul_tprod],
+    refine tensor_power.graded_monoid_eq_of_cast (add_comm _ _) _,
+    dsimp only [graded_monoid.mk],
+    rw [tensor_power.cast_tprod],
+    simp_rw [fin.append_left_eq_cons, function.comp],
+    congr' 1 with i,
     congr' 1,
-    rw ←n_ih (x ∘ fin.succ),
-    dsimp only,
-    rw [graded_monoid.mk_list_dprod, graded_monoid.mk_list_dprod, list.map_map] },
+    rw [fin.cast_trans, fin.cast_refl, order_iso.refl_apply] },
 end
 
 lemma to_direct_sum_tensor_power_tprod {n} (x : fin n → M) :

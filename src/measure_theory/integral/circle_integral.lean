@@ -547,7 +547,7 @@ lemma has_sum_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R : ℝ} {
     ((2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
 begin
   simp only [cauchy_power_series_apply],
-  exact (has_sum_two_pi_I_cauchy_power_series_integral hf hw).const_smul
+  exact (has_sum_two_pi_I_cauchy_power_series_integral hf hw).const_smul _
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,

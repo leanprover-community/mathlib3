@@ -166,15 +166,15 @@ lemma acc.sym2_game_add {a b} (ha : acc rα a) (hb : acc rα b) : acc (sym2.game
 begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
-  split;
-  rintros ⟨c, d⟩ ((@⟨_, _, _, rc⟩ | @⟨_, _, _, rd⟩) | (@⟨_, _, _, rd⟩ | @⟨_, _, _, rc⟩)),
+  refine acc.intro _ (λ s, _),
+  induction s using sym2.induction_on with c d,
+  rintros ((rc | rd) | (rd | rc)),
   { exact iha c rc ⟨b, hb⟩ },
   { exact ihb d rd },
-  all_goals
-  { change acc _ ⟦(_, _)⟧,
-    rw sym2.eq_swap },
-  { exact iha d rd ⟨b, hb⟩ },
-  { exact ihb c rc }
+  { rw sym2.eq_swap,
+    exact iha d rd ⟨b, hb⟩ },
+  { rw sym2.eq_swap,
+    exact ihb c rc }
 end
 
 /-- The `sym2.game_add` relation on well-founded inputs is well-founded. -/

@@ -26,7 +26,7 @@ open category_theory.category category_theory.functor
 
 variables (C : Type u) [category.{v} C]
 
-local attribute [tidy] tactic.op_induction'
+local attribute [tidy] tactic.op_induction' tactic.auto_cases_opens
 
 namespace algebraic_geometry
 

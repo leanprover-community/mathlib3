@@ -8,6 +8,7 @@ import topology.bases
 import topology.homeomorph
 import topology.continuous_function.basic
 import order.compactly_generated
+import tactic.auto_cases
 
 /-!
 # Open sets
@@ -328,3 +329,21 @@ def comap (f : C(α, β)) (x : α) : lattice_hom (open_nhd (f x)) (open_nhd x) :
 end open_nhd
 
 end topological_space
+
+namespace tactic
+
+namespace auto_cases
+
+/-- Find an `auto_cases_tac` which matches `topological_space.opens`. -/
+meta def opens_find_tac : expr → option auto_cases_tac
+| `(topological_space.opens _)     := tac_cases
+| _ := none
+
+end auto_cases
+
+/-- A version of `tactic.auto_cases` that works for `topological_space.opens`. -/
+@[hint_tactic]
+meta def auto_cases_opens : tactic string :=
+auto_cases tactic.auto_cases.opens_find_tac
+
+end tactic

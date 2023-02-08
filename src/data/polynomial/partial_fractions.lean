@@ -127,7 +127,8 @@ begin
     exact hab hi, },
 end
 
-lemma zero_eq_quo_add_sum_rem_div_unique {ι : Type*} (s : finset ι) {g : ι → R[X]}  -- To be removed
+-- To be removed
+lemma zero_eq_quo_add_sum_rem_div_unique {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
   (hdeg' : ∀ i, (r' i).degree < (g i).degree)
@@ -161,6 +162,7 @@ begin
     have hsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
     { intros x hxs,
       exact unit.ext,
+      -- what has all this other stuff got to do with anything...
       exact div_inv_monoid.to_has_div unit,
       exact comm_ring.to_comm_monoid unit,
       exact algebra_map.has_lift_t R[X] unit,
@@ -181,6 +183,14 @@ end
 
 #check finsupp
 
+-- example of issue with dividing by a term in a product inside a sum
+example (s : finset ℕ) (hnz : ∀ n ∈ s, n ≠ 0) :
+  ∑ n in s, (↑ (∏ k in s, k) / ↑ n) = ∑ n in s, (∏ k in s.filter (λ j, j ≠ n), (k : ℚ) ) :=
+begin
+  sorry
+end
+
+-- Will eventually extend the zero case
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
@@ -189,6 +199,8 @@ lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι)
   (hf' : (↑f : K) / ∏ i in s, ↑(g i) = ↑q' + ∑ i in s, ↑(r' i) / ↑(g i)) :
     q = q' ∧ ∀ i ∈ s, r i = r' i :=
 begin
+  -- cases approach discarded in favour of separate lemmas. code below can maybe be reused,
+  -- but will be removed eventually...
   cases em (f = 0),
   { -- How do we clear denominators?
     rw div_eq_iff _ at hf hf',
@@ -208,7 +220,7 @@ begin
     sorry }
 end
 
--- To be removed
+-- To be removed (does this even make sense?!!?!?!)
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)

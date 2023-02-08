@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Oliver Nash, Wan Ruizhe. All rights reserved.
+Copyright (c) 2023 Wan Ruizhe. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Oliver Nash, Wan Ruizhe
+Authors: Wan Ruizhe
 -/
 import analysis.complex.upper_half_plane.metric
 import analysis.complex.upper_half_plane.basic
@@ -14,64 +14,39 @@ This file proves that every element in SL2 acts on the upper half-plane as an is
 
 noncomputable theory
 
-lemma div_sq {z w : ℝ} : (z / w)^2 = z^2 / w^2 :=
-by simp only [div_eq_mul_inv, sq, mul_mul_mul_comm z w⁻¹, mul_inv]
-
-lemma mul_sq {z w : ℝ} : (z * w)^2 = z^2 * w^2 :=
-by simp only [sq, mul_mul_mul_comm z w]
-
-namespace upper_half_plane
-
 open_locale upper_half_plane matrix_groups
-
-instance : has_smul {A : matrix (fin 2) (fin 2) ℝ // matrix.det A = 1} ℍ :=
-upper_half_plane.SL_action.to_has_smul
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
-@[simp] lemma im_mk (z : ℂ) (h) : im (⟨z, h⟩ : ℍ) = z.im := rfl
+lemma matrix.special_linear_group.fin_two_exists_eq_mk (g : SL(2, ℝ)) :
+  ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
+    g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=
+begin
+  obtain ⟨m, h⟩ := g,
+  refine ⟨m 0 0, m 0 1, m 1 0, m 1 1, _, _⟩,
+  { rwa m.det_fin_two at h, },
+  { ext i j, fin_cases i; fin_cases j; refl, },
+end
+
+namespace upper_half_plane
+
+@[simp] lemma mk_im' (z : ℂ) (h) : im (⟨z, h⟩ : ℍ) = z.im := rfl
 
 lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
 by simpa using div_pos z.property (norm_sq_pos z)
 
-lemma transform_denom_apply (g : SL(2, ℝ)) (z : ℍ) :
-  denom g z = ((g 1 0) : ℂ) * z + ((g 1 1) : ℂ) :=
+@[simp] lemma special_linear_group_apply (g : SL(2, ℝ)) (z : ℍ) :
+  g • z = mk ((((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
+              (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ))) (g • z).property :=
 rfl
-
-@[simp] lemma coe_SL2 (g : SL(2, ℝ)) (z : ℍ): ↑ (g • z) = (((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
-  (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ)) :=
-begin
-  have h1 : ↑ (g • z) = num g z / denom g z, refl,
-  have h2 : num g z = ((g 0 0) : ℂ) * z + ((g 0 1) : ℂ), refl,
-  rw [h1, h2, transform_denom_apply],
-end
-
-@[simp] lemma SL2_apply (a b c d : ℝ) (h) (z : ℍ) :
-  ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z) =
-  ⟨(a * (z : ℂ) + b) / (c * (z : ℂ) + d), ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property⟩ :=
-rfl
-
-lemma SL2_apply_aux (a b c d : ℝ) (h : matrix.det !![a, b; c, d] = 1) (z : ℍ) :
-  0 < ((↑a * (z : ℂ) + b) / (↑c * (z : ℂ) + d)).im :=
-((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property
-
-lemma SL2_exists_abcd (g : SL(2, ℝ)) :
-  ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
-    g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=
-begin
-  refine ⟨g 0 0, g 0 1, g 1 0, g 1 1, _, _⟩,
-  { erw ← g.val.det_fin_two, simp, },
-  { ext i j, fin_cases i; fin_cases j; refl, },
-end
 
 /-- An element of `SL(2, ℝ)` representing the Mobiüs transformation `z ↦ -1/z`.
 
 This defines an involutive elliptic isometry of the hyperbolic plane, fixing `i` and rotating
-(hyperbolically) by `π`.
--/
+(hyperbolically) by `π`. -/
 def involute : SL(2, ℝ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
 
-@[simp] lemma involute_apply (z : ℍ) : involute • z = ⟨(-z : ℂ)⁻¹, z.im_inv_neg_coe_pos⟩ :=
+@[simp] lemma involute_apply (z : ℍ) : involute • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
 by simp [involute, neg_div, inv_neg]
 
 lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq := by simp
@@ -85,7 +60,7 @@ begin
   refine (mul_self_inj _ _).mp _,
   { positivity, },
   { positivity, },
-  simp only [← sq, div_sq, mul_sq],
+  simp only [← sq, div_pow, mul_pow],
   have h1: 0 ≤ y₁.re*y₁.re, exact mul_self_nonneg _,
   have h2: 0 ≤ y₂.re*y₂.re, exact mul_self_nonneg _,
   have h3: 0 ≤ (-y₁).re*(-y₁).re, exact mul_self_nonneg _,
@@ -99,7 +74,7 @@ begin
   have h9: 0 ≤ ((-y₁)⁻¹ - (-y₂)⁻¹).re * ((-y₁)⁻¹ - (-y₂)⁻¹).re, exact mul_self_nonneg _,
   have h10: 0 ≤ ((-y₁)⁻¹ - (-y₂)⁻¹).im * ((-y₁)⁻¹ - (-y₂)⁻¹).im, exact mul_self_nonneg _,
   rw [real.sq_sqrt _, real.sq_sqrt _],
-  { simp only [involute_apply, subtype.coe_mk, im_involute_smul, im_mk, complex.dist_eq,
+  { simp only [involute_apply, subtype.coe_mk, im_involute_smul, mk_im, coe_mk, complex.dist_eq,
     complex.abs],
     simp only [absolute_value.coe_mk, mul_hom.coe_mk],
     rw [real.sq_sqrt _, real.sq_sqrt _],
@@ -142,7 +117,7 @@ end
 lemma dist_SL2_smul_smul_c_zero (g : SL(2, ℝ)) (z w : ℍ) (h1 : g 1 0 = 0) :
   dist (g • z) (g • w) = dist z w :=
 begin
-  obtain ⟨a, b, c, d, h, hg⟩ := SL2_exists_abcd g,
+  obtain ⟨a, b, c, d, h, hg⟩ := g.fin_two_exists_eq_mk,
   have hg00 : g 0 0 = a := by rw [hg]; refl,
   have hg01 : g 0 1 = b := by rw [hg]; refl,
   have hg10 : g 1 0 = c := by rw [hg]; refl,
@@ -174,7 +149,7 @@ begin
     refine (mul_self_inj _ _).mp _,
     { positivity, },
     { positivity, },
-    simp only [← sq, div_sq, mul_sq],
+    simp only [← sq, div_pow, mul_pow],
     have h3 := z.property, rw subtype.val_eq_coe at h3,
     have h3' := h3, rw coe_im at h3',
     have h4 := w.property, rw subtype.val_eq_coe at h4,
@@ -201,7 +176,7 @@ lemma dist_SL2_eq_comp_c_nonzero (g : SL(2, ℝ)) (z : ℍ) (h1 : 0 < ((g 1 0 : 
   ((g 1 0 : ℝ) * (g 1 1 : ℝ)) ∘ has_smul.smul (⟨(g 1 0 : ℝ) * (g 1 0 : ℝ), h1⟩ : {x : ℝ // (0 : ℝ)
   < x})) z :=
 begin
-  obtain ⟨a, b, c, d, h, hg⟩ := SL2_exists_abcd g,
+  obtain ⟨a, b, c, d, h, hg⟩ := g.fin_two_exists_eq_mk,
   have hg00 : g 0 0 = a := by rw [hg]; refl,
   have hg01 : g 0 1 = b := by rw [hg]; refl,
   have hg10 : g 1 0 = c := by rw [hg]; refl,
@@ -224,7 +199,8 @@ begin
   rw [hg00', hg01', hg10', hg11'],
   have h2 := h1, rw mul_self_pos at h2,
   have h2' : (c : ℂ) ≠ (0 : ℂ), by_contra, apply h2, norm_cast at h,
-  have h4 : (c : ℂ) * z + (d : ℂ) ≠ 0, have h4' := transform_denom_apply g z,
+  have h4 : (c : ℂ) * z + (d : ℂ) ≠ 0,
+  have h4' : denom g z = ((g 1 0) : ℂ) * z + ((g 1 1) : ℂ) := rfl,
   rw [hg10, hg11] at h4',
   rw ← h4', refine denom_ne_zero (g : GL(2, ℝ)⁺) _,
   have h5 : -(c : ℂ) * ((c : ℂ) * z + (d : ℂ)) ≠ 0, have h5' : -(c : ℂ) ≠ (0 : ℂ),
@@ -236,7 +212,7 @@ end
 @[simp] lemma dist_SL2_smul_smul (g : SL(2, ℝ)) (z w : ℍ) :
   dist (g • z) (g • w) = dist z w :=
 begin
-  obtain ⟨a, b, c, d, h, hg⟩ := SL2_exists_abcd g,
+  obtain ⟨a, b, c, d, h, hg⟩ := g.fin_two_exists_eq_mk,
   have hg00 : g 0 0 = a := by rw [hg]; refl,
   have hg01 : g 0 1 = b := by rw [hg]; refl,
   have hg10 : g 1 0 = c := by rw [hg]; refl,

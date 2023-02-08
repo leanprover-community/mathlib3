@@ -59,6 +59,7 @@ begin
     mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0), complex.div_I],
 end
 
+/-- The power series expansion of `complex.cos`. -/
 lemma complex.has_sum_cos (z : ℂ) :
   has_sum (λ n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)!) (complex.cos z) :=
 begin
@@ -66,6 +67,7 @@ begin
   simp_rw [mul_pow, pow_mul, complex.I_sq, mul_comm]
 end
 
+/-- The power series expansion of `complex.sin`. -/
 lemma complex.has_sum_sin (z : ℂ) :
   has_sum (λ n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)!) (complex.sin z) :=
 begin
@@ -91,10 +93,12 @@ lemma complex.sin_eq_tsum (z : ℂ) :
   complex.sin z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)! :=
 (complex.has_sum_sin z).tsum_eq.symm
 
+/-- The power series expansion of `real.cos`. -/
 lemma real.has_sum_cos (r : ℝ) :
   has_sum (λ n : ℕ, ((-1) ^ n) * r ^ (2 * n) / ↑(2 * n)!) (real.cos r) :=
 by exact_mod_cast complex.has_sum_cos r
 
+/-- The power series expansion of `real.sin`. -/
 lemma real.has_sum_sin (r : ℝ) :
   has_sum (λ n : ℕ, ((-1) ^ n) * r ^ (2 * n + 1) / ↑(2 * n + 1)!) (real.sin r) :=
 by exact_mod_cast complex.has_sum_sin r

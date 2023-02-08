@@ -10,6 +10,9 @@ import topology.dense_embedding
 /-!
 # Uniform embeddings of uniform spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Extension of uniform continuous functions.
 -/
 

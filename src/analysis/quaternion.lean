@@ -115,6 +115,18 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
 
+@[continuity] lemma continuous_re : continuous (λ q : ℍ, q.re) :=
+(continuous_apply 0).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_i : continuous (λ q : ℍ, q.im_i) :=
+(continuous_apply 1).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_j : continuous (λ q : ℍ, q.im_j) :=
+(continuous_apply 2).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
+(continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
+
 instance : complete_space ℍ :=
 begin
   have : uniform_embedding linear_isometry_equiv_tuple.to_linear_equiv.to_equiv.symm :=

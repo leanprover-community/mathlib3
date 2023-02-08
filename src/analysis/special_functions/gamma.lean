@@ -7,6 +7,7 @@ import measure_theory.integral.exp_decay
 import analysis.calculus.parametric_integral
 import analysis.special_functions.integrals
 import analysis.convolution
+import analysis.special_functions.trigonometric.euler_sine_prod
 
 /-!
 # The Gamma and Beta functions
@@ -1214,3 +1215,278 @@ end
 end complex
 
 end beta_integral
+
+section limit_formula
+
+/-! ## The Euler limit formula-/
+
+lemma one_sub_div_pow_le_exp_neg {n : ℕ} {t : ℝ} (ht' : t ≤ n) : (1 - t / n) ^ n ≤ exp (-t) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp, rwa nat.cast_zero at ht' },
+  convert pow_le_pow_of_le_left _ (add_one_le_exp (-(t / n))) n,
+  { abel },
+  { rw ←real.exp_nat_mul, congr' 1,
+    field_simp [nat.cast_ne_zero.mpr hn], ring },
+  { rwa [add_comm, ←sub_eq_add_neg, sub_nonneg, div_le_one],
+    positivity }
+end
+
+namespace complex
+
+lemma tendsto_coe_nat_div_add_at_top (x : ℂ) : tendsto (λ n:ℕ, (n:ℂ) / (n + x)) at_top (𝓝 1) :=
+begin
+  refine tendsto.congr' ((eventually_ne_at_top 0).mp (eventually_of_forall (λ n hn, _))) _,
+  { exact λ n:ℕ, 1 / (1 + x / n) },
+  { field_simp [nat.cast_ne_zero.mpr hn] },
+  { have : 𝓝 (1:ℂ) = 𝓝 (1 / (1 + x * ↑(0:ℝ))), by rw [of_real_zero, mul_zero, add_zero, div_one],
+    rw this,
+    refine tendsto_const_nhds.div (tendsto_const_nhds.add $ tendsto_const_nhds.mul _) (by simp),
+    have : (λ n:ℕ, (n:ℂ)⁻¹) = (λ n:ℕ, ↑((n : ℝ)⁻¹)), by { ext1 n, push_cast }, rw this,
+    exact (continuous_of_real.tendsto _).comp tendsto_inverse_at_top_nhds_0_nat }
+end
+
+/-- The sequence with `n`-th term `n ^ s * n! / (s * (s + 1) * ... * (s + n))`. We will show that
+this tends to `Γ(s)` as `n → ∞`. -/
+noncomputable def Gamma_seq (s : ℂ) (n : ℕ) :=
+(n:ℂ) ^ s * n! / ∏ (j:ℕ) in finset.range (n + 1), (s + j)
+
+lemma Gamma_seq_eq_beta_integral_of_re_pos {s : ℂ} (hs : 0 < re s) (n : ℕ) :
+  Gamma_seq s n = n ^ s * beta_integral s (n + 1) :=
+by rw [Gamma_seq, beta_integral_eval_nat_add_one_right hs n, ←mul_div_assoc]
+
+lemma Gamma_seq_add_one_left (s : ℂ) {n : ℕ} (hn : n ≠ 0) :
+  (Gamma_seq (s + 1) n) / s = n / (n + 1 + s) * Gamma_seq s n :=
+begin
+  conv_lhs { rw [Gamma_seq, finset.prod_range_succ, div_div] },
+  conv_rhs { rw [Gamma_seq, finset.prod_range_succ', nat.cast_zero, add_zero, div_mul_div_comm,
+    ←mul_assoc, ←mul_assoc, mul_comm _ (finset.prod _ _)] },
+  congr' 3,
+  { rw [cpow_add _ _ (nat.cast_ne_zero.mpr hn), cpow_one, mul_comm] },
+  { refine finset.prod_congr (by refl) (λ x hx, _),
+    push_cast, ring },
+  { abel }
+end
+
+lemma Gamma_seq_eq_approx_Gamma_integral {s : ℂ} (hs : 0 < re s) {n : ℕ} (hn : n ≠ 0) :
+  Gamma_seq s n = ∫ x:ℝ in 0..n, ↑((1 - x / n) ^ n) * (x:ℂ) ^ (s - 1) :=
+begin
+  have : ∀ (x : ℝ), x = x / n * n, by { intro x, rw div_mul_cancel, exact nat.cast_ne_zero.mpr hn },
+  conv in (↑_ ^ _) { congr, rw this x },
+  rw Gamma_seq_eq_beta_integral_of_re_pos hs,
+  rw [beta_integral, @interval_integral.integral_comp_div _ _ _ _ 0 n _
+    (λ x, ↑((1 - x) ^ n) * ↑(x * ↑n) ^ (s - 1) : ℝ → ℂ) (nat.cast_ne_zero.mpr hn),
+    real_smul, zero_div, div_self, add_sub_cancel, ←interval_integral.integral_const_mul,
+    ←interval_integral.integral_const_mul],
+  swap, { exact nat.cast_ne_zero.mpr hn },
+  simp_rw interval_integral.integral_of_le zero_le_one,
+  refine set_integral_congr measurable_set_Ioc (λ x hx, _),
+  push_cast,
+  have hn' : (n : ℂ) ≠ 0, from nat.cast_ne_zero.mpr hn,
+  have A : (n : ℂ) ^ s = (n : ℂ) ^ (s - 1)  * n,
+  { conv_lhs { rw [(by ring : s = (s - 1) + 1), cpow_add _ _ hn'] },
+    simp },
+  have B : ((x : ℂ) * ↑n) ^ (s - 1) = (x : ℂ) ^ (s - 1) * ↑n ^ (s - 1),
+  { rw [←of_real_nat_cast,
+      mul_cpow_of_real_nonneg hx.1.le (nat.cast_pos.mpr (nat.pos_of_ne_zero hn)).le] },
+  rw [A, B, cpow_nat_cast], ring,
+end
+
+/-- The main techical lemma for `Gamma_seq_tendsto_Gamma`, expressing the integral defining the
+Gamma function for `0 < re s` as the limit of a sequence of integrals over finite intervals. -/
+lemma approx_Gamma_integral_tendsto_Gamma_integral {s : ℂ} (hs : 0 < re s) :
+  tendsto (λ n:ℕ, ∫ x:ℝ in 0..n, ↑((1 - x / n) ^ n) * (x:ℂ) ^ (s - 1)) at_top (𝓝 $ Gamma s) :=
+begin
+  rw [Gamma_eq_integral hs],
+  -- We apply dominated convergence to the following function, which we will show is uniformly
+  -- bounded above by the Gamma integrand `exp (-x) * x ^ (re s - 1)`.
+  let f : ℕ → ℝ → ℂ := λ n, indicator (Ioc 0 (n:ℝ))
+    (λ x:ℝ, ↑((1 - x / n) ^ n) * (x:ℂ) ^ (s - 1)),
+  -- integrability of f
+  have f_ible : ∀ (n:ℕ), integrable (f n) (volume.restrict (Ioi 0)),
+  { intro n,
+    rw [integrable_indicator_iff (measurable_set_Ioc : measurable_set (Ioc (_:ℝ) _)),
+      integrable_on, measure.restrict_restrict_of_subset Ioc_subset_Ioi_self, ←integrable_on,
+      ←interval_integrable_iff_integrable_Ioc_of_le (by positivity : (0:ℝ) ≤ n)],
+    apply interval_integrable.continuous_on_mul,
+    { refine interval_integral.interval_integrable_cpow' _,
+      rwa [sub_re, one_re, ←zero_sub, sub_lt_sub_iff_right] },
+    { apply continuous.continuous_on, continuity } },
+  -- pointwise limit of f
+  have f_tends : ∀ x:ℝ, x ∈ Ioi (0:ℝ) →
+    tendsto (λ n:ℕ, f n x) at_top (𝓝 $ ↑(real.exp (-x)) * (x:ℂ) ^ (s - 1)),
+  { intros x hx,
+    apply tendsto.congr',
+    show ∀ᶠ n:ℕ in at_top, ↑((1 - x / n) ^ n) * (x:ℂ) ^ (s - 1) = f n x,
+    { refine eventually.mp (eventually_ge_at_top ⌈x⌉₊) (eventually_of_forall (λ n hn, _)),
+      rw nat.ceil_le at hn,
+      dsimp only [f],
+      rw indicator_of_mem,
+      exact ⟨hx, hn⟩ },
+    { simp_rw mul_comm _ (↑x ^ _),
+      refine (tendsto.comp (continuous_of_real.tendsto _) _).const_mul _,
+      convert tendsto_one_plus_div_pow_exp (-x),
+      ext1 n,
+      rw [neg_div, ←sub_eq_add_neg] } },
+  -- let `convert` identify the remaining goals
+  convert tendsto_integral_of_dominated_convergence _ (λ n, (f_ible n).1)
+    (real.Gamma_integral_convergent hs) _
+    ((ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ f_tends)),
+  -- limit of f is the integrand we want
+  { ext1 n,
+    rw [integral_indicator (measurable_set_Ioc : measurable_set (Ioc (_:ℝ) _)),
+      interval_integral.integral_of_le (by positivity: 0 ≤ (n:ℝ)),
+      measure.restrict_restrict_of_subset Ioc_subset_Ioi_self] },
+  -- f is uniformly bounded by the Gamma integrand
+  { intro n,
+    refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
+    dsimp only [f],
+    rcases lt_or_le (n:ℝ) x with hxn | hxn,
+    { rw [indicator_of_not_mem (not_mem_Ioc_of_gt hxn), norm_zero,
+        mul_nonneg_iff_right_nonneg_of_pos (exp_pos _)],
+      exact rpow_nonneg_of_nonneg (le_of_lt hx) _ },
+    { rw [indicator_of_mem (mem_Ioc.mpr ⟨hx, hxn⟩), norm_mul, complex.norm_eq_abs,
+        complex.abs_of_nonneg
+          (pow_nonneg (sub_nonneg.mpr $ div_le_one_of_le hxn $ by positivity) _),
+        complex.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos hx, sub_re, one_re,
+        mul_le_mul_right (rpow_pos_of_pos hx _ )],
+      exact one_sub_div_pow_le_exp_neg hxn } }
+end
+
+/-- Euler's limit formula for the Gamma function. -/
+lemma Gamma_seq_tendsto_Gamma (s : ℂ) :
+  tendsto (Gamma_seq s) at_top (𝓝 $ Gamma s) :=
+begin
+  suffices : ∀ (m:ℕ), (-↑m < re s) →
+    tendsto (Gamma_seq s) at_top (𝓝 $ Gamma_aux m s),
+  { rw Gamma,
+    apply this,
+    rw neg_lt,
+    rcases lt_or_le 0 (re s) with hs | hs,
+    { exact (neg_neg_of_pos hs).trans_le (nat.cast_nonneg _), },
+    { refine (nat.lt_floor_add_one _).trans_le _,
+      rw [sub_eq_neg_add, nat.floor_add_one (neg_nonneg.mpr hs), nat.cast_add_one] } },
+  intro m,
+  induction m with m IH generalizing s,
+  { -- Base case: `0 < re s`, so Gamma is given by the integral formula
+    intro hs,
+    rw [nat.cast_zero, neg_zero] at hs,
+    rw [←Gamma_eq_Gamma_aux],
+    { refine tendsto.congr' _ (approx_Gamma_integral_tendsto_Gamma_integral hs),
+      refine (eventually_ne_at_top 0).mp (eventually_of_forall (λ n hn, _)),
+      exact (Gamma_seq_eq_approx_Gamma_integral hs hn).symm },
+    { rwa [nat.cast_zero, neg_lt_zero] } },
+  { -- Induction step: use recurrence formulae in `s` for Gamma and Gamma_seq
+    intro hs,
+    replace hs : -↑m < re (s + 1),
+    { rw [nat.cast_succ, neg_add, ←sub_eq_add_neg, sub_lt_iff_lt_add] at hs,
+      rwa [add_re, one_re] },
+    rw Gamma_aux,
+    have := tendsto.congr' ((eventually_ne_at_top 0).mp
+      (eventually_of_forall (λ n hn, _))) (@tendsto.div_const _ _ _ _ _ _ _ _ s (IH _ hs)),
+    swap 3, { exact Gamma_seq_add_one_left s hn }, -- doesn't work if inlined?
+    conv at this in (_ / _ * _) { rw mul_comm },
+    rw (by ring : Gamma_aux m (s + 1) / s = (Gamma_aux m (s + 1) / s) * 1) at this,
+    rwa tendsto_mul_iff_of_ne_zero _ (one_ne_zero' ℂ) at this,
+    simp_rw add_assoc,
+    exact tendsto_coe_nat_div_add_at_top (1 + s) }
+end
+
+end complex
+
+end limit_formula
+
+section gamma_reflection
+/-! ## The reflection formula -/
+
+open_locale real
+namespace complex
+
+lemma Gamma_seq_mul (z : ℂ) {n : ℕ} (hn : n ≠ 0) :
+  Gamma_seq z n * Gamma_seq (1 - z) n =
+  n / (n + 1 - z) * (1 / (z * ∏ j in finset.range n, (1 - z ^ 2 / (j + 1) ^ 2))) :=
+begin
+  -- also true for n = 0 but we don't need it
+  have aux : ∀ (a b c d : ℂ), a * b * (c * d) = a * c * (b * d), by { intros, ring },
+  rw [Gamma_seq, Gamma_seq, div_mul_div_comm, aux, ←pow_two],
+  have : (n : ℂ) ^ z * n ^ (1 - z) = n,
+  { rw [←cpow_add _ _ (nat.cast_ne_zero.mpr hn), add_sub_cancel'_right, cpow_one] },
+  rw [this, finset.prod_range_succ', finset.prod_range_succ, aux, ←finset.prod_mul_distrib,
+    nat.cast_zero, add_zero, add_comm (1 - z) n, ←add_sub_assoc],
+  have : ∀ (j : ℕ), (z + ↑(j + 1)) * (1 - z + ↑j) = ↑((j + 1) ^ 2) * (1 - z ^ 2 / (↑j + 1) ^ 2),
+  { intro j,
+    push_cast,
+    have : (j:ℂ) + 1 ≠ 0, by { rw [←nat.cast_succ, nat.cast_ne_zero], exact nat.succ_ne_zero j },
+    field_simp, ring },
+  simp_rw this,
+  rw [finset.prod_mul_distrib, ←nat.cast_prod, finset.prod_pow,
+    finset.prod_range_add_one_eq_factorial, nat.cast_pow,
+    (by {intros, ring} : ∀ (a b c d : ℂ), a * b * (c * d) = a * (d * (b * c))),
+    ←div_div, mul_div_cancel, ←div_div, mul_comm z _, mul_one_div],
+  exact pow_ne_zero 2 (nat.cast_ne_zero.mpr $ nat.factorial_ne_zero n),
+end
+
+lemma Gamma_neg_nat_eq_zero (n : ℕ) : Gamma (-n) = 0 :=
+begin
+  induction n with n IH,
+  { rw [Gamma, nat.cast_zero, neg_zero, zero_re, sub_zero, nat.floor_one, Gamma_aux],
+    simp only [div_zero] },
+  { have A : -(n.succ : ℂ) ≠ 0,
+    { rw [neg_ne_zero, nat.cast_ne_zero],
+      apply nat.succ_ne_zero },
+    have : -(n:ℂ) = -↑n.succ + 1, by simp,
+    rw [this, complex.Gamma_add_one _ A] at IH,
+    contrapose! IH,
+    exact mul_ne_zero A IH }
+end
+
+theorem Gamma_mul_Gamma_one_sub (z : ℂ) : Gamma z * Gamma (1 - z) = π / sin (π * z) :=
+begin
+  have pi_ne : (π : ℂ) ≠ 0, from complex.of_real_ne_zero.mpr pi_ne_zero,
+  by_cases hs : sin (↑π * z) = 0,
+  { -- first deal with silly case z = integer
+    rw [hs, div_zero],
+    rw [←neg_eq_zero, ←complex.sin_neg, ←mul_neg, complex.sin_eq_zero_iff, mul_comm] at hs,
+    obtain ⟨k, hk⟩ := hs,
+    rw [mul_eq_mul_right_iff, eq_false_intro (of_real_ne_zero.mpr pi_pos.ne'), or_false,
+      neg_eq_iff_neg_eq] at hk,
+    rw ←hk,
+    cases k,
+    { rw [int.cast_of_nat, complex.Gamma_neg_nat_eq_zero, zero_mul] },
+    { rw [int.cast_neg_succ_of_nat, neg_neg, nat.cast_add, nat.cast_one, add_comm, sub_add_cancel',
+        complex.Gamma_neg_nat_eq_zero, mul_zero] } },
+  refine tendsto_nhds_unique ((Gamma_seq_tendsto_Gamma z).mul (Gamma_seq_tendsto_Gamma $ 1 - z)) _,
+  have : ↑π / sin (↑π * z) = 1 * (π / sin (π * z)), by rw one_mul, rw this,
+  refine tendsto.congr' ((eventually_ne_at_top 0).mp
+    (eventually_of_forall (λ n hn, (Gamma_seq_mul z hn).symm))) (tendsto.mul _ _),
+  { convert tendsto_coe_nat_div_add_at_top (1 - z), ext1 n, rw add_sub_assoc },
+  { have : ↑π / sin (↑π * z) = 1 / (sin (π * z) / π), by field_simp, rw this,
+    refine tendsto_const_nhds.div _ (div_ne_zero hs pi_ne),
+    rw [←tendsto_mul_iff_of_ne_zero tendsto_const_nhds pi_ne, div_mul_cancel _ pi_ne],
+    convert tendsto_euler_sin_prod z,
+    ext1 n, rw [mul_comm, ←mul_assoc] },
+end
+
+theorem Gamma_ne_zero {s : ℂ} (hs : ∀ m:ℕ, s + m ≠ 0) : Gamma s ≠ 0 :=
+begin
+  by_cases h_im : s.im = 0,
+  { have : s = ↑s.re,
+    { conv_lhs { rw ←complex.re_add_im s }, rw [h_im, of_real_zero, zero_mul, add_zero] },
+    rw [this, Gamma_of_real, of_real_ne_zero],
+    refine real.Gamma_ne_zero (λ n, _),
+    rw [←of_real_ne_zero, of_real_add, ←this, of_real_nat_cast],
+    exact hs n },
+  { have : sin (↑π * s) ≠ 0,
+    { rw complex.sin_ne_zero_iff,
+      intro k,
+      apply_fun im,
+      rw [of_real_mul_im, ←of_real_int_cast, ←of_real_mul, of_real_im],
+      exact mul_ne_zero real.pi_pos.ne' h_im },
+    have A := div_ne_zero (of_real_ne_zero.mpr real.pi_pos.ne') this,
+    rw [←complex.Gamma_mul_Gamma_one_sub s, mul_ne_zero_iff] at A,
+    exact A.1 }
+end
+
+end complex
+
+end gamma_reflection

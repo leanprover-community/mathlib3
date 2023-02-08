@@ -167,7 +167,12 @@ begin
       exact algebra_map.has_lift_t R[X] unit,
       exact comm_ring.to_comm_monoid unit,
       exact algebra_map.has_lift_t R[X] unit },
-    field_simp [hdivprod, hsimp] at hsum,
+    --rw ← finset.prod_apply at hsum,
+    --field_simp [hdivprod, hsimp, (λ (x : ι) (hxs : x ∈ s), (hg x hxs).ne_zero)] at hsum,
+    field_simp at hsum,
+    --rw finset.p
+    -- ring_nf at hsum,
+    --simp [mul_add, add_mul] at hsum,
     --rw finset.prod_filter finset.dvd_prod_of_mem (λ (x : ι), g x) g at hsum,
     sorry, },
   { norm_cast,

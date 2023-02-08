@@ -121,12 +121,14 @@ begin
     exact fin.cons_succ _ _ _ },
 end
 
-lemma _root_.tensor_power.graded_monoid_mk_prod_single (n : ℕ) (x : fin n → M) :
-  @graded_monoid.mk _ (λ i, ⨂[R]^i M) _ ((list.fin_range n).dprod (λ a : fin n, 1)
-    (λ a, pi_tensor_product.tprod R (λ i : fin 1, x a))) =
+/-- The product of tensor products made of a single vector is the same as a single product of
+all the vectors. -/
+lemma _root_.tensor_power.list_prod_graded_monoid_mk_single (n : ℕ) (x : fin n → M) :
+  ((list.fin_range n).map
+    (λ a, (graded_monoid.mk _ (pi_tensor_product.tprod R (λ i : fin 1, x a))
+      : graded_monoid (λ n, ⨂[R]^n M)))).prod =
   graded_monoid.mk n (pi_tensor_product.tprod R x) :=
 begin
-  rw graded_monoid.mk_list_dprod,
   refine fin.cons_induction _ _ x; clear x,
   { rw [list.fin_range_zero, list.map_nil, list.prod_nil],
     refl, },
@@ -151,7 +153,8 @@ begin
   dsimp only,
   rw direct_sum.list_prod_of_fn_of_eq_dprod,
   apply direct_sum.of_eq_of_graded_monoid_eq,
-  rw tensor_power.graded_monoid_mk_prod_single,
+  rw graded_monoid.mk_list_dprod,
+  rw tensor_power.list_prod_graded_monoid_mk_single,
 end
 
 lemma to_direct_sum_comp_of_direct_sum :

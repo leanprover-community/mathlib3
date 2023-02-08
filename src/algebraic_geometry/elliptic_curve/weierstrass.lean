@@ -401,7 +401,7 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20c
 @[derive [inhabited, comm_ring]] def coordinate_ring : Type u := adjoin_root W.polynomial
 
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
-@[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
+abbreviation function_field : Type u := fraction_ring W.coordinate_ring
 
 namespace coordinate_ring
 

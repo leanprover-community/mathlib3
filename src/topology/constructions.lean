@@ -1055,27 +1055,47 @@ lemma is_open_set_pi {i : set ι} {s : Πa, set (π a)} (hi : i.finite) (hs : �
   is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
 
-lemma is_open_pi_iff {s : set (Πa, π a)} :
+lemma is_open_pi_iff {s : set (Π a, π a)} :
   is_open s ↔
   (∀ f, f ∈ s → ∃ (I : finset ι) (u : Π a, set (π a)),
-  (∀ a, ∃ (t : set (π a)), t ⊆ u a ∧ is_open t ∧ f a ∈ t) ∧ (I : set ι).pi u ⊆ s) :=
+    (∀ a, a ∈ I → is_open (u a) ∧ f a ∈ u a) ∧ (I : set ι).pi u ⊆ s) :=
 begin
   rw is_open_iff_nhds,
   simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
-end
-
-lemma is_open_pi_iff' [finite ι]  {s : set (Πa, π a)} :
-  is_open s ↔
-  (∀ f, f ∈ s → ∃ (u : Πa, set (π a)), (∀ a, is_open (u a) ∧ f a ∈ u a) ∧ set.univ.pi u ⊆ s) :=
-begin
-  casesI nonempty_fintype ι,
-  rw is_open_pi_iff,
   refine ball_congr (λ a h, ⟨_, _⟩),
   { rintros ⟨I, t, ⟨h1, h2⟩⟩,
-    refine ⟨λ i, (h1 i).some, ⟨λ i, (h1 i).some_spec.2,
-        (set.pi_mono (λ i _, (h1 i).some_spec.1)).trans (subset.trans _ h2)⟩⟩,
-    rw ← set.pi_inter_compl (I : set ι),
-    exact inter_subset_left _ _, },
+    refine ⟨I, λ a, eval a '' ((I : set ι).pi (λ a, (h1 a).some)), (λ i hi, _), _⟩,
+    { simp_rw set.eval_image_pi (finset.mem_coe.mpr hi)
+        (pi_nonempty_iff.mpr (λ i, ⟨_, λ _, (h1 i).some_spec.2.2⟩)),
+      exact (h1 i).some_spec.2, },
+    { refine subset.trans
+        (set.pi_mono (λ i hi, (set.eval_image_pi_subset hi).trans (h1 i).some_spec.1)) h2, }},
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨I, λ a, ite (a ∈ I) (t a) (set.univ), (λ i, _), _⟩,
+    { by_cases hi : i ∈ I,
+      { use t i,
+        rw if_pos hi,
+        exact ⟨subset.rfl, (h1 i) hi⟩, },
+      { use set.univ,
+        rw if_neg hi,
+        exact ⟨subset.rfl, is_open_univ, mem_univ _⟩, }},
+    { rw ← set.univ_pi_ite,
+      simp only [ ← ite_and, ← finset.mem_coe, and_self, set.univ_pi_ite, h2], }}
+end
+
+lemma is_open_pi_iff' [finite ι]  {s : set (Π a, π a)} :
+  is_open s ↔
+  (∀ f, f ∈ s → ∃ (u : Π a, set (π a)), (∀ a, is_open (u a) ∧ f a ∈ u a) ∧ set.univ.pi u ⊆ s) :=
+begin
+  casesI nonempty_fintype ι,
+  rw is_open_iff_nhds,
+   simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
+   refine ball_congr (λ a h, ⟨_, _⟩),
+   { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+     refine ⟨λ i, (h1 i).some, ⟨λ i, (h1 i).some_spec.2,
+         (set.pi_mono (λ i _, (h1 i).some_spec.1)).trans (subset.trans _ h2)⟩⟩,
+     rw ← set.pi_inter_compl (I : set ι),
+     exact inter_subset_left _ _, },
   { exact λ ⟨u, ⟨h1, _⟩⟩, ⟨finset.univ, u, ⟨λ i, ⟨u i, ⟨rfl.subset, h1 i⟩⟩,
       by rwa finset.coe_univ⟩⟩, }
 end

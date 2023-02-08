@@ -329,7 +329,7 @@ end
 
 lemma has_sum_sum_disjoint {ι} (s : finset ι) {t : ι → set β} {a : ι → α}
   (hs : (s : set ι).pairwise (disjoint on t))
-  (hf : ∀ i ∈ s, has_sum (f ∘ coe : t i → α) (a i)):
+  (hf : ∀ i ∈ s, has_sum (f ∘ coe : t i → α) (a i)) :
   has_sum (f ∘ coe : (⋃ i ∈ s, t i) → α) (∑ i in s, a i) :=
 begin
   simp_rw has_sum_subtype_iff_indicator at *,

@@ -101,10 +101,9 @@ begin
   have : ‖∫ (x : ℝ), exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖ ≤ ∫ (x : ℝ),
     ‖exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖, from norm_integral_le_integral_norm _,
   refine lt_of_le_of_lt this _,
-  simp_rw [norm_smul],
   have : ∀ (x : ℝ), ‖exp (I * t * x)‖ = 1,
   { intro x, rw [mul_assoc, ←complex.of_real_mul, mul_comm, norm_eq_abs, abs_exp_of_real_mul_I], },
-  simp_rw [this, one_mul],
+  simp_rw [norm_smul, this, one_mul],
   -- Show integral can be taken over `[-(R + 1), R] ⊂ ℝ`.
   let A := Icc (-(R + 1)) R,
   have int_Icc :

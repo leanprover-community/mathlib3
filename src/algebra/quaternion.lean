@@ -225,9 +225,9 @@ variables (c₁ c₂)
 
 /-- `quaternion_algebra.equiv_tuple` as a linear equivalence. -/
 def linear_equiv_tuple : ℍ[R,c₁,c₂] ≃ₗ[R] (fin 4 → R) :=
-linear_equiv.symm
+linear_equiv.symm  -- proofs are not `rfl` in the forward direction
   { to_fun := (equiv_tuple c₁ c₂).symm,
-    inv_fun := (equiv_tuple c₁ c₂),
+    inv_fun := equiv_tuple c₁ c₂,
     map_add' := λ v₁ v₂, rfl,
     map_smul' := λ v₁ v₂, rfl,
     .. (equiv_tuple c₁ c₂).symm }

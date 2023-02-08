@@ -810,6 +810,24 @@ lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj
   (G.delete_edges s).edge_finset = G.edge_finset \ s :=
 by { ext e, simp [edge_set_delete_edges] }
 
+lemma delete_edges_eq_self_iff_disjoint {s : set (sym2 V)} :
+  G.delete_edges s = G ↔ disjoint G.edge_set s :=
+begin
+  rw [set.disjoint_left, simple_graph.ext_iff],
+  simp only [function.funext_iff, delete_edges_adj, eq_iff_iff, and_iff_left_iff_imp],
+  split,
+  { intro h,
+    refine sym2.ind (λ v w, _),
+    exact h v w, },
+  { intros h v w hvw,
+    rw ← mem_edge_set at hvw,
+    exact h hvw, }
+end
+
+lemma delete_edges_singleton_eq_self_iff_not_mem :
+  G.delete_edges {e} = G ↔ e ∉ G.edge_set :=
+by rw [delete_edges_eq_self_iff_disjoint, set.disjoint_singleton_right]
+
 section delete_far
 variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]
   {p : simple_graph V → Prop} {r r₁ r₂ : 𝕜}

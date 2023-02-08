@@ -158,11 +158,23 @@ begin
     let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
     have hdivprod : ∀ x ∈ s, (g x) ∣ (∏ i in s, (g i)) :=
       λ x, finset.dvd_prod_of_mem (λ (x : ι), g x),
-    field_simp [hdivprod] at hsum,
+    have hsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
+    { intros x hxs,
+      exact unit.ext,
+      exact div_inv_monoid.to_has_div unit,
+      exact comm_ring.to_comm_monoid unit,
+      exact algebra_map.has_lift_t R[X] unit,
+      exact algebra_map.has_lift_t R[X] unit,
+      exact comm_ring.to_comm_monoid unit,
+      exact algebra_map.has_lift_t R[X] unit },
+    field_simp [hdivprod, hsimp] at hsum,
+    --rw finset.prod_filter finset.dvd_prod_of_mem (λ (x : ι), g x) g at hsum,
     sorry, },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
+
+#check finsupp
 
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))

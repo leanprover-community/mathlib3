@@ -58,7 +58,7 @@ begin
       from finset.sum_eq_zero (λ k hk, by simp [ha k (finset.mem_range.mp hk)]),
     have h2 : has_sum (λ m, z ^ (m + n) • a (m + n)) s,
       by simpa [h1] using (has_sum_nat_add_iff' n).mpr hs,
-    convert @has_sum.const_smul E ℕ 𝕜 _ _ _ _ _ _ _ (z⁻¹ ^ n) h2,
+    convert h2.const_smul (z⁻¹ ^ n),
     { field_simp [pow_add, smul_smul] },
     { simp only [inv_pow] } }
 end

@@ -530,7 +530,7 @@ begin
   { exact eventually_of_forall (λ _ _, (summable_geometric_of_lt_1 hwR.1 hwR.2).mul_left _) },
   { simpa only [tsum_mul_left, tsum_geometric_of_lt_1 hwR.1 hwR.2]
       using hf.norm.mul_continuous_on continuous_on_const },
-  { refine eventually_of_forall (λ θ hθ, has_sum.const_smul _),
+  { refine eventually_of_forall (λ θ hθ, has_sum.const_smul _ _),
     simp only [smul_smul],
     refine has_sum.smul_const _ _,
     have : ‖w / (circle_map c R θ - c)‖ < 1, by simpa [abs_of_pos hR] using hwR.2,

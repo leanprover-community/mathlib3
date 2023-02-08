@@ -35,7 +35,7 @@ namespace upper_half_plane
 lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
 by simpa using div_pos z.property (norm_sq_pos z)
 
-@[simp] lemma special_linear_group_apply (g : SL(2, ℝ)) (z : ℍ) :
+lemma special_linear_group_apply (g : SL(2, ℝ)) (z : ℍ) :
   g • z = mk ((((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
               (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ))) (g • z).property :=
 rfl
@@ -47,7 +47,10 @@ This defines an involutive elliptic isometry of the hyperbolic plane, fixing `i`
 def involute : SL(2, ℝ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
 
 @[simp] lemma involute_apply (z : ℍ) : involute • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
-by simp [involute, neg_div, inv_neg]
+begin
+  rw [special_linear_group_apply],
+  simp [involute, neg_div, inv_neg],
+end
 
 lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq := by simp
 
@@ -160,7 +163,8 @@ begin
     have h6' := h6, rw coe_im at h6',
     rw [real.sq_sqrt _, real.sq_sqrt _, real.sq_sqrt _, real.sq_sqrt _],
     { rw div_eq_div_iff,
-      { rw [← coe_im (g • z), ← coe_im (g • w)],
+      { rw [← coe_im (g • z), ← coe_im (g • w), special_linear_group_apply g z,
+          special_linear_group_apply g w],
         simp [hg00', hg01', hg10', hg11', h1', ← hg''],
         ring, },
       { positivity, },
@@ -193,7 +197,7 @@ begin
   rw [subtype.val_eq_coe, matrix.det_fin_two] at hg,
   have hg' : (a * d - b * c : ℂ) = (1 : ℂ), norm_cast, assumption,
   rw hg10 at h1,
-  rw subtype.ext_iff,
+  rw [subtype.ext_iff, special_linear_group_apply g z],
   simp [involute_apply],
   rw [mul_assoc, ← neg_mul, ← neg_mul, ← mul_add],
   rw [hg00', hg01', hg10', hg11'],

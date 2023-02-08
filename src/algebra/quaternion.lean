@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.algebra.equiv
+import linear_algebra.finrank
+import linear_algebra.free_module.basic
+import linear_algebra.free_module.finite.basic
 import set_theory.cardinal.ordinal
 import tactic.ring_exp
 
@@ -233,6 +236,24 @@ linear_equiv.symm
 @[simp] lemma coe_linear_equiv_tuple_symm :
   ⇑(linear_equiv_tuple c₁ c₂).symm = (equiv_tuple c₁ c₂).symm := rfl
 
+/-- `ℍ[R, c₁, c₂]` has a basis over `R` given by `1`, `i`, `j`, and `k`. -/
+noncomputable def basis_one_i_j_k : basis (fin 4) R ℍ[R, c₁, c₂] :=
+basis.of_equiv_fun $ linear_equiv_tuple c₁ c₂
+
+@[simp] lemma coe_basis_one_i_j_k_repr (q : ℍ[R, c₁, c₂]) :
+  ⇑((basis_one_i_j_k c₁ c₂).repr q) = ![q.re, q.im_i, q.im_j, q.im_k] := rfl
+
+instance : module.finite R ℍ[R, c₁, c₂] := module.finite.of_basis (basis_one_i_j_k c₁ c₂)
+instance : module.free R ℍ[R, c₁, c₂] := module.free.of_basis (basis_one_i_j_k c₁ c₂)
+
+lemma dim_eq_four [strong_rank_condition R] : module.rank R ℍ[R, c₁, c₂] = 4 :=
+by { rw [dim_eq_card_basis (basis_one_i_j_k c₁ c₂), fintype.card_fin], norm_num }
+
+lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R, c₁, c₂] = 4 :=
+have cardinal.to_nat 4 = 4,
+  by rw [←cardinal.to_nat_cast 4, nat.cast_bit0, nat.cast_bit0, nat.cast_one],
+by rw [finite_dimensional.finrank, dim_eq_four, this]
+
 end
 
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
@@ -375,6 +396,7 @@ def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) 
 localized "notation (name := quaternion) `ℍ[` R `]` := quaternion R" in quaternion
 
 /-- The equivalence between the quaternions over `R` and `R × R × R × R`. -/
+@[simps]
 def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=
 quaternion_algebra.equiv_prod _ _
 
@@ -488,6 +510,15 @@ lemma mul_coe_eq_smul : a * r = r • a := quaternion_algebra.mul_coe_eq_smul r 
 @[simp] lemma algebra_map_def : ⇑(algebra_map R ℍ[R]) = coe := rfl
 
 lemma smul_coe : x • (y : ℍ[R]) = ↑(x * y) := quaternion_algebra.smul_coe x y
+
+instance : module.finite R ℍ[R] := quaternion_algebra.module.finite _ _
+instance : module.free R ℍ[R] := quaternion_algebra.module.free _ _
+
+lemma dim_eq_four [strong_rank_condition R] : module.rank R ℍ[R] = 4 :=
+quaternion_algebra.dim_eq_four _ _
+
+lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R] = 4 :=
+quaternion_algebra.finrank_eq_four _ _
 
 /-- Quaternion conjugate. -/
 def conj : ℍ[R] ≃ₗ[R]  ℍ[R] := quaternion_algebra.conj

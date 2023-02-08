@@ -1106,11 +1106,12 @@ begin
     rw [mul_sub, mul_one, mul_div_cancel' _ ha'] }
 end
 
-/-- Relation between Beta integral and Gamma function. Note that we haven't proved (yet) that
-the Gamma function has no zeroes, so we can't formulate this as a formula for the Beta function. -/
+/-- Relation between Beta integral and Gamma function.  -/
 lemma Gamma_mul_Gamma_eq_beta_integral {s t : ℂ} (hs : 0 < re s) (ht : 0 < re t) :
   Gamma s * Gamma t = Gamma (s + t) * beta_integral s t :=
 begin
+  -- Note that we haven't proved (yet) that the Gamma function has no zeroes, so we can't formulate
+  -- this as a formula for the Beta function.
   have conv_int := integral_pos_convolution (Gamma_integral_convergent hs)
     (Gamma_integral_convergent ht) (continuous_linear_map.mul ℝ ℂ),
   simp_rw continuous_linear_map.mul_apply' at conv_int,
@@ -1128,12 +1129,13 @@ begin
   { rw ←complex.exp_add, congr' 1, abel },
 end
 
-/-- Recurrence formula for the Beta function. If we knew `Gamma (u + v + 1) ≠ 0` this would be an
-easy consequence of `Gamma_mul_Gamma_eq_beta_integral`; but we don't know that, so we give a
-direct proof. -/
+/-- Recurrence formula for the Beta function. -/
 lemma beta_integral_recurrence {u v : ℂ} (hu : 0 < re u) (hv : 0 < re v) :
   u * beta_integral u (v + 1) = v * beta_integral (u + 1) v :=
 begin
+  -- NB: If we knew `Gamma (u + v + 1) ≠ 0` this would be an easy consequence of
+  -- `Gamma_mul_Gamma_eq_beta_integral`; but we don't know that yet. We will prove it later, but
+  -- this lemma is needed in the proof. So we give a (somewhat laborious) direct argument.
   let F : ℝ → ℂ := λ x, x ^ u * (1 - x) ^ v,
   have hu' : 0 < re (u + 1), by { rw [add_re, one_re], positivity },
   have hv' : 0 < re (v + 1), by { rw [add_re, one_re], positivity },
@@ -1190,7 +1192,7 @@ begin
     ext1 x, rw add_sub_cancel },
 end
 
-/-- Explicit formula for the Beta function when one argument is a positive integer. -/
+/-- Explicit formula for the Beta function when second argument is a positive integer. -/
 lemma beta_integral_eval_nat_add_one_right {u : ℂ} (hu : 0 < re u) (n : ℕ) :
   beta_integral u (n + 1) = n! / ∏ (j:ℕ) in finset.range (n + 1), (u + j) :=
 begin

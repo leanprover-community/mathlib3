@@ -79,7 +79,7 @@ begin
   { have hxx : ∀ (n : ℕ), x⁻¹ * x ^ (n + 1) = x ^ n := λ n, by field_simp [h, pow_succ'],
     suffices : has_sum (λ n, x⁻¹ • x ^ (n + 1) • p.coeff (n + 1)) (x⁻¹ • (f (z₀ + x) - f z₀)),
     { simpa [dslope, slope, h, smul_smul, hxx] using this },
-    { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul } }
+    { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul x⁻¹ } }
 end
 
 lemma has_fpower_series_iterate_dslope_fslope (n : ℕ) (hp : has_fpower_series_at f p z₀) :

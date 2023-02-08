@@ -156,7 +156,9 @@ begin
   rw [hzero, div_eq_iff _] at hsum,
   { simp only [add_mul, finset.sum_mul] at hsum,
     let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
-
+    have hdivprod : ∀ x ∈ s, (g x) ∣ (∏ i in s, (g i)) :=
+      λ x, finset.dvd_prod_of_mem (λ (x : ι), g x),
+    field_simp [hdivprod] at hsum,
     sorry, },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },

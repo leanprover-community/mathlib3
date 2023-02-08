@@ -439,27 +439,6 @@ begin
   refl,
 end
 
-lemma heq_of_reindex_cast {ι ι₂ : Type*} [dι : decidable_eq ι] [dι₂ : decidable_eq ι₂]
-  (a : ⨂[R] i : ι, M) (b : ⨂[R] i : ι₂, M) {h : ι = ι₂} :
-  reindex R M (equiv.cast h) a = b → a == b :=
-begin
-  unfreezingI
-  { subst h,
-    have : dι = dι₂ := subsingleton.elim _ _,
-    subst this, },
-  simp,
-end
-
-@[ext]
-lemma sigma_eq_of_reindex_cast {ιι : Type*} {ι : ιι → Type*} [dι : ∀ ii, decidable_eq (ι ii)] :
-  ∀ {a b : Σ ii, ⨂[R] i : ι ii, M} (h : a.fst = b.fst),
-    reindex R M (equiv.cast $ congr_arg ι h) a.snd = b.snd → a = b
-| ⟨ai, a⟩ ⟨bi, b⟩ := λ (hi : ai = bi) (h : reindex R M _ a = b),
-begin
-  subst hi,
-  simpa using h,
-end
-
 variables (ι)
 
 /-- The tensor product over an empty index type `ι` is isomorphic to the base ring. -/

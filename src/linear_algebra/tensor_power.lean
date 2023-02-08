@@ -41,6 +41,23 @@ variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module 
 localized "notation (name := tensor_power)
   `⨂[`:100 R `]^`:80 n:max := tensor_power R n" in tensor_product
 
+namespace pi_tensor_product
+
+/-- Two dependent pairs of tensor products are equal if their index is equal and the contents
+are equal after a canonical reindexing. -/
+@[ext]
+lemma graded_monoid_eq_of_reindex_cast {ιι : Type*} {ι : ιι → Type*}
+  [dι : Π ii, decidable_eq (ι ii)] :
+  ∀ {a b : graded_monoid (λ ii, ⨂[R] i : ι ii, M)} (h : a.fst = b.fst),
+    reindex R M (equiv.cast $ congr_arg ι h) a.snd = b.snd → a = b
+| ⟨ai, a⟩ ⟨bi, b⟩ := λ (hi : ai = bi) (h : reindex R M _ a = b),
+begin
+  subst hi,
+  simpa using h,
+end
+
+end pi_tensor_product
+
 namespace tensor_power
 open_locale tensor_product direct_sum
 open pi_tensor_product
@@ -103,7 +120,7 @@ variables {R M}
 lemma graded_monoid_eq_of_cast {a b : graded_monoid (λ n, ⨂[R] i : fin n, M)}
   (h : a.fst = b.fst) (h2 : cast R M h a.snd = b.snd) : a = b :=
 begin
-  refine sigma_eq_of_reindex_cast h _,
+  refine graded_monoid_eq_of_reindex_cast h _,
   rw cast at h2,
   rw [←fin.cast_to_equiv, ← h2],
 end

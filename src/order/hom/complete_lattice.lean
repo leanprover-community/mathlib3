@@ -9,6 +9,9 @@ import order.hom.lattice
 /-!
 # Complete lattice homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines frame homorphisms and complete lattice homomorphisms.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to

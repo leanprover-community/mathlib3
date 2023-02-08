@@ -99,7 +99,7 @@ def of_complex : ℂ →ₐ[ℝ] ℍ :=
 @[simp] lemma coe_of_complex : ⇑of_complex = coe := rfl
 
 /-- The norm of the components as a euclidean vector equals the norm of the quaternion. -/
-lemma norm_pi_Lp_equiv_symm_equiv_tuple (x : quaternion ℝ) :
+lemma norm_pi_Lp_equiv_symm_equiv_tuple (x : ℍ) :
   ‖(pi_Lp.equiv 2 (λ _ : fin 4, _)).symm (equiv_tuple ℝ x)‖ = ‖x‖ :=
 begin
   rw [norm_eq_sqrt_real_inner, norm_eq_sqrt_real_inner, inner_self, norm_sq_def', pi_Lp.inner_apply,
@@ -110,11 +110,49 @@ end
 
 /-- `quaternion_algebra.linear_equiv_tuple` as a `linear_isometry_equiv`. -/
 @[simps apply symm_apply]
-def linear_isometry_equiv_tuple : quaternion ℝ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin 4) :=
+def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin 4) :=
 { to_fun := λ a, (pi_Lp.equiv _ (λ _ : fin 4, _)).symm ![a.1, a.2, a.3, a.4],
   inv_fun := λ a, ⟨a 0, a 1, a 2, a 3⟩,
   norm_map' := norm_pi_Lp_equiv_symm_equiv_tuple,
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
+
+-- TODO: move
+@[continuity]
+lemma continuous_pi_single {ι : Type*} (α : ι → Type*)
+  [Π i, has_zero (α i)] [Π i, topological_space (α i)] [decidable_eq ι] (i : ι) :
+  continuous (λ a, (pi.single i a : Π i, α i)) :=
+continuous_const.update _ continuous_id
+
+@[continuity] lemma continuous_of_real : continuous (λ r : ℝ, (r : ℍ)) :=
+begin
+  show continuous (λ r : ℝ,
+    linear_isometry_equiv_tuple.symm $
+    (pi_Lp.equiv _ (λ _ : fin 4, _)).symm ![r, 0, 0, 0]),
+  refine linear_isometry_equiv_tuple.symm.continuous.comp _,
+  refine (pi_Lp.continuous_equiv_symm _ _).comp _,
+  convert (continuous_pi_single (λ i, ℝ) (0 : fin 4) : _),
+  ext r i,
+  fin_cases i; refl
+end
+
+@[continuity] lemma continuous_re : continuous (λ q : ℍ, q.re) :=
+(continuous_apply 0).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_i : continuous (λ q : ℍ, q.im_i) :=
+(continuous_apply 1).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_j : continuous (λ q : ℍ, q.im_j) :=
+(continuous_apply 2).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
+(continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
+
+/-- The real part as a continuous linear map. -/
+def re_clm : ℍ →L[ℝ] ℝ :=
+{ to_fun := λ q : ℍ, q.re,
+  map_add' := add_re,
+  map_smul' := smul_re,
+  cont := continuous_re }
 
 end quaternion

@@ -370,8 +370,12 @@ Single Variable Complex Analysis:
     antiderivative: ''
     complex exponential: 'complex.exp'
     extension of trigonometric functions to the complex plane: 'complex.sin'
-    # TODO: we can only list one function here
-    power series expansion of elementary functions: 'complex.has_sum_cos'
+    power series expansion of elementary functions:
+      cos: 'complex.has_sum_cos'
+      sin: 'complex.has_sum_sin'
+      log: ''
+      arctan: ''
+      arcsin: ''
   Functions on one complex variable:
     holomorphic functions: 'differentiable_on'
     Cauchy-Riemann conditions: ''

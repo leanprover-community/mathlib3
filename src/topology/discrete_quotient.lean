@@ -197,7 +197,8 @@ instance [locally_connected_space X] : order_bot (discrete_quotient X) :=
         exact is_open_connected_component
       end },
   bot_le := λ S x y (h : connected_component x = connected_component y),
-    (S.is_clopen_set_of_rel x).connected_component_subset (S.refl _) $ h.symm ▸ mem_connected_component }
+    (S.is_clopen_set_of_rel x).connected_component_subset (S.refl _) $
+      h.symm ▸ mem_connected_component }
 
 @[simp] theorem proj_bot_eq [locally_connected_space X] {x y : X} :
   proj ⊥ x = proj ⊥ y ↔ connected_component x = connected_component y :=

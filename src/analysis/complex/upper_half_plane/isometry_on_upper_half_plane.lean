@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wan Ruizhe
 -/
 import analysis.complex.upper_half_plane.metric
-import analysis.complex.upper_half_plane.basic
 import tactic.linear_combination
 
 /-!
@@ -12,11 +11,7 @@ This file proves that every element in SL2 acts on the upper half-plane as an is
 
 -/
 
-noncomputable theory
-
 open_locale upper_half_plane matrix_groups
-
-local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 lemma matrix.special_linear_group.fin_two_exists_eq_mk (g : SL(2, ℝ)) :
   ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
@@ -206,7 +201,7 @@ begin
   have h4 : (c : ℂ) * z + (d : ℂ) ≠ 0,
   have h4' : denom g z = ((g 1 0) : ℂ) * z + ((g 1 1) : ℂ) := rfl,
   rw [hg10, hg11] at h4',
-  rw ← h4', refine denom_ne_zero (g : GL(2, ℝ)⁺) _,
+  rw ← h4', refine denom_ne_zero g _,
   have h5 : -(c : ℂ) * ((c : ℂ) * z + (d : ℂ)) ≠ 0, have h5' : -(c : ℂ) ≠ (0 : ℂ),
   exact neg_ne_zero.mpr h2', positivity,
   field_simp,

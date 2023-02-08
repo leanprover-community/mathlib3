@@ -118,7 +118,7 @@ by simp [graded_monoid.mk_eq_one, eq_comm]
 @[simp] lemma mk_reindex_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
   graded_monoid.mk m (pi_tensor_product.reindex R M (equiv.cast $ congr_arg fin h) x) =
     graded_monoid.mk n x :=
-eq.symm (pi_tensor_product.sigma_eq_of_reindex_cast h rfl)
+eq.symm (pi_tensor_product.graded_monoid_eq_of_reindex_cast h rfl)
 
 @[simp] lemma mk_reindex_fin_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
   graded_monoid.mk m (pi_tensor_product.reindex R M (fin.cast h).to_equiv x) =
@@ -130,16 +130,10 @@ lemma _root_.tensor_power.graded_monoid_mk_prod_single (n : ℕ) (x : fin n → 
     (λ a, pi_tensor_product.tprod R (λ i : fin 1, x a))) =
   graded_monoid.mk n (pi_tensor_product.tprod R x) :=
 begin
-  generalize h : list.fin_range n = l,
-  -- generalize hf : (λ (i : fin n) (b : ℕ), 1 + b) = f,
   induction n,
-  { rw list.fin_range_zero at h,
-    rw subsingleton.elim x fin.elim0,
-    subst h,
-    rw list.dprod_nil,
+  { rw [subsingleton.elim x fin.elim0, list.fin_range_zero, list.dprod_nil],
     refl, },
-  { rw [list.fin_range_succ_eq_map] at h,
-    subst h,
+  { rw [list.fin_range_succ_eq_map],
     rw [list.dprod_cons],
     set x' := fin.append (λ i : fin 1, x 0) (x ∘ fin.succ) with hx',
     set e := (fin.cast (add_comm 1 n_n)).to_equiv with he,
@@ -149,17 +143,17 @@ begin
       simp_rw [equiv.symm_apply_apply, hx'],
       refine fin.add_cases (λ i, _) (λ i, _),
       { rw subsingleton.elim i 0,
-        simp [he],
+        simp only [he, rel_iso.coe_fn_to_equiv, fin.append_left],
         refine congr_arg x _,
         ext,
-        simp,},
+        simp, },
       { simp [he] } },
     conv_rhs {rw [this, ←pi_tensor_product.reindex_tprod e] },
     dsimp only [list.dprod_index_cons],
-    rw [←graded_monoid.mk_mul_mk,hx', ← tensor_power.tprod_mul_tprod,-- ←tensor_power.ghas_mul_def,
+    rw [←graded_monoid.mk_mul_mk,hx', ← tensor_power.tprod_mul_tprod,
         he, mk_reindex_fin_cast, ←graded_monoid.mk_mul_mk],
     congr' 1,
-    rw ←n_ih (x ∘ fin.succ) _ rfl,
+    rw ←n_ih (x ∘ fin.succ),
     dsimp only,
     rw [graded_monoid.mk_list_dprod, graded_monoid.mk_list_dprod, list.map_map] },
 end

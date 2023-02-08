@@ -17,6 +17,7 @@ In this file we express trigonetric functions in terms of their series expansion
 * `real.has_sum_sin`, `real.tsum_sin`: `real.sin` as the sum of an infinite series.
 -/
 
+open_locale nat
 
 /-! ### `cos` and `sin` for `ℝ` and `ℂ` -/
 

@@ -215,18 +215,6 @@ by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }
 
 /-! ### Series expansions of `cos` and `sin` for `ℝ` and `ℂ` -/
 
-/-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`. -/
-@[simps]
-def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
-{ to_fun := λ a, (a / n, ↑a),
-  inv_fun := λ p, p.1 * n + p.2,
-  left_inv := λ a, nat.div_add_mod' _ _,
-  right_inv := λ p, begin
-    refine prod.ext _ (fin.ext $ nat.mul_add_mod_of_lt p.2.is_lt),
-    dsimp only,
-    rw [add_comm, nat.add_mul_div_right _ _ (ne_zero.pos n), nat.div_eq_zero p.2.is_lt, zero_add],
-  end }
-
 section sin_cos
 
 lemma complex.has_sum_cos' (z : ℂ) :

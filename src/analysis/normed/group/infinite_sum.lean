@@ -32,11 +32,11 @@ open finset filter metric
 
 variables {ι α E F : Type*} [seminormed_add_comm_group E] [seminormed_add_comm_group F]
 
-lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → E} :
+lemma cauchy_seq_finset_sum_iff_vanishing_norm {f : ι → E} :
   cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ‖ ∑ i in t, f i ‖ < ε :=
 begin
-  rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
+  rw [cauchy_seq_finset_sum_iff_vanishing, nhds_basis_ball.forall_iff],
   { simp only [ball_zero_eq, set.mem_set_of_eq] },
   { rintros s t hst ⟨s', hs'⟩,
     exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
@@ -44,12 +44,12 @@ end
 
 lemma summable_iff_vanishing_norm [complete_space E] {f : ι → E} :
   summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ‖ ∑ i in t, f i ‖ < ε :=
-by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
+by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_sum_iff_vanishing_norm]
 
 lemma cauchy_seq_finset_of_norm_bounded_eventually {f : ι → E} {g : ι → ℝ} (hg : summable g)
   (h : ∀ᶠ i in cofinite, ‖f i‖ ≤ g i) : cauchy_seq (λ s, ∑ i in s, f i) :=
 begin
-  refine cauchy_seq_finset_iff_vanishing_norm.2 (λ ε hε, _),
+  refine cauchy_seq_finset_sum_iff_vanishing_norm.2 (λ ε hε, _),
   rcases summable_iff_vanishing_norm.1 hg ε hε with ⟨s, hs⟩,
   refine ⟨s ∪ h.to_finset, λ t ht, _⟩,
   have : ∀ i ∈ t, ‖f i‖ ≤ g i,

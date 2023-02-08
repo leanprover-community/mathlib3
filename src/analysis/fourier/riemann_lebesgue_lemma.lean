@@ -50,7 +50,7 @@ end
 variable [complete_space E]
 
 /-- Shifting `f` by `π / t` negates the integral in the Riemann-Lebesgue lemma. -/
-lemma fourier_integral_half_period_translate {t : ℝ} (ht : t ≠ 0) (hf1 : continuous f) :
+lemma fourier_integral_half_period_translate {t : ℝ} (ht : t ≠ 0) :
   ∫ x:ℝ, exp (I * t * x) • f (x + π / t) = -∫ x:ℝ, exp (I * t * x) • f x :=
 begin
   have : (λ x:ℝ, exp (I * t * x) • f (x + π / t)) =
@@ -60,28 +60,25 @@ begin
     replace ht := complex.of_real_ne_zero.mpr ht,
     have : I * ↑t * ↑(π / t) = π * I, by { field_simp, ring},
     rw [this, exp_pi_mul_I], ring_nf, },
-  rw [this, ←integral_map],
-  { simp_rw [←integral_neg, ←neg_smul],
-    rw is_add_left_invariant.is_add_right_invariant.map_add_right_eq_self,
-    apply_instance },
-  exacts [ae_measurable_id.add_const _, ((continuous_exp.comp $ continuous_const.mul
-    continuous_of_real).neg.smul hf1).ae_strongly_measurable],
+  rw [this, integral_add_right_eq_self],
+  simp_rw [neg_smul, integral_neg],
 end
 
 /-- Rewrite the Riemann-Lebesgue integral in a form that allows us to use uniform continuity. -/
 lemma fourier_integral_eq_half_sub_half_period_translate
-  {t : ℝ} (ht : t ≠ 0) (hf1 : continuous f) (hf2 : integrable f) :
+  {t : ℝ} (ht : t ≠ 0) (hf : integrable f) :
   ∫ x:ℝ, exp (I * t * x) • f x = (1 / (2 : ℂ)) • ∫ x:ℝ, exp (I * t * x) • (f x - f (x + π / t)) :=
 begin
   simp_rw [smul_sub],
-  rw [integral_sub, fourier_integral_half_period_translate ht hf1, sub_eq_add_neg, neg_neg,
+  rw [integral_sub, fourier_integral_half_period_translate ht, sub_eq_add_neg, neg_neg,
     ←two_smul ℂ _, ←@smul_assoc _ _ _ _ _ _ (is_scalar_tower.left ℂ), smul_eq_mul],
   norm_num,
-  exacts [fourier_integrand_integrable hf2 t,
-    fourier_integrand_integrable (hf2.comp_add_right (π / t)) t],
+  exacts [fourier_integrand_integrable hf t,
+    fourier_integrand_integrable (hf.comp_add_right (π / t)) t],
 end
 
-/-- Riemann-Lebesgue Lemma for continuous and compactly-supported functions. --/
+/-- Riemann-Lebesgue Lemma for continuous and compactly-supported functions: the integral
+`∫ x, exp (I * t * x) • f x` tends to 0 as `t` gets large.  -/
 lemma tendsto_integral_mul_exp_at_top_of_continuous_compact_support
   (hf1 : continuous f) (hf2 : has_compact_support f) :
   tendsto (λ t:ℝ, ∫ x:ℝ, exp (I * t * x) • f x) at_top (𝓝 0) :=
@@ -96,13 +93,13 @@ begin
   have tpos : 0 < t := lt_of_lt_of_le real.pi_pos ((le_max_left _ _).trans ht),
   -- Rewrite integral in terms of `f x - f (x + π / t)`.
   rw fourier_integral_eq_half_sub_half_period_translate (lt_of_lt_of_le
-    (lt_max_of_lt_left real.pi_pos) ht).ne' hf1 (hf1.integrable_of_has_compact_support hf2),
+    (lt_max_of_lt_left real.pi_pos) ht).ne' (hf1.integrable_of_has_compact_support hf2),
   rw [norm_smul, norm_eq_abs, ←complex.of_real_one, ←of_real_bit0, ←of_real_div,
     complex.abs_of_nonneg one_half_pos.le],
   have : ε = (1 / 2) * (2 * ε), by { field_simp, ring, },
   rw [this, mul_lt_mul_left (one_half_pos : (0:ℝ) < 1/2)],
   have : ‖∫ (x : ℝ), exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖ ≤ ∫ (x : ℝ),
-    ‖exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖, by apply norm_integral_le_integral_norm,
+    ‖exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖, from norm_integral_le_integral_norm _,
   refine lt_of_le_of_lt this _,
   simp_rw [norm_smul],
   have : ∀ (x : ℝ), ‖exp (I * t * x)‖ = 1,

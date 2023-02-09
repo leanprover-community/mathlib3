@@ -1028,10 +1028,16 @@ lemma continuous.update [decidable_eq ι] (hf : continuous f) (i : ι) {g : α �
   continuous (λ a, update (f a) i (g a)) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
 
-/-- `update f i x` is continuous in `(f, x)`. -/
+/-- `function.update f i x` is continuous in `(f, x)`. -/
 @[continuity] lemma continuous_update [decidable_eq ι] (i : ι) :
   continuous (λ f : (Π j, π j) × π i, update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
+
+/-- `pi.mul_single i x` is continuous in `x`. -/
+@[continuity, to_additive "`pi.single i x` is continuous in `x`."]
+lemma continuous_mul_single [Π i, has_one (π i)] [decidable_eq ι] (i : ι) :
+  continuous (λ x, (pi.mul_single i x : Π i, π i)) :=
+continuous_const.update _ continuous_id
 
 lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
   (i : fin (n + 1)) {f : β → π i} {l : filter β} {x : π i} (hf : tendsto f l (𝓝 x))

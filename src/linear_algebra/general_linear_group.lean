@@ -8,6 +8,9 @@ import algebra.module.equiv
 /-!
 # The general linear group of linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 See also `matrix.general_linear_group`

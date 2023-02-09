@@ -82,7 +82,7 @@ def equiv_tuple {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ (fin 4 → 
 @[simp] lemma mk.eta {R : Type*} {c₁ c₂} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
 | ⟨a₁, a₂, a₃, a₄⟩ := rfl
 
-variables {S R : Type*} [comm_ring R] {c₁ c₂ : R} (r x y z : R) (a b c : ℍ[R, c₁, c₂])
+variables {S T R : Type*} [comm_ring R] {c₁ c₂ : R} (r x y z : R) (a b c : ℍ[R, c₁, c₂])
 
 instance : has_coe_t R (ℍ[R, c₁, c₂]) := ⟨λ x, ⟨x, 0, 0, 0⟩⟩
 
@@ -154,7 +154,7 @@ rfl
      a₁ * b₄ + a₂ * b₃ - a₃ * b₂ + a₄ * b₁⟩ := rfl
 
 section
-variables [has_smul S R] (s : S)
+variables [has_smul S R] [has_smul T R] (s : S)
 
 /-
 The `ring R` argument is not used, but it's also much stronger than the other definitions in this
@@ -164,6 +164,14 @@ simplicity we just keep things consistent.
 @[nolint unused_arguments]
 instance : has_smul S ℍ[R, c₁, c₂] :=
 { smul := λ s a, ⟨s • a.1, s • a.2, s • a.3, s • a.4⟩ }
+
+instance [has_smul S T] [is_scalar_tower S T R] : is_scalar_tower S T ℍ[R, c₁, c₂] :=
+{ smul_assoc := λ s t x,
+    ext _ _ (smul_assoc _ _ _) (smul_assoc _ _ _) (smul_assoc _ _ _) (smul_assoc _ _ _) }
+
+instance [smul_comm_class S T R] : smul_comm_class S T ℍ[R, c₁, c₂] :=
+{ smul_comm := λ s t x,
+    ext _ _ (smul_comm _ _ _) (smul_comm _ _ _) (smul_comm _ _ _) (smul_comm _ _ _) }
 
 @[simp] lemma smul_re : (s • a).re = s • a.re := rfl
 @[simp] lemma smul_im_i : (s • a).im_i = s • a.im_i := rfl
@@ -175,6 +183,9 @@ instance : has_smul S ℍ[R, c₁, c₂] :=
 
 end
 
+@[norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
+  (↑(s • r) : ℍ[R, c₁, c₂]) = s • ↑r :=
+ext _ _ rfl (smul_zero s).symm (smul_zero s).symm (smul_zero s).symm
 
 instance : add_comm_group ℍ[R, c₁, c₂] :=
 by refine_struct
@@ -431,7 +442,7 @@ quaternion_algebra.equiv_tuple _ _
 
 namespace quaternion
 
-variables {S R : Type*} [comm_ring R] (r x y z : R) (a b c : ℍ[R])
+variables {S T R : Type*} [comm_ring R] (r x y z : R) (a b c : ℍ[R])
 
 export quaternion_algebra (re im_i im_j im_k)
 
@@ -439,6 +450,10 @@ instance : has_coe_t R ℍ[R] := quaternion_algebra.has_coe_t
 instance : ring ℍ[R] := quaternion_algebra.ring
 instance : inhabited ℍ[R] := quaternion_algebra.inhabited
 instance [has_smul S R] : has_smul S ℍ[R] := quaternion_algebra.has_smul
+instance [has_smul S T] [has_smul S R] [has_smul T R] [is_scalar_tower S T R] :
+  is_scalar_tower S T ℍ[R] := quaternion_algebra.is_scalar_tower
+instance [has_smul S R] [has_smul T R] [smul_comm_class S T R] :
+  smul_comm_class S T ℍ[R] := quaternion_algebra.smul_comm_class
 instance [comm_semiring S] [algebra S R] : algebra S ℍ[R] := quaternion_algebra.algebra
 instance : star_ring ℍ[R] := quaternion_algebra.star_ring
 
@@ -518,7 +533,6 @@ quaternion_algebra.ext_iff a b
 @[simp, norm_cast] lemma int_cast_im_k (z : ℤ) : (z : ℍ[R]).im_k = 0 := rfl
 @[norm_cast] lemma coe_int_cast (z : ℤ) : ↑(z : R) = (z : ℍ[R]) := rfl
 
-
 lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_algebra.coe_injective
 
 @[simp] lemma coe_inj {x y : R} : (x : ℍ[R]) = y ↔ x = y := coe_injective.eq_iff
@@ -527,6 +541,10 @@ lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_alge
 @[simp] lemma smul_im_i [has_smul S R] (s : S) : (s • a).im_i = s • a.im_i := rfl
 @[simp] lemma smul_im_j [has_smul S R] (s : S) : (s • a).im_j = s • a.im_j := rfl
 @[simp] lemma smul_im_k [has_smul S R] (s : S) : (s • a).im_k = s • a.im_k := rfl
+
+@[norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
+  (↑(s • r) : ℍ[R, c₁, c₂]) = s • ↑r :=
+quaternion_algebra.coe_smul
 
 lemma coe_commutes : ↑r * a = a * r := quaternion_algebra.coe_commutes r a
 
@@ -785,3 +803,4 @@ by rw [mk_univ_quaternion, pow_four]
 end quaternion
 
 end cardinal
+#lint

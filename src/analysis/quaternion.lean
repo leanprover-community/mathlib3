@@ -77,6 +77,9 @@ instance : normed_algebra ℝ ℍ :=
 { norm_smul_le := λ a x, (norm_smul a x).le,
   to_algebra := quaternion.algebra }
 
+instance : cstar_ring ℍ :=
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_conj x) }
+
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 
 @[simp, norm_cast] lemma coe_complex_re (z : ℂ) : (z : ℍ).re = z.re := rfl

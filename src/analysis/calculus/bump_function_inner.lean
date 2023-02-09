@@ -505,10 +505,10 @@ lemma nonneg_normed (x : E) : 0 ≤ f.normed μ x :=
 div_nonneg f.nonneg $ integral_nonneg f.nonneg'
 
 lemma cont_diff_normed {n : ℕ∞} : cont_diff ℝ n (f.normed μ) :=
-f.cont_diff.div_const
+f.cont_diff.div_const _
 
 lemma continuous_normed : continuous (f.normed μ) :=
-f.continuous.div_const
+f.continuous.div_const _
 
 lemma normed_sub (x : E) : f.normed μ (c - x) = f.normed μ (c + x) :=
 by simp_rw [f.normed_def, f.sub]

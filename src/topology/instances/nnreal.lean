@@ -223,7 +223,7 @@ lemma tendsto_tsum_compl_at_top_zero {α : Type*} (f : α → ℝ≥0) :
   tendsto (λ (s : finset α), ∑' b : {x // x ∉ s}, f b) at_top (𝓝 0) :=
 begin
   simp_rw [← tendsto_coe, coe_tsum, nnreal.coe_zero],
-  exact tendsto_tsum_compl_at_top_zero (λ (a : α), (f a : ℝ))
+  convert tendsto_tsum_compl_at_top_zero (λ a, (f a : ℝ)),
 end
 
 /-- `x ↦ x ^ n` as an order isomorphism of `ℝ≥0`. -/

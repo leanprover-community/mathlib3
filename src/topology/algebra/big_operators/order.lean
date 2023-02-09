@@ -94,7 +94,8 @@ sum_le_has_sum s hs hf.has_sum
 lemma le_tsum (hf : summable f) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ ∑' b, f b :=
 le_has_sum (summable.has_sum hf) b hb
 
-lemma tsum_le_tsum (h : ∀ b, f b ≤ g b) (hf : summable f) (hg : summable g) : ∑' b, f b ≤ ∑' b, g b :=
+lemma tsum_le_tsum (h : ∀ b, f b ≤ g b) (hf : summable f) (hg : summable g) :
+  ∑' b, f b ≤ ∑' b, g b :=
 has_sum_le h hf.has_sum hg.has_sum
 
 @[mono] lemma tsum_mono (hf : summable f) (hg : summable g) (h : f ≤ g) :

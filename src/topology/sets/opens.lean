@@ -97,7 +97,7 @@ lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.is_open, λ h, le_trans h interior_subset⟩
 
 /-- The galois coinsertion between sets and opens. -/
-def gi : galois_coinsertion carrier (@interior α _) :=
+def gi : galois_coinsertion coe (@interior α _) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_is_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc,
   u_l_le := λ _, interior_subset,

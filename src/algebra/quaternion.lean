@@ -367,7 +367,12 @@ calc a.conj * b.conj = (b * a).conj    : (conj_mul b a).symm
                  ... = (a * b).conj    : by rw h.eq
                  ... = b.conj * a.conj : conj_mul a b
 
-@[simp] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
+@[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
+
+@[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R, c₁, c₂]) = n :=
+by rw [←coe_nat_cast, conj_coe]
+@[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
+by rw [←coe_int_cast, conj_coe]
 
 lemma conj_smul : conj (r • a) = r • conj a := conj.map_smul r a
 
@@ -606,6 +611,12 @@ alias commute_conj_conj ← commute.quaternion_conj
 
 @[simp] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
 
+@[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
+quaternion_algebra.conj_nat_cast _
+
+@[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R]) = z :=
+quaternion_algebra.conj_int_cast _
+
 @[simp] lemma conj_smul : conj (r • a) = r • conj a := a.conj_smul r
 
 @[simp] lemma conj_one : conj (1 : ℍ[R]) = 1 := conj_coe 1
@@ -744,6 +755,8 @@ instance : division_ring ℍ[R] :=
 @[simp, norm_cast] lemma rat_cast_im_j (q : ℚ) : (q : ℍ[R]).im_j = 0 := rfl
 @[simp, norm_cast] lemma rat_cast_im_k (q : ℚ) : (q : ℍ[R]).im_k = 0 := rfl
 @[norm_cast] lemma coe_rat_cast (q : ℚ) : ↑(q : R) = (q : ℍ[R]) := rfl
+@[simp, norm_cast] lemma conj_rat_cast (q : ℚ) : conj (q : ℍ[R]) = q :=
+by rw [←coe_rat_cast, conj_coe]
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b

@@ -2868,11 +2868,11 @@ by simpa only [div_eq_mul_inv] using hf.mul cont_diff_within_at_const
 
 lemma cont_diff_at.div_const {f : E → 𝕜'} {n} (hf : cont_diff_at 𝕜 n f x) (c : 𝕜') :
   cont_diff_at 𝕜 n (λ x, f x / c) x :=
-hf.div_const
+hf.div_const c
 
 lemma cont_diff_on.div_const {f : E → 𝕜'} {n} (hf : cont_diff_on 𝕜 n f s) (c : 𝕜') :
   cont_diff_on 𝕜 n (λ x, f x / c) s :=
-λ x hx, (hf x hx).div_const
+λ x hx, (hf x hx).div_const c
 
 lemma cont_diff.div_const {f : E → 𝕜'} {n} (hf : cont_diff 𝕜 n f) (c : 𝕜') :
   cont_diff 𝕜 n (λ x, f x / c) :=

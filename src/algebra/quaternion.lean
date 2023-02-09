@@ -262,6 +262,12 @@ end
 @[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_mul x y
 
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
+(algebra_map R ℍ[R, c₁, c₂]).map_pow x n
+
+@[norm_cast] lemma coe_smul (r x : R) : (↑(r • x) : ℍ[R, c₁, c₂]) = r • ↑x :=
+(algebra.linear_map R ℍ[R, c₁, c₂]).map_smul r x
+
 lemma coe_commutes : ↑r * a = a * r := algebra.commutes r a
 
 lemma coe_commute : commute ↑r a := coe_commutes r a
@@ -329,7 +335,7 @@ calc a.conj * b.conj = (b * a).conj    : (conj_mul b a).symm
                  ... = (a * b).conj    : by rw h.eq
                  ... = b.conj * a.conj : conj_mul a b
 
-@[simp] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
+@[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
 
 lemma conj_smul : conj (r • a) = r • conj a := conj.map_smul r a
 
@@ -368,6 +374,8 @@ instance : star_ring ℍ[R, c₁, c₂] :=
   star_mul := conj_mul }
 
 @[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
+
+@[simp] lemma conj_pow (n : ℕ) : (a ^ n).conj = a.conj ^ n := star_pow _ _
 
 open mul_opposite
 
@@ -477,6 +485,12 @@ quaternion_algebra.ext_iff a b
   by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
+
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R]) = ↑x ^ n :=
+quaternion_algebra.coe_pow x n
+
+@[norm_cast] lemma coe_smul (r : R) : (↑(r • x) : ℍ[R]) = r • ↑x :=
+quaternion_algebra.coe_smul r x
 
 lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_algebra.coe_injective
 
@@ -595,6 +609,8 @@ by simp only [norm_sq_def, sq, mul_neg, sub_neg_eq_add,
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
 by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, sq]
 
+@[simp] lemma norm_sq_conj : norm_sq (conj a) = norm_sq a := by simp [norm_sq_def']
+
 @[simp] lemma norm_sq_neg : norm_sq (-a) = norm_sq a :=
 by simp only [norm_sq_def, conj_neg, neg_mul_neg]
 
@@ -662,6 +678,19 @@ instance : division_ring ℍ[R] :=
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
+@[simp] lemma norm_sq_zpow (z : ℤ) : norm_sq (a ^ z) = norm_sq a ^ z := map_zpow₀ norm_sq a z
+
+@[norm_cast, simp] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
+map_inv₀ (algebra_map R ℍ[R]) _
+
+@[norm_cast, simp] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
+map_div₀ (algebra_map R ℍ[R]) x y
+
+@[norm_cast, simp] lemma coe_zpow (x : R) (z : ℤ) : ((x ^ z : R) : ℍ[R]) = x ^ z :=
+map_zpow₀ (algebra_map R ℍ[R]) x z
+
+lemma conj_inv : conj (a⁻¹) = (conj a)⁻¹ := star_inv' a
+lemma conj_zpow (z : ℤ) : conj (a ^ z) = conj a ^ z := star_zpow₀ a z
 
 end field
 

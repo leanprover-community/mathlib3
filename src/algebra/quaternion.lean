@@ -609,7 +609,7 @@ quaternion_algebra.commute_conj_conj h
 
 alias commute_conj_conj ← commute.quaternion_conj
 
-@[simp] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
+@[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
 
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
 quaternion_algebra.conj_nat_cast _
@@ -664,6 +664,12 @@ by simp only [norm_sq_def, sq, mul_neg, sub_neg_eq_add,
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
 by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, sq]
+
+@[norm_cast] lemma norm_sq_nat_cast (n : ℕ) : norm_sq (n : ℍ[R]) = n^2 :=
+by rw [←coe_nat_cast, norm_sq_coe]
+
+@[norm_cast] lemma norm_sq_int_cast (z : ℤ) : norm_sq (z : ℍ[R]) = z^2 :=
+by rw [←coe_int_cast, norm_sq_coe]
 
 @[simp] lemma norm_sq_neg : norm_sq (-a) = norm_sq a :=
 by simp only [norm_sq_def, conj_neg, neg_mul_neg]
@@ -760,6 +766,8 @@ by rw [←coe_rat_cast, conj_coe]
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
+@[norm_cast] lemma norm_sq_rat_cast (q : ℚ) : norm_sq (q : ℍ[R]) = q^2 :=
+by rw [←coe_rat_cast, norm_sq_coe]
 
 end field
 

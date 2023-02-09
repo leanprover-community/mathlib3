@@ -644,6 +644,9 @@ map_inv₀ (algebra_map R ℍ[R]) x
 @[simp, norm_cast] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
 map_div₀ (algebra_map R ℍ[R]) x y
 
+@[norm_cast, simp] lemma coe_zpow (x : R) (z : ℤ) : ((x ^ z : R) : ℍ[R]) = x ^ z :=
+map_zpow₀ (algebra_map R ℍ[R]) x z
+
 instance : has_rat_cast ℍ[R] := { rat_cast := λ q, ↑(q : R) }
 
 @[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℍ[R]).re = q := rfl

@@ -146,13 +146,6 @@ end
 @[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
 (continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
 
-/-- The real part as a continuous linear map. -/
-def re_clm : ℍ →L[ℝ] ℝ :=
-{ to_fun := λ q : ℍ, q.re,
-  map_add' := add_re,
-  map_smul' := smul_re,
-  cont := continuous_re }
-
 instance : complete_space ℍ :=
 begin
   have : uniform_embedding linear_isometry_equiv_tuple.to_linear_equiv.to_equiv.symm :=

@@ -63,6 +63,9 @@ instance : set_like (opens α) α :=
 instance : can_lift (set α) (opens α) coe is_open :=
 ⟨λ s h, ⟨⟨s, h⟩, rfl⟩⟩
 
+lemma «forall» {p : opens α → Prop} : (∀ U, p U) ↔ ∀ (U : set α) (hU : is_open U), p ⟨U, hU⟩ :=
+⟨λ h _ _, h _, λ h ⟨U, hU⟩, h _ _⟩
+
 @[simp] lemma carrier_eq_coe (U : opens α) : U.1 = ↑U := rfl
 
 /-- the coercion `opens α → set α` applied to a pair is the same as taking the first component -/
@@ -70,6 +73,10 @@ instance : can_lift (set α) (opens α) coe is_open :=
 
 @[simp] lemma mem_mk {x : α} {U : set α} {h : is_open U} :
   @has_mem.mem _ (opens α) _ x ⟨U, h⟩ ↔ x ∈ U := iff.rfl
+
+-- todo: make it `simp` for a `set_like`?
+@[simp] protected lemma nonempty_coe_sort {U : opens α} : nonempty U ↔ (U : set α).nonempty :=
+set.nonempty_coe_sort
 
 @[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := set_like.coe_injective h
 @[simp] lemma coe_inj {U V : opens α} : (U : set α) = V ↔ U = V := set_like.ext'_iff.symm

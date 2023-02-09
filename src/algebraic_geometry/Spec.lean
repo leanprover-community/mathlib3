@@ -302,13 +302,13 @@ def to_pushforward_stalk_alg_hom :
   S →ₐ[R] (Spec.Top_map (algebra_map R S) _* (structure_sheaf S).1).stalk p :=
 { commutes' := λ _, rfl, ..(structure_sheaf.to_pushforward_stalk (algebra_map R S) p) }
 
-.
 lemma is_localized_module_to_pushforward_stalk_alg_hom_aux (y) :
   ∃ (x : S × p.as_ideal.prime_compl), x.2 • y = to_pushforward_stalk_alg_hom R S p x.1 :=
 begin
   obtain ⟨U, hp, s, e⟩ := Top.presheaf.germ_exist _ _ y,
-  obtain ⟨_, ⟨r, rfl⟩, hpr, hrU⟩ := prime_spectrum.is_topological_basis_basic_opens
-    .exists_subset_of_mem_open (show p ∈ U.1, from hp) U.2,
+  obtain ⟨_, ⟨r, rfl⟩, hpr : p ∈ prime_spectrum.basic_open r,
+    hrU : prime_spectrum.basic_open r ≤ U⟩ := prime_spectrum.is_topological_basis_basic_opens
+      .exists_subset_of_mem_open (show p ∈ ↑U, from hp) U.2,
   change prime_spectrum.basic_open r ≤ U at hrU,
   replace e := ((Spec.Top_map (algebra_map R S) _* (structure_sheaf S).1)
     .germ_res_apply (hom_of_le hrU) ⟨p, hpr⟩ _).trans e,

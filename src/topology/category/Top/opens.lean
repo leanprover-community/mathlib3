@@ -110,7 +110,7 @@ rfl
 /--
 The inclusion map from an open subset to the whole space, as a morphism in `Top`.
 -/
-@[simps]
+@[simps { fully_applied := ff }]
 def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 { to_fun := _,
   continuous_to_fun := continuous_subtype_coe }

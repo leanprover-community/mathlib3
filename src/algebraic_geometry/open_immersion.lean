@@ -372,7 +372,6 @@ def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
       conv_lhs { erw ← this, rw coe_comp, erw ← set.preimage_preimage },
       erw set.preimage_image_eq _
         (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base).inj,
-      simp,
     end)),
     naturality' := λ U V i,
     begin
@@ -806,7 +805,7 @@ end
 lemma image_preimage_is_empty (j : discrete ι) (h : i ≠ j) (U : opens (F.obj i)) :
   (opens.map (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) j).base).obj
     ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
-    ((sigma_ι_open_embedding F i).is_open_map.functor.obj U)) = ∅ :=
+    ((sigma_ι_open_embedding F i).is_open_map.functor.obj U)) = ⊥ :=
 begin
   ext,
   apply iff_false_intro,
@@ -1742,9 +1741,8 @@ lemma Scheme.restrict_functor_map_app_aux {U V : opens X.carrier} (i : U ⟶ V) 
     ((opens.map (X.restrict_functor.map i).1.val.base).obj W) ≤
     V.open_embedding.is_open_map.functor.obj W :=
 begin
-  simp only [set.image_congr, subtype.mk_le_mk, is_open_map.functor, set.image_subset_iff,
-    Scheme.restrict_functor_map_base, opens.map, subtype.coe_mk, opens.inclusion_apply,
-    set.le_eq_subset],
+  simp only [← set_like.coe_subset_coe, is_open_map.functor_obj_coe, set.image_subset_iff,
+    Scheme.restrict_functor_map_base, opens.map_coe, opens.inclusion_apply],
   rintros _ h,
   exact ⟨_, h, rfl⟩,
 end

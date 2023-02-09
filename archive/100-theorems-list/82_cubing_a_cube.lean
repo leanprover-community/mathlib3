@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 import data.real.basic
 import data.set.finite
-import data.set.intervals
+import data.set.intervals.disjoint
 
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:

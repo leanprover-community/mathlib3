@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 
-import analysis.special_functions.integrals
-import analysis.special_functions.trigonometric.bounds
 import data.real.pi.wallis
+import measure_theory.integral.peak_function
 
 /-! # Euler's infinite product for the sine function
 
@@ -251,5 +250,70 @@ begin
 end
 
 end integral_recursion
+
+
+/-! ## Conclusion of the proof
+
+The main theorem `complex.tendsto_euler_sin_prod`, and its real variant
+`real.tendsto_euler_sin_prod`, now follow by combining `sin_pi_mul_eq` with a lemma
+stating that the sequence of measures on `[0, π/2]` given by integration against `cos x ^ n`
+(suitably normalised) tends to the Dirac measure at 0, as a special case of the general result
+`tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`. -/
+
+lemma tendsto_integral_cos_pow_mul_div {f : ℝ → ℂ} (hf : continuous_on f (Icc 0 (π/2))) :
+  tendsto (λ (n : ℕ), (∫ x:ℝ in 0..π/2, ↑(cos x) ^ n * f x) / ↑(∫ x:ℝ in 0..π/2, (cos x) ^ n))
+  at_top (𝓝 $ f 0) :=
+begin
+  simp_rw [div_eq_inv_mul _ (coe _), ←complex.of_real_inv, integral_of_le (pi_div_two_pos.le),
+    ←measure_theory.integral_Icc_eq_integral_Ioc, ←complex.of_real_pow, ←complex.real_smul],
+  have c_lt : ∀ (y : ℝ), y ∈ Icc 0 (π / 2) → y ≠ 0 → cos y < cos 0, from λ y hy hy',
+    cos_lt_cos_of_nonneg_of_le_pi_div_two (le_refl 0) hy.2 (lt_of_le_of_ne hy.1 hy'.symm),
+  have c_nonneg : ∀ (x : ℝ), x ∈ Icc 0 (π / 2) → 0 ≤ cos x, from λ x hx, cos_nonneg_of_mem_Icc
+    ((Icc_subset_Icc_left (neg_nonpos_of_nonneg pi_div_two_pos.le)) hx),
+  have c_zero_pos : 0 < cos 0, by { rw cos_zero, exact zero_lt_one },
+  have zero_mem : (0:ℝ) ∈ closure (interior (Icc 0 (π / 2))),
+  { rw [interior_Icc, closure_Ioo pi_div_two_pos.ne, left_mem_Icc],
+    exact pi_div_two_pos.le },
+  exact tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on
+    is_compact_Icc continuous_on_cos c_lt c_nonneg c_zero_pos zero_mem hf
+end
+
+/-- Euler's infinite product formula for the complex sine function. -/
+lemma _root_.complex.tendsto_euler_sin_prod (z : ℂ) :
+  tendsto (λ n:ℕ, ↑π * z * (∏ j in finset.range n, (1 - z ^ 2 / (j + 1) ^ 2)))
+  at_top (𝓝 $ complex.sin (π * z)) :=
+begin
+  have A : tendsto (λ n:ℕ, ↑π * z * (∏ j in finset.range n, (1 - z ^ 2 / (j + 1) ^ 2)) *
+    (∫ x in 0..π / 2, complex.cos (2 * z * x) * cos x ^ (2 * n)) /
+    ↑∫ x in 0..π / 2, cos x ^ (2 * n))
+    at_top (𝓝 $ _) := tendsto.congr (λ n, (sin_pi_mul_eq z n)) tendsto_const_nhds,
+  have : 𝓝 (complex.sin (π * z)) = 𝓝 (complex.sin (π * z) * 1) := by rw mul_one,
+  simp_rw [this, mul_div_assoc] at A,
+  convert (tendsto_mul_iff_of_ne_zero _ one_ne_zero).mp A,
+  suffices : tendsto (λ n:ℕ, (∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ n)
+    / ↑(∫ x:ℝ in 0..π/2, cos x ^ n)) at_top (𝓝 1),
+  from this.comp (tendsto_id.const_mul_at_top' zero_lt_two),
+  have : continuous_on (λ x:ℝ, complex.cos (2 * z * x)) (Icc 0 (π/2)), from
+    (complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real)).continuous_on,
+  convert tendsto_integral_cos_pow_mul_div this,
+  { ext1 n, congr' 2 with x:1, rw mul_comm },
+  { rw [complex.of_real_zero, mul_zero, complex.cos_zero] },
+end
+
+/-- Euler's infinite product formula for the real sine function. -/
+lemma _root_.real.tendsto_euler_sin_prod (x : ℝ) :
+  tendsto (λ n:ℕ, π * x * (∏ j in finset.range n, (1 - x ^ 2 / (j + 1) ^ 2)))
+  at_top (𝓝 $ sin (π * x)) :=
+begin
+  convert (complex.continuous_re.tendsto _).comp (complex.tendsto_euler_sin_prod x),
+  { ext1 n,
+    rw [function.comp_app, ←complex.of_real_mul, complex.of_real_mul_re],
+    suffices : ∏ (j : ℕ) in finset.range n, (1 - (x:ℂ) ^ 2 / (↑j + 1) ^ 2) =
+      ↑∏ (j : ℕ) in finset.range n, (1 - x ^ 2 / (↑j + 1) ^ 2), by rw [this, complex.of_real_re],
+    rw complex.of_real_prod,
+    refine finset.prod_congr (by refl) (λ n hn, _),
+    norm_cast },
+  { rw [←complex.of_real_mul, ←complex.of_real_sin, complex.of_real_re] }
+end
 
 end euler_sine

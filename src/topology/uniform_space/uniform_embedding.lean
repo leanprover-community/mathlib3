@@ -10,6 +10,9 @@ import topology.dense_embedding
 /-!
 # Uniform embeddings of uniform spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Extension of uniform continuous functions.
 -/
 
@@ -178,7 +181,8 @@ lemma uniform_embedding_of_spaced_out {α} {f : α → β} {s : set (β × β)} 
   (hf : pairwise (λ x y, (f x, f y) ∉ s)) :
   @uniform_embedding α β ⊥ ‹_› f :=
 begin
-  letI : uniform_space α := ⊥, haveI : separated_space α := separated_iff_t2.2 infer_instance,
+  letI : uniform_space α := ⊥, haveI := discrete_topology_bot α,
+  haveI : separated_space α := separated_iff_t2.2 infer_instance,
   exact uniform_inducing.uniform_embedding ⟨comap_uniformity_of_spaced_out hs hf⟩
 end
 

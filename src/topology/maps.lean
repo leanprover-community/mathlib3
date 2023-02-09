@@ -9,6 +9,9 @@ import topology.nhds_set
 /-!
 # Specific classes of maps between topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the following properties of a map `f : X → Y` between topological spaces:
 
 * `is_open_map f` means the image of an open set under `f` is open.
@@ -209,6 +212,13 @@ inducing.continuous hf.1
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
 he.1.closure_eq_preimage_closure_image s
+
+/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
+is the discrete topology on `X`. -/
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+discrete_topology_iff_nhds.2 $ λ x, by rw [hf.nhds_eq_comap, nhds_discrete, comap_pure,
+  ← image_singleton, hf.inj.preimage_image, principal_singleton]
 
 end embedding
 

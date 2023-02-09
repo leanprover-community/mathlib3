@@ -299,6 +299,12 @@ submodule.mem_span_mul_finite_of_mem_span_mul
 
 variables {M N P}
 
+lemma mem_span_singleton_mul {x y : A} : x ∈ span R {y} * P ↔ ∃ z ∈ P, y * z = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map, exists_prop], refl }
+
+lemma mem_mul_span_singleton {x y : A} : x ∈ P * span R {y} ↔ ∃ z ∈ P, z * y = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map_flip, exists_prop], refl }
+
 /-- Sub-R-modules of an R-algebra form a semiring. -/
 instance : semiring (submodule R A) :=
 { one_mul       := submodule.one_mul,

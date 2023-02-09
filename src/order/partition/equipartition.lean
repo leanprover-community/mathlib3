@@ -9,6 +9,9 @@ import order.partition.finpartition
 /-!
 # Finite equipartitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines finite equipartitions, the partitions whose parts all are the same size up to a
 difference of `1`.
 

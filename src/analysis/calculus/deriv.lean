@@ -1649,11 +1649,11 @@ lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s
 
 lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) (d : 𝕜') :
   differentiable_on 𝕜 (λx, c x / d) s :=
-λ x hx, (hc x hx).div_const
+λ x hx, (hc x hx).div_const d
 
 @[simp] lemma differentiable.div_const (hc : differentiable 𝕜 c) (d : 𝕜') :
   differentiable 𝕜 (λx, c x / d) :=
-λ x, (hc x).div_const
+λ x, (hc x).div_const d
 
 lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜')
   (hxs : unique_diff_within_at 𝕜 s x) :

@@ -13,6 +13,22 @@ This file proves that every element in SL2 acts on the upper half-plane as an is
 
 open_locale upper_half_plane matrix_groups
 
+namespace complex
+
+lemma abs_mul (z w : ℂ) :
+  abs (z * w) = abs z * abs w :=
+by simp only [abs_apply, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg z)]
+
+protected lemma dist_inv_inv (z w : ℂ) (hz : z ≠ 0) (hw : w ≠ 0) :
+  dist z⁻¹ w⁻¹ = (dist z w) / (abs z * abs w) :=
+begin
+  have h : (abs z) * (abs w) ≠ 0, { simp [hz, hw], },
+  rw [eq_div_iff h, dist_eq, dist_comm, dist_eq, ← abs_mul, ← abs_mul, sub_mul,
+    inv_mul_cancel_left₀ hz, mul_comm z, inv_mul_cancel_left₀ hw],
+end
+
+end complex
+
 lemma matrix.special_linear_group.fin_two_exists_eq_mk (g : SL(2, ℝ)) :
   ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
     g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=
@@ -51,65 +67,14 @@ lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_s
 
 lemma isometry_involute : isometry (λ z, involute • z : ℍ → ℍ) :=
 begin
-  refine isometry.of_dist_eq _,
-  rintros ⟨y₁, hy₁⟩ ⟨y₂, hy₂⟩,
-  simp only [dist_eq],
-  congr' 2,
-  refine (mul_self_inj _ _).mp _,
-  { positivity, },
-  { positivity, },
-  simp only [← sq, div_pow, mul_pow],
-  have h1: 0 ≤ y₁.re*y₁.re, exact mul_self_nonneg _,
-  have h2: 0 ≤ y₂.re*y₂.re, exact mul_self_nonneg _,
-  have h3: 0 ≤ (-y₁).re*(-y₁).re, exact mul_self_nonneg _,
-  have h4: 0 ≤ (-y₂).re*(-y₂).re, exact mul_self_nonneg _,
-  have h5: 0 < (-y₁).im*(-y₁).im, rw [complex.neg_im, mul_self_pos, neg_ne_zero],
-  exact ne_of_gt hy₁,
-  have h6: 0 < (-y₂).im*(-y₂).im, rw [complex.neg_im, mul_self_pos, neg_ne_zero],
-  exact ne_of_gt hy₂,
-  have h7: 0 ≤ (y₁-y₂).re*(y₁-y₂).re, exact mul_self_nonneg _,
-  have h8: 0 ≤ (y₁-y₂).im*(y₁-y₂).im, exact mul_self_nonneg _,
-  have h9: 0 ≤ ((-y₁)⁻¹ - (-y₂)⁻¹).re * ((-y₁)⁻¹ - (-y₂)⁻¹).re, exact mul_self_nonneg _,
-  have h10: 0 ≤ ((-y₁)⁻¹ - (-y₂)⁻¹).im * ((-y₁)⁻¹ - (-y₂)⁻¹).im, exact mul_self_nonneg _,
-  rw [real.sq_sqrt _, real.sq_sqrt _],
-  { simp only [involute_apply, subtype.coe_mk, im_involute_smul, mk_im, coe_mk, complex.dist_eq,
-    complex.abs],
-    simp only [absolute_value.coe_mk, mul_hom.coe_mk],
-    rw [real.sq_sqrt _, real.sq_sqrt _],
-    {refine (div_eq_div_iff _ _).mp _,
-    {positivity,},
-    {apply inv_ne_zero,
-    rw mul_ne_zero_iff,
-    split, {norm_num,},
-    rw mul_ne_zero_iff,
-    exact ⟨(im_inv_neg_coe_pos ⟨y₁, hy₁⟩).ne', (im_inv_neg_coe_pos ⟨y₂, hy₂⟩).ne'⟩, },
-    rw [div_inv_eq_mul, div_inv_eq_mul],
-    simp only [complex.norm_sq_apply],
-    simp only [complex.sub_re, complex.sub_im, complex.inv_re, complex.inv_im,
-    complex.norm_sq_apply],
-    rw [div_sub_div, div_sub_div],
-    {have h11: (((-y₁).re * (-y₁).re + (-y₁).im * (-y₁).im) *
-    ((-y₂).re * (-y₂).re + (-y₂).im * (-y₂).im))≠0,
-    positivity,
-    have h12: ((y₁.re * y₁.re + y₁.im * y₁.im) * (y₂.re * y₂.re + y₂.im * y₂.im) *
-    ((y₁.re * y₁.re + y₁.im * y₁.im) * (y₂.re * y₂.re + y₂.im * y₂.im)))≠0,
-    positivity,
-    have h13: ((y₁.re * y₁.re + y₁.im * y₁.im) * (y₂.re * y₂.re + y₂.im * y₂.im))≠0,
-    positivity,
-    field_simp,
-    ring,},
-    {positivity,},
-    {positivity,},
-    {positivity,},
-    {positivity,}},
-    {simp only [complex.norm_sq_apply],
-    positivity,},
-    {simp only [complex.norm_sq_apply],
-    positivity,},},
-  { positivity,},
-  { have h11: (0 : ℝ) < (involute • ⟨y₁, hy₁⟩ : ℍ).im := (involute • ⟨y₁, hy₁⟩ : ℍ).property,
-  have h12: (0 : ℝ) < (involute • ⟨y₂, hy₂⟩ : ℍ).im := (involute • ⟨y₂, hy₂⟩ : ℍ).property,
-  positivity,},
+  refine isometry.of_dist_eq (λ y₁ y₂, _),
+  have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
+  have h₂ : complex.abs (y₁ * y₂) ≠ 0, { simp [y₁.ne_zero, y₂.ne_zero], },
+  simp only [dist_eq, involute_apply, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im,
+    complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
+    real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
+    complex.dist_inv_inv _ _ y₁.ne_zero y₂.ne_zero, ← complex.abs_mul, ← complex.norm_sq_mul,
+    real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ), div_div_div_comm, div_self h₂, div_one],
 end
 
 lemma dist_SL2_smul_smul_c_zero (g : SL(2, ℝ)) (z w : ℍ) (h1 : g 1 0 = 0) :

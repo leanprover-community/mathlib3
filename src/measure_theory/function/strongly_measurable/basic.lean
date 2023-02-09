@@ -113,7 +113,7 @@ open_locale measure_theory
 
 /-! ## Strongly measurable functions -/
 
-lemma strongly_measurable.ae_strongly_measurable {α β} {m0 : measurable_space α}
+protected lemma strongly_measurable.ae_strongly_measurable {α β} {m0 : measurable_space α}
   [topological_space β] {f : α → β} {μ : measure α} (hf : strongly_measurable f) :
   ae_strongly_measurable f μ :=
 ⟨f, hf, eventually_eq.refl _ _⟩
@@ -1424,6 +1424,41 @@ protected lemma indicator [has_zero β]
   (hfm : ae_strongly_measurable f μ) {s : set α} (hs : measurable_set s) :
   ae_strongly_measurable (s.indicator f) μ :=
 (ae_strongly_measurable_indicator_iff hs).mpr hfm.restrict
+
+lemma null_measurable_set_eq_fun {E} [topological_space E] [metrizable_space E]
+  {f g : α → E} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  null_measurable_set {x | f x = g x} μ :=
+begin
+  apply (hf.strongly_measurable_mk.measurable_set_eq_fun hg.strongly_measurable_mk)
+    .null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x = hg.mk g x) = (f x = g x),
+  simp only [hfx, hgx]
+end
+
+lemma null_measurable_set_lt
+  [linear_order β] [order_closed_topology β] [pseudo_metrizable_space β]
+  {f g : α → β} (hf : ae_strongly_measurable f μ)
+  (hg : ae_strongly_measurable g μ) :
+  null_measurable_set {a | f a < g a} μ :=
+begin
+  apply (hf.strongly_measurable_mk.measurable_set_lt hg.strongly_measurable_mk)
+    .null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x < hg.mk g x) = (f x < g x),
+  simp only [hfx, hgx]
+end
+
+lemma null_measurable_set_le [preorder β] [order_closed_topology β] [pseudo_metrizable_space β]
+  {f g : α → β} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  null_measurable_set {a | f a ≤ g a} μ :=
+begin
+  apply (hf.strongly_measurable_mk.measurable_set_le hg.strongly_measurable_mk)
+    .null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x ≤ hg.mk g x) = (f x ≤ g x),
+  simp only [hfx, hgx]
+end
 
 lemma _root_.ae_strongly_measurable_of_ae_strongly_measurable_trim {α} {m m0 : measurable_space α}
   {μ : measure α} (hm : m ≤ m0) {f : α → β} (hf : ae_strongly_measurable f (μ.trim hm)) :

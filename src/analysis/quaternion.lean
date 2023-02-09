@@ -115,25 +115,6 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
 
--- TODO: move
-@[continuity]
-lemma continuous_pi_single {ι : Type*} (α : ι → Type*)
-  [Π i, has_zero (α i)] [Π i, topological_space (α i)] [decidable_eq ι] (i : ι) :
-  continuous (λ a, (pi.single i a : Π i, α i)) :=
-continuous_const.update _ continuous_id
-
-@[continuity] lemma continuous_of_real : continuous (λ r : ℝ, (r : ℍ)) :=
-begin
-  show continuous (λ r : ℝ,
-    linear_isometry_equiv_tuple.symm $
-    (pi_Lp.equiv _ (λ _ : fin 4, _)).symm ![r, 0, 0, 0]),
-  refine linear_isometry_equiv_tuple.symm.continuous.comp _,
-  refine (pi_Lp.continuous_equiv_symm _ _).comp _,
-  convert (continuous_pi_single (λ i, ℝ) (0 : fin 4) : _),
-  ext r i,
-  fin_cases i; refl
-end
-
 @[continuity] lemma continuous_re : continuous (λ q : ℍ, q.re) :=
 (continuous_apply 0).comp linear_isometry_equiv_tuple.continuous
 

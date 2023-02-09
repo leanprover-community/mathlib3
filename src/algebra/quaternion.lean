@@ -346,12 +346,12 @@ calc a.conj * b.conj = (b * a).conj    : (conj_mul b a).symm
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
 
-lemma conj_smul : conj (r • a) = r • conj a := conj.map_smul r a
-
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R, c₁, c₂]) = n :=
 by rw [←coe_nat_cast, conj_coe]
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
 by rw [←coe_int_cast, conj_coe]
+
+lemma conj_smul : conj (r • a) = r • conj a := conj.map_smul r a
 
 @[simp] lemma conj_one : conj (1 : ℍ[R, c₁, c₂]) = 1 := conj_coe 1
 
@@ -584,12 +584,12 @@ alias commute_conj_conj ← commute.quaternion_conj
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
 
-@[simp] lemma conj_smul : conj (r • a) = r • conj a := a.conj_smul r
-
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
 quaternion_algebra.conj_nat_cast _
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R]) = z :=
 quaternion_algebra.conj_int_cast _
+
+@[simp] lemma conj_smul : conj (r • a) = r • conj a := a.conj_smul r
 
 @[simp] lemma conj_one : conj (1 : ℍ[R]) = 1 := conj_coe 1
 

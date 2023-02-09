@@ -300,6 +300,9 @@ end
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y
 
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
+(algebra_map R ℍ[R, c₁, c₂]).map_pow x n
+
 lemma coe_commutes : ↑r * a = a * r := algebra.commutes r a
 
 lemma coe_commute : commute ↑r a := coe_commutes r a
@@ -414,7 +417,7 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 
 @[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
-lemma conj_pow (n : ℕ) : conj (a ^ n) = conj a ^ n := star_pow a n
+@[simp] lemma conj_pow (n : ℕ) : (a ^ n).conj = a.conj ^ n := star_pow _ _
 
 open mul_opposite
 
@@ -529,6 +532,9 @@ quaternion_algebra.ext_iff a b
   by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
+
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R]) = ↑x ^ n :=
+quaternion_algebra.coe_pow x n
 
 @[simp, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℍ[R]).re = n := rfl
 @[simp, norm_cast] lemma nat_cast_im_i (n : ℕ) : (n : ℍ[R]).im_i = 0 := rfl
@@ -672,6 +678,8 @@ by simp only [norm_sq_def, sq, mul_neg, sub_neg_eq_add,
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
 by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, sq]
 
+@[simp] lemma norm_sq_conj : norm_sq (conj a) = norm_sq a := by simp [norm_sq_def']
+
 @[norm_cast] lemma norm_sq_nat_cast (n : ℕ) : norm_sq (n : ℍ[R]) = n^2 :=
 by rw [←coe_nat_cast, norm_sq_coe]
 
@@ -733,7 +741,7 @@ section field
 
 variables [linear_ordered_field R] (a b : ℍ[R])
 
-@[simps { attrs := [] }]instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
+@[simps { attrs := [] }] instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
 
 instance : group_with_zero ℍ[R] :=
 { inv := has_inv.inv,
@@ -743,10 +751,10 @@ instance : group_with_zero ℍ[R] :=
   .. quaternion.nontrivial,
   .. (by apply_instance : monoid_with_zero ℍ[R]) }
 
-@[simp, norm_cast] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
-map_inv₀ (algebra_map R ℍ[R]) x
+@[norm_cast, simp] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
+map_inv₀ (algebra_map R ℍ[R]) _
 
-@[simp, norm_cast] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
+@[norm_cast, simp] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
 map_div₀ (algebra_map R ℍ[R]) x y
 
 @[norm_cast, simp] lemma coe_zpow (x : R) (z : ℤ) : ((x ^ z : R) : ℍ[R]) = x ^ z :=
@@ -773,8 +781,9 @@ lemma conj_inv : conj (a⁻¹) = (conj a)⁻¹ := star_inv' a
 lemma conj_zpow (z : ℤ) : conj (a ^ z) = conj a ^ z := star_zpow₀ a z
 @[simp, norm_cast] lemma conj_rat_cast (q : ℚ) : conj (q : ℍ[R]) = q := @star_rat_cast ℍ[R] _ _ q
 
-/-! Note that `norm_sq_inv`, `norm_sq_div`, and `norm_sq_zpow` are not needed since `norm_sq` is
-bundled. -/
+@[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
+@[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
+@[simp] lemma norm_sq_zpow (z : ℤ) : norm_sq (a ^ z) = norm_sq a ^ z := map_zpow₀ norm_sq a z
 @[norm_cast] lemma norm_sq_rat_cast (q : ℚ) : norm_sq (q : ℍ[R]) = q^2 :=
 by rw [←coe_rat_cast, norm_sq_coe]
 

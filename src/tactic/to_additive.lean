@@ -244,6 +244,8 @@ meta def tr : bool → list string → list string
 | is_comm ("root" :: s)        := add_comm_prefix is_comm "div" :: tr ff s
 | is_comm ("rootable" :: s)    := add_comm_prefix is_comm "divisible" :: tr ff s
 | is_comm ("prods" :: s)       := add_comm_prefix is_comm "sums" :: tr ff s
+| is_comm ("tprod" :: s)       := add_comm_prefix is_comm "tsum" :: tr ff s
+| is_comm ("prodable" :: s)    := add_comm_prefix is_comm "summable" :: tr ff s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
 | ff []                        := []

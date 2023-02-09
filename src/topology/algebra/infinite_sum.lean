@@ -71,12 +71,11 @@ this assumption later, for the lemmas where it is relevant."]
 def has_prod (f : β → α) (a : α) : Prop := tendsto (λ s, ∏ b in s, f b) at_top (𝓝 a)
 
 /-- `summable f` means that `f` has some (infinite) sum. Use `tsum` to get the value. -/
-@[to_additive summable
-"`summable f` means that `f` has some (infinite) sum. Use `tsum` to get the value."]
+@[to_additive "`summable f` means that `f` has some (infinite) sum. Use `tsum` to get the value."]
 def prodable (f : β → α) : Prop := ∃ a, has_prod f a
 
 /-- `∏' i, f i` is the product of `f` it exists, or `1` otherwise. -/
-@[to_additive tsum "`∑' i, f i` is the sum of `f` it exists, or `0` otherwise.", irreducible]
+@[to_additive "`∑' i, f i` is the sum of `f` it exists, or `0` otherwise.", irreducible]
 def tprod (f : β → α) := if h : prodable f then classical.some h else 1
 
 -- see Note [operator precedence of big operators]
@@ -94,25 +93,21 @@ protected lemma has_prod.prodable (h : has_prod f a) : prodable f := ⟨a, h⟩
 
 /-- The constant one function has product `1`. -/
 @[to_additive "The constant zero function has sum `0`."]
-lemma has_prod_one : has_prod (λ b, 1 : β → α) 1 :=
-by simp [has_prod, tendsto_const_nhds]
+lemma has_prod_one : has_prod (λ b, 1 : β → α) 1 := by simp [has_prod, tendsto_const_nhds]
 
 @[to_additive] lemma has_prod_empty [is_empty β] : has_prod f 1 := by convert has_prod_one
 
-@[to_additive summable_zero] lemma prodable_one : prodable (λ b, 1 : β → α) := has_prod_one.prodable
+@[to_additive] lemma prodable_one : prodable (λ b, 1 : β → α) := has_prod_one.prodable
 
-@[to_additive summable_empty]
-lemma prodable_empty [is_empty β] : prodable f := has_prod_empty.prodable
+@[to_additive] lemma prodable_empty [is_empty β] : prodable f := has_prod_empty.prodable
 
-@[to_additive tsum_eq_zero_of_not_summable]
-lemma tprod_eq_one_of_not_prodable (h : ¬ prodable f) : ∏' b, f b = 1 := by simp [tprod, h]
+@[to_additive] lemma tprod_eq_one_of_not_prodable (h : ¬ prodable f) : ∏' b, f b = 1 :=
+by simp [tprod, h]
 
-@[to_additive summable_congr] lemma prodable_congr (hfg : ∀ b, f b = g b) :
-  prodable f ↔ prodable g :=
+@[to_additive] lemma prodable_congr (hfg : ∀ b, f b = g b) : prodable f ↔ prodable g :=
 iff_of_eq (congr_arg prodable $ funext hfg)
 
-@[to_additive summable.congr]
-lemma prodable.congr (hf : prodable f) (hfg : ∀ b, f b = g b) : prodable g :=
+@[to_additive] lemma prodable.congr (hf : prodable f) (hfg : ∀ b, f b = g b) : prodable g :=
 (prodable_congr hfg).mp hf
 
 @[to_additive] lemma has_prod.has_prod_of_prod_eq {g : γ → α}
@@ -132,8 +127,7 @@ le_trans (map_at_top_finset_prod_le_of_prod_eq h_eq) hf
   has_prod (f ∘ g) a ↔ has_prod f a :=
 by simp only [has_prod, tendsto, hg.map_at_top_finset_prod_eq hf]
 
-@[to_additive function.injective.summable_iff]
-lemma function.injective.prodable_iff {g : γ → β} (hg : injective g)
+@[to_additive] lemma function.injective.prodable_iff {g : γ → β} (hg : injective g)
   (hf : ∀ x ∉ set.range g, f x = 1) :
   prodable (f ∘ g) ↔ prodable f :=
 exists_congr $ λ _, hg.has_prod_iff hf
@@ -148,7 +142,7 @@ subtype.coe_injective.has_prod_iff $ by simpa using mul_support_subset_iff'.1 hf
 by rw [← set.mul_indicator_range_comp, subtype.range_coe,
   has_prod_subtype_iff_of_mul_support_subset set.mul_support_mul_indicator_subset]
 
-@[to_additive summable_subtype_iff_indicator] lemma prodable_subtype_iff_mul_indicator {s : set β} :
+@[to_additive] lemma prodable_subtype_iff_mul_indicator {s : set β} :
   prodable (f ∘ coe : s → α) ↔ prodable (s.mul_indicator f) :=
 exists_congr $ λ _, has_prod_subtype_iff_mul_indicator
 
@@ -163,12 +157,11 @@ order_top.tendsto_at_top_nhds _
   has_prod (f ∘ coe : (↑s : set β) → α) (∏ b in s, f b) :=
 by { rw ← prod_attach, exact has_prod_fintype _ }
 
-@[to_additive finset.summable] protected lemma finset.prodable (s : finset β) (f : β → α) :
+@[to_additive] protected lemma finset.prodable (s : finset β) (f : β → α) :
   prodable (f ∘ coe : (↑s : set β) → α) :=
 (s.has_prod f).prodable
 
-@[to_additive set.finite.summable]
-protected lemma set.finite.prodable {s : set β} (hs : s.finite) (f : β → α) :
+@[to_additive] protected lemma set.finite.prodable {s : set β} (hs : s.finite) (f : β → α) :
   prodable (f ∘ coe : s → α) :=
 by convert hs.to_finset.prodable f; simp only [hs.coe_to_finset]
 
@@ -178,8 +171,7 @@ by convert hs.to_finset.prodable f; simp only [hs.coe_to_finset]
 lemma has_prod_prod_of_ne_finset_one (hf : ∀ b ∉ s, f b = 1) : has_prod f (∏ b in s, f b) :=
 (has_prod_subtype_iff_of_mul_support_subset $ mul_support_subset_iff'.2 hf).1 $ s.has_prod f
 
-@[to_additive summable_of_ne_finset_zero]
-lemma prodable_of_ne_finset_one (hf : ∀ b ∉ s, f b = 1) : prodable f :=
+@[to_additive] lemma prodable_of_ne_finset_one (hf : ∀ b ∉ s, f b = 1) : prodable f :=
 (has_prod_prod_of_ne_finset_one hf).prodable
 
 @[to_additive] lemma has_prod_single (b : β) (hf : ∀ b' ≠ b, f b' = 1) : has_prod f (f b) :=
@@ -207,8 +199,7 @@ e.injective.has_prod_iff $ by simp
   has_prod (λ x : set.range g, f x) a ↔ has_prod (f ∘ g) a :=
 (equiv.of_injective g hg).has_prod_iff.symm
 
-@[to_additive equiv.summable_iff]
-lemma equiv.prodable_iff (e : γ ≃ β) : prodable (f ∘ e) ↔ prodable f :=
+@[to_additive] lemma equiv.prodable_iff (e : γ ≃ β) : prodable (f ∘ e) ↔ prodable f :=
 exists_congr $ λ a, e.has_prod_iff
 
 @[to_additive summable.prod_symm]
@@ -231,9 +222,8 @@ iff.symm $ equiv.has_prod_iff_of_support
       λ y, (hf y.coe_prop).imp $ λ x hx, subtype.ext hx⟩)
   hfg
 
-@[to_additive equiv.summable_iff_of_support]
-lemma equiv.prodable_iff_of_support {g : γ → α} (e : mul_support f ≃ mul_support g)
-  (he : ∀ x : mul_support f, g (e x) = f x) :
+@[to_additive] lemma equiv.prodable_iff_of_mul_support {g : γ → α}
+  (e : mul_support f ≃ mul_support g) (he : ∀ x : mul_support f, g (e x) = f x) :
   prodable f ↔ prodable g :=
 exists_congr $ λ _, e.has_prod_iff_of_support he
 
@@ -245,24 +235,19 @@ have g ∘ (λ s, ∏ b in s, f b) = (λ s, ∏ b in s, g (f b)),
 show tendsto (λ s, ∏ b in s, g (f b)) at_top (𝓝 (g a)),
   from this ▸ (hg.tendsto a).comp hf
 
-@[to_additive summable.map] protected lemma prodable.map [comm_monoid γ] [topological_space γ]
+@[to_additive] protected lemma prodable.map [comm_monoid γ] [topological_space γ]
   (hf : prodable f) [monoid_hom_class G α γ] (g : G) (hg : continuous g) :
   prodable (g ∘ f) :=
 (hf.has_prod.map g hg).prodable
 
-@[to_additive summable.map_iff_of_left_inverse]
-protected lemma prodable.map_iff_of_left_inverse [comm_monoid γ] [topological_space γ]
-   [monoid_hom_class G α γ] [monoid_hom_class G' γ α] (g : G) (g' : G')
+@[to_additive] protected lemma prodable.map_iff_of_left_inverse [comm_monoid γ]
+  [topological_space γ] [monoid_hom_class G α γ] [monoid_hom_class G' γ α] (g : G) (g' : G')
   (hg : continuous g) (hg' : continuous g') (hinv : function.left_inverse g' g) :
   prodable (g ∘ f) ↔ prodable f :=
-⟨λ h, begin
-  have := h.map _ hg',
-  rwa [←function.comp.assoc, hinv.id] at this,
-end, λ h, h.map _ hg⟩
+⟨λ h, by simpa only [←function.comp.assoc g', hinv.id] using h.map _ hg', λ h, h.map _ hg⟩
 
 /-- A special case of `prodable.map_iff_of_left_inverse` for convenience -/
-@[to_additive summable.map_iff_of_equiv
-"A special case of `summable.map_iff_of_left_inverse` for convenience"]
+@[to_additive "A special case of `summable.map_iff_of_left_inverse` for convenience"]
 protected lemma prodable.map_iff_of_equiv [comm_monoid γ] [topological_space γ]
   [mul_equiv_class G α γ] (g : G) (hg : continuous g)
   (hg' : continuous (mul_equiv_class.inv g : γ → α)) :
@@ -279,8 +264,7 @@ h.comp tendsto_finset_range
 @[to_additive] lemma has_prod.unique [t2_space α] : has_prod f a₁ → has_prod f a₂ → a₁ = a₂ :=
 tendsto_nhds_unique
 
-@[to_additive summable.has_sum_iff_tendsto_nat]
-lemma prodable.has_prod_iff_tendsto_nat [t2_space α] {f : ℕ → α} (hf : prodable f) :
+@[to_additive] lemma prodable.has_prod_iff_tendsto_nat [t2_space α] {f : ℕ → α} (hf : prodable f) :
   has_prod f a ↔ tendsto (λ n, ∏ i in range n, f i) at_top (𝓝 a) :=
 begin
   refine ⟨λ h, h.tendsto_prod_nat, λ h, _⟩,
@@ -288,9 +272,9 @@ begin
   exact hf.has_prod
 end
 
-@[to_additive function.surjective.summable_iff_of_has_sum_iff]
-lemma function.surjective.prodable_iff_of_has_prod_iff [comm_monoid α'] [topological_space α']
-  {e : α' → α} (hes : surjective e) {g : γ → α'} (he : ∀ {a}, has_prod f (e a) ↔ has_prod g a) :
+@[to_additive] lemma function.surjective.prodable_iff_of_has_prod_iff [comm_monoid α']
+  [topological_space α'] {e : α' → α} (hes : surjective e) {g : γ → α'}
+  (he : ∀ {a}, has_prod f (e a) ↔ has_prod g a) :
   prodable f ↔ prodable g :=
 hes.exists.trans $ exists_congr $ @he
 
@@ -300,7 +284,7 @@ variables [has_continuous_mul α]
   has_prod (λ b, f b * g b) (a * b) :=
 by simp only [has_prod, prod_mul_distrib]; exact hf.mul hg
 
-@[to_additive summable.add] lemma prodable.mul (hf : prodable f) (hg : prodable g) :
+@[to_additive] lemma prodable.mul (hf : prodable f) (hg : prodable g) :
   prodable (λ b, f b * g b) :=
 (hf.has_prod.mul hg.has_prod).prodable
 
@@ -310,8 +294,7 @@ finset.induction_on s (by simp only [has_prod_one, prod_empty, forall_true_iff])
   (by simp only [has_prod.mul, prod_insert, mem_insert, forall_eq_or_imp,
         forall_2_true_iff, not_false_iff, forall_true_iff] {contextual := tt})
 
-@[to_additive summable_sum]
-lemma prodable_prod {f : γ → β → α} {s : finset γ} (hf : ∀ i ∈ s, prodable (f i)) :
+@[to_additive] lemma prodable_prod {f : γ → β → α} {s : finset γ} (hf : ∀ i ∈ s, prodable (f i)) :
   prodable (λ b, ∏ i in s, f i b) :=
 (has_prod_prod $ assume i hi, (hf i hi).has_prod).prodable
 
@@ -345,8 +328,7 @@ by simpa [← hs.compl_eq]
   has_prod f (a * b) :=
 ha.mul_is_compl is_compl_compl hb
 
-@[to_additive summable.add_compl]
-lemma prodable.mul_compl {s : set β} (hs : prodable (f ∘ coe : s → α))
+@[to_additive] lemma prodable.mul_compl {s : set β} (hs : prodable (f ∘ coe : s → α))
   (hsc : prodable (f ∘ coe : sᶜ → α)) :
   prodable f :=
 (hs.has_prod.mul_compl hsc.has_prod).prodable
@@ -356,8 +338,7 @@ lemma prodable.mul_compl {s : set β} (hs : prodable (f ∘ coe : s → α))
   has_prod f (a * b) :=
 ha.mul_is_compl is_compl_compl.symm hb
 
-@[to_additive has_sum.even_add_odd]
-lemma has_prod.even_mul_odd {f : ℕ → α} (he : has_prod (λ k, f (2 * k)) a)
+@[to_additive] lemma has_prod.even_mul_odd {f : ℕ → α} (he : has_prod (λ k, f (2 * k)) a)
   (ho : has_prod (λ k, f (2 * k + 1)) b) :
   has_prod f (a * b) :=
 begin
@@ -368,13 +349,11 @@ begin
   simpa [(∘)] using nat.is_compl_even_odd
 end
 
-@[to_additive summable.compl_add]
-lemma prodable.compl_mul {s : set β} (hs : prodable (f ∘ coe : sᶜ → α))
+@[to_additive] lemma prodable.compl_mul {s : set β} (hs : prodable (f ∘ coe : sᶜ → α))
   (hsc : prodable (f ∘ coe : s → α)) : prodable f :=
 (hs.has_prod.compl_mul hsc.has_prod).prodable
 
-@[to_additive summable.even_add_odd]
-lemma prodable.even_mul_odd {f : ℕ → α} (he : prodable (λ k, f (2 * k)))
+@[to_additive] lemma prodable.even_mul_odd {f : ℕ → α} (he : prodable (λ k, f (2 * k)))
   (ho : prodable (λ k, f (2 * k + 1))) : prodable f :=
 (he.has_prod.even_mul_odd ho.has_prod).prodable
 
@@ -405,7 +384,7 @@ lemma has_prod.prod_fiberwise [regular_space α] {f : β × γ → α} (ha : has
   (hf : ∀ b, has_prod (λ c, f (b, c)) (g b)) : has_prod g a :=
 has_prod.sigma ((equiv.sigma_equiv_prod β γ).has_prod_iff.2 ha) hf
 
-@[to_additive summable.sigma'] lemma prodable.sigma' [regular_space α] {γ : β → Type*}
+@[to_additive] lemma prodable.sigma' [regular_space α] {γ : β → Type*}
   {f : (Σ b, γ b) → α} (ha : prodable f) (hf : ∀ b, prodable (λ c, f ⟨b, c⟩)) :
   prodable (λ b, ∏' c, f ⟨b, c⟩) :=
 (ha.has_prod.sigma $ λ b, (hf b).has_prod).prodable
@@ -474,11 +453,10 @@ end has_continuous_star
 section tprod
 variables [comm_monoid α] [topological_space α] {f g : β → α} {a a₁ a₂ : α}
 
-@[to_additive tsum_congr_subtype]
-lemma tprod_congr_subtype (f : β → α) {s t : set β} (h : s = t) : ∏' x : s, f x = ∏' x : t, f x :=
-by rw h
+@[to_additive] lemma tprod_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
+  ∏' x : s, f x = ∏' x : t, f x := by rw h
 
-@[to_additive tsum_zero'] lemma tprod_one' (hz : is_closed ({1} : set α)) : ∏' b : β, (1 : α) = 1 :=
+@[to_additive] lemma tprod_one' (hz : is_closed ({1} : set α)) : ∏' b : β, (1 : α) = 1 :=
 begin
   classical,
   rw [tprod, dif_pos prodable_one],
@@ -494,70 +472,64 @@ begin
   { simp }
 end
 
-@[simp, to_additive tsum_zero] lemma tprod_one [t1_space α] : ∏' b : β, (1 : α) = 1 :=
+@[simp, to_additive] lemma tprod_one [t1_space α] : ∏' b : β, (1 : α) = 1 :=
 tprod_one' is_closed_singleton
 
-@[to_additive tsum_congr] lemma tprod_congr (hfg : ∀ b, f b = g b) : ∏' b, f b = ∏' b, g b :=
+@[to_additive] lemma tprod_congr (hfg : ∀ b, f b = g b) : ∏' b, f b = ∏' b, g b :=
 congr_arg tprod $ funext hfg
 
-variables [t2_space α]
+variables [t2_space α] {s : finset β}
 
-@[to_additive has_sum.tsum_eq] lemma has_prod.tprod_eq (ha : has_prod f a) : ∏' b, f b = a :=
+@[to_additive] lemma has_prod.tprod_eq (ha : has_prod f a) : ∏' b, f b = a :=
 (prodable.has_prod ⟨a, ha⟩).unique ha
 
-@[to_additive summable.has_sum_iff] lemma prodable.has_prod_iff (h : prodable f) :
-  has_prod f a ↔ ∏' b, f b = a :=
+@[to_additive] lemma prodable.has_prod_iff (h : prodable f) : has_prod f a ↔ ∏' b, f b = a :=
 iff.intro has_prod.tprod_eq (assume eq, eq ▸ h.has_prod)
 
-@[simp, to_additive tsum_empty]
-lemma tprod_empty [is_empty β] : ∏' b, f b = 1 := has_prod_empty.tprod_eq
+@[simp, to_additive] lemma tprod_empty [is_empty β] : ∏' b, f b = 1 := has_prod_empty.tprod_eq
 
-@[to_additive tsum_eq_sum] lemma tprod_eq_prod {s : finset β} (hf : ∀ b ∉ s, f b = 1) :
-  ∏' b, f b = ∏ b in s, f b :=
+@[to_additive] lemma tprod_eq_prod (hf : ∀ b ∉ s, f b = 1) : ∏' b, f b = ∏ b in s, f b :=
 (has_prod_prod_of_ne_finset_one hf).tprod_eq
 
-@[to_additive sum_eq_tsum_indicator] lemma prod_eq_tprod_mul_indicator (f : β → α) (s : finset β) :
+@[to_additive] lemma prod_eq_tprod_mul_indicator (f : β → α) (s : finset β) :
   ∏ x in s, f x = ∏' x, set.mul_indicator ↑s f x :=
 have ∀ x ∉ s, set.mul_indicator ↑s f x = 1,
 from λ x hx, set.mul_indicator_apply_eq_one.2 (λ hx', (hx $ finset.mem_coe.1 hx').elim),
 (finset.prod_congr rfl (λ x hx, (set.mul_indicator_apply_eq_self.2 $
   λ hx', (hx' $ finset.mem_coe.2 hx).elim).symm)).trans (tprod_eq_prod this).symm
 
-@[to_additive tsum_fintype] lemma tprod_fintype [fintype β] (f : β → α) : ∏' b, f b = ∏ b, f b :=
+@[to_additive] lemma tprod_fintype [fintype β] (f : β → α) : ∏' b, f b = ∏ b, f b :=
 (has_prod_fintype f).tprod_eq
 
-@[to_additive tsum_bool] lemma tprod_bool (f : bool → α) : ∏' i : bool, f i = f false * f true :=
+@[to_additive] lemma tprod_bool (f : bool → α) : ∏' i : bool, f i = f false * f true :=
 by rw [tprod_fintype, finset.prod_eq_mul]; simp
 
-@[to_additive tsum_eq_single] lemma tprod_eq_single (b : β) (hf : ∀ b' ≠ b, f b' = 1) :
-  ∏' b, f b = f b :=
+@[to_additive] lemma tprod_eq_single (b : β) (hf : ∀ b' ≠ b, f b' = 1) : ∏' b, f b = f b :=
 (has_prod_single b hf).tprod_eq
 
-@[to_additive tsum_tsum_eq_single]
-lemma tprod_tprod_eq_single (f : β → γ → α) (b : β) (c : γ) (hfb : ∀ b' ≠ b, f b' c = 1)
-  (hfc : ∀ b' c', c' ≠ c → f b' c' = 1) :
+@[to_additive] lemma tprod_tprod_eq_single (f : β → γ → α) (b : β) (c : γ)
+  (hfb : ∀ b' ≠ b, f b' c = 1) (hfc : ∀ b' c', c' ≠ c → f b' c' = 1) :
   ∏' b' c', f b' c' = f b c :=
 calc ∏' b' c', f b' c' = ∏' b', f b' c : tprod_congr $ λ b', tprod_eq_single _ (hfc b')
 ... = f b c : tprod_eq_single _ hfb
 
-@[simp, to_additive tsum_ite_eq] lemma tprod_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
+@[simp, to_additive] lemma tprod_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∏' b', (if b' = b then a else 1) = a :=
 (has_prod_ite_eq b a).tprod_eq
 
-@[simp, to_additive tsum_pi_single] lemma tprod_pi_mul_single [decidable_eq β] (b : β) (a : α) :
+@[simp, to_additive] lemma tprod_pi_mul_single [decidable_eq β] (b : β) (a : α) :
   ∏' b', pi.mul_single b a b' = a :=
 (has_prod_pi_mul_single b a).tprod_eq
 
-@[to_additive tsum_dite_right] lemma tprod_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
+@[to_additive] lemma tprod_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
   ∏' b, (if h : P then (1 : α) else x b h) = if h : P then (1 : α) else ∏' b, x b h :=
 by by_cases hP : P; simp [hP]
 
-@[to_additive tsum_dite_left] lemma tprod_dite_left (P : Prop) [decidable P] (x : β → P → α) :
+@[to_additive] lemma tprod_dite_left (P : Prop) [decidable P] (x : β → P → α) :
   ∏' b, (if h : P then x b h else 1) = if h : P then (∏' b, x b h) else 1 :=
 by by_cases hP : P; simp [hP]
 
-@[to_additive function.surjective.tsum_eq_tsum_of_has_sum_iff_has_sum]
-lemma function.surjective.tprod_eq_tprod_of_has_prod_iff_has_prod {α' : Type*} [comm_monoid α']
+@[to_additive] lemma function.surjective.tprod_eq_tprod_of_has_prod_iff_has_prod [comm_monoid α']
   [topological_space α'] {e : α' → α} (hes : function.surjective e) (h1 : e 1 = 1) {g : γ → α'}
   (h : ∀ {a}, has_prod f (e a) ↔ has_prod g a) :
   ∏' b, f b = e (∏' c, g c) :=
@@ -567,8 +539,8 @@ by_cases
     have hf : ¬ prodable f, from mt (hes.prodable_iff_of_has_prod_iff @h).1 hg,
     by simp [tprod, hf, hg, h1])
 
-@[to_additive tsum_eq_tsum_of_has_sum_iff_has_sum]
-lemma tprod_eq_tprod_of_has_prod_iff_has_prod {g : γ → α} (h : ∀{a}, has_prod f a ↔ has_prod g a) :
+@[to_additive]
+lemma tprod_eq_tprod_of_has_prod_iff_has_prod {g : γ → α} (h : ∀ {a}, has_prod f a ↔ has_prod g a) :
   ∏' b, f b = ∏'c, g c :=
 surjective_id.tprod_eq_tprod_of_has_prod_iff_has_prod rfl @h
 
@@ -576,13 +548,12 @@ surjective_id.tprod_eq_tprod_of_has_prod_iff_has_prod rfl @h
   ∏'c, f (j c) = ∏' b, f b :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ a, j.has_prod_iff
 
-@[to_additive equiv.tsum_eq_tsum_of_support]
-lemma equiv.tprod_eq_tprod_of_mul_support {g : γ → α} (e : mul_support f ≃ mul_support g)
-  (he : ∀ x, g (e x) = f x) :
+@[to_additive] lemma equiv.tprod_eq_tprod_of_mul_support {g : γ → α}
+  (e : mul_support f ≃ mul_support g) (he : ∀ x, g (e x) = f x) :
   (∏' x, f x) = ∏' y, g y :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, e.has_prod_iff_of_support he
 
-@[to_additive tsum_eq_tsum_of_ne_zero_bij]
+@[to_additive]
 lemma tprod_eq_tprod_of_ne_one_bij {g : γ → α} (i : mul_support g → β)
   (hi : ∀ ⦃x y⦄, i x = i y → (x : γ) = y) (hf : mul_support f ⊆ set.range i)
   (hfg : ∀ x, f (i x) = g x) :
@@ -591,29 +562,28 @@ tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, has_prod_iff_has_prod_of_ne_one_
 
 /-! ### `tprod` on subsets -/
 
-@[simp, to_additive finset.tsum_subtype] lemma finset.tprod_subtype (s : finset β) (f : β → α) :
+@[simp, to_additive] lemma finset.tprod_subtype (s : finset β) (f : β → α) :
   ∏' x : {x // x ∈ s}, f x = ∏ x in s, f x :=
 (s.has_prod f).tprod_eq
 
-@[simp, to_additive finset.tsum_subtype'] lemma finset.tprod_subtype' (s : finset β) (f : β → α) :
+@[simp, to_additive] lemma finset.tprod_subtype' (s : finset β) (f : β → α) :
   ∏' x : (s : set β), f x = ∏ x in s, f x :=
 s.tprod_subtype f
 
-@[to_additive tsum_subtype] lemma tprod_subtype (s : set β) (f : β → α) :
+@[to_additive] lemma tprod_subtype (s : set β) (f : β → α) :
   ∏' x : s, f x = ∏' x, s.mul_indicator f x :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, has_prod_subtype_iff_mul_indicator
 
-@[to_additive tsum_subtype_eq_of_support_subset]
+@[to_additive]
 lemma tprod_subtype_eq_of_mul_support_subset {s : set β} (hs : mul_support f ⊆ s) :
   ∏' x : s, f x = ∏' x, f x :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ x, has_prod_subtype_iff_of_mul_support_subset hs
 
-@[simp, to_additive tsum_univ] lemma tprod_univ (f : β → α) :
+@[simp, to_additive] lemma tprod_univ (f : β → α) :
   ∏' x : (set.univ : set β), f x = ∏' x, f x :=
 tprod_subtype_eq_of_mul_support_subset $ set.subset_univ _
 
-@[simp, to_additive tsum_singleton]
-lemma tprod_singleton (b : β) (f : β → α) : ∏' x : ({b} : set β), f x = f b :=
+@[simp, to_additive] lemma tprod_singleton (b : β) (f : β → α) : ∏' x : ({b} : set β), f x = f b :=
 begin
   rw [tprod_subtype, tprod_eq_single b],
   { simp },
@@ -623,19 +593,18 @@ begin
   { apply_instance }
 end
 
-@[to_additive tsum_image]
-lemma tprod_image {g : γ → β} (f : β → α) {s : set γ} (hg : set.inj_on g s) :
+@[to_additive] lemma tprod_image {g : γ → β} (f : β → α) {s : set γ} (hg : set.inj_on g s) :
   ∏' x : g '' s, f x = ∏' x : s, f (g x) :=
 ((equiv.set.image_of_inj_on _ _ hg).tprod_eq (λ x, f x)).symm
 
-@[to_additive tsum_range] lemma tprod_range {g : γ → β} (f : β → α) (hg : injective g) :
+@[to_additive] lemma tprod_range {g : γ → β} (f : β → α) (hg : injective g) :
   ∏' x : set.range g, f x = ∏' x, f (g x) :=
 by rw [← set.image_univ, tprod_image f (hg.inj_on _), tprod_univ (f ∘ g)]
 
 section has_continuous_mul
 variable [has_continuous_mul α]
 
-@[to_additive tsum_add] lemma tprod_mul (hf : prodable f) (hg : prodable g) :
+@[to_additive] lemma tprod_mul (hf : prodable f) (hg : prodable g) :
   ∏' b, f b * g b = (∏' b, f b) * (∏' b, g b) :=
 (hf.has_prod.mul hg.has_prod).tprod_eq
 
@@ -646,7 +615,7 @@ lemma tprod_prod'' {f : γ → β → α} {s : finset γ} (hf : ∀ i ∈ s, pro
 
 /-- Version of `tprod_eq_mul_tprod_ite` for `comm_monoid` rather than `comm_group`.
 Requires a different convergence assumption involving `function.update`. -/
-@[to_additive tsum_eq_add_tsum_ite' "Version of `tsum_eq_mul_tsum_ite` for `add_comm_monoid` rather
+@[to_additive "Version of `tsum_eq_mul_tsum_ite` for `add_comm_monoid` rather
 than `add_comm_group`. Requires a different convergence assumption involving `function.update`."]
 lemma tprod_eq_mul_tprod_ite' (b : β) (hf : prodable (f.update b 1)) :
   ∏' x, f x = f b * ∏' x, ite (x = b) 1 (f x) :=
@@ -661,17 +630,17 @@ calc ∏' x, f x = ∏' x, ((ite (x = b) (f x) 1) * (f.update b 1 x)) :
 
 variables [comm_monoid δ] [topological_space δ] [t3_space δ] [has_continuous_mul δ]
 
-@[to_additive tsum_sigma']
+@[to_additive]
 lemma tprod_sigma' {γ : β → Type*} {f : (Σ b, γ b) → δ} (h₁ : ∀ b, prodable (λ c, f ⟨b, c⟩))
   (h₂ : prodable f) : ∏' p, f p = ∏' b c, f ⟨b, c⟩ :=
 (h₂.has_prod.sigma $ λ b, (h₁ b).has_prod).tprod_eq.symm
 
-@[to_additive tsum_prod']
+@[to_additive]
 lemma tprod_prod' {f : β × γ → δ} (h : prodable f) (h₁ : ∀ b, prodable (λ c, f (b, c))) :
   ∏' p, f p = ∏' b c, f (b, c) :=
 (h.has_prod.prod_fiberwise $ λ b, (h₁ b).has_prod).tprod_eq.symm
 
-@[to_additive tsum_comm']
+@[to_additive]
 lemma tprod_comm' {f : β → γ → δ} (h : prodable (uncurry f)) (h₁ : ∀ b, prodable (f b))
   (h₂ : ∀ c, prodable (λ b, f b c)) :
   ∏' c b, f b c = ∏' b c, f b c :=
@@ -689,8 +658,8 @@ variable [encodable γ]
 
 /-- You can compute a product over an encodable type by multiplying over the natural numbers and
 taking a supremum. This is useful for outer measures. -/
-@[to_additive tsum_supr_decode₂ "You can compute a sum over an encodable type by summing over the
-natural numbers and taking a supremum. This is useful for outer measures."]
+@[to_additive "You can compute a sum over an encodable type by summing over the natural numbers and
+taking a supremum. This is useful for outer measures."]
 lemma tprod_supr_decode₂ [complete_lattice β] (m : β → α) (m1 : m ⊥ = 1) (s : γ → β) :
   ∏' i : ℕ, m (⨆ b ∈ decode₂ γ i, s b) = ∏' b : γ, m (s b) :=
 begin
@@ -714,7 +683,7 @@ begin
 end
 
 /-- `tprod_supr_decode₂` specialized to the complete lattice of sets. -/
-@[to_additive tsum_Union_decode₂ "`tsum_supr_decode₂` specialized to the complete lattice of sets."]
+@[to_additive "`tsum_supr_decode₂` specialized to the complete lattice of sets."]
 lemma tprod_Union_decode₂ (m : set β → α) (m1 : m ∅ = 1) (s : γ → set β) :
   ∏' i, m (⋃ b ∈ decode₂ γ i, s b) = ∏' b, m (s b) :=
 tprod_supr_decode₂ m m1 s
@@ -731,7 +700,7 @@ section countable
 variables [countable γ]
 
 /-- If a function is countably submultiplicative then it is submultiplicative on countable types. -/
-@[to_additive rel_supr_tsum
+@[to_additive
 "If a function is countably subadditive then it is subadditive on countable types."]
 lemma rel_supr_tprod [complete_lattice β] (m : β → α) (m1 : m ⊥ = 1) (R : α → α → Prop)
   (m_supr : ∀ s : ℕ → β, R (m (⨆ i, s i)) ∏' i, m (s i)) (s : γ → β) :
@@ -739,9 +708,8 @@ lemma rel_supr_tprod [complete_lattice β] (m : β → α) (m1 : m ⊥ = 1) (R :
 by { casesI nonempty_encodable γ, rw [←supr_decode₂, ←tprod_supr_decode₂ _ m1 s], exact m_supr _ }
 
 /-- If a function is countably submultiplicative then it is submultiplicative on finite sets. -/
-@[to_additive rel_supr_sum
-"If a function is countably subadditive then it is subadditive on finite sets."]
-lemma rel_supr_sum [complete_lattice β] (m : β → α) (m1 : m ⊥ = 1) (R : α → α → Prop)
+@[to_additive "If a function is countably subadditive then it is subadditive on finite sets."]
+lemma rel_supr_prod [complete_lattice β] (m : β → α) (m1 : m ⊥ = 1) (R : α → α → Prop)
   (m_supr : ∀ s : ℕ → β, R (m (⨆ i, s i)) (∏' i, m (s i))) (s : δ → β) (t : finset δ) :
   R (m (⨆ d ∈ t, s d)) (∏ d in t, m (s d)) :=
 by { rw [supr_subtype', ←finset.tprod_subtype], exact rel_supr_tprod m m1 R m_supr _ }
@@ -761,26 +729,23 @@ end countable
 
 variables [has_continuous_mul α]
 
-@[to_additive tsum_add_tsum_compl]
-lemma tprod_mul_tprod_compl {s : set β} (hs : prodable (f ∘ coe : s → α))
+@[to_additive] lemma tprod_mul_tprod_compl {s : set β} (hs : prodable (f ∘ coe : s → α))
   (hsc : prodable (f ∘ coe : sᶜ → α)) :
   (∏' x : s, f x) * (∏' x : sᶜ, f x) = ∏' x, f x :=
 (hs.has_prod.mul_compl hsc.has_prod).tprod_eq.symm
 
-@[to_additive tsum_union_disjoint] lemma tprod_union_disjoint {s t : set β} (hd : disjoint s t)
+@[to_additive] lemma tprod_union_disjoint {s t : set β} (hd : disjoint s t)
   (hs : prodable (f ∘ coe : s → α)) (ht : prodable (f ∘ coe : t → α)) :
   (∏' x : s ∪ t, f x) = (∏' x : s, f x) * (∏' x : t, f x) :=
 (hs.has_prod.mul_disjoint hd ht.has_prod).tprod_eq
 
-@[to_additive tsum_finset_bUnion_disjoint]
-lemma tprod_finset_bUnion_disjoint {ι} {s : finset ι} {t : ι → set β}
+@[to_additive] lemma tprod_finset_bUnion_disjoint {ι} {s : finset ι} {t : ι → set β}
   (hd : (s : set ι).pairwise (disjoint on t))
   (hf : ∀ i ∈ s, prodable (f ∘ coe : t i → α)) :
   ∏' x : (⋃ i ∈ s, t i), f x = ∏ i in s, ∏' x : t i, f x :=
 (has_prod_prod_disjoint _ hd (λ i hi, (hf i hi).has_prod)).tprod_eq
 
-@[to_additive tsum_even_add_odd]
-lemma tprod_even_mul_odd {f : ℕ → α} (he : prodable (λ k, f (2 * k)))
+@[to_additive] lemma tprod_even_mul_odd {f : ℕ → α} (he : prodable (λ k, f (2 * k)))
   (ho : prodable (λ k, f (2 * k + 1))) :
   (∏' k, f (2 * k)) * (∏' k, f (2 * k + 1)) = ∏' k, f k :=
 (he.has_prod.even_mul_odd ho.has_prod).tprod_eq.symm
@@ -816,15 +781,14 @@ section pi
 variables {ι : Type*} {π : α → Type*} [∀ x, comm_monoid (π x)] [∀ x, topological_space (π x)]
   {f : ι → ∀ x, π x}
 
-@[to_additive pi.has_sum]
-lemma pi.has_prod {g : ∀ x, π x} : has_prod f g ↔ ∀ x, has_prod (λ i, f i x) (g x) :=
+@[to_additive] lemma pi.has_prod {g : ∀ x, π x} : has_prod f g ↔ ∀ x, has_prod (λ i, f i x) (g x) :=
 by simp only [has_prod, tendsto_pi_nhds, prod_apply]
 
 @[to_additive pi.summable] lemma pi.prodable : prodable f ↔ ∀ x, prodable (λ i, f i x) :=
 by simp only [prodable, pi.has_prod, skolem]
 
-@[to_additive tsum_apply]
-lemma tprod_apply [∀ x, t2_space (π x)] {x : α} (hf : prodable f) : (∏' i, f i) x = ∏' i, f i x :=
+@[to_additive] lemma tprod_apply [∀ x, t2_space (π x)] {x : α} (hf : prodable f) :
+  (∏' i, f i) x = ∏' i, f i x :=
 (pi.has_prod.1 hf.has_prod x).tprod_eq.symm
 
 end pi
@@ -923,29 +887,28 @@ variables [comm_group α] [topological_space α] [topological_group α] {f g : �
 @[to_additive] lemma has_prod.inv (h : has_prod f a) : has_prod (λ b, (f b)⁻¹) a⁻¹ :=
 by simpa only using h.map (monoid_hom.id α)⁻¹ continuous_inv
 
-@[to_additive summable.neg] lemma prodable.inv (hf : prodable f) : prodable (λ b, (f b)⁻¹) :=
+@[to_additive] lemma prodable.inv (hf : prodable f) : prodable (λ b, (f b)⁻¹) :=
 hf.has_prod.inv.prodable
 
-@[to_additive summable.of_neg] lemma prodable.of_inv (hf : prodable (λ b, (f b)⁻¹)) : prodable f :=
+@[to_additive] lemma prodable.of_inv (hf : prodable (λ b, (f b)⁻¹)) : prodable f :=
 by simpa only [inv_inv] using hf.inv
 
-@[to_additive summable_neg_iff] lemma prodable_inv_iff : prodable (λ b, (f b)⁻¹) ↔ prodable f :=
+@[to_additive] lemma prodable_inv_iff : prodable (λ b, (f b)⁻¹) ↔ prodable f :=
 ⟨prodable.of_inv, prodable.inv⟩
 
 @[to_additive] lemma has_prod.div (hf : has_prod f a₁) (hg : has_prod g a₂) :
   has_prod (λ b, f b / g b) (a₁ / a₂) :=
 by { simp only [div_eq_mul_inv], exact hf.mul hg.inv }
 
-@[to_additive summable.sub] lemma prodable.div (hf : prodable f) (hg : prodable g) :
-  prodable (λ b, f b / g b) :=
+@[to_additive] lemma prodable.div (hf : prodable f) (hg : prodable g) : prodable (λ b, f b / g b) :=
 (hf.has_prod.div hg.has_prod).prodable
 
-@[to_additive summable.trans_sub]
-lemma prodable.trans_div (hg : prodable g) (hfg : prodable (λ b, f b / g b)) : prodable f :=
+@[to_additive] lemma prodable.trans_div (hg : prodable g) (hfg : prodable (λ b, f b / g b)) :
+  prodable f :=
 by simpa only [div_mul_cancel'] using hfg.mul hg
 
-@[to_additive summable_iff_of_summable_sub]
-lemma prodable_iff_of_prodable_div (hfg : prodable (λ b, f b / g b)) : prodable f ↔ prodable g :=
+@[to_additive] lemma prodable_iff_of_prodable_div (hfg : prodable (λ b, f b / g b)) :
+  prodable f ↔ prodable g :=
 ⟨λ hf, hf.trans_div $ by simpa only [inv_div] using hfg.inv, λ hg, hg.trans_div hfg⟩
 
 @[to_additive] lemma has_prod.update (hf : has_prod f a₁) (b : β) [decidable_eq β] (a : α) :
@@ -958,8 +921,7 @@ begin
   { rw [update_noteq h, one_mul] }
 end
 
-@[to_additive summable.update]
-lemma prodable.update (hf : prodable f) (b : β) [decidable_eq β] (a : α) :
+@[to_additive] lemma prodable.update (hf : prodable f) (b : β) [decidable_eq β] (a : α) :
   prodable (update f b a) :=
 (hf.has_prod.update b a).prodable
 
@@ -976,8 +938,7 @@ end
   has_prod f a₂ ↔ has_prod (f ∘ coe : sᶜ → α) (a₂ / a₁) :=
 iff.symm $ hf.has_prod_compl_iff.trans $ by rw [mul_div_cancel'_right]
 
-@[to_additive summable.summable_compl_iff]
-lemma prodable.prodable_compl_iff {s : set β} (hf : prodable (f ∘ coe : s → α)) :
+@[to_additive] lemma prodable.prodable_compl_iff {s : set β} (hf : prodable (f ∘ coe : s → α)) :
   prodable (f ∘ coe : sᶜ → α) ↔ prodable f :=
 ⟨λ ⟨a, ha⟩, (hf.has_prod.has_prod_compl_iff.1 ha).prodable,
   λ ⟨a, ha⟩, (hf.has_prod.has_prod_iff_compl.1 ha).prodable⟩
@@ -990,12 +951,11 @@ lemma prodable.prodable_compl_iff {s : set β} (hf : prodable (f ∘ coe : s →
   has_prod f a ↔ has_prod (λ x : {x // x ∉ s}, f x) (a / ∏ i in s, f i) :=
 (s.has_prod f).has_prod_iff_compl
 
-@[to_additive finset.summable_compl_iff] protected lemma finset.prodable_compl_iff (s : finset β) :
+@[to_additive] protected lemma finset.prodable_compl_iff (s : finset β) :
   prodable (λ x : {x // x ∉ s}, f x) ↔ prodable f :=
 (s.prodable f).prodable_compl_iff
 
-@[to_additive set.finite.summable_compl_iff]
-lemma set.finite.prodable_compl_iff {s : set β} (hs : s.finite) :
+@[to_additive] lemma set.finite.prodable_compl_iff {s : set β} (hs : s.finite) :
   prodable (f ∘ coe : sᶜ → α) ↔ prodable f :=
 (hs.prodable f).prodable_compl_iff
 
@@ -1011,24 +971,24 @@ end
 section tsum
 variables [t2_space α]
 
-@[to_additive tsum_neg] lemma tprod_inv : ∏' b, (f b)⁻¹ = (∏' b, f b)⁻¹ :=
+@[to_additive] lemma tprod_inv : ∏' b, (f b)⁻¹ = (∏' b, f b)⁻¹ :=
 begin
   by_cases hf : prodable f,
   { exact hf.has_prod.inv.tprod_eq },
   { simp [tprod_eq_one_of_not_prodable hf, tprod_eq_one_of_not_prodable (mt prodable.of_inv hf)] },
 end
 
-@[to_additive tsum_sub] lemma tprod_div (hf : prodable f) (hg : prodable g) :
+@[to_additive] lemma tprod_div (hf : prodable f) (hg : prodable g) :
   ∏' b, (f b / g b) = (∏' b, f b) / ∏' b, g b :=
 (hf.has_prod.div hg.has_prod).tprod_eq
 
-@[to_additive sum_add_tsum_compl] lemma prod_mul_tprod_compl {s : finset β} (hf : prodable f) :
+@[to_additive] lemma prod_mul_tprod_compl {s : finset β} (hf : prodable f) :
   (∏ x in s, f x) * (∏' x : (↑s : set β)ᶜ, f x) = ∏' x, f x :=
 ((s.has_prod f).mul_compl (s.prodable_compl_iff.2 hf).has_prod).tprod_eq.symm
 
 /-- Let `f : β → α` be a sequence with prodable series and let `b ∈ β` be an index. This lemma
 writes `∏ f n` as the sum of `f b` plus the series of the remaining terms. -/
-@[to_additive tsum_eq_add_tsum_ite
+@[to_additive
 "Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index. This lemma writes
 `Σ f n` as the sum of `f b` plus the series of the remaining terms."]
 lemma tprod_eq_mul_tprod_ite [decidable_eq β] (hf : prodable f) (b : β) :
@@ -1056,8 +1016,8 @@ begin
   refl
 end
 
-@[to_additive summable_nat_add_iff]
-lemma prodable_nat_add_iff {f : ℕ → α} (k : ℕ) : prodable (λ n, f (n + k)) ↔ prodable f :=
+@[to_additive] lemma prodable_nat_add_iff {f : ℕ → α} (k : ℕ) :
+  prodable (λ n, f (n + k)) ↔ prodable f :=
 iff.symm $ (equiv.mul_right (∏ i in range k, f i)).surjective.prodable_iff_of_has_prod_iff $
   λ a, (has_prod_nat_add_iff k).symm
 
@@ -1065,13 +1025,12 @@ iff.symm $ (equiv.mul_right (∏ i in range k, f i)).surjective.prodable_iff_of_
   has_prod (λ n, f (n + k)) (a / ∏ i in range k, f i) ↔ has_prod f a :=
 by simp [has_prod_nat_add_iff]
 
-@[to_additive sum_add_tsum_nat_add]
-lemma prod_mul_tprod_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : prodable f) :
+@[to_additive] lemma prod_mul_tprod_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : prodable f) :
   (∏ i in range k, f i) * (∏' i, f (i + k)) = ∏' i, f i :=
 by simpa only [mul_comm] using
   ((has_prod_nat_add_iff k).1 ((prodable_nat_add_iff k).2 h).has_prod).unique h.has_prod
 
-@[to_additive tsum_eq_zero_mul] lemma tprod_eq_zero_mul [t2_space α] {f : ℕ → α} (hf : prodable f) :
+@[to_additive] lemma tprod_eq_zero_mul [t2_space α] {f : ℕ → α} (hf : prodable f) :
   ∏' b, f b = f 0 * ∏' b, f (b + 1) :=
 by simpa only [prod_range_one] using (prod_mul_tprod_nat_add 1 hf).symm
 
@@ -1130,7 +1089,7 @@ begin
   exact (this (λ n, f n) hpos).nonneg_mul_neg hneg,
 end
 
-@[to_additive summable_int_of_summable_nat] lemma prodable_int_of_prodable_nat {f : ℤ → α}
+@[to_additive] lemma prodable_int_of_prodable_nat {f : ℤ → α}
   (hp : prodable (λ n : ℕ, f n)) (hn : prodable (λ n : ℕ, f (-n))) : prodable f :=
 (has_prod.nonneg_mul_neg hp.has_prod $ prodable.has_prod $ (prodable_nat_add_iff 1).mpr hn).prodable
 
@@ -1321,13 +1280,11 @@ has_prod_le h hf hg
 
 attribute [mono] has_prod_mono has_sum_mono
 
-@[to_additive]
-lemma has_prod_le_of_prod_le (hf : has_prod f a) (h : ∀ s : finset β, ∏ b in s, f b ≤ a₂) :
+@[to_additive] lemma has_prod_le_of_prod_le (hf : has_prod f a) (h : ∀ s, ∏ b in s, f b ≤ a₂) :
   a ≤ a₂ :=
 le_of_tendsto' hf h
 
-@[to_additive]
-lemma le_has_prod_of_le_prod (hf : has_prod f a) (h : ∀ s : finset β, a₂ ≤ ∏ b in s, f b) :
+@[to_additive] lemma le_has_prod_of_le_prod (hf : has_prod f a) (h : ∀ s, a₂ ≤ ∏ b in s, f b) :
   a₂ ≤ a :=
 ge_of_tendsto' hf h
 
@@ -1357,8 +1314,7 @@ begin
     exact hs _ h }
 end
 
-@[to_additive tsum_le_tsum_of_inj]
-lemma tprod_le_tprod_of_inj {g : γ → α} (i : β → γ) (hi : injective i)
+@[to_additive] lemma tprod_le_tprod_of_inj {g : γ → α} (i : β → γ) (hi : injective i)
   (hs : ∀ c ∉ set.range i, 1 ≤ g c) (h : ∀ b, f b ≤ g (i b)) (hf : prodable f) (hg : prodable g) :
   tprod f ≤ tprod g :=
 has_prod_le_inj i hi hs h hf.has_prod hg.has_prod
@@ -1369,40 +1325,37 @@ ge_of_tendsto hf $ eventually_at_top.2 ⟨s, λ t hst,
   prod_le_prod_of_subset_of_one_le' hst $ λ b hbt, hs b⟩
 
 @[to_additive] lemma is_lub_has_prod (h : ∀ b, 1 ≤ f b) (hf : has_prod f a) :
-  is_lub (set.range (λ s : finset β, ∏ b in s, f b)) a :=
+  is_lub (set.range (λ s, ∏ b in s, f b)) a :=
 is_lub_of_tendsto_at_top (prod_mono_set_of_one_le' h) hf
 
 @[to_additive] lemma le_has_prod (hf : has_prod f a) (b : β) (hb : ∀ b' ≠ b, 1 ≤ f b') : f b ≤ a :=
 calc f b = ∏ b in {b}, f b : finset.prod_singleton.symm
 ... ≤ a : prod_le_has_prod _ (by { convert hb, simp }) hf
 
-@[to_additive sum_le_tsum]
+@[to_additive]
 lemma prod_le_tprod {f : β → α} (s : finset β) (hs : ∀ b ∉ s, 1 ≤ f b) (hf : prodable f) :
   ∏ b in s, f b ≤ ∏' b, f b :=
 prod_le_has_prod s hs hf.has_prod
 
-@[to_additive le_tsum]
-lemma le_tprod (hf : prodable f) (b : β) (hb : ∀ b' ≠ b, 1 ≤ f b') : f b ≤ ∏' b, f b :=
+@[to_additive] lemma le_tprod (hf : prodable f) (b : β) (hb : ∀ b' ≠ b, 1 ≤ f b') :
+  f b ≤ ∏' b, f b :=
 le_has_prod (prodable.has_prod hf) b hb
 
-@[to_additive tsum_le_tsum]
-lemma tprod_le_tprod (h : ∀ b, f b ≤ g b) (hf : prodable f) (hg : prodable g) :
+@[to_additive] lemma tprod_le_tprod (h : ∀ b, f b ≤ g b) (hf : prodable f) (hg : prodable g) :
   ∏' b, f b ≤ ∏' b, g b :=
 has_prod_le h hf.has_prod hg.has_prod
 
-@[to_additive tsum_mono] lemma tprod_mono (hf : prodable f) (hg : prodable g) (h : f ≤ g) :
+@[to_additive] lemma tprod_mono (hf : prodable f) (hg : prodable g) (h : f ≤ g) :
   ∏' n, f n ≤ ∏' n, g n :=
 tprod_le_tprod h hf hg
 
 attribute [mono] tprod_mono tsum_mono
 
-@[to_additive tsum_le_of_sum_le]
-lemma tprod_le_of_prod_le (hf : prodable f) (h : ∀ s : finset β, ∏ b in s, f b ≤ a₂) :
+@[to_additive] lemma tprod_le_of_prod_le (hf : prodable f) (h : ∀ s, ∏ b in s, f b ≤ a₂) :
   ∏' b, f b ≤ a₂ :=
 has_prod_le_of_prod_le hf.has_prod h
 
-@[to_additive tsum_le_of_sum_le']
-lemma tprod_le_of_prod_le' (ha₂ : 1 ≤ a₂) (h : ∀ s : finset β, ∏ b in s, f b ≤ a₂) :
+@[to_additive] lemma tprod_le_of_prod_le' (ha₂ : 1 ≤ a₂) (h : ∀ s, ∏ b in s, f b ≤ a₂) :
   ∏' b, f b ≤ a₂ :=
 begin
   by_cases hf : prodable f,
@@ -1411,12 +1364,10 @@ begin
     exact ha₂ }
 end
 
-@[to_additive has_sum.nonneg]
-lemma has_prod.one_le (h : ∀ b, 1 ≤ g b) (ha : has_prod g a) : 1 ≤ a :=
+@[to_additive] lemma has_prod.one_le (h : ∀ b, 1 ≤ g b) (ha : has_prod g a) : 1 ≤ a :=
 has_prod_le h has_prod_one ha
 
-@[to_additive has_sum.nonpos]
-lemma has_prod.le_one (h : ∀ b, g b ≤ 1) (ha : has_prod g a) : a ≤ 1 :=
+@[to_additive] lemma has_prod.le_one (h : ∀ b, g b ≤ 1) (ha : has_prod g a) : a ≤ 1 :=
 has_prod_le h ha has_prod_one
 
 @[to_additive tsum_nonneg] lemma one_le_tprod (h : ∀ b, 1 ≤ g b) : 1 ≤ ∏' b, g b :=
@@ -1426,7 +1377,7 @@ begin
   { simp [tprod_eq_one_of_not_prodable hg] }
 end
 
-@[to_additive tsum_nonpos] lemma tprod_le_one (h : ∀ b, f b ≤ 1) : ∏' b, f b ≤ 1 :=
+@[to_additive] lemma tprod_le_one (h : ∀ b, f b ≤ 1) : ∏' b, f b ≤ 1 :=
 begin
   by_cases hf : prodable f,
   { exact hf.has_prod.le_one h },
@@ -1451,13 +1402,13 @@ by simpa only [one_div, mul_inv_cancel_left] using mul_lt_mul_of_lt_of_le hi thi
 lemma has_prod_strict_mono (hf : has_prod f a₁) (hg : has_prod g a₂) (h : f < g) : a₁ < a₂ :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_prod_lt hle hi hf hg
 
-@[to_additive tsum_lt_tsum] lemma tprod_lt_tprod {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
+@[to_additive] lemma tprod_lt_tprod {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
   (hf : prodable f) (hg : prodable g) :
   ∏' n, f n < ∏' n, g n :=
 has_prod_lt h hi hf.has_prod hg.has_prod
 
-@[to_additive tsum_strict_mono]
-lemma tprod_strict_mono (hf : prodable f) (hg : prodable g) (h : f < g) : ∏' n, f n < ∏' n, g n :=
+@[to_additive] lemma tprod_strict_mono (hf : prodable f) (hg : prodable g) (h : f < g) :
+  ∏' n, f n < ∏' n, g n :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tprod_lt_tprod hle hi hf hg
 
 attribute [mono] has_prod_strict_mono has_sum_strict_mono tprod_strict_mono tsum_strict_mono
@@ -1487,7 +1438,7 @@ variables {f : β → α} {a : α}
 @[to_additive] lemma le_has_prod' (hf : has_prod f a) (b : β) : f b ≤ a :=
 le_has_prod hf b $ λ _ _, one_le _
 
-@[to_additive le_tsum'] lemma le_tprod' (hf : prodable f) (b : β) : f b ≤ ∏' b, f b :=
+@[to_additive] lemma le_tprod' (hf : prodable f) (b : β) : f b ≤ ∏' b, f b :=
 le_tprod hf b $ λ _ _, one_le _
 
 @[to_additive] lemma has_prod_one_iff : has_prod f 1 ↔ ∀ x, f x = 1 :=
@@ -1499,12 +1450,10 @@ begin
     exact funext h }
 end
 
-@[to_additive tsum_eq_zero_iff]
-lemma tprod_eq_one_iff (hf : prodable f) : ∏' i, f i = 1 ↔ ∀ x, f x = 1 :=
+@[to_additive] lemma tprod_eq_one_iff (hf : prodable f) : ∏' i, f i = 1 ↔ ∀ x, f x = 1 :=
 by rw [←has_prod_one_iff, hf.has_prod_iff]
 
-@[to_additive tsum_ne_zero_iff]
-lemma tprod_ne_one_iff (hf : prodable f) : ∏' i, f i ≠ 1 ↔ ∃ x, f x ≠ 1 :=
+@[to_additive] lemma tprod_ne_one_iff (hf : prodable f) : ∏' i, f i ≠ 1 ↔ ∃ x, f x ≠ 1 :=
 by rw [ne.def, tprod_eq_one_iff hf, not_forall]
 
 @[to_additive] lemma is_lub_has_prod' (hf : has_prod f a) :
@@ -1517,7 +1466,7 @@ section uniform_group
 variables [comm_group α] [uniform_space α]
 
 /-- The **Cauchy criterion** for infinite products, also known as the **Cauchy convergence test** -/
-@[to_additive summable_iff_cauchy_seq_finset
+@[to_additive
 "The **Cauchy criterion** for infinite sums, also known as the **Cauchy convergence test**"]
 lemma prodable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   prodable f ↔ cauchy_seq (λ s, ∏ b in s, f b) :=
@@ -1551,7 +1500,7 @@ local attribute [instance] topological_group.t3_space
 
 /-- The prod over the complement of a finset tends to `1` when the finset grows to cover the whole
 space. This does not need a summability assumption, as otherwise all prods are one. -/
-@[to_additive tendsto_tsum_compl_at_top_zero "The sum over the complement of a finset tends to `0`
+@[to_additive "The sum over the complement of a finset tends to `0`
 when the finset grows to cover the whole space. This does not need a summability assumption, as
 otherwise all sums are zero."]
 lemma tendsto_tprod_compl_at_top_one (f : β → α) :
@@ -1578,12 +1527,12 @@ end
 
 variable [complete_space α]
 
-@[to_additive summable_iff_vanishing] lemma prodable_iff_vanishing :
+@[to_additive] lemma prodable_iff_vanishing :
   prodable f ↔ ∀ e ∈ 𝓝 (1 : α), ∃ s, ∀ t, disjoint t s → ∏ b in t, f b ∈ e :=
 by rw [prodable_iff_cauchy_seq_finset, cauchy_seq_finset_prod_iff_vanishing]
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a * b) / b = a` -/
-@[to_additive summable.summable_of_eq_zero_or_self]
+@[to_additive]
 lemma prodable.prodable_of_eq_one_or_self (hf : prodable f) (h : ∀ b, g b = 1 ∨ g b = f b) :
   prodable g :=
 prodable_iff_vanishing.2 $
@@ -1602,42 +1551,41 @@ prodable_iff_vanishing.2 $
         end,
     eq ▸ hs _ $ finset.disjoint_of_subset_left (finset.filter_subset _ _) ht⟩
 
-@[to_additive summable.indicator]
-protected lemma prodable.mul_indicator (hf : prodable f) (s : set β) :
+@[to_additive] protected lemma prodable.mul_indicator (hf : prodable f) (s : set β) :
   prodable (s.mul_indicator f) :=
 hf.prodable_of_eq_one_or_self $ set.mul_indicator_eq_one_or_self _ _
 
-@[to_additive summable.comp_injective]
-lemma prodable.comp_injective {i : γ → β} (hf : prodable f) (hi : injective i) : prodable (f ∘ i) :=
+@[to_additive] lemma prodable.comp_injective {i : γ → β} (hf : prodable f) (hi : injective i) :
+  prodable (f ∘ i) :=
 begin
   simpa only [set.mul_indicator_range_comp]
     using (hi.prodable_iff _).2 (hf.mul_indicator (set.range i)),
   exact λ x hx, set.mul_indicator_of_not_mem hx _
 end
 
-@[to_additive summable.subtype]
-protected lemma prodable.subtype (hf : prodable f) (s : set β) : prodable (f ∘ coe : s → α) :=
+@[to_additive] protected lemma prodable.subtype (hf : prodable f) (s : set β) :
+  prodable (f ∘ coe : s → α) :=
 hf.comp_injective subtype.coe_injective
 
-@[to_additive summable_subtype_and_compl] lemma prodable_subtype_and_compl {s : set β} :
+@[to_additive] lemma prodable_subtype_and_compl {s : set β} :
   prodable (λ x : s, f x) ∧ prodable (λ x : sᶜ, f x) ↔ prodable f :=
 ⟨and_imp.2 prodable.mul_compl, λ h, ⟨h.subtype s, h.subtype sᶜ⟩⟩
 
-@[to_additive summable.sigma_factor]
+@[to_additive]
 lemma prodable.sigma_factor {γ : β → Type*} {f : (Σ b, γ b) → α} (ha : prodable f) (b : β) :
   prodable (λ c, f ⟨b, c⟩) :=
 ha.comp_injective sigma_mk_injective
 
-@[to_additive summable.sigma]
+@[to_additive]
 protected lemma prodable.sigma {γ : β → Type*} {f : (Σ b, γ b) → α} (ha : prodable f) :
   prodable (λ b, ∏'c, f ⟨b, c⟩) :=
 ha.sigma' (λ b, ha.sigma_factor b)
 
-@[to_additive summable.sum_factor]
-lemma prodable.prod_factor {f : β × γ → α} (h : prodable f) (b : β) : prodable (λ c, f (b, c)) :=
+@[to_additive] lemma prodable.prod_factor {f : β × γ → α} (h : prodable f) (b : β) :
+  prodable (λ c, f (b, c)) :=
 h.comp_injective $ λ c₁ c₂ h, (prod.ext_iff.1 h).2
 
-@[to_additive tsum_sigma]
+@[to_additive]
 lemma tprod_sigma [t1_space α] {γ : β → Type*} {f : (Σ b, γ b) → α} (ha : prodable f) :
   ∏' p, f p = ∏' b c, f ⟨b, c⟩ :=
 tprod_sigma' (λ b, ha.sigma_factor b) ha
@@ -1646,17 +1594,17 @@ tprod_sigma' (λ b, ha.sigma_factor b) ha
   ∏' p, f p = ∏' b c, f ⟨b, c⟩ :=
 tprod_prod' h h.prod_factor
 
-@[to_additive tsum_comm] lemma tprod_comm [t1_space α] {f : β → γ → α} (h : prodable (uncurry f)) :
+@[to_additive] lemma tprod_comm [t1_space α] {f : β → γ → α} (h : prodable (uncurry f)) :
   ∏' c b, f b c = ∏' b c, f b c :=
 tprod_comm' h h.prod_factor h.prod_symm.prod_factor
 
-@[to_additive tsum_subtype_add_tsum_subtype_compl]
-lemma tprod_subtype_mul_tprod_subtype_compl [t2_space α] {f : β → α} (hf : prodable f) (s : set β) :
+@[to_additive]
+lemma tprod_subtype_mul_tprod_subtype_compl [t2_space α] (hf : prodable f) (s : set β) :
   (∏' x : s, f x) * ∏' x : sᶜ, f x = ∏' x, f x :=
 ((hf.subtype s).has_prod.mul_compl (hf.subtype {x | x ∉ s}).has_prod).unique hf.has_prod
 
-@[to_additive sum_add_tsum_subtype_compl]
-lemma prod_mul_tprod_subtype_compl [t2_space α] {f : β → α} (hf : prodable f) (s : finset β) :
+@[to_additive]
+lemma prod_mul_tprod_subtype_compl [t2_space α] (hf : prodable f) (s : finset β) :
   (∏ x in s, f x) * ∏' x : {x // x ∉ s}, f x = ∏' x, f x :=
 by { rw [←tprod_subtype_mul_tprod_subtype_compl hf s, finset.tprod_subtype'], refl }
 
@@ -1665,7 +1613,7 @@ end uniform_group
 section topological_group
 variables [topological_space G] [comm_group G] [topological_group G] {f : α → G}
 
-@[to_additive summable.vanishing]
+@[to_additive]
 lemma prodable.vanishing (hf : prodable f) ⦃e : set G⦄ (he : e ∈ 𝓝 (1 : G)) :
   ∃ s : finset α, ∀ t, disjoint t s → ∏ k in t, f k ∈ e :=
 begin
@@ -1677,8 +1625,8 @@ end
 
 /-- Series divergence test: if `f` is a convergent series, then `f x` tends to one along
 `cofinite`. -/
-@[to_additive summable.tendsto_cofinite_zero "Series divergence test: if `f` is a convergent series,
-then `f x` tends to zero along `cofinite`."]
+@[to_additive "Series divergence test: if `f` is a convergent series, then `f x` tends to zero along
+`cofinite`."]
 lemma prodable.tendsto_cofinite_one (hf : prodable f) : tendsto f cofinite (𝓝 1) :=
 begin
   intros e he,
@@ -1688,8 +1636,8 @@ begin
   by simpa using hs {x} (disjoint_singleton_left.2 hx)
 end
 
-@[to_additive summable.tendsto_at_top_zero]
-lemma prodable.tendsto_at_top_one {f : ℕ → G} (hf : prodable f) : tendsto f at_top (𝓝 1) :=
+@[to_additive] lemma prodable.tendsto_at_top_one {f : ℕ → G} (hf : prodable f) :
+  tendsto f at_top (𝓝 1) :=
 by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_one }
 
 lemma summable.tendsto_top_of_pos {α : Type*}
@@ -1713,8 +1661,8 @@ section preorder
 variables {E : Type*} [preorder E] [comm_monoid E] [topological_space E] [order_closed_topology E]
   [t2_space E]
 
-@[to_additive tsum_le_of_sum_range_le] lemma tprod_le_of_prod_range_le {f : ℕ → E} {c : E}
-  (hprod : prodable f) (h : ∀ n, ∏ i in finset.range n, f i ≤ c) : ∏' n, f n ≤ c :=
+@[to_additive] lemma tprod_le_of_prod_range_le {f : ℕ → E} {c : E} (hprod : prodable f)
+  (h : ∀ n, ∏ i in finset.range n, f i ≤ c) : ∏' n, f n ≤ c :=
 let ⟨l, hl⟩ := hprod in hl.tprod_eq.symm ▸ le_of_tendsto' hl.tendsto_prod_nat h
 
 end preorder

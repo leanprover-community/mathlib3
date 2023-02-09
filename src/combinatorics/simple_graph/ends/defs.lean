@@ -121,6 +121,14 @@ lemma mem_of_adj : ∀ {C : G.component_compl K} (c d : V), c ∈ C → d ∉ K 
 λ C c d ⟨cnK, h⟩ dnK cd,
   ⟨ dnK, by { rw [←h, connected_component.eq], exact adj.reachable cd.symm, } ⟩
 
+lemma eq_of_adj {C D: G.component_compl K} (c d : V) (cC : c ∈ C) (dD : d ∈ D) (a : G.adj c d) :
+  C = D := by
+begin
+  obtain ⟨_,_,rfl⟩ := cC,
+  obtain ⟨_,_,rfl⟩ := dD,
+  apply quot.sound, apply adj.reachable, exact a,
+end
+
 /--
 Assuming `G` is preconnected and `K` not empty, given any connected component `C` outside of `K`,
 there exists a vertex `k ∈ K` adjacent to a vertex `v ∈ C`.

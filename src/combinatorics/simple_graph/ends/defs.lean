@@ -246,7 +246,6 @@ begin
     apply finite.of_injective_finite_range touch_inj, },
 end
 
-
 section ends
 
 variables (G)

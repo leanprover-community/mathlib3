@@ -331,6 +331,16 @@ begin
   exact ha.add hb
 end
 
+lemma has_sum_sum_disjoint {ι} (s : finset ι) {t : ι → set β} {a : ι → α}
+  (hs : (s : set ι).pairwise (disjoint on t))
+  (hf : ∀ i ∈ s, has_sum (f ∘ coe : t i → α) (a i)) :
+  has_sum (f ∘ coe : (⋃ i ∈ s, t i) → α) (∑ i in s, a i) :=
+begin
+  simp_rw has_sum_subtype_iff_indicator at *,
+  rw set.indicator_finset_bUnion _ _ hs,
+  exact has_sum_sum hf,
+end
+
 lemma has_sum.add_is_compl {s t : set β} (hs : is_compl s t)
   (ha : has_sum (f ∘ coe : s → α) a) (hb : has_sum (f ∘ coe : t → α) b) :
   has_sum f (a + b) :=
@@ -741,6 +751,12 @@ lemma tsum_union_disjoint {s t : set β} (hd : disjoint s t)
   (∑' x : s ∪ t, f x) = (∑' x : s, f x) + (∑' x : t, f x) :=
 (hs.has_sum.add_disjoint hd ht.has_sum).tsum_eq
 
+lemma tsum_finset_bUnion_disjoint {ι} {s : finset ι} {t : ι → set β}
+  (hd : (s : set ι).pairwise (disjoint on t))
+  (hf : ∀ i ∈ s, summable (f ∘ coe : t i → α)) :
+  (∑' x : (⋃ i ∈ s, t i), f x) = ∑ i in s, ∑' x : t i, f x :=
+(has_sum_sum_disjoint _ hd (λ i hi, (hf i hi).has_sum)).tsum_eq
+
 lemma tsum_even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
   (ho : summable (λ k, f (2 * k + 1))) :
   (∑' k, f (2 * k)) + (∑' k, f (2 * k + 1)) = ∑' k, f k :=
@@ -1120,29 +1136,38 @@ by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
 lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
 (h.has_sum.div_const b).summable
 
-lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a₂⁻¹⟩
+lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum (λb, a₂ * f b) (a₂ * a₁) ↔ has_sum f a₁ :=
+⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a₂⁻¹, has_sum.mul_left _⟩
 
-lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, f b * a₂) (a₁ * a₂) :=
-⟨has_sum.mul_right _, λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a₂⁻¹⟩
+lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum (λb, f b * a₂) (a₁ * a₂) ↔ has_sum f a₁ :=
+⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a₂⁻¹, has_sum.mul_right _⟩
 
-lemma summable_mul_left_iff (h : a ≠ 0) : summable f ↔ summable (λb, a * f b) :=
-⟨λ H, H.mul_left _, λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹⟩
+lemma has_sum_div_const_iff (h : a₂ ≠ 0) : has_sum (λb, f b / a₂) (a₁ / a₂) ↔ has_sum f a₁ :=
+by simpa only [div_eq_mul_inv] using has_sum_mul_right_iff (inv_ne_zero h)
 
-lemma summable_mul_right_iff (h : a ≠ 0) : summable f ↔ summable (λb, f b * a) :=
-⟨λ H, H.mul_right _, λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹⟩
+lemma summable_mul_left_iff (h : a ≠ 0) : summable (λb, a * f b) ↔ summable f :=
+⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹, λ H, H.mul_left _⟩
+
+lemma summable_mul_right_iff (h : a ≠ 0) : summable (λb, f b * a) ↔ summable f :=
+⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹, λ H, H.mul_right _⟩
+
+lemma summable_div_const_iff (h : a ≠ 0) : summable (λb, f b / a) ↔ summable f :=
+by simpa only [div_eq_mul_inv] using summable_mul_right_iff (inv_ne_zero h)
 
 lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
 if hf : summable f then hf.tsum_mul_left a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).2 hf), mul_zero]
+  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).mp hf), mul_zero]
 
 lemma tsum_mul_right [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
 if hf : summable f then hf.tsum_mul_right a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]
+  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).mp hf), zero_mul]
+
+lemma tsum_div_const [t2_space α] : (∑' x, f x / a) = (∑' x, f x) / a :=
+by simpa only [div_eq_mul_inv] using tsum_mul_right
 
 end division_ring
 

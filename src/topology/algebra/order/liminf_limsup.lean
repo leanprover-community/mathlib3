@@ -12,6 +12,9 @@ import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter

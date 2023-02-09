@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import data.set
+import data.set.basic
 import algebra.category.Mon.basic
 
 def X : Type := set ℕ

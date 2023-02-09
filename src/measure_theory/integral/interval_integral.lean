@@ -1061,7 +1061,7 @@ begin
   simp only [interval_integrable_iff, interval_integral_eq_integral_uIoc,
     ← ae_restrict_iff' measurable_set_uIoc] at *,
   exact (has_sum_integral_of_dominated_convergence bound hF_meas h_bound bound_summable
-    bound_integrable h_lim).const_smul
+    bound_integrable h_lim).const_smul _,
 end
 
 open topological_space

@@ -12,10 +12,7 @@ namespace simple_graph
 
 variables  {V : Type u} {G : simple_graph V}
 
-namespace component_compl
-
-open simple_graph
-
+open component_compl
 
 lemma nicely_arranged {H K : set V}
   (Gpc : G.preconnected)
@@ -110,21 +107,15 @@ begin
         nat.one_ne_zero, not_false_iff, and_true], exact ⟨h, k⟩, }, }, },
 
   apply @bwd_map_non_inj V G _ Gpc _ _ F E₁ E₂ h₁₂ _ _,
-  {apply component_compl.nicely_arranged Gpc Hnempty, },
-  {apply component_compl.nicely_arranged Gpc H K Knempty E E₂ E.prop E₂.prop h₀₂ F F.prop H_F K_E,},
+  { apply @nicely_arranged _ _ _ _ Gpc Hnempty E.val E₁.val,
+    any_goals
+    { rw infinite_iff_in_eventual_range },
+    exacts [E.prop, E₁.prop, λ h, h₀₁ (subtype.eq h), F.prop, H_F, K_E], },
+  { apply @nicely_arranged _ _ _ _ Gpc Hnempty E.val E₂.val,
+    any_goals
+    { rw infinite_iff_in_eventual_range },
+    exacts [E.prop, E₂.prop, λ h, h₀₂ (subtype.eq h), F.prop, H_F, K_E], },
 end
-
-namespace component_compl
-
-lemma of_connected_disjoint.eq {K K' : set V} (KeK' : K = K') (S : set V)
-  (conn : (G.induce S).connected) (dis : disjoint K S) :
-  (of_connected_disjoint S conn dis : set V) = (of_connected_disjoint S conn (by {rw KeK' at dis, exact dis}) : set V) :=
-begin
-  induction KeK',
-  refl,
-end
-
-end component_compl
 
 /-
   This is the key part of Hopf-Freudenthal
@@ -132,14 +123,15 @@ end component_compl
   As long as K has at least three infinite connected components, then so does K', and
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
-include Gpc Glf
 lemma good_autom_back_not_inj
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
-  (K : finset V)
-  (inf_comp_H_large : fin 3 ↪ (G.inf_component_compl K)) :
-  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),
-    ¬ injective (inf_component_compl.back hL : G.inf_component_compl L → G.inf_component_compl K') :=
+  (K : (finset V)ᵒᵖ)
+  {inf_comp_H_large : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)} :
+  ∃ (K' L : (finset V)ᵒᵖ) (hK' : K' ⟶ K') (hL : L ⟶ K'),
+    ¬ (injective $ G.component_compl_functor.to_eventual_ranges.map hL) :=
 begin
+  sorry,
+  /-
   haveI Kn : K.nonempty,
   { rw nonempty_iff_ne_empty,
     by_contradiction h, rw h at inf_comp_H_large,
@@ -202,14 +194,16 @@ begin
   refine function.embedding.trans _ e.to_embedding,
   apply function.embedding.of_surjective,
   exact inf_component_compl.back_surjective G Glf Gpc (KKp.trans KK'),
+  -/
 end
 
 
 lemma Freudenthal_Hopf
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
-  (fin 3 ↪ Endsinfty G) → (Endsinfty G).infinite :=
+  (fin 3 ↪ G.end) → G.end.infinite :=
 begin
-
+  sorry
+  /-
   -- Assume we have at least three ends, but finitely many
   intros many_ends finite_ends,
 
@@ -235,6 +229,7 @@ begin
   have eq' := congr_arg (inf_component_compl.back KK') eq,
   simp only [inf_component_compl.back_trans_apply] at eq',
   exact eq',
+  -/
 end
 
 end simple_graph

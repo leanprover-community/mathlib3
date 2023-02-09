@@ -126,9 +126,7 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
 
 @[continuity] lemma continuous_conj : continuous (conj : ℍ → ℍ) :=
-(add_monoid_hom_class.isometry_of_norm _ norm_conj).continuous
-
-instance : has_continuous_star ℍ := ⟨continuous_conj⟩
+continuous_star
 
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → ℍ) :=
 continuous_algebra_map ℝ ℍ

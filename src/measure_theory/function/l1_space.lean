@@ -672,6 +672,22 @@ lemma mem_ℒp.integrable {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [is_f
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
 
+/-- A non-quantitative version of Markov inequality for integrable functions: the measure of points
+where `‖f x‖ ≥ ε` is finite for all positive `ε`. -/
+lemma integrable.measure_ge_lt_top {f : α → β} (hf : integrable f μ) {ε : ℝ} (hε : 0 < ε) :
+  μ {x | ε ≤ ‖f x‖} < ∞ :=
+begin
+  rw show {x | ε ≤ ‖f x‖} = {x | ennreal.of_real ε ≤ ‖f x‖₊},
+    by simp only [ennreal.of_real, real.to_nnreal_le_iff_le_coe, ennreal.coe_le_coe, coe_nnnorm],
+  refine (meas_ge_le_mul_pow_snorm μ one_ne_zero ennreal.one_ne_top hf.1 _).trans_lt _,
+  { simpa only [ne.def, ennreal.of_real_eq_zero, not_le] using hε },
+  apply ennreal.mul_lt_top,
+  { simpa only [ennreal.one_to_real, ennreal.rpow_one, ne.def, ennreal.inv_eq_top,
+      ennreal.of_real_eq_zero, not_le] using hε },
+  simpa only [ennreal.one_to_real, ennreal.rpow_one]
+    using (mem_ℒp_one_iff_integrable.2 hf).snorm_ne_top,
+end
+
 lemma lipschitz_with.integrable_comp_iff_of_antilipschitz {K K'} {f : α → β} {g : β → γ}
   (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   integrable (g ∘ f) μ ↔ integrable f μ :=

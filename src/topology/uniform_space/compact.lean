@@ -199,10 +199,10 @@ begin
 end
 
 lemma continuous.uniform_continuous_of_tendsto_cocompact {f : α → β} {x : β}
-  (h_cont : continuous f) (h_one : tendsto f (cocompact α) (𝓝 x)) : uniform_continuous f :=
+  (h_cont : continuous f) (hx : tendsto f (cocompact α) (𝓝 x)) : uniform_continuous f :=
 uniform_continuous_def.2 $ λ r hr, begin
   obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
-  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (h_one $ mem_nhds_left _ ht),
+  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (hx $ mem_nhds_left _ ht),
   apply mem_of_superset (symmetrize_mem_uniformity $ hs.uniform_continuous_at_of_continuous_at
     f (λ _ _, h_cont.continuous_at) $ symmetrize_mem_uniformity hr),
   rintro ⟨b₁, b₂⟩ h,

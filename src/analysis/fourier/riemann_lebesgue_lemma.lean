@@ -30,7 +30,7 @@ functions are dense in `L¹(ℝ)`, which will be proved in a future iteration.)
 -/
 
 open measure_theory filter complex set
-open_locale filter topology real
+open_locale filter topology real ennreal
 
 section continuous_compact_support
 
@@ -126,7 +126,7 @@ begin
         exact (div_le_one tp).mpr ((le_max_left _ _).trans ht) },
       { exact or.inl (hx.trans $ lt_add_of_pos_right _ $ div_pos real.pi_pos tp).le } } },
   rw int_Icc,
-  -- Bound integral using fact that ‖f x - f (x + π / t) ‖ is small.
+  -- Bound integral using fact that ‖f x - f (x + π / t)‖ is small.
   have bdA : ∀ x : ℝ, (x ∈ A) → ‖ ‖f x - f (x + π / t) ‖ ‖ ≤ ε / (1 + 2 * R),
   { simp_rw norm_norm,
     refine (λ x _, le_of_lt _),
@@ -135,7 +135,7 @@ begin
     rw [sub_add_cancel', real.norm_eq_abs, abs_neg, abs_of_pos (div_pos real.pi_pos tpos),
       div_lt_iff tpos, mul_comm, ←div_lt_iff hδ1],
     linarith [(le_max_right π (1 + π / δ)).trans ht] },
-  have bdA2 := norm_set_integral_le_of_norm_le_const (measure_Icc_lt_top : volume A < ⊤) bdA _,
+  have bdA2 := norm_set_integral_le_of_norm_le_const (measure_Icc_lt_top : volume A < ∞) bdA _,
   swap, { apply continuous.ae_strongly_measurable,
     exact (continuous_norm.comp $ continuous.sub hf1 $ continuous.comp hf1 $
     continuous_id'.add continuous_const) },

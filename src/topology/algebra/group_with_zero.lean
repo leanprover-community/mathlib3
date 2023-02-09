@@ -60,7 +60,7 @@ by simpa only [div_eq_mul_inv] using hf.mul continuous_at_const
 
 lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) (y : G₀) :
   continuous_within_at (λ x, f x / y) s a :=
-hf.div_const
+hf.div_const _
 
 lemma continuous_on.div_const (hf : continuous_on f s) (y : G₀) : continuous_on (λ x, f x / y) s :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const

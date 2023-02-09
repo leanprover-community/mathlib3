@@ -584,11 +584,10 @@ alias commute_conj_conj ← commute.quaternion_conj
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
 
-@[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
-quaternion_algebra.conj_nat_cast _
-
 @[simp] lemma conj_smul : conj (r • a) = r • conj a := a.conj_smul r
 
+@[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
+quaternion_algebra.conj_nat_cast _
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R]) = z :=
 quaternion_algebra.conj_int_cast _
 

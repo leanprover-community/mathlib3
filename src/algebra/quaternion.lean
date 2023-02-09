@@ -414,6 +414,8 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 
 @[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
+lemma conj_pow (n : ℕ) : conj (a ^ n) = conj a ^ n := star_pow a n
+
 open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
@@ -644,6 +646,8 @@ lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
 
 @[simp] lemma conj_sub : (a - b).conj = a.conj - b.conj := a.conj_sub b
 
+@[simp] lemma conj_pow (n : ℕ) : conj (a ^ n) = conj a ^ n := a.conj_pow n
+
 open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
@@ -769,8 +773,8 @@ lemma conj_inv : conj (a⁻¹) = (conj a)⁻¹ := star_inv' a
 lemma conj_zpow (z : ℤ) : conj (a ^ z) = conj a ^ z := star_zpow₀ a z
 @[simp, norm_cast] lemma conj_rat_cast (q : ℚ) : conj (q : ℍ[R]) = q := @star_rat_cast ℍ[R] _ _ q
 
-lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
-lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
+/-! Note that `norm_sq_inv`, `norm_sq_div`, and `norm_sq_zpow` are not needed since `norm_sq` is
+bundled. -/
 @[norm_cast] lemma norm_sq_rat_cast (q : ℚ) : norm_sq (q : ℍ[R]) = q^2 :=
 by rw [←coe_rat_cast, norm_sq_coe]
 

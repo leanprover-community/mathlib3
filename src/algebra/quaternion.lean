@@ -713,10 +713,6 @@ instance : group_with_zero ℍ[R] :=
   .. quaternion.nontrivial,
   .. (by apply_instance : monoid_with_zero ℍ[R]) }
 
-@[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
-@[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
-@[simp] lemma norm_sq_zpow (z : ℤ) : norm_sq (a ^ z) = norm_sq a ^ z := map_zpow₀ norm_sq a z
-
 @[norm_cast, simp] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
 map_inv₀ (algebra_map R ℍ[R]) _
 
@@ -742,8 +738,9 @@ lemma conj_inv : conj (a⁻¹) = (conj a)⁻¹ := star_inv' a
 lemma conj_zpow (z : ℤ) : conj (a ^ z) = conj a ^ z := star_zpow₀ a z
 @[simp, norm_cast] lemma conj_rat_cast (q : ℚ) : conj (q : ℍ[R]) = q := @star_rat_cast ℍ[R] _ _ q
 
-/-! Note that `norm_sq_inv`, `norm_sq_div`, and `norm_sq_zpow` are not needed since `norm_sq` is
-bundled. -/
+@[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
+@[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
+@[simp] lemma norm_sq_zpow (z : ℤ) : norm_sq (a ^ z) = norm_sq a ^ z := map_zpow₀ norm_sq a z
 @[norm_cast] lemma norm_sq_rat_cast (q : ℚ) : norm_sq (q : ℍ[R]) = q^2 :=
 by rw [←coe_rat_cast, norm_sq_coe]
 

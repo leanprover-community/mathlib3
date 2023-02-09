@@ -126,7 +126,7 @@ by simp only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
   We show that the intersection of all these sets is nonempty, and the Haar measure
   on compact sets is defined to be an element in the closure of this intersection. -/
 @[to_additive "additive version of `measure_theory.measure.haar.cl_prehaar`"]
-def cl_prehaar (K₀ : set G) (V : open_nhd (1 : G)) : set (compacts G → ℝ) :=
+def cl_prehaar (K₀ : set G) (V : open_nhds_of (1 : G)) : set (compacts G → ℝ) :=
 closure $ prehaar K₀ '' { U : set G | U ⊆ V.1 ∧ is_open U ∧ (1 : G) ∈ U }
 
 variables [topological_group G]
@@ -317,12 +317,12 @@ by { rintro ⟨K, hK⟩ h2K, rw [mem_Icc], exact ⟨prehaar_nonneg K₀ _, preha
 
 @[to_additive]
 lemma nonempty_Inter_cl_prehaar (K₀ : positive_compacts G) :
-  (haar_product (K₀ : set G) ∩ ⋂ (V : open_nhd (1 : G)), cl_prehaar K₀ V).nonempty :=
+  (haar_product (K₀ : set G) ∩ ⋂ (V : open_nhds_of (1 : G)), cl_prehaar K₀ V).nonempty :=
 begin
   have : is_compact (haar_product (K₀ : set G)),
   { apply is_compact_univ_pi, intro K, apply is_compact_Icc },
   refine this.inter_Inter_nonempty (cl_prehaar K₀) (λ s, is_closed_closure) (λ t, _),
-  let V₀ := ⋂ (V ∈ t), (V : open_nhd 1).carrier,
+  let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).carrier,
   have h1V₀ : is_open V₀,
   { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨⟨V, hV₁⟩, hV₂⟩ h2V, exact hV₁ },
   have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨⟨V, hV₁⟩, hV₂⟩ h2V, exact hV₂ },
@@ -353,7 +353,7 @@ lemma chaar_mem_haar_product (K₀ : positive_compacts G) : chaar K₀ ∈ haar_
 (classical.some_spec (nonempty_Inter_cl_prehaar K₀)).1
 
 @[to_additive add_chaar_mem_cl_add_prehaar]
-lemma chaar_mem_cl_prehaar (K₀ : positive_compacts G) (V : open_nhd (1 : G)) :
+lemma chaar_mem_cl_prehaar (K₀ : positive_compacts G) (V : open_nhds_of (1 : G)) :
   chaar K₀ ∈ cl_prehaar (K₀ : set G) V :=
 by { have := (classical.some_spec (nonempty_Inter_cl_prehaar K₀)).2, rw [mem_Inter] at this,
      exact this V }

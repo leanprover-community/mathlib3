@@ -29,12 +29,12 @@ We define the subtype of open sets in a topological space.
 
 ### Bundled open neighborhoods
 
-- `open_nhd x` is the type of open subsets of a topological space `α` containing `x : α`.
-- `open_nhd.comap f x U` is the preimage of open neighborhood `U` of `f x` under `f : C(α, β)`.
+- `open_nhds_of x` is the type of open subsets of a topological space `α` containing `x : α`.
+- `open_nhds_of.comap f x U` is the preimage of open neighborhood `U` of `f x` under `f : C(α, β)`.
 
 ## Main results
 
-We define order structures on both `opens α` (`complete_structure`, `frame`) and `open_nhd x`
+We define order structures on both `opens α` (`complete_structure`, `frame`) and `open_nhds_of x`
 (`order_top`, `distrib_lattice`).
 -/
 
@@ -290,50 +290,50 @@ instance [finite α] : finite (opens α) := finite.of_injective _ set_like.coe_i
 end opens
 
 /-- The open neighborhoods of a point. See also `opens` or `nhds`. -/
-structure open_nhd (x : α) extends opens α :=
+structure open_nhds_of (x : α) extends opens α :=
 (mem' : x ∈ carrier)
 
-namespace open_nhd
+namespace open_nhds_of
 
 variables {x : α}
 
-lemma to_opens_injective : injective (to_opens : open_nhd x → opens α)
+lemma to_opens_injective : injective (to_opens : open_nhds_of x → opens α)
 | ⟨_, _⟩ ⟨_, _⟩ rfl := rfl
 
-instance : set_like (open_nhd x) α :=
+instance : set_like (open_nhds_of x) α :=
 { coe := λ U, U.1,
   coe_injective' := set_like.coe_injective.comp to_opens_injective }
 
-instance can_lift_set : can_lift (set α) (open_nhd x) coe (λ s, is_open s ∧ x ∈ s) :=
+instance can_lift_set : can_lift (set α) (open_nhds_of x) coe (λ s, is_open s ∧ x ∈ s) :=
 ⟨λ s hs, ⟨⟨⟨s, hs.1⟩, hs.2⟩, rfl⟩⟩
 
-protected lemma mem (U : open_nhd x) : x ∈ U := U.mem'
-protected lemma is_open (U : open_nhd x) : is_open (U : set α) := U.is_open'
+protected lemma mem (U : open_nhds_of x) : x ∈ U := U.mem'
+protected lemma is_open (U : open_nhds_of x) : is_open (U : set α) := U.is_open'
 
-instance : order_top (open_nhd x) :=
+instance : order_top (open_nhds_of x) :=
 { top := ⟨⊤, set.mem_univ _⟩,
   le_top := λ _, subset_univ _ }
 
-instance : inhabited (open_nhd x) := ⟨⊤⟩
+instance : inhabited (open_nhds_of x) := ⟨⊤⟩
 
-instance : has_inf (open_nhd x) := ⟨λ U V, ⟨U.1 ⊓ V.1, U.2, V.2⟩⟩
+instance : has_inf (open_nhds_of x) := ⟨λ U V, ⟨U.1 ⊓ V.1, U.2, V.2⟩⟩
 
-instance : has_sup (open_nhd x) := ⟨λ U V, ⟨U.1 ⊔ V.1, or.inl U.2⟩⟩
+instance : has_sup (open_nhds_of x) := ⟨λ U V, ⟨U.1 ⊔ V.1, or.inl U.2⟩⟩
 
-instance : distrib_lattice (open_nhd x) :=
+instance : distrib_lattice (open_nhds_of x) :=
 to_opens_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
-lemma basis_nhds : (𝓝 x).has_basis (λ U : open_nhd x, true) coe :=
+lemma basis_nhds : (𝓝 x).has_basis (λ U : open_nhds_of x, true) coe :=
 (nhds_basis_opens x).to_has_basis (λ U hU, ⟨⟨⟨U, hU.2⟩, hU.1⟩, trivial, subset.rfl⟩)
   (λ U _, ⟨U, ⟨⟨U.mem, U.is_open⟩, subset.rfl⟩⟩)
 
 /-- Preimage of an open neighborhood of `f x` under a continuous map `f` as a `lattice_hom`. -/
-def comap (f : C(α, β)) (x : α) : lattice_hom (open_nhd (f x)) (open_nhd x) :=
+def comap (f : C(α, β)) (x : α) : lattice_hom (open_nhds_of (f x)) (open_nhds_of x) :=
 { to_fun := λ U, ⟨opens.comap f U.1, U.mem⟩,
   map_sup' := λ U V, rfl,
   map_inf' := λ U V, rfl }
 
-end open_nhd
+end open_nhds_of
 
 end topological_space
 

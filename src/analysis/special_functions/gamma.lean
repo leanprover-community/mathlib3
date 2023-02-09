@@ -6,9 +6,10 @@ Authors: David Loeffler
 import measure_theory.integral.exp_decay
 import analysis.calculus.parametric_integral
 import analysis.special_functions.integrals
+import analysis.convolution
 
 /-!
-# The Gamma function
+# The Gamma and Beta functions
 
 This file defines the `Γ` function (of a real or complex variable `s`). We define this by Euler's
 integral `Γ(s) = ∫ x in Ioi 0, exp (-x) * x ^ (s - 1)` in the range where this integral converges
@@ -19,7 +20,7 @@ We show that this integral satisfies `Γ(1) = 1` and `Γ(s + 1) = s * Γ(s)`; he
 integral in the convergence range. In the complex case we also prove that the resulting function is
 holomorphic on `ℂ` away from the points `{-n : n ∈ ℕ}`.
 
-## Main statements (real case)
+## Gamma function: main statements (real case)
 
 * `real.Gamma` : the `Γ` function (of a real variable).
 * `real.Gamma_eq_integral` : for `0 < s`, `Γ(s)` agrees with Euler's integral
@@ -36,7 +37,7 @@ holomorphic on `ℂ` away from the points `{-n : n ∈ ℕ}`.
   the unique log-convex, positive-valued function on `Ioi 0` satisfying the functional equation
   and having `Γ 1 = 1`.
 
-## Main statements (complex case)
+## Gamma function: main statements (complex case)
 
 * `complex.Gamma` : the `Γ` function (of a complex variable).
 * `complex.Gamma_eq_integral` : for `0 < re s`, `Γ(s)` agrees with Euler's integral.
@@ -44,6 +45,13 @@ holomorphic on `ℂ` away from the points `{-n : n ∈ ℕ}`.
 * `complex.Gamma_nat_eq_factorial` : for all `n : ℕ` we have `Γ (n + 1) = n!`.
 * `complex.differentiable_at_Gamma` : `Γ` is complex-differentiable at all `s : ℂ` with
   `s ∉ {-n : n ∈ ℕ}`.
+
+## Beta function
+
+* `complex.beta_integral`: the Beta function `Β(u, v)`, where `u`, `v` are complex with positive
+  real part.
+* `complex.Gamma_mul_Gamma_eq_beta_integral`: the formula
+  `Gamma u * Gamma v = Gamma (u + v) * beta_integral u v`.
 
 ## Tags
 
@@ -1007,3 +1015,202 @@ end
 end strict_mono
 
 end real
+
+section beta_integral
+
+namespace complex
+
+notation `cexp` := complex.exp
+
+/-- The Beta function `Β (u, v)`, defined as `∫ x:ℝ in 0..1, x ^ (u - 1) * (1 - x) ^ (v - 1)`. -/
+noncomputable def beta_integral (u v : ℂ) : ℂ :=
+∫ (x:ℝ) in 0..1, x ^ (u - 1) * (1 - x) ^ (v - 1)
+
+/-- Auxiliary lemma for `beta_integral_convergent`, showing convergence at the left endpoint. -/
+lemma beta_integral_convergent_left {u : ℂ} (hu : 0 < re u) (v : ℂ) :
+  interval_integrable (λ x, x ^ (u - 1) * (1 - x) ^ (v - 1) : ℝ → ℂ) volume 0 (1 / 2) :=
+begin
+  apply interval_integrable.mul_continuous_on,
+  { refine interval_integral.interval_integrable_cpow' _,
+    rwa [sub_re, one_re, ←zero_sub, sub_lt_sub_iff_right] },
+  { apply continuous_at.continuous_on,
+    intros x hx,
+    rw uIcc_of_le (by positivity: (0:ℝ) ≤ 1/2) at hx,
+    apply continuous_at.cpow,
+    { exact (continuous_const.sub continuous_of_real).continuous_at },
+    { exact continuous_at_const },
+    { rw [sub_re, one_re, of_real_re, sub_pos],
+      exact or.inl (hx.2.trans_lt (by norm_num : (1/2:ℝ) < 1)) } }
+end
+
+/-- The Beta integral is convergent for all `u, v` of positive real part. -/
+lemma beta_integral_convergent {u v : ℂ} (hu : 0 < re u) (hv : 0 < re v) :
+  interval_integrable (λ x, x ^ (u - 1) * (1 - x) ^ (v - 1) : ℝ → ℂ) volume 0 1 :=
+begin
+  refine (beta_integral_convergent_left hu v).trans _,
+  rw interval_integrable.iff_comp_neg,
+  convert ((beta_integral_convergent_left hv u).comp_add_right 1).symm,
+  { ext1 x,
+    conv_lhs { rw mul_comm },
+    congr' 2;
+    { push_cast, ring } },
+  { norm_num },
+  { norm_num }
+end
+
+lemma beta_integral_symm (u v : ℂ) :
+  beta_integral v u = beta_integral u v :=
+begin
+  rw [beta_integral, beta_integral],
+  have := interval_integral.integral_comp_mul_add
+    (λ x:ℝ, (x:ℂ) ^ (u - 1) * (1 - ↑x) ^ (v - 1)) (neg_one_lt_zero.ne) 1,
+  rw [inv_neg, inv_one, neg_one_smul, ←interval_integral.integral_symm] at this,
+  convert this,
+  { ext1 x, rw mul_comm, congr;
+    { push_cast, ring } },
+  { ring }, { ring }
+end
+
+lemma beta_integral_eval_one_right {u : ℂ} (hu : 0 < re u) :
+  beta_integral u 1 = 1 / u :=
+begin
+  simp_rw [beta_integral, sub_self, cpow_zero, mul_one],
+  rw integral_cpow (or.inl _),
+  { rw [of_real_zero, of_real_one, one_cpow, zero_cpow,
+    sub_zero, sub_add_cancel],
+    rw sub_add_cancel,
+    contrapose! hu, rw [hu, zero_re] },
+  { rwa [sub_re, one_re, ←sub_pos, sub_neg_eq_add, sub_add_cancel] },
+end
+
+lemma beta_integral_scaled (s t : ℂ) {a : ℝ} (ha : 0 < a) :
+  ∫ x in 0..a, (x:ℂ) ^ (s - 1) * (a - x) ^ (t - 1) = a ^ (s + t - 1) * beta_integral s t :=
+begin
+  have ha' : (a:ℂ) ≠ 0, from of_real_ne_zero.mpr ha.ne',
+  rw beta_integral,
+  have A : (a:ℂ) ^ (s + t - 1) = a * (a ^ (s - 1) * a ^ (t - 1)),
+  { rw [(by abel : s + t - 1 = 1 + (s - 1) + (t - 1)),
+      cpow_add _ _ ha', cpow_add 1 _ ha', cpow_one, mul_assoc] },
+  rw [A, mul_assoc, ←interval_integral.integral_const_mul ((↑a) ^ _ * _),
+    ←real_smul, ←(zero_div a), ←div_self ha.ne',
+    ←interval_integral.integral_comp_div _ ha.ne', zero_div],
+  simp_rw interval_integral.integral_of_le ha.le,
+  refine set_integral_congr measurable_set_Ioc (λ x hx, _),
+  dsimp only,
+  rw mul_mul_mul_comm,
+  congr' 1,
+  { rw [←mul_cpow_of_real_nonneg ha.le (div_pos hx.1 ha).le, of_real_div, mul_div_cancel' _ ha'] },
+  { rw [(by push_cast : (1:ℂ) - ↑(x / a) = ↑(1 - x / a)),
+      ←mul_cpow_of_real_nonneg ha.le (sub_nonneg.mpr $ (div_le_one ha).mpr hx.2)],
+    push_cast,
+    rw [mul_sub, mul_one, mul_div_cancel' _ ha'] }
+end
+
+/-- Relation between Beta integral and Gamma function.  -/
+lemma Gamma_mul_Gamma_eq_beta_integral {s t : ℂ} (hs : 0 < re s) (ht : 0 < re t) :
+  Gamma s * Gamma t = Gamma (s + t) * beta_integral s t :=
+begin
+  -- Note that we haven't proved (yet) that the Gamma function has no zeroes, so we can't formulate
+  -- this as a formula for the Beta function.
+  have conv_int := integral_pos_convolution (Gamma_integral_convergent hs)
+    (Gamma_integral_convergent ht) (continuous_linear_map.mul ℝ ℂ),
+  simp_rw continuous_linear_map.mul_apply' at conv_int,
+  have hst : 0 < re (s + t),
+  { rw add_re, exact add_pos hs ht },
+  rw [Gamma_eq_integral hs, Gamma_eq_integral ht, Gamma_eq_integral hst, Gamma_integral,
+    Gamma_integral, Gamma_integral, ←conv_int, ←integral_mul_right (beta_integral _ _)],
+  refine set_integral_congr measurable_set_Ioi (λ x hx, _),
+  dsimp only,
+  rw [mul_assoc, ←beta_integral_scaled s t hx, ←interval_integral.integral_const_mul],
+  congr' 1 with y:1,
+  push_cast,
+  suffices : cexp (-x) = cexp (-y) * cexp (-(x - y)),
+  { rw this, ring },
+  { rw ←complex.exp_add, congr' 1, abel },
+end
+
+/-- Recurrence formula for the Beta function. -/
+lemma beta_integral_recurrence {u v : ℂ} (hu : 0 < re u) (hv : 0 < re v) :
+  u * beta_integral u (v + 1) = v * beta_integral (u + 1) v :=
+begin
+  -- NB: If we knew `Gamma (u + v + 1) ≠ 0` this would be an easy consequence of
+  -- `Gamma_mul_Gamma_eq_beta_integral`; but we don't know that yet. We will prove it later, but
+  -- this lemma is needed in the proof. So we give a (somewhat laborious) direct argument.
+  let F : ℝ → ℂ := λ x, x ^ u * (1 - x) ^ v,
+  have hu' : 0 < re (u + 1), by { rw [add_re, one_re], positivity },
+  have hv' : 0 < re (v + 1), by { rw [add_re, one_re], positivity },
+  have hc : continuous_on F (Icc 0 1),
+  { refine (continuous_at.continuous_on (λ x hx, _)).mul (continuous_at.continuous_on (λ x hx, _)),
+    { refine (continuous_at_cpow_const_of_re_pos (or.inl _) hu).comp
+        continuous_of_real.continuous_at,
+      rw of_real_re, exact hx.1 },
+    { refine (continuous_at_cpow_const_of_re_pos (or.inl _) hv).comp
+        (continuous_const.sub continuous_of_real).continuous_at,
+      rw [sub_re, one_re, of_real_re, sub_nonneg],
+      exact hx.2 } },
+  have hder : ∀ (x : ℝ), x ∈ Ioo (0:ℝ) 1 → has_deriv_at F
+    (u * (↑x ^ (u - 1) * (1 - ↑x) ^ v) - v * (↑x ^ u * (1 - ↑x) ^ (v - 1))) x,
+  { intros x hx,
+    have U : has_deriv_at (λ y:ℂ, y ^ u) (u * ↑x ^ (u - 1)) ↑x,
+    { have := has_deriv_at.cpow_const (has_deriv_at_id ↑x) (or.inl _),
+      { rw mul_one at this, exact this },
+      { rw [id.def, of_real_re], exact hx.1 } },
+    have V : has_deriv_at (λ y:ℂ, (1 - y) ^ v) (-v * (1 - ↑x) ^ (v - 1)) ↑x,
+    { have A := has_deriv_at.cpow_const (has_deriv_at_id (1 - ↑x)) (or.inl _),
+      rotate, { exact v },
+      { rw [id.def, sub_re, one_re, of_real_re, sub_pos], exact hx.2 },
+      simp_rw [id.def] at A,
+      have B : has_deriv_at (λ y:ℂ, 1 - y) (-1) ↑x,
+      { apply has_deriv_at.const_sub, apply has_deriv_at_id },
+      convert has_deriv_at.comp ↑x A B using 1,
+      ring },
+    convert (U.mul V).comp_of_real,
+    ring },
+  have h_int := ((beta_integral_convergent hu hv').const_mul u).sub
+    ((beta_integral_convergent hu' hv).const_mul v),
+  dsimp only at h_int,
+  rw [add_sub_cancel, add_sub_cancel] at h_int,
+  have int_ev := interval_integral.integral_eq_sub_of_has_deriv_at_of_le zero_le_one hc hder h_int,
+  have hF0 : F 0 = 0,
+  { simp only [mul_eq_zero, of_real_zero, cpow_eq_zero_iff, eq_self_iff_true,
+      ne.def, true_and, sub_zero, one_cpow, one_ne_zero, or_false],
+    contrapose! hu, rw [hu, zero_re] },
+  have hF1 : F 1 = 0,
+  { simp only [mul_eq_zero, of_real_one, one_cpow, one_ne_zero, sub_self,
+      cpow_eq_zero_iff, eq_self_iff_true, ne.def, true_and, false_or],
+    contrapose! hv, rw [hv, zero_re] },
+  rw [hF0, hF1, sub_zero, interval_integral.integral_sub,
+    interval_integral.integral_const_mul, interval_integral.integral_const_mul] at int_ev,
+  { rw [beta_integral, beta_integral, ←sub_eq_zero],
+    convert int_ev;
+    { ext1 x, congr, abel } },
+  { apply interval_integrable.const_mul,
+    convert beta_integral_convergent hu hv',
+    ext1 x, rw add_sub_cancel },
+  { apply interval_integrable.const_mul,
+    convert beta_integral_convergent hu' hv,
+    ext1 x, rw add_sub_cancel },
+end
+
+/-- Explicit formula for the Beta function when second argument is a positive integer. -/
+lemma beta_integral_eval_nat_add_one_right {u : ℂ} (hu : 0 < re u) (n : ℕ) :
+  beta_integral u (n + 1) = n! / ∏ (j:ℕ) in finset.range (n + 1), (u + j) :=
+begin
+  induction n with n IH generalizing u,
+  { rw [nat.cast_zero, zero_add, beta_integral_eval_one_right hu,
+      nat.factorial_zero, nat.cast_one, zero_add, finset.prod_range_one, nat.cast_zero, add_zero] },
+  { have := beta_integral_recurrence hu (_ : 0 < re n.succ),
+    swap, { rw [←of_real_nat_cast, of_real_re], positivity },
+    rw [mul_comm u _, ←eq_div_iff] at this,
+    swap, { contrapose! hu, rw [hu, zero_re] },
+    rw [this, finset.prod_range_succ', nat.cast_succ, IH],
+    swap, { rw [add_re, one_re], positivity },
+    rw [nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one, nat.cast_zero, add_zero,
+      ←mul_div_assoc, ←div_div],
+    congr' 3 with j:1,
+    push_cast, abel }
+end
+
+end complex
+
+end beta_integral

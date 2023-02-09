@@ -333,14 +333,13 @@ lemma mem_base_set.exists_common_compl (h₁ : l.mem_base_set I c₁ r₁ π₁)
   ∃ π : prepartition I, π.Union = I \ π₁.Union ∧
     (l.bDistortion → π.distortion ≤ c₁) ∧ (l.bDistortion → π.distortion ≤ c₂) :=
 begin
-  wlog hc : c₁ ≤ c₂ := le_total c₁ c₂ using [c₁ c₂ r₁ r₂ π₁ π₂, c₂ c₁ r₂ r₁ π₂ π₁] tactic.skip,
-  { by_cases hD : (l.bDistortion : Prop),
-    { rcases h₁.4 hD with ⟨π, hπU, hπc⟩,
-      exact ⟨π, hπU, λ _, hπc, λ _, hπc.trans hc⟩ },
-    { exact ⟨π₁.to_prepartition.compl, π₁.to_prepartition.Union_compl,
-        λ h, (hD h).elim, λ h, (hD h).elim⟩ } },
-  { intros h₁ h₂ hU,
-    simpa [hU, and_comm] using this h₂ h₁ hU.symm }
+  wlog hc : c₁ ≤ c₂,
+  { simpa [hU, and_comm] using this h₂ h₁ hU.symm (le_of_not_le hc) },
+  by_cases hD : (l.bDistortion : Prop),
+  { rcases h₁.4 hD with ⟨π, hπU, hπc⟩,
+    exact ⟨π, hπU, λ _, hπc, λ _, hπc.trans hc⟩ },
+  { exact ⟨π₁.to_prepartition.compl, π₁.to_prepartition.Union_compl,
+      λ h, (hD h).elim, λ h, (hD h).elim⟩ }
 end
 
 protected lemma mem_base_set.union_compl_to_subordinate (hπ₁ : l.mem_base_set I c r₁ π₁)

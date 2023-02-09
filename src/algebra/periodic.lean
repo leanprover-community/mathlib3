@@ -15,6 +15,9 @@ import group_theory.submonoid.membership
 /-!
 # Periodicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define and then prove facts about periodic and antiperiodic functions.
 
 ## Main definitions

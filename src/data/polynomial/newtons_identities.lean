@@ -8,6 +8,7 @@ import data.mv_polynomial.comm_ring
 import algebra.polynomial.big_operators
 import ring_theory.mv_polynomial.symmetric
 import ring_theory.polynomial.vieta
+import ring_theory.power_series.basic
 
 /-
 
@@ -49,12 +50,15 @@ polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
 
-lemma s_symm : s R n k = mv_polynomial.esymm (fin n) R (n - k) :=
+lemma s_symm : ∀ k : ℕ, s R n k = (-1)^(n - k) * mv_polynomial.esymm (fin n) R (n - k) :=
 begin
+  intro k,
   unfold s,
+  conv_lhs {congr, congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg C _,},
+  --convert mv_polynomial.prod_X_add_C_coeff R (map (λ _ t, -t) (multiset.map mv_polynomial.X finset.univ.val)),
 
-  unfold mv_polynomial.esymm,
-  -- multiset.prod_X_sub_C_coeff
+
+
   sorry
 end
 
@@ -96,6 +100,9 @@ begin
   { apply le_of_eq,
     simp, },
 end
+
+
+-- nedd to fix s_neg (h : k < 0) : s R n k = 0
 
 -- n = k case
 lemma sumzero : ∀ j : fin n, ∑ i in range (n + 1), s R n i * (mv_polynomial.X j)^i = 0 :=
@@ -155,12 +162,21 @@ begin
   },
   {
     rw s_symm,
-    apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
-    rw finset.sup_le_iff,
-    intros b hb,
-    convert mv_polynomial.total_degree_finset_prod _ _,
-    rw finset.mem_powerset_len at hb,
-    simp [hb.2.symm],
+    have hd : (mv_polynomial.esymm (fin n) R (n - j)).total_degree ≤ n - j,
+    {
+      apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
+      rw finset.sup_le_iff,
+      intros b hb,
+      convert mv_polynomial.total_degree_finset_prod _ _,
+      rw finset.mem_powerset_len at hb,
+      simp [hb.2.symm],
+    },
+    apply le_trans (mv_polynomial.total_degree_mul _ _),
+    have := neg_one_pow_eq_or (mv_polynomial (fin n) R) (n-j),
+    cases this;
+    rw this;
+    simp;
+    exact hd,
   },
 end
 

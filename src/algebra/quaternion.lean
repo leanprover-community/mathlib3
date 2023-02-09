@@ -374,7 +374,9 @@ by rw [←coe_nat_cast, conj_coe]
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
 by rw [←coe_int_cast, conj_coe]
 
-lemma conj_smul : conj (r • a) = r • conj a := conj.map_smul r a
+@[simp] lemma conj_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R, c₁, c₂]) :
+  conj (s • a) = s • conj a :=
+ext _ _ rfl (smul_neg _ _).symm (smul_neg _ _).symm (smul_neg _ _).symm
 
 @[simp] lemma conj_one : conj (1 : ℍ[R, c₁, c₂]) = 1 := conj_coe 1
 
@@ -617,7 +619,8 @@ quaternion_algebra.conj_nat_cast _
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R]) = z :=
 quaternion_algebra.conj_int_cast _
 
-@[simp] lemma conj_smul : conj (r • a) = r • conj a := a.conj_smul r
+@[simp] lemma conj_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R]) :
+  conj (s • a) = s • conj a := quaternion_algebra.conj_smul _ _
 
 @[simp] lemma conj_one : conj (1 : ℍ[R]) = 1 := conj_coe 1
 

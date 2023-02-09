@@ -331,6 +331,16 @@ begin
   exact ha.add hb
 end
 
+lemma has_sum_sum_disjoint {ι} (s : finset ι) {t : ι → set β} {a : ι → α}
+  (hs : (s : set ι).pairwise (disjoint on t))
+  (hf : ∀ i ∈ s, has_sum (f ∘ coe : t i → α) (a i)) :
+  has_sum (f ∘ coe : (⋃ i ∈ s, t i) → α) (∑ i in s, a i) :=
+begin
+  simp_rw has_sum_subtype_iff_indicator at *,
+  rw set.indicator_finset_bUnion _ _ hs,
+  exact has_sum_sum hf,
+end
+
 lemma has_sum.add_is_compl {s t : set β} (hs : is_compl s t)
   (ha : has_sum (f ∘ coe : s → α) a) (hb : has_sum (f ∘ coe : t → α) b) :
   has_sum f (a + b) :=
@@ -740,6 +750,12 @@ lemma tsum_union_disjoint {s t : set β} (hd : disjoint s t)
   (hs : summable (f ∘ coe : s → α)) (ht : summable (f ∘ coe : t → α)) :
   (∑' x : s ∪ t, f x) = (∑' x : s, f x) + (∑' x : t, f x) :=
 (hs.has_sum.add_disjoint hd ht.has_sum).tsum_eq
+
+lemma tsum_finset_bUnion_disjoint {ι} {s : finset ι} {t : ι → set β}
+  (hd : (s : set ι).pairwise (disjoint on t))
+  (hf : ∀ i ∈ s, summable (f ∘ coe : t i → α)) :
+  (∑' x : (⋃ i ∈ s, t i), f x) = ∑ i in s, ∑' x : t i, f x :=
+(has_sum_sum_disjoint _ hd (λ i hi, (hf i hi).has_sum)).tsum_eq
 
 lemma tsum_even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
   (ho : summable (λ k, f (2 * k + 1))) :

@@ -543,8 +543,8 @@ lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_alge
 @[simp] lemma smul_im_k [has_smul S R] (s : S) : (s • a).im_k = s • a.im_k := rfl
 
 @[norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
-  (↑(s • r) : ℍ[R, c₁, c₂]) = s • ↑r :=
-quaternion_algebra.coe_smul
+  (↑(s • r) : ℍ[R]) = s • ↑r :=
+quaternion_algebra.coe_smul _ _
 
 lemma coe_commutes : ↑r * a = a * r := quaternion_algebra.coe_commutes r a
 
@@ -728,14 +728,6 @@ map_div₀ (algebra_map R ℍ[R]) x y
 @[norm_cast, simp] lemma coe_zpow (x : R) (z : ℤ) : ((x ^ z : R) : ℍ[R]) = x ^ z :=
 map_zpow₀ (algebra_map R ℍ[R]) x z
 
-instance : has_rat_cast ℍ[R] := { rat_cast := λ q, ↑(q : R) }
-
-@[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℍ[R]).re = q := rfl
-@[simp, norm_cast] lemma rat_cast_im_i (q : ℚ) : (q : ℍ[R]).im_i = 0 := rfl
-@[simp, norm_cast] lemma rat_cast_im_j (q : ℚ) : (q : ℍ[R]).im_j = 0 := rfl
-@[simp, norm_cast] lemma rat_cast_im_k (q : ℚ) : (q : ℍ[R]).im_k = 0 := rfl
-@[norm_cast] lemma coe_rat_cast (q : ℚ) : ↑(q : R) = (q : ℍ[R]) := rfl
-
 instance : division_ring ℍ[R] :=
 { rat_cast := λ q, ↑(q : R),
   rat_cast_mk := λ n d hd h, by rw [rat.cast_mk', coe_mul, coe_int_cast, coe_inv, coe_nat_cast],
@@ -746,6 +738,12 @@ instance : division_ring ℍ[R] :=
   end,
   .. quaternion.group_with_zero,
   .. quaternion.ring }
+
+@[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℍ[R]).re = q := rfl
+@[simp, norm_cast] lemma rat_cast_im_i (q : ℚ) : (q : ℍ[R]).im_i = 0 := rfl
+@[simp, norm_cast] lemma rat_cast_im_j (q : ℚ) : (q : ℍ[R]).im_j = 0 := rfl
+@[simp, norm_cast] lemma rat_cast_im_k (q : ℚ) : (q : ℍ[R]).im_k = 0 := rfl
+@[norm_cast] lemma coe_rat_cast (q : ℚ) : ↑(q : R) = (q : ℍ[R]) := rfl
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
@@ -803,4 +801,3 @@ by rw [mk_univ_quaternion, pow_four]
 end quaternion
 
 end cardinal
-#lint

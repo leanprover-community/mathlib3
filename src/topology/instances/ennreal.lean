@@ -6,6 +6,8 @@ Authors: Johannes Hölzl
 import topology.instances.nnreal
 import topology.algebra.order.monotone_continuity
 import analysis.normed.group.basic
+import topology.algebra.big_operators.real
+
 /-!
 # Extended non-negative reals
 -/

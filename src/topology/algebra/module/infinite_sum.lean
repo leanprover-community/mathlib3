@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Yury Kudryashov, Frédéric Dupuis
 -/
 import topology.algebra.module.basic
-import topology.algebra.infinite_sum
+import topology.algebra.big_operators.basic
 
 /-! # Infinite sums in topological vector spaces -/
 

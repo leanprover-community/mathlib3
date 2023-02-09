@@ -1,4 +1,5 @@
 import combinatorics.simple_graph.ends.defs
+import combinatorics.simple_graph.ends.properties
 
 open classical function category_theory opposite
 
@@ -12,6 +13,9 @@ namespace simple_graph
 variables  {V : Type u} (G : simple_graph V)
 
 namespace component_compl
+
+open simple_graph
+
 
 lemma nicely_arranged (H K : set V)
   (Gpc : G.preconnected)
@@ -43,7 +47,10 @@ begin
 
 end
 
-lemma bwd_map_non_inj (H K : (finset V)ᵒᵖ)
+lemma bwd_map_non_inj
+  [locally_finite G]
+  (Gpc : G.preconnected)
+  (H K : (finset V)ᵒᵖ)
   (C : G.component_compl_functor.obj H)
   (Cinf : C.supp.infinite)
   (D D' : G.component_compl_functor.obj K)
@@ -54,19 +61,24 @@ lemma bwd_map_non_inj (H K : (finset V)ᵒᵖ)
     G.component_compl_functor.to_eventual_ranges.map
       (op_hom_of_le $ finset.subset_union_left H.unop K.unop : op (H.unop ∪ K.unop) ⟶ H)) :=
 begin
+  classical,
   rw component_compl.infinite_iff_in_eventual_range at Dinf Dinf',
-  obtain ⟨E, rfl⟩ := Dinf _ (finset.subset_union_right H K),
-  obtain ⟨E', rfl⟩ := Dinf' _ (finset.subset_union_right H K),
-  have Edist : E ≠ E',by {rintro rfl, exact Ddist (refl _), },
-  have : E.hom (finset.subset_union_left H K) = E'.hom (finset.subset_union_left H K), by {
-    have EsubC : (E : set V) ⊆ C := (E.subset_hom _).trans h,
-    have E'subC : (E' : set V) ⊆ C := (E'.subset_hom _).trans h',
-    rw ←hom_eq_iff_le at EsubC E'subC,
-    rw [EsubC,E'subC],
-  },
-  rintro inj,
-  apply Edist, --(inj this),
-  apply inj,
+  obtain ⟨E, hE⟩ :=
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
+      (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) ⟨D,Dinf⟩,
+  obtain ⟨E', hE'⟩ :=
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
+      (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) ⟨D',Dinf'⟩,
+  simp only [subtype.ext_iff_val, functor.to_eventual_ranges_map, subtype.val_eq_coe,
+             set.maps_to.coe_restrict_apply, component_compl_functor_map] at hE hE',
+  subst_vars,
+  refine λ inj, (by { rintro rfl, exact Ddist rfl, } : E ≠ E') (inj _),
+  obtain ⟨E, _⟩ := E,
+  obtain ⟨E', _⟩ := E',
+  dsimp only [component_compl_functor, functor.to_eventual_ranges, functor.eventual_range] at *,
+  simp only [subtype.ext_iff_val, subtype.val_eq_coe, set.maps_to.coe_restrict_apply, subtype.coe_mk],
+  rw [(hom_eq_iff_le _ _ _).mpr ((E.subset_hom _).trans h),
+      (hom_eq_iff_le _ _ _).mpr ((E'.subset_hom _).trans h')],
 end
 
 lemma nicely_arranged_bwd_map_not_inj (H K : finset V) (Hnempty : H.nonempty) (Knempty : K.nonempty)

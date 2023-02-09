@@ -5,6 +5,7 @@ Authors: Anand Rao, Rémi Bottinelli
 -/
 import combinatorics.simple_graph.ends.defs
 import topology.category.Top
+import category_theory.mittag_leffler
 /-!
 # Properties of the ends of graphs
 
@@ -12,7 +13,7 @@ This file is meant to contain results about the ends of (locally finite connecte
 
 -/
 
-variables {V : Type} (G : simple_graph V)
+variables {V : Type*} (G : simple_graph V)
 
 namespace simple_graph
 
@@ -46,5 +47,15 @@ begin
     (λ K, @fintype.of_finite _ $ component_compl_finite Gpc K.unop)
     (λ K, G.component_compl_nonempty_of_infinite K.unop)
 end
+
+lemma component_compl_functor_is_mittag_leffler [Glf : locally_finite G] (Gpc : preconnected G) :
+  G.component_compl_functor.is_mittag_leffler :=
+begin
+  classical,
+  refine category_theory.functor.is_mittag_leffler_of_exists_finite_range _ (λ j, _),
+  haveI : finite (G.component_compl_functor.obj j) := component_compl_finite Gpc j.unop,
+  exact ⟨j, 𝟙 j, set.to_finite _⟩,
+end
+
 
 end simple_graph

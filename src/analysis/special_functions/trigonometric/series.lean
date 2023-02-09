@@ -7,7 +7,7 @@ import analysis.special_functions.exponential
 /-!
 # Trigonometric functions as sums of infinite series
 
-In this file we express trigonetric functions in terms of their series expansion.
+In this file we express trigonometric functions in terms of their series expansion.
 
 ## Main results
 

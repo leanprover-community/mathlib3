@@ -36,13 +36,15 @@ section continuous_compact_support
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : ℝ → E}
 
+lemma norm_exp_mul_mul_I (t u : ℝ) : ‖exp (I * t * u)‖ = 1 :=
+by rw [mul_assoc, ←complex.of_real_mul, mul_comm, norm_eq_abs, abs_exp_of_real_mul_I]
+
 /-- The integrand in the Riemann-Lebesgue lemma is integrable. -/
 lemma fourier_integrand_integrable (hf : integrable f) (t : ℝ) :
   integrable (λ x:ℝ, exp (I * t * x) • f x) :=
 begin
   rw ←integrable_norm_iff,
-  simp_rw [norm_smul, norm_eq_abs, mul_assoc, ←of_real_mul, mul_comm I _,
-    abs_exp_of_real_mul_I, one_mul],
+  simp_rw [norm_smul, norm_exp_mul_mul_I, one_mul],
   exacts [hf.norm, ((continuous_exp.comp $ continuous_const.mul
     continuous_of_real).ae_strongly_measurable).smul hf.1],
 end
@@ -101,9 +103,7 @@ begin
   have : ‖∫ (x : ℝ), exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖ ≤ ∫ (x : ℝ),
     ‖exp (I * ↑t * ↑x) • (f x - f (x + π / t))‖, from norm_integral_le_integral_norm _,
   refine lt_of_le_of_lt this _,
-  have : ∀ (x : ℝ), ‖exp (I * t * x)‖ = 1,
-  { intro x, rw [mul_assoc, ←complex.of_real_mul, mul_comm, norm_eq_abs, abs_exp_of_real_mul_I], },
-  simp_rw [norm_smul, this, one_mul],
+  simp_rw [norm_smul, norm_exp_mul_mul_I, one_mul],
   -- Show integral can be taken over `[-(R + 1), R] ⊂ ℝ`.
   let A := Icc (-(R + 1)) R,
   have int_Icc :

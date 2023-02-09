@@ -227,15 +227,12 @@ begin
       λ C, let p := C.exists_adj_boundary_pair Gpc h in
         ⟨p.some.1, p.some.2, p.some_spec.2.1, p.some_spec.2.2.symm⟩,
     -- `touch` is injective
-    have touch_inj : touch.injective := λ C D h', component_compl.pairwise_disjoint.eq (by
-    { rw set.not_disjoint_iff,
-      use touch C,
-      exact ⟨ (C.exists_adj_boundary_pair Gpc h).some_spec.1,
-              h'.symm ▸ (D.exists_adj_boundary_pair Gpc h).some_spec.1⟩, }),
+    have touch_inj : touch.injective := λ C D h', component_compl.pairwise_disjoint.eq
+      (set.not_disjoint_iff.mpr ⟨touch C, (C.exists_adj_boundary_pair Gpc h).some_spec.1,
+                                 h'.symm ▸ (D.exists_adj_boundary_pair Gpc h).some_spec.1⟩),
     -- `touch` has finite range
     haveI : finite (set.range touch), by
-    { apply @subtype.finite _ _ _,
-      apply set.finite.to_subtype,
+    { refine @subtype.finite _ (set.finite.to_subtype _) _,
       have : {v : V | ∃ (k : V), k ∈ K ∧ G.adj k v} = finset.bUnion K (λ v, G.neighbor_finset v), by
       { ext v,
         simp only [set.mem_Union, exists_prop, set.mem_set_of_eq, finset.coe_bUnion,

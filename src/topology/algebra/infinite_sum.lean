@@ -635,7 +635,7 @@ lemma tprod_sigma' {γ : β → Type*} {f : (Σ b, γ b) → δ} (h₁ : ∀ b, 
   (h₂ : prodable f) : ∏' p, f p = ∏' b c, f ⟨b, c⟩ :=
 (h₂.has_prod.sigma $ λ b, (h₁ b).has_prod).tprod_eq.symm
 
-@[to_additive]
+@[to_additive tsum_prod']
 lemma tprod_prod' {f : β × γ → δ} (h : prodable f) (h₁ : ∀ b, prodable (λ c, f (b, c))) :
   ∏' p, f p = ∏' b c, f (b, c) :=
 (h.has_prod.prod_fiberwise $ λ b, (h₁ b).has_prod).tprod_eq.symm

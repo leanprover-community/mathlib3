@@ -10,16 +10,16 @@ local attribute [instance] prop_decidable
 
 namespace simple_graph
 
-variables  {V : Type u} (G : simple_graph V)
+variables  {V : Type u} {G : simple_graph V}
 
 namespace component_compl
 
 open simple_graph
 
 
-lemma nicely_arranged (H K : set V)
+lemma nicely_arranged {H K : set V}
   (Gpc : G.preconnected)
-  (Hnempty : H.nonempty) (Knempty : K.nonempty)
+  (Hnempty : H.nonempty) --(Knempty : K.nonempty)
   (E E' : G.component_compl H)
   (Einf : E.supp.infinite) (Einf' : E'.supp.infinite)
   (En : E ≠ E')
@@ -50,27 +50,21 @@ end
 lemma bwd_map_non_inj
   [locally_finite G]
   (Gpc : G.preconnected)
-  (H K : (finset V)ᵒᵖ)
-  (C : G.component_compl_functor.obj H)
-  (Cinf : C.supp.infinite)
-  (D D' : G.component_compl_functor.obj K)
-  (Dinf : D.supp.infinite) (Dinf' : D'.supp.infinite)
+  {H K : (finset V)ᵒᵖ}
+  {C : G.component_compl_functor.to_eventual_ranges.obj H}
+  {D D' : G.component_compl_functor.to_eventual_ranges.obj K}
   (Ddist : D ≠ D')
-  (h : D.supp ⊆ C.supp) (h' : D'.supp ⊆ C.supp) :
+  (h : D.val.supp ⊆ C.val.supp) (h' : D'.val.supp ⊆ C.val.supp) :
   ¬ (injective $
     G.component_compl_functor.to_eventual_ranges.map
       (op_hom_of_le $ finset.subset_union_left H.unop K.unop : op (H.unop ∪ K.unop) ⟶ H)) :=
 begin
-  classical,
-  rw component_compl.infinite_iff_in_eventual_range at Dinf Dinf',
   obtain ⟨E, hE⟩ :=
     functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
-      (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) ⟨D,Dinf⟩,
+      (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D,
   obtain ⟨E', hE'⟩ :=
     functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
-      (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) ⟨D',Dinf'⟩,
-  simp only [subtype.ext_iff_val, functor.to_eventual_ranges_map, subtype.val_eq_coe,
-             set.maps_to.coe_restrict_apply, component_compl_functor_map] at hE hE',
+      (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D',
   subst_vars,
   refine λ inj, (by { rintro rfl, exact Ddist rfl, } : E ≠ E') (inj _),
   obtain ⟨E, _⟩ := E,
@@ -81,31 +75,44 @@ begin
       (hom_eq_iff_le _ _ _).mpr ((E'.subset_hom _).trans h')],
 end
 
-lemma nicely_arranged_bwd_map_not_inj (H K : finset V) (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E : G.inf_component_compl H) (inf_comp_H_large : fin 3 ↪ (G.inf_component_compl H))
-  (F : G.inf_component_compl K)
-  (H_F : (H : set V) ⊆ F)
-  (K_E : (K : set V) ⊆ E) :
-  ¬ injective (@inf_component_compl.back _ G _ _ (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
+
+lemma nicely_arranged_bwd_map_not_inj
+  [locally_finite G]
+  (Gpc : G.preconnected)
+  {H K : (finset V)ᵒᵖ}
+  (Hnempty : (unop H).nonempty)
+  {E : G.component_compl_functor.to_eventual_ranges.obj H}
+  {inf_comp_H_large : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj H)}
+  {F : G.component_compl_functor.to_eventual_ranges.obj K}
+  (H_F : (H.unop : set V) ⊆ F.val.supp)
+  (K_E : (K.unop : set V) ⊆ E.val.supp) :
+  ¬ (injective $
+    G.component_compl_functor.to_eventual_ranges.map
+      (op_hom_of_le $ finset.subset_union_left K.unop H.unop : op (K.unop ∪ H.unop) ⟶ K)) :=
 begin
- have : ∃ E₁ E₂ : G.inf_component_compl H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
+  obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ :
+    ∃ E₁ E₂ : G.component_compl_functor.to_eventual_ranges.obj H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
   { let E₀ := inf_comp_H_large 0,
     let E₁ := inf_comp_H_large 1,
     let E₂ := inf_comp_H_large 2,
     by_cases h : E = E₀,
-    { use [E₁,E₂], rw h, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
+    { use [E₁,E₂],
+      simp only [h, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
+                 fin.val_two, ne.def, zero_eq_bit0, nat.one_ne_zero, nat.zero_ne_one, not_false_iff,
+                 nat.one_ne_bit0, and_self], },
     { by_cases k : E = E₁,
-      { use [E₀,E₂], rw k, simp,split,apply fin.ne_of_vne,simp,apply fin.ne_of_vne, simp,},
-      { use [E₀,E₁], simp, exact ⟨h,k⟩,},
-    },
-  },
-  rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
-  rw [ne.def,←subtype.coe_inj,←subtype.coe_inj,←ne.def] at h₀₁ h₀₂,
-  apply bwd_map_non_inj G Glf Gpc K H F E₁ E₂ h₁₂ _ _,
-  {apply component_compl.nicely_arranged G Glf Gpc H K Hnempty Knempty E E₁ E.prop E₁.prop h₀₁ F F.prop H_F K_E,},
-  {apply component_compl.nicely_arranged G Glf Gpc H K Hnempty Knempty E E₂ E.prop E₂.prop h₀₂ F F.prop H_F K_E,},
-end
+      { use [E₀,E₂],
+        simp only [h, k, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
+                 fin.val_two, ne.def, zero_eq_bit0, nat.one_ne_zero, nat.zero_ne_one, not_false_iff,
+                 nat.one_ne_bit0, and_self], },
+      { use [E₀,E₁],
+        simp only [ne.def, embedding_like.apply_eq_iff_eq, fin.zero_eq_one_iff, nat.bit1_eq_one,
+        nat.one_ne_zero, not_false_iff, and_true], exact ⟨h, k⟩, }, }, },
 
+  apply @bwd_map_non_inj V G _ Gpc _ _ F E₁ E₂ h₁₂ _ _,
+  {apply component_compl.nicely_arranged Gpc Hnempty, },
+  {apply component_compl.nicely_arranged Gpc H K Knempty E E₂ E.prop E₂.prop h₀₂ F F.prop H_F K_E,},
+end
 
 namespace component_compl
 

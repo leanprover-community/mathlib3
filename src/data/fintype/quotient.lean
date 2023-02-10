@@ -7,16 +7,19 @@ import data.list.pi
 import data.fintype.basic
 
 /-!
-# Quotients indexed by a finite type
+# Quotients of families indexed by a finite type
 
-In this file, we define lifting and recursion principle for quotients indexed by a finite type.
+This file proves some basic facts and defines lifting and recursion principle for quotients indexed
+by a finite type.
 
 ## Main definitions
 
+* `fintype.quotient_choice_equiv`: A finite family of quotients is equivalent to a quotient of
+  finite families.
 * `fintype.quotient_lift_on`: Given a fintype `ι`. A function on `Π i : ι, α i` which respects
   setoid `S i` for each `i` can be lifted to a function on `Π i : ι, quotient (S i)`.
 * `fintype.quotient_rec_on`: Recursion principle for quotients indexed by a finite type. It is the
-  dependent version of `finset.quotient_lift_on`.
+  dependent version of `fintype.quotient_lift_on`.
 -/
 
 namespace list

@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Kenny Lau
 import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.finset.preimage
-import data.fintype.quot
+import data.fintype.quotient
 import data.setoid.basic
 import data.set.finite
 import group_theory.submonoid.membership

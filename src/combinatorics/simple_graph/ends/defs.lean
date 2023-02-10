@@ -5,7 +5,7 @@ Authors: Anand Rao, Rémi Bottinelli
 -/
 import category_theory.mittag_leffler
 import combinatorics.simple_graph.connectivity
-import data.finite
+import data.finite.set
 
 /-!
 # Ends

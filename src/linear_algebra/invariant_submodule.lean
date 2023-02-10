@@ -59,57 +59,36 @@ variables (U V : submodule R E) (hUV : is_compl U V) (T : E →ₗ[R] E)
 local notation `pᵤ` := linear_proj_of_is_compl U V hUV
 local notation `pᵥ` := linear_proj_of_is_compl V U hUV.symm
 
-lemma invariant_under.linear_proj_comp_self_comp_linear_proj_eq
-  (h : U.invariant_under T) (x : E) : ↑(pᵤ (T (pᵤ x))) = T (pᵤ x) :=
+lemma invariant_under.linear_proj_comp_self_eq
+  (h : U.invariant_under T) (x : U) : (pᵤ (T x) : E) = T x :=
 begin
   rw linear_proj_of_is_compl_eq_self_iff,
   exact h (coe_mem _),
 end
 
-lemma invariant_under.linear_proj_comp_self'_eq
-  (h : U.invariant_under T) (x : U) : ↑(pᵤ (T x)) = T x :=
-begin
-  revert x,
-  rw (linear_map.range_eq_top.1 (linear_proj_of_is_compl_range hUV)).forall,
-  exact invariant_under.linear_proj_comp_self_comp_linear_proj_eq U V hUV T h,
-end
-
-lemma invariant_under_of_linear_proj_comp_self_comp_linear_proj_eq
-  (h : ∀ x : E, ↑(pᵤ (T (pᵤ x))) = T (pᵤ x)) : U.invariant_under T :=
+lemma invariant_under_of_linear_proj_comp_self_eq
+  (h : ∀ x : U, (pᵤ (T x) : E) = T x) : U.invariant_under T :=
 begin
   intros u hu,
   rw [mem_comap, ← linear_proj_of_is_compl_eq_self_iff hUV _,
       ← (linear_proj_of_is_compl_eq_self_iff hUV u).mpr hu, h],
 end
 
-lemma invariant_under_of_linear_proj_comp_self'_eq
-  (h : ∀ x : U, ↑(pᵤ (T x)) = T x) : U.invariant_under T :=
-begin
-  rw (linear_map.range_eq_top.1 (linear_proj_of_is_compl_range hUV)).forall at h,
-  exact invariant_under_of_linear_proj_comp_self_comp_linear_proj_eq U V hUV T h,
-end
-
-/-- `U` is invariant under `T` if and only if `pᵤ.comp (T.comp pᵤ) = T.comp pᵤ`,
+/-- `U` is invariant under `T` if and only if `pᵤ.comp T = T`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
-lemma invariant_under_iff_linear_proj_comp_self_comp_linear_proj_eq :
-  U.invariant_under T ↔ (∀ x : E, (pᵤ (T (pᵤ x)) : E) = T (pᵤ x)) :=
-⟨invariant_under.linear_proj_comp_self_comp_linear_proj_eq U V hUV T,
- invariant_under_of_linear_proj_comp_self_comp_linear_proj_eq U V hUV T⟩
-
-lemma invariant_under_iff_linear_proj_comp_self'_eq :
+lemma invariant_under_iff_linear_proj_comp_self_eq :
   U.invariant_under T ↔ (∀ x : U, (pᵤ (T x) : E) = T x) :=
-begin
-  rw (linear_map.range_eq_top.1 (linear_proj_of_is_compl_range hUV)).forall,
-  exact invariant_under_iff_linear_proj_comp_self_comp_linear_proj_eq U V hUV T,
-end
+⟨λ h u, invariant_under.linear_proj_comp_self_eq U V hUV T h u,
+ λ h, invariant_under_of_linear_proj_comp_self_eq U V hUV T h⟩
 
 /-- `V` is invariant under `T` if and only if `pᵤ.comp (T.comp pᵤ) = pᵤ.comp T`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
 lemma invariant_under'_iff_linear_proj_comp_self_comp_linear_proj_eq :
   V.invariant_under T ↔ (∀ x : E, (pᵤ (T (pᵤ x)) : E) = pᵤ (T x)) :=
-by simp_rw [invariant_under_iff_linear_proj_comp_self_comp_linear_proj_eq _ _ hUV.symm,
-            linear_proj_of_is_compl_eq_self_sub_linear_proj, map_sub, sub_eq_self,
-            submodule.coe_sub, sub_eq_zero, eq_comm]
+by simp_rw [invariant_under_iff_linear_proj_comp_self_eq _ _ hUV.symm,
+            (linear_map.range_eq_top.1 (linear_proj_of_is_compl_range hUV.symm)).forall,
+            linear_proj_of_is_compl_eq_self_sub_linear_proj, map_sub,
+            sub_eq_self, submodule.coe_sub, sub_eq_zero, eq_comm]
 
 /-- both `U` and `V` are invariant under `T` if and only if `T` commutes with `pᵤ`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
@@ -124,7 +103,8 @@ begin
     exact (linear_proj_of_is_compl_eq_self_iff hUV _).mpr
       (h1 (set_like.coe_mem (pᵤ x))) },
   { intros h,
-    simp_rw [U.invariant_under_iff_linear_proj_comp_self_comp_linear_proj_eq _ hUV,
+    simp_rw [U.invariant_under_iff_linear_proj_comp_self_eq _ hUV,
+             (linear_map.range_eq_top.1 (linear_proj_of_is_compl_range hUV)).forall,
              U.invariant_under'_iff_linear_proj_comp_self_comp_linear_proj_eq _ hUV, h,
              linear_proj_of_is_compl_idempotent hUV, ← forall_and_distrib, and_self,
              eq_self_iff_true, forall_const], }

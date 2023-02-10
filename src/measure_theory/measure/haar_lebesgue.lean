@@ -42,7 +42,7 @@ small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
-open_locale ennreal pointwise topological_space nnreal
+open_locale ennreal pointwise topology nnreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
@@ -650,8 +650,8 @@ begin
     filter_upwards [self_mem_nhds_within],
     rintros r (rpos : 0 < r),
     have : closed_ball x r = {x} + r • closed_ball 0 1,
-      by simp only [smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero, mul_one,
-        singleton_add_closed_ball, smul_zero],
+      by simp only [_root_.smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero,
+        mul_one, singleton_add_closed_ball, smul_zero],
     simp only [this, add_haar_singleton_add_smul_div_singleton_add_smul μ rpos.ne'],
     simp only [add_haar_closed_ball_center, image_add_left, measure_preimage_add, singleton_add] },
   have C : tendsto (λ (r : ℝ),

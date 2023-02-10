@@ -13,32 +13,32 @@ import ring_theory.class_group
 # The group of nonsingular rational points on a Weierstrass curve over a field
 
 This file defines the type of nonsingular rational points on a Weierstrass curve over a field and
-(TODO) proves that it forms an abelian group under a secant-and-tangent process.
+(TODO) proves that it forms an abelian group under a geometric secant-and-tangent process.
 
 ## Mathematical background
 
-Let `W` be an Weierstrass curve over a field `F`. A rational point on `W` is simply a point
+Let `W` be a Weierstrass curve over a field `F`. A rational point on `W` is simply a point
 $[A:B:C]$ defined over `F` in the projective plane satisfying the homogeneous cubic equation
 $B^2C + a_1ABC + a_3BC^2 = A^3 + a_2A^2C + a_4AC^2 + a_6C^3$. Any such point either lies in the
 affine chart $C \ne 0$ and satisfies the Weierstrass equation obtained by setting $X := A/C$ and
 $Y := B/C$, or is the unique point at infinity $0 := [0:1:0]$ when $C = 0$. With this new
 description, a nonsingular rational point on `W` is either $0$ or an affine point $(x, y)$ where
-the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not both vanish. For a field extension `K`
-of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
+the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not vanish simultaneously. For a field
+extension `K` of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
 
 The set of nonsingular rational points forms an abelian group under a secant-and-tangent process.
- * The identity point is `0`.
- * Given a point `P`, its negation `-P` is defined to be the unique third point of intersection
-    between `W` and the line through `0` and `P`, which exists by Bézout's theorem.
+ * The identity rational point is `0`.
+ * Given a nonsingular rational point `P`, its negation `-P` is defined to be the unique third
+    point of intersection between `W` and the line through `0` and `P`.
     Explicitly, if `P` is $(x, y)$, then `-P` is $(x, -y - a_1x - a_3)$.
  * Given two points `P` and `Q`, their addition `P + Q` is defined to be the negation of the unique
-    third point of intersection between `W` and the line through `P` and `Q`, which again exists by
-    Bézout's theorem. Explicitly, let `P` be $(x_1, y_1)$ and let `Q` be $(x_2, y_2)$.
-      * If $x_1 = x_2$ and `P = -Q`, then this line is vertical and `P + Q` is `0`.
-      * If $x_1 = x_2$ and `P ≠ -Q`, then this line is the tangent of `W` at `P = Q`, and has slope
-        $\ell := (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$.
-      * Otherwise $x_1 \ne x_2$, then this line is the secant of `W` through `P` and `Q`, and has
-        slope $\ell := (y_1 - y_2) / (x_1 - x_2)$.
+    third point of intersection between `W` and the line `L` through `P` and `Q`.
+    Explicitly, let `P` be $(x_1, y_1)$ and let `Q` be $(x_2, y_2)$.
+      * If $x_1 = x_2$ and $y_1 = -y_2 - a_1x_2 - a_3$, then `L` is vertical and `P + Q` is `0`.
+      * If $x_1 = x_2$ and $y_1 \ne -y_2 - a_1x_2 - a_3$, then `L` is the tangent of `W` at `P = Q`,
+        and has slope $\ell := (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$.
+      * Otherwise $x_1 \ne x_2$, then `L` is the secant of `W` through `P` and `Q`, and has slope
+        $\ell := (y_1 - y_2) / (x_1 - x_2)$.
     In the latter two cases, the $X$-coordinate of `P + Q` is then the unique third solution of the
     equation obtained by substituting the line $Y = \ell(X - x_1) + y_1$ into the Weierstrass
     equation, and can be written down explicitly as $x := \ell^2 + a_1\ell - a_2 - x_1 - x_2$ by
@@ -122,7 +122,7 @@ end
 
 /-- The polynomial obtained by substituting the line $Y = L*(X - x_1) + y_1$, with a slope of $L$
 that passes through an affine point $(x_1, y_1)$, into the polynomial $W(X, Y)$ associated to `W`.
-If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
+If such a line intersects `W` at another point $(x_2, y_2)$, then the roots of this polynomial are
 precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$.
 
 This depends on `W`, and has argument order: $x_1$, $y_1$, $L$. -/
@@ -171,7 +171,8 @@ lemma XY_ideal_add_eq :
     = span {adjoin_root.mk W.polynomial $ W.neg_polynomial - C (line_polynomial x₁ y₁ L)}
       ⊔ X_ideal W (W.add_X x₁ x₂ L) :=
 begin
-  simp only [XY_ideal, X_ideal, X_class, Y_class, add_Y, add_Y', neg_polynomial, line_polynomial],
+  simp only [XY_ideal, X_ideal, X_class, Y_class, add_Y, add_Y', neg_Y, neg_polynomial,
+             line_polynomial],
   conv_rhs { rw [sub_sub, ← neg_add', map_neg, span_singleton_neg, sup_comm, ← span_insert] },
   rw [← span_pair_add_mul_right $ adjoin_root.mk _ $ C $ C $ W.a₁ + L, ← _root_.map_mul, ← map_add],
   apply congr_arg (_ ∘ _ ∘ _ ∘ _),
@@ -225,19 +226,28 @@ end point
 
 variables {W x₁ y₁}
 
+lemma equation_neg_iff : W.equation x₁ (W.neg_Y x₁ y₁) ↔ W.equation x₁ y₁ :=
+by { rw [equation_iff, equation_iff, neg_Y], congr' 2, ring1 }
+
+lemma equation_neg_of (h : W.equation x₁ $ W.neg_Y x₁ y₁) : W.equation x₁ y₁ :=
+equation_neg_iff.mp h
+
 /-- The negation of an affine point in `W` lies in `W`. -/
-lemma equation_neg (h : W.equation x₁ y₁) : W.equation x₁ $ W.neg_Y x₁ y₁ :=
-by { rw [equation_iff] at h, rw [equation_iff, neg_Y, ← h], ring1 }
+lemma equation_neg (h : W.equation x₁ y₁) : W.equation x₁ $ W.neg_Y x₁ y₁ := equation_neg_iff.mpr h
+
+lemma nonsingular_neg_iff : W.nonsingular x₁ (W.neg_Y x₁ y₁) ↔ W.nonsingular x₁ y₁ :=
+begin
+  rw [nonsingular_iff, equation_neg_iff, ← neg_Y, neg_Y_neg_Y, ← @ne_comm _ y₁, nonsingular_iff],
+  exact and_congr_right' ((iff_congr not_and_distrib.symm not_and_distrib.symm).mpr $
+                            not_iff_not_of_iff $ and_congr_left $ λ h, by rw [← h])
+end
+
+lemma nonsingular_neg_of (h : W.nonsingular x₁ $ W.neg_Y x₁ y₁) : W.nonsingular x₁ y₁ :=
+nonsingular_neg_iff.mp h
 
 /-- The negation of a nonsingular affine point in `W` is nonsingular. -/
 lemma nonsingular_neg (h : W.nonsingular x₁ y₁) : W.nonsingular x₁ $ W.neg_Y x₁ y₁ :=
-begin
-  cases (W.nonsingular_iff x₁ y₁).mp h with h h',
-  rw [nonsingular_iff, and_iff_right $ equation_neg h, ← neg_Y, neg_Y_neg_Y, ← @ne_comm _ y₁],
-  contrapose! h',
-  convert h',
-  exact h'.right
-end
+nonsingular_neg_iff.mpr h
 
 namespace point
 
@@ -695,3 +705,18 @@ end point
 end group
 
 end weierstrass_curve
+
+namespace elliptic_curve
+
+/-! ### Rational points on an elliptic curve -/
+
+namespace point
+
+variables {R : Type} [nontrivial R] [comm_ring R] (E : elliptic_curve R)
+
+/-- An affine point on an elliptic curve `E` over `R`. -/
+def mk {x y : R} (h : E.equation x y) : E.point := weierstrass_curve.point.some $ E.nonsingular h
+
+end point
+
+end elliptic_curve

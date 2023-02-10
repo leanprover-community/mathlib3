@@ -240,17 +240,16 @@ lemma two_torsion_polynomial_disc_ne_zero [nontrivial R] [invertible (2 : R)] (h
 
 end torsion_polynomial
 
+localized "notation (name := outer_variable) `Y` := polynomial.X" in polynomial_polynomial
+
+localized "notation (name := polynomial_polynomial) R`[X][Y]` := polynomial (polynomial R)"
+  in polynomial_polynomial
+
 section polynomial
 
 /-! ### Weierstrass equations -/
 
 open polynomial
-
-localized "notation (name := outer_variable) `Y` := @polynomial.X (polynomial hole!) hole!"
-  in polynomial_polynomial
-
-localized "notation (name := polynomial_polynomial) R`[X][Y]` := polynomial (polynomial R)"
-  in polynomial_polynomial
 
 open_locale polynomial polynomial_polynomial
 
@@ -402,7 +401,7 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20c
 @[derive [inhabited, comm_ring]] def coordinate_ring : Type u := adjoin_root W.polynomial
 
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
-@[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
+abbreviation function_field : Type u := fraction_ring W.coordinate_ring
 
 namespace coordinate_ring
 
@@ -513,7 +512,7 @@ end
 
 lemma basis_zero : W^.coordinate_ring.basis 0 = 1 := by simpa only [basis_apply] using pow_zero _
 
-lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
+lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial Y :=
 by simpa only [basis_apply] using pow_one _
 
 @[simp] lemma coe_basis :

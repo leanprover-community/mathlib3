@@ -35,7 +35,7 @@ Tietze extension theorem, Urysohn's lemma, normal topological space
 variables {X Y : Type*} [topological_space X] [topological_space Y] [normal_space Y]
 
 open metric set filter
-open_locale bounded_continuous_function topological_space
+open_locale bounded_continuous_function topology
 noncomputable theory
 
 namespace bounded_continuous_function

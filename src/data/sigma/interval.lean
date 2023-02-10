@@ -9,6 +9,9 @@ import order.locally_finite
 /-!
 # Finite intervals in a sigma type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the `locally_finite_order` instance for the disjoint sum of orders `Σ i, α i` and
 calculates the cardinality of its finite intervals.
 

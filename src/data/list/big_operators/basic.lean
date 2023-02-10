@@ -486,6 +486,16 @@ begin
     exact mul_pos (h _ $ mem_cons_self _ _) (ih $ λ a ha, h a $ mem_cons_of_mem _ ha) }
 end
 
+/-- A variant of `list.prod_pos` for `canonically_ordered_comm_semiring`. -/
+@[simp]
+lemma _root_.canonically_ordered_comm_semiring.list_prod_pos
+  {α : Type*} [canonically_ordered_comm_semiring α] [nontrivial α] :
+    Π {l : list α}, 0 < l.prod ↔ (∀ x ∈ l, (0 : α) < x)
+| [] := ⟨λ h x hx, hx.elim, λ _, zero_lt_one⟩
+| (x :: xs) := by simp_rw [prod_cons, mem_cons_iff, forall_eq_or_imp,
+    canonically_ordered_comm_semiring.mul_pos,
+    _root_.canonically_ordered_comm_semiring.list_prod_pos]
+
 /-!
 Several lemmas about sum/head/tail for `list ℕ`.
 These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.

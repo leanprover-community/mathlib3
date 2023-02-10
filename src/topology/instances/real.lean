@@ -21,7 +21,7 @@ import topology.instances.int
 
 noncomputable theory
 open classical filter int metric set topological_space
-open_locale classical topological_space filter uniformity interval
+open_locale classical topology filter uniformity interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

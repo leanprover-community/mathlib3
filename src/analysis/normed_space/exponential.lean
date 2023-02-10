@@ -62,7 +62,7 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 -/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
-open_locale nat topological_space big_operators ennreal
+open_locale nat topology big_operators ennreal
 
 section topological_algebra
 
@@ -622,5 +622,11 @@ end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : (exp ℝ : ℂ → ℂ) = exp ℂ :=
 exp_eq_exp ℝ ℂ ℂ
+
+/-- A version of `complex.of_real_exp` for `exp` instead of `complex.exp` -/
+@[simp, norm_cast]
+lemma of_real_exp_ℝ_ℝ (r : ℝ) : ↑(exp ℝ r) = exp ℂ (r : ℂ) :=
+(map_exp ℝ (algebra_map ℝ ℂ) (continuous_algebra_map _ _) r).trans
+  (congr_fun exp_ℝ_ℂ_eq_exp_ℂ_ℂ _)
 
 end scalar_tower

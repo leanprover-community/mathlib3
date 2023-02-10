@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # Building finitely supported functions off finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `finsupp.indicator` to help create finsupps from finsets.
 
 ## Main declarations

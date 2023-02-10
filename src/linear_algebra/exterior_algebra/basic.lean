@@ -245,9 +245,11 @@ let F := (multilinear_map.mk_pi_algebra_fin R n (exterior_algebra R M)).comp_lin
 in
 { map_eq_zero_of_eq' := λ f x y hfxy hxy, begin
     rw [multilinear_map.comp_linear_map_apply, multilinear_map.mk_pi_algebra_fin_apply],
-    wlog h : x < y := lt_or_gt_of_ne hxy using x y,
+    clear F,
+    wlog h : x < y,
+    { exact this n f y x hfxy.symm hxy.symm (hxy.lt_or_lt.resolve_left h), },
     clear hxy,
-    induction n with n hn generalizing x y,
+    induction n with n hn,
     { exact x.elim0, },
     { rw [list.of_fn_succ, list.prod_cons],
       by_cases hx : x = 0,
@@ -258,8 +260,8 @@ in
       -- ignore the left-most term and induct on the remaining ones, decrementing indices
       { convert mul_zero _,
         refine hn (λ i, f $ fin.succ i)
-          (x.pred hx) (y.pred (ne_of_lt $ lt_of_le_of_lt x.zero_le h).symm)
-          (fin.pred_lt_pred_iff.mpr h) _,
+          (x.pred hx) (y.pred (ne_of_lt $ lt_of_le_of_lt x.zero_le h).symm) _
+          (fin.pred_lt_pred_iff.mpr h),
         simp only [fin.succ_pred],
         exact hfxy, } }
   end,

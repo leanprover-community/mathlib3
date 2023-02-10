@@ -11,6 +11,9 @@ import data.fintype.big_operators
 /-!
 # Finitely supported product of finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the finitely supported product of finsets as a `finset (ι →₀ α)`.
 
 ## Main declarations

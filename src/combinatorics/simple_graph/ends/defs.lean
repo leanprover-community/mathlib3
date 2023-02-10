@@ -161,15 +161,13 @@ begin
   have : ∀ {u w} (p : G.walk u w) (hu : Gr u v) (hw : Gr w v), GCr ⟨u,hu⟩ ⟨w,hw⟩, by
   { rintro u w p,
     induction p with _ _ _ _ a q ih,
-    { rintro hu hw, apply reachable.refl, },
-    { rintro hu hw,
-      refine reachable.trans (adj.reachable _) (ih (a.reachable.symm.trans hu) hw),
+    { exact λ _ _, reachable.refl _, },
+    { refine λ hu hw, reachable.trans (adj.reachable _) (ih (a.reachable.symm.trans hu) hw),
       exact a, }, },
   rintro ⟨u,hu⟩ ⟨w,hw⟩,
   simp only [connected_component.eq, set.mem_set_of_eq] at hu hw,
   convert this (hu.trans hw.symm).some hu hw;
-  ext w;
-  exact connected_component.eq,
+  exact set.ext (λ _, connected_component.eq),
 end
 
 protected lemma connected (C : G.component_compl K) : C.coe_graph.connected :=

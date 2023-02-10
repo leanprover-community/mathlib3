@@ -42,7 +42,7 @@ measurable set `ae_strongly_seq_set hf p`. -/
 noncomputable
 def ae_strongly_seq (hf : ∀ i, ae_strongly_measurable (f i) μ) (p : α → (ι → β) → Prop) :
   ι → α → β :=
-λ i x, ite (x ∈ ae_strongly_seq_set hf p) ((hf i).mk (f i) x) (⟨f i x⟩ : nonempty β).some
+λ i x, if (x ∈ ae_strongly_seq_set hf p) then ((hf i).mk (f i) x) else (⟨f i x⟩ : nonempty β).some
 
 namespace ae_strongly_seq
 

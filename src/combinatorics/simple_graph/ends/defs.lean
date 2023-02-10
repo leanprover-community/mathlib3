@@ -5,8 +5,7 @@ Authors: Anand Rao, Rémi Bottinelli
 -/
 import category_theory.mittag_leffler
 import combinatorics.simple_graph.connectivity
-import data.set_like.basic
-import data.finite
+import data.finite.set
 
 /-!
 # Ends
@@ -150,6 +149,51 @@ begin
   obtain ⟨⟨⟨x, y⟩, xy⟩, d, xC, ynC⟩ :=
     p.exists_boundary_dart (C : set V) (G.component_compl_mk_mem vnK) unC,
   exact ynC (mem_of_adj x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy),
+end
+
+lemma _root_.simple_graph.connected_component.connected :
+  ∀ (C : G.connected_component), (G.induce {v : V | G.connected_component_mk v = C}).connected :=
+begin
+  let Gmk := G.connected_component_mk,
+  simp_rw connected_iff,
+  refine connected_component.ind (λ v, _),
+  refine ⟨_, ⟨⟨v, rfl⟩⟩⟩,
+  have : ∀ {u w} (p : G.walk u w) (hu : G.reachable u v) (hw : G.reachable w v),
+    (G.induce {t : V | G.reachable t v}).reachable ⟨u,hu⟩ ⟨w,hw⟩, by
+  { rintro u w p,
+    induction p with _ _ _ _ a q ih, sorry, sorry, },
+  rintro ⟨u,hu⟩ ⟨w,hw⟩,
+  let := this (connected_component.eq.mp (hu.trans hw.symm)).some,
+  simp at hu hw,
+  let := this hu hw,
+end
+
+protected lemma connected (C : G.component_compl K) : C.coe_graph.connected :=
+(induce_induce G Kᶜ {v : Kᶜ | (G.induce Kᶜ).connected_component_mk v = C}).connected_iff.mp
+  C.connected
+
+/--
+The unique `C : G.component_compl K` containing the set `D`.
+-/
+noncomputable def of_connected_disjoint_right {D : set V}
+  (Dc : (G.induce D).connected) (Dd : disjoint K D) : G.component_compl K :=
+component_compl_mk G (set.disjoint_right.mp Dd Dc.nonempty.some.prop)
+
+lemma subset_of_connected_disjoint_right {D : set V}
+  (Dc : (G.induce D).connected) (Dd : disjoint K D) : D ⊆ of_connected_disjoint_right Dc Dd :=
+begin
+  have : ∀ {u w : D} (p : (G.induce D).walk w u), u = Dc.nonempty.some
+           → ↑w ∈ of_connected_disjoint_right Dc Dd, by
+  { rintro _ _ p e,
+    induction p with _ _ _ _ a q ih,
+    { rw e,
+      refine component_compl_mk_mem _ _, },
+    { dsimp only [of_connected_disjoint_right] at *,
+      obtain ⟨_, b⟩ := ih e,
+      simp only [comap_adj, function.embedding.coe_subtype] at a,
+      rw [←b, ←component_compl_mk_eq_of_adj G (set.disjoint_right.mp Dd p_u.prop) _ a],
+      apply component_compl_mk_mem, } },
+  exact λ w wD, this (Dc.preconnected ⟨w,wD⟩ Dc.nonempty.some).some rfl,
 end
 
 /--

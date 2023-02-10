@@ -304,21 +304,6 @@ end
 
 -- https://planetmath.org/scottcontinuous
 
-/-
-lemma pair_is_chain (a b : α) (hab: a ≤ b) : is_chain (≤) ({a, b} : set α) :=
-begin
-  rw is_chain,
-  intros c hc d hd hcd,
-  cases hc,
-  { cases hd,
-    { rw [hc, hd, or_self] },
-    { rw mem_singleton_iff at hd, rw [hc, hd], exact or.inl hab }, },
-  { cases hd,
-  { rw mem_singleton_iff at hc, rw [hc, hd], exact or.inr hab },
-  { rw mem_singleton_iff at *, rw [hc, hd, or_self] }, }
-end
--/
-
 lemma pair_is_chain (a b : α) (hab: a ≤ b) : is_chain (≤) ({a, b} : set α) :=
 begin
   apply is_chain.insert (set.subsingleton.is_chain subsingleton_singleton),
@@ -377,8 +362,31 @@ begin
   rw scott_is_open',
   split,
   { apply is_upper_set.preimage (scott_open_is_upper hu),
-    sorry, },
-  { sorry, }
+    apply preserve_lub_montotone,
+    exact h, },
+  { intros d a hd₁ hd₂ hd₃ ha,
+  have e1: is_lub (f '' d) (f(a)) :=
+  begin
+    apply h,
+    apply hd₁,
+    apply hd₂,
+    apply hd₃,
+  end,
+  rw scott_is_open' at hu,
+  have e2: ((f '' d) ∩ u).nonempty :=
+  begin
+    apply hu.2,
+    exact nonempty.image f hd₁,
+    have e3: monotone f := begin
+      apply preserve_lub_montotone,
+      exact h,
+    end,
+    apply directed_on_image.mpr,
+    exact directed_on.mono hd₂ e3,
+    apply e1,
+    exact ha,
+  end,
+  exact image_inter_nonempty_iff.mp e2, }
 end
 
 lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
@@ -405,9 +413,6 @@ begin
     cases s2,
     cases s2_right d a d₁ d₂ d₃ e1 with c,
     cases h_1,
-    --rw mem_preimage at h_1_right,
-    -- mem_compl_iff
-    --simp only [mem_preimage, mem_Iic] at h_1_right,
     simp at h_1_right,
     rw upper_bounds at hb,
     simp at hb,
@@ -417,17 +422,6 @@ begin
       exact h_1_left,
     end,
     contradiction, },
-
-    --begin
-
-    --end,
-      --rw is_least,
-    --have e1 :  f '' (upper_bounds d) ⊆ upper_bounds (f '' d) :=
-      --by apply monotone.image_upper_bounds_subset_upper_bounds_image (continuous.to_monotone f),
-    --apply lower_bounds_mono e1 (le_refl (f a)),
-
-     --(monotone.image_upper_bounds_subset_upper_bounds_image (continuous.to_monotone f) d),
-    --apply monotone.mem_lower_bounds_image, sorry,
 end
 
 end preorder

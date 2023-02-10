@@ -303,6 +303,9 @@ end
 @[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
 (algebra_map R ℍ[R, c₁, c₂]).map_pow x n
 
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
+(algebra_map R ℍ[R, c₁, c₂]).map_pow x n
+
 lemma coe_commutes : ↑r * a = a * r := algebra.commutes r a
 
 lemma coe_commute : commute ↑r a := coe_commutes r a
@@ -623,7 +626,6 @@ alias commute_conj_conj ← commute.quaternion_conj
 
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
 quaternion_algebra.conj_nat_cast _
-
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R]) = z :=
 quaternion_algebra.conj_int_cast _
 

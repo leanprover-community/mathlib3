@@ -71,7 +71,7 @@ lemma nicely_arranged_bwd_map_not_inj
   {H K : (finset V)ᵒᵖ}
   (Hnempty : (unop H).nonempty)
   {E : G.component_compl_functor.to_eventual_ranges.obj H}
-  {inf_comp_H_large : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj H)}
+  {hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj H)}
   {F : G.component_compl_functor.to_eventual_ranges.obj K}
   (H_F : (H.unop : set V) ⊆ F.val.supp)
   (K_E : (K.unop : set V) ⊆ E.val.supp) :
@@ -81,9 +81,9 @@ lemma nicely_arranged_bwd_map_not_inj
 begin
   obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ :
     ∃ E₁ E₂ : G.component_compl_functor.to_eventual_ranges.obj H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
-  { let E₀ := inf_comp_H_large 0,
-    let E₁ := inf_comp_H_large 1,
-    let E₂ := inf_comp_H_large 2,
+  { let E₀ := hK 0,
+    let E₁ := hK 1,
+    let E₂ := hK 2,
     by_cases h : E = E₀,
     { use [E₁,E₂],
       simp only [h, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
@@ -109,6 +109,10 @@ begin
     exacts [E.prop, E₂.prop, λ h, h₀₂ (subtype.eq h), F.prop, H_F, K_E], },
 end
 
+
+lemma _root_.fin.embedding_subsingleton {n : ℕ} {α : Type*} [subsingleton α] (h : fin n ↪ α) :
+  n ≤ 1 := sorry
+
 /-
   This is the key part of Hopf-Freudenthal
   Assuming this is proved:
@@ -116,22 +120,27 @@ end
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
 lemma good_autom_back_not_inj
+  (Gpc : G.preconnected)
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : (finset V)ᵒᵖ)
-  {inf_comp_H_large : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)} :
+  {hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)} :
   ∃ (K' L : (finset V)ᵒᵖ) (hK' : K' ⟶ K') (hL : L ⟶ K'),
     ¬ (injective $ G.component_compl_functor.to_eventual_ranges.map hL) :=
 begin
-  sorry,
+
+
+  haveI Kn : K.unop.nonempty,
+  { by_contradiction h,
+    rw finset.not_nonempty_iff_eq_empty at h,
+    simp only [unop_eq_iff_eq_op.mp h, component_compl_functor, functor.to_eventual_ranges,
+               functor.eventual_range] at hK,
+    dsimp [functor.eventual_range, component_compl] at hK,
+    replace hK := hK.trans ⟨_, subtype.coe_injective⟩,
+    rw [set.compl_empty] at hK,
+    replace hK := hK.trans (connected_component.iso (induce_univ_iso G)).to_embedding,
+    haveI := Gpc.subsingleton_connected_component,
+    exact nat.not_succ_le_zero _ (nat.le_of_succ_le_succ (fin.embedding_subsingleton hK)), },
   /-
-  haveI Kn : K.nonempty,
-  { rw nonempty_iff_ne_empty,
-    by_contradiction h, rw h at inf_comp_H_large,
-    have e : fin 3 ↪ (G.inf_component_compl ∅), by
-    { apply inf_comp_H_large,},
-    haveI := inf_component_compl.of_empty_is_subsingleton Gpc,
-    have := e.inj' (subsingleton.elim (e 0) (e 1)),
-    finish,},
   let Kp := (finset.extend_to_connected G Gpc K Kn).val,
   obtain ⟨KKp,Kpc⟩ := (finset.extend_to_connected G Gpc K Kn).prop,
 
@@ -181,7 +190,7 @@ begin
 
   apply inf_component_compl.nicely_arranged_bwd_map_not_inj G Glf Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,
   have e := (inf_component_compl.equiv_of_iso φ K'),
-  apply inf_comp_H_large.trans,
+  apply hK.trans,
   rw φK'eq at e,
   refine function.embedding.trans _ e.to_embedding,
   apply function.embedding.of_surjective,

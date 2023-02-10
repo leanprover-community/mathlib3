@@ -6,7 +6,7 @@ Authors: Christopher Hoskin
 
 import logic.equiv.defs
 import order.directed
-import order.upper_lower
+import order.upper_lower.basic
 import topology.basic
 import topology.order
 import topology.continuous_function.basic

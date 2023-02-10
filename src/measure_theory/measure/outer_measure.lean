@@ -603,7 +603,7 @@ begin
   calc μ s + μ t ≤ (∑' i : I s, μ (f i)) + (∑' i : I t, μ (f i)) :
     add_le_add (hI _ $ subset_union_left _ _) (hI _ $ subset_union_right _ _)
   ... = ∑' i : I s ∪ I t, μ (f i) :
-    (@tsum_union_disjoint _ _ _ _ _ (λ i, μ (f i)) _ _ _ hd ennreal.summable ennreal.summable).symm
+    (@tsum_union_disjoint _ _ _ _ (λ i, μ (f i)) _ _ _ _ hd ennreal.summable ennreal.summable).symm
   ... ≤ ∑' i, μ (f i) :
     tsum_le_tsum_of_inj coe subtype.coe_injective (λ _ _, zero_le _) (λ _, le_rfl)
       ennreal.summable ennreal.summable

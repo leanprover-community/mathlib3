@@ -47,7 +47,7 @@ suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 algebra over `ℝ`). -/
 lemma tendsto_coe_nat_div_add_at_top
   {𝕜 : Type} [division_ring 𝕜] [topological_space 𝕜] [char_zero 𝕜] [algebra ℝ 𝕜]
-  [topological_division_ring 𝕜] [has_continuous_smul ℝ 𝕜]
+  [has_continuous_smul ℝ 𝕜] [has_continuous_inv₀ 𝕜] [topological_ring 𝕜]
   (x : 𝕜) :
   tendsto (λ n:ℕ, (n:𝕜) / (n + x)) at_top (𝓝 1) :=
 begin

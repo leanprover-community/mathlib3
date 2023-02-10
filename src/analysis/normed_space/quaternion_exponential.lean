@@ -35,22 +35,24 @@ namespace quaternion
 section
 variables {α : Type*}
 
-lemma has_sum_coe {f : α → ℝ} {r : ℝ} (h : has_sum f r) :
-  has_sum (λ a, (f a : ℍ[ℝ])) (↑r : ℍ[ℝ]) :=
-by simpa only using h.map (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _)
+@[simp, norm_cast] lemma has_sum_coe {f : α → ℝ} {r : ℝ} :
+  has_sum (λ a, (f a : ℍ[ℝ])) (↑r : ℍ[ℝ]) ↔ has_sum f r :=
+⟨λ h, by simpa only using
+  h.map (show ℍ[ℝ] →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _) continuous_re,
+  λ h, by simpa only using h.map (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _)⟩
 
-@[simp]
-lemma summable_coe_iff  {f : α → ℝ} : summable (λ a, (f a : ℍ[ℝ])) ↔ summable f :=
+@[simp, norm_cast]
+lemma summable_coe {f : α → ℝ} : summable (λ a, (f a : ℍ[ℝ])) ↔ summable f :=
 by simpa only using summable.map_iff_of_left_inverse (algebra_map ℝ ℍ[ℝ])
-  ({to_fun := re, map_add' := add_re, map_zero' := zero_re} : ℍ[ℝ] →+ ℝ)
+  (show ℍ[ℝ] →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _)
   (continuous_algebra_map _ _) continuous_re coe_re
 
-lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ[ℝ]) = ↑(∑' a, f a) :=
+@[norm_cast] lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ[ℝ]) = ↑(∑' a, f a) :=
 begin
   by_cases hf : summable f,
-  { exact (has_sum_coe hf.has_sum).tsum_eq, },
+  { exact (has_sum_coe.mpr hf.has_sum).tsum_eq, },
   { simp [tsum_eq_zero_of_not_summable hf,
-      tsum_eq_zero_of_not_summable (summable_coe_iff.not.mpr hf)] },
+      tsum_eq_zero_of_not_summable (summable_coe.not.mpr hf)] },
 end
 
 end
@@ -61,6 +63,14 @@ end
 lemma conj_eq_neg_iff {q : ℍ} : conj q = -q ↔ q.re = 0 :=
 ext_iff.trans $ by simp [eq_neg_iff_add_eq_zero]
 
+lemma sq_eq_neg_norm_sq_iff {q : ℍ} : q^2 = -norm_sq q ↔ q.re = 0 :=
+begin
+  obtain rfl | hq0 := eq_or_ne q 0,
+  { rw [sq, zero_mul, map_zero, zero_re, coe_zero, neg_zero, eq_self_iff_true, eq_self_iff_true] },
+  rw [←quaternion.conj_mul_self, ←mul_neg, ←neg_sq, sq, mul_left_inj' (neg_ne_zero.mpr hq0),
+    eq_comm, conj_eq_neg_iff],
+end
+
 /-- Auxiliary result; if the power series corresponding to `real.cos` and `real.sin` evaluatated
 at `‖q‖` tend to `c` and `s`, then the exponential series tends to `c + (s / ‖q‖)`. -/
 lemma has_sum_exp_series_of_imaginary
@@ -69,11 +79,10 @@ lemma has_sum_exp_series_of_imaginary
   (hs : has_sum (λ n, (-1)^n * ‖q‖^(2 * n + 1) / (2 * n + 1)!) s) :
   has_sum (λ n, exp_series ℝ _ n (λ _, q)) (↑c + (s / ‖q‖) • q) :=
 begin
-  replace hc := has_sum_coe hc,
+  replace hc := has_sum_coe.mpr hc,
   replace hs := (hs.div_const ‖q‖).smul_const q,
   obtain rfl | hq0 := eq_or_ne q 0,
-  { clear hs,
-    simp_rw [exp_series_apply_zero, norm_zero, div_zero, zero_smul, add_zero],
+  { simp_rw [exp_series_apply_zero, norm_zero, div_zero, zero_smul, add_zero],
     simp_rw [norm_zero] at hc,
     convert hc,
     ext (_ | n) : 1,

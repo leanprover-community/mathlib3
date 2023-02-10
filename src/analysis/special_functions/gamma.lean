@@ -531,7 +531,7 @@ begin
     (Gamma_integral_convergent (zero_lt_one.trans hs)) hF'_meas h_bound bound_integrable h_diff),
 end
 
-lemma differentiable_at_Gamma_aux (s : ℂ) (n : ℕ) (h1 : (1 - s.re) < n ) (h2 : ∀ m:ℕ, s + m ≠ 0) :
+lemma differentiable_at_Gamma_aux (s : ℂ) (n : ℕ) (h1 : (1 - s.re) < n ) (h2 : ∀ m : ℕ, s ≠ -m) :
   differentiable_at ℂ (Gamma_aux n) s :=
 begin
   induction n with n hn generalizing s,
@@ -541,13 +541,16 @@ begin
     specialize hn (s + 1),
     have a : 1 - (s + 1).re < ↑n,
     { rw nat.cast_succ at h1, rw [complex.add_re, complex.one_re], linarith },
-    have b : ∀ m:ℕ, s + 1 + m ≠ 0,
-    { intro m, have := h2 (1 + m), rwa [nat.cast_add, nat.cast_one, ←add_assoc] at this },
+    have b : ∀ m : ℕ, s + 1 ≠ -m,
+    { intro m, have := h2 (1 + m),
+      contrapose! this,
+      rw ←eq_sub_iff_add_eq at this,
+      simpa using this },
     refine differentiable_at.div (differentiable_at.comp _ (hn a b) _) _ _,
     simp, simp, simpa using h2 0 }
 end
 
-theorem differentiable_at_Gamma (s : ℂ) (hs : ∀ m:ℕ, s + m ≠ 0) : differentiable_at ℂ Gamma s :=
+theorem differentiable_at_Gamma (s : ℂ) (hs : ∀ m : ℕ, s ≠ -m) : differentiable_at ℂ Gamma s :=
 begin
   let n := ⌊1 - s.re⌋₊ + 1,
   have hn : 1 - s.re < n := by exact_mod_cast nat.lt_floor_add_one (1 - s.re),
@@ -621,7 +624,7 @@ begin
   { exact Gamma_integral_convergent hs },
 end
 
-lemma Gamma_ne_zero {s : ℝ} (hs : ∀ m:ℕ, s + m ≠ 0) : Gamma s ≠ 0 :=
+lemma Gamma_ne_zero {s : ℝ} (hs : ∀ m : ℕ, s ≠ -m) : Gamma s ≠ 0 :=
 begin
   suffices : ∀ {n : ℕ}, (-(n:ℝ) < s) → Gamma s ≠ 0,
   { apply this,
@@ -637,9 +640,12 @@ begin
     have : Gamma (s + 1) ≠ 0,
     { apply n_ih,
       { intro m,
-        convert hs (1 + m) using 1,
+        specialize hs (1 + m),
+        contrapose! hs,
+        rw ←eq_sub_iff_add_eq at hs,
+        rw hs,
         push_cast,
-        ring,  },
+        ring },
       { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one, neg_add] at hs',
         linarith }  },
     rw [Gamma_add_one, mul_ne_zero_iff] at this,
@@ -647,13 +653,10 @@ begin
     { simpa using hs 0 } },
 end
 
-lemma differentiable_at_Gamma {s : ℝ} (hs : ∀ m:ℕ, s + m ≠ 0) : differentiable_at ℝ Gamma s :=
+lemma differentiable_at_Gamma {s : ℝ} (hs : ∀ m : ℕ, s ≠ -m) : differentiable_at ℝ Gamma s :=
 begin
-  apply has_deriv_at.differentiable_at,
-  apply has_deriv_at.real_of_complex,
-  apply differentiable_at.has_deriv_at,
-  apply complex.differentiable_at_Gamma,
-  simp_rw [←complex.of_real_nat_cast, ←complex.of_real_add, complex.of_real_ne_zero],
+  refine ((complex.differentiable_at_Gamma _ _).has_deriv_at).real_of_complex.differentiable_at,
+  simp_rw [←complex.of_real_nat_cast, ←complex.of_real_neg, ne.def, complex.of_real_inj],
   exact hs,
 end
 
@@ -744,7 +747,7 @@ begin
   { rw convex_iff_is_preconnected,
     refine is_preconnected_Ioi.image _ (λ x hx, continuous_at.continuous_within_at _),
     refine (differentiable_at_Gamma (λ m, _)).continuous_at.log (Gamma_pos_of_pos hx).ne',
-    exact (add_pos_of_pos_of_nonneg hx (nat.cast_nonneg m)).ne' },
+    exact (neg_lt_iff_pos_add.mpr (add_pos_of_pos_of_nonneg hx (nat.cast_nonneg m))).ne' }
 end
 
 section bohr_mollerup
@@ -1220,31 +1223,7 @@ section limit_formula
 
 /-! ## The Euler limit formula-/
 
-lemma one_sub_div_pow_le_exp_neg {n : ℕ} {t : ℝ} (ht' : t ≤ n) : (1 - t / n) ^ n ≤ exp (-t) :=
-begin
-  rcases eq_or_ne n 0 with rfl | hn,
-  { simp, rwa nat.cast_zero at ht' },
-  convert pow_le_pow_of_le_left _ (add_one_le_exp (-(t / n))) n,
-  { abel },
-  { rw ←real.exp_nat_mul, congr' 1,
-    field_simp [nat.cast_ne_zero.mpr hn], ring },
-  { rwa [add_comm, ←sub_eq_add_neg, sub_nonneg, div_le_one],
-    positivity }
-end
-
 namespace complex
-
-lemma tendsto_coe_nat_div_add_at_top (x : ℂ) : tendsto (λ n:ℕ, (n:ℂ) / (n + x)) at_top (𝓝 1) :=
-begin
-  refine tendsto.congr' ((eventually_ne_at_top 0).mp (eventually_of_forall (λ n hn, _))) _,
-  { exact λ n:ℕ, 1 / (1 + x / n) },
-  { field_simp [nat.cast_ne_zero.mpr hn] },
-  { have : 𝓝 (1:ℂ) = 𝓝 (1 / (1 + x * ↑(0:ℝ))), by rw [of_real_zero, mul_zero, add_zero, div_one],
-    rw this,
-    refine tendsto_const_nhds.div (tendsto_const_nhds.add $ tendsto_const_nhds.mul _) (by simp),
-    have : (λ n:ℕ, (n:ℂ)⁻¹) = (λ n:ℕ, ↑((n : ℝ)⁻¹)), by { ext1 n, push_cast }, rw this,
-    exact (continuous_of_real.tendsto _).comp tendsto_inverse_at_top_nhds_0_nat }
-end
 
 /-- The sequence with `n`-th term `n ^ s * n! / (s * (s + 1) * ... * (s + n))`. We will show that
 this tends to `Γ(s)` as `n → ∞`. -/
@@ -1357,8 +1336,7 @@ end
 lemma Gamma_seq_tendsto_Gamma (s : ℂ) :
   tendsto (Gamma_seq s) at_top (𝓝 $ Gamma s) :=
 begin
-  suffices : ∀ (m:ℕ), (-↑m < re s) →
-    tendsto (Gamma_seq s) at_top (𝓝 $ Gamma_aux m s),
+  suffices : ∀ m : ℕ, (-↑m < re s) → tendsto (Gamma_seq s) at_top (𝓝 $ Gamma_aux m s),
   { rw Gamma,
     apply this,
     rw neg_lt,
@@ -1383,7 +1361,7 @@ begin
       rwa [add_re, one_re] },
     rw Gamma_aux,
     have := tendsto.congr' ((eventually_ne_at_top 0).mp
-      (eventually_of_forall (λ n hn, _))) (@tendsto.div_const _ _ _ _ _ _ _ _ s (IH _ hs)),
+      (eventually_of_forall (λ n hn, _))) ((IH _ hs).div_const s),
     swap 3, { exact Gamma_seq_add_one_left s hn }, -- doesn't work if inlined?
     conv at this in (_ / _ * _) { rw mul_comm },
     rw (by ring : Gamma_aux m (s + 1) / s = (Gamma_aux m (s + 1) / s) * 1) at this,
@@ -1426,6 +1404,7 @@ begin
   exact pow_ne_zero 2 (nat.cast_ne_zero.mpr $ nat.factorial_ne_zero n),
 end
 
+/-- At `-n` for `n ∈ ℕ`, the Gamma function is undefined; by convention we assign it the value 0. -/
 lemma Gamma_neg_nat_eq_zero (n : ℕ) : Gamma (-n) = 0 :=
 begin
   induction n with n IH,
@@ -1467,15 +1446,16 @@ begin
     ext1 n, rw [mul_comm, ←mul_assoc] },
 end
 
-theorem Gamma_ne_zero {s : ℂ} (hs : ∀ m:ℕ, s + m ≠ 0) : Gamma s ≠ 0 :=
+theorem Gamma_ne_zero {s : ℂ} (hs : ∀ m : ℕ, s ≠ -m) : Gamma s ≠ 0 :=
 begin
   by_cases h_im : s.im = 0,
   { have : s = ↑s.re,
     { conv_lhs { rw ←complex.re_add_im s }, rw [h_im, of_real_zero, zero_mul, add_zero] },
     rw [this, Gamma_of_real, of_real_ne_zero],
     refine real.Gamma_ne_zero (λ n, _),
-    rw [←of_real_ne_zero, of_real_add, ←this, of_real_nat_cast],
-    exact hs n },
+    specialize hs n,
+    contrapose! hs,
+    rwa [this, ←of_real_nat_cast, ←of_real_neg, of_real_inj] },
   { have : sin (↑π * s) ≠ 0,
     { rw complex.sin_ne_zero_iff,
       intro k,
@@ -1485,6 +1465,13 @@ begin
     have A := div_ne_zero (of_real_ne_zero.mpr real.pi_pos.ne') this,
     rw [←complex.Gamma_mul_Gamma_one_sub s, mul_ne_zero_iff] at A,
     exact A.1 }
+end
+
+lemma Gamma_eq_zero_iff (s : ℂ) : Gamma s = 0 ↔ ∃ m : ℕ, s = -m :=
+begin
+  split,
+  { contrapose!, exact Gamma_ne_zero },
+  { rintro ⟨m, rfl⟩, exact Gamma_neg_nat_eq_zero m },
 end
 
 end complex

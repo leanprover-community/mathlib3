@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov, Patrick Massot
 -/
 import algebra.geom_sum
+import algebra.algebra.basic
 import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
+import topology.algebra.algebra
 
 /-!
 # A collection of specific limit computations
@@ -40,6 +42,31 @@ lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 (tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
+
+/-- The limit of `n / (n + x)` is 1, for any constant `x` (valid in `ℝ` or any topological division
+algebra over `ℝ`). -/
+lemma tendsto_coe_nat_div_add_at_top
+  {𝕜 : Type} [division_ring 𝕜] [topological_space 𝕜] [char_zero 𝕜] [algebra ℝ 𝕜]
+  [topological_division_ring 𝕜] [has_continuous_smul ℝ 𝕜]
+  (x : 𝕜) :
+  tendsto (λ n:ℕ, (n:𝕜) / (n + x)) at_top (𝓝 1) :=
+begin
+  refine tendsto.congr' ((eventually_ne_at_top 0).mp (eventually_of_forall (λ n hn, _))) _,
+  { exact λ n:ℕ, 1 / (1 + x / n) },
+  { field_simp [nat.cast_ne_zero.mpr hn] },
+  { have : 𝓝 (1:𝕜) = 𝓝 (1 / (1 + x * ↑(0:ℝ))),
+    by rw [algebra_map.coe_zero, mul_zero, add_zero, div_one],
+    rw this,
+    refine tendsto_const_nhds.div (tendsto_const_nhds.add _) (by simp),
+    simp_rw div_eq_mul_inv,
+    refine (tendsto_const_nhds.mul _),
+    have : (λ n : ℕ, (n : 𝕜)⁻¹) = (λ n : ℕ, ↑((n : ℝ)⁻¹)),
+    { ext1 n,
+      rw ←algebra_map.coe_inv,
+      exact congr_arg _ (map_nat_cast (algebra_map ℝ 𝕜) n).symm },
+    rw this,
+    exact ((continuous_algebra_map ℝ 𝕜).tendsto _).comp tendsto_inverse_at_top_nhds_0_nat }
+end
 
 /-! ### Powers -/
 

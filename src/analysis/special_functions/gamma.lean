@@ -1356,16 +1356,13 @@ begin
     { rwa [nat.cast_zero, neg_lt_zero] } },
   { -- Induction step: use recurrence formulae in `s` for Gamma and Gamma_seq
     intro hs,
-    replace hs : -↑m < re (s + 1),
-    { rw [nat.cast_succ, neg_add, ←sub_eq_add_neg, sub_lt_iff_lt_add] at hs,
-      rwa [add_re, one_re] },
+    rw [nat.cast_succ, neg_add, ←sub_eq_add_neg, sub_lt_iff_lt_add, ←one_re, ←add_re] at hs,
     rw Gamma_aux,
-    have := tendsto.congr' ((eventually_ne_at_top 0).mp
-      (eventually_of_forall (λ n hn, _))) ((IH _ hs).div_const s),
+    have := tendsto.congr' ((eventually_ne_at_top 0).mp (eventually_of_forall (λ n hn, _)))
+      ((IH _ hs).div_const s),
     swap 3, { exact Gamma_seq_add_one_left s hn }, -- doesn't work if inlined?
     conv at this in (_ / _ * _) { rw mul_comm },
-    rw (by ring : Gamma_aux m (s + 1) / s = (Gamma_aux m (s + 1) / s) * 1) at this,
-    rwa tendsto_mul_iff_of_ne_zero _ (one_ne_zero' ℂ) at this,
+    rwa [←mul_one (Gamma_aux m (s + 1) / s), tendsto_mul_iff_of_ne_zero _ (one_ne_zero' ℂ)] at this,
     simp_rw add_assoc,
     exact tendsto_coe_nat_div_add_at_top (1 + s) }
 end

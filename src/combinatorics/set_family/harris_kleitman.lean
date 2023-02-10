@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import combinatorics.set_family.compression.down
-import order.upper_lower
+import order.upper_lower.basic
 import data.fintype.big_operators
 
 /-!
 # Harris-Kleitman inequality
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves the Harris-Kleitman inequality. This relates `𝒜.card * ℬ.card` and
 `2 ^ card α * (𝒜 ∩ ℬ).card` where `𝒜` and `ℬ` are upward- or downcard-closed finite families of

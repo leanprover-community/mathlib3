@@ -7,6 +7,9 @@ import topology.basic
 /-!
 # Neighborhoods of a set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the filter `𝓝ˢ s` or `nhds_set s` consisting of all neighborhoods of a set
 `s`.
 
@@ -24,7 +27,7 @@ Furthermore, we have the following results:
 -/
 
 open set filter
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α β : Type*} [topological_space α] [topological_space β]
   {s t s₁ s₂ t₁ t₂ : set α} {x : α}
@@ -33,7 +36,7 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 def nhds_set (s : set α) : filter α :=
 Sup (nhds '' s)
 
-localized "notation (name := nhds_set) `𝓝ˢ` := nhds_set" in topological_space
+localized "notation (name := nhds_set) `𝓝ˢ` := nhds_set" in topology
 
 lemma nhds_set_diagonal (α) [topological_space (α × α)] : 𝓝ˢ (diagonal α) = ⨆ x, 𝓝 (x, x) :=
 by { rw [nhds_set, ← range_diag, ← range_comp], refl }

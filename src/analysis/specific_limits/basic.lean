@@ -62,8 +62,8 @@ begin
     refine (tendsto_const_nhds.mul _),
     have : (λ n : ℕ, (n : 𝕜)⁻¹) = (λ n : ℕ, ↑((n : ℝ)⁻¹)),
     { ext1 n,
-      rw ←algebra_map.coe_inv,
-      exact congr_arg _ (map_nat_cast (algebra_map ℝ 𝕜) n).symm },
+      rw [←(map_nat_cast (algebra_map ℝ 𝕜) n), ←map_inv₀ (algebra_map ℝ 𝕜)],
+      refl, },
     rw this,
     exact ((continuous_algebra_map ℝ 𝕜).tendsto _).comp tendsto_inverse_at_top_nhds_0_nat }
 end

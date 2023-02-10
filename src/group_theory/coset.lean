@@ -13,6 +13,9 @@ import tactic.group
 /-!
 # Cosets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the basic theory of left and right cosets.
 
 ## Main definitions

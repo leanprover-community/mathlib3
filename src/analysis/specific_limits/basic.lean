@@ -19,7 +19,7 @@ instances of these such as `ℝ`, `ℝ≥0` and `ℝ≥0∞`.
 noncomputable theory
 open classical set function filter finset metric
 
-open_locale classical topological_space nat big_operators uniformity nnreal ennreal
+open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 

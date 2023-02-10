@@ -41,7 +41,7 @@ iterated Fréchet derivative.
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topology big_operators
 open filter asymptotics set
 
 

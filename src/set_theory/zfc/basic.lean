@@ -44,6 +44,8 @@ Then the rest is usual set theory.
   function `x → y`. That is, each member of `x` is related by the ZFC set to exactly one member of
   `y`.
 * `Set.funs`: ZFC set of ZFC functions `x → y`.
+* `Set.hereditarily p x`: Predicate that every set in the transitive closure of `x` has property
+  `p`.
 * `Class.iota`: Definite description operator.
 
 ## Notes
@@ -856,6 +858,36 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
   (t2 (f z) (image.mk _ _ zx)).symm ▸ (pair_mem_prod.1 (ss t1)).right,
 λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
+
+/-- Given a predicate `p` on ZFC sets. `hereditarily p x` means that `x` has property `p` and the
+members of `x` are all `hereditarily p`. -/
+def hereditarily (p : Set → Prop) : Set → Prop
+| x := p x ∧ ∀ y ∈ x, hereditarily y
+using_well_founded { dec_tac := `[assumption] }
+
+section hereditarily
+
+variables {p : Set.{u} → Prop} {x y : Set.{u}}
+
+lemma hereditarily_iff :
+  hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
+by rw [← hereditarily]
+
+alias hereditarily_iff ↔ hereditarily.def _
+
+lemma hereditarily.self (h : x.hereditarily p) : p x := h.def.1
+lemma hereditarily.mem (h : x.hereditarily p) (hy : y ∈ x) : y.hereditarily p := h.def.2 _ hy
+
+lemma hereditarily.empty : hereditarily p x → p ∅ :=
+begin
+  apply x.induction_on,
+  intros y IH h,
+  rcases Set.eq_empty_or_nonempty y with (rfl|⟨a, ha⟩),
+  { exact h.self },
+  { exact IH a ha (h.mem ha) }
+end
+
+end hereditarily
 
 end Set
 

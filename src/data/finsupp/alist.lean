@@ -9,6 +9,9 @@ import data.list.alist
 /-!
 # Connections between `finsupp` and `alist`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `finsupp.to_alist`

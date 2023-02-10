@@ -576,6 +576,10 @@ map_multiset_sum (to_quadratic_form_add_monoid_hom R M) B
   (∑ i in s, B i).to_quadratic_form = ∑ i in s, (B i).to_quadratic_form :=
 map_sum (to_quadratic_form_add_monoid_hom R M) B s
 
+@[simp] lemma to_quadratic_form_eq_zero {B : bilin_form R M} :
+  B.to_quadratic_form = 0 ↔ B.is_alt :=
+quadratic_form.ext_iff
+
 end semiring
 
 section ring

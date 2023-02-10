@@ -46,7 +46,7 @@ import topology.metric_space.metrizable
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal measure_theory
+open_locale classical big_operators topology nnreal ennreal measure_theory
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -479,6 +479,11 @@ lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α
 lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : measurable f)
   (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
+
+lemma null_measurable_set_lt [second_countable_topology α] {μ : measure δ} {f g : δ → α}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  null_measurable_set {a | f a < g a} μ :=
+(hf.prod_mk hg).null_measurable measurable_set_lt'
 
 lemma set.ord_connected.measurable_set (h : ord_connected s) : measurable_set s :=
 begin
@@ -1363,16 +1368,13 @@ begin
          ennreal.coe_ne_top, preimage_Union, inter_Union],
     { assume i j,
       simp only [function.on_fun],
-      wlog h : i ≤ j := le_total i j using [i j, j i] tactic.skip,
-      { assume hij,
-        replace hij : i + 1 ≤ j := lt_of_le_of_ne h hij,
-        apply disjoint_left.2 (λ x hx h'x, lt_irrefl (f x) _),
-        calc f x < t ^ (i + 1) : hx.2.2
-        ... ≤ t ^ j : ennreal.zpow_le_of_le (ennreal.one_le_coe_iff.2 ht.le) hij
-        ... ≤ f x : h'x.2.1 },
-      { assume hij,
-        rw disjoint.comm,
-        exact this hij.symm } },
+      assume hij,
+      wlog h : i < j generalizing i j,
+      { exact (this hij.symm (hij.lt_or_lt.resolve_left h)).symm },
+      apply disjoint_left.2 (λ x hx h'x, lt_irrefl (f x) _),
+      calc f x < t ^ (i + 1) : hx.2.2
+      ... ≤ t ^ j : ennreal.zpow_le_of_le (ennreal.one_le_coe_iff.2 ht.le) h
+      ... ≤ f x : h'x.2.1 },
     { assume n,
       exact hs.inter (hf measurable_set_Ico) } },
   rw [A, B, C, add_assoc],

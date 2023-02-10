@@ -36,7 +36,7 @@ latter lemma to prove that the function `λ x, x⁻¹` is integrable on `a..b` i
 integrable function
 -/
 
-open_locale measure_theory topological_space interval nnreal ennreal
+open_locale measure_theory topology interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
 variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [second_countable_topology E]

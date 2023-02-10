@@ -9,6 +9,9 @@ import group_theory.subgroup.basic
 /-!
 # Actions by `subgroup`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
 
 ## Tags

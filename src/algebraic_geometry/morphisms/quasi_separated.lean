@@ -262,7 +262,7 @@ lemma is_affine_open.is_quasi_separated {X : Scheme} {U : opens X.carrier} (hU :
   is_quasi_separated (U : set X.carrier)  :=
 begin
   rw is_quasi_separated_iff_quasi_separated_space,
-  exacts [@@algebraic_geometry.quasi_separated_space_of_is_affine _ hU, U.prop],
+  exacts [@@algebraic_geometry.quasi_separated_space_of_is_affine _ hU, U.is_open],
 end
 
 lemma quasi_separated_of_comp {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z)

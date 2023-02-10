@@ -27,7 +27,7 @@ In a complete (semi)normed group,
 infinite series, absolute convergence, normed group
 -/
 
-open_locale classical big_operators topological_space nnreal
+open_locale classical big_operators topology nnreal
 open finset filter metric
 
 variables {ι α E F : Type*} [seminormed_add_comm_group E] [seminormed_add_comm_group F]

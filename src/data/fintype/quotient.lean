@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Yuyang Zhao. All rights reserved.
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yuyang Zhao
+Authors: Mario Carneiro, Yuyang Zhao
 -/
 import data.list.pi
 import data.fintype.basic

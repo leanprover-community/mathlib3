@@ -79,6 +79,7 @@ lemma nicely_arranged_bwd_map_not_inj
     G.component_compl_functor.to_eventual_ranges.map
       (op_hom_of_le $ finset.subset_union_left K.unop H.unop : op (K.unop ∪ H.unop) ⟶ K)) :=
 begin
+  -- TODO make this into a lemma: if `fin 3 ↪ α` and `a₁ : α` then `∃ a₂ a₃, …`
   obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ :
     ∃ E₁ E₂ : G.component_compl_functor.to_eventual_ranges.obj H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
   { let E₀ := hK 0,
@@ -110,8 +111,13 @@ begin
 end
 
 
-lemma _root_.fin.embedding_subsingleton {n : ℕ} {α : Type*} [subsingleton α] (h : fin n ↪ α) :
-  n ≤ 1 := sorry
+-- TODO: fit somewhere
+lemma _root_.fin.embedding_subsingleton {n : ℕ} {α : Type*} [subsingleton α] (e : fin n ↪ α) :
+  n ≤ 1 :=
+begin
+  by_contra' h,
+  simpa using e.inj' (subsingleton.elim (e ⟨0,zero_lt_one.trans h⟩) (e ⟨1,h⟩)),
+end
 
 /-
   This is the key part of Hopf-Freudenthal

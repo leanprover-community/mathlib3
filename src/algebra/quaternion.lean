@@ -166,12 +166,10 @@ instance : has_smul S ℍ[R, c₁, c₂] :=
 { smul := λ s a, ⟨s • a.1, s • a.2, s • a.3, s • a.4⟩ }
 
 instance [has_smul S T] [is_scalar_tower S T R] : is_scalar_tower S T ℍ[R, c₁, c₂] :=
-{ smul_assoc := λ s t x,
-    ext _ _ (smul_assoc _ _ _) (smul_assoc _ _ _) (smul_assoc _ _ _) (smul_assoc _ _ _) }
+{ smul_assoc := λ s t x, by ext; exact smul_assoc _ _ _ }
 
 instance [smul_comm_class S T R] : smul_comm_class S T ℍ[R, c₁, c₂] :=
-{ smul_comm := λ s t x,
-    ext _ _ (smul_comm _ _ _) (smul_comm _ _ _) (smul_comm _ _ _) (smul_comm _ _ _) }
+{ smul_comm := λ s t x, by ext; exact smul_comm _ _ _ }
 
 @[simp] lemma smul_re : (s • a).re = s • a.re := rfl
 @[simp] lemma smul_im_i : (s • a).im_i = s • a.im_i := rfl
@@ -183,7 +181,7 @@ instance [smul_comm_class S T R] : smul_comm_class S T ℍ[R, c₁, c₂] :=
 
 end
 
-@[norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
+@[simp, norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
   (↑(s • r) : ℍ[R, c₁, c₂]) = s • ↑r :=
 ext _ _ rfl (smul_zero s).symm (smul_zero s).symm (smul_zero s).symm
 
@@ -233,6 +231,8 @@ by refine_struct
 @[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 by ext; simp
 
+-- TODO: add weaker `mul_action`, `distrib_mul_action`, and `module` instances (and repeat them
+-- for `ℍ[R]`)
 instance [comm_semiring S] [algebra S R] : algebra S ℍ[R, c₁, c₂] :=
 { smul := (•),
   to_fun := λ s, coe (algebra_map S R s),
@@ -299,9 +299,6 @@ end
 
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y
-
-@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
-(algebra_map R ℍ[R, c₁, c₂]).map_pow x n
 
 @[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
 (algebra_map R ℍ[R, c₁, c₂]).map_pow x n
@@ -560,7 +557,7 @@ lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_alge
 @[simp] lemma smul_im_j [has_smul S R] (s : S) : (s • a).im_j = s • a.im_j := rfl
 @[simp] lemma smul_im_k [has_smul S R] (s : S) : (s • a).im_k = s • a.im_k := rfl
 
-@[norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
+@[simp, norm_cast] lemma coe_smul [smul_zero_class S R] (s : S) (r : R) :
   (↑(s • r) : ℍ[R]) = s • ↑r :=
 quaternion_algebra.coe_smul _ _
 

@@ -11,6 +11,9 @@ import logic.equiv.defs
 /-!
 # Equivalences for `option α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 We define
 * `equiv.option_congr`: the `option α ≃ option β` constructed from `e : α ≃ β` by sending `none` to

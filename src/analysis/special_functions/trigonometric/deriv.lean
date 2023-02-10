@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import order.monotone.odd
 import analysis.special_functions.exp_deriv
 import analysis.special_functions.trigonometric.basic
 import data.set.intervals.monotone
@@ -21,7 +22,7 @@ sin, cos, tan, angle
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 namespace complex

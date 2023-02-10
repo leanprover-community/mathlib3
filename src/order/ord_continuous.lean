@@ -3,11 +3,14 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Johannes Hölzl
 -/
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import order.rel_iso.basic
 
 /-!
 # Order continuity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a function is *left order continuous* if it sends all least upper bounds
 to least upper bounds. The order dual notion is called *right order continuity*.

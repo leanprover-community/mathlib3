@@ -46,7 +46,7 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 | ⟨zr, zi⟩ ⟨_, _⟩ rfl rfl := rfl
 
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
-⟨λ H, by simp [H], and.rec ext⟩
+⟨λ H, by simp [H], λ h, ext h.1 h.2⟩
 
 theorem re_surjective : surjective re := λ x, ⟨⟨x, 0⟩, rfl⟩
 theorem im_surjective : surjective im := λ y, ⟨⟨0, y⟩, rfl⟩
@@ -493,7 +493,7 @@ private lemma abs_add (z w : ℂ) : (abs (z + w)) ≤ (abs z) + abs w :=
   (add_nonneg (abs_nonneg' z) (abs_nonneg' w))).2 $
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs, add_right_comm, norm_sq_add,
-      add_le_add_iff_left, mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _ _),
+      add_le_add_iff_left, mul_assoc, mul_le_mul_left (zero_lt_two' ℝ),
       ←real.sqrt_mul $ norm_sq_nonneg z, ←norm_sq_conj w, ←map_mul],
   exact re_le_abs (z * conj w)
 end
@@ -582,15 +582,13 @@ by simpa [re_add_im] using abs.add_le z.re (z.im * I)
 lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
 begin
   cases z with x y,
-  simp only [abs, norm_sq_mk, ← sq],
-  wlog hle : |x| ≤ |y| := le_total (|x|) (|y|) using [x y, y x] tactic.skip,
-  { simp only [absolute_value.coe_mk, mul_hom.coe_mk, norm_sq_mk, ←sq],
-    calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
-      real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
-    ... = real.sqrt 2 * max (|x|) (|y|) :
-      by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs] },
-  { dsimp,
-    rwa [add_comm, max_comm] }
+  simp only [abs_apply, norm_sq_mk, ← sq],
+  wlog hle : |x| ≤ |y|,
+  { rw [add_comm, max_comm], exact this _ _ (le_of_not_le hle), },
+  calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
+    real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
+  ... = real.sqrt 2 * max (|x|) (|y|) :
+    by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs],
 end
 
 lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=

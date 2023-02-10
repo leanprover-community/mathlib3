@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.parity
-import algebra.char_zero
+import algebra.char_zero.lemmas
 import algebra.group_with_zero.power
 import algebra.order.field.basic
 
 /-!
 # Lemmas about powers in ordered fields.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

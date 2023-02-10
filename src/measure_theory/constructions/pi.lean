@@ -53,7 +53,7 @@ finitary product measure
 
 noncomputable theory
 open function set measure_theory.outer_measure filter measurable_space encodable
-open_locale classical big_operators topological_space ennreal
+open_locale classical big_operators topology ennreal
 
 universes u v
 

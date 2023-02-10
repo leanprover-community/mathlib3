@@ -56,7 +56,7 @@ measurable functions, as a basis for the Bochner integral.
 -/
 
 open measure_theory filter topological_space function set measure_theory.measure
-open_locale ennreal topological_space measure_theory nnreal big_operators
+open_locale ennreal topology measure_theory nnreal big_operators
 
 /-- The typeclass `second_countable_topology_either α β` registers the fact that at least one of
 the two spaces has second countable topology. This is the right assumption to ensure that continuous
@@ -809,7 +809,8 @@ begin
   assume x,
   by_cases hx : ∃ y, g y = x,
   { rcases hx with ⟨y, rfl⟩,
-    simpa only [simple_func.extend_apply, hg.injective, extend_apply] using hf.tendsto_approx y },
+    simpa only [simple_func.extend_apply, hg.injective,
+      injective.extend_apply] using hf.tendsto_approx y },
   { simpa only [hx, simple_func.extend_apply', not_false_iff, extend_apply']
       using hg'.tendsto_approx x }
 end
@@ -821,7 +822,7 @@ lemma _root_.measurable_embedding.exists_strongly_measurable_extend
   ∃ f' : γ → β, strongly_measurable f' ∧ f' ∘ g = f :=
 ⟨function.extend g f (λ x, classical.choice (hne x)),
   hg.strongly_measurable_extend hf (strongly_measurable_const' $ λ _ _, rfl),
-  funext $ λ x, extend_apply hg.injective _ _ _⟩
+  funext $ λ x, hg.injective.extend_apply _ _ _⟩
 
 lemma measurable_set_eq_fun {m : measurable_space α} {E} [topological_space E] [metrizable_space E]
   {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
@@ -1602,12 +1603,12 @@ protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
     ae_strongly_measurable f (μ.restrict s) ∧ ae_strongly_measurable f (μ.restrict t) :=
 by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
-lemma ae_strongly_measurable_interval_oc_iff [linear_order α] [pseudo_metrizable_space β]
+lemma ae_strongly_measurable_uIoc_iff [linear_order α] [pseudo_metrizable_space β]
   {f : α → β} {a b : α} :
-  ae_strongly_measurable f (μ.restrict $ interval_oc a b) ↔
+  ae_strongly_measurable f (μ.restrict $ uIoc a b) ↔
   ae_strongly_measurable f (μ.restrict $ Ioc a b) ∧
   ae_strongly_measurable f (μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_strongly_measurable_union_iff]
+by rw [uIoc_eq_union, ae_strongly_measurable_union_iff]
 
 lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :

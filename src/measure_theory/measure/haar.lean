@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.measure.content
 import measure_theory.group.prod
 import group_theory.divisible
+import topology.algebra.group.compact
 
 /-!
 # Haar measure
@@ -61,7 +62,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical ennreal pointwise topological_space
+open_locale nnreal classical ennreal pointwise topology
 
 namespace measure_theory
 namespace measure

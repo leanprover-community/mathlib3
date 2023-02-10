@@ -8,6 +8,9 @@ import data.dfinsupp.basic
 /-!
 # Locus of unequal values of finitely supported dependent functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `N : α → Type*` be a type family, assume that `N a` has a `0` for all `a : α` and let
 `f g : Π₀ a, N a` be finitely supported dependent functions.
 
@@ -53,7 +56,7 @@ by simp_rw [ne_locus, finset.union_comm, ne_comm]
 
 @[simp]
 lemma ne_locus_zero_right : f.ne_locus 0 = f.support :=
-by { ext, rw [mem_ne_locus, mem_support_iff, dfinsupp.coe_zero, pi.zero_apply] }
+by { ext, rw [mem_ne_locus, mem_support_iff, coe_zero, pi.zero_apply] }
 
 @[simp]
 lemma ne_locus_zero_left : (0 : Π₀ a, N a).ne_locus f = f.support :=

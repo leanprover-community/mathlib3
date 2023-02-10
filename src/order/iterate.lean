@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import logic.function.iterate
-import order.monotone
+import order.monotone.basic
 
 /-!
 # Inequalities on iterates
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove some inequalities comparing `f^[n] x` and `g^[n] x` where `f` and `g` are
 two self-maps that commute with each other.

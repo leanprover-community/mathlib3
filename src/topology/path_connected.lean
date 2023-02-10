@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.algebra.order.proj_Icc
+import topology.compact_open
 import topology.continuous_function.basic
 import topology.unit_interval
 
@@ -59,7 +60,7 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter unit_interval
+open_locale classical topology filter unit_interval
 open filter set function unit_interval
 
 variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} {ι : Type*}

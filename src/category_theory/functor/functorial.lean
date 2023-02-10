@@ -7,6 +7,9 @@ import category_theory.functor.basic
 
 /-!
 # Unbundled functors, as a typeclass decorating the object-level function.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace category_theory

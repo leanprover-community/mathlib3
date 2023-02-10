@@ -41,7 +41,7 @@ For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ --
 
 noncomputable theory
 open set function filter topological_space ennreal emetric finset
-open_locale classical topological_space ennreal measure_theory big_operators
+open_locale classical topology ennreal measure_theory big_operators
 variables {α β ι E F 𝕜 : Type*}
 
 namespace measure_theory

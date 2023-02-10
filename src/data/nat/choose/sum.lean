@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
-import tactic.linarith.default
+import tactic.linarith
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
@@ -12,6 +12,9 @@ import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Sums of binomial coefficients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file includes variants of the binomial theorem and other results on sums of binomial
 coefficients. Theorems whose proofs depend on such sums may also go in this file for import
@@ -31,7 +34,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 
 include h
 
-/-- A version of the **binomial theorem** for noncommutative semirings. -/
+/-- A version of the **binomial theorem** for commuting elements in noncommutative semirings. -/
 theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin

@@ -18,7 +18,7 @@ the definitions.
 
 universes u v
 open classical set filter topological_space
-open_locale classical topological_space big_operators pointwise
+open_locale classical topology big_operators pointwise
 
 variables {ι α X M N : Type*} [topological_space X]
 
@@ -48,6 +48,8 @@ class has_continuous_mul (M : Type u) [topological_space M] [has_mul M] : Prop :
 section has_continuous_mul
 
 variables [topological_space M] [has_mul M] [has_continuous_mul M]
+
+@[to_additive] instance : has_continuous_mul Mᵒᵈ := ‹has_continuous_mul M›
 
 @[to_additive]
 lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=

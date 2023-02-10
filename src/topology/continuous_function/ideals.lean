@@ -315,7 +315,7 @@ variable (X)
   galois_insertion (opens_of_ideal : ideal C(X, 𝕜) → opens X) (λ s, ideal_of_set 𝕜 s) :=
 { choice := λ I hI, opens_of_ideal I.closure,
   gc := λ I s, ideal_gc X 𝕜 I s,
-  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.prop).ge,
+  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.is_open).ge,
   choice_eq := λ I hI, congr_arg _ $ ideal.ext (set.ext_iff.mp (is_closed_of_closure_subset $
     (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
 

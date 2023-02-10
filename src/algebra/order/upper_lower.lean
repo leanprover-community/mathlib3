@@ -5,7 +5,7 @@ Authors: Yaël Dillies
 -/
 import algebra.order.group.defs
 import data.set.pointwise.smul
-import order.upper_lower
+import order.upper_lower.basic
 
 /-!
 # Algebraic operations on upper/lower sets

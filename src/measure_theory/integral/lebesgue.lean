@@ -36,7 +36,7 @@ We introduce the following notation for the lower Lebesgue integral of a functio
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter ennreal function (support)
-open_locale classical topological_space big_operators nnreal ennreal measure_theory
+open_locale classical topology big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 

@@ -27,7 +27,7 @@ density theorem.
 noncomputable theory
 
 open set filter metric measure_theory topological_space
-open_locale nnreal topological_space
+open_locale nnreal topology
 
 namespace is_doubling_measure
 
@@ -36,7 +36,7 @@ variables {α : Type*} [metric_space α] [measurable_space α] (μ : measure α)
 section
 variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
 
-open_locale topological_space
+open_locale topology
 
 /-- A Vitali family in a space with a doubling measure, designed so that the sets at `x` contain
 all `closed_ball y r` when `dist x y ≤ K * r`. -/

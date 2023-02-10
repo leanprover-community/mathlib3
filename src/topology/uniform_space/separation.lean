@@ -11,6 +11,9 @@ import topology.separation
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file studies uniform spaces whose underlying topological spaces are separated
 (also known as Hausdorff or T₂).
 This turns out to be equivalent to asking that the intersection of all entourages
@@ -66,7 +69,7 @@ uniformly continuous).
 -/
 
 open filter topological_space set classical function uniform_space
-open_locale classical topological_space uniformity filter
+open_locale classical topology uniformity filter
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -158,8 +161,9 @@ lemma separation_rel_comap  {f : α → β}
   (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
+  unfreezingI { subst h },
   dsimp [separation_rel],
-  simp_rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
+  simp_rw [uniformity_comap, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
       ← preimage_Inter, sInter_eq_bInter],
   refl,
 end
@@ -276,7 +280,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
         u.uniformity.sets_of_superset ht $ assume ⟨a₁, a₂⟩ h₁ h₂, hts (ht' $ setoid.symm h₂) h₁,
         assume h, u.uniformity.sets_of_superset h $ by simp {contextual := tt}⟩,
     begin
-      simp [topological_space.coinduced, u.is_open_uniformity, uniformity, forall_quotient_iff],
+      simp only [is_open_coinduced, is_open_uniformity, uniformity, forall_quotient_iff,
+        mem_preimage, mem_map, preimage_set_of_eq, quotient.eq],
       exact ⟨λh a ha, (this a ha).mp $ h a ha, λh a ha, (this a ha).mpr $ h a ha⟩
     end }
 

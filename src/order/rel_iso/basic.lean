@@ -389,7 +389,6 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
   apply quotient.mk_out
 end⟩
 
-/-- A relation is well founded iff its lift to a quotient is. -/
 @[simp] theorem _root_.acc_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
   acc (quotient.lift₂ r H) ⟦a⟧ ↔ acc r a :=
 ((quotient.mk_rel_covering H).acc a).symm

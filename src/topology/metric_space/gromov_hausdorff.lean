@@ -40,7 +40,7 @@ i.e., it is complete and second countable. We also prove the Gromov compactness 
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal
+open_locale classical topology ennreal
 
 local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
 

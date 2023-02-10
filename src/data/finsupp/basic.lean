@@ -12,6 +12,9 @@ import data.rat.big_operators
 /-!
 # Miscellaneous definitions, lemmas, and constructions using finsupp
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `finsupp.graph`: the finset of input and output pairs with non-zero outputs.

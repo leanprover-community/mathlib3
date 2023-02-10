@@ -1455,7 +1455,7 @@ def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachabl
 ⟨G.connected_component_mk default⟩
 
 section connected_component
-variables {G}
+variables {G} {V'} {G'} {G''}
 
 @[elab_as_eliminator]
 protected lemma connected_component.ind {β : G.connected_component → Prop}
@@ -1502,37 +1502,29 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
 /-- The map on connected components induced by a graph homomorphism. -/
-def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
-  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
+def connected_component.map  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
 C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
   connected_component.eq.mpr (p.map φ).reachable
 
-@[simp] lemma connected_component.map_mk
-  {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'} (φ : G →g G') (v : V) :
+@[simp] lemma connected_component.map_mk (φ : G →g G') (v : V) :
   (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
 
 @[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
 by { refine C.ind _, exact (λ _, rfl) }
 
-@[simp] lemma connected_component.map_comp
-  {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
-  (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
+@[simp] lemma connected_component.map_comp (C : G.connected_component)
+  (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
 
 /-- An isomorphism of graphs induces a bijection of connected components. -/
 @[simps]
-def connected_component.iso {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
-  (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+def connected_component.iso (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
 { to_fun := connected_component.map φ.to_hom,
   inv_fun := connected_component.map φ.symm.to_hom,
-  left_inv := by
-    { refine connected_component.ind (λ v, _),
-      nth_rewrite_rhs 0 ←equiv.left_inv φ.to_equiv v,
-      refl, },
-  right_inv := by
-    { refine connected_component.ind (λ v, _),
-      nth_rewrite_rhs 0 ←equiv.right_inv φ.to_equiv v,
-      refl, } }
+  left_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
+  right_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
 
 end connected_component
 

@@ -26,22 +26,14 @@ lemma nicely_arranged {H K : set V}
 begin
   have KE' : (K ∩ E') ⊆ ∅ := λ v ⟨vK, vE'⟩,
     En (component_compl.pairwise_disjoint.eq (set.not_disjoint_iff.mpr ⟨v, K_E vK, vE'⟩)),
-  obtain ⟨F', sub, inf⟩ : ∃ F' : component_compl G K, (E' : set V) ⊆ F' ∧ F'.supp.infinite, by
-  { obtain ⟨v, vnH, rfl⟩ := E'.exists_eq_mk,
-    /-
-    TODO : How to do properly?
-    Originally was `comp_out.of_connected_disjoint` but that means we need to talk about `connected`
-    which is a pain.
-    -/
-    have : (G.component_compl_mk vnH).supp ⊆
-            (G.component_compl_mk (λ vK, KE' ⟨vK, component_compl_mk_mem _ _⟩)).supp, by sorry,
-    exact ⟨component_compl_mk _ (λ vK, KE' ⟨vK, component_compl_mk_mem _ _⟩),
-            this, Einf'.mono this⟩, },
-    have : F' = F, by
-    { obtain ⟨⟨v, h⟩, vE', hH, a⟩:= exists_adj_boundary_pair Gpc Hnempty E',
-      exact component_compl.eq_of_adj v h (sub vE') (H_F hH) a, },
-    exact this ▸ sub,
-
+  obtain ⟨F', sub, inf⟩ : ∃ F' : component_compl G K, (E' : set V) ⊆ F' ∧ F'.supp.infinite :=
+    ⟨ component_compl.of_connected_disjoint_right E'.connected (set.disjoint_iff.mpr KE'),
+      component_compl.subset_of_connected_disjoint_right _ _,
+      Einf'.mono (component_compl.subset_of_connected_disjoint_right _ _)⟩,
+  have : F' = F, by
+  { obtain ⟨⟨v, h⟩, vE', hH, a⟩:= exists_adj_boundary_pair Gpc Hnempty E',
+    exact component_compl.eq_of_adj v h (sub vE') (H_F hH) a, },
+  exact this ▸ sub,
 end
 
 lemma bwd_map_non_inj

@@ -17,7 +17,7 @@ In this file we prove a weak form of the Riemann-Lebesgue lemma, stating that fo
 compactly-supported continuous function `f` on `ℝ` (valued in some complete normed space `E`), the
 integral
 
-`∫ (x : ℝ), exp (I * t * x) • f x`
+`∫ (x : ℝ), exp (↑(t * x) * I) • f x`
 
 tends to zero as `t → ∞`. (The actual lemma is that this holds for all `L¹` functions `f`, which
 follows from the result proved here together with the fact that continuous, compactly-supported
@@ -103,15 +103,11 @@ begin
   simp_rw [norm_smul, norm_exp_of_real_mul_I, one_mul],
   -- Show integral can be taken over `[-(R + 1), R] ⊂ ℝ`.
   let A := Icc (-(R + 1)) R,
-  have int_Icc :
-    ∫ (x : ℝ), ‖f x - f (x + π / t)‖ = ∫ x in A, ‖f x - f (x + π / t)‖,
-  { rw ←integral_indicator (measurable_set_Icc : measurable_set A),
-    congr' 1 with x,
-    symmetry,
-    refine (indicator_apply_eq_self.mpr (λ hx, _)),
+  have int_Icc : ∫ (x : ℝ), ‖f x - f (x + π / t)‖ = ∫ x in A, ‖f x - f (x + π / t)‖,
+  { refine (set_integral_eq_integral_of_forall_compl_eq_zero (λ x hx, _)).symm,
     rw [mem_Icc, not_and_distrib, not_le, not_le, lt_neg] at hx,
     suffices : (f x = 0 ∧ f (x + π / t) = 0), by { rw [this.1, this.2, sub_zero, norm_zero], },
-    have tp := real.pi_pos.trans_le ((le_max_left _ _).trans ht),
+    have tp : 0 < t := real.pi_pos.trans_le ((le_max_left _ _).trans ht),
     refine ⟨hR2 x $ le_abs.mpr _, hR2 _ $ le_abs.mpr _⟩,
     { cases hx,
       { exact or.inr ((le_add_of_nonneg_right zero_le_one).trans hx.le) },

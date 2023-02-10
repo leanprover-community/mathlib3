@@ -18,7 +18,8 @@ This file contains results about `exp` on `quaternion ℝ`.
 * `quaternion.exp_eq`: the general expansion of the quaternion exponential in terms of `real.cos`
   and `real.sin`.
 * `quaternion.exp_of_re_eq_zero`: the special case when the quaternion has a zero real part.
-
+* `quaternion.norm_exp`: the norm of the quaternion exponential is the norm of the exponential of
+  the real part.
 
 -/
 
@@ -57,6 +58,8 @@ end
 
 end
 
+lemma conj_exp (q : ℍ[ℝ]) : conj (exp ℝ q) = exp ℝ (conj q) := star_exp q
+
 @[simp, norm_cast] lemma exp_coe (r : ℝ) : exp ℝ (r : ℍ[ℝ]) = ↑(exp ℝ r) :=
 (map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
 
@@ -80,7 +83,7 @@ begin
     { rw [zero_pow (mul_pos two_pos (nat.succ_pos _)), mul_zero, zero_div,
         pi.single_eq_of_ne (n.succ_ne_zero), coe_zero], } },
   simp_rw exp_series_apply_eq,
-  have hq2 : q^2 = -norm_sq q := sq_eq_neg_norm_sq_iff.mpr hq,
+  have hq2 : q^2 = -norm_sq q := sq_eq_neg_norm_sq.mpr hq,
   have hqn := norm_ne_zero_iff.mpr hq0,
   refine has_sum.even_add_odd _ _,
   { convert hc using 1,
@@ -133,5 +136,33 @@ begin
   exact algebra.commutes q.re (_ : ℍ[ℝ]),
   exact sub_self _,
 end
+
+lemma re_exp (q : ℍ[ℝ]) : (exp ℝ q).re = exp ℝ q.re * (real.cos ‖q - q.re‖) :=
+by simp [exp_eq]
+
+lemma norm_sq_exp (q : ℍ[ℝ]) : norm_sq (exp ℝ q) = (exp ℝ q.re)^2 :=
+let v := q - q.re in
+calc norm_sq (exp ℝ q)
+    = norm_sq (exp ℝ q.re • (↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v))
+    : by rw exp_eq
+... = (exp ℝ q.re)^2 * norm_sq ((↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v))
+    : by rw [norm_sq_smul]
+... = (exp ℝ q.re)^2 * ((real.cos ‖v‖) ^ 2 + (real.sin ‖v‖)^2)
+    : begin
+      congr' 1,
+      have : v.re = 0,
+      { rw [sub_re, coe_re, sub_self] },
+      obtain hv | hv := eq_or_ne (‖v‖) 0,
+      { simp [hv] },
+      rw [norm_sq_add, norm_sq_smul, conj_smul, coe_mul_eq_smul, smul_re, smul_re, conj_re, this,
+        smul_zero, smul_zero, mul_zero, add_zero, div_pow, norm_sq_coe, norm_sq_eq_norm_sq, ←sq,
+        div_mul_cancel _ (pow_ne_zero _ hv)],
+    end
+... = (exp ℝ q.re)^2 : by rw [real.cos_sq_add_sin_sq, mul_one]
+
+/-- Note that this implies that exponentials of pure imaginary quaternions are unit quaternions. -/
+@[simp] lemma norm_exp (q : ℍ[ℝ]) : ‖exp ℝ q‖ = ‖exp ℝ q.re‖ :=
+by rw [norm_eq_sqrt_real_inner (exp ℝ q), inner_self, norm_sq_exp, real.sqrt_sq_eq_abs,
+  real.norm_eq_abs]
 
 end quaternion

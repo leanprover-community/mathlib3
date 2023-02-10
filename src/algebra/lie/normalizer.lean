@@ -8,28 +8,28 @@ import algebra.lie.ideal_operations
 import algebra.lie.quotient
 
 /-!
-# The centralizer of a Lie submodule and the normalizer of a Lie subalgebra.
+# The normalizer of a Lie submodules and subalgebras.
 
-Given a Lie module `M` over a Lie subalgebra `L`, the centralizer of a Lie submodule `N ⊆ M` is
+Given a Lie module `M` over a Lie subalgebra `L`, the normalizer of a Lie submodule `N ⊆ M` is
 the Lie submodule with underlying set `{ m | ∀ (x : L), ⁅x, m⁆ ∈ N }`.
 
-The lattice of Lie submodules thus has two natural operations, the centralizer: `N ↦ N.centralizer`
+The lattice of Lie submodules thus has two natural operations, the normalizer: `N ↦ N.normalizer`
 and the ideal operation: `N ↦ ⁅⊤, N⁆`; these are adjoint, i.e., they form a Galois connection. This
 adjointness is the reason that we may define nilpotency in terms of either the upper or lower
 central series.
 
 Given a Lie subalgebra `H ⊆ L`, we may regard `H` as a Lie submodule of `L` over `H`, and thus
-consider the centralizer. This turns out to be a Lie subalgebra and is known as the normalizer.
+consider the normalizer. This turns out to be a Lie subalgebra.
 
 ## Main definitions
 
-  * `lie_submodule.centralizer`
+  * `lie_submodule.normalizer`
   * `lie_subalgebra.normalizer`
-  * `lie_submodule.gc_top_lie_centralizer`
+  * `lie_submodule.gc_top_lie_normalizer`
 
 ## Tags
 
-lie algebra, centralizer, normalizer
+lie algebra, normalizer
 -/
 
 variables {R L M M' : Type*}
@@ -41,53 +41,53 @@ namespace lie_submodule
 
 variables (N : lie_submodule R L M) {N₁ N₂ : lie_submodule R L M}
 
-/-- The centralizer of a Lie submodule. -/
-def centralizer : lie_submodule R L M :=
+/-- The normalizer of a Lie submodule. -/
+def normalizer : lie_submodule R L M :=
 { carrier   := { m | ∀ (x : L), ⁅x, m⁆ ∈ N },
   add_mem'  := λ m₁ m₂ hm₁ hm₂ x, by {  rw lie_add, exact N.add_mem' (hm₁ x) (hm₂ x), },
   zero_mem' := λ x, by simp,
   smul_mem' := λ t m hm x, by { rw lie_smul, exact N.smul_mem' t (hm x), },
   lie_mem   := λ x m hm y, by { rw leibniz_lie, exact N.add_mem' (hm ⁅y, x⁆) (N.lie_mem (hm y)), } }
 
-@[simp] lemma mem_centralizer (m : M) :
-  m ∈ N.centralizer ↔ ∀ (x : L), ⁅x, m⁆ ∈ N :=
+@[simp] lemma mem_normalizer (m : M) :
+  m ∈ N.normalizer ↔ ∀ (x : L), ⁅x, m⁆ ∈ N :=
 iff.rfl
 
-lemma le_centralizer : N ≤ N.centralizer :=
+lemma le_normalizer : N ≤ N.normalizer :=
 begin
   intros m hm,
-  rw mem_centralizer,
+  rw mem_normalizer,
   exact λ x, N.lie_mem hm,
 end
 
-lemma centralizer_inf :
-  (N₁ ⊓ N₂).centralizer = N₁.centralizer ⊓ N₂.centralizer :=
+lemma normalizer_inf :
+  (N₁ ⊓ N₂).normalizer = N₁.normalizer ⊓ N₂.normalizer :=
 by { ext, simp [← forall_and_distrib], }
 
-@[mono] lemma monotone_centalizer :
-  monotone (centralizer : lie_submodule R L M → lie_submodule R L M) :=
+@[mono] lemma monotone_normalizer :
+  monotone (normalizer : lie_submodule R L M → lie_submodule R L M) :=
 begin
   intros N₁ N₂ h m hm,
-  rw mem_centralizer at hm ⊢,
+  rw mem_normalizer at hm ⊢,
   exact λ x, h (hm x),
 end
 
-@[simp] lemma comap_centralizer (f : M' →ₗ⁅R,L⁆ M) :
-  N.centralizer.comap f = (N.comap f).centralizer :=
+@[simp] lemma comap_normalizer (f : M' →ₗ⁅R,L⁆ M) :
+  N.normalizer.comap f = (N.comap f).normalizer :=
 by { ext, simp, }
 
-lemma top_lie_le_iff_le_centralizer (N' : lie_submodule R L M) :
-  ⁅(⊤ : lie_ideal R L), N⁆ ≤ N' ↔ N ≤ N'.centralizer :=
+lemma top_lie_le_iff_le_normalizer (N' : lie_submodule R L M) :
+  ⁅(⊤ : lie_ideal R L), N⁆ ≤ N' ↔ N ≤ N'.normalizer :=
 by { rw lie_le_iff, tauto, }
 
-lemma gc_top_lie_centralizer :
-  galois_connection (λ N : lie_submodule R L M, ⁅(⊤ : lie_ideal R L), N⁆) centralizer :=
-top_lie_le_iff_le_centralizer
+lemma gc_top_lie_normalizer :
+  galois_connection (λ N : lie_submodule R L M, ⁅(⊤ : lie_ideal R L), N⁆) normalizer :=
+top_lie_le_iff_le_normalizer
 
 variables (R L M)
 
-lemma centralizer_bot_eq_max_triv_submodule :
-  (⊥ : lie_submodule R L M).centralizer = lie_module.max_triv_submodule R L M :=
+lemma normalizer_bot_eq_max_triv_submodule :
+  (⊥ : lie_submodule R L M).normalizer = lie_module.max_triv_submodule R L M :=
 rfl
 
 end lie_submodule
@@ -96,15 +96,15 @@ namespace lie_subalgebra
 
 variables (H : lie_subalgebra R L)
 
-/-- Regarding a Lie subalgebra `H ⊆ L` as a module over itself, its centralizer is in fact a Lie
-subalgebra. This is called the normalizer of the Lie subalgebra. -/
+/-- Regarding a Lie subalgebra `H ⊆ L` as a module over itself, its normalizer is in fact a Lie
+subalgebra. -/
 def normalizer : lie_subalgebra R L :=
 { lie_mem' := λ y z hy hz x,
   begin
     rw [coe_bracket_of_module, mem_to_lie_submodule, leibniz_lie, ← lie_skew y, ← sub_eq_add_neg],
     exact H.sub_mem (hz ⟨_, hy x⟩) (hy ⟨_, hz x⟩),
   end,
-  .. H.to_lie_submodule.centralizer }
+  .. H.to_lie_submodule.normalizer }
 
 lemma mem_normalizer_iff' (x : L) : x ∈ H.normalizer ↔ ∀ (y : L), (y ∈ H) → ⁅y, x⁆ ∈ H :=
 by { rw subtype.forall', refl, }
@@ -116,10 +116,10 @@ begin
   rw [← lie_skew, neg_mem_iff],
 end
 
-lemma le_normalizer : H ≤ H.normalizer := H.to_lie_submodule.le_centralizer
+lemma le_normalizer : H ≤ H.normalizer := H.to_lie_submodule.le_normalizer
 
-lemma coe_centralizer_eq_normalizer :
-  (H.to_lie_submodule.centralizer : submodule R L) = H.normalizer :=
+lemma coe_normalizer_eq_normalizer :
+  (H.to_lie_submodule.normalizer : submodule R L) = H.normalizer :=
 rfl
 
 variables {H}

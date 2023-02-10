@@ -12,6 +12,9 @@ import tactic.noncomm_ring
 
 # Localization over right Ore sets.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the localization of a monoid over a right Ore set and proves its universal
 mapping property. It then extends the definition and its properties first to semirings and then
 to rings. We show that in the case of a commutative monoid this definition coincides with the

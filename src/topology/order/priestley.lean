@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # Priestley spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Priestley spaces. A Priestley space is an ordered compact topological space such
 that any two distinct points can be separated by a clopen upper set.
 

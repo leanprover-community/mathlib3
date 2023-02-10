@@ -49,6 +49,8 @@ section has_continuous_mul
 
 variables [topological_space M] [has_mul M] [has_continuous_mul M]
 
+@[to_additive] instance : has_continuous_mul Mᵒᵈ := ‹has_continuous_mul M›
+
 @[to_additive]
 lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
 has_continuous_mul.continuous_mul

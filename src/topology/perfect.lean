@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Perfect Sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define perfect subsets of a topological space, and prove some basic properties,
 including a version of the Cantor-Bendixson Theorem.
 

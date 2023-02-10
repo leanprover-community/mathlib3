@@ -20,7 +20,7 @@ variables {i : ι} {l : list ι}
 function `f` such that `f j : α j` for all `i'` in `m`, `pi.cons a f` is a function `g` such
 that `g i'' : α i''` for all `i''` in `i :: l`. -/
 def cons (a : α i) (f : Π j ∈ l, α j) : Π j ∈ (i :: l), α j :=
-λ j hj, if H : j = i then (congr_arg α H).mpr a else f j (hj.resolve_left H)
+λ j hj, if h : j = i then h.symm.rec a else f j (hj.resolve_left h)
 
 @[simp] lemma cons_eta (f : Π j ∈ (i :: l), α j) :
   cons (f i (mem_cons_self _ _)) (λ j hj, f j (mem_cons_of_mem _ hj)) = f :=

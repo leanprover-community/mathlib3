@@ -248,7 +248,7 @@ begin
     suffices : tendsto (λ (t : ℕ), |x| ^ (t + 1) / (1 - |x|)) at_top
       (𝓝 (|x| * 0 / (1 - |x|))), by simpa,
     simp only [pow_succ],
-    refine (tendsto_const_nhds.mul _).div_const,
+    refine (tendsto_const_nhds.mul _).div_const _,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),

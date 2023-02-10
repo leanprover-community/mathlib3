@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov, Patrick Massot
 -/
 import algebra.geom_sum
-import algebra.algebra.basic
 import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal

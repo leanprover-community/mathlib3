@@ -1823,7 +1823,7 @@ lemma sum_add_sum_compl (s : set ι) (μ : ι → measure α) :
 begin
   ext1 t ht,
   simp only [add_apply, sum_apply _ ht],
-  exact @tsum_add_tsum_compl ℝ≥0∞ ι _ _ _ (λ i, μ i t) _ s ennreal.summable ennreal.summable
+  exact @tsum_add_tsum_compl ℝ≥0∞ ι _ _ (λ i, μ i t) _ _ s ennreal.summable ennreal.summable,
 end
 
 lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=

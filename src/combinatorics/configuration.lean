@@ -304,37 +304,27 @@ let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
 
 variables (P L)
 
+set_option old_structure_cmd true
+
 /-- A projective plane is a nondegenerate configuration in which every pair of lines has
   an intersection point, every pair of points has a line through them,
   and which has three points in general position. -/
-class projective_plane extends nondegenerate P L :=
-(mk_point : Π {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
-(mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
-(mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
-(mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
+class projective_plane extends has_points P L, has_lines P L :=
 (exists_config : ∃ (p₁ p₂ p₃ : P) (l₁ l₂ l₃ : L), p₁ ∉ l₂ ∧ p₁ ∉ l₃ ∧
   p₂ ∉ l₁ ∧ p₂ ∈ l₂ ∧ p₂ ∈ l₃ ∧ p₃ ∉ l₁ ∧ p₃ ∈ l₂ ∧ p₃ ∉ l₃)
 
 namespace projective_plane
 
-@[priority 100] -- see Note [lower instance priority]
-instance has_points [h : projective_plane P L] : has_points P L := { .. h }
-
-@[priority 100] -- see Note [lower instance priority]
-instance has_lines [h : projective_plane P L] : has_lines P L := { .. h }
-
 variables [projective_plane P L]
 
+-- instance : projective_plane (dual L) (dual P) :=
+-- { exists_config := sorry } -- invalid structure value {...}, expected type is known, but it is not a structure
+
 instance : projective_plane (dual L) (dual P) :=
-{ mk_line := @mk_point P L _ _,
-  mk_line_ax := λ _ _, mk_point_ax,
-  mk_point := @mk_line P L _ _,
-  mk_point_ax := λ _ _, mk_line_ax,
-  exists_config := by
-  { obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ :=
+⟨_, @mk_line_ax P L _ _, _, @mk_point_ax P L _ _, by
+{ obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ :=
     @exists_config P L _ _,
-    exact ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩ },
-  .. dual.nondegenerate P L }
+    exact ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩ }⟩
 
 /-- The order of a projective plane is one less than the number of lines through an arbitrary point.
 Equivalently, it is one less than the number of points on an arbitrary line. -/

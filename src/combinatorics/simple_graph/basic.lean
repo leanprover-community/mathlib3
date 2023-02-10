@@ -1492,14 +1492,10 @@ def induce_univ_iso (G : simple_graph V) : G.induce set.univ ≃g G :=
 
 def induce_induce (G : simple_graph V) (s : set V) (t : set s) :
   (G.induce s).induce t ≃g G.induce {v : V | ∃ h : v ∈ s, (⟨v,h⟩ : s) ∈ t} :=
-  {
-    to_fun := λ ⟨⟨v, hvs⟩, hvt⟩, ⟨v, ⟨hvs, hvt⟩⟩,
+  { to_fun := λ ⟨⟨v, hvs⟩, hvt⟩, ⟨v, ⟨hvs, hvt⟩⟩,
     inv_fun := λ ⟨v, h⟩, ⟨⟨v, h.fst⟩, h.snd⟩,
-    left_inv := by {rintro ⟨⟨v, hvs⟩, hvt⟩, refl,},
-    right_inv := by {rintro ⟨v, h⟩, refl,},
-    map_rel_iff' := by {
-      rintros ⟨⟨v, hvs⟩, hvt⟩ ⟨⟨w, hws⟩, hwt⟩,
-      exact ⟨id, id⟩, }
-  }
+    left_inv := λ ⟨⟨_, _⟩, _⟩, rfl,
+    right_inv := λ ⟨_, _⟩, rfl,
+    map_rel_iff' := by {rintro ⟨⟨_, _⟩, _⟩ ⟨⟨_, _⟩, _⟩, exact iff.rfl} }
 
 end simple_graph

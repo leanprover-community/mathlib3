@@ -122,49 +122,6 @@ begin
   exact has_sum_exp_series_of_imaginary hq (real.has_sum_cos _) (real.has_sum_sin _),
 end
 
--- -- TODO: remove, unless this proof is nicer?
--- lemma exp_of_imaginary (q : quaternion ℝ) (hq : q.re = 0) :
---   exp ℝ q = ↑(real.cos ‖q‖) + (real.sin ‖q‖ / ‖q‖) • q :=
--- begin
---   obtain rfl | hq0 := eq_or_ne q 0,
---   { simp },
---   have hconj : conj q = -q,
---   { ext,
---     { simp [hq] },
---     iterate 3 { refl } },
---   have : q^2 = -norm_sq q,
---   { rw [←quaternion.conj_mul_self, hconj, neg_mul, neg_neg, sq], },
---   simp_rw exp_eq_tsum,
---   have heven : ∀ k : ℕ,
---     ((2 * k)! : ℝ)⁻¹ • q ^ (2 * k) = ↑((-1)^k * ((2 * k)! : ℝ)⁻¹ * ‖q‖ ^ (2 * k)),
---   { intro k,
---     rw [pow_mul, this, ←coe_neg, ←coe_pow, ←coe_smul, norm_sq_eq_norm_sq,
---       ←sq, neg_pow (‖q‖^2), smul_eq_mul, pow_mul, mul_left_comm, mul_assoc], },
---   have hodd : ∀ k : ℕ,
---     ((2 * k + 1)! : ℝ)⁻¹ • q ^ (2 * k + 1)
---       = ↑((-1)^k * ((2 * k + 1)! : ℝ)⁻¹ * ‖q‖ ^ (2 * k + 1) / ‖q‖) * q,
---   { intro k,
---     rw [pow_succ' _ (2 * _), pow_mul, this, ←coe_neg, ←coe_pow, ←smul_mul_assoc,
---       ←coe_smul, norm_sq_eq_norm_sq,
---       ←sq, neg_pow (‖q‖^2), smul_eq_mul, mul_left_comm, ←pow_mul, div_eq_mul_inv, mul_assoc,
---       mul_assoc, pow_succ', mul_assoc, mul_inv_cancel (norm_ne_zero_iff.mpr hq0), mul_one], },
---   simp_rw [mul_assoc, ←div_eq_inv_mul, ←mul_div_assoc] at heven hodd,
---   rw ←tsum_even_add_odd,
---   { simp_rw [heven, hodd, tsum_mul_right, tsum_coe, coe_mul_eq_smul, tsum_div_const],
---     congr' 3,
---     { rw real.cos_eq_tsum },
---     { rw real.sin_eq_tsum } },
---   { simp_rw heven,
---     rw summable_coe_iff,
---     exact (real.has_sum_cos _).summable },
---   { simp_rw hodd,
---     apply summable.mul_right,
---     rw summable_coe_iff,
---     apply summable.div_const,
---     exact (real.has_sum_sin _).summable },
--- end
-
-
 /-- The closed form for the quaternion exponential on arbitrary quaternions. -/
 lemma exp_eq (q : quaternion ℝ) :
   exp ℝ q = exp ℝ q.re • (

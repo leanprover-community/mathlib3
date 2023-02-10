@@ -213,10 +213,10 @@ lemma component_compl_finite [locally_finite G] (Gpc : preconnected G) (K : fins
   finite (G.component_compl K) :=
 begin
   classical,
-  rcases K.eq_empty_or_nonempty with h|h,
+  rcases K.eq_empty_or_nonempty with rfl|h,
   -- If K is empty, then removing K doesn't change the graph, which is connected, hence has a
   -- single connected component
-  { cases h, dsimp [component_compl],
+  { dsimp [component_compl],
     rw set.compl_empty,
     haveI := @finite.of_subsingleton _ Gpc.subsingleton_connected_component,
     exact finite.of_equiv _ (connected_component.iso (induce_univ_iso G)).symm, },

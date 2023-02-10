@@ -25,38 +25,7 @@ This file contains results about `exp` on `quaternion ℝ`.
 
 open_locale quaternion nat
 
--- TODO: move
-lemma div_div_cancel_left' {G₀} [comm_group_with_zero G₀] (a b : G₀) (ha : a ≠ 0) :
-  a / b / a = b⁻¹ :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_right_comm, mul_inv_cancel ha, one_mul]
-
-
 namespace quaternion
-
-section
-variables {α : Type*}
-
-@[simp, norm_cast] lemma has_sum_coe {f : α → ℝ} {r : ℝ} :
-  has_sum (λ a, (f a : ℍ[ℝ])) (↑r : ℍ[ℝ]) ↔ has_sum f r :=
-⟨λ h, by simpa only using
-  h.map (show ℍ[ℝ] →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _) continuous_re,
-  λ h, by simpa only using h.map (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _)⟩
-
-@[simp, norm_cast]
-lemma summable_coe {f : α → ℝ} : summable (λ a, (f a : ℍ[ℝ])) ↔ summable f :=
-by simpa only using summable.map_iff_of_left_inverse (algebra_map ℝ ℍ[ℝ])
-  (show ℍ[ℝ] →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _)
-  (continuous_algebra_map _ _) continuous_re coe_re
-
-@[norm_cast] lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ[ℝ]) = ↑(∑' a, f a) :=
-begin
-  by_cases hf : summable f,
-  { exact (has_sum_coe.mpr hf.has_sum).tsum_eq, },
-  { simp [tsum_eq_zero_of_not_summable hf,
-      tsum_eq_zero_of_not_summable (summable_coe.not.mpr hf)] },
-end
-
-end
 
 lemma conj_exp (q : ℍ[ℝ]) : conj (exp ℝ q) = exp ℝ (conj q) := star_exp q
 

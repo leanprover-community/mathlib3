@@ -169,19 +169,37 @@ attribute [to_additive] coe_prod
 end comm_semiring_comm_semiring
 
 section field_nontrivial
-
 variables {R A : Type*} [field R] [comm_semiring A] [nontrivial A] [algebra R A]
 
 @[norm_cast, simp] lemma coe_inj {a b : R} : (↑a : A) = ↑b ↔ a = b :=
-⟨λ h, (algebra_map R A).injective h, by rintro rfl; refl⟩
+(algebra_map R A).injective.eq_iff
 
 @[norm_cast, simp] lemma lift_map_eq_zero_iff (a : R) : (↑a : A) = 0 ↔ a = 0 :=
-begin
-  rw (show (0 : A) = ↑(0 : R), from (map_zero (algebra_map R A)).symm),
-  norm_cast,
-end
+map_eq_zero_iff _ (algebra_map R A).injective
 
 end field_nontrivial
+
+section semifield_semidivision_ring
+variables {R : Type*} (A : Type*) [semifield R] [division_semiring A] [algebra R A]
+
+@[norm_cast, simp] lemma coe_inv (r : R) : ↑(r⁻¹) = ((↑r)⁻¹ : A) :=
+map_inv₀ (algebra_map R A) r
+
+@[norm_cast, simp] lemma coe_div (r s : R) : ↑(r / s) = (↑r / ↑s : A) :=
+map_div₀ (algebra_map R A) r s
+
+@[norm_cast, simp] lemma coe_zpow (r : R) (z : ℤ) : ↑(r ^ z) = (↑r ^ z : A) :=
+map_zpow₀ (algebra_map R A) r z
+
+end semifield_semidivision_ring
+
+section field_division_ring
+variables (R A : Type*) [field R] [division_ring A] [algebra R A]
+
+@[norm_cast] lemma coe_rat_cast (q : ℚ) : ↑(q : R) = (q : A) :=
+map_rat_cast (algebra_map R A) q
+
+end field_division_ring
 
 end algebra_map
 

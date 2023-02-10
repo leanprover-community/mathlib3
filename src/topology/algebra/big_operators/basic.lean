@@ -1128,6 +1128,21 @@ by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
 
 end topological_group
 
+section const_smul
+variables [monoid γ] [topological_space α] [add_comm_monoid α] [distrib_mul_action γ α]
+  [has_continuous_const_smul γ α] {f : β → α}
+
+lemma has_sum.const_smul {a : α} (b : γ) (hf : has_sum f a) : has_sum (λ i, b • f i) (b • a) :=
+hf.map (distrib_mul_action.to_add_monoid_hom α _) $ continuous_const_smul _
+
+lemma summable.const_smul (b : γ) (hf : summable f) : summable (λ i, b • f i) :=
+(hf.has_sum.const_smul _).summable
+
+lemma tsum_const_smul [t2_space α] (b : γ) (hf : summable f) : ∑' i, b • f i = b • ∑' i, f i :=
+(hf.has_sum.const_smul _).tsum_eq
+
+end const_smul
+
 /-! ### Product and pi types -/
 
 section prod

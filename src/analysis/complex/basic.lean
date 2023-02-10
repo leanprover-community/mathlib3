@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.complex.module
 import data.is_R_or_C.basic
-import topology.algebra.module.infinite_sum
+import topology.algebra.big_operators.module
 import topology.instances.real_vector_space
 
 /-!

@@ -60,17 +60,6 @@ end
 @[simp, norm_cast] lemma exp_coe (r : ℝ) : exp ℝ (r : ℍ[ℝ]) = ↑(exp ℝ r) :=
 (map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
 
-lemma conj_eq_neg_iff {q : ℍ} : conj q = -q ↔ q.re = 0 :=
-ext_iff.trans $ by simp [eq_neg_iff_add_eq_zero]
-
-lemma sq_eq_neg_norm_sq_iff {q : ℍ} : q^2 = -norm_sq q ↔ q.re = 0 :=
-begin
-  obtain rfl | hq0 := eq_or_ne q 0,
-  { rw [sq, zero_mul, map_zero, zero_re, coe_zero, neg_zero, eq_self_iff_true, eq_self_iff_true] },
-  rw [←quaternion.conj_mul_self, ←mul_neg, ←neg_sq, sq, mul_left_inj' (neg_ne_zero.mpr hq0),
-    eq_comm, conj_eq_neg_iff],
-end
-
 /-- Auxiliary result; if the power series corresponding to `real.cos` and `real.sin` evaluatated
 at `‖q‖` tend to `c` and `s`, then the exponential series tends to `c + (s / ‖q‖)`. -/
 lemma has_sum_exp_series_of_imaginary
@@ -91,9 +80,7 @@ begin
     { rw [zero_pow (mul_pos two_pos (nat.succ_pos _)), mul_zero, zero_div,
         pi.single_eq_of_ne (n.succ_ne_zero), coe_zero], } },
   simp_rw exp_series_apply_eq,
-  have hq2 : q^2 = -norm_sq q,
-  { rw [←quaternion.conj_mul_self, conj_eq_neg_iff.mpr hq, neg_mul, neg_neg, sq], },
-
+  have hq2 : q^2 = -norm_sq q := sq_eq_neg_norm_sq_iff.mpr hq,
   have hqn := norm_ne_zero_iff.mpr hq0,
   refine has_sum.even_add_odd _ _,
   { convert hc using 1,

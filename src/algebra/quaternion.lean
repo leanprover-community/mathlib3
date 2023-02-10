@@ -696,6 +696,30 @@ instance : no_zero_divisors ℍ[R] :=
 instance : is_domain ℍ[R] :=
 no_zero_divisors.to_is_domain _
 
+/-- The only quaternions equal to their conjugates are real. -/
+lemma conj_eq_self_iff : conj a = a ↔ a ∈ set.range (coe : R → ℍ[R]) :=
+ext_iff.trans $ by simp [ext_iff, neg_eq_iff_add_eq_zero, @eq_comm _ (0 : R)]
+
+/-- The only quaternions equal to the negation of their conjugates are purely imaginary. -/
+lemma conj_eq_neg_iff : conj a = -a ↔ a.re = 0 :=
+ext_iff.trans $ by simp [eq_neg_iff_add_eq_zero]
+
+lemma sq_eq_norm_sq_iff : a^2 = norm_sq a ↔ a ∈ set.range (coe : R → ℍ[R]) :=
+begin
+  simp_rw [←conj_eq_self_iff],
+  obtain rfl | hq0 := eq_or_ne a 0,
+  { simp },
+  { rw [←conj_mul_self, sq, mul_left_inj' hq0, eq_comm] }
+end
+
+lemma sq_eq_neg_norm_sq_iff : a^2 = -norm_sq a ↔ a.re = 0 :=
+begin
+  simp_rw [←conj_eq_neg_iff],
+  obtain rfl | hq0 := eq_or_ne a 0,
+  { simp },
+  rw [←conj_mul_self, ←mul_neg, ←neg_sq, sq, mul_left_inj' (neg_ne_zero.mpr hq0), eq_comm],
+end
+
 end linear_ordered_comm_ring
 
 section field

@@ -29,7 +29,7 @@ to `emetric_space` at the end.
 
 open set filter classical
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X : Type*}
@@ -114,6 +114,19 @@ by rw edist_comm z; apply edist_triangle
 
 theorem edist_triangle_right (x y z : α) : edist x y ≤ edist x z + edist y z :=
 by rw edist_comm y; apply edist_triangle
+
+lemma edist_congr_right {x y z : α} (h : edist x y = 0) : edist x z = edist y z :=
+begin
+  apply le_antisymm,
+  { rw [←zero_add (edist y z), ←h],
+    apply edist_triangle, },
+  { rw edist_comm at h,
+    rw [←zero_add (edist x z), ←h],
+    apply edist_triangle, },
+end
+
+lemma edist_congr_left {x y z : α} (h : edist x y = 0) : edist z x = edist z y :=
+by { rw [edist_comm z x, edist_comm z y], apply edist_congr_right h,  }
 
 lemma edist_triangle4 (x y z t : α) :
   edist x t ≤ edist x y + edist y z + edist z t :=
@@ -364,7 +377,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -946,7 +959,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   emetric_space γ :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,

@@ -8,6 +8,9 @@ import logic.embedding.basic
 
 /-!
 # The embedding of a cancellative semigroup into itself by multiplication by a fixed element.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {R : Type*}

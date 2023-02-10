@@ -17,7 +17,7 @@ Basic inequalities on trigonometric functions.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 open_locale real

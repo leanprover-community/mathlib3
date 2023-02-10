@@ -5,13 +5,15 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov
 -/
 import algebra.order.monoid.cancel.basic
-import algebra.order.group.defs
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations
 
 /-!
 # Operations on `submonoid`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
@@ -399,12 +401,7 @@ include hA
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
-@[to_additive] instance : coe_is_one_hom S' M₁ := { coe_one := rfl }
-
--- even though there is a generic `coe_one`, this can still be useful as a `dsimp` lemma,
--- so keep it `@[simp]`
-@[simp, priority 900, nolint simp_nf, to_additive]
-protected lemma coe_one : ((1 : S') : M₁) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}
 @[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M₁) = 1 ↔ x = 1 :=
@@ -432,7 +429,7 @@ instance has_pow {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
 
 attribute [to_additive] submonoid_class.has_pow
 
-@[norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
+@[simp, norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
   [submonoid_class A M] {S : A} (x : S) (n : ℕ) :
   (↑(x ^ n) : M) = ↑x ^ n :=
 rfl
@@ -505,14 +502,9 @@ subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (�
 
 include hA
 
-@[to_additive]
-instance : coe_is_monoid_hom S' M :=
-{ .. mul_mem_class.coe_is_mul_hom S',
-  .. one_mem_class.coe_is_one_hom S' }
-
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
-def subtype : S' →* M := monoid_hom.coe S' M
+def subtype : S' →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : (submonoid_class.subtype S' : S' → M) = coe := rfl
 
@@ -528,8 +520,8 @@ instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
-@[to_additive] protected lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[to_additive] protected lemma coe_one : ((1 : S) : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
 @[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
   (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl
@@ -547,7 +539,7 @@ subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
   (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 pow_mem hx n
 
-@[norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
+@[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
   (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
 rfl
 
@@ -613,8 +605,10 @@ def top_equiv : (⊤ : submonoid M) ≃* M :=
   (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
 rfl
 
-/-- A submonoid is isomorphic to its image under an injective function -/
-@[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `mul_equiv.submonoid_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_equiv.add_submonoid_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
@@ -796,7 +790,7 @@ rfl
 iff.rfl
 
 @[to_additive] lemma mrange_eq_map (f : F) : mrange f = (⊤ : submonoid M).map f :=
-copy_eq _
+submonoid.copy_eq _
 omit mc
 
 @[to_additive]
@@ -1063,14 +1057,24 @@ a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`.
 See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
 between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
-for a variant for `add_monoid_hom`s.", simps]
+for a variant for `add_monoid_hom`s."]
 def submonoid_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
-{ to_fun := λ x, ⟨e x, _⟩,
-  inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
-  ..e.to_monoid_hom.submonoid_map S,
-  ..e.to_equiv.image S }
+{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
+
+@[simp, to_additive]
+lemma coe_submonoid_map_apply (e : M ≃* N) (S : submonoid M) (g : S) :
+  ((submonoid_map e S g : S.map (e : M →* N)) : N) = e g := rfl
+
+@[simp, to_additive add_equiv.add_submonoid_map_symm_apply]
+lemma submonoid_map_symm_apply (e : M ≃* N) (S : submonoid M) (g : S.map (e : M →* N)) :
+  (e.submonoid_map S).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 end mul_equiv
+
+@[simp, to_additive]
+lemma submonoid.equiv_map_of_injective_coe_mul_equiv (e : M ≃* N) :
+  S.equiv_map_of_injective (e : M →* N) (equiv_like.injective e) = e.submonoid_map S :=
+by { ext, refl }
 
 section actions
 /-! ### Actions by `submonoid`s

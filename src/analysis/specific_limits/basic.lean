@@ -19,7 +19,7 @@ instances of these such as `ℝ`, `ℝ≥0` and `ℝ≥0∞`.
 noncomputable theory
 open classical set function filter finset metric
 
-open_locale classical topological_space nat big_operators uniformity nnreal ennreal
+open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -476,7 +476,7 @@ begin
   have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
   refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
-  rw [ennreal.coe_div (this i).ne'],
+  rw [coe_div (this i).ne'],
   refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
   exact coe_le_coe.2 (le_max_right _ _)
 end

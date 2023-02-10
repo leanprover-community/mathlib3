@@ -49,7 +49,7 @@ is zero.
 
 Observe that such an element `a` *cannot* be invertible.  In particular, this lemma never applies
 if `A` is a group. -/
-lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
+lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} (a : A)
   (n2 : 2 ≤ n) (na : n • a = a) (na1 : (n - 1) • a ≠ 0) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
 begin
@@ -196,13 +196,13 @@ begin
   rintro ⟨h⟩,
   refine not_lt.mpr (h (single (0 : F) (1 : F)) (_ : single 1 1 ≤ single 0 1)) ⟨1, _⟩,
   { exact or.inr ⟨0, by simp [(by boom : ∀ j : F, j < 0 ↔ false)]⟩ },
-  { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, finsupp.coe_add, pi.to_lex_apply,
+  { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, coe_add, pi.to_lex_apply,
       pi.add_apply, forall_eq, f010, f1, eq_self_iff_true, f011, f111, zero_add, and_self] },
 end
 
 example {α} [ring α] [nontrivial α] :
   ∃ f g : add_monoid_algebra α F, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
-zero_divisors_of_periodic le_rfl ((two_smul _ _).trans (by refl)) z01.ne'
+zero_divisors_of_periodic (1 : F) le_rfl (by simp [two_smul]) (z01.ne')
 
 example {α} [has_zero α] : 2 • (single 0 1 : α →₀ F) = single 0 1 ∧ (single 0 1 : α →₀ F) ≠ 0 :=
 ⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩

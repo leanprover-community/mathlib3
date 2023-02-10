@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.order.group.defs
-import data.set.pointwise.basic
-import order.upper_lower
+import data.set.pointwise.smul
+import order.upper_lower.basic
 
 /-!
 # Algebraic operations on upper/lower sets

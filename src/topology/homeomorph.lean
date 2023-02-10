@@ -10,6 +10,9 @@ import topology.support
 /-!
 # Homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between two topological spaces. They are bijections with both
 directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 
@@ -27,7 +30,7 @@ directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -248,6 +251,9 @@ by rw [← preimage_symm, preimage_interior]
 
 lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
 h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
+
+lemma image_frontier (h : α ≃ₜ β) (s : set α) : h '' frontier s = frontier (h '' s) :=
+by rw [←preimage_symm, preimage_frontier]
 
 @[to_additive]
 lemma _root_.has_compact_mul_support.comp_homeomorph {M} [has_one M] {f : β → M}

@@ -30,7 +30,7 @@ space structure on `X ⊕ Y`. The corresponding metric quotient is `optimal_GH_c
 -/
 
 noncomputable theory
-open_locale classical topological_space nnreal
+open_locale classical topology nnreal
 universes u v w
 
 open classical set function topological_space filter metric quotient
@@ -269,7 +269,7 @@ begin
     { have : tendsto (λ (t : ℝ), 2 * (max_var X Y : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var X Y * 0)) :=
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
-    { assume x y f hf,
+    { rintros x y ⟨f, hf⟩,
       exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 

@@ -3,10 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.tower
+import algebra.algebra.operations
+import algebra.algebra.subalgebra.tower
 import linear_algebra.prod
 import linear_algebra.finsupp
-import algebra.algebra.operations
 
 /-!
 # Adjoining elements to form subalgebras

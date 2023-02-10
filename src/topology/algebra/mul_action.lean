@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import algebra.add_torsor
 import topology.algebra.constructions
 import group_theory.group_action.prod
-import group_theory.group_action.basic
 import topology.algebra.const_mul_action
 
 /-!
@@ -34,7 +33,7 @@ Besides homeomorphisms mentioned above, in this file we provide lemmas like `con
 or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
 -/
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 open filter
 
 /-- Class `has_continuous_smul M X` says that the scalar multiplication `(•) : M → X → X`

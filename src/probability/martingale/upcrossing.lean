@@ -3,6 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import probability.process.hitting_time
 import probability.martingale.basic
 
 /-!
@@ -52,7 +53,7 @@ We mostly follow the proof from [Kallenberg, *Foundations of modern probability*
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 
@@ -840,7 +841,7 @@ lemma adapted.integrable_upcrossings_before [is_finite_measure μ]
   (hf : adapted ℱ f) (hab : a < b) :
   integrable (λ ω, (upcrossings_before a b f N ω : ℝ)) μ :=
 begin
-  have : ∀ᵐ ω ∂μ, ∥(upcrossings_before a b f N ω : ℝ)∥ ≤ N,
+  have : ∀ᵐ ω ∂μ, ‖(upcrossings_before a b f N ω : ℝ)‖ ≤ N,
   { refine eventually_of_forall (λ ω, _),
     rw [real.norm_eq_abs, nat.abs_cast, nat.cast_le],
     refine upcrossings_before_le _ _ hab },

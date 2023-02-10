@@ -5,11 +5,10 @@ Authors: Leonardo de Moura, Jeremy Avigad
 -/
 
 /-!
-THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-https://github.com/leanprover-community/mathlib4/pull/534
-Any changes to this file require a corresponding PR to mathlib4.
-
 # booleans
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves various trivial lemmas about booleans and their
 relation to decidable propositions.

@@ -8,6 +8,9 @@ import algebra.big_operators.order
 /-!
 # Double countings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers a few double counting arguments.
 
 ## Bipartite graphs
@@ -26,14 +29,16 @@ and `t`.
 * `card_mul_eq_card_mul`: Equality combination of the previous.
 -/
 
-open finset function
+open finset function relator
 open_locale big_operators
+
+variables {α β : Type*}
 
 /-! ### Bipartite graph -/
 
 namespace finset
 section bipartite
-variables {α β : Type*} (r : α → β → Prop) (s : finset α) (t : finset β) (a a' : α) (b b' : β)
+variables (r : α → β → Prop) (s : finset α) (t : finset β) (a a' : α) (b b' : β)
   [decidable_pred (r a)] [Π a, decidable (r a b)] {m n : ℕ}
 
 /-- Elements of `s` which are "below" `b` according to relation `r`. -/
@@ -44,6 +49,12 @@ def bipartite_above : finset β := t.filter (r a)
 
 lemma bipartite_below_swap : t.bipartite_below (swap r) a = t.bipartite_above r a := rfl
 lemma bipartite_above_swap : s.bipartite_above (swap r) b = s.bipartite_below r b := rfl
+
+@[simp, norm_cast] lemma coe_bipartite_below : (s.bipartite_below r b : set α) = {a ∈ s | r a b} :=
+coe_filter _ _
+
+@[simp, norm_cast] lemma coe_bipartite_above : (t.bipartite_above r a : set β) = {b ∈ t | r a b} :=
+coe_filter _ _
 
 variables {s t a a' b b'}
 
@@ -79,5 +90,33 @@ lemma card_mul_eq_card_mul [Π a b, decidable (r a b)]
 (card_mul_le_card_mul _ (λ a ha, (hm a ha).ge) $ λ b hb, (hn b hb).le).antisymm $
   card_mul_le_card_mul' _ (λ a ha, (hn a ha).ge) $ λ b hb, (hm b hb).le
 
+lemma card_le_card_of_forall_subsingleton
+  (hs : ∀ a ∈ s, ∃ b, b ∈ t ∧ r a b) (ht : ∀ b ∈ t, ({a ∈ s | r a b} : set α).subsingleton) :
+  s.card ≤ t.card :=
+by classical; simpa using card_mul_le_card_mul _ (λ a h, card_pos.2 $
+  (by { rw [←coe_nonempty, coe_bipartite_above], exact hs _ h } : (t.bipartite_above r a).nonempty))
+  (λ b h, card_le_one.2 $ by { simp_rw mem_bipartite_below, exact ht _ h })
+
+lemma card_le_card_of_forall_subsingleton'
+  (ht : ∀ b ∈ t, ∃ a, a ∈ s ∧ r a b) (hs : ∀ a ∈ s, ({b ∈ t | r a b} : set β).subsingleton) :
+  t.card ≤ s.card :=
+card_le_card_of_forall_subsingleton (swap r) ht hs
+
 end bipartite
 end finset
+
+open finset
+
+namespace fintype
+variables [fintype α] [fintype β] {r : α → β → Prop}
+
+lemma card_le_card_of_left_total_unique (h₁ : left_total r) (h₂ : left_unique r) :
+  fintype.card α ≤ fintype.card β :=
+card_le_card_of_forall_subsingleton r (by simpa using h₁) $ λ b _ a₁ ha₁ a₂ ha₂, h₂ ha₁.2 ha₂.2
+
+lemma card_le_card_of_right_total_unique (h₁ : right_total r) (h₂ : right_unique r) :
+  fintype.card β ≤ fintype.card α :=
+card_le_card_of_forall_subsingleton' r (by simpa using h₁) $ λ b _ a₁ ha₁ a₂ ha₂, h₂ ha₁.2 ha₂.2
+
+end fintype
+

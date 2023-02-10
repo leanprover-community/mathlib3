@@ -156,23 +156,20 @@ lemma _root_.simple_graph.connected_component.connected :
 begin
   refine connected_component.ind (λ v, _),
   refine (connected_iff _).mpr ⟨_, ⟨⟨v, rfl⟩⟩⟩,
-  let Gmk := G.connected_component_mk,
-  let GCmk := (G.induce {t : V | Gmk t = Gmk v}).connected_component_mk,
-  have : ∀ {u w} (p : G.walk u w) (hu : Gmk u = Gmk v) (hw : Gmk w = Gmk v),
-    GCmk ⟨u,hu⟩ = GCmk ⟨w,hw⟩, by
+  let Gr := G.reachable,
+  let GCr := (G.induce {t : V | Gr t v}).reachable,
+  have : ∀ {u w} (p : G.walk u w) (hu : Gr u v) (hw : Gr w v), GCr ⟨u,hu⟩ ⟨w,hw⟩, by
   { rintro u w p,
     induction p with _ _ _ _ a q ih,
-    { rintro hu hw, refl, },
+    { rintro hu hw, apply reachable.refl, },
     { rintro hu hw,
-      let := hu.symm.trans (connected_component.eq.mpr a.reachable),
-      specialize ih this.symm hw,
-      refine eq.trans _ ih,
-      apply connected_component.eq.mpr (adj.reachable _),
-      exact a,
-       }, },
+      refine reachable.trans (adj.reachable _) (ih (a.reachable.symm.trans hu) hw),
+      exact a, }, },
   rintro ⟨u,hu⟩ ⟨w,hw⟩,
-  rw ←connected_component.eq,
-  exact this (hu.trans hw.symm).some hu hw,
+  simp only [connected_component.eq, set.mem_set_of_eq] at hu hw,
+  convert this (hu.trans hw.symm).some hu hw;
+  ext w;
+  exact connected_component.eq,
 end
 
 protected lemma connected (C : G.component_compl K) : C.coe_graph.connected :=

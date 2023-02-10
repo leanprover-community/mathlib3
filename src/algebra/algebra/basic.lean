@@ -183,18 +183,6 @@ end
 
 end field_nontrivial
 
-lemma coe_inv {R A : Type*}
-  [field R] [division_ring A] [algebra R A] (x : R) :
-  (↑x : A)⁻¹ = ↑x⁻¹ :=
-begin
-  rcases ne_or_eq x 0 with hn | rfl,
-  { apply inv_eq_of_mul_eq_one_left,
-    rwa [←algebra_map.coe_mul, inv_mul_cancel, algebra_map.coe_one] },
-  { push_cast,
-    simp_rw inv_zero,
-    rw algebra_map.coe_zero }
-end
-
 end algebra_map
 
 /-- Creating an algebra from a morphism to the center of a semiring. -/

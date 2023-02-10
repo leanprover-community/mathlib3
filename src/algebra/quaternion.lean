@@ -743,12 +743,6 @@ lemma conj_zpow (z : ℤ) : conj (a ^ z) = conj a ^ z := star_zpow₀ a z
 @[norm_cast] lemma norm_sq_rat_cast (q : ℚ) : norm_sq (q : ℍ[R]) = q^2 :=
 by rw [←coe_rat_cast, norm_sq_coe]
 
-@[norm_cast, simp] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
-map_inv₀ (algebra_map R ℍ[R]) _
-
-@[norm_cast, simp] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
-map_div₀ (algebra_map R ℍ[R]) x y
-
 end field
 
 end quaternion

@@ -490,6 +490,7 @@ section group
 
 variables {F : Type u} [field F] {W : weierstrass_curve F} {x₁ x₂ y₁ y₂ : F}
   (h₁ : W.nonsingular x₁ y₁) (h₂ : W.nonsingular x₂ y₂)
+  (h₁' : W.equation x₁ y₁) (h₂' : W.equation x₂ y₂)
 
 include h₁
 
@@ -531,7 +532,9 @@ by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, mul_comm $ XY_ideal W 
        XY_ideal_neg_mul h₁, X_ideal,
        fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ X_class_ne_zero W x₁]
 
-include h₂
+omit h₁
+
+include h₁' h₂'
 
 lemma XY_ideal_mul_XY_ideal (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
   X_ideal W (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂) * (XY_ideal W x₁ (C y₁) * XY_ideal W x₂ (C y₂))
@@ -542,9 +545,9 @@ begin
   have sup_rw : ∀ a b c d : ideal W.coordinate_ring, a ⊔ (b ⊔ (c ⊔ d)) = a ⊔ d ⊔ b ⊔ c :=
   λ _ _ c _, by rw [← sup_assoc, @sup_comm _ _ c, sup_sup_sup_comm, ← sup_assoc],
   rw [XY_ideal_add_eq, X_ideal, mul_comm, W.XY_ideal_eq₁ x₁ y₁ $ W.slope x₁ x₂ y₁ y₂, XY_ideal,
-      XY_ideal_eq₂ h₁.left h₂.left hxy, XY_ideal, span_pair_mul_span_pair],
+      XY_ideal_eq₂ h₁' h₂' hxy, XY_ideal, span_pair_mul_span_pair],
   simp_rw [span_insert, sup_rw, sup_mul, span_singleton_mul_span_singleton],
-  rw [eq_neg_of_eq_neg $ coordinate_ring.C_add_polynomial_slope h₁.left h₂.left hxy,
+  rw [eq_neg_of_eq_neg $ coordinate_ring.C_add_polynomial_slope h₁' h₂' hxy,
       span_singleton_neg, coordinate_ring.C_add_polynomial, _root_.map_mul, Y_class],
   simp_rw [mul_comm $ X_class W x₁, mul_assoc, ← span_singleton_mul_span_singleton, ← mul_sup],
   rw [span_singleton_mul_span_singleton, ← span_insert,
@@ -557,7 +560,7 @@ begin
            eq_top_iff_one, mem_map_iff_of_surjective _ $ adjoin_root.mk_surjective
              W.monic_polynomial, ← span_insert, mem_span_insert', mem_span_singleton'],
   by_cases hx : x₁ = x₂,
-  { rcases ⟨hx, Y_eq_of_Y_ne h₁.left h₂.left hx (hxy hx)⟩ with ⟨rfl, rfl⟩,
+  { rcases ⟨hx, Y_eq_of_Y_ne h₁' h₂' hx (hxy hx)⟩ with ⟨rfl, rfl⟩,
     let y := (y₁ - W.neg_Y x₁ y₁) ^ 2,
     replace hxy := pow_ne_zero 2 (sub_ne_zero_of_ne $ hxy rfl),
     refine
@@ -568,7 +571,7 @@ begin
     rw [weierstrass_curve.polynomial, neg_polynomial,
         ← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hxy],
     simp only [mul_add, ← mul_assoc, ← C_mul, mul_inv_cancel hxy],
-    linear_combination -4 * congr_arg C (congr_arg C $ (W.equation_iff _ _).mp h₁.left)
+    linear_combination -4 * congr_arg C (congr_arg C $ (W.equation_iff _ _).mp h₁')
       with { normalization_tactic := `[rw [b₂, b₄, neg_Y], C_simp, ring1] } },
   { replace hx := sub_ne_zero_of_ne hx,
     refine ⟨_, ⟨⟨C $ C (x₁ - x₂)⁻¹, C $ C $ (x₁ - x₂)⁻¹ * -1, 0, _⟩, map_one _⟩⟩,
@@ -578,7 +581,7 @@ begin
     ring1 }
 end
 
-omit h₁ h₂
+omit h₁' h₂'
 
 /-- The non-zero fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ for some $x, y \in F$. -/
 @[simp] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
@@ -607,7 +610,7 @@ begin
   rw [← _root_.map_mul],
   exact (class_group.mk_eq_mk_of_coe_ideal (by exact (fractional_ideal.coe_ideal_mul _ _).symm) $
           XY_ideal'_eq _).mpr ⟨_, _, X_class_ne_zero W _, Y_class_ne_zero W _,
-            XY_ideal_mul_XY_ideal h₁ h₂ hxy⟩
+            XY_ideal_mul_XY_ideal h₁.left h₂.left hxy⟩
 end
 
 namespace point

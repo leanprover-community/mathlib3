@@ -1639,23 +1639,23 @@ lemma has_strict_deriv_at.div_const (hc : has_strict_deriv_at c c' x) (d : 𝕜'
   has_strict_deriv_at (λ x, c x / d) (c' / d) x :=
 by simpa only [div_eq_mul_inv] using hc.mul_const d⁻¹
 
-lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜'} :
+lemma differentiable_within_at.div_const (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜') :
   differentiable_within_at 𝕜 (λx, c x / d) s x :=
 (hc.has_deriv_within_at.div_const _).differentiable_within_at
 
-@[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜'} :
+@[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) (d : 𝕜') :
   differentiable_at 𝕜 (λ x, c x / d) x :=
 (hc.has_deriv_at.div_const _).differentiable_at
 
-lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜'} :
+lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) (d : 𝕜') :
   differentiable_on 𝕜 (λx, c x / d) s :=
-λ x hx, (hc x hx).div_const
+λ x hx, (hc x hx).div_const d
 
-@[simp] lemma differentiable.div_const (hc : differentiable 𝕜 c) {d : 𝕜'} :
+@[simp] lemma differentiable.div_const (hc : differentiable 𝕜 c) (d : 𝕜') :
   differentiable 𝕜 (λx, c x / d) :=
-λ x, (hc x).div_const
+λ x, (hc x).div_const d
 
-lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) {d : 𝕜'}
+lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜')
   (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, c x / d) s x = (deriv_within c s x) / d :=
 by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]

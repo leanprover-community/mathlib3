@@ -43,7 +43,7 @@ open subset `u` of `X`). The `u` coordinate of `product_of_mem_opens x` is given
 -/
 def product_of_mem_opens : C(X, opens X → Prop) :=
 { to_fun := λ x u, x ∈ u,
-  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.property) }
+  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.is_open) }
 
 lemma product_of_mem_opens_inducing : inducing (product_of_mem_opens X) :=
 begin

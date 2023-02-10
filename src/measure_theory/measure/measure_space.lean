@@ -1881,7 +1881,7 @@ variable [measurable_space α]
 def count : measure α := sum dirac
 
 lemma le_count_apply : (∑' i : s, 1 : ℝ≥0∞) ≤ count s :=
-calc (∑' i : s, 1 : ℝ≥0∞) = ∑' i, indicator s 1 i : tsum_subtype s 1
+calc (∑' i : s, 1 : ℝ≥0∞) = ∑' i, indicator s 1 i : by simp_rw [←tsum_subtype, pi.one_apply]
 ... ≤ ∑' i, dirac i s : ennreal.tsum_le_tsum $ λ x, le_dirac_apply
 ... ≤ count s : le_sum_apply _ _
 
@@ -1894,7 +1894,7 @@ by rw [count_apply measurable_set.empty, tsum_empty]
 @[simp] lemma count_apply_finset' {s : finset α} (s_mble : measurable_set (s : set α)) :
   count (↑s : set α) = s.card :=
 calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s_mble
-                    ... = ∑ i in s, 1 : s.tsum_subtype 1
+                    ... = ∑ i in s, 1 : by rw [←finset.tsum_subtype]; refl
                     ... = s.card : by simp
 
 @[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :

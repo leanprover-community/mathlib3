@@ -127,8 +127,8 @@ lemma mem_of_adj : ∀ {C : G.component_compl K} (c d : V), c ∈ C → d ∉ K 
 lemma eq_of_adj {C D: G.component_compl K} (c d : V) (cC : c ∈ C) (dD : d ∈ D) (a : G.adj c d) :
   C = D := by
 begin
-  obtain ⟨_,_,rfl⟩ := cC,
-  obtain ⟨_,_,rfl⟩ := dD,
+  obtain ⟨_, _, rfl⟩ := cC,
+  obtain ⟨_, _, rfl⟩ := dD,
   apply quot.sound, apply adj.reachable, exact a,
 end
 
@@ -173,14 +173,11 @@ begin
            → ↑w ∈ of_connected_disjoint_right Dc Dd, by
   { rintro _ _ p e,
     induction p with _ _ _ _ a q ih,
-    { rw e,
-      refine component_compl_mk_mem _ _, },
-    { dsimp only [of_connected_disjoint_right] at *,
-      obtain ⟨_, b⟩ := ih e,
-      simp only [comap_adj, function.embedding.coe_subtype] at a,
+    { refine e.symm ▸ component_compl_mk_mem _ _, },
+    { obtain ⟨_, b⟩ := ih e,
       rw [←b, ←component_compl_mk_eq_of_adj G (set.disjoint_right.mp Dd p_u.prop) _ a],
       apply component_compl_mk_mem, } },
-  exact λ w wD, this (Dc.preconnected ⟨w,wD⟩ Dc.nonempty.some).some rfl,
+  exact λ w wD, this (Dc.preconnected ⟨w, wD⟩ Dc.nonempty.some).some rfl,
 end
 
 /--

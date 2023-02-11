@@ -1538,6 +1538,7 @@ begin
   refine connected_component.ind (λ v, _),
   refine (connected_iff _).mpr ⟨_, ⟨⟨v, rfl⟩⟩⟩,
   let Gr := G.reachable,
+  rw set.ext (λ (v' : V), @connected_component.eq V G v' v),
   let GCr := (G.induce {t : V | Gr t v}).reachable,
   have : ∀ {u w} (p : G.walk u w) (hu : Gr u v) (hw : Gr w v), GCr ⟨u,hu⟩ ⟨w,hw⟩, by
   { rintro u w p,
@@ -1547,8 +1548,7 @@ begin
       exact a, }, },
   rintro ⟨u,hu⟩ ⟨w,hw⟩,
   simp only [connected_component.eq, set.mem_set_of_eq] at hu hw,
-  convert this (hu.trans hw.symm).some hu hw;
-  exact set.ext (λ _, connected_component.eq),
+  exact this (reachable.trans hu $ reachable.symm hw).some hu hw,
 end
 
 end connected_component

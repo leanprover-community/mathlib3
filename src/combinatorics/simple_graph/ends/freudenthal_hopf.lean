@@ -49,10 +49,10 @@ lemma bwd_map_non_inj
       (op_hom_of_le $ finset.subset_union_left H.unop K.unop : op (H.unop ∪ K.unop) ⟶ H)) :=
 begin
   obtain ⟨E, hE⟩ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc) _ _
       (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D,
   obtain ⟨E', hE'⟩ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc) _ _
       (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D',
   subst_vars,
   refine λ inj, (by { rintro rfl, exact Ddist rfl, } : E ≠ E') (inj _),
@@ -138,7 +138,7 @@ lemma good_autom_back_not_inj
   (Gpc : G.preconnected)
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : (finset V)ᵒᵖ)
-  {hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)} :
+  (hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)) :
   ∃ (L M : (finset V)ᵒᵖ) (hL : L ⟶ K) (hM : M ⟶ L),
     ¬ (injective $ G.component_compl_functor.to_eventual_ranges.map hM) :=
 begin
@@ -198,13 +198,16 @@ begin
 end
 
 lemma Freudenthal_Hopf
-  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
-  (fin 3 ↪ G.end) → G.end.infinite :=
+  [Vi : infinite V] -- follows from the other assumptions
+  [locally_finite G] (Gpc : G.preconnected)
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
+  (many_ends : fin 3 ↪ G.end) : G.end.infinite :=
 begin
   classical,
 
+
   -- Assume we have at least three ends, but finitely many
-  intros many_ends finite_ends,
+  intros finite_ends,
 
   -- Boring boilerplate
 
@@ -218,14 +221,20 @@ begin
   haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := ComplInfComp_fintype  G Glf Gpc,
   have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G Glf Gpc,
   -/
+  haveI := G.component_compl_functor_to_eventual_ranges_finite Gpc,
+  haveI := G.component_compl_functor_to_eventual_ranges_nonempty_of_infinite,
+  have surj : ∀ i j (f : i ⟶ j), function.surjective _ :=
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc),
+
   -- By finitely many ends, and since the system is nice, there is some K such that each inf_component_compl_back to K is injective
   obtain ⟨K,top⟩ := G.component_compl_functor.to_eventual_ranges.eventually_injective,
   -- Since each inf_component_compl_back to K is injective, the map from sections to K is also injective
-  let inj' := G.component_compl_functor.to_eventual_ranges.eval_sections_injective_of_eventually_injective,
-  /-
+  let inj' := G.component_compl_functor.to_eventual_ranges.eval_section_injective_of_eventually_injective top,
+  let inj'' := (many_ends.trans (functor.to_eventual_ranges_sections_equiv _).symm.to_embedding).trans ⟨_, (inj' K (𝟙 K))⟩,
   -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
   -- giving us K ⊆ L ⊆ L with the inf_component_compl_back from L to L not injective.
-  obtain ⟨L,L,KL,LL,bwd_K_not_inj⟩ := (good_autom_back_not_inj G Glf Gpc auts K (many_ends.trans ⟨_,inj'⟩)),
+  obtain ⟨L,M,KL,LM,bwd_K_not_inj⟩ := (good_autom_back_not_inj Gpc auts K inj''),
+  /-
   -- which is in contradiction with the fact that all inf_component_compl_back to K are injective
   apply bwd_K_not_inj,
   -- The following is just that if f ∘ g is injective, then so is g

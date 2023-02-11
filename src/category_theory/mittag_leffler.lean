@@ -204,7 +204,7 @@ def to_eventual_ranges_sections_equiv : F.to_eventual_ranges.sections ≃ F.sect
 If `F` satisfies the Mittag-Leffler condition, its restriction to eventual ranges is a surjective
 functor.
 -/
-lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) (f : i ⟶ j) :
+lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) (i j) (f : i ⟶ j) :
   (F.to_eventual_ranges.map f).surjective :=
 λ ⟨x, hx⟩, by { obtain ⟨y, hy, rfl⟩ := h.subset_image_eventual_range F f hx, exact ⟨⟨y, hy⟩, rfl⟩ }
 
@@ -238,18 +238,16 @@ cardinality constraints, they must all be injective.
 -/
 
 lemma eval_section_injective_of_eventually_injective
-  (Finj : ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective) :
-   ∃ j, ∀ i (f : i ⟶ j), (λ s : F.sections, s.val j).injective :=
+  {j} (Finj : ∀ i (f : i ⟶ j), (F.map f).injective) :
+   ∀ i (f : i ⟶ j), (λ s : F.sections, s.val j).injective :=
 begin
-  obtain ⟨j,hj⟩ := Finj,
-  refine ⟨j, λ i f s₀ s₁ h, subtype.ext $ funext $ λ k, _⟩,
-  obtain ⟨m,mi,mk,_⟩ := cone_objs i k,
+  refine λ i f s₀ s₁ h, subtype.ext $ funext $ λ k, _,
+  obtain ⟨m, mi, mk, _⟩ := cone_objs i k,
   dsimp at h,
   rw [←s₀.prop (mi ≫ f), ←s₁.prop (mi ≫ f)] at h,
   rw [←s₀.prop mk, ←s₁.prop mk],
-  refine congr_arg _ (hj m (mi ≫ f) h),
+  refine congr_arg _ (Finj m (mi ≫ f) h),
 end
--- only depends on Finj, but none of the other variables
 
 end fintype_cofiltered_system
 

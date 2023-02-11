@@ -8,6 +8,7 @@ import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
 import topology.algebra.star
+import topology.algebra.infinite_sum
 import algebra.algebra.pi
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
@@ -304,6 +305,34 @@ coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
     exactI λ K hK, uniform_continuous_inv.comp_tendsto_uniformly_on
       (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK), } }
+
+-- TODO: rewrite the next three lemmas for products and deduce sum case via `to_additive`, once
+-- definition of `tprod` is in place
+
+/-- If `α` is locally compact, and an infinite sum of functions in `C(α, β)`
+converges to `g` (for the compact-open topology), then the pointwise sum converges to `g x` for
+all `x ∈ α`. -/
+lemma has_sum_apply {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [locally_compact_space α]
+   [topological_space β] [add_comm_monoid β] [has_continuous_add β]
+  {f : γ → C(α, β)} {g : C(α, β)} (hf : has_sum f g) (x : α) :
+  has_sum (λ i : γ, f i x) (g x) :=
+begin
+  let evₓ := (pi.eval_add_monoid_hom _ x).comp (coe_fn_add_monoid_hom : C(α, β) →+ _),
+  exact hf.map evₓ (continuous_map.continuous_eval_const' x),
+end
+
+lemma summable_apply {α : Type*} [topological_space α] [locally_compact_space α]
+  {β : Type*} [topological_space β] [add_comm_monoid β] [has_continuous_add β]
+  {γ : Type*} {f : γ → C(α, β)} (hf : summable f) (x : α) :
+  summable (λ i : γ, f i x) :=
+(has_sum_apply hf.has_sum x).summable
+
+lemma tsum_apply {α : Type*} [topological_space α] [locally_compact_space α]
+  {β : Type*} [topological_space β] [t2_space β] [add_comm_monoid β] [has_continuous_add β]
+  {γ : Type*} {f : γ → C(α, β)} (hf : summable f) (x : α) :
+  (∑' (i:γ), f i x) = (∑' (i:γ), f i) x :=
+(has_sum_apply hf.has_sum x).tsum_eq
 
 end continuous_map
 

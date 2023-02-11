@@ -277,8 +277,8 @@ lemma is_upper_set_iff_forall_le {s : set α} : is_upper_set s ↔ ∀ ⦃a b : 
 
 variables {β : Type*} [preorder β]
 
-lemma continuous.to_monotone (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
-  monotone f :=
+lemma continuous.to_monotone {f : (with_scott_topology α) → (with_scott_topology β)}
+  (hf: continuous f) : monotone f :=
 begin
   rw monotone,
   intros a b hab,
@@ -290,7 +290,7 @@ begin
     rw [is_open_compl_iff, ← closure_singleton],
     exact is_closed_closure,
   end,
-  have s2 :  is_open (f⁻¹'  u) := is_open.preimage f.continuous_to_fun s1,
+  have s2 :  is_open (f⁻¹'  u) := is_open.preimage hf s1,
   have u3 : b ∈ (f⁻¹'  u) := is_upper_set_iff_forall_le.mp s2.1 hab u2,
   have c1 : f(b) ∈ (Iic (f b))ᶜ :=
   begin
@@ -353,49 +353,45 @@ begin
   simp only [mem_insert_iff, eq_self_iff_true, true_or, and_self],
 end
 
-lemma scott_continuity2 (f : (with_scott_topology α) → (with_scott_topology β)) :
-  preserve_lub_on_directed f → continuous f :=
+lemma scott_continuity_iff (f : (with_scott_topology α) → (with_scott_topology β)) :
+  preserve_lub_on_directed f ↔ continuous f :=
 begin
-  intro h,
-  rw continuous_def,
-  intros u hu,
-  rw scott_is_open',
   split,
-  { apply is_upper_set.preimage (scott_open_is_upper hu),
-    apply preserve_lub_montotone,
-    exact h, },
-  { intros d a hd₁ hd₂ hd₃ ha,
-  have e1: is_lub (f '' d) (f(a)) :=
-  begin
-    apply h,
-    apply hd₁,
-    apply hd₂,
-    apply hd₃,
-  end,
-  rw scott_is_open' at hu,
-  have e2: ((f '' d) ∩ u).nonempty :=
-  begin
-    apply hu.2,
-    exact nonempty.image f hd₁,
-    have e3: monotone f := begin
+  { intro h,
+    rw continuous_def,
+    intros u hu,
+    rw scott_is_open',
+    split,
+    { apply is_upper_set.preimage (scott_open_is_upper hu),
       apply preserve_lub_montotone,
-      exact h,
+      exact h, },
+    { intros d a hd₁ hd₂ hd₃ ha,
+    have e1: is_lub (f '' d) (f(a)) :=
+    begin
+      apply h,
+      apply hd₁,
+      apply hd₂,
+      apply hd₃,
     end,
-    apply directed_on_image.mpr,
-    exact directed_on.mono hd₂ e3,
-    apply e1,
-    exact ha,
-  end,
-  exact image_inter_nonempty_iff.mp e2, }
-end
-
-lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
-  preserve_lub_on_directed f :=
-begin
-  intros d a d₁ d₂ d₃,
-  rw is_lub,
-  split,
-  { apply monotone.mem_upper_bounds_image (continuous.to_monotone f),
+    rw scott_is_open' at hu,
+    have e2: ((f '' d) ∩ u).nonempty :=
+    begin
+      apply hu.2,
+      exact nonempty.image f hd₁,
+      have e3: monotone f := begin
+        apply preserve_lub_montotone,
+        exact h,
+      end,
+      apply directed_on_image.mpr,
+      exact directed_on.mono hd₂ e3,
+      apply e1,
+      exact ha,
+    end,
+    exact image_inter_nonempty_iff.mp e2, } },
+  { intros hf d a d₁ d₂ d₃,
+    rw is_lub,
+      split,
+  { apply monotone.mem_upper_bounds_image (continuous.to_monotone hf),
     rw ← is_lub_le_iff,
     exact d₃, },
   { rw [lower_bounds, mem_set_of_eq],
@@ -408,7 +404,7 @@ begin
       rw [is_open_compl_iff, ← closure_singleton],
       exact is_closed_closure,
     end,
-    have s2 : is_open (f⁻¹'  u) := is_open.preimage f.continuous_to_fun s1,
+    have s2 : is_open (f⁻¹'  u) := is_open.preimage hf s1,
     rw scott_is_open' at s2,
     cases s2,
     cases s2_right d a d₁ d₂ d₃ e1 with c,
@@ -421,7 +417,7 @@ begin
       apply hb,
       exact h_1_left,
     end,
-    contradiction, },
+    contradiction, }, }
 end
 
 end preorder

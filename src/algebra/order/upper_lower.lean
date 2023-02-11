@@ -10,6 +10,9 @@ import order.upper_lower.basic
 /-!
 # Algebraic operations on upper/lower sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Upper/lower sets are preserved under pointwise algebraic operations in ordered groups.
 -/
 

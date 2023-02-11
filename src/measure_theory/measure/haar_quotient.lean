@@ -10,7 +10,8 @@ import measure_theory.group.fundamental_domain
 import measure_theory.integral.integral_eq_improper
 import measure_theory.measure.haar
 import topology.compact_open
-import measure_theory.function.strongly_measurable_supr --- should be `.supr`
+import measure_theory.function.strongly_measurable_supr
+--- should be `.supr`
 
 /-!
 # Haar quotient measure
@@ -326,8 +327,8 @@ local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict
 by simp [subgroup.opposite]
 
 @[to_additive]
-lemma mul_ess_sup_of_g [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
-  (g : G ⧸ Γ → ℝ≥0∞) (g_measurable : ae_measurable g μ_𝓕) :
+lemma mul_ess_sup_of_g [μ.is_mul_right_invariant] (g : G ⧸ Γ → ℝ≥0∞)
+  (g_measurable : ae_measurable g μ_𝓕) :
   ess_sup g μ_𝓕 = ess_sup (λ (x : G), g x) μ :=
 begin
   have hπ : measurable (quotient_group.mk : G → G ⧸ Γ) := continuous_quotient_mk.measurable,
@@ -360,6 +361,49 @@ begin
     congrm _ ∈ s,
     convert quotient_group.mk_mul_of_mem g (mul_opposite.unop (γ⁻¹)) (γ⁻¹).2, },
   exact measurable_set_preimage meas_π s_meas,
+end
+
+
+omit h𝓕
+local attribute [-instance] quotient.measurable_space
+
+--- move to ` asdf `???
+/-- Given a group `α` acting on a type `β`, and a function `f : β → γ`, we "automorphize" `f` to a
+  function `β ⧸ α → γ` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
+@[to_additive]
+def mul_action.automorphize {α : Type*} {β : Type*} [group α] [mul_action α β] {γ : Type*}
+  [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : β → γ) :
+  quotient (mul_action.orbit_rel α β) → γ :=
+@quotient.lift _ _ (mul_action.orbit_rel α β) (λ b, ∑' (a : α), f(a • b))
+begin
+  rintros b₁ b₂ ⟨a, (rfl : a • b₂ = b₁)⟩,
+  simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
+end
+
+
+lemma measurable_lift {α : Type*} {β : Type*} [group α] [mul_action α β] [measurable_space β]
+  [topological_space β] [borel_space β] {γ : Type*} [measurable_space γ]
+  [measurable_space (quotient (mul_action.orbit_rel α β))]
+  [borel_space (quotient (mul_action.orbit_rel α β))]
+  (f : β → γ)
+  (f_invariant : (∀ (a b : β), (mul_action.orbit_rel α β).r a b → f a = f b)) (hf : measurable f) :
+  measurable (@quotient.lift _ _ (mul_action.orbit_rel α β) f f_invariant) :=
+begin
+  intros s s_meas,
+  dsimp [measurable_set],
+  sorry,
+end
+
+
+--def automorphize' {α : Type*} (f : G → ℂ) : G ⧸ Γ → ℂ := mul_action.automorphize f
+
+--omit h𝓕
+
+lemma automorphize.ae_strongly_measurable [μ.is_mul_right_invariant] (f : G → ℂ)
+  (f_ae_sm : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (mul_action.automorphize f) μ_𝓕 :=
+begin
+
 end
 
 /-- This is the "unfolding" trick
@@ -399,9 +443,8 @@ end
 
 /-- This is the "unfolding" trick -/
 @[to_additive]
-lemma mul_unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
+lemma mul_unfolding_trick [μ.is_mul_right_invariant]
   {f : G → ℂ}
-  (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
   (f_ℒ_1 : integrable f μ)
   {g : G ⧸ Γ → ℂ}
   (hg : ae_strongly_measurable g μ_𝓕)

@@ -197,26 +197,32 @@ begin
   exact (hK.trans iK).trans eL.to_embedding,
 end
 
-
 lemma Freudenthal_Hopf
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
   (fin 3 ↪ G.end) → G.end.infinite :=
 begin
-  sorry
-  /-
+  classical,
+
   -- Assume we have at least three ends, but finitely many
   intros many_ends finite_ends,
 
   -- Boring boilerplate
-  haveI : fintype (ComplInfComp G).sections := finite.fintype finite_ends,
+
+  haveI : fintype (G.component_compl_functor.to_eventual_ranges).sections :=
+    (@fintype.of_equiv _ _ (set.finite.fintype finite_ends) $ (functor.to_eventual_ranges_sections_equiv _).symm),
+  /-
+  The sections of `….to_eventual_ranges` are finite, and it's a surjective system, so it's
+  eventually an injective system.
+  -/
+  /-
   haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := ComplInfComp_fintype  G Glf Gpc,
   have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G Glf Gpc,
-
+  -/
   -- By finitely many ends, and since the system is nice, there is some K such that each inf_component_compl_back to K is injective
-  obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G) surj,
+  obtain ⟨K,top⟩ := G.component_compl_functor.to_eventual_ranges.eventually_injective,
   -- Since each inf_component_compl_back to K is injective, the map from sections to K is also injective
-  let inj' := inverse_system.sections_injective (ComplInfComp G) K top,
-
+  let inj' := G.component_compl_functor.to_eventual_ranges.eval_sections_injective_of_eventually_injective,
+  /-
   -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
   -- giving us K ⊆ L ⊆ L with the inf_component_compl_back from L to L not injective.
   obtain ⟨L,L,KL,LL,bwd_K_not_inj⟩ := (good_autom_back_not_inj G Glf Gpc auts K (many_ends.trans ⟨_,inj'⟩)),

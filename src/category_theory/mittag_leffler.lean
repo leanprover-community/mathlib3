@@ -220,5 +220,38 @@ lemma thin_diagram_of_surjective (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).
 let ⟨k, φ, hφ⟩ := cone_maps f g in
 (Fsur k i φ).injective_comp_right $ by simp_rw [← types_comp, ← F.map_comp, hφ]
 
+section fintype_cofiltered_system
+
+variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
+  (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
+
+lemma eval_section_surjective_of_surjective (i : J) :
+  (λ s : F.sections, s.val i).surjective := sorry
+-- needs work and `nonempty_sections_of_fintype_cofiltered_system`
+
+lemma eventually_injective [finite F.sections] :
+  ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective := sorry
+/-
+By `eval_section_surjective_of_surjective`, all cardinalities of `F.obj j` are bounded by the
+cardinality of `F.sections`, take a maximal such; by surjectivity of all the `F.map f`, and
+cardinality constraints, they must all be injective.
+-/
+
+lemma eval_section_injective_of_eventually_injective
+  (Finj : ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective) :
+   ∃ j, ∀ i (f : i ⟶ j), (λ s : F.sections, s.val j).injective :=
+begin
+  obtain ⟨j,hj⟩ := Finj,
+  refine ⟨j, λ i f s₀ s₁ h, subtype.ext $ funext $ λ k, _⟩,
+  obtain ⟨m,mi,mk,_⟩ := cone_objs i k,
+  dsimp at h,
+  rw [←s₀.prop (mi ≫ f), ←s₁.prop (mi ≫ f)] at h,
+  rw [←s₀.prop mk, ←s₁.prop mk],
+  refine congr_arg _ (hj m (mi ≫ f) h),
+end
+-- only depends on Finj, but none of the other variables
+
+end fintype_cofiltered_system
+
 end functor
 end category_theory

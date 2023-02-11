@@ -177,11 +177,9 @@ begin
     rintro C,
     rw [←(connected_component.iso lol).right_inv C, equiv.infinite_iff],
     exact inf ((connected_component.iso lol).symm C),
-    transitivity,
-    { apply component_compl.supp_equiv, },
-    transitivity,
-    { symmetry, exact (connected_component.apply_iso_equiv lol _), },
-    { symmetry, apply component_compl.supp_equiv, }, },
+    exact (component_compl.supp_equiv _).trans
+      ((connected_component.apply_iso_equiv lol _).symm.trans
+        (component_compl.supp_equiv _).symm), },
 
   apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) (Ln.image φ) ⟨_, _⟩ ⟨_, _⟩
     (subset_of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh))

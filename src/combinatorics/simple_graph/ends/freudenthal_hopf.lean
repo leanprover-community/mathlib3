@@ -158,18 +158,15 @@ begin
   obtain ⟨L,KL,Lc,inf⟩ : ∃ (L : finset V), K.unop ⊆ L ∧ (G.induce (L : set V)).connected ∧
                               ∀ C : G.component_compl L, C.supp.infinite := sorry,
   obtain ⟨φ,φh⟩ := auts L,
-  have Ln : L.nonempty := finset.nonempty.mono KL Kn,
   let φL := L.image φ,
   have φLc : (G.induce (φL : set V)).connected, by
   { rw [finset.coe_image, ←(induce.iso φ).connected_iff], exact Lc, },
 
   refine ⟨op L, op (L ∪ φL), op_hom_of_le KL, op_hom_of_le (finset.subset_union_left _ _), _⟩,
 
-  let lol : (G.induce (L : set V)ᶜ) ≃g
-            (G.induce (φL : set V)ᶜ), by
-  { have : (φL : set V)ᶜ = φ '' (L : set V)ᶜ, by
-      simp only [set.image_compl_eq φ.bijective, finset.coe_image],
-    rw [this],
+  let lol : (G.induce (L : set V)ᶜ) ≃g (G.induce (φL : set V)ᶜ), by
+  { rw (by simp only [set.image_compl_eq φ.bijective, finset.coe_image] :
+          (φL : set V)ᶜ = φ '' (L : set V)ᶜ),
     apply induce.iso, },
 
   have φinf : ∀ C : G.component_compl φL, C.supp.infinite, by
@@ -181,7 +178,7 @@ begin
       ((connected_component.apply_iso_equiv lol _).symm.trans
         (component_compl.supp_equiv _).symm), },
 
-  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) (Ln.image φ) ⟨_, _⟩ ⟨_, _⟩
+  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) ((Kn.mono KL).image φ) ⟨_, _⟩ ⟨_, _⟩
     (subset_of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh))
     (subset_of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm)) _,
   exact (@component_compl.infinite_iff_in_eventual_range V G (op φL) _).mp (φinf _),

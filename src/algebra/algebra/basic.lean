@@ -182,13 +182,13 @@ end field_nontrivial
 section semifield_semidivision_ring
 variables {R : Type*} (A : Type*) [semifield R] [division_semiring A] [algebra R A]
 
-@[norm_cast, simp] lemma coe_inv (r : R) : ↑(r⁻¹) = ((↑r)⁻¹ : A) :=
+@[norm_cast] lemma coe_inv (r : R) : ↑(r⁻¹) = ((↑r)⁻¹ : A) :=
 map_inv₀ (algebra_map R A) r
 
-@[norm_cast, simp] lemma coe_div (r s : R) : ↑(r / s) = (↑r / ↑s : A) :=
+@[norm_cast] lemma coe_div (r s : R) : ↑(r / s) = (↑r / ↑s : A) :=
 map_div₀ (algebra_map R A) r s
 
-@[norm_cast, simp] lemma coe_zpow (r : R) (z : ℤ) : ↑(r ^ z) = (↑r ^ z : A) :=
+@[norm_cast] lemma coe_zpow (r : R) (z : ℤ) : ↑(r ^ z) = (↑r ^ z : A) :=
 map_zpow₀ (algebra_map R A) r z
 
 end semifield_semidivision_ring

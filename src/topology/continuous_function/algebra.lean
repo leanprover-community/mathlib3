@@ -305,7 +305,7 @@ lemma has_sum_apply {γ : Type*} [locally_compact_space α] [add_comm_monoid β]
   {f : γ → C(α, β)} {g : C(α, β)} (hf : has_sum f g) (x : α) :
   has_sum (λ i : γ, f i x) (g x) :=
 begin
-  let evₓ := (pi.eval_add_monoid_hom _ x).comp (coe_fn_add_monoid_hom : C(α, β) →+ _),
+  let evₓ : add_monoid_hom C(α, β) β := (pi.eval_add_monoid_hom _ x).comp coe_fn_add_monoid_hom,
   exact hf.map evₓ (continuous_map.continuous_eval_const' x),
 end
 

@@ -172,10 +172,6 @@ begin
     rw [this],
     apply induce.iso, },
 
-  let E := of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh),
-  let Esub := subset_of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh),
-  let F := of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm),
-  let Fsub := subset_of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm),
   have φinf : ∀ C : G.component_compl φL, C.supp.infinite, by
   { simp_rw ←set.infinite_coe_iff at inf ⊢,
     rintro C,
@@ -187,9 +183,11 @@ begin
     { symmetry, exact (connected_component.apply_iso_equiv lol _), },
     { symmetry, apply component_compl.supp_equiv, }, },
 
-  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) (Ln.image φ) ⟨F,_⟩ ⟨E,_⟩ Esub Fsub _,
-  exact (@component_compl.infinite_iff_in_eventual_range V G (op φL) F).mp (φinf F),
-  exact (@component_compl.infinite_iff_in_eventual_range V G (op L) E).mp (inf E),
+  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) (Ln.image φ) ⟨_, _⟩ ⟨_, _⟩
+    (subset_of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh))
+    (subset_of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm)) _,
+  exact (@component_compl.infinite_iff_in_eventual_range V G (op φL) _).mp (φinf _),
+  exact (@component_compl.infinite_iff_in_eventual_range V G (op L) _).mp (inf _),
 
   have eL: G.component_compl_functor.to_eventual_ranges.obj (op L) ≃
          G.component_compl_functor.to_eventual_ranges.obj (op φL), by

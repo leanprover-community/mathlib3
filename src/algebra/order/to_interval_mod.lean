@@ -734,6 +734,7 @@ by simp [to_Ico_mod_eq_add_fract_mul]
 
 end linear_ordered_field
 
+/-! ### Lemmas about unions and disjointness of translated intervals -/
 section union
 
 open set int
@@ -816,22 +817,22 @@ lemma pairwise_disjoint_Ico_add_zsmul (a b : α) :
   pairwise (disjoint on (λ (n:ℤ), Ico (a + n • b) (a + (n + 1) • b))) :=
 begin
   intros m n h,
-  rw [function.on_fun, disjoint_iff, inf_eq_inter, bot_eq_empty, eq_empty_iff_forall_not_mem],
-  contrapose! h,
+  rw [function.on_fun, set.disjoint_iff],
+  intros x hx,
+  apply h,
   rcases lt_or_le 0 b with hb | hb,
-  { obtain ⟨u, hu1, hu2⟩ := h,
+  { obtain ⟨hu1, hu2⟩ := hx,
     have i1 := hu1.1.trans_lt hu2.2,
     have i2 := hu2.1.trans_lt hu1.2,
-    rw add_lt_add_iff_left at i1 i2,
-    rw [zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
+    rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
   { have : ∀ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b) = ∅,
     { intro n,
       apply Ico_eq_empty_of_le,
       rw [add_zsmul, one_zsmul, add_le_add_iff_left],
       exact add_le_of_nonpos_right hb },
-    simp_rw [this, empty_inter, mem_empty_iff_false, exists_false] at h,
-    exfalso, exact h }
+    simp_rw [this, empty_inter, mem_empty_iff_false] at hx,
+    exact hx.elim }
 end
 
 lemma pairwise_disjoint_Ico_zsmul (b : α) :
@@ -840,13 +841,7 @@ by simpa only [zero_add] using pairwise_disjoint_Ico_add_zsmul 0 b
 
 lemma pairwise_disjoint_Ioo_add_zsmul (a b : α) :
   pairwise (disjoint on (λ (n:ℤ), Ioo (a + n • b) (a + (n + 1) • b))) :=
-begin
-  intros m n hmn,
-  have := pairwise_disjoint_Ioc_add_zsmul a b hmn,
-  rw function.on_fun at *,
-  convert disjoint.mono _ _ this,
-  all_goals { rw le_iff_subset, exact Ioo_subset_Ioc_self },
-end
+λ m n hmn, (pairwise_disjoint_Ioc_add_zsmul a b hmn).mono Ioo_subset_Ioc_self Ioo_subset_Ioc_self
 
 lemma pairwise_disjoint_Ioo_zsmul (a b : α) :
   pairwise (disjoint on (λ (n:ℤ), Ioo (n • b) ((n + 1) • b))) :=
@@ -891,7 +886,7 @@ lemma pairwise_disjoint_Ioc_int_cast : pairwise (disjoint on (λ (n:ℤ), Ioc (n
 by simpa only [zero_add] using pairwise_disjoint_Ioc_add_int_cast (0 : β)
 
 lemma pairwise_disjoint_Ico_add_int_cast (a : β) :
-  pairwise (disjoint on (λ (n:ℤ), Ico (a + n) (a + n + 1))) :=
+  pairwise (disjoint on (λ n : ℤ, Ico (a + n) (a + n + 1))) :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using pairwise_disjoint_Ico_add_zsmul a (1 : β)
 

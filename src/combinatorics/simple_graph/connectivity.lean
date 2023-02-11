@@ -1526,6 +1526,10 @@ def connected_component.iso (φ : G ≃g G') : G.connected_component ≃ G'.conn
   right_inv := λ C, connected_component.ind
     (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
 
+def connected_component.apply_iso_equiv (φ : G ≃g G') (C : G.connected_component) :
+  {v | G.connected_component_mk v = C} ≃
+  {v' | G'.connected_component_mk v' = connected_component.iso φ C} := sorry
+
 lemma connected_component.connected :
   ∀ (C : G.connected_component), (G.induce {v : V | G.connected_component_mk v = C}).connected :=
 begin

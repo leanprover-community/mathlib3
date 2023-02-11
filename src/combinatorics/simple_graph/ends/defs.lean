@@ -33,6 +33,10 @@ connected_component_mk (G.induce Kᶜ) ⟨v, vK⟩
 def component_compl.supp (C : G.component_compl K) : set V :=
 {v : V | ∃ h : v ∉ K, G.component_compl_mk h = C}
 
+-- This begs for a definition of `connected_component.supp`.
+def component_compl.supp_equiv (C : G.component_compl K) :
+  C.supp ≃ {v' | connected_component_mk (G.induce Kᶜ) v' = C} := sorry
+
 @[ext] lemma component_compl.supp_injective :
   function.injective (component_compl.supp : G.component_compl K → set V) :=
 begin
@@ -313,6 +317,17 @@ begin
              set.mem_Inter, set.mem_range, component_compl_functor_map],
   exact ⟨λ h Lop KL, h Lop.unop (le_of_op_hom KL), λ h L KL, h (opposite.op L) (op_hom_of_le KL)⟩,
 end
+
+lemma component_compl_functor_to_eventual_ranges_obj_eq
+  [is_cofiltered_or_empty (finset V)ᵒᵖ] {G : simple_graph V} {K : (finset V)ᵒᵖ} :
+  G.component_compl_functor.to_eventual_ranges.obj K =
+  { C : G.component_compl K.unop | C.supp.infinite } :=
+begin
+  apply congr_arg subtype,
+  ext x, symmetry,
+  apply component_compl.infinite_iff_in_eventual_range,
+end
+
 
 end ends
 

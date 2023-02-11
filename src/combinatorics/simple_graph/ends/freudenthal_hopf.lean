@@ -87,7 +87,7 @@ begin
                    nat.bit1_eq_one, nat.one_ne_zero, not_false_iff, and_true],  }, }, },
   { rintro ⟨a₁,a₂,h₁,h₂,h⟩,
     refine ⟨⟨λ i, [a,a₁,a₂].nth_le i.val i.prop, _⟩⟩,
-    have : list.nodup [a,a₁,a₂], by { simp [h, h₁, h₂], },
+    have : list.nodup [a,a₁,a₂], by simp [h, h₁, h₂],
     rintro ⟨i,hi⟩ ⟨j,hj⟩,
     simp [list.nodup.nth_le_inj_iff this], },
 end
@@ -142,7 +142,7 @@ lemma good_autom_back_not_inj
   ∃ (L M : (finset V)ᵒᵖ) (hL : L ⟶ K) (hM : M ⟶ L),
     ¬ (injective $ G.component_compl_functor.to_eventual_ranges.map hM) :=
 begin
-  haveI Kn : K.unop.nonempty,
+  have Kn : K.unop.nonempty,
   { by_contradiction h,
     rw finset.not_nonempty_iff_eq_empty at h,
     simp only [unop_eq_iff_eq_op.mp h, component_compl_functor, functor.to_eventual_ranges,
@@ -154,33 +154,47 @@ begin
     haveI := Gpc.subsingleton_connected_component,
     exact nat.not_succ_le_zero _ (nat.le_of_succ_le_succ (fin.embedding_subsingleton hK)), },
 
+  -- TODO: make this into a lemma for `component_compl` : it's lots of work
   obtain ⟨L,KL,Lc,inf⟩ : ∃ (L : finset V), K.unop ⊆ L ∧ (G.induce (L : set V)).connected ∧
                               ∀ C : G.component_compl L, C.supp.infinite := sorry,
   obtain ⟨φ,φh⟩ := auts L,
   have Ln : L.nonempty := finset.nonempty.mono KL Kn,
-
   let φL := L.image φ,
-  have φLeq : φ '' (L : set V) = φL, by {symmetry, apply finset.coe_image,},
+  have φLc : (G.induce (φL : set V)).connected, by
+  { rw [finset.coe_image, ←(induce.iso φ).connected_iff], exact Lc, },
 
-  let φLn := Ln.image φ,
   refine ⟨op L, op (L ∪ φL), op_hom_of_le KL, op_hom_of_le (finset.subset_union_left _ _), _⟩,
 
-  have φLc : (G.induce (φL : set V)).connected := sorry,
-  -- If φ is an isom of graphs, then the image of a connected is connected.
+  let lol : (G.induce (L : set V)ᶜ) ≃g
+            (G.induce (φL : set V)ᶜ), by
+  { have : (φL : set V)ᶜ = φ '' (L : set V)ᶜ, by
+      simp only [set.image_compl_eq φ.bijective, finset.coe_image],
+    rw [this],
+    apply induce.iso, },
 
   let E := of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh),
-  let Esub := subset_of_connected_disjoint_right  φLc (finset.disjoint_coe.mpr φh),
+  let Esub := subset_of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh),
   let F := of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm),
   let Fsub := subset_of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm),
-  have Einf : E.supp.infinite := inf E,
-  have Finf : F.supp.infinite, by { sorry, },
+  have φinf : ∀ C : G.component_compl φL, C.supp.infinite, by
+  { simp_rw ←set.infinite_coe_iff at inf ⊢,
+    rintro C,
+    rw [←(connected_component.iso lol).right_inv C, equiv.infinite_iff],
+    exact inf ((connected_component.iso lol).symm C),
+    transitivity,
+    { apply component_compl.supp_equiv, },
+    transitivity,
+    { symmetry, exact (connected_component.apply_iso_equiv lol _), },
+    { symmetry, apply component_compl.supp_equiv, }, },
 
-  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) φLn ⟨F,_⟩ ⟨E,_⟩ Esub Fsub _,
-  exact (@component_compl.infinite_iff_in_eventual_range V G (op φL) F).mp Finf,
-  exact (@component_compl.infinite_iff_in_eventual_range V G (op L) E).mp Einf,
+  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) (Ln.image φ) ⟨F,_⟩ ⟨E,_⟩ Esub Fsub _,
+  exact (@component_compl.infinite_iff_in_eventual_range V G (op φL) F).mp (φinf F),
+  exact (@component_compl.infinite_iff_in_eventual_range V G (op L) E).mp (inf E),
 
   have eL: G.component_compl_functor.to_eventual_ranges.obj (op L) ≃
-         G.component_compl_functor.to_eventual_ranges.obj (op φL) := sorry,
+         G.component_compl_functor.to_eventual_ranges.obj (op φL), by
+  { simp_rw component_compl_functor_to_eventual_ranges_obj_eq,
+    refine ((equiv.subtype_univ_equiv inf).trans (connected_component.iso lol)).trans (equiv.subtype_univ_equiv φinf).symm, },
   have iK: G.component_compl_functor.to_eventual_ranges.obj K ↪
          G.component_compl_functor.to_eventual_ranges.obj (op L), by
   { refine function.embedding.of_surjective

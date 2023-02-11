@@ -1490,6 +1490,10 @@ def induce_univ_iso (G : simple_graph V) : G.induce set.univ ≃g G :=
   map_rel_iff' := by simp only [equiv.set.univ_apply, comap_adj, function.embedding.coe_subtype,
                                 iff_self, set_coe.forall, implies_true_iff] }
 
+-- Is it already somewhere?
+def induce.iso {V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') {s : set V} :
+  (G.induce s) ≃g (G'.induce $ φ '' s) := sorry
+
 def induce_induce (G : simple_graph V) (s : set V) (t : set s) :
   (G.induce s).induce t ≃g G.induce {v : V | ∃ h : v ∈ s, (⟨v,h⟩ : s) ∈ t} :=
   { to_fun := λ ⟨⟨v, hvs⟩, hvt⟩, ⟨v, ⟨hvs, hvt⟩⟩,

@@ -3,8 +3,8 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, David Loeffler
 -/
+
 import analysis.special_functions.complex.circle
-import topology.instances.add_circle
 import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
@@ -13,7 +13,6 @@ import measure_theory.integral.periodic
 import topology.continuous_function.stone_weierstrass
 
 /-!
-
 # Fourier analysis on the additive circle
 
 This file contains basic results on Fourier series for functions on the additive circle
@@ -173,12 +172,17 @@ end
   fourier (m + n) x = fourier m x * fourier n x :=
 by simp_rw [fourier_apply, add_zsmul, to_circle_add, coe_mul_unit_sphere]
 
+@[simp] lemma fourier_add' {m : ℤ} {x y : add_circle T} :
+  fourier m (x + y) = fourier m x * fourier m y :=
+by simp_rw [fourier_apply, zsmul_add, to_circle_add, coe_mul_unit_sphere]
+
+lemma fourier_apply_norm (n : ℤ) (x : add_circle T) : ‖fourier n x‖ = 1 :=
+abs_coe_circle _
+
 lemma fourier_norm [fact (0 < T)] (n : ℤ) : ‖@fourier T n‖ = 1 :=
 begin
-  rw continuous_map.norm_eq_supr_norm,
-  have : ∀ (x : add_circle T), ‖fourier n x‖ = 1 := λ x, abs_coe_circle _,
-  simp_rw this,
-  exact @csupr_const _ _ _ has_zero.nonempty _,
+  simp_rw [continuous_map.norm_eq_supr_norm, fourier_apply_norm],
+  exact csupr_const,
 end
 
 /-- For `n ≠ 0`, a translation by `T / 2 / n` negates the function `fourier n`. -/

@@ -836,7 +836,7 @@ lemma pairwise_disjoint_Ioo_add_zsmul (a b : α) :
   pairwise (disjoint on (λ (n : ℤ), Ioo (a + n • b) (a + (n + 1) • b))) :=
 λ m n hmn, (pairwise_disjoint_Ioc_add_zsmul a b hmn).mono Ioo_subset_Ioc_self Ioo_subset_Ioc_self
 
-lemma pairwise_disjoint_Ioo_zsmul (a b : α) :
+lemma pairwise_disjoint_Ioo_zsmul (b : α) :
   pairwise (disjoint on (λ (n : ℤ), Ioo (n • b) ((n + 1) • b))) :=
 by simpa only [zero_add] using pairwise_disjoint_Ioo_add_zsmul 0 b
 

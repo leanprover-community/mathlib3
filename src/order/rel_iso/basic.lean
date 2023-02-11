@@ -20,6 +20,8 @@ isomorphisms.
 
 * `rel_hom`: Relation homomorphism. A `rel_hom r s` is a function `f : α → β` such that
   `r a b → s (f a) (f b)`.
+* `rel_covering`: Relation covering. A `rel_covering r s` is a surjective function `f : α → β` such
+  that `r a b ↔ s (f a) (f b)`.
 * `rel_embedding`: Relation embedding. A `rel_embedding r s` is an embedding `f : α ↪ β` such that
   `r a b ↔ s (f a) (f b)`.
 * `rel_iso`: Relation isomorphism. A `rel_iso r s` is an equivalence `f : α ≃ β` such that
@@ -140,7 +142,7 @@ end rel_hom
 
 -- TODO: Do we need bundled surjective function?
 /-- A relation covering with respect to a given pair of relations `r` and `s`
-is an surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
+is a surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
 @[nolint has_nonempty_instance]
 structure rel_covering {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
 (to_fun : α → β)

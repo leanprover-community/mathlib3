@@ -64,6 +64,33 @@ begin
       (hom_eq_iff_le _ _ _).mpr ((E'.subset_hom _).trans h')],
 end
 
+lemma _root_.fin.fin3_embedding_iff {α : Type*} :
+  nonempty (fin 3 ↪ α) ↔ ∃ (a₀ a₁ a₂ : α), a₀ ≠ a₁ ∧ a₀ ≠ a₂ ∧ a₁ ≠ a₂ := sorry
+
+lemma _root_.fin.fin3_embedding_iff' {α : Type*} (a : α):
+  nonempty (fin 3 ↪ α) ↔ ∃ (a₁ a₂ : α), a ≠ a₁ ∧ a ≠ a₂ ∧ a₁ ≠ a₂ :=
+begin
+  split,
+  rintro ⟨e⟩,
+  { by_cases h : a = e 0,
+    { use [e 1, e 2],
+      simp only [h, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
+                 fin.val_two, ne.def, zero_eq_bit0, nat.one_ne_zero, nat.zero_ne_one, not_false_iff,
+                 nat.one_ne_bit0, and_self], },
+    { by_cases k : a = e 1,
+      { use [e 0, e 2],
+        simp only [h, k, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
+                 fin.val_two, ne.def, zero_eq_bit0, nat.one_ne_zero, nat.zero_ne_one, not_false_iff,
+                 nat.one_ne_bit0, and_self], },
+      { use [e 0, e 1],
+        simp only [h, k, ne.def, embedding_like.apply_eq_iff_eq, fin.zero_eq_one_iff,
+                   nat.bit1_eq_one, nat.one_ne_zero, not_false_iff, and_true],  }, }, },
+  { rintro ⟨a₁,a₂,h₁,h₂,h⟩,
+    refine ⟨⟨λ i, [a,a₁,a₂].nth_le i.val i.prop, _⟩⟩,
+    have : list.nodup [a,a₁,a₂], by { simp [h, h₁, h₂], },
+    rintro ⟨i,hi⟩ ⟨j,hj⟩,
+    simp [list.nodup.nth_le_inj_iff this], },
+end
 
 lemma nicely_arranged_bwd_map_not_inj
   [locally_finite G]
@@ -79,26 +106,7 @@ lemma nicely_arranged_bwd_map_not_inj
     G.component_compl_functor.to_eventual_ranges.map
       (op_hom_of_le $ finset.subset_union_left K.unop H.unop : op (K.unop ∪ H.unop) ⟶ K)) :=
 begin
-  -- TODO make this into a lemma: if `fin 3 ↪ α` and `a₁ : α` then `∃ a₂ a₃, …`
-  obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ :
-    ∃ E₁ E₂ : G.component_compl_functor.to_eventual_ranges.obj H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂, by
-  { let E₀ := hK 0,
-    let E₁ := hK 1,
-    let E₂ := hK 2,
-    by_cases h : E = E₀,
-    { use [E₁,E₂],
-      simp only [h, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
-                 fin.val_two, ne.def, zero_eq_bit0, nat.one_ne_zero, nat.zero_ne_one, not_false_iff,
-                 nat.one_ne_bit0, and_self], },
-    { by_cases k : E = E₁,
-      { use [E₀,E₂],
-        simp only [h, k, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq, fin.val_zero', fin.val_one,
-                 fin.val_two, ne.def, zero_eq_bit0, nat.one_ne_zero, nat.zero_ne_one, not_false_iff,
-                 nat.one_ne_bit0, and_self], },
-      { use [E₀,E₁],
-        simp only [ne.def, embedding_like.apply_eq_iff_eq, fin.zero_eq_one_iff, nat.bit1_eq_one,
-        nat.one_ne_zero, not_false_iff, and_true], exact ⟨h, k⟩, }, }, },
-
+  obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ := (fin.fin3_embedding_iff' E).mp ⟨hK⟩,
   apply @bwd_map_non_inj V G _ Gpc _ _ F E₁ E₂ h₁₂ _ _,
   { apply @nicely_arranged _ _ _ _ Gpc Hnempty E.val E₁.val,
     any_goals

@@ -16,7 +16,7 @@ set).
 ## Notes
 
 The lemmas don't mention additive/multiplicative operations. As a result, we decide to prime the
-multiplicative lemma names to indicate that there is probably a commong generalisation to each pair
+multiplicative lemma names to indicate that there is probably a common generalisation to each pair
 of additive/multiplicative lemma.
 -/
 

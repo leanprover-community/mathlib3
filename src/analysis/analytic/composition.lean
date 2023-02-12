@@ -515,7 +515,7 @@ begin
       exact mul_le_mul' (nnnorm_sum_le _ _) le_rfl
     end
   ... ≤ ∑' (i : Σ (n : ℕ), composition n), ‖comp_along_composition q p i.snd‖₊ * r ^ i.fst :
-    nnreal.tsum_comp_le_tsum_of_inj hr sigma_mk_injective
+    (nnreal.tsum_comp_le_tsum_of_inj hr sigma_mk_injective : _)
 end
 
 /-!

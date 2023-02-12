@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alena Gusakov, Bhavik Mehta, Kyle Miller
 -/
 import combinatorics.hall.finite
-import topology.category.Top.limits
+import category_theory.cofiltered_system
 import data.rel
 
 /-!

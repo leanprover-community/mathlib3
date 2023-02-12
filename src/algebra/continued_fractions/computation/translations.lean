@@ -85,6 +85,26 @@ lemma succ_nth_stream_eq_some_iff {ifp_succ_n : int_fract_pair K} :
       ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n :=
 by simp [int_fract_pair.stream, ite_eq_iff]
 
+/--
+An easier to use version of one direction of
+`generalized_continued_fraction.int_fract_pair.succ_nth_stream_eq_some_iff`.
+-/
+lemma stream_succ_of_some {p : int_fract_pair K}
+  (h : int_fract_pair.stream v n = some p) (h' : p.fr ≠ 0) :
+  int_fract_pair.stream v (n + 1) = some (int_fract_pair.of (p.fr)⁻¹) :=
+succ_nth_stream_eq_some_iff.mpr ⟨p, h, h', rfl⟩
+
+/--
+The stream of `int_fract_pair`s of an integer stops after the first term.
+-/
+lemma stream_succ_of_int (a : ℤ) (n : ℕ) : int_fract_pair.stream (a : K) (n + 1) = none :=
+begin
+  induction n with n ih,
+  { refine int_fract_pair.stream_eq_none_of_fr_eq_zero (int_fract_pair.stream_zero (a : K)) _,
+    simp only [int_fract_pair.of, int.fract_int_cast], },
+  { exact int_fract_pair.succ_nth_stream_eq_none_iff.mpr (or.inl ih), }
+end
+
 lemma exists_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}
   (stream_succ_nth_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n)
   (succ_nth_fr_eq_zero : ifp_succ_n.fr = 0) :
@@ -96,6 +116,28 @@ begin
     ⟨ifp_n, seq_nth_eq, nth_fr_ne_zero, rfl⟩,
   refine ⟨ifp_n, seq_nth_eq, _⟩,
   simpa only [int_fract_pair.of, int.fract, sub_eq_zero] using succ_nth_fr_eq_zero
+end
+
+/--
+A recurrence relation that expresses the `(n+1)`th term of the stream of `int_fract_pair`s
+of `v` for non-integer `v` in terms of the `n`th term of the stream associated to
+the inverse of the fractional part of `v`.
+-/
+lemma stream_succ  (h : int.fract v ≠ 0) (n : ℕ) :
+  int_fract_pair.stream v (n + 1) = int_fract_pair.stream (int.fract v)⁻¹ n :=
+begin
+  induction n with n ih,
+  { have H : (int_fract_pair.of v).fr = int.fract v := rfl,
+    rw [stream_zero, stream_succ_of_some (stream_zero v) (ne_of_eq_of_ne H h), H], },
+  { cases eq_or_ne (int_fract_pair.stream (int.fract v)⁻¹ n) none with hnone hsome,
+    { rw hnone at ih,
+      rw [succ_nth_stream_eq_none_iff.mpr (or.inl hnone),
+          succ_nth_stream_eq_none_iff.mpr (or.inl ih)], },
+    { obtain ⟨p, hp⟩ := option.ne_none_iff_exists'.mp hsome,
+      rw hp at ih,
+      cases eq_or_ne p.fr 0 with hz hnz,
+      { rw [stream_eq_none_of_fr_eq_zero hp hz, stream_eq_none_of_fr_eq_zero ih hz], },
+      { rw [stream_succ_of_some hp hnz, stream_succ_of_some ih hnz], } } }
 end
 
 end int_fract_pair

@@ -82,32 +82,133 @@ end
 noncomputable def singular_series : ℝ := ∏' p : {p : ℕ | nat.prime p},
  (λ p : ℕ, (p : ℝ) ^ (d.card - 1 : ℤ) * (p - ν p d) / (p - 1) ^ d.card) p
 
-lemma proddable_singular_series : proddable (λ p : {p : ℕ | nat.prime p},
+lemma set.finite_coe_sort_iff {α : Type*} {p : α → Prop} (s : set {x | p x}) :
+  (set.finite s) ↔ set.finite ({x | p x} ∩ coe '' s) :=
+sorry
+
+@[simp]
+lemma set.exists_subtype_mem {α : Type*} (x : α) (p : α → Prop) (s : set (set_of p)) :
+  ∃ (h : p x), (⟨x, h⟩ : set_of p) ∈ s ↔ p x ∧ x ∈ (coe : (set_of p) → α) '' s := sorry
+
+lemma proddable_singular_series (hd : d ≠ ∅) : proddable (λ p : {p : ℕ | nat.prime p},
  (λ p : ℕ, (p : ℝ) ^ (d.card - 1 : ℤ) * (p - ν p d) / (p - 1) ^ d.card) p) :=
 begin
-  by_cases hp : ∃ p : {p : ℕ | p.prime}, ν p d = p,
-  { obtain ⟨p, hp⟩ := hp,
-    have pnonneg : (p : ℝ) ≠ 0 := sorry,
-    refine proddable_of_zero _ ⟨p, _⟩,
-    simp [hp, pnonneg] },
+  generalize hk : d.card = k,
+  cases k,
+  { simpa [hd] using hk },
+  simp only [nat.cast_succ, add_tsub_cancel_right, zpow_coe_nat],
+  -- by_cases hp : ∃ p : {p : ℕ | p.prime}, ν p d = p,
+  -- { obtain ⟨p, hp⟩ := hp,
+  --   have pnonneg : (p : ℝ) ≠ 0 := sorry,
+  --   refine proddable_of_zero _ ⟨p, _⟩,
+  --   simp [hp, pnonneg] },
   have : (λ p : {p : ℕ | nat.prime p},
-      (λ p : ℕ, (p : ℝ) ^ (d.card - 1 : ℤ) * (p - ν p d) / (p - 1) ^ d.card) p) =
-    λ p : {p : ℕ | nat.prime p}, (λ p : ℕ, (1 : ℝ) + (p ^ d.card - ν p d *
-      p ^ (d.card - 1 : ℤ) - (p - 1) ^ d.card) / (p - 1) ^ d.card) p,
+      (λ p : ℕ, (p : ℝ) ^ k * (p - ν p d) / (p - 1) ^ (k + 1)) p) =
+    λ p : {p : ℕ | nat.prime p}, (λ p : ℕ, (1 : ℝ) + (p ^ (k + 1) - ν p d *
+      p ^ k - (p - 1) ^ (k + 1)) / (p - 1) ^ (k + 1)) p,
   sorry { ext p,
-    have : ((p : ℝ) - 1) ^ d.card ≠ 0,
-    { cases d.card.zero_le.eq_or_lt with hd hd,
-      { simp [hd.symm] },
-      { rw [pow_ne_zero_iff hd],
-        { simp [sub_eq_zero, p.prop.one_lt.ne'] },
-        { apply_instance } } },
+    have : ((p : ℝ) - 1) ^ (k + 1) ≠ 0,
+    { rw [pow_ne_zero_iff nat.succ_pos'],
+      { simp [sub_eq_zero, p.prop.one_lt.ne'] },
+      { apply_instance } },
     have ppos : (0 : ℝ) < (p : ℕ) := sorry,
-    field_simp [this, mul_sub, ←zpow_add_one₀ ppos.ne', mul_comm (ν p d : ℝ)] },
+    field_simp [this, mul_sub, ←pow_succ', mul_comm (ν p d : ℝ)], },
   rw this, clear this,
+  -- push_neg at hp,
+  -- replace hp : ∀ p : {p : ℕ | p.prime}, ν p d < p := λ p,
+  --   lt_of_le_of_ne (distinct_residue_classes_le_base _ _ p.prop.ne_zero) (hp p),
   refine proddable_one_add_of_summable _ _ _,
-  sorry { }, -- this is currently unprovable, shouldn't need such strict constraint
+  { rw eventually_cofinite,
+    rw set.finite_coe_sort_iff,
+    refine set.finite.inter_of_right _ _,
+    rw subtype.coe_image,
+    simp only [set.mem_set_of_eq, not_le],
+    suffices : {x : ℕ | nat.prime x ∧
+      ((x : ℝ) ^ (k + 1) - (ν x d) * x ^ k - (x - 1) ^ (k + 1)) / ((x - 1) ^ (k + 1)) < 0}.finite,
+    { refine this.subset _,
+      rintro p ⟨pprime, hpp⟩,
+      exact ⟨pprime, hpp⟩ },
+    obtain ⟨P, hP, Pprime⟩ := nat.exists_infinite_primes (k + 2),
+    refine ((finset.range P).image coe).finite_to_set.subset _,
+    rintro p ⟨pprime, hp⟩,
+    have : (0 : ℝ) < ((p : ℝ) - 1) ^ (k + 1),
+    sorry { have : ((p : ℝ) - 1) ^ (k + 1) = ((p - 1) ^ (k + 1) : ℕ),
+      { simp [nat.cast_sub pprime.one_lt.le] },
+      rw this,
+      norm_cast,
+      refine pow_pos _ _,
+      simp [pprime.one_lt] },
+    -- simp [sub_div, div_self this.ne'] at hp,
+    -- simp,
+    simp only [div_neg_iff, this, this.not_lt, and_false, sub_neg, and_true, false_or] at hp,
+    rw [pow_succ, ←sub_mul, pow_succ] at hp,
+    -- replace hp:
+    -- simp [this] at hp,
+    -- simp [set.mem_set_of],
+    -- simp,
+    -- simp_rw not_le,
+    -- simp_rw div_neg_iff,
+    -- refine set.finite.union _ (set.finite.inter_of_left _ _),
+    -- { convert set.finite_empty,
+    --   ext ⟨p, hp⟩,
+    --   simp,
+    --   simp,
+    -- },
+    -- {  },
+    -- refine set.finite.subset (set_of (λ p, )) _,
+    -- have : ∀ i : {p : ℕ | nat.prime p}, 0 ≤ (((i : ℕ) : ℝ) ^ (k + 1) - ↑(ν ↑i d) * ↑↑i ^ k - (↑↑i - 1) ^ (k + 1))
+    -- / (↑↑i - 1) ^ (k + 1) ↔ (ν i d : ℝ) * i ^ k ≤ i ^ (k + 1) - (i - 1) ^ (k + 1),
+    -- { rintro ⟨p, pprime⟩,
+    --   rw sub_div,
+    -- },
+
+  -- rw eventually_cofinite,
+  --   simp_rw div_nonneg_iff,
+    -- intro p,
+    -- refine div_pos _ _,
+    -- {
+    --   have : ((p : ℕ) : ℝ) ^ (k + 1) - ((p : ℕ) - 1) * (p : ℕ) ^ k - (p - 1) ^ (k + 1) ≤
+    --     ((p : ℕ) : ℝ) ^ (k + 1) - (ν p d) * p ^ k - (p - 1) ^ (k + 1),
+    --   sorry { suffices : (ν p d : ℝ) ≤ ↑↑p - 1,
+    --     { have hp : 0 < ((p : ℕ) : ℝ) ^ k := sorry,
+    --       simpa [mul_le_mul_right hp] using this },
+    --     rw [le_sub_iff_add_le, ←nat.cast_add_one, nat.cast_le],
+    --     exact (nat.succ_le_of_lt (hp p)) },
+    --   refine this.trans_lt' _, clear this,
+    --   rw [pow_succ, ←sub_mul, sub_sub_cancel, one_mul, sub_pos],
+      -- rw sub_pos,
+      -- rw lt_sub_iff_add_lt,
+      -- -- by_cases p2 : p = ⟨2, sorry⟩,
+      -- -- { simp [p2],
+      -- -- },
+      -- have : (((p : ℕ) : ℝ) - 1) ^ (k + 1) + ↑(ν ↑p d) * p ^ k ≤
+      --   (((p : ℕ) : ℝ) - 1) * (p - 1) ^ k + (p - 1) * p ^ k,
+      -- { simp only [coe_coe],
+      --   rw [pow_succ, add_le_add_iff_left],
+      --   refine mul_le_mul_of_nonneg_right _ (pow_nonneg (nat.cast_nonneg _) _),
+      --   { rw le_sub_iff_add_le,
+      --     exact_mod_cast nat.succ_le_of_lt (hp p) } },
+      -- refine this.trans_lt _, clear this,
+      -- rw [coe_coe, ←mul_add],
+      -- have : (((p : ℕ) : ℝ) - 1) * ((p - 1) ^ k + p ^ k) <
+      --   (((p : ℕ) : ℝ) - 1) * (p ^ k + p ^ k),
+      -- { simp only [coe_coe],
+      --   rw [mul_lt_mul_left],
+      --   rw [add_lt_add_iff_right],
+      --   -- refine add_lt_add_right (pow_le_pow _ _) (((p : ℕ) : ℝ) ^ (d.card - 1 : ℤ)),
+      --   },
+      -- -- rcases d.card with _|_|k,
+      -- -- { sorry },
+      -- -- { sorry },
+      -- -- simp,
+      },
+    {  },
+    -- rw zpow_sub_
+
+  -- }, -- this is currently unprovable, shouldn't need such strict constraint
   { sorry },
 end
+
 #exit
 -- lemma proddable_singular_series : proddable (set.mul_indicator {p : ℕ | p.prime}
 --   (λ p : ℕ, (p : ℝ) ^ (d.card - 1 : ℤ) * (p - ν p d) / (p - 1) ^ d.card)) :=

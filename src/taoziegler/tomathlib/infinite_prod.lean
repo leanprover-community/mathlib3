@@ -19,6 +19,11 @@ def proddable (f : β → α) : Prop := ∃a, has_prod f a
 
 notation `∏'` binders `, ` r:(scoped:67 f, tprod f) := r
 
+lemma proddable.has_prod {f : β → α} (ha : proddable f) : has_prod f (∏' b, f b) :=
+by simp [ha, tprod]; exact some_spec ha
+
+lemma has_prod.proddable {f : β → α} {a : α} (h : has_prod f a) : proddable f := ⟨a, h⟩
+
 lemma has_sum_of_mul_iff_has_prod {f : β → α} {a : α} :
   has_sum (additive.of_mul ∘ f) (additive.of_mul a) ↔ has_prod f a := iff.rfl
 
@@ -52,5 +57,24 @@ begin
   have hb' : b ∈ V := singleton_subset_iff.mp hV,
   rwa prod_eq_zero hb' hb
 end
+
+lemma has_prod.mul_compl [has_continuous_mul α] {s : set β} {f : β → α} {a b : α}
+  (ha : has_prod (f ∘ coe : s → α) a) (hb : has_prod (f ∘ coe : sᶜ → α) b) :
+  has_prod f (a * b) :=
+begin
+  have : ∀ α (g : α → β), additive.to_mul ∘ f ∘ g = (additive.to_mul ∘ f) ∘ g,
+  { intros, refl },
+  rw ←has_sum_of_mul_iff_has_prod at ha hb ⊢,
+  replace ha : has_sum ((additive.of_mul ∘ f) ∘ (coe : s → β)) (additive.of_mul a),
+  { exact ha },
+  replace hb : has_sum ((additive.of_mul ∘ f) ∘ (coe : sᶜ → β)) (additive.of_mul b),
+  { exact hb },
+  exact ha.add_compl hb
+end
+
+lemma proddable.mul_compl [has_continuous_mul α] {s : set β} {f : β → α}
+  (hs : proddable (f ∘ coe : s → α)) (hsc : proddable (f ∘ coe : sᶜ → α)) :
+  proddable f :=
+(hs.has_prod.mul_compl hsc.has_prod).proddable
 
 end has_prod

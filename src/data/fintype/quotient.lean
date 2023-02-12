@@ -134,7 +134,7 @@ end
 by { ext f h, dsimp [quotient_lift_on], rw [quotient_choice_mk], refl, }
 
 /-- `quotient_choice` as an equivalence. -/
-@[simps] def quotient_choice_equiv {l : list ι} :
+@[simps] def quotient_choice_equiv :
   (Π i, quotient (S i)) ≃ @quotient (Π i, α i) pi_setoid :=
 { to_fun := quotient_choice,
   inv_fun := λ q i, q.map (λ a, a i) (λ _ _ ha, ha i),

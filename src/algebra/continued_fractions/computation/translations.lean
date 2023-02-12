@@ -310,8 +310,6 @@ fractional part of `v`.
 lemma of_s_tail : (of v).s.tail = (of (fract v)⁻¹).s :=
 seq.ext $ λ n, seq.nth_tail (of v).s n ▸ of_s_succ v n
 
-#where
-
 variables (K) (n)
 
 /--

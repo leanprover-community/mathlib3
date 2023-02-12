@@ -791,8 +791,7 @@ begin
   rcases lt_or_le 0 b with hb | hb,
   { have i1 := hx.1.1.trans_le hx.2.2,
     have i2 := hx.2.1.trans_le hx.1.2,
-    rw add_lt_add_iff_left at i1 i2,
-    rw [zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
+    rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
   { -- case b ≤ 0 : vacuous but true
     have : ∀ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b) = ∅,

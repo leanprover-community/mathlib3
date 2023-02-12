@@ -310,6 +310,38 @@ fractional part of `v`.
 lemma of_s_tail : (of v).s.tail = (of (fract v)⁻¹).s :=
 seq.ext $ λ n, seq.nth_tail (of v).s n ▸ of_s_succ v n
 
+#where
+
+variables (K) (n)
+
+/--
+If `a` is an integer, then the `convergents'` of its continued fraction expansion
+are all equal to `a`.
+-/
+lemma convergents'_of_int (a : ℤ) : (of (a : K)).convergents' n = a :=
+begin
+  induction n with n ih,
+  { simp only [zeroth_convergent'_eq_h, of_h_eq_floor, floor_int_cast], },
+  { rw [convergents', of_h_eq_floor, floor_int_cast, add_right_eq_self],
+    exact convergents'_aux_succ_none ((of_s_of_int K a).symm ▸ seq.nth_nil 0) _, }
+end
+
+variables {K} (v)
+
+/--
+The recurrence relation for the `convergents'` of the continued fraction expansion
+of an element `v` of `K` in terms of the convergents of the inverse of its fractional part.
+-/
+lemma convergents'_succ :
+  (of v).convergents' (n + 1) = ⌊v⌋ + 1 / (of (fract v)⁻¹).convergents' n :=
+begin
+  cases eq_or_ne (fract v) 0 with h h,
+  { obtain ⟨a, rfl⟩ : ∃ a : ℤ, v = a := ⟨⌊v⌋, eq_of_sub_eq_zero h⟩,
+    rw [convergents'_of_int, fract_int_cast, inv_zero, ← cast_zero,
+        convergents'_of_int, cast_zero, div_zero, add_zero, floor_int_cast], },
+  { rw [convergents', of_h_eq_floor, add_right_inj, convergents'_aux_succ_some (of_s_head h)],
+    exact congr_arg ((/) 1) (by rw [convergents', of_h_eq_floor, add_right_inj, of_s_tail]), }
+end
 
 end values
 end sequence

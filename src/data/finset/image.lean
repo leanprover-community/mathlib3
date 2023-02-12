@@ -434,6 +434,20 @@ eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, dedup_eq_self
 @[simp] lemma attach_image_coe [decidable_eq α] {s : finset α} : s.attach.image coe = s :=
 finset.attach_image_val
 
+@[simp] lemma attach_cons {a : α} {s : finset α} (ha : a ∉ s):
+  attach (cons a s ha) = cons (⟨a, mem_cons_self a s⟩ : {x // x ∈ cons a s ha})
+    ((attach s).map ⟨subtype.map id (λ a ha, mem_cons_of_mem ha),
+      subtype.map_injective _ injective_id⟩) (λ h,  begin
+        rw mem_map at h,
+        obtain ⟨⟨i, hi'⟩, hi, h : subtype.mk i _ = _⟩ := h,
+        obtain rfl : i = a := congr_arg subtype.val h,
+        exact ha hi',
+      end) :=
+ext $ λ ⟨x, hx⟩, ⟨or.cases_on (mem_cons.1 hx)
+  (λ h : x = a, λ _, mem_cons.2 $ or.inl $ subtype.eq h)
+  (λ h : x ∈ s, λ _, mem_cons_of_mem $ mem_map.2 $ ⟨⟨x, h⟩, mem_attach _ _, subtype.eq rfl⟩),
+λ _, finset.mem_attach _ _⟩
+
 @[simp] lemma attach_insert [decidable_eq α] {a : α} {s : finset α} :
   attach (insert a s) = insert (⟨a, mem_insert_self a s⟩ : {x // x ∈ insert a s})
     ((attach s).image (λx, ⟨x.1, mem_insert_of_mem x.2⟩)) :=

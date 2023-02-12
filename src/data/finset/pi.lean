@@ -42,50 +42,42 @@ mem_pi _ _ _
 
 /-- Given a function `f` defined on a finset `s`, define a new function on the finset `s ∪ {a}`,
 equal to `f` on `s` and sending `a` to a given value `b`. This function is denoted
-`s.pi.cons a b f`. If `a` already belongs to `s`, the new function takes the value `b` at `a`
-anyway. -/
-def pi.cons (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α) (h : a' ∈ insert a s) :
+`s.pi.cons a b f`. -/
+def pi.cons (s : finset α) (a : α) (ha : a ∉ s) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α)
+  (h : a' ∈ cons a s ha) :
   δ a' :=
-multiset.pi.cons s.1 a b f _ (multiset.mem_cons.2 $ mem_insert.symm.2 h)
+multiset.pi.cons s.1 a b f _ h
 
 @[simp]
-lemma pi.cons_same (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (h : a ∈ insert a s) :
-  pi.cons s a b f a h = b :=
+lemma pi.cons_same (s : finset α) (a : α) (ha : a ∉ s) (b : δ a) (f : Πa, a ∈ s → δ a) (h : a ∈ cons a s ha) :
+  pi.cons s a ha b f a h = b :=
 multiset.pi.cons_same _
 
-lemma pi.cons_ne {s : finset α} {a a' : α} {b : δ a} {f : Πa, a ∈ s → δ a} {h : a' ∈ insert a s}
+lemma pi.cons_ne {s : finset α} {a a' : α} (ha' : a ∉ s) {b : δ a} {f : Πa, a ∈ s → δ a} {h : a' ∈ cons a s ha'}
   (ha : a ≠ a') :
-  pi.cons s a b f a' h = f a' ((mem_insert.1 h).resolve_left ha.symm) :=
+  pi.cons s a ha' b f a' h = f a' ((mem_cons.1 h).resolve_left ha.symm) :=
 multiset.pi.cons_ne _ _
 
 lemma pi_cons_injective  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
-  function.injective (pi.cons s a b) :=
-assume e₁ e₂ eq,
-@multiset.pi_cons_injective α _ δ a b s.1 hs _ _ $
-  funext $ assume e, funext $ assume h,
-  have pi.cons s a b e₁ e (by simpa only [multiset.mem_cons, mem_insert] using h) =
-    pi.cons s a b e₂ e (by simpa only [multiset.mem_cons, mem_insert] using h),
-  { rw [eq] },
-  this
+  function.injective (pi.cons s a hs b) :=
+multiset.pi_cons_injective hs
 
 @[simp] lemma pi_empty {t : Πa:α, finset (β a)} :
   pi (∅ : finset α) t = singleton (pi.empty β) := rfl
 
-@[simp] lemma pi_insert [∀a, decidable_eq (β a)]
+@[simp] lemma pi_cons [∀a, decidable_eq (β a)]
   {s : finset α} {t : Πa:α, finset (β a)} {a : α} (ha : a ∉ s) :
-  pi (insert a s) t = (t a).bUnion (λb, (pi s t).image (pi.cons s a b)) :=
-begin
-  apply eq_of_veq,
-  rw ← (pi (insert a s) t).2.dedup,
-  refine (λ s' (h : s' = a ::ₘ s.1), (_ : dedup (multiset.pi s' (λ a, (t a).1)) =
-    dedup ((t a).1.bind $ λ b,
-    dedup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
-      λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
-  subst s', rw pi_cons,
-  congr, funext b,
-  refine ((pi s t).nodup.map _).dedup.symm,
-  exact multiset.pi_cons_injective ha,
-end
+  pi (cons a s ha) t = (t a).disj_Union (λb,
+    (pi s t).map ⟨pi.cons s a ha b, pi_cons_injective _⟩)
+    (λ i hi j hj hij, begin
+      simp only [function.on_fun, disjoint_iff_ne, mem_map, function.embedding.coe_fn_mk],
+      rintros _ ⟨p₂, hp, eq₂⟩ _ ⟨p₃, hp₃, eq₃⟩ eq,
+      have : pi.cons s a ha i p₂ a (mem_cons_self _ _) = pi.cons s a ha j p₃ a (mem_cons_self _ _),
+      { rw [eq₂, eq₃, eq] },
+      rw [pi.cons_same, pi.cons_same] at this,
+      exact hij this
+    end) :=
+eq_of_veq (pi_cons s.val (λ i, (t i).val) a)
 
 lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :
   s.pi (λ a, ({f a} : finset β)) = {λ a _, f a} :=

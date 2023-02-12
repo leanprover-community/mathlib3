@@ -87,29 +87,18 @@ lemma prod_sum {δ : α → Type*} [decidable_eq α] [∀a, decidable_eq (δ a)]
   (∏ a in s, ∑ b in (t a), f a b) =
     ∑ p in (s.pi t), ∏ x in s.attach, f x.1 (p x.1 x.2) :=
 begin
-  induction s using finset.induction with a s ha ih,
+  induction s using finset.cons_induction with a s ha ih,
   { rw [pi_empty, sum_singleton], refl },
-  { have h₁ : ∀x ∈ t a, ∀y ∈ t a, ∀h : x ≠ y,
-        disjoint (image (pi.cons s a x) (pi s t)) (image (pi.cons s a y) (pi s t)),
-    { assume x hx y hy h,
-      simp only [disjoint_iff_ne, mem_image],
-      rintros _ ⟨p₂, hp, eq₂⟩ _ ⟨p₃, hp₃, eq₃⟩ eq,
-      have : pi.cons s a x p₂ a (mem_insert_self _ _) = pi.cons s a y p₃ a (mem_insert_self _ _),
-      { rw [eq₂, eq₃, eq] },
-      rw [pi.cons_same, pi.cons_same] at this,
-      exact h this },
-    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bUnion h₁],
+  { rw [prod_cons ha, pi_cons ha, ih, sum_mul, sum_disj_Union],
     refine sum_congr rfl (λ b _, _),
-    have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
-      assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
-    rw [sum_image h₂, mul_sum],
+    rw [sum_map, mul_sum],
     refine sum_congr rfl (λ g _, _),
-    rw [attach_insert, prod_insert, prod_image],
-    { simp only [pi.cons_same],
+    rw [attach_cons, prod_cons, prod_map],
+    { dsimp,
+      simp only [pi.cons_same],
       congr' with ⟨v, hv⟩, congr',
-      exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
-    { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
-    { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
+      exact (pi.cons_ne _ (by rintro rfl; exact ha hv)).symm },
+    apply_instance }
 end
 
 open_locale classical

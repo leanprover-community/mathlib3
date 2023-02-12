@@ -50,6 +50,8 @@ Here we state some lemmas that give us inversion rules and recurrences for the c
 stream of integer and fractional parts of a value.
 -/
 
+lemma stream_zero (v : K) : int_fract_pair.stream v 0 = some (int_fract_pair.of v) := rfl
+
 variable {n : ℕ}
 
 lemma stream_eq_none_of_fr_eq_zero {ifp_n : int_fract_pair K}

@@ -9,6 +9,9 @@ import algebra.order.euclidean_absolute_value
 
 /-!
 # Admissible absolute values
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines a structure `absolute_value.is_admissible` which we use to show the class number
 of the ring of integers of a global field is finite.
 

@@ -1028,10 +1028,16 @@ lemma continuous.update [decidable_eq ι] (hf : continuous f) (i : ι) {g : α �
   continuous (λ a, update (f a) i (g a)) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
 
-/-- `update f i x` is continuous in `(f, x)`. -/
+/-- `function.update f i x` is continuous in `(f, x)`. -/
 @[continuity] lemma continuous_update [decidable_eq ι] (i : ι) :
   continuous (λ f : (Π j, π j) × π i, update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
+
+/-- `pi.mul_single i x` is continuous in `x`. -/
+@[continuity, to_additive "`pi.single i x` is continuous in `x`."]
+lemma continuous_mul_single [Π i, has_one (π i)] [decidable_eq ι] (i : ι) :
+  continuous (λ x, (pi.mul_single i x : Π i, π i)) :=
+continuous_const.update _ continuous_id
 
 lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
   (i : fin (n + 1)) {f : β → π i} {l : filter β} {x : π i} (hf : tendsto f l (𝓝 x))
@@ -1054,6 +1060,51 @@ continuous_iff_continuous_at.2 $ λ a, hf.continuous_at.fin_insert_nth i hg.cont
 lemma is_open_set_pi {i : set ι} {s : Πa, set (π a)} (hi : i.finite) (hs : ∀a∈i, is_open (s a)) :
   is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
+
+lemma is_open_pi_iff {s : set (Π a, π a)} :
+  is_open s ↔
+  (∀ f, f ∈ s → ∃ (I : finset ι) (u : Π a, set (π a)),
+    (∀ a, a ∈ I → is_open (u a) ∧ f a ∈ u a) ∧ (I : set ι).pi u ⊆ s) :=
+begin
+  rw is_open_iff_nhds,
+  simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
+  refine ball_congr (λ a h, ⟨_, _⟩),
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨I, λ a, eval a '' ((I : set ι).pi (λ a, (h1 a).some)), (λ i hi, _), _⟩,
+    { simp_rw set.eval_image_pi (finset.mem_coe.mpr hi)
+        (pi_nonempty_iff.mpr (λ i, ⟨_, λ _, (h1 i).some_spec.2.2⟩)),
+      exact (h1 i).some_spec.2, },
+    { refine subset.trans
+        (set.pi_mono (λ i hi, (set.eval_image_pi_subset hi).trans (h1 i).some_spec.1)) h2, }},
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨I, λ a, ite (a ∈ I) (t a) (set.univ), (λ i, _), _⟩,
+    { by_cases hi : i ∈ I,
+      { use t i,
+        rw if_pos hi,
+        exact ⟨subset.rfl, (h1 i) hi⟩, },
+      { use set.univ,
+        rw if_neg hi,
+        exact ⟨subset.rfl, is_open_univ, mem_univ _⟩, }},
+    { rw ← set.univ_pi_ite,
+      simp only [ ← ite_and, ← finset.mem_coe, and_self, set.univ_pi_ite, h2], }}
+end
+
+lemma is_open_pi_iff' [finite ι]  {s : set (Π a, π a)} :
+  is_open s ↔
+  (∀ f, f ∈ s → ∃ (u : Π a, set (π a)), (∀ a, is_open (u a) ∧ f a ∈ u a) ∧ set.univ.pi u ⊆ s) :=
+begin
+  casesI nonempty_fintype ι,
+  rw is_open_iff_nhds,
+  simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
+  refine ball_congr (λ a h, ⟨_, _⟩),
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨λ i, (h1 i).some, ⟨λ i, (h1 i).some_spec.2,
+        (set.pi_mono (λ i _, (h1 i).some_spec.1)).trans (subset.trans _ h2)⟩⟩,
+    rw ← set.pi_inter_compl (I : set ι),
+    exact inter_subset_left _ _, },
+  { exact λ ⟨u, ⟨h1, _⟩⟩, ⟨finset.univ, u, ⟨λ i, ⟨u i, ⟨rfl.subset, h1 i⟩⟩,
+      by rwa finset.coe_univ⟩⟩, }
+end
 
 lemma is_closed_set_pi {i : set ι} {s : Πa, set (π a)} (hs : ∀a∈i, is_closed (s a)) :
   is_closed (pi i s) :=

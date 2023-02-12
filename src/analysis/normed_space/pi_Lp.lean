@@ -393,6 +393,22 @@ end aux
 instance uniform_space [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
 Pi.uniform_space _
 
+lemma uniform_continuous_equiv [Π i, uniform_space (β i)] :
+  uniform_continuous (pi_Lp.equiv p β) :=
+uniform_continuous_id
+
+lemma uniform_continuous_equiv_symm [Π i, uniform_space (β i)] :
+  uniform_continuous (pi_Lp.equiv p β).symm :=
+uniform_continuous_id
+
+@[continuity]
+lemma continuous_equiv [Π i, uniform_space (β i)] : continuous (pi_Lp.equiv p β) :=
+continuous_id
+
+@[continuity]
+lemma continuous_equiv_symm [Π i, uniform_space (β i)] : continuous (pi_Lp.equiv p β).symm :=
+continuous_id
+
 variable [fintype ι]
 
 instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology

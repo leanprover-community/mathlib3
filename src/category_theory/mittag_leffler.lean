@@ -166,6 +166,52 @@ lemma is_mittag_leffler.to_preimages (h : F.is_mittag_leffler) :
     rw [← category.assoc, map_comp_apply, h₃, map_comp_apply] },
 end
 
+
+lemma to_preimages_nonempty_of_mittag_leffler
+  [hn : ∀ j, nonempty (F.obj j)]
+  (hF : F.is_mittag_leffler)
+  (hs : ∀ {j} (f : j ⟶ i), ((F.map f) ⁻¹' s).nonempty) :
+  nonempty ((F.to_preimages s).obj j) :=
+begin
+  dsimp only [functor.to_preimages],
+  simp [set.nonempty_coe_sort] at *,
+  by_cases h : nonempty (j ⟶ i),
+  { obtain ⟨k,ki,hk⟩ := hF i,
+    --obtain ⟨ji⟩ := h,
+    obtain ⟨m, mk, mj, _⟩ := cone_objs k j,
+    obtain ⟨x,xs⟩ := hs (mk ≫ ki), simp at xs,
+    use F.map mj x,
+    rintro ji,
+    --specialize hk ji,
+    let := (set.range_comp_subset_range (F.map mk) (F.map ki)).trans (hk ji),
+    sorry, },
+  { exact ⟨(hn j).some, λ ji, (h ⟨ji⟩).elim⟩, },
+
+
+end
+
+lemma to_preimages_nonempty_of_surjective (h : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
+  (hs : s.nonempty) : nonempty ((F.to_preimages s).obj j) :=
+F.to_preimages_nonempty_of_mittag_leffler s (F.is_mittag_leffler_of_surjective h)
+  (λ j f, (h _ _ f).nonempty_preimage.mpr hs)
+begin
+  dsimp only [functor.to_preimages],
+  simp [set.nonempty_coe_sort] at *,
+  by_cases h : nonempty (j ⟶ i),
+  { obtain ⟨k,ki,hk⟩ := hF i,
+    --obtain ⟨ji⟩ := h,
+    obtain ⟨m, mk, mj, _⟩ := cone_objs k j,
+    obtain ⟨x,xs⟩ := hs (mk ≫ ki), simp at xs,
+    use F.map mj x,
+    rintro ji,
+    --specialize hk ji,
+    let := (set.range_comp_subset_range (F.map mk) (F.map ki)).trans (hk ji),
+    sorry, },
+  { exact ⟨(hn j).some, λ ji, (h ⟨ji⟩).elim⟩, },
+
+
+end
+
 lemma is_mittag_leffler_of_exists_finite_range
   (h : ∀ (j : J), ∃ i (f : i ⟶ j), (range $ F.map f).finite) :
   F.is_mittag_leffler :=

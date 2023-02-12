@@ -5,6 +5,7 @@ Authors: Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.filtered
 import data.set.finite
+import topology.category.Top
 
 /-!
 # The Mittag-Leffler condition
@@ -166,52 +167,6 @@ lemma is_mittag_leffler.to_preimages (h : F.is_mittag_leffler) :
     rw [← category.assoc, map_comp_apply, h₃, map_comp_apply] },
 end
 
-
-lemma to_preimages_nonempty_of_mittag_leffler
-  [hn : ∀ j, nonempty (F.obj j)]
-  (hF : F.is_mittag_leffler)
-  (hs : ∀ {j} (f : j ⟶ i), ((F.map f) ⁻¹' s).nonempty) :
-  nonempty ((F.to_preimages s).obj j) :=
-begin
-  dsimp only [functor.to_preimages],
-  simp [set.nonempty_coe_sort] at *,
-  by_cases h : nonempty (j ⟶ i),
-  { obtain ⟨k,ki,hk⟩ := hF i,
-    --obtain ⟨ji⟩ := h,
-    obtain ⟨m, mk, mj, _⟩ := cone_objs k j,
-    obtain ⟨x,xs⟩ := hs (mk ≫ ki), simp at xs,
-    use F.map mj x,
-    rintro ji,
-    --specialize hk ji,
-    let := (set.range_comp_subset_range (F.map mk) (F.map ki)).trans (hk ji),
-    sorry, },
-  { exact ⟨(hn j).some, λ ji, (h ⟨ji⟩).elim⟩, },
-
-
-end
-
-lemma to_preimages_nonempty_of_surjective (h : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
-  (hs : s.nonempty) : nonempty ((F.to_preimages s).obj j) :=
-F.to_preimages_nonempty_of_mittag_leffler s (F.is_mittag_leffler_of_surjective h)
-  (λ j f, (h _ _ f).nonempty_preimage.mpr hs)
-begin
-  dsimp only [functor.to_preimages],
-  simp [set.nonempty_coe_sort] at *,
-  by_cases h : nonempty (j ⟶ i),
-  { obtain ⟨k,ki,hk⟩ := hF i,
-    --obtain ⟨ji⟩ := h,
-    obtain ⟨m, mk, mj, _⟩ := cone_objs k j,
-    obtain ⟨x,xs⟩ := hs (mk ≫ ki), simp at xs,
-    use F.map mj x,
-    rintro ji,
-    --specialize hk ji,
-    let := (set.range_comp_subset_range (F.map mk) (F.map ki)).trans (hk ji),
-    sorry, },
-  { exact ⟨(hn j).some, λ ji, (h ⟨ji⟩).elim⟩, },
-
-
-end
-
 lemma is_mittag_leffler_of_exists_finite_range
   (h : ∀ (j : J), ∃ i (f : i ⟶ j), (range $ F.map f).finite) :
   F.is_mittag_leffler :=
@@ -266,17 +221,67 @@ lemma thin_diagram_of_surjective (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).
 let ⟨k, φ, hφ⟩ := cone_maps f g in
 (Fsur k i φ).injective_comp_right $ by simp_rw [← types_comp, ← F.map_comp, hφ]
 
+lemma to_preimages_nonempty_of_surjective [hFn : ∀ (j : J), nonempty (F.obj j)]
+  (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
+  (hs : s.nonempty) : ∀ j, nonempty ((F.to_preimages s).obj j) := λ j, by
+begin
+  simp only [to_preimages_obj, nonempty_coe_sort, nonempty_Inter, mem_preimage],
+  obtain (h|⟨⟨ji⟩⟩) := is_empty_or_nonempty (j ⟶ i),
+  { exact ⟨(hFn j).some, λ ji, h.elim ji⟩, },
+  { obtain ⟨y,ys⟩ := hs,
+    obtain ⟨x,rfl⟩ := Fsur j i ji y,
+    exact ⟨x, λ ji', (F.thin_diagram_of_surjective Fsur _ _ ji' ji).symm ▸ ys⟩, },
+end
+
+noncomputable instance to_preimages_finite [∀ j, finite (F.obj j)] :
+  ∀ j, fintype ((F.to_preimages s).obj j) :=
+λ j, @fintype.of_finite ((F.to_preimages s).obj j) subtype.finite
+
 section fintype_cofiltered_system
 
 variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
   (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
 
+include Fsur
 lemma eval_section_surjective_of_surjective (i : J) :
-  (λ s : F.sections, s.val i).surjective := sorry
--- needs work and `nonempty_sections_of_fintype_cofiltered_system`
+  (λ s : F.sections, s.val i).surjective := λ x, by
+begin
+  let s : set (F.obj i) := {x},
+  haveI := F.to_preimages_nonempty_of_surjective s Fsur (singleton_nonempty x),
+  haveI : nonempty J := ⟨i⟩,
+  haveI : is_cofiltered J := ⟨⟩,
+  obtain ⟨sec, h⟩ := nonempty_sections_of_fintype_cofiltered_system (F.to_preimages s),
+  refine ⟨⟨λ j, (sec j).val, λ j k jk, by simpa [subtype.ext_iff] using h jk⟩, _⟩,
+  { let := (sec i).prop,
+    simp only [mem_Inter, mem_preimage, mem_singleton_iff] at this,
+    replace this := this (𝟙 i), rwa [map_id_apply] at this, },
+end
 
 lemma eventually_injective [finite F.sections] :
-  ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective := sorry
+  ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective :=
+begin
+  have : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections, from
+    λ j, fintype.card_le_of_surjective _ (sections_surjective' F j Fsur),
+  let cards := set.range (λ j, fintype.card $ F.obj j),
+  haveI cardsnem : cards.nonempty := set.range_nonempty (λ (j : J), fintype.card (F.obj j)),
+  haveI cardsfin : cards.finite := by
+  { apply set.finite.subset,
+    exact {n : ℕ | n ≤ fintype.card ↥(functor.sections F)}.to_finite,
+    rintro jm ⟨j,rfl⟩,
+    exact this j,},
+  let m := cardsfin.to_finset.max' ((set.finite.nonempty_to_finset cardsfin).mpr cardsnem),
+  let mmem := cardsfin.to_finset.max'_mem ((set.finite.nonempty_to_finset cardsfin).mpr cardsnem),
+  rw [set.finite.mem_to_finset, set.mem_range] at mmem,
+  obtain ⟨j, jm⟩ := mmem,
+  refine ⟨j, λ i ij, function.bijective.injective _⟩,
+  rw fintype.bijective_iff_surjective_and_card,
+  refine ⟨Fsur i j ij, _⟩,
+  symmetry,
+  apply (fintype.card_le_of_surjective _ (Fsur i j ij)).antisymm,
+  rw jm,
+  apply cardsfin.to_finset.le_max' (fintype.card $ F.obj i),
+  simp only [set.finite.mem_to_finset, set.mem_range, exists_apply_eq_apply],
+end
 /-
 By `eval_section_surjective_of_surjective`, all cardinalities of `F.obj j` are bounded by the
 cardinality of `F.sections`, take a maximal such; by surjectivity of all the `F.map f`, and

@@ -48,13 +48,13 @@ def to_finsupp : ℕ →₀ M :=
     exact nthd_eq_default _ _
   end }
 
-lemma coe_to_finsupp : (l.to_finsupp : ℕ → M) = l.nthd 0 := rfl
+@[simp, norm_cast] lemma coe_to_finsupp : (l.to_finsupp : ℕ → M) = l.nthd 0 := rfl
 
 lemma to_finsupp_support :
   l.to_finsupp.support = (finset.range l.length).filter (λ i, nthd 0 l i ≠ 0) :=
 rfl
 
-lemma to_finsupp_apply_lt (hn : n < l.length) :
+@[simp] lemma to_finsupp_apply_lt (hn : n < l.length) :
   l.to_finsupp n = l.nth_le n hn :=
 nthd_eq_nth_le _ _ _
 
@@ -64,14 +64,14 @@ nthd_eq_default _ _ hn
 
 @[simp] lemma to_finsupp_nil [decidable_pred (λ (i : ℕ), nthd 0 ([] : list M) i ≠ 0)] :
   to_finsupp ([] : list M) = 0 :=
-by { ext, simp [coe_to_finsupp] }
+by { ext, simp }
 
 lemma to_finsupp_singleton (x : M)
   [decidable_pred (λ (i : ℕ), nthd 0 [x] i ≠ 0)] :
   to_finsupp [x] = finsupp.single 0 x :=
 begin
   ext ⟨_|i⟩;
-  simp [coe_to_finsupp, finsupp.single_apply, (nat.zero_lt_succ _).ne]
+  simp [finsupp.single_apply, (nat.zero_lt_succ _).ne]
 end
 
 @[simp] lemma to_finsupp_cons_apply_zero (x : M) (xs : list M)

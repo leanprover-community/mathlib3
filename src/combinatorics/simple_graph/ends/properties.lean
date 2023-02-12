@@ -17,7 +17,7 @@ variables {V : Type*} (G : simple_graph V)
 
 namespace simple_graph
 
-instance [finite V] : is_empty G.end :=
+instance empty_ends [finite V] : is_empty G.end :=
 ⟨ begin
     rintro ⟨s, _⟩,
     casesI nonempty_fintype V,

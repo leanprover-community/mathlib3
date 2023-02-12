@@ -197,54 +197,28 @@ begin
   exact (hK.trans iK).trans eL.to_embedding,
 end
 
+example {a b c : Type*} (f : a → b) (g : b → c) (hc : (g∘f).injective) : f.injective := by library_search
+
 lemma Freudenthal_Hopf
   [Vi : infinite V] -- follows from the other assumptions
   [locally_finite G] (Gpc : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (many_ends : fin 3 ↪ G.end) : G.end.infinite :=
 begin
-  classical,
-
-
-  -- Assume we have at least three ends, but finitely many
   intros finite_ends,
-
-  -- Boring boilerplate
-
   haveI : fintype (G.component_compl_functor.to_eventual_ranges).sections :=
     (@fintype.of_equiv _ _ (set.finite.fintype finite_ends) $ (functor.to_eventual_ranges_sections_equiv _).symm),
-  /-
-  The sections of `….to_eventual_ranges` are finite, and it's a surjective system, so it's
-  eventually an injective system.
-  -/
-  /-
-  haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := ComplInfComp_fintype  G Glf Gpc,
-  have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G Glf Gpc,
-  -/
   haveI := G.component_compl_functor_to_eventual_ranges_finite Gpc,
   haveI := G.component_compl_functor_to_eventual_ranges_nonempty_of_infinite,
   have surj : ∀ i j (f : i ⟶ j), function.surjective _ :=
     functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc),
-
-  -- By finitely many ends, and since the system is nice, there is some K such that each inf_component_compl_back to K is injective
   obtain ⟨K,top⟩ := G.component_compl_functor.to_eventual_ranges.eventually_injective,
-  -- Since each inf_component_compl_back to K is injective, the map from sections to K is also injective
   let inj' := G.component_compl_functor.to_eventual_ranges.eval_section_injective_of_eventually_injective top,
   let inj'' := (many_ends.trans (functor.to_eventual_ranges_sections_equiv _).symm.to_embedding).trans ⟨_, (inj' K (𝟙 K))⟩,
-  -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
-  -- giving us K ⊆ L ⊆ L with the inf_component_compl_back from L to L not injective.
-  obtain ⟨L,M,KL,LM,bwd_K_not_inj⟩ := (good_autom_back_not_inj Gpc auts K inj''),
-  /-
-  -- which is in contradiction with the fact that all inf_component_compl_back to K are injective
-  apply bwd_K_not_inj,
-  -- The following is just that if f ∘ g is injective, then so is g
-  rintro x y eq,
-  apply top ⟨L,by {exact KL.trans LL,}⟩,
-  simp only [ComplInfComp.map],
-  have eq' := congr_arg (inf_component_compl.back KL) eq,
-  simp only [inf_component_compl.back_trans_apply] at eq',
-  exact eq',
-  -/
+  obtain ⟨L,M,KL,LM,LM_not_inj⟩ := (good_autom_back_not_inj Gpc auts K inj''),
+  refine LM_not_inj (@injective.of_comp _ _ _ (G.component_compl_functor.to_eventual_ranges.map KL) _ _),
+  rw [←types_comp,←functor.map_comp],
+  apply top,
 end
 
 end simple_graph

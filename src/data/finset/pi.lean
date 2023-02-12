@@ -46,7 +46,7 @@ equal to `f` on `s` and sending `a` to a given value `b`. This function is denot
 anyway. -/
 def pi.cons (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α) (h : a' ∈ insert a s) :
   δ a' :=
-multiset.pi.cons s.1 a b f _ (multiset.mem_cons.2 $ mem_insert.symm.2 h)
+multiset.pi.cons b f _ (multiset.mem_cons.2 $ mem_insert.symm.2 h)
 
 @[simp]
 lemma pi.cons_same (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (h : a ∈ insert a s) :
@@ -80,7 +80,7 @@ begin
   refine (λ s' (h : s' = a ::ₘ s.1), (_ : dedup (multiset.pi s' (λ a, (t a).1)) =
     dedup ((t a).1.bind $ λ b,
     dedup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
-      λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
+      λ f a' h', multiset.pi.cons b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
   subst s', rw pi_cons,
   congr, funext b,
   exact ((pi s t).nodup.map $ multiset.pi_cons_injective ha).dedup.symm,

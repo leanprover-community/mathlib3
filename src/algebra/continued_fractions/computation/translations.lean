@@ -243,6 +243,74 @@ have int_fract_pair.stream v (n + 1) = some (int_fract_pair.of ifp_n.fr⁻¹), b
   { cases ifp_n, simp [int_fract_pair.stream, stream_nth_eq, nth_fr_ne_zero] },
 nth_of_eq_some_of_succ_nth_int_fract_pair_stream this
 
+open int int_fract_pair
+
+lemma of_s_head_aux (v : K) :
+  (of v).s.nth 0 = (int_fract_pair.stream v 1).bind (some ∘ λ p, {a := 1, b := p.b}) :=
+begin
+  rw [of, int_fract_pair.seq1, of._match_1],
+  simp only [seq.map_tail, seq.map, seq.tail, seq.head, seq.nth, stream.map],
+  rw [← stream.nth_succ, stream.nth, option.map],
+end
+
+/--
+This gives the first pair of coefficients of the continued fraction of a non-integer `v`.
+-/
+lemma of_s_head (h : fract v ≠ 0) : (of v).s.head = some ⟨1, ⌊(fract v)⁻¹⌋⟩ :=
+begin
+  change (of v).s.nth 0 = _,
+  rw [of_s_head_aux, stream_succ_of_some (stream_zero v) h, option.bind],
+  refl,
+end
+
+variables (K)
+
+/--
+If `a` is an integer, then the coefficient sequence of its continued fraction is empty.
+-/
+lemma of_s_of_int (a : ℤ) : (of (a : K)).s = seq.nil :=
+begin
+  have h : ∀ n, (of (a : K)).s.nth n = none,
+  { intro n,
+    induction n with n ih,
+    { rw [of_s_head_aux, stream_succ_of_int, option.bind], },
+    { exact (of (a : K)).s.prop ih, } },
+  exact seq.ext (λ n, (h n).trans (seq.nth_nil n).symm),
+end
+
+variables {K} (v)
+
+/--
+Recurrence for the `generalized_continued_fraction.of` an element `v` of `K` in terms of
+that of the inverse of the fractional part of `v`.
+-/
+lemma of_s_succ (n : ℕ) : (of v).s.nth (n + 1) = (of (fract v)⁻¹).s.nth n :=
+begin
+  cases eq_or_ne (fract v) 0 with h h,
+  { obtain ⟨a, rfl⟩ : ∃ a : ℤ, v = a := ⟨⌊v⌋,  eq_of_sub_eq_zero h⟩,
+    rw [fract_int_cast, inv_zero, of_s_of_int, ← cast_zero, of_s_of_int, seq.nth_nil,
+        seq.nth_nil], },
+  cases eq_or_ne ((of (fract v)⁻¹).s.nth n) none with h₁ h₁,
+  { rwa [h₁, ← terminated_at_iff_s_none,
+         of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none, stream_succ h,
+         ← of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none,
+         terminated_at_iff_s_none], },
+  { obtain ⟨p, hp⟩ := option.ne_none_iff_exists'.mp h₁,
+    obtain ⟨p', hp'₁, _⟩ := exists_succ_nth_stream_of_gcf_of_nth_eq_some hp,
+    have Hp := nth_of_eq_some_of_succ_nth_int_fract_pair_stream hp'₁,
+    rw [← stream_succ h] at hp'₁,
+    rw [Hp, nth_of_eq_some_of_succ_nth_int_fract_pair_stream hp'₁], }
+end
+
+/--
+This expresses the tail of the coefficient sequence of the `generalized_continued_fraction.of`
+an element `v` of `K` as the coefficient sequence of that of the inverse of the
+fractional part of `v`.
+-/
+lemma of_s_tail : (of v).s.tail = (of (fract v)⁻¹).s :=
+seq.ext $ λ n, seq.nth_tail (of v).s n ▸ of_s_succ v n
+
+
 end values
 end sequence
 end generalized_continued_fraction

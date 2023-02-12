@@ -1586,7 +1586,7 @@ lemma sum_int_mod (s : finset α) (n : ℤ) (f : α → ℤ) :
   (∑ i in s, f i) % n = (∑ i in s, f i % n) % n :=
 (multiset.sum_int_mod _ _).trans $ by rw [finset.sum, multiset.map_map]
 
-lemma prod_mod (s : finset α) (n : ℤ) (f : α → ℤ) : (∏ i in s, f i) % n = (∏ i in s, f i % n) % n :=
+lemma prod_int_mod (s : finset α) (n : ℤ) (f : α → ℤ) : (∏ i in s, f i) % n = (∏ i in s, f i % n) % n :=
 (multiset.prod_int_mod _ _).trans $ by rw [finset.prod, multiset.map_map]
 
 end finset

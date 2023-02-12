@@ -176,18 +176,10 @@ namespace list
 variables {α : Type u} {β : α → Type v}
 open fin_enum
 
-lemma mem_pi {β : α → Type (max u v)} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α)
+lemma mem_pi_to_list {β : α → Type (max u v)} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α)
   (f : Π a, a ∈ xs → β a) :
   f ∈ pi xs (λ x, to_list (β x)) :=
-begin
-  induction xs; simp [pi, - map_eq_map] with monad_norm functor_norm,
-  { ext a ⟨ ⟩ },
-  { existsi pi.cons (pi.head f),
-    split, exact ⟨_, rfl⟩,
-    existsi pi.tail f, split,
-    { apply xs_ih, },
-    { rw [pi.cons_eta] }, }
-end
+(mem_pi _ _).mpr $ λ i hi, fin_enum.mem_to_list _
 
 /-- enumerate all functions whose domain and range are finitely enumerable -/
 def pi.enum (β : α → Type (max u v)) [fin_enum α] [∀a, fin_enum (β a)] : list (Π a, β a) :=
@@ -195,7 +187,7 @@ def pi.enum (β : α → Type (max u v)) [fin_enum α] [∀a, fin_enum (β a)] :
 
 lemma pi.mem_enum {β : α → Type (max u v)} [fin_enum α] [∀a, fin_enum (β a)] (f : Π a, β a) :
   f ∈ pi.enum β :=
-by simp [pi.enum]; refine ⟨λ a h, f a, mem_pi _ _, rfl⟩
+by simp [pi.enum]; refine ⟨λ a h, f a, mem_pi_to_list _ _, rfl⟩
 
 instance pi.fin_enum {β : α → Type (max u v)}
   [fin_enum α] [∀a, fin_enum (β a)] : fin_enum (Πa, β a) :=

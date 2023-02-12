@@ -10,9 +10,9 @@ import data.multiset.pi
 -/
 
 namespace list
-variables {ι : Type*} [dec : decidable_eq ι] {α : ι → Sort*}
 
 namespace pi
+variables {ι : Type*} [dec : decidable_eq ι] {α : ι → Sort*}
 
 /-- Given `α : ι → Sort*`, `pi.nil α` is the trivial dependent function out of the empty list. -/
 def nil (α : ι → Sort*) : (Π i ∈ ([] : list ι), α i).
@@ -57,12 +57,35 @@ lemma forall_rel_cons_ext (r : Π ⦃i⦄, α i → α i → Prop) {a₁ a₂ : 
 
 end pi
 
-include dec
+variables {ι : Type*} [decidable_eq ι] {α : ι → Type*}
 
 /-- `pi xs f` creates the list of functions `g` such that, for `x ∈ xs`, `g x ∈ f x` -/
-def pi {α : ι → Type*} : Π l : list ι, (Π i, list (α i)) →
+def pi : Π l : list ι, (Π i, list (α i)) →
   list (Π i, i ∈ l → α i)
-| []       fs := [λ x h, h.elim]
-| (i :: l) fs := list.pi.cons <$> fs i <*> pi l fs
+| []       fs := [list.pi.nil α]
+| (i :: l) fs := (fs i).bind (λ b, (pi l fs).map (list.pi.cons b))
+
+@[simp] lemma pi_nil (t : Π i, list (α i)) : pi [] t = [pi.nil α] := rfl
+
+@[simp] lemma pi_cons (i : ι) (l : list ι) (t : Π j, list (α j)) :
+  pi (i :: l) t = ((t i).bind $ λ b, (pi l t).map $ pi.cons b) := rfl
+
+lemma _root_.multiset.pi_coe (l : list ι) (fs : Π i, list (α i)) :
+  (l : multiset ι).pi ↑fs = (↑(pi l fs) : multiset (Π i ∈ l, α i)) :=
+begin
+  induction l with i l ih,
+  { change multiset.pi 0 _ = _,
+    simp only [multiset.coe_singleton, multiset.pi_zero, pi_nil, multiset.singleton_inj],
+    ext i hi, exact hi.elim, },
+  { change multiset.pi (i ::ₘ ↑l) _ = _, simpa [ih, ← multiset.coe_bind], },
+end
+
+lemma mem_pi {l : list ι} (fs : Π i, list (α i)) :
+  ∀ f : Π i ∈ l, α i, (f ∈ pi l fs) ↔ (∀ i (hi : i ∈ l), f i hi ∈ fs i) :=
+begin
+  intros f,
+  convert @multiset.mem_pi ι _ α ↑l ↑fs f using 1,
+  rw [multiset.pi_coe], refl
+end
 
 end list

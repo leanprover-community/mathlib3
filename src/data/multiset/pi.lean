@@ -127,7 +127,7 @@ begin
     neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this)
 end
 
-lemma mem_pi (m : multiset α) (t : Π a, multiset (β a)) :
+lemma mem_pi {m : multiset α} (t : Π a, multiset (β a)) :
   ∀ f : Π a ∈ m, β a, (f ∈ pi m t) ↔ (∀ a (h : a ∈ m), f a h ∈ t a) :=
 begin
   intro f,

@@ -213,7 +213,7 @@ def to_eventual_ranges_sections_equiv : F.to_eventual_ranges.sections ≃ F.sect
 If `F` satisfies the Mittag-Leffler condition, its restriction to eventual ranges is a surjective
 functor.
 -/
-lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) (i j) (f : i ⟶ j) :
+lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) ⦃i j⦄ (f : i ⟶ j) :
   (F.to_eventual_ranges.map f).surjective :=
 λ ⟨x, hx⟩, by { obtain ⟨y, hy, rfl⟩ := h.subset_image_eventual_range F f hx, exact ⟨⟨y, hy⟩, rfl⟩ }
 

@@ -56,7 +56,7 @@ lemma to_finsupp_support :
   l.to_finsupp.support = (finset.range l.length).filter (λ i, nthd l i 0 ≠ 0) :=
 rfl
 
-@[simp] lemma to_finsupp_apply_lt (hn : n < l.length) :
+lemma to_finsupp_apply_lt (hn : n < l.length) :
   l.to_finsupp n = l.nth_le n hn :=
 nthd_eq_nth_le _ _ _
 

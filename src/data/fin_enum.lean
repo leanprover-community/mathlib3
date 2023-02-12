@@ -6,6 +6,7 @@ Authors: Simon Hudon
 import control.monad.basic
 import data.fintype.basic
 import data.list.prod_sigma
+import data.list.pi
 
 /-!
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
@@ -169,39 +170,23 @@ instance [fin_enum α] : fintype α :=
 { elems := univ.map (equiv α).symm.to_embedding,
   complete := by intros; simp; existsi (equiv α x); simp }
 
-/-- For `pi.cons x xs y f` create a function where every `i ∈ xs` is mapped to `f i` and
-`x` is mapped to `y`  -/
-def pi.cons [decidable_eq α] (x : α) (xs : list α) (y : β x)
-  (f : Π a, a ∈ xs → β a) :
-  Π a, a ∈ (x :: xs : list α) → β a
-| b h :=
-  if h' : b = x then cast (by rw h') y
-    else f b (list.mem_of_ne_of_mem h' h)
+end fin_enum
 
-/-- Given `f` a function whose domain is `x :: xs`, produce a function whose domain
-is restricted to `xs`.  -/
-def pi.tail {x : α} {xs : list α} (f : Π a, a ∈ (x :: xs : list α) → β a) :
-  Π a, a ∈ xs → β a
-| a h := f a (list.mem_cons_of_mem _ h)
-
-/-- `pi xs f` creates the list of functions `g` such that, for `x ∈ xs`, `g x ∈ f x` -/
-def pi {β : α → Type (max u v)} [decidable_eq α] : Π xs : list α, (Π a, list (β a)) →
-  list (Π a, a ∈ xs → β a)
-| [] fs := [λ x h, h.elim]
-| (x :: xs) fs :=
-  fin_enum.pi.cons x xs <$> fs x <*> pi xs fs
+namespace list
+variables {α : Type u} {β : α → Type v}
+open fin_enum
 
 lemma mem_pi {β : α → Type (max u v)} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α)
   (f : Π a, a ∈ xs → β a) :
   f ∈ pi xs (λ x, to_list (β x)) :=
 begin
-  induction xs; simp [pi,-list.map_eq_map] with monad_norm functor_norm,
+  induction xs; simp [pi, - map_eq_map] with monad_norm functor_norm,
   { ext a ⟨ ⟩ },
-  { existsi pi.cons xs_hd xs_tl (f _ (list.mem_cons_self _ _)),
-    split, exact ⟨_,rfl⟩,
+  { existsi pi.cons (pi.head f),
+    split, exact ⟨_, rfl⟩,
     existsi pi.tail f, split,
     { apply xs_ih, },
-    { ext x h, simp [pi.cons], split_ifs, subst x, refl, refl }, }
+    { rw [pi.cons_eta] }, }
 end
 
 /-- enumerate all functions whose domain and range are finitely enumerable -/
@@ -221,4 +206,4 @@ instance pfun_fin_enum (p : Prop) [decidable p] (α : p → Type*)
 if hp : p then of_list ( (to_list (α hp)).map $ λ x hp', x ) (by intro; simp; exact ⟨x hp,rfl⟩)
           else of_list [λ hp', (hp hp').elim] (by intro; simp; ext hp'; cases hp hp')
 
-end fin_enum
+end list

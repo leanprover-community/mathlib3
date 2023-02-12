@@ -32,16 +32,16 @@ include S
 def quotient_choice : Π {l : list ι},
   (Π i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) pi_setoid
 | []       q := ⟦λ i, false.elim⟧
-| (i :: l) q := quotient.lift_on₂ (q i (mem_cons_self _ _))
-    (quotient_choice (λ j hj, q j (mem_cons_of_mem _ hj)))
-    (λ a l, ⟦pi.cons a l⟧)
-    (λ _ _ _ _ ha hl, quotient.sound (pi.forall_rel_cons_ext (λ _, (≈)) ha hl))
+| (i :: l) q := quotient.lift_on₂ (@pi.head _ _ _ l q)
+  (quotient_choice (pi.tail q))
+  (λ a l, ⟦pi.cons a l⟧)
+  (λ _ _ _ _ ha hl, quotient.sound (pi.forall_rel_cons_ext (λ _, (≈)) ha hl))
 
 theorem quotient_choice_mk : ∀ {l : list ι}
   (a : Π i ∈ l, α i), quotient_choice (λ i h, ⟦a i h⟧) = ⟦a⟧
 | []       f := quotient.sound (λ i hi, hi.elim)
 | (i :: l) f := begin
-  rw [quotient_choice, quotient_choice_mk],
+  rw [quotient_choice, pi.tail, quotient_choice_mk],
   exact congr_arg quotient.mk (pi.cons_eta f),
 end
 
@@ -52,10 +52,10 @@ lemma quotient_ind : Π {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Prop
 | []     C f q := cast (congr_arg _ (funext₂ (λ i hi, hi.elim))) (f (λ i hi, hi.elim))
 | (i::l) C f q := begin
   rw [← pi.cons_eta q],
-  induction (q i (mem_cons_self _ _)) using quotient.ind,
-  refine @quotient_ind _ (λ q, C (pi.cons ⟦a⟧ q)) _ (λ j hj, q j (mem_cons_of_mem _ hj)),
+  induction pi.head q using quotient.ind,
+  refine @quotient_ind _ (λ q, C (pi.cons ⟦a⟧ q)) _ (pi.tail q),
   intros as,
-  rw [← pi.map_cons a as],
+  rw [pi.cons_map a as],
   exact f _,
 end
 

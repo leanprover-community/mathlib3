@@ -206,11 +206,12 @@ begin
   intros finite_ends,
   haveI : fintype (G.component_compl_functor.to_eventual_ranges).sections :=
     (@fintype.of_equiv _ _ (set.finite.fintype finite_ends) $ (functor.to_eventual_ranges_sections_equiv _).symm),
-  haveI := G.component_compl_functor_to_eventual_ranges_finite Gpc,
+  haveI := λ j, @fintype.of_finite _ (G.component_compl_functor_to_eventual_ranges_finite Gpc j),
   haveI := G.component_compl_functor_to_eventual_ranges_nonempty_of_infinite,
-  have surj : ∀ i j (f : i ⟶ j), function.surjective _ :=
+  haveI : nonempty (finset V)ᵒᵖ := ⟨op ∅⟩,
+  have surj : ∀ ⦃i j⦄ (f : i ⟶ j), function.surjective _ :=
     functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc),
-  obtain ⟨K,top⟩ := G.component_compl_functor.to_eventual_ranges.eventually_injective,
+  obtain ⟨K,top⟩ := G.component_compl_functor.to_eventual_ranges.eventually_injective surj,
   let inj' := G.component_compl_functor.to_eventual_ranges.eval_section_injective_of_eventually_injective top,
   let inj'' := (many_ends.trans (functor.to_eventual_ranges_sections_equiv _).symm.to_embedding).trans ⟨_, (inj' K (𝟙 K))⟩,
   obtain ⟨L,M,KL,LM,LM_not_inj⟩ := (good_autom_back_not_inj Gpc auts K inj''),

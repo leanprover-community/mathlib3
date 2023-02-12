@@ -101,8 +101,8 @@ begin
 end
 
 lemma is_mittag_leffler_of_surjective
-  (h : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) : F.is_mittag_leffler :=
-λ j, ⟨j, 𝟙 j, λ k g, by rw [map_id, types_id, range_id, (h k j g).range_eq]⟩
+  (h : ∀ ⦃i j : J⦄ (f :i ⟶ j), (F.map f).surjective) : F.is_mittag_leffler :=
+λ j, ⟨j, 𝟙 j, λ k g, by rw [map_id, types_id, range_id, (h g).range_eq]⟩
 
 /-- The subfunctor of `F` obtained by restricting to the preimages of a set `s ∈ F.obj i`. -/
 @[simps] def to_preimages : J ⥤ Type v :=
@@ -114,6 +114,10 @@ lemma is_mittag_leffler_of_surjective
   end,
   map_id' := λ j, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ j k l f g, by { simp_rw F.map_comp, refl } }
+
+noncomputable instance to_preimages_fintype [∀ j, fintype (F.obj j)] :
+  ∀ j, fintype ((F.to_preimages s).obj j) :=
+λ j, @fintype.of_finite ((F.to_preimages s).obj j) subtype.finite
 
 variable [is_cofiltered_or_empty J]
 
@@ -191,6 +195,10 @@ The subfunctor of `F` obtained by restricting to the eventual range at each inde
   map_id' := λ i, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ _ _ _ _ _, by { simp_rw F.map_comp, refl } }
 
+noncomputable instance to_eventual_ranges_fintype [∀ j, fintype (F.obj j)] :
+  ∀ j, fintype (F.to_eventual_ranges.obj j) :=
+λ j, @fintype.of_finite (F.to_eventual_ranges.obj j) subtype.finite
+
 /--
 The sections of the functor `F : J ⥤ Type v` are in bijection with the sections of
 `F.eventual_ranges`.
@@ -216,33 +224,39 @@ let ⟨i, f, h⟩ := F.is_mittag_leffler_iff_eventual_range.1 h j in
 by { rw [to_eventual_ranges_obj, h], apply_instance }
 
 /-- If `F` has all arrows surjective, then it "factors through a poset". -/
-lemma thin_diagram_of_surjective (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
-  (i j) (f g : i ⟶ j) : F.map f = F.map g :=
+lemma thin_diagram_of_surjective (Fsur : ∀ ⦃i j : J⦄ (f : i ⟶ j), (F.map f).surjective)
+  {i j} (f g : i ⟶ j) : F.map f = F.map g :=
 let ⟨k, φ, hφ⟩ := cone_maps f g in
-(Fsur k i φ).injective_comp_right $ by simp_rw [← types_comp, ← F.map_comp, hφ]
+(Fsur φ).injective_comp_right $ by simp_rw [← types_comp, ← F.map_comp, hφ]
 
 lemma to_preimages_nonempty_of_surjective [hFn : ∀ (j : J), nonempty (F.obj j)]
-  (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
+  (Fsur : ∀ ⦃i j : J⦄ (f : i ⟶ j), (F.map f).surjective)
   (hs : s.nonempty) : ∀ j, nonempty ((F.to_preimages s).obj j) := λ j, by
 begin
   simp only [to_preimages_obj, nonempty_coe_sort, nonempty_Inter, mem_preimage],
   obtain (h|⟨⟨ji⟩⟩) := is_empty_or_nonempty (j ⟶ i),
   { exact ⟨(hFn j).some, λ ji, h.elim ji⟩, },
   { obtain ⟨y,ys⟩ := hs,
-    obtain ⟨x,rfl⟩ := Fsur j i ji y,
-    exact ⟨x, λ ji', (F.thin_diagram_of_surjective Fsur _ _ ji' ji).symm ▸ ys⟩, },
+    obtain ⟨x,rfl⟩ := Fsur ji y,
+    exact ⟨x, λ ji', (F.thin_diagram_of_surjective Fsur ji' ji).symm ▸ ys⟩, },
 end
 
-noncomputable instance to_preimages_finite [∀ j, finite (F.obj j)] :
-  ∀ j, fintype ((F.to_preimages s).obj j) :=
-λ j, @fintype.of_finite ((F.to_preimages s).obj j) subtype.finite
-
 section fintype_cofiltered_system
--- TODO : surjectivity can be of the form {i j : J} (f : i ⟶ j) … rather than explicitely giving
--- i and j
 
-variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
-  (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
+lemma eval_section_injective_of_eventually_injective
+  {j} (Finj : ∀ i (f : i ⟶ j), (F.map f).injective) :
+   ∀ i (f : i ⟶ j), (λ s : F.sections, s.val j).injective :=
+begin
+  refine λ i f s₀ s₁ h, subtype.ext $ funext $ λ k, _,
+  obtain ⟨m, mi, mk, _⟩ := cone_objs i k,
+  dsimp at h,
+  rw [←s₀.prop (mi ≫ f), ←s₁.prop (mi ≫ f)] at h,
+  rw [←s₀.prop mk, ←s₁.prop mk],
+  refine congr_arg _ (Finj m (mi ≫ f) h),
+end
+
+variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), fintype (F.obj j)]
+  (Fsur : ∀ ⦃i j : J⦄ (f :i ⟶ j), (F.map f).surjective)
 
 include Fsur
 lemma eval_section_surjective_of_surjective (i : J) :
@@ -264,44 +278,23 @@ lemma eventually_injective [nonempty J] [finite F.sections] :
 begin
   haveI : ∀ j, fintype (F.obj j) := λ j, fintype.of_finite (F.obj j),
   haveI : fintype F.sections := fintype.of_finite F.sections,
-  have : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections, from
+  have card_le : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections :=
     λ j, fintype.card_le_of_surjective _ (F.eval_section_surjective_of_surjective Fsur j),
   let cards := set.range (λ j, fintype.card $ F.obj j),
   haveI cardsnem : cards.nonempty := set.range_nonempty (λ (j : J), fintype.card (F.obj j)),
-  haveI cardsfin : cards.finite := by
-  { apply set.finite.subset,
-    exact {n : ℕ | n ≤ fintype.card ↥(functor.sections F)}.to_finite,
-    rintro jm ⟨j,rfl⟩,
-    exact this j,},
-  let m := cardsfin.to_finset.max' ((set.finite.to_finset_nonempty cardsfin).mpr cardsnem),
-  let mmem := cardsfin.to_finset.max'_mem ((set.finite.to_finset_nonempty cardsfin).mpr cardsnem),
+  haveI cardsfin : cards.finite :=
+    {n : ℕ | n ≤ fintype.card ↥(functor.sections F)}.to_finite.subset (λ jm ⟨j,h⟩, h ▸ card_le j),
+  let m := cardsfin.to_finset.max' ((cardsfin.to_finset_nonempty).mpr cardsnem),
+  let mmem := cardsfin.to_finset.max'_mem ((cardsfin.to_finset_nonempty).mpr cardsnem),
   rw [set.finite.mem_to_finset, set.mem_range] at mmem,
   obtain ⟨j, jm⟩ := mmem,
   refine ⟨j, λ i ij, function.bijective.injective _⟩,
   rw fintype.bijective_iff_surjective_and_card,
-  refine ⟨Fsur i j ij, _⟩,
-  symmetry,
-  apply (fintype.card_le_of_surjective _ (Fsur i j ij)).antisymm,
+  refine ⟨Fsur ij, eq.symm _⟩,
+  apply (fintype.card_le_of_surjective _ (Fsur ij)).antisymm,
   rw jm,
   apply cardsfin.to_finset.le_max' (fintype.card $ F.obj i),
   simp only [set.finite.mem_to_finset, set.mem_range, exists_apply_eq_apply],
-end
-/-
-By `eval_section_surjective_of_surjective`, all cardinalities of `F.obj j` are bounded by the
-cardinality of `F.sections`, take a maximal such; by surjectivity of all the `F.map f`, and
-cardinality constraints, they must all be injective.
--/
-
-lemma eval_section_injective_of_eventually_injective
-  {j} (Finj : ∀ i (f : i ⟶ j), (F.map f).injective) :
-   ∀ i (f : i ⟶ j), (λ s : F.sections, s.val j).injective :=
-begin
-  refine λ i f s₀ s₁ h, subtype.ext $ funext $ λ k, _,
-  obtain ⟨m, mi, mk, _⟩ := cone_objs i k,
-  dsimp at h,
-  rw [←s₀.prop (mi ≫ f), ←s₁.prop (mi ≫ f)] at h,
-  rw [←s₀.prop mk, ←s₁.prop mk],
-  refine congr_arg _ (Finj m (mi ≫ f) h),
 end
 
 end fintype_cofiltered_system

@@ -3,13 +3,18 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import algebra.hom.equiv
 import logic.function.conjugate
-import order.conditionally_complete_lattice
+import order.bounds.order_iso
+import order.conditionally_complete_lattice.basic
+import order.rel_iso.group
 import order.ord_continuous
+import algebra.hom.equiv.units.basic
 
 /-!
 # Semiconjugate by `Sup`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove two facts about semiconjugate (families of) functions.
 
@@ -132,3 +137,6 @@ lemma cSup_div_semiconj [conditionally_complete_lattice α] [group G]
 semiconj_of_is_lub f₁ f₂ (λ x, is_lub_cSup (range_nonempty _) (hbdd x)) _
 
 end function
+
+-- Guard against import creep
+assert_not_exists finset

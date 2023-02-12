@@ -91,10 +91,11 @@ begin
   refl
 end
 
-/-- We can clear the denominators of a `fintype`-indexed family of fractions. -/
-lemma exist_integer_multiples_of_fintype {ι : Type*} [fintype ι] (f : ι → S) :
+/-- We can clear the denominators of a finite indexed family of fractions. -/
+lemma exist_integer_multiples_of_finite {ι : Type*} [finite ι] (f : ι → S) :
   ∃ (b : M), ∀ i, is_localization.is_integer R ((b : R) • f i) :=
 begin
+  casesI nonempty_fintype ι,
   obtain ⟨b, hb⟩ := exist_integer_multiples M finset.univ f,
   exact ⟨b, λ i, hb i (finset.mem_univ _)⟩
 end

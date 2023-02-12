@@ -10,6 +10,9 @@ import group_theory.submonoid.membership
 /-!
 # Non-zero divisors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the submonoid `non_zero_divisors` of a `monoid_with_zero`.
 
 ## Notations
@@ -30,7 +33,8 @@ def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
-localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
+localized "notation (name := non_zero_divisors)
+  R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
 variables {M M' M₁ R R' F : Type*} [monoid_with_zero M] [monoid_with_zero M']
   [comm_monoid_with_zero M₁] [ring R] [comm_ring R']

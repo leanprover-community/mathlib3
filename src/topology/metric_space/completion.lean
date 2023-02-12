@@ -17,7 +17,7 @@ it defines the same uniformity as the already defined uniform structure on the c
 -/
 
 open set filter uniform_space metric
-open_locale filter topological_space uniformity
+open_locale filter topology uniformity
 noncomputable theory
 
 universes u v
@@ -173,7 +173,7 @@ instance : metric_space (completion α) :=
 
 /-- The embedding of a metric space in its completion is an isometry. -/
 lemma coe_isometry : isometry (coe : α → completion α) :=
-isometry_emetric_iff_metric.2 completion.dist_eq
+isometry.of_dist_eq completion.dist_eq
 
 @[simp] protected lemma edist_eq (x y : α) : edist (x : completion α) y = edist x y :=
 coe_isometry x y

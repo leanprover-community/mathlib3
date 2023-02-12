@@ -7,6 +7,9 @@ import group_theory.group_action.defs
 
 /-! # Group actions on and by `Mˣ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the action of a unit on a type `α`, `has_smul Mˣ α`, in the presence of
 `has_smul M α`, with the obvious definition stated in `units.smul_def`. This definition preserves
 `mul_action` and `distrib_mul_action` structures too.
@@ -49,9 +52,15 @@ instance [monoid M] [mul_action M α] : mul_action Mˣ α :=
 { one_smul := (one_smul M : _),
   mul_smul := λ m n, mul_smul (m : M) n, }
 
+instance [monoid M] [has_zero α] [smul_zero_class M α] : smul_zero_class Mˣ α :=
+{ smul := (•),
+  smul_zero := λ m, smul_zero m }
+
+instance [monoid M] [add_zero_class α] [distrib_smul M α] : distrib_smul Mˣ α :=
+{ smul_add := λ m, smul_add (m : M) }
+
 instance [monoid M] [add_monoid α] [distrib_mul_action M α] : distrib_mul_action Mˣ α :=
-{ smul_add := λ m, smul_add (m : M),
-  smul_zero := λ m, smul_zero m, }
+{ .. units.distrib_smul }
 
 instance [monoid M] [monoid α] [mul_distrib_mul_action M α] : mul_distrib_mul_action Mˣ α :=
 { smul_mul := λ m, smul_mul' (m : M),

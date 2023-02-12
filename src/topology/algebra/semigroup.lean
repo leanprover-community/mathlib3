@@ -26,9 +26,8 @@ begin
 /- We apply Zorn's lemma to the poset of nonempty closed subsemigroups of `M`. It will turn out that
 any minimal element is `{m}` for an idempotent `m : M`. -/
   let S : set (set M) := {N | is_closed N ∧ N.nonempty ∧ ∀ m m' ∈ N, m * m' ∈ N},
-  suffices : ∃ N ∈ S, ∀ N' ∈ S, N' ⊆ N → N' = N,
-  { rcases this with ⟨N, ⟨N_closed, ⟨m, hm⟩, N_mul⟩, N_minimal⟩,
-    use m,
+  rsuffices ⟨N, ⟨N_closed, ⟨m, hm⟩, N_mul⟩, N_minimal⟩ : ∃ N ∈ S, ∀ N' ∈ S, N' ⊆ N → N' = N,
+  { use m,
 /- We now have an element `m : M` of a minimal subsemigroup `N`, and want to show `m + m = m`.
 We first show that every element of `N` is of the form `m' + m`.-/
     have scaling_eq_self : (* m) '' N = N,
@@ -56,8 +55,8 @@ that this holds for all `m' ∈ N`. -/
     λ s hs, set.sInter_subset_of_mem hs⟩,
   { obtain rfl | hcnemp := c.eq_empty_or_nonempty,
     { rw set.sInter_empty, apply set.univ_nonempty },
-    convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _
-      (set.nonempty_coe_sort.mpr hcnemp) (coe : c → set M) _ _ _ _,
+    convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _ hcnemp.coe_sort
+      (coe : c → set M) _ _ _ _,
     { simp only [subtype.range_coe_subtype, set.set_of_mem_eq] } ,
     { refine directed_on.directed_coe (is_chain.directed_on hc.symm) },
     exacts [λ i, (hcs i.prop).2.1, λ i, (hcs i.prop).1.is_compact, λ i, (hcs i.prop).1] },
@@ -81,8 +80,8 @@ begin
       mul_assoc := λ p q r, subtype.eq (mul_assoc _ _ _) },
   haveI : compact_space M' := is_compact_iff_compact_space.mp s_compact,
   haveI : nonempty M' := nonempty_subtype.mpr snemp,
-  have : ∀ p : M', continuous (* p) := λ p, continuous_subtype_mk _
-    ((continuous_mul_left p.1).comp continuous_subtype_val),
+  have : ∀ p : M', continuous (* p) := λ p,
+    ((continuous_mul_left p.1).comp continuous_subtype_val).subtype_mk _,
   obtain ⟨⟨m, hm⟩, idem⟩ := exists_idempotent_of_compact_t2_of_continuous_mul_left this,
   exact ⟨m, hm, subtype.ext_iff.mp idem⟩
 end

@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # Topological properties of fixed points
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Currently this file contains two lemmas:
 
 - `is_fixed_pt_of_tendsto_iterate`: if `f^n(x) → y` and `f` is continuous at `y`, then `f y = y`;

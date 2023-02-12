@@ -11,6 +11,9 @@ import topology.separation
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file studies uniform spaces whose underlying topological spaces are separated
 (also known as Hausdorff or T₂).
 This turns out to be equivalent to asking that the intersection of all entourages

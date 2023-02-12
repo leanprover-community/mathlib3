@@ -1004,7 +1004,7 @@ lemma kaehler_differential.ker_total_map (h : function.surjective (algebra_map A
     (kaehler_differential.ker_total S B).restrict_scalars _  :=
 begin
   rw [kaehler_differential.ker_total, submodule.map_span, kaehler_differential.ker_total,
-    ← submodule.span_eq_restrict_scalars _ _ _ _ h],
+    submodule.restrict_scalars_span _ _ h],
   simp_rw [set.image_union, submodule.span_union, ← set.image_univ, set.image_image,
     set.image_univ, map_sub, map_add],
   simp only [linear_map.comp_apply, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
@@ -1070,7 +1070,7 @@ lemma kaehler_differential.map_surjective_of_surjective
   function.surjective (kaehler_differential.map R S A B) :=
 begin
   rw [← linear_map.range_eq_top, _root_.eq_top_iff, ← @submodule.restrict_scalars_top B A,
-    ← kaehler_differential.span_range_derivation, ← submodule.span_eq_restrict_scalars _ _ _ _ h,
+    ← kaehler_differential.span_range_derivation, submodule.restrict_scalars_span _ _ h,
     submodule.span_le],
   rintros _ ⟨x, rfl⟩,
   obtain ⟨y, rfl⟩ := h x,

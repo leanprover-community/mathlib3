@@ -8,6 +8,9 @@ import data.finset.basic
 import data.part
 /-!
 # Finite maps over `multiset`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w

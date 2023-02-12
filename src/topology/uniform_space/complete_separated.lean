@@ -10,6 +10,9 @@ import topology.dense_embedding
 /-!
 # Theory of complete separated uniform spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is for elementary lemmas that depend on both Cauchy filters and separation.
 -/
 

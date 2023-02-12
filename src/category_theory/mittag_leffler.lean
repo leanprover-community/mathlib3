@@ -238,6 +238,8 @@ noncomputable instance to_preimages_finite [∀ j, finite (F.obj j)] :
 λ j, @fintype.of_finite ((F.to_preimages s).obj j) subtype.finite
 
 section fintype_cofiltered_system
+-- TODO : surjectivity can be of the form {i j : J} (f : i ⟶ j) … rather than explicitely giving
+-- i and j
 
 variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
   (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
@@ -257,11 +259,13 @@ begin
     replace this := this (𝟙 i), rwa [map_id_apply] at this, },
 end
 
-lemma eventually_injective [finite F.sections] :
+lemma eventually_injective [nonempty J] [finite F.sections] :
   ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective :=
 begin
+  haveI : ∀ j, fintype (F.obj j) := λ j, fintype.of_finite (F.obj j),
+  haveI : fintype F.sections := fintype.of_finite F.sections,
   have : Π (j : J), fintype.card (F.obj j) ≤ fintype.card F.sections, from
-    λ j, fintype.card_le_of_surjective _ (sections_surjective' F j Fsur),
+    λ j, fintype.card_le_of_surjective _ (F.eval_section_surjective_of_surjective Fsur j),
   let cards := set.range (λ j, fintype.card $ F.obj j),
   haveI cardsnem : cards.nonempty := set.range_nonempty (λ (j : J), fintype.card (F.obj j)),
   haveI cardsfin : cards.finite := by
@@ -269,8 +273,8 @@ begin
     exact {n : ℕ | n ≤ fintype.card ↥(functor.sections F)}.to_finite,
     rintro jm ⟨j,rfl⟩,
     exact this j,},
-  let m := cardsfin.to_finset.max' ((set.finite.nonempty_to_finset cardsfin).mpr cardsnem),
-  let mmem := cardsfin.to_finset.max'_mem ((set.finite.nonempty_to_finset cardsfin).mpr cardsnem),
+  let m := cardsfin.to_finset.max' ((set.finite.to_finset_nonempty cardsfin).mpr cardsnem),
+  let mmem := cardsfin.to_finset.max'_mem ((set.finite.to_finset_nonempty cardsfin).mpr cardsnem),
   rw [set.finite.mem_to_finset, set.mem_range] at mmem,
   obtain ⟨j, jm⟩ := mmem,
   refine ⟨j, λ i ij, function.bijective.injective _⟩,

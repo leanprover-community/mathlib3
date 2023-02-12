@@ -197,8 +197,6 @@ begin
   exact (hK.trans iK).trans eL.to_embedding,
 end
 
-example {a b c : Type*} (f : a → b) (g : b → c) (hc : (g∘f).injective) : f.injective := by library_search
-
 lemma Freudenthal_Hopf
   [Vi : infinite V] -- follows from the other assumptions
   [locally_finite G] (Gpc : G.preconnected)
@@ -220,5 +218,17 @@ begin
   rw [←types_comp,←functor.map_comp],
   apply top,
 end
+
+lemma good_automs_of_infinite_transitive
+  [Vi : infinite V] [locally_finite G]
+  (Gpc : G.preconnected)
+  (trans : ∀ (x y : V), ∃ φ : G ≃g G, φ x = y) (K :finset V) :
+  ∃ φ : G ≃g G, disjoint K (K.image φ) :=
+begin
+  sorry,
+  -- assume K has diameter m,
+  -- take x in K, and some y at distance ≥2m from x.
+end
+
 
 end simple_graph

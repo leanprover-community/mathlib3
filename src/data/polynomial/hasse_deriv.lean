@@ -7,7 +7,6 @@ Authors: Johan Commelin
 import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
-import data.polynomial.degree.lemmas
 import data.polynomial.derivative
 
 /-!
@@ -87,7 +86,7 @@ begin
 end
 
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
-by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
+by simp only [hasse_deriv_apply, derivative_apply, ← C_mul_X_pow_eq_monomial, nat.choose_one_right,
     (nat.cast_commute _ _).eq]
 
 @[simp] lemma hasse_deriv_one : @hasse_deriv R _ 1 = derivative :=

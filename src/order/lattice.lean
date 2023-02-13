@@ -3,12 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.monotone
+import order.monotone.basic
 import tactic.simps
 import tactic.pi_instances
 
 /-!
 # (Semi-)lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
 meet (least upper bound, or `inf`) operations. Lattices are posets that are both
@@ -71,6 +74,7 @@ end
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
+@[protect_proj, ancestor has_sup partial_order]
 class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
@@ -269,6 +273,7 @@ end semilattice_sup
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
+@[protect_proj, ancestor has_inf partial_order]
 class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
@@ -435,7 +440,8 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj, ancestor semilattice_sup semilattice_inf]
+class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice αᵒᵈ :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -498,19 +504,22 @@ variables [lattice α] {a b c d : α}
 
 lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
 
-@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b :=
-begin
-  split,
-  { rintro H rfl, simpa using H },
-  { refine λ Hne, lt_iff_le_and_ne.2 ⟨inf_le_sup, λ Heq, Hne _⟩,
-    refine le_antisymm _ _,
-    exacts [le_sup_left.trans (Heq.symm.trans_le inf_le_right),
-      le_sup_right.trans (Heq.symm.trans_le inf_le_left)] }
-end
-
 @[simp] lemma sup_le_inf : a ⊔ b ≤ a ⊓ b ↔ a = b :=
 ⟨λ h, le_antisymm (le_sup_left.trans $ h.trans inf_le_right)
   (le_sup_right.trans $ h.trans inf_le_left), by { rintro rfl, simp }⟩
+
+@[simp] lemma inf_eq_sup : a ⊓ b = a ⊔ b ↔ a = b := by rw [←inf_le_sup.ge_iff_eq, sup_le_inf]
+@[simp] lemma sup_eq_inf : a ⊔ b = a ⊓ b ↔ a = b := eq_comm.trans inf_eq_sup
+@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b := by rw [inf_le_sup.lt_iff_ne, ne.def, inf_eq_sup]
+
+lemma inf_eq_and_sup_eq_iff : a ⊓ b = c ∧ a ⊔ b = c ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl := sup_eq_inf.1 (h.2.trans h.1.symm),
+    simpa using h },
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨inf_idem, sup_idem⟩ }
+end
 
 /-!
 #### Distributivity laws
@@ -558,6 +567,7 @@ A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
 generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
+@[protect_proj, ancestor lattice]
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
 
@@ -675,12 +685,17 @@ begin
   ext x y,
   dunfold max_default,
   split_ifs with h',
-  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+  exacts [sup_of_le_right h', sup_of_le_left $ (total_of (≤) x y).resolve_left h']
 end
 
 lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
   [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
-@sup_eq_max_default αᵒᵈ _ _ _
+begin
+  ext x y,
+  dunfold min_default,
+  split_ifs with h',
+  exacts [inf_of_le_left h', inf_of_le_right $ (total_of (≤) x y).resolve_left h']
+end
 
 /-- A lattice with total order is a linear order.
 

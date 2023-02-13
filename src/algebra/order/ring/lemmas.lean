@@ -9,6 +9,9 @@ import algebra.group_with_zero.defs
 /-!
 # Multiplication by ·positive· elements is monotonic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `α` be a type with `<` and `0`.  We use the type `{x : α // 0 < x}` of positive elements of `α`
 to prove results about monotonicity of multiplication.  We also introduce the local notation `α>0`
 for the subtype `{x : α // 0 < x}`:

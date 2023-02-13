@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Cocompact continuous maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of *cocompact continuous maps* are those which tend to the cocompact filter on the
 codomain along the cocompact filter on the domain. When the domain and codomain are Hausdorff, this
 is equivalent to many other conditions, including that preimages of compact sets are compact. -/
@@ -22,7 +25,7 @@ open filter set
 tends to the cocompact filter along the cocompact filter. Functions for which preimages of compact
 sets are compact always satisfy this property, and the converse holds for cocompact continuous maps
 when the codomain is Hausdorff (see `cocompact_map.tendsto_of_forall_preimage` and
-`cocompact_map.compact_preimage`).
+`cocompact_map.is_compact_preimage`).
 
 Cocompact maps thus generalise proper maps, with which they correspond when the codomain is
 Hausdorff. -/
@@ -81,6 +84,11 @@ protected def copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : coc
   continuous_to_fun := by {rw h, exact f.continuous_to_fun},
   cocompact_tendsto' := by { simp_rw h, exact f.cocompact_tendsto' } }
 
+@[simp]
+lemma coe_copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : cocompact_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 @[simp] lemma coe_mk (f : C(α, β)) (h : tendsto f (cocompact α) (cocompact β)) :
   ⇑(⟨f, h⟩ : cocompact_map α β) = f := rfl
 
@@ -119,13 +127,13 @@ lemma tendsto_of_forall_preimage {f : α → β} (h : ∀ s, is_compact s → is
 
 /-- If the codomain is Hausdorff, preimages of compact sets are compact under a cocompact
 continuous map. -/
-lemma compact_preimage [t2_space β] (f : cocompact_map α β) ⦃s : set β⦄ (hs : is_compact s) :
+lemma is_compact_preimage [t2_space β] (f : cocompact_map α β) ⦃s : set β⦄ (hs : is_compact s) :
   is_compact (f ⁻¹' s) :=
 begin
   obtain ⟨t, ht, hts⟩ := mem_cocompact'.mp (by simpa only [preimage_image_preimage, preimage_compl]
     using mem_map.mp (cocompact_tendsto f $ mem_cocompact.mpr ⟨s, hs, compl_subset_compl.mpr
     (image_preimage_subset f _)⟩)),
-  exact compact_of_is_closed_subset ht (hs.is_closed.preimage $ map_continuous f)
+  exact is_compact_of_is_closed_subset ht (hs.is_closed.preimage $ map_continuous f)
     (by simpa using hts),
 end
 

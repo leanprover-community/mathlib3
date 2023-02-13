@@ -35,7 +35,7 @@ derived from the predicate is more universe polymorphic.
 ## References
 
 We don't know any traditional text discussing this. Real world mathematics simply silently
-identify the results of any two constructions that lead to something one could reasonnably
+identify the results of any two constructions that lead to something one could reasonably
 call a completion.
 
 ## Tags

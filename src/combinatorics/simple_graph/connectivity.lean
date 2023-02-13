@@ -5,7 +5,7 @@ Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
-import data.list
+import data.list.rotate
 /-!
 
 # Graph connectivity
@@ -337,6 +337,9 @@ by cases p; simp
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp [*]
 
+@[simp] lemma support_nonempty {u v : V} (p : G.walk u v) : {w | w ∈ p.support}.nonempty :=
+⟨u, by simp⟩
+
 lemma mem_support_iff {u v w : V} (p : G.walk u v) :
   w ∈ p.support ↔ w = u ∨ w ∈ p.support.tail :=
 by cases p; simp
@@ -608,7 +611,7 @@ lemma is_trail.count_edges_eq_one [decidable_eq V] {u v : V}
   p.edges.count e = 1 :=
 list.count_eq_one_of_mem h.edges_nodup he
 
-@[simp] lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
+lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
 by { fsplit; simp }
 
 lemma is_path.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
@@ -618,6 +621,9 @@ by simp [is_path_def]
 @[simp] lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
+
+@[simp] lemma is_path_iff_eq_nil {u : V} (p : G.walk u u) : p.is_path ↔ p = nil :=
+by { cases p; simp [is_path.nil] }
 
 lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
@@ -649,6 +655,14 @@ begin
   tauto,
 end
 
+/-! ### About paths -/
+
+instance [decidable_eq V] {u v : V} (p : G.walk u v) : decidable p.is_path :=
+by { rw is_path_def, apply_instance }
+
+lemma is_path.length_lt [fintype V] {u v : V} {p : G.walk u v} (hp : p.is_path) :
+  p.length < fintype.card V :=
+by { rw [nat.lt_iff_add_one_le, ← length_support], exact hp.support_nodup.length_le_card }
 
 /-! ### Walk decompositions -/
 
@@ -863,6 +877,23 @@ end
 
 end walk_decomp
 
+/--
+Given a set `S` and a walk `w` from `u` to `v` such that `u ∈ S` but `v ∉ S`,
+there exists a dart in the walk whose start is in `S` but whose end is not.
+-/
+lemma exists_boundary_dart
+  {u v : V} (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S) :
+  ∃ (d : G.dart), d ∈ p.darts ∧ d.fst ∈ S ∧ d.snd ∉ S :=
+begin
+  induction p with _ x y w a p' ih,
+  { exact absurd uS vS },
+  { by_cases h : y ∈ S,
+    { obtain ⟨d, hd, hcd⟩ := ih h vS,
+      exact ⟨d, or.inr hd, hcd⟩ },
+    { exact ⟨⟨(x, y), a⟩, or.inl rfl, uS, h⟩ } }
+end
+
+
 end walk
 
 /-! ### Type of paths -/
@@ -914,7 +945,6 @@ end
 lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
   ¬ e ∈ (p : G.walk v v).edges :=
 by simp [p.loop_eq]
-
 
 lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
   (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
@@ -1041,6 +1071,9 @@ to work with equality of graph homomorphisms is a necessary evil. -/
 lemma map_eq_of_eq {f : G →g G'} (f' : G →g G') (h : f = f') :
   p.map f = (p.map f').copy (by rw h) (by rw h) := by { subst_vars, refl }
 
+@[simp] lemma map_eq_nil_iff {p : G.walk u u} : p.map f = nil ↔ p = nil :=
+by cases p; simp
+
 @[simp] lemma length_map : (p.map f).length = p.length :=
 by induction p; simp [*]
 
@@ -1090,6 +1123,26 @@ lemma map_is_path_iff_of_injective (hinj : function.injective f) :
   (p.map f).is_path ↔ p.is_path :=
 ⟨is_path.of_map, map_is_path_of_injective hinj⟩
 
+lemma map_is_trail_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_trail ↔ p.is_trail :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, cons_is_trail_iff, cons_is_trail_iff, edges_map],
+    change _ ∧ sym2.map f ⟦(u, v)⟧ ∉ _ ↔ _,
+    rw list.mem_map_of_injective (sym2.map.injective hinj),
+    exact and_congr_left' ih, },
+end
+
+alias map_is_trail_iff_of_injective ↔ _ map_is_trail_of_injective
+
+lemma map_is_cycle_iff_of_injective {p : G.walk u u} (hinj : function.injective f) :
+  (p.map f).is_cycle ↔ p.is_cycle :=
+by rw [is_cycle_def, is_cycle_def, map_is_trail_iff_of_injective hinj, ne.def, map_eq_nil_iff,
+       support_map, ← list.map_tail, list.nodup_map_iff hinj]
+
+alias map_is_cycle_iff_of_injective ↔ _ map_is_cycle_of_injective
+
 variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
@@ -1108,6 +1161,25 @@ begin
       apply ih,
       simpa using h.2, } },
 end
+
+/-- The specialization of `simple_graph.walk.map` for mapping walks to supergraphs. -/
+@[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} (p : G.walk u v) :
+  G'.walk u v := p.map (hom.map_spanning_subgraphs h)
+
+@[simp] lemma map_le_is_trail {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v} :
+  (p.map_le h).is_trail ↔ p.is_trail := map_is_trail_iff_of_injective (function.injective_id)
+
+alias map_le_is_trail ↔ is_trail.of_map_le is_trail.map_le
+
+@[simp] lemma map_le_is_path {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v} :
+  (p.map_le h).is_path ↔ p.is_path := map_is_path_iff_of_injective (function.injective_id)
+
+alias map_le_is_path ↔ is_path.of_map_le is_path.map_le
+
+@[simp] lemma map_le_is_cycle {G G' : simple_graph V} (h : G ≤ G') {u : V} {p : G.walk u u} :
+  (p.map_le h).is_cycle ↔ p.is_cycle := map_is_cycle_iff_of_injective (function.injective_id)
+
+alias map_le_is_cycle ↔ is_cycle.of_map_le is_cycle.map_le
 
 end walk
 
@@ -1170,20 +1242,28 @@ by { induction p; simp only [*, transfer, edges_nil, edges_cons, eq_self_iff_tru
 @[simp] lemma support_transfer : (p.transfer H hp).support = p.support :=
 by { induction p; simp only [*, transfer, eq_self_iff_true, and_self, support_nil, support_cons], }
 
-lemma transfer_is_path (pp : p.is_path) : (p.transfer H hp).is_path :=
+@[simp] lemma length_transfer : (p.transfer H hp).length = p.length :=
+by induction p; simp [*]
+
+variables {p}
+
+protected lemma is_path.transfer (pp : p.is_path) : (p.transfer H hp).is_path :=
 begin
   induction p;
   simp only [transfer, is_path.nil, cons_is_path_iff, support_transfer] at pp ⊢,
   { tauto, },
 end
 
-lemma transfer_is_cycle (p : G.walk u u) (hp) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
+protected lemma is_cycle.transfer {p : G.walk u u} (pc : p.is_cycle) (hp) :
+  (p.transfer H hp).is_cycle :=
 begin
   cases p;
   simp only [transfer, is_cycle.not_of_nil, cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
   { exact pc, },
-  { exact ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
+  { exact ⟨pc.left.transfer _, pc.right⟩, },
 end
+
+variables (p)
 
 @[simp] lemma transfer_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
   (p.transfer H hp).transfer K (by { rw p.edges_transfer hp, exact hp', }) = p.transfer K hp' :=
@@ -1217,12 +1297,20 @@ variables {G}
 
 /-- Given a walk that avoids a set of edges, produce a walk in the graph
 with those edges deleted. -/
-@[simp, reducible]
+@[reducible]
 def to_delete_edges (s : set (sym2 V))
   {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s) : (G.delete_edges s).walk v w :=
 p.transfer _ (by
   { simp only [edge_set_delete_edges, set.mem_diff],
     exact λ e ep, ⟨edges_subset_edge_set p ep, hp e ep⟩, })
+
+@[simp] lemma to_delete_edges_nil (s : set (sym2 V)) {v : V} (hp) :
+  (walk.nil : G.walk v v).to_delete_edges s hp = walk.nil := rfl
+
+@[simp] lemma to_delete_edges_cons (s : set (sym2 V))
+  {u v w : V} (h : G.adj u v) (p : G.walk v w) (hp) :
+  (walk.cons h p).to_delete_edges s hp =
+    walk.cons ⟨h, hp _ (or.inl rfl)⟩ (p.to_delete_edges s $ λ _ he, hp _ $ or.inr he) := rfl
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
 This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
@@ -1235,10 +1323,13 @@ lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) 
   walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
 by rw [←transfer_eq_map_of_le, transfer_transfer, transfer_self]
 
-lemma is_path.to_delete_edges (s : set (sym2 V))
+protected lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
-  (p.to_delete_edges s hp).is_path :=
-by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+  (p.to_delete_edges s hp).is_path := h.transfer _
+
+protected lemma is_cycle.to_delete_edges (s : set (sym2 V))
+  {v : V} {p : G.walk v v} (h : p.is_cycle) (hp) :
+  (p.to_delete_edges s hp).is_cycle := h.transfer _
 
 @[simp] lemma to_delete_edges_copy (s : set (sym2 V))
   {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') (h) :
@@ -1410,6 +1501,24 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
+/-- The map on connected components induced by a graph homomorphism. -/
+def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
+  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
+C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
+  connected_component.eq.mpr (p.map φ).reachable
+
+@[simp] lemma connected_component.map_mk
+  {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'} (φ : G →g G') (v : V) :
+  (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
+
+@[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
+by { refine C.ind _, exact (λ _, rfl) }
+
+@[simp] lemma connected_component.map_comp
+  {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
+  (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
+by { refine C.ind _, exact (λ _, rfl), }
+
 end connected_component
 
 variables {G}
@@ -1441,6 +1550,77 @@ by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
 
 lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty := hconn.preconnected.set_univ_walk_nonempty u v
+
+/-! ### Walks as subgraphs -/
+
+namespace walk
+variables {G G'} {u v w : V}
+
+/-- The subgraph consisting of the vertices and edges of the walk. -/
+@[simp] protected def to_subgraph : Π {u v : V}, G.walk u v → G.subgraph
+| u _ nil := G.singleton_subgraph u
+| _ _ (cons h p) := G.subgraph_of_adj h ⊔ p.to_subgraph
+
+lemma to_subgraph_cons_nil_eq_subgraph_of_adj (h : G.adj u v) :
+  (cons h nil).to_subgraph = G.subgraph_of_adj h :=
+by simp
+
+lemma mem_verts_to_subgraph (p : G.walk u v) :
+  w ∈ p.to_subgraph.verts ↔ w ∈ p.support :=
+begin
+  induction p with _ x y z h p' ih,
+  { simp },
+  { have : w = y ∨ w ∈ p'.support ↔ w ∈ p'.support :=
+      ⟨by rintro (rfl | h); simp [*], by simp { contextual := tt}⟩,
+    simp [ih, or_assoc, this] }
+end
+
+@[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
+set.ext (λ _, p.mem_verts_to_subgraph)
+
+lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
+  e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
+by induction p; simp [*]
+
+@[simp] lemma edge_set_to_subgraph (p : G.walk u v) : p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
+set.ext (λ _, p.mem_edges_to_subgraph)
+
+@[simp] lemma to_subgraph_append (p : G.walk u v) (q : G.walk v w) :
+  (p.append q).to_subgraph = p.to_subgraph ⊔ q.to_subgraph :=
+by induction p; simp [*, sup_assoc]
+
+@[simp] lemma to_subgraph_reverse (p : G.walk u v) :
+  p.reverse.to_subgraph = p.to_subgraph :=
+begin
+  induction p,
+  { simp },
+  { simp only [*, walk.to_subgraph, reverse_cons, to_subgraph_append, subgraph_of_adj_symm],
+    rw [sup_comm],
+    congr,
+    ext; simp [-set.bot_eq_empty], }
+end
+
+@[simp] lemma to_subgraph_rotate [decidable_eq V] (c : G.walk v v) (h : u ∈ c.support) :
+  (c.rotate h).to_subgraph = c.to_subgraph :=
+by rw [rotate, to_subgraph_append, sup_comm, ← to_subgraph_append, take_spec]
+
+@[simp] lemma to_subgraph_map (f : G →g G') (p : G.walk u v) :
+  (p.map f).to_subgraph = p.to_subgraph.map f :=
+by induction p; simp [*, subgraph.map_sup]
+
+@[simp] lemma finite_neighbor_set_to_subgraph (p : G.walk u v) :
+  (p.to_subgraph.neighbor_set w).finite :=
+begin
+  induction p,
+  { rw [walk.to_subgraph, neighbor_set_singleton_subgraph],
+    apply set.to_finite, },
+  { rw [walk.to_subgraph, subgraph.neighbor_set_sup],
+    refine set.finite.union _ p_ih,
+    refine set.finite.subset _ (neighbor_set_subgraph_of_adj_subset p_h),
+    apply set.to_finite, },
+end
+
+end walk
 
 /-! ### Walks of a given length -/
 
@@ -1474,7 +1654,10 @@ begin
       refl, } },
 end
 
-variables (G) [fintype V] [decidable_rel G.adj] [decidable_eq V]
+variables (G) [decidable_eq V]
+
+section locally_finite
+variables [locally_finite G]
 
 /-- The `finset` of length-`n` walks from `u` to `v`.
 This is used to give `{p : G.walk u v | p.length = n}` a `fintype` instance, and it
@@ -1486,10 +1669,8 @@ def finset_walk_length : Π (n : ℕ) (u v : V), finset (G.walk u v)
 | 0 u v := if h : u = v
            then by { subst u, exact {walk.nil} }
            else ∅
-| (n+1) u v := finset.univ.bUnion (λ (w : V),
-                 if h : G.adj u w
-                 then (finset_walk_length n w v).map ⟨λ p, walk.cons h p, λ p q, by simp⟩
-                 else ∅)
+| (n+1) u v := finset.univ.bUnion (λ (w : G.neighbor_set u),
+                 (finset_walk_length n w v).map ⟨λ p, walk.cons w.property p, λ p q, by simp⟩)
 
 lemma coe_finset_walk_length_eq (n : ℕ) (u v : V) :
   (G.finset_walk_length n u v : set (G.walk u v)) = {p : G.walk u v | p.length = n} :=
@@ -1500,23 +1681,27 @@ begin
   { simp only [finset_walk_length, set_walk_length_succ_eq,
       finset.coe_bUnion, finset.mem_coe, finset.mem_univ, set.Union_true],
     ext p,
-    simp only [set.mem_Union, finset.mem_coe, set.mem_image, set.mem_set_of_eq],
-    congr' 2,
-    ext w,
-    simp only [set.ext_iff, finset.mem_coe, set.mem_set_of_eq] at ih,
-    split_ifs with huw; simp [huw, ih], },
+    simp only [mem_neighbor_set, finset.coe_map, embedding.coe_fn_mk, set.Union_coe_set,
+      set.mem_Union, set.mem_image, finset.mem_coe, set.mem_set_of_eq],
+    congr' with w,
+    congr' with h,
+    congr' with q,
+    have := set.ext_iff.mp (ih w v) q,
+    simp only [finset.mem_coe, set.mem_set_of_eq] at this,
+    rw ← this,
+    refl, },
 end
 
 variables {G}
 
-lemma walk.length_eq_of_mem_finset_walk_length {n : ℕ} {u v : V} (p : G.walk u v) :
-  p ∈ G.finset_walk_length n u v → p.length = n :=
-(set.ext_iff.mp (G.coe_finset_walk_length_eq n u v) p).mp
+lemma walk.mem_finset_walk_length_iff_length_eq {n : ℕ} {u v : V} (p : G.walk u v) :
+  p ∈ G.finset_walk_length n u v ↔ p.length = n :=
+set.ext_iff.mp (G.coe_finset_walk_length_eq n u v) p
 
 variables (G)
 
 instance fintype_set_walk_length (u v : V) (n : ℕ) : fintype {p : G.walk u v | p.length = n} :=
-fintype.subtype (G.finset_walk_length n u v) $ λ p,
+fintype.of_finset (G.finset_walk_length n u v) $ λ p,
 by rw [←finset.mem_coe, coe_finset_walk_length_eq]
 
 lemma set_walk_length_to_finset_eq (n : ℕ) (u v : V) :
@@ -1527,8 +1712,43 @@ by { ext p, simp [←coe_finset_walk_length_eq] }
 power of the adjacency matrix. -/
 lemma card_set_walk_length_eq (u v : V) (n : ℕ) :
   fintype.card {p : G.walk u v | p.length = n} = (G.finset_walk_length n u v).card :=
-fintype.card_of_subtype (G.finset_walk_length n u v) $ λ p,
-by rw [←finset.mem_coe, coe_finset_walk_length_eq]
+fintype.card_of_finset (G.finset_walk_length n u v) $ λ p,
+  by rw [←finset.mem_coe, coe_finset_walk_length_eq]
+
+instance fintype_set_path_length (u v : V) (n : ℕ) :
+  fintype {p : G.walk u v | p.is_path ∧ p.length = n} :=
+fintype.of_finset ((G.finset_walk_length n u v).filter walk.is_path) $
+  by simp [walk.mem_finset_walk_length_iff_length_eq, and_comm]
+
+end locally_finite
+
+section finite
+variables [fintype V] [decidable_rel G.adj]
+
+lemma reachable_iff_exists_finset_walk_length_nonempty (u v : V) :
+  G.reachable u v ↔ ∃ (n : fin (fintype.card V)), (G.finset_walk_length n u v).nonempty :=
+begin
+  split,
+  { intro r,
+    refine r.elim_path (λ p, _),
+    refine ⟨⟨_, p.is_path.length_lt⟩, p, _⟩,
+    simp [walk.mem_finset_walk_length_iff_length_eq], },
+  { rintro ⟨_, p, _⟩, use p },
+end
+
+instance : decidable_rel G.reachable :=
+λ u v, decidable_of_iff' _ (reachable_iff_exists_finset_walk_length_nonempty G u v)
+
+instance : fintype G.connected_component :=
+@quotient.fintype _ _ G.reachable_setoid (infer_instance : decidable_rel G.reachable)
+
+instance : decidable G.preconnected :=
+by { unfold preconnected, apply_instance }
+
+instance : decidable G.connected :=
+by { rw [connected_iff, ← finset.univ_nonempty_iff], exact and.decidable }
+
+end finite
 
 end walk_counting
 
@@ -1540,22 +1760,25 @@ section bridge_edges
 are no longer reachable from one another. -/
 def is_bridge (G : simple_graph V) (e : sym2 V) : Prop :=
 e ∈ G.edge_set ∧
-sym2.lift ⟨λ v w, ¬ (G.delete_edges {e}).reachable v w, by simp [reachable_comm]⟩ e
+sym2.lift ⟨λ v w, ¬ (G \ from_edge_set {e}).reachable v w, by simp [reachable_comm]⟩ e
 
 lemma is_bridge_iff {u v : V} :
-  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G.delete_edges {⟦(u, v)⟧}).reachable u v := iff.rfl
+  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G \ from_edge_set {⟦(u, v)⟧}).reachable u v := iff.rfl
 
 lemma reachable_delete_edges_iff_exists_walk {v w : V} :
-  (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
+  (G \ from_edge_set {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   split,
   { rintro ⟨p⟩,
-    use p.map (hom.map_spanning_subgraphs (G.delete_edges_le _)),
+    use p.map (hom.map_spanning_subgraphs (by simp)),
     simp_rw [walk.edges_map, list.mem_map, hom.map_spanning_subgraphs_apply, sym2.map_id', id.def],
     rintro ⟨e, h, rfl⟩,
     simpa using p.edges_subset_edge_set h, },
   { rintro ⟨p, h⟩,
-    exact ⟨p.to_delete_edge _ h⟩, },
+    refine ⟨p.transfer _ (λ e ep, _)⟩,
+    simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag,
+               set.mem_diff, set.mem_singleton_iff],
+    exact ⟨p.edges_subset_edge_set ep, λ h', h (h' ▸ ep)⟩,  },
 end
 
 lemma is_bridge_iff_adj_and_forall_walk_mem_edges {v w : V} :
@@ -1598,7 +1821,7 @@ begin
 end
 
 lemma adj_and_reachable_delete_edges_iff_exists_cycle {v w : V} :
-  G.adj v w ∧ (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔
+  G.adj v w ∧ (G \ from_edge_set {⟦(v, w)⟧}).reachable v w ↔
   ∃ (u : V) (p : G.walk u u), p.is_cycle ∧ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   classical,

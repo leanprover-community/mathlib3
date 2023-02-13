@@ -35,12 +35,12 @@ local attribute [instance, priority 1001] classical.prop_decidable
 open_locale ennreal
 
 /-- Extended norm on a vector space. As in the case of normed spaces, we require only
-`∥c • x∥ ≤ ∥c∥ * ∥x∥` in the definition, then prove an equality in `map_smul`. -/
+`‖c • x‖ ≤ ‖c‖ * ‖x‖` in the definition, then prove an equality in `map_smul`. -/
 structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V] [module 𝕜 V] :=
 (to_fun : V → ℝ≥0∞)
 (eq_zero' : ∀ x, to_fun x = 0 → x = 0)
 (map_add_le' : ∀ x y : V, to_fun (x + y) ≤ to_fun x + to_fun y)
-(map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ ∥c∥₊ * to_fun x)
+(map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ ‖c‖₊ * to_fun x)
 
 namespace enorm
 
@@ -61,12 +61,12 @@ lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ 
 @[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
-@[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = ∥c∥₊ * e x :=
+@[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = ‖c‖₊ * e x :=
 le_antisymm (e.map_smul_le' c x) $
 begin
   by_cases hc : c = 0, { simp [hc] },
-  calc (∥c∥₊ : ℝ≥0∞) * e x = ∥c∥₊ * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
-  ... ≤ ∥c∥₊ * (∥c⁻¹∥₊ * e (c • x)) : _
+  calc (‖c‖₊ : ℝ≥0∞) * e x = ‖c‖₊ * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
+  ... ≤ ‖c‖₊ * (‖c⁻¹‖₊ * e (c • x)) : _
   ... = e (c • x) : _,
   { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
   { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
@@ -80,7 +80,7 @@ by { rw [← zero_smul 𝕜 (0:V), e.map_smul], norm_num }
 ⟨e.eq_zero' x, λ h, h.symm ▸ e.map_zero⟩
 
 @[simp] lemma map_neg (x : V) : e (-x) = e x :=
-calc e (-x) = ∥(-1 : 𝕜)∥₊ * e x : by rw [← map_smul, neg_one_smul]
+calc e (-x) = ‖(-1 : 𝕜)‖₊ * e x : by rw [← map_smul, neg_one_smul]
         ... = e x               : by simp
 
 lemma map_sub_rev (x y : V) : e (x - y) = e (y - x) :=
@@ -162,7 +162,7 @@ def finite_subspace : subspace 𝕜 V :=
   zero_mem' := by simp,
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
   smul_mem' := λ c x (hx : _ < _),
-    calc e (c • x) = ∥c∥₊ * e x : e.map_smul c x
+    calc e (c • x) = ‖c‖₊ * e x : e.map_smul c x
                ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
 /-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space`
@@ -185,7 +185,7 @@ instance : normed_add_comm_group e.finite_subspace :=
   dist_eq := λ x y, rfl,
   .. finite_subspace.metric_space e, .. submodule.add_comm_group _ }
 
-lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
+lemma finite_norm_eq (x : e.finite_subspace) : ‖x‖ = (e x).to_real := rfl
 
 /-- Normed space instance on `e.finite_subspace`. -/
 instance : normed_space 𝕜 e.finite_subspace :=

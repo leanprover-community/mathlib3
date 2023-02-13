@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import order.bounds.basic
-import algebra.order.group.basic
+import algebra.order.group.defs
 
 /-!
 # Least upper bound and the greatest lower bound in linear ordered additive commutative groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

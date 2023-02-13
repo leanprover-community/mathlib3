@@ -273,6 +273,7 @@ begin
   let q := λ i, ¬ b i < k,
   have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p + M⁻¹.to_block q q ⬝ M.to_block q p = 0,
   { rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_disjoint],
+    rw disjoint_iff_inf_le,
     exact λ i h, h.1 h.2 },
   have h_zero : M.to_block q p = 0,
   { ext i j,

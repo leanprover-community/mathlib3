@@ -3,10 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.fin.tuple
 import data.real.basic
-import data.set.intervals
-import data.set.pairwise
+import data.set.finite
+import data.set.intervals.disjoint
 
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
@@ -17,10 +16,11 @@ We follow the proof described here:
 http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 -/
 
-
 open real set function fin
 
 noncomputable theory
+
+namespace «82»
 
 variable {n : ℕ}
 
@@ -158,7 +158,7 @@ begin
     { rw [←add_le_add_iff_right (1 : ℝ)], convert b_add_w_le_one h, rw hi, rw zero_add },
     apply zero_le_b h, apply lt_of_lt_of_le (side_subset h $ (cs i').b_mem_side j).2,
     simp [hi, zero_le_b h] },
-  exact h.pairwise_disjoint hi' ⟨hp, h2p⟩
+  exact (h.pairwise_disjoint hi').le_bot ⟨hp, h2p⟩
 end
 
 /-- The top of a cube (which is the bottom of the cube shifted up by its width) must be covered by
@@ -518,3 +518,5 @@ begin
   exact @not_correct n s coe hfin.to_subtype h2.coe_sort
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end
+
+end «82»

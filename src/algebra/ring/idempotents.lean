@@ -3,12 +3,16 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import algebra.ring.basic
+import order.basic
 import algebra.group_power.basic
-import tactic.nth_rewrite.default
+import algebra.ring.defs
+import tactic.nth_rewrite
 
 /-!
 # Idempotents
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines idempotents for an arbitary multiplication and proves some basic results,
 including:

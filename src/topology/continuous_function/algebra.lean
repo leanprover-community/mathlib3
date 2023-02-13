@@ -8,6 +8,8 @@ import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
 import topology.algebra.star
+import topology.algebra.infinite_sum
+import algebra.algebra.pi
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 import algebra.star.star_alg_hom
@@ -179,51 +181,43 @@ end subtype
 
 namespace continuous_map
 
+variables {α β : Type*} [topological_space α] [topological_space β]
+
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
+instance [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
 coe_injective.semigroup _ coe_mul
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [comm_semigroup β] [has_continuous_mul β] : comm_semigroup C(α, β) :=
+instance [comm_semigroup β] [has_continuous_mul β] : comm_semigroup C(α, β) :=
 coe_injective.comm_semigroup _ coe_mul
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [mul_one_class β] [has_continuous_mul β] : mul_one_class C(α, β) :=
+instance [mul_one_class β] [has_continuous_mul β] : mul_one_class C(α, β) :=
 coe_injective.mul_one_class _ coe_one coe_mul
 
-instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [mul_zero_class β] [has_continuous_mul β] : mul_zero_class C(α, β) :=
+instance [mul_zero_class β] [has_continuous_mul β] : mul_zero_class C(α, β) :=
 coe_injective.mul_zero_class _ coe_zero coe_mul
 
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero C(α, β) :=
+instance [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero C(α, β) :=
 coe_injective.semigroup_with_zero _ coe_zero coe_mul
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
+instance [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
 coe_injective.monoid _ coe_one coe_mul coe_pow
 
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
+instance [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
 coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
+instance [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
+instance [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
 coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α]
-  [locally_compact_space α] [topological_space β]
-  [has_mul β] [has_continuous_mul β] : has_continuous_mul C(α, β) :=
+instance [locally_compact_space α] [has_mul β] [has_continuous_mul β] :
+  has_continuous_mul C(α, β) :=
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
   have h1 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.fst x.snd) :=
@@ -236,56 +230,53 @@ end⟩
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
 @[to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.",
   simps]
-def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
+def coe_fn_monoid_hom [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
 { to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
+
+variables (α)
 
 /-- Composition on the left by a (continuous) homomorphism of topological monoids, as a
 `monoid_hom`. Similar to `monoid_hom.comp_left`. -/
 @[to_additive "Composition on the left by a (continuous) homomorphism of topological `add_monoid`s,
 as an `add_monoid_hom`. Similar to `add_monoid_hom.comp_left`.", simps]
-protected def _root_.monoid_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [monoid β] [has_continuous_mul β]
+protected def _root_.monoid_hom.comp_left_continuous
+  {γ : Type*} [monoid β] [has_continuous_mul β]
   [topological_space γ] [monoid γ] [has_continuous_mul γ] (g : β →* γ) (hg : continuous g)  :
   C(α, β) →* C(α, γ) :=
 { to_fun := λ f, (⟨g, hg⟩ : C(β, γ)).comp f,
   map_one' := ext $ λ x, g.map_one,
   map_mul' := λ f₁ f₂, ext $ λ x, g.map_mul _ _ }
 
+variables {α}
+
 /-- Composition on the right as a `monoid_hom`. Similar to `monoid_hom.comp_hom'`. -/
 @[to_additive "Composition on the right as an `add_monoid_hom`. Similar to
 `add_monoid_hom.comp_hom'`.", simps]
-def comp_monoid_hom' {α : Type*} {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [topological_space γ]
+def comp_monoid_hom' {γ : Type*} [topological_space γ]
   [mul_one_class γ] [has_continuous_mul γ] (g : C(α, β)) : C(β, γ) →* C(α, γ) :=
 { to_fun := λ f, f.comp g, map_one' := one_comp g, map_mul' := λ f₁ f₂, mul_comp f₁ f₂ g }
 
 open_locale big_operators
-@[simp, to_additive] lemma coe_prod {α : Type*} {β : Type*} [comm_monoid β]
-  [topological_space α] [topological_space β] [has_continuous_mul β]
+@[simp, to_additive] lemma coe_prod [comm_monoid β] [has_continuous_mul β]
   {ι : Type*} (s : finset ι) (f : ι → C(α, β)) :
   ⇑(∏ i in s, f i) = (∏ i in s, (f i : α → β)) :=
 (coe_fn_monoid_hom : C(α, β) →* _).map_prod f s
 
 @[to_additive]
-lemma prod_apply {α : Type*} {β : Type*} [comm_monoid β]
-  [topological_space α] [topological_space β] [has_continuous_mul β]
+lemma prod_apply [comm_monoid β] [has_continuous_mul β]
   {ι : Type*} (s : finset ι) (f : ι → C(α, β)) (a : α) :
   (∏ i in s, f i) a = (∏ i in s, f i a) :=
 by simp
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [group β] [topological_group β] : group C(α, β) :=
+instance [group β] [topological_group β] : group C(α, β) :=
 coe_injective.group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
+instance [comm_group β] [topological_group β] : comm_group C(α, β) :=
 coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
-@[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
+@[to_additive] instance [comm_group β] [topological_group β] : topological_group C(α, β) :=
 { continuous_mul := by
   { letI : uniform_space β := topological_group.to_uniform_space β,
     have : uniform_group β := topological_comm_group_is_uniform,
@@ -303,6 +294,30 @@ coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
     exactI λ K hK, uniform_continuous_inv.comp_tendsto_uniformly_on
       (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK), } }
+
+-- TODO: rewrite the next three lemmas for products and deduce sum case via `to_additive`, once
+-- definition of `tprod` is in place
+
+/-- If `α` is locally compact, and an infinite sum of functions in `C(α, β)`
+converges to `g` (for the compact-open topology), then the pointwise sum converges to `g x` for
+all `x ∈ α`. -/
+lemma has_sum_apply {γ : Type*} [locally_compact_space α] [add_comm_monoid β] [has_continuous_add β]
+  {f : γ → C(α, β)} {g : C(α, β)} (hf : has_sum f g) (x : α) :
+  has_sum (λ i : γ, f i x) (g x) :=
+begin
+  let evₓ : add_monoid_hom C(α, β) β := (pi.eval_add_monoid_hom _ x).comp coe_fn_add_monoid_hom,
+  exact hf.map evₓ (continuous_map.continuous_eval_const' x),
+end
+
+lemma summable_apply [locally_compact_space α] [add_comm_monoid β] [has_continuous_add β]
+  {γ : Type*} {f : γ → C(α, β)} (hf : summable f) (x : α) :
+  summable (λ i : γ, f i x) :=
+(has_sum_apply hf.has_sum x).summable
+
+lemma tsum_apply [locally_compact_space α] [t2_space β] [add_comm_monoid β] [has_continuous_add β]
+  {γ : Type*} {f : γ → C(α, β)} (hf : summable f) (x : α) :
+  (∑' (i:γ), f i x) = (∑' (i:γ), f i) x :=
+(has_sum_apply hf.has_sum x).tsum_eq
 
 end continuous_map
 

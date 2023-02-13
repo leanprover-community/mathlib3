@@ -13,6 +13,9 @@ import tactic.group
 /-!
 # Double cosets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines double cosets for two subgroups `H K` of a group `G` and the quotient of `G` by
 the double coset relation, i.e. `H \ G / K`. We also prove that `G` can be writen as a disjoint
 union of the double cosets and that if one of `H` or `K` is the trivial group (i.e. `⊥` ) then

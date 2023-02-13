@@ -312,12 +312,12 @@ theorem nadd_le_nadd_iff_right : ∀ a {b c}, b ♯ a ≤ c ♯ a ↔ b ≤ c :=
 @_root_.add_le_add_iff_right nat_ordinal _ _ _ _
 
 theorem nadd_left_cancel : ∀ {a b c}, a ♯ b = a ♯ c → b = c :=
-@_root_.add_left_cancel nat_ordinal _
+@_root_.add_left_cancel nat_ordinal _ _
 theorem nadd_right_cancel : ∀ {a b c}, a ♯ b = c ♯ b → a = c :=
-@_root_.add_right_cancel nat_ordinal _
+@_root_.add_right_cancel nat_ordinal _ _
 theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
-@add_left_cancel_iff nat_ordinal _
+@add_left_cancel_iff nat_ordinal _ _
 theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
-@add_right_cancel_iff nat_ordinal _
+@add_right_cancel_iff nat_ordinal _ _
 
 end ordinal

@@ -94,13 +94,13 @@ theorem _root_.pgame.equiv_iff_game_eq {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦
 
 /-- The fuzzy, confused, or incomparable relation on games.
 
-If `x ∥ 0`, then the first player can always win `x`. -/
+If `x ‖ 0`, then the first player can always win `x`. -/
 def fuzzy : game → game → Prop :=
 quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
 
-local infix ` ∥ `:50 := fuzzy
+local infix ` ‖ `:50 := fuzzy
 
-theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ‖ ⟦y⟧ := iff.rfl
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
@@ -590,20 +590,21 @@ noncomputable instance : has_inv pgame :=
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 := if_pos h
+theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=
+by { classical, exact if_pos h }
 
 @[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
 inv_eq_of_equiv_zero (equiv_refl _)
 
 theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
-(if_neg h.lf.not_equiv').trans (if_pos h)
+by { classical, exact (if_neg h.lf.not_equiv').trans (if_pos h) }
 
 theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
-(if_neg h.not_equiv).trans (if_neg h.not_gt)
+by { classical, exact (if_neg h.not_equiv).trans (if_neg h.not_gt) }
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : 1⁻¹ ≡r 1 :=
-by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
+by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one }
 
 theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv
 

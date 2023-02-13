@@ -3,11 +3,14 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import algebra.order.sub.basic
+import algebra.order.sub.defs
 import algebra.order.monoid.with_top
 
 /-!
 # Lemma about subtraction in ordered monoids with a top element adjoined.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

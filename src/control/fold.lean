@@ -3,8 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Sean Leather
 -/
+import algebra.group.opposite
 import algebra.free_monoid.basic
-import algebra.opposites
 import control.traversable.instances
 import control.traversable.lemmas
 import category_theory.endomorphism

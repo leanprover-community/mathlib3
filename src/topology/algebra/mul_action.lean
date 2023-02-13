@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import algebra.add_torsor
 import topology.algebra.constructions
 import group_theory.group_action.prod
-import group_theory.group_action.basic
 import topology.algebra.const_mul_action
 
 /-!
@@ -34,7 +33,7 @@ Besides homeomorphisms mentioned above, in this file we provide lemmas like `con
 or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
 -/
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 open filter
 
 /-- Class `has_continuous_smul M X` says that the scalar multiplication `(•) : M → X → X`
@@ -104,7 +103,9 @@ lemma continuous.smul (hf : continuous f) (hg : continuous g) :
   continuous (λ x, f x • g x) :=
 continuous_smul.comp (hf.prod_mk hg)
 
-/-- If a scalar is central, then its right action is continuous when its left action is. -/
+/-- If a scalar action is central, then its right action is continuous when its left action is. -/
+@[to_additive "If an additive action is central, then its right action is continuous when its left
+action is."]
 instance has_continuous_smul.op [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] :
   has_continuous_smul Mᵐᵒᵖ X :=
 ⟨ suffices continuous (λ p : M × X, mul_opposite.op p.fst • p.snd),

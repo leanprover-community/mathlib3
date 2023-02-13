@@ -11,6 +11,9 @@ import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the infix notation `::ᵥ` for `vector.cons`.
 -/
 universes u
@@ -34,6 +37,10 @@ subtype.val_injective
   (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
+
+/-- A vector with `n` elements `a`. -/
+def replicate (n : ℕ) (a : α) : vector α n :=
+⟨list.replicate n a, list.length_replicate n a⟩
 
 /-- The empty `vector` is a `subsingleton`. -/
 instance zero_subsingleton : subsingleton (vector α 0) :=
@@ -96,9 +103,9 @@ theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
 | ⟨l, h⟩ i := rfl
 
 @[simp]
-lemma nth_repeat (a : α) (i : fin n) :
-  (vector.repeat a n).nth i = a :=
-by apply list.nth_le_repeat
+lemma nth_replicate (a : α) (i : fin n) :
+  (vector.replicate n a).nth i = a :=
+list.nth_le_replicate _ _
 
 @[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
   (v.map f).nth i = f (v.nth i) :=

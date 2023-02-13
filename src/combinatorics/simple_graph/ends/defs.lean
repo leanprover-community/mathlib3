@@ -324,8 +324,7 @@ lemma component_compl_functor_to_eventual_ranges_obj_eq
   G.component_compl_functor.to_eventual_ranges.obj K =
   { C : G.component_compl K.unop | C.supp.infinite } :=
 begin
-  apply congr_arg subtype,
-  ext x, symmetry,
+  apply congr_arg subtype (funext $ λ x, eq.symm $ propext _),
   apply component_compl.infinite_iff_in_eventual_range,
 end
 

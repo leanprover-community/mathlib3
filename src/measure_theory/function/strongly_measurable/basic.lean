@@ -945,13 +945,13 @@ begin
 end
 
 theorem coe_nnreal_ennreal [measurable_space α] {f : α → ℝ≥0} (hf : strongly_measurable f) :
-strongly_measurable (λ (x : α), (f x : ℝ≥0∞)) :=
+  strongly_measurable (λ (x : α), (f x : ℝ≥0∞)) :=
 ennreal.continuous_coe.comp_strongly_measurable hf
 
 /-- Given a `strongly_measurable` function `f : α → ℝ≥0∞`, its post-composition with
   `ennreal.to_real` is also `strongly_measurable`. -/
 theorem ennreal_to_nnreal [measurable_space α] {f : α → ℝ≥0∞} (hf : strongly_measurable f) :
-strongly_measurable (λ (x : α), (f x).to_nnreal) :=
+  strongly_measurable (λ (x : α), (f x).to_nnreal) :=
 begin
   classical,
   let inf_set := f ⁻¹' {∞},

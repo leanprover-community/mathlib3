@@ -10,12 +10,12 @@ local attribute [instance] prop_decidable
 
 namespace simple_graph
 
-variables  {V : Type u} {G : simple_graph V}
+variables {V : Type u} {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected)
+include Gpc
 
 open component_compl
 
 lemma nicely_arranged {H K : set V}
-  (Gpc : G.preconnected)
   (Hnempty : H.nonempty) --(Knempty : K.nonempty)
   (E E' : G.component_compl H)
   (Einf : E.supp.infinite) (Einf' : E'.supp.infinite)
@@ -27,18 +27,16 @@ begin
   have KE' : (K ∩ E') ⊆ ∅ := λ v ⟨vK, vE'⟩,
     En (component_compl.pairwise_disjoint.eq (set.not_disjoint_iff.mpr ⟨v, K_E vK, vE'⟩)),
   obtain ⟨F', sub, inf⟩ : ∃ F' : component_compl G K, (E' : set V) ⊆ F' ∧ F'.supp.infinite :=
-    ⟨ component_compl.of_connected_disjoint_right E'.connected (set.disjoint_iff.mpr KE'),
-      component_compl.subset_of_connected_disjoint_right _ _,
-      Einf'.mono (component_compl.subset_of_connected_disjoint_right _ _)⟩,
+    ⟨ of_connected_disjoint_right E'.connected (set.disjoint_iff.mpr KE'),
+      subset_of_connected_disjoint_right _ _,
+      Einf'.mono (subset_of_connected_disjoint_right _ _)⟩,
   have : F' = F, by
   { obtain ⟨⟨v, h⟩, vE', hH, a⟩:= exists_adj_boundary_pair Gpc Hnempty E',
-    exact component_compl.eq_of_adj v h (sub vE') (H_F hH) a, },
+    exact eq_of_adj v h (sub vE') (H_F hH) a, },
   exact this ▸ sub,
 end
 
 lemma bwd_map_non_inj
-  [locally_finite G]
-  (Gpc : G.preconnected)
   {H K : (finset V)ᵒᵖ}
   {C : G.component_compl_functor.to_eventual_ranges.obj H}
   {D D' : G.component_compl_functor.to_eventual_ranges.obj K}
@@ -64,6 +62,7 @@ begin
       (hom_eq_iff_le _ _ _).mpr ((E'.subset_hom _).trans h')],
 end
 
+omit Gpc
 lemma _root_.fin.fin3_embedding_iff {α : Type*} :
   nonempty (fin 3 ↪ α) ↔ ∃ (a₀ a₁ a₂ : α), a₀ ≠ a₁ ∧ a₀ ≠ a₂ ∧ a₁ ≠ a₂ := sorry
 
@@ -92,9 +91,8 @@ begin
     simp [list.nodup.nth_le_inj_iff this], },
 end
 
+include Gpc
 lemma nicely_arranged_bwd_map_not_inj
-  [locally_finite G]
-  (Gpc : G.preconnected)
   {H K : (finset V)ᵒᵖ}
   (Hnempty : (unop H).nonempty)
   {E : G.component_compl_functor.to_eventual_ranges.obj H}
@@ -108,17 +106,18 @@ lemma nicely_arranged_bwd_map_not_inj
 begin
   obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ := (fin.fin3_embedding_iff' E).mp ⟨hK⟩,
   apply @bwd_map_non_inj V G _ Gpc _ _ F E₁ E₂ h₁₂ _ _,
-  { apply @nicely_arranged _ _ _ _ Gpc Hnempty E.val E₁.val,
+  { apply @nicely_arranged _ _ _ Gpc _ _ Hnempty E.val E₁.val,
     any_goals
     { rw infinite_iff_in_eventual_range },
     exacts [E.prop, E₁.prop, λ h, h₀₁ (subtype.eq h), F.prop, H_F, K_E], },
-  { apply @nicely_arranged _ _ _ _ Gpc Hnempty E.val E₂.val,
+  { apply @nicely_arranged _ _ _ Gpc _ _ Hnempty E.val E₂.val,
     any_goals
     { rw infinite_iff_in_eventual_range },
     exacts [E.prop, E₂.prop, λ h, h₀₂ (subtype.eq h), F.prop, H_F, K_E], },
 end
 
 
+omit Gpc
 -- TODO: fit somewhere
 lemma _root_.fin.embedding_subsingleton {n : ℕ} {α : Type*} [subsingleton α] (e : fin n ↪ α) :
   n ≤ 1 :=
@@ -126,6 +125,7 @@ begin
   by_contra' h,
   simpa using e.inj' (subsingleton.elim (e ⟨0,zero_lt_one.trans h⟩) (e ⟨1,h⟩)),
 end
+include Gpc
 
 /-
   This is the key part of Hopf-Freudenthal
@@ -134,8 +134,6 @@ end
   bwd_map ‹L⊆L› is not injective, hence the graph has more than three ends.
 -/
 lemma good_autom_back_not_inj
-  [locally_finite G]
-  (Gpc : G.preconnected)
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : (finset V)ᵒᵖ)
   (hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)) :

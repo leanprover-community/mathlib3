@@ -1171,7 +1171,7 @@ space `L1 β 1 μ`. -/
 def to_L1 {f : α → β} (hf : integrable f μ) : α →₁[μ] β :=
 (mem_ℒp_one_iff_integrable.2 hf).to_Lp f
 
-@[simp] lemma to_L1_coe_fn (f : α →₁[μ] β) (hf : integrable f μ) : hf.to_L1 = f :=
+@[simp] lemma to_L1_coe_fn {f : α →₁[μ] β} (hf : integrable f μ) : hf.to_L1 = f :=
 by simp [integrable.to_L1]
 
 lemma coe_fn_to_L1 {f : α → β} (hf : integrable f μ) : hf.to_L1 =ᵐ[μ] f :=

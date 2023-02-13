@@ -3,11 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.fintype.basic
-import order.upper_lower
+import data.fintype.card
+import order.upper_lower.basic
 
 /-!
 # Intersecting families
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines intersecting families and proves their basic properties.
 
@@ -83,7 +86,7 @@ lemma intersecting_iff_eq_empty_of_subsingleton [subsingleton α] (s : set α) :
 begin
   refine subsingleton_of_subsingleton.intersecting.trans
     ⟨not_imp_comm.2 $ λ h, subsingleton_of_subsingleton.eq_singleton_of_mem _, _⟩,
-  { obtain ⟨a, ha⟩ := ne_empty_iff_nonempty.1 h,
+  { obtain ⟨a, ha⟩ := nonempty_iff_ne_empty.2 h,
     rwa subsingleton.elim ⊥ a },
   { rintro rfl,
     exact (set.singleton_nonempty _).ne_empty.symm }
@@ -134,7 +137,7 @@ lemma intersecting.not_compl_mem {s : set α} (hs : s.intersecting) {a : α} (ha
 lemma intersecting.not_mem {s : set α} (hs : s.intersecting) {a : α} (ha : aᶜ ∈ s) : a ∉ s :=
 λ h, hs ha h disjoint_compl_left
 
-lemma intersecting.disjoint_map_compl [decidable_eq α] {s : finset α}
+lemma intersecting.disjoint_map_compl {s : finset α}
   (hs : (s : set α).intersecting) :
   disjoint s (s.map ⟨compl, compl_injective⟩) :=
 begin
@@ -148,8 +151,7 @@ lemma intersecting.card_le [fintype α] {s : finset α}
   (hs : (s : set α).intersecting) : 2 * s.card ≤ fintype.card α :=
 begin
   classical,
-  refine (s.disj_union (s.map ⟨compl, compl_injective⟩)
-    (finset.disjoint_left.mp hs.disjoint_map_compl)).card_le_univ.trans_eq' _,
+  refine (s.disj_union _ hs.disjoint_map_compl).card_le_univ.trans_eq' _,
   rw [two_mul, card_disj_union, card_map],
 end
 
@@ -162,8 +164,7 @@ begin
   classical,
   refine ⟨λ h, _, λ h t ht hst, finset.eq_of_subset_of_card_le hst $
     le_of_mul_le_mul_left (ht.card_le.trans_eq h.symm) two_pos⟩,
-  suffices : s.disj_union (s.map ⟨compl, compl_injective⟩)
-    (finset.disjoint_left.mp hs.disjoint_map_compl) = finset.univ,
+  suffices : s.disj_union (s.map ⟨compl, compl_injective⟩) (hs.disjoint_map_compl) = finset.univ,
   { rw [fintype.card, ←this, two_mul, card_disj_union, card_map] },
   rw [←coe_eq_univ, disj_union_eq_union, coe_union, coe_map, function.embedding.coe_fn_mk,
     image_eq_preimage_of_inverse compl_compl compl_compl],
@@ -177,7 +178,7 @@ begin
   have := h {⊤} (by { rw coe_singleton, exact intersecting_singleton.2 top_ne_bot }),
   rw compl_bot at ha,
   rw coe_eq_empty.1 ((hs.is_upper_set' h).not_top_mem.1 ha.2) at this,
-  exact singleton_ne_empty _ (this $ empty_subset _).symm,
+  exact finset.singleton_ne_empty _ (this $ empty_subset _).symm,
 end
 
 lemma intersecting.exists_card_eq (hs : (s : set α).intersecting) :

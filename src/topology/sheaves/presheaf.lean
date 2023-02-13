@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro, Reid Barton, Andrew Yang
 -/
 import category_theory.limits.kan_extension
-import category_theory.adjunction
 import topology.category.Top.opens
+import category_theory.adjunction.opposites
 
 /-!
 # Presheaves on a topological space
@@ -176,7 +176,14 @@ by { dsimp [id], simp, }
 local attribute [tidy] tactic.op_induction'
 
 @[simp, priority 990] lemma id_hom_app (U) :
-  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) := by tidy
+  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
+begin
+  -- was `tidy`
+  induction U using opposite.rec,
+  cases U,
+  rw [id_hom_app'],
+  congr
+end
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }

@@ -10,7 +10,6 @@ import group_theory.perm.subgroup
 import linear_algebra.linear_independent
 import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
-import logic.equiv.fin
 
 /-!
 # Alternating Maps
@@ -290,7 +289,7 @@ def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
 def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
 { to_fun := function.const _ m,
   map_eq_zero_of_eq' := λ v, is_empty_elim,
-  ..multilinear_map.const_of_is_empty R m }
+  ..multilinear_map.const_of_is_empty R _ m }
 
 end
 
@@ -863,7 +862,7 @@ tensor_product.lift $ by
 lemma dom_coprod'_apply
   (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
   dom_coprod' (a ⊗ₜ[R'] b) = dom_coprod a b :=
-by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+rfl
 
 end alternating_map
 
@@ -904,17 +903,10 @@ begin
     rw quotient_group.eq' },
 
   -- eliminate a multiplication
-  have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) :=
-    (finset.eq_univ_iff_forall.mpr $ λ a, let ⟨a', ha'⟩ := mul_left_surjective σ a in
-      finset.mem_image.mpr ⟨a', finset.mem_univ _, ha'⟩).symm,
-  rw [this, finset.image_filter],
-  simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
-  simp only [monoid_hom.mem_range], -- needs to be separate from the above `simp only`
-  rw [finset.filter_congr_decidable,
-    finset.univ_filter_exists (perm.sum_congr_hom ιa ιb),
-    finset.sum_image (λ x _ y _ (h : _ = _), mul_right_injective _ h),
-    finset.sum_image (λ x _ y _ (h : _ = _), perm.sum_congr_hom_injective h)],
-  dsimp only,
+  rw [← finset.map_univ_equiv (equiv.mul_left σ), finset.filter_map, finset.sum_map],
+  simp_rw [equiv.coe_to_embedding, equiv.coe_mul_left, (∘), mul_inv_rev, inv_mul_cancel_right,
+    subgroup.inv_mem_iff, monoid_hom.mem_range, finset.univ_filter_exists,
+    finset.sum_image (perm.sum_congr_hom_injective.inj_on _)],
 
   -- now we're ready to clean up the RHS, pulling out the summation
   rw [dom_coprod.summand_mk', multilinear_map.dom_coprod_alternization_coe,

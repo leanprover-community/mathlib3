@@ -11,6 +11,7 @@ import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
 import algebra.category.Ring.instances
+import topology.local_at_target
 
 /-!
 # Open immersions of structured spaces
@@ -110,7 +111,7 @@ variables {X Y : PresheafedSpace.{v} C} {f : X ⟶ Y} (H : is_open_immersion f)
 abbreviation open_functor := H.base_open.is_open_map.functor
 
 /-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
-@[simps] noncomputable
+@[simps hom_c_app] noncomputable
 def iso_restrict : X ≅ Y.restrict H.base_open :=
 PresheafedSpace.iso_of_components (iso.refl _)
 begin
@@ -140,11 +141,11 @@ begin
     transitivity f.c.app x ≫ X.presheaf.map (𝟙 _),
     { congr },
     { erw [X.presheaf.map_id, category.comp_id] } },
-  { simp }
+  { refl, }
 end
 
 @[simp] lemma iso_restrict_inv_of_restrict : H.iso_restrict.inv ≫ f = Y.of_restrict _ :=
-by { rw iso.inv_comp_eq, simp }
+by { rw [iso.inv_comp_eq, iso_restrict_hom_of_restrict] }
 
 instance mono [H : is_open_immersion f] : mono f :=
 by { rw ← H.iso_restrict_hom_of_restrict, apply mono_comp }
@@ -162,16 +163,15 @@ instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : is_open_immersion f] (
     apply_with is_iso.comp_is_iso { instances := ff },
     swap,
     { have : (opens.map g.base).obj (h.functor.obj U) = hf.open_functor.obj U,
-      { dsimp only [opens.map, is_open_map.functor, PresheafedSpace.comp_base],
-        congr' 1,
-        rw [coe_comp, ←set.image_image, set.preimage_image_eq _ hg.base_open.inj] },
+      { ext1,
+        dsimp only [opens.map_coe, is_open_map.functor_obj_coe, comp_base],
+        rw [coe_comp, ← set.image_image, set.preimage_image_eq _ hg.base_open.inj] },
       rw this,
       apply_instance },
     { have : h.functor.obj U = hg.open_functor.obj (hf.open_functor.obj U),
-      { dsimp only [is_open_map.functor],
-        congr' 1,
-        rw [comp_base, coe_comp, ←set.image_image],
-        congr },
+      { ext1,
+        dsimp only [is_open_map.functor_obj_coe],
+        rw [comp_base, coe_comp, ←set.image_image] },
       rw this,
       apply_instance }
   end }
@@ -220,9 +220,9 @@ by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 @[reassoc] lemma app_inv_app' (U : opens Y) (hU : (U : set Y) ⊆ set.range f.base) :
   f.c.app (op U) ≫ H.inv_app ((opens.map f.base).obj U) =
   Y.presheaf.map (eq_to_hom (by
-    { apply has_le.le.antisymm,
+    { apply le_antisymm,
       { exact set.image_preimage_subset f.base U.1 },
-      { change U ⊆ _,
+      { rw [← set_like.coe_subset_coe],
         refine has_le.le.trans_eq _ (@set.image_preimage_eq_inter_range _ _ f.base U.1).symm,
         exact set.subset_inter_iff.mpr ⟨λ _ h, h, hU⟩ } })).op :=
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
@@ -243,11 +243,8 @@ instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
   begin
     dsimp,
     have : (opens.map f).obj (hf.is_open_map.functor.obj U) = U,
-    { cases U,
-      dsimp only [opens.map, is_open_map.functor],
-      congr' 1,
-      rw set.preimage_image_eq _ hf.inj,
-      refl },
+    { ext1,
+      exact set.preimage_image_eq _ hf.inj },
     convert (show is_iso (Y.presheaf.map (𝟙 _)), from infer_instance),
     { apply subsingleton.helim,
       rw this },
@@ -375,7 +372,6 @@ def pullback_cone_of_left_lift : s.X ⟶ (pullback_cone_of_left f g).X :=
       conv_lhs { erw ← this, rw coe_comp, erw ← set.preimage_preimage },
       erw set.preimage_image_eq _
         (Top.snd_open_embedding_of_left_open_embedding hf.base_open g.base).inj,
-      simp,
     end)),
     naturality' := λ U V i,
     begin
@@ -809,7 +805,7 @@ end
 lemma image_preimage_is_empty (j : discrete ι) (h : i ≠ j) (U : opens (F.obj i)) :
   (opens.map (colimit.ι (F ⋙ SheafedSpace.forget_to_PresheafedSpace) j).base).obj
     ((opens.map (preserves_colimit_iso SheafedSpace.forget_to_PresheafedSpace F).inv.base).obj
-    ((sigma_ι_open_embedding F i).is_open_map.functor.obj U)) = ∅ :=
+    ((sigma_ι_open_embedding F i).is_open_map.functor.obj U)) = ⊥ :=
 begin
   ext,
   apply iff_false_intro,
@@ -1594,7 +1590,7 @@ lemma range_pullback_to_base_of_left :
       set.range f.1.base ∩ set.range g.1.base :=
 begin
   rw [pullback.condition, Scheme.comp_val_base, coe_comp, set.range_comp,
-    range_pullback_snd_of_left, opens.map_obj, subtype.coe_mk, set.image_preimage_eq_inter_range,
+    range_pullback_snd_of_left, opens.map_obj, opens.coe_mk, set.image_preimage_eq_inter_range,
     set.inter_comm],
 end
 
@@ -1603,7 +1599,7 @@ lemma range_pullback_to_base_of_right :
       set.range g.1.base ∩ set.range f.1.base :=
 begin
   rw [Scheme.comp_val_base, coe_comp, set.range_comp, range_pullback_fst_of_right, opens.map_obj,
-    subtype.coe_mk, set.image_preimage_eq_inter_range, set.inter_comm],
+    opens.coe_mk, set.image_preimage_eq_inter_range, set.inter_comm],
 end
 
 /--
@@ -1703,9 +1699,13 @@ def hom.opens_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] : ope
 
 end Scheme
 
+section
+
+variable (X : Scheme)
+
 /-- The functor taking open subsets of `X` to open subschemes of `X`. -/
 @[simps obj_left obj_hom map_left]
-def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
+def Scheme.restrict_functor : opens X.carrier ⥤ over X :=
 { obj := λ U, over.mk (X.of_restrict U.open_embedding),
   map := λ U V i, over.hom_mk (is_open_immersion.lift (X.of_restrict _) (X.of_restrict _)
     (by { change set.range coe ⊆ set.range coe, simp_rw [subtype.range_coe], exact i.le }))
@@ -1722,6 +1722,64 @@ def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
     rw [← cancel_mono (X.of_restrict W.open_embedding), category.assoc],
     iterate 3 { rw [is_open_immersion.lift_fac] }
   end }
+
+@[reassoc]
+lemma Scheme.restrict_functor_map_of_restrict {U V : opens X.carrier} (i : U ⟶ V) :
+  (X.restrict_functor.map i).1 ≫ X.of_restrict _ = X.of_restrict _ :=
+is_open_immersion.lift_fac _ _ _
+
+lemma Scheme.restrict_functor_map_base {U V : opens X.carrier} (i : U ⟶ V) :
+  (X.restrict_functor.map i).1.1.base = (opens.to_Top _).map i :=
+begin
+  ext a,
+  exact (congr_arg (λ f : X.restrict U.open_embedding ⟶ X, by exact f.1.base a)
+    (X.restrict_functor_map_of_restrict i) : _),
+end
+
+lemma Scheme.restrict_functor_map_app_aux {U V : opens X.carrier} (i : U ⟶ V) (W : opens V) :
+  U.open_embedding.is_open_map.functor.obj
+    ((opens.map (X.restrict_functor.map i).1.val.base).obj W) ≤
+    V.open_embedding.is_open_map.functor.obj W :=
+begin
+  simp only [← set_like.coe_subset_coe, is_open_map.functor_obj_coe, set.image_subset_iff,
+    Scheme.restrict_functor_map_base, opens.map_coe, opens.inclusion_apply],
+  rintros _ h,
+  exact ⟨_, h, rfl⟩,
+end
+
+lemma Scheme.restrict_functor_map_app {U V : opens X.carrier} (i : U ⟶ V) (W : opens V) :
+  (X.restrict_functor.map i).1.1.c.app (op W) = X.presheaf.map
+    (hom_of_le $ X.restrict_functor_map_app_aux i W).op :=
+begin
+  have e₁ := Scheme.congr_app (X.restrict_functor_map_of_restrict i)
+    (op $ V.open_embedding.is_open_map.functor.obj W),
+  rw Scheme.comp_val_c_app at e₁,
+  have e₂ := (X.restrict_functor.map i).1.val.c.naturality (eq_to_hom W.map_functor_eq).op,
+  rw ← is_iso.eq_inv_comp at e₂,
+  dsimp at e₁ e₂ ⊢,
+  rw [e₂, W.adjunction_counit_map_functor, ← is_iso.eq_inv_comp, is_iso.inv_comp_eq,
+    ← is_iso.eq_comp_inv] at e₁,
+  simp_rw [eq_to_hom_map (opens.map _), eq_to_hom_map (is_open_map.functor _), ← functor.map_inv,
+    ← functor.map_comp] at e₁,
+  rw e₁,
+  congr' 1,
+end
+
+/-- The functor that restricts to open subschemes and then takes global section is
+isomorphic to the structure sheaf. -/
+@[simps]
+def Scheme.restrict_functor_Γ :
+  X.restrict_functor.op ⋙ (over.forget X).op ⋙ Scheme.Γ ≅ X.presheaf :=
+nat_iso.of_components
+  (λ U, X.presheaf.map_iso ((eq_to_iso (unop U).open_embedding_obj_top).symm.op : _))
+begin
+  intros U V i,
+  dsimp [-subtype.val_eq_coe, -Scheme.restrict_functor_map_left],
+  rw [X.restrict_functor_map_app, ← functor.map_comp, ← functor.map_comp],
+  congr' 1
+end
+
+end
 
 /-- The restriction of an isomorphism onto an open set. -/
 noncomputable
@@ -1888,6 +1946,10 @@ lemma morphism_restrict_base_coe {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carri
   @coe U Y.carrier _ ((f ∣_ U).1.base x) = f.1.base x.1 :=
 congr_arg (λ f, PresheafedSpace.hom.base (LocallyRingedSpace.hom.val f) x) (morphism_restrict_ι f U)
 
+lemma morphism_restrict_val_base {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+  ⇑(f ∣_ U).1.base = U.1.restrict_preimage f.1.base :=
+funext (λ x, subtype.ext (morphism_restrict_base_coe f U x))
+
 lemma image_morphism_restrict_preimage {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier)
   (V : opens U) :
   ((opens.map f.val.base).obj U).open_embedding.is_open_map.functor.obj
@@ -2002,6 +2064,31 @@ begin
   ext1, dsimp [opens.map, opens.inclusion],
   rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, subtype.range_coe],
   exact Y.basic_open_le r
+end
+
+/--
+The stalk map of a restriction of a morphism is isomorphic to the stalk map of the original map.
+-/
+def morphism_restrict_stalk_map {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (x) :
+  arrow.mk (PresheafedSpace.stalk_map (f ∣_ U).1 x) ≅
+    arrow.mk (PresheafedSpace.stalk_map f.1 x.1) :=
+begin
+  fapply arrow.iso_mk',
+  { refine Y.restrict_stalk_iso U.open_embedding ((f ∣_ U).1 x) ≪≫ Top.presheaf.stalk_congr _ _,
+    apply inseparable.of_eq,
+    exact morphism_restrict_base_coe f U x },
+  { exact X.restrict_stalk_iso _ _ },
+  { apply Top.presheaf.stalk_hom_ext,
+    intros V hxV,
+    simp only [Top.presheaf.stalk_congr_hom, category_theory.category.assoc,
+      category_theory.iso.trans_hom],
+    erw PresheafedSpace.restrict_stalk_iso_hom_eq_germ_assoc,
+    erw PresheafedSpace.stalk_map_germ_assoc _ _ ⟨_, _⟩,
+    rw [Top.presheaf.germ_stalk_specializes'_assoc],
+    erw PresheafedSpace.stalk_map_germ _ _ ⟨_, _⟩,
+    erw PresheafedSpace.restrict_stalk_iso_hom_eq_germ,
+    rw [morphism_restrict_c_app, category.assoc, Top.presheaf.germ_res],
+    refl }
 end
 
 instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :

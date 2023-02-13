@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import algebra.category.Module.abelian
 import category_theory.preadditive.injective
 import ring_theory.ideal.basic
 

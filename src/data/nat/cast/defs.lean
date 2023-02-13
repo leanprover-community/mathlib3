@@ -9,6 +9,9 @@ import algebra.ne_zero
 /-!
 # Cast of natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the *canonical* homomorphism from the natural numbers into an
 `add_monoid` with a one.  In additive monoids with one, there exists a unique
 such homomorphism and we store it in the `nat_cast : ℕ → R` field.
@@ -40,7 +43,7 @@ class has_nat_cast (R : Type u) :=
 An `add_monoid_with_one` is an `add_monoid` with a `1`.
 It also contains data for the unique homomorphism `ℕ → R`.
 -/
-@[protect_proj]
+@[protect_proj, ancestor has_nat_cast add_monoid has_one]
 class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has_one R :=
 (nat_cast := nat.unary_cast)
 (nat_cast_zero : nat_cast 0 = (0 : R) . control_laws_tac)
@@ -50,7 +53,7 @@ class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has
 protected def nat.cast {R : Type u} [has_nat_cast R] : ℕ → R := has_nat_cast.nat_cast
 
 /-- An `add_comm_monoid_with_one` is an `add_monoid_with_one` satisfying `a + b = b + a`.  -/
-@[protect_proj]
+@[protect_proj, ancestor add_monoid_with_one add_comm_monoid]
 class add_comm_monoid_with_one (R : Type*) extends add_monoid_with_one R, add_comm_monoid R
 
 section
@@ -88,7 +91,7 @@ namespace nat
 -- see note [coercion into rings]
 @[priority 900] instance cast_coe {R} [has_nat_cast R] : has_coe_t ℕ R := ⟨nat.cast⟩
 
-@[norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
+@[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
 
 -- Lemmas about nat.succ need to get a low priority, so that they are tried last.
 -- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
@@ -109,11 +112,11 @@ end
 namespace nat
 variables {R : Type*}
 
-@[norm_cast] theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
-by rw [cast_succ, nat.cast_zero, zero_add]
+@[simp, norm_cast] theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
+by rw [cast_succ, cast_zero, zero_add]
 
-@[norm_cast] theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
-by induction n; simp [add_succ, add_assoc, nat.add_zero, nat.cast_one, nat.cast_zero, *]
+@[simp, norm_cast] theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
+by induction n; simp [add_succ, add_assoc, nat.add_zero, *]
 
 /-- Computationally friendlier cast than `nat.unary_cast`, using binary representation. -/
 protected def bin_cast [has_zero R] [has_one R] [has_add R] (n : ℕ) : R :=
@@ -123,22 +126,22 @@ protected def bin_cast [has_zero R] [has_one R] [has_add R] (n : ℕ) : R :=
 begin
   rw nat.bin_cast,
   apply binary_rec _ _ n,
-  { rw [binary_rec_zero, nat.cast_zero] },
+  { rw [binary_rec_zero, cast_zero] },
   { intros b k h,
     rw [binary_rec_eq, h],
-    { cases b; simp [bit, bit0, bit1, nat.cast_add, nat.cast_zero] },
+    { cases b; simp [bit, bit0, bit1] },
     { simp } },
 end
 
-@[norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
-  ((bit0 n : ℕ) : R) = bit0 n := nat.cast_add _ _
+@[simp, norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
+  ((bit0 n : ℕ) : R) = bit0 n := cast_add _ _
 
-@[norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
+@[simp, norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
   ((bit1 n : ℕ) : R) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two [add_monoid_with_one R] : ((2 : ℕ) : R) = 2 :=
-by rw [cast_add_one, nat.cast_one, bit0]
+by rw [cast_add_one, cast_one, bit0]
 
 attribute [simp, norm_cast] int.nat_abs_of_nat
 
@@ -164,11 +167,11 @@ end nat
 
 namespace ne_zero
 
-lemma ne' (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
+lemma nat_cast_ne (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
   (n : R) ≠ 0 := h.out
 
 lemma of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [h : ne_zero (n : R)] : ne_zero n :=
-⟨by { casesI h, rintro rfl, by simpa [nat.cast_zero] using h }⟩
+⟨by {casesI h, rintro rfl, by simpa using h}⟩
 
 lemma pos_of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [ne_zero (n : R)] : 0 < n :=
 nat.pos_of_ne_zero (of_ne_zero_coe R).out

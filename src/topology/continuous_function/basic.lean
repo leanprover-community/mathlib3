@@ -10,6 +10,9 @@ import topology.homeomorph
 /-!
 # Continuous bundled maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the type `continuous_map` of continuous bundled maps.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -90,6 +93,9 @@ equalities. -/
 protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
 { to_fun := f',
   continuous_to_fun := h.symm ▸ f.continuous_to_fun }
+
+@[simp] lemma coe_copy (f : C(α, β)) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : C(α, β)) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables {α β} {f g : C(α, β)}
 

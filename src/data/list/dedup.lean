@@ -8,6 +8,9 @@ import data.list.nodup
 /-!
 # Erasure of duplicates in a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about `list.dedup` (definition in `data.list.defs`).
 `dedup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
 occurrence of each.
@@ -35,7 +38,7 @@ pw_filter_cons_of_pos $ by simpa only [forall_mem_ne] using h
 
 @[simp] theorem mem_dedup {a : α} {l : list α} : a ∈ dedup l ↔ a ∈ l :=
 by simpa only [dedup, forall_mem_ne, not_not] using not_congr (@forall_mem_pw_filter α (≠) _
-  (λ x y z xz, not_and_distrib.1 $ mt (and.rec eq.trans) xz) a l)
+  (λ x y z xz, not_and_distrib.1 $ mt (λ h, eq.trans h.1 h.2) xz) a l)
 
 @[simp] theorem dedup_cons_of_mem {a : α} {l : list α} (h : a ∈ l) :
   dedup (a :: l) = dedup l :=
@@ -71,11 +74,11 @@ begin
     rw [dedup_cons_of_not_mem' h, insert_of_not_mem h]]
 end
 
-lemma repeat_dedup {x : α} : ∀ {k}, k ≠ 0 → (repeat x k).dedup = [x]
+lemma replicate_dedup {x : α} : ∀ {k}, k ≠ 0 → (replicate k x).dedup = [x]
 | 0 h := (h rfl).elim
 | 1 _ := rfl
-| (n+2) _ := by rw [repeat_succ, dedup_cons_of_mem (mem_repeat.2 ⟨n.succ_ne_zero, rfl⟩),
-    repeat_dedup n.succ_ne_zero]
+| (n+2) _ := by rw [replicate_succ, dedup_cons_of_mem (mem_replicate.2 ⟨n.succ_ne_zero, rfl⟩),
+    replicate_dedup n.succ_ne_zero]
 
 lemma count_dedup (l : list α) (a : α) :
   l.dedup.count a = if a ∈ l then 1 else 0 :=

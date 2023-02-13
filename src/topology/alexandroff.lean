@@ -3,6 +3,7 @@ Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
+import data.fintype.option
 import topology.separation
 import topology.sets.opens
 
@@ -33,7 +34,7 @@ one-point compactification, compactness
 -/
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 /-!
 ### Definition and basic properties

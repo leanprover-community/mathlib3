@@ -244,6 +244,13 @@ begin
     exact Ddis.right ⟨(component_compl.hom_eq_iff_le _ _ _).mp e vD, vD⟩, },
 end
 
+lemma exists_saturated_connected_extension (Kn : K.nonempty) :
+  ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
+                              ∀ C : G.component_compl L, C.supp.infinite :=
+begin
+
+end
+
 end component_compl
 
 /-

@@ -153,8 +153,9 @@ begin
     exact nat.not_succ_le_zero _ (nat.le_of_succ_le_succ (fin.embedding_subsingleton hK)), },
 
   -- TODO: make this into a lemma for `component_compl` : it's lots of work
-  obtain ⟨L,KL,Lc,inf⟩ : ∃ (L : finset V), K.unop ⊆ L ∧ (G.induce (L : set V)).connected ∧
-                              ∀ C : G.component_compl L, C.supp.infinite := sorry,
+  obtain ⟨L,KL,Lc,inf⟩ : ∃ L, K.unop ⊆ L ∧ (G.induce (L : set V)).connected ∧
+                            ∀ C : G.component_compl L, C.supp.infinite :=
+    exists_saturated_connected_extension Kn,
   obtain ⟨φ,φh⟩ := auts L,
   let φL := L.image φ,
   have φLc : (G.induce (φL : set V)).connected, by

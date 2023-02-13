@@ -74,7 +74,7 @@ instance : inhabited 𝓜(𝕜, A) :=
 
 Because the multiplier algebra is defined as the algebra of double centralizers, there is a natural
 injection `double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` defined by
-`λ a, (a.fst, mul_opposite.op a.snd)`. We use this map to pull back the the ring, module and
+`λ a, (a.fst, mul_opposite.op a.snd)`. We use this map to pull back the ring, module and
 algebra structure from `(A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` to `𝓜(𝕜, A)`. -/
 
 variables {𝕜 A}
@@ -126,11 +126,11 @@ instance : has_one 𝓜(𝕜, A) := ⟨⟨1, λ x y, rfl⟩⟩
 instance : has_mul 𝓜(𝕜, A) :=
 { mul := λ a b,
   { to_prod := (a.fst.comp b.fst, b.snd.comp a.snd),
-    central := λ x y, show b.snd (a.snd x) * y = x * (a.fst (b.fst y)),
+    central := λ x y, show b.snd (a.snd x) * y = x * a.fst (b.fst y),
       by simp only [central] } }
 
 instance : has_nat_cast 𝓜(𝕜, A) :=
-  { nat_cast := λ n, ⟨n, λ x y, by simp only [←nat.smul_one_eq_coe, prod.smul_fst, prod.smul_snd,
+{ nat_cast := λ n, ⟨n, λ x y, by simp only [←nat.smul_one_eq_coe, prod.smul_fst, prod.smul_snd,
       prod.fst_one, prod.snd_one, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩ }
 
 instance : has_int_cast 𝓜(𝕜, A) :=
@@ -182,12 +182,12 @@ function.injective.ring to_prod_mop
   (λ _, rfl) (λ _, rfl)
 
 /-- The canonical map `double_centralizer.to_prod` as an additive group homomorphism. -/
-def add_group_hom_to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A) :=
+def to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A) :=
 { to_fun := to_prod,
   map_zero' := rfl,
   map_add' := λ x y, rfl }
 
-/-- The module structure is inherited as the pullback under the additive group monomoprhism
+/-- The module structure is inherited as the pullback under the additive group monomorphism
 `double_centralizer.to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : module 𝕜 𝓜(𝕜, A) :=
 function.injective.module 𝕜 add_group_hom_to_prod ext (λ x y, rfl)

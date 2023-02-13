@@ -1728,7 +1728,7 @@ begin
 end
 
 theorem coe_nnreal_ennreal {f : α → ℝ≥0} (hf : ae_strongly_measurable f μ) :
-ae_strongly_measurable (λ (x : α), (f x : ℝ≥0∞)) μ :=
+  ae_strongly_measurable (λ (x : α), (f x : ℝ≥0∞)) μ :=
 begin
   obtain ⟨g, hg₁, hg₂⟩ := hf,
   refine ⟨coe ∘ g, hg₁.coe_nnreal_ennreal, _⟩,
@@ -1737,7 +1737,7 @@ begin
 end
 
 theorem ennreal_to_nnreal {f : α → ℝ≥0∞} (hf : ae_strongly_measurable f μ) :
-ae_strongly_measurable (λ (x : α), (f x).to_nnreal) μ :=
+  ae_strongly_measurable (λ (x : α), (f x).to_nnreal) μ :=
 begin
   obtain ⟨g, hg₁, hg₂⟩ := hf,
   refine ⟨ennreal.to_nnreal ∘ g, hg₁.ennreal_to_nnreal, _⟩,

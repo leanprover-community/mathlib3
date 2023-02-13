@@ -13,7 +13,7 @@ In the first part of this file, the predicate `integrable` is defined and basic 
 integrable functions are proved.
 
 Such a predicate is already available under the name `mem_ℒp 1`. We give a direct definition which
-is easier to use, and show that it is equivalent to `mem_ℒp 1`
+is easier to use, and show that it is equivalent to `mem_ℒp 1`.
 
 In the second part, we establish an API between `integrable` and the space `L¹` of equivalence
 classes of integrable functions, already defined as a special case of `L^p` spaces for `p = 1`.
@@ -88,7 +88,7 @@ lemma lintegral_nnnorm_add_right
   ∫⁻ a, ‖f a‖₊ + ‖g a‖₊ ∂μ = ∫⁻ a, ‖f a‖₊ ∂μ + ∫⁻ a, ‖g a‖₊ ∂μ :=
 lintegral_add_right' _ hg.ennnorm
 
-lemma lintegral_nnnorm_neg {f : α → β} :
+lemma lintegral_nnnorm_neg (f : α → β) :
   ∫⁻ a, ‖(-f) a‖₊ ∂μ = ∫⁻ a, ‖f a‖₊ ∂μ :=
 by simp only [pi.neg_apply, nnnorm_neg]
 
@@ -210,7 +210,7 @@ have eq : (λa, (nnnorm ‖f a‖ : ℝ≥0∞)) = λa, (‖f a‖₊ : ℝ≥0�
   by { funext, rw nnnorm_norm },
 by { rwa [has_finite_integral, eq] }
 
-lemma has_finite_integral_norm_iff (f : α → β) :
+lemma has_finite_integral_norm_iff {f : α → β} :
   has_finite_integral (λa, ‖f a‖) μ ↔ has_finite_integral f μ :=
 has_finite_integral_congr' $ eventually_of_forall $ λ x, norm_norm (f x)
 
@@ -386,7 +386,6 @@ end normed_space
 
 /-! ### The predicate `integrable` -/
 
--- variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 
 /-- `integrable f μ` means that `f` is measurable and that the integral `∫⁻ a, ‖f a‖ ∂μ` is finite.
   `integrable f` means `integrable f volume`. -/
@@ -467,7 +466,7 @@ end
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_strongly_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩
 
-lemma integrable.of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞)
+lemma integrable.of_measure_le_smul {μ' : measure α} {c : ℝ≥0∞} (hc : c ≠ ∞)
   (hμ'_le : μ' ≤ c • μ) {f : α → β} (hf : integrable f μ) :
   integrable f μ' :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c hc hμ'_le, }
@@ -1169,57 +1168,57 @@ namespace integrable
 
 /-- Construct the equivalence class `[f]` of an integrable function `f`, as a member of the
 space `L1 β 1 μ`. -/
-def to_L1 (f : α → β) (hf : integrable f μ) : α →₁[μ] β :=
+def to_L1 {f : α → β} (hf : integrable f μ) : α →₁[μ] β :=
 (mem_ℒp_one_iff_integrable.2 hf).to_Lp f
 
-@[simp] lemma to_L1_coe_fn (f : α →₁[μ] β) (hf : integrable f μ) : hf.to_L1 f = f :=
+@[simp] lemma to_L1_coe_fn (f : α →₁[μ] β) (hf : integrable f μ) : hf.to_L1 = f :=
 by simp [integrable.to_L1]
 
-lemma coe_fn_to_L1 {f : α → β} (hf : integrable f μ) : hf.to_L1 f =ᵐ[μ] f :=
+lemma coe_fn_to_L1 {f : α → β} (hf : integrable f μ) : hf.to_L1 =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk _ _
 
-@[simp] lemma to_L1_zero (h : integrable (0 : α → β) μ) : h.to_L1 0 = 0 := rfl
+@[simp] lemma to_L1_zero (h : integrable (0 : α → β) μ) : h.to_L1 = 0 := rfl
 
-@[simp] lemma to_L1_eq_mk (f : α → β) (hf : integrable f μ) :
-  (hf.to_L1 f : α →ₘ[μ] β) = ae_eq_fun.mk f hf.ae_strongly_measurable :=
+@[simp] lemma to_L1_eq_mk {f : α → β} (hf : integrable f μ) :
+  (hf.to_L1 : α →ₘ[μ] β) = ae_eq_fun.mk f hf.ae_strongly_measurable :=
 rfl
 
-@[simp] lemma to_L1_eq_to_L1_iff (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
-  to_L1 f hf = to_L1 g hg ↔ f =ᵐ[μ] g :=
+@[simp] lemma to_L1_eq_to_L1_iff {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) :
+  to_L1 hf = to_L1 hg ↔ f =ᵐ[μ] g :=
 mem_ℒp.to_Lp_eq_to_Lp_iff _ _
 
-lemma to_L1_add (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
-  to_L1 (f + g) (hf.add hg) = to_L1 f hf + to_L1 g hg := rfl
+lemma to_L1_add {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) :
+  to_L1 (hf.add hg) = to_L1 hf + to_L1 hg := rfl
 
-lemma to_L1_neg (f : α → β) (hf : integrable f μ) :
-  to_L1 (- f) (integrable.neg hf) = - to_L1 f hf := rfl
+lemma to_L1_neg {f : α → β} (hf : integrable f μ) :
+  to_L1 (integrable.neg hf) = - to_L1 hf := rfl
 
-lemma to_L1_sub (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
-  to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg := rfl
+lemma to_L1_sub {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) :
+  to_L1 (hf.sub hg) = to_L1 hf - to_L1 hg := rfl
 
-lemma norm_to_L1 (f : α → β) (hf : integrable f μ) :
-  ‖hf.to_L1 f‖ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
+lemma norm_to_L1 {f : α → β} (hf : integrable f μ) :
+  ‖hf.to_L1‖ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
 by { simp [to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-lemma norm_to_L1_eq_lintegral_norm (f : α → β) (hf : integrable f μ) :
-  ‖hf.to_L1 f‖ = ennreal.to_real (∫⁻ a, (ennreal.of_real ‖f a‖) ∂μ) :=
+lemma norm_to_L1_eq_lintegral_norm {f : α → β} (hf : integrable f μ) :
+  ‖hf.to_L1‖ = ennreal.to_real (∫⁻ a, (ennreal.of_real ‖f a‖) ∂μ) :=
 by { rw [norm_to_L1, lintegral_norm_eq_lintegral_edist] }
 
-@[simp] lemma edist_to_L1_to_L1 (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
-  edist (hf.to_L1 f) (hg.to_L1 g) = ∫⁻ a, edist (f a) (g a) ∂μ :=
+@[simp] lemma edist_to_L1_to_L1 {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) :
+  edist hf.to_L1 hg.to_L1 = ∫⁻ a, edist (f a) (g a) ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
 
-@[simp] lemma edist_to_L1_zero (f : α → β) (hf : integrable f μ) :
-  edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
+@[simp] lemma edist_to_L1_zero {f : α → β} (hf : integrable f μ) :
+  edist hf.to_L1 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
-  to_L1 (λ a, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
+lemma to_L1_smul {f : α → β} (hf : integrable f μ) (k : 𝕜) :
+  to_L1 (hf.smul k : integrable (λ a, k • f a) μ) = k • to_L1 hf := rfl
 
-lemma to_L1_smul' (f : α → β) (hf : integrable f μ) (k : 𝕜) :
-  to_L1 (k • f) (hf.smul k) = k • to_L1 f hf := rfl
+lemma to_L1_smul' {f : α → β} (hf : integrable f μ) (k : 𝕜) :
+  to_L1 (hf.smul k : integrable (k • f) μ) = k • to_L1 hf := rfl
 
 end integrable
 

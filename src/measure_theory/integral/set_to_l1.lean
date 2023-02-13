@@ -1299,12 +1299,12 @@ variables (μ T)
 /-- Extend `T : set α → E →L[ℝ] F` to `(α → E) → F` (for integrable functions `α → E`). We set it to
 0 if the function is not integrable. -/
 def set_to_fun (hT : dominated_fin_meas_additive μ T C) (f : α → E) : F :=
-if hf : integrable f μ then L1.set_to_L1 hT (hf.to_L1 f) else 0
+if hf : integrable f μ then L1.set_to_L1 hT hf.to_L1 else 0
 
 variables {μ T}
 
 lemma set_to_fun_eq (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ) :
-  set_to_fun μ T hT f = L1.set_to_L1 hT (hf.to_L1 f) :=
+  set_to_fun μ T hT f = L1.set_to_L1 hT hf.to_L1 :=
 dif_pos hf
 
 lemma L1.set_to_fun_eq_set_to_L1 (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E) :
@@ -1465,7 +1465,7 @@ begin
   by_cases hfi : integrable f μ,
   { have hgi : integrable g μ := hfi.congr h,
     rw [set_to_fun_eq hT hfi, set_to_fun_eq hT hgi,
-      (integrable.to_L1_eq_to_L1_iff f g hfi hgi).2 h] },
+      (integrable.to_L1_eq_to_L1_iff hfi hgi).2 h] },
   { have hgi : ¬ integrable g μ, { rw integrable_congr h at hfi, exact hfi },
     rw [set_to_fun_undef hT hfi, set_to_fun_undef hT hgi] },
 end
@@ -1480,7 +1480,7 @@ lemma set_to_fun_measure_zero' (hT : dominated_fin_meas_additive μ T C)
 set_to_fun_zero_left' hT (λ s hs hμs, hT.eq_zero_of_measure_zero hs (h s hs hμs))
 
 lemma set_to_fun_to_L1 (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ) :
-  set_to_fun μ T hT (hf.to_L1 f) = set_to_fun μ T hT f :=
+  set_to_fun μ T hT hf.to_L1 = set_to_fun μ T hT f :=
 set_to_fun_congr_ae hT hf.coe_fn_to_L1
 
 lemma set_to_fun_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : set α}
@@ -1565,8 +1565,8 @@ lemma tendsto_set_to_fun_of_L1 (hT : dominated_fin_meas_additive μ T C)
   tendsto (λ i, set_to_fun μ T hT (fs i)) l (𝓝 $ set_to_fun μ T hT f) :=
 begin
   classical,
-  let f_lp := hfi.to_L1 f,
-  let F_lp := λ i, if hFi : integrable (fs i) μ then hFi.to_L1 (fs i) else 0,
+  let f_lp := hfi.to_L1,
+  let F_lp := λ i, if hFi : integrable (fs i) μ then hFi.to_L1 else 0,
   have tendsto_L1 : tendsto F_lp l (𝓝 f_lp),
   { rw Lp.tendsto_Lp_iff_tendsto_ℒp',
     simp_rw [snorm_one_eq_lintegral_nnnorm, pi.sub_apply],
@@ -1613,13 +1613,13 @@ end
 lemma continuous_L1_to_L1
   {μ' : measure α} (c' : ℝ≥0∞) (hc' : c' ≠ ∞) (hμ'_le : μ' ≤ c' • μ) :
   continuous (λ f : α →₁[μ] G,
-    (integrable.of_measure_le_smul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) :=
+    (integrable.of_measure_le_smul hc' hμ'_le (L1.integrable_coe_fn f)).to_L1) :=
 begin
   by_cases hc'0 : c' = 0,
   { have hμ'0 : μ' = 0,
     { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hc'0], },
     have h_im_zero : (λ f : α →₁[μ] G,
-        (integrable.of_measure_le_smul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
+        (integrable.of_measure_le_smul hc' hμ'_le (L1.integrable_coe_fn f)).to_L1) = 0,
       by { ext1 f, ext1, simp_rw hμ'0, simp only [ae_zero], },
     rw h_im_zero,
     exact continuous_zero, },
@@ -1629,8 +1629,8 @@ begin
   refine ⟨div_pos (half_pos hε_pos) (to_real_pos hc'0 hc'), _⟩,
   intros g hfg,
   rw Lp.dist_def at hfg ⊢,
-  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le_smul c' hc' hμ'_le,
-  have : snorm (integrable.to_L1 g (h_int g) - integrable.to_L1 f (h_int f)) 1 μ'
+  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le_smul hc' hμ'_le,
+  have : snorm (integrable.to_L1 (h_int g) - integrable.to_L1 (h_int f)) 1 μ'
       = snorm (g - f) 1 μ',
     from snorm_congr_ae ((integrable.coe_fn_to_L1 _).sub (integrable.coe_fn_to_L1 _)),
   rw this,
@@ -1662,7 +1662,7 @@ lemma set_to_fun_congr_measure_of_integrable {μ' : measure α} (c' : ℝ≥0∞
 begin
   /- integrability for `μ` implies integrability for `μ'`. -/
   have h_int : ∀ g : α → E, integrable g μ → integrable g μ',
-    from λ g hg, integrable.of_measure_le_smul c' hc' hμ'_le hg,
+    from λ g hg, integrable.of_measure_le_smul hc' hμ'_le hg,
   /- We use `integrable.induction` -/
   refine hfμ.induction _ _ _ _ _,
   { intros c s hs hμs,
@@ -1676,7 +1676,7 @@ begin
       set_to_fun_add hT' (h_int f₂ hf₂) (h_int g₂ hg₂), h_eq_f, h_eq_g], },
   { refine is_closed_eq (continuous_set_to_fun hT) _,
     have : (λ f : α →₁[μ] E, set_to_fun μ' T hT' f)
-      = (λ f : α →₁[μ] E, set_to_fun μ' T hT' ((h_int f (L1.integrable_coe_fn f)).to_L1 f)),
+      = (λ f : α →₁[μ] E, set_to_fun μ' T hT' (h_int f (L1.integrable_coe_fn f)).to_L1),
     { ext1 f, exact set_to_fun_congr_ae hT' (integrable.coe_fn_to_L1 _).symm, },
     rw this,
     exact (continuous_set_to_fun hT').comp (continuous_L1_to_L1 c' hc' hμ'_le), },
@@ -1694,7 +1694,7 @@ begin
   { exact set_to_fun_congr_measure_of_integrable c' hc' hμ'_le hT hT' f hf, },
   { /- if `f` is not integrable, both `set_to_fun` are 0. -/
     have h_int : ∀ g : α → E, ¬ integrable g μ → ¬ integrable g μ',
-      from λ g, mt (λ h, h.of_measure_le_smul _ hc hμ_le),
+      from λ g, mt (λ h, h.of_measure_le_smul hc hμ_le),
     simp_rw [set_to_fun_undef _ hf, set_to_fun_undef _ (h_int f hf)], },
 end
 
@@ -1757,11 +1757,11 @@ by { rw L1.set_to_fun_eq_set_to_L1, exact L1.norm_set_to_L1_le_mul_norm' hT f, }
 
 lemma norm_set_to_fun_le (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ)
   (hC : 0 ≤ C) :
-  ‖set_to_fun μ T hT f‖ ≤ C * ‖hf.to_L1 f‖ :=
+  ‖set_to_fun μ T hT f‖ ≤ C * ‖hf.to_L1‖ :=
 by { rw set_to_fun_eq hT hf, exact L1.norm_set_to_L1_le_mul_norm hT hC _, }
 
 lemma norm_set_to_fun_le' (hT : dominated_fin_meas_additive μ T C) (hf : integrable f μ) :
-  ‖set_to_fun μ T hT f‖ ≤ max C 0 * ‖hf.to_L1 f‖ :=
+  ‖set_to_fun μ T hT f‖ ≤ max C 0 * ‖hf.to_L1‖ :=
 by { rw set_to_fun_eq hT hf, exact L1.norm_set_to_L1_le_mul_norm' hT _, }
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
@@ -1787,8 +1787,8 @@ begin
   ⟨f_measurable, has_finite_integral_of_dominated_convergence
     bound_integrable.has_finite_integral h_bound h_lim⟩,
   /- it suffices to prove the result for the corresponding L1 functions -/
-  suffices : tendsto (λ n, L1.set_to_L1 hT ((fs_int n).to_L1 (fs n))) at_top
-    (𝓝 (L1.set_to_L1 hT (f_int.to_L1 f))),
+  suffices : tendsto (λ n, L1.set_to_L1 hT (fs_int n).to_L1) at_top
+    (𝓝 (L1.set_to_L1 hT f_int.to_L1)),
   { convert this,
     { ext1 n, exact set_to_fun_eq hT (fs_int n), },
     { exact set_to_fun_eq hT f_int, }, },

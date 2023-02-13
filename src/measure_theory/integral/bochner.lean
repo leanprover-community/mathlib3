@@ -719,7 +719,7 @@ open_locale classical
 
 /-- The Bochner integral -/
 @[irreducible] def integral {m : measurable_space α} (μ : measure α) (f : α → E) : E :=
-if hf : integrable f μ then L1.integral (hf.to_L1 f) else 0
+if hf : integrable f μ then L1.integral hf.to_L1 else 0
 
 end
 
@@ -738,7 +738,7 @@ open continuous_linear_map measure_theory.simple_func
 variables {f g : α → E} {m : measurable_space α} {μ : measure α}
 
 lemma integral_eq (f : α → E) (hf : integrable f μ) :
-  ∫ a, f a ∂μ = L1.integral (hf.to_L1 f) :=
+  ∫ a, f a ∂μ = L1.integral hf.to_L1 :=
 by { rw [integral], exact @dif_pos _ (id _) hf _ _ _ }
 
 lemma integral_eq_set_to_fun (f : α → E) :
@@ -838,7 +838,7 @@ begin
 end
 
 @[simp] lemma L1.integral_of_fun_eq_integral {f : α → E} (hf : integrable f μ) :
-  ∫ a, (hf.to_L1 f) a ∂μ = ∫ a, f a ∂μ :=
+  ∫ a, hf.to_L1 a ∂μ = ∫ a, f a ∂μ :=
 begin
   simp only [integral, L1.integral],
   exact set_to_fun_to_L1 (dominated_fin_meas_additive_weighted_smul μ) hf
@@ -855,7 +855,7 @@ lemma norm_integral_le_lintegral_norm (f : α → E) :
   ‖∫ a, f a ∂μ‖ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ‖f a‖) ∂μ) :=
 begin
   by_cases hf : integrable f μ,
-  { rw [integral_eq f hf, ← integrable.norm_to_L1_eq_lintegral_norm f hf],
+  { rw [integral_eq f hf, ← integrable.norm_to_L1_eq_lintegral_norm hf],
     exact L1.norm_integral_le _ },
   { rw [integral_undef hf, norm_zero], exact to_real_nonneg }
 end
@@ -1014,7 +1014,7 @@ lemma integral_eq_lintegral_pos_part_sub_lintegral_neg_part {f : α → ℝ} (hf
   ∫ a, f a ∂μ =
   ennreal.to_real (∫⁻ a, (ennreal.of_real $ f a) ∂μ) -
   ennreal.to_real (∫⁻ a, (ennreal.of_real $ - f a) ∂μ) :=
-let f₁ := hf.to_L1 f in
+let f₁ := hf.to_L1 in
 -- Go to the `L¹` space
 have eq₁ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ f a) ∂μ) = ‖Lp.pos_part f₁‖ :=
 begin
@@ -1190,7 +1190,7 @@ begin
 end
 
 lemma L1.norm_of_fun_eq_integral_norm {f : α → H} (hf : integrable f μ) :
-  ‖hf.to_L1 f‖ = ∫ a, ‖f a‖ ∂μ :=
+  ‖hf.to_L1‖ = ∫ a, ‖f a‖ ∂μ :=
 begin
   rw L1.norm_eq_integral_norm,
   refine integral_congr_ae _,

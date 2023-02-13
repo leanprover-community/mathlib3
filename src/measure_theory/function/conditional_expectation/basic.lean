@@ -1395,7 +1395,7 @@ section condexp_ind_L1_fin
 as a function in L1. -/
 def condexp_ind_L1_fin (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : G) : α →₁[μ] G :=
-(integrable_condexp_ind_smul hm hs hμs x).to_L1 _
+(integrable_condexp_ind_smul hm hs hμs x).to_L1
 
 lemma condexp_ind_L1_fin_ae_eq_condexp_ind_smul (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) :
@@ -1823,7 +1823,7 @@ lemma condexp_L1_undef (hf : ¬ integrable f μ) : condexp_L1 hm μ f = 0 :=
 set_to_fun_undef (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
 
 lemma condexp_L1_eq (hf : integrable f μ) :
-  condexp_L1 hm μ f = condexp_L1_clm hm μ (hf.to_L1 f) :=
+  condexp_L1 hm μ f = condexp_L1_clm hm μ hf.to_L1 :=
 set_to_fun_eq (dominated_fin_meas_additive_condexp_ind F' hm μ) hf
 
 @[simp] lemma condexp_L1_zero : condexp_L1 hm μ (0 : α → F') = 0 :=
@@ -1857,7 +1857,7 @@ lemma set_integral_condexp_L1 (hf : integrable f μ) (hs : measurable_set[m] s) 
   ∫ x in s, condexp_L1 hm μ f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   simp_rw condexp_L1_eq hf,
-  rw set_integral_condexp_L1_clm (hf.to_L1 f) hs,
+  rw set_integral_condexp_L1_clm hf.to_L1 hs,
   exact set_integral_congr_ae (hm s hs) ((hf.coe_fn_to_L1).mono (λ x hx hxs, hx)),
 end
 
@@ -1972,7 +1972,7 @@ begin
 end
 
 lemma condexp_ae_eq_condexp_L1_clm (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hf : integrable f μ) :
-  μ[f|m] =ᵐ[μ] condexp_L1_clm hm μ (hf.to_L1 f) :=
+  μ[f|m] =ᵐ[μ] condexp_L1_clm hm μ hf.to_L1 :=
 begin
   refine (condexp_ae_eq_condexp_L1 hm f).trans (eventually_of_forall (λ x, _)),
   rw condexp_L1_eq hf,

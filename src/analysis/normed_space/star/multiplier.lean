@@ -130,21 +130,27 @@ instance : has_mul 𝓜(𝕜, A) :=
       by simp only [central] } }
 
 instance : has_nat_cast 𝓜(𝕜, A) :=
-{ nat_cast := λ n, ⟨n, λ x y, by simp only [←nat.smul_one_eq_coe, prod.smul_fst, prod.smul_snd,
-      prod.fst_one, prod.snd_one, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩ }
+{ nat_cast := λ n, ⟨n, λ x y,
+  begin
+    rw [prod.snd_nat_cast, prod.fst_nat_cast],
+    simp only [←nat.smul_one_eq_coe, smul_apply, one_apply, mul_smul_comm, smul_mul_assoc],
+  end⟩ }
 
 instance : has_int_cast 𝓜(𝕜, A) :=
-  { int_cast := λ n, ⟨n, λ x y, by simp only [←int.smul_one_eq_coe, prod.smul_fst, prod.smul_snd,
-      prod.fst_one, prod.snd_one, smul_apply n 1, one_apply, mul_smul_comm, smul_mul_assoc]⟩ }
+{ int_cast := λ n, ⟨n, λ x y,
+  begin
+    rw [prod.snd_int_cast, prod.fst_int_cast],
+    simp only [←int.smul_one_eq_coe, smul_apply, one_apply, mul_smul_comm, smul_mul_assoc],
+  end⟩ }
 
 instance : has_pow 𝓜(𝕜, A) ℕ :=
-  { pow := λ a n, ⟨a.to_prod ^ n, λ x y,
-    begin
-      induction n with k hk generalizing x y,
-      refl,
-      rw [prod.pow_snd, prod.pow_fst] at hk ⊢,
-      rw [pow_succ a.snd, mul_apply, a.central, hk, pow_succ' a.fst, mul_apply],
-    end⟩, }
+{ pow := λ a n, ⟨a.to_prod ^ n, λ x y,
+  begin
+    induction n with k hk generalizing x y,
+    { refl },
+    { rw [prod.pow_snd, prod.pow_fst] at hk ⊢,
+      rw [pow_succ a.snd, mul_apply, a.central, hk, pow_succ' a.fst, mul_apply] },
+  end⟩ }
 
 @[simp] lemma add_fst (a b : 𝓜(𝕜, A)) : (a + b).fst = a.fst + b.fst := rfl
 @[simp] lemma add_snd (a b : 𝓜(𝕜, A)) : (a + b).snd = a.snd + b.snd := rfl

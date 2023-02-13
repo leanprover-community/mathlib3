@@ -1432,6 +1432,12 @@ structure connected : Prop :=
 (preconnected : G.preconnected)
 [nonempty : nonempty V]
 
+lemma connected_iff_basepoint : G.connected ↔ ∃ v, ∀ w, G.reachable v w :=
+begin
+  rw connected_iff,
+  exact ⟨λ ⟨h,⟨v⟩⟩, ⟨v, λ w, h v w⟩, λ ⟨v, h⟩, ⟨λ u w, (h u).symm.trans $ h w, ⟨v⟩⟩⟩,
+end
+
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
 

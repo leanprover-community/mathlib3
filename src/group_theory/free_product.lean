@@ -14,49 +14,49 @@ import data.set.pointwise.smul
 # The free product of groups or monoids
 
 Given an `ι`-indexed family `M` of monoids, we define their free product (categorical coproduct)
-`free_product M`. When `ι` and all `M i` have decidable equality, the free product bijects with the
+`pi_free_prod M`. When `ι` and all `M i` have decidable equality, the free product bijects with the
 type `word M` of reduced words. This bijection is constructed by defining an action of
-`free_product M` on `word M`.
+`pi_free_prod M` on `word M`.
 
-When `M i` are all groups, `free_product M` is also a group (and the coproduct in the category of
+When `M i` are all groups, `pi_free_prod M` is also a group (and the coproduct in the category of
 groups).
 
 ## Main definitions
 
-- `free_product M`: the free product, defined as a quotient of a free monoid.
-- `free_product.of {i} : M i →* free_product M`.
-- `free_product.lift : (Π {i}, M i →* N) ≃ (free_product M →* N)`: the universal property.
-- `free_product.word M`: the type of reduced words.
-- `free_product.word.equiv M : free_product M ≃ word M`.
-- `free_product.neword M i j`: an inductive description of non-empty words with first letter from
+- `pi_free_prod M`: the free product, defined as a quotient of a free monoid.
+- `pi_free_prod.of {i} : M i →* pi_free_prod M`.
+- `pi_free_prod.lift : (Π {i}, M i →* N) ≃ (pi_free_prod M →* N)`: the universal property.
+- `pi_free_prod.word M`: the type of reduced words.
+- `pi_free_prod.word.equiv M : pi_free_prod M ≃ word M`.
+- `pi_free_prod.neword M i j`: an inductive description of non-empty words with first letter from
   `M i` and last letter from `M j`, together with an API (`singleton`, `append`, `head`, `tail`,
   `to_word`, `prod`, `inv`). Used in the proof of the Ping-Pong-lemma.
-- `free_product.lift_injective_of_ping_pong`: The Ping-Pong-lemma, proving injectivity of the
+- `pi_free_prod.lift_injective_of_ping_pong`: The Ping-Pong-lemma, proving injectivity of the
   `lift`. See the documentation of that theorem for more information.
 
 ## Remarks
 
 There are many answers to the question "what is the free product of a family `M` of monoids?", and
 they are all equivalent but not obviously equivalent. We provide two answers. The first, almost
-tautological answer is given by `free_product M`, which is a quotient of the type of words in the
+tautological answer is given by `pi_free_prod M`, which is a quotient of the type of words in the
 alphabet `Σ i, M i`. It's straightforward to define and easy to prove its universal property. But
 this answer is not completely satisfactory, because it's difficult to tell when two elements
-`x y : free_product M` are distinct since `free_product M` is defined as a quotient.
+`x y : pi_free_prod M` are distinct since `pi_free_prod M` is defined as a quotient.
 
 The second, maximally efficient answer is given by `word M`. An element of `word M` is a word in the
 alphabet `Σ i, M i`, where the letter `⟨i, 1⟩` doesn't occur and no adjacent letters share an index
 `i`. Since we only work with reduced words, there is no need for quotienting, and it is easy to tell
 when two elements are distinct. However it's not obvious that this is even a monoid!
 
-We prove that every element of `free_product M` can be represented by a unique reduced word, i.e.
-`free_product M` and `word M` are equivalent types. This means that `word M` can be given a monoid
-structure, and it lets us tell when two elements of `free_product M` are distinct.
+We prove that every element of `pi_free_prod M` can be represented by a unique reduced word, i.e.
+`pi_free_prod M` and `word M` are equivalent types. This means that `word M` can be given a monoid
+structure, and it lets us tell when two elements of `pi_free_prod M` are distinct.
 
 There is also a completely tautological, maximally inefficient answer given by
-`algebra.category.Mon.colimits`. Whereas `free_product M` at least ensures that (any instance of)
+`algebra.category.Mon.colimits`. Whereas `pi_free_prod M` at least ensures that (any instance of)
 associativity holds by reflexivity, in this answer associativity holds because of quotienting. Yet
 another answer, which is constructively more satisfying, could be obtained by showing that
-`free_product.rel` is confluent.
+`pi_free_prod.rel` is confluent.
 
 ## References
 
@@ -70,16 +70,16 @@ variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and
 `⟨i, x⟩ * ⟨i, y⟩` with `⟨i, x * y⟩`. -/
-inductive free_product.rel : free_monoid (Σ i, M i) → free_monoid (Σ i, M i) → Prop
-| of_one (i : ι) : free_product.rel (free_monoid.of ⟨i, 1⟩) 1
-| of_mul {i : ι} (x y : M i) : free_product.rel (free_monoid.of ⟨i, x⟩ * free_monoid.of ⟨i, y⟩)
+inductive pi_free_prod.rel : free_monoid (Σ i, M i) → free_monoid (Σ i, M i) → Prop
+| of_one (i : ι) : pi_free_prod.rel (free_monoid.of ⟨i, 1⟩) 1
+| of_mul {i : ι} (x y : M i) : pi_free_prod.rel (free_monoid.of ⟨i, x⟩ * free_monoid.of ⟨i, y⟩)
   (free_monoid.of ⟨i, x * y⟩)
 
 /-- The free product (categorical coproduct) of an indexed family of monoids. -/
 @[derive [monoid, inhabited]]
-def free_product : Type* := (con_gen (free_product.rel M)).quotient
+def pi_free_prod : Type* := (con_gen (pi_free_prod.rel M)).quotient
 
-namespace free_product
+namespace pi_free_prod
 
 /-- The type of reduced words. A reduced word cannot contain a letter `1`, and no two adjacent
 letters can come from the same summand. -/
@@ -91,17 +91,17 @@ letters can come from the same summand. -/
 variable {M}
 
 /-- The inclusion of a summand into the free product. -/
-def of {i : ι} : M i →* free_product M :=
+def of {i : ι} : M i →* pi_free_prod M :=
 { to_fun   := λ x, con.mk' _ (free_monoid.of $ sigma.mk i x),
-  map_one' := (con.eq _).mpr (con_gen.rel.of _ _ (free_product.rel.of_one i)),
-  map_mul' := λ x y, eq.symm $ (con.eq _).mpr (con_gen.rel.of _ _ (free_product.rel.of_mul x y)) }
+  map_one' := (con.eq _).mpr (con_gen.rel.of _ _ (pi_free_prod.rel.of_one i)),
+  map_mul' := λ x y, eq.symm $ (con.eq _).mpr (con_gen.rel.of _ _ (pi_free_prod.rel.of_mul x y)) }
 
 lemma of_apply {i} (m : M i) : of m = con.mk' _ (free_monoid.of $ sigma.mk i m) := rfl
 
 variables {N : Type*} [monoid N]
 
 /-- See note [partially-applied ext lemmas]. -/
-@[ext] lemma ext_hom (f g : free_product M →* N) (h : ∀ i, f.comp (of : M i →* _) = g.comp of) :
+@[ext] lemma ext_hom (f g : pi_free_prod M →* N) (h : ∀ i, f.comp (of : M i →* _) = g.comp of) :
   f = g :=
 (monoid_hom.cancel_right con.mk'_surjective).mp $ free_monoid.hom_eq $ λ ⟨i, x⟩,
   by rw [monoid_hom.comp_apply, monoid_hom.comp_apply, ←of_apply,
@@ -110,7 +110,7 @@ variables {N : Type*} [monoid N]
 /-- A map out of the free product corresponds to a family of maps out of the summands. This is the
 universal property of the free product, charaterizing it as a categorical coproduct. -/
 @[simps symm_apply]
-def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
+def lift : (Π i, M i →* N) ≃ (pi_free_prod M →* N) :=
 { to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd) $ con.con_gen_le
     begin
       simp_rw [con.rel_eq_coe, con.ker_rel],
@@ -132,14 +132,14 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
 by conv_rhs { rw [←lift.symm_apply_apply fi, lift_symm_apply, monoid_hom.comp_apply] }
 
 @[elab_as_eliminator]
-lemma induction_on {C : free_product M → Prop}
-  (m : free_product M)
+lemma induction_on {C : pi_free_prod M → Prop}
+  (m : pi_free_prod M)
   (h_one : C 1)
   (h_of : ∀ (i) (m : M i), C (of m))
   (h_mul : ∀ (x y), C x → C y → C (x * y)) :
   C m :=
 begin
-  let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
+  let S : submonoid (pi_free_prod M) := submonoid.mk (set_of C) h_mul h_one,
   convert subtype.prop (lift (λ i, of.cod_restrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
@@ -158,7 +158,7 @@ lemma lift_mrange_le {N} [monoid N] (f : Π i, M i →* N) {s : submonoid N}
   (h : ∀ i, (f i).mrange ≤ s) : (lift f).mrange ≤ s :=
 begin
   rintros _ ⟨x, rfl⟩,
-  induction x using free_product.induction_on with i x x y hx hy,
+  induction x using pi_free_prod.induction_on with i x x y hx hy,
   { exact s.one_mem, },
   { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
   { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
@@ -177,14 +177,14 @@ section group
 
 variables (G : ι → Type*) [Π i, group (G i)]
 
-instance : has_inv (free_product G) :=
+instance : has_inv (pi_free_prod G) :=
 { inv := mul_opposite.unop ∘
     lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) }
 
-lemma inv_def (x : free_product G) : x⁻¹ = mul_opposite.unop
+lemma inv_def (x : pi_free_prod G) : x⁻¹ = mul_opposite.unop
   (lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) x) := rfl
 
-instance : group (free_product G) :=
+instance : group (pi_free_prod G) :=
 { mul_left_inv := begin
     intro m,
     rw inv_def,
@@ -195,14 +195,14 @@ instance : group (free_product G) :=
       rw [monoid_hom.map_mul, mul_opposite.unop_mul, mul_assoc, ← mul_assoc _ x y, hx,
         one_mul, hy], },
   end,
-  ..free_product.has_inv G,
-  ..free_product.monoid G }
+  ..pi_free_prod.has_inv G,
+  ..pi_free_prod.monoid G }
 
 lemma lift_range_le {N} [group N] (f : Π i, G i →* N) {s : subgroup N}
   (h : ∀ i, (f i).range ≤ s) : (lift f).range ≤ s :=
 begin
   rintros _ ⟨x, rfl⟩,
-  induction x using free_product.induction_on with i x x y hx hy,
+  induction x using pi_free_prod.induction_on with i x x y hx hy,
   { exact s.one_mem, },
   { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
   { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
@@ -227,7 +227,7 @@ def empty : word M := { to_list := [], ne_one := λ _, false.elim, chain_ne := l
 instance : inhabited (word M) := ⟨empty⟩
 
 /-- A reduced word determines an element of the free product, given by multiplication. -/
-def prod (w : word M) : free_product M :=
+def prod (w : word M) : pi_free_prod M :=
 list.prod (w.to_list.map $ λ l, of l.snd)
 
 @[simp] lemma prod_empty : prod (empty : word M) = 1 := rfl
@@ -328,7 +328,7 @@ instance summand_action (i) : mul_action (M i) (word M) :=
   one_smul := λ w, by { simp_rw [one_mul], apply (equiv_pair i).symm_apply_eq.mpr, ext; refl },
   mul_smul := λ m m' w, by simp only [mul_assoc, ←equiv_pair_symm, equiv.apply_symm_apply], }
 
-instance : mul_action (free_product M) (word M) :=
+instance : mul_action (pi_free_prod M) (word M) :=
 mul_action.of_End_hom (lift (λ i, mul_action.to_End_hom))
 
 lemma of_smul_def (i) (w : word M) (m : M i) :
@@ -361,7 +361,7 @@ begin
 end
 
 /-- Each element of the free product corresponds to a unique reduced word. -/
-def equiv : free_product M ≃ word M :=
+def equiv : pi_free_prod M ≃ word M :=
 { to_fun := λ m, m • empty,
   inv_fun := λ w, prod w,
   left_inv := λ m, by dsimp only; rw [prod_smul, prod_empty, mul_one],
@@ -372,7 +372,7 @@ def equiv : free_product M ≃ word M :=
   end }
 
 instance : decidable_eq (word M) := function.injective.decidable_eq word.ext
-instance : decidable_eq (free_product M) := word.equiv.decidable_eq
+instance : decidable_eq (pi_free_prod M) := word.equiv.decidable_eq
 
 end word
 
@@ -691,7 +691,7 @@ theorem lift_injective_of_ping_pong:
 begin
   classical,
   apply (injective_iff_map_eq_one (lift f)).mpr,
-  rw (free_product.word.equiv : _ ≃ word H).forall_congr_left',
+  rw (pi_free_prod.word.equiv : _ ≃ word H).forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,
     { rw empty_of_word_prod_eq_one f hcard X hXnonempty hXdisj hpp Heq,
@@ -703,13 +703,13 @@ end ping_pong_lemma
 /-- The free product of free groups is itself a free group -/
 @[simps]
 instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] :
-  is_free_group (free_product G) :=
+  is_free_group (pi_free_prod G) :=
 { generators := Σ i, is_free_group.generators (G i),
   mul_equiv :=
   monoid_hom.to_mul_equiv
     (free_group.lift (λ (x : Σ i, is_free_group.generators (G i)),
-      free_product.of (is_free_group.of x.2 : G x.1)))
-    (free_product.lift (λ (i : ι),
+      pi_free_prod.of (is_free_group.of x.2 : G x.1)))
+    (pi_free_prod.lift (λ (i : ι),
       (is_free_group.lift (λ (x : is_free_group.generators (G i)),
         free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
         : G i →* (free_group (Σ i, is_free_group.generators (G i))))))
@@ -721,12 +721,12 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
 -- NB: One might expect this theorem to be phrased with ℤ, but ℤ is an additive group,
 -- and using `multiplicative ℤ` runs into diamond issues.
 @[simps]
-def _root_.free_group_equiv_free_product {ι : Type u_1} :
-  free_group ι ≃* free_product (λ (_ : ι), free_group unit) :=
+def _root_.free_group_equiv_pi_free_prod {ι : Type u_1} :
+  free_group ι ≃* pi_free_prod (λ (_ : ι), free_group unit) :=
 begin
   refine monoid_hom.to_mul_equiv _ _ _ _,
-  exact free_group.lift (λ i, @free_product.of ι _ _ i (free_group.of unit.star)),
-  exact free_product.lift (λ i, free_group.lift (λ pstar, free_group.of i)),
+  exact free_group.lift (λ i, @pi_free_prod.of ι _ _ i (free_group.of unit.star)),
+  exact pi_free_prod.lift (λ i, free_group.lift (λ pstar, free_group.of i)),
   { ext i, refl, },
   { ext i a, cases a, refl, },
 end
@@ -766,8 +766,8 @@ theorem _root_.free_group.injective_lift_of_ping_pong :
 begin
   -- Step one: express the free group lift via the free product lift
   have : free_group.lift a =
-    (free_product.lift (λ i, free_group.lift (λ _, a i))).comp
-    (((@free_group_equiv_free_product ι)).to_monoid_hom),
+    (pi_free_prod.lift (λ i, free_group.lift (λ _, a i))).comp
+    (((@free_group_equiv_pi_free_prod ι)).to_monoid_hom),
   { ext i, simp, },
   rw this, clear this,
   refine function.injective.comp _ (mul_equiv.injective _),
@@ -851,4 +851,4 @@ end
 
 end ping_pong_lemma
 
-end free_product
+end pi_free_prod

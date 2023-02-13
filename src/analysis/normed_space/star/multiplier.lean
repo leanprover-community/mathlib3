@@ -167,18 +167,18 @@ instance : has_pow 𝓜(𝕜, A) ℕ :=
 
 /-- The natural injection from `double_centralizer.to_prod` except the second coordinate inherits
 `mul_opposite.op`. The ring structure on `𝓜(𝕜, A)` is the pullback under this map. -/
-def to_prod_mop : 𝓜(𝕜, A) → ((A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
+def to_prod_mul_opposite : 𝓜(𝕜, A) → ((A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
 λ a, (a.fst, mul_opposite.op a.snd)
 
 /-- The ring structure is inherited as the pullback under the injective map
 `double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
 instance : ring 𝓜(𝕜, A) :=
-function.injective.ring to_prod_mop
+function.injective.ring to_prod_mul_opposite
   (λ a b h, let h' := prod.ext_iff.mp h in ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2)
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ x n, by simpa only [to_prod_mop, to_prod, prod.smul_fst, prod.smul_snd, mul_opposite.op_smul])
-  (λ x n, by simpa only [to_prod_mop, to_prod, prod.smul_fst, prod.smul_snd, mul_opposite.op_smul])
-  (λ x n, by simpa only [to_prod_mop, to_prod, prod.pow_fst, prod.pow_fst, mul_opposite.op_pow])
+  (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)
+  (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)
+  (λ x n, prod.ext rfl $ mul_opposite.op_pow _ _)
   (λ _, rfl) (λ _, rfl)
 
 /-- The canonical map `double_centralizer.to_prod` as an additive group homomorphism. -/
@@ -190,9 +190,9 @@ def to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A) :=
 /-- The module structure is inherited as the pullback under the additive group monomorphism
 `double_centralizer.to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : module 𝕜 𝓜(𝕜, A) :=
-function.injective.module 𝕜 add_group_hom_to_prod ext (λ x y, rfl)
+function.injective.module 𝕜 to_prod_hom ext (λ x y, rfl)
 
-noncomputable instance : algebra 𝕜 𝓜(𝕜, A) :=
+instance : algebra 𝕜 𝓜(𝕜, A) :=
 algebra.of_module
   (λ k a b, by {ext; simp only [mul_fst, smul_fst, mul_snd, smul_snd, coe_smul',pi.smul_apply,
     continuous_linear_map.coe_mul, function.comp_app, continuous_linear_map.map_smul]})
@@ -286,8 +286,7 @@ that `𝓜(𝕜, A)` is also a C⋆-algebra. Moreover, in this case, for `a : �
 /-- The normed group structure is inherited as the pullback under the additive group monomoprhism
 `double_centralizer.to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : normed_add_comm_group 𝓜(𝕜, A) :=
-normed_add_comm_group.induced _ _ (add_group_hom_to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A))
-  ext
+normed_add_comm_group.induced _ _ (to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)) ext
 
 @[simp] lemma norm_eq (a : 𝓜(𝕜, A)) : ‖a‖ = max (‖a.fst‖) (‖a.snd‖) := rfl
 

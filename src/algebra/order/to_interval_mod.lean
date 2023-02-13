@@ -734,17 +734,17 @@ by simp [to_Ico_mod_eq_add_fract_mul]
 
 end linear_ordered_field
 
-/-! ### Lemmas about unions and disjointness of translated intervals -/
+/-! ### Lemmas about unions of translates of intervals -/
 section union
 
 open set int
 
 section linear_ordered_add_comm_group
 
-variables {α : Type*} [linear_ordered_add_comm_group α] [archimedean α]
+variables {α : Type*} [linear_ordered_add_comm_group α] [archimedean α] (a : α) {b : α} (hb : 0 < b)
+include hb
 
-lemma Union_Ioc_add_zsmul (a : α) {b : α} (hb : 0 < b) :
-  (⋃ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b)) = univ :=
+lemma Union_Ioc_add_zsmul : (⋃ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b)) = univ :=
 begin
   refine eq_univ_iff_forall.mpr (λ x, mem_Union.mpr _),
   rcases sub_to_Ioc_div_zsmul_mem_Ioc a hb x with ⟨hl, hr⟩,
@@ -753,12 +753,7 @@ begin
   convert sub_le_iff_le_add.mp hr using 1, abel,
 end
 
-lemma Union_Ioc_zsmul {b : α} (hb : 0 < b) :
-  (⋃ (n : ℤ), Ioc (n • b) ((n + 1) • b)) = univ :=
-by simpa only [zero_add] using Union_Ioc_add_zsmul 0 hb
-
-lemma Union_Ico_add_zsmul (a : α) {b : α} (hb : 0 < b) :
-  (⋃ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b)) = univ :=
+lemma Union_Ico_add_zsmul : (⋃ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b)) = univ :=
 begin
   refine eq_univ_iff_forall.mpr (λ x, mem_Union.mpr _),
   rcases sub_to_Ico_div_zsmul_mem_Ico a hb x with ⟨hl, hr⟩,
@@ -767,37 +762,34 @@ begin
   convert sub_lt_iff_lt_add.mp hr using 1, abel,
 end
 
-lemma Union_Ico_zsmul {b : α} (hb : 0 < b) :
-  (⋃ (n : ℤ), Ico (n • b) ((n + 1) • b)) = univ :=
-by simpa only [zero_add] using Union_Ico_add_zsmul 0 hb
-
-lemma Union_Icc_add_zsmul (a : α) {b : α} (hb : 0 < b) :
-  (⋃ (n : ℤ), Icc (a + n • b) (a + (n + 1) • b)) = univ :=
+lemma Union_Icc_add_zsmul : (⋃ (n : ℤ), Icc (a + n • b) (a + (n + 1) • b)) = univ :=
 by simpa only [Union_Ioc_add_zsmul a hb, univ_subset_iff] using
   Union_mono (λ n : ℤ, (Ioc_subset_Icc_self : Ioc (a + n • b) (a + (n + 1) • b) ⊆ Icc _ _))
 
-lemma Union_Icc_zsmul {b : α} (hb : 0 < b) :
-  (⋃ (n : ℤ), Icc (n • b) ((n + 1) • b)) = univ :=
+lemma Union_Ioc_zsmul : (⋃ (n : ℤ), Ioc (n • b) ((n + 1) • b)) = univ :=
+by simpa only [zero_add] using Union_Ioc_add_zsmul 0 hb
+
+lemma Union_Ico_zsmul : (⋃ (n : ℤ), Ico (n • b) ((n + 1) • b)) = univ :=
+by simpa only [zero_add] using Union_Ico_add_zsmul 0 hb
+
+lemma Union_Icc_zsmul : (⋃ (n : ℤ), Icc (n • b) ((n + 1) • b)) = univ :=
 by simpa only [zero_add] using Union_Icc_add_zsmul 0 hb
 
 end linear_ordered_add_comm_group
 
 section linear_ordered_ring
 
-variables {α : Type*} [linear_ordered_ring α] [archimedean α]
+variables {α : Type*} [linear_ordered_ring α] [archimedean α] (a : α)
 
-lemma Union_Ioc_add_int_cast (a : α) :
-  (⋃ (n : ℤ), Ioc (a + n) (a + n + 1)) = set.univ :=
+lemma Union_Ioc_add_int_cast : (⋃ (n : ℤ), Ioc (a + n) (a + n + 1)) = set.univ :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using Union_Ioc_add_zsmul a zero_lt_one
 
-lemma Union_Ico_add_int_cast (a : α) :
-  (⋃ (n : ℤ), Ico (a + n) (a + n + 1)) = set.univ :=
+lemma Union_Ico_add_int_cast : (⋃ (n : ℤ), Ico (a + n) (a + n + 1)) = set.univ :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using Union_Ico_add_zsmul a zero_lt_one
 
-lemma Union_Icc_add_int_cast (a : α) :
-  (⋃ (n : ℤ), Icc (a + n) (a + n + 1)) = set.univ :=
+lemma Union_Icc_add_int_cast : (⋃ (n : ℤ), Icc (a + n) (a + n + 1)) = set.univ :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using Union_Icc_add_zsmul a (zero_lt_one' α)
 

@@ -101,7 +101,7 @@ end
 
 end linear_ordered_add_comm_group
 
-/- Lemmas about disjointness of translates of intervals -/
+/-! ### Lemmas about disjointness of translates of intervals -/
 section pairwise_disjoint
 
 section linear_ordered_add_comm_group

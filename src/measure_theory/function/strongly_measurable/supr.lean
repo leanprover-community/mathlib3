@@ -60,7 +60,7 @@ lemma strongly_measurable_supr [measurable_space β] [complete_linear_order β]
   strongly_measurable (λ b, ⨆ i, f i b) :=
 strongly_measurable.is_lub hf $ λ b, is_lub_supr
 
-lemma strongly_measurable_infi [measurable_space β] [complete_linear_order β]
+lemma strongly_measurable_infi [complete_linear_order β]
   [order_topology β] [metrizable_space β]
   [countable ι] {f : ι → α → β} (hf : ∀ i, strongly_measurable (f i)) :
   strongly_measurable (λ b, ⨅ i, f i b) :=

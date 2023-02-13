@@ -63,12 +63,12 @@ the `F` functor is between categories of the same universe, and it is an easy
 corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
 lemma nonempty_sections_of_fintype_cofiltered_system.init
   {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Type u)
-  [hf : Π (j : J), fintype (F.obj j)] [hne : Π (j : J), nonempty (F.obj j)] :
+  [hf : Π (j : J), finite (F.obj j)] [hne : Π (j : J), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
   let F' : J ⥤ Top := F ⋙ Top.discrete,
   haveI : ∀ j, discrete_topology (F'.obj j) := λ _, ⟨rfl⟩,
-  haveI : Π (j : J), fintype (F'.obj j) := hf,
+  haveI : Π (j : J), finite (F'.obj j) := hf,
   haveI : Π (j : J), nonempty (F'.obj j) := hne,
   obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system F',
   exact ⟨u, λ _ _ f, hu f⟩,
@@ -79,7 +79,7 @@ end
 See `nonempty_sections_of_fintype_inverse_system` for a specialization to inverse limits. -/
 theorem nonempty_sections_of_fintype_cofiltered_system
   {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
-  [Π (j : J), fintype (F.obj j)] [Π (j : J), nonempty (F.obj j)] :
+  [Π (j : J), finite (F.obj j)] [Π (j : J), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
   -- Step 1: lift everything to the `max u v w` universe.
@@ -87,7 +87,7 @@ begin
   let down : J' ⥤ J := as_small.down,
   let F' : J' ⥤ Type (max u v w) := down ⋙ F ⋙ ulift_functor.{(max u w) v},
   haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
-  haveI : ∀ i, fintype (F'.obj i) := λ i, fintype.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
+  haveI : ∀ i, finite (F'.obj i) := λ i, finite.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
   -- Step 2: apply the bootstrap theorem
   obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_cofiltered_system.init F',
   -- Step 3: interpret the results
@@ -111,7 +111,7 @@ To specialize: given a locally finite connected graph, take `Jᵒᵖ` to be `ℕ
 Elements of `F.sections` can be read off as infinite rays in the graph. -/
 theorem nonempty_sections_of_fintype_inverse_system
   {J : Type u} [preorder J] [is_directed J (≤)] (F : Jᵒᵖ ⥤ Type v)
-  [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  [Π (j : Jᵒᵖ), finite (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
   casesI is_empty_or_nonempty J,
@@ -184,9 +184,8 @@ lemma is_mittag_leffler_of_surjective
   map_id' := λ j, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ j k l f g, by { simp_rw F.map_comp, refl } }
 
-noncomputable instance to_preimages_fintype [∀ j, fintype (F.obj j)] :
-  ∀ j, fintype ((F.to_preimages s).obj j) :=
-λ j, @fintype.of_finite ((F.to_preimages s).obj j) subtype.finite
+instance to_preimages_fintype [∀ j, finite (F.obj j)] :
+  ∀ j, finite ((F.to_preimages s).obj j) := λ j, subtype.finite
 
 variable [is_cofiltered_or_empty J]
 
@@ -264,9 +263,8 @@ The subfunctor of `F` obtained by restricting to the eventual range at each inde
   map_id' := λ i, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ _ _ _ _ _, by { simp_rw F.map_comp, refl } }
 
-noncomputable instance to_eventual_ranges_fintype [∀ j, fintype (F.obj j)] :
-  ∀ j, fintype (F.to_eventual_ranges.obj j) :=
-λ j, @fintype.of_finite (F.to_eventual_ranges.obj j) subtype.finite
+instance to_eventual_ranges_finite [∀ j, finite (F.obj j)] :
+  ∀ j, finite (F.to_eventual_ranges.obj j) := λ j, subtype.finite
 
 /--
 The sections of the functor `F : J ⥤ Type v` are in bijection with the sections of
@@ -310,7 +308,6 @@ begin
     exact ⟨x, λ ji', (F.thin_diagram_of_surjective Fsur ji' ji).symm ▸ ys⟩, },
 end
 
-
 lemma eval_section_injective_of_eventually_injective
   {j} (Finj : ∀ i (f : i ⟶ j), (F.map f).injective) :
    ∀ i (f : i ⟶ j), (λ s : F.sections, s.val j).injective :=
@@ -325,7 +322,7 @@ end
 
 section fintype_cofiltered_system
 
-variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), fintype (F.obj j)]
+variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
   (Fsur : ∀ ⦃i j : J⦄ (f :i ⟶ j), (F.map f).surjective)
 
 include Fsur

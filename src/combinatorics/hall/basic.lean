@@ -94,9 +94,9 @@ def hall_matchings_functor {ι : Type u} {α : Type v} (t : ι → finset α) :
 { obj := λ ι', hall_matchings_on t ι'.unop,
   map := λ ι' ι'' g f, hall_matchings_on.restrict t (category_theory.le_of_hom g.unop) f }
 
-noncomputable instance hall_matchings_on.fintype {ι : Type u} {α : Type v}
+instance hall_matchings_on.finite {ι : Type u} {α : Type v}
   (t : ι → finset α) (ι' : finset ι) :
-  fintype (hall_matchings_on t ι') :=
+  finite (hall_matchings_on t ι') :=
 begin
   classical,
   rw hall_matchings_on,
@@ -105,7 +105,7 @@ begin
     refine ⟨f.val i, _⟩,
     rw mem_bUnion,
     exact ⟨i, i.property, f.property.2 i⟩ },
-  apply fintype.of_injective g,
+  apply finite.of_injective g,
   intros f f' h,
   simp only [g, function.funext_iff, subtype.val_eq_coe] at h,
   ext a,
@@ -134,7 +134,7 @@ begin
     haveI : ∀ (ι' : (finset ι)ᵒᵖ), nonempty ((hall_matchings_functor t).obj ι') :=
       λ ι', hall_matchings_on.nonempty t h ι'.unop,
     classical,
-    haveI : Π (ι' : (finset ι)ᵒᵖ), fintype ((hall_matchings_functor t).obj ι') := begin
+    haveI : Π (ι' : (finset ι)ᵒᵖ), finite ((hall_matchings_functor t).obj ι') := begin
       intro ι',
       rw [hall_matchings_functor],
       apply_instance,

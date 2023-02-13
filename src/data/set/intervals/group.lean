@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import data.set.intervals.basic
+import data.set.pairwise
 import algebra.order.group.abs
+import algebra.group_power.lemmas
 
-/-! ### Lemmas about arithmetic operations and intervals. 
+/-! ### Lemmas about arithmetic operations and intervals.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.-/
+> Any changes to this file require a corresponding PR to mathlib4.
+-/
 
 variables {α : Type*}
 
@@ -97,5 +100,113 @@ begin
 end
 
 end linear_ordered_add_comm_group
+
+/- Lemmas about disjointness of translates of intervals -/
+section pairwise_disjoint
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α] (a b : α)
+
+lemma pairwise_disjoint_Ioc_add_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ioc (a + n • b) (a + (n + 1) • b))) :=
+begin
+  -- The assumption `linear_ordered_add_comm_group α` can be weakened to `ordered_add_comm_group α`
+  -- if we assume that `0 < b`, but `Ioc` is not a very useful concept in partial orders anyway.
+  simp_rw [function.on_fun, set.disjoint_iff],
+  intros m n hmn x hx,
+  apply hmn,
+  rcases lt_or_le 0 b with hb | hb,
+  { have i1 := hx.1.1.trans_le hx.2.2,
+    have i2 := hx.2.1.trans_le hx.1.2,
+    rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
+    exact le_antisymm i1 i2 },
+  { -- case b ≤ 0 : vacuous but true
+    have : ∀ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b) = ∅,
+    { intro n,
+      apply Ioc_eq_empty_of_le,
+      rw [add_zsmul, one_zsmul, add_le_add_iff_left],
+      exact add_le_of_nonpos_right hb },
+    simp_rw [this, empty_inter] at hx,
+    exact hx.elim }
+end
+
+lemma pairwise_disjoint_Ioc_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ioc (n • b) ((n + 1) • b))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ioc_add_zsmul 0 b
+
+lemma pairwise_disjoint_Ico_add_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ico (a + n • b) (a + (n + 1) • b))) :=
+begin
+  simp_rw [function.on_fun, set.disjoint_iff],
+  intros m n hmn x hx,
+  apply hmn,
+  rcases lt_or_le 0 b with hb | hb,
+  { have i1 := hx.1.1.trans_lt hx.2.2,
+    have i2 := hx.2.1.trans_lt hx.1.2,
+    rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
+    exact le_antisymm i1 i2 },
+  { have : ∀ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b) = ∅,
+    { intro n,
+      apply Ico_eq_empty_of_le,
+      rw [add_zsmul, one_zsmul, add_le_add_iff_left],
+      exact add_le_of_nonpos_right hb },
+    simp_rw [this, empty_inter] at hx,
+    exact hx.elim }
+end
+
+lemma pairwise_disjoint_Ico_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ico (n • b) ((n + 1) • b))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ico_add_zsmul 0 b
+
+lemma pairwise_disjoint_Ioo_add_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ioo (a + n • b) (a + (n + 1) • b))) :=
+begin
+  intros m n hmn,
+  have := pairwise_disjoint_Ioc_add_zsmul a b hmn,
+  rw function.on_fun at *,
+  convert disjoint.mono _ _ this,
+  all_goals { rw le_iff_subset, exact Ioo_subset_Ioc_self },
+end
+
+lemma pairwise_disjoint_Ioo_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ioo (n • b) ((n + 1) • b))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ioo_add_zsmul 0 b
+
+end linear_ordered_add_comm_group
+
+section linear_ordered_ring
+
+variables [linear_ordered_ring α] (a : α)
+
+lemma pairwise_disjoint_Ioc_add_int_cast :
+  pairwise (disjoint on (λ (n:ℤ), Ioc (a + n) (a + n + 1))) :=
+by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
+  using pairwise_disjoint_Ioc_add_zsmul a (1 : α)
+
+lemma pairwise_disjoint_Ico_add_int_cast :
+  pairwise (disjoint on (λ (n:ℤ), Ico (a + n) (a + n + 1))) :=
+by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
+  using pairwise_disjoint_Ico_add_zsmul a (1 : α)
+
+lemma pairwise_disjoint_Ioo_add_int_cast :
+  pairwise (disjoint on (λ (n:ℤ), Ioo (a + n) (a + n + 1))) :=
+by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
+  using pairwise_disjoint_Ioo_add_zsmul a (1 : α)
+
+variables (α)
+
+lemma pairwise_disjoint_Ico_int_cast : pairwise (disjoint on (λ (n:ℤ), Ico (n : α) (n + 1))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ico_add_int_cast (0 : α)
+
+lemma pairwise_disjoint_Ioo_int_cast : pairwise (disjoint on (λ (n:ℤ), Ioo (n : α) (n + 1))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ioo_add_int_cast (0 : α)
+
+lemma pairwise_disjoint_Ioc_int_cast : pairwise (disjoint on (λ (n:ℤ), Ioc (n : α) (n + 1))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ioc_add_int_cast (0 : α)
+
+end linear_ordered_ring
+
+end pairwise_disjoint
 
 end set

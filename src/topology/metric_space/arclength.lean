@@ -9,8 +9,8 @@ import topology.path_connected
 
 # Arclength
 
-The `arclength` of `f` between `a` and `b` is the `evariation_on $ Icc a b`.
-Diverse forms of continuity of `arclength` are proven in this setting.
+The `arclength` of `f` between `a` and `b` is the `evariation_on` of `f` on `Icc a b`.
+Various forms of continuity of `arclength` (for either `a` or `b` fixed) are proven.
 
 -/
 
@@ -26,7 +26,7 @@ the variation of `f` on the closed interval `[a, b]`. Equals zero when `b ≤ a`
 def arclength (a b : α) : ℝ≥0∞ := evariation_on f (set.Icc a b)
 
 /--
-`arclength f a b` is the supremums of finite sums of `edist (f $ u i) (f $ u $ i+1)` for `u`
+`arclength f a b` is the supremum of finite sums of `edist (f $ u i) (f $ u $ i+1)` for `u`
 satisfying the same conditions as for `evariation_on` with the addition of:
 
 * `u 0` is `a`.
@@ -101,13 +101,13 @@ end
 lemma arclength_sub₀ (hba : b ≤ a) : arclength f a b = arclength f a c - arclength f b c :=
 by { rw [arclength_eq_zero f hba, eq_comm], exact tsub_eq_zero_of_le (arclength_anti f c hba) }
 
-lemma arclength_sub' {a b c : α} (hbc : b ≤ c) (hac : arclength f b c ≠ ⊤) :
+lemma arclength_sub' (hbc : b ≤ c) (hac : arclength f b c ≠ ⊤) :
   arclength f a b = arclength f a c - arclength f b c :=
 (le_total a b).elim
   (λ hab, ennreal.eq_sub_of_add_eq hac $ arclength_add f hab hbc)
   (arclength_sub₀ f)
 
-lemma arclength_sub {a b c : α} (hbc : b ≤ c) (hac : arclength f a c ≠ ⊤) :
+lemma arclength_sub (hbc : b ≤ c) (hac : arclength f a c ≠ ⊤) :
   arclength f a b = arclength f a c - arclength f b c :=
 (le_total a b).elim
   (λ hab, arclength_sub' f hbc $ ne_top_of_le_ne_top hac $ arclength_anti f c hab)
@@ -127,7 +127,7 @@ lemma arclength'_eq (b : α) :
   (λ x, arclength f x b) = arclength (f ∘ of_dual) (to_dual b) ∘ to_dual :=
 funext $ λ a, (arclength_comp_of_dual f a b).symm
 
-lemma arclength_Icc_extend {a b : α} (h : a ≤ b) (f : set.Icc a b → E) :
+lemma arclength_Icc_extend (h : a ≤ b) (f : set.Icc a b → E) :
   arclength (set.Icc_extend h f) a b = evariation_on f set.univ :=
 evariation_on.comp_eq_of_monotone_on _ _
   ((set.monotone_proj_Icc _).monotone_on _) (set.maps_to_univ _ _) (set.proj_Icc_surj_on h)
@@ -137,8 +137,7 @@ section
 ### Continuity (in various forms) "around" a point.
 -/
 
-variables [topological_space α] (hab : a < b)
-          (hrect : arclength f a b ≠ ⊤) /- f is rectifiable on [a,b] -/
+variables [topological_space α]
 
 lemma continuous_on_Iic_arclength_of_ge (h : b ≤ a) :
   continuous_on (arclength f a) (set.Iic b) :=
@@ -148,7 +147,7 @@ lemma continuous_on_Ici_arclength'_of_ge (h : b ≤ a) :
   continuous_on (λ x, arclength f x b) (set.Ici a) :=
 continuous_on_const.congr $ λ x hx, arclength_eq_zero f (trans h hx)
 
-variables  [order_topology α]
+variables [order_topology α]
 
 lemma continuous_at_arclength_of_gt (h : b < a) : continuous_at (arclength f a) b :=
 continuous_at_const.congr $ set.eq_on.eventually_eq_of_mem
@@ -158,6 +157,7 @@ lemma continuous_at_arclength'_of_gt (h : b < a) : continuous_at (λ x, arclengt
 continuous_at_const.congr $ set.eq_on.eventually_eq_of_mem
   (λ x hx, (arclength_eq_zero f (set.mem_Ioi.1 hx).le).symm) $ Ioi_mem_nhds h
 
+variables (hab : a < b) (hrect : arclength f a b ≠ ⊤) /- f is rectifiable on [a,b] -/
 include hab hrect
 
 theorem continuous_right_self_arclength

@@ -207,7 +207,7 @@ end
 -/
 
 -- Should go just before `image_affine_Icc'` ?
-@[simp] lemma image_affine_Icc  {α : Type*} [linear_ordered_field α]
+@[simp] lemma image_affine_Icc {α : Type*} [linear_ordered_field α]
   {a : α} (h : 0 ≤ a) (b c d : α) (hcd : c ≤ d) :
   (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
 begin

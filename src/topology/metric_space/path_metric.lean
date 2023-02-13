@@ -65,12 +65,12 @@ lemma comp_length_le {F : Type*} [pseudo_emetric_space F] {φ : E → F} {K : �
   (hφ : lipschitz_with K φ) : (p.map hφ.continuous).length ≤ ↑K * p.length :=
 lipschitz_on_with.comp_evariation_on_le (hφ.lipschitz_on_with set.univ) (set.maps_to_univ _ _)
 
-/- Two definitions agree. -/
+/-- An alternative definition of `path.length`. -/
 lemma evariation_on_extend_unit_interval_eq_length :
   evariation_on p.extend I = p.length := arclength_Icc_extend zero_le_one p
 
 lemma arclength_on_zero_one_eq_length : arclength p 0 1 = p.length :=
-by { dsimp only [length, arclength], rw unit_interval.univ_eq_Icc, }
+by rw [length, arclength, unit_interval.univ_eq_Icc]
 
 lemma length_of_continuous_on {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
   [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :
@@ -198,7 +198,7 @@ lemma path.length_of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ �
 begin
   simp_rw [← path.evariation_on_extend_unit_interval_eq_length,
            ← path_emetric.evariation_of_eq_evariation
-          set.ord_connected_Icc p.continuous_extend.continuous_on],
+           set.ord_connected_Icc p.continuous_extend.continuous_on],
   refl,
 end
 

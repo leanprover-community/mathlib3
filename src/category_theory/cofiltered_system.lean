@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Scott Morrison, Junyan Xu. All rights reserved.
+Copyright (c) 2022 Kyle Miller, Adam Topaz, Rémi Bottinelli, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Patrick Massot, Scott Morrison, Mario Carneiro, Andrew Yang, Rémi Bottinelli, Junyan Xu
+Authors: Kyle Miller, Adam Topaz, Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.filtered
 import data.set.finite

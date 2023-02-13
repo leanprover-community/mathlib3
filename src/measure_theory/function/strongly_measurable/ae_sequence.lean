@@ -27,7 +27,7 @@ open_locale ennreal topological_space measure_theory nnreal big_operators
 open measure_theory
 open_locale classical
 
-variables {α β : Type*} {ι : Sort*} [measurable_space α] [measurable_space β]
+variables {α β : Type*} {ι : Sort*}
   [topological_space β] {f : ι → α → β} {μ : measure α} {p : α → (ι → β) → Prop}
 
 /-- If we have the additional hypothesis `∀ᵐ x ∂μ, p x (λ n, f n x)`, this is a measurable set

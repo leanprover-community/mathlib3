@@ -26,6 +26,11 @@ compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified 
 
 ## Implementation notes
 
+We make the hypotheses on `𝕜` as weak as possible so that, in particular, this construction works
+for both `𝕜 = ℝ` and `𝕜 = ℂ`. The reader familiar with C⋆-algebra theory may recognize that one
+only needs `L` and `R` to be functions instead of continuous linear maps, at least when `A` is a
+C⋆-algebra. Our intention is simply to eventually provide a constructor for this situation.
+
 ## TODO
 
 + define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict uniform space structure

@@ -935,8 +935,8 @@ This also applies to inverse limits, where `{J : Type u} [preorder J] [is_direct
 `F : Jᵒᵖ ⥤ Top`.
 
 The theorem is specialized to nonempty finite types (which are compact Hausdorff with the
-discrete topology) in `nonempty_sections_of_fintype_cofiltered_system` and
-`nonempty_sections_of_fintype_inverse_system`.
+discrete topology) in lemmas `nonempty_sections_of_fintype_cofiltered_system` and
+`nonempty_sections_of_fintype_inverse_system` in the file `category_theory.cofiltered_system`.
 
 (See <https://stacks.math.columbia.edu/tag/086J> for the Set version.)
 -/
@@ -1017,13 +1017,17 @@ end
 Cofiltered limits of nonempty compact Hausdorff spaces are nonempty topological spaces.
 -/
 lemma nonempty_limit_cone_of_compact_t2_cofiltered_system
-  [is_cofiltered J]
+  [is_cofiltered_or_empty J]
   [Π (j : J), nonempty (F.obj j)]
   [Π (j : J), compact_space (F.obj j)]
   [Π (j : J), t2_space (F.obj j)] :
   nonempty (Top.limit_cone.{u} F).X :=
 begin
   classical,
+  obtain h|h := is_empty_or_nonempty J,
+  { exact ⟨⟨λ x, h.elim x, λ x, h.elim x⟩⟩, },
+  haveI : nonempty J := h,
+  haveI : is_cofiltered J := ⟨⟩,
   obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
     (λ G, partial_sections F _)
     (partial_sections.directed F)
@@ -1044,3 +1048,4 @@ end
 end topological_konig
 
 end Top
+

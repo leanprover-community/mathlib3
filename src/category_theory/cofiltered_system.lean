@@ -62,8 +62,9 @@ section fintype_konig
 the `F` functor is between categories of the same universe, and it is an easy
 corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
 lemma nonempty_sections_of_fintype_cofiltered_system.init
-  {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Type u)
-  [hf : Π (j : J), finite (F.obj j)] [hne : Π (j : J), nonempty (F.obj j)] :
+  {J : Type u} [small_category J] [is_cofiltered_or_empty J] (F : J ⥤ Type u)
+  [hf : Π (j : J), finite (F.obj j)]
+  [hne : Π (j : J), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
   let F' : J ⥤ Top := F ⋙ Top.discrete,

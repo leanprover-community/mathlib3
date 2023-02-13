@@ -66,7 +66,8 @@ begin
   exact hi (indicator_of_not_mem h _),
 end
 
-lemma single_eq_indicator (i : ι) (b : α) : single i b = indicator {i} (λ _ _, b) :=
+lemma single_eq_indicator [decidable_eq ι] (i : ι) (b : α) :
+  single i b = indicator {i} (λ _ _, b) :=
 by { ext, simp [single_apply, indicator_apply, @eq_comm _ a] }
 
 end finsupp

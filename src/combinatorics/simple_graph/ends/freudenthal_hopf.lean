@@ -49,10 +49,10 @@ lemma bwd_map_non_inj
       (op_hom_of_le $ finset.subset_union_left H.unop K.unop : op (H.unop ∪ K.unop) ⟶ H)) :=
 begin
   obtain ⟨E, hE⟩ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc) _ _
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
       (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D,
   obtain ⟨E', hE'⟩ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc) _ _
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
       (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D',
   subst_vars,
   refine λ inj, (by { rintro rfl, exact Ddist rfl, } : E ≠ E') (inj _),

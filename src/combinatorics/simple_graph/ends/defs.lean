@@ -35,7 +35,11 @@ def component_compl.supp (C : G.component_compl K) : set V :=
 
 -- This begs for a definition of `connected_component.supp`.
 def component_compl.supp_equiv (C : G.component_compl K) :
-  C.supp ≃ {v' | connected_component_mk (G.induce Kᶜ) v' = C} := sorry
+  C.supp ≃ {v' | connected_component_mk (G.induce Kᶜ) v' = C} :=
+{ to_fun := λ v, ⟨⟨v.val, v.prop.some⟩, v.prop.some_spec⟩,
+  inv_fun := λ v, ⟨v.val.val, ⟨v.val.prop, by { simpa [component_compl_mk] using v.prop, }⟩⟩,
+  left_inv := by { rintro ⟨v, ⟨vnK, rfl⟩⟩, simp only, },
+  right_inv := by { rintro ⟨⟨v, vnK⟩, h⟩, simp only [subtype.mk_eq_mk], } }
 
 @[ext] lemma component_compl.supp_injective :
   function.injective (component_compl.supp : G.component_compl K → set V) :=

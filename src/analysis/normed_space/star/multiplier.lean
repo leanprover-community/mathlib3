@@ -38,8 +38,8 @@ C⋆-algebra. Our intention is simply to eventually provide a constructor for th
   and show it is complete
 + show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal
 + prove the universal property of `𝓜(𝕜, A)`
-* Construct a double centralizer from a pair of maps `L : A → A`, `R : A → A` satisfying the
-  centrality condition `∀ x y, R x * y = x * L y`.
+* Construct a double centralizer from a pair of maps (not necessarily linear or continuous)
+  `L : A → A`, `R : A → A` satisfying the centrality condition `∀ x y, R x * y = x * L y`.
 -/
 
 noncomputable theory

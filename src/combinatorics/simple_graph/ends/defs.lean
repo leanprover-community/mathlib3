@@ -33,14 +33,6 @@ connected_component_mk (G.induce Kᶜ) ⟨v, vK⟩
 def component_compl.supp (C : G.component_compl K) : set V :=
 {v : V | ∃ h : v ∉ K, G.component_compl_mk h = C}
 
--- This begs for a definition of `connected_component.supp`.
-def component_compl.supp_equiv (C : G.component_compl K) :
-  C.supp ≃ {v' | connected_component_mk (G.induce Kᶜ) v' = C} :=
-{ to_fun := λ v, ⟨⟨v.val, v.prop.some⟩, v.prop.some_spec⟩,
-  inv_fun := λ v, ⟨v.val.val, ⟨v.val.prop, by { simpa [component_compl_mk] using v.prop, }⟩⟩,
-  left_inv := by { rintro ⟨v, ⟨vnK, rfl⟩⟩, simp only, },
-  right_inv := by { rintro ⟨⟨v, vnK⟩, h⟩, simp only [subtype.mk_eq_mk], } }
-
 @[ext] lemma component_compl.supp_injective :
   function.injective (component_compl.supp : G.component_compl K → set V) :=
 begin
@@ -94,6 +86,19 @@ protected lemma ind {β : G.component_compl K → Prop}
 /-- The induced graph on the vertices `C`. -/
 @[reducible]
 protected def coe_graph (C : component_compl G K) : simple_graph C := G.induce (C : set V)
+
+-- This begs for a definition of `connected_component.supp`.
+@[simps] def supp_equiv (C : G.component_compl K) :
+  C.supp ≃ {v' | connected_component_mk (G.induce Kᶜ) v' = C} :=
+{ to_fun := λ v, ⟨⟨v.val, v.prop.some⟩, v.prop.some_spec⟩,
+  inv_fun := λ v, ⟨v.val.val, ⟨v.val.prop, by { simpa [component_compl_mk] using v.prop, }⟩⟩,
+  left_inv := by { rintro ⟨v, ⟨vnK, rfl⟩⟩, simp only, },
+  right_inv := by { rintro ⟨⟨v, vnK⟩, h⟩, simp only [subtype.mk_eq_mk], } }
+
+@[simps] def coe_graph_iso (C : G.component_compl K) :
+  C.coe_graph ≃g (G.induce Kᶜ).induce {v' | connected_component_mk (G.induce Kᶜ) v' = C} :=
+{ to_equiv := C.supp_equiv,
+  map_rel_iff' := λ u v, by simp, }
 
 lemma coe_inj {C D : G.component_compl K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
@@ -244,11 +249,15 @@ begin
     exact Ddis.right ⟨(component_compl.hom_eq_iff_le _ _ _).mp e vD, vD⟩, },
 end
 
+/--
+Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
+and all whose "outside components" are infinite.
+-/
 lemma exists_saturated_connected_extension (Kn : K.nonempty) :
   ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
                               ∀ C : G.component_compl L, C.supp.infinite :=
 begin
-
+  sorry
 end
 
 end component_compl

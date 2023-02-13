@@ -8,6 +8,7 @@ import algebra.star.star_alg_hom
 import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
 import analysis.special_functions.pow
+import analysis.normed_space.star.mul
 
 /-!
 # Multiplier Algebra of a C⋆-algebra

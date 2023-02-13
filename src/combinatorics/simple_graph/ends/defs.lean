@@ -6,6 +6,7 @@ Authors: Anand Rao, Rémi Bottinelli
 import category_theory.mittag_leffler
 import combinatorics.simple_graph.connectivity
 import data.finite.set
+import .for_mathlib.connected
 
 /-!
 # Ends
@@ -253,11 +254,12 @@ end
 Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
 and all whose "outside components" are infinite.
 -/
-lemma exists_saturated_connected_extension (Gpc : G.preconnected) (Kn : K.nonempty) :
+lemma exists_saturated_connected_extension (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
   ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
                               ∀ C : G.component_compl L, C.supp.infinite :=
 begin
-  sorry
+  classical,
+  obtain ⟨K',KK',K'conn⟩ := extend_finset_to_connected Gpc Kn,
 end
 
 end component_compl

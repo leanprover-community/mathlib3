@@ -111,8 +111,6 @@ variables [ordered_add_comm_group α] (a b : α)
 lemma pairwise_disjoint_Ioc_add_zsmul :
   pairwise (disjoint on (λ (n:ℤ), Ioc (a + n • b) (a + (n + 1) • b))) :=
 begin
-  -- The assumption `linear_ordered_add_comm_group α` can be weakened to `ordered_add_comm_group α`
-  -- if we assume that `0 < b`, but `Ioc` is not a very useful concept in partial orders anyway.
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
@@ -121,7 +119,7 @@ begin
     have i2 := hx.2.1.trans_le hx.1.2,
     rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
-  { -- case ¬(0 < b) : vacuous but true
+  { -- case 0 ≮ b : vacuous but true
     have : ∀ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b) = ∅,
     { refine λ n, Ioc_eq_empty_iff.mpr _,
       rwa [add_zsmul, one_zsmul, add_lt_add_iff_left, lt_add_iff_pos_right] },

@@ -94,8 +94,7 @@ def hall_matchings_functor {ι : Type u} {α : Type v} (t : ι → finset α) :
 { obj := λ ι', hall_matchings_on t ι'.unop,
   map := λ ι' ι'' g f, hall_matchings_on.restrict t (category_theory.le_of_hom g.unop) f }
 
-instance hall_matchings_on.finite {ι : Type u} {α : Type v}
-  (t : ι → finset α) (ι' : finset ι) :
+instance hall_matchings_on.finite {ι : Type u} {α : Type v} (t : ι → finset α) (ι' : finset ι) :
   finite (hall_matchings_on t ι') :=
 begin
   classical,

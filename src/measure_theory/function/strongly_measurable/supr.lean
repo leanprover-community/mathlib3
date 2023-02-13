@@ -54,8 +54,8 @@ lemma strongly_measurable.is_glb [countable ι] [semilattice_inf β] [metrizable
   (hf : ∀ i, strongly_measurable (f i)) (hg : ∀ x, is_glb (range $ λ i, f i x) (g x)) :
   strongly_measurable g := @strongly_measurable.is_lub α (order_dual β) ι _ _ _ _ _ _ _ f g hf hg
 
-lemma strongly_measurable_supr [measurable_space β] [borel_space β] [complete_linear_order β]
-  [order_topology β] [topological_space.second_countable_topology β] [metrizable_space β]
+lemma strongly_measurable_supr [measurable_space β] [complete_linear_order β]
+  [order_topology β] [metrizable_space β]
   [countable ι] {f : ι → α → β} (hf : ∀ i, strongly_measurable (f i)) :
   strongly_measurable (λ b, ⨆ i, f i b) :=
 strongly_measurable.is_lub hf $ λ b, is_lub_supr

@@ -253,7 +253,7 @@ end
 Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
 and all whose "outside components" are infinite.
 -/
-lemma exists_saturated_connected_extension (Kn : K.nonempty) :
+lemma exists_saturated_connected_extension (Gpc : G.preconnected) (Kn : K.nonempty) :
   ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
                               ∀ C : G.component_compl L, C.supp.infinite :=
 begin

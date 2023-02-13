@@ -131,10 +131,6 @@ begin
     exact hx.elim }
 end
 
-lemma pairwise_disjoint_Ioc_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ioc (n • b) ((n + 1) • b))) :=
-by simpa only [zero_add] using pairwise_disjoint_Ioc_add_zsmul 0 b
-
 lemma pairwise_disjoint_Ico_add_zsmul :
   pairwise (disjoint on (λ (n:ℤ), Ico (a + n • b) (a + (n + 1) • b))) :=
 begin
@@ -155,19 +151,17 @@ begin
     exact hx.elim }
 end
 
+lemma pairwise_disjoint_Ioo_add_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ioo (a + n • b) (a + (n + 1) • b))) :=
+λ m n hmn, (pairwise_disjoint_Ioc_add_zsmul a b hmn).mono Ioo_subset_Ioc_self Ioo_subset_Ioc_self
+
+lemma pairwise_disjoint_Ioc_zsmul :
+  pairwise (disjoint on (λ (n:ℤ), Ioc (n • b) ((n + 1) • b))) :=
+by simpa only [zero_add] using pairwise_disjoint_Ioc_add_zsmul 0 b
+
 lemma pairwise_disjoint_Ico_zsmul :
   pairwise (disjoint on (λ (n:ℤ), Ico (n • b) ((n + 1) • b))) :=
 by simpa only [zero_add] using pairwise_disjoint_Ico_add_zsmul 0 b
-
-lemma pairwise_disjoint_Ioo_add_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ioo (a + n • b) (a + (n + 1) • b))) :=
-begin
-  intros m n hmn,
-  have := pairwise_disjoint_Ioc_add_zsmul a b hmn,
-  rw function.on_fun at *,
-  convert disjoint.mono _ _ this,
-  all_goals { rw le_iff_subset, exact Ioo_subset_Ioc_self },
-end
 
 lemma pairwise_disjoint_Ioo_zsmul :
   pairwise (disjoint on (λ (n:ℤ), Ioo (n • b) ((n + 1) • b))) :=

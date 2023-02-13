@@ -104,9 +104,9 @@ end linear_ordered_add_comm_group
 /-! ### Lemmas about disjointness of translates of intervals -/
 section pairwise_disjoint
 
-section linear_ordered_add_comm_group
+section ordered_add_comm_group
 
-variables [linear_ordered_add_comm_group α] (a b : α)
+variables [ordered_add_comm_group α] (a b : α)
 
 lemma pairwise_disjoint_Ioc_add_zsmul :
   pairwise (disjoint on (λ (n:ℤ), Ioc (a + n • b) (a + (n + 1) • b))) :=
@@ -116,16 +116,15 @@ begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
-  rcases lt_or_le 0 b with hb | hb,
+  by_cases hb : 0 < b,
   { have i1 := hx.1.1.trans_le hx.2.2,
     have i2 := hx.2.1.trans_le hx.1.2,
     rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
-  { -- case b ≤ 0 : vacuous but true
+  { -- case ¬(0 < b) : vacuous but true
     have : ∀ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b) = ∅,
-    { refine λ n, Ioc_eq_empty_of_le _,
-      rw [add_zsmul, one_zsmul, add_le_add_iff_left],
-      exact add_le_of_nonpos_right hb },
+    { refine λ n, Ioc_eq_empty_iff.mpr _,
+      rwa [add_zsmul, one_zsmul, add_lt_add_iff_left, lt_add_iff_pos_right] },
     simp_rw [this, empty_inter] at hx,
     exact hx.elim }
 end
@@ -136,15 +135,14 @@ begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
-  rcases lt_or_le 0 b with hb | hb,
+  by_cases hb : 0 < b,
   { have i1 := hx.1.1.trans_lt hx.2.2,
     have i2 := hx.2.1.trans_lt hx.1.2,
     rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
   { have : ∀ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b) = ∅,
-    { refine λ n, Ico_eq_empty_of_le _,
-      rw [add_zsmul, one_zsmul, add_le_add_iff_left],
-      exact add_le_of_nonpos_right hb },
+    { refine λ n, Ico_eq_empty_iff.mpr _,
+      rwa [add_zsmul, one_zsmul, add_lt_add_iff_left, lt_add_iff_pos_right] },
     simp_rw [this, empty_inter] at hx,
     exact hx.elim }
 end
@@ -165,11 +163,11 @@ lemma pairwise_disjoint_Ioo_zsmul :
   pairwise (disjoint on (λ (n:ℤ), Ioo (n • b) ((n + 1) • b))) :=
 by simpa only [zero_add] using pairwise_disjoint_Ioo_add_zsmul 0 b
 
-end linear_ordered_add_comm_group
+end ordered_add_comm_group
 
-section linear_ordered_ring
+section ordered_ring
 
-variables [linear_ordered_ring α] (a : α)
+variables [ordered_ring α] (a : α)
 
 lemma pairwise_disjoint_Ioc_add_int_cast :
   pairwise (disjoint on (λ (n:ℤ), Ioc (a + n) (a + n + 1))) :=
@@ -197,7 +195,7 @@ by simpa only [zero_add] using pairwise_disjoint_Ioo_add_int_cast (0 : α)
 lemma pairwise_disjoint_Ioc_int_cast : pairwise (disjoint on (λ (n:ℤ), Ioc (n : α) (n + 1))) :=
 by simpa only [zero_add] using pairwise_disjoint_Ioc_add_int_cast (0 : α)
 
-end linear_ordered_ring
+end ordered_ring
 
 end pairwise_disjoint
 

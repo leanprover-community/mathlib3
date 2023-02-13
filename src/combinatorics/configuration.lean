@@ -317,14 +317,10 @@ namespace projective_plane
 
 variables [projective_plane P L]
 
--- instance : projective_plane (dual L) (dual P) :=
--- { exists_config := sorry } -- invalid structure value {...}, expected type is known, but it is not a structure
-
 instance : projective_plane (dual L) (dual P) :=
-⟨_, @mk_line_ax P L _ _, _, @mk_point_ax P L _ _, by
-{ obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ :=
-    @exists_config P L _ _,
-    exact ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩ }⟩
+⟨_, @mk_line_ax P L _ _, _, @mk_point_ax P L _ _,
+  let ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ := @exists_config P L _ _ in
+    ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩⟩
 
 /-- The order of a projective plane is one less than the number of lines through an arbitrary point.
 Equivalently, it is one less than the number of points on an arbitrary line. -/

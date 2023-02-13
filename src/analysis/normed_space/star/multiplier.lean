@@ -244,6 +244,7 @@ end star
 
 section
 variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
+
 /-- The coercion of an algebra into its multiplier algebra as a non-unital star algebra
 homomorphism. -/
 def coe_hom : A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=

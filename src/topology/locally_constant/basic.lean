@@ -13,6 +13,9 @@ import tactic.fin_cases
 /-!
 # Locally constant functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up the theory of locally constant function from a topological space to a type.
 
 ## Main definitions and constructions

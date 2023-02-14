@@ -871,6 +871,3 @@ apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
-
--- tactic/wlog.lean
-apply_nolint tactic.wlog doc_blame

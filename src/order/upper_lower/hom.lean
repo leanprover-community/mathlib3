@@ -9,6 +9,9 @@ import order.hom.complete_lattice
 /-!
 # `upper_set.Ici` etc as `sup`/`Sup`/`inf`/`Inf`-homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `upper_set.Ici_sup_hom` etc. These functions are `upper_set.Ici` and
 `lower_set.Iic` bundled as `sup_hom`s, `inf_hom`s, `Sup_hom`s, or `Inf_hom`s.
 -/

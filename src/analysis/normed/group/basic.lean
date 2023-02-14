@@ -1387,6 +1387,23 @@ by simpa [bdd_above_def] using hf.norm.bdd_above_range_of_has_compact_support h.
 
 end normed_add_group
 
+section normed_add_group_source
+
+variables [normed_add_group α] {f : α → E}
+
+@[to_additive]
+lemma has_compact_mul_support.exists_pos_le_norm [has_one E] (hf : has_compact_mul_support f) :
+  ∃ (R : ℝ), (0 < R) ∧ (∀ (x : α), (R ≤ ‖x‖) → (f x = 1)) :=
+begin
+  obtain ⟨K, ⟨hK1, hK2⟩⟩ := exists_compact_iff_has_compact_mul_support.mpr hf,
+  obtain ⟨S, hS, hS'⟩ := hK1.bounded.exists_pos_norm_le,
+  refine ⟨S + 1, by positivity, λ x hx, hK2 x ((mt $ hS' x) _)⟩,
+  contrapose! hx,
+  exact lt_add_of_le_of_pos hx zero_lt_one
+end
+
+end normed_add_group_source
+
 /-! ### `ulift` -/
 
 namespace ulift

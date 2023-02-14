@@ -483,7 +483,7 @@ begin
     ... ≤ ‖r - e‖ / ‖r‖ / ε :
       div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  refine (((continuous_const.sub continuous_id).norm.div_const _).div_const _).tendsto' _ _ _,
   simp,
 end
 

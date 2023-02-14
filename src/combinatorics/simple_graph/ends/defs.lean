@@ -308,14 +308,6 @@ begin
     apply finite.of_injective_finite_range touch_inj, },
 end
 
--- Thanks Eric Wieser
-lemma set.union_bUnion {α β : Type*} {s : set α} {S : set β} (hS : S.nonempty) {f : β → set α} :
-  s ∪ (⋃ t ∈ S, f t) = ⋃ t ∈ S, s ∪ (f t) :=
-begin
-  letI := hS.coe_sort,
-  simpa only [set.Union_coe_set, subtype.coe_mk] using set.union_Union s (λ x : S, f x),
-end
-
 /--
 Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
 and all whose "outside components" are infinite.
@@ -336,7 +328,7 @@ begin
   { rw [finset.coe_union, set.finite.coe_to_finset], dsimp only [finite_pieces],
     obtain (h|⟨H₀,H₀H⟩) := set.eq_empty_or_nonempty {C : G.component_compl K' | C.supp.finite},
     { rwa [h, set.bUnion_empty, set.union_empty], },
-    { rw [set.union_bUnion ⟨H₀, H₀H⟩, set.bUnion_eq_Union],
+    { rw [set.bUnion_eq_Union, @set.union_Union _ _ _], swap, exact ⟨⟨H₀, H₀H⟩⟩,
       fapply induce_connected_union_of_pairwise_not_disjoint,
       { rw set.range_nonempty_iff_nonempty, exact ⟨⟨H₀,H₀H⟩⟩, },
       { rintro _ ⟨H₁,rfl⟩ _ ⟨H₂,rfl⟩,

@@ -168,17 +168,16 @@ open_locale fourier_transform
 
 /-- Riemann-Lebesgue lemma for continuous compactly-supported functions: the Fourier transform
 tends to 0 at infinity. -/
-lemma fourier_integral.zero_at_infty_of_continuous_compact_support
-  {E : Type*} [normed_add_comm_group E] [complete_space E] [normed_space ℂ E]
-  (f : ℝ → E) (hc : continuous f) (hs : has_compact_support f) :
-  tendsto (𝓕 f) (cocompact ℝ) (𝓝 0) :=
+lemma real.fourier_integral_zero_at_infty_of_continuous_compact_support
+  (hc : continuous f) (hs : has_compact_support f) :
+  tendsto (real.fourier_integral f) (cocompact ℝ) (𝓝 0) :=
 begin
   refine ((zero_at_infty_integral_mul_exp_of_continuous_compact_support hc hs).comp
     (tendsto_cocompact_mul_left₀
     (mul_ne_zero (neg_ne_zero.mpr two_ne_zero) real.pi_pos.ne'))).congr (λ w, _),
-  rw [fourier_integral_mul_eq_integral_exp_smul, function.comp_app],
-  congr' 1 with x:1, congr' 2,
-  push_cast, ring,
+  rw [real.fourier_integral_eq_integral_exp_smul, function.comp_app],
+  congr' 1 with x:1,
+  ring_nf,
 end
 
 end continuous_compact_support

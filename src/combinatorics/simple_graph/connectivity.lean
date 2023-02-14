@@ -1530,13 +1530,14 @@ lemma connected_component.mem_supp (C : G.connected_component) (v : V) :
 @[ext, simp]
 lemma connected_component.supp_inj (C D : G.connected_component) : C.supp = D.supp ↔ C = D :=
 begin
-  split, {
-  refine connected_component.ind₂ _ C D,
-  intros v w hsupp,
-  simp only [connected_component.supp, connected_component.eq] at *,
-  have := eq_iff_iff.mp (congr_fun hsupp v),
-  exact this.mp (simple_graph.reachable.refl _), },
-  { intro h, subst h, }
+  split,
+  { rintro ⟨⟩, refl, },
+  { refine connected_component.ind₂ _ C D,
+    intros v w h,
+    simp_rw [set.ext_iff] at h,
+    exact (h v).mp rfl, }
+end
+
 end
 
 end connected_component

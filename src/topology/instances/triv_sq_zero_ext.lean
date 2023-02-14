@@ -105,7 +105,9 @@ instance [has_neg R] [has_neg M]
   has_continuous_neg (tsze R M) :=
 prod.has_continuous_neg
 
-instance topological_semiring [semiring R] [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M]
+/-- This is not an instance due to complaints by the `fails_quickly` linter. At any rate, we only
+really care about the `topological_ring` instance below. -/
+lemma topological_semiring [semiring R] [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M]
   [topological_semiring R] [has_continuous_add M]
   [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M] :
   -- note: lean times out looking for the non_assoc_semiring instance without this hint

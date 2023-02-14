@@ -1515,6 +1515,26 @@ C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
 @[simp] lemma connected_component.map_mk (φ : G →g G') (v : V) :
   (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
 
+@[simp] lemma connected_component.image_comp_eq_map_iff_eq_comp
+  (φ : G ≃g G') (v : V) (C : G.connected_component) :
+  (G'.connected_component_mk (φ v)) = C.map φ ↔ (G.connected_component_mk v) = C :=
+begin
+  refine C.ind _,
+  intro v,
+  simp,
+  sorry, -- should be a lemma
+end
+
+lemma connected_component.inv_image_comp_eq_iff_eq_map
+  (φ : G ≃g G') (v' : V') (C : G.connected_component) :
+    G.connected_component_mk (φ.inv_fun v') = C ↔ G'.connected_component_mk v' = C.map φ :=
+begin
+  refine C.ind _,
+  intro v,
+  simp,
+  sorry -- should be a lemma
+end
+
 @[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
 by { refine C.ind _, exact (λ _, rfl) }
 
@@ -1532,11 +1552,32 @@ def connected_component.iso (φ : G ≃g G') : G.connected_component ≃ G'.conn
   right_inv := λ C, connected_component.ind
     (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
 
--- TODO: definition of connected_component.supp
+def connected_component.supp (C : G.connected_component) :=
+  { v | G.connected_component_mk v = C }
 
-def connected_component.apply_iso_equiv (φ : G ≃g G') (C : G.connected_component) :
-  {v | G.connected_component_mk v = C} ≃
-  {v' | G'.connected_component_mk v' = connected_component.iso φ C} := sorry
+@[simp]
+lemma connected_component.mem_supp (C : G.connected_component) (v : V) :
+  v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
+
+lemma connected_component.eq_of_eq_supp (C D : G.connected_component) : C = D ↔ C.supp = D.supp :=
+begin
+  split,
+  { intro h, subst h, },
+  refine connected_component.ind₂ _ C D,
+  intros v w hsupp,
+  simp only [connected_component.supp, connected_component.eq] at *,
+  have := eq_iff_iff.mp (congr_fun hsupp v),
+  exact this.mp (simple_graph.reachable.refl _),
+end
+
+def connected_component.iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
+  C.supp ≃ (connected_component.iso φ C).supp :=
+{ to_fun := λ v, ⟨φ.to_fun v,
+  (connected_component.image_comp_eq_map_iff_eq_comp φ v C).mpr v.prop⟩,
+  inv_fun := λ v', ⟨φ.inv_fun v',
+    (connected_component.inv_image_comp_eq_iff_eq_map φ ↑v' C).mpr v'.prop⟩,
+  left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
+  right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v), }
 
 lemma connected_component.connected :
   ∀ (C : G.connected_component), (G.induce {v : V | G.connected_component_mk v = C}).connected :=

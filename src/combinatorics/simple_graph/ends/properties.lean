@@ -6,6 +6,7 @@ Authors: Anand Rao, Rémi Bottinelli
 import combinatorics.simple_graph.ends.defs
 import topology.category.Top
 import category_theory.mittag_leffler
+
 /-!
 # Properties of the ends of graphs
 
@@ -36,6 +37,55 @@ begin
   exact ⟨e.val (opposite.op L), (e.prop (category_theory.op_hom_of_le h))⟩,
 end
 
+lemma component_compl_functor_finite
+  {G : simple_graph V} [G.locally_finite] (Gpc : G.preconnected)
+  (K : (finset V)ᵒᵖ) : finite (G.component_compl_functor.obj K) :=
+ component_compl_finite Gpc K.unop
+
+@[instance]
+noncomputable def component_compl_functor_fintype
+  {G : simple_graph V} [G.locally_finite] (Gpc : G.preconnected)
+  (K : (finset V)ᵒᵖ) : fintype (G.component_compl_functor.obj K) :=
+  @fintype.of_finite _ (component_compl_functor_finite Gpc K)
+
+lemma component_compl_functor_nonempty_of_infinite
+  (G : simple_graph V) [infinite V] (K : (finset V)ᵒᵖ) :
+    nonempty (G.component_compl_functor.obj K) :=
+  component_compl_nonempty_of_infinite G K.unop
+
+lemma component_compl_functor_is_mittag_leffler [Glf : locally_finite G] (Gpc : preconnected G) :
+  G.component_compl_functor.is_mittag_leffler :=
+begin
+  classical,
+  refine category_theory.functor.is_mittag_leffler_of_exists_finite_range _ (λ j, _),
+  haveI : finite (G.component_compl_functor.obj j) := component_compl_finite Gpc j.unop,
+  exact ⟨j, 𝟙 j, set.to_finite _⟩,
+end
+
+@[instance]
+noncomputable def component_compl_functor_to_eventual_ranges_finite
+  [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
+  {G : simple_graph V}  [locally_finite G] (Gpc : G.preconnected) (K : (finset V)ᵒᵖ) :
+  fintype (G.component_compl_functor.to_eventual_ranges.obj K) :=
+begin
+  haveI : Π (j : (finset V)ᵒᵖ), fintype (G.component_compl_functor.obj j) :=
+    component_compl_functor_fintype Gpc,
+  apply category_theory.functor.to_eventual_ranges_fintype,
+end
+
+lemma component_compl_functor_to_eventual_ranges_nonempty_of_infinite
+  [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
+  (G : simple_graph V) [G.locally_finite] (Gpc : G.preconnected)
+  [infinite V] (K : (finset V)ᵒᵖ) :
+  nonempty (G.component_compl_functor.to_eventual_ranges.obj K) :=
+begin
+  haveI : ∀ (j : (finset V)ᵒᵖ), nonempty (G.component_compl_functor.obj j) :=
+    component_compl_functor_nonempty_of_infinite G,
+  apply category_theory.functor.to_eventual_ranges_nonempty,
+  apply component_compl_functor_is_mittag_leffler,
+  assumption,
+end
+
 /--
 A locally finite preconnected infinite graph has at least one end.
 -/
@@ -47,15 +97,5 @@ begin
     (λ K, @fintype.of_finite _ $ component_compl_finite Gpc K.unop)
     (λ K, G.component_compl_nonempty_of_infinite K.unop)
 end
-
-lemma component_compl_functor_is_mittag_leffler [Glf : locally_finite G] (Gpc : preconnected G) :
-  G.component_compl_functor.is_mittag_leffler :=
-begin
-  classical,
-  refine category_theory.functor.is_mittag_leffler_of_exists_finite_range _ (λ j, _),
-  haveI : finite (G.component_compl_functor.obj j) := component_compl_finite Gpc j.unop,
-  exact ⟨j, 𝟙 j, set.to_finite _⟩,
-end
-
 
 end simple_graph

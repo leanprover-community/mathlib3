@@ -1534,6 +1534,25 @@ begin
   subst_vars
 end
 
+/-- The set of vertices in a connected component of a graph. -/
+def connected_component.supp (C : G.connected_component) :=
+  { v | G.connected_component_mk v = C }
+
+@[simp]
+lemma connected_component.mem_supp (C : G.connected_component) (v : V) :
+  v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
+
+lemma connected_component.eq_of_eq_supp (C D : G.connected_component) : C = D ↔ C.supp = D.supp :=
+begin
+  split,
+  { intro h, subst h, },
+  refine connected_component.ind₂ _ C D,
+  intros v w hsupp,
+  simp only [connected_component.supp, connected_component.eq] at *,
+  have := eq_iff_iff.mp (congr_fun hsupp v),
+  exact this.mp (simple_graph.reachable.refl _),
+end
+
 @[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
   (G.subgraph_of_adj hvw).connected :=
 begin

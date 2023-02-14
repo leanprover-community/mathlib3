@@ -1497,7 +1497,12 @@ def induce_univ_iso (G : simple_graph V) : G.induce set.univ ≃g G :=
 
 -- Is it already somewhere?
 def induce.iso {V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') {s : set V} :
-  (G.induce s) ≃g (G'.induce $ φ '' s) := sorry
+  (G.induce s) ≃g (G'.induce $ φ '' s) :=
+{ to_fun := λ v, ⟨φ.to_fun v, by {simp [v.prop],}⟩,
+  inv_fun := λ v', ⟨φ.inv_fun v', set.mem_image_equiv.mp v'.prop⟩,
+  left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
+  right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v),
+  map_rel_iff' := λ a b, rel_iso.map_rel_iff φ }
 
 def induce_induce (G : simple_graph V) (s : set V) (t : set s) :
   (G.induce s).induce t ≃g G.induce {v : V | ∃ h : v ∈ s, (⟨v,h⟩ : s) ∈ t} :=

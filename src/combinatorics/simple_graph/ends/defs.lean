@@ -127,6 +127,18 @@ begin
   exact λ u ⟨uC, uD⟩, ne (uC.some_spec.symm.trans uD.some_spec),
 end
 
+lemma eq_of_subset {C D : G.component_compl K} (h : (C : set V) ⊆ D) : C = D :=
+begin
+  apply component_compl.pairwise_disjoint.eq,
+  simp only [set.not_disjoint_iff_nonempty_inter, set.inter_eq_left_iff_subset.mpr h, C.nonempty],
+end
+
+lemma not_subset_right {C : G.component_compl K} : ¬ (C : set V) ⊆ K :=
+begin
+  obtain ⟨v,vnK,rfl⟩ := C.exists_eq_mk,
+  exact λ h, vnK (h $ component_compl_mk_mem _ vnK)
+end
+
 /--
 Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
@@ -220,6 +232,13 @@ begin
     rw ←e₁, refl, },
 end
 
+lemma hom_eq_of_connected_disjoint_right  (C : G.component_compl L) (h : K ⊆ L) :
+  C.hom h = of_connected_disjoint_right C.connected (C.disjoint_right.mono_left h) :=
+begin
+  rw [hom_eq_iff_not_disjoint, set.not_disjoint_iff],
+  refine ⟨_, C.nonempty.some_spec, subset_of_connected_disjoint_right _ _ C.nonempty.some_spec⟩,
+end
+
 lemma hom_refl (C : G.component_compl L) : C.hom (subset_refl L) = C :=
 by { change C.map _ = C, erw [induce_hom_id G Lᶜ, connected_component.map_id], }
 
@@ -248,18 +267,6 @@ begin
     simp_rw [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
              set.disjoint_iff] at Ddis,
     exact Ddis.right ⟨(component_compl.hom_eq_iff_le _ _ _).mp e vD, vD⟩, },
-end
-
-/--
-Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
-and all whose "outside components" are infinite.
--/
-lemma exists_saturated_connected_extension (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
-  ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
-                              ∀ C : G.component_compl L, C.supp.infinite :=
-begin
-  classical,
-  obtain ⟨K',KK',K'conn⟩ := extend_finset_to_connected Gpc Kn,
 end
 
 end component_compl
@@ -300,6 +307,49 @@ begin
     -- hence `touch` has a finite domain
     apply finite.of_injective_finite_range touch_inj, },
 end
+
+/--
+Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
+and all whose "outside components" are infinite.
+-/
+lemma component_compl.exists_saturated_connected_extension [locally_finite G]
+  (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
+  ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
+                              ∀ C : G.component_compl L, C.supp.infinite :=
+begin
+  classical,
+  obtain ⟨K',KK',K'conn⟩ := extend_finset_to_connected Gpc Kn,
+  haveI := component_compl_finite Gpc K',
+  let finite_pieces : set V := ⋃ C ∈ {C : G.component_compl K' | C.supp.finite}, C.supp,
+  have : finite_pieces.finite := set.finite.bUnion (set.to_finite _) (λ _ h, h),
+  let L := K' ∪ ‹finite_pieces.finite›.to_finset,
+  let K'L := finset.subset_union_left K' ‹finite_pieces.finite›.to_finset,
+  refine ⟨L, KK'.trans $ K'L, _, _⟩,
+  { rw [finset.coe_union, set.finite.coe_to_finset],
+    sorry, },
+  { rintro C,
+    let D := C.hom K'L,
+    have Dinf : D.supp.infinite, by
+    { rintro Dfin,
+      have : (D : set V) ⊆ L, by
+      { simp only [finset.coe_union, set.finite.coe_to_finset],
+        refine set.subset_union_of_subset_right (set.subset_bUnion_of_mem Dfin) _, },
+      exact component_compl.not_subset_right ((C.subset_hom K'L).trans this), },
+    have : disjoint (L : set V) (D : set V), by
+    { simp only [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
+                 set.disjoint_Union₂_left, set.mem_set_of_eq],
+      exact ⟨D.disjoint_right,
+             λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
+    rw component_compl.eq_of_subset
+        ((C.subset_hom K'L).trans $ component_compl.subset_of_connected_disjoint_right _ _),
+    exact Dinf.mono (component_compl.subset_of_connected_disjoint_right D.connected this),
+   },
+
+
+
+end
+
+
 
 section ends
 

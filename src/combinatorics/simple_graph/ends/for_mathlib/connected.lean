@@ -89,26 +89,38 @@ begin
   exact ⟨uv.map (induce_hom_of_le HvH)⟩,
 end
 
+lemma induce_connected_union_of_pairwise_not_disjoint {H : set (set V)} (Hn : H.nonempty)
+  (Hnd : ∀ {x}, x ∈ H → ∀ {y}, y ∈ H → set.nonempty (x ∩ y)) (Hc : ∀ {x}, x ∈ H →  (G.induce x).connected) :
+  (G.induce H.sUnion).connected :=
+begin
+  obtain ⟨Hv,HvH⟩ := Hn,
+  obtain ⟨v,vHv⟩ := (Hc HvH).nonempty.some,
+  fapply induce_connected_of_patches (set.subset_sUnion_of_mem HvH vHv),
+  rintro w hw,
+  simp only [set.mem_sUnion, exists_prop] at hw,
+  obtain ⟨Hw,HwH,wHw⟩ := hw,
+  refine ⟨Hw ∪ Hv, set.union_subset (set.subset_sUnion_of_mem HwH) (set.subset_sUnion_of_mem HvH),
+          or.inr vHv, or.inl wHw, induce_connected_union (Hc HwH) (Hc HvH) (Hnd HwH HvH) _ _⟩,
+end
+
 lemma extend_finset_to_connected [decidable_eq V] {G : simple_graph V}
   (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
   ∃ K', K ⊆ K' ∧ (G.induce (K' : set V)).connected :=
 begin
   obtain ⟨k₀, hk₀⟩ := Kn,
-  let walks_supp := finset.bUnion K (λ v, (Gpc k₀ v).some.support.to_finset),
-  use walks_supp,
-  have hk₀ : k₀ ∈ walks_supp, by
-  { simp only [finset.mem_bUnion, list.mem_to_finset, walk.start_mem_support, exists_prop, and_true],
-    exact ⟨k₀, hk₀⟩, },
-  split,
+  refine ⟨finset.bUnion K (λ v, (Gpc k₀ v).some.support.to_finset), _, _⟩,
   { rintro k kK,
     simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
     refine ⟨k, kK, walk.end_mem_support _⟩, },
-  { apply @induce_connected_of_patches _ G walks_supp k₀ hk₀,
+  { apply @induce_connected_of_patches _ G _ k₀,
+    { simp only [finset.coe_bUnion, finset.mem_coe, list.coe_to_finset, set.mem_Union,
+                 set.mem_set_of_eq, walk.start_mem_support, exists_prop, and_true],
+      exact ⟨k₀, hk₀⟩, },
     rintro v hv,
     simp only [finset.coe_bUnion, finset.mem_coe, subgraph.induce_verts, set.mem_Union,
                list.mem_to_finset, exists_prop] at hv,
     obtain ⟨k,kK,vk⟩ := hv,
-    use ((Gpc k₀ k).some.support.to_finset : set V), split,
+    refine ⟨((Gpc k₀ k).some.support.to_finset : set V), _, _⟩,
     { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kK,},
     { simp only [subtype.coe_mk, subgraph.induce_verts, finset.mem_coe, list.mem_to_finset,
                  walk.start_mem_support, exists_true_left],

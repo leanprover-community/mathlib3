@@ -29,7 +29,9 @@ end
 
 end complex
 
-lemma matrix.special_linear_group.fin_two_exists_eq_mk (g : SL(2, ℝ)) :
+namespace matrix.special_linear_group
+
+lemma fin_two_exists_eq_mk (g : SL(2, ℝ)) :
   ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
     g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=
 begin
@@ -38,6 +40,22 @@ begin
   { rwa m.det_fin_two at h, },
   { ext i j, fin_cases i; fin_cases j; refl, },
 end
+
+lemma fin_two_exists_eq_mk_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hg : g 1 0 = 0) :
+  ∃ (a b : ℝ) (h : a ≠ 0),
+    g = (⟨!![a, b; 0, a⁻¹], by simp [h]⟩ : SL(2, ℝ)) :=
+begin
+  obtain ⟨m, h⟩ := g,
+  replace hg : m 1 0 = 0 := by simpa using hg,
+  rw [matrix.det_fin_two, hg, mul_zero, sub_zero] at h,
+  have hd : m 1 1 = (m 0 0)⁻¹, { exact eq_inv_of_mul_eq_one_right h, },
+  refine ⟨m 0 0, m 0 1, λ hc, _, _⟩,
+  { rw [hc, zero_mul] at h,
+    exact zero_ne_one h, },
+  { ext i j, fin_cases i; fin_cases j; [trivial, trivial, assumption, assumption], },
+end
+
+end matrix.special_linear_group
 
 namespace upper_half_plane
 
@@ -65,6 +83,38 @@ end
 
 lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq := by simp
 
+lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : g 1 0 = 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  obtain ⟨a, b, ha, rfl⟩ := g.fin_two_exists_eq_mk_of_apply_zero_one_eq_zero hc,
+  refine ⟨⟨_, mul_self_pos.mpr ha⟩, b * a, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : ↑a * z * a + b * a = b * a + a * a * z,
+  { rw special_linear_group_apply, simpa [add_mul], },
+  ring,
+end
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : g 1 0 ≠ 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, w +ᵥ z) ∘ (λ z, involute • z) ∘ (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  have h_denom := denom_ne_zero g,
+  obtain ⟨a, b, c, d, h, rfl⟩ := g.fin_two_exists_eq_mk,
+  replace hc : c ≠ 0, { simpa using hc, },
+  refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : (↑a * z + b) / (↑c * z + d) = a / c - (c * d + ↑c * ↑c * z)⁻¹,
+  { rw special_linear_group_apply, simpa [-neg_add_rev, inv_neg, ← sub_eq_add_neg], },
+  replace hc : (c : ℂ) ≠ 0, { norm_cast, assumption, },
+  replace h_denom : ↑c * z + d ≠ 0, { simpa using h_denom ⟨z, hz⟩, },
+  have h_aux : (c : ℂ) * d + ↑c * ↑c * z ≠ 0,
+  { rw [mul_assoc, ← mul_add, add_comm], exact mul_ne_zero hc h_denom, },
+  replace h : (a * d - b * c : ℂ) = (1 : ℂ), { norm_cast, assumption, },
+  field_simp,
+  linear_combination (-(z * ↑c ^ 2) - ↑c * ↑d) * h, -- Courtesy of `polyrith`
+end
+
 lemma isometry_involute : isometry (λ z, involute • z : ℍ → ℍ) :=
 begin
   refine isometry.of_dist_eq (λ y₁ y₂, _),
@@ -77,138 +127,16 @@ begin
     real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ), div_div_div_comm, div_self h₂, div_one],
 end
 
-lemma dist_SL2_smul_smul_c_zero (g : SL(2, ℝ)) (z w : ℍ) (h1 : g 1 0 = 0) :
-  dist (g • z) (g • w) = dist z w :=
+lemma isometry_SL2_smul (g : SL(2, ℝ)) : isometry ((•) g : ℍ → ℍ) :=
 begin
-  obtain ⟨a, b, c, d, h, hg⟩ := g.fin_two_exists_eq_mk,
-  have hg00 : g 0 0 = a := by rw [hg]; refl,
-  have hg01 : g 0 1 = b := by rw [hg]; refl,
-  have hg10 : g 1 0 = c := by rw [hg]; refl,
-  have hg11 : g 1 1 = d := by rw [hg]; refl,
-  have hg00' := hg00,
-  have hg01' := hg01,
-  have hg10' := hg10,
-  have hg11' := hg11,
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg00',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg01',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg10',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg11',
-  have hg := g.property,
-  rw [subtype.val_eq_coe, matrix.det_fin_two] at hg,
-  have hg' : (a * d - b * c : ℂ) = (1 : ℂ), norm_cast, assumption,
-  rw hg10 at h1,
-  have h1' : (c : ℂ) = 0, { norm_cast, assumption, },
-    have h2 : (a : ℂ) ≠ 0,
-    { by_contra,
-      rw [h, h1] at hg',
-      norm_num at hg', },
-    have hg'' := hg',
-    rw h1' at hg'', norm_num at hg'',
-    rw mul_eq_one_iff_inv_eq₀ h2 at hg'',
-    unfold dist,
-    congr' 2,
-    simp only [complex.dist_eq, complex.abs, absolute_value.coe_mk, mul_hom.coe_mk,
-    complex.norm_sq_apply],
-    refine (mul_self_inj _ _).mp _,
-    { positivity, },
-    { positivity, },
-    simp only [← sq, div_pow, mul_pow],
-    have h3 := z.property, rw subtype.val_eq_coe at h3,
-    have h3' := h3, rw coe_im at h3',
-    have h4 := w.property, rw subtype.val_eq_coe at h4,
-    have h4' := h4, rw coe_im at h4',
-    have h5 := (g • z).property, rw subtype.val_eq_coe at h5,
-    have h5' := h5, rw coe_im at h5',
-    have h6 := (g • w).property, rw subtype.val_eq_coe at h6,
-    have h6' := h6, rw coe_im at h6',
-    rw [real.sq_sqrt _, real.sq_sqrt _, real.sq_sqrt _, real.sq_sqrt _],
-    { rw div_eq_div_iff,
-      { rw [← coe_im (g • z), ← coe_im (g • w), special_linear_group_apply g z,
-          special_linear_group_apply g w],
-        simp [hg00', hg01', hg10', hg11', h1', ← hg''],
-        ring, },
-      { positivity, },
-      { positivity, }, },
-    { positivity, },
-    { positivity, },
-    { positivity, },
-    { positivity, },
-end
-
-lemma dist_SL2_eq_comp_c_nonzero (g : SL(2, ℝ)) (z : ℍ) (h1 : 0 < ((g 1 0 : ℝ) * (g 1 0 : ℝ))) :
-  g • z = (has_vadd.vadd ((g 0 0 : ℝ) / (g 1 0 : ℝ)) ∘ has_smul.smul involute ∘ has_vadd.vadd
-  ((g 1 0 : ℝ) * (g 1 1 : ℝ)) ∘ has_smul.smul (⟨(g 1 0 : ℝ) * (g 1 0 : ℝ), h1⟩ : {x : ℝ // (0 : ℝ)
-  < x})) z :=
-begin
-  obtain ⟨a, b, c, d, h, hg⟩ := g.fin_two_exists_eq_mk,
-  have hg00 : g 0 0 = a := by rw [hg]; refl,
-  have hg01 : g 0 1 = b := by rw [hg]; refl,
-  have hg10 : g 1 0 = c := by rw [hg]; refl,
-  have hg11 : g 1 1 = d := by rw [hg]; refl,
-  have hg00' := hg00,
-  have hg01' := hg01,
-  have hg10' := hg10,
-  have hg11' := hg11,
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg00',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg01',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg10',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg11',
-  have hg := g.property,
-  rw [subtype.val_eq_coe, matrix.det_fin_two] at hg,
-  have hg' : (a * d - b * c : ℂ) = (1 : ℂ), norm_cast, assumption,
-  rw hg10 at h1,
-  rw [subtype.ext_iff, special_linear_group_apply g z],
-  simp [involute_apply],
-  rw [mul_assoc, ← neg_mul, ← neg_mul, ← mul_add],
-  rw [hg00', hg01', hg10', hg11'],
-  have h2 := h1, rw mul_self_pos at h2,
-  have h2' : (c : ℂ) ≠ (0 : ℂ), by_contra, apply h2, norm_cast at h,
-  have h4 : (c : ℂ) * z + (d : ℂ) ≠ 0,
-  have h4' : denom g z = ((g 1 0) : ℂ) * z + ((g 1 1) : ℂ) := rfl,
-  rw [hg10, hg11] at h4',
-  rw ← h4', refine denom_ne_zero g _,
-  have h5 : -(c : ℂ) * ((c : ℂ) * z + (d : ℂ)) ≠ 0, have h5' : -(c : ℂ) ≠ (0 : ℂ),
-  exact neg_ne_zero.mpr h2', positivity,
-  field_simp,
-  linear_combination (↑z * ↑c ^ 2 + ↑c * ↑d) * hg',
-end
-
-@[simp] lemma dist_SL2_smul_smul (g : SL(2, ℝ)) (z w : ℍ) :
-  dist (g • z) (g • w) = dist z w :=
-begin
-  obtain ⟨a, b, c, d, h, hg⟩ := g.fin_two_exists_eq_mk,
-  have hg00 : g 0 0 = a := by rw [hg]; refl,
-  have hg01 : g 0 1 = b := by rw [hg]; refl,
-  have hg10 : g 1 0 = c := by rw [hg]; refl,
-  have hg11 : g 1 1 = d := by rw [hg]; refl,
-  have hg00' := hg00,
-  have hg01' := hg01,
-  have hg10' := hg10,
-  have hg11' := hg11,
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg00',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg01',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg10',
-  rw matrix.special_linear_group.coe_fn_eq_coe at hg11',
-  have h : 0 ≤ c * c, exact mul_self_nonneg _,
-  have h1 := eq_or_lt_of_le h, clear h,
-  have hg := g.property,
-  rw [subtype.val_eq_coe, matrix.det_fin_two] at hg,
-  have hg' : (a * d - b * c : ℂ) = (1 : ℂ), norm_cast, assumption,
-  cases h1 with h1 h1,
-  { rw zero_eq_mul_self at h1,
-    rw ← hg10 at h1,
-    exact dist_SL2_smul_smul_c_zero g z w h1, },
-  { have h2 : (c : ℝ) ≠ (0 : ℝ), rw ← mul_self_pos, exact h1,
-    have h2' : (c : ℂ) ≠ (0 : ℂ), by_contra, apply h2, norm_cast at h,
-    rw ← hg10 at h1,
-    have h3 := isometry.comp (isometry_real_vadd ((g 0 0 : ℝ) / (g 1 0 : ℝ)))
-    (isometry.comp isometry_involute (isometry.comp(isometry_real_vadd ((g 1 0 : ℝ)
-    * (g 1 1 : ℝ))) (isometry_pos_mul ⟨(g 1 0 : ℝ) * (g 1 0 : ℝ), h1⟩))),
-    rw isometry_iff_dist_eq at h3,
-    specialize h3 z w,
-    convert h3,
-    { exact dist_SL2_eq_comp_c_nonzero _ _ _, },
-    { exact dist_SL2_eq_comp_c_nonzero _ _ _, }, },
+  by_cases hc : g 1 0 = 0,
+  { obtain ⟨u, v, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_eq_zero g hc,
+    rw h,
+    exact (isometry_real_vadd v).comp (isometry_pos_mul u), },
+  { obtain ⟨u, v, w, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_ne_zero g hc,
+    rw h,
+    exact (isometry_real_vadd w).comp (isometry_involute.comp $ (isometry_real_vadd v).comp $
+      isometry_pos_mul u), },
 end
 
 end upper_half_plane

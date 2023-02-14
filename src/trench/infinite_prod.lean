@@ -2,7 +2,7 @@ import topology.algebra.infinite_sum
 
 noncomputable theory
 open finset filter function classical
-open_locale topology classical big_operators nnreal
+open_locale topology classical big_operators nnreal filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -11,7 +11,8 @@ variables [comm_monoid α] [topological_space α]
 
 structure has_prod (f : β → α) (a : α) : Prop :=
 (finite_not_unit : {b | ¬ is_unit (f b)}.finite)
-(tendsto_units : ∃ x : αˣ, tendsto (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x))
+(tendsto_units : ∃ x : αˣ, tendsto
+  (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x))
 (prod_eq : a = tendsto_units.some * ∏ b in finite_not_unit.to_finset, f b)
 
 def converges_prod (f : β → α) : Prop := ∃ (a : α), has_prod f a
@@ -35,48 +36,136 @@ begin
 end
 
 lemma has_prod_ratio {f : β → ℝ} {a : ℝ} (hf : has_prod f a) :
-  tendsto (λ sb : finset β × β, (∏ b in (sb.1.filter (λ i, is_unit (f i))), f b) / ∏ b in (sb.1.filter (λ i, is_unit (f i))).erase sb.2, f b) cofinite (𝓝 1) :=
+  tendsto (λ sb : finset β × β, (
+      ∏ b in ((insert sb.2 sb.1).filter (λ i, is_unit (f i))), f b) /
+      ∏ b in (sb.1.filter (λ i, is_unit (f i))), f b)
+    (at_top.comap prod.fst) (𝓝 1) :=
 begin
   obtain ⟨x, hx⟩ := hf.tendsto_units,
+  rw ←div_self x.ne_zero,
   simp_rw div_eq_mul_inv,
-  rw ←mul_inv_cancel x.is_unit.ne_zero,
-  -- have := tendsto.fst
-  -- have := hx.imp _,
-  -- rw tendsto_prod_iff
-  -- intros U hU,
-  -- rw filter.mem_map,
-  -- simp,
-  -- refine (tendsto_mul _).map,
+  refine tendsto.mul _ ((real.tendsto_inv x.ne_zero).comp _),
+  { intros U hU,
+    specialize hx hU,
+    simp only [filter.mem_map, mem_comap, mem_at_top_sets, ge_iff_le, le_eq_subset,
+               exists_prop] at hx ⊢,
+    obtain ⟨s, hs⟩ := hx,
+    simp only [set.mem_preimage] at hs,
+    set s' : set (finset β) := (λ t, s ∪ t) '' set.univ with hs',
+    refine ⟨s', ⟨s, _⟩, _⟩,
+    { simp only [hs', set.image_univ, set.mem_range],
+      intros t ht,
+      refine ⟨t \ s, _⟩,
+      simp [ht] },
+    simp only [hs', set.image_univ],
+    rintro ⟨t, b⟩,
+    simp only [set.mem_preimage, set.mem_range, forall_exists_index],
+    rintro x rfl,
+    refine hs _ _,
+    exact (subset_union_left _ _).trans (subset_insert _ _) },
+  { refine (hx.comp tendsto_comap).congr _,
+    simp }
 end
+
+lemma has_prod_ratio' {f : β → ℝ} {a : ℝ} (hf : has_prod f a) :
+  tendsto (λ sb : finset β × finset β, (
+      ∏ b in ((sb.1 ∪ sb.2).filter (λ i, is_unit (f i))), f b) /
+      ∏ b in (sb.1.filter (λ i, is_unit (f i))), f b)
+    at_top (𝓝 1) :=
+begin
+  obtain ⟨x, hx⟩ := hf.tendsto_units,
+  rw ←div_self x.ne_zero,
+  simp_rw div_eq_mul_inv,
+  refine tendsto.mul _ ((real.tendsto_inv x.ne_zero).comp _),
+  { intros U hU,
+    specialize hx hU,
+    simp only [filter.mem_map, mem_at_top_sets, ge_iff_le, le_eq_subset, set.mem_preimage,
+               prod.forall, prod.exists, prod.mk_le_mk, and_imp] at hx ⊢,
+    obtain ⟨s, hs⟩ := hx,
+    exact ⟨s, ∅, λ s' t' hs' ht', hs _ (hs'.trans (subset_union_left _ _))⟩ },
+  { rw ←prod_at_top_at_top_eq,
+    exact (hx.comp tendsto_fst) }
+end
+
+@[to_additive]
+def prod_induction [comm_monoid γ] {C : γ → Prop} (s : finset β) (f : β → γ) (h1 : C 1)
+  (hmul : ∀ (a ∈ s) b, C b → C (f a * b)) : C (s.prod f) :=
+begin
+  induction s using finset.cons_induction_on with a s ha IH,
+  { exact h1 },
+  { rw prod_cons ha,
+    refine hmul _ (mem_cons_self _ _) _ (IH _),
+    intros a ha,
+    exact hmul _ (mem_cons.mpr (or.inr ha)) }
+end
+
+@[to_additive]
+lemma is_unit_prod [comm_monoid γ] (s : finset β) (f : β → γ) (hs : ∀ b ∈ s, is_unit (f b)) :
+  is_unit (s.prod f) :=
+prod_induction _ _ is_unit_one (λ a ha b hb, (hs _ ha).mul hb)
+
+attribute [to_additive] is_unit.decidable
+
+@[to_additive]
+lemma is_unit_prod_filter [comm_monoid γ] (s : finset β) (f : β → γ) :
+  is_unit ((s.filter (λ b, is_unit (f b))).prod f) :=
+is_unit_prod _ _ (by simp)
+
+lemma converges_prod.vanishing {f : β → ℝ} (hf : converges_prod f) ⦃e : set ℝ⦄
+  (he : e ∈ 𝓝 (1 : ℝ)) : ∃ s : finset β, ∀ t, disjoint t s → ∏ k in t, f k ∈ e :=
+begin
+  rcases hf with ⟨x, hf⟩,
+  have := has_prod_ratio hf,
+  have h := has_prod_ratio' hf he,
+  simp only [filter.mem_map, mem_comap, mem_at_top_sets, ge_iff_le, le_eq_subset, exists_prop,
+             set.preimage_subset_iff, set.mem_preimage, prod.forall] at h,
+  simp only [prod.exists, prod.mk_le_mk, le_eq_subset, and_imp] at h,
+  obtain ⟨s, t, h⟩ := h,
+  refine ⟨s ∪ t ∪ hf.finite_not_unit.to_finset, λ u hdisj, _⟩,
+  specialize h (s ∪ (t ∪ hf.finite_not_unit.to_finset)) (t ∪ u)
+    (subset_union_left _ _) (subset_union_left _ _),
+  simp_rw [union_assoc s, union_left_comm, ←union_assoc t, union_idempotent t, ←union_assoc s] at h,
+  rw [filter_union, prod_union (disjoint_filter_filter hdisj.symm), is_unit.mul_div_cancel_left] at
+    h,
+  { suffices : ∀ b ∈ u, is_unit (f b),
+    { rwa (filter_eq_self _).mpr this at h },
+    intros b hb,
+    have : {b} ≤ u := by simp only [hb, le_eq_subset, singleton_subset_iff],
+    specialize hdisj this,
+    simp only [union_assoc, le_eq_subset, singleton_subset_iff, mem_union, set.finite.mem_to_finset,
+               set.mem_set_of_eq, bot_eq_empty, not_mem_empty] at hdisj,
+    contrapose! hdisj,
+    simp [hdisj] },
+  { exact is_unit_prod_filter _ _ },
+end
+
+-- lemma converges_prod.tendsto_nhds_one {f : ℕ → ℝ} (hf : converges_prod f) :
+--   tendsto f at_top (𝓝 1) :=
+-- begin
+--   obtain ⟨x, hf⟩ := hf,
+--   have := has_prod_ratio hf,
+--   refine (this.comp _).congr' _,
+--   { exact λ b, (hf.finite_not_unit.to_finset, b) },
+--   { rw eventually_eq,
+--     refine hf.finite_not_unit.subset _,
+--     intro s,
+--     contrapose!,
+--     have : filter (λ i : β, is_unit (f i)) hf.finite_not_unit.to_finset = ∅,
+--     { ext,
+--       simp },
+--     simp [filter_insert, this] { contextual := tt } },
+--   { simp only [tendsto_comap_iff, tendsto_at_top, eventually_cofinite, le_eq_subset,
+--                set.finite.subset_to_finset],
+--     intro s,
+--     simp,
+--     -- {x : β | ¬↑s ⊆ {b : β | ¬is_unit (f b)}}.finite
+--     sorry -- this is false for infinite β, because the condition doesn't need x here
+--     },
+-- end
 #exit
 
-lemma thm11 (f g : β → ℝ) (ξ η : ℝ) (hf : tendsto f cofinite (𝓝 ξ))
-  (hg : tendsto g cofinite (𝓝 η)) (hx : ∀ x, is_unit (f x)) (hξ : is_unit ξ) :
-  tendsto (λ i, g i / f i) cofinite (𝓝 (η / ξ)) :=
-begin
-  simp_rw div_eq_mul_inv,
-  refine hg.mul ((real.tendsto_inv hξ.ne_zero).comp hf),
-  -- refine tendsto.mul
-  -- have := real.continuous_
-  -- intros s hs,
-  -- rw filter.mem_map,
-end
-
-lemma thm11a (f : β → ℝ) (ξ : ℝ) (hf : tendsto f cofinite (𝓝 ξ))
-  (hx : ∀ x, is_unit (f x)) (hξ : is_unit ξ) :
-  tendsto (λ x, (f x)⁻¹) cofinite (𝓝 ξ⁻¹) :=
--- sorry
-begin
-  refine (real.tendsto_inv hξ.ne_zero).comp hf,
-  -- refine real.continuous_inv.continous_on
-  -- refine (continuous.tendsto _ _).comp hf,
-end
-
 
 #exit
-  -- is_unit a ∧
-  -- (∀ᶠ b in cofinite, is_unit (f b)) ∧
-  -- tendsto (λs:finset β, ∏ b in s, f b) at_top (𝓝 a)
 
 variables {f : β → α} {a : α}
 

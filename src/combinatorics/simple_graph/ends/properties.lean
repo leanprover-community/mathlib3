@@ -37,16 +37,11 @@ begin
   exact ⟨e.val (opposite.op L), (e.prop (category_theory.op_hom_of_le h))⟩,
 end
 
-lemma component_compl_functor_finite
-  {G : simple_graph V} [G.locally_finite] (Gpc : G.preconnected)
-  (K : (finset V)ᵒᵖ) : finite (G.component_compl_functor.obj K) :=
- component_compl_finite Gpc K.unop
-
 @[instance]
 noncomputable def component_compl_functor_fintype
   {G : simple_graph V} [G.locally_finite] (Gpc : G.preconnected)
   (K : (finset V)ᵒᵖ) : fintype (G.component_compl_functor.obj K) :=
-  @fintype.of_finite _ (component_compl_functor_finite Gpc K)
+  @fintype.of_finite _ (component_compl_finite Gpc K.unop)
 
 lemma component_compl_functor_nonempty_of_infinite
   (G : simple_graph V) [infinite V] (K : (finset V)ᵒᵖ) :
@@ -63,9 +58,9 @@ begin
 end
 
 @[instance]
-noncomputable def component_compl_functor_to_eventual_ranges_finite
+noncomputable def component_compl_functor_to_eventual_ranges_fintype
   [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
-  {G : simple_graph V}  [locally_finite G] (Gpc : G.preconnected) (K : (finset V)ᵒᵖ) :
+  {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected) (K : (finset V)ᵒᵖ) :
   fintype (G.component_compl_functor.to_eventual_ranges.obj K) :=
 begin
   haveI : Π (j : (finset V)ᵒᵖ), fintype (G.component_compl_functor.obj j) :=

@@ -174,7 +174,7 @@ begin
     rw [←(connected_component.iso lol).right_inv C, equiv.infinite_iff],
     exact inf ((connected_component.iso lol).symm C),
     exact (component_compl.supp_equiv _).trans
-      ((connected_component.apply_iso_equiv lol _).symm.trans
+      ((connected_component.iso_equiv_supp lol _).symm.trans
         (component_compl.supp_equiv _).symm), },
 
   apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) ((Kn.mono KL).image φ) ⟨_, _⟩ ⟨_, _⟩
@@ -205,8 +205,8 @@ begin
   intros finite_ends,
   haveI : fintype (G.component_compl_functor.to_eventual_ranges).sections :=
     (@fintype.of_equiv _ _ (set.finite.fintype finite_ends) $ (functor.to_eventual_ranges_sections_equiv _).symm),
-  haveI := λ j, @fintype.of_finite _ (G.component_compl_functor_to_eventual_ranges_finite Gpc j),
-  haveI := G.component_compl_functor_to_eventual_ranges_nonempty_of_infinite,
+  haveI := component_compl_functor_to_eventual_ranges_fintype Gpc,
+  haveI := λ j, component_compl_functor_to_eventual_ranges_nonempty_of_infinite G Gpc j,
   haveI : nonempty (finset V)ᵒᵖ := ⟨op ∅⟩,
   have surj : ∀ ⦃i j⦄ (f : i ⟶ j), function.surjective _ :=
     functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc),

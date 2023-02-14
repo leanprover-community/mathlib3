@@ -351,8 +351,6 @@ begin
     exact ⟨D.disjoint_right, λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
 end
 
-
-
 section ends
 
 variables (G)

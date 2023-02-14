@@ -1519,21 +1519,6 @@ by { refine C.ind _, exact (λ _, rfl) }
   (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
 
-end connected_component
-
-variables {G}
-
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
-
-lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
-begin
-  split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
-  subst_vars
-end
-
 /-- The set of vertices in a connected component of a graph. -/
 def connected_component.supp (C : G.connected_component) :=
   { v | G.connected_component_mk v = C }
@@ -1552,6 +1537,21 @@ begin
   have := eq_iff_iff.mp (congr_fun hsupp v),
   exact this.mp (simple_graph.reachable.refl _), },
   { intro h, subst h, }
+end
+
+end connected_component
+
+variables {G}
+
+/-- A subgraph is connected if it is connected as a simple graph. -/
+abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
+
+lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
+begin
+  split,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
+  subst_vars
 end
 
 @[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :

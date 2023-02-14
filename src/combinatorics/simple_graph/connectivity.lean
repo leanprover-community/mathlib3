@@ -1543,7 +1543,7 @@ instance : set_like G.connected_component V :=
 @[simp] lemma connected_component.mem_supp_iff (C : G.connected_component) (v : V) :
   v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
 
-lemma connected_component.mk_mem (G : simple_graph V) {v : V} :
+lemma connected_component_mk_mem (G : simple_graph V) {v : V} :
   v ∈ G.connected_component_mk v := by { exact rfl, }
 
 lemma connected_component_mk_eq_of_adj (G : simple_graph V) {v w : V}

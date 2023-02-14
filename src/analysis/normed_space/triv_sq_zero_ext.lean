@@ -37,12 +37,12 @@ variables [topological_space R] [topological_space M]
 
 
 /-- If `exp R x.fst` converges to `e` then `exp R x` converges to `inl e + inr (e • x.snd)`. -/
-lemma has_sum_exp_series [field 𝕜] [char_zero 𝕜] [ring R]
+lemma has_sum_exp_series [field 𝕜] [char_zero 𝕜] [comm_ring R]
   [add_comm_group M] [algebra 𝕜 R]
-  [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
-  [module 𝕜 M] [is_scalar_tower 𝕜 R M] [is_scalar_tower 𝕜 Rᵐᵒᵖ M]
+  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [module 𝕜 M] [is_scalar_tower 𝕜 R M]
   [topological_ring R] [topological_add_group M]
-  [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M]
+  [has_continuous_smul R M]
   (x : tsze R M) {e : R} (h : has_sum (λ n, exp_series 𝕜 R n (λ _, x.fst)) e) :
   has_sum (λ n, exp_series 𝕜 (tsze R M) n (λ _, x)) (inl e + inr (e • x.snd)) :=
 begin
@@ -50,23 +50,17 @@ begin
   conv
   { congr,
     funext,
-    rw [←inl_fst_add_inr_snd_eq (x ^ _), fst_pow, snd_pow_noncomm, smul_add, ←inr_smul,
-      ←inl_smul, list.smul_sum, list.map_map, function.comp],
-    --, nsmul_eq_smul_cast 𝕜 n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc],
-       },
+    rw [←inl_fst_add_inr_snd_eq (x ^ _), fst_pow, snd_pow, smul_add, ←inr_smul,
+      ←inl_smul, nsmul_eq_smul_cast 𝕜 n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc], },
   refine (has_sum_inl M h).add (has_sum_inr M _),
+  apply has_sum.smul_const,
   rw [←has_sum_nat_add_iff' 1], swap, apply_instance,
-  rw [finset.range_one, finset.sum_singleton, list.range_zero, list.map_nil, list.sum_nil,
+  rw [finset.range_one, finset.sum_singleton, nat.cast_zero, div_zero, inv_zero, zero_smul,
     sub_zero],
   simp_rw [←nat.succ_eq_add_one, nat.pred_succ, nat.factorial_succ, nat.cast_mul,
-    ←nat.succ_eq_add_one],
-  -- apply has_sum.smul_const,
-  -- rw [finset.range_one, finset.sum_singleton, nat.cast_zero, div_zero, inv_zero, zero_smul,
-  --   sub_zero],
-  -- simp_rw [←nat.succ_eq_add_one, nat.pred_succ, nat.factorial_succ, nat.cast_mul,
-  --   ←nat.succ_eq_add_one,
-  --   mul_div_cancel_left _ ((@nat.cast_ne_zero 𝕜 _ _ _).mpr $ nat.succ_ne_zero _)],
-  -- exact h,
+    ←nat.succ_eq_add_one,
+    mul_div_cancel_left _ ((@nat.cast_ne_zero 𝕜 _ _ _).mpr $ nat.succ_ne_zero _)],
+  exact h,
 end
 
 end topology

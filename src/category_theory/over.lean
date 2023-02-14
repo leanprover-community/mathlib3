@@ -223,10 +223,7 @@ variables {D : Type u₂} [category.{v₂} D]
 @[simps]
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
-  map := λ Y₁ Y₂ f,
-  { left := F.map f.left,
-    right := 𝟙 _,
-    w' := by tidy; erw [← F.map_comp, w] } }
+  map := λ Y₁ Y₂ f, over.hom_mk (F.map f.left) (by tidy; erw [← F.map_comp, w]) }
 
 end
 
@@ -372,10 +369,7 @@ variables {D : Type u₂} [category.{v₂} D]
 @[simps]
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
-  map := λ Y₁ Y₂ f,
-  { left := 𝟙 _,
-    right := F.map f.right,
-    w' := by tidy; erw [← F.map_comp, w] } }
+  map := λ Y₁ Y₂ f, under.hom_mk (F.map f.right) (by tidy; erw [← F.map_comp, w]), }
 
 end
 

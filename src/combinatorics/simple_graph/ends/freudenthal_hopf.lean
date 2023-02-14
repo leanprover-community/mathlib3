@@ -9,18 +9,18 @@ noncomputable theory
 local attribute [instance] prop_decidable
 
 namespace simple_graph
+namespace component_compl
 
-variables {V : Type u} {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected)
+variables {V : Type u} {G : simple_graph V} (Gpc : G.preconnected)
+
 include Gpc
 
-open component_compl
-
-lemma nicely_arranged {H K : set V}
-  (Hnempty : H.nonempty) --(Knempty : K.nonempty)
+lemma subset_of_nicely_arranged {H K : set V}
+  (Hnempty : H.nonempty)
   (E E' : G.component_compl H)
-  (Einf : E.supp.infinite) (Einf' : E'.supp.infinite)
+  (Einf' : E'.supp.infinite)
   (En : E ≠ E')
-  (F : G.component_compl K) (Finf : F.supp.infinite)
+  (F : G.component_compl K)
   (H_F : H ⊆ F)
   (K_E : K ⊆ E) : (E' : set V) ⊆ F :=
 begin
@@ -36,7 +36,9 @@ begin
   exact this ▸ sub,
 end
 
-lemma bwd_map_non_inj
+variable [locally_finite G]
+
+lemma hom_not_injective
   {H K : (finset V)ᵒᵖ}
   {C : G.component_compl_functor.to_eventual_ranges.obj H}
   {D D' : G.component_compl_functor.to_eventual_ranges.obj K}
@@ -92,7 +94,7 @@ begin
 end
 
 include Gpc
-lemma nicely_arranged_bwd_map_not_inj
+lemma hom_not_injective_of_nicely_arranged
   {H K : (finset V)ᵒᵖ}
   (Hnempty : (unop H).nonempty)
   {E : G.component_compl_functor.to_eventual_ranges.obj H}
@@ -105,15 +107,15 @@ lemma nicely_arranged_bwd_map_not_inj
       (op_hom_of_le $ finset.subset_union_left K.unop H.unop : op (K.unop ∪ H.unop) ⟶ K)) :=
 begin
   obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ := (fin.fin3_embedding_iff' E).mp ⟨hK⟩,
-  apply @bwd_map_non_inj V G _ Gpc _ _ F E₁ E₂ h₁₂ _ _,
-  { apply @nicely_arranged _ _ _ Gpc _ _ Hnempty E.val E₁.val,
+  apply @hom_not_injective V G Gpc _ _ _ F E₁ E₂ h₁₂ _ _,
+  { apply @subset_of_nicely_arranged _ _ Gpc _ _ Hnempty E.val E₁.val,
     any_goals
     { rw infinite_iff_in_eventual_range },
-    exacts [E.prop, E₁.prop, λ h, h₀₁ (subtype.eq h), F.prop, H_F, K_E], },
-  { apply @nicely_arranged _ _ _ Gpc _ _ Hnempty E.val E₂.val,
+    exacts [E₁.prop, λ h, h₀₁ (subtype.eq h), H_F, K_E], },
+  { apply @subset_of_nicely_arranged _ _ Gpc _ _ Hnempty E.val E₂.val,
     any_goals
     { rw infinite_iff_in_eventual_range },
-    exacts [E.prop, E₂.prop, λ h, h₀₂ (subtype.eq h), F.prop, H_F, K_E], },
+    exacts [E₂.prop, λ h, h₀₂ (subtype.eq h), H_F, K_E], },
 end
 
 
@@ -133,7 +135,7 @@ include Gpc
   As long as K has at least three infinite connected components, then so does L, and
   bwd_map ‹L⊆L› is not injective, hence the graph has more than three ends.
 -/
-lemma good_autom_back_not_inj
+lemma hom_not_injective_of_enough_automorphisms_of_many_components
   (auts : ∀ K : finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : (finset V)ᵒᵖ)
   (hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj K)) :
@@ -177,7 +179,7 @@ begin
       ((connected_component.iso_equiv_supp lol _).symm.trans
         (component_compl.supp_equiv _).symm), },
 
-  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc (op φL) (op L) ((Kn.mono KL).image φ) ⟨_, _⟩ ⟨_, _⟩
+  apply @hom_not_injective_of_nicely_arranged V G Gpc _ (op φL) (op L) ((Kn.mono KL).image φ) ⟨_, _⟩ ⟨_, _⟩
     (subset_of_connected_disjoint_right φLc (finset.disjoint_coe.mpr φh))
     (subset_of_connected_disjoint_right Lc (finset.disjoint_coe.mpr φh.symm)) _,
   exact (@component_compl.infinite_iff_in_eventual_range V G (op φL) _).mp (φinf _),
@@ -198,7 +200,6 @@ end
 
 lemma Freudenthal_Hopf
   [Vi : infinite V] -- follows from the other assumptions
-  [locally_finite G] (Gpc : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (many_ends : fin 3 ↪ G.end) : G.end.infinite :=
 begin
@@ -213,7 +214,7 @@ begin
   obtain ⟨K,top⟩ := G.component_compl_functor.to_eventual_ranges.eventually_injective surj,
   let inj' := G.component_compl_functor.to_eventual_ranges.eval_section_injective_of_eventually_injective top,
   let inj'' := (many_ends.trans (functor.to_eventual_ranges_sections_equiv _).symm.to_embedding).trans ⟨_, (inj' K (𝟙 K))⟩,
-  obtain ⟨L,M,KL,LM,LM_not_inj⟩ := (good_autom_back_not_inj Gpc auts K inj''),
+  obtain ⟨L,M,KL,LM,LM_not_inj⟩ := (hom_not_injective_of_enough_automorphisms_of_many_components Gpc auts K inj''),
   refine LM_not_inj (@injective.of_comp _ _ _ (G.component_compl_functor.to_eventual_ranges.map KL) _ _),
   rw [←types_comp,←functor.map_comp],
   apply top,
@@ -230,5 +231,6 @@ begin
   -- take x in K, and some y at distance ≥2m from x.
 end
 
-
+end component_compl
 end simple_graph
+#lint

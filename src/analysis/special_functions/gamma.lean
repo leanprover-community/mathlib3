@@ -374,6 +374,24 @@ begin
     simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
 end
 
+/-- At `0` the Gamma function is undefined; by convention we assign it the value `0`. -/
+lemma Gamma_zero : Gamma 0 = 0 :=
+by simp_rw [Gamma, zero_re, sub_zero, nat.floor_one, Gamma_aux, div_zero]
+
+/-- At `-n` for `n ∈ ℕ`, the Gamma function is undefined; by convention we assign it the value 0. -/
+lemma Gamma_neg_nat_eq_zero (n : ℕ) : Gamma (-n) = 0 :=
+begin
+  induction n with n IH,
+  { rw [nat.cast_zero, neg_zero, Gamma_zero] },
+  { have A : -(n.succ : ℂ) ≠ 0,
+    { rw [neg_ne_zero, nat.cast_ne_zero],
+      apply nat.succ_ne_zero },
+    have : -(n:ℂ) = -↑n.succ + 1, by simp,
+    rw [this, Gamma_add_one _ A] at IH,
+    contrapose! IH,
+    exact mul_ne_zero A IH }
+end
+
 lemma Gamma_conj (s : ℂ) : Gamma (conj s) = conj (Gamma s) :=
 begin
   suffices : ∀ (n:ℕ) (s:ℂ) , Gamma_aux n (conj s) = conj (Gamma_aux n s), from this _ _,
@@ -608,6 +626,19 @@ theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = n! :=
 by rw [Gamma, complex.of_real_add, complex.of_real_nat_cast, complex.of_real_one,
   complex.Gamma_nat_eq_factorial, ←complex.of_real_nat_cast, complex.of_real_re]
 
+/-- At `0` the Gamma function is undefined; by convention we assign it the value `0`. -/
+lemma Gamma_zero : Gamma 0 = 0 :=
+by simpa only [←complex.of_real_zero, complex.Gamma_of_real, complex.of_real_inj]
+  using complex.Gamma_zero
+
+/-- At `-n` for `n ∈ ℕ`, the Gamma function is undefined; by convention we assign it the value `0`.
+-/
+lemma Gamma_neg_nat_eq_zero (n : ℕ) : Gamma (-n) = 0 :=
+begin
+  simpa only [←complex.of_real_nat_cast, ←complex.of_real_neg, complex.Gamma_of_real,
+    complex.of_real_eq_zero] using complex.Gamma_neg_nat_eq_zero n,
+end
+
 lemma Gamma_pos_of_pos {s : ℝ} (hs : 0 < s) : 0 < Gamma s :=
 begin
   rw Gamma_eq_integral hs,
@@ -624,6 +655,8 @@ begin
   { exact Gamma_integral_convergent hs },
 end
 
+/-- The Gamma function does not vanish on `ℝ` (except at non-positive integers, where the function
+is mathematically undefined and we set it to `0` by convention). -/
 lemma Gamma_ne_zero {s : ℝ} (hs : ∀ m : ℕ, s ≠ -m) : Gamma s ≠ 0 :=
 begin
   suffices : ∀ {n : ℕ}, (-(n:ℝ) < s) → Gamma s ≠ 0,
@@ -652,6 +685,9 @@ begin
     { exact this.2 },
     { simpa using hs 0 } },
 end
+
+lemma Gamma_eq_zero_iff (s : ℝ) : Gamma s = 0 ↔ ∃ m : ℕ, s = -m :=
+⟨by { contrapose!, exact Gamma_ne_zero }, by { rintro ⟨m, rfl⟩, exact Gamma_neg_nat_eq_zero m }⟩
 
 lemma differentiable_at_Gamma {s : ℝ} (hs : ∀ m : ℕ, s ≠ -m) : differentiable_at ℝ Gamma s :=
 begin
@@ -1332,7 +1368,7 @@ begin
       exact one_sub_div_pow_le_exp_neg hxn } }
 end
 
-/-- Euler's limit formula for the Gamma function. -/
+/-- Euler's limit formula for the complex Gamma function. -/
 lemma Gamma_seq_tendsto_Gamma (s : ℂ) :
   tendsto (Gamma_seq s) at_top (𝓝 $ Gamma s) :=
 begin
@@ -1401,21 +1437,7 @@ begin
   exact pow_ne_zero 2 (nat.cast_ne_zero.mpr $ nat.factorial_ne_zero n),
 end
 
-/-- At `-n` for `n ∈ ℕ`, the Gamma function is undefined; by convention we assign it the value 0. -/
-lemma Gamma_neg_nat_eq_zero (n : ℕ) : Gamma (-n) = 0 :=
-begin
-  induction n with n IH,
-  { rw [Gamma, nat.cast_zero, neg_zero, zero_re, sub_zero, nat.floor_one, Gamma_aux],
-    simp only [div_zero] },
-  { have A : -(n.succ : ℂ) ≠ 0,
-    { rw [neg_ne_zero, nat.cast_ne_zero],
-      apply nat.succ_ne_zero },
-    have : -(n:ℂ) = -↑n.succ + 1, by simp,
-    rw [this, complex.Gamma_add_one _ A] at IH,
-    contrapose! IH,
-    exact mul_ne_zero A IH }
-end
-
+/-- Euler's reflection formula for the complex Gamma function. -/
 theorem Gamma_mul_Gamma_one_sub (z : ℂ) : Gamma z * Gamma (1 - z) = π / sin (π * z) :=
 begin
   have pi_ne : (π : ℂ) ≠ 0, from complex.of_real_ne_zero.mpr pi_ne_zero,
@@ -1443,6 +1465,8 @@ begin
     ext1 n, rw [mul_comm, ←mul_assoc] },
 end
 
+/-- The Gamma function does not vanish on `ℂ` (except at non-positive integers, where the function
+is mathematically undefined and we set it to `0` by convention). -/
 theorem Gamma_ne_zero {s : ℂ} (hs : ∀ m : ℕ, s ≠ -m) : Gamma s ≠ 0 :=
 begin
   by_cases h_im : s.im = 0,
@@ -1472,5 +1496,32 @@ begin
 end
 
 end complex
+
+namespace real
+
+noncomputable def Gamma_seq (s : ℝ) (n : ℕ) :=
+(n : ℝ) ^ s * n! / ∏ (j : ℕ) in finset.range (n + 1), (s + j)
+
+/-- Euler's limit formula for the real Gamma function. -/
+lemma Gamma_seq_tendsto_Gamma (s : ℝ) : tendsto (Gamma_seq s) at_top (𝓝 $ Gamma s) :=
+begin
+  suffices : tendsto (coe ∘ Gamma_seq s : ℕ → ℂ) at_top (𝓝 $ complex.Gamma s),
+    from (complex.continuous_re.tendsto (complex.Gamma ↑s)).comp this,
+  convert complex.Gamma_seq_tendsto_Gamma s,
+  ext1 n,
+  dsimp only [Gamma_seq, function.comp_app, complex.Gamma_seq],
+  push_cast,
+  rw [complex.of_real_cpow n.cast_nonneg, complex.of_real_nat_cast]
+end
+
+/-- Euler's reflection formula for the real Gamma function. -/
+lemma Gamma_mul_Gamma_one_sub (s : ℝ) : Gamma s * Gamma (1 - s) = π / sin (π * s) :=
+begin
+  simp_rw [←complex.of_real_inj, complex.of_real_div, complex.of_real_sin,
+    complex.of_real_mul, ←complex.Gamma_of_real, complex.of_real_sub, complex.of_real_one],
+  exact complex.Gamma_mul_Gamma_one_sub s
+end
+
+end real
 
 end gamma_reflection

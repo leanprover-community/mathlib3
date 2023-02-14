@@ -347,15 +347,13 @@ begin
       have : (D : set V) ⊆ L, by
       { simp only [finset.coe_union, set.finite.coe_to_finset],
         refine set.subset_union_of_subset_right (set.subset_bUnion_of_mem Dfin) _, },
-      exact component_compl.not_subset_right ((C.subset_hom K'L).trans this), },
-    have Ddis : disjoint (L : set V) (D : set V), by
-    { simp only [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
-                 set.disjoint_Union₂_left, set.mem_set_of_eq],
-      exact ⟨D.disjoint_right,
-             λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
+      refine component_compl.not_subset_right ((C.subset_hom K'L).trans this), },
     rw component_compl.eq_of_subset
         ((C.subset_hom K'L).trans $ component_compl.subset_of_connected_disjoint_right _ _),
-    exact Dinf.mono (component_compl.subset_of_connected_disjoint_right D.connected Ddis), },
+    refine Dinf.mono (component_compl.subset_of_connected_disjoint_right D.connected _),
+    simp only [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
+                 set.disjoint_Union₂_left, set.mem_set_of_eq],
+    exact ⟨D.disjoint_right, λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
 end
 
 

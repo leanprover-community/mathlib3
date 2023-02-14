@@ -409,16 +409,22 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action 
   (x : tsze R M) (n : ℕ) :
   fst (x ^ n) = x.fst ^ n := rfl
 
-@[simp] lemma snd_pow_noncomm [monoid R] [add_monoid M]
+@[simp] lemma snd_pow_eq_sum [monoid R] [add_monoid M]
   [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] (x : tsze R M) (n : ℕ) :
   snd (x ^ n) = ((list.range n).map (λ i, x.fst ^ (n.pred - i) • op (x.fst ^ i) • x.snd)).sum := rfl
 
-@[simp] lemma snd_pow [comm_monoid R] [add_monoid M]
-  [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [is_central_scalar R M]
-  (x : tsze R M) (n : ℕ) :
+@[simp] lemma snd_pow_of_smul_comm [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
+  (x : tsze R M) (n : ℕ) (h : op x.fst • x.snd = x.fst • x.snd) :
   snd (x ^ n) = n • x.fst ^ n.pred • x.snd :=
 begin
-  simp_rw [snd_pow_noncomm, op_smul_eq_smul, smul_smul, ←pow_add],
+  have : ∀ n : ℕ, op (x.fst ^ n) • x.snd = x.fst ^ n • x.snd,
+  { intro n,
+    induction n with n ih,
+    { simp },
+    { rw [pow_succ', mul_opposite.op_mul, mul_smul, mul_smul, ←h,
+        smul_comm (_ : R) (op x.fst) x.snd, ih] } },
+  simp_rw [snd_pow_eq_sum, this, smul_smul, ←pow_add],
   cases n,
   { rw [nat.pred_zero, pow_zero, list.range_zero, zero_smul, list.map_nil, list.sum_nil] },
   simp_rw nat.pred_succ,
@@ -429,6 +435,12 @@ begin
     rw tsub_add_cancel_of_le (nat.lt_succ_iff.mp hi) },
   { rw [list.length_map, list.length_range] }
 end
+
+@[simp] lemma snd_pow [comm_monoid R] [add_monoid M]
+  [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [is_central_scalar R M]
+  (x : tsze R M) (n : ℕ) :
+  snd (x ^ n) = n • x.fst ^ n.pred • x.snd :=
+snd_pow_of_smul_comm _ _ (op_smul_eq_smul _ _)
 
 @[simp] lemma inl_pow [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M]
   (r : R) (n : ℕ) :
@@ -445,7 +457,7 @@ instance [monoid R] [add_monoid M]
   npow := λ n x, x ^ n,
   npow_zero' := λ x, ext (pow_zero x.fst) (by simp),
   npow_succ' := λ n x, ext (pow_succ _ _) begin
-    simp_rw [snd_mul, snd_pow_noncomm, nat.pred_succ],
+    simp_rw [snd_mul, snd_pow_eq_sum, nat.pred_succ],
     cases n,
     { simp [list.range_succ], },
     simp_rw [nat.pred_succ],

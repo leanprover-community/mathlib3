@@ -18,34 +18,34 @@ integral `Γ(s) = ∫ x in Ioi 0, exp (-x) * x ^ (s - 1)` in the range where thi
 
 We show that this integral satisfies `Γ(1) = 1` and `Γ(s + 1) = s * Γ(s)`; hence we can define
 `Γ(s)` for all `s` as the unique function satisfying this recurrence and agreeing with Euler's
-integral in the convergence range. In the complex case we also prove that the resulting function is
-holomorphic on `ℂ` away from the points `{-n : n ∈ ℕ}`.
+integral in the convergence range. (If `s = -n` for `n ∈ ℕ`, then the function is undefined, and we
+set it to be `0` by convention.)
+
+## Gamma function: main statements (complex case)
+
+* `complex.Gamma`: the `Γ` function (of a complex variable).
+* `complex.Gamma_eq_integral`: for `0 < re s`, `Γ(s)` agrees with Euler's integral.
+* `complex.Gamma_add_one`: for all `s : ℂ` with `s ≠ 0`, we have `Γ (s + 1) = s Γ(s)`.
+* `complex.Gamma_nat_eq_factorial`: for all `n : ℕ` we have `Γ (n + 1) = n!`.
+* `complex.differentiable_at_Gamma`: `Γ` is complex-differentiable at all `s : ℂ` with
+  `s ∉ {-n : n ∈ ℕ}`.
+* `complex.Gamma_ne_zero`: for all `s : ℂ` with `s ∉ {-n : n ∈ ℕ}` we have `Γ s ≠ 0`.
+* `complex.Gamma_seq_tendsto_Gamma`: for all `s`, the limit as `n → ∞` of the sequence
+  `n ↦ n ^ s * n! / (s * (s + 1) * ... * (s + n))` is `Γ(s)`.
+* `complex.Gamma_mul_Gamma_one_sub`: Euler's reflection formula
+  `Gamma s * Gamma (1 - s) = π / sin π s`.
 
 ## Gamma function: main statements (real case)
 
-* `real.Gamma` : the `Γ` function (of a real variable).
-* `real.Gamma_eq_integral` : for `0 < s`, `Γ(s)` agrees with Euler's integral
-  `∫ (x:ℝ) in Ioi 0, exp (-x) * x ^ (s - 1)`
-* `real.Gamma_add_one` : for all `s : ℝ` with `s ≠ 0`, we have `Γ(s + 1) = s Γ(s)`.
-* `real.Gamma_nat_eq_factorial` : for all `n : ℕ` we have `Γ (n + 1) = n!`.
-* `real.differentiable_at_Gamma` : `Γ` is real-differentiable at all `s : ℝ` with
-  `s ∉ {-n : n ∈ ℕ}`.
-* `real.Gamma_ne_zero`: for all `s : ℝ` with `s ∉ {-n : n ∈ ℕ}` we have `Γ s ≠ 0`.
-* `real.tendsto_log_Gamma`: for all `0 < s`, the limit as `n → ∞` of the sequence
-  `n ↦ s log n + log n! - (log s + ... + log (s + n))` is `log Γ(s)`.
+* `real.Gamma`: the `Γ` function (of a real variable).
+* Real counterparts of all the properties of the complex Gamma function listed above:
+  `real.Gamma_eq_integral`, `real.Gamma_add_one`, `real.Gamma_nat_eq_factorial`,
+  `real.differentiable_at_Gamma`, `real.Gamma_ne_zero`, `real.Gamma_seq_tendsto_Gamma`,
+  `real.Gamma_mul_Gamma_one_sub`.
 * `real.convex_on_log_Gamma` : `log ∘ Γ` is convex on `Ioi 0`.
 * `real.eq_Gamma_of_log_convex` : the Bohr-Mollerup theorem, which states that the `Γ` function is
   the unique log-convex, positive-valued function on `Ioi 0` satisfying the functional equation
   and having `Γ 1 = 1`.
-
-## Gamma function: main statements (complex case)
-
-* `complex.Gamma` : the `Γ` function (of a complex variable).
-* `complex.Gamma_eq_integral` : for `0 < re s`, `Γ(s)` agrees with Euler's integral.
-* `complex.Gamma_add_one` : for all `s : ℂ` with `s ≠ 0`, we have `Γ(s + 1) = s Γ(s)`.
-* `complex.Gamma_nat_eq_factorial` : for all `n : ℕ` we have `Γ (n + 1) = n!`.
-* `complex.differentiable_at_Gamma` : `Γ` is complex-differentiable at all `s : ℂ` with
-  `s ∉ {-n : n ∈ ℕ}`.
 
 ## Beta function
 
@@ -983,8 +983,6 @@ begin
       ring } },
 end
 
-end bohr_mollerup
-
 lemma tendsto_log_Gamma {x : ℝ} (hx : 0 < x) :
   tendsto (log_gamma_seq x) at_top (𝓝 $ log (Gamma x)) :=
 begin
@@ -994,6 +992,9 @@ begin
   refine bohr_mollerup.tendsto_log_gamma_seq convex_on_log_Gamma (λ y hy, _) hx,
   rw [function.comp_app, Gamma_add_one hy.ne', log_mul hy.ne' (Gamma_pos_of_pos hy).ne', add_comm],
 end
+
+end bohr_mollerup
+
 
 /-- The **Bohr-Mollerup theorem**: the Gamma function is the *unique* log-convex, positive-valued
 function on the positive reals which satisfies `f 1 = 1` and `f (x + 1) = x * f x` for all `x`. -/

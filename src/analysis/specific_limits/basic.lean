@@ -48,8 +48,8 @@ algebra over `ℝ`, e.g., `ℂ`).
 TODO: introduce a typeclass saying that `1 / n` tends to 0 at top, making it possible to get this
 statement simultaneously on `ℚ`, `ℝ` and `ℂ`. -/
 lemma tendsto_coe_nat_div_add_at_top
-  {𝕜 : Type} [division_ring 𝕜] [topological_space 𝕜] [char_zero 𝕜] [algebra ℝ 𝕜]
-  [has_continuous_smul ℝ 𝕜] [has_continuous_inv₀ 𝕜] [topological_ring 𝕜]
+  {𝕜 : Type*} [division_ring 𝕜] [topological_space 𝕜] [char_zero 𝕜] [algebra ℝ 𝕜]
+  [has_continuous_smul ℝ 𝕜] [topological_division_ring 𝕜]
   (x : 𝕜) :
   tendsto (λ n:ℕ, (n:𝕜) / (n + x)) at_top (𝓝 1) :=
 begin

@@ -1542,6 +1542,7 @@ def connected_component.supp (C : G.connected_component) :=
 lemma connected_component.mem_supp (C : G.connected_component) (v : V) :
   v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
 
+@[ext]
 lemma connected_component.eq_of_eq_supp (C D : G.connected_component) : C = D ↔ C.supp = D.supp :=
 begin
   split,

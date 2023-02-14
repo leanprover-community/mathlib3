@@ -50,16 +50,25 @@ begin
   conv
   { congr,
     funext,
-    rw [←inl_fst_add_inr_snd_eq (x ^ _), fst_pow, snd_pow_noncomm, smul_add, ←inr_smul,
-      ←inl_smul, list.smul_sum, list.map_map, function.comp],
+    rw [←inl_fst_add_inr_snd_eq (x ^ _), fst_pow, snd_pow_noncomm', smul_add, ←inr_smul,
+      ←inl_smul, finset.smul_sum],
+    find (((n : ℕ).factorial : 𝕜)⁻¹ • (_ : M)) {
+      rw [smul_comm (_ : 𝕜) (_ : R) (_ : M),
+        smul_comm (_ : 𝕜) (_ : Rᵐᵒᵖ) (_ : M)],
+    },
+    rw ←finset.smul_sum,
+    -- smul_assoc ((_ : 𝕜)⁻¹)],
     --, nsmul_eq_smul_cast 𝕜 n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc],
        },
-  refine (has_sum_inl M h).add (has_sum_inr M _),
-  rw [←has_sum_nat_add_iff' 1], swap, apply_instance,
-  rw [finset.range_one, finset.sum_singleton, list.range_zero, list.map_nil, list.sum_nil,
-    sub_zero],
-  simp_rw [←nat.succ_eq_add_one, nat.pred_succ, nat.factorial_succ, nat.cast_mul,
-    ←nat.succ_eq_add_one],
+  -- refine (has_sum_inl M h).add (has_sum_inr M _),
+  -- have : e • x.snd = ∑ i in range n, 0, sorry
+  -- -- rw ←finset.sum_const
+  -- convert has_sum_sum _,
+  -- rw [←has_sum_nat_add_iff' 1], swap, apply_instance,
+  -- rw [finset.range_one, finset.sum_singleton, list.range_zero, list.map_nil, list.sum_nil,
+  --   sub_zero],
+  -- simp_rw [←nat.succ_eq_add_one, nat.pred_succ, nat.factorial_succ, nat.cast_mul,
+  --   ←nat.succ_eq_add_one],
   -- apply has_sum.smul_const,
   -- rw [finset.range_one, finset.sum_singleton, nat.cast_zero, div_zero, inv_zero, zero_smul,
   --   sub_zero],
@@ -68,6 +77,8 @@ begin
   --   mul_div_cancel_left _ ((@nat.cast_ne_zero 𝕜 _ _ _).mpr $ nat.succ_ne_zero _)],
   -- exact h,
 end
+
+#check has_sum_sum
 
 end topology
 

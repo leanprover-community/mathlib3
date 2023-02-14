@@ -413,6 +413,11 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action 
   [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] (x : tsze R M) (n : ℕ) :
   snd (x ^ n) = ((list.range n).map (λ i, x.fst ^ (n.pred - i) • op (x.fst ^ i) • x.snd)).sum := rfl
 
+lemma snd_pow_noncomm' [monoid R] [add_comm_monoid M]
+  [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] (x : tsze R M) (n : ℕ) :
+  snd (x ^ n) = ∑ i in finset.range n, x.fst ^ (n.pred - i) • op (x.fst ^ i) • x.snd :=
+by simp [finset.range, finset.sum, multiset.range]
+
 @[simp] lemma snd_pow [comm_monoid R] [add_monoid M]
   [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [is_central_scalar R M]
   (x : tsze R M) (n : ℕ) :

@@ -788,30 +788,34 @@ end
 
 section bohr_mollerup
 
-/-! ## The Euler limit formula and the Bohr-Mollerup theorem
+/-! ## The Bohr-Mollerup theorem
 
 In this section we prove two interrelated statements about the `Γ` function on the positive reals:
 
-* the Euler limit formula `real.tendsto_log_gamma_seq`, stating that the sequence
-  `x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)`
+* the Euler limit formula `real.bohr_mollerup.tendsto_log_gamma_seq`, stating that for positive
+  real `x` the sequence `x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)`
   tends to `log Γ(x)` as `n → ∞`.
 * the Bohr-Mollerup theorem (`real.eq_Gamma_of_log_convex`) which states that `Γ` is the unique
   *log-convex*, positive-real-valued function on the positive reals satisfying
   `f (x + 1) = x f x` and `f 1 = 1`.
 
 To do this, we prove that any function satisfying the hypotheses of the Bohr--Mollerup theorem must
-agree with the limit in the Gauss formula, so there is at most one such function. Then we show that
-`Γ` satisfies these conditions.
+agree with the limit in the Euler limit formula, so there is at most one such function. Then we
+show that `Γ` satisfies these conditions.
+
+Since most of the auxiliary lemmas for the Bohr-Mollerup theorem are of no relevance outside the
+context of this proof, we place them in a separate namespace `real.bohr_mollerup` to avoid clutter.
+(This includes the logarithmic form of the Euler limit formula, since later we will prove a more
+general form of the Euler limit formula valid for any real or complex `x`; see
+`real.Gamma_seq_tendsto_Gamma` and `complex.Gamma_seq_tendsto_Gamma`.)
 -/
+
+namespace bohr_mollerup
 
 /-- The function `n ↦ x log n + log n! - (log x + ... + log (x + n))`, which we will show tends to
 `log (Gamma x)` as `n → ∞`. -/
 def log_gamma_seq (x : ℝ) (n : ℕ) : ℝ :=
 x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
-
-/-! The following are auxiliary lemmas for the Bohr-Mollerup theorem, which are
-placed in a separate namespace `bohr_mollerup` to avoid clutter. -/
-namespace bohr_mollerup
 
 variables {f : ℝ → ℝ} {x : ℝ} {n : ℕ}
 
@@ -1058,6 +1062,8 @@ end real
 
 section beta_integral
 
+/-! ## The Beta function -/
+
 namespace complex
 
 notation `cexp` := complex.exp
@@ -1257,12 +1263,12 @@ end beta_integral
 
 section limit_formula
 
-/-! ## The Euler limit formula-/
+/-! ## The Euler limit formula -/
 
 namespace complex
 
-/-- The sequence with `n`-th term `n ^ s * n! / (s * (s + 1) * ... * (s + n))`. We will show that
-this tends to `Γ(s)` as `n → ∞`. -/
+/-- The sequence with `n`-th term `n ^ s * n! / (s * (s + 1) * ... * (s + n))`, for complex `s`.
+We will show that this tends to `Γ(s)` as `n → ∞`. -/
 noncomputable def Gamma_seq (s : ℂ) (n : ℕ) :=
 (n:ℂ) ^ s * n! / ∏ (j:ℕ) in finset.range (n + 1), (s + j)
 
@@ -1499,6 +1505,8 @@ end complex
 
 namespace real
 
+/-- The sequence with `n`-th term `n ^ s * n! / (s * (s + 1) * ... * (s + n))`, for real `s`. We
+will show that this tends to `Γ(s)` as `n → ∞`. -/
 noncomputable def Gamma_seq (s : ℝ) (n : ℕ) :=
 (n : ℝ) ^ s * n! / ∏ (j : ℕ) in finset.range (n + 1), (s + j)
 

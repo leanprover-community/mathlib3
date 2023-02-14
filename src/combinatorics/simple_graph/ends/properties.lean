@@ -6,6 +6,7 @@ Authors: Anand Rao, Rémi Bottinelli
 import combinatorics.simple_graph.ends.defs
 import topology.category.Top
 import category_theory.mittag_leffler
+
 /-!
 # Properties of the ends of graphs
 
@@ -36,16 +37,21 @@ begin
   exact ⟨e.val (opposite.op L), (e.prop (category_theory.op_hom_of_le h))⟩,
 end
 
-/--
-A locally finite preconnected infinite graph has at least one end.
--/
-lemma nonempty_ends_of_infinite [Glf : locally_finite G] (Gpc : preconnected G) [Vi : infinite V] :
-  G.end.nonempty :=
+lemma component_compl_functor_finite
+  [locally_finite G]
+  [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
+  {G : simple_graph V} (Gpc : G.preconnected) [infinite V] (K : (finset V)ᵒᵖ) :
+  finite (G.component_compl_functor.obj K) :=
 begin
-  classical,
-  exact @nonempty_sections_of_fintype_inverse_system _ _ _ G.component_compl_functor
-    (λ K, @fintype.of_finite _ $ component_compl_finite Gpc K.unop)
-    (λ K, G.component_compl_nonempty_of_infinite K.unop)
+  sorry
+end
+
+lemma component_compl_functor_nonempty_of_infinite
+  [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
+  (G : simple_graph V) [infinite V] (K : (finset V)ᵒᵖ) :
+  nonempty (G.component_compl_functor.obj K) :=
+begin
+  sorry
 end
 
 lemma component_compl_functor_is_mittag_leffler [Glf : locally_finite G] (Gpc : preconnected G) :
@@ -57,5 +63,33 @@ begin
   exact ⟨j, 𝟙 j, set.to_finite _⟩,
 end
 
+lemma component_compl_functor_to_eventual_ranges_finite
+  [locally_finite G]
+  [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
+  {G : simple_graph V} (Gpc : G.preconnected) [infinite V] (K : (finset V)ᵒᵖ) :
+  finite (G.component_compl_functor.to_eventual_ranges.obj K) :=
+begin
+  sorry
+end
+
+lemma component_compl_functor_to_eventual_ranges_nonempty_of_infinite
+  [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
+  (G : simple_graph V) [infinite V] (K : (finset V)ᵒᵖ) :
+  nonempty (G.component_compl_functor.to_eventual_ranges.obj K) :=
+begin
+  sorry
+end
+
+/--
+A locally finite preconnected infinite graph has at least one end.
+-/
+lemma nonempty_ends_of_infinite [Glf : locally_finite G] (Gpc : preconnected G) [Vi : infinite V] :
+  G.end.nonempty :=
+begin
+  classical,
+  exact @nonempty_sections_of_fintype_inverse_system _ _ _ G.component_compl_functor
+    (λ K, @fintype.of_finite _ $ component_compl_finite Gpc K.unop)
+    (λ K, G.component_compl_nonempty_of_infinite K.unop)
+end
 
 end simple_graph

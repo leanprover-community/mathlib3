@@ -260,6 +260,7 @@ lemma exists_saturated_connected_extension (Gpc : G.preconnected) {K : finset V}
 begin
   classical,
   obtain ⟨K',KK',K'conn⟩ := extend_finset_to_connected Gpc Kn,
+  sorry
 end
 
 end component_compl
@@ -345,17 +346,6 @@ begin
   apply congr_arg subtype (funext $ λ x, eq.symm $ propext _),
   apply component_compl.infinite_iff_in_eventual_range,
 end
-
-lemma component_compl_functor_to_eventual_ranges_nonempty_of_infinite
-  [is_cofiltered_or_empty (finset V)ᵒᵖ]
-  (G : simple_graph V) [infinite V] (K : (finset V)ᵒᵖ) :
-  nonempty (G.component_compl_functor.to_eventual_ranges.obj K) := sorry
-
-lemma component_compl_functor_to_eventual_ranges_finite
-  [locally_finite G]
-  [is_cofiltered_or_empty (finset V)ᵒᵖ]
-  {G : simple_graph V} (Gpc : G.preconnected) [infinite V] (K : (finset V)ᵒᵖ) :
-  finite (G.component_compl_functor.to_eventual_ranges.obj K) := sorry
 
 end ends
 

@@ -308,6 +308,9 @@ begin
     apply finite.of_injective_finite_range touch_inj, },
 end
 
+lemma union_distrib_bUnion_of_nonempty {α β : Type*} {s : set α} {S : set β} (hS : S.nonempty) {f : β → set α} :
+  s ∪ (⋃ t ∈ S, f t) = ⋃ t ∈ S, s ∪ (f t) := sorry
+
 /--
 Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
 and all whose "outside components" are infinite.
@@ -325,8 +328,18 @@ begin
   let L := K' ∪ ‹finite_pieces.finite›.to_finset,
   let K'L := finset.subset_union_left K' ‹finite_pieces.finite›.to_finset,
   refine ⟨L, KK'.trans $ K'L, _, _⟩,
-  { rw [finset.coe_union, set.finite.coe_to_finset],
-    sorry, },
+  { rw [finset.coe_union, set.finite.coe_to_finset], dsimp only [finite_pieces],
+    obtain (h|⟨H₀,H₀H⟩) := set.eq_empty_or_nonempty {C : G.component_compl K' | C.supp.finite},
+    { rwa [h, set.bUnion_empty, set.union_empty], },
+    { rw [union_distrib_bUnion_of_nonempty ⟨H₀, H₀H⟩, set.bUnion_eq_Union],
+      fapply induce_connected_union_of_pairwise_not_disjoint,
+      { rw set.range_nonempty_iff_nonempty, exact ⟨⟨H₀,H₀H⟩⟩, },
+      { rintro _ ⟨H₁,rfl⟩ _ ⟨H₂,rfl⟩,
+        exact ⟨Kn.some,⟨or.inl $ KK' Kn.some_spec, or.inl $ KK' Kn.some_spec⟩⟩, },
+      { rintro _ ⟨H₁,rfl⟩,
+        obtain ⟨⟨c,k⟩,cC,kK,a⟩ := component_compl.exists_adj_boundary_pair Gpc
+          ⟨_, finset.mem_coe.mpr (KK' Kn.some_spec)⟩ H₁.val,
+        exact induce_connected_adj_union K'conn H₁.val.connected kK cC a.symm, }, }, },
   { rintro C,
     let D := C.hom K'L,
     have Dinf : D.supp.infinite, by
@@ -335,18 +348,14 @@ begin
       { simp only [finset.coe_union, set.finite.coe_to_finset],
         refine set.subset_union_of_subset_right (set.subset_bUnion_of_mem Dfin) _, },
       exact component_compl.not_subset_right ((C.subset_hom K'L).trans this), },
-    have : disjoint (L : set V) (D : set V), by
+    have Ddis : disjoint (L : set V) (D : set V), by
     { simp only [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
                  set.disjoint_Union₂_left, set.mem_set_of_eq],
       exact ⟨D.disjoint_right,
              λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
     rw component_compl.eq_of_subset
         ((C.subset_hom K'L).trans $ component_compl.subset_of_connected_disjoint_right _ _),
-    exact Dinf.mono (component_compl.subset_of_connected_disjoint_right D.connected this),
-   },
-
-
-
+    exact Dinf.mono (component_compl.subset_of_connected_disjoint_right D.connected Ddis), },
 end
 
 

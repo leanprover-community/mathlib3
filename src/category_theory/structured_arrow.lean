@@ -165,9 +165,9 @@ comma.pre_right _ F G
 /-- The functor `(S, F) ⥤ (G(S), F ⋙ G)`. -/
 @[simps] def post (S : C) (F : B ⥤ C) (G : C ⥤ D) :
   structured_arrow S F ⥤ structured_arrow (G.obj S) (F ⋙ G) :=
-{ obj := λ X, { left := discrete.mk punit.star, right := X.right, hom := G.map X.hom },
-  map := λ X Y f, { left := 𝟙 _, right := f.right, w' :=
-    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
+{ obj := λ X, structured_arrow.mk (G.map X.hom),
+  map := λ X Y f, structured_arrow.hom_mk f.right
+    (by simp [functor.comp_map, ←G.map_comp, ← f.w]) }
 
 instance small_proj_preimage_of_locally_small {𝒢 : set C} [small.{v₁} 𝒢] [locally_small.{v₁} D] :
   small.{v₁} ((proj S T).obj ⁻¹' 𝒢) :=
@@ -315,9 +315,9 @@ comma.pre_left F G _
 /-- The functor `(F, S) ⥤ (F ⋙ G, G(S))`. -/
 @[simps] def post (F : B ⥤ C) (G : C ⥤ D) (S : C) :
   costructured_arrow F S ⥤ costructured_arrow (F ⋙ G) (G.obj S) :=
-{ obj := λ X, { left := X.left, right := discrete.mk punit.star, hom := G.map X.hom },
-  map := λ X Y f, { left := f.left, right := 𝟙 _ , w' :=
-    by { simp [functor.comp_map, ←G.map_comp, ← f.w] } } }
+{ obj := λ X, costructured_arrow.mk (G.map X.hom),
+  map := λ X Y f, costructured_arrow.hom_mk f.left
+    (by simp [functor.comp_map, ←G.map_comp, ← f.w]), }
 
 instance small_proj_preimage_of_locally_small {𝒢 : set C} [small.{v₁} 𝒢] [locally_small.{v₁} D] :
   small.{v₁} ((proj S T).obj ⁻¹' 𝒢) :=

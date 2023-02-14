@@ -40,6 +40,7 @@ def over (X : T) := costructured_arrow (𝟭 T) X
 instance over.inhabited [inhabited T] : inhabited (over (default : T)) :=
 { default :=
   { left := default,
+    right := default,
     hom := 𝟙 _ } }
 
 namespace over
@@ -224,6 +225,7 @@ def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
   map := λ Y₁ Y₂ f,
   { left := F.map f.left,
+    right := 𝟙 _,
     w' := by tidy; erw [← F.map_comp, w] } }
 
 end
@@ -238,7 +240,8 @@ def under (X : T) := structured_arrow X (𝟭 T)
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default : T)) :=
 { default :=
-  { right := default,
+  { left := default,
+    right := default,
     hom := 𝟙 _ } }
 
 namespace under
@@ -370,7 +373,8 @@ variables {D : Type u₂} [category.{v₂} D]
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
   map := λ Y₁ Y₂ f,
-  { right := F.map f.right,
+  { left := 𝟙 _,
+    right := F.map f.right,
     w' := by tidy; erw [← F.map_comp, w] } }
 
 end

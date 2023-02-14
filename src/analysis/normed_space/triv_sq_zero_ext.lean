@@ -37,13 +37,14 @@ variables [topological_space R] [topological_space M]
 
 
 /-- If `exp R x.fst` converges to `e` then `exp R x` converges to `inl e + inr (e • x.snd)`. -/
-lemma has_sum_exp_series [field 𝕜] [char_zero 𝕜] [comm_ring R]
+lemma has_sum_exp_series [field 𝕜] [char_zero 𝕜] [ring R]
   [add_comm_group M] [algebra 𝕜 R]
-  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
-  [module 𝕜 M] [is_scalar_tower 𝕜 R M]
+  [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
+  [module 𝕜 M] [is_scalar_tower 𝕜 R M] [is_scalar_tower 𝕜 Rᵐᵒᵖ M]
   [topological_ring R] [topological_add_group M]
-  [has_continuous_smul R M]
-  (x : tsze R M) {e : R} (h : has_sum (λ n, exp_series 𝕜 R n (λ _, x.fst)) e) :
+  [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M]
+  (x : tsze R M) (hx : mul_opposite.op x.fst • x.snd = x.fst • x.snd)
+  {e : R} (h : has_sum (λ n, exp_series 𝕜 R n (λ _, x.fst)) e) :
   has_sum (λ n, exp_series 𝕜 (tsze R M) n (λ _, x)) (inl e + inr (e • x.snd)) :=
 begin
   simp_rw [exp_series_apply_eq] at *,

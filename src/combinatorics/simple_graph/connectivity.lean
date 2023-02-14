@@ -1523,22 +1523,32 @@ by { refine C.ind _, exact (λ _, rfl), }
 def connected_component.supp (C : G.connected_component) :=
   { v | G.connected_component_mk v = C }
 
-@[simp]
-lemma connected_component.mem_supp (C : G.connected_component) (v : V) :
+@[ext] lemma connected_component.supp_injective :
+  function.injective (connected_component.supp : G.connected_component → set V) :=
+begin
+  refine connected_component.ind₂ _,
+  intros v w h,
+  simp only [set.ext_iff, connected_component.eq, set.mem_set_of_eq, connected_component.supp] at
+     h ⊢,
+  exact ((h v).mp (reachable.refl _)),
+end
+
+lemma connected_component.supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
+connected_component.supp_injective.eq_iff
+
+instance : set_like G.connected_component V :=
+{ coe := connected_component.supp,
+  coe_injective' := λ C D, (connected_component.supp_inj).mp, }
+
+@[simp] lemma connected_component.mem_supp_iff (C : G.connected_component) (v : V) :
   v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
 
-@[ext, simp]
-lemma connected_component.supp_inj (C D : G.connected_component) : C.supp = D.supp ↔ C = D :=
-begin
-  split,
-  { rintro ⟨⟩, refl, },
-  { refine connected_component.ind₂ _ C D,
-    intros v w h,
-    simp_rw [set.ext_iff] at h,
-    exact (h v).mp rfl, }
-end
+lemma connected_component.mk_mem (G : simple_graph V) {v : V} :
+  v ∈ G.connected_component_mk v := by { exact rfl, }
 
-end
+lemma connected_component_mk_eq_of_adj (G : simple_graph V) {v w : V}
+  (a : G.adj v w) : G.connected_component_mk v = G.connected_component_mk w :=
+by { rw [connected_component.eq], apply adj.reachable, exact a }
 
 end connected_component
 

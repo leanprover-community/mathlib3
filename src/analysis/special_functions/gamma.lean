@@ -1400,7 +1400,6 @@ begin
     conv at this in (_ / _ * _) { rw mul_comm },
     rwa [←mul_one (Gamma_aux m (s + 1) / s), tendsto_mul_iff_of_ne_zero _ (one_ne_zero' ℂ)] at this,
     simp_rw add_assoc,
-    haveI : topological_division_ring ℂ, from topological_division_ring.mk,
     exact tendsto_coe_nat_div_add_at_top (1 + s) }
 end
 
@@ -1458,8 +1457,7 @@ begin
   have : ↑π / sin (↑π * z) = 1 * (π / sin (π * z)), by rw one_mul, rw this,
   refine tendsto.congr' ((eventually_ne_at_top 0).mp
     (eventually_of_forall (λ n hn, (Gamma_seq_mul z hn).symm))) (tendsto.mul _ _),
-  { haveI : topological_division_ring ℂ, from topological_division_ring.mk,
-    convert tendsto_coe_nat_div_add_at_top (1 - z), ext1 n, rw add_sub_assoc },
+  { convert tendsto_coe_nat_div_add_at_top (1 - z), ext1 n, rw add_sub_assoc },
   { have : ↑π / sin (↑π * z) = 1 / (sin (π * z) / π), by field_simp, rw this,
     refine tendsto_const_nhds.div _ (div_ne_zero hs pi_ne),
     rw [←tendsto_mul_iff_of_ne_zero tendsto_const_nhds pi_ne, div_mul_cancel _ pi_ne],

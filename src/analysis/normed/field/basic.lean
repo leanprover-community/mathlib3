@@ -487,6 +487,11 @@ begin
   simp,
 end
 
+/-- A normed division ring is a topological division ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_topological_division_ring : topological_division_ring α :=
+{ }
+
 lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :
   ‖φ x‖ = 1 :=

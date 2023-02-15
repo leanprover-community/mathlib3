@@ -10,7 +10,7 @@ import topology.category.Top.limits
 /-!
 # Cofiltered systems
 
-This files deals with properties of cofiltered (and inverse) systems.
+This file deals with properties of cofiltered (and inverse) systems.
 
 ## Main definitions
 
@@ -63,8 +63,7 @@ the `F` functor is between categories of the same universe, and it is an easy
 corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
 lemma nonempty_sections_of_finite_cofiltered_system.init
   {J : Type u} [small_category J] [is_cofiltered_or_empty J] (F : J ⥤ Type u)
-  [hf : ∀ (j : J), finite (F.obj j)]
-  [hne : ∀ (j : J), nonempty (F.obj j)] :
+  [hf : ∀ j, finite (F.obj j)] [hne : ∀ j, nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
   let F' : J ⥤ Top := F ⋙ Top.discrete,
@@ -113,7 +112,7 @@ This may be regarded as a generalization of Kőnig's lemma.
 To specialize: given a locally finite connected graph, take `Jᵒᵖ` to be `ℕ` and
 `F j` to be length-`j` paths that start from an arbitrary fixed vertex.
 Elements of `F.sections` can be read off as infinite rays in the graph. -/
-theorem nonempty_sections_of_fintype_inverse_system
+theorem nonempty_sections_of_finite_inverse_system
   {J : Type u} [preorder J] [is_directed J (≤)] (F : Jᵒᵖ ⥤ Type v)
   [∀ (j : Jᵒᵖ), finite (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=

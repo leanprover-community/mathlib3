@@ -1401,6 +1401,19 @@ protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
   (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
 h.elim (λ p, ⟨p.map f⟩)
 
+lemma iso.reachable_iff {G : simple_graph V} {G' : simple_graph V'}
+  {φ : G ≃g G'} {u v : V} : G.reachable u v ↔ G'.reachable (φ u) (φ v) :=
+⟨reachable.map φ.to_hom, λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom)⟩
+
+lemma iso.reachable_iff' {G : simple_graph V} {G' : simple_graph V'}
+  {φ : G ≃g G'} {u : V} {v : V'} : G.reachable (φ.symm v) u ↔ G'.reachable v (φ u) :=
+begin
+  rw [←φ.left_inv u, ←φ.right_inv v],
+  simp only [equiv.inv_fun_as_coe, equiv.to_fun_as_coe, rel_iso.coe_fn_to_equiv,
+             rel_iso.symm_apply_apply],
+  exact iso.reachable_iff,
+end
+
 variables (G)
 
 lemma reachable_is_equivalence : equivalence G.reachable :=
@@ -1455,7 +1468,7 @@ def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachabl
 ⟨G.connected_component_mk default⟩
 
 section connected_component
-variables {G}
+variables {G} {V'} {G'} {G''}
 
 @[elab_as_eliminator]
 protected lemma connected_component.ind {β : G.connected_component → Prop}
@@ -1478,6 +1491,10 @@ protected lemma connected_component.exact {v w : V} :
 @[simp] protected lemma connected_component.eq {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
 @quotient.eq _ G.reachable_setoid _ _
+
+lemma connected_component_mk_eq_of_adj (G : simple_graph V) {v w : V}
+  (a : G.adj v w) : G.connected_component_mk v = G.connected_component_mk w :=
+connected_component.eq.mpr a.reachable
 
 /-- The `connected_component` specialization of `quot.lift`. Provides the stronger
 assumption that the vertices are connected by a path. -/
@@ -1502,22 +1519,47 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
 /-- The map on connected components induced by a graph homomorphism. -/
-def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
-  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
+def connected_component.map  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
 C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
   connected_component.eq.mpr (p.map φ).reachable
 
-@[simp] lemma connected_component.map_mk
-  {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'} (φ : G →g G') (v : V) :
+@[simp] lemma connected_component.map_mk (φ : G →g G') (v : V) :
   (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
 
 @[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
 by { refine C.ind _, exact (λ _, rfl) }
 
-@[simp] lemma connected_component.map_comp
-  {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
-  (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
+@[simp] lemma connected_component.map_comp (C : G.connected_component)
+  (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
+
+@[simp] lemma connected_component.iso_image_comp_eq_map_iff_eq_comp
+  {φ : G ≃g G'} {v : V} {C : G.connected_component} :
+  (G'.connected_component_mk (φ v)) = C.map φ ↔ (G.connected_component_mk v) = C :=
+begin
+  refine C.ind (λ u, _),
+  simp only [connected_component.map_mk, connected_component.eq],
+  exact (iso.reachable_iff).symm,
+end
+
+@[simp] lemma connected_component.iso_inv_image_comp_eq_iff_eq_map
+  {φ : G ≃g G'} {v' : V'} {C : G.connected_component} :
+    G.connected_component_mk (φ.inv_fun v') = C ↔ G'.connected_component_mk v' = C.map φ :=
+begin
+  refine C.ind (λ u, _),
+  simp only [connected_component.map_mk, connected_component.eq],
+  exact iso.reachable_iff',
+end
+
+/-- An isomorphism of graphs induces a bijection of connected components. -/
+@[simps]
+def connected_component.iso (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+{ to_fun := connected_component.map φ.to_hom,
+  inv_fun := connected_component.map φ.symm.to_hom,
+  left_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
+  right_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
 
 /-- The set of vertices in a connected component of a graph. -/
 def connected_component.supp (C : G.connected_component) :=
@@ -1538,7 +1580,7 @@ connected_component.supp_injective.eq_iff
 
 instance : set_like G.connected_component V :=
 { coe := connected_component.supp,
-  coe_injective' := λ C D, (connected_component.supp_inj).mp, }
+  coe_injective' := connected_component.supp_injective, }
 
 @[simp] lemma connected_component.mem_supp_iff (C : G.connected_component) (v : V) :
   v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
@@ -1546,9 +1588,31 @@ instance : set_like G.connected_component V :=
 lemma connected_component_mk_mem (G : simple_graph V) {v : V} :
   v ∈ G.connected_component_mk v := by { exact rfl, }
 
-lemma connected_component_mk_eq_of_adj (G : simple_graph V) {v w : V}
-  (a : G.adj v w) : G.connected_component_mk v = G.connected_component_mk w :=
-by { rw [connected_component.eq], apply adj.reachable, exact a }
+def connected_component.iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
+  C.supp ≃ (connected_component.iso φ C).supp :=
+{ to_fun := λ v, ⟨φ.to_fun v.val, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
+  inv_fun := λ v', ⟨φ.inv_fun v', connected_component.iso_inv_image_comp_eq_iff_eq_map.mpr v'.prop⟩,
+  left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
+  right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v), }
+
+lemma connected_component.connected :
+  ∀ (C : G.connected_component), (G.induce {v : V | G.connected_component_mk v = C}).connected :=
+begin
+  refine connected_component.ind (λ v, _),
+  refine (connected_iff _).mpr ⟨_, ⟨⟨v, rfl⟩⟩⟩,
+  let Gr := G.reachable,
+  rw set.ext (λ (v' : V), @connected_component.eq V G v' v),
+  let GCr := (G.induce {t : V | Gr t v}).reachable,
+  have : ∀ {u w} (p : G.walk u w) (hu : Gr u v) (hw : Gr w v), GCr ⟨u,hu⟩ ⟨w,hw⟩, by
+  { rintro u w p,
+    induction p with _ _ _ _ a q ih,
+    { exact λ _ _, reachable.refl _, },
+    { refine λ hu hw, reachable.trans (adj.reachable _) (ih (a.reachable.symm.trans hu) hw),
+      exact a, }, },
+  rintro ⟨u,hu⟩ ⟨w,hw⟩,
+  simp only [connected_component.eq, set.mem_set_of_eq] at hu hw,
+  exact this (reachable.trans hu $ reachable.symm hw).some hu hw,
+end
 
 end connected_component
 
@@ -1904,3 +1968,4 @@ sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 end bridge_edges
 
 end simple_graph
+#lint

@@ -150,17 +150,16 @@ lemma exists_edist_eq_of_edist_eq_succ {u v : V} {n : ℕ} (h : G.edist u v = n+
 begin
   obtain ⟨p, hp⟩ := exists_walk_of_edist_eq_nat h,
   cases p with _ u w v a q,
-  { simpa using hp, },
+  { simpa only using hp, },
   { simp only [edist_eq_one_iff_adj],
     refine ⟨w, _, a⟩,
     simp only [walk.length_cons, add_left_inj] at hp,
-    refine le_antisymm _ _,
-    { rw ←hp, apply edist_le, },
+    refine le_antisymm (hp ▸ edist_le _) _,
     { by_contra' h',
       rw ←edist_eq_one_iff_adj at a,
-      let two := @edist_triangle V G u w v,
-      simp only [h, a, add_comm (1 : ℕ∞)] at two,
-      exact ((enat.add_one_lt_add_one h').trans_le two).ne rfl, }, },
+      refine ((enat.add_one_lt_add_one h').trans_le (_ : ↑n + 1 ≤ G.edist w v + 1)).ne rfl,
+      rw [←h, ←a, add_comm],
+      apply edist_triangle, }, },
 end
 
 end simple_graph

@@ -963,7 +963,7 @@ lemma partial_sections.nonempty [is_cofiltered_or_empty J] [h : Π (j : J), none
 begin
   classical,
   casesI is_empty_or_nonempty J,
-  { exact ⟨λ j, is_empty_elim j, λ j, is_empty.elim' infer_instance j.1⟩ },
+  { exact ⟨is_empty_elim, λ j, is_empty.elim' infer_instance j.1⟩ },
   haveI : is_cofiltered J := ⟨⟩,
   use λ (j : J), if hj : j ∈ G
                  then F.map (is_cofiltered.inf_to G H hj) (h (is_cofiltered.inf G H)).some

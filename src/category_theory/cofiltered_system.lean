@@ -27,9 +27,9 @@ Given a functor `F : J ⥤ Type v`:
 
 ## Main statements
 
-* `nonempty_sections_of_fintype_cofiltered_system` shows that if `J` is cofiltered and each
+* `nonempty_sections_of_finite_cofiltered_system` shows that if `J` is cofiltered and each
   `F.obj j` is nonempty and finite, `F.sections` is nonempty.
-* `nonempty_sections_of_fintype_inverse_system` is a specialization of the above to `J` being a
+* `nonempty_sections_of_finite_inverse_system` is a specialization of the above to `J` being a
    directed set (and `F : Jᵒᵖ ⥤ Type v`).
 * `is_mittag_leffler_of_exists_finite_range` shows that if `J` is cofiltered and for all `j`,
   there exists some `i` and `f : i ⟶ j` such that the range of `F.map f` is finite, then
@@ -61,7 +61,7 @@ section fintype_konig
 /-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
 the `F` functor is between categories of the same universe, and it is an easy
 corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
-lemma nonempty_sections_of_fintype_cofiltered_system.init
+lemma nonempty_sections_of_finite_cofiltered_system.init
   {J : Type u} [small_category J] [is_cofiltered_or_empty J] (F : J ⥤ Type u)
   [hf : ∀ (j : J), finite (F.obj j)]
   [hne : ∀ (j : J), nonempty (F.obj j)] :
@@ -78,8 +78,8 @@ end
 /-- The cofiltered limit of nonempty finite types is nonempty.
 
 See `nonempty_sections_of_fintype_inverse_system` for a specialization to inverse limits. -/
-theorem nonempty_sections_of_fintype_cofiltered_system
-  {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
+theorem nonempty_sections_of_finite_cofiltered_system
+  {J : Type u} [category.{w} J] [is_cofiltered_or_empty J] (F : J ⥤ Type v)
   [∀ (j : J), finite (F.obj j)] [∀ (j : J), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
@@ -90,7 +90,10 @@ begin
   haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
   haveI : ∀ i, finite (F'.obj i) := λ i, finite.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
   -- Step 2: apply the bootstrap theorem
-  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_cofiltered_system.init F',
+  casesI is_empty_or_nonempty J,
+  { fsplit; exact is_empty_elim },
+  haveI : is_cofiltered J := ⟨⟩,
+  obtain ⟨u, hu⟩ := nonempty_sections_of_finite_cofiltered_system.init F',
   -- Step 3: interpret the results
   use λ j, (u ⟨j⟩).down,
   intros j j' f,
@@ -118,7 +121,7 @@ begin
   casesI is_empty_or_nonempty J,
   { haveI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
     exact ⟨is_empty_elim, is_empty_elim⟩, },
-  { exact nonempty_sections_of_fintype_cofiltered_system _, },
+  { exact nonempty_sections_of_finite_cofiltered_system _, },
 end
 
 end fintype_konig
@@ -332,11 +335,9 @@ lemma eval_section_surjective_of_surjective (i : J) :
 begin
   let s : set (F.obj i) := {x},
   haveI := F.to_preimages_nonempty_of_surjective s Fsur (singleton_nonempty x),
-  haveI : nonempty J := ⟨i⟩,
-  haveI : is_cofiltered J := ⟨⟩,
-  obtain ⟨sec, h⟩ := nonempty_sections_of_fintype_cofiltered_system (F.to_preimages s),
+  obtain ⟨sec, h⟩ := nonempty_sections_of_finite_cofiltered_system (F.to_preimages s),
   refine ⟨⟨λ j, (sec j).val, λ j k jk, by simpa [subtype.ext_iff] using h jk⟩, _⟩,
-  { let := (sec i).prop,
+  { have := (sec i).prop,
     simp only [mem_Inter, mem_preimage, mem_singleton_iff] at this,
     replace this := this (𝟙 i), rwa [map_id_apply] at this, },
 end

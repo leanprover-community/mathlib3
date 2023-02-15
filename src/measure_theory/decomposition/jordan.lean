@@ -52,7 +52,7 @@ finite measures. -/
 (pos_part neg_part : measure α)
 [pos_part_finite : is_finite_measure pos_part]
 [neg_part_finite : is_finite_measure neg_part]
-(mutually_singular : pos_part ⊥ₘ neg_part)
+(mutually_singular : pos_part ⟂ₘ neg_part)
 
 attribute [instance] jordan_decomposition.pos_part_finite
 attribute [instance] jordan_decomposition.neg_part_finite
@@ -510,7 +510,7 @@ end
 
 -- TODO: Generalize to vector measures once total variation on vector measures is defined
 lemma mutually_singular_iff (s t : signed_measure α) :
-  s ⊥ᵥ t ↔ s.total_variation ⊥ₘ t.total_variation :=
+  s ⟂ᵥ t ↔ s.total_variation ⟂ₘ t.total_variation :=
 begin
   split,
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -531,7 +531,7 @@ begin
 end
 
 lemma mutually_singular_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
-  s ⊥ᵥ μ ↔ s.total_variation ⊥ₘ μ.ennreal_to_measure :=
+  s ⟂ᵥ μ ↔ s.total_variation ⟂ₘ μ.ennreal_to_measure :=
 begin
   split,
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -550,8 +550,8 @@ begin
 end
 
 lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
-  s.total_variation ⊥ₘ μ ↔
-  s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
+  s.total_variation ⟂ₘ μ ↔
+  s.to_jordan_decomposition.pos_part ⟂ₘ μ ∧ s.to_jordan_decomposition.neg_part ⟂ₘ μ :=
 measure.mutually_singular.add_left_iff
 
 end signed_measure

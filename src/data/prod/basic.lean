@@ -262,9 +262,10 @@ left_inverse.prod_map
 end function
 
 namespace prod
+open function
 
 @[simp] lemma map_injective [nonempty α] [nonempty β] {f : α → γ} {g : β → δ} :
-  injective (prod.map f g) ↔ injective f ∧ injective g :=
+  injective (map f g) ↔ injective f ∧ injective g :=
 ⟨λ h, ⟨λ a₁ a₂ ha, begin
   inhabit β,
   injection @h (a₁, default) (a₂, default) (congr_arg (λ c : γ, prod.mk c (g default)) ha : _),
@@ -274,7 +275,7 @@ end, λ b₁ b₂ hb, begin
 end⟩, λ h, h.1.prod_map h.2⟩
 
 @[simp] lemma map_surjective [nonempty γ] [nonempty δ] {f : α → γ} {g : β → δ} :
-  surjective (prod.map f g) ↔ surjective f ∧ surjective g :=
+  surjective (map f g) ↔ surjective f ∧ surjective g :=
 ⟨λ h, ⟨λ c, begin
   inhabit δ,
   obtain ⟨⟨a, b⟩, h⟩ := h (c, default),
@@ -287,7 +288,7 @@ end⟩, λ h, h.1.prod_map h.2⟩
 
 @[simp] lemma map_bijective [nonempty α] [nonempty β] [nonempty γ] [nonempty δ]
   {f : α → γ} {g : β → δ} :
-  bijective (prod.map f g) ↔ bijective f ∧ bijective g :=
+  bijective (map f g) ↔ bijective f ∧ bijective g :=
 (map_injective.and map_surjective).trans $ and_and_and_comm _ _ _ _
 
 @[simp] lemma map_left_inverse [nonempty β] [nonempty δ]

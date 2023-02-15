@@ -1535,7 +1535,7 @@ by { refine C.ind _, exact (λ _, rfl), }
 
 @[simp] lemma connected_component.iso_image_comp_eq_map_iff_eq_comp
   {φ : G ≃g G'} {v : V} {C : G.connected_component} :
-  (G'.connected_component_mk (φ v)) = C.map φ ↔ (G.connected_component_mk v) = C :=
+  (G'.connected_component_mk (φ v)) = C.map φ.to_hom ↔ (G.connected_component_mk v) = C :=
 begin
   refine C.ind (λ u, _),
   simp only [connected_component.map_mk, connected_component.eq],
@@ -1544,7 +1544,7 @@ end
 
 @[simp] lemma connected_component.iso_inv_image_comp_eq_iff_eq_map
   {φ : G ≃g G'} {v' : V'} {C : G.connected_component} :
-    G.connected_component_mk (φ.inv_fun v') = C ↔ G'.connected_component_mk v' = C.map φ :=
+    G.connected_component_mk (φ.symm v') = C ↔ G'.connected_component_mk v' = C.map φ :=
 begin
   refine C.ind (λ u, _),
   simp only [connected_component.map_mk, connected_component.eq],
@@ -1588,6 +1588,10 @@ instance : set_like G.connected_component V :=
 lemma connected_component_mk_mem (G : simple_graph V) {v : V} :
   v ∈ G.connected_component_mk v := by { exact rfl, }
 
+/--
+The equivalence between connected components, induced by an isomorphism of graphs,
+itself defines an equivalence on the supports of each connected component.
+-/
 def connected_component.iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
   C.supp ≃ (connected_component.iso φ C).supp :=
 { to_fun := λ v, ⟨φ.to_fun v.val, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
@@ -1968,4 +1972,3 @@ sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 end bridge_edges
 
 end simple_graph
-#lint

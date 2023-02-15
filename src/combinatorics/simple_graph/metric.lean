@@ -113,8 +113,7 @@ begin
     apply infi_le _ _, }
 end
 
-protected
-lemma edist_triangle (hconn : G.connected) {u v w : V} :
+lemma edist_triangle {u v w : V} :
   G.edist u w ≤ G.edist u v + G.edist v w :=
 begin
   by_cases huv : nonempty (G.walk u v),
@@ -143,18 +142,25 @@ begin
     exact λ h, (a.ne $ walk.eq_of_length_eq_zero h), },
 end
 
+
+lemma _root_.enat.add_one_lt_add_one {a b : ℕ∞} (ab : a < b) : a + 1 < b + 1 := sorry
+
 lemma exists_edist_eq_of_edist_eq_succ {u v : V} {n : ℕ} (h : G.edist u v = n+1) :
-  ∃ w, G.edist u w = n ∧ G.edist w v = 1 :=
+  ∃ w, G.edist w v = n ∧ G.edist u w = 1 :=
 begin
-  rw edist_comm at h,
-  obtain ⟨p,hp⟩ := exists_walk_of_edist_eq_nat h,
-  cases p with a v w u a q,
+  obtain ⟨p, hp⟩ := exists_walk_of_edist_eq_nat h,
+  cases p with _ u w v a q,
   { simpa using hp, },
-  { simp, refine ⟨w, _, a.symm⟩,
-    apply le_antisymm,
-    { rw [←enat.coe_one, ←enat.coe_add, ←hp] at h,
-      simp at h, },
-    { apply le_edist, } },
+  { simp only [edist_eq_one_iff_adj],
+    refine ⟨w, _, a⟩,
+    simp only [walk.length_cons, add_left_inj] at hp,
+    refine le_antisymm _ _,
+    { rw ←hp, apply edist_le, },
+    { by_contra' h',
+      rw ←edist_eq_one_iff_adj at a,
+      let two := @edist_triangle V G u w v,
+      simp only [h, a, add_comm (1 : ℕ∞)] at two,
+      exact ((enat.add_one_lt_add_one h').trans_le two).ne rfl, }, },
 end
 
 end simple_graph

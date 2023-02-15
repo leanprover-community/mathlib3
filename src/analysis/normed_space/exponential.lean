@@ -487,7 +487,7 @@ lemma exp_smul {G} [monoid G] [mul_semiring_action G 𝔸] [has_continuous_const
 
 lemma exp_units_conj (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 (y * x * ↑(y⁻¹) : 𝔸) = y * exp 𝕂 x * ↑(y⁻¹) :=
-exp_smul _ (conj_act.to_conj_act y) x
+(exp_smul _ (conj_act.to_conj_act y) x : _)
 
 lemma exp_units_conj' (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 (↑(y⁻¹) * x * y) = ↑(y⁻¹) * exp 𝕂 x * y :=
@@ -567,11 +567,11 @@ end
 
 lemma exp_conj (y : 𝔸) (x : 𝔸) (hy : y ≠ 0) :
   exp 𝕂 (y * x * y⁻¹) = y * exp 𝕂 x * y⁻¹ :=
-exp_units_conj _ (units.mk0 y hy) x
+(exp_units_conj _ (units.mk0 y hy) x : _)
 
 lemma exp_conj' (y : 𝔸) (x : 𝔸)  (hy : y ≠ 0) :
   exp 𝕂 (y⁻¹ * x * y) = y⁻¹ * exp 𝕂 x * y :=
-exp_units_conj' _ (units.mk0 y hy) x
+(exp_units_conj' _ (units.mk0 y hy) x : _)
 
 end division_algebra
 

@@ -1,6 +1,6 @@
 import category_theory.monoidal.Mon_
-import algebra.category.Group
-import algebra.category.Ring
+import algebra.category.Group.basic
+import algebra.category.Ring.basic
 import linear_algebra.tensor_product
 import category_theory.closed.monoidal
 import category_theory.monoidal.Mod

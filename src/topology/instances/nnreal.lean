@@ -3,8 +3,8 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.algebra.big_operators.order
-import topology.algebra.big_operators.ring
+import topology.algebra.infinite_sum.order
+import topology.algebra.infinite_sum.ring
 import topology.instances.real
 
 /-!

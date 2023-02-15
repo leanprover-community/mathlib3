@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.order.archimedean
-import topology.algebra.big_operators.basic
+import topology.algebra.infinite_sum.basic
 import topology.algebra.order.field
 import topology.algebra.order.monotone_convergence
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Yury Kudryashov, Frédéric Dupuis
 -/
-import topology.algebra.big_operators.basic
+import topology.algebra.infinite_sum.basic
 import topology.algebra.module.basic
 
 /-! # Infinite sums in topological vector spaces -/

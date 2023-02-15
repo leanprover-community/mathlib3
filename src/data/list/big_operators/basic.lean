@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
+import data.int.order.basic
 import data.list.forall2
 
 /-!
@@ -542,6 +543,18 @@ by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv
 by rw [div_eq_mul_inv, alternating_prod_cons']
 
 end alternating
+
+lemma sum_nat_mod (l : list ℕ) (n : ℕ) : l.sum % n = (l.map (% n)).sum % n :=
+by induction l; simp [nat.add_mod, *]
+
+lemma prod_nat_mod (l : list ℕ) (n : ℕ) : l.prod % n = (l.map (% n)).prod % n :=
+by induction l; simp [nat.mul_mod, *]
+
+lemma sum_int_mod (l : list ℤ) (n : ℤ) : l.sum % n = (l.map (% n)).sum % n :=
+by induction l; simp [int.add_mod, *]
+
+lemma prod_int_mod (l : list ℤ) (n : ℤ) : l.prod % n = (l.map (% n)).prod % n :=
+by induction l; simp [int.mul_mod, *]
 
 end list
 

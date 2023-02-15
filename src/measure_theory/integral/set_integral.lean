@@ -388,6 +388,23 @@ lemma set_integral_eq_of_subset_of_forall_diff_eq_zero
 set_integral_eq_of_subset_of_ae_diff_eq_zero ht.null_measurable_set hts
   (eventually_of_forall (λ x hx, h't x hx))
 
+/-- If a function vanishes almost everywhere on `sᶜ`, then its integral on `s`
+coincides with its integral on the whole space. -/
+lemma set_integral_eq_integral_of_ae_compl_eq_zero
+  (h : ∀ᵐ x ∂μ, x ∉ s → f x = 0) : ∫ x in s, f x ∂μ = ∫ x, f x ∂μ :=
+begin
+  conv_rhs { rw ← integral_univ },
+  symmetry,
+  apply set_integral_eq_of_subset_of_ae_diff_eq_zero null_measurable_set_univ (subset_univ _),
+  filter_upwards [h] with x hx h'x using hx h'x.2,
+end
+
+/-- If a function vanishes on `sᶜ`, then its integral on `s` coincides with its integral on the
+whole space. -/
+lemma set_integral_eq_integral_of_forall_compl_eq_zero
+  (h : ∀ x, x ∉ s → f x = 0) : ∫ x in s, f x ∂μ = ∫ x, f x ∂μ :=
+set_integral_eq_integral_of_ae_compl_eq_zero (eventually_of_forall h)
+
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E]
   {f : α → E} (hf : ae_strongly_measurable f μ) :
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=

@@ -10,6 +10,9 @@ import topology.sets.opens
 /-!
 # The Alexandroff Compactification
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the Alexandroff compactification (the one-point compactification) of an arbitrary
 topological space `X` and prove some properties inherited from `X`.
 

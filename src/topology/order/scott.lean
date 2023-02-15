@@ -27,8 +27,12 @@ This file introduces the Scott topology on a preorder.
 
 ## Main statements
 
+- `with_scott_topology.is_open_is_upper` - Scott open sets are upper
+- `with_scott_topology.is_closed_is_lower` - Scott closed sets are lower
+- `with_scott_topology.continuous_monotone` - Scott continuous functions are monotone.
+- `preserve_lub_on_directed_iff_scott_continuity` - a function preserves least upper bounds of
+  directed sets if and only if it is Scott continuous
 - `with_scott_topology.t0_space` - the Scott topology on a partial order is T₀
-
 
 ## Implementation notes
 
@@ -57,8 +61,6 @@ variables (α β : Type*)
 
 open set
 
-
-
 section preorder
 
 variables {α} {β}
@@ -78,7 +80,7 @@ def upper_set_topology : topological_space α :=
   is_open_sUnion := λ _, is_upper_set_sUnion }
 
 /--
-The set of sets satisfying "property (S)" (Gierz et al p100) form a topology
+The set of sets satisfying "property (S)" ([GierzEtAl1980] p100) form a topology
 -/
 def directed_lub_mem_implies_tail_subset : topological_space α :=
 { is_open := λ u, ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u →

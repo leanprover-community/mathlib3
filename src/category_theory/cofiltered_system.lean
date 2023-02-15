@@ -39,7 +39,6 @@ Given a functor `F : J ⥤ Type v`:
 
 ## Todo
 
-* Specialize to inverse systems and finite systems.
 * Prove [Stacks: Lemma 0597](https://stacks.math.columbia.edu/tag/0597)
 
 ## References

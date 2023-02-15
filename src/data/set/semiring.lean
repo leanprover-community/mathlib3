@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.set.pointwise.smul
+import algebra.order.kleene
 
 /-!
 # Sets as a semiring under union
@@ -88,18 +89,21 @@ instance [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
 instance [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
 
-instance [monoid α] : semiring (set_semiring α) :=
-{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
+instance [monoid α] : idem_semiring (set_semiring α) :=
+{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring,
+  ..set.complete_boolean_algebra }
 
 instance [comm_semigroup α] : non_unital_comm_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_semiring, ..set.comm_semigroup }
+
+instance [comm_monoid α] : idem_comm_semiring (set_semiring α) :=
+{ ..set_semiring.idem_semiring, ..set.comm_monoid }
 
 instance [comm_monoid α] : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b, add_le_add_left,
   exists_add_of_le := λ a b ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
   le_self_add := subset_union_left,
-  ..set_semiring.semiring, ..set.comm_monoid, ..set_semiring.partial_order _,
-  ..set_semiring.order_bot _, ..set_semiring.no_zero_divisors }
+  ..set_semiring.idem_semiring, ..set.comm_monoid, ..set_semiring.no_zero_divisors }
 
 /-- The image of a set under a multiplicative homomorphism is a ring homomorphism
 with respect to the pointwise operations on sets. -/

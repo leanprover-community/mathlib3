@@ -10,6 +10,9 @@ import category_theory.eq_to_hom
 /-!
 # Comma categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A comma category is a construction in category theory, which builds a category out of two functors
 with a common codomain. Specifically, for functors `L : A ⥤ T` and `R : B ⥤ T`, an object in
 `comma L R` is a morphism `hom : L.obj left ⟶ R.obj right` for some objects `left : A` and

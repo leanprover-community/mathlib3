@@ -5,6 +5,7 @@ Authors: Niels Voss
 -/
 
 import number_theory.divisors
+import tactic
 
 namespace nat
 
@@ -43,50 +44,31 @@ begin
     { rw le_zero_iff.mp (le_of_succ_le_succ (le_of_succ_le_succ (not_lt.mp h₃))) } }
 end
 
+lemma mul_prime_same_factors (n : ℕ) {p q : ℕ} (hp : p.prime) (hq : q.prime) :
+  (n * p).divisors.card = (n * q).divisors.card :=
+begin
+  have transforms : (n * p).divisors.image (λ k, k / p * q) = (n * q).divisors := sorry,
+  have inj : set.inj_on (λ k, k / p * q) ↑(n * p).divisors := sorry,
+  rw ←transforms,
+  exact (finset.card_image_of_inj_on inj).symm,
+end
+
+lemma div_mul_prime_same_factors {n p q : ℕ} (hp : p.prime) (hq : q.prime) (hn : p ∣ n) :
+  (n / p * q).divisors.card = n.divisors.card :=
+begin
+  rcases hn with ⟨k, rfl⟩,
+  rw nat.mul_div_cancel_left k hp.pos,
+  rw mul_comm p k,
+  exact (mul_prime_same_factors k hp hq).symm
+end
+
 lemma highly_composite.smaller_prime_dvd {n : ℕ} (hn : n.highly_composite) {p q : ℕ} (hp : p.prime)
   (hq : q.prime) (ha : p ∣ n) (hb : q < p) : q ∣ n :=
 begin
   by_contra,
-  let m := (n / p) * q,
-  have hm₁ : m.divisors.card = n.divisors.card,
-  { let embed : ℕ → ℕ := λ d, if p ∣ d then (d / p) * q else d,
-    have embed_inj : function.injective embed := sorry,
-    have map_embed : n.divisors.map ⟨embed, embed_inj⟩ = m.divisors,
-    {
-      ext d,
-      rw mem_divisors,
-      rw finset.mem_map,
-      split,
-      {
-        intro hd,
-        rcases hd with ⟨r, hr₁, hr₂⟩,
-        rw mem_divisors at hr₁,
-        -- change embed r = d at hr₂,
-        change (if p ∣ r then (r / p) * q else r) = d at hr₂,
-        --rw ite_eq_iff at hr₂,
-        by_cases hr₃ : p ∣ r,
-        {
-          --replace hr₂ := (hr₂.resolve_right sorry).right,
-          have : (r / p) * q = d := by sorry; cc,
-          rw ← this,
-          sorry
-        },
-        { sorry }
-      },
-      {
-        intro hd,
-        sorry
-      }
-    },
-    rw ←map_embed,
-    exact finset.card_map ⟨embed, embed_inj⟩ },
-  have hm₂ : m < n := sorry,
-  exact absurd hm₁ (ne_of_lt (hn m hm₂)),
-  /-have ha' : p ∈ n.factors := (nat.mem_factors_iff_dvd sorry hp).mpr ha,
-  let smaller_factors : list ℕ := q :: (n / p).factors,
-  have : smaller_factors.prod = (n / p) * q := sorry,
-  have : smaller_factors.prod < n := sorry,
-  have smaller_factors-/
+  have hm₁ : (n / p * q).divisors.card = n.divisors.card := div_mul_prime_same_factors hp hq ha,
+  have hm₂ : (n / p * q) < n := sorry,
+  exact absurd hm₁ (ne_of_lt (hn _ hm₂)),
 end
 
 end nat

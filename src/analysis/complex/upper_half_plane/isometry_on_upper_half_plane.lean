@@ -15,9 +15,7 @@ open_locale upper_half_plane matrix_groups
 
 namespace complex
 
-lemma abs_mul (z w : ℂ) :
-  abs (z * w) = abs z * abs w :=
-by simp only [abs_apply, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg z)]
+lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w := absolute_value.map_mul _ _ _
 
 protected lemma dist_inv_inv (z w : ℂ) (hz : z ≠ 0) (hw : w ≠ 0) :
   dist z⁻¹ w⁻¹ = (dist z w) / (abs z * abs w) :=
@@ -81,8 +79,6 @@ begin
   simp [involute, neg_div, inv_neg],
 end
 
-lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq := by simp
-
 lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : g 1 0 = 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
     ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
@@ -115,28 +111,23 @@ begin
   linear_combination (-(z * ↑c ^ 2) - ↑c * ↑d) * h, -- Courtesy of `polyrith`
 end
 
-lemma isometry_involute : isometry (λ z, involute • z : ℍ → ℍ) :=
-begin
-  refine isometry.of_dist_eq (λ y₁ y₂, _),
-  have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
-  have h₂ : complex.abs (y₁ * y₂) ≠ 0, { simp [y₁.ne_zero, y₂.ne_zero], },
-  simp only [dist_eq, involute_apply, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im,
-    complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
-    real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
-    complex.dist_inv_inv _ _ y₁.ne_zero y₂.ne_zero, ← complex.abs_mul, ← complex.norm_sq_mul,
-    real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ), div_div_div_comm, div_self h₂, div_one],
-end
-
 lemma isometry_SL2_smul (g : SL(2, ℝ)) : isometry ((•) g : ℍ → ℍ) :=
 begin
+  have h₀ : isometry (λ z, involute • z : ℍ → ℍ) := isometry.of_dist_eq (λ y₁ y₂, by
+  { have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
+    have h₂ : complex.abs (y₁ * y₂) ≠ 0, { simp [y₁.ne_zero, y₂.ne_zero], },
+    simp only [dist_eq, involute_apply, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im, div_one,
+      complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
+      real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
+      complex.dist_inv_inv _ _ y₁.ne_zero y₂.ne_zero, ← complex.abs_mul, ← complex.norm_sq_mul,
+      real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ), div_div_div_comm, div_self h₂], }),
   by_cases hc : g 1 0 = 0,
   { obtain ⟨u, v, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_eq_zero g hc,
     rw h,
     exact (isometry_real_vadd v).comp (isometry_pos_mul u), },
   { obtain ⟨u, v, w, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_ne_zero g hc,
     rw h,
-    exact (isometry_real_vadd w).comp (isometry_involute.comp $ (isometry_real_vadd v).comp $
-      isometry_pos_mul u), },
+    exact (isometry_real_vadd w).comp (h₀.comp $ (isometry_real_vadd v).comp $ isometry_pos_mul u) }
 end
 
 end upper_half_plane

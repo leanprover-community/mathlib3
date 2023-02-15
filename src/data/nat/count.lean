@@ -9,6 +9,9 @@ import tactic.ring
 /-!
 # Counting on ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `count` function, which gives, for any predicate on the natural numbers,
 "how many numbers under `k` satisfy this predicate?".
 We then prove several expected lemmas about `count`, relating it to the cardinality of other

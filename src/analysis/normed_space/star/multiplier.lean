@@ -9,6 +9,7 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
 import analysis.special_functions.pow
 import analysis.normed_space.star.mul
+import algebra.star.subalgebra
 
 /-!
 # Multiplier Algebra of a C⋆-algebra
@@ -152,35 +153,47 @@ instance : has_pow 𝓜(𝕜, A) ℕ :=
       rw [pow_succ a.snd, mul_apply, a.central, hk, pow_succ' a.fst, mul_apply] },
   end⟩ }
 
-@[simp] lemma add_fst (a b : 𝓜(𝕜, A)) : (a + b).fst = a.fst + b.fst := rfl
-@[simp] lemma add_snd (a b : 𝓜(𝕜, A)) : (a + b).snd = a.snd + b.snd := rfl
-@[simp] lemma zero_fst : (0 : 𝓜(𝕜, A)).fst = 0 := rfl
-@[simp] lemma zero_snd : (0 : 𝓜(𝕜, A)).snd = 0 := rfl
-@[simp] lemma neg_fst (a : 𝓜(𝕜, A)) : (-a).fst = -a.fst := rfl
-@[simp] lemma neg_snd (a : 𝓜(𝕜, A)) : (-a).snd = -a.snd := rfl
-@[simp] lemma sub_fst (a b : 𝓜(𝕜, A)) : (a - b).fst = a.fst - b.fst := rfl
-@[simp] lemma sub_snd (a b : 𝓜(𝕜, A)) : (a - b).snd = a.snd - b.snd := rfl
-@[simp] lemma one_fst : (1 : 𝓜(𝕜, A)).fst = 1 := rfl
-@[simp] lemma one_snd : (1 : 𝓜(𝕜, A)).snd = 1 := rfl
+@[simp] lemma add_to_prod (a b : 𝓜(𝕜, A)) : (a + b).fst = a.fst + b.fst := rfl
+@[simp] lemma zero_to_prod : (0 : 𝓜(𝕜, A)).to_prod = 0 := rfl
+@[simp] lemma neg_to_prod (a : 𝓜(𝕜, A)) : (-a).to_prod = -a.to_prod := rfl
+@[simp] lemma sub_to_prod (a b : 𝓜(𝕜, A)) : (a - b).to_prod = a.to_prod - b.to_prod := rfl
+@[simp] lemma one_to_prod : (1 : 𝓜(𝕜, A)).to_prod = 1 := rfl
+@[simp] lemma nat_cast_to_prod (n : ℕ) : (n : 𝓜(𝕜 , A)).to_prod = n := rfl
+@[simp] lemma int_cast_to_prod (n : ℤ) : (n : 𝓜(𝕜 , A)).to_prod = n := rfl
+@[simp] lemma pow_to_prod (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).to_prod = a.to_prod ^ n := rfl
+
+lemma add_fst (a b : 𝓜(𝕜, A)) : (a + b).fst = a.fst + b.fst := rfl
+lemma add_snd (a b : 𝓜(𝕜, A)) : (a + b).snd = a.snd + b.snd := rfl
+lemma zero_fst : (0 : 𝓜(𝕜, A)).fst = 0 := rfl
+lemma zero_snd : (0 : 𝓜(𝕜, A)).snd = 0 := rfl
+lemma neg_fst (a : 𝓜(𝕜, A)) : (-a).fst = -a.fst := rfl
+lemma neg_snd (a : 𝓜(𝕜, A)) : (-a).snd = -a.snd := rfl
+lemma sub_fst (a b : 𝓜(𝕜, A)) : (a - b).fst = a.fst - b.fst := rfl
+lemma sub_snd (a b : 𝓜(𝕜, A)) : (a - b).snd = a.snd - b.snd := rfl
+lemma one_fst : (1 : 𝓜(𝕜, A)).fst = 1 := rfl
+lemma one_snd : (1 : 𝓜(𝕜, A)).snd = 1 := rfl
 @[simp] lemma mul_fst (a b : 𝓜(𝕜, A)) : (a * b).fst = a.fst * b.fst := rfl
 @[simp] lemma mul_snd (a b : 𝓜(𝕜, A)) : (a * b).snd = b.snd * a.snd := rfl
-@[simp] lemma nat_cast_fst (n : ℕ) : (n : 𝓜(𝕜 , A)).fst = n := rfl
-@[simp] lemma nat_cast_snd (n : ℕ) : (n : 𝓜(𝕜 , A)).snd = n := rfl
-@[simp] lemma int_cast_fst (n : ℤ) : (n : 𝓜(𝕜 , A)).fst = n := rfl
-@[simp] lemma int_cast_snd (n : ℤ) : (n : 𝓜(𝕜 , A)).snd = n := rfl
-@[simp] lemma pow_fst (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).fst = a.fst ^ n := rfl
-@[simp] lemma pow_snd (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).snd = a.snd ^ n := rfl
+lemma nat_cast_fst (n : ℕ) : (n : 𝓜(𝕜 , A)).fst = n := rfl
+lemma nat_cast_snd (n : ℕ) : (n : 𝓜(𝕜 , A)).snd = n := rfl
+lemma int_cast_fst (n : ℤ) : (n : 𝓜(𝕜 , A)).fst = n := rfl
+lemma int_cast_snd (n : ℤ) : (n : 𝓜(𝕜 , A)).snd = n := rfl
+lemma pow_fst (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).fst = a.fst ^ n := rfl
+lemma pow_snd (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).snd = a.snd ^ n := rfl
 
 /-- The natural injection from `double_centralizer.to_prod` except the second coordinate inherits
 `mul_opposite.op`. The ring structure on `𝓜(𝕜, A)` is the pullback under this map. -/
-def to_prod_mul_opposite : 𝓜(𝕜, A) → ((A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
+def to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ :=
 λ a, (a.fst, mul_opposite.op a.snd)
+
+lemma to_prod_mul_opposite_injective :
+  function.injective (to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
+λ a b h, let h' := prod.ext_iff.mp h in ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
 
 /-- The ring structure is inherited as the pullback under the injective map
 `double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
 instance : ring 𝓜(𝕜, A) :=
-function.injective.ring to_prod_mul_opposite
-  (λ a b h, let h' := prod.ext_iff.mp h in ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2)
+function.injective.ring to_prod_mul_opposite to_prod_mul_opposite_injective
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)
   (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)

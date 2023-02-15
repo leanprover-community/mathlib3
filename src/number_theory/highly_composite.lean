@@ -47,8 +47,38 @@ end
 lemma mul_prime_same_factors (n : ℕ) {p q : ℕ} (hp : p.prime) (hq : q.prime) :
   (n * p).divisors.card = (n * q).divisors.card :=
 begin
-  have transforms : (n * p).divisors.image (λ k, k / p * q) = (n * q).divisors := sorry,
-  have inj : set.inj_on (λ k, k / p * q) ↑(n * p).divisors := sorry,
+  have transforms : (n * p).divisors.image (λ k, if p ∣ k then k / p * q else k) = (n * q).divisors,
+  {
+    ext d,
+    rw finset.mem_image,
+    split,
+    {
+      rintro ⟨a, H, rfl⟩,
+      rw mem_divisors at H ⊢,
+      replace H := H.left,
+      refine ⟨_, sorry⟩,
+      by_cases ha : p ∣ a,
+      { simp [ha], -- TODO: Remove non-terminal simp
+        rcases ha with ⟨b, rfl⟩,
+        rw nat.mul_div_cancel_left _ hp.pos,
+        rw mul_comm at H,
+        have := nat.dvd_of_mul_dvd_mul_right hp.pos H,
+        exact (nat.mul_dvd_mul_iff_right hq.pos).mpr this },
+      { simp [ha],
+        sorry,
+      }
+    },
+    {
+      intro hd,
+      rw mem_divisors at hd,
+      by_cases ha : p ∣ d,
+      {
+
+      },
+      sorry
+     }
+  },
+  have inj : set.inj_on (λ k, if p ∣ k then k / p * q else k) ↑(n * p).divisors := sorry,
   rw ←transforms,
   exact (finset.card_image_of_inj_on inj).symm,
 end

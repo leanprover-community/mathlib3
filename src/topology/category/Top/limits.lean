@@ -957,11 +957,14 @@ def partial_sections {J : Type u} [small_category J] (F : J ⥤ Top.{u})
   {G : finset J} (H : finset (finite_diagram_arrow G)) : set (Π j, F.obj j) :=
 { u | ∀ {f : finite_diagram_arrow G} (hf : f ∈ H), F.map f.2.2.2.2 (u f.1) = u f.2.1 }
 
-lemma partial_sections.nonempty [is_cofiltered J] [h : Π (j : J), nonempty (F.obj j)]
+lemma partial_sections.nonempty [is_cofiltered_or_empty J] [h : Π (j : J), nonempty (F.obj j)]
   {G : finset J} (H : finset (finite_diagram_arrow G)) :
   (partial_sections F H).nonempty :=
 begin
   classical,
+  casesI is_empty_or_nonempty J,
+  { exact ⟨λ j, is_empty_elim j, λ j, is_empty.elim' infer_instance j.1⟩ },
+  haveI : is_cofiltered J := ⟨⟩,
   use λ (j : J), if hj : j ∈ G
                  then F.map (is_cofiltered.inf_to G H hj) (h (is_cofiltered.inf G H)).some
                  else (h _).some,
@@ -1024,10 +1027,6 @@ lemma nonempty_limit_cone_of_compact_t2_cofiltered_system
   nonempty (Top.limit_cone.{u} F).X :=
 begin
   classical,
-  obtain h|h := is_empty_or_nonempty J,
-  { exact ⟨⟨λ x, h.elim x, λ x, h.elim x⟩⟩, },
-  haveI : nonempty J := h,
-  haveI : is_cofiltered J := ⟨⟩,
   obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
     (λ G, partial_sections F _)
     (partial_sections.directed F)
@@ -1048,4 +1047,3 @@ end
 end topological_konig
 
 end Top
-

@@ -39,7 +39,7 @@ Given a functor `F : J ⥤ Type v`:
 
 ## Todo
 
-* Specialize to inverse systems and fintype systems.
+* Specialize to inverse systems and finite systems.
 * Prove [Stacks: Lemma 0597](https://stacks.math.columbia.edu/tag/0597)
 
 ## References
@@ -56,9 +56,9 @@ universes u v w
 
 open category_theory category_theory.is_cofiltered set category_theory.functor_to_types
 
-section fintype_konig
+section finite_konig
 
-/-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
+/-- This bootstraps `nonempty_sections_of_finite_inverse_system`. In this version,
 the `F` functor is between categories of the same universe, and it is an easy
 corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
 lemma nonempty_sections_of_finite_cofiltered_system.init
@@ -76,7 +76,7 @@ end
 
 /-- The cofiltered limit of nonempty finite types is nonempty.
 
-See `nonempty_sections_of_fintype_inverse_system` for a specialization to inverse limits. -/
+See `nonempty_sections_of_finite_inverse_system` for a specialization to inverse limits. -/
 theorem nonempty_sections_of_finite_cofiltered_system
   {J : Type u} [category.{w} J] [is_cofiltered_or_empty J] (F : J ⥤ Type v)
   [∀ (j : J), finite (F.obj j)] [∀ (j : J), nonempty (F.obj j)] :
@@ -104,7 +104,7 @@ end
 
 /-- The inverse limit of nonempty finite types is nonempty.
 
-See `nonempty_sections_of_fintype_cofiltered_system` for a generalization to cofiltered limits.
+See `nonempty_sections_of_finite_cofiltered_system` for a generalization to cofiltered limits.
 That version applies in almost all cases, and the only difference is that this version
 allows `J` to be empty.
 
@@ -123,7 +123,7 @@ begin
   { exact nonempty_sections_of_finite_cofiltered_system _, },
 end
 
-end fintype_konig
+end finite_konig
 
 namespace category_theory
 namespace functor
@@ -187,7 +187,7 @@ lemma is_mittag_leffler_of_surjective
   map_id' := λ j, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ j k l f g, by { simp_rw F.map_comp, refl } }
 
-instance to_preimages_fintype [∀ j, finite (F.obj j)] :
+instance to_preimages_finite [∀ j, finite (F.obj j)] :
   ∀ j, finite ((F.to_preimages s).obj j) := λ j, subtype.finite
 
 variable [is_cofiltered_or_empty J]
@@ -323,7 +323,7 @@ begin
   refine congr_arg _ (Finj m (mi ≫ f) h),
 end
 
-section fintype_cofiltered_system
+section finite_cofiltered_system
 
 variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
   (Fsur : ∀ ⦃i j : J⦄ (f :i ⟶ j), (F.map f).surjective)
@@ -355,7 +355,7 @@ begin
   apply fn.argmin_le,
 end
 
-end fintype_cofiltered_system
+end finite_cofiltered_system
 
 end functor
 end category_theory

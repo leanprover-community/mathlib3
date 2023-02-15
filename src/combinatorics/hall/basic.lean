@@ -27,7 +27,7 @@ The theorem can be generalized to remove the constraint that `ι` be a `fintype`
 As observed in [Halpern1966], one may use the constrained version of the theorem
 in a compactness argument to remove this constraint.
 The formulation of compactness we use is that inverse limits of nonempty finite sets
-are nonempty (`nonempty_sections_of_fintype_inverse_system`), which uses the
+are nonempty (`nonempty_sections_of_finite_inverse_system`), which uses the
 Tychonoff theorem.
 The core of this module is constructing the inverse system: for every finite subset `ι'` of
 `ι`, we can consider the matchings on the restriction of the indexed family `t` to `ι'`.
@@ -139,7 +139,7 @@ begin
       apply_instance,
     end,
     /- Apply the compactness argument -/
-    obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system (hall_matchings_functor t),
+    obtain ⟨u, hu⟩ := nonempty_sections_of_finite_inverse_system (hall_matchings_functor t),
     /- Interpret the resulting section of the inverse limit -/
     refine ⟨_, _, _⟩,
     { /- Build the matching function from the section -/

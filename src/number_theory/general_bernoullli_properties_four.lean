@@ -196,71 +196,8 @@ begin
   simp only,
 end
 
-lemma lim_even_character' [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R]
-  [fact (0 < m)] {k : ℕ} [algebra ℚ R] [is_scalar_tower ℚ ℚ_[p] R] [norm_one_class R] (hk : 1 < k)
-  (hχ : χ.is_even) (hp : 2 < p)
-  (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
-  filter.tendsto (λ n, (1/((d * p^n : ℕ) : ℚ_[p])) • ∑ i in finset.range (d * p^n),
-  ((asso_dirichlet_character (χ.mul (teichmuller_character_mod_p' p R ^ k))) i * i^k) )
-  (@filter.at_top ℕ _) (nhds (general_bernoulli_number
-  (χ.mul (teichmuller_character_mod_p' p R ^ k)) k)) :=
+lemma zmod.cast_nat_eq_zero_of_dvd {m : ℕ} {n : ℕ} (h : m ∣ n) : (n : zmod m) = 0 :=
 begin
-  refine tendsto_sub_nhds_zero_iff.1 ((filter.tendsto_congr' (helper_13 m hk)).2 _),
-  conv { congr, skip, skip, rw ←neg_zero, rw ←add_zero (0 : R),
-    conv { congr, congr, congr, rw ←add_zero (0 : R), }, },
-  refine tendsto.neg (tendsto.add (tendsto.add _ _) _),
-  { conv { congr, funext, conv { congr, skip, apply_congr, skip,
-      rw [mul_comm ((algebra_map ℚ R) (bernoulli 1 * ↑k) * ↑(d * p ^ x)) _, ←mul_assoc], },
-      rw [←finset.sum_mul, mul_comm _ ((algebra_map ℚ R) (bernoulli 1 * ↑k) * ↑(d * p ^ x)),
-       ←smul_mul_assoc, mul_comm ((algebra_map ℚ R) (bernoulli 1 * ↑k)) ↑(d * p ^ x),
-       ←smul_mul_assoc, ←div_smul_eq_div_smul p R (d * p ^ x) _,
-       one_div_smul_self R (@nat.ne_zero_of_lt' 0 (d * p^x) _), one_mul, ←smul_eq_mul,
-       algebra_map_smul, helper_14 p R], skip, skip,
-       rw ←@smul_zero ℚ_[p] R _ _ _ ((algebra_map ℚ ℚ_[p]) (bernoulli 1 * ↑k)), },
-    refine tendsto.const_smul _ _,
-    convert (tendsto_congr' _).2 (sum_even_character m hk hχ hp na),
-    rw [eventually_eq, eventually_at_top],
-    refine ⟨m, λ x hx, _⟩,
-    have poss : 0 < d * p^x := fact.out _,
-    simp_rw [add_comm 1 _, nat.succ_eq_add_one],
-    rw [finset.range_eq_Ico, finset.sum_Ico_add' (λ x : ℕ, (asso_dirichlet_character (χ.mul
-      (teichmuller_character_mod_p' p R ^ k))) ↑x * ↑x ^ (k - 1)) 0 (d * p^x).pred 1,
-      finset.sum_eq_sum_Ico_succ_bot poss, @nat.cast_zero R _ _, zero_pow (nat.sub_pos_of_lt hk),
-      mul_zero, zero_add, zero_add, nat.pred_add_one_eq_self poss], },
-  { rw metric.tendsto_at_top,
-    intros ε hε,
-    obtain ⟨N, h⟩ := metric.tendsto_at_top.1 (tendsto.const_mul ((⨆ (x_1 : zmod (k.sub 0).pred),
-      ∥(algebra_map ℚ R) (bernoulli ((k.sub 0).pred.succ - x_1.val) *
-      ↑((k.sub 0).pred.succ.choose x_1.val))∥) *
-      (χ.mul (teichmuller_character_mod_p' p R ^ k)).bound) (tendsto_iff_norm_tendsto_zero.1
-      (nat_cast_mul_prime_pow_tendsto_zero p d R))) (ε/2) (half_pos hε),
-    simp_rw [sub_zero, mul_zero _, dist_zero_right _, real.norm_eq_abs] at h,
-    refine ⟨N, λ  x hx, _⟩,
-    rw dist_eq_norm, rw sub_zero,
-    conv { congr, congr, conv { congr, skip,
-      conv { apply_congr, skip, rw [←mul_assoc, mul_comm ((asso_dirichlet_character (χ.mul
-        (teichmuller_character_mod_p' p R ^ k))) ↑(x_1.succ)) _, mul_assoc, add_comm 1 x_1], },
-      rw ←finset.mul_sum, },
-      rw [←smul_mul_assoc, ←div_smul_eq_div_smul p R (d * p ^ x) _, one_div_smul_self R
-        (@nat.ne_zero_of_lt' 0 (d * p^x) _), one_mul], },
-    refine lt_of_le_of_lt (na _ _) (lt_of_le_of_lt (cSup_le (set.range_nonempty _) (λ b hb, _))
-      (half_lt_self hε)),
-    cases hb with y hy,
-    rw ←hy,
-    simp only,
-    refine le_trans (norm_mul_le _ _) (le_trans (mul_le_mul
-      (le_of_lt (dirichlet_character.lt_bound _ _)) (helper_15 na hk _ _) (norm_nonneg _)
-      (le_of_lt (bound_pos _))) (le_of_lt _)),
-    rw [mul_comm, mul_assoc, mul_comm],
-    apply lt_of_abs_lt (h x hx),  },
-  { apply (tendsto_congr' _).2 tendsto_const_nhds,
-    rw [eventually_eq, eventually_at_top],
-    refine ⟨m, λ x hx, _⟩,
-    -- there is another way to do this, but we will use this later on anyway
-    rw asso_dirichlet_character_eq_zero _ _,
-    { rw [zero_mul, smul_zero], },
-    { -- probably make this a separate lemma
-      convert not_is_unit_zero,
-      sorry,
-      sorry, }, },
+  rw [←zmod.cast_nat_cast h, zmod.nat_cast_self, zmod.cast_zero],
+  refine zmod.char_p _,
 end

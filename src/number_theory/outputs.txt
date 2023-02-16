@@ -1,0 +1,150 @@
+/-- If $n$ is not a prime, show that $(n-1) ! \equiv 0(n)$, except when $n=4$. -/
+theorem nat.factorial_equiv_zero_of_not_prime_of_ne_four {n : ℕ} (hn1 : 1 < n) (hn : ¬ prime n) : (n - 1).factorial ≡ 0 [ZMOD n]  := sorry
+
+/-- Prove that $g(y) = \int_0^\infty e^{-x} \sin(x + y) dx$ is differentiable and find $g'(y)$. -/
+theorem cont_diff_sin_x_plus_y_exp_neg_x (y : ℝ) : cont_diff ℝ 1 (λ (x : ℝ), complex.exp (-x) * complex.sin (x + y))  := sorry
+
+/-- Define $f_{n}:[0,1] \rightarrow \mathbb{R}$ by the equation $f_{n}(x)=x^{n}$. Show that the sequence $\left(f_{n}(x)\right)$ converges for each $x \in[0,1]$. -/
+theorem tendsto_pow_int (n : ℕ) (x : ℝ) (hx : 0 ≤ x) (hx2 : x ≤ 1) : filter.tendsto (λ (n : ℕ), x ^ n) filter.at_top (nhds (x ^ ((1 : ℝ) / (1 - x))))  := sorry
+
+/-- Let $f: \mathbb{R} \rightarrow \mathbb{R}$ be an infinitely differentiable function satisfying $f(0)=0, f(1)=1$, and $f(x) \geq 0$ for all $x \in$ $\mathbb{R}$. Show that there exist a positive integer $n$ and a real number $x$ such that $f^{(n)}(x)<0$. -/
+theorem deriv_pos_of_geo_lt_one {f : ℝ → ℝ} (hf0 : f 0 = 0) (hf1 : f 1 = 1) (hf : ∀ (x : ℝ), 0 ≤ f x) (hf' : differentiable ℝ f) (hf'0 : deriv f 0 = 1) : ∃ (x : ℝ) (n : ℕ), deriv^[n] f x < 0  := sorry
+
+/-- Show that $\mathbb{R} \times \mathbb{R}$ in the dictionary order topology is metrizable. -/
+theorem metric_space_of_metric_product {α : Type*} {β : Type*} [metric_space α] [metric_space β] : metric_space (α × β)  := sorry
+
+/-- A map $f: X \rightarrow Y$ is said to be an open map if for every open set $U$ of $X$, the set $f(U)$ is open in $Y$. Show that $\pi_{1}: X \times Y \rightarrow X$ and $\pi_{2}: X \times Y \rightarrow Y$ are open maps. -/
+theorem is_open_map_snd {α : Type*} {β : Type*} [topological_space α] [topological_space β] : is_open_map prod.snd  := sorry
+
+/-- Suppose $f$ is defined and differentiable for every $x>0$, and $f^{\prime}(x) \rightarrow 0$ as $x \rightarrow+\infty$. Put $g(x)=f(x+1)-f(x)$. Prove that $g(x) \rightarrow 0$ as $x \rightarrow+\infty$. -/
+theorem tendsto_zero_of_deriv_tendsto_zero_at_top (f : ℝ → ℝ) (hf : ∀ᶠ (x : ℝ) in filter.at_top, differentiable_at ℝ f x) (hftop : filter.tendsto (deriv f) filter.at_top (nhds 0)) : filter.tendsto (λ (x : ℝ), f (x + 1) - f x) filter.at_top (nhds 0)  := sorry
+
+/-- Let $G$ be a group in which $(a b)^{3}=a^{3} b^{3}$ and $(a b)^{5}=a^{5} b^{5}$ for all $a, b \in G$. Show that $G$ is abelian. -/
+theorem mul_pow_eq_mul_pow.comm {G : Type*} [group G] {x y : G} (hx : x ≠ 1) (hy : y ≠ 1) (h35 : (x * y) ^ 3 = x ^ 3 * y ^ 3) (h55 : (x * y) ^ 5 = x ^ 5 * y ^ 5) : x * y = y * x  := sorry
+
+/-- Evaluate the integral $\int_{-\infty}^{\infty} \frac{dx}{1 + x^4}$. -/
+theorem integral_integral_div_one_plus_x_pow_four (a : ℝ) : ∫ (x : ℝ) in -a..a, (1 + x ^ 4)⁻¹ = (real.pi / 2) ∧ (a < 0 ∨ a = 0 ∧ a = 1 ∨ 0 < a ∧ a < (1 / 2) * (real.sqrt 2) ∧ (a / 2) ^ 2 = 1 / (1 + (a / 2) ^ 4))  := sorry
+
+/-- Prove that the products $a b$ and $b a$ are conjugate elements in a group. -/
+theorem is_conj_mul {S : Type*} [group S] {a b : S} : is_conj (a * b) (b * a)  := sorry
+
+/-- Let $H$ be a subgroup of the additive group of rational numbers with the property that $1 / x \in H$ for every nonzero element $x$ of $H$. Prove that $H=0$ or $\mathbb{Q}$. -/
+theorem add_subgroup.span_of_inv_in_subgroup_of_rat {H : add_subgroup ℚ} (h₁ : ∀ (x : ℚ) (hx : x ∈ H) (hx0 : x ≠ 0), x⁻¹ ∈ H) : H = ⊥ ∨ H = ⊤  := sorry
+
+/-- Prove that $x^3 - 9$ is irreducible in $\mathbb{F}_{31}$. -/
+theorem example1 (p : nat) : irreducible (polynomial.C (p : ℕ))  := sorry
+
+/-- Prove that no order can be defined in the complex field that turns it into an ordered field. Hint: $-1$ is a square. -/
+theorem complex.no_order : ¬nonempty (linear_order ℂ)  := sorry
+
+/-- Suppose $f \geq 0, f$ is continuous on $[a, b]$, and $\int_{a}^{b} f(x) d x=0$. Prove that $f(x)=0$ for all $x \in[a, b]$. -/
+theorem eq_zero_of_interval_integral_eq_zero {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (hf : continuous_on f (set.Icc a b)) (hfpos : ∀ (x : ℝ), 0 ≤ f x) (H : ∫ (x : ℝ) in a..b, f x ∂measure_theory.measure_space.volume = 0) : ∀ (x : ℝ) (H : x ∈ set.Icc a b), f x = 0  := sorry
+
+/-- Show that a group of order 5 must be abelian. -/
+theorem abelian_group_of_card_five {G : Type*} [group G] [fintype G] (h : fintype.card G = 5) : add_comm_group G  := sorry
+
+/-- Prove that $x^6+30x^5-15x^+6x-120$ is irreducible in $\mathbb{Z}[x]$. -/
+theorem polynomial.irreducible_of_eisenstein_example (p : polynomial ℤ) : irreducible p  := sorry
+
+/-- Let $A \subset X$. Show that if $C$ is a connected subspace of $X$ that intersects both $A$ and $X-A$, then $C$ intersects $\operatorname{Bd} A$. -/
+theorem connected_separation {α : Type*} [topological_space α] {A : set α} {C : set α} (H1 : is_connected C) (H2 : C ∩ A ≠ ∅) (H3 : C ∩ (set.univ \ A) ≠ ∅) : C ∩ closure (set.univ \ A) ≠ ∅  := sorry
+
+/-- Suppose that $M$ is compact and that $\mathcal{U}$ is an open covering of $M$ which is redundant in the sense that each $p \in M$ is contained in at least two members of $\mathcal{U}$. Show that $\mathcal{U}$ reduces to a finite subcovering with the same property. -/
+theorem compact_implies_finite_redundant_subcover {α : Type*} [topological_space α] {s : set α} (hs : is_compact s) {U : set (set α)} (hUo : ∀ (m : set α), m ∈ U → is_open m) (hUu : ∀ (p : α), p ∈ s → ∃ (m₁ m₂ : set α), m₁ ∈ U ∧ m₂ ∈ U ∧ p ∈ m₁ ∧ p ∈ m₂) (hUsc : s ⊆ ⋃₀ U) : ∃ (U' : finset (set α)), (∀ (u : set α), u ∈ (↑U' : set (set α))) → s ⊆ ⋃₀ U' ∧ (∀ (p : α), p ∈ s → ∃ (m₁ m₂ : set α), m₁ ∈ (↑U' : set (set α)) ∧ m₂ ∈ (↑U' : set (set α)) ∧ p ∈ m₁ ∧ p ∈ m₂)  := sorry
+
+/-- Show that there are infinitely many primes congruent to $-1$ modulo 6 . -/
+theorem nat.exists_prime_ge_modeq_neg_one_of_six_mul {n : ℕ} : ∃ (p : ℕ), nat.prime p ∧ n ≤ p ∧ p % 6 = 5  := sorry
+
+/-- Let $V$ be a vector space over an infinite field $F$. Prove that $V$ is not the union of finitely many proper subspaces. -/
+theorem not_finset_subspaces_sum_of_infinite_field {R : Type*} {M : Type*} [field R] [add_comm_group M] [module R M] [finite_dimensional R M] (h : infinite R) : ¬ (∃l:finset (submodule R M), l.sum = ⊤ ∧ ∀s∈l, ¬ (s = ⊤))  := sorry
+
+/-- Prove that the union of two subspaces of $V$ is a subspace of $V$ if and only if one of the subspaces is contained in the other. -/
+theorem submodule.union_eq_left_iff {K : Type*} {V : Type*} [field K] [add_comm_group V] [module K V] (s t : submodule K V) : s ⊔ t = s ↔ t ≤ s  := sorry
+
+/-- Let $p: X \rightarrow Y$ be a continuous map. Show that if there is a continuous map $f: Y \rightarrow X$ such that $p \circ f$ equals the identity map of $Y$, then $p$ is a quotient map. -/
+theorem continuous_iff_has_continuous_inv {α : Type*} {β : Type*} [topological_space α] [topological_space β] {f : α → β} (hf : continuous f) (hg : ∃ (g : β → α), continuous g ∧ f ∘ g = id) : quotient_map f  := sorry
+
+/-- Show that if $X$ is a countable product of spaces having countable dense subsets, then $X$ has a countable dense subset. -/
+theorem second_countable_of_prod_of_second_countable {α : Type*} {β : Type*} [topological_space α] [topological_space β] [topological_space.second_countable_topology α] [topological_space.second_countable_topology β] : topological_space.second_countable_topology (α × β)  := sorry
+
+/-- Suppose $X, Y, Z$ are metric spaces, and $Y$ is compact. Let $f$ map $X$ into $Y$, let $g$ be a continuous one-to-one mapping of $Y$ into $Z$, and put $h(x)=g(f(x))$ for $x \in X$. Prove that $f$ is uniformly continuous if $h$ is uniformly continuous. -/
+theorem is_compact.uniform_continuous_of_uniform_continuous_comp {X : Type*} {Y : Type*} {Z : Type*} [pseudo_metric_space X] [metric_space Y] [metric_space Z] [compact_space Y] {f : X → Y} {g : Y → Z} (hf : uniform_continuous f) (hg : uniform_continuous g) (hg_inj : function.injective g) : uniform_continuous (g ∘ f)  := sorry
+
+/-- Let $\varphi: R \rightarrow S$ be a surjective homomorphism of rings. Prove that the image of the center of $R$ is contained in the center of $S$. -/
+theorem ring_surj.center_le_range {R : Type*} {S : Type*} [ring R] [ring S] (f : R →+* S) (hf : function.surjective ⇑f) : subring.map f (subring.center R) ≤ subring.center S  := sorry
+
+/-- For $x$ an element in $G$ show that $x$ and $x^{-1}$ have the same order. -/
+theorem order_of_inv (x) : order_of x = order_of x⁻¹  := sorry
+
+/-- Let $f \colon X \rightarrow X$ be continuous. Show that if $X = [0, 1]$, there is a point $x$ such that $f(x) = x$. (The point $x$ is called a fixed point of $f$.) -/
+theorem brouwer.fixpoint {α : Type*} [linear_order α] [topological_space α] [order_closed_topology α] {f : α → α} (hcont : continuous f) (hnontriv : ∃ x, f x = x) : ∃ x, f x = x  := sorry
+
+/-- Prove that if $V$ is a complex inner-product space, then $\langle u, v\rangle=\frac{\|u+v\|^{2}-\|u-v\|^{2}+\|u+i v\|^{2} i-\|u-i v\|^{2} i}{4}$ for all $u, v \in V$. -/
+theorem inner_eq_norm_mul_self_add_norm_mul_self_add_norm_mul_self_add_norm_mul_I_mul_self_sub_norm_mul_self_add_norm_mul_I_mul_self_sub_norm_mul_self_add_norm_mul_I_mul_self_div_four {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space ℂ E] (x y : E) : has_inner.inner x y = (∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ + ∥x + is_R_or_C.I • y∥ * ∥x + is_R_or_C.I • y∥ + ∥x - is_R_or_C.I • y∥ * ∥x - is_R_or_C.I • y∥) / 4  := sorry
+
+/-- Suppose $\left\{p_{n}\right\}$ is a Cauchy sequence in a metric space $X$, and some sequence $\left\{p_{n l}\right\}$ converges to a point $p \in X$. Prove that the full sequence $\left\{p_{n}\right\}$ converges to $p$. -/
+theorem tendsto_of_cauchy_seq_tendsto_subseq {α : Type*} [pseudo_metric_space α] {u : ℕ → α} (hu : cauchy_seq u) {n : ℕ → ℕ} (hn : filter.tendsto n filter.at_top filter.at_top) {a : α} (ha : filter.tendsto (u ∘ n) filter.at_top (nhds a)) : filter.tendsto u filter.at_top (nhds a)  := sorry
+
+/-- Consider a prime $p$ of the form $4 t+1$. Show that $a$ is a primitive root modulo $p$ iff - $a$ is a primitive root modulo $p$. -/
+theorem zmod.is_primitive_root_of_four_times_plus_one {p : ℕ} (hp : p = 4 * ↑(p / 4) + 1) (hprime : nat.prime p) {a : zmod p} : is_primitive_root a p ↔ a ^ (p / 4) ≠ 1  := sorry
+
+/-- Show that $\int_{0}^{\infty} \frac{\sin x}{x} d x=\frac{\pi}{2}$. -/
+theorem real.tendsto_int_of_sin_over_x_at_top : filter.tendsto (λ (t : ℝ), ∫ (x : ℝ) in 0..t, (real.sin x) / ↑x) filter.at_top (nhds (real.pi / 2))  := sorry
+
+/-- If $\sigma, \tau$ are two permutations that disturb no common element and $\sigma \tau = e$, prove that $\sigma = \tau = e$. -/
+theorem equiv.perm.and.inverse.eq_one {α : Type*} [decidable_eq α] [fintype α] {σ τ : equiv.perm α} (hστ : σ * τ = 1) (hdis : ∀ (x : α), x ∉ σ.support ∧ x ∉ τ.support) : σ = 1 ∧ τ = 1  := sorry
+
+/-- Prove that $x^3 + 6x + 12$ is irreducible in $\mathbb{Q}$. -/
+theorem irreducible_X_add_6X_add_12 : irreducible (polynomial.C 12 + polynomial.C 6*polynomial.X + polynomial.X^3)  := sorry
+
+/-- Prove that if $u$ is a unit in $R$ then so is $-u$. -/
+theorem is_unit_neg {α : Type*} [ring α] [no_zero_divisors α] (u : α) (hu : is_unit u) : is_unit (-u)  := sorry
+
+/-- Suppose $P \in \mathcal{L}(V)$ is such that $P^{2}=P$. Prove that $P$ is an orthogonal projection if and only if $P$ is self-adjoint. -/
+theorem self_adjoint_iff {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E] {T : E →ₗ[𝕜] E} (hT : T • T = T) : inner_product_space.is_self_adjoint T ↔ (∀ v w : E, has_inner.inner (T v) w = has_inner.inner v w)  := sorry
+
+/-- Prove that $\frac{1}{2}+\frac{1}{3}+\cdots+\frac{1}{n}$ is not an integer. -/
+theorem nat.finset.sum_inv_of_nat_lt_self {n : ℕ} (h : 2 ≤ n) : (finset.range n).sum (λ (m : ℕ), 1 / m) ∉ set.Ico 1 2 ∪ {2}  := sorry
+
+/-- Let $\left\{A_{\alpha}\right\}$ be a collection of connected subspaces of $X$; let $A$ be a connectea eubsen of $X$ Show that if $A \cap A_{\alpha} \neq \varnothing$ for all $\alpha$, then $A \cup\left(\bigcup A_{\alpha}\right)$ is connected. -/
+theorem is_connected.sUnion_of_connected (α : Type*) [topological_space α] {s : set α} {c : set (set α)} (hs : is_connected s) (hc : ∀ (t : set α), t ∈ c → is_connected t) (h : ∀ (t : set α), t ∈ c → s ∩ t ≠ ∅) : is_connected (s ∪ ⋃₀c)  := sorry
+
+/-- Show that if $\mathcal{A}$ is a subbasis for a topology on $X$, then the topology generated by $\mathcal{A}$ equals the intersection of all topologies on $X$ that contain $\mathcal{A}$. -/
+theorem topological_space.generate_from_eq_topological_space_of_subbasis {α : Type*} {s : set (set α)} {t : topological_space α} : t = topological_space.generate_from s ↔ s ⊆ t.is_open  := sorry
+
+/-- Let $\mathbf{x}_1, \mathbf{x}_2, \ldots$ be a sequence of the points of the product space $\prod X_\alpha$.  Show that this sequence converges to the point $\mathbf{x}$ if and only if the sequence $\pi_\alpha(\mathbf{x}_i)$ converges to $\pi_\alpha(\mathbf{x})$ for each $\alpha$. -/
+theorem projection_converges_iff {ι : Type*} {ι' : Type*} {α : ι} [topological_space ι] [topological_space ι'] {f : ι → ι'} {l : filter ι} {x : ι} {x' : ι'} : (∀ i:ι, f i = x' ↔ filter.eventually (λ i, f i = x') l) → filter.tendsto f l (nhds x') ↔ filter.tendsto (λ i, (f i, x)) l (nhds (x', x))  := sorry
+
+/-- Let $n$ be a positive integer, and let $f_{n}(z)=n+(n-1) z+$ $(n-2) z^{2}+\cdots+z^{n-1}$. Prove that $f_{n}$ has no roots in the closed unit disk $\{z \in \mathbb{C}:|z| \leq 1\}$. -/
+theorem polynomial.no_root_in_closed_disk {n : ℕ} (hn : 0 < n) (z : ℂ) (h : complex.abs z ≤ 1) : ¬(z^n + (↑(n - 1) : ℂ) * z^(n - 1) + (↑(n - 2) : ℂ) * z^(n - 2) + (↑(n - 3) : ℂ) * z^(n - 3) + (↑(n - 4) : ℂ) * z^(n - 4) + (↑(n - 5) : ℂ) * z^(n - 5) + (↑(n - 6) : ℂ) * z^(n - 6) + (↑(n - 7) : ℂ) * z^(n - 7) + (↑(n - 8) : ℂ) * z^(n - 8) + (↑(n - 9) : ℂ) * z^(n - 9) = 0)  := sorry
+
+/-- If $p$ is a prime, show that $q(x) = 1 + x + x^2 + \cdots x^{p - 1}$ is irreducible in $Q[x]$. -/
+theorem polynomial.cyclotomic_irreducible_pow_of_prime {p : ℕ} (hp : nat.prime p) : irreducible (polynomial.cyclotomic p ℚ)  := sorry
+
+/-- Show that $x^{2} \equiv 1\left(2^{b}\right)$ has one solution if $b=1$, two solutions if $b=2$, and four solutions if $b \geq 3$. -/
+theorem sqrt_equiv_one_mod_pow_two (b : ℕ) (x : ℕ) : x ^ 2 ≡ 1 [MOD 2 ^ b] → (b = 1 → x = 1) ∧ (∃ (y : ℕ), y ^ 2 ≡ 1 [MOD 2 ^ (b + 1)])  := sorry
+
+/-- Suppose $g$ is a real function on $R^{1}$, with bounded derivative (say $\left|g^{\prime}\right| \leq M$ ). Fix $\varepsilon>0$, and define $f(x)=x+\varepsilon g(x)$. Prove that $f$ is one-to-one if $\varepsilon$ is small enough. -/
+theorem exists_has_deriv_within_at_eq_of_gt_of_lt {a b : ℝ} {f f' : ℝ → ℝ} (hab : a ≤ b) (hf : ∀ (x : ℝ), x ∈ set.Icc a b → has_deriv_within_at f (f' x) (set.Icc a b) x) {m : ℝ} (hma : f' a < m) (hmb : m < f' b) : m ∈ f' '' set.Icc a b  := sorry
+
+/-- Let $\mathcal{T}$ be the collection of open subsets of a metric space $\mathrm{M}$, and $\mathcal{K}$ the collection of closed subsets. Show that there is a bijection from $\mathcal{T}$ onto $\mathcal{K}$. -/
+theorem bijective_of_open_and_closed (X : Type*) [metric_space X] : ∃ (g : set X → set X), function.bijective g ∧ ∀ (s : set X), is_closed s ↔ is_open (g s)  := sorry
+
+/-- Let $X$ be an ordered set in the order topology. Show that if $X$ is connected, then $X$ is a linear continuum. -/
+theorem is_connected.continuum {α : Type*} [linear_order α] [topological_space α] [order_topology α] [order_closed_topology α] (s : set α) (hs : is_connected s) : ∃ (a b : α), is_connected (set.Icc a b) ∧ s ⊆ set.Icc a b  := sorry
+
+/-- Prove that if $|G|=1365$ then $G$ is not simple. -/
+theorem simple_group_of_cardinality_1365_impossible {α : Type*} [group α] [fintype α] (hcard : fintype.card α = 1365) (h : is_simple_group α) : false  := sorry
+
+/-- Show that there is no holomorphic function $f$ in the unit disc $D$ that extends continuously to $\partial D$ such that $f(z) = 1/z$ for $z \in \partial D$. -/
+theorem complex.no_holomorphic_continuation_of_mul_inv_on_unit_disc : ∀ (f : ℂ → ℂ) (h : continuous_on f (metric.closed_ball 0 1)) (hf : ∀ (z : ℂ), z.re = 0 → 0 < z.im → f z = complex.I / z), false  := sorry
+
+/-- If $r$ is rational $(r \neq 0)$ and $x$ is irrational, prove that $r+x$ is irrational. -/
+theorem irrational_of_irrational_add_rat {x : ℝ} {r : ℚ} (hx : irrational x) (hr : r ≠ 0) : irrational (x + r)  := sorry
+
+/-- Prove that if $P \in \mathcal{L}(V)$ is such that $P^{2}=P$ and $\|P v\| \leq\|v\|$ for every $v \in V$, then $P$ is an orthogonal projection. -/
+theorem riesz_projection.is_orthogonal_projection {𝕜 : Type*} {V : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 V] [complete_space V] (P : V →ₗ[𝕜] V) (H : P ∘ P = P) (H_norm : ∀ v, ∥P v∥ ≤ ∥v∥) :
+∀ v w : V, has_inner.inner (P v) w = has_inner.inner v w  := sorry
+
+/-- If $G_1$ and $G_2$ are cyclic groups of orders $m$ and $n$, respectively, prove that $G_1 \times G_2$ is cyclic if and only if $m$ and $n$ are relatively prime. -/
+theorem cyclic_iff_coprime_card {G₁ : Type*} {G₂ : Type*} [group G₁] [group G₂] [fintype G₁] [fintype G₂] (H₁ : is_cyclic G₁) (H₂ : is_cyclic G₂) : (fintype.card G₁).coprime (fintype.card G₂) ↔ is_cyclic (G₁ × G₂)  := sorry

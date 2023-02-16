@@ -55,6 +55,11 @@ group.
 * `rack.envel_group` is left adjoint to `quandle.conj` (`to_envel_group.map`).
   The universality statements are `to_envel_group.univ` and `to_envel_group.univ_uniq`.
 
+## Implementation notes
+
+"Unital racks" are uninteresting (see `rack.assoc_iff_id`, `unital_shelf.assoc`), so we do not
+define them.
+
 ## Notation
 
 The following notation is localized in `quandles`:
@@ -94,12 +99,12 @@ class shelf (α : Type u) :=
 (self_distrib : ∀ {x y z : α}, act x (act y z) = act (act x y) (act x z))
 
 /--
-A *unital shelf* is a shelf equipped with an element `1` such that,
- for all elements `x`, we have both `x ◃ 1` and `1 ◃ x` equal `x`.
+A *unital shelf* is a shelf equipped with an element `1` such that, for all elements `x`,
+we have both `x ◃ 1` and `1 ◃ x` equal `x`.
 -/
 class unital_shelf (α : Type u) extends shelf α, has_one α :=
-(one_act : ∀ {a : α}, act 1 a = a)
-(act_one : ∀ {a : α}, act a 1 = a)
+(one_act : ∀ a : α, act 1 a = a)
+(act_one : ∀ a : α, act a 1 = a)
 
 /--
 The type of homomorphisms between shelves.
@@ -130,9 +135,7 @@ localized "infixr (name := shelf_hom) ` →◃ `:25 := shelf_hom" in quandles
 open_locale quandles
 
 namespace unital_shelf
-
 open shelf
-open unital_shelf
 
 variables {S : Type*} [unital_shelf S]
 
@@ -141,19 +144,15 @@ A monoid is *graphic* if, for all `x` and `y`, the *graphic identity*
 `(x * y) * x = x * y` holds.  For a unital shelf, this graphic
 identity holds.
 -/
-lemma graphic_identity {x y : S} : (x ◃ y) ◃ x = x ◃ y :=
+lemma act_act_self_eq (x y : S) : (x ◃ y) ◃ x = x ◃ y :=
 begin
   have h : (x ◃ y) ◃ x = (x ◃ y) ◃ (x ◃ 1) := by rw act_one,
   rw [h, ←shelf.self_distrib, act_one],
 end
 
-lemma idempotent {x : S} : (x ◃ x) = x :=
-begin
-  have h : (x ◃ 1) ◃ (x ◃ 1) = (x ◃ x) := by rw act_one,
-  rw [←h, ←shelf.self_distrib, act_one, act_one],
-end
+lemma act_idem (x : S) : (x ◃ x) = x := by rw [←act_one x, ←shelf.self_distrib, act_one, act_one]
 
-lemma xxy_eq_xy {x y : S} : x ◃ (x ◃ y) = x ◃ y :=
+lemma act_self_act_eq (x y : S) : x ◃ (x ◃ y) = x ◃ y :=
 begin
   have h : x ◃ (x ◃ y) = (x ◃ 1) ◃ (x ◃ y) := by rw act_one,
   rw [h, ←shelf.self_distrib, one_act],
@@ -162,10 +161,8 @@ end
 /--
 The associativity of a unital shelf comes for free.
 -/
-lemma assoc {x y z : S} : (x ◃ y) ◃ z = x ◃ y ◃ z :=
-begin
-  rw [self_distrib, self_distrib, graphic_identity, xxy_eq_xy],
-end
+lemma assoc (x y z : S) : (x ◃ y) ◃ z = x ◃ y ◃ z :=
+by rw [self_distrib, self_distrib, act_act_self_eq, act_self_act_eq]
 
 end unital_shelf
 

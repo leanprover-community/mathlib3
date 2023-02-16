@@ -1966,8 +1966,8 @@ begin
   exact ⟨uv.map (induce_hom_of_le svs)⟩,
 end
 
-lemma induce_union_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : s.nonempty)
-  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
+lemma induce_union_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
+  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → (s ∩ t).nonempty)
   (Sc : ∀ {s}, s ∈ S → (G.induce s).connected) :
   (G.induce s.sUnion).connected :=
 begin

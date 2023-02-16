@@ -137,8 +137,8 @@ begin
   exact or.inl hab,
 end
 
-lemma directed_on_pair (a b : α) (hab: a ≤ b) : directed_on (≤) ({a, b} : set α) := by
-(pair_is_chain hab).directed_on
+lemma directed_on_pair (a b : α) (hab: a ≤ b) : directed_on (≤) ({a, b} : set α) :=
+  (pair_is_chain _ _ hab).directed_on
 
 /--
 A function which preserves lub on directed sets

@@ -1967,9 +1967,9 @@ begin
 end
 
 lemma induce_union_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
-  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → (s ∩ t).nonempty)
+  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
   (Sc : ∀ {s}, s ∈ S → (G.induce s).connected) :
-  (G.induce s.sUnion).connected :=
+  (G.induce $ ⋃₀ S).connected :=
 begin
   obtain ⟨s, sS⟩ := Sn,
   obtain ⟨v, vs⟩ := (Sc sS).nonempty.some,
@@ -1977,8 +1977,8 @@ begin
   rintro w hw,
   simp only [set.mem_sUnion, exists_prop] at hw,
   obtain ⟨t, tS, wt⟩ := hw,
-  refine ⟨s ∪ t, set.union_subset (set.subset_sUnion_of_mem tS) (set.subset_sUnion_of_mem sS),
-          or.inr vs, or.inl wt, induce_union_connected (Sc tS) (Sc sS) (Snd tS sS) _ _⟩,
+  refine ⟨s ∪ t, set.union_subset (set.subset_sUnion_of_mem sS) (set.subset_sUnion_of_mem tS),
+          or.inl vs, or.inr wt, induce_union_connected (Sc sS) (Sc tS) (Snd sS tS) _ _⟩,
 end
 
 lemma extend_finset_to_connected (Gpc : G.preconnected) {t : finset V} (tn : t.nonempty) :
@@ -1986,19 +1986,19 @@ lemma extend_finset_to_connected (Gpc : G.preconnected) {t : finset V} (tn : t.n
 begin
   classical,
   obtain ⟨u, ut⟩ := tn,
-  refine ⟨finset.bUnion t (λ v, (Gpc u v).some.support.to_finset), λ k hk, _, _⟩,
+  refine ⟨finset.bUnion t (λ v, (Gpc u v).some.support.to_finset), λ v vt, _, _⟩,
   { simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
-    refine ⟨k, hk, walk.end_mem_support _⟩, },
+    refine ⟨v, vt, walk.end_mem_support _⟩, },
   { apply @induce_connected_of_patches _ G _ u _ (λ v hv, _),
     { simp only [finset.coe_bUnion, finset.mem_coe, list.coe_to_finset, set.mem_Union,
                  set.mem_set_of_eq, walk.start_mem_support, exists_prop, and_true],
       exact ⟨u, ut⟩, },
     simp only [finset.mem_coe, finset.mem_bUnion, list.mem_to_finset, exists_prop] at hv,
-    obtain ⟨k, kt, vk⟩ := hv,
-    refine ⟨((Gpc u k).some.support.to_finset : set V), _, _⟩,
-    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kt, },
+    obtain ⟨w, wt, hw⟩ := hv,
+    refine ⟨((Gpc u w).some.support.to_finset : set V), _, _⟩,
+    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ wt, },
     { simp only [finset.mem_coe, list.mem_to_finset, walk.start_mem_support, exists_true_left],
-      refine ⟨vk, induce_walk_support_connected _ _ _⟩, }, }
+      refine ⟨hw, induce_walk_support_connected _ _ _⟩, }, }
 end
 
 end induced

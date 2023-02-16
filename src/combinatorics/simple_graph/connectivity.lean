@@ -1973,27 +1973,23 @@ begin
           or.inr vHv, or.inl wHw, induce_union_connected (Hc HwH) (Hc HvH) (Hnd HwH HvH) _ _⟩,
 end
 
-lemma extend_finset_to_connected [decidable_eq V] {G : simple_graph V}
-  (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
+lemma extend_finset_to_connected (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
   ∃ K', K ⊆ K' ∧ (G.induce (K' : set V)).connected :=
 begin
+  classical,
   obtain ⟨k₀, hk₀⟩ := Kn,
-  refine ⟨finset.bUnion K (λ v, (Gpc k₀ v).some.support.to_finset), _, _⟩,
-  { rintro k kK,
-    simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
-    refine ⟨k, kK, walk.end_mem_support _⟩, },
-  { apply @induce_connected_of_patches _ G _ k₀,
+  refine ⟨finset.bUnion K (λ v, (Gpc k₀ v).some.support.to_finset), λ k hk, _, _⟩,
+  { simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
+    refine ⟨k, hk, walk.end_mem_support _⟩, },
+  { apply @induce_connected_of_patches _ G _ k₀ _ (λ v hv, _),
     { simp only [finset.coe_bUnion, finset.mem_coe, list.coe_to_finset, set.mem_Union,
                  set.mem_set_of_eq, walk.start_mem_support, exists_prop, and_true],
       exact ⟨k₀, hk₀⟩, },
-    rintro v hv,
-    simp only [finset.coe_bUnion, finset.mem_coe, subgraph.induce_verts, set.mem_Union,
-               list.mem_to_finset, exists_prop] at hv,
+    simp only [finset.mem_coe, finset.mem_bUnion, list.mem_to_finset, exists_prop] at hv,
     obtain ⟨k,kK,vk⟩ := hv,
     refine ⟨((Gpc k₀ k).some.support.to_finset : set V), _, _⟩,
     { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kK,},
-    { simp only [subtype.coe_mk, subgraph.induce_verts, finset.mem_coe, list.mem_to_finset,
-                 walk.start_mem_support, exists_true_left],
+    { simp only [finset.mem_coe, list.mem_to_finset, walk.start_mem_support, exists_true_left],
       refine ⟨vk, induce_walk_support_connected _ _ _⟩, }, }
 end
 

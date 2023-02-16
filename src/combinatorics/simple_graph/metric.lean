@@ -168,10 +168,29 @@ lemma closed_ball_zero_eq (v : V) : G.closed_ball v 0 = {v} :=
 by simp only [closed_ball, edist_eq_zero_iff_eq, enat.coe_zero, nonpos_iff_eq_zero,
               set.set_of_eq_eq_singleton]
 
+lemma _root_.enat.le_add (n m : ℕ∞) : n ≤ n + m := sorry
+lemma _root_.enat.add_le_add {n n' m m' : ℕ∞} (hn : n ≤ n') (hm : m ≤ m') : n + m ≤ n' + m' := sorry
+lemma _root_.enat.le_add_one_iff_ {n m : ℕ∞} : n ≤ m  := sorry
+
+
+
 lemma closed_ball_succ_eq  (v : V) (n : ℕ) :
-  G.closed_ball v (n+1) = ⋃ u ∈ G.closed_ball v n, G.neighbor_set u :=
+  G.closed_ball v (n+1) = G.closed_ball v n ∪ (⋃ u ∈ G.closed_ball v n, G.neighbor_set u) :=
 begin
-  sorry,
+  ext x,
+  simp only [enat.coe_add, enat.coe_one, set.mem_set_of_eq, set.mem_union, set.mem_Union,
+             mem_neighbor_set, exists_prop],
+  split,
+  { rintro hx, rw le_iff_eq_or_lt at hx,
+    rcases hx with (he|hlt),
+    sorry,
+    sorry, /- enat is a pain -/  },
+  { rintro (hx|⟨u,hu,a⟩),
+    { exact hx.trans (enat.le_add _ _), },
+    { apply (@edist_triangle _ G x u v).trans _,
+      rw add_comm _ (1 : ℕ∞),
+      apply enat.add_le_add (eq.le _) hu,
+      simpa using a.symm, }, }
 end
 
 instance fintype_closed_ball [lf : locally_finite G] [decidable_eq V] (v : V) (n : ℕ) :
@@ -182,8 +201,7 @@ begin
     apply set.fintype_singleton, },
   { rw closed_ball_succ_eq,
     haveI := n_ih,
-    apply set.fintype_bUnion,
-    exact (λ i hi, lf i), },
+    apply set.fintype_union, },
 end
 
 lemma closed_ball_ne_univ_of_infinite [lf : locally_finite G] [decidable_eq V] [infinite V]

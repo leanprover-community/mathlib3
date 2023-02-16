@@ -9,6 +9,9 @@ import topology.local_extr
 /-!
 # Compactness of a closed interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a closed interval in a conditionally complete linear ordered type with
 order topology (or a product of such types) is compact.
 
@@ -25,7 +28,7 @@ compact, extreme value theorem
 -/
 
 open filter order_dual topological_space function set
-open_locale filter topological_space
+open_locale filter topology
 
 /-!
 ### Compactness of a closed interval

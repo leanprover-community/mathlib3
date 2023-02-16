@@ -54,7 +54,7 @@ in analysis.
 -/
 
 open measure_theory filter set topological_space
-open_locale ennreal nnreal topological_space
+open_locale ennreal nnreal topology
 
 namespace measure_theory
 

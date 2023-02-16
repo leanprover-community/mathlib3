@@ -82,11 +82,17 @@ section get
 
 variables {x y : α ⊕ β}
 
-lemma get_left_eq_none_iff : x.get_left = none ↔ x.is_right :=
+@[simp] lemma get_left_eq_none_iff : x.get_left = none ↔ x.is_right :=
 by cases x; simp only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
 
-lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
+@[simp] lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
 by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
+
+@[simp] lemma get_left_eq_some_iff {a} : x.get_left = some a ↔ x = inl a :=
+by cases x; simp only [get_left]
+
+@[simp] lemma get_right_eq_some_iff {b} : x.get_right = some b ↔ x = inr b :=
+by cases x; simp only [get_right]
 
 @[simp] lemma bnot_is_left (x : α ⊕ β) : bnot x.is_left = x.is_right := by cases x; refl
 @[simp] lemma is_left_eq_ff : x.is_left = ff ↔ x.is_right := by cases x; simp
@@ -156,9 +162,13 @@ funext $ map_map f' g' f g
 @[simp] lemma map_id_id (α β) : sum.map (@id α) (@id β) = id :=
 funext $ λ x, sum.rec_on x (λ _, rfl) (λ _, rfl)
 
+lemma elim_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} {x} :
+  sum.elim f₂ g₂ (sum.map f₁ g₁ x) = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) x :=
+by cases x; refl
+
 lemma elim_comp_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
   sum.elim f₂ g₂ ∘ sum.map f₁ g₁ = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
-by ext (_|_); refl
+funext $ λ _, elim_map
 
 @[simp] lemma is_left_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
   is_left (x.map f g) = is_left x :=

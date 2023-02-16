@@ -10,6 +10,9 @@ import data.finset.option
 /-!
 # Lemmas about products and sums over finite sets in `option α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove formulas for products and sums over `finset.insert_none s` and
 `finset.erase_none s`.
 -/

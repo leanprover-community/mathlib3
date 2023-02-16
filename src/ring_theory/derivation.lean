@@ -686,8 +686,8 @@ begin
     refine ⟨kaehler_differential.one_smul_sub_smul_one_mem_ideal R x, _⟩,
     apply submodule.subset_span,
     exact ⟨x, kaehler_differential.D_linear_map_apply R S x⟩ },
-  { exact ⟨zero_mem _, zero_mem _⟩ },
-  { rintros x y ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, exact ⟨add_mem hx₁ hy₁, add_mem hx₂ hy₂⟩ },
+  { exact ⟨zero_mem _, submodule.zero_mem _⟩ },
+  { rintros x y ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, exact ⟨add_mem hx₁ hy₁, submodule.add_mem _ hx₂ hy₂⟩ },
   { rintros r x ⟨hx₁, hx₂⟩, exact ⟨((kaehler_differential.ideal R S).restrict_scalars S).smul_mem
       r hx₁, submodule.smul_mem _ r hx₂⟩ }
 end
@@ -1005,7 +1005,7 @@ lemma kaehler_differential.ker_total_map (h : function.surjective (algebra_map A
     (kaehler_differential.ker_total S B).restrict_scalars _  :=
 begin
   rw [kaehler_differential.ker_total, submodule.map_span, kaehler_differential.ker_total,
-    ← submodule.span_eq_restrict_scalars _ _ _ _ h],
+    submodule.restrict_scalars_span _ _ h],
   simp_rw [set.image_union, submodule.span_union, ← set.image_univ, set.image_image,
     set.image_univ, map_sub, map_add],
   simp only [linear_map.comp_apply, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
@@ -1071,7 +1071,7 @@ lemma kaehler_differential.map_surjective_of_surjective
   function.surjective (kaehler_differential.map R S A B) :=
 begin
   rw [← linear_map.range_eq_top, _root_.eq_top_iff, ← @submodule.restrict_scalars_top B A,
-    ← kaehler_differential.span_range_derivation, ← submodule.span_eq_restrict_scalars _ _ _ _ h,
+    ← kaehler_differential.span_range_derivation, submodule.restrict_scalars_span _ _ h,
     submodule.span_le],
   rintros _ ⟨x, rfl⟩,
   obtain ⟨y, rfl⟩ := h x,

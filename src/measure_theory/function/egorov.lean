@@ -21,7 +21,7 @@ convergence in measure.
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topology
 
 namespace measure_theory
 

@@ -9,6 +9,9 @@ import topology.continuous_function.basic
 /-!
 # Continuous order homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines continuous order homomorphisms, that is maps which are both continuous and
 monotone. They are also called Priestley homomorphisms because they are the morphisms of the
 category of Priestley spaces.

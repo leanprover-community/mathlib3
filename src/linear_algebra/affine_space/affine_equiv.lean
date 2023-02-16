@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.affine_map
+import linear_algebra.general_linear_group
 import algebra.invertible
 
 /-!
@@ -183,6 +184,12 @@ e.to_equiv.apply_eq_iff_eq_symm_apply
 
 @[simp] lemma apply_eq_iff_eq (e : P₁ ≃ᵃ[k] P₂) {p₁ p₂ : P₁} : e p₁ = e p₂ ↔ p₁ = p₂ :=
 e.to_equiv.apply_eq_iff_eq
+
+@[simp] lemma image_symm (f : P₁ ≃ᵃ[k] P₂) (s : set P₂) : f.symm '' s = f ⁻¹' s :=
+f.symm.to_equiv.image_eq_preimage _
+
+@[simp] lemma preimage_symm (f : P₁ ≃ᵃ[k] P₂) (s : set P₁) : f.symm ⁻¹' s = f '' s :=
+(f.symm.image_symm _).symm
 
 variables (k P₁)
 

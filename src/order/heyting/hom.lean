@@ -8,6 +8,9 @@ import order.hom.lattice
 /-!
 # Heyting algebra morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Heyting homomorphism between two Heyting algebras is a bounded lattice homomorphism that preserves
 Heyting implication.
 

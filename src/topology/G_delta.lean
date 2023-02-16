@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # `Gδ` sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `Gδ` sets and prove their basic properties.
 
 ## Main definitions
@@ -33,7 +36,7 @@ Gδ set, residual set
 -/
 
 noncomputable theory
-open_locale classical topological_space filter uniformity
+open_locale classical topology filter uniformity
 
 open filter encodable set
 

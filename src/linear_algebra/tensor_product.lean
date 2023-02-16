@@ -376,6 +376,21 @@ begin
   exact submodule.span_mono (λ _ ⟨m, n, h⟩, ⟨m, n, trivial, trivial, h⟩),
 end
 
+lemma every_element_pure_if_absorbing_add (x : tensor_product R M N)
+    (h : ∀ (m₁ m₂ : M) (n₁ n₂ : N), (∃ m n, m₁ ⊗ₜ n₁ + m₂ ⊗ₜ n₂ = m ⊗ₜ[R] n))
+    : (∃ m n, x = m ⊗ₜ n) :=
+begin
+  induction x using tensor_product.induction_on with m n x y h₁ h₂,
+  { use [0, 0],
+    symmetry,
+    apply tensor_product.zero_tmul },
+  { use [m, n] },
+  { rcases h₁ with ⟨m₁, n₁, h₁⟩,
+    rcases h₂ with ⟨m₂, n₂, h₂⟩,
+    rw [h₁, h₂],
+    apply h },
+end
+
 end module
 
 section UMP

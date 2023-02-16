@@ -29,6 +29,8 @@ end semiring
 section ring
 variables [comm_ring R] [add_comm_group M] [module R M]
 
+section PR_ed_elsewhere
+
 @[simp] lemma prod.map_injective {α β γ δ} [nonempty α] [nonempty β] {f : α → γ} {g : β → δ} :
   function.injective (prod.map f g) ↔ function.injective f ∧ function.injective g :=
 ⟨λ h, ⟨λ a₁ a₂ ha, begin
@@ -56,7 +58,10 @@ lemma prod.map_bijective {α β γ δ} [nonempty α] [nonempty β] [nonempty γ]
   function.bijective (prod.map f g) ↔ function.bijective f ∧ function.bijective g :=
 (prod.map_injective.and prod.map_surjective).trans $ and_and_and_comm _ _ _ _
 
-lemma nondenerate_dual_prod : (dual_prod R M).nondegenerate ↔ function.bijective (module.dual.eval R M) :=
+end PR_ed_elsewhere
+
+lemma nondenerate_dual_prod :
+  (dual_prod R M).nondegenerate ↔ function.injective (module.dual.eval R M) :=
 begin
   classical,
   rw nondegenerate_iff_ker_eq_bot,
@@ -66,14 +71,6 @@ begin
   refine (function.injective.of_comp_iff e.symm.injective (dual_prod R M).to_lin).symm.trans _,
   rw [←linear_equiv.coe_to_linear_map, ←linear_map.coe_comp],
   change function.injective h_d ↔ _,
-  /-
-  h_d is represented by the matrix
-
-  !![[0, dual.eval],
-     [1, 0]]
-
-  (TODO: is it? Don't we need a basis to make that claim)
-  -/
   have : h_d = linear_map.prod_map (linear_map.id) (module.dual.eval R M),
   { refine linear_map.ext (λ x, prod.ext _ _),
     { ext,
@@ -82,37 +79,16 @@ begin
     { ext,
       dsimp [h_d, module.dual.eval, linear_equiv.prod_comm],
       simp } },
-  rw [this],
-  dsimp [linear_map.prod_map],
+  rw [this, linear_map.coe_prod_map],
   refine prod.map_injective.trans _,
-  /- Therefore it is invertible iff `dual.eval` is -/
-  sorry
+  exact and_iff_right function.injective_id,
 end
 
-end monoid
+end ring
 
-
-lemma nondenerate_dual_prod [field R] [add_comm_group M] [module R M]
-  [finite_dimensional R M] : (dual_prod R M).nondegenerate :=
-begin
-  classical,
-  rw nondegenerate_iff_ker_eq_bot,
-  let bM := basis.of_vector_space R M,
-  let := linear_map.to_matrix
-    ((finite_dimensional.fin_basis R _).prod bM)
-     (finite_dimensional.fin_basis R _) (to_lin (dual_prod R M)),
-  -- rw linera_map.det,
-  -- intros p h,
-  -- let := dual_prod R M p,
-  -- have : (dual_prod R M).to_lin.to_matrix = _,
-  -- rintros ⟨f, x⟩ h,
-  -- rw prod.forall at h,
-  -- dsimp at h,
-end
-
-#check module.dual_basis
 
 end bilin_form
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The quadratic form defined as `Q (f, x) = f x`. -/
 def quadratic_form.dual_prod : quadratic_form R (module.dual R M × M) :=

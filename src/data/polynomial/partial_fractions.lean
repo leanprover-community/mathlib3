@@ -147,6 +147,23 @@ begin
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
 
+-- Dividing by a term in a product inside a sum
+lemma finset.sum_prod_div {s : finset R[X]} (hnz : ∀ (n : R[X]), n ∈ s → n ≠ 0 ) :
+  ∑ n in s, (↑ (∏ k in s, k) / ↑ n) = ∑ n in s, (∏ k in s.erase n, (↑ k : K) ) :=
+begin
+  apply finset.sum_congr,
+  { refl, },
+  { intros x hx,
+    rw div_eq_iff _,
+    { rw s.prod_erase_mul _,
+      norm_cast,
+      exact hx },
+    { norm_cast,
+      exact hnz x hx, } }
+end
+
+.
+
 lemma zero_eq_quo_add_sum_rem_div_zero {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
@@ -159,9 +176,9 @@ begin
     let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
     have hdivprod : ∀ x ∈ s, (g x) ∣ (∏ i in s, (g i)) :=
       λ x, finset.dvd_prod_of_mem (λ (x : ι), g x),
-    have hsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
+    have hpsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
     { intros x hxs,
-      exact unit.ext,
+      refine unit.ext,
       -- what has all this other stuff got to do with anything...
       exact div_inv_monoid.to_has_div unit,
       exact comm_ring.to_comm_monoid unit,
@@ -176,19 +193,13 @@ begin
     -- ring_nf at hsum,
     --simp [mul_add, add_mul] at hsum,
     --rw finset.prod_filter finset.dvd_prod_of_mem (λ (x : ι), g x) g at hsum,
-    sorry, },
+    sorry,
+     },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
 
 #check finsupp
-
--- example of issue with dividing by a term in a product inside a sum
-example (s : finset ℕ) (hnz : ∀ n ∈ s, n ≠ 0) :
-  ∑ n in s, (↑ (∏ k in s, k) / ↑ n) = ∑ n in s, (∏ k in s.filter (λ j, j ≠ n), (k : ℚ) ) :=
-begin
-  sorry
-end
 
 -- Will eventually extend the zero case
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}

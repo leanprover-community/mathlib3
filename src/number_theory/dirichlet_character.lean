@@ -130,7 +130,8 @@ def change_level {m : ℕ} (hm : n ∣ m) : dirichlet_character R n →* dirichl
   map_one' := by simp,
   map_mul' := λ ψ₁ ψ₂, monoid_hom.mul_comp _ _ _, }
 
-lemma change_level_def {m : ℕ} (hm : n ∣ m) : change_level hm χ = χ.comp (units.map (zmod.cast_hom hm (zmod n))) := rfl
+lemma change_level_def {m : ℕ} (hm : n ∣ m) :
+  change_level hm χ = χ.comp (units.map (zmod.cast_hom hm (zmod n))) := rfl
 
 namespace change_level
 lemma self : change_level (dvd_refl n) χ = χ := by { rw change_level_def, simp, }
@@ -190,7 +191,8 @@ lemma level_mem_conductor_set : n ∈ conductor_set χ := (mem_conductor_set_iff
 
 lemma mem_conductor_set_dvd {x : ℕ} (hx : x ∈ χ.conductor_set) : x ∣ n := hx.1
 
-lemma mem_conductor_set_factors_through {x : ℕ} (hx : x ∈ χ.conductor_set) : χ.factors_through x := hx
+lemma mem_conductor_set_factors_through {x : ℕ} (hx : x ∈ χ.conductor_set) :
+  χ.factors_through x := hx
 
 /-- The minimum natural number n for which a Dirichlet character is periodic.
   The Dirichlet character χ can then alternatively be reformulated on ℤ/nℤ. -/
@@ -201,7 +203,8 @@ by { cases n, { left, refl, },
   { right, rw nat.succ_le_succ_iff at h, rw le_zero_iff at h, rw h, }, }
 
 namespace conductor
-lemma mem_conductor_set : conductor χ ∈ conductor_set χ := Inf_mem (set.nonempty_of_mem χ.level_mem_conductor_set)
+lemma mem_conductor_set : conductor χ ∈ conductor_set χ :=
+Inf_mem (set.nonempty_of_mem χ.level_mem_conductor_set)
 
 lemma dvd_lev : χ.conductor ∣ n := (mem_conductor_set χ).1
 
@@ -271,7 +274,8 @@ def zmod.mul_equiv {a b : ℕ} (h : a = b) : zmod a ≃* zmod b :=
 by { rw h }
 
 /-- If m = n are positive natural numbers, then their Dirichlet character spaces are the same. -/
-def equiv {a b : ℕ} (h : a = b) : dirichlet_character R a ≃* dirichlet_character R b := by { rw h, }
+def equiv {a b : ℕ} (h : a = b) :
+  dirichlet_character R a ≃* dirichlet_character R b := by { rw h, }
 
 /-- The primitive character associated to a Dirichlet character. -/
 noncomputable def asso_primitive_character : dirichlet_character R χ.conductor :=
@@ -282,7 +286,8 @@ lemma mem_conductor_set_eq_conductor {d : ℕ} (hd : d ∈ χ.conductor_set) :
 begin
   apply nat.Inf_le,
   rw conductor_set, simp only [set.mem_set_of_eq, monoid_hom.coe_mk],
-  refine ⟨dvd_trans (conductor.dvd_lev _) hd.1, (conductor.factors_through (classical.some hd.2)).2.some, _⟩,
+  refine ⟨dvd_trans (conductor.dvd_lev _) hd.1,
+    (conductor.factors_through (classical.some hd.2)).2.some, _⟩,
   convert factors_through.spec χ hd using 1,
   have : (zmod.cast_hom (dvd_trans (conductor.dvd_lev hd.2.some) hd.1)
     (zmod (classical.some hd.2).conductor) : monoid_hom (zmod n)
@@ -349,9 +354,6 @@ lemma mul {m : ℕ} (ψ : dirichlet_character R m) : (mul χ ψ).is_primitive :=
 asso_primitive_character_is_primitive _
 end is_primitive
 
-/-- Composition of a Dirichlet character with a multiplicative homomorphism of units. -/
---abbreviation comp {S : Type*} [comm_monoid_with_zero S] (f : units R →* units S) : dirichlet_character S n := f.comp χ
-
 variables {S : Type*} [comm_ring S] {m : ℕ} (ψ : dirichlet_character S m)
 
 /-- A Dirichlet character is odd if its value at -1 is -1. -/
@@ -375,7 +377,6 @@ begin
     congr, rw units.ext_iff,
     simp only [units.coe_one, units.coe_neg_one, units.coe_pow], rw neg_one_sq, },
 end
--- can conditions on S be relaxed? comm needed for sq_sub_sq, and no_divisors needed for mul_eq_zero
 
 lemma asso_odd_dirichlet_character_eval_neg_one (hψ : ψ.is_odd) :
   asso_dirichlet_character ψ (-1) = -1 :=

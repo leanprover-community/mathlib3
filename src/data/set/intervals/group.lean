@@ -115,17 +115,13 @@ begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
-  by_cases hb : 1 < b,
-  { have i1 := hx.1.1.trans_le hx.2.2,
-    have i2 := hx.2.1.trans_le hx.1.2,
-    rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
-    exact le_antisymm i1 i2 },
-  { -- case 1 ≮ b : vacuous but true
-    have : ∀ n : ℤ, Ioc (a * b ^ n) (a * b ^ (n + 1)) = ∅,
-    { refine λ n, Ioc_eq_empty_iff.mpr _,
-      rwa [mul_lt_mul_iff_left, ←mul_one (b ^ n), zpow_add_one, mul_lt_mul_iff_left] },
-    simp_rw [this, empty_inter] at hx,
-    exact hx.elim }
+  have hb : 1 < b,
+  { have : a * b ^ m < a * b ^ (m + 1), from lt_of_lt_of_le hx.1.1 hx.1.2,
+    rwa [mul_lt_mul_iff_left, ←mul_one (b ^ m), zpow_add_one, mul_lt_mul_iff_left] at this },
+  have i1 := hx.1.1.trans_le hx.2.2,
+  have i2 := hx.2.1.trans_le hx.1.2,
+  rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
+  exact le_antisymm i1 i2
 end
 
 @[to_additive]
@@ -135,17 +131,13 @@ begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
-  by_cases hb : 1 < b,
-  { have i1 := hx.1.1.trans_lt hx.2.2,
-    have i2 := hx.2.1.trans_lt hx.1.2,
-    rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
-    exact le_antisymm i1 i2 },
-  { -- case 1 ≮ b : vacuous but true
-    have : ∀ n : ℤ, Ico (a * b ^ n) (a * b ^ (n + 1)) = ∅,
-    { refine λ n, Ico_eq_empty_iff.mpr _,
-      rwa [mul_lt_mul_iff_left, ←mul_one (b ^ n), zpow_add_one, mul_lt_mul_iff_left] },
-    simp_rw [this, empty_inter] at hx,
-    exact hx.elim }
+  have hb : 1 < b,
+  { have : a * b ^ m < a * b ^ (m + 1), from lt_of_le_of_lt hx.1.1 hx.1.2,
+    rwa [mul_lt_mul_iff_left, ←mul_one (b ^ m), zpow_add_one, mul_lt_mul_iff_left] at this },
+  have i1 := hx.1.1.trans_lt hx.2.2,
+  have i2 := hx.2.1.trans_lt hx.1.2,
+  rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
+  exact le_antisymm i1 i2,
 end
 
 @[to_additive]

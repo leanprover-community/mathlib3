@@ -61,6 +61,9 @@ instance : inhabited (free_monoid α) := ⟨1⟩
 @[simp, to_additive] lemma to_list_one : (1 : free_monoid α).to_list = [] := rfl
 @[simp, to_additive] lemma of_list_nil : of_list ([] : list α) = 1 := rfl
 
+@[simp, to_additive] lemma to_list_eq_nil (x : free_monoid α) : x.to_list = [] ↔ x = 1 := iff.rfl
+@[simp, to_additive] lemma of_list_eq_one (l : list α) : of_list l = 1 ↔ l = [] := iff.rfl
+
 @[simp, to_additive]
 lemma to_list_mul (xs ys : free_monoid α) : (xs * ys).to_list = xs.to_list ++ ys.to_list := rfl
 

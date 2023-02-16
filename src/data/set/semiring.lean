@@ -24,15 +24,20 @@ variables {α β : Type*}
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
-@[derive [inhabited, partial_order, order_bot]] def set_semiring (α : Type*) : Type* := set α
+@[derive [inhabited, complete_boolean_algebra, order_bot, has_mem α]]
+def set_semiring (α : Type*) : Type* := set α
 
 /-- The identity function `set α → set_semiring α`. -/
 protected def set.up : set α ≃ set_semiring α := equiv.refl _
+
+@[simp] lemma set.mem_up {a : α} {s : set α} : a ∈ set.up s ↔ a ∈ s := iff.rfl
 
 namespace set_semiring
 
 /-- The identity function `set_semiring α → set α`. -/
 protected def down : set_semiring α ≃ set α := equiv.refl _
+
+@[simp] lemma mem_down {a : α} {s : set_semiring α} : a ∈ s.down ↔ a ∈ s := iff.rfl
 
 @[simp] protected lemma down_up (s : set α) : s.up.down = s := rfl
 @[simp] protected lemma up_down (s : set_semiring α) : s.down.up = s := rfl
@@ -52,6 +57,18 @@ instance : add_comm_monoid (set_semiring α) :=
   add_zero := union_empty,
   add_comm := union_comm }
 
+lemma zero_def : (0 : set_semiring α) = set.up ∅ := rfl
+
+@[simp] lemma down_zero : (0 : set_semiring α).down = ∅ := rfl
+
+@[simp] lemma _root_.set.up_empty: (∅ : set α).up = 0 := rfl
+
+lemma add_def (s t : set_semiring α) : s + t = (s.down ∪ t.down).up := rfl
+
+@[simp] lemma down_add (s t : set_semiring α) : (s + t).down = s.down ∪ t.down := rfl
+
+@[simp] lemma _root_.set.up_union (s t : set α) : (s ∪ t).up = s.up + t.up := rfl
+
 /- Since addition on `set_semiring` is commutative (it is set union), there is no need
 to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
 instance covariant_class_add : covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
@@ -61,12 +78,18 @@ section has_mul
 variables [has_mul α]
 
 instance : non_unital_non_assoc_semiring (set_semiring α) :=
-{ mul := λ s t, (image2 (*) s.down t.down).up,
+{ mul := λ s t, (s.down * t.down).up,
   zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
   left_distrib := λ _ _ _, mul_union,
   right_distrib := λ _ _ _, union_mul,
   ..set_semiring.add_comm_monoid }
+
+lemma mul_def (s t : set_semiring α) : s * t = (s.down * t.down).up := rfl
+
+@[simp] lemma down_mul (s t : set_semiring α) : (s + t).down = s.down ∪ t.down := rfl
+
+@[simp] lemma _root_.set.up_mul (s t : set α) : (s * t).up = s.up * t.up := rfl
 
 instance : no_zero_divisors (set_semiring α) :=
 ⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
@@ -81,9 +104,25 @@ instance covariant_class_mul_right :
 
 end has_mul
 
+section has_one
+variables [has_one α]
+
+instance : has_one (set_semiring α) := { one := set.up 1 }
+
+lemma one_def : (0 : set_semiring α) = set.up ∅ := rfl
+
+@[simp] lemma down_one : (0 : set_semiring α).down = ∅ := rfl
+
+@[simp] lemma _root_.set.up_one : (1 : set α).up = 1 := rfl
+
+end has_one
+
 instance [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ one := 1,
+{ one := set.up 1,
   mul := (*),
+  nat_cast := λ n, if n = 0 then 0 else set.up 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def],
   ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
 
 instance [semigroup α] : non_unital_semiring (set_semiring α) :=

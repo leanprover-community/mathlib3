@@ -745,7 +745,7 @@ begin
       { rw [edges_cons, list.count_cons],
         split_ifs with h'',
         { rw sym2.eq_iff at h'',
-          obtain (⟨rfl,rfl⟩|⟨rfl,rfl⟩) := h'',
+          obtain (⟨rfl, rfl⟩|⟨rfl, rfl⟩) := h'',
           { exact (h' rfl).elim },
           { cases p'; simp! } },
         { apply ih, } } } },
@@ -1436,7 +1436,7 @@ structure connected : Prop :=
 lemma connected_iff_basepoint : G.connected ↔ ∃ v, ∀ w, G.reachable v w :=
 begin
   rw connected_iff,
-  exact ⟨λ ⟨h,⟨v⟩⟩, ⟨v, λ w, h v w⟩, λ ⟨v, h⟩, ⟨λ u w, (h u).symm.trans $ h w, ⟨v⟩⟩⟩,
+  exact ⟨λ ⟨h, ⟨v⟩⟩, ⟨v, λ w, h v w⟩, λ ⟨v, h⟩, ⟨λ u w, (h u).symm.trans $ h w, ⟨v⟩⟩⟩,
 end
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
@@ -1950,14 +1950,14 @@ lemma induce_walk_support_connected [decidable_eq V] :
       simp only [set.mem_set_of_eq, finset.mem_coe, list.mem_to_finset, walk.start_mem_support], },
     rw this,
     apply induce_union_connected (induce_pair_connected_of_adj a)
-                                 (induce_walk_support_connected p) ⟨v,_⟩,
+                                 (induce_walk_support_connected p) ⟨v, _⟩,
     simp only [list.coe_to_finset, set.inf_eq_inter, set.mem_inter_iff, set.mem_insert_iff,
                set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self],
   end
 
 lemma induce_connected_of_patches {H : set V} {u} (hu : u ∈ H)
   (patches : ∀ {v} (hv : v ∈ H), ∃ (H' : set V) (sub : H' ⊆ H) (hu' : u ∈ H') (hv' : v ∈ H'),
-             (G.induce H').reachable ⟨u,hu'⟩ ⟨v,hv'⟩ ) : (G.induce H).connected :=
+             (G.induce H').reachable ⟨u, hu'⟩ ⟨v, hv'⟩ ) : (G.induce H).connected :=
 begin
   rw connected_iff_basepoint,
   refine ⟨⟨u, hu⟩, _⟩,
@@ -1971,12 +1971,12 @@ lemma induce_union_connected_of_pairwise_not_disjoint {H : set (set V)} (Hn : H.
   (Hc : ∀ {x}, x ∈ H → (G.induce x).connected) :
   (G.induce H.sUnion).connected :=
 begin
-  obtain ⟨Hv,HvH⟩ := Hn,
-  obtain ⟨v,vHv⟩ := (Hc HvH).nonempty.some,
+  obtain ⟨Hv, HvH⟩ := Hn,
+  obtain ⟨v, vHv⟩ := (Hc HvH).nonempty.some,
   fapply induce_connected_of_patches (set.subset_sUnion_of_mem HvH vHv),
   rintro w hw,
   simp only [set.mem_sUnion, exists_prop] at hw,
-  obtain ⟨Hw,HwH,wHw⟩ := hw,
+  obtain ⟨Hw, HwH, wHw⟩ := hw,
   refine ⟨Hw ∪ Hv, set.union_subset (set.subset_sUnion_of_mem HwH) (set.subset_sUnion_of_mem HvH),
           or.inr vHv, or.inl wHw, induce_union_connected (Hc HwH) (Hc HvH) (Hnd HwH HvH) _ _⟩,
 end
@@ -1994,9 +1994,9 @@ begin
                  set.mem_set_of_eq, walk.start_mem_support, exists_prop, and_true],
       exact ⟨k₀, hk₀⟩, },
     simp only [finset.mem_coe, finset.mem_bUnion, list.mem_to_finset, exists_prop] at hv,
-    obtain ⟨k,kK,vk⟩ := hv,
+    obtain ⟨k, kK, vk⟩ := hv,
     refine ⟨((Gpc k₀ k).some.support.to_finset : set V), _, _⟩,
-    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kK,},
+    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kK, },
     { simp only [finset.mem_coe, list.mem_to_finset, walk.start_mem_support, exists_true_left],
       refine ⟨vk, induce_walk_support_connected _ _ _⟩, }, }
 end

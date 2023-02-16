@@ -75,7 +75,7 @@ noncomputable instance : normed_division_ring ℍ :=
 
 instance : normed_algebra ℝ ℍ :=
 { norm_smul_le := λ a x, (norm_smul a x).le,
-  to_algebra := quaternion.algebra }
+  to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
 
 instance : cstar_ring ℍ :=
 { norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_conj x) }
@@ -146,6 +146,9 @@ by simpa [←norm_sq_eq_norm_sq]
 
 @[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
 (continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im : continuous (λ q : ℍ, q.im) :=
+by simpa only [←sub_self_re] using continuous_id.sub (continuous_coe.comp continuous_re)
 
 instance : complete_space ℍ :=
 begin

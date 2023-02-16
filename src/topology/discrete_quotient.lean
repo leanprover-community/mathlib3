@@ -11,6 +11,9 @@ import topology.locally_constant.basic
 
 # Discrete quotients of a topological space.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the type of discrete quotients of a topological space,
 denoted `discrete_quotient X`. To avoid quantifying over types, we model such
 quotients as setoids whose equivalence classes are clopen.

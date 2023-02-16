@@ -49,7 +49,7 @@ def edist (u v : V) : ℕ∞ := ⨅ w : G.walk u v, w.length
 variables {G}
 
 protected
-lemma reachable.exists_walk_of_edist {u v : V} (h : G.reachable u v) :
+lemma reachable.exists_walk {u v : V} (h : G.reachable u v) :
   ∃ (p : G.walk u v), (p.length : ℕ∞) = G.edist u v :=
 begin
   haveI : nonempty (G.walk u v) := h,
@@ -58,9 +58,9 @@ begin
   simp only [nat.cast_le, function.argmin_le],
 end
 
-lemma reachable_iff_exists_walk_of_edist {u v : V} :
+lemma reachable_iff_exists_walk {u v : V} :
   G.reachable u v ↔ ∃ (p : G.walk u v), (p.length : ℕ∞) = G.edist u v :=
-⟨reachable.exists_walk_of_edist, λ p, ⟨p.some⟩⟩
+⟨reachable.exists_walk, λ p, ⟨p.some⟩⟩
 
 lemma not_reachable_iff_edist_eq_top {u v : V} :
   ¬ G.reachable u v ↔ G.edist u v = ⊤ :=
@@ -73,15 +73,15 @@ lemma reachable_iff_edist_ne_top {u v : V} :
   G.reachable u v ↔ G.edist u v ≠ ⊤ :=
 by rw [←not_iff_not, not_reachable_iff_edist_eq_top, not_not]
 
-lemma exists_walk_of_edist_iff_ne_top {u v : V} :
+lemma exists_walk_iff_edist_ne_top {u v : V} :
   (∃ (p : G.walk u v), (p.length : ℕ∞) = G.edist u v) ↔ G.edist u v ≠ ⊤ :=
-by rw [←reachable_iff_edist_ne_top, ←reachable_iff_exists_walk_of_edist]
+by rw [←reachable_iff_edist_ne_top, ←reachable_iff_exists_walk]
 
 lemma exists_walk_of_edist_eq_nat {u v : V} {n : ℕ} (h : G.edist u v = n) :
   (∃ (p : G.walk u v), p.length = n) :=
 begin
   have : ∃ (p : G.walk u v), ↑(p.length) = G.edist u v, by
-  { rw [exists_walk_of_edist_iff_ne_top, h],
+  { rw [exists_walk_iff_edist_ne_top, h],
     apply with_top.nat_ne_top _, },
   rw h at this,
   obtain ⟨w,hw⟩ := this,
@@ -90,9 +90,9 @@ begin
 end
 
 protected
-lemma connected.exists_walk_of_edist (hconn : G.connected) (u v : V) :
+lemma connected.exists_walk (hconn : G.connected) (u v : V) :
   ∃ (p : G.walk u v), (p.length : ℕ∞) = G.edist u v :=
-(hconn u v).exists_walk_of_edist
+(hconn u v).exists_walk
 
 lemma edist_le {u v : V} (p : G.walk u v) : G.edist u v ≤ p.length := infi_le _ p
 
@@ -118,8 +118,8 @@ lemma edist_triangle {u v w : V} :
 begin
   by_cases huv : nonempty (G.walk u v),
   by_cases hvw : nonempty (G.walk v w),
-  { obtain ⟨p,hp⟩ := reachable.exists_walk_of_edist huv,
-    obtain ⟨q,hq⟩ := reachable.exists_walk_of_edist hvw,
+  { obtain ⟨p,hp⟩ := reachable.exists_walk huv,
+    obtain ⟨q,hq⟩ := reachable.exists_walk hvw,
     rw [←hp, ←hq, ←enat.coe_add,←walk.length_append],
     apply edist_le, },
   { simp only [not_reachable_iff_edist_eq_top.mp hvw, with_top.add_top, le_top], },
@@ -142,7 +142,6 @@ begin
     exact λ h, (a.ne $ walk.eq_of_length_eq_zero h), },
 end
 
-
 lemma _root_.enat.add_one_lt_add_one {a b : ℕ∞} (ab : a < b) : a + 1 < b + 1 := sorry
 
 lemma exists_edist_eq_of_edist_eq_succ {u v : V} {n : ℕ} (h : G.edist u v = n+1) :
@@ -160,6 +159,37 @@ begin
       refine ((enat.add_one_lt_add_one h').trans_le (_ : ↑n + 1 ≤ G.edist w v + 1)).ne rfl,
       rw [←h, ←a, add_comm],
       apply edist_triangle, }, },
+end
+
+@[reducible]
+def closed_ball (G : simple_graph V) (v : V) (n : ℕ) := {u | G.edist u v ≤ n}
+
+lemma closed_ball_zero_eq (v : V) : G.closed_ball v 0 = {v} :=
+by simp only [closed_ball, edist_eq_zero_iff_eq, enat.coe_zero, nonpos_iff_eq_zero,
+              set.set_of_eq_eq_singleton]
+
+lemma closed_ball_succ_eq  (v : V) (n : ℕ) :
+  G.closed_ball v (n+1) = ⋃ u ∈ G.closed_ball v n, G.neighbor_set u :=
+begin
+  sorry,
+end
+
+instance fintype_closed_ball [lf : locally_finite G] [decidable_eq V] (v : V) (n : ℕ) :
+  fintype (G.closed_ball v n) :=
+begin
+  induction n,
+  { rw closed_ball_zero_eq,
+    apply set.fintype_singleton, },
+  { rw closed_ball_succ_eq,
+    haveI := n_ih,
+    apply set.fintype_bUnion,
+    exact (λ i hi, lf i), },
+end
+
+lemma closed_ball_ne_univ_of_infinite [lf : locally_finite G] [decidable_eq V] [infinite V]
+  (v : V) (n : ℕ) : G.closed_ball v n ≠ set.univ :=
+begin
+  sorry,
 end
 
 end simple_graph

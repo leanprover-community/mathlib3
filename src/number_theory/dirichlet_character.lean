@@ -5,9 +5,8 @@ Authors: Ashvni Narayanan
 -/
 import data.zmod.quotient
 import ring_theory.roots_of_unity
---import zmod.properties
 /-!
-# Dirichlet characters
+## Dirichlet characters
 This file defines Dirichlet characters over (ℤ/nℤ)* and then relates them
 to multiplicative homomorphisms over ℤ/nℤ for any n divisible by the conductor.
 
@@ -18,7 +17,7 @@ to multiplicative homomorphisms over ℤ/nℤ for any n divisible by the conduct
  * `conductor`
 
 ## Tags
-p-adic, L-function, Bernoulli measure, Dirichlet character
+Dirichlet character
 -/
 
 lemma is_unit.unit_mul {α : Type*} [monoid α] {x y : α} (hx : is_unit x) (hy : is_unit y) :
@@ -409,5 +408,4 @@ begin
     asso_even_dirichlet_character_eval_neg_one _ hψ],
   simp,
 end
-
 end dirichlet_character

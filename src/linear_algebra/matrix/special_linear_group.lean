@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import linear_algebra.general_linear_group
 import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
+import data.real.basic
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -246,7 +247,7 @@ lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl
 
 end coe_fn_instance
 
-/-- The special case when the dimesion is 2. -/
+/-- The special case when the dimesion is 2 and the commutative ring R is ℝ. -/
 lemma fin_two_exists_eq_mk (g : SL(2, ℝ)) :
   ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
     g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=

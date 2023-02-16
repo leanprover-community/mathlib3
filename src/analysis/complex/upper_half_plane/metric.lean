@@ -6,6 +6,8 @@ Authors: Yury Kudryashov
 import analysis.complex.upper_half_plane.topology
 import analysis.special_functions.arsinh
 import geometry.euclidean.inversion
+import linear_algebra.matrix.special_linear_group
+import tactic.linear_combination
 
 /-!
 # Metric on the upper half-plane
@@ -24,7 +26,7 @@ ball/sphere with another center and radius.
 
 noncomputable theory
 
-open_locale upper_half_plane complex_conjugate nnreal topology
+open_locale upper_half_plane complex_conjugate nnreal topology matrix_groups
 open set metric filter real
 
 variables {z w : ℍ} {r R : ℝ}
@@ -401,7 +403,7 @@ begin
     simp only [dist_eq, involute_apply, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im, div_one,
       complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
       real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
-      complex.dist_inv_inv _ _ y₁.ne_zero y₂.ne_zero, ← complex.abs_mul, ← complex.norm_sq_mul,
+      complex.dist_inv_inv _ _ y₁.ne_zero y₂.ne_zero, ← absolute_value.map_mul, ← complex.norm_sq_mul,
       real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ), div_div_div_comm, div_self h₂], }),
   by_cases hc : g 1 0 = 0,
   { obtain ⟨u, v, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_eq_zero g hc,

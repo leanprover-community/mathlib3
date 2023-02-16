@@ -81,13 +81,13 @@ lemma im_ne_zero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'
 lemma ne_zero (z : ℍ) : (z : ℂ) ≠ 0 :=
 mt (congr_arg complex.im) z.im_ne_zero
 
-lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
-by simpa using div_pos z.property (norm_sq_pos z)
-
 lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 by { rw complex.norm_sq_pos, exact z.ne_zero }
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
+
+lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
+by simpa using div_pos z.property (norm_sq_pos z)
 
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def num (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)

@@ -1893,18 +1893,18 @@ begin
   subst_vars,
 end
 
-lemma induce_union_connected {H K : set V}
-  (Hconn : (G.induce H).connected) (Kconn : (G.induce K).connected) (HinterK : (H ∩ K).nonempty ) :
-  (G.induce $ H ∪ K).connected :=
+lemma induce_union_connected {s t : set V}
+  (sconn : (G.induce s).connected) (tconn : (G.induce t).connected) (sintert : (s ∩ t).nonempty ) :
+  (G.induce $ s ∪ t).connected :=
 begin
-  obtain ⟨u, huH, huK⟩ := HinterK,
+  obtain ⟨u, hus, hut⟩ := sintert,
   rw connected_iff_basepoint,
-  use ⟨u, or.inl huH⟩,
+  use ⟨u, or.inl hus⟩,
   rintro ⟨v, hv|hv⟩,
-  { obtain ⟨p⟩ := (Hconn ⟨u, huH⟩ ⟨v, hv⟩),
-    exact ⟨p.map (induce_hom_of_le le_sup_left : (G.induce H) →g (G.induce $ H ⊔ K))⟩, },
-  { obtain ⟨p⟩ := (Kconn ⟨u, huK⟩ ⟨v, hv⟩),
-    exact ⟨p.map (induce_hom_of_le le_sup_right : (G.induce K) →g (G.induce $ H ⊔ K))⟩, },
+  { obtain ⟨p⟩ := (sconn ⟨u, hus⟩ ⟨v, hv⟩),
+    exact ⟨p.map (induce_hom_of_le le_sup_left : (G.induce s) →g (G.induce $ s ⊔ t))⟩, },
+  { obtain ⟨p⟩ := (tconn ⟨u, hut⟩ ⟨v, hv⟩),
+    exact ⟨p.map (induce_hom_of_le le_sup_right : (G.induce t) →g (G.induce $ s ⊔ t))⟩, },
 end
 
 lemma induce_pair_connected_of_adj {u v : V} (huv : G.adj u v) :
@@ -1918,18 +1918,18 @@ begin
     refl <|> { refine ⟨walk.cons _ walk.nil⟩, simp [huv, huv.symm] }
 end
 
-lemma induce_connected_adj_union {H K : set V}
-  (Hconn : (G.induce H).connected) (Kconn : (G.induce K).connected) {v w} (hv : v ∈ H) (hw : w ∈ K)
-  (a : G.adj v w) : (G.induce $ H ∪ K).connected :=
+lemma induce_connected_adj_union {s t : set V}
+  (sconn : (G.induce s).connected) (tconn : (G.induce t).connected) {v w} (hv : v ∈ s) (hw : w ∈ t)
+  (a : G.adj v w) : (G.induce $ s ∪ t).connected :=
 begin
-  have : H ∪ K = H ∪ {v, w} ∪ K, by
-  { rw [set.union_comm H {v, w}, set.union_assoc], symmetry,
+  have : s ∪ t = s ∪ {v, w} ∪ t, by
+  { rw [set.union_comm s {v, w}, set.union_assoc], symmetry,
     apply set.union_eq_self_of_subset_left,
     simp only [set.insert_subset, set.singleton_subset_iff, hv, hw, set.mem_union, true_or,
                or_true, and_self], },
   rw this,
   refine induce_union_connected
-    (induce_union_connected Hconn (induce_pair_connected_of_adj a) _) Kconn _,
+    (induce_union_connected sconn (induce_pair_connected_of_adj a) _) tconn _,
   { refine ⟨v, hv, _⟩, simp, },
   { refine ⟨w, or.inr _, hw⟩, simp, }
 end
@@ -1955,48 +1955,48 @@ lemma induce_walk_support_connected [decidable_eq V] :
                set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self],
   end
 
-lemma induce_connected_of_patches {H : set V} {u} (hu : u ∈ H)
-  (patches : ∀ {v} (hv : v ∈ H), ∃ (H' : set V) (sub : H' ⊆ H) (hu' : u ∈ H') (hv' : v ∈ H'),
-             (G.induce H').reachable ⟨u, hu'⟩ ⟨v, hv'⟩ ) : (G.induce H).connected :=
+lemma induce_connected_of_patches {s : set V} {u} (hu : u ∈ s)
+  (patches : ∀ {v} (hv : v ∈ s), ∃ (s' : set V) (sub : s' ⊆ s) (hu' : u ∈ s') (hv' : v ∈ s'),
+             (G.induce s').reachable ⟨u, hu'⟩ ⟨v, hv'⟩ ) : (G.induce s).connected :=
 begin
   rw connected_iff_basepoint,
   refine ⟨⟨u, hu⟩, _⟩,
   rintro ⟨v, hv⟩,
-  obtain ⟨Hv, HvH, hu', hv', ⟨uv⟩⟩ := patches hv,
-  exact ⟨uv.map (induce_hom_of_le HvH)⟩,
+  obtain ⟨sv, svs, hu', hv', ⟨uv⟩⟩ := patches hv,
+  exact ⟨uv.map (induce_hom_of_le svs)⟩,
 end
 
-lemma induce_union_connected_of_pairwise_not_disjoint {H : set (set V)} (Hn : H.nonempty)
-  (Hnd : ∀ {x}, x ∈ H → ∀ {y}, y ∈ H → set.nonempty (x ∩ y))
-  (Hc : ∀ {x}, x ∈ H → (G.induce x).connected) :
-  (G.induce H.sUnion).connected :=
+lemma induce_union_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : s.nonempty)
+  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
+  (Sc : ∀ {s}, s ∈ S → (G.induce s).connected) :
+  (G.induce s.sUnion).connected :=
 begin
-  obtain ⟨Hv, HvH⟩ := Hn,
-  obtain ⟨v, vHv⟩ := (Hc HvH).nonempty.some,
-  fapply induce_connected_of_patches (set.subset_sUnion_of_mem HvH vHv),
+  obtain ⟨s, sS⟩ := Sn,
+  obtain ⟨v, vs⟩ := (Sc sS).nonempty.some,
+  fapply induce_connected_of_patches (set.subset_sUnion_of_mem sS vs),
   rintro w hw,
   simp only [set.mem_sUnion, exists_prop] at hw,
-  obtain ⟨Hw, HwH, wHw⟩ := hw,
-  refine ⟨Hw ∪ Hv, set.union_subset (set.subset_sUnion_of_mem HwH) (set.subset_sUnion_of_mem HvH),
-          or.inr vHv, or.inl wHw, induce_union_connected (Hc HwH) (Hc HvH) (Hnd HwH HvH) _ _⟩,
+  obtain ⟨t, tS, wt⟩ := hw,
+  refine ⟨s ∪ t, set.union_subset (set.subset_sUnion_of_mem tS) (set.subset_sUnion_of_mem sS),
+          or.inr vs, or.inl wt, induce_union_connected (Sc tS) (Sc sS) (Snd tS sS) _ _⟩,
 end
 
-lemma extend_finset_to_connected (Gpc : G.preconnected) {K : finset V} (Kn : K.nonempty) :
-  ∃ K', K ⊆ K' ∧ (G.induce (K' : set V)).connected :=
+lemma extend_finset_to_connected (Gpc : G.preconnected) {t : finset V} (tn : t.nonempty) :
+  ∃ t', t ⊆ t' ∧ (G.induce (t' : set V)).connected :=
 begin
   classical,
-  obtain ⟨k₀, hk₀⟩ := Kn,
-  refine ⟨finset.bUnion K (λ v, (Gpc k₀ v).some.support.to_finset), λ k hk, _, _⟩,
+  obtain ⟨u, ut⟩ := tn,
+  refine ⟨finset.bUnion t (λ v, (Gpc u v).some.support.to_finset), λ k hk, _, _⟩,
   { simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
     refine ⟨k, hk, walk.end_mem_support _⟩, },
-  { apply @induce_connected_of_patches _ G _ k₀ _ (λ v hv, _),
+  { apply @induce_connected_of_patches _ G _ u _ (λ v hv, _),
     { simp only [finset.coe_bUnion, finset.mem_coe, list.coe_to_finset, set.mem_Union,
                  set.mem_set_of_eq, walk.start_mem_support, exists_prop, and_true],
-      exact ⟨k₀, hk₀⟩, },
+      exact ⟨u, ut⟩, },
     simp only [finset.mem_coe, finset.mem_bUnion, list.mem_to_finset, exists_prop] at hv,
-    obtain ⟨k, kK, vk⟩ := hv,
-    refine ⟨((Gpc k₀ k).some.support.to_finset : set V), _, _⟩,
-    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kK, },
+    obtain ⟨k, kt, vk⟩ := hv,
+    refine ⟨((Gpc u k).some.support.to_finset : set V), _, _⟩,
+    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kt, },
     { simp only [finset.mem_coe, list.mem_to_finset, walk.start_mem_support, exists_true_left],
       refine ⟨vk, induce_walk_support_connected _ _ _⟩, }, }
 end

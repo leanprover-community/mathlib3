@@ -6,6 +6,7 @@ Authors: Kyle Miller
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
 import data.list.rotate
+import data.finset.basic
 /-!
 
 # Graph connectivity
@@ -1882,7 +1883,7 @@ section induced
 
 /-! ### Connectivity of induced graphs -/
 
-lemma induce_singleton_connected (G : simple_graph V) (v : V) :
+lemma induce_singleton_connected (v : V) :
   (G.induce {v}).connected :=
 begin
   rw connected_iff,
@@ -1935,17 +1936,23 @@ end
 
 lemma induce_walk_support_connected [decidable_eq V] :
   ∀ {u v : V} (p : G.walk u v), (G.induce $ (p.support.to_finset : set V)).connected
-| _ _ (walk.nil' u) := by { convert induce_singleton_connected G u; simp, }
+| _ _ (walk.nil' u) := by
+  begin
+    rw [walk.support_nil, list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq,
+        finset.coe_singleton],
+    exact induce_singleton_connected u,
+  end
 | _ _ (walk.cons' u v w a p) := by
   begin
-    convert induce_union_connected (induce_pair_connected_of_adj a) (induce_walk_support_connected p) _,
-    any_goals
-    { simp only [walk.support_cons, list.to_finset_cons, finset.coe_insert, list.coe_to_finset,
-                 set.sup_eq_union, set.insert_union, set.singleton_union],
-      rw @set.insert_eq_of_mem _ v, simp only [set.mem_set_of_eq, walk.start_mem_support], },
-    { refine ⟨v,_⟩,
-      simp only [list.coe_to_finset, set.inf_eq_inter, set.mem_inter_iff, set.mem_insert_iff,
-                 set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self], },
+    have : ↑((walk.cons' u v w a p).support.to_finset) = {u, v} ∪ ↑(p.support.to_finset), by
+    { rw [walk.support_cons, list.to_finset_cons, set.insert_union, finset.coe_insert,
+          set.singleton_union, @set.insert_eq_of_mem _ v],
+      simp only [set.mem_set_of_eq, finset.mem_coe, list.mem_to_finset, walk.start_mem_support], },
+    rw this,
+    apply induce_union_connected (induce_pair_connected_of_adj a)
+                                 (induce_walk_support_connected p) ⟨v,_⟩,
+    simp only [list.coe_to_finset, set.inf_eq_inter, set.mem_inter_iff, set.mem_insert_iff,
+               set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self],
   end
 
 lemma induce_connected_of_patches {H : set V} {u} (hu : u ∈ H)
@@ -1960,7 +1967,8 @@ begin
 end
 
 lemma induce_union_connected_of_pairwise_not_disjoint {H : set (set V)} (Hn : H.nonempty)
-  (Hnd : ∀ {x}, x ∈ H → ∀ {y}, y ∈ H → set.nonempty (x ∩ y)) (Hc : ∀ {x}, x ∈ H →  (G.induce x).connected) :
+  (Hnd : ∀ {x}, x ∈ H → ∀ {y}, y ∈ H → set.nonempty (x ∩ y))
+  (Hc : ∀ {x}, x ∈ H → (G.induce x).connected) :
   (G.induce H.sUnion).connected :=
 begin
   obtain ⟨Hv,HvH⟩ := Hn,

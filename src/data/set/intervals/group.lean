@@ -104,64 +104,71 @@ end linear_ordered_add_comm_group
 /-! ### Lemmas about disjointness of translates of intervals -/
 section pairwise_disjoint
 
-section ordered_add_comm_group
+section ordered_comm_group
 
-variables [ordered_add_comm_group α] (a b : α)
+variables [ordered_comm_group α] (a b : α)
 
-lemma pairwise_disjoint_Ioc_add_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ioc (a + n • b) (a + (n + 1) • b))) :=
+@[to_additive]
+lemma pairwise_disjoint_Ioc_mul_zpow  :
+  pairwise (disjoint on (λ (n:ℤ), Ioc (a * b ^ n) (a * b ^ (n + 1)))) :=
 begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
-  by_cases hb : 0 < b,
+  by_cases hb : 1 < b,
   { have i1 := hx.1.1.trans_le hx.2.2,
     have i2 := hx.2.1.trans_le hx.1.2,
-    rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
+    rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
   { -- case 0 ≮ b : vacuous but true
-    have : ∀ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b) = ∅,
+    have : ∀ (n : ℤ), Ioc (a * b ^ n) (a * b ^ (n + 1)) = ∅,
     { refine λ n, Ioc_eq_empty_iff.mpr _,
-      rwa [add_zsmul, one_zsmul, add_lt_add_iff_left, lt_add_iff_pos_right] },
+      rwa [mul_lt_mul_iff_left, ←mul_one (b ^ n), zpow_add_one, mul_lt_mul_iff_left] },
     simp_rw [this, empty_inter] at hx,
     exact hx.elim }
 end
 
-lemma pairwise_disjoint_Ico_add_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ico (a + n • b) (a + (n + 1) • b))) :=
+@[to_additive]
+lemma pairwise_disjoint_Ico_mul_zpow :
+  pairwise (disjoint on (λ (n:ℤ), Ico (a * b ^ n) (a * b ^ (n + 1)))) :=
 begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
   apply hmn,
-  by_cases hb : 0 < b,
+  by_cases hb : 1 < b,
   { have i1 := hx.1.1.trans_lt hx.2.2,
     have i2 := hx.2.1.trans_lt hx.1.2,
-    rw [add_lt_add_iff_left, zsmul_lt_zsmul_iff hb, int.lt_add_one_iff] at i1 i2,
+    rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
-  { have : ∀ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b) = ∅,
+  { -- case 0 ≮ b : vacuous but true
+    have : ∀ (n : ℤ), Ico (a * b ^ n) (a * b ^ (n + 1)) = ∅,
     { refine λ n, Ico_eq_empty_iff.mpr _,
-      rwa [add_zsmul, one_zsmul, add_lt_add_iff_left, lt_add_iff_pos_right] },
+      rwa [mul_lt_mul_iff_left, ←mul_one (b ^ n), zpow_add_one, mul_lt_mul_iff_left] },
     simp_rw [this, empty_inter] at hx,
     exact hx.elim }
 end
 
-lemma pairwise_disjoint_Ioo_add_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ioo (a + n • b) (a + (n + 1) • b))) :=
-λ m n hmn, (pairwise_disjoint_Ioc_add_zsmul a b hmn).mono Ioo_subset_Ioc_self Ioo_subset_Ioc_self
+@[to_additive]
+lemma pairwise_disjoint_Ioo_mul_zpow :
+  pairwise (disjoint on (λ (n:ℤ), Ioo (a * b ^ n) (a * b ^ (n + 1)))) :=
+λ m n hmn, (pairwise_disjoint_Ioc_mul_zpow a b hmn).mono Ioo_subset_Ioc_self Ioo_subset_Ioc_self
 
-lemma pairwise_disjoint_Ioc_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ioc (n • b) ((n + 1) • b))) :=
-by simpa only [zero_add] using pairwise_disjoint_Ioc_add_zsmul 0 b
+@[to_additive]
+lemma pairwise_disjoint_Ioc_zpow :
+  pairwise (disjoint on (λ (n:ℤ), Ioc (b ^ n) (b ^ (n + 1)))) :=
+by simpa only [one_mul] using pairwise_disjoint_Ioc_mul_zpow 1 b
 
-lemma pairwise_disjoint_Ico_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ico (n • b) ((n + 1) • b))) :=
-by simpa only [zero_add] using pairwise_disjoint_Ico_add_zsmul 0 b
+@[to_additive]
+lemma pairwise_disjoint_Ico_zpow :
+  pairwise (disjoint on (λ (n:ℤ), Ico (b ^ n) (b ^ (n + 1)))) :=
+by simpa only [one_mul] using pairwise_disjoint_Ico_mul_zpow 1 b
 
-lemma pairwise_disjoint_Ioo_zsmul :
-  pairwise (disjoint on (λ (n:ℤ), Ioo (n • b) ((n + 1) • b))) :=
-by simpa only [zero_add] using pairwise_disjoint_Ioo_add_zsmul 0 b
+@[to_additive]
+lemma pairwise_disjoint_Ioo_zpow :
+  pairwise (disjoint on (λ (n:ℤ), Ioo (b ^ n) (b ^ (n + 1)))) :=
+by simpa only [one_mul] using pairwise_disjoint_Ioo_mul_zpow 1 b
 
-end ordered_add_comm_group
+end ordered_comm_group
 
 section ordered_ring
 

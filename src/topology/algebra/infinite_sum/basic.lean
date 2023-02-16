@@ -994,21 +994,6 @@ end nat
 
 end topological_group
 
-section const_smul
-variables [monoid γ] [topological_space α] [add_comm_monoid α] [distrib_mul_action γ α]
-  [has_continuous_const_smul γ α] {f : β → α}
-
-lemma has_sum.const_smul {a : α} {r : γ} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const_smul r)
-
-lemma summable.const_smul {r : γ} (hf : summable f) : summable (λ z, r • f z) :=
-hf.has_sum.const_smul.summable
-
-lemma tsum_const_smul [t2_space α] {r : γ} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
-hf.has_sum.const_smul.tsum_eq
-
-end const_smul
-
 section uniform_group
 variables [comm_group α] [uniform_space α]
 

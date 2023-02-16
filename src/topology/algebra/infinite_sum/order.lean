@@ -187,7 +187,7 @@ begin
     exact has_prod_one },
 end
 
-end ordered_topological_group
+end ordered_comm_group
 
 section canonically_ordered_monoid
 variables [canonically_ordered_monoid α] [topological_space α] [order_closed_topology α]
@@ -232,14 +232,14 @@ the existence of a least upper bound.
 -/
 
 @[to_additive] lemma has_prod_of_is_lub_of_one_le [linear_ordered_comm_monoid α]
-  [topological_space α] [order_topology α] {f : ι → α} (i : α) (h : ∀ i, 0 ≤ f i)
-  (hf : is_lub (set.range $ λ s, ∏ i in s, f i) i) :
-  has_prod f i :=
+  [topological_space α] [order_topology α] {f : ι → α} (a : α) (h : ∀ i, 1 ≤ f i)
+  (hf : is_lub (set.range $ λ s, ∏ i in s, f i) a) :
+  has_prod f a :=
 tendsto_at_top_is_lub (finset.prod_mono_set_of_one_le' h) hf
 
 @[to_additive] lemma has_prod_of_is_lub [canonically_linear_ordered_monoid α] [topological_space α]
-  [order_topology ι] {f : ι → α} (i : α) (hf : is_lub (set.range (λ s, ∏ i in s, f i)) i) :
-  has_prod f i :=
+  [order_topology α] {f : ι → α} (a : α) (hf : is_lub (set.range (λ s, ∏ i in s, f i)) a) :
+  has_prod f a :=
 tendsto_at_top_is_lub (finset.prod_mono_set' f) hf
 
 lemma summable_abs_iff [linear_ordered_add_comm_group α] [uniform_space α]

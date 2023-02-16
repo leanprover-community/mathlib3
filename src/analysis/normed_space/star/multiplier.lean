@@ -28,7 +28,9 @@ compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified 
 ## Implementation notes
 
 We make the hypotheses on `𝕜` as weak as possible so that, in particular, this construction works
-for both `𝕜 = ℝ` and `𝕜 = ℂ`. The reader familiar with C⋆-algebra theory may recognize that one
+for both `𝕜 = ℝ` and `𝕜 = ℂ`.
+
+The reader familiar with C⋆-algebra theory may recognize that one
 only needs `L` and `R` to be functions instead of continuous linear maps, at least when `A` is a
 C⋆-algebra. Our intention is simply to eventually provide a constructor for this situation.
 
@@ -116,8 +118,9 @@ instance : has_smul S 𝓜(𝕜, A) :=
     central := λ x y, show (s • a.snd) x * y = x * (s • a.fst) y,
       by simp only [continuous_linear_map.smul_apply, mul_smul_comm, smul_mul_assoc, central] } }
 
-@[simp] lemma smul_fst (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).fst = k • a.fst := rfl
-@[simp] lemma smul_snd (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).snd = k • a.snd := rfl
+@[simp] lemma smul_to_prod (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).to_prod = k • a.to_prod := rfl
+lemma smul_fst (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).fst = k • a.fst := rfl
+lemma smul_snd (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).snd = k • a.snd := rfl
 
 end scalars
 
@@ -380,11 +383,12 @@ begin
   exact le_antisymm (h0 _ _ h1) (h0 _ _ h2),
 end
 
-lemma norm_fst (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.fst‖ :=
+-- `simp_nf` linter times out if we add `@[simp]` to these
+lemma norm_fst (a : 𝓜(𝕜, A)) :‖a.fst‖ = ‖a‖ :=
   by simp only [norm_eq, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
-lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.snd‖ := by rw [norm_fst, norm_fst_eq_snd]
-lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.fst‖₊ := subtype.ext (norm_fst a)
-lemma nnnorm_snd (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.snd‖₊ := subtype.ext (norm_snd a)
+lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
+@[simp] lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a‖₊ := subtype.ext (norm_fst a)
+@[simp] lemma nnnorm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖₊ = ‖a‖₊ := subtype.ext (norm_snd a)
 
 end nontrivially_normed
 
@@ -418,7 +422,7 @@ instance : cstar_ring 𝓜(𝕜, A) :=
           : mul_le_mul' (a.fst.le_op_norm_of_le ((nnnorm_star x).trans_le hx))
               (a.fst.le_op_norm_of_le hy)
       ... ≤ ‖a‖₊ * ‖a‖₊ : by simp only [mul_one, nnnorm_fst] },
-    rw nnnorm_snd,
+    rw ←nnnorm_snd,
     simp only [mul_snd, ←Sup_closed_unit_ball_eq_nnnorm, star_snd, mul_apply],
     simp only [←@op_nnnorm_mul 𝕜 A],
     simp only [←Sup_closed_unit_ball_eq_nnnorm, mul_apply'],
@@ -429,7 +433,7 @@ instance : cstar_ring 𝓜(𝕜, A) :=
       exact key x y (mem_closed_ball_zero_iff.1 hx) (mem_closed_ball_zero_iff.1 hy) },
     { simp only [set.mem_image, set.mem_set_of_eq, exists_prop, exists_exists_and_eq_and],
       have hr' : r.sqrt < ‖a‖₊ := (‖a‖₊).sqrt_mul_self ▸ nnreal.sqrt_lt_sqrt_iff.2 hr,
-      simp_rw [nnnorm_fst, ←Sup_closed_unit_ball_eq_nnnorm] at hr',
+      simp_rw [←nnnorm_fst, ←Sup_closed_unit_ball_eq_nnnorm] at hr',
       obtain ⟨_, ⟨x, hx, rfl⟩, hxr⟩ := exists_lt_of_lt_cSup (hball.image _) hr',
       have hx' : ‖x‖₊ ≤ 1 := mem_closed_ball_zero_iff.1 hx,
       refine ⟨star x, mem_closed_ball_zero_iff.2 ((nnnorm_star x).trans_le hx'), _⟩,

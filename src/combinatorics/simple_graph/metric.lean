@@ -170,9 +170,7 @@ by simp only [closed_ball, edist_eq_zero_iff_eq, enat.coe_zero, nonpos_iff_eq_ze
 
 lemma _root_.enat.le_add (n m : ℕ∞) : n ≤ n + m := sorry
 lemma _root_.enat.add_le_add {n n' m m' : ℕ∞} (hn : n ≤ n') (hm : m ≤ m') : n + m ≤ n' + m' := sorry
-lemma _root_.enat.le_add_one_iff_ {n m : ℕ∞} : n ≤ m  := sorry
-
-
+lemma _root_.enat.lt_add_one_iff_le {n m : ℕ∞} (h : m ≠ ⊤) : n < m + 1 ↔ n ≤ m  := sorry
 
 lemma closed_ball_succ_eq  (v : V) (n : ℕ) :
   G.closed_ball v (n+1) = G.closed_ball v n ∪ (⋃ u ∈ G.closed_ball v n, G.neighbor_set u) :=
@@ -181,10 +179,15 @@ begin
   simp only [enat.coe_add, enat.coe_one, set.mem_set_of_eq, set.mem_union, set.mem_Union,
              mem_neighbor_set, exists_prop],
   split,
-  { rintro hx, rw le_iff_eq_or_lt at hx,
+  { rintro hx, rw [le_iff_eq_or_lt] at hx,
     rcases hx with (he|hlt),
-    sorry,
-    sorry, /- enat is a pain -/  },
+    { obtain ⟨_|⟨a,w⟩,h⟩ := exists_walk_of_edist_eq_nat he,
+      { simpa using h, },
+      { simp only [walk.length_cons, add_left_inj] at h,
+        rw ←h,
+        refine or.inr ⟨_, edist_le _, a.symm⟩, } },
+    { rw enat.lt_add_one_iff_le (with_top.nat_ne_top n) at hlt,
+      exact or.inl hlt, }  },
   { rintro (hx|⟨u,hu,a⟩),
     { exact hx.trans (enat.le_add _ _), },
     { apply (@edist_triangle _ G x u v).trans _,

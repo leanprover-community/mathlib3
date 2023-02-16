@@ -56,7 +56,7 @@ lemma zero_def : (0 : set_semiring α) = set.up ∅ := rfl
 
 @[simp] lemma down_zero : (0 : set_semiring α).down = ∅ := rfl
 
-@[simp] lemma _root_.set.up_empty: (∅ : set α).up = 0 := rfl
+@[simp] lemma _root_.set.up_empty : (∅ : set α).up = 0 := rfl
 
 lemma add_def (s t : set_semiring α) : s + t = (s.down ∪ t.down).up := rfl
 

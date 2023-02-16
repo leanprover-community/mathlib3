@@ -393,6 +393,8 @@ calc a.conj * b.conj = (b * a).conj    : (conj_mul b a).symm
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
 
+@[simp] lemma conj_im : conj a.im = - a.im := im_conj _
+
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R, c₁, c₂]) = n :=
 by rw [←coe_nat_cast, conj_coe]
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
@@ -665,6 +667,7 @@ quaternion_algebra.commute_conj_conj h
 alias commute_conj_conj ← commute.quaternion_conj
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
+@[simp] lemma im_conj : a.im.conj = - a.im := quaternion_algebra.im_conj _
 
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
 quaternion_algebra.conj_nat_cast _
@@ -736,6 +739,9 @@ by simp only [norm_sq_def, conj_neg, neg_mul_neg]
 lemma self_mul_conj : a * a.conj = norm_sq a := by rw [mul_conj_eq_coe, norm_sq_def]
 
 lemma conj_mul_self : a.conj * a = norm_sq a := by rw [← a.commute_self_conj.eq, self_mul_conj]
+
+lemma im_sq : a.im^2 = -norm_sq a.im :=
+by simp_rw [sq, ←conj_mul_self, im_conj, neg_mul, neg_neg]
 
 lemma coe_norm_sq_add :
   (norm_sq (a + b) : ℍ[R]) = norm_sq a + a * b.conj + b * a.conj + norm_sq b :=

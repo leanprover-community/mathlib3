@@ -192,7 +192,7 @@ lemma to_prod_mul_opposite_injective :
 /-- The ring structure is inherited as the pullback under the injective map
 `double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
 instance : ring 𝓜(𝕜, A) :=
-to_prod_mul_opposite_injective.ring to_prod_mul_opposite
+to_prod_mul_opposite_injective.ring _
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)
   (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)

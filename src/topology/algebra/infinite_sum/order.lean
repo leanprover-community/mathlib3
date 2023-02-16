@@ -10,6 +10,7 @@ import topology.algebra.order.monotone_convergence
 
 /-!
 # Infinite sum in an order
+
 This file provides lemmas about the interaction of infinite sums and order operations.
 -/
 
@@ -274,3 +275,16 @@ begin
 end
 
 end linear_order
+
+lemma summable.tendsto_top_of_pos [linear_ordered_field α] [topological_space α] [order_topology α]
+  {f : ℕ → α} (hf : summable f⁻¹) (hf' : ∀ n, 0 < f n) : tendsto f at_top at_top :=
+begin
+  rw ←inv_inv f,
+  apply filter.tendsto.inv_tendsto_zero,
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+    (summable.tendsto_at_top_zero hf),
+  rw eventually_iff_exists_mem,
+  refine ⟨set.Ioi 0, Ioi_mem_at_top _, λ _ _, _⟩,
+  rw [set.mem_Ioi, inv_eq_one_div, one_div, pi.inv_apply, _root_.inv_pos],
+  exact hf' _,
+end

@@ -55,6 +55,12 @@ This is based on Mario Carneiro's
 For the definition or many statements, `α` does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant. -/
 @[to_additive "Infinite sum on a topological monoid
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+
+section has_sum
+variables [add_comm_monoid α] [topological_space α]
+
+/-- Infinite sum on a topological monoid
 
 The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type. So we sum
 up bigger and bigger sets. This sum operation is invariant under reordering. In particular,
@@ -790,6 +796,8 @@ by simp only [prodable, pi.has_prod, skolem]
 (pi.has_prod.1 hf.has_prod x).tprod_eq.symm
 
 end pi
+
+/-! ### Multiplicative/additive opposite -/
 
 section mul_opposite
 open mul_opposite

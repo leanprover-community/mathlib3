@@ -230,12 +230,14 @@ instance : add_group_with_one ℍ[R, c₁, c₂] :=
 @[simp, norm_cast] lemma nat_cast_im_i (n : ℕ) : (n : ℍ[R, c₁, c₂]).im_i = 0 := rfl
 @[simp, norm_cast] lemma nat_cast_im_j (n : ℕ) : (n : ℍ[R, c₁, c₂]).im_j = 0 := rfl
 @[simp, norm_cast] lemma nat_cast_im_k (n : ℕ) : (n : ℍ[R, c₁, c₂]).im_k = 0 := rfl
+@[simp, norm_cast] lemma nat_cast_im (n : ℕ) : (n : ℍ[R, c₁, c₂]).im = 0 := rfl
 @[norm_cast] lemma coe_nat_cast (n : ℕ) : ↑(n : R) = (n : ℍ[R, c₁, c₂]) := rfl
 
 @[simp, norm_cast] lemma int_cast_re (z : ℤ) : (z : ℍ[R, c₁, c₂]).re = z := rfl
 @[simp, norm_cast] lemma int_cast_im_i (z : ℤ) : (z : ℍ[R, c₁, c₂]).im_i = 0 := rfl
 @[simp, norm_cast] lemma int_cast_im_j (z : ℤ) : (z : ℍ[R, c₁, c₂]).im_j = 0 := rfl
 @[simp, norm_cast] lemma int_cast_im_k (z : ℤ) : (z : ℍ[R, c₁, c₂]).im_k = 0 := rfl
+@[simp, norm_cast] lemma int_cast_im (z : ℤ) : (z : ℍ[R, c₁, c₂]).im = 0 := rfl
 @[norm_cast] lemma coe_int_cast (z : ℤ) : ↑(z : R) = (z : ℍ[R, c₁, c₂]) := rfl
 
 instance : ring ℍ[R, c₁, c₂] :=
@@ -589,7 +591,7 @@ quaternion_algebra.coe_pow x n
 @[simp, norm_cast] lemma int_cast_im_i (z : ℤ) : (z : ℍ[R]).im_i = 0 := rfl
 @[simp, norm_cast] lemma int_cast_im_j (z : ℤ) : (z : ℍ[R]).im_j = 0 := rfl
 @[simp, norm_cast] lemma int_cast_im_k (z : ℤ) : (z : ℍ[R]).im_k = 0 := rfl
-@[simp, norm_cast] lemma int_cast_im (z : ℤ) : (z : ℍ[R]).im_k = 0 := rfl
+@[simp, norm_cast] lemma int_cast_im (z : ℤ) : (z : ℍ[R]).im = 0 := rfl
 @[norm_cast] lemma coe_int_cast (z : ℤ) : ↑(z : R) = (z : ℍ[R]) := rfl
 
 lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_algebra.coe_injective

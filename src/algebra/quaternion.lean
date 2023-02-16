@@ -527,7 +527,7 @@ def im (x : ℍ[R]) : ℍ[R] := x.im
 @[simp] lemma one_im_i : (1 : ℍ[R]).im_i = 0 := rfl
 @[simp] lemma one_im_j : (1 : ℍ[R]).im_j = 0 := rfl
 @[simp] lemma one_im_k : (1 : ℍ[R]).im_k = 0 := rfl
-@[simp] lemma one_im : (1 : ℍ[R]).im_k = 0 := rfl
+@[simp] lemma one_im : (1 : ℍ[R]).im = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : R) : ℍ[R]) = 1 := rfl
 
 @[simp] lemma add_re : (a + b).re = a.re + b.re := rfl

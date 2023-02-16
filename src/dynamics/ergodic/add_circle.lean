@@ -27,7 +27,7 @@ This file contains proofs of ergodicity for maps of the additive circle.
 -/
 
 open set function measure_theory measure_theory.measure filter metric
-open_locale measure_theory nnreal ennreal topological_space pointwise
+open_locale measure_theory nnreal ennreal topology pointwise
 
 namespace add_circle
 
@@ -102,7 +102,7 @@ lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n
     have hu₀ : ∀ j, add_order_of (u j) = n.nat_abs^j,
     { exact λ j, add_order_of_div_of_gcd_eq_one (pow_pos (pos_of_gt hn) j) (gcd_one_left _), },
     have hnu : ∀ j, n^j • (u j) = 0 := λ j, by rw [← add_order_of_dvd_iff_zsmul_eq_zero, hu₀,
-      int.coe_nat_pow, ← int.abs_eq_nat_abs, ← abs_pow, abs_dvd],
+      int.coe_nat_pow, int.coe_nat_abs, ← abs_pow, abs_dvd],
     have hu₁ : ∀ j, ((u j) +ᵥ s : set _) =ᵐ[volume] s :=
       λ j, by rw vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
     have hu₂ : tendsto (λ j, add_order_of $ u j) at_top at_top,

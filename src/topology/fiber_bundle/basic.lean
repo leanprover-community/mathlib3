@@ -167,7 +167,7 @@ Fiber bundle, topological bundle, structure group
 variables {ι : Type*} {B : Type*} {F : Type*}
 
 open topological_space filter set bundle
-open_locale topological_space classical bundle
+open_locale topology classical bundle
 
 attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
   coe_snd_map_smul total_space.mk_cast
@@ -693,7 +693,7 @@ begin
   exact le_supr₂ e he,
 end
 
-lemma is_open_source (e : pretrivialization F (π E)) : @is_open _ a.total_space_topology e.source :=
+lemma is_open_source (e : pretrivialization F (π E)) : is_open[a.total_space_topology] e.source :=
 begin
   letI := a.total_space_topology,
   refine is_open_supr_iff.mpr (λ e', _),

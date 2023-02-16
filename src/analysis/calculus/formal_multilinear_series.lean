@@ -25,7 +25,7 @@ multilinear, formal series
 noncomputable theory
 
 open set fin
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 𝕜' E F G : Type*}
 

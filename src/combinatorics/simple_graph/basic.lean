@@ -606,13 +606,16 @@ attribute [mono] edge_finset_mono edge_finset_strict_mono
 
 @[simp] lemma edge_finset_bot : (⊥ : simple_graph V).edge_finset = ∅ := by simp [edge_finset]
 
-@[simp] lemma edge_finset_sup : (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
+@[simp] lemma edge_finset_sup [decidable_eq V] :
+  (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_inf : (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
+@[simp] lemma edge_finset_inf [decidable_eq V] :
+  (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_sdiff : (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
+@[simp] lemma edge_finset_sdiff [decidable_eq V] :
+  (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
 by simp [edge_finset]
 
 lemma edge_finset_card : G.edge_finset.card = fintype.card G.edge_set := set.to_finset_card _
@@ -960,7 +963,7 @@ lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
 begin
   classical,
   rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
-  simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
+  simp [card_disjoint_union (set.disjoint_to_finset.mpr (compl_neighbor_set_disjoint G v))],
 end
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
@@ -1197,7 +1200,7 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, set.to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_subset_to_finset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
@@ -1207,7 +1210,7 @@ begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_subset_to_finset, set.subset_univ] },
 end
 
 end finite
@@ -1371,6 +1374,29 @@ abbreviation comp (f' : G' ↪g G'') (f : G ↪g G') : G ↪g G'' := f.trans f'
 @[simp] lemma coe_comp (f' : G' ↪g G'') (f : G ↪g G') : ⇑(f'.comp f) = f' ∘ f := rfl
 
 end embedding
+
+section induce_hom
+
+variables {G G'} {G'' : simple_graph X} {s : set V} {t : set W} {r : set X}
+          (φ : G →g G') (φst : set.maps_to φ s t) (ψ : G' →g G'') (ψtr : set.maps_to ψ t r)
+
+/-- The restriction of a morphism of graphs to induced subgraphs. -/
+def induce_hom : G.induce s →g G'.induce t :=
+{ to_fun := set.maps_to.restrict φ s t φst,
+  map_rel' := λ _ _,  φ.map_rel', }
+
+@[simp, norm_cast] lemma coe_induce_hom : ⇑(induce_hom φ φst) = set.maps_to.restrict φ s t φst :=
+rfl
+
+@[simp] lemma induce_hom_id (G : simple_graph V) (s) :
+  induce_hom (hom.id : G →g G) (set.maps_to_id s) = hom.id :=
+by { ext x, refl }
+
+@[simp] lemma induce_hom_comp :
+  (induce_hom ψ ψtr).comp (induce_hom φ φst) = induce_hom (ψ.comp φ) (ψtr.comp φst) :=
+by { ext x, refl }
+
+end induce_hom
 
 namespace iso
 variables {G G'} (f : G ≃g G')

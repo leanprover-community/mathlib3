@@ -5,10 +5,13 @@ Authors: David Wärn
 -/
 import logic.encodable.basic
 import order.atoms
-import order.upper_lower
+import order.upper_lower.basic
 
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 

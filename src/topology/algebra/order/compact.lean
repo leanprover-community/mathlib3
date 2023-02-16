@@ -9,6 +9,9 @@ import topology.local_extr
 /-!
 # Compactness of a closed interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a closed interval in a conditionally complete linear ordered type with
 order topology (or a product of such types) is compact.
 
@@ -25,7 +28,7 @@ compact, extreme value theorem
 -/
 
 open filter order_dual topological_space function set
-open_locale filter topological_space
+open_locale filter topology
 
 /-!
 ### Compactness of a closed interval
@@ -108,8 +111,8 @@ instance {α β : Type*} [preorder α] [topological_space α] [compact_Icc_space
 ⟨λ a b, (Icc_prod_eq a b).symm ▸ is_compact_Icc.prod is_compact_Icc⟩
 
 /-- An unordered closed interval is compact. -/
-lemma is_compact_interval {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
-  {a b : α} : is_compact (interval a b) :=
+lemma is_compact_uIcc {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
+  {a b : α} : is_compact (uIcc a b) :=
 is_compact_Icc
 
 /-- A complete linear order is a compact space.
@@ -356,19 +359,19 @@ lemma image_Icc (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
   (is_compact_Icc.image_of_continuous_on h)
 
-lemma image_interval_eq_Icc (h : continuous_on f $ [a, b]) :
+lemma image_uIcc_eq_Icc (h : continuous_on f $ [a, b]) :
   f '' [a, b] = Icc (Inf (f '' [a, b])) (Sup (f '' [a, b])) :=
 begin
   cases le_total a b with h2 h2,
-  { simp_rw [interval_of_le h2] at h ⊢, exact h.image_Icc h2 },
-  { simp_rw [interval_of_ge h2] at h ⊢, exact h.image_Icc h2 },
+  { simp_rw [uIcc_of_le h2] at h ⊢, exact h.image_Icc h2 },
+  { simp_rw [uIcc_of_ge h2] at h ⊢, exact h.image_Icc h2 },
 end
 
-lemma image_interval (h : continuous_on f $ [a, b]) :
+lemma image_uIcc (h : continuous_on f $ [a, b]) :
   f '' [a, b] = [Inf (f '' [a, b]), Sup (f '' [a, b])] :=
 begin
-  refine h.image_interval_eq_Icc.trans (interval_of_le _).symm,
-  refine cInf_le_cSup _ _ (nonempty_interval.image _); rw h.image_interval_eq_Icc,
+  refine h.image_uIcc_eq_Icc.trans (uIcc_of_le _).symm,
+  refine cInf_le_cSup _ _ (nonempty_uIcc.image _); rw h.image_uIcc_eq_Icc,
   exacts [bdd_below_Icc, bdd_above_Icc]
 end
 

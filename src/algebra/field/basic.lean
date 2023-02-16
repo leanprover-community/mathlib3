@@ -11,6 +11,9 @@ import algebra.ring.inj_surj
 /-!
 # Lemmas about division (semi)rings and (semi)fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open function order_dual set

@@ -7,11 +7,14 @@ import topology.bases
 import topology.uniform_space.basic
 /-!
 # Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v
 
 open filter topological_space set classical uniform_space function
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 
 variables {α : Type u} {β : Type v} [uniform_space α]
 

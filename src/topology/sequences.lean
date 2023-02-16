@@ -58,7 +58,7 @@ sequentially closed, sequentially compact, sequential space
 -/
 
 open set function filter topological_space
-open_locale topological_space filter
+open_locale topology filter
 
 variables {X Y : Type*}
 

@@ -13,6 +13,9 @@ import data.fin.basic
 /-!
 # Encodable types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines encodable (constructively countable) types as a typeclass.
 This is used to provide explicit encode/decode functions from and to `ℕ`, with the information that
 those functions are inverses of each other.
@@ -335,6 +338,7 @@ nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
 
 end encodable
 
+/-- See also `nonempty_fintype`, `nonempty_denumerable`. -/
 lemma nonempty_encodable (α : Type*) [countable α] : nonempty (encodable α) :=
 ⟨encodable.of_countable _⟩
 

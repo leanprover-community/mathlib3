@@ -8,6 +8,9 @@ import algebra.hom.group
 /-!
 # Extensionality lemmas for monoid and group structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove extensionality lemmas for `monoid` and higher algebraic structures with one
 binary operation. Extensionality lemmas for structures that are lower in the hierarchy can be found
 in `algebra.group.defs`.

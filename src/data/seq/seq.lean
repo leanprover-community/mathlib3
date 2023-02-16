@@ -411,62 +411,15 @@ def split_at : ℕ → seq α → list α × seq α
 section zip_with
 
 /-- Combine two sequences with a function -/
-def zip_with (f : α → β → γ) : seq α → seq β → seq γ
-| ⟨f₁, a₁⟩ ⟨f₂, a₂⟩ := ⟨λ n,
-    match f₁ n, f₂ n with
-    | some a, some b := some (f a b)
-    | _, _ := none
-    end,
-  λ n, begin
-    induction h1 : f₁ n,
-    { intro H, simp only [(a₁ h1)], refl },
-    induction h2 : f₂ n; dsimp [seq.zip_with._match_1]; intro H,
-    { rw (a₂ h2), cases f₁ (n + 1); refl },
-    { rw [h1, h2] at H, contradiction }
-  end⟩
+def zip_with (f : α → β → γ) (s₁ : seq α) (s₂ : seq β) : seq γ :=
+⟨λ n, option.map₂ f (s₁.nth n) (s₂.nth n), λ n hn,
+  option.map₂_eq_none_iff.2 $ (option.map₂_eq_none_iff.1 hn).imp s₁.2 s₂.2⟩
 
 variables {s : seq α} {s' : seq β} {n : ℕ}
 
-lemma zip_with_nth_some {a : α} {b : β} (s_nth_eq_some : s.nth n = some a)
-(s_nth_eq_some' : s'.nth n = some b) (f : α → β → γ) :
-  (zip_with f s s').nth n = some (f a b) :=
-begin
-  cases s with st,
-  have : st n = some a, from s_nth_eq_some,
-  cases s' with st',
-  have : st' n = some b, from s_nth_eq_some',
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma zip_with_nth_none (s_nth_eq_none : s.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  cases s with st,
-  have : st n = none, from s_nth_eq_none,
-  cases s' with st',
-  cases st'_nth_eq : st' n;
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma zip_with_nth_none' (s'_nth_eq_none : s'.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  cases s' with st',
-  have : st' n = none, from s'_nth_eq_none,
-  cases s with st,
-  cases st_nth_eq : st n;
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma nth_zip_with (f : α → β → γ) (s : seq α) (t : seq β) (n : ℕ) :
-  nth (zip_with f s t) n = option.bind (nth s n) (λ x, option.map (f x) (nth t n)) :=
-begin
-  cases hx : nth s n with x,
-  { rw [zip_with_nth_none hx, option.none_bind'] },
-  cases hy : nth t n with y,
-  { rw [zip_with_nth_none' hy, option.some_bind', option.map_none'] },
-  { rw [zip_with_nth_some hx hy, option.some_bind', option.map_some'] }
-end
+@[simp] lemma nth_zip_with (f : α → β → γ) (s s' n) :
+  (zip_with f s s').nth n = option.map₂ f (s.nth n) (s'.nth n) :=
+rfl
 
 end zip_with
 
@@ -474,7 +427,7 @@ end zip_with
 def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 
 lemma nth_zip (s : seq α) (t : seq β) (n : ℕ) :
-  nth (zip s t) n = option.bind (nth s n) (λ x, option.map (prod.mk x) (nth t n)) :=
+  nth (zip s t) n = option.map₂ prod.mk (nth s n) (nth t n) :=
 nth_zip_with _ _ _ _
 
 /-- Separate a sequence of pairs into two sequences -/

@@ -10,6 +10,9 @@ import data.finset.pairwise
 /-!
 
 # Sums of collections of finsupp, and their support
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file provides results about the `finsupp.support` of sums of collections of `finsupp`,
 including sums of `list`, `multiset`, and `finset`.
 

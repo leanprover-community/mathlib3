@@ -9,6 +9,9 @@ import data.fintype.prod
 /-!
 # Additive energy
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the additive energy of two finsets of a group. This is a central quantity in
 additive combinatorics.
 

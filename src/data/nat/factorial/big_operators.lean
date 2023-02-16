@@ -9,6 +9,9 @@ import algebra.big_operators.order
 /-!
 # Factorial with big operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some lemmas on factorials in combination with big operators.
 
 While in terms of semantics they could be in the `basic.lean` file, importing 

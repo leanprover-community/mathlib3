@@ -14,6 +14,9 @@ import data.finsupp.basic
 /-!
 # Linear algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
 modules over a ring, submodules, and linear maps.
 
@@ -25,7 +28,6 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 * Many constructors for (semi)linear maps
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
-* The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 See `linear_algebra.span` for the span of a set (as a submodule),
 and `linear_algebra.quotient` for quotients by submodules.
@@ -145,6 +147,10 @@ variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_tripl
 variables [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄] [ring_hom_comp_triple σ₁₂ σ₂₄ σ₁₄]
 variables (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃)
 include R R₂
+
+@[simp] lemma map_sum {ι : Type*} {t : finset ι} {g : ι → M} :
+  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
+f.to_add_monoid_hom.map_sum _ _
 
 theorem comp_assoc (h : M₃ →ₛₗ[σ₃₄] M₄) :
   ((h.comp g : M₂ →ₛₗ[σ₂₄] M₄).comp f : M →ₛₗ[σ₁₄] M₄)
@@ -1029,6 +1035,23 @@ begin
   rw [range_comp, submodule.map_neg, submodule.map_id],
 end
 
+/-- A linear map version of `add_monoid_hom.eq_locus` -/
+def eq_locus (f g : M →ₛₗ[τ₁₂] M₂) : submodule R M :=
+{ carrier := {x | f x = g x},
+  smul_mem' := λ r x (hx : _ = _), show _ = _,
+    by simpa only [linear_map.map_smulₛₗ] using congr_arg ((•) (τ₁₂ r)) hx,
+  .. f.to_add_monoid_hom.eq_mlocus g.to_add_monoid_hom }
+
+@[simp] lemma mem_eq_locus {x : M} {f g : M →ₛₗ[τ₁₂] M₂} : x ∈ f.eq_locus g ↔ f x = g x :=
+iff.rfl
+
+lemma eq_locus_to_add_submonoid (f g : M →ₛₗ[τ₁₂] M₂) :
+  (f.eq_locus g).to_add_submonoid = (f : M →+ M₂).eq_mlocus g :=
+rfl
+
+@[simp] lemma eq_locus_same (f : M →ₛₗ[τ₁₂] M₂) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 end
 
 /--
@@ -1206,6 +1229,9 @@ lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ�
 
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
+
+lemma eq_locus_eq_ker_sub (f g : M →ₛₗ[τ₁₂] M₂) : f.eq_locus g = (f - g).ker :=
+set_like.ext $ λ v, sub_eq_zero.symm
 
 include sc
 theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
@@ -1448,20 +1474,27 @@ end linear_map
   f.range_restrict.range = ⊤ :=
 by simp [f.range_cod_restrict _]
 
+@[simp] lemma linear_map.ker_range_restrict [semiring R] [add_comm_monoid M]
+  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂) :
+  f.range_restrict.ker = f.ker :=
+linear_map.ker_cod_restrict _ _ _
+
 /-! ### Linear equivalences -/
 namespace linear_equiv
 
 section add_comm_monoid
 
 section subsingleton
-variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
-variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [semiring R] [semiring R₂]
+variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R₂ M₂]
-variables [subsingleton M] [subsingleton M₂]
 variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
 include σ₂₁
+section module
+variables [subsingleton M] [subsingleton M₂]
+
 /-- Between two zero modules, the zero map is an equivalence. -/
 instance : has_zero (M ≃ₛₗ[σ₁₂] M₂) :=
 ⟨{ to_fun := 0,
@@ -1484,6 +1517,11 @@ instance : unique (M ≃ₛₗ[σ₁₂] M₂) :=
   default := 0 }
 omit σ₂₁
 
+end module
+
+instance unique_of_subsingleton [subsingleton R] [subsingleton R₂] : unique (M ≃ₛₗ[σ₁₂] M₂) :=
+by { haveI := module.subsingleton R M, haveI := module.subsingleton R₂ M₂, apply_instance }
+
 end subsingleton
 
 section
@@ -1493,6 +1531,9 @@ variables {module_M : module R M} {module_M₂ : module R₂ M₂}
 variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
 variables (e e' : M ≃ₛₗ[σ₁₂] M₂)
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 lemma map_eq_comap {p : submodule R M} :
   (p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) = p.comap (e.symm : M₂ →ₛₗ[σ₂₁] M) :=
@@ -1758,11 +1799,11 @@ of_left_inverse $ classical.some_spec h.has_left_inverse
 
 /-- A bijective linear map is a linear equivalence. -/
 noncomputable def of_bijective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
-(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+  (hf : bijective f) : M ≃ₛₗ[σ₁₂] M₂ :=
+(of_injective f hf.injective).trans (of_top _ $ linear_map.range_eq_top.2 hf.surjective)
 
 @[simp] theorem of_bijective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  {hf₁ hf₂} (x : M) : of_bijective f hf₁ hf₂ x = f x := rfl
+  {hf} (x : M) : of_bijective f hf x = f x := rfl
 
 end
 
@@ -2122,55 +2163,3 @@ rfl
 end linear_equiv
 
 end fun_left
-
-namespace linear_map
-
-variables [semiring R] [add_comm_monoid M] [module R M]
-variables (R M)
-
-/-- The group of invertible linear maps from `M` to itself -/
-@[reducible] def general_linear_group := (M →ₗ[R] M)ˣ
-
-namespace general_linear_group
-variables {R M}
-
-instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
-
-/-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
-def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=
-{ inv_fun := f.inv.to_fun,
-  left_inv := λ m, show (f.inv * f.val) m = m,
-    by erw f.inv_val; simp,
-  right_inv := λ m, show (f.val * f.inv) m = m,
-    by erw f.val_inv; simp,
-  ..f.val }
-
-/-- An equivalence from `M` to itself determines an invertible linear map. -/
-def of_linear_equiv (f : (M ≃ₗ[R] M)) : general_linear_group R M :=
-{ val := f,
-  inv := (f.symm : M →ₗ[R] M),
-  val_inv := linear_map.ext $ λ _, f.apply_symm_apply _,
-  inv_val := linear_map.ext $ λ _, f.symm_apply_apply _ }
-
-variables (R M)
-
-/-- The general linear group on `R` and `M` is multiplicatively equivalent to the type of linear
-equivalences between `M` and itself. -/
-def general_linear_equiv : general_linear_group R M ≃* (M ≃ₗ[R] M) :=
-{ to_fun := to_linear_equiv,
-  inv_fun := of_linear_equiv,
-  left_inv := λ f, by { ext, refl },
-  right_inv := λ f, by { ext, refl },
-  map_mul' := λ x y, by {ext, refl} }
-
-@[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group R M) :
-  (general_linear_equiv R M f : M →ₗ[R] M) = f :=
-by {ext, refl}
-
-@[simp] lemma coe_fn_general_linear_equiv (f : general_linear_group R M) :
-  ⇑(general_linear_equiv R M f) = (f : M → M) :=
-rfl
-
-end general_linear_group
-
-end linear_map

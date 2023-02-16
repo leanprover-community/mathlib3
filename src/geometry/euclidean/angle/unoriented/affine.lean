@@ -384,4 +384,59 @@ begin
   simp [hp₁p₂, hp₁p₃, ne.symm hp₁p₃, sbtw, hp₃p₂]
 end
 
+/-- Three points are collinear if and only if the first or third point equals the second or the
+angle between them is 0 or π. -/
+lemma collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi {p₁ p₂ p₃ : P} :
+  collinear ℝ ({p₁, p₂, p₃} : set P) ↔ p₁ = p₂ ∨ p₃ = p₂ ∨ ∠ p₁ p₂ p₃ = 0 ∨ ∠ p₁ p₂ p₃ = π :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { replace h := h.wbtw_or_wbtw_or_wbtw,
+    by_cases h₁₂ : p₁ = p₂, { exact or.inl h₁₂ },
+    by_cases h₃₂ : p₃ = p₂, { exact or.inr (or.inl h₃₂) },
+    rw [or_iff_right h₁₂, or_iff_right h₃₂],
+    rcases h with h | h | h,
+    { exact or.inr (angle_eq_pi_iff_sbtw.2 ⟨h, ne.symm h₁₂, ne.symm h₃₂⟩) },
+    { exact or.inl (h.angle₃₁₂_eq_zero_of_ne h₃₂) },
+    { exact or.inl (h.angle₂₃₁_eq_zero_of_ne h₁₂) } },
+  { rcases h with rfl | rfl | h | h,
+    { simpa using collinear_pair ℝ p₁ p₃ },
+    { simpa using collinear_pair ℝ p₁ p₃ },
+    { rw angle_eq_zero_iff_ne_and_wbtw at h,
+      rcases h with ⟨-, h⟩ | ⟨-, h⟩,
+      { rw set.insert_comm, exact h.collinear },
+      { rw [set.insert_comm, set.pair_comm], exact h.collinear } },
+    { rw angle_eq_pi_iff_sbtw at h,
+      exact h.wbtw.collinear } }
+end
+
+/-- If the angle between three points is 0, they are collinear. -/
+lemma collinear_of_angle_eq_zero {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = 0) :
+  collinear ℝ ({p₁, p₂, p₃} : set P) :=
+collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi.2 $ or.inr $ or.inr $ or.inl h
+
+/-- If the angle between three points is π, they are collinear. -/
+lemma collinear_of_angle_eq_pi {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π) :
+  collinear ℝ ({p₁, p₂, p₃} : set P) :=
+collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi.2 $ or.inr $ or.inr $ or.inr h
+
+/-- If three points are not collinear, the angle between them is nonzero. -/
+lemma angle_ne_zero_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p₁, p₂, p₃} : set P)) :
+  ∠ p₁ p₂ p₃ ≠ 0 :=
+mt collinear_of_angle_eq_zero h
+
+/-- If three points are not collinear, the angle between them is not π. -/
+lemma angle_ne_pi_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p₁, p₂, p₃} : set P)) :
+  ∠ p₁ p₂ p₃ ≠ π :=
+mt collinear_of_angle_eq_pi h
+
+/-- If three points are not collinear, the angle between them is positive. -/
+lemma angle_pos_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p₁, p₂, p₃} : set P)) :
+  0 < ∠ p₁ p₂ p₃ :=
+(angle_nonneg _ _ _).lt_of_ne (angle_ne_zero_of_not_collinear h).symm
+
+/-- If three points are not collinear, the angle between them is less than π. -/
+lemma angle_lt_pi_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p₁, p₂, p₃} : set P)) :
+  ∠ p₁ p₂ p₃ < π :=
+(angle_le_pi _ _ _).lt_of_ne $ angle_ne_pi_of_not_collinear h
+
 end euclidean_geometry

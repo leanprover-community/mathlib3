@@ -10,6 +10,9 @@ import data.rbtree.default_lt
 /-!
 ## Definitions on lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`
 -/
@@ -21,6 +24,11 @@ universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
+
+/-- Create a list of `n` copies of `a`. Same as `function.swap list.repeat`. -/
+@[simp] def replicate : ℕ → α → list α
+| 0 _ := []
+| (succ n) a := a :: replicate n a
 
 /-- Split a list at an index.
 
@@ -68,14 +76,14 @@ def to_array (l : list α) : array l.length α :=
 
 /-- "default" `nth` function: returns `d` instead of `none` in the case
   that the index is out of bounds. -/
-def nthd (d : α) : Π (l : list α) (n : ℕ), α
-| []      _       := d
-| (x::xs) 0       := x
-| (x::xs) (n + 1) := nthd xs n
+def nthd : Π (l : list α) (n : ℕ) (d : α), α
+| []      _       d := d
+| (x::xs) 0       d := x
+| (x::xs) (n + 1) d := nthd xs n d
 
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd l n default
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.

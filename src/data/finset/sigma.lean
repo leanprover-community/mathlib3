@@ -9,6 +9,9 @@ import data.set.sigma
 /-!
 # Finite sets in a sigma type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few `finset` constructions on `Σ i, α i`.
 
 ## Main declarations
@@ -77,11 +80,8 @@ variables (s t) (f : (Σ i, α i) → β)
 lemma sup_sigma [semilattice_sup β] [order_bot β] :
   (s.sigma t).sup f = s.sup (λ i, (t i).sup $ λ b, f ⟨i, b⟩) :=
 begin
-  refine (sup_le _).antisymm (sup_le $ λ i hi, sup_le $ λ b hb, le_sup $ mem_sigma.2 ⟨hi, hb⟩),
-  rintro ⟨i, b⟩ hb,
-  rw mem_sigma at hb,
-  refine le_trans _ (le_sup hb.1),
-  convert le_sup hb.2,
+  simp only [le_antisymm_iff, finset.sup_le_iff, mem_sigma, and_imp, sigma.forall],
+  exact ⟨λ i a hi ha, (le_sup hi).trans' $ le_sup ha, λ i hi a ha, le_sup $ mem_sigma.2 ⟨hi, ha⟩⟩,
 end
 
 lemma inf_sigma [semilattice_inf β] [order_top β] :

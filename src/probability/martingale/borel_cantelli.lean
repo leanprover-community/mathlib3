@@ -28,7 +28,7 @@ is required to prove the generalized Borel-Cantelli.
 -/
 
 open filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 

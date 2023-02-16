@@ -10,6 +10,9 @@ import data.prod.lex
 /-!
 # Multiset coercion to type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines a `has_coe_to_sort` instance for multisets and gives it a `fintype` instance.
 It also defines `multiset.to_enum_finset`, which is another way to enumerate the elements of
 a multiset. These coercions and definitions make it easier to sum over multisets using existing
@@ -175,7 +178,7 @@ end
 begin
   ext x,
   simp only [multiset.count_map, ← finset.filter_val, multiset.to_enum_finset_filter_eq,
-    finset.map_val, finset.range_coe, multiset.card_map, multiset.card_range],
+    finset.map_val, finset.range_val, multiset.card_map, multiset.card_range],
 end
 
 @[simp] lemma multiset.image_to_enum_finset_fst (m : multiset α) :

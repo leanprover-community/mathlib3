@@ -10,6 +10,9 @@ import group_theory.group_action.units
 /-!
 # Further lemmas about units in a `monoid_with_zero` or a `group_with_zero`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 variables {α M₀ G₀ M₀' G₀' F F' : Type*}
@@ -109,6 +112,8 @@ by rw [←mul_one a, ←div_self hb, ←mul_comm_div, h, div_mul_eq_mul_div, div
 hb.is_unit.div_eq_div_iff hd.is_unit
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b := ha.is_unit.div_div_cancel
+
+lemma div_div_cancel_left' (ha : a ≠ 0) : a / b / a = b⁻¹ := ha.is_unit.div_div_cancel_left
 
 lemma div_helper (b : G₀) (h : a ≠ 0) : 1 / (a * b) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]

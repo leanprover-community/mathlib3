@@ -5,11 +5,14 @@ Authors: Chris Hughes
 -/
 import algebra.hom.equiv.basic
 import data.part
-import data.enat.basic
+import data.enat.lattice
 import tactic.norm_num
 
 /-!
 # Natural numbers with infinity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The natural numbers and an extra `top` element `⊤`. This implementation uses `part ℕ` as an
 implementation. Use `ℕ∞` instead unless you care about computability.
@@ -78,7 +81,7 @@ instance : add_comm_monoid part_enat :=
   add_zero  := λ x, part.ext' (and_true _) (λ _ _, add_zero _),
   add_assoc := λ x y z, part.ext' and.assoc (λ _ _, add_assoc _ _ _) }
 
-instance : add_monoid_with_one part_enat :=
+instance : add_comm_monoid_with_one part_enat :=
 { one := 1,
   nat_cast := some,
   nat_cast_zero := rfl,

@@ -38,74 +38,80 @@ variables {X : Top.{u}}
 
 open topological_space Top opposite
 
-@[simps] def emb (U : opens X) : Top.of U ⟶ X :=
-{ to_fun := (coe : U → X),
-  continuous_to_fun := continuous_subtype_val }
+-- def emb (U : opens X) : Top.of U ⟶ X
+-- #check opens.inclusion
 
-def emb.to_global_subset {U : opens X} (V : opens (Top.of U)) : opens X :=
+def inclusion.to_global_subset {U : opens X} (V : opens (Top.of U)) : opens X :=
 ⟨subtype.val '' V.1, (is_open.open_embedding_subtype_coe U.2).is_open_map _ V.2⟩
 
-def emb.of_subset {U V : opens X} (inc : U ⟶ V) (W : opens (Top.of U)) : opens (Top.of V) :=
-{ val := (λ p, ⟨p.1, le_of_hom inc p.2⟩ : U → V) '' W.1,
-  property := let ⟨O, hO1, hO2⟩ := is_open_induced_iff.mp W.2 in
-    is_open_induced_iff.mpr ⟨subtype.val '' W.1,
-    begin
-      apply_fun set.image subtype.val at hO2,
-      rw ←hO2,
-      apply (is_open.open_embedding_subtype_coe U.2).is_open_map,
-      apply is_open.preimage,
-      continuity,
-    end, begin
-      ext ⟨x, hx⟩, split,
-      { rintros ⟨p, hp1, hp2⟩,
-        rw set.mem_image,
-        refine ⟨p, hp1, subtype.ext_iff_val.mpr hp2⟩, },
-      { rintros ⟨p, hp1, hp2⟩,
-        rw [←hp2, set.mem_preimage, set.mem_image],
-        refine ⟨p, hp1, rfl⟩, },
-    end⟩ }
+lemma to_Top.is_open_map  {U V : opens X} (ι : U ⟶ V) : is_open_map ((opens.to_Top X).map ι) :=
+  (opens.open_embedding_of_le (le_of_hom ι)).is_open_map
 
+@[reducible]
+def inclusion.functor {U V : opens X} (ι : U ⟶ V) : opens (Top.of U) ⥤ opens (Top.of V) :=
+  (to_Top.is_open_map ι).functor
+
+@[reducible]
+def inclusion.of_subset {U V : opens X} (ι : U ⟶ V): opens (Top.of U) → opens (Top.of V) :=
+  (inclusion.functor ι).obj
+
+/-
 def emb.of_subset_hom {U V : opens X} (inc : U ⟶ V) {W₁ W₂ : opens (Top.of U)} (i : W₁ ⟶ W₂) :
-  emb.of_subset inc W₁ ⟶ emb.of_subset inc W₂ :=
-hom_of_le $ λ _ ⟨q, hq1, hq2⟩, ⟨q, le_of_hom i hq1, hq2⟩
+  emb.of_subset inc W₁ ⟶ emb.of_subset inc W₂
+-/
+def inclusion.of_subset_hom {U V : opens X} (ι : U ⟶ V) {W₁ W₂ : opens (Top.of U)} (i : W₁ ⟶ W₂) :
+    inclusion.of_subset ι W₁ ⟶ inclusion.of_subset ι W₂ :=
+  (inclusion.functor ι).map i
 
-def emb.of_subset_id (U : opens X) (W : opens (Top.of U)) :
-  emb.of_subset (𝟙 U) W = W :=
+-- def emb.of_subset_id (U : opens X) (W : opens (Top.of U)) : emb.of_subset (𝟙 U) W = W
+def inclusion.of_subset_id (U : opens X) (W : opens (Top.of U)) :
+    inclusion.of_subset (𝟙 U) W = W :=
 begin
   ext x, split,
-  { rintros ⟨p, hp, rfl⟩, dsimp, erw opens.mem_coe at hp, convert hp, ext, refl, },
-  { intros h, rw opens.mem_coe at h, refine ⟨x, h, _⟩, ext, refl, },
+  { rintros ⟨p, hp, rfl⟩, dsimp, convert hp, ext, refl, },
+  { intros h, refine ⟨x, h, _⟩, ext, refl, },
 end
 
+/-
 def emb.of_subset_comp {U V W : opens X} (iUV : U ⟶ V) (iVW : V ⟶ W) (W : opens (Top.of U)) :
-  emb.of_subset (iUV ≫ iVW) W = emb.of_subset iVW (emb.of_subset iUV W) :=
+  emb.of_subset (iUV ≫ iVW) W = emb.of_subset iVW (emb.of_subset iUV W)
+-/
+def inclusion.of_subset_comp {U V W : opens X} (iUV : U ⟶ V) (iVW : V ⟶ W) (W : opens (Top.of U)) :
+  inclusion.of_subset (iUV ≫ iVW) W = inclusion.of_subset iVW (inclusion.of_subset iUV W) :=
 begin
-  ext x, split,
-  { rintros ⟨p, hp, rfl⟩, exact ⟨⟨p, le_of_hom iUV p.2⟩, ⟨p, hp, rfl⟩, rfl⟩, },
-  { rintros ⟨p, ⟨q, hq, rfl⟩, rfl⟩, exact ⟨q, hq, rfl⟩, },
+  ext x,
+  repeat { rw is_open_map.functor_obj_coe },
+  rw ← set.image_comp,
+  have : Π {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z), (f ≫ g : X → Z) = (g : Y → Z) ∘ (f : X → Y),
+  {
+    intros,
+    ext x,
+    refine Top.comp_app _ _ _,
+  },
+  rw [← this, category_theory.functor.map_comp],
 end
 
-lemma emb.open_embedding (U : opens X) : open_embedding (emb U) :=
-is_open.open_embedding_subtype_coe U.2
+--lemma inclusion.open_embedding (U : opens X) : open_embedding U.inclusion
+-- #check topological_space.opens.open_embedding
 
-@[simps] def restrict (F : presheaf AddCommGroup.{u} X) (U : opens X) : presheaf AddCommGroup (Top.of U) :=
-(emb.open_embedding U).is_open_map.functor.op ⋙ F
+@[simps] def restrict_presheaf (F : presheaf AddCommGroup.{u} X) (U : opens X) : presheaf AddCommGroup (Top.of U) :=
+U.open_embedding.is_open_map.functor.op ⋙ F
 
-@[simps] def restrict_top {F G : presheaf AddCommGroup.{u} X} {U : opens X}
-  (α : restrict F U ⟶ restrict G U) : F.obj (op U) ⟶ G.obj (op U) :=
+@[simps] def restrict_presheaf_top {F G : presheaf AddCommGroup.{u} X} {U : opens X}
+  (α : restrict_presheaf F U ⟶ restrict_presheaf G U) : F.obj (op U) ⟶ G.obj (op U) :=
 F.map (hom_of_le $ by { rintros _ ⟨x, hx, rfl⟩, exact x.2 } :
-  (emb.open_embedding U).is_open_map.functor.obj ⊤ ⟶ U).op ≫ α.app (op ⊤) ≫
+  U.open_embedding.is_open_map.functor.obj ⊤ ⟶ U).op ≫ α.app (op ⊤) ≫
   G.map (hom_of_le $ λ x hx, ⟨⟨x, hx⟩, ⟨⟩, rfl⟩ :
-    U ⟶ (emb.open_embedding U).is_open_map.functor.obj ⊤).op
+    U ⟶ U.open_embedding.is_open_map.functor.obj ⊤).op
 
-@[simps] def restrict_functor (U : opens X) : presheaf AddCommGroup.{u} X ⥤ presheaf AddCommGroup (Top.of U) :=
-{ obj := λ F, restrict F U,
+@[simps] def restrict_presheaf_functor (U : opens X) : presheaf AddCommGroup.{u} X ⥤ presheaf AddCommGroup (Top.of U) :=
+{ obj := λ F, restrict_presheaf F U,
   map := λ F G α,
   { app := λ V, α.app _,
     naturality' := λ V W inc,
     begin
       ext x,
-      erw [restrict_map, α.naturality, restrict_map, comp_apply],
+      erw [restrict_presheaf_map, α.naturality, restrict_presheaf_map, comp_apply],
     end },
   map_id' := λ F,
   begin
@@ -120,29 +126,28 @@ F.map (hom_of_le $ by { rintros _ ⟨x, hx, rfl⟩, exact x.2 } :
 
 @[reducible] def restrict_subset_sections (F : presheaf AddCommGroup.{u} X) {U V : opens X} (inc : U ⟶ V)
   (W : opens (Top.of U)) :
-  (restrict F U).obj (op W) ≅ (restrict F V).obj (op $ emb.of_subset inc W) :=
+  (F.restrict_presheaf U).obj (op W) ≅ (F.restrict_presheaf V).obj (op $ inclusion.of_subset inc W) :=
 { hom := F.map (quiver.hom.op $ hom_of_le
     begin
       rintros p ⟨⟨q, hq1⟩, ⟨x, hx1, hx2⟩, rfl⟩,
-      dsimp only at hx2,
       refine ⟨x, hx1, _⟩,
       rw ←hx2,
       refl,
-    end : op ((emb.open_embedding U).is_open_map.functor.obj W) ⟶
-      op ((emb.open_embedding V).is_open_map.functor.obj (emb.of_subset inc W))),
+    end : op (U.open_embedding.is_open_map.functor.obj W) ⟶
+      op (V.open_embedding.is_open_map.functor.obj (inclusion.of_subset inc W))),
   inv := F.map (quiver.hom.op $ hom_of_le
     begin
       rintros p ⟨q, hq, rfl⟩,
       refine ⟨⟨q.1, le_of_hom inc q.2⟩, ⟨q, hq, rfl⟩, rfl⟩,
-    end : op ((emb.open_embedding V).is_open_map.functor.obj (emb.of_subset inc W)) ⟶
-      op ((emb.open_embedding U).is_open_map.functor.obj W)),
+    end : op (V.open_embedding.is_open_map.functor.obj (inclusion.of_subset inc W)) ⟶
+      op (U.open_embedding.is_open_map.functor.obj W)),
   hom_inv_id' := by { rw [←F.map_comp, ←op_comp], convert F.map_id _ },
   inv_hom_id' := by { rw [←F.map_comp, ←op_comp], convert F.map_id _ } }
 
 @[simps] def restrict_subset_sections_map.app {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
-  (α : restrict F V ⟶ restrict G V) (W : opens (Top.of U)):
-  (restrict F U).obj (op W) ⟶ (restrict G U).obj (op W) :=
+  (α : F.restrict_presheaf V ⟶ G.restrict_presheaf V) (W : opens (Top.of U)):
+  (F.restrict_presheaf U).obj (op W) ⟶ (G.restrict_presheaf U).obj (op W) :=
 { to_fun := λ s, (restrict_subset_sections G inc W).inv $ α.app _ $
       (restrict_subset_sections F inc W).hom s,
   map_zero' := by rw [map_zero, map_zero, map_zero],
@@ -150,21 +155,21 @@ F.map (hom_of_le $ by { rintros _ ⟨x, hx, rfl⟩, exact x.2 } :
 
 lemma restrict_subset_sections_map.naturality {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
-  (α : restrict F V ⟶ restrict G V)
+  (α : F.restrict_presheaf V ⟶ G.restrict_presheaf V)
   (W₁ W₂ : (opens (Top.of U)))
   (i : W₁ ⟶ W₂) :
-  (restrict F U).map i.op ≫ restrict_subset_sections_map.app inc α W₁ =
-    restrict_subset_sections_map.app inc α W₂ ≫ (restrict G U).map i.op :=
+  (F.restrict_presheaf U).map i.op ≫ restrict_subset_sections_map.app inc α W₁ =
+    restrict_subset_sections_map.app inc α W₂ ≫ (G.restrict_presheaf U).map i.op :=
 begin
   ext x,
-  simp only [restrict_map, quiver.hom.unop_op, restrict_subset_sections_map.app, comp_apply,
+  simp only [restrict_presheaf_map, quiver.hom.unop_op, restrict_subset_sections_map.app, comp_apply,
     add_monoid_hom.coe_mk],
   simp only [←comp_apply],
   simp only [←comp_apply, ←F.map_comp, ←op_comp],
   generalize_proofs h1 h2 h3 h4 h5 h6,
-  rw [show hom_of_le h3 ≫ h1.functor.map i = h2.functor.map (emb.of_subset_hom inc i) ≫
+  rw [show hom_of_le h3 ≫ h1.functor.map i = h2.functor.map (inclusion.of_subset_hom inc i) ≫
     hom_of_le h5, from rfl, op_comp, F.map_comp, category.assoc _ _ (α.app _)],
-  have := α.naturality (emb.of_subset_hom inc i).op,
+  have := α.naturality (inclusion.of_subset_hom inc i).op,
   dsimp at this,
   erw this,
   simp only [category.assoc],
@@ -175,62 +180,62 @@ end
 
 @[simps] def restrict_subset_sections_map {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
-  (α : restrict F V ⟶ restrict G V) :
-  restrict F U ⟶ restrict G U :=
+  (α : F.restrict_presheaf V ⟶ G.restrict_presheaf V) :
+  F.restrict_presheaf U ⟶ G.restrict_presheaf U :=
 { app := λ W, restrict_subset_sections_map.app inc α W.unop,
   naturality' := λ W₁ W₂ i, restrict_subset_sections_map.naturality inc α _ _ i.unop }
 
 instance (F G : presheaf AddCommGroup.{u} X) (U : opens X) :
-  add_comm_group (restrict F U ⟶ restrict G U) :=
+  add_comm_group (F.restrict_presheaf U ⟶ G.restrict_presheaf U) :=
 begin
   haveI i1 : preadditive (presheaf AddCommGroup (Top.of U)) :=
     category_theory.functor_category_preadditive,
-  exactI i1.1 (restrict F U) (restrict G U),
+  exactI i1.1 (F.restrict_presheaf U) (G.restrict_presheaf U),
 end
 
-lemma restrict_top_zero {F G : presheaf AddCommGroup.{u} X} {U : opens X} :
-  restrict_top (0 : restrict F U ⟶ restrict G U) = 0 :=
+lemma restrict_presheaf_top_zero {F G : presheaf AddCommGroup.{u} X} {U : opens X} :
+  restrict_presheaf_top (0 : F.restrict_presheaf U ⟶ G.restrict_presheaf U) = 0 :=
 begin
   ext,
-  simp only [restrict_top_apply, nat_trans.app_zero, AddCommGroup.monoidal.ihom_obj'_str_zero_apply,
+  simp only [restrict_presheaf_top_apply, nat_trans.app_zero, AddCommGroup.monoidal.ihom_obj'_str_zero_apply,
     map_zero],
 end
 
-lemma restrict_top_add {F G : presheaf AddCommGroup.{u} X} {U : opens X}
-  (α β : restrict F U ⟶ restrict G U) :
-  restrict_top (α + β) = restrict_top α + restrict_top β :=
+lemma restrict_presheaf_top_add {F G : presheaf AddCommGroup.{u} X} {U : opens X}
+  (α β : F.restrict_presheaf U ⟶ G.restrict_presheaf U) :
+  restrict_presheaf_top (α + β) = restrict_presheaf_top α + restrict_presheaf_top β :=
 begin
   ext,
-  simp only [restrict_top_apply, nat_trans.app_add, AddCommGroup.monoidal.ihom_obj'_str_add_apply,
+  simp only [restrict_presheaf_top_apply, nat_trans.app_add, AddCommGroup.monoidal.ihom_obj'_str_add_apply,
     map_add],
 end
 
-@[simps] def restrict_top_add_monoid_hom (F G : presheaf AddCommGroup.{u} X) (U : opens X) :
-  AddCommGroup.of (restrict F U ⟶ restrict G U) ⟶ AddCommGroup.of (F.obj (op U) ⟶ G.obj (op U)) :=
-{ to_fun := restrict_top,
-  map_zero' := restrict_top_zero,
-  map_add' := restrict_top_add }
+@[simps] def restrict_presheaf_top_add_monoid_hom (F G : presheaf AddCommGroup.{u} X) (U : opens X) :
+  AddCommGroup.of (F.restrict_presheaf U ⟶ G.restrict_presheaf U) ⟶ AddCommGroup.of (F.obj (op U) ⟶ G.obj (op U)) :=
+{ to_fun := restrict_presheaf_top,
+  map_zero' := restrict_presheaf_top_zero,
+  map_add' := restrict_presheaf_top_add }
 
 lemma restrict_subset_sections_map_zero {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V) :
-  restrict_subset_sections_map inc (0 : restrict F V ⟶ restrict G V) = 0 :=
+  restrict_subset_sections_map inc (0 : F.restrict_presheaf V ⟶ G.restrict_presheaf V) = 0 :=
 by { ext, simp }
 
 lemma restrict_subset_sections_map_add {F G : presheaf AddCommGroup.{u} X}
-  {U V : opens X} (inc : U ⟶ V) (α β : restrict F V ⟶ restrict G V) :
+  {U V : opens X} (inc : U ⟶ V) (α β : F.restrict_presheaf V ⟶ G.restrict_presheaf V) :
   restrict_subset_sections_map inc (α + β) = restrict_subset_sections_map inc α +
   restrict_subset_sections_map inc β :=
 by { ext, simp }
 
 lemma restrict_subset_sections_map_id {F G : presheaf AddCommGroup.{u} X} (U : opens X)
-  (α : restrict F U ⟶ restrict G U) : restrict_subset_sections_map (𝟙 U) α = α :=
+  (α : F.restrict_presheaf U ⟶ G.restrict_presheaf U) : restrict_subset_sections_map (𝟙 U) α = α :=
 begin
   ext W x,
   simp only [restrict_subset_sections_map_app, restrict_subset_sections_map.app_apply],
   erw [←comp_apply, ←comp_apply, ←α.naturality],
   swap,
   { refine eq_to_hom _,
-    rw emb.of_subset_id U W.unop,
+    rw inclusion.of_subset_id U W.unop,
     refl, },
   dsimp,
   rw [←category.assoc, ←F.map_comp, ←op_comp],
@@ -240,7 +245,7 @@ begin
 end
 
 lemma restrict_subset_sections_map_comp {F G : presheaf AddCommGroup.{u} X} {U V W : opens X}
-  (iUV : U ⟶ V) (iVW : V ⟶ W) (α : restrict F W ⟶ restrict G W) :
+  (iUV : U ⟶ V) (iVW : V ⟶ W) (α : F.restrict_presheaf W ⟶ G.restrict_presheaf W) :
   restrict_subset_sections_map (iUV ≫ iVW) α =
   restrict_subset_sections_map iUV (restrict_subset_sections_map iVW α) :=
 begin
@@ -249,17 +254,17 @@ begin
   simp only [←comp_apply, category.assoc, ←G.map_comp, ←op_comp],
   rw [←category.assoc _ _ (α.app _ ≫ _), ←F.map_comp, ←op_comp],
   congr' 1,
-  change _ = _ ≫ α.app (op (emb.of_subset iVW (emb.of_subset iUV _))) ≫ _,
+  change _ = _ ≫ α.app (op (inclusion.of_subset iVW (inclusion.of_subset iUV _))) ≫ _,
   generalize_proofs h1 h2 h3 h4 h5 h6 h7 h8 h9,
-  rw [show α.app (op (emb.of_subset iVW (emb.of_subset iUV O.unop))) =
-    F.map ((emb.open_embedding W).is_open_map.functor.op.map (eq_to_hom _)) ≫
-      α.app (op (emb.of_subset (iUV ≫ iVW) O.unop)) ≫
-      G.map ((emb.open_embedding W).is_open_map.functor.op.map (eq_to_hom _)),
+  rw [show α.app (op (inclusion.of_subset iVW (inclusion.of_subset iUV O.unop))) =
+    F.map (W.open_embedding.is_open_map.functor.op.map (eq_to_hom _)) ≫
+      α.app (op (inclusion.of_subset (iUV ≫ iVW) O.unop)) ≫
+      G.map (W.open_embedding.is_open_map.functor.op.map (eq_to_hom _)),
     from _, category.assoc, category.assoc, ←G.map_comp, ←category.assoc (F.map _) (F.map _),
     ←F.map_comp],
   congr' 1,
-  { rw emb.of_subset_comp, },
-  { rw emb.of_subset_comp, },
+  { rw inclusion.of_subset_comp, },
+  { rw inclusion.of_subset_comp, },
   { erw [←category.assoc, α.naturality, category.assoc, ←G.map_comp],
     symmetry,
     convert category.comp_id _,
@@ -269,7 +274,7 @@ end
 namespace monoidal
 
 @[simps] def ihom_obj (F G : presheaf AddCommGroup.{u} X) : presheaf AddCommGroup.{u} X :=
-{ obj := λ U, AddCommGroup.of (restrict F U.unop ⟶ restrict G U.unop),
+{ obj := λ U, AddCommGroup.of (F.restrict_presheaf U.unop ⟶ G.restrict_presheaf U.unop),
   map := λ U V inc,
   { to_fun := λ α, restrict_subset_sections_map inc.unop α,
     map_zero' := restrict_subset_sections_map_zero inc.unop,
@@ -287,9 +292,9 @@ namespace monoidal
   end }
 
 @[simps] def ihom_map' (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂)
-  (U : opens X) (f : restrict F U ⟶ restrict G₁ U) :
-  restrict F U ⟶ restrict G₂ U :=
-f ≫ (restrict_subset_sections_map (𝟙 U) ((restrict_functor U).map γ))
+  (U : opens X) (f : F.restrict_presheaf U ⟶ G₁.restrict_presheaf U) :
+  F.restrict_presheaf U ⟶ G₂.restrict_presheaf U :=
+f ≫ (restrict_subset_sections_map (𝟙 U) ((restrict_presheaf_functor U).map γ))
 
 lemma ihom_map'_zero (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂) (U : opens X) :
   ihom_map' F G₁ G₂ γ U 0 = 0 :=
@@ -298,20 +303,20 @@ begin
 end
 
 lemma ihom_map'_add (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂) (U : opens X)
-  (α β : restrict F U ⟶ restrict G₁ U) :
+  (α β : F.restrict_presheaf U ⟶ G₁.restrict_presheaf U) :
   ihom_map' F G₁ G₂ γ U (α + β) = ihom_map' F G₁ G₂ γ U α + ihom_map' F _ _ γ U β :=
 begin
   ext, simp,
 end
 
 lemma ihom_map'_naturality (F G₁ G₂ : presheaf AddCommGroup.{u} X)
-  (γ : G₁ ⟶ G₂) (U : opens X) (α : restrict F U ⟶ restrict G₁ U)
+  (γ : G₁ ⟶ G₂) (U : opens X) (α : F.restrict_presheaf U ⟶ G₁.restrict_presheaf U)
   {W₁ W₂ : opens (Top.of U)} (inc : W₁ ⟶ W₂) :
-  (restrict F U).map inc.op ≫ (ihom_map' F G₁ G₂ γ U α).app (op W₁) =
-  (ihom_map' F G₁ G₂ γ U α).app (op W₂) ≫ (restrict G₂ U).map inc.op :=
+  (F.restrict_presheaf U).map inc.op ≫ (ihom_map' F G₁ G₂ γ U α).app (op W₁) =
+  (ihom_map' F G₁ G₂ γ U α).app (op W₂) ≫ (G₂.restrict_presheaf U).map inc.op :=
 begin
   ext x,
-  simp only [restrict_map, quiver.hom.unop_op, comp_apply, ihom_map'_app_apply],
+  simp only [restrict_presheaf_map, quiver.hom.unop_op, comp_apply, ihom_map'_app_apply],
   simp only [←comp_apply, category.assoc, ←G₂.map_comp],
   erw [←γ.naturality, ←γ.naturality, ←category.assoc (G₁.map _), ←G₁.map_comp, ←op_comp,
     ←category.assoc (α.app _), ←α.naturality (𝟙 _), ←category.assoc, ←category.assoc,
@@ -402,13 +407,13 @@ namespace tensor_ihom_adj
 
 @[simps] def hom_equiv'.from_tensor_app_apply (F G₁ G₂ : presheaf AddCommGroup.{u} X)
   (f : F ⊗ G₁ ⟶ G₂) (U : (opens X)ᵒᵖ) (s : G₁.obj U) :
-  F.restrict U.unop ⟶ G₂.restrict U.unop :=
-{ app := λ W, let O := (emb.open_embedding U.unop).is_open_map.functor.obj W.unop in
+  F.restrict_presheaf U.unop ⟶ G₂.restrict_presheaf U.unop :=
+{ app := λ W, let O := U.unop.open_embedding.is_open_map.functor.obj W.unop in
     AddCommGroup.monoidal.curry (f.app (op O)) $
       G₁.map ((hom_of_le $ by { rintros _ ⟨p, hp, rfl⟩, exact p.2 }).op : op (unop U) ⟶ op O) s,
   naturality' := λ W₁ W₂ inc,
   begin
-    simp only [restrict_map],
+    simp only [restrict_presheaf_map],
     generalize_proofs h1 h2 h3,
     ext t,
     simp only [comp_apply, AddCommGroup.monoidal.curry_apply_apply],
@@ -457,7 +462,7 @@ namespace tensor_ihom_adj
   (f : G₁ ⟶ (ihom F).obj G₂) (U : (opens X)ᵒᵖ) : (F ⊗ G₁).obj U ⟶ G₂.obj U :=
 (tensor_product.lift $ @AddCommGroup.to_int_linear_map₂ (F.obj U) (G₁.obj U) (G₂.obj U) $
   AddCommGroup.monoidal.curry $ AddCommGroup.monoidal.uncurry' $ f.app U ≫
-    restrict_top_add_monoid_hom F G₂ U.unop).to_add_monoid_hom
+    restrict_presheaf_top_add_monoid_hom F G₂ U.unop).to_add_monoid_hom
 
 lemma hom_equiv'.to_tensor_naturality_tmul
   {F G₁ G₂ : presheaf AddCommGroup.{u} X} (f : G₁ ⟶ (ihom F).obj G₂)
@@ -473,7 +478,7 @@ begin
     linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul,
     AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
     AddCommGroup.monoidal.curry_apply_apply, AddCommGroup.monoidal.uncurry'_apply,
-    linear_map.coe_mk, restrict_top_add_monoid_hom_apply, restrict_top_apply],
+    linear_map.coe_mk, restrict_presheaf_top_add_monoid_hom_apply, restrict_presheaf_top_apply],
   simp only [←comp_apply, ←category.assoc, ←F.map_comp],
   simp only [category.assoc, ←G₁.map_comp],
   rw [f.naturality, comp_apply (f.app U)],
@@ -483,7 +488,7 @@ begin
   simp only [category.assoc, ←G₂.map_comp],
   have eq1 := fun_like.congr_fun (whisker_eq (F.map _)
     (eq_whisker (@nat_trans.naturality _ _ _ _ _ _ (f.app U b)
-        (op ⊤) (op (emb.of_subset inc.unop ⊤)) (hom_of_le le_top).op)
+        (op ⊤) (op (inclusion.of_subset inc.unop ⊤)) (hom_of_le le_top).op)
       (G₂.map _))) a,
   dsimp at eq1,
   simp only [←category.assoc, ←F.map_comp] at eq1,
@@ -510,10 +515,10 @@ begin
   induction x using tensor_product.induction_on with a b a b ha hb,
   { simp only [map_zero] },
   { simp only [tensor_product.lift.tmul, linear_map.coe_mk, comp_apply, hom_equiv'.to_tensor_app,
-      hom_equiv'.from_tensor_app_apply_2, restrict_top_add_monoid_hom_apply,
+      hom_equiv'.from_tensor_app_apply_2, restrict_presheaf_top_add_monoid_hom_apply,
       hom_equiv'.to_tensor_app_apply_apply, AddCommGroup.to_int_linear_map₂_apply_apply,
       add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
-      AddCommGroup.monoidal.uncurry'_apply, restrict_top_apply,
+      AddCommGroup.monoidal.uncurry'_apply, restrict_presheaf_top_apply,
       hom_equiv'.from_tensor_app_apply_app],
     simp only [←comp_apply, f.naturality],
     rw [comp_apply],
@@ -545,11 +550,11 @@ lemma hom_equiv'.right_inv (F G₁ G₂ : presheaf AddCommGroup.{u} X) (f : G₁
 begin
   ext U x W y,
   simp only [tensor_product.lift.tmul, linear_map.coe_mk, comp_apply,
-    restrict_top_add_monoid_hom_apply, hom_equiv'.from_tensor_app_apply_2,
+    restrict_presheaf_top_add_monoid_hom_apply, hom_equiv'.from_tensor_app_apply_2,
     hom_equiv'.from_tensor_app_apply_app, hom_equiv'.to_tensor_app,
     AddCommGroup.monoidal.curry_apply_apply, hom_equiv'.to_tensor_app_apply_apply,
     AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
-    AddCommGroup.monoidal.uncurry'_apply, restrict_top_apply],
+    AddCommGroup.monoidal.uncurry'_apply, restrict_presheaf_top_apply],
   rw [←comp_apply (G₁.map _), f.naturality],
   dsimp,
   simp only [comp_apply, ihom_obj_map_apply, quiver.hom.unop_op, restrict_subset_sections_map_app,
@@ -577,18 +582,18 @@ end
   right_inv := hom_equiv'.right_inv _ _ _ }
 
 @[simps] def unit'_app_sections (F G : presheaf AddCommGroup.{u} X) (U : (opens X)ᵒᵖ) :
-  G.obj U ⟶ AddCommGroup.of (restrict F (unop U) ⟶ restrict (F ⊗ G) U.unop) :=
+  G.obj U ⟶ AddCommGroup.of (F.restrict_presheaf (unop U) ⟶ (F ⊗ G).restrict_presheaf U.unop) :=
 { to_fun := λ x,
   { app := λ W,
     { to_fun := λ y, y ⊗ₜ G.map
         ((hom_of_le $ by { rintros _ ⟨⟨_, h⟩, -, rfl⟩, exact h, } :
-          ((emb.open_embedding U.unop).is_open_map.functor.obj W.unop) ⟶ U.unop).op) x,
+          (U.unop.open_embedding.is_open_map.functor.obj W.unop) ⟶ U.unop).op) x,
       map_zero' := tensor_product.zero_tmul _ _,
       map_add' := λ a b, tensor_product.add_tmul _ _ _ },
     naturality' := λ W₁ W₂ inc,
     begin
       ext y,
-      simp only [restrict_map, comp_apply, add_monoid_hom.coe_mk, tensor_obj_map,
+      simp only [restrict_presheaf_map, comp_apply, add_monoid_hom.coe_mk, tensor_obj_map,
         AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
         AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
         AddCommGroup.to_int_linear_map_apply],
@@ -652,9 +657,9 @@ end
   (F ⊗ ihom_obj F G).obj U ⟶ G.obj U :=
 (tensor_product.lift $ @AddCommGroup.to_int_linear_map₂ (F.obj U) _ _ $
 { to_fun := λ x,
-  { to_fun := λ (α : (ihom_obj F G).obj U), restrict_top α x,
-    map_zero' := by rw [restrict_top_zero, add_monoid_hom.zero_apply],
-    map_add' := λ α β, by rw [restrict_top_add, add_monoid_hom.add_apply] },
+  { to_fun := λ (α : (ihom_obj F G).obj U), restrict_presheaf_top α x,
+    map_zero' := by rw [restrict_presheaf_top_zero, add_monoid_hom.zero_apply],
+    map_add' := λ α β, by rw [restrict_presheaf_top_add, add_monoid_hom.add_apply] },
   map_zero' := by { ext, rw [add_monoid_hom.coe_mk, map_zero, add_monoid_hom.zero_apply] },
   map_add' :=  λ _ _, by { ext, simp only [add_monoid_hom.add_apply, add_monoid_hom.coe_mk,
     map_add] } }).to_add_monoid_hom
@@ -682,7 +687,7 @@ begin
     generalize_proofs h1 h2 h3 h4 h5 h6 h7 h8,
     have eq1 := fun_like.congr_fun (whisker_eq (F.map _)
       (eq_whisker (@nat_trans.naturality _ _ _ _ _ _ b
-          (op ⊤) (op (emb.of_subset inc.unop ⊤)) (hom_of_le le_top).op)
+          (op ⊤) (op (inclusion.of_subset inc.unop ⊤)) (hom_of_le le_top).op)
         (G.map _))) a,
     dsimp at eq1,
     simp only [←category.assoc, ←F.map_comp] at eq1,
@@ -747,7 +752,7 @@ begin
       AddCommGroup.to_int_linear_map₂_apply_apply, tensor_hom_app,
       add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
       AddCommGroup.monoidal.uncurry'_apply, linear_map.coe_mk, nat_trans.comp_app,
-      comp_apply, restrict_top_add_monoid_hom_apply, restrict_top_apply, tensor_left_map],
+      comp_apply, restrict_presheaf_top_add_monoid_hom_apply, restrict_presheaf_top_apply, tensor_left_map],
     simp only [counit'_app_app, nat_trans.id_app, tensor_product.map_tmul,
       AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom, counit'_app_sections_apply,
       AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, add_monoid_hom.coe_mk,

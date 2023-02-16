@@ -1,5 +1,6 @@
 import topology.sheaves.presheaf_monoidal
 import topology.sheaves.sheaf_condition.unique_gluing
+import algebra.category.Group.colimits
 
 noncomputable theory
 
@@ -15,21 +16,21 @@ variables {X : Top.{u}}
 alias presheaf.monoidal.ihom_obj ← presheaf.ihom_obj
 
 lemma restrict_is_sheaf {F : Top.presheaf AddCommGroup.{u} X} (hF : is_sheaf F) (U : opens X) :
-  is_sheaf (F.restrict U) :=
-sorry
+    is_sheaf (F.restrict_presheaf U) :=
+  sorry
 
 def sheaf_restrict (F : sheaf AddCommGroup.{u} X) (U : opens X) :
-  sheaf AddCommGroup.{u} (Top.of U) := ⟨_, restrict_is_sheaf F.cond U⟩
+    sheaf AddCommGroup.{u} (Top.of U) := ⟨_, restrict_is_sheaf F.cond U⟩
 
 lemma ihom_obj_is_sheaf_of_is_sheaf {F G : Top.presheaf AddCommGroup.{u} X}
-  (hF : is_sheaf F) (hG : is_sheaf G) : is_sheaf (presheaf.ihom_obj F G) :=
-sorry -- probably harder
+    (hF : is_sheaf F) (hG : is_sheaf G) : is_sheaf (presheaf.ihom_obj F G) :=
+  sorry -- probably harder
 
 instance : monoidal_category ((opens X)ᵒᵖ ⥤ AddCommGroup.{u}) :=
-presheaf.monoidal.monoidal_presheaf_AddCommGroup
+  presheaf.monoidal.monoidal_presheaf_AddCommGroup
 
 instance : preserves_limits (category_theory.forget AddCommGroup.{u}) :=
-AddCommGroup.forget_preserves_limits.{u u}
+  AddCommGroup.forget_preserves_limits.{u u}
 
 instance (U : opens X) : preserves_colimits_of_shape ((opens.grothendieck_topology X).cover U)ᵒᵖ
   (category_theory.forget AddCommGroup.{u}) :=
@@ -117,8 +118,8 @@ sheaf_iso_mk
 open category_theory.grothendieck_topology
 
 @[simps] def sheafify_restrict_to_restrict_sheafify (F : Top.presheaf AddCommGroup.{u} X) (U : opens X) :
-  (opens.grothendieck_topology U).sheafify (restrict F U) ⟶ restrict (sheafify _ F) U :=
-sheafify_lift _ ((restrict_functor U).map $ to_sheafify _ _)
+  (opens.grothendieck_topology U).sheafify (F.restrict_presheaf U) ⟶ restrict_presheaf (sheafify _ F) U :=
+sheafify_lift _ ((restrict_presheaf_functor U).map $ to_sheafify _ _)
   (restrict_is_sheaf (sheafify_is_sheaf _ F) U)
 
 instance sheafify_restrict_to_restrict_shefify_is_iso
@@ -127,8 +128,8 @@ instance sheafify_restrict_to_restrict_shefify_is_iso
 sorry
 
 def restrict_sheafify_to_sheafify_restrict (F : Top.presheaf AddCommGroup.{u} X) (U : opens X) :
-  restrict ((opens.grothendieck_topology X).sheafify F) U ⟶
-  sheafify _ (restrict F U) :=
+  restrict_presheaf ((opens.grothendieck_topology X).sheafify F) U ⟶
+  sheafify _ (F.restrict_presheaf U) :=
 inv (sheafify_restrict_to_restrict_sheafify F U)
 
 namespace constructions
@@ -233,11 +234,11 @@ begin
       hom_equiv'.from_tensor_val, adjunction.hom_equiv_unit, functor.comp_map,
       monoidal.ihom_map_2, monoidal.tensor_ihom_adj.hom_equiv'_symm_apply,
       monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app, linear_map.coe_mk,
-      monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app_apply_apply, restrict_top_apply,
+      monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app_apply_apply, restrict_presheaf_top_apply,
       monoidal.ihom_map_app_2, category.assoc, tensor_product.lift.tmul,
       AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
       AddCommGroup.monoidal.curry_apply_apply, AddCommGroup.monoidal.uncurry'_apply,
-      restrict_top_add_monoid_hom_apply, Sheaf_to_presheaf_map, adjunction.comp,
+      restrict_presheaf_top_add_monoid_hom_apply, Sheaf_to_presheaf_map, adjunction.comp,
       equiv.trans_apply, monoidal.tensor_ihom_adj.hom_equiv'_apply,
       monoidal.tensor_ihom_adj.hom_equiv'.from_tensor_app_apply_2,
       monoidal.tensor_ihom_adj.hom_equiv'.from_tensor_app_apply_app,
@@ -286,7 +287,7 @@ end
     simp only [tensor_product.lift.tmul, AddCommGroup.to_int_linear_map₂_apply_apply,
       add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
       AddCommGroup.monoidal.uncurry'_apply, linear_map.coe_mk, comp_apply,
-      restrict_top_add_monoid_hom_apply, restrict_top_apply],
+      restrict_presheaf_top_add_monoid_hom_apply, restrict_presheaf_top_apply],
     simp only [←comp_apply],
     erw [α.val.naturality],
     dsimp,
@@ -353,18 +354,7 @@ begin
       ←nat_trans.comp_app, to_sheafify_sheafify_lift, nat_trans.comp_app, comp_apply,
       presheaf.monoidal.tensor_ihom_adj.counit'_app_app,
       presheaf.monoidal.tensor_ihom_adj.counit'_app_sections_apply],
-    erw tensor_product.lift.tmul,
-    rw [AddCommGroup.to_int_linear_map_apply, nat_trans.id_app, id_apply,
-      AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
-      add_monoid_hom.coe_mk, add_monoid_hom.coe_mk, AddCommGroup.to_int_linear_map_apply,
-      presheaf.monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app,
-      presheaf.monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app_apply_apply,
-      tensor_product.lift.tmul, AddCommGroup.to_int_linear_map₂_apply_apply,
-      add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
-      AddCommGroup.monoidal.uncurry'_apply, tensor_product.lift.tmul,
-      linear_map.coe_mk, linear_map.coe_mk, comp_apply, restrict_top_add_monoid_hom_apply,
-      restrict_top_apply],
-    },
+    erw tensor_product.lift.tmul, },
   { rw [map_add, ha, hb, map_add] },
 end
 
@@ -412,35 +402,36 @@ variables (F G H : sheaf AddCommGroup.{u} X)
 
 local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
-@[simps] def aux0_app_aux {U : (opens X)ᵒᵖ} (x : F.val.obj U) (y : G.val.obj U) :
-  restrict H.val U.unop ⟶
-  restrict ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) U.unop := (
+@[simps app_apply]
+def aux0_app_aux {U : (opens X)ᵒᵖ} (x : F.val.obj U) (y : G.val.obj U) :
+  restrict_presheaf H.val U.unop ⟶
+  restrict_presheaf ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) U.unop := (
 { app := λ V, (
   { to_fun := λ z,
       (F.val.map (hom_of_le $ by { rintros _ ⟨x, _, rfl⟩, exact x.2 } :
-          (emb.open_embedding U.unop).is_open_map.functor.obj V.unop ⟶ U.unop).op x ⊗ₜ
+          (U.unop.open_embedding).is_open_map.functor.obj V.unop ⟶ U.unop).op x ⊗ₜ
       G.val.map (hom_of_le $ by { rintros _ ⟨x, _, rfl⟩, exact x.2 } :
-          (emb.open_embedding U.unop).is_open_map.functor.obj V.unop ⟶ U.unop).op y) ⊗ₜ z,
+          (U.unop.open_embedding).is_open_map.functor.obj V.unop ⟶ U.unop).op y) ⊗ₜ z,
     map_zero' := by rw [tensor_product.tmul_zero],
-    map_add' := λ _ _, by rw [tensor_product.tmul_add] } : H.val.obj ((emb.open_embedding U.unop).is_open_map.functor.op.obj V) ⟶
-      (F.val.obj ((emb.open_embedding U.unop).is_open_map.functor.op.obj V) ⊗
-        G.val.obj ((emb.open_embedding U.unop).is_open_map.functor.op.obj V)) ⊗
-      H.val.obj ((emb.open_embedding U.unop).is_open_map.functor.op.obj V)),
+    map_add' := λ _ _, by rw [tensor_product.tmul_add] } : H.val.obj ((U.unop.open_embedding).is_open_map.functor.op.obj V) ⟶
+      (F.val.obj (U.unop.open_embedding.is_open_map.functor.op.obj V) ⊗
+        G.val.obj (U.unop.open_embedding.is_open_map.functor.op.obj V)) ⊗
+      H.val.obj ((U.unop.open_embedding).is_open_map.functor.op.obj V)),
   naturality' := λ V₁ V₂ inc,
   begin
     ext z,
-    simp only [comp_apply, restrict_map, add_monoid_hom.coe_mk],
+    simp only [comp_apply, restrict_presheaf_map, add_monoid_hom.coe_mk],
     congr' 2;
     simp only [AddCommGroup.to_int_linear_map_apply, ←comp_apply,
       ←category_theory.functor.map_comp];
     congr,
-  end } : restrict H.val U.unop ⟶ restrict ((F.val ⊗ G.val) ⊗ H.val) U.unop) ≫ to_sheafify _ _ ≫
+  end } : restrict_presheaf H.val U.unop ⟶ restrict_presheaf ((F.val ⊗ G.val) ⊗ H.val) U.unop) ≫ to_sheafify _ _ ≫
 sheafify_restrict_to_restrict_sheafify _ _
 
 @[simps] def aux0_app (U : (opens X)ᵒᵖ) :
   (tensor_obj (F.val.obj U) (G.val.obj U)) ⟶
-    AddCommGroup.of (restrict H.val U.unop ⟶
-      (restrict ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val))) U.unop) :=
+    AddCommGroup.of (restrict_presheaf H.val U.unop ⟶
+      (restrict_presheaf ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val))) U.unop) :=
 (tensor_product.lift $ @AddCommGroup.to_int_linear_map₂ (F.val.obj U) _ _ $
 ({ to_fun := λ x,
   { to_fun := λ y, aux0_app_aux F G H x y,
@@ -468,8 +459,8 @@ sheafify_restrict_to_restrict_sheafify _ _
     simp only [add_monoid_hom.coe_mk, add_monoid_hom.add_apply, aux0_app_aux_app_apply,
       nat_trans.app_add, tensor_product.tmul_add, tensor_product.add_tmul, map_add],
   end } : F.val.obj U ⟶ AddCommGroup.of (G.val.obj U ⟶ AddCommGroup.of
-  (restrict H.val (opposite.unop U) ⟶
-    restrict ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) U.unop)))).to_add_monoid_hom
+  (restrict_presheaf H.val (opposite.unop U) ⟶
+    restrict_presheaf ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) U.unop)))).to_add_monoid_hom
 
 @[simps] def aux0 : F.val ⊗ G.val ⟶ presheaf.monoidal.ihom_obj H.val
   ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) :=
@@ -541,19 +532,19 @@ variables (F G H : sheaf AddCommGroup.{u} X)
 local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
 @[simps] def aux0_app_aux (U : (opens X)ᵒᵖ) (x : G.val.obj U) (y : H.val.obj U) :
-  restrict F.val (opposite.unop U) ⟶
-  restrict (F.val ⊗ G.val ⊗ H.val) (opposite.unop U) :=
+  restrict_presheaf F.val (opposite.unop U) ⟶
+  restrict_presheaf (F.val ⊗ G.val ⊗ H.val) (opposite.unop U) :=
 { app := λ V,
   { to_fun := λ z, z ⊗ₜ (G.val.map (hom_of_le $ λ _ hx, by { rcases hx with ⟨y, hy, rfl⟩, exact y.2 } :
-      (emb.open_embedding U.unop).is_open_map.functor.obj V.unop ⟶ U.unop).op x ⊗ₜ H.val.map
+      (U.unop.open_embedding).is_open_map.functor.obj V.unop ⟶ U.unop).op x ⊗ₜ H.val.map
       (hom_of_le $ λ _ hx, by { rcases hx with ⟨y, hy, rfl⟩, exact y.2 } :
-      (emb.open_embedding U.unop).is_open_map.functor.obj V.unop ⟶ U.unop).op y),
+      (U.unop.open_embedding).is_open_map.functor.obj V.unop ⟶ U.unop).op y),
     map_zero' := tensor_product.zero_tmul _ _,
     map_add' := λ _ _, tensor_product.add_tmul _ _ _ },
   naturality' := λ U V inc,
   begin
     ext1 z,
-    simp only [restrict_map, comp_apply, add_monoid_hom.coe_mk, monoidal.tensor_obj_map,
+    simp only [restrict_presheaf_map, comp_apply, add_monoid_hom.coe_mk, monoidal.tensor_obj_map,
       AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
       AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
       AddCommGroup.to_int_linear_map_apply],
@@ -564,12 +555,12 @@ local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
 def aux0_app (U : (opens X)ᵒᵖ) :
   G.val.obj U ⊗ H.val.obj U ⟶
-  AddCommGroup.of (restrict F.val U.unop ⟶
-    restrict ((opens.grothendieck_topology X).sheafify (F.val ⊗ G.val ⊗ H.val)) U.unop) :=
+  AddCommGroup.of (restrict_presheaf F.val U.unop ⟶
+    restrict_presheaf ((opens.grothendieck_topology X).sheafify (F.val ⊗ G.val ⊗ H.val)) U.unop) :=
 (tensor_product.lift $ @AddCommGroup.to_int_linear_map₂ (G.val.obj U) _ _
-{ to_fun := λ x, ({ to_fun := λ y, ((aux0_app_aux F G H U x y : restrict F.val (opposite.unop U) ⟶ restrict (F.val ⊗ G.val ⊗ H.val) (opposite.unop U)) ≫ to_sheafify _ _ ≫ sheafify_restrict_to_restrict_sheafify _ _:
-    restrict F.val (opposite.unop U) ⟶
-    restrict ((opens.grothendieck_topology X).sheafify (F.val ⊗ G.val ⊗ H.val)) (opposite.unop U)),
+{ to_fun := λ x, ({ to_fun := λ y, ((aux0_app_aux F G H U x y : restrict_presheaf F.val (opposite.unop U) ⟶ restrict_presheaf (F.val ⊗ G.val ⊗ H.val) (opposite.unop U)) ≫ to_sheafify _ _ ≫ sheafify_restrict_to_restrict_sheafify _ _:
+    restrict_presheaf F.val (opposite.unop U) ⟶
+    restrict_presheaf ((opens.grothendieck_topology X).sheafify (F.val ⊗ G.val ⊗ H.val)) (opposite.unop U)),
     map_zero' :=
     begin
       ext V y : 3,
@@ -584,8 +575,8 @@ def aux0_app (U : (opens X)ᵒᵖ) :
         map_add, aux0_app_aux_app_apply, tensor_product.tmul_add, tensor_product.add_tmul],
     end } : H.val.obj U ⟶
     AddCommGroup.of
-      (restrict F.val (opposite.unop U) ⟶
-      restrict ((opens.grothendieck_topology ↥X).sheafify (F.val ⊗ G.val ⊗ H.val)) (opposite.unop U))),
+      (restrict_presheaf F.val (opposite.unop U) ⟶
+      restrict_presheaf ((opens.grothendieck_topology ↥X).sheafify (F.val ⊗ G.val ⊗ H.val)) (opposite.unop U))),
   map_zero' :=
   begin
     ext x V y : 4,

@@ -9,7 +9,6 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
 import analysis.special_functions.pow
 import analysis.normed_space.star.mul
-import algebra.star.subalgebra
 
 /-!
 # Multiplier Algebra of a C⋆-algebra
@@ -153,7 +152,7 @@ instance : has_pow 𝓜(𝕜, A) ℕ :=
       rw [pow_succ a.snd, mul_apply, a.central, hk, pow_succ' a.fst, mul_apply] },
   end⟩ }
 
-@[simp] lemma add_to_prod (a b : 𝓜(𝕜, A)) : (a + b).fst = a.fst + b.fst := rfl
+@[simp] lemma add_to_prod (a b : 𝓜(𝕜, A)) : (a + b).to_prod = a.to_prod + b.to_prod := rfl
 @[simp] lemma zero_to_prod : (0 : 𝓜(𝕜, A)).to_prod = 0 := rfl
 @[simp] lemma neg_to_prod (a : 𝓜(𝕜, A)) : (-a).to_prod = -a.to_prod := rfl
 @[simp] lemma sub_to_prod (a b : 𝓜(𝕜, A)) : (a - b).to_prod = a.to_prod - b.to_prod := rfl
@@ -193,7 +192,7 @@ lemma to_prod_mul_opposite_injective :
 /-- The ring structure is inherited as the pullback under the injective map
 `double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
 instance : ring 𝓜(𝕜, A) :=
-function.injective.ring to_prod_mul_opposite to_prod_mul_opposite_injective
+to_prod_mul_opposite_injective.ring to_prod_mul_opposite
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)
   (λ x n, prod.ext rfl $ mul_opposite.op_smul _ _)

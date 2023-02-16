@@ -190,8 +190,8 @@ namespace with_scott_topology
 /-- `of_scott` is the identity function from the `with_scott_topology` of a type.  -/
 @[pattern] def of_scott : with_scott_topology α ≃ α := equiv.refl _
 
-@[simp] lemma to_with_scott_topology_symm_eq : (@to_scott α).symm = of_scott := rfl
-@[simp] lemma of_with_scott_topology_symm_eq : (@of_scott α).symm = to_scott := rfl
+@[simp] lemma to_scott_symm_eq : (@to_scott α).symm = of_scott := rfl
+@[simp] lemma of_scott_symm_eq : (@of_scott α).symm = to_scott := rfl
 @[simp] lemma to_scott_of_scott (a : with_scott_topology α) : to_scott (of_scott a) = a := rfl
 @[simp] lemma of_scott_to_scott (a : α) : of_scott (to_scott a) = a := rfl
 @[simp] lemma to_scott_inj {a b : α} : to_scott a = to_scott b ↔ a = b := iff.rfl

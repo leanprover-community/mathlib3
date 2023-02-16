@@ -73,7 +73,8 @@ section has_mul
 variables [has_mul α]
 
 instance : non_unital_non_assoc_semiring (set_semiring α) :=
-{ mul := λ s t, (s.down * t.down).up,
+{ -- reducibility linter complains if we use `(s.down * t.down).up`
+  mul := λ s t, (image2 (*) s.down t.down).up,
   zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
   left_distrib := λ _ _ _, mul_union,

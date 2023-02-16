@@ -91,7 +91,7 @@ def im (x : ℍ[R, c₁, c₂]) : ℍ[R, c₁, c₂] := ⟨0, x.im_i, x.im_j, x.
 @[simp] lemma im_im_i : a.im.im_i = a.im_i := rfl
 @[simp] lemma im_im_j : a.im.im_j = a.im_j := rfl
 @[simp] lemma im_im_k : a.im.im_k = a.im_k := rfl
-@[simp] lemma im_im : a.im.im = a.im := rfl
+@[simp] lemma im_idem : a.im.im = a.im := rfl
 
 instance : has_coe_t R (ℍ[R, c₁, c₂]) := ⟨λ x, ⟨x, 0, 0, 0⟩⟩
 
@@ -504,7 +504,7 @@ def im (x : ℍ[R]) : ℍ[R] := x.im
 @[simp] lemma im_im_i : a.im.im_i = a.im_i := rfl
 @[simp] lemma im_im_j : a.im.im_j = a.im_j := rfl
 @[simp] lemma im_im_k : a.im.im_k = a.im_k := rfl
-@[simp] lemma im_im : a.im.im = a.im := rfl
+@[simp] lemma im_idem : a.im.im = a.im := rfl
 
 @[simp] lemma re_add_im : ↑a.re + a.im = a := a.re_add_im
 @[simp] lemma sub_self_im : a - a.im = a.re := a.sub_self_im

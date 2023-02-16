@@ -110,7 +110,7 @@ variables [ordered_comm_group α] (a b : α)
 
 @[to_additive]
 lemma pairwise_disjoint_Ioc_mul_zpow  :
-  pairwise (disjoint on (λ n : ℤ, Ioc (a * b ^ n) (a * b ^ (n + 1)))) :=
+  pairwise (disjoint on λ n : ℤ, Ioc (a * b ^ n) (a * b ^ (n + 1))) :=
 begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
@@ -120,7 +120,7 @@ begin
     have i2 := hx.2.1.trans_le hx.1.2,
     rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
-  { -- case 0 ≮ b : vacuous but true
+  { -- case 1 ≮ b : vacuous but true
     have : ∀ n : ℤ, Ioc (a * b ^ n) (a * b ^ (n + 1)) = ∅,
     { refine λ n, Ioc_eq_empty_iff.mpr _,
       rwa [mul_lt_mul_iff_left, ←mul_one (b ^ n), zpow_add_one, mul_lt_mul_iff_left] },
@@ -130,7 +130,7 @@ end
 
 @[to_additive]
 lemma pairwise_disjoint_Ico_mul_zpow :
-  pairwise (disjoint on (λ n : ℤ, Ico (a * b ^ n) (a * b ^ (n + 1)))) :=
+  pairwise (disjoint on λ n : ℤ, Ico (a * b ^ n) (a * b ^ (n + 1))) :=
 begin
   simp_rw [function.on_fun, set.disjoint_iff],
   intros m n hmn x hx,
@@ -140,7 +140,7 @@ begin
     have i2 := hx.2.1.trans_lt hx.1.2,
     rw [mul_lt_mul_iff_left, zpow_lt_zpow_iff hb, int.lt_add_one_iff] at i1 i2,
     exact le_antisymm i1 i2 },
-  { -- case 0 ≮ b : vacuous but true
+  { -- case 1 ≮ b : vacuous but true
     have : ∀ n : ℤ, Ico (a * b ^ n) (a * b ^ (n + 1)) = ∅,
     { refine λ n, Ico_eq_empty_iff.mpr _,
       rwa [mul_lt_mul_iff_left, ←mul_one (b ^ n), zpow_add_one, mul_lt_mul_iff_left] },
@@ -150,22 +150,22 @@ end
 
 @[to_additive]
 lemma pairwise_disjoint_Ioo_mul_zpow :
-  pairwise (disjoint on (λ n : ℤ, Ioo (a * b ^ n) (a * b ^ (n + 1)))) :=
+  pairwise (disjoint on λ n : ℤ, Ioo (a * b ^ n) (a * b ^ (n + 1))) :=
 λ m n hmn, (pairwise_disjoint_Ioc_mul_zpow a b hmn).mono Ioo_subset_Ioc_self Ioo_subset_Ioc_self
 
 @[to_additive]
 lemma pairwise_disjoint_Ioc_zpow :
-  pairwise (disjoint on (λ n : ℤ, Ioc (b ^ n) (b ^ (n + 1)))) :=
+  pairwise (disjoint on λ n : ℤ, Ioc (b ^ n) (b ^ (n + 1))) :=
 by simpa only [one_mul] using pairwise_disjoint_Ioc_mul_zpow 1 b
 
 @[to_additive]
 lemma pairwise_disjoint_Ico_zpow :
-  pairwise (disjoint on (λ n : ℤ, Ico (b ^ n) (b ^ (n + 1)))) :=
+  pairwise (disjoint on λ n : ℤ, Ico (b ^ n) (b ^ (n + 1))) :=
 by simpa only [one_mul] using pairwise_disjoint_Ico_mul_zpow 1 b
 
 @[to_additive]
 lemma pairwise_disjoint_Ioo_zpow :
-  pairwise (disjoint on (λ n : ℤ, Ioo (b ^ n) (b ^ (n + 1)))) :=
+  pairwise (disjoint on λ n : ℤ, Ioo (b ^ n) (b ^ (n + 1))) :=
 by simpa only [one_mul] using pairwise_disjoint_Ioo_mul_zpow 1 b
 
 end ordered_comm_group
@@ -175,29 +175,29 @@ section ordered_ring
 variables [ordered_ring α] (a : α)
 
 lemma pairwise_disjoint_Ioc_add_int_cast :
-  pairwise (disjoint on (λ n : ℤ, Ioc (a + n) (a + n + 1))) :=
+  pairwise (disjoint on λ n : ℤ, Ioc (a + n) (a + n + 1)) :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using pairwise_disjoint_Ioc_add_zsmul a (1 : α)
 
 lemma pairwise_disjoint_Ico_add_int_cast :
-  pairwise (disjoint on (λ n : ℤ, Ico (a + n) (a + n + 1))) :=
+  pairwise (disjoint on λ n : ℤ, Ico (a + n) (a + n + 1)) :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using pairwise_disjoint_Ico_add_zsmul a (1 : α)
 
 lemma pairwise_disjoint_Ioo_add_int_cast :
-  pairwise (disjoint on (λ n : ℤ, Ioo (a + n) (a + n + 1))) :=
+  pairwise (disjoint on λ n : ℤ, Ioo (a + n) (a + n + 1)) :=
 by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
   using pairwise_disjoint_Ioo_add_zsmul a (1 : α)
 
 variables (α)
 
-lemma pairwise_disjoint_Ico_int_cast : pairwise (disjoint on (λ n : ℤ, Ico (n : α) (n + 1))) :=
+lemma pairwise_disjoint_Ico_int_cast : pairwise (disjoint on λ n : ℤ, Ico (n : α) (n + 1)) :=
 by simpa only [zero_add] using pairwise_disjoint_Ico_add_int_cast (0 : α)
 
-lemma pairwise_disjoint_Ioo_int_cast : pairwise (disjoint on (λ n : ℤ, Ioo (n : α) (n + 1))) :=
+lemma pairwise_disjoint_Ioo_int_cast : pairwise (disjoint on λ n : ℤ, Ioo (n : α) (n + 1)) :=
 by simpa only [zero_add] using pairwise_disjoint_Ioo_add_int_cast (0 : α)
 
-lemma pairwise_disjoint_Ioc_int_cast : pairwise (disjoint on (λ n : ℤ, Ioc (n : α) (n + 1))) :=
+lemma pairwise_disjoint_Ioc_int_cast : pairwise (disjoint on λ n : ℤ, Ioc (n : α) (n + 1)) :=
 by simpa only [zero_add] using pairwise_disjoint_Ioc_add_int_cast (0 : α)
 
 end ordered_ring

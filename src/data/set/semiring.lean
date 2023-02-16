@@ -104,9 +104,9 @@ variables [has_one α]
 
 instance : has_one (set_semiring α) := { one := set.up 1 }
 
-lemma one_def : (0 : set_semiring α) = set.up ∅ := rfl
+lemma one_def : (1 : set_semiring α) = set.up 1 := rfl
 
-@[simp] lemma down_one : (0 : set_semiring α).down = ∅ := rfl
+@[simp] lemma down_one : (1 : set_semiring α).down = 1 := rfl
 
 @[simp] lemma _root_.set.up_one : (1 : set α).up = 1 := rfl
 

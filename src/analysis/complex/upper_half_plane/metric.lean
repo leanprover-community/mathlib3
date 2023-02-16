@@ -349,4 +349,67 @@ begin
   exact mul_div_mul_left _ _ (mt _root_.abs_eq_zero.1 a.2.ne')
 end
 
+/-- An element of `SL(2, ℝ)` representing the Mobiüs transformation `z ↦ -1/z`.
+This defines an involutive elliptic isometry of the hyperbolic plane, fixing `i` and rotating
+(hyperbolically) by `π`. -/
+def involute : SL(2, ℝ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
+
+@[simp] lemma involute_apply (z : ℍ) : involute • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
+begin
+  rw [special_linear_group_apply],
+  simp [involute, neg_div, inv_neg],
+end
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : g 1 0 = 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  obtain ⟨a, b, ha, rfl⟩ := g.fin_two_exists_eq_mk_of_apply_zero_one_eq_zero hc,
+  refine ⟨⟨_, mul_self_pos.mpr ha⟩, b * a, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : ↑a * z * a + b * a = b * a + a * a * z,
+  { rw special_linear_group_apply, simpa [add_mul], },
+  ring,
+end
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : g 1 0 ≠ 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, w +ᵥ z) ∘ (λ z, involute • z) ∘ (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  have h_denom := denom_ne_zero g,
+  obtain ⟨a, b, c, d, h, rfl⟩ := g.fin_two_exists_eq_mk,
+  replace hc : c ≠ 0, { simpa using hc, },
+  refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : (↑a * z + b) / (↑c * z + d) = a / c - (c * d + ↑c * ↑c * z)⁻¹,
+  { rw special_linear_group_apply, simpa [-neg_add_rev, inv_neg, ← sub_eq_add_neg], },
+  replace hc : (c : ℂ) ≠ 0, { norm_cast, assumption, },
+  replace h_denom : ↑c * z + d ≠ 0, { simpa using h_denom ⟨z, hz⟩, },
+  have h_aux : (c : ℂ) * d + ↑c * ↑c * z ≠ 0,
+  { rw [mul_assoc, ← mul_add, add_comm], exact mul_ne_zero hc h_denom, },
+  replace h : (a * d - b * c : ℂ) = (1 : ℂ), { norm_cast, assumption, },
+  field_simp,
+  linear_combination (-(z * ↑c ^ 2) - ↑c * ↑d) * h,
+end
+
+/-- `SL(2, ℝ)` acts on the upper half plane as an isometry.-/
+lemma isometry_SL2_smul (g : SL(2, ℝ)) : isometry ((•) g : ℍ → ℍ) :=
+begin
+  have h₀ : isometry (λ z, involute • z : ℍ → ℍ) := isometry.of_dist_eq (λ y₁ y₂, by
+  { have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
+    have h₂ : complex.abs (y₁ * y₂) ≠ 0, { simp [y₁.ne_zero, y₂.ne_zero], },
+    simp only [dist_eq, involute_apply, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im, div_one,
+      complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
+      real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
+      complex.dist_inv_inv _ _ y₁.ne_zero y₂.ne_zero, ← complex.abs_mul, ← complex.norm_sq_mul,
+      real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ), div_div_div_comm, div_self h₂], }),
+  by_cases hc : g 1 0 = 0,
+  { obtain ⟨u, v, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_eq_zero g hc,
+    rw h,
+    exact (isometry_real_vadd v).comp (isometry_pos_mul u), },
+  { obtain ⟨u, v, w, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_ne_zero g hc,
+    rw h,
+    exact (isometry_real_vadd w).comp (h₀.comp $ (isometry_real_vadd v).comp $ isometry_pos_mul u) }
+end
+
 end upper_half_plane

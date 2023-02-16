@@ -65,7 +65,9 @@ def mk (z : ℂ) (h : 0 < z.im) : ℍ := ⟨z, h⟩
 @[simp] lemma coe_re (z : ℍ) : (z : ℂ).re = z.re := rfl
 
 @[simp] lemma mk_re (z : ℂ) (h : 0 < z.im) : (mk z h).re = z.re := rfl
+@[simp] lemma mk_re' (z : ℂ) (h) : re (⟨z, h⟩ : ℍ) = z.re := rfl
 @[simp] lemma mk_im (z : ℂ) (h : 0 < z.im) : (mk z h).im = z.im := rfl
+@[simp] lemma mk_im' (z : ℂ) (h) : im (⟨z, h⟩ : ℍ) = z.im := rfl
 @[simp] lemma coe_mk (z : ℂ) (h : 0 < z.im) : (mk z h : ℂ) = z := rfl
 @[simp] lemma mk_coe (z : ℍ) (h : 0 < (z : ℂ).im := z.2) : mk z h = z := subtype.eta z h
 
@@ -78,6 +80,9 @@ lemma im_ne_zero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'
 
 lemma ne_zero (z : ℍ) : (z : ℂ) ≠ 0 :=
 mt (congr_arg complex.im) z.im_ne_zero
+
+lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
+by simpa using div_pos z.property (norm_sq_pos z)
 
 lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 by { rw complex.norm_sq_pos, exact z.ne_zero }
@@ -266,6 +271,11 @@ end
 
 lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2) (fin 2) ℤ) 1 0 * z +
   (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 := by simp
+
+lemma special_linear_group_apply (g : SL(2, ℝ)) (z : ℍ) :
+  g • z = mk ((((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
+              (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ))) (g • z).property :=
+rfl
 
 end SL_modular_action
 

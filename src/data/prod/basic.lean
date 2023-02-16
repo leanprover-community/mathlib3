@@ -286,10 +286,13 @@ end, λ d, begin
   exact ⟨b, congr_arg prod.snd h⟩,
 end⟩, λ h, h.1.prod_map h.2⟩
 
-@[simp] lemma map_bijective [nonempty α] [nonempty β] [nonempty γ] [nonempty δ]
-  {f : α → γ} {g : β → δ} :
+@[simp] lemma map_bijective [nonempty α] [nonempty β] {f : α → γ} {g : β → δ} :
   bijective (map f g) ↔ bijective f ∧ bijective g :=
-(map_injective.and map_surjective).trans $ and_and_and_comm _ _ _ _
+begin
+  haveI := nonempty.map f ‹_›,
+  haveI := nonempty.map g ‹_›,
+  exact (map_injective.and map_surjective).trans (and_and_and_comm _ _ _ _)
+end
 
 @[simp] lemma map_left_inverse [nonempty β] [nonempty δ]
   {f₁ : α → β} {g₁ : γ → δ} {f₂ : β → α} {g₂ : δ → γ} :

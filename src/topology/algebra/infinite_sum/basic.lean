@@ -55,12 +55,6 @@ This is based on Mario Carneiro's
 For the definition or many statements, `α` does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant. -/
 @[to_additive "Infinite sum on a topological monoid
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-section has_sum
-variables [add_comm_monoid α] [topological_space α]
-
-/-- Infinite sum on a topological monoid
 
 The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type. So we sum
 up bigger and bigger sets. This sum operation is invariant under reordering. In particular,
@@ -74,7 +68,7 @@ For the definition or many statements, `α` does not need to be a topological mo
 this assumption later, for the lemmas where it is relevant."]
 def has_prod (f : β → α) (a : α) : Prop := tendsto (λ s, ∏ b in s, f b) at_top (𝓝 a)
 
-/-- `summable f` means that `f` has some (infinite) sum. Use `tsum` to get the value. -/
+/-- `prodable f` means that `f` has some (infinite) sum. Use `tsum` to get the value. -/
 @[to_additive "`summable f` means that `f` has some (infinite) sum. Use `tsum` to get the value."]
 def prodable (f : β → α) : Prop := ∃ a, has_prod f a
 
@@ -88,12 +82,10 @@ notation `∏'` binders `, ` r:(scoped:67 f, tprod f) := r
 
 variables {f g : β → α} {a a' a₁ a₂ b : α} {s : finset β}
 
-@[to_additive summable.has_sum]
-lemma prodable.has_prod (ha : prodable f) : has_prod f (∏' b, f b) :=
+@[to_additive] lemma prodable.has_prod (ha : prodable f) : has_prod f (∏' b, f b) :=
 by simp [ha, tprod]; exact some_spec ha
 
-@[to_additive has_sum.summable]
-protected lemma has_prod.prodable (h : has_prod f a) : prodable f := ⟨a, h⟩
+@[to_additive] protected lemma has_prod.prodable (h : has_prod f a) : prodable f := ⟨a, h⟩
 
 /-- The constant one function has product `1`. -/
 @[to_additive "The constant zero function has sum `0`."]
@@ -210,8 +202,8 @@ exists_congr $ λ a, e.has_prod_iff
 lemma prodable.prod_symm {f : β × γ → α} (hf : prodable f) : prodable (λ p : γ × β, f p.swap) :=
 (equiv.prod_comm γ β).prodable_iff.2 hf
 
-@[to_additive] lemma equiv.has_prod_iff_of_support {g : γ → α} (e : mul_support f ≃ mul_support g)
-  (he : ∀ x : mul_support f, g (e x) = f x) :
+@[to_additive] lemma equiv.has_prod_iff_of_mul_support {g : γ → α}
+  (e : mul_support f ≃ mul_support g) (he : ∀ x : mul_support f, g (e x) = f x) :
   has_prod f a ↔ has_prod g a :=
 have (g ∘ coe) ∘ e = f ∘ coe, from funext he,
 by rw [← has_prod_subtype_support, ← this, e.has_prod_iff, has_prod_subtype_support]
@@ -220,7 +212,7 @@ by rw [← has_prod_subtype_support, ← this, e.has_prod_iff, has_prod_subtype_
   (hi : ∀ ⦃x y⦄, i x = i y → (x : γ) = y)
   (hf : mul_support f ⊆ set.range i) (hfg : ∀ x, f (i x) = g x) :
   has_prod f a ↔ has_prod g a :=
-iff.symm $ equiv.has_prod_iff_of_support
+iff.symm $ equiv.has_prod_iff_of_mul_support
   (equiv.of_bijective (λ x, ⟨i x, λ hx, x.coe_prop $ hfg x ▸ hx⟩)
     ⟨λ x y h, subtype.ext $ hi $ subtype.ext_iff.1 h,
       λ y, (hf y.coe_prop).imp $ λ x hx, subtype.ext hx⟩)
@@ -229,7 +221,7 @@ iff.symm $ equiv.has_prod_iff_of_support
 @[to_additive] lemma equiv.prodable_iff_of_mul_support {g : γ → α}
   (e : mul_support f ≃ mul_support g) (he : ∀ x : mul_support f, g (e x) = f x) :
   prodable f ↔ prodable g :=
-exists_congr $ λ _, e.has_prod_iff_of_support he
+exists_congr $ λ _, e.has_prod_iff_of_mul_support he
 
 @[to_additive] protected lemma has_prod.map [comm_monoid γ] [topological_space γ]
   (hf : has_prod f a) [monoid_hom_class G α γ] (g : G) (hg : continuous g) :
@@ -361,7 +353,7 @@ end
   (ho : prodable (λ k, f (2 * k + 1))) : prodable f :=
 (he.has_prod.even_mul_odd ho.has_prod).prodable
 
-@[to_additive] lemma has_prod.sigma [regular_space α] {γ : β → Type*} {f : (Σ b, γ b) → α}
+@[to_additive] protected lemma has_prod.sigma [regular_space α] {γ : β → Type*} {f : (Σ b, γ b) → α}
   {g : β → α} (ha : has_prod f a) (hf : ∀ b, has_prod (λ c, f ⟨b, c⟩) (g b)) : has_prod g a :=
 begin
   refine (at_top_basis.tendsto_iff (closed_nhds_basis a)).mpr _,
@@ -433,26 +425,6 @@ begin
 end
 
 end has_prod
-
-section has_continuous_star
-variables [add_comm_monoid α] [topological_space α] [star_add_monoid α] [has_continuous_star α]
-  {f : β → α} {a : α}
-
-lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
-by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
-
-lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
-hf.has_sum.star.summable
-
-lemma summable.of_star (hf : summable (λ b, star (f b))) : summable f :=
-by simpa only [star_star] using hf.star
-
-@[simp] lemma summable_star_iff : summable (λ b, star (f b)) ↔ summable f :=
-⟨summable.of_star, summable.star⟩
-
-@[simp] lemma summable_star_iff' : summable (star f) ↔ summable f := summable_star_iff
-
-end has_continuous_star
 
 section tprod
 variables [comm_monoid α] [topological_space α] {f g : β → α} {a a₁ a₂ : α}
@@ -548,14 +520,13 @@ lemma tprod_eq_tprod_of_has_prod_iff_has_prod {g : γ → α} (h : ∀ {a}, has_
   ∏' b, f b = ∏'c, g c :=
 surjective_id.tprod_eq_tprod_of_has_prod_iff_has_prod rfl @h
 
-@[to_additive equiv.tsum_eq] lemma equiv.tprod_eq (j : γ ≃ β) (f : β → α) :
-  ∏'c, f (j c) = ∏' b, f b :=
+@[to_additive] lemma equiv.tprod_eq (j : γ ≃ β) (f : β → α) : ∏'c, f (j c) = ∏' b, f b :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ a, j.has_prod_iff
 
 @[to_additive] lemma equiv.tprod_eq_tprod_of_mul_support {g : γ → α}
   (e : mul_support f ≃ mul_support g) (he : ∀ x, g (e x) = f x) :
   (∏' x, f x) = ∏' y, g y :=
-tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, e.has_prod_iff_of_support he
+tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, e.has_prod_iff_of_mul_support he
 
 @[to_additive]
 lemma tprod_eq_tprod_of_ne_one_bij {g : γ → α} (i : mul_support g → β)
@@ -755,136 +726,6 @@ variables [has_continuous_mul α]
 (he.has_prod.even_mul_odd ho.has_prod).tprod_eq.symm
 
 end tprod
-
-section has_continuous_star
-variables [add_comm_monoid α] [topological_space α] [star_add_monoid α] [has_continuous_star α]
-  [t2_space α] {f : β → α}
-
-lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
-begin
-  by_cases hf : summable f,
-  { exact hf.has_sum.star.tsum_eq.symm },
-  { rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_star hf),
-      star_zero] }
-end
-
-end has_continuous_star
-
-section prod
-variables [comm_monoid α] [topological_space α] [comm_monoid γ] [topological_space γ]
-
-@[to_additive has_sum.prod_mk]
-lemma has_prod.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
-  (hf : has_prod f a) (hg : has_prod g b) :
-  has_prod (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
-by simp [has_prod, ← prod_mk_prod, hf.prod_mk_nhds hg]
-
-end prod
-
-section pi
-variables {ι : Type*} {π : α → Type*} [∀ x, comm_monoid (π x)] [∀ x, topological_space (π x)]
-  {f : ι → ∀ x, π x}
-
-@[to_additive] lemma pi.has_prod {g : ∀ x, π x} : has_prod f g ↔ ∀ x, has_prod (λ i, f i x) (g x) :=
-by simp only [has_prod, tendsto_pi_nhds, prod_apply]
-
-@[to_additive pi.summable] lemma pi.prodable : prodable f ↔ ∀ x, prodable (λ i, f i x) :=
-by simp only [prodable, pi.has_prod, skolem]
-
-@[to_additive] lemma tprod_apply [∀ x, t2_space (π x)] {x : α} (hf : prodable f) :
-  (∏' i, f i) x = ∏' i, f i x :=
-(pi.has_prod.1 hf.has_prod x).tprod_eq.symm
-
-end pi
-
-/-! ### Multiplicative/additive opposite -/
-
-section mul_opposite
-open mul_opposite
-variables [add_comm_monoid α] [topological_space α] {f : β → α} {a : α}
-
-lemma has_sum.op (hf : has_sum f a) : has_sum (λ a, op (f a)) (op a) :=
-(hf.map (@op_add_equiv α _) continuous_op : _)
-
-lemma summable.op (hf : summable f) : summable (op ∘ f) := hf.has_sum.op.summable
-
-lemma has_sum.unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} (hf : has_sum f a) :
-  has_sum (λ a, unop (f a)) (unop a) :=
-(hf.map (@op_add_equiv α _).symm continuous_unop : _)
-
-lemma summable.unop {f : β → αᵐᵒᵖ} (hf : summable f) : summable (unop ∘ f) :=
-hf.has_sum.unop.summable
-
-@[simp] lemma has_sum_op : has_sum (λ a, op (f a)) (op a) ↔ has_sum f a :=
-⟨has_sum.unop, has_sum.op⟩
-
-@[simp] lemma has_sum_unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} :
-  has_sum (λ a, unop (f a)) (unop a) ↔ has_sum f a :=
-⟨has_sum.op, has_sum.unop⟩
-
-@[simp] lemma summable_op : summable (λ a, op (f a)) ↔ summable f := ⟨summable.unop, summable.op⟩
-
-@[simp] lemma summable_unop {f : β → αᵐᵒᵖ} : summable (λ a, unop (f a)) ↔ summable f :=
-⟨summable.op, summable.unop⟩
-
-variables [t2_space α]
-
-lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
-begin
-  by_cases h : summable f,
-  { exact h.has_sum.op.tsum_eq },
-  { have ho := summable_op.not.mpr h,
-    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero] }
-end
-
-lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
-mul_opposite.op_injective tsum_op.symm
-
-end mul_opposite
-
-section add_opposite
-open add_opposite
-variables [comm_monoid α] [topological_space α] {f : β → α} {a : α}
-
-lemma has_prod.op (hf : has_prod f a) : has_prod (λ a, op (f a)) (op a) :=
-(hf.map (@op_mul_equiv α _) continuous_op : _)
-
-lemma prodable.op (hf : prodable f) : prodable (op ∘ f) := hf.has_prod.op.prodable
-
-lemma has_prod.unop {f : β → αᵃᵒᵖ} {a : αᵃᵒᵖ} (hf : has_prod f a) :
-  has_prod (λ a, unop (f a)) (unop a) :=
-(hf.map (@op_mul_equiv α _).symm continuous_unop : _)
-
-lemma prodable.unop {f : β → αᵃᵒᵖ} (hf : prodable f) : prodable (unop ∘ f) :=
-hf.has_prod.unop.prodable
-
-@[simp] lemma has_prod_op : has_prod (λ a, op (f a)) (op a) ↔ has_prod f a :=
-⟨has_prod.unop, has_prod.op⟩
-
-@[simp] lemma has_prod_unop {f : β → αᵃᵒᵖ} {a : αᵃᵒᵖ} :
-  has_prod (λ a, unop (f a)) (unop a) ↔ has_prod f a :=
-⟨has_prod.op, has_prod.unop⟩
-
-@[simp] lemma prodable_op : prodable (λ a, op (f a)) ↔ prodable f :=
-⟨prodable.unop, prodable.op⟩
-
-@[simp] lemma prodable_unop {f : β → αᵃᵒᵖ} : prodable (λ a, unop (f a)) ↔ prodable f :=
-⟨prodable.op, prodable.unop⟩
-
-variables [t2_space α]
-
-lemma tprod_op : ∏' x, add_opposite.op (f x) = add_opposite.op (∏' x, f x) :=
-begin
-  by_cases h : prodable f,
-  { exact h.has_prod.op.tprod_eq },
-  { have ho := prodable_op.not.mpr h,
-    rw [tprod_eq_one_of_not_prodable h, tprod_eq_one_of_not_prodable ho, add_opposite.op_one] }
-end
-
-lemma tprod_unop {f : β → αᵃᵒᵖ} : ∏' x, add_opposite.unop (f x) = add_opposite.unop (∏' x, f x) :=
-add_opposite.op_injective tprod_op.symm
-
-end add_opposite
 
 section topological_group
 variables [comm_group α] [topological_space α] [topological_group α] {f g : β → α} {a a₁ a₂ : α}
@@ -1347,3 +1188,168 @@ end
 by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_one }
 
 end topological_group
+
+section const_smul
+variables [monoid γ] [topological_space α] [add_comm_monoid α] [distrib_mul_action γ α]
+  [has_continuous_const_smul γ α] {f : β → α}
+
+lemma has_sum.const_smul {a : α} (b : γ) (hf : has_sum f a) : has_sum (λ i, b • f i) (b • a) :=
+hf.map (distrib_mul_action.to_add_monoid_hom α _) $ continuous_const_smul _
+
+lemma summable.const_smul (b : γ) (hf : summable f) : summable (λ i, b • f i) :=
+(hf.has_sum.const_smul _).summable
+
+lemma tsum_const_smul [t2_space α] (b : γ) (hf : summable f) : ∑' i, b • f i = b • ∑' i, f i :=
+(hf.has_sum.const_smul _).tsum_eq
+
+end const_smul
+
+/-! ### Product and pi types -/
+
+section prod
+variables [comm_monoid α] [topological_space α] [comm_monoid γ] [topological_space γ]
+
+@[to_additive has_sum.prod_mk]
+lemma has_prod.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
+  (hf : has_prod f a) (hg : has_prod g b) :
+  has_prod (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
+by simp [has_prod, ← prod_mk_prod, hf.prod_mk_nhds hg]
+
+end prod
+
+section pi
+variables {ι : Type*} {π : α → Type*} [∀ x, comm_monoid (π x)] [∀ x, topological_space (π x)]
+  {f : ι → ∀ x, π x}
+
+@[to_additive] lemma pi.has_prod {g : ∀ x, π x} : has_prod f g ↔ ∀ x, has_prod (λ i, f i x) (g x) :=
+by simp only [has_prod, tendsto_pi_nhds, prod_apply]
+
+@[to_additive] lemma pi.prodable : prodable f ↔ ∀ x, prodable (λ i, f i x) :=
+by simp only [prodable, pi.has_prod, skolem]
+
+@[to_additive] lemma tprod_apply [∀ x, t2_space (π x)] {x : α} (hf : prodable f) :
+  (∏' i, f i) x = ∏' i, f i x :=
+(pi.has_prod.1 hf.has_prod x).tprod_eq.symm
+
+end pi
+
+/-! ### Multiplicative/additive opposite -/
+
+section mul_opposite
+open mul_opposite
+variables [add_comm_monoid α] [topological_space α] {f : β → α} {a : α}
+
+lemma has_sum.op (hf : has_sum f a) : has_sum (λ a, op (f a)) (op a) :=
+(hf.map (@op_add_equiv α _) continuous_op : _)
+
+lemma summable.op (hf : summable f) : summable (op ∘ f) := hf.has_sum.op.summable
+
+lemma has_sum.unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} (hf : has_sum f a) :
+  has_sum (λ a, unop (f a)) (unop a) :=
+(hf.map (@op_add_equiv α _).symm continuous_unop : _)
+
+lemma summable.unop {f : β → αᵐᵒᵖ} (hf : summable f) : summable (unop ∘ f) :=
+hf.has_sum.unop.summable
+
+@[simp] lemma has_sum_op : has_sum (λ a, op (f a)) (op a) ↔ has_sum f a :=
+⟨has_sum.unop, has_sum.op⟩
+
+@[simp] lemma has_sum_unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} :
+  has_sum (λ a, unop (f a)) (unop a) ↔ has_sum f a :=
+⟨has_sum.op, has_sum.unop⟩
+
+@[simp] lemma summable_op : summable (λ a, op (f a)) ↔ summable f := ⟨summable.unop, summable.op⟩
+
+@[simp] lemma summable_unop {f : β → αᵐᵒᵖ} : summable (λ a, unop (f a)) ↔ summable f :=
+⟨summable.op, summable.unop⟩
+
+variables [t2_space α]
+
+lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
+begin
+  by_cases h : summable f,
+  { exact h.has_sum.op.tsum_eq },
+  { have ho := summable_op.not.mpr h,
+    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero] }
+end
+
+lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
+mul_opposite.op_injective tsum_op.symm
+
+end mul_opposite
+
+section add_opposite
+open add_opposite
+variables [comm_monoid α] [topological_space α] {f : β → α} {a : α}
+
+lemma has_prod.op (hf : has_prod f a) : has_prod (λ a, op (f a)) (op a) :=
+(hf.map (@op_mul_equiv α _) continuous_op : _)
+
+lemma prodable.op (hf : prodable f) : prodable (op ∘ f) := hf.has_prod.op.prodable
+
+lemma has_prod.unop {f : β → αᵃᵒᵖ} {a : αᵃᵒᵖ} (hf : has_prod f a) :
+  has_prod (λ a, unop (f a)) (unop a) :=
+(hf.map (@op_mul_equiv α _).symm continuous_unop : _)
+
+lemma prodable.unop {f : β → αᵃᵒᵖ} (hf : prodable f) : prodable (unop ∘ f) :=
+hf.has_prod.unop.prodable
+
+@[simp] lemma has_prod_op : has_prod (λ a, op (f a)) (op a) ↔ has_prod f a :=
+⟨has_prod.unop, has_prod.op⟩
+
+@[simp] lemma has_prod_unop {f : β → αᵃᵒᵖ} {a : αᵃᵒᵖ} :
+  has_prod (λ a, unop (f a)) (unop a) ↔ has_prod f a :=
+⟨has_prod.op, has_prod.unop⟩
+
+@[simp] lemma prodable_op : prodable (λ a, op (f a)) ↔ prodable f :=
+⟨prodable.unop, prodable.op⟩
+
+@[simp] lemma prodable_unop {f : β → αᵃᵒᵖ} : prodable (λ a, unop (f a)) ↔ prodable f :=
+⟨prodable.op, prodable.unop⟩
+
+variables [t2_space α]
+
+lemma tprod_op : ∏' x, add_opposite.op (f x) = add_opposite.op (∏' x, f x) :=
+begin
+  by_cases h : prodable f,
+  { exact h.has_prod.op.tprod_eq },
+  { have ho := prodable_op.not.mpr h,
+    rw [tprod_eq_one_of_not_prodable h, tprod_eq_one_of_not_prodable ho, add_opposite.op_one] }
+end
+
+lemma tprod_unop {f : β → αᵃᵒᵖ} : ∏' x, add_opposite.unop (f x) = add_opposite.unop (∏' x, f x) :=
+add_opposite.op_injective tprod_op.symm
+
+end add_opposite
+
+/-! ### Interaction with the star -/
+
+section has_continuous_star
+variables [add_comm_monoid α] [topological_space α] [star_add_monoid α] [has_continuous_star α]
+  {f : β → α} {a : α}
+
+lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
+by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
+
+lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
+hf.has_sum.star.summable
+
+lemma summable.of_star (hf : summable (λ b, star (f b))) : summable f :=
+by simpa only [star_star] using hf.star
+
+@[simp] lemma summable_star_iff : summable (λ b, star (f b)) ↔ summable f :=
+⟨summable.of_star, summable.star⟩
+
+@[simp] lemma summable_star_iff' : summable (star f) ↔ summable f := summable_star_iff
+
+variables [t2_space α]
+
+lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.star.tsum_eq.symm, },
+  { rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_star hf),
+        star_zero] },
+end
+
+end has_continuous_star

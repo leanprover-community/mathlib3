@@ -29,7 +29,7 @@ let ⟨l, hl⟩ := hprod in hl.tprod_eq.symm ▸ le_of_tendsto' hl.tendsto_prod_
 
 end preorder
 
-section order_topology
+section ordered_comm_monoid
 variables [ordered_comm_monoid α] [topological_space α] [order_closed_topology α] {f g : ι → α}
   {a a₁ a₂ : α}
 
@@ -145,10 +145,9 @@ begin
   { simp [tprod_eq_one_of_not_prodable hf] }
 end
 
-end order_topology
+end ordered_comm_monoid
 
-section ordered_topological_group
-
+section ordered_comm_group
 variables [ordered_comm_group α] [topological_space α] [topological_group α]
   [order_closed_topology α] {f g : ι → α} {a₁ a₂ : α}
 
@@ -180,21 +179,19 @@ by { rw ← tprod_one, exact tprod_lt_tprod hg hi prodable_one hg' }
 
 @[to_additive] lemma has_prod_one_iff_of_one_le (hf : ∀ i, 1 ≤ f i) : has_prod f 1 ↔ f = 1 :=
 begin
-  split,
-  { intros hf',
-    ext i,
-    by_contra hi',
-    have hi : 1 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
+  refine ⟨λ hf', _, _⟩,
+  { ext i,
+    refine (hf i).eq_of_not_gt (λ hi, _),
     simpa using has_prod_lt hf hi has_prod_one hf' },
-  { rintros rfl,
+  { rintro rfl,
     exact has_prod_one },
 end
 
 end ordered_topological_group
 
-section canonically_ordered
+section canonically_ordered_monoid
 variables [canonically_ordered_monoid α] [topological_space α] [order_closed_topology α]
-variables {f : ι → α} {a : α}
+  {f : ι → α} {a : α}
 
 @[to_additive] lemma le_has_prod' (hf : has_prod f a) (i : ι) : f i ≤ a :=
 le_has_prod hf i $ λ _ _, one_le _
@@ -221,11 +218,12 @@ by rw [ne.def, tprod_eq_one_iff hf, not_forall]
   is_lub (set.range (λ s, ∏ i in s, f i)) a :=
 is_lub_of_tendsto_at_top (finset.prod_mono_set' f) hf
 
-end canonically_ordered
+end canonically_ordered_monoid
 
 section linear_order
 
-/-! For infinite sums taking values in a linearly ordered monoid, the existence of a least upper
+/-!
+For infinite sums taking values in a linearly ordered monoid, the existence of a least upper
 bound for the finite sums is a criterion for summability.
 
 This criterion is useful when applied in a linearly ordered monoid which is also a complete or
@@ -233,19 +231,19 @@ conditionally complete linear order, such as `ℝ`, `ℝ≥0`, `ℝ≥0∞`, bec
 the existence of a least upper bound.
 -/
 
-@[to_additive] lemma has_prod_of_is_lub_of_one_le [linear_ordered_comm_monoid ι]
-  [topological_space ι] [order_topology ι] {f : α → ι} (i : ι) (h : ∀ i, 1 ≤ f i)
-  (hf : is_lub (set.range (λ s, ∏ i in s, f i)) i) :
+@[to_additive] lemma has_prod_of_is_lub_of_one_le [linear_ordered_comm_monoid α]
+  [topological_space α] [order_topology α] {f : ι → α} (i : α) (h : ∀ i, 0 ≤ f i)
+  (hf : is_lub (set.range $ λ s, ∏ i in s, f i) i) :
   has_prod f i :=
 tendsto_at_top_is_lub (finset.prod_mono_set_of_one_le' h) hf
 
-@[to_additive] lemma has_prod_of_is_lub [canonically_linear_ordered_monoid ι] [topological_space ι]
-  [order_topology ι] {f : α → ι} (i : ι) (hf : is_lub (set.range (λ s, ∏ i in s, f i)) i) :
+@[to_additive] lemma has_prod_of_is_lub [canonically_linear_ordered_monoid α] [topological_space α]
+  [order_topology ι] {f : ι → α} (i : α) (hf : is_lub (set.range (λ s, ∏ i in s, f i)) i) :
   has_prod f i :=
 tendsto_at_top_is_lub (finset.prod_mono_set' f) hf
 
-lemma summable_abs_iff [linear_ordered_add_comm_group ι] [uniform_space ι]
-  [uniform_add_group ι] [complete_space ι] {f : α → ι} :
+lemma summable_abs_iff [linear_ordered_add_comm_group α] [uniform_space α]
+  [uniform_add_group α] [complete_space α] {f : ι → α} :
   summable (λ x, |f x|) ↔ summable f :=
 have h1 : ∀ x : {x | 0 ≤ f x}, |f x| = f x := λ x, abs_of_nonneg x.2,
 have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, |f x| = -f x := λ x, abs_of_neg (not_le.1 x.2),

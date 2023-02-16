@@ -213,4 +213,8 @@ begin
   sorry,
 end
 
+@[reducible]
+def closed_neighborhood (s : set V) (n : ℕ) := ⋃ v ∈ s, G.closed_ball v n
+
+
 end simple_graph

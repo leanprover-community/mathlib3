@@ -314,16 +314,6 @@ begin
     exact hg ⟨g1, this⟩ },
 end
 
-/-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T : SL(2,ℤ) := ⟨!![1, 1; 0, 1], by norm_num [matrix.det_fin_two_of]⟩
-
-/-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
-def S : SL(2,ℤ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
-
-lemma coe_S : ↑ₘS = !![0, -1; 1, 0] := rfl
-
-lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
-
 lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
 
 lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=

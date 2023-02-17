@@ -6,7 +6,6 @@ Authors: Anne Baanen
 import linear_algebra.general_linear_group
 import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
-import data.real.basic
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -233,6 +232,31 @@ begin
   refl,
 end
 
+lemma fin_two_exists_eq_mk (g : SL(2, R)) :
+  ∃ (a b c d : R) (h : a * d - b * c = 1),
+    g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, R)) :=
+begin
+  obtain ⟨m, h⟩ := g,
+  refine ⟨m 0 0, m 0 1, m 1 0, m 1 1, _, _⟩,
+  { rwa m.det_fin_two at h, },
+  { ext i j, fin_cases i; fin_cases j; refl, },
+end
+
+lemma fin_two_exists_eq_mk_of_apply_zero_one_eq_zero {R : Type*} [field R]
+  (g : SL(2, R)) (hg : (g : matrix (fin 2) (fin 2) R) 1 0 = 0) :
+  ∃ (a b : R) (h : a ≠ 0),
+    g = (⟨!![a, b; 0, a⁻¹], by simp [h]⟩ : SL(2, R)) :=
+begin
+  obtain ⟨m, h⟩ := g,
+  replace hg : m 1 0 = 0 := by simpa using hg,
+  rw [matrix.det_fin_two, hg, mul_zero, sub_zero] at h,
+  have hd : m 1 1 = (m 0 0)⁻¹, { exact eq_inv_of_mul_eq_one_right h, },
+  refine ⟨m 0 0, m 0 1, λ hc, _, _⟩,
+  { rw [hc, zero_mul] at h,
+    exact zero_ne_one h, },
+  { ext i j, fin_cases i; fin_cases j; [trivial, trivial, assumption, assumption], },
+end
+
 end special_cases
 
 -- this section should be last to ensure we do not use it in lemmas
@@ -247,31 +271,27 @@ lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl
 
 end coe_fn_instance
 
-/-- The special case when the dimesion is 2 and the commutative ring R is ℝ. -/
-lemma fin_two_exists_eq_mk (g : SL(2, ℝ)) :
-  ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
-    g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=
-begin
-  obtain ⟨m, h⟩ := g,
-  refine ⟨m 0 0, m 0 1, m 1 0, m 1 1, _, _⟩,
-  { rwa m.det_fin_two at h, },
-  { ext i j, fin_cases i; fin_cases j; refl, },
-end
-
-lemma fin_two_exists_eq_mk_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hg : g 1 0 = 0) :
-  ∃ (a b : ℝ) (h : a ≠ 0),
-    g = (⟨!![a, b; 0, a⁻¹], by simp [h]⟩ : SL(2, ℝ)) :=
-begin
-  obtain ⟨m, h⟩ := g,
-  replace hg : m 1 0 = 0 := by simpa using hg,
-  rw [matrix.det_fin_two, hg, mul_zero, sub_zero] at h,
-  have hd : m 1 1 = (m 0 0)⁻¹, { exact eq_inv_of_mul_eq_one_right h, },
-  refine ⟨m 0 0, m 0 1, λ hc, _, _⟩,
-  { rw [hc, zero_mul] at h,
-    exact zero_ne_one h, },
-  { ext i j, fin_cases i; fin_cases j; [trivial, trivial, assumption, assumption], },
-end
-
 end special_linear_group
 
 end matrix
+
+namespace modular_group
+
+open_locale matrix_groups
+
+/-- The matrix `S = [[0, -1], [1, 0]]` as an element of `SL(2, ℤ)`.
+
+This element acts naturally on the Euclidean plane as a rotation about the origin by `π / 2`.
+
+This element also acts naturally on the hyperbolic plane as rotation about `i` by `π`. It
+represents the Mobiüs transformation `z ↦ -1/z` and is an involutive elliptic isometry. -/
+def S : SL(2, ℤ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
+
+/-- The matrix `T = [[1, 1], [0, 1]]` as an element of `SL(2, ℤ)` -/
+def T : SL(2, ℤ) := ⟨!![1, 1; 0, 1], by norm_num [matrix.det_fin_two_of]⟩
+
+lemma coe_S : (↑S : matrix (fin 2) (fin 2) ℤ) = !![0, -1; 1, 0] := rfl
+
+lemma coe_T : (↑T : matrix (fin 2) (fin 2) ℤ) = !![1, 1; 0, 1] := rfl
+
+end modular_group

@@ -8,7 +8,7 @@ import linear_algebra.matrix.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
 import linear_algebra.matrix.general_linear_group
-
+import tactic.linear_combination
 
 /-!
 # The upper half plane and its automorphisms
@@ -222,6 +222,11 @@ instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
 
 end modular_scalar_towers
 
+lemma special_linear_group_apply {R : Type*} [comm_ring R] [algebra R ℝ] (g : SL(2, R)) (z : ℍ) :
+  g • z = mk ((((↑(g 0 0) : ℝ) : ℂ) * z + ((↑(g 0 1) : ℝ) : ℂ)) /
+              (((↑(g 1 0) : ℝ) : ℂ) * z + ((↑(g 1 1) : ℝ) : ℂ))) (g • z).property :=
+rfl
+
 @[simp] lemma coe_smul (g : GL(2, ℝ)⁺) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 lemma im_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
@@ -272,11 +277,6 @@ end
 lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2) (fin 2) ℤ) 1 0 * z +
   (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 := by simp
 
-lemma special_linear_group_apply (g : SL(2, ℝ)) (z : ℍ) :
-  g • z = mk ((((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
-              (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ))) (g • z).property :=
-rfl
-
 end SL_modular_action
 
 section pos_real_action
@@ -308,5 +308,40 @@ variables (x : ℝ) (z : ℍ)
 @[simp] lemma vadd_im : (x +ᵥ z).im = z.im := zero_add _
 
 end real_add_action
+
+@[simp] lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
+by { rw special_linear_group_apply, simp [modular_group.S, neg_div, inv_neg], }
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : g 1 0 = 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  obtain ⟨a, b, ha, rfl⟩ := g.fin_two_exists_eq_mk_of_apply_zero_one_eq_zero hc,
+  refine ⟨⟨_, mul_self_pos.mpr ha⟩, b * a, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : ↑a * z * a + b * a = b * a + a * a * z,
+  { rw special_linear_group_apply, simpa [add_mul], },
+  ring,
+end
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : g 1 0 ≠ 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, w +ᵥ z) ∘ (λ z, modular_group.S • z) ∘ (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  have h_denom := denom_ne_zero g,
+  obtain ⟨a, b, c, d, h, rfl⟩ := g.fin_two_exists_eq_mk,
+  replace hc : c ≠ 0, { simpa using hc, },
+  refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : (↑a * z + b) / (↑c * z + d) = a / c - (c * d + ↑c * ↑c * z)⁻¹,
+  { rw special_linear_group_apply, simpa [-neg_add_rev, inv_neg, ← sub_eq_add_neg], },
+  replace hc : (c : ℂ) ≠ 0, { norm_cast, assumption, },
+  replace h_denom : ↑c * z + d ≠ 0, { simpa using h_denom ⟨z, hz⟩, },
+  have h_aux : (c : ℂ) * d + ↑c * ↑c * z ≠ 0,
+  { rw [mul_assoc, ← mul_add, add_comm], exact mul_ne_zero hc h_denom, },
+  replace h : (a * d - b * c : ℂ) = (1 : ℂ), { norm_cast, assumption, },
+  field_simp,
+  linear_combination (-(z * ↑c ^ 2) - ↑c * ↑d) * h,
+end
 
 end upper_half_plane

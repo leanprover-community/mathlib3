@@ -76,7 +76,7 @@ instance : group (unitary R) :=
 instance : has_involutive_star (unitary R) :=
 ⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
 
-instance : star_mul (unitary R) :=
+instance : has_star_mul (unitary R) :=
 ⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩
 
 instance : inhabited (unitary R) := ⟨1⟩

@@ -32,8 +32,7 @@ lemma star_def [has_star R] [has_star S] (x : R × S) : star x = (star x.1, star
 instance [has_involutive_star R] [has_involutive_star S] : has_involutive_star (R × S) :=
 { star_involutive := λ _, prod.ext (star_star _) (star_star _) }
 
-instance [has_mul R] [has_mul S] [has_star_mul R] [has_star_mul S] :
-  star_mul (R × S) :=
+instance [has_mul R] [has_mul S] [has_star_mul R] [has_star_mul S] : has_star_mul (R × S) :=
 { star_mul := λ _ _, prod.ext (star_mul _ _) (star_mul _ _) }
 
 instance [add_monoid R] [add_monoid S] [has_star_add R] [has_star_add S] :
@@ -42,7 +41,7 @@ instance [add_monoid R] [add_monoid S] [has_star_add R] [has_star_add S] :
 
 instance [non_unital_semiring R] [non_unital_semiring S] [star_ring R] [star_ring S] :
   star_ring (R × S) :=
-{ ..prod.has_star_add, ..(prod.star_mul : star_mul (R × S)) }
+{ ..prod.has_star_add, ..(prod.star_mul : has_star_mul (R × S)) }
 
 instance {α : Type w} [has_smul α R] [has_smul α S] [has_star α] [has_star R] [has_star S]
   [star_module α R] [star_module α S] :

@@ -32,7 +32,7 @@ lemma conj_exp (q : ℍ[ℝ]) : conj (exp ℝ q) = exp ℝ (conj q) := star_exp 
 @[simp, norm_cast] lemma exp_coe (r : ℝ) : exp ℝ (r : ℍ[ℝ]) = ↑(exp ℝ r) :=
 (map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
 
-/-- Auxiliary result; if the power series corresponding to `real.cos` and `real.sin` evaluatated
+/-- Auxiliary result; if the power series corresponding to `real.cos` and `real.sin` evaluated
 at `‖q‖` tend to `c` and `s`, then the exponential series tends to `c + (s / ‖q‖)`. -/
 lemma has_sum_exp_series_of_imaginary
   {q : quaternion ℝ} (hq : q.re = 0) {c s : ℝ}

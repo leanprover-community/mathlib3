@@ -1402,6 +1402,10 @@ protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
   (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
 h.elim (λ p, ⟨p.map f⟩)
 
+@[mono]
+protected lemma reachable.mono  {G G' : simple_graph V} (h : G ≤ G') {u v : V}
+  (Guv : G.reachable u v) : G'.reachable u v := Guv.map (simple_graph.hom.map_spanning_subgraphs h)
+
 variables (G)
 
 lemma reachable_is_equivalence : equivalence G.reachable :=
@@ -1416,6 +1420,13 @@ def preconnected : Prop := ∀ (u v : V), G.reachable u v
 lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.preconnected) : H.preconnected :=
 hf.forall₂.2 $ λ a b, nonempty.map (walk.map _) $ hG _ _
+
+@[mono]
+protected lemma preconnected.mono  {G G' : simple_graph V} (h : G ≤ G')
+  (hG : G.preconnected) : G'.preconnected := λ u v, (hG u v).mono h
+
+lemma top_preconnected (V : Type*) [decidable_eq V] : (⊤ : simple_graph V).preconnected :=
+λ x y, if h : x = y then by { rw h, } else adj.reachable h
 
 lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.preconnected ↔ H.preconnected :=
@@ -1433,7 +1444,7 @@ structure connected : Prop :=
 (preconnected : G.preconnected)
 [nonempty : nonempty V]
 
-lemma connected_iff_basepoint : G.connected ↔ ∃ v, ∀ w, G.reachable v w :=
+lemma connected_iff_exists_forall_reachable : G.connected ↔ ∃ v, ∀ w, G.reachable v w :=
 begin
   rw connected_iff,
   exact ⟨λ ⟨h, ⟨v⟩⟩, ⟨v, λ w, h v w⟩, λ ⟨v, h⟩, ⟨λ u w, (h u).symm.trans $ h w, ⟨v⟩⟩⟩,
@@ -1445,6 +1456,15 @@ instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.connected) : H.connected :=
 by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+
+@[mono]
+protected lemma connected.mono {G G' : simple_graph V} (h : G ≤ G')
+ (hG : G.connected) : G'.connected :=
+{ preconnected := hG.preconnected.mono h,
+  nonempty := hG.nonempty }
+
+lemma top_connected (V : Type*) [decidable_eq V] [nonempty V] : (⊤ : simple_graph V).connected :=
+⟨top_preconnected V⟩
 
 lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.connected ↔ H.connected :=
@@ -1878,129 +1898,5 @@ lemma is_bridge_iff_mem_and_forall_cycle_not_mem {e : sym2 V} :
 sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 
 end bridge_edges
-
-section induced
-
-/-! ### Connectivity of induced graphs -/
-
-lemma induce_singleton_connected (v : V) :
-  (G.induce {v}).connected :=
-begin
-  rw connected_iff,
-  refine ⟨_, by simp⟩,
-  rintro ⟨x, hx⟩ ⟨y, hy⟩,
-  rw set.mem_singleton_iff at hx hy,
-  subst_vars,
-end
-
-lemma induce_union_connected {s t : set V}
-  (sconn : (G.induce s).connected) (tconn : (G.induce t).connected) (sintert : (s ∩ t).nonempty ) :
-  (G.induce $ s ∪ t).connected :=
-begin
-  obtain ⟨u, hus, hut⟩ := sintert,
-  rw connected_iff_basepoint,
-  use ⟨u, or.inl hus⟩,
-  rintro ⟨v, hv|hv⟩,
-  { obtain ⟨p⟩ := (sconn ⟨u, hus⟩ ⟨v, hv⟩),
-    exact ⟨p.map (induce_hom_of_le le_sup_left : (G.induce s) →g (G.induce $ s ⊔ t))⟩, },
-  { obtain ⟨p⟩ := (tconn ⟨u, hut⟩ ⟨v, hv⟩),
-    exact ⟨p.map (induce_hom_of_le le_sup_right : (G.induce t) →g (G.induce $ s ⊔ t))⟩, },
-end
-
-lemma induce_pair_connected_of_adj {u v : V} (huv : G.adj u v) :
-  (G.induce {u, v}).connected :=
-begin
-  rw connected_iff,
-  refine ⟨_, by simp⟩,
-  rintro ⟨x, hx⟩ ⟨y, hy⟩,
-  simp only [set.mem_insert_iff, set.mem_singleton_iff] at hx hy,
-  obtain rfl|rfl := hx; obtain rfl|rfl := hy;
-    refl <|> { refine ⟨walk.cons _ walk.nil⟩, simp [huv, huv.symm] }
-end
-
-lemma induce_connected_adj_union {s t : set V}
-  (sconn : (G.induce s).connected) (tconn : (G.induce t).connected) {v w} (hv : v ∈ s) (hw : w ∈ t)
-  (a : G.adj v w) : (G.induce $ s ∪ t).connected :=
-begin
-  have : s ∪ t = s ∪ {v, w} ∪ t, by
-  { rw [set.union_comm s {v, w}, set.union_assoc], symmetry,
-    apply set.union_eq_self_of_subset_left,
-    simp only [set.insert_subset, set.singleton_subset_iff, hv, hw, set.mem_union, true_or,
-               or_true, and_self], },
-  rw this,
-  refine induce_union_connected
-    (induce_union_connected sconn (induce_pair_connected_of_adj a) _) tconn _,
-  { refine ⟨v, hv, _⟩, simp, },
-  { refine ⟨w, or.inr _, hw⟩, simp, }
-end
-
-lemma induce_walk_support_connected [decidable_eq V] :
-  ∀ {u v : V} (p : G.walk u v), (G.induce $ (p.support.to_finset : set V)).connected
-| _ _ (walk.nil' u) := by
-  begin
-    rw [walk.support_nil, list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq,
-        finset.coe_singleton],
-    exact induce_singleton_connected u,
-  end
-| _ _ (walk.cons' u v w a p) := by
-  begin
-    have : ↑((walk.cons' u v w a p).support.to_finset) = {u, v} ∪ ↑(p.support.to_finset), by
-    { rw [walk.support_cons, list.to_finset_cons, set.insert_union, finset.coe_insert,
-          set.singleton_union, @set.insert_eq_of_mem _ v],
-      simp only [set.mem_set_of_eq, finset.mem_coe, list.mem_to_finset, walk.start_mem_support], },
-    rw this,
-    apply induce_union_connected (induce_pair_connected_of_adj a)
-                                 (induce_walk_support_connected p) ⟨v, _⟩,
-    simp only [list.coe_to_finset, set.inf_eq_inter, set.mem_inter_iff, set.mem_insert_iff,
-               set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self],
-  end
-
-lemma induce_connected_of_patches {s : set V} {u} (hu : u ∈ s)
-  (patches : ∀ {v} (hv : v ∈ s), ∃ (s' : set V) (sub : s' ⊆ s) (hu' : u ∈ s') (hv' : v ∈ s'),
-             (G.induce s').reachable ⟨u, hu'⟩ ⟨v, hv'⟩ ) : (G.induce s).connected :=
-begin
-  rw connected_iff_basepoint,
-  refine ⟨⟨u, hu⟩, _⟩,
-  rintro ⟨v, hv⟩,
-  obtain ⟨sv, svs, hu', hv', ⟨uv⟩⟩ := patches hv,
-  exact ⟨uv.map (induce_hom_of_le svs)⟩,
-end
-
-lemma induce_union_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
-  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
-  (Sc : ∀ {s}, s ∈ S → (G.induce s).connected) :
-  (G.induce $ ⋃₀ S).connected :=
-begin
-  obtain ⟨s, sS⟩ := Sn,
-  obtain ⟨v, vs⟩ := (Sc sS).nonempty.some,
-  fapply induce_connected_of_patches (set.subset_sUnion_of_mem sS vs),
-  rintro w hw,
-  simp only [set.mem_sUnion, exists_prop] at hw,
-  obtain ⟨t, tS, wt⟩ := hw,
-  refine ⟨s ∪ t, set.union_subset (set.subset_sUnion_of_mem sS) (set.subset_sUnion_of_mem tS),
-          or.inl vs, or.inr wt, induce_union_connected (Sc sS) (Sc tS) (Snd sS tS) _ _⟩,
-end
-
-lemma extend_finset_to_connected (Gpc : G.preconnected) {t : finset V} (tn : t.nonempty) :
-  ∃ t', t ⊆ t' ∧ (G.induce (t' : set V)).connected :=
-begin
-  classical,
-  obtain ⟨u, ut⟩ := tn,
-  refine ⟨finset.bUnion t (λ v, (Gpc u v).some.support.to_finset), λ v vt, _, _⟩,
-  { simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
-    refine ⟨v, vt, walk.end_mem_support _⟩, },
-  { apply @induce_connected_of_patches _ G _ u _ (λ v hv, _),
-    { simp only [finset.coe_bUnion, finset.mem_coe, list.coe_to_finset, set.mem_Union,
-                 set.mem_set_of_eq, walk.start_mem_support, exists_prop, and_true],
-      exact ⟨u, ut⟩, },
-    simp only [finset.mem_coe, finset.mem_bUnion, list.mem_to_finset, exists_prop] at hv,
-    obtain ⟨w, wt, hw⟩ := hv,
-    refine ⟨((Gpc u w).some.support.to_finset : set V), _, _⟩,
-    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ wt, },
-    { simp only [finset.mem_coe, list.mem_to_finset, walk.start_mem_support, exists_true_left],
-      refine ⟨hw, induce_walk_support_connected _ _ _⟩, }, }
-end
-
-end induced
 
 end simple_graph

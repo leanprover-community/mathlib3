@@ -27,15 +27,17 @@ noncomputable theory
 open_locale nnreal big_operators
 
 /-- A morphism of seminormed abelian groups is a bounded group homomorphism. -/
-structure normed_add_group_hom (V W : Type*) [seminormed_add_comm_group V]
-  [seminormed_add_comm_group W] :=
+structure normed_add_group_hom (V W : Type*)
+  [add_comm_group V] [add_comm_group W]
+  [seminormed_add_comm_group V] [seminormed_add_comm_group W] :=
 (to_fun : V → W)
 (map_add' : ∀ v₁ v₂, to_fun (v₁ + v₂) = to_fun v₁ + to_fun v₂)
 (bound' : ∃ C, ∀ v, ‖to_fun v‖ ≤ C * ‖v‖)
 
 namespace add_monoid_hom
 
-variables {V W : Type*} [seminormed_add_comm_group V] [seminormed_add_comm_group W]
+variables {V W : Type*}
+  [add_comm_group V] [add_comm_group W] [seminormed_add_comm_group V] [seminormed_add_comm_group W]
   {f g : normed_add_group_hom V W}
 
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
@@ -54,8 +56,9 @@ def mk_normed_add_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, ‖f x‖
 
 end add_monoid_hom
 
-lemma exists_pos_bound_of_bound {V W : Type*} [seminormed_add_comm_group V]
-  [seminormed_add_comm_group W]
+lemma exists_pos_bound_of_bound {V W : Type*}
+  [add_comm_group V] [add_comm_group W]
+  [seminormed_add_comm_group V] [seminormed_add_comm_group W]
   {f : V → W} (M : ℝ) (h : ∀x, ‖f x‖ ≤ M * ‖x‖) :
   ∃ N, 0 < N ∧ ∀x, ‖f x‖ ≤ N * ‖x‖ :=
 ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
@@ -64,7 +67,9 @@ lemma exists_pos_bound_of_bound {V W : Type*} [seminormed_add_comm_group V]
 
 namespace normed_add_group_hom
 
-variables {V V₁ V₂ V₃ : Type*} [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
+variables {V V₁ V₂ V₃ : Type*}
+  [add_comm_group V] [add_comm_group V₁] [add_comm_group V₂] [add_comm_group V₃]
+  [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
   [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
 variables {f g : normed_add_group_hom V₁ V₂}
 
@@ -104,7 +109,7 @@ add_monoid_hom.mk' f f.map_add'
 @[simp] lemma coe_to_add_monoid_hom : ⇑f.to_add_monoid_hom = f := rfl
 
 lemma to_add_monoid_hom_injective :
-  function.injective (@normed_add_group_hom.to_add_monoid_hom V₁ V₂ _ _) :=
+  function.injective (@normed_add_group_hom.to_add_monoid_hom V₁ V₂ _ _ _ _) :=
 λ f g h, coe_inj $ show ⇑f.to_add_monoid_hom = g, by { rw h, refl }
 
 @[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) :
@@ -286,7 +291,9 @@ le_antisymm (cInf_le bounds_bdd_below
     (op_norm_nonneg _)
 
 /-- For normed groups, an operator is zero iff its norm vanishes. -/
-theorem op_norm_zero_iff {V₁ V₂ : Type*} [normed_add_comm_group V₁] [normed_add_comm_group V₂]
+theorem op_norm_zero_iff {V₁ V₂ : Type*}
+  [add_comm_group V₁] [add_comm_group V₂]
+  [normed_add_comm_group V₁] [normed_add_comm_group V₂]
   {f : normed_add_group_hom V₁ V₂} : ‖f‖ = 0 ↔ f = 0 :=
 iff.intro
   (λ hn, ext (λ x, norm_le_zero_iff.1
@@ -324,7 +331,8 @@ have _ := (id V).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id {V : Type*} [normed_add_comm_group V] [nontrivial V] : ‖(id V)‖ = 1 :=
+lemma norm_id {V : Type*} [add_comm_group V] [normed_add_comm_group V] [nontrivial V] :
+  ‖(id V)‖ = 1 :=
 begin
   refine norm_id_of_nontrivial_seminorm V _,
   obtain ⟨x, hx⟩ := exists_ne (0 : V),
@@ -445,8 +453,9 @@ add_group_seminorm.to_seminormed_add_comm_group
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/
-instance to_normed_add_comm_group {V₁ V₂ : Type*} [normed_add_comm_group V₁]
-  [normed_add_comm_group V₂] :
+instance to_normed_add_comm_group {V₁ V₂ : Type*}
+  [add_comm_group V₁] [add_comm_group V₂]
+  [normed_add_comm_group V₁] [normed_add_comm_group V₂] :
   normed_add_comm_group (normed_add_group_hom V₁ V₂) :=
 add_group_norm.to_normed_add_comm_group
 { to_fun := op_norm,
@@ -521,7 +530,8 @@ by { ext, exact map_zero f }
   (0 : normed_add_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
 
-lemma comp_assoc {V₄: Type* } [seminormed_add_comm_group V₄] (h : normed_add_group_hom V₃ V₄)
+lemma comp_assoc {V₄: Type*}
+  [add_comm_group V₄] [seminormed_add_comm_group V₄] (h : normed_add_group_hom V₃ V₄)
   (g : normed_add_group_hom V₂ V₃) (f : normed_add_group_hom V₁ V₂) :
   (h.comp g).comp f = h.comp (g.comp f) :=
 by { ext, refl }
@@ -533,7 +543,10 @@ end normed_add_group_hom
 
 namespace normed_add_group_hom
 
-variables {V W V₁ V₂ V₃ : Type*} [seminormed_add_comm_group V] [seminormed_add_comm_group W]
+variables {V W V₁ V₂ V₃ : Type*}
+  [add_comm_group V] [add_comm_group W]
+  [add_comm_group V₁] [add_comm_group V₂] [add_comm_group V₃]
+  [seminormed_add_comm_group V] [seminormed_add_comm_group W]
   [seminormed_add_comm_group V₁] [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
 
 /-- The inclusion of an `add_subgroup`, as bounded group homomorphism. -/
@@ -574,7 +587,8 @@ by { ext, simp [mem_ker] }
 
 lemma coe_ker : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} := rfl
 
-lemma is_closed_ker {V₂ : Type*} [normed_add_comm_group V₂] (f : normed_add_group_hom V₁ V₂) :
+lemma is_closed_ker {V₂ : Type*} [add_comm_group V₂] [normed_add_comm_group V₂]
+  (f : normed_add_group_hom V₁ V₂) :
   is_closed (f.ker : set V₁) :=
 f.coe_ker ▸ is_closed.preimage f.continuous (t1_space.t1 0)
 
@@ -659,8 +673,9 @@ lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
 
 end isometry
 
-variables {W₁ W₂ W₃ : Type*} [seminormed_add_comm_group W₁] [seminormed_add_comm_group W₂]
-  [seminormed_add_comm_group W₃]
+variables {W₁ W₂ W₃ : Type*}
+  [add_comm_group W₁] [add_comm_group W₂] [add_comm_group W₃]
+  [seminormed_add_comm_group W₁] [seminormed_add_comm_group W₂] [seminormed_add_comm_group W₃]
 variables (f) (g : normed_add_group_hom V W)
 variables {f₁ g₁ : normed_add_group_hom V₁ W₁}
 variables {f₂ g₂ : normed_add_group_hom V₂ W₂}

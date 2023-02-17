@@ -9,6 +9,9 @@ import measure_theory.measurable_space_def
 /-!
 # Induction principles for measurable sets, related to π-systems and λ-systems.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 * The main theorem of this file is Dynkin's π-λ theorem, which appears
@@ -311,14 +314,14 @@ begin
       intros h1 b h_b h_b_in_T,
       have h2 := h1 b h_b h_b_in_T,
       revert h2,
-      rw function.extend_apply subtype.val_injective,
+      rw subtype.val_injective.extend_apply,
       apply id } },
   { intros b h_b,
     simp_rw [finset.mem_image, exists_prop, subtype.exists,
              exists_and_distrib_right, exists_eq_right] at h_b,
     cases h_b,
     have h_b_alt : b = (subtype.mk b h_b_w).val := rfl,
-    rw [h_b_alt, function.extend_apply subtype.val_injective],
+    rw [h_b_alt, subtype.val_injective.extend_apply],
     apply h_t',
     apply h_b_h },
 end
@@ -425,7 +428,7 @@ begin
   refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,
-  { refine hpi n (f1 n) (hf1m n hn1) (f2 n) (hf2m n hn2) (set.ne_empty_iff_nonempty.mp (λ h, _)),
+  { refine hpi n (f1 n) (hf1m n hn1) (f2 n) (hf2m n hn2) (set.nonempty_iff_ne_empty.2 (λ h, _)),
     rw h_inter_eq at h_nonempty,
     suffices h_empty : (⋂ i ∈ p1 ∪ p2, g i) = ∅,
       from (set.not_nonempty_iff_eq_empty.mpr h_empty) h_nonempty,
@@ -541,7 +544,7 @@ by { casesI nonempty_encodable β, rw ← encodable.Union_decode₂, exact
     (λ n, encodable.Union_decode₂_cases d.has_empty h) }
 
 theorem has_union {s₁ s₂ : set α}
-  (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₁ ∩ s₂ ⊆ ∅) : d.has (s₁ ∪ s₂) :=
+  (h₁ : d.has s₁) (h₂ : d.has s₂) (h : disjoint s₁ s₂) : d.has (s₁ ∪ s₂) :=
 by { rw union_eq_Union, exact
   d.has_Union (pairwise_disjoint_on_bool.2 h) (bool.forall_bool.2 ⟨h₂, h₁⟩) }
 
@@ -549,7 +552,7 @@ lemma has_diff {s₁ s₂ : set α} (h₁ : d.has s₁) (h₂ : d.has s₂) (h :
 begin
   apply d.has_compl_iff.1,
   simp [diff_eq, compl_inter],
-  exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
+  exact d.has_union (d.has_compl h₁) h₂ (disjoint_compl_left.mono_right h),
 end
 
 instance : has_le (dynkin_system α) :=
@@ -626,10 +629,10 @@ def restrict_on {s : set α} (h : d.has s) : dynkin_system α :=
       (compl_subset_compl.mpr $ inter_subset_right _ _) },
   has_Union_nat := assume f hd hf,
     begin
-      rw [inter_comm, inter_Union],
-      apply d.has_Union_nat,
-      { exact λ i j h x ⟨⟨_, h₁⟩, _, h₂⟩, hd h ⟨h₁, h₂⟩ },
-      { simpa [inter_comm] using hf },
+      rw [Union_inter],
+      refine d.has_Union_nat _ hf,
+      exact hd.mono (λ i j,
+        disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _)),
     end }
 
 lemma generate_le {s : set (set α)} (h : ∀ t ∈ s, d.has t) : generate s ≤ d :=

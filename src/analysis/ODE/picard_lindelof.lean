@@ -34,7 +34,7 @@ differential equation
 
 open filter function set metric topological_space interval_integral measure_theory
 open measure_theory.measure_space (volume)
-open_locale filter topological_space nnreal ennreal nat interval
+open_locale filter topology nnreal ennreal nat interval
 
 noncomputable theory
 
@@ -51,7 +51,7 @@ structure is_picard_lindelof
 (hR : 0 ≤ R)
 (lipschitz : ∀ t ∈ Icc t_min t_max, lipschitz_on_with L (v t) (closed_ball x₀ R))
 (cont : ∀ x ∈ closed_ball x₀ R, continuous_on (λ (t : ℝ), v t x) (Icc t_min t_max))
-(norm_le : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ∥v t x∥ ≤ C)
+(norm_le : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ‖v t x‖ ≤ C)
 (C_mul_le_R : (C : ℝ) * linear_order.max (t_max - t₀) (t₀ - t_min) ≤ R)
 
 /-- This structure holds arguments of the Picard-Lipschitz (Cauchy-Lipschitz) theorem. It is part of
@@ -97,10 +97,10 @@ protected lemma continuous_on :
   continuous_on (uncurry v) (Icc v.t_min v.t_max ×ˢ closed_ball v.x₀ v.R) :=
 have continuous_on (uncurry (flip v)) (closed_ball v.x₀ v.R ×ˢ Icc v.t_min v.t_max),
   from continuous_on_prod_of_continuous_on_lipschitz_on _ v.L v.is_pl.cont v.is_pl.lipschitz,
-this.comp continuous_swap.continuous_on preimage_swap_prod.symm.subset
+this.comp continuous_swap.continuous_on (preimage_swap_prod _ _).symm.subset
 
 lemma norm_le {t : ℝ} (ht : t ∈ Icc v.t_min v.t_max) {x : E} (hx : x ∈ closed_ball v.x₀ v.R) :
-  ∥v t x∥ ≤ v.C :=
+  ‖v t x‖ ≤ v.C :=
 v.is_pl.norm_le _ ht _ hx
 
 /-- The maximum of distances from `t₀` to the endpoints of `[t_min, t_max]`. -/
@@ -192,7 +192,7 @@ begin
   exact ⟨(v.proj x).2, f.mem_closed_ball _⟩
 end
 
-lemma norm_v_comp_le (t : ℝ) : ∥f.v_comp t∥ ≤ v.C :=
+lemma norm_v_comp_le (t : ℝ) : ‖f.v_comp t‖ ≤ v.C :=
 v.norm_le (v.proj t).2 $ f.mem_closed_ball _
 
 lemma dist_apply_le_dist (f₁ f₂ : fun_space v) (t : Icc v.t_min v.t_max) :
@@ -262,20 +262,20 @@ begin
   simp only [dist_eq_norm, next_apply, add_sub_add_left_eq_sub,
     ← interval_integral.integral_sub (interval_integrable_v_comp _ _ _)
       (interval_integrable_v_comp _ _ _), norm_integral_eq_norm_integral_Ioc] at *,
-  calc ∥∫ τ in Ι (v.t₀ : ℝ) t, f₁.v_comp τ - f₂.v_comp τ∥
+  calc ‖∫ τ in Ι (v.t₀ : ℝ) t, f₁.v_comp τ - f₂.v_comp τ‖
       ≤ ∫ τ in Ι (v.t₀ : ℝ) t, v.L * ((v.L * |τ - v.t₀|) ^ n / n! * d) :
     begin
-      refine norm_integral_le_of_norm_le (continuous.integrable_on_interval_oc _) _,
+      refine norm_integral_le_of_norm_le (continuous.integrable_on_uIoc _) _,
       { continuity },
       { refine (ae_restrict_mem measurable_set_Ioc).mono (λ τ hτ, _),
         refine (v.lipschitz_on_with (v.proj τ).2).norm_sub_le_of_le
           (f₁.mem_closed_ball _) (f₂.mem_closed_ball _) ((h _).trans_eq _),
         rw v.proj_of_mem,
-        exact (interval_subset_Icc v.t₀.2 t.2 $ Ioc_subset_Icc_self hτ) }
+        exact (uIcc_subset_Icc v.t₀.2 t.2 $ Ioc_subset_Icc_self hτ) }
     end
   ... = (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d : _,
   simp_rw [mul_pow, div_eq_mul_inv, mul_assoc, measure_theory.integral_mul_left,
-    measure_theory.integral_mul_right, integral_pow_abs_sub_interval_oc, div_eq_mul_inv,
+    measure_theory.integral_mul_right, integral_pow_abs_sub_uIoc, div_eq_mul_inv,
     pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv, mul_assoc]
 end
 
@@ -338,7 +338,7 @@ end picard_lindelof
 
 lemma is_picard_lindelof.norm_le₀ {E : Type*} [normed_add_comm_group E]
   {v : ℝ → E → E} {t_min t₀ t_max : ℝ} {x₀ : E} {C R : ℝ} {L : ℝ≥0}
-  (hpl : is_picard_lindelof v t_min t₀ t_max x₀ L R C) : ∥v t₀ x₀∥ ≤ C :=
+  (hpl : is_picard_lindelof v t_min t₀ t_max x₀ L R C) : ‖v t₀ x₀‖ ≤ C :=
 hpl.norm_le t₀ hpl.ht₀ x₀ $ mem_closed_ball_self hpl.hR
 
 /-- Picard-Lindelöf (Cauchy-Lipschitz) theorem. -/

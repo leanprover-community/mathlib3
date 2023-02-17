@@ -477,14 +477,14 @@ lemma is_unit_iff_is_unit_val (f : homogeneous_localization.at_prime 𝒜 𝔭) 
     localization.mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨c, hc⟩, eq1⟩,
   simp only [← subtype.val_eq_coe] at eq1,
-  change a * f.num * 1 * c = _ at eq1,
+  change c * (1 * (a * f.num)) = _ at eq1,
   simp only [one_mul, mul_one] at eq1,
-  have mem1 : a * f.num * c ∈ 𝔭.prime_compl :=
-    eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto)(by tauto),
+  have mem1 : c * (a * f.num) ∈ 𝔭.prime_compl :=
+    eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto) (by tauto),
   have mem2 : f.num ∉ 𝔭,
   { contrapose! mem1,
     erw [not_not],
-    exact ideal.mul_mem_right _ _ (ideal.mul_mem_left _ _ mem1), },
+    exact ideal.mul_mem_left _ _ (ideal.mul_mem_left _ _ mem1), },
   refine ⟨⟨f, quotient.mk' ⟨f.deg, ⟨f.denom, f.denom_mem_deg⟩, ⟨f.num, f.num_mem_deg⟩, mem2⟩,
     _, _⟩, rfl⟩;
   simp only [ext_iff_val, mul_val, val_mk', ← subtype.val_eq_coe, f.eq_num_div_denom,

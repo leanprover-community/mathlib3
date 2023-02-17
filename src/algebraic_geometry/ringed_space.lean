@@ -68,7 +68,7 @@ begin
   choose V iVU m h_unit using λ x : U, X.is_unit_res_of_is_unit_germ U f x (h x),
   have hcover : U ≤ supr V,
   { intros x hxU,
-    rw [opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
   -- Let `g x` denote the inverse of `f` in `U x`.
   choose g hg using λ x : U, is_unit.exists_right_inv (h_unit x),
@@ -97,8 +97,8 @@ The basic open of a section `f` is the set of all points `x`, such that the germ
 `x` is a unit.
 -/
 def basic_open {U : opens X} (f : X.presheaf.obj (op U)) : opens X :=
-{ val := coe '' { x : U | is_unit (X.presheaf.germ x f) },
-  property := begin
+{ carrier := coe '' { x : U | is_unit (X.presheaf.germ x f) },
+  is_open' := begin
     rw is_open_iff_forall_mem_open,
     rintros _ ⟨x, hx, rfl⟩,
     obtain ⟨V, i, hxV, hf⟩ := X.is_unit_res_of_is_unit_germ U f x hx,
@@ -174,7 +174,7 @@ end
 begin
   ext1,
   dsimp [RingedSpace.basic_open],
-  rw set.image_inter subtype.coe_injective,
+  rw ←set.image_inter subtype.coe_injective,
   congr,
   ext,
   simp_rw map_mul,

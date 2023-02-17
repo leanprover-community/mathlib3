@@ -11,6 +11,9 @@ import data.int.cast.defs
 
 /-!
 # Group structures on the multiplicative and additive opposites
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v
 variables (α : Type u)

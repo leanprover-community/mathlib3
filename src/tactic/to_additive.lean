@@ -221,11 +221,15 @@ meta def tr : bool → list string → list string
 | is_comm ("is" :: "square" :: s)     := add_comm_prefix is_comm "even"      :: tr ff s
 | is_comm ("is" :: "scalar" :: "tower" :: s) :=
    add_comm_prefix is_comm "vadd_assoc_class"   :: tr ff s
+| is_comm ("is" :: "central" :: "scalar" :: s) :=
+   add_comm_prefix is_comm "is_central_vadd"   :: tr ff s
 | is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
 | is_comm ("is" :: "left" :: "regular" :: s)  :=
   add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s
 | is_comm ("is" :: "right" :: "regular" :: s) :=
   add_comm_prefix is_comm "is_add_right_regular" :: tr ff s
+| is_comm ("division" :: "monoid" :: s) :=
+  "subtraction" :: add_comm_prefix is_comm "monoid" :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s

@@ -3,10 +3,14 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+import data.list.of_fn
 import data.list.range
 
 /-!
 # Lemmas about list.*_with_index functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
 and `list.foldr_with_index`.

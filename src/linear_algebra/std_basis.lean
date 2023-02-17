@@ -34,7 +34,6 @@ this is a basis over `fin 3 → R`.
 
 open function submodule
 open_locale big_operators
-open_locale big_operators
 
 namespace linear_map
 
@@ -90,7 +89,7 @@ begin
   rintro b - j hj,
   rw [proj_std_basis_ne R φ j i, zero_apply],
   rintro rfl,
-  exact h ⟨hi, hj⟩
+  exact h.le_bot ⟨hi, hj⟩
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
@@ -134,13 +133,13 @@ begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
-  simp only [disjoint, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
+  simp only [disjoint_iff_inf_le, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,
   classical,
   by_cases hiI : i ∈ I,
   { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact (h.le_bot ⟨hiI, hiJ⟩).elim },
     { exact hJ i hiJ } },
   { exact hI i hiI }
 end
@@ -247,8 +246,7 @@ basis.of_equiv_fun (linear_equiv.refl _ _)
 @[simp] lemma basis_fun_apply [decidable_eq η] (i) :
   basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
 by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
-                linear_equiv.refl_apply, std_basis_apply],
-     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+                linear_equiv.refl_apply, std_basis_apply] }
 
 @[simp] lemma basis_fun_repr (x : η → R) (i : η) :
   (pi.basis_fun R η).repr x i = x i :=

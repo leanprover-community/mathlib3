@@ -23,7 +23,7 @@ always finite in this context.
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal
+open_locale classical topology ennreal
 
 universe u
 open classical set function topological_space filter

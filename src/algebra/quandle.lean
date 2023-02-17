@@ -34,7 +34,7 @@ complements that is analogous to the fundamental group of the
 exterior, and he showed that the quandle associated to an oriented
 knot is invariant up to orientation-reversed mirror image.  Racks were
 used by Fenn and Rourke for framed codimension-2 knots and
-links.[FennRourke1992]  Unital shelves are discussed in [crans2017].
+links in [FennRourke1992].  Unital shelves are discussed in [crans2017].
 
 The name "rack" came from wordplay by Conway and Wraith for the "wrack
 and ruin" of forgetting everything but the conjugation operation for a

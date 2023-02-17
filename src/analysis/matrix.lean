@@ -175,7 +175,7 @@ section linfty_op
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_seminormed_add_comm_group [seminormed_add_comm_group α] :
+protected def linfty_op_seminormed_add_comm_group [add_comm_group α] [seminormed_add_comm_group α] :
   seminormed_add_comm_group (matrix m n α) :=
 (by apply_instance : seminormed_add_comm_group (m → pi_Lp 1 (λ j : n, α)))
 
@@ -183,7 +183,7 @@ protected def linfty_op_seminormed_add_comm_group [seminormed_add_comm_group α]
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_normed_add_comm_group [normed_add_comm_group α] :
+protected def linfty_op_normed_add_comm_group [add_comm_group α] [normed_add_comm_group α] :
   normed_add_comm_group (matrix m n α) :=
 (by apply_instance : normed_add_comm_group (m → pi_Lp 1 (λ j : n, α)))
 
@@ -191,7 +191,8 @@ protected def linfty_op_normed_add_comm_group [normed_add_comm_group α] :
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_normed_space [normed_field R] [seminormed_add_comm_group α]
+protected def linfty_op_normed_space
+  [normed_field R] [add_comm_group α] [seminormed_add_comm_group α]
   [normed_space R α] :
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
@@ -351,7 +352,7 @@ def frobenius_seminormed_add_comm_group [seminormed_add_comm_group α] :
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-def frobenius_normed_add_comm_group [normed_add_comm_group α] :
+def frobenius_normed_add_comm_group [add_comm_group α] [normed_add_comm_group α] :
   normed_add_comm_group (matrix m n α) :=
 (by apply_instance : normed_add_comm_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 

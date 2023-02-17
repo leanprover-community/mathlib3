@@ -1463,7 +1463,7 @@ protected lemma connected.mono {G G' : simple_graph V} (h : G ≤ G')
   nonempty := hG.nonempty }
 
 lemma top_connected (V : Type*) [nonempty V] : (⊤ : simple_graph V).connected :=
-by classical; exact ⟨top_preconnected V⟩
+⟨top_preconnected V⟩
 
 lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.connected ↔ H.connected :=
@@ -1888,4 +1888,3 @@ sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 end bridge_edges
 
 end simple_graph
-

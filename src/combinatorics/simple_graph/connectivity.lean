@@ -1403,7 +1403,8 @@ h.elim (λ p, ⟨p.map f⟩)
 
 lemma iso.reachable_iff {G : simple_graph V} {G' : simple_graph V'}
   {φ : G ≃g G'} {u v : V} : G'.reachable (φ u) (φ v) ↔ G.reachable u v :=
-⟨reachable.map φ.to_hom, λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom)⟩
+iff.symm $ ⟨reachable.map φ.to_hom, 
+  λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom)⟩
 
 lemma iso.symm_apply_reachable {G : simple_graph V} {G' : simple_graph V'}
   {φ : G ≃g G'} {u : V} {v : V'} : G.reachable (φ.symm v) u ↔ G'.reachable v (φ u) :=
@@ -1575,7 +1576,8 @@ begin
   exact ((h v).mp (reachable.refl _)),
 end
 
-@[simp] lemma connected_component.supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
+@[simp]
+lemma connected_component.supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
 connected_component.supp_injective.eq_iff
 
 instance : set_like G.connected_component V :=

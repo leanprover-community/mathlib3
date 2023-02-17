@@ -19,7 +19,7 @@ open_locale pointwise topology
 variables {E : Type*}
 
 section seminormed_group
-variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
+variables [group E] [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
@@ -39,7 +39,7 @@ by { simp_rw [bounded_iff_forall_norm_le', ←image_inv, ball_image_iff, norm_in
 end seminormed_group
 
 section seminormed_comm_group
-variables [seminormed_comm_group E] {ε δ : ℝ} {s t : set E} {x y : E}
+variables [comm_group E] [seminormed_comm_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 section emetric
 open emetric

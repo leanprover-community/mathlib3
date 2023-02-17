@@ -59,11 +59,11 @@ open_locale measure_theory topology pointwise
 elements within a distance `δ` of a point of order `n`. -/
 @[to_additive approx_add_order_of "In a seminormed additive group `A`, given `n : ℕ` and `δ : ℝ`,
 `approx_add_order_of A n δ` is the set of elements within a distance `δ` of a point of order `n`."]
-def approx_order_of (A : Type*) [seminormed_group A] (n : ℕ) (δ : ℝ) : set A :=
+def approx_order_of (A : Type*) [group A] [seminormed_group A] (n : ℕ) (δ : ℝ) : set A :=
 thickening δ {y | order_of y = n}
 
 @[to_additive mem_approx_add_order_of_iff]
-lemma mem_approx_order_of_iff {A : Type*} [seminormed_group A] {n : ℕ} {δ : ℝ} {a : A} :
+lemma mem_approx_order_of_iff {A : Type*} [group A] [seminormed_group A] {n : ℕ} {δ : ℝ} {a : A} :
   a ∈ approx_order_of A n δ ↔ ∃ (b : A), order_of b = n ∧ a ∈ ball b δ :=
 by simp only [approx_order_of, thickening_eq_bUnion_ball, mem_Union₂, mem_set_of_eq, exists_prop]
 
@@ -74,17 +74,17 @@ lie in infinitely many of the sets `approx_order_of A n δₙ`. -/
 distances `δ₁, δ₂, ...`, `add_well_approximable A δ` is the limsup as `n → ∞` of the sets
 `approx_add_order_of A n δₙ`. Thus, it is the set of points that lie in infinitely many of the sets
 `approx_add_order_of A n δₙ`."]
-def well_approximable (A : Type*) [seminormed_group A] (δ : ℕ → ℝ) : set A :=
+def well_approximable (A : Type*) [group A] [seminormed_group A] (δ : ℕ → ℝ) : set A :=
 blimsup (λ n, approx_order_of A n (δ n)) at_top (λ n, 0 < n)
 
 @[to_additive mem_add_well_approximable_iff]
-lemma mem_well_approximable_iff {A : Type*} [seminormed_group A] {δ : ℕ → ℝ} {a : A} :
+lemma mem_well_approximable_iff {A : Type*} [group A] [seminormed_group A] {δ : ℕ → ℝ} {a : A} :
   a ∈ well_approximable A δ ↔ a ∈ blimsup (λ n, approx_order_of A n (δ n)) at_top (λ n, 0 < n) :=
 iff.rfl
 
 namespace approx_order_of
 
-variables {A : Type*} [seminormed_comm_group A] {a : A} {m n : ℕ} (δ : ℝ)
+variables {A : Type*} [comm_group A] [seminormed_comm_group A] {a : A} {m n : ℕ} (δ : ℝ)
 
 @[to_additive]
 lemma image_pow_subset_of_coprime (hm : 0 < m) (hmn : n.coprime m) :

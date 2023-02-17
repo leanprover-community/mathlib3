@@ -167,7 +167,7 @@ end
 -- Useful in the uniqueness proof. TODO: Generalize!
 lemma finset.sum_prod_div_with_coeffs {ι : Type*} {s : finset ι}
   (g r : ι → R[X]) (hg : ∀ (n : ι), n ∈ s → (g n).monic ) :
-  ∑ n in s, ↑(r n) * (↑ (∏ k in s, g k) / ↑ (g n)) =
+  ∑ n in s, ↑(r n) * (∏ k in s, ↑(g k) / ↑ (g n)) =
   ∑ n in s, ↑ (r n) * (∏ k in s.erase n, (↑ (g k) : K) ) :=
 begin
   apply finset.sum_congr,
@@ -203,33 +203,29 @@ begin
   have hzero : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
   rw [hzero, div_eq_iff _] at hsum,
   { simp only [add_mul, finset.sum_mul] at hsum,
-    let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
-    have hdivprod : ∀ x ∈ s, (g x) ∣ (∏ i in s, (g i)) :=
-      λ x, finset.dvd_prod_of_mem (λ (x : ι), g x),
-    have hpsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
-    { intros x hxs,
-      refine unit.ext,
-      -- what has all this other stuff got to do with anything...
-      exact div_inv_monoid.to_has_div unit,
-      exact comm_ring.to_comm_monoid unit,
-      exact algebra_map.has_lift_t R[X] unit,
-      exact algebra_map.has_lift_t R[X] unit,
-      exact comm_ring.to_comm_monoid unit,
-      exact algebra_map.has_lift_t R[X] unit },
-    --rw ← finset.prod_apply at hsum,
-    --field_simp [hdivprod, hsimp, (λ (x : ι) (hxs : x ∈ s), (hg x hxs).ne_zero)] at hsum,
-    field_simp at hsum,
-    --rw finset.p
-    -- ring_nf at hsum,
-    --simp [mul_add, add_mul] at hsum,
-    --rw finset.prod_filter finset.dvd_prod_of_mem (λ (x : ι), g x) g at hsum,
+    -- let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
+    -- have hdivprod : ∀ x ∈ s, (g x) ∣ (∏ i in s, (g i)) :=
+    --   λ x, finset.dvd_prod_of_mem (λ (x : ι), g x),
+    -- have hpsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
+    -- { intros x hxs,
+    --   refine unit.ext,
+    --   -- what has all this other stuff got to do with anything...
+    --   exact div_inv_monoid.to_has_div unit,
+    --   exact comm_ring.to_comm_monoid unit,
+    --   exact algebra_map.has_lift_t R[X] unit,
+    --   exact algebra_map.has_lift_t R[X] unit,
+    --   exact comm_ring.to_comm_monoid unit,
+    --   exact algebra_map.has_lift_t R[X] unit },
     have hsumproddiv := finset.sum_prod_div_with_coeffs R K g r hg,
+    --rw hsumproddiv at hsum,
 
     sorry,
      },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
+
+.
 
 #check finsupp
 

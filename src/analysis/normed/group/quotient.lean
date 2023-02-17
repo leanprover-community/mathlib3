@@ -94,7 +94,9 @@ noncomputable theory
 open quotient_add_group metric set
 open_locale topology nnreal
 
-variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group N]
+variables {M N : Type*}
+variables [add_comm_group M] [add_comm_group N]
+variables [seminormed_add_comm_group M] [seminormed_add_comm_group N]
 
 /-- The definition of the norm on the quotient by an additive subgroup. -/
 noncomputable
@@ -443,7 +445,8 @@ structure is_quotient (f : normed_add_group_hom M N) : Prop :=
 /-- Given  `f : normed_add_group_hom M N` such that `f s = 0` for all `s ∈ S`, where,
 `S : add_subgroup M` is closed, the induced morphism `normed_add_group_hom (M ⧸ S) N`. -/
 noncomputable
-def lift {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+def lift {N : Type*}
+  [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0) :
   normed_add_group_hom (M ⧸ S) N :=
 { bound' :=
@@ -458,11 +461,11 @@ def lift {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
   end,
   .. quotient_add_group.lift S f.to_add_monoid_hom hf }
 
-lemma lift_mk {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_mk {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0) (m : M) :
   lift S f hf (S.normed_mk m) = f m := rfl
 
-lemma lift_unique {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_unique {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (g : normed_add_group_hom (M ⧸ S) N) :
   g.comp (S.normed_mk) = f → g = lift S f hf :=

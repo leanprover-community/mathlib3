@@ -52,9 +52,9 @@ open set normed_add_group_hom uniform_space
 
 section completion
 
-variables {G : Type*} [seminormed_add_comm_group G]
-variables {H : Type*} [seminormed_add_comm_group H]
-variables {K : Type*} [seminormed_add_comm_group K]
+variables {G : Type*} [add_comm_group G] [seminormed_add_comm_group G]
+variables {H : Type*} [add_comm_group H] [seminormed_add_comm_group H]
+variables {K : Type*} [add_comm_group K] [seminormed_add_comm_group K]
 
 /-- The normed group hom induced between completions. -/
 def normed_add_group_hom.completion (f : normed_add_group_hom G H) :
@@ -239,8 +239,9 @@ end completion
 
 section extension
 
-variables {G : Type*} [seminormed_add_comm_group G]
-variables {H : Type*} [seminormed_add_comm_group H] [separated_space H] [complete_space H]
+variables {G : Type*} [add_comm_group G] [seminormed_add_comm_group G]
+variables {H : Type*} [add_comm_group H] [seminormed_add_comm_group H]
+variables [separated_space H] [complete_space H]
 
 /-- If `H` is complete, the extension of `f : normed_add_group_hom G H` to a
 `normed_add_group_hom (completion G) H`. -/

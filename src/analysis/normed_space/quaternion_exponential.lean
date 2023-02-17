@@ -80,7 +80,7 @@ begin
       push_cast },
     { rw smul_smul,
       congr' 1,
-      simp_rw [pow_succ', mul_div_assoc, div_div_cancel_left' _ _ hqn],
+      simp_rw [pow_succ', mul_div_assoc, div_div_cancel_left' hqn],
       ring } },
 end
 
@@ -96,40 +96,37 @@ end
 
 /-- The closed form for the quaternion exponential on arbitrary quaternions. -/
 lemma exp_eq (q : quaternion ℝ) :
-  exp ℝ q = exp ℝ q.re • (
-    let v := q - q.re in ↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v) :=
+  exp ℝ q = exp ℝ q.re • (↑(real.cos ‖q.im‖) + (real.sin ‖q.im‖ / ‖q.im‖) • q.im) :=
 begin
-  dsimp only,
-  rw [←exp_of_re_eq_zero (q - q.re), ←coe_mul_eq_smul, ←exp_coe,
-    ←exp_add_of_commute, add_sub_cancel'_right],
+  rw [←exp_of_re_eq_zero q.im q.im_re, ←coe_mul_eq_smul, ←exp_coe, ←exp_add_of_commute, re_add_im],
   exact algebra.commutes q.re (_ : ℍ[ℝ]),
-  exact sub_self _,
 end
 
 lemma re_exp (q : ℍ[ℝ]) : (exp ℝ q).re = exp ℝ q.re * (real.cos ‖q - q.re‖) :=
 by simp [exp_eq]
 
+lemma im_exp (q : ℍ[ℝ]) : (exp ℝ q).im = (exp ℝ q.re * (real.sin ‖q.im‖ / ‖q.im‖)) • q.im :=
+by simp [exp_eq, smul_smul]
+
 lemma norm_sq_exp (q : ℍ[ℝ]) : norm_sq (exp ℝ q) = (exp ℝ q.re)^2 :=
-let v := q - q.re in
 calc norm_sq (exp ℝ q)
-    = norm_sq (exp ℝ q.re • (↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v))
+    = norm_sq (exp ℝ q.re • (↑(real.cos ‖q.im‖) + (real.sin ‖q.im‖ / ‖q.im‖) • q.im))
     : by rw exp_eq
-... = (exp ℝ q.re)^2 * norm_sq ((↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v))
+... = (exp ℝ q.re)^2 * norm_sq ((↑(real.cos ‖q.im‖) + (real.sin ‖q.im‖ / ‖q.im‖) • q.im))
     : by rw [norm_sq_smul]
-... = (exp ℝ q.re)^2 * ((real.cos ‖v‖) ^ 2 + (real.sin ‖v‖)^2)
+... = (exp ℝ q.re)^2 * ((real.cos ‖q.im‖) ^ 2 + (real.sin ‖q.im‖)^2)
     : begin
       congr' 1,
-      have : v.re = 0,
-      { rw [sub_re, coe_re, sub_self] },
-      obtain hv | hv := eq_or_ne (‖v‖) 0,
+      obtain hv | hv := eq_or_ne (‖q.im‖) 0,
       { simp [hv] },
-      rw [norm_sq_add, norm_sq_smul, conj_smul, coe_mul_eq_smul, smul_re, smul_re, conj_re, this,
+      rw [norm_sq_add, norm_sq_smul, conj_smul, coe_mul_eq_smul, smul_re, smul_re, conj_re, im_re,
         smul_zero, smul_zero, mul_zero, add_zero, div_pow, norm_sq_coe, norm_sq_eq_norm_sq, ←sq,
         div_mul_cancel _ (pow_ne_zero _ hv)],
     end
 ... = (exp ℝ q.re)^2 : by rw [real.cos_sq_add_sin_sq, mul_one]
 
-/-- Note that this implies that exponentials of pure imaginary quaternions are unit quaternions. -/
+/-- Note that this implies that exponentials of pure imaginary quaternions are unit quaternions
+since in that case the RHS is `1` via `exp_zero` and `norm_one`. -/
 @[simp] lemma norm_exp (q : ℍ[ℝ]) : ‖exp ℝ q‖ = ‖exp ℝ q.re‖ :=
 by rw [norm_eq_sqrt_real_inner (exp ℝ q), inner_self, norm_sq_exp, real.sqrt_sq_eq_abs,
   real.norm_eq_abs]

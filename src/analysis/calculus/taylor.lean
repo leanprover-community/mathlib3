@@ -42,7 +42,7 @@ Taylor polynomial, Taylor's theorem
 -/
 
 
-open_locale big_operators interval topological_space nat
+open_locale big_operators interval topology nat
 open set
 
 variables {𝕜 E F : Type*}

@@ -176,7 +176,14 @@ by { dsimp [id], simp, }
 local attribute [tidy] tactic.op_induction'
 
 @[simp, priority 990] lemma id_hom_app (U) :
-  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) := by tidy
+  (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) :=
+begin
+  -- was `tidy`
+  induction U using opposite.rec,
+  cases U,
+  rw [id_hom_app'],
+  congr
+end
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
 by { dsimp [id], simp, }

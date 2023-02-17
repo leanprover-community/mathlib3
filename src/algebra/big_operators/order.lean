@@ -12,6 +12,9 @@ import data.fintype.card
 /-!
 # Results about big operators with values in an ordered algebraic structure.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Mostly monotonicity results for the `∏` and `∑` operations.
 
 -/
@@ -532,6 +535,21 @@ end strict_ordered_comm_semiring
 section canonically_ordered_comm_semiring
 
 variables [canonically_ordered_comm_semiring R] {f g h : ι → R} {s : finset ι} {i : ι}
+
+@[simp]
+lemma _root_.canonically_ordered_comm_semiring.multiset_prod_pos [nontrivial R] {m : multiset R} :
+  0 < m.prod ↔ (∀ x ∈ m, (0 : R) < x) :=
+begin
+  induction m using quotient.induction_on,
+  rw [multiset.quot_mk_to_coe, multiset.coe_prod],
+  exact canonically_ordered_comm_semiring.list_prod_pos,
+end
+
+/-- Note that the name is to match `canonically_ordered_comm_semiring.mul_pos`. -/
+@[simp]
+lemma _root_.canonically_ordered_comm_semiring.prod_pos [nontrivial R] :
+  0 < ∏ i in s, f i ↔ (∀ i ∈ s, (0 : R) < f i) :=
+canonically_ordered_comm_semiring.multiset_prod_pos.trans $ by simp
 
 lemma prod_le_prod' (h : ∀ i ∈ s, f i ≤ g i) :
   ∏ i in s, f i ≤ ∏ i in s, g i :=

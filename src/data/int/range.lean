@@ -9,6 +9,9 @@ import data.int.order.basic
 /-!
 # Intervals in ℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines integer ranges. `range m n` is the set of integers greater than `m` and strictly
 less than `n`.
 

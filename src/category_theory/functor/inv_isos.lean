@@ -9,6 +9,9 @@ import category_theory.eq_to_hom
 /-!
 # Natural isomorphisms with composition with inverses
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition of useful natural isomorphisms involving inverses of functors.
 These definitions cannot go in `category_theory/equivalence` because they require `eq_to_hom`.
 -/

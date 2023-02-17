@@ -9,6 +9,9 @@ import topology.algebra.const_mul_action
 /-!
 # Minimal action of a group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define an action of a monoid `M` on a topological space `α` to be *minimal* if the
 `M`-orbit of every point `x : α` is dense. We also provide an additive version of this definition
 and prove some basic facts about minimal actions.

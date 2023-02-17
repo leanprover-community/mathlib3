@@ -33,7 +33,7 @@ properties of the tangent cone we prove here.
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 section tangent_cone
 

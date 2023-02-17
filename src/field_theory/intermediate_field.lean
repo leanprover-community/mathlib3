@@ -360,7 +360,7 @@ begin
 end
 
 lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
-  [is_scalar_tower R K L] {x : S} : is_integral R (x : L) ↔ _root_.is_integral R x :=
+  [is_scalar_tower R K L] {x : S} : is_integral R (x : L) ↔ is_integral R x :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { obtain ⟨P, hPmo, hProot⟩ := h,

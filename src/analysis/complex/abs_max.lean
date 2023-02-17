@@ -77,7 +77,7 @@ maximum modulus principle, complex analysis
 -/
 
 open topological_space metric set filter asymptotics function measure_theory affine_map
-open_locale topological_space filter nnreal real
+open_locale topology filter nnreal real
 
 universes u v w
 variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E]

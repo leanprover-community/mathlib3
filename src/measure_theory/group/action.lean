@@ -17,7 +17,7 @@ typeclass for measures invariant under action of an (additive or multiplicative)
 some basic properties of such measures.
 -/
 
-open_locale ennreal nnreal pointwise topological_space
+open_locale ennreal nnreal pointwise topology
 open measure_theory measure_theory.measure set function
 
 namespace measure_theory

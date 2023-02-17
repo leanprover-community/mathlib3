@@ -40,7 +40,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
@@ -240,7 +240,7 @@ end
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by rw [pow_succ']; exact (iterate n).comp hf
 
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
@@ -265,7 +265,7 @@ protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
 
 protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric

@@ -45,7 +45,7 @@ end
 lemma component_compl.supp_inj {C D : G.component_compl K} : C.supp = D.supp ↔ C = D :=
 component_compl.supp_injective.eq_iff
 
-instance : set_like (G.component_compl K) V :=
+instance component_compl.set_like : set_like (G.component_compl K) V :=
 { coe := component_compl.supp,
   coe_injective' := λ C D, (component_compl.supp_inj).mp, }
 

@@ -121,8 +121,8 @@ have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,
     let ⟨k, hk⟩ := nat.dvd_iff_mod_eq_zero.2 hm2 in
-    have hk0 : 0 < k, from nat.pos_of_ne_zero $ by {
-      rintro rfl, rw mul_zero at hk, exact ne_zero.ne m hk },
+    have hk0 : 0 < k, from nat.pos_of_ne_zero $
+      by { rintro rfl, rw mul_zero at hk, exact ne_zero.ne m hk },
     have hkm : k < m, { rw [hk, two_mul], exact (lt_add_iff_pos_left _).2 hk0 },
     false.elim $ nat.find_min hm hkm ⟨lt_trans hkm hmp, hk0,
       sum_four_squares_of_two_mul_sum_four_squares
@@ -174,13 +174,17 @@ m.mod_two_eq_zero_or_one.elim
         (hp.1.eq_one_or_self_of_dvd _ hmdvdp).elim hm1
         (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { rw [← hwxyz0], simp, ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
+          by { rw [← hwxyz0], push_cast, simp only [sq, zmod.coe_val_min_abs] },
       have haxbwczdy : ((m : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
+          by { push_cast, simp only [zmod.coe_val_min_abs], ring },
       have haybzcwdx : ((m : ℕ) : ℤ) ∣ a * y + b * z - c * w - d * x,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
+          by { push_cast, simp only [zmod.coe_val_min_abs], ring },
       have hazbycxdw : ((m : ℕ) : ℤ) ∣ a * z - b * y + c * x - d * w,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
+          by { push_cast, simp only [zmod.coe_val_min_abs], ring },
       let ⟨s, hs⟩ := hawbxcydz, ⟨t, ht⟩ := haxbwczdy, ⟨u, hu⟩ := haybzcwdx, ⟨v, hv⟩ := hazbycxdw in
       have hn_nonneg : 0 ≤ n,
         from nonneg_of_mul_nonneg_right

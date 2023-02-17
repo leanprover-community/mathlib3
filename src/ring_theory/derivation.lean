@@ -451,7 +451,7 @@ lemma derivation_to_square_zero_of_lift_apply (f : A →ₐ[R] B)
 
 /-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each `R`-derivation
 from `A` to `I` corresponds to a lift `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
-@[simps]
+@[simps {attrs := []}]
 def lift_of_derivation_to_square_zero (f : derivation R A I) :
   A →ₐ[R] B :=
 { to_fun := λ x, f x + algebra_map A B x,
@@ -472,7 +472,7 @@ def lift_of_derivation_to_square_zero (f : derivation R A I) :
     (is_scalar_tower.to_alg_hom R A B).to_linear_map : A →ₗ[R] B) }
 
 @[simp] lemma lift_of_derivation_to_square_zero_mk_apply (d : derivation R A I) (x : A) :
-    ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
+  ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
 by { rw [lift_of_derivation_to_square_zero_apply, map_add,
   ideal.quotient.eq_zero_iff_mem.mpr (d x).prop, zero_add], refl }
 

@@ -155,7 +155,7 @@ m.mod_two_eq_zero_or_one.elim
             pow_add, add_comm, add_left_comm] },
       have hwxyzabcd : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) =
           ((a^2 + b^2 + c^2 + d^2 : ℤ) : zmod m),
-        by { simp only [w, x, y, z], push_cast, simp only [zmod.coe_val_min_abs]},
+        by { push_cast, simp only [zmod.coe_val_min_abs]},
       have hwxyz0 : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) = 0,
         by rw [hwxyzabcd, habcd, int.cast_mul, cast_coe_nat, zmod.nat_cast_self, zero_mul],
       let ⟨n, hn⟩ := ((char_p.int_cast_eq_zero_iff _ m _).1 hwxyz0) in

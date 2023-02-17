@@ -80,7 +80,13 @@ variable (α)
 
 /--
 A *generalised continued fraction* (gcf) is a potentially infinite expression of the form
-$$h + \dfrac{a_0}{b_0 + \dfrac{a_1}{b_1 + \dfrac{a_2}{b_2 + \dfrac{a_3}{b_3 + \dots}}}}$$
+$$
+  h + \dfrac{a_0}
+            {b_0 + \dfrac{a_1}
+                         {b_1 + \dfrac{a_2}
+                                      {b_2 + \dfrac{a_3}
+                                                   {b_3 + \dots}}}}
+$$
 where `h` is called the *head term* or *integer part*, the `aᵢ` are called the
 *partial numerators* and the `bᵢ` the *partial denominators* of the gcf.
 We store the sequence of partial numerators and denominators in a sequence of
@@ -140,7 +146,13 @@ end generalized_continued_fraction
 /--
 A generalized continued fraction is a *simple continued fraction* if all partial numerators are
 equal to one.
-$$h + \dfrac{1}{b_0 + \dfrac{1}{b_1 + \dfrac{1}{b_2 + \dfrac{1}{b_3 + \dots}}}}$$
+$$
+  h + \dfrac{1}
+            {b_0 + \dfrac{1}
+                         {b_1 + \dfrac{1}
+                                      {b_2 + \dfrac{1}
+                                                   {b_3 + \dots}}}}
+$$
 -/
 def generalized_continued_fraction.is_simple_continued_fraction
   (g : generalized_continued_fraction α) [has_one α] : Prop :=
@@ -150,7 +162,13 @@ variable (α)
 /--
 A *simple continued fraction* (scf) is a generalized continued fraction (gcf) whose partial
 numerators are equal to one.
-$$h + \dfrac{1}{b_0 + \dfrac{1}{b_1 + \dfrac{1}{b_2 + \dfrac{1}{b_3 + \dots}}}}$$
+$$
+  h + \dfrac{1}
+            {b_0 + \dfrac{1}
+                         {b_1 + \dfrac{1}
+                                      {b_2 + \dfrac{1}
+                                                   {b_3 + \dots}}}}
+$$
 For convenience, one often writes `[h; b₀, b₁, b₂,...]`.
 It is encoded as the subtype of gcfs that satisfy
 `generalized_continued_fraction.is_simple_continued_fraction`.

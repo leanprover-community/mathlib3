@@ -135,7 +135,7 @@ begin
                set.union_eq_right_iff_subset], }
 end
 
-lemma subgraph.connected_of_patches (G : simple_graph V) (H : G.subgraph) (u : H.verts)
+lemma subgraph.connected_of_patches {H : G.subgraph} (u : H.verts)
   (patches : ∀ v : H.verts,
                ∃ (H' : G.subgraph) (sub : H' ≤ H) (u' : ↑u ∈ H'.verts) (v' : ↑v ∈ H'.verts),
                   H'.coe.reachable ⟨u,u'⟩ ⟨v,v'⟩ ) : H.coe.connected :=

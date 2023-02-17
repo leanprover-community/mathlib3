@@ -236,6 +236,20 @@ def union (x y : subgraph G) : subgraph G :=
   edge_vert := λ v w h, or.cases_on h (λ h, or.inl (x.edge_vert h)) (λ h, or.inr (y.edge_vert h)),
   symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }
 
+/-- The supremum of a family of subgraphs. -/
+def Union (s : set $ subgraph G) : subgraph G :=
+{ verts := ⨆ (a : subgraph G) (ha : a ∈ s), a.verts,
+  adj := ⨆  (a : subgraph G) (ha : a ∈ s), a.adj,
+  adj_sub := λ v w h, by
+    { simp only [supr_apply, supr_Prop_eq, exists_prop] at h ⊢,
+      exact h.some.adj_sub h.some_spec.2, },
+  edge_vert := λ v w h, by
+    { simp only [supr_apply, supr_Prop_eq, exists_prop, set.supr_eq_Union, set.mem_Union] at h ⊢,
+      exact ⟨_, h.some_spec.1, h.some.edge_vert h.some_spec.2⟩, },
+  symm := λ v w h, by
+    { simp only [supr_apply, supr_Prop_eq, exists_prop, set.supr_eq_Union, set.mem_Union] at h ⊢,
+      exact ⟨_, h.some_spec.1, h.some_spec.2.symm⟩, } }
+
 /-- The intersection of two subgraphs. -/
 def inter (x y : subgraph G) : subgraph G :=
 { verts := x.verts ∩ y.verts,
@@ -243,6 +257,20 @@ def inter (x y : subgraph G) : subgraph G :=
   adj_sub := λ v w h, x.adj_sub h.1,
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
   symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }
+
+/-- The infimum of a family of subgraphs. -/
+def Inter (s : set $ subgraph G) : subgraph G :=
+{ verts := ⨅ (a : subgraph G) (ha : a ∈ s), a.verts,
+  adj := G.adj ⊓ ⨅  (a : subgraph G) (ha : a ∈ s), a.adj,
+  adj_sub := λ v w ⟨hG, h⟩, hG,
+  edge_vert := λ v w ⟨hG, h⟩, by
+    { simp only [set.infi_eq_Inter, set.mem_Inter, infi_apply, infi_Prop_eq] at h ⊢,
+      exact λ i hi, i.edge_vert (h i hi), },
+  symm := λ v w ⟨hG, h⟩, by
+    { simp only [set.infi_eq_Inter, set.mem_Inter, infi_apply, infi_Prop_eq] at h ⊢,
+      refine ⟨hG.symm, _⟩,
+      simp only [infi_apply, infi_Prop_eq],
+      exact λ i hi, (h i hi).symm, } }
 
 /-- The `top` subgraph is `G` as a subgraph of itself. -/
 def top : subgraph G :=
@@ -263,8 +291,12 @@ def bot : subgraph G :=
 /-- The relation that one subgraph is a subgraph of another. -/
 def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
-instance : lattice (subgraph G) :=
+instance : complete_lattice (subgraph G) :=
 { le := is_subgraph,
+  top := top,
+  bot := bot,
+  le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
+  bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩,
   sup := union,
   inf := inter,
   le_refl := λ x, ⟨rfl.subset, λ _ _ h, h⟩,
@@ -283,13 +315,39 @@ instance : lattice (subgraph G) :=
   le_sup_right := λ x y, ⟨set.subset_union_right x.verts y.verts, (λ v w h, or.inr h)⟩,
   le_inf := λ x y z hxy hyz, ⟨set.subset_inter hxy.1 hyz.1, (λ v w h, ⟨hxy.2 h, hyz.2 h⟩)⟩,
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
-  inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
-
-instance : bounded_order (subgraph G) :=
-{ top := top,
-  bot := bot,
-  le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
-  bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
+  inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩,
+  Sup := Union,
+  Inf := Inter,
+  le_Sup := λ s a as,
+    begin
+      simp only [has_le.le, preorder.le, is_subgraph, Union, set.supr_eq_Union, supr_apply,
+                 supr_Prop_eq, exists_prop],
+      exact ⟨set.subset_bUnion_of_mem as, λ v w ha, ⟨a, as, ha⟩⟩,
+    end,
+  Sup_le := λ s b h,
+    begin
+      simp only [has_le.le, preorder.le, is_subgraph, Union, set.supr_eq_Union, supr_apply,
+                 supr_Prop_eq, exists_prop, set.Union_subset_iff, forall_exists_index,
+                 and_imp] at h ⊢,
+      exact ⟨λ a as, (h a as).left, λ v w a as vw, (h a as).right vw⟩,
+    end,
+  le_Inf := λ s a h,
+    begin
+      simp only [has_le.le, preorder.le, is_subgraph, Inter, set.infi_eq_Inter,
+                 set.subset_Inter₂_iff, infi_apply, set.inf_eq_inter] at h ⊢,
+      refine ⟨λ a as, (h a as).left, λ v w vw, ⟨a.adj_sub vw, _⟩⟩,
+      simp only [infi_apply, infi_Prop_eq],
+      exact λ a as, (h a as).right vw,
+    end,
+  Inf_le := λ s a as,
+    begin
+      simp only [has_le.le, preorder.le, is_subgraph, Inter, set.infi_eq_Inter, infi_apply,
+                 set.inf_eq_inter],
+      refine ⟨set.bInter_subset_of_mem as, λ v w vw, _⟩,
+      replace vw := vw.right,
+      simp only [infi_apply, infi_Prop_eq] at vw,
+      exact vw a as,
+    end }
 
 @[simps] instance subgraph_inhabited : inhabited (subgraph G) := ⟨⊥⟩
 

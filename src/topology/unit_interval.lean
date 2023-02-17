@@ -19,7 +19,7 @@ We provide basic instances, as well as a custom tactic for discharging
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set int set.Icc
 
 /-! ### The unit interval -/

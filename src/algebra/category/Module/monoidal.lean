@@ -338,14 +338,6 @@ linear_map.ext (λ x, linear_map.ext (λ y, rfl))
 
 lemma monoidal_closed_pre_app {M N : Module.{u} R} (P : Module.{u} R) (f : N ⟶ M) :
   (monoidal_closed.pre f).app P = linear_map.lcomp R _ f :=
-begin
-  refine monoidal_closed.uncurry_injective _,
-  simp only [monoidal_closed.uncurry_pre, ihom_ev_app],
-  refine tensor_product.ext (linear_map.ext (λ x, linear_map.ext (λ y, _))),
-  simp only [linear_map.compr₂_apply, tensor_product.mk_apply, linear_map.to_fun_eq_coe,
-    tensor_product.curry_apply, linear_map.coe_restrict_scalars,
-    tensor_product.uncurry_apply, Module.monoidal_closed_uncurry],
-  exact tensor_product.uncurry_apply _ _ _,
-end
+monoidal_closed.uncurry_injective (by { ext, refl, })
 
 end Module

@@ -24,7 +24,7 @@ you should restate it here. You can also use
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal bounded_continuous_function big_operators
+open_locale topology classical nnreal bounded_continuous_function big_operators
 
 open set filter metric
 

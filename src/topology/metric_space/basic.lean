@@ -49,7 +49,7 @@ metric, pseudo_metric, dist
 
 open set filter topological_space bornology
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}
@@ -1127,7 +1127,7 @@ by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
 See Note [forgetful inheritance].
 -/
 def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_metric_space α :=
 { dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
@@ -1139,8 +1139,7 @@ def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
 
 lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
-  (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (m : pseudo_metric_space α) (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 
@@ -1528,12 +1527,10 @@ lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
-  /- WLOG, `b ≤ a`. `wlog h : b ≤ a` works too but it is much slower because Lean tries to prove one
-  case from the other and fails; `tactic.skip` tells Lean not to try. -/
-  wlog h : b ≤ a := le_total b a using [a b, b a] tactic.skip,
-  { rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
-      max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg] },
-  { rwa [nndist_comm, max_comm] }
+  wlog h : b ≤ a,
+  { rw [nndist_comm, max_comm], exact this b a (le_of_not_le h) },
+  rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
+    max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg],
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
@@ -2769,13 +2766,13 @@ end metric
 See Note [forgetful inheritance].
 -/
 def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
 
 lemma metric_space.replace_uniformity_eq {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 

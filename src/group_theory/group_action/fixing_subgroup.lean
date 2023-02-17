@@ -11,6 +11,9 @@ import group_theory.group_action.basic
 
 # Fixing submonoid, fixing subgroup of an action
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the presence of of an action of a monoid or a group,
 this file defines the fixing submonoid or the fixing subgroup,
 and relates it to the set of fixed points via a Galois connection.

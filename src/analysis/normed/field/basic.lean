@@ -17,7 +17,7 @@ definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 /-- A non-unital seminormed ring is a not-necessarily-unital ring
 endowed with a seminorm which satisfies the inequality `‖x y‖ ≤ ‖x‖ ‖y‖`. -/
@@ -483,9 +483,14 @@ begin
     ... ≤ ‖r - e‖ / ‖r‖ / ε :
       div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  refine (((continuous_const.sub continuous_id).norm.div_const _).div_const _).tendsto' _ _ _,
   simp,
 end
+
+/-- A normed division ring is a topological division ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_topological_division_ring : topological_division_ring α :=
+{ }
 
 lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :

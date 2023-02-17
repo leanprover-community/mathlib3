@@ -49,7 +49,7 @@ in general), and `ι` is countable.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open topological_space set metric filter function
 
 local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
@@ -801,7 +801,7 @@ lemma dist_le_dist_pi_of_dist_lt {x y : Π i, F i} {i : ι} (h : dist x y < (1/2
   dist (x i) (y i) ≤ dist x y :=
 by simpa only [not_le.2 h, false_or] using min_le_iff.1 (min_dist_le_dist_pi x y i)
 
-open_locale big_operators topological_space
+open_locale big_operators topology
 open filter
 
 open_locale nnreal

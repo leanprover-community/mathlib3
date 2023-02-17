@@ -18,6 +18,7 @@ direct evaluation (`convergents'`)) for `gcf`s on linear ordered fields. We foll
 [hardy2008introduction], Chapter 10. Here's a sketch:
 
 Let `c` be a continued fraction `[h; (a₀, b₀), (a₁, b₁), (a₂, b₂),...]`, visually:
+
                                 a₀
                 h + ---------------------------
                                   a₁

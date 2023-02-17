@@ -11,6 +11,9 @@ import algebra.order.ring.with_top
 /-!
 # Definition and basic properties of extended natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `enat` (notation: `ℕ∞`) to be `with_top ℕ` and prove some basic lemmas
 about this type.
 -/

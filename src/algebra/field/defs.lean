@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.defs
-import data.rat.init
 import data.rat.nnrat
 
 /-!
@@ -136,19 +135,6 @@ class division_ring (K : Type u)
 instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
 { ..‹division_ring α›, ..(infer_instance : semiring α) }
 
-section division_ring
-variables [division_ring α] {n : ℤ}
-
-@[simp] lemma zpow_bit1_neg (x : α) (n : ℤ) : (-x) ^ bit1 n = - x ^ bit1 n :=
-by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
-
-lemma odd.neg_zpow (h : odd n) (a : α) : (-a) ^ n = - a ^ n :=
-by { obtain ⟨k, rfl⟩ := h.exists_bit1, exact zpow_bit1_neg _ _ }
-
-lemma odd.neg_one_zpow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_zpow, one_zpow]
-
-end division_ring
-
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]
 class semifield (α : Type*) extends comm_semiring α, division_semiring α, comm_group_with_zero α
@@ -170,14 +156,6 @@ section division_ring
 variables [division_ring K] {a b : K}
 
 namespace rat
-
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
-⟨has_rat_cast.rat_cast⟩
 
 theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
 division_ring.rat_cast_mk _ _ _ _

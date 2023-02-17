@@ -1424,8 +1424,8 @@ hf.forall₂.2 $ λ a b, nonempty.map (walk.map _) $ hG _ _
 protected lemma preconnected.mono  {G G' : simple_graph V} (h : G ≤ G')
   (hG : G.preconnected) : G'.preconnected := λ u v, (hG u v).mono h
 
-lemma top_preconnected (V : Type*) [decidable_eq V] : (⊤ : simple_graph V).preconnected :=
-λ x y, if h : x = y then by { rw h, } else adj.reachable h
+lemma top_preconnected (V : Type*) : (⊤ : simple_graph V).preconnected :=
+by classical; exact λ x y, if h : x = y then by { rw h, } else adj.reachable h
 
 lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.preconnected ↔ H.preconnected :=
@@ -1462,8 +1462,8 @@ protected lemma connected.mono {G G' : simple_graph V} (h : G ≤ G')
 { preconnected := hG.preconnected.mono h,
   nonempty := hG.nonempty }
 
-lemma top_connected (V : Type*) [decidable_eq V] [nonempty V] : (⊤ : simple_graph V).connected :=
-⟨top_preconnected V⟩
+lemma top_connected (V : Type*) [nonempty V] : (⊤ : simple_graph V).connected :=
+by classical; exact ⟨top_preconnected V⟩
 
 lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.connected ↔ H.connected :=
@@ -1548,27 +1548,6 @@ by { refine C.ind _, exact (λ _, rfl), }
 end connected_component
 
 variables {G}
-
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
-
-lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
-begin
-  split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
-  subst_vars
-end
-
-@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).connected :=
-begin
-  split,
-  rintro ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
-  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
-    refl <|> { apply adj.reachable, simp },
-end
 
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=
@@ -1909,3 +1888,4 @@ sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 end bridge_edges
 
 end simple_graph
+

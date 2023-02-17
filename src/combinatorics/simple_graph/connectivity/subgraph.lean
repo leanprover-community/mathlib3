@@ -15,14 +15,34 @@ universes u v
 
 namespace simple_graph
 
-variables {V : Type u} {V' : Type v} (G : simple_graph V) (G' : simple_graph V')
-variables {G}
+variables {V : Type u} {V' : Type v} {G : simple_graph V} {G' : simple_graph V'}
+
+/-- A subgraph is connected if it is connected as a simple graph. -/
+@[reducible] def subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
 
 lemma subgraph.connected_iff (H : G.subgraph) :
   H.connected ↔ H.coe.preconnected ∧ H.verts.nonempty :=
 begin
   change H.coe.connected ↔ _,
   rw [connected_iff, set.nonempty_coe_sort],
+end
+
+lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
+begin
+  split,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
+  subst_vars
+end
+
+@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).connected :=
+begin
+  split,
+  rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
+  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
+    refl <|> { apply adj.reachable, simp },
 end
 
 lemma induce_singleton_connected (v : V) :

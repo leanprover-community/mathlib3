@@ -899,7 +899,7 @@ outside the set. This is a wrapper around `simple_graph.comap`. -/
 @[reducible] def induce (s : set V) (G : simple_graph V) : simple_graph s :=
 G.comap (function.embedding.subtype _)
 
-lemma induce_singleton_eq_top (v : V) : G.induce {v} = ⊤ :=
+@[simp] lemma induce_singleton_eq_top (v : V) : G.induce {v} = ⊤ :=
 begin
   ext ⟨v, hv⟩ ⟨w, hw⟩,
   rw [set.mem_singleton_iff] at hv hw,

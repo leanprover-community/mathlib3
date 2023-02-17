@@ -309,6 +309,7 @@ lemma coe_snd (a : A) : (a : 𝓜(𝕜, A)).snd = (continuous_linear_map.mul �
 
 /-- The coercion of an algebra into its multiplier algebra as a non-unital star algebra
 homomorphism. -/
+@[simps]
 def coe_hom [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A] :
   A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=
 { to_fun := λ a, a,
@@ -337,7 +338,7 @@ that `𝓜(𝕜, A)` is also a C⋆-algebra. Moreover, in this case, for `a : �
 instance : normed_add_comm_group 𝓜(𝕜, A) :=
 normed_add_comm_group.induced _ _ (to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)) ext
 
-@[simp] lemma norm_eq (a : 𝓜(𝕜, A)) : ‖a‖ = max (‖a.fst‖) (‖a.snd‖) := rfl
+lemma norm_def (a : 𝓜(𝕜, A)) : ‖a‖ = max (‖a.fst‖) (‖a.snd‖) := rfl
 
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
 { norm_smul_le := λ k a, show max (‖k • a.fst‖) (‖k • a.snd‖) ≤‖k‖ * max (‖a.fst‖) (‖a.snd‖),
@@ -412,9 +413,9 @@ begin
 end
 
 -- `simp_nf` linter times out if we add `@[simp]` to these
-lemma norm_fst (a : 𝓜(𝕜, A)) :‖a.fst‖ = ‖a‖ :=
-  by simp only [norm_eq, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
-lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
+@[simp] lemma norm_fst (a : 𝓜(𝕜, A)) :‖a.fst‖ = ‖a‖ :=
+  by simp only [norm_def, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
+@[simp] lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
 @[simp] lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a‖₊ := subtype.ext (norm_fst a)
 @[simp] lemma nnnorm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖₊ = ‖a‖₊ := subtype.ext (norm_snd a)
 

@@ -1647,6 +1647,16 @@ begin
     apply set.to_finite, },
 end
 
+lemma to_subgraph_le_induce_support (p : G.walk u v) :
+  p.to_subgraph ≤ (⊤ : G.subgraph).induce {v | v ∈ p.support} :=
+begin
+  refine ⟨subset_of_eq p.verts_to_subgraph, λ x y h, _⟩,
+  have : ⟦(x,y)⟧ ∈ p.edges := p.mem_edges_to_subgraph.mp h,
+  refine ⟨p.fst_mem_support_of_mem_edges this,
+          p.snd_mem_support_of_mem_edges this,
+          p.adj_of_mem_edges this⟩,
+end
+
 end walk
 
 /-! ### Walks of a given length -/

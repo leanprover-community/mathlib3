@@ -120,8 +120,9 @@ begin
 end
 
 lemma subgraph.connected_of_patches (G : simple_graph V) (H : G.subgraph) (u : H.verts)
-  (patches : ∀ v : H.verts, ∃ (H' : G.subgraph) (sub : H' ≤ H) (u' : ↑u ∈ H'.verts)  (v' : ↑v ∈ H'.verts),
-             H'.coe.reachable ⟨u,u'⟩ ⟨v,v'⟩ ) : H.coe.connected :=
+  (patches : ∀ v : H.verts,
+               ∃ (H' : G.subgraph) (sub : H' ≤ H) (u' : ↑u ∈ H'.verts) (v' : ↑v ∈ H'.verts),
+                  H'.coe.reachable ⟨u,u'⟩ ⟨v,v'⟩ ) : H.coe.connected :=
 begin
   rw connected_iff_exists_forall_reachable,
   refine ⟨u, λ v, _⟩,
@@ -142,26 +143,23 @@ begin
   exact ⟨uv.map (induce_hom_of_le svs)⟩,
 end
 
-lemma induce_walk_support_connected [decidable_eq V] :
-  ∀ {u v : V} (p : G.walk u v), (G.induce $ (p.support.to_finset : set V)).connected
-| _ _ (walk.nil' u) := by
-  begin
-    rw [walk.support_nil, list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq,
-        finset.coe_singleton],
-    exact induce_singleton_connected u,
-  end
-| _ _ (walk.cons' u v w a p) := by
-  begin
-    have : ↑((walk.cons' u v w a p).support.to_finset) = {u, v} ∪ ↑(p.support.to_finset), by
-    { rw [walk.support_cons, list.to_finset_cons, set.insert_union, finset.coe_insert,
-          set.singleton_union, @set.insert_eq_of_mem _ v],
-      simp only [set.mem_set_of_eq, finset.mem_coe, list.mem_to_finset, walk.start_mem_support], },
-    rw this,
-    apply induce_union_connected (induce_pair_connected_of_adj a)
-                                 (induce_walk_support_connected p) ⟨v, _⟩,
-    simp only [list.coe_to_finset, set.inf_eq_inter, set.mem_inter_iff, set.mem_insert_iff,
-               set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self],
-  end
+lemma walk.to_subgraph_connected {u v : V} (p : G.walk u v) :
+  p.to_subgraph.connected :=
+begin
+  induction p with _ u v w a q ih,
+  { apply singleton_subgraph_connected, },
+  { rw [walk.to_subgraph],
+    refine subgraph.connected.sup (subgraph_of_adj_connected a) ih ⟨v, ⟨or.inr _, _⟩⟩;
+    simp only [set.mem_singleton, walk.verts_to_subgraph, set.mem_set_of_eq,
+               walk.start_mem_support], },
+end
+
+lemma induce_walk_support_connected {u v : V} (p : G.walk u v) :
+  (G.induce $ {v | v ∈ p.support}).connected :=
+begin
+  rw induce_eq_coe_induce_top,
+  exact (p.to_subgraph_connected).mono p.to_subgraph_le_induce_support p.verts_to_subgraph,
+end
 
 lemma induce_sUnion_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
   (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
@@ -192,9 +190,10 @@ begin
       exact ⟨u, ut⟩, },
     simp only [finset.mem_coe, finset.mem_bUnion, list.mem_to_finset, exists_prop] at hv,
     obtain ⟨w, wt, hw⟩ := hv,
-    refine ⟨((Gpc u w).some.support.to_finset : set V), _, _⟩,
-    { rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ wt, },
-    { simp only [finset.mem_coe, list.mem_to_finset, walk.start_mem_support, exists_true_left],
+    refine ⟨{x | x ∈ (Gpc u w).some.support}, _, _⟩,
+    { simp only [finset.coe_bUnion, finset.mem_coe, list.coe_to_finset],
+      exact λ x xw, set.mem_Union₂.mpr ⟨w,wt,xw⟩, },
+    { simp only [set.mem_set_of_eq, walk.start_mem_support, exists_true_left],
       refine ⟨hw, induce_walk_support_connected _ _ _⟩, }, }
 end
 

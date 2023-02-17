@@ -90,27 +90,37 @@ class normed_group (E : Type*) [group E] extends has_norm E, metric_space E :=
 defines a pseudometric space structure.
 
 TODO: remove this, it is the same as `seminormed_add_group` -/
-class seminormed_add_comm_group (E : Type*) [add_comm_group E] extends seminormed_add_group E
+class seminormed_add_comm_group (E : Type*) [add_comm_group E]
+  extends has_norm E, pseudo_metric_space E :=
+(dist := λ x y, ‖x - y‖)
+(dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A seminormed group is a group endowed with a norm for which `dist x y = ‖x / y‖`
 defines a pseudometric space structure.
 
 TODO: remove this, it is the same as `seminormed_group` -/
 @[to_additive]
-class seminormed_comm_group (E : Type*) [comm_group E] extends seminormed_group E
+class seminormed_comm_group (E : Type*) [comm_group E]
+  extends has_norm E, pseudo_metric_space E :=
+(dist := λ x y, ‖x / y‖)
+(dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ‖x - y‖` defines a
 metric space structure.
 
 TODO: remove this, it is the same as `normed_add_group` -/
-class normed_add_comm_group (E : Type*) [add_comm_group E] extends normed_add_group E
+class normed_add_comm_group (E : Type*) [add_comm_group E] extends has_norm E, metric_space E :=
+(dist := λ x y, ‖x - y‖)
+(dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A normed group is a group endowed with a norm for which `dist x y = ‖x / y‖` defines a metric
 space structure.
 
 TODO: remove this, it is the same as `normed_group` -/
 @[to_additive]
-class normed_comm_group (E : Type*) [comm_group E] extends normed_group E
+class normed_comm_group (E : Type*) [comm_group E] extends has_norm E, metric_space E :=
+(dist := λ x y, ‖x / y‖)
+(dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 @[priority 100, to_additive] -- See note [lower instance priority]
 instance normed_group.to_seminormed_group [group E] [normed_group E] : seminormed_group E :=
@@ -119,6 +129,15 @@ instance normed_group.to_seminormed_group [group E] [normed_group E] : seminorme
 @[priority 100, to_additive] -- See note [lower instance priority]
 instance normed_comm_group.to_seminormed_comm_group [comm_group E] [normed_comm_group E] :
   seminormed_comm_group E :=
+{ ..‹normed_comm_group E› }
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance seminormed_comm_group.to_seminormed_group [comm_group E] [seminormed_comm_group E] :
+  seminormed_group E :=
+{ ..‹seminormed_comm_group E› }
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance normed_comm_group.to_normed_group [comm_group E] [normed_comm_group E] : normed_group E :=
 { ..‹normed_comm_group E› }
 
 /-- Construct a `normed_group` from a `seminormed_group` satisfying `∀ x, ‖x‖ = 0 → x = 1`. This

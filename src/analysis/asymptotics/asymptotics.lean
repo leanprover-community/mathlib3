@@ -55,6 +55,9 @@ variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {R : Type*} {R' : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 variables [has_norm E] [has_norm F] [has_norm G]
+variables [add_comm_group E'] [add_comm_group F']
+  [add_comm_group G'] [add_comm_group E''] [add_comm_group F'']
+  [add_comm_group G'']
 variables [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
   [seminormed_add_comm_group G'] [normed_add_comm_group E''] [normed_add_comm_group F'']
   [normed_add_comm_group G''] [semi_normed_ring R] [semi_normed_ring R']

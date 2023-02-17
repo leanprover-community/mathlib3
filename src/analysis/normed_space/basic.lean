@@ -35,12 +35,13 @@ equality `‖c • x‖ = ‖c‖ ‖x‖`. We require only `‖c • x‖ ≤ �
 Note that since this requires `seminormed_add_comm_group` and not `normed_add_comm_group`, this
 typeclass can be used for "semi normed spaces" too, just as `module` can be used for
 "semi modules". -/
-class normed_space (α : Type*) (β : Type*) [normed_field α] [seminormed_add_comm_group β]
+class normed_space (α : Type*) (β : Type*) [normed_field α] [add_comm_group β]
+  [seminormed_add_comm_group β]
   extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ‖a • b‖ ≤ ‖a‖ * ‖b‖)
 end prio
 
-variables [normed_field α] [seminormed_add_comm_group β]
+variables [normed_field α] [add_comm_group β] [seminormed_add_comm_group β]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul α β :=
@@ -96,8 +97,8 @@ lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 
-variables {E : Type*} [seminormed_add_comm_group E] [normed_space α E]
-variables {F : Type*} [seminormed_add_comm_group F] [normed_space α F]
+variables {E : Type*} [add_comm_group E] [seminormed_add_comm_group E] [normed_space α E]
+variables {F : Type*} [add_comm_group F] [seminormed_add_comm_group F] [normed_space α F]
 
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ‖c • (y - x)‖ < ε :=
@@ -165,7 +166,7 @@ theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
-instance {E : Type*} [normed_add_comm_group E] [normed_space ℚ E] (e : E) :
+instance {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℚ E] (e : E) :
   discrete_topology $ add_subgroup.zmultiples e :=
 begin
   rcases eq_or_ne e 0 with rfl | he,
@@ -241,7 +242,8 @@ instance prod.normed_space : normed_space α (E × F) :=
   ..prod.module }
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
-instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_comm_group (E i)]
+instance pi.normed_space {E : ι → Type*} [fintype ι]
+  [∀i, add_comm_group (E i)] [∀i, seminormed_add_comm_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { norm_smul_le := λ a f, le_of_eq $
     show (↑(finset.sup finset.univ (λ (b : ι), ‖a • f b‖₊)) : ℝ) =
@@ -250,7 +252,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
-  {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] [module R E]
+  {E : Type*} [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
@@ -290,15 +292,16 @@ domain, using the `seminormed_add_comm_group.induced` norm.
 See note [reducible non-instances] -/
 @[reducible]
 def normed_space.induced {F : Type*} (α β γ : Type*) [normed_field α] [add_comm_group β]
-  [module α β] [seminormed_add_comm_group γ] [normed_space α γ] [linear_map_class F α β γ]
-  (f : F) : @normed_space α β _ (seminormed_add_comm_group.induced β γ f) :=
+  [module α β] [add_comm_group γ] [seminormed_add_comm_group γ] [normed_space α γ]
+  [linear_map_class F α β γ]
+  (f : F) : @normed_space α β _ _ (seminormed_add_comm_group.induced β γ f) :=
 { norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
 
 section normed_add_comm_group
 
 variables [normed_field α]
-variables {E : Type*} [normed_add_comm_group E] [normed_space α E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space α F]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space α E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space α F]
 
 open normed_field
 
@@ -375,7 +378,8 @@ end normed_add_comm_group
 
 section nontrivially_normed_space
 
-variables (𝕜 E : Type*) [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables (𝕜 E : Type*) [nontrivially_normed_field 𝕜]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
   [nontrivial E]
 
 include 𝕜
@@ -516,7 +520,7 @@ instance prod.normed_algebra {E F : Type*} [semi_normed_ring E] [semi_normed_rin
 instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   [Π i, semi_normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
   normed_algebra 𝕜 (Π i, E i) :=
-{ .. pi.normed_space,
+{ .. @pi.normed_space _ _ _ E _ _ (λ i, by apply_instance) _,
   .. pi.algebra _ E }
 
 end normed_algebra
@@ -538,12 +542,12 @@ instance subalgebra.to_normed_algebra {𝕜 A : Type*} [semi_normed_ring A] [nor
 section restrict_scalars
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-(E : Type*) [seminormed_add_comm_group E] [normed_space 𝕜' E]
+(E : Type*) [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜' E]
 
-instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : seminormed_add_comm_group E] :
+instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [add_comm_group E] [I : seminormed_add_comm_group E] :
   seminormed_add_comm_group (restrict_scalars 𝕜 𝕜' E) := I
 
-instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_add_comm_group E] :
+instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [add_comm_group E] [I : normed_add_comm_group E] :
   normed_add_comm_group (restrict_scalars 𝕜 𝕜' E) := I
 
 /-- If `E` is a normed space over `𝕜'` and `𝕜` is a normed algebra over `𝕜'`, then
@@ -560,7 +564,7 @@ This is not an instance as it would be contrary to the purpose of `restrict_scal
 -- If you think you need this, consider instead reproducing `restrict_scalars.lsmul`
 -- appropriately modified here.
 def module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
-  [normed_field 𝕜'] [seminormed_add_comm_group E] [I : normed_space 𝕜' E] :
+  [normed_field 𝕜'] [add_comm_group E] [seminormed_add_comm_group E] [I : normed_space 𝕜' E] :
   normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
 /-- Warning: This declaration should be used judiciously.

@@ -14,11 +14,17 @@ import algebra.continued_fractions.computation.approximation_corollaries
 /-!
 # Diophantine Approximation
 
-This file gives proofs of various versions of **Dirichlet's approximation theorem**
-and its important consequence that when `ξ` is an irrational real number, then there are
-infinitely many rationals `x/y` (in lowest terms) such that `|ξ - x/y| < 1/y^2`.
-
+The first part of this file gives proofs of various versions of
+**Dirichlet's approximation theorem** and its important consequence that when $\xi$ is an
+irrational real number, then there are infinitely many rationals $x/y$ (in lowest terms)
+such that
+$$\left|\xi - \frac{x}{y}\right| < \frac{1}{y^2} \,.$$
 The proof is based on the pigeonhole principle.
+
+The second part of the file gives a proof of **Legendre's Theorem** on rational approximation,
+which states that if $\xi$ is a real number and $x/y$ is a rational number such that
+$$\left|\xi - \frac{x}{y}\right| < \frac{1}{2y^2} \,,$$
+then $x/y$ must be a convergent of the continued fraction expansion of $\xi$.
 
 ## Main statements
 
@@ -41,18 +47,27 @@ We also show a converse,
 Both statements are combined to give an equivalence,
 `real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational`.
 
+There are two versions od Legendre's Theorem. One, `real.ex_rat_eq_convergent`, uses
+`real.convergent`, a simple recursive definition of the convergents that is also defined
+in this file, whereas the other, `real.ex_continued_fraction_convergent_eq_rat`, uses
+`generalized_continued_fraction.convergents` of `generalized_continued_fraction.of ξ`.
+
 ## Implementation notes
 
 We use the namespace `real` for the results on real numbers and `rat` for the results
-on rational numbers.
+on rational numbers. We introduce a secondary namespace `real.contfrac_legendre`
+to separate off a definition and some technical auxiliary lemmas used in the proof
+of Legendre's Theorem. For remarks on the proof of Legendre's Theorem, see below.
 
 ## References
 
 <https://en.wikipedia.org/wiki/Dirichlet%27s_approximation_theorem>
+<https://de.wikipedia.org/wiki/Kettenbruch> (The German Wikipedia page on continued
+fractions is much more extensive than the English one.)
 
 ## Tags
 
-Diophantine approximation, Dirichlet's approximation theorem
+Diophantine approximation, Dirichlet's approximation theorem, continued fraction
 -/
 
 namespace real
@@ -271,10 +286,9 @@ begin
 end
 
 /-!
-## Legendre's Theorem on Rational Approximation
+### Legendre's Theorem on Rational Approximation
 
-We define the continued fraction expansion of a real number and its convergents
-and prove **Legendre's Theorem** on rational approximation: If $\xi$ is a real number and
+We prove **Legendre's Theorem** on rational approximation: If $\xi$ is a real number and
 $x/y$ is a rational number such that $|\xi - x/y| < 1/(2y^2)$,
 then $x/y$ is a convergent of the continued fraction expansion of $\xi$.
 

@@ -26,6 +26,7 @@ norm (which in fact implies the distance yields a pseudometric space, but
 bundling just the distance and using an instance for the pseudometric space
 results in type class problems). -/
 class normed_add_torsor (V : out_param $ Type*) (P : Type*)
+  [out_param $ add_comm_group V]
   [out_param $ seminormed_add_comm_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ‖(x -ᵥ y : V)‖)
@@ -35,7 +36,8 @@ class normed_add_torsor (V : out_param $ Type*) (P : Type*)
 instance normed_add_torsor.to_add_torsor' {V P : Type*} [add_comm_group V] [normed_add_comm_group V] [metric_space P]
   [normed_add_torsor V P] : add_torsor V P := normed_add_torsor.to_add_torsor
 
-variables {α V P W Q : Type*} [add_comm_group V] [seminormed_add_comm_group V] [pseudo_metric_space P]
+variables {α V P W Q : Type*} [add_comm_group V] [add_comm_group W]
+  [seminormed_add_comm_group V] [pseudo_metric_space P]
   [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 
 @[priority 100]
@@ -136,7 +138,7 @@ omit V
 is not an instance because it depends on `V` to define a `metric_space
 P`. -/
 def pseudo_metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
-  [seminormed_add_comm_group V] [add_torsor V P] : pseudo_metric_space P :=
+  [add_comm_group V] [seminormed_add_comm_group V] [add_torsor V P] : pseudo_metric_space P :=
 { dist := λ x y, ‖(x -ᵥ y : V)‖,
   dist_self := λ x, by simp,
   dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
@@ -151,7 +153,7 @@ def pseudo_metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
 is not an instance because it depends on `V` to define a `metric_space
 P`. -/
 def metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
-  [normed_add_comm_group V] [add_torsor V P] :
+  [add_comm_group V] [normed_add_comm_group V] [add_torsor V P] :
   metric_space P :=
 { dist := λ x y, ‖(x -ᵥ y : V)‖,
   dist_self := λ x, by simp,

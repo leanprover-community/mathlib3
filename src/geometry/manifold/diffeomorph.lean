@@ -47,9 +47,9 @@ open_locale manifold topology
 open function set
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G]

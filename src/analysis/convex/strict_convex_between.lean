@@ -14,7 +14,7 @@ space.
 
 -/
 
-variables {V P : Type*} [normed_add_comm_group V] [normed_space ℝ V] [pseudo_metric_space P]
+variables {V P : Type*} [add_comm_group V] [normed_add_comm_group V] [normed_space ℝ V] [pseudo_metric_space P]
 variables [normed_add_torsor V P] [strict_convex_space ℝ V]
 
 include V

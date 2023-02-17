@@ -56,7 +56,7 @@ open linear_map
 
 variables {R : Type*} [semiring R]
 
-variables {F E₁ : Type*} [seminormed_add_comm_group F]
+variables {F E₁ : Type*} [add_comm_group F] [seminormed_add_comm_group F]
   [normed_add_comm_group E₁] [module R E₁]
 
 variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
@@ -643,7 +643,7 @@ finite_dimensional.proper ℝ E
 `x` that is not equal to the whole space, then there exists a point `y ∈ frontier s` at distance
 `metric.inf_dist x sᶜ` from `x`. See also
 `is_compact.exists_mem_frontier_inf_dist_compl_eq_dist`. -/
-lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_add_comm_group E]
+lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [add_comm_group E] [normed_add_comm_group E]
   [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
   ∃ y ∈ frontier s, metric.inf_dist x sᶜ = dist x y :=
 begin
@@ -657,7 +657,7 @@ end
 /-- If `K` is a compact set in a nontrivial real normed space and `x ∈ K`, then there exists a point
 `y` of the boundary of `K` at distance `metric.inf_dist x Kᶜ` from `x`. See also
 `exists_mem_frontier_inf_dist_compl_eq_dist`. -/
-lemma is_compact.exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_add_comm_group E]
+lemma is_compact.exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [add_comm_group E] [normed_add_comm_group E]
   [normed_space ℝ E] [nontrivial E] {x : E} {K : set E} (hK : is_compact K) (hx : x ∈ K) :
   ∃ y ∈ frontier K, metric.inf_dist x Kᶜ = dist x y :=
 begin
@@ -677,7 +677,7 @@ end
 /-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ‖f x‖` is unconditionally
 summable if and only if the series `∑ x, f x` is unconditionally summable. One implication holds in
 any complete normed space, while the other holds only in finite dimensional spaces. -/
-lemma summable_norm_iff {α E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+lemma summable_norm_iff {α E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {f : α → E} : summable (λ x, ‖f x‖) ↔ summable f :=
 begin
   refine ⟨summable_of_summable_norm, λ hf, _⟩,
@@ -700,32 +700,32 @@ begin
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }
 end
 
-lemma summable_of_is_O' {ι E F : Type*} [normed_add_comm_group E] [complete_space E]
+lemma summable_of_is_O' {ι E F : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E]
   [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F] {f : ι → E} {g : ι → F}
   (hg : summable g) (h : f =O[cofinite] g) : summable f :=
 summable_of_is_O (summable_norm_iff.mpr hg) h.norm_right
 
-lemma summable_of_is_O_nat' {E F : Type*} [normed_add_comm_group E] [complete_space E]
+lemma summable_of_is_O_nat' {E F : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E]
   [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F] {f : ℕ → E} {g : ℕ → F}
   (hg : summable g) (h : f =O[at_top] g) : summable f :=
 summable_of_is_O_nat (summable_norm_iff.mpr hg) h.norm_right
 
-lemma summable_of_is_equivalent {ι E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+lemma summable_of_is_equivalent {ι E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
   (hg : summable g) (h : f ~[cofinite] g) : summable f :=
 hg.trans_sub (summable_of_is_O' hg h.is_o.is_O)
 
-lemma summable_of_is_equivalent_nat {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+lemma summable_of_is_equivalent_nat {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {f : ℕ → E} {g : ℕ → E}
   (hg : summable g) (h : f ~[at_top] g) : summable f :=
 hg.trans_sub (summable_of_is_O_nat' hg h.is_o.is_O)
 
-lemma is_equivalent.summable_iff {ι E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+lemma is_equivalent.summable_iff {ι E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
   (h : f ~[cofinite] g) : summable f ↔ summable g :=
 ⟨λ hf, summable_of_is_equivalent hf h.symm, λ hg, summable_of_is_equivalent hg h⟩
 
-lemma is_equivalent.summable_iff_nat {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+lemma is_equivalent.summable_iff_nat {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {f : ℕ → E} {g : ℕ → E}
   (h : f ~[at_top] g) : summable f ↔ summable g :=
 ⟨λ hf, summable_of_is_equivalent_nat hf h.symm, λ hg, summable_of_is_equivalent_nat hg h⟩

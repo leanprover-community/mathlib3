@@ -65,8 +65,8 @@ In this file we prove the following facts:
 -/
 
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
 open_locale classical topology nnreal
@@ -1369,8 +1369,8 @@ make sense and are enough. Many formulations of the mean value inequality could 
 balls over `ℝ` or `ℂ`. For now, we only include the ones that we need.
 -/
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-  {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
+  {H : Type*} [add_comm_group H] [normed_add_comm_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
 
 /-- Over the reals or the complexes, a continuously differentiable function is strictly
 differentiable. -/

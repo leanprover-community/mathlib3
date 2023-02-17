@@ -14,8 +14,8 @@ $\liminf_{n\to\infty} \frac{1}{\sqrt[n]{‖p n‖}}$. This lemma can't go to `ba
 would create a circular dependency once we redefine `exp` using `formal_multilinear_series`.
 -/
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 open_locale topology classical big_operators nnreal ennreal
 open filter asymptotics

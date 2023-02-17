@@ -73,7 +73,7 @@ begin
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
-variables {V P : Type*} [normed_add_comm_group V] [normed_space ℝ V] [metric_space P]
+variables {V P : Type*} [add_comm_group V] [normed_add_comm_group V] [normed_space ℝ V] [metric_space P]
   [normed_add_torsor V P]
 include V
 

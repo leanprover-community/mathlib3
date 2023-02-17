@@ -505,7 +505,7 @@ begin
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
 end
 
-lemma lift_norm_le {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_norm_le {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   {c : ℝ≥0} (fb : ‖f‖ ≤ c) :
   ‖lift S f hf‖ ≤ c :=
@@ -532,7 +532,7 @@ begin
     { rw [mul_add, mul_div_cancel'], exact_mod_cast hc.ne' } },
 end
 
-lemma lift_norm_noninc {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_norm_noninc {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (fb : f.norm_noninc) :
   (lift S f hf).norm_noninc :=

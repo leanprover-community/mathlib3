@@ -46,7 +46,7 @@ the addition and negation operations are smooth. -/
 @[ancestor has_smooth_add]
 class lie_add_group {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [add_group G] [topological_space G] [charted_space H G]
   extends has_smooth_add I G : Prop :=
 (smooth_neg : smooth I I (λ a:G, -a))
@@ -57,7 +57,7 @@ the multiplication and inverse operations are smooth. -/
 @[ancestor has_smooth_mul, to_additive]
 class lie_group {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [group G] [topological_space G] [charted_space H G]
   extends has_smooth_mul I G : Prop :=
 (smooth_inv : smooth I I (λ a:G, a⁻¹))
@@ -66,8 +66,8 @@ section lie_group
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
 {G : Type*} [topological_space G] [charted_space H G] [group G] [lie_group I G]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
@@ -122,7 +122,7 @@ section prod_lie_group
 /- Instance of product group -/
 @[to_additive]
 instance {𝕜 : Type*} [nontrivially_normed_field 𝕜] {H : Type*} [topological_space H]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
   {G : Type*} [topological_space G] [charted_space H G] [group G] [lie_group I G]
   {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
@@ -137,7 +137,7 @@ end prod_lie_group
 /-! ### Normed spaces are Lie groups -/
 
 instance normed_space_lie_add_group {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] :
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] :
   lie_add_group (𝓘(𝕜, E)) E :=
 { smooth_add := smooth_iff.2 ⟨continuous_add, λ x y, cont_diff_add.cont_diff_on⟩,
   smooth_neg := smooth_iff.2 ⟨continuous_neg, λ x y, cont_diff_neg.cont_diff_on⟩,

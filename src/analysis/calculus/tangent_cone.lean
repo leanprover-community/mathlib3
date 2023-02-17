@@ -63,9 +63,9 @@ def unique_diff_on (s : set E) : Prop :=
 
 end tangent_cone
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_add_comm_group G] [normed_space ℝ G]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space ℝ G]
 variables {𝕜} {x y : E} {s t : set E}
 
 section tangent_cone

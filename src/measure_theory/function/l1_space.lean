@@ -722,7 +722,7 @@ begin
 end
 
 section
-variables  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
 
 lemma integrable_with_density_iff_integrable_coe_smul
   {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
@@ -793,7 +793,7 @@ begin
 end
 
 section
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
 
 lemma mem_ℒ1_smul_of_L1_with_density {f : α → ℝ≥0} (f_meas : measurable f)
   (u : Lp E 1 (μ.with_density (λ x, f x))) :
@@ -916,7 +916,7 @@ end normed_space
 
 section normed_space_over_complete_field
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 lemma integrable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   integrable (λ x, f x • c) μ ↔ integrable f μ :=
@@ -995,7 +995,7 @@ end inner_product
 
 section trim
 
-variables {H : Type*} [normed_add_comm_group H] {m0 : measurable_space α} {μ' : measure α}
+variables {H : Type*} [add_comm_group H] [normed_add_comm_group H] {m0 : measurable_space α} {μ' : measure α}
   {f : α → H}
 
 lemma integrable.trim (hm : m ≤ m0) (hf_int : integrable f μ') (hf : strongly_measurable[m] f) :
@@ -1227,9 +1227,9 @@ end measure_theory
 
 open measure_theory
 
-variables {E : Type*} [normed_add_comm_group E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E]
           {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
-          {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
+          {H : Type*} [add_comm_group H] [normed_add_comm_group H] [normed_space 𝕜 H]
 
 lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[𝕜] E}
   (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=

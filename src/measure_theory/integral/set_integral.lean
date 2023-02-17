@@ -846,7 +846,7 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables {ι : Type*} [normed_add_comm_group E]
+variables {ι : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 /-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
 filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
@@ -998,7 +998,7 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_apply {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
+lemma integral_apply {H : Type*} [add_comm_group H] [normed_add_comm_group H] [normed_space 𝕜 H]
   {φ : α → H →L[𝕜] E} (φ_int : integrable φ μ) (v : H) :
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
 ((continuous_linear_map.apply 𝕜 E v).integral_comp_comm φ_int).symm

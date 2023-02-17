@@ -112,7 +112,7 @@ We use the names `mdifferentiable` and `mfderiv`, where the prefix letter `m` me
 -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -308,7 +308,7 @@ section derivatives_properties
 /-! ### Unique differentiability sets in manifolds -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] --
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -952,7 +952,7 @@ this and related statements.
 -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {f : E → E'} {s : set E} {x : E}
 
@@ -1058,7 +1058,7 @@ section specific_functions
 /-! ### Differentiability of specific functions -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -1509,7 +1509,7 @@ end specific_functions
 namespace local_homeomorph.mdifferentiable
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -1621,7 +1621,7 @@ end local_homeomorph.mdifferentiable
 section ext_chart_at
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {s : set M} {x y : M}
@@ -1648,7 +1648,7 @@ end ext_chart_at
 section unique_mdiff
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -1761,7 +1761,7 @@ begin
   exact this.unique_diff_on_target_inter _
 end
 
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_vector_bundle_core I M F)
 
 /-- In a smooth fiber bundle constructed from core, the preimage under the projection of a set with

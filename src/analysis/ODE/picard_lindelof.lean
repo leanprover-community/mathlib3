@@ -38,14 +38,14 @@ open_locale filter topology nnreal ennreal nat interval
 
 noncomputable theory
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
 
 /-- `Prop` structure holding the hypotheses of the Picard-Lindelöf theorem.
 
 The similarly named `picard_lindelof` structure is part of the internal API for convenience, so as
 not to constantly invoke choice, but is not intended for public use. -/
 structure is_picard_lindelof
-  {E : Type*} [normed_add_comm_group E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E)
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E)
   (L : ℝ≥0) (R C : ℝ) : Prop :=
 (ht₀ : t₀ ∈ Icc t_min t_max)
 (hR : 0 ≤ R)
@@ -336,7 +336,7 @@ end
 
 end picard_lindelof
 
-lemma is_picard_lindelof.norm_le₀ {E : Type*} [normed_add_comm_group E]
+lemma is_picard_lindelof.norm_le₀ {E : Type*} [add_comm_group E] [normed_add_comm_group E]
   {v : ℝ → E → E} {t_min t₀ t_max : ℝ} {x₀ : E} {C R : ℝ} {L : ℝ≥0}
   (hpl : is_picard_lindelof v t_min t₀ t_max x₀ L R C) : ‖v t₀ x₀‖ ≤ C :=
 hpl.norm_le t₀ hpl.ht₀ x₀ $ mem_closed_ball_self hpl.hR

@@ -62,9 +62,9 @@ open_locale topology classical nnreal
 noncomputable theory
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
 variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜 G']
 variables {ε : ℝ}
 
@@ -481,8 +481,8 @@ omit cs
 
 /-- In a real vector space, a function `f` that approximates a linear equivalence on a subset `s`
 can be extended to a homeomorphism of the whole space. -/
-lemma exists_homeomorph_extension {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
+lemma exists_homeomorph_extension {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
+  {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
   {s : set E} {f : E → F} {f' : E ≃L[ℝ] F} {c : ℝ≥0}
   (hf : approximates_linear_on f (f' : E →L[ℝ] F) s c)
   (hc : subsingleton E ∨ lipschitz_extension_constant F * c < (‖(f'.symm : F →L[ℝ] E)‖₊)⁻¹) :

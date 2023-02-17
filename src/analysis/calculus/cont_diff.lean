@@ -173,10 +173,10 @@ open set fin filter function
 open_locale topology
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-{X : Type*} [normed_add_comm_group X] [normed_space 𝕜 X]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
+{X : Type*} [add_comm_group X] [normed_add_comm_group X] [normed_space 𝕜 X]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x x₀ : E} {c : F}
 {b : E × F → G} {m n : ℕ∞}
 
@@ -3415,7 +3415,7 @@ end
 
 /-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
 then `f` is Lipschitz in a neighborhood of `x` within `s`. -/
-lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [normed_add_comm_group E]
+lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [add_comm_group E] [normed_add_comm_group E]
   [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) :
@@ -3424,7 +3424,7 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [normed
 
 /-- If `f` is `C^1` within a conves set `s` at `x`, then it is Lipschitz on a neighborhood of `x`
 within `s`. -/
-lemma cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_add_comm_group E]
+lemma cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [add_comm_group E] [normed_add_comm_group E]
   [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F] {f : E → F} {s : set E}
   {x : E} (hf : cont_diff_within_at ℝ 1 f s x) (hs : convex ℝ s) :
   ∃ (K : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=

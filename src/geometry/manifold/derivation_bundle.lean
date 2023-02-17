@@ -21,7 +21,7 @@ of the Lie algebra for a Lie group.
 -/
 
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] (n : ℕ∞)
 

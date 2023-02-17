@@ -44,7 +44,7 @@ instances `add_monoid α` and `has_smooth_add α`. -/
 @[ancestor smooth_manifold_with_corners]
 class has_smooth_add {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_add G] [topological_space G] [charted_space H G]
   extends smooth_manifold_with_corners I G : Prop :=
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
@@ -56,7 +56,7 @@ and `has_smooth_mul I G`. -/
 @[ancestor smooth_manifold_with_corners, to_additive]
 class has_smooth_mul {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_mul G] [topological_space G] [charted_space H G]
   extends smooth_manifold_with_corners I G : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
@@ -65,7 +65,7 @@ section has_smooth_mul
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [has_mul G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
@@ -187,7 +187,7 @@ end
 /- Instance of product -/
 @[to_additive]
 instance has_smooth_mul.prod {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (G : Type*) [topological_space G] [charted_space H G]
   [has_mul G] [has_smooth_mul I G]
@@ -206,7 +206,7 @@ section monoid
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
 {H' : Type*} [topological_space H']
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] {I' : model_with_corners 𝕜 E' H'}
@@ -250,7 +250,7 @@ open_locale big_operators
 
 variables {ι 𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [comm_monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}

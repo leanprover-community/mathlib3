@@ -54,6 +54,7 @@ variables {R l m n α β : Type*} [fintype l] [fintype m] [fintype n]
 section linf_linf
 
 section seminormed_add_comm_group
+variables [add_comm_group α] [add_comm_group β]
 variables [seminormed_add_comm_group α] [seminormed_add_comm_group β]
 
 /-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed group. Not
@@ -142,14 +143,14 @@ end seminormed_add_comm_group
 /-- Normed group instance (using sup norm of sup norm) for matrices over a normed group.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def normed_add_comm_group [normed_add_comm_group α] :
+protected def normed_add_comm_group [add_comm_group α] [normed_add_comm_group α] :
   normed_add_comm_group (matrix m n α) :=
 pi.normed_add_comm_group
 
 section normed_space
 local attribute [instance] matrix.seminormed_add_comm_group
 
-variables [normed_field R] [seminormed_add_comm_group α] [normed_space R α]
+variables [normed_field R] [add_comm_group α] [seminormed_add_comm_group α] [normed_space R α]
 
 /-- Normed space instance (using sup norm of sup norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a

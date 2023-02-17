@@ -1529,7 +1529,7 @@ theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
   f =O[l] g :=
 (is_O_iff_div_is_bounded_under hgf).2 $ H.norm.is_bounded_under_le
 
-lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_add_comm_group E] [normed_field 𝕜]
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_field 𝕜]
   {u : α → E} {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : u =o[l] v) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=
 begin

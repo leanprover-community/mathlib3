@@ -32,7 +32,7 @@ second step is implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
 open set filter metric complex
 open_locale topology
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {U : set E}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E] {U : set E}
   {f : ℂ → ℂ} {g : E → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
 
 /-- If the modulus of a holomorphic function `f` is bounded below by `ε` on a circle, then its range

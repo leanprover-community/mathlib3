@@ -33,7 +33,7 @@ variables {f : 𝕜 → E} {a b : 𝕜} {s : set 𝕜}
 lemma dslope_of_ne (f : 𝕜 → E) (h : b ≠ a) : dslope f a b = slope f a b :=
 update_noteq h _ _
 
-lemma continuous_linear_map.dslope_comp {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+lemma continuous_linear_map.dslope_comp {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
   (f : E →L[𝕜] F) (g : 𝕜 → E) (a b : 𝕜) (H : a = b → differentiable_at 𝕜 g a) :
   dslope (f ∘ g) a b = f (dslope g a b) :=
 begin

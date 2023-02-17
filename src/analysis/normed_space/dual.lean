@@ -144,11 +144,11 @@ open metric set normed_space
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
 def polar (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
+  {E : Type*} [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
 (dual_pairing 𝕜 E).flip.polar
 
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-variables {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E]
+variables {E : Type*} [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ‖x' z‖ ≤ 1 := iff.rfl
 

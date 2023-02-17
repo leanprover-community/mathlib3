@@ -1847,7 +1847,7 @@ end
 
 variables (hs)
 
-lemma snorm_indicator_le {E : Type*} [normed_add_comm_group E] (f : α → E) :
+lemma snorm_indicator_le {E : Type*} [add_comm_group E] [normed_add_comm_group E] (f : α → E) :
   snorm (s.indicator f) p μ ≤ snorm f p μ :=
 begin
   refine snorm_mono_ae (eventually_of_forall (λ x, _)),

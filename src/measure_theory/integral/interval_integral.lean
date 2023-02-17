@@ -168,7 +168,7 @@ open measure_theory set classical filter function
 
 open_locale classical topology filter ennreal big_operators interval nnreal
 
-variables {ι 𝕜 E F A : Type*} [normed_add_comm_group E]
+variables {ι 𝕜 E F A : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 /-!
 ### Integrability at an interval

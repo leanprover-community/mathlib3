@@ -63,7 +63,7 @@ variables
   {𝕜 : Type*} [comm_ring 𝕜]
   {V : Type*} [add_comm_group V] [module 𝕜 V] [measurable_space V]
   {W : Type*} [add_comm_group W] [module 𝕜 W]
-  {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E]
 
 section defs
 
@@ -182,7 +182,7 @@ end vector_fourier
 namespace fourier
 
 variables {𝕜 : Type*} [comm_ring 𝕜] [measurable_space 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E]
 
 section defs
 
@@ -237,7 +237,7 @@ by refl
 lemma continuous_fourier_char : continuous real.fourier_char :=
 (map_continuous exp_map_circle).comp (continuous_const.mul continuous_to_add)
 
-variables {E : Type*} [normed_add_comm_group E] [complete_space E] [normed_space ℂ E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E] [normed_space ℂ E]
 
 lemma vector_fourier_integral_eq_integral_exp_smul
   {V : Type*} [add_comm_group V] [module ℝ V] [measurable_space V]
@@ -256,7 +256,7 @@ lemma fourier_integral_def (f : ℝ → E) (w : ℝ) :
 rfl
 
 lemma fourier_integral_eq_integral_exp_smul
-  {E : Type*} [normed_add_comm_group E] [complete_space E] [normed_space ℂ E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E] [normed_space ℂ E]
   (f : ℝ → E) (w : ℝ) :
   fourier_integral f w = ∫ (v : ℝ), complex.exp (↑(-2 * π * v * w) * complex.I) • f v :=
 by simp_rw [fourier_integral_def, real.fourier_char_apply, mul_neg, neg_mul, mul_assoc]

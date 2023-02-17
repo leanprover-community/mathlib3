@@ -277,7 +277,7 @@ and prove basic property of this integral.
 open finset
 
 variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ F] {p : ℝ≥0∞}
-  {G F' : Type*} [normed_add_comm_group G] [normed_add_comm_group F'] [normed_space ℝ F']
+  {G F' : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_add_comm_group F'] [normed_space ℝ F']
   {m : measurable_space α} {μ : measure α}
 
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`.
@@ -1178,7 +1178,7 @@ lemma integral_pos_iff_support_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : 
 integral_pos_iff_support_of_nonneg_ae (eventually_of_forall hf) hfi
 
 section normed_add_comm_group
-variables {H : Type*} [normed_add_comm_group H]
+variables {H : Type*} [add_comm_group H] [normed_add_comm_group H]
 
 lemma L1.norm_eq_integral_norm (f : α →₁[μ] H) : ‖f‖ = ∫ a, ‖f a‖ ∂μ :=
 begin
@@ -1613,7 +1613,7 @@ attribute [integral_simps] integral_neg integral_smul L1.integral_add L1.integra
 
 section integral_trim
 
-variables {H β γ : Type*} [normed_add_comm_group H]
+variables {H β γ : Type*} [add_comm_group H] [normed_add_comm_group H]
   {m m0 : measurable_space β} {μ : measure β}
 
 /-- Simple function seen as simple function of a larger `measurable_space`. -/

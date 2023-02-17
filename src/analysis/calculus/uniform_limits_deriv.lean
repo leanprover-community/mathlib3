@@ -98,9 +98,9 @@ open_locale uniformity filter topology
 section limits_of_derivatives
 
 variables {ι : Type*} {l : filter ι}
-  {E : Type*} [normed_add_comm_group E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
-  {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+  {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
   {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
   {x : E}
 
@@ -473,7 +473,7 @@ derivatives
 
 variables {ι : Type*} {l : filter ι}
   {𝕜 : Type*} [is_R_or_C 𝕜]
-  {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+  {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
   {f : ι → 𝕜 → G} {g : 𝕜 → G} {f' : ι → 𝕜 → G} {g' : 𝕜 → G}
   {x : 𝕜}
 

@@ -31,7 +31,7 @@ open_locale big_operators nnreal filter topology ennreal
 
 open asymptotics filter set real measure_theory finite_dimensional
 
-variables {E : Type*} [normed_add_comm_group E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 lemma sqrt_one_add_norm_sq_le (x : E) : real.sqrt (1 + ‖x‖^2) ≤ 1 + ‖x‖ :=
 begin

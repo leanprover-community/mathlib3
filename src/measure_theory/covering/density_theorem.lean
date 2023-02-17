@@ -134,7 +134,7 @@ end
 
 section applications
 variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
-  {E : Type*} [normed_add_comm_group E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 /-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centers are
 not required to be fixed.

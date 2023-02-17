@@ -88,7 +88,7 @@ open measure_theory measure_theory.measure metric filter set finite_dimensional 
 topological_space
 open_locale nnreal ennreal topology pointwise
 
-variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E F : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 [normed_add_comm_group F] [normed_space ℝ F] {s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
 
 /-!

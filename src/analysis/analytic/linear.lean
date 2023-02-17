@@ -13,9 +13,9 @@ the formal power series `f x = f a + f (x - a)`.
 -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
 
 open_locale topology classical big_operators nnreal ennreal
 open set filter asymptotics

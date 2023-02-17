@@ -461,7 +461,7 @@ lemma differentiable_within_at_Ioi_iff_Ici [partial_order 𝕜] :
 ⟨λ h, h.has_deriv_within_at.Ici_of_Ioi.differentiable_within_at,
 λ h, h.has_deriv_within_at.Ioi_of_Ici.differentiable_within_at⟩
 
-lemma deriv_within_Ioi_eq_Ici {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] (f : ℝ → E)
+lemma deriv_within_Ioi_eq_Ici {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] (f : ℝ → E)
   (x : ℝ) :
   deriv_within f (Ioi x) x = deriv_within f (Ici x) x :=
 begin
@@ -1671,7 +1671,7 @@ section clm_comp_apply
 
 open continuous_linear_map
 
-variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G] {c : 𝕜 → F →L[𝕜] G}
+variables {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G] {c : 𝕜 → F →L[𝕜] G}
   {c' : F →L[𝕜] G} {d : 𝕜 → E →L[𝕜] F} {d' : E →L[𝕜] F} {u : 𝕜 → F} {u' : F}
 
 lemma has_strict_deriv_at.clm_comp (hc : has_strict_deriv_at c c' x)
@@ -1968,7 +1968,7 @@ end pow
 
 section zpow
 /-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {x : 𝕜} {s : set 𝕜} {m : ℤ}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {x : 𝕜} {s : set 𝕜} {m : ℤ}
 
 lemma has_strict_deriv_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
@@ -2092,7 +2092,7 @@ end zpow
 section support
 
 open function
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] {f : 𝕜 → F}
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F] {f : 𝕜 → F}
 
 lemma support_deriv_subset : support (deriv f) ⊆ tsupport f :=
 begin

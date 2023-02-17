@@ -94,8 +94,8 @@ end continuous_linear_map
 section fderiv
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {f : E → F} (K : set (E →L[𝕜] F))
 
 namespace fderiv_measurable_aux
@@ -432,7 +432,7 @@ end fderiv
 
 section right_deriv
 
-variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F]
 variables {f : ℝ → F} (K : set F)
 
 namespace right_deriv_measurable_aux

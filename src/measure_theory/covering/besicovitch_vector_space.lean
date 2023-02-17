@@ -49,7 +49,7 @@ noncomputable theory
 
 namespace besicovitch
 
-variables {E : Type*} [normed_add_comm_group E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 namespace satellite_config
 variables [normed_space ℝ E] {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)

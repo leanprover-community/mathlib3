@@ -127,6 +127,8 @@ begin
     exact hab hi, },
 end
 
+.
+
 -- To be removed
 lemma zero_eq_quo_add_sum_rem_div_unique {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
@@ -147,8 +149,8 @@ begin
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
 
--- Dividing by a term in a product inside a sum
-lemma finset.sum_prod_div {s : finset R[X]} (hnz : ∀ (n : R[X]), n ∈ s → n ≠ 0 ) :
+-- Dividing by a term in a product inside a sum: an example
+example {s : finset R[X]} (hnz : ∀ (n : R[X]), n ∈ s → n ≠ 0 ) :
   ∑ n in s, (↑ (∏ k in s, k) / ↑ n) = ∑ n in s, (∏ k in s.erase n, (↑ k : K) ) :=
 begin
   apply finset.sum_congr,
@@ -160,6 +162,34 @@ begin
       exact hx },
     { norm_cast,
       exact hnz x hx, } }
+end
+
+-- Useful in the uniqueness proof. TODO: Generalize!
+lemma finset.sum_prod_div_with_coeffs {ι : Type*} {s : finset ι}
+  (g r : ι → R[X]) (hg : ∀ (n : ι), n ∈ s → (g n).monic ) :
+  ∑ n in s, ↑(r n) * (↑ (∏ k in s, g k) / ↑ (g n)) =
+  ∑ n in s, ↑ (r n) * (∏ k in s.erase n, (↑ (g k) : K) ) :=
+begin
+  apply finset.sum_congr,
+  { refl, },
+  { intros x hx,
+    congr,
+    rw div_eq_iff _,
+    { rw s.prod_erase_mul _,
+      norm_cast,
+      exact hx },
+    { norm_cast,
+      exact (hg x hx).ne_zero, } }
+end
+
+-- Dividing by a term in a product inside a sum: full generality
+lemma finset.sum_prod_div' {ι : Type*} {s : finset ι}
+  (g : ι → R[X]) (hg : ∀ (n : ι), n ∈ s → (g n).monic ) :
+  ∑ n in s, (↑ (∏ k in s, g k) / ↑ (g n)) = ∑ n in s, (∏ k in s.erase n, (↑ (g k) : K) ) :=
+begin
+  have H := finset.sum_prod_div_with_coeffs R K g (λ x, (1 : R[X])) hg,
+  simp only [algebra_map.coe_one, one_mul] at H,
+  exact H,
 end
 
 .
@@ -193,6 +223,8 @@ begin
     -- ring_nf at hsum,
     --simp [mul_add, add_mul] at hsum,
     --rw finset.prod_filter finset.dvd_prod_of_mem (λ (x : ι), g x) g at hsum,
+    have hsumproddiv := finset.sum_prod_div_with_coeffs R K g r hg,
+
     sorry,
      },
   { norm_cast,

@@ -155,7 +155,7 @@ m.mod_two_eq_zero_or_one.elim
             pow_add, add_comm, add_left_comm] },
       have hwxyzabcd : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) =
           ((a^2 + b^2 + c^2 + d^2 : ℤ) : zmod m),
-        by { push_cast, simp only [zmod.coe_val_min_abs]},
+        by push_cast,
       have hwxyz0 : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) = 0,
         by rw [hwxyzabcd, habcd, int.cast_mul, cast_coe_nat, zmod.nat_cast_self, zero_mul],
       let ⟨n, hn⟩ := ((char_p.int_cast_eq_zero_iff _ m _).1 hwxyz0) in
@@ -175,16 +175,13 @@ m.mod_two_eq_zero_or_one.elim
         (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
         from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
-          by { rw [← hwxyz0], push_cast, simp only [sq, zmod.coe_val_min_abs] },
+          by { rw [← hwxyz0], simp_rw [sq], push_cast },
       have haxbwczdy : ((m : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
-          by { push_cast, simp only [zmod.coe_val_min_abs], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { push_cast, ring },
       have haybzcwdx : ((m : ℕ) : ℤ) ∣ a * y + b * z - c * w - d * x,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
-          by { push_cast, simp only [zmod.coe_val_min_abs], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { push_cast, ring },
       have hazbycxdw : ((m : ℕ) : ℤ) ∣ a * z - b * y + c * x - d * w,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $
-          by { push_cast, simp only [zmod.coe_val_min_abs], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { push_cast, ring },
       let ⟨s, hs⟩ := hawbxcydz, ⟨t, ht⟩ := haxbwczdy, ⟨u, hu⟩ := haybzcwdx, ⟨v, hv⟩ := hazbycxdw in
       have hn_nonneg : 0 ≤ n,
         from nonneg_of_mul_nonneg_right

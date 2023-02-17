@@ -6,7 +6,6 @@ Authors: Kyle Miller
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
 import data.list.rotate
-import data.finset.basic
 /-!
 
 # Graph connectivity

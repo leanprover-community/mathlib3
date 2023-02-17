@@ -35,7 +35,7 @@ disks, convex, balanced
 
 
 open normed_field set
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {𝕜 E F G ι : Type*}
 

@@ -8,6 +8,9 @@ import data.finset.pointwise
 /-!
 # Ruzsa's covering lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Ruzsa covering lemma. This says that, for `s`, `t` finsets, we can cover `s`
 with at most `(s + t).card /  t.card` copies of `t - t`.
 

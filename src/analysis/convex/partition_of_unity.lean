@@ -25,7 +25,7 @@ partition of unity
 -/
 
 open set function
-open_locale big_operators topological_space
+open_locale big_operators topology
 
 variables {ι X E : Type*} [topological_space X] [add_comm_group E] [module ℝ E]
 

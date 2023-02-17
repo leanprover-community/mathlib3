@@ -35,7 +35,7 @@ Given a group `G` and a ring `R`:
 -/
 
 open filter set topological_space function
-open_locale topological_space filter pointwise
+open_locale topology filter pointwise
 
 universe u
 

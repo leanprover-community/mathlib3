@@ -10,6 +10,9 @@ import category_theory.natural_isomorphism
 /-!
 # Disjoint union of categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the category structure on a sigma-type (disjoint union) of categories.
 -/
 

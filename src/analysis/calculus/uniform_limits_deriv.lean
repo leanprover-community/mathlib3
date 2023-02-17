@@ -93,7 +93,7 @@ uniform convergence, limits of derivatives
 -/
 
 open filter
-open_locale uniformity filter topological_space
+open_locale uniformity filter topology
 
 section limits_of_derivatives
 

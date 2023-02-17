@@ -115,7 +115,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M']
 
@@ -311,10 +311,10 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] --
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
-{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+{E'' : Type*} [add_comm_group E''] [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 {f f₀ f₁ : M → M'}
@@ -953,7 +953,7 @@ this and related statements.
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {f : E → E'} {s : set E} {x : E}
 
 lemma unique_mdiff_within_at_iff_unique_diff_within_at :
@@ -1061,7 +1061,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 
@@ -1512,10 +1512,10 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
-{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+{E'' : Type*} [add_comm_group E''] [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 {e : local_homeomorph M M'} (he : e.mdifferentiable I I')
@@ -1651,7 +1651,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {s : set M}

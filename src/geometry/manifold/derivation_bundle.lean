@@ -95,7 +95,7 @@ lemma eval_at_apply (x : M) : eval_at x X f = (X f) x := rfl
 
 end derivation
 
-variables {I} {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+variables {I} {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
 
@@ -131,7 +131,7 @@ localized "notation (name := hfdifferential) `𝒅ₕ` := hfdifferential" in man
 @[simp] lemma apply_hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y)
   (v : point_derivation I x) (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅ₕh v g = 𝒅f x v g := rfl
 
-variables {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+variables {E'' : Type*} [add_comm_group E''] [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 

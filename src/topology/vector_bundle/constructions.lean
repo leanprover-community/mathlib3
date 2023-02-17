@@ -71,9 +71,9 @@ end bundle.trivial
 
 section
 variables (𝕜 : Type*) {B : Type*} [nontrivially_normed_field 𝕜] [topological_space B]
-  (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
+  (F₁ : Type*) [add_comm_group F₁] [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]
-  (F₂ : Type*) [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
+  (F₂ : Type*) [add_comm_group F₂] [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
   (E₂ : B → Type*) [topological_space (total_space E₂)]
 
 namespace trivialization

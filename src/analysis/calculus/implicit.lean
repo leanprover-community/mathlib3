@@ -90,9 +90,9 @@ such that
 * the kernels of the derivatives are complementary subspaces of `E`. -/
 @[nolint has_nonempty_instance]
 structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
-  (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
-  (G : Type*) [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G] :=
+  (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  (F : Type*) [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  (G : Type*) [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G] :=
 (left_fun : E → F)
 (left_deriv : E →L[𝕜] F)
 (right_fun : E → G)

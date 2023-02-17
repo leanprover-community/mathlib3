@@ -284,7 +284,7 @@ structure cont_diff_bump (c : E) :=
 add more properties if they are useful and satisfied in the examples of inner product spaces
 and finite dimensional vector spaces, notably derivative norm control in terms of `R - 1`. -/
 @[nolint has_nonempty_instance]
-structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
+structure cont_diff_bump_base (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → ℝ)
 (mem_Icc   : ∀ (R : ℝ) (x : E), to_fun R x ∈ Icc (0 : ℝ) 1)
 (symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
@@ -295,12 +295,12 @@ structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_spac
 /-- A class registering that a real vector space admits bump functions. This will be instantiated
 first for inner product spaces, and then for finite-dimensional normed spaces.
 We use a specific class instead of `nonempty (cont_diff_bump_base E)` for performance reasons. -/
-class has_cont_diff_bump (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] : Prop :=
+class has_cont_diff_bump (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] : Prop :=
 (out : nonempty (cont_diff_bump_base E))
 
 /-- In a space with `C^∞` bump functions, register some function that will be used as a basis
 to construct bump functions of arbitrary size around any point. -/
-def some_cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E]
+def some_cont_diff_bump_base (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   [hb : has_cont_diff_bump E] : cont_diff_bump_base E :=
 nonempty.some hb.out
 

@@ -2985,8 +2985,8 @@ end const_smul
 /-! ### Cartesian product of two functions -/
 
 section prod_map
-variables {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
+variables {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
+variables {F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕜 F']
 
 /-- The product map of two `C^n` functions within a set at a point is `C^n`
 within the product set at the product point. -/
@@ -3004,8 +3004,8 @@ lemma cont_diff_within_at.prod_map
 cont_diff_within_at.prod_map' hf hg
 
 /-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
-lemma cont_diff_on.prod_map {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-  {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
+lemma cont_diff_on.prod_map {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕜 F']
   {s : set E} {t : set E'} {f : E → F} {g : E' → F'}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g t) :
   cont_diff_on 𝕜 n (prod.map f g) (s ×ˢ t) :=
@@ -3334,8 +3334,8 @@ section real
 
 variables
 {𝕂 : Type*} [is_R_or_C 𝕂]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕂 E']
-{F' : Type*} [normed_add_comm_group F'] [normed_space 𝕂 F']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕂 E']
+{F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕂 F']
 
 /-- If a function has a Taylor series at order at least 1, then at points in the interior of the
     domain of definition, the term of order 1 of this series is a strict derivative of `f`. -/

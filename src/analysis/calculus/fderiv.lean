@@ -125,7 +125,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
-variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜 G']
+variables {G' : Type*} [add_comm_group G'] [normed_add_comm_group G'] [normed_space 𝕜 G']
 
 /-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition

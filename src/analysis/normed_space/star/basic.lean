@@ -35,7 +35,7 @@ open_locale topology
 local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star group is a normed group with a compatible `star` which is isometric. -/
-class normed_star_group (E : Type*) [seminormed_add_comm_group E] [star_add_monoid E] : Prop :=
+class normed_star_group (E : Type*) [add_comm_group E] [seminormed_add_comm_group E] [star_add_monoid E] : Prop :=
 (norm_star : ∀ x : E, ‖x⋆‖ = ‖x‖)
 
 export normed_star_group (norm_star)

@@ -53,11 +53,11 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
 -- declare a smooth manifold `M'` over the pair `(E', H')`.
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
 -- declare a manifold `M''` over the pair `(E'', H'')`.
-{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+{E'' : Type*} [add_comm_group E''] [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 -- declare a smooth manifold `N` over the pair `(F, G)`.
@@ -65,11 +65,11 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
 {N : Type*} [topological_space N] [charted_space G N] [Js : smooth_manifold_with_corners J N]
 -- declare a smooth manifold `N'` over the pair `(F', G')`.
-{F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
+{F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕜 F']
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
 -- F'' is a normed space
-{F'' : Type*} [normed_add_comm_group F''] [normed_space 𝕜 F'']
+{F'' : Type*} [add_comm_group F''] [normed_add_comm_group F''] [normed_space 𝕜 F'']
 -- declare functions, sets, points and smoothness indices
 {e : local_homeomorph M H} {e' : local_homeomorph M' H'}
 {f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : ℕ∞}

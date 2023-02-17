@@ -18,11 +18,11 @@ open_locale manifold
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {N : Type*} [topological_space N] [charted_space H N]
-{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+{E'' : Type*} [add_comm_group E''] [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {N' : Type*} [topological_space N'] [charted_space H'' N']
 

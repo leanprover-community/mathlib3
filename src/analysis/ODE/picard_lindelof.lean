@@ -62,7 +62,7 @@ of using this structure.
 The similarly named `is_picard_lindelof` is a bundled `Prop` holding the long hypotheses of the
 Picard-Lindelöf theorem as named arguments. It is used as part of the public API.
 -/
-structure picard_lindelof (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
+structure picard_lindelof (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → E)
 (t_min t_max : ℝ)
 (t₀ : Icc t_min t_max)

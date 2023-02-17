@@ -581,7 +581,7 @@ def equivₗᵢ : pi_Lp ∞ β ≃ₗᵢ[𝕜] Π i, β i :=
 variables {ι' : Type*}
 variables [fintype ι']
 
-variables (p 𝕜) (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E]
+variables (p 𝕜) (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
 functions-/

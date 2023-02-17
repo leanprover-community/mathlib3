@@ -41,8 +41,8 @@ namespace normed_space
 
 section general
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-variables (E : Type*) [seminormed_add_comm_group E] [normed_space 𝕜 E]
-variables (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F]
+variables (E : Type*) [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E]
+variables (F : Type*) [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
 @[derive [inhabited, seminormed_add_comm_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜

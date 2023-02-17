@@ -67,7 +67,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [has_mul G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M]
 
@@ -191,7 +191,7 @@ instance has_smooth_mul.prod {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (G : Type*) [topological_space G] [charted_space H G]
   [has_mul G] [has_smooth_mul I G]
-  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
   (G' : Type*) [topological_space G'] [charted_space H' G']
   [has_mul G'] [has_smooth_mul I' G'] :
@@ -209,7 +209,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
 {H' : Type*} [topological_space H']
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] {I' : model_with_corners 𝕜 E' H'}
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E'] {I' : model_with_corners 𝕜 E' H'}
 {G' : Type*} [monoid G'] [topological_space G'] [charted_space H' G'] [has_smooth_mul I' G']
 
 lemma smooth_pow : ∀ n : ℕ, smooth I I (λ a : G, a ^ n)
@@ -252,7 +252,7 @@ variables {ι 𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [comm_monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] {s : set M} {x : M}
 {t : finset ι} {f : ι → M → G} {n : ℕ∞} {p : ι → Prop}

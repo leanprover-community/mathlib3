@@ -7,6 +7,9 @@ import data.set.lattice
 
 /-! # Semiquotients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A data type for semiquotients, which are classically equivalent to
 nonempty sets, but are useful for programming; the idea is that
 a semiquotient set `S` represents some (particular but unknown)

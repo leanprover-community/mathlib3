@@ -3,11 +3,18 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.group_power.lemmas
 import algebra.order.absolute_value
-import algebra.big_operators.order
+import algebra.order.group.min_max
+import algebra.order.field.basic
+import algebra.ring.pi
+import group_theory.group_action.pi
 
 /-!
 # Cauchy sequences
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A basic theory of Cauchy sequences, used in the construction of the reals and p-adic numbers. Where
 applicable, lemmas that will be reused in other contexts have been stated in extra generality.
@@ -25,8 +32,6 @@ This is a concrete implementation that is useful for simplicity and computabilit
 
 sequence, cauchy, abs val, absolute value
 -/
-
-open_locale big_operators
 
 open is_absolute_value
 
@@ -67,22 +72,20 @@ begin
 end
 
 theorem rat_inv_continuous_lemma
-  {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
+  {β : Type*} [division_ring β] (abv : β → α) [is_absolute_value abv]
   {ε K : α} (ε0 : 0 < ε) (K0 : 0 < K) :
   ∃ δ > 0, ∀ {a b : β}, K ≤ abv a → K ≤ abv b →
   abv (a - b) < δ → abv (a⁻¹ - b⁻¹) < ε :=
 begin
-  have KK := mul_pos K0 K0,
-  have εK := mul_pos ε0 KK,
-  refine ⟨_, εK, λ a b ha hb h, _⟩,
-  have a0 := lt_of_lt_of_le K0 ha,
-  have b0 := lt_of_lt_of_le K0 hb,
-  rw [inv_sub_inv ((abv_pos abv).1 a0) ((abv_pos abv).1 b0),
-      abv_div abv, abv_mul abv, mul_comm, abv_sub abv,
-      ← mul_div_cancel ε (ne_of_gt KK)],
-  exact div_lt_div h
-    (mul_le_mul hb ha (le_of_lt K0) (abv_nonneg abv _))
-    (le_of_lt $ mul_pos ε0 KK) KK
+  refine ⟨K * ε * K, mul_pos (mul_pos K0 ε0) K0, λ a b ha hb h, _⟩,
+  have a0 := K0.trans_le ha,
+  have b0 := K0.trans_le hb,
+  rw [inv_sub_inv' ((abv_pos abv).1 a0) ((abv_pos abv).1 b0), abv_mul abv, abv_mul abv,
+    abv_inv abv, abv_inv abv,  abv_sub abv],
+  refine lt_of_mul_lt_mul_left (lt_of_mul_lt_mul_right _ b0.le) a0.le,
+  rw [mul_assoc, inv_mul_cancel_right₀ b0.ne', ←mul_assoc, mul_inv_cancel a0.ne', one_mul],
+  refine h.trans_le _,
+  exact mul_le_mul (mul_le_mul ha le_rfl ε0.le a0.le) hb K0.le (mul_nonneg a0.le ε0.le),
 end
 end
 
@@ -158,17 +161,17 @@ theorem cauchy₃ (f : cau_seq β abv) {ε} : 0 < ε →
 theorem bounded (f : cau_seq β abv) : ∃ r, ∀ i, abv (f i) < r :=
 begin
   cases f.cauchy zero_lt_one with i h,
-  let R := ∑ j in finset.range (i+1), abv (f j),
-  have : ∀ j ≤ i, abv (f j) ≤ R,
-  { intros j ij, change (λ j, abv (f j)) j ≤ R,
-    apply finset.single_le_sum,
-    { intros, apply abv_nonneg abv },
-    { rwa [finset.mem_range, nat.lt_succ_iff] } },
-  refine ⟨R + 1, λ j, _⟩,
+  set R : ℕ → α := @nat.rec (λ n, α) (abv (f 0)) (λ i c, max c (abv (f i.succ))) with hR,
+  have : ∀ i, ∀ j ≤ i, abv (f j) ≤ R i,
+  { refine nat.rec (by simp [hR]) _,
+    rintros i hi j (rfl | hj),
+    { simp },
+    exact (hi j hj).trans (le_max_left _ _) },
+  refine ⟨R i + 1, λ j, _⟩,
   cases lt_or_le j i with ij ij,
-  { exact lt_of_le_of_lt (this _ (le_of_lt ij)) (lt_add_one _) },
+  { exact lt_of_le_of_lt (this i _ (le_of_lt ij)) (lt_add_one _) },
   { have := lt_of_le_of_lt (abv_add abv _ _)
-      (add_lt_add_of_le_of_lt (this _ le_rfl) (h _ ij)),
+      (add_lt_add_of_le_of_lt (this i _ le_rfl) (h _ ij)),
     rw [add_sub, add_comm] at this, simpa }
 end
 
@@ -251,17 +254,14 @@ instance : has_smul G (cau_seq β abv) :=
 @[simp, norm_cast] lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
 lemma const_smul (a : G) (x : β) : const (a • x) = a • const x := rfl
 
+instance : is_scalar_tower G (cau_seq β abv) (cau_seq β abv) :=
+⟨λ a f g, subtype.ext $ smul_assoc a ⇑f ⇑g⟩
+
 end has_smul
 
 instance : add_group (cau_seq β abv) :=
-by refine_struct
-     { add := (+),
-       neg := has_neg.neg,
-       zero := (0 : cau_seq β abv),
-       sub := has_sub.sub,
-       zsmul := (•),
-       nsmul := (•) };
-intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_mul]
+function.injective.add_group _ subtype.coe_injective
+  rfl coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 instance : add_group_with_one (cau_seq β abv) :=
 { one := 1,
@@ -281,15 +281,9 @@ instance : has_pow (cau_seq β abv) ℕ :=
 lemma const_pow (x : β) (n : ℕ) : const (x ^ n) = const x ^ n := rfl
 
 instance : ring (cau_seq β abv) :=
-by refine_struct
-     { add := (+),
-       zero := (0 : cau_seq β abv),
-       mul := (*),
-       one := 1,
-       npow := λ n f, f ^ n,
-       .. cau_seq.add_group_with_one };
-intros; try { refl }; apply ext;
-simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg, pow_succ]
+function.injective.ring _ subtype.coe_injective
+  rfl rfl coe_add coe_mul coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _) coe_pow
+  (λ _, rfl) (λ _, rfl)
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
@@ -404,6 +398,11 @@ have lim_zero (f - 0), from hf,
 have lim_zero (g*f), from mul_lim_zero_right _ $ by simpa,
 show lim_zero (g*f - 0), by simpa
 
+lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
+have lim_zero (f - 0), from hf,
+have lim_zero (f*g), from mul_lim_zero_left _ $ by simpa,
+show lim_zero (f*g - 0), by simpa
+
 lemma mul_not_equiv_zero {f g : cau_seq _ abv} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) : ¬ (f * g) ≈ 0 :=
 assume : lim_zero (f*g - 0),
 have hlz : lim_zero (f*g), by simpa,
@@ -429,20 +428,26 @@ end
 theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=
 show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
-end ring
-
-section comm_ring
-variables [comm_ring β] {abv : β → α} [is_absolute_value abv]
-
-lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
-by rw mul_comm; apply mul_equiv_zero _ hf
-
 lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
   f1 * g1 ≈ f2 * g2 :=
-by simpa only [mul_sub, mul_comm, sub_add_sub_cancel]
-  using add_lim_zero (mul_lim_zero_right g1 hf) (mul_lim_zero_right f2 hg)
+by simpa only [mul_sub, sub_mul, sub_add_sub_cancel]
+  using add_lim_zero (mul_lim_zero_left g1 hf) (mul_lim_zero_right f2 hg)
 
-end comm_ring
+lemma smul_equiv_smul [has_smul G β] [is_scalar_tower G β β] {f1 f2 : cau_seq β abv}
+  (c : G) (hf : f1 ≈ f2) :
+  c • f1 ≈ c • f2 :=
+by simpa [const_smul, smul_one_mul _ _]
+  using mul_equiv_mul (const_equiv.mpr $ eq.refl $ c • 1) hf
+
+lemma pow_equiv_pow {f1 f2 : cau_seq β abv} (hf : f1 ≈ f2) (n : ℕ) :
+  f1 ^ n ≈ f2 ^ n :=
+begin
+  induction n with n ih,
+  { simp only [pow_zero, setoid.refl] },
+  { simpa only [pow_succ] using mul_equiv_mul hf ih, },
+end
+
+end ring
 
 section is_domain
 variables [ring β] [is_domain β] (abv : β → α) [is_absolute_value abv]
@@ -461,8 +466,8 @@ absurd this one_ne_zero
 
 end is_domain
 
-section field
-variables [field β] {abv : β → α} [is_absolute_value abv]
+section division_ring
+variables [division_ring β] {abv : β → α} [is_absolute_value abv]
 
 theorem inv_aux {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∀ ε > 0, ∃ i, ∀ j ≥ i, abv ((f j)⁻¹ - (f i)⁻¹) < ε | ε ε0 :=
@@ -484,10 +489,16 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
   by simpa [(abv_pos abv).1 (lt_of_lt_of_le K0 (H _ ij)),
     abv_zero abv] using ε0⟩
 
+theorem mul_inv_cancel {f : cau_seq β abv} (hf) : f * inv f hf ≈ 1 :=
+λ ε ε0, let ⟨K, K0, i, H⟩ := abv_pos_of_not_lim_zero hf in
+⟨i, λ j ij,
+  by simpa [(abv_pos abv).1 (lt_of_lt_of_le K0 (H _ ij)),
+    abv_zero abv] using ε0⟩
+
 theorem const_inv {x : β} (hx : x ≠ 0) :
   const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) := rfl
 
-end field
+end division_ring
 
 section abs
 local notation `const` := const abs

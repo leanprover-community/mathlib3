@@ -11,6 +11,9 @@ import tactic.assert_exists
 /-!
 # Lemmas about units in a `monoid_with_zero` or a `group_with_zero`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We also define `ring.inverse`, a globally defined function on any ring
 (in fact any `monoid_with_zero`), which inverts units and sends non-units to zero.
 -/

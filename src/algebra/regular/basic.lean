@@ -10,6 +10,9 @@ import algebra.group_with_zero.basic
 /-!
 # Regular elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce left-regular, right-regular and regular elements, along with their `to_additive`
 analogues add-left-regular, add-right-regular and add-regular elements.
 

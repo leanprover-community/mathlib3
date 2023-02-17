@@ -9,6 +9,9 @@ import number_theory.divisors
 /-!
 # Prime powers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with prime powers: numbers which are positive integer powers of a single prime.
 -/
 
@@ -39,12 +42,13 @@ begin
   simp,
 end
 
-lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) :=
-begin
-  simp only [is_prime_pow_def, not_exists, not_and', and_imp],
-  intros x n hn hx ht,
-  exact ht.not_unit (is_unit_of_pow_eq_one x n hx hn.ne'),
-end
+lemma is_prime_pow.not_unit {n : R} (h : is_prime_pow n) : ¬is_unit n :=
+let ⟨p, k, hp, hk, hn⟩ := h in hn ▸ (is_unit_pow_iff hk.ne').not.mpr hp.not_unit
+
+lemma is_unit.not_is_prime_pow {n : R} (h : is_unit n) : ¬is_prime_pow n :=
+λ h', h'.not_unit h
+
+lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) := is_unit_one.not_is_prime_pow
 
 lemma prime.is_prime_pow {p : R} (hp : prime p) : is_prime_pow p :=
 ⟨p, 1, hp, zero_lt_one, by simp⟩

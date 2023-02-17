@@ -11,6 +11,9 @@ import data.list.infix
 
 # Dropping or taking from lists on the right
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Taking or removing element from the tail end of a list
 
 ## Main defintions

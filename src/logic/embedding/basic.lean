@@ -12,6 +12,9 @@ import logic.equiv.basic
 
 /-!
 # Injective functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w x
@@ -135,7 +138,7 @@ protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : su
   α ≃ β :=
 equiv.of_bijective f ⟨f.injective, hf⟩
 
-/-- There is always an embedding from an empty type. --/
+/-- There is always an embedding from an empty type. -/
 protected def of_is_empty {α β} [is_empty α] : α ↪ β :=
 ⟨is_empty_elim, is_empty_elim⟩
 
@@ -265,7 +268,7 @@ This embedding sends each `f : α → γ` to a function `g : β → γ` such tha
 noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
 ⟨λ f, extend e f default, λ f₁ f₂ h, funext $ λ x,
-  by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
+  by simpa only [e.injective.extend_apply] using congr_fun h (e x)⟩
 
 /-- Restrict both domain and codomain of an embedding. -/
 protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)

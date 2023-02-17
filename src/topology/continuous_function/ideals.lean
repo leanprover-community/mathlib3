@@ -7,7 +7,7 @@ Authors: Jireh Loreaux
 import topology.algebra.algebra
 import topology.continuous_function.compact
 import topology.urysohns_lemma
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import analysis.normed_space.units
 import topology.algebra.module.character_space
 
@@ -85,8 +85,7 @@ variable (R)
 which vanish on the complement of `s`. -/
 def ideal_of_set (s : set X) : ideal C(X, R) :=
 { carrier := {f : C(X, R) | ∀ x ∈ sᶜ, f x = 0},
-  add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, continuous_map.coe_add,
-                                              pi.add_apply, add_zero],
+  add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, coe_add, pi.add_apply, add_zero],
   zero_mem' := λ _ _, rfl,
   smul_mem' := λ c f hf x hx, mul_zero (c x) ▸ congr_arg (λ y, c x * y) (hf x hx), }
 
@@ -188,8 +187,8 @@ begin
   replace hε := (show (0 : ℝ≥0) < ε, from hε),
   simp_rw dist_nndist,
   norm_cast,
-  -- Let `t := {x : X | ε / 2 ≤ ∥f x∥₊}}` which is closed and disjoint from `set_of_ideal I`.
-  set t := {x : X | ε / 2 ≤ ∥f x∥₊},
+  -- Let `t := {x : X | ε / 2 ≤ ‖f x‖₊}}` which is closed and disjoint from `set_of_ideal I`.
+  set t := {x : X | ε / 2 ≤ ‖f x‖₊},
   have ht : is_closed t := is_closed_le continuous_const (map_continuous f).nnnorm,
   have htI : disjoint t (set_of_ideal I)ᶜ,
   { refine set.subset_compl_iff_disjoint_left.mp (λ x hx, _),
@@ -197,41 +196,39 @@ begin
       using (nnnorm_eq_zero.mpr (mem_ideal_of_set.mp hf hx)).trans_lt (half_pos hε), },
   /- It suffices to produce `g : C(X, ℝ≥0)` which takes values in `[0,1]` and is constantly `1` on
   `t` such that when composed with the natural embedding of `ℝ≥0` into `𝕜` lies in the ideal `I`.
-  Indeed, then `∥f - f * ↑g∥ ≤ ∥f * (1 - ↑g)∥ ≤ ⨆ ∥f * (1 - ↑g) x∥`. When `x ∉ t`, `∥f x∥ < ε / 2`
-  and `∥(1 - ↑g) x∥ ≤ 1`, and when `x ∈ t`, `(1 - ↑g) x = 0`, and clearly `f * ↑g ∈ I`. -/
+  Indeed, then `‖f - f * ↑g‖ ≤ ‖f * (1 - ↑g)‖ ≤ ⨆ ‖f * (1 - ↑g) x‖`. When `x ∉ t`, `‖f x‖ < ε / 2`
+  and `‖(1 - ↑g) x‖ ≤ 1`, and when `x ∈ t`, `(1 - ↑g) x = 0`, and clearly `f * ↑g ∈ I`. -/
   suffices : ∃ g : C(X, ℝ≥0),
     (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g ∈ I ∧ (∀ x, g x ≤ 1) ∧ t.eq_on g 1,
   { obtain ⟨g, hgI, hg, hgt⟩ := this,
     refine ⟨f * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g, I.mul_mem_left f hgI, _⟩,
     rw nndist_eq_nnnorm,
     refine (nnnorm_lt_iff _ hε).2 (λ x, _),
-    simp only [continuous_map.coe_sub, continuous_map.coe_mul, pi.sub_apply, pi.mul_apply],
+    simp only [coe_sub, coe_mul, pi.sub_apply, pi.mul_apply],
     by_cases hx : x ∈ t,
     { simpa only [hgt hx, comp_apply, pi.one_apply, continuous_map.coe_coe, algebra_map_clm_apply,
         map_one, mul_one, sub_self, nnnorm_zero] using hε, },
     { refine lt_of_le_of_lt _ (half_lt_self hε),
-      have := calc ∥((1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x : 𝕜)∥₊
-            = ∥1 - algebra_map ℝ≥0 𝕜 (g x)∥₊
-            : by simp only [continuous_map.coe_sub, continuous_map.coe_one, coe_comp,
-                continuous_map.coe_coe, pi.sub_apply, pi.one_apply, function.comp_app,
-                algebra_map_clm_apply]
-        ... = ∥algebra_map ℝ≥0 𝕜 (1 - g x)∥₊
+      have := calc ‖((1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x : 𝕜)‖₊
+            = ‖1 - algebra_map ℝ≥0 𝕜 (g x)‖₊
+            : by simp only [coe_sub, coe_one, coe_comp, continuous_map.coe_coe, pi.sub_apply,
+                pi.one_apply, function.comp_app, algebra_map_clm_apply]
+        ... = ‖algebra_map ℝ≥0 𝕜 (1 - g x)‖₊
             : by simp only [algebra.algebra_map_eq_smul_one, nnreal.smul_def, nnreal.coe_sub (hg x),
-                            sub_smul, nonneg.coe_one, one_smul]
+                sub_smul, nonneg.coe_one, one_smul]
         ... ≤ 1 : (nnnorm_algebra_map_nnreal 𝕜 (1 - g x)).trans_le tsub_le_self,
-      calc ∥f x - f x * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g x∥₊
-          = ∥f x * (1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x∥₊
-          : by simp only [mul_sub, continuous_map.coe_sub, continuous_map.coe_one, pi.sub_apply,
-                          pi.one_apply, mul_one]
-      ... ≤ (ε / 2) * ∥(1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x∥₊
+      calc ‖f x - f x * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g x‖₊
+          = ‖f x * (1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x‖₊
+          : by simp only [mul_sub, coe_sub, coe_one, pi.sub_apply, pi.one_apply, mul_one]
+      ... ≤ (ε / 2) * ‖(1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x‖₊
           : (nnnorm_mul_le _ _).trans (mul_le_mul_right'
-              (not_le.mp $ show ¬ ε / 2 ≤ ∥f x∥₊, from hx).le _)
+              (not_le.mp $ show ¬ ε / 2 ≤ ‖f x‖₊, from hx).le _)
       ... ≤ ε / 2 : by simpa only [mul_one] using mul_le_mul_left' this _, } },
   /- There is some `g' : C(X, ℝ≥0)` which is strictly positive on `t` such that the composition
   `↑g` with the natural embedding of `ℝ≥0` into `𝕜` lies in `I`. This follows from compactness of
   `t` and that we can do it in any neighborhood of a point `x ∈ t`. Indeed, since `x ∈ t`, then
-  `fₓ x ≠ 0` for some `fₓ ∈ I` and so `λ y, ∥(star fₓ * fₓ) y∥₊` is strictly posiive in a
-  neighborhood of `y`. Moreover, `(∥(star fₓ * fₓ) y∥₊ : 𝕜) = (star fₓ * fₓ) y`, so composition of
+  `fₓ x ≠ 0` for some `fₓ ∈ I` and so `λ y, ‖(star fₓ * fₓ) y‖₊` is strictly posiive in a
+  neighborhood of `y`. Moreover, `(‖(star fₓ * fₓ) y‖₊ : 𝕜) = (star fₓ * fₓ) y`, so composition of
   this map with the natural embedding is just `star fₓ * fₓ ∈ I`. -/
   have : ∃ g' : C(X, ℝ≥0), (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ t, 0 < g' x),
   { refine @is_compact.induction_on _ _ _ ht.is_compact (λ s, ∃ g' : C(X, ℝ≥0),
@@ -239,15 +236,15 @@ begin
     { refine ⟨0, _, λ x hx, false.elim hx⟩,
       convert I.zero_mem,
       ext,
-      simp only [continuous_map.coe_zero, pi.zero_apply, continuous_map.coe_coe,
-                 continuous_map.coe_comp, map_zero, pi.comp_zero] },
+      simp only [coe_zero, pi.zero_apply, continuous_map.coe_coe, continuous_map.coe_comp,
+        map_zero, pi.comp_zero] },
     { rintro s₁ s₂ hs ⟨g, hI, hgt⟩, exact ⟨g, hI, λ x hx, hgt x (hs hx)⟩, },
     { rintro s₁ s₂ ⟨g₁, hI₁, hgt₁⟩ ⟨g₂, hI₂, hgt₂⟩,
       refine ⟨g₁ + g₂, _, λ x hx, _⟩,
       { convert I.add_mem hI₁ hI₂,
         ext y,
-        simp only [continuous_map.coe_add, pi.add_apply, map_add, coe_comp, function.comp_app,
-                   continuous_map.coe_coe]},
+        simp only [coe_add, pi.add_apply, map_add, coe_comp, function.comp_app,
+          continuous_map.coe_coe]},
       { rcases hx with (hx | hx),
         simpa only [zero_add] using add_lt_add_of_lt_of_le (hgt₁ x hx) zero_le',
         simpa only [zero_add] using add_lt_add_of_le_of_lt zero_le' (hgt₂ x hx), } },
@@ -257,11 +254,11 @@ begin
       obtain ⟨g, hI, hgx⟩ := hx,
       have := (map_continuous g).continuous_at.eventually_ne hgx,
       refine ⟨{y : X | g y ≠ 0} ∩ t, mem_nhds_within_iff_exists_mem_nhds_inter.mpr
-        ⟨_, this, set.subset.rfl⟩, ⟨⟨λ x, ∥g x∥₊ ^ 2, (map_continuous g).nnnorm.pow 2⟩, _,
+        ⟨_, this, set.subset.rfl⟩, ⟨⟨λ x, ‖g x‖₊ ^ 2, (map_continuous g).nnnorm.pow 2⟩, _,
         λ x hx, pow_pos (norm_pos_iff.mpr hx.1) 2⟩⟩,
       convert I.mul_mem_left (star g) hI,
       ext,
-      simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, continuous_map.coe_mul, coe_star,
+      simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
         pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
       simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
@@ -276,8 +273,8 @@ begin
   refine ⟨g * g', _, hg, hgc.mono hgc'⟩,
   convert I.mul_mem_left ((algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) hI',
   ext,
-  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, continuous_map.coe_mul,
-             pi.mul_apply, map_mul],
+  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, coe_mul, pi.mul_apply,
+    map_mul],
 end
 
 lemma ideal_of_set_of_ideal_is_closed {I : ideal C(X, 𝕜)}
@@ -318,7 +315,7 @@ variable (X)
   galois_insertion (opens_of_ideal : ideal C(X, 𝕜) → opens X) (λ s, ideal_of_set 𝕜 s) :=
 { choice := λ I hI, opens_of_ideal I.closure,
   gc := λ I s, ideal_gc X 𝕜 I s,
-  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.prop).ge,
+  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.is_open).ge,
   choice_eq := λ I hI, congr_arg _ $ ideal.ext (set.ext_iff.mp (is_closed_of_closure_subset $
     (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
 

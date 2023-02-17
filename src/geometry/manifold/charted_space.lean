@@ -108,7 +108,7 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topology
 open filter
 universes u
 
@@ -708,7 +708,7 @@ protected def to_topological_space : topological_space M :=
 topological_space.generate_from $ ⋃ (e : local_equiv M H) (he : e ∈ c.atlas)
   (s : set H) (s_open : is_open s), {e ⁻¹' s ∩ e.source}
 
-lemma open_source' (he : e ∈ c.atlas) : @is_open M c.to_topological_space e.source :=
+lemma open_source' (he : e ∈ c.atlas) : is_open[c.to_topological_space] e.source :=
 begin
   apply topological_space.generate_open.basic,
   simp only [exists_prop, mem_Union, mem_singleton_iff],

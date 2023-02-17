@@ -3,12 +3,14 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.finite.basic
 import set_theory.cardinal.finite
 
 /-!
 
 # Cardinality of finite types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The cardinality of a finite type `α` is given by `nat.card α`. This function has
 the "junk value" of `0` for infinite types, but to ensure the function has valid

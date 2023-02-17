@@ -26,7 +26,7 @@ p-series, Cauchy condensation test
 -/
 
 open filter
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topology
 
 /-!
 ### Cauchy condensation test
@@ -202,6 +202,17 @@ by simp only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
+
+/-- Summability of the `p`-series over `ℤ`. -/
+lemma real.summable_one_div_int_pow {p : ℕ} : summable (λ n:ℤ, 1 / (n : ℝ) ^ p) ↔ 1 < p :=
+begin
+  refine ⟨λ h, real.summable_one_div_nat_pow.mp (h.comp_injective nat.cast_injective),
+    λ h, summable_int_of_summable_nat (real.summable_one_div_nat_pow.mpr h)
+    (((real.summable_one_div_nat_pow.mpr h).mul_left $ 1 / (-1) ^ p).congr $ λ n, _)⟩,
+  conv_rhs { rw [int.cast_neg, neg_eq_neg_one_mul, mul_pow, ←div_div] },
+  conv_lhs { rw [mul_div, mul_one], },
+  refl,
+end
 
 /-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=

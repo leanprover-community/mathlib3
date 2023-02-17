@@ -9,6 +9,9 @@ import topology.quasi_separated
 /-!
 # Compact sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a few types of compact sets in a topological space.
 
 ## Main Definitions

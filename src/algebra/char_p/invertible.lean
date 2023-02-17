@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import algebra.invertible
-import algebra.field.basic
 import algebra.char_p.basic
 
 /-!

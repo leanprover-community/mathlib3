@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 
-import algebra.module.basic
 import algebra.ring.equiv
 import algebra.ring.prod
 import data.set.finite
-import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
 import group_theory.subsemigroup.membership
+import group_theory.subsemigroup.centralizer
 
 /-!
 # Bundled non-unital subsemirings
@@ -29,12 +28,12 @@ variables {R : Type u} {S : Type v} {T : Type w} [non_unital_non_assoc_semiring 
 
 /-- `non_unital_subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both an additive submonoid and also a multiplicative subsemigroup. -/
-class non_unital_subsemiring_class (S : Type*) (R : out_param $ Type u)
+class non_unital_subsemiring_class (S : Type*) (R : Type u)
   [non_unital_non_assoc_semiring R] [set_like S R] extends add_submonoid_class S R :=
 (mul_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a * b ∈ s)
 
 @[priority 100] -- See note [lower instance priority]
-instance non_unital_subsemiring_class.mul_mem_class (S : Type*) (R : out_param $ Type u)
+instance non_unital_subsemiring_class.mul_mem_class (S : Type*) (R : Type u)
   [non_unital_non_assoc_semiring R] [set_like S R] [h : non_unital_subsemiring_class S R] :
   mul_mem_class S R :=
 { .. h }

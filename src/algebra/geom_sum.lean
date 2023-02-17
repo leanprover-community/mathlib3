@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
 
-import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
@@ -13,6 +12,9 @@ import data.nat.parity
 
 /-!
 # Partial sums of geometric series
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file determines the values of the geometric series $\sum_{i=0}^{n-1} x^i$ and
 $\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof. We also provide some bounds on the
@@ -172,6 +174,29 @@ by rw [← neg_sub (y ^ n), ← h.mul_neg_geom_sum₂, ← neg_mul, neg_sub]
 theorem geom_sum₂_mul [comm_ring α] (x y : α) (n : ℕ) :
   (∑ i in range n, x ^ i * (y ^ (n - 1 - i))) * (x - y) = x ^ n - y ^ n :=
 (commute.all x y).geom_sum₂_mul n
+
+theorem sub_dvd_pow_sub_pow [comm_ring α] (x y : α) (n : ℕ) : x - y ∣ x ^ n - y ^ n :=
+  dvd.intro_left _ (geom_sum₂_mul x y n)
+
+theorem nat_sub_dvd_pow_sub_pow (x y n : ℕ) : x - y ∣ x ^ n - y ^ n :=
+begin
+  cases le_or_lt y x with h,
+  { have : y ^ n ≤ x ^ n := nat.pow_le_pow_of_le_left h _,
+    exact_mod_cast sub_dvd_pow_sub_pow (x : ℤ) ↑y n },
+  { have : x ^ n ≤ y ^ n := nat.pow_le_pow_of_le_left h.le _,
+    exact (nat.sub_eq_zero_of_le this).symm ▸ dvd_zero (x - y) }
+end
+
+theorem odd.add_dvd_pow_add_pow [comm_ring α] (x y : α) {n : ℕ} (h : odd n) :
+  x + y ∣ x ^ n + y ^ n :=
+begin
+  have h₁ := geom_sum₂_mul x (-y) n,
+  rw [odd.neg_pow h y, sub_neg_eq_add, sub_neg_eq_add] at h₁,
+  exact dvd.intro_left _ h₁,
+end
+
+theorem odd.nat_add_dvd_pow_add_pow (x y : ℕ) {n : ℕ} (h : odd n) : x + y ∣ x ^ n + y ^ n :=
+by exact_mod_cast odd.add_dvd_pow_add_pow (x : ℤ) ↑y h
 
 theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
   (∑ i in range n, x ^ i) * (x - 1) = x ^ n - 1 :=

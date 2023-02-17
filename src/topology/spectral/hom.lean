@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Spectral maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines spectral maps. A map is spectral when it's continuous and the preimage of a
 compact open set is compact open.
 
@@ -109,6 +112,9 @@ instance : has_coe_to_fun (spectral_map α β) (λ _, α → β) := fun_like.has
 equalities. -/
 protected def copy (f : spectral_map α β) (f' : α → β) (h : f' = f) : spectral_map α β :=
 ⟨f', h.symm.subst f.spectral'⟩
+
+@[simp] lemma coe_copy (f : spectral_map α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : spectral_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

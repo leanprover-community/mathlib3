@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import control.functor
+import tactic.ext
 
 /-!
 # Traversable type class
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Type classes for traversing collections. The concepts and laws are taken from
 <http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html>

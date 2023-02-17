@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.finite_type
+import ring_theory.mv_polynomial.tower
 
 /-!
 # Finiteness conditions in commutative algebra

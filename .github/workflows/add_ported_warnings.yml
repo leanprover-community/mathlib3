@@ -1,0 +1,29 @@
+name: Add mathlib4 porting warnings
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Check for modifications to ported files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+
+      - name: install latest mathlibtools
+        run: |
+          pip install git+https://github.com/leanprover-community/mathlib-tools
+
+      # TODO: is this really faster than just calling git from python?
+      - name: Get changed files
+        id: changed-files
+        uses: Ana06/get-changed-files@v1.2
+
+      - name: run the script
+        run: |
+          python scripts/detect_ported_files.py ${{ steps.changed-files.outputs.all }}

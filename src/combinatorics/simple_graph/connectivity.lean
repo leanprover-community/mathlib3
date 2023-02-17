@@ -1403,16 +1403,15 @@ h.elim (λ p, ⟨p.map f⟩)
 
 lemma iso.reachable_iff {G : simple_graph V} {G' : simple_graph V'}
   {φ : G ≃g G'} {u v : V} : G'.reachable (φ u) (φ v) ↔ G.reachable u v :=
-iff.symm $ ⟨reachable.map φ.to_hom, 
-  λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom)⟩
+⟨λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom), reachable.map φ.to_hom⟩
 
 lemma iso.symm_apply_reachable {G : simple_graph V} {G' : simple_graph V'}
   {φ : G ≃g G'} {u : V} {v : V'} : G.reachable (φ.symm v) u ↔ G'.reachable v (φ u) :=
 begin
   rw [←φ.left_inv u, ←φ.right_inv v],
   simp only [equiv.inv_fun_as_coe, equiv.to_fun_as_coe, rel_iso.coe_fn_to_equiv,
-             rel_iso.symm_apply_apply],
-  exact iso.reachable_iff,
+    rel_iso.symm_apply_apply],
+  rw [iso.reachable_iff],
 end
 
 variables (G)
@@ -1534,22 +1533,24 @@ by { refine C.ind _, exact (λ _, rfl) }
   (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
 
+variables {φ : G ≃g G'} {v : V} {v' : V'}
+
 @[simp] lemma connected_component.iso_image_comp_eq_map_iff_eq_comp
   {C : G.connected_component} :
   (G'.connected_component_mk (φ v)) = C.map φ.to_hom ↔ (G.connected_component_mk v) = C :=
 begin
   refine C.ind (λ u, _),
   simp only [connected_component.map_mk, connected_component.eq],
-  exact (iso.reachable_iff).symm,
+  exact iso.reachable_iff,
 end
 
 @[simp] lemma connected_component.iso_inv_image_comp_eq_iff_eq_map
-  {φ : G ≃g G'} {v' : V'} {C : G.connected_component} :
+  {C : G.connected_component} :
     G.connected_component_mk (φ.symm v') = C ↔ G'.connected_component_mk v' = C.map φ :=
 begin
   refine C.ind (λ u, _),
   simp only [connected_component.map_mk, connected_component.eq],
-  exact iso.reachable_iff',
+  exact iso.symm_apply_reachable,
 end
 
 /-- An isomorphism of graphs induces a bijection of connected components. -/

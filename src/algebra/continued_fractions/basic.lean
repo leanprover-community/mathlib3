@@ -80,17 +80,7 @@ variable (α)
 
 /--
 A *generalised continued fraction* (gcf) is a potentially infinite expression of the form
-
-                                a₀
-                h + ---------------------------
-                                  a₁
-                      b₀ + --------------------
-                                    a₂
-                            b₁ + --------------
-                                        a₃
-                                  b₂ + --------
-                                      b₃ + ...
-
+$$ h + \dfrac{a_0}{b_0 + \dfrac{a_1}{b_1 + \dfrac{a_2}{b_2 + \dfrac{a_3}{b_3 + \dots}}}}$$
 where `h` is called the *head term* or *integer part*, the `aᵢ` are called the
 *partial numerators* and the `bᵢ` the *partial denominators* of the gcf.
 We store the sequence of partial numerators and denominators in a sequence of

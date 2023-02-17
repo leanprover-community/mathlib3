@@ -1402,10 +1402,10 @@ protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
 h.elim (λ p, ⟨p.map f⟩)
 
 lemma iso.reachable_iff {G : simple_graph V} {G' : simple_graph V'}
-  {φ : G ≃g G'} {u v : V} : G.reachable u v ↔ G'.reachable (φ u) (φ v) :=
+  {φ : G ≃g G'} {u v : V} : G'.reachable (φ u) (φ v) ↔ G.reachable u v :=
 ⟨reachable.map φ.to_hom, λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom)⟩
 
-lemma iso.reachable_iff' {G : simple_graph V} {G' : simple_graph V'}
+lemma iso.symm_apply_reachable {G : simple_graph V} {G' : simple_graph V'}
   {φ : G ≃g G'} {u : V} {v : V'} : G.reachable (φ.symm v) u ↔ G'.reachable v (φ u) :=
 begin
   rw [←φ.left_inv u, ←φ.right_inv v],
@@ -1468,7 +1468,7 @@ def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachabl
 ⟨G.connected_component_mk default⟩
 
 section connected_component
-variables {G} {V'} {G'} {G''}
+variables {V' G G' G''}
 
 @[elab_as_eliminator]
 protected lemma connected_component.ind {β : G.connected_component → Prop}
@@ -1534,7 +1534,7 @@ by { refine C.ind _, exact (λ _, rfl) }
 by { refine C.ind _, exact (λ _, rfl), }
 
 @[simp] lemma connected_component.iso_image_comp_eq_map_iff_eq_comp
-  {φ : G ≃g G'} {v : V} {C : G.connected_component} :
+  {C : G.connected_component} :
   (G'.connected_component_mk (φ v)) = C.map φ.to_hom ↔ (G.connected_component_mk v) = C :=
 begin
   refine C.ind (λ u, _),
@@ -1575,7 +1575,7 @@ begin
   exact ((h v).mp (reachable.refl _)),
 end
 
-lemma connected_component.supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
+@[simp] lemma connected_component.supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
 connected_component.supp_injective.eq_iff
 
 instance : set_like G.connected_component V :=
@@ -1599,7 +1599,7 @@ def connected_component.iso_equiv_supp (φ : G ≃g G') (C : G.connected_compone
   left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
   right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v), }
 
-lemma connected_component.connected :
+protected lemma connected_component.connected :
   ∀ (C : G.connected_component), (G.induce {v : V | G.connected_component_mk v = C}).connected :=
 begin
   refine connected_component.ind (λ v, _),

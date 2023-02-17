@@ -153,6 +153,11 @@ protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a
 lemma ne_of_adj_of_not_adj {v w x : V} (h : G.adj v x) (hn : ¬ G.adj w x) : v ≠ w :=
 λ h', hn (h' ▸ h)
 
+lemma adj_injective : injective (adj : simple_graph V → V → V → Prop) :=
+λ G H h, by { cases G, cases H, congr' }
+
+@[simp] lemma adj_inj {G H : simple_graph V} : G.adj = H.adj ↔ G = H := adj_injective.eq_iff
+
 section order
 
 /-- The relation that one `simple_graph` is a subgraph of another.
@@ -213,25 +218,27 @@ instance : has_Inf (simple_graph V) :=
 @[simp] lemma Sup_adj {s : set (simple_graph V)} {a b : V} : (Sup s).adj a b ↔ ∃ G ∈ s, adj G a b :=
 iff.rfl
 
-@[simp] lemma Inf_adj {s : set (simple_graph V)} {a b : V} :
-  (Inf s).adj a b ↔ (∀ G ∈ s, adj G a b) ∧ a ≠ b :=
+@[simp] lemma Inf_adj {s : set (simple_graph V)} : (Inf s).adj a b ↔ (∀ G ∈ s, adj G a b) ∧ a ≠ b :=
 iff.rfl
 
-@[simp] lemma supr_adj {f : ι → simple_graph V} {a b : V} :
-  (⨆ i, f i).adj a b ↔ ∃ i, (f i).adj a b :=
+@[simp] lemma supr_adj {f : ι → simple_graph V} : (⨆ i, f i).adj a b ↔ ∃ i, (f i).adj a b :=
 by simp [supr]
 
-@[simp] lemma infi_adj {f : ι → simple_graph V} {a b : V} :
+@[simp] lemma infi_adj {f : ι → simple_graph V} :
   (⨅ i, f i).adj a b ↔ (∀ i, (f i).adj a b) ∧ a ≠ b :=
 by simp [infi]
 
-lemma Inf_adj_of_nonempty {s : set (simple_graph V)} (hs : s.nonempty) {a b : V} :
+lemma Inf_adj_of_nonempty {s : set (simple_graph V)} (hs : s.nonempty) :
   (Inf s).adj a b ↔ ∀ G ∈ s, adj G a b :=
 Inf_adj.trans $ and_iff_left_of_imp $ by { obtain ⟨G, hG⟩ := hs, exact λ h, (h _ hG).ne }
 
-lemma infi_adj_of_nonempty [nonempty ι] {f : ι → simple_graph V} {a b : V} :
+lemma infi_adj_of_nonempty [nonempty ι] {f : ι → simple_graph V} :
   (⨅ i, f i).adj a b ↔ ∀ i, (f i).adj a b :=
 by simp [infi, Inf_adj_of_nonempty (set.range_nonempty _)]
+
+/-- For graphs `G`, `H`, `G ≤ H` iff `∀ a b, G.adj a b → H.adj a b`. -/
+instance : distrib_lattice (simple_graph V) :=
+adj_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 instance : complete_boolean_algebra (simple_graph V) :=
 { le := (≤),
@@ -243,18 +250,10 @@ instance : complete_boolean_algebra (simple_graph V) :=
   bot := empty_graph V,
   le_top := λ x v w h, x.ne_of_adj h,
   bot_le := λ x v w h, h.elim,
-  sup_le := λ x y z hxy hyz v w h, h.cases_on (λ h, hxy h) (λ h, hyz h),
   sdiff_eq := λ x y, by { ext v w, refine ⟨λ h, ⟨h.1, ⟨_, h.2⟩⟩, λ h, ⟨h.1, h.2.2⟩⟩,
                           rintro rfl, exact x.irrefl h.1 },
-  le_sup_left := λ x y v w h, or.inl h,
-  le_sup_right := λ x y v w h, or.inr h,
-  le_inf := λ x y z hxy hyz v w h, ⟨hxy h, hyz h⟩,
-  le_sup_inf := λ a b c v w h, or.dcases_on h.2 or.inl $
-    or.dcases_on h.1 (λ h _, or.inl h) $ λ hb hc, or.inr ⟨hb, hc⟩,
   inf_compl_le_bot := λ a v w h, false.elim $ h.2.2 h.1,
   top_le_sup_compl := λ a v w ne, by { by_cases a.adj v w, exact or.inl h, exact or.inr ⟨ne, h⟩ },
-  inf_le_left := λ x y v w h, h.1,
-  inf_le_right := λ x y v w h, h.2,
   Sup := Sup,
   le_Sup := λ s G hG a b hab, ⟨G, hG, hab⟩,
   Sup_le := λ s G hG a b, by { rintro ⟨H, hH, hab⟩, exact hG _ hH hab },
@@ -270,8 +269,8 @@ instance : complete_boolean_algebra (simple_graph V) :=
       (and_congr_left $ λ h, forall_congr $ λ H, _).1 hab,
     simpa [forall_or_distrib_left, or_and_distrib_right, and_iff_left_of_imp adj.ne] using this,
     exact and_iff_left h,
-    end,
-  .. partial_order.lift adj ext }
+  end,
+  ..simple_graph.distrib_lattice }
 
 @[simp] lemma top_adj (v w : V) : (⊤ : simple_graph V).adj v w ↔ v ≠ w := iff.rfl
 

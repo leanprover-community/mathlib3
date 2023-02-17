@@ -86,8 +86,8 @@ instance has_nnqsmul : has_smul ℚ≥0 {x : α // 0 ≤ x} := ⟨λ q a, ⟨q �
 
 instance linear_ordered_semifield : linear_ordered_semifield {x : α // 0 ≤ x} :=
 subtype.coe_injective.linear_ordered_semifield _ nonneg.coe_zero nonneg.coe_one nonneg.coe_add
-    nonneg.coe_mul nonneg.coe_inv nonneg.coe_div (λ _ _, rfl) (λ _ _, rfl) nonneg.coe_pow nonneg.coe_zpow
-    nonneg.coe_nat_cast nonneg.coe_nnrat_cast (λ _ _, rfl) (λ _ _, rfl)
+  nonneg.coe_mul nonneg.coe_inv nonneg.coe_div (λ _ _, rfl) (λ _ _, rfl) nonneg.coe_pow
+  nonneg.coe_zpow nonneg.coe_nat_cast nonneg.coe_nnrat_cast (λ _ _, rfl) (λ _ _, rfl)
 
 end linear_ordered_semifield
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.defs
-import data.rat.nnrat
+import data.rat.nnrat.basic
 
 /-!
 # Division (semi)rings and (semi)fields

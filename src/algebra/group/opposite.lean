@@ -150,6 +150,15 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 
 variable {α}
 
+@[simp, norm_cast, to_additive] lemma op_nat_cast [has_nat_cast α] (n : ℕ) : op (n : α) = n := rfl
+@[simp, norm_cast, to_additive] lemma op_int_cast [has_int_cast α] (n : ℤ) : op (n : α) = n := rfl
+
+@[simp, norm_cast, to_additive]
+lemma unop_nat_cast [has_nat_cast α] (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
+
+@[simp, norm_cast, to_additive]
+lemma unop_int_cast [has_int_cast α] (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
+
 @[simp, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
   unop (x / y) = (unop y)⁻¹ * unop x :=
 rfl

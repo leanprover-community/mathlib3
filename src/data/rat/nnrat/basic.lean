@@ -3,16 +3,14 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
--- import algebra.algebra.basic
--- import algebra.indicator_function
-import algebra.order.nonneg.ring
-import data.rat.order
+import algebra.algebra.basic
+import algebra.indicator_function
+import data.rat.nnrat.defs
 
 /-!
-# Nonnegative rationals
+# Algebraic structures on the nonnegative rationals
 
-This file defines the nonnegative rationals as a subtype of `rat` and provides its algebraic order
-structure.
+This file provides additional results about `nnrat` that could not
 
 We also define an instance `can_lift ℚ ℚ≥0`. This instance can be used by the `lift` tactic to
 replace `x : ℚ` and `hx : 0 ≤ x` in the proof context with `x : ℚ≥0` while replacing all occurences
@@ -25,89 +23,20 @@ of `x` with `↑x`. This tactic also works for a function `f : α → ℚ` with 
 -/
 
 open function
-
-/-- Nonnegative rational numbers. -/
-@[derive [canonically_ordered_comm_semiring, canonically_linear_ordered_add_monoid, has_sub,
-  has_ordered_sub, inhabited]]
-def nnrat := {q : ℚ // 0 ≤ q}
-
-localized "notation (name := nnrat) `ℚ≥0` := nnrat" in nnrat
+open_locale nnrat
 
 namespace nnrat
 variables {α : Type*} {p q : ℚ≥0}
 
-instance : has_coe ℚ≥0 ℚ := ⟨subtype.val⟩
-
-/- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
-@[simp] lemma val_eq_coe (q : ℚ≥0) : q.val = q := rfl
-
-instance can_lift : can_lift ℚ ℚ≥0 coe (λ q, 0 ≤ q) :=
-{ prf := λ q hq, ⟨⟨q, hq⟩, rfl⟩ }
-
-@[ext] lemma ext : (p : ℚ) = (q : ℚ) → p = q := subtype.ext
-
-protected lemma coe_injective : injective (coe : ℚ≥0 → ℚ) := subtype.coe_injective
-
-@[simp, norm_cast] lemma coe_inj : (p : ℚ) = q ↔ p = q := subtype.coe_inj
-
-lemma ext_iff : p = q ↔ (p : ℚ) = q := subtype.ext_iff
-
-lemma ne_iff {x y : ℚ≥0} : (x : ℚ) ≠ (y : ℚ) ↔ x ≠ y := nnrat.coe_inj.not
-
-@[norm_cast] lemma coe_mk (q : ℚ) (hq) : ((⟨q, hq⟩ : ℚ≥0) : ℚ) = q := rfl
-
-/-- Reinterpret a rational number `q` as a non-negative rational number. Returns `0` if `q ≤ 0`. -/
-def _root_.rat.to_nnrat (q : ℚ) : ℚ≥0 := ⟨max q 0, le_max_right _ _⟩
-
-lemma _root_.rat.coe_to_nnrat (q : ℚ) (hq : 0 ≤ q) : (q.to_nnrat : ℚ) = q := max_eq_left hq
-
-lemma _root_.rat.le_coe_to_nnrat (q : ℚ) : q ≤ q.to_nnrat := le_max_left _ _
-
-open _root_.rat (to_nnrat)
-
-@[simp] lemma coe_nonneg (q : ℚ≥0) : (0 : ℚ) ≤ q := q.2
-
-@[simp, norm_cast] lemma coe_zero : ((0 : ℚ≥0) : ℚ) = 0 := rfl
-@[simp, norm_cast] lemma coe_one  : ((1 : ℚ≥0) : ℚ) = 1 := rfl
-@[simp, norm_cast] lemma coe_add (p q : ℚ≥0) : ((p + q : ℚ≥0) : ℚ) = p + q := rfl
-@[simp, norm_cast] lemma coe_mul (p q : ℚ≥0) : ((p * q : ℚ≥0) : ℚ) = p * q := rfl
 @[simp, norm_cast] lemma coe_inv (q : ℚ≥0) : ((q⁻¹ : ℚ≥0) : ℚ) = q⁻¹ := rfl
 @[simp, norm_cast] lemma coe_div (p q : ℚ≥0) : ((p / q : ℚ≥0) : ℚ) = p / q := rfl
-@[simp, norm_cast] lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
-@[simp, norm_cast] lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
-@[simp, norm_cast] lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
-max_eq_left $ le_sub_comm.2 $ by simp [show (q : ℚ) ≤ p, from h]
-
-@[simp] lemma coe_eq_zero : (q : ℚ) = 0 ↔ q = 0 := by norm_cast
-lemma coe_ne_zero : (q : ℚ) ≠ 0 ↔ q ≠ 0 := coe_eq_zero.not
-
-@[simp, norm_cast] lemma coe_le_coe : (p : ℚ) ≤ q ↔ p ≤ q := iff.rfl
-@[simp, norm_cast] lemma coe_lt_coe : (p : ℚ) < q ↔ p < q := iff.rfl
-@[simp, norm_cast] lemma coe_pos : (0 : ℚ) < q ↔ 0 < q := iff.rfl
-
-lemma coe_mono : monotone (coe : ℚ≥0 → ℚ) := λ _ _, coe_le_coe.2
-
-lemma to_nnrat_mono : monotone to_nnrat := λ x y h, max_le_max h le_rfl
 
 @[simp] lemma to_nnrat_coe (q : ℚ≥0) : to_nnrat q = q := ext $ max_eq_left q.2
 
-@[simp] lemma to_nnrat_coe_nat (n : ℕ) : to_nnrat n = n :=
-ext $ by simp [rat.coe_to_nnrat]
+@[simp] lemma to_nnrat_coe_nat (n : ℕ) : to_nnrat n = n := ext $ by simp [rat.coe_to_nnrat]
 
-/-- `to_nnrat` and `coe : ℚ≥0 → ℚ` form a Galois insertion. -/
-protected def gi : galois_insertion to_nnrat coe :=
-galois_insertion.monotone_intro coe_mono to_nnrat_mono rat.le_coe_to_nnrat to_nnrat_coe
-
-/-- Coercion `ℚ≥0 → ℚ` as a `ring_hom`. -/
-def coe_hom : ℚ≥0 →+* ℚ := ⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
-
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℚ≥0) : ℚ) = n := map_nat_cast coe_hom n
-
-@[simp] lemma mk_coe_nat (n : ℕ) : @eq ℚ≥0 (⟨(n : ℚ), n.cast_nonneg⟩ : ℚ≥0) n :=
-ext (coe_nat_cast n).symm
-
--- /-- The rational numbers are an algebra over the non-negative rationals. -/
--- instance : algebra ℚ≥0 ℚ := coe_hom.to_algebra
+/-- The rational numbers are an algebra over the non-negative rationals. -/
+instance : algebra ℚ≥0 ℚ := coe_hom.to_algebra
 
 /-- A `mul_action` over `ℚ` restricts to a `mul_action` over `ℚ≥0`. -/
 instance [mul_action ℚ α] : mul_action ℚ≥0 α := mul_action.comp_hom α coe_hom.to_monoid_hom
@@ -118,8 +47,6 @@ distrib_mul_action.comp_hom α coe_hom.to_monoid_hom
 
 -- /-- A `module` over `ℚ` restricts to a `module` over `ℚ≥0`. -/
 -- instance [add_comm_monoid α] [module ℚ α] : module ℚ≥0 α := module.comp_hom α coe_hom
-
-@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
 
 -- @[simp, norm_cast] lemma coe_indicator (s : set α) (f : α → ℚ≥0) (a : α) :
 --   ((s.indicator f a : ℚ≥0) : ℚ) = s.indicator (λ x, f x) a :=
@@ -257,46 +184,3 @@ end
 -- by rw [div_eq_inv_mul, div_eq_inv_mul, to_nnrat_mul (inv_nonneg.2 hq), to_nnrat_inv]
 
 end rat
-
-/-- The absolute value on `ℚ` as a map to `ℚ≥0`. -/
-@[pp_nodot] def rat.nnabs (x : ℚ) : ℚ≥0 := ⟨abs x, abs_nonneg x⟩
-
-@[norm_cast, simp] lemma rat.coe_nnabs (x : ℚ) : (rat.nnabs x : ℚ) = abs x := by simp [rat.nnabs]
-
-/-! ### Numerator and denominator -/
-
-namespace nnrat
-variables {p q : ℚ≥0}
-
-/-- The numerator of a nonnegative rational. -/
-def num (q : ℚ≥0) : ℕ := (q : ℚ).num.nat_abs
-
-/-- The denominator of a nonnegative rational. -/
-def denom (q : ℚ≥0) : ℕ := (q : ℚ).denom
-
-@[simp] lemma nat_abs_num_coe : (q : ℚ).num.nat_abs = q.num := rfl
-@[simp] lemma denom_coe : (q : ℚ).denom = q.denom := rfl
-
-lemma ext_num_denom (hn : p.num = q.num) (hd : p.denom = q.denom) : p = q :=
-ext $ rat.ext ((int.nat_abs_inj_of_nonneg_of_nonneg
-  (rat.num_nonneg_iff_zero_le.2 p.2) $ rat.num_nonneg_iff_zero_le.2 q.2).1 hn) hd
-
-lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
-⟨by { rintro rfl, exact ⟨rfl, rfl⟩ }, λ h, ext_num_denom h.1 h.2⟩
-
-@[simp, norm_cast] lemma num_coe_nat (n : ℕ) : (n : ℚ≥0).num = n := by simp [num]
-@[simp, norm_cast] lemma denom_coe_nat (n : ℕ) : (n : ℚ≥0).denom = 1 := by simp [denom]
-
-@[simp] lemma num_div_denom (q : ℚ≥0) : (q.num : ℚ≥0) / q.denom = q :=
-begin
-  ext1,
-  rw [coe_div, coe_nat_cast, coe_nat_cast, num, ←int.cast_coe_nat,
-    int.nat_abs_of_nonneg (rat.num_nonneg_iff_zero_le.2 q.prop)],
-  exact rat.num_div_denom q,
-end
-
-/-- A recursor for nonnegative rationals in terms of numerators and denominators. -/
-protected def rec {α : ℚ≥0 → Sort*} (h : Π m n : ℕ, α (m / n)) (q : ℚ≥0) : α q :=
-(num_div_denom _).rec (h _ _)
-
-end nnrat

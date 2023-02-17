@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -- import algebra.algebra.basic
 -- import algebra.indicator_function
 import algebra.order.nonneg.ring
+import data.int.lemmas
 import data.rat.order
 
 /-!
@@ -67,25 +68,20 @@ open _root_.rat (to_nnrat)
 
 @[simp] lemma coe_nonneg (q : ℚ≥0) : (0 : ℚ) ≤ q := q.2
 
-instance : coe_is_ring_hom ℚ≥0 ℚ :=
-{ coe_one := rfl,
-  coe_zero := rfl,
-  coe_add := λ _ _, rfl,
-  coe_mul := λ _ _, rfl }
-
-@[simp, norm_cast] protected lemma coe_zero : ((0 : ℚ≥0) : ℚ) = 0 := rfl
-@[simp, norm_cast] protected lemma coe_one  : ((1 : ℚ≥0) : ℚ) = 1 := rfl
-@[simp, norm_cast] protected lemma coe_add (p q : ℚ≥0) : ((p + q : ℚ≥0) : ℚ) = p + q := rfl
-@[simp, norm_cast] protected lemma coe_mul (p q : ℚ≥0) : ((p * q : ℚ≥0) : ℚ) = p * q := rfl
--- @[simp, norm_cast] protected lemma coe_inv (q : ℚ≥0) : ((q⁻¹ : ℚ≥0) : ℚ) = q⁻¹ := rfl
--- @[simp, norm_cast] protected lemma coe_div (p q : ℚ≥0) : ((p / q : ℚ≥0) : ℚ) = p / q := rfl
-@[simp, norm_cast] protected lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
-@[simp, norm_cast] protected lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
-@[simp, norm_cast] protected lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
+@[simp, norm_cast] lemma coe_zero : ((0 : ℚ≥0) : ℚ) = 0 := rfl
+@[simp, norm_cast] lemma coe_one  : ((1 : ℚ≥0) : ℚ) = 1 := rfl
+@[simp, norm_cast] lemma coe_add (p q : ℚ≥0) : ((p + q : ℚ≥0) : ℚ) = p + q := rfl
+@[simp, norm_cast] lemma coe_mul (p q : ℚ≥0) : ((p * q : ℚ≥0) : ℚ) = p * q := rfl
+@[simp, norm_cast] lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
+@[simp, norm_cast] lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
+@[simp, norm_cast] lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
 max_eq_left $ le_sub_comm.2 $ by simp [show (q : ℚ) ≤ p, from h]
 
-@[simp] lemma coe_eq_zero : (q : ℚ) = 0 ↔ q = 0 := by norm_cast
+@[simp, norm_cast] lemma coe_eq_zero : (q : ℚ) = 0 ↔ q = 0 := by norm_cast
 lemma coe_ne_zero : (q : ℚ) ≠ 0 ↔ q ≠ 0 := coe_eq_zero.not
+
+@[simp, norm_cast] lemma coe_eq_one : (q : ℚ) = 1 ↔ q = 1 := by norm_cast
+lemma coe_ne_one : (q : ℚ) ≠ 1 ↔ q ≠ 1 := coe_eq_one.not
 
 @[simp, norm_cast] lemma coe_le_coe : (p : ℚ) ≤ q ↔ p ≤ q := iff.rfl
 @[simp, norm_cast] lemma coe_lt_coe : (p : ℚ) < q ↔ p < q := iff.rfl
@@ -107,63 +103,14 @@ galois_insertion.monotone_intro coe_mono to_nnrat_mono rat.le_coe_to_nnrat to_nn
 /-- Coercion `ℚ≥0 → ℚ` as a `ring_hom`. -/
 def coe_hom : ℚ≥0 →+* ℚ := ⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
 
+@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
+
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℚ≥0) : ℚ) = n := map_nat_cast coe_hom n
 
 @[simp] lemma mk_coe_nat (n : ℕ) : @eq ℚ≥0 (⟨(n : ℚ), n.cast_nonneg⟩ : ℚ≥0) n :=
 ext (coe_nat_cast n).symm
 
--- /-- The rational numbers are an algebra over the non-negative rationals. -/
--- instance : algebra ℚ≥0 ℚ := coe_hom.to_algebra
-
-/-- A `mul_action` over `ℚ` restricts to a `mul_action` over `ℚ≥0`. -/
-instance [mul_action ℚ α] : mul_action ℚ≥0 α := mul_action.comp_hom α coe_hom.to_monoid_hom
-
-/-- A `distrib_mul_action` over `ℚ` restricts to a `distrib_mul_action` over `ℚ≥0`. -/
-instance [add_comm_monoid α] [distrib_mul_action ℚ α] : distrib_mul_action ℚ≥0 α :=
-distrib_mul_action.comp_hom α coe_hom.to_monoid_hom
-
--- /-- A `module` over `ℚ` restricts to a `module` over `ℚ≥0`. -/
--- instance [add_comm_monoid α] [module ℚ α] : module ℚ≥0 α := module.comp_hom α coe_hom
-
-@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
-
--- @[simp, norm_cast] lemma coe_indicator (s : set α) (f : α → ℚ≥0) (a : α) :
---   ((s.indicator f a : ℚ≥0) : ℚ) = s.indicator (λ x, f x) a :=
--- (coe_hom : ℚ≥0 →+ ℚ).map_indicator _ _ _
-
 @[simp, norm_cast] lemma coe_pow (q : ℚ≥0) (n : ℕ) : (↑(q ^ n) : ℚ) = q ^ n := coe_hom.map_pow _ _
-
-@[norm_cast] lemma coe_list_sum (l : list ℚ≥0) : (l.sum : ℚ) = (l.map coe).sum :=
-coe_hom.map_list_sum _
-
-@[norm_cast] lemma coe_list_prod (l : list ℚ≥0) : (l.prod : ℚ) = (l.map coe).prod :=
-coe_hom.map_list_prod _
-
-@[norm_cast] lemma coe_multiset_sum (s : multiset ℚ≥0) : (s.sum : ℚ) = (s.map coe).sum :=
-coe_hom.map_multiset_sum _
-
-@[norm_cast] lemma coe_multiset_prod (s : multiset ℚ≥0) : (s.prod : ℚ) = (s.map coe).prod :=
-coe_hom.map_multiset_prod _
-
--- @[norm_cast] lemma coe_sum {s : finset α} {f : α → ℚ≥0} : ↑(∑ a in s, f a) = ∑ a in s, (f a : ℚ) :=
--- coe_hom.map_sum _ _
-
--- lemma to_nnrat_sum_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
---   (∑ a in s, f a).to_nnrat = ∑ a in s, (f a).to_nnrat :=
--- begin
---   rw [←coe_inj, coe_sum, rat.coe_to_nnrat _ (finset.sum_nonneg hf)],
---   exact finset.sum_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
--- end
-
--- @[norm_cast] lemma coe_prod {s : finset α} {f : α → ℚ≥0} : ↑(∏ a in s, f a) = ∏ a in s, (f a : ℚ) :=
--- coe_hom.map_prod _ _
-
--- lemma to_nnrat_prod_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a ∈ s, 0 ≤ f a) :
---   (∏ a in s, f a).to_nnrat = ∏ a in s, (f a).to_nnrat :=
--- begin
---   rw [←coe_inj, coe_prod, rat.coe_to_nnrat _ (finset.prod_nonneg hf)],
---   exact finset.prod_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
--- end
 
 -- @[norm_cast] lemma nsmul_coe (q : ℚ≥0) (n : ℕ) : ↑(n • q) = n • (q : ℚ) :=
 -- coe_hom.to_add_monoid_hom.map_nsmul _ _
@@ -292,3 +239,5 @@ lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 
 @[simp, norm_cast] lemma num_coe_nat (n : ℕ) : (n : ℚ≥0).num = n := by simp [num]
 @[simp, norm_cast] lemma denom_coe_nat (n : ℕ) : (n : ℚ≥0).denom = 1 := by simp [denom]
+
+end nnrat

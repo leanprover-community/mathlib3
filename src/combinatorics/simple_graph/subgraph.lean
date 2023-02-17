@@ -829,6 +829,15 @@ lemma induce_mono_left (hg : G' ≤ G'') : G'.induce s ≤ G''.induce s := induc
 @[mono]
 lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce_mono (by refl) hs
 
+lemma sup_induce_le_induce_sup : G'.induce s ⊔ G'.induce s' ≤ G'.induce (s ⊔ s') :=
+begin
+  split,
+  { simp only [verts_sup, induce_verts, set.sup_eq_union], },
+  { simp only [sup_adj, induce_adj, set.sup_eq_union, set.mem_union],
+    rintro v w (⟨vs, ws, a⟩|⟨vs', ws', a⟩),
+    exacts [⟨or.inl vs, or.inl ws, a⟩, ⟨or.inr vs', or.inr ws', a⟩], },
+end
+
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
 by ext; simp
 

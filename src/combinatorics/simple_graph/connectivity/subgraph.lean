@@ -80,9 +80,7 @@ lemma subgraph.induce_union_connected {H : G.subgraph} {s t : set V}
   (H.induce $ s ⊔ t).connected :=
 begin
   apply subgraph.connected.mono _ _ (subgraph.connected.sup sconn tconn sintert),
-  { simp only [set.sup_eq_union, sup_le_iff],
-    exact ⟨subgraph.induce_mono_right (set.subset_union_left s t),
-           subgraph.induce_mono_right (set.subset_union_right s t)⟩, },
+  { apply subgraph.sup_induce_le_induce_sup, },
   { simp, },
 end
 
@@ -130,11 +128,9 @@ begin
   { rw [set.insert_subset, set.singleton_subset_iff], exact ⟨or.inl hv, or.inr hw⟩, },
   rw induce_eq_coe_induce_top at sconn tconn ⊢,
   convert (subgraph.connected.adj_union sconn tconn hv hw a).mono _ _,
-  { simp, },
-  { simp only [sup_le_iff],
-    refine⟨⟨subgraph.induce_mono_right this,
-            subgraph.induce_mono_right $ set.subset_union_left _ _⟩,
-            subgraph.induce_mono_right $ set.subset_union_right _ _⟩, },
+  { simp only [subgraph.induce_verts], },
+  { rw [sup_assoc, sup_le_iff],
+    refine ⟨subgraph.induce_mono_right this, subgraph.sup_induce_le_induce_sup⟩, },
   { simpa only [subgraph.verts_sup, subgraph.induce_verts, set.union_assoc,
                set.union_eq_right_iff_subset], }
 end

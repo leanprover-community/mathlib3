@@ -236,14 +236,6 @@ def union (x y : subgraph G) : subgraph G :=
   edge_vert := λ v w h, or.cases_on h (λ h, or.inl (x.edge_vert h)) (λ h, or.inr (y.edge_vert h)),
   symm := λ v w h, by rwa [pi.sup_apply, pi.sup_apply, x.adj_comm, y.adj_comm] }
 
-/-- The supremum of a family of subgraphs. -/
-def Union (s : set $ subgraph G) : subgraph G :=
-{ verts := {v | ∃ {a : subgraph G}, a ∈ s ∧ v ∈ a.verts},
-  adj := λ v w, ∃ {a : subgraph G}, a ∈ s ∧ a.adj v w,
-  adj_sub := λ v w h, h.some.adj_sub (h.some_spec.2) ,
-  edge_vert := λ v w h, ⟨h.some, h.some_spec.1, h.some.edge_vert h.some_spec.2⟩,
-  symm := λ v w h, ⟨h.some, h.some_spec.1, h.some_spec.2.symm⟩  }
-
 /-- The intersection of two subgraphs. -/
 def inter (x y : subgraph G) : subgraph G :=
 { verts := x.verts ∩ y.verts,
@@ -251,14 +243,6 @@ def inter (x y : subgraph G) : subgraph G :=
   adj_sub := λ v w h, x.adj_sub h.1,
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
   symm := λ v w h, by rwa [pi.inf_apply, pi.inf_apply, x.adj_comm, y.adj_comm] }
-
-/-- The infimum of a family of subgraphs. -/
-def Inter (s : set $ subgraph G) : subgraph G :=
-{ verts := {v | ∀ {a : subgraph G}, a ∈ s → v ∈ a.verts},
-  adj := λ v w, G.adj v w ∧ ∀ {a : subgraph G}, a ∈ s → a.adj v w,
-  adj_sub := λ v w ⟨hG, h⟩, hG,
-  edge_vert := λ v w h a as, a.edge_vert (h.right as),
-  symm := λ v w h, ⟨h.left.symm, λ a as, (h.right as).symm⟩, }
 
 /-- The `top` subgraph is `G` as a subgraph of itself. -/
 def top : subgraph G :=
@@ -279,12 +263,8 @@ def bot : subgraph G :=
 /-- The relation that one subgraph is a subgraph of another. -/
 def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
-instance : complete_lattice (subgraph G) :=
+instance : lattice (subgraph G) :=
 { le := is_subgraph,
-  top := top,
-  bot := bot,
-  le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
-  bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩,
   sup := union,
   inf := inter,
   le_refl := λ x, ⟨rfl.subset, λ _ _ h, h⟩,
@@ -303,14 +283,13 @@ instance : complete_lattice (subgraph G) :=
   le_sup_right := λ x y, ⟨set.subset_union_right x.verts y.verts, (λ v w h, or.inr h)⟩,
   le_inf := λ x y z hxy hyz, ⟨set.subset_inter hxy.1 hyz.1, (λ v w h, ⟨hxy.2 h, hyz.2 h⟩)⟩,
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
-  inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩,
-  Sup := Union,
-  Inf := Inter,
-  le_Sup := λ s a as, ⟨λ v av, ⟨a,as,av⟩, λ v w vw, ⟨a,as,vw⟩, ⟩,
-  Sup_le := λ s b h, ⟨λ v ⟨a,as,va⟩, (h a as).left va, λ v w ⟨a, as, vwa⟩, (h a as).right vwa⟩,
-  le_Inf := λ s a h,
-    ⟨λ v va b bs, (h b bs).left va, λ v w vw, ⟨a.adj_sub vw, λ b bs, (h b bs).right vw⟩⟩,
-  Inf_le := λ s a as, ⟨λ v hv, hv as, λ v w vw, vw.right as⟩ }
+  inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
+
+instance : bounded_order (subgraph G) :=
+{ top := top,
+  bot := bot,
+  le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
+  bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
 @[simps] instance subgraph_inhabited : inhabited (subgraph G) := ⟨⊥⟩
 

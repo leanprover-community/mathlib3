@@ -66,8 +66,7 @@ lemma subgraph.connected.sup {H K : G.subgraph}
   (hH : H.connected) (hK : K.connected) (hn : (H ⊓ K).verts.nonempty ) :
   (H ⊔ K).connected :=
 begin
-  change (H ⊔ K).coe.connected,
-  rw [connected_iff_exists_forall_reachable],
+  rw [subgraph.connected, connected_iff_exists_forall_reachable],
   obtain ⟨u, hu, hu'⟩ := hn,
   use ⟨u, or.inl hu⟩,
   rintro ⟨v, hv|hv⟩,
@@ -79,7 +78,7 @@ lemma subgraph.induce_union_connected {H : G.subgraph} {s t : set V}
   (sconn : (H.induce s).connected) (tconn : (H.induce t).connected) (sintert : (s ⊓ t).nonempty ) :
   (H.induce $ s ⊔ t).connected :=
 begin
-  apply subgraph.connected.mono _ _ (subgraph.connected.sup sconn tconn sintert),
+  refine (subgraph.connected.sup sconn tconn sintert).mono _ _,
   { apply subgraph.sup_induce_le_induce_sup, },
   { simp, },
 end
@@ -96,7 +95,7 @@ lemma induce_pair_connected_of_adj {u v : V} (huv : G.adj u v) :
   (G.induce {u, v}).connected :=
 begin
   convert subgraph_of_adj_connected huv,
-  rw [simple_graph.induce_eq_coe_induce_top],
+  rw simple_graph.induce_eq_coe_induce_top,
   congr,
   exact (subgraph.subgraph_of_adj_eq_induce huv).symm,
 end
@@ -104,8 +103,7 @@ end
 lemma subgraph.top_induce_pair_connected_of_adj {u v : V} (huv : G.adj u v) :
   ((⊤ : G.subgraph).induce {u, v}).connected :=
 begin
-  change connected (subgraph.coe _),
-  rw ← induce_eq_coe_induce_top,
+  rw [subgraph.connected, ←induce_eq_coe_induce_top],
   exact induce_pair_connected_of_adj huv,
 end
 
@@ -135,30 +133,6 @@ begin
                set.union_eq_right_iff_subset], }
 end
 
-lemma subgraph.connected_of_patches {H : G.subgraph} (u : H.verts)
-  (patches : ∀ v : H.verts,
-               ∃ (H' : G.subgraph) (sub : H' ≤ H) (u' : ↑u ∈ H'.verts) (v' : ↑v ∈ H'.verts),
-                  H'.coe.reachable ⟨u,u'⟩ ⟨v,v'⟩ ) : H.coe.connected :=
-begin
-  rw connected_iff_exists_forall_reachable,
-  refine ⟨u, λ v, _⟩,
-  obtain ⟨Hv, HvH, u', v',⟨rv⟩⟩ := patches v,
-  convert nonempty.intro (rv.map (subgraph.inclusion HvH));
-  rw [←subtype.coe_inj,simple_graph.subgraph.inclusion_apply_coe];
-  refl,
-end
-
-lemma induce_connected_of_patches {s : set V} {u} (hu : u ∈ s)
-  (patches : ∀ {v} (hv : v ∈ s), ∃ (s' : set V) (sub : s' ⊆ s) (hu' : u ∈ s') (hv' : v ∈ s'),
-             (G.induce s').reachable ⟨u, hu'⟩ ⟨v, hv'⟩ ) : (G.induce s).connected :=
-begin
-  rw connected_iff_exists_forall_reachable,
-  refine ⟨⟨u, hu⟩, _⟩,
-  rintro ⟨v, hv⟩,
-  obtain ⟨sv, svs, hu', hv', ⟨uv⟩⟩ := patches hv,
-  exact ⟨uv.map (induce_hom_of_le svs)⟩,
-end
-
 lemma walk.to_subgraph_connected {u v : V} (p : G.walk u v) :
   p.to_subgraph.connected :=
 begin
@@ -175,6 +149,17 @@ lemma induce_walk_support_connected {u v : V} (p : G.walk u v) :
 begin
   rw induce_eq_coe_induce_top,
   exact (p.to_subgraph_connected).mono p.to_subgraph_le_induce_support p.verts_to_subgraph,
+end
+
+lemma induce_connected_of_patches {s : set V} {u} (hu : u ∈ s)
+  (patches : ∀ {v} (hv : v ∈ s), ∃ (s' : set V) (sub : s' ⊆ s) (hu' : u ∈ s') (hv' : v ∈ s'),
+             (G.induce s').reachable ⟨u, hu'⟩ ⟨v, hv'⟩ ) : (G.induce s).connected :=
+begin
+  rw connected_iff_exists_forall_reachable,
+  refine ⟨⟨u, hu⟩, _⟩,
+  rintro ⟨v, hv⟩,
+  obtain ⟨sv, svs, hu', hv', ⟨uv⟩⟩ := patches hv,
+  exact ⟨uv.map (induce_hom_of_le svs)⟩,
 end
 
 lemma induce_sUnion_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)

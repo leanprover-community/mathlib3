@@ -899,6 +899,14 @@ outside the set. This is a wrapper around `simple_graph.comap`. -/
 @[reducible] def induce (s : set V) (G : simple_graph V) : simple_graph s :=
 G.comap (function.embedding.subtype _)
 
+lemma induce_singleton_eq_top (v : V) : G.induce {v} = ⊤ :=
+begin
+  ext ⟨v, hv⟩ ⟨w, hw⟩,
+  rw [set.mem_singleton_iff] at hv hw,
+  subst_vars,
+  simp only [simple_graph.irrefl],
+end
+
 /-- Given a graph on a set of vertices, we can make it be a `simple_graph V` by
 adding in the remaining vertices without adding in any additional edges.
 This is a wrapper around `simple_graph.map`. -/

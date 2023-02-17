@@ -18,15 +18,6 @@ namespace simple_graph
 variables {V : Type u} {V' : Type v} (G : simple_graph V) (G' : simple_graph V')
 variables {G}
 
--- TODO: goes in basic.lean:
-lemma induce_singleton_eq_top (v : V) : G.induce {v} = ⊤ :=
-begin
-  ext ⟨v, hv⟩ ⟨w, hw⟩,
-  rw [set.mem_singleton_iff] at hv hw,
-  subst_vars,
-  simp only [simple_graph.irrefl],
-end
-
 lemma subgraph.connected_iff (H : G.subgraph) :
   H.connected ↔ H.coe.preconnected ∧ H.verts.nonempty :=
 begin
@@ -172,7 +163,7 @@ lemma induce_walk_support_connected [decidable_eq V] :
                set.mem_singleton, or_true, set.mem_set_of_eq, walk.start_mem_support, and_self],
   end
 
-lemma induce_bUnion_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
+lemma induce_sUnion_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
   (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
   (Sc : ∀ {s}, s ∈ S → (G.induce s).connected) :
   (G.induce $ ⋃₀ S).connected :=

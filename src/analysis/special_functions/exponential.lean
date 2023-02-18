@@ -202,8 +202,6 @@ has_strict_deriv_at_exp_zero.has_deriv_at
 
 end deriv_R_or_C
 
-section complex
-
 lemma complex.exp_eq_exp_ℂ : complex.exp = exp ℂ :=
 begin
   refine funext (λ x, _),
@@ -212,18 +210,5 @@ begin
     (exp_series_div_summable ℝ x).has_sum.tendsto_sum_nat
 end
 
-end complex
-
-section real
-
 lemma real.exp_eq_exp_ℝ : real.exp = exp ℝ :=
-begin
-  refine funext (λ x, _),
-  rw [real.exp, complex.exp_eq_exp_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_eq_tsum, exp_eq_tsum_div,
-      ← re_to_complex, ← re_clm_apply, re_clm.map_tsum (exp_series_summable' (x : ℂ))],
-  refine tsum_congr (λ n, _),
-  rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,
-      smul_eq_mul, div_eq_inv_mul]
-end
-
-end real
+by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }

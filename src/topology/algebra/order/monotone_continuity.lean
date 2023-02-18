@@ -9,6 +9,9 @@ import topology.homeomorph
 /-!
 # Continuity of monotone functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following fact: if `f` is a monotone function on a neighborhood of `a`
 and the image of this neighborhood is a neighborhood of `f a`, then `f` is continuous at `a`, see
 `continuous_at_of_monotone_on_of_image_mem_nhds`, as well as several similar facts.

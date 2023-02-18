@@ -11,6 +11,9 @@ import algebra.big_operators.pi
 /-!
 # Theory of topological monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define mixin classes `has_continuous_mul` and `has_continuous_add`. While in many
 applications the underlying type is a monoid (multiplicative or additive), we do not require this in
 the definitions.

@@ -636,8 +636,7 @@ begin
 end
 
 /-- If a kernel `κ` is finite and a function `f : α → β → ℝ≥0∞` is bounded, then `with_density κ f`
-is finite.
-Auxiliary lemma for `is_s_finite_kernel_with_density_of_is_finite_kernel`. -/
+is finite. -/
 lemma is_finite_kernel_with_density_of_bounded (κ : kernel α β) [is_finite_kernel κ]
   {B : ℝ≥0∞} (hB_top : B ≠ ∞) (hf_B : ∀ a b, f a b ≤ B) :
   is_finite_kernel (with_density κ f) :=
@@ -657,8 +656,6 @@ begin
   { rw with_density_of_not_measurable _ hf,
     apply_instance, },
 end
-
-open_locale topological_space
 
 /-- Auxiliary lemma for `is_s_finite_kernel_with_density`.
 If a kernel `κ` is finite, then `with_density κ f` is s-finite. -/

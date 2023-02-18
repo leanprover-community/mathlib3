@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.group.ulift
-import algebra.field.defs
 import algebra.ring.equiv
 
 /-!
@@ -20,12 +19,18 @@ This file defines instances for ring, semiring and related structures on `ulift`
 We also provide `ulift.ring_equiv : ulift R ≃+* R`.
 -/
 
-open_locale nnrat
-
 universes u v
 variables {α : Type u} {x y : ulift.{v} α}
 
 namespace ulift
+
+instance [has_nat_cast α] : has_nat_cast (ulift α) := ⟨λ n, up n⟩
+instance [has_int_cast α] : has_int_cast (ulift α) := ⟨λ n, up n⟩
+
+@[simp, norm_cast] lemma up_nat_cast [has_nat_cast α] (n : ℕ) : up (n : α) = n := rfl
+@[simp, norm_cast] lemma up_int_cast [has_int_cast α] (n : ℤ) : up (n : α) = n := rfl
+@[simp, norm_cast] lemma down_nat_cast [has_nat_cast α] (n : ℕ) : down (n : ulift α) = n := rfl
+@[simp, norm_cast] lemma down_int_cast [has_int_cast α] (n : ℤ) : down (n : ulift α) = n := rfl
 
 instance mul_zero_class [mul_zero_class α] : mul_zero_class (ulift α) :=
 by refine_struct { zero := (0 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
@@ -108,19 +113,5 @@ tactic.pi_instance_derive_field
 instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { .. ulift.ring };
 tactic.pi_instance_derive_field
-
-instance [has_nnrat_cast α] : has_nnrat_cast (ulift α) := ⟨λ a, up a⟩
-instance [has_rat_cast α] : has_rat_cast (ulift α) := ⟨λ a, up a⟩
-
-@[simp, norm_cast] lemma up_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : up (q : α) = q := rfl
-@[simp, norm_cast] lemma up_rat_cast [has_rat_cast α] (q : ℚ) : up (q : α) = q := rfl
-@[simp, norm_cast] lemma down_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : down (q : ulift α) = q :=
-rfl
-@[simp, norm_cast] lemma down_rat_cast [has_rat_cast α] (q : ℚ) : down (q : ulift α) = q := rfl
-
-instance field [field α] : field (ulift α) :=
-down_injective.field _ rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl)
 
 end ulift

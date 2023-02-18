@@ -40,7 +40,7 @@ Classes of kernels:
 
 open measure_theory
 
-open_locale measure_theory ennreal big_operators
+open_locale measure_theory ennreal nnreal big_operators
 
 namespace probability_theory
 
@@ -600,17 +600,6 @@ begin
     rw zero_add, },
 end
 
-omit mα
-/-- TODO: move to the file where `with_density` is defined for measures. -/
-lemma with_density_sum (μ : ι → measure β) (f : β → ℝ≥0∞) :
-  (measure.sum μ).with_density f = measure.sum (λ n, (μ n).with_density f) :=
-begin
-  ext1 s hs,
-  simp_rw [measure.sum_apply _ hs, with_density_apply f hs, measure.restrict_sum μ hs,
-    lintegral_sum_measure],
-end
-include mα
-
 lemma with_density_kernel_sum [countable ι] (κ : ι → kernel α β)
   (hκ : ∀ i, is_s_finite_kernel (κ i)) (f : α → β → ℝ≥0∞) :
   @with_density _ _ _ _ (kernel.sum κ) (is_s_finite_kernel_sum hκ) f
@@ -624,7 +613,6 @@ begin
     exact sum_zero.symm, },
 end
 
-/- TODO: remove the measurability hypothesis. -/
 lemma with_density_tsum [countable ι] (κ : kernel α β) [is_s_finite_kernel κ]
   {f : ι → α → β → ℝ≥0∞} (hf : ∀ i, measurable (function.uncurry (f i))) :
   with_density κ (∑' n, f n) = kernel.sum (λ n, with_density κ (f n)) :=
@@ -650,7 +638,8 @@ begin
 end
 
 /-- If a kernel `κ` is finite and a function `f : α → β → ℝ≥0∞` is bounded, then `with_density κ f`
-is finite. -/
+is finite.
+Auxiliary lemma for `is_s_finite_kernel_with_density_of_is_finite_kernel`. -/
 lemma is_finite_kernel_with_density_of_bounded (κ : kernel α β) [is_finite_kernel κ]
   {B : ℝ≥0∞} (hB_top : B ≠ ∞) (hf_B : ∀ a b, f a b ≤ B) :
   is_finite_kernel (with_density κ f) :=
@@ -674,7 +663,7 @@ end
 open_locale topological_space
 
 /-- Auxiliary lemma for `is_s_finite_kernel_with_density`.
-If a kernel `κ` is finite, `with_density κ f` is s-finite. -/
+If a kernel `κ` is finite, then `with_density κ f` is s-finite. -/
 lemma is_s_finite_kernel_with_density_of_is_finite_kernel (κ : kernel α β) [is_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
@@ -729,14 +718,13 @@ begin
   suffices : is_finite_kernel (with_density κ (fs n)), by { haveI := this, apply_instance, },
   refine is_finite_kernel_with_density_of_bounded _ (ennreal.coe_ne_top : (↑n + 1) ≠ ∞) (λ a b, _),
   norm_cast,
-  calc fs n a b
-      ≤ min (f a b) (n + 1) : tsub_le_self
-  ... ≤ (n + 1) : min_le_right _ _
-  ... = ↑(n + 1) : by norm_cast,
+  calc fs n a b ≤ min (f a b) (n + 1) : tsub_le_self
+            ... ≤ (n + 1) : min_le_right _ _
+            ... = ↑(n + 1) : by norm_cast,
 end
 
-/-- For a s-finite kernel `κ` and a function `f` which is everywhere finite, `with_density κ f` is
-s-finite. `` -/
+/-- For a s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is everywhere finite,
+`with_density κ f` is s-finite. -/
 theorem is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
@@ -749,6 +737,11 @@ begin
   exact is_s_finite_kernel_sum
     (λ n, is_s_finite_kernel_with_density_of_is_finite_kernel (seq κ n) hf_ne_top),
 end
+
+/-- For a s-finite kernel `κ` and a function `f : α → β → ℝ≥0`, `with_density κ f` is s-finite. -/
+instance (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0) :
+  is_s_finite_kernel (with_density κ (λ a b, f a b)) :=
+is_s_finite_kernel.with_density κ (λ _ _, ennreal.coe_ne_top)
 
 end with_density
 

@@ -2419,8 +2419,7 @@ lemma with_density_sum {ι : Type*} {m : measurable_space α} (μ : ι → measu
   (sum μ).with_density f = sum (λ n, (μ n).with_density f) :=
 begin
   ext1 s hs,
-  simp_rw [measure.sum_apply _ hs, with_density_apply f hs, restrict_sum μ hs,
-    lintegral_sum_measure],
+  simp_rw [sum_apply _ hs, with_density_apply f hs, restrict_sum μ hs, lintegral_sum_measure],
 end
 
 lemma with_density_smul (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :

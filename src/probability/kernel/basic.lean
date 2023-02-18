@@ -546,9 +546,9 @@ end measurable_lintegral
 section with_density
 variables {f : α → β → ℝ≥0∞}
 
-/-- Kernel with image `(κ a).with_density (f a)`. If `function.uncurry f` is measurable, it verifies
-`∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. Otherwise it takes the default
-value 0. -/
+/-- Kernel with image `(κ a).with_density (f a)` if `function.uncurry f` is measurable, and
+with image 0 otherwise. If `function.uncurry f` is measurable, it satisfies
+`∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. -/
 noncomputable
 def with_density (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0∞) :
   kernel α β :=

@@ -79,7 +79,7 @@ lemma subgraph.induce_union_connected {H : G.subgraph} {s t : set V}
   (H.induce $ s ⊔ t).connected :=
 begin
   refine (subgraph.connected.sup sconn tconn sintert).mono _ _,
-  { apply subgraph.sup_induce_le_induce_sup, },
+  { apply subgraph.le_induce_sup, },
   { simp, },
 end
 
@@ -128,7 +128,7 @@ begin
   convert (subgraph.connected.adj_union sconn tconn hv hw a).mono _ _,
   { simp only [subgraph.induce_verts], },
   { rw [sup_assoc, sup_le_iff],
-    refine ⟨subgraph.induce_mono_right this, subgraph.sup_induce_le_induce_sup⟩, },
+    refine ⟨subgraph.induce_mono_right this, subgraph.le_induce_sup⟩, },
   { simpa only [subgraph.verts_sup, subgraph.induce_verts, set.union_assoc,
                set.union_eq_right_iff_subset], }
 end
@@ -144,8 +144,27 @@ begin
                walk.start_mem_support], },
 end
 
+lemma connected_iff_forall_exists_walk_subgraph (H : G.subgraph) :
+  H.connected ↔ H.verts.nonempty ∧ ∀ {u} (hu : u ∈ H.verts) {v} (hv : v ∈ H.verts),
+                  ∃ p : G.walk u v, p.to_subgraph ≤ H :=
+begin
+  split,
+  { rw [subgraph.connected_iff],
+    rintro ⟨Hp, Hn⟩,
+    refine ⟨Hn, λ u hu v hv, ⟨(Hp ⟨u, hu⟩ ⟨v, hv⟩).some.map (subgraph.hom _), _⟩⟩,
+    simp only [walk.to_subgraph_map],
+    apply walk.to_subgraph_map_hom_le, },
+  { rintro ⟨Hn,Hw⟩,
+    rw [subgraph.connected, connected_iff_exists_forall_reachable],
+    refine ⟨⟨Hn.some, Hn.some_spec⟩, λ w, _⟩,
+    obtain ⟨w, hw⟩ := w,
+    obtain ⟨p, h⟩ := Hw Hn.some_spec hw,
+    exact reachable.map (subgraph.inclusion h) (p.to_subgraph_connected
+            ⟨_, p.first_mem_verts_to_subgraph⟩ ⟨_, p.last_mem_verts_to_subgraph⟩), },
+end
+
 lemma induce_walk_support_connected {u v : V} (p : G.walk u v) :
-  (G.induce $ {v | v ∈ p.support}).connected :=
+  (G.induce {v | v ∈ p.support}).connected :=
 begin
   rw induce_eq_coe_induce_top,
   exact (p.to_subgraph_connected).mono p.to_subgraph_le_induce_support p.verts_to_subgraph,
@@ -163,8 +182,8 @@ begin
 end
 
 lemma induce_sUnion_connected_of_pairwise_not_disjoint {S : set (set V)} (Sn : S.nonempty)
-  (Snd : ∀ {s}, s ∈ S → ∀ {t}, t ∈ S → set.nonempty (s ∩ t))
-  (Sc : ∀ {s}, s ∈ S → (G.induce s).connected) :
+  (Snd : ∀ ⦃s⦄, s ∈ S → ∀ ⦃t⦄, t ∈ S → set.nonempty (s ∩ t))
+  (Sc : ∀ ⦃s⦄, s ∈ S → (G.induce s).connected) :
   (G.induce $ ⋃₀ S).connected :=
 begin
   obtain ⟨s, sS⟩ := Sn,

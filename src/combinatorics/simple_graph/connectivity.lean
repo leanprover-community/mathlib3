@@ -1424,7 +1424,7 @@ hf.forall₂.2 $ λ a b, nonempty.map (walk.map _) $ hG _ _
 protected lemma preconnected.mono  {G G' : simple_graph V} (h : G ≤ G')
   (hG : G.preconnected) : G'.preconnected := λ u v, (hG u v).mono h
 
-lemma top_preconnected (V : Type*) : (⊤ : simple_graph V).preconnected :=
+lemma top_preconnected : (⊤ : simple_graph V).preconnected :=
 by classical; exact λ x y, if h : x = y then by { rw h, } else adj.reachable h
 
 lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
@@ -1462,8 +1462,8 @@ protected lemma connected.mono {G G' : simple_graph V} (h : G ≤ G')
 { preconnected := hG.preconnected.mono h,
   nonempty := hG.nonempty }
 
-lemma top_connected (V : Type*) [nonempty V] : (⊤ : simple_graph V).connected :=
-⟨top_preconnected V⟩
+lemma top_connected [nonempty V] : (⊤ : simple_graph V).connected :=
+⟨top_preconnected⟩
 
 lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.connected ↔ H.connected :=
@@ -1583,6 +1583,12 @@ end
 @[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
 set.ext (λ _, p.mem_verts_to_subgraph)
 
+lemma first_mem_verts_to_subgraph (p : G.walk u v) : u ∈ p.to_subgraph.verts :=
+by simp [mem_verts_to_subgraph]
+
+lemma last_mem_verts_to_subgraph (p : G.walk u v) : v ∈ p.to_subgraph.verts :=
+by simp [mem_verts_to_subgraph]
+
 lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
   e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
 by induction p; simp [*]
@@ -1623,6 +1629,16 @@ begin
     refine set.finite.union _ p_ih,
     refine set.finite.subset _ (neighbor_set_subgraph_of_adj_subset p_h),
     apply set.to_finite, },
+end
+
+lemma to_subgraph_map_hom_le {H : G.subgraph} {u v : H.verts} (p : H.coe.walk u v) :
+  subgraph.map H.hom p.to_subgraph ≤ H :=
+begin
+  split,
+  { simp only [subgraph.map_verts, subgraph.hom_apply, set.image_subset_iff,
+               subtype.coe_preimage_self, set.subset_univ], },
+  { rintro x y ⟨_, _, a, rfl, rfl⟩,
+    exact p.to_subgraph.adj_sub a, },
 end
 
 lemma to_subgraph_le_induce_support (p : G.walk u v) :

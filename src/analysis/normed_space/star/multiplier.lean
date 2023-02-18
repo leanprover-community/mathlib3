@@ -234,6 +234,7 @@ instance {S : Type*} [semiring S] [module S A] [smul_comm_class 𝕜 S A]
   module S 𝓜(𝕜, A) :=
 function.injective.module S to_prod_hom ext (λ x y, rfl)
 
+-- TODO: generalize to `algebra S 𝓜(𝕜, A)` once `continuous_linear_map.algebra` is generalized.
 instance : algebra 𝕜 𝓜(𝕜, A) :=
 { to_fun := λ k,
   { to_prod := algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A)) k,
@@ -338,11 +339,11 @@ that `𝓜(𝕜, A)` is also a C⋆-algebra. Moreover, in this case, for `a : �
 instance : normed_add_comm_group 𝓜(𝕜, A) :=
 normed_add_comm_group.induced _ _ (to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)) ext
 
-lemma norm_def (a : 𝓜(𝕜, A)) : ‖a‖ = max (‖a.fst‖) (‖a.snd‖) := rfl
+lemma norm_def (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.to_prod‖ := rfl
+lemma nnnorm_def (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.to_prod‖₊ := rfl
 
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
-{ norm_smul_le := λ k a, show max (‖k • a.fst‖) (‖k • a.snd‖) ≤‖k‖ * max (‖a.fst‖) (‖a.snd‖),
-    by simp only [mul_max_of_nonneg _ _ (norm_nonneg k), norm_smul],
+{ norm_smul_le := λ k a, (norm_smul k a.to_prod).le,
   .. double_centralizer.module }
 
 lemma uniform_embedding_to_prod : uniform_embedding (@to_prod 𝕜 A _ _ _ _ _) :=
@@ -412,9 +413,8 @@ begin
   exact le_antisymm (h0 _ _ h1) (h0 _ _ h2),
 end
 
--- `simp_nf` linter times out if we add `@[simp]` to these
 @[simp] lemma norm_fst (a : 𝓜(𝕜, A)) :‖a.fst‖ = ‖a‖ :=
-  by simp only [norm_def, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
+  by simp only [norm_def, prod.norm_def, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
 @[simp] lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
 @[simp] lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a‖₊ := subtype.ext (norm_fst a)
 @[simp] lemma nnnorm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖₊ = ‖a‖₊ := subtype.ext (norm_snd a)

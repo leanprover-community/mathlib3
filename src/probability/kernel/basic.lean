@@ -33,10 +33,10 @@ Particular kernels:
 * `kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of `a : α` is
   `(κ a).restrict s`.
   Integral: `∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a)`
-* `kernel.with_density κ (f : α → β → ℝ≥0∞)`: kernel that sends `a` to `(κ a).with_density f`. It
-  is defined if `κ` is s-finite. If `f` is finite everywhere, then this is also an s-finite kernel.
-  The class of s-finite kernels is the smallest class of kernels that contains finite kernels and
-  which is stable by `with_density`.
+* `kernel.with_density κ (f : α → β → ℝ≥0∞)`: kernel `a ↦ (κ a).with_density (f a)`.
+  It is defined if `κ` is s-finite. If `f` is finite everywhere, then this is also an s-finite
+  kernel. The class of s-finite kernels is the smallest class of kernels that contains finite
+  kernels and which is stable by `with_density`.
   Integral: `∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a)`
 
 ## Main statements

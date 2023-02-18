@@ -27,6 +27,18 @@ Classes of kernels:
   stronger condition is necessary to ensure that the composition of two finite kernels is finite.
 * `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
 
+Particular kernels:
+* `deterministic {f : α → β} (hf : measurable f)`: kernel `a ↦ measure.dirac (f a)`.
+* `const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
+* `kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of `a : α` is
+  `(κ a).restrict s`.
+  Integral: `∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a)`
+* `kernel.with_density κ (f : α → β → ℝ≥0∞)`: kernel `a ↦ (κ a).with_density (f a)`.
+  It is defined if `κ` is s-finite. If `f` is finite everywhere, then this is also an s-finite
+  kernel. The class of s-finite kernels is the smallest class of kernels that contains finite
+  kernels and which is stable by `with_density`.
+  Integral: `∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a)`
+
 ## Main statements
 
 * `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
@@ -186,6 +198,7 @@ lemma sum_apply' [countable ι] (κ : ι → kernel α β) (a : α) {s : set β}
   kernel.sum κ a s = ∑' n, κ n a s :=
 by rw [sum_apply κ a, measure.sum_apply _ hs]
 
+@[simp]
 lemma sum_zero [countable ι] : kernel.sum (λ (i : ι), (0 : kernel α β)) = 0 :=
 begin
   ext a s hs : 2,
@@ -311,8 +324,7 @@ def deterministic {f : α → β} (hf : measurable f) :
     begin
       refine measure.measurable_of_measurable_coe _ (λ s hs, _),
       simp_rw measure.dirac_apply' _ hs,
-      refine measurable.indicator _ (hf hs),
-      simp only [pi.one_apply, measurable_const],
+      exact measurable_one.indicator (hf hs),
     end, }
 
 lemma deterministic_apply {f : α → β} (hf : measurable f) (a : α) :

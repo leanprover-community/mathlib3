@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
+import analysis.normed_space.operator_norm
 import algebra.algebra.restrict_scalars
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # Extending a continuous `ℝ`-linear map to a continuous `𝕜`-linear map

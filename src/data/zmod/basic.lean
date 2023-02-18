@@ -778,7 +778,7 @@ begin
   { refl }
 end
 
-@[simp] lemma coe_val_min_abs : ∀ {n : ℕ} (x : zmod n), (x.val_min_abs : zmod n) = x
+@[simp, norm_cast] lemma coe_val_min_abs : ∀ {n : ℕ} (x : zmod n), (x.val_min_abs : zmod n) = x
 | 0       x := int.cast_id x
 | k@(n+1) x :=
 begin

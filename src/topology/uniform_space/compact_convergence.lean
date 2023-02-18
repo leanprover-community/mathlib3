@@ -9,6 +9,9 @@ import topology.uniform_space.uniform_convergence
 /-!
 # Compact convergence (uniform convergence on compact sets)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a topological space `α` and a uniform space `β` (e.g., a metric space or a topological group),
 the space of continuous maps `C(α, β)` carries a natural uniform space structure. We define this
 uniform space structure in this file and also prove the following properties of the topology it
@@ -76,7 +79,7 @@ of the uniform space structure on `C(α, β)` definitionally equal to the compac
 
 universes u₁ u₂ u₃
 
-open_locale filter uniformity topological_space
+open_locale filter uniformity topology
 open uniform_space set filter
 
 variables {α : Type u₁} {β : Type u₂} [topological_space α] [uniform_space β]
@@ -264,8 +267,8 @@ begin
     haveI := hι,
     exact ⟨⋂ i, compact_open.gen (C i) (U i), h₂.trans hXf,
       is_open_Inter (λ i, continuous_map.is_open_gen (hC i) (hU i)), h₁⟩, },
-  { simp only [le_generate_from_iff_subset_is_open, and_imp, exists_prop, forall_exists_index,
-      set_of_subset_set_of],
+  { simp only [topological_space.le_generate_from_iff_subset_is_open, and_imp, exists_prop,
+      forall_exists_index, set_of_subset_set_of],
     rintros - K hK U hU rfl f hf,
     obtain ⟨V, hV, hV', hVf⟩ := compact_conv_nhd_subset_compact_open f hK hU hf,
     exact filter.mem_of_superset (filter_basis.mem_filter_of_mem _ ⟨⟨K, V⟩, ⟨hK, hV⟩, rfl⟩) hVf, },

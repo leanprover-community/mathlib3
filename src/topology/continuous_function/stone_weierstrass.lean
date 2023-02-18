@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Heather Macbeth
 -/
 import topology.continuous_function.weierstrass
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # The Stone-Weierstrass theorem
@@ -160,7 +160,7 @@ begin
   exact h,
 end
 
-open_locale topological_space
+open_locale topology
 
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top

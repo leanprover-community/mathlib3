@@ -99,13 +99,13 @@ begin
       linear_map.coe_single, pi_Lp.equiv_symm_single, linear_equiv.symm_symm,
       eigenvector_basis, to_lin'_apply],
     simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
-    simp_rw [orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
+    simp_rw [orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.repr_reindex,
       linear_equiv.symm_symm, pi_Lp.linear_equiv_apply, pi_Lp.equiv_single, mul_vec_single,
       mul_one],
     refl },
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
     rw [basis.to_matrix_apply,
-      orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
+      orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.repr_reindex,
       eigenvalues₀, pi_Lp.basis_fun_apply, pi_Lp.equiv_symm_single] }
 end
 

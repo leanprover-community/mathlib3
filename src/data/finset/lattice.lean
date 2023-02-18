@@ -11,6 +11,9 @@ import order.complete_lattice
 
 /-!
 # Lattice operations on finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β γ ι : Type*}
@@ -26,7 +29,7 @@ variables [semilattice_sup α] [order_bot α]
 /-- Supremum of a finite set: `sup {a, b, c} f = f a ⊔ f b ⊔ f c` -/
 def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
-variables {s s₁ s₂ : finset β} {f g : β → α}
+variables {s s₁ s₂ : finset β} {f g : β → α} {a : α}
 
 lemma sup_def : s.sup f = (s.1.map f).sup := rfl
 
@@ -75,6 +78,8 @@ end
 alias finset.sup_le_iff ↔ _ sup_le
 
 attribute [protected] sup_le
+
+lemma sup_const_le : s.sup (λ _, a) ≤ a := finset.sup_le $ λ _ _, le_rfl
 
 lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f := finset.sup_le_iff.1 le_rfl _ hb
 
@@ -252,7 +257,7 @@ variables [semilattice_inf α] [order_top α]
 /-- Infimum of a finite set: `inf {a, b, c} f = f a ⊓ f b ⊓ f c` -/
 def inf (s : finset β) (f : β → α) : α := s.fold (⊓) ⊤ f
 
-variables {s s₁ s₂ : finset β} {f g : β → α}
+variables {s s₁ s₂ : finset β} {f g : β → α} {a : α}
 
 lemma inf_def : s.inf f = (s.1.map f).inf := rfl
 
@@ -300,6 +305,8 @@ protected lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀ b ∈ s, a ≤ f b :
 alias finset.le_inf_iff ↔ _ le_inf
 
 attribute [protected] le_inf
+
+lemma le_inf_const_le : a ≤ s.inf (λ _, a) := finset.le_inf $ λ _ _, le_rfl
 
 lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b := finset.le_inf_iff.1 le_rfl _ hb
 

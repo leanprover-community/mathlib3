@@ -25,7 +25,7 @@ This file records basic files on doubling measures.
 noncomputable theory
 
 open set filter metric measure_theory topological_space
-open_locale ennreal nnreal topological_space
+open_locale ennreal nnreal topology
 
 /-- A measure `μ` is said to be a doubling measure if there exists a constant `C` such that for
 all sufficiently small radii `ε`, and for any centre, the measure of a ball of radius `2 * ε` is

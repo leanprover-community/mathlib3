@@ -8,6 +8,9 @@ import topology.homeomorph
 /-!
 # Maps equivariantly-homeomorphic to projection in a product
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition `is_homeomorphic_trivial_fiber_bundle F p`, a Prop saying that a
 map `p : Z → B` between topological spaces is a "trivial fiber bundle" in the sense that there
 exists a homeomorphism `h : Z ≃ₜ B × F` such that `proj x = (h x).1`.  This is an abstraction which

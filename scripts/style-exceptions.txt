@@ -73,4 +73,3 @@ src/tactic/tidy.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transfer.lean : line 6 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transform_decl.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late

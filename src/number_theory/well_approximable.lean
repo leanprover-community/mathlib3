@@ -53,7 +53,7 @@ An elementary (non-measure-theoretic) argument shows that if `¬ hδ` holds then
 -/
 
 open set filter function metric measure_theory
-open_locale measure_theory topological_space pointwise
+open_locale measure_theory topology pointwise
 
 /-- In a seminormed group `A`, given `n : ℕ` and `δ : ℝ`, `approx_order_of A n δ` is the set of
 elements within a distance `δ` of a point of order `n`. -/
@@ -156,7 +156,7 @@ lemma mem_approx_add_order_of_iff {δ : ℝ} {x : unit_add_circle} {n : ℕ} (hn
   x ∈ approx_add_order_of unit_add_circle n δ ↔
   ∃ m < n, gcd m n = 1 ∧ ‖x - ↑((m : ℝ) / n)‖ < δ :=
 begin
-  haveI : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩,
+  haveI := real.fact_zero_lt_one,
   simp only [mem_approx_add_order_of_iff, mem_set_of_eq, ball, exists_prop, dist_eq_norm,
     add_circle.add_order_of_eq_pos_iff hn, mul_one],
   split,

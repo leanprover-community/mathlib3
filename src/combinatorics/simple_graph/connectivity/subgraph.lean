@@ -45,13 +45,6 @@ begin
     refl <|> { apply adj.reachable, simp },
 end
 
-lemma induce_singleton_connected (v : V) :
-  (G.induce {v}).connected :=
-begin
-  rw [induce_singleton_eq_top],
-  apply top_connected,
-end
-
 @[mono]
 lemma subgraph.connected.mono {H H' : G.subgraph}
   (hle : H ≤ H') (hv : H.verts = H'.verts) (h : H.connected) : H'.connected :=

@@ -594,8 +594,8 @@ lemma with_density_add_left (κ η : kernel α β) [is_s_finite_kernel κ] [is_s
 begin
   by_cases hf : measurable (function.uncurry f),
   { ext a s hs : 2,
-    simp only [with_density_apply' _ hf _ hs, coe_fn_add, pi.add_apply, measure.restrict_add,
-      lintegral_add_measure, measure.coe_add], },
+    simp only [kernel.with_density_apply _ hf, coe_fn_add, pi.add_apply, with_density_add_measure,
+      measure.add_apply], },
   { simp_rw [with_density_of_not_measurable _ hf],
     rw zero_add, },
 end

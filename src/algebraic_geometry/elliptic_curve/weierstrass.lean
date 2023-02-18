@@ -450,6 +450,8 @@ instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
+/-- The $R$-algebra homomorphism from $R[W]/\langle X - x, Y - y(X) \rangle$ to $R$ obtained by
+  evaluating at $y$ and then at $x$, provided $W(x, y(x)) = 0$. -/
 @[simps] noncomputable def of_quotient_XY_ideal {x : R} {y : R[X]}
   (h : (W.polynomial.eval y).eval x = 0) :
   (W.coordinate_ring ⧸ XY_ideal W x y) →ₐ[R] R :=
@@ -464,6 +466,8 @@ ideal.quotient.liftₐ _ (ideal.quotient.liftₐ _
       sub_self, mul_zero, add_zero],
   end
 
+/-- The $R$-algebra isomorphism from $R[W]/\langle X - x, Y - y(X) \rangle$ to $R$ obtained by
+  evaluating at $y$ and then at $x$, provided $W(x, y(x)) = 0$. -/
 noncomputable def quotient_XY_ideal_equiv {x : R} {y : R[X]}
   (h : (W.polynomial.eval y).eval x = 0) :
   (W.coordinate_ring ⧸ XY_ideal W x y) ≃ₐ[R] R :=
@@ -473,17 +477,15 @@ begin
   iterate 2 { apply ideal.quotient.alg_hom_ext },
   apply polynomial.alg_hom_ext',
   { apply polynomial.alg_hom_ext,
-    simp_rw [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, of_quotient_XY_ideal,
+    simp only [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, of_quotient_XY_ideal,
       ideal.quotient.mkₐ_eq_mk, ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk,
-      alg_hom.coe_to_ring_hom, ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk,
-      alg_hom.coe_to_ring_hom, alg_hom.comp_apply, alg_hom.restrict_scalars_apply,
+      alg_hom.coe_to_ring_hom, alg_hom.restrict_scalars_apply,
       ← C_eq_algebra_map, aeval_C, algebra.id.map_eq_self, aeval_X],
     symmetry, apply ideal.quotient.eq.2, apply ideal.subset_span, apply or.inl,
     rw [X_class, C_sub], refl },
-  simp_rw [alg_hom.comp_apply, of_quotient_XY_ideal, ideal.quotient.mkₐ_eq_mk,
+  simp only [alg_hom.comp_apply, of_quotient_XY_ideal, ideal.quotient.mkₐ_eq_mk,
     ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom,
-    ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom,
-    alg_hom.comp_apply, alg_hom.restrict_scalars_apply, aeval_X],
+    alg_hom.restrict_scalars_apply, aeval_X],
   symmetry, apply ideal.quotient.eq.2, apply ideal.mem_span_pair.2,
   obtain ⟨p, hp⟩ : (X - C x) ∣ (y - C (aeval x y)),
   { rw [dvd_iff_is_root, is_root, eval_sub, eval_C], apply sub_self },

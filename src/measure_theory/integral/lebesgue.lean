@@ -2416,10 +2416,10 @@ lemma with_density_add_right (f : α → ℝ≥0∞) {g : α → ℝ≥0∞} (hg
 by simpa only [add_comm] using with_density_add_left hg f
 
 lemma with_density_sum {ι : Type*} {m : measurable_space α} (μ : ι → measure α) (f : α → ℝ≥0∞) :
-  (measure.sum μ).with_density f = measure.sum (λ n, (μ n).with_density f) :=
+  (sum μ).with_density f = sum (λ n, (μ n).with_density f) :=
 begin
   ext1 s hs,
-  simp_rw [measure.sum_apply _ hs, with_density_apply f hs, measure.restrict_sum μ hs,
+  simp_rw [measure.sum_apply _ hs, with_density_apply f hs, restrict_sum μ hs,
     lintegral_sum_measure],
 end
 

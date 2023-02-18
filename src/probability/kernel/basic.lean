@@ -553,13 +553,11 @@ noncomputable
 def with_density (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0∞) :
   kernel α β :=
 @dite _ (measurable (function.uncurry f)) (classical.dec _)
-  (λ hf,({ val := λ a, (κ a).with_density (f a),
+  (λ hf, ({ val := λ a, (κ a).with_density (f a),
     property :=
     begin
       refine measure.measurable_of_measurable_coe _ (λ s hs, _),
-      have : (λ a, (κ a).with_density (f a) s) = (λ a, ∫⁻ b in s, f a b ∂(κ a)),
-      { ext1 a, exact with_density_apply (f a) hs, },
-      rw this,
+      simp_rw with_density_apply _ hs,
       exact measurable_set_lintegral κ hf hs,
     end, } : kernel α β))
   (λ hf, 0)

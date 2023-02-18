@@ -4,7 +4,7 @@ import analysis.normed.group.basic
 import analysis.special_functions.pow
 import combinatorics.simple_graph.density
 import data.complex.exponential
-import data.rat.nnrat
+import data.rat.nnrat.defs
 import data.real.ereal
 import data.real.hyperreal
 import data.real.sqrt

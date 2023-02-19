@@ -1,5 +1,6 @@
+import analysis.specific_limits.basic
 import topology.algebra.infinite_sum
-import data.complex.exponential
+import trench.prod_le_sum
 
 noncomputable theory
 open finset filter function classical
@@ -266,16 +267,15 @@ lemma monotone_prod_of_le_one [ordered_comm_monoid γ] {f : β → γ} (hf : ∀
 
 lemma one_le_prod₀ [ordered_comm_semiring γ] {s : finset β} {f : β → γ}
   (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
-prod_induction _ _ le_rfl(λ x hx y hy, by
-  { rw ←mul_one (1 : γ), refine mul_le_mul (h _ hx) hy zero_le_one (zero_le_one.trans (h _ hx)) })
+prod_induction _ _ le_rfl (λ x hx y hy,
+  le_mul_of_le_mul_of_nonneg_left (by simpa using h _ hx) hy (zero_le_one.trans (h _ hx)))
 
 lemma monotone_prod_of_le_one' [ordered_comm_semiring γ] {f : β → γ} (hf : ∀ b, 1 ≤ f b) :
   monotone (λ s, ∏ b in s, f b) :=
 begin
   intros s t hst,
   simp only [←prod_sdiff hst],
-  rw [←one_mul (s.prod f), ←mul_assoc, mul_one],
-  refine monotone_mul_right_of_nonneg (zero_le_one.trans _) _;
+  refine le_mul_of_one_le_left (zero_le_one.trans _) _;
   exact one_le_prod₀ (λ _ _, hf _)
 end
 
@@ -288,8 +288,7 @@ begin
   simp only [ha, add_mul, cons_eq_insert, sum_insert, not_false_iff, prod_insert, one_mul],
   rw [add_comm],
   refine add_le_add (IH (λ b hb, hf _ (mem_cons.mpr (or.inr hb)))) _,
-  rw [←mul_one (f a), mul_assoc, one_mul],
-  refine mul_le_mul le_rfl (one_le_prod₀ (λ b hb, _)) zero_le_one (hf _ (mem_cons_self _ _)),
+  refine le_mul_of_one_le_right (hf _ (mem_cons_self _ _)) (one_le_prod₀ (λ b hb, _)),
   simp [hf _ (mem_cons.mpr (or.inr hb))]
 end
 
@@ -369,63 +368,40 @@ begin
       forall_apply_eq_imp_iff'] at h ⊢,
     obtain ⟨x, hx, hy⟩ := h,
     exact ⟨x, hx, λ s, (hy s).trans' (sum_le_prod_one_add_of_nonneg _ (λ _ _, hf _))⟩ },
-  { simp only [bdd_above_iff_exists_ge (0 : ℝ), set.mem_range, forall_exists_index,
+  { have : summable f := ⟨_, has_sum_of_is_lub_of_nonneg _ hf (is_lub_csupr h)⟩,
+    simp only [bdd_above_iff_exists_ge (0 : ℝ), set.mem_range, forall_exists_index,
       forall_apply_eq_imp_iff'] at h,
-    simp only [bdd_above_iff_exists_ge (1 : ℝ), set.mem_range, forall_exists_index,
+    simp only [bdd_above_iff_exists_ge (2 : ℝ), set.mem_range, forall_exists_index,
       forall_apply_eq_imp_iff'],
     obtain ⟨x, hx, hy⟩ := h,
-    refine ⟨real.exp x, _, λ s, _⟩,
-    { rw ←real.exp_zero,
-      exact real.exp_monotone hx },
-    { specialize hy s,
-      refine (real.exp_monotone hy).trans' _,
-      rw real.exp_sum,
-      refine prod_le_prod_of_nonneg _ (λ _ _, _) (λ b hb, add_nonneg zero_le_one (hf _)),
-      rw add_comm,
-      exact real.add_one_le_exp _ } }
-  -- suffices : (∃ b, is_lub (set.range (λ s, ∏ a in s, (1 + f a))) b) ↔
-  --   (∃ b, is_lub (set.range (λ s, ∑ a in s, f a)) b),
-  -- { split; intro h,
-  --   { refine (this.mp _).imp (λ b, has_sum_of_is_lub_of_nonneg _ hf),
-  --     obtain ⟨b, hb⟩ := h,
-  --     refine ⟨b, is_lub_of_tendsto_at_top _ _⟩,
-  --     { exact monotone_prod_of_le_one' (λ x, le_add_of_nonneg_right (hf _)) },
-  --     { obtain ⟨x, hx⟩ := hb.tendsto_units,
-  --       convert hx,
-  --       { simp [hs] },
-  --       { rw hb.prod_eq,
-  --         have he : hb.finite_not_unit.to_finset = ∅,
-  --         { ext x,
-  --           simp [hu] },
-  --         simp only [he, filter_congr_decidable, prod_empty, mul_one],
-  --         refine tendsto_nhds_unique _ hx,
-  --         generalize_proofs H,
-  --         exact Exists.some_spec H } } },
-  --   { refine (this.mpr (h.imp (λ x hx, is_lub_of_tendsto_at_top
-  --       (finset.sum_mono_set_of_nonneg hf) hx))).imp (λ b hb, _),
-  --     have he : {b | ¬ is_unit (1 + f b)} = ∅,
-  --     { ext,
-  --       simp [hu] },
-  --     have : is_unit b,
-  --     { rw is_unit_iff_ne_zero,
-  --       refine (zero_lt_one.trans_le _).ne',
-  --       refine is_lub_singleton.mono hb _,
-  --       simp only [set.singleton_subset_iff, set.mem_range],
-  --       exact ⟨∅, by simp⟩ },
-  --     refine ⟨set.finite_empty.subset he.le, ⟨this.unit, _⟩, _⟩,
-  --     { simp only [hs, is_unit.unit_spec],
-  --       exact tendsto_at_top_is_lub (monotone_prod_of_le_one' (λ x, le_add_of_nonneg_right (hf _)))
-  --         hb },
-  --     { simp only [he, set.finite.to_finset_empty, prod_empty, mul_one],
-  --       generalize_proofs H,
-  --       refine hb.unique _,
-  --       refine is_lub_of_tendsto_at_top
-  --         (monotone_prod_of_le_one' (λ x, le_add_of_nonneg_right (hf _))) _,
-  --       convert Exists.some_spec H,
-  --       simp [hs] } } },
-  -- split; rintro ⟨b, h⟩,
-  -- {  },
-  -- {  },
+    have hball : (set.Ioo (-1 : ℝ) 2⁻¹) ∈ 𝓝 (0 : ℝ),
+    { exact Ioo_mem_nhds neg_one_lt_zero (inv_pos.mpr zero_lt_two) },
+    obtain ⟨s, hs⟩ := this.vanishing hball,
+    refine ⟨2 * ∏ b in s, (1 + f b), _, _⟩,
+    { simp only [le_mul_iff_one_le_right, zero_lt_bit0, zero_lt_one],
+      refine one_le_prod₀ (λ b hb, _),
+      simp [hf b] },
+    { intro t,
+      rw ←sdiff_union_inter t s,
+      rw prod_union (disjoint_sdiff_inter t s),
+      refine mul_le_mul _ _ (zero_le_one.trans (one_le_prod₀ _)) zero_le_two,
+      { refine (prod_one_add_le_one_add_sum_sum_pow _ _).trans _,
+        { simp [hf] },
+        refine ge_of_tendsto has_sum_geometric_two _,
+        rw eventually_at_top,
+        refine ⟨range ((t \ s).card + 1), λ u hu, _⟩,
+        refine (sum_le_sum_of_subset_of_nonneg hu _).trans (sum_le_sum _),
+        { intros,
+          exact pow_nonneg (sum_nonneg (λ _ _, hf _)) _ },
+        { intros,
+          refine pow_le_pow_of_le_left (sum_nonneg (λ _ _, hf _)) _ _,
+          simpa using (hs (t \ s) disjoint_sdiff.symm).right.le
+        } },
+      { rw ←prod_sdiff (inter_subset_right t s),
+        refine le_mul_of_one_le_of_le_of_nonneg _ le_rfl (zero_le_one.trans _);
+        refine one_le_prod₀ _;
+        simp [hf] },
+      { simp [hf] } } }
 end
 
 end

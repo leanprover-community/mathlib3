@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
-import algebra.order.field.basic
 import algebra.order.nonneg.ring
 import algebra.order.field.inj_surj
 import algebra.order.field.canonical.defs

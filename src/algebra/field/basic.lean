@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.field.defs
-import algebra.group_with_zero.power
 import algebra.group_with_zero.units.lemmas
 import algebra.hom.ring
 import algebra.ring.inj_surj
-import data.rat.nnrat.defs
 
 /-!
 # Lemmas about division (semi)rings and (semi)fields

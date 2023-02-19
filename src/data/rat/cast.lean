@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yaël Dillies
 -/
 import algebra.big_operators.basic
-import data.rat.order
-import data.int.char_zero
-import algebra.group_with_zero.power
 import algebra.field.opposite
+import algebra.group_with_zero.power
 import algebra.order.field.basic
+import data.int.char_zero
+import data.rat.nnrat.basic
+import data.rat.order
 
 /-!
 # Casts for Rational Numbers

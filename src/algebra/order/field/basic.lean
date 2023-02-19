@@ -3,8 +3,9 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
+import algebra.field.basic
 import algebra.order.field.defs
-import algebra.order.with_zero
+import order.bounds.order_iso
 
 /-!
 # Lemmas about linear ordered (semi)fields
@@ -15,7 +16,6 @@ import algebra.order.with_zero
 -/
 
 open function order_dual
-open_locale nnrat
 
 variables {ι α β : Type*}
 
@@ -562,26 +562,6 @@ div_neg_iff.2 $ or.inr ⟨ha, hb⟩
 lemma div_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a / b < 0 :=
 div_neg_iff.2 $ or.inl ⟨ha, hb⟩
 
-lemma odd.zpow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff
-
-protected lemma odd.zpow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff
-
-lemma odd.zpow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff
-
-lemma odd.zpow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff
-
-alias odd.zpow_neg_iff ↔ _ odd.zpow_neg
-alias odd.zpow_nonpos_iff ↔ _ odd.zpow_nonpos
-
-lemma even.zpow_abs {p : ℤ} (hp : even p) (a : α) : |a| ^ p = a ^ p :=
-by cases abs_choice a with h h; simp only [h, hp.neg_zpow _]
-
-@[simp] lemma zpow_bit0_abs (a : α) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).zpow_abs _
-
 /-! ### Relating one division with another term -/
 
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
@@ -827,6 +807,5 @@ eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
 lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
-@[simp] lemma abs_zpow (a : α) (n : ℤ) : |a ^ n| = |a| ^ n := map_zpow₀ (abs_hom : α →*₀ α) a n
 
 end

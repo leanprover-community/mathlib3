@@ -142,6 +142,8 @@ alias even.zpow_pos_iff ↔ _ even.zpow_pos
 alias odd.zpow_neg_iff ↔ _ odd.zpow_neg
 alias odd.zpow_nonpos_iff ↔ _ odd.zpow_nonpos
 
+@[simp] lemma abs_zpow (a : α) (n : ℤ) : |a ^ n| = |a| ^ n := map_zpow₀ (abs_hom : α →*₀ α) a n
+
 lemma even.zpow_abs {p : ℤ} (hp : even p) (a : α) : |a| ^ p = a ^ p :=
 by cases abs_choice a with h h; simp only [h, hp.neg_zpow _]
 

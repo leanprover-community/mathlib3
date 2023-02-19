@@ -85,14 +85,16 @@ have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
   from dec_trivial,
 let f : fin 4 → ℤ :=
   vector.nth (a ::ᵥ b ::ᵥ c ::ᵥ d ::ᵥ vector.nil) in
-let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m,
+let ⟨i, hσ⟩ := this (λ x, coe (f x)) (by rw [← @zero_mul (zmod 2) _ m,
   ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
   ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
 let σ := swap i 0 in
 have h01 : 2 ∣ f (σ 0) ^ 2 + f (σ 1) ^ 2,
-  from (char_p.int_cast_eq_zero_iff (zmod 2) 2 _).1 $ by simpa [σ] using hσ.1,
+  from (char_p.int_cast_eq_zero_iff (zmod 2) 2 _).1 $
+    by simpa only [int.cast_pow, int.cast_add, equiv.swap_apply_right, zmod.pow_card] using hσ.1,
 have h23 : 2 ∣ f (σ 2) ^ 2 + f (σ 3) ^ 2,
-  from (char_p.int_cast_eq_zero_iff (zmod 2) 2 _).1 $ by simpa using hσ.2,
+  from (char_p.int_cast_eq_zero_iff (zmod 2) 2 _).1 $
+    by simpa only [int.cast_pow, int.cast_add, zmod.pow_card] using hσ.2,
 let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
 ⟨(f (σ 0) - f (σ 1)) / 2, (f (σ 0) + f (σ 1)) / 2, (f (σ 2) - f (σ 3)) / 2, (f (σ 2) + f (σ 3)) / 2,
   begin
@@ -101,8 +103,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
     { conv_rhs { rw ←equiv.sum_comp σ } },
-    have fin4univ : (univ : finset (fin 4)).1 = 0 ::ₘ 1 ::ₘ 2 ::ₘ 3 ::ₘ 0, from dec_trivial,
-    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
+    simpa only [fin.sum_univ_four, add_assoc] using this,
   end⟩
 
 private lemma prime_sum_four_squares (p : ℕ) [hp : fact p.prime] :

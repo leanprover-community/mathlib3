@@ -619,7 +619,7 @@ namespace point
 ideal $\langle X - x, Y - y \rangle$ of $F(W)$ in the class group of $F[W]$. -/
 @[simp] noncomputable def to_class_fun : W.point → additive (class_group W.coordinate_ring)
 | 0        := 0
-| (some h) := class_group.mk $ additive.of_mul $ XY_ideal' h
+| (some h) := additive.of_mul $ class_group.mk $ XY_ideal' h
 
 /-- The group homomorphism mapping an affine point $(x, y)$ of `W` to the class of the non-zero
 fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ in the class group of $F[W]$. -/
@@ -643,7 +643,7 @@ fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ in the class group of 
 
 @[simp] lemma to_class_zero : to_class (0 : W.point) = 0 := rfl
 
-@[simp] lemma to_class_some : to_class (some h₁) = class_group.mk (XY_ideal' h₁) := rfl
+lemma to_class_some : to_class (some h₁) = class_group.mk (XY_ideal' h₁) := rfl
 
 @[simp] lemma add_eq_zero (P Q : W.point) : P + Q = 0 ↔ P = -Q :=
 begin

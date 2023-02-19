@@ -111,21 +111,6 @@ ext $ by simp [rat.coe_to_nnrat]
 protected def gi : galois_insertion to_nnrat coe :=
 galois_insertion.monotone_intro coe_mono to_nnrat_mono rat.le_coe_to_nnrat to_nnrat_coe
 
-/-- Coercion `ℚ≥0 → ℚ` as a `ring_hom`. -/
-def cast_hom : ℚ≥0 →+* ℚ := ⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
-
-@[simp] lemma coe_cast_hom : ⇑cast_hom = coe := rfl
-
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℚ≥0) : ℚ) = n := map_nat_cast cast_hom n
-
-@[simp] lemma mk_coe_nat (n : ℕ) : @eq ℚ≥0 (⟨(n : ℚ), n.cast_nonneg⟩ : ℚ≥0) n :=
-ext (coe_nat_cast n).symm
-
-@[simp, norm_cast] lemma coe_pow (q : ℚ≥0) (n : ℕ) : (↑(q ^ n) : ℚ) = q ^ n := cast_hom.map_pow _ _
-
--- @[norm_cast] lemma nsmul_coe (q : ℚ≥0) (n : ℕ) : ↑(n • q) = n • (q : ℚ) :=
--- cast_hom.to_add_monoid_hom.map_nsmul _ _
-
 lemma bdd_above_coe {s : set ℚ≥0} : bdd_above (coe '' s : set ℚ) ↔ bdd_above s :=
 ⟨λ ⟨b, hb⟩, ⟨to_nnrat b, λ ⟨y, hy⟩ hys, show y ≤ max b 0, from
     (hb $ set.mem_image_of_mem _ hys).trans $ le_max_left _ _⟩,
@@ -133,11 +118,8 @@ lemma bdd_above_coe {s : set ℚ≥0} : bdd_above (coe '' s : set ℚ) ↔ bdd_a
 
 lemma bdd_below_coe (s : set ℚ≥0) : bdd_below ((coe : ℚ≥0 → ℚ) '' s) := ⟨0, λ r ⟨q, _, h⟩, h ▸ q.2⟩
 
--- @[simp, norm_cast] lemma coe_max (x y : ℚ≥0) : ((max x y : ℚ≥0) : ℚ) = max (x : ℚ) (y : ℚ) :=
--- coe_mono.map_max
-
--- @[simp, norm_cast] lemma coe_min (x y : ℚ≥0) : ((min x y : ℚ≥0) : ℚ) = min (x : ℚ) (y : ℚ) :=
--- coe_mono.map_min
+@[simp, norm_cast] lemma coe_max (x y : ℚ≥0) : ((max x y : ℚ≥0) : ℚ) = max (x : ℚ) (y : ℚ) := rfl
+@[simp, norm_cast] lemma coe_min (x y : ℚ≥0) : ((min x y : ℚ≥0) : ℚ) = min (x : ℚ) (y : ℚ) := rfl
 
 lemma sub_def (p q : ℚ≥0) : p - q = to_nnrat (p - q) := rfl
 

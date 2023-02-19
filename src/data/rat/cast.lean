@@ -8,9 +8,8 @@ import algebra.field.opposite
 import algebra.group_with_zero.power
 import algebra.order.field.basic
 import data.int.char_zero
-import data.rat.nnrat.field
+import data.rat.field
 import data.rat.lemmas
-import data.rat.order
 
 /-!
 # Casts for Rational Numbers
@@ -37,7 +36,35 @@ open_locale big_operators nnrat rat
 
 variables {F ι α β : Type*}
 
+section
+variables [monoid α] {a b c d : α}
+
+@[to_additive]
+protected lemma commute.mul_left_comm (hab : commute a b) : a * (b * c) = b * (a * c) :=
+by simp_rw [←mul_assoc, hab.eq]
+
+@[to_additive]
+protected lemma commute.mul_mul_mul_comm (hbc : commute b c) :
+  (a * b) * (c * d) = (a * c) * (b * d) :=
+by simp only [hbc.mul_left_comm, mul_assoc]
+
+end
+
+section
+variables [division_monoid α] {a b c d : α}
+
+@[to_additive] lemma commute.div_mul_div_comm (hbd : commute b d) (hbc : commute b⁻¹ c) :
+  a / b * (c / d) = a * c / (b * d) :=
+by simp_rw [div_eq_mul_inv, mul_inv_rev, hbd.inv_inv.symm.eq, hbc.mul_mul_mul_comm]
+
+@[to_additive] lemma commute.mul_div_mul_comm (hcd : commute c d) (hbc : commute b c⁻¹) :
+  a * b / (c * d) = a / c * (b / d) :=
+(hcd.div_mul_div_comm hbc.symm).symm
+
+end
+
 namespace nnrat
+section division_semiring
 variables [division_semiring α] {p q : ℚ≥0}
 
 @[simp, norm_cast] lemma cast_coe_nat (n : ℕ) : ((n : ℚ≥0) : α) = n :=
@@ -52,34 +79,13 @@ by simpa only [cast_def] using (q.num.cast_commute a).div_left (q.denom.cast_com
 lemma commute_cast (a : α) (q : ℚ≥0) : commute a q := (cast_commute _ _).symm
 lemma cast_comm (q : ℚ≥0) (a : α) : (q : α) * a = a * q := (cast_commute _ _).eq
 
-@[norm_cast] lemma cast_list_sum (l : list ℚ≥0) : (l.sum : α) = (l.map coe).sum :=
-cast_hom.map_list_sum _
-
-@[norm_cast] lemma cast_list_prod (l : list ℚ≥0) : (l.prod : α) = (l.map coe).prod :=
-cast_hom.map_list_prod _
-
-@[norm_cast] lemma cast_multiset_sum (s : multiset ℚ≥0) : (s.sum : α) = (s.map coe).sum :=
-cast_hom.map_multiset_sum _
-
-@[norm_cast] lemma cast_multiset_prod (s : multiset ℚ≥0) : (s.prod : α) = (s.map coe).prod :=
-cast_hom.map_multiset_prod _
-
-@[norm_cast] lemma cast_sum {s : finset α} {f : α → ℚ≥0} : ↑(∑ a in s, f a) = ∑ a in s, (f a : α) :=
-cast_hom.map_sum _ _
-
-lemma to_nnrat_sum_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
-  (∑ a in s, f a).to_nnrat = ∑ a in s, (f a).to_nnrat :=
-begin
-  rw [←coe_inj, coe_sum, rat.coe_to_nnrat _ (finset.sum_nonneg hf)],
-  exact finset.sum_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
-end
-
-@[norm_cast] lemma coe_prod {s : finset α} {f : α → ℚ≥0} : ↑(∏ a in s, f a) = ∏ a in s, (f a : ℚ) :=
-cast_hom.map_prod _ _
+@[simp] lemma mk_coe_nat (n : ℕ) : @eq ℚ≥0 (⟨(n : ℚ), n.cast_nonneg⟩ : ℚ≥0) n := rfl
 
 @[norm_cast] lemma cast_div_of_ne_zero (a b : ℕ) (hb : (b : α) ≠ 0) : ((a / b : ℚ≥0) : α) = a / b :=
 begin
-  have hb' : b ≠ 0, { rintro rfl, exact hb nat.cast_zero },
+  have hb' : b ≠ 0,
+  { rintro rfl,
+    exact hb nat.cast_zero },
   cases e : a /. b with n d h c,
   have d0 : (d:α) ≠ 0,
   { intro d0,
@@ -114,17 +120,12 @@ end
 begin
   rw mul_def,
   norm_cast,
-  rw cast_div_of_ne_zero,
-  push_cast,
-  exact mul_ne_zero hp hq,
-  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 nat.cast_zero),
-  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 nat.cast_zero),
-  rw [num_denom', num_denom', mul_def d₁0' d₂0'],
-  suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
-  { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv_rev, d₁0, d₂0, mul_assoc] },
-    all_goals {simp [d₁0, d₂0]} },
-  rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
+  rw [cast_div_of_ne_zero, nat.cast_mul, nat.cast_mul, commute.mul_div_mul_comm,
+    ←cast_div_of_ne_zero _ _ hp, ←cast_div_of_ne_zero _ _ hq, num_div_denom, num_div_denom],
+  { exact nat.commute_cast _ _ },
+  { exact nat.cast_commute _ _ },
+  { rw nat.cast_mul,
+    exact mul_ne_zero hp hq }
 end
 
 @[simp] lemma cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ≥0) : α) = n⁻¹ :=
@@ -192,31 +193,53 @@ variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
+@[simp, norm_cast] lemma cast_nat_cast (n : ℕ) : (↑(↑n : ℚ≥0) : α) = n :=
+map_nat_cast (cast_hom α) _
 @[simp, norm_cast] lemma cast_bit0 (q : ℚ≥0) : (↑(bit0 q) : α) = bit0 q := cast_add _ _
 @[simp, norm_cast] lemma cast_bit1 (q : ℚ≥0) : (↑(bit1 q) : α) = bit1 q := map_bit1 (cast_hom α) _
 @[simp, norm_cast] lemma cast_inv (q : ℚ≥0) : (↑(q⁻¹) : α) = q⁻¹ := map_inv₀ (cast_hom α) _
 @[simp, norm_cast] lemma cast_div (p q : ℚ≥0) : (↑(p / q) : α) = p / q := map_div₀ (cast_hom α) _ _
+@[simp, norm_cast] lemma cast_pow (q : ℚ≥0) (n : ℕ) : (↑(q ^ n) : α) = q ^ n :=
+map_pow (cast_hom α) _ _
 @[simp, norm_cast] lemma cast_zpow (q : ℚ≥0) (n : ℤ) : (↑(q ^ n) : α) = q ^ n :=
 map_zpow₀ (cast_hom α) q n
 
-@[norm_cast] lemma cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
-by simp only [mk_eq_div, cast_div, cast_coe_int]
+@[norm_cast] lemma cast_nsmul (q : ℚ≥0) (n : ℕ) : (↑(n • q) : α) = n • q :=
+map_nsmul (cast_hom α) _ _
 
-@[simp, norm_cast] lemma cast_pow (q) (k : ℕ) : ((q ^ k : ℚ≥0) : α) = q ^ k :=
-(cast_hom α).map_pow q k
+@[norm_cast] lemma cast_mk (a b : ℕ) : ((a /. b) : α) = a / b :=
+by simp only [mk_eq_div, cast_div, cast_coe_int]
 
 @[simp, norm_cast] lemma cast_list_sum (s : list ℚ≥0) : (↑(s.sum) : α) = (s.map coe).sum :=
 map_list_sum (cast_hom α) _
 
+@[simp, norm_cast] lemma cast_list_prod (s : list ℚ≥0) : (↑(s.prod) : α) = (s.map coe).prod :=
+map_list_prod (cast_hom α) _
+
 @[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ≥0) : (↑(s.sum) : α) = (s.map coe).sum :=
 map_multiset_sum (cast_hom α) _
 
-@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ≥0) :
-  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
+@[norm_cast] lemma cast_sum {s : finset ι} {f : ι → ℚ≥0} : ↑(∑ i in s, f i) = ∑ i in s, (f i : α) :=
 map_sum (cast_hom α) _ _
 
-@[simp, norm_cast] lemma cast_list_prod (s : list ℚ≥0) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_list_prod (cast_hom α) _
+end division_semiring
+
+section semifield
+variables [semifield α] [char_zero α]
+
+@[simp, norm_cast] lemma cast_multiset_prod (s : multiset ℚ≥0) : (s.prod : α) = (s.map coe).prod :=
+map_multiset_prod (cast_hom α) _
+
+@[simp, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ≥0) :
+  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
+map_prod (cast_hom α) _ _
+
+lemma to_nnrat_sum_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+  (∑ i in s, f i).to_nnrat = ∑ i in s, (f i).to_nnrat :=
+begin
+  rw [←coe_inj, cast_sum, rat.coe_to_nnrat _ (finset.sum_nonneg hf)],
+  exact finset.sum_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
+end
 
 end nnrat
 

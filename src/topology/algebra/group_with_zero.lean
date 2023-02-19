@@ -10,6 +10,9 @@ import topology.homeomorph
 /-!
 # Topological group with zero
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `has_continuous_inv₀` to be a mixin typeclass a type with `has_inv` and
 `has_zero` (e.g., a `group_with_zero`) such that `λ x, x⁻¹` is continuous at all nonzero points. Any
 normed (semi)field has this property. Currently the only example of `has_continuous_inv₀` in

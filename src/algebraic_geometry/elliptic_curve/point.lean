@@ -6,7 +6,6 @@ Authors: David Kurniadi Angdinata
 
 import algebraic_geometry.elliptic_curve.auxiliary
 import algebraic_geometry.elliptic_curve.weierstrass
-import field_theory.galois -- temporary import to enable point notation
 import ring_theory.class_group
 
 /-!

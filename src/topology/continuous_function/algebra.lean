@@ -158,8 +158,8 @@ section comp_translate
 -- This arguably doesn't quite belong here because it is about algebraic structures on the source,
 -- not target, of the maps; but it does have the same import dependencies as the other stuff here.
 
-/-- The continuous map `λ x, f (x + m)`. -/
-@[to_additive "The continuous map `λ x, f (x * m)", simps]
+/-- The continuous map `λ x, f (x * m)`. -/
+@[to_additive "The continuous map `λ x, f (x + m)", simps]
 def comp_mul_right [has_mul α] [has_continuous_mul α] (f : C(α, β)) (m : α) : C(α, β) :=
 f.comp (mk _ (continuous_mul_right m))
 

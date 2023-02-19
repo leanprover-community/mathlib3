@@ -16,6 +16,7 @@ import algebra.order.ring.inj_surj
 -/
 
 open function order_dual
+open_locale nnrat
 
 variables {ι α β : Type*}
 

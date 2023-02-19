@@ -25,6 +25,8 @@ of `x` with `↑x`. This tactic also works for a function `f : α → ℚ` with 
 
 open function
 
+variables {α : Type*}
+
 /-- Nonnegative rational numbers. -/
 @[derive [canonically_ordered_comm_semiring, canonically_linear_ordered_add_monoid, has_sub,
   has_ordered_sub, inhabited]]
@@ -32,10 +34,21 @@ def nnrat := {q : ℚ // 0 ≤ q}
 
 localized "notation (name := nnrat) `ℚ≥0` := nnrat" in nnrat
 
-namespace nnrat
-variables {α : Type*} {p q : ℚ≥0}
+/-- Type class for the canonical homomorphism `ℚ≥0 → α`. -/
+@[protect_proj]
+class has_nnrat_cast (α : Type*) :=
+(nnrat_cast : ℚ≥0 → α)
 
-instance : has_coe ℚ≥0 ℚ := ⟨subtype.val⟩
+namespace nnrat
+variables {p q : ℚ≥0}
+
+/-- Construct the canonical injection from `ℚ≥0` into an arbitrary division semiring. If the
+semifield has positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our
+division by zero convention. -/
+@[priority 900] -- see Note [coercion into rings]
+instance cast_coe [has_nnrat_cast α] : has_coe_t ℚ≥0 α := ⟨has_nnrat_cast.nnrat_cast⟩
+
+instance : has_nnrat_cast ℚ := ⟨subtype.val⟩
 
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (q : ℚ≥0) : q.val = q := rfl
@@ -99,19 +112,19 @@ protected def gi : galois_insertion to_nnrat coe :=
 galois_insertion.monotone_intro coe_mono to_nnrat_mono rat.le_coe_to_nnrat to_nnrat_coe
 
 /-- Coercion `ℚ≥0 → ℚ` as a `ring_hom`. -/
-def coe_hom : ℚ≥0 →+* ℚ := ⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
+def cast_hom : ℚ≥0 →+* ℚ := ⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
 
-@[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
+@[simp] lemma coe_cast_hom : ⇑cast_hom = coe := rfl
 
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℚ≥0) : ℚ) = n := map_nat_cast coe_hom n
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℚ≥0) : ℚ) = n := map_nat_cast cast_hom n
 
 @[simp] lemma mk_coe_nat (n : ℕ) : @eq ℚ≥0 (⟨(n : ℚ), n.cast_nonneg⟩ : ℚ≥0) n :=
 ext (coe_nat_cast n).symm
 
-@[simp, norm_cast] lemma coe_pow (q : ℚ≥0) (n : ℕ) : (↑(q ^ n) : ℚ) = q ^ n := coe_hom.map_pow _ _
+@[simp, norm_cast] lemma coe_pow (q : ℚ≥0) (n : ℕ) : (↑(q ^ n) : ℚ) = q ^ n := cast_hom.map_pow _ _
 
 -- @[norm_cast] lemma nsmul_coe (q : ℚ≥0) (n : ℕ) : ↑(n • q) = n • (q : ℚ) :=
--- coe_hom.to_add_monoid_hom.map_nsmul _ _
+-- cast_hom.to_add_monoid_hom.map_nsmul _ _
 
 lemma bdd_above_coe {s : set ℚ≥0} : bdd_above (coe '' s : set ℚ) ↔ bdd_above s :=
 ⟨λ ⟨b, hb⟩, ⟨to_nnrat b, λ ⟨y, hy⟩ hys, show y ≤ max b 0, from
@@ -170,9 +183,9 @@ lemma to_nnrat_le_iff_le_coe {p : ℚ≥0} : to_nnrat q ≤ p ↔ q ≤ ↑p := 
 lemma le_to_nnrat_iff_coe_le {q : ℚ≥0} (hp : 0 ≤ p) : q ≤ to_nnrat p ↔ ↑q ≤ p :=
 by rw [←coe_le_coe, rat.coe_to_nnrat p hp]
 
--- lemma le_to_nnrat_iff_coe_le' {q : ℚ≥0} (hq : 0 < q) : q ≤ to_nnrat p ↔ ↑q ≤ p :=
--- (le_or_lt 0 p).elim le_to_nnrat_iff_coe_le $ λ hp,
---   by simp only [(hp.trans_le q.coe_nonneg).not_le, to_nnrat_eq_zero.2 hp.le, hq.not_le]
+lemma le_to_nnrat_iff_coe_le' {q : ℚ≥0} (hq : 0 < q) : q ≤ to_nnrat p ↔ ↑q ≤ p :=
+(le_or_lt 0 p).elim le_to_nnrat_iff_coe_le $ λ hp,
+  by simp only [(hp.trans_le q.coe_nonneg).not_le, to_nnrat_eq_zero.2 hp.le, hq.not_le]
 
 lemma to_nnrat_lt_iff_lt_coe {p : ℚ≥0} (hq : 0 ≤ q) : to_nnrat q < p ↔ q < ↑p :=
 by rw [←coe_lt_coe, rat.coe_to_nnrat q hq]
@@ -192,20 +205,6 @@ begin
   { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
     rw [to_nnrat_eq_zero.2 hq, to_nnrat_eq_zero.2 hpq, mul_zero] }
 end
-
--- lemma to_nnrat_inv (q : ℚ) : to_nnrat q⁻¹ = (to_nnrat q)⁻¹ :=
--- begin
---   obtain hq | hq := le_total q 0,
---   { rw [to_nnrat_eq_zero.mpr hq, inv_zero, to_nnrat_eq_zero.mpr (inv_nonpos.mpr hq)] },
---   { nth_rewrite 0 ←rat.coe_to_nnrat q hq,
---     rw [←coe_inv₀, to_nnrat_coe] }
--- end
-
--- lemma to_nnrat_div (hp : 0 ≤ p) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
--- by rw [div_eq_mul_inv, div_eq_mul_inv, ←to_nnrat_inv, ←to_nnrat_mul hp]
-
--- lemma to_nnrat_div' (hq : 0 ≤ q) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
--- by rw [div_eq_inv_mul, div_eq_inv_mul, to_nnrat_mul (inv_nonneg.2 hq), to_nnrat_inv]
 
 end rat
 
@@ -237,5 +236,10 @@ lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 
 @[simp, norm_cast] lemma num_coe_nat (n : ℕ) : (n : ℚ≥0).num = n := by simp [num]
 @[simp, norm_cast] lemma denom_coe_nat (n : ℕ) : (n : ℚ≥0).denom = 1 := by simp [denom]
+
+/-- The default definition of the coercion `ℚ≥0 → α` for a division semiring `α` is defined
+as `(a / b : α) = (a : α) * (b : α)⁻¹`. Use `coe` instead of `nnrat.cast_rec` for better
+definitional behaviour. -/
+def cast_rec [has_lift_t ℕ α] [has_mul α] [has_inv α] : ℚ≥0 → α := λ q, ↑q.num * (↑q.denom)⁻¹
 
 end nnrat

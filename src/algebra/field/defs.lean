@@ -54,11 +54,6 @@ set_option old_structure_cmd true
 universe u
 variables {α β K : Type*}
 
-/-- The default definition of the coercion `(↑(a : ℚ≥0) : K)` for a division semiring `K` is defined
-as `(a / b : K) = (a : K) * (b : K)⁻¹`. Use `coe` instead of `nnrat.cast_rec` for better
-definitional behaviour. -/
-def nnrat.cast_rec [has_lift_t ℕ K] [has_mul K] [has_inv K] : ℚ≥0 → K := λ q, ↑q.num * (↑q.denom)⁻¹
-
 /-- The default definition of the coercion `(↑(a : ℚ) : K)` for a division ring `K`
 is defined as `(a / b : K) = (a : K) * (b : K)⁻¹`.
 Use `coe` instead of `rat.cast_rec` for better definitional behaviour.
@@ -66,23 +61,12 @@ Use `coe` instead of `rat.cast_rec` for better definitional behaviour.
 def rat.cast_rec [has_lift_t ℕ K] [has_lift_t ℤ K] [has_mul K] [has_inv K] : ℚ → K :=
 λ q, ↑q.1 * (↑q.2)⁻¹
 
-/-- Type class for the canonical homomorphism `ℚ≥0 → K`. -/
-@[protect_proj]
-class has_nnrat_cast (K : Type u) :=
-(nnrat_cast : ℚ≥0 → K)
-
 /--
 Type class for the canonical homomorphism `ℚ → K`.
 -/
 @[protect_proj]
 class has_rat_cast (K : Type u) :=
 (rat_cast : ℚ → K)
-
-/-- Construct the canonical injection from `ℚ≥0` into an arbitrary division semiring. If the
-semifield has positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our
-division by zero convention. -/
-@[priority 900] -- see Note [coercion into rings]
-instance nnrat.cast_coe [has_nnrat_cast K] : has_coe_t ℚ≥0 K :=⟨has_nnrat_cast.nnrat_cast⟩
 
 /-- Construct the canonical injection from `ℚ` into an arbitrary division ring. If the field has
 positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our division by zero

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 Johannes Hölzl. All rights reserved.
+Copyright (c) 2023 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Yaël Dillies
+Authors: Yaël Dillies
 -/
 import algebra.big_operators.basic
 import algebra.field.opposite
@@ -9,7 +9,6 @@ import algebra.group_with_zero.power
 import algebra.order.field.basic
 import data.int.char_zero
 import data.rat.nnrat.field
-import data.rat.lemmas
 import data.rat.order
 
 /-!
@@ -33,7 +32,7 @@ rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, 
 -/
 
 open function
-open_locale big_operators nnrat rat
+open_locale big_operators nnrat
 
 variables {F ι α β : Type*}
 
@@ -51,31 +50,6 @@ by simpa only [cast_def] using (q.num.cast_commute a).div_left (q.denom.cast_com
 
 lemma commute_cast (a : α) (q : ℚ≥0) : commute a q := (cast_commute _ _).symm
 lemma cast_comm (q : ℚ≥0) (a : α) : (q : α) * a = a * q := (cast_commute _ _).eq
-
-@[norm_cast] lemma cast_list_sum (l : list ℚ≥0) : (l.sum : α) = (l.map coe).sum :=
-cast_hom.map_list_sum _
-
-@[norm_cast] lemma cast_list_prod (l : list ℚ≥0) : (l.prod : α) = (l.map coe).prod :=
-cast_hom.map_list_prod _
-
-@[norm_cast] lemma cast_multiset_sum (s : multiset ℚ≥0) : (s.sum : α) = (s.map coe).sum :=
-cast_hom.map_multiset_sum _
-
-@[norm_cast] lemma cast_multiset_prod (s : multiset ℚ≥0) : (s.prod : α) = (s.map coe).prod :=
-cast_hom.map_multiset_prod _
-
-@[norm_cast] lemma cast_sum {s : finset α} {f : α → ℚ≥0} : ↑(∑ a in s, f a) = ∑ a in s, (f a : α) :=
-cast_hom.map_sum _ _
-
-lemma to_nnrat_sum_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
-  (∑ a in s, f a).to_nnrat = ∑ a in s, (f a).to_nnrat :=
-begin
-  rw [←coe_inj, coe_sum, rat.coe_to_nnrat _ (finset.sum_nonneg hf)],
-  exact finset.sum_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
-end
-
-@[norm_cast] lemma coe_prod {s : finset α} {f : α → ℚ≥0} : ↑(∏ a in s, f a) = ∏ a in s, (f a : ℚ) :=
-cast_hom.map_prod _ _
 
 @[norm_cast] lemma cast_div_of_ne_zero (a b : ℕ) (hb : (b : α) ≠ 0) : ((a / b : ℚ≥0) : α) = a / b :=
 begin
@@ -115,6 +89,7 @@ begin
   rw mul_def,
   norm_cast,
   rw cast_div_of_ne_zero,
+  push_cast,
   push_cast,
   exact mul_ne_zero hp hq,
   have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 nat.cast_zero),

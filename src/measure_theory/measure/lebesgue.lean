@@ -601,3 +601,33 @@ begin
     apply h'x p pA ⟨xs, xp⟩ },
   { exact false.elim (hx ⟨xs, Hx⟩) }
 end
+
+section summable_norm_Icc
+
+open continuous_map
+
+/- The following lemma is a minor variation on various lemmas in
+`measure_theory.integral.set_integral`, but it is placed here because it needs to know that
+`Icc a b` has volume `b - a`. -/
+
+lemma real.integrable_of_summable_norm_Icc {E : Type*} [normed_add_comm_group E] {f : C(ℝ, E)}
+  (hf : summable (λ n : ℤ, ‖(f.comp_add_right n).restrict (Icc 0 1)‖)) :
+  integrable f :=
+begin
+  have : ∀ (n : ℤ), ‖f.restrict (⟨Icc n (n + 1), is_compact_Icc⟩ : compacts ℝ)‖ *
+    (volume (Icc (n : ℝ) (n + 1))).to_real ≤ ‖(f.comp_add_right n).restrict (Icc 0 1)‖,
+  -- obviously equality holds, but one inequality is sufficient & less work to prove
+  { intro n,
+    dsimp only [compacts.coe_mk],
+    rw [real.volume_Icc, add_sub_cancel', ennreal.to_real_of_real zero_le_one, mul_one,
+      norm_le _ (norm_nonneg _)],
+    intro x,
+    simpa only [continuous_map.restrict_apply, comp_add_right_apply, sub_add_cancel] using
+      ((f.comp_add_right n).restrict (Icc 0 1)).norm_coe_le_norm
+      ⟨x.1 - n, ⟨sub_nonneg.mpr x.2.1, sub_le_iff_le_add'.mpr x.2.2⟩⟩ },
+  refine integrable_of_summable_norm_restrict (summable_of_nonneg_of_le _ this hf)
+    (Union_Icc_int_cast ℝ),
+  exact λ n, mul_nonneg (norm_nonneg _) ennreal.to_real_nonneg,
+end
+
+end summable_norm_Icc

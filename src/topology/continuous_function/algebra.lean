@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import algebra.algebra.pi
+import algebra.periodic
 import algebra.algebra.subalgebra.basic
 import algebra.star.star_alg_hom
 import tactic.field_simp
@@ -51,6 +52,10 @@ instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
+
+@[simp, to_additive]
+lemma mul_apply [has_mul β] [has_continuous_mul β] (f g : C(α, β)) (x : α) :
+  (f * g) x = f x * g x := rfl
 
 @[simp, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
   (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
@@ -148,6 +153,17 @@ rfl
 
 -- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
+
+section comp_translate
+-- This arguably doesn't quite belong here because it is about algebraic structures on the source,
+-- not target, of the maps; but it does have the same import dependencies as the other stuff here.
+
+/-- The continuous map `λ x, f (x + m)`. -/
+@[to_additive "The continuous map `λ x, f (x * m)", simps]
+def comp_mul_right [has_mul α] [has_continuous_mul α] (f : C(α, β)) (m : α) : C(α, β) :=
+f.comp (mk _ (continuous_mul_right m))
+
+end comp_translate
 
 end continuous_map
 
@@ -880,6 +896,30 @@ star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
   comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+section periodicity
+
+/-! ### Summing translates of a function -/
+
+/-- Summing the translates of `f` by `ℤ • p` gives a map which is periodic with period `p`.
+(This is true without any convergence conditions, since if the sum doesn't converge it is taken to
+be the zero map, which is periodic.) -/
+lemma periodic_tsum_comp_add_zsmul [locally_compact_space X] [add_comm_group X]
+  [topological_add_group X] [add_comm_monoid Y] [has_continuous_add Y] [t2_space Y]
+  (f : C(X, Y)) (p : X) :
+  function.periodic ⇑(∑' (n : ℤ), f.comp_add_right (n • p)) p :=
+begin
+  intro x,
+  by_cases h : summable (λ n : ℤ, f.comp_add_right (n • p)),
+  { convert congr_arg (λ f : C(X, Y), f x) ((equiv.add_right (1 : ℤ)).tsum_eq _) using 1,
+    simp_rw [←tsum_apply h, ←tsum_apply ((equiv.add_right (1 : ℤ)).summable_iff.mpr h),
+      equiv.coe_add_right, function.comp_app, comp_add_right_apply, add_one_zsmul,
+      add_comm (_ • p) p, ←add_assoc] },
+  { rw tsum_eq_zero_of_not_summable h,
+    simp only [coe_zero, pi.zero_apply] }
+end
+
+end periodicity
 
 end continuous_map
 

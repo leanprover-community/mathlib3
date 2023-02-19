@@ -401,7 +401,7 @@ ext (by simp only [fst_star, star_zero, fst_coe]) rfl
 instance [add_monoid R] [add_monoid A] [has_star_add R] [has_star_add A] :
   has_star_add (unitization R A) :=
 { star_involutive := λ x, ext (star_star x.fst) (star_star x.snd),
-  star_add := λ x y, ext (star_add x.fst y.fst) (star_add x.snd y.snd) }
+  star_add := λ x y, ext (star_add' x.fst y.fst) (star_add' x.snd y.snd) }
 
 instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [has_star_add A]
   [module R A] [star_module R A] : star_module R (unitization R A) :=
@@ -409,9 +409,9 @@ instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [has_star_add A]
 
 instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
   [module R A] [star_module R A] : star_ring (unitization R A) :=
-{ star_mul := λ x y, ext (by simp [has_star_mul])
-    (by simp [has_star_mul, add_comm (star x.fst • star y.snd)]),
-  ..unitization.has_star_add }
+{ star_add := star_add,
+  star_mul := λ x y, ext (by simp [star_mul])
+    (by simp [star_mul, add_comm (star x.fst • star y.snd)]) }
 
 end star
 

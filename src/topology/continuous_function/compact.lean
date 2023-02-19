@@ -209,7 +209,7 @@ lemma norm_eq_supr_norm : ‖f‖ = ⨆ x : α, ‖f x‖ :=
 lemma norm_restrict_mono_set {X : Type*} [topological_space X]
   (f : C(X, E)) {K L : topological_space.compacts X} (hKL : K ≤ L) :
   ‖f.restrict K‖ ≤ ‖f.restrict L‖ :=
-(norm_le _ (norm_nonneg _)).mpr (λ x, norm_coe_le_norm (f.restrict L) $ set.inclusion hKL x))
+(norm_le _ (norm_nonneg _)).mpr (λ x, norm_coe_le_norm (f.restrict L) $ set.inclusion hKL x)
 
 end
 

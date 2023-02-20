@@ -249,9 +249,9 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 instance mul_opposite.normed_space : normed_space α (Eᵐᵒᵖ) :=
-{ norm_smul_le := λ s x, norm_smul_le s x.unop,
+{ norm_smul_le := λ s x, (norm_smul s x.unop).le,
   ..mul_opposite.normed_add_comm_group,
-  ..mul_opposite.module }
+  ..mul_opposite.module _ }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]

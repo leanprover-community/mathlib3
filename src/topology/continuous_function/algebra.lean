@@ -192,17 +192,6 @@ rfl
 -- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
 
-section comp_translate
--- This arguably doesn't quite belong here because it is about algebraic structures on the source,
--- not target, of the maps; but it does have the same import dependencies as the other stuff here.
-
-/-- The continuous map `λ x, f (x * m)`. -/
-@[to_additive "The continuous map `λ x, f (x + m)", simps]
-def comp_mul_right [has_mul α] [has_continuous_mul α] (f : C(α, β)) (m : α) : C(α, β) :=
-f.comp (mk _ (continuous_mul_right m))
-
-end comp_translate
-
 end continuous_map
 
 section group_structure
@@ -945,14 +934,14 @@ be the zero map, which is periodic.) -/
 lemma periodic_tsum_comp_add_zsmul [locally_compact_space X] [add_comm_group X]
   [topological_add_group X] [add_comm_monoid Y] [has_continuous_add Y] [t2_space Y]
   (f : C(X, Y)) (p : X) :
-  function.periodic ⇑(∑' (n : ℤ), f.comp_add_right (n • p)) p :=
+  function.periodic ⇑(∑' (n : ℤ), f.comp (continuous_map.add_right (n • p))) p :=
 begin
   intro x,
-  by_cases h : summable (λ n : ℤ, f.comp_add_right (n • p)),
+  by_cases h : summable (λ n : ℤ, f.comp (continuous_map.add_right (n • p))),
   { convert congr_arg (λ f : C(X, Y), f x) ((equiv.add_right (1 : ℤ)).tsum_eq _) using 1,
     simp_rw [←tsum_apply h, ←tsum_apply ((equiv.add_right (1 : ℤ)).summable_iff.mpr h),
-      equiv.coe_add_right, function.comp_app, comp_add_right_apply, add_one_zsmul,
-      add_comm (_ • p) p, ←add_assoc] },
+      equiv.coe_add_right, comp_apply, coe_add_right, add_one_zsmul, add_comm (_ • p) p,
+      ←add_assoc] },
   { rw tsum_eq_zero_of_not_summable h,
     simp only [coe_zero, pi.zero_apply] }
 end

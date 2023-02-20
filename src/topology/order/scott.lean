@@ -151,9 +151,8 @@ begin
   intros a b hab,
   rw preserve_lub_on_directed at h,
   let d := ({a, b} : set α),
-  have e1: is_lub (f '' d) (f b) :=
-  begin
-    apply h,
+  have e1: is_lub (f '' d) (f b),
+  { apply h,
     { exact insert_nonempty a {b} },
     { exact directed_on_pair a b hab },
     { rw is_lub,
@@ -163,8 +162,7 @@ begin
         exact hab, },
       { simp only [upper_bounds_insert, upper_bounds_singleton],
         rw (inter_eq_self_of_subset_right (Ici_subset_Ici.mpr hab)),
-        exact λ {x : α}, mem_Ici.mpr, } },
-  end,
+        exact λ {x : α}, mem_Ici.mpr, } }, },
   rw [is_lub, is_least] at e1,
   cases e1,
   apply e1_left,
@@ -271,11 +269,9 @@ begin
     by_contra h',
     rw ← mem_compl_iff at h',
     have c1: (d ∩ sᶜ).nonempty := by exact h d a d₁ d₂ d₃ h',
-    have c2: (d ∩ sᶜ) =  ∅ :=
-    begin
-      rw [← subset_empty_iff, ← inter_compl_self s],
-      exact inter_subset_inter_left _ d₄,
-    end,
+    have c2: (d ∩ sᶜ) =  ∅,
+    { rw [← subset_empty_iff, ← inter_compl_self s],
+      exact inter_subset_inter_left _ d₄, },
     rw c2 at c1,
     simp only [not_nonempty_empty] at c1,
     exact c1, },
@@ -329,11 +325,9 @@ begin
   let u := (Iic (f b))ᶜ,
   by_contra,
   have u2 : a ∈ (f⁻¹'  u) := h,
-  have s1 : is_open u :=
-  begin
-    rw [is_open_compl_iff, ← closure_singleton],
-    exact is_closed_closure,
-  end,
+  have s1 : is_open u,
+  { rw [is_open_compl_iff, ← closure_singleton],
+    exact is_closed_closure, },
   have s2 :  is_open (f⁻¹'  u) := is_open.preimage hf s1,
   have u3 : b ∈ (f⁻¹'  u) := is_upper_set_iff_forall_le.mp s2.1 hab u2,
   have c1 : f b ∈ (Iic (f b))ᶜ,
@@ -360,17 +354,14 @@ begin
       apply preserve_lub_on_directed_montotone,
       exact h, },
     { intros d a hd₁ hd₂ hd₃ ha,
-    have e1: is_lub (f '' d) (f(a)) :=
-    begin
-      apply h,
+    have e1: is_lub (f '' d) (f(a)),
+    { apply h,
       apply hd₁,
       apply hd₂,
-      apply hd₃,
-    end,
+      apply hd₃, },
     rw with_scott_topology.is_open_eq_upper_and_lub_mem_implies_inter_nonempty at hu,
-    have e2: ((f '' d) ∩ u).nonempty :=
-    begin
-      apply hu.2,
+    have e2: ((f '' d) ∩ u).nonempty,
+    { apply hu.2,
       exact nonempty.image f hd₁,
       have e3: monotone f := begin
         apply preserve_lub_on_directed_montotone,
@@ -379,8 +370,7 @@ begin
       apply directed_on_image.mpr,
       exact directed_on.mono hd₂ e3,
       apply e1,
-      exact ha,
-    end,
+      exact ha, },
     exact image_inter_nonempty_iff.mp e2, } },
   { intros hf d a d₁ d₂ d₃,
     rw is_lub,
@@ -393,11 +383,9 @@ begin
     let u := (Iic b)ᶜ,
     by_contra,
     have e1: a ∈ (f⁻¹'  u) := h,
-    have s1 : is_open u :=
-    begin
-      rw [is_open_compl_iff, ← with_scott_topology.closure_singleton],
-      exact is_closed_closure,
-    end,
+    have s1 : is_open u,
+    { rw [is_open_compl_iff, ← with_scott_topology.closure_singleton],
+      exact is_closed_closure, },
     have s2 : is_open (f⁻¹'  u) := is_open.preimage hf s1,
     rw with_scott_topology.is_open_eq_upper_and_lub_mem_implies_inter_nonempty at s2,
     cases s2,
@@ -406,11 +394,9 @@ begin
     simp at h_1_right,
     rw upper_bounds at hb,
     simp at hb,
-    have c1: f c ≤ b :=
-    begin
-      apply hb,
-      exact h_1_left,
-    end,
+    have c1: f c ≤ b,
+    { apply hb,
+      exact h_1_left, },
     contradiction, }, }
 end
 

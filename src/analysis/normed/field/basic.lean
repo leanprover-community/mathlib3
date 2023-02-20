@@ -142,7 +142,7 @@ instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [finty
 
 instance mul_opposite.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
   norm_one_class (αᵐᵒᵖ) :=
-⟨by simp [←mul_opposite.norm_op]⟩
+⟨@norm_one α _ _ _⟩
 
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]

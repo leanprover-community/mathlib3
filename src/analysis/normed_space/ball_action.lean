@@ -16,7 +16,7 @@ multiplicative actions.
 - The unit sphere in `𝕜` acts on open balls, closed balls, and spheres centered at `0` in `E`.
 -/
 open metric set
-variables {𝕜 𝕜' E : Type*} [normed_field 𝕜] [normed_field 𝕜']
+variables {𝕜 𝕜' E : Type*} [normed_field 𝕜] [normed_field 𝕜'] [add_comm_group E]
   [seminormed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E] {r : ℝ}
 
 section closed_ball

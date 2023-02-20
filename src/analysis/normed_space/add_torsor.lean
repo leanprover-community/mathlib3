@@ -19,7 +19,8 @@ noncomputable theory
 open_locale nnreal topology
 open filter
 
-variables {α V P W Q : Type*} [add_comm_group V] [seminormed_add_comm_group V] [pseudo_metric_space P]
+variables {α V P W Q : Type*} [add_comm_group V] [add_comm_group W]
+  [seminormed_add_comm_group V] [pseudo_metric_space P]
   [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 
 section normed_space

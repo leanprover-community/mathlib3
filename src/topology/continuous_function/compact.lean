@@ -437,11 +437,6 @@ begin
   simpa only [has_sum, A] using summable_of_summable_norm (hF K)
 end
 
-lemma has_sum_apply_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
-  (hF : ∀ K : compacts X, summable (λ i, ‖(F i).restrict K‖)) (x : X) :
-  has_sum (λ i : ι, F i x) ((∑' i : ι, F i) x) :=
-has_sum_apply (summable_of_locally_summable_norm hF).has_sum x
-
 end local_normal_convergence
 
 /-!

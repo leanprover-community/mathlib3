@@ -59,6 +59,7 @@ end
 
 /-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
 lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [normed_field 𝕜]
+  [add_comm_group 𝔸]
   [normed_add_comm_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
   (hε : tendsto ε l (𝓝 0)) (hf : filter.is_bounded_under (≤) l (norm ∘ f)) :
   tendsto (ε • f) l (𝓝 0) :=
@@ -342,7 +343,7 @@ end mul_geometric
 
 section summable_le_geometric
 
-variables [seminormed_add_comm_group α] {r C : ℝ} {f : ℕ → α}
+variables [add_comm_group α] [seminormed_add_comm_group α] {r C : ℝ} {f : ℕ → α}
 
 lemma seminormed_add_comm_group.cauchy_seq_of_le_geometric {C : ℝ} {r : ℝ} (hr : r < 1)
   {u : ℕ → α} (h : ∀ n, ‖u n - u (n + 1)‖ ≤ C*r^n) : cauchy_seq u :=

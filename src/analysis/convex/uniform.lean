@@ -44,7 +44,7 @@ class uniform_convex_space (E : Type*) [add_comm_group E] [seminormed_add_comm_g
 variables {E : Type*}
 
 section seminormed_add_comm_group
-variables (E) [seminormed_add_comm_group E] [uniform_convex_space E] {ε : ℝ}
+variables (E) [add_comm_group E] [seminormed_add_comm_group E] [uniform_convex_space E] {ε : ℝ}
 
 lemma exists_forall_sphere_dist_add_le_two_sub (hε : 0 < ε) :
   ∃ δ, 0 < δ ∧ ∀ ⦃x : E⦄, ‖x‖ = 1 → ∀ ⦃y⦄, ‖y‖ = 1 → ε ≤ ‖x - y‖ → ‖x + y‖ ≤ 2 - δ :=

@@ -30,7 +30,7 @@ variables {ι : Type*} {E : Type*}
 open metric set
 open_locale pointwise convex
 
-variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
+variables [add_comm_group E] [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/

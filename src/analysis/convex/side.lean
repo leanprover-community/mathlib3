@@ -815,8 +815,8 @@ end linear_ordered_field
 
 section normed
 
-variables [seminormed_add_comm_group V] [normed_space ℝ V] [pseudo_metric_space P]
-variables [normed_add_torsor V P]
+variables [add_comm_group V] [seminormed_add_comm_group V] [normed_space ℝ V]
+variables [pseudo_metric_space P] [normed_add_torsor V P]
 
 include V
 

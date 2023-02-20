@@ -256,7 +256,8 @@ end uniform_add_group
 
 section vonN_bornology_eq_metric
 
-variables (𝕜 E) [nontrivially_normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E]
+variables (𝕜 E) [nontrivially_normed_field 𝕜] [add_comm_group E]
+variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 namespace normed_space
 

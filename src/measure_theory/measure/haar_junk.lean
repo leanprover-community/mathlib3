@@ -13,27 +13,25 @@ lemma measurable_of_coinduced {X Y : Type*} (f : X → Y)
   [iX : topological_space X] [measurable_space X] [borel_space X]
   [measurable_space Y] [@borel_space Y (topological_space.coinduced f iX) _] :
   measurable f :=
+@continuous.measurable X Y _ _ _ (topological_space.coinduced f iX) _ _ f
+  (continuous_coinduced_rng)
+
+example {X Y : Type*} (f : X → Y)
+  [iX : topological_space X] [measurable_space X] [borel_space X]
+  [iY : topological_space Y] [measurable_space Y] [borel_space Y] (f_open: is_open_map f)
+  (t : set X)
+  (ht : measurable_set t) :
+  measurable_set (f '' t) :=
 begin
-  intros t t_meas,
-  let p : set Y → Prop := λ t',
-    measurable_set (f ⁻¹' t'),
-  apply @measurable_set.induction_on_open _ (topological_space.coinduced f iX) _ _ p,
-  { intros U U_open,
-    dsimp [p],
-    exact (is_open_coinduced.mp U_open).measurable_set, },
-  { dsimp [p],
-    intros t' ht' ht'',
-    exact ht''.compl, },
-  { dsimp [p],
-    intros f pf mf mf',
-    rw set.preimage_Union,
-    apply measurable_set.Union,
-    exact mf', },
-  { exact t_meas, },
+
+  sorry,
 end
 
-lemma measurable_quotient_mk_of_borel_space {X : Type*} {s : setoid X} [topological_space X] [measurable_space X]
-  [iX : borel_space X] [measurable_space (quotient s)] [borel_space (quotient s)] :
+#exit
+
+lemma measurable_quotient_mk_of_borel_space {X : Type*} {s : setoid X} [topological_space X]
+  [measurable_space X] [iX : borel_space X] [measurable_space (quotient s)]
+  [borel_space (quotient s)] :
   measurable (quotient.mk' : X → quotient s) := measurable_of_coinduced _
 
 example {X : Type*} {s : setoid X} [topological_space X] [measurable_space X]

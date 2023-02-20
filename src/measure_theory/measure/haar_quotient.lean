@@ -406,6 +406,8 @@ begin
 
 end
 
+include h𝓕
+
 /-- This is the "unfolding" trick
 PROOF:
 ∫_G f = ∑_γ ∫_𝓕 f(γ⁻¹ • x ) : h𝓕.integral_eq_tsum'

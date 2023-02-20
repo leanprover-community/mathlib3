@@ -373,7 +373,7 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
         inter_mem (hx1 hs) (hx2 ht))⟩ }
 
 @[to_additive]
-instance complete_space.mul_opposite [complete_space α] : complete_space (αᵐᵒᵖ) :=
+instance complete_space.mul_opposite [complete_space α] : complete_space αᵐᵒᵖ :=
 { complete := λ f hf, mul_opposite.op_surjective.exists.mpr $
     let ⟨x, hx⟩ := complete_space.complete (hf.map mul_opposite.uniform_continuous_unop) in
     ⟨x, (map_le_iff_le_comap.mp hx).trans_eq $ mul_opposite.comap_unop_nhds _⟩}

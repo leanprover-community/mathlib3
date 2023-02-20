@@ -5,6 +5,7 @@ Authors: Scott Morrison, Shing Tak Lam
 -/
 
 import topology.algebra.order.proj_Icc
+import topology.algebra.order.group
 import topology.continuous_function.basic
 
 /-!

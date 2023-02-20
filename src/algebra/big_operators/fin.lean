@@ -11,6 +11,9 @@ import logic.equiv.fin
 /-!
 # Big operators and `fin`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some results about products and sums over the type `fin`.
 
 The most important results are the induction formulas `fin.prod_univ_cast_succ`

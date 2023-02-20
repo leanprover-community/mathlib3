@@ -76,7 +76,7 @@ conditional expectation, conditional expected value
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 
@@ -856,7 +856,7 @@ lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α 
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ‖g x‖ ∂μ ≤ ∫ x in s, ‖f x‖ ∂μ :=
 begin
-  rw [integral_norm_eq_pos_sub_neg (hg.mono hm) hgi, integral_norm_eq_pos_sub_neg hf hfi],
+  rw [integral_norm_eq_pos_sub_neg hgi, integral_norm_eq_pos_sub_neg hfi],
   have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
     from (@strongly_measurable_const _ _ m _ _).measurable_set_le hg,
   have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},

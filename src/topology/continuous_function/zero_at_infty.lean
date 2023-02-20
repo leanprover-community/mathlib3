@@ -24,7 +24,7 @@ universes u v w
 
 variables {F : Type*} {α : Type u} {β : Type v} {γ : Type w} [topological_space α]
 
-open_locale bounded_continuous_function topological_space
+open_locale bounded_continuous_function topology
 open filter metric
 
 /-- `C₀(α, β)` is the type of continuous functions `α → β` which vanish at infinity from a
@@ -291,7 +291,7 @@ variables [uniform_space β] [uniform_space γ] [has_zero γ]
   [zero_at_infty_continuous_map_class F β γ]
 
 lemma uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
-(map_continuous f).uniform_continuous_of_zero_at_infty (zero_at_infty f)
+(map_continuous f).uniform_continuous_of_tendsto_cocompact (zero_at_infty f)
 
 end uniform
 

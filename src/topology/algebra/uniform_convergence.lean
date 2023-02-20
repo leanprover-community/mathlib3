@@ -49,7 +49,7 @@ uniform convergence, strong dual
 -/
 
 open filter
-open_locale topological_space pointwise uniform_convergence
+open_locale topology pointwise uniform_convergence
 
 section algebraic_instances
 

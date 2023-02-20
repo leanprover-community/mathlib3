@@ -30,7 +30,7 @@ endowed with an order.
 -/
 
 open set function filter
-open_locale topological_space
+open_locale topology
 
 /-!
 ### Definition and notation

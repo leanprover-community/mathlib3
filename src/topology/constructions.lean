@@ -10,6 +10,9 @@ import order.filter.pi
 /-!
 # Constructions of new topological spaces from old ones
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs products, sums, subtypes and quotients of topological spaces
 and sets up their basic theory, such as criteria for maps into or out of these
 constructions to be continuous; descriptions of the open sets, neighborhood filters,
@@ -34,7 +37,7 @@ product, sum, disjoint union, subspace, quotient space
 noncomputable theory
 
 open topological_space set filter function
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 universes u v
 variables {α : Type u} {β : Type v} {γ δ ε ζ : Type*}
@@ -466,8 +469,8 @@ lemma filter.has_basis.prod_nhds' {ιa ιb : Type*} {pa : ιa → Prop} {pb : ι
 by { cases ab, exact ha.prod_nhds hb }
 
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
-⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
-  by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
+discrete_topology_iff_nhds.2 $ λ ⟨a, b⟩,
+  by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, filter.prod_pure_pure]
 
 lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
   s ×ˢ t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
@@ -925,6 +928,16 @@ lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs
   embedding (cod_restrict e s hs) :=
 embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
 
+lemma embedding_inclusion {s t : set α} (h : s ⊆ t) : embedding (set.inclusion h) :=
+embedding_subtype_coe.cod_restrict _ _
+
+/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
+by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
+lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
+  (ds : discrete_topology s) (ts : t ⊆ s) :
+  discrete_topology t :=
+(embedding_inclusion ts).discrete_topology
+
 end subtype
 
 section quotient
@@ -1015,10 +1028,16 @@ lemma continuous.update [decidable_eq ι] (hf : continuous f) (i : ι) {g : α �
   continuous (λ a, update (f a) i (g a)) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
 
-/-- `update f i x` is continuous in `(f, x)`. -/
+/-- `function.update f i x` is continuous in `(f, x)`. -/
 @[continuity] lemma continuous_update [decidable_eq ι] (i : ι) :
   continuous (λ f : (Π j, π j) × π i, update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
+
+/-- `pi.mul_single i x` is continuous in `x`. -/
+@[continuity, to_additive "`pi.single i x` is continuous in `x`."]
+lemma continuous_mul_single [Π i, has_one (π i)] [decidable_eq ι] (i : ι) :
+  continuous (λ x, (pi.mul_single i x : Π i, π i)) :=
+continuous_const.update _ continuous_id
 
 lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
   (i : fin (n + 1)) {f : β → π i} {l : filter β} {x : π i} (hf : tendsto f l (𝓝 x))
@@ -1041,6 +1060,51 @@ continuous_iff_continuous_at.2 $ λ a, hf.continuous_at.fin_insert_nth i hg.cont
 lemma is_open_set_pi {i : set ι} {s : Πa, set (π a)} (hi : i.finite) (hs : ∀a∈i, is_open (s a)) :
   is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
+
+lemma is_open_pi_iff {s : set (Π a, π a)} :
+  is_open s ↔
+  (∀ f, f ∈ s → ∃ (I : finset ι) (u : Π a, set (π a)),
+    (∀ a, a ∈ I → is_open (u a) ∧ f a ∈ u a) ∧ (I : set ι).pi u ⊆ s) :=
+begin
+  rw is_open_iff_nhds,
+  simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
+  refine ball_congr (λ a h, ⟨_, _⟩),
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨I, λ a, eval a '' ((I : set ι).pi (λ a, (h1 a).some)), (λ i hi, _), _⟩,
+    { simp_rw set.eval_image_pi (finset.mem_coe.mpr hi)
+        (pi_nonempty_iff.mpr (λ i, ⟨_, λ _, (h1 i).some_spec.2.2⟩)),
+      exact (h1 i).some_spec.2, },
+    { refine subset.trans
+        (set.pi_mono (λ i hi, (set.eval_image_pi_subset hi).trans (h1 i).some_spec.1)) h2, }},
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨I, λ a, ite (a ∈ I) (t a) (set.univ), (λ i, _), _⟩,
+    { by_cases hi : i ∈ I,
+      { use t i,
+        rw if_pos hi,
+        exact ⟨subset.rfl, (h1 i) hi⟩, },
+      { use set.univ,
+        rw if_neg hi,
+        exact ⟨subset.rfl, is_open_univ, mem_univ _⟩, }},
+    { rw ← set.univ_pi_ite,
+      simp only [ ← ite_and, ← finset.mem_coe, and_self, set.univ_pi_ite, h2], }}
+end
+
+lemma is_open_pi_iff' [finite ι]  {s : set (Π a, π a)} :
+  is_open s ↔
+  (∀ f, f ∈ s → ∃ (u : Π a, set (π a)), (∀ a, is_open (u a) ∧ f a ∈ u a) ∧ set.univ.pi u ⊆ s) :=
+begin
+  casesI nonempty_fintype ι,
+  rw is_open_iff_nhds,
+  simp_rw [le_principal_iff, nhds_pi, filter.mem_pi', mem_nhds_iff, exists_prop],
+  refine ball_congr (λ a h, ⟨_, _⟩),
+  { rintros ⟨I, t, ⟨h1, h2⟩⟩,
+    refine ⟨λ i, (h1 i).some, ⟨λ i, (h1 i).some_spec.2,
+        (set.pi_mono (λ i _, (h1 i).some_spec.1)).trans (subset.trans _ h2)⟩⟩,
+    rw ← set.pi_inter_compl (I : set ι),
+    exact inter_subset_left _ _, },
+  { exact λ ⟨u, ⟨h1, _⟩⟩, ⟨finset.univ, u, ⟨λ i, ⟨u i, ⟨rfl.subset, h1 i⟩⟩,
+      by rwa finset.coe_univ⟩⟩, }
+end
 
 lemma is_closed_set_pi {i : set ι} {s : Πa, set (π a)} (hs : ∀a∈i, is_closed (s a)) :
   is_closed (pi i s) :=
@@ -1089,7 +1153,7 @@ lemma pi_generate_from_eq {π : ι → Type*} {g : Πa, set (set (π a))} :
 let G := {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s} in
 begin
   rw [pi_eq_generate_from],
-  refine le_antisymm (generate_from_mono _) (le_generate_from _),
+  refine le_antisymm (generate_from_anti _) (le_generate_from _),
   exact assume s ⟨t, i, ht, eq⟩, ⟨t, i, assume a ha, generate_open.basic _ (ht a ha), eq⟩,
   { rintros s ⟨t, i, hi, rfl⟩,
     rw [pi_def],
@@ -1106,8 +1170,8 @@ lemma pi_generate_from_eq_finite {π : ι → Type*} {g : Πa, set (set (π a))}
 begin
   casesI nonempty_fintype ι,
   rw [pi_generate_from_eq],
-  refine le_antisymm (generate_from_mono _) (le_generate_from _),
-  exact assume s ⟨t, ht, eq⟩, ⟨t, finset.univ, by simp [ht, eq]⟩,
+  refine le_antisymm (generate_from_anti _) (le_generate_from _),
+  { rintro s ⟨t, ht, rfl⟩, exact ⟨t, finset.univ, by simp [ht]⟩ },
   { rintros s ⟨t, i, ht, rfl⟩,
     apply is_open_iff_forall_mem_open.2 _,
     assume f hf,
@@ -1271,5 +1335,12 @@ continuous_induced_dom
 @[continuity] lemma continuous_ulift_up [topological_space α] :
   continuous (ulift.up : α → ulift.{v u} α) :=
 continuous_induced_rng.2 continuous_id
+
+lemma embedding_ulift_down [topological_space α] :
+  embedding (ulift.down : ulift.{v u} α → α) :=
+⟨⟨rfl⟩, ulift.down_injective⟩
+
+instance [topological_space α] [discrete_topology α] : discrete_topology (ulift α) :=
+embedding_ulift_down.discrete_topology
 
 end ulift

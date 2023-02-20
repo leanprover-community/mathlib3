@@ -8,6 +8,9 @@ import data.finset.preimage
 /-!
 #  Unique products and related notions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A group `G` has *unique products* if for any two non-empty finite subsets `A, B ⊂ G`, there is an
 element `g ∈ A * B` that can be written uniquely as a product of an element of `A` and an element
 of `B`.  We call the formalization this property `unique_prods`.  Since the condition requires no

@@ -114,7 +114,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal filter asymptotics ennreal
+open_locale topology classical nnreal filter asymptotics ennreal
 
 noncomputable theory
 

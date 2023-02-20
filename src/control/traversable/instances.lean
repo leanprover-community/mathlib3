@@ -10,6 +10,9 @@ import data.set.functor
 /-!
 # Traversable instances
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides instances of `traversable` for types from the core library: `option`, `list` and
 `sum`.
 -/

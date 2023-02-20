@@ -13,6 +13,9 @@ import algebra.ring.comp_typeclasses
 /-!
 # (Semi)linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `linear_map σ M M₂`, `M →ₛₗ[σ] M₂` : a semilinear map between two `module`s. Here,
@@ -705,7 +708,7 @@ include σ₁₃
 ext $ λ _, g.map_neg _
 omit σ₁₃
 
-/-- The negation of a linear map is linear. -/
+/-- The subtraction of two linear maps is linear. -/
 instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],

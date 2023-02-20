@@ -54,7 +54,7 @@ noncomputable theory
 open measure_theory filter finset asymptotics
 open set (indicator)
 
-open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
+open_locale topology big_operators measure_theory probability_theory ennreal nnreal
 
 namespace probability_theory
 

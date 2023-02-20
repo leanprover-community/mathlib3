@@ -322,7 +322,7 @@ begin
 end
 
 lemma continuous_monotone {f : (with_scott_topology α) → (with_scott_topology β)}
-  (hf: continuous f) : monotone f :=
+  (hf : continuous f) : monotone f :=
 begin
   rw monotone,
   intros a b hab,

@@ -675,6 +675,10 @@ lemma is_s_finite_kernel_with_density_of_is_finite_kernel (κ : kernel α β) [i
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
 begin
+  -- We already have that for `f` bounded from above and a `κ` a finite kernel,
+  -- `with_density κ f` is finite. We write any function as a countable sum of bounded
+  -- functions, and decompose an s-finite kernel as a sum of finite kernels. We then use that
+  -- `with_density` commutes with sums for both arguments and get a sum of finite kernels.
   by_cases hf : measurable (function.uncurry f),
   swap, { rw with_density_of_not_measurable _ hf, apply_instance, },
   let fs : ℕ → α → β → ℝ≥0∞ := λ n a b, min (f a b) (n + 1) - min (f a b) n,

@@ -1425,6 +1425,28 @@ end mono
 
 end
 
+section has_sum
+variables {μ : measure ℝ} {f : ℝ → E}
+
+lemma _root_.measure_theory.integrable.has_sum_interval_integral (hfi : integrable f μ) (y : ℝ) :
+  has_sum (λ (n : ℤ), ∫ x in (y + n)..(y + n + 1), f x ∂μ) (∫ x, f x ∂μ) :=
+begin
+  simp_rw integral_of_le (le_add_of_nonneg_right zero_le_one),
+  rw [←integral_univ, ←Union_Ioc_add_int_cast y],
+  exact has_sum_integral_Union (λ i, measurable_set_Ioc) (pairwise_disjoint_Ioc_add_int_cast y)
+    hfi.integrable_on,
+end
+
+lemma _root_.measure_theory.integrable.has_sum_interval_integral_comp_add_int
+  (hfi : integrable f) :
+  has_sum (λ (n : ℤ), ∫ x in 0..1, f (x + n)) (∫ x, f x) :=
+begin
+  convert hfi.has_sum_interval_integral 0 using 2,
+  ext1 n,
+  rw [integral_comp_add_right, zero_add, add_comm],
+end
+
+end has_sum
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 

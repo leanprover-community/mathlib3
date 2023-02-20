@@ -175,6 +175,14 @@ by { rw [inv_eq_one_div], exact div_lt_iff' ha }
 lemma div_le_of_nonneg_of_le_mul (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
 by { rcases eq_or_lt_of_le hb with rfl|hb', simp [hc], rwa [div_le_iff hb'] }
 
+/-- One direction of `div_le_iff` where `c` is allowed to be `0` (but `b` must be nonnegative) -/
+lemma mul_le_of_nonneg_of_le_div (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ b / c) : a * c ≤ b :=
+begin
+  obtain rfl | hc := hc.eq_or_lt,
+  { simpa using hb },
+  { rwa le_div_iff hc at h }
+end
+
 lemma div_le_one_of_le (h : a ≤ b) (hb : 0 ≤ b) : a / b ≤ 1 :=
 div_le_of_nonneg_of_le_mul hb zero_le_one $ by rwa one_mul
 

@@ -709,6 +709,28 @@ end
 
 end nonneg
 
+section integrable_Union
+
+variables {μ : measure α} [normed_add_comm_group E] {f : α → E} [countable β] {s : β → set α}
+
+lemma integrable_on_Union_of_summable_integral_norm
+  (hs : ∀ (b : β), measurable_set (s b)) (hi : ∀ (b : β), integrable_on f (s b) μ)
+  (h : summable (λ (b : β), ∫ (a : α) in s b, ‖f a‖ ∂μ)) :
+  integrable_on f (Union s) μ :=
+begin
+  refine ⟨ae_strongly_measurable.Union (λ i, (hi i).1), (lintegral_Union_le _ _).trans_lt _⟩,
+  have B := λ (b : β), lintegral_coe_eq_integral (λ (a : α), ‖f a‖₊) (hi b).norm,
+  rw tsum_congr B,
+  have S' : summable (λ (b : β), (⟨∫ (a : α) in s b, ‖f a‖₊ ∂μ,
+    set_integral_nonneg (hs b) (λ a ha, nnreal.coe_nonneg _)⟩ : nnreal)),
+  { rw ←nnreal.summable_coe, exact h },
+  have S'' := ennreal.tsum_coe_eq S'.has_sum,
+  simp_rw [ennreal.coe_nnreal_eq, nnreal.coe_mk, coe_nnnorm] at S'',
+  convert ennreal.of_real_lt_top,
+end
+
+end integrable_Union
+
 section tendsto_mono
 
 variables {μ : measure α} [normed_add_comm_group E] [complete_space E] [normed_space ℝ E]

@@ -3,12 +3,12 @@ Copyright (c) 2022 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-import measure_theory.function.lp_space
+
 import measure_theory.function.continuous_map_dense
-import measure_theory.integral.interval_integral
 import measure_theory.integral.integral_eq_improper
 import measure_theory.group.integration
 import topology.continuous_function.zero_at_infty
+import analysis.fourier.fourier_transform
 
 /-!
 # The Riemann-Lebesgue Lemma
@@ -140,6 +140,44 @@ begin
   have hh : 0 < 1 + 2 * R, by positivity,
   rw [ennreal.to_real_of_real hh.le, div_mul_cancel _ hh.ne', two_mul],
   exact lt_add_of_pos_left _ hε,
+end
+
+lemma tendsto_integral_mul_exp_at_bot_of_continuous_compact_support
+  (hf1 : continuous f) (hf2 : has_compact_support f) :
+  tendsto (λ t:ℝ, ∫ x:ℝ, exp (↑(t * x) * I) • f x) at_bot (𝓝 0) :=
+begin
+  have hg2 : has_compact_support (f ∘ has_neg.neg),
+    by simpa only [neg_one_smul] using hf2.comp_smul (neg_ne_zero.mpr $ one_ne_zero' ℝ),
+  convert (tendsto_integral_mul_exp_at_top_of_continuous_compact_support (hf1.comp continuous_neg)
+    hg2).comp tendsto_neg_at_bot_at_top,
+  ext1 t,
+  simp_rw [function.comp_app, neg_mul, ←mul_neg],
+  rw ←integral_neg_eq_self,
+end
+
+lemma zero_at_infty_integral_mul_exp_of_continuous_compact_support
+  (hf1 : continuous f) (hf2 : has_compact_support f) :
+  tendsto (λ t:ℝ, ∫ x:ℝ, exp (↑(t * x) * I) • f x) (cocompact ℝ) (𝓝 0) :=
+begin
+  rw [real.cocompact_eq, tendsto_sup],
+  exact ⟨tendsto_integral_mul_exp_at_bot_of_continuous_compact_support hf1 hf2,
+    tendsto_integral_mul_exp_at_top_of_continuous_compact_support hf1 hf2⟩
+end
+
+open_locale fourier_transform
+
+/-- Riemann-Lebesgue lemma for continuous compactly-supported functions: the Fourier transform
+tends to 0 at infinity. -/
+lemma real.fourier_integral_zero_at_infty_of_continuous_compact_support
+  (hc : continuous f) (hs : has_compact_support f) :
+  tendsto (real.fourier_integral f) (cocompact ℝ) (𝓝 0) :=
+begin
+  refine ((zero_at_infty_integral_mul_exp_of_continuous_compact_support hc hs).comp
+    (tendsto_cocompact_mul_left₀
+    (mul_ne_zero (neg_ne_zero.mpr two_ne_zero) real.pi_pos.ne'))).congr (λ w, _),
+  rw [real.fourier_integral_eq_integral_exp_smul, function.comp_app],
+  congr' 1 with x:1,
+  ring_nf,
 end
 
 end continuous_compact_support

@@ -3,7 +3,10 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
+
+import algebra.big_operators.multiset.basic
 import data.pnat.prime
+import data.nat.factors
 import data.multiset.sort
 
 /-!

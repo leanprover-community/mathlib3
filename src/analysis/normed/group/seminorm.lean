@@ -3,7 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández, Yaël Dillies. All rights 
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
-import algebra.order.hom.basic
+import tactic.positivity
 import data.real.nnreal
 
 /-!
@@ -20,6 +20,11 @@ is positive-semidefinite and subadditive. A norm further only maps zero to zero.
   nonnegative values, is submultiplicative and such that `f x⁻¹ = f x` for all `x`.
 * `add_group_norm`: A seminorm `f` such that `f x = 0 → x = 0` for all `x`.
 * `group_norm`: A seminorm `f` such that `f x = 0 → x = 1` for all `x`.
+
+## Notes
+
+The corresponding hom classes are defined in `analysis.order.hom.basic` to be used by absolute
+values.
 
 ## References
 
@@ -67,95 +72,7 @@ structure group_norm (G : Type*) [group G] extends group_seminorm G :=
 attribute [nolint doc_blame] add_group_seminorm.to_zero_hom  add_group_norm.to_add_group_seminorm
   group_norm.to_group_seminorm
 
-/-- `add_group_seminorm_class F α` states that `F` is a type of seminorms on the additive group `α`.
-
-You should extend this class when you extend `add_group_seminorm`. -/
-class add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group α]
-  extends subadditive_hom_class F α ℝ :=
-(map_zero (f : F) : f 0 = 0)
-(map_neg_eq_map (f : F) (a : α) : f (-a) = f a)
-
-/-- `group_seminorm_class F α` states that `F` is a type of seminorms on the group `α`.
-
-You should extend this class when you extend `group_seminorm`. -/
-@[to_additive]
-class group_seminorm_class (F : Type*) (α : out_param $ Type*) [group α]
-  extends mul_le_add_hom_class F α ℝ :=
-(map_one_eq_zero (f : F) : f 1 = 0)
-(map_inv_eq_map (f : F) (a : α) : f a⁻¹ = f a)
-
-/-- `add_group_norm_class F α` states that `F` is a type of norms on the additive group `α`.
-
-You should extend this class when you extend `add_group_norm`. -/
-class add_group_norm_class (F : Type*) (α : out_param $ Type*) [add_group α]
-  extends add_group_seminorm_class F α :=
-(eq_zero_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 0)
-
-/-- `group_norm_class F α` states that `F` is a type of norms on the group `α`.
-
-You should extend this class when you extend `group_norm`. -/
-@[to_additive]
-class group_norm_class (F : Type*) (α : out_param $ Type*) [group α]
-  extends group_seminorm_class F α :=
-(eq_one_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 1)
-
-export add_group_seminorm_class (map_neg_eq_map)
-       group_seminorm_class     (map_one_eq_zero map_inv_eq_map)
-       add_group_norm_class     (eq_zero_of_map_eq_zero)
-       group_norm_class         (eq_one_of_map_eq_zero)
-
-attribute [simp, to_additive map_zero] map_one_eq_zero
-attribute [simp] map_neg_eq_map
-attribute [simp, to_additive] map_inv_eq_map
-attribute [to_additive] group_seminorm_class.to_mul_le_add_hom_class
 attribute [to_additive] group_norm.to_group_seminorm
-attribute [to_additive] group_norm_class.to_group_seminorm_class
-
-@[priority 100] -- See note [lower instance priority]
-instance add_group_seminorm_class.to_zero_hom_class [add_group E] [add_group_seminorm_class F E] :
-  zero_hom_class F E ℝ :=
-{ ..‹add_group_seminorm_class F E› }
-
-section group_seminorm_class
-variables [group E] [group_seminorm_class F E] (f : F) (x y : E)
-include E
-
-@[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
-by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
-
-@[to_additive] lemma map_div_rev : f (x / y) = f (y / x) := by rw [←inv_div, map_inv_eq_map]
-
-@[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
-by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
-
-@[to_additive] lemma abs_sub_map_le_div : |f x - f y| ≤ f (x / y) :=
-begin
-  rw [abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
-  exact ⟨le_map_add_map_div _ _ _, le_map_add_map_div' _ _ _⟩
-end
-
-end group_seminorm_class
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance group_seminorm_class.to_nonneg_hom_class [group E] [group_seminorm_class F E] :
-  nonneg_hom_class F E ℝ :=
-{ map_nonneg := λ f a, nonneg_of_mul_nonneg_right
-    (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' a], exact map_div_le_add _ _ _ }) two_pos,
-  ..‹group_seminorm_class F E› }
-
-section group_norm_class
-variables [group E] [group_norm_class F E] (f : F) {x : E}
-include E
-
-@[to_additive] lemma map_pos_of_ne_one (hx : x ≠ 1) : 0 < f x :=
-(map_nonneg _ _).lt_of_ne $ λ h, hx $ eq_one_of_map_eq_zero _ h.symm
-
-@[simp, to_additive] lemma map_eq_zero_iff_eq_one : f x = 0 ↔ x = 1 :=
-⟨eq_one_of_map_eq_zero _, by { rintro rfl, exact map_one_eq_zero _ }⟩
-
-@[to_additive] lemma map_ne_zero_iff_ne_one : f x ≠ 0 ↔ x ≠ 1 := (map_eq_zero_iff_eq_one _).not
-
-end group_norm_class
 
 /-! ### Seminorms -/
 
@@ -163,7 +80,7 @@ namespace group_seminorm
 section group
 variables [group E] [group F] [group G] {p q : group_seminorm E}
 
-@[to_additive] instance group_seminorm_class : group_seminorm_class (group_seminorm E) E :=
+@[to_additive] instance group_seminorm_class : group_seminorm_class (group_seminorm E) E ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_one_eq_zero := λ f, f.map_one',
@@ -401,7 +318,7 @@ namespace group_norm
 section group
 variables [group E] [group F] [group G] {p q : group_norm E}
 
-@[to_additive] instance group_norm_class : group_norm_class (group_norm E) E :=
+@[to_additive] instance group_norm_class : group_norm_class (group_norm E) E ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_one_eq_zero := λ f, f.map_one',

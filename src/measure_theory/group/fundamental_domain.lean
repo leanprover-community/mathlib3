@@ -18,7 +18,9 @@ In this file we prove that in case of a countable group `G` and a measure preser
 fundamental domains have the same measure, and for a `G`-invariant function, its integrals over any
 two fundamental domains are equal to each other.
 We also generate additive versions of all theorems in this file using the `to_additive` attribute.
+
 ## Main declarations
+
 * `measure_theory.is_fundamental_domain`: Predicate for a set to be a fundamental domain of the
   action of a group
 * `measure_theory.fundamental_frontier`: Fundamental frontier of a set under the action of a group.
@@ -71,47 +73,47 @@ lemma mk' (h_meas : null_measurable_set s μ) (h_exists : ∀ x : α, ∃! g : G
       exact hab (inv_injective $ (h_exists x).unique hxa hxb),
     end }
 
--- /-- For `s` to be a fundamental domain, it's enough to check `ae_disjoint (g • s) s` for `g ≠ 1`. -/
--- @[to_additive "For `s` to be a fundamental domain, it's enough to check `ae_disjoint (g +ᵥ s) s` for
--- `g ≠ 0`."]
--- lemma mk'' (h_meas : null_measurable_set s μ) (h_ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
---   (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
---   (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
---   is_fundamental_domain G s μ :=
--- { null_measurable_set := h_meas,
---   ae_covers := h_ae_covers,
---   ae_disjoint := pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp }
+/-- For `s` to be a fundamental domain, it's enough to check `ae_disjoint (g • s) s` for `g ≠ 1`. -/
+@[to_additive "For `s` to be a fundamental domain, it's enough to check `ae_disjoint (g +ᵥ s) s` for
+`g ≠ 0`."]
+lemma mk'' (h_meas : null_measurable_set s μ) (h_ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
+  is_fundamental_domain G s μ :=
+{ null_measurable_set := h_meas,
+  ae_covers := h_ae_covers,
+  ae_disjoint := pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp }
 
--- /-- If a measurable space has a finite measure `μ` and a countable group `G` acts
--- quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
--- to check that its translates `g • s` are (almost) disjoint and that the sum `∑' g, μ (g • s)` is
--- sufficiently large. -/
--- @[to_additive measure_theory.is_add_fundamental_domain.mk_of_measure_univ_le "
--- If a measurable space has a finite measure `μ` and a countable additive group `G` acts
--- quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
--- to check that its translates `g +ᵥ s` are (almost) disjoint and that the sum `∑' g, μ (g +ᵥ s)` is
--- sufficiently large."]
--- lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
---   (h_meas : null_measurable_set s μ)
---   (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
---   (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ)
---   (h_measure_univ_le : μ (univ : set α) ≤ ∑' (g : G), μ (g • s)) :
---   is_fundamental_domain G s μ :=
--- have ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
---   pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp,
--- { null_measurable_set := h_meas,
---   ae_disjoint := ae_disjoint,
---   ae_covers :=
---   begin
---     replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
---       λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
---     have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
---     { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
---     rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
---     refine le_antisymm (measure_mono $ subset_univ _) _,
---     rw measure_Union₀ ae_disjoint h_meas,
---     exact h_measure_univ_le,
---   end }
+/-- If a measurable space has a finite measure `μ` and a countable group `G` acts
+quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
+to check that its translates `g • s` are (almost) disjoint and that the sum `∑' g, μ (g • s)` is
+sufficiently large. -/
+@[to_additive measure_theory.is_add_fundamental_domain.mk_of_measure_univ_le "
+If a measurable space has a finite measure `μ` and a countable additive group `G` acts
+quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
+to check that its translates `g +ᵥ s` are (almost) disjoint and that the sum `∑' g, μ (g +ᵥ s)` is
+sufficiently large."]
+lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
+  (h_meas : null_measurable_set s μ)
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ)
+  (h_measure_univ_le : μ (univ : set α) ≤ ∑' (g : G), μ (g • s)) :
+  is_fundamental_domain G s μ :=
+have ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+  pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp,
+{ null_measurable_set := h_meas,
+  ae_disjoint := ae_disjoint,
+  ae_covers :=
+  begin
+    replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
+      λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
+    have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
+    { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
+    rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
+    refine le_antisymm (measure_mono $ subset_univ _) _,
+    rw measure_Union₀ ae_disjoint h_meas,
+    exact h_measure_univ_le,
+  end }
 
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
   (⋃ g : G, g • s) =ᵐ[μ] univ :=
@@ -357,11 +359,11 @@ calc ∫ x, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂μ : h.integral_eq_
 
 @[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) {f : α → E}
   {t : set α} (hf : integrable_on f t μ) :
-  ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ := sorry
--- calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
---   h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf
--- ... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
---   by simp only [h.restrict_restrict, measure_smul, inter_comm]
+  ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :=
+calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
+  h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf
+... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
+  by simp only [h.restrict_restrict, measure_smul, inter_comm]
 
 @[to_additive] lemma set_integral_eq_tsum' (h : is_fundamental_domain G s μ) {f : α → E}
   {t : set α} (hf : integrable_on f t μ) :
@@ -511,8 +513,8 @@ by simp_rw [fundamental_frontier, smul_set_inter, smul_set_Union, smul_comm g]
 
 @[simp, to_additive measure_theory.add_fundamental_interior_vadd]
 lemma fundamental_interior_smul [group H] [mul_action H α] [smul_comm_class H G α] (g : H) :
-  fundamental_interior G (g • s) = g • fundamental_interior G s := sorry
---by simp_rw [fundamental_interior, smul_set_sdiff, smul_set_Union, smul_comm g]
+  fundamental_interior G (g • s) = g • fundamental_interior G s :=
+by simp_rw [fundamental_interior, smul_set_sdiff, smul_set_Union, smul_comm g]
 
 @[to_additive measure_theory.pairwise_disjoint_add_fundamental_interior]
 lemma pairwise_disjoint_fundamental_interior :
@@ -573,11 +575,10 @@ protected lemma fundamental_interior : is_fundamental_domain G (fundamental_inte
     { simp_rw [diff_subset_iff, ←Union_union_distrib, ←smul_set_union,
         fundamental_frontier_union_fundamental_interior] },
     refine eq_bot_mono (μ.mono $ compl_subset_compl.2 this) _,
-    sorry,
-    -- simp only [Union_inv_smul, outer_measure.measure_of_eq_coe, coe_to_outer_measure, compl_sdiff,
-    --   ennreal.bot_eq_zero, himp_eq, sup_eq_union, @Union_smul_eq_set_of_exists _ _ _ _ s],
-    -- exact measure_union_null
-    --   (measure_Union_null $ λ _, measure_smul_null hs.measure_fundamental_frontier _) hs.ae_covers,
+    simp only [Union_inv_smul, outer_measure.measure_of_eq_coe, coe_to_outer_measure, compl_sdiff,
+      ennreal.bot_eq_zero, himp_eq, sup_eq_union, @Union_smul_eq_set_of_exists _ _ _ _ s],
+    exact measure_union_null
+      (measure_Union_null $ λ _, measure_smul_null hs.measure_fundamental_frontier _) hs.ae_covers,
   end,
   ae_disjoint := (pairwise_disjoint_fundamental_interior _ _).mono $ λ _ _, disjoint.ae_disjoint }
 

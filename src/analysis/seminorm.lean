@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Yaël Dillies, Moritz Doll
 -/
 import data.real.pointwise
-import data.real.sqrt
-import topology.algebra.filter_basis
-import topology.algebra.module.locally_convex
+import analysis.convex.function
+import analysis.locally_convex.basic
+import analysis.normed.group.add_torsor
 
 /-!
 # Seminorms
@@ -44,7 +44,7 @@ variables {R R' 𝕜 𝕜₂ 𝕜₃ E E₂ E₃ F G ι : Type*}
 semidefinite, positive homogeneous, and subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group E] [has_smul 𝕜 E]
   extends add_group_seminorm E :=
-(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ‖a‖ * to_fun x)
 
 attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
@@ -52,8 +52,8 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
 You should extend this class when you extend `seminorm`. -/
 class seminorm_class (F : Type*) (𝕜 E : out_param $ Type*) [semi_normed_ring 𝕜] [add_group E]
-  [has_smul 𝕜 E] extends add_group_seminorm_class F E :=
-(map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ∥a∥ * f x)
+  [has_smul 𝕜 E] extends add_group_seminorm_class F E ℝ :=
+(map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ‖a‖ * f x)
 
 export seminorm_class (map_smul_eq_mul)
 
@@ -66,7 +66,7 @@ section of
 `semi_norm_ring 𝕜`. -/
 def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
-  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
+  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ‖a‖ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := by rw [←zero_smul 𝕜 (0 : E), smul, norm_zero, zero_mul],
   add_le'   := add_le,
@@ -77,7 +77,7 @@ def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : 
 and an inequality for the scalar multiplication. -/
 def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
-  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ‖r‖ * f x) : seminorm 𝕜 E :=
 seminorm.of f add_le
   (λ r x, begin
     refine le_antisymm (smul_le r x) _,
@@ -327,7 +327,7 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
-lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
+lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ‖p x - p y‖ ≤ p (x - y) :=
 abs_sub_map_le_sub p x y
 
 end module
@@ -339,12 +339,12 @@ variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 variables [add_comm_group E] [add_comm_group E₂] [module 𝕜 E] [module 𝕜₂ E₂]
 
 lemma comp_smul (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) :
-  p.comp (c • f) = ∥c∥₊ • p.comp f :=
+  p.comp (c • f) = ‖c‖₊ • p.comp f :=
 ext $ λ _, by rw [comp_apply, smul_apply, linear_map.smul_apply, map_smul_eq_mul, nnreal.smul_def,
   coe_nnnorm, smul_eq_mul, comp_apply]
 
 lemma comp_smul_apply (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) (x : E) :
-  p.comp (c • f) x = ∥c∥ * p (f x) := map_smul_eq_mul p _ _
+  p.comp (c • f) x = ‖c‖ * p (f x) := map_smul_eq_mul p _ _
 
 end semi_normed_comm_ring
 
@@ -610,6 +610,26 @@ begin
   exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
 end
 
+lemma sub_mem_ball (p : seminorm 𝕜 E) (x₁ x₂ y : E) (r : ℝ) :
+  x₁ - x₂ ∈ p.ball y r ↔ x₁ ∈ p.ball (x₂ + y) r :=
+by simp_rw [mem_ball, sub_sub]
+
+/-- The image of a ball under addition with a singleton is another ball. -/
+lemma vadd_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.ball y r = p.ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact vadd_ball x y r,
+end
+
+/-- The image of a closed ball under addition with a singleton is another closed ball. -/
+lemma vadd_closed_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.closed_ball y r = p.closed_ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact vadd_closed_ball x y r,
+end
+
 end has_smul
 
 section module
@@ -760,51 +780,28 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
-lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
-  k • p.ball 0 r = p.ball 0 (∥k∥ * r) :=
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : k ≠ 0) :
+  k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
   ext,
-  rw [set.mem_smul_set, seminorm.mem_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_ball_zero at hy,
-    exact (mul_lt_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
-  { rw [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_lt_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul],
-    exact h},
-  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
+  rw [mem_smul_set_iff_inv_smul_mem₀ hk, p.mem_ball_zero, p.mem_ball_zero, map_smul_eq_mul,
+    norm_inv, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hk), mul_comm]
 end
 
 lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
   absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
 begin
-  by_cases hr₂ : r₂ ≤ 0,
-  { rw ball_eq_emptyset p hr₂, exact absorbs_empty },
-  rw [not_le] at hr₂,
-  rcases exists_between hr₁ with ⟨r, hr, hr'⟩,
-  refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
-  simp_rw set.subset_def,
-  intros a ha x hx,
-  have ha' : 0 < ∥a∥ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
-  rw [smul_ball_zero ha', p.mem_ball_zero],
+  rcases exists_pos_lt_mul hr₁ r₂ with ⟨r, hr₀, hr⟩,
+  refine ⟨r, hr₀, λ a ha x hx, _⟩,
+  rw [smul_ball_zero (norm_pos_iff.1 $ hr₀.trans_le ha), p.mem_ball_zero],
   rw p.mem_ball_zero at hx,
-  rw div_le_iff hr at ha,
-  exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
+  exact hx.trans (hr.trans_le $ mul_le_mul_of_nonneg_right ha hr₁.le)
 end
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
-begin
-  rw absorbent_iff_nonneg_lt,
-  rintro x,
-  have hxr : 0 ≤ p x / r := by positivity,
-  refine ⟨p x/r, hxr, λ a ha, _⟩,
-  have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
-  refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
-  rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
-end
+absorbent_iff_forall_absorbs_singleton.2 $ λ x, (p.ball_zero_absorbs_ball_zero hr).mono_right $
+  singleton_subset_iff.2 $ p.mem_ball_zero.2 $ lt_add_one _
 
 /-- Closed seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_closed_ball_zero (hr : 0 < r) : absorbent 𝕜 (closed_ball p (0 : E) r) :=
@@ -836,7 +833,7 @@ by { ext, rw [mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, map_neg_
 
 @[simp]
 lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
-  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ∥a∥) :=
+  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ‖a‖) :=
 set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
   lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←map_smul_eq_mul p, smul_sub, smul_inv_smul₀ ha]
 
@@ -853,7 +850,7 @@ protected lemma convex_on : convex_on ℝ univ p :=
 begin
   refine ⟨convex_univ, λ x _ y _ a b ha hb hab, _⟩,
   calc p (a • x + b • y) ≤ p (a • x) + p (b • y) : map_add_le_add p _ _
-    ... = ∥a • (1 : 𝕜)∥ * p x + ∥b • (1 : 𝕜)∥ * p y
+    ... = ‖a • (1 : 𝕜)‖ * p x + ‖b • (1 : 𝕜)‖ * p y
         : by rw [←map_smul_eq_mul p, ←map_smul_eq_mul p, smul_one_smul, smul_one_smul]
     ... = a * p x + b * p y
         : by rw [norm_smul, norm_smul, norm_one, mul_one, mul_one, real.norm_of_nonneg ha,
@@ -926,8 +923,7 @@ begin
   suffices : (p.restrict_scalars ℝ).ball 0 ε ∈ (𝓝 0 : filter E),
   { rwa seminorm.ball_zero_eq_preimage_ball at this },
   have := (set_smul_mem_nhds_zero_iff hε.ne.symm).mpr hp,
-  rwa [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
-      real.norm_of_nonneg hε.le, mul_one] at this
+  rwa [seminorm.smul_ball_zero hε.ne', real.norm_of_nonneg hε.le, mul_one] at this
 end
 
 protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
@@ -999,7 +995,7 @@ lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (metric.ball (0 : E) r) 
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball_zero hr }
 
 /-- Balls containing the origin are absorbent. -/
-lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) :=
+lemma absorbent_ball (hx : ‖x‖ < r) : absorbent 𝕜 (metric.ball x r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
 
 /-- Balls at the origin are balanced. -/
@@ -1007,3 +1003,6 @@ lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm
+
+-- Guard against import creep.
+assert_not_exists balanced_core

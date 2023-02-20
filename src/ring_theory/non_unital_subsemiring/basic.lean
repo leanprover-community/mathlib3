@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 
-import algebra.module.basic
 import algebra.ring.equiv
 import algebra.ring.prod
 import data.set.finite
-import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
 import group_theory.subsemigroup.membership
+import group_theory.subsemigroup.centralizer
 
 /-!
 # Bundled non-unital subsemirings

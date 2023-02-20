@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.adjoin.fg
-import ring_theory.algebra_tower
 
 /-!
 # Adjoining elements and being finitely generated in an algebra tower
@@ -30,6 +29,23 @@ theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   adjoin R (algebra_map S A '' s) = (adjoin R s).map (is_scalar_tower.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
+
+lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
+  [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
+(algebra.adjoin D S).restrict_scalars C =
+  (algebra.adjoin
+    ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S).restrict_scalars C :=
+begin
+  suffices : set.range (algebra_map D E) =
+    set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
+  { ext x, change x ∈ subsemiring.closure (_ ∪ S) ↔ x ∈ subsemiring.closure (_ ∪ S), rw this },
+  ext x,
+  split,
+  { rintros ⟨y, hy⟩,
+    exact ⟨⟨algebra_map D E y, ⟨y, ⟨algebra.mem_top, rfl⟩⟩⟩, hy⟩ },
+  { rintros ⟨⟨y, ⟨z, ⟨h0, h1⟩⟩⟩, h2⟩,
+    exact ⟨z, eq.trans h1 h2⟩ },
+end
 
 lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semiring D]
   [comm_semiring E] [comm_semiring F] [algebra C D] [algebra C E] [algebra C F] [algebra D F]

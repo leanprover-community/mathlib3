@@ -6,12 +6,12 @@ Authors: Alex Kontorovich, Heather Macbeth
 
 import algebra.group.opposite
 import analysis.normed_space.lp_space
+import measure_theory.measure.haar
 import measure_theory.group.fundamental_domain
 import measure_theory.integral.integral_eq_improper
-import measure_theory.measure.haar
-import topology.compact_open
 import measure_theory.function.strongly_measurable_supr
 --- should be `.supr`
+import topology.compact_open
 
 /-!
 # Haar quotient measure

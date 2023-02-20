@@ -5,7 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.group.ext
 import category_theory.simple
-import category_theory.linear
+import category_theory.linear.basic
 import category_theory.endomorphism
 import algebra.algebra.spectrum
 

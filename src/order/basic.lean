@@ -9,6 +9,9 @@ import data.subtype
 /-!
 # Basic definitions about `≤` and `<`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about orders, provides extensive dot notation, defines useful order
 classes and allows to transfer order instances.
 
@@ -152,10 +155,18 @@ namespace has_le.le
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
 
-lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
+section partial_order
+variables [partial_order α] {a b : α}
 
-lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
-⟨λ h', h'.antisymm h, eq.le⟩
+lemma lt_iff_ne (h : a ≤ b) : a < b ↔ a ≠ b := ⟨λ h, h.ne, h.lt_of_ne⟩
+lemma gt_iff_ne (h : a ≤ b) : a < b ↔ b ≠ a := ⟨λ h, h.ne.symm, h.lt_of_ne'⟩
+lemma not_lt_iff_eq (h : a ≤ b) : ¬ a < b ↔ a = b := h.lt_iff_ne.not_left
+lemma not_gt_iff_eq (h : a ≤ b) : ¬ a < b ↔ b = a := h.gt_iff_ne.not_left
+
+lemma le_iff_eq (h : a ≤ b) : b ≤ a ↔ b = a := ⟨λ h', h'.antisymm h, eq.le⟩
+lemma ge_iff_eq (h : a ≤ b) : b ≤ a ↔ a = b := ⟨h.antisymm, eq.ge⟩
+
+end partial_order
 
 lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_ge a c).imp id $ λ hc, le_trans hc h
@@ -258,6 +269,26 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
 
+-- Variant of `min_def` with the branches reversed.
+lemma min_def' [linear_order α] (a b : α) : min a b = if b ≤ a then b else a :=
+begin
+  rw [min_def],
+  rcases lt_trichotomy a b with lt | eq | gt,
+  { rw [if_pos lt.le, if_neg (not_le.mpr lt)], },
+  { rw [if_pos eq.le, if_pos eq.ge, eq], },
+  { rw [if_neg (not_le.mpr gt), if_pos gt.le], }
+end
+-- Variant of `min_def` with the branches reversed.
+-- This is sometimes useful as it used to be the default.
+lemma max_def' [linear_order α] (a b : α) : max a b = if b ≤ a then a else b :=
+begin
+  rw [max_def],
+  rcases lt_trichotomy a b with lt | eq | gt,
+  { rw [if_pos lt.le, if_neg (not_le.mpr lt)], },
+  { rw [if_pos eq.le, if_pos eq.ge, eq], },
+  { rw [if_neg (not_le.mpr gt), if_pos gt.le], }
+end
+
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
@@ -346,6 +377,23 @@ lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (hca : c ≤ a) (hb
   a ≤ b → c ≤ d :=
 λ hab, (hca.trans hab).trans hbd
 
+section partial_order
+variables [partial_order α]
+
+/-- To prove commutativity of a binary operation `○`, we only to check `a ○ b ≤ b ○ a` for all `a`,
+`b`. -/
+lemma commutative_of_le {f : β → β → α} (comm : ∀ a b, f a b ≤ f b a) : ∀ a b, f a b = f b a :=
+λ a b, (comm _ _).antisymm $ comm _ _
+
+/-- To prove associativity of a commutative binary operation `○`, we only to check
+`(a ○ b) ○ c ≤ a ○ (b ○ c)` for all `a`, `b`, `c`. -/
+lemma associative_of_commutative_of_le {f : α → α → α} (comm : commutative f)
+  (assoc : ∀ a b c, f (f a b) c ≤ f a (f b c)) :
+  associative f :=
+λ a b c, le_antisymm (assoc _ _ _) $ by { rw [comm, comm b, comm _ c, comm a], exact assoc _ _ _ }
+
+end partial_order
+
 @[ext]
 lemma preorder.to_has_le_injective {α : Type*} :
   function.injective (@preorder.to_has_le α) :=
@@ -432,8 +480,8 @@ instance (α : Type*) [linear_order α] : linear_order αᵒᵈ :=
   decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
   min := @max α _,
   max := @min α _,
-  min_def := @linear_order.max_def α _,
-  max_def := @linear_order.min_def α _,
+  min_def := funext₂ $ @max_def' α _,
+  max_def := funext₂ $ @min_def' α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited αᵒᵈ := id
@@ -579,13 +627,13 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
-lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+lemma min_def_lt (x y : α) : min x y = if x < y then x else y :=
 begin
   rw [min_comm, min_def, ← ite_not],
   simp only [not_le],
 end
 
-lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+lemma max_def_lt (x y : α) : max x y = if x < y then y else x :=
 begin
   rw [max_comm, max_def, ← ite_not],
   simp only [not_le],
@@ -644,7 +692,7 @@ for a version that takes `[has_sup α]` and `[has_inf α]`, then uses them as `m
 See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift' {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-@linear_order.lift α β _ ⟨λ x y, if f y ≤ f x then x else y⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
+@linear_order.lift α β _ ⟨λ x y, if f x ≤ f y then y else x⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
   f inj (λ x y, (apply_ite f _ _ _).trans (max_def _ _).symm)
   (λ x y, (apply_ite f _ _ _).trans (min_def _ _).symm)
 

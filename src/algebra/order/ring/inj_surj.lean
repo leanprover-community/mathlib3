@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.ring.defs
-import algebra.order.group.inj_surj
 import algebra.order.monoid.cancel.basic
 import algebra.ring.inj_surj
 
 /-!
 # Pulling back ordered rings along injective maps.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 
@@ -90,7 +92,8 @@ protected def strict_ordered_semiring [strict_ordered_semiring α] [has_zero β]
   mul_lt_mul_of_pos_right := λ a b c h hc, show f (a * c) < f (b * c),
     by simpa only [mul, zero] using mul_lt_mul_of_pos_right ‹f a < f b› (by rwa ←zero),
   ..hf.ordered_cancel_add_comm_monoid f zero add nsmul,
-  ..hf.ordered_semiring f zero one add mul nsmul npow nat_cast }
+  ..hf.ordered_semiring f zero one add mul nsmul npow nat_cast,
+  ..pullback_nonzero f zero one }
 
 /-- Pullback a `strict_ordered_comm_semiring` under an injective map. -/
 @[reducible] -- See note [reducible non-instances]
@@ -143,7 +146,6 @@ protected def linear_ordered_semiring [linear_ordered_semiring α] [has_zero β]
   (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_semiring β :=
 { .. linear_order.lift f hf hsup hinf,
-  .. pullback_nonzero f zero one,
   .. hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast }
 
 /-- Pullback a `linear_ordered_semiring` under an injective map. -/
@@ -172,7 +174,6 @@ def linear_ordered_ring [linear_ordered_ring α] [has_zero β] [has_one β] [has
   (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_ring β :=
 { .. linear_order.lift f hf hsup hinf,
-  .. pullback_nonzero f zero one,
   .. hf.strict_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 /-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
@@ -188,7 +189,6 @@ protected def linear_ordered_comm_ring [linear_ordered_comm_ring α] [has_zero �
   (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_ring β :=
 { .. linear_order.lift f hf hsup hinf,
-  .. pullback_nonzero f zero one,
   .. hf.strict_ordered_comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 end function.injective

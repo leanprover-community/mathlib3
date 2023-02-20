@@ -124,19 +124,19 @@ noncomputable instance unique_nim_one_right_moves : unique (nim 1).right_moves :
 (equiv.cast $ right_moves_nim 1).unique
 
 @[simp] theorem default_nim_one_left_moves_eq :
-  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
 @[simp] theorem default_nim_one_right_moves_eq :
-  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
 @[simp] theorem to_left_moves_nim_one_symm (i) :
-  (@to_left_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+  (@to_left_moves_nim 1).symm i = ⟨0, zero_lt_one⟩ :=
 by simp
 
 @[simp] theorem to_right_moves_nim_one_symm (i) :
-  (@to_right_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+  (@to_right_moves_nim 1).symm i = ⟨0, zero_lt_one⟩ :=
 by simp
 
 theorem nim_one_move_left (x) : (nim 1).move_left x = nim 0 :=
@@ -188,7 +188,7 @@ lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_l
 lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
 ⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
 
-lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
+lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ‖ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
   rw ←ordinal.pos_iff_ne_zero at ho,
@@ -212,7 +212,7 @@ begin
     exact impartial.add_self (nim o₁) }
 end
 
-@[simp] lemma nim_add_fuzzy_zero_iff {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
+@[simp] lemma nim_add_fuzzy_zero_iff {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ‖ 0 ↔ o₁ ≠ o₂ :=
 by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, nim_add_equiv_zero_iff]
 
 @[simp] lemma nim_equiv_iff_eq {o₁ o₂ : ordinal} : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=

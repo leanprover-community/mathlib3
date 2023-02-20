@@ -221,11 +221,11 @@ lemma is_open_eq_upper_and_lub_mem_implies_tail_subset (u : set (with_scott_topo
 = (is_upper_set u ∧ ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u
   → ∃ b ∈ d, (Ici b) ∩ d ⊆ u) := rfl
 
-lemma is_open_eq_upper_and_lub_mem_implies_inter_nonempty (u : set (with_scott_topology α)) :
-is_open u = (is_upper_set u ∧
+lemma is_open_iff_upper_and_lub_mem_implies_inter_nonempty (u : set (with_scott_topology α)) :
+is_open u ↔ (is_upper_set u ∧
 ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → (d∩u).nonempty) :=
 begin
-  rw [is_open_eq_upper_and_lub_mem_implies_tail_subset, eq_iff_iff],
+  rw [is_open_eq_upper_and_lub_mem_implies_tail_subset],
   split,
   { refine and.imp_right _,
     intros h d a d₁ d₂ d₃ ha,
@@ -260,7 +260,7 @@ lemma is_closed_eq_lower_and_subset_implies_lub_mem (s : set (with_scott_topolog
   = (is_lower_set s ∧
   ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → d ⊆ s → a ∈ s ) :=
 begin
-  rw [← is_open_compl_iff, is_open_eq_upper_and_lub_mem_implies_inter_nonempty,
+  rw [← is_open_compl_iff, is_open_iff_upper_and_lub_mem_implies_inter_nonempty,
     is_lower_set_compl.symm, compl_compl],
   refine let_value_eq (and (is_lower_set s)) _,
   rw eq_iff_iff,
@@ -348,7 +348,7 @@ begin
   { intro h,
     rw continuous_def,
     intros u hu,
-    rw with_scott_topology.is_open_eq_upper_and_lub_mem_implies_inter_nonempty,
+    rw with_scott_topology.is_open_iff_upper_and_lub_mem_implies_inter_nonempty,
     split,
     { apply is_upper_set.preimage (with_scott_topology.is_open_is_upper hu),
       apply preserve_lub_on_directed_montotone,
@@ -359,7 +359,7 @@ begin
       apply hd₁,
       apply hd₂,
       apply hd₃, },
-    rw with_scott_topology.is_open_eq_upper_and_lub_mem_implies_inter_nonempty at hu,
+    rw with_scott_topology.is_open_iff_upper_and_lub_mem_implies_inter_nonempty at hu,
     have e2: ((f '' d) ∩ u).nonempty,
     { apply hu.2,
       exact nonempty.image f hd₁,
@@ -387,7 +387,7 @@ begin
     { rw [is_open_compl_iff, ← with_scott_topology.closure_singleton],
       exact is_closed_closure, },
     have s2 : is_open (f⁻¹'  u) := is_open.preimage hf s1,
-    rw with_scott_topology.is_open_eq_upper_and_lub_mem_implies_inter_nonempty at s2,
+    rw with_scott_topology.is_open_iff_upper_and_lub_mem_implies_inter_nonempty at s2,
     cases s2,
     cases s2_right d a d₁ d₂ d₃ e1 with c,
     cases h_1,
@@ -439,7 +439,7 @@ lemma is_open_eq_upper_and_Sup_mem_implies_inter_nonempty [complete_lattice α]
 (u : set (with_scott_topology α)) : is_open u =
 (is_upper_set u ∧  ∀ (d : set α), d.nonempty → directed_on (≤) d → Sup d ∈ u → (d∩u).nonempty) :=
 begin
-  rw with_scott_topology.is_open_eq_upper_and_lub_mem_implies_inter_nonempty,
+  rw with_scott_topology.is_open_iff_upper_and_lub_mem_implies_inter_nonempty,
   refine let_value_eq (and (is_upper_set u)) _,
   rw eq_iff_iff,
   split,

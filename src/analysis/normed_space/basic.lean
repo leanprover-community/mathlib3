@@ -248,7 +248,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
       ‖a‖₊ * ↑(finset.sup finset.univ (λ (b : ι), ‖f b‖₊)),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
-instance mul_opposite.normed_space : normed_space α (Eᵐᵒᵖ) :=
+instance mul_opposite.normed_space : normed_space α Eᵐᵒᵖ :=
 { norm_smul_le := λ s x, (norm_smul s x.unop).le,
   ..mul_opposite.normed_add_comm_group,
   ..mul_opposite.module _ }
@@ -525,7 +525,7 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   .. pi.algebra _ E }
 
 instance mul_opposite.normed_algebra {E : Type*} [semi_normed_ring E] [normed_algebra 𝕜 E] :
-  normed_algebra 𝕜 (Eᵐᵒᵖ) :=
+  normed_algebra 𝕜 Eᵐᵒᵖ :=
 { ..mul_opposite.normed_space }
 
 end normed_algebra

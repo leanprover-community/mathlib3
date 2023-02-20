@@ -46,6 +46,8 @@ namespace continuous_map
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
+/- ### "mul" and "add" -/
+
 @[to_additive]
 instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
@@ -62,25 +64,35 @@ lemma mul_apply [has_mul β] [has_continuous_mul β] (f g : C(α, β)) (x : α) 
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
 rfl
 
-@[to_additive]
-instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
+/- ### "one" -/
 
-@[simp, norm_cast, to_additive]
-lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
+@[to_additive] instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
+
+@[simp, norm_cast, to_additive] lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
+
+@[simp, to_additive] lemma one_apply [has_one β] (x : α) : (1 : C(α, β)) x = 1 := rfl
 
 @[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
 
-instance [has_nat_cast β] : has_nat_cast C(α, β) :=
-⟨λ n, continuous_map.const _ n⟩
+/- ### "nat_cast" -/
 
-@[simp, norm_cast]
-lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+instance [has_nat_cast β] : has_nat_cast C(α, β) := ⟨λ n, continuous_map.const _ n⟩
+
+@[simp, norm_cast] lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+
+@[simp] lemma nat_cast_apply [has_nat_cast β] (n : ℕ) (x : α) : (n : C(α, β)) x = n := rfl
+
+/- ### "int_cast" -/
 
 instance [has_int_cast β] : has_int_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
 @[simp, norm_cast]
 lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
+
+@[simp] lemma int_cast_apply [has_int_cast β] (n : ℤ) (x : α) : (n : C(α, β)) x = n := rfl
+
+/- ### "nsmul" and "pow" -/
 
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_smul ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
@@ -93,8 +105,14 @@ instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
 
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
-attribute [simp] coe_pow
+@[to_additive] lemma pow_apply [monoid β] [has_continuous_mul β]
+  (f : C(α, β)) (n : ℕ) (x : α) :
+  (f ^ n) x = f x ^ n :=
+rfl
+
+-- don't make auto-generated `coe_nsmul` and `nsmul_apply` simp, as the linter complains they're
+-- redundant WRT `coe_smul`
+attribute [simp] coe_pow pow_apply
 
 @[to_additive] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
@@ -103,6 +121,8 @@ rfl
 
 -- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] pow_comp
+
+/- ### "inv" and "neg" -/
 
 @[to_additive]
 instance [group β] [topological_group β] : has_inv C(α, β) :=
@@ -113,9 +133,15 @@ lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
   ⇑(f⁻¹) = f⁻¹ :=
 rfl
 
+@[simp, to_additive] lemma inv_apply [group β] [topological_group β] (f : C(α, β)) (x : α) :
+  f⁻¹ x = (f x)⁻¹ :=
+rfl
+
 @[simp, to_additive] lemma inv_comp [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
   (f⁻¹).comp g = (f.comp g)⁻¹ :=
 rfl
+
+/- ### "div" and "sub" -/
 
 @[to_additive]
 instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
@@ -125,10 +151,16 @@ instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
 lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
 rfl
 
+@[simp, to_additive] lemma div_apply [has_div β] [has_continuous_div β] (f g : C(α, β)) (x : α) :
+  (f / g) x = f x / g x :=
+rfl
+
 @[simp, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
   (f g : C(β, γ)) (h : C(α, β)) :
   (f / g).comp h = (f.comp h) / (g.comp h) :=
 rfl
+
+/- ### "zpow" and "zsmul" -/
 
 instance has_zsmul [add_group β] [topological_add_group β] : has_smul ℤ C(α, β) :=
 { smul := λ z f, ⟨z • f, f.continuous.zsmul z⟩ }
@@ -143,8 +175,14 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
-attribute [simp] coe_zpow
+@[to_additive] lemma zpow_apply [group β] [topological_group β]
+  (f : C(α, β)) (z : ℤ) (x : α) :
+  (f ^ z) x = f x ^ z :=
+rfl
+
+-- don't make auto-generated `coe_zsmul` and `zsmul_apply` simp as the linter complains they're
+-- redundant WRT `coe_smul`
+attribute [simp] coe_zpow zpow_apply
 
 @[to_additive]
 lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g : C(α, β)) :
@@ -153,17 +191,6 @@ rfl
 
 -- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
-
-section comp_translate
--- This arguably doesn't quite belong here because it is about algebraic structures on the source,
--- not target, of the maps; but it does have the same import dependencies as the other stuff here.
-
-/-- The continuous map `λ x, f (x + m)`. -/
-@[to_additive "The continuous map `λ x, f (x * m)", simps]
-def comp_mul_right [has_mul α] [has_continuous_mul α] (f : C(α, β)) (m : α) : C(α, β) :=
-f.comp (mk _ (continuous_mul_right m))
-
-end comp_translate
 
 end continuous_map
 
@@ -907,14 +934,14 @@ be the zero map, which is periodic.) -/
 lemma periodic_tsum_comp_add_zsmul [locally_compact_space X] [add_comm_group X]
   [topological_add_group X] [add_comm_monoid Y] [has_continuous_add Y] [t2_space Y]
   (f : C(X, Y)) (p : X) :
-  function.periodic ⇑(∑' (n : ℤ), f.comp_add_right (n • p)) p :=
+  function.periodic ⇑(∑' (n : ℤ), f.comp (continuous_map.add_right (n • p))) p :=
 begin
   intro x,
-  by_cases h : summable (λ n : ℤ, f.comp_add_right (n • p)),
+  by_cases h : summable (λ n : ℤ, f.comp (continuous_map.add_right (n • p))),
   { convert congr_arg (λ f : C(X, Y), f x) ((equiv.add_right (1 : ℤ)).tsum_eq _) using 1,
     simp_rw [←tsum_apply h, ←tsum_apply ((equiv.add_right (1 : ℤ)).summable_iff.mpr h),
-      equiv.coe_add_right, function.comp_app, comp_add_right_apply, add_one_zsmul,
-      add_comm (_ • p) p, ←add_assoc] },
+      equiv.coe_add_right, comp_apply, coe_add_right, add_one_zsmul, add_comm (_ • p) p,
+      ←add_assoc] },
   { rw tsum_eq_zero_of_not_summable h,
     simp only [coe_zero, pi.zero_apply] }
 end

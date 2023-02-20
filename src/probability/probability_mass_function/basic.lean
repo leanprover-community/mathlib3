@@ -40,6 +40,9 @@ instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0∞) := ⟨λ p a, p.1 a
 @[ext] protected lemma ext : ∀ {p q : pmf α}, (∀ a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
 
+lemma ext_iff (p q : pmf α) : p = q ↔ ∀ x, p x = q x :=
+⟨λ h x, congr_fun (congr_arg _ h) x, pmf.ext⟩
+
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
 @[simp] lemma tsum_coe (p : pmf α) : ∑' a, p a = 1 := p.has_sum_coe_one.tsum_eq
@@ -54,6 +57,13 @@ ne_of_lt (lt_of_le_of_lt (tsum_le_tsum (λ a, set.indicator_apply_le (λ _, le_r
 def support (p : pmf α) : set α := function.support p
 
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) : a ∈ p.support ↔ p a ≠ 0 := iff.rfl
+
+lemma support_nonempty (p : pmf α) : p.support.nonempty :=
+begin
+  refine set.nonempty_def.2 (by_contra $ λ h, _),
+  simp only [pmf.mem_support_iff, not_exists, not_not] at h,
+  exact zero_ne_one (((tsum_congr h).trans tsum_zero).symm.trans p.tsum_coe),
+end
 
 lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]

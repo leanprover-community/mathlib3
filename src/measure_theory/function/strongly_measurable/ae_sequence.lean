@@ -19,6 +19,7 @@ that we have `hp : ∀ᵐ x ∂μ, p x (λ n, f n x)`, we define a sequence of s
 * `μ (ae_strongly_seq_set hf p)ᶜ = 0`
 * `x ∈ ae_strongly_seq_set hf p → ∀ i : ι, ae_strongly_seq hf hp i x = f i x`
 * `x ∈ ae_strongly_seq_set hf p → p x (λ n, f n x)`
+## Implementation notes: This file follows closely the construction of `ae_measurable_sequence.ae_seq`, adapting it to the `ae_strongly_seq` setting.
 -/
 
 open measure_theory filter topological_space function set measure_theory.measure

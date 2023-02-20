@@ -90,11 +90,11 @@ have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
 by ext b; simp [this]
 
 @[simp] lemma bind_pure : p.bind pure = p :=
-pmf.ext (λ x, (pmf.bind_apply _ _ _).trans (trans (tsum_eq_single x $
+pmf.ext (λ x, (bind_apply _ _ _).trans (trans (tsum_eq_single x $
   (λ y hy, by rw [pure_apply_of_ne _ _ hy.symm, mul_zero])) $ by rw [pure_apply_self, mul_one]))
 
 lemma bind_const {α β : Type*} (p : pmf α) (q : pmf β) : (p.bind $ λ _, q) = q :=
-pmf.ext (λ x, by rw [pmf.bind_apply, ennreal.tsum_mul_right, pmf.tsum_coe, one_mul])
+pmf.ext (λ x, by rw [bind_apply, ennreal.tsum_mul_right, tsum_coe, one_mul])
 
 @[simp] lemma bind_bind : (p.bind f).bind g = p.bind (λ a, (f a).bind g) :=
 pmf.ext (λ b, by simpa only [ennreal.coe_eq_coe.symm, bind_apply, ennreal.tsum_mul_left.symm,

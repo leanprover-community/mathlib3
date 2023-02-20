@@ -14,11 +14,10 @@ namespace linear_map
 variables {ι₁ ι₂ : Type*}
 variables {R R₂ S S₂ M N P : Type*}
 variables {Mₗ Nₗ Pₗ : Type*}
-variables [comm_ring R] [comm_ring S] [comm_ring R₂] [comm_ring S₂]
+variables [comm_semiring R] [comm_semiring S] [comm_semiring R₂] [comm_semiring S₂]
 
 section add_comm_monoid
 
-variables [comm_semiring R]
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
 variables [add_comm_monoid Mₗ] [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]

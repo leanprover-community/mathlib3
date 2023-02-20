@@ -599,7 +599,7 @@ end
 
 lemma split_univ (f : α → E) (a : α) :
   evariation_on f set.univ = evariation_on f (set.Iic a) + evariation_on f (set.Ici a) :=
-by rw [Ici_add_Ici f (set.mem_univ a), set.univ_inter, set.univ_inter]
+by rw [Iic_add_Ici f (set.mem_univ a), set.univ_inter, set.univ_inter]
 
 lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :

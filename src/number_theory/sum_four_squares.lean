@@ -85,7 +85,7 @@ have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
   from dec_trivial,
 let f : fin 4 → ℤ :=
   vector.nth (a ::ᵥ b ::ᵥ c ::ᵥ d ::ᵥ vector.nil) in
-let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m,
+let ⟨i, hσ⟩ := this (λ x, coe (f x)) (by rw [← @zero_mul (zmod 2) _ m,
   ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
   ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
 let σ := swap i 0 in

@@ -1,12 +1,52 @@
+/-
+Copyright (c) 2023 Eric Wieser. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Eric Wieser
+-/
+
 import linear_algebra.quadratic_form.isometry
 import linear_algebra.quadratic_form.prod
-.
+/-!
+# Quadratic form structures related to `module.dual`
+
+## Main definitions
+
+* `quadratic_form.dual_prod R M`, the quadratic form on `(f, x) : module.dual R M × M` defined as
+  `f x`.
+
+-/
 
 universes u v w
 variables {S : Type*}
 variables {R : Type*} {M N : Type*}
 
 variables (R M)
+
+section to_move
+
+
+/-- Four-way commutativity of `prod`.
+
+The name matches `mul_mul_mul_comm`. -/
+@[simps]
+def equiv.prod_prod_prod_comm (α β γ δ) : (α × β) × (γ × δ) ≃ (α × γ) × (β × δ) :=
+{ to_fun := λ abcd, ((abcd.1.1, abcd.2.1), (abcd.1.2, abcd.2.2)),
+  inv_fun := λ acbd, ((acbd.1.1, acbd.2.1), (acbd.1.2, acbd.2.2)),
+  left_inv := λ ⟨⟨a, b⟩, ⟨c, d⟩⟩, rfl,
+  right_inv := λ ⟨⟨a, c⟩, ⟨b, d⟩⟩, rfl, }
+
+/-- `equiv.prod_prod_prod_comm` as an isomorphism of modules. -/
+@[simps]
+def linear_equiv.prod_prod_prod_comm (α β γ δ)
+  [semiring R]
+  [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ] [add_comm_monoid δ]
+  [module R α] [module R β] [module R γ] [module R δ] :
+  ((α × β) × (γ × δ)) ≃ₗ[R] ((α × γ) × (β × δ)) :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  ..equiv.prod_prod_prod_comm _ _ _ _ }
+
+end to_move
 
 namespace bilin_form
 
@@ -29,37 +69,6 @@ end semiring
 
 section ring
 variables [comm_ring R] [add_comm_group M] [module R M]
-
-section PR_ed_elsewhere
-
-@[simp] lemma prod.map_injective {α β γ δ} [nonempty α] [nonempty β] {f : α → γ} {g : β → δ} :
-  function.injective (prod.map f g) ↔ function.injective f ∧ function.injective g :=
-⟨λ h, ⟨λ a₁ a₂ ha, begin
-  inhabit β,
-  injection @h (a₁, default) (a₂, default) (congr_arg (λ c : γ, prod.mk c (g default)) ha : _),
-end, λ b₁ b₂ hb, begin
-  inhabit α,
-  injection @h (default, b₁) (default, b₂) (congr_arg (prod.mk (f default)) hb : _),
-end⟩, λ h, h.1.prod_map h.2⟩
-
-lemma prod.map_surjective {α β γ δ} [nonempty γ] [nonempty δ] {f : α → γ} {g : β → δ} :
-  function.surjective (prod.map f g) ↔ function.surjective f ∧ function.surjective g :=
-⟨λ h, ⟨λ c, begin
-  inhabit δ,
-  obtain ⟨⟨a, b⟩, h⟩ := h (c, default),
-  exact ⟨a, congr_arg prod.fst h⟩,
-end, λ d, begin
-  inhabit γ,
-  obtain ⟨⟨a, b⟩, h⟩ := h (default, d),
-  exact ⟨b, congr_arg prod.snd h⟩,
-end⟩, λ h, h.1.prod_map h.2⟩
-
-lemma prod.map_bijective {α β γ δ} [nonempty α] [nonempty β] [nonempty γ] [nonempty δ] {f : α → γ}
-  {g : β → δ} :
-  function.bijective (prod.map f g) ↔ function.bijective f ∧ function.bijective g :=
-(prod.map_injective.and prod.map_surjective).trans $ and_and_and_comm _ _ _ _
-
-end PR_ed_elsewhere
 
 lemma nondenerate_dual_prod :
   (dual_prod R M).nondegenerate ↔ function.injective (module.dual.eval R M) :=
@@ -115,33 +124,13 @@ def dual_prod_isometry (f : M ≃ₗ[R] N) :
 { to_linear_equiv :=  f.dual_map.symm.prod f,
   map_app' := λ x, fun_like.congr_arg x.fst $ f.symm_apply_apply _ }
 
-/-- Four-way commutativity of `prod`.
-
-The name matches `mul_mul_mul_comm`. -/
-@[simps]
-def equiv.prod_prod_prod_comm (α β γ δ) : (α × β) × (γ × δ) ≃ (α × γ) × (β × δ) :=
-{ to_fun := λ abcd, ((abcd.1.1, abcd.2.1), (abcd.1.2, abcd.2.2)),
-  inv_fun := λ acbd, ((acbd.1.1, acbd.2.1), (acbd.1.2, acbd.2.2)),
-  left_inv := λ ⟨⟨a, b⟩, ⟨c, d⟩⟩, rfl,
-  right_inv := λ ⟨⟨a, c⟩, ⟨b, d⟩⟩, rfl, }
-
-/-- `equiv.prod_prod_prod_comm` as an isomorphism of modules. -/
-@[simps]
-def linear_equiv.prod_prod_prod_comm (α β γ δ)
-  [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ] [add_comm_monoid δ]
-  [module R α] [module R β] [module R γ] [module R δ] :
-  ((α × β) × (γ × δ)) ≃ₗ[R] ((α × γ) × (β × δ)) :=
-{ map_add' := λ x y, rfl,
-  map_smul' := λ c x, rfl,
-  ..equiv.prod_prod_prod_comm _ _ _ _ }
-
 /-- `quadratic_form.dual_prod` commutes with `quadratic_form.prod`. -/
 @[simps]
 def dual_prod_prod_isometry :
   (dual_prod R (M × N)).isometry ((dual_prod R M).prod (dual_prod R N)) :=
 { to_linear_equiv :=
   ((module.dual_prod_dual_equiv_dual R M N).symm.prod (linear_equiv.refl R (M × N)))
-    ≪≫ₗ linear_equiv.prod_prod_prod_comm _ _ M N,
+    ≪≫ₗ linear_equiv.prod_prod_prod_comm R _ _ M N,
   map_app' := λ m,
     (m.fst.map_add _ _).symm.trans $ fun_like.congr_arg m.fst $ prod.ext (add_zero _) (zero_add _) }
 
@@ -151,7 +140,7 @@ section ring
 variables [comm_ring R] [add_comm_group M] [module R M]
 
 variables {R M}
--- page 84 of "Hermitian K-Theory and Geometric Applications"
+-- page 84 of [*Hermitian K-Theory and Geometric Applications*][hyman1973]
 -- source neglects to mention characteristic two!
 @[simps]
 def foo (Q : quadratic_form R M) [invertible (2 : R)] :

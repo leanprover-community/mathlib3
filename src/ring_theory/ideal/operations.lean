@@ -783,7 +783,7 @@ lemma is_radical_bot_of_no_zero_divisors {R} [comm_semiring R] [no_zero_divisors
   radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 is_radical_bot_of_no_zero_divisors
 
-instance : comm_semiring (ideal R) := submodule.comm_semiring
+instance : idem_comm_semiring (ideal R) := submodule.idem_comm_semiring
 
 variables (R)
 theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=

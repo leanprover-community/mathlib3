@@ -15,6 +15,9 @@ import tactic.apply_fun
 /-!
 # Turing machines
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a sequence of simple machine languages, starting with Turing machines and working
 up to more complex languages based on Wang B-machines.
 

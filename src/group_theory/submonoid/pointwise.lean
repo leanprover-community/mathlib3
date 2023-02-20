@@ -32,7 +32,7 @@ Additionally, it provides various degrees of monoid structure:
 * `add_submonoid.mul_one_class`
 * `add_submonoid.semigroup`
 * `add_submonoid.monoid`
-which is available globally to match the monoid structure implied by `submodule.semiring`.
+which is available globally to match the monoid structure implied by `submodule.idem_semiring`.
 
 ## Implementation notes
 

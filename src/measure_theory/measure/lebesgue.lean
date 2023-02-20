@@ -611,23 +611,20 @@ open continuous_map
 `Icc a b` has volume `b - a`. -/
 
 lemma real.integrable_of_summable_norm_Icc {E : Type*} [normed_add_comm_group E] {f : C(ℝ, E)}
-  (hf : summable (λ n : ℤ, ‖(f.comp_add_right n).restrict (Icc 0 1)‖)) :
+  (hf : summable (λ n : ℤ, ‖(f.comp $ continuous_map.add_right n).restrict (Icc 0 1)‖)) :
   integrable f :=
 begin
-  have : ∀ (n : ℤ), ‖f.restrict (⟨Icc n (n + 1), is_compact_Icc⟩ : compacts ℝ)‖ *
-    (volume (Icc (n : ℝ) (n + 1))).to_real ≤ ‖(f.comp_add_right n).restrict (Icc 0 1)‖,
-  -- obviously equality holds, but one inequality is sufficient & less work to prove
-  { intro n,
-    dsimp only [compacts.coe_mk],
-    rw [real.volume_Icc, add_sub_cancel', ennreal.to_real_of_real zero_le_one, mul_one,
-      norm_le _ (norm_nonneg _)],
-    intro x,
-    simpa only [continuous_map.restrict_apply, comp_add_right_apply, sub_add_cancel] using
-      ((f.comp_add_right n).restrict (Icc 0 1)).norm_coe_le_norm
-      ⟨x.1 - n, ⟨sub_nonneg.mpr x.2.1, sub_le_iff_le_add'.mpr x.2.2⟩⟩ },
-  refine integrable_of_summable_norm_restrict (summable_of_nonneg_of_le _ this hf)
-    (Union_Icc_int_cast ℝ),
-  exact λ n, mul_nonneg (norm_nonneg _) ennreal.to_real_nonneg,
+  refine integrable_of_summable_norm_restrict (summable_of_nonneg_of_le
+    (λ n : ℤ, mul_nonneg (norm_nonneg (f.restrict (⟨Icc n (n + 1), is_compact_Icc⟩ : compacts ℝ)))
+    ennreal.to_real_nonneg) (λ n, _) hf) (Union_Icc_int_cast ℝ),
+  simp only [compacts.coe_mk, real.volume_Icc, add_sub_cancel', ennreal.to_real_of_real zero_le_one,
+    mul_one, norm_le _ (norm_nonneg _)],
+  intro x,
+  have := ((f.comp $ continuous_map.add_right n).restrict (Icc 0 1)).norm_coe_le_norm
+    ⟨x - n, ⟨sub_nonneg.mpr x.2.1, sub_le_iff_le_add'.mpr x.2.2⟩⟩,
+  simpa only [continuous_map.restrict_apply, comp_apply, coe_add_right, subtype.coe_mk,
+    sub_add_cancel]
+    using this,
 end
 
 end summable_norm_Icc

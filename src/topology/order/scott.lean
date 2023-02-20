@@ -336,12 +336,10 @@ begin
   end,
   have s2 :  is_open (f⁻¹'  u) := is_open.preimage hf s1,
   have u3 : b ∈ (f⁻¹'  u) := is_upper_set_iff_forall_le.mp s2.1 hab u2,
-  have c1 : f(b) ∈ (Iic (f b))ᶜ :=
-  begin
-    simp only [mem_compl_iff, mem_preimage, mem_Iic, le_refl, not_true] at u3,
+  have c1 : f b ∈ (Iic (f b))ᶜ,
+  { simp only [mem_compl_iff, mem_preimage, mem_Iic, le_refl, not_true] at u3,
     simp only [mem_compl_iff, mem_Iic, le_refl, not_true],
-    exact u3,
-  end,
+    exact u3, },
   simp only [mem_compl_iff, mem_Iic, le_refl, not_true] at c1,
   exact c1,
 end

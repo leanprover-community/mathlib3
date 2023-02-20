@@ -568,7 +568,7 @@ add_subgroup.seminormed_add_comm_group_quotient S.to_add_subgroup
 
 instance submodule.quotient.normed_add_comm_group [hS : is_closed (S : set M)] :
   normed_add_comm_group (M ⧸ S) :=
-@add_subgroup.normed_add_comm_group_quotient _ _ S.to_add_subgroup hS
+@add_subgroup.normed_add_comm_group_quotient _ _ _ S.to_add_subgroup hS
 
 instance submodule.quotient.complete_space [complete_space M] : complete_space (M ⧸ S) :=
 quotient_add_group.complete_space M S.to_add_subgroup

@@ -1486,11 +1486,11 @@ matrix.ext $ by simp
   (1 : matrix n n α)ᴴ = 1 :=
 by simp [conj_transpose]
 
-@[simp] lemma conj_transpose_add [add_monoid α] [has_star_add α] (M N : matrix m n α) :
+@[simp] lemma conj_transpose_add [add_comm_monoid α] [has_star_add α] (M N : matrix m n α) :
   (M + N)ᴴ = Mᴴ + Nᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_sub [add_group α] [has_star_add α] (M N : matrix m n α) :
+@[simp] lemma conj_transpose_sub [add_comm_group α] [has_star_add α] (M N : matrix m n α) :
   (M - N)ᴴ = Mᴴ - Nᴴ :=
 matrix.ext $ by simp
 
@@ -1570,19 +1570,19 @@ variables (m n α)
 
 /-- `matrix.conj_transpose` as an `add_equiv` -/
 @[simps apply]
-def conj_transpose_add_equiv [add_monoid α] [has_star_add α] : matrix m n α ≃+ matrix n m α :=
+def conj_transpose_add_equiv [add_comm_monoid α] [has_star_add α] : matrix m n α ≃+ matrix n m α :=
 { to_fun := conj_transpose,
   inv_fun := conj_transpose,
   left_inv := conj_transpose_conj_transpose,
   right_inv := conj_transpose_conj_transpose,
   map_add' := conj_transpose_add }
 
-@[simp] lemma conj_transpose_add_equiv_symm [add_monoid α] [has_star_add α] :
+@[simp] lemma conj_transpose_add_equiv_symm [add_comm_monoid α] [has_star_add α] :
   (conj_transpose_add_equiv m n α).symm = conj_transpose_add_equiv n m α := rfl
 
 variables {m n α}
 
-lemma conj_transpose_list_sum [add_monoid α] [has_star_add α] (l : list (matrix m n α)) :
+lemma conj_transpose_list_sum [add_comm_monoid α] [has_star_add α] (l : list (matrix m n α)) :
   l.sumᴴ = (l.map conj_transpose).sum :=
 (conj_transpose_add_equiv m n α).to_add_monoid_hom.map_list_sum l
 
@@ -1651,7 +1651,7 @@ instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 
 /-- When `α` is a `*`-additive monoid, `matrix.has_star` is also a `*`-additive monoid. -/
 instance [add_monoid α] [has_star_add α] : has_star_add (matrix n n α) :=
-{ star_add := conj_transpose_add }
+{ star_add := λ M N, matrix.ext $ by simp }
 
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
 instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=

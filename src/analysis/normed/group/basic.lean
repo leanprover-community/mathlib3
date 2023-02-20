@@ -1693,16 +1693,21 @@ end pi
 
 namespace mul_opposite
 
-instance [has_norm E] : has_norm Eᵐᵒᵖ :=
-{ norm := λ x, ‖x.unop‖ }
+/-- The (additive) norm on the multiplicative opposite is the same as the norm on the original type.
 
-lemma norm_op [has_norm E] (a : E) : ‖mul_opposite.op a‖ = ‖a‖ := rfl
-lemma norm_unop [has_norm E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖ = ‖a‖ := rfl
+Note that we do not provide this more generally as `has_norm Eᵐᵒᵖ`, as this is not always a good
+choice of norm in the multiplicative `seminormed_group E` case.
 
+We could repeat this instance to provide a `[seminormed_group E] : seminormed_group Eᵃᵒᵖ` instance,
+but that case would likely never be used.
+-/
 instance [seminormed_add_group E] : seminormed_add_group Eᵐᵒᵖ :=
 { norm := λ x, ‖x.unop‖,
   dist_eq := λ _ _, dist_eq_norm _ _,
-  to_pseudo_metric_space := by apply_instance }
+  to_pseudo_metric_space := mul_opposite.pseudo_metric_space }
+
+lemma norm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖ = ‖a‖ := rfl
+lemma norm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖ = ‖a‖ := rfl
 
 lemma nnnorm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖₊ = ‖a‖₊ := rfl
 lemma nnnorm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖₊ = ‖a‖₊ := rfl
@@ -1711,9 +1716,7 @@ instance [normed_add_group E] : normed_add_group Eᵐᵒᵖ :=
 { .. mul_opposite.seminormed_add_group }
 
 instance [seminormed_add_comm_group E] : seminormed_add_comm_group Eᵐᵒᵖ :=
-{ norm := λ x, ‖x.unop‖,
-  dist_eq := λ _ _, dist_eq_norm _ _,
-  to_pseudo_metric_space := by apply_instance }
+{ dist_eq := λ _ _, dist_eq_norm _ _ }
 
 instance [normed_add_comm_group E] : normed_add_comm_group Eᵐᵒᵖ :=
 { .. mul_opposite.seminormed_add_comm_group }

@@ -78,8 +78,8 @@ variables [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜
 ### Algebraic structure
 
 Because the multiplier algebra is defined as the algebra of double centralizers, there is a natural
-injection `double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` defined by
-`λ a, (a.fst, mul_opposite.op a.snd)`. We use this map to pull back the ring, module and
+injection `double_centralizer.to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ`
+defined by `λ a, (a.fst, mul_opposite.op a.snd)`. We use this map to pull back the ring, module and
 algebra structure from `(A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` to `𝓜(𝕜, A)`. -/
 
 variables {𝕜 A}
@@ -212,7 +212,7 @@ lemma to_prod_mul_opposite_injective :
 λ a b h, let h' := prod.ext_iff.mp h in ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
 
 /-- The ring structure is inherited as the pullback under the injective map
-`double_centralizer.to_prod_mop : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
+`double_centralizer.to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
 instance : ring 𝓜(𝕜, A) :=
 to_prod_mul_opposite_injective.ring _
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
@@ -314,14 +314,14 @@ homomorphism. -/
 def coe_hom [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A] :
   A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=
 { to_fun := λ a, a,
-  map_smul' := λ k a, by {ext; simp only [coe_fst, coe_snd, continuous_linear_map.map_smul,
-    smul_fst, smul_snd]},
-  map_zero' := by {ext; simp only [coe_fst, coe_snd, map_zero, zero_fst, zero_snd]},
-  map_add' := λ a b, by {ext; simp only [coe_fst, coe_snd, map_add, add_fst, add_snd]},
-  map_mul' := λ a b, by {ext; simp only [coe_fst, coe_snd, mul_apply', flip_apply, mul_fst, mul_snd,
-    continuous_linear_map.coe_mul, function.comp_app, mul_assoc]},
-  map_star' := λ a, by {ext; simp only [coe_fst, coe_snd, mul_apply', star_fst, star_snd,
-    flip_apply, star_mul, star_star]} }
+  map_smul' := λ k a, by ext; simp only [coe_fst, coe_snd, continuous_linear_map.map_smul,
+    smul_fst, smul_snd],
+  map_zero' := by ext; simp only [coe_fst, coe_snd, map_zero, zero_fst, zero_snd],
+  map_add' := λ a b, by ext; simp only [coe_fst, coe_snd, map_add, add_fst, add_snd],
+  map_mul' := λ a b, by ext; simp only [coe_fst, coe_snd, mul_apply', flip_apply, mul_fst, mul_snd,
+    continuous_linear_map.coe_mul, function.comp_app, mul_assoc],
+  map_star' := λ a, by ext; simp only [coe_fst, coe_snd, mul_apply', star_fst, star_snd,
+    flip_apply, star_mul, star_star] }
 
 /-!
 ### Norm structures
@@ -413,7 +413,8 @@ begin
   exact le_antisymm (h0 _ _ h1) (h0 _ _ h2),
 end
 
-@[simp] lemma norm_fst (a : 𝓜(𝕜, A)) :‖a.fst‖ = ‖a‖ :=
+lemma nnnorm_fst_eq_snd (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a.snd‖₊ := subtype.ext $ norm_fst_eq_snd a
+@[simp] lemma norm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖ = ‖a‖ :=
   by simp only [norm_def, prod.norm_def, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
 @[simp] lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
 @[simp] lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a‖₊ := subtype.ext (norm_fst a)

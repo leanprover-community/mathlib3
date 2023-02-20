@@ -141,7 +141,7 @@ instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [finty
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
 instance mul_opposite.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
-  norm_one_class (αᵐᵒᵖ) :=
+  norm_one_class αᵐᵒᵖ :=
 ⟨@norm_one α _ _ _⟩
 
 section non_unital_semi_normed_ring

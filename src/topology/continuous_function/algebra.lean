@@ -3,16 +3,16 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
-import topology.algebra.module.basic
-import topology.continuous_function.ordered
-import topology.algebra.uniform_group
-import topology.uniform_space.compact_convergence
-import topology.algebra.star
-import topology.algebra.infinite_sum
 import algebra.algebra.pi
 import algebra.algebra.subalgebra.basic
-import tactic.field_simp
 import algebra.star.star_alg_hom
+import tactic.field_simp
+import topology.algebra.module.basic
+import topology.algebra.infinite_sum.basic
+import topology.algebra.star
+import topology.algebra.uniform_group
+import topology.continuous_function.ordered
+import topology.uniform_space.compact_convergence
 
 /-!
 # Algebraic structures over continuous functions

@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios, Mario Carneiro
 -/
 
 import set_theory.ordinal.arithmetic
+import set_theory.ordinal.exponential
 
 /-!
 # Fixed points of normal functions

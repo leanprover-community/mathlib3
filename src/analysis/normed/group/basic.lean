@@ -1689,6 +1689,37 @@ instance pi.normed_comm_group [Π i, normed_comm_group (π i)] : normed_comm_gro
 
 end pi
 
+/-! ### Multiplicative opposite -/
+
+namespace mul_opposite
+
+instance [has_norm E] : has_norm (Eᵐᵒᵖ) :=
+{ norm := λ x, ‖x.unop‖ }
+
+lemma norm_op [has_norm E] (a : E) : ‖mul_opposite.op a‖ = ‖a‖ := rfl
+lemma norm_unop [has_norm E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖ = ‖a‖ := rfl
+
+instance [seminormed_add_group E] : seminormed_add_group (Eᵐᵒᵖ) :=
+{ norm := λ x, ‖x.unop‖,
+  dist_eq := λ _ _, dist_eq_norm _ _,
+  to_pseudo_metric_space := by apply_instance }
+
+lemma nnnorm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖₊ = ‖a‖₊ := rfl
+lemma nnnorm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖₊ = ‖a‖₊ := rfl
+
+instance [normed_add_group E] : normed_add_group (Eᵐᵒᵖ) :=
+{ .. mul_opposite.seminormed_add_group }
+
+instance [seminormed_add_comm_group E] : seminormed_add_comm_group (Eᵐᵒᵖ) :=
+{ norm := λ x, ‖x.unop‖,
+  dist_eq := λ _ _, dist_eq_norm _ _,
+  to_pseudo_metric_space := by apply_instance }
+
+instance [normed_add_comm_group E] : normed_add_comm_group (Eᵐᵒᵖ) :=
+{ .. mul_opposite.seminormed_add_comm_group }
+
+end mul_opposite
+
 /-! ### Subgroups of normed groups -/
 
 namespace subgroup

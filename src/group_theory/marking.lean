@@ -114,6 +114,18 @@ private lemma mul_aux [decidable_eq S] (x : marked_group m) :
 by { classical, obtain ⟨l, rfl⟩ := m.map_surjective x, exact ⟨_, _, rfl, le_rfl⟩ }
 
 @[to_additive]
+private lemma mul_aux' [decidable_eq S] (x : marked_group m) :
+  ∃ n (l : free_group S), m l = x ∧ l.to_word.length = n :=
+by { classical, obtain ⟨l, rfl⟩ := m.map_surjective x, exact ⟨_, _, rfl, rfl⟩ }
+
+lemma find_mul_aux [decidable_eq S] (x : marked_group m) :
+  nat.find (mul_aux x) = nat.find (mul_aux' x) :=
+begin
+
+
+end
+
+@[to_additive]
 noncomputable instance : normed_group (marked_group m) :=
 group_norm.to_normed_group
 { to_fun := λ x, by classical; exact nat.find (mul_aux x),
@@ -140,3 +152,74 @@ group_norm.to_normed_group
     rw [le_zero_iff, length_eq_zero, ←free_group.to_word_one] at hl,
     rw [free_group.to_word_injective hl, map_one],
   end }
+
+namespace marked_group
+
+@[to_additive] lemma norm_def (x : marked_group m) : ‖x‖ = nat.find (mul_aux' x) := find_mul_aux _
+
+@[simp, to_additive] lemma norm_eq_one (x : marked_group m) :
+  ‖x‖ = 1 ↔ ∃ s, to_marked_group (m $ free_group.of s) = x :=
+begin
+  rw [norm_def, nat.cast_eq_one, nat.find_eq_iff],
+  sorry
+end
+
+@[simp] lemma norm_eq_one (s : S) : ‖((to_marked_group (m (free_group.of s))) : marked_group m)‖ = 1 := sorry
+
+lemma gen_set_mul_right (x : marked_group m) (s : S) :
+  ‖(to_marked_group (of_marked_group x * m (free_group.of s)) : marked_group m)‖ ≤ ‖x‖ + 1 :=
+sorry
+
+lemma gen_set_mul_right' (x : marked_group m) {n : ℝ} (hx : ‖x‖ ≤ n) (s : S) :
+  ‖(to_marked_group (of_marked_group x * m (free_group.of s)) : marked_group m)‖ ≤ n + 1 :=
+sorry
+
+lemma gen_set_mul_left (x : marked_group m) (s : S) :
+  ‖(to_marked_group (m (free_group.of s) * of_marked_group x) : marked_group m)‖ ≤ ‖x‖ + 1 :=
+sorry
+
+lemma gen_set_mul_left' (x : marked_group m) {n : ℝ} (hx : ‖x‖ ≤ n) (s : S) :
+  ‖(to_marked_group (m (free_group.of s) * of_marked_group x) : marked_group m) ‖ ≤ n + 1 :=
+sorry
+
+lemma dist_one_iff (x y : marked_group m) :
+  dist x y = 1 ↔ (∃ s : S, x * m (free_group.of s) = y) ∨ ∃ s : S, y * m (free_group.of s) = x :=
+sorry
+
+lemma gen_set_div (x : marked_group m) (hx : x ≠ 1) : ∃ y : marked_group m, dist x y = 1 ∧ ‖y‖ = ‖x‖ - 1 :=
+sorry
+
+lemma gen_div_left (x : marked_group m) (hx : x ≠ 1) :
+  ∃ y : marked_group m,
+    ((∃ s : S, m (free_group.of s) * y = x) ∨ (∃ s : S, m (free_group.of s)⁻¹ * y = x)) ∧
+      ‖y‖ = ‖x‖ - 1 :=
+sorry
+
+-- same lemmas but for subsets
+
+lemma gen_norm_le_one_sub {H : set G}  {m' : marking G H} {s : marked_group m'} (sh : s ∈ H) : ‖s‖ ≤ 1 :=
+sorry
+
+lemma gen_set_mul_right_sub {H : set G} {s : G} {m' : marking G H} (sh : s ∈ H) (g : marked_group m') :
+  ‖g * s‖ ≤ ‖g‖ + 1 :=
+sorry
+
+lemma gen_set_mul_right'_sub {H : set G} {s : G} {m' : marking G H} (sh : s ∈ H) (g : marked_group m')
+  {n : ℝ} (hg : ‖g‖ ≤ n) : ‖g * s‖ ≤ n + 1 :=
+sorry
+
+lemma gen_set_mul_left_sub {H : set G} {m' : marking G H} (g s: marked_group m') (sh : s ∈ H) :
+  ‖s * g‖ ≤ ‖g‖ + 1 :=
+sorry
+
+lemma gen_set_mul_left'_sub {H : set G} {m' : marking G H} (g s : marked_group m')  (sh : s ∈ H) {n : ℝ}
+  (hg : ‖g‖ ≤ n) : ‖s * g‖ ≤ n + 1 :=
+sorry
+
+lemma dist_one_iff_sub {H : set G} {m' : marking G H} (x y : marked_group m') :
+  dist x y = 1 ↔ (∃ s ∈ H, x * s = y) ∨ ∃ s ∈ H, y * s = x :=
+sorry
+
+lemma gen_div_left_sub {H : set G} {m' : marking G H} (x : marked_group m') (hx : x ≠ 1) :
+  ∃ y : marked_group m', ((∃ s ∈ H, s * y = x) ∨ (∃ s ∈ H, s⁻¹ * y = x)) ∧ ‖y‖ = ‖x‖ - 1 :=
+sorry

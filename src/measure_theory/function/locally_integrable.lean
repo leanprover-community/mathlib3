@@ -216,15 +216,15 @@ lemma continuous.integrable_on_Ioc [preorder X] [compact_Icc_space X] (hf : cont
   integrable_on f (Ioc a b) μ :=
 hf.integrable_on_Icc.mono_set Ioc_subset_Icc_self
 
-lemma continuous_on.integrable_on_interval [linear_order X] [compact_Icc_space X]
+lemma continuous_on.integrable_on_uIcc [linear_order X] [compact_Icc_space X]
   (hf : continuous_on f [a, b]) : integrable_on f [a, b] μ :=
 hf.integrable_on_Icc
 
-lemma continuous.integrable_on_interval [linear_order X] [compact_Icc_space X] (hf : continuous f) :
+lemma continuous.integrable_on_uIcc [linear_order X] [compact_Icc_space X] (hf : continuous f) :
   integrable_on f [a, b] μ :=
 hf.integrable_on_Icc
 
-lemma continuous.integrable_on_interval_oc [linear_order X] [compact_Icc_space X]
+lemma continuous.integrable_on_uIoc [linear_order X] [compact_Icc_space X]
   (hf : continuous f) : integrable_on f (Ι a b) μ :=
 hf.integrable_on_Ioc
 

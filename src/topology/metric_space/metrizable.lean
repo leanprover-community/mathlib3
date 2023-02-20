@@ -116,6 +116,8 @@ begin
   apply_instance
 end
 
+instance [i : metrizable_space X] : metrizable_space Xᵒᵈ := i
+
 /-- Given an embedding of a topological space into a metrizable space, the source space is also
 metrizable. -/
 lemma _root_.embedding.metrizable_space [metrizable_space Y] {f : X → Y} (hf : embedding f) :

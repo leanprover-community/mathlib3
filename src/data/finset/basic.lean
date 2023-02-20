@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
 Below, `finset α` is defined as a structure with 2 fields:
 
@@ -137,6 +140,10 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 structure finset (α : Type*) :=
 (val : multiset α)
 (nodup : nodup val)
+
+instance multiset.can_lift_finset {α} :
+  can_lift (multiset α) (finset α) finset.val multiset.nodup :=
+⟨λ m hm, ⟨⟨m, hm⟩, rfl⟩⟩
 
 namespace finset
 
@@ -539,6 +546,14 @@ instance [nonempty α] : nontrivial (finset α) :=
 instance [is_empty α] : unique (finset α) :=
 { default := ∅,
   uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
+
+instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
+  is_empty {s : finset ι // s.nonempty} :=
+⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
+
+instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
+  nonempty {s : finset ι // s.nonempty} :=
+h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
 
 end singleton
 
@@ -1024,6 +1039,10 @@ begin
   exact ⟨i, hic, hi⟩
 end
 
+instance semilattice_sup_subtype_nonempty :
+  semilattice_sup {s : finset α // s.nonempty} :=
+subtype.semilattice_sup $ λ s t hs ht, hs.mono $ subset_union_left _ _
+
 /-! #### inter -/
 
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl
@@ -1246,6 +1265,10 @@ theorem erase_insert_of_ne {a b : α} {s : finset α} (h : a ≠ b) :
   erase (insert a s) b = insert a (erase s b) :=
 ext $ λ x, have x ≠ b ∧ x = a ↔ x = a, from and_iff_right_of_imp (λ hx, hx.symm ▸ h),
 by simp only [mem_erase, mem_insert, and_or_distrib_left, this]
+
+theorem erase_cons_of_ne {a b : α} {s : finset α} (ha : a ∉ s) (hb : a ≠ b) :
+  erase (cons a s ha) b = cons a (erase s b) (λ h, ha $ erase_subset _ _ h) :=
+by simp only [cons_eq_insert, erase_insert_of_ne hb]
 
 theorem insert_erase {a : α} {s : finset α} (h : a ∈ s) : insert a (erase s a) = s :=
 ext $ assume x, by simp only [mem_insert, mem_erase, or_and_distrib_left, dec_em, true_and];
@@ -2159,8 +2182,8 @@ end
 @[simp] lemma to_finset_reverse {l : list α} : to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma to_finset_repeat_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (list.repeat a n).to_finset = {a} :=
-by { ext x, simp [hn, list.mem_repeat] }
+lemma to_finset_replicate_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (list.replicate n a).to_finset = {a} :=
+by { ext x, simp [hn, list.mem_replicate] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by { ext, simp }

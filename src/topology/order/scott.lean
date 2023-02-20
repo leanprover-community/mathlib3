@@ -321,7 +321,7 @@ begin
     apply is_closed_closure, }
 end
 
-lemma continuous_monotone {f : (with_scott_topology α) → (with_scott_topology β)}
+lemma continuous_monotone {f : with_scott_topology α → with_scott_topology β}
   (hf : continuous f) : monotone f :=
 begin
   rw monotone,

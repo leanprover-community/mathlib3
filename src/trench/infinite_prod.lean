@@ -210,8 +210,8 @@ begin
     exact converges_prod_fintype _ }
 end
 
-@[simp] lemma summable_subsingleton [add_comm_monoid γ] [topological_space γ] [subsingleton β] (f : β → γ) :
-  summable f :=
+@[simp] lemma summable_subsingleton [add_comm_monoid γ] [topological_space γ] [subsingleton β]
+  (f : β → γ) : summable f :=
 begin
   casesI is_empty_or_nonempty β,
   { haveI : fintype β := fintype.of_is_empty,
@@ -250,7 +250,7 @@ begin
 end
 
 /-- The sequence of the factors in a convergent infinite product always tends to 1. -/
-lemma converges_prod.tendsto_nhds_one {f : β → ℝ} (hf : converges_prod f) :
+lemma converges_prod.tendsto_cofinite_one {f : β → ℝ} (hf : converges_prod f) :
   tendsto f cofinite (𝓝 1) :=
 begin
   intros e he,
@@ -260,23 +260,54 @@ begin
   simpa using hs {x} (disjoint_singleton_left.2 hx)
 end
 
-lemma monotone_prod_of_le_one [ordered_comm_monoid γ] {f : β → γ} (hf : ∀ b, 1 ≤ f b) :
-  monotone (λ s, ∏ b in s, f b) :=
-λ _ _ hst, prod_le_prod_of_subset_of_one_le' hst (λ _ _ _, hf _)
+@[to_additive sum_le_sum_of_subset_of_nonpos]
+lemma prod_le_prod_of_subset_of_le_one' [ordered_comm_monoid γ] {s t : finset β} {f : β → γ}
+  (h : s ⊆ t) (hf : ∀ i ∈ t, i ∉ s → f i ≤ 1) :
+  ∏ i in t, f i ≤ ∏ i in s, f i :=
+by classical;
+calc ∏ i in t, f i = ∏ i in t \ s ∪ s, f i    : by rw [sdiff_union_of_subset h]
+  ... = (∏ i in t \ s, f i) * (∏ i in s, f i) : (prod_union sdiff_disjoint)
+  ... ≤ ∏ i in s, f i                         : mul_le_of_le_one_left' $
+    prod_le_one' $ by simpa only [mem_sdiff, and_imp]
 
+lemma prod_anti_set_of_le_one [ordered_comm_monoid γ] {f : β → γ} (hf : ∀ b, f b ≤ 1) :
+  antitone (λ s, ∏ b in s, f b) :=
+λ _ _ hst, prod_le_prod_of_subset_of_le_one' hst (λ _ _ _, hf _)
 
 lemma one_le_prod₀ [ordered_comm_semiring γ] {s : finset β} {f : β → γ}
   (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
 prod_induction _ _ le_rfl (λ x hx y hy,
   le_mul_of_le_mul_of_nonneg_left (by simpa using h _ hx) hy (zero_le_one.trans (h _ hx)))
 
-lemma monotone_prod_of_le_one' [ordered_comm_semiring γ] {f : β → γ} (hf : ∀ b, 1 ≤ f b) :
+lemma prod_le_one₀ [ordered_comm_semiring γ] {s : finset β} {f : β → γ}
+  (h : ∀i ∈ s, f i ≤ 1) (h' : ∀i ∈ s, 0 ≤ f i) : ∏ i in s, f i ≤ 1 :=
+begin
+  induction s using finset.cons_induction_on with a s ha IH,
+  { simp },
+  simp only [ha, cons_eq_insert, prod_insert, not_false_iff],
+  refine mul_le_one (h _ (mem_cons_self _ _)) (prod_nonneg _) (IH _ _);
+  { intros,
+    apply h' <|> apply h,
+    simp [*] }
+end
+
+lemma monotone_prod_of_one_le' [ordered_comm_semiring γ] {f : β → γ} (hf : ∀ b, 1 ≤ f b) :
   monotone (λ s, ∏ b in s, f b) :=
 begin
   intros s t hst,
   simp only [←prod_sdiff hst],
   refine le_mul_of_one_le_left (zero_le_one.trans _) _;
   exact one_le_prod₀ (λ _ _, hf _)
+end
+
+lemma antitone_prod_of_le_one' [ordered_comm_semiring γ] {f : β → γ} (hf : ∀ b, f b ≤ 1)
+  (hf' : ∀ b, 0 ≤ f b) :
+  antitone (λ s, ∏ b in s, f b) :=
+begin
+  intros s t hst,
+  simp only [←prod_sdiff hst],
+  refine mul_le_of_le_one_left (prod_nonneg (λ _ _, hf' _)) _,
+  refine prod_le_one₀ (λ _ _, hf _) (λ _ _, hf' _)
 end
 
 lemma sum_le_prod_one_add_of_nonneg [linear_ordered_comm_semiring γ]
@@ -331,7 +362,7 @@ begin
       obtain ⟨x, h⟩ := h,
       obtain ⟨y, hy⟩ := h.tendsto_units,
       refine is_lub.bdd_above (is_lub_of_tendsto_at_top _ _ : is_lub _ x),
-      { exact monotone_prod_of_le_one' (λ x, le_add_of_nonneg_right (hf _)) },
+      { exact monotone_prod_of_one_le' (λ x, le_add_of_nonneg_right (hf _)) },
       { convert hy,
         { simp [hs] },
         { rw h.prod_eq,
@@ -354,13 +385,13 @@ begin
         simp },
       refine ⟨hunit.unit, set.finite_empty.subset he.le, ⟨hunit.unit, _⟩, _⟩,
       { simp only [hs, is_unit.unit_spec],
-        exact tendsto_at_top_is_lub (monotone_prod_of_le_one' (λ x, le_add_of_nonneg_right (hf _)))
+        exact tendsto_at_top_is_lub (monotone_prod_of_one_le' (λ x, le_add_of_nonneg_right (hf _)))
           this },
       { simp only [he, set.finite.to_finset_empty, prod_empty, mul_one],
         generalize_proofs H,
         refine this.unique _,
         refine is_lub_of_tendsto_at_top
-          (monotone_prod_of_le_one' (λ x, le_add_of_nonneg_right (hf _))) _,
+          (monotone_prod_of_one_le' (λ x, le_add_of_nonneg_right (hf _))) _,
         convert Exists.some_spec H,
         simp [hs] } } },
   split; intro h,

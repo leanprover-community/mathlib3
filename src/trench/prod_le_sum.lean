@@ -1,23 +1,10 @@
-import data.nat.choose.multinomial
+import to_mathlib.data.nat.choose.multinomial
 import ring_theory.polynomial.vieta
 
 variables {β γ : Type*}
 
 open finset polynomial
 open_locale big_operators
-
-
-lemma finsupp.multinomial_pos (s : β →₀ ℕ) : 0 < s.multinomial :=
-begin
-  rw [finsupp.multinomial_eq],
-  exact nat.multinomial_pos _ _
-end
-
-lemma multiset.multinomial_pos (s : multiset β) : 0 < s.multinomial :=
-begin
-  rw [multiset.multinomial],
-  exact finsupp.multinomial_pos _
-end
 
 lemma finset.prod_one_add_le_one_add_sum_sum_pow [strict_ordered_comm_semiring γ]
   (s : finset β) {f : β → γ} (hf : ∀ b ∈ s, 0 ≤ f b) :

@@ -10,6 +10,7 @@ import number_theory.number_field.basic
 import ring_theory.norm
 import topology.instances.complex
 
+
 /-!
 # Embeddings of number fields
 This file defines the embeddings of a number field into an algebraic closed field.
@@ -167,9 +168,6 @@ by { ext, simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq] }
 
 lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_self_adjoint_iff
 
-lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ :=
-is_self_adjoint_iff
-
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
@@ -238,14 +236,17 @@ lemma coe_mk (φ : K →+* ℂ) : ⇑(mk φ) = place φ := rfl
 
 lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := rfl
 
-lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := by refl
-
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 
+@[simp]
 lemma mk_embedding (w : infinite_place K) :
   mk (embedding w) = w :=
 subtype.ext (w.2).some_spec
+
+@[simp]
+lemma abs_embedding (w : infinite_place K) (x : K) :
+  complex.abs (embedding w x) = w x := congr_fun (congr_arg coe_fn w.2.some_spec) x
 
 lemma eq_iff_eq (x : K) (r : ℝ) :
   (∀ w : infinite_place K, w x = r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ = r) :=
@@ -255,13 +256,7 @@ lemma le_iff_le (x : K) (r : ℝ) :
   (∀ w : infinite_place K, w x ≤ r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ ≤ r) :=
 ⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
 
-lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
-
-lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
-begin
-  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
-  exact places.nonneg _ x,
-end
+lemma pos_iff {w : infinite_place K} {x : K} : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 
 @[simp]
 lemma mk_conjugate_eq (φ : K →+* ℂ) :
@@ -312,6 +307,7 @@ def is_real (w : infinite_place K) : Prop :=
 def is_complex (w : infinite_place K) : Prop :=
   ∃ φ : K →+* ℂ, ¬ complex_embedding.is_real φ ∧ mk φ = w
 
+@[simp]
 lemma _root_.number_field.complex_embeddings.is_real.embedding_mk {φ : K →+* ℂ}
   (h : complex_embedding.is_real φ) :
   embedding (mk φ) = φ :=
@@ -348,7 +344,7 @@ by rw [is_complex_iff, is_real_iff]
 
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
 noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
-(is_real_iff.mp hw).embedding
+complex_embedding.is_real.embedding (is_real_iff.mp hw)
 
 @[simp]
 lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K):
@@ -373,16 +369,36 @@ noncomputable def mk_complex :
   {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} → {w : infinite_place K // is_complex w} :=
 subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩)
 
-@[simp]
-lemma mk_real.apply (φ :  {φ : K →+* ℂ // complex_embedding.is_real φ}) (x : K) :
-  complex.abs (φ x) = mk_real K φ x := apply φ x
+lemma mk_complex_embedding (φ : {φ : K →+* ℂ // ¬ complex_embedding.is_real φ}) :
+  ((mk_complex K φ) : infinite_place K).embedding = φ ∨
+    ((mk_complex K φ) : infinite_place K).embedding = complex_embedding.conjugate φ :=
+begin
+  rw @eq_comm _ _ ↑φ,
+  rw @eq_comm _ _ (complex_embedding.conjugate ↑φ),
+  rw ← mk_eq_iff,
+  rw mk_embedding,
+  refl,
+end
 
 @[simp]
-lemma mk_complex.apply (φ :  {φ : K →+* ℂ // ¬ complex_embedding.is_real φ}) (x : K) :
-  complex.abs (φ x) = mk_complex K φ x := apply φ x
+lemma mk_real_coe (φ : {φ : K →+* ℂ // complex_embedding.is_real φ}) :
+  (mk_real K φ : infinite_place K) = mk (φ : K →+* ℂ) := rfl
+
+@[simp]
+lemma mk_complex_coe (φ : {φ : K →+* ℂ // ¬ complex_embedding.is_real φ}) :
+  (mk_complex K φ : infinite_place K) = mk (φ : K →+* ℂ) := rfl
+
+@[simp]
+lemma mk_real.apply (φ : {φ : K →+* ℂ // complex_embedding.is_real φ}) (x : K) :
+  mk_real K φ x = complex.abs (φ x) := apply φ x
+
+@[simp]
+lemma mk_complex.apply (φ : {φ : K →+* ℂ // ¬ complex_embedding.is_real φ}) (x : K) :
+  mk_complex K φ x = complex.abs (φ x) := apply φ x
 
 variable [number_field K]
 
+-- TODO. use mk_complex_embedding to simplify this proof?
 lemma mk_complex.filter (w : { w : infinite_place K // w.is_complex }) :
   finset.univ.filter (λ φ, mk_complex K φ = w) =
     { ⟨w.1.embedding, is_complex_iff.1 w.2⟩,
@@ -434,7 +450,7 @@ begin
       { ext, simp only [finset.mem_subtype, finset.mem_univ, not_is_real_iff_is_complex], },
       { ext w,
         rw [@finset.prod_congr _ _ _ _ _ (λ φ, w x) _ (eq.refl _)
-          (λ φ hφ, (mk_complex.apply K φ x).trans
+          (λ φ hφ, (mk_complex.apply K φ x).symm.trans
           (congr_fun (congr_arg coe_fn (finset.mem_filter.1 hφ).2) x)), finset.prod_const,
           mk_complex.filter_card K w],
         refl, }}},
@@ -456,9 +472,6 @@ begin
   simp_rw finset.card_eq_sum_ones,
   exact (finset.sum_fiberwise finset.univ (λ φ, mk_complex K φ) (λ φ, 1)).symm
 end
-
-@[simp]
-lemma map_inv (w : infinite_place K) (x : K) : w (x⁻¹) = (w x)⁻¹ := map_inv₀ w.1 _
 
 end number_field.infinite_place
 

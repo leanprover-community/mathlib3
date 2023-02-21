@@ -107,6 +107,7 @@ lemma edist_le {u v : V} (p : G.walk u v) : G.edist u v ≤ p.length := infi_le 
 lemma le_edist {u v : V} {n : ℕ} (h : ∀ p : G.walk u v, n ≤ p.length) : (n : ℕ∞) ≤ G.edist u v :=
 le_infi (λ p, nat.cast_le.mpr $ h p)
 
+@[simp]
 lemma edist_self {v : V} : edist G v v = 0 := by
 begin
   convert le_antisymm (infi_le _ (walk.nil' v)) _,
@@ -239,6 +240,15 @@ end
 
 @[reducible]
 def closed_neighborhood (s : set V) (n : ℕ) := ⋃ v ∈ s, G.closed_ball v n
+
+lemma subset_closed_neighborhood  (s : set V) (n : ℕ) :
+  s ⊆ G.closed_neighborhood s n :=
+begin
+  rintro u us,
+  simp only [set.mem_Union, set.mem_set_of_eq, exists_prop],
+  refine ⟨u, us, _⟩,
+  simp only [edist_self, with_top.coe_nonneg, zero_le'],
+end
 
 lemma closed_neighborhood.finite [locally_finite G] {s : set V} (fs : s.finite) (n : ℕ) :
   (G.closed_neighborhood s n).finite :=

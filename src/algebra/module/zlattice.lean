@@ -31,18 +31,17 @@ section zspan
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables {ι : Type*} (b : basis ι ℝ E)
 
-/-- The lattice defined by the basis `b`. -/
+/-- The lattice defined by the basis `b` admits `b` as a `ℤ`-basis. -/
 def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
 basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)))
 
 lemma zspan.basis_eq (i : ι) : (zspan.basis b i : E) = b i :=
   by simp only [zspan.basis, basis.span_apply]
 
-variable [fintype ι]
-
-lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) (i : ι)  :
+lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) [finite ι] (i : ι)  :
    b.repr m i = ((zspan.basis b).repr m i : ℝ) :=
 begin
+  casesI nonempty_fintype ι,
   rw ← sub_eq_zero,
   revert i,
   apply fintype.linear_independent_iff.mp b.linear_independent,
@@ -57,9 +56,10 @@ begin
   simp_rw set_like.coe_smul,
 end
 
-lemma zspan.mem_span_iff (m : E) :
+lemma zspan.mem_span_iff [finite ι] (m : E) :
   m ∈ submodule.span ℤ (set.range b) ↔ ∀ i, ∃ c : ℤ, b.repr m i = c :=
 begin
+  casesI nonempty_fintype ι,
   split,
   { intros hm i,
     use (zspan.basis b).repr ⟨m, hm⟩ i,
@@ -74,6 +74,8 @@ begin
     refine zsmul_mem _ _,
     exact submodule.subset_span (set.mem_range_self i),  }
 end
+
+variable [fintype ι]
 
 /-- The map that sends a vector of the ambiant space to the element of the lattice obtained
 by round down its coordinate on the basis `b`. -/
@@ -191,10 +193,8 @@ lemma zspan.vadd_eq_add (m : E) (v : submodule.span ℤ (set.range b)) :
 /-- The fundamental domain of the lattice. -/
 def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : ℝ) 1 }
 
-variable [fintype ι]
-
 -- TODO. use this to simplify proof of is_add_fundamental_domain
-lemma zspan.mem_fundamental_domain {x : E} :
+lemma zspan.mem_fundamental_domain [fintype ι] {x : E} :
   x ∈ (zspan.fundamental_domain b) ↔ zspan.fract_map b x = x :=
 begin
   rw basis.ext_elem_iff b,
@@ -202,9 +202,10 @@ begin
     int.fract_eq_self],
 end
 
-lemma zspan.metric.bounded_fundamental_domain :
+lemma zspan.metric.bounded_fundamental_domain [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
+  casesI nonempty_fintype ι,
   use 2 * finset.univ.sum (λ j, ‖b j‖),
   intros x hx y hy,
   have : ‖x‖ ≤ finset.univ.sum (λ j, ‖b j‖),
@@ -218,7 +219,7 @@ begin
 end
 
 lemma zspan.is_add_fundamental_domain [measurable_space E] [opens_measurable_space E]
-  (μ : measure E) :
+  (μ : measure E) [finite ι] :
   is_add_fundamental_domain (submodule.span ℤ (set.range b)).to_add_subgroup
     (zspan.fundamental_domain b) μ :=
 { null_measurable_set :=
@@ -239,6 +240,7 @@ lemma zspan.is_add_fundamental_domain [measurable_space E] [opens_measurable_spa
   end,
   ae_covers :=
   begin
+    casesI nonempty_fintype ι,
     refine filter.eventually_of_forall _,
     intro x,
     use - zspan.floor_map b x,

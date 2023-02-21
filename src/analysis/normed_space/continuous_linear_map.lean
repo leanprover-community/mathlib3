@@ -38,6 +38,7 @@ variables [normed_field 𝕜] [normed_field 𝕜₂]
 
 section seminormed
 
+variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]
 variables [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 G]
 variables {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
@@ -126,6 +127,7 @@ end seminormed
 
 section normed
 
+variables [add_comm_group E] [add_comm_group F]
 variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
 variables {σ : 𝕜 →+* 𝕜₂} (f g : E →SL[σ] F) (x y z : E)
 
@@ -139,6 +141,7 @@ end normed
 
 section seminormed
 
+variables [add_comm_group E] [add_comm_group F]
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F]
 variables [normed_space 𝕜 E] [normed_space 𝕜₂ F]
 variables {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
@@ -179,7 +182,7 @@ end seminormed
 
 section seminormed
 
-variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
+variables [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 namespace continuous_linear_map
 
@@ -230,7 +233,7 @@ end seminormed
 
 section normed
 
-variables [normed_add_comm_group E] [normed_space 𝕜 E]
+variables [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 namespace continuous_linear_equiv
 variable (𝕜)

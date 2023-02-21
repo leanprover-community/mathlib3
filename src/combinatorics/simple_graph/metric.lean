@@ -200,10 +200,13 @@ begin
     apply set.fintype_union, },
 end
 
-lemma closed_ball_ne_univ_of_infinite [lf : locally_finite G] [decidable_eq V] [infinite V]
+lemma closed_ball_ne_univ_of_infinite [lf : locally_finite G] [hV : infinite V]
   (v : V) (n : ℕ) : G.closed_ball v n ≠ set.univ :=
 begin
-  sorry,
+  classical,
+  rintro h,
+  haveI : fintype (@set.univ V), by rw ←h; exact (@simple_graph.fintype_closed_ball _ G lf _ v n),
+  apply hV.not_finite (finite.of_finite_univ (set.univ : set V).to_finite),
 end
 
 @[reducible]

@@ -516,7 +516,7 @@ variables {u v : α → ℝ}
 by simp only [is_O_with, norm_norm]
 
 @[simp] theorem is_O_with_abs_right : is_O_with c l f (λ x, |u x|) ↔ is_O_with c l f u :=
-@is_O_with_norm_right _ _ _ _ _ _ f u l
+@is_O_with_norm_right _ _ _ _ _ _ _ f u l
 
 alias is_O_with_norm_right ↔ is_O_with.of_norm_right is_O_with.norm_right
 alias is_O_with_abs_right ↔ is_O_with.of_abs_right is_O_with.abs_right
@@ -525,7 +525,7 @@ alias is_O_with_abs_right ↔ is_O_with.of_abs_right is_O_with.abs_right
 by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_right) }
 
 @[simp] theorem is_O_abs_right : f =O[l] (λ x, |u x|) ↔ f =O[l] u :=
-@is_O_norm_right _ _ ℝ _ _ _ _ _
+@is_O_norm_right _ _ ℝ _ _ _ _ _ _
 
 alias is_O_norm_right ↔ is_O.of_norm_right is_O.norm_right
 alias is_O_abs_right ↔ is_O.of_abs_right is_O.abs_right
@@ -534,7 +534,7 @@ alias is_O_abs_right ↔ is_O.of_abs_right is_O.abs_right
 by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_right) }
 
 @[simp] theorem is_o_abs_right : f =o[l] (λ x, |u x|) ↔ f =o[l] u :=
-@is_o_norm_right _ _ ℝ _ _ _ _ _
+@is_o_norm_right _ _ ℝ _ _ _ _ _ _
 
 alias is_o_norm_right ↔ is_o.of_norm_right is_o.norm_right
 alias is_o_abs_right ↔ is_o.of_abs_right is_o.abs_right
@@ -543,7 +543,7 @@ alias is_o_abs_right ↔ is_o.of_abs_right is_o.abs_right
 by simp only [is_O_with, norm_norm]
 
 @[simp] theorem is_O_with_abs_left : is_O_with c l (λ x, |u x|) g ↔ is_O_with c l u g :=
-@is_O_with_norm_left _ _ _ _ _ _ g u l
+@is_O_with_norm_left _ _ _ _ _ _ _ g u l
 
 alias is_O_with_norm_left ↔ is_O_with.of_norm_left is_O_with.norm_left
 alias is_O_with_abs_left ↔ is_O_with.of_abs_left is_O_with.abs_left
@@ -552,7 +552,7 @@ alias is_O_with_abs_left ↔ is_O_with.of_abs_left is_O_with.abs_left
 by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_left) }
 
 @[simp] theorem is_O_abs_left : (λ x, |u x|) =O[l] g ↔ u =O[l] g :=
-@is_O_norm_left _ _ _ _ _ g u l
+@is_O_norm_left _ _ _ _ _ _ g u l
 
 alias is_O_norm_left ↔ is_O.of_norm_left is_O.norm_left
 alias is_O_abs_left ↔ is_O.of_abs_left is_O.abs_left
@@ -561,7 +561,7 @@ alias is_O_abs_left ↔ is_O.of_abs_left is_O.abs_left
 by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_left) }
 
 @[simp] theorem is_o_abs_left : (λ x, |u x|) =o[l] g ↔ u =o[l] g :=
-@is_o_norm_left _ _ _ _ _ g u l
+@is_o_norm_left _ _ _ _ _ _ g u l
 
 alias is_o_norm_left ↔ is_o.of_norm_left is_o.norm_left
 alias is_o_abs_left ↔ is_o.of_abs_left is_o.abs_left
@@ -1560,7 +1560,7 @@ by { convert is_o_pow_pow h, simp only [pow_one] }
 
 theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
   (λ x : E', ‖x‖^n) =o[𝓝 0] (λ x, x) :=
-by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ h
+by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ _ h
 
 lemma is_O.eq_zero_of_norm_pow_within {f : E'' → F''} {s : set E''} {x₀ : E''} {n : ℕ}
   (h : f =O[𝓝[s] x₀] λ x, ‖x - x₀‖ ^ n) (hx₀ : x₀ ∈ s) (hn : 0 < n) : f x₀ = 0 :=
@@ -1640,13 +1640,15 @@ theorem is_O_one_nat_at_top_iff {f : ℕ → E''} :
 iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
   by simp only [norm_one, mul_one]
 
-theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
+theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*}
+  [Π i, add_comm_group (E' i)] [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
   is_O_with C l f g' ↔ ∀ i, is_O_with C l (λ x, f x i) g' :=
 have ∀ x, 0 ≤ C * ‖g' x‖, from λ x, mul_nonneg hC (norm_nonneg _),
 by simp only [is_O_with_iff, pi_norm_le_iff_of_nonneg (this _), eventually_all]
 
-@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
+@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*}
+  [Π i, add_comm_group (E' i)] [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :
   f =O[l] g' ↔ ∀ i, (λ x, f x i) =O[l] g' :=
 begin
@@ -1654,7 +1656,8 @@ begin
   exact eventually_congr (eventually_at_top.2 ⟨0, λ c, is_O_with_pi⟩)
 end
 
-@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
+@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*}
+  [Π i, add_comm_group (E' i)] [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :
   f =o[l] g' ↔ ∀ i, (λ x, f x i) =o[l] g' :=
 begin
@@ -1666,12 +1669,14 @@ end asymptotics
 
 open asymptotics
 
-lemma summable_of_is_O {ι E} [normed_add_comm_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
+lemma summable_of_is_O
+  {ι E} [add_comm_group E] [normed_add_comm_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
   (hg : summable g) (h : f =O[cofinite] g) : summable f :=
 let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ‖g x‖) (hg.abs.mul_left _) hC.bound
 
-lemma summable_of_is_O_nat {E} [normed_add_comm_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
+lemma summable_of_is_O_nat
+  {E} [add_comm_group E] [normed_add_comm_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
   (hg : summable g) (h : f =O[at_top] g) : summable f :=
 summable_of_is_O hg $ nat.cofinite_eq_at_top.symm ▸ h
 

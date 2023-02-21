@@ -140,6 +140,7 @@ begin
   exact free.of_basis b
 end
 
+/-- A ℤ-basis of the ring of integers of `K`. -/
 noncomputable def basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℤ (𝓞 K)
 := free.choose_basis ℤ (𝓞 K)
 
@@ -170,6 +171,7 @@ refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
       simpa [algebra.algebra_map_submonoid, mem_non_zero_divisors_iff_ne_zero] using mzdiv },
 end
 
+/-- A basis of `K` over ℚ that is also a basis of `𝓞 K` over ℤ. -/
 noncomputable def integral_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℚ K :=
 basis.localization_localization ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K)
 

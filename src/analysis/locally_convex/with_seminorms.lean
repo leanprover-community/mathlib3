@@ -422,7 +422,7 @@ begin
   rw [p.with_seminorms_iff_nhds_eq_infi, topological_add_group.ext_iff infer_instance
         (topological_add_group_infi $ λ i, infer_instance), nhds_infi],
   congrm (_ = ⨅ i, _),
-  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  exact @comap_norm_nhds_zero _ _ (p i).to_add_group_seminorm.to_seminormed_add_group,
   all_goals {apply_instance}
 end
 
@@ -439,7 +439,7 @@ begin
   rw [p.with_seminorms_iff_nhds_eq_infi, uniform_add_group.ext_iff infer_instance
         (uniform_add_group_infi $ λ i, infer_instance), to_topological_space_infi, nhds_infi],
   congrm (_ = ⨅ i, _),
-  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  exact @comap_norm_nhds_zero _ _ (p i).to_add_group_seminorm.to_seminormed_add_group,
   all_goals {apply_instance}
 end
 
@@ -597,7 +597,7 @@ begin
 end
 
 lemma cont_normed_space_to_with_seminorms
-  (E)  [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕝 E]
+  (E) [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕝 E]
   [uniform_space F] [uniform_add_group F]
   {q : ι → seminorm 𝕝₂ F} (hq : with_seminorms q) (f : E →ₛₗ[τ₁₂] F)
   (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕝 E)) : continuous f :=

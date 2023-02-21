@@ -711,13 +711,15 @@ end
 
 lemma summable_of_is_O'
   {ι E F : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E]
-  [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F] {f : ι → E} {g : ι → F}
+  [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
+  {f : ι → E} {g : ι → F}
   (hg : summable g) (h : f =O[cofinite] g) : summable f :=
 summable_of_is_O (summable_norm_iff.mpr hg) h.norm_right
 
 lemma summable_of_is_O_nat'
   {E F : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E]
-  [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F] {f : ℕ → E} {g : ℕ → F}
+  [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
+  {f : ℕ → E} {g : ℕ → F}
   (hg : summable g) (h : f =O[at_top] g) : summable f :=
 summable_of_is_O_nat (summable_norm_iff.mpr hg) h.norm_right
 

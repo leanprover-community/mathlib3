@@ -1264,3 +1264,47 @@ end aeval_tower
 end comm_semiring
 
 end mv_polynomial
+
+namespace subsemiring
+
+variables {σ S : Type*} [comm_semiring R] [comm_semiring S]
+
+open mv_polynomial
+
+theorem mv_polynomial_eval₂_mem (f : R →+* S)
+  (p : mv_polynomial σ R) (s : subsemiring S)
+  (hs : ∀ i, f (p.coeff i) ∈ s) (v : σ → S) (hv : ∀ i, v i ∈ s) :
+     mv_polynomial.eval₂ f v p ∈ s :=
+begin
+  classical,
+  revert hs,
+  refine mv_polynomial.induction_on''' p _ _,
+  { intros a hs,
+    simpa using hs 0 },
+  { intros a b f ha hb0 ih hs,
+    rw [eval₂_add],
+    refine subsemiring.add_mem _ _ _,
+    { rw [eval₂_monomial],
+      refine subsemiring.mul_mem _ _ _,
+      { have := hs a,
+        rwa [coeff_add, coeff_monomial, if_pos rfl,
+          mv_polynomial.not_mem_support_iff.1 ha, add_zero] at this },
+      { refine subsemiring.prod_mem _ (λ i hi, _),
+        refine subsemiring.pow_mem _ _ _,
+        exact hv _ } },
+    { refine ih (λ i, _),
+      have := hs i,
+      rw [coeff_add, coeff_monomial] at this,
+      split_ifs at this with h h,
+      { subst h,
+        rw [mv_polynomial.not_mem_support_iff.1 ha, map_zero],
+        exact subsemiring.zero_mem _ },
+      { rwa zero_add at this } } }
+end
+
+theorem mv_polynomial_eval_mem (p : mv_polynomial σ R) (s : subsemiring R)
+  (hs : ∀ i, p.coeff i ∈ s) (v : σ → R) (hv : ∀ i, v i ∈ s) :
+     mv_polynomial.eval v p ∈ s :=
+mv_polynomial_eval₂_mem (ring_hom.id R) p s hs v hv
+
+end subsemiring

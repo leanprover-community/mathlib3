@@ -1,0 +1,108 @@
+/-
+Copyright (c) 2023 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
+import data.mv_polynomial.basic
+import ring_theory.algebraic
+import data.fintype.card
+import data.zmod.basic
+
+/-!
+# Ax-Grothendieck for algebraic extensions of `zmod p`
+
+This file proves that if `K` is an algebraic extension of `zmod p` for some prime `p`,
+then any injective polynomial map `K^n -> K^n` is surjective.
+
+This proof is required for the true Ax-Grothendieck theorem, which proves the same result
+for any algebraically closed field of characteristic zero. The proof of the theorem for
+characteristic zero is not in mathlib, but it is at https://github.com/Jlh18/ModelTheoryInLean8
+-/
+
+noncomputable theory
+
+/-- A polynomial map over an indexing type `ι` is a vector of `ι` polynomials
+each in `ι` variables -/
+@[simp]
+def poly_map (K : Type*) [comm_semiring K] (ι  : Type*)  : Type* :=
+ι → mv_polynomial ι K
+
+namespace poly_map
+
+open mv_polynomial
+
+variables {K : Type*} [comm_semiring K] {ι : Type*}
+
+/-- Evaluation of a polynomial map as a function `K^ι -> K^ι` -/
+def eval : poly_map K ι → (ι → K) → (ι → K) :=
+λ ps as k, mv_polynomial.eval as (ps k)
+
+lemma eval_mem [decidable_eq K]
+  (p : poly_map K ι) (s : subsemiring K)
+  (hs : ∀ i, ↑((p i).support.image (λ x, coeff x (p i))) ⊆ (s : set K)) :
+  ∀ (v : ι → K) (hv : ∀ i, v i ∈ s) (i : ι), mv_polynomial.eval v (p i) ∈ s :=
+begin
+  intros v hv i,
+  apply subsemiring.mv_polynomial_eval_mem,
+  { intros k,
+    simp only [finset.coe_image, set.image_subset_iff] at hs,
+    by_cases h : coeff k (p i) = 0,
+    { rw [h], exact subsemiring.zero_mem _ },
+    { exact hs i (mem_support_iff.2 h) } },
+  { exact hv }
+end
+
+/-- Any injective polynomial map over an algebraic extension of a finite field is surjective. -/
+lemma ax_grothendieck_of_locally_finite {K R : Type*} [field K] [fintype K] [comm_ring R]
+  [fintype ι] [algebra K R] (alg : algebra.is_algebraic K R)
+  (ps : poly_map R ι) (hinj : function.injective (eval ps)) :
+  function.surjective (eval ps) :=
+begin
+  have is_int : ∀ x : R, is_integral K x,
+    from λ x, is_algebraic_iff_is_integral.1 (alg x),
+  classical,
+  intros v,
+  let s : finset R :=
+    finset.bUnion (finset.univ : finset ι)
+      (λ i, (ps i).support.image (λ x, coeff x (ps i)))
+    ∪ (finset.univ : finset ι).image v,
+  have hs₁ : ∀ (i : ι),
+    (finset.image (λ (x : ι →₀ ℕ), coeff x (ps i)) (ps i).support : set R) ⊆
+      subsemiring.closure (s : set R),
+    from λ j x hx, subsemiring.subset_closure
+      (finset.mem_union_left _
+        (finset.mem_bUnion.2 ⟨j, finset.mem_univ _, hx⟩)),
+  have hv₁ : ∀ i, v i ∈ subsemiring.closure (s : set R),
+    from λ j, subsemiring.subset_closure
+        (finset.mem_union_right _
+          (finset.mem_image.2 ⟨j, finset.mem_univ _, rfl⟩)),
+  have hs : ∀ i, eval ps v i ∈ subsemiring.closure (s : set R),
+    from eval_mem ps _ hs₁ v hv₁,
+  letI : fintype (subsemiring.closure (s : set R)),
+  { letI := is_noetherian_adjoin_finset s (λ x _, is_int x),
+    letI := module.is_noetherian.finite K (algebra.adjoin K (s : set R)),
+    have alg_fintype := finite_dimensional.fintype_of_fintype
+      K (algebra.adjoin K (s : set R)),
+    have hsubset : subsemiring.closure (s : set R) ≤
+      (algebra.adjoin K (s : set R)).to_subsemiring,
+      from subsemiring.closure_le.2
+        (galois_connection.le_u_l algebra.gc _),
+    exact (set.finite.subset ⟨alg_fintype⟩ hsubset).fintype },
+  let res : (ι → subsemiring.closure (s : set R)) →
+      (ι → subsemiring.closure (s : set R)) :=
+    λ x i, ⟨eval ps (λ j, (x j)) i, eval_mem _ _ hs₁ _ (λ j, (x j).2) _⟩,
+  have hres_inj : function.injective res,
+  { intros x y hxy,
+    funext i,
+    ext,
+    simp only [res, subtype.ext_iff, function.funext_iff] at hxy,
+    exact congr_fun (hinj (funext hxy)) i },
+  have hres_surj : function.surjective res,
+    from finite.injective_iff_surjective.1 hres_inj,
+  cases hres_surj (λ i, ⟨v i, hv₁ i⟩) with w hw,
+  use λ i, w i,
+  simp only [res, subtype.ext_iff, function.funext_iff] at hw,
+  exact funext hw
+end
+
+end poly_map

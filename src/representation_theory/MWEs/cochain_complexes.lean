@@ -59,7 +59,7 @@ as well."
 Thus we see we cannot use `cases` in the previous lemma: the target is replace by a 'general'
 instance of a constructor, and in our setting, our equality term `n - 1 + 1 = n` was not general:
 the righthand side depends on the lefthand side. If elimination principles replaced hypotheses like
-this with more general statements, they would be false in general, so attempting to use `cases`
+this with more general statements, they would often be false, so attempting to use `cases`
 must give an error.
 
 But in our case, we can generalize: -/
@@ -80,7 +80,7 @@ is now definitionally the identity, and both sides of the goal are definitionall
   refl,
 end
 
-/- This general principle is why the more general definition of a complex is a good idea. -/
+/- This principle is why the more general definition of a complex is a good idea. -/
 structure improved_cochain_complex :=
 (X : ℤ → Ab)
 (d : Π (i j : ℤ), X i ⟶ X j)

@@ -4,17 +4,18 @@ namespace ITP
 
 variables {k : Type*} [semiring k]
 
-/- We try and extend a `G`-action on `M` to the `k[G]`-action sending
-`∑ nᵢgᵢ ⬝ m := ∑ nᵢ ⬝ (gᵢ ⬝ m)`, in the maximum generality possible. -/
+/- We try and extend a `G`-action on an additive commutative monoid `M` to the `k[G]`-action
+sending `∑ nᵢgᵢ ⬝ m := ∑ nᵢ ⬝ (gᵢ ⬝ m)`, in the maximum generality possible. -/
 instance {k : Type*} [semiring k] {G : Type*} {M : Type*}
   [add_comm_monoid M] [has_smul G M] [module k M] :
   has_smul (monoid_algebra k G) M :=
 { smul := λ g m, finsupp.total G _ k (λ g, g • m) g }
 /- (The type `monoid_algebra k G` is a nickname for `finsupp G k`, aka `k[G]`, but which
-knows about the multiplication in `k[G]` induced by the multiplication in `G`) -/
+knows about the multiplication in `k[G]` induced by the multiplication in `G`). -/
 
 /- But the assumptions in our instance are weak enough to allow `G := k, M := k[k]`, and the
-resulting action of `k[k]` on itself is different from multiplication. -/
+resulting action of `k[k]` on itself is different from the one induced by
+multiplication in `k[k]`. -/
 
 /- Considering `r, s : k` as elements of `k[k]`, `r * s` is the function supported at
 `r * s` with the value 1. Meanwhile, our instance would declare `r • s` to be the function
@@ -34,6 +35,6 @@ end
 
 /- Of course, we could avoid this particular conflict by strengthening the assumptions, but this
 will not always be possible. Moreover, this demonstrates that the "make definitions as general as
-possible" has exceptions. -/
+possible" maxim has exceptions. -/
 
 end ITP

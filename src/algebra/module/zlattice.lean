@@ -3,23 +3,22 @@
  Released under Apache 2.0 license as described in the file LICENSE.
  Authors: Xavier Roblot
  -/
-
 import analysis.normed_space.basic
 import measure_theory.group.fundamental_domain
 
 /-!
 # ℤ-lattices
-A ℤ-lattice is a discrete subgroup of a finite vector space `E` usually over ℚ or ℝ that spans the full
-space (we consider only full lattices). See : https://en.wikipedia.org/wiki/Lattice_(group)
+A ℤ-lattice is a discrete subgroup of a finite vector space `E` usually over ℚ or ℝ that spans the
+full space (we consider only full lattices). See : https://en.wikipedia.org/wiki/Lattice_(group)
 
 A ℤ-lattice `L` can be defined in two ways:
-* `L : submodule.span ℤ (set.range b)` where `b` is a basis of `E`
-* `L : submodule ℤ E` with the additional properties:
+- `L : submodule.span ℤ (set.range b)` where `b` is a basis of `E`
+- `L : submodule ℤ E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
   `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`
 
 ## Main results
-* `zspan.is_add_fundamental_domain`: the fundamental domain of a lattice
+- `zspan.is_add_fundamental_domain`: the fundamental domain of a lattice
 -/
 
 open_locale classical
@@ -32,6 +31,7 @@ section zspan
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
 
+/-- The lattice defined by the basis `b`. -/
 def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
 basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)))
 
@@ -73,6 +73,8 @@ begin
     exact submodule.subset_span (set.mem_range_self i),  }
 end
 
+/-- The map that sends a vector of the ambiant space to the element of the lattice obtained
+by round down its coordinate on the basis `b`. -/
 def zspan.floor_map : E → submodule.span ℤ (set.range b) :=
 λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • zspan.basis b i)
 
@@ -93,6 +95,7 @@ begin
   refl,
 end
 
+/-- The map that sends a vector of the ambiant space to the fundamental domain of the lattice. -/
 def zspan.fract_map : E → E := λ m, m - zspan.floor_map b m
 
 lemma zspan.fract_map_single (m : E) (i : ι):
@@ -120,8 +123,8 @@ begin
   exact (zspan.mem_span_iff b (m - n)).symm,
 end
 
--- TODO: prove that it is an add hom
-noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range b) → E :=
+/-- The map between `E` quotiented by the lattice and its fundamental domain. -/
+def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range b) → E :=
 begin
   intro q,
   refine quotient.lift_on' q (zspan.fract_map b) _,
@@ -179,10 +182,10 @@ variables [opens_measurable_space E]
 variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
 variables (μ : measure E)
 
--- use parallelepiped?
+/-- The fundamental domain of the lattice. -/
 def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : ℝ) 1 }
 
--- use this to simplify proof of is_add_fundamental_domain
+-- TODO. use this to simplify proof of is_add_fundamental_domain
 lemma zspan.mem_fundamental_domain {x : E} :
   x ∈ (zspan.fundamental_domain b) ↔ zspan.fract_map b x = x :=
 begin

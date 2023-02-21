@@ -66,7 +66,7 @@ lemma of_bounded_under_abs_im (hre : tendsto re l at_top)
   (him : is_bounded_under (≤) l (λ z, |z.im|)) :
   is_exp_cmp_filter l :=
 of_is_O_im_re_pow hre 0 $
-  by simpa only [pow_zero] using @is_bounded_under.is_O_const ℂ ℝ ℝ _ _ _ l him 1 one_ne_zero
+  by simpa only [pow_zero] using @is_bounded_under.is_O_const ℂ ℝ ℝ _ _ _ _ l him 1 one_ne_zero
 
 lemma of_bounded_under_im (hre : tendsto re l at_top) (him_le : is_bounded_under (≤) l im)
   (him_ge : is_bounded_under (≥) l im) :

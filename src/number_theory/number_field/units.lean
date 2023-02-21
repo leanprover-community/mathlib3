@@ -1,7 +1,7 @@
 /-
- Copyright (c) 2023 Xavier Roblot. All rights reserved.
- Released under Apache 2.0 license as described in the file LICENSE.
- Authors: Xavier Roblot
+Copyright (c) 2023 Xavier Roblot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Xavier Roblot
  -/
 import group_theory.torsion
 import number_theory.number_field.norm
@@ -50,7 +50,7 @@ instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨units_to_fiel
 
 section coe
 
-namespace number_field.unit
+namespace unit
 
 variable {K}
 
@@ -81,7 +81,7 @@ lemma coe_one : ((1 : 𝓤 K) : K) = (1 : K) := rfl
 lemma coe_ne_zero {x : 𝓤 K} : (x : K) ≠ 0 :=
 subtype.coe_injective.ne_iff.2 (units.ne_zero x)
 
-end number_field.unit
+end unit
 
 end coe
 

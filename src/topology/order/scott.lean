@@ -19,11 +19,9 @@ This file introduces the Scott topology on a preorder.
 ## Main definitions
 
 - `preserve_lub_on_directed` - a function between preorders which preserves least upper bounds.
-- `directed_lub_mem_implies_tail_subset` - the topological space where a set `u` is open if, when
-  the least upper bound of a directed set `d` lies in `u` then there is a tail of `d` which is a
-  subset of `u`.
 - `with_scott_topology.topological_space` - the Scott topology is defined as the join of the
-  `directed_lub_mem_implies_tail_subset` topology and the topology of upper sets.
+  topology of upper sets and the topological space where a set `u` is open if, when the least upper
+  bound of a directed set `d` lies in `u` then there is a tail of `d` which is a subset of `u`..
 
 ## Main statements
 
@@ -78,50 +76,6 @@ def upper_set_topology : topological_space α :=
   is_open_univ := is_upper_set_univ,
   is_open_inter := λ _ _, is_upper_set.inter,
   is_open_sUnion := λ _, is_upper_set_sUnion }
-
-/--
-The set of sets satisfying "property (S)" ([GierzEtAl1980] p100) form a topology
--/
-def directed_lub_mem_implies_tail_subset : topological_space α :=
-{ is_open := λ u, ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u →
-               ∃ b ∈ d, (Ici b)∩ d ⊆ u,
-  is_open_univ := begin
-    intros d a hd₁ hd₂ hd₃ ha,
-    cases hd₁ with b hb,
-    use b,
-    split,
-    { exact hb, },
-    { exact (Ici b ∩ d).subset_univ, },
-  end,
-  is_open_inter := begin
-    rintros s t,
-    intros hs,
-    intro ht,
-    intros d a hd₁ hd₂ hd₃ ha,
-    obtain ⟨ b₁, ⟨hb₁_w, hb₁_h ⟩ ⟩  := hs d a hd₁ hd₂ hd₃ ha.1,
-    obtain ⟨ b₂, ⟨hb₂_w, hb₂_h ⟩ ⟩  := ht d a hd₁ hd₂ hd₃ ha.2,
-    rw directed_on at hd₂,
-    obtain ⟨ c, ⟨hc_w, hc_h ⟩ ⟩ := hd₂ b₁ hb₁_w b₂ hb₂_w,
-    use c,
-    split,
-    { exact hc_w, },
-    { calc Ici c ∩ d ⊆ (Ici b₁ ∩ Ici b₂)∩d : by
-        { apply inter_subset_inter_left d,
-          apply subset_inter (Ici_subset_Ici.mpr hc_h.1) (Ici_subset_Ici.mpr hc_h.2), }
-        ... = ((Ici b₁)∩d) ∩ ((Ici b₂)∩d) : by rw inter_inter_distrib_right
-        ... ⊆ s ∩ t : by { exact inter_subset_inter hb₁_h hb₂_h } }
-  end,
-  is_open_sUnion := begin
-  intros s h,
-  intros d a hd₁ hd₂ hd₃ ha,
-  rw mem_sUnion at ha,
-  obtain ⟨s₀, ⟨hs₀_w, hs₀_h⟩⟩ := ha,
-  obtain ⟨b, ⟨hb_w, hb_h⟩⟩ := h s₀ hs₀_w d a hd₁ hd₂ hd₃ hs₀_h,
-  use b,
-  split,
-  { exact hb_w, },
-  { exact subset_sUnion_of_subset s s₀ hb_h hs₀_w, }
-  end, }
 
 lemma pair_is_chain (a b : α) (hab: a ≤ b) : is_chain (≤) ({a, b} : set α) :=
 begin
@@ -208,7 +162,46 @@ variables [preorder α] [preorder β]
 instance : preorder (with_scott_topology α) := ‹preorder α›
 
 instance : topological_space (with_scott_topology α) :=
-  (upper_set_topology ⊔ directed_lub_mem_implies_tail_subset)
+  (upper_set_topology ⊔
+    { is_open := λ u, ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u →
+        ∃ b ∈ d, (Ici b)∩ d ⊆ u,
+      is_open_univ := begin
+        intros d a hd₁ hd₂ hd₃ ha,
+        cases hd₁ with b hb,
+        use b,
+        split,
+        { exact hb, },
+        { exact (Ici b ∩ d).subset_univ, },
+      end,
+      is_open_inter := begin
+        rintros s t,
+        intros hs,
+        intro ht,
+        intros d a hd₁ hd₂ hd₃ ha,
+        obtain ⟨ b₁, ⟨hb₁_w, hb₁_h ⟩ ⟩  := hs d a hd₁ hd₂ hd₃ ha.1,
+        obtain ⟨ b₂, ⟨hb₂_w, hb₂_h ⟩ ⟩  := ht d a hd₁ hd₂ hd₃ ha.2,
+        rw directed_on at hd₂,
+        obtain ⟨ c, ⟨hc_w, hc_h ⟩ ⟩ := hd₂ b₁ hb₁_w b₂ hb₂_w,
+        use c,
+        split,
+        { exact hc_w, },
+        { calc Ici c ∩ d ⊆ (Ici b₁ ∩ Ici b₂)∩d : by
+            { apply inter_subset_inter_left d,
+              apply subset_inter (Ici_subset_Ici.mpr hc_h.1) (Ici_subset_Ici.mpr hc_h.2), }
+            ... = ((Ici b₁)∩d) ∩ ((Ici b₂)∩d) : by rw inter_inter_distrib_right
+            ... ⊆ s ∩ t : by { exact inter_subset_inter hb₁_h hb₂_h } }
+      end,
+      is_open_sUnion := begin
+      intros s h,
+      intros d a hd₁ hd₂ hd₃ ha,
+      rw mem_sUnion at ha,
+      obtain ⟨s₀, ⟨hs₀_w, hs₀_h⟩⟩ := ha,
+      obtain ⟨b, ⟨hb_w, hb_h⟩⟩ := h s₀ hs₀_w d a hd₁ hd₂ hd₃ hs₀_h,
+      use b,
+      split,
+      { exact hb_w, },
+      { exact subset_sUnion_of_subset s s₀ hb_h hs₀_w, }
+      end, })
 
 namespace with_scott_topology
 

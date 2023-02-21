@@ -9,6 +9,9 @@ import algebra.indicator_function
 /-!
 # Finite products and sums over types and sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define products and sums over types and subsets of types, with no finiteness hypotheses.
 All infinite products and sums are defined to be junk values (i.e. one or zero).
 This approach is sometimes easier to use than `finset.sum`,

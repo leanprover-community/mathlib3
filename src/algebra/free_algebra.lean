@@ -344,9 +344,9 @@ map_eq_one_iff (algebra_map _ _) algebra_map_left_inverse.injective
 
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
-λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
+λ x y hoxy, classical.by_contradiction $ by classical; exact assume hxy : x ≠ y,
   let f : free_algebra R X →ₐ[R] R :=
-    lift R (λ z, by classical; exact if x = z then (1 : R) else 0) in
+    lift R (λ z, if x = z then (1 : R) else 0) in
   have hfx1 : f (ι R x) = 1, from (lift_ι_apply _ _).trans $ if_pos rfl,
   have hfy1 : f (ι R y) = 1, from hoxy ▸ hfx1,
   have hfy0 : f (ι R y) = 0, from (lift_ι_apply _ _).trans $ if_neg hxy,

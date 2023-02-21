@@ -19,7 +19,7 @@ about these definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric function set
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 section seminormed_add_comm_group
 
@@ -80,18 +80,18 @@ lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
 by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
   div_self_le_one]
 
-lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
+lemma dist_smul₀ [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ = ‖s‖₊ * ‖x‖₊ :=
 nnreal.eq $ norm_smul s x
 
-lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
+lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
-nnreal.eq $ dist_smul s x y
+nnreal.eq $ dist_smul₀ s x y
 
 lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
-lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul, coe_nnnorm]
+lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
 
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]

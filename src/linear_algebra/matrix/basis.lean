@@ -214,8 +214,9 @@ by { haveI := classical.dec_eq ι',
 lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = matrix.reindex_alg_equiv _ e (b.to_matrix (v ∘ e)) :=
-by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
-        matrix.reindex_apply, matrix.submatrix_apply, function.comp_app, e.apply_symm_apply] }
+by { ext, simp only [basis.to_matrix_apply, basis.repr_reindex, matrix.reindex_alg_equiv_apply,
+        matrix.reindex_apply, matrix.submatrix_apply, function.comp_app, e.apply_symm_apply,
+        finsupp.map_domain_equiv_apply] }
 
 end fintype
 
@@ -244,7 +245,8 @@ matrix.invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
 lemma basis.to_matrix_reindex
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = (b.to_matrix v).submatrix e.symm id :=
-by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.submatrix_apply, id.def] }
+by { ext, simp only [basis.to_matrix_apply, basis.repr_reindex, matrix.submatrix_apply, id.def,
+  finsupp.map_domain_equiv_apply] }
 
 @[simp]
 lemma basis.to_matrix_map (b : basis ι R M) (f : M ≃ₗ[R] N) (v : ι → N) :

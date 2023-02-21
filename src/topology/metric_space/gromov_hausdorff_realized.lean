@@ -30,7 +30,7 @@ space structure on `X ⊕ Y`. The corresponding metric quotient is `optimal_GH_c
 -/
 
 noncomputable theory
-open_locale classical topological_space nnreal
+open_locale classical topology nnreal
 universes u v w
 
 open classical set function topological_space filter metric quotient

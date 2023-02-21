@@ -4,16 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.big_operators.intervals
+import algebra.big_operators.order
+import algebra.indicator_function
 import order.liminf_limsup
 import order.filter.archimedean
 import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -322,7 +327,7 @@ end monotone
 
 section infi_and_supr
 
-open_locale topological_space
+open_locale topology
 
 open filter set
 

@@ -5,7 +5,8 @@ Authors: Xavier Roblot
 -/
 import group_theory.torsion
 import number_theory.number_field.norm
-import number_theory.number_field.embeddings
+import number_theory.number_field.canonical_embedding
+import ring_theory.ideal.norm
 
 /-!
  # Units of a number field

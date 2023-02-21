@@ -181,6 +181,10 @@ def torsion : submonoid G :=
 
 variable {G}
 
+@[to_additive]
+lemma mem_torsion (g : G) :
+  g ∈ comm_monoid.torsion G ↔ is_of_fin_order g := iff.rfl
+
 /-- Torsion submonoids are torsion. -/
 @[to_additive "Additive torsion submonoids are additively torsion."]
 lemma torsion.is_torsion : is_torsion $ torsion G :=
@@ -273,6 +277,10 @@ def torsion : subgroup G := { comm_monoid.torsion G with inv_mem' := λ x, is_of
 @[to_additive add_torsion_eq_add_torsion_submonoid
   "The additive torsion submonoid of an abelian group equals the torsion subgroup as a submonoid."]
 lemma torsion_eq_torsion_submonoid : comm_monoid.torsion G = (torsion G).to_submonoid := rfl
+
+@[to_additive]
+lemma mem_torsion (g : G) :
+  g ∈ comm_group.torsion G ↔ is_of_fin_order g := iff.rfl
 
 variables (p : ℕ) [hp : fact p.prime]
 include hp

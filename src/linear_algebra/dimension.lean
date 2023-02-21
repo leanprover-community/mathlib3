@@ -1387,6 +1387,65 @@ lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
+end division_ring
+
+end module
+
+/-! ### The rank of a linear map -/
+
+namespace linear_map
+
+section ring
+variables [ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+
+/-- `rank f` is the rank of a `linear_map` `f`, defined as the dimension of `f.range`. -/
+def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
+
+lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
+dim_submodule_le _
+
+@[simp] lemma rank_zero [nontrivial K] : rank (0 : V →ₗ[K] V') = 0 :=
+by rw [rank, linear_map.range_zero, dim_bot]
+
+variables [add_comm_group V''] [module K V'']
+
+lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
+begin
+  refine dim_le_of_submodule _ _ _,
+  rw [linear_map.range_comp],
+  exact linear_map.map_le_range,
+end
+
+variables [add_comm_group V'₁] [module K V'₁]
+
+lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
+by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
+
+end ring
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+
+lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
+by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
+
+lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
+calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
+  begin
+    refine dim_le_of_submodule _ _ _,
+    exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
+      assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
+        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
+  end
+  ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
+
+lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
+  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
+@finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
+      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
+
 lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
   c ≤ rank f ↔
   ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧

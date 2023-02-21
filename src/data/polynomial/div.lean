@@ -437,6 +437,8 @@ by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
 lemma aeval_ker (x : R) : ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R).ker = ideal.span {X - C x} :=
 eval_ring_hom_ker x
 
+/-- For a commutative ring `R`, evaluation at an element `x : R` induces an `R`-algebra isomorphism
+$R[X] / \langle X - x \rangle \cong R$. -/
 noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
   (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
 ((quotient_equiv_alg_of_eq $ aeval_ker x).restrict_scalars R).symm.trans $

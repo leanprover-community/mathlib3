@@ -183,7 +183,7 @@ end
 
 /-- The tangent cone of a product contains the tangent cone of each factor. -/
 lemma maps_to_tangent_cone_pi {ι : Type*} [decidable_eq ι] {E : ι → Type*}
-  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, add_comm_group (E i)] [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   {s : Π i, set (E i)} {x : Π i, E i} {i : ι} (hi : ∀ j ≠ i, x j ∈ closure (s j)) :
   maps_to (linear_map.single i : E i →ₗ[𝕜] Π j, E j) (tangent_cone_at 𝕜 (s i) (x i))
     (tangent_cone_at 𝕜 (set.pi univ s) x) :=
@@ -325,7 +325,7 @@ begin
 end
 
 lemma unique_diff_within_at.univ_pi (ι : Type*) [finite ι] (E : ι → Type*)
-  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, add_comm_group (E i)] [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (x : Π i, E i) (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
@@ -339,7 +339,7 @@ begin
 end
 
 lemma unique_diff_within_at.pi (ι : Type*) [finite ι] (E : ι → Type*)
-  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, add_comm_group (E i)] [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (x : Π i, E i) (I : set ι)
   (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi I s) x :=
@@ -358,7 +358,7 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
 lemma unique_diff_on.pi (ι : Type*) [finite ι] (E : ι → Type*)
-  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, add_comm_group (E i)] [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (I : set ι) (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi I s) :=
 λ x hx, unique_diff_within_at.pi _ _ _ _ _ $ λ i hi, h i hi (x i) (hx i hi)
@@ -366,7 +366,7 @@ lemma unique_diff_on.pi (ι : Type*) [finite ι] (E : ι → Type*)
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
 lemma unique_diff_on.univ_pi (ι : Type*) [finite ι] (E : ι → Type*)
-  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, add_comm_group (E i)] [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (h : ∀ i, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi univ s) :=
 unique_diff_on.pi _ _ _ _ $ λ i _, h i

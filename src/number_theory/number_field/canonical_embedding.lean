@@ -325,14 +325,12 @@ begin
     dsimp only [B, M, N, fb, number_field.embedding_embedding],
     rw basis.to_matrix_apply _ _ φ j,
     rw pi.basis_fun_repr,
-    dsimp [algebra.embeddings_matrix_reindex],
     refl, },
   have t1 := algebra.discr_not_zero_of_basis ℚ b,
   have t2 := algebra.discr_eq_det_embeddings_matrix_reindex_pow_two ℚ ℂ (λ i, b (h i))
     ring_hom.equiv_rat_alg_hom,
   have t3 : N.det ≠ 0,
   { contrapose! t1,
-    dsimp [N] at t1,
     rw t1 at t2,
     rw zero_pow (by norm_num : 0 < 2) at t2,
     rw map_eq_zero_iff _ (algebra_map ℚ ℂ).injective at t2,
@@ -348,7 +346,7 @@ begin
     rw is_unit_iff_ne_zero,
     exact t4, },
   rw ← is_basis_iff_det at t5,
-  refine t5.1.restrict_scalars (smul_left_injective _ (by norm_num)),
+  exact t5.1.restrict_scalars (smul_left_injective ℝ one_ne_zero),
 end
 
 lemma lattice_basis_apply [number_field K] (i : free.choose_basis_index ℤ (𝓞 K)) :

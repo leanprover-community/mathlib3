@@ -113,8 +113,7 @@ begin
         rw (inter_eq_self_of_subset_right (Ici_subset_Ici.mpr hab)),
         exact λ {x : α}, mem_Ici.mpr, } }, },
   rw [is_lub, is_least] at e1,
-  cases e1,
-  apply e1_left,
+  apply e1.1,
   rw mem_image,
   use a,
   simp only [mem_insert_iff, eq_self_iff_true, true_or, and_self],
@@ -258,9 +257,9 @@ begin
     have c2: (d ∩ sᶜ) =  ∅,
     { rw [← subset_empty_iff, ← inter_compl_self s],
       exact inter_subset_inter_left _ d₄, },
-    rw c2 at c1,
-    simp only [not_nonempty_empty] at c1,
-    exact c1, },
+      rw c2 at c1,
+      simp only [not_nonempty_empty] at c1,
+      exact c1, },
   { intros h d a d₁ d₂ d₃ d₄,
     by_contra h',
     rw [inter_compl_nonempty_iff, not_not] at h',
@@ -360,28 +359,28 @@ begin
       exact image_inter_nonempty_iff.mp e2, } },
   { intros hf d a d₁ d₂ d₃,
     rw is_lub,
-      split,
-  { apply monotone.mem_upper_bounds_image (with_scott_topology.continuous_monotone hf),
-    rw ← is_lub_le_iff,
-    exact d₃, },
-  { rw [lower_bounds, mem_set_of_eq],
-    intros b hb,
-    let u := (Iic b)ᶜ,
-    by_contra,
-    have e1: a ∈ (f⁻¹'  u) := h,
-    have s1 : is_open u,
-    { rw [is_open_compl_iff, ← with_scott_topology.closure_singleton],
-      exact is_closed_closure, },
-    have s2 : is_open (f⁻¹'  u) := is_open.preimage hf s1,
-    rw with_scott_topology.is_open_iff_upper_and_lub_mem_implies_inter_nonempty at s2,
-    obtain ⟨c, ⟨h_1_left, h_1_right⟩⟩ := s2.2 d a d₁ d₂ d₃ e1,
-    simp at h_1_right,
-    rw upper_bounds at hb,
-    simp at hb,
-    have c1: f c ≤ b,
-    { apply hb,
-      exact h_1_left, },
-    contradiction, }, }
+    split,
+    { apply monotone.mem_upper_bounds_image (with_scott_topology.continuous_monotone hf),
+      rw ← is_lub_le_iff,
+      exact d₃, },
+    { rw [lower_bounds, mem_set_of_eq],
+      intros b hb,
+      let u := (Iic b)ᶜ,
+      by_contra,
+      have e1: a ∈ (f⁻¹'  u) := h,
+      have s1 : is_open u,
+      { rw [is_open_compl_iff, ← with_scott_topology.closure_singleton],
+        exact is_closed_closure, },
+      have s2 : is_open (f⁻¹'  u) := is_open.preimage hf s1,
+      rw with_scott_topology.is_open_iff_upper_and_lub_mem_implies_inter_nonempty at s2,
+      obtain ⟨c, ⟨h_1_left, h_1_right⟩⟩ := s2.2 d a d₁ d₂ d₃ e1,
+      simp at h_1_right,
+      rw upper_bounds at hb,
+      simp at hb,
+      have c1: f c ≤ b,
+      { apply hb,
+        exact h_1_left, },
+      contradiction, }, }
 end
 
 end preorder
@@ -413,10 +412,10 @@ begin
   rw eq_iff_iff,
   split,
   { intros h d hd₁ hd₂ hd₃,
-      exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },
+    exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },
   { intros h d a hd₁ hd₂ hd₃ ha,
-      apply h d hd₁ hd₂,
-      { rw (is_lub.Sup_eq hd₃), exact ha, } }
+    apply h d hd₁ hd₂,
+    { rw (is_lub.Sup_eq hd₃), exact ha, } }
 end
 
 lemma is_open_eq_upper_and_Sup_mem_implies_inter_nonempty [complete_lattice α]
@@ -428,10 +427,10 @@ begin
   rw eq_iff_iff,
   split,
   { intros h d hd₁ hd₂ hd₃,
-      exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },
+    exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },
   { intros h d a hd₁ hd₂ hd₃ ha,
-      apply h d hd₁ hd₂,
-      { rw (is_lub.Sup_eq hd₃), exact ha, } }
+    apply h d hd₁ hd₂,
+    { rw (is_lub.Sup_eq hd₃), exact ha, } }
 end
 
 end complete_lattice

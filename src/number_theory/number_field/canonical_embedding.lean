@@ -208,6 +208,8 @@ open_locale complex_conjugate
 
 variable (K)
 
+/-- The embedding of `K` into `K →+* (K →+* ℂ) → ℂ` defined by sending `x : K` to the vector of its
+image by all the complex embeddings. -/
 def _root_.number_field.embedding_embedding : K →+* (K →+* ℂ) → ℂ :=
 { to_fun := λ x φ, φ x,
   map_zero' :=
@@ -233,6 +235,7 @@ def _root_.number_field.embedding_embedding : K →+* (K →+* ℂ) → ℂ :=
     exact map_mul φ x y,
   end }
 
+/-- the map from `E` to `((K →+* ℂ) → ℂ)` so that we have a commuting diagramm, see `commutes`. -/
 def comm_map : E →ₗ[ℝ] ((K →+* ℂ) → ℂ) :=
 { to_fun :=
   begin
@@ -283,6 +286,7 @@ begin
       simp only [complex_embedding.conjugate_coe_eq, star_ring_end_self_apply, subtype.coe_mk], }}
 end
 
+/-- A basis of `E` over `ℝ` that is also a basis of the `unit_lattice` over `ℤ`.-/
 def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℝ E :=
 begin
   let b := integral_basis K,
@@ -394,35 +398,17 @@ end
 
 end basis
 
-variable [number_field K]
-
-/-- The complex Haar measure giving measure 1 to the unit box with ℂ ≃ ℝ × ℝ -/
-@[reducible]
-def unit_measure : measure E :=
-measure.prod (measure.pi (λ _, volume)) (measure.pi (λ _, complex.basis_one_I.add_haar))
-
-instance : sigma_finite complex.basis_one_I.add_haar := infer_instance
-instance : sigma_finite
-  (measure.pi (λ w : { w : infinite_place K // is_complex w}, complex.basis_one_I.add_haar)) :=
-  infer_instance
-
-instance : measure.is_add_haar_measure (unit_measure K) :=
-begin
-  haveI : measure.is_add_haar_measure complex.basis_one_I.add_haar := infer_instance,
-  haveI : has_measurable_add ℂ := infer_instance,
-  have : measure.is_add_haar_measure (measure.pi (λ w : { w : infinite_place K // is_complex w },
-    complex.basis_one_I.add_haar)) := @measure.pi.is_add_haar_measure _ _ _ _ _ _ _ _ _ _,
-  convert measure.prod.is_add_haar_measure _ _,
-  any_goals { apply_instance, },
-end
-
+/-- The real part of the convex body defined by `f`, see `convex_body`.-/
 def convex_body_real (f : infinite_place K → nnreal) : set ({w : infinite_place K // is_real w} → ℝ)
 := set.pi set.univ (λ w, metric.ball 0 (f w))
 
+/-- The complex part of the convex body defined by `f`, see `convex_body`.-/
 def convex_body_complex (f : infinite_place K → nnreal) :
   set ({w : infinite_place K // is_complex w} → ℂ) :=
 set.pi set.univ (λ w, metric.ball 0 (f w))
 
+/-- The convex body defined by `f`: the set of points `x : E` such that `x w < f w` for all
+infinite places `w`.-/
 @[reducible]
 def convex_body (f : infinite_place K → nnreal): set E :=
 (convex_body_real K f) ×ˢ (convex_body_complex K f)
@@ -445,6 +431,60 @@ lemma convex_body.convex (f : infinite_place K → nnreal) :
 begin
   refine convex.prod _ _;
   exact convex_pi (λ i _, (convex_ball 0 (f i))),
+end
+
+lemma convex_body_mem (x : K) (f : infinite_place K → nnreal) :
+  canonical_embedding K x ∈ (convex_body K f) ↔ ∀ w : infinite_place K, w x < f w :=
+begin
+  rw set.mem_prod,
+  rw convex_body_real,
+  rw convex_body_complex,
+  rw set.mem_pi,
+  rw set.mem_pi,
+  simp only [set.mem_univ, mem_ball_zero_iff, forall_true_left, real.norm_eq_abs,
+    subtype.forall, subtype.coe_mk, complex.norm_eq_abs],
+  simp_rw apply_at_real_infinite_place,
+  simp_rw apply_at_complex_infinite_place,
+  simp_rw ← infinite_place.apply,
+  simp_rw mk_embedding,
+  split,
+  { rintros ⟨hr, hc⟩ w,
+    by_cases h : is_real w,
+    { convert hr w h,
+      rw ← is_real.place_embedding_apply,
+      refl, },
+    { rw not_is_real_iff_is_complex at h,
+      exact hc w h, }},
+  { rintro h,
+    split,
+    { intros w hw,
+      convert h w,
+      rw ← is_real.place_embedding_apply,
+      refl, },
+    { intros w hw,
+      exact h w, }}
+end
+
+variable [number_field K]
+
+/-- The complex Haar measure giving measure 1 to the unit box with ℂ ≃ ℝ × ℝ -/
+@[reducible]
+def unit_measure : measure E :=
+measure.prod (measure.pi (λ _, volume)) (measure.pi (λ _, complex.basis_one_I.add_haar))
+
+instance : sigma_finite complex.basis_one_I.add_haar := infer_instance
+instance : sigma_finite
+  (measure.pi (λ w : { w : infinite_place K // is_complex w}, complex.basis_one_I.add_haar)) :=
+  infer_instance
+
+instance : measure.is_add_haar_measure (unit_measure K) :=
+begin
+  haveI : measure.is_add_haar_measure complex.basis_one_I.add_haar := infer_instance,
+  haveI : has_measurable_add ℂ := infer_instance,
+  have : measure.is_add_haar_measure (measure.pi (λ w : { w : infinite_place K // is_complex w },
+    complex.basis_one_I.add_haar)) := @measure.pi.is_add_haar_measure _ _ _ _ _ _ _ _ _ _,
+  convert measure.prod.is_add_haar_measure _ _,
+  any_goals { apply_instance, },
 end
 
 lemma convex_body_real.volume (f : infinite_place K → nnreal) :
@@ -485,38 +525,7 @@ begin
   simp_rw ennreal.of_real_coe_nnreal,
 end
 
-lemma convex_body_mem (x : K) (f : infinite_place K → nnreal) :
-  canonical_embedding K x ∈ (convex_body K f) ↔ ∀ w : infinite_place K, w x < f w :=
-begin
-  rw set.mem_prod,
-  rw convex_body_real,
-  rw convex_body_complex,
-  rw set.mem_pi,
-  rw set.mem_pi,
-  simp only [set.mem_univ, mem_ball_zero_iff, forall_true_left, real.norm_eq_abs,
-    subtype.forall, subtype.coe_mk, complex.norm_eq_abs],
-  simp_rw apply_at_real_infinite_place,
-  simp_rw apply_at_complex_infinite_place,
-  simp_rw ← infinite_place.apply,
-  simp_rw mk_embedding,
-  split,
-  { rintros ⟨hr, hc⟩ w,
-    by_cases h : is_real w,
-    { convert hr w h,
-      rw ← is_real.place_embedding_apply,
-      refl, },
-    { rw not_is_real_iff_is_complex at h,
-      exact hc w h, }},
-  { rintro h,
-    split,
-    { intros w hw,
-      convert h w,
-      rw ← is_real.place_embedding_apply,
-      refl, },
-    { intros w hw,
-      exact h w, }}
-end
-
+/-- The fudge factor that appears the volume of `convex_body`.-/
 def constant_volume : ennreal := 2 ^ card {w : infinite_place K // is_real w} *
   (complex.basis_one_I.add_haar) (metric.ball 0 1) ^ card {w : infinite_place K // is_complex w}
 
@@ -568,6 +577,8 @@ begin
   { apply_instance, },
 end
 
+/-- The bound that appears in Minkowski theorem, see
+`exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure`.-/
 def minkowski_bound : ennreal := (unit_measure K) (zspan.fundamental_domain (lattice_basis K)) *
   2 ^ (finrank ℝ E)
 

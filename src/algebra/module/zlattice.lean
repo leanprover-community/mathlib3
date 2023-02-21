@@ -352,6 +352,7 @@ begin
     exact submodule.fg_span (linear_independent.finite h3), },
 end
 
+/-- A basis of the lattice `L`.-/
 def zlattice.basis [no_zero_smul_divisors ℤ E]
   (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
   (hs : submodule.span ℝ (L : set E) = ⊤) :  Σ (n : ℕ), basis (fin n) ℤ L :=
@@ -519,8 +520,7 @@ begin
       simp only [add_left_neg, zero_smul],
       refl,
       apply (iff.not set.mem_to_finset).mpr,
-      exact set.not_mem_of_mem_diff hv1,
-    },
+      exact set.not_mem_of_mem_diff hv1, },
     { use v,
       exact finset.mem_insert_self _ _,
       dsimp only [g],

@@ -29,7 +29,7 @@ section zspan
 
 -- TODO. Generalize also to floor_ring (field?)
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
+variables {ι : Type*} (b : basis ι ℝ E)
 
 /-- The lattice defined by the basis `b`. -/
 def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
@@ -38,7 +38,9 @@ basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (by n
 lemma zspan.basis_eq (i : ι) : (zspan.basis b i : E) = b i :=
   by simp only [zspan.basis, basis.span_apply]
 
-lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) (i : ι) :
+variable [fintype ι]
+
+lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) (i : ι)  :
    b.repr m i = ((zspan.basis b).repr m i : ℝ) :=
 begin
   rw ← sub_eq_zero,
@@ -177,13 +179,19 @@ section fundamental_domain
 
 open measure_theory measurable_set
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
-variables [opens_measurable_space E]
-variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
-variables (μ : measure E)
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {ι : Type*}  (b : basis ι ℝ E)
+
+instance zspan.vadd : has_vadd (submodule.span ℤ (set.range b)) E := ⟨ λ s m, s + m ⟩
+
+@[simp]
+lemma zspan.vadd_eq_add (m : E) (v : submodule.span ℤ (set.range b)) :
+  v +ᵥ m = v + m := rfl
 
 /-- The fundamental domain of the lattice. -/
 def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : ℝ) 1 }
+
+variable [fintype ι]
 
 -- TODO. use this to simplify proof of is_add_fundamental_domain
 lemma zspan.mem_fundamental_domain {x : E} :
@@ -209,13 +217,8 @@ begin
   linarith,
 end
 
-instance zspan.vadd : has_vadd (submodule.span ℤ (set.range b)) E := ⟨ λ s m, s + m ⟩
-
-@[simp]
-lemma zspan.vadd_eq_add (m : E) (v : submodule.span ℤ (set.range b)) :
-  v +ᵥ m = v + m := rfl
-
-lemma zspan.is_add_fundamental_domain :
+lemma zspan.is_add_fundamental_domain [measurable_space E] [opens_measurable_space E]
+  (μ : measure E) :
   is_add_fundamental_domain (submodule.span ℤ (set.range b)).to_add_subgroup
     (zspan.fundamental_domain b) μ :=
 { null_measurable_set :=

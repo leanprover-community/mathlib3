@@ -221,7 +221,8 @@ end normed_field
 
 section smul
 
-lemma is_equivalent.smul {α E 𝕜 : Type*} [normed_field 𝕜] [normed_add_comm_group E]
+lemma is_equivalent.smul
+  {α E 𝕜 : Type*} [normed_field 𝕜] [add_comm_group E] [normed_add_comm_group E]
   [normed_space 𝕜 E] {a b : α → 𝕜} {u v : α → E} {l : filter α} (hab : a ~[l] b) (huv : u ~[l] v) :
   (λ x, a x • u x) ~[l] (λ x, b x • v x) :=
 begin

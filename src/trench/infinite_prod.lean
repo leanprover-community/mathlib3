@@ -1,6 +1,7 @@
 import analysis.specific_limits.basic
 import topology.algebra.infinite_sum
 import trench.prod_le_sum
+import to_mathlib.algebra.hom.units
 
 noncomputable theory
 open finset filter function classical
@@ -433,6 +434,43 @@ begin
         refine one_le_prod₀ _;
         simp [hf] },
       { simp [hf] } } }
+end
+
+lemma has_prod.inv {f : β → ℝ} {x : ℝ} (hf : has_prod f x) :
+  has_prod (λ b, (f b)⁻¹) x⁻¹ :=
+begin
+  obtain ⟨h, ⟨x, h'⟩, h''⟩ := hf,
+  have key := _,
+  refine ⟨_, ⟨x⁻¹, key⟩, _⟩,
+  { simp [h] },
+  { simp only [h'', is_univ_inv_iff, prod_inv_distrib, mul_inv_rev,
+      mul_inv_eq_iff_eq_mul₀ (units.ne_zero _)],
+    generalize_proofs hp hs,
+    rw [tendsto_nhds_unique (Exists.some_spec hs) h',
+        tendsto_nhds_unique (Exists.some_spec hp) (key.congr _),
+        mul_assoc, mul_left_comm, units.inv_mul, mul_one],
+    intro,
+    simp only [is_univ_inv_iff, prod_inv_distrib] },
+  { rw units.coe_inv,
+    refine ((real.tendsto_inv (units.ne_zero _)).comp h').congr _,
+    intro,
+    simp }
+end
+
+lemma has_prod_inv_iff {f : β → ℝ} {x : ℝ} :
+  has_prod f x⁻¹ ↔ has_prod (λ b, (f b)⁻¹) x :=
+begin
+  split;
+  intro h;
+  simpa using h.inv
+end
+
+lemma converges_prod_inv_iff {f : β → ℝ} :
+  converges_prod (λ b, (f b)⁻¹) ↔ converges_prod f :=
+begin
+  split; rintro ⟨x, h⟩;
+  refine ⟨x⁻¹, _⟩;
+  simpa using h.inv
 end
 
 end

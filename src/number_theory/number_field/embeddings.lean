@@ -168,9 +168,6 @@ by { ext, simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq] }
 
 lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_self_adjoint_iff
 
-lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ :=
-is_self_adjoint_iff
-
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
@@ -239,8 +236,6 @@ lemma coe_mk (φ : K →+* ℂ) : ⇑(mk φ) = place φ := rfl
 
 lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := rfl
 
-lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := by refl
-
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 
@@ -248,14 +243,6 @@ noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 lemma mk_embedding (w : infinite_place K) :
   mk (embedding w) = w :=
 subtype.ext (w.2).some_spec
-
-lemma eq_iff_eq (x : K) (r : ℝ) :
-  (∀ w : infinite_place K, w x = r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ = r) :=
-⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
-
-lemma le_iff_le (x : K) (r : ℝ) :
-  (∀ w : infinite_place K, w x ≤ r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ ≤ r) :=
-⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
 
 @[simp]
 lemma abs_embedding (w : infinite_place K) (x : K) :
@@ -485,9 +472,6 @@ begin
   simp_rw finset.card_eq_sum_ones,
   exact (finset.sum_fiberwise finset.univ (λ φ, mk_complex K φ) (λ φ, 1)).symm
 end
-
-@[simp]
-lemma map_inv (w : infinite_place K) (x : K) : w (x⁻¹) = (w x)⁻¹ := map_inv₀ w.1 _
 
 end number_field.infinite_place
 

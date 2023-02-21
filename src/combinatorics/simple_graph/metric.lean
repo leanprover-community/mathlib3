@@ -7,42 +7,42 @@ import combinatorics.simple_graph.connectivity
 import data.nat.lattice
 import data.enat.lattice
 import algebra.order.pointwise
+import topology.metric_space.emetric_space
 
-/-!
-# Graph metric
+open_locale ennreal
 
-This module defines the `simple_graph.dist` function, which takes
-pairs of vertices to the length of the shortest walk between them.
+namespace enat
 
-## Main definitions
+lemma add_one_lt_add_one {a b : ℕ∞} (ab : a < b) : a + 1 < b + 1 := sorry
+lemma le_add (n m : ℕ∞) : n ≤ n + m := sorry
+lemma add_le_add {n n' m m' : ℕ∞} (hn : n ≤ n') (hm : m ≤ m') : n + m ≤ n' + m' := sorry
+lemma lt_add_one_iff_le {n m : ℕ∞} (h : m ≠ ⊤) : n < m + 1 ↔ n ≤ m  := sorry
 
-- `simple_graph.dist` is the graph metric.
+section enat_coe
 
-## Todo
+@[instance, reducible]
+noncomputable def coe_ennreal_ennreal : has_coe ℕ∞ ℝ≥0∞ :=
+{ coe := λ x, match x with
+  | (some x) := (x : ℝ≥0∞)
+  | none := ⊤
+  end }
 
-- Provide an additional computable version of `simple_graph.dist`
-  for when `G` is connected.
+lemma coe_ennreal_zero : ↑(0 : ℕ∞) = (0 : ℝ≥0∞) := sorry
+lemma coe_ennreal_one : ↑(1 : ℕ∞) = (1 : ℝ≥0∞) := sorry
+lemma coe_ennreal_top : ↑(⊤ : ℕ∞) = (∞ : ℝ≥0∞) := sorry
+@[simp] lemma coe_ennreal_add (x y : ℕ∞) : (x : ℝ≥0∞) + (y : ℝ≥0∞) = ↑(x + y) := sorry
+@[simp] lemma coe_ennreal_inj (x y : ℕ∞) : (x : ℝ≥0∞) = (y : ℝ≥0∞) ↔ x = y := sorry
+@[simp] lemma coe_ennreal_mono (x y : ℕ∞) : (x : ℝ≥0∞) ≤ (y : ℝ≥0∞) ↔ x ≤ y := sorry
 
-- Evaluate `nat` vs `enat` for the codomain of `dist`, or potentially
-  having an additional `edist` when the objects under consideration are
-  disconnected graphs.
+end enat_coe
 
-- When directed graphs exist, a directed notion of distance,
-  likely `enat`-valued.
-
-## Tags
-
-graph metric, distance
-
--/
+end enat
 
 namespace simple_graph
 variables {V : Type*} (G : simple_graph V)
 
 /-! ## Metric -/
 
-/-- The distance between two vertices is the length of the shortest walk between them.
-If no such walk exists, this uses the junk value of `0`. -/
 noncomputable
 def edist (u v : V) : ℕ∞ := ⨅ w : G.walk u v, w.length
 
@@ -126,8 +126,7 @@ begin
   { simp only [not_reachable_iff_edist_eq_top.mp huv, with_top.top_add, le_top], },
 end
 
-@[simp]
-lemma edist_eq_zero_iff_eq {u v : V} : G.edist u v = 0 ↔ u = v :=
+@[simp] lemma edist_eq_zero_iff_eq {u v : V} : G.edist u v = 0 ↔ u = v :=
 ⟨λ h, walk.eq_of_length_eq_zero (exists_walk_of_edist_eq_nat h).some_spec, λ h, h ▸ edist_self⟩
 
 @[simp]
@@ -141,8 +140,6 @@ begin
     simp only [nat.one_le_iff_ne_zero, walk.length_cons, walk.length_nil, ne.def],
     exact λ h, (a.ne $ walk.eq_of_length_eq_zero h), },
 end
-
-lemma _root_.enat.add_one_lt_add_one {a b : ℕ∞} (ab : a < b) : a + 1 < b + 1 := sorry
 
 lemma exists_edist_eq_of_edist_eq_succ {u v : V} {n : ℕ} (h : G.edist u v = n+1) :
   ∃ w, G.edist w v = n ∧ G.edist u w = 1 :=
@@ -167,10 +164,6 @@ def closed_ball (G : simple_graph V) (v : V) (n : ℕ) := {u | G.edist u v ≤ n
 lemma closed_ball_zero_eq (v : V) : G.closed_ball v 0 = {v} :=
 by simp only [closed_ball, edist_eq_zero_iff_eq, enat.coe_zero, nonpos_iff_eq_zero,
               set.set_of_eq_eq_singleton]
-
-lemma _root_.enat.le_add (n m : ℕ∞) : n ≤ n + m := sorry
-lemma _root_.enat.add_le_add {n n' m m' : ℕ∞} (hn : n ≤ n') (hm : m ≤ m') : n + m ≤ n' + m' := sorry
-lemma _root_.enat.lt_add_one_iff_le {n m : ℕ∞} (h : m ≠ ⊤) : n < m + 1 ↔ n ≤ m  := sorry
 
 lemma closed_ball_succ_eq  (v : V) (n : ℕ) :
   G.closed_ball v (n+1) = G.closed_ball v n ∪ (⋃ u ∈ G.closed_ball v n, G.neighbor_set u) :=
@@ -216,5 +209,14 @@ end
 @[reducible]
 def closed_neighborhood (s : set V) (n : ℕ) := ⋃ v ∈ s, G.closed_ball v n
 
+def path_metric (G : simple_graph V) := V
+
+noncomputable instance (G : simple_graph V) : emetric_space (path_metric G) :=
+{ edist := λ x y, (G.edist x y : ℝ≥0∞),
+  edist_self := λ x, by simp only [←enat.coe_ennreal_zero, edist_self],
+  edist_comm := λ x y, by simp only [edist_comm],
+  edist_triangle := λ x y z, by simp only [enat.coe_ennreal_add, edist_triangle, enat.coe_ennreal_mono],
+  eq_of_edist_eq_zero := λ x y, by
+    { simp only [←enat.coe_ennreal_zero, enat.coe_ennreal_inj, edist_eq_zero_iff_eq, imp_self], } }
 
 end simple_graph

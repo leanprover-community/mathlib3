@@ -1,7 +1,28 @@
-import linear_algebra.free_module.pid
+/-
+Copyright (c) 2023 Xavier Roblot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Xavier Roblot
+-/
 import analysis.normed_space.basic
 import linear_algebra.finite_dimensional
 import measure_theory.group.fundamental_domain
+import linear_algebra.free_module.pid
+
+/-!
+# ℤ-lattices
+A ℤ-lattice `L` is a discrete subgroup of a finite dimensional real vector space `E` such
+that `L` spans `E` over `ℝ`.
+
+The ℤ-lattice `L` can be defined in two ways:
+* `L : submodule.span ℤ (set.range b)` where `b` is a basis of `E`
+* `L : submodule ℤ E` with the additional properties:
+  `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
+  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`
+
+## Main results
+* `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
+indeed a fundamental domain of the lattice
+-/
 
 open_locale classical
 
@@ -9,19 +30,21 @@ noncomputable theory
 
 section zspan
 
--- TODO. Generalize also to floor_ring (field?)
+-- TODO. Generalize to other fields(?)
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
+variables {ι : Type*} (b : basis ι ℝ E)
 
+/-- The lattice defined by the basis `b` admits `b` as a `ℤ`-basis. -/
 def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
 basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)))
 
 lemma zspan.basis_eq (i : ι) : (zspan.basis b i : E) = b i :=
   by simp only [zspan.basis, basis.span_apply]
 
-lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) (i : ι) :
+lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) [finite ι] (i : ι)  :
    b.repr m i = ((zspan.basis b).repr m i : ℝ) :=
 begin
+  casesI nonempty_fintype ι,
   rw ← sub_eq_zero,
   revert i,
   apply fintype.linear_independent_iff.mp b.linear_independent,
@@ -36,9 +59,10 @@ begin
   simp_rw set_like.coe_smul,
 end
 
-lemma zspan.mem_span_iff (m : E) :
+lemma zspan.mem_span_iff [finite ι] (m : E) :
   m ∈ submodule.span ℤ (set.range b) ↔ ∀ i, ∃ c : ℤ, b.repr m i = c :=
 begin
+  casesI nonempty_fintype ι,
   split,
   { intros hm i,
     use (zspan.basis b).repr ⟨m, hm⟩ i,
@@ -54,6 +78,10 @@ begin
     exact submodule.subset_span (set.mem_range_self i),  }
 end
 
+variable [fintype ι]
+
+/-- The map that sends a vector of the ambiant space to the element of the lattice obtained
+by round down its coordinate on the basis `b`. -/
 def zspan.floor_map : E → submodule.span ℤ (set.range b) :=
 λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • zspan.basis b i)
 
@@ -74,6 +102,7 @@ begin
   refl,
 end
 
+/-- The map that sends a vector of the ambiant space to the fundamental domain of the lattice. -/
 def zspan.fract_map : E → E := λ m, m - zspan.floor_map b m
 
 lemma zspan.fract_map_single (m : E) (i : ι):
@@ -101,8 +130,8 @@ begin
   exact (zspan.mem_span_iff b (m - n)).symm,
 end
 
--- TODO: prove that it is an add hom
-noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range b) → E :=
+/-- The map between `E` quotiented by the lattice and its fundamental domain. -/
+def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range b) → E :=
 begin
   intro q,
   refine quotient.lift_on' q (zspan.fract_map b) _,
@@ -155,16 +184,20 @@ section fundamental_domain
 
 open measure_theory measurable_set
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
-variables [opens_measurable_space E]
-variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
-variables (μ : measure E)
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {ι : Type*}  (b : basis ι ℝ E)
 
--- use parallelepiped?
+instance zspan.vadd : has_vadd (submodule.span ℤ (set.range b)) E := ⟨ λ s m, s + m ⟩
+
+@[simp]
+lemma zspan.vadd_eq_add (m : E) (v : submodule.span ℤ (set.range b)) :
+  v +ᵥ m = v + m := rfl
+
+/-- The fundamental domain of the lattice. -/
 def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : ℝ) 1 }
 
--- use this to simplify proof of is_add_fundamental_domain
-lemma zspan.mem_fundamental_domain {x : E} :
+-- TODO. use this to simplify proof of is_add_fundamental_domain
+lemma zspan.mem_fundamental_domain [fintype ι] {x : E} :
   x ∈ (zspan.fundamental_domain b) ↔ zspan.fract_map b x = x :=
 begin
   rw basis.ext_elem_iff b,
@@ -172,9 +205,10 @@ begin
     int.fract_eq_self],
 end
 
-lemma zspan.metric.bounded_fundamental_domain :
+lemma zspan.metric.bounded_fundamental_domain [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
+  casesI nonempty_fintype ι,
   use 2 * finset.univ.sum (λ j, ‖b j‖),
   intros x hx y hy,
   have : ‖x‖ ≤ finset.univ.sum (λ j, ‖b j‖),
@@ -187,13 +221,8 @@ begin
   linarith,
 end
 
-instance zspan.vadd : has_vadd (submodule.span ℤ (set.range b)) E := ⟨ λ s m, s + m ⟩
-
-@[simp]
-lemma zspan.vadd_eq_add (m : E) (v : submodule.span ℤ (set.range b)) :
-  v +ᵥ m = v + m := rfl
-
-lemma zspan.is_add_fundamental_domain :
+lemma zspan.is_add_fundamental_domain [measurable_space E] [opens_measurable_space E]
+  (μ : measure E) [finite ι] :
   is_add_fundamental_domain (submodule.span ℤ (set.range b)).to_add_subgroup
     (zspan.fundamental_domain b) μ :=
 { null_measurable_set :=
@@ -214,6 +243,7 @@ lemma zspan.is_add_fundamental_domain :
   end,
   ae_covers :=
   begin
+    casesI nonempty_fintype ι,
     refine filter.eventually_of_forall _,
     intro x,
     use - zspan.floor_map b x,
@@ -260,8 +290,7 @@ lemma zspan.is_add_fundamental_domain :
     rw ← basis.ext_elem_iff b at t3,
     rw ← subtype.ext_iff at t3,
     exact hvw t3,
-  end
-}
+  end }
 
 end fundamental_domain
 
@@ -323,6 +352,7 @@ begin
     exact submodule.fg_span (linear_independent.finite h3), },
 end
 
+/-- A basis of the lattice `L`.-/
 def zlattice.basis [no_zero_smul_divisors ℤ E]
   (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
   (hs : submodule.span ℝ (L : set E) = ⊤) :  Σ (n : ℕ), basis (fin n) ℤ L :=
@@ -490,8 +520,7 @@ begin
       simp only [add_left_neg, zero_smul],
       refl,
       apply (iff.not set.mem_to_finset).mpr,
-      exact set.not_mem_of_mem_diff hv1,
-    },
+      exact set.not_mem_of_mem_diff hv1, },
     { use v,
       exact finset.mem_insert_self _ _,
       dsimp only [g],

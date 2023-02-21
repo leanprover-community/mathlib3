@@ -224,6 +224,7 @@ protected lemma linear_independent.eventually {ι} [finite ι] {f : ι → E}
 begin
   casesI nonempty_fintype ι,
   simp only [fintype.linear_independent_iff'] at hf ⊢,
+  letI : normed_space 𝕜 (ι → 𝕜) := pi.normed_space, -- Lean needs help to find this after #18462
   rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
   have : tendsto (λ g : ι → E, ∑ i, ‖g i - f i‖) (𝓝 f) (𝓝 $ ∑ i, ‖f i - f i‖),
     from tendsto_finset_sum _ (λ i hi, tendsto.norm $
@@ -238,7 +239,10 @@ begin
     ← finset.sum_sub_distrib, ← smul_sub, ← sub_smul, nnreal.coe_sum, coe_nnnorm, finset.sum_mul],
   refine norm_sum_le_of_le _ (λ i _, _),
   rw [norm_smul, mul_comm],
-  exact mul_le_mul_of_nonneg_left (norm_le_pi_norm (v - u) i) (norm_nonneg _)
+  refine mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+  -- TODO: this worked with `exact` before #18462
+  convert (norm_le_pi_norm _ i),
+  refl
 end
 
 lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :

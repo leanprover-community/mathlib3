@@ -240,6 +240,14 @@ end
 @[reducible]
 def closed_neighborhood (s : set V) (n : ℕ) := ⋃ v ∈ s, G.closed_ball v n
 
+lemma closed_neighborhood.finite [locally_finite G] {s : set V} (fs : s.finite) (n : ℕ) :
+  (G.closed_neighborhood s n).finite :=
+begin
+  classical,
+  apply set.finite.bUnion fs (λ u us, _),
+  exact ⟨simple_graph.fintype_closed_ball u n⟩,
+end
+
 def path_metric (G : simple_graph V) := V
 
 noncomputable instance (G : simple_graph V) : emetric_space (path_metric G) :=

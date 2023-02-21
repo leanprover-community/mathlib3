@@ -63,12 +63,13 @@ require balls of positive radius with center at the origin to be strictly convex
 then prove that any closed ball is strictly convex in `strict_convex_closed_ball` below.
 
 See also `strict_convex_space.of_strict_convex_closed_unit_ball`. -/
-class strict_convex_space (𝕜 E : Type*) [normed_linear_ordered_field 𝕜] [normed_add_comm_group E]
+class strict_convex_space (𝕜 E : Type*)
+  [normed_linear_ordered_field 𝕜] [add_comm_group E] [normed_add_comm_group E]
   [normed_space 𝕜 E] : Prop :=
 (strict_convex_closed_ball : ∀ r : ℝ, 0 < r → strict_convex 𝕜 (closed_ball (0 : E) r))
 
 variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- A closed ball in a strictly convex space is strictly convex. -/
 lemma strict_convex_closed_ball [strict_convex_space 𝕜 E] (x : E) (r : ℝ) :

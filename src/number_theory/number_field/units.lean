@@ -3,10 +3,18 @@
  Released under Apache 2.0 license as described in the file LICENSE.
  Authors: Xavier Roblot
  -/
-
 import group_theory.torsion
 import number_theory.number_field.norm
 import number_theory.number_field.embeddings
+
+/-!
+ # Units of a number field
+ This file defines and proves results about the group `𝓤 K` of units of the ring of integers of a
+ number field `K`.
+
+ ## Tags
+ number field, units
+ -/
 
 open_locale classical number_field
 
@@ -20,6 +28,7 @@ namespace number_field
 
 open number_field units
 
+/-- The `monoid_hom` from the group of units to the field. -/
 def units_to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
 
 lemma units_to_field_injective : function.injective (units_to_field K) :=
@@ -122,6 +131,7 @@ section roots_of_unity
 
 open number_field number_field.infinite_place
 
+/-- The subgroup of roots of unity. -/
 def roots_of_unity : subgroup 𝓤 K := comm_group.torsion (𝓤 K)
 
 lemma mem_roots_of_unity [number_field K] (x : (𝓤 K)) :

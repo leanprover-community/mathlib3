@@ -51,7 +51,7 @@ instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨units_to_fiel
 
 section coe
 
-namespace number_field.unit
+namespace unit
 
 variable {K}
 
@@ -82,7 +82,7 @@ lemma coe_one : ((1 : 𝓤 K) : K) = (1 : K) := rfl
 lemma coe_ne_zero {x : 𝓤 K} : (x : K) ≠ 0 :=
 subtype.coe_injective.ne_iff.2 (units.ne_zero x)
 
-end number_field.unit
+end unit
 
 end coe
 
@@ -463,9 +463,9 @@ def unit_lattice_span_map :
       ring, },
   end, }
 
-  lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal} (hf : ∀ z, z ≠ w → f z ≠ 0)
-  (B : ℕ) : ∃ C : nnreal,
-    finset.univ.prod (λ v : infinite_place K, ite (v.is_real) (f.update w C v)
+  lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal}
+  (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
+    ∃ C : nnreal, finset.univ.prod (λ v : infinite_place K, ite (v.is_real) (f.update w C v)
     ((f.update w C v) ^ 2)) = B :=
 begin
   let S := (finset.univ.erase w).prod (λ v : infinite_place K, ite (v.is_real) (f v) (f v ^ 2)),
@@ -506,7 +506,7 @@ begin
   refl,
 end
 
-def seq.next {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
+lemma seq.next {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
   {x : 𝓞 K} (hx : x ≠ 0) :
   ∃ a : (𝓞 K), a ≠ 0 ∧ (∀ z, z ≠ w → z a < (z x) / 2) ∧ abs (algebra.norm ℚ (a : K)) ≤ B :=
 begin

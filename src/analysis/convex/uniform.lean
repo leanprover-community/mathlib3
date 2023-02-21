@@ -118,7 +118,7 @@ end
 
 end seminormed_add_comm_group
 
-variables [normed_add_comm_group E] [normed_space ℝ E] [uniform_convex_space E]
+variables [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [uniform_convex_space E]
 
 @[priority 100] -- See note [lower instance priority]
 instance uniform_convex_space.to_strict_convex_space : strict_convex_space ℝ E :=

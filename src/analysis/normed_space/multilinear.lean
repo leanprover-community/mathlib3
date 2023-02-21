@@ -727,7 +727,7 @@ variables {𝕜 ι} {A : Type*} [normed_comm_ring A] [normed_algebra 𝕜 A]
 lemma norm_mk_pi_algebra_le [nonempty ι] :
   ‖continuous_multilinear_map.mk_pi_algebra 𝕜 ι A‖ ≤ 1 :=
 begin
-  have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ _ f _ zero_le_one,
+  have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ _ _ _ f _ zero_le_one,
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_apply, one_mul],
@@ -738,7 +738,7 @@ lemma norm_mk_pi_algebra_of_empty [is_empty ι] :
   ‖continuous_multilinear_map.mk_pi_algebra 𝕜 ι A‖ = ‖(1 : A)‖ :=
 begin
   apply le_antisymm,
-  { have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ _ f _ (norm_nonneg (1 : A)),
+  { have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ _ _ _ f _ (norm_nonneg (1 : A)),
     refine this _ _,
     simp, },
   { convert ratio_le_op_norm _ (λ _, (1 : A)),
@@ -764,7 +764,7 @@ variables {𝕜 n} {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
 lemma norm_mk_pi_algebra_fin_succ_le :
   ‖continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n.succ A‖ ≤ 1 :=
 begin
-  have := λ f, @op_norm_le_bound 𝕜 (fin n.succ) (λ i, A) A _ _ _ _ _ _ _ f _ zero_le_one,
+  have := λ f, @op_norm_le_bound 𝕜 (fin n.succ) (λ i, A) A _ _ _ _ _ _ _ _ _ f _ zero_le_one,
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_fin_apply, one_mul, list.of_fn_eq_map,

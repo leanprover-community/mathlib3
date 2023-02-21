@@ -6,6 +6,8 @@ Authors: Ashvni Narayanan, Anne Baanen
 
 import ring_theory.dedekind_domain.integral_closure
 import algebra.char_p.algebra
+import linear_algebra.free_module.pid
+import ring_theory.localization.module
 
 /-!
 # Number fields
@@ -36,7 +38,7 @@ class number_field (K : Type*) [field K] : Prop :=
 [to_char_zero : char_zero K]
 [to_finite_dimensional : finite_dimensional ℚ K]
 
-open function
+open function module
 open_locale classical big_operators
 
 /-- `ℤ` with its usual ring structure is not a field. -/
@@ -130,7 +132,55 @@ end
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
+-- TODO. Do the general case : is_integral_closure instead
+instance [number_field K] : free ℤ (𝓞 K) :=
+begin
+  have basis : Σ n, basis (fin n) ℤ (𝓞 K) := free_of_finite_type_torsion_free',
+  obtain ⟨n, b⟩ := basis,
+  exact free.of_basis b
+end
+
+noncomputable def basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℤ (𝓞 K)
+:= free.choose_basis ℤ (𝓞 K)
+
 end ring_of_integers
+
+instance [number_field K]:
+  is_localization (algebra.algebra_map_submonoid (𝓞 K) (non_zero_divisors ℤ)) K :=
+begin
+refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
+    { rintro ⟨y, hy⟩,
+      simp only [subalgebra.algebra_map_eq, is_unit_iff_ne_zero, algebra.id.map_eq_id,
+        ring_hom_comp_triple.comp_eq, set_like.coe_mk, alg_hom.coe_to_ring_hom, subalgebra.coe_val,
+        ne.def],
+      intro h0,
+      simpa [(subalgebra.coe_eq_zero _).1 h0, algebra.algebra_map_submonoid,
+        mem_non_zero_divisors_iff_ne_zero] using hy },
+    { obtain ⟨⟨m, mzdiv⟩, hm⟩ := is_integral.exists_multiple_integral_of_is_localization
+        (non_zero_divisors ℤ) z (is_separable.is_integral ℚ z),
+      refine ⟨⟨⟨_, hm⟩, ⟨m, ⟨m, ⟨mzdiv, by simp⟩⟩⟩⟩, _⟩,
+      simp [subalgebra.algebra_map_eq, submonoid.smul_def, mul_comm] },
+    { simp [is_fraction_ring.injective (𝓞 K) K h] },
+    { rintro ⟨⟨m, mzdiv⟩, hm⟩,
+      suffices : m ≠ 0,
+      { congr,
+        simpa [this] using hm },
+      intro h0,
+      rw [h0] at mzdiv,
+      simpa [algebra.algebra_map_submonoid, mem_non_zero_divisors_iff_ne_zero] using mzdiv },
+end
+
+noncomputable def integral_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℚ K :=
+basis.localization_localization ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K)
+
+lemma integral_basis_apply [number_field K] (i : free.choose_basis_index ℤ (𝓞 K)) :
+  (integral_basis K) i = (algebra_map (𝓞 K) K) (ring_of_integers.basis K i) :=
+basis.localization_localization_apply ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K) i
+
+lemma rank_eq_rank [number_field K] :
+  finite_dimensional.finrank ℤ (𝓞 K) = finite_dimensional.finrank ℚ K :=
+by rw [free.finrank_eq_card_choose_basis_index,
+  finite_dimensional.finrank_eq_card_basis (integral_basis K)]
 
 end number_field
 

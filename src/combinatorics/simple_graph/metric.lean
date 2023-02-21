@@ -9,6 +9,7 @@ import data.enat.lattice
 import algebra.order.pointwise
 import topology.metric_space.emetric_space
 import topology.metric_space.lipschitz
+import data.real.enat_ennreal
 
 open_locale ennreal
 
@@ -19,23 +20,7 @@ lemma le_add (n m : ℕ∞) : n ≤ n + m := sorry
 lemma add_le_add {n n' m m' : ℕ∞} (hn : n ≤ n') (hm : m ≤ m') : n + m ≤ n' + m' := sorry
 lemma lt_add_one_iff_le {n m : ℕ∞} (h : m ≠ ⊤) : n < m + 1 ↔ n ≤ m  := sorry
 
-section enat_coe
-
-@[instance, reducible]
-noncomputable def coe_ennreal_ennreal : has_coe ℕ∞ ℝ≥0∞ :=
-{ coe := λ x, match x with
-  | (some x) := (x : ℝ≥0∞)
-  | none := ⊤
-  end }
-
-lemma coe_ennreal_zero : ↑(0 : ℕ∞) = (0 : ℝ≥0∞) := sorry
-lemma coe_ennreal_one : ↑(1 : ℕ∞) = (1 : ℝ≥0∞) := sorry
-lemma coe_ennreal_top : ↑(⊤ : ℕ∞) = (∞ : ℝ≥0∞) := sorry
-@[simp] lemma coe_ennreal_add (x y : ℕ∞) : (x : ℝ≥0∞) + (y : ℝ≥0∞) = ↑(x + y) := sorry
-@[simp] lemma coe_ennreal_inj (x y : ℕ∞) : (x : ℝ≥0∞) = (y : ℝ≥0∞) ↔ x = y := sorry
-@[simp] lemma coe_ennreal_mono (x y : ℕ∞) : (x : ℝ≥0∞) ≤ (y : ℝ≥0∞) ↔ x ≤ y := sorry
-
-end enat_coe
+lemma coe_ennreal_inj {n m : ℕ∞} : (↑n : ℝ≥0∞) = ↑m ↔ n = m := sorry
 
 end enat
 
@@ -85,9 +70,9 @@ begin
   { rw [exists_walk_iff_edist_ne_top, h],
     apply with_top.nat_ne_top _, },
   rw h at this,
-  obtain ⟨w,hw⟩ := this,
+  obtain ⟨w, hw⟩ := this,
   simp only [nat.cast_inj] at hw,
-  exact ⟨w,hw⟩,
+  exact ⟨w, hw⟩,
 end
 
 protected
@@ -98,6 +83,7 @@ lemma preconnected.exists_walk (hconn : G.preconnected) (u v : V) :
 noncomputable
 def preconnected.dist (hconn : G.preconnected) (u v : V) : ℕ := (hconn.exists_walk u v).some.length
 
+@[simp]
 lemma preconnected.dist_eq (hconn : G.preconnected) (u v : V) :
   (hconn.dist u v : ℕ∞) = G.edist u v := (hconn.exists_walk u v).some_spec
 
@@ -127,9 +113,9 @@ lemma edist_triangle {u v w : V} :
 begin
   by_cases huv : nonempty (G.walk u v),
   by_cases hvw : nonempty (G.walk v w),
-  { obtain ⟨p,hp⟩ := reachable.exists_walk huv,
-    obtain ⟨q,hq⟩ := reachable.exists_walk hvw,
-    rw [←hp, ←hq, ←enat.coe_add,←walk.length_append],
+  { obtain ⟨p, hp⟩ := reachable.exists_walk huv,
+    obtain ⟨q, hq⟩ := reachable.exists_walk hvw,
+    rw [←hp, ←hq, ←enat.coe_add, ←walk.length_append],
     apply edist_le, },
   { simp only [not_reachable_iff_edist_eq_top.mp hvw, with_top.add_top, le_top], },
   { simp only [not_reachable_iff_edist_eq_top.mp huv, with_top.top_add, le_top], },
@@ -183,14 +169,14 @@ begin
   split,
   { rintro hx, rw [le_iff_eq_or_lt] at hx,
     rcases hx with (he|hlt),
-    { obtain ⟨_|⟨a,w⟩,h⟩ := exists_walk_of_edist_eq_nat he,
-      { simpa using h, },
+    { obtain ⟨_|⟨a, w⟩, h⟩ := exists_walk_of_edist_eq_nat he,
+      { simp, },
       { simp only [walk.length_cons, add_left_inj] at h,
         rw ←h,
         refine or.inr ⟨_, edist_le _, a.symm⟩, } },
     { rw enat.lt_add_one_iff_le (with_top.nat_ne_top n) at hlt,
       exact or.inl hlt, }  },
-  { rintro (hx|⟨u,hu,a⟩),
+  { rintro (hx|⟨u, hu, a⟩),
     { exact hx.trans (enat.le_add _ _), },
     { apply (@edist_triangle _ G x u v).trans _,
       rw add_comm _ (1 : ℕ∞),
@@ -215,7 +201,7 @@ lemma hom.edist_le (φ : G →g G') (x y : V) : G'.edist (φ x) (φ y) ≤ G.edi
 begin
   obtain (h|h) := eq_or_ne (G.edist x y) ⊤,
   { simp [h], },
-  { obtain ⟨p,h⟩ := exists_walk_iff_edist_ne_top.mpr h,
+  { obtain ⟨p, h⟩ := exists_walk_iff_edist_ne_top.mpr h,
     rw [←h, ←walk.length_map φ p],
     apply edist_le, },
 end
@@ -264,9 +250,10 @@ noncomputable instance (G : simple_graph V) : emetric_space (path_metric G) :=
 { edist := λ x y, (G.edist x y : ℝ≥0∞),
   edist_self := λ x, by simp only [←enat.coe_ennreal_zero, edist_self],
   edist_comm := λ x y, by simp only [edist_comm],
-  edist_triangle := λ x y z, by simp only [enat.coe_ennreal_add, edist_triangle, enat.coe_ennreal_mono],
+  edist_triangle := λ x y z, by
+    { simp only [←enat.coe_ennreal_add, enat.coe_ennreal_le, edist_triangle], },
   eq_of_edist_eq_zero := λ x y, by
-    { simp only [←enat.coe_ennreal_zero, enat.coe_ennreal_inj, edist_eq_zero_iff_eq, imp_self], } }
+    { simp only [←enat.coe_ennreal_zero, edist_eq_zero_iff_eq, enat.coe_ennreal_inj, imp_self], } }
 
 variables {G} {G'}
 
@@ -275,7 +262,7 @@ def hom.to_path_metric (φ : G →g G') : (path_metric G) → (path_metric G') :
 lemma hom.to_path_metric_nonexpanding (φ : G →g G') : lipschitz_with 1 (φ.to_path_metric) :=
 begin
   intros x y,
-  simp only [has_edist.edist, ennreal.coe_one, one_mul, enat.coe_ennreal_mono],
+  simp only [has_edist.edist, ennreal.coe_one, one_mul, enat.coe_ennreal_le],
   apply φ.edist_le,
 end
 
@@ -283,17 +270,17 @@ lemma enough_space_of_transitive [lf : locally_finite G] [hV : infinite V] [deci
   (Gpc : G.preconnected) (ht : ∀ u v, ∃ φ : G ≃g G, φ u = v) (K : finset V) :
   ∃ φ : G ≃g G, disjoint (K.image φ) K :=
 begin
-  obtain (rfl|⟨u,uK⟩) := finset.eq_empty_or_nonempty K,
+  obtain (rfl|⟨u, uK⟩) := finset.eq_empty_or_nonempty K,
   { simp, },
-  { let m := (K.image (λ y, Gpc.dist u y)).max' (finset.nonempty.image ⟨u,uK⟩ _),
+  { let m := (K.image (λ y, Gpc.dist u y)).max' (finset.nonempty.image ⟨u, uK⟩ _),
     have Km : ∀ ⦃y⦄, y ∈ K → G.edist u y ≤ m := λ y yK, by
     { simp only [←Gpc.dist_eq, nat.cast_le],
       refine finset.le_max' _ _ (finset.mem_image_of_mem _ yK), },
-    obtain ⟨v,hv⟩ := set.nonempty_compl.mpr (G.closed_ball_ne_univ_of_infinite u (m + m)),
-    obtain ⟨φ,rfl⟩ := ht u v,
+    obtain ⟨v, hv⟩ := set.nonempty_compl.mpr (G.closed_ball_ne_univ_of_infinite u (m + m)),
+    obtain ⟨φ, rfl⟩ := ht u v,
     have φKm : ∀ ⦃y⦄, y ∈ K.image φ →  G.edist (φ u) y ≤ m,
     { simp only [finset.mem_image],
-      rintro _ ⟨y,yK,rfl⟩,
+      rintro _ ⟨y, yK, rfl⟩,
       exact (iso.edist_eq φ u y).symm ▸ (Km yK), },
     simp only [finset.disjoint_left, set.mem_compl_iff, set.mem_set_of_eq, enat.coe_add] at hv ⊢,
     exact ⟨φ, λ x xφK xK, hv (edist_triangle.trans $ enat.add_le_add

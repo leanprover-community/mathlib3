@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.algebra_map
 import data.polynomial.inductions
 import data.polynomial.monic
 import ring_theory.multiplicity
@@ -429,6 +430,17 @@ begin
 end
 
 variable {R}
+
+lemma eval_ring_hom_ker (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
+by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
+
+lemma aeval_ker (x : R) : ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R).ker = ideal.span {X - C x} :=
+eval_ring_hom_ker x
+
+noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
+  (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
+((quotient_equiv_alg_of_eq $ aeval_ker x).restrict_scalars R).symm.trans $
+  ideal.quotient_ker_alg_equiv_of_surjective $ aeval_surjective x
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

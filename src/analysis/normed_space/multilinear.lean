@@ -58,7 +58,7 @@ open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_add_comm_group.to_add_comm_group normed_space.to_module'
+add_comm_group.to_add_comm_monoid normed_space.to_module'
 
 /-!
 ### Type variables
@@ -78,11 +78,12 @@ variables {𝕜 : Type u} {ι : Type v} {ι' : Type v'} {n : ℕ}
   {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
   {G : Type wG} {G' : Type wG'}
   [decidable_eq ι] [fintype ι] [decidable_eq ι'] [fintype ι'] [nontrivially_normed_field 𝕜]
-  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  [Π i, normed_add_comm_group (E₁ i)] [Π i, normed_space 𝕜 (E₁ i)]
-  [Π i, normed_add_comm_group (E' i)] [Π i, normed_space 𝕜 (E' i)]
-  [Π i, normed_add_comm_group (Ei i)] [Π i, normed_space 𝕜 (Ei i)]
-  [normed_add_comm_group G] [normed_space 𝕜 G] [normed_add_comm_group G'] [normed_space 𝕜 G']
+  [Π i, add_comm_group (E i)] [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, add_comm_group (E₁ i)] [Π i, normed_add_comm_group (E₁ i)] [Π i, normed_space 𝕜 (E₁ i)]
+  [Π i, add_comm_group (E' i)] [Π i, normed_add_comm_group (E' i)] [Π i, normed_space 𝕜 (E' i)]
+  [Π i, add_comm_group (Ei i)] [Π i, normed_add_comm_group (Ei i)] [Π i, normed_space 𝕜 (Ei i)]
+  [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
+  [add_comm_group G'] [normed_add_comm_group G'] [normed_space 𝕜 G']
 
 /-!
 ### Continuity properties of multilinear maps
@@ -397,7 +398,8 @@ theorem le_op_norm_mul_pow_card_of_le {b : ℝ} (hm : ∀ i, ‖m i‖ ≤ b) :
   ‖f m‖ ≤ ‖f‖ * b ^ fintype.card ι :=
 by simpa only [prod_const] using f.le_op_norm_mul_prod_of_le m hm
 
-theorem le_op_norm_mul_pow_of_le {Ei : fin n → Type*} [Π i, normed_add_comm_group (Ei i)]
+theorem le_op_norm_mul_pow_of_le
+  {Ei : fin n → Type*} [Π i, add_comm_group (Ei i)] [Π i, normed_add_comm_group (Ei i)]
   [Π i, normed_space 𝕜 (Ei i)] (f : continuous_multilinear_map 𝕜 Ei G) (m : Π i, Ei i)
   {b : ℝ} (hm : ‖m‖ ≤ b) :
   ‖f m‖ ≤ ‖f‖ * b ^ n :=
@@ -423,7 +425,8 @@ le_antisymm
     (f.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_left _ _).trans ((f.prod g).le_op_norm _))
     (g.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_right _ _).trans ((f.prod g).le_op_norm _))
 
-lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_add_comm_group (E' i')]
+lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'}
+  [Π i', add_comm_group (E' i')] [Π i', normed_add_comm_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] (f : Π i', continuous_multilinear_map 𝕜 E (E' i')) :
   ‖pi f‖ = ‖f‖ :=
 begin
@@ -491,10 +494,12 @@ def prodL :
   norm_map' := λ f, op_norm_prod f.1 f.2 }
 
 /-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
-def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_add_comm_group (E' i')]
+def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'}
+  [Π i', add_comm_group (E' i')] [Π i', normed_add_comm_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] :
   @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
-    (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _
+    (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i))
+    _ _ _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_linear_equiv :=
   -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
@@ -998,7 +1003,7 @@ linear_map.mk_continuous
 rfl
 
 lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
-  ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
+  ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
 linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
 end continuous_multilinear_map

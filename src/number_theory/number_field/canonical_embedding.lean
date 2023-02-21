@@ -348,7 +348,7 @@ begin
     rw is_unit_iff_ne_zero,
     exact t4, },
   rw ← is_basis_iff_det at t5,
-  refine t5.1.restrict_scalars (smul_left_injective ℝ one_ne_zero),
+  exact t5.1.restrict_scalars (smul_left_injective ℝ one_ne_zero),
 end
 
 lemma lattice_basis_apply [number_field K] (i : free.choose_basis_index ℤ (𝓞 K)) :

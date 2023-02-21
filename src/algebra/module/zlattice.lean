@@ -288,7 +288,6 @@ lemma zspan.is_add_fundamental_domain [measurable_space E] [opens_measurable_spa
     rw ← basis.ext_elem_iff b at t3,
     rw ← subtype.ext_iff at t3,
     exact hvw t3,
-  end
-}
+  end }
 
 end fundamental_domain

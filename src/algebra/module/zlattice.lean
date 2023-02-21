@@ -1,24 +1,25 @@
 /-
- Copyright (c) 2023 Xavier Roblot. All rights reserved.
- Released under Apache 2.0 license as described in the file LICENSE.
- Authors: Xavier Roblot
- -/
+Copyright (c) 2023 Xavier Roblot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Xavier Roblot
+-/
 import analysis.normed_space.basic
 import measure_theory.group.fundamental_domain
 
 /-!
 # ℤ-lattices
-A ℤ-lattice is a discrete subgroup of a finite vector space `E` usually over ℚ or ℝ that spans the
-full space (we consider only full lattices). See : https://en.wikipedia.org/wiki/Lattice_(group)
+A ℤ-lattice `L` is a discrete subgroup of a finite dimensional real vector space `E` such
+that `L` spans `E` over `ℝ`.
 
-A ℤ-lattice `L` can be defined in two ways:
-- `L : submodule.span ℤ (set.range b)` where `b` is a basis of `E`
-- `L : submodule ℤ E` with the additional properties:
+The ℤ-lattice `L` can be defined in two ways:
+* `L : submodule.span ℤ (set.range b)` where `b` is a basis of `E`
+* `L : submodule ℤ E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
   `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`
 
 ## Main results
-- `zspan.is_add_fundamental_domain`: the fundamental domain of a lattice
+* `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
+indeed a fundamental domain of the lattice
 -/
 
 open_locale classical
@@ -27,7 +28,7 @@ noncomputable theory
 
 section zspan
 
--- TODO. Generalize also to floor_ring (field?)
+-- TODO. Generalize to other fields(?)
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables {ι : Type*} (b : basis ι ℝ E)
 

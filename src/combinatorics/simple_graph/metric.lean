@@ -250,7 +250,7 @@ begin
   simp only [edist_self, with_top.coe_nonneg, zero_le'],
 end
 
-lemma closed_neighborhood.finite [locally_finite G] {s : set V} (fs : s.finite) (n : ℕ) :
+lemma closed_neighborhood_finite [locally_finite G] {s : set V} (fs : s.finite) (n : ℕ) :
   (G.closed_neighborhood s n).finite :=
 begin
   classical,

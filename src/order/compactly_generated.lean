@@ -16,6 +16,9 @@ import tactic.tfae
 /-!
 # Compactness properties for complete lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For complete lattices, there are numerous equivalent ways to express the fact that the relation `>`
 is well-founded. In this file we define three especially-useful characterisations and provide
 proofs that they are indeed equivalent to well-foundedness.

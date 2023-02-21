@@ -8,6 +8,9 @@ import category_theory.equivalence
 /-!
 # Opposite categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a category instance on `Cᵒᵖ`.
 The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
 

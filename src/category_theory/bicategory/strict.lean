@@ -9,6 +9,9 @@ import category_theory.bicategory.basic
 /-!
 # Strict bicategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A bicategory is called `strict` if the left unitors, the right unitors, and the associators are
 isomorphisms given by equalities.
 

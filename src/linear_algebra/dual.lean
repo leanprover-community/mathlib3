@@ -118,11 +118,7 @@ instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 `module.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
-@[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v :=
-begin
-  dunfold eval,
-  rw [linear_map.flip_apply, linear_map.id_apply]
-end
+@[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v := rfl
 
 variables {R M} {M' : Type*} [add_comm_monoid M'] [module R M']
 
@@ -394,7 +390,7 @@ lemma eval_range {ι : Type*} [_root_.finite ι] (b : basis ι R M) : (eval R M)
 begin
   classical,
   casesI nonempty_fintype ι,
-  rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
+  rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, submodule.map_top, to_dual_range _],
   apply_instance
 end
 

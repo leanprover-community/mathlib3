@@ -28,10 +28,10 @@ so-called stars and costars at each vertex of the domain.
 * `prefunctor.path_star_bijective` states that if `φ` is a covering, then `φ.star_path u` is a
   bijection for al `u`.
   In other words, any path in the codomain of `φ` lifts uniquely to its domain.
-  
-  ## TODO
-  
-  Clean up the namespaces by renaming `prefunctor` to `quiver.prefunctor`.
+
+## TODO
+
+Clean up the namespaces by renaming `prefunctor` to `quiver.prefunctor`.
 
 ## Tags
 
@@ -46,11 +46,20 @@ variables {U : Type*} [quiver.{u+1} U]
           {V : Type*} [quiver.{v+1} V] (φ : U ⥤q V)
           {W : Type*} [quiver.{w+1} W] (ψ : V ⥤q W)
 
-/-- The quiver.star at a vertex is the collection of arrows whose source is the vertex. -/
+/-- The `quiver.star` at a vertex is the collection of arrows whose source is the vertex. -/
 @[reducible] def quiver.star (u : U) := Σ (v : U), (u ⟶ v)
 
-/-- The quiver.costar at a vertex is the collection of arrows whose target is the vertex. -/
+/-- The `quiver.costar` at a vertex is the collection of arrows whose target is the vertex. -/
 @[reducible] def quiver.costar (u : U) := Σ (v : U), (v ⟶ u)
+
+lemma _root_.sigma.ext_rec {α : Type*} {β : α → Type*} (b₁ b₂ : Σ (a : α), β a) :
+  b₁ = b₂ ↔ ∃ h : b₁.1 = b₂.1, h.rec_on b₁.2 = b₂.2 :=
+begin
+  split,
+  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
+  { induction b₁, induction b₂, rintro ⟨h, H⟩, cases h, cases H,
+    simp only [eq_self_iff_true, heq_iff_eq, and_self], }
+end
 
 @[simp] lemma quiver.star_eq_iff {u : U} (F G : quiver.star u) :
   F = G ↔ ∃ h : F.1 = G.1, F.2.cast rfl h = G.2 :=
@@ -105,34 +114,20 @@ end
 
 lemma prefunctor.is_covering.comp (hφ : φ.is_covering) (hψ : ψ.is_covering) :
   (φ ⋙q ψ).is_covering :=
-begin
-  dsimp [prefunctor.is_covering],
-  exact  ⟨λ u, function.bijective.comp (hψ.left _) (hφ.left u),
-          λ u, function.bijective.comp (hψ.right _) (hφ.right u)⟩,
-end
+⟨λ u, (hψ.left (φ.obj u)).comp (hφ.left u), λ u, (hψ.right (φ.obj u)).comp (hφ.right u)⟩
 
-lemma prefunctor.is_covering.of_comp_right (hψ : ψ.is_covering) (hφψ : (φ ⋙q ψ).is_covering ) :
+lemma prefunctor.is_covering.of_comp_right (hψ : ψ.is_covering) (hφψ : (φ ⋙q ψ).is_covering) :
   φ.is_covering :=
-begin
-  split;
-  rintro u,
-  { rw ←@function.bijective.of_comp_iff' _ _ _
-       (ψ.star $ φ.obj u) (hψ.left $ φ.obj u) (φ.star u),
-    exact hφψ.left u},
-  { rw ←@function.bijective.of_comp_iff' _ _ _
-       (ψ.costar $ φ.obj u) (hψ.right $ φ.obj u) (φ.costar u),
-    exact hφψ.right u},
-end
+⟨ λ u, (function.bijective.of_comp_iff' (hψ.left $ φ.obj u) (φ.star u)).mp (hφψ.left u),
+  λ u, (function.bijective.of_comp_iff' (hψ.right $ φ.obj u) (φ.costar u)).mp (hφψ.right u)⟩
+
 lemma prefunctor.is_covering.of_comp_left (hφ : φ.is_covering) (hφψ : (φ ⋙q ψ).is_covering)
   (φsur : function.surjective φ.obj) : ψ.is_covering :=
 begin
-  split;
-  rintro v;
+  refine ⟨λ v, _, λ v, _⟩;
   obtain ⟨u, rfl⟩ := φsur v,
-  { rw ←@function.bijective.of_comp_iff _ _ _ (ψ.star $ φ.obj u) (φ.star u)  (hφ.left u),
-    exact hφψ.left u, },
-  { rw ←@function.bijective.of_comp_iff _ _ _ (ψ.costar $ φ.obj u) (φ.costar u)  (hφ.right u),
-    exact hφψ.right u, },
+  exacts [(function.bijective.of_comp_iff _ (hφ.left u)).mp (hφψ.left u),
+          (function.bijective.of_comp_iff _ (hφ.right u)).mp (hφψ.right u)],
 end
 
 /--
@@ -143,8 +138,8 @@ and the costar at `u` in the original quiver.
   quiver.star (symmetrify.of.obj u) ≃ quiver.star u ⊕ quiver.costar u :=
 begin
   fsplit,
-  { rintro ⟨v, (f|g)⟩, exact sum.inl ⟨v, f⟩, exact sum.inr ⟨v, g⟩, },
-  { rintro (⟨v, f⟩|⟨v, g⟩), exact ⟨v, f.to_pos⟩, exact ⟨v, g.to_neg⟩, },
+  { rintro ⟨v, (f|g)⟩, exacts [sum.inl ⟨v, f⟩, sum.inr ⟨v, g⟩], },
+  { rintro (⟨v, f⟩|⟨v, g⟩), exacts [⟨v, f.to_pos⟩, ⟨v, g.to_neg⟩], },
   { rintro ⟨v, (f|g)⟩, simp, },
   { rintro (⟨v, f⟩|⟨v, g⟩), simp, },
 end
@@ -163,16 +158,15 @@ costar and the star at `u` in the original quiver.
   quiver.costar (symmetrify.of.obj u) ≃ quiver.costar u ⊕ quiver.star u :=
 begin
   fsplit,
-  { rintro ⟨v, (f|g)⟩, exact sum.inl ⟨v, f⟩, exact sum.inr ⟨v, g⟩, },
-  { rintro (⟨v, f⟩|⟨v, g⟩), exact ⟨v, quiver.hom.to_pos f⟩, exact ⟨v, quiver.hom.to_neg g⟩, },
+  { rintro ⟨v, (f|g)⟩, exacts [sum.inl ⟨v, f⟩, sum.inr ⟨v, g⟩], },
+  { rintro (⟨v, f⟩|⟨v, g⟩), exacts [⟨v, quiver.hom.to_pos f⟩, ⟨v, quiver.hom.to_neg g⟩], },
   { rintro ⟨v, (f|g)⟩, simp, },
   { rintro (⟨v, f⟩|⟨v, g⟩), simp, },
 end
 
 lemma prefunctor.symmetrify_star (u : U) : φ.symmetrify.star u =
- (quiver.symmetrify_star (φ.obj u)).symm ∘
- (sum.map (φ.star u) (φ.costar u)) ∘
- (quiver.symmetrify_star u) :=
+ (quiver.symmetrify_star (φ.obj u)).symm ∘ sum.map (φ.star u) (φ.costar u) ∘
+ quiver.symmetrify_star u :=
 begin
   rw equiv.eq_symm_comp,
   ext ⟨v, (f|g)⟩;
@@ -180,25 +174,22 @@ begin
 end
 
 protected lemma prefunctor.symmetrify_costar (u : U) : φ.symmetrify.costar u =
- (symmetrify_costar (φ.obj u)).symm ∘ (sum.map (φ.costar u) (φ.star u)) ∘ (symmetrify_costar u) :=
+ (symmetrify_costar (φ.obj u)).symm ∘ sum.map (φ.costar u) (φ.star u) ∘ symmetrify_costar u :=
 begin
   rw equiv.eq_symm_comp,
   ext ⟨v, (f|g)⟩;
   simp,
 end
 
-lemma is_covering.symmetrify (hφ : φ.is_covering) : φ.symmetrify.is_covering :=
+protected lemma prefunctor.is_covering.symmetrify (hφ : φ.is_covering) : φ.symmetrify.is_covering :=
 begin
-  split;
-  rintro u,
-  { rw φ.symmetrify_star u,
-    simp only [equiv_like.comp_bijective, equiv_like.bijective_comp],
-    exact ⟨function.injective.sum_map (hφ.left u).left (hφ.right u).left,
-           function.surjective.sum_map (hφ.left u).right (hφ.right u).right⟩, },
-  { rw φ.symmetrify_costar u,
-    simp only [equiv_like.comp_bijective, equiv_like.bijective_comp],
-    exact ⟨function.injective.sum_map (hφ.right u).left (hφ.left u).left,
-           function.surjective.sum_map (hφ.right u).right (hφ.left u).right⟩, },
+  refine ⟨λ u, _, λ u, _⟩;
+  simp only [φ.symmetrify_star u, φ.symmetrify_costar u,
+             equiv_like.comp_bijective, equiv_like.bijective_comp],
+  exacts [⟨function.injective.sum_map (hφ.left u).left (hφ.right u).left,
+           function.surjective.sum_map (hφ.left u).right (hφ.right u).right⟩,
+          ⟨function.injective.sum_map (hφ.right u).left (hφ.left u).left,
+           function.surjective.sum_map (hφ.right u).right (hφ.left u).right⟩],
 end
 
 /-- The path star at a vertex `u` is the type of all paths starting at `u`. -/
@@ -245,25 +236,22 @@ begin
       have hφe := heq.trans (hom.cast_heq rfl hφy _).symm (path.hom_heq_of_cons_eq_cons h'),
       have h_path_star : φ.path_star u ⟨x₁, p₁⟩ = φ.path_star u ⟨x₂, p₂⟩,
       { simp only [prefunctor.path_star_apply], exact ⟨hφx, hφp⟩, },
-      specialize ih h_path_star, cases ih,
+      cases ih h_path_star,
       have h_star : φ.star x₁ ⟨y₁, e₁⟩ = φ.star x₁ ⟨y₂, e₂⟩,
       { simp only [prefunctor.star_apply], exact ⟨hφy, hφe⟩, },
-      cases (hφ.1 x₁).1 h_star, refl, },  },
+      cases (hφ.1 x₁).1 h_star, refl, }, },
   { rintro ⟨v, p⟩,
     induction p with v' v'' p' ev ih,
     { use ⟨u, path.nil⟩,
       simp only [prefunctor.map_path_nil, eq_self_iff_true, heq_iff_eq, and_self], },
     { obtain ⟨⟨u', q'⟩, h⟩ := ih,
-      rw quiver.path_star_eq_iff at h,
-      cases h with h h',
-      cases h, cases h',
+      simp only at h,
+      obtain ⟨rfl,rfl⟩ := h,
       obtain ⟨⟨u'', eu⟩, k⟩ := (hφ.left u').right ⟨_, ev⟩,
-      rw quiver.star_eq_iff at k,
-      cases k with k k',
-      cases k, cases k',
+      simp at k,
+      obtain ⟨rfl,rfl⟩ := k,
       use ⟨_, q'.cons eu⟩,
-      simp only [prefunctor.path_star_apply, prefunctor.map_path_cons, eq_self_iff_true,
-                 heq_iff_eq, and_self], } }
+      simp only [prefunctor.map_path_cons, eq_self_iff_true, heq_iff_eq, and_self], } }
 end
 
 section has_involutive_reverse

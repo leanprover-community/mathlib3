@@ -74,56 +74,37 @@ variables {α : Type u} [lattice α] [comm_group α]
 -- c + (a ⊔ b) = (c + a) ⊔ (c + b)
 @[to_additive]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
-begin
-  refine le_antisymm _ _,
-  { rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-    apply sup_le,
-    { rw le_inv_mul_iff_mul_le, exact le_sup_left, },
-    { rw le_inv_mul_iff_mul_le, exact le_sup_right }, },
-  { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left le_sup_right],
-    exact le_sup_left, },
-end
+(order_iso.mul_left _).map_sup _ _
+
+@[to_additive]
+lemma sup_mul [covariant_class α α (*) (≤)] (a b c : α) : (a ⊔ b) * c = (a * c) ⊔ (b * c) :=
+(order_iso.mul_right _).map_sup _ _
 
 @[to_additive]
 lemma mul_inf [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
-begin
-  refine le_antisymm _ _,
-  { rw [le_inf_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left inf_le_right],
-    exact inf_le_left, },
-  { rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-    apply le_inf,
-    { rw inv_mul_le_iff_le_mul, exact inf_le_left, },
-    { rw inv_mul_le_iff_le_mul, exact inf_le_right, }, },
-end
+(order_iso.mul_left _).map_inf _ _
+
+@[to_additive]
+lemma inf_mul [covariant_class α α (*) (≤)] (a b c : α) : (a ⊓ b) * c = (a * c) ⊓ (b * c) :=
+(order_iso.mul_right _).map_inf _ _
 
 -- Special case of Bourbaki A.VI.9 (2)
 -- -(a ⊔ b)=(-a) ⊓ (-b)
 @[to_additive]
 lemma inv_sup_eq_inv_inf_inv [covariant_class α α (*) (≤)] (a b : α) : (a ⊔ b)⁻¹ = a⁻¹ ⊓ b⁻¹ :=
-begin
-  apply le_antisymm,
-  { refine le_inf _ _,
-    { rw inv_le_inv_iff, exact le_sup_left, },
-    { rw inv_le_inv_iff, exact le_sup_right, } },
-  { rw [← inv_le_inv_iff, inv_inv],
-    refine sup_le _ _,
-    { rw [← inv_le_inv_iff, inv_inv],
-      exact inf_le_left, },
-    { rw [← inv_le_inv_iff, inv_inv],
-      exact inf_le_right, } }
-end
+(order_iso.inv α).map_sup _ _
 
 -- -(a ⊓ b) = -a ⊔ -b
 @[to_additive]
 lemma inv_inf_eq_sup_inv [covariant_class α α (*) (≤)] (a b : α) : (a ⊓ b)⁻¹ = a⁻¹ ⊔ b⁻¹ :=
-by rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, inv_inv, inv_inv]
+(order_iso.inv α).map_inf _ _
 
 -- Bourbaki A.VI.10 Prop 7
 -- a ⊓ b + (a ⊔ b) = a + b
 @[to_additive]
 lemma inf_mul_sup [covariant_class α α (*) (≤)] (a b : α) : (a ⊓ b) * (a ⊔ b) = a * b :=
 calc (a ⊓ b) * (a ⊔ b) = (a ⊓ b) * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
-  by { rw [mul_sup b⁻¹ a⁻¹ (a * b), mul_inv_cancel_right, mul_inv_cancel_comm], }
+  by rw [mul_sup b⁻¹ a⁻¹ (a * b), mul_inv_cancel_right, mul_inv_cancel_comm]
 ... = (a ⊓ b) * ((a * b) * (a ⊓ b)⁻¹) : by rw [inv_inf_eq_sup_inv, sup_comm]
 ... = a * b                       : by rw [mul_comm, inv_mul_cancel_right]
 
@@ -191,13 +172,8 @@ by rw [m_pos_part_def, sup_le_iff, and_iff_left le_rfl]
 lemma neg_le_one_iff {a : α} : a⁻ ≤ 1 ↔ a⁻¹ ≤ 1 :=
 by rw [m_neg_part_def, sup_le_iff, and_iff_left le_rfl]
 
-@[to_additive]
-lemma pos_eq_one_iff {a : α} : a⁺ = 1 ↔ a ≤ 1 :=
-by rw [le_antisymm_iff, pos_le_one_iff, and_iff_left (one_le_pos _)]
-
-@[to_additive]
-lemma neg_eq_one_iff' {a : α} : a⁻ = 1 ↔ a⁻¹ ≤ 1 :=
-by rw [le_antisymm_iff, neg_le_one_iff, and_iff_left (one_le_neg _) ]
+@[to_additive] lemma pos_eq_one_iff {a : α} : a⁺ = 1 ↔ a ≤ 1 := sup_eq_right
+@[to_additive] lemma neg_eq_one_iff' {a : α} : a⁻ = 1 ↔ a⁻¹ ≤ 1 := sup_eq_right
 
 @[to_additive]
 lemma neg_eq_one_iff [covariant_class α α has_mul.mul has_le.le] {a : α} : a⁻ = 1 ↔ 1 ≤ a :=
@@ -219,24 +195,6 @@ lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := rfl
 @[to_additive]
 lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by rw [neg_eq_pos_inv, inv_inv]
 
--- We use this in Bourbaki A.VI.12  Prop 9 a)
--- c + (a ⊓ b) = (c + a) ⊓ (c + b)
-@[to_additive]
-lemma mul_inf_eq_mul_inf_mul [covariant_class α α (*) (≤)]
-  (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
-begin
-  refine le_antisymm _ _,
-  { rw [le_inf_iff, mul_le_mul_iff_left, mul_le_mul_iff_left],
-    split,
-    { exact inf_le_left },
-    { exact inf_le_right }, },
-  { rw [← mul_le_mul_iff_left c⁻¹, ← mul_assoc, inv_mul_self, one_mul, le_inf_iff,
-    inv_mul_le_iff_le_mul, inv_mul_le_iff_le_mul],
-    split,
-    exact inf_le_left,
-    exact inf_le_right, },
-end
-
 -- Bourbaki A.VI.12  Prop 9 a)
 -- a = a⁺ - a⁻
 @[simp, to_additive]
@@ -252,7 +210,7 @@ end
 -- a⁺ ⊓ a⁻ = 0 (`a⁺` and `a⁻` are co-prime, and, since they are positive, disjoint)
 @[to_additive]
 lemma pos_inf_neg_eq_one [covariant_class α α (*) (≤)] (a : α) : a⁺ ⊓ a⁻ = 1 :=
-by rw [←mul_right_inj (a⁻)⁻¹, mul_inf_eq_mul_inf_mul, mul_one, mul_left_inv, mul_comm,
+by rw [←mul_right_inj (a⁻)⁻¹, mul_inf, mul_one, mul_left_inv, mul_comm,
   ← div_eq_mul_inv, pos_div_neg, neg_eq_inv_inf_one, inv_inv]
 
 -- Bourbaki A.VI.12 (with a and b swapped)
@@ -269,7 +227,7 @@ calc a ⊔ b = (b * (a / b)) ⊔ (b * 1) : by rw [mul_one b, div_eq_mul_inv, mul
 lemma inf_eq_div_pos_div [covariant_class α α (*) (≤)] (a b : α) : a ⊓ b = a / (a / b)⁺ :=
 calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, mul_comm b,
   mul_inv_cancel_left], }
-... = a * (1 ⊓ (b / a))     : by rw ← mul_inf_eq_mul_inf_mul 1 (b / a) a
+... = a * (1 ⊓ (b / a))     : by rw ← mul_inf 1 (b / a) a
 ... = a * ((b / a) ⊓ 1)     : by rw inf_comm
 ... = a * ((a / b)⁻¹ ⊓ 1)   : by { rw div_eq_mul_inv, nth_rewrite 0 ← inv_inv b,
   rw [← mul_inv, mul_comm b⁻¹, ← div_eq_mul_inv], }
@@ -315,22 +273,13 @@ end
 lemma one_le_abs [covariant_class α α (*) (≤)] (a : α) : 1 ≤ |a| :=
 by { rw ← m_pos_abs, exact one_le_pos _, }
 
--- The proof from Bourbaki A.VI.12 Prop 9 d)
 -- |a| = a⁺ - a⁻
 @[to_additive]
 lemma pos_mul_neg [covariant_class α α (*) (≤)] (a : α) : |a| = a⁺ * a⁻ :=
 begin
-  refine le_antisymm _ _,
-  { refine sup_le _ _,
-    { nth_rewrite 0 ← mul_one a,
-      exact mul_le_mul' (m_le_pos a) (one_le_neg a) },
-    { nth_rewrite 0 ← one_mul (a⁻¹),
-      exact mul_le_mul' (one_le_pos a) (inv_le_neg a) } },
-  { rw [← inf_mul_sup, pos_inf_neg_eq_one, one_mul, ← m_pos_abs a],
-    apply sup_le,
-    { exact ((m_le_iff_pos_le_neg_ge _ _).mp (le_mabs a)).left, },
-    { rw neg_eq_pos_inv,
-      exact ((m_le_iff_pos_le_neg_ge _ _).mp (inv_le_abs a)).left, }, }
+  rw [m_pos_part_def, sup_mul, one_mul, m_neg_part_def, mul_sup, mul_one, mul_inv_self, sup_assoc,
+    ←@sup_assoc _ _ a, sup_eq_right.2 le_sup_right],
+  exact (sup_eq_left.2 $ one_le_abs a).symm,
 end
 
 -- a ⊔ b - (a ⊓ b) = |b - a|
@@ -432,7 +381,7 @@ neg_eq_one_iff'.mpr h
 
 @[to_additive] -- neg_of_nonpos
 lemma neg_of_le_one [covariant_class α α (*) (≤)] (a : α) (h : a ≤ 1) : a⁻ = a⁻¹ :=
-by { refine neg_of_one_le_inv _ _, rw one_le_inv', exact h, }
+sup_eq_left.2 $ one_le_inv'.2 h
 
 @[to_additive] -- neg_of_nonneg'
 lemma neg_of_one_le [covariant_class α α (*) (≤)] (a : α) (h : 1 ≤ a) : a⁻ = 1 :=
@@ -441,12 +390,7 @@ neg_eq_one_iff.mpr h
 -- 0 ≤ a implies |a| = a
 @[to_additive abs_of_nonneg]
 lemma mabs_of_one_le [covariant_class α α (*) (≤)] (a : α) (h : 1 ≤ a) : |a| = a :=
-begin
-  rw [abs_eq_sup_inv, sup_eq_mul_pos_div, div_eq_mul_inv, inv_inv, ← pow_two, inv_mul_eq_iff_eq_mul,
-    ← pow_two, pos_of_one_le],
-  rw pow_two,
-  apply one_le_mul h h,
-end
+sup_eq_left.2 $ left.inv_le_self h
 
 /-- The unary operation of taking the absolute value is idempotent. -/
 @[simp, to_additive abs_abs "The unary operation of taking the absolute value is idempotent."]

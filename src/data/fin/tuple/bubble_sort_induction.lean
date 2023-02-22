@@ -10,6 +10,9 @@ import order.well_founded
 /-!
 # "Bubble sort" induction
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We implement the following induction principle `tuple.bubble_sort_induction`
 on tuples with values in a linear order `α`.
 

@@ -8,6 +8,9 @@ import topology.homeomorph
 /-!
 # Topological space structure on the opposite monoid and on the units group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `topological_space` structure on `Mᵐᵒᵖ`, `Mᵃᵒᵖ`, `Mˣ`, and `add_units M`.
 This file does not import definitions of a topological monoid and/or a continuous multiplicative
 action, so we postpone the proofs of `has_continuous_mul Mᵐᵒᵖ` etc till we have these definitions.
@@ -20,7 +23,7 @@ topological space, opposite monoid, units
 variables {M X : Type*}
 
 open filter
-open_locale topological_space
+open_locale topology
 
 namespace mul_opposite
 

@@ -10,6 +10,9 @@ import data.int.order.basic
 
 /-! # Image and map operations on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Thie file provides the finite analog of `set.image`, along with some other similar functions.
 
 Note there are two ways to take the image over a finset; via `finset.image` which applies the
@@ -238,6 +241,9 @@ variables {f g : α → β} {s : finset α} {t : finset β} {a : α} {b c : β}
 by simp only [mem_def, image_val, mem_dedup, multiset.mem_map, exists_prop]
 
 lemma mem_image_of_mem (f : α → β) {a} (h : a ∈ s) : f a ∈ s.image f := mem_image.2 ⟨_, h, rfl⟩
+
+lemma forall_image {p : β → Prop} : (∀ b ∈ s.image f, p b) ↔ ∀ a ∈ s, p (f a) :=
+by simp only [mem_image, forall_exists_index, forall_apply_eq_imp_iff₂]
 
 @[simp] lemma mem_image_const : c ∈ s.image (const α b) ↔ s.nonempty ∧ b = c :=
 by { rw mem_image, simp only [exists_prop, const_apply, exists_and_distrib_right], refl }

@@ -57,7 +57,7 @@ derivative, strictly differentiable, continuously differentiable, smooth, invers
 -/
 
 open function set filter metric
-open_locale topological_space classical nnreal
+open_locale topology classical nnreal
 
 noncomputable theory
 

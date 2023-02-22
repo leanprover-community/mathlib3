@@ -8,6 +8,9 @@ import category_theory.opposites
 /-!
 # Morphisms from equations between objects.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When working categorically, sometimes one encounters an equation `h : X = Y` between objects.
 
 Your initial aversion to this is natural and appropriate:

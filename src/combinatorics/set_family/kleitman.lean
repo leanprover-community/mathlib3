@@ -9,6 +9,9 @@ import combinatorics.set_family.intersecting
 /-!
 # Kleitman's bound on the size of intersecting families
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An intersecting family on `n` elements has size at most `2ⁿ⁻¹`, so we could naïvely think that two
 intersecting families could cover all `2ⁿ` sets. But actually that's not case because for example
 none of them can contain the empty set. Intersecting families are in some sense correlated.

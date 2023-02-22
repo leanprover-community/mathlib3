@@ -7,6 +7,9 @@ import data.semiquot
 import data.rat.floor
 /-!
 # Implementation of floating-point numbers (experimental).
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ

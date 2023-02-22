@@ -43,7 +43,7 @@ real plane has only finitely many limit cycles).
 -/
 
 open set function filter asymptotics metric complex
-open_locale topological_space filter real
+open_locale topology filter real
 
 local notation `expR` := real.exp
 

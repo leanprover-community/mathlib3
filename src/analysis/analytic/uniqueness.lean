@@ -19,7 +19,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 open set
-open_locale topological_space ennreal
+open_locale topology ennreal
 
 namespace analytic_on
 

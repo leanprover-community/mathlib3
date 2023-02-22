@@ -8,6 +8,9 @@ import topology.dense_embedding
 
 /-! # Stone-Čech compactification
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Construction of the Stone-Čech compactification using ultrafilters.
 
 Parts of the formalization are based on "Ultrafilters and Topology"
@@ -17,7 +20,7 @@ by Marius Stekelenburg, particularly section 5.
 noncomputable theory
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 universes u v
 

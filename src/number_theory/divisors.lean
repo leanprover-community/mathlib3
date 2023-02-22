@@ -10,6 +10,9 @@ import data.nat.factors
 /-!
 # Divisor finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines sets of divisors of a natural number. This is particularly useful as background
 for defining Dirichlet convolution.
 
@@ -77,10 +80,13 @@ begin
   simp only [and_comm, ←filter_dvd_eq_proper_divisors hm, mem_filter, mem_range],
 end
 
-lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
-  divisors n = has_insert.insert n (proper_divisors n) :=
-by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico h, finset.filter_insert,
-  if_pos (dvd_refl n)]
+lemma insert_self_proper_divisors (h : n ≠ 0): insert n (proper_divisors n) = divisors n :=
+by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico (one_le_iff_ne_zero.2 h),
+  finset.filter_insert, if_pos (dvd_refl n)]
+
+lemma cons_self_proper_divisors (h : n ≠ 0) :
+  cons n (proper_divisors n) proper_divisors.not_self_mem = divisors n :=
+by rw [cons_eq_insert, insert_self_proper_divisors h]
 
 @[simp]
 lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
@@ -181,12 +187,9 @@ lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, si
 lemma divisors_antidiagonal_one : divisors_antidiagonal 1 = {(1,1)} :=
 by { ext, simp [nat.mul_eq_one_iff, prod.ext_iff], }
 
-lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
-  x.swap ∈ divisors_antidiagonal n :=
-begin
-  rw [mem_divisors_antidiagonal, mul_comm] at h,
-  simp [h.1, h.2],
-end
+@[simp] lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} :
+  x.swap ∈ divisors_antidiagonal n ↔ x ∈ divisors_antidiagonal n :=
+by rw [mem_divisors_antidiagonal, mem_divisors_antidiagonal, mul_comm, prod.swap]
 
 lemma fst_mem_divisors_of_mem_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
   x.fst ∈ divisors n :=
@@ -204,19 +207,12 @@ end
 
 @[simp]
 lemma map_swap_divisors_antidiagonal :
-  (divisors_antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩
-  = divisors_antidiagonal n :=
+  (divisors_antidiagonal n).map (equiv.prod_comm _ _).to_embedding = divisors_antidiagonal n :=
 begin
+  rw [← coe_inj, coe_map, equiv.coe_to_embedding, equiv.coe_prod_comm,
+    set.image_swap_eq_preimage_swap],
   ext,
-  simp only [exists_prop, mem_divisors_antidiagonal, finset.mem_map, function.embedding.coe_fn_mk,
-             ne.def, prod.swap_prod_mk, prod.exists],
-  split,
-  { rintros ⟨x, y, ⟨⟨rfl, h⟩, rfl⟩⟩,
-    simp [mul_comm, h], },
-  { rintros ⟨rfl, h⟩,
-    use [a.snd, a.fst],
-    rw mul_comm,
-    simp [h] }
+  exact swap_mem_divisors_antidiagonal,
 end
 
 @[simp] lemma image_fst_divisors_antidiagonal :
@@ -233,26 +229,21 @@ end
 lemma map_div_right_divisors :
   n.divisors.map ⟨λ d, (d, n/d), λ p₁ p₂, congr_arg prod.fst⟩ = n.divisors_antidiagonal :=
 begin
-  obtain rfl | hn := decidable.eq_or_ne n 0,
-  { simp },
   ext ⟨d, nd⟩,
-  simp only [and_true, finset.mem_map, exists_eq_left, ne.def, hn, not_false_iff,
-    mem_divisors_antidiagonal, function.embedding.coe_fn_mk, mem_divisors],
+  simp only [mem_map, mem_divisors_antidiagonal, function.embedding.coe_fn_mk, mem_divisors,
+    prod.ext_iff, exists_prop, and.left_comm, exists_eq_left],
   split,
-  { rintro ⟨a, ⟨k, rfl⟩, h⟩,
-    obtain ⟨rfl, rfl⟩ := prod.mk.inj_iff.1 h,
-    have := (mul_ne_zero_iff.1 hn).1,
-    rw nat.mul_div_cancel_left _ (zero_lt_iff.mpr this), },
-  { rintro rfl,
-    refine ⟨d, dvd_mul_right _ _, _⟩,
-    have := (mul_ne_zero_iff.1 hn).1,
-    rw nat.mul_div_cancel_left _ (zero_lt_iff.mpr this) }
+  { rintro ⟨⟨⟨k, rfl⟩, hn⟩, rfl⟩,
+    rw [nat.mul_div_cancel_left _ (left_ne_zero_of_mul hn).bot_lt],
+    exact ⟨rfl, hn⟩ },
+  { rintro ⟨rfl, hn⟩,
+    exact ⟨⟨dvd_mul_right _ _, hn⟩, nat.mul_div_cancel_left _ (left_ne_zero_of_mul hn).bot_lt⟩ }
 end
 
 lemma map_div_left_divisors :
   n.divisors.map ⟨λ d, (n/d, d), λ p₁ p₂, congr_arg prod.snd⟩ = n.divisors_antidiagonal :=
 begin
-  apply finset.map_injective ⟨prod.swap, prod.swap_right_inverse.injective⟩,
+  apply finset.map_injective (equiv.prod_comm _ _).to_embedding,
   rw [map_swap_divisors_antidiagonal, ←map_div_right_divisors, finset.map_map],
   refl,
 end
@@ -260,10 +251,9 @@ end
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
   ∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
 begin
-  cases n,
+  rcases decidable.eq_or_ne n 0 with rfl|hn,
   { simp },
-  { rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _),
-        finset.sum_insert (proper_divisors.not_self_mem), add_comm] }
+  { rw [← cons_self_proper_divisors hn, finset.sum_cons, add_comm] }
 end
 
 /-- `n : ℕ` is perfect if and only the sum of the proper divisors of `n` is `n` and `n`
@@ -295,8 +285,7 @@ end
 
 lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
   proper_divisors p = {1} :=
-by rw [← erase_insert (proper_divisors.not_self_mem),
-    ← divisors_eq_proper_divisors_insert_self_of_pos pp.pos,
+by rw [← erase_insert proper_divisors.not_self_mem, insert_self_proper_divisors pp.ne_zero,
     pp.divisors, pair_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
@@ -350,8 +339,7 @@ by simp [h.proper_divisors]
 @[simp, to_additive]
 lemma prime.prod_divisors {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in p.divisors, f x = f p * f 1 :=
-by rw [divisors_eq_proper_divisors_insert_self_of_pos h.pos,
-       prod_insert proper_divisors.not_self_mem, h.prod_proper_divisors]
+by rw [← cons_self_proper_divisors h.ne_zero, prod_cons, h.prod_proper_divisors]
 
 lemma proper_divisors_eq_singleton_one_iff_prime :
   n.proper_divisors = {1} ↔ n.prime :=

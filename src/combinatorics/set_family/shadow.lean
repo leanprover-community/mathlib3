@@ -9,6 +9,9 @@ import logic.function.iterate
 /-!
 # Shadows
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines shadows of a set family. The shadow of a set family is the set family of sets we
 get by removing any element from any set of the original family. If one pictures `finset α` as a big
 hypercube (each dimension being membership of a given element), then taking the shadow corresponds

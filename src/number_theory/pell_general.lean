@@ -85,7 +85,7 @@ begin
     exact nat.cast_ne_zero.mpr q.pos.ne', },
   haveI := ne_zero_iff.mpr (int.nat_abs_ne_zero.mpr hm₀),
   let f : ℚ → (zmod m.nat_abs) × (zmod m.nat_abs) := λ q, (q.1, q.2),
-  haveI hft := fintype.finite (zmod.fintype m.nat_abs),
+  haveI hft := (zmod.fintype m.nat_abs).finite,
   obtain ⟨q₁, h₁ : q₁.1 ^ 2 - d * q₁.2 ^ 2 = m, q₂, h₂ : q₂.1 ^ 2 - d * q₂.2 ^ 2 = m, hne, hqf⟩ :=
     hm.exists_ne_map_eq_of_maps_to (maps_to_univ f _)
       (finite_univ_iff.mpr $ @finite.prod.finite _ _ hft hft),

@@ -1274,7 +1274,6 @@ begin
   induction p using mv_polynomial.induction_on''' with a a b f ha hb0 ih generalizing hs,
   { simpa using hs 0 },
   { rw [eval₂_add],
-    rw [eval₂_add],
     refine add_mem _ _,
     { rw [eval₂_monomial],
       refine mul_mem _ _,

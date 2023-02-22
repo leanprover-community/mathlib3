@@ -759,14 +759,14 @@ begin
   case [t_t, b_t, t_b, b_b] { all_goals { refl } },
   case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, neg_zero] } },
   case h : x y { norm_cast, exact neg_mul _ _, },
-  case p_b : x hx {
-    rw [coe_mul_bot_of_pos hx, neg_bot, ← coe_neg, coe_mul_bot_of_neg (neg_neg_of_pos hx)] },
-  case n_b : x hx {
-    rw [coe_mul_bot_of_neg hx, neg_top, ← coe_neg, coe_mul_bot_of_pos (neg_pos_of_neg hx)] },
-  case p_t : x hx {
-    rw [coe_mul_top_of_pos hx, neg_top, ← coe_neg, coe_mul_top_of_neg (neg_neg_of_pos hx)] },
-  case n_t : x hx {
-    rw [coe_mul_top_of_neg hx, neg_bot, ← coe_neg, coe_mul_top_of_pos (neg_pos_of_neg hx)] },
+  case p_b : x hx
+  { rw [coe_mul_bot_of_pos hx, neg_bot, ← coe_neg, coe_mul_bot_of_neg (neg_neg_of_pos hx)] },
+  case n_b : x hx
+  { rw [coe_mul_bot_of_neg hx, neg_top, ← coe_neg, coe_mul_bot_of_pos (neg_pos_of_neg hx)] },
+  case p_t : x hx
+  { rw [coe_mul_top_of_pos hx, neg_top, ← coe_neg, coe_mul_top_of_neg (neg_neg_of_pos hx)] },
+  case n_t : x hx
+  { rw [coe_mul_top_of_neg hx, neg_bot, ← coe_neg, coe_mul_top_of_pos (neg_pos_of_neg hx)] },
   case t_p : y hy { rw [top_mul_coe_of_pos hy, neg_top, bot_mul_coe_of_pos hy] },
   case t_n : y hy { rw [top_mul_coe_of_neg hy, neg_top, neg_bot, bot_mul_coe_of_neg hy] },
   case b_p : y hy { rw [bot_mul_coe_of_pos hy, neg_bot, top_mul_coe_of_pos hy] },

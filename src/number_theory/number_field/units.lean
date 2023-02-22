@@ -150,7 +150,7 @@ begin
     exact ⟨n, ⟨hn, by { rwa [← number_field.unit.coe_ext, number_field.unit.coe_pow], }⟩⟩, },
 end
 
-lemma finite_roots_of_unity [number_field K]: finite (roots_of_unity K) :=
+lemma roots_of_unity_finite [number_field K]: finite (roots_of_unity K) :=
 begin
   suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (roots_of_unity K )}).finite,
   { exact set.finite_coe_iff.mpr (set.finite.of_finite_image this
@@ -165,7 +165,7 @@ end
 
 lemma roots_of_unity_cyclic [number_field K]: is_cyclic (roots_of_unity K) :=
 begin
-  haveI := finite_roots_of_unity K,
+  haveI := roots_of_unity_finite K,
   exact subgroup_units_cyclic _,
 end
 
@@ -851,18 +851,22 @@ begin
   simpa only [fintype.card_subtype_compl, fintype.card_subtype_eq],
 end
 
-def unit_lattice.basis :  basis (fin (unit_rank K)) ℤ (unit_lattice K) :=
+def unit_lattice.basis : Σ (n : ℕ), basis (fin n) ℤ (unit_lattice K) :=
 begin
-  haveI : no_zero_smul_divisors ℤ (number_field.infinite_place K → ℝ) :=
-    function.no_zero_smul_divisors,
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
   let b := zlattice.basis (unit_lattice_submodule_discrete K) (unit_lattice.full_lattice' K),
   let c := basis.map b.2 (unit_lattice_equiv K).symm,
+  exact ⟨b.1, c⟩,
+end
+
+def unit_lattice.dim : (unit_lattice.basis K).1 = unit_rank K :=
+begin
+  haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
+    (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
   have := zlattice.dim (unit_lattice_submodule_discrete K) (unit_lattice.full_lattice' K),
   rw rank_ker K at this,
-  let d := basis.reindex c (fin_congr this),
-  exact d,
+  exact this,
 end
 
 end dirichlet

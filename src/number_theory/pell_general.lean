@@ -8,7 +8,7 @@ import tactic.qify
 import data.zmod.basic
 import number_theory.diophantine_approximation
 
-/-
+/-!
 # Pell's Equation
 
 We prove the following

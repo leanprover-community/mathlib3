@@ -76,44 +76,66 @@ end
 
 abbreviation schreier_coset_graph (H : subgroup M) := schreier_graph (M ⧸ H) ι
 
-@[simps]
-noncomputable def from_coset_graph (v₀ : V) :
+@[simps] noncomputable def from_coset_graph (v₀ : V) :
   schreier_coset_graph ι (mul_action.stabilizer M v₀) ⥤q schreier_graph (mul_action.orbit M v₀) ι :=
 { obj := (mul_action.orbit_equiv_quotient_stabilizer M v₀).symm,
-  map := λ X Y e, ⟨e.val, by obtain ⟨e,rfl⟩ := e; simp⟩ }
+  map := λ X Y e, ⟨e.val, by obtain ⟨e,rfl⟩ := e;
+                          simp only [mul_action.smul_orbit_equiv_quotient_stabilizer_symm_apply]⟩ }
+
+set_option profiler true
 
 lemma from_coset_graph_labelling (v₀ : V) :
-  (from_coset_graph V ι v₀) ⋙q schreier_graph_labelling _ ι  = schreier_graph_labelling _ ι :=
+  (from_coset_graph V ι v₀) ⋙q schreier_graph_labelling (mul_action.orbit M v₀) ι =
+  schreier_graph_labelling (M ⧸ mul_action.stabilizer M v₀) ι :=
 begin
+  dsimp only [from_coset_graph, schreier_graph_labelling],
   fapply prefunctor.ext,
-  simp,
-  rintros ⟨_,_⟩ ⟨_,_⟩ e,
-  simp,
+  { simp only [eq_iff_true_of_subsingleton, implies_true_iff], },
+  { rintros _ _ ⟨e, he⟩,
+    simp only [prefunctor.comp_map, eq_rec_constant], },
 end
 
-noncomputable def to_coset_graph (v₀ : V) :
+@[simps] noncomputable def to_coset_graph (v₀ : V) :
   schreier_graph (mul_action.orbit M v₀) ι ⥤q schreier_coset_graph ι (mul_action.stabilizer M v₀) :=
 { obj := (mul_action.orbit_equiv_quotient_stabilizer M v₀),
-  map := λ X Y e, ⟨e.val, by obtain ⟨e,rfl⟩ := e; simp⟩ }
+  map := λ X Y e, ⟨e.val, by obtain ⟨e,rfl⟩ := e;
+                          simp only [mul_action.smul_orbit_equiv_quotient_stabilizer_apply]⟩ }
 
-lemma to_coset_graph_from_coset_graph (v₀ : V) :
-  to_coset_graph V ι v₀ ⋙q from_coset_graph V ι v₀ = 𝟭q _ :=
+lemma to_coset_graph_labelling (v₀ : V) :
+  (to_coset_graph V ι v₀) ⋙q schreier_graph_labelling (M ⧸ mul_action.stabilizer M v₀) ι =
+  schreier_graph_labelling (mul_action.orbit M v₀) ι:=
 begin
-  dsimp [to_coset_graph, from_coset_graph],
+  dsimp only [to_coset_graph, schreier_graph_labelling],
   fapply prefunctor.ext,
-  { rintro ⟨_,_⟩,
-    simp, },
-  { rintro ⟨_,_⟩ ⟨_,_⟩ ⟨_,h⟩, simp at h ⊢, }
+  { simp only [eq_iff_true_of_subsingleton, implies_true_iff], },
+  { rintros _ _ ⟨e,he⟩,
+    simp only [prefunctor.comp_map, eq_rec_constant], },
 end
 
 lemma from_coset_graph_to_coset_graph (v₀ : V) :
   from_coset_graph V ι v₀ ⋙q to_coset_graph V ι v₀ = 𝟭q _ :=
 begin
-  dsimp [to_coset_graph, from_coset_graph],
+  have obj : ∀ x, (from_coset_graph V ι v₀ ⋙q to_coset_graph V ι v₀).obj x = (𝟭q _).obj x, by
+  { rintro _,
+    simp only [to_coset_graph, from_coset_graph, prefunctor.comp_obj, equiv.apply_symm_apply,
+               prefunctor.id_obj, id.def], },
+  apply prefunctor.ext obj,
+  rintro u v e,
+  let hu := obj u,
+  let hv := obj v,
+  change (from_coset_graph V ι v₀ ⋙q to_coset_graph V ι v₀).map e =
+         eq.rec_on hv.symm (eq.rec_on hu.symm ((𝟭q _).map e)),
+  sorry,
+end
+
+lemma to_coset_graph_from_coset_graph (v₀ : V) :
+  to_coset_graph V ι v₀ ⋙q from_coset_graph V ι v₀ = 𝟭q _ :=
+begin
+  dsimp only [to_coset_graph, from_coset_graph],
   fapply prefunctor.ext,
-  { rintro ⟨_⟩,
+  { rintro ⟨_,_⟩,
     simp, },
-  { rintro ⟨_⟩ ⟨_⟩ ⟨_,h⟩, simp at h ⊢, }
+  { rintro ⟨_,_⟩ ⟨_,_⟩ ⟨_,h⟩, sorry, }
 end
 
 abbreviation cayley_graph := schreier_coset_graph ι (⊥ : subgroup M)

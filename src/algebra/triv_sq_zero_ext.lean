@@ -10,17 +10,26 @@ import linear_algebra.prod
 /-!
 # Trivial Square-Zero Extension
 
-Given a module `M` over a ring `R`, the trivial square-zero extension of `M` over `R` is defined
-to be the `R`-algebra `R ⊕ M` with multiplication given by
+Given a ring `R` together with an `(R, R)`-bimodule `M`, the trivial square-zero extension of `M`
+over `R` is defined to be the `R`-algebra `R ⊕ M` with multiplication given by
 `(r₁ + m₁) * (r₂ + m₂) = r₁ r₂ + r₁ m₂ + m₁ r₂`.
 
-Note that expressing this requires bimodules; we write these as
-`[module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]` for noncommutative `R`, and
-`[module R' M] [module R'ᵐᵒᵖ M] [is_central_scalar R' M]` for commutative `R'`.
-
-Many of the later results in this file are only stated for `R'` for simplicity.
-
 It is a square-zero extension because `M^2 = 0`.
+
+Note that expressing this requires bimodules; we write these in general for a
+not-necessarily-commutative `R` as:
+```lean
+variables {R M : Type*} [semiring R] [add_comm_monoid M]
+variables [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
+```
+If we instead working with a commutative `R'` acting symmetrically on `M`, we write
+```lean
+variables {R' M : Type*} [comm_semiring R'] [add_comm_monoid M]
+variables [module R' M] [module R'ᵐᵒᵖ M] [is_central_scalar R' M]
+```
+noting that in this context `is_central_scalar R' M` implies `smul_comm_class R' R'ᵐᵒᵖ M`.
+
+Many of the later results in this file are only stated for the commutative `R'` for simplicity.
 
 ## Main definitions
 

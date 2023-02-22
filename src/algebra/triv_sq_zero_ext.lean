@@ -409,11 +409,11 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action 
   (x : tsze R M) (n : ℕ) :
   fst (x ^ n) = x.fst ^ n := rfl
 
-@[simp] lemma snd_pow_eq_sum [monoid R] [add_monoid M]
+lemma snd_pow_eq_sum [monoid R] [add_monoid M]
   [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] (x : tsze R M) (n : ℕ) :
   snd (x ^ n) = ((list.range n).map (λ i, x.fst ^ (n.pred - i) • op (x.fst ^ i) • x.snd)).sum := rfl
 
-@[simp] lemma snd_pow_of_smul_comm [monoid R] [add_monoid M]
+lemma snd_pow_of_smul_comm [monoid R] [add_monoid M]
   [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
   (x : tsze R M) (n : ℕ) (h : op x.fst • x.snd = x.fst • x.snd) :
   snd (x ^ n) = n • x.fst ^ n.pred • x.snd :=

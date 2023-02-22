@@ -1271,11 +1271,9 @@ theorem eval₂_mem (f : R →+* S)
      mv_polynomial.eval₂ f v p ∈ s :=
 begin
   classical,
-  revert hs,
-  refine mv_polynomial.induction_on''' p _ _,
-  { intros a hs,
-    simpa using hs 0 },
-  { intros a b f ha hb0 ih hs,
+  induction p using mv_polynomial.induction_on''' with a a b f ha hb0 ih generalizing hs,
+  { simpa using hs 0 },
+  { rw [eval₂_add],
     rw [eval₂_add],
     refine add_mem _ _,
     { rw [eval₂_monomial],

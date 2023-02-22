@@ -28,6 +28,10 @@ so-called stars and costars at each vertex of the domain.
 * `prefunctor.path_star_bijective` states that if `φ` is a covering, then `φ.star_path u` is a
   bijection for al `u`.
   In other words, any path in the codomain of `φ` lifts uniquely to its domain.
+  
+  ## TODO
+  
+  Clean up the namespaces by renaming `prefunctor` to `quiver.prefunctor`.
 
 ## Tags
 

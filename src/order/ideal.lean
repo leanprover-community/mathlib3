@@ -10,6 +10,9 @@ import order.upper_lower.basic
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 Throughout this file, `P` is at least a preorder, but some sections require more

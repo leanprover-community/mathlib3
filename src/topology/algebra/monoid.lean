@@ -11,6 +11,9 @@ import algebra.big_operators.pi
 /-!
 # Theory of topological monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define mixin classes `has_continuous_mul` and `has_continuous_add`. While in many
 applications the underlying type is a monoid (multiplicative or additive), we do not require this in
 the definitions.
@@ -48,6 +51,8 @@ class has_continuous_mul (M : Type u) [topological_space M] [has_mul M] : Prop :
 section has_continuous_mul
 
 variables [topological_space M] [has_mul M] [has_continuous_mul M]
+
+@[to_additive] instance : has_continuous_mul Mᵒᵈ := ‹has_continuous_mul M›
 
 @[to_additive]
 lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=

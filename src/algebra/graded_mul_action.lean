@@ -8,6 +8,9 @@ import algebra.graded_monoid
 /-!
 # Additively-graded multiplicative action structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides a set of heterogeneous typeclasses for defining a multiplicative structure
 over the sigma type `graded_monoid A` such that `(•) : A i → M j → M (i + j)`; that is to say, `A`
 has an additively-graded multiplicative action on `M`. The typeclasses are:

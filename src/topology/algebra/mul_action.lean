@@ -11,6 +11,9 @@ import topology.algebra.const_mul_action
 /-!
 # Continuous monoid action
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define class `has_continuous_smul`. We say `has_continuous_smul M X` if `M` acts on
 `X` and the map `(c, x) ↦ c • x` is continuous on `M × X`. We reuse this class for topological
 (semi)modules, vector spaces and algebras.

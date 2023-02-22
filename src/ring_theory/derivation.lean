@@ -451,29 +451,28 @@ lemma derivation_to_square_zero_of_lift_apply (f : A →ₐ[R] B)
 
 /-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each `R`-derivation
 from `A` to `I` corresponds to a lift `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
+@[simps {attrs := []}]
 def lift_of_derivation_to_square_zero (f : derivation R A I) :
   A →ₐ[R] B :=
-{ map_one' := show (f 1 : B) + algebra_map A B 1 = 1,
-   by rw [map_one, f.map_one_eq_zero, submodule.coe_zero, zero_add],
+{ to_fun := λ x, f x + algebra_map A B x,
+  map_one' := by rw [map_one, f.map_one_eq_zero, submodule.coe_zero, zero_add],
   map_mul' := λ x y, begin
     have : (f x : B) * (f y) = 0,
     { rw [← ideal.mem_bot, ← hI, pow_two], convert (ideal.mul_mem_mul (f x).2 (f y).2) using 1 },
-    dsimp,
     simp only [map_mul, f.leibniz, add_mul, mul_add, submodule.coe_add,
       submodule.coe_smul_of_tower, algebra.smul_def, this],
     ring
   end,
-  commutes' := λ r, by { dsimp, simp [← is_scalar_tower.algebra_map_apply R A B r] },
+  commutes' := λ r,
+    by simp only [derivation.map_algebra_map, eq_self_iff_true, zero_add, submodule.coe_zero,
+      ←is_scalar_tower.algebra_map_apply R A B r],
   map_zero' := ((I.restrict_scalars R).subtype.comp f.to_linear_map +
     (is_scalar_tower.to_alg_hom R A B).to_linear_map).map_zero,
   ..((I.restrict_scalars R).subtype.comp f.to_linear_map +
-    (is_scalar_tower.to_alg_hom R A B).to_linear_map) }
-
-lemma lift_of_derivation_to_square_zero_apply (f : derivation R A I) (x : A) :
-  lift_of_derivation_to_square_zero I hI f x = f x + algebra_map A B x := rfl
+    (is_scalar_tower.to_alg_hom R A B).to_linear_map : A →ₗ[R] B) }
 
 @[simp] lemma lift_of_derivation_to_square_zero_mk_apply (d : derivation R A I) (x : A) :
-    ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
+  ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
 by { rw [lift_of_derivation_to_square_zero_apply, map_add,
   ideal.quotient.eq_zero_iff_mem.mpr (d x).prop, zero_add], refl }
 
@@ -1004,7 +1003,7 @@ lemma kaehler_differential.ker_total_map (h : function.surjective (algebra_map A
     (kaehler_differential.ker_total S B).restrict_scalars _  :=
 begin
   rw [kaehler_differential.ker_total, submodule.map_span, kaehler_differential.ker_total,
-    ← submodule.span_eq_restrict_scalars _ _ _ _ h],
+    submodule.restrict_scalars_span _ _ h],
   simp_rw [set.image_union, submodule.span_union, ← set.image_univ, set.image_image,
     set.image_univ, map_sub, map_add],
   simp only [linear_map.comp_apply, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
@@ -1070,7 +1069,7 @@ lemma kaehler_differential.map_surjective_of_surjective
   function.surjective (kaehler_differential.map R S A B) :=
 begin
   rw [← linear_map.range_eq_top, _root_.eq_top_iff, ← @submodule.restrict_scalars_top B A,
-    ← kaehler_differential.span_range_derivation, ← submodule.span_eq_restrict_scalars _ _ _ _ h,
+    ← kaehler_differential.span_range_derivation, submodule.restrict_scalars_span _ _ h,
     submodule.span_le],
   rintros _ ⟨x, rfl⟩,
   obtain ⟨y, rfl⟩ := h x,

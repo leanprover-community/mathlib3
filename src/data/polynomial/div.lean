@@ -441,7 +441,8 @@ eval_ring_hom_ker x
 $R[X] / \langle X - x \rangle \cong R$. -/
 noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
   (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
-((ideal.quotient_equiv_alg_of_eq $ aeval_ker x).restrict_scalars R).symm.trans $
+(@alg_equiv.restrict_scalars _ R _ _ _ _ _ _ _ _ _ _ _ _ _ $
+  ideal.quotient_equiv_alg_of_eq $ aeval_ker x).symm.trans $
   ideal.quotient_ker_alg_equiv_of_surjective $ aeval_surjective x
 
 section multiplicity

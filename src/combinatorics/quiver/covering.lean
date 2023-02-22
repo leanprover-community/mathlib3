@@ -52,15 +52,6 @@ variables {U : Type*} [quiver.{u+1} U]
 /-- The `quiver.costar` at a vertex is the collection of arrows whose target is the vertex. -/
 @[reducible] def quiver.costar (u : U) := Σ (v : U), (v ⟶ u)
 
-lemma _root_.sigma.ext_rec {α : Type*} {β : α → Type*} (b₁ b₂ : Σ (a : α), β a) :
-  b₁ = b₂ ↔ ∃ h : b₁.1 = b₂.1, h.rec_on b₁.2 = b₂.2 :=
-begin
-  split,
-  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
-  { induction b₁, induction b₂, rintro ⟨h, H⟩, cases h, cases H,
-    simp only [eq_self_iff_true, heq_iff_eq, and_self], }
-end
-
 @[simp] lemma quiver.star_eq_iff {u : U} (F G : quiver.star u) :
   F = G ↔ ∃ h : F.1 = G.1, F.2.cast rfl h = G.2 :=
 begin

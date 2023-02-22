@@ -1261,18 +1261,12 @@ by { ext, simp only [aeval_X, aeval_tower_X] }
 
 end aeval_tower
 
-end comm_semiring
+section eval_mem
 
-end mv_polynomial
+variables {S subS : Type*} [comm_semiring S] [set_like subS S] [subsemiring_class subS S]
 
-namespace subsemiring
-
-variables {σ S : Type*} [comm_semiring R] [comm_semiring S]
-
-open mv_polynomial
-
-theorem mv_polynomial_eval₂_mem (f : R →+* S)
-  (p : mv_polynomial σ R) (s : subsemiring S)
+theorem eval₂_mem (f : R →+* S)
+  (p : mv_polynomial σ R) (s : subS)
   (hs : ∀ i, f (p.coeff i) ∈ s) (v : σ → S) (hv : ∀ i, v i ∈ s) :
      mv_polynomial.eval₂ f v p ∈ s :=
 begin
@@ -1283,14 +1277,14 @@ begin
     simpa using hs 0 },
   { intros a b f ha hb0 ih hs,
     rw [eval₂_add],
-    refine subsemiring.add_mem _ _ _,
+    refine add_mem _ _,
     { rw [eval₂_monomial],
-      refine subsemiring.mul_mem _ _ _,
+      refine mul_mem _ _,
       { have := hs a,
         rwa [coeff_add, coeff_monomial, if_pos rfl,
           mv_polynomial.not_mem_support_iff.1 ha, add_zero] at this },
-      { refine subsemiring.prod_mem _ (λ i hi, _),
-        refine subsemiring.pow_mem _ _ _,
+      { refine prod_mem (λ i hi, _),
+        refine pow_mem _ _,
         exact hv _ } },
     { refine ih (λ i, _),
       have := hs i,
@@ -1298,13 +1292,17 @@ begin
       split_ifs at this with h h,
       { subst h,
         rw [mv_polynomial.not_mem_support_iff.1 ha, map_zero],
-        exact subsemiring.zero_mem _ },
+        exact zero_mem _ },
       { rwa zero_add at this } } }
 end
 
-theorem mv_polynomial_eval_mem (p : mv_polynomial σ R) (s : subsemiring R)
-  (hs : ∀ i, p.coeff i ∈ s) (v : σ → R) (hv : ∀ i, v i ∈ s) :
+theorem eval_mem (p : mv_polynomial σ S) (s : subS)
+  (hs : ∀ i, p.coeff i ∈ s) (v : σ → S) (hv : ∀ i, v i ∈ s) :
      mv_polynomial.eval v p ∈ s :=
-mv_polynomial_eval₂_mem (ring_hom.id R) p s hs v hv
+eval₂_mem (ring_hom.id S) p s hs v hv
 
-end subsemiring
+end eval_mem
+
+end comm_semiring
+
+end mv_polynomial

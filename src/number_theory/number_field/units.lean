@@ -29,7 +29,7 @@ namespace number_field
 
 open number_field units
 
-/-- The `monoid_hom` from the group of units to the field. -/
+/-- The `monoid_hom` from the group of units to the field.-/
 def units_to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
 
 lemma units_to_field_injective : function.injective (units_to_field K) :=
@@ -132,7 +132,7 @@ section roots_of_unity
 
 open number_field number_field.infinite_place
 
-/-- The subgroup of roots of unity. -/
+/-- The subgroup of roots of unity.-/
 def roots_of_unity : subgroup 𝓤 K := comm_group.torsion (𝓤 K)
 
 lemma mem_roots_of_unity [number_field K] (x : (𝓤 K)) :
@@ -176,6 +176,7 @@ namespace dirichlet
 open number_field.canonical_embedding
 
 @[reducible]
+/-- The logarithmic embedding of the units.-/
 def log_embedding : (𝓤 K) → (number_field.infinite_place K → ℝ) := λ x w, real.log (w x)
 
 open units number_field number_field.infinite_place number_field.dirichlet finite_dimensional
@@ -240,6 +241,7 @@ begin
       all_goals { exact infinite_place.pos_iff.mpr number_field.unit.coe_ne_zero, }}}
 end
 
+/-- The lattice formed by the image of the logarithmic embedding.-/
 def unit_lattice : submodule ℤ (number_field.infinite_place K → ℝ) :=
 { carrier := set.range (log_embedding K),
   add_mem' :=
@@ -302,6 +304,8 @@ begin
   { exact set.countable_Union (λ n, (unit_lattice_discrete K n).countable), },
 end
 
+/-- The application such that `lognorm ∘ log_embedding = log_embedding ∘ norm`. In particuler,
+the `unit_lattice` is contained in its kernel, see `lognorm_unit`.-/
 def lognorm : (number_field.infinite_place K → ℝ) →ₗ[ℝ] ℝ :=
 { to_fun := λ x, finset.univ.sum (λ w : infinite_place K, ite (w.is_real) (x w) (2*(x w))),
   map_add' :=
@@ -362,6 +366,7 @@ begin
     norm_num at h, },
 end
 
+/-- The unit rank of the number field `K`, that is `card (infinite_place K) - 1`.-/
 def unit_rank : ℕ := fintype.card (infinite_place K) - 1
 
 lemma rank_ker : finrank ℝ (linear_map.ker (lognorm K)) = unit_rank K :=
@@ -398,11 +403,14 @@ begin
   exact lognorm_unit K u,
 end
 
+/-- The inclusion map of `unit_lattice` as a submodule of the kernel of `lognorm`.-/
 def unit_lattice_le_map := submodule.of_le (unit_lattice_le K)
 
+/-- The image of `unit_lattice` as a submodule of the kernel of `lognorm`.-/
 def unit_lattice_submodule : submodule ℤ (linear_map.ker (lognorm K)) :=
 (unit_lattice_le_map K).range
 
+/-- The lineaer equiv beween `unit_lattice` and its image in the kernel of `lognorm`.-/
 def unit_lattice_equiv : unit_lattice K ≃ₗ[ℤ] (unit_lattice_submodule K) :=
 begin
   refine linear_equiv.of_bijective (unit_lattice_le_map K).range_restrict _,
@@ -430,6 +438,7 @@ end
 
 variable {K}
 
+/-- A distinguished infinite place.-/
 def w₀ : infinite_place K := (infinite_place.nonempty K).some
 
 lemma _root_.number_field.norm_cast (a : 𝓞 K) :
@@ -438,6 +447,8 @@ algebra.norm_localization ℤ (non_zero_divisors ℤ) a
 
 variable (K)
 
+/-- The linear map between the ℝ-module spanned by `unit_lattice` and the subspace with the place
+`w₀` deleted.-/
 def unit_lattice_span_map :
   submodule.span ℝ (unit_lattice_submodule K : set (linear_map.ker (lognorm K)))
     →ₗ[ℝ] ({w : infinite_place K // w ≠ w₀} → ℝ) :=
@@ -546,6 +557,8 @@ begin
         { refine pow_le_pow_of_le_left (map_nonneg _ _) (le_of_lt (t2.some_spec.2 z)) _, }}}},
 end
 
+/-- An infinite sequence of non-zero algebraic integers of `K` satisfying the following properties:
+TBC.-/
 def seq {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B) (n : ℕ) :
   { x : 𝓞 K // x ≠ 0 } :=
 begin
@@ -851,6 +864,7 @@ begin
   simpa only [fintype.card_subtype_compl, fintype.card_subtype_eq],
 end
 
+/-- A ℤ-basis of `unit_lattice K`.-/
 def unit_lattice.basis : Σ (n : ℕ), basis (fin n) ℤ (unit_lattice K) :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors

@@ -1121,6 +1121,7 @@ begin
   { exact λ ⟨i₁, hi₁, hv⟩, ⟨p i₁, ⟨i₁, ⟨set.mem_univ _, hi₁⟩, rfl⟩, hv⟩ }
 end
 
+section
 variables {s : set P}
 
 /-- The affine span of a set is nonempty if and only if that set is. -/
@@ -1140,6 +1141,8 @@ by rw [←not_iff_not, ←ne.def, ←ne.def, ←nonempty_iff_ne_bot, affine_span
 
 @[simp] lemma bot_lt_affine_span : ⊥ < affine_span k s ↔ s.nonempty :=
 by { rw [bot_lt_iff_ne_bot, nonempty_iff_ne_empty], exact (affine_span_eq_bot _).not }
+
+end
 
 variables {k}
 

@@ -129,33 +129,37 @@ instance : has_mul ereal := ⟨ereal.mul⟩
 infinite. -/
 @[elab_as_eliminator]
 lemma induction₂ {P : ereal → ereal → Prop}
-  (t_t : P ⊤ ⊤)
-  (t_p : ∀ x : ℝ, 0 < x → P ⊤ x)
-  (t_z : P ⊤ 0)
-  (t_n : ∀ x : ℝ, x < 0 → P ⊤ x)
-  (t_b : P ⊤ ⊥)
-  (p_t : ∀ x : ℝ, 0 < x → P x ⊤)
-  (p_b : ∀ x : ℝ, 0 < x → P x ⊥)
-  (z_t : P 0 ⊤)
-  (h : ∀ x y : ℝ, P x y)
-  (z_b : P 0 ⊥)
-  (n_t : ∀ x : ℝ, x < 0 → P x ⊤)
-  (n_b : ∀ x : ℝ, x < 0 → P x ⊥)
-  (b_t : P ⊥ ⊤)
-  (b_p : ∀ x : ℝ, 0 < x → P ⊥ x)
-  (b_z : P ⊥ 0)
-  (b_n : ∀ x : ℝ, x < 0 → P ⊥ x)
-  (b_b : P ⊥ ⊥) :
+  (top_top : P ⊤ ⊤)
+  (top_pos : ∀ x : ℝ, 0 < x → P ⊤ x)
+  (top_zero : P ⊤ 0)
+  (top_neg : ∀ x : ℝ, x < 0 → P ⊤ x)
+  (top_bot : P ⊤ ⊥)
+  (pos_top : ∀ x : ℝ, 0 < x → P x ⊤)
+  (pos_bot : ∀ x : ℝ, 0 < x → P x ⊥)
+  (zero_top : P 0 ⊤)
+  (coe_coe : ∀ x y : ℝ, P x y)
+  (zero_bot : P 0 ⊥)
+  (neg_top : ∀ x : ℝ, x < 0 → P x ⊤)
+  (neg_bot : ∀ x : ℝ, x < 0 → P x ⊥)
+  (bot_top : P ⊥ ⊤)
+  (bot_pos : ∀ x : ℝ, 0 < x → P ⊥ x)
+  (bot_zero : P ⊥ 0)
+  (bot_neg : ∀ x : ℝ, x < 0 → P ⊥ x)
+  (bot_bot : P ⊥ ⊥) :
   ∀ x y, P x y
-| ⊥ ⊥ := b_b
-| ⊥ (y : ℝ) := by { rcases lt_trichotomy 0 y with hy|rfl|hy, exacts [b_p y hy, b_z, b_n y hy] }
-| ⊥ ⊤ := b_t
-| (x : ℝ) ⊥ := by { rcases lt_trichotomy 0 x with hx|rfl|hx, exacts [p_b x hx, z_b, n_b x hx] }
-| (x : ℝ) (y : ℝ) := h _ _
-| (x : ℝ) ⊤ := by { rcases lt_trichotomy 0 x with hx|rfl|hx, exacts [p_t x hx, z_t, n_t x hx] }
-| ⊤ ⊥ := t_b
-| ⊤ (y : ℝ) := by { rcases lt_trichotomy 0 y with hy|rfl|hy, exacts [t_p y hy, t_z, t_n y hy] }
-| ⊤ ⊤ := t_t
+| ⊥ ⊥ := bot_bot
+| ⊥ (y : ℝ) :=
+  by { rcases lt_trichotomy 0 y with hy|rfl|hy, exacts [bot_pos y hy, bot_zero, bot_neg y hy] }
+| ⊥ ⊤ := bot_top
+| (x : ℝ) ⊥ :=
+  by { rcases lt_trichotomy 0 x with hx|rfl|hx, exacts [pos_bot x hx, zero_bot, neg_bot x hx] }
+| (x : ℝ) (y : ℝ) := coe_coe _ _
+| (x : ℝ) ⊤ :=
+  by { rcases lt_trichotomy 0 x with hx|rfl|hx, exacts [pos_top x hx, zero_top, neg_top x hx] }
+| ⊤ ⊥ := top_bot
+| ⊤ (y : ℝ) :=
+  by { rcases lt_trichotomy 0 y with hy|rfl|hy, exacts [top_pos y hy, top_zero, top_neg y hy] }
+| ⊤ ⊤ := top_top
 
 /-! `ereal` with its multiplication is a `comm_monoid_with_zero`. However, the proof of
 associativity by hand is extremely painful (with 125 cases...). Instead, we will deduce it later
@@ -735,42 +739,53 @@ begin
   with_cases
   { apply @induction₂ (λ x y, to_real (x * y) = to_real x * to_real y) };
     propagate_tags { try { dsimp only} },
-  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, to_real_zero] } },
-  case h : x y { norm_cast },
-  case t_t { rw [top_mul_top, to_real_top, mul_zero] },
-  case t_b { rw [top_mul_bot, to_real_top, to_real_bot, zero_mul] },
-  case b_t { rw [bot_mul_top, to_real_bot, zero_mul] },
-  case b_b { rw [bot_mul_bot, to_real_top, to_real_bot, zero_mul] },
-  case p_b : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_pos hx, to_real_bot, mul_zero] },
-  case n_b : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_neg hx, to_real_top, mul_zero] },
-  case p_t : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_pos hx, to_real_top, mul_zero] },
-  case n_t : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_neg hx, to_real_bot, mul_zero] },
-  case t_p : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_pos hy, to_real_top, zero_mul] },
-  case t_n : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_neg hy, to_real_bot, zero_mul] },
-  case b_p : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_pos hy, to_real_bot, zero_mul] },
-  case b_n : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_neg hy, to_real_top, zero_mul] },
+  case [top_zero, bot_zero, zero_top, zero_bot] { all_goals { simp only [zero_mul, mul_zero,
+                                                                         to_real_zero] } },
+  case coe_coe : x y { norm_cast },
+  case top_top { rw [top_mul_top, to_real_top, mul_zero] },
+  case top_bot { rw [top_mul_bot, to_real_top, to_real_bot, zero_mul] },
+  case bot_top { rw [bot_mul_top, to_real_bot, zero_mul] },
+  case bot_bot { rw [bot_mul_bot, to_real_top, to_real_bot, zero_mul] },
+  case pos_bot : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_pos hx, to_real_bot,
+                            mul_zero] },
+  case neg_bot : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_neg hx, to_real_top,
+                            mul_zero] },
+  case pos_top : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_pos hx, to_real_top,
+                            mul_zero] },
+  case neg_top : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_neg hx, to_real_bot,
+                            mul_zero] },
+  case top_pos : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_pos hy, to_real_top,
+                            zero_mul] },
+  case top_neg : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_neg hy, to_real_bot,
+                            zero_mul] },
+  case bot_pos : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_pos hy, to_real_bot,
+                            zero_mul] },
+  case bot_neg : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_neg hy, to_real_top,
+                            zero_mul] },
 end
 
 protected lemma neg_mul (x y : ereal) : -x * y = -(x * y) :=
 begin
+  -- TODO: replace with `induction using` in Lean 4, which supports multiple premises
   with_cases
   { apply @induction₂ (λ x y, -x * y = -(x * y)) };
     propagate_tags { try { dsimp only} },
-  case [t_t, b_t, t_b, b_b] { all_goals { refl } },
-  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, neg_zero] } },
-  case h : x y { norm_cast, exact neg_mul _ _, },
-  case p_b : x hx
+  case [top_top, bot_top, top_bot, bot_bot] { all_goals { refl } },
+  case [top_zero, bot_zero, zero_top, zero_bot]
+  { all_goals { simp only [zero_mul, mul_zero, neg_zero] } },
+  case coe_coe : x y { norm_cast, exact neg_mul _ _, },
+  case pos_bot : x hx
   { rw [coe_mul_bot_of_pos hx, neg_bot, ← coe_neg, coe_mul_bot_of_neg (neg_neg_of_pos hx)] },
-  case n_b : x hx
+  case neg_bot : x hx
   { rw [coe_mul_bot_of_neg hx, neg_top, ← coe_neg, coe_mul_bot_of_pos (neg_pos_of_neg hx)] },
-  case p_t : x hx
+  case pos_top : x hx
   { rw [coe_mul_top_of_pos hx, neg_top, ← coe_neg, coe_mul_top_of_neg (neg_neg_of_pos hx)] },
-  case n_t : x hx
+  case neg_top : x hx
   { rw [coe_mul_top_of_neg hx, neg_bot, ← coe_neg, coe_mul_top_of_pos (neg_pos_of_neg hx)] },
-  case t_p : y hy { rw [top_mul_coe_of_pos hy, neg_top, bot_mul_coe_of_pos hy] },
-  case t_n : y hy { rw [top_mul_coe_of_neg hy, neg_top, neg_bot, bot_mul_coe_of_neg hy] },
-  case b_p : y hy { rw [bot_mul_coe_of_pos hy, neg_bot, top_mul_coe_of_pos hy] },
-  case b_n : y hy { rw [bot_mul_coe_of_neg hy, neg_bot, neg_top, top_mul_coe_of_neg hy] },
+  case top_pos : y hy { rw [top_mul_coe_of_pos hy, neg_top, bot_mul_coe_of_pos hy] },
+  case top_neg : y hy { rw [top_mul_coe_of_neg hy, neg_top, neg_bot, bot_mul_coe_of_neg hy] },
+  case bot_pos : y hy { rw [bot_mul_coe_of_pos hy, neg_bot, top_mul_coe_of_pos hy] },
+  case bot_neg : y hy { rw [bot_mul_coe_of_neg hy, neg_bot, neg_top, top_mul_coe_of_neg hy] },
 end
 
 instance : has_distrib_neg ereal :=
@@ -815,25 +830,27 @@ begin
   with_cases
   { apply @induction₂ (λ x y, (x * y).abs = x.abs * y.abs) };
     propagate_tags { try { dsimp only} },
-  case [t_t, b_t, t_b, b_b] { all_goals { refl } },
-  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, abs_zero] } },
-  case h : x y { simp only [← coe_mul, ereal.abs, abs_mul, ennreal.of_real_mul (abs_nonneg _)], },
-  case p_b : x hx { simp only [coe_mul_bot_of_pos hx, hx.ne', abs_bot, with_top.mul_top, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff] },
-  case n_b : x hx { simp only [coe_mul_bot_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
-  case p_t : x hx { simp only [coe_mul_top_of_pos hx, hx.ne', with_top.mul_top, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
-  case n_t : x hx { simp only [coe_mul_top_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
-  case t_p : y hy { simp only [top_mul_coe_of_pos hy, hy.ne', with_top.top_mul, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
-  case t_n : y hy { simp only [top_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
-  case b_p : y hy { simp only [bot_mul_coe_of_pos hy, hy.ne', abs_bot, with_top.top_mul, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff] },
-  case b_n : y hy { simp only [bot_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def,
-                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case [top_top, bot_top, top_bot, bot_bot] { all_goals { refl } },
+  case [top_zero, bot_zero, zero_top, zero_bot] { all_goals { simp only [zero_mul, mul_zero,
+                                                                         abs_zero] } },
+  case coe_coe : x y { simp only [← coe_mul, ereal.abs, abs_mul,
+                                  ennreal.of_real_mul (abs_nonneg _)], },
+  case pos_bot : x hx { simp only [coe_mul_bot_of_pos hx, hx.ne', abs_bot, with_top.mul_top, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff] },
+  case neg_bot : x hx { simp only [coe_mul_bot_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case pos_top : x hx { simp only [coe_mul_top_of_pos hx, hx.ne', with_top.mul_top, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case neg_top : x hx { simp only [coe_mul_top_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case top_pos : y hy { simp only [top_mul_coe_of_pos hy, hy.ne', with_top.top_mul, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case top_neg : y hy { simp only [top_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case bot_pos : y hy { simp only [bot_mul_coe_of_pos hy, hy.ne', abs_bot, with_top.top_mul, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff] },
+  case bot_neg : y hy { simp only [bot_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def,
+                                   abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
 end
 
 /-! ### Sign -/
@@ -849,21 +866,22 @@ begin
   with_cases
   { apply @induction₂ (λ x y, sign (x * y) = sign x * sign y) };
     propagate_tags { try { dsimp only} },
-  case [t_t, b_t, t_b, b_b] { all_goals { refl } },
-  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, sign_zero] } },
-  case h : x y { simp only [← coe_mul, sign_coe, sign_mul], },
-  case p_b : x hx { simp_rw [coe_mul_bot_of_pos hx, sign_coe, sign_pos hx, one_mul] },
-  case n_b : x hx { simp_rw [coe_mul_bot_of_neg hx, sign_coe, sign_neg hx, sign_top, sign_bot,
-                             neg_one_mul, neg_neg] },
-  case p_t : x hx { simp_rw [coe_mul_top_of_pos hx, sign_coe, sign_pos hx, one_mul] },
-  case n_t : x hx { simp_rw [coe_mul_top_of_neg hx, sign_coe, sign_neg hx, sign_top, sign_bot,
-                             mul_one] },
-  case t_p : y hy { simp_rw [top_mul_coe_of_pos hy, sign_coe, sign_pos hy, mul_one] },
-  case t_n : y hy { simp_rw [top_mul_coe_of_neg hy, sign_coe, sign_neg hy, sign_top, sign_bot,
-                             one_mul] },
-  case b_p : y hy { simp_rw [bot_mul_coe_of_pos hy, sign_coe, sign_pos hy, mul_one] },
-  case b_n : y hy { simp_rw [bot_mul_coe_of_neg hy, sign_coe, sign_neg hy, sign_top, sign_bot,
-                             neg_one_mul, neg_neg] },
+  case [top_top, bot_top, top_bot, bot_bot] { all_goals { refl } },
+  case [top_zero, bot_zero, zero_top, zero_bot] { all_goals { simp only [zero_mul, mul_zero,
+                                                                         sign_zero] } },
+  case coe_coe : x y { simp only [← coe_mul, sign_coe, sign_mul], },
+  case pos_bot : x hx { simp_rw [coe_mul_bot_of_pos hx, sign_coe, sign_pos hx, one_mul] },
+  case neg_bot : x hx { simp_rw [coe_mul_bot_of_neg hx, sign_coe, sign_neg hx, sign_top, sign_bot,
+                                 neg_one_mul, neg_neg] },
+  case pos_top : x hx { simp_rw [coe_mul_top_of_pos hx, sign_coe, sign_pos hx, one_mul] },
+  case neg_top : x hx { simp_rw [coe_mul_top_of_neg hx, sign_coe, sign_neg hx, sign_top, sign_bot,
+                                 mul_one] },
+  case top_pos : y hy { simp_rw [top_mul_coe_of_pos hy, sign_coe, sign_pos hy, mul_one] },
+  case top_neg : y hy { simp_rw [top_mul_coe_of_neg hy, sign_coe, sign_neg hy, sign_top, sign_bot,
+                                 one_mul] },
+  case bot_pos : y hy { simp_rw [bot_mul_coe_of_pos hy, sign_coe, sign_pos hy, mul_one] },
+  case bot_neg : y hy { simp_rw [bot_mul_coe_of_neg hy, sign_coe, sign_neg hy, sign_top, sign_bot,
+                                 neg_one_mul, neg_neg] },
 end
 
 lemma sign_mul_abs (x : ereal) :

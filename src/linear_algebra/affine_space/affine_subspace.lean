@@ -675,7 +675,7 @@ lemma _root_.affine_span_le {s : set P} {Q : affine_subspace k P} :
   affine_span k s ≤ Q ↔ s ⊆ (Q : set P) :=
 (affine_subspace.gi k V P).gc _ _
 
-variables (k V) {P}
+variables (k V) {P} {p₁ p₂ : P}
 
 /-- The affine span of a single point, coerced to a set, contains just
 that point. -/
@@ -689,9 +689,12 @@ end
 
 /-- A point is in the affine span of a single point if and only if
 they are equal. -/
-@[simp] lemma mem_affine_span_singleton (p1 p2 : P) :
-  p1 ∈ affine_span k ({p2} : set P) ↔ p1 = p2 :=
+@[simp] lemma mem_affine_span_singleton : p₁ ∈ affine_span k ({p₂} : set P) ↔ p₁ = p₂ :=
 by simp [←mem_coe]
+
+@[simp] lemma preimage_coe_affine_span_singleton (x : P) :
+  (coe : affine_span k ({x} : set P) → P) ⁻¹' {x} = univ :=
+eq_univ_of_forall $ λ y, (affine_subspace.mem_affine_span_singleton _ _).1 y.2
 
 /-- The span of a union of sets is the sup of their spans. -/
 lemma span_union (s t : set P) : affine_span k (s ∪ t) = affine_span k s ⊔ affine_span k t :=
@@ -1597,6 +1600,18 @@ lemma comap_inf (s t : affine_subspace k P₂) (f : P₁ →ᵃ[k] P₂) :
 lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₂) :
   (infi s).comap f = ⨅ i, (s i).comap f :=
 (gc_map_comap f).u_infi
+
+@[simp] lemma comap_symm (e : P₁ ≃ᵃ[k] P₂) (s : affine_subspace k P₁) :
+  s.comap (e.symm : P₂ →ᵃ[k] P₁) = s.map e :=
+coe_injective $ e.preimage_symm _
+
+@[simp] lemma map_symm (e : P₁ ≃ᵃ[k] P₂) (s : affine_subspace k P₂) :
+  s.map (e.symm : P₂ →ᵃ[k] P₁) = s.comap e :=
+coe_injective $ e.image_symm _
+
+lemma comap_span (f : P₁ ≃ᵃ[k] P₂) (s : set P₂) :
+  (affine_span k s).comap (f : P₁ →ᵃ[k] P₂) = affine_span k (f ⁻¹' s) :=
+by rw [←map_symm, map_span, affine_equiv.coe_coe, f.image_symm]
 
 end affine_subspace
 

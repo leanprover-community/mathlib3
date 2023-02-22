@@ -53,7 +53,7 @@ An elementary (non-measure-theoretic) argument shows that if `¬ hδ` holds then
 -/
 
 open set filter function metric measure_theory
-open_locale measure_theory topological_space pointwise
+open_locale measure_theory topology pointwise
 
 /-- In a seminormed group `A`, given `n : ℕ` and `δ : ℝ`, `approx_order_of A n δ` is the set of
 elements within a distance `δ` of a point of order `n`. -/
@@ -156,7 +156,7 @@ lemma mem_approx_add_order_of_iff {δ : ℝ} {x : unit_add_circle} {n : ℕ} (hn
   x ∈ approx_add_order_of unit_add_circle n δ ↔
   ∃ m < n, gcd m n = 1 ∧ ‖x - ↑((m : ℝ) / n)‖ < δ :=
 begin
-  haveI : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩,
+  haveI := real.fact_zero_lt_one,
   simp only [mem_approx_add_order_of_iff, mem_set_of_eq, ball, exists_prop, dist_eq_norm,
     add_circle.add_order_of_eq_pos_iff hn, mul_one],
   split,
@@ -213,15 +213,14 @@ begin
   `E` is almost equal to `C p` for every prime. Combining this with 3 we find that `E` is almost
   invariant under the map `y ↦ y + 1/p` for every prime `p`. The required result then follows from
   `add_circle.ae_empty_or_univ_of_forall_vadd_ae_eq_self`. -/
+  letI : semilattice_sup nat.primes := nat.subtype.semilattice_sup _,
   set μ : measure 𝕊 := volume,
-  set primes : set ℕ := {p | p.prime},
-  haveI : nonempty primes := ⟨⟨2, nat.prime_two⟩⟩,
-  set u : primes → 𝕊 := λ p, ↑(((↑(1 : ℕ) : ℝ) / p) * T),
-  have hu₀ : ∀ (p : primes), add_order_of (u p) = (p : ℕ),
+  set u : nat.primes → 𝕊 := λ p, ↑(((↑(1 : ℕ) : ℝ) / p) * T),
+  have hu₀ : ∀ (p : nat.primes), add_order_of (u p) = (p : ℕ),
   { rintros ⟨p, hp⟩, exact add_order_of_div_of_gcd_eq_one hp.pos (gcd_one_left p), },
   have hu : tendsto (add_order_of ∘ u) at_top at_top,
   { rw (funext hu₀ : add_order_of ∘ u = coe),
-    have h_mono : monotone (coe : primes → ℕ) := λ p q hpq, hpq,
+    have h_mono : monotone (coe : nat.primes → ℕ) := λ p q hpq, hpq,
     refine h_mono.tendsto_at_top_at_top (λ n, _),
     obtain ⟨p, hp, hp'⟩ := n.exists_infinite_primes,
     exact ⟨⟨p, hp'⟩, hp⟩, },
@@ -247,11 +246,11 @@ begin
     -- `tauto` can finish from here but unfortunately it's very slow.
     simp only [(em (p ∣ n)).symm, (em (p*p ∣ n)).symm, or_and_distrib_left, or_true, true_and,
       or_assoc], },
-  have hE₂ : ∀ (p : primes), A p =ᵐ[μ] (∅ : set 𝕊) ∧ B p =ᵐ[μ] (∅ : set 𝕊) → E =ᵐ[μ] C p,
+  have hE₂ : ∀ (p : nat.primes), A p =ᵐ[μ] (∅ : set 𝕊) ∧ B p =ᵐ[μ] (∅ : set 𝕊) → E =ᵐ[μ] C p,
   { rintros p ⟨hA, hB⟩,
     rw hE₁ p,
     exact union_ae_eq_right_of_ae_eq_empty ((union_ae_eq_right_of_ae_eq_empty hA).trans hB), },
-  have hA : ∀ (p : primes), A p =ᵐ[μ] (∅ : set 𝕊) ∨ A p =ᵐ[μ] univ,
+  have hA : ∀ (p : nat.primes), A p =ᵐ[μ] (∅ : set 𝕊) ∨ A p =ᵐ[μ] univ,
   { rintros ⟨p, hp⟩,
     let f : 𝕊 → 𝕊 := λ y, (p : ℕ) • y,
     suffices : f '' (A p) ⊆
@@ -263,7 +262,7 @@ begin
     refine (Sup_hom.set_image f).apply_blimsup_le.trans (mono_blimsup $ λ n hn, _),
     replace hn := nat.coprime_comm.mp (hp.coprime_iff_not_dvd.2 hn.2),
     exact approx_add_order_of.image_nsmul_subset_of_coprime (δ n) hp.pos hn, },
-  have hB : ∀ (p : primes), B p =ᵐ[μ] (∅ : set 𝕊) ∨ B p =ᵐ[μ] univ,
+  have hB : ∀ (p : nat.primes), B p =ᵐ[μ] (∅ : set 𝕊) ∨ B p =ᵐ[μ] univ,
   { rintros ⟨p, hp⟩,
     let x := u ⟨p, hp⟩,
     let f : 𝕊 → 𝕊 := λ y, p • y + x,
@@ -291,15 +290,15 @@ begin
     simp only [hu₀, subtype.coe_mk, h_div, mul_comm p], },
   change (∀ᵐ x, x ∉ E) ∨ E ∈ volume.ae,
   rw [← eventually_eq_empty, ← eventually_eq_univ],
-  have hC : ∀ (p : primes), (u p) +ᵥ C p = C p,
+  have hC : ∀ (p : nat.primes), (u p) +ᵥ C p = C p,
   { intros p,
     let e := (add_action.to_perm (u p) : equiv.perm 𝕊).to_order_iso_set,
     change e (C p) = C p,
     rw [e.apply_blimsup, ← hu₀ p],
     exact blimsup_congr (eventually_of_forall $ λ n hn,
       approx_add_order_of.vadd_eq_of_mul_dvd (δ n) hn.1 hn.2), },
-  by_cases h : ∀ (p : primes), A p =ᵐ[μ] (∅ : set 𝕊) ∧ B p =ᵐ[μ] (∅ : set 𝕊),
-  { replace h : ∀ (p : primes), ((u p) +ᵥ E : set _) =ᵐ[μ] E,
+  by_cases h : ∀ (p : nat.primes), A p =ᵐ[μ] (∅ : set 𝕊) ∧ B p =ᵐ[μ] (∅ : set 𝕊),
+  { replace h : ∀ (p : nat.primes), ((u p) +ᵥ E : set _) =ᵐ[μ] E,
     { intros p,
       replace hE₂ : E =ᵐ[μ] C p := hE₂ p (h p),
       have h_qmp : measure_theory.measure.quasi_measure_preserving ((+ᵥ) (-u p)) μ μ :=

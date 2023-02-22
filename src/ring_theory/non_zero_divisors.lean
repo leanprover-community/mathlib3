@@ -10,6 +10,9 @@ import group_theory.submonoid.membership
 /-!
 # Non-zero divisors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the submonoid `non_zero_divisors` of a `monoid_with_zero`.
 
 ## Notations

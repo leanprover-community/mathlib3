@@ -7,6 +7,9 @@ import group_theory.free_group
 /-!
 # Free groups structures on arbitrary types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a type class for type that are free groups, together with the usual operations.
 The type class can be instantiated by providing an isomorphim to the canonical free group, or by
 proving that the universal property holds.

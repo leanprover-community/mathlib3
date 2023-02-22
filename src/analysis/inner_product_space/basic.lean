@@ -8,6 +8,7 @@ import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
+import linear_algebra.bilinear_form
 
 /-!
 # Inner product space
@@ -69,7 +70,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 noncomputable theory
 
 open is_R_or_C real filter
-open_locale big_operators topological_space complex_conjugate
+open_locale big_operators topology complex_conjugate
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 
@@ -436,6 +437,15 @@ linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
   (λ r x y, inner_smul_right)
   (λ x y z, inner_add_left)
   (λ r x y, inner_smul_left)
+
+/-- The real inner product as a bilinear form. -/
+@[simps]
+def bilin_form_of_real_inner : bilin_form ℝ F :=
+{ bilin := inner,
+  bilin_add_left := λ x y z, inner_add_left,
+  bilin_smul_left := λ a x y, inner_smul_left,
+  bilin_add_right := λ x y z, inner_add_right,
+  bilin_smul_right := λ a x y, inner_smul_right }
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
@@ -943,11 +953,8 @@ end orthonormal_sets
 section norm
 
 lemma norm_eq_sqrt_inner (x : E) : ‖x‖ = sqrt (re ⟪x, x⟫) :=
-begin
-  have h₁ : ‖x‖^2 = re ⟪x, x⟫ := norm_sq_eq_inner x,
-  have h₂ := congr_arg sqrt h₁,
-  simpa only [sqrt_sq, norm_nonneg] using h₂,
-end
+calc ‖x‖ = sqrt (‖x‖ ^ 2) : (sqrt_sq (norm_nonneg _)).symm
+... = sqrt (re ⟪x, x⟫) : congr_arg _ (norm_sq_eq_inner _)
 
 lemma norm_eq_sqrt_real_inner (x : F) : ‖x‖ = sqrt ⟪x, x⟫_ℝ :=
 by { have h := @norm_eq_sqrt_inner ℝ F _ _ x, simpa using h }
@@ -1554,13 +1561,8 @@ lemma abs_inner_eq_norm_iff (x y : E) (hx0 : x ≠ 0) (hy0 : y ≠ 0):
 begin
   have hxy0 : ‖x‖ * ‖y‖ ≠ 0 := mul_ne_zero (norm_eq_zero.not.2 hx0) (norm_eq_zero.not.2 hy0),
   have h₁ : abs ⟪x, y⟫ = ‖x‖ * ‖y‖ ↔ abs (⟪x, y⟫ / (‖x‖ * ‖y‖)) = 1,
-  { split; intro h,
-    { norm_cast,
-      rw [is_R_or_C.abs_div, h, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
-      exact div_self hxy0 },
-    { norm_cast at h,
-      rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
-          div_eq_one_iff_eq hxy0] at h } },
+  { rw [←algebra_map.coe_mul, is_R_or_C.abs_div, is_R_or_C.abs_of_nonneg, div_eq_one_iff_eq hxy0],
+    positivity },
   rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
   exact and_iff_right hx0,
 end

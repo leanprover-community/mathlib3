@@ -13,6 +13,9 @@ import tactic.positivity
 /-!
 # Nonnegative real numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `nnreal` (notation: `ℝ≥0`) to be the type of non-negative real numbers,
 a.k.a. the interval `[0, ∞)`. We also define the following operations and structures on `ℝ≥0`:
 

@@ -6,8 +6,10 @@ Authors: Johan Commelin
 
 import algebra.char_p.two
 import algebra.ne_zero
+import algebra.gcd_monoid.integrally_closed
 import data.polynomial.ring_division
 import field_theory.finite.basic
+import field_theory.minpoly.is_integrally_closed
 import field_theory.separable
 import group_theory.specific_groups.cyclic
 import number_theory.divisors
@@ -329,7 +331,8 @@ h.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
 lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
   i = j :=
 begin
-  wlog hij : i ≤ j,
+  wlog hij : i ≤ j generalizing i j,
+  { exact (this hj hi H.symm (le_of_not_le hij)).symm },
   apply le_antisymm hij,
   rw ← tsub_eq_zero_iff_le,
   apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
@@ -907,7 +910,8 @@ lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp },
-  apply minpoly.gcd_domain_dvd (is_integral h hpos) (monic_X_pow_sub_C 1 hpos.ne').ne_zero,
+  letI : is_integrally_closed ℤ := gcd_monoid.to_is_integrally_closed,
+  apply minpoly.is_integrally_closed_dvd (is_integral h hpos),
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -932,17 +936,13 @@ lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
 (separable_minpoly_mod h hdiv).squarefree
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
-`μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
-lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
-  minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
+`μ ^ p`, where `p` is a natural number that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
+lemma minpoly_dvd_expand {p : ℕ} (hdiv : ¬ p ∣ n) : minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp * at *, },
-  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
-  { apply monic.ne_zero,
-    rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
-        (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
-    exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
+  letI : is_integrally_closed ℤ := gcd_monoid.to_is_integrally_closed,
+  refine minpoly.is_integrally_closed_dvd (h.is_integral hpos) _,
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, polynomial.map_pow, map_X,
         eval_comp, eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
     exact minpoly.aeval _ _ }
@@ -960,7 +960,7 @@ begin
   by rw [← zmod.expand_card, map_expand],
   rw [hfrob],
   apply ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p))),
-  exact minpoly_dvd_expand h hprime.1 hdiv
+  exact minpoly_dvd_expand h hdiv
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of

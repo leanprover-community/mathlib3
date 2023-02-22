@@ -882,14 +882,13 @@ lemma le_iff_sign {x y : ereal} :
 begin
   split,
   { intro h,
-    rcases lt_trichotomy (sign x) (sign y) with hs | hs | hs,
+    rcases (sign.monotone h).lt_or_eq with hs | hs,
     { exact or.inl hs },
     { rw [← x.sign_mul_abs, ← y.sign_mul_abs] at h,
       cases sign y; rw [hs] at *,
       { simp },
       { simp at ⊢ h, exact or.inl h },
-      { simpa using h, }, },
-    { exact absurd hs (sign.monotone h).not_lt } },
+      { simpa using h, }, }, },
   { rintros (h | h | h | h), { exact (sign.monotone.reflect_lt h).le, },
     all_goals { rw [← x.sign_mul_abs, ← y.sign_mul_abs], simp [h] } }
 end

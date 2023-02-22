@@ -445,7 +445,7 @@ snd_pow_of_smul_comm _ _ (op_smul_eq_smul _ _)
 @[simp] lemma inl_pow [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M]
   (r : R) (n : ℕ) :
   (inl r ^ n : tsze R M) = inl (r ^ n) :=
-ext rfl $ by simp
+ext rfl $ by simp [snd_pow_eq_sum]
 
 instance [monoid R] [add_monoid M]
   [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M] :
@@ -455,7 +455,7 @@ instance [monoid R] [add_monoid M]
       x.1 • (y.1 • z.2 + op z.1 • y.2) + (op z.1 * op y.1) • x.2,
     by simp_rw [smul_add, ← mul_smul, add_assoc, smul_comm],
   npow := λ n x, x ^ n,
-  npow_zero' := λ x, ext (pow_zero x.fst) (by simp),
+  npow_zero' := λ x, ext (pow_zero x.fst) (by simp [snd_pow_eq_sum]),
   npow_succ' := λ n x, ext (pow_succ _ _) begin
     simp_rw [snd_mul, snd_pow_eq_sum, nat.pred_succ],
     cases n,

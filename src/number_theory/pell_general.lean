@@ -50,7 +50,7 @@ begin
     refine hd ⟨x, @int.cast_injective ℝ _ _ d (x * x) _⟩,
     rw [← sq_sqrt $ int.cast_nonneg.mpr h₀.le, int.cast_mul, ← hx, sq], },
   obtain ⟨M, hM₁⟩ := exists_nat_gt (2 * ξ + 1),
-  have hM : {q : ℚ | |(q.1) ^ 2 - d * (q.2) ^ 2| < M}.infinite,
+  have hM : {q : ℚ | |q.1 ^ 2 - d * q.2 ^ 2| < M}.infinite,
   { refine infinite.mono (λ q (h : |ξ - q| < 1 / q.2 ^ 2), _)
       (infinite_rat_abs_sub_lt_one_div_denom_sq_of_irrational hξ),
     replace h : |ξ - q.1 / q.2| < 1 / q.2 ^ 2 := by {convert h, exact_mod_cast q.num_div_denom},
@@ -70,7 +70,7 @@ begin
         exact_mod_cast q.pos, },
       { rwa abs_of_nonneg (mul_nonneg (zero_le_two : (0 : ℝ) ≤ 2) (sqrt_nonneg _)), } },
     exact_mod_cast claim, },
-  obtain ⟨m, hm⟩ : ∃ m : ℤ, {q : ℚ | (q.1) ^ 2 - d * (q.2) ^ 2 = m}.infinite,
+  obtain ⟨m, hm⟩ : ∃ m : ℤ, {q : ℚ | q.1 ^ 2 - d * q.2 ^ 2 = m}.infinite,
   { by_contra' hf,
     refine not_infinite.mpr (finite.bUnion (finite_Ioo (- (M : ℤ)) M) $
       λ m _, not_infinite.mp $ hf m) (@eq.subst _ set.infinite _ _ (set.ext $ λ q, _) hM),

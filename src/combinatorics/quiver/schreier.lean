@@ -3,6 +3,10 @@ import combinatorics.quiver.single_obj
 import group_theory.group_action.basic
 import group_theory.group_action.group
 import combinatorics.quiver.covering
+import group_theory.subgroup.basic
+import group_theory.coset
+import group_theory.quotient_group
+import group_theory.group_action.quotient
 
 universes u v w
 
@@ -34,7 +38,7 @@ section group_action
 variables (V : Type*) {M : Type*} [group M] [mul_action M V] {S : Type*} (ι : S → M)
 
 instance : mul_action M (schreier_graph V ι) :=
-{ smul := λ x y, equiv_schreier_graph $ x • (equiv_schreier_graph.symm y),
+{ smul := has_smul.smul,
   one_smul := mul_action.one_smul,
   mul_smul := mul_action.mul_smul }
 
@@ -55,6 +59,10 @@ begin
   { rintro ⟨⟨⟩,x⟩,
     exact ⟨⟨(ι x) ⁻¹ • u, ⟨x, by simp⟩⟩, by simp⟩, },
 end
+
+abbreviation schreier_coset_graph (H : subgroup M) := schreier_graph (M ⧸ H) ι
+
+abbreviation cayley_graph := schreier_coset_graph ι (⊥ : subgroup M)
 
 end group_action
 

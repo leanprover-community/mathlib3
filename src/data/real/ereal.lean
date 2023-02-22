@@ -63,6 +63,10 @@ def real.to_ereal : ℝ → ereal := some ∘ some
 
 namespace ereal
 
+-- things unify with `with_bot.decidable_lt` later if we we don't provide this explicitly.
+instance decidable_lt : decidable_rel ((<): ereal → ereal → Prop) :=
+with_bot.decidable_lt
+
 -- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
 instance : has_top ereal := ⟨some ⊤⟩
 
@@ -798,40 +802,32 @@ end
 
 /-! ### Sign -/
 
-@[simp] lemma sign_top : sign (⊤ : ereal) = sign_type.pos := rfl
-@[simp] lemma sign_bot : sign (⊥ : ereal) = sign_type.neg := rfl
+@[simp] lemma sign_top : sign (⊤ : ereal) = 1 := rfl
+@[simp] lemma sign_bot : sign (⊥ : ereal) = -1 := rfl
 @[simp] lemma sign_coe (x : ℝ) : sign (x : ereal) = sign x :=
 by simp only [sign, order_hom.coe_fun_mk, ereal.coe_pos, ereal.coe_neg']
 
 @[simp] lemma sign_mul (x y : ereal) : sign (x * y) = sign x * sign y :=
 begin
-  induction x using ereal.rec; induction y using ereal.rec,
-  { refl },
-  { rcases lt_trichotomy 0 y with hy|rfl|hy,
-    { simp only [bot_mul_coe_of_pos hy, hy, sign_coe, sign_pos, mul_one] },
-    { simp only [coe_zero, mul_zero, sign_zero] },
-    { simp only [bot_mul_coe_of_neg hy, hy, sign_top, sign_type.pos_eq_one, sign_bot,
-        sign_type.neg_eq_neg_one, sign_coe, sign_neg, mul_neg, mul_one, neg_neg] } },
-  { refl },
-  { rcases lt_trichotomy 0 x with hx|rfl|hx,
-    { simp only [coe_mul_bot_of_pos hx, hx, sign_bot, sign_type.neg_eq_neg_one, sign_coe, sign_pos,
-        mul_neg, mul_one] },
-    { simp only [coe_zero, zero_mul, sign_zero] },
-    { simp only [coe_mul_bot_of_neg hx, hx, sign_top, sign_type.pos_eq_one, sign_coe, sign_neg,
-        sign_bot, sign_type.neg_eq_neg_one, mul_neg, mul_one, neg_neg] } },
-  { simp only [← coe_mul, sign_coe, sign_mul] },
-  { rcases lt_trichotomy 0 x with hx|rfl|hx,
-    { simp only [coe_mul_top_of_pos hx, hx, sign_coe, sign_pos, mul_one, zero_lt_top]},
-    { simp only [coe_zero, zero_mul, sign_zero] },
-    { simp only [coe_mul_top_of_neg hx, hx, sign_top, sign_type.pos_eq_one, sign_coe, sign_neg,
-        sign_bot, sign_type.neg_eq_neg_one, mul_one] } },
-  { refl },
-  { rcases lt_trichotomy 0 y with hy|rfl|hy,
-    { simp only [top_mul_coe_of_pos hy, hy, sign_coe, sign_pos, mul_one] },
-    { simp only [coe_zero, mul_zero, sign_zero] },
-    { simp only [top_mul_coe_of_neg hy, hy, sign_top, sign_type.pos_eq_one, sign_bot,
-        sign_type.neg_eq_neg_one, sign_coe, sign_neg, mul_neg, mul_one]} },
-  { refl }
+   -- TODO: replace with `induction using` in Lean 4, which supports multiple premises
+  with_cases
+  { apply @induction₂ (λ x y, sign (x * y) = sign x * sign y) };
+    propagate_tags { try { dsimp only} },
+  case [t_t, b_t, t_b, b_b] { all_goals { refl } },
+  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, sign_zero] } },
+  case h : x y { simp only [← coe_mul, sign_coe, sign_mul], },
+  case p_b : x hx { simp_rw [coe_mul_bot_of_pos hx, sign_coe, sign_pos hx, one_mul] },
+  case n_b : x hx { simp_rw [coe_mul_bot_of_neg hx, sign_coe, sign_neg hx, sign_top, sign_bot,
+                             neg_one_mul, neg_neg] },
+  case p_t : x hx { simp_rw [coe_mul_top_of_pos hx, sign_coe, sign_pos hx, one_mul] },
+  case n_t : x hx { simp_rw [coe_mul_top_of_neg hx, sign_coe, sign_neg hx, sign_top, sign_bot,
+                             mul_one] },
+  case t_p : y hy { simp_rw [top_mul_coe_of_pos hy, sign_coe, sign_pos hy, mul_one] },
+  case t_n : y hy { simp_rw [top_mul_coe_of_neg hy, sign_coe, sign_neg hy, sign_top, sign_bot,
+                             one_mul] },
+  case b_p : y hy { simp_rw [bot_mul_coe_of_pos hy, sign_coe, sign_pos hy, mul_one] },
+  case b_n : y hy { simp_rw [bot_mul_coe_of_neg hy, sign_coe, sign_neg hy, sign_top, sign_bot,
+                             neg_one_mul, neg_neg] },
 end
 
 lemma sign_eq_and_abs_eq_iff_eq {x y : ereal} :

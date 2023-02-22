@@ -22,7 +22,7 @@ not-necessarily-commutative `R` as:
 variables {R M : Type*} [semiring R] [add_comm_monoid M]
 variables [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
 ```
-If we instead working with a commutative `R'` acting symmetrically on `M`, we write
+If we instead work with a commutative `R'` acting symmetrically on `M`, we write
 ```lean
 variables {R' M : Type*} [comm_semiring R'] [add_comm_monoid M]
 variables [module R' M] [module R'ᵐᵒᵖ M] [is_central_scalar R' M]

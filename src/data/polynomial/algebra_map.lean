@@ -232,10 +232,13 @@ lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 
-@[simp] lemma coe_aeval_eq_eval (r : R) :
-  (aeval r : R[X] → R) = eval r := rfl
+@[simp] lemma coe_aeval_eq_eval (r : R) : (aeval r : R[X] → R) = eval r := rfl
 
-@[simp] lemma coe_coe_aeval_eq_eval (r : R) :
+@[simp] lemma coe_aeval_eq_eval_ring_hom (x : R) :
+  ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R) = eval_ring_hom x :=
+rfl
+
+lemma coe_coe_aeval_eq_eval (r : R) :
   (((aeval r : R[X] →ₐ[R] R) : R[X] →+* R) : R[X] → R) = eval r :=
 rfl
 
@@ -278,8 +281,6 @@ theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :
 by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleton, aeval_X]
 
 variable {R}
-
-lemma aeval_surjective (x : R) : function.surjective $ @aeval R _ _ _ _ x := eval_surjective x
 
 section semiring
 

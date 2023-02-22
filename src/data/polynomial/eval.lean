@@ -878,8 +878,6 @@ lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} :
   eval x (∑ i in range n, X ^ i) = ∑ i in range n, x ^ i :=
 by simp [eval_finset_sum]
 
-lemma eval_ring_hom_surjective (x : R) : function.surjective $ eval_ring_hom x := eval_surjective x
-
 end
 
 end eval

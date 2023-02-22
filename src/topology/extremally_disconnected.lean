@@ -69,8 +69,6 @@ variable {X}
 lemma stone_cech.projective [discrete_topology X] : compact_t2.projective (stone_cech X) :=
 begin
   introsI Y Z _tsY _tsZ _csY _t2Y _csZ _csZ f g hf hg g_sur,
-  have H : dense_range (stone_cech_unit : X → stone_cech X),
-  { rw dense_range_iff_closure_range, exact stone_cech_unit_dense },
   let s : Z → Y := λ z, classical.some $ g_sur z,
   have hs : g ∘ s = id := funext (λ z, classical.some_spec (g_sur z)),
   let t := s ∘ f ∘ stone_cech_unit,
@@ -78,7 +76,7 @@ begin
   let h : stone_cech X → Y := stone_cech_extend ht,
   have hh : continuous h := continuous_stone_cech_extend ht,
   use [h, hh],
-  apply H.equalizer (hg.comp hh) hf,
+  apply dense_range_stone_cech_unit.equalizer (hg.comp hh) hf,
   rw [comp.assoc, stone_cech_extend_extends ht, ← comp.assoc, hs, comp.left_id],
 end
 

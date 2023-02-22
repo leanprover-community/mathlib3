@@ -478,23 +478,20 @@ theorem powerset_insert (s : set α) (a : α) :
   𝒫 (insert a s) = 𝒫 s ∪ (insert a '' 𝒫 s) :=
 begin
   ext t,
-  rw [mem_powerset_iff, mem_union, mem_image],
-  constructor,
+  simp_rw [mem_union, mem_image, mem_powerset_iff],
+  split,
   { intro h,
     by_cases hs : a ∈ t,
     { right,
-      use t \ {a},
-      constructor,
-      { rw [mem_powerset_iff, diff_singleton_subset_iff],
+      refine ⟨t \ {a}, _, _⟩,
+      { rw [diff_singleton_subset_iff],
         assumption },
       { rw [insert_diff_singleton, insert_eq_of_mem hs] }},
     { left,
       exact (subset_insert_iff_of_not_mem hs).mp h}},
-  { intro h,
-    rcases h with h | ⟨s', h₁, h₂⟩,
+  { rintros (h | ⟨s', h₁, rfl⟩),
     { exact subset_trans h (subset_insert a s) },
-    { rw [←h₂],
-      exact insert_subset_insert h₁ }}
+    { exact insert_subset_insert h₁ }}
 end
 
 /-! ### Lemmas about range of a function. -/

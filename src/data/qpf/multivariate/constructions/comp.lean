@@ -10,6 +10,9 @@ import data.qpf.multivariate.basic
 /-!
 # The composition of QPFs is itself a QPF
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define composition between one `n`-ary functor and `n` `m`-ary functors
 and show that it preserves the QPF structure
 -/

@@ -8,6 +8,9 @@ import category_theory.discrete_category
 /-!
 # The empty category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines a category structure on `pempty`, and the unique functor `pempty ⥤ C` for any category `C`.
 -/
 

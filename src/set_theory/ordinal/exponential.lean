@@ -7,6 +7,9 @@ import set_theory.ordinal.arithmetic
 
 /-! # Ordinal exponential
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the power function and the logarithm function on ordinals,
 
 -/

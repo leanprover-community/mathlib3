@@ -175,8 +175,8 @@ namespace dirichlet
 
 open number_field.canonical_embedding
 
-@[reducible]
 /-- The logarithmic embedding of the units.-/
+@[reducible]
 def log_embedding : (𝓤 K) → (number_field.infinite_place K → ℝ) := λ x w, real.log (w x)
 
 open units number_field number_field.infinite_place number_field.dirichlet finite_dimensional

@@ -121,6 +121,38 @@ protected def mul : ereal → ereal → ereal
 
 instance : has_mul ereal := ⟨ereal.mul⟩
 
+/-- Induct on two ereals by performing case splits on the sign of one whenever the other is
+infinite. -/
+@[elab_as_eliminator]
+lemma induction₂ {P : ereal → ereal → Prop}
+  (t_t : P ⊤ ⊤)
+  (t_p : ∀ x : ℝ, 0 < x → P ⊤ x)
+  (t_z : P ⊤ 0)
+  (t_n : ∀ x : ℝ, x < 0 → P ⊤ x)
+  (t_b : P ⊤ ⊥)
+  (p_t : ∀ x : ℝ, 0 < x → P x ⊤)
+  (p_b : ∀ x : ℝ, 0 < x → P x ⊥)
+  (z_t : P 0 ⊤)
+  (h : ∀ x y : ℝ, P x y)
+  (z_b : P 0 ⊥)
+  (n_t : ∀ x : ℝ, x < 0 → P x ⊤)
+  (n_b : ∀ x : ℝ, x < 0 → P x ⊥)
+  (b_t : P ⊥ ⊤)
+  (b_p : ∀ x : ℝ, 0 < x → P ⊥ x)
+  (b_z : P ⊥ 0)
+  (b_n : ∀ x : ℝ, x < 0 → P ⊥ x)
+  (b_b : P ⊥ ⊥) :
+  ∀ x y, P x y
+| ⊥ ⊥ := b_b
+| ⊥ (y : ℝ) := by { rcases lt_trichotomy 0 y with hy|rfl|hy, exacts [b_p y hy, b_z, b_n y hy] }
+| ⊥ ⊤ := b_t
+| (x : ℝ) ⊥ := by { rcases lt_trichotomy 0 x with hx|rfl|hx, exacts [p_b x hx, z_b, n_b x hx] }
+| (x : ℝ) (y : ℝ) := h _ _
+| (x : ℝ) ⊤ := by { rcases lt_trichotomy 0 x with hx|rfl|hx, exacts [p_t x hx, z_t, n_t x hx] }
+| ⊤ ⊥ := t_b
+| ⊤ (y : ℝ) := by { rcases lt_trichotomy 0 y with hy|rfl|hy, exacts [t_p y hy, t_z, t_n y hy] }
+| ⊤ ⊤ := t_t
+
 /-! `ereal` with its multiplication is a `comm_monoid_with_zero`. However, the proof of
 associativity by hand is extremely painful (with 125 cases...). Instead, we will deduce it later
 on from the facts that the absolute value and the sign are multiplicative functions taking value
@@ -691,28 +723,24 @@ bot_mul_of_neg (ereal.coe_neg'.2 h)
 
 lemma to_real_mul {x y : ereal} : to_real (x * y) = to_real x * to_real y :=
 begin
-  induction x using ereal.rec; induction y using ereal.rec,
-  { simp only [bot_mul_bot, to_real_top, to_real_bot, mul_zero] },
-  { rcases lt_trichotomy 0 y with hy|rfl|hy,
-    { simp only [bot_mul_coe_of_pos hy, to_real_bot, zero_mul] },
-    { simp only [coe_zero, mul_zero, to_real_zero] },
-    { simp only [bot_mul_coe_of_neg hy, to_real_top, to_real_bot, zero_mul] } },
-  { simp only [bot_mul_top, to_real_bot, to_real_top, mul_zero] },
-  { rcases lt_trichotomy 0 x with hx|rfl|hx,
-    { simp only [coe_mul_bot_of_pos hx, to_real_bot, mul_zero] },
-    { simp only [coe_zero, zero_mul, to_real_zero] },
-    { simp only [coe_mul_bot_of_neg hx, to_real_top, to_real_bot, mul_zero] } },
-  { simp only [← coe_mul, to_real_coe] },
-  { rcases lt_trichotomy 0 x with hx|rfl|hx,
-    { simp only [coe_mul_top_of_pos hx, to_real_top, mul_zero] },
-    { simp only [coe_zero, zero_mul, to_real_zero] },
-    { simp only [coe_mul_top_of_neg hx, to_real_top, to_real_bot, mul_zero] } },
-  { simp only [top_mul_bot, to_real_bot, mul_zero] },
-    { rcases lt_trichotomy 0 y with hy|rfl|hy,
-    { simp only [top_mul_coe_of_pos hy, to_real_top, zero_mul] },
-    { simp only [coe_zero, mul_zero, to_real_zero] },
-    { simp only [top_mul_coe_of_neg hy, to_real_top, to_real_bot, zero_mul] } },
-  { simp only [top_mul_top, to_real_top, mul_zero] }
+  -- TODO: replace with `induction using` in Lean 4, which supports multiple premises
+  with_cases
+  { apply @induction₂ (λ x y, to_real (x * y) = to_real x * to_real y) };
+    propagate_tags { try { dsimp only} },
+  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, to_real_zero] } },
+  case h : x y { norm_cast },
+  case t_t { rw [top_mul_top, to_real_top, mul_zero] },
+  case t_b { rw [top_mul_bot, to_real_top, to_real_bot, zero_mul] },
+  case b_t { rw [bot_mul_top, to_real_bot, zero_mul] },
+  case b_b { rw [bot_mul_bot, to_real_top, to_real_bot, zero_mul] },
+  case p_b : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_pos hx, to_real_bot, mul_zero] },
+  case n_b : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_neg hx, to_real_top, mul_zero] },
+  case p_t : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_pos hx, to_real_top, mul_zero] },
+  case n_t : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_neg hx, to_real_bot, mul_zero] },
+  case t_p : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_pos hy, to_real_top, zero_mul] },
+  case t_n : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_neg hy, to_real_bot, zero_mul] },
+  case b_p : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_pos hy, to_real_bot, zero_mul] },
+  case b_n : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_neg hy, to_real_top, zero_mul] },
 end
 
 /-! ### Absolute value -/
@@ -743,37 +771,29 @@ by rw [abs_eq_zero_iff]
 
 @[simp] lemma abs_mul (x y : ereal) : (x * y).abs = x.abs * y.abs :=
 begin
-  symmetry,
-  induction x using ereal.rec; induction y using ereal.rec,
-  { refl },
-  { rcases lt_trichotomy 0 y with hy|rfl|hy,
-    { simp only [bot_mul_coe_of_pos hy, hy.ne', abs_bot, with_top.top_mul, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff] },
-    { simp only [coe_zero, abs_zero, mul_zero] },
-    { simp only [bot_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff, abs_top] } },
-  { refl },
-  { rcases lt_trichotomy 0 x with hx|rfl|hx,
-    { simp only [coe_mul_bot_of_pos hx, hx.ne', abs_bot, with_top.mul_top, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff] },
-    { simp only [coe_zero, abs_zero, zero_mul] },
-    { simp only [coe_mul_bot_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff, abs_top] } },
-  { simp only [← coe_mul, ereal.abs, abs_mul, ennreal.of_real_mul (abs_nonneg _)] },
-  { rcases lt_trichotomy 0 x with hx|rfl|hx,
-    { simp only [coe_mul_top_of_pos hx, hx.ne', with_top.mul_top, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff, abs_top] },
-    { simp only [coe_zero, abs_zero, zero_mul] },
-    { simp only [coe_mul_top_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff, abs_top] } },
-  { refl },
-  { rcases lt_trichotomy 0 y with hy|rfl|hy,
-    { simp only [top_mul_coe_of_pos hy, hy.ne', with_top.top_mul, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff, abs_top] },
-    { simp only [coe_zero, abs_zero, mul_zero] },
-    { simp only [top_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def, abs_eq_zero_iff,
-        coe_eq_zero, not_false_iff, abs_top] } },
-  { refl }
+   -- TODO: replace with `induction using` in Lean 4, which supports multiple premises
+  with_cases
+  { apply @induction₂ (λ x y, (x * y).abs = x.abs * y.abs) };
+    propagate_tags { try { dsimp only} },
+  case [t_t, b_t, t_b, b_b] { all_goals { refl } },
+  case [t_z, b_z, z_t, z_b] { all_goals { simp only [zero_mul, mul_zero, abs_zero] } },
+  case h : x y { simp only [← coe_mul, ereal.abs, abs_mul, ennreal.of_real_mul (abs_nonneg _)], },
+  case p_b : x hx { simp only [coe_mul_bot_of_pos hx, hx.ne', abs_bot, with_top.mul_top, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff] },
+  case n_b : x hx { simp only [coe_mul_bot_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case p_t : x hx { simp only [coe_mul_top_of_pos hx, hx.ne', with_top.mul_top, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case n_t : x hx { simp only [coe_mul_top_of_neg hx, hx.ne, abs_bot, with_top.mul_top, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case t_p : y hy { simp only [top_mul_coe_of_pos hy, hy.ne', with_top.top_mul, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case t_n : y hy { simp only [top_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
+  case b_p : y hy { simp only [bot_mul_coe_of_pos hy, hy.ne', abs_bot, with_top.top_mul, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff] },
+  case b_n : y hy { simp only [bot_mul_coe_of_neg hy, hy.ne, abs_bot, with_top.top_mul, ne.def,
+                               abs_eq_zero_iff, coe_eq_zero, not_false_iff, abs_top] },
 end
 
 /-! ### Sign -/

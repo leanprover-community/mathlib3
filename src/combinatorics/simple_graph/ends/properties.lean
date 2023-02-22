@@ -38,12 +38,13 @@ end
 /--
 A locally finite preconnected infinite graph has at least one end.
 -/
-lemma nonempty_ends_of_infinite [Glf : locally_finite G] (Gpc : preconnected G) [Vi : infinite V] :
+lemma nonempty_ends_of_infinite [Glf : locally_finite G] [fact $ preconnected G]
+  [Vi : infinite V] :
   G.end.nonempty :=
 begin
   classical,
   exact @nonempty_sections_of_fintype_inverse_system _ _ _ G.component_compl_functor
-    (λ K, @fintype.of_finite _ $ component_compl_finite Gpc K.unop)
+    (λ K, @fintype.of_finite _ $ G.component_compl_finite K.unop)
     (λ K, G.component_compl_nonempty_of_infinite K.unop)
 end
 

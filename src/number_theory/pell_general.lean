@@ -24,7 +24,8 @@ which is specific to the case $d = a^2 - 1$ for some $a > 1$).
 
 ## References
 
-* [K. Ireland, M. Rosen, *A classical introduction to modern number theory* (Section 17.5)][IrelandRosen1990]
+* [K. Ireland, M. Rosen, *A classical introduction to modern number theory*
+   (Section 17.5)][IrelandRosen1990]
 
 ## Tags
 

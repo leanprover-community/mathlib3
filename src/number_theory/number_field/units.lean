@@ -860,7 +860,7 @@ begin
   exact ⟨b.1, c⟩,
 end
 
-def unit_lattice.dim : (unit_lattice.basis K).1 = unit_rank K :=
+lemma unit_lattice.dim : (unit_lattice.basis K).1 = unit_rank K :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),

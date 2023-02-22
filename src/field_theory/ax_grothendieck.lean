@@ -11,8 +11,8 @@ import data.zmod.basic
 /-!
 # Ax-Grothendieck for algebraic extensions of `zmod p`
 
-This file proves that if `K` is an algebraic extension of `zmod p` for some prime `p`,
-then any injective polynomial map `K^n -> K^n` is surjective.
+This file proves that if `R` is an algebraic extension of a finite field,
+then any injective polynomial map `R^n -> R^n` is also surjective.
 
 This proof is required for the true Ax-Grothendieck theorem, which proves the same result
 for any algebraically closed field of characteristic zero. The proof of the theorem for

@@ -1,19 +1,19 @@
-import data.polynomial.laurent 
+import data.polynomial.laurent
 import data.polynomial.ring_division
-import ring_theory.is_tensor_product 
+import ring_theory.is_tensor_product
 import algebraic_geometry.GroupObject.GroupScheme
 variables {R S : Type*} [comm_ring R] [comm_ring S]
   [is_domain R] [is_domain S]
 
 local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
-open laurent_polynomial 
+open laurent_polynomial
 #check polynomial.monomial
-lemma hmmmmm (x y : polynomial R) (n : ℕ) (r : R) 
+lemma hmmmmm (x y : polynomial R) (n : ℕ) (r : R)
   (h : x * y = polynomial.C r * polynomial.X ^ n) :
   polynomial.support x = {x.nat_degree} :=
 begin
   sorry,
-end 
+end
 
 lemma hmmm (x : R[T;T⁻¹]) (h : is_unit x) :
   ∃ (n : ℤ) (r : R), x = C r * T n :=
@@ -32,7 +32,7 @@ begin
   sorry,
 end
 
-open_locale tensor_product 
+open_locale tensor_product
 
 def comul (R : Type*) [comm_ring R] : R[T;T⁻¹] →+* R[T;T⁻¹] ⊗[R] R[T;T⁻¹] :=
 { to_fun := _,

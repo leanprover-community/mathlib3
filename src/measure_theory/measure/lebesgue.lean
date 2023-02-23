@@ -606,10 +606,12 @@ section summable_norm_Icc
 
 open continuous_map
 
-/- The following lemma is a minor variation on various lemmas in
+/- The following lemma is a minor variation on `integrable_of_summable_norm_restrict` in
 `measure_theory.integral.set_integral`, but it is placed here because it needs to know that
 `Icc a b` has volume `b - a`. -/
 
+/-- If the sequence with `n`-th term the the sup norm of `λ x, f (x + n)` on the interval `Icc 0 1`,
+for `n ∈ ℤ`, is summable, then `f` is integrable on `ℝ`. -/
 lemma real.integrable_of_summable_norm_Icc {E : Type*} [normed_add_comm_group E] {f : C(ℝ, E)}
   (hf : summable (λ n : ℤ, ‖(f.comp $ continuous_map.add_right n).restrict (Icc 0 1)‖)) :
   integrable f :=

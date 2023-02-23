@@ -1080,15 +1080,14 @@ begin
     (ae_of_all _ (λ x hx, hf_sum))
     interval_integrable_const
     (ae_of_all _ (λ x hx, summable.has_sum _)),
-  -- next line is very slow, & doesn't work with "exact" in place of "convert" -- ?
-  convert continuous_map.summable_apply (summable_of_summable_norm hf_sum) ⟨x, ⟨hx.1.le, hx.2⟩⟩,
+  -- next line is slow, & doesn't work with "exact" in place of "apply" -- ?
+  apply continuous_map.summable_apply (summable_of_summable_norm hf_sum) ⟨x, ⟨hx.1.le, hx.2⟩⟩,
 end
 
 lemma tsum_interval_integral_eq_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
   (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
   ∑' (i : ι), ∫ x in a..b, f i x = ∫ x in a..b, (∑' i : ι, f i x) :=
 (has_sum_interval_integral_of_summable_norm hf_sum).tsum_eq
-
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 

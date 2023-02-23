@@ -56,7 +56,6 @@ In that case, the labelling is a covering, meaning that the stars and costars ar
 are in bijection with `S`.
 -/
 
-
 variables (V : Type*) {M : Type*} [group M] [mul_action M V] {S : Type*} (ι : S → M)
 
 instance : mul_action M (schreier_graph V ι) :=
@@ -89,14 +88,43 @@ The sorry should be easy but would benefit from infrastructure:
 * isomorphisms induce equivalence of `star_path` etc
 
 -/
-noncomputable def schreier_graph.path_star_equiv (x : symmetrify $ schreier_graph V ι) :
-  path_star x ≃ list (S ⊕ S) :=
-calc path_star x ≃ path_star (symmetrify.of.obj (single_obj.star S) : symmetrify (single_obj S)) :
-  equiv.of_bijective _ (prefunctor.path_star_bijective _
-    (schreier_graph_labelling_is_covering V ι).symmetrify x)
+noncomputable def schreier_graph.path_star_equiv (x : schreier_graph V ι) :
+  path_star (symmetrify.of.obj x) ≃ list (S ⊕ S) :=
+calc  path_star (symmetrify.of.obj x)
+    ≃ path_star (symmetrify.of.obj (single_obj.star S) : symmetrify (single_obj S)) :
+      equiv.of_bijective _ (prefunctor.path_star_bijective _
+        (schreier_graph_labelling_is_covering V ι).symmetrify x)
+... ≃ path_star (single_obj.star (S ⊕ S)) : sorry
+... ≃ list (S ⊕ S) : single_obj.path_star_equiv _
 
-             ... ≃ path_star (single_obj.star (S ⊕ S)) : sorry
-             ... ≃ list (S ⊕ S) : single_obj.path_star_equiv _
+/- need to fine a usable def probably in `free_group` -/
+def val : list (S ⊕ S) → M
+| list.nil := 1
+| (list.cons (sum.inl s) l) := (ι s) * (val l)
+| (list.cons (sum.inr s) l) := (ι s) ⁻¹ * (val l)
+
+lemma _root_.subgroup.closure_eq_range_val :
+  (subgroup.closure $ set.range ι).carrier = set.range (val ι) := sorry
+
+/-
+I'm using `id p.1` because `symmetrify` has no converse to `of`
+That should be remedied.
+-/
+lemma schreier_graph.path_star_equiv_end_eq_mul
+  (x : schreier_graph V ι) (p : path_star $ symmetrify.of.obj x) :
+  (id p.1 : schreier_graph V ι) = (val ι $ (schreier_graph.path_star_equiv V ι x) p) • x := sorry
+
+
+/--
+Using the equivalence above:
+* paths starting at `x` are in bijection with words over `S`
+* this bijection maps the end of the path to the value of the path applied to `x`
+Thus:
+* Now use `_root_.subgroup.closure_eq_range_val`
+-/
+lemma schreier_graph.reachable_iff (x y : schreier_graph V ι) :
+  nonempty (path (symmetrify.of.obj x) (symmetrify.of.obj y)) ↔
+  ∃ g ∈ (subgroup.closure $ set.range ι), g • x = y := sorry
 
 section schreier_coset_graph
 

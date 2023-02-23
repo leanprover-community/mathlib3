@@ -16,6 +16,9 @@ import tactic.positivity
 /-!
 # Cardinal Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
 
 ## Main definitions

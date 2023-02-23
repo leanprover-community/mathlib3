@@ -49,7 +49,7 @@ artifact, really.
 -/
 
 noncomputable theory
-open_locale classical big_operators topological_space
+open_locale classical big_operators topology
 
 open filter (tendsto) metric continuous_linear_map
 

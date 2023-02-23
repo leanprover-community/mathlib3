@@ -116,7 +116,7 @@ circle homeomorphism, rotation number
 -/
 
 open filter set function (hiding commute) int
-open_locale topological_space classical
+open_locale topology classical
 
 /-!
 ### Definition and monoid structure

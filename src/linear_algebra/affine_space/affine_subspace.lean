@@ -1121,21 +1121,28 @@ begin
   { exact λ ⟨i₁, hi₁, hv⟩, ⟨p i₁, ⟨i₁, ⟨set.mem_univ _, hi₁⟩, rfl⟩, hv⟩ }
 end
 
-/-- The affine span of a set is nonempty if and only if that set
-is. -/
-lemma affine_span_nonempty (s : set P) :
-  (affine_span k s : set P).nonempty ↔ s.nonempty :=
+section
+variables {s : set P}
+
+/-- The affine span of a set is nonempty if and only if that set is. -/
+lemma affine_span_nonempty : (affine_span k s : set P).nonempty ↔ s.nonempty :=
 span_points_nonempty k s
 
+alias affine_span_nonempty ↔ _ _root_.set.nonempty.affine_span
+
 /-- The affine span of a nonempty set is nonempty. -/
-instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
-((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
+instance [nonempty s] : nonempty (affine_span k s) :=
+((nonempty_coe_sort.1 ‹_›).affine_span _).to_subtype
 
 /-- The affine span of a set is `⊥` if and only if that set is empty. -/
-@[simp] lemma affine_span_eq_bot {s : set P} :
-  affine_span k s = ⊥ ↔ s = ∅ :=
+@[simp] lemma affine_span_eq_bot : affine_span k s = ⊥ ↔ s = ∅ :=
 by rw [←not_iff_not, ←ne.def, ←ne.def, ←nonempty_iff_ne_bot, affine_span_nonempty,
        nonempty_iff_ne_empty]
+
+@[simp] lemma bot_lt_affine_span : ⊥ < affine_span k s ↔ s.nonempty :=
+by { rw [bot_lt_iff_ne_bot, nonempty_iff_ne_empty], exact (affine_span_eq_bot _).not }
+
+end
 
 variables {k}
 

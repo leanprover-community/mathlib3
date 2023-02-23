@@ -8,6 +8,9 @@ import algebra.algebra.hom
 /-!
 # The R-algebra structure on products of R-algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The R-algebra structure on `Π i : I, A i` when each `A i` is an R-algebra.
 
 ## Main defintions

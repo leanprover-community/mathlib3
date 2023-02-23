@@ -56,6 +56,11 @@ instance : mul_action M (schreier_graph V ι) :=
   one_smul := mul_action.one_smul,
   mul_smul := mul_action.mul_smul }
 
+instance path_action : mul_action (subgroup.closure (set.range ι)) (schreier_graph V ι) :=
+{ smul := by { rintro ⟨x,xι⟩, simp at xι, },
+  one_smul := mul_action.one_smul,
+  mul_smul := mul_action.mul_smul }
+
 lemma schreier_graph_labelling_is_covering : (schreier_graph_labelling V ι).is_covering :=
 begin
   refine ⟨λ u, ⟨_, _⟩, λ u, ⟨_, _⟩⟩,

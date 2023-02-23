@@ -16,7 +16,7 @@ composition of charts associated to the vector bundle belong to this groupoid.
 noncomputable theory
 
 open set topological_space
-open_locale manifold topological_space
+open_locale manifold topology
 
 /-! ### The groupoid of smooth, fibrewise-linear maps -/
 

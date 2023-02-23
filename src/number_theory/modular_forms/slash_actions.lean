@@ -141,6 +141,10 @@ begin
   simp,
 end
 
+
+local attribute [-instance] algebra.elemental_algebra.comm_ring
+  elemental_star_algebra.comm_semiring elemental_star_algebra.comm_ring
+
 /-- A function `f : ℍ → ℂ` is `slash_invariant`, of weight `k ∈ ℤ` and level `Γ`,
   if for every matrix `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
   and it acts on `ℍ` via Möbius transformations. -/

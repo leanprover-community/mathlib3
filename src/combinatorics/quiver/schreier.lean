@@ -27,6 +27,7 @@ Converting between the original vertex type and the alias.
 
 variables (V : Type*) {M : Type*} [has_smul M V] {S : Type*} (ι : S → M)
 
+/-- Transporting the action to the alias -/
 instance : has_smul M (schreier_graph V ι) :=
 { smul := λ x y, equiv_schreier_graph $ x • (equiv_schreier_graph.symm y)}
 
@@ -48,16 +49,18 @@ This is encoded as mapping to the `single_obj S` quiver.
 end basic
 
 section group_action
+/-!
+### Schreier graphs for group actions.
+
+In that case, the labelling is a covering, meaning that the stars and costars around each vertex
+are in bijection with `S`.
+-/
+
 
 variables (V : Type*) {M : Type*} [group M] [mul_action M V] {S : Type*} (ι : S → M)
 
 instance : mul_action M (schreier_graph V ι) :=
 { smul := has_smul.smul,
-  one_smul := mul_action.one_smul,
-  mul_smul := mul_action.mul_smul }
-
-instance path_action : mul_action (subgroup.closure (set.range ι)) (schreier_graph V ι) :=
-{ smul := by { rintro ⟨x,xι⟩, simp at xι, },
   one_smul := mul_action.one_smul,
   mul_smul := mul_action.mul_smul }
 
@@ -78,6 +81,22 @@ begin
   { rintro ⟨⟨⟩,x⟩,
     exact ⟨⟨(ι x) ⁻¹ • u, ⟨x, by simp⟩⟩, by simp⟩, },
 end
+
+/-
+The sorry should be easy but would benefit from infrastructure:
+* `symmetrify (single_obj α)` is isomorphic to `single_obj (α ⊕ α)`
+* need a usable def of isomorphisms
+* isomorphisms induce equivalence of `star_path` etc
+
+-/
+noncomputable def schreier_graph.path_star_equiv (x : symmetrify $ schreier_graph V ι) :
+  path_star x ≃ list (S ⊕ S) :=
+calc path_star x ≃ path_star (symmetrify.of.obj (single_obj.star S) : symmetrify (single_obj S)) :
+  equiv.of_bijective _ (prefunctor.path_star_bijective _
+    (schreier_graph_labelling_is_covering V ι).symmetrify x)
+
+             ... ≃ path_star (single_obj.star (S ⊕ S)) : sorry
+             ... ≃ list (S ⊕ S) : single_obj.path_star_equiv _
 
 section schreier_coset_graph
 
@@ -143,17 +162,15 @@ end
 lemma to_coset_graph_from_coset_graph (v₀ : V) :
   to_coset_graph V ι v₀ ⋙q from_coset_graph V ι v₀ = 𝟭q _ :=
 begin
-  dsimp only [to_coset_graph, from_coset_graph],
-  fapply prefunctor.ext,
-  { rintro ⟨_,_⟩,
-    simp, },
-  { rintro ⟨_,⟨m,rfl⟩⟩ ⟨_,⟨n,rfl⟩⟩ ⟨x,h⟩,
-    simp,
-    simp at h,
-    sorry, }
+  dsimp only [to_coset_graph, from_coset_graph, prefunctor.comp, prefunctor.id],
+  simp only [subtype.val_eq_coe, equiv.symm_apply_apply],
+  fsplit,
+  { ext ⟨_, _⟩,
+    simp only [id.def], },
+  { sorry, },
 end
 
-section action
+section automs
 
 variables {N : subgroup M} [Nn : N.normal]
 include Nn
@@ -204,7 +221,29 @@ begin
     sorry, },
 end
 
-end action
+lemma as_autom_eq_iff (g₁ g₂ : M) :
+  (as_autom ι g₁ : 𝑺 ι N ⥤q 𝑺 ι N) = (as_autom ι g₂ : 𝑺 ι N ⥤q 𝑺 ι N) ↔ g₁ / g₂ ∈ N :=
+begin
+  dsimp only [as_autom],
+  refine ⟨λ h, _, λ h, _⟩,
+  { simp only [subtype.val_eq_coe, equiv_schreier_graph_symm_apply,
+               equiv_schreier_graph_apply] at h ⊢,
+    simpa [←quotient_group.coe_one, quotient_group.eq_iff_div_mem] using
+            (congr_fun h.left (equiv_schreier_graph 1)), },
+  { fapply prefunctor.ext,
+    { rintro ⟨x⟩,
+      change (↑x : M ⧸ N) * (g₁)⁻¹ = (↑x : M ⧸ N) * (↑g₂)⁻¹,
+      simpa [quotient_group.eq_iff_div_mem] using h, },
+    { simp, rintro ⟨x⟩ ⟨y⟩ f,
+      sorry, }, },
+end
+
+lemma exists_as_autom_iff  {φ ψ : 𝑺 ι N ⥤q 𝑺 ι N}
+  (φψ : φ ⋙q ψ = 𝟭q _) (ψφ : ψ ⋙q φ = 𝟭q _) (φc : φ ⋙q 𝑺l ι N = 𝑺l ι N) :
+  ∃ g, as_autom ι g = φ ↔ sorry := sorry
+
+
+end automs
 
 end schreier_coset_graph
 

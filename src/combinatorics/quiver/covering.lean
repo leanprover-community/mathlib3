@@ -6,6 +6,7 @@ Authors: Antoine Labelle, Rémi Bottinelli
 import combinatorics.quiver.basic
 import combinatorics.quiver.symmetric
 import combinatorics.quiver.cast
+import combinatorics.quiver.single_obj
 
 /-!
 # Covering
@@ -172,7 +173,8 @@ begin
   simp,
 end
 
-protected lemma prefunctor.is_covering.symmetrify (hφ : φ.is_covering) : φ.symmetrify.is_covering :=
+protected lemma prefunctor.is_covering.symmetrify {φ : U ⥤q V} (hφ : φ.is_covering) :
+  φ.symmetrify.is_covering :=
 begin
   refine ⟨λ u, _, λ u, _⟩;
   simp only [φ.symmetrify_star u, φ.symmetrify_costar u,
@@ -244,6 +246,32 @@ begin
       use ⟨_, q'.cons eu⟩,
       simp only [prefunctor.map_path_cons, eq_self_iff_true, heq_iff_eq, and_self], } }
 end
+
+section single_obj
+
+variable (α : Type*)
+
+@[simps] def _root_.sigma.unit (β : unit → Type*) : (Σ (x : unit), β x) ≃ β unit.star :=
+{ to_fun := by { apply sigma.rec, intro x, cases x, exact id, }, -- term mode unhappy
+  inv_fun := by { intro h, exact ⟨unit.star, h⟩, },
+  left_inv := λ ⟨(), h⟩, by simp only [id.def, heq_iff_eq, eq_self_iff_true, and_self],
+  right_inv := λ h, by simp only [id.def] }
+
+
+/--
+The star around the single object is equivalent to the type of arrows used for `single_obj`.
+Confusing nomenclature though.
+-/
+def single_obj.star_equiv : quiver.star (single_obj.star α) ≃ α := sigma.unit _
+
+/--
+The path star around the single object is equivalent to the type of lists over the type of arrows
+used for `single_obj`.
+-/
+def single_obj.path_star_equiv : quiver.path_star (single_obj.star α) ≃ list α :=
+(sigma.unit _).trans single_obj.path_equiv_list
+
+end single_obj
 
 section has_involutive_reverse
 

@@ -119,6 +119,13 @@ def path_equiv_list : path (star α) (star α) ≃ list α :=
 @[simp] lemma path_equiv_list_symm_cons (l : list α) (a : α) :
   path_equiv_list.symm (a :: l) =  path.cons (path_equiv_list.symm l) a := rfl
 
+section symmetrify
+
+-- TODO : show that there is an isomorphism of quivers between
+-- quiver.symmetrify (quiver.single_obj α) and quiver.single_obj (α ⊕ α)
+
+end symmetrify
+
 end single_obj
 
 end quiver

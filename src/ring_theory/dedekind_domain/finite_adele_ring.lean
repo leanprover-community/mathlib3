@@ -219,4 +219,10 @@ noncomputable! def finite_adele_ring : subring (K_hat R K) :=
   zero_mem' := zero,
   neg_mem'  := λ _ hx, neg hx, }
 
+variables {R K}
+
+@[simp] lemma mem_finite_adele_ring_iff (x : K_hat R K) :
+  x ∈ finite_adele_ring R K ↔ x.is_finite_adele :=
+iff.rfl
+
 end dedekind_domain

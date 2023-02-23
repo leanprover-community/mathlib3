@@ -164,12 +164,14 @@ def pushout_iso' {R S T : CommRing} [algebra R S] [algebra R T] :
   ≅ CommRing.of (S ⊗[R] T) :=
 pushout_iso _ _ ≪≫ sorry -- christ knows
 
-
-#check Over.mk_hom_of_hom' (algebra_map R (R[T;T⁻¹] ⊗[R] R[T;T⁻¹])) (algebra_map R R[T;T⁻¹])
- (comultiplication R)
 def fml : Over.mk_of_hom (algebra_map R $ R[T;T⁻¹] ⊗[R] R[T;T⁻¹]) ⟶ 𝔾ₘ_obj R :=
-Over.mk_hom_of_hom' (algebra_map R (R[T;T⁻¹] ⊗[R] R[T;T⁻¹])) (algebra_map R _) (comultiplication R) _
-#exit
+Over.mk_hom_of_hom' (algebra_map R (R[T;T⁻¹] ⊗[R] R[T;T⁻¹])) (algebra_map R _) (by apply comultiplication R) _
+#check algebra.to_module
+#check ring_equiv.to_ring_hom
+def of_iso (R S T : Type*) [comm_ring R] [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] :
+  CommRing.of (S ⊗[R] T) ≅
+  CommRing.of (@tensor_product R _ (CommRing.of S) (CommRing.of T) _ _ (@algebra.to_module _ _ _ _ _inst_5)
+  (@algebra.to_module _ _ _ _ _inst_6)) := iso.refl _
 def 𝔾ₘ_mul : 𝔾ₘ_obj R ⨯ 𝔾ₘ_obj R ⟶ 𝔾ₘ_obj R :=
 (prod_iso_mk_pullback _ _).hom ≫
 begin
@@ -178,7 +180,9 @@ begin
   dsimp [𝔾ₘ_obj, Over.mk_of_alg, Over.mk_of_hom],
   refine Scheme.Spec_map _,
   refine _ ≫ (limits.pushout_iso_unop_pullback _ _).hom,
-  refine CommRing.of_hom (comultiplication R) ≫ (pushout_iso _ _).inv,
+  refine CommRing.of_hom (by apply comultiplication R) ≫ _,
+  refine (of_iso _ _ _).hom ≫ _,
+  apply (pushout_iso _ _).inv,
 end
 
 --over.iso_mk (pullback_of_affine _ _).symm _ ≫ _

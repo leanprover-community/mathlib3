@@ -380,7 +380,8 @@ uniform_embedding_comap to_prod_mul_opposite_injective
 
 instance [complete_space A] : complete_space 𝓜(𝕜, A) :=
 begin
-  rw complete_space_iff_is_complete_range uniform_embedding_to_prod_mul_opposite.to_uniform_inducing,
+  rw complete_space_iff_is_complete_range
+    uniform_embedding_to_prod_mul_opposite.to_uniform_inducing,
   apply is_closed.is_complete,
   simp only [range_to_prod_mul_opposite, set.set_of_forall],
   refine is_closed_Inter (λ x, is_closed_Inter $ λ y, is_closed_eq _ _),

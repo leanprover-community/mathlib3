@@ -11,6 +11,9 @@ import category_theory.category.ulift
 /-!
 # Finite categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category is finite in this sense if it has finitely many objects, and finitely many morphisms.
 
 ## Implementation

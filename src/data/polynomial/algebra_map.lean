@@ -238,10 +238,6 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
   ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R) = eval_ring_hom x :=
 rfl
 
-lemma coe_coe_aeval_eq_eval (r : R) :
-  (((aeval r : R[X] →ₐ[R] R) : R[X] →+* R) : R[X] → R) = eval r :=
-rfl
-
 @[simp] lemma aeval_fn_apply {X : Type*} (g : R[X]) (f : X → R) (x : X) :
   ((aeval f) g) x = aeval (f x) g :=
 (aeval_alg_hom_apply (pi.eval_alg_hom R (λ _, R) x) f g).symm

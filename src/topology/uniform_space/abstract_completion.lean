@@ -9,6 +9,9 @@ import topology.uniform_space.equiv
 /-!
 # Abstract theory of Hausdorff completions of uniform spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file characterizes Hausdorff completions of a uniform space α as complete Hausdorff spaces
 equipped with a map from α which has dense image and induce the original uniform structure on α.
 Assuming these properties we "extend" uniformly continuous maps from α to complete Hausdorff spaces

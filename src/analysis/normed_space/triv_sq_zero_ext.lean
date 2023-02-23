@@ -12,15 +12,17 @@ import topology.instances.triv_sq_zero_ext
 
 For now, this file contains results about `exp` for this type.
 
-TODO: actually define a sensible norm on `triv_sq_zero_ext R M`, so that we have access to lemmas
-like `exp_add`.
-
 ## Main results
 
 * `triv_sq_zero_ext.fst_exp`
 * `triv_sq_zero_ext.snd_exp`
 * `triv_sq_zero_ext.exp_inl`
 * `triv_sq_zero_ext.exp_inr`
+
+## TODO
+* Actually define a sensible norm on `triv_sq_zero_ext R M`, so that we have access to lemmas
+  like `exp_add`.
+* Generalize some of these results to non-commutative `R`.
 
 -/
 
@@ -36,8 +38,11 @@ variables [topological_space R] [topological_space M]
 
 /-- If `exp R x.fst` converges to `e` then `exp R x` converges to `inl e + inr (e • x.snd)`. -/
 lemma has_sum_exp_series [field 𝕜] [char_zero 𝕜] [comm_ring R]
-  [add_comm_group M] [algebra 𝕜 R] [module R M] [module 𝕜 M] [is_scalar_tower 𝕜 R M]
-  [topological_ring R] [topological_add_group M] [has_continuous_smul R M]
+  [add_comm_group M] [algebra 𝕜 R]
+  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [module 𝕜 M] [is_scalar_tower 𝕜 R M]
+  [topological_ring R] [topological_add_group M]
+  [has_continuous_smul R M]
   (x : tsze R M) {e : R} (h : has_sum (λ n, exp_series 𝕜 R n (λ _, x.fst)) e) :
   has_sum (λ n, exp_series 𝕜 (tsze R M) n (λ _, x)) (inl e + inr (e • x.snd)) :=
 begin
@@ -62,7 +67,8 @@ end topology
 
 section normed_ring
 variables [is_R_or_C 𝕜] [normed_comm_ring R] [add_comm_group M]
-variables [normed_algebra 𝕜 R] [module R M] [module 𝕜 M] [is_scalar_tower 𝕜 R M]
+variables [normed_algebra 𝕜 R] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [module 𝕜 M] [is_scalar_tower 𝕜 R M]
 variables [topological_space M] [topological_ring R]
 variables [topological_add_group M] [has_continuous_smul R M]
 variables [complete_space R] [t2_space R] [t2_space M]
@@ -97,7 +103,8 @@ end normed_ring
 
 section normed_field
 variables [is_R_or_C 𝕜] [normed_field R] [add_comm_group M]
-variables [normed_algebra 𝕜 R] [module R M] [module 𝕜 M] [is_scalar_tower 𝕜 R M]
+variables [normed_algebra 𝕜 R] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [module 𝕜 M] [is_scalar_tower 𝕜 R M]
 variables [topological_space M] [topological_ring R]
 variables [topological_add_group M] [has_continuous_smul R M]
 variables [complete_space R] [t2_space R] [t2_space M]

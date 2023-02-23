@@ -9,6 +9,9 @@ import category_theory.groupoid
 /-!
 # Facts about epimorphisms and monomorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definitions of `epi` and `mono` are in `category_theory.category`,
 since they are used by some lemmas for `iso`, which is used everywhere.
 -/

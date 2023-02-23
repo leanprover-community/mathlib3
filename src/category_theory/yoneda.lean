@@ -10,6 +10,9 @@ import category_theory.products.basic
 /-!
 # The Yoneda embedding
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
 along with an instance that it is `fully_faithful`.
 

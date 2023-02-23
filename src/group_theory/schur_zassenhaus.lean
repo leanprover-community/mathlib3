@@ -30,7 +30,7 @@ section schur_zassenhaus_abelian
 
 open mul_opposite mul_action subgroup.left_transversals mem_left_transversals
 
-variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [fintype (G ⧸ H)]
+variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [finite_index H]
   (α β : left_transversals (H : set G))
 
 /-- The quotient of the transversals of an abelian normal `N` by the `diff` relation. -/
@@ -44,6 +44,7 @@ lemma smul_diff_smul' [hH : normal H] (g : Gᵐᵒᵖ) :
   diff (monoid_hom.id H) (g • α) (g • β) = ⟨g.unop⁻¹ * (diff (monoid_hom.id H) α β : H) * g.unop,
     hH.mem_comm ((congr_arg (∈ H) (mul_inv_cancel_left _ _)).mpr (set_like.coe_mem _))⟩ :=
 begin
+  letI := H.fintype_quotient_of_finite_index,
   let ϕ : H →* H :=
   { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop,
       hH.mem_comm ((congr_arg (∈ H) (mul_inv_cancel_left _ _)).mpr (set_like.coe_mem _))⟩,
@@ -70,6 +71,7 @@ instance : mul_action G H.quotient_diff :=
 lemma smul_diff' (h : H) :
   diff (monoid_hom.id H) α ((op (h : G)) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
 begin
+  letI := H.fintype_quotient_of_finite_index,
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   simp_rw [subtype.ext_iff, monoid_hom.id_apply, coe_mul, coe_mk, mul_assoc, mul_right_inj],
@@ -149,7 +151,7 @@ begin
   contrapose! h3,
   have h4 : (N.comap K.subtype).index = N.index,
   { rw [←N.relindex_top_right, ←hK],
-    exact relindex_eq_relindex_sup K N },
+    exact (relindex_sup_right K N).symm },
   have h5 : fintype.card K < fintype.card G,
   { rw ← K.index_mul_card,
     exact lt_mul_of_one_lt_left fintype.card_pos (one_lt_index_of_ne_top h3) },
@@ -158,8 +160,9 @@ begin
     exact h1.coprime_dvd_left (card_comap_dvd_of_injective N K.subtype subtype.coe_injective) },
   obtain ⟨H, hH⟩ := h2 K h5 h6,
   replace hH : fintype.card (H.map K.subtype) = N.index :=
-  ((set.card_image_of_injective _ subtype.coe_injective).trans (nat.mul_left_injective
-    fintype.card_pos (hH.symm.card_mul.trans (N.comap K.subtype).index_mul_card.symm))).trans h4,
+    ((set.card_image_of_injective _ subtype.coe_injective).trans (mul_left_injective₀
+      fintype.card_ne_zero (hH.symm.card_mul.trans (N.comap K.subtype).index_mul_card.symm))).trans
+      h4,
   have h7 : fintype.card N * fintype.card (H.map K.subtype) = fintype.card G,
   { rw [hH, ←N.index_mul_card, mul_comm] },
   have h8 : (fintype.card N).coprime (fintype.card (H.map K.subtype)),

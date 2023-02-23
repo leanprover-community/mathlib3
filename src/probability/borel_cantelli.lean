@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.martingale.borel_cantelli
+import probability.conditional_expectation
 import probability.independence
 
 /-!
@@ -21,7 +22,7 @@ filtration.
 
 -/
 
-open_locale measure_theory probability_theory ennreal big_operators topological_space
+open_locale measure_theory probability_theory ennreal big_operators topology
 
 open measure_theory probability_theory measurable_space topological_space
 

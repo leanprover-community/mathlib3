@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import algebra.tropical.basic
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 
 /-!
 
 # Order on tropical algebraic structure
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the orders induced on tropical algebraic structures by the underlying type.
 

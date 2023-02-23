@@ -42,7 +42,7 @@ namespace probability_theory
 /-- The `ℝ≥0∞`-valued variance of a real-valued random variable defined as the Lebesgue integral of
 `(X - 𝔼[X])^2`. -/
 def evariance {Ω : Type*} {m : measurable_space Ω} (X : Ω → ℝ) (μ : measure Ω) : ℝ≥0∞ :=
-∫⁻ ω, ∥X ω - μ[X]∥₊^2 ∂μ
+∫⁻ ω, ‖X ω - μ[X]‖₊^2 ∂μ
 
 /-- The `ℝ`-valued variance of a real-valued random variable defined by applying `ennreal.to_real`
 to `evariance`. -/
@@ -252,7 +252,7 @@ end
 
 lemma evariance_def' [is_probability_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hX : ae_strongly_measurable X ℙ) :
-  eVar[X] = (∫⁻ ω, ∥X ω∥₊^2) - ennreal.of_real (𝔼[X]^2) :=
+  eVar[X] = (∫⁻ ω, ‖X ω‖₊^2) - ennreal.of_real (𝔼[X]^2) :=
 begin
   by_cases hℒ : mem_ℒp X 2,
   { rw [← hℒ.of_real_variance_eq, variance_def' hℒ, ennreal.of_real_sub _ (sq_nonneg _)],
@@ -362,7 +362,7 @@ begin
       { apply mem_ℒp.integrable_sq,
         exact mem_ℒp_finset_sum' _ (λ i hi, (hs _ (mem_insert_of_mem hi))) } },
     { rw mul_assoc,
-      apply integrable.const_mul _ 2,
+      apply integrable.const_mul _ (2:ℝ),
       simp only [mul_sum, sum_apply, pi.mul_apply],
       apply integrable_finset_sum _ (λ i hi, _),
       apply indep_fun.integrable_mul _
@@ -383,7 +383,7 @@ begin
     simp only [mul_assoc, integral_mul_left, pi.mul_apply, pi.bit0_apply, pi.one_apply, sum_apply,
       add_right_eq_self, mul_sum],
     rw integral_finset_sum s (λ i hi, _), swap,
-    { apply integrable.const_mul _ 2,
+    { apply integrable.const_mul _ (2:ℝ),
       apply indep_fun.integrable_mul _
         (mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)))
         (mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi))),

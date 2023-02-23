@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # A computable model of ZFA without infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define finite hereditary lists. This is useful for calculations in naive set theory.
 
 We distinguish two kinds of ZFA lists:

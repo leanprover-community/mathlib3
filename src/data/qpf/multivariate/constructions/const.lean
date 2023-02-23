@@ -10,6 +10,9 @@ import data.qpf.multivariate.basic
 /-!
 # Constant functors are QPFs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constant functors map every type vectors to the same target type. This
 is a useful device for constructing data types from more basic types
 that are not actually functorial. For instance `const n nat` makes

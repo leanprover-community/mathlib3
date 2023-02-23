@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
-import topology.continuous_function.compact
 import topology.unit_interval
 
 /-!

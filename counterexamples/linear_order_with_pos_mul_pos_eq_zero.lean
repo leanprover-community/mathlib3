@@ -4,7 +4,8 @@ All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa, Kevin Buzzard
 -/
-import algebra.order.monoid.basic
+import algebra.order.monoid.defs
+import algebra.order.monoid.with_zero.defs
 
 /-!
 An example of a `linear_ordered_comm_monoid_with_zero` in which the product of two positive
@@ -31,7 +32,7 @@ instance inhabited : inhabited foo := ⟨zero⟩
 
 instance : has_zero foo := ⟨zero⟩
 instance : has_one foo := ⟨one⟩
-notation `ε` := eps
+local notation `ε` := eps
 
 /-- The order on `foo` is the one induced by the natural order on the image of `aux1`. -/
 def aux1 : foo → ℕ

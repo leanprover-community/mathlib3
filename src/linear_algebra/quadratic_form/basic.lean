@@ -162,6 +162,12 @@ protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : qua
   to_fun_smul := h.symm ▸ Q.to_fun_smul,
   exists_companion' := h.symm ▸ Q.exists_companion' }
 
+@[simp]
+lemma coe_copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : ⇑(Q.copy Q' h) = Q' := rfl
+
+lemma copy_eq (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : Q.copy Q' h = Q :=
+fun_like.ext' h
+
 end fun_like
 
 section semiring
@@ -570,6 +576,10 @@ map_multiset_sum (to_quadratic_form_add_monoid_hom R M) B
   (∑ i in s, B i).to_quadratic_form = ∑ i in s, (B i).to_quadratic_form :=
 map_sum (to_quadratic_form_add_monoid_hom R M) B s
 
+@[simp] lemma to_quadratic_form_eq_zero {B : bilin_form R M} :
+  B.to_quadratic_form = 0 ↔ B.is_alt :=
+quadratic_form.ext_iff
+
 end semiring
 
 section ring
@@ -929,7 +939,7 @@ begin
     { rw [is_ortho, hB₂],
       exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
     { exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
-    { exact hv₁ _ _ (ne_of_apply_ne _ hij), }, }
+    { exact hv₁ (ne_of_apply_ne _ hij), }, }
 end
 
 end bilin_form
@@ -986,7 +996,7 @@ begin
   { rw [smul_left, smul_right, smul_eq_mul], ring },
   { intros i _ hij,
     rw [smul_left, smul_right,
-        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ j i hij.symm,
+        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ hij.symm,
         mul_zero, mul_zero] },
 end
 

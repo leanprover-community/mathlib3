@@ -42,15 +42,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install bibtool
+        if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
+        run: sudo apt install -y bibtool
+
       - name: install Python
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
-      - name: lint
+      - name: lint style
         run: |
           ./scripts/lint-style.sh
+
+      - name: lint references.bib
+        run: |
+          ./scripts/lint-bib.sh
 
   build:
     if: github.repository == 'leanprover-community/mathlib'
@@ -200,12 +208,25 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! 1 }}
-        run: python3 -m pip install --upgrade pip pyyaml requests
+        run: python3 -m pip install --upgrade pip pyyaml requests mathlibtools
 
       - name: tests
         run: |
           set -o pipefail
           lean --json -T100000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
+
+      - name: check archive and counterexample directories have unique identifiers
+        run: |
+          pip install mathlibtools
+          (cd archive && python -m mathlibtools.leanproject mk-all && mv all.lean archive_all.lean)
+          (cd counterexamples && python -m mathlibtools.leanproject mk-all && mv all.lean counterexamples_all.lean)
+          python -m mathlibtools.leanproject mk-all
+          echo "import all" >> all_all.lean
+          echo "import counterexamples_all" >> all_all.lean
+          echo "import archive_all" >> all_all.lean
+          echo "path ./archive" >> leanpkg.path
+          echo "path ./counterexamples" >> leanpkg.path
+          lean --json -T100000 --make all_all.lean | python3 scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         if: ${{ ! 1 }}

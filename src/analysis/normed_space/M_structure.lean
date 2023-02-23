@@ -3,9 +3,9 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import analysis.normed_space.basic
 import algebra.ring.idempotents
 import tactic.noncomm_ring
+import analysis.normed.group.basic
 
 /-!
 # M-structure
@@ -68,7 +68,7 @@ Note that we write `P • x` instead of `P x` for reasons described in the modul
 -/
 structure is_Lprojection (P : M) : Prop :=
 (proj : is_idempotent_elem P)
-(Lnorm : ∀ (x : X), ∥x∥ = ∥P • x∥ + ∥(1 - P) • x∥)
+(Lnorm : ∀ (x : X), ‖x‖ = ‖P • x‖ + ‖(1 - P) • x‖)
 
 /--
 A projection on a normed space `X` is said to be an M-projection if, for all `x` in `X`,
@@ -78,7 +78,7 @@ Note that we write `P • x` instead of `P x` for reasons described in the modul
 -/
 structure is_Mprojection (P : M) : Prop :=
 (proj : is_idempotent_elem P)
-(Mnorm : ∀ (x : X), ∥x∥ = (max ∥P • x∥ ∥(1 - P) • x∥))
+(Mnorm : ∀ (x : X), ‖x‖ = (max ‖P • x‖ ‖(1 - P) • x‖))
 
 variables {X}
 
@@ -97,26 +97,26 @@ begin
   begin
     refine @eq_of_smul_eq_smul _ X _ _ _ _ (λ x, _),
     rw ← norm_sub_eq_zero_iff,
-    have e1 : ∥R • x∥ ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ :=
-    calc ∥R • x∥ = ∥R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥ +
-                   (∥(R * R) • x - R • (P • (R • x))∥ + ∥(1 - R) • ((1 - P) • (R • x))∥) :
+    have e1 : ‖R • x‖ ≥ ‖R • x‖ + 2 • ‖ (P * R) • x - (R * P * R) • x‖ :=
+    calc ‖R • x‖ = ‖R • (P • (R • x))‖ + ‖(1 - R) • (P • (R • x))‖ +
+                   (‖(R * R) • x - R • (P • (R • x))‖ + ‖(1 - R) • ((1 - P) • (R • x))‖) :
       by rw [h₁.Lnorm, h₃.Lnorm, h₃.Lnorm ((1 - P) • (R • x)), sub_smul 1 P,
         one_smul, smul_sub, mul_smul]
-    ... = ∥R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥ + (∥R • x - R • (P • (R • x))∥
-      + ∥((1 - R) * R) • x - (1 - R) • (P • (R • x))∥) : by rw [h₃.proj.eq,
+    ... = ‖R • (P • (R • x))‖ + ‖(1 - R) • (P • (R • x))‖ + (‖R • x - R • (P • (R • x))‖
+      + ‖((1 - R) * R) • x - (1 - R) • (P • (R • x))‖) : by rw [h₃.proj.eq,
         sub_smul 1 P, one_smul, smul_sub, mul_smul]
-    ... = ∥R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥ +
-          (∥R • x - R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥) :
+    ... = ‖R • (P • (R • x))‖ + ‖(1 - R) • (P • (R • x))‖ +
+          (‖R • x - R • (P • (R • x))‖ + ‖(1 - R) • (P • (R • x))‖) :
       by rw [sub_mul, h₃.proj.eq, one_mul, sub_self, zero_smul, zero_sub,
         norm_neg]
-    ... = ∥R • (P • (R • x))∥ + ∥R • x - R • (P • (R • x))∥ + 2•∥(1 - R) • (P • (R • x))∥ : by abel
-    ... ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ : by
+    ... = ‖R • (P • (R • x))‖ + ‖R • x - R • (P • (R • x))‖ + 2•‖(1 - R) • (P • (R • x))‖ : by abel
+    ... ≥ ‖R • x‖ + 2 • ‖ (P * R) • x - (R * P * R) • x‖ : by
       { rw ge,
         have := add_le_add_right
-          (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•∥(1 - R) • (P • (R • x))∥),
+          (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•‖(1 - R) • (P • (R • x))‖),
         simpa only [mul_smul, sub_smul, one_smul] using this },
     rw ge at e1,
-    nth_rewrite_rhs 0 ← add_zero (∥R • x∥) at e1,
+    nth_rewrite_rhs 0 ← add_zero (‖R • x‖) at e1,
     rw [add_le_add_iff_left, two_smul, ← two_mul] at e1,
     rw le_antisymm_iff,
     refine ⟨_, norm_nonneg _⟩,
@@ -136,17 +136,17 @@ begin
   refine ⟨is_idempotent_elem.mul_of_commute (h₁.commute h₂) h₁.proj h₂.proj, _⟩,
   intro x,
   refine le_antisymm _ _,
-  { calc ∥ x ∥ = ∥(P * Q) • x + (x - (P * Q) • x)∥ : by rw add_sub_cancel'_right ((P * Q) • x) x
-    ... ≤ ∥(P * Q) • x∥ + ∥ x - (P * Q) • x ∥ : by apply norm_add_le
-    ... = ∥(P * Q) • x∥ + ∥(1 - P * Q) • x∥ : by rw [sub_smul,
+  { calc ‖ x ‖ = ‖(P * Q) • x + (x - (P * Q) • x)‖ : by rw add_sub_cancel'_right ((P * Q) • x) x
+    ... ≤ ‖(P * Q) • x‖ + ‖ x - (P * Q) • x ‖ : by apply norm_add_le
+    ... = ‖(P * Q) • x‖ + ‖(1 - P * Q) • x‖ : by rw [sub_smul,
       one_smul] },
-  { calc ∥x∥ = ∥P • (Q • x)∥ + (∥Q • x - P • (Q • x)∥ + ∥x - Q • x∥) : by
+  { calc ‖x‖ = ‖P • (Q • x)‖ + (‖Q • x - P • (Q • x)‖ + ‖x - Q • x‖) : by
       rw [h₂.Lnorm x, h₁.Lnorm (Q • x),
           sub_smul, one_smul,
           sub_smul, one_smul, add_assoc]
-    ... ≥ ∥P • (Q • x)∥ + ∥(Q • x - P • (Q • x)) + (x - Q • x)∥ :
-      (add_le_add_iff_left (∥P • (Q • x)∥)).mpr (norm_add_le (Q • x - P • (Q • x)) (x - Q • x))
-    ... = ∥(P * Q) • x∥ + ∥(1 - P * Q) • x∥ : by rw [sub_add_sub_cancel',
+    ... ≥ ‖P • (Q • x)‖ + ‖(Q • x - P • (Q • x)) + (x - Q • x)‖ :
+      (add_le_add_iff_left (‖P • (Q • x)‖)).mpr (norm_add_le (Q • x - P • (Q • x)) (x - Q • x))
+    ... = ‖(P * Q) • x‖ + ‖(1 - P * Q) • x‖ : by rw [sub_add_sub_cancel',
       sub_smul, one_smul,
       mul_smul] }
 end

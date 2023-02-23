@@ -9,6 +9,9 @@ import topology.uniform_space.basic
 /-!
 # Uniform structure induced by an absolute value
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We build a uniform space structure on a commutative ring `R` equipped with an absolute value into
 a linear ordered field `𝕜`. Of course in the case `R` is `ℚ`, `ℝ` or `ℂ` and
 `𝕜 = ℝ`, we get the same thing as the metric space construction, and the general construction

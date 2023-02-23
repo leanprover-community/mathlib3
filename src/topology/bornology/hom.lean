@@ -8,6 +8,9 @@ import topology.bornology.basic
 /-!
 # Locally bounded maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines locally bounded maps between bornologies.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -76,6 +79,13 @@ definitional equalities. -/
 protected def copy (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) :
   locally_bounded_map α β :=
 ⟨f', h.symm ▸ f.comap_cobounded_le'⟩
+
+@[simp] lemma coe_copy (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 /-- Construct a `locally_bounded_map` from the fact that the function maps bounded sets to bounded
 sets. -/

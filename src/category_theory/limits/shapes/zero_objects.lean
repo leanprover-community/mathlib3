@@ -3,9 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.images
-import category_theory.isomorphism_classes
+import category_theory.limits.shapes.terminal
 
 /-!
 # Zero objects
@@ -101,6 +99,14 @@ begin
   { rw ← cancel_mono e.hom, apply hY.eq_of_tgt, },
 end
 
+lemma op (h : is_zero X) : is_zero (opposite.op X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_src _ _)⟩⟩⟩
+
+lemma unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
+
 end is_zero
 
 end limits
@@ -150,9 +156,14 @@ localized "attribute [instance] category_theory.limits.has_zero_object.has_zero"
 lemma is_zero_zero : is_zero (0 : C) :=
 has_zero_object.zero.some_spec
 
+instance has_zero_object_op : has_zero_object Cᵒᵖ := ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
+
 end
 
 open_locale zero_object
+
+lemma has_zero_object_unop [has_zero_object Cᵒᵖ] : has_zero_object C :=
+⟨⟨opposite.unop 0, is_zero.unop (is_zero_zero Cᵒᵖ)⟩⟩
 
 variables {C}
 

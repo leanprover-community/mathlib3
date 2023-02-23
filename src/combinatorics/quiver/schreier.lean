@@ -13,7 +13,7 @@ import combinatorics.quiver.iso
 ## TODO
 
 * When are two automorphisms of a schreier graph (of a group action) equal ?
-* Same when the quiver is preconnected
+* Same when the quiver is preconnected (let's only care about the preconnected case)
 * Same for Cayley graphs (this is exactly when they agree on vertices and on stars)
 
 * When is an automorphism of a schreier_coset_graph for a normal subgroup given by a group element

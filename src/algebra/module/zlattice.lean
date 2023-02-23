@@ -9,16 +9,16 @@ import measure_theory.measure.haar_of_basis
 
 /-!
 # ℤ-lattices
-A ℤ-lattice `L` is a discrete subgroup of a finite dimensional real vector space `E` such
-that `L` spans `E` over `ℝ`.
+Let `E` be a finite dimensional real vector space. A (full) ℤ-lattice `L` of `E` is a discrete
+sub-ℤ-module of `E` such that `L` spans `E` over `ℝ`.
 
 The ℤ-lattice `L` can be defined in two ways:
-* `L : submodule.span ℤ (set.range b)` where `b` is a basis of `E`
-* `L : submodule ℤ E` with the additional properties:
+* For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
+* As `L : submodule ℤ E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
   `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`
 
-## Main results
+## Main definitions and results
 * `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
 indeed a fundamental domain of the lattice
 -/
@@ -29,14 +29,13 @@ noncomputable theory
 
 section zspan
 
--- TODO. open more!
-open measure_theory measurable_set
+open measure_theory measurable_set submodule
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables {ι : Type*} (b : basis ι ℝ E)
 
 /-- The ℤ-lattice spanned by `b` admits `b` as a ℤ-basis. -/
-def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
+def zspan.basis : basis ι ℤ (span ℤ (set.range b)) :=
 basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (ne_zero.ne 1)))
 
 @[simp]
@@ -44,19 +43,18 @@ lemma zspan.basis_apply (i : ι) : (zspan.basis b i : E) = b i :=
   by simp only [zspan.basis, basis.span_apply]
 
 @[simp]
-lemma zspan.repr_apply (m : submodule.span ℤ (set.range b)) [finite ι] (i : ι)  :
+lemma zspan.repr_apply (m : span ℤ (set.range b)) [finite ι] (i : ι)  :
   ((zspan.basis b).repr m i : ℝ) = b.repr m i :=
 begin
   casesI nonempty_fintype ι,
   rw ← congr_arg (coe : _ → E) (basis.sum_repr (zspan.basis b) m),
-  simp only [submodule.coe_sum, submodule.coe_smul_of_tower, zspan.basis_apply,
-    linear_equiv.map_sum, zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.single_apply,
-    finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
-    finset.mem_univ, if_true],
+  simp only [coe_sum, coe_smul_of_tower, zspan.basis_apply, linear_equiv.map_sum,
+    zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.single_apply, finset.sum_apply', basis.repr_self,
+    finsupp.smul_single', mul_one, finset.sum_ite_eq', finset.mem_univ, if_true],
 end
 
 lemma zspan.mem_span_iff [finite ι] (m : E) :
-  m ∈ submodule.span ℤ (set.range b) ↔ ∀ i, ∃ c : ℤ, b.repr m i = c :=
+  m ∈ span ℤ (set.range b) ↔ ∀ i, ∃ c : ℤ, b.repr m i = c :=
 begin
   casesI nonempty_fintype ι,
   split,
@@ -66,7 +64,7 @@ begin
     refine sum_mem _,
     intros i _,
     rw [(h i).some_spec, ← zsmul_eq_smul_cast ℝ],
-    exact zsmul_mem (submodule.subset_span (set.mem_range_self i)) _, }
+    exact zsmul_mem (subset_span (set.mem_range_self i)) _, }
 end
 
 /-- The fundamental domain of the ℤ-lattice spanned by `b`. See `zspan.is_add_fundamental_domain`
@@ -79,15 +77,14 @@ variable [fintype ι]
 
 /-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
 by rounding down its coordinates on the basis `b`. -/
-def zspan.floor_map : E → submodule.span ℤ (set.range b) :=
+def zspan.floor_map : E → span ℤ (set.range b) :=
 λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • zspan.basis b i)
 
 lemma zspan.floor_map_single (m : E) (i : ι) :
   b.repr (zspan.floor_map b m) i = int.floor (b.repr m i) :=
 by simp only [zspan.floor_map, zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.single_apply,
   finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
-  finset.mem_univ, if_true, submodule.coe_sum, submodule.coe_smul_of_tower, zspan.basis_apply,
-  linear_equiv.map_sum]
+  finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, zspan.basis_apply, linear_equiv.map_sum]
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
@@ -99,14 +96,14 @@ lemma zspan.fract_map_single (m : E) (i : ι):
 by rw [zspan.fract_map, map_sub, finsupp.coe_sub, pi.sub_apply, zspan.floor_map_single, int.fract]
 
 @[simp]
-lemma zspan.fract_map_zspan_add (m : E) (v : E) (h : v ∈ submodule.span ℤ (set.range b)) :
+lemma zspan.fract_map_zspan_add (m : E) (v : E) (h : v ∈ span ℤ (set.range b)) :
   zspan.fract_map b (v + m) = zspan.fract_map b m :=
 begin
   refine (basis.ext_elem_iff b).mpr (λ i, _),
   simp_rw [zspan.fract_map_single, int.fract_eq_fract],
   use (zspan.basis b).repr ⟨v, h⟩ i,
   simp only [map_add, finsupp.coe_add, pi.add_apply, add_tsub_cancel_right, zspan.repr_apply,
-    submodule.coe_mk],
+    coe_mk],
 end
 
 lemma zspan.mem_fundamental_domain {x : E} :
@@ -120,7 +117,7 @@ by simp only [zspan.mem_fundamental_domain, basis.ext_elem_iff b, zspan.fract_ma
   int.fract_fract, eq_self_iff_true, implies_true_iff]
 
 lemma zspan.fract_map_eq_iff (m n : E) :
-zspan.fract_map b m = zspan.fract_map b n ↔ m - n ∈ submodule.span ℤ (set.range b) :=
+zspan.fract_map b m = zspan.fract_map b n ↔ m - n ∈ span ℤ (set.range b) :=
 begin
   rw basis.ext_elem_iff b,
   simp only [int.fract_eq_fract, zspan.mem_span_iff, zspan.fract_map_single, linear_equiv.map_sub,
@@ -175,7 +172,7 @@ end
 
 lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_measurable_space E]
   (μ : measure E) :
-  is_add_fundamental_domain (submodule.span ℤ (set.range b)).to_add_subgroup
+  is_add_fundamental_domain (span ℤ (set.range b)).to_add_subgroup
     (zspan.fundamental_domain b) μ :=
 { null_measurable_set := null_measurable_set (zspan.measurable.fundamental_domain b),
   ae_covers :=

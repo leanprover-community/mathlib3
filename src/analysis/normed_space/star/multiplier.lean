@@ -34,6 +34,12 @@ The reader familiar with C⋆-algebra theory may recognize that one
 only needs `L` and `R` to be functions instead of continuous linear maps, at least when `A` is a
 C⋆-algebra. Our intention is simply to eventually provide a constructor for this situation.
 
+We pull back the `normed_algebra` structure (and everything contained therein) through the
+ring (even algebra) homomorphism
+`double_centralizer.to_prod_mul_opposite_hom : 𝓜(𝕜, A) →+* (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` which
+sends `a : 𝓜(𝕜, A)` to `(a.fst, mul_opposite.op a.snd)`. The star structure is provided
+separately.
+
 ## References
 
 * https://en.wikipedia.org/wiki/Multiplier_algebra
@@ -48,10 +54,8 @@ C⋆-algebra. Our intention is simply to eventually provide a constructor for th
   `L : A → A`, `R : A → A` satisfying the centrality condition `∀ x y, R x * y = x * L y`.
 -/
 
-noncomputable theory
-
 open_locale nnreal ennreal
-open nnreal continuous_linear_map
+open nnreal continuous_linear_map mul_opposite
 
 universes u v
 
@@ -211,6 +215,11 @@ lemma to_prod_mul_opposite_injective :
   function.injective (to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
 λ a b h, let h' := prod.ext_iff.mp h in ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
 
+lemma range_to_prod_mul_opposite :
+  set.range to_prod_mul_opposite = {lr : (A →L[𝕜] A) × _ | ∀ x y, unop lr.2 x * y = x * lr.1 y} :=
+set.ext $ λ x,
+  ⟨by {rintro ⟨a, rfl⟩, exact a.central}, λ hx, ⟨⟨(x.1, unop x.2), hx⟩, prod.ext rfl rfl⟩⟩
+
 /-- The ring structure is inherited as the pullback under the injective map
 `double_centralizer.to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
 instance : ring 𝓜(𝕜, A) :=
@@ -222,10 +231,20 @@ to_prod_mul_opposite_injective.ring _
   (λ _, rfl) (λ _, rfl)
 
 /-- The canonical map `double_centralizer.to_prod` as an additive group homomorphism. -/
+@[simps]
 def to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A) :=
 { to_fun := to_prod,
   map_zero' := rfl,
   map_add' := λ x y, rfl }
+
+/-- The canonical map `double_centralizer.to_prod_mul_opposite` as a ring homomorphism. -/
+@[simps]
+def to_prod_mul_opposite_hom : 𝓜(𝕜, A) →+* (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ :=
+{ to_fun := to_prod_mul_opposite,
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_add' := λ x y, rfl,
+  map_mul' := λ x y, rfl }
 
 /-- The module structure is inherited as the pullback under the additive group monomorphism
 `double_centralizer.to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
@@ -311,7 +330,7 @@ lemma coe_snd (a : A) : (a : 𝓜(𝕜, A)).snd = (continuous_linear_map.mul �
 /-- The coercion of an algebra into its multiplier algebra as a non-unital star algebra
 homomorphism. -/
 @[simps]
-def coe_hom [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A] :
+noncomputable def coe_hom [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A] :
   A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=
 { to_fun := λ a, a,
   map_smul' := λ k a, by ext; simp only [coe_fst, coe_snd, continuous_linear_map.map_smul,
@@ -326,53 +345,49 @@ def coe_hom [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_gro
 /-!
 ### Norm structures
 We define the norm structure on `𝓜(𝕜, A)` as the pullback under
-`double_centralizer.add_group_hom_to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)`, which provides
-a definitional isometric embedding. Consequently, completeness of `𝓜(𝕜, A)` is obtained by proving
-that the range of this map is closed.
+`double_centralizer.to_prod_mul_opposite_hom : 𝓜(𝕜, A) →+* (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ`, which
+provides a definitional isometric embedding. Consequently, completeness of `𝓜(𝕜, A)` is obtained
+by proving that the range of this map is closed.
 
 In addition, we prove that `𝓜(𝕜, A)` is a normed algebra, and, when `A` is a C⋆-algebra, we show
 that `𝓜(𝕜, A)` is also a C⋆-algebra. Moreover, in this case, for `a : 𝓜(𝕜, A)`,
 `‖a‖ = ‖a.fst‖ = ‖a.snd‖`. -/
 
-/-- The normed group structure is inherited as the pullback under the additive group monomoprhism
-`double_centralizer.to_prod : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
-instance : normed_add_comm_group 𝓜(𝕜, A) :=
-normed_add_comm_group.induced _ _ (to_prod_hom : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)) ext
+/-- The normed group structure is inherited as the pullback under the ring monomoprhism
+`double_centralizer.to_prod_mul_opposite_hom : 𝓜(𝕜, A) →+* (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ`. -/
+noncomputable instance : normed_ring 𝓜(𝕜, A) :=
+normed_ring.induced _ _ (to_prod_mul_opposite_hom : 𝓜(𝕜, A) →+* (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ)
+  to_prod_mul_opposite_injective
 
-lemma norm_def (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.to_prod‖ := rfl
-lemma nnnorm_def (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.to_prod‖₊ := rfl
+-- even though the definition is actually in terms of `double_centralizer.to_prod_mul_opposite`, we
+-- choose to see through that here to avoid `mul_opposite.op` appearing.
+lemma norm_def (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.to_prod_hom‖ := rfl
+lemma nnnorm_def (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.to_prod_hom‖₊ := rfl
+
+lemma norm_def' (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.to_prod_mul_opposite_hom‖ := rfl
+lemma nnnorm_def' (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.to_prod_mul_opposite_hom‖₊ := rfl
 
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
-{ norm_smul_le := λ k a, (norm_smul k a.to_prod).le,
+{ norm_smul_le := λ k a, (norm_smul k a.to_prod_mul_opposite).le,
   .. double_centralizer.module }
 
-lemma uniform_embedding_to_prod : uniform_embedding (@to_prod 𝕜 A _ _ _ _ _) :=
-uniform_embedding_comap ext
+instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
+{ ..double_centralizer.algebra, ..double_centralizer.normed_space }
+
+lemma uniform_embedding_to_prod_mul_opposite :
+  uniform_embedding (@to_prod_mul_opposite 𝕜 A _ _ _ _ _) :=
+uniform_embedding_comap to_prod_mul_opposite_injective
 
 instance [complete_space A] : complete_space 𝓜(𝕜, A) :=
 begin
-  rw complete_space_iff_is_complete_range uniform_embedding_to_prod.to_uniform_inducing,
+  rw complete_space_iff_is_complete_range uniform_embedding_to_prod_mul_opposite.to_uniform_inducing,
   apply is_closed.is_complete,
-  simp only [range_to_prod, set.set_of_forall],
+  simp only [range_to_prod_mul_opposite, set.set_of_forall],
   refine is_closed_Inter (λ x, is_closed_Inter $ λ y, is_closed_eq _ _),
-  exacts [((continuous_linear_map.apply 𝕜 A _).continuous.comp continuous_snd).mul continuous_const,
-    continuous_const.mul ((continuous_linear_map.apply 𝕜 A _).continuous.comp continuous_fst)],
+  exact ((continuous_linear_map.apply 𝕜 A _).continuous.comp $
+    continuous_unop.comp continuous_snd).mul continuous_const,
+  exact continuous_const.mul ((continuous_linear_map.apply 𝕜 A _).continuous.comp continuous_fst),
 end
-
-noncomputable instance : normed_ring 𝓜(𝕜, A) :=
-{ norm_mul := λ a b,
-    begin
-      refine max_le ((norm_mul_le _ _).trans _) ((norm_mul_le _ _).trans _),
-      exact mul_le_mul (le_max_left _ _) (le_max_left _ _) (norm_nonneg _)
-        ((norm_nonneg _).trans $ le_max_left _ _),
-      exact mul_comm (‖a.snd‖) (‖b.snd‖) ▸ mul_le_mul (le_max_right _ _) (le_max_right _ _)
-        (norm_nonneg _) ((norm_nonneg _).trans $ le_max_right _ _),
-    end,
-  .. double_centralizer.ring,
-  .. double_centralizer.normed_add_comm_group }
-
-noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
-{ ..double_centralizer.algebra, ..double_centralizer.normed_space }
 
 variables [star_ring A] [cstar_ring A]
 
@@ -415,7 +430,8 @@ end
 
 lemma nnnorm_fst_eq_snd (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a.snd‖₊ := subtype.ext $ norm_fst_eq_snd a
 @[simp] lemma norm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖ = ‖a‖ :=
-  by simp only [norm_def, prod.norm_def, norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
+  by simp only [norm_def, to_prod_hom_apply, prod.norm_def, norm_fst_eq_snd, max_eq_right,
+    eq_self_iff_true]
 @[simp] lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
 @[simp] lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a‖₊ := subtype.ext (norm_fst a)
 @[simp] lemma nnnorm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖₊ = ‖a‖₊ := subtype.ext (norm_snd a)

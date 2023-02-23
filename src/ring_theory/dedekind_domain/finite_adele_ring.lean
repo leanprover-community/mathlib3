@@ -113,22 +113,22 @@ We define the finite adèle ring of `R` as the restricted product over all maxim
 of `adic_completion` with respect to `adic_completion_integers`. We prove that it is a commutative
 ring. TODO: show that it is a topological ring with the restricted product topology. -/
 
-/-- The finite adèle ring of `R` is the restricted product over all maximal ideals `v` of `R`
-of `adic_completion` with respect to `adic_completion_integers`.-/
-def finite_adele_ring := { x : (K_hat R K) //
-  ∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K) }
+namespace prod_adic_completions
 
-/-- The coercion map from `finite_adele_ring R K` to `K_hat R K`. -/
-def coe' : (finite_adele_ring R K) → K_hat R K := λ x, x.val
-instance has_coe' : has_coe (finite_adele_ring R K) (K_hat R K) := {coe := coe' R K }
+variables {R K}
+
+/-- An element `x : K_hat R K` is a finite adèle if for all but finitely many height one ideals
+  `v`, the component `x v` is a `v`-adic integer. -/
+def is_finite_adele (x : K_hat R K) :=
+∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K)
+
+namespace is_finite_adele
 
 /-- The sum of two finite adèles is a finite adèle. -/
-lemma restr_add (x y : finite_adele_ring R K) : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
-  ((x.val + y.val) v ∈ v.adic_completion_integers K) :=
+lemma add {x y : K_hat R K} (hx : x.is_finite_adele) (hy : y.is_finite_adele) :
+  (x + y).is_finite_adele :=
 begin
-  cases x with x hx,
-  cases y with y hy,
-  rw filter.eventually_cofinite at hx hy ⊢,
+  rw [is_finite_adele, filter.eventually_cofinite] at hx hy ⊢,
   have h_subset : {v : height_one_spectrum R | ¬ (x + y) v ∈  (v.adic_completion_integers K)} ⊆
     {v : height_one_spectrum R | ¬ x v ∈ (v.adic_completion_integers K)} ∪
     {v : height_one_spectrum R | ¬ y v ∈ (v.adic_completion_integers K)},
@@ -142,14 +142,10 @@ begin
   exact (hx.union hy).subset h_subset,
 end
 
-/-- Addition on the finite adèle ring. -/
-instance : has_add (finite_adele_ring R K) := ⟨λ x y, ⟨x.val + y.val, restr_add R K x y⟩⟩
-
 /-- The tuple `(0)_v` is a finite adèle. -/
-lemma restr_zero : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
-  ((0 : v.adic_completion K) ∈ v.adic_completion_integers K) :=
+lemma zero : (0 : K_hat R K).is_finite_adele :=
 begin
-  rw filter.eventually_cofinite,
+  rw [is_finite_adele, filter.eventually_cofinite],
   have h_empty : {v : height_one_spectrum R |
     ¬ ((0 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
   { ext v, rw [mem_empty_iff_false, iff_false], intro hv,
@@ -157,32 +153,26 @@ begin
     have h_zero : (valued.v (0 : v.adic_completion K) : (with_zero(multiplicative ℤ))) = 0 :=
     valued.v.map_zero',
     rw h_zero, exact zero_le_one' _ },
-  rw h_empty,
+  simp_rw [pi.zero_apply, h_empty],
   exact finite_empty,
 end
 
 /-- The negative of a finite adèle is a finite adèle. -/
-lemma restr_neg (x : finite_adele_ring R K)  : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
-  (-x.val v ∈ v.adic_completion_integers K) :=
+lemma neg {x : K_hat R K} (hx : x.is_finite_adele) : (-x).is_finite_adele  :=
 begin
-  cases x with x hx,
+  rw is_finite_adele at hx ⊢,
   have h : ∀ (v : height_one_spectrum R), (-x v ∈ v.adic_completion_integers K) ↔
     (x v ∈ v.adic_completion_integers K),
   { intro v,
     rw [adic_completion.is_integer, adic_completion.is_integer, valuation.map_neg], },
-  simpa only [h] using hx,
+  simpa only [pi.neg_apply, h] using hx,
 end
 
-/-- Negation on the finite adèle ring. -/
-instance : has_neg (finite_adele_ring R K) := ⟨λ x, ⟨-x.val, restr_neg R K x⟩⟩
-
 /-- The product of two finite adèles is a finite adèle. -/
-lemma restr_mul (x y : finite_adele_ring R K) : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
-  ((x.val * y.val) v ∈ v.adic_completion_integers K) :=
+lemma mul {x y : K_hat R K} (hx : x.is_finite_adele) (hy : y.is_finite_adele) :
+  (x * y).is_finite_adele :=
 begin
-  cases x with x hx,
-  cases y with y hy,
-  rw filter.eventually_cofinite at hx hy ⊢,
+  rw [is_finite_adele, filter.eventually_cofinite] at hx hy ⊢,
   have h_subset : {v : height_one_spectrum R | ¬ (x * y) v ∈  (v.adic_completion_integers K)} ⊆
     {v : height_one_spectrum R | ¬ x v ∈ (v.adic_completion_integers K)} ∪
     {v : height_one_spectrum R | ¬ y v ∈ (v.adic_completion_integers K)},
@@ -199,65 +189,35 @@ begin
   exact (hx.union hy).subset h_subset,
 end
 
-/-- Multiplication on the finite adèle ring. -/
-instance : has_mul (finite_adele_ring R K) := ⟨λ x y, ⟨x.val * y.val, restr_mul R K x y⟩⟩
-
 /-- The tuple `(1)_v` is a finite adèle. -/
-lemma restr_one : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
-  ((1 : v.adic_completion K) ∈ v.adic_completion_integers K) :=
+lemma one : (1 : K_hat R K).is_finite_adele :=
 begin
-  rw filter.eventually_cofinite,
+  rw [is_finite_adele, filter.eventually_cofinite],
   have h_empty : {v : height_one_spectrum R |
     ¬ ((1 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
   { ext v, rw [mem_empty_iff_false, iff_false], intro hv,
     rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
     exact le_of_eq valued.v.map_one' },
-  rw h_empty,
+  simp_rw [pi.one_apply, h_empty],
   exact finite_empty,
 end
 
-/-- `finite_adele_ring R K` is a commutative additive group. -/
-instance : add_comm_group (finite_adele_ring R K) :=
-{ add          := (+),
-  add_assoc    := λ x y z, by { simp only [has_add.add, subtype.mk_eq_mk], exact add_assoc _ _ _ },
-  zero         := ⟨0, restr_zero R K⟩,
-  zero_add     := λ ⟨x, hx⟩, by { simp only [has_add.add, subtype.mk_eq_mk], exact zero_add _ },
-  add_zero     := λ ⟨x, hx⟩, by { simp only [has_add.add, subtype.mk_eq_mk], exact add_zero _ },
-  neg          := λ x, -x,
-  add_left_neg := λ x, by { simp only [subtype.ext_iff, subtype.coe_mk], exact add_left_neg _ },
-  add_comm     := λ x y, by { simp only [subtype.ext_iff, subtype.coe_mk], exact add_comm _ _ }}
+end is_finite_adele
 
+end prod_adic_completions
 
-/-- `finite_adele_ring R K` is a commutative ring. -/
-instance : comm_ring (finite_adele_ring R K) :=
-{ mul           := (*),
-  mul_assoc     := λ x y z, by { simp only [has_mul.mul, subtype.mk_eq_mk], exact mul_assoc _ _ _ },
-  one           := ⟨1, restr_one R K⟩,
-  one_mul       := λ ⟨x, hx⟩, by { simp only [has_mul.mul, subtype.mk_eq_mk], exact one_mul _ },
-  mul_one       := λ ⟨x, hx⟩, by { simp only [has_mul.mul, subtype.mk_eq_mk], exact mul_one _ },
-  left_distrib  := λ x y z, by { simp only [subtype.ext_iff, subtype.coe_mk],
-    exact left_distrib _ _ _ },
-  right_distrib := λ x y z, by { simp only [subtype.ext_iff, subtype.coe_mk],
-    exact right_distrib _ _ _ },
-  mul_comm      := λ x y, by { simp only [subtype.ext_iff, subtype.coe_mk], exact mul_comm _ _ },
-  ..(finite_adele_ring.add_comm_group R K) }
+open prod_adic_completions.is_finite_adele
 
-namespace finite_adele_ring
-variables {R K}
-
-@[norm_cast] lemma coe_add (x y : finite_adele_ring R K) :(↑(x + y) : K_hat R K) = ↑x + ↑y := rfl
-
-@[norm_cast] lemma coe_zero : (↑(0 : finite_adele_ring R K) : K_hat R K) = 0 :=
-rfl
-
-@[norm_cast] lemma coe_neg (x : finite_adele_ring R K) : (↑(-x) : K_hat R K) = -↑x  := rfl
-
-@[norm_cast] lemma coe_mul (x y : finite_adele_ring R K) :(↑(x * y) : K_hat R K) = ↑x * ↑y := rfl
-
-@[norm_cast] lemma coe_one : (↑(1 : finite_adele_ring R K) : K_hat R K) = 1 := rfl
-
-instance inhabited : inhabited (finite_adele_ring R K) := ⟨⟨0, restr_zero R K⟩⟩
-
-end finite_adele_ring
+variables (R K)
+/-- The finite adèle ring of `R` is the restricted product over all maximal ideals `v` of `R`
+of `adic_completion` with respect to `adic_completion_integers`.-/
+noncomputable! def finite_adele_ring : subring (K_hat R K) :=
+{ carrier   := { x  : (K_hat R K) |
+    ∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K) },
+  mul_mem'  := λ _ _ hx hy, mul hx hy,
+  one_mem'  := one,
+  add_mem'  := λ _ _ hx hy, add hx hy,
+  zero_mem' := zero,
+  neg_mem'  := λ _ hx, neg hx, }
 
 end dedekind_domain

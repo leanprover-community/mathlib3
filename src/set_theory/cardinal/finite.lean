@@ -9,6 +9,9 @@ import set_theory.cardinal.basic
 /-!
 # Finite Cardinality Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 
 * `nat.card α` is the cardinality of `α` as a natural number.

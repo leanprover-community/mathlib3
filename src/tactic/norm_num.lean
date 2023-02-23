@@ -5,6 +5,7 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
+import data.int.lemmas
 
 /-!
 # `norm_num`
@@ -310,7 +311,7 @@ if na.denom = 1 then
 else do
   [_, _, a, b] ← return a.get_app_args,
   (c, b') ← c.of_nat (nd / na.denom),
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, _, p₁) ← prove_mul_nat c b b',
   (c, r, p₂) ← prove_mul_nat c a b',
   (c, p) ← c.mk_app ``clear_denom_div [a, b, b', r, d, p₀, p₁, p₂],
@@ -739,7 +740,7 @@ if na.denom = 1 ∧ nb.denom = 1 then
 else do
   let nd := na.denom.lcm nb.denom,
   (ic, d) ← ic.of_nat nd,
-  (ic, p₀) ← prove_ne_zero ic d (rat.of_int nd),
+  (ic, p₀) ← prove_ne_zero ic d nd,
   (ic, a', pa) ← prove_clear_denom ic a d na nd,
   (ic, b', pb) ← prove_clear_denom ic b d nb nd,
   (ic, c', pc) ← prove_clear_denom ic c d nc nd,
@@ -804,7 +805,7 @@ if na.denom = 1 then do
   return (c, d, a, p)
 else do
   [α, _, a, b] ← return a.get_app_args,
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, p) ← c.mk_app ``clear_denom_simple_div [a, b, p₀],
   return (c, b, a, p)
 
@@ -1077,12 +1078,17 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
 
 /-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
-| `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
+| `(@has_pow.pow %%α %%β %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← mk_instance_cache α,
-  match m with
-  | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
-  | `(@div_inv_monoid.has_pow %%_ %%_) := do
+  match β with
+  | `(ℕ) := do
+    (c, m') ← c.mk_app ``monoid.has_pow [],
+    is_def_eq m m',
+    prod.snd <$> prove_pow e₁ n₁ c e₂
+  | `(ℤ) := do
+    (c, m') ← c.mk_app ``div_inv_monoid.has_pow [],
+    is_def_eq m m',
     zc ← mk_instance_cache `(ℤ),
     nc ← mk_instance_cache `(ℕ),
     (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
@@ -1600,8 +1606,9 @@ meta def prove_div_mod (ic : instance_cache) :
     let nm := nq * nr,
     (ic, q) ← ic.of_int nq,
     (ic, r) ← ic.of_int nr,
-    (ic, m, pm) ← prove_mul_rat ic q b (rat.of_int nq) (rat.of_int nb),
-    (ic, p) ← prove_add_rat ic r m a (rat.of_int nr) (rat.of_int nm) (rat.of_int na),
+    (ic, m, pm) ← prove_mul_rat ic q b nq nb,
+    (ic, a') ← ic.of_rat na, -- ensure `a` is in normal form
+    (ic, p) ← prove_add_rat ic r m a' nr nm na,
     (ic, p') ← prove_lt_nat ic r b,
     if ic.α = `(nat) then
       if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])

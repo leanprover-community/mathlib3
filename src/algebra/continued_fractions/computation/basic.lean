@@ -5,7 +5,7 @@ Authors: Kevin Kappelmann
 -/
 import algebra.order.floor
 import algebra.continued_fractions.basic
-import algebra.order.field
+
 /-!
 # Computable Continued Fractions
 
@@ -31,8 +31,7 @@ For an example, refer to `int_fract_pair.stream`.
 - `generalized_continued_fraction.int_fract_pair.stream`: computes the stream of integer and
   fractional parts of a given value as described in the summary.
 - `generalized_continued_fraction.of`: computes the generalised continued fraction of a value `v`.
-  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational
-  (those proofs will be added in a future commit).
+  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational.
 
 ## Implementation Notes
 
@@ -129,8 +128,8 @@ For example, let `(v : ℚ) := 3.4`. The process goes as follows:
 -/
 protected def stream (v : K) : stream $ option (int_fract_pair K)
 | 0 := some (int_fract_pair.of v)
-| (n + 1) := do ap_n ← stream n,
-  if ap_n.fr = 0 then none else int_fract_pair.of ap_n.fr⁻¹
+| (n + 1) := (stream n).bind $ λ ap_n,
+  if ap_n.fr = 0 then none else some (int_fract_pair.of ap_n.fr⁻¹)
 
 /--
 Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at

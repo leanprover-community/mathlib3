@@ -10,6 +10,9 @@ import group_theory.subgroup.basic
 /-!
 # Self-adjoint, skew-adjoint and normal elements of a star additive group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `self_adjoint R` (resp. `skew_adjoint R`), where `R` is a star additive group,
 as the additive subgroup containing the elements that satisfy `star x = x` (resp. `star x = -x`).
 This includes, for instance, (skew-)Hermitian operators on Hilbert spaces.
@@ -57,6 +60,10 @@ namespace is_self_adjoint
 lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
+
+@[simp]
+lemma star_iff [has_involutive_star R] {x : R} : is_self_adjoint (star x) ↔ is_self_adjoint x :=
+by simpa only [is_self_adjoint, star_star] using eq_comm
 
 @[simp]
 lemma star_mul_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (star x * x) :=

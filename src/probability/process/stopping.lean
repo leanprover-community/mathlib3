@@ -5,7 +5,6 @@ Authors: Kexing Ying, Rémy Degenne
 -/
 
 import probability.process.adapted
-import topology.instances.discrete
 
 /-!
 # Stopping times, stopped processes and stopped values
@@ -33,7 +32,7 @@ stopping time, stochastic process
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 
@@ -959,10 +958,48 @@ lemma stopped_value_eq' [preorder ι] [locally_finite_order_bot ι] [add_comm_mo
   stopped_value u τ = ∑ i in finset.Iic N, set.indicator {ω | τ ω = i} (u i) :=
 stopped_value_eq_of_mem_finset (λ ω, finset.mem_Iic.mpr (hbdd ω))
 
+lemma stopped_process_eq_of_mem_finset [linear_order ι] [add_comm_monoid E]
+  {s : finset ι} (n : ι) (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
+  stopped_process u τ n =
+  set.indicator {a | n ≤ τ a} (u n) + ∑ i in s.filter (< n), set.indicator {ω | τ ω = i} (u i) :=
+begin
+  ext ω,
+  rw [pi.add_apply, finset.sum_apply],
+  cases le_or_lt n (τ ω),
+  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+    { intros m hm,
+      refine set.indicator_of_not_mem _ _,
+      rw [finset.mem_filter] at hm,
+      exact (hm.2.trans_le h).ne', },
+    { exact h, } },
+  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ ω)],
+    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
+      { exact rfl }, -- refl does not work
+      { exact not_le.2 h } },
+    { rw [finset.mem_filter],
+      exact ⟨hbdd ω h, h⟩, },
+    { intros b hb hneq,
+      rw set.indicator_of_not_mem,
+      exact hneq.symm } },
+end
+
+lemma stopped_process_eq'' [linear_order ι] [locally_finite_order_bot ι] [add_comm_monoid E]
+  (n : ι) :
+  stopped_process u τ n =
+    set.indicator {a | n ≤ τ a} (u n) + ∑ i in finset.Iio n, set.indicator {ω | τ ω = i} (u i) :=
+begin
+  have h_mem : ∀ ω, τ ω < n → τ ω ∈ finset.Iio n := λ ω h, finset.mem_Iio.mpr h,
+  rw stopped_process_eq_of_mem_finset n h_mem,
+  swap, { apply_instance, },
+  congr' with i,
+  simp only [finset.Iio_filter_lt, min_eq_right],
+end
+
+section stopped_value
 variables [partial_order ι] {ℱ : filtration ι m} [normed_add_comm_group E]
 
 lemma mem_ℒp_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ)
-  {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s)  :
+  {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s) :
   mem_ℒp (stopped_value u τ) p μ :=
 begin
   rw stopped_value_eq_of_mem_finset hbdd,
@@ -993,8 +1030,82 @@ lemma integrable_stopped_value [locally_finite_order_bot ι]
   (hτ : is_stopping_time ℱ τ) (hu : ∀ n, integrable (u n) μ) {N : ι} (hbdd : ∀ ω, τ ω ≤ N) :
   integrable (stopped_value u τ) μ :=
 integrable_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
+
+end stopped_value
+
+section stopped_process
+variables [linear_order ι] [topological_space ι] [order_topology ι] [first_countable_topology ι]
+  {ℱ : filtration ι m} [normed_add_comm_group E]
+
+lemma mem_ℒp_stopped_process_of_mem_finset (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ι) {s : finset ι} (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
+  mem_ℒp (stopped_process u τ n) p μ :=
+begin
+  rw stopped_process_eq_of_mem_finset n hbdd,
+  swap, { apply_instance, },
+  refine mem_ℒp.add _ _,
+  { exact mem_ℒp.indicator (ℱ.le n {a : Ω | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
+  { suffices : mem_ℒp (λ ω, ∑ i in s.filter (< n), {a : Ω | τ a = i}.indicator (u i) ω) p μ,
+    { convert this, ext1 ω, simp only [finset.sum_apply] },
+    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
+    exact ℱ.le i {a : Ω | τ a = i} (hτ.measurable_set_eq i) },
+end
+
+lemma mem_ℒp_stopped_process [locally_finite_order_bot ι] (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ι) :
+  mem_ℒp (stopped_process u τ n) p μ :=
+mem_ℒp_stopped_process_of_mem_finset hτ hu n (λ ω h, finset.mem_Iio.mpr h)
+
+lemma integrable_stopped_process_of_mem_finset (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, integrable (u n) μ) (n : ι) {s : finset ι} (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
+  integrable (stopped_process u τ n) μ :=
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
+  exact mem_ℒp_stopped_process_of_mem_finset hτ hu n hbdd,
+end
+
+lemma integrable_stopped_process [locally_finite_order_bot ι] (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, integrable (u n) μ) (n : ι) :
+  integrable (stopped_process u τ n) μ :=
+integrable_stopped_process_of_mem_finset hτ hu n (λ ω h, finset.mem_Iio.mpr h)
+
+end stopped_process
+
 end stopped_value_of_mem_finset
 
+section adapted_stopped_process
+
+variables [topological_space β] [pseudo_metrizable_space β]
+  [linear_order ι]
+  [topological_space ι] [second_countable_topology ι] [order_topology ι]
+  [measurable_space ι] [borel_space ι]
+  {f : filtration ι m} {u : ι → Ω → β} {τ : Ω → ι}
+
+/-- The stopped process of an adapted process with continuous paths is adapted. -/
+lemma adapted.stopped_process [metrizable_space ι]
+  (hu : adapted f u) (hu_cont : ∀ ω, continuous (λ i, u i ω)) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+((hu.prog_measurable_of_continuous hu_cont).stopped_process hτ).adapted
+
+/-- If the indexing order has the discrete topology, then the stopped process of an adapted process
+is adapted. -/
+lemma adapted.stopped_process_of_discrete [discrete_topology ι]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+(hu.prog_measurable_of_discrete.stopped_process hτ).adapted
+
+lemma adapted.strongly_measurable_stopped_process [metrizable_space ι]
+  (hu : adapted f u) (hu_cont : ∀ ω, continuous (λ i, u i ω)) (hτ : is_stopping_time f τ)
+  (n : ι) :
+  strongly_measurable (stopped_process u τ n) :=
+(hu.prog_measurable_of_continuous hu_cont).strongly_measurable_stopped_process hτ n
+
+lemma adapted.strongly_measurable_stopped_process_of_discrete [discrete_topology ι]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) (n : ι) :
+  strongly_measurable (stopped_process u τ n) :=
+hu.prog_measurable_of_discrete.strongly_measurable_stopped_process hτ n
+
+end adapted_stopped_process
 
 section nat
 /-! ### Filtrations indexed by `ℕ` -/
@@ -1027,21 +1138,7 @@ begin
 end
 
 section add_comm_monoid
-
 variables [add_comm_monoid β]
-
-/-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is
-adapted. -/
-lemma adapted.stopped_process_of_nat [topological_space β] [has_continuous_add β]
-  (hu : adapted f u) (hτ : is_stopping_time f τ) :
-  adapted f (stopped_process u τ) :=
-(hu.prog_measurable_of_nat.stopped_process hτ).adapted
-
-lemma adapted.strongly_measurable_stopped_process_of_nat [topological_space β]
-  [has_continuous_add β]
-  (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
-  strongly_measurable (stopped_process u τ n) :=
-hu.prog_measurable_of_nat.strongly_measurable_stopped_process hτ n
 
 lemma stopped_value_eq {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
   stopped_value u τ =
@@ -1050,25 +1147,12 @@ stopped_value_eq_of_mem_finset (λ ω, finset.mem_range_succ_iff.mpr (hbdd ω))
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
-  set.indicator {a | n ≤ τ a} (u n) +
-    ∑ i in finset.range n, set.indicator {ω | τ ω = i} (u i) :=
+  set.indicator {a | n ≤ τ a} (u n) + ∑ i in finset.range n, set.indicator {ω | τ ω = i} (u i) :=
 begin
-  ext ω,
-  rw [pi.add_apply, finset.sum_apply],
-  cases le_or_lt n (τ ω),
-  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
-    { intros m hm,
-      rw finset.mem_range at hm,
-      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne.symm) _ },
-    { exact h } },
-  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ ω)],
-    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
-      { exact rfl }, -- refl does not work
-      { exact not_le.2 h } },
-    { rwa [finset.mem_range] },
-    { intros b hb hneq,
-      rw set.indicator_of_not_mem,
-      exact hneq.symm } },
+  rw stopped_process_eq'' n,
+  swap, { apply_instance, },
+  congr' with i,
+  rw [finset.mem_Iio, finset.mem_range],
 end
 
 lemma stopped_process_eq' (n : ℕ) :
@@ -1088,29 +1172,6 @@ begin
 end
 
 end add_comm_monoid
-
-section normed_add_comm_group
-
-variables [normed_add_comm_group β] {p : ℝ≥0∞} {μ : measure Ω}
-
-lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
-  mem_ℒp (stopped_process u τ n) p μ :=
-begin
-  rw stopped_process_eq,
-  refine mem_ℒp.add _ _,
-  { exact mem_ℒp.indicator (f.le n {a : Ω | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
-  { suffices : mem_ℒp (λ ω, ∑ (i : ℕ) in finset.range n, {a : Ω | τ a = i}.indicator (u i) ω) p μ,
-    { convert this, ext1 ω, simp only [finset.sum_apply] },
-    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
-    exact f.le i {a : Ω | τ a = i} (hτ.measurable_set_eq i) },
-end
-
-lemma integrable_stopped_process (hτ : is_stopping_time f τ)
-  (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
-  integrable (stopped_process u τ n) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_process hτ hu n, }
-
-end normed_add_comm_group
 
 end nat
 

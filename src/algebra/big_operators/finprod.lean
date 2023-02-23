@@ -9,6 +9,9 @@ import algebra.indicator_function
 /-!
 # Finite products and sums over types and sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define products and sums over types and subsets of types, with no finiteness hypotheses.
 All infinite products and sums are defined to be junk values (i.e. one or zero).
 This approach is sometimes easier to use than `finset.sum`,
@@ -540,7 +543,7 @@ lemma finprod_mem_empty : ∏ᶠ i ∈ (∅ : set α), f i = 1 := by simp
 /-- A set `s` is nonempty if the product of some function over `s` is not equal to `1`. -/
 @[to_additive "A set `s` is nonempty if the sum of some function over `s` is not equal to `0`."]
 lemma nonempty_of_finprod_mem_ne_one (h : ∏ᶠ i ∈ s, f i ≠ 1) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ λ h', h $ h'.symm ▸ finprod_mem_empty
+nonempty_iff_ne_empty.2 $ λ h', h $ h'.symm ▸ finprod_mem_empty
 
 /-- Given finite sets `s` and `t`, the product of `f i` over `i ∈ s ∪ t` times the product of
 `f i` over `i ∈ s ∩ t` equals the product of `f i` over `i ∈ s` times the product of `f i`
@@ -752,6 +755,7 @@ finprod_set_coe_eq_finprod_mem {i | p i}
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_union', inter_union_diff],
+  rw disjoint_iff_inf_le,
   exacts [λ x hx, hx.2.2 hx.1.2, h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
     h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end
@@ -792,7 +796,7 @@ begin
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
   { simp only [finprod_mem_coe_finset, finprod_eq_prod_of_fintype] },
-  { exact λ x _ y _ hxy, finset.disjoint_coe.1 (h x y hxy) }
+  { exact λ x _ y _ hxy, finset.disjoint_coe.1 (h hxy) }
 end
 
 /-- Given a family of sets `t : ι → set α`, a finite set `I` in the index type such that all sets

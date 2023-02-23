@@ -8,10 +8,12 @@ import algebra.big_operators.basic
 import algebra.module.basic
 import data.nat.interval
 import tactic.linarith
-import tactic.abel
 
 /-!
 # Results about big operators over intervals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove results about big operators over intervals (mostly the `ℕ`-valued `Ico m n`).
 -/
@@ -33,10 +35,7 @@ variables [comm_monoid β]
 lemma prod_Ico_add' [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
   [locally_finite_order α] (f : α → β) (a b c : α) :
   (∏ x in Ico a b, f (x + c)) = (∏ x in Ico (a + c) (b + c), f x) :=
-begin
-  classical,
-  rw [←image_add_right_Ico, prod_image (λ x hx y hy h, add_right_cancel h)],
-end
+by { rw [← map_add_right_Ico, prod_map], refl }
 
 @[to_additive]
 lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]

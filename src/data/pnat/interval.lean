@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.nat.interval
-import data.pnat.basic
+import data.pnat.defs
 
 /-!
 # Finite intervals of positive naturals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves that `ℕ+` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.

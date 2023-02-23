@@ -6,11 +6,15 @@ Authors: Kenny Lau
 
 import algebra.module.basic
 import algebra.gcd_monoid.basic
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 import group_theory.group_action.defs
+import order.complete_boolean_algebra
 
 /-!
 # Instances on punit
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file collects facts about algebraic structures on the one-element type, e.g. that it is a
 commutative ring.
@@ -85,16 +89,13 @@ instance : linear_ordered_add_comm_monoid_with_top punit :=
   ..punit.complete_boolean_algebra,
   ..punit.linear_ordered_cancel_add_comm_monoid }
 
-instance : has_smul R punit :=
-{ smul := λ _ _, star }
+@[to_additive] instance : has_smul R punit := ⟨λ _ _, star⟩
 
-@[simp] lemma smul_eq (r : R) : r • y = star := rfl
+@[simp, to_additive] lemma smul_eq (r : R) : r • y = star := rfl
 
-instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
-
-instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
-
-instance [has_smul R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
+@[to_additive] instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
+@[to_additive] instance : smul_comm_class R S punit := ⟨λ _ _ _, rfl⟩
+@[to_additive] instance [has_smul R S] : is_scalar_tower R S punit := ⟨λ _ _ _, rfl⟩
 
 instance [has_zero R] : smul_with_zero R punit :=
 by refine { ..punit.has_smul, .. };

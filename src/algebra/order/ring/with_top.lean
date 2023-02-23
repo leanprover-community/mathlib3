@@ -168,7 +168,7 @@ begin
   induction c using with_top.rec_top_coe,
   { by_cases ha : a = 0; simp [ha] },
   { by_cases hc : c = 0, { simp [hc] },
-    simp [mul_coe hc], cases a; cases b,
+    simp only [mul_coe hc], cases a; cases b,
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 

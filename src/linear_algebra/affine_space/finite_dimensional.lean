@@ -227,9 +227,9 @@ lemma affine_independent.affine_span_image_finset_eq_of_le_of_card_eq_finrank_ad
   [finite_dimensional k sp.direction] (hle : affine_span k (s.image p : set P) ≤ sp)
   (hc : finset.card s = finrank k sp.direction + 1) : affine_span k (s.image p : set P) = sp :=
 begin
-  have hn : (s.image p).nonempty,
-  { rw [finset.nonempty.image_iff, ← finset.card_pos, hc], apply nat.succ_pos },
-  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_nonempty k _).2 hn) hle,
+  have hn : s.nonempty,
+  { rw [←finset.card_pos, hc], apply nat.succ_pos },
+  refine eq_of_direction_eq_of_nonempty_of_le _ ((hn.image _).to_set.affine_span _)hle,
   have hd := direction_le hle,
   rw direction_affine_span at ⊢ hd,
   exact hi.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hd hc

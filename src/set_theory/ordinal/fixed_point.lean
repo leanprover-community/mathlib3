@@ -10,6 +10,9 @@ import set_theory.ordinal.exponential
 /-!
 # Fixed points of normal functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove various statements about the fixed points of normal ordinal functions. We state them in
 three forms: as statements about type-indexed families of normal functions, as statements about
 ordinal-indexed families of normal functions, and as statements about a single normal function. For

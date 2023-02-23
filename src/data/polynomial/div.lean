@@ -436,7 +436,7 @@ by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
 
 /-- For a commutative ring $R$, evaluating a polynomial at an element $x \in R$ induces an
 isomorphism of $R$-algebras $R[X] / \langle X - x \rangle \cong R$. -/
-@[simps] noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
+noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
   (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
 (alg_equiv.restrict_scalars R $ ideal.quotient_equiv_alg_of_eq R
   (by exact eval_ring_hom_ker x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $

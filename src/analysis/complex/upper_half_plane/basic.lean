@@ -328,7 +328,8 @@ end
 
 lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 ≠ 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
-    ((•) g : ℍ → ℍ) = (λ z, w +ᵥ z) ∘ (λ z, modular_group.S • z) ∘ (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+    ((•) g : ℍ → ℍ) = ((+ᵥ) w : ℍ → ℍ) ∘ ((•) modular_group.S : ℍ → ℍ)
+                     ∘ ((+ᵥ) v : ℍ → ℍ) ∘ ((•) u : ℍ → ℍ) :=
 begin
   have h_denom := denom_ne_zero g,
   obtain ⟨a, b, c, d, h, rfl⟩ := g.fin_two_exists_eq_mk,

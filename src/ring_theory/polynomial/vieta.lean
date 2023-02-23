@@ -114,6 +114,14 @@ begin
   { rwa card_map },
 end
 
+lemma prod_X_sub_C_coeff' {σ} (s : multiset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (s.map (λ i, X - C (r i))).prod.coeff k = (-1) ^ (s.card - k) * (s.map r).esymm (s.card - k) :=
+by rw [← map_map (λ r, X - C r) r, prod_X_sub_C_coeff]; rwa s.card_map r
+
+lemma _root_.finset.prod_X_sub_C_coeff {σ} (s : finset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (∏ i in s, (X - C (r i))).coeff k = (-1) ^ (s.card - k) * ∑ t in s.powerset_len (s.card - k), ∏ i in t, r i :=
+by { rw [finset.prod, prod_X_sub_C_coeff' _ r h, finset.esymm_map_val], refl }
+
 /-- Vieta's formula for the coefficients and the roots of a polynomial over an integral domain
   with as many roots as its degree. -/
 theorem _root_.polynomial.coeff_eq_esymm_roots_of_card [is_domain R] {p : R[X]}

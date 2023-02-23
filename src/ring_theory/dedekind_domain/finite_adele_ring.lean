@@ -212,8 +212,7 @@ variables (R K)
 /-- The finite adèle ring of `R` is the restricted product over all maximal ideals `v` of `R`
 of `adic_completion` with respect to `adic_completion_integers`.-/
 noncomputable! def finite_adele_ring : subring (K_hat R K) :=
-{ carrier   := { x  : (K_hat R K) |
-    ∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K) },
+{ carrier   := { x : K_hat R K | x.is_finite_adele },
   mul_mem'  := λ _ _ hx hy, mul hx hy,
   one_mem'  := one,
   add_mem'  := λ _ _ hx hy, add hx hy,

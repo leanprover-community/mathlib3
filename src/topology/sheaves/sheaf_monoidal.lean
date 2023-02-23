@@ -391,10 +391,10 @@ curry $ (tensor_obj'_swap G F).hom ≫ f
 uncurry $ curry' $ uncurry f
 
 lemma uncurry'_val_app_apply2 {F G H : sheaf AddCommGroup.{u} X} (f : F ⟶ ⟦G, H⟧) (U : (opens X)ᵒᵖ)
-  (x : (tensor_obj' F G).val.obj U) :
-  (uncurry' f).val.app U x =
-  (uncurry f).val.app U ((tensor_obj'_swap F G).hom.val.app U x) :=
-sorry
+    (x : (tensor_obj' F G).val.obj U) :
+    (uncurry' f).val.app U x =
+    (uncurry f).val.app U ((tensor_obj'_swap F G).hom.val.app U x) :=
+  sorry
 
 namespace associator_right
 
@@ -402,6 +402,7 @@ variables (F G H : sheaf AddCommGroup.{u} X)
 
 local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
+/-
 @[simps app_apply { rhs_md := semireducible, simp_rhs := ff, attrs := []}]
 def aux0_app_aux {U : (opens X)ᵒᵖ} (x : F.val.obj U) (y : G.val.obj U) :
   restrict_presheaf H.val U.unop ⟶
@@ -509,8 +510,10 @@ def aux0_app (U : (opens X)ᵒᵖ) :
       rw [H.val.map_id, id_apply], },
     { rw [map_add, hx, hy, map_add] },
   end }
-
-example : true := ⟨⟩
+-/
+def aux0 : F.val ⊗ G.val ⟶ presheaf.monoidal.ihom_obj H.val
+    ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) :=
+  sorry
 
 def to_sheafify_once :
   tensor_obj' (tensor_obj' F G) H ⟶ (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) :=
@@ -543,6 +546,7 @@ variables (F G H : sheaf AddCommGroup.{u} X)
 
 local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
+/-
 @[simps] def aux0_app_aux (U : (opens X)ᵒᵖ) (x : G.val.obj U) (y : H.val.obj U) :
   restrict_presheaf F.val (opposite.unop U) ⟶
   restrict_presheaf (F.val ⊗ G.val ⊗ H.val) (opposite.unop U) :=
@@ -639,6 +643,10 @@ def aux0 :
       rw [F.val.map_id, id_apply], },
     { rw [map_add, hx, hy, map_add] },
   end }
+-/
+def aux0 : G.val ⊗ H.val ⟶ presheaf.monoidal.ihom_obj F.val
+    ((opens.grothendieck_topology X).sheafify (F.val ⊗ G.val ⊗ H.val)) :=
+  sorry
 
 def to_sheafify_once :
   tensor_obj' F (tensor_obj' G H) ⟶

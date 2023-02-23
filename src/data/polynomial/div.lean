@@ -446,7 +446,7 @@ noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
   quotient_span_X_sub_C_alg_equiv x (ideal.quotient.mk _ p) = p.eval x :=
 rfl
 
-@[simp] lemma quotient_span_X_sub_C_alg_equiv_symm (x : R) (y : R) :
+@[simp] lemma quotient_span_X_sub_C_alg_equiv_symm_apply (x : R) (y : R) :
   (quotient_span_X_sub_C_alg_equiv x).symm y = algebra_map R _ y :=
 rfl
 

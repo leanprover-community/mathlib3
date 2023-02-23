@@ -75,18 +75,15 @@ begin
 end
 
 section schreier_coset_graph
-/-!
-### Schreier coset graphs
-
-Given an action of the group `M` on the set `V`, an element `v₀ : V`, and a map `ι : S → M`,
-the `mul_action.orbit_equiv_quotient_stabilizer M v₀` theorem extends to an isomorphisms of the
-induced Schreier graphs.
--/
 
 /--
 A Schreier coset graph is the Schreier graph of the action of a group `M` on the cosets `M ⧸ H`.
 -/
 abbreviation schreier_coset_graph (H : subgroup M) := schreier_graph (M ⧸ H) ι
+abbreviation schreier_coset_graph_labelling (H : subgroup M) := schreier_graph_labelling (M ⧸ H) ι
+
+notation `𝑺` := schreier_coset_graph
+notation `𝑺l` := schreier_coset_graph_labelling
 
 @[simps] noncomputable def from_coset_graph (v₀ : V) :
   schreier_coset_graph ι (mul_action.stabilizer M v₀) ⥤q schreier_graph (mul_action.orbit M v₀) ι :=
@@ -157,19 +154,50 @@ variables {N : subgroup M} [Nn : N.normal]
 include Nn
 
 @[simps] def as_autom (g : M) : schreier_coset_graph ι N ⥤q schreier_coset_graph ι N :=
-{ obj := quot.lift (λ x : M, quot.mk ((quotient_group.left_rel N).r) (x * g⁻¹))
-                   (λ x y (h : (quotient_group.left_rel N).r x y), quot.sound $ by
-    { simp only [quotient_group.left_rel_apply,
-            mul_inv_rev, inv_inv, ←mul_assoc (g * x⁻¹), mul_assoc g x⁻¹ y] at h ⊢,
-      exact Nn.conj_mem _ h _, }),
-  map := λ x y a,
-    ⟨a.val, by
-      { obtain ⟨a,rfl⟩ := a,
-        simp only [equiv_schreier_graph_symm_apply, equiv_schreier_graph_apply],
+{ obj := λ x, equiv_schreier_graph ((equiv_schreier_graph.symm x) * (g⁻¹)),
+  map := λ x y a, ⟨a.val, by
+    begin
+      obtain ⟨a,rfl⟩ := a,
+      obtain ⟨x⟩ := x,
+      change ι a • ((↑x : M ⧸ N) * (↑g)⁻¹) = ι a • (↑x : M ⧸ N) * (↑g)⁻¹,
+      simpa only [mul_action.quotient.smul_coe, smul_eq_mul, quotient_group.coe_mul, mul_assoc],
+    end⟩ }
 
+lemma as_autom_labelling (g : M) :
+  as_autom ι g ⋙q schreier_coset_graph_labelling ι N = schreier_coset_graph_labelling ι N :=
+begin
+  dsimp only [as_autom, schreier_graph_labelling],
+  fapply prefunctor.ext,
+  { simp only [eq_iff_true_of_subsingleton, implies_true_iff], },
+  { rintro _ _ ⟨_, rfl⟩,
+    simp [subtype.coe_mk, prefunctor.comp_map, schreier_graph_labelling_map,
+    eq_rec_constant], },
+end
 
-        let := rw mul_action.quotient.smul_mk,
-        sorry, }⟩ }
+lemma as_autom_one : as_autom ι 1 = 𝟭q (𝑺 ι N) :=
+begin
+  dsimp only [as_autom],
+  fapply prefunctor.ext,
+  { simp only [equiv_schreier_graph_symm_apply, quotient_group.coe_one, inv_one, mul_one,
+               equiv_schreier_graph_apply, prefunctor.id_obj, id.def, eq_self_iff_true,
+               implies_true_iff], },
+  { rintro _ _ ⟨_, rfl⟩,
+    simp only [prefunctor.id_map],
+    sorry, },
+end
+
+lemma as_autom_mul (g h : M) :
+  (as_autom ι (g * h) : 𝑺 ι N ⥤q  𝑺 ι N) = (as_autom ι h) ⋙q (as_autom ι g) :=
+begin
+  dsimp only [as_autom],
+  fapply prefunctor.ext,
+  { simp only [mul_assoc, equiv_schreier_graph_symm_apply, quotient_group.coe_mul, mul_inv_rev,
+               equiv_schreier_graph_apply, prefunctor.comp_obj, eq_self_iff_true,
+               implies_true_iff], },
+  { rintro _ _ ⟨_, rfl⟩,
+    simp only [prefunctor.comp_map],
+    sorry, },
+end
 
 end action
 
@@ -181,6 +209,9 @@ subgroup of `M`.
 -/
 abbreviation cayley_graph := schreier_coset_graph ι (⊥ : subgroup M)
 abbreviation cayley_graph_labelling := schreier_graph_labelling (M ⧸ (⊥ : subgroup M)) ι
+
+notation `𝑪` := cayley_graph
+notation `𝑪l` := cayley_graph_labelling
 
 namespace cayley_graph
 
@@ -195,43 +226,6 @@ namespace cayley_graph
 
         let := rw mul_action.quotient.smul_mk,
         sorry, }⟩ }
-
-
-lemma as_autom_labelling (g : M) :
-  as_autom ι g ⋙q cayley_graph_labelling ι = cayley_graph_labelling ι :=
-begin
-  dsimp only [as_autom, schreier_graph_labelling],
-  fapply prefunctor.ext,
-  { simp only [eq_iff_true_of_subsingleton, implies_true_iff], },
-  { rintro _ _ ⟨_, rfl⟩,
-    simp [subtype.coe_mk, prefunctor.comp_map, schreier_graph_labelling_map,
-    eq_rec_constant], },
-end
-
-lemma as_autom_one : as_autom ι 1 = 𝟭q _ :=
-begin
-  dsimp only [as_autom],
-  fapply prefunctor.ext,
-  { simp only [equiv_schreier_graph_symm_apply, quotient_group.coe_one, inv_one, mul_one,
-               equiv_schreier_graph_apply, prefunctor.id_obj, id.def, eq_self_iff_true,
-               implies_true_iff], },
-  { rintro _ _ ⟨_, rfl⟩,
-    simp only [prefunctor.id_map],
-    sorry, },
-end
-
-lemma as_autom_mul (g h : M) : as_autom ι (g * h) = (as_autom ι h) ⋙q (as_autom ι g) :=
-begin
-  dsimp only [as_autom],
-  fapply prefunctor.ext,
-  { simp only [mul_assoc, equiv_schreier_graph_symm_apply, quotient_group.coe_mul, mul_inv_rev,
-               equiv_schreier_graph_apply, prefunctor.comp_obj, eq_self_iff_true,
-               implies_true_iff], },
-  { rintro _ _ ⟨_, rfl⟩,
-    simp only [prefunctor.comp_map],
-    sorry, },
-end
-
 /--
 Any automorphism of the cayley graph (preserving the labelling) comes from an element of the group.
 not true actually

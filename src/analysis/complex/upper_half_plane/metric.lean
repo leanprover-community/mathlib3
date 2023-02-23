@@ -350,7 +350,8 @@ begin
 end
 
 /-- `SL(2, ℝ)` acts on the upper half plane as an isometry.-/
-lemma isometry_SL2_smul (g : SL(2, ℝ)) : isometry ((•) g : ℍ → ℍ) :=
+instance : has_isometric_smul SL(2, ℝ) ℍ :=
+⟨λ g,
 begin
   have h₀ : isometry (λ z, modular_group.S • z : ℍ → ℍ) := isometry.of_dist_eq (λ y₁ y₂, by
   { have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
@@ -368,6 +369,6 @@ begin
   { obtain ⟨u, v, w, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_ne_zero g hc,
     rw h,
     exact (isometry_real_vadd w).comp (h₀.comp $ (isometry_real_vadd v).comp $ isometry_pos_mul u) }
-end
+end⟩
 
 end upper_half_plane

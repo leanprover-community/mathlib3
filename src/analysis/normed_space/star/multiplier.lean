@@ -46,12 +46,13 @@ separately.
 
 ## TODO
 
-+ define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict uniform space structure
++ Define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict uniform space structure
   and show it is complete
-+ show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal
-+ prove the universal property of `𝓜(𝕜, A)`
-* Construct a double centralizer from a pair of maps (not necessarily linear or continuous)
++ Show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal
++ Prove the universal property of `𝓜(𝕜, A)`
++ Construct a double centralizer from a pair of maps (not necessarily linear or continuous)
   `L : A → A`, `R : A → A` satisfying the centrality condition `∀ x y, R x * y = x * L y`.
++ Show that if `A` is unital, then `A ≃⋆ₐ[𝕜] 𝓜(𝕜, A)`.
 -/
 
 open_locale nnreal ennreal
@@ -316,6 +317,12 @@ end star
 ### Coercion from an algebra into its multiplier algebra
 -/
 
+/-- The natural coercion of `A` into `𝓜(𝕜, A)` given by sending `a : A` to the pair of linear
+maps `Lₐ Rₐ : A →L[𝕜] A` given by left- and right-multiplication by `a`, respectively.
+
+Warning: if `A = 𝕜`, then this is a coercion which is not definitionally equal to the
+`algebra_map 𝕜 𝓜(𝕜, 𝕜)` coercion, but these are propositionally equal. See
+`double_centralizer.coe_eq_algebra_map` below. -/
 noncomputable instance : has_coe_t A 𝓜(𝕜, A) :=
 { coe := λ a,
   { fst := continuous_linear_map.mul 𝕜 A a,
@@ -326,6 +333,14 @@ noncomputable instance : has_coe_t A 𝓜(𝕜, A) :=
 lemma coe_fst (a : A) : (a : 𝓜(𝕜, A)).fst = continuous_linear_map.mul 𝕜 A a := rfl
 @[simp, norm_cast]
 lemma coe_snd (a : A) : (a : 𝓜(𝕜, A)).snd = (continuous_linear_map.mul 𝕜 A).flip a := rfl
+
+lemma coe_eq_algebra_map : (coe : 𝕜 → 𝓜(𝕜, 𝕜)) = algebra_map 𝕜 𝓜(𝕜, 𝕜) :=
+begin
+  ext;
+  simp only [coe_fst, mul_apply', mul_one, algebra_map_to_prod, prod.algebra_map_apply, coe_snd,
+    flip_apply, one_mul];
+  simp only [algebra.algebra_map_eq_smul_one, smul_apply, one_apply, smul_eq_mul, mul_one],
+end
 
 /-- The coercion of an algebra into its multiplier algebra as a non-unital star algebra
 homomorphism. -/

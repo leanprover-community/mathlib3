@@ -508,7 +508,7 @@ instance [semiring R] [add_comm_monoid M]
 
 /-- The second element of a product $\prod_{i=0}^n (r_i + m_i)$ is a sum of terms of the form
 $r_0\cdots r_{i-1}m_ir_{i+1}\cdotsr_n$. -/
-lemma snd_list_prod_eq_sum [semiring R] [add_comm_monoid M]
+lemma snd_list_prod [semiring R] [add_comm_monoid M]
   [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
   (l : list (tsze R M)) :
   l.prod.snd =
@@ -543,6 +543,36 @@ instance [comm_semiring R] [add_comm_monoid M]
   comm_semiring (tsze R M) :=
 { .. triv_sq_zero_ext.comm_monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
+
+lemma snd_multiset_prod {ι} [decidable_eq ι] [comm_semiring R] [add_comm_monoid M]
+  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  (s : multiset ι) (f : ι → tsze R M) :
+  (s.map f).prod.snd =
+    (s.map (λ i, ((s.erase i).map (λ j, (f j).fst)).prod • (f i).snd)).sum :=
+begin
+  have : ∀ (l : list ι) (f : ι → tsze R M), (l.map f).enum = l.enum.map (prod.map id f),
+  { intros l f,
+    induction l with x xs ih,
+    { refl },
+    { rw [list.map_cons, list.enum_cons, list.enum_cons, list.map_cons,
+        ←list.map_fst_add_enum_eq_enum_from, ←list.map_fst_add_enum_eq_enum_from,
+        ih, list.map_map, list.map_map, prod.map_comp_map,
+        function.comp.left_id, function.comp.right_id, prod.map_mk, list.map_map, id], },
+    },
+  induction s,
+  dsimp,
+  simp only [multiset.coe_prod, multiset.coe_sum, snd_list_prod, list.map_enum],
+  congr' 1,
+end
+
+lemma snd_prod {ι} [decidable_eq ι] [comm_semiring R] [add_comm_monoid M]
+  [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  (s : finset ι) (f : ι → tsze R M) :
+  (∏ i in s, f i).snd =
+    ∑ i in s, (∏ j in s.erase i, (f j).fst) • (f i).snd :=
+begin
+  induction s,
+end
 
 instance [comm_ring R] [add_comm_group M]
   [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M] : comm_ring (tsze R M) :=

@@ -30,11 +30,13 @@ open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
-/- Disable this instances as it is not the simp-normal form, and having them disabled ensures
+/- Disable these instances as they is not the simp-normal form, and having them disabled ensures
 we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
+local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
+local notation `↑ₘ[`:1024 R `]` := @coe _ (matrix (fin 2) (fin 2) R) _
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
@@ -223,8 +225,8 @@ instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
 end modular_scalar_towers
 
 lemma special_linear_group_apply {R : Type*} [comm_ring R] [algebra R ℝ] (g : SL(2, R)) (z : ℍ) :
-  g • z = mk ((((↑(g 0 0) : ℝ) : ℂ) * z + ((↑(g 0 1) : ℝ) : ℂ)) /
-              (((↑(g 1 0) : ℝ) : ℂ) * z + ((↑(g 1 1) : ℝ) : ℂ))) (g • z).property :=
+  g • z = mk ((((↑(↑ₘ[R] g 0 0) : ℝ) : ℂ) * z + ((↑(↑ₘ[R] g 0 1) : ℝ) : ℂ)) /
+              (((↑(↑ₘ[R] g 1 0) : ℝ) : ℂ) * z + ((↑(↑ₘ[R] g 1 1) : ℝ) : ℂ))) (g • z).property :=
 rfl
 
 @[simp] lemma coe_smul (g : GL(2, ℝ)⁺) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
@@ -312,7 +314,7 @@ end real_add_action
 @[simp] lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
 by { rw special_linear_group_apply, simp [modular_group.S, neg_div, inv_neg], }
 
-lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : g 1 0 = 0) :
+lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 = 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
     ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
 begin
@@ -324,7 +326,7 @@ begin
   ring,
 end
 
-lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : g 1 0 ≠ 0) :
+lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 ≠ 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
     ((•) g : ℍ → ℍ) = (λ z, w +ᵥ z) ∘ (λ z, modular_group.S • z) ∘ (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
 begin

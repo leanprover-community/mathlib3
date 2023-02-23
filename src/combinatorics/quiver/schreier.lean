@@ -98,13 +98,26 @@ calc  path_star (symmetrify.of.obj x)
 ... ≃ list (S ⊕ S) : single_obj.path_star_equiv _
 
 /- need to fine a usable def probably in `free_group` -/
-def val : list (S ⊕ S) → M
+@[simp] def val : list (S ⊕ S) → M
 | list.nil := 1
 | (list.cons (sum.inl s) l) := (ι s) * (val l)
 | (list.cons (sum.inr s) l) := (ι s) ⁻¹ * (val l)
 
 lemma _root_.subgroup.closure_eq_range_val :
-  (subgroup.closure $ set.range ι).carrier = set.range (val ι) := sorry
+  (subgroup.closure $ set.range ι).carrier = set.range (val ι) :=
+begin
+  apply subset_antisymm,
+  { rintro x hx, apply subgroup.closure_induction hx,
+    { rintro _ ⟨s, rfl⟩, refine ⟨[sum.inl s], mul_one _⟩, },
+    { refine ⟨[], rfl⟩, },
+    { rintro _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, refine ⟨x.append y, _⟩, sorry, },
+    { rintro _ ⟨x, rfl⟩, refine ⟨x.reverse, _⟩,  sorry, }, },
+  { rintro _ ⟨x, rfl⟩, induction x,
+    simp only [subgroup.one_mem, val, subgroup.mem_carrier],
+    cases x_hd,
+    sorry,
+    sorry, },
+end
 
 /-
 I'm using `id p.1` because `symmetrify` has no converse to `of`

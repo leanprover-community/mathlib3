@@ -224,6 +224,9 @@ begin
   { sorry, },
 end
 
+def covering_iso_lol (v₀ : V) : schreier_graph_labelling (mul_action.orbit M v₀) ι ≃qc
+                                schreier_coset_graph_labelling ι (mul_action.stabilizer M v₀) := sorry
+
 section automs
 
 variables {N : subgroup M} [Nn : N.normal]

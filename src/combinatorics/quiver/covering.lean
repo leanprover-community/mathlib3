@@ -318,4 +318,7 @@ structure covering_iso {U V W : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver
 (commute_left : to_prefunctor ⋙q ψ = φ)
 (commute_right : inv_prefunctor ⋙q φ = ψ) -- `commute_right` should follow from `commute_left`
 
+
+infix ` ≃qc `:60 := covering_iso
+
 end covering_iso

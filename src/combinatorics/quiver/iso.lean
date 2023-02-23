@@ -9,6 +9,8 @@ structure iso (U V : Type*) [quiver.{u+1} U] [quiver.{v+1} V] extends prefunctor
 (left_inv : to_prefunctor ⋙q inv_prefunctor = 𝟭q _)
 (right_inv : inv_prefunctor ⋙q to_prefunctor = 𝟭q _)
 
+infix ` ≃q `:60 := iso
+
 variables {U V W Z : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W] [quiver.{z+1} Z]
 
 instance : has_coe (iso U V) (prefunctor U V) :=
@@ -57,5 +59,8 @@ noncomputable def iso.of_bijective (φ : U ⥤q V) (hφobj : function.bijective 
 
 @[ext]
 lemma iso.ext (φ ψ : iso U V) : φ = ψ ↔ φ.to_prefunctor = ψ.to_prefunctor := sorry
+
+
+
 
 end quiver

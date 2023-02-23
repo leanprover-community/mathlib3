@@ -414,8 +414,6 @@ instance [ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] :
 { .. triv_sq_zero_ext.add_group_with_one,
   .. triv_sq_zero_ext.non_assoc_semiring }
 
-open_locale big_operators
-
 /-- In the general non-commutative case, the power operator is
 
 $$\begin{align}

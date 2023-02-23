@@ -7,6 +7,19 @@ import group_theory.subgroup.basic
 import group_theory.coset
 import group_theory.quotient_group
 import group_theory.group_action.quotient
+import combinatorics.quiver.iso
+/-!
+
+## TODO
+
+* When are two automorphisms of a schreier graph (of a group action) equal ?
+* Same when the quiver is preconnected
+* Same for Cayley graphs (this is exactly when they agree on vertices and on stars)
+
+* When is an automorphism of a schreier_coset_graph for a normal subgroup given by a group element
+  i.e. as `as_autom` ?
+
+-/
 
 universes u v w
 
@@ -300,29 +313,15 @@ notation `𝑪l` := cayley_graph_labelling
 
 namespace cayley_graph
 
-/-
-@[simps] def as_autom (g : M) : cayley_graph ι ⥤q cayley_graph ι :=
-{ obj := ,--equiv_schreier_graph ((equiv_schreier_graph.symm x) * (g⁻¹)),
-  map := λ x y a,
-    ⟨a.val, by
-      { obtain ⟨a,rfl⟩ := a,
-        simp only [equiv_schreier_graph_symm_apply, equiv_schreier_graph_apply],
+variables {N : subgroup M} [Nn : N.normal]
+include Nn
 
+def cayley_eq_schreier :
+  iso (cayley_graph $ (quotient_group.mk : M → M ⧸ N) ∘ ι) (schreier_coset_graph ι N) :=
 
-        let := rw mul_action.quotient.smul_mk,
-        sorry, }⟩ }
-/--
-Any automorphism of the cayley graph (preserving the labelling) comes from an element of the group.
-not true actually
--/
-lemma as_autom_surjective {φ ψ : cayley_graph ι ⥤q cayley_graph ι}
-  (φψ : φ ⋙q ψ = 𝟭q _) (ψφ : ψ ⋙q φ = 𝟭q _)
-  (φc : φ ⋙q cayley_graph_labelling ι = cayley_graph_labelling ι) :
-  ∃ g : M, φ = as_autom ι g :=
-begin
+-- the isomorphism `cayley_eq_schreier` preserves labelling.
+lemma cayley_eq_schreier_labelling := sorry
 
-end
--/
 end cayley_graph
 
 end group_action

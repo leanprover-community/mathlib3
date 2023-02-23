@@ -7,6 +7,7 @@ import combinatorics.quiver.basic
 import combinatorics.quiver.symmetric
 import combinatorics.quiver.cast
 import combinatorics.quiver.single_obj
+import combinatorics.quiver.iso
 
 /-!
 # Covering
@@ -308,3 +309,13 @@ lemma prefunctor.is_covering_of_bijective_costar (h : ∀ u, function.bijective 
   φ.is_covering := ⟨λ u, (φ.bijective_costar_iff_bijective_star u).1 (h u), h⟩
 
 end has_involutive_reverse
+
+section covering_iso
+
+structure covering_iso {U V W : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W]
+  (φ : U ⥤q W) (ψ : V ⥤q W)
+  extends iso U V :=
+(commute_left : to_prefunctor ⋙q ψ = φ)
+(commute_right : inv_prefunctor ⋙q φ = ψ) -- `commute_right` should follow from `commute_left`
+
+end covering_iso

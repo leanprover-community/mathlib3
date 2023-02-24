@@ -158,7 +158,16 @@ lemma action_graph.reachable_iff (x y : action_graph V ι) :
 lemma action_graph.action_commute (φ : 𝑨 V ι ⥤q 𝑨 V ι) (φm : φ ⋙q 𝑨' V ι = 𝑨' V ι)
   (v : 𝑨 V ι) (s : S) : φ.obj (ι s • v) = ι s • (φ.obj v) :=
 begin
-  sorry,
+  let e : v ⟶ ι s • v := ⟨_, rfl⟩,
+  let e' : φ.obj v ⟶ ι s • (φ.obj v) := ⟨_, rfl⟩,
+  have : φ.star _ ⟨_, e⟩ = ⟨_, e'⟩, by
+  { suffices : (φ ⋙q 𝑨' _ _).star _ ⟨_, e⟩ = (𝑨' _ _).star _ ⟨_, e'⟩,
+    { dsimp only [prefunctor.star_comp] at this,
+      apply ((𝑨c _ _).1 _).left this, },
+    rw [φm],
+    refl },
+  simp only [prefunctor.star_apply] at this,
+  exact this.1,
 end
 
 /--
@@ -321,9 +330,11 @@ lemma exists_as_autom {φ ψ : 𝑺 ι N ⥤q 𝑺 ι N} {g : M}
 begin
   sorry,
   /-
-  φ 1 = ⟦g⟧ = ⟦1⟧ * ⟦g⁻¹ ⁻¹⟧ = (as_autom g⁻¹) 1
-  If φ x = as_autom x and `x ⟶ ι s • x`, then
-  `φ (ι s • x) = ι s • (φ x) = ι s • (as_autom g⁻¹ x) = as_autom g⁻¹ (ι s • x)`
+  * Suffices to show equal on vertices.
+  * Equal on `1 : M ⧸ N`, since :
+    `φ 1 = ⟦g⟧ = ⟦1⟧ * ⟦g⁻¹ ⁻¹⟧ = (as_autom g⁻¹) 1`
+  * Then, suffices to show equal on `s • x` assuming equal on `x`, but:
+    `φ (ι s • x) = ι s • (φ x) = ι s • (as_autom g⁻¹ x) = as_autom g⁻¹ (ι s • x)`
   -/
 end
 

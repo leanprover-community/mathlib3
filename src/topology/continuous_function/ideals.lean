@@ -7,7 +7,9 @@ Authors: Jireh Loreaux
 import topology.algebra.algebra
 import topology.continuous_function.compact
 import topology.urysohns_lemma
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
+import analysis.normed_space.units
+import topology.algebra.module.character_space
 
 /-!
 # Ideals of continuous functions
@@ -21,7 +23,17 @@ and if, in addition, `X` is locally compact, then `continuous_map.set_of_ideal s
 
 When `R = 𝕜` with `is_R_or_C 𝕜` and `X` is compact Hausdorff, then this Galois connection can be
 improved to a true Galois correspondence (i.e., order isomorphism) between the type `opens X` and
-the subtype of closed ideals of `C(X, R)`.
+the subtype of closed ideals of `C(X, 𝕜)`. Because we do not have a bundled type of closed ideals,
+we simply register this as a Galois insertion between `ideal C(X, 𝕜)` and `opens X`, which is
+`continuous_map.ideal_opens_gi`. Consequently, the maximal ideals of `C(X, 𝕜)` are precisely those
+ideals corresponding to (complements of) singletons in `X`.
+
+In addition, when `X` is locally compact and `𝕜` is a nontrivial topological integral domain, then
+there is a natural continuous map from `X` to `character_space 𝕜 C(X, 𝕜)` given by point evaluation,
+which is herein called `weak_dual.character_space.continuous_map_eval`. Again, when `X` is compact
+Hausdorff and `is_R_or_C 𝕜`, more can be obtained. In particular, in that context this map is
+bijective, and since the domain is compact and the codomain is Hausdorff, it is a homeomorphism,
+herein called `weak_dual.character_space.homeo_eval`.
 
 ## Main definitions
 
@@ -30,23 +42,26 @@ the subtype of closed ideals of `C(X, R)`.
 * `continuous_map.opens_of_ideal`: `continuous_map.set_of_ideal` as a term of `opens X`.
 * `continuous_map.ideal_opens_gi`: The Galois insertion `continuous_map.opens_of_ideal` and
   `λ s, continuous_map.ideal_of_set ↑s`.
+* `weak_dual.character_space.continuous_map_eval`: the natural continuous map from a locally compact
+  topological space `X` to the `character_space 𝕜 C(X, 𝕜)` which sends `x : X` to point evaluation
+  at `x`, with modest hypothesis on `𝕜`.
+* `weak_dual.character_space.homeo_eval`: this is `weak_dual.character_space.continuous_map_eval`
+  upgraded to a homeomorphism when `X` is compact Hausdorff and `is_R_or_C 𝕜`.
 
 ## Main statements
 
-* `ideal_of_set_of_ideal_eq_closure`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
-  `ideal_of_set 𝕜 (set_of_ideal I) = I.closure` for any ideal `I : ideal C(X, 𝕜)`.
-* `set_of_ideal_of_set_eq_interior`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
+* `continuous_map.ideal_of_set_of_ideal_eq_closure`: when `X` is compact Hausdorff and
+  `is_R_or_C 𝕜`, `ideal_of_set 𝕜 (set_of_ideal I) = I.closure` for any ideal `I : ideal C(X, 𝕜)`.
+* `continuous_map.set_of_ideal_of_set_eq_interior`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
   `set_of_ideal (ideal_of_set 𝕜 s) = interior s` for any `s : set X`.
+* `continuous_map.ideal_is_maximal_iff`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`, a closed
+  ideal of `C(X, 𝕜)` is maximal if and only if it is `ideal_of_set 𝕜 {x}ᶜ` for some `x : X`.
 
 ## Implementation details
 
 Because there does not currently exist a bundled type of closed ideals, we don't provide the actual
 order isomorphism described above, and instead we only consider the Galois insertion
 `continuous_map.ideal_opens_gi`.
-
-## TODO
-
-* Show that maximal ideals in `C(X, 𝕜)` correspond to (complements of) singletons.
 
 ## Tags
 
@@ -122,6 +137,10 @@ set.univ_subset_iff.mp $ λ x hx, mem_set_of_ideal.mpr ⟨1, submodule.mem_top, 
 ideal.ext (λ f, by simpa only [mem_ideal_of_set, set.compl_empty, set.mem_univ, forall_true_left,
   ideal.mem_bot, fun_like.ext_iff] using iff.rfl)
 
+@[simp] lemma mem_ideal_of_set_compl_singleton (x : X) (f : C(X, R)) :
+  f ∈ ideal_of_set R ({x}ᶜ : set X) ↔ f x = 0 :=
+by simp only [mem_ideal_of_set, compl_compl, set.mem_singleton_iff, forall_eq]
+
 variables (X R)
 lemma ideal_gc : galois_connection (set_of_ideal : ideal C(X, R) → set X) (ideal_of_set R) :=
 begin
@@ -153,7 +172,9 @@ lemma exists_mul_le_one_eq_on_ge (f : C(X, ℝ≥0)) {c : ℝ≥0} (hc : 0 < c) 
    function.const_apply, pi.one_apply, sup_eq_left.mpr (set.mem_set_of.mp hx)]
    using inv_mul_cancel (hc.trans_le hx).ne'⟩
 
-@[simp] lemma ideal_of_set_of_ideal_eq_closure [compact_space X] [t2_space X] (I : ideal C(X, 𝕜)) :
+variables [compact_space X] [t2_space X]
+
+@[simp] lemma ideal_of_set_of_ideal_eq_closure (I : ideal C(X, 𝕜)) :
   ideal_of_set 𝕜 (set_of_ideal I) = I.closure :=
 begin
   /- Since `ideal_of_set 𝕜 (set_of_ideal I)` is closed and contains `I`, it contains `I.closure`.
@@ -166,8 +187,8 @@ begin
   replace hε := (show (0 : ℝ≥0) < ε, from hε),
   simp_rw dist_nndist,
   norm_cast,
-  -- Let `t := {x : X | ε / 2 ≤ ∥f x∥₊}}` which is closed and disjoint from `set_of_ideal I`.
-  set t := {x : X | ε / 2 ≤ ∥f x∥₊},
+  -- Let `t := {x : X | ε / 2 ≤ ‖f x‖₊}}` which is closed and disjoint from `set_of_ideal I`.
+  set t := {x : X | ε / 2 ≤ ‖f x‖₊},
   have ht : is_closed t := is_closed_le continuous_const (map_continuous f).nnnorm,
   have htI : disjoint t (set_of_ideal I)ᶜ,
   { refine set.subset_compl_iff_disjoint_left.mp (λ x hx, _),
@@ -175,8 +196,8 @@ begin
       using (nnnorm_eq_zero.mpr (mem_ideal_of_set.mp hf hx)).trans_lt (half_pos hε), },
   /- It suffices to produce `g : C(X, ℝ≥0)` which takes values in `[0,1]` and is constantly `1` on
   `t` such that when composed with the natural embedding of `ℝ≥0` into `𝕜` lies in the ideal `I`.
-  Indeed, then `∥f - f * ↑g∥ ≤ ∥f * (1 - ↑g)∥ ≤ ⨆ ∥f * (1 - ↑g) x∥`. When `x ∉ t`, `∥f x∥ < ε / 2`
-  and `∥(1 - ↑g) x∥ ≤ 1`, and when `x ∈ t`, `(1 - ↑g) x = 0`, and clearly `f * ↑g ∈ I`. -/
+  Indeed, then `‖f - f * ↑g‖ ≤ ‖f * (1 - ↑g)‖ ≤ ⨆ ‖f * (1 - ↑g) x‖`. When `x ∉ t`, `‖f x‖ < ε / 2`
+  and `‖(1 - ↑g) x‖ ≤ 1`, and when `x ∈ t`, `(1 - ↑g) x = 0`, and clearly `f * ↑g ∈ I`. -/
   suffices : ∃ g : C(X, ℝ≥0),
     (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g ∈ I ∧ (∀ x, g x ≤ 1) ∧ t.eq_on g 1,
   { obtain ⟨g, hgI, hg, hgt⟩ := this,
@@ -188,26 +209,26 @@ begin
     { simpa only [hgt hx, comp_apply, pi.one_apply, continuous_map.coe_coe, algebra_map_clm_apply,
         map_one, mul_one, sub_self, nnnorm_zero] using hε, },
     { refine lt_of_le_of_lt _ (half_lt_self hε),
-      have := calc ∥((1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x : 𝕜)∥₊
-            = ∥1 - algebra_map ℝ≥0 𝕜 (g x)∥₊
+      have := calc ‖((1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x : 𝕜)‖₊
+            = ‖1 - algebra_map ℝ≥0 𝕜 (g x)‖₊
             : by simp only [coe_sub, coe_one, coe_comp, continuous_map.coe_coe, pi.sub_apply,
                 pi.one_apply, function.comp_app, algebra_map_clm_apply]
-        ... = ∥algebra_map ℝ≥0 𝕜 (1 - g x)∥₊
+        ... = ‖algebra_map ℝ≥0 𝕜 (1 - g x)‖₊
             : by simp only [algebra.algebra_map_eq_smul_one, nnreal.smul_def, nnreal.coe_sub (hg x),
                 sub_smul, nonneg.coe_one, one_smul]
         ... ≤ 1 : (nnnorm_algebra_map_nnreal 𝕜 (1 - g x)).trans_le tsub_le_self,
-      calc ∥f x - f x * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g x∥₊
-          = ∥f x * (1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x∥₊
+      calc ‖f x - f x * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g x‖₊
+          = ‖f x * (1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x‖₊
           : by simp only [mul_sub, coe_sub, coe_one, pi.sub_apply, pi.one_apply, mul_one]
-      ... ≤ (ε / 2) * ∥(1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x∥₊
+      ... ≤ (ε / 2) * ‖(1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x‖₊
           : (nnnorm_mul_le _ _).trans (mul_le_mul_right'
-              (not_le.mp $ show ¬ ε / 2 ≤ ∥f x∥₊, from hx).le _)
+              (not_le.mp $ show ¬ ε / 2 ≤ ‖f x‖₊, from hx).le _)
       ... ≤ ε / 2 : by simpa only [mul_one] using mul_le_mul_left' this _, } },
   /- There is some `g' : C(X, ℝ≥0)` which is strictly positive on `t` such that the composition
   `↑g` with the natural embedding of `ℝ≥0` into `𝕜` lies in `I`. This follows from compactness of
   `t` and that we can do it in any neighborhood of a point `x ∈ t`. Indeed, since `x ∈ t`, then
-  `fₓ x ≠ 0` for some `fₓ ∈ I` and so `λ y, ∥(star fₓ * fₓ) y∥₊` is strictly posiive in a
-  neighborhood of `y`. Moreover, `(∥(star fₓ * fₓ) y∥₊ : 𝕜) = (star fₓ * fₓ) y`, so composition of
+  `fₓ x ≠ 0` for some `fₓ ∈ I` and so `λ y, ‖(star fₓ * fₓ) y‖₊` is strictly posiive in a
+  neighborhood of `y`. Moreover, `(‖(star fₓ * fₓ) y‖₊ : 𝕜) = (star fₓ * fₓ) y`, so composition of
   this map with the natural embedding is just `star fₓ * fₓ ∈ I`. -/
   have : ∃ g' : C(X, ℝ≥0), (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ t, 0 < g' x),
   { refine @is_compact.induction_on _ _ _ ht.is_compact (λ s, ∃ g' : C(X, ℝ≥0),
@@ -233,7 +254,7 @@ begin
       obtain ⟨g, hI, hgx⟩ := hx,
       have := (map_continuous g).continuous_at.eventually_ne hgx,
       refine ⟨{y : X | g y ≠ 0} ∩ t, mem_nhds_within_iff_exists_mem_nhds_inter.mpr
-        ⟨_, this, set.subset.rfl⟩, ⟨⟨λ x, ∥g x∥₊ ^ 2, (map_continuous g).nnnorm.pow 2⟩, _,
+        ⟨_, this, set.subset.rfl⟩, ⟨⟨λ x, ‖g x‖₊ ^ 2, (map_continuous g).nnnorm.pow 2⟩, _,
         λ x hx, pow_pos (norm_pos_iff.mpr hx.1) 2⟩⟩,
       convert I.mul_mem_left (star g) hI,
       ext,
@@ -256,13 +277,13 @@ begin
     map_mul],
 end
 
-lemma ideal_of_set_of_ideal_is_closed [compact_space X] [t2_space X] {I : ideal C(X, 𝕜)}
+lemma ideal_of_set_of_ideal_is_closed {I : ideal C(X, 𝕜)}
   (hI : is_closed (I : set C(X, 𝕜))) : ideal_of_set 𝕜 (set_of_ideal I) = I :=
 (ideal_of_set_of_ideal_eq_closure I).trans (ideal.ext $ set.ext_iff.mp hI.closure_eq)
 
 variable (𝕜)
 
-@[simp] lemma set_of_ideal_of_set_eq_interior [compact_space X] [t2_space X] (s : set X) :
+@[simp] lemma set_of_ideal_of_set_eq_interior (s : set X) :
   set_of_ideal (ideal_of_set 𝕜 s) = interior s:=
 begin
   refine set.subset.antisymm ((set_of_ideal_open (ideal_of_set 𝕜 s)).subset_interior_iff.mpr
@@ -282,22 +303,116 @@ begin
       using one_ne_zero⟩,
 end
 
-lemma set_of_ideal_of_set_of_is_open [compact_space X] [t2_space X] {s : set X}
-  (hs : is_open s) : set_of_ideal (ideal_of_set 𝕜 s) = s :=
+lemma set_of_ideal_of_set_of_is_open {s : set X} (hs : is_open s) :
+  set_of_ideal (ideal_of_set 𝕜 s) = s :=
 (set_of_ideal_of_set_eq_interior 𝕜 s).trans hs.interior_eq
 
 variable (X)
 
 /-- The Galois insertion `continuous_map.opens_of_ideal : ideal C(X, 𝕜) → opens X` and
 `λ s, continuous_map.ideal_of_set ↑s`. -/
-@[simps] def ideal_opens_gi [compact_space X] [t2_space X] :
+@[simps] def ideal_opens_gi :
   galois_insertion (opens_of_ideal : ideal C(X, 𝕜) → opens X) (λ s, ideal_of_set 𝕜 s) :=
 { choice := λ I hI, opens_of_ideal I.closure,
   gc := λ I s, ideal_gc X 𝕜 I s,
-  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.prop).ge,
+  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.is_open).ge,
   choice_eq := λ I hI, congr_arg _ $ ideal.ext (set.ext_iff.mp (is_closed_of_closure_subset $
     (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
+
+variables {X}
+
+lemma ideal_of_set_is_maximal_iff (s : opens X) :
+  (ideal_of_set 𝕜 (s : set X)).is_maximal ↔ is_coatom s :=
+begin
+  rw ideal.is_maximal_def,
+  refine (ideal_opens_gi X 𝕜).is_coatom_iff  (λ I hI, _) s,
+  rw ←ideal.is_maximal_def at hI,
+  resetI,
+  exact ideal_of_set_of_ideal_is_closed infer_instance,
+end
+
+lemma ideal_of_compl_singleton_is_maximal (x : X) : (ideal_of_set 𝕜 ({x}ᶜ : set X)).is_maximal :=
+(ideal_of_set_is_maximal_iff 𝕜 (closeds.singleton x).compl).mpr  $ opens.is_coatom_iff.mpr ⟨x, rfl⟩
+
+variables {𝕜}
+
+lemma set_of_ideal_eq_compl_singleton (I : ideal C(X, 𝕜)) [hI : I.is_maximal] :
+  ∃ x : X, set_of_ideal I = {x}ᶜ :=
+begin
+  have h : (ideal_of_set 𝕜 (set_of_ideal I)).is_maximal, from
+    (ideal_of_set_of_ideal_is_closed (infer_instance : is_closed (I : set C(X, 𝕜)))).symm ▸ hI,
+  obtain ⟨x, hx⟩ := opens.is_coatom_iff.1 ((ideal_of_set_is_maximal_iff 𝕜 (opens_of_ideal I)).1 h),
+  exact ⟨x, congr_arg coe hx⟩,
+end
+
+lemma ideal_is_maximal_iff (I : ideal C(X, 𝕜)) [hI : is_closed (I : set C(X, 𝕜))] :
+  I.is_maximal ↔ ∃ x : X, ideal_of_set 𝕜 {x}ᶜ = I :=
+begin
+  refine ⟨_, λ h, let ⟨x, hx⟩ := h in hx ▸ ideal_of_compl_singleton_is_maximal 𝕜 x⟩,
+  introI hI',
+  obtain ⟨x, hx⟩ := set_of_ideal_eq_compl_singleton I,
+  exact ⟨x, by simpa only [ideal_of_set_of_ideal_eq_closure, ideal.closure_eq_of_is_closed]
+    using congr_arg (ideal_of_set 𝕜) hx.symm⟩,
+end
 
 end is_R_or_C
 
 end continuous_map
+
+namespace weak_dual
+namespace character_space
+
+open function continuous_map
+
+variables (X 𝕜 : Type*) [topological_space X]
+
+section continuous_map_eval
+
+variables [locally_compact_space X] [comm_ring 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+variables [nontrivial 𝕜] [no_zero_divisors 𝕜]
+
+/-- The natural continuous map from a locally compact topological space `X` to the
+`character_space 𝕜 C(X, 𝕜)` which sends `x : X` to point evaluation at `x`. -/
+def continuous_map_eval :
+  C(X, character_space 𝕜 C(X, 𝕜)) :=
+{ to_fun := λ x, ⟨{ to_fun := λ f, f x, map_add' := λ f g, rfl, map_smul' := λ z f, rfl,
+                    cont := continuous_eval_const' x },
+                  by { rw character_space.eq_set_map_one_map_mul, exact ⟨rfl, λ f g, rfl⟩ }⟩,
+  continuous_to_fun := continuous.subtype_mk (continuous_of_continuous_eval map_continuous) _ }
+
+@[simp] lemma continuous_map_eval_apply_apply (x : X) (f : C(X, 𝕜)) :
+  continuous_map_eval X 𝕜 x f = f x := rfl
+
+end continuous_map_eval
+
+variables [compact_space X] [t2_space X] [is_R_or_C 𝕜]
+
+lemma continuous_map_eval_bijective : bijective (continuous_map_eval X 𝕜) :=
+begin
+  refine ⟨λ x y hxy, _, λ φ, _⟩,
+  { contrapose! hxy,
+    haveI := @normal_of_compact_t2 X _ _ _,
+    rcases exists_continuous_zero_one_of_closed (is_closed_singleton : _root_.is_closed {x})
+      (is_closed_singleton : _root_.is_closed {y}) (set.disjoint_singleton.mpr hxy)
+      with ⟨f, fx, fy, -⟩,
+    rw [←ne.def, fun_like.ne_iff],
+    use (⟨coe, is_R_or_C.continuous_of_real⟩ : C(ℝ, 𝕜)).comp f,
+    simpa only [continuous_map_eval_apply_apply, continuous_map.comp_apply, coe_mk, ne.def,
+      is_R_or_C.of_real_inj] using ((fx (set.mem_singleton x)).symm ▸
+      (fy (set.mem_singleton y)).symm ▸ zero_ne_one : f x ≠ f y) },
+  { obtain ⟨x, hx⟩ := (ideal_is_maximal_iff (ring_hom.ker φ)).mp infer_instance,
+    refine ⟨x, ext_ker $ ideal.ext $ λ f, _⟩,
+    simpa only [ring_hom.mem_ker, continuous_map_eval_apply_apply,
+      mem_ideal_of_set_compl_singleton, ring_hom.mem_ker] using set_like.ext_iff.mp hx f }
+end
+
+/-- This is the natural homeomorphism between a compact Hausdorff space `X` and the
+`character_space 𝕜 C(X, 𝕜)`. -/
+noncomputable def homeo_eval : X ≃ₜ character_space 𝕜 C(X, 𝕜) :=
+@continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
+  { to_fun := (continuous_map_eval X 𝕜),
+    .. equiv.of_bijective _ (continuous_map_eval_bijective X 𝕜) }
+  (map_continuous (continuous_map_eval X 𝕜))
+
+end character_space
+end weak_dual

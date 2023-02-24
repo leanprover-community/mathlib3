@@ -9,6 +9,9 @@ import logic.relator
 /-!
 # Relation closures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the reflexive, transitive, and reflexive transitive closures of relations.
 It also proves some basic results on definitions in core, such as `eqv_gen`.
 

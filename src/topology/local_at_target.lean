@@ -17,7 +17,7 @@ We show that the following properties of continuous maps are local at the target
 -/
 
 open topological_space set filter
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
 variables {s : set β} {ι : Type*} {U : ι → opens β} (hU : supr U = ⊤)
@@ -53,9 +53,22 @@ lemma set.restrict_preimage_closed_embedding (s : set β) (h : closed_embedding 
 
 alias set.restrict_preimage_closed_embedding ← closed_embedding.restrict_preimage
 
+lemma set.restrict_preimage_is_closed_map (s : set β) (H : is_closed_map f)  :
+  is_closed_map (s.restrict_preimage f) :=
+begin
+  rintros t ⟨u, hu, e⟩,
+  refine ⟨⟨_, (H _ (is_open.is_closed_compl hu)).1, _⟩⟩,
+  rw ← (congr_arg has_compl.compl e).trans (compl_compl t),
+  simp only [set.preimage_compl, compl_inj_iff],
+  ext ⟨x, hx⟩,
+  suffices : (∃ y, y ∉ u ∧ f y = x) ↔ ∃ y, f y ∈ s ∧ y ∉ u ∧ f y = x,
+  { simpa [set.restrict_preimage, ← subtype.coe_inj] },
+  exact ⟨λ ⟨a, b, c⟩, ⟨a, c.symm ▸ hx, b, c⟩, λ ⟨a, _, b, c⟩, ⟨a, b, c⟩⟩
+end
+
 include hU
 
-lemma open_iff_inter_of_supr_eq_top (s : set β) :
+lemma is_open_iff_inter_of_supr_eq_top (s : set β) :
   is_open s ↔ ∀ i, is_open (s ∩ U i) :=
 begin
   split,
@@ -66,18 +79,32 @@ begin
     exact is_open_Union H }
 end
 
-lemma open_iff_coe_preimage_of_supr_eq_top (s : set β) :
+lemma is_open_iff_coe_preimage_of_supr_eq_top (s : set β) :
   is_open s ↔ ∀ i, is_open (coe ⁻¹' s : set (U i)) :=
 begin
   simp_rw [(U _).2.open_embedding_subtype_coe.open_iff_image_open,
     set.image_preimage_eq_inter_range, subtype.range_coe],
-  apply open_iff_inter_of_supr_eq_top,
+  apply is_open_iff_inter_of_supr_eq_top,
   assumption
 end
 
-lemma closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
+lemma is_closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
   is_closed s ↔ ∀ i, is_closed (coe ⁻¹' s : set (U i)) :=
-by simpa using open_iff_coe_preimage_of_supr_eq_top hU sᶜ
+by simpa using is_open_iff_coe_preimage_of_supr_eq_top hU sᶜ
+
+lemma is_closed_map_iff_is_closed_map_of_supr_eq_top :
+  is_closed_map f ↔ ∀ i, is_closed_map ((U i).1.restrict_preimage f) :=
+begin
+  refine ⟨λ h i, set.restrict_preimage_is_closed_map _ h, _⟩,
+  rintros H s hs,
+  rw is_closed_iff_coe_preimage_of_supr_eq_top hU,
+  intro i,
+  convert H i _ ⟨⟨_, hs.1, eq_compl_comm.mpr rfl⟩⟩,
+  ext ⟨x, hx⟩,
+  suffices : (∃ y, y ∈ s ∧ f y = x) ↔ ∃ y, f y ∈ U i ∧ y ∈ s ∧ f y = x,
+  { simpa [set.restrict_preimage, ← subtype.coe_inj] },
+  exact ⟨λ ⟨a, b, c⟩, ⟨a, c.symm ▸ hx, b, c⟩, λ ⟨a, _, b, c⟩, ⟨a, b, c⟩⟩
+end
 
 lemma inducing_iff_inducing_of_supr_eq_top (h : continuous f) :
   inducing f ↔ ∀ i, inducing ((U i).1.restrict_preimage f) :=
@@ -111,7 +138,7 @@ begin
   rw forall_and_distrib,
   apply and_congr,
   { apply embedding_iff_embedding_of_supr_eq_top; assumption },
-  { simp_rw set.range_restrict_preimage, apply open_iff_coe_preimage_of_supr_eq_top hU }
+  { simp_rw set.range_restrict_preimage, apply is_open_iff_coe_preimage_of_supr_eq_top hU }
 end
 
 lemma closed_embedding_iff_closed_embedding_of_supr_eq_top (h : continuous f) :
@@ -121,5 +148,5 @@ begin
   rw forall_and_distrib,
   apply and_congr,
   { apply embedding_iff_embedding_of_supr_eq_top; assumption },
-  { simp_rw set.range_restrict_preimage, apply closed_iff_coe_preimage_of_supr_eq_top hU }
+  { simp_rw set.range_restrict_preimage, apply is_closed_iff_coe_preimage_of_supr_eq_top hU }
 end

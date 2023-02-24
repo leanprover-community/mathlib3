@@ -9,6 +9,9 @@ import data.bitvec.core
 /-!
 # Bitwise operations using binary representation of integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Definitions
 
 * bitwise operations for `pos_num` and `num`,
@@ -339,7 +342,7 @@ protected def add (a b : snum) : snum := cadd a b ff
 
 instance : has_add snum := ⟨snum.add⟩
 
-/-- Substract two `snum`s. -/
+/-- subtract two `snum`s. -/
 protected def sub (a b : snum) : snum := a + -b
 
 instance : has_sub snum := ⟨snum.sub⟩

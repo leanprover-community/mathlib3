@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 import measure_theory.integral.lebesgue
 import order.filter.germ
 import topology.continuous_function.algebra
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 
@@ -68,7 +68,7 @@ function space, almost everywhere equal, `L⁰`, ae_eq_fun
 -/
 
 noncomputable theory
-open_locale classical ennreal topological_space
+open_locale classical ennreal topology
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
@@ -750,3 +750,6 @@ def to_ae_eq_fun_linear_map : C(α, γ) →ₗ[𝕜] α →ₘ[μ] γ :=
   .. to_ae_eq_fun_add_hom μ }
 
 end continuous_map
+
+-- Guard against import creep
+assert_not_exists inner_product_space

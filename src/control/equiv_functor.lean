@@ -8,6 +8,9 @@ import logic.equiv.defs
 /-!
 # Functions functorial with respect to equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An `equiv_functor` is a function from `Type → Type` equipped with the additional data of
 coherently mapping equivalences to equivalences.
 

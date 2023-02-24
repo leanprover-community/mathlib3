@@ -29,7 +29,7 @@ to `emetric_space` at the end.
 
 open set filter classical
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X : Type*}
@@ -114,6 +114,19 @@ by rw edist_comm z; apply edist_triangle
 
 theorem edist_triangle_right (x y z : α) : edist x y ≤ edist x z + edist y z :=
 by rw edist_comm y; apply edist_triangle
+
+lemma edist_congr_right {x y z : α} (h : edist x y = 0) : edist x z = edist y z :=
+begin
+  apply le_antisymm,
+  { rw [←zero_add (edist y z), ←h],
+    apply edist_triangle, },
+  { rw edist_comm at h,
+    rw [←zero_add (edist x z), ←h],
+    apply edist_triangle, },
+end
+
+lemma edist_congr_left {x y z : α} (h : edist x y = 0) : edist z x = edist z y :=
+by { rw [edist_comm z x, edist_comm z y], apply edist_congr_right h,  }
 
 lemma edist_triangle4 (x y z t : α) :
   edist x t ≤ edist x y + edist y z + edist z t :=
@@ -364,7 +377,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -478,10 +491,6 @@ instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
 lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[simp]
-lemma edist_pi_const [nonempty β] (a b : α) :
-  edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
-
 lemma edist_le_pi_edist [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β) :
   edist (f b) (g b) ≤ edist f g :=
 finset.le_sup (finset.mem_univ b)
@@ -489,6 +498,12 @@ finset.le_sup (finset.mem_univ b)
 lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d : ℝ≥0∞} :
   edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
 finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]
+
+lemma edist_pi_const_le (a b : α) : edist (λ _ : β, a) (λ _, b) ≤ edist a b :=
+edist_pi_le_iff.2 $ λ _, le_rfl
+
+@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
+finset.sup_const univ_nonempty (edist a b)
 
 end pi
 
@@ -540,7 +555,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
-λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
+set.disjoint_left.mpr $ λ z h₁ h₂,
+  (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
@@ -943,7 +959,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   emetric_space γ :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,

@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau, Scott Morrison
 -/
 import data.list.chain
-import data.list.nodup
-import data.list.of_fn
 import data.list.zip
 
 /-!
 # Ranges of naturals as lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
 `data.list.defs`) and defines `list.fin_range`.
@@ -122,6 +123,9 @@ by rw [← length_eq_zero, length_range]
 theorem pairwise_lt_range (n : ℕ) : pairwise (<) (range n) :=
 by simp only [range_eq_range', pairwise_lt_range']
 
+theorem pairwise_le_range (n : ℕ) : pairwise (≤) (range n) :=
+pairwise.imp (@le_of_lt ℕ _) (pairwise_lt_range _)
+
 theorem nodup_range (n : ℕ) : nodup (range n) :=
 by simp only [range_eq_range', nodup_range']
 
@@ -184,7 +188,7 @@ theorem pairwise_gt_iota (n : ℕ) : pairwise (>) (iota n) :=
 by simp only [iota_eq_reverse_range', pairwise_reverse, pairwise_lt_range']
 
 theorem nodup_iota (n : ℕ) : nodup (iota n) :=
-by simp only [iota_eq_reverse_range', nodup_reverse, nodup_range']
+(pairwise_gt_iota n).imp (λ a b, ne_of_gt)
 
 theorem mem_iota {m n : ℕ} : m ∈ iota n ↔ 1 ≤ m ∧ m ≤ n :=
 by simp only [iota_eq_reverse_range', mem_reverse, mem_range', add_comm, lt_succ_iff]
@@ -206,32 +210,16 @@ def fin_range (n : ℕ) : list (fin n) :=
 @[simp] lemma fin_range_zero : fin_range 0 = [] := rfl
 
 @[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
-mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
+mem_pmap.2 ⟨a.1, mem_range.2 a.2, by { cases a, refl, }⟩
 
 lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
-(nodup_range _).pmap $ λ _ _ _ _, fin.veq_of_eq
+pairwise.pmap (nodup_range n) _ $ λ _ _ _ _, @fin.ne_of_vne _ ⟨_, _⟩ ⟨_, _⟩
 
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
 
 @[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_fin_range]
-
-@[simp] lemma map_coe_fin_range (n : ℕ) : (fin_range n).map coe = list.range n :=
-begin
-  simp_rw [fin_range, map_pmap, fin.coe_mk, pmap_eq_map],
-  exact list.map_id _
-end
-
-lemma fin_range_succ_eq_map (n : ℕ) :
-  fin_range n.succ = 0 :: (fin_range n).map fin.succ :=
-begin
-  apply map_injective_iff.mpr fin.coe_injective,
-  rw [map_cons, map_coe_fin_range, range_succ_eq_map, fin.coe_zero, ←map_coe_fin_range, map_map,
-    map_map, function.comp, function.comp],
-  congr' 2 with x,
-  exact (fin.coe_succ _).symm,
-end
 
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
@@ -281,25 +269,5 @@ option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
 @[simp] lemma nth_le_fin_range {n : ℕ} {i : ℕ} (h) :
   (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
 by simp only [fin_range, nth_le_range, nth_le_pmap]
-
-@[simp] lemma map_nth_le (l : list α) :
-  (fin_range l.length).map (λ n, l.nth_le n n.2) = l :=
-ext_le (by rw [length_map, length_fin_range]) $ λ n _ h,
-by { rw ← nth_le_map_rev, congr, { rw nth_le_fin_range, refl }, { rw length_fin_range, exact h } }
-
-theorem of_fn_eq_pmap {α n} {f : fin n → α} :
-  of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
-by rw [pmap_eq_map_attach]; from ext_le (by simp)
-  (λ i hi1 hi2, by { simp at hi1, simp [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
-
-theorem of_fn_id (n) : of_fn id = fin_range n := of_fn_eq_pmap
-
-theorem of_fn_eq_map {α n} {f : fin n → α} :
-  of_fn f = (fin_range n).map f :=
-by rw [← of_fn_id, map_of_fn, function.right_id]
-
-theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
-  nodup (of_fn f) :=
-by { rw of_fn_eq_pmap, exact (nodup_range n).pmap (λ _ _ _ _ H, fin.veq_of_eq $ hf H) }
 
 end list

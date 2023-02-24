@@ -3,7 +3,8 @@ Copyright (c) 2022 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
-import data.multiset.basic
+import data.finsupp.lex
+import data.finsupp.multiset
 import order.game_add
 
 /-!
@@ -33,7 +34,7 @@ namespace relation
 
 open multiset prod
 
-variables {α β : Type*}
+variables {α : Type*}
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
@@ -54,6 +55,18 @@ def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
 
 variable {r : α → α → Prop}
 
+lemma cut_expand_le_inv_image_lex [hi : is_irrefl α r] :
+  cut_expand r ≤ inv_image (finsupp.lex (rᶜ ⊓ (≠)) (<)) to_finsupp :=
+λ s t ⟨u, a, hr, he⟩, begin
+  classical, refine ⟨a, λ b h, _, _⟩; simp_rw to_finsupp_apply,
+  { apply_fun count b at he, simp_rw count_add at he,
+    convert he; convert (add_zero _).symm; rw count_eq_zero; intro hb,
+    exacts [h.2 (mem_singleton.1 hb), h.1 (hr b hb)] },
+  { apply_fun count a at he, simp_rw [count_add, count_singleton_self] at he,
+    apply nat.lt_of_succ_le, convert he.le, convert (add_zero _).symm,
+    exact count_eq_zero.2 (λ ha, hi.irrefl a $ hr a ha) },
+end
+
 theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
 ⟨s, x, h, add_comm s _⟩
 
@@ -69,7 +82,7 @@ begin
   simp_rw [cut_expand, add_singleton_eq_iff],
   refine exists₂_congr (λ t a, ⟨_, _⟩),
   { rintro ⟨ht, ha, rfl⟩,
-    obtain (h|h) := mem_add.1 ha,
+    obtain h|h := mem_add.1 ha,
     exacts [⟨ht, h, t.erase_add_left_pos h⟩, (@irrefl α r _ a (ht a h)).elim] },
   { rintro ⟨ht, h, rfl⟩,
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },

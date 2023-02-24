@@ -5,9 +5,13 @@ Authors: Simon Hudon, Scott Morrison
 -/
 import category_theory.natural_isomorphism
 import category_theory.eq_to_hom
+import data.sum.basic
 
 /-!
 # Categories of indexed families of objects.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the pointwise category structure on indexed families of objects in a category
 (and also the dependent generalization).

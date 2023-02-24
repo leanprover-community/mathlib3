@@ -3,10 +3,13 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Yury Kudryashov
 -/
-import data.list.big_operators
+import data.list.big_operators.basic
 
 /-!
 # Free monoid over a given alphabet
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -24,6 +27,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {M : Type*} [monoid M] {N : Typ
 def free_monoid (α) := list α
 
 namespace free_monoid
+
+@[to_additive] instance [decidable_eq α] : decidable_eq (free_monoid α) := list.decidable_eq
 
 /-- The identity equivalence between `free_monoid α` and `list α`. -/
 @[to_additive "The identity equivalence between `free_add_monoid α` and `list α`."]
@@ -131,27 +136,41 @@ lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) 
 monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
   λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
 
+/-- A variant of `list.prod` that has `[x].prod = x` true definitionally.
+
+The purpose is to make `free_monoid.lift_eval_of` true by `rfl`. -/
+@[to_additive "A variant of `list.sum` that has `[x].sum = x` true definitionally.
+
+The purpose is to make `free_add_monoid.lift_eval_of` true by `rfl`."]
+def prod_aux {M} [monoid M] (l : list M) : M :=
+l.rec_on 1 (λ x xs (_ : M), list.foldl (*) x xs)
+
+@[to_additive]
+lemma prod_aux_eq : ∀ l : list M, free_monoid.prod_aux l = l.prod
+| [] := rfl
+| (x :: xs) := congr_arg (λ x, list.foldl (*) x xs) (one_mul _).symm
+
 /-- Equivalence between maps `α → M` and monoid homomorphisms `free_monoid α →* M`. -/
 @[to_additive "Equivalence between maps `α → A` and additive monoid homomorphisms
 `free_add_monoid α →+ A`."]
 def lift : (α → M) ≃ (free_monoid α →* M) :=
-{ to_fun := λ f, ⟨λ l, (l.to_list.map f).prod, rfl,
-    λ l₁ l₂, by simp only [to_list_mul, list.map_append, list.prod_append]⟩,
+{ to_fun := λ f, ⟨λ l, free_monoid.prod_aux (l.to_list.map f), rfl,
+    λ l₁ l₂, by simp only [prod_aux_eq, to_list_mul, list.map_append, list.prod_append]⟩,
   inv_fun := λ f x, f (of x),
-  left_inv := λ f, funext $ λ x, one_mul (f x),
-  right_inv := λ f, hom_eq $ λ x, one_mul (f (of x)) }
+  left_inv := λ f, rfl,
+  right_inv := λ f, hom_eq $ λ x, rfl }
 
 @[simp, to_additive]
 lemma lift_symm_apply (f : free_monoid α →* M) : lift.symm f = f ∘ of := rfl
 
 @[to_additive]
-lemma lift_apply (f : α → M) (l : free_monoid α) : lift f l = (l.to_list.map f).prod := rfl
+lemma lift_apply (f : α → M) (l : free_monoid α) : lift f l = (l.to_list.map f).prod :=
+prod_aux_eq _
 
-@[to_additive] lemma lift_comp_of (f : α → M) : lift f ∘ of = f := lift.symm_apply_apply f
+@[to_additive] lemma lift_comp_of (f : α → M) : lift f ∘ of = f := rfl
 
 @[simp, to_additive]
-lemma lift_eval_of (f : α → M) (x : α) : lift f (of x) = f x :=
-congr_fun (lift_comp_of f) x
+lemma lift_eval_of (f : α → M) (x : α) : lift f (of x) = f x := rfl
 
 @[simp, to_additive]
 lemma lift_restrict (f : free_monoid α →* M) : lift (f ∘ of) = f :=
@@ -174,6 +193,10 @@ def mk_mul_action (f : α → β → β) : mul_action (free_monoid α) β :=
 
 @[to_additive] lemma smul_def (f : α → β → β) (l : free_monoid α) (b : β) :
   (by haveI := mk_mul_action f; exact l • b = l.to_list.foldr f b) :=
+rfl
+
+@[to_additive] lemma of_list_smul (f : α → β → β) (l : list α) (b : β) :
+  (by haveI := mk_mul_action f; exact (of_list l) • b = l.foldr f b) :=
 rfl
 
 @[simp, to_additive] lemma of_smul (f : α → β → β) (x : α) (y : β) :

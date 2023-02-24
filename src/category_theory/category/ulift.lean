@@ -10,6 +10,9 @@ import category_theory.eq_to_hom
 /-!
 # Basic API for ulift
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a very basic API for working with the categorical
 instance on `ulift C` where `C` is a type with a category instance.
 

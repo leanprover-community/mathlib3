@@ -3,10 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.fin.tuple
 import data.real.basic
-import data.set.intervals
-import data.set.pairwise
+import data.set.finite
+import data.set.intervals.disjoint
 
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
@@ -17,10 +16,11 @@ We follow the proof described here:
 http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 -/
 
-
 open real set function fin
 
 noncomputable theory
+
+namespace «82»
 
 variable {n : ℕ}
 
@@ -158,7 +158,7 @@ begin
     { rw [←add_le_add_iff_right (1 : ℝ)], convert b_add_w_le_one h, rw hi, rw zero_add },
     apply zero_le_b h, apply lt_of_lt_of_le (side_subset h $ (cs i').b_mem_side j).2,
     simp [hi, zero_le_b h] },
-  exact h.pairwise_disjoint i' i hi' ⟨hp, h2p⟩
+  exact (h.pairwise_disjoint hi').le_bot ⟨hp, h2p⟩
 end
 
 /-- The top of a cube (which is the bottom of the cube shifted up by its width) must be covered by
@@ -176,7 +176,7 @@ begin
   rw [← h.2, mem_Union] at this, rcases this with ⟨i', hi'⟩,
   rw [mem_Union], use i', refine ⟨_, λ j, hi' j.succ⟩,
   have : i ≠ i', { rintro rfl, apply not_le_of_lt (hi' 0).2, rw [hp0], refl },
-  have := h.1 i i' this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
+  have := h.1 this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
   rcases this with h0|⟨j, hj⟩,
   rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) _,
   convert hi' 0, rw [hp0], refl,
@@ -395,9 +395,9 @@ begin
       intro j₂, by_cases hj₂ : j₂ = j,
       { simpa [side_tail, p', hj'.symm, hj₂] using hi''.2 j },
       { simpa [hj₂] using hi'.2 j₂ } },
-    apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i i' i_i') },
+    apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i_i') },
   have i_i'' : i ≠ i'', { intro h, induction h, simpa [hx'.2] using hi''.2 j' },
-  apply not.elim _ (h.1 i' i'' i'_i''),
+  apply not.elim _ (h.1 i'_i''),
   simp only [on_fun, to_set_disjoint, not_disjoint_iff, forall_fin_succ, not_exists, comp_app],
   refine ⟨⟨c.b 0, bottom_mem_side h2i', bottom_mem_side h2i''⟩, _⟩,
   intro j₂,
@@ -515,6 +515,8 @@ begin
   intros n hn s hfin h2 hd hU hinj,
   cases n,
   { cases hn },
-  exact @not_correct n s coe hfin.to_subtype ((nontrivial_coe _).2 h2)
+  exact @not_correct n s coe hfin.to_subtype h2.coe_sort
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end
+
+end «82»

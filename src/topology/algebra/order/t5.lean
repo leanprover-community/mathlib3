@@ -3,18 +3,21 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import data.set.intervals.ord_connected_component
 
 /-!
 # Linear order is a completely normal Hausdorff topological space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that a linear order with order topology is a completely normal Hausdorff
 topological space.
 -/
 
 open filter set function order_dual
-open_locale topological_space filter interval
+open_locale topology filter interval
 
 variables {X : Type*} [linear_order X] [topological_space X] [order_topology X]
   {a b c : X} {s t : set X}
@@ -47,19 +50,19 @@ begin
     replace hac : a < c := hac.lt_of_ne (ne.symm $ ne_of_mem_of_not_mem hc $ disjoint_left.1
       (disjoint_left_ord_separating_set.mono_right ord_connected_section_subset) ha),
     refine mem_of_superset (Ico_mem_nhds_within_Ici (left_mem_Ico.2 hac)) (λ x hx hx', _),
-    refine hx.2.ne (eq_of_mem_ord_connected_section_of_interval_subset hx' hc _),
+    refine hx.2.ne (eq_of_mem_ord_connected_section_of_uIcc_subset hx' hc _),
     refine subset_inter (subset_Union₂_of_subset a ha _) _,
-    { exact ord_connected.interval_subset infer_instance (hsub' ⟨hx.1, hx.2.le.trans hcb⟩)
+    { exact ord_connected.uIcc_subset infer_instance (hsub' ⟨hx.1, hx.2.le.trans hcb⟩)
         (hsub' ⟨hac.le, hcb⟩) },
     { rcases mem_Union₂.1 (ord_connected_section_subset hx').2 with ⟨y, hyt, hxy⟩,
-      refine subset_Union₂_of_subset y hyt (ord_connected.interval_subset infer_instance hxy _),
-      refine subset_ord_connected_component left_mem_interval hxy _,
+      refine subset_Union₂_of_subset y hyt (ord_connected.uIcc_subset infer_instance hxy _),
+      refine subset_ord_connected_component left_mem_uIcc hxy _,
       suffices : c < y,
-      { rw [interval_of_ge (hx.2.trans this).le],
+      { rw [uIcc_of_ge (hx.2.trans this).le],
         exact ⟨hx.2.le, this.le⟩ },
       refine lt_of_not_le (λ hyc, _),
       have hya : y < a, from not_le.1 (λ hay, hsub ⟨hay, hyc.trans hcb⟩ hyt),
-      exact hxy (Icc_subset_interval ⟨hya.le, hx.1⟩) ha } }
+      exact hxy (Icc_subset_uIcc ⟨hya.le, hx.1⟩) ha } }
 end
 
 lemma compl_section_ord_separating_set_mem_nhds_within_Iic (hd : disjoint s (closure t))

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import topology.category.Profinite
+import topology.category.Profinite.basic
 import topology.stone_cech
 import category_theory.preadditive.projective
 

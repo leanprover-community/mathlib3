@@ -9,6 +9,9 @@ import algebra.gcd_monoid.multiset
 /-!
 # GCD and LCM operations on finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 - `finset.gcd` - the greatest common denominator of a `finset` of elements of a `gcd_monoid`
@@ -206,6 +209,25 @@ begin
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_right],
   apply ((normalize_associated a).mul_left _).gcd_eq_right
+end
+
+lemma extract_gcd' (f g : β → α) (hs : ∃ x, x ∈ s ∧ f x ≠ 0)
+  (hg : ∀ b ∈ s, f b = s.gcd f * g b) : s.gcd g = 1 :=
+((@mul_right_eq_self₀ _ _ (s.gcd f) _).1 $
+  by conv_lhs { rw [← normalize_gcd, ← gcd_mul_left, ← gcd_congr rfl hg] }).resolve_right $
+  by {contrapose! hs, exact gcd_eq_zero_iff.1 hs}
+
+lemma extract_gcd (f : β → α) (hs : s.nonempty) :
+  ∃ g : β → α, (∀ b ∈ s, f b = s.gcd f * g b) ∧ s.gcd g = 1 :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ s, f x = (0 : α),
+  { refine ⟨λ b, 1, λ b hb, by rw [h b hb, gcd_eq_zero_iff.2 h, mul_one], _⟩,
+    rw [gcd_eq_gcd_image, image_const hs, gcd_singleton, id, normalize_one] },
+  { choose g' hg using @gcd_dvd _ _ _ _ s f,
+    have := λ b hb, _, push_neg at h,
+    refine ⟨λ b, if hb : b ∈ s then g' hb else 0, this, extract_gcd' f _ h this⟩,
+    rw [dif_pos hb, hg hb] },
 end
 
 end gcd

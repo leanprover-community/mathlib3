@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
-import group_theory.group_action.pi
 import group_theory.quotient_group
 import algebra.group.pi
 
 /-!
 # Divisible Group and rootable group
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define a divisible add monoid and a rootable monoid with some basic properties.
 
@@ -118,7 +120,7 @@ noncomputable def rootable_by_of_pow_left_surj
 rootable_by A α :=
 { root := λ a n, @dite _ (n = 0) (classical.dec _) (λ _, (1 : A)) (λ hn, (H hn a).some),
   root_zero := λ _, by classical; exact dif_pos rfl,
-  root_cancel := λ n a hn, by rw dif_neg hn; exact (H hn a).some_spec }
+  root_cancel := λ n a hn, by { classical, rw dif_neg hn, exact (H hn a).some_spec } }
 
 section pi
 
@@ -239,6 +241,12 @@ noncomputable def function.surjective.rootable_by (hf : function.surjective f)
 rootable_by_of_pow_left_surj _ _ $ λ n hn x,
   let ⟨y, hy⟩ := hf x in ⟨f $ rootable_by.root y n, (by rw [←hpow (rootable_by.root y n) n,
     rootable_by.root_cancel _ hn, hy] : _ ^ _ = x)⟩
+
+@[to_additive divisible_by.surjective_smul]
+lemma rootable_by.surjective_pow
+  (A α : Type*) [monoid A] [has_pow A α] [has_zero α] [rootable_by A α] {n : α} (hn : n ≠ 0) :
+  function.surjective (λ (a : A), a^n) :=
+λ a, ⟨rootable_by.root a n, rootable_by.root_cancel a hn⟩
 
 end hom
 

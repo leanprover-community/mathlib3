@@ -9,6 +9,9 @@ import data.pfunctor.univariate.M
 /-!
 # The M construction as a multivariate polynomial functor.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 M types are potentially infinite tree-like structures. They are defined
 as the greatest fixpoint of a polynomial functor.
 

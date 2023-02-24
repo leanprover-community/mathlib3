@@ -38,8 +38,7 @@ variables {V : Type*}
 Let `V` be a real topological vector space. A subset of `V` is a convex body if and only if
 it is convex, compact, and nonempty.
 -/
-structure convex_body (V : Type*) [topological_space V] [add_comm_group V] [has_continuous_add V]
-  [module ℝ V] [has_continuous_smul ℝ V] :=
+structure convex_body (V : Type*) [topological_space V] [add_comm_monoid V] [has_smul ℝ V] :=
 (carrier : set V)
 (convex' : convex ℝ carrier)
 (is_compact' : is_compact carrier)
@@ -47,8 +46,7 @@ structure convex_body (V : Type*) [topological_space V] [add_comm_group V] [has_
 
 namespace convex_body
 section TVS
-variables [topological_space V] [add_comm_group V] [has_continuous_add V] [module ℝ V]
-  [has_continuous_smul ℝ V]
+variables [topological_space V] [add_comm_group V] [module ℝ V]
 
 instance : set_like (convex_body V) V :=
 { coe := convex_body.carrier,
@@ -63,6 +61,9 @@ protected lemma ext {K L : convex_body V} (h : (K : set V) = L) : K = L := set_l
 
 @[simp]
 lemma coe_mk (s : set V) (h₁ h₂ h₃) : (mk s h₁ h₂ h₃ : set V) = s := rfl
+
+section has_continuous_add
+variables [has_continuous_add V]
 
 instance : add_monoid (convex_body V) :=
 -- we cannot write K + L to avoid reducibility issues with the set.has_add instance
@@ -87,11 +88,17 @@ instance : add_comm_monoid (convex_body V) :=
 { add_comm := λ K L, by { ext, simp only [coe_add, add_comm] },
   .. convex_body.add_monoid }
 
+end has_continuous_add
+
+variables [has_continuous_smul ℝ V]
+
 instance : has_smul ℝ (convex_body V) :=
 { smul := λ c K, ⟨c • (K : set V), K.convex.smul _, K.is_compact.smul _, K.nonempty.smul_set⟩ }
 
 @[simp]
 lemma coe_smul (c : ℝ) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
+
+variables [has_continuous_add V]
 
 instance : distrib_mul_action ℝ (convex_body V) :=
 { to_has_smul := convex_body.has_smul,

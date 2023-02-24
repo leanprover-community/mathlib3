@@ -336,8 +336,8 @@ begin
   { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h }
 end
 
-lemma equation_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors R B]
-  [no_zero_smul_divisors A B] (x y : A) : (W.base_change A).equation x y
+lemma equation_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors A B] (x y : A) :
+  (W.base_change A).equation x y
     ↔ (W.base_change B).equation (algebra_map A B x) (algebra_map A B y) :=
 by rw [equation_iff_base_change (W.base_change A) B, base_change_base_change]
 
@@ -406,8 +406,8 @@ begin
   any_goals { convert congr_arg (algebra_map R A) h; { map_simp, refl } }
 end
 
-lemma nonsingular_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors R B]
-  [no_zero_smul_divisors A B] (x y : A) : (W.base_change A).nonsingular x y
+lemma nonsingular_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors A B]
+  (x y : A) : (W.base_change A).nonsingular x y
     ↔ (W.base_change B).nonsingular (algebra_map A B x) (algebra_map A B y) :=
 by rw [nonsingular_iff_base_change (W.base_change A) B, base_change_base_change]
 

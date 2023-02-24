@@ -79,18 +79,18 @@ lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_spa
   [measurable_space E] [borel_space E] [complete_space E]
   {f : β → α → E}
   (hf : ∀ (i : β), ae_strongly_measurable (f i) μ)
-  (hf' : ∑' (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ ≠ ⊤) :
+  (hf' : ∑' (i : β), ∫⁻ (a : α), ‖f i a‖₊ ∂μ ≠ ⊤) :
   ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 begin
   have hf'' := (λ i, (hf i).ae_measurable.nnnorm.coe_nnreal_ennreal),
-  have hhh : ∀ᵐ (a : α) ∂μ, summable (λ (n : β), (∥f n a∥₊ : ℝ)),
+  have hhh : ∀ᵐ (a : α) ∂μ, summable (λ (n : β), (‖f n a‖₊ : ℝ)),
   { haveI : countable β := sorry,
     rw ← lintegral_tsum hf'' at hf',
     refine (ae_lt_top' (ae_measurable.ennreal_tsum hf'') hf').mono _,
     intros x hx,
     rw ← ennreal.tsum_coe_ne_top_iff_summable_coe,
     exact hx.ne, },
-  convert (measure_theory.has_sum_integral_of_dominated_convergence (λ i a, ∥f i a∥₊) hf _
+  convert (measure_theory.has_sum_integral_of_dominated_convergence (λ i a, ‖f i a‖₊) hf _
     hhh _ _).tsum_eq.symm,
   { intros n,
     filter_upwards with x,
@@ -101,7 +101,7 @@ begin
       apply ae_strongly_measurable.nnreal_tsum,
       exact (λ i, (hf i).nnnorm), },
     { dsimp [has_finite_integral],
-      have : ∫⁻ (a : α), ∑' (n : β), ∥f n a∥₊ ∂μ < ⊤,
+      have : ∫⁻ (a : α), ∑' (n : β), ‖f n a‖₊ ∂μ < ⊤,
       { rw [lintegral_tsum, lt_top_iff_ne_top],
         { exact hf', },
         { exact_mod_cast λ i, (hf i).ae_measurable.nnnorm, }, },
@@ -126,11 +126,11 @@ lemma integrable.mul_ℒ_infinity  {G : Type*} {E : Type*} [normed_ring E] [norm
   (f_ℒ_1 : integrable f μ)
   (g : G → E)
   (g_measurable : ae_strongly_measurable g μ)
-  (g_ℒ_infinity : ess_sup (λ x, (∥g x∥₊ : ℝ≥0∞)) μ < ∞) :
+  (g_ℒ_infinity : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ < ∞) :
   integrable (λ (x : G), f x * g x) μ :=
 begin
-  let s : set ℝ≥0∞ := {a : ℝ≥0∞ | μ {x : G | a < (λ (x : G), ↑∥g x∥₊) x} = 0},
-  have : ess_sup (λ x, (∥g x∥₊ : ℝ≥0∞)) μ = Inf s := ess_sup_eq_Inf _ _,
+  let s : set ℝ≥0∞ := {a : ℝ≥0∞ | μ {x : G | a < (λ (x : G), ↑‖g x‖₊) x} = 0},
+  have : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ = Inf s := ess_sup_eq_Inf _ _,
   obtain ⟨a₀, has : μ _ = 0, ha₀⟩ : ∃ (a : ℝ≥0∞) (H : a ∈ s), a < ⊤,
   { rw ← Inf_lt_iff,
     rw ← ess_sup_eq_Inf,
@@ -140,11 +140,11 @@ begin
   rw integrable at f_ℒ_1 ⊢,
   rw measure_theory.has_finite_integral_iff_norm at f_ℒ_1 ⊢,
   refine ⟨f_ℒ_1.1.mul g_measurable, _⟩,
-  calc ∫⁻ (x : G), ennreal.of_real (∥f x * g x∥) ∂μ ≤
-    ∫⁻ (x : G), ennreal.of_real (∥f x∥ * ∥g x∥) ∂μ : _
-    ... ≤  ∫⁻ (x : G), ennreal.of_real (∥f x∥ * a) ∂μ : _
-    ... =  ∫⁻ (x : G), (ennreal.of_real (∥f x∥) * a) ∂μ : _
-    ... = ∫⁻ (x : G), ennreal.of_real (∥f x∥) ∂μ * a : _
+  calc ∫⁻ (x : G), ennreal.of_real (‖f x * g x‖) ∂μ ≤
+    ∫⁻ (x : G), ennreal.of_real (‖f x‖ * ‖g x‖) ∂μ : _
+    ... ≤  ∫⁻ (x : G), ennreal.of_real (‖f x‖ * a) ∂μ : _
+    ... =  ∫⁻ (x : G), (ennreal.of_real (‖f x‖) * a) ∂μ : _
+    ... = ∫⁻ (x : G), ennreal.of_real (‖f x‖) ∂μ * a : _
     ... < ⊤ : _ ,
   { mono,
     { exact rfl.le, },
@@ -336,7 +336,7 @@ begin
   rintros ⟨γ, hγ⟩ x,
   dsimp,
   congr' 1,
-  exact quotient_group.mk_mul_of_mem x (mul_opposite.unop γ) hγ,
+  exact quotient_group.mk_mul_of_mem x hγ,
 end
 
 
@@ -358,7 +358,7 @@ begin
     rw mem_preimage,
     rw mem_preimage,
     congrm _ ∈ s,
-    convert quotient_group.mk_mul_of_mem g (mul_opposite.unop (γ⁻¹)) (γ⁻¹).2, },
+    convert quotient_group.mk_mul_of_mem g (γ⁻¹).2, },
   exact measurable_set_preimage meas_π s_meas,
 end
 
@@ -377,32 +377,6 @@ def mul_action.automorphize {α : Type*} {β : Type*} [group α] [mul_action α 
 begin
   rintros b₁ b₂ ⟨a, (rfl : a • b₂ = b₁)⟩,
   simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
-end
-
-
-lemma measurable_lift {α : Type*} {β : Type*} [group α] [mul_action α β] [measurable_space β]
-  [topological_space β] [borel_space β] {γ : Type*} [measurable_space γ]
-  [measurable_space (quotient (mul_action.orbit_rel α β))]
-  [borel_space (quotient (mul_action.orbit_rel α β))]
-  (f : β → γ)
-  (f_invariant : (∀ (a b : β), (mul_action.orbit_rel α β).r a b → f a = f b)) (hf : measurable f) :
-  measurable (@quotient.lift _ _ (mul_action.orbit_rel α β) f f_invariant) :=
-begin
-  intros s s_meas,
-  dsimp [measurable_set],
-  sorry,
-end
-
-
---def automorphize' {α : Type*} (f : G → ℂ) : G ⧸ Γ → ℂ := mul_action.automorphize f
-
---omit h𝓕
-
-lemma automorphize.ae_strongly_measurable [μ.is_mul_right_invariant] (f : G → ℂ)
-  (f_ae_sm : ae_strongly_measurable f μ) :
-  ae_strongly_measurable (mul_action.automorphize f) μ_𝓕 :=
-begin
-
 end
 
 include h𝓕
@@ -433,7 +407,7 @@ begin
   { rw integral_tsum,
     { exact λ i, (f_ℒ_1.1.comp_quasi_measure_preserving
         (measure_preserving_smul i μ).quasi_measure_preserving).restrict, },
-    { rw ← h𝓕.lintegral_eq_tsum'' (λ x, ∥f (x)∥₊),
+    { rw ← h𝓕.lintegral_eq_tsum'' (λ x, ‖f (x)‖₊),
       exact ne_of_lt f_ℒ_1.2, }, },
   { congr,
     ext1 x,
@@ -449,7 +423,7 @@ lemma mul_unfolding_trick [μ.is_mul_right_invariant]
   (f_ℒ_1 : integrable f μ)
   {g : G ⧸ Γ → ℂ}
   (hg : ae_strongly_measurable g μ_𝓕)
-  (g_ℒ_infinity : ess_sup (λ x, ↑∥g x∥₊) μ_𝓕 < ∞)
+  (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 < ∞)
   {F : G ⧸ Γ → ℂ}
   (F_ae_measurable : ae_strongly_measurable F μ_𝓕) -- NEEDED??
   (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
@@ -461,9 +435,9 @@ begin
   { refine integrable.mul_ℒ_infinity f f_ℒ_1 (λ x : G, g (x : G ⧸ Γ)) _ _,
     { exact (ae_strongly_measurable_of_absolutely_continuous h𝓕.absolutely_continuous_map _
         hg).comp_measurable meas_π, },
-    { have hg' : ae_strongly_measurable (λ x, ↑∥g x∥₊) μ_𝓕 :=
+    { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
-      rw [← mul_ess_sup_of_g h𝓕 (λ x, ↑∥g x∥₊) hg'.ae_measurable],
+      rw [← mul_ess_sup_of_g h𝓕 (λ x, ↑‖g x‖₊) hg'.ae_measurable],
       exact g_ℒ_infinity, }, },
   { intros x,
     rw [hFf x, ← tsum_mul_right],

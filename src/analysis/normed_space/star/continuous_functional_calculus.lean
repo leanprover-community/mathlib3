@@ -131,8 +131,8 @@ begin
   *strictly* less that `‖star a * a‖` because the spectrum is compact, which completes the proof. -/
 
   /- We may assume `A` is nontrivial. It suffices to show that `star a * a` is invertible in the
-  commutative (because `a` is normal) ring `elemental_star_algebra ℂ a` because `a` is normal.
-  Therefore, by commutativity, if `star a * a` is invertible, then so is `a`. -/
+  commutative (because `a` is normal) ring `elemental_star_algebra ℂ a`. Indeed, by commutativity,
+  if `star a * a` is invertible, then so is `a`. -/
   nontriviality A,
   set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
   suffices : is_unit (star a' * a'), from (is_unit.mul_iff.1 this).2,

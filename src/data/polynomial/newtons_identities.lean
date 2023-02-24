@@ -291,7 +291,7 @@ begin
       clear hdiv',
       cases hdiv with g hg,
       by_contra he,
-      have hn : (f R n k).total_degree = (s R n 0).total_degree + g.total_degree,
+      have hn : (s R n 0).total_degree + g.total_degree ≤ (f R n k).total_degree,
       {
         sorry
       },
@@ -303,9 +303,8 @@ begin
         cases neg_one_pow_eq_or _ n;
         rw [h_2]; simp,
         },
-      have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
+      have hl := le_trans (le_trans hn (newt_degree _ _ _ h)) hle,
       have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
-      simp only [tsub_zero] at hl,
       have H := add_le_add le_rfl gdeg,
       swap, use n,
       have H' := le_trans H hl,
@@ -313,7 +312,7 @@ begin
       norm_num at H',
       rw nat.succ_sub_one at H',
       exact nat.not_succ_le_self n H',
-      },
+    },
   },
 end
 

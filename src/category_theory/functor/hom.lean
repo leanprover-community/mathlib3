@@ -7,6 +7,9 @@ import category_theory.products.basic
 import category_theory.types
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The hom functor, sending `(X, Y)` to the type `X ⟶ Y`.
 -/
 

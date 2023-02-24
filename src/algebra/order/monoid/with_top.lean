@@ -31,6 +31,12 @@ variables [has_one α]
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
 
+@[simp, norm_cast, to_additive coe_nonneg]
+lemma one_le_coe [has_le α] {a : α} : 1 ≤ (a : with_top α) ↔ 1 ≤ a := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_le_zero]
+lemma coe_le_one [has_le α] {a : α} : (a : with_top α) ≤ 1 ↔ a ≤ 1 := coe_le_coe
+
 @[simp, norm_cast, to_additive coe_pos]
 lemma one_lt_coe [has_lt α] {a : α} : 1 < (a : with_top α) ↔ 1 < a := coe_lt_coe
 
@@ -341,13 +347,19 @@ lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
 with_top.coe_eq_one
 
-@[norm_cast, to_additive coe_pos]
+@[simp, norm_cast, to_additive coe_nonneg]
+lemma one_le_coe [has_one α] [has_le α] {a : α} : 1 ≤ (a : with_bot α) ↔ 1 ≤ a := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_le_zero]
+lemma coe_le_one [has_one α] [has_le α] {a : α} : (a : with_bot α) ≤ 1 ↔ a ≤ 1 := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_pos]
 lemma one_lt_coe [has_one α] [has_lt α] {a : α} : 1 < (a : with_bot α) ↔ 1 < a := coe_lt_coe
 
-@[norm_cast, to_additive coe_lt_zero]
+@[simp, norm_cast, to_additive coe_lt_zero]
 lemma coe_lt_one [has_one α] [has_lt α] {a : α} : (a : with_bot α) < 1 ↔ a < 1 := coe_lt_coe
 
-@[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
+@[simp, to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
 
 @[norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_bot α) = n := rfl

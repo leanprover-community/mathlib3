@@ -21,7 +21,7 @@ The file is a place to collect measure-theoretic results about the additive circ
 -/
 
 open set function filter measure_theory measure_theory.measure metric
-open_locale measure_theory pointwise big_operators topological_space ennreal
+open_locale measure_theory pointwise big_operators topology ennreal
 
 namespace add_circle
 

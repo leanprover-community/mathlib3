@@ -75,7 +75,7 @@ make no sense. However, the measure is not globally zero if the space is big eno
 -/
 
 open measure_theory metric set filter topological_space measure_theory.measure
-open_locale filter ennreal measure_theory nnreal topological_space
+open_locale filter ennreal measure_theory nnreal topology
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
@@ -158,7 +158,7 @@ variables [second_countable_topology α] [borel_space α] [is_locally_finite_mea
 /-- If a measure `ρ` is singular with respect to `μ`, then for `μ` almost every `x`, the ratio
 `ρ a / μ a` tends to zero when `a` shrinks to `x` along the Vitali family. This makes sense
 as `μ a` is eventually positive by `ae_eventually_measure_pos`. -/
-lemma ae_eventually_measure_zero_of_singular (hρ : ρ ⊥ₘ μ) :
+lemma ae_eventually_measure_zero_of_singular (hρ : ρ ⟂ₘ μ) :
   ∀ᵐ x ∂μ, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 0) :=
 begin
   have A : ∀ ε > (0 : ℝ≥0), ∀ᵐ x ∂μ, ∀ᶠ a in v.filter_at x, ρ a < ε * μ a,
@@ -594,7 +594,7 @@ begin
         conv_rhs { rw ← mul_one (t^ n) },
         refine mul_lt_mul' le_rfl _ (zero_le _) (nnreal.zpow_pos t_ne_zero' _),
         rw zpow_neg_one,
-        exact nnreal.inv_lt_one ht,
+        exact inv_lt_one ht,
       end },
   calc ν s = ν (s ∩ f⁻¹' {0}) + ν (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), ν (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
     measure_eq_measure_preimage_add_measure_tsum_Ico_zpow ν f_meas hs ht

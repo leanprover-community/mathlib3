@@ -8,6 +8,9 @@ import linear_algebra.span
 
 /-! # Pointwise instances on `submodule`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides:
 
 * `submodule.has_pointwise_neg`

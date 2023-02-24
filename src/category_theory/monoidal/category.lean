@@ -8,6 +8,9 @@ import category_theory.products.basic
 /-!
 # Monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A monoidal category is a category equipped with a tensor product, unitors, and an associator.
 In the definition, we provide the tensor product as a pair of functions
 * `tensor_obj : C → C → C`

@@ -18,7 +18,7 @@ We also prove differentiability and provide derivatives for the power functions 
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter
+open_locale classical real topology nnreal ennreal filter
 open filter
 
 namespace complex
@@ -186,6 +186,44 @@ lemma has_deriv_within_at.cpow_const (hf : has_deriv_within_at f f' s x)
   (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
   has_deriv_within_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') s x :=
 (complex.has_strict_deriv_at_cpow_const h0).has_deriv_at.comp_has_deriv_within_at x hf
+
+/-- Although `λ x, x ^ r` for fixed `r` is *not* complex-differentiable along the negative real
+line, it is still real-differentiable, and the derivative is what one would formally expect. -/
+lemma has_deriv_at_of_real_cpow {x : ℝ} (hx : x ≠ 0) {r : ℂ} (hr : r ≠ -1) :
+  has_deriv_at (λ y:ℝ, (y:ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x :=
+begin
+  rw [ne.def, ←add_eq_zero_iff_eq_neg, ←ne.def] at hr,
+  rcases lt_or_gt_of_ne hx.symm with hx | hx,
+  { -- easy case : `0 < x`
+    convert (((has_deriv_at_id (x:ℂ)).cpow_const _).div_const (r + 1)).comp_of_real,
+    { rw [add_sub_cancel, id.def, mul_one, mul_comm, mul_div_cancel _ hr] },
+    { rw [id.def, of_real_re], exact or.inl hx } },
+  { -- harder case : `x < 0`
+    have : ∀ᶠ (y:ℝ) in nhds x, (y:ℂ) ^ (r + 1) / (r + 1) =
+      (-y:ℂ) ^ (r + 1) * exp (π * I * (r + 1)) / (r + 1),
+    { refine filter.eventually_of_mem (Iio_mem_nhds hx) (λ y hy, _),
+      rw of_real_cpow_of_nonpos (le_of_lt hy) },
+    refine has_deriv_at.congr_of_eventually_eq _ this,
+    rw of_real_cpow_of_nonpos (le_of_lt hx),
+    suffices : has_deriv_at (λ (y : ℝ), (-↑y) ^ (r + 1) * exp (↑π * I * (r + 1)))
+      ((r + 1) * (-↑x) ^ r * exp (↑π * I * r)) x,
+    { convert this.div_const (r + 1) using 1,
+      conv_rhs { rw [mul_assoc, mul_comm, mul_div_cancel _ hr] } },
+    rw [mul_add ((π:ℂ) * _), mul_one, exp_add, exp_pi_mul_I,
+      mul_comm (_ : ℂ) (-1 : ℂ), neg_one_mul],
+    simp_rw [mul_neg, ←neg_mul, ←of_real_neg],
+    suffices : has_deriv_at (λ (y : ℝ), (↑-y) ^ (r + 1)) (-(r + 1) * (↑-x) ^ r) x,
+    { convert this.neg.mul_const _, ring },
+    suffices : has_deriv_at (λ (y : ℝ), (↑y) ^ (r + 1)) ((r + 1) * (↑-x) ^ r) (-x),
+    { convert @has_deriv_at.scomp ℝ _ ℂ _ _ x ℝ _ _ _ _ _ _ _ _ this (has_deriv_at_neg x) using 1,
+      rw [real_smul, of_real_neg 1, of_real_one], ring },
+    suffices : has_deriv_at (λ (y : ℂ), y ^ (r + 1)) ((r + 1) * (↑-x) ^ r) (↑-x),
+    { exact this.comp_of_real },
+    conv in ((↑_) ^ _) { rw (by ring : r = (r + 1) - 1) },
+    convert (has_deriv_at_id ((-x : ℝ) : ℂ)).cpow_const _ using 1,
+    { simp },
+    { left, rwa [id.def, of_real_re, neg_pos] } },
+end
 
 end deriv
 

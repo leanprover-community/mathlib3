@@ -6,6 +6,7 @@ Authors: María Inés de Frutos-Fernández
 import ring_theory.dedekind_domain.ideal
 import ring_theory.valuation.extend_to_localization
 import ring_theory.valuation.valuation_subring
+import ring_theory.polynomial.cyclotomic.basic
 import topology.algebra.valued_field
 
 /-!
@@ -330,5 +331,97 @@ instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 
 /-- The ring of integers of `adic_completion`. -/
 def adic_completion_integers : valuation_subring (v.adic_completion K) := valued.v.valuation_subring
+
+instance : inhabited (adic_completion_integers K v) := ⟨0⟩
+
+variables (R K)
+
+lemma mem_adic_completion_integers {x : v.adic_completion K} :
+  x ∈ v.adic_completion_integers K ↔ (valued.v x : ℤₘ₀) ≤ 1 :=
+iff.rfl
+
+section algebra_instances
+
+@[priority 100] instance adic_valued.has_uniform_continuous_const_smul' :
+  @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space _ :=
+@has_uniform_continuous_const_smul_of_continuous_const_smul R K _ _ _
+    v.adic_valued.to_uniform_space _ _
+
+instance adic_valued.has_uniform_continuous_const_smul :
+  @has_uniform_continuous_const_smul K K v.adic_valued.to_uniform_space _ :=
+@ring.has_uniform_continuous_const_smul K _ v.adic_valued.to_uniform_space _ _
+
+instance adic_completion.algebra' : algebra R (v.adic_completion K) :=
+@uniform_space.completion.algebra K _ v.adic_valued.to_uniform_space _ _ R _ _
+  (adic_valued.has_uniform_continuous_const_smul' R K v)
+
+@[simp] lemma coe_smul_adic_completion (r : R) (x : K) :
+  (↑(r • x) : v.adic_completion K) = r • (↑x : v.adic_completion K) :=
+@uniform_space.completion.coe_smul R K v.adic_valued.to_uniform_space _ _ r x
+
+instance : algebra K (v.adic_completion K) :=
+@uniform_space.completion.algebra' K _ v.adic_valued.to_uniform_space _ _
+
+lemma algebra_map_adic_completion' :
+  ⇑(algebra_map R $ v.adic_completion K) = coe ∘ algebra_map R K :=
+rfl
+
+lemma algebra_map_adic_completion :
+  ⇑(algebra_map K $ v.adic_completion K) = coe :=
+rfl
+
+instance : is_scalar_tower R K (v.adic_completion K) :=
+@uniform_space.completion.is_scalar_tower R K K v.adic_valued.to_uniform_space _ _ _
+  (adic_valued.has_uniform_continuous_const_smul' R K v) _ _
+
+instance : algebra R (v.adic_completion_integers K) :=
+{ smul      := λ r x, ⟨r • (x : v.adic_completion K), begin
+    have h : ((algebra_map R (adic_completion K v)) r) = (coe $ algebra_map R K r) := rfl,
+    rw algebra.smul_def,
+    refine valuation_subring.mul_mem _ _ _ _ x.2,
+    rw [mem_adic_completion_integers, h, valued.valued_completion_apply],
+    exact v.valuation_le_one _,
+  end⟩,
+  to_fun    := λ r, ⟨coe $ algebra_map R K r, by simpa only [mem_adic_completion_integers,
+    valued.valued_completion_apply] using v.valuation_le_one _⟩,
+  map_one'  := by simp only [map_one]; refl,
+  map_mul'  := λ x y,
+  begin
+    ext,
+    simp_rw [ring_hom.map_mul, subring.coe_mul, subtype.coe_mk, uniform_space.completion.coe_mul],
+  end,
+  map_zero' := by simp only [map_zero]; refl,
+  map_add'  := λ x y,
+  begin
+    ext,
+    simp_rw [ring_hom.map_add, subring.coe_add, subtype.coe_mk, uniform_space.completion.coe_add],
+  end,
+  commutes' := λ r x, by rw mul_comm,
+  smul_def' := λ r x, begin
+    ext,
+    simp only [subring.coe_mul, set_like.coe_mk, algebra.smul_def],
+    refl,
+  end }
+
+@[simp] lemma coe_smul_adic_completion_integers (r : R) (x : v.adic_completion_integers K) :
+  (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=
+rfl
+
+instance : no_zero_smul_divisors R (v.adic_completion_integers K) :=
+{ eq_zero_or_eq_zero_of_smul_eq_zero := λ c x hcx,
+  begin
+    rw [algebra.smul_def, mul_eq_zero] at hcx,
+    refine hcx.imp_left (λ hc, _),
+    letI : uniform_space K := v.adic_valued.to_uniform_space,
+    rw ← map_zero (algebra_map R (v.adic_completion_integers K)) at hc,
+    exact (is_fraction_ring.injective R K
+      (uniform_space.completion.coe_injective K (subtype.ext_iff.mp hc)))
+  end }
+
+instance adic_completion.is_scalar_tower' :
+  is_scalar_tower R (v.adic_completion_integers K) (v.adic_completion K) :=
+{ smul_assoc := λ x y z, by {simp only [algebra.smul_def], apply mul_assoc, }}
+
+end algebra_instances
 
 end is_dedekind_domain.height_one_spectrum

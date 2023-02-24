@@ -27,7 +27,7 @@ This file contains proofs of ergodicity for maps of the additive circle.
 -/
 
 open set function measure_theory measure_theory.measure filter metric
-open_locale measure_theory nnreal ennreal topological_space pointwise
+open_locale measure_theory nnreal ennreal topology pointwise
 
 namespace add_circle
 

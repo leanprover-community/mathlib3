@@ -9,6 +9,9 @@ import group_theory.group_action.conj_act
 /-!
 # Commensurability for subgroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines commensurability for subgroups of a group `G`. It then goes on to prove that
 commensurability defines an equivalence relation and finally defines the commensurator of a subgroup
 of `G`.

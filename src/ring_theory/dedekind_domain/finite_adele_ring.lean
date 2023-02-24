@@ -120,7 +120,7 @@ variables {R K}
 /-- An element `x : K_hat R K` is a finite adèle if for all but finitely many height one ideals
   `v`, the component `x v` is a `v`-adic integer. -/
 def is_finite_adele (x : K_hat R K) :=
-∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K)
+∀ᶠ v : height_one_spectrum R in filter.cofinite, x v ∈ v.adic_completion_integers K
 
 namespace is_finite_adele
 

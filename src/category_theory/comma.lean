@@ -58,8 +58,8 @@ variables {T : Type u₃} [category.{v₃} T]
 /-- The objects of the comma category are triples of an object `left : A`, an object
    `right : B` and a morphism `hom : L.obj left ⟶ R.obj right`.  -/
 structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
-(left : A . obviously)
-(right : B . obviously)
+(left : A)
+(right : B)
 (hom : L.obj left ⟶ R.obj right)
 
 -- Satisfying the inhabited linter
@@ -75,8 +75,8 @@ variables {L : A ⥤ T} {R : B ⥤ T}
     morphisms coming from the two objects using morphisms in the image of the functors `L` and `R`.
 -/
 @[ext] structure comma_morphism (X Y : comma L R) :=
-(left : X.left ⟶ Y.left . obviously)
-(right : X.right ⟶ Y.right . obviously)
+(left : X.left ⟶ Y.left)
+(right : X.right ⟶ Y.right)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 -- Satisfying the inhabited linter

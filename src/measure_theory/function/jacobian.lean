@@ -415,7 +415,7 @@ begin
     { simp only [h, true_or, eventually_const] },
     simp only [h, false_or],
     apply Iio_mem_nhds,
-    simpa only [h, false_or, nnreal.inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
+    simpa only [h, false_or, inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
   have L2 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0),
     ‖(B.symm : E →L[ℝ] E)‖₊ * (‖(B.symm : E →L[ℝ] E)‖₊⁻¹ - δ)⁻¹ * δ < δ₀,
   { have : tendsto (λ δ, ‖(B.symm : E →L[ℝ] E)‖₊ * (‖(B.symm : E →L[ℝ] E)‖₊⁻¹ - δ)⁻¹ * δ)

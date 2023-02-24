@@ -241,10 +241,10 @@ def pullback_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : Y.presheaf C} (α : �
 def pullback_obj_obj_of_image_open {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : Y.presheaf C) (U : opens X)
   (H : is_open (f '' U)) : (pullback_obj f ℱ).obj (op U) ≅ ℱ.obj (op ⟨_, H⟩) :=
 begin
-  let x : costructured_arrow (opens.map f).op (op U) :=
-  { left := op ⟨f '' U, H⟩,
-    hom := ((@hom_of_le _ _ _ ((opens.map f).obj ⟨_, H⟩) (set.image_preimage.le_u_l _)).op :
-    op ((opens.map f).obj (⟨⇑f '' ↑U, H⟩)) ⟶ op U) },
+  let x : costructured_arrow (opens.map f).op (op U) := begin
+    refine @costructured_arrow.mk _ _ _ _ _ (op (opens.mk (f '' U) H)) _ _,
+    exact ((@hom_of_le _ _ _ ((opens.map f).obj ⟨_, H⟩) (set.image_preimage.le_u_l _)).op),
+  end,
   have hx : is_terminal x :=
   { lift := λ s,
     begin

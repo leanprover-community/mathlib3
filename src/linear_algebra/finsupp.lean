@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Properties of the module `α →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 

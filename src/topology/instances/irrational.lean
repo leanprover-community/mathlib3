@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import data.real.irrational
+import data.rat.encodable
 import topology.metric_space.baire
 
 /-!
@@ -28,7 +29,7 @@ irrational, residual
 -/
 
 open set filter metric
-open_locale filter topological_space
+open_locale filter topology
 
 lemma is_Gδ_irrational : is_Gδ {x | irrational x} :=
 (countable_range _).is_Gδ_compl
@@ -82,6 +83,7 @@ lemma eventually_forall_le_dist_cast_div_of_denom_le (hx : irrational x) (n : �
 
 lemma eventually_forall_le_dist_cast_rat_of_denom_le (hx : irrational x) (n : ℕ) :
   ∀ᶠ ε : ℝ in 𝓝 0, ∀ r : ℚ, r.denom ≤ n → ε ≤ dist x r :=
-(hx.eventually_forall_le_dist_cast_div_of_denom_le n).mono $ λ ε H r hr, H r.denom hr r.num
+(hx.eventually_forall_le_dist_cast_div_of_denom_le n).mono $ λ ε H r hr,
+  by simpa only [rat.cast_def] using H r.denom hr r.num
 
 end irrational

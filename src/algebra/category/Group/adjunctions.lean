@@ -65,6 +65,8 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' :=
   by { intros, ext, refl} }
 
+instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
+
 /--
 As an example, we now give a high-powered proof that
 the monomorphisms in `AddCommGroup` are just the injective functions.
@@ -72,9 +74,7 @@ the monomorphisms in `AddCommGroup` are just the injective functions.
 (This proof works in all universes.)
 -/
 example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
-(mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
-
-instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
+(mono_iff_injective f).1 (show mono ((forget AddCommGroup.{u}).map f), by apply_instance)
 
 end AddCommGroup
 
@@ -118,3 +118,57 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ G H A f g, by { ext1, refl } }
 
 end abelianization
+
+/-- The functor taking a monoid to its subgroup of units. -/
+@[simps]
+def Mon.units : Mon.{u} ⥤ Group.{u} :=
+{ obj := λ R, Group.of Rˣ,
+  map := λ R S f, Group.of_hom $ units.map f,
+  map_id' := λ X, monoid_hom.ext (λ x, units.ext rfl),
+  map_comp' := λ X Y Z f g, monoid_hom.ext (λ x, units.ext rfl) }
+
+/-- The forgetful-units adjunction between `Group` and `Mon`. -/
+def Group.forget₂_Mon_adj : forget₂ Group Mon ⊣ Mon.units.{u} :=
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, monoid_hom.to_hom_units f,
+    inv_fun := λ f, (units.coe_hom Y).comp f,
+    left_inv := λ f, monoid_hom.ext $ λ _, rfl,
+    right_inv := λ f, monoid_hom.ext $ λ _, units.ext rfl },
+  unit :=
+  { app := λ X, { ..(@to_units X _).to_monoid_hom },
+    naturality' := λ X Y f, monoid_hom.ext $ λ x, units.ext rfl },
+  counit :=
+  { app := λ X, units.coe_hom X,
+    naturality' := λ X Y f, monoid_hom.ext $ λ x, rfl },
+  hom_equiv_unit' := λ X Y f, monoid_hom.ext $ λ _, units.ext rfl,
+  hom_equiv_counit' := λ X Y f, monoid_hom.ext $ λ _, rfl }
+
+instance : is_right_adjoint Mon.units.{u} :=
+⟨_, Group.forget₂_Mon_adj⟩
+
+/-- The functor taking a monoid to its subgroup of units. -/
+@[simps]
+def CommMon.units : CommMon.{u} ⥤ CommGroup.{u} :=
+{ obj := λ R, CommGroup.of Rˣ,
+  map := λ R S f, CommGroup.of_hom $ units.map f,
+  map_id' := λ X, monoid_hom.ext (λ x, units.ext rfl),
+  map_comp' := λ X Y Z f g, monoid_hom.ext (λ x, units.ext rfl) }
+
+/-- The forgetful-units adjunction between `CommGroup` and `CommMon`. -/
+def CommGroup.forget₂_CommMon_adj : forget₂ CommGroup CommMon ⊣ CommMon.units.{u} :=
+{ hom_equiv := λ X Y,
+  { to_fun := λ f, monoid_hom.to_hom_units f,
+    inv_fun := λ f, (units.coe_hom Y).comp f,
+    left_inv := λ f, monoid_hom.ext $ λ _, rfl,
+    right_inv := λ f, monoid_hom.ext $ λ _, units.ext rfl },
+  unit :=
+  { app := λ X, { ..(@to_units X _).to_monoid_hom },
+    naturality' := λ X Y f, monoid_hom.ext $ λ x, units.ext rfl },
+  counit :=
+  { app := λ X, units.coe_hom X,
+    naturality' := λ X Y f, monoid_hom.ext $ λ x, rfl },
+  hom_equiv_unit' := λ X Y f, monoid_hom.ext $ λ _, units.ext rfl,
+  hom_equiv_counit' := λ X Y f, monoid_hom.ext $ λ _, rfl }
+
+instance : is_right_adjoint CommMon.units.{u} :=
+⟨_, CommGroup.forget₂_CommMon_adj⟩

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.algebra.ring
-import topology.algebra.filter_basis
 import topology.sets.opens
 /-!
 # Open subgroups of a topological groups
@@ -30,7 +29,7 @@ Note that this notion is especially relevant in a non-archimedean context, for i
 -/
 
 open topological_space
-open_locale topological_space
+open_locale topology
 
 /-- The type of open subgroups of a topological additive group. -/
 @[ancestor add_subgroup]
@@ -124,7 +123,7 @@ variables {H : Type*} [group H] [topological_space H]
 /-- The product of two open subgroups as an open subgroup of the product group. -/
 @[to_additive "The product of two open subgroups as an open subgroup of the product group."]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
-{ carrier := (U : set G) ×ˢ (V : set H),
+{ carrier := U ×ˢ V,
   is_open' := U.is_open.prod V.is_open,
   .. (U : subgroup G).prod (V : subgroup H) }
 

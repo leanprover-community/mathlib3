@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # The filter of small sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the filter of small sets w.r.t. a filter `f`, which is the largest filter
 containing all powersets of members of `f`.
 
@@ -105,6 +108,17 @@ begin
   rw [tendsto_small_sets_iff] at ht ⊢,
   exact λ u hu, (ht u hu).mp (hst.mono $ λ a hst ht, subset.trans hst ht)
 end
+
+/-- Generalized **squeeze theorem** (also known as **sandwich theorem**). If `s : α → set β` is a
+family of sets that tends to `filter.small_sets lb` along `la` and `f : α → β` is a function such
+that `f x ∈ s x` eventually along `la`, then `f` tends to `lb` along `la`.
+
+If `s x` is the closed interval `[g x, h x]` for some functions `g`, `h` that tend to the same limit
+`𝓝 y`, then we obtain the standard squeeze theorem, see
+`tendsto_of_tendsto_of_tendsto_of_le_of_le'`. -/
+lemma tendsto.of_small_sets {s : α → set β} {f : α → β} (hs : tendsto s la lb.small_sets)
+  (hf : ∀ᶠ x in la, f x ∈ s x) : tendsto f la lb :=
+λ t ht, hf.mp $ (tendsto_small_sets_iff.mp hs t ht).mono $ λ x h₁ h₂, h₁ h₂
 
 @[simp] lemma eventually_small_sets_eventually {p : α → Prop} :
   (∀ᶠ s in l.small_sets, ∀ᶠ x in l', x ∈ s → p x) ↔ ∀ᶠ x in l ⊓ l', p x :=

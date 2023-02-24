@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 -/
 import algebra.hom.group
-
+import algebra.group.units
 /-!
 # Monoid homomorphisms and units
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file allows to lift monoid homomorphisms to group homomorphisms of their units subgroups. It
 also contains unrelated results about `units` that depend on `monoid_hom`.
@@ -26,6 +29,29 @@ used to golf the basic `group` lemmas.
 open function
 
 universes u v w
+
+@[to_additive] lemma group.is_unit {G} [group G] (g : G) : is_unit g :=
+⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
+
+section monoid_hom_class
+
+/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
+equal at `x⁻¹`. -/
+@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
+additive unit `x`, then they are equal at `-x`."]
+lemma is_unit.eq_on_inv {F G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
+  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
+  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
+
+/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
+@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
+then they are equal at `-x`." ]
+lemma eq_on_inv {F G M} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
+  (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+(group.is_unit x).eq_on_inv f g h
+
+end monoid_hom_class
 
 namespace units
 variables {α : Type*} {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]
@@ -67,14 +93,19 @@ lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
 section division_monoid
 variables [division_monoid α]
 
-@[simp, norm_cast, to_additive] lemma coe_inv : ∀ u : αˣ, ↑u⁻¹ = (u⁻¹ : α) :=
-(units.coe_hom α).map_inv
+@[simp, norm_cast, to_additive] lemma coe_div : ∀ u₁ u₂ : αˣ, ↑(u₁ / u₂) = (u₁ / u₂ : α) :=
+(units.coe_hom α).map_div
 
 @[simp, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
 (units.coe_hom α).map_zpow
 
-lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
+@[field_simps] lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
 by rw [div_eq_mul_inv, divp, u.coe_inv]
+
+@[simp, to_additive]
+lemma _root_.map_units_inv {F : Type*} [monoid_hom_class F M α] (f : F) (u : units M) :
+  f ↑u⁻¹ = (f u)⁻¹ :=
+((f : M →* α).comp (units.coe_hom M)).map_inv u
 
 end division_monoid
 
@@ -110,26 +141,36 @@ and `f.to_hom_units` is the corresponding monoid homomorphism from `G` to `Mˣ`.
 then its image lies in the `add_units` of `M`,
 and `f.to_hom_units` is the corresponding homomorphism from `G` to `add_units M`."]
 def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* Mˣ :=
-{ to_fun := λ g,
-    ⟨f g, f (g⁻¹),
-      by rw [← f.map_mul, mul_inv_self, f.map_one],
-      by rw [← f.map_mul, inv_mul_self, f.map_one]⟩,
-  map_one' := units.ext (f.map_one),
-  map_mul' := λ _ _, units.ext (f.map_mul _ _) }
+units.lift_right f
+  (λ g, ⟨f g, f g⁻¹, map_mul_eq_one f (mul_inv_self _), map_mul_eq_one f (inv_mul_self _)⟩)
+  (λ g, rfl)
 
-@[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
-  (f.to_hom_units g : M) = f g := rfl
+@[simp, to_additive]
+lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G) :
+  (f.to_hom_units g : M) = f g :=
+rfl
 
 end monoid_hom
 
 namespace is_unit
-variables {F α M N : Type*}
+variables {F G α M N : Type*}
 
 section monoid
 variables [monoid M] [monoid N]
 
 @[to_additive] lemma map [monoid_hom_class F M N] (f : F) {x : M} (h : is_unit x) : is_unit (f x) :=
 by rcases h with ⟨y, rfl⟩; exact (units.map (f : M →* N) y).is_unit
+
+@[to_additive] lemma of_left_inverse [monoid_hom_class F M N] [monoid_hom_class G N M]
+  {f : F} {x : M} (g : G) (hfg : function.left_inverse g f) (h : is_unit (f x)) :
+  is_unit x :=
+by simpa only [hfg x] using h.map g
+
+@[to_additive] lemma _root_.is_unit_map_of_left_inverse
+  [monoid_hom_class F M N] [monoid_hom_class G N M]
+  {f : F} {x : M} (g : G) (hfg : function.left_inverse g f) :
+  is_unit (f x) ↔ is_unit x :=
+⟨of_left_inverse g hfg, map _⟩
 
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* Nˣ`. See also `units.lift_right` for a computable version. -/
@@ -153,12 +194,6 @@ end monoid
 
 section division_monoid
 variables [division_monoid α] {a b c : α}
-
-@[simp, to_additive] protected lemma inv_mul_cancel : is_unit a → a⁻¹ * a = 1 :=
-by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.inv_mul] }
-
-@[simp, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
-by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.mul_inv] }
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. As
 opposed to `is_unit.unit`, the inverse is computable and comes from the inversion on `α`. This is
@@ -282,6 +317,10 @@ by rw [←(hb.mul hd).mul_left_inj, ←mul_assoc, hb.div_mul_cancel, ←mul_asso
 
 @[to_additive] protected lemma div_div_cancel (h : is_unit a) : a / (a / b) = b :=
 by rw [div_div_eq_mul_div, h.mul_div_cancel_left]
+
+@[to_additive] protected lemma div_div_cancel_left (h : is_unit a) :
+  a / b / a = b⁻¹ :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_right_comm, h.mul_inv_cancel, one_mul]
 
 end division_comm_monoid
 end is_unit

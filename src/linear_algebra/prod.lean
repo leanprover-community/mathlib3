@@ -5,9 +5,12 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.span
 import order.partial_sups
-import algebra.algebra.basic
+import algebra.algebra.prod
 
 /-! ### Products of modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines constructors for linear maps whose domains or codomains are products.
 
@@ -222,6 +225,9 @@ prod_ext_iff.2 ⟨hl, hr⟩
 def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=
 (f.comp (fst R M M₂)).prod (g.comp (snd R M M₂))
 
+lemma coe_prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) :
+  ⇑(f.prod_map g) = prod.map f g := rfl
+  
 @[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
   f.prod_map g x = (f x.1, g x.2) := rfl
 
@@ -331,17 +337,19 @@ submodule.ext $ λ x, by simp [mem_sup]
 lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
   split,
-  { rintros ⟨_, _⟩ ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
+  { rw disjoint_def,
+    rintros ⟨_, _⟩ ⟨x, hx⟩ ⟨y, hy⟩,
     simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
     exact ⟨hy.1.symm, hx.2.symm⟩ },
-  { rintros ⟨x, y⟩ -,
+  { rw codisjoint_iff_le_sup,
+    rintros ⟨x, y⟩ -,
     simp only [mem_sup, mem_range, exists_prop],
     refine ⟨(x, 0), ⟨x, rfl⟩, (0, y), ⟨y, rfl⟩, _⟩,
     simp }
 end
 
 lemma sup_range_inl_inr : (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
-is_compl_range_inl_inr.sup_eq_top
+is_compl.sup_eq_top is_compl_range_inl_inr
 
 lemma disjoint_inl_inr : disjoint (inl R M M₂).range (inr R M M₂).range :=
 by simp [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros; refl
@@ -622,9 +630,8 @@ begin
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },
   rcases mem_sup.1 this with ⟨x', hx', y', hy', H⟩,
   refine ⟨x' + x, _, _⟩,
-  { rwa add_sub_cancel },
-  { rwa [← eq_sub_iff_add_eq.1 H, add_sub_add_right_eq_sub, ← neg_mem_iff, neg_sub,
-      add_sub_cancel'] }
+  { simp only [mem_ker.mp hx', map_add, zero_add]},
+  { simp [←eq_sub_iff_add_eq.1 H, map_add, add_left_inj, self_eq_add_right, mem_ker.mp hy'] }
 end
 
 end linear_map
@@ -686,7 +693,7 @@ Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of 
 all isomorphic to `M`.
 -/
 def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o (submodule R M)ᵒᵈ :=
-⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
+⟨λ n, order_dual.to_dual (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
     apply submodule.map_subtype_le,
@@ -705,7 +712,7 @@ def tailing_linear_equiv (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) : 
   (tunnel_aux_injective f i (tunnel' f i n))).symm.trans (submodule.snd_equiv R M N)
 
 lemma tailing_le_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  tailing f i n ≤ tunnel f i n :=
+  tailing f i n ≤ (tunnel f i n).of_dual :=
 begin
   dsimp [tailing, tunnel_aux],
   rw [submodule.map_comp, submodule.map_comp],
@@ -713,7 +720,7 @@ begin
 end
 
 lemma tailing_disjoint_tunnel_succ (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  disjoint (tailing f i n) (tunnel f i (n+1)) :=
+  disjoint (tailing f i n) (tunnel f i (n+1)).of_dual :=
 begin
   rw disjoint_iff,
   dsimp [tailing, tunnel, tunnel'],
@@ -723,7 +730,7 @@ begin
 end
 
 lemma tailing_sup_tunnel_succ_le_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  tailing f i n ⊔ tunnel f i (n+1) ≤ tunnel f i n :=
+  tailing f i n ⊔ (tunnel f i (n+1)).of_dual ≤ (tunnel f i n).of_dual :=
 begin
   dsimp [tailing, tunnel, tunnel', tunnel_aux],
   rw [←submodule.map_sup, sup_comm, submodule.fst_sup_snd, submodule.map_comp, submodule.map_comp],
@@ -743,7 +750,7 @@ by simp [tailings]
 by simp [tailings]
 
 lemma tailings_disjoint_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
-  disjoint (tailings f i n) (tunnel f i (n+1)) :=
+  disjoint (tailings f i n) (tunnel f i (n+1)).of_dual :=
 begin
   induction n with n ih,
   { simp only [tailings_zero],

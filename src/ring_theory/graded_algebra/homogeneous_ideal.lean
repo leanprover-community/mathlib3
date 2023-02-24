@@ -553,7 +553,7 @@ def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_ring.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
   change (decompose 𝒜 (decompose 𝒜 r _ : A) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [h, hr, decompose_zero, zero_apply, add_submonoid_class.coe_zero] },
+  { rw [h, hr, decompose_zero, zero_apply, zero_mem_class.coe_zero] },
   { rw [decompose_of_mem_ne 𝒜 (set_like.coe_mem _) h] }
 end⟩
 

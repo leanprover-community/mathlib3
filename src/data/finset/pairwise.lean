@@ -8,7 +8,12 @@ import data.finset.lattice
 /-!
 # Relations holding pairwise on finite sets
 
-In this file we prove a few results about the interaction of `set.pairwise_disjoint` and `finset`.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+In this file we prove a few results about the interaction of `set.pairwise_disjoint` and `finset`,
+as well as the interaction of `list.pairwise disjoint` and the condition of
+`disjoint` on `list.to_finset`, in `set` form.
 -/
 
 open finset
@@ -19,7 +24,7 @@ instance [decidable_eq α] {r : α → α → Prop} [decidable_rel r] {s : finse
   decidable ((s : set α).pairwise r) :=
 decidable_of_iff' (∀ a ∈ s, ∀ b ∈ s, a ≠ b → r a b) iff.rfl
 
-lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
+lemma finset.pairwise_disjoint_range_singleton :
   (set.range (singleton : α → finset α)).pairwise_disjoint id :=
 begin
   rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
@@ -28,7 +33,7 @@ end
 
 namespace set
 
-lemma pairwise_disjoint.elim_finset [decidable_eq α] {s : set ι} {f : ι → finset α}
+lemma pairwise_disjoint.elim_finset {s : set ι} {f : ι → finset α}
   (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i)
   (haj : a ∈ f j) :
   i = j :=
@@ -62,3 +67,27 @@ begin
 end
 
 end set
+
+namespace list
+variables {β : Type*} [decidable_eq α] {r : α → α → Prop} {l : list α}
+
+lemma pairwise_of_coe_to_finset_pairwise (hl : (l.to_finset : set α).pairwise r) (hn : l.nodup) :
+  l.pairwise r :=
+by { rw coe_to_finset at hl, exact hn.pairwise_of_set_pairwise hl }
+
+lemma pairwise_iff_coe_to_finset_pairwise (hn : l.nodup) (hs : symmetric r) :
+  (l.to_finset : set α).pairwise r ↔ l.pairwise r :=
+by { rw [coe_to_finset, hn.pairwise_coe], exact ⟨hs⟩ }
+
+lemma pairwise_disjoint_of_coe_to_finset_pairwise_disjoint {α ι}
+  [semilattice_inf α] [order_bot α] [decidable_eq ι] {l : list ι} {f : ι → α}
+  (hl : (l.to_finset : set ι).pairwise_disjoint f) (hn : l.nodup) :
+  l.pairwise (_root_.disjoint on f) :=
+pairwise_of_coe_to_finset_pairwise hl hn
+
+lemma pairwise_disjoint_iff_coe_to_finset_pairwise_disjoint {α ι}
+  [semilattice_inf α] [order_bot α] [decidable_eq ι] {l : list ι} {f : ι → α} (hn : l.nodup) :
+  (l.to_finset : set ι).pairwise_disjoint f ↔ l.pairwise (_root_.disjoint on f) :=
+pairwise_iff_coe_to_finset_pairwise hn (symmetric_disjoint.comap f)
+
+end list

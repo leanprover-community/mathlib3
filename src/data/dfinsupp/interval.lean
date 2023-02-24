@@ -5,11 +5,14 @@ Authors: Yaël Dillies
 -/
 import data.finset.locally_finite
 import data.finset.pointwise
-import data.fintype.card
+import data.fintype.big_operators
 import data.dfinsupp.order
 
 /-!
 # Finite intervals of finitely supported functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides the `locally_finite_order` instance for `Π₀ i, α i` when `α` itself is locally
 finite and calculates the cardinality of its finite intervals.
@@ -70,16 +73,14 @@ end finset
 open finset
 
 namespace dfinsupp
-variables [decidable_eq ι] [Π i, decidable_eq (α i)]
 
 section bundled_singleton
 variables [Π i, has_zero (α i)] {f : Π₀ i, α i} {i : ι} {a : α i}
 
 /-- Pointwise `finset.singleton` bundled as a `dfinsupp`. -/
 def singleton (f : Π₀ i, α i) : Π₀ i, finset (α i) :=
-⟦{ to_fun := λ i, {f i},
-  pre_support := f.support.1,
-  zero := λ i, (ne_or_eq (f i) 0).imp mem_support_iff.2 (congr_arg _) }⟧
+{ to_fun := λ i, {f i},
+  support' := f.support'.map $ λ s, ⟨s, λ i, (s.prop i).imp id (congr_arg _) ⟩ }
 
 lemma mem_singleton_apply_iff : a ∈ f.singleton i ↔ a = f i := mem_singleton
 
@@ -91,20 +92,23 @@ variables [Π i, has_zero (α i)] [Π i, partial_order (α i)] [Π i, locally_fi
 
 /-- Pointwise `finset.Icc` bundled as a `dfinsupp`. -/
 def range_Icc (f g : Π₀ i, α i) : Π₀ i, finset (α i) :=
-⟦{ to_fun := λ i, Icc (f i) (g i),
-  pre_support := f.support.1 + g.support.1,
-  zero := λ i, begin
-    refine or_iff_not_imp_left.2 (λ h, _),
-    rw [not_mem_support_iff.1 (multiset.not_mem_mono (multiset.le_add_right _ _).subset h),
-      not_mem_support_iff.1 (multiset.not_mem_mono (multiset.le_add_left _ _).subset h)],
-    exact Icc_self _,
-  end }⟧
+{ to_fun := λ i, Icc (f i) (g i),
+  support' := f.support'.bind $ λ fs, g.support'.map $ λ gs,
+    ⟨fs + gs, λ i, or_iff_not_imp_left.2 $ λ h, begin
+      have hf : f i = 0 := (fs.prop i).resolve_left
+        (multiset.not_mem_mono (multiset.le.subset $ multiset.le_add_right _ _) h),
+      have hg : g i = 0 := (gs.prop i).resolve_left
+        (multiset.not_mem_mono (multiset.le.subset $ multiset.le_add_left _ _) h),
+      rw [hf, hg],
+      exact Icc_self _,
+    end⟩ }
 
 @[simp] lemma range_Icc_apply (f g : Π₀ i, α i) (i : ι) : f.range_Icc g i = Icc (f i) (g i) := rfl
 
 lemma mem_range_Icc_apply_iff : a ∈ f.range_Icc g i ↔ f i ≤ a ∧ a ≤ g i := mem_Icc
 
-lemma support_range_Icc_subset : (f.range_Icc g).support ⊆ f.support ∪ g.support :=
+lemma support_range_Icc_subset [decidable_eq ι] [Π i, decidable_eq (α i)] :
+  (f.range_Icc g).support ⊆ f.support ∪ g.support :=
 begin
   refine λ x hx, _,
   by_contra,
@@ -119,7 +123,7 @@ end
 end bundled_Icc
 
 section pi
-variables [Π i, has_zero (α i)]
+variables [Π i, has_zero (α i)] [decidable_eq ι] [Π i, decidable_eq (α i)]
 
 /-- Given a finitely supported function `f : Π₀ i, finset (α i)`, one can define the finset
 `f.pi` of all finitely supported functions whose value at `i` is in `f i` for all `i`. -/
@@ -137,6 +141,7 @@ end
 end pi
 
 section locally_finite
+variables [decidable_eq ι] [Π i, decidable_eq (α i)]
 variables [Π i, partial_order (α i)] [Π i, has_zero (α i)] [Π i, locally_finite_order (α i)]
 
 instance : locally_finite_order (Π₀ i, α i) :=
@@ -149,6 +154,8 @@ locally_finite_order.of_Icc (Π₀ i, α i)
   end)
 
 variables (f g : Π₀ i, α i)
+
+lemma Icc_eq : Icc f g = (f.support ∪ g.support).dfinsupp (f.range_Icc g) := rfl
 
 lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
 card_dfinsupp _ _
@@ -163,4 +170,20 @@ lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
 end locally_finite
+
+section canonically_ordered
+variables [decidable_eq ι] [Π i, decidable_eq (α i)]
+variables [Π i, canonically_ordered_add_monoid (α i)] [Π i, locally_finite_order (α i)]
+
+variables (f : Π₀ i, α i)
+
+lemma card_Iic : (Iic f).card = ∏ i in f.support, (Iic (f i)).card :=
+by simp_rw [Iic_eq_Icc, card_Icc, dfinsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
+  bot_eq_zero]
+
+lemma card_Iio : (Iio f).card = ∏ i in f.support, (Iic (f i)).card - 1 :=
+by rw [card_Iio_eq_card_Iic_sub_one, card_Iic]
+
+end canonically_ordered
+
 end dfinsupp

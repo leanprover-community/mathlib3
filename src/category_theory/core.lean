@@ -11,6 +11,9 @@ import category_theory.types
 /-!
 # The core of a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The core of a category `C` is the (non-full) subcategory of `C` consisting of all objects,
 and all isomorphisms. We construct it as a `groupoid`.
 
@@ -26,7 +29,7 @@ universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note 
 
 /-- The core of a category C is the groupoid whose morphisms are all the
 isomorphisms of C. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def core (C : Type u₁) := C
 
 variables {C : Type u₁} [category.{v₁} C]

@@ -224,7 +224,6 @@ begin
 end
 
 variables (F B IB)
-
 /-- For `B` a manifold and `F` a normed space, the groupoid on `B × F` consisting of local
 homeomorphisms which are bi-smooth and fibrewise linear, and induce the identity on `B`.
 When a (topological) vector bundle is smooth, then the composition of charts associated
@@ -238,17 +237,14 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     simp_rw [mem_Union],
     rintros e e' ⟨φ, U, hU, hφ, h2φ, heφ⟩ ⟨φ', U', hU', hφ', h2φ', heφ'⟩,
     refine ⟨λ b, (φ b).trans (φ' b), _, hU.inter hU', _, _, setoid.trans (heφ.trans' heφ') ⟨_, _⟩⟩,
-    { have : smooth_on IB 𝓘(𝕜, (F →L[𝕜] F) × (F →L[𝕜] F))
-        (λ x, ((φ' x : F →L[𝕜] F), (φ x : F →L[𝕜] F))) (U ∩ U'),
-      { exact (hφ'.mono (inter_subset_right _ _)).prod_mk (hφ.mono (inter_subset_left _ _)) },
-      exact is_bounded_bilinear_map_comp.cont_diff.cont_mdiff.comp_cont_mdiff_on this },
-    { have : smooth_on IB 𝓘(𝕜, (F →L[𝕜] F) × (F →L[𝕜] F))
-        (λ x, (((φ x).symm : F →L[𝕜] F), ((φ' x).symm : F →L[𝕜] F))) (U ∩ U'),
-      { exact (h2φ.mono (inter_subset_left _ _)).prod_mk (h2φ'.mono (inter_subset_right _ _)) },
-      exact is_bounded_bilinear_map_comp.cont_diff.cont_mdiff.comp_cont_mdiff_on this },
+    { show smooth_on IB 𝓘(𝕜, F →L[𝕜] F)
+        (λ (x : B), (φ' x).to_continuous_linear_map ∘L (φ x).to_continuous_linear_map) (U ∩ U'),
+      exact (hφ'.mono $ inter_subset_right _ _).clm_comp (hφ.mono $ inter_subset_left _ _) },
+    { show smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ (x : B),
+        (φ x).symm.to_continuous_linear_map ∘L (φ' x).symm.to_continuous_linear_map) (U ∩ U'),
+      exact (h2φ.mono $ inter_subset_left _ _).clm_comp (h2φ'.mono $ inter_subset_right _ _) },
     { apply fiberwise_linear.source_trans_local_homeomorph },
-    { rintros ⟨b, v⟩ hb,
-      apply fiberwise_linear.trans_local_homeomorph_apply }
+    { rintros ⟨b, v⟩ hb, apply fiberwise_linear.trans_local_homeomorph_apply }
   end,
   symm' := begin
     simp_rw [mem_Union],
@@ -262,8 +258,10 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     refine ⟨λ b, continuous_linear_equiv.refl 𝕜 F, univ, is_open_univ, _, _, ⟨_, λ b hb, _⟩⟩,
     { apply cont_mdiff_on_const },
     { apply cont_mdiff_on_const },
-    { simp [fiberwise_linear.local_homeomorph] },
-    { simp [fiberwise_linear.local_homeomorph] },
+    { simp only [fiberwise_linear.local_homeomorph, local_homeomorph.refl_local_equiv,
+        local_equiv.refl_source, univ_prod_univ] },
+    { simp only [fiberwise_linear.local_homeomorph, local_homeomorph.refl_apply, prod.mk.eta,
+        id.def, continuous_linear_equiv.coe_refl', local_homeomorph.mk_coe, local_equiv.coe_mk] },
   end,
   locality' := begin -- the hard work has been extracted to `locality_aux₁` and `locality_aux₂`
     simp_rw [mem_Union],

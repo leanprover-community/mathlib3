@@ -10,17 +10,17 @@ import measure_theory.measure.haar_of_basis
 /-!
 # ℤ-lattices
 Let `E` be a finite dimensional real vector space. A (full) ℤ-lattice `L` of `E` is a discrete
-sub-ℤ-module of `E` such that `L` spans `E` over `ℝ`.
+subgroup of `E` such that `L` spans `E` over `ℝ`.
 
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
-* As `L : submodule ℤ E` with the additional properties:
+* As `L : add_subgroup E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
-  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`
+  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`.
 
 ## Main definitions and results
 * `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
-indeed a fundamental domain of the lattice
+indeed a fundamental domain of the lattice.
 -/
 
 open_locale classical
@@ -181,7 +181,8 @@ lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_me
     refine filter.eventually_of_forall (λ x, ⟨- zspan.floor_map b x, _⟩),
     rw (_ : -zspan.floor_map b x +ᵥ x = zspan.fract_map b x),
     { exact zspan.fract_map_mem_fundamental_domain b x, },
-    { simp only [has_vadd.vadd, zspan.fract_map, add_subgroup_class.coe_neg, neg_add_eq_sub], },
+    { simp only [vadd_def, zspan.fract_map, add_subgroup_class.coe_neg, neg_add_eq_sub,
+        vadd_eq_add], },
   end,
   ae_disjoint :=
   begin
@@ -190,18 +191,18 @@ lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_me
     refine hvw (subtype.ext_iff.mpr ((basis.ext_elem_iff b).mpr (λ i, _))),
     obtain ⟨a, ⟨ha1, ha2⟩⟩ := hsv hx,
     obtain ⟨c, ⟨hc1, hc2⟩⟩ := hsw hx,
-    rw (by { simp only [has_vadd.vadd, ← eq_sub_iff_add_eq, has_vadd.comp.vadd,
-      add_submonoid.coe_subtype] at ha2, exact ha2, } : (v : E) = x - a),
-    rw (by { simp only [has_vadd.vadd, ← eq_sub_iff_add_eq, has_vadd.comp.vadd,
-      add_submonoid.coe_subtype] at hc2, exact hc2, } : (w : E) = x - c),
+    rw (by { simp only [vadd_def, ←eq_sub_iff_add_eq, vadd_eq_add] at ha2, exact ha2, } :
+      (v : E) = x - a),
+    rw (by { simp only [vadd_def, ←eq_sub_iff_add_eq, vadd_eq_add] at hc2, exact hc2, } :
+      (w : E) = x - c),
     rw ( _ : a = zspan.fract_map b x),
     { rw ( _ : c = zspan.fract_map b x),
       convert congr_arg (zspan.fract_map b) hc2,
-      simp only [has_vadd.vadd, zspan.fract_map_zspan_add b c w (set_like.coe_mem w),
-      (zspan.mem_fundamental_domain b).mp hc1, has_vadd.comp.vadd, add_submonoid.coe_subtype], },
+      simp only [vadd_def, zspan.fract_map_zspan_add b c w (set_like.coe_mem w),
+        (zspan.mem_fundamental_domain b).mp hc1, vadd_eq_add], },
     { convert congr_arg (zspan.fract_map b) ha2,
-      simp only [has_vadd.vadd, zspan.fract_map_zspan_add b a v (set_like.coe_mem v),
-      (zspan.mem_fundamental_domain b).mp ha1, has_vadd.comp.vadd, add_submonoid.coe_subtype], },
+      simp only [vadd_def, zspan.fract_map_zspan_add b a v (set_like.coe_mem v),
+        (zspan.mem_fundamental_domain b).mp ha1, vadd_eq_add], },
   end }
 
 end zspan

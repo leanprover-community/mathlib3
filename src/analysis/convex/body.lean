@@ -144,8 +144,8 @@ noncomputable instance : pseudo_metric_space (convex_body V) :=
 @[simp, norm_cast]
 lemma Hausdorff_dist_coe : metric.Hausdorff_dist (K : set V) L = dist K L := rfl
 
-@[simp] lemma of_real_dist : ennreal.of_real (dist K L) = emetric.Hausdorff_edist (K : set V) L :=
-ennreal.of_real_to_real Hausdorff_edist_ne_top
+@[simp, norm_cast] lemma Hausdorff_edist_coe : emetric.Hausdorff_edist (K : set V) L = edist K L :=
+by { rw edist_dist, exact (ennreal.of_real_to_real Hausdorff_edist_ne_top).symm }
 
 end seminormed_add_comm_group
 

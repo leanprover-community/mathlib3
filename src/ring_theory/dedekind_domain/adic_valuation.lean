@@ -336,7 +336,7 @@ instance : inhabited (adic_completion_integers K v) := ⟨0⟩
 
 variables (R K)
 
-lemma adic_completion.is_integer (x : v.adic_completion K) :
+lemma mem_adic_completion_integers {x : v.adic_completion K} :
   x ∈ v.adic_completion_integers K ↔ (valued.v x : ℤₘ₀) ≤ 1 :=
 iff.rfl
 

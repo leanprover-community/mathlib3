@@ -154,12 +154,9 @@ variables [normed_add_comm_group V] [normed_space ℝ V]
 
 /-- Convex bodies in a fixed normed space `V` form a metric space under the Hausdorff metric. -/
 noncomputable instance : metric_space (convex_body V) :=
-{ eq_of_dist_eq_zero := λ K L hd,
-  begin
-    ext1,
-    exact (K.is_compact.is_closed.Hausdorff_dist_zero_iff_eq
-      L.is_compact.is_closed Hausdorff_edist_ne_top).mp hd,
-  end }
+{ eq_of_dist_eq_zero := λ K L hd, convex_body.ext $
+    (K.is_compact.is_closed.Hausdorff_dist_zero_iff_eq
+      L.is_compact.is_closed Hausdorff_edist_ne_top).mp hd }
 
 end normed_add_comm_group
 end convex_body

@@ -50,16 +50,14 @@ polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
 
-lemma s_symm : ∀ k : ℕ, s R n k = (-1)^(n - k) * mv_polynomial.esymm (fin n) R (n - k) :=
+lemma s_symm : ∀ k : ℕ, k ≤ n → s R n k = (-1)^(n - k) * mv_polynomial.esymm (fin n) R (n - k) :=
 begin
-  intro k,
-  unfold s,
-  conv_lhs {congr, congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg C _,},
-  --convert mv_polynomial.prod_X_add_C_coeff R (map (λ _ t, -t) (multiset.map mv_polynomial.X finset.univ.val)),
-
-
-
-  sorry
+  intros k hk,
+  rw [s, finset.prod, multiset.prod_X_sub_C_coeff', finset.esymm_map_val],
+  congr;
+  exact finset.card_fin n,
+  change k ≤ finset.card _,
+  rwa finset.card_fin n,
 end
 
 lemma p_zero : p R n 0 = n :=
@@ -151,9 +149,9 @@ noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j
 
 -- try induction on m = n - k
 
-lemma s_degree : ∀ j, (s R n j).total_degree ≤ n - j :=
+lemma s_degree : ∀ j : ℕ, j ≤ n → (s R n j).total_degree ≤ n - j :=
 begin
-  intro j,
+  intros j hj,
   casesI subsingleton_or_nontrivial R,
   {
     letI : unique (mv_polynomial (fin n) R), apply mv_polynomial.unique,
@@ -177,10 +175,11 @@ begin
     rw this;
     simp;
     exact hd,
+    exact hj,
   },
 end
 
-lemma p_degree : ∀ j, (p R n j).total_degree ≤ j :=
+lemma p_degree : ∀ j : ℕ, (p R n j).total_degree ≤ j :=
 begin
   intro j,
   casesI subsingleton_or_nontrivial R,
@@ -204,7 +203,7 @@ begin
     apply le_trans (mv_polynomial.total_degree_mul _ _),
     have h' : n - k ≤ n,
     { zify, simp, },
-    apply le_trans (add_le_add _ (s_degree R n (n - k))) _,
+    apply le_trans (add_le_add _ (s_degree R n (n - k) h')) _,
     exact 0,
     { zify,
       simp,
@@ -221,26 +220,31 @@ begin
     rw finset.sup_le_iff,
     intros j hj,
     apply le_trans (mv_polynomial.total_degree_mul _ _),
-    apply le_trans (add_le_add (s_degree R _ _) (p_degree R _ _)) _,
-    apply le_of_eq,
     have h' : n - k + j ≤ n,
     { zify,
       rw finset.mem_range at hj,
       linarith, },
+    apply le_trans (add_le_add (s_degree R _ _ h') (p_degree R _ _)) _,
+    apply le_of_eq,
     zify,
     ring,
-  }
+  },
 end
 
 lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=
 begin
   intro i,
-  --have h0 : mv_polynomial.X i = 0 → f R n k = 0,
+  -- have h0 : mv_polynomial.X i = 0 → f R n k = 0,
+  -- {
+  --   sorry
+  -- },
+
   sorry,
 
 end
 
-lemma mv_polynomial.total_degree_esymm (σ : Type*)  [fintype σ]  [nontrivial R]  (n : ℕ) (hn : n ≤ fintype.card σ) : (mv_polynomial.esymm σ R n).total_degree = n :=
+lemma mv_polynomial.total_degree_esymm (σ : Type*)  [fintype σ]  [nontrivial R]  (n : ℕ) (hn : n ≤ fintype.card σ) :
+  (mv_polynomial.esymm σ R n).total_degree = n :=
 begin
   sorry
 end
@@ -283,20 +287,32 @@ begin
       {
         sorry
       },
-      rw [s_symm, mv_polynomial.total_degree_esymm] at hn,
-      swap, simp only [tsub_zero, fintype.card_fin],
-      have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
-      have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
-      simp only [tsub_zero] at hl,
-      have H := add_le_add le_rfl gdeg,
-      swap, use n,
-      have H' := le_trans H hl,
-      cases n,
-      norm_num at H',
-      rw nat.succ_sub_one at H',
-      exact nat.not_succ_le_self n H',
-    },
+      simp [s_symm] at hn,
+      rw [show ((-1) ^ n * mv_polynomial.esymm (fin n) R n).total_degree =
+         (mv_polynomial.esymm (fin n) R n).total_degree, from _, mv_polynomial.total_degree_esymm] at hn,
+      work_on_goal 2 { simp only [fintype.card_fin], },
+      work_on_goal 2 {
+        cases neg_one_pow_eq_or _ n;
+        rw [h_2], simp only [one_mul],
+        } ,
+        sorry
+      },
+
+      -- rw [s_symm, mv_polynomial.esymm.total_degree] at hn,
+      -- swap, simp only [tsub_zero, fintype.card_fin],
+      -- have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
+      -- have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
+      -- simp only [tsub_zero] at hl,
+      -- have H := add_le_add le_rfl gdeg,
+      -- swap, use n,
+      -- have H' := le_trans H hl,
+      -- cases n,
+      -- norm_num at H',
+      -- rw nat.succ_sub_one at H',
+      -- exact nat.not_succ_le_self n H',
+      sorry
   },
+
 end
 
 /-- Newton's symmetric function identities -/

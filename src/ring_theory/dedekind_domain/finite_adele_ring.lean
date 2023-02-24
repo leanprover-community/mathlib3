@@ -181,8 +181,8 @@ begin
     rw mem_set_of_eq at hv,
     contrapose! hv,
     rw [adic_completion.is_integer, adic_completion.is_integer] at hv,
-    have h_mul : valued.v (x v * y v) = (valued.v (x v)) * (valued.v (y v))
-    := (valued.v).map_mul' (x v) (y v),
+    have h_mul : valued.v (x v * y v) = (valued.v (x v)) * (valued.v (y v)) :=
+      (valued.v).map_mul' (x v) (y v),
     rw [adic_completion.is_integer, pi.mul_apply, h_mul],
     exact @mul_le_one' (with_zero (multiplicative ℤ)) _ _
       (ordered_comm_monoid.to_covariant_class_left _) _ _ hv.left hv.right  },

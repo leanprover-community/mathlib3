@@ -49,8 +49,6 @@ open polynomial
 
 variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
 
-section two_denominators
-
 /--
 Let R be an integral domain and f, g₁, g₂ ∈ R[X]. Let g₁ and g₂ be monic and coprime.
 Then, ∃ q, r₁, r₂ ∈ R[X] such that f / g₁g₂ = q + r₁/g₁ + r₂/g₂ and deg(r₁) < deg(g₁) and
@@ -74,10 +72,6 @@ begin
   norm_cast,
   linear_combination (-1) * f * hcd + (-1) * g₁ * hfc + (-1) * g₂ * hfd,
 end
-
-end two_denominators
-
-section n_denominators
 
 open_locale big_operators classical
 
@@ -129,55 +123,22 @@ end
 
 .
 
--- To be removed
-lemma zero_eq_quo_add_sum_rem_div_unique {ι : Type*} (s : finset ι) {g : ι → R[X]}
-  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
-  (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
-  (hdeg' : ∀ i, (r' i).degree < (g i).degree)
-  (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i))
-  (hsum' : (0 : K) = ↑q' + ∑ i in s, ↑(r' i) / ↑(g i)) :
-    q = q' ∧ ∀ i ∈ s, r i = r' i :=
-begin
-  have hsimp : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
-  rw [hsimp, div_eq_iff _] at hsum hsum',
-  { simp only [add_mul, finset.sum_mul] at hsum hsum',
-
-    sorry, },
-  { norm_cast,
-    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
-  { norm_cast,
-    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
-end
-
--- Dividing by a term in a product inside a sum: an example
-example {s : finset R[X]} (hnz : ∀ (n : R[X]), n ∈ s → n ≠ 0 ) :
-  ∑ n in s, (↑ (∏ k in s, k) / ↑ n) = ∑ n in s, (∏ k in s.erase n, (↑ k : K) ) :=
-begin
-  apply finset.sum_congr,
-  { refl, },
-  { intros x hx,
-    rw div_eq_iff _,
-    { rw s.prod_erase_mul _,
-      norm_cast,
-      exact hx },
-    { norm_cast,
-      exact hnz x hx, } }
-end
-
 -- Useful in the uniqueness proof. TODO: Generalize!
 lemma finset.sum_prod_div_with_coeffs {ι : Type*} {s : finset ι}
   (g r : ι → R[X]) (hg : ∀ (n : ι), n ∈ s → (g n).monic ) :
-  ∑ n in s, ↑(r n) * (∏ k in s, ↑(g k) / ↑ (g n)) =
+  ∑ n in s, ↑(r n) * (∏ k in s, ↑(g k)) / ↑ (g n) =
   ∑ n in s, ↑ (r n) * (∏ k in s.erase n, (↑ (g k) : K) ) :=
 begin
   apply finset.sum_congr,
   { refl, },
   { intros x hx,
-    congr,
     rw div_eq_iff _,
-    { rw s.prod_erase_mul _,
-      norm_cast,
-      exact hx },
+    { norm_cast,
+      simp only,
+      rw mul_assoc,
+      apply congr_arg (λ (p : R[X]), (r x) * p),
+      rw s.prod_erase_mul _,
+      exact hx, },
     { norm_cast,
       exact (hg x hx).ne_zero, } }
 end
@@ -185,10 +146,10 @@ end
 -- Dividing by a term in a product inside a sum: full generality
 lemma finset.sum_prod_div' {ι : Type*} {s : finset ι}
   (g : ι → R[X]) (hg : ∀ (n : ι), n ∈ s → (g n).monic ) :
-  ∑ n in s, (↑ (∏ k in s, g k) / ↑ (g n)) = ∑ n in s, (∏ k in s.erase n, (↑ (g k) : K) ) :=
+  ∑ n in s, ((∏ k in s, ↑ (g k)) / ↑ (g n)) = ∑ n in s, (∏ k in s.erase n, (↑ (g k) : K) ) :=
 begin
   have H := finset.sum_prod_div_with_coeffs R K g (λ x, (1 : R[X])) hg,
-  simp only [algebra_map.coe_one, one_mul] at H,
+  simp only [algebra_map.coe_one, one_mul, mul_assoc] at H,
   exact H,
 end
 
@@ -197,33 +158,33 @@ end
 lemma zero_eq_quo_add_sum_rem_div_zero {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
-  (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) :
-    q = 0 ∧ ∀ i ∈ s, r i = 0 :=
+  (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) : q = 0 ∧ ∀ i ∈ s, r i = 0 :=
 begin
   have hzero : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
   rw [hzero, div_eq_iff _] at hsum,
   { simp only [add_mul, finset.sum_mul] at hsum,
-    -- let h : ι → ι → R[X] := (λ i j , if i = j then r j else g j),
-    -- have hdivprod : ∀ x ∈ s, (g x) ∣ (∏ i in s, (g i)) :=
-    --   λ x, finset.dvd_prod_of_mem (λ (x : ι), g x),
-    -- have hpsimp : ∀ x ∈ s, (∏ i in s, ↑ (g i)) / ↑ (g x) = ∏ i in s.filter (λ j, j ≠ x) , ↑ (g i),
-    -- { intros x hxs,
-    --   refine unit.ext,
-    --   -- what has all this other stuff got to do with anything...
-    --   exact div_inv_monoid.to_has_div unit,
-    --   exact comm_ring.to_comm_monoid unit,
-    --   exact algebra_map.has_lift_t R[X] unit,
-    --   exact algebra_map.has_lift_t R[X] unit,
-    --   exact comm_ring.to_comm_monoid unit,
-    --   exact algebra_map.has_lift_t R[X] unit },
     have hsumproddiv := finset.sum_prod_div_with_coeffs R K g r hg,
-    --rw hsumproddiv at hsum,
+    field_simp at hsum,
+    rw hsumproddiv at hsum,
+    norm_cast at hsum,
+    have hgdvd : ∀ j ∈ s, (g j) ∣ 0 := λ j hj, (dvd_zero (g j)),
+    rw hsum at hgdvd,
+    have hgr : ∀ j ∈ s, (g j) ∣ (r j),
+    { intros j hjs,
+      specialize hgdvd j hjs,
+      have hgdvdprod : (g j) ∣ q * (∏ i in s, ↑(g i)) :=
+        dvd_mul_of_dvd_right (finset.dvd_prod_of_mem g hjs) q,
+      have hgdsum : (g j) ∣ ∑ (i : ι) in s, r i * ∏ (i : ι) in s.erase i, g i :=
+        (dvd_add_right (hgdvdprod)).mp hgdvd,
 
+      sorry },
     sorry,
      },
   { norm_cast,
     exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
 end
+
+example (a b c : ℤ) : a ∣ b → a ∣ (b + c) → a ∣ c := λ h1 h2, (dvd_add_right h1).mp h2
 
 .
 
@@ -311,5 +272,3 @@ begin
   -- {
   --   sorry },
 end
-
-end n_denominators

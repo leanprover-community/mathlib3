@@ -207,8 +207,8 @@ begin
   refine and_congr_right (λ hx, ⟨λ h i, _, λ h, _⟩),
   { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
     refine (h (update x i x₁) _ (update x i x₂) _ _).imp (λ h₁, by rw [←h₁, update_same])
-      (λ h₂, by rw [←h₂, update_same]);
-    try { rintro j,
+      (λ h₂, by rw [←h₂, update_same]),
+    iterate 2 { rintro j,
       obtain rfl | hji := eq_or_ne j i,
       { rwa update_same },
       { rw update_noteq hji,

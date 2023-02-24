@@ -405,7 +405,8 @@ by cases x; cases y; refl
         exact nnreal.coe_pos.2 (bot_lt_iff_ne_bot.2 h) },
       simp only [coe_nnreal_eq_coe_real, coe_ennreal_top, (*), ereal.mul, A, if_true] }
   end
-| (x : ℝ≥0) (y : ℝ≥0) := by simp [←ennreal.coe_mul, coe_nnreal_eq_coe_real]
+| (x : ℝ≥0) (y : ℝ≥0) := by simp only [← ennreal.coe_mul, coe_nnreal_eq_coe_real,
+    nnreal.coe_mul, ereal.coe_mul]
 
 @[norm_cast] lemma coe_ennreal_nsmul (n : ℕ) (x : ℝ≥0∞) : (↑(n • x) : ereal) = n • x :=
 map_nsmul (⟨coe, coe_ennreal_zero, coe_ennreal_add⟩ : ℝ≥0∞ →+ ereal) _ _

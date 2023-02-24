@@ -64,7 +64,7 @@ def real.to_ereal : ℝ → ereal := some ∘ some
 namespace ereal
 
 -- things unify with `with_bot.decidable_lt` later if we we don't provide this explicitly.
-instance decidable_lt : decidable_rel ((<): ereal → ereal → Prop) :=
+instance decidable_lt : decidable_rel ((<) : ereal → ereal → Prop) :=
 with_bot.decidable_lt
 
 -- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
@@ -746,22 +746,22 @@ begin
   case top_bot { rw [top_mul_bot, to_real_top, to_real_bot, zero_mul] },
   case bot_top { rw [bot_mul_top, to_real_bot, zero_mul] },
   case bot_bot { rw [bot_mul_bot, to_real_top, to_real_bot, zero_mul] },
-  case pos_bot : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_pos hx, to_real_bot,
-                            mul_zero] },
-  case neg_bot : x hx { rw [to_real_bot, to_real_coe, coe_mul_bot_of_neg hx, to_real_top,
-                            mul_zero] },
-  case pos_top : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_pos hx, to_real_top,
-                            mul_zero] },
-  case neg_top : x hx { rw [to_real_top, to_real_coe, coe_mul_top_of_neg hx, to_real_bot,
-                            mul_zero] },
-  case top_pos : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_pos hy, to_real_top,
-                            zero_mul] },
-  case top_neg : y hy { rw [to_real_top, to_real_coe, top_mul_coe_of_neg hy, to_real_bot,
-                            zero_mul] },
-  case bot_pos : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_pos hy, to_real_bot,
-                            zero_mul] },
-  case bot_neg : y hy { rw [to_real_bot, to_real_coe, bot_mul_coe_of_neg hy, to_real_top,
-                            zero_mul] },
+  case pos_bot : x hx
+  { rw [to_real_bot, to_real_coe, coe_mul_bot_of_pos hx, to_real_bot, mul_zero] },
+  case neg_bot : x hx
+  { rw [to_real_bot, to_real_coe, coe_mul_bot_of_neg hx, to_real_top, mul_zero] },
+  case pos_top : x hx
+  { rw [to_real_top, to_real_coe, coe_mul_top_of_pos hx, to_real_top, mul_zero] },
+  case neg_top : x hx
+  { rw [to_real_top, to_real_coe, coe_mul_top_of_neg hx, to_real_bot, mul_zero] },
+  case top_pos : y hy
+  { rw [to_real_top, to_real_coe, top_mul_coe_of_pos hy, to_real_top, zero_mul] },
+  case top_neg : y hy
+  { rw [to_real_top, to_real_coe, top_mul_coe_of_neg hy, to_real_bot, zero_mul] },
+  case bot_pos : y hy
+  { rw [to_real_bot, to_real_coe, bot_mul_coe_of_pos hy, to_real_bot, zero_mul] },
+  case bot_neg : y hy
+  { rw [to_real_bot, to_real_coe, bot_mul_coe_of_neg hy, to_real_top, zero_mul] },
 end
 
 protected lemma neg_mul (x y : ereal) : -x * y = -(x * y) :=

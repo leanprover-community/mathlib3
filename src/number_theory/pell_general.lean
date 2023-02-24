@@ -65,9 +65,9 @@ begin
     rw [div_le_one h0, one_le_sq_iff_one_le_abs, nat.abs_cast, nat.one_le_cast],
     exact q.pos, },
   obtain ⟨m, hm⟩ : ∃ m : ℤ, {q : ℚ | q.1 ^ 2 - d * q.2 ^ 2 = m}.infinite,
-  { by_contra' hf,
-    refine not_infinite.mpr (finite.bUnion (finite_Ioo (- (M : ℤ)) M) $
-      λ m _, not_infinite.mp $ hf m) (@eq.subst _ set.infinite _ _ (set.ext $ λ q, _) hM),
+  { contrapose! hM,
+    simp only [not_infinite] at hM ⊢,
+    refine (congr_arg _ (ext (λ x, _))).mp (finite.bUnion (finite_Ioo (-M) M) (λ m _, hM m)),
     simp only [abs_lt, mem_set_of_eq, mem_Ioo, mem_Union, exists_prop, exists_eq_right'], },
   have hm₀ : m ≠ 0,
   { rintro rfl,

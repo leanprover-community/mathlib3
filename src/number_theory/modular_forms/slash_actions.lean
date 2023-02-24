@@ -142,14 +142,11 @@ begin
 end
 
 
-local attribute [-instance] algebra.elemental_algebra.comm_ring
-  elemental_star_algebra.comm_semiring elemental_star_algebra.comm_ring
-
 /-- A function `f : ℍ → ℂ` is `slash_invariant`, of weight `k ∈ ℤ` and level `Γ`,
   if for every matrix `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
   and it acts on `ℍ` via Möbius transformations. -/
 lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ) (γ : Γ)  (z : ℍ) :
-  f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
+  f ∣[k, γ] z = f z ↔ f (γ • z) = ((γ 1 0 : ℂ) * z + (γ 1 1 : ℂ))^k * f z :=
 begin
   simp only [subgroup_slash, modular_form.slash],
   convert inv_mul_eq_iff_eq_mul₀ _ using 2,

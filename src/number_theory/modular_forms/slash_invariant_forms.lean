@@ -87,7 +87,7 @@ instance slash_invariant_form_class.coe_to_fun [slash_invariant_form_class F Γ 
    slash_action.map ℂ k γ ⇑f = ⇑f := slash_invariant_form_class.slash_action_eq f γ
 
 lemma slash_action_eqn' (k : ℤ) (Γ : subgroup SL(2, ℤ)) [slash_invariant_form_class F Γ k] (f : F)
-  (γ : Γ) (z : ℍ) : f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
+  (γ : Γ) (z : ℍ) : f (γ • z) = ((γ 1 0 : ℂ) * z +(γ 1 1 : ℂ))^k * f z :=
 begin
   rw ←modular_form.slash_action_eq'_iff,
   simp,

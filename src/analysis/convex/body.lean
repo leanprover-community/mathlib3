@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul A. Reichert
 -/
 import analysis.convex.basic
-import data.real.nnreal
-import data.set.pointwise.basic
-import topology.metric_space.metrizable
-import topology.subset_properties
+import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
 /-!

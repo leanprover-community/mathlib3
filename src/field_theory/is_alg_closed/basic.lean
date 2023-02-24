@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import field_theory.splitting_field
 import field_theory.perfect_closure
 import field_theory.separable
+import ring_theory.adjoin.field
+import ring_theory.localization.integral
 
 /-!
 # Algebraically Closed Field
@@ -495,7 +496,7 @@ lemma algebra.is_algebraic.range_eval_eq_root_set_minpoly {F K} (A) [field F] [f
   set.range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
 begin
   have := algebra.is_algebraic_iff_is_integral.1 hK,
-  ext a, rw mem_root_set_iff (minpoly.ne_zero $ this x) a,
+  ext a, rw [mem_root_set_of_ne (minpoly.ne_zero (this x))]; [skip, apply_instance],
   refine ⟨_, λ ha, _⟩,
   { rintro ⟨ψ, rfl⟩, rw [aeval_alg_hom_apply ψ x, minpoly.aeval, map_zero] },
   let Fx := adjoin_root (minpoly F x),

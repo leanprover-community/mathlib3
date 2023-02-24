@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.affine_map
+import linear_algebra.general_linear_group
 import algebra.invertible
 
 /-!
@@ -160,6 +161,16 @@ protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
 protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.injective
 
+/-- Bijective affine maps are affine isomorphisms. -/
+@[simps]
+noncomputable def of_bijective {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) : P₁ ≃ᵃ[k] P₂ :=
+{ linear := linear_equiv.of_bijective φ.linear (φ.linear_bijective_iff.mpr hφ),
+  map_vadd' := φ.map_vadd,
+  ..(equiv.of_bijective _ hφ) }
+
+lemma of_bijective.symm_eq {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) :
+  (of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
+
 @[simp] lemma range_eq (e : P₁ ≃ᵃ[k] P₂) : range e = univ := e.surjective.range_eq
 
 @[simp] lemma apply_symm_apply (e : P₁ ≃ᵃ[k] P₂) (p : P₂) : e (e.symm p) = p :=
@@ -173,6 +184,12 @@ e.to_equiv.apply_eq_iff_eq_symm_apply
 
 @[simp] lemma apply_eq_iff_eq (e : P₁ ≃ᵃ[k] P₂) {p₁ p₂ : P₁} : e p₁ = e p₂ ↔ p₁ = p₂ :=
 e.to_equiv.apply_eq_iff_eq
+
+@[simp] lemma image_symm (f : P₁ ≃ᵃ[k] P₂) (s : set P₂) : f.symm '' s = f ⁻¹' s :=
+f.symm.to_equiv.image_eq_preimage _
+
+@[simp] lemma preimage_symm (f : P₁ ≃ᵃ[k] P₂) (s : set P₁) : f.symm ⁻¹' s = f '' s :=
+(f.symm.image_symm _).symm
 
 variables (k P₁)
 

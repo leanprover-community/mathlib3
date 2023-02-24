@@ -3,8 +3,7 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.local_properties
-import ring_theory.localization.integral
+import ring_theory.ring_hom_properties
 
 /-!
 
@@ -35,7 +34,8 @@ end
 lemma is_integral_stable_under_base_change :
   stable_under_base_change (λ R S _ _ f, by exactI f.is_integral) :=
 begin
-  introv R h x,
+  refine stable_under_base_change.mk _ is_integral_respects_iso _,
+  introv h x,
   resetI,
   apply tensor_product.induction_on x,
   { apply is_integral_zero },

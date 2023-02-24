@@ -3,7 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.integral.set_integral
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 # Egorov theorem
@@ -21,7 +21,7 @@ convergence in measure.
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topology
 
 namespace measure_theory
 

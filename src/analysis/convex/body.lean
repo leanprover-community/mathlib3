@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul A. Reichert
 -/
 import analysis.convex.basic
-import analysis.normed_space.basic
 import data.real.nnreal
 import data.set.pointwise.basic
 import topology.metric_space.metrizable
@@ -16,7 +15,7 @@ import topology.metric_space.hausdorff_distance
 
 This file contains the definition of the type `convex_body V`
 consisting of
-convex, compact, nonempty subsets of a real normed space `V`.
+convex, compact, nonempty subsets of a real topological vector space `V`.
 
 `convex_body V` is a module over the nonnegative reals (`nnreal`) and a pseudo-metric space.
 If `V` is a normed space, `convex_body V` is a metric space.
@@ -33,8 +32,11 @@ convex, convex body
 open_locale pointwise
 open_locale nnreal
 
+variables (V : Type*) [topological_space V] [add_comm_group V] [has_continuous_add V]
+  [module ℝ V] [has_continuous_smul ℝ V]
+
 /--
-Let `V` be a normed space. A subset of `V` is a convex body if and only if
+Let `V` be a real topological vector space. A subset of `V` is a convex body if and only if
 it is convex, compact, and nonempty.
 -/
 structure convex_body (V : Type*) [seminormed_add_comm_group V] [normed_space ℝ V] :=

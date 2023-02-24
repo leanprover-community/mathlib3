@@ -6,7 +6,6 @@ Authors: Andrew Yang
 
 import ring_theory.tensor_product
 import algebra.module.ulift
-import logic.equiv.transfer_instance
 
 /-!
 # The characteristice predicate of tensor product
@@ -18,6 +17,13 @@ import logic.equiv.transfer_instance
   bijective.
 - `is_base_change`: A predicate on an `R`-algebra `S` and a map `f : M →ₗ[R] N` with `N` being a
   `S`-module, expressing that `f` realizes `N` as the base change of `M` along `R → S`.
+- `algebra.is_pushout`: A predicate on the following diagram of scalar towers
+  ```
+    R  →  S
+    ↓     ↓
+    R' →  S'
+  ```
+    asserting that is a pushout diagram (i.e. `S' = S ⊗[R] R'`)
 
 ## Main results
 - `tensor_product.is_base_change`: `S ⊗[R] M` is the base change of `M` along `R → S`.
@@ -63,7 +69,7 @@ variables {R M N}
 /-- If `M` is the tensor product of `M₁` and `M₂`, it is linearly equivalent to `M₁ ⊗[R] M₂`. -/
 @[simps apply] noncomputable
 def is_tensor_product.equiv (h : is_tensor_product f) : M₁ ⊗[R] M₂ ≃ₗ[R] M :=
-linear_equiv.of_bijective _ h.1 h.2
+linear_equiv.of_bijective _ h
 
 @[simp] lemma is_tensor_product.equiv_to_linear_map (h : is_tensor_product f) :
   h.equiv.to_linear_map = tensor_product.lift f := rfl
@@ -214,7 +220,15 @@ variables {R M N S}
 
 /-- The base change of `M` along `R → S` is linearly equivalent to `S ⊗[R] M`. -/
 noncomputable
-def is_base_change.equiv : S ⊗[R] M ≃ₗ[R] N := h.equiv
+def is_base_change.equiv : S ⊗[R] M ≃ₗ[S] N :=
+{ map_smul' := λ r x, begin
+    change h.equiv (r • x) = r • h.equiv x,
+    apply tensor_product.induction_on x,
+    { rw [smul_zero, map_zero, smul_zero] },
+    { intros x y, simp [smul_tmul', algebra.of_id_apply] },
+    { intros x y hx hy, rw [map_add, smul_add, map_add, smul_add, hx, hy] },
+  end,
+  ..h.equiv }
 
 lemma is_base_change.equiv_tmul (s : S) (m : M) : h.equiv (s ⊗ₜ m) = s • (f m) :=
 tensor_product.lift.tmul s m
@@ -230,53 +244,25 @@ lemma is_base_change.of_lift_unique
     by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
       ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g) : is_base_change S f :=
 begin
-  delta is_base_change is_tensor_product,
-  obtain ⟨g, hg, hg'⟩  := h (ulift.{v₂} $ S ⊗[R] M)
+  obtain ⟨g, hg, -⟩ := h (ulift.{v₂} $ S ⊗[R] M)
     (ulift.module_equiv.symm.to_linear_map.comp $ tensor_product.mk R S M 1),
   let f' : S ⊗[R] M →ₗ[R] N := _, change function.bijective f',
   let f'' : S ⊗[R] M →ₗ[S] N,
-  { refine { map_smul' := λ r x, _, ..f' },
-    apply tensor_product.induction_on x,
-    { simp only [map_zero, smul_zero, linear_map.to_fun_eq_coe] },
-    { intros x y,
-      simp only [algebra.of_id_apply, algebra.id.smul_eq_mul,
-        alg_hom.to_linear_map_apply, linear_map.mul_apply, tensor_product.lift.tmul',
-        linear_map.smul_apply, ring_hom.id_apply, module.algebra_map_End_apply, f',
-        _root_.map_mul, tensor_product.smul_tmul', linear_map.coe_restrict_scalars_eq_coe,
-        linear_map.flip_apply] },
-    { intros x y hx hy, dsimp at hx hy ⊢, simp only [hx, hy, smul_add, map_add] } },
-  change function.bijective f'',
-  split,
-  { apply function.has_left_inverse.injective,
-    refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
-    apply tensor_product.induction_on x,
-    { simp only [map_zero] },
-    { intros x y,
-      have := (congr_arg (λ a, x • a) (linear_map.congr_fun hg y)).trans
-        (ulift.module_equiv.symm.map_smul x _).symm,
-      apply (ulift.module_equiv : ulift.{v₂} (S ⊗ M) ≃ₗ[S] S ⊗ M)
-        .to_equiv.apply_eq_iff_eq_symm_apply.mpr,
-      any_goals { apply_instance },
-      simpa only [algebra.of_id_apply, smul_tmul', algebra.id.smul_eq_mul, lift.tmul',
-        linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply, alg_hom.to_linear_map_apply,
-        module.algebra_map_End_apply, linear_map.smul_apply, linear_map.coe_mk,
-        linear_map.map_smulₛₗ, mk_apply, mul_one] using this },
-    { intros x y hx hy, simp only [map_add, hx, hy] } },
-  { apply function.has_right_inverse.surjective,
-    refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
-    obtain ⟨g', hg₁, hg₂⟩ := h (ulift.{max v₁ v₃} N) (ulift.module_equiv.symm.to_linear_map.comp f),
-    have : g' = ulift.module_equiv.symm.to_linear_map := by { refine (hg₂ _ _).symm, refl },
-    subst this,
-    apply (ulift.module_equiv : ulift.{max v₁ v₃} N ≃ₗ[S] N).symm.injective,
-    simp_rw [← linear_equiv.coe_to_linear_map, ← linear_map.comp_apply],
-    congr' 1,
-    apply hg₂,
-    ext y,
-    have := linear_map.congr_fun hg y,
-    dsimp [ulift.module_equiv] at this ⊢,
-    rw this,
-    simp only [lift.tmul, linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply,
-      alg_hom.to_linear_map_apply, _root_.map_one, linear_map.one_apply] }
+  { refine { to_fun := f', map_smul' := λ s x, 
+      tensor_product.induction_on x _ (λ s' y, smul_assoc s s' _) (λ x y hx hy, _), .. f' },
+    { rw [map_zero, smul_zero, map_zero, smul_zero] },
+    { rw [smul_add, map_add, map_add, smul_add, hx, hy] } },
+  simp_rw [fun_like.ext_iff, linear_map.comp_apply, linear_map.restrict_scalars_apply] at hg,
+  let fe : S ⊗[R] M ≃ₗ[S] N :=
+    linear_equiv.of_linear f'' (ulift.module_equiv.to_linear_map.comp g) _ _,
+  { exact fe.bijective },
+  { rw ← (linear_map.cancel_left (ulift.module_equiv : ulift.{max v₁ v₃} N ≃ₗ[S] N).symm.injective),
+    refine (h (ulift.{max v₁ v₃} N) $ ulift.module_equiv.symm.to_linear_map.comp f).unique _ rfl,
+    { apply_instance },
+    ext x,
+    simp only [linear_map.comp_apply, linear_map.restrict_scalars_apply, hg],
+    apply one_smul },
+  { ext x, change (g $ (1 : S) • f x).down = _, rw [one_smul, hg], refl },
 end
 
 variable {f}
@@ -332,34 +318,144 @@ variables {R' S' : Type*} [comm_ring R'] [comm_ring S']
 variables [algebra R R'] [algebra S S'] [algebra R' S'] [algebra R S']
 variables [is_scalar_tower R R' S'] [is_scalar_tower R S S']
 
-lemma is_base_change.symm
-  (h : is_base_change S (is_scalar_tower.to_alg_hom R R' S').to_linear_map) :
-  is_base_change R' (is_scalar_tower.to_alg_hom R S S').to_linear_map :=
+open is_scalar_tower (to_alg_hom)
+
+variables (R S R' S')
+
+/--
+A type-class stating that the following diagram of scalar towers
+R  →  S
+↓     ↓
+R' →  S'
+is a pushout diagram (i.e. `S' = S ⊗[R] R'`)
+-/
+@[mk_iff]
+class algebra.is_pushout : Prop :=
+(out : is_base_change S (to_alg_hom R R' S').to_linear_map)
+
+variables {R S R' S'}
+
+lemma algebra.is_pushout.symm
+  (h : algebra.is_pushout R S R' S') :
+  algebra.is_pushout R R' S S' :=
 begin
   letI := (algebra.tensor_product.include_right : R' →ₐ[R] S ⊗ R').to_ring_hom.to_algebra,
   let e : R' ⊗[R] S ≃ₗ[R'] S',
-  { refine { map_smul' := _, ..((tensor_product.comm R R' S).trans $ h.equiv.restrict_scalars R) },
+  { refine { map_smul' := _, ..(tensor_product.comm R R' S).trans $ h.1.equiv.restrict_scalars R },
     intros r x,
     change
-      h.equiv (tensor_product.comm R R' S (r • x)) = r • h.equiv (tensor_product.comm R R' S x),
+      h.1.equiv (tensor_product.comm R R' S (r • x)) = r • h.1.equiv (tensor_product.comm R R' S x),
     apply tensor_product.induction_on x,
     { simp only [smul_zero, map_zero] },
     { intros x y,
-      simp [smul_tmul', algebra.smul_def, ring_hom.algebra_map_to_algebra, h.equiv_tmul],
+      simp [smul_tmul', algebra.smul_def, ring_hom.algebra_map_to_algebra, h.1.equiv_tmul],
       ring },
     { intros x y hx hy, simp only [map_add, smul_add, hx, hy] } },
-  have : (is_scalar_tower.to_alg_hom R S S').to_linear_map
+  have : (to_alg_hom R S S').to_linear_map
     = (e.to_linear_map.restrict_scalars R).comp (tensor_product.mk R R' S 1),
-  { ext, simp [e, h.equiv_tmul, algebra.smul_def] },
+  { ext, simp [e, h.1.equiv_tmul, algebra.smul_def] },
+  constructor,
   rw this,
   exact (tensor_product.is_base_change R S R').comp (is_base_change.of_equiv e),
 end
 
 variables (R S R' S')
 
-lemma is_base_change.comm :
-  is_base_change S (is_scalar_tower.to_alg_hom R R' S').to_linear_map ↔
-    is_base_change R' (is_scalar_tower.to_alg_hom R S S').to_linear_map :=
-⟨is_base_change.symm, is_base_change.symm⟩
+lemma algebra.is_pushout.comm :
+  algebra.is_pushout R S R' S' ↔ algebra.is_pushout R R' S S' :=
+⟨algebra.is_pushout.symm, algebra.is_pushout.symm⟩
+
+variables {R S R'}
+
+local attribute [instance] algebra.tensor_product.right_algebra
+
+instance tensor_product.is_pushout {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+  algebra.is_pushout R S T (tensor_product R S T) :=
+⟨tensor_product.is_base_change R T S⟩
+
+instance tensor_product.is_pushout' {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+  algebra.is_pushout R T S (tensor_product R S T) :=
+algebra.is_pushout.symm infer_instance
+
+/--
+If `S' = S ⊗[R] R'`, then any pair of `R`-algebra homomorphisms `f : S → A` and `g : R' → A`
+such that `f x` and `g y` commutes for all `x, y` descends to a (unique) homomoprhism `S' → A`.
+-/
+@[simps apply (lemmas_only)] noncomputable
+def algebra.pushout_desc [H : algebra.is_pushout R S R' S']
+  {A : Type*} [semiring A] [algebra R A] (f : S →ₐ[R] A) (g : R' →ₐ[R] A)
+    (hf : ∀ x y, f x * g y = g y * f x) : S' →ₐ[R] A :=
+begin
+  letI := module.comp_hom A f.to_ring_hom,
+  haveI : is_scalar_tower R S A :=
+  { smul_assoc := λ r s a, show f (r • s) * a = r • (f s * a), by rw [f.map_smul, smul_mul_assoc] },
+  haveI : is_scalar_tower S A A :=
+  { smul_assoc := λ r a b, mul_assoc _ _ _ },
+  have : ∀ x, H.out.lift g.to_linear_map (algebra_map R' S' x) = g x := H.out.lift_eq _,
+  refine alg_hom.of_linear_map ((H.out.lift g.to_linear_map).restrict_scalars R) _ _,
+  { dsimp only [linear_map.restrict_scalars_apply],
+    rw [← (algebra_map R' S').map_one, this, g.map_one] },
+  { intros x y,
+    apply H.out.induction_on x,
+    { rw [zero_mul, map_zero, zero_mul] },
+    rotate,
+    { intros s s' e, dsimp only [linear_map.restrict_scalars_apply] at e ⊢,
+      rw [linear_map.map_smul, smul_mul_assoc, linear_map.map_smul, e, smul_mul_assoc] },
+    { intros s s' e₁ e₂, dsimp only [linear_map.restrict_scalars_apply] at e₁ e₂ ⊢,
+      rw [add_mul, map_add, map_add, add_mul, e₁, e₂] },
+    intro x, dsimp, rw this, apply H.out.induction_on y,
+    { rw [mul_zero, map_zero, mul_zero] },
+    { intro y, dsimp, rw [← _root_.map_mul, this, this, _root_.map_mul] },
+    { intros s s' e,
+      rw [mul_comm, smul_mul_assoc, linear_map.map_smul, linear_map.map_smul, mul_comm, e],
+      change f s * (g x * _) = g x * (f s * _),
+      rw [← mul_assoc, ← mul_assoc, hf] },
+    { intros s s' e₁ e₂, rw [mul_add, map_add, map_add, mul_add, e₁, e₂] }, }
+end
+
+@[simp]
+lemma algebra.pushout_desc_left [H : algebra.is_pushout R S R' S']
+  {A : Type*} [semiring A] [algebra R A] (f : S →ₐ[R] A) (g : R' →ₐ[R] A) (H) (x : S) :
+  algebra.pushout_desc S' f g H (algebra_map S S' x) = f x :=
+begin
+  rw [algebra.pushout_desc_apply, algebra.algebra_map_eq_smul_one, linear_map.map_smul,
+    ← algebra.pushout_desc_apply S' f g H, _root_.map_one],
+  exact mul_one (f x)
+end
+
+lemma algebra.lift_alg_hom_comp_left [H : algebra.is_pushout R S R' S']
+  {A : Type*} [semiring A] [algebra R A] (f : S →ₐ[R] A) (g : R' →ₐ[R] A) (H) :
+  (algebra.pushout_desc S' f g H).comp (to_alg_hom R S S') = f :=
+alg_hom.ext (λ x, (algebra.pushout_desc_left S' f g H x : _))
+
+@[simp]
+lemma algebra.pushout_desc_right [H : algebra.is_pushout R S R' S']
+  {A : Type*} [semiring A] [algebra R A] (f : S →ₐ[R] A) (g : R' →ₐ[R] A) (H) (x : R') :
+  algebra.pushout_desc S' f g H (algebra_map R' S' x) = g x :=
+begin
+  apply_with @@is_base_change.lift_eq { instances := ff },
+end
+
+lemma algebra.lift_alg_hom_comp_right [H : algebra.is_pushout R S R' S']
+  {A : Type*} [semiring A] [algebra R A] (f : S →ₐ[R] A) (g : R' →ₐ[R] A) (H) :
+  (algebra.pushout_desc S' f g H).comp (to_alg_hom R R' S') = g :=
+alg_hom.ext (λ x, (algebra.pushout_desc_right S' f g H x : _))
+
+@[ext]
+lemma algebra.is_pushout.alg_hom_ext [H : algebra.is_pushout R S R' S']
+  {A : Type*} [semiring A] [algebra R A] {f g : S' →ₐ[R] A}
+  (h₁ : f.comp (to_alg_hom R R' S') = g.comp (to_alg_hom R R' S'))
+  (h₂ : f.comp (to_alg_hom R S S') = g.comp (to_alg_hom R S S')) : f = g :=
+begin
+  ext x,
+  apply H.1.induction_on x,
+  { simp only [map_zero] },
+  { exact alg_hom.congr_fun h₁ },
+  { intros s s' e, rw [algebra.smul_def, f.map_mul, g.map_mul, e],
+    congr' 1, exact (alg_hom.congr_fun h₂ s : _) },
+  { intros s₁ s₂ e₁ e₂, rw [map_add, map_add, e₁, e₂] }
+end
 
 end is_base_change

@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Dense embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines three properties of functions:
 
 * `dense_range f`      means `f` has dense image;
@@ -25,7 +28,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -281,6 +284,10 @@ lemma dense_image {s : set α} : dense (e '' s) ↔ dense s :=
 de.to_dense_inducing.dense_image
 
 end dense_embedding
+
+lemma dense_embedding_id {α : Type*} [topological_space α] : dense_embedding (id : α → α) :=
+{ dense := dense_range_id,
+  .. embedding_id }
 
 lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
   dense_embedding (coe : s → α) :=

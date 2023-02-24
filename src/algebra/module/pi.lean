@@ -11,6 +11,9 @@ import group_theory.group_action.pi
 /-!
 # Pi instances for modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for module and related structures on Pi Types
 -/
 
@@ -87,5 +90,12 @@ instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
   no_zero_smul_divisors α (Π i : I, f i) :=
 ⟨λ c x h, or_iff_not_imp_left.mpr (λ hc, funext
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
+
+/-- A special case of `pi.no_zero_smul_divisors` for non-dependent types. Lean struggles to
+synthesize this instance by itself elsewhere in the library. -/
+instance _root_.function.no_zero_smul_divisors {ι α β : Type*} {r : semiring α}
+  {m : add_comm_monoid β} [module α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors α (ι → β) :=
+pi.no_zero_smul_divisors _
 
 end pi

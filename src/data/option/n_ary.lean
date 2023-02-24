@@ -8,6 +8,9 @@ import data.option.basic
 /-!
 # Binary map of options
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the binary map of `option`. This is mostly useful to define pointwise operations
 on intervals.
 
@@ -17,8 +20,8 @@ on intervals.
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic`, to `data.finset.n_ary` and to
-`order.filter.n_ary`. Please keep them in sync.
+This file is very similar to `data.set.n_ary`, `data.finset.n_ary` and `order.filter.n_ary`. Please
+keep them in sync.
 
 We do not define `option.map₃` as its only purpose so far would be to prove properties of
 `option.map₂` and casing already fulfills this task.
@@ -39,8 +42,10 @@ because of the lack of universe polymorphism. -/
 lemma map₂_def {α β γ : Type*} (f : α → β → γ) (a : option α) (b : option β) :
   map₂ f a b = f <$> a <*> b := by cases a; refl
 
-@[simp] lemma map₂_some_some (f : α → β → γ) (a : α) (b : β) : map₂ f (some a) (some b) = f a b :=
+@[simp] lemma map₂_some_some (f : α → β → γ) (a : α) (b : β) :
+  map₂ f (some a) (some b) = some (f a b) :=
 rfl
+
 lemma map₂_coe_coe (f : α → β → γ) (a : α) (b : β) : map₂ f a b = f a b := rfl
 @[simp] lemma map₂_none_left (f : α → β → γ) (b : option β) : map₂ f none b = none := rfl
 @[simp] lemma map₂_none_right (f : α → β → γ) (a : option α) : map₂ f a none = none :=
@@ -166,5 +171,17 @@ lemma map_map₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : �
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   map₂ f a (b.map g) = (map₂ f' b a).map g' :=
 by cases a; cases b; simp [h_right_anticomm]
+
+/-- If `a` is a left identity for a binary operation `f`, then `some a` is a left identity for
+`option.map₂ f`. -/
+lemma map₂_left_identity {f : α → β → β} {a : α} (h : ∀ b, f a b = b) (o : option β) :
+  map₂ f (some a) o = o :=
+by { cases o, exacts [rfl, congr_arg some (h _)] }
+
+/-- If `b` is a right identity for a binary operation `f`, then `some b` is a right identity for
+`option.map₂ f`. -/
+lemma map₂_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (o : option α) :
+  map₂ f o (some b) = o :=
+by simp [h, map₂]
 
 end option

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Kyle Miller
 -/
 
-import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.clique
 import data.nat.lattice
 import data.setoid.partition

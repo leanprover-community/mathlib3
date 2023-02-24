@@ -8,6 +8,9 @@ import algebra.order.smul
 /-!
 # Ordered module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide lemmas about `ordered_smul` that hold once a module structure is present.
 
 ## References

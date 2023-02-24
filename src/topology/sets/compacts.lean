@@ -9,6 +9,9 @@ import topology.quasi_separated
 /-!
 # Compact sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a few types of compact sets in a topological space.
 
 ## Main Definitions
@@ -56,7 +59,7 @@ instance : can_lift (set α) (compacts α) coe is_compact :=
 
 instance : has_sup (compacts α) := ⟨λ s t, ⟨s ∪ t, s.is_compact.union t.is_compact⟩⟩
 instance [t2_space α] : has_inf (compacts α) := ⟨λ s t, ⟨s ∩ t, s.is_compact.inter t.is_compact⟩⟩
-instance [compact_space α] : has_top (compacts α) := ⟨⟨univ, compact_univ⟩⟩
+instance [compact_space α] : has_top (compacts α) := ⟨⟨univ, is_compact_univ⟩⟩
 instance : has_bot (compacts α) := ⟨⟨∅, is_compact_empty⟩⟩
 
 instance : semilattice_sup (compacts α) := set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)

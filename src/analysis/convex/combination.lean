@@ -27,8 +27,9 @@ open set function
 open_locale big_operators classical pointwise
 
 universes u u'
-variables {R E F ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [add_comm_group F]
-  [module R E] [module R F] {s : set E}
+variables {R E F ι ι' α : Type*} [linear_ordered_field R] [add_comm_group E] [add_comm_group F]
+  [linear_ordered_add_comm_group α] [module R E] [module R F] [module R α] [ordered_smul R α]
+  {s : set E}
 
 /-- Center of mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
@@ -73,9 +74,7 @@ lemma finset.center_mass_segment'
   (s : finset ι) (t : finset ι') (ws : ι → R) (zs : ι → E) (wt : ι' → R) (zt : ι' → E)
   (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : R) (hab : a + b = 1) :
   a • s.center_mass ws zs + b • t.center_mass wt zt =
-    (s.map embedding.inl ∪ t.map embedding.inr).center_mass
-      (sum.elim (λ i, a * ws i) (λ j, b * wt j))
-      (sum.elim zs zt) :=
+    (s.disj_sum t).center_mass (sum.elim (λ i, a * ws i) (λ j, b * wt j)) (sum.elim zs zt) :=
 begin
   rw [s.center_mass_eq_of_sum_1 _ hws, t.center_mass_eq_of_sum_1 _ hwt,
     smul_sum, smul_sum, ← finset.sum_sum_elim, finset.center_mass_eq_of_sum_1],
@@ -120,6 +119,25 @@ lemma finset.center_mass_filter_ne_zero :
   (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
 finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
   by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
+
+namespace finset
+
+lemma center_mass_le_sup {s : finset ι} {f : ι → α} {w : ι → R}
+  (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : 0 < ∑ i in s, w i) :
+  s.center_mass w f ≤ s.sup' (nonempty_of_ne_empty $ by { rintro rfl, simpa using hw₁ }) f :=
+begin
+  rw [center_mass, inv_smul_le_iff hw₁, sum_smul],
+  exact sum_le_sum (λ i hi, smul_le_smul_of_nonneg (le_sup' _ hi) $ hw₀ i hi),
+  apply_instance,
+end
+
+lemma inf_le_center_mass {s : finset ι} {f : ι → α} {w : ι → R}
+  (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : 0 < ∑ i in s, w i) :
+  s.inf' (nonempty_of_ne_empty $ by { rintro rfl, simpa using hw₁ }) f ≤ s.center_mass w f :=
+@center_mass_le_sup R _ αᵒᵈ _ _ _ _ _ _ _ hw₀ hw₁
+
+end finset
+
 
 variable {z}
 
@@ -287,13 +305,13 @@ begin
     rw [finset.center_mass_segment' _ _ _ _ _ _ hwx₁ hwy₁ _ _ hab],
     refine ⟨_, _, _, _, _, _, _, rfl⟩,
     { rintros i hi,
-      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
+      rw [finset.mem_disj_sum] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
         simp only [sum.elim_inl, sum.elim_inr];
         apply_rules [mul_nonneg, hwx₀, hwy₀] },
-    { simp [finset.sum_sum_elim, finset.mul_sum.symm, *] },
+    { simp [finset.sum_sum_elim, finset.mul_sum.symm, *], },
     { intros i hi,
-      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
+      rw [finset.mem_disj_sum] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩; apply_rules [hzx, hzy] } },
   { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
     exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
@@ -319,6 +337,11 @@ begin
     exact s.center_mass_mem_convex_hull (λ x hx, hw₀ _ hx)
       (hw₁.symm ▸ zero_lt_one) (λ x hx, hx) }
 end
+
+lemma finset.mem_convex_hull {s : finset E} {x : E} :
+  x ∈ convex_hull R (s : set E) ↔
+    ∃ (w : E → R) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : ∑ y in s, w y = 1), s.center_mass w id = x :=
+by rw [finset.convex_hull_eq, set.mem_set_of_eq]
 
 lemma set.finite.convex_hull_eq {s : set E} (hs : s.finite) :
   convex_hull R s = {x : E | ∃ (w : E → R) (hw₀ : ∀ y ∈ s, 0 ≤ w y)
@@ -438,19 +461,18 @@ lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
 
 /-- The convex hull of an affine basis is the intersection of the half-spaces defined by the
 corresponding barycentric coordinates. -/
-lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*} (b : affine_basis ι R E) :
-  convex_hull R (range b.points) = { x | ∀ i, 0 ≤ b.coord i x } :=
+lemma affine_basis.convex_hull_eq_nonneg_coord {ι : Type*} (b : affine_basis ι R E) :
+  convex_hull R (range b) = {x | ∀ i, 0 ≤ b.coord i x} :=
 begin
   rw convex_hull_range_eq_exists_affine_combination,
   ext x,
-  split,
+  refine ⟨_, λ hx, _⟩,
   { rintros ⟨s, w, hw₀, hw₁, rfl⟩ i,
     by_cases hi : i ∈ s,
     { rw b.coord_apply_combination_of_mem hi hw₁,
       exact hw₀ i hi, },
     { rw b.coord_apply_combination_of_not_mem hi hw₁, }, },
-  { intros hx,
-    have hx' : x ∈ affine_span R (range b.points),
+  { have hx' : x ∈ affine_span R (range b),
     { rw b.tot, exact affine_subspace.mem_top R E x, },
     obtain ⟨s, w, hw₁, rfl⟩ := (mem_affine_span_iff_eq_affine_combination R E).mp hx',
     refine ⟨s, w, _, hw₁, rfl⟩,

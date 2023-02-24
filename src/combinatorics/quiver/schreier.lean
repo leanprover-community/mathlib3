@@ -155,13 +155,14 @@ lemma action_graph.reachable_iff (x y : action_graph V ι) :
   nonempty (path (symmetrify.of.obj x) (symmetrify.of.obj y)) ↔
   ∃ g ∈ (subgroup.closure $ set.range ι), g • x = y := sorry
 
+/--
+The three lemmas below hold for morphisms of covering in general probably.
+
+-/
 
 /-- Automorphisms are rigid on stars. -/
 lemma eq_on_star_of_eq_at (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V) (hv₀ : φ.obj v₀ = ψ.obj v₀) :
   φ.to_iso.to_prefunctor.star v₀ = by { rw hv₀, exact (ψ.to_iso.to_prefunctor.star v₀), } := sorry
-/-
-If φ v₀ = ψ v₀,
--/
 
 /-- Automorphisms are rigid on stars. -/
 lemma eq_on_path_star_of_eq_at (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V) (hv₀ : φ.obj v₀ = ψ.obj v₀) :

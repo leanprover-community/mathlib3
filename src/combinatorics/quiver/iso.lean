@@ -48,19 +48,16 @@ noncomputable def iso.of_bijective (φ : U ⥤q V) (hφobj : function.bijective 
       simp only [function.left_inverse_surj_inv hφobj x, prefunctor.comp_obj,
                  prefunctor.id_obj, id.def], },
     { rintro x y e,
-      simp, sorry, }, },
+      sorry }, },
   right_inv := by {
     fapply prefunctor.ext,
     { rintro x,
       simp only [function.right_inverse_surj_inv hφobj.2 x, prefunctor.comp_obj,
                  prefunctor.id_obj, id.def], },
     { rintro x y e,
-      simp, sorry, }, }, }
+      sorry, }, }, }
 
 @[ext]
 lemma iso.ext (φ ψ : iso U V) : φ = ψ ↔ φ.to_prefunctor = ψ.to_prefunctor := sorry
-
-
-
 
 end quiver

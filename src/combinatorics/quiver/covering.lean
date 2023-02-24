@@ -310,15 +310,64 @@ lemma prefunctor.is_covering_of_bijective_costar (h : ∀ u, function.bijective 
 
 end has_involutive_reverse
 
-section covering_iso
+section covering_maps
 
-structure covering_iso {U V W : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W]
-  (φ : U ⥤q W) (ψ : V ⥤q W)
-  extends iso U V :=
+lemma _root_.prefunctor.map_cast (φ : U ⥤q W) {u₁ u₂ v₁ v₂ : U} (hu : u₁ = u₂) (hv : v₁ = v₂)
+  (e : u₁ ⟶ v₁) :
+  φ.map (hom.cast hu hv e) = (hom.cast (congr_arg φ.obj hu) (congr_arg φ.obj hv) (φ.map e)) :=
+by cases hu; cases hv; refl
+
+lemma eq_star_of_eq {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
+  {u u' : U} (e : u ⟶ u') (hu : θ₁.obj u = θ₂.obj u) :
+  ∃ hu' : θ₁.obj u' = θ₂.obj u', hom.cast hu hu' (θ₁.map e) = θ₂.map e :=
+begin
+  have he : ψ.star _ ⟨_, hom.cast hu rfl (θ₁.map e)⟩ = ψ.star _ ⟨_, θ₂.map e⟩, by
+  { simp only [prefunctor.star, ←prefunctor.comp_obj, ←prefunctor.comp_map, hθ,
+               prefunctor.map_cast],
+    simp only [hom.cast, rec_heq_iff_heq],
+    refine ⟨rfl, _⟩,
+    congr' 1, },
+  obtain ⟨hu', he'⟩ := (quiver.star_eq_iff _ _).mp ((ψc.1 (θ₂.obj u)).1 he),
+  simp only [hom.cast_cast] at he',
+  exact ⟨hu', he'⟩,
+end
+
+lemma eq_costar_of_eq {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
+  {u u' : U} (e : u' ⟶ u) (hu : θ₁.obj u = θ₂.obj u) :
+  ∃ hu' : θ₁.obj u' = θ₂.obj u', hom.cast hu' hu (θ₁.map e) = θ₂.map e :=
+begin
+  have he : ψ.costar _ ⟨_, hom.cast rfl hu (θ₁.map e)⟩ = ψ.costar _ ⟨_, θ₂.map e⟩, by
+  { simp only [prefunctor.costar, ←prefunctor.comp_obj, ←prefunctor.comp_map, hθ,
+               prefunctor.map_cast],
+    simp only [hom.cast, rec_heq_iff_heq],
+    refine ⟨rfl, _⟩,
+    congr' 1, },
+  obtain ⟨hu', he'⟩ := (quiver.costar_eq_iff _ _).mp ((ψc.2 (θ₂.obj u)).1 he),
+  simp only [hom.cast_cast] at he',
+  exact ⟨hu', he'⟩,
+end
+
+lemma eq_of_eq_of_path {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V}
+  (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ) {u u' : U}
+  (p : path (symmetrify.of.obj u) (symmetrify.of.obj u')) :
+  θ₁.obj u = θ₂.obj u → θ₁.obj u' = θ₂.obj u' :=
+begin
+  revert u u',
+  change ∀ {u u' : symmetrify U}, path u u' → θ₁.obj u = θ₂.obj u → θ₁.obj u' = θ₂.obj u',
+  rintro _ _ p, induction p with v w q e ih,
+  { exact id, },
+  { rintro hu,
+    obtain (f|g) := e,
+    { exact (eq_star_of_eq ψc hθ f $ ih hu).some, },
+    { exact (eq_costar_of_eq ψc hθ g $ ih hu).some, }, },
+end
+
+structure covering_iso (φ : U ⥤q W) (ψ : V ⥤q W) extends iso U V :=
 (commute_left : to_prefunctor ⋙q ψ = φ)
 (commute_right : inv_prefunctor ⋙q φ = ψ) -- `commute_right` should follow from `commute_left`
 
-
 infix ` ≃qc `:60 := covering_iso
 
-end covering_iso
+
+
+end covering_maps

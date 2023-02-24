@@ -5,7 +5,6 @@ Authors: Xavier Roblot
 -/
 import analysis.normed_space.basic
 import measure_theory.group.fundamental_domain
-import measure_theory.measure.haar_of_basis
 
 /-!
 # ℤ-lattices
@@ -16,11 +15,13 @@ The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
 * As `L : add_subgroup E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
-  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`.
+  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `ℝ`.
 
-## Main definitions and results
+## Main results
 * `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
 indeed a fundamental domain of the lattice.
+* `zlattice.dim`: for `L : add_subgroup E` with `L` discrete and spanning `E` over `ℝ`, proves that
+`finrank ℤ L = finrank ℝ E`.
 -/
 
 open_locale classical
@@ -90,13 +91,15 @@ by simp only [zspan.floor_map, zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.
 see `zspan.fract_mem_fundamental_domain`. -/
 def zspan.fract_map : E → E := λ m, m - zspan.floor_map b m
 
+lemma zspan.fract_map_def (m : E) : zspan.fract_map b m = m - zspan.floor_map b m := rfl
+
 @[simp]
 lemma zspan.fract_map_single (m : E) (i : ι):
   b.repr (zspan.fract_map b m) i = int.fract (b.repr m i) :=
 by rw [zspan.fract_map, map_sub, finsupp.coe_sub, pi.sub_apply, zspan.floor_map_single, int.fract]
 
 @[simp]
-lemma zspan.fract_map_zspan_add (m : E) (v : E) (h : v ∈ span ℤ (set.range b)) :
+lemma zspan.fract_map_zspan_add (m : E) {v : E} (h : v ∈ span ℤ (set.range b)) :
   zspan.fract_map b (v + m) = zspan.fract_map b m :=
 begin
   refine (basis.ext_elem_iff b).mpr (λ i, _),
@@ -117,11 +120,11 @@ by simp only [zspan.mem_fundamental_domain, basis.ext_elem_iff b, zspan.fract_ma
   int.fract_fract, eq_self_iff_true, implies_true_iff]
 
 lemma zspan.fract_map_eq_iff (m n : E) :
-zspan.fract_map b m = zspan.fract_map b n ↔ m - n ∈ span ℤ (set.range b) :=
+zspan.fract_map b m = zspan.fract_map b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
-  rw basis.ext_elem_iff b,
-  simp only [int.fract_eq_fract, zspan.mem_span_iff, zspan.fract_map_single, linear_equiv.map_sub,
-  finsupp.coe_sub, pi.sub_apply],
+  rw [eq_comm, basis.ext_elem_iff b],
+  simp only [int.fract_eq_fract, zspan.mem_span_iff, zspan.fract_map_single, sub_eq_neg_add,
+    map_add, linear_equiv.map_neg, finsupp.coe_add, finsupp.coe_neg, pi.add_apply, pi.neg_apply],
 end
 
 lemma zspan.fract_map_le (m : E) :
@@ -142,7 +145,7 @@ end
 
 end fintype
 
-lemma zspan.metric.bounded_fundamental_domain [finite ι] :
+lemma zspan.metric.fundamental_domain_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,
@@ -154,7 +157,7 @@ begin
   linarith,
 end
 
-lemma zspan.measurable.fundamental_domain [measurable_space E] [opens_measurable_space E]
+lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
   [finite ι]:
   measurable_set (zspan.fundamental_domain b) :=
 begin
@@ -170,39 +173,31 @@ begin
       finsupp.linear_equiv_fun_on_finite_apply], },
 end
 
+lemma zspan.exist_vadd_mem_fundamental_domain (x : E) [finite ι] :
+  ∃! v : span ℤ (set.range b), v +ᵥ x ∈ zspan.fundamental_domain b :=
+begin
+  casesI nonempty_fintype ι,
+  use (-zspan.floor_map b x),
+  split,
+  { simp_rw [zspan.fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add,
+      add_subgroup_class.coe_neg, neg_add_eq_sub, ← zspan.fract_map_def],
+    simp only [zspan.fract_map_single, int.fract_nonneg, int.fract_lt_one, true_and,
+      set.mem_set_of_eq, implies_true_iff], },
+  { intros y _,
+    rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
+      ← zspan.fract_map_def, ← zspan.fract_map_zspan_add b _ (subtype.mem y), add_comm,
+      ← vadd_eq_add, ← vadd_def, eq_comm, ← zspan.mem_fundamental_domain], },
+end
+
 lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_measurable_space E]
   (μ : measure E) :
   is_add_fundamental_domain (span ℤ (set.range b)).to_add_subgroup
     (zspan.fundamental_domain b) μ :=
-{ null_measurable_set := null_measurable_set (zspan.measurable.fundamental_domain b),
-  ae_covers :=
-  begin
-    casesI nonempty_fintype ι,
-    refine filter.eventually_of_forall (λ x, ⟨- zspan.floor_map b x, _⟩),
-    rw (_ : -zspan.floor_map b x +ᵥ x = zspan.fract_map b x),
-    { exact zspan.fract_map_mem_fundamental_domain b x, },
-    { simp only [vadd_def, zspan.fract_map, add_subgroup_class.coe_neg, neg_add_eq_sub,
-        vadd_eq_add], },
-  end,
-  ae_disjoint :=
-  begin
-    casesI nonempty_fintype ι,
-    refine λ v w hvw, disjoint.ae_disjoint (λ s hsv hsw x hx, _),
-    refine hvw (subtype.ext_iff.mpr ((basis.ext_elem_iff b).mpr (λ i, _))),
-    obtain ⟨a, ⟨ha1, ha2⟩⟩ := hsv hx,
-    obtain ⟨c, ⟨hc1, hc2⟩⟩ := hsw hx,
-    rw (by { simp only [vadd_def, ←eq_sub_iff_add_eq, vadd_eq_add] at ha2, exact ha2, } :
-      (v : E) = x - a),
-    rw (by { simp only [vadd_def, ←eq_sub_iff_add_eq, vadd_eq_add] at hc2, exact hc2, } :
-      (w : E) = x - c),
-    rw ( _ : a = zspan.fract_map b x),
-    { rw ( _ : c = zspan.fract_map b x),
-      convert congr_arg (zspan.fract_map b) hc2,
-      simp only [vadd_def, zspan.fract_map_zspan_add b c w (set_like.coe_mem w),
-        (zspan.mem_fundamental_domain b).mp hc1, vadd_eq_add], },
-    { convert congr_arg (zspan.fract_map b) ha2,
-      simp only [vadd_def, zspan.fract_map_zspan_add b a v (set_like.coe_mem v),
-        (zspan.mem_fundamental_domain b).mp ha1, vadd_eq_add], },
-  end }
+begin
+  casesI nonempty_fintype ι,
+  exact is_add_fundamental_domain.mk'
+    (null_measurable_set (zspan.fundamental_domain_measurable b))
+    (λ x, zspan.exist_vadd_mem_fundamental_domain b x),
+end
 
 end zspan

@@ -11,7 +11,7 @@ import topology.subset_properties
 import topology.metric_space.hausdorff_distance
 
 /-!
-# convex bodies
+# Convex bodies
 
 This file contains the definition of the type `convex_body V`
 consisting of
@@ -20,9 +20,12 @@ convex, compact, nonempty subsets of a real topological vector space `V`.
 `convex_body V` is a module over the nonnegative reals (`nnreal`) and a pseudo-metric space.
 If `V` is a normed space, `convex_body V` is a metric space.
 
-TODOs:
+## TODO
+
 - define positive convex bodies, requiring the interior to be nonempty
 - introduce support sets
+- Characterise the interaction of the distance with algebraic operations, eg
+  `dist (a • K) (a • L) = ‖a‖ * dist K L`, `dist (a +ᵥ K) (a +ᵥ L) = dist K L`
 
 ## Tags
 
@@ -32,35 +35,31 @@ convex, convex body
 open_locale pointwise
 open_locale nnreal
 
-variables (V : Type*) [topological_space V] [add_comm_group V] [has_continuous_add V]
-  [module ℝ V] [has_continuous_smul ℝ V]
+variables {V : Type*}
 
 /--
 Let `V` be a real topological vector space. A subset of `V` is a convex body if and only if
 it is convex, compact, and nonempty.
 -/
-structure convex_body (V : Type*) [seminormed_add_comm_group V] [normed_space ℝ V] :=
+structure convex_body (V : Type*) [topological_space V] [add_comm_group V] [has_continuous_add V]
+  [module ℝ V] [has_continuous_smul ℝ V] :=
 (carrier : set V)
 (convex' : convex ℝ carrier)
 (is_compact' : is_compact carrier)
 (nonempty' : carrier.nonempty)
 
 namespace convex_body
-
-section seminormed_space
-
-variables {V : Type*}
-[seminormed_add_comm_group V]
-[normed_space ℝ V]
+section TVS
+variables [topological_space V] [add_comm_group V] [has_continuous_add V] [module ℝ V]
+  [has_continuous_smul ℝ V]
 
 instance : set_like (convex_body V) V :=
 { coe := convex_body.carrier,
   coe_injective' := λ K L h, by { cases K, cases L, congr' } }
 
-lemma convex (K : convex_body V) : convex ℝ (K : set V) := K.convex'
-lemma is_compact (K : convex_body V) : is_compact (K : set V) := K.is_compact'
-lemma nonempty (K : convex_body V) : (K : set V).nonempty := K.nonempty'
-lemma bounded (K : convex_body V) : metric.bounded (K : set V) := K.is_compact.bounded
+protected lemma convex (K : convex_body V) : convex ℝ (K : set V) := K.convex'
+protected lemma is_compact (K : convex_body V) : is_compact (K : set V) := K.is_compact'
+protected lemma nonempty (K : convex_body V) : (K : set V).nonempty := K.nonempty'
 
 @[ext]
 protected lemma ext {K L : convex_body V} (h : (K : set V) = L) : K = L := set_like.ext' h
@@ -119,45 +118,44 @@ instance : module ℝ≥0 (convex_body V) :=
   end,
   zero_smul := λ K, by { ext1, exact set.zero_smul_set K.nonempty } }
 
+end TVS
 
-lemma Hausdorff_edist_ne_top {K L : convex_body V} :
-  emetric.Hausdorff_edist (K : set V) L ≠ ⊤ :=
-by apply_rules [metric.Hausdorff_edist_ne_top_of_nonempty_of_bounded, nonempty, bounded]
+section seminormed_add_comm_group
+variables [seminormed_add_comm_group V] [normed_space ℝ V] (K L : convex_body V)
 
-/--
-Convex bodies in a fixed seminormed space $V$ form a pseudo-metric space.
--/
+protected lemma bounded : metric.bounded (K : set V) := K.is_compact.bounded
+
+lemma Hausdorff_edist_ne_top {K L : convex_body V} : emetric.Hausdorff_edist (K : set V) L ≠ ⊤ :=
+by apply_rules [metric.Hausdorff_edist_ne_top_of_nonempty_of_bounded, convex_body.nonempty,
+  convex_body.bounded]
+
+/-- Convex bodies in a fixed seminormed space $V$ form a pseudo-metric space under the Hausdorff
+metric. -/
 noncomputable instance : pseudo_metric_space (convex_body V) :=
-{ to_has_dist := ⟨λ K L, metric.Hausdorff_dist (K : set V) L⟩,
+{ dist := λ K L, metric.Hausdorff_dist (K : set V) L,
   dist_self := λ _, metric.Hausdorff_dist_self_zero,
   dist_comm := λ _ _, metric.Hausdorff_dist_comm,
   dist_triangle := λ K L M, metric.Hausdorff_dist_triangle Hausdorff_edist_ne_top }
 
-end seminormed_space
+@[simp, norm_cast]
+lemma Hausdorff_dist_coe : metric.Hausdorff_dist (K : set V) L = dist K L := rfl
 
-section normed_space
-
-variables {V : Type*} [normed_add_comm_group V] [normed_space ℝ V]
-
-lemma dist_eq_to_real_Hausdorff_edist (K L : convex_body V) :
-  dist K L = (emetric.Hausdorff_edist (K : set V) L).to_real := rfl
-
-lemma of_real_dist_eq_Hausdorff_edist (K L : convex_body V) :
-  ennreal.of_real (dist K L) = emetric.Hausdorff_edist (K : set V) L :=
+@[simp] lemma of_real_dist : ennreal.of_real (dist K L) = emetric.Hausdorff_edist (K : set V) L :=
 ennreal.of_real_to_real Hausdorff_edist_ne_top
 
-/--
-Convex bodies in a fixed normed space $V$ form a metric space.
--/
+end seminormed_add_comm_group
+
+section normed_add_comm_group
+variables [normed_add_comm_group V] [normed_space ℝ V]
+
+/-- Convex bodies in a fixed normed space `V` form a metric space under the Hausdorff metric. -/
 noncomputable instance : metric_space (convex_body V) :=
-{ to_pseudo_metric_space := convex_body.pseudo_metric_space,
-  eq_of_dist_eq_zero := λ K L hd,
+{ eq_of_dist_eq_zero := λ K L hd,
   begin
     ext1,
     exact (K.is_compact.is_closed.Hausdorff_dist_zero_iff_eq
       L.is_compact.is_closed Hausdorff_edist_ne_top).mp hd,
   end }
 
-end normed_space
-
+end normed_add_comm_group
 end convex_body

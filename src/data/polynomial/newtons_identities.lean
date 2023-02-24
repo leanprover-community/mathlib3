@@ -293,26 +293,20 @@ begin
       work_on_goal 2 { simp only [fintype.card_fin], },
       work_on_goal 2 {
         cases neg_one_pow_eq_or _ n;
-        rw [h_2], simp only [one_mul],
-        } ,
-        sorry
+        rw [h_2]; simp,
+        },
+      have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
+      have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
+      simp only [tsub_zero] at hl,
+      have H := add_le_add le_rfl gdeg,
+      swap, use n,
+      have H' := le_trans H hl,
+      cases n,
+      norm_num at H',
+      rw nat.succ_sub_one at H',
+      exact nat.not_succ_le_self n H',
       },
-
-      -- rw [s_symm, mv_polynomial.esymm.total_degree] at hn,
-      -- swap, simp only [tsub_zero, fintype.card_fin],
-      -- have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
-      -- have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
-      -- simp only [tsub_zero] at hl,
-      -- have H := add_le_add le_rfl gdeg,
-      -- swap, use n,
-      -- have H' := le_trans H hl,
-      -- cases n,
-      -- norm_num at H',
-      -- rw nat.succ_sub_one at H',
-      -- exact nat.not_succ_le_self n H',
-      sorry
   },
-
 end
 
 /-- Newton's symmetric function identities -/

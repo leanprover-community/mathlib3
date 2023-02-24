@@ -540,7 +540,6 @@ section base_change
 
 variables {R : Type u} [comm_ring R] (W : weierstrass_curve R) (F : Type v) [field F] [algebra R F]
   (K : Type w) [field K] [algebra R K] [algebra F K] [is_scalar_tower R F K]
-  [no_zero_smul_divisors R K]
 
 namespace point
 

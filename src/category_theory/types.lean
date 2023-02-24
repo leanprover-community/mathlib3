@@ -5,10 +5,13 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
 import category_theory.epi_mono
 import category_theory.functor.fully_faithful
-import logic.equiv.defs
+import logic.equiv.basic
 
 /-!
 # The category `Type`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this section we set up the theory so that Lean's types and functions between them
 can be viewed as a `large_category` in our framework.

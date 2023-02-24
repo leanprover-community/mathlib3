@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä, Moritz Doll
 -/
 import topology.algebra.module.basic
+import linear_algebra.bilinear_map
 
 /-!
 # Weak dual topology
@@ -60,7 +61,7 @@ weak-star, weak dual, duality
 
 noncomputable theory
 open filter
-open_locale topological_space
+open_locale topology
 
 variables {α 𝕜 𝕝 R E F M : Type*}
 

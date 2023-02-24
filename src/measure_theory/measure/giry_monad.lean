@@ -53,6 +53,15 @@ lemma measurable_of_measurable_coe (f : β → measure α)
 measurable.of_le_map $ supr₂_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
 
+instance {α : Type*} {m : measurable_space α} : has_measurable_add₂ (measure α) :=
+begin
+  refine ⟨measure.measurable_of_measurable_coe _ (λ s hs, _)⟩,
+  simp_rw [measure.coe_add, pi.add_apply],
+  refine measurable.add _ _,
+  { exact (measure.measurable_coe hs).comp measurable_fst, },
+  { exact (measure.measurable_coe hs).comp measurable_snd, },
+end
+
 lemma measurable_measure {μ : α → measure β} :
   measurable μ ↔ ∀ (s : set β) (hs : measurable_set s), measurable (λ b, μ b s) :=
 ⟨λ hμ s hs, (measurable_coe hs).comp hμ, measurable_of_measurable_coe μ⟩
@@ -91,7 +100,7 @@ measure.of_measurable
     assume f hf h,
     simp_rw [measure_Union h hf],
     apply lintegral_tsum,
-    assume i, exact measurable_coe (hf i)
+    assume i, exact (measurable_coe (hf i)).ae_measurable
   end
 
 @[simp] lemma join_apply {m : measure (measure α)} {s : set α} (hs : measurable_set s) :

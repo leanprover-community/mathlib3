@@ -5,6 +5,8 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.char_p.basic
+import data.polynomial.algebra_map
+import data.mv_polynomial.variables
 import linear_algebra.finsupp_vector_space
 
 /-!

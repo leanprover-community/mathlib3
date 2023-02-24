@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.nat.multiplicity
+import data.zmod.algebra
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 import field_theory.perfect_closure

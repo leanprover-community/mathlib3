@@ -53,7 +53,7 @@ def left_adjoint_of_structured_arrow_initials_aux (A : C) (B : D) :
   end,
   right_inv := λ f,
   begin
-    let B' : structured_arrow A G := { right := B, hom := f },
+    let B' : structured_arrow A G := structured_arrow.mk f,
     apply (comma_morphism.w (initial.to B')).symm.trans (category.id_comp _),
   end }
 

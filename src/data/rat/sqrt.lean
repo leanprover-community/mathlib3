@@ -5,9 +5,13 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import data.rat.order
+import data.rat.lemmas
 import data.int.sqrt
 /-!
 # Square root on rational numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the square root function on rational numbers `rat.sqrt`
 and proves several theorems about it.

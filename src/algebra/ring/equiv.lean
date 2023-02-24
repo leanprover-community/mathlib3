@@ -3,13 +3,16 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import algebra.big_operators.basic
-import algebra.field.basic
-import algebra.hom.equiv
-import algebra.ring.opposite
+import algebra.group.opposite
+import algebra.hom.ring
+import logic.equiv.set
+import tactic.assert_exists
 
 /-!
 # (Semi)ring equivs
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define extension of `equiv` called `ring_equiv`, which is a datatype representing an
 isomorphism of `semiring`s, `ring`s, `division_ring`s, or `field`s. We also introduce the
@@ -36,7 +39,6 @@ multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not
 equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
-open_locale big_operators
 
 variables {F α β R S S' : Type*}
 
@@ -191,6 +193,9 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 @[simp] lemma inv_fun_eq_symm (f : R ≃+* S) : f.inv_fun = f.symm := rfl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
+
+@[simp]
+lemma coe_to_equiv_symm (e : R ≃+* S) : (e.symm : S ≃ R) = (e : R ≃ S).symm := rfl
 
 lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
 equiv.bijective ⟨ring_equiv.symm, ring_equiv.symm, symm_symm, symm_symm⟩
@@ -564,35 +569,6 @@ def of_hom_inv {R S F G : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
 
 end semiring_hom
 
-section big_operators
-
-protected lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
-  f l.prod = (l.map f).prod := map_list_prod f l
-
-protected lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S)
-  (l : list R) : f l.sum = (l.map f).sum := map_list_sum f l
-
-/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
-protected lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
-  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-unop_map_list_prod f l
-
-protected lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S)
-  (s : multiset R) : f s.prod = (s.map f).prod := map_multiset_prod f s
-
-protected lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := map_multiset_sum f s
-
-protected lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
-  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-map_prod g f s
-
-protected lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
-  (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-map_sum g f s
-
-end big_operators
-
 section group_power
 
 variables [semiring R] [semiring S]
@@ -628,13 +604,26 @@ variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 @[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
 @[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
+/-- If two rings are isomorphic, and the second doesn't have zero divisors,
+then so does the first. -/
+protected lemma no_zero_divisors
+  {A : Type*} (B : Type*) [ring A] [ring B] [no_zero_divisors B]
+  (e : A ≃+* B) : no_zero_divisors A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
+    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this }
+
 /-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
 protected lemma is_domain
   {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
   (e : A ≃+* B) : is_domain A :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
-    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
-    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this,
-  exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
+begin
+  haveI : nontrivial A := ⟨⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩⟩,
+  haveI := e.no_zero_divisors B,
+  exact no_zero_divisors.to_is_domain _
+end
 
 end ring_equiv
+
+-- Guard against import creep
+assert_not_exists fintype

@@ -3,6 +3,7 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.nonsingular_inverse
 import algebra.star.unitary

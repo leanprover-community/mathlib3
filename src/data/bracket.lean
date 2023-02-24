@@ -5,11 +5,10 @@ Authors: Patrick Lutz, Oliver Nash
 -/
 
 /-!
-THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-https://github.com/leanprover-community/mathlib4/pull/480
-Any changes to this file require a corresponding PR to mathlib4.
-
 # Bracket Notation
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides notation which can be used for the Lie bracket, for the commutator of two
 subgroups, and for other similar operations.

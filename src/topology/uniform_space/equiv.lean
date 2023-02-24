@@ -11,6 +11,9 @@ import topology.uniform_space.pi
 /-!
 # Uniform isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines uniform isomorphisms between two uniform spaces. They are bijections with both
 directions uniformly continuous. We denote uniform isomorphisms with the notation `≃ᵤ`.
 
@@ -24,7 +27,8 @@ directions uniformly continuous. We denote uniform isomorphisms with the notatio
 open set filter
 open_locale
 
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+universes u v
+variables {α : Type u} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- Uniform isomorphism between `α` and `β` -/
 @[nolint has_nonempty_instance] -- not all spaces are homeomorphic to each other
@@ -224,6 +228,16 @@ def punit_prod : punit × α ≃ᵤ α :=
 
 @[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
+/-- Uniform equivalence between `ulift α` and `α`. -/
+def ulift : ulift.{v u} α ≃ᵤ α :=
+{ uniform_continuous_to_fun := uniform_continuous_comap,
+  uniform_continuous_inv_fun := begin
+    have hf : uniform_inducing (@equiv.ulift.{v u} α).to_fun, from ⟨rfl⟩,
+    simp_rw [hf.uniform_continuous_iff],
+    exact uniform_continuous_id,
+  end,
+  .. equiv.ulift }
+
 end
 
 /-- If `ι` has a unique element, then `ι → α` is homeomorphic to `α`. -/
@@ -235,7 +249,7 @@ def fun_unique (ι α : Type*) [unique ι] [uniform_space α] : (ι → α) ≃�
 
 /-- Uniform isomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
 @[simps { fully_applied := ff }]
-def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i, α i) ≃ᵤ α 0 × α 1 :=
+def pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i, α i) ≃ᵤ α 0 × α 1 :=
 { to_equiv := pi_fin_two_equiv α,
   uniform_continuous_to_fun :=
     (Pi.uniform_continuous_proj _ 0).prod_mk (Pi.uniform_continuous_proj _ 1),

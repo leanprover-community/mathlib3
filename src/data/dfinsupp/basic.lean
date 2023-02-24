@@ -3,7 +3,6 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
@@ -13,6 +12,9 @@ import data.finset.preimage
 
 /-!
 # Dependent functions with finite support
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For a non-dependent version see `data/finsupp.lean`.
 
@@ -147,6 +149,21 @@ end⟩
   (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) (i : ι) :
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
+
+section piecewise
+variables (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)]
+
+/-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
+  and to `y` on its complement. -/
+def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
+
+lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
+zip_with_apply _ _ x y i
+
+@[simp, norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+by { ext, apply piecewise_apply }
+
+end piecewise
 
 end basic
 
@@ -529,6 +546,12 @@ begin
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
+/-- `dfinsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`dfinsupp.single_injective` -/
+lemma single_left_injective {b : Π (i : ι), β i} (h : ∀ i, b i ≠ 0) :
+  function.injective (λ i, single i (b i) : ι → Π₀ i, β i) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h _ hb.1).left
+
 @[simp] lemma single_eq_zero {i : ι} {xi : β i} : single i xi = 0 ↔ xi = 0 :=
 begin
   rw [←single_zero i, single_eq_single_iff],
@@ -583,6 +606,14 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma piecewise_single_erase (x : Π₀ i, β i) (i : ι) :
+  (single i (x i)).piecewise (x.erase i) {i} = x :=
+begin
+  ext j, rw piecewise_apply, split_ifs,
+  { rw [(id h : j = i), single_eq_same] },
+  { exact erase_ne h },
+end
 
 lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
   f.erase i = f - single i (f i) :=
@@ -1193,7 +1224,8 @@ begin
       sigma_curry_apply, smul_apply]
 end
 
-@[simp] lemma sigma_curry_single [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
+@[simp] lemma sigma_curry_single [decidable_eq ι] [Π i, decidable_eq (α i)]
+  [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
   @sigma_curry _ _ _ _ (single ij x) = single ij.1 (single ij.2 x : Π₀ j, δ ij.1 j) :=
 begin
   obtain ⟨i, j⟩ := ij,
@@ -1212,7 +1244,8 @@ end
 
 /--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
+def sigma_uncurry [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] (f : Π₀ i j, δ i j) :
   Π₀ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := λ i, f i.1 i.2,
   support' := f.support'.map $ λ s,
@@ -1227,24 +1260,32 @@ noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i
         rw [hi, zero_apply] }
     end⟩ }
 
-@[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
+@[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j :=
 rfl
 
-@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)] :
+@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]:
   sigma_uncurry (0 : Π₀ i j, δ i j) = 0 :=
 rfl
 
-@[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)] (f g : Π₀ i j, δ i j) :
+@[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  (f g : Π₀ i j, δ i j) :
   sigma_uncurry (f + g) = sigma_uncurry f + sigma_uncurry g :=
 coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ i j, δ i j) :
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
 coe_fn_injective rfl
 
-@[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)] (i) (j : α i) (x : δ i j) :
+@[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)]
+  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  (i) (j : α i) (x : δ i j) :
   sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=
 begin
   ext ⟨i', j'⟩,
@@ -1263,7 +1304,8 @@ end
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
 
 This is the dfinsupp version of `equiv.Pi_curry`. -/
-noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)] :
+noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] :
   (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
 { to_fun := sigma_curry,
   inv_fun := sigma_uncurry,
@@ -1929,3 +1971,32 @@ add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
 end add_equiv
 
 end
+
+section finite_infinite
+
+instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π i, has_zero (π i)]
+  [fintype ι] [∀ i, fintype (π i)] :
+  fintype (Π₀ i, π i) :=
+fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
+
+instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
+  [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; choose m hm using (λ i, exists_ne (0 : π i)); exact
+infinite.of_injective _ (dfinsupp.single_left_injective hm)
+
+/-- See `dfinsupp.infinite_of_right` for this in instance form, with the drawback that
+it needs all `π i` to be infinite. -/
+lemma dfinsupp.infinite_of_exists_right {ι : Sort*} {π : ι → Sort*}
+  (i : ι) [infinite (π i)] [Π i, has_zero (π i)] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact
+infinite.of_injective (λ j, dfinsupp.single i j) dfinsupp.single_injective
+
+/-- See `dfinsupp.infinite_of_exists_right` for the case that only one `π ι` is infinite. -/
+instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*}
+  [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
+  infinite (Π₀ i, π i) :=
+dfinsupp.infinite_of_exists_right (classical.arbitrary ι)
+
+end finite_infinite

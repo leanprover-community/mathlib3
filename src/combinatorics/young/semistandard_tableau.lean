@@ -8,6 +8,9 @@ import combinatorics.young.young_diagram
 /-!
 # Semistandard Young tableaux
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A semistandard Young tableau is a filling of a Young diagram by natural numbers, such that
 the entries are weakly increasing left-to-right along rows (i.e. for fixed `i`), and
 strictly-increasing top-to-bottom along columns (i.e. for fixed `j`).
@@ -46,7 +49,7 @@ numbers, such that the entries in each row are weakly increasing (left to right)
 in each column are strictly increasing (top to bottom).
 
 Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ` that, for reasons
-of extensionality, is required to vanish outside `μ`. --/
+of extensionality, is required to vanish outside `μ`. -/
 structure ssyt (μ : young_diagram) :=
 (entry : ℕ → ℕ → ℕ)
 (row_weak' : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)
@@ -71,12 +74,20 @@ fun_like.ext T T' (λ x, by { funext, apply h })
 
 /-- Copy of an `ssyt μ` with a new `entry` equal to the old one. Useful to fix definitional
 equalities. -/
-protected def copy {μ : young_diagram} {T : ssyt μ} (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
-ssyt μ :=
+protected def copy {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+  ssyt μ :=
 { entry := entry',
   row_weak' := λ _ _ _, h.symm ▸ T.row_weak',
   col_strict' := λ _ _ _, h.symm ▸ T.col_strict',
   zeros' := λ _ _, h.symm ▸ T.zeros' }
+
+@[simp] lemma coe_copy {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+  ⇑(T.copy entry' h) = entry' :=
+rfl
+
+lemma copy_eq {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+  T.copy entry' h = T :=
+fun_like.ext' h
 
 lemma row_weak {μ : young_diagram} (T : ssyt μ) {i j1 j2 : ℕ}
   (hj : j1 < j2) (hcell : (i, j2) ∈ μ) : T i j1 ≤ T i j2 :=
@@ -97,7 +108,7 @@ lemma col_weak {μ : young_diagram} (T : ssyt μ) {i1 i2 j : ℕ}
   (hi : i1 ≤ i2) (cell : (i2, j) ∈ μ) : T i1 j ≤ T i2 j :=
 by { cases eq_or_lt_of_le hi, subst h, exact le_of_lt (T.col_strict h cell) }
 
-/-- The "highest weight" SSYT of a given shape is has all i's in row i, for each i. --/
+/-- The "highest weight" SSYT of a given shape is has all i's in row i, for each i. -/
 def highest_weight (μ : young_diagram) : ssyt μ :=
 { entry := λ i j, if (i, j) ∈ μ then i else 0,
   row_weak' := λ i j1 j2 hj hcell,

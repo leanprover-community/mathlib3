@@ -180,11 +180,11 @@ by { dsimp, ring1 }
 
 end variable_change
 
+variables (A : Type v) [comm_ring A] [algebra R A]
+
 section base_change
 
 /-! ### Base changes -/
-
-variables (A : Type v) [comm_ring A] [algebra R A]
 
 /-- The Weierstrass curve over `R` base changed to `A`. -/
 @[simps] def base_change : weierstrass_curve A :=
@@ -321,6 +321,15 @@ begin
   ring1
 end
 
+lemma equation_iff_base_change [nontrivial A] [no_zero_smul_divisors R A] (x y : R) :
+  W.equation x y ↔ (W.base_change A).equation (algebra_map R A x) (algebra_map R A y) :=
+begin
+  simp only [equation_iff],
+  refine ⟨λ h, _, λ h, _⟩,
+  { convert congr_arg (algebra_map R A) h; { map_simp, refl } },
+  { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h }
+end
+
 /-! ### Nonsingularity of Weierstrass curves -/
 
 /-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$.
@@ -374,6 +383,16 @@ begin
   rw [nonsingular_iff', equation_iff_variable_change, equation_zero, ← neg_ne_zero, or_comm,
       nonsingular_zero, variable_change_a₃, variable_change_a₄, inv_one, units.coe_one],
   congr' 4; ring1
+end
+
+lemma nonsingular_iff_base_change [nontrivial A] [no_zero_smul_divisors R A] (x y : R) :
+  W.nonsingular x y ↔ (W.base_change A).nonsingular (algebra_map R A x) (algebra_map R A y) :=
+begin
+  rw [nonsingular_iff, nonsingular_iff, and_congr $ W.equation_iff_base_change A x y],
+  refine ⟨or.imp (not_imp_not.mpr $ λ h, _) (not_imp_not.mpr $ λ h, _),
+    or.imp (not_imp_not.mpr $ λ h, _) (not_imp_not.mpr $ λ h, _)⟩,
+  any_goals { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h },
+  any_goals { convert congr_arg (algebra_map R A) h; { map_simp, refl } }
 end
 
 lemma nonsingular_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.nonsingular 0 0 :=

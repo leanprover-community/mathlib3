@@ -1687,17 +1687,16 @@ hf.smul hg
 
 /-! ### Smoothness of an open embedding and its inverse -/
 
-variable (I)
-lemma cont_mdiff_open_embedding
-  {M : Type*} [topological_space M] [nonempty M]
+variables (I)
+
+lemma cont_mdiff_open_embedding {M : Type*} [topological_space M] [nonempty M]
   {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
   @cont_mdiff _ _ _ _ _ _ _ I _ _ h.singleton_charted_space _ _ _ _ _ I _ _ _ n e :=
 begin
   haveI := h.singleton_smooth_manifold_with_corners I,
   rw cont_mdiff_iff,
-  split,
-  { apply h.continuous },
-  intros x y, -- show the function is actually the identity on the range of I ∘ e
+  refine ⟨h.continuous, λ x y, _⟩,
+  -- show the function is actually the identity on the range of I ∘ e
   apply cont_diff_on.congr cont_diff_on_id,
   intros z hz, -- factorise into the chart (=e) and the model (=id)
   rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
@@ -1711,14 +1710,13 @@ begin
   have := hz.1,
   rw [ext_chart_at, local_equiv.trans_target] at this,
   have := this.2,
-  rw [set.mem_preimage, local_homeomorph.singleton_charted_space_chart_at_eq,
+  rwa [set.mem_preimage, local_homeomorph.singleton_charted_space_chart_at_eq,
     open_embedding.to_local_homeomorph_target] at this,
-  exact this
 end
 
-variable {I}
-lemma cont_mdiff_on_open_embedding_symm
-  {M : Type*} [topological_space M] [nonempty M]
+variables {I}
+
+lemma cont_mdiff_on_open_embedding_symm {M : Type*} [topological_space M] [nonempty M]
   {e : M → H} (h : open_embedding e) {n : with_top ℕ} :
   @cont_mdiff_on _ _ _ _ _ _ _ I _ _ _ _ _ _ _ _ I _ _ h.singleton_charted_space
     n (open_embedding.to_local_homeomorph e h).symm (set.range e) :=
@@ -1727,7 +1725,7 @@ begin
   rw cont_mdiff_on_iff,
   split,
   { rw ←open_embedding.to_local_homeomorph_target,
-    apply local_homeomorph.continuous_on_symm (open_embedding.to_local_homeomorph e h) },
+    exact (open_embedding.to_local_homeomorph e h).continuous_on_symm },
   intros x y, -- show the function is actually the identity on the range of I ∘ e
   apply cont_diff_on.congr cont_diff_on_id,
   intros z hz, -- factorise into the chart (=e) and the model (=id)
@@ -1737,8 +1735,7 @@ begin
     local_homeomorph.singleton_charted_space_chart_at_eq, local_homeomorph.right_inv],
   { rw model_with_corners.right_inv,
     { refl },
-    apply set.mem_of_subset_of_mem _ hz.1,
-    exact ext_chart_at_target_subset_range _ _ }, -- show hz implies z is in range of I ∘ e
+    exact ext_chart_at_target_subset_range _ _ hz.1 }, -- show hz implies z is in range of I ∘ e
   rw [open_embedding.to_local_homeomorph_target, model_with_corners.symm, ←set.mem_preimage],
   have := hz.2,
   rw [set.preimage_inter] at this,
@@ -1749,16 +1746,12 @@ end
 space `H'`. Then the smoothness of `e' ∘ f : M → H'` implies the smoothness of `f`.
 
 This is useful, for example, when `e' ∘ f = g ∘ e` for smooth maps `e : M → X` and `g : X → H'`. -/
-lemma cont_mdiff.of_comp_open_embedding
-  {M : Type*} [topological_space M] [charted_space H M]
-  {M' : Type*} [topological_space M'] [nonempty M']
+lemma cont_mdiff.of_comp_open_embedding {M' : Type*} [topological_space M'] [nonempty M']
   {e' : M' → H'} (h : open_embedding e') {n : with_top ℕ}
   {f : M → M'} (hf : cont_mdiff I I' n (e' ∘ f)) :
   @cont_mdiff _ _ _ _ _ _ _ I _ _ _ _ _ _ _ _ I' _ _ h.singleton_charted_space n f :=
 begin
-  have : f = (open_embedding.to_local_homeomorph e' h).symm ∘ e' ∘ f,
-  { ext,
-    rw [function.comp_app, open_embedding.to_local_homeomorph_left_inv] },
+  have : f = (open_embedding.to_local_homeomorph e' h).symm ∘ e' ∘ f := by { ext, simp },
   rw this,
   apply cont_mdiff_on.comp_cont_mdiff _ hf,
   show set H',
@@ -1766,6 +1759,8 @@ begin
   { intros,
     simp },
   exact cont_mdiff_on_open_embedding_symm h
+end
+
 /-! ### Smoothness of (local) structomorphisms -/
 section
 

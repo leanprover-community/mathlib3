@@ -1104,20 +1104,11 @@ begin
   { simp, },
 end
 
-variables [nonempty α]
-
-lemma to_local_homeomorph_left_inv {x : α} :
-  (h.to_local_homeomorph f).symm (f x) = x :=
+@[simp, norm_cast] lemma to_local_homeomorph_symm_apply (x : β) :
+  (h.to_local_homeomorph f).symm x = f.symm x :=
 begin
   rw [←congr_fun (h.to_local_homeomorph_apply f), local_homeomorph.left_inv],
   exact set.mem_univ _
-end
-
-lemma to_local_homeomorph_right_inv {x : β} (hx : x ∈ set.range f) :
-  f ((h.to_local_homeomorph f).symm x) = x :=
-begin
-  rw [←congr_fun (h.to_local_homeomorph_apply f), local_homeomorph.right_inv],
-  rwa to_local_homeomorph_target
 end
 
 end open_embedding

@@ -31,7 +31,7 @@ define `clopen_segment`/`convex.Ico`/`convex.Ioc`?
 
 variables {𝕜 E F ι : Type*} {π : ι → Type*}
 
-open set
+open function set
 open_locale pointwise
 
 section ordered_semiring
@@ -190,19 +190,20 @@ set.ext $ λ x, by simp_rw [segment_eq_image_line_map, mem_image, exists_exists_
 set.ext $ λ x, by simp_rw [open_segment_eq_image_line_map, mem_image, exists_exists_and_eq_and,
   affine_map.apply_line_map]
 
-@[simp] lemma vadd_segment (a b c : E) : a +ᵥ [b -[𝕜] c] = [a + b -[𝕜] a + c] :=
-image_segment _ (affine_equiv.const_vadd _ _ _).to_affine_map _ _
+@[simp] lemma vadd_segment [add_torsor E F] [vadd_comm_class E F F] (a : E) (b c : F) :
+  a +ᵥ [b -[𝕜] c] = [a +ᵥ b -[𝕜] a +ᵥ c] :=
+image_segment 𝕜 ⟨_, linear_map.id, λ _ _, vadd_comm _ _ _⟩ b c
 
-@[simp] lemma vadd_open_segment (a b c : E) :
-  a +ᵥ open_segment 𝕜 b c = open_segment 𝕜 (a + b) (a + c) :=
-image_open_segment _ (affine_equiv.const_vadd _ _ _).to_affine_map _ _
+@[simp] lemma vadd_open_segment [add_torsor E F] [vadd_comm_class E F F] (a : E) (b c : F) :
+  a +ᵥ open_segment 𝕜 b c = open_segment 𝕜 (a +ᵥ b) (a +ᵥ c) :=
+image_open_segment 𝕜 ⟨_, linear_map.id, λ _ _, vadd_comm _ _ _⟩ b c
 
 @[simp] lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b -[𝕜] a + c] ↔ x ∈ [b -[𝕜] c] :=
-by rw [←vadd_segment, ←vadd_eq_add, vadd_mem_vadd_set_iff]
+by simp_rw [←vadd_eq_add, ←vadd_segment, vadd_mem_vadd_set_iff]
 
 @[simp] lemma mem_open_segment_translate (a : E) {x b c : E} :
   a + x ∈ open_segment 𝕜 (a + b) (a + c) ↔ x ∈ open_segment 𝕜 b c :=
-by rw [←vadd_open_segment, ←vadd_eq_add, vadd_mem_vadd_set_iff]
+by simp_rw [←vadd_eq_add, ←vadd_open_segment, vadd_mem_vadd_set_iff]
 
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b -[𝕜] a + c] = [b -[𝕜] c] :=
 set.ext $ λ x, mem_segment_translate 𝕜 a
@@ -561,5 +562,27 @@ by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr
 lemma open_segment_subset (x y : Π i, π i) :
   open_segment 𝕜 x y ⊆ s.pi (λ i, open_segment 𝕜 (x i) (y i)) :=
 by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
+
+variables [decidable_eq ι]
+
+lemma image_update_segment (i : ι) (x₁ x₂ : π i) (y : Π i, π i) :
+  update y i '' [x₁ -[𝕜] x₂] = [update y i x₁ -[𝕜] update y i x₂] :=
+begin
+  ext z,
+  simp_rw [set.mem_image, segment, set.mem_set_of, ←update_smul, ←update_add, update_eq_iff,
+    ←exists_and_distrib_right, @exists_comm (π i), exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+lemma image_update_open_segment (i : ι) (x₁ x₂ : π i) (y : Π i, π i) :
+  update y i '' open_segment 𝕜 x₁ x₂ = open_segment 𝕜 (update y i x₁) (update y i x₂) :=
+begin
+  ext z,
+  simp_rw [set.mem_image, open_segment, set.mem_set_of, ←update_smul, ←update_add, update_eq_iff,
+    ←exists_and_distrib_right, @exists_comm (π i), exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
 
 end pi

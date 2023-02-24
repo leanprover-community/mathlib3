@@ -43,7 +43,7 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open function set
 open_locale affine classical
 
-variables {𝕜 E F  ι : Type*} {π : ι → Type*}
+variables {𝕜 E F ι : Type*} {π : ι → Type*}
 
 section has_smul
 variables (𝕜) [ordered_semiring 𝕜] [add_comm_monoid E] [has_smul 𝕜 E]
@@ -182,16 +182,16 @@ begin
   ext,
   refine (and_congr_right $ λ hx, ⟨λ h, _, λ h, _⟩).trans (and_and_and_comm _ _ _ _),
   split,
-  { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
+  { rintro x₁ hx₁ x₂ hx₂ hx_fst,
     refine (h (mk_mem_prod hx₁ hx.2) (mk_mem_prod hx₂ hx.2) _).imp
       (congr_arg prod.fst) (congr_arg prod.fst),
-    refine ⟨a, b, ha, hb, hab, prod.ext hx' _⟩,
-    simp_rw [prod.smul_mk, prod.mk_add_mk, convex.combo_self hab] },
-  { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
+    rw ←prod.image_mk_open_segment_left,
+    exact ⟨_, hx_fst, prod.mk.eta⟩ },
+  { rintro x₁ hx₁ x₂ hx₂ hx_snd,
     refine (h (mk_mem_prod hx.1 hx₁) (mk_mem_prod hx.1 hx₂) _).imp
       (congr_arg prod.snd) (congr_arg prod.snd),
-    refine ⟨a, b, ha, hb, hab, prod.ext _ hx'⟩,
-    simp_rw [prod.smul_mk, prod.mk_add_mk, convex.combo_self hab] },
+    rw ←prod.image_mk_open_segment_right,
+    exact ⟨_, hx_snd, prod.mk.eta⟩ },
   { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
     simp_rw prod.ext_iff,
     exact (and_and_and_comm _ _ _ _).1

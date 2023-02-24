@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
 import deprecated.subring
-import algebra.group_with_zero.power
 
 /-!
 # Unbundled subfields (deprecated)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file is deprecated, and is no longer imported by anything in mathlib other than other
 deprecated files, and test files. You should not need to import it.

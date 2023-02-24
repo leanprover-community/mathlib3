@@ -9,8 +9,11 @@ import tactic.wlog
 /-!
 # Order connected components of a set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `set.ord_connected_component s x` to be the set of `y` such that
-`set.interval x y ⊆ s` and prove some basic facts about this definition. At the moment of writing,
+`set.uIcc x y ⊆ s` and prove some basic facts about this definition. At the moment of writing,
 this construction is used only to prove that any linear order with order topology is a T₅ space,
 so we only add API needed for this lemma.
 -/
@@ -23,7 +26,7 @@ namespace set
 variables {α : Type*} [linear_order α] {s t : set α} {x y z : α}
 
 /-- Order-connected component of a point `x` in a set `s`. It is defined as the set of `y` such that
-`set.interval x y ⊆ s`. Note that it is empty if and only if `x ∉ s`. -/
+`set.uIcc x y ⊆ s`. Note that it is empty if and only if `x ∉ s`. -/
 def ord_connected_component (s : set α) (x : α) : set α := {y | [x, y] ⊆ s}
 
 lemma mem_ord_connected_component : y ∈ ord_connected_component s x ↔ [x, y] ⊆ s := iff.rfl
@@ -31,20 +34,19 @@ lemma mem_ord_connected_component : y ∈ ord_connected_component s x ↔ [x, y]
 lemma dual_ord_connected_component :
   ord_connected_component (of_dual ⁻¹' s) (to_dual x) = of_dual ⁻¹' (ord_connected_component s x) :=
 ext $ to_dual.surjective.forall.2 $ λ x,
-  by { rw [mem_ord_connected_component, dual_interval], refl }
+  by { rw [mem_ord_connected_component, dual_uIcc], refl }
 
-lemma ord_connected_component_subset : ord_connected_component s x ⊆ s :=
-λ y hy, hy right_mem_interval
+lemma ord_connected_component_subset : ord_connected_component s x ⊆ s := λ y hy, hy right_mem_uIcc
 
 lemma subset_ord_connected_component {t} [h : ord_connected s] (hs : x ∈ s) (ht : s ⊆ t) :
   s ⊆ ord_connected_component t x :=
-λ y hy, (h.interval_subset hs hy).trans ht
+λ y hy, (h.uIcc_subset hs hy).trans ht
 
 @[simp] lemma self_mem_ord_connected_component : x ∈ ord_connected_component s x ↔ x ∈ s :=
-by rw [mem_ord_connected_component, interval_self, singleton_subset_iff]
+by rw [mem_ord_connected_component, uIcc_self, singleton_subset_iff]
 
 @[simp] lemma nonempty_ord_connected_component : (ord_connected_component s x).nonempty ↔ x ∈ s :=
-⟨λ ⟨y, hy⟩, hy $ left_mem_interval, λ h, ⟨x, self_mem_ord_connected_component.2 h⟩⟩
+⟨λ ⟨y, hy⟩, hy $ left_mem_uIcc, λ h, ⟨x, self_mem_ord_connected_component.2 h⟩⟩
 
 @[simp] lemma ord_connected_component_eq_empty : ord_connected_component s x = ∅ ↔ x ∉ s :=
 by rw [← not_nonempty_iff_eq_empty, nonempty_ord_connected_component]
@@ -61,11 +63,11 @@ by simp [ord_connected_component, set_of_and]
 
 lemma mem_ord_connected_component_comm :
   y ∈ ord_connected_component s x ↔ x ∈ ord_connected_component s y :=
-by rw [mem_ord_connected_component, mem_ord_connected_component, interval_swap]
+by rw [mem_ord_connected_component, mem_ord_connected_component, uIcc_comm]
 
 lemma mem_ord_connected_component_trans (hxy : y ∈ ord_connected_component s x)
   (hyz : z ∈ ord_connected_component s y) : z ∈ ord_connected_component s x :=
-calc [x, z] ⊆ [x, y] ∪ [y, z] : interval_subset_interval_union_interval
+calc [x, z] ⊆ [x, y] ∪ [y, z] : uIcc_subset_uIcc_union_uIcc
 ... ⊆ s : union_subset hxy hyz
 
 lemma ord_connected_component_eq (h : [x, y] ⊆ s) :
@@ -74,7 +76,7 @@ ext $ λ z, ⟨mem_ord_connected_component_trans (mem_ord_connected_component_co
   mem_ord_connected_component_trans h⟩
 
 instance : ord_connected (ord_connected_component s x) :=
-ord_connected_of_interval_subset_left $ λ y hy z hz, (interval_subset_interval_left hz).trans hy
+ord_connected_of_uIcc_subset_left $ λ y hy z hz, (uIcc_subset_uIcc_left hz).trans hy
 
 /-- Projection from `s : set α` to `α` sending each order connected component of `s` to a single
 point of this component. -/
@@ -120,7 +122,7 @@ end
 lemma ord_connected_section_subset : ord_connected_section s ⊆ s :=
 range_subset_iff.2 $ λ x, ord_connected_component_subset $ nonempty.some_mem _
 
-lemma eq_of_mem_ord_connected_section_of_interval_subset (hx : x ∈ ord_connected_section s)
+lemma eq_of_mem_ord_connected_section_of_uIcc_subset (hx : x ∈ ord_connected_section s)
   (hy : y ∈ ord_connected_section s) (h : [x, y] ⊆ s) : x = y :=
 begin
   rcases hx with ⟨x, rfl⟩, rcases hy with ⟨y, rfl⟩,
@@ -163,29 +165,29 @@ begin
   rcases mem_Union₂.1 hx₁ with ⟨a, has, ha⟩, clear hx₁,
   rcases mem_Union₂.1 hx₂ with ⟨b, hbt, hb⟩, clear hx₂,
   rw [mem_ord_connected_component, subset_inter_iff] at ha hb,
-  wlog hab : a ≤ b := le_total a b using [a b s t, b a t s] tactic.skip,
-  rotate, from λ h₁ h₂ h₃ h₄, this h₂ h₁ h₄ h₃,
+  wlog hab : a ≤ b,
+  { exact this b hbt a has ha hb (le_of_not_le hab) },
   cases ha with ha ha', cases hb with hb hb',
   have hsub : [a, b] ⊆ (ord_separating_set s t).ord_connected_sectionᶜ,
-  { rw [ord_separating_set_comm, interval_swap] at hb',
-    calc [a, b] ⊆ [a, x] ∪ [x, b] : interval_subset_interval_union_interval
+  { rw [ord_separating_set_comm, uIcc_comm] at hb',
+    calc [a, b] ⊆ [a, x] ∪ [x, b] : uIcc_subset_uIcc_union_uIcc
     ... ⊆ (ord_separating_set s t).ord_connected_sectionᶜ : union_subset ha' hb' },
   clear ha' hb',
   cases le_total x a with hxa hax,
-  { exact hb (Icc_subset_interval' ⟨hxa, hab⟩) has },
+  { exact hb (Icc_subset_uIcc' ⟨hxa, hab⟩) has },
   cases le_total b x with hbx hxb,
-  { exact ha (Icc_subset_interval ⟨hab, hbx⟩) hbt },
+  { exact ha (Icc_subset_uIcc ⟨hab, hbx⟩) hbt },
   have : x ∈ ord_separating_set s t,
   { exact ⟨mem_Union₂.2 ⟨a, has, ha⟩, mem_Union₂.2 ⟨b, hbt, hb⟩⟩ },
   lift x to ord_separating_set s t using this,
   suffices : ord_connected_component (ord_separating_set s t) x ⊆ [a, b],
     from hsub (this $ ord_connected_proj_mem_ord_connected_component _ _) (mem_range_self _),
   rintros y (hy : [↑x, y] ⊆ ord_separating_set s t),
-  rw [interval_of_le hab, mem_Icc, ← not_lt, ← not_lt],
+  rw [uIcc_of_le hab, mem_Icc, ← not_lt, ← not_lt],
   exact ⟨λ hya, disjoint_left.1 disjoint_left_ord_separating_set has
-    (hy $ Icc_subset_interval' ⟨hya.le, hax⟩),
+    (hy $ Icc_subset_uIcc' ⟨hya.le, hax⟩),
     λ hyb, disjoint_left.1 disjoint_right_ord_separating_set hbt
-      (hy $ Icc_subset_interval ⟨hxb, hyb.le⟩)⟩
+      (hy $ Icc_subset_uIcc ⟨hxb, hyb.le⟩)⟩
 end
 
 end set

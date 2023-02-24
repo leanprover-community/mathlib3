@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.covariant_and_contravariant
-import algebra.order.monoid.defs
-import algebra.ring.defs
+import algebra.group.basic
+import algebra.order.monoid.lemmas
+import order.lattice
 
 /-!
 # Ordered Subtraction
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves lemmas relating (truncated) subtraction with an order. We provide a class
 `has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ c + b`.

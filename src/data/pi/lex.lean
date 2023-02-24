@@ -6,11 +6,13 @@ Authors: Chris Hughes
 import order.well_founded
 import algebra.group.pi
 import algebra.order.group.defs
-import order.min_max
 
 
 /-!
 # Lexicographic order on Pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the lexicographic order for Pi types. `a` is less than `b` if `a i = b i` for all
 `i` up to some point `k`, and `a k < b k`.
@@ -171,8 +173,11 @@ end⟩
 
 lemma lex.no_max_order' [preorder ι] [Π i, has_lt (β i)] (i : ι) [no_max_order (β i)] :
   no_max_order (lex (Π i, β i)) :=
-⟨λ a, let ⟨b, hb⟩ := exists_gt (a i) in ⟨a.update i b, i,
-  λ j hj, (a.update_noteq hj.ne b).symm, by rwa a.update_same i b⟩⟩
+⟨λ a, begin
+  classical,
+  obtain ⟨b, hb⟩ := exists_gt (a i),
+  exact ⟨a.update i b, i, λ j hj, (a.update_noteq hj.ne b).symm, by rwa a.update_same i b⟩
+end⟩
 
 instance [linear_order ι] [is_well_order ι (<)] [nonempty ι] [Π i, partial_order (β i)]
   [Π i, no_max_order (β i)] :

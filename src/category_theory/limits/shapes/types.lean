@@ -7,6 +7,7 @@ import category_theory.limits.types
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
+import category_theory.concrete_category.basic
 import tactic.elementwise
 
 /-!

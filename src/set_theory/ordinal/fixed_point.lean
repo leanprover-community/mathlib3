@@ -5,9 +5,13 @@ Authors: Violeta Hernández Palacios, Mario Carneiro
 -/
 
 import set_theory.ordinal.arithmetic
+import set_theory.ordinal.exponential
 
 /-!
 # Fixed points of normal functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove various statements about the fixed points of normal ordinal functions. We state them in
 three forms: as statements about type-indexed families of normal functions, as statements about
@@ -344,7 +348,7 @@ begin
   refine funext (λ a, le_antisymm _ (sup_le (λ l, _))),
   { rw sup_le_iff,
     intro n,
-    rw [←list.length_repeat unit.star n, ←list.foldr_const f a],
+    rw [←list.length_replicate n unit.star, ←list.foldr_const f a],
     apply le_sup },
   { rw list.foldr_const f a l,
     exact le_sup _ _ },

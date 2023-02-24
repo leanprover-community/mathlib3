@@ -36,7 +36,7 @@ stalks, such as the Weierstrass preparation theorem.
 
 -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open complex
 
 namespace mdifferentiable
@@ -86,7 +86,7 @@ begin
   -- `f` pulled back by the chart at `p` has a local max at `chart_at E p p`
   have hf'' : is_local_max (norm ∘ f ∘ (chart_at E p).symm) (chart_at E p p),
   { refine filter.eventually_of_mem key₁ (λ z hz, _),
-    refine (hp₀ ((chart_at E p).symm z) hz).trans (_ : ∥f p₀∥ ≤ ∥f _∥),
+    refine (hp₀ ((chart_at E p).symm z) hz).trans (_ : ‖f p₀‖ ≤ ‖f _‖),
     rw [← hp, local_homeomorph.left_inv _ (mem_chart_source E p)] },
   -- so by the maximum principle `f` is equal to `f p` near `p`
   obtain ⟨U, hU, hUf⟩ := (complex.eventually_eq_of_is_local_max_norm hf' hf'').exists_mem,

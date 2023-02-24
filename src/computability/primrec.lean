@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.join
+import logic.equiv.array
 import logic.equiv.list
 import logic.function.iterate
 
@@ -31,17 +31,20 @@ open denumerable encodable function
 
 namespace nat
 
+/-- The non-dependent recursor on naturals. -/
 def elim {C : Sort*} : C → (ℕ → C → C) → ℕ → C := @nat.rec (λ _, C)
 
 @[simp] theorem elim_zero {C} (a f) : @nat.elim C a f 0 = a := rfl
 @[simp] theorem elim_succ {C} (a f n) :
   @nat.elim C a f (succ n) = f n (nat.elim a f n) := rfl
 
+/-- Cases on whether the input is 0 or a successor. -/
 def cases {C : Sort*} (a : C) (f : ℕ → C) : ℕ → C := nat.elim a (λ n _, f n)
 
 @[simp] theorem cases_zero {C} (a f) : @nat.cases C a f 0 = a := rfl
 @[simp] theorem cases_succ {C} (a f n) : @nat.cases C a f (succ n) = f n := rfl
 
+/-- Calls the given function on a pair of entries `n`, encoded via the pairing function. -/
 @[simp, reducible] def unpaired {α} (f : ℕ → ℕ → α) (n : ℕ) : α :=
 f n.unpair.1 n.unpair.2
 
@@ -72,7 +75,7 @@ theorem prec1 {f} (m : ℕ) (hf : primrec f) : primrec (λ n,
    n.elim m (λ y IH, f $ mkpair y IH)) :=
 ((prec (const m) (hf.comp right)).comp
   (zero.pair primrec.id)).of_eq $
-λ n, by simp; dsimp; rw [unpair_mkpair]
+λ n, by simp
 
 theorem cases1 {f} (m : ℕ) (hf : primrec f) : primrec (nat.cases m f) :=
 (prec1 m (hf.comp left)).of_eq $ by simp [cases]
@@ -121,6 +124,7 @@ open nat.primrec
 @[priority 10] instance of_denumerable (α) [denumerable α] : primcodable α :=
 ⟨succ.of_eq $ by simp⟩
 
+/-- Builds a `primcodable` instance from an equivalence to a `primcodable` type. -/
 def of_equiv (α) {β} [primcodable α] (e : β ≃ α) : primcodable β :=
 { prim := (primcodable.prim α).of_eq $ λ n,
     show encode (decode α n) =
@@ -941,13 +945,10 @@ this.to₂.of_eq $ λ l n, begin
   { apply IH }
 end
 
-theorem list_nthd (d : α) : primrec₂ (list.nthd d) :=
+theorem list_nthd (d : α) : primrec₂ (λ l n, list.nthd l n d) :=
 begin
-  suffices : list.nthd d = λ l n, (list.nth l n).get_or_else d,
-  { rw this,
-    exact option_get_or_else.comp₂ list_nth (const _) },
-  funext,
-  exact list.nthd_eq_get_or_else_nth _ _ _
+  simp only [list.nthd_eq_get_or_else_nth],
+  exact option_get_or_else.comp₂ list_nth (const _)
 end
 
 theorem list_inth [inhabited α] : primrec₂ (@list.inth α _) :=
@@ -1021,6 +1022,7 @@ variables {α : Type*} {β : Type*}
 variables [primcodable α] [primcodable β]
 open primrec
 
+/-- A subtype of a primitive recursive predicate is `primcodable`. -/
 def subtype {p : α → Prop} [decidable_pred p]
   (hp : primrec_pred p) : primcodable (subtype p) :=
 ⟨have primrec (λ n, (decode α n).bind (λ a, option.guard p a)),
@@ -1234,7 +1236,8 @@ theorem tail {n f} (hf : @primrec' n f) : @primrec' n.succ (λ v, f v.tail) :=
 (hf.comp _ (λ i, @nth _ i.succ)).of_eq $
 λ v, by rw [← of_fn_nth v.tail]; congr; funext i; simp
 
-def vec {n m} (f : vector ℕ n → vector ℕ m) :=
+/-- A function from vectors to vectors is primitive recursive when all of its projections are. -/
+def vec {n m} (f : vector ℕ n → vector ℕ m) : Prop :=
 ∀ i, primrec' (λ v, (f v).nth i)
 
 protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0

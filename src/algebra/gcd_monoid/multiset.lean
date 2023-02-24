@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.gcd_monoid.basic
-import data.multiset.lattice
+import data.multiset.finset_ops
+import data.multiset.fold
 
 /-!
 # GCD and LCM operations on multisets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -179,8 +183,8 @@ lemma extract_gcd (s : multiset α) (hs : s ≠ 0) :
 begin
   classical,
   by_cases h : ∀ x ∈ s, x = (0 : α),
-  { use repeat 1 s.card,
-    rw [map_repeat, eq_repeat, mul_one, s.gcd_eq_zero_iff.2 h, ←nsmul_singleton, ←gcd_dedup],
+  { use replicate s.card 1,
+    rw [map_replicate, eq_replicate, mul_one, s.gcd_eq_zero_iff.2 h, ←nsmul_singleton, ←gcd_dedup],
     rw [dedup_nsmul (card_pos.2 hs).ne', dedup_singleton, gcd_singleton],
     exact ⟨⟨rfl, h⟩, normalize_one⟩ },
   { choose f hf using @gcd_dvd _ _ _ s,

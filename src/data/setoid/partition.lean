@@ -12,6 +12,9 @@ import order.partition.finpartition
 /-!
 # Equivalence relations: partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file comprises properties of equivalence relations viewed as partitions.
 There are two implementations of partitions here:
 * A collection `c : set (set α)` of sets is a partition of `α` if `∅ ∉ c` and each element `a : α`
@@ -170,7 +173,7 @@ def is_partition (c : set (set α)) :=
 /-- A partition of `α` does not contain the empty set. -/
 lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
   s.nonempty :=
-set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
+set.nonempty_iff_ne_empty.2 $ λ hs0, hc.1 $ hs0 ▸ h
 
 lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
 ⟨empty_not_mem_classes, classes_eqv_classes⟩

@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes, Mantas Bakšys
 -/
 import data.list.basic
-import algebra.order.monoid.with_top
 
 /-!
 # Minimum and maximum of lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -306,7 +308,7 @@ begin
   { contradiction },
   { rw [maximum_cons, foldr, with_bot.coe_max],
     by_cases h : tl = [],
-    { simp [h, -with_top.coe_zero] },
+    { simp [h] },
     { simp [IH h] } }
 end
 

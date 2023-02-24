@@ -19,7 +19,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate real topological_space
+open_locale complex_conjugate real topology
 open filter set
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,
@@ -169,7 +169,7 @@ end
 by simp [arg, zero_le_one]
 
 @[simp] lemma arg_neg_one : arg (-1) = π :=
-by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _ _)]
+by simp [arg, le_refl, not_le.2 (zero_lt_one' ℝ)]
 
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]
@@ -395,7 +395,7 @@ begin
   { convert to_Ioc_mod_mem_Ioc _ real.two_pi_pos _,
     ring },
   convert arg_mul_cos_add_sin_mul_I hr hi using 3,
-  simp [to_Ioc_mod, cos_add_int_mul_two_pi, sin_add_int_mul_two_pi]
+  simp [to_Ioc_mod, cos_sub_int_mul_two_pi, sin_sub_int_mul_two_pi]
 end
 
 lemma arg_cos_add_sin_mul_I_eq_to_Ioc_mod (θ : ℝ) :
@@ -405,7 +405,7 @@ by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_to_Ioc_m
 lemma arg_mul_cos_add_sin_mul_I_sub {r : ℝ} (hr : 0 < r) (θ : ℝ) :
   arg (r * (cos θ + sin θ * I)) - θ = 2 * π * ⌊(π - θ) / (2 * π)⌋ :=
 begin
-  rw [arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod hr, to_Ioc_mod_sub_self, to_Ioc_div_eq_floor,
+  rw [arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod hr, to_Ioc_mod_sub_self, to_Ioc_div_eq_neg_floor,
       zsmul_eq_mul],
   ring_nf
 end

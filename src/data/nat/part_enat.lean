@@ -3,14 +3,16 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import order.well_founded
 import algebra.hom.equiv.basic
 import data.part
-import data.enat.basic
+import data.enat.lattice
 import tactic.norm_num
 
 /-!
 # Natural numbers with infinity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The natural numbers and an extra `top` element `⊤`. This implementation uses `part ℕ` as an
 implementation. Use `ℕ∞` instead unless you care about computability.
@@ -79,7 +81,7 @@ instance : add_comm_monoid part_enat :=
   add_zero  := λ x, part.ext' (and_true _) (λ _ _, add_zero _),
   add_assoc := λ x y z, part.ext' and.assoc (λ _ _, add_assoc _ _ _) }
 
-instance : add_monoid_with_one part_enat :=
+instance : add_comm_monoid_with_one part_enat :=
 { one := 1,
   nat_cast := some,
   nat_cast_zero := rfl,
@@ -220,8 +222,7 @@ begin
   refl,
 end
 
-protected lemma zero_lt_one : (0 : part_enat) < 1 :=
-by { norm_cast, norm_num }
+instance ne_zero.one : ne_zero (1 : part_enat) := ⟨coe_inj.not.mpr dec_trivial⟩
 
 instance semilattice_sup : semilattice_sup part_enat :=
 { sup := (⊔),
@@ -432,8 +433,7 @@ open_locale classical
 
 @[simp] lemma to_with_top_add {x y : part_enat} :
   to_with_top (x + y) = to_with_top x + to_with_top y :=
-by apply part_enat.cases_on y; apply part_enat.cases_on x;
-  simp [-coe_add, ← nat.cast_add, ← enat.coe_add]
+by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← enat.coe_add]
 
 /-- `equiv` between `part_enat` and `ℕ∞` (for the order isomorphism see
 `with_top_order_iso`). -/

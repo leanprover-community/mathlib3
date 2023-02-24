@@ -17,11 +17,13 @@ The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
 * As `L : add_subgroup E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
-  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E`.
+  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `ℝ`.
 
-## Main definitions and results
+## Main results
 * `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
 indeed a fundamental domain of the lattice.
+* `zlattice.dim`: for `L : add_subgroup E` with `L` discrete and spanning `E` over `ℝ`, proves that
+`finrank ℤ L = finrank ℝ E`.
 -/
 
 open_locale classical
@@ -91,13 +93,15 @@ by simp only [zspan.floor_map, zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.
 see `zspan.fract_mem_fundamental_domain`. -/
 def zspan.fract_map : E → E := λ m, m - zspan.floor_map b m
 
+lemma zspan.fract_map_def (m : E) : zspan.fract_map b m = m - zspan.floor_map b m := rfl
+
 @[simp]
 lemma zspan.fract_map_single (m : E) (i : ι):
   b.repr (zspan.fract_map b m) i = int.fract (b.repr m i) :=
 by rw [zspan.fract_map, map_sub, finsupp.coe_sub, pi.sub_apply, zspan.floor_map_single, int.fract]
 
 @[simp]
-lemma zspan.fract_map_zspan_add (m : E) (v : E) (h : v ∈ span ℤ (set.range b)) :
+lemma zspan.fract_map_zspan_add (m : E) {v : E} (h : v ∈ span ℤ (set.range b)) :
   zspan.fract_map b (v + m) = zspan.fract_map b m :=
 begin
   refine (basis.ext_elem_iff b).mpr (λ i, _),
@@ -118,11 +122,11 @@ by simp only [zspan.mem_fundamental_domain, basis.ext_elem_iff b, zspan.fract_ma
   int.fract_fract, eq_self_iff_true, implies_true_iff]
 
 lemma zspan.fract_map_eq_iff (m n : E) :
-zspan.fract_map b m = zspan.fract_map b n ↔ m - n ∈ span ℤ (set.range b) :=
+zspan.fract_map b m = zspan.fract_map b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
-  rw basis.ext_elem_iff b,
-  simp only [int.fract_eq_fract, zspan.mem_span_iff, zspan.fract_map_single, linear_equiv.map_sub,
-  finsupp.coe_sub, pi.sub_apply],
+  rw [eq_comm, basis.ext_elem_iff b],
+  simp only [int.fract_eq_fract, zspan.mem_span_iff, zspan.fract_map_single, sub_eq_neg_add,
+    map_add, linear_equiv.map_neg, finsupp.coe_add, finsupp.coe_neg, pi.add_apply, pi.neg_apply],
 end
 
 lemma zspan.fract_map_le (m : E) :
@@ -143,7 +147,7 @@ end
 
 end fintype
 
-lemma zspan.metric.bounded_fundamental_domain [finite ι] :
+lemma zspan.metric.fundamental_domain_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,
@@ -155,7 +159,7 @@ begin
   linarith,
 end
 
-lemma zspan.measurable.fundamental_domain [measurable_space E] [opens_measurable_space E]
+lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
   [finite ι]:
   measurable_set (zspan.fundamental_domain b) :=
 begin
@@ -171,52 +175,110 @@ begin
       finsupp.linear_equiv_fun_on_finite_apply], },
 end
 
+open subtype
+
+/-- The map `zspan.fract_map` lift to an equiv between `E ⧸ span ℤ (set.range b)`
+and `zspan.fundamental_domain b` . -/
+def zspan.quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (zspan.fundamental_domain b) :=
+begin
+  refine equiv.of_bijective _ _,
+  { refine λ q, quotient.lift_on' q _ _,
+    { exact λ x, ⟨zspan.fract_map b x, zspan.fract_map_mem_fundamental_domain b x⟩, },
+    { exact λ _ _ h, mk_eq_mk.mpr
+        ((zspan.fract_map_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
+  { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
+      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← zspan.fract_map_eq_iff,
+      ← @mk_eq_mk _ (zspan.fundamental_domain b)], }),
+      λ y, ⟨quotient.mk' y, ext_iff.mpr ((zspan.mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
+end
+
+lemma zspan.exist_vadd_mem_fundamental_domain (x : E) [finite ι] :
+  ∃! v : span ℤ (set.range b), v +ᵥ x ∈ zspan.fundamental_domain b :=
+begin
+  casesI nonempty_fintype ι,
+  use (-zspan.floor_map b x),
+  split,
+  { simp_rw [zspan.fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add,
+      add_subgroup_class.coe_neg, neg_add_eq_sub, ← zspan.fract_map_def],
+    simp only [zspan.fract_map_single, int.fract_nonneg, int.fract_lt_one, true_and,
+      set.mem_set_of_eq, implies_true_iff], },
+  { intros y _,
+    rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
+      ← zspan.fract_map_def, ← zspan.fract_map_zspan_add b _ (subtype.mem y), add_comm,
+      ← vadd_eq_add, ← vadd_def, eq_comm, ← zspan.mem_fundamental_domain], },
+end
+
 lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_measurable_space E]
   (μ : measure E) :
   is_add_fundamental_domain (span ℤ (set.range b)).to_add_subgroup
     (zspan.fundamental_domain b) μ :=
-{ null_measurable_set := null_measurable_set (zspan.measurable.fundamental_domain b),
-  ae_covers :=
-  begin
-    casesI nonempty_fintype ι,
-    refine filter.eventually_of_forall (λ x, ⟨- zspan.floor_map b x, _⟩),
-    rw (_ : -zspan.floor_map b x +ᵥ x = zspan.fract_map b x),
-    { exact zspan.fract_map_mem_fundamental_domain b x, },
-    { simp only [vadd_def, zspan.fract_map, add_subgroup_class.coe_neg, neg_add_eq_sub,
-        vadd_eq_add], },
-  end,
-  ae_disjoint :=
-  begin
-    casesI nonempty_fintype ι,
-    refine λ v w hvw, disjoint.ae_disjoint (λ s hsv hsw x hx, _),
-    refine hvw (subtype.ext_iff.mpr ((basis.ext_elem_iff b).mpr (λ i, _))),
-    obtain ⟨a, ⟨ha1, ha2⟩⟩ := hsv hx,
-    obtain ⟨c, ⟨hc1, hc2⟩⟩ := hsw hx,
-    rw (by { simp only [vadd_def, ←eq_sub_iff_add_eq, vadd_eq_add] at ha2, exact ha2, } :
-      (v : E) = x - a),
-    rw (by { simp only [vadd_def, ←eq_sub_iff_add_eq, vadd_eq_add] at hc2, exact hc2, } :
-      (w : E) = x - c),
-    rw ( _ : a = zspan.fract_map b x),
-    { rw ( _ : c = zspan.fract_map b x),
-      convert congr_arg (zspan.fract_map b) hc2,
-      simp only [vadd_def, zspan.fract_map_zspan_add b c w (set_like.coe_mem w),
-        (zspan.mem_fundamental_domain b).mp hc1, vadd_eq_add], },
-    { convert congr_arg (zspan.fract_map b) ha2,
-      simp only [vadd_def, zspan.fract_map_zspan_add b a v (set_like.coe_mem v),
-        (zspan.mem_fundamental_domain b).mp ha1, vadd_eq_add], },
-  end }
+begin
+  casesI nonempty_fintype ι,
+  exact is_add_fundamental_domain.mk'
+    (null_measurable_set (zspan.fundamental_domain_measurable b))
+    (λ x, zspan.exist_vadd_mem_fundamental_domain b x),
+end
 
-end fundamental_domain
+end zspan
 
-section lattice_basic
+#lint
+
+
+#exit
+
+section zlattice
+
+open submodule
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables [finite_dimensional ℝ E] {L : submodule ℤ E}
+variables [finite_dimensional ℝ E] {L : add_subgroup E}
+variables (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
+variables (hs : span ℝ (L : set E) = ⊤)
 
-lemma zlattice.fg (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-  (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
+include hd hs
+
+lemma zlattice.fg : add_subgroup.fg L :=
 begin
-  obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
+  suffices : L.to_int_submodule.fg,
+  { rwa [fg_iff_add_subgroup_fg, add_subgroup.to_int_submodule_to_add_subgroup] at this, },
+  obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L.to_int_submodule : set E),
+-- Let `s` be maximal ℝ-linear independent family of elements of `L`. We show that
+-- `L` is finitely generated (as a ℤ-module) because its fits in the exact sequence
+-- `0 → L ∩ ker (span ℤ s) → L → L / ker (span ℤ s) → 0`
+-- with `L ∩ ker (span ℤ s)` and `L / ker (span ℤ s)` finitely generated.
+  refine fg_of_fg_map_of_fg_inf_ker (mkq (span ℤ s)) _ _,
+  { rw submodule.fg_def,
+    use (map (span ℤ s).mkq (add_subgroup.to_int_submodule L)),
+    split,
+    { haveI : fintype s := sorry,
+      let b := basis.mk h3 (by
+        simp only [h2, hs, subtype.range_coe, add_subgroup.coe_to_int_submodule, top_le_iff]),
+      rw (_ : submodule.span ℤ s = submodule.span ℤ (set.range b)),
+-- Elements of `L / ker (span ℤ s)` are in bijection with element of `L ∩ fundamental_domain s`
+-- so there are finitely many since `fundamental_domain s` is bounded.
+      refine @set.finite.of_finite_image _ _ _ ((coe : _ → E) ∘ (zspan.quo_fract_equiv b)) _ _,
+      { obtain ⟨C, hC⟩ := metric.bounded.subset_ball (zspan.metric.bounded_fundamental_domain b) 0,
+
+
+    --    refine set.finite.subset (hd (finset.univ.sum (λ j, ‖b j‖))) _,
+        refine set.finite.subset (hd C) _,
+        rintros _ ⟨_, ⟨⟨x, ⟨hx, rfl⟩⟩, rfl⟩⟩,
+        split,
+        { simp *,
+          sorry, },
+        { simp only [mkq_apply, function.comp_app, mem_closed_ball_zero_iff],
+          exact mem_closed_ball_zero_iff.mp (hC (zspan.fract_map_mem_fundamental_domain b x)), },
+      },
+      sorry,
+      sorry, },
+    { exact submodule.span_eq _, }},
+-- `L ∩ ker (span ℤ s)` is finitely generated because `s` is finite.
+  { rw [submodule.ker_mkq (submodule.span ℤ s), inf_of_le_right (submodule.span_le.mpr h1)],
+    exact submodule.fg_span (linear_independent.finite h3), }
+end
+
+#exit
+
   haveI : fintype s,
   { suffices : s.finite,
     { exact set.finite.fintype this, },
@@ -265,6 +327,10 @@ begin
     rw this,
     exact submodule.fg_span (linear_independent.finite h3), },
 end
+
+#exit
+
+--- Add a result that `L` is a free ℤ-module
 
 /-- A basis of the lattice `L`.-/
 def zlattice.basis [no_zero_smul_divisors ℤ E]
@@ -448,4 +514,4 @@ begin
     rwa ← this, },
 end
 
-end lattice_basic
+end zlattice

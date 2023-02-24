@@ -121,7 +121,7 @@ lemma smooth_fibrewise_linear.locality_aux₁ (e : local_homeomorph (B × F) (B 
       (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on) :=
 begin
   rw set_coe.forall' at h,
-  choose! s hs hsp φ u hu hφ h2φ heφ using h,
+  choose s hs hsp φ u hu hφ h2φ heφ using h,
   have hesu : ∀ p : e.source, e.source ∩ s p = u p ×ˢ univ,
   { intros p,
     rw ← e.restr_source' (s _) (hs _),
@@ -139,16 +139,13 @@ begin
   { apply has_subset.subset.antisymm,
     { intros p hp,
       exact ⟨⟨p, hp, rfl⟩, trivial⟩ },
-    { rintros ⟨x, v⟩ ⟨⟨p, hp : p ∈ e.source, rfl : p.fst = x⟩, -⟩,
+    { rintros ⟨x, v⟩ ⟨⟨p, hp, rfl : p.fst = x⟩, -⟩,
       exact heu ⟨p, hp⟩ (p.fst, v) (hu' ⟨p, hp⟩) } },
   refine ⟨prod.fst '' e.source, he, _⟩,
   rintros x ⟨p, hp, rfl⟩,
   refine ⟨φ ⟨p, hp⟩, u ⟨p, hp⟩, hu ⟨p, hp⟩, _, hu' _, hφ ⟨p, hp⟩, h2φ ⟨p, hp⟩, _⟩,
-  { intros y hy,
-    refine ⟨(y, 0), heu ⟨p, hp⟩ _ _, rfl⟩,
-    exact hy },
-  { rw [← hesu, e.restr_source_inter],
-    exact heφ ⟨p, hp⟩ },
+  { intros y hy, refine ⟨(y, 0), heu ⟨p, hp⟩ ⟨_, _⟩ hy, rfl⟩ },
+  { rw [← hesu, e.restr_source_inter], exact heφ ⟨p, hp⟩ },
 end
 
 /-- Let `e` be a local homeomorphism of `B × F` whose source is `U ×ˢ univ`, for some set `U` in
@@ -158,7 +155,10 @@ some bi-smooth fibrewise linear local homeomorphism.
 
 This is the key mathematical point of the `locality` condition in the construction of the
 `structure_groupoid` of bi-smooth fibrewise linear local homeomorphisms.  The proof is by gluing
-together the various bi-smooth fibrewise linear local homeomorphism which exist locally. -/
+together the various bi-smooth fibrewise linear local homeomorphism which exist locally.
+
+The `U` in the conclusion is the same `U` as in the hypothesis. We state it like this, because this
+is exactly what we need for `smooth_fiberwise_linear`. -/
 lemma smooth_fibrewise_linear.locality_aux₂ (e : local_homeomorph (B × F) (B × F))
   (U : set B) (hU : e.source = U ×ˢ univ)
   (h : ∀ x ∈ U, ∃ (φ : B → (F ≃L[𝕜] F)) (u : set B) (hu : is_open u) (hUu : u ⊆ U) (hux : x ∈ u)
@@ -217,10 +217,11 @@ begin
     rw hΦφ ⟨x, hx⟩ y hy },
   refine ⟨Φ, U, hU', hΦ, h2Φ, hU, λ p hp, _⟩,
   rw [hU] at hp,
-  rw heuφ ⟨p.fst, hp.1⟩ ⟨hux _, hp.2⟩,
+  -- using rw on the next line seems to cause a timeout in kernel type-checking
+  refine (heuφ ⟨p.fst, hp.1⟩ ⟨hux _, hp.2⟩).trans _,
   congrm (_, _),
   rw hΦφ,
-  apply hux,
+  apply hux
 end
 
 variables (F B IB)

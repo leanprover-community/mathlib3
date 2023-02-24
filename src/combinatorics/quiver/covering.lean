@@ -312,12 +312,14 @@ end has_involutive_reverse
 
 section covering_maps
 
+/-- TODO : Move where it belongs -/
 lemma _root_.prefunctor.map_cast (φ : U ⥤q W) {u₁ u₂ v₁ v₂ : U} (hu : u₁ = u₂) (hv : v₁ = v₂)
   (e : u₁ ⟶ v₁) :
   φ.map (hom.cast hu hv e) = (hom.cast (congr_arg φ.obj hu) (congr_arg φ.obj hv) (φ.map e)) :=
 by cases hu; cases hv; refl
 
-lemma eq_star_of_eq {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
+lemma prefunctor.is_covering.eq_star_of_eq
+  {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
   {u u' : U} (e : u ⟶ u') (hu : θ₁.obj u = θ₂.obj u) :
   ∃ hu' : θ₁.obj u' = θ₂.obj u', hom.cast hu hu' (θ₁.map e) = θ₂.map e :=
 begin
@@ -332,7 +334,8 @@ begin
   exact ⟨hu', he'⟩,
 end
 
-lemma eq_costar_of_eq {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
+lemma prefunctor.is_covering.eq_costar_of_eq
+  {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
   {u u' : U} (e : u' ⟶ u) (hu : θ₁.obj u = θ₂.obj u) :
   ∃ hu' : θ₁.obj u' = θ₂.obj u', hom.cast hu' hu (θ₁.map e) = θ₂.map e :=
 begin
@@ -347,7 +350,19 @@ begin
   exact ⟨hu', he'⟩,
 end
 
-lemma eq_of_eq_of_path {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V}
+lemma prefunctor.is_covering.eq_of_eq_obj
+  {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V}
+  (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ) (hθobj : θ₁.obj = θ₂.obj) : θ₁ = θ₂ :=
+begin
+  fapply prefunctor.ext,
+  { rintro x, exact congr_fun hθobj x, },
+  { rintro x y e,
+    obtain ⟨hy,he⟩ := ψc.eq_star_of_eq hθ e (congr_fun hθobj x),
+    sorry, },
+end
+
+lemma prefunctor.is_covering.eq_of_eq_of_path
+  {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V}
   (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ) {u u' : U}
   (p : path (symmetrify.of.obj u) (symmetrify.of.obj u')) :
   θ₁.obj u = θ₂.obj u → θ₁.obj u' = θ₂.obj u' :=
@@ -358,13 +373,26 @@ begin
   { exact id, },
   { rintro hu,
     obtain (f|g) := e,
-    { exact (eq_star_of_eq ψc hθ f $ ih hu).some, },
-    { exact (eq_costar_of_eq ψc hθ g $ ih hu).some, }, },
+    { exact (ψc.eq_star_of_eq hθ f $ ih hu).some, },
+    { exact (ψc.eq_costar_of_eq hθ g $ ih hu).some, }, },
 end
 
-structure covering_iso (φ : U ⥤q W) (ψ : V ⥤q W) extends iso U V :=
+lemma prefunctor.is_covering.eq_of_eq_of_preconnected
+  {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V}
+  (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
+  (p : is_preconnected (quiver.symmetrify U)) {u : U} (hu : θ₁.obj u = θ₂.obj u) : θ₁ = θ₂ :=
+begin
+  apply ψc.eq_of_eq_obj hθ,
+  ext u',
+  apply ψc.eq_of_eq_of_path hθ (p u u').some hu,
+end
+
+@[ext] structure covering_iso (φ : U ⥤q W) (ψ : V ⥤q W) extends iso U V :=
 (commute_left : to_prefunctor ⋙q ψ = φ)
 (commute_right : inv_prefunctor ⋙q φ = ψ) -- `commute_right` should follow from `commute_left`
+
+instance (φ : U ⥤q W) (ψ : V ⥤q W) : has_coe (covering_iso φ ψ) (iso U V) :=
+⟨covering_iso.to_iso⟩
 
 infix ` ≃qc `:60 := covering_iso
 

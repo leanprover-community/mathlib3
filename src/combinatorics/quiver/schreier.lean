@@ -8,18 +8,7 @@ import group_theory.coset
 import group_theory.quotient_group
 import group_theory.group_action.quotient
 import combinatorics.quiver.iso
-/-!
 
-## TODO
-
-* When are two automorphisms of a schreier graph (of a group action) equal ?
-* Same when the quiver is preconnected (let's only care about the preconnected case)
-* Same for Cayley graphs (this is exactly when they agree on vertices and on stars)
-
-* When is an automorphism of a schreier_graph for a normal subgroup given by a group element
-  i.e. as `as_autom` ?
-
--/
 
 universes u v w
 
@@ -97,6 +86,8 @@ begin
     exact ⟨⟨(ι x) ⁻¹ • u, ⟨x, by simp⟩⟩, by simp⟩, },
 end
 
+notation `𝑨c` := action_graph_labelling_is_covering
+
 /-
 The sorry should be easy but would benefit from infrastructure:
 * `symmetrify (single_obj α)` is isomorphic to `single_obj (α ⊕ α)`
@@ -156,25 +147,25 @@ lemma action_graph.reachable_iff (x y : action_graph V ι) :
   ∃ g ∈ (subgroup.closure $ set.range ι), g • x = y := sorry
 
 /--
-The three lemmas below hold for morphisms of covering in general probably.
-
+Given a pretransitive action, and assuming `set.range ι` generates the group,
+any automorphism is uniquely determined by where it sends one vertex.
+Barring those two conditions, the statement would be that the choice of image of a vertex determines
+the automorphism on the weakly connected component of the vertex.
 -/
-
-/-- Automorphisms are rigid on stars. -/
-lemma eq_on_star_of_eq_at (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V) (hv₀ : φ.obj v₀ = ψ.obj v₀) :
-  φ.to_iso.to_prefunctor.star v₀ = by { rw hv₀, exact (ψ.to_iso.to_prefunctor.star v₀), } := sorry
-
-/-- Automorphisms are rigid on stars. -/
-lemma eq_on_path_star_of_eq_at (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V) (hv₀ : φ.obj v₀ = ψ.obj v₀) :
-  φ.to_iso.to_prefunctor.path_star v₀ = by { rw hv₀, exact (ψ.to_iso.to_prefunctor.path_star v₀), } := sorry
-
-/-- Automorphisms are rigid on "weakly connected" components -/
-lemma eq_on_of_eq_at (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V) (hv₀ : φ.obj v₀ = ψ.obj v₀)
-  (v : V) (hr : nonempty (path (symmetrify.of.obj $ (equiv_action_graph v₀ : action_graph V ι)) (symmetrify.of.obj $ equiv_action_graph v))) : φ.obj v = ψ.obj v := sorry
-
--- By `eq_on_of_eq_at` and `eq_on_star_of_eq_at` (or maybe `eq_on_path_star_of_eq_at`).
 lemma eq_of_eq_on  (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V)
-  (h : subgroup.closure (set.range ι) = (⊤ : subgroup M)) : φ = ψ := sorry
+  (ha : mul_action.is_pretransitive M V)
+  (hv₀ : φ.to_prefunctor.obj v₀ = ψ.to_prefunctor.obj v₀)
+  (h : subgroup.closure (set.range ι) = (⊤ : subgroup M)) : φ = ψ :=
+begin
+  ext,
+  swap,
+  { rintro v,
+    refine (𝑨c V ι).eq_of_eq_of_path (φ.commute_left.trans ψ.commute_left.symm) (nonempty.some _) hv₀,
+    rw [action_graph.reachable_iff, h],
+    simp only [subgroup.mem_top, exists_true_left],
+    exact ha.exists_smul_eq v₀ v, },
+  { simp, sorry, },
+end
 
 section schreier_graph
 
@@ -249,7 +240,7 @@ begin
 end
 
 def covering_iso_lol (v₀ : V) : action_graph_labelling (mul_action.orbit M v₀) ι ≃qc
-                                schreier_graph_labelling ι (mul_action.stabilizer M v₀) := sorry
+                                𝑺l ι (mul_action.stabilizer M v₀) := sorry
 
 
 section automs
@@ -268,7 +259,7 @@ include Nn
     end⟩ }
 
 lemma as_autom_labelling (g : M) :
-  as_autom ι g ⋙q schreier_graph_labelling ι N = schreier_graph_labelling ι N :=
+  as_autom ι g ⋙q 𝑺l ι N = 𝑺l ι N :=
 begin
   dsimp only [as_autom, action_graph_labelling],
   fapply prefunctor.ext,
@@ -320,9 +311,18 @@ begin
       sorry, }, },
 end
 
-lemma exists_as_autom_iff  {φ ψ : 𝑺 ι N ⥤q 𝑺 ι N}
-  (φψ : φ ⋙q ψ = 𝟭q _) (ψφ : ψ ⋙q φ = 𝟭q _) (φc : φ ⋙q 𝑺l ι N = 𝑺l ι N) :
-  ∃ g, as_autom ι g = φ ↔ sorry := sorry
+lemma exists_as_autom {φ ψ : 𝑺 ι N ⥤q 𝑺 ι N} {g : M}
+  (φψ : φ ⋙q ψ = 𝟭q _) (ψφ : ψ ⋙q φ = 𝟭q _) (φc : φ ⋙q 𝑺l ι N = 𝑺l ι N)
+  (h : subgroup.closure (set.range ι) = (⊤ : subgroup M))
+  (hv : φ.obj (1 : M ⧸ N) = quotient_group.mk g) : φ = as_autom ι (g⁻¹) :=
+begin
+  sorry,
+  /-
+  φ 1 = ⟦g⟧ = ⟦1⟧ * ⟦g⁻¹ ⁻¹⟧ = (as_autom g⁻¹) 1
+  If φ x = as_autom x and `x ⟶ ι s • x`, then
+  `φ (ι s • x) = ι s • (φ x) = ι s • (as_autom g⁻¹ x) = as_autom g⁻¹ (ι s • x)`
+  -/
+end
 
 
 end automs
@@ -344,11 +344,8 @@ namespace cayley_graph
 variables {N : subgroup M} [Nn : N.normal]
 include Nn
 
-def cayley_eq_schreier :
-  iso (cayley_graph $ (quotient_group.mk : M → M ⧸ N) ∘ ι) (schreier_graph ι N) :=
+def cayley_iso_schreier : 𝑪l ((quotient_group.mk : M → M ⧸ N) ∘ ι) ≃qc (𝑺l ι N) := sorry
 
--- the isomorphism `cayley_eq_schreier` preserves labelling.
-lemma cayley_eq_schreier_labelling := sorry
 
 end cayley_graph
 

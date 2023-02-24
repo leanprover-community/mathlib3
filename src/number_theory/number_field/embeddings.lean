@@ -402,7 +402,6 @@ lemma mk_complex.filter (w : { w : infinite_place K // w.is_complex }) :
         complex_embedding.is_real_conjugate_iff.not.2 (is_complex_iff.1 w.2)⟩ } :=
 begin
   ext φ,
-  have := mk_complex_embedding K φ,
   simp_rw [finset.mem_filter, subtype.val_eq_coe, finset.mem_insert, finset.mem_singleton,
     @subtype.ext_iff_val (infinite_place K), @subtype.ext_iff_val (K →+* ℂ), @eq_comm _ φ.val,
     ← mk_eq_iff, mk_embedding, @eq_comm _ _ w.val],

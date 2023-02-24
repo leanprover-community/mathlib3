@@ -3,8 +3,10 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.specific_limits.basic
 import topology.urysohns_lemma
 import topology.continuous_function.bounded
+import topology.uniform_space.cauchy
 
 /-!
 # Metrizability of a T₃ topological space with second countable topology
@@ -19,7 +21,7 @@ space structure.
 -/
 
 open set filter metric
-open_locale bounded_continuous_function filter topological_space
+open_locale bounded_continuous_function filter topology
 
 namespace topological_space
 
@@ -60,6 +62,16 @@ lemma _root_.inducing.pseudo_metrizable_space [pseudo_metrizable_space Y] {f : X
 begin
   letI : pseudo_metric_space Y := pseudo_metrizable_space_pseudo_metric Y,
   exact ⟨⟨hf.comap_pseudo_metric_space, rfl⟩⟩
+end
+
+/-- Every pseudo-metrizable space is first countable. -/
+@[priority 100]
+instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space X] :
+  topological_space.first_countable_topology X :=
+begin
+  unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm },
+  exact @uniform_space.first_countable_topology X pseudo_metric_space.to_uniform_space
+    emetric.uniformity.filter.is_countably_generated,
 end
 
 instance pseudo_metrizable_space.subtype [pseudo_metrizable_space X]
@@ -136,9 +148,8 @@ begin
   -- We don't have the space of bounded (possibly discontinuous) functions, so we equip `s`
   -- with the discrete topology and deal with `s →ᵇ ℝ` instead.
   letI : topological_space s := ⊥, haveI : discrete_topology s := ⟨rfl⟩,
-  suffices : ∃ f : X → (s →ᵇ ℝ), embedding f,
-  { rcases this with ⟨f, hf⟩,
-    exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend
+  rsuffices ⟨f, hf⟩ : ∃ f : X → (s →ᵇ ℝ), embedding f,
+  { exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend
       (encodable.encode' s) (0 : ℕ →ᵇ ℝ)).embedding.comp hf⟩ },
   have hd : ∀ UV : s, disjoint (closure UV.1.1) (UV.1.2ᶜ) :=
     λ UV, disjoint_compl_right.mono_right (compl_subset_compl.2 UV.2.2),

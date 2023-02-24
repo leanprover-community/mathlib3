@@ -10,6 +10,9 @@ import deprecated.group
 /-!
 # Unbundled submonoids (deprecated)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is deprecated, and is no longer imported by anything in mathlib other than other
 deprecated files, and test files. You should not need to import it.
 
@@ -320,7 +323,7 @@ end monoid
 
 /-- Create a bundled submonoid from a set `s` and `[is_submonoid s]`. -/
 @[to_additive "Create a bundled additive submonoid from a set `s` and `[is_add_submonoid s]`."]
-def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, h.2, h.1⟩
+def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, λ _ _, h.2, h.1⟩
 
 @[to_additive]
-lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.3, S.2⟩
+lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.3, λ _ _, S.2⟩

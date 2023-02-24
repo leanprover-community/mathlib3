@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 
 import probability.ident_distrib
-import measure_theory.function.l2_space
 import measure_theory.integral.interval_integral
 import analysis.specific_limits.floor_pow
 import analysis.p_series
@@ -55,7 +54,7 @@ noncomputable theory
 open measure_theory filter finset asymptotics
 open set (indicator)
 
-open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
+open_locale topology big_operators measure_theory probability_theory ennreal nnreal
 
 namespace probability_theory
 
@@ -481,7 +480,7 @@ begin
         apply sum_le_sum (λ j hj, _),
         refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 (sq_nonneg _)),
         rw (hident j).truncation.variance_eq,
-        exact variance_le_expectation_sq,
+        exact variance_le_expectation_sq (hX 0).truncation,
       end
       ... ≤ 2 * 𝔼[X 0] : sum_variance_truncation_le hint (hnonneg 0) K },
   let C := (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]),
@@ -497,7 +496,7 @@ begin
         { assume j hj,
           exact (hident j).ae_strongly_measurable_fst.mem_ℒp_truncation },
         { assume k hk l hl hkl,
-          exact (hindep k l hkl).comp (A k).measurable (A l).measurable }
+          exact (hindep hkl).comp (A k).measurable (A l).measurable }
       end
     ... = ∑ j in range (u (N - 1)),
             (∑ i in (range N).filter (λ i, j < u i), ((u i : ℝ) ^ 2) ⁻¹) * Var[Y j] :
@@ -718,11 +717,11 @@ begin
   have negm : measurable neg := measurable_id'.neg.max measurable_const,
   have A : ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range n, (pos ∘ (X i)) ω) / n)
     at_top (𝓝 (𝔼[pos ∘ (X 0)])) :=
-      strong_law_aux7 _ hint.pos_part (λ i j hij, (hindep i j hij).comp posm posm)
+      strong_law_aux7 _ hint.pos_part (λ i j hij, (hindep hij).comp posm posm)
         (λ i, (hident i).comp posm) (λ i ω, le_max_right _ _),
   have B : ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range n, (neg ∘ (X i)) ω) / n)
     at_top (𝓝 (𝔼[neg ∘ (X 0)])) :=
-      strong_law_aux7 _ hint.neg_part (λ i j hij, (hindep i j hij).comp negm negm)
+      strong_law_aux7 _ hint.neg_part (λ i j hij, (hindep hij).comp negm negm)
         (λ i, (hident i).comp negm) (λ i ω, le_max_right _ _),
   filter_upwards [A, B] with ω hωpos hωneg,
   convert hωpos.sub hωneg,

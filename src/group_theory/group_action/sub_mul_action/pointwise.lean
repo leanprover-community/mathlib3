@@ -9,10 +9,13 @@ import group_theory.group_action.sub_mul_action
 /-!
 # Pointwise monoid structures on sub_mul_action
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `sub_mul_action.monoid` and weaker typeclasses, which show that `sub_mul_action`s
 inherit the same pointwise multiplications as sets.
 
-To match `submodule.semiring`, we do not put these in the `pointwise` locale.
+To match `submodule.idem_semiring`, we do not put these in the `pointwise` locale.
 
 -/
 

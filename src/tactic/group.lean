@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import tactic.ring
 import tactic.doc_commands
+import algebra.group.commutator
 
 /-!
 # `group`
@@ -49,7 +50,7 @@ open tactic.simp_arg_type interactive tactic.group
 
 /-- Auxiliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
-  simp_core {} skip tt [
+simp_core { fail_if_unchanged := ff } skip tt [
   expr ``(commutator_element_def),
   expr ``(mul_one),
   expr ``(one_mul),
@@ -113,7 +114,7 @@ end
 -/
 meta def group (locat : parse location) : tactic unit :=
 do when locat.include_goal `[rw ← mul_inv_eq_one],
-   try (aux_group₁ locat),
+   aux_group₁ locat,
    repeat (aux_group₂ locat ; aux_group₁ locat)
 
 end tactic.interactive

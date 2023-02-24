@@ -449,6 +449,18 @@ begin
   { exact is_empty_elim R }
 end
 
+@[simp] lemma realize_relabel_equiv {g : α ≃ β} {k} {φ : L.bounded_formula α k}
+  {v : β → M} {xs : fin k → M} :
+  (relabel_equiv g φ).realize v xs ↔ φ.realize (v ∘ g) xs :=
+begin
+  simp only [relabel_equiv, map_term_rel_equiv_apply, equiv.coe_refl],
+  refine realize_map_term_rel_id (λ n t xs, _) (λ _ _ _, rfl),
+  simp only [relabel_equiv_apply, term.realize_relabel],
+  refine congr (congr rfl _) rfl,
+  ext (i | i);
+  refl,
+end
+
 variables [nonempty M]
 
 lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
@@ -652,11 +664,44 @@ variable (M)
 def sentence.realize (φ : L.sentence) : Prop :=
 φ.realize (default : _ → M)
 
-infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := sentence.realize) ` ⊨ `:51 := sentence.realize
 
 @[simp] lemma sentence.realize_not {φ : L.sentence} :
   M ⊨ φ.not ↔ ¬ M ⊨ φ :=
 iff.rfl
+
+namespace formula
+
+@[simp] lemma realize_equiv_sentence_symm_con
+  [L[[α]].Structure M] [(L.Lhom_with_constants α).is_expansion_on M]
+  (φ : L[[α]].sentence) :
+  (equiv_sentence.symm φ).realize (λ a, (L.con a : M)) ↔ φ.realize M :=
+begin
+  simp only [equiv_sentence, equiv.symm_symm, equiv.coe_trans, realize,
+    bounded_formula.realize_relabel_equiv],
+  refine trans _ bounded_formula.realize_constants_vars_equiv,
+  congr' with (i | i),
+  { refl },
+  { exact i.elim }
+end
+
+@[simp] lemma realize_equiv_sentence
+  [L[[α]].Structure M] [(L.Lhom_with_constants α).is_expansion_on M]
+  (φ : L.formula α) :
+  (equiv_sentence φ).realize M ↔ φ.realize (λ a, (L.con a : M)) :=
+by rw [← realize_equiv_sentence_symm_con M (equiv_sentence φ),
+    _root_.equiv.symm_apply_apply]
+
+lemma realize_equiv_sentence_symm (φ : L[[α]].sentence) (v : α → M) :
+  (equiv_sentence.symm φ).realize v ↔ @sentence.realize _ M
+    (@language.with_constants_Structure L M _ α (constants_on.Structure v)) φ :=
+begin
+  letI := constants_on.Structure v,
+  exact realize_equiv_sentence_symm_con M φ,
+end
+
+end formula
 
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
@@ -673,8 +718,8 @@ variable (N)
 /-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
 def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
 
-localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementarily_equivalent L A B"
-  in first_order
+localized "notation (name := elementarily_equivalent) A ` ≅[`:25 L `] ` B:50 :=
+  first_order.language.elementarily_equivalent L A B" in first_order
 
 variables {L} {M} {N}
 
@@ -689,7 +734,8 @@ variables (M)
 class Theory.model (T : L.Theory) : Prop :=
 (realize_of_mem : ∀ φ ∈ T, M ⊨ φ)
 
-infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := Theory.model) ` ⊨ `:51 := Theory.model
 
 variables {M} (T : L.Theory)
 
@@ -717,7 +763,7 @@ lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
   M ⊨ T ∪ T' :=
 begin
-  simp only [model_iff, set.mem_union_eq] at *,
+  simp only [model_iff, set.mem_union] at *,
   exact λ φ hφ, hφ.elim (h _) (h' _),
 end
 
@@ -732,6 +778,9 @@ by simp
 theorem model_iff_subset_complete_theory :
   M ⊨ T ↔ T ⊆ L.complete_theory M :=
 T.model_iff
+
+theorem complete_theory.subset [MT : M ⊨ T] : T ⊆ L.complete_theory M :=
+model_iff_subset_complete_theory.1 MT
 
 end Theory
 
@@ -927,14 +976,14 @@ lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : se
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
   simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
-    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+    set.mem_inter, set.mem_prod, set.mem_compl, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
-    have h' := h _ a b as bs ab rfl,
+    have h' := h _ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants] at h',
     exact h', },
-  { rintros h φ a b as bs ab rfl,
+  { rintros h φ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants],
     exact λ contra, ab (h as bs contra) }
@@ -976,7 +1025,6 @@ lemma infinite_iff (h : M ≅[L] N) : infinite M ↔ infinite N :=
 lemma infinite [Mi : infinite M] (h : M ≅[L] N) : infinite N := h.infinite_iff.1 Mi
 
 end elementarily_equivalent
-
 
 end language
 end first_order

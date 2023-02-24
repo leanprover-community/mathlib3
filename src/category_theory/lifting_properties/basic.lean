@@ -8,6 +8,9 @@ import category_theory.comm_sq
 /-!
 # Lifting properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the lifting property of two morphisms in a category and
 shows basic properties of this notion.
 
@@ -103,6 +106,26 @@ instance of_comp_right [has_lifting_property i p] [has_lifting_property i p'] :
       fac_left' := by simp only [comm_sq.fac_left],
       fac_right' := by simp only [comm_sq.fac_right_assoc, comm_sq.fac_right], },
 end⟩
+
+lemma of_arrow_iso_left {A B A' B' X Y : C} {i : A ⟶ B} {i' : A' ⟶ B'}
+  (e : arrow.mk i ≅ arrow.mk i') (p : X ⟶ Y)
+  [hip : has_lifting_property i p] : has_lifting_property i' p :=
+by { rw arrow.iso_w' e, apply_instance, }
+
+lemma of_arrow_iso_right {A B X Y X' Y' : C} (i : A ⟶ B) {p : X ⟶ Y} {p' : X' ⟶ Y'}
+  (e : arrow.mk p ≅ arrow.mk p')
+  [hip : has_lifting_property i p] : has_lifting_property i p' :=
+by { rw arrow.iso_w' e, apply_instance, }
+
+lemma iff_of_arrow_iso_left {A B A' B' X Y : C} {i : A ⟶ B} {i' : A' ⟶ B'}
+  (e : arrow.mk i ≅ arrow.mk i') (p : X ⟶ Y) :
+  has_lifting_property i p ↔ has_lifting_property i' p :=
+by { split; introI, exacts [of_arrow_iso_left e p, of_arrow_iso_left e.symm p], }
+
+lemma iff_of_arrow_iso_right {A B X Y X' Y' : C} (i : A ⟶ B) {p : X ⟶ Y} {p' : X' ⟶ Y'}
+  (e : arrow.mk p ≅ arrow.mk p') :
+  has_lifting_property i p ↔ has_lifting_property i p' :=
+by { split; introI, exacts [of_arrow_iso_right i e, of_arrow_iso_right i e.symm], }
 
 end has_lifting_property
 

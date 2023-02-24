@@ -7,7 +7,7 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.normal_mono.equalizers
 import category_theory.abelian.images
-import category_theory.preadditive
+import category_theory.preadditive.basic
 
 /-!
 # Every non_preadditive_abelian category is preadditive

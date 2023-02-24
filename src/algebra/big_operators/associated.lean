@@ -5,11 +5,13 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import algebra.big_operators.basic
-import data.finsupp.basic
+import algebra.big_operators.finsupp
 
 /-!
 # Products of associated, prime, and irreducible elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some theorems relating definitions in `algebra.associated`
 and products of multisets, finsets, and finsupps.

@@ -3,7 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fintype.basic
+import data.fintype.option
+import data.fintype.prod
+import data.fintype.pi
+import data.vector.basic
 import data.pfun
 import logic.function.iterate
 import order.basic
@@ -11,6 +14,9 @@ import tactic.apply_fun
 
 /-!
 # Turing machines
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a sequence of simple machine languages, starting with Turing machines and working
 up to more complex languages based on Wang B-machines.
@@ -64,22 +70,22 @@ namespace turing
 /-- The `blank_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
 blanks (`default : Γ`) to the end of `l₁`. -/
 def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
-∃ n, l₂ = l₁ ++ list.repeat default n
+∃ n, l₂ = l₁ ++ list.replicate n default
 
 @[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
 ⟨0, by simp⟩
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
-by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
+by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.replicate_add]⟩ }
 
 theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
   blank_extends l l₁ → blank_extends l l₂ →
   l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
 begin
   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
-  simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
-  simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
+  simp only [list.length_append, add_le_add_iff_left, list.length_replicate] at h,
+  simp only [← list.replicate_add, add_tsub_cancel_of_le h, list.append_assoc],
 end
 
 /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
@@ -98,9 +104,9 @@ theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
   refine list.append_right_cancel (e.symm.trans _),
-  rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
+  rw [list.append_assoc, ← list.replicate_add, tsub_add_cancel_of_le],
   apply_fun list.length at e,
-  simp only [list.length_append, list.length_repeat] at e,
+  simp only [list.length_append, list.length_replicate] at e,
   rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
 end
 
@@ -242,7 +248,7 @@ l.lift_on (λ l, list.inth l n) begin
   cases lt_or_le _ _ with h h, {rw list.inth_append _ _ _ h},
   rw list.inth_eq_default _ h,
   cases le_or_lt _ _ with h₂ h₂, {rw list.inth_eq_default _ h₂},
-  rw [list.inth_eq_nth_le _ h₂, list.nth_le_append_right h, list.nth_le_repeat]
+  rw [list.inth_eq_nth_le _ h₂, list.nth_le_append_right h, list.nth_le_replicate]
 end
 
 @[simp] theorem list_blank.nth_mk {Γ} [inhabited Γ] (l : list Γ) (n : ℕ) :
@@ -265,16 +271,17 @@ end
   (∀ i, L₁.nth i = L₂.nth i) → L₁ = L₂ :=
 list_blank.induction_on L₁ $ λ l₁, list_blank.induction_on L₂ $ λ l₂ H,
 begin
-  wlog h : l₁.length ≤ l₂.length using l₁ l₂,
-  swap, { exact (this $ λ i, (H i).symm).symm },
+  wlog h : l₁.length ≤ l₂.length,
+  { cases le_total l₁.length l₂.length; [skip, symmetry]; apply_assumption; try {assumption},
+    intro, rw H },
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
-  { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
+  { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_replicate] },
   simp only [list_blank.nth_mk] at H,
   cases lt_or_le i l₁.length with h' h',
   { simp only [list.nth_le_append _ h', list.nth_le_nth h, list.nth_le_nth h',
                ←list.inth_eq_nth_le _ h, ←list.inth_eq_nth_le _ h', H] },
-  { simp only [list.nth_le_append_right h', list.nth_le_repeat, list.nth_le_nth h,
+  { simp only [list.nth_le_append_right h', list.nth_le_replicate, list.nth_le_nth h,
                list.nth_len_le h', ←list.inth_eq_default _ h', H, list.inth_eq_nth_le _ h] }
 end
 
@@ -323,7 +330,7 @@ def list_blank.map {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : pointed_map Γ Γ') (l : list_blank Γ) : list_blank Γ' :=
 l.lift_on (λ l, list_blank.mk (list.map f l)) begin
   rintro l _ ⟨i, rfl⟩, refine quotient.sound' (or.inl ⟨i, _⟩),
-  simp only [pointed_map.map_pt, list.map_append, list.map_repeat],
+  simp only [pointed_map.map_pt, list.map_append, list.map_replicate],
 end
 
 @[simp] theorem list_blank.map_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -390,12 +397,12 @@ l₃.induction_on $ by intro; simp only [list_blank.append_mk, list.append_assoc
 is sent to a sequence of default elements. -/
 def list_blank.bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (l : list_blank Γ) (f : Γ → list Γ')
-  (hf : ∃ n, f default = list.repeat default n) : list_blank Γ' :=
+  (hf : ∃ n, f default = list.replicate n default) : list_blank Γ' :=
 l.lift_on (λ l, list_blank.mk (list.bind l f)) begin
   rintro l _ ⟨i, rfl⟩, cases hf with n e, refine quotient.sound' (or.inl ⟨i * n, _⟩),
   rw [list.bind_append, mul_comm], congr,
   induction i with i IH, refl,
-  simp only [IH, e, list.repeat_add, nat.mul_succ, add_comm, list.repeat_succ, list.cons_bind],
+  simp only [IH, e, list.replicate_add, nat.mul_succ, add_comm, list.replicate_succ, list.cons_bind]
 end
 
 @[simp] lemma list_blank.bind_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -1362,7 +1369,7 @@ parameters {Γ : Type*} [inhabited Γ]
 
 theorem exists_enc_dec [fintype Γ] :
   ∃ n (enc : Γ → vector bool n) (dec : vector bool n → Γ),
-    enc default = vector.repeat ff n ∧ ∀ a, dec (enc a) = a :=
+    enc default = vector.replicate n ff ∧ ∀ a, dec (enc a) = a :=
 begin
   letI := classical.dec_eq Γ,
   let n := fintype.card Γ,
@@ -1372,7 +1379,7 @@ begin
   let H := (F.to_embedding.trans G).trans
     (equiv.vector_equiv_fin _ _).symm.to_embedding,
   classical,
-  let enc := H.set_value default (vector.repeat ff n),
+  let enc := H.set_value default (vector.replicate n ff),
   exact ⟨_, enc, function.inv_fun enc,
     H.set_value_eq _ _, function.left_inverse_inv_fun enc.2⟩
 end
@@ -1454,7 +1461,7 @@ from λ f hf, this n _ (by intro; simp only [supports_stmt_move, hf]),
   split; apply IH; intro; apply hf,
 end
 
-parameter (enc0 : enc default = vector.repeat ff n)
+parameter (enc0 : enc default = vector.replicate n ff)
 
 section
 parameter {enc}
@@ -1466,8 +1473,8 @@ begin
   refine tape.mk'
     (L.bind (λ x, (enc x).to_list.reverse) ⟨n, _⟩)
     (R.bind (λ x, (enc x).to_list) ⟨n, _⟩);
-  simp only [enc0, vector.repeat,
-    list.reverse_repeat, bool.default_bool, vector.to_list_mk]
+  simp only [enc0, vector.replicate,
+    list.reverse_replicate, bool.default_bool, vector.to_list_mk]
 end
 
 /-- The low level tape corresponding to the given tape over alphabet `Γ`. -/
@@ -2334,8 +2341,8 @@ theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
   cases h with l v S L hT, clear h,
   cases l, {constructor},
   simp only [TM2.step, respects, option.map_some'],
-  suffices : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
-  from let ⟨b, c, r⟩ := this in ⟨b, c, trans_gen.head' rfl r⟩,
+  rsuffices ⟨b, c, r⟩ : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
+  { exact ⟨b, c, trans_gen.head' rfl r⟩ },
   rw [tr],
   revert v S L hT, refine stmt_st_rec _ _ _ _ _ (M l); intros,
   { exact tr_respects_aux M hT s @IH },
@@ -2378,9 +2385,9 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
 begin
   obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,
   obtain ⟨c₂, h₂, rfl⟩ := (part.mem_map_iff _).1 H₂,
-  obtain ⟨_, ⟨q, v, S, L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
+  obtain ⟨_, ⟨L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
   cases part.mem_unique h₁ h₃,
-  exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
+  exact ⟨_, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 
 /-- The support of a set of TM2 states in the TM2 emulator. -/

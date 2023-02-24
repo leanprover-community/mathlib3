@@ -3,21 +3,24 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.extend_from
 
 /-!
 # Lemmas about `extend_from` in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter set topological_space
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}
 
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
-  [order_topology α] [topological_space β] [t3_space β] {f : α → β} {a b : α}
+  [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
   {la lb : β} (hab : a ≠ b) (hf : continuous_on f (Ioo a b))
   (ha : tendsto f (𝓝[>] a) (𝓝 la)) (hb : tendsto f (𝓝[<] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Icc a b) :=
@@ -55,7 +58,7 @@ end
 
 lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
-  [t3_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
   (ha : tendsto f (𝓝[>] a) (𝓝 la)) :
   continuous_on (extend_from (Ioo a b) f) (Ico a b) :=
 begin
@@ -70,7 +73,7 @@ end
 
 lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
-  [t3_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
   (hb : tendsto f (𝓝[<] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
 begin

@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import number_theory.cyclotomic.discriminant
-import ring_theory.polynomial.eisenstein
+import ring_theory.polynomial.eisenstein.is_integral
 
 /-!
 # Ring of integers of `p ^ n`-th cyclotomic fields
@@ -13,7 +13,7 @@ We gather results about cyclotomic extensions of `ℚ`. In particular, we comput
 integers of a `p ^ n`-th cyclotomic extension of `ℚ`.
 
 ## Main results
-* `is_cyclotomic_extension.rat.is_integral_closure_adjoing_singleton_of_prime_pow`: if `K` is a
+* `is_cyclotomic_extension.rat.is_integral_closure_adjoin_singleton_of_prime_pow`: if `K` is a
   `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the integral closure of
   `ℤ` in `K`.
 * `is_cyclotomic_extension.rat.cyclotomic_ring_is_integral_closure_of_prime_pow`: the integral
@@ -75,7 +75,7 @@ end
 
 /-- If `K` is a `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the
 integral closure of `ℤ` in `K`. -/
-lemma is_integral_closure_adjoing_singleton_of_prime_pow
+lemma is_integral_closure_adjoin_singleton_of_prime_pow
   [hcycl : is_cyclotomic_extension {p ^ k} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ k)) :
   is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
@@ -105,13 +105,13 @@ begin
     rw [← hz, ← is_scalar_tower.algebra_map_apply],
     exact subalgebra.algebra_map_mem  _ _ },
   { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
-    { have h₁ := minpoly.gcd_domain_eq_field_fractions' ℚ hint,
+    { have h₁ := minpoly.is_integrally_closed_eq_field_fractions' ℚ hint,
       have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
         (cyclotomic.irreducible_rat (p ^ _).pos),
       rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
       rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
         show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
-      haveI : char_zero ℚ := ordered_semiring.to_char_zero,
+      haveI : char_zero ℚ := strict_ordered_semiring.to_char_zero,
       rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
         ((algebra_map ℤ ℚ).injective_int) h₂],
       exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
@@ -121,30 +121,29 @@ begin
     exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) }
 end
 
-lemma is_integral_closure_adjoing_singleton_of_prime [hcycl : is_cyclotomic_extension {p} ℚ K]
+lemma is_integral_closure_adjoin_singleton_of_prime [hcycl : is_cyclotomic_extension {p} ℚ K]
   (hζ : is_primitive_root ζ ↑p) :
   is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
   rw [← pow_one p] at hζ hcycl,
-  exactI is_integral_closure_adjoing_singleton_of_prime_pow hζ,
+  exactI is_integral_closure_adjoin_singleton_of_prime_pow hζ,
 end
 
 local attribute [-instance] cyclotomic_field.algebra
-local attribute [instance] algebra_rat_subsingleton
 
 /-- The integral closure of `ℤ` inside `cyclotomic_field (p ^ k) ℚ` is
 `cyclotomic_ring (p ^ k) ℤ ℚ`. -/
 lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
   is_integral_closure (cyclotomic_ring (p ^ k) ℤ ℚ) ℤ (cyclotomic_field (p ^ k) ℚ) :=
 begin
-  haveI : char_zero ℚ := ordered_semiring.to_char_zero,
+  haveI : char_zero ℚ := strict_ordered_semiring.to_char_zero,
   haveI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
   { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
     { exact subsingleton.elim _ _ },
     { exact ne_zero.char_zero } },
   have hζ := zeta_spec (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
-  { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
+  { have := (is_integral_closure_adjoin_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,
     convert adjoin_mono _ y.2,
     { simp only [eq_iff_true_of_subsingleton] },
@@ -179,8 +178,14 @@ unity and `K` is a `p ^ k`-th cyclotomic extension of `ℚ`. -/
 @[simps] noncomputable def _root_.is_primitive_root.adjoin_equiv_ring_of_integers
   [hcycl : is_cyclotomic_extension {p ^ k} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ k)) :
   adjoin ℤ ({ζ} : set K) ≃ₐ[ℤ] (𝓞 K) :=
-let _ := is_integral_closure_adjoing_singleton_of_prime_pow hζ in
+let _ := is_integral_closure_adjoin_singleton_of_prime_pow hζ in
   by exactI (is_integral_closure.equiv ℤ (adjoin ℤ ({ζ} : set K)) K (𝓞 K))
+
+/-- The ring of integers of a `p ^ k`-th cyclotomic extension of `ℚ` is a cyclotomic extension. -/
+instance _root_.is_cyclotomic_extension.ring_of_integers
+  [is_cyclotomic_extension {p ^ k} ℚ K] : is_cyclotomic_extension {p ^ k} ℤ (𝓞 K) :=
+let _ := (zeta_spec (p ^ k) ℚ K).adjoin_is_cyclotomic_extension ℤ in by exactI
+  is_cyclotomic_extension.equiv _ ℤ _ ((zeta_spec (p ^ k) ℚ K).adjoin_equiv_ring_of_integers)
 
 /-- The integral `power_basis` of `𝓞 K` given by a primitive root of unity, where `K` is a `p ^ k`
 cyclotomic extension of `ℚ`. -/
@@ -203,6 +208,12 @@ unity and `K` is a `p`-th cyclotomic extension of `ℚ`. -/
   [hcycl : is_cyclotomic_extension {p} ℚ K] (hζ : is_primitive_root ζ p) :
   adjoin ℤ ({ζ} : set K) ≃ₐ[ℤ] (𝓞 K) :=
 @adjoin_equiv_ring_of_integers p 1 K _ _ _ _ (by { convert hcycl, rw pow_one }) (by rwa pow_one)
+
+/-- The ring of integers of a `p`-th cyclotomic extension of `ℚ` is a cyclotomic extension. -/
+instance _root_.is_cyclotomic_extension.ring_of_integers'
+  [is_cyclotomic_extension {p} ℚ K] : is_cyclotomic_extension {p} ℤ (𝓞 K) :=
+let _ := (zeta_spec p ℚ K).adjoin_is_cyclotomic_extension ℤ in by exactI
+  is_cyclotomic_extension.equiv _ ℤ _ ((zeta_spec p ℚ K).adjoin_equiv_ring_of_integers')
 
 /-- The integral `power_basis` of `𝓞 K` given by a primitive root of unity, where `K` is a `p`-th
 cyclotomic extension of `ℚ`. -/

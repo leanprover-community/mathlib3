@@ -5,7 +5,6 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import algebra.punit_instances
 import ring_theory.ideal.operations
 
 /-!
@@ -172,11 +171,11 @@ def to_preorder : preorder R := preorder.lift v
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
 @[simp] lemma zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x = 0 ↔ x = 0 :=
-v.to_monoid_with_zero_hom.map_eq_zero
+map_eq_zero v
 
 lemma ne_zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x ≠ 0 ↔ x ≠ 0 :=
-v.to_monoid_with_zero_hom.map_ne_zero
+map_ne_zero v
 
 theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
@@ -217,17 +216,6 @@ end monoid
 section group
 variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp] lemma map_inv (v : valuation K Γ₀) {x : K} :
-  v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv x
-
-@[simp] lemma map_zpow (v : valuation K Γ₀) {x : K} {n : ℤ} :
-  v (x^n) = (v x)^n :=
-v.to_monoid_with_zero_hom.map_zpow x n
-
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 
@@ -250,15 +238,13 @@ begin
   suffices : ¬v (x + y) < max (v x) (v y),
     from or_iff_not_imp_right.1 (le_iff_eq_or_lt.1 (v.map_add x y)) this,
   intro h',
-  wlog vyx : v y < v x using x y,
-  { apply lt_or_gt_of_ne h.symm },
-  { rw max_eq_left_of_lt vyx at h',
-    apply lt_irrefl (v x),
-    calc v x = v ((x+y) - y)         : by simp
-         ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
-         ... < v x                   : max_lt h' vyx },
-  { apply this h.symm,
-    rwa [add_comm, max_comm] at h' }
+  wlog vyx : v y < v x,
+  { refine this v h.symm _ (h.lt_or_lt.resolve_right vyx), rwa [add_comm, max_comm] },
+  rw max_eq_left_of_lt vyx at h',
+  apply lt_irrefl (v x),
+  calc v x = v ((x+y) - y)         : by simp
+        ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
+        ... < v x                   : max_lt h' vyx
 end
 
 lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=
@@ -438,13 +424,13 @@ begin
       by_contra h_1,
       cases ne_iff_lt_or_gt.1 h_1,
       { simpa [hh, lt_self_iff_false] using h.2 h_2 },
-      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv₀] at hh,
         exact hh.le.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
     { intro hh,
       by_contra h_1,
       cases ne_iff_lt_or_gt.1 h_1,
       { simpa [hh, lt_self_iff_false] using h.1 h_2 },
-      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv₀] at hh,
         exact hh.le.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
 end
 
@@ -703,10 +689,7 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
 
 @[simp] lemma map_inv (v : add_valuation K Γ₀) {x : K} :
   v x⁻¹ = - (v x) :=
-v.map_inv
-
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-v.map_units_inv x
+map_inv₀ v.valuation x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x
@@ -824,7 +807,9 @@ end add_valuation
 
 section valuation_notation
 
-localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
-localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+localized "notation (name := nat.multiplicative_zero)
+  `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation (name := int.multiplicative_zero)
+  `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
 
 end valuation_notation

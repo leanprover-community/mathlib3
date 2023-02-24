@@ -24,7 +24,7 @@ a restricted measure.
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 
@@ -44,7 +44,7 @@ begin
   { rw ← restrict_trim hm _ hs,
     exact restrict.sigma_finite _ s, },
   by_cases hf_int : integrable f μ,
-  swap, { exact ae_restrict_of_ae (condexp_undef hf_int), },
+  swap, { rw condexp_undef hf_int, },
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm _ _ _ _ _,
   { exact λ t ht hμt, integrable_condexp.integrable_on.integrable_on, },
   { exact λ t ht hμt, (integrable_zero _ _ _).integrable_on, },
@@ -159,11 +159,7 @@ begin
   have hs_m₂ : measurable_set[m₂] s,
   { rwa [← set.inter_univ s, ← hs set.univ, set.inter_univ], },
   by_cases hf_int : integrable f μ,
-  swap,
-  { filter_upwards [@condexp_undef _ _ _ _ _ m _ μ _ hf_int,
-      @condexp_undef _ _ _ _ _ m₂ _ μ _ hf_int] with x hxm hxm₂,
-    rw pi.zero_apply at hxm hxm₂,
-    rw [set.indicator_apply_eq_zero.2 (λ _, hxm), set.indicator_apply_eq_zero.2 (λ _, hxm₂)] },
+  swap, { simp_rw condexp_undef hf_int, },
   refine ((condexp_indicator hf_int hs_m).symm.trans _).trans (condexp_indicator hf_int hs_m₂),
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm₂
     (λ s hs hμs, integrable_condexp.integrable_on)

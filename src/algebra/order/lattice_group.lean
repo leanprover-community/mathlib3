@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.group_power.basic -- Needed for squares
-import algebra.order.group
+import algebra.order.group.abs
 import tactic.nth_rewrite
 
 /-!
 # Lattice ordered groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Lattice ordered groups were introduced by [Birkhoff][birkhoff1942].
 They form the algebraic underpinnings of vector lattices, Banach lattices, AL-space, AM-space etc.
@@ -471,7 +474,7 @@ sup_le (mabs_sup_div_sup_le_mabs a b c) (mabs_inf_div_inf_le_mabs a b c)
 /--
 The absolute value satisfies the triangle inequality.
 -/
-@[to_additive abs_add_le]
+@[to_additive abs_add_le "The absolute value satisfies the triangle inequality."]
 lemma mabs_mul_le [covariant_class α α (*) (≤)] (a b : α) : |a * b| ≤ |a| * |b| :=
 begin
   apply sup_le,

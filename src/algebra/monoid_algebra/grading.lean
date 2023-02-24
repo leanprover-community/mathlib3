@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import linear_algebra.finsupp
-import algebra.monoid_algebra.basic
+import algebra.monoid_algebra.support
 import algebra.direct_sum.internal
 import ring_theory.graded_algebra.basic
 
@@ -62,7 +62,7 @@ end
 
 lemma mem_grade_iff' (m : M) (a : add_monoid_algebra R M) :
   a ∈ grade R m ↔
-    a ∈ ((finsupp.lsingle m).range : submodule R (add_monoid_algebra R M)) :=
+    a ∈ ((finsupp.lsingle m : R →ₗ[R] (M →₀ R)).range : submodule R (add_monoid_algebra R M)) :=
 begin
   rw [mem_grade_iff, finsupp.support_subset_singleton'],
   apply exists_congr,
@@ -70,7 +70,7 @@ begin
   split; exact eq.symm
 end
 
-lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m).range :=
+lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m : R →ₗ[R] (M →₀ R)).range :=
 submodule.ext (mem_grade_iff' R m)
 
 lemma single_mem_grade_by {R} [comm_semiring R] (f : M → ι) (m : M) (r : R) :
@@ -177,10 +177,11 @@ graded_algebra.of_alg_hom _
   (decompose_aux f)
   (begin
     ext : 2,
-    dsimp,
+    simp only [alg_hom.coe_to_monoid_hom, function.comp_app, alg_hom.coe_comp,
+        function.comp.left_id, alg_hom.coe_id, add_monoid_algebra.of_apply, monoid_hom.coe_comp],
     rw [decompose_aux_single, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (λ i x, by convert (decompose_aux_coe f x : _))
+  (λ i x, by rw [decompose_aux_coe f x])
 
 -- Lean can't find this later without us repeating it
 instance grade_by.decomposition : direct_sum.decomposition (grade_by R f) :=
@@ -191,7 +192,7 @@ by apply_instance
     (direct_sum.decompose (grade_by R f)) := rfl
 
 @[simp] lemma grades_by.decompose_single (m : M) (r : R) :
-  direct_sum.decompose (grade_by R f) (finsupp.single m r) =
+  direct_sum.decompose (grade_by R f) (finsupp.single m r : add_monoid_algebra R M) =
     direct_sum.of (λ i : ι, grade_by R f i) (f m)
       ⟨finsupp.single m r, single_mem_grade_by _ _ _⟩ :=
 decompose_aux_single _ _ _
@@ -205,7 +206,7 @@ by apply_instance
 
 @[simp]
 lemma grade.decompose_single (i : ι) (r : R) :
-  direct_sum.decompose (grade R : ι → submodule _ _) (finsupp.single i r) =
+  direct_sum.decompose (grade R : ι → submodule _ _) (finsupp.single i r : add_monoid_algebra _ _) =
     direct_sum.of (λ i : ι, grade R i) i ⟨finsupp.single i r, single_mem_grade _ _⟩ :=
 decompose_aux_single _ _ _
 

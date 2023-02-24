@@ -30,11 +30,11 @@ inductive preform
 | or  : preform → preform → preform
 | and : preform → preform → preform
 
-localized "notation x ` =* ` y := omega.int.preform.eq x y" in omega.int
-localized "notation x ` ≤* ` y := omega.int.preform.le x y" in omega.int
-localized "notation `¬* ` p   := omega.int.preform.not p" in omega.int
-localized "notation p ` ∨* ` q := omega.int.preform.or p q" in omega.int
-localized "notation p ` ∧* ` q := omega.int.preform.and p q" in omega.int
+localized "notation (name := preform.eq) x ` =* ` y := omega.int.preform.eq x y" in omega.int
+localized "notation (name := preform.le) x ` ≤* ` y := omega.int.preform.le x y" in omega.int
+localized "notation (name := preform.not) `¬* ` p   := omega.int.preform.not p" in omega.int
+localized "notation (name := preform.or) p ` ∨* ` q := omega.int.preform.or p q" in omega.int
+localized "notation (name := preform.and) p ` ∧* ` q := omega.int.preform.and p q" in omega.int
 
 namespace preform
 

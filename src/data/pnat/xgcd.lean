@@ -9,6 +9,9 @@ import data.pnat.prime
 /-!
 # Euclidean algorithm for ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up a version of the Euclidean algorithm that only works with natural numbers.
 Given `0 < a, b`, it computes the unique `(w, x, y, z, d)` such that the following identities hold:
 * `a = (w + x) d`

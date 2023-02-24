@@ -130,9 +130,9 @@ begin
   contained in `[0, ‖star a * a‖)`. The supremum of the (norms of) elements of the spectrum must be
   *strictly* less that `‖star a * a‖` because the spectrum is compact, which completes the proof. -/
 
-  /- We may assume `A` is nontrivial. It suffices to show that `star a * a` is invertible in
-  `elemental_star_algebra ℂ a` because `a` is normal, so `star a * a` is invertible if and only if
-  both `star a` and `a` are invertible, but `star a` is invertible if and only if `a` is. -/
+  /- We may assume `A` is nontrivial. It suffices to show that `star a * a` is invertible in the
+  commutative (because `a` is normal) ring `elemental_star_algebra ℂ a` because `a` is normal.
+  Therefore, by commutativity, if `star a * a` is invertible, then so is `a`. -/
   nontriviality A,
   set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
   suffices : is_unit (star a' * a'), from (is_unit.mul_iff.1 this).2,
@@ -182,8 +182,8 @@ begin
   ... < ‖star a * a‖₊ : spectrum.spectral_radius_lt_of_forall_lt _ h₂ ),
 end
 
-/-- For `a : A` which is invertible in `A`, the inverse lies in any unital C⋆-subalgebra `S`
-containing `a`. -/
+/-- For `x : A` which is invertible in `A`, the inverse lies in any unital C⋆-subalgebra `S`
+containing `x`. -/
 lemma star_subalgebra.is_unit_coe_inv_mem {S : star_subalgebra ℂ A} (hS : is_closed (S : set A))
   {x : A} (h : is_unit x) (hxS : x ∈ S) : ↑h.unit⁻¹ ∈ S :=
 begin
@@ -226,16 +226,18 @@ by evaluating `φ` at `a`. This is essentially just evaluation of the `gelfand_t
 but because we want something in `spectrum ℂ a`, as opposed to
 `spectrum ℂ ⟨a, elemental_star_algebra.self_mem ℂ a⟩` there is slightly more work to do. -/
 @[simps]
-noncomputable def elemental_star_algebra.character_space_to_spectrum (x : A) :
-  C(character_space ℂ (elemental_star_algebra ℂ x), spectrum ℂ x) :=
-{ to_fun := λ φ,
-  { val := φ ⟨x, self_mem ℂ x⟩,
-    property := by simpa only [star_subalgebra.spectrum_eq (elemental_star_algebra.is_closed ℂ x)
-      ⟨x, self_mem ℂ x⟩] using alg_hom.apply_mem_spectrum φ (⟨x, self_mem ℂ x⟩) },
-  continuous_to_fun := continuous_induced_rng.2 (map_continuous $
-    gelfand_transform ℂ (elemental_star_algebra ℂ x) ⟨x, self_mem ℂ x⟩) }
+noncomputable def elemental_star_algebra.character_space_to_spectrum (x : A)
+  (φ : character_space ℂ (elemental_star_algebra ℂ x)) : spectrum ℂ x :=
+{ val := φ ⟨x, self_mem ℂ x⟩,
+  property := by simpa only [star_subalgebra.spectrum_eq (elemental_star_algebra.is_closed ℂ x)
+    ⟨x, self_mem ℂ x⟩] using alg_hom.apply_mem_spectrum φ (⟨x, self_mem ℂ x⟩) }
 
-lemma elemental_star_algebra.character_space_to_spectrum_bijective :
+lemma elemental_star_algebra.continuous_character_space_to_spectrum (x : A) :
+  continuous (elemental_star_algebra.character_space_to_spectrum x) :=
+continuous_induced_rng.2
+  (map_continuous $ gelfand_transform ℂ (elemental_star_algebra ℂ x) ⟨x, self_mem ℂ x⟩)
+
+lemma elemental_star_algebra.bijective_character_space_to_spectrum :
   function.bijective (elemental_star_algebra.character_space_to_spectrum a) :=
 begin
   refine ⟨λ φ ψ h, star_alg_hom_class_ext ℂ (map_continuous φ) (map_continuous ψ)
@@ -255,8 +257,8 @@ noncomputable def elemental_star_algebra.character_space_homeo :
   character_space ℂ (elemental_star_algebra ℂ a) ≃ₜ spectrum ℂ a :=
 @continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
   (equiv.of_bijective (elemental_star_algebra.character_space_to_spectrum a)
-    (elemental_star_algebra.character_space_to_spectrum_bijective a))
-    (map_continuous $ elemental_star_algebra.character_space_to_spectrum a)
+    (elemental_star_algebra.bijective_character_space_to_spectrum a))
+    (elemental_star_algebra.continuous_character_space_to_spectrum a)
 
 /-- **Continuous functional calculus.** Given a normal element `a : A` of a unital C⋆-algebra,
 the continuous functional calculus is a `star_alg_equiv` from the complex-valued continuous

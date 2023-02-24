@@ -113,10 +113,6 @@ begin
     (le_smul_caratheodory _ _)).trans (le_of_eq hy),
 end
 
-lemma measurable_set_to_outer_measure (s : set α) :
-  measurable_set[p.to_outer_measure.caratheodory] s :=
-p.to_outer_measure_caratheodory.symm ▸ measurable_space.measurable_set_top
-
 @[simp]
 lemma to_outer_measure_apply_finset (s : finset α) : p.to_outer_measure s = ∑ x in s, p x :=
 begin
@@ -258,7 +254,7 @@ is the measure of the singleton set under the original measure. -/
 def to_pmf [countable α] [measurable_space α] [measurable_singleton_class α]
   (μ : measure α) [h : is_probability_measure μ] : pmf α :=
 ⟨λ x, μ ({x} : set α), ennreal.summable.has_sum_iff.2 (trans (symm $
-(apply_eq_tsum_indicator_apply_singleton μ set.univ measurable_set.univ).trans
+(tsum_indicator_apply_singleton μ set.univ measurable_set.univ).symm.trans
   (tsum_congr (λ x, congr_fun (set.indicator_univ _) x))) (h.measure_univ))⟩
 
 variables [countable α] [measurable_space α] [measurable_singleton_class α]
@@ -268,7 +264,7 @@ lemma to_pmf_apply (x : α) : μ.to_pmf x = μ {x} := rfl
 
 @[simp] lemma to_pmf_to_measure : μ.to_pmf.to_measure = μ :=
 measure.ext (λ s hs, by simpa only [μ.to_pmf.to_measure_apply s hs,
-  μ.apply_eq_tsum_indicator_apply_singleton s hs])
+  ← μ.tsum_indicator_apply_singleton s hs])
 
 end measure
 

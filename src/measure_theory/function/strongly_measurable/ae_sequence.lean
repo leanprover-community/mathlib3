@@ -8,7 +8,7 @@ import measure_theory.function.strongly_measurable.basic
 
 /-!
 # Sequence of strongly measurable functions associated to a sequence of a.e.-strongly-measurable
-  functions
+# functions
 
 We define here tools to prove statements about limits (infi, supr...) of sequences of
 `ae_strongly_measurable` functions.

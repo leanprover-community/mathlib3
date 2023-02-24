@@ -90,7 +90,7 @@ begin
     norm_cast,
     rw [zmod.int_coe_zmod_eq_zero_iff_dvd, int.nat_abs_dvd, nat.cast_pow, ← h₂], },
   have hd₂ : m ∣ q₁.1 * q₂.2 - q₂.1 * q₁.2,
-  { refine int.nat_abs_dvd.mp ((zmod.int_coe_eq_int_coe_iff_dvd_sub _ _ _).mp _),
+  { rw [← int.nat_abs_dvd, ← zmod.int_coe_eq_int_coe_iff_dvd_sub],
     push_cast,
     rw [hq1, hq2], },
   replace hm₀ : (m : ℚ) ≠ 0 := int.cast_ne_zero.mpr hm₀,

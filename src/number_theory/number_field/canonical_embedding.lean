@@ -14,7 +14,7 @@ The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the
 complex conjugation).
 
 ## Main definitions and results
-* `number_field.canonical_embedding.ring_of_integers.discrete`: the intersection of the
+* `number_field.canonical_embedding.ring_of_integers.inter_ball_finite`: the intersection of the
 image of the ring of integers by the canonical embedding and any ball centered at `0` of finite
 radius is finite.
 
@@ -158,7 +158,7 @@ begin
     { exact λ ⟨_, ⟨_, ⟨⟨a, rfl⟩, rfl⟩⟩⟩, ⟨a, rfl⟩, }}
 end
 
-lemma integer_lattice_discrete [number_field K] (r : ℝ) :
+lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
   ((integer_lattice K R : set E) ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
@@ -170,8 +170,7 @@ begin
     { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, le_of_le],
       exact λ x, le_iff_le x r, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
-    ext,
-    split,
+    ext, split,
     { rintros ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,
       exact ⟨x, ⟨⟨hc.is_integral_iff.mpr hx1, (heq x).mp hx2⟩, rfl⟩⟩, },
     { rintros ⟨x, ⟨⟨ hx1, hx2⟩, rfl⟩⟩,
@@ -188,7 +187,7 @@ begin
     rw set.mem_Union,
     use nat.ceil (‖canonical_embedding K x‖),
     exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
-  { exact set.countable_Union (λ n, (integer_lattice_discrete K R hc n).countable), },
+  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K R hc n).countable), },
 end
 
 end number_field.canonical_embedding

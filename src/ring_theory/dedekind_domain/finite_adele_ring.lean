@@ -74,7 +74,7 @@ end finite_integral_adeles
 section algebra_instances
 
 instance : algebra K (K_hat R K) :=
-(by apply_instance : algebra K ((Π (v : height_one_spectrum R), v.adic_completion K)))
+(by apply_instance : algebra K $ Π v : height_one_spectrum R, v.adic_completion K)
 
 instance prod_adic_completions.algebra' : algebra R (K_hat R K) :=
 (by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion K))

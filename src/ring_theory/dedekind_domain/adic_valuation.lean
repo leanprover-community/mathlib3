@@ -355,7 +355,7 @@ instance adic_completion.algebra' : algebra R (v.adic_completion K) :=
 @uniform_space.completion.algebra K _ v.adic_valued.to_uniform_space _ _ R _ _
   (adic_valued.has_uniform_continuous_const_smul' R K v)
 
-@[simp] lemma coe_smul_adic_completion' (r : R) (x : K) :
+@[simp] lemma coe_smul_adic_completion (r : R) (x : K) :
   (↑(r • x) : v.adic_completion K) = r • (↑x : v.adic_completion K) :=
 @uniform_space.completion.coe_smul R K v.adic_valued.to_uniform_space _ _ r x
 

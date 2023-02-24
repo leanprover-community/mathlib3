@@ -80,7 +80,7 @@ private meta def derivative_simp : tactic unit :=
 `[simp only [derivative_C, derivative_X, derivative_X_pow, derivative_neg, derivative_add,
              derivative_sub, derivative_mul, derivative_sq]]
 
-universes u v
+universes u v w
 
 namespace weierstrass_curve
 
@@ -93,7 +93,8 @@ section basic
 /-! ### Polynomials associated to nonsingular rational points on a Weierstrass curve -/
 
 variables {R : Type u} [comm_ring R] (W : weierstrass_curve R) (A : Type v) [comm_ring A]
-  [algebra R A] (x₁ x₂ y₁ y₂ L : R)
+  [algebra R A] (B : Type w) [comm_ring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (x₁ x₂ y₁ y₂ L : R)
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : R[X][Y] := -Y - C (C W.a₁ * X + C W.a₃)
@@ -109,6 +110,11 @@ lemma base_change_neg_Y :
   (W.base_change A).neg_Y (algebra_map R A x₁) (algebra_map R A y₁)
     = algebra_map R A (W.neg_Y x₁ y₁) :=
 by { simp only [neg_Y], map_simp, refl }
+
+lemma base_change_neg_Y_of_base_change (x₁ y₁ : A) :
+  (W.base_change B).neg_Y (algebra_map A B x₁) (algebra_map A B y₁)
+    = algebra_map A B ((W.base_change A).neg_Y x₁ y₁) :=
+by rw [← base_change_neg_Y, base_change_base_change]
 
 @[simp] lemma eval_neg_polynomial : (W.neg_polynomial.eval $ C y₁).eval x₁ = W.neg_Y x₁ y₁ :=
 by { rw [neg_Y, sub_sub, neg_polynomial], eval_simp }
@@ -145,6 +151,11 @@ lemma base_change_add_X :
     = algebra_map R A (W.add_X x₁ x₂ L) :=
 by { simp only [add_X], map_simp, refl }
 
+lemma base_change_add_X_of_base_change (x₁ x₂ L : A) :
+  (W.base_change B).add_X (algebra_map A B x₁) (algebra_map A B x₂) (algebra_map A B L)
+    = algebra_map A B ((W.base_change A).add_X x₁ x₂ L) :=
+by rw [← base_change_add_X, base_change_base_change]
+
 /-- The $Y$-coordinate, before applying the final negation, of the addition of two affine points
 $(x_1, y_1)$ and $(x_2, y_2)$, where the line through them is not vertical and has a slope of $L$.
 
@@ -156,6 +167,11 @@ lemma base_change_add_Y' :
     (algebra_map R A L) = algebra_map R A (W.add_Y' x₁ x₂ y₁ L) :=
 by { simp only [add_Y', base_change_add_X], map_simp }
 
+lemma base_change_add_Y'_of_base_change (x₁ x₂ y₁ L : A) :
+  (W.base_change B).add_Y' (algebra_map A B x₁) (algebra_map A B x₂) (algebra_map A B y₁)
+    (algebra_map A B L) = algebra_map A B ((W.base_change A).add_Y' x₁ x₂ y₁ L) :=
+by rw [← base_change_add_Y', base_change_base_change]
+
 /-- The $Y$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$ in `W`,
 where the line through them is not vertical and has a slope of $L$.
 
@@ -166,6 +182,11 @@ lemma base_change_add_Y :
   (W.base_change A).add_Y (algebra_map R A x₁) (algebra_map R A x₂) (algebra_map R A y₁)
     (algebra_map R A L) = algebra_map R A (W.add_Y x₁ x₂ y₁ L) :=
 by simp only [add_Y, base_change_add_Y', base_change_add_X, base_change_neg_Y]
+
+lemma base_change_add_Y_of_base_change (x₁ x₂ y₁ L : A) :
+  (W.base_change B).add_Y (algebra_map A B x₁) (algebra_map A B x₂) (algebra_map A B y₁)
+    (algebra_map A B L) = algebra_map A B ((W.base_change A).add_Y x₁ x₂ y₁ L) :=
+by rw [← base_change_add_Y, base_change_base_change]
 
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
@@ -320,6 +341,13 @@ begin
     { contrapose! hx,
       exact no_zero_smul_divisors.algebra_map_injective F K hx } }
 end
+
+lemma base_change_slope_of_base_change {R : Type u} [comm_ring R] (W : weierstrass_curve R)
+  (F : Type v) [field F] [algebra R F] (K : Type w) [field K] [algebra R K] [algebra F K]
+  [is_scalar_tower R F K] (x₁ x₂ y₁ y₂ : F) :
+  (W.base_change K).slope (algebra_map F K x₁) (algebra_map F K x₂) (algebra_map F K y₁)
+    (algebra_map F K y₂) = algebra_map F K ((W.base_change F).slope x₁ x₂ y₁ y₂) :=
+by rw [← base_change_slope, base_change_base_change]
 
 include h₁' h₂'
 
@@ -510,46 +538,50 @@ section base_change
 
 /-! ### Nonsingular rational points on a base changed Weierstrass curve -/
 
-variables {F : Type u} [field F] (W : weierstrass_curve F) (K : Type v) [field K] [algebra F K]
+variables {R : Type u} [comm_ring R] (W : weierstrass_curve R) (F : Type v) [field F] [algebra R F]
+  (K : Type w) [field K] [algebra R K] [algebra F K] [is_scalar_tower R F K]
+  [no_zero_smul_divisors R F] [no_zero_smul_divisors R K]
 
 namespace point
 
 open_locale weierstrass_curve
 
-/-- A nonsingular rational point on a Weierstrass curve `W` over `F` base changed to `K`. -/
-def of_base_change_fun : W.point → W⟮K⟯
+/-- The function from `W⟮F⟯` to `W⟮K⟯` induced by a base change from `F` to `K`. -/
+def of_base_change_fun : W⟮F⟯ → W⟮K⟯
 | 0        := 0
-| (some h) := some $ (W.nonsingular_iff_base_change K _ _).mp h
+| (some h) := some $ (nonsingular_iff_base_change_of_base_change W F K _ _).mp h
 
 /-- The group homomorphism from `W⟮F⟯` to `W⟮K⟯` induced by a base change from `F` to `K`. -/
-@[simps] def of_base_change : W.point →+ W⟮K⟯ :=
-{ to_fun    := of_base_change_fun W K,
+@[simps] def of_base_change : W⟮F⟯ →+ W⟮K⟯ :=
+{ to_fun    := of_base_change_fun W F K,
   map_zero' := rfl,
   map_add'  :=
   begin
     rintro (_ | @⟨x₁, y₁, _⟩) (_ | @⟨x₂, y₂, _⟩),
     any_goals { refl },
     by_cases hx : x₁ = x₂,
-    { by_cases hy : y₁ = W.neg_Y x₂ y₂,
+    { by_cases hy : y₁ = (W.base_change F).neg_Y x₂ y₂,
       { simp only [some_add_some_of_Y_eq hx hy, of_base_change_fun],
         rw [some_add_some_of_Y_eq $ congr_arg _ hx],
-        { rw [hy, base_change_neg_Y] } },
+        { rw [hy, base_change_neg_Y_of_base_change] } },
       { simp only [some_add_some_of_Y_ne hx hy, of_base_change_fun],
         rw [some_add_some_of_Y_ne $ congr_arg _ hx],
-        { simp only [base_change_add_X, base_change_add_Y, base_change_slope],
+        { simp only [base_change_add_X_of_base_change, base_change_add_Y_of_base_change,
+                     base_change_slope_of_base_change],
           exact ⟨rfl, rfl⟩ },
-        { rw [base_change_neg_Y],
+        { rw [base_change_neg_Y_of_base_change],
           contrapose! hy,
           exact no_zero_smul_divisors.algebra_map_injective F K hy } } },
     { simp only [some_add_some_of_X_ne hx, of_base_change_fun],
       rw [some_add_some_of_X_ne],
-      { simp only [base_change_add_X, base_change_add_Y, base_change_slope],
+      { simp only [base_change_add_X_of_base_change, base_change_add_Y_of_base_change,
+                   base_change_slope_of_base_change],
         exact ⟨rfl, rfl⟩ },
       { contrapose! hx,
         exact no_zero_smul_divisors.algebra_map_injective F K hx } }
   end }
 
-lemma of_base_change_injective : function.injective $ of_base_change W K :=
+lemma of_base_change_injective : function.injective $ of_base_change W F K :=
 begin
   rintro (_ | _) (_ | _) h,
   { refl },

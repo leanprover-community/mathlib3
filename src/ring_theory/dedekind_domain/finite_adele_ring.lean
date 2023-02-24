@@ -136,8 +136,8 @@ begin
     rw [mem_union, mem_set_of_eq, mem_set_of_eq],
     rw mem_set_of_eq at hv,
     contrapose! hv,
-    rw [adic_completion.is_integer, adic_completion.is_integer, ← max_le_iff] at hv,
-    rw [adic_completion.is_integer, pi.add_apply],
+    rw [mem_adic_completion_integers, mem_adic_completion_integers, ← max_le_iff] at hv,
+    rw [mem_adic_completion_integers, pi.add_apply],
     exact le_trans (valued.v.map_add_le_max' (x v) (y v)) hv },
   exact (hx.union hy).subset h_subset,
 end
@@ -149,7 +149,7 @@ begin
   have h_empty : {v : height_one_spectrum R |
     ¬ ((0 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
   { ext v, rw [mem_empty_iff_false, iff_false], intro hv,
-    rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
+    rw mem_set_of_eq at hv, apply hv, rw mem_adic_completion_integers,
     have h_zero : (valued.v (0 : v.adic_completion K) : (with_zero(multiplicative ℤ))) = 0 :=
     valued.v.map_zero',
     rw h_zero, exact zero_le_one' _ },
@@ -164,7 +164,7 @@ begin
   have h : ∀ (v : height_one_spectrum R), (-x v ∈ v.adic_completion_integers K) ↔
     (x v ∈ v.adic_completion_integers K),
   { intro v,
-    rw [adic_completion.is_integer, adic_completion.is_integer, valuation.map_neg], },
+    rw [mem_adic_completion_integers, mem_adic_completion_integers, valuation.map_neg], },
   simpa only [pi.neg_apply, h] using hx,
 end
 
@@ -180,10 +180,10 @@ begin
     rw [mem_union, mem_set_of_eq, mem_set_of_eq],
     rw mem_set_of_eq at hv,
     contrapose! hv,
-    rw [adic_completion.is_integer, adic_completion.is_integer] at hv,
+    rw [mem_adic_completion_integers, mem_adic_completion_integers] at hv,
     have h_mul : valued.v (x v * y v) = (valued.v (x v)) * (valued.v (y v)) :=
       (valued.v).map_mul' (x v) (y v),
-    rw [adic_completion.is_integer, pi.mul_apply, h_mul],
+    rw [mem_adic_completion_integers, pi.mul_apply, h_mul],
     exact @mul_le_one' (with_zero (multiplicative ℤ)) _ _
       (ordered_comm_monoid.to_covariant_class_left _) _ _ hv.left hv.right  },
   exact (hx.union hy).subset h_subset,
@@ -196,7 +196,7 @@ begin
   have h_empty : {v : height_one_spectrum R |
     ¬ ((1 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
   { ext v, rw [mem_empty_iff_false, iff_false], intro hv,
-    rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
+    rw mem_set_of_eq at hv, apply hv, rw mem_adic_completion_integers,
     exact le_of_eq valued.v.map_one' },
   simp_rw [pi.one_apply, h_empty],
   exact finite_empty,

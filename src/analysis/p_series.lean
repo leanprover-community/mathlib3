@@ -122,7 +122,7 @@ begin
   split; intro h,
   { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf (zero_lt_one.trans hm) hmn),
-    simpa [h, ennreal.add_eq_top] using (ennreal.tsum_condensed_le hf) },
+    simpa [h, ennreal.add_eq_top, ennreal.mul_eq_top] using ennreal.tsum_condensed_le hf },
   { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf hm hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.le_tsum_condensed hf) }

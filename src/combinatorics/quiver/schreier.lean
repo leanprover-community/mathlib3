@@ -9,6 +9,14 @@ import group_theory.quotient_group
 import group_theory.group_action.quotient
 import combinatorics.quiver.iso
 
+/-
+
+## TODO
+
+* Should `action_graph` be defined just for `[has_smul M V]` without the `ι : S → M`, and then
+  specialized when talking about group actions ?
+
+-/
 
 universes u v w
 
@@ -146,6 +154,13 @@ lemma action_graph.reachable_iff (x y : action_graph V ι) :
   nonempty (path (symmetrify.of.obj x) (symmetrify.of.obj y)) ↔
   ∃ g ∈ (subgroup.closure $ set.range ι), g • x = y := sorry
 
+/- A endomorphism of the graph (with labelling) commutes with the `smul`. -/
+lemma action_graph.action_commute (φ : 𝑨 V ι ⥤q 𝑨 V ι) (φm : φ ⋙q 𝑨' V ι = 𝑨' V ι)
+  (v : 𝑨 V ι) (s : S) : φ.obj (ι s • v) = ι s • (φ.obj v) :=
+begin
+  sorry,
+end
+
 /--
 Given a pretransitive action, and assuming `set.range ι` generates the group,
 any automorphism is uniquely determined by where it sends one vertex.
@@ -157,14 +172,14 @@ lemma eq_of_eq_on  (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V)
   (hv₀ : φ.to_prefunctor.obj v₀ = ψ.to_prefunctor.obj v₀)
   (h : subgroup.closure (set.range ι) = (⊤ : subgroup M)) : φ = ψ :=
 begin
-  ext,
-  swap,
-  { rintro v,
-    refine (𝑨c V ι).eq_of_eq_of_path (φ.commute_left.trans ψ.commute_left.symm) (nonempty.some _) hv₀,
-    rw [action_graph.reachable_iff, h],
-    simp only [subgroup.mem_top, exists_true_left],
-    exact ha.exists_smul_eq v₀ v, },
-  { simp, sorry, },
+  apply covering_iso.ext,
+  apply iso.ext,
+  apply (𝑨c _ _).eq_of_eq_of_preconnected _ _ hv₀,
+  { rw [φ.commute_left, ψ.commute_left], },
+  { rintro u v,
+    refine (action_graph.reachable_iff V ι u v).mpr _,
+    simp only [h, subgroup.mem_top, exists_true_left],
+    exact ha.exists_smul_eq u v, },
 end
 
 section schreier_graph
@@ -215,28 +230,23 @@ end
 lemma from_coset_graph_to_coset_graph (v₀ : V) :
   from_coset_graph V ι v₀ ⋙q to_coset_graph V ι v₀ = 𝟭q _ :=
 begin
-  have obj : ∀ x, (from_coset_graph V ι v₀ ⋙q to_coset_graph V ι v₀).obj x = (𝟭q _).obj x, by
-  { rintro _,
-    simp only [to_coset_graph, from_coset_graph, prefunctor.comp_obj, equiv.apply_symm_apply,
-               prefunctor.id_obj, id.def], },
-  apply prefunctor.ext obj,
-  rintro u v e,
-  let hu := obj u,
-  let hv := obj v,
-  change (from_coset_graph V ι v₀ ⋙q to_coset_graph V ι v₀).map e =
-         eq.rec_on hv.symm (eq.rec_on hu.symm ((𝟭q _).map e)),
-  sorry,
+  apply (𝑨c _ _).eq_of_eq_obj,
+  { simp only [to_coset_graph_labelling, from_coset_graph_labelling, prefunctor.comp_assoc,
+               prefunctor.id_comp], },
+  { ext ⟨_⟩,
+    simp only [prefunctor.comp_obj, from_coset_graph_obj, to_coset_graph_obj,
+               equiv.apply_symm_apply, prefunctor.id_obj, id.def], },
 end
 
 lemma to_coset_graph_from_coset_graph (v₀ : V) :
   to_coset_graph V ι v₀ ⋙q from_coset_graph V ι v₀ = 𝟭q _ :=
 begin
-  dsimp only [to_coset_graph, from_coset_graph, prefunctor.comp, prefunctor.id],
-  simp only [subtype.val_eq_coe, equiv.symm_apply_apply],
-  fsplit,
-  { ext ⟨_, _⟩,
-    simp only [id.def], },
-  { sorry, },
+  apply (𝑨c _ _).eq_of_eq_obj,
+  { simp only [to_coset_graph_labelling, from_coset_graph_labelling, prefunctor.comp_assoc,
+               prefunctor.id_comp], },
+  { ext _,
+    simp only [prefunctor.comp_obj, to_coset_graph_obj, from_coset_graph_obj,
+               equiv.symm_apply_apply, prefunctor.id_obj, id.def], },
 end
 
 def covering_iso_lol (v₀ : V) : action_graph_labelling (mul_action.orbit M v₀) ι ≃qc
@@ -271,44 +281,37 @@ end
 
 lemma as_autom_one : as_autom ι 1 = 𝟭q (𝑺 ι N) :=
 begin
-  dsimp only [as_autom],
-  fapply prefunctor.ext,
-  { simp only [equiv_action_graph_symm_apply, quotient_group.coe_one, inv_one, mul_one,
-               equiv_action_graph_apply, prefunctor.id_obj, id.def, eq_self_iff_true,
-               implies_true_iff], },
-  { rintro _ _ ⟨_, rfl⟩,
-    simp only [prefunctor.id_map],
-    sorry, },
+  fapply (𝑨c _ _).eq_of_eq_obj,
+  { rw [as_autom_labelling, prefunctor.id_comp], },
+  { ext x,
+    simp only [equiv_action_graph_symm_apply, quotient_group.coe_one, inv_one, mul_one,
+               equiv_action_graph_apply, prefunctor.id_obj, id.def, as_autom], },
 end
 
 lemma as_autom_mul (g h : M) :
   (as_autom ι (g * h) : 𝑺 ι N ⥤q  𝑺 ι N) = (as_autom ι h) ⋙q (as_autom ι g) :=
 begin
-  dsimp only [as_autom],
-  fapply prefunctor.ext,
-  { simp only [mul_assoc, equiv_action_graph_symm_apply, quotient_group.coe_mul, mul_inv_rev,
-               equiv_action_graph_apply, prefunctor.comp_obj, eq_self_iff_true,
-               implies_true_iff], },
-  { rintro _ _ ⟨_, rfl⟩,
-    simp only [prefunctor.comp_map],
-    sorry, },
+  fapply (𝑨c _ _).eq_of_eq_obj,
+  { simp_rw [prefunctor.comp_assoc, as_autom_labelling], },
+  { ext x,
+    simp only [equiv_action_graph_symm_apply, equiv_action_graph_apply, as_autom,
+               quotient_group.coe_mul, mul_inv_rev, prefunctor.comp_obj, mul_assoc], },
 end
 
 lemma as_autom_eq_iff (g₁ g₂ : M) :
   (as_autom ι g₁ : 𝑺 ι N ⥤q 𝑺 ι N) = (as_autom ι g₂ : 𝑺 ι N ⥤q 𝑺 ι N) ↔ g₁ / g₂ ∈ N :=
 begin
-  dsimp only [as_autom],
   refine ⟨λ h, _, λ h, _⟩,
-  { simp only [subtype.val_eq_coe, equiv_action_graph_symm_apply,
+  { dsimp only [as_autom] at h,
+    simp only [subtype.val_eq_coe, equiv_action_graph_symm_apply,
                equiv_action_graph_apply] at h ⊢,
     simpa [←quotient_group.coe_one, quotient_group.eq_iff_div_mem] using
             (congr_fun h.left (equiv_action_graph 1)), },
-  { fapply prefunctor.ext,
-    { rintro ⟨x⟩,
+  { fapply (𝑨c _ _).eq_of_eq_obj,
+    { simp_rw [as_autom_labelling], },
+    { ext ⟨x⟩,
       change (↑x : M ⧸ N) * (g₁)⁻¹ = (↑x : M ⧸ N) * (↑g₂)⁻¹,
-      simpa [quotient_group.eq_iff_div_mem] using h, },
-    { simp, rintro ⟨x⟩ ⟨y⟩ f,
-      sorry, }, },
+      simpa [quotient_group.eq_iff_div_mem] using h, }, },
 end
 
 lemma exists_as_autom {φ ψ : 𝑺 ι N ⥤q 𝑺 ι N} {g : M}

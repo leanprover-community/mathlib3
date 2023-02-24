@@ -318,6 +318,8 @@ lemma _root_.prefunctor.map_cast (φ : U ⥤q W) {u₁ u₂ v₁ v₂ : U} (hu :
   φ.map (hom.cast hu hv e) = (hom.cast (congr_arg φ.obj hu) (congr_arg φ.obj hv) (φ.map e)) :=
 by cases hu; cases hv; refl
 
+/- The following all have bad names: -/
+
 lemma prefunctor.is_covering.eq_star_of_eq
   {ψ : V ⥤q W} (ψc : ψ.is_covering) {θ₁ θ₂ : U ⥤q V} (hθ : θ₁ ⋙q ψ = θ₂ ⋙q ψ)
   {u u' : U} (e : u ⟶ u') (hu : θ₁.obj u = θ₂.obj u) :

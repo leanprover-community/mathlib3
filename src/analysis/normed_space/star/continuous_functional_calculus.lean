@@ -221,10 +221,10 @@ set.ext $ λ z, star_subalgebra.mem_spectrum_iff hS
 
 variables (a)
 
-/-- The natural map from `character_space ℂ (elemental_star_algebra ℂ a)` to `spectrum ℂ a` given
-by evaluating `φ` at `a`. This is essentially just evaluation of the `gelfand_transform` of `a`,
-but because we want something in `spectrum ℂ a`, as opposed to
-`spectrum ℂ ⟨a, elemental_star_algebra.self_mem ℂ a⟩` there is slightly more work to do. -/
+/-- The natural map from `character_space ℂ (elemental_star_algebra ℂ x)` to `spectrum ℂ x` given
+by evaluating `φ` at `x`. This is essentially just evaluation of the `gelfand_transform` of `x`,
+but because we want something in `spectrum ℂ x`, as opposed to
+`spectrum ℂ ⟨x, elemental_star_algebra.self_mem ℂ x⟩` there is slightly more work to do. -/
 @[simps]
 noncomputable def elemental_star_algebra.character_space_to_spectrum (x : A)
   (φ : character_space ℂ (elemental_star_algebra ℂ x)) : spectrum ℂ x :=

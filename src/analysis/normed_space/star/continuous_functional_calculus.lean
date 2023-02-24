@@ -9,7 +9,7 @@ import topology.algebra.star_subalgebra
 
 /-! # Continuous functional calculus
 
-In this file we construct the `continuous_functional_calculus` for normal elements of a (unital)
+In this file we construct the `continuous_functional_calculus` for a normal element `a` of a (unital)
 C⋆-algebra over `ℂ`. This is a star algebra equivalence
 `C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_star_algebra ℂ a` which sends the (restriction of) the
 identity map `continuous_map.id ℂ` to the (unique) preimage of `a` under the coercion of
@@ -21,7 +21,7 @@ polynomial functional calculus (i.e., `polynomial.aeval`).
 
 For any continuous function `f : spectrum ℂ a →  ℂ`, this makes it possible to define an element
 `f a` (not valid notation) in the original algebra, which heuristically has the same eigenspaces as
-`f` and acts on eigenvector of `f` for an eigenvalue `λ` as multiplication by `f λ`. This
+`a` and acts on eigenvector of `a` for an eigenvalue `λ` as multiplication by `f λ`. This
 description is perfectly accurate in finite dimension, but only heuristic in infinite dimension as
 there might be no genuine eigenvector. In particular, when `f` is a polynomial `∑ cᵢ Xⁱ`, then
 `f a` is `∑ cᵢ aⁱ`. Also, `id a = a`.
@@ -33,11 +33,11 @@ This file also includes a proof of the **spectral permanence** theorem for (unit
 
 * `continuous_functional_calculus : C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_star_algebra ℂ a`: this
   is the composition of the inverse of the `gelfand_star_transform` with the natural isomorphism
-  of induced by the homeomorphism `elemental_star_algebra.character_space_homeo`
+  induced by the homeomorphism `elemental_star_algebra.character_space_homeo`.
 * `elemental_star_algebra.character_space_homeo :
   `character_space ℂ (elemental_star_algebra ℂ a) ≃ₜ spectrum ℂ a`: this homeomorphism is defined
   by evaluating a character `φ` at `a`, and noting that `φ a ∈ spectrum ℂ a` since `φ` is an
-  algebra homomorphim. Moreover, this map is continuous and bijective and since the spaces involved
+  algebra homomorphism. Moreover, this map is continuous and bijective and since the spaces involved
   are compact Hausdorff, it is a homeomorphism.
 
 ## Main statements
@@ -119,7 +119,7 @@ begin
   unit, namely `algebra_map ℂ _ ‖star a * a‖`, and in this case the required distance is
   `‖star a * a‖`. So one must show `‖star a * a - algebra_map ℂ _ ‖star a * a‖‖ < ‖star a * a‖`.
   Since `star a * a - algebra_map ℂ _ ‖star a * a‖` is selfadjoint, by a corollary of Gelfand's
-  formula for the spectral radius (`is_self_adjoint.spectral_radius_eq_nnnorm`) it's norm is the
+  formula for the spectral radius (`is_self_adjoint.spectral_radius_eq_nnnorm`) its norm is the
   supremum of the norms of elements in its spectrum (we may use the spectrum in `A` here because
   the norm in `A` and the norm in the subalgebra coincide).
 
@@ -135,8 +135,7 @@ begin
   both `star a` and `a` are invertible, but `star a` is invertible if and only if `a` is. -/
   nontriviality A,
   set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
-  suffices : is_unit (star a' * a'),
-  { exact (is_unit.mul_iff.1 this).2 },
+  suffices : is_unit (star a' * a'), from (is_unit.mul_iff.1 this).2,
   replace h := (show commute (star a) a, from star_comm_self' a).is_unit_mul_iff.2 ⟨h.star, h⟩,
   /- Since `a` is invertible, `‖star a * a‖ ≠ 0`, so `‖star a * a‖ • 1` is invertible in
   `elemental_star_algebra ℂ a`, and so it suffices to show that the distance between this unit and

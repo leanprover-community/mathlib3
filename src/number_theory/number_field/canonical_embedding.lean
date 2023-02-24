@@ -8,13 +8,13 @@ import number_theory.number_field.embeddings
 
 /-!
 # Canonical embedding of a number field
-The canonical embedding of a number field `K` of signature `(r₁, r_₂)` is the ring homomorphism
+The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
 `K →+* ℝ^r₁ × ℂ^r₂` that sends `x ∈ K` to `(φ_₁(x),...,φ_r₁(x)) × (ψ_₁(x),..., ψ_r₂(x))` where
 `φ_₁,...,φ_r₁` are its real embeddings and `ψ_₁,..., ψ_r₂` are its complex embeddings (up to
 complex conjugation).
 
-## Main Results
-* `number_field.canonical_embedding.ring_of_integers.inter_ball_finite`: the intersection of the
+## Main definitions and results
+* `number_field.canonical_embedding.ring_of_integers.discrete`: the intersection of the
 image of the ring of integers by the canonical embedding and any ball centered at `0` of finite
 radius is finite.
 
@@ -38,19 +38,10 @@ lemma number_field.canonical_embedding.rank [number_field K] :
   finrank ℝ E = finrank ℚ K :=
 begin
   haveI : module.free ℝ ℂ := infer_instance,
-  rw module.free.finrank_prod,
-  rw module.free.finrank_pi,
-  rw module.free.finrank_pi_fintype,
-  rw complex.finrank_real_complex,
-  rw finset.sum_const,
-  rw finset.card_univ,
-  rw ← card_real_embeddings,
-  rw algebra.id.smul_eq_mul,
-  rw mul_comm,
-  rw ← card_complex_embeddings,
-  rw ← number_field.embeddings.card K ℂ,
-  rw fintype.card_subtype_compl,
-  rw nat.add_sub_of_le (fintype.card_subtype_le _),
+  rw [module.free.finrank_prod, module.free.finrank_pi, module.free.finrank_pi_fintype,
+    complex.finrank_real_complex, finset.sum_const, finset.card_univ, ← card_real_embeddings,
+    algebra.id.smul_eq_mul, mul_comm, ← card_complex_embeddings, ← number_field.embeddings.card K ℂ,
+    fintype.card_subtype_compl, nat.add_sub_of_le (fintype.card_subtype_le _)],
 end
 
 lemma number_field.canonical_embedding.nontrivial [number_field K] : nontrivial E :=
@@ -67,13 +58,13 @@ begin
       use ⟨w, not_is_real_iff_is_complex.mp hw⟩, }},
 end
 
-/-- The canonical embedding of a number field of signature `(s,t)` into `ℝ^s × ℂ^t`. -/
+/-- The canonical embedding of a number field `K` of signature `(r₁, r₂)` into `ℝ^r₁ × ℂ^r₂`. -/
 def number_field.canonical_embedding : K →+* E :=
 ring_hom.prod
   (pi.ring_hom (λ w, w.prop.embedding))
   (pi.ring_hom (λ w, w.val.embedding))
 
-lemma number_field.injective_canonical_embedding [number_field K] :
+lemma number_field.canonical_embedding_injective [number_field K] :
   function.injective (number_field.canonical_embedding K) :=
 begin
   convert ring_hom.injective _,
@@ -139,37 +130,36 @@ begin
     split; { exact λ h w, h w, }},
 end
 
-variable (K)
+variables (K) (R : Type*) [comm_ring R] [algebra R K] (hc : is_integral_closure R ℤ K)
 
-/-- The image of the ring of integers of `K` as a subring. -/
+/-- The image of `R` as a subring of `ℝ^r₁ × ℂ^r₂`. -/
 def integer_lattice : subring E :=
-subring.map (canonical_embedding K) (𝓞 K).to_subring
+subring.map (canonical_embedding K) (ring_hom.range (algebra_map R K))
 
-/-- The ring equiv between the ring of integers of `K` and the integer lattice. -/
-def integer_linear_equiv [number_field K]: (𝓞 K) ≃ₗ[ℤ] (integer_lattice K) :=
+include hc
+
+/-- The ring equiv between `R` and the integer lattice. -/
+def integer_linear_equiv [number_field K] :
+  R ≃ₗ[ℤ] (integer_lattice K R) :=
 begin
   refine linear_equiv.of_bijective _ _,
   { refine linear_map.mk _ _ _,
-    exact λ x, ⟨canonical_embedding K x, x, subtype.mem x, rfl⟩,
+    exact λ x, ⟨canonical_embedding K (algebra_map R K x), algebra_map R K x,
+      by simp only [subring.mem_carrier, ring_hom.mem_range, exists_apply_eq_apply], rfl⟩,
     { intros _ _,
-      simpa only [(canonical_embedding K).map_add, add_mem_class.coe_add], },
+      simpa only [map_add], },
     { intros _ _,
-      simpa only [zsmul_eq_mul, mul_mem_class.coe_mul, subring_class.coe_int_cast, map_mul,
-        map_int_cast], }},
+      simpa only [zsmul_eq_mul, map_mul, map_int_cast], }},
   { split,
-    { intros x y hxy,
-      rw ← subtype.coe_inj,
-      apply injective_canonical_embedding K,
-      rw linear_map.coe_mk at hxy,
-      rwa subtype.mk_eq_mk at hxy, },
-    { rintros ⟨_, ⟨a, ⟨ha, rfl⟩⟩⟩,
-      use a,
-      exact ha,
-      refl, }},
+    { intros _ _ h,
+      apply hc.algebra_map_injective,
+      apply canonical_embedding_injective K,
+      rwa ← subtype.coe_inj at h, },
+    { exact λ ⟨_, ⟨_, ⟨⟨a, rfl⟩, rfl⟩⟩⟩, ⟨a, rfl⟩, }}
 end
 
 lemma integer_lattice_discrete [number_field K] (r : ℝ) :
-  ((integer_lattice K : set E) ∩ (metric.closed_ball 0 r)).finite :=
+  ((integer_lattice K R : set E) ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
   { convert set.finite_empty,
@@ -177,26 +167,28 @@ begin
     exact set.inter_empty _, },
   { have heq : ∀ x : K, canonical_embedding K x ∈ (metric.closed_ball (0 : E) r) ↔
       ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r,
-    { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff,
-        le_of_le],
+    { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, le_of_le],
       exact λ x, le_iff_le x r, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
-    ext, split,
+    ext,
+    split,
     { rintros ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,
-      exact ⟨x, ⟨⟨hx1, (heq x).mp hx2⟩, rfl⟩⟩, },
+      exact ⟨x, ⟨⟨hc.is_integral_iff.mpr hx1, (heq x).mp hx2⟩, rfl⟩⟩, },
     { rintros ⟨x, ⟨⟨ hx1, hx2⟩, rfl⟩⟩,
-      exact ⟨⟨x, ⟨hx1, rfl⟩⟩, (heq x).mpr hx2⟩, }},
+      refine ⟨_, (heq x).mpr hx2⟩,
+      obtain ⟨y, rfl⟩ := hc.is_integral_iff.mp hx1,
+      exact ⟨algebra_map R K y, ⟨by use y, rfl⟩⟩, }}
 end
 
-lemma integer_lattice.countable [number_field K] : countable (integer_lattice K) :=
+lemma integer_lattice.countable [number_field K] : countable (integer_lattice K R) :=
 begin
-  suffices : (⋃ n : ℕ, ((integer_lattice K : set E) ∩ (metric.closed_ball 0 n))).countable,
+  suffices : (⋃ n : ℕ, ((integer_lattice K R : set E) ∩ (metric.closed_ball 0 n))).countable,
   { refine set.countable.to_subtype (set.countable.mono _ this),
     rintros _ ⟨x, ⟨hx, rfl⟩⟩,
     rw set.mem_Union,
     use nat.ceil (‖canonical_embedding K x‖),
     exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
-  { exact set.countable_Union (λ n, (integer_lattice_discrete K n).countable), },
+  { exact set.countable_Union (λ n, (integer_lattice_discrete K R hc n).countable), },
 end
 
 end number_field.canonical_embedding

@@ -213,11 +213,8 @@ begin
       { rwa update_same },
       { rw update_noteq hji,
         exact hx _ } },
-    refine ⟨a, b, ha, hb, hab, funext $ λ j, _⟩,
-    dsimp,
-    obtain rfl | hji := eq_or_ne j i,
-    { rwa [update_same, update_same] },
-    { rw [update_noteq hji, update_noteq hji, convex.combo_self hab] } },
+    rw ←pi.image_update_open_segment,
+    exact ⟨_, ⟨_, _, ha, hb, hab, hx'⟩, update_eq_self _ _⟩ },
   { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
     simp_rw [funext_iff, ←forall_and_distrib],
     exact λ i, h _ _ (hx₁ _) _ (hx₂ _) ⟨a, b, ha, hb, hab, congr_fun hx' _⟩ }

@@ -119,10 +119,8 @@ by rw [nndist_comm, nndist_conj_self]
 protected lemma dist_inv_inv (z w : ℂ) (hz : z ≠ 0) (hw : w ≠ 0) :
   dist z⁻¹ w⁻¹ = (dist z w) / (abs z * abs w) :=
 begin
-  have h : (abs z) * (abs w) ≠ 0, { simp [hz, hw], },
-  rw [eq_div_iff h, dist_eq, dist_comm, dist_eq, ← absolute_value.map_mul,
-    ← absolute_value.map_mul, sub_mul, inv_mul_cancel_left₀ hz, mul_comm z,
-    inv_mul_cancel_left₀ hw],
+  rw [dist_eq_norm, inv_sub_inv hz hw, norm_div, dist_eq_norm', norm_mul],
+  refl,
 end
 
 @[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero

@@ -80,7 +80,7 @@ instance prod_adic_completions.algebra' : algebra R (K_hat R K) :=
 (by apply_instance : algebra R $ Π v : height_one_spectrum R, v.adic_completion K)
 
 instance : is_scalar_tower R K (K_hat R K) :=
-(by apply_instance : is_scalar_tower R K ((Π (v : height_one_spectrum R), v.adic_completion K)))
+(by apply_instance : is_scalar_tower R K $ Π v : height_one_spectrum R, v.adic_completion K)
 
 instance : algebra R (R_hat R K) :=
 (by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion_integers K))

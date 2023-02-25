@@ -991,9 +991,9 @@ variables {α : Type*}
 have (↑b + -↑a : α) = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
   ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm],
 (pos_num.cast_sub' _ _).trans $ (sub_eq_add_neg _ _).trans this
-| (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by rw [
-  pos_num.cast_add, neg_eq_iff_neg_eq, neg_add_rev, neg_neg, neg_neg,
-  ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp [add_comm]
+| (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by  rw [
+  pos_num.cast_add, neg_eq_iff_eq_neg, neg_add_rev, neg_neg, neg_neg,
+  ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add, ← int.cast_add, add_comm]
 
 @[simp] theorem cast_succ [add_group_with_one α] (n) : ((succ n : znum) : α) = n + 1 :=
 by rw [← add_one, cast_add, cast_one]

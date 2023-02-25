@@ -302,8 +302,12 @@ variables [countable α] [measurable_space α] [measurable_singleton_class α]
 pmf.ext (λ x, by rw [← p.to_measure_apply_singleton x (measurable_set_singleton x),
   p.to_measure.to_pmf_apply])
 
-lemma to_measure_eq_iff_to_pmf_eq (μ : measure α) [hμ : is_probability_measure μ] :
+lemma to_measure_eq_iff_eq_to_pmf (μ : measure α) [is_probability_measure μ] :
   p.to_measure = μ ↔ p = μ.to_pmf :=
+by rw [← to_measure_inj, measure.to_pmf_to_measure]
+
+lemma to_pmf_eq_iff_to_measure_eq (μ : measure α) [is_probability_measure μ] :
+  μ.to_pmf = p ↔ μ = p.to_measure :=
 by rw [← to_measure_inj, measure.to_pmf_to_measure]
 
 end pmf

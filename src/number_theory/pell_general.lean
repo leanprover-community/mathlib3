@@ -74,9 +74,8 @@ begin
     obtain ⟨q, hq⟩ := hm.nonempty,
     rw [mem_set_of, sub_eq_zero, mul_comm] at hq,
     obtain ⟨a, ha⟩ := (int.pow_dvd_pow_iff two_pos).mp ⟨d, hq⟩,
-    rw [ha, mul_pow] at hq,
-    refine hd ⟨a, sq a ▸ (mul_left_cancel₀ (pow_ne_zero 2 _) hq).symm⟩,
-    exact nat.cast_ne_zero.mpr q.pos.ne', },
+    rw [ha, mul_pow, mul_right_inj' (pow_pos (int.coe_nat_pos.mpr q.pos) 2).ne'] at hq,
+    exact hd ⟨a, sq a ▸ hq.symm⟩, },
   haveI := ne_zero_iff.mpr (int.nat_abs_ne_zero.mpr hm₀),
   let f : ℚ → (zmod m.nat_abs) × (zmod m.nat_abs) := λ q, (q.1, q.2),
   obtain ⟨q₁, h₁ : q₁.1 ^ 2 - d * q₁.2 ^ 2 = m, q₂, h₂ : q₂.1 ^ 2 - d * q₂.2 ^ 2 = m, hne, hqf⟩ :=

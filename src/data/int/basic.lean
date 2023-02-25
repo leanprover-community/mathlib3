@@ -147,7 +147,7 @@ theorem succ_neg_succ (a : ℤ) : succ (-succ a) = -a :=
 by rw [neg_succ, succ_pred]
 
 theorem neg_pred (a : ℤ) : -pred a = succ (-a) :=
-by rw [eq_neg_of_eq_neg (neg_succ (-a)).symm, neg_neg]
+by rw [neg_eq_iff_eq_neg.mp (neg_succ (-a)), neg_neg]
 
 theorem pred_neg_pred (a : ℤ) : pred (-pred a) = -a :=
 by rw [neg_pred, pred_succ]

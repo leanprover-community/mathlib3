@@ -29,7 +29,7 @@ Should we rename `segment` and `open_segment` to `convex.Icc` and `convex.Ioo`? 
 define `clopen_segment`/`convex.Ico`/`convex.Ioc`?
 -/
 
-variables {𝕜 E F ι : Type*} {π : ι → Type*}
+variables {𝕜 E F G ι : Type*} {π : ι → Type*}
 
 open function set
 open_locale pointwise
@@ -138,7 +138,8 @@ end ordered_semiring
 open_locale convex
 
 section ordered_ring
-variables (𝕜) [ordered_ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+variables (𝕜) [ordered_ring 𝕜] [add_comm_group E] [add_comm_group F] [add_comm_group G] [module 𝕜 E]
+  [module 𝕜 F]
 
 section densely_ordered
 variables [nontrivial 𝕜] [densely_ordered 𝕜]
@@ -190,11 +191,11 @@ set.ext $ λ x, by simp_rw [segment_eq_image_line_map, mem_image, exists_exists_
 set.ext $ λ x, by simp_rw [open_segment_eq_image_line_map, mem_image, exists_exists_and_eq_and,
   affine_map.apply_line_map]
 
-@[simp] lemma vadd_segment [add_torsor E F] [vadd_comm_class E F F] (a : E) (b c : F) :
+@[simp] lemma vadd_segment [add_torsor G E] [vadd_comm_class G E E] (a : G) (b c : E) :
   a +ᵥ [b -[𝕜] c] = [a +ᵥ b -[𝕜] a +ᵥ c] :=
 image_segment 𝕜 ⟨_, linear_map.id, λ _ _, vadd_comm _ _ _⟩ b c
 
-@[simp] lemma vadd_open_segment [add_torsor E F] [vadd_comm_class E F F] (a : E) (b c : F) :
+@[simp] lemma vadd_open_segment [add_torsor G E] [vadd_comm_class G E E] (a : G) (b c : E) :
   a +ᵥ open_segment 𝕜 b c = open_segment 𝕜 (a +ᵥ b) (a +ᵥ c) :=
 image_open_segment 𝕜 ⟨_, linear_map.id, λ _ _, vadd_comm _ _ _⟩ b c
 

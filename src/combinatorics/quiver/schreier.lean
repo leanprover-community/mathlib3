@@ -336,21 +336,23 @@ begin
       simpa [quotient_group.eq_iff_div_mem] using h, }, },
 end
 
-lemma exists_as_autom {φ ψ : 𝑺 ι N ⥤q 𝑺 ι N} {g : M}
-  (φψ : φ ⋙q ψ = 𝟭q _) (ψφ : ψ ⋙q φ = 𝟭q _) (φc : φ ⋙q 𝑺l ι N = 𝑺l ι N)
+lemma exists_as_autom {φ : 𝑺l ι N ≃qc 𝑺l ι N} {g : M}
   (h : subgroup.closure (set.range ι) = (⊤ : subgroup M))
-  (hv : φ.obj (1 : M ⧸ N) = quotient_group.mk g) : φ = as_autom ι (g⁻¹) :=
+  (hv : φ.obj (1 : M ⧸ N) = quotient_group.mk g) : φ = as_autom_covering_iso ι (g⁻¹) :=
 begin
-  sorry,
-  /-
-  * Suffices to show equal on vertices.
-  * Equal on `1 : M ⧸ N`, since :
-    `φ 1 = ⟦g⟧ = ⟦1⟧ * ⟦g⁻¹ ⁻¹⟧ = (as_autom g⁻¹) 1`
-  * Then, suffices to show equal on `s • x` assuming equal on `x`, but:
-    `φ (ι s • x) = ι s • (φ x) = ι s • (as_autom g⁻¹ x) = as_autom g⁻¹ (ι s • x)`
-  -/
+  apply covering_iso.ext,
+  apply iso.to_prefunctor_ext,
+  fapply (𝑨c _ _).eq_of_eq_of_preconnected,
+  { simp [covering_iso.commute_left], },
+  { rintro ⟨x⟩ ⟨y⟩,
+    refine (action_graph.reachable_iff _ _ _ _).mpr _,
+    simp only [h, subgroup.mem_top, exists_true_left],
+    refine ⟨y * x⁻¹, _⟩,
+    change (y * x⁻¹) • quotient_group.mk x = quotient_group.mk y,
+    simp only [mul_action.quotient.smul_mk, smul_eq_mul, inv_mul_cancel_right], },
+  { exact (1 : M ⧸ N), },
+  { simpa [hv, as_autom_covering_iso], },
 end
-
 
 end automs
 

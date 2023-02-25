@@ -442,27 +442,27 @@ lemma angle_lt_pi_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p
 /-- The cosine of the angle between three points is 1 if and only if the angle is 0. -/
 lemma cos_eq_one_iff_angle_eq_zero {p₁ p₂ p₃ : P} :
   real.cos (∠ p₁ p₂ p₃) = 1 ↔ ∠ p₁ p₂ p₃ = 0 :=
-cos_eq_one_iff_angle_eq_zero _ _
+cos_eq_one_iff_angle_eq_zero
 
 /-- The cosine of the angle between three points is 0 if and only if the angle is π / 2. -/
 lemma cos_eq_zero_iff_angle_eq_pi_div_two {p₁ p₂ p₃ : P} :
   real.cos (∠ p₁ p₂ p₃) = 0 ↔ ∠ p₁ p₂ p₃ = π / 2 :=
-cos_eq_zero_iff_angle_eq_pi_div_two _ _
+cos_eq_zero_iff_angle_eq_pi_div_two
 
 /-- The cosine of the angle between three points is -1 if and only if the angle is π. -/
 lemma cos_eq_neg_one_iff_angle_eq_pi {p₁ p₂ p₃ : P} :
   real.cos (∠ p₁ p₂ p₃) = -1 ↔ ∠ p₁ p₂ p₃ = π :=
-cos_eq_neg_one_iff_angle_eq_pi _ _
+cos_eq_neg_one_iff_angle_eq_pi
 
 /-- The sine of the angle between three points is 0 if and only if the angle is 0 or π. -/
 lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi {p₁ p₂ p₃ : P} :
   real.sin (∠ p₁ p₂ p₃) = 0 ↔ ∠ p₁ p₂ p₃ = 0 ∨ ∠ p₁ p₂ p₃ = π :=
-sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi _ _
+sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi
 
 /-- The sine of the angle between three points is 1 if and only if the angle is π / 2. -/
 lemma sin_eq_one_iff_angle_eq_pi_div_two {p₁ p₂ p₃ : P} :
   real.sin (∠ p₁ p₂ p₃) = 1 ↔ ∠ p₁ p₂ p₃ = π / 2 :=
-sin_eq_one_iff_angle_eq_pi_div_two _ _
+sin_eq_one_iff_angle_eq_pi_div_two
 
 /-- Three points are collinear if and only if the first or third point equals the second or
 the sine of the angle between three points is zero. -/

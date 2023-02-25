@@ -255,7 +255,7 @@ lemma fourier_integral_def (f : ℝ → E) (w : ℝ) :
   fourier_integral f w = ∫ (v : ℝ), fourier_char [-(v * w)] • f v :=
 rfl
 
-localized "notation (name := fourier_integral) `𝓕` := fourier_integral" in fourier_transform
+localized "notation (name := fourier_integral) `𝓕` := real.fourier_integral" in fourier_transform
 
 lemma fourier_integral_eq_integral_exp_smul
   {E : Type*} [normed_add_comm_group E] [complete_space E] [normed_space ℂ E]

@@ -263,10 +263,11 @@ instance : has_le pgame := ⟨sym2.game_add.fix wf_is_option $ λ x y le,
   (∀ j, ¬ le (y.move_right j) x (sym2.game_add.fst_snd $ is_option.move_right j))⟩
 
 /-- The less or fuzzy relation on pre-games.
+
 If `0 ⧏ x`, then Left can win `x` as the first player. -/
 def lf (x y : pgame) : Prop := ¬ y ≤ x
 
-localized "infix ` ⧏ `:50 := pgame.lf" in pgame
+localized "infix (name := pgame.lf) ` ⧏ `:50 := pgame.lf" in pgame
 
 @[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := iff.rfl
 @[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_not

@@ -190,7 +190,7 @@ inv_involutive.injective
 
 @[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
-@[to_additive]
+/- @[to_additive]
 lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
 by simp [h]
 
@@ -208,11 +208,11 @@ eq_inv_of_eq_inv h.symm
 
 @[to_additive]
 lemma inv_eq_of_eq_inv (h : a = b⁻¹) : a⁻¹ = b :=
-(eq_inv_of_eq_inv h).symm
+(eq_inv_of_eq_inv h).symm -/
 
 @[to_additive]
 theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
-⟨eq_inv_of_inv_eq, inv_eq_of_eq_inv⟩
+⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
 variables (G)
 

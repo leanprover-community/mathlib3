@@ -145,7 +145,7 @@ end
 
 end fintype
 
-lemma zspan.metric.fundamental_domain_bounded [finite ι] :
+lemma zspan.fundamental_domain_metric_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,

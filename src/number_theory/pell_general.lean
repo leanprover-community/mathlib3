@@ -106,19 +106,18 @@ begin
     exact_mod_cast mt sub_eq_zero.mp (mt rat.eq_iff_mul_eq_mul.mpr hne), },
 end
 
+lemma int.eq_of_mul_eq_one {a b : ℤ} (h : a * b = 1) : a = b :=
+(int.eq_one_or_neg_one_of_mul_eq_one' h).elim (λ h, h.1.trans h.2.symm) (λ h, h.1.trans h.2.symm)
+
 /-- If `d` is a positive integer, then there is a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1` if and only if `d` is not a square. -/
 theorem exists_iff_not_is_square {d : ℤ} (h₀ : 0 < d) :
   (∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ y ≠ 0) ↔ ¬ is_square d :=
 begin
-  refine ⟨λ h, _, exists_of_not_is_square h₀⟩,
-  contrapose! h,
-  obtain ⟨a, rfl⟩ := h,
-  intros x y hxy,
-  rw [← sq, ← mul_pow, sq_sub_sq, int.mul_eq_one_iff_eq_one_or_neg_one] at hxy,
-  suffices : 2 * a * y = 0, { simpa [mul_self_pos.mp h₀] using this, },
-  rcases hxy with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩;
-  linear_combination h₁ - h₂,
+  refine ⟨_, exists_of_not_is_square h₀⟩,
+  rintros ⟨x, y, hxy, hy⟩ ⟨a, rfl⟩,
+  rw [← sq, ← mul_pow, sq_sub_sq] at hxy,
+  simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
 end
 
 end existence

@@ -261,7 +261,7 @@ lemma _root_.set.exists_is_open_le_add (A : set α) (μ : measure α) [outer_reg
 begin
   rcases le_or_lt ∞ (μ A) with H|H,
   { exact ⟨univ, subset_univ _, is_open_univ,
-      by simp only [top_le_iff.mp H, ennreal.top_add, le_top]⟩ },
+      by simp only [top_le_iff.mp H, top_add, le_top]⟩ },
   { rcases A.exists_is_open_lt_add H.ne hε with ⟨U, AU, U_open, hU⟩,
     exact ⟨U, AU, U_open, hU.le⟩ }
 end

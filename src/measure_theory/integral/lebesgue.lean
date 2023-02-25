@@ -1794,7 +1794,7 @@ lemma lintegral_sub_le (f g : α → ℝ≥0∞) (hf : measurable f) :
 begin
   rw tsub_le_iff_right,
   by_cases hfi : ∫⁻ x, f x ∂μ = ∞,
-  { rw [hfi, ennreal.add_top],
+  { rw [hfi, add_top],
     exact le_top },
   { rw [← lintegral_add_right _ hf],
     exact lintegral_mono (λ x, le_tsub_add) }
@@ -3039,7 +3039,7 @@ lemma exists_absolutely_continuous_is_finite_measure
 begin
   obtain ⟨g, gpos, gmeas, hg⟩ : ∃ (g : α → ℝ≥0), (∀ (x : α), 0 < g x) ∧
     measurable g ∧ ∫⁻ (x : α), ↑(g x) ∂μ < 1 :=
-      exists_pos_lintegral_lt_of_sigma_finite μ (ennreal.zero_lt_one).ne',
+      exists_pos_lintegral_lt_of_sigma_finite μ one_ne_zero,
   refine ⟨μ.with_density (λ x, g x), is_finite_measure_with_density hg.ne_top, _⟩,
   have : μ = (μ.with_density (λ x, g x)).with_density (λ x, (g x)⁻¹),
   { have A : (λ (x : α), (g x : ℝ≥0∞)) * (λ (x : α), (↑(g x))⁻¹) = 1,

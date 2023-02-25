@@ -990,7 +990,7 @@ begin
     { assume t g htg,
       rcases eq_or_ne (μ t) ∞ with ht|ht,
       { simp only [ht, εpos.ne', with_top.mul_top, ennreal.coe_eq_zero, le_top, ne.def,
-                   not_false_iff, ennreal.add_top] },
+                   not_false_iff, add_top] },
       have := h t g (htg.mono_num (min_le_left _ _)),
       rwa [with_top.coe_sub, ennreal.sub_mul, tsub_le_iff_right] at this,
       simp only [ht, implies_true_iff, ne.def, not_false_iff] } },

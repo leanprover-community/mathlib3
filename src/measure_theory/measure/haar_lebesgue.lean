@@ -864,7 +864,7 @@ begin
       exists_subset_measure_lt_top ht h't.bot_lt,
   filter_upwards [(tendsto_order.1
     (tendsto_add_haar_inter_smul_one_of_density_one μ s x h t'
-      t'_meas t'pos.ne' t'top.ne)).1 0 ennreal.zero_lt_one],
+      t'_meas t'pos.ne' t'top.ne)).1 0 zero_lt_one],
   assume r hr,
   have : μ (s ∩ ({x} + r • t')) ≠ 0 :=
     λ h', by simpa only [ennreal.not_lt_zero, ennreal.zero_div, h'] using hr,

@@ -39,7 +39,7 @@ begin
   have pow_pos : ∀ k : ℕ, (0 : ℝ≥0∞) < 2⁻¹ ^ k,
     from λ k, ennreal.pow_pos (ennreal.inv_pos.2 ennreal.two_ne_top) _,
   have hpow_le : ∀ {m n : ℕ}, m ≤ n → (2⁻¹ : ℝ≥0∞) ^ n ≤ 2⁻¹ ^ m,
-    from λ m n h, ennreal.pow_le_pow_of_le_one (ennreal.inv_le_one.2 ennreal.one_lt_two.le) h,
+    from λ m n h, pow_le_pow_of_le_one' (ennreal.inv_le_one.2 ennreal.one_lt_two.le) h,
   have h2pow : ∀ n : ℕ, 2 * (2⁻¹ : ℝ≥0∞) ^ (n + 1) = 2⁻¹ ^ n,
     by { intro n, simp [pow_succ, ← mul_assoc, ennreal.mul_inv_cancel] },
   -- Consider an open covering `S : set (set α)`

@@ -96,7 +96,7 @@ begin
   { let f := simple_func.piecewise s hs (simple_func.const α c) (simple_func.const α 0),
     by_cases h : ∫⁻ x, f x ∂μ = ⊤,
     { refine ⟨λ x, c, λ x, _, lower_semicontinuous_const,
-             by simp only [ennreal.top_add, le_top, h]⟩,
+             by simp only [top_add, le_top, h]⟩,
       simp only [simple_func.coe_const, simple_func.const_zero, simple_func.coe_zero,
         set.piecewise_eq_indicator, simple_func.coe_piecewise],
       exact set.indicator_le_self _ _ _ },

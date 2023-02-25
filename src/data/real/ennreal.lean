@@ -942,7 +942,7 @@ lemma bit0_injective : function.injective (bit0 : ℝ≥0∞ → ℝ≥0∞) := 
 @[simp] lemma bit0_inj : bit0 a = bit0 b ↔ a = b := bit0_injective.eq_iff
 
 @[simp] lemma bit0_eq_zero_iff : bit0 a = 0 ↔ a = 0 := bit0_injective.eq_iff' bit0_zero
-@[simp] lemma bit0_top : bit0 ∞ = ∞ := add_top
+@[simp] lemma bit0_top : bit0 ∞ = ∞ := add_top _
 @[simp] lemma bit0_eq_top_iff : bit0 a = ∞ ↔ a = ∞ := bit0_injective.eq_iff' bit0_top
 
 @[mono] lemma bit1_strict_mono : strict_mono (bit1 : ℝ≥0∞ → ℝ≥0∞) :=
@@ -1201,7 +1201,7 @@ end
 by rw [← one_div, ennreal.le_div_iff_mul_le]; { right, simp }
 
 protected lemma div_le_div (hab : a ≤ b) (hdc : d ≤ c) : a / c ≤ b / d :=
-div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
+div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ mul_le_mul' hab (ennreal.inv_le_inv.mpr hdc)
 
 protected lemma div_le_div_left (h : a ≤ b) (c : ℝ≥0∞) : c / b ≤ c / a :=
 ennreal.div_le_div le_rfl h
@@ -1351,8 +1351,8 @@ lemma exists_nat_pos_mul_gt (ha : a ≠ 0) (hb : b ≠ ∞) :
 begin
   have : b / a ≠ ∞, from mul_ne_top hb (inv_ne_top.2 ha),
   refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
-  have : ↑0 < (n : ℝ≥0∞), from lt_of_le_of_lt (by simp) hn,
-  refine ⟨coe_nat_lt_coe_nat.1 this, _⟩,
+  have : 0 < (n : ℝ≥0∞), from lt_of_le_of_lt (zero_le _) hn,
+  refine ⟨nat.cast_pos.1 this, _⟩,
   rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
 end
 
@@ -1466,7 +1466,7 @@ begin
     exact lt_of_lt_of_le (int.neg_succ_lt_zero _) (int.of_nat_nonneg _) },
   { simp only [zpow_neg_succ_of_nat, int.of_nat_eq_coe, zpow_coe_nat],
     refine (ennreal.inv_le_one.2 _).trans _;
-    exact ennreal.one_le_pow_of_one_le hx _, },
+    exact one_le_pow_of_one_le' hx _, },
   { simp only [zpow_neg_succ_of_nat, ennreal.inv_le_inv],
     apply pow_le_pow hx,
     simpa only [←int.coe_nat_le_coe_nat_iff, neg_le_neg_iff, int.coe_nat_add, int.coe_nat_one,

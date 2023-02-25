@@ -388,7 +388,7 @@ begin
     measure_Union_le _
   ... ≤ ∑' (a : {a // a ∉ w}), C * μ (B a) : ennreal.tsum_le_tsum (λ a, μB a (ut (vu a.1.2)))
   ... = C * ∑' (a : {a // a ∉ w}), μ (B a) : ennreal.tsum_mul_left
-  ... ≤ C * (ε / C) : ennreal.mul_le_mul le_rfl hw.le
+  ... ≤ C * (ε / C) : mul_le_mul_left' hw.le _
   ... ≤ ε : ennreal.mul_div_le
 end
 

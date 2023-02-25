@@ -1406,7 +1406,7 @@ begin
   ... = C * μ s + ε₁ : by simp only [←simple_func.lintegral_eq_lintegral, coe_const,
     lintegral_const, measure.restrict_apply, measurable_set.univ, univ_inter]
   ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ :
-    add_le_add_right (ennreal.mul_le_mul le_rfl hs.le) _
+    add_le_add_right (mul_le_mul_left' hs.le _) _
   ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
   ... = ε₂ : tsub_add_cancel_of_le hε₁₂.le,
 end
@@ -2685,7 +2685,7 @@ begin
   { intros g h h_univ h_mea_g h_mea_h h_ind_g h_ind_h,
     simp [mul_add, *, measurable.mul] },
   { intros g h_mea_g h_mono_g h_ind,
-    have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
+    have : monotone (λ n a, f a * g n a) := λ m n hmn x, mul_le_mul_left' (h_mono_g hmn x) _,
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
@@ -2746,7 +2746,7 @@ lemma lintegral_with_density_le_lintegral_mul (μ : measure α)
 begin
   rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
   refine supr₂_le (λ i i_meas, supr_le (λ hi, _)),
-  have A : f * i ≤ f * g := λ x, ennreal.mul_le_mul le_rfl (hi x),
+  have A : f * i ≤ f * g := λ x, mul_le_mul_left' (hi x) _,
   refine le_supr₂_of_le (f * i) (f_meas.mul i_meas) _,
   exact le_supr_of_le A (le_of_eq (lintegral_with_density_eq_lintegral_mul _ f_meas i_meas))
 end

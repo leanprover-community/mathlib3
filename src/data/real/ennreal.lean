@@ -695,7 +695,7 @@ begin
   intros x y h,
   contrapose! h,
   simpa only [← mul_assoc, ← coe_mul, inv_mul_cancel h0, coe_one, one_mul]
-    using mul_le_mul' (le_refl ↑a⁻¹) h
+    using mul_le_mul_left' h (↑a⁻¹)
 end
 
 lemma mul_eq_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b = a * c ↔ b = c :=

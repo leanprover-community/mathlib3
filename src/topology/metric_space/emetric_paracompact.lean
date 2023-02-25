@@ -99,7 +99,7 @@ begin
     rintro ⟨y, rfl, hsub, -, hyx⟩,
     refine hsub (lt_of_lt_of_le hyx _),
     calc 2⁻¹ ^ n = 1 * 2⁻¹ ^ n : (one_mul _).symm
-    ... ≤ 3 * 2⁻¹ ^ n : ennreal.mul_le_mul _ le_rfl,
+    ... ≤ 3 * 2⁻¹ ^ n : mul_le_mul_right' _ _,
     -- TODO: use `norm_num`
     have : ((1 : ℕ) : ℝ≥0∞) ≤ (3 : ℕ), from ennreal.coe_nat_le_coe_nat.2 (by norm_num1),
     exact_mod_cast this },
@@ -148,7 +148,7 @@ begin
         by apply_rules [ennreal.add_lt_add]
       ... = 2 * (2⁻¹ ^ m + 2⁻¹ ^ (n + k + 1)) : by simp only [two_mul, add_comm]
       ... ≤ 2 * (2⁻¹ ^ m + 2⁻¹ ^ (m + 1)) :
-        ennreal.mul_le_mul le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
+        mul_le_mul' le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
       ... = 3 * 2⁻¹ ^ m : by rw [mul_add, h2pow, bit1, add_mul, one_mul] },
     -- Finally, we glue `Hgt` and `Hle`
     have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite :=

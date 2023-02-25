@@ -750,7 +750,7 @@ begin
             ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
               by { rw u_succ, exact (hF (u n) (Pu n)).2.2 }
         ... ≤ (N/(N+1))^n.succ * μ s :
-          by { rw [pow_succ, mul_assoc], exact ennreal.mul_le_mul le_rfl IH } },
+          by { rw [pow_succ, mul_assoc], exact mul_le_mul_left' IH _ } },
     have C : tendsto (λ (n : ℕ), ((N : ℝ≥0∞)/(N+1))^n * μ s) at_top (𝓝 (0 * μ s)),
     { apply ennreal.tendsto.mul_const _ (or.inr (measure_lt_top μ s).ne),
       apply ennreal.tendsto_pow_at_top_nhds_0_of_lt_1,

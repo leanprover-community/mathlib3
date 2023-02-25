@@ -484,7 +484,7 @@ begin
     { simp [indicator_of_not_mem hx] } },
   refine le_trans (snorm_mono this) _,
   rw snorm_indicator_const hs hp hp',
-  refine ennreal.mul_le_mul (le_of_eq _) le_rfl,
+  refine mul_le_mul_right' (le_of_eq _) _,
   rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hc],
 end
 
@@ -896,7 +896,7 @@ begin
       begin
         rw [ennreal.smul_def, ennreal.smul_def, smul_eq_mul, smul_eq_mul],
         simp_rw ennreal.of_real_coe_nnreal at hℐ,
-        refine ennreal.mul_le_mul le_rfl (ennreal.rpow_le_rpow (hℐ C).le
+        refine mul_le_mul' le_rfl (ennreal.rpow_le_rpow (hℐ C).le
           (one_div_nonneg.2 ennreal.to_real_nonneg)),
       end
       ... ≤ snorm ({x | C ≤ ‖f (ℐ C) x‖₊}.indicator (f (ℐ C))) p μ :

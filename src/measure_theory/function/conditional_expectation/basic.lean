@@ -1197,7 +1197,7 @@ begin
   exact (Lp.strongly_measurable _).ennnorm
 end
 ... ≤ μ (s ∩ t) * ‖x‖₊ :
-  ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) le_rfl
+  mul_le_mul_right' (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) _
 
 lemma lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') [sigma_finite (μ.trim hm)] :
@@ -1207,7 +1207,7 @@ begin
   { rw Lp_meas_coe,
     exact (Lp.ae_strongly_measurable _).ennnorm },
   refine (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
-  refine ennreal.mul_le_mul _ le_rfl,
+  apply mul_le_mul_right',
   exact measure_mono (set.inter_subset_left _ _),
 end
 
@@ -1221,7 +1221,7 @@ begin
     (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { rw Lp_meas_coe, exact Lp.ae_strongly_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
-    exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
+    exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _, },
 end
 
 end condexp_L2_indicator
@@ -1284,7 +1284,7 @@ begin
   exact (Lp.strongly_measurable _).ennnorm
 end
 ... ≤ μ (s ∩ t) * ‖x‖₊ :
-  ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) le_rfl
+  mul_le_mul_right' (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) _
 
 lemma lintegral_nnnorm_condexp_ind_smul_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : G) [sigma_finite (μ.trim hm)] :
@@ -1293,7 +1293,7 @@ begin
   refine lintegral_le_of_forall_fin_meas_le' hm (μ s * ‖x‖₊) _ (λ t ht hμt, _),
   { exact (Lp.ae_strongly_measurable _).ennnorm },
   refine (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
-  refine ennreal.mul_le_mul _ le_rfl,
+  apply mul_le_mul_right',
   exact measure_mono (set.inter_subset_left _ _),
 end
 
@@ -1307,7 +1307,7 @@ begin
     (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { exact Lp.ae_strongly_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
-    exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
+    exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _, },
 end
 
 lemma condexp_ind_smul_empty {x : G} :

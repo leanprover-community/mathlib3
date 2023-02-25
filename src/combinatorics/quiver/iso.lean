@@ -13,7 +13,6 @@ structure iso (U V : Type*) [quiver.{u+1} U] [quiver.{v+1} V] extends prefunctor
 (left_inv : to_prefunctor ⋙q inv_prefunctor = 𝟭q _)
 (right_inv : inv_prefunctor ⋙q to_prefunctor = 𝟭q _)
 
-
 infix ` ≃q `:60 := iso
 
 variables {U V W Z : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W] [quiver.{z+1} Z]
@@ -21,13 +20,14 @@ variables {U V W Z : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W] [
 instance : has_coe (iso U V) (prefunctor U V) :=
 ⟨iso.to_prefunctor⟩
 
-@[simp]
+@[simps]
 def iso.to_equiv (φ : iso U V) : U ≃ V :=
 { to_fun := φ.to_prefunctor.obj,
   inv_fun := φ.inv_prefunctor.obj,
   left_inv := λ x, congr_arg (λ (F : U ⥤q U), F.obj x) φ.left_inv,
   right_inv := λ x, congr_arg (λ (F : V ⥤q V), F.obj x) φ.right_inv }
 
+@[simps]
 def iso.to_equiv_map (φ : iso U V) (X Y : U) : (X ⟶ Y) ≃ (φ.obj X ⟶ φ.obj Y) :=
 { to_fun := φ.to_prefunctor.map,
   inv_fun := (hom_equiv_of_eq (φ.to_equiv.left_inv X) (φ.to_equiv.left_inv Y)) ∘ φ.inv_prefunctor.map,
@@ -37,12 +37,12 @@ def iso.to_equiv_map (φ : iso U V) (X Y : U) : (X ⟶ Y) ≃ (φ.obj X ⟶ φ.o
     end,
   right_inv := sorry}
 
-def iso.refl (U : Type*) [quiver.{u+1} U] : iso U U := ⟨𝟭q _, 𝟭q _, rfl, rfl⟩
+@[simps] def iso.refl (U : Type*) [quiver.{u+1} U] : iso U U := ⟨𝟭q _, 𝟭q _, rfl, rfl⟩
 
-def iso.symm (φ : iso U V) : iso V U :=
+@[simps] def iso.symm (φ : iso U V) : iso V U :=
 ⟨φ.inv_prefunctor, φ.to_prefunctor, φ.right_inv, φ.left_inv⟩
 
-def iso.trans (φ : iso U V) (ψ : iso V W) : iso U W :=
+@[simps] def iso.trans (φ : iso U V) (ψ : iso V W) : iso U W :=
 { to_prefunctor := φ.to_prefunctor ⋙q ψ.to_prefunctor,
   inv_prefunctor := ψ.inv_prefunctor ⋙q φ.inv_prefunctor,
   left_inv := by

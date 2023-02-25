@@ -42,11 +42,12 @@ Cover, covering, quiver, path, lift
 
 open function quiver
 
-universes u v w
+universes u v w z
 
 variables {U : Type*} [quiver.{u+1} U]
           {V : Type*} [quiver.{v+1} V] (φ : U ⥤q V)
           {W : Type*} [quiver.{w+1} W] (ψ : V ⥤q W)
+          {Z : Type*} [quiver.{z+1} Z]
 
 /-- The `quiver.star` at a vertex is the collection of arrows whose source is the vertex. -/
 @[reducible] def quiver.star (u : U) := Σ (v : U), (u ⟶ v)
@@ -396,6 +397,22 @@ end
 
 instance (φ : U ⥤q W) (ψ : V ⥤q W) : has_coe (covering_iso φ ψ) (iso U V) :=
 ⟨covering_iso.to_iso⟩
+
+@[simp] def covering_iso.refl  (φ : U ⥤q W) : covering_iso φ φ :=
+{ to_iso := iso.refl _,
+  commute_left := by simp [iso.refl],
+  commute_right := by simp [iso.refl] }
+
+@[simp] def covering_iso.symm {φ : U ⥤q W} {ψ : V ⥤q W} (θ : covering_iso φ ψ) : covering_iso ψ φ :=
+{ to_iso := θ.to_iso.symm,
+  commute_left := by simp [iso.symm, covering_iso.commute_right],
+  commute_right := by simp [iso.symm, covering_iso.commute_left] }
+
+@[simp] def covering_iso.trans {φ : U ⥤q W} {ψ : V ⥤q W} {σ : Z ⥤q W}
+  (θ : covering_iso φ ψ) (ζ : covering_iso ψ σ) : covering_iso φ σ :=
+{ to_iso := θ.to_iso.trans ζ.to_iso,
+  commute_left := by simp [iso.trans, covering_iso.commute_left],
+  commute_right := by simp [iso.trans, covering_iso.commute_right] }
 
 infix ` ≃qc `:60 := covering_iso
 

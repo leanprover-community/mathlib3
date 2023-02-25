@@ -57,7 +57,7 @@ This is encoded as mapping to the `single_obj S` quiver.
   map := λ x y e, subtype.rec_on e (λ s h, s), }
 
 notation `𝑨` := action_graph
-notation `𝑨'` := action_graph_labelling
+notation `𝑨l` := action_graph_labelling
 
 end basic
 
@@ -71,12 +71,12 @@ are in bijection with `S`.
 
 variables (V : Type*) {M : Type*} [group M] [mul_action M V] {S : Type*} (ι : S → M)
 
-instance : mul_action M (action_graph V ι) :=
+instance : mul_action M (𝑨 V ι) :=
 { smul := has_smul.smul,
   one_smul := mul_action.one_smul,
   mul_smul := mul_action.mul_smul }
 
-lemma action_graph_labelling_is_covering : (𝑨' V ι).is_covering :=
+lemma action_graph_labelling_is_covering : (𝑨l V ι).is_covering :=
 begin
   refine ⟨λ u, ⟨_, _⟩, λ u, ⟨_, _⟩⟩,
   { rintro ⟨v,⟨x,hx⟩⟩ ⟨w,⟨y,hy⟩⟩ h,
@@ -103,7 +103,7 @@ The sorry should be easy but would benefit from infrastructure:
 * isomorphisms induce equivalence of `star_path` etc
 
 -/
-noncomputable def action_graph.path_star_equiv (x : action_graph V ι) :
+noncomputable def action_graph.path_star_equiv (x : 𝑨 V ι) :
   path_star (symmetrify.of.obj x) ≃ list (S ⊕ S) :=
 calc  path_star (symmetrify.of.obj x)
     ≃ path_star (symmetrify.of.obj (single_obj.star S) : symmetrify (single_obj S)) :
@@ -139,8 +139,8 @@ I'm using `id p.1` because `symmetrify` has no converse to `of`
 That should be remedied.
 -/
 lemma action_graph.path_star_equiv_end_eq_mul
-  (x : action_graph V ι) (p : path_star $ symmetrify.of.obj x) :
-  (id p.1 : action_graph V ι) = (val ι $ (action_graph.path_star_equiv V ι x) p) • x := sorry
+  (x : 𝑨 V ι) (p : path_star $ symmetrify.of.obj x) :
+  (id p.1 : 𝑨 V ι) = (val ι $ (action_graph.path_star_equiv V ι x) p) • x := sorry
 
 
 /--
@@ -150,18 +150,18 @@ Using the equivalence above:
 Thus:
 * Now use `_root_.subgroup.closure_eq_range_val`
 -/
-lemma action_graph.reachable_iff (x y : action_graph V ι) :
+lemma action_graph.reachable_iff (x y : 𝑨 V ι) :
   nonempty (path (symmetrify.of.obj x) (symmetrify.of.obj y)) ↔
   ∃ g ∈ (subgroup.closure $ set.range ι), g • x = y := sorry
 
 /- A endomorphism of the graph (with labelling) commutes with the `smul`. -/
-lemma action_graph.action_commute (φ : 𝑨 V ι ⥤q 𝑨 V ι) (φm : φ ⋙q 𝑨' V ι = 𝑨' V ι)
+lemma action_graph.action_commute (φ : 𝑨 V ι ⥤q 𝑨 V ι) (φm : φ ⋙q 𝑨l V ι = 𝑨l V ι)
   (v : 𝑨 V ι) (s : S) : φ.obj (ι s • v) = ι s • (φ.obj v) :=
 begin
   let e : v ⟶ ι s • v := ⟨_, rfl⟩,
   let e' : φ.obj v ⟶ ι s • (φ.obj v) := ⟨_, rfl⟩,
   have : φ.star _ ⟨_, e⟩ = ⟨_, e'⟩, by
-  { suffices : (φ ⋙q 𝑨' _ _).star _ ⟨_, e⟩ = (𝑨' _ _).star _ ⟨_, e'⟩,
+  { suffices : (φ ⋙q 𝑨l _ _).star _ ⟨_, e⟩ = (𝑨l _ _).star _ ⟨_, e'⟩,
     { dsimp only [prefunctor.star_comp] at this,
       apply ((𝑨c _ _).1 _).left this, },
     rw [φm],
@@ -176,13 +176,13 @@ any automorphism is uniquely determined by where it sends one vertex.
 Barring those two conditions, the statement would be that the choice of image of a vertex determines
 the automorphism on the weakly connected component of the vertex.
 -/
-lemma eq_of_eq_on  (φ ψ : 𝑨' V ι ≃qc 𝑨' V ι) (v₀ : V)
+lemma eq_of_eq_on  (φ ψ : 𝑨l V ι ≃qc 𝑨l V ι) (v₀ : V)
   (ha : mul_action.is_pretransitive M V)
   (hv₀ : φ.to_prefunctor.obj v₀ = ψ.to_prefunctor.obj v₀)
   (h : subgroup.closure (set.range ι) = (⊤ : subgroup M)) : φ = ψ :=
 begin
   apply covering_iso.ext,
-  apply iso.ext,
+  apply iso.to_prefunctor_ext,
   apply (𝑨c _ _).eq_of_eq_of_preconnected _ _ hv₀,
   { rw [φ.commute_left, ψ.commute_left], },
   { rintro u v,
@@ -196,21 +196,21 @@ section schreier_graph
 /--
 A Schreier coset graph is the Schreier graph of the action of a group `M` on the cosets `M ⧸ H`.
 -/
-abbreviation schreier_graph (H : subgroup M) := action_graph (M ⧸ H) ι
-abbreviation schreier_graph_labelling (H : subgroup M) := action_graph_labelling (M ⧸ H) ι
+abbreviation schreier_graph (H : subgroup M) := 𝑨 (M ⧸ H) ι
+abbreviation schreier_graph_labelling (H : subgroup M) := 𝑨l (M ⧸ H) ι
 
 notation `𝑺` := schreier_graph
 notation `𝑺l` := schreier_graph_labelling
 
 @[simps] noncomputable def from_coset_graph (v₀ : V) :
-  schreier_graph ι (mul_action.stabilizer M v₀) ⥤q action_graph (mul_action.orbit M v₀) ι :=
+  𝑺 ι (mul_action.stabilizer M v₀) ⥤q 𝑨 (mul_action.orbit M v₀) ι :=
 { obj := (mul_action.orbit_equiv_quotient_stabilizer M v₀).symm,
   map := λ X Y e, ⟨e.val, by obtain ⟨e,rfl⟩ := e;
                           simp only [mul_action.smul_orbit_equiv_quotient_stabilizer_symm_apply]⟩ }
 
 lemma from_coset_graph_labelling (v₀ : V) :
-  (from_coset_graph V ι v₀) ⋙q action_graph_labelling (mul_action.orbit M v₀) ι =
-  action_graph_labelling (M ⧸ mul_action.stabilizer M v₀) ι :=
+  (from_coset_graph V ι v₀) ⋙q 𝑨l (mul_action.orbit M v₀) ι =
+  𝑨l (M ⧸ mul_action.stabilizer M v₀) ι :=
 begin
   dsimp only [from_coset_graph, action_graph_labelling],
   fapply prefunctor.ext,
@@ -220,14 +220,14 @@ begin
 end
 
 @[simps] noncomputable def to_coset_graph (v₀ : V) :
-  action_graph (mul_action.orbit M v₀) ι ⥤q schreier_graph ι (mul_action.stabilizer M v₀) :=
+  𝑨 (mul_action.orbit M v₀) ι ⥤q 𝑺 ι (mul_action.stabilizer M v₀) :=
 { obj := (mul_action.orbit_equiv_quotient_stabilizer M v₀),
   map := λ X Y e, ⟨e.val, by obtain ⟨e,rfl⟩ := e;
                           simp only [mul_action.smul_orbit_equiv_quotient_stabilizer_apply]⟩ }
 
 lemma to_coset_graph_labelling (v₀ : V) :
-  (to_coset_graph V ι v₀) ⋙q action_graph_labelling (M ⧸ mul_action.stabilizer M v₀) ι =
-  action_graph_labelling (mul_action.orbit M v₀) ι:=
+  (to_coset_graph V ι v₀) ⋙q 𝑨l (M ⧸ mul_action.stabilizer M v₀) ι =
+  𝑨l (mul_action.orbit M v₀) ι:=
 begin
   dsimp only [to_coset_graph, action_graph_labelling],
   fapply prefunctor.ext,
@@ -258,16 +258,21 @@ begin
                equiv.symm_apply_apply, prefunctor.id_obj, id.def], },
 end
 
-def covering_iso_lol (v₀ : V) : action_graph_labelling (mul_action.orbit M v₀) ι ≃qc
-                                𝑺l ι (mul_action.stabilizer M v₀) := sorry
-
+noncomputable def orbit_stabilizer_covering_iso (v₀ : V) :
+  𝑨l (mul_action.orbit M v₀) ι ≃qc 𝑺l ι (mul_action.stabilizer M v₀) :=
+{ inv_prefunctor := from_coset_graph V ι v₀,
+  to_prefunctor := to_coset_graph V ι v₀,
+  right_inv := from_coset_graph_to_coset_graph V ι v₀,
+  left_inv := to_coset_graph_from_coset_graph V ι v₀,
+  commute_left := to_coset_graph_labelling V ι v₀,
+  commute_right := from_coset_graph_labelling V ι v₀ }
 
 section automs
 
 variables {N : subgroup M} [Nn : N.normal]
 include Nn
 
-@[simps] def as_autom (g : M) : schreier_graph ι N ⥤q schreier_graph ι N :=
+@[simps] def as_autom (g : M) : 𝑺 ι N ⥤q 𝑺 ι N :=
 { obj := λ x, equiv_action_graph ((equiv_action_graph.symm x) * (g⁻¹)),
   map := λ x y a, ⟨a.val, by
     begin
@@ -306,6 +311,14 @@ begin
     simp only [equiv_action_graph_symm_apply, equiv_action_graph_apply, as_autom,
                quotient_group.coe_mul, mul_inv_rev, prefunctor.comp_obj, mul_assoc], },
 end
+
+def as_autom_covering_iso (g : M) : 𝑺l ι N ≃qc 𝑺l ι N :=
+{ to_prefunctor := as_autom ι g,
+  inv_prefunctor := as_autom ι (g⁻¹),
+  left_inv := by simp [←as_autom_mul, ←as_autom_one],
+  right_inv := by simp [←as_autom_mul, ←as_autom_one],
+  commute_left := as_autom_labelling ι g,
+  commute_right := as_autom_labelling ι (g⁻¹), }
 
 lemma as_autom_eq_iff (g₁ g₂ : M) :
   (as_autom ι g₁ : 𝑺 ι N ⥤q 𝑺 ι N) = (as_autom ι g₂ : 𝑺 ι N ⥤q 𝑺 ι N) ↔ g₁ / g₂ ∈ N :=
@@ -347,8 +360,8 @@ end schreier_graph
 The Cayley graph of `M` w.r.t. `ι : S → M` is the Schreier coset graph where `H` is the trivial
 subgroup of `M`.
 -/
-abbreviation cayley_graph := schreier_graph ι (⊥ : subgroup M)
-abbreviation cayley_graph_labelling := action_graph_labelling (M ⧸ (⊥ : subgroup M)) ι
+abbreviation cayley_graph := 𝑺 ι (⊥ : subgroup M)
+abbreviation cayley_graph_labelling := 𝑺l ι (⊥ : subgroup M)
 
 notation `𝑪` := cayley_graph
 notation `𝑪l` := cayley_graph_labelling

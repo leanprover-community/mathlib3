@@ -16,7 +16,7 @@ We prove the following
 **Theorem.** Let $d$ be a positive integer that is not a square. Then the equation
 $x^2 - d y^2 = 1$ has a nontrivial (i.e., with $y \ne 0$) solution in integers.
 
-See `pell.ex_nontriv_sol`.
+See `pell.exists_of_not_is_square`.
 
 This is the beginning of a development that aims at providing all of the essential theory
 of Pell's Equation for general $d$ (as opposed to the contents of `number_theory.pell`,
@@ -40,7 +40,7 @@ open set real
 
 /-- If `d` is a positive integer that is not a square, then there is a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1`. -/
-theorem ex_nontriv_sol {d : ℤ} (h₀ : 0 < d) (hd : ¬ is_square d) :
+theorem exists_of_not_is_square {d : ℤ} (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ y ≠ 0 :=
 begin
   let ξ : ℝ := sqrt d,

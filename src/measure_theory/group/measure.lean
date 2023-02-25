@@ -342,7 +342,7 @@ instance (μ : measure G) [sigma_finite μ] : sigma_finite μ.inv :=
 
 end has_involutive_inv
 
-section mul_inv
+section division_monoid
 variables [division_monoid G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}
 
 @[to_additive]
@@ -389,9 +389,9 @@ lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_l
   (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
 (measure_preserving_mul_right_inv μ g).map_eq
 
-end mul_inv
+end division_monoid
 
-section group_mul_inv
+section group
 variables [group G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}
 
 @[to_additive]
@@ -399,7 +399,7 @@ lemma map_div_left_ae (μ : measure G) [is_mul_left_invariant μ] [is_inv_invari
   filter.map (λ t, x / t) μ.ae = μ.ae :=
 ((measurable_equiv.div_left x).map_ae μ).trans $ congr_arg ae $ map_div_left_eq_self μ x
 
-end group_mul_inv
+end group
 
 end measure
 

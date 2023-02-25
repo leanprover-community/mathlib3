@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.set.n_ary
-import order.upper_lower
+import order.upper_lower.basic
 
 /-!
 # Set family operations

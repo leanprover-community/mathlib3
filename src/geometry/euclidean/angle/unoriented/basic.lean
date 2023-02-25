@@ -27,7 +27,7 @@ open_locale real_inner_product_space
 
 namespace inner_product_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [inner_product_space ℝ V] {x y : V}
 
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. See `orientation.oangle` for the corresponding oriented angle
@@ -318,17 +318,15 @@ begin
 end
 
 /-- The cosine of the angle between two vectors is 1 if and only if the angle is 0. -/
-lemma cos_eq_one_iff_angle_eq_zero (x y : V) :
-  real.cos (angle x y) = 1 ↔ angle x y = 0 :=
+lemma cos_eq_one_iff_angle_eq_zero : real.cos (angle x y) = 1 ↔ angle x y = 0 :=
 begin
   rw ← real.cos_zero,
-  apply set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩,
-  split; linarith [real.pi_pos],
+  exact set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩
+    (set.left_mem_Icc.2 real.pi_pos.le),
 end
 
 /-- The cosine of the angle between two vectors is 0 if and only if the angle is π / 2. -/
-lemma cos_eq_zero_iff_angle_eq_pi_div_two (x y : V) :
-  real.cos (angle x y) = 0 ↔ angle x y = π / 2 :=
+lemma cos_eq_zero_iff_angle_eq_pi_div_two : real.cos (angle x y) = 0 ↔ angle x y = π / 2 :=
 begin
   rw ← real.cos_pi_div_two,
   apply set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩,
@@ -336,31 +334,24 @@ begin
 end
 
 /-- The cosine of the angle between two vectors is -1 if and only if the angle is π. -/
-lemma cos_eq_neg_one_iff_angle_eq_pi (x y : V) :
-  real.cos (angle x y) = -1 ↔ angle x y = π :=
+lemma cos_eq_neg_one_iff_angle_eq_pi : real.cos (angle x y) = -1 ↔ angle x y = π :=
 begin
   rw ← real.cos_pi,
-  apply set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩,
-  split; linarith [real.pi_pos],
+  exact set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩
+    (set.right_mem_Icc.2 real.pi_pos.le),
 end
 
 /-- The sine of the angle between two vectors is 0 if and only if the angle is 0 or π. -/
-lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi (x y : V) :
+lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi :
   real.sin (angle x y) = 0 ↔ angle x y = 0 ∨ angle x y = π :=
-begin
-  rw real.sin_eq_zero_iff_cos_eq,
-  rw cos_eq_one_iff_angle_eq_zero,
-  rw cos_eq_neg_one_iff_angle_eq_pi,
-end
+by rw [real.sin_eq_zero_iff_cos_eq, cos_eq_one_iff_angle_eq_zero, cos_eq_neg_one_iff_angle_eq_pi]
 
 /-- The sine of the angle between two vectors is 1 if and only if the angle is π / 2. -/
-lemma sin_eq_one_iff_angle_eq_pi_div_two (x y : V) :
-  real.sin (angle x y) = 1 ↔ angle x y = π / 2 :=
+lemma sin_eq_one_iff_angle_eq_pi_div_two : real.sin (angle x y) = 1 ↔ angle x y = π / 2 :=
 begin
-  refine ⟨λ h, _, λ h, _⟩, swap, rw [h, real.sin_pi_div_two],
-  rw ← cos_eq_zero_iff_angle_eq_pi_div_two,
-  rw [← abs_eq_zero, real.abs_cos_eq_sqrt_one_sub_sin_sq, h], simp,
-
+  refine ⟨λ h, _, λ h, by rw [h, real.sin_pi_div_two]⟩,
+  rw [←cos_eq_zero_iff_angle_eq_pi_div_two, ←abs_eq_zero, real.abs_cos_eq_sqrt_one_sub_sin_sq, h],
+  simp,
 end
 
 end inner_product_geometry

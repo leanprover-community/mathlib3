@@ -6,6 +6,7 @@ Authors: Antoine Labelle, Rémi Bottinelli
 import combinatorics.quiver.basic
 import combinatorics.quiver.symmetric
 import combinatorics.quiver.cast
+import data.sigma.basic
 
 /-!
 # Covering
@@ -51,24 +52,6 @@ variables {U : Type*} [quiver.{u+1} U]
 
 /-- The `quiver.costar` at a vertex is the collection of arrows whose target is the vertex. -/
 @[reducible] def quiver.costar (u : U) := Σ (v : U), (v ⟶ u)
-
-@[simp] lemma quiver.star_eq_iff {u : U} (F G : quiver.star u) :
-  F = G ↔ ∃ h : F.1 = G.1, F.2.cast rfl h = G.2 :=
-begin
-  split,
-  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
-  { induction F, induction G, rintro ⟨h, H⟩, cases h, cases H,
-    simp only [eq_self_iff_true, heq_iff_eq, and_self], }
-end
-
-@[simp] lemma quiver.costar_eq_iff {u : U} (F G : quiver.costar u) :
-  F = G ↔ ∃ h : F.1 = G.1, F.2.cast h rfl = G.2 :=
-begin
-  split,
-  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
-  { induction F, induction G, rintro ⟨h, H⟩, cases h, cases H,
-    simp only [eq_self_iff_true, heq_iff_eq, and_self], }
-end
 
 /-- A prefunctor induces a map of quiver.stars at any vertex. -/
 @[simps] def prefunctor.star (u : U) : quiver.star u → quiver.star (φ.obj u) :=
@@ -186,14 +169,6 @@ end
 /-- The path star at a vertex `u` is the type of all paths starting at `u`. -/
 @[reducible] def quiver.path_star (u : U) := Σ v : U, path u v
 
-@[simp] lemma quiver.path_star_eq_iff {u : U} (P Q : quiver.path_star u) :
-  P = Q ↔ ∃ h : P.1 = Q.1, P.2.cast rfl h = Q.2 :=
-begin
-  split,
-  { rintro rfl, exact ⟨rfl, rfl⟩, },
-  { rintro ⟨h, H⟩, induction P, induction Q, cases h, cases H, refl, }
-end
-
 /-- A prefunctor induces a map of path stars. -/
 def prefunctor.path_star (u : U) : quiver.path_star u → quiver.path_star (φ.obj u) :=
 λ p, ⟨φ.obj p.1, φ.map_path p.2⟩
@@ -254,8 +229,8 @@ variables [has_involutive_reverse U] [has_involutive_reverse V] [prefunctor.map_
   quiver.star u ≃ quiver.costar u :=
 { to_fun := λ e, ⟨e.1, reverse e.2⟩,
   inv_fun := λ e, ⟨e.1, reverse e.2⟩,
-  left_inv := λ e, by simp,
-  right_inv := λ e, by simp }
+  left_inv := λ e, by simp [sigma.ext_iff'],
+  right_inv := λ e, by simp [sigma.ext_iff'] }
 
 @[simp] lemma quiver.star_equiv_costar_apply {u v : U} (e : u ⟶ v) :
   quiver.star_equiv_costar u ⟨v, e⟩ = ⟨v, reverse e⟩ := rfl

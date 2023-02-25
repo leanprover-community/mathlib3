@@ -191,7 +191,7 @@ instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_spa
 /-- Construct a pseudo-metric space structure whose underlying topological space structure
 (definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
-def pseudo_metric_space.of_dist_topology {α : Type*} [topological_space α] (dist : α → α → ℝ)
+def pseudo_metric_space.of_dist_topology {α : Type u} [topological_space α] (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
@@ -2618,7 +2618,7 @@ end
 /-- Construct a metric space structure whose underlying topological space structure
 (definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
-def metric_space.of_dist_topology {α : Type*} [topological_space α] (dist : α → α → ℝ)
+def metric_space.of_dist_topology {α : Type u} [topological_space α] (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)

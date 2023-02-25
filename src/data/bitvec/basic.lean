@@ -34,20 +34,19 @@ by rw [list.foldr_reverse, flip]; refl
 
 lemma to_nat_lt {n : ℕ} (v : bitvec n) : v.to_nat < 2^n :=
 begin
-  suffices : v.to_nat + 1 ≤ 2 ^ n, { simpa },
+  change v.to_nat + 1 ≤ 2 ^ n,
   rw to_nat_eq_foldr_reverse,
-  cases v with xs h,
-  dsimp [bitvec.to_nat,bits_to_nat],
-  rw ← list.length_reverse at h,
-  generalize_hyp : xs.reverse = ys at ⊢ h, clear xs,
-  induction ys generalizing n,
-  { simp [← h] },
-  { simp only [←h, pow_add, flip, list.length, list.foldr, pow_one],
+  rcases v with ⟨xs, rfl⟩,
+  dsimp only [bitvec.to_nat, vector.to_list, bits_to_nat, list.foldr, list.length],
+  rw [← list.length_reverse],
+  generalize : xs.reverse = ys, clear xs,
+  induction ys,
+  { simp only [list.length, list.foldr_nil, pow_zero] },
+  { simp only [pow_add, flip, list.length, list.foldr, pow_one],
     rw [add_lsb_eq_twice_add_one],
     transitivity 2 * list.foldr (λ (x : bool) (y : ℕ), add_lsb y x) 0 ys_tl + 2 * 1,
-    { ac_mono, rw two_mul, mono, cases ys_hd; simp },
-    { rw ← left_distrib, ac_mono,
-      exact ys_ih rfl, norm_num } }
+    { rw [two_mul 1, ← add_assoc], mono*, cases ys_hd; simp only [cond, le_rfl, zero_le_one] },
+    { rw [← left_distrib, mul_comm], mono } }
 end
 
 lemma add_lsb_div_two {x b} : add_lsb x b / 2 = x :=

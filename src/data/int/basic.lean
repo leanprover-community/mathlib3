@@ -337,9 +337,8 @@ end
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
-  rw [← sub_sub, neg_succ_of_nat_coe, sub_sub (n:ℤ)],
-  apply eq_neg_of_eq_neg,
-  rw [neg_sub, sub_sub_self, add_right_comm],
+  rw [← sub_sub, neg_succ_of_nat_coe, sub_sub (n:ℤ), eq_comm, neg_eq_iff_eq_neg,
+      neg_sub, sub_sub_self, add_right_comm],
   exact @congr_arg ℕ ℤ _ _ (λi, (i + 1 : ℤ)) (nat.mod_add_div _ _).symm
 end
 

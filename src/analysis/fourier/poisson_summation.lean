@@ -92,7 +92,7 @@ begin
     end
 end
 
-/-- Poisson's summation formula. -/
+/-- **Poisson's summation formula**. -/
 theorem real.tsum_eq_tsum_fourier_integral {f : C(ℝ, ℂ)}
   (h_norm : ∀ (K : compacts ℝ),
     summable (λ n : ℤ, ‖(f.comp $ continuous_map.add_right n).restrict K‖))

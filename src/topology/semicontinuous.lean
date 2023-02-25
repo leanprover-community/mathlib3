@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import algebra.indicator_function
-import topology.algebra.group
 import topology.continuous_on
 import topology.instances.ennreal
 
@@ -52,7 +51,7 @@ ones for lower semicontinuous functions using `order_dual`.
 
 -/
 
-open_locale topological_space big_operators ennreal
+open_locale topology big_operators ennreal
 open set function filter
 
 variables {α : Type*} [topological_space α] {β : Type*} [preorder β]

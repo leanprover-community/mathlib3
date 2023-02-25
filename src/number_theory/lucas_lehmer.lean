@@ -94,7 +94,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { exact sup_eq_left.mp rfl },
+  { exact sup_eq_right.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -245,11 +245,8 @@ instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 @[simp] lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) := rfl
 
 @[norm_cast]
-protected lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
+lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
 by { ext; simp; ring }
-
-instance : coe_is_mul_hom ℤ (X q) :=
-{ coe_mul := lucas_lehmer.X.coe_mul }
 
 @[norm_cast]
 lemma coe_nat (n : ℕ) : ((n : ℤ) : X q) = (n : X q) :=
@@ -389,7 +386,7 @@ theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
-  { norm_num, },
+  { exact nat.prime_two, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
     replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :

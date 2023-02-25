@@ -3,11 +3,15 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-import algebra.hom.equiv.units.group_with_zero
 import algebra.group.opposite
+import algebra.group_with_zero.units.basic
+import algebra.hom.units
 
 /-!
 # Monoid, group etc structures on `M × N`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove
 trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
@@ -147,7 +151,7 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
   zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
-@[to_additive subtraction_monoid]
+@[to_additive]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
 { mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
   inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)

@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import order.rel_iso.set
-import data.fintype.basic
+import data.fintype.lattice
 import data.multiset.sort
 import data.list.nodup_equiv_fin
 
 /-!
 # Construct a sorted list from a finset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset
@@ -209,34 +212,8 @@ lemma order_emb_of_card_le_mem (s : finset α) {k : ℕ} (h : k ≤ s.card) (a) 
   order_emb_of_card_le s h a ∈ s :=
 by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
 
-lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
-  s.card ≤ t.card + 1 :=
-begin
-  have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
-  { intro i,
-    rw [finset.length_sort, ←lt_tsub_iff_right],
-    exact i.2 },
-  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
-  λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
-  have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
-    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
-    ((s.sort (≤)).nth_le (i + 1) (h1 i))
-    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
-    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
-  let f : fin (s.card - 1) → t :=
-  λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
-  have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
-  λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans
-    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (nat.succ_le_iff.mpr hij))
-    (exists_prop.mp (classical.some_spec (p j))).2.1)),
-  have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
-    (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
-    (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
-  rwa [fintype.card_fin, fintype.card_coe, tsub_le_iff_right] at key,
-end
-
 end sort_linear_order
 
-instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
+meta instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 
 end finset

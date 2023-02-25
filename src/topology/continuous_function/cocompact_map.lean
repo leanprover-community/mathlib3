@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Cocompact continuous maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of *cocompact continuous maps* are those which tend to the cocompact filter on the
 codomain along the cocompact filter on the domain. When the domain and codomain are Hausdorff, this
 is equivalent to many other conditions, including that preimages of compact sets are compact. -/
@@ -80,6 +83,11 @@ protected def copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : coc
 { to_fun := f',
   continuous_to_fun := by {rw h, exact f.continuous_to_fun},
   cocompact_tendsto' := by { simp_rw h, exact f.cocompact_tendsto' } }
+
+@[simp]
+lemma coe_copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : cocompact_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : C(α, β)) (h : tendsto f (cocompact α) (cocompact β)) :
   ⇑(⟨f, h⟩ : cocompact_map α β) = f := rfl

@@ -7,7 +7,6 @@ Authors: Thomas Browning, Patrick Lutz
 import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
-import ring_theory.power_basis
 import group_theory.group_action.fixing_subgroup
 
 /-!

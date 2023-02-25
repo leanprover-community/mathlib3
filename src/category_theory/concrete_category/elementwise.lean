@@ -6,6 +6,8 @@ Authors: Andrew Yang
 import tactic.elementwise
 import category_theory.limits.has_limits
 import category_theory.limits.shapes.kernels
+import category_theory.concrete_category.basic
+import tactic.fresh_names
 
 /-!
 In this file we provide various simp lemmas in its elementwise form via `tactic.elementwise`.

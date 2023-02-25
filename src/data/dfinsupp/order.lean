@@ -8,6 +8,9 @@ import data.dfinsupp.basic
 /-!
 # Pointwise order on finitely supported dependent functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lifts order structures on the `α i` to `Π₀ i, α i`.
 
 ## Main declarations
@@ -119,7 +122,7 @@ variables (α) [Π i, canonically_ordered_add_monoid (α i)]
 
 instance : order_bot (Π₀ i, α i) :=
 { bot := 0,
-  bot_le := by simp only [le_def, dfinsupp.coe_zero, pi.zero_apply, implies_true_iff, zero_le] }
+  bot_le := by simp only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le] }
 
 variables {α}
 

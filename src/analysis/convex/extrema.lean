@@ -21,7 +21,7 @@ variables {E β : Type*} [add_comm_group E] [topological_space E]
   {s : set E}
 
 open set filter function
-open_locale classical topological_space
+open_locale classical topology
 
 /--
 Helper lemma for the more general case: `is_min_on.of_is_local_min_on_of_convex_on`.

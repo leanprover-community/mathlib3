@@ -5,10 +5,14 @@ Authors: Floris van Doorn, Yaël Dillies
 -/
 import data.finset.n_ary
 import data.finset.preimage
-import data.set.pointwise.basic
+import data.set.pointwise.smul
+import data.set.pointwise.list_of_fn
 
 /-!
 # Pointwise operations of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines pointwise algebraic operations on finsets.
 
@@ -68,8 +72,7 @@ protected def has_one : has_one (finset α) := ⟨{1}⟩
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 
 @[simp, to_additive] lemma mem_one : a ∈ (1 : finset α) ↔ a = 1 := mem_singleton
-@[to_additive] instance : coe_is_one_hom (finset α) (set α) := { coe_one := coe_singleton 1 }
-@[norm_cast, to_additive] protected lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_one
+@[simp, norm_cast, to_additive] lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_singleton 1
 @[simp, to_additive] lemma one_subset : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
 @[to_additive] lemma singleton_one : ({1} : finset α) = 1 := rfl
 @[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : finset α) := mem_singleton_self _
@@ -478,7 +481,7 @@ variables [division_monoid α] {s t : finset α}
 by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
 
 /-- `finset α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`finset α` is a subtraction monoid under pointwise operations if
+@[to_additive "`finset α` is a subtraction monoid under pointwise operations if
 `α` is."]
 protected def division_monoid : division_monoid (finset α) :=
 coe_injective.division_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
@@ -1028,7 +1031,7 @@ t.zero_smul_subset.antisymm $ by simpa [mem_smul] using ht
 
 /-- A nonempty set is scaled by zero to the singleton set containing 0. -/
 lemma zero_smul_finset {s : finset β} (h : s.nonempty) : (0 : α) • s = (0 : finset β) :=
-coe_injective $ by simpa using set.zero_smul_set h
+coe_injective $ by simpa using @set.zero_smul_set α _ _ _ _ _ h
 
 lemma zero_smul_finset_subset (s : finset β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, mem_zero.2 $ zero_smul α x

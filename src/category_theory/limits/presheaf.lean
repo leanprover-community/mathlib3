@@ -8,7 +8,6 @@ import category_theory.adjunction.opposites
 import category_theory.elements
 import category_theory.limits.functor_category
 import category_theory.limits.kan_extension
-import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 

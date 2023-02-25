@@ -40,7 +40,7 @@ sin, cos, tan, angle
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 namespace complex
@@ -100,20 +100,20 @@ protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 localized "notation (name := real.pi) `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (two_ne_zero' ℝ)];
   exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (two_ne_zero' ℝ)];
   exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (two_ne_zero' ℝ)];
   exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
-  (by rw div_self (@two_ne_zero' ℝ _ _); exact one_le_pi_div_two)
+  (by rw div_self (two_ne_zero' ℝ); exact one_le_pi_div_two)
 
 lemma pi_le_four : π ≤ 4 :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -153,11 +153,11 @@ namespace real
 open_locale real
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
+by rw [← mul_div_cancel_left π (two_ne_zero' ℝ), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), mul_div_assoc,
+by rw [← mul_div_cancel_left π (two_ne_zero' ℝ), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
   simp [bit0, pow_add]
 

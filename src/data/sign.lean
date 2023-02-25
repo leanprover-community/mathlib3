@@ -3,13 +3,16 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import algebra.big_operators.basic
-import data.fintype.card
+import algebra.big_operators.order
+import data.fintype.big_operators
 import data.int.lemmas
 import tactic.derive_fintype
 
 /-!
 # Sign function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the sign function for types with zero and a decidable less-than relation, and
 proves some basic theorems about it.
@@ -332,6 +335,30 @@ end
 
 end add_group
 
+section linear_ordered_add_comm_group
+
+open_locale big_operators
+
+variables [linear_ordered_add_comm_group α]
+
+/- I'm not sure why this is necessary, see
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Decidable.20vs.20decidable_rel -/
+local attribute [instance] linear_ordered_add_comm_group.decidable_lt
+
+lemma sign_sum {ι : Type*} {s : finset ι} {f : ι → α} (hs : s.nonempty) (t : sign_type)
+  (h : ∀ i ∈ s, sign (f i) = t) : sign (∑ i in s, f i) = t :=
+begin
+  cases t,
+  { simp_rw [zero_eq_zero, sign_eq_zero_iff] at ⊢ h,
+    exact finset.sum_eq_zero h },
+  { simp_rw [neg_eq_neg_one, sign_eq_neg_one_iff] at ⊢ h,
+    exact finset.sum_neg h hs },
+  { simp_rw [pos_eq_one, sign_eq_one_iff] at ⊢ h,
+    exact finset.sum_pos h hs }
+end
+
+end linear_ordered_add_comm_group
+
 namespace int
 
 lemma sign_eq_sign (n : ℤ) : n.sign = _root_.sign n :=
@@ -355,7 +382,7 @@ begin
     λ a, a.1, λ a, a.1.prop, _, _⟩,
   { simp [@sum_attach _ _ _ _ (λ a, (f a).nat_abs)] },
   { intros x hx,
-    simp [sum_sigma, hx, ← int.sign_eq_sign, int.sign_mul_nat_abs, mul_comm ((f _).nat_abs : ℤ),
+    simp [sum_sigma, hx, ← int.sign_eq_sign, int.sign_mul_abs, mul_comm (|f _|),
       @sum_attach _ _ _ _ (λ a, ∑ j in range (f a).nat_abs, if a = x then (f a).sign else 0)] }
 end
 

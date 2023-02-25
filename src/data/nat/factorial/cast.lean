@@ -11,8 +11,8 @@ import ring_theory.polynomial.pochhammer
 This file allows calculating factorials (including ascending and descending ones) as elements of a
 semiring.
 
-This is particularly crucial for `nat.desc_factorial` as substraction on `ℕ` does **not** correspond
-to substraction on a general semiring. For example, we can't rely on existing cast lemmas to prove
+This is particularly crucial for `nat.desc_factorial` as subtraction on `ℕ` does **not** correspond
+to subtraction on a general semiring. For example, we can't rely on existing cast lemmas to prove
 `↑(a.desc_factorial 2) = ↑a * (↑a - 1)`. We must use the fact that, whenever `↑(a - 1)` is not equal
 to `↑a - 1`, the other factor is `0` anyway.
 -/
@@ -52,7 +52,7 @@ end semiring
 section ring
 variables [ring S] (a b : ℕ)
 
-/-- Convenience lemma. The `a - 1` is not using truncated substraction, as opposed to the definition
+/-- Convenience lemma. The `a - 1` is not using truncated subtraction, as opposed to the definition
 of `nat.desc_factorial` as a natural. -/
 lemma cast_desc_factorial_two :
   (a.desc_factorial 2 : S) = a * (a - 1) :=

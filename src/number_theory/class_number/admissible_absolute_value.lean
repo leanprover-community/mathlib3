@@ -3,13 +3,15 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.fin.tuple
 import data.real.basic
 import combinatorics.pigeonhole
 import algebra.order.euclidean_absolute_value
 
 /-!
 # Admissible absolute values
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines a structure `absolute_value.is_admissible` which we use to show the class number
 of the ring of integers of a global field is finite.
 

@@ -7,7 +7,6 @@ import analysis.specific_limits.basic
 import measure_theory.pi_system
 import data.countable.basic
 import data.fin.vec_notation
-import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
@@ -54,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set function filter topological_space (second_countable_topology)
-open_locale classical big_operators nnreal topological_space ennreal measure_theory
+open_locale classical big_operators nnreal topology ennreal measure_theory
 
 namespace measure_theory
 
@@ -595,7 +594,7 @@ begin
     ... = m (f i) : (h (f i) hs ht).symm
     ... ≤ ∑' i, m (f i) : ennreal.le_tsum i },
   set I := λ s, {i : ℕ | (s ∩ f i).nonempty},
-  have hd : disjoint (I s) (I t), from λ i hi, he ⟨i, hi⟩,
+  have hd : disjoint (I s) (I t), from disjoint_iff_inf_le.mpr (λ i hi, he ⟨i, hi⟩),
   have hI : ∀ u ⊆ s ∪ t, μ u ≤ ∑'  i : I u, μ (f i), from λ u hu,
   calc μ u ≤ μ (⋃ i : I u, f i) :
     μ.mono (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hf (hu hx)) in mem_Union.2 ⟨⟨i, ⟨x, hx, hi⟩⟩, hi⟩)
@@ -797,7 +796,7 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
     m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, (hd (ne_of_gt hi)).le_bot ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -1254,7 +1253,7 @@ lemma extend_mono {s₁ s₂ : set α} (h₁ : measurable_set s₁) (hs : s₁ �
   extend m s₁ ≤ extend m s₂ :=
 begin
   refine le_infi _, intro h₂,
-  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff
+  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_sdiff_self_right
     h₁ (h₂.diff h₁),
   rw union_diff_cancel hs at this,
   rw ← extend_eq m,

@@ -10,6 +10,9 @@ import ring_theory.subsemiring.basic
 /-!
 # Subrings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a ring. This file defines the "bundled" subring type `subring R`, a type
 whose terms correspond to subrings of `R`. This is the preferred way to talk
 about subrings in mathlib. Unbundled subrings (`s : set R` and `is_subring s`)
@@ -71,12 +74,11 @@ section subring_class
 
 /-- `subring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both a multiplicative submonoid and an additive subgroup. -/
-class subring_class (S : Type*) (R : out_param $ Type u) [ring R] [set_like S R]
-  extends subsemiring_class S R :=
-(neg_mem : ∀ {s : S} {a : R}, a ∈ s → -a ∈ s)
+class subring_class (S : Type*) (R : Type u) [ring R] [set_like S R]
+  extends subsemiring_class S R, neg_mem_class S R : Prop
 
 @[priority 100] -- See note [lower instance priority]
-instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [set_like S R]
+instance subring_class.add_subgroup_class (S : Type*) (R : Type u) [set_like S R]
   [ring R] [h : subring_class S R] : add_subgroup_class S R :=
 { .. h }
 
@@ -108,7 +110,7 @@ subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, r
 /-- A subring of a domain is a domain. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_domain s :=
-{ .. subsemiring_class.nontrivial s, .. subsemiring_class.no_zero_divisors s }
+no_zero_divisors.to_is_domain _
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
@@ -143,7 +145,10 @@ subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _
 include hSR
 
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
-def subtype (s : S) : s →+* R := ring_hom.coe s R
+def subtype (s : S) : s →+* R :=
+{ to_fun := coe,
+ .. submonoid_class.subtype s,
+ .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n := map_nat_cast (subtype s) n
@@ -355,7 +360,7 @@ protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem 
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
 submonoid_class.coe_pow x n
 
 -- TODO: can be generalized to `add_submonoid_class`
@@ -378,7 +383,7 @@ s.to_subsemiring.no_zero_divisors
 
 /-- A subring of a domain is a domain. -/
 instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+no_zero_divisors.to_is_domain _
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
@@ -932,6 +937,9 @@ range_top_iff_surjective.2 hf
 def eq_locus (f g : R →+* S) : subring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
 
+@[simp] lemma eq_locus_same (f : R →+* S) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
 lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
@@ -1138,6 +1146,10 @@ S.to_subsemiring.mul_action_with_zero
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
+
+/-- The action by a subsemiring is the action by the underlying ring. -/
+instance [semiring α] [mul_semiring_action R α] (S : subring R) : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
 
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R) R R :=

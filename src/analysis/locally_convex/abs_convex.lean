@@ -35,7 +35,7 @@ disks, convex, balanced
 
 
 open normed_field set
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {𝕜 E F G ι : Type*}
 
@@ -144,29 +144,22 @@ variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
 lemma with_gauge_seminorm_family : with_seminorms (gauge_seminorm_family 𝕜 E) :=
 begin
   refine seminorm_family.with_seminorms_of_has_basis _ _,
-  refine filter.has_basis.to_has_basis (nhds_basis_abs_convex_open 𝕜 E) (λ s hs, _) (λ s hs, _),
+  refine (nhds_basis_abs_convex_open 𝕜 E).to_has_basis (λ s hs, _) (λ s hs, _),
   { refine ⟨s, ⟨_, rfl.subset⟩⟩,
-    rw seminorm_family.basis_sets_iff,
-    refine ⟨{⟨s, hs⟩}, 1, one_pos, _⟩,
-    simp only [finset.sup_singleton],
-    rw gauge_seminorm_family_ball,
-    simp only [subtype.coe_mk] },
+    convert (gauge_seminorm_family _ _).basis_sets_singleton_mem ⟨s, hs⟩ one_pos,
+    rw [gauge_seminorm_family_ball, subtype.coe_mk] },
   refine ⟨s, ⟨_, rfl.subset⟩⟩,
   rw seminorm_family.basis_sets_iff at hs,
-  rcases hs with ⟨t, r, hr, hs⟩,
-  rw seminorm.ball_finset_sup_eq_Inter _ _ _ hr at hs,
-  rw hs,
+  rcases hs with ⟨t, r, hr, rfl⟩,
+  rw [seminorm.ball_finset_sup_eq_Inter _ _ _ hr],
   -- We have to show that the intersection contains zero, is open, balanced, and convex
   refine ⟨mem_Inter₂.mpr (λ _ _, by simp [seminorm.mem_ball_zero, hr]),
-    is_open_bInter (to_finite _) (λ _ _, _),
+    is_open_bInter (to_finite _) (λ S _, _),
     balanced_Inter₂ (λ _ _, seminorm.balanced_ball_zero _ _),
     convex_Inter₂ (λ _ _, seminorm.convex_ball _ _ _)⟩,
   -- The only nontrivial part is to show that the ball is open
-  have hr' : r = ∥(r : 𝕜)∥ * 1 := by simp [abs_of_pos hr],
-  have hr'' : (r : 𝕜) ≠ 0 := by simp [ne_of_gt hr],
-  rw hr',
-  rw ←seminorm.smul_ball_zero (norm_pos_iff.mpr hr''),
-  refine is_open.smul₀ _ hr'',
-  rw gauge_seminorm_family_ball,
-  exact abs_convex_open_sets.coe_is_open _,
+  have hr' : r = ‖(r : 𝕜)‖ * 1 := by simp [abs_of_pos hr],
+  have hr'' : (r : 𝕜) ≠ 0 := by simp [hr.ne'],
+  rw [hr', ← seminorm.smul_ball_zero hr'', gauge_seminorm_family_ball],
+  exact S.coe_is_open.smul₀ hr''
 end

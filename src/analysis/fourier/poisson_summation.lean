@@ -36,7 +36,7 @@ open continuous_map
 lemma real.fourier_coeff_tsum_comp_add {f : C(ℝ, ℂ)}
   (hf : ∀ (K : compacts ℝ), summable (λ n : ℤ, ‖(f.comp (continuous_map.add_right n)).restrict K‖))
   (m : ℤ) :
-  fourier_coeff (periodic.lift $ f.periodic_tsum_comp_add_zsmul 1) m = real.fourier_integral f m :=
+  fourier_coeff (periodic.lift $ f.periodic_tsum_comp_add_zsmul 1) m = 𝓕 f m :=
 begin
   -- NB: This proof can be shortened somewhat by telescoping together some of the steps in the calc
   -- block, but I think it's more legible this way. We start with preliminaries about the integrand.
@@ -81,14 +81,14 @@ begin
       exact funext (λ n, neK ⟨Icc 0 1, is_compact_Icc⟩ _),
     end
   -- Minor tidying to finish
-  ... = real.fourier_integral f m :
+  ... = 𝓕 f m :
     begin
       rw fourier_integral_eq_integral_exp_smul,
       congr' 1 with x : 1,
       rw [smul_eq_mul, comp_apply, coe_mk, fourier_coe_apply],
       congr' 2,
       push_cast,
-      ring,
+      ring
     end
 end
 
@@ -96,8 +96,8 @@ end
 theorem real.tsum_eq_tsum_fourier_integral {f : C(ℝ, ℂ)}
   (h_norm : ∀ (K : compacts ℝ),
     summable (λ n : ℤ, ‖(f.comp $ continuous_map.add_right n).restrict K‖))
-  (h_sum : summable (λ n : ℤ, real.fourier_integral f n)) :
-  ∑' (n : ℤ), f n = ∑' (n : ℤ), real.fourier_integral f n :=
+  (h_sum : summable (λ n : ℤ, 𝓕 f n)) :
+  ∑' (n : ℤ), f n = ∑' (n : ℤ), 𝓕 f n :=
 begin
   let F : C(unit_add_circle, ℂ) := ⟨(f.periodic_tsum_comp_add_zsmul 1).lift,
     continuous_coinduced_dom.mpr (map_continuous _)⟩,

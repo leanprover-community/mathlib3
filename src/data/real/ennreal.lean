@@ -720,28 +720,30 @@ mul_right_mono.map_max
 lemma mul_max : a * max b c = max (a * b) (a * c) :=
 mul_left_mono.map_max
 
-lemma mul_eq_mul_left : a ≠ 0 → a ≠ ∞ → (a * b = a * c ↔ b = c) :=
+theorem mul_left_strictMono (h0 : a ≠ 0) (hinf : a ≠ ∞) : strict_mono ((*) a) :=
 begin
-  cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
-      nnreal.mul_eq_mul_left] {contextual := tt},
+  lift a to ℝ≥0 using hinf,
+  rw [coe_ne_zero] at h0,
+  intros x y h,
+  contrapose! h,
+  simpa only [← mul_assoc, ← coe_mul, inv_mul_cancel h0, coe_one, one_mul]
+    using mul_le_mul' (le_refl ↑a⁻¹) h
 end
+
+lemma mul_eq_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b = a * c ↔ b = c :=
+(mul_left_strictMono h₀ hinf).injective.eq_iff
 
 lemma mul_eq_mul_right : c ≠ 0 → c ≠ ∞ → (a * c = b * c ↔ a = b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_eq_mul_left
 
-lemma mul_le_mul_left : a ≠ 0 → a ≠ ∞ → (a * b ≤ a * c ↔ b ≤ c) :=
-begin
-  cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm] {contextual := tt},
-  assume h, exact mul_le_mul_left (pos_iff_ne_zero.2 h)
-end
+lemma mul_le_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b ≤ a * c ↔ b ≤ c :=
+(mul_left_strictMono h₀ hinf).le_iff_le
 
 lemma mul_le_mul_right : c ≠ 0 → c ≠ ∞ → (a * c ≤ b * c ↔ a ≤ b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_le_mul_left
 
-lemma mul_lt_mul_left : a ≠ 0 → a ≠ ∞ → (a * b < a * c ↔ b < c) :=
-λ h0 ht, by simp only [mul_le_mul_left h0 ht, lt_iff_le_not_le]
+lemma mul_lt_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b < a * c ↔ b < c :=
+(mul_left_strictMono h₀ hinf).lt_iff_lt
 
 lemma mul_lt_mul_right : c ≠ 0 → c ≠ ∞ → (a * c < b * c ↔ a < b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_left
@@ -749,6 +751,7 @@ mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_left
 end mul
 
 section cancel
+
 /-- An element `a` is `add_le_cancellable` if `a + b ≤ a + c` implies `b ≤ c` for all `b` and `c`.
   This is true in `ℝ≥0∞` for all elements except `∞`. -/
 lemma add_le_cancellable_iff_ne {a : ℝ≥0∞} : add_le_cancellable a ↔ a ≠ ∞ :=

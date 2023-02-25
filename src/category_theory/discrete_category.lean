@@ -9,6 +9,9 @@ import data.ulift
 /-!
 # Discrete categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `discrete α` as a structure containing a term `a : α` for any type `α`,
 and use this type alias to provide a `small_category` instance
 whose only morphisms are the identities.

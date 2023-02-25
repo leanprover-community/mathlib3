@@ -1424,7 +1424,7 @@ begin
 end⟩
 
 lemma continuous_of_le_add_edist {f : α → ℝ≥0∞} (C : ℝ≥0∞)
-  (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
+  (hC : C ≠ ⊤) (h : ∀ x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
   rcases eq_or_ne C 0 with (rfl|C0),
   { simp only [zero_mul, add_zero] at h,
@@ -1434,7 +1434,7 @@ begin
     { have : f =ᶠ[𝓝 x] (λ _, ∞),
       { filter_upwards [emetric.ball_mem_nhds x ennreal.coe_lt_top],
         refine λ y (hy : edist y x < ⊤), _, rw edist_comm at hy,
-        simpa [hx, hC, hy.ne] using h x y },
+        simpa [hx, ennreal.mul_ne_top hC hy.ne] using h x y },
       exact this.continuous_at },
     { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
       filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],

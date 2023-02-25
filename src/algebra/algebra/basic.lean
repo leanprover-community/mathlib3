@@ -17,6 +17,9 @@ import tactic.abel
 /-!
 # Algebras over commutative semirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define associative unital `algebra`s over commutative (semi)rings, algebra
 homomorphisms `alg_hom`, and algebra equivalences `alg_equiv`.
 

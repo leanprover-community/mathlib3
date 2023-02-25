@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import algebra.algebra.operations
 import algebra.ring.equiv
 import data.nat.choose.sum
+import linear_algebra.basis.bilinear
 import ring_theory.coprime.lemmas
 import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors

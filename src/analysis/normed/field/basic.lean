@@ -140,6 +140,10 @@ instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [finty
   norm_one_class (Π i, α i) :=
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
+instance mul_opposite.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+  norm_one_class αᵐᵒᵖ :=
+⟨@norm_one α _ _ _⟩
+
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 
@@ -210,6 +214,11 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
     ... ≤ finset.univ.sup (λ i, ‖x i‖₊) * finset.univ.sup (λ i, ‖y i‖₊) :
             finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
   ..pi.seminormed_add_comm_group }
+
+instance mul_opposite.non_unital_semi_normed_ring : non_unital_semi_normed_ring αᵐᵒᵖ :=
+{ norm_mul := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y,
+    (norm_mul_le y x).trans_eq (mul_comm _ _),
+  ..mul_opposite.seminormed_add_comm_group }
 
 end non_unital_semi_normed_ring
 
@@ -326,6 +335,10 @@ instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
 
+instance mul_opposite.semi_normed_ring : semi_normed_ring αᵐᵒᵖ :=
+{ ..mul_opposite.non_unital_semi_normed_ring,
+  ..mul_opposite.seminormed_add_comm_group }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -348,6 +361,10 @@ instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_u
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.non_unital_normed_ring : non_unital_normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end non_unital_normed_ring
 
@@ -375,6 +392,10 @@ instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π 
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.normed_ring : normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end normed_ring
 

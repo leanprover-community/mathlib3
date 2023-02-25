@@ -33,6 +33,12 @@ def iso.to_equiv_map (φ : iso U V) (X Y : U) : (X ⟶ Y) ≃ (φ.obj X ⟶ φ.o
   inv_fun := (hom_equiv_of_eq (φ.to_equiv.left_inv X) (φ.to_equiv.left_inv Y)) ∘ φ.inv_prefunctor.map,
   left_inv := by
     begin
+      rintro e,
+      simp only [function.comp_app, ←prefunctor.comp_map],
+      generalize_proofs h1 h2,
+      let := φ.left_inv,
+      apply eq_of_heq,
+
       sorry,
     end,
   right_inv := sorry}

@@ -62,19 +62,8 @@ def uniform_space.core_of_dist {α : Type*} (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space.core α :=
-{ uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
-  refl       := le_infi $ assume ε, le_infi $
-    by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
-  comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem (div_pos h zero_lt_two) (subset.refl _)) $
-    have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
-      from assume a b c hac hcb,
-      calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
-        ... < ε / 2 + ε / 2 : add_lt_add hac hcb
-        ... = ε : by rw [div_add_div_same, add_self_div_two],
-    by simpa [comp_rel],
-  symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
-    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [dist_comm] }
+uniform_space.core.of_fun dist dist_self dist_comm dist_triangle $ λ ε ε0,
+  ⟨ε / 2, half_pos ε0, λ x hx y hy, add_halves ε ▸ add_lt_add hx hy⟩
 
 /-- Construct a uniform structure from a distance function and metric space axioms -/
 def uniform_space_of_dist
@@ -212,26 +201,11 @@ def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist 
   dist_self := dist_self,
   dist_comm := dist_comm,
   dist_triangle := dist_triangle,
-  to_uniform_space := { is_open_uniformity := begin
-    dsimp only [uniform_space.core_of_dist],
-    intros s,
-    change is_open s ↔ _,
-    rw H s,
-    refine forall₂_congr (λ x x_in, _),
-    erw (has_basis_binfi_principal _ nonempty_Ioi).mem_iff,
-    { refine exists₂_congr (λ ε ε_pos, _),
-      simp only [prod.forall, set_of_subset_set_of],
-      split,
-      { rintros h _ y H rfl,
-        exact h y H },
-      { intros h y hxy,
-        exact h _ _ hxy rfl } },
-    { exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-      λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-      λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩ },
-    { apply_instance }
-    end,
-    ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
+  to_uniform_space :=
+  { is_open_uniformity := λ s, (H s).trans $ forall₂_congr $ λ x _,
+      ((uniform_space.core.has_basis_of_fun (exists_gt (0 : ℝ))
+        dist _ _ _ _).comap (prod.mk x)).mem_iff.symm.trans mem_comap_prod_mk,
+    to_core := uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
   uniformity_dist := rfl,
   to_bornology := bornology.of_dist dist dist_self dist_comm dist_triangle,
   cobounded_sets := rfl }
@@ -653,14 +627,15 @@ theorem is_bounded_iff_nndist {s : set α} :
 by simp only [is_bounded_iff_exists_ge 0, nnreal.exists, ← nnreal.coe_le_coe, ← dist_nndist,
   nnreal.coe_mk, exists_prop]
 
+theorem to_uniform_space_eq : ‹pseudo_metric_space α›.to_uniform_space =
+  uniform_space_of_dist dist dist_self dist_comm dist_triangle :=
+uniform_space_eq pseudo_metric_space.uniformity_dist
+
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
 begin
-  rw ← pseudo_metric_space.uniformity_dist.symm,
-  refine has_basis_binfi_principal _ nonempty_Ioi,
-  exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩
+  rw [to_uniform_space_eq],
+  exact uniform_space.core.has_basis_of_fun (exists_gt _) _ _ _ _ _
 end
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers

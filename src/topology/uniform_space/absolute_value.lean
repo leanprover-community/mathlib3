@@ -41,38 +41,19 @@ variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
 
 /-- The uniformity coming from an absolute value. -/
 def uniform_space_core : uniform_space.core R :=
-{ uniformity := (⨅ ε>0, 𝓟 {p:R×R | abv (p.2 - p.1) < ε}),
-  refl := le_infi $ assume ε, le_infi $ assume ε_pos, principal_mono.2
-    (λ ⟨x, y⟩ h, by simpa [show x = y, from h, abv_zero abv]),
-  symm := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
-    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ λ ⟨x, y⟩ h,
-      have h : abv (y - x) < ε, by simpa [-sub_eq_add_neg] using h,
-      by rwa abv_sub abv at h,
-  comp := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem (div_pos h zero_lt_two) (subset.refl _)) $
-    have ∀ (a b c : R), abv (c-a) < ε / 2 → abv (b-c) < ε / 2 → abv (b-a) < ε,
-      from assume a b c hac hcb,
-       calc abv (b - a) ≤ _ : abv_sub_le abv b c a
-        ... = abv (c - a) + abv (b - c) : add_comm _ _
-        ... < ε / 2 + ε / 2 : add_lt_add hac hcb
-        ... = ε : by rw [div_add_div_same, add_self_div_two],
-    by simpa [comp_rel] }
+uniform_space.core.of_fun (λ x y, abv (y - x)) (by simp [abv_zero abv]) (λ x y, abv_sub abv y x)
+  (λ x y z,
+    calc abv (z - x) = abv ((y - x) + (z - y)) : by rw [add_comm, sub_add_sub_cancel]
+    ... ≤ abv (y - x) + abv (z - y) : abv_add _ _ _) $
+  λ ε ε0, ⟨ε / 2, half_pos ε0, λ _ h₁ _ h₂, (add_lt_add h₁ h₂).trans_eq (add_halves ε)⟩
 
 /-- The uniform structure coming from an absolute value. -/
 def uniform_space : uniform_space R :=
 uniform_space.of_core (uniform_space_core abv)
 
 theorem mem_uniformity {s : set (R×R)} :
-  s ∈ (uniform_space_core abv).uniformity ↔
-  (∃ε>0, ∀{a b:R}, abv (b - a) < ε → (a, b) ∈ s) :=
-begin
-  suffices : s ∈ (⨅ ε: {ε : 𝕜 // ε > 0}, 𝓟 {p:R×R | abv (p.2 - p.1) < ε.val}) ↔ _,
-  { rw infi_subtype at this,
-    exact this },
-  rw mem_infi_of_directed,
-  { simp [subset_def] },
-  { rintros ⟨r, hr⟩ ⟨p, hp⟩,
-    exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
-end
+  s ∈ (uniform_space_core abv).uniformity ↔ (∃ ε > 0, ∀ {a b : R}, abv (b - a) < ε → (a, b) ∈ s) :=
+((uniform_space.core.has_basis_of_fun (exists_gt _) _ _ _ _ _).1 s).trans $
+  by simp only [subset_def, prod.forall]; refl
 
 end is_absolute_value

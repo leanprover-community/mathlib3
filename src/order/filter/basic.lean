@@ -2531,6 +2531,10 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (⨅ i, x i) y :=
 hi.mono_left $ infi_le _ _
 
+theorem tendsto_infi_infi {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (infi x) (infi y) :=
+tendsto_infi.2 $ λ i, tendsto_infi' i (h i)
+
 @[simp] lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=
 by simp only [tendsto, map_sup, sup_le_iff]

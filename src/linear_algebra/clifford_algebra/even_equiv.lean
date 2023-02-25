@@ -71,8 +71,8 @@ end
 
 lemma neg_v_mul_e0 (m : M) : -(v Q m * e0 Q) = e0 Q * v Q m :=
 begin
-  rw neg_eq_iff_neg_eq,
-  exact neg_e0_mul_v _ m
+  rw neg_eq_iff_eq_neg,
+  exact (neg_e0_mul_v _ m).symm
 end
 
 @[simp] lemma e0_mul_v_mul_e0 (m : M) : e0 Q * v Q m * e0 Q = v Q m :=

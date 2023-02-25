@@ -225,9 +225,9 @@ begin
     have hk := h2 k key,
     rcases hk with hk | hk | hk | hk,
     { exact or.inr (h3 h h_dvd_f (by rwa ← hk)) },
-    { exact or.inr (h3 h h_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, mirror_neg, dvd_neg])) },
+    { exact or.inr (h3 h h_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, mirror_neg, dvd_neg])) },
     { exact or.inl (h3 g g_dvd_f (by rwa ← hk)) },
-    { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
+    { exact or.inl (h3 g g_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, dvd_neg])) } },
 end
 
 end comm_ring

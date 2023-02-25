@@ -101,7 +101,7 @@ begin
     calc 2⁻¹ ^ n = 1 * 2⁻¹ ^ n : (one_mul _).symm
     ... ≤ 3 * 2⁻¹ ^ n : mul_le_mul_right' _ _,
     -- TODO: use `norm_num`
-    have : ((1 : ℕ) : ℝ≥0∞) ≤ (3 : ℕ), from ennreal.coe_nat_le_coe_nat.2 (by norm_num1),
+    have : ((1 : ℕ) : ℝ≥0∞) ≤ (3 : ℕ), from nat.cast_le.2 (by norm_num1),
     exact_mod_cast this },
   -- Let us show the rest of the properties. Since the definition expects a family indexed
   -- by a single parameter, we use `ℕ × ι` as the domain.

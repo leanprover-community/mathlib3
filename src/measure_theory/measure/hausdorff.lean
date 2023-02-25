@@ -198,7 +198,7 @@ begin
   and the second term tends to zero, see `outer_measure.Union_nat_of_monotone_of_tsum_ne_top`
   for details. -/
   have : ∀ n, S n ⊆ S (n + 1), from λ n x hx,
-    ⟨hx.1, le_trans (ennreal.inv_le_inv.2 $ ennreal.coe_nat_le_coe_nat.2 n.le_succ) hx.2⟩,
+    ⟨hx.1, le_trans (ennreal.inv_le_inv.2 $ nat.cast_le.2 n.le_succ) hx.2⟩,
   refine (μ.Union_nat_of_monotone_of_tsum_ne_top this _).le, clear this,
   /- While the sets `S (k + 1) \ S k` are not pairwise metric separated, the sets in each
   subsequence `S (2 * k + 1) \ S (2 * k)` and `S (2 * k + 2) \ S (2 * k)` are metric separated,

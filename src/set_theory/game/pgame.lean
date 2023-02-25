@@ -257,6 +257,7 @@ instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 /-! ### Pre-game order relations -/
 
 /-- The less or equal relation on pre-games.
+
 If `0 ≤ x`, then Left can win `x` as the second player. -/
 instance : has_le pgame := ⟨sym2.game_add.fix wf_is_option $ λ x y le,
   (∀ i, ¬ le y (x.move_left i) (sym2.game_add.snd_fst $ is_option.move_left i)) ∧

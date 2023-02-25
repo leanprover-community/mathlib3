@@ -387,10 +387,7 @@ lemma measure_preserving_mul_right_inv (μ : measure G)
 @[to_additive]
 lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ]
   (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
-begin
-  conv_rhs { rw [← map_inv_eq_self μ, ← map_mul_left_eq_self μ g] },
-  exact (map_map measurable_inv (measurable_const_mul g)).symm
-end
+(measure_preserving_mul_right_inv μ g).map_eq
 
 end mul_inv
 

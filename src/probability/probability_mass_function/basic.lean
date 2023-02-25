@@ -304,6 +304,6 @@ pmf.ext (λ x, by rw [← p.to_measure_apply_singleton x (measurable_set_singlet
 
 lemma to_measure_eq_iff_to_pmf_eq (μ : measure α) [hμ : is_probability_measure μ] :
   p.to_measure = μ ↔ p = μ.to_pmf :=
-by rw [← to_measure_inj, measure.to_pmf_to_measure, eq_comm]
+by rw [← to_measure_inj, measure.to_pmf_to_measure]
 
 end pmf

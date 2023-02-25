@@ -27,11 +27,11 @@ thus be called `bell_inequality_1964` in this file.
 
 Consider two observers, $$A$$ and $$B$$, performing measurements that take values in $${-1, 1}$$.
 
-Let `ℙ` be a probability measure, and let `Za i` and `Zb i` for $$i ∈ {1, 2, 3}$$ be random
-variables taking values in $${-1, 1}$$. For convenience, we identify $${-1, 1}$$ with `ℤˣ`. `Za i`
-represent the outcomes of measurements done by $$A$$, and `Zb i` those done by $$B$$. We assume
-perfect anticorrelation between the outcomes of $$A$$ and $$B$$: 𝔼[(Za i) (Zb i)] = -1. Bell's
-inequality states that `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`.
+Let `ℙ` be a probability measure, and let `A i` and `B i` for $$i ∈ {0, 1, 2}$$ be random
+variables taking values in $${-1, 1}$$. For convenience, we identify $${-1, 1}$$ with `ℤˣ`. `A i`
+represent the outcomes of measurements done by $$A$$, and `B i` those done by $$B$$. We assume
+perfect anticorrelation between the outcomes of $$A$$ and $$B$$: 𝔼[(A i) (B i)] = -1. Bell's
+inequality states that `𝔼[(A 1) (B 2)] - 𝔼[(A 1) (B 2)] ≤ 1 + 𝔼[(A 2) (B 0)]`.
 
 ## TODO
 
@@ -49,102 +49,50 @@ theorem.
 ## See also
 
 `CHSH_inequality_of_comm` is a star-algebra version of Bell's inequality.
-``
 -/
-
-section
-variables {α β : Type*} [measurable_space α] [measurable_space β] [measurable_singleton_class β]
-  {f : α → β} [finite β]
-open measure_theory
-
-@[simps] def simple_func.of_finite (hf : measurable f) : simple_func α β :=
-{ to_fun := f,
-  measurable_set_fiber' := λ x, hf $ measurable_set_singleton _,
-  finite_range' := (set.range f).to_finite}
-
-end
-
-section
-variables {α β : Type*} [measurable_space α] [measurable_space β] [topological_space β]
-  [measurable_singleton_class β] [finite β] {f : α → β}
-open measure_theory
-
-lemma measurable.strongly_measurable_of_finite (hf : measurable f) : strongly_measurable f :=
-⟨λ n, simple_func.of_finite hf, λ a, tendsto_const_nhds⟩
-
-end
-
-noncomputable theory
 
 open filter measure_theory
 
-section preliminaries
-variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω} [is_finite_measure ℙ] {f : Ω → ℤˣ}
+variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω} [is_probability_measure ℙ] {f g : Ω → ℤˣ}
+  {A B : fin 3 → Ω → ℤˣ}
 
-private lemma pm_one_space_abs_le (a : ℤˣ) : ‖(a : ℝ)‖ ≤ 1 :=
+private lemma norm_aux (a : ℤˣ) : ‖(a : ℝ)‖ ≤ 1 :=
 by obtain rfl | rfl := int.units_eq_one_or a; simp
 
-/-- The CHSH inequality in `ℤˣ`. -/
-lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
-  (A₀ : ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ + (-A₁) * B₁ + -2 ≤ 0 :=
-  by obtain rfl | rfl := int.units_eq_one_or A₀; obtain rfl | rfl := int.units_eq_one_or A₁;
-    obtain rfl | rfl := int.units_eq_one_or B₀; obtain rfl | rfl := int.units_eq_one_or B₁; norm_num
+/-- The precise version of the CHSH inequality we need. -/
+private lemma CHSH_aux (A₁ A₂ B₀ B₂ : ℤˣ) :
+  (A₁ : ℝ) * B₂ - A₁ * B₀ - A₂ * B₂ ≤ 1 + A₂ * B₀ + 1 :=
+by obtain rfl | rfl := int.units_eq_one_or A₁; obtain rfl | rfl := int.units_eq_one_or A₂;
+  obtain rfl | rfl := int.units_eq_one_or B₀; obtain rfl | rfl := int.units_eq_one_or B₂; norm_num
 
-private lemma integrable_aux (hf : measurable f) : integrable (λ ω, (f ω : ℝ)) ℙ :=
+private lemma ae_strongly_measurable_aux (hf : measurable f) :
+  ae_strongly_measurable (λ ω, (f ω : ℝ)) ℙ :=
 begin
-  refine ⟨(measurable.comp (λ s hs, _) hf).ae_strongly_measurable, has_finite_integral_of_bounded $
-    eventually_of_forall $ λ _, pm_one_space_abs_le _⟩,
+  refine (measurable.comp (λ s hs, _) hf).ae_strongly_measurable,
   exact ⟨coe ⁻¹' s, trivial, rfl⟩,
 end
 
-end preliminaries
+private lemma integrable_aux (hf : measurable f) : integrable (λ ω, (f ω : ℝ)) ℙ :=
+⟨ae_strongly_measurable_aux hf, has_finite_integral_of_bounded $ eventually_of_forall $ λ _,
+  norm_aux _⟩
 
-section bell_inequality_1964
-variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω} [is_finite_measure ℙ] {Za Zb : Ω → ℤˣ}
+private lemma integrable_mul_aux (hf : measurable f) (hg : measurable g) :
+  integrable (λ ω, (f ω * g ω : ℝ)) ℙ :=
+(integrable_aux hg).bdd_mul (ae_strongly_measurable_aux hf) ⟨1, λ _, norm_aux _⟩
 
-/-- **Bell's inequality (1964 version)** Given six random variables `Za Zb : fin 3 → Ω → ℤˣ` taking
-values in `±1`, and assuming perfect anticorrelation on the diagonal (that is,
-`𝔼[(Za i) (Zb i)] = -1` for all `i`), we have that
-`𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`. -/
-theorem bell_inequality_1964 (hℙ : is_probability_measure ℙ) {Za Zb : fin 3 → Ω → ℤˣ}
-  (ha : ∀ i, measurable (Za i)) (hb : ∀ i, measurable (Zb i))
-  (anticorrelation : ∀ i, ∫ ω, (Za i ω * Zb i ω : ℝ) ∂ℙ = -1) :
-  ∫ ω, (Za 1 ω * Zb 2 ω : ℝ) ∂ℙ - ∫ ω, Za 1 ω * Zb 3 ω ∂ℙ ≤ 1 + ∫ ω, Za 2 ω * Zb 3 ω ∂ℙ :=
+/-- **Bell's inequality (1964 version)** Given six random variables `A B : fin 3 → Ω → ℤˣ` taking
+values in `±1`, and assuming perfect anticorrelation on the diagonal (that is, `𝔼[(A i) (B i)] = -1`
+for all `i`), we have that `𝔼[(A 1) (B 2)] - 𝔼[(A 1) (B 0)] ≤ 1 + 𝔼[(A 2) (B 0)]`. -/
+theorem bell_inequality_1964 (ha : ∀ i, measurable (A i)) (hb : ∀ i, measurable (B i))
+  (anticorrelation : (∫ ω, A 2 ω * B 2 ω ∂ℙ : ℝ) = -1) :
+  (∫ ω, A 1 ω * B 2 ω ∂ℙ : ℝ) - ∫ ω, A 1 ω * B 0 ω ∂ℙ ≤ 1 + ∫ ω, A 2 ω * B 0 ω ∂ℙ :=
 begin
-  -- let integrable_muls :=
-  --   λ i j, integrable_mul_of_units_int (Za_measurable i) (Zb_measurable j),
-  -- let integrable_mul_negs :=
-  --   λ i j, integrable_mul_of_units_int_neg (Za_measurable i) (Zb_measurable j),
-  rw [←sub_nonpos, sub_add_eq_sub_sub, sub_eq_add_neg, sub_eq_add_neg, sub_eq_add_neg],
-  have : ∀ ω,
-    (-Za 2 ω : ℝ) * Zb 2 ω + -Za 2 ω * Zb 3 ω + Za 1 ω * Zb 2 ω + -Za 1 ω * Zb 3 ω + -2 ≤ 0,
-  { intro ω,
-    convert CHSH_inequality_of_int_units (-(Za 2 ω)) (Za 1 ω) (Zb 2 ω) (Zb 3 ω);
-    simp },
-  have int_chsh := @integral_nonpos _ _ ℙ _ (λ x, this x),
-  rw [integral_add, integral_add, integral_add, integral_add] at int_chsh,
-    try { apply_rules [integrable_const, integrable_muls, integrable_mul_negs, integrable.add] },
-  sorry { have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂ℙ = 1,
-    { convert neg_inj.mpr (anticorrelation 2),
-      { rw ← measure_theory.integral_neg,
-        rw integral_congr_ae,
-        filter_upwards with x,
-        simp },
-      { simp } },
-    rw [this, (by simp : ∫ ω, (-2 : ℝ) ∂ℙ = -2)] at int_chsh,
-    convert int_chsh using 1,
-    ring_nf,
-    congr' 1,
-    rw [add_sub_left_comm, integral_neg, integral_neg],
-    congr' 3,
-    { ext1 x,
-      ring },
-    { congrm ∫ x, _,
-      ring } },
-  simp only [coe_coe],
-  norm_cast,
-  exact integrable_aux ((ha _).neg.mul $ hb _),
-
+  rw [←sub_le_sub_iff_right (∫ ω, A 2 ω * B 2 ω ∂ℙ : ℝ), ←integral_sub, ←integral_sub,
+    anticorrelation, sub_neg_eq_add, (by simp : (1 : ℝ) = ∫ ω, 1 ∂ℙ), ←integral_add, ←integral_add],
+  refine integral_mono _ _ (λ _, CHSH_aux _ _ _ _),
+  all_goals -- discharge all the integrability hypotheses
+  { try { simp only [coe_coe, ←int.cast_neg, ←units.coe_neg] },
+    apply_rules [integrable.add, integrable.neg, integrable_mul_aux, ha, hb, integrable_const] },
 end
 
 end bell_inequality_1964

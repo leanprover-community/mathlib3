@@ -360,7 +360,8 @@ begin
   { rintro x, exact congr_fun hθobj x, },
   { rintro x y e,
     obtain ⟨hy,he⟩ := ψc.eq_star_of_eq hθ e (congr_fun hθobj x),
-    sorry, },
+    rw hom.cast_eq_iff_eq_cast at he,
+    exact he, },
 end
 
 lemma prefunctor.is_covering.eq_of_eq_of_path

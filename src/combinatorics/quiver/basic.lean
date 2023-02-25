@@ -61,7 +61,7 @@ lemma ext {V : Type u} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W]
   {F G : prefunctor V W}
   (h_obj : ∀ X, F.obj X = G.obj X)
   (h_map : ∀ (X Y : V) (f : X ⟶ Y),
-           F.map f = eq.rec_on (h_obj Y).symm (eq.rec_on (h_obj X).symm (G.map f))) : F = G :=
+           F.map f = eq.rec_on (h_obj X).symm (eq.rec_on (h_obj Y).symm (G.map f))) : F = G :=
 begin
   cases F with F_obj _, cases G with G_obj _,
   obtain rfl : F_obj = G_obj, by { ext X, apply h_obj },

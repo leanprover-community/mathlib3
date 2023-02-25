@@ -36,6 +36,10 @@ lemma hom.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v)
   e.cast hu hv = cast (by rw [hu, hv]) e :=
 by { subst_vars, refl }
 
+lemma hom.cast_eq_iff_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v')
+  (e : u ⟶ v) (e' : u' ⟶ v') : e.cast hu hv = e' ↔ e = e'.cast hu.symm hv.symm :=
+by { subst_vars, refl }
+
 @[simp] lemma hom.cast_rfl_rfl {u v : U} (e : u ⟶ v) :
   e.cast rfl rfl = e := rfl
 
@@ -112,5 +116,13 @@ by { rw hom.cast_eq_iff_heq, exact hom_heq_of_cons_eq_cons h }
 lemma eq_nil_of_length_zero {u v : U} (p : path u v) (hzero : p.length = 0) :
   p.cast (eq_of_length_zero p hzero) rfl = path.nil :=
 by { cases p; simpa only [nat.succ_ne_zero, length_cons] using hzero, }
+
+def hom_equiv_of_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') :
+  (X ⟶ Y) ≃ (X' ⟶ Y') :=
+by { induction h1, induction h2, refl,  }
+
+lemma hom_equiv_of_eq_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') (f : X ⟶ Y) :
+  hom_equiv_of_eq h1 h2 f = hom.cast h1 h2 f :=
+by { induction h1, induction h2, refl }
 
 end quiver

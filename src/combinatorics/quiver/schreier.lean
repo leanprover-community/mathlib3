@@ -358,6 +358,9 @@ namespace cayley_graph
 variables {N : subgroup M} [Nn : N.normal]
 include Nn
 
+-- Maybe there is an official mathlib way to state that `ι` generates the group.
+lemma preconnected_iff : is_preconnected (symmetrify $ 𝑪 ι) ↔ subgroup.closure (set.range ι) = ⊤ := sorry
+
 def cayley_iso_schreier : 𝑪l ((quotient_group.mk : M → M ⧸ N) ∘ ι) ≃qc (𝑺l ι N) := sorry
 
 

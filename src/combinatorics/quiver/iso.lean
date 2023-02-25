@@ -52,6 +52,7 @@ def iso.to_equiv_map (φ : iso U V) (X Y : U) : (X ⟶ Y) ≃ (φ.obj X ⟶ φ.o
   { rw [←prefunctor.comp_assoc, prefunctor.comp_assoc ψ.inv_prefunctor,
         φ.right_inv, prefunctor.comp_id, ψ.right_inv], }, }
 
+-- Thanks Adam Topaz
 @[simps]
 noncomputable
 def iso.of_bijective_inverse_aux (φ : U ⥤q V) (hφobj : φ.obj.bijective)
@@ -65,6 +66,7 @@ in
   map := λ X Y, (Ehom _ _).symm ∘ hom_equiv_of_eq
     (show X = Eobj _, by rw Eobj.apply_symm_apply) (show Y = Eobj _, by rw Eobj.apply_symm_apply) }
 
+-- Thanks Adam Topaz
 noncomputable def iso.of_bijective (φ : U ⥤q V) (hφobj : function.bijective φ.obj)
   (hφmap : ∀ (x y : U), function.bijective (φ.map : (x ⟶ y) → (φ.obj x ⟶ φ.obj y)) ) :
   iso U V :=

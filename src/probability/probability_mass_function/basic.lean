@@ -128,6 +128,13 @@ begin
   { exact ite_eq_left_iff.2 (λ ha', false.elim $ ha' rfl) }
 end
 
+lemma to_outer_measure_injective : (to_outer_measure : pmf α → outer_measure α).injective :=
+λ p q h, pmf.ext (λ x, (p.to_outer_measure_apply_singleton x).symm.trans
+  ((congr_fun (congr_arg _ h) _).trans $ q.to_outer_measure_apply_singleton x))
+
+lemma to_outer_measure_inj {p q : pmf α} : p.to_outer_measure = q.to_outer_measure ↔ p = q :=
+to_outer_measure_injective.eq_iff
+
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
   rw [to_outer_measure_apply, ennreal.tsum_eq_zero],
@@ -222,6 +229,14 @@ section measurable_singleton_class
 
 variables [measurable_singleton_class α]
 
+lemma to_measure_injective : (to_measure : pmf α → measure α).injective :=
+λ p q h, pmf.ext (λ x, (p.to_measure_apply_singleton x $ measurable_set_singleton x).symm.trans
+  ((congr_fun (congr_arg _ h) _).trans $ q.to_measure_apply_singleton x $
+    measurable_set_singleton x))
+
+lemma to_measure_inj {p q : pmf α} : p.to_measure = q.to_measure ↔ p = q :=
+to_measure_injective.eq_iff
+
 @[simp]
 lemma to_measure_apply_finset (s : finset α) : p.to_measure s = ∑ x in s, p x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s s.measurable_set).trans
@@ -283,15 +298,12 @@ instance to_measure.is_probability_measure [measurable_space α] (p : pmf α) :
 variables [countable α] [measurable_space α] [measurable_singleton_class α]
   (p : pmf α) (μ : measure α) [is_probability_measure μ]
 
-lemma to_measure_to_pmf : p.to_measure.to_pmf = p :=
+@[simp] lemma to_measure_to_pmf : p.to_measure.to_pmf = p :=
 pmf.ext (λ x, by rw [← p.to_measure_apply_singleton x (measurable_set_singleton x),
   p.to_measure.to_pmf_apply])
 
 lemma to_measure_eq_iff_to_pmf_eq (μ : measure α) [hμ : is_probability_measure μ]:
   p.to_measure = μ ↔ μ.to_pmf = p :=
-begin
-  refine ⟨λ h, trans _ p.to_measure_to_pmf, λ h, trans (congr_arg _ h.symm) μ.to_pmf_to_measure⟩,
-  unfreezingI {induction h, refl}
-end
+by rw [← to_measure_inj, measure.to_pmf_to_measure, eq_comm]
 
 end pmf

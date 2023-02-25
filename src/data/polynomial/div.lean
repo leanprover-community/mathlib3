@@ -431,7 +431,7 @@ end
 
 variable {R}
 
-lemma eval_ring_hom_ker (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
+lemma ker_eval_ring_hom (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
 by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
 
 /-- For a commutative ring $R$, evaluating a polynomial at an element $x \in R$ induces an
@@ -439,7 +439,7 @@ isomorphism of $R$-algebras $R[X] / \langle X - x \rangle \cong R$. -/
 noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
   (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
 (alg_equiv.restrict_scalars R $ ideal.quotient_equiv_alg_of_eq R
-  (by exact eval_ring_hom_ker x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $
+  (by exact ker_eval_ring_hom x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $
   ideal.quotient_ker_alg_equiv_of_right_inverse $ λ _, eval_C
 
 @[simp] lemma quotient_span_X_sub_C_alg_equiv_mk (x : R) (p : R[X]) :

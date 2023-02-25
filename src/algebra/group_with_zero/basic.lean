@@ -286,7 +286,7 @@ lemma one_div_ne_zero {a : G₀} (h : a ≠ 0) : 1 / a ≠ 0 :=
 by simpa only [one_div] using inv_ne_zero h
 
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
-by rw [inv_eq_iff_inv_eq, inv_zero, eq_comm]
+by rw [inv_eq_iff_eq_inv, inv_zero]
 
 @[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
 eq_comm.trans $ inv_eq_zero.trans eq_comm

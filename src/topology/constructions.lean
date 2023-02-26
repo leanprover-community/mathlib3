@@ -757,9 +757,13 @@ lemma nhds_inl (x : α) : 𝓝 (inl x : α ⊕ β) = map inl (𝓝 x) :=
 lemma nhds_inr (x : β) : 𝓝 (inr x : α ⊕ β) = map inr (𝓝 x) :=
 (open_embedding_inr.map_nhds_eq _).symm
 
+theorem continuous_sum_dom {f : α ⊕ β → γ} :
+    continuous f ↔ continuous (f ∘ sum.inl) ∧ continuous (f ∘ sum.inr) :=
+by simp only [continuous_sup_dom, continuous_coinduced_dom]
+
 lemma continuous_sum_elim {f : α → γ} {g : β → γ} :
   continuous (sum.elim f g) ↔ continuous f ∧ continuous g :=
-by simp only [continuous_sup_dom, continuous_coinduced_dom, sum.elim_comp_inl, sum.elim_comp_inr]
+continuous_sum_dom
 
 @[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
   (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=

@@ -669,8 +669,10 @@ begin
   ... ≤ c * d : mul_le_mul' a'c.le b'd.le
 end
 
+-- TODO: generalize to `covariant_class α α (*) (≤)`
 lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul' le_rfl
 
+-- TODO: generalize to `covariant_class α α (swap (*)) (≤)`
 lemma mul_right_mono : monotone (λ x, x * a) := λ b c h, mul_le_mul' h le_rfl
 
 lemma pow_strict_mono {n : ℕ} (hn : n ≠ 0) : strict_mono (λ (x : ℝ≥0∞), x^n) :=

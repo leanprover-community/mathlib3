@@ -429,7 +429,6 @@ instance : metric_space GH_space :=
     let Ψ : Y → γ2 := optimal_GH_injl Y Z,
     have hΨ : isometry Ψ := isometry_optimal_GH_injl Y Z,
     let γ := glue_space hΦ hΨ,
-    letI : metric_space γ := metric.metric_space_glue_space hΦ hΨ,
     have Comm : (to_glue_l hΦ hΨ) ∘ (optimal_GH_injr X Y) =
       (to_glue_r hΦ hΨ) ∘ (optimal_GH_injl Y Z) := to_glue_commute hΦ hΨ,
     calc dist x z = dist (to_GH_space X) (to_GH_space Z) :

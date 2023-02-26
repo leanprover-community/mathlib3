@@ -136,7 +136,7 @@ lemma simple_func.strongly_measurable {α β} {m : measurable_space α} [topolog
 
 lemma strongly_measurable_of_is_empty [is_empty α] {m : measurable_space α} [topological_space β]
   (f : α → β) : strongly_measurable f :=
-(simple_func.of_is_empty).strongly_measurable
+⟨λ n, simple_func.of_is_empty, is_empty_elim⟩
 
 lemma measurable.strongly_measurable_of_finite [measurable_space α] [measurable_space β]
   [topological_space β] [measurable_singleton_class β] [finite β] {f : α → β} (hf : measurable f) :

@@ -388,7 +388,7 @@ end
 /-- The oriented angle between two vectors is `π` if and only if the angle with the vectors
 swapped is `π`. -/
 lemma oangle_eq_pi_iff_oangle_rev_eq_pi {x y : V} : o.oangle x y = π ↔ o.oangle y x = π :=
-by rw [oangle_rev, neg_eq_iff_neg_eq, eq_comm, real.angle.neg_coe_pi]
+by rw [oangle_rev, neg_eq_iff_eq_neg, real.angle.neg_coe_pi]
 
 /-- The oriented angle between two vectors is `π` if and only they are nonzero and the first is
 on the same ray as the negation of the second. -/
@@ -700,7 +700,7 @@ begin
   by_cases hy : y = 0, { exfalso, simpa [hy] using h },
   refine (o.oangle_eq_angle_or_eq_neg_angle hx hy).resolve_right _,
   intro hxy,
-  rw [hxy, real.angle.sign_neg, neg_eq_iff_neg_eq, eq_comm, ←sign_type.neg_iff, ←not_le] at h,
+  rw [hxy, real.angle.sign_neg, neg_eq_iff_eq_neg, ←sign_type.neg_iff, ←not_le] at h,
   exact h (real.angle.sign_coe_nonneg_of_nonneg_of_le_pi (inner_product_geometry.angle_nonneg _ _)
                                                          (inner_product_geometry.angle_le_pi _ _))
 end

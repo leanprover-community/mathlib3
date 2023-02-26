@@ -8,6 +8,7 @@ import group_theory.coset
 import group_theory.quotient_group
 import group_theory.group_action.quotient
 import combinatorics.quiver.iso
+import group_theory.free_group
 
 /-
 
@@ -57,6 +58,7 @@ The star around a vertex is just `S`.
   left_inv := λ ⟨_, ⟨s, rfl⟩⟩, rfl,
   right_inv := λ s, rfl }
 
+/-- Got my directions wrong I think: cons for list and path is reversed -/
 def action_graph.path_star_equiv (x : action_graph V ι) : path_star x ≃ list S :=
 { to_fun := λ p, @quiver.path.rec_on _ _ x (λ y p, list S) p.1 p.2 [] (λ _ _ q e ih, ih.cons e.1),
   inv_fun := λ l, @list.rec_on _ (λ l, path_star x) l ⟨x, path.nil⟩ (λ h l ih, ⟨_, ih.2.cons ⟨h, rfl⟩⟩),
@@ -126,7 +128,8 @@ lemma action_graph_labelling_is_covering : (𝑨l V ι).is_covering :=
 
 notation `𝑨c` := action_graph_labelling_is_covering
 
-def _root_.equiv.sum {α₀ α₁ β₀ β₁ : Type*} (hα : α₀ ≃ α₁) (hβ : β₀ ≃ β₁) : α₀ ⊕ β₀ ≃ α₁ ⊕ β₁ :=
+@[simps] def _root_.equiv.sum {α₀ α₁ β₀ β₁ : Type*} (hα : α₀ ≃ α₁) (hβ : β₀ ≃ β₁) :
+  α₀ ⊕ β₀ ≃ α₁ ⊕ β₁ :=
 { to_fun := sum.elim (@sum.inl _ β₁ ∘ hα) (@sum.inr α₁ _ ∘ hβ),
   inv_fun := sum.elim (@sum.inl _ β₀ ∘ hα.symm) (@sum.inr α₀ _ ∘ hβ.symm),
   left_inv := by
@@ -142,7 +145,8 @@ The sorry should be easy but would benefit from infrastructure:
 * need a usable def of isomorphisms
 * isomorphisms induce equivalence of `star` and `star_path` etc
 -/
-def action_graph.symmetrify_star_equiv (x : 𝑨 V ι ) : star (symmetrify.of.obj x) ≃ S ⊕ S :=
+@[simps] def action_graph.symmetrify_star_equiv (x : 𝑨 V ι ) :
+  star (symmetrify.of.obj x) ≃ S ⊕ S :=
 begin
   transitivity,
   apply quiver.symmetrify_star,
@@ -153,14 +157,33 @@ end
 
 noncomputable def action_graph.symmetrify_path_star_equiv (x : 𝑨 V ι) :
   path_star (symmetrify.of.obj x) ≃ list (S ⊕ S) :=
-calc  path_star (symmetrify.of.obj x)
-    ≃ path_star (symmetrify.of.obj (single_obj.star S) : symmetrify (single_obj S)) :
-      equiv.of_bijective _ (prefunctor.path_star_bijective _
-        (action_graph_labelling_is_covering V ι).symmetrify x)
-... ≃ path_star (single_obj.star (S ⊕ S)) : sorry
-... ≃ list (S ⊕ S) : single_obj.path_star_equiv _
+{ to_fun := by
+  begin
+    rintros ⟨y, p⟩,
+    induction p with a b p e ih,
+    exact list.nil,
+    exact ih.append [(action_graph.symmetrify_star_equiv V ι a).to_fun ⟨_, e⟩],
+  end,
+  inv_fun :=
+  begin
+    rintros l,
+    induction l with a l ih,
+    exact ⟨_, path.nil⟩,
+    exact ⟨_, ih.2.cons $ ((action_graph.symmetrify_star_equiv V ι ih.1).inv_fun a).2⟩,
+  end,
+  left_inv :=
+  begin
+    rintros ⟨y, p⟩,
+    induction p with a b p e ih,
+    { simp, },
+    sorry
+  end,
+  right_inv := sorry }
 
-/- need to fine a usable def probably in `free_group` -/
+/-
+Need to fine a usable def probably in `free_group`
+* `free_group.lift.aux`, but `free_group` uses `bool × S` …
+ -/
 @[simp] def val : list (S ⊕ S) → M
 | list.nil := 1
 | (list.cons (sum.inl s) l) := (ι s) * (val l)
@@ -188,7 +211,7 @@ That should be remedied.
 -/
 lemma action_graph.path_star_equiv_end_eq_mul
   (x : 𝑨 V ι) (p : path_star $ symmetrify.of.obj x) :
-  (id p.1 : 𝑨 V ι) = (val ι $ (action_graph.path_star_equiv V ι x) p) • x := sorry
+  (id p.1 : 𝑨 V ι) = (val ι $ (action_graph.symmetrify_path_star_equiv V ι x) p) • x := sorry
 
 
 /--

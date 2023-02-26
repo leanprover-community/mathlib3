@@ -20,7 +20,7 @@ rewriting arrows and paths along equalities of their endpoints.
 
 universes v v₁ v₂ u u₁ u₂
 
-variables {U : Type*} [quiver.{u+1} U]
+variables {U : Type*} [quiver.{u+1} U] {V : Type*} [quiver.{v+1} V]
 
 namespace quiver
 
@@ -35,6 +35,10 @@ eq.rec (eq.rec e hv) hu
 lemma hom.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
   e.cast hu hv = cast (by rw [hu, hv]) e :=
 by { subst_vars, refl }
+
+lemma hom.cast_irrelevant {u v u' v' : U} (hu hu' : u = u') (hv hv' : v = v') (e : u ⟶ v) :
+  e.cast hu hv = e.cast hu' hv' :=
+by { cases hu, cases hu', cases hv, cases hv', refl, }
 
 lemma hom.cast_eq_iff_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e.cast hu hv = e' ↔ e = e'.cast hu.symm hv.symm :=
@@ -59,6 +63,16 @@ by { rw hom.cast_eq_cast, exact cast_eq_iff_heq }
 lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
 by { rw [eq_comm, hom.cast_eq_iff_heq], exact ⟨heq.symm, heq.symm⟩ }
+
+lemma _root_.prefunctor.map_cast_eq_of_eq {φ ψ : U ⥤q V} (h : φ = ψ) {u u' : U} (e : u ⟶ u') :
+  (φ.map e).cast (congr_arg (λ (θ : U ⥤q V), θ.obj u) h : φ.obj u = ψ.obj u)
+                 (congr_arg (λ θ : U ⥤q V, θ.obj u') h : φ.obj u' = ψ.obj u') = ψ.map e :=
+by { cases h, refl, }
+
+lemma _root_.prefunctor.map_cast (φ : U ⥤q V) {u₁ u₂ v₁ v₂ : U} (hu : u₁ = u₂) (hv : v₁ = v₂)
+  (e : u₁ ⟶ v₁) :
+  φ.map (hom.cast hu hv e) = (hom.cast (congr_arg φ.obj hu) (congr_arg φ.obj hv) (φ.map e)) :=
+by cases hu; cases hv; refl
 
 /-!
 ### Rewriting paths along equalities of vertices
@@ -117,9 +131,13 @@ lemma eq_nil_of_length_zero {u v : U} (p : path u v) (hzero : p.length = 0) :
   p.cast (eq_of_length_zero p hzero) rfl = path.nil :=
 by { cases p; simpa only [nat.succ_ne_zero, length_cons] using hzero, }
 
-def hom_equiv_of_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') :
+
+@[simps] def hom_equiv_of_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') :
   (X ⟶ Y) ≃ (X' ⟶ Y') :=
-by { induction h1, induction h2, refl,  }
+{ to_fun := λ e, e.cast h1 h2,
+  inv_fun := λ e, e.cast h1.symm h2.symm,
+  left_inv := λ e, by simp,
+  right_inv := λ e, by simp }
 
 lemma hom_equiv_of_eq_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') (f : X ⟶ Y) :
   hom_equiv_of_eq h1 h2 f = hom.cast h1 h2 f :=

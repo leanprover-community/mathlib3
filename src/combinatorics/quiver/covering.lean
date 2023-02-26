@@ -313,12 +313,6 @@ end has_involutive_reverse
 
 section covering_maps
 
-/-- TODO : Move where it belongs -/
-lemma _root_.prefunctor.map_cast (φ : U ⥤q W) {u₁ u₂ v₁ v₂ : U} (hu : u₁ = u₂) (hv : v₁ = v₂)
-  (e : u₁ ⟶ v₁) :
-  φ.map (hom.cast hu hv e) = (hom.cast (congr_arg φ.obj hu) (congr_arg φ.obj hv) (φ.map e)) :=
-by cases hu; cases hv; refl
-
 /- The following all have bad names: -/
 
 lemma prefunctor.is_covering.eq_star_of_eq

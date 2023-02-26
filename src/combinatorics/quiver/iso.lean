@@ -30,18 +30,27 @@ def iso.to_equiv (φ : iso U V) : U ≃ V :=
 @[simps]
 def iso.to_equiv_map (φ : iso U V) (X Y : U) : (X ⟶ Y) ≃ (φ.obj X ⟶ φ.obj Y) :=
 { to_fun := φ.to_prefunctor.map,
-  inv_fun := (hom_equiv_of_eq (φ.to_equiv.left_inv X) (φ.to_equiv.left_inv Y)) ∘ φ.inv_prefunctor.map,
+  inv_fun := hom_equiv_of_eq (φ.to_equiv.left_inv X) (φ.to_equiv.left_inv Y) ∘ φ.inv_prefunctor.map,
   left_inv := by
     begin
       rintro e,
-      simp only [function.comp_app, ←prefunctor.comp_map],
+      let := prefunctor.map_cast_eq_of_eq φ.left_inv e,
+      simp only [prefunctor.id_map] at this,
+      nth_rewrite_rhs 0 ←this,
       generalize_proofs h1 h2,
-      let := φ.left_inv,
-      apply eq_of_heq,
-
-      sorry,
+      simp only [function.comp_app, hom_equiv_of_eq_apply, prefunctor.comp_map],
     end,
-  right_inv := sorry}
+  right_inv := by
+    begin
+      rintro e,
+      let := prefunctor.map_cast_eq_of_eq φ.right_inv e,
+      simp only [prefunctor.id_map] at this,
+      nth_rewrite_rhs 0 ←this,
+      generalize_proofs h1 h2 h3 h4,
+      simp only [prefunctor.map_cast, function.comp_app, hom_equiv_of_eq_apply,
+                 prefunctor.comp_map],
+      apply hom.cast_irrelevant,
+    end }
 
 @[simps] def iso.refl (U : Type*) [quiver.{u+1} U] : iso U U := ⟨𝟭q _, 𝟭q _, rfl, rfl⟩
 
@@ -111,7 +120,6 @@ end
 
 lemma iso.inv_prefunctor_obj_injective {φ : iso U V} : φ.inv_prefunctor.obj.injective :=
 (iso.to_prefunctor_obj_injective : φ.symm.to_prefunctor.obj.injective)
-
 
 @[ext]
 lemma iso.to_prefunctor_ext (φ ψ : iso U V) : φ.to_prefunctor = ψ.to_prefunctor → φ = ψ :=

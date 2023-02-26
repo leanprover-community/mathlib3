@@ -37,11 +37,8 @@ This calls for a two-steps definition of ZFA lists:
 * `lists' α tt`: Proper ZFA prelists. Defined inductively from the empty ZFA prelist (`lists'.nil`)
   and from appending a ZFA prelist to a proper ZFA prelist (`lists'.cons a l`).
 * `lists α`: ZFA lists. Sum of the atoms and proper ZFA prelists.
-
-## TODO
-
-The next step is to define ZFA sets as lists quotiented by `lists.equiv`.
-(-/
+* `finsets`: ZFA sets. Defined as `lists` quotiented by `lists.equiv`, the extensional equivalence.
+-/
 
 variables {α : Type*}
 

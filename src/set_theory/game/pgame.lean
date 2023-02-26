@@ -844,7 +844,7 @@ theorem is_option_neg {x y : pgame} : is_option x (-y) ↔ is_option (-x) y :=
 begin
   rw [is_option_iff, is_option_iff, or_comm],
   cases y, apply or_congr;
-  { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
+  { apply exists_congr, intro, rw neg_eq_iff_eq_neg, refl },
 end
 
 @[simp] theorem is_option_neg_neg {x y : pgame} : is_option (-x) (-y) ↔ is_option x y :=

@@ -5,7 +5,6 @@ Authors: Michael Geißer, Michael Stoll
 -/
 
 import tactic.qify
-import tactic.linear_combination
 import data.zmod.basic
 import number_theory.diophantine_approximation
 

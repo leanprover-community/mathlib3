@@ -7,6 +7,7 @@ import algebra.algebra.pi
 import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
 import data.real.sqrt
+import topology.algebra.module.basic
 
 /-!
 # Normed spaces
@@ -18,7 +19,7 @@ about these definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric function set
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 section seminormed_add_comm_group
 
@@ -79,18 +80,18 @@ lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
 by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
   div_self_le_one]
 
-lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
+lemma dist_smul₀ [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ = ‖s‖₊ * ‖x‖₊ :=
 nnreal.eq $ norm_smul s x
 
-lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
+lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
-nnreal.eq $ dist_smul s x y
+nnreal.eq $ dist_smul₀ s x y
 
 lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
-lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul, coe_nnnorm]
+lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
 
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
@@ -247,6 +248,11 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
       ‖a‖₊ * ↑(finset.sup finset.univ (λ (b : ι), ‖f b‖₊)),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
+instance mul_opposite.normed_space : normed_space α Eᵐᵒᵖ :=
+{ norm_smul_le := λ s x, (norm_smul s x.unop).le,
+  ..mul_opposite.normed_add_comm_group,
+  ..mul_opposite.module _ }
+
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
   {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] [module R E]
@@ -340,6 +346,14 @@ lemma nnnorm_surjective : surjective (nnnorm : E → ℝ≥0) :=
 (nnnorm_surjective E).range_eq
 
 end surj
+
+/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
+This is a particular case of `module.punctured_nhds_ne_bot`. -/
+instance real.punctured_nhds_module_ne_bot
+  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
+  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
+  ne_bot (𝓝[≠] x) :=
+module.punctured_nhds_ne_bot ℝ E x
 
 theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
@@ -509,6 +523,10 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   normed_algebra 𝕜 (Π i, E i) :=
 { .. pi.normed_space,
   .. pi.algebra _ E }
+
+instance mul_opposite.normed_algebra {E : Type*} [semi_normed_ring E] [normed_algebra 𝕜 E] :
+  normed_algebra 𝕜 Eᵐᵒᵖ :=
+{ ..mul_opposite.normed_space }
 
 end normed_algebra
 

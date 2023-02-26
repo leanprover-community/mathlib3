@@ -18,7 +18,7 @@ Henstock and `⊥` integrable) with the same integral. The proof is based on
 integral, McShane integral, Bochner integral
 -/
 
-open_locale classical nnreal ennreal topological_space big_operators
+open_locale classical nnreal ennreal topology big_operators
 
 universes u v
 

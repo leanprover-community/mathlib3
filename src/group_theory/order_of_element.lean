@@ -13,6 +13,9 @@ import group_theory.index
 /-!
 # Order of an element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the order of an element of a finite group. For a finite group `G` the order of
 `x ∈ G` is the minimal `n ≥ 1` such that `x ^ n = 1`.
 
@@ -410,7 +413,8 @@ by rw [modeq_zero_iff_dvd, order_of_dvd_iff_pow_eq_one]
 @[to_additive]
 lemma pow_eq_pow_iff_modeq : x ^ n = x ^ m ↔ n ≡ m [MOD (order_of x)] :=
 begin
-  wlog hmn : m ≤ n,
+  wlog hmn : m ≤ n generalizing m n,
+  { rw [eq_comm, modeq.comm, this (le_of_not_le hmn)], },
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
   rw [← mul_one (x ^ m), pow_add, mul_left_cancel_iff, pow_eq_one_iff_modeq],
   exact ⟨λ h, nat.modeq.add_left _ h, λ h, nat.modeq.add_left_cancel' _ h⟩,

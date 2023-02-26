@@ -16,7 +16,7 @@ multiplication of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {𝕜 E : Type*} [normed_field 𝕜]
 
@@ -29,7 +29,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul₀],
 end
 
 lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (‖c‖) :=
@@ -41,7 +41,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
+  simp only [mem_sphere, dist_smul₀, norm_inv, ← div_eq_inv_mul,
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
@@ -275,7 +275,7 @@ by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
 
 lemma ball_add_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+by rw [ball_add, thickening_ball hε hδ b, metric.vadd_ball, vadd_eq_add]
 
 lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε - ball b δ = ball (a - b) (ε + δ) :=
@@ -283,7 +283,7 @@ by simp_rw [sub_eq_add_neg, neg_ball, ball_add_ball hε hδ]
 
 lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε + closed_ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+by rw [ball_add, thickening_closed_ball hε hδ b, metric.vadd_ball, vadd_eq_add]
 
 lemma ball_sub_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε - closed_ball b δ = ball (a - b) (ε + δ) :=
@@ -291,7 +291,7 @@ by simp_rw [sub_eq_add_neg, neg_closed_ball, ball_add_closed_ball hε hδ]
 
 lemma closed_ball_add_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [add_comm, ball_add_closed_ball hδ hε, add_comm, add_comm δ]; apply_instance
+by rw [add_comm, ball_add_closed_ball hδ hε b, add_comm, add_comm δ]
 
 lemma closed_ball_sub_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε - ball b δ = ball (a - b) (ε + δ) :=
@@ -299,8 +299,8 @@ by simp_rw [sub_eq_add_neg, neg_ball, closed_ball_add_ball hε hδ]
 
 lemma closed_ball_add_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) :=
-by rw [(is_compact_closed_ball _ _).add_closed_ball hδ, cthickening_closed_ball hδ hε,
-  vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]; apply_instance
+by rw [(is_compact_closed_ball _ _).add_closed_ball hδ b, cthickening_closed_ball hδ hε a,
+  metric.vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]
 
 lemma closed_ball_sub_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε - closed_ball b δ = closed_ball (a - b) (ε + δ) :=

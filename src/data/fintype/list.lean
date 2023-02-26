@@ -10,6 +10,9 @@ import data.finset.powerset
 
 # Fintype instance for nodup lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The subtype of `{l : list α // l.nodup}` over a `[fintype α]`
 admits a `fintype` instance.
 

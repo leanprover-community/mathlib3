@@ -31,8 +31,7 @@ For an example, refer to `int_fract_pair.stream`.
 - `generalized_continued_fraction.int_fract_pair.stream`: computes the stream of integer and
   fractional parts of a given value as described in the summary.
 - `generalized_continued_fraction.of`: computes the generalised continued fraction of a value `v`.
-  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational
-  (those proofs will be added in a future commit).
+  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational.
 
 ## Implementation Notes
 

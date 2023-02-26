@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 import data.fintype.parity
-import linear_algebra.special_linear_group
+import linear_algebra.matrix.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
-import linear_algebra.general_linear_group
+import linear_algebra.matrix.general_linear_group
 
 
 /-!

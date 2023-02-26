@@ -3,7 +3,7 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import analysis.normed_space.operator_norm
 import analysis.normed_space.pointwise
 

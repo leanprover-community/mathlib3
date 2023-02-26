@@ -10,6 +10,9 @@ import algebra.big_operators.basic
 /-!
 # Big operators for `nat_antidiagonal`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems relevant to big operators over `finset.nat.antidiagonal`.
 -/
 

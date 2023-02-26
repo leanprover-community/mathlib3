@@ -9,6 +9,9 @@ import group_theory.quotient_group
 /-!
 # Defining a group given by generators and relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a subset `rels` of relations of the free group on a type `α`, this file constructs the group
 given by generators `x : α` and relations `r ∈ rels`.
 

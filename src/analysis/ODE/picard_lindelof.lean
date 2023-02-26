@@ -34,7 +34,7 @@ differential equation
 
 open filter function set metric topological_space interval_integral measure_theory
 open measure_theory.measure_space (volume)
-open_locale filter topological_space nnreal ennreal nat interval
+open_locale filter topology nnreal ennreal nat interval
 
 noncomputable theory
 

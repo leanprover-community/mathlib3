@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.between
-import analysis.convex.topology
+import analysis.convex.normed
 import analysis.normed.group.add_torsor
 
 /-!

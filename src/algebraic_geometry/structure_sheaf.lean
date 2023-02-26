@@ -358,7 +358,8 @@ by convert is_localization.mk'_mul _ f₁ f₂ ⟨g₁, hu₁ x x.2⟩ ⟨g₂, 
 
 lemma const_ext {f₁ f₂ g₁ g₂ : R} {U hu₁ hu₂} (h : f₁ * g₂ = f₂ * g₁) :
   const R f₁ g₁ U hu₁ = const R f₂ g₂ U hu₂ :=
-subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq h.symm
+subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq
+  (by rw [mul_comm, subtype.coe_mk, ←h, mul_comm, subtype.coe_mk])
 
 lemma const_congr {f₁ f₂ g₁ g₂ : R} {U hu} (hf : f₁ = f₂) (hg : g₁ = g₂) :
   const R f₁ g₁ U hu = const R f₂ g₂ U (hg ▸ hu) :=
@@ -575,17 +576,17 @@ begin
   rw is_localization.eq,
   -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
   -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
-  -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
+  -- This amounts showing that `r * (d * a) = r * (b * c)`, for some power `r = f ^ n` of `f`.
   -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
   let I : ideal R :=
-  { carrier := {r : R | a * d * r = c * b * r},
-    zero_mem' := by simp only [set.mem_set_of_eq, mul_zero],
-    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [mul_add, hr₁, hr₂] },
-    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
+  { carrier := {r : R | r * (d * a) = r * (b * c)},
+    zero_mem' := by simp only [set.mem_set_of_eq, zero_mul],
+    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [add_mul, hr₁, hr₂] },
+    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
   { cases this with n hn,
-    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩ },
+    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩, },
   rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
   intros p hfp,
   contrapose hfp,
@@ -607,9 +608,9 @@ lemma locally_const_basic_open (U : opens (prime_spectrum.Top R))
 begin
   -- First, any section `s` can be represented as a fraction `f/g` on some open neighborhood of `x`
   -- and we may pass to a `basic_open h`, since these form a basis
-  obtain ⟨V, (hxV : x.1 ∈ V.1), iVU, f, g, (hVDg : V ⊆ basic_open g), s_eq⟩ :=
+  obtain ⟨V, (hxV : x.1 ∈ V.1), iVU, f, g, (hVDg : V ≤ basic_open g), s_eq⟩ :=
     exists_const R U s x.1 x.2,
-  obtain ⟨_, ⟨h, rfl⟩, hxDh, (hDhV : basic_open h ⊆ V)⟩ :=
+  obtain ⟨_, ⟨h, rfl⟩, hxDh, (hDhV : basic_open h ≤ V)⟩ :=
     is_topological_basis_basic_opens.exists_subset_of_mem_open hxV V.2,
   -- The problem is of course, that `g` and `h` don't need to coincide.
   -- But, since `basic_open h ≤ basic_open g`, some power of `h` must be a multiple of `g`
@@ -643,11 +644,11 @@ A local representation of a section `s` as fractions `a i / h i` on finitely man
 -/
 lemma normalize_finite_fraction_representation (U : opens (prime_spectrum.Top R))
   (s : (structure_sheaf R).1.obj (op U)) {ι : Type*} (t : finset ι) (a h : ι → R)
-  (iDh : Π i : ι, basic_open (h i) ⟶ U)  (h_cover : U.1 ⊆ ⋃ i ∈ t, (basic_open (h i)).1)
+  (iDh : Π i : ι, basic_open (h i) ⟶ U) (h_cover : U ≤ ⨆ i ∈ t, basic_open (h i))
   (hs : ∀ i : ι, const R (a i) (h i) (basic_open (h i)) (λ y hy, hy) =
     (structure_sheaf R).1.map (iDh i).op s) :
   ∃ (a' h' : ι → R) (iDh' : Π i : ι, (basic_open (h' i)) ⟶ U),
-    (U.1 ⊆ ⋃ i ∈ t, (basic_open (h' i)).1) ∧
+    (U ≤ ⨆ i ∈ t, basic_open (h' i)) ∧
     (∀ i j ∈ t, a' i * h' j = h' i * a' j) ∧
     (∀ i ∈ t, (structure_sheaf R).1.map (iDh' i).op s =
       const R (a' i) (h' i) (basic_open (h' i)) (λ y hy, hy)) :=
@@ -734,19 +735,21 @@ begin
   choose a' h' iDh' hxDh' s_eq' using locally_const_basic_open R (basic_open f) s,
   -- Since basic opens are compact, we can pass to a finite subcover
   obtain ⟨t, ht_cover'⟩ := (is_compact_basic_open f).elim_finite_subcover
-   (λ (i : ι), (basic_open (h' i)).1) (λ i, is_open_basic_open) (λ x hx, _),
+   (λ (i : ι), basic_open (h' i)) (λ i, is_open_basic_open) (λ x hx, _),
   swap,
   { -- Here, we need to show that our basic opens actually form a cover of `basic_open f`
     rw set.mem_Union,
     exact ⟨⟨x,hx⟩, hxDh' ⟨x, hx⟩⟩ },
+  simp only [← opens.coe_supr, set_like.coe_subset_coe] at ht_cover',
   -- We use the normalization lemma from above to obtain the relation `a i * h j = h i * a j`
   obtain ⟨a, h, iDh, ht_cover, ah_ha, s_eq⟩ := normalize_finite_fraction_representation R
     (basic_open f) s t a' h' iDh' ht_cover' s_eq',
   clear s_eq' iDh' hxDh' ht_cover' a' h',
+  simp only [← set_like.coe_subset_coe, opens.coe_supr] at ht_cover,
   -- Next we show that some power of `f` is a linear combination of the `h i`
   obtain ⟨n, hn⟩ : f ∈ (ideal.span (h '' ↑t)).radical,
   { rw [← vanishing_ideal_zero_locus_eq_radical, zero_locus_span],
-    simp_rw [subtype.val_eq_coe, basic_open_eq_zero_locus_compl] at ht_cover,
+    simp only [basic_open_eq_zero_locus_compl] at ht_cover,
     rw set.compl_subset_comm at ht_cover, -- Why doesn't `simp_rw` do this?
     simp_rw [set.compl_Union, compl_compl, ← zero_locus_Union, ← finset.set_bUnion_coe,
              ← set.image_eq_Union ] at ht_cover,

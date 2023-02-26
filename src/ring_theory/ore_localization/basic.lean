@@ -12,6 +12,9 @@ import tactic.noncomm_ring
 
 # Localization over right Ore sets.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the localization of a monoid over a right Ore set and proves its universal
 mapping property. It then extends the definition and its properties first to semirings and then
 to rings. We show that in the case of a commutative monoid this definition coincides with the
@@ -409,10 +412,15 @@ protected def localization_map : S.localization_map R[S⁻¹] :=
     { intro h,
       rw [numerator_hom_apply, numerator_hom_apply, ore_div_eq_iff] at h,
       rcases h with ⟨u, v, h₁, h₂⟩, dsimp at h₂,
-      rw [one_mul, one_mul] at h₂, subst h₂, use u, exact h₁.symm },
+      rw [one_mul, one_mul] at h₂,
+      subst h₂,
+      use u,
+      simpa only [mul_comm] using h₁.symm },
     { rintro ⟨s, h⟩,
       rw [numerator_hom_apply, numerator_hom_apply, ore_div_eq_iff],
-      use s, use s, simp [h, one_mul] }
+      refine ⟨s, s, _, _⟩,
+      { simpa [mul_comm] using h.symm },
+      { simp [one_mul]} }
   end }
 
 /-- If `R` is commutative, Ore localization and monoid localization are isomorphic. -/

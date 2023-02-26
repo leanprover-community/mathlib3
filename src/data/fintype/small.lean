@@ -9,6 +9,9 @@ import logic.small.basic
 /-!
 # All finite types are small.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 That is, any `α` with `[fintype α]` is equivalent to a type in any universe.
 
 -/

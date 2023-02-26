@@ -76,7 +76,7 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory filter
-open_locale nnreal ennreal big_operators topological_space measure_theory
+open_locale nnreal ennreal big_operators topology measure_theory
 
 variables {α E F G : Type*} {m m0 : measurable_space α} {p : ℝ≥0∞} {q : ℝ} {μ ν : measure α}
   [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]
@@ -1325,6 +1325,16 @@ lemma mem_ℒp.smul {p q r : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
 ⟨hφ.1.smul hf.1, (snorm_smul_le_mul_snorm hf.1 hφ.1 hpqr).trans_lt
   (ennreal.mul_lt_top hφ.snorm_ne_top hf.snorm_ne_top)⟩
 
+lemma mem_ℒp.smul_of_top_right {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f p μ) (hφ : mem_ℒp φ ∞ μ) :
+  mem_ℒp (φ • f) p μ :=
+by { apply hf.smul hφ, simp only [ennreal.div_top, zero_add] }
+
+lemma mem_ℒp.smul_of_top_left {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f ∞ μ) (hφ : mem_ℒp φ p μ) :
+  mem_ℒp (φ • f) p μ :=
+by { apply hf.smul hφ, simp only [ennreal.div_top, add_zero] }
+
 end normed_space
 
 section monotonicity
@@ -1365,11 +1375,8 @@ end
 lemma mem_ℒp.of_le_mul {f : α → E} {g : α → F} {c : ℝ}
   (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) :
   mem_ℒp f p μ :=
-begin
-  simp only [mem_ℒp, hf, true_and],
-  apply lt_of_le_of_lt (snorm_le_mul_snorm_of_ae_le_mul hfg p),
-  simp [lt_top_iff_ne_top, hg.snorm_ne_top],
-end
+⟨hf, lt_of_le_of_lt (snorm_le_mul_snorm_of_ae_le_mul hfg p) $
+  ennreal.mul_lt_top ennreal.of_real_ne_top hg.snorm_ne_top⟩
 
 end monotonicity
 
@@ -1672,17 +1679,13 @@ by rw [norm_def, norm_def, snorm_congr_ae (coe_fn_neg _), snorm_neg]
 lemma norm_le_mul_norm_of_ae_le_mul {c : ℝ} {f : Lp E p μ} {g : Lp F p μ}
   (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) : ‖f‖ ≤ c * ‖g‖ :=
 begin
-  by_cases pzero : p = 0,
-  { simp [pzero, norm_def] },
+  simp only [norm_def],
   cases le_or_lt 0 c with hc hc,
-  { have := snorm_le_mul_snorm_aux_of_nonneg h hc p,
-    rw [← ennreal.to_real_le_to_real, ennreal.to_real_mul, ennreal.to_real_of_real hc] at this,
-    { exact this },
+  { have := snorm_le_mul_snorm_of_ae_le_mul h p,
+    rwa [← ennreal.to_real_le_to_real, ennreal.to_real_mul, ennreal.to_real_of_real hc] at this,
     { exact (Lp.mem_ℒp _).snorm_ne_top },
-    { simp [(Lp.mem_ℒp _).snorm_ne_top] } },
+    { exact ennreal.mul_ne_top ennreal.of_real_ne_top (Lp.mem_ℒp _).snorm_ne_top } },
   { have := snorm_le_mul_snorm_aux_of_neg h hc p,
-    simp only [snorm_eq_zero_iff (Lp.ae_strongly_measurable _) pzero, ← eq_zero_iff_ae_eq_zero]
-      at this,
     simp [this] }
 end
 

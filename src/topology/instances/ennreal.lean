@@ -6,6 +6,8 @@ Authors: Johannes Hölzl
 import topology.instances.nnreal
 import topology.algebra.order.monotone_continuity
 import analysis.normed.group.basic
+import topology.algebra.infinite_sum.real
+
 /-!
 # Extended non-negative reals
 -/
@@ -13,7 +15,7 @@ import analysis.normed.group.basic
 noncomputable theory
 
 open classical set filter metric
-open_locale classical topological_space ennreal nnreal big_operators filter
+open_locale classical topology ennreal nnreal big_operators filter
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -964,6 +966,9 @@ begin
   exact tsum_bUnion_le _ _ _
 end
 
+lemma tsum_eq_add_tsum_ite {f : β → ℝ≥0∞} (b : β) : ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
+tsum_eq_add_tsum_ite' b ennreal.summable
+
 lemma tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
   ∑' n, f (n + 1) = ∞ :=
 begin
@@ -1205,6 +1210,14 @@ lemma tsum_pos {g : α → ℝ≥0} (hg : summable g) (i : α) (hi : 0 < g i) :
   0 < ∑' b, g b :=
 by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 
+lemma tsum_eq_add_tsum_ite {f : α → ℝ≥0} (hf : summable f) (i : α) :
+  ∑' x, f x = f i + ∑' x, ite (x = i) 0 (f x) :=
+begin
+  refine tsum_eq_add_tsum_ite' i (nnreal.summable_of_le (λ i', _) hf),
+  rw [function.update_apply],
+  split_ifs; simp only [zero_le', le_rfl]
+end
+
 end nnreal
 
 namespace ennreal
@@ -1411,7 +1424,7 @@ begin
 end⟩
 
 lemma continuous_of_le_add_edist {f : α → ℝ≥0∞} (C : ℝ≥0∞)
-  (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
+  (hC : C ≠ ⊤) (h : ∀ x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
   rcases eq_or_ne C 0 with (rfl|C0),
   { simp only [zero_mul, add_zero] at h,
@@ -1421,7 +1434,7 @@ begin
     { have : f =ᶠ[𝓝 x] (λ _, ∞),
       { filter_upwards [emetric.ball_mem_nhds x ennreal.coe_lt_top],
         refine λ y (hy : edist y x < ⊤), _, rw edist_comm at hy,
-        simpa [hx, hC, hy.ne] using h x y },
+        simpa [hx, ennreal.mul_ne_top hC hy.ne] using h x y },
       exact this.continuous_at },
     { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
       filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],

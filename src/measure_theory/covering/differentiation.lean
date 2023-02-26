@@ -178,7 +178,7 @@ begin
       rw [ennreal.mul_inv_cancel (ennreal.coe_pos.2 εpos).ne' ennreal.coe_ne_top, one_mul],
     end
     ... ≤ ε⁻¹ * ρ (s ∩ o) : begin
-      apply mul_le_mul_left',
+      refine mul_le_mul_left' _ _,
       refine v.measure_le_of_frequently_le ρ ((measure.absolutely_continuous.refl μ).smul ε) _ _,
       assume x hx,
       rw hs at hx,
@@ -584,7 +584,7 @@ begin
         abel,
       end
     ... ≤ t^2 * ρ (s ∩ f ⁻¹' I) : begin
-        apply mul_le_mul_left',
+        refine mul_le_mul_left' _ _,
         rw ← ennreal.coe_zpow (zero_lt_one.trans ht).ne',
         apply v.mul_measure_le_of_subset_lt_lim_ratio_meas hρ,
         assume x hx,

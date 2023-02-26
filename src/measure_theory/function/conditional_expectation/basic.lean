@@ -1207,8 +1207,7 @@ begin
   { rw Lp_meas_coe,
     exact (Lp.ae_strongly_measurable _).ennnorm },
   refine (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
-  apply mul_le_mul_right',
-  exact measure_mono (set.inter_subset_left _ _),
+  exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _
 end
 
 /-- If the measure `μ.trim hm` is sigma-finite, then the conditional expectation of a measurable set
@@ -1293,8 +1292,7 @@ begin
   refine lintegral_le_of_forall_fin_meas_le' hm (μ s * ‖x‖₊) _ (λ t ht hμt, _),
   { exact (Lp.ae_strongly_measurable _).ennnorm },
   refine (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
-  apply mul_le_mul_right',
-  exact measure_mono (set.inter_subset_left _ _),
+  exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _
 end
 
 /-- If the measure `μ.trim hm` is sigma-finite, then the conditional expectation of a measurable set

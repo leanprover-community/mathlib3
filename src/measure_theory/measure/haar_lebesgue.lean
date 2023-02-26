@@ -836,8 +836,7 @@ begin
   { apply tendsto_add_haar_inter_smul_one_of_density_one_aux μ _
       (measurable_set_to_measurable _ _) _ _ t ht h't h''t,
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' h tendsto_const_nhds,
-    { apply eventually_of_forall (λ r, _),
-      apply mul_le_mul_right',
+    { refine eventually_of_forall (λ r, mul_le_mul_right' _ _),
       exact measure_mono (inter_subset_inter_left _ (subset_to_measurable _ _)) },
     { filter_upwards [self_mem_nhds_within],
       rintros r (rpos : 0 < r),

@@ -90,7 +90,7 @@ local attribute [instance, priority 10] inhabited_of_nonempty'
 private lemma max_var_bound : dist x y ≤ max_var X Y := calc
   dist x y ≤ diam (univ : set (X ⊕ Y)) :
     dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
-  ... = diam (range inl ∪ range inr  : set (X ⊕ Y)) :
+  ... = diam (range inl ∪ range inr : set (X ⊕ Y)) :
     by rw [range_inl_union_range_inr]
   ... ≤ diam (range inl : set (X ⊕ Y)) + dist (inl default) (inr default) +
           diam (range inr : set (X ⊕ Y)) :

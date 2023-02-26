@@ -2962,7 +2962,7 @@ end metric
 
 section eq_rel
 
-instance  {α : Type u} [pseudo_metric_space α] :
+instance {α : Type u} [pseudo_metric_space α] :
   has_dist (uniform_space.separation_quotient α) :=
 { dist := λ p q, quotient.lift_on₂' p q dist $ λ x y x' y' hx hy,
     by rw [dist_edist, dist_edist, ← uniform_space.separation_quotient.edist_mk x,

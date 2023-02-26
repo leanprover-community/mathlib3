@@ -433,7 +433,7 @@ namespace point
 begin
   rcases ⟨P, Q⟩ with ⟨_ | @⟨x₁, y₁, h₁⟩, _ | @⟨x₂, y₂, h₂⟩⟩,
   any_goals { refl },
-  { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
+  { rw [zero_def, zero_add, ← neg_eq_iff_eq_neg, neg_zero, eq_comm], },
   { simp only [neg_some],
     split,
     { intro h,

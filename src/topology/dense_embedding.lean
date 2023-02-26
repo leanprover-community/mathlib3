@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Dense embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines three properties of functions:
 
 * `dense_range f`      means `f` has dense image;
@@ -16,7 +19,7 @@ This file defines three properties of functions:
 * `dense_embedding e`  means `e` is also an `embedding`.
 
 The main theorem `continuous_extend` gives a criterion for a function
-`f : X → Z` to a regular (T₃) space Z to extend along a dense embedding
+`f : X → Z` to a T₃ space Z to extend along a dense embedding
 `i : X → Y` to a continuous function `g : Y → Z`. Actually `i` only
 has to be `dense_inducing` (not necessarily injective).
 
@@ -25,7 +28,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -49,7 +52,8 @@ di.to_inducing.continuous
 lemma closure_range : closure (range i) = univ :=
 di.dense.closure_range
 
-lemma preconnected_space [preconnected_space α] (di : dense_inducing i) : preconnected_space β :=
+protected lemma preconnected_space [preconnected_space α] (di : dense_inducing i) :
+  preconnected_space β :=
 di.dense.preconnected_space di.continuous
 
 lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :
@@ -69,6 +73,19 @@ begin
   trivial
 end
 
+/-- If `i : α → β` is a dense embedding with dense complement of the range, then any compact set in
+`α` has empty interior. -/
+lemma interior_compact_eq_empty [t2_space β] (di : dense_inducing i) (hd : dense (range i)ᶜ)
+  {s : set α} (hs : is_compact s) : interior s = ∅ :=
+begin
+  refine eq_empty_iff_forall_not_mem.2 (λ x hx, _),
+  rw [mem_interior_iff_mem_nhds] at hx,
+  have := di.closure_image_mem_nhds hx,
+  rw (hs.image di.continuous).is_closed.closure_eq at this,
+  rcases hd.inter_nhds_nonempty this with ⟨y, hyi, hys⟩,
+  exact hyi (image_subset_range _ _ hys)
+end
+
 /-- The product of two dense inducings is a dense inducing -/
 protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
@@ -84,9 +101,11 @@ di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
+```
  γ -f→ α
 g↓     ↓e
  δ -h→ β
+```
 -/
 lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
   (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
@@ -163,7 +182,7 @@ lemma extend_unique [t2_space γ] {f : α → γ} {g : β → γ} (di : dense_in
   di.extend f = g :=
 funext $ λ b, extend_unique_at di (eventually_of_forall hf) hg.continuous_at
 
-lemma continuous_at_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
+lemma continuous_at_extend [t3_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
   (hf : ∀ᶠ x in 𝓝 b, ∃c, tendsto f (comap i $ 𝓝 x) (𝓝 c)) :
   continuous_at (di.extend f) b :=
 begin
@@ -182,7 +201,7 @@ begin
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
                             (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in] using this, },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
@@ -190,7 +209,7 @@ begin
   tauto,
 end
 
-lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
+lemma continuous_extend [t3_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
 continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem' hf
 
@@ -266,6 +285,10 @@ de.to_dense_inducing.dense_image
 
 end dense_embedding
 
+lemma dense_embedding_id {α : Type*} [topological_space α] : dense_embedding (id : α → α) :=
+{ dense := dense_range_id,
+  .. embedding_id }
+
 lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
   dense_embedding (coe : s → α) :=
 { dense := hs.dense_range_coe,
@@ -320,4 +343,27 @@ lemma dense_range.equalizer (hfd : dense_range f)
   {g h : β → γ} (hg : continuous g) (hh : continuous h) (H : g ∘ f = h ∘ f) :
   g = h :=
 funext $ λ y, hfd.induction_on y (is_closed_eq hg hh) $ congr_fun H
+end
+
+-- Bourbaki GT III §3 no.4 Proposition 7 (generalised to any dense-inducing map to a T₃ space)
+lemma filter.has_basis.has_basis_of_dense_inducing
+  [topological_space α] [topological_space β] [t3_space β]
+  {ι : Type*} {s : ι → set α} {p : ι → Prop} {x : α} (h : (𝓝 x).has_basis p s)
+  {f : α → β} (hf : dense_inducing f) :
+  (𝓝 (f x)).has_basis p $ λ i, closure $ f '' (s i) :=
+begin
+  rw filter.has_basis_iff at h ⊢,
+  intros T,
+  refine ⟨λ hT, _, λ hT, _⟩,
+  { obtain ⟨T', hT₁, hT₂, hT₃⟩ := exists_mem_nhds_is_closed_subset hT,
+    have hT₄ : f⁻¹' T' ∈ 𝓝 x,
+    { rw hf.to_inducing.nhds_eq_comap x,
+      exact ⟨T', hT₁, subset.rfl⟩, },
+    obtain ⟨i, hi, hi'⟩ := (h _).mp hT₄,
+    exact ⟨i, hi, (closure_mono (image_subset f hi')).trans (subset.trans (closure_minimal
+      (image_subset_iff.mpr subset.rfl) hT₂) hT₃)⟩, },
+  { obtain ⟨i, hi, hi'⟩ := hT,
+    suffices : closure (f '' s i) ∈ 𝓝 (f x), { filter_upwards [this] using hi', },
+    replace h := (h (s i)).mpr ⟨i, hi, subset.rfl⟩,
+    exact hf.closure_image_mem_nhds h, },
 end

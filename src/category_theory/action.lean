@@ -6,7 +6,7 @@ Authors: David Wärn
 import category_theory.elements
 import category_theory.is_connected
 import category_theory.single_obj
-import group_theory.group_action.basic
+import group_theory.group_action.quotient
 import group_theory.semidirect_product
 
 /-!

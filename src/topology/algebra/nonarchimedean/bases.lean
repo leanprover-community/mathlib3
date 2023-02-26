@@ -6,7 +6,7 @@ Authors: Patrick Massot
 
 import topology.algebra.nonarchimedean.basic
 import topology.algebra.filter_basis
-import algebra.module.submodule_pointwise
+import algebra.module.submodule.pointwise
 
 /-!
 # Neighborhood bases for non-archimedean rings and modules
@@ -28,7 +28,7 @@ sub-modules in a commutative algebra. This important example gives rises to the 
 -/
 
 open set filter function lattice add_group_with_zero_nhd
-open_locale topological_space filter pointwise
+open_locale topology filter pointwise
 
 /-- A family of additive subgroups on a ring `A` is a subgroups basis if it satisfies some
 axioms ensuring there is a topology on `A` which is compatible with the ring structure and

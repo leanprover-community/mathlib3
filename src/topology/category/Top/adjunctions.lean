@@ -38,5 +38,6 @@ adjunction.mk_of_unit_counit
   counit := { app := λ X, id } }
 
 instance : is_right_adjoint (forget Top.{u}) := ⟨_, adj₁⟩
+instance : is_left_adjoint (forget Top.{u}) := ⟨_, adj₂⟩
 
 end Top

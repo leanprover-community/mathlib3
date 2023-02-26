@@ -3,10 +3,13 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.adjunction
 import category_theory.whiskering
+import category_theory.adjunction.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 Given categories `C D E`, functors `F : D ⥤ E` and `G : E ⥤ D` with an adjunction
 `F ⊣ G`, we provide the induced adjunction between the functor categories `C ⥤ D` and `C ⥤ E`,
@@ -53,7 +56,7 @@ mk_of_unit_counit
   counit :=
   { app := λ X, (functor.associator _ _ _).inv ≫
       whisker_right adj.counit X ≫ (functor.left_unitor _).hom,
-    naturality' := by by { intros, ext, dsimp, simp } },
+    naturality' := by { intros, ext, dsimp, simp } },
   left_triangle' := by { ext x, dsimp,
     simp only [category.id_comp, category.comp_id, ← x.map_comp], simp },
   right_triangle' :=  by { ext x, dsimp,

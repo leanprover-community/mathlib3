@@ -5,6 +5,8 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.char_p.basic
+import data.polynomial.algebra_map
+import data.mv_polynomial.variables
 import linear_algebra.finsupp_vector_space
 
 /-!
@@ -37,7 +39,7 @@ noncomputable theory
 open_locale classical
 
 open set linear_map submodule
-open_locale big_operators
+open_locale big_operators polynomial
 
 universes u v
 variables (σ : Type u) (R : Type v) [comm_ring R] (p m : ℕ)
@@ -123,12 +125,12 @@ end mv_polynomial
 /- this is here to avoid import cycle issues -/
 namespace polynomial
 
-/-- The monomials form a basis on `polynomial R`. -/
-noncomputable def basis_monomials : basis ℕ R (polynomial R) :=
-finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
+/-- The monomials form a basis on `R[X]`. -/
+noncomputable def basis_monomials : basis ℕ R R[X] :=
+basis.of_repr (to_finsupp_iso_alg R).to_linear_equiv
 
 @[simp] lemma coe_basis_monomials :
-  (basis_monomials R : ℕ → polynomial R) = λ s, monomial s 1 :=
-_root_.funext $ λ n, to_finsupp_iso_symm_single
+  (basis_monomials R : ℕ → R[X]) = λ s, monomial s 1 :=
+_root_.funext $ λ n, of_finsupp_single _ _
 
 end polynomial

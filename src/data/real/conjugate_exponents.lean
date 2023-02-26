@@ -65,7 +65,7 @@ ne_of_gt (h.one_div_pos)
 lemma conj_eq : q = p/(p-1) :=
 begin
   have := h.inv_add_inv_conj,
-  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff] at this,
+  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff_inv_eq] at this,
   field_simp [← this, h.ne_zero]
 end
 
@@ -111,5 +111,9 @@ lemma is_conjugate_exponent_iff {p q : ℝ} (h : 1 < p) :
 lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :
   p.is_conjugate_exponent (conjugate_exponent p) :=
 (is_conjugate_exponent_iff h).2 rfl
+
+lemma is_conjugate_exponent_one_div {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) :
+  (1 / a).is_conjugate_exponent (1 / b) :=
+⟨by { rw [lt_div_iff ha, one_mul], linarith }, by { simp_rw one_div_one_div, exact hab }⟩
 
 end real

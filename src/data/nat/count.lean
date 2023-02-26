@@ -3,12 +3,14 @@ Copyright (c) 2021 Vladimir Goryachev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Rodriguez
 -/
-import data.list.basic
-import data.nat.prime
-import set_theory.fincard
+import set_theory.cardinal.basic
+import tactic.ring
 
 /-!
 # Counting on ℕ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the `count` function, which gives, for any predicate on the natural numbers,
 "how many numbers under `k` satisfy this predicate?".
@@ -58,16 +60,17 @@ monotone_nat_of_le_succ $ λ n, by by_cases h : p n; simp [count_succ, h]
 lemma count_add (a b : ℕ) : count p (a + b) = count p a + count (λ k, p (a + k)) b :=
 begin
   have : disjoint ((range a).filter p) (((range b).map $ add_left_embedding a).filter p),
-  { intros x hx,
-    simp_rw [inf_eq_inter, mem_inter, mem_filter, mem_map, mem_range] at hx,
-    obtain ⟨⟨hx, _⟩, ⟨c, _, rfl⟩, _⟩ := hx,
+  { apply disjoint_filter_filter,
+    rw finset.disjoint_left,
+    simp_rw [mem_map, mem_range, add_left_embedding_apply],
+    rintro x hx ⟨c, _, rfl⟩,
     exact (self_le_add_right _ _).not_lt hx },
   simp_rw [count_eq_card_filter_range, range_add, filter_union, card_disjoint_union this,
-    map_filter, add_left_embedding, card_map, function.embedding.coe_fn_mk]
+    filter_map, add_left_embedding, card_map], refl,
 end
 
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=
-by { rw [add_comm, count_add, add_comm], simp_rw add_comm b, congr, }
+by { rw [add_comm, count_add, add_comm], simp_rw [add_comm b] }
 
 lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp [count_succ]
 
@@ -102,9 +105,9 @@ lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count
 
 lemma count_injective {m n : ℕ} (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
 begin
-  by_contra,
+  by_contra' h : m ≠ n,
   wlog hmn : m < n,
-  { exact ne.lt_or_lt h },
+  { exact this hn hm heq.symm h.symm (h.lt_or_lt.resolve_left hmn) },
   { simpa [heq] using count_strict_mono hm hmn }
 end
 

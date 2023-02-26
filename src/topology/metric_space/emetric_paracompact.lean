@@ -3,9 +3,9 @@ Copyright (c) 202 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import set_theory.ordinal.basic
 import topology.metric_space.emetric_space
 import topology.paracompact
-import set_theory.ordinal
 
 /-!
 # (Extended) metric spaces are paracompact
@@ -23,7 +23,7 @@ metric space, paracompact space, normal space
 
 variable {α : Type*}
 
-open_locale ennreal topological_space
+open_locale ennreal topology
 open set
 
 namespace emetric
@@ -46,8 +46,8 @@ begin
   refine ⟨λ ι s ho hcov, _⟩,
   simp only [Union_eq_univ_iff] at hcov,
   -- choose a well founded order on `S`
-  letI : linear_order ι := linear_order_of_STO' well_ordering_rel,
-  have wf : well_founded ((<) : ι → ι → Prop) := @is_well_order.wf ι well_ordering_rel _,
+  letI : linear_order ι := linear_order_of_STO well_ordering_rel,
+  have wf : well_founded ((<) : ι → ι → Prop) := @is_well_founded.wf ι well_ordering_rel _,
   -- Let `ind x` be the minimal index `s : S` such that `x ∈ s`.
   set ind : α → ι := λ x, wf.min {i : ι | x ∈ s i} (hcov x),
   have mem_ind : ∀ x, x ∈ s (ind x), from λ x, wf.min_mem _ (hcov x),
@@ -83,7 +83,7 @@ begin
       rcases ennreal.exists_inv_two_pow_lt this.ne' with ⟨n, hn⟩,
       refine ⟨n, subset.trans (ball_subset_ball _) hε⟩,
       simpa only [div_eq_mul_inv, mul_comm] using (ennreal.mul_lt_of_lt_div hn).le },
-    by_contra h, push_neg at h,
+    by_contra' h,
     apply h n (ind x),
     exact memD.2 ⟨x, rfl, hn, λ _ _ _, h _ _, mem_ball_self (pow_pos _)⟩ },
   -- Each `D n i` is a union of open balls, hence it is an open set
@@ -122,7 +122,9 @@ begin
     refine ⟨B, ball_mem_nhds _ (pow_pos _), _⟩,
     -- The sets `D m i`, `m > n + k`, are disjoint with `B`
     have Hgt : ∀ (m ≥ n + k + 1) (i : ι), disjoint (D m i) B,
-    { rintros m hm i y ⟨hym, hyx⟩,
+    { rintros m hm i,
+      rw disjoint_iff_inf_le,
+      rintros y ⟨hym, hyx⟩,
       rcases memD.1 hym with ⟨z, rfl, hzi, H, hz⟩,
       have : z ∉ ball x (2⁻¹ ^ k), from λ hz, H n (by linarith) i (hsub hz), apply this,
       calc edist z x ≤ edist y z + edist y x : edist_triangle_left _ _ _
@@ -133,8 +135,9 @@ begin
     -- For each `m ≤ n + k` there is at most one `j` such that `D m j ∩ B` is nonempty.
     have Hle : ∀ m ≤ n + k, set.subsingleton {j | (D m j ∩ B).nonempty},
     { rintros m hm j₁ ⟨y, hyD, hyB⟩ j₂ ⟨z, hzD, hzB⟩,
-      by_contra h,
-      wlog h : j₁ < j₂ := ne.lt_or_lt h using [j₁ j₂ y z, j₂ j₁ z y],
+      by_contra' h' : j₁ ≠ j₂,
+      wlog h : j₁ < j₂ generalizing j₁ j₂ y z,
+      { exact this z hzD hzB y hyD hyB h'.symm (h'.lt_or_lt.resolve_left h), },
       rcases memD.1 hyD with ⟨y', rfl, hsuby, -, hdisty⟩,
       rcases memD.1 hzD with ⟨z', rfl, -, -, hdistz⟩,
       suffices : edist z' y' < 3 * 2⁻¹ ^ m, from nmem_of_lt_ind h (hsuby this),
@@ -148,11 +151,11 @@ begin
         ennreal.mul_le_mul le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
       ... = 3 * 2⁻¹ ^ m : by rw [mul_add, h2pow, bit1, add_mul, one_mul] },
     -- Finally, we glue `Hgt` and `Hle`
-    have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite,
-      from (finite_le_nat _).bUnion (λ i hi, (Hle i hi).finite.bUnion (λ _ _, finite_singleton _)),
+    have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite :=
+      (finite_le_nat _).bUnion' (λ i hi, (Hle i hi).finite.bUnion' (λ _ _, finite_singleton _)),
     refine this.subset (λ I hI, _), simp only [mem_Union],
     refine ⟨I.1, _, I.2, hI, prod.mk.eta.symm⟩,
-    exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }
+    exact not_lt.1 (λ hlt, (Hgt I.1 hlt I.2).le_bot hI.some_spec) }
 end
 
 @[priority 100] -- see Note [lower instance priority]

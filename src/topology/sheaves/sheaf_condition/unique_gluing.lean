@@ -97,7 +97,7 @@ For presheaves of types, terms of `pi_opens F U` are just families of sections.
 def pi_opens_iso_sections_family : pi_opens F U ≅ Π i : ι, F.obj (op (U i)) :=
 limits.is_limit.cone_point_unique_up_to_iso
   (limit.is_limit (discrete.functor (λ i : ι, F.obj (op (U i)))))
-  ((types.product_limit_cone (λ i : ι, F.obj (op (U i)))).is_limit)
+  ((types.product_limit_cone.{v v} (λ i : ι, F.obj (op (U i)))).is_limit)
 
 /--
 Under the isomorphism `pi_opens_iso_sections_family`, compatibility of sections is the same
@@ -109,8 +109,8 @@ lemma compatible_iff_left_res_eq_right_res (sf : pi_opens F U) :
 begin
   split ; intros h,
   { ext ⟨i, j⟩,
-    rw [left_res, types.limit.lift_π_apply, fan.mk_π_app,
-        right_res, types.limit.lift_π_apply, fan.mk_π_app],
+    rw [left_res, types.limit.lift_π_apply', fan.mk_π_app,
+        right_res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i j, },
   { intros i j,
     convert congr_arg (limits.pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (i,j)) h,
@@ -128,8 +128,8 @@ lemma is_gluing_iff_eq_res (sf : pi_opens F U) (s : F.obj (op (supr U))):
   is_gluing F U ((pi_opens_iso_sections_family F U).hom sf) s ↔ res F U s = sf :=
 begin
   split ; intros h,
-  { ext i,
-    rw [res, types.limit.lift_π_apply, fan.mk_π_app],
+  { ext ⟨i⟩,
+    rw [res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i, },
   { intro i,
     convert congr_arg (limits.pi.π (λ i : ι, F.obj (op (U i))) i) h,
@@ -144,6 +144,7 @@ in terms of unique gluings.
 lemma is_sheaf_of_is_sheaf_unique_gluing_types (Fsh : F.is_sheaf_unique_gluing) :
   F.is_sheaf :=
 begin
+  rw is_sheaf_iff_is_sheaf_equalizer_products,
   intros ι U,
   refine ⟨fork.is_limit.mk' _ _⟩,
   intro s,
@@ -155,7 +156,7 @@ begin
   choose m m_spec m_uniq using
     λ x : s.X, Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) (h_compatible x),
   refine ⟨m, _, _⟩,
-  { ext i x,
+  { ext ⟨i⟩ x,
     simp [res],
     exact m_spec x i, },
   { intros l hl,
@@ -172,6 +173,7 @@ The sheaf condition in terms of unique gluings can be obtained from the usual
 lemma is_sheaf_unique_gluing_of_is_sheaf_types (Fsh : F.is_sheaf) :
   F.is_sheaf_unique_gluing :=
 begin
+  rw is_sheaf_iff_is_sheaf_equalizer_products at Fsh,
   intros ι U sf hsf,
   let sf' := (pi_opens_iso_sections_family F U).inv sf,
   have hsf' : left_res F U sf' = right_res F U sf',
@@ -241,7 +243,7 @@ A more convenient way of obtaining a unique gluing of sections for a sheaf.
 lemma exists_unique_gluing (sf : Π i : ι, F.1.obj (op (U i)))
   (h : is_compatible F.1 U sf ) :
   ∃! s : F.1.obj (op (supr U)), is_gluing F.1 U sf s :=
-(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.property U sf h
+(is_sheaf_iff_is_sheaf_unique_gluing F.1).mp F.cond U sf h
 
 /--
 In this version of the lemma, the inclusion homs `iUV` can be specified directly by the user,
@@ -297,6 +299,21 @@ begin
   intro i,
   rw [← comp_apply, ← comp_apply, ← F.1.map_comp],
   convert h i,
+end
+
+lemma eq_of_locally_eq₂ {U₁ U₂ V : opens X}
+  (i₁ : U₁ ⟶ V) (i₂ : U₂ ⟶ V) (hcover : V ≤ U₁ ⊔ U₂)
+  (s t : F.1.obj (op V))
+  (h₁ : F.1.map i₁.op s = F.1.map i₁.op t)
+  (h₂ : F.1.map i₂.op s = F.1.map i₂.op t) : s = t :=
+begin
+  classical,
+  fapply F.eq_of_locally_eq' (λ t : ulift bool, if t.1 then U₁ else U₂),
+  { exact λ i, if h : i.1 then (eq_to_hom (if_pos h)) ≫ i₁ else (eq_to_hom (if_neg h)) ≫ i₂ },
+  { refine le_trans hcover _, rw sup_le_iff, split,
+    { convert le_supr (λ t : ulift bool, if t.1 then U₁ else U₂) (ulift.up true) },
+    { convert le_supr (λ t : ulift bool, if t.1 then U₁ else U₂) (ulift.up false) } },
+  { rintro ⟨_|_⟩; simp [h₁, h₂] }
 end
 
 end

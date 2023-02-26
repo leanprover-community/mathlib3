@@ -7,6 +7,9 @@ import data.set.lattice
 
 /-! # Semiquotients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A data type for semiquotients, which are classically equivalent to
 nonempty sets, but are useful for programming; the idea is that
 a semiquotient set `S` represents some (particular but unknown)
@@ -35,8 +38,12 @@ def mk {a : α} {s : set α} (h : a ∈ s) : semiquot α :=
 ⟨s, trunc.mk ⟨a, h⟩⟩
 
 theorem ext_s {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ q₁.s = q₂.s :=
-⟨congr_arg _,
- λ h, by cases q₁; cases q₂; congr; exact h⟩
+begin
+  refine ⟨congr_arg _, λ h, _⟩,
+  cases q₁,
+  cases q₂,
+  cc,
+end
 
 theorem ext {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ ∀ a, a ∈ q₁ ↔ a ∈ q₂ :=
 ext_s.trans set.ext_iff
@@ -102,7 +109,7 @@ def bind (q : semiquot α) (f : α → semiquot β) : semiquot β :=
  q.2.bind (λ a, (f a.1).2.map (λ b, ⟨b.1, set.mem_bUnion a.2 b.2⟩))⟩
 
 @[simp] theorem mem_bind (q : semiquot α) (f : α → semiquot β) (b : β) :
-  b ∈ bind q f ↔ ∃ a ∈ q, b ∈ f a := set.mem_bUnion_iff
+  b ∈ bind q f ↔ ∃ a ∈ q, b ∈ f a := set.mem_Union₂
 
 instance : monad semiquot :=
 { pure := @semiquot.pure,

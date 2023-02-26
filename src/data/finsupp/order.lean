@@ -3,10 +3,13 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Aaron Anderson
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 
 /-!
 # Pointwise order on finitely supported functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file lifts order structures on `α` to `ι →₀ α`.
 
@@ -19,7 +22,7 @@ This file lifts order structures on `α` to `ι →₀ α`.
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale big_operators
 
 open finset
 
@@ -96,7 +99,6 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (ι →₀ α) :
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (ι →₀ α) :=
 { le_of_add_le_add_left := λ f g i h s, le_of_add_le_add_left (h s),
-  add_left_cancel := λ f g i h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
   .. finsupp.ordered_add_comm_monoid }
 
 instance [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :
@@ -117,7 +119,8 @@ by simp [ext_iff, forall_and_distrib]
 
 lemma le_iff' (f g : ι →₀ α) {s : finset ι} (hf : f.support ⊆ s) : f ≤ g ↔ ∀ i ∈ s, f i ≤ g i :=
 ⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+λ h s, by classical; exact
+  if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
 lemma le_iff (f g : ι →₀ α) : f ≤ g ↔ ∀ i ∈ f.support, f i ≤ g i := le_iff' f g $ subset.refl _
 
@@ -136,13 +139,8 @@ instance tsub : has_sub (ι →₀ α) := ⟨zip_with (λ m n, m - n) (tsub_self
 instance : has_ordered_sub (ι →₀ α) := ⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
 instance : canonically_ordered_add_monoid (ι →₀ α) :=
-{ le_iff_exists_add := λ f g, begin
-      refine ⟨λ h, ⟨g - f, _⟩, _⟩,
-      { ext x,
-        exact (add_tsub_cancel_of_le $ h x).symm },
-      { rintro ⟨g, rfl⟩ x,
-        exact self_le_add_right (f x) (g x) }
-    end,
+{ exists_add_of_le := λ f g h, ⟨g - f, ext $ λ x, (add_tsub_cancel_of_le $ h x).symm⟩,
+  le_self_add := λ f g x, le_self_add,
  .. finsupp.order_bot,
  .. finsupp.ordered_add_comm_monoid }
 
@@ -162,15 +160,17 @@ lemma support_tsub {f1 f2 : ι →₀ α} : (f1 - f2).support ⊆ f1.support :=
 by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
     not_imp_not, zero_le, implies_true_iff] {contextual := tt}
 
-lemma subset_support_tsub {f1 f2 : ι →₀ α} : f1.support \ f2.support ⊆ (f1 - f2).support :=
+lemma subset_support_tsub [decidable_eq ι] {f1 f2 : ι →₀ α} :
+  f1.support \ f2.support ⊆ (f1 - f2).support :=
 by simp [subset_iff] {contextual := tt}
 
 end canonically_ordered_add_monoid
 
 section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α] [decidable_eq ι] {f g : ι →₀ α}
+variables [canonically_linear_ordered_add_monoid α]
 
-@[simp] lemma support_inf : (f ⊓ g).support = f.support ∩ g.support :=
+@[simp] lemma support_inf [decidable_eq ι] (f g : ι →₀ α) :
+  (f ⊓ g).support = f.support ∩ g.support :=
 begin
   ext,
   simp only [inf_apply, mem_support_iff,  ne.def,
@@ -178,15 +178,17 @@ begin
   simp only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
 end
 
-@[simp] lemma support_sup : (f ⊔ g).support = f.support ∪ g.support :=
+@[simp] lemma support_sup [decidable_eq ι] (f g : ι →₀ α) :
+  (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext,
   simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
   rw [_root_.sup_eq_bot_iff, not_and_distrib],
 end
 
-lemma disjoint_iff : disjoint f g ↔ disjoint f.support g.support :=
+lemma disjoint_iff {f g : ι →₀ α} : disjoint f g ↔ disjoint f.support g.support :=
 begin
+  classical,
   rw [disjoint_iff, disjoint_iff, finsupp.bot_eq_zero, ← finsupp.support_eq_empty,
     finsupp.support_inf],
   refl,

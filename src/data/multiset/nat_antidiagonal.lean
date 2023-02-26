@@ -9,6 +9,9 @@ import data.list.nat_antidiagonal
 /-!
 # Antidiagonals in ℕ × ℕ as multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the antidiagonals of ℕ × ℕ as multisets: the `n`-th antidiagonal is the multiset
 of pairs `(i, j)` such that `i + j = n`. This is useful for polynomial multiplication and more
 generally for sums going from `0` to `n`.
@@ -47,6 +50,20 @@ coe_nodup.2 $ list.nat.nodup_antidiagonal n
 @[simp] lemma antidiagonal_succ {n : ℕ} :
   antidiagonal (n + 1) = (0, n + 1) ::ₘ ((antidiagonal n).map (prod.map nat.succ id)) :=
 by simp only [antidiagonal, list.nat.antidiagonal_succ, coe_map, cons_coe]
+
+lemma antidiagonal_succ' {n : ℕ} :
+  antidiagonal (n + 1) = (n + 1, 0) ::ₘ ((antidiagonal n).map (prod.map id nat.succ)) :=
+by rw [antidiagonal, list.nat.antidiagonal_succ', ← coe_add, add_comm, antidiagonal, coe_map,
+  coe_add, list.singleton_append, cons_coe]
+
+lemma antidiagonal_succ_succ' {n : ℕ} :
+  antidiagonal (n + 2) =
+  (0, n + 2) ::ₘ (n + 2, 0) ::ₘ ((antidiagonal n).map (prod.map nat.succ nat.succ)) :=
+by { rw [antidiagonal_succ, antidiagonal_succ', map_cons, map_map, prod_map], refl }
+
+lemma map_swap_antidiagonal {n : ℕ} :
+  (antidiagonal n).map prod.swap = antidiagonal n :=
+by rw [antidiagonal, coe_map, list.nat.map_swap_antidiagonal, coe_reverse]
 
 end nat
 end multiset

@@ -3,11 +3,17 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
+
+import algebra.big_operators.multiset.basic
 import data.pnat.prime
+import data.nat.factors
 import data.multiset.sort
 
 /-!
 # Prime factors of nonzero naturals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the factorization of a nonzero natural number `n` as a multiset of primes,
 the multiplicity of `p` in this factors multiset being the p-adic valuation of `n`.
@@ -21,11 +27,14 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
- @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
+@[derive [inhabited, canonically_ordered_add_monoid, distrib_lattice,
   semilattice_sup, order_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
+
+-- `@[derive]` doesn't work for `meta` instances
+meta instance : has_repr prime_multiset := by delta prime_multiset; apply_instance
 
 /-- The multiset consisting of a single prime -/
 def of_prime (p : nat.primes) : prime_multiset := ({p} : multiset nat.primes)
@@ -55,7 +64,7 @@ def coe_nat_monoid_hom : prime_multiset →+ multiset ℕ :=
   (coe_nat_monoid_hom : prime_multiset → multiset ℕ) = coe := rfl
 
 theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
-multiset.map_injective nat.primes.coe_nat_inj
+multiset.map_injective nat.primes.coe_nat_injective
 
 theorem coe_nat_of_prime (p : nat.primes) :
 ((of_prime p) : multiset ℕ) = {p} := rfl
@@ -81,10 +90,10 @@ def coe_pnat_monoid_hom : prime_multiset →+ multiset ℕ+ :=
   (coe_pnat_monoid_hom : prime_multiset → multiset ℕ+) = coe := rfl
 
 theorem coe_pnat_injective : function.injective (coe : prime_multiset → multiset ℕ+) :=
-multiset.map_injective nat.primes.coe_pnat_inj
+multiset.map_injective nat.primes.coe_pnat_injective
 
 theorem coe_pnat_of_prime (p : nat.primes) :
-((of_prime p) : multiset ℕ+) = {(p : ℕ+)} := rfl
+  ((of_prime p) : multiset ℕ+) = {(p : ℕ+)} := rfl
 
 theorem coe_pnat_prime (v : prime_multiset)
   (p : ℕ+) (h : p ∈ (v : multiset ℕ+)) : p.prime :=
@@ -198,7 +207,7 @@ prime_multiset.of_nat_list (nat.factors n) (@nat.prime_of_mem_factors n)
 theorem prod_factor_multiset (n : ℕ+) : (factor_multiset n).prod = n :=
 eq $ by { dsimp [factor_multiset],
           rw [prime_multiset.prod_of_nat_list],
-          exact nat.prod_factors n.pos }
+          exact nat.prod_factors n.ne_zero }
 
 theorem coe_nat_factor_multiset (n : ℕ+) :
   ((factor_multiset n) : (multiset ℕ)) = ((nat.factors n) : multiset ℕ) :=
@@ -339,14 +348,14 @@ theorem count_factor_multiset (m : ℕ+) (p : nat.primes) (k : ℕ) :
  (p : ℕ+) ^ k ∣ m ↔ k ≤ m.factor_multiset.count p :=
 begin
   intros,
-  rw [multiset.le_count_iff_repeat_le],
+  rw [multiset.le_count_iff_replicate_le],
   rw [← factor_multiset_le_iff, factor_multiset_pow, factor_multiset_of_prime],
   congr' 2,
-  apply multiset.eq_repeat.mpr,
+  apply multiset.eq_replicate.mpr,
   split,
   { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
   { intros q h, rw [prime_multiset.of_prime, multiset.nsmul_singleton _ k] at h,
-    exact multiset.eq_of_mem_repeat h }
+    exact multiset.eq_of_mem_replicate h }
 end
 
 end pnat

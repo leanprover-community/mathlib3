@@ -6,6 +6,8 @@ Authors: Zhouhang Zhou
 import algebra.char_p.invertible
 import order.filter.at_top_bot
 import tactic.linarith
+import tactic.field_simp
+import tactic.linear_combination
 
 /-!
 # Quadratic discriminants and roots of a quadratic
@@ -45,18 +47,14 @@ A quadratic has roots if and only if its discriminant equals some square.
 lemma quadratic_eq_zero_iff_discrim_eq_sq (h2 : (2 : R) ≠ 0) (ha : a ≠ 0) (x : R) :
   a * x * x + b * x + c = 0 ↔ discrim a b c = (2 * a * x + b) ^ 2 :=
 begin
+  dsimp [discrim] at *,
   split,
   { assume h,
-    calc discrim a b c
-        = 4 * a * (a * x * x + b * x + c) + b * b - 4 * a * c : by { rw [h, discrim], ring }
-    ... = (2*a*x + b)^2 : by ring },
+    linear_combination -4 * a * h },
   { assume h,
     have ha : 2 * 2 * a ≠ 0 := mul_ne_zero (mul_ne_zero h2 h2) ha,
     apply mul_left_cancel₀ ha,
-    calc
-      2 * 2 * a * (a * x * x + b * x + c) = (2 * a * x + b) ^ 2 - (b ^ 2 - 4 * a * c) : by ring
-      ... = 0 : by { rw [← h, discrim], ring }
-      ... = 2*2*a*0 : by ring }
+    linear_combination -h }
 end
 
 /-- A quadratic has no root if its discriminant has no square root. -/
@@ -81,14 +79,10 @@ begin
   have h2 : (2 : K) ≠ 0 := nonzero_of_invertible 2,
   rw [quadratic_eq_zero_iff_discrim_eq_sq h2 ha, h, sq, mul_self_eq_mul_self_iff],
   have ne : 2 * a ≠ 0 := mul_ne_zero h2 ha,
-  have : x = 2 * a * x / (2 * a) := (mul_div_cancel_left x ne).symm,
-  have h₁ : 2 * a * ((-b + s) / (2 * a)) = -b + s := mul_div_cancel' _ ne,
-  have h₂ : 2 * a * ((-b - s) / (2 * a)) = -b - s := mul_div_cancel' _ ne,
-  split,
-  { intro h', rcases h',
-    { left, rw h', simpa [add_comm] },
-    { right, rw h', simpa [add_comm, sub_eq_add_neg] } },
-  { intro h', rcases h', { left, rw [h', h₁], ring }, { right, rw [h', h₂], ring } }
+  field_simp,
+  apply or_congr,
+  { split; intro h'; linear_combination -h' },
+  { split; intro h'; linear_combination h' },
 end
 
 /-- A quadratic has roots if its discriminant has square roots -/

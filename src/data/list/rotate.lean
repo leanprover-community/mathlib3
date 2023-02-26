@@ -9,6 +9,9 @@ import data.list.range
 /-!
 # List rotation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about `list.rotate`, the list rotation.
 
 ## Main declarations
@@ -24,14 +27,14 @@ rotated, rotation, permutation, cycle
 universe u
 variables {α : Type u}
 
-open nat
+open nat function
 
 namespace list
 
 lemma rotate_mod (l : list α) (n : ℕ) : l.rotate (n % l.length) = l.rotate n :=
 by simp [rotate]
 
-@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by cases n; simp [rotate]
+@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by simp [rotate]
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by simp [rotate]
 
@@ -66,7 +69,7 @@ lemma rotate'_rotate' : ∀ (l : list α) (n m : ℕ), (l.rotate' n).rotate' m =
 | (a::l) (n+1) m := by rw [rotate'_cons_succ, rotate'_rotate', add_right_comm, rotate'_cons_succ]
 
 @[simp] lemma rotate'_length (l : list α) : rotate' l l.length = l :=
-by rw rotate'_eq_drop_append_take (le_refl _); simp
+by rw rotate'_eq_drop_append_take le_rfl; simp
 
 @[simp] lemma rotate'_length_mul (l : list α) : ∀ n : ℕ, l.rotate' (l.length * n) = l
 | 0     := by simp
@@ -98,6 +101,10 @@ by rw [rotate_eq_rotate', rotate_eq_rotate', rotate'_cons_succ]
 
 @[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
 by rw [rotate_eq_rotate', length_rotate']
+
+lemma rotate_replicate (a : α) (n : ℕ) (k : ℕ) : (replicate n a).rotate k = replicate n a :=
+eq_replicate.2 ⟨by rw [length_rotate, length_replicate],
+  λ b hb, eq_of_mem_replicate $ mem_rotate.1 hb⟩
 
 lemma rotate_eq_drop_append_take {l : list α} {n : ℕ} : n ≤ l.length →
   l.rotate n = l.drop n ++ l.take n :=
@@ -165,23 +172,7 @@ by rw [eq_comm, rotate_eq_nil_iff, eq_comm]
 
 @[simp] lemma rotate_singleton (x : α) (n : ℕ) :
   [x].rotate n = [x] :=
-begin
-  induction n with n hn,
-  { simp },
-  { rwa [rotate_cons_succ] }
-end
-
-@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
-begin
-  induction n with n hn generalizing l,
-  { simp },
-  { cases l with hd tl,
-    { simp },
-    { simp [rotate_cons_succ, hn, append_eq_cons_iff, and_comm] } }
-end
-
-@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
-by rw [eq_comm, rotate_eq_singleton_iff, eq_comm]
+rotate_replicate x 1 n
 
 lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
   (h : l.length = l'.length) :
@@ -210,7 +201,7 @@ begin
     { refine nat.le_of_lt_succ _,
       simpa using hk },
     rcases this.eq_or_lt with rfl|hk',
-    { simp [nth_le_append_right (le_refl _)] },
+    { simp [nth_le_append_right le_rfl] },
     { simpa [nth_le_append _ hk', length_cons, nat.mod_eq_of_lt (nat.succ_lt_succ hk')] } }
 end
 
@@ -241,18 +232,42 @@ begin
     simpa [mod_eq_of_lt hm, tsub_add_cancel_of_le hn'.le] using nat.mod_eq_of_lt hk }
 end
 
-lemma rotate_injective (n : ℕ) : function.injective (λ l : list α, l.rotate n) :=
+lemma nth_rotate {l : list α} {n m : ℕ} (hml : m < l.length) :
+  (l.rotate n).nth m = l.nth ((m + n) % l.length) :=
 begin
-  rintros l l' (h : l.rotate n = l'.rotate n),
-  have hle : l.length = l'.length := (l.length_rotate n).symm.trans (h.symm ▸ l'.length_rotate n),
-  rw [rotate_eq_drop_append_take_mod, rotate_eq_drop_append_take_mod] at h,
-  obtain ⟨hd, ht⟩ := append_inj h _,
-  { rw [←take_append_drop _ l, ht, hd, take_append_drop] },
-  { rw [length_drop, length_drop, hle] }
+  rw [nth_le_nth, nth_le_nth (nat.mod_lt _ _), nth_le_rotate],
+  rwa [length_rotate]
 end
 
--- possibly easier to find in doc-gen, otherwise not that useful.
-lemma rotate_eq_rotate {l l' : list α} {n : ℕ} :
+lemma head'_rotate {l : list α} {n : ℕ} (h : n < l.length) :
+  head' (l.rotate n) = l.nth n :=
+by rw [← nth_zero, nth_rotate (n.zero_le.trans_lt h), zero_add, nat.mod_eq_of_lt h]
+
+lemma rotate_eq_self_iff_eq_replicate [hα : nonempty α] :
+  ∀ {l : list α}, (∀ n, l.rotate n = l) ↔ ∃ a, l = replicate l.length a
+| [] := by simp
+| (a :: l) := ⟨λ h, ⟨a, ext_le (length_replicate _ _).symm $ λ n h₁ h₂,
+  begin
+    inhabit α,
+    rw [nth_le_replicate, ← option.some_inj, ← nth_le_nth, ← head'_rotate h₁, h, head']
+  end⟩, λ ⟨b, hb⟩ n, by rw [hb, rotate_replicate]⟩
+
+lemma rotate_one_eq_self_iff_eq_replicate [nonempty α] {l : list α} :
+  l.rotate 1 = l ↔ ∃ a : α, l = list.replicate l.length a :=
+⟨λ h, rotate_eq_self_iff_eq_replicate.mp (λ n, nat.rec l.rotate_zero
+  (λ n hn, by rwa [nat.succ_eq_add_one, ←l.rotate_rotate, hn]) n),
+    λ h, rotate_eq_self_iff_eq_replicate.mpr h 1⟩
+
+lemma rotate_injective (n : ℕ) : function.injective (λ l : list α, l.rotate n) :=
+begin
+  rintro l₁ l₂ (h : l₁.rotate n = l₂.rotate n),
+  have : length l₁ = length l₂, by simpa only [length_rotate] using congr_arg length h,
+  refine ext_le this (λ k h₁ h₂, _),
+  rw [← nth_le_rotate' l₁ n, ← nth_le_rotate' l₂ n],
+  congr' 1; simp only [h, this]
+end
+
+@[simp] lemma rotate_eq_rotate {l l' : list α} {n : ℕ} :
   l.rotate n = l'.rotate n ↔ l = l' :=
 (rotate_injective n).eq_iff
 
@@ -267,6 +282,12 @@ begin
     { rw [mod_eq_of_lt (tsub_lt_self hl hn), tsub_add_cancel_of_le, mod_self, rotate_zero],
       exact (nat.mod_lt _ hl).le } }
 end
+
+@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
+by rw [rotate_eq_iff, rotate_singleton]
+
+@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
+by rw [eq_comm, rotate_eq_singleton_iff, eq_comm]
 
 lemma reverse_rotate (l : list α) (n : ℕ) :
   (l.rotate n).reverse = l.reverse.rotate (l.length - (n % l.length)) :=
@@ -368,14 +389,8 @@ lemma is_rotated_comm : l ~r l' ↔ l' ~r l :=
 @[simp] protected lemma is_rotated.forall (l : list α) (n : ℕ) : l.rotate n ~r l :=
 is_rotated.symm ⟨n, rfl⟩
 
-@[trans] lemma is_rotated.trans {l'' : list α} (h : l ~r l') (h' : l' ~r l'') :
-  l ~r l'' :=
-begin
-  obtain ⟨n, rfl⟩ := h,
-  obtain ⟨m, rfl⟩ := h',
-  rw rotate_rotate,
-  use (n + m)
-end
+@[trans] lemma is_rotated.trans : ∀ {l l' l'' : list α}, l ~r l' → l' ~r l'' → l ~r l''
+| _ _ _ ⟨n, rfl⟩ ⟨m, rfl⟩ := ⟨n + m, by rw [rotate_rotate]⟩
 
 lemma is_rotated.eqv : equivalence (@is_rotated α) :=
 mk_equivalence _ is_rotated.refl (λ _ _, is_rotated.symm) (λ _ _ _, is_rotated.trans)

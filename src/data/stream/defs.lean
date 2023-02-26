@@ -7,6 +7,9 @@ Authors: Leonardo de Moura
 /-!
 # Definition of `stream` and functions on streams
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A stream `stream α` is an infinite sequence of elements of `α`. One can also think about it as an
 infinite list. In this file we define `stream` and some functions that take and/or return streams.
 -/
@@ -22,14 +25,11 @@ namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
 /-- Prepend an element to a stream. -/
-def cons (a : α) (s : stream α) : stream α :=
-λ i,
-  match i with
-  | 0      := a
-  | succ n := s n
-  end
+def cons (a : α) (s : stream α) : stream α
+| 0       := a
+| (n + 1) := s n
 
-notation h :: t := cons h t
+notation (name := stream.cons) h :: t := cons h t
 
 /-- Head of a stream: `stream.head s = stream.nth 0 s`. -/
 def head (s : stream α) : α :=
@@ -66,6 +66,9 @@ def map (f : α → β) (s : stream α) : stream β :=
 def zip (f : α → β → δ) (s₁ : stream α) (s₂ : stream β) : stream δ :=
 λ n, f (nth s₁ n) (nth s₂ n)
 
+/-- Enumerate a stream by tagging each element with its index. -/
+def enum (s : stream α) : stream (ℕ × α) := λ n, (n, s.nth n)
+
 /-- The constant stream: `stream.nth n (stream.const a) = a`. -/
 def const (a : α) : stream α :=
 λ n, a
@@ -96,7 +99,7 @@ corec_on (s₁, s₂)
   (λ ⟨s₁, s₂⟩, head s₁)
   (λ ⟨s₁, s₂⟩, (s₂, tail s₁))
 
-infix `⋈`:65 := interleave
+infix ` ⋈ `:65 := interleave
 
 /-- Elements of a stream with even indices. -/
 def even (s : stream α) : stream α :=
@@ -114,7 +117,7 @@ def append_stream : list α → stream α → stream α
 | []              s := s
 | (list.cons a l) s := a :: append_stream l s
 
-infix `++ₛ`:65 := append_stream
+infix ` ++ₛ `:65 := append_stream
 
 /-- `take n s` returns a list of the `n` first elements of stream `s` -/
 def take : ℕ → stream α → list α
@@ -157,7 +160,7 @@ const a
 def apply (f : stream (α → β)) (s : stream α) : stream β :=
 λ n, (nth f n) (nth s n)
 
-infix `⊛`:75 := apply  -- input as \o*
+infix ` ⊛ `:75 := apply  -- input as \o*
 
 /-- The stream of natural numbers: `stream.nth n stream.nats = n`. -/
 def nats : stream nat :=

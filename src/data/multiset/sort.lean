@@ -5,10 +5,12 @@ Authors: Mario Carneiro
 -/
 import data.list.sort
 import data.multiset.basic
-import data.string.basic
 
 /-!
 # Construct a sorted list from a multiset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -42,9 +44,16 @@ by rw [← mem_coe, sort_eq]
 @[simp] theorem length_sort {s : multiset α} : (sort r s).length = s.card :=
 quot.induction_on s $ length_merge_sort _
 
+@[simp] theorem sort_zero : sort r 0 = [] :=
+list.merge_sort_nil r
+
+@[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
+list.merge_sort_singleton r a
+
 end sort
 
-instance [has_repr α] : has_repr (multiset α) :=
-⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).sort (≤)) ++ "}"⟩
+-- TODO: use a sort order if available, gh-18166
+meta instance [has_repr α] : has_repr (multiset α) :=
+⟨λ s, "{" ++ string.intercalate ", " (s.unquot.map repr) ++ "}"⟩
 
 end multiset

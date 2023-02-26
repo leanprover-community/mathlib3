@@ -3,13 +3,10 @@ Copyright (c) 2019 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.associated
 import algebra.regular.basic
 import linear_algebra.matrix.mv_polynomial
 import linear_algebra.matrix.polynomial
 import ring_theory.polynomial.basic
-import tactic.linarith
-import tactic.ring_exp
 
 /-!
 # Cramer's rule and adjugate matrices
@@ -21,10 +18,10 @@ which sends a matrix `A` and vector `b` to the vector consisting of the
 determinant of replacing the `i`th column of `A` with `b` at index `i`
 (written as `(A.update_column i b).det`).
 Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
-The entries of the adjugate are the determinants of each minor of `A`.
-Instead of defining a minor to be `A` with row `i` and column `j` deleted, we
-replace the `i`th row of `A` with the `j`th basis vector; this has the same
-determinant as the minor but more importantly equals Cramer's rule applied
+The entries of the adjugate are the minors of `A`.
+Instead of defining a minor by deleting row `i` and column `j` of `A`, we
+replace the `i`th row of `A` with the `j`th basis vector; the resulting matrix
+has the same determinant but more importantly equals Cramer's rule applied
 to `A` and the `j`th basis vector, simplifying the subsequent proofs.
 We prove the adjugate behaves like `det A • A⁻¹`.
 
@@ -45,7 +42,7 @@ cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
-open_locale matrix big_operators
+open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
 section cramer
@@ -166,10 +163,10 @@ These will hold for any matrix over a commutative ring.
 
 /-- The adjugate matrix is the transpose of the cofactor matrix.
 
-  Typically, the cofactor matrix is defined by taking the determinant of minors,
-  i.e. the matrix with a row and column removed.
-  However, the proof of `mul_adjugate` becomes a lot easier if we define the
-  minor as replacing a column with a basis vector, since it allows us to use
+  Typically, the cofactor matrix is defined by taking minors,
+  i.e. the determinant of the matrix with a row and column removed.
+  However, the proof of `mul_adjugate` becomes a lot easier if we use the
+  matrix replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
 def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (pi.single i 1)
@@ -220,7 +217,7 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end
@@ -281,6 +278,20 @@ end
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
 by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
+@[simp] lemma adjugate_diagonal (v : n → α) :
+  adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
+begin
+  ext,
+  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  obtain rfl | hij := eq_or_ne i j,
+  { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
+      prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
+  { rw diagonal_apply_ne _ hij,
+    refine det_eq_zero_of_row_eq_zero j (λ k, _),
+    obtain rfl | hjk := eq_or_ne k j,
+    { rw [update_column_self, pi.single_eq_of_ne' hij] },
+    { rw [update_column_ne hjk, diagonal_apply_ne' _ hjk]} },
+end
 
 lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
@@ -322,31 +333,33 @@ begin
 end
 
 @[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
-@subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
+subsingleton.elim _ _
 
 @[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
 adjugate_subsingleton A
 
 lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
-  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+  adjugate A = !![A 1 1, -A 0 1; -A 1 0, A 0 0] :=
 begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
-  fin_cases i with [0, 1]; fin_cases j with [0, 1];
-  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
-    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+  fin_cases i; fin_cases j;
+  simp only [one_mul, fin.one_eq_zero_iff, pi.single_eq_same, mul_zero, sub_zero,
+    pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self, update_row_ne, cons_val_zero,
+    of_apply, nat.succ_succ_ne_one, pi.single_eq_of_ne, update_row_self, pi.single_eq_of_ne, ne.def,
+    fin.zero_eq_one_iff, nat.succ_succ_ne_one, not_false_iff, update_row_ne, fin.one_eq_zero_iff,
+    zero_mul, pi.single_eq_same, one_mul, zero_sub, of_apply, cons_val', cons_val_fin_one,
+    cons_val_one, head_fin_const, neg_inj, eq_self_iff_true, cons_val_zero, head_cons, mul_one]
 end
 
-@[simp] lemma adjugate_fin_two' (a b c d : α) :
-  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+@[simp] lemma adjugate_fin_two_of (a b c d : α) :
+  adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
 adjugate_fin_two _
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
 begin
   dsimp only [conj_transpose],
-  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) :=
-    ((star_ring_aut : α ≃+* α).to_ring_hom.map_adjugate Aᵀ),
+  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) := ((star_ring_end α).map_adjugate Aᵀ),
   rw [A.adjugate_transpose, this],
 end
 
@@ -383,9 +396,9 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  let g : matrix n n α → matrix n n (polynomial α) :=
-    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
-  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  let g : matrix n n α → matrix n n α[X] :=
+    λ M, M.map polynomial.C + (polynomial.X : α[X]) • 1,
+  let f' : matrix n n α[X] →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
   have f'_inv : ∀ M, f' (g M) = M,
   { intro,
     ext,
@@ -429,7 +442,7 @@ begin
   -- get rid of the `- 2`
   cases h_card : (fintype.card n) with n',
   { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
-    exact @subsingleton.elim _ (matrix.subsingleton_of_empty_left) _ _, },
+    apply subsingleton.elim, },
   cases n',
   { exact (h h_card).elim },
   rw ←h_card,
@@ -439,11 +452,8 @@ begin
   let A' := mv_polynomial_X n n ℤ,
   suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
   { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
-      ←alg_hom.map_det, ← alg_hom.map_pow],
-    -- TODO: missing an `alg_hom.map_smul_of_tower` here.
-    ext i j,
-    dsimp [-mv_polynomial_X],
-    rw [←alg_hom.map_mul] },
+      ←alg_hom.map_det, ← alg_hom.map_pow, alg_hom.map_matrix_apply, alg_hom.map_matrix_apply,
+      matrix.map_smul' _ _ _ (_root_.map_mul _)] },
   have h_card' : fintype.card n - 2 + 1 = fintype.card n - 1,
   { simp [h_card] },
 

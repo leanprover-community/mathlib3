@@ -10,6 +10,9 @@ import category_theory.yoneda
 /-!
 # Adjoints of fully faithful functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A left adjoint is fully faithful, if and only if the unit is an isomorphism
 (and similarly for right adjoints and the counit).
 
@@ -59,7 +62,7 @@ instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunct
 /--
 If the right adjoint is fully faithful, then the counit is an isomorphism.
 
-See https://stacks.math.columbia.edu/tag/07RB (we only prove the forward direction!)
+See <https://stacks.math.columbia.edu/tag/07RB> (we only prove the forward direction!)
 -/
 instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjunction.counit h) :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.counit h) $ λ X,

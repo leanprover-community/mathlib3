@@ -94,5 +94,3 @@ begin
   { try { simp only [coe_coe, ←int.cast_neg, ←units.coe_neg] },
     apply_rules [integrable.add, integrable.neg, integrable_mul_aux, ha, hb, integrable_const] },
 end
-
-end bell_inequality_1964

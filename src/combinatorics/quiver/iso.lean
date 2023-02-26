@@ -122,7 +122,7 @@ begin
   { rintro X,
     apply ψ.to_equiv.injective,
     change ψ.to_equiv.to_fun (φ.to_equiv.inv_fun X) = ψ.to_equiv.to_fun (ψ.to_equiv.inv_fun X),
-    rw [(ψ.to_equiv.right_inv X), ←(show φ.to_equiv.to_fun = ψ.to_equiv.to_fun, by dsimp; rw h)],
+    rw [(ψ.to_equiv.right_inv X), ←(show φ.to_equiv.to_fun = ψ.to_equiv.to_fun, by { simp [iso.to_equiv, h],})],
     exact φ.to_equiv.right_inv X, },
   { rintro X Y f,
     change  φ.inv_prefunctor.map f = hom.cast _ _ (ψ.inv_prefunctor.map f),

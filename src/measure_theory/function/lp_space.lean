@@ -1243,8 +1243,7 @@ begin
       swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
       refine lintegral_mono_ae _,
       filter_upwards [@ennreal.ae_le_ess_sup _ _ μ (λ x, ↑‖φ x‖₊)] with x hx,
-      apply mul_le_mul_right',
-      exact ennreal.rpow_le_rpow hx ennreal.to_real_nonneg,
+      exact mul_le_mul_right' (ennreal.rpow_le_rpow hx ennreal.to_real_nonneg) _
     end
   ... = ess_sup (λ x, ↑‖φ x‖₊) μ * (∫⁻ x, ↑‖f x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
     begin

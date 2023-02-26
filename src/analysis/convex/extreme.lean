@@ -205,7 +205,7 @@ begin
   ext,
   simp only [mem_extreme_points, mem_pi, mem_univ, true_implies_iff, @forall_and_distrib ι],
   refine and_congr_right (λ hx, ⟨λ h i, _, λ h, _⟩),
-  { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
+  { rintro x₁ hx₁ x₂ hx₂ hi,
     refine (h (update x i x₁) _ (update x i x₂) _ _).imp (λ h₁, by rw [←h₁, update_same])
       (λ h₂, by rw [←h₂, update_same]),
     iterate 2 { rintro j,
@@ -214,7 +214,7 @@ begin
       { rw update_noteq hji,
         exact hx _ } },
     rw ←pi.image_update_open_segment,
-    exact ⟨_, ⟨_, _, ha, hb, hab, hx'⟩, update_eq_self _ _⟩ },
+    exact ⟨_, hi, update_eq_self _ _⟩ },
   { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,
     simp_rw [funext_iff, ←forall_and_distrib],
     exact λ i, h _ _ (hx₁ _) _ (hx₂ _) ⟨a, b, ha, hb, hab, congr_fun hx' _⟩ }

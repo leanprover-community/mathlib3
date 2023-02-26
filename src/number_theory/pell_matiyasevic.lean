@@ -46,11 +46,6 @@ numbers but instead Davis' variant of using solutions to Pell's equation.
 
 Pell's equation, Matiyasevic's theorem, Hilbert's tenth problem
 
-## TODO
-
-* Provide solutions to Pell's equation for the case of arbitrary `d` (not just `d = a ^ 2 - 1` like
-  in the current version) and furthermore also for `x ^ 2 - d * y ^ 2 = -1`.
-* Connect solutions to the continued fraction expansion of `√d`.
 -/
 
 namespace pell

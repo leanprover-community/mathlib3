@@ -30,6 +30,12 @@ which is specific to the case $d = a^2 - 1$ for some $a > 1$).
 ## Tags
 
 Pell's equation
+
+## TODO
+
+* Provide the structure theory of the solution set to Pell's equation
+  and furthermore also for `x ^ 2 - d * y ^ 2 = -1` and further generalizations.
+* Connect solutions to the continued fraction expansion of `√d`.
 -/
 
 namespace pell

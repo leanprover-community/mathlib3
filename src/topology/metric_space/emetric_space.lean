@@ -49,7 +49,7 @@ export has_edist (edist)
 noncomputable def uniform_space_of_edist (edist : α → α → ℝ≥0∞)
   (edist_self : ∀ x : α, edist x x = 0) (edist_comm : ∀ x y : α, edist x y = edist y x)
   (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z) : uniform_space α :=
-uniform_space.of_core $ uniform_space.core.of_fun edist edist_self edist_comm edist_triangle $
+uniform_space.of_fun edist edist_self edist_comm edist_triangle $
   λ ε ε0, ⟨ε / 2, ennreal.half_pos ε0.lt.ne', λ _ h₁ _ h₂,
       (ennreal.add_lt_add h₁ h₂).trans_eq (ennreal.add_halves _)⟩
 
@@ -160,7 +160,7 @@ uniform_space_eq uniformity_pseudoedist
 
 theorem uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
-(@uniform_space_edist α _).symm ▸ uniform_space.core.has_basis_of_fun ⟨1, one_pos⟩ _ _ _ _ _
+(@uniform_space_edist α _).symm ▸ uniform_space.has_basis_of_fun ⟨1, one_pos⟩ _ _ _ _ _
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
@@ -373,16 +373,7 @@ def pseudo_emetric_space.induced {α β} (f : α → β)
   edist_comm          := λ x y, edist_comm _ _,
   edist_triangle      := λ x y z, edist_triangle _ _ _,
   to_uniform_space    := uniform_space.comap f m.to_uniform_space,
-  uniformity_edist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, edist (f x) (f y)),
-    refine λ s, mem_comap.trans _,
-    split; intro H,
-    { rcases H with ⟨r, ru, rs⟩,
-      rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
-      refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
-    { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
-  end }
+  uniformity_edist    := (uniformity_basis_edist.comap _).eq_binfi }
 
 /-- Pseudoemetric space instance on subsets of pseudoemetric spaces -/
 instance {α : Type*} {p : α → Prop} [pseudo_emetric_space α] : pseudo_emetric_space (subtype p) :=
@@ -957,16 +948,7 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   edist_comm          := λ x y, edist_comm _ _,
   edist_triangle      := λ x y z, edist_triangle _ _ _,
   to_uniform_space    := uniform_space.comap f m.to_uniform_space,
-  uniformity_edist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, edist (f x) (f y)),
-    refine λ s, mem_comap.trans _,
-    split; intro H,
-    { rcases H with ⟨r, ru, rs⟩,
-      rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
-      refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
-    { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
-  end }
+  uniformity_edist    := (uniformity_basis_edist.comap _).eq_binfi }
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=

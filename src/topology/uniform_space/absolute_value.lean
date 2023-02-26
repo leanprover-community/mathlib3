@@ -33,27 +33,21 @@ absolute value, uniform spaces
 -/
 
 open set function filter uniform_space
-open_locale filter
+open_locale filter topology
 
-namespace is_absolute_value
+namespace absolute_value
+
 variables {𝕜 : Type*} [linear_ordered_field 𝕜]
-variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
+variables {R : Type*} [comm_ring R] (abv : absolute_value R 𝕜)
 
-/-- The uniformity coming from an absolute value. -/
-def uniform_space_core : uniform_space.core R :=
-uniform_space.core.of_fun (λ x y, abv (y - x)) (by simp [abv_zero abv]) (λ x y, abv_sub abv y x)
-  (λ x y z,
-    calc abv (z - x) = abv ((y - x) + (z - y)) : by rw [add_comm, sub_add_sub_cancel]
-    ... ≤ abv (y - x) + abv (z - y) : abv_add _ _ _) $
+/-- The uniform space structure coming from an absolute value. -/
+protected def uniform_space : uniform_space R :=
+uniform_space.of_fun (λ x y, abv (y - x)) (by simp) (λ x y, abv.map_sub y x)
+  (λ x y z, (abv.sub_le _ _ _).trans_eq (add_comm _ _)) $
   λ ε ε0, ⟨ε / 2, half_pos ε0, λ _ h₁ _ h₂, (add_lt_add h₁ h₂).trans_eq (add_halves ε)⟩
 
-/-- The uniform structure coming from an absolute value. -/
-def uniform_space : uniform_space R :=
-uniform_space.of_core (uniform_space_core abv)
+theorem has_basis_uniformity :
+  𝓤[abv.uniform_space].has_basis (λ ε : 𝕜, 0 < ε) (λ ε, {p : R × R | abv (p.2 - p.1) < ε}) :=
+uniform_space.has_basis_of_fun (exists_gt _) _ _ _ _ _
 
-theorem mem_uniformity {s : set (R×R)} :
-  s ∈ (uniform_space_core abv).uniformity ↔ (∃ ε > 0, ∀ {a b : R}, abv (b - a) < ε → (a, b) ∈ s) :=
-((uniform_space.core.has_basis_of_fun (exists_gt _) _ _ _ _ _).1 s).trans $
-  by simp only [subset_def, prod.forall]; refl
-
-end is_absolute_value
+end absolute_value

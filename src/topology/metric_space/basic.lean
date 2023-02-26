@@ -54,24 +54,14 @@ open_locale uniformity topology big_operators filter nnreal ennreal
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}
 
-/-- Construct a uniform structure core from a distance function and metric space axioms.
-This is a technical construction that can be immediately used to construct a uniform structure
-from a distance function and metric space axioms but is also useful when discussing
-metrizable topologies, see `pseudo_metric_space.of_dist_topology`. -/
-def uniform_space.core_of_dist {α : Type*} (dist : α → α → ℝ)
-  (dist_self : ∀ x : α, dist x x = 0)
-  (dist_comm : ∀ x y : α, dist x y = dist y x)
-  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space.core α :=
-uniform_space.core.of_fun dist dist_self dist_comm dist_triangle $ λ ε ε0,
-  ⟨ε / 2, half_pos ε0, λ x hx y hy, add_halves ε ▸ add_lt_add hx hy⟩
-
 /-- Construct a uniform structure from a distance function and metric space axioms -/
 def uniform_space_of_dist
   (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
-uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
+uniform_space.of_fun dist dist_self dist_comm dist_triangle $ λ ε ε0,
+  ⟨ε / 2, half_pos ε0, λ x hx y hy, add_halves ε ▸ add_lt_add hx hy⟩
 
 /-- This is an internal lemma used to construct a bornology from a metric in `bornology.of_dist`. -/
 private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
@@ -203,9 +193,9 @@ def pseudo_metric_space.of_dist_topology {α : Type u} [topological_space α] (d
   dist_triangle := dist_triangle,
   to_uniform_space :=
   { is_open_uniformity := λ s, (H s).trans $ forall₂_congr $ λ x _,
-      ((uniform_space.core.has_basis_of_fun (exists_gt (0 : ℝ))
+      ((uniform_space.has_basis_of_fun (exists_gt (0 : ℝ))
         dist _ _ _ _).comap (prod.mk x)).mem_iff.symm.trans mem_comap_prod_mk,
-    to_core := uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
+    to_core := (uniform_space_of_dist dist dist_self dist_comm dist_triangle).to_core },
   uniformity_dist := rfl,
   to_bornology := bornology.of_dist dist dist_self dist_comm dist_triangle,
   cobounded_sets := rfl }
@@ -635,7 +625,7 @@ theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
 begin
   rw [to_uniform_space_eq],
-  exact uniform_space.core.has_basis_of_fun (exists_gt _) _ _ _ _ _
+  exact uniform_space.has_basis_of_fun (exists_gt _) _ _ _ _ _
 end
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers
@@ -654,6 +644,11 @@ begin
     exact ⟨i, hi, λ x (hx : _ < _), hε $ lt_of_lt_of_le hx H⟩ },
   { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, H⟩ }
 end
+
+theorem uniformity_basis_dist_rat :
+  (𝓤 α).has_basis (λ r : ℚ, 0 < r) (λ r, {p : α × α | dist p.1 p.2 < r}) :=
+metric.mk_uniformity_basis (λ _, rat.cast_pos.2) $ λ ε hε,
+  let ⟨r, hr0, hrε⟩ := exists_rat_btwn hε in ⟨r, rat.cast_pos.1 hr0, hrε.le⟩
 
 theorem uniformity_basis_dist_inv_nat_succ :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < 1 / (↑n+1) }) :=
@@ -1451,11 +1446,7 @@ def pseudo_metric_space.induced {α β} (f : α → β)
   edist              := λ x y, edist (f x) (f y),
   edist_dist         := λ x y, edist_dist _ _,
   to_uniform_space   := uniform_space.comap f m.to_uniform_space,
-  uniformity_dist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, dist (f x) (f y)),
-    refine compl_surjective.forall.2 (λ s, compl_mem_comap.trans $ mem_uniformity_dist.trans _),
-    simp only [mem_compl_iff, @imp_not_comm _ (_ ∈ _), ← prod.forall', prod.mk.eta, ball_image_iff]
-  end,
+  uniformity_dist    := (uniformity_basis_dist.comap _).eq_binfi,
   to_bornology       := bornology.induced f,
   cobounded_sets     := set.ext $ compl_surjective.forall.2 $ λ s,
     by simp only [compl_mem_comap, filter.mem_sets, ← is_bounded_def, mem_set_of_eq, compl_compl,

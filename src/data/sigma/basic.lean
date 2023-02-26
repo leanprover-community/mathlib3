@@ -73,9 +73,14 @@ lemma ext_iff' {x₀ x₁ : sigma β} :
   x₀ = x₁ ↔ ∃ h : x₀.1 = x₁.1, h.rec_on x₀.2 = x₁.2 :=
 begin
   split,
-  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
-  { induction x₀, induction x₁, rintro ⟨h, H⟩, cases h, cases H,
-    simp only [eq_self_iff_true, heq_iff_eq, and_self], }
+  { rintro ⟨⟩,
+    exact ⟨rfl, rfl⟩, },
+  { induction x₀,
+    induction x₁,
+    rintros ⟨h, H⟩,
+    cases h,
+    cases H,
+    refl, },
 end
 
 /-- A specialized ext lemma for equality of sigma types over an indexed subtype. -/

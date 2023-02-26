@@ -149,7 +149,7 @@ begin
   intros i hi,
   rw [finset.mem_range] at hi,
   rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ← nat.cast_mul, nat.div_mul_cancel],
-  exact hp.dvd_choose_self (nat.succ_pos _) (lt_tsub_iff_right.mp hi),
+  exact hp.dvd_choose_self (nat.succ_ne_zero _) (lt_tsub_iff_right.mp hi),
 end
 
 theorem add_pow_prime_eq_pow_add_pow_add_prime_mul [comm_semiring R] {p : ℕ}

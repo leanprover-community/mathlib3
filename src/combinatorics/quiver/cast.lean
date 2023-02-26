@@ -64,6 +64,13 @@ lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
 by { rw [eq_comm, hom.cast_eq_iff_heq], exact ⟨heq.symm, heq.symm⟩ }
 
+@[simps] def hom.equiv_cast {u u' v v' : U} (hu : u = u') (hv : v = v') :
+  (u ⟶ v) ≃ (u' ⟶ v') :=
+{ to_fun := λ e, e.cast hu hv,
+  inv_fun := λ e, e.cast hu.symm hv.symm,
+  left_inv := λ e, by simp,
+  right_inv := λ e, by simp }
+
 lemma _root_.prefunctor.map_cast_eq_of_eq {φ ψ : U ⥤q V} (h : φ = ψ) {u u' : U} (e : u ⟶ u') :
   (φ.map e).cast (congr_arg (λ (θ : U ⥤q V), θ.obj u) h : φ.obj u = ψ.obj u)
                  (congr_arg (λ θ : U ⥤q V, θ.obj u') h : φ.obj u' = ψ.obj u') = ψ.map e :=
@@ -130,17 +137,5 @@ by { rw hom.cast_eq_iff_heq, exact hom_heq_of_cons_eq_cons h }
 lemma eq_nil_of_length_zero {u v : U} (p : path u v) (hzero : p.length = 0) :
   p.cast (eq_of_length_zero p hzero) rfl = path.nil :=
 by { cases p; simpa only [nat.succ_ne_zero, length_cons] using hzero, }
-
-
-@[simps] def hom_equiv_of_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') :
-  (X ⟶ Y) ≃ (X' ⟶ Y') :=
-{ to_fun := λ e, e.cast h1 h2,
-  inv_fun := λ e, e.cast h1.symm h2.symm,
-  left_inv := λ e, by simp,
-  right_inv := λ e, by simp }
-
-lemma hom_equiv_of_eq_eq {X X' Y Y' : U} (h1 : X = X') (h2 : Y = Y') (f : X ⟶ Y) :
-  hom_equiv_of_eq h1 h2 f = hom.cast h1 h2 f :=
-by { induction h1, induction h2, refl }
 
 end quiver

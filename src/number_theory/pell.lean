@@ -19,7 +19,7 @@ $x^2 - d y^2 = 1$ has a nontrivial (i.e., with $y \ne 0$) solution in integers.
 See `pell.exists_of_not_is_square`.
 
 This is the beginning of a development that aims at providing all of the essential theory
-of Pell's Equation for general $d$ (as opposed to the contents of `number_theory.pell`,
+of Pell's Equation for general $d$ (as opposed to the contents of `number_theory.pell_matiyasevic`,
 which is specific to the case $d = a^2 - 1$ for some $a > 1$).
 
 ## References

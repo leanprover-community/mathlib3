@@ -22,7 +22,7 @@ attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
                  upper_bounds_mono  lower_bounds_mono
                  bdd_above.mono bdd_below.mono
 
-attribute [mono] add_le_add mul_le_mul mul_le_mul' neg_le_neg
+attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
          mul_le_mul_of_nonneg_left mul_le_mul_of_nonneg_right
          mul_le_mul_of_nonpos_left mul_le_mul_of_nonpos_right

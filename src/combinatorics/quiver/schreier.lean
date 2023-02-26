@@ -49,15 +49,40 @@ instance action_graph.quiver : quiver (action_graph V ι) :=
 { hom := λ x y, {s : S // (ι s) • x = y} }
 
 /--
+The star around a vertex is just `S`.
+-/
+@[simps] def action_graph.star_equiv (x : action_graph V ι) : star x ≃ S :=
+{ to_fun := λ p, p.2,
+  inv_fun := λ s, ⟨ι s • x, ⟨s, rfl⟩⟩,
+  left_inv := λ ⟨_, ⟨s, rfl⟩⟩, rfl,
+  right_inv := λ s, rfl }
+
+def action_graph.path_star_equiv (x : action_graph V ι) : path_star x ≃ list S :=
+{ to_fun := λ p, @quiver.path.rec_on _ _ x (λ y p, list S) p.1 p.2 [] (λ _ _ q e ih, ih.cons e.1),
+  inv_fun := λ l, @list.rec_on _ (λ l, path_star x) l ⟨x, path.nil⟩ (λ h l ih, ⟨_, ih.2.cons ⟨h, rfl⟩⟩),
+  left_inv := sorry,
+  right_inv := λ l, sorry, }
+
+/--
 Any arrow in `action_graph V ι` is labelled by an element of `S`.
 This is encoded as mapping to the `single_obj S` quiver.
 -/
 @[simps] def action_graph_labelling : (action_graph V ι) ⥤q single_obj S :=
 { obj := λ (x : action_graph V ι), single_obj.star S,
-  map := λ x y e, subtype.rec_on e (λ s h, s), }
+  map := λ x y e, action_graph.star_equiv V ι x ⟨y, e⟩, }
 
 notation `𝑨` := action_graph
 notation `𝑨l` := action_graph_labelling
+
+lemma action_graph.labelling_star_bijective (x : 𝑨 V ι) : ((𝑨l V ι).star x).bijective :=
+begin
+  split,
+  { rintro ⟨_, ⟨_, rfl⟩⟩ ⟨_, ⟨_, rfl⟩⟩ h,
+    simp only [prefunctor.star_apply, action_graph_labelling_map, action_graph.star_equiv_apply,
+               subtype.coe_mk, eq_iff_true_of_subsingleton, heq_iff_eq, true_and] at h,
+    subst h, },
+  { rintro ⟨⟨⟩, s⟩, refine ⟨⟨_, ⟨s, rfl⟩⟩, rfl⟩, }
+end
 
 end basic
 
@@ -76,34 +101,57 @@ instance : mul_action M (𝑨 V ι) :=
   one_smul := mul_action.one_smul,
   mul_smul := mul_action.mul_smul }
 
-lemma action_graph_labelling_is_covering : (𝑨l V ι).is_covering :=
+@[simps] def action_graph.costar_equiv (x : action_graph V ι) : costar x ≃ S :=
+{ to_fun := λ p, p.2,
+  inv_fun := λ s, ⟨(ι s)⁻¹ • x, ⟨s, by simp⟩⟩,
+  left_inv := by { rintro ⟨y, ⟨s, rfl⟩⟩, simp [subtype.heq_iff_coe_eq], },
+  right_inv := λ s, rfl }
+
+lemma action_graph.labelling_costar_bijective (x : 𝑨 V ι) : ((𝑨l V ι).costar x).bijective :=
 begin
-  refine ⟨λ u, ⟨_, _⟩, λ u, ⟨_, _⟩⟩,
-  { rintro ⟨v,⟨x,hx⟩⟩ ⟨w,⟨y,hy⟩⟩ h,
-    simp only [prefunctor.star_apply, action_graph_labelling_map, single_obj.to_hom_apply,
-               eq_iff_true_of_subsingleton, heq_iff_eq, true_and] at h,
-    subst_vars, },
-  { rintro ⟨⟨⟩,x⟩, exact ⟨⟨(ι x) • u, ⟨x, rfl⟩⟩, rfl⟩, },
-  { rintro ⟨v,⟨x,hx⟩⟩ ⟨w,⟨y,hy⟩⟩ h,
-    simp only [prefunctor.costar_apply, action_graph_labelling_map, single_obj.to_hom_apply,
-               eq_iff_true_of_subsingleton, heq_iff_eq, true_and] at h,
+  split,
+  { rintro ⟨y, ⟨s, hy⟩⟩ ⟨z, ⟨t, hz⟩⟩ h,
     subst_vars,
-    simp only [smul_left_cancel_iff] at hy,
-    subst hy, },
-  { rintro ⟨⟨⟩,x⟩,
-    exact ⟨⟨(ι x) ⁻¹ • u, ⟨x, by simp⟩⟩, by simp⟩, },
+    simp only [prefunctor.costar_apply, action_graph_labelling_map, action_graph.star_equiv_apply,
+               subtype.coe_mk, eq_iff_true_of_subsingleton, heq_iff_eq, true_and] at h,
+    subst h,
+    simp only [smul_eq_iff_eq_inv_smul, inv_smul_smul] at hz,
+    subst hz, },
+  { rintro ⟨⟨⟩, s⟩, refine ⟨⟨(ι s)⁻¹ • x, ⟨s, _⟩⟩, _⟩, simp, simp, },
 end
 
+lemma action_graph_labelling_is_covering : (𝑨l V ι).is_covering :=
+⟨action_graph.labelling_star_bijective V ι, action_graph.labelling_costar_bijective V ι⟩
+
+
 notation `𝑨c` := action_graph_labelling_is_covering
+
+def _root_.equiv.sum {α₀ α₁ β₀ β₁ : Type*} (hα : α₀ ≃ α₁) (hβ : β₀ ≃ β₁) : α₀ ⊕ β₀ ≃ α₁ ⊕ β₁ :=
+{ to_fun := sum.elim (@sum.inl _ β₁ ∘ hα) (@sum.inr α₁ _ ∘ hβ),
+  inv_fun := sum.elim (@sum.inl _ β₀ ∘ hα.symm) (@sum.inr α₀ _ ∘ hβ.symm),
+  left_inv := by
+  { rintro (_|_);
+    simp only [sum.elim_inl, sum.elim_inr, function.comp_app, equiv.symm_apply_apply], },
+  right_inv :=  by
+  { rintro (_|_);
+    simp only [sum.elim_inl, sum.elim_inr, function.comp_app, equiv.apply_symm_apply], } }
 
 /-
 The sorry should be easy but would benefit from infrastructure:
 * `symmetrify (single_obj α)` is isomorphic to `single_obj (α ⊕ α)`
 * need a usable def of isomorphisms
-* isomorphisms induce equivalence of `star_path` etc
-
+* isomorphisms induce equivalence of `star` and `star_path` etc
 -/
-noncomputable def action_graph.path_star_equiv (x : 𝑨 V ι) :
+def action_graph.symmetrify_star_equiv (x : 𝑨 V ι ) : star (symmetrify.of.obj x) ≃ S ⊕ S :=
+begin
+  transitivity,
+  apply quiver.symmetrify_star,
+  apply equiv.sum,
+  apply action_graph.star_equiv,
+  apply action_graph.costar_equiv,
+end
+
+noncomputable def action_graph.symmetrify_path_star_equiv (x : 𝑨 V ι) :
   path_star (symmetrify.of.obj x) ≃ list (S ⊕ S) :=
 calc  path_star (symmetrify.of.obj x)
     ≃ path_star (symmetrify.of.obj (single_obj.star S) : symmetrify (single_obj S)) :

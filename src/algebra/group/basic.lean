@@ -192,7 +192,7 @@ inv_involutive.injective
 
 @[to_additive]
 theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
-⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
+⟨λ h, h ▸ (inv_inv a).symm, λ h, h.symm ▸ inv_inv b⟩
 
 variables (G)
 

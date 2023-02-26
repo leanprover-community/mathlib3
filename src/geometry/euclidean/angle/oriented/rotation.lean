@@ -183,7 +183,7 @@ by rw [neg_rotation, ←real.angle.coe_add, neg_div, ←sub_eq_add_neg, sub_half
 
 /-- Negating a rotation by π / 2 is equivalent to rotation by -π / 2. -/
 lemma neg_rotation_pi_div_two (x : V) : -o.rotation (π / 2 : ℝ) x = o.rotation (-π / 2 : ℝ) x :=
-neg_eq_iff_neg_eq.1 $ o.neg_rotation_neg_pi_div_two _
+(neg_eq_iff_eq_neg.mp $ o.neg_rotation_neg_pi_div_two _).symm
 
 /-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos (-θ) + sin (-θ) * I`.
 -/

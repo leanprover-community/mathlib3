@@ -1751,7 +1751,8 @@ end
 
 theorem coe_nnreal_real {α : Type*} [measurable_space α]
   {f : α → nnreal} {μ : measure_theory.measure α} (hf : ae_strongly_measurable f μ) :
-ae_strongly_measurable (λ (x : α), (f x : real)) μ := nnreal.continuous_coe.comp_ae_strongly_measurable hf
+  ae_strongly_measurable (λ (x : α), (f x : real)) μ := 
+nnreal.continuous_coe.comp_ae_strongly_measurable hf
 
 end ae_strongly_measurable
 

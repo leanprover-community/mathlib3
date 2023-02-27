@@ -359,7 +359,7 @@ begin
     simp only [dist_eq, modular_S_smul, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im, div_one,
       complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
       real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
-      nndist_inv_inv₀ y₁.ne_zero y₂.ne_zero, ← absolute_value.map_mul,
+      dist_inv_inv₀ y₁.ne_zero y₂.ne_zero, ← absolute_value.map_mul,
       ← complex.norm_sq_mul, real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ),
       div_div_div_comm, div_self h₂, complex.norm_eq_abs], }),
   by_cases hc : g 1 0 = 0,

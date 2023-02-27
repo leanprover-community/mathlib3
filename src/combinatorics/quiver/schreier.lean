@@ -49,6 +49,12 @@ The set of arrow from `x` to `y` is the subset of `S` such that `(ι s) x = y`.
 instance action_graph.quiver : quiver (action_graph V ι) :=
 { hom := λ x y, {s : S // (ι s) • x = y} }
 
+abbreviation mk_hom (x : action_graph V ι) (s : S) : x ⟶ ι s • x := ⟨s, rfl⟩
+
+lemma cast_mk_hom {x x' : action_graph V ι} (h : x = x') {s : S} (h' : ι s • x = ι s • x') :
+  (mk_hom V ι x s).cast h h' = mk_hom V ι x' s :=
+by { cases h, cases h', refl, }
+
 /--
 The star around a vertex is just `S`.
 -/
@@ -58,12 +64,32 @@ The star around a vertex is just `S`.
   left_inv := λ ⟨_, ⟨s, rfl⟩⟩, rfl,
   right_inv := λ s, rfl }
 
-/-- Got my directions wrong I think: cons for list and path is reversed -/
 def action_graph.path_star_equiv (x : action_graph V ι) : path_star x ≃ list S :=
 { to_fun := λ p, @quiver.path.rec_on _ _ x (λ y p, list S) p.1 p.2 [] (λ _ _ q e ih, ih.cons e.1),
   inv_fun := λ l, @list.rec_on _ (λ l, path_star x) l ⟨x, path.nil⟩ (λ h l ih, ⟨_, ih.2.cons ⟨h, rfl⟩⟩),
-  left_inv := sorry,
-  right_inv := λ l, sorry, }
+  left_inv :=
+    begin
+      rintro ⟨v, p⟩,
+      induction p with y z q e ih, { refl, },
+      { obtain ⟨s, rfl⟩ := e,
+        simp only [path_star_eq_iff] at ih,
+        obtain ⟨h₁, h₂⟩ := ih,
+        dsimp at h₁,
+        simp only [←h₁, ←h₂],
+        refine ⟨rfl, _⟩,
+        rw [←path.eq_cast_iff_heq rfl (congr_arg (λ x, ι s • x) h₁.symm),
+            path.cast_cons, path.cast_cast],
+        fapply cons_eq_cons_of_exist_cast h₁,
+        { rw [hom.cast_eq_iff_eq_cast, hom.cast_cast, cast_mk_hom], refl, },
+        { apply path.cast_irrelevant, }, },
+    end,
+  right_inv :=
+    begin
+      rintro l,
+      induction l with s l ih,
+      { refl, },
+      { simp only [subtype.val_eq_coe, eq_self_iff_true, true_and, ←ih], },
+    end }
 
 /--
 Any arrow in `action_graph V ι` is labelled by an element of `S`.

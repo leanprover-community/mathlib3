@@ -254,8 +254,8 @@ section single_obj
 variable (α : Type*)
 
 @[simps] def _root_.sigma.unit (β : unit → Type*) : (Σ (x : unit), β x) ≃ β unit.star :=
-{ to_fun := by { apply sigma.rec, intro x, cases x, exact id, }, -- term mode unhappy
-  inv_fun := by { intro h, exact ⟨unit.star, h⟩, },
+{ to_fun := λ (p : sigma β), p.rec_on $ punit.rec $ by { exact id }, -- term mode unhappy
+  inv_fun := λ h, ⟨unit.star, h⟩,
   left_inv := λ ⟨(), h⟩, by simp only [id.def, heq_iff_eq, eq_self_iff_true, and_self],
   right_inv := λ h, by simp only [id.def] }
 

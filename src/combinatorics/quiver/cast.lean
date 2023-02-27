@@ -95,6 +95,10 @@ lemma path.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u 
   p.cast hu hv = cast (by rw [hu, hv]) p:=
 eq.drec (eq.drec (eq.refl (path.cast (eq.refl u) (eq.refl v) p)) hu) hv
 
+lemma path.cast_irrelevant {u v u' v' : U} (hu hu' : u = u') (hv hv' : v = v') (e : path u v) :
+  e.cast hu hv = e.cast hu' hv' :=
+by { cases hu, cases hu', cases hv, cases hv', refl, }
+
 @[simp] lemma path.cast_rfl_rfl {u v : U} (p : path u v) :
   p.cast rfl rfl = p := rfl
 
@@ -133,6 +137,11 @@ lemma hom_cast_eq_of_cons_eq_cons {u v v' w : U} {p : path u v} {p' : path u v'}
   {e : v ⟶ w} {e' : v' ⟶ w} (h : p.cons e = p'.cons e') :
   e.cast (obj_eq_of_cons_eq_cons h) rfl = e' :=
 by { rw hom.cast_eq_iff_heq, exact hom_heq_of_cons_eq_cons h }
+
+lemma cons_eq_cons_of_exist_cast {u v v' w : U} {p : path u v} {p' : path u v'}
+  {e : v ⟶ w} {e' : v' ⟶ w} (hv : v = v') (he : e.cast hv rfl = e') (hp : p.cast rfl hv = p') :
+  p.cons e = p'.cons e' :=
+by { cases hv, cases he, cases hp, refl, }
 
 lemma eq_nil_of_length_zero {u v : U} (p : path u v) (hzero : p.length = 0) :
   p.cast (eq_of_length_zero p hzero) rfl = path.nil :=

@@ -134,8 +134,6 @@ begin
   { rintro X Y f,
     generalize_proofs h1 h2,
     change (φ.symm.to_equiv_map f) =  hom.equiv_cast h1 h2 (ψ.symm.to_equiv_map f),
-    have := prefunctor.map_cast_eq_of_eq h.symm (hom.cast h1 h2 $ ψ.inv_prefunctor.map f),
-    simp_rw [prefunctor.map_cast, hom.cast_cast, hom.cast_eq_iff_eq_cast, hom.cast_cast] at this,
     sorry, },
 end
 

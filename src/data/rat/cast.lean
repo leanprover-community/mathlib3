@@ -9,10 +9,12 @@ import data.int.char_zero
 import algebra.group_with_zero.power
 import algebra.field.opposite
 import algebra.order.field.basic
-import algebra.big_operators.basic
 
 /-!
 # Casts for Rational Numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -27,8 +29,6 @@ casting lemmas showing the well-behavedness of this injection.
 
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
-
-open_locale big_operators
 
 variables {F ι α β : Type*}
 
@@ -171,78 +171,47 @@ by rw [← cast_zero, cast_inj]
 theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
-@[norm_cast] theorem cast_add [char_zero α] (m n) :
+@[simp, norm_cast] theorem cast_add [char_zero α] (m n) :
   ((m + n : ℚ) : α) = m + n :=
 cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[norm_cast] theorem cast_sub [char_zero α] (m n) :
+@[simp, norm_cast] theorem cast_sub [char_zero α] (m n) :
   ((m - n : ℚ) : α) = m - n :=
 cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[norm_cast] theorem cast_mul [char_zero α] (m n) :
+@[simp, norm_cast] theorem cast_mul [char_zero α] (m n) :
   ((m * n : ℚ) : α) = m * n :=
 cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[norm_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
+@[simp, norm_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
   ((bit0 n : ℚ) : α) = bit0 n :=
 cast_add _ _
 
-@[norm_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
+@[simp, norm_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
   ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 variables (α) [char_zero α]
 
-instance : coe_is_ring_hom ℚ α :=
-{ coe_one := cast_one,
-  coe_mul := cast_mul,
-  coe_zero := cast_zero,
-  coe_add := cast_add }
-
 /-- Coercion `ℚ → α` as a `ring_hom`. -/
-def cast_hom : ℚ →+* α := ring_hom.coe ℚ α
+def cast_hom : ℚ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
 variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
-@[norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
-@[norm_cast] theorem cast_zpow (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
+@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
+@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
+@[simp, norm_cast] theorem cast_zpow (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
 map_zpow₀ (cast_hom α) q n
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
 
-@[norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
+@[simp, norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 (cast_hom α).map_pow q k
 
-@[simp, norm_cast] lemma cast_list_sum (s : list ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
-map_list_sum (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
-map_multiset_sum (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ) :
-  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
-map_sum (rat.cast_hom α) _ _
-
-@[simp, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_list_prod (rat.cast_hom α) _
-
 end with_div_ring
-
-section field
-variables [field α] [char_zero α]
-
-@[simp, norm_cast] lemma cast_multiset_prod (s : multiset ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_multiset_prod (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ) :
-  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
-map_prod (rat.cast_hom α) _ _
-
-end field
 
 section linear_ordered_field
 

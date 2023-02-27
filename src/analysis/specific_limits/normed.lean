@@ -19,7 +19,7 @@ spaces.
 noncomputable theory
 open classical set function filter finset metric asymptotics
 
-open_locale classical topological_space nat big_operators uniformity nnreal ennreal
+open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -78,7 +78,7 @@ end
 
 @[simp] lemma continuous_at_inv {𝕜 : Type*} [nontrivially_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
-by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
+by simpa [(zero_lt_one' ℤ).not_le] using @continuous_at_zpow _ _ (-1) x
 
 end normed_field
 

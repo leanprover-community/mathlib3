@@ -7,6 +7,9 @@ Authors: Leonardo de Moura
 /-!
 # Definition of `stream` and functions on streams
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A stream `stream α` is an infinite sequence of elements of `α`. One can also think about it as an
 infinite list. In this file we define `stream` and some functions that take and/or return streams.
 -/

@@ -3,12 +3,17 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.pi.algebra
 import algebra.hom.group
-import order.hom.basic
 import algebra.order.group.instances
+import algebra.order.monoid.with_zero.defs
+import order.hom.basic
 
 /-!
 # Ordered monoid and group homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between (additive) ordered monoids.
 
@@ -265,7 +270,15 @@ definitional equalities."]
 protected def copy (f : α →*o β) (f' : α → β) (h : f' = f) : α →*o β :=
 { to_fun := f',
   monotone' := h.symm.subst f.monotone',
-  ..f.to_monoid_hom.copy f' $ by exact h }
+  ..f.to_monoid_hom.copy f' h }
+
+@[simp, to_additive] lemma coe_copy (f : α →*o β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma copy_eq (f : α →*o β) (f' : α → β) (h : f' = f) :
+  f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 
@@ -403,12 +416,14 @@ lemma to_order_monoid_hom_injective : injective (to_order_monoid_hom : _ → α 
 lemma to_monoid_with_zero_hom_injective : injective (to_monoid_with_zero_hom : _ → α →*₀ β) :=
 λ f g h, ext $ by convert fun_like.ext_iff.1 h
 
-/-- Copy of an `order_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
+/-- Copy of an `order_monoid_with_zero_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def copy (f : α →*o β) (f' : α → β) (h : f' = f) : α →*o β :=
+protected def copy (f : α →*₀o β) (f' : α → β) (h : f' = f) : α →*o β :=
 { to_fun := f',
-  monotone' := h.symm.subst f.monotone',
-  ..f.to_monoid_hom.copy f' (by exact h) }
+  .. f.to_order_monoid_hom.copy f' h, .. f.to_monoid_with_zero_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →*₀o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →*₀o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

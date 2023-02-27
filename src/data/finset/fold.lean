@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.order.monoid.with_top
-import data.finset.basic
+import data.finset.image
 import data.multiset.fold
 
 /-!
 # The fold operation for a commutative associative operation over a finset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset

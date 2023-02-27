@@ -86,7 +86,7 @@ Change of variables in integrals
 
 open measure_theory measure_theory.measure metric filter set finite_dimensional asymptotics
 topological_space
-open_locale nnreal ennreal topological_space pointwise
+open_locale nnreal ennreal topology pointwise
 
 variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 [normed_add_comm_group F] [normed_space ℝ F] {s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
@@ -415,7 +415,7 @@ begin
     { simp only [h, true_or, eventually_const] },
     simp only [h, false_or],
     apply Iio_mem_nhds,
-    simpa only [h, false_or, nnreal.inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
+    simpa only [h, false_or, inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
   have L2 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0),
     ‖(B.symm : E →L[ℝ] E)‖₊ * (‖(B.symm : E →L[ℝ] E)‖₊⁻¹ - δ)⁻¹ * δ < δ₀,
   { have : tendsto (λ δ, ‖(B.symm : E →L[ℝ] E)‖₊ * (‖(B.symm : E →L[ℝ] E)‖₊⁻¹ - δ)⁻¹ * δ)
@@ -1241,6 +1241,25 @@ begin
   congr' with x,
   conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
   refl
+end
+
+/-- Change of variable formula for differentiable functions (one-variable version): if a function
+`f` is injective and differentiable on a measurable set `s ⊆ ℝ`, then the Bochner integral of a
+function `g : ℝ → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
+theorem integral_image_eq_integral_abs_deriv_smul {s : set ℝ} {f : ℝ → ℝ} {f' : ℝ → ℝ}
+  [complete_space F] (hs : measurable_set s) (hf' : ∀ x ∈ s, has_deriv_within_at f (f' x) s x)
+  (hf : inj_on f s) (g : ℝ → F) :
+  ∫ x in f '' s, g x = ∫ x in s, |(f' x)| • g (f x) :=
+begin
+  convert integral_image_eq_integral_abs_det_fderiv_smul volume hs
+    (λ x hx, (hf' x hx).has_fderiv_within_at) hf g,
+  ext1 x,
+  rw (by { ext, simp } : (1 : ℝ →L[ℝ] ℝ).smul_right (f' x) = (f' x) • (1 : ℝ →L[ℝ] ℝ)),
+  rw [continuous_linear_map.det, continuous_linear_map.coe_smul],
+  have : ((1 : ℝ →L[ℝ] ℝ) : ℝ →ₗ[ℝ] ℝ) = (1 : ℝ →ₗ[ℝ] ℝ) := by refl,
+  rw [this, linear_map.det_smul, finite_dimensional.finrank_self],
+  suffices : (1 : ℝ →ₗ[ℝ] ℝ).det = 1, { rw this, simp },
+  exact linear_map.det_id,
 end
 
 theorem integral_target_eq_integral_abs_det_fderiv_smul [complete_space F]

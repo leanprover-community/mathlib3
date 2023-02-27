@@ -57,7 +57,7 @@ This is to enable `calc` support, as `calc` requires that the last two explicit 
 namespace asymptotics
 
 open filter function
-open_locale topological_space
+open_locale topology
 
 section normed_add_comm_group
 

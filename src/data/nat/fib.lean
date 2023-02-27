@@ -9,9 +9,13 @@ import data.finset.nat_antidiagonal
 import algebra.big_operators.basic
 import tactic.ring
 import tactic.zify
+import tactic.wlog
 
 /-!
 # The Fibonacci Sequence
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -218,15 +222,13 @@ lemma gcd_fib_add_mul_self (m n : ℕ) : ∀ k, gcd (fib m) (fib (n + k * m)) = 
   see https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
 lemma fib_gcd (m n : ℕ) : fib (gcd m n) = gcd (fib m) (fib n) :=
 begin
-  wlog h : m ≤ n using [n m, m n],
-  exact le_total m n,
-  { apply gcd.induction m n,
-    { simp },
-    intros m n mpos h,
-    rw ← gcd_rec m n at h,
-    conv_rhs { rw ← mod_add_div' n m },
-    rwa [gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
-  rwa [gcd_comm, gcd_comm (fib m)]
+  wlog h : m ≤ n, { simpa only [gcd_comm] using this _ _ (le_of_not_le h) },
+  apply gcd.induction m n,
+  { simp },
+  intros m n mpos h,
+  rw ← gcd_rec m n at h,
+  conv_rhs { rw ← mod_add_div' n m },
+  rwa [gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _]
 end
 
 lemma fib_dvd (m n : ℕ) (h : m ∣ n) : fib m ∣ fib n :=

@@ -19,7 +19,7 @@ Both of which are relevant for defining modular forms.
 
 open complex filter
 
-open_locale topological_space upper_half_plane
+open_locale topology upper_half_plane
 
 noncomputable theory
 
@@ -42,7 +42,7 @@ begin
 end
 
 /-- A function ` f : ℍ → α` is bounded at infinity if it is bounded along `at_im_infty`. -/
-def is_bounded_at_im_infty {α : Type*} [has_norm α] [has_one (ℍ → α)] (f : ℍ → α) : Prop :=
+def is_bounded_at_im_infty {α : Type*} [has_norm α] (f : ℍ → α) : Prop :=
 bounded_at_filter at_im_infty f
 
 /-- A function ` f : ℍ → α` is zero at infinity it is zero along `at_im_infty`. -/
@@ -50,8 +50,7 @@ def is_zero_at_im_infty {α : Type*} [has_zero α] [topological_space α] (f : �
 zero_at_filter at_im_infty f
 
 lemma zero_form_is_bounded_at_im_infty {α : Type*} [normed_field α] :
-  is_bounded_at_im_infty (0 : ℍ → α) :=
-zero_is_bounded_at_filter at_im_infty
+  is_bounded_at_im_infty (0 : ℍ → α) := const_bounded_at_filter at_im_infty (0:α)
 
 /-- Module of functions that are zero at infinity. -/
 def zero_at_im_infty_submodule (α : Type*) [normed_field α] : submodule α (ℍ → α) :=
@@ -61,16 +60,14 @@ zero_at_filter_submodule at_im_infty
 def bounded_at_im_infty_subalgebra (α : Type*) [normed_field α] : subalgebra α (ℍ → α) :=
 bounded_filter_subalgebra at_im_infty
 
-lemma prod_of_bounded_is_bounded {f g : ℍ → ℂ} (hf : is_bounded_at_im_infty f)
+lemma is_bounded_at_im_infty.mul {f g : ℍ → ℂ} (hf : is_bounded_at_im_infty f)
   (hg : is_bounded_at_im_infty g) : is_bounded_at_im_infty (f * g) :=
 by simpa only [pi.one_apply, mul_one, norm_eq_abs] using hf.mul hg
 
-@[simp] lemma bounded_mem (f : ℍ → ℂ) :
+lemma bounded_mem (f : ℍ → ℂ) :
   is_bounded_at_im_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=
-begin
-  simp [is_bounded_at_im_infty, bounded_at_filter, asymptotics.is_O_iff, filter.eventually,
-    at_im_infty_mem],
-end
+by simp [is_bounded_at_im_infty, bounded_at_filter, asymptotics.is_O_iff, filter.eventually,
+    at_im_infty_mem]
 
 lemma zero_at_im_infty (f : ℍ → ℂ) :
   is_zero_at_im_infty f ↔ ∀ ε : ℝ, 0 < ε → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z → abs (f z) ≤ ε :=

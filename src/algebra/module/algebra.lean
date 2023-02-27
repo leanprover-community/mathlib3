@@ -8,6 +8,9 @@ import algebra.algebra.basic
 
 /-!
 # Additional facts about modules over algebras.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace linear_map

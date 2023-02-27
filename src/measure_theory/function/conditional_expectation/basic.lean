@@ -76,7 +76,7 @@ conditional expectation, conditional expected value
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 
@@ -303,7 +303,7 @@ section complete_subspace
 
 /-! ## The subspace `Lp_meas` is complete.
 
-We define an `isometric` between `Lp_meas_subgroup` and the `Lp` space corresponding to the
+We define an `isometry_equiv` between `Lp_meas_subgroup` and the `Lp` space corresponding to the
 measure `μ.trim hm`. As a consequence, the completeness of `Lp` implies completeness of
 `Lp_meas_subgroup` (and `Lp_meas`). -/
 
@@ -488,7 +488,7 @@ variables (𝕜)
 /-- `Lp_meas_subgroup` and `Lp_meas` are isometric. -/
 def Lp_meas_subgroup_to_Lp_meas_iso [hp : fact (1 ≤ p)] :
   Lp_meas_subgroup F m p μ ≃ᵢ Lp_meas F 𝕜 m p μ :=
-isometric.refl (Lp_meas_subgroup F m p μ)
+isometry_equiv.refl (Lp_meas_subgroup F m p μ)
 
 /-- `Lp_meas` and `Lp F p (μ.trim hm)` are isometric, with a linear equivalence. -/
 def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
@@ -856,7 +856,7 @@ lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α 
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ‖g x‖ ∂μ ≤ ∫ x in s, ‖f x‖ ∂μ :=
 begin
-  rw [integral_norm_eq_pos_sub_neg (hg.mono hm) hgi, integral_norm_eq_pos_sub_neg hf hfi],
+  rw [integral_norm_eq_pos_sub_neg hgi, integral_norm_eq_pos_sub_neg hfi],
   have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
     from (@strongly_measurable_const _ _ m _ _).measurable_set_le hg,
   have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},

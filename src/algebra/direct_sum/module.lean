@@ -222,15 +222,19 @@ noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i
   sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
 
 /--`uncurry` as a linear map.-/
-noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
+def sigma_luncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { map_smul' := dfinsupp.sigma_uncurry_smul,
   ..sigma_uncurry }
 
-@[simp] lemma sigma_luncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+@[simp] lemma sigma_luncurry_apply [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)]
+  (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
 
 /--`curry_equiv` as a linear equiv.-/
-noncomputable def sigma_lcurry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
+noncomputable def sigma_lcurry_equiv
+  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
 { ..sigma_curry_equiv, ..sigma_lcurry R }
 
 end sigma
@@ -286,7 +290,7 @@ noncomputable def is_internal.collected_basis
   (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
   basis (Σ i, α i) R M :=
 { repr :=
-    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.injective h.surjective).symm ≪≫ₗ
+    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h).symm ≪≫ₗ
       (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
       (sigma_finsupp_lequiv_dfinsupp R).symm }
 
@@ -312,7 +316,7 @@ by simp
 
 /-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as
-`direct_sum.is_internal_iff_is_compl`. --/
+`direct_sum.is_internal_iff_is_compl`. -/
 lemma is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
   (h : (set.univ : set ι) = {i, j}) (hi : is_internal A) : is_compl (A i) (A j) :=
 ⟨hi.submodule_independent.pairwise_disjoint hij,

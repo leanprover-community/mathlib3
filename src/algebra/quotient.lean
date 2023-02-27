@@ -8,6 +8,9 @@ import tactic.basic
 /-!
 # Algebraic quotients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines notation for algebraic quotients, e.g. quotient groups `G ⧸ H`,
 quotient modules `M ⧸ N` and ideal quotients `R ⧸ I`.
 

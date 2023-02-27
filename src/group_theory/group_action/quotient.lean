@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 import algebra.hom.group_action
-import data.fintype.card
+import data.fintype.big_operators
 import dynamics.periodic_pts
 import group_theory.group_action.conj_act
 import group_theory.commutator
@@ -12,6 +12,9 @@ import group_theory.coset
 
 /-!
 # Properties of group actions involving quotient groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves properties of group actions which use the quotient group construction, notably
 * the orbit-stabilizer theorem `card_orbit_mul_card_stabilizer_eq_card_group`

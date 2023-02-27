@@ -5,9 +5,13 @@ Authors: Anne Baanen
 -/
 import logic.equiv.fin
 import algebra.ring.equiv
+import algebra.group.prod
 
 /-!
 # Rings and `fin`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file collects some basic results involving rings and the `fin` type
 

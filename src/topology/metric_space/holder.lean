@@ -35,7 +35,7 @@ Hölder continuity, Lipschitz continuity
 variables {X Y Z : Type*}
 
 open filter set
-open_locale nnreal ennreal topological_space
+open_locale nnreal ennreal topology
 
 section emetric
 

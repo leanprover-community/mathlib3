@@ -3,14 +3,14 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import linear_algebra.special_linear_group
 import data.zmod.basic
-import group_theory.subgroup.pointwise
 import group_theory.group_action.conj_act
+import group_theory.subgroup.pointwise
+import linear_algebra.matrix.special_linear_group
 /-!
 # Congruence subgroups
 
-This defines congruence subgroups of `SL(2,ℤ)` such as `Γ(N)`, `Γ₀(N)` and `Γ₁(N)` for `N` a
+This defines congruence subgroups of `SL(2, ℤ)` such as `Γ(N)`, `Γ₀(N)` and `Γ₁(N)` for `N` a
 natural number.
 
 It also contains basic results about congruence subgroups.
@@ -35,7 +35,7 @@ lemma SL_reduction_mod_hom_val (N : ℕ) (γ : SL(2, ℤ)) : ∀ (i j : fin 2),
   ((SLMOD(N) γ) : (matrix (fin 2) (fin 2) (zmod N))) i j =
   (((↑ₘγ i j) : ℤ) : zmod N) := λ i j, rfl
 
-/--The full level `N` congruence subgroup of `SL(2,ℤ)` of matrices that reduce to the identity
+/--The full level `N` congruence subgroup of `SL(2, ℤ)` of matrices that reduce to the identity
 modulo `N`.-/
 def Gamma (N : ℕ) : subgroup SL(2, ℤ) := (SLMOD(N)).ker
 
@@ -79,7 +79,7 @@ begin
     simp [h] }
 end
 
-/--The congruence subgroup of `SL(2,ℤ)` of matrices whose lower left-hand entry reduces to zero
+/--The congruence subgroup of `SL(2, ℤ)` of matrices whose lower left-hand entry reduces to zero
 modulo `N`. -/
 def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
 { carrier := { g : SL(2, ℤ) | ((↑ₘg 1 0 : ℤ) : zmod N) = 0 },
@@ -147,7 +147,7 @@ begin
     exact ha.2.1,}
 end
 
-/--The congruence subgroup `Gamma1` of `SL(2,ℤ)` consisting of matrices whose bottom
+/--The congruence subgroup `Gamma1` of `SL(2, ℤ)` consisting of matrices whose bottom
 row is congruent to `(0,1)` modulo `N`. -/
 def Gamma1 (N : ℕ) : subgroup SL(2, ℤ) := subgroup.map
 (((Gamma0 N).subtype).comp (Gamma1' N).subtype) ⊤
@@ -185,7 +185,7 @@ end
 
 section congruence_subgroup
 
-/--A congruence subgroup is a subgroup of `SL(2,ℤ)` which contains some `Gamma N` for some
+/--A congruence subgroup is a subgroup of `SL(2, ℤ)` which contains some `Gamma N` for some
 `(N : ℕ+)`. -/
 def is_congruence_subgroup (Γ : subgroup SL(2, ℤ)) : Prop := ∃ (N : ℕ+), Gamma N ≤ Γ
 

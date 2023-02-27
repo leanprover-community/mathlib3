@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import order.atoms
+import order.atoms.finite
 import order.sup_indep
 
 /-!
 # Finite partitions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define finite partitions. A finpartition of `a : α` is a finite set of pairwise
 disjoint parts `parts : finset α` which does not contain `⊥` and whose supremum is `a`.

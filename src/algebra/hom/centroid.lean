@@ -9,6 +9,9 @@ import algebra.hom.group_instances
 /-!
 # Centroid homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `A` be a (non unital, non associative) algebra. The centroid of `A` is the set of linear maps
 `T` on `A` such that `T` commutes with left and right multiplication, that is to say, for all `a`
 and `b` in `A`,
@@ -114,6 +117,10 @@ protected def copy (f : centroid_hom α) (f' : α → α) (h : f' = f) :
   map_mul_left' := λ a b, by simp_rw [h, map_mul_left],
   map_mul_right' := λ a b, by simp_rw [h, map_mul_right],
   ..f.to_add_monoid_hom.copy f' $ by exact h }
+
+@[simp] lemma coe_copy (f : centroid_hom α) (f' : α → α) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : centroid_hom α) (f' : α → α) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

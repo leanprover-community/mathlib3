@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.suggest
 import ring_theory.principal_ideal_domain
-import ring_theory.polynomial
+import ring_theory.polynomial.basic
 
 open_locale polynomial
 /- Turn off trace messages so they don't pollute the test build: -/

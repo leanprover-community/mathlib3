@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.algebra_map
 import data.polynomial.inductions
 import data.polynomial.monic
 import ring_theory.multiplicity
@@ -430,6 +431,25 @@ end
 
 variable {R}
 
+lemma ker_eval_ring_hom (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
+by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
+
+/-- For a commutative ring $R$, evaluating a polynomial at an element $x \in R$ induces an
+isomorphism of $R$-algebras $R[X] / \langle X - x \rangle \cong R$. -/
+noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
+  (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
+(alg_equiv.restrict_scalars R $ ideal.quotient_equiv_alg_of_eq R
+  (by exact ker_eval_ring_hom x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $
+  ideal.quotient_ker_alg_equiv_of_right_inverse $ λ _, eval_C
+
+@[simp] lemma quotient_span_X_sub_C_alg_equiv_mk (x : R) (p : R[X]) :
+  quotient_span_X_sub_C_alg_equiv x (ideal.quotient.mk _ p) = p.eval x :=
+rfl
+
+@[simp] lemma quotient_span_X_sub_C_alg_equiv_symm_apply (x : R) (y : R) :
+  (quotient_span_X_sub_C_alg_equiv x).symm y = algebra_map R _ y :=
+rfl
+
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
 The algorithm is "compute `p %ₘ q` and compare to `0`".
@@ -465,31 +485,25 @@ by simp [multiplicity, root_multiplicity, part.dom];
 
 @[simp] lemma root_multiplicity_zero {x : R} : root_multiplicity x 0 = 0 := dif_pos rfl
 
+@[simp] lemma root_multiplicity_eq_zero_iff {p : R[X]} {x : R} :
+  root_multiplicity x p = 0 ↔ (is_root p x → p = 0) :=
+by simp only [root_multiplicity_eq_multiplicity, dite_eq_left_iff, part_enat.get_eq_iff_eq_coe,
+  nat.cast_zero, multiplicity.multiplicity_eq_zero, dvd_iff_is_root, not_imp_not]
+
 lemma root_multiplicity_eq_zero {p : R[X]} {x : R} (h : ¬ is_root p x) :
   root_multiplicity x p = 0 :=
-begin
-  rw root_multiplicity_eq_multiplicity,
-  split_ifs, { refl },
-  rw [← part_enat.coe_inj, part_enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd,
-    nat.cast_zero],
-  intro hdvd,
-  exact h (dvd_iff_is_root.mp hdvd)
-end
+root_multiplicity_eq_zero_iff.2 (λ h', (h h').elim)
+
+@[simp] lemma root_multiplicity_pos' {p : R[X]} {x : R} :
+  0 < root_multiplicity x p ↔ p ≠ 0 ∧ is_root p x :=
+by rw [pos_iff_ne_zero, ne.def, root_multiplicity_eq_zero_iff, not_imp, and.comm]
 
 lemma root_multiplicity_pos {p : R[X]} (hp : p ≠ 0) {x : R} :
   0 < root_multiplicity x p ↔ is_root p x :=
-begin
-  rw [← dvd_iff_is_root, root_multiplicity_eq_multiplicity, dif_neg hp,
-      ← part_enat.coe_lt_coe, part_enat.coe_get],
-  exact multiplicity.dvd_iff_multiplicity_pos
-end
+root_multiplicity_pos'.trans (and_iff_right hp)
 
 @[simp] lemma root_multiplicity_C (r a : R) : root_multiplicity a (C r) = 0 :=
-begin
-  rcases eq_or_ne r 0 with rfl|hr,
-  { simp },
-  { exact root_multiplicity_eq_zero (not_is_root_C _ _ hr) }
-end
+by simp only [root_multiplicity_eq_zero_iff, is_root, eval_C, C_eq_zero, imp_self]
 
 lemma pow_root_multiplicity_dvd (p : R[X]) (a : R) :
   (X - C a) ^ root_multiplicity a p ∣ p :=

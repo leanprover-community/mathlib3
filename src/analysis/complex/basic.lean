@@ -116,13 +116,6 @@ by rw [dist_comm, dist_conj_self]
 lemma nndist_self_conj (z : ℂ) : nndist z (conj z) = 2 * real.nnabs z.im :=
 by rw [nndist_comm, nndist_conj_self]
 
-protected lemma dist_inv_inv (z w : ℂ) (hz : z ≠ 0) (hw : w ≠ 0) :
-  dist z⁻¹ w⁻¹ = (dist z w) / (abs z * abs w) :=
-begin
-  rw [dist_eq_norm, inv_sub_inv hz hw, norm_div, dist_eq_norm', norm_mul],
-  refl,
-end
-
 @[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
 
 lemma norm_real (r : ℝ) : ‖(r : ℂ)‖ = ‖r‖ := abs_of_real _

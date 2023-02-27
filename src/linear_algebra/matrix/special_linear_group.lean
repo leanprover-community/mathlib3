@@ -232,14 +232,21 @@ begin
   refl,
 end
 
+lemma fin_two_induction (P : SL(2, R) → Prop)
+  (h : ∀ (a b c d : R) (hdet : a * d - b * c = 1), P ⟨!![a, b; c, d], by rwa [det_fin_two_of]⟩)
+  (g : SL(2, R)) : P g :=
+begin
+  obtain ⟨m, hm⟩ := g,
+  convert h (m 0 0) (m 0 1) (m 1 0) (m 1 1) (by rwa det_fin_two at hm),
+  ext i j, fin_cases i; fin_cases j; refl,
+end
+
 lemma fin_two_exists_eq_mk (g : SL(2, R)) :
   ∃ (a b c d : R) (h : a * d - b * c = 1),
     g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, R)) :=
 begin
-  obtain ⟨m, h⟩ := g,
-  refine ⟨m 0 0, m 0 1, m 1 0, m 1 1, _, _⟩,
-  { rwa m.det_fin_two at h, },
-  { ext i j, fin_cases i; fin_cases j; refl, },
+  refine fin_two_induction _ (λ a b c d hdet, _) g,
+  exact ⟨a, b, c, d, hdet, rfl⟩,
 end
 
 lemma fin_two_exists_eq_mk_of_apply_zero_one_eq_zero {R : Type*} [field R]

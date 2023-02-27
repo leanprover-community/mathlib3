@@ -72,8 +72,10 @@ theorem ae_strongly_measurable.coe_nnreal_real {α : Type*} [measurable_space α
   {f : α → nnreal} {μ : measure_theory.measure α} (hf : ae_strongly_measurable f μ) :
 ae_strongly_measurable (λ (x : α), (f x : real)) μ := nnreal.continuous_coe.comp_ae_strongly_measurable hf
 
---- remind me, why not `measure_theory.integral_integral` and tsum as integral? Not now...
-/-- THIS IS WHERE WE STOPPED ON 11/2/22 -/
+
+/--
+
+-/
 lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
@@ -176,6 +178,10 @@ variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   (μ : measure G)
   (Γ : subgroup G)
 
+--- move to `measure_theory.group.measure`?
+--- 2/27/23 better yet,
+--- replace use of this lemma by combination of: `measure_theory.subgroup.smul_invariant_measure`
+--- and `measure_theory.is_mul_right_invariant.to_smul_invariant_measure_op`!!
 /-- Given a subgroup `Γ` of `G` and a right invariant measure `μ` on `G`, the measure is also
   invariant under the action of `Γ` on `G` by **right** multiplication. -/
 @[to_additive "Given a subgroup `Γ` of an additive group `G` and a right invariant measure `μ` on
@@ -322,6 +328,7 @@ open_locale big_operators ennreal
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
 
+--- 2/27/23 Move to `group_theory.subgroup.mul_opposite`
 @[simp] lemma subgroup_mem_opposite_iff (γ : Gᵐᵒᵖ) : γ ∈ Γ.opposite ↔ mul_opposite.unop γ ∈ Γ :=
 by simp [subgroup.opposite]
 
@@ -366,7 +373,7 @@ end
 omit h𝓕
 local attribute [-instance] quotient.measurable_space
 
---- move to ` asdf `???
+--- 2/27/23 move to `topology.algebra.infinite_sum.basic` if possible?
 /-- Given a group `α` acting on a type `β`, and a function `f : β → γ`, we "automorphize" `f` to a
   function `β ⧸ α → γ` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
 @[to_additive]

@@ -972,6 +972,10 @@ begin
     simp [fs', hx, inf_set, simple_func.restrict_apply _ meas_inf_set_compl], },
 end
 
+theorem coe_nnreal_real {α : Type*} [measurable_space α]
+  {f : α → nnreal} (hf : strongly_measurable f) :
+strongly_measurable (λ (x : α), (f x : real)) := nnreal.continuous_coe.comp_strongly_measurable hf
+
 end strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/
@@ -1744,6 +1748,10 @@ begin
   filter_upwards [hg₂] with a ha,
   simp [ha],
 end
+
+theorem coe_nnreal_real {α : Type*} [measurable_space α]
+  {f : α → nnreal} {μ : measure_theory.measure α} (hf : ae_strongly_measurable f μ) :
+ae_strongly_measurable (λ (x : α), (f x : real)) μ := nnreal.continuous_coe.comp_ae_strongly_measurable hf
 
 end ae_strongly_measurable
 

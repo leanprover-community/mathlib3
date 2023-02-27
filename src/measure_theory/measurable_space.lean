@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.prod.tprod
 import group_theory.coset
 import logic.equiv.fin
+import logic.lemmas
 import measure_theory.measurable_space_def
 import order.filter.small_sets
 import order.liminf_limsup

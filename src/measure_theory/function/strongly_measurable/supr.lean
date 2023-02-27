@@ -16,38 +16,38 @@ functions, as well as, lemmas for their `tsum`s into `ennreal` and `nnreal`.
 open measure_theory filter topological_space function set measure_theory.measure
 open_locale ennreal topological_space measure_theory nnreal big_operators
 
-variables {α β ι : Type*} {ι' : Sort*} [measurable_space α] [topological_space β]
+variables {α β ι' : Type*} {ι : Sort*} [measurable_space α] [topological_space β]
 
 section strongly_measurable
 
 open measure_theory set filter topological_space
 open_locale filter topological_space
 
-lemma finset.strongly_measurable_sup' {ι α β : Type*} [measurable_space α] [topological_space β]
-  [semilattice_sup β] [has_continuous_sup β] {f : ι → α → β} {s : finset ι} (hs : s.nonempty)
+lemma finset.strongly_measurable_sup'
+  [semilattice_sup β] [has_continuous_sup β] {f : ι' → α → β} {s : finset ι'} (hs : s.nonempty)
   (hf : ∀ i ∈ s, strongly_measurable (f i)) : strongly_measurable (s.sup' hs f) :=
 finset.sup'_induction _ _ (λ _ h₁ _ h₂, h₁.sup h₂) hf
 
-lemma finset.strongly_measurable_sup'_pw {ι α β : Type*} [measurable_space α] [topological_space β]
-  [semilattice_sup β] [has_continuous_sup β] {f : ι → α → β} {s : finset ι} (hs : s.nonempty)
+lemma finset.strongly_measurable_sup'_pw
+  [semilattice_sup β] [has_continuous_sup β] {f : ι' → α → β} {s : finset ι'} (hs : s.nonempty)
   (hf : ∀ i ∈ s, strongly_measurable (f i)) : strongly_measurable (λ x, s.sup' hs (λ i, f i x)) :=
 by simpa only [← finset.sup'_apply] using finset.strongly_measurable_sup' hs hf
 
-lemma strongly_measurable.is_lub [countable ι'] [semilattice_sup β] [metrizable_space β]
-  [Sup_convergence_class β] [has_continuous_sup β] {f : ι' → α → β} {g : α → β}
+lemma strongly_measurable.is_lub [countable ι] [semilattice_sup β] [metrizable_space β]
+  [Sup_convergence_class β] [has_continuous_sup β] {f : ι → α → β} {g : α → β}
   (hf : ∀ i, strongly_measurable (f i)) (hg : ∀ x, is_lub (range $ λ i, f i x) (g x)) :
   strongly_measurable g :=
 begin
-  casesI is_empty_or_nonempty ι',
+  casesI is_empty_or_nonempty ι,
   { simp only [range_eq_empty, is_lub_empty_iff] at hg,
     exact strongly_measurable_const' (λ x y, (hg x _).antisymm (hg y _)) },
-  replace hg : ∀ (x : α), is_lub (range ((λ (i : ι'), f i x) ∘ @plift.down ι')) (g x),
+  replace hg : ∀ (x : α), is_lub (range ((λ (i : ι), f i x) ∘ @plift.down ι)) (g x),
   { intro x,
     dunfold set.range at ⊢ hg,
     simp_rw plift.exists,
     exact hg x, },
   have := λ x, tendsto_finset_sup'_is_lub (hg x),
-  letI := classical.dec_eq ι',
+  letI := classical.dec_eq ι,
   refine strongly_measurable_of_tendsto _ (λ s, _) (tendsto_pi_nhds.2 this),
   exact finset.strongly_measurable_sup'_pw _ (λ i _, hf _),
 end
@@ -69,13 +69,13 @@ lemma strongly_measurable_infi [complete_linear_order β]
   strongly_measurable (λ b, ⨅ i, f i b) :=
 strongly_measurable.is_glb hf $ λ b, is_glb_infi
 
-theorem strongly_measurable.ennreal_tsum [countable ι] {f : ι → α → ℝ≥0∞}
-  (h : ∀ (i : ι), strongly_measurable (f i)) :
-strongly_measurable (λ (x : α), ∑' (i : ι), f i x):=
+theorem strongly_measurable.ennreal_tsum [countable ι'] {f : ι' → α → ℝ≥0∞}
+  (h : ∀ (i : ι'), strongly_measurable (f i)) :
+strongly_measurable (λ (x : α), ∑' (i : ι'), f i x):=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply strongly_measurable_supr,
   exact λ s, s.strongly_measurable_sum (λ i _, h i) }
 
-lemma strongly_measurable.ennreal_tsum' [countable ι] {f : ι → α → ℝ≥0∞}
+lemma strongly_measurable.ennreal_tsum' [countable ι'] {f : ι' → α → ℝ≥0∞}
   (h : ∀ i, strongly_measurable (f i)) :
   strongly_measurable (∑' i, f i) :=
 begin
@@ -84,7 +84,7 @@ begin
   exact tsum_apply (pi.summable.2 (λ _, ennreal.summable)),
 end
 
-lemma strongly_measurable.nnreal_tsum [countable ι] {f : ι → α → ℝ≥0}
+lemma strongly_measurable.nnreal_tsum [countable ι'] {f : ι' → α → ℝ≥0}
   (h : ∀ i, strongly_measurable (f i)) :
   strongly_measurable (λ x, ∑' i, f i x) :=
 begin
@@ -104,7 +104,7 @@ open_locale classical
 private lemma ae_strongly_measurable.is_lub_of_nonempty {α : Type*} {δ : Type*}
   [topological_space α] [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α]
   [order_topology α] [metrizable_space α]
-  [topological_space.second_countable_topology α] {ι : Type*} {μ : measure_theory.measure δ}
+  [topological_space.second_countable_topology α] {ι : Sort*} {μ : measure_theory.measure δ}
   [countable ι] (hι : nonempty ι) {f : ι → δ → α} {g : δ → α}
   (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
   (hg : ∀ᵐ (b : δ) ∂μ, is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :

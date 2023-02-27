@@ -314,28 +314,6 @@ begin
     exact hg ⟨g1, this⟩ },
 end
 
-lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
-
-lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
-begin
-  induction n using int.induction_on with n h n h,
-  { rw [zpow_zero, coe_one, matrix.one_fin_two] },
-  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, matrix.mul_fin_two],
-    congrm !![_, _; _, _],
-    rw [mul_one, mul_one, add_comm] },
-  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, matrix.mul_fin_two],
-    congrm !![_, _; _, _]; ring },
-end
-
-@[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
-by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
-
-@[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
-by simpa using T_pow_mul_apply_one 1 g
-
-@[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
-by simpa using T_pow_mul_apply_one (-1) g
-
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 

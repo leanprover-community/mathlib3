@@ -147,18 +147,11 @@ lemma iso.inv_prefunctor_obj_injective (φ : iso U V) : φ.inv_prefunctor.obj.in
 @[ext]
 lemma iso.to_prefunctor_ext (φ ψ : iso U V) : φ.to_prefunctor = ψ.to_prefunctor → φ = ψ :=
 begin
-  rintro h,
-  apply iso.ext _ _ h,
-  fapply prefunctor.ext,
-  { rintro X,
-    apply ψ.to_equiv.injective,
-    change ψ.to_prefunctor.obj (φ.inv_prefunctor.obj X) =
-           ψ.to_prefunctor.obj (ψ.inv_prefunctor.obj X),
+  refine λ h, iso.ext _ _ h (prefunctor.ext (λ X, ψ.to_equiv.injective _)
+                                            (λ X Y f, ψ.to_equiv_hom.injective _)),
+  { dsimp,
     rw [ψ.obj_inv_obj_eq X, ←h, φ.obj_inv_obj_eq X], },
-  { rintro X Y f,
-    apply ψ.to_equiv_hom.injective,
-    change ψ.to_prefunctor.map (φ.inv_prefunctor.map f) =
-           ψ.to_prefunctor.map ((ψ.inv_prefunctor.map f).cast _ _),
+  { change ψ.map (φ.inv_prefunctor.map f) = ψ.map ((ψ.inv_prefunctor.map f).cast _ _),
     rw [prefunctor.map_cast, ψ.map_inv_map_eq_cast, hom.cast_cast, ←prefunctor.map_cast_eq_of_eq h,
         φ.map_inv_map_eq_cast, hom.cast_cast], },
 end

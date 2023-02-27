@@ -181,7 +181,7 @@ theorem uniformity_basis_edist :
   (λ r hr p hp, ⟨min r p, lt_min hr hp,
     λ x hx, lt_of_lt_of_le hx (min_le_left _ _),
     λ x hx, lt_of_lt_of_le hx (min_le_right _ _)⟩)
-  ⟨1, ennreal.zero_lt_one⟩
+  ⟨1, zero_lt_one⟩
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
@@ -645,7 +645,7 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
 is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top,
-  (ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }).subset_compl_right⟩
+  (ball_disjoint $ by { rw top_add, exact le_of_not_lt hy }).subset_compl_right⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 is_open_ball.mem_nhds (mem_ball_self ε0)

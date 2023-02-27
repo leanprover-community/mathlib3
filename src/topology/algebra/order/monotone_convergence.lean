@@ -111,13 +111,22 @@ end is_glb
 
 section lattice
 
-/-- This lemma wouldn't make sense for `ι` of type `Prop` because there is no `finset ι` in that
-  case.  -/
 lemma tendsto_finset_sup'_is_lub {ι α : Type*} [semilattice_sup α] [topological_space α]
   [Sup_convergence_class α] {f : ι → α} {a : α} (ha : is_lub (range f) a) :
   tendsto (λ s : {s : finset ι // s.nonempty}, s.1.sup' s.2 f) at_top (𝓝 a) :=
 tendsto_at_top_is_lub (λ s₁ s₂ h, finset.sup'_le _ _ $ λ i hi, finset.le_sup' _ $ h hi)
   ha.finset_sup'
+
+/-- A version of `tendsto_finset_sup'_is_lub` for `ι : Sort`. -/
+lemma tendsto_finset_sup'_is_lub' {ι : Sort*} {α : Type*} [semilattice_sup α] [topological_space α]
+  [Sup_convergence_class α] {f : ι → α} {a : α} (ha : is_lub (range f) a) :
+  tendsto (λ s : {s : finset (plift ι) // s.nonempty}, s.1.sup' s.2 (λ i, f i.down)) at_top (𝓝 a) :=
+tendsto_at_top_is_lub (λ s₁ s₂ h, finset.sup'_le _ _ $ λ i hi, finset.le_sup' _ $ h hi) $
+  is_lub.finset_sup' begin
+    convert ha using 1,
+    show range (λ i : plift _, f i.down) = range ((λ i : plift ι, f i.down) ∘ @plift.up ι),
+    rw [range_comp, ←image_univ, range_iff_surjective.mpr plift.up_surjective],
+  end
 
 end lattice
 

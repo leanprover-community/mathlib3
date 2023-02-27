@@ -330,7 +330,7 @@ lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : ↑ₘ
                      ∘ ((+ᵥ) v : ℍ → ℍ) ∘ ((•) u : ℍ → ℍ) :=
 begin
   have h_denom := denom_ne_zero g,
-  obtain ⟨a, b, c, d, h, rfl⟩ := g.fin_two_exists_eq_mk,
+  induction g using matrix.special_linear_group.fin_two_induction with a b c d h_det,
   replace hc : c ≠ 0, { simpa using hc, },
   refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
   ext1 ⟨z, hz⟩, ext1,

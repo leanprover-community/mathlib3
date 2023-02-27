@@ -241,27 +241,16 @@ begin
   ext i j, fin_cases i; fin_cases j; refl,
 end
 
-lemma fin_two_exists_eq_mk (g : SL(2, R)) :
-  ∃ (a b c d : R) (h : a * d - b * c = 1),
-    g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, R)) :=
-begin
-  refine fin_two_induction _ (λ a b c d hdet, _) g,
-  exact ⟨a, b, c, d, hdet, rfl⟩,
-end
-
 lemma fin_two_exists_eq_mk_of_apply_zero_one_eq_zero {R : Type*} [field R]
   (g : SL(2, R)) (hg : (g : matrix (fin 2) (fin 2) R) 1 0 = 0) :
   ∃ (a b : R) (h : a ≠ 0),
     g = (⟨!![a, b; 0, a⁻¹], by simp [h]⟩ : SL(2, R)) :=
 begin
-  obtain ⟨m, h⟩ := g,
-  replace hg : m 1 0 = 0 := by simpa using hg,
-  rw [matrix.det_fin_two, hg, mul_zero, sub_zero] at h,
-  have hd : m 1 1 = (m 0 0)⁻¹, { exact eq_inv_of_mul_eq_one_right h, },
-  refine ⟨m 0 0, m 0 1, λ hc, _, _⟩,
-  { rw [hc, zero_mul] at h,
-    exact zero_ne_one h, },
-  { ext i j, fin_cases i; fin_cases j; [trivial, trivial, assumption, assumption], },
+  induction g using matrix.special_linear_group.fin_two_induction with a b c d h_det,
+  replace hg : c = 0 := by simpa using hg,
+  have had : a * d = 1 := by rwa [hg, mul_zero, sub_zero] at h_det,
+  refine ⟨a, b, left_ne_zero_of_mul_eq_one had, _⟩,
+  simp_rw [eq_inv_of_mul_eq_one_right had, hg],
 end
 
 end special_cases

@@ -121,37 +121,23 @@ lemma map_frobenius_poly.key₁ (n j : ℕ) (hj : j < p ^ (n)) :
   p ^ (n - v p ⟨j + 1, j.succ_pos⟩) ∣ (p ^ n).choose (j + 1) :=
 begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
-  { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
-    exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
-  rw [← part_enat.coe_get aux, part_enat.coe_le_coe, tsub_le_iff_left,
-      ← part_enat.coe_le_coe, nat.cast_add, pnat_multiplicity, part_enat.coe_get,
-      part_enat.coe_get, add_comm],
-  exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
+  rw [hp.out.multiplicity_choose_prime_pow hj j.succ_ne_zero],
+  refl,
 end
 
 /-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
-lemma map_frobenius_poly.key₂ {n i j : ℕ} (hi : i < n) (hj : j < p ^ (n - i)) :
-  j - (v p ⟨j + 1, j.succ_pos⟩) + n =
-    i + j + (n - i - v p ⟨j + 1, j.succ_pos⟩) :=
+lemma map_frobenius_poly.key₂ {n i j : ℕ} (hi : i ≤ n) (hj : j < p ^ (n - i)) :
+  j - v p ⟨j + 1, j.succ_pos⟩ + n = i + j + (n - i - v p ⟨j + 1, j.succ_pos⟩) :=
 begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
-  suffices : m ≤ n - i ∧ m ≤ j,
-  { rw [tsub_add_eq_add_tsub this.2, add_comm i j,
-      add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
-      tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi.le).mp this.1))] },
-  split,
-  { rw [← h, ← part_enat.coe_le_coe, pnat_multiplicity, part_enat.coe_get,
-        ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
-    apply le_add_left, refl },
-  { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
-    { rw [← h], exact multiplicity.pow_multiplicity_dvd _, },
-    obtain ⟨c, rfl⟩ : ∃ k : ℕ, c = k + 1,
-    { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa only using hc },
-    rw [mul_add, mul_one] at hc,
-    apply nat.le_of_lt_succ,
-    calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
-       ... ≤ j + 1 : by { rw ← tsub_eq_of_eq_add_rev hc, apply nat.sub_le } }
+  rsuffices ⟨h₁, h₂⟩ : m ≤ n - i ∧ m ≤ j,
+  { rw [tsub_add_eq_add_tsub h₂, add_comm i j,
+      add_tsub_assoc_of_le (h₁.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
+      tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi).mp h₁))] },
+  have hle : p ^ m ≤ j + 1,
+    from h ▸ nat.le_of_dvd j.succ_pos (multiplicity.pow_multiplicity_dvd _),
+  exact ⟨(pow_le_pow_iff hp.1.one_lt).1 (hle.trans hj),
+    nat.le_of_lt_succ ((nat.lt_pow_self hp.1.one_lt m).trans_le hle)⟩
 end
 
 lemma map_frobenius_poly (n : ℕ) :
@@ -200,7 +186,7 @@ begin
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
     { intro, apply pow_ne_zero, exact_mod_cast hp.1.ne_zero },
     simpa [aux, -one_div] with field_simps using this.symm },
-  rw [mul_comm _ (p : ℚ), mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p hi hj],
+  rw [mul_comm _ (p : ℚ), mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p hi.le hj],
   ring_exp
 end
 

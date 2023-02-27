@@ -10,7 +10,6 @@ import algebra.order.monoid.with_top
 # Lemma about subtraction in ordered monoids with a top element adjoined.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/932
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -33,6 +32,11 @@ instance : has_sub (with_top α) :=
 @[simp, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
 @[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
 @[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
+
+@[simp] theorem sub_eq_top_iff : ∀ {a b : with_top α}, a - b = ⊤ ↔ a = ⊤ ∧ b ≠ ⊤
+| _ ⊤ := by simp
+| ⊤ (b : α) := by simp
+| (a : α) (b : α) := by simp only [← coe_sub, coe_ne_top, false_and]
 
 lemma map_sub [has_sub β] [has_zero β] {f : α → β} (h : ∀ x y, f (x - y) = f x - f y)
   (h₀ : f 0 = 0) :

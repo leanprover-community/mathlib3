@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Properties of the module `α →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
@@ -953,14 +956,16 @@ variables (R)
 Pick some representation of `x : span R w` as a linear combination in `w`,
 using the axiom of choice.
 -/
-def span.repr (w : set M) (x : span R w) : w →₀ R :=
+@[irreducible] def span.repr (w : set M) (x : span R w) : w →₀ R :=
 ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
 
 @[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
   finsupp.total w M R coe (span.repr R w x) = x :=
-((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+begin
+  rw span.repr,
+  exact ((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+end
 
-attribute [irreducible] span.repr
 
 end
 

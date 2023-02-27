@@ -8,6 +8,9 @@ import order.filter.cofinite
 /-!
 # Computational realization of filters (experimental)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides infrastructure to compute with filters.
 
 ## Main declarations

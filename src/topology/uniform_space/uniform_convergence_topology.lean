@@ -125,7 +125,7 @@ uniform convergence
 -/
 
 noncomputable theory
-open_locale topological_space classical uniformity filter
+open_locale topology classical uniformity filter
 
 open set filter topological_space
 
@@ -322,9 +322,8 @@ begin
   -- This follows directly from the fact that the upper adjoint in a Galois connection maps
   -- infimas to infimas.
   ext : 1,
-  change uniform_fun.filter α γ (@uniformity _ (⨅ i, u i)) =
-    @uniformity _ (⨅ i, (𝒰(α, γ, u i))),
-  rw [infi_uniformity', infi_uniformity'],
+  change uniform_fun.filter α γ (𝓤[⨅ i, u i]) = 𝓤[⨅ i, 𝒰(α, γ, u i)],
+  rw [infi_uniformity, infi_uniformity],
   exact (uniform_fun.gc α γ).u_infi
 end
 
@@ -393,7 +392,7 @@ begin
   split,
   replace hf : (𝓤 β).comap (prod.map f f) = _ := hf.comap_uniformity,
   change comap (prod.map (of_fun ∘ (∘) f ∘ to_fun) (of_fun ∘ (∘) f ∘ to_fun)) _ = _,
-  rw [← uniformity_comap rfl] at ⊢ hf,
+  rw [← uniformity_comap] at ⊢ hf,
   congr,
   rw [← uniform_space_eq hf, uniform_fun.comap_eq],
   refl
@@ -479,7 +478,7 @@ begin
   split,
   change comap (prod.map (equiv.arrow_prod_equiv_prod_arrow _ _ _)
     (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
-  rw ← uniformity_comap rfl,
+  rw ← uniformity_comap,
   congr,
   rw [prod.uniform_space, prod.uniform_space, uniform_space.comap_inf, uniform_fun.inf_eq],
   congr;
@@ -504,7 +503,7 @@ protected def uniform_equiv_Pi_comm : uniform_equiv (α →ᵤ Π i, δ i) (Π i
 begin
   split,
   change comap (prod.map function.swap function.swap) _ = _,
-  rw ← uniformity_comap rfl,
+  rw ← uniformity_comap,
   congr,
   rw [Pi.uniform_space, uniform_space.of_core_eq_to_core, Pi.uniform_space,
       uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_fun.infi_eq],
@@ -744,7 +743,7 @@ protected lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι �
   (@uniformity (α →ᵤ[𝔖] β) ((uniform_fun.uniform_space S β).comap S.restrict)).has_basis
   p (λ i, uniform_on_fun.gen 𝔖 S (s i)) :=
 begin
-  simp_rw [uniform_on_fun.gen_eq_preimage_restrict, uniformity_comap rfl],
+  simp_rw [uniform_on_fun.gen_eq_preimage_restrict, uniformity_comap],
   exact (uniform_fun.has_basis_uniformity_of_basis S β hb).comap _
 end
 
@@ -903,7 +902,7 @@ begin
   split,
   replace hf : (𝓤 β).comap (prod.map f f) = _ := hf.comap_uniformity,
   change comap (prod.map (of_fun 𝔖 ∘ (∘) f ∘ to_fun 𝔖) (of_fun 𝔖 ∘ (∘) f ∘ to_fun 𝔖)) _ = _,
-  rw [← uniformity_comap rfl] at ⊢ hf,
+  rw [← uniformity_comap] at ⊢ hf,
   congr,
   rw [← uniform_space_eq hf, uniform_on_fun.comap_eq],
   refl
@@ -1019,17 +1018,13 @@ protected def uniform_equiv_prod_arrow [uniform_space γ] :
 -- that some square commutes.
 -- We could also deduce this from `uniform_convergence.uniform_equiv_prod_arrow`, but it turns out
 -- to be more annoying.
-(equiv.arrow_prod_equiv_prod_arrow _ _ _).to_uniform_equiv_of_uniform_inducing
+((uniform_on_fun.of_fun 𝔖).symm.trans $ (equiv.arrow_prod_equiv_prod_arrow _ _ _).trans $
+  (uniform_on_fun.of_fun 𝔖).prod_congr (uniform_on_fun.of_fun 𝔖))
+  .to_uniform_equiv_of_uniform_inducing
 begin
   split,
-  change comap (prod.map (equiv.arrow_prod_equiv_prod_arrow _ _ _)
-    (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
-  rw ← uniformity_comap rfl,
-  congr,
-  rw [prod.uniform_space, prod.uniform_space, uniform_space.comap_inf,
-      uniform_on_fun.inf_eq],
-  congr;
-  rw [← uniform_space.comap_comap, uniform_on_fun.comap_eq];
+  rw [uniformity_prod, comap_inf, comap_comap, comap_comap, uniform_on_fun.inf_eq, inf_uniformity,
+    uniform_on_fun.comap_eq, uniform_on_fun.comap_eq, uniformity_comap, uniformity_comap],
   refl -- the relevant diagram commutes by definition
 end
 
@@ -1050,7 +1045,7 @@ protected def uniform_equiv_Pi_comm :
 begin
   split,
   change comap (prod.map function.swap function.swap) _ = _,
-  rw ← uniformity_comap rfl,
+  rw ← uniformity_comap,
   congr,
   rw [Pi.uniform_space, uniform_space.of_core_eq_to_core, Pi.uniform_space,
       uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_on_fun.infi_eq],

@@ -8,6 +8,9 @@ import order.conditionally_complete_lattice.basic
 /-!
 # Extension of a monotone function from a set to the whole space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that if a function is monotone and is bounded on a set `s`, then it admits a
 monotone extension to the whole space.
 -/

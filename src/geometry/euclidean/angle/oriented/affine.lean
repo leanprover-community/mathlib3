@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.side
-import geometry.euclidean.angle.oriented.basic
+import geometry.euclidean.angle.oriented.rotation
 import geometry.euclidean.angle.unoriented.affine
 
 /-!

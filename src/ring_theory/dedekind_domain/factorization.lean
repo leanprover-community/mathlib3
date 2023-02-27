@@ -89,7 +89,7 @@ lemma finite_mul_support_coe {I : ideal R} (hI : I ≠ 0) :
 begin
   rw mul_support,
   simp_rw [ne.def, zpow_coe_nat, ← fractional_ideal.coe_ideal_pow,
-    fractional_ideal.coe_ideal_eq_one_iff],
+    fractional_ideal.coe_ideal_eq_one],
   exact finite_mul_support hI,
 end
 

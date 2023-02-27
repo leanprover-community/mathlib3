@@ -21,6 +21,8 @@ we define the problem as a predicate, and then prove a particular number is the 
 of a set satisfying it.
 -/
 
+namespace imo1962_q1
+
 open nat
 
 def problem_predicate (n : ℕ) : Prop :=
@@ -153,6 +155,10 @@ begin
       norm_num at h5,
       exact h5.ge, }, },
 end
+
+end imo1962_q1
+
+open imo1962_q1
 
 theorem imo1962_q1 : is_least {n | problem_predicate n} 153846 :=
 ⟨satisfied_by_153846, no_smaller_solutions⟩

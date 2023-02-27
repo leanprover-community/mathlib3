@@ -10,6 +10,9 @@ import algebra.parity
 /-!
 # Results about powers in fields or division rings.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file exists to ensure we can define `field` with minimal imports,
 so contains some lemmas about powers of elements which need imports
 beyond those needed for the basic definition.

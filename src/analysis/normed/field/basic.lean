@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.subalgebra.basic
-import analysis.normed.group.infinite_sum
-import topology.algebra.module.basic
+import analysis.normed.group.basic
 import topology.instances.ennreal
-import topology.instances.rat
 
 /-!
 # Normed fields
@@ -19,7 +17,7 @@ definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 /-- A non-unital seminormed ring is a not-necessarily-unital ring
 endowed with a seminorm which satisfies the inequality `‖x y‖ ≤ ‖x‖ ‖y‖`. -/
@@ -142,6 +140,10 @@ instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [finty
   norm_one_class (Π i, α i) :=
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
+instance mul_opposite.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+  norm_one_class αᵐᵒᵖ :=
+⟨@norm_one α _ _ _⟩
+
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 
@@ -212,6 +214,11 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
     ... ≤ finset.univ.sup (λ i, ‖x i‖₊) * finset.univ.sup (λ i, ‖y i‖₊) :
             finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
   ..pi.seminormed_add_comm_group }
+
+instance mul_opposite.non_unital_semi_normed_ring : non_unital_semi_normed_ring αᵐᵒᵖ :=
+{ norm_mul := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y,
+    (norm_mul_le y x).trans_eq (mul_comm _ _),
+  ..mul_opposite.seminormed_add_comm_group }
 
 end non_unital_semi_normed_ring
 
@@ -328,6 +335,10 @@ instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
 
+instance mul_opposite.semi_normed_ring : semi_normed_ring αᵐᵒᵖ :=
+{ ..mul_opposite.non_unital_semi_normed_ring,
+  ..mul_opposite.seminormed_add_comm_group }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -350,6 +361,10 @@ instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_u
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.non_unital_normed_ring : non_unital_normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end non_unital_normed_ring
 
@@ -377,6 +392,10 @@ instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π 
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.normed_ring : normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end normed_ring
 
@@ -413,6 +432,12 @@ normed_division_ring.norm_mul' a b
 instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (one_ne_zero' α)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
+
+instance is_absolute_value_norm : is_absolute_value (norm : α → ℝ) :=
+{ abv_nonneg := norm_nonneg,
+  abv_eq_zero := λ _, norm_eq_zero,
+  abv_add := norm_add_le,
+  abv_mul := norm_mul }
 
 @[simp] lemma nnnorm_mul (a b : α) : ‖a * b‖₊ = ‖a‖₊ * ‖b‖₊ :=
 nnreal.eq $ norm_mul a b
@@ -479,26 +504,26 @@ begin
     ... ≤ ‖r - e‖ / ‖r‖ / ε :
       div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  refine (((continuous_const.sub continuous_id).norm.div_const _).div_const _).tendsto' _ _ _,
   simp,
+end
+
+/-- A normed division ring is a topological division ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_topological_division_ring : topological_division_ring α :=
+{ }
+
+lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+  (h : x ^ (k : ℕ) = 1) :
+  ‖φ x‖ = 1 :=
+begin
+  rw [← pow_left_inj, ← norm_pow, ← map_pow, h, map_one, norm_one, one_pow],
+  exacts [norm_nonneg _, zero_le_one, k.pos],
 end
 
 lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
   ‖x‖ = 1 :=
-begin
-  rw ( _ :  ‖x‖ = 1 ↔ ‖x‖₊ = 1),
-  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
-  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
-  { exact subtype.mk_eq_mk.symm, },
-end
-
-lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
-  (h : x ^ (k : ℕ) = 1) :
-  ‖φ x‖ = 1 :=
-begin
-  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
-  exact norm_one_of_pow_eq_one this,
-end
+norm_map_one_of_pow_eq_one (monoid_hom.id α) h
 
 end normed_division_ring
 
@@ -639,14 +664,6 @@ by simp [real.to_nnreal_of_nonneg, nnnorm, norm_of_nonneg, hx]
 lemma nnnorm_mul_to_nnreal (x : ℝ) {y : ℝ} (hy : 0 ≤ y) : ‖x‖₊ * y.to_nnreal = ‖x * y‖₊ :=
 by simp [real.to_nnreal_of_nonneg, nnnorm, norm_of_nonneg, hy]
 
-/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
-This is a particular case of `module.punctured_nhds_ne_bot`. -/
-instance punctured_nhds_module_ne_bot
-  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
-  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
-  ne_bot (𝓝[≠] x) :=
-module.punctured_nhds_ne_bot ℝ E x
-
 end real
 
 namespace nnreal
@@ -684,199 +701,20 @@ lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
 instance : normed_comm_ring ℤ :=
-{ norm := λ n, ‖(n : ℝ)‖,
-  norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
-  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
-  mul_comm := mul_comm }
-
-@[norm_cast] lemma int.norm_cast_real (m : ℤ) : ‖(m : ℝ)‖ = ‖m‖ := rfl
-
-lemma int.norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
-
-lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
-nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
-               = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
-           ... = |n|           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
-           ... = ‖n‖              : rfl
-
-lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ‖z‖₊ ≤ c :=
-begin
-  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
-  congr',
-  exact nnreal.coe_nat_abs z,
-end
+{ norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
+  mul_comm := mul_comm,
+  .. int.normed_add_comm_group }
 
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 
 instance : normed_field ℚ :=
-{ norm := λ r, ‖(r : ℝ)‖,
-  norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
-  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+{ norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
+  .. rat.normed_add_comm_group }
 
 instance : densely_normed_field ℚ :=
 { lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
     ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
-
-@[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ‖(r : ℝ)‖ = ‖r‖ := rfl
-
-@[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ‖(m : ℚ)‖ = ‖m‖ :=
-by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
-
--- Now that we've installed the norm on `ℤ`,
--- we can state some lemmas about `nsmul` and `zsmul`.
-section
-variables [seminormed_add_comm_group α]
-
-lemma norm_nsmul_le (n : ℕ) (a : α) : ‖n • a‖ ≤ n * ‖a‖ :=
-begin
-  induction n with n ih,
-  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
-  simp only [nat.succ_eq_add_one, add_smul, add_mul, one_mul, nat.cast_add,
-    nat.cast_one, one_nsmul],
-  exact norm_add_le_of_le ih le_rfl
-end
-
-lemma norm_zsmul_le (n : ℤ) (a : α) : ‖n • a‖ ≤ ‖n‖ * ‖a‖ :=
-begin
-  induction n with n n,
-  { simp only [int.of_nat_eq_coe, coe_nat_zsmul],
-    convert norm_nsmul_le n a,
-    exact nat.abs_cast n },
-  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, coe_nat_zsmul],
-    convert norm_nsmul_le n.succ a,
-    exact nat.abs_cast n.succ, }
-end
-
-lemma nnnorm_nsmul_le (n : ℕ) (a : α) : ‖n • a‖₊ ≤ n * ‖a‖₊ :=
-by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
-  using norm_nsmul_le n a
-
-lemma nnnorm_zsmul_le (n : ℤ) (a : α) : ‖n • a‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
-by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_zsmul_le n a
-
-end
-
-section cauchy_product
-
-/-! ## Multiplying two infinite sums in a normed ring
-
-In this section, we prove various results about `(∑' x : ι, f x) * (∑' y : ι', g y)` in a normed
-ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `tsum_mul_tsum`),
-but in a normed ring we get summability results which aren't true in general.
-
-We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
-`β = γ = ℕ` to prove the Cauchy product formula
-(see `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`).
-
-### Arbitrary index types
--/
-
-variables {ι' : Type*} [normed_ring α]
-
-open finset
-open_locale classical
-
-lemma summable.mul_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
-  (hf : summable f) (hg : summable g) (hf' : 0 ≤ f) (hg' : 0 ≤ g) :
-  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
-let ⟨s, hf⟩ := hf in
-let ⟨t, hg⟩ := hg in
-suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
-  from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
-assume u,
-calc  ∑ x in u, f x.1 * g x.2
-    ≤ ∑ x in u.image prod.fst ×ˢ u.image prod.snd, f x.1 * g x.2 :
-      sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
-... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
-... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
-      sum_congr rfl (λ x _, mul_sum.symm)
-... ≤ ∑ x in u.image prod.fst, f x * t :
-      sum_le_sum
-        (λ x _, mul_le_mul_of_nonneg_left (sum_le_has_sum _ (λ _ _, hg' _) hg) (hf' _))
-... = (∑ x in u.image prod.fst, f x) * t : sum_mul.symm
-... ≤ s * t :
-      mul_le_mul_of_nonneg_right (sum_le_has_sum _ (λ _ _, hf' _) hf) (hg.nonneg $ λ _, hg' _)
-
-lemma summable.mul_norm {f : ι → α} {g : ι' → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  summable (λ (x : ι × ι'), ‖f x.1 * g x.2‖) :=
-summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
-  (hf.mul_of_nonneg hg (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x) : _)
-
-lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
-summable_of_summable_norm (hf.mul_norm hg)
-
-/-- Product of two infinites sums indexed by arbitrary types.
-    See also `tsum_mul_tsum` if `f` and `g` are *not* absolutely summable. -/
-lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
-tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
-  (summable_mul_of_summable_norm hf hg)
-
-/-! ### `ℕ`-indexed families (Cauchy product)
-
-We prove two versions of the Cauchy product formula. The first one is
-`tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`, where the `n`-th term is a sum over
-`finset.range (n+1)` involving `nat` substraction.
-In order to avoid `nat` substraction, we also provide
-`tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`,
-where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
-`finset` `finset.nat.antidiagonal n`. -/
-
-section nat
-
-open finset.nat
-
-lemma summable_norm_sum_mul_antidiagonal_of_summable_norm {f g : ℕ → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  summable (λ n, ‖∑ kl in antidiagonal n, f kl.1 * g kl.2‖) :=
-begin
-  have := summable_sum_mul_antidiagonal_of_summable_mul
-    (summable.mul_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
-  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
-  intros n,
-  calc  ‖∑ kl in antidiagonal n, f kl.1 * g kl.2‖
-      ≤ ∑ kl in antidiagonal n, ‖f kl.1 * g kl.2‖ : norm_sum_le _ _
-  ... ≤ ∑ kl in antidiagonal n, ‖f kl.1‖ * ‖g kl.2‖ : sum_le_sum (λ i _, norm_mul_le _ _)
-end
-
-/-- The Cauchy product formula for the product of two infinite sums indexed by `ℕ`,
-    expressed by summing on `finset.nat.antidiagonal`.
-    See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal` if `f` and `g` are
-    *not* absolutely summable. -/
-lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm [complete_space α] {f g : ℕ → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ kl in antidiagonal n, f kl.1 * g kl.2 :=
-tsum_mul_tsum_eq_tsum_sum_antidiagonal (summable_of_summable_norm hf) (summable_of_summable_norm hg)
-  (summable_mul_of_summable_norm hf hg)
-
-lemma summable_norm_sum_mul_range_of_summable_norm {f g : ℕ → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  summable (λ n, ‖∑ k in range (n+1), f k * g (n - k)‖) :=
-begin
-  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
-  exact summable_norm_sum_mul_antidiagonal_of_summable_norm hf hg
-end
-
-/-- The Cauchy product formula for the product of two infinite sums indexed by `ℕ`,
-    expressed by summing on `finset.range`.
-    See also `tsum_mul_tsum_eq_tsum_sum_range` if `f` and `g` are
-    *not* absolutely summable. -/
-lemma tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm [complete_space α] {f g : ℕ → α}
-  (hf : summable (λ x, ‖f x‖)) (hg : summable (λ x, ‖g x‖)) :
-  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in range (n+1), f k * g (n - k) :=
-begin
-  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
-  exact tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm hf hg
-end
-
-end nat
-
-end cauchy_product
 
 section ring_hom_isometric
 

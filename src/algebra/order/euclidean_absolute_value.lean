@@ -9,6 +9,9 @@ import algebra.euclidean_domain.instances
 /-!
 # Euclidean absolute values
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a predicate `absolute_value.is_euclidean abv` stating the
 absolute value is compatible with the Euclidean domain structure on its domain.
 

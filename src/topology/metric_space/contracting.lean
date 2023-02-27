@@ -27,7 +27,7 @@ of convergence, and some properties of the map sending a contracting map to its 
 contracting map, fixed point, Banach fixed point theorem
 -/
 
-open_locale nnreal topological_space classical ennreal
+open_locale nnreal topology classical ennreal
 open filter function
 
 variables {α : Type*}

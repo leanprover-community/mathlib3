@@ -27,7 +27,7 @@ This files introduces:
 * `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
-open_locale classical nnreal ennreal topological_space
+open_locale classical nnreal ennreal topology
 universes u v w
 
 open classical set function topological_space filter
@@ -167,7 +167,7 @@ by simp only [inf_edist, infi_image, hΦ.edist_eq]
 lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
   ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ monotone F :=
 begin
-  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
+  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between zero_lt_one,
   let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
   have F_subset : ∀ n, F n ⊆ U,
   { assume n x hx,
@@ -178,7 +178,7 @@ begin
   show monotone F,
   { assume m n hmn x hx,
     simp only [mem_Ici, mem_preimage] at hx ⊢,
-    apply le_trans (ennreal.pow_le_pow_of_le_one a_lt_one.le hmn) hx },
+    apply le_trans (pow_le_pow_of_le_one' a_lt_one.le hmn) hx },
   show (⋃ n, F n) = U,
   { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
     have : ¬(x ∈ Uᶜ), by simpa using hx,
@@ -921,6 +921,9 @@ end
   thickening δ ({x} : set X) = ball x δ :=
 by { ext, simp [mem_thickening_iff] }
 
+lemma ball_subset_thickening {x : X} {E : set X} (hx : x ∈ E) (δ : ℝ) : ball x δ ⊆ thickening δ E :=
+subset.trans (by simp) (thickening_subset_of_subset δ $ singleton_subset_iff.mpr hx)
+
 /-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a metric space equals the
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
@@ -1108,7 +1111,7 @@ begin
     add_le_add hyy'.le $ edist_le_diam_of_mem hy' hx').trans_eq _),
   -- Now we're done, but `ring` won't do it because we're on `ennreal` :(
   rw [←add_assoc, ←two_mul, mul_add,
-    ennreal.mul_div_cancel' ennreal.two_ne_zero ennreal.two_ne_top],
+    ennreal.mul_div_cancel' two_ne_zero ennreal.two_ne_top],
   abel,
 end
 
@@ -1120,9 +1123,10 @@ lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (h�
 begin
   by_cases hs : bounded (cthickening ε s),
   { replace hs := hs.mono (self_subset_cthickening _),
-    have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
+    lift ε to ℝ≥0 using hε,
+    have : (2 : ℝ≥0∞) * ε ≠ ⊤ := by simp [ennreal.mul_eq_top],
     refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
-      ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
+      ediam_cthickening_le ε).trans_eq _,
     simp [ennreal.to_real_add hs.ediam_ne_top this, diam] },
   { rw diam_eq_zero_of_unbounded hs,
     positivity }
@@ -1163,7 +1167,7 @@ begin
   refine (h x hx y hy).not_le _,
   calc edist x y ≤ edist z x + edist z y : edist_triangle_left _ _ _
   ... ≤ ↑(r / 2) + ↑(r / 2) : add_le_add hzx.le hzy.le
-  ... = r : by rw [← ennreal.coe_add, nnreal.add_halves]
+  ... = r : by rw [← ennreal.coe_add, add_halves]
 end
 
 lemma _root_.disjoint.exists_cthickenings (hst : disjoint s t) (hs : is_compact s)

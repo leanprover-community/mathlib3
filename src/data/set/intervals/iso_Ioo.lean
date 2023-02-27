@@ -9,6 +9,9 @@ import tactic.field_simp
 /-!
 # Order isomorphism between a linear ordered field and `(-1, 1)`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide an order isomorphism `order_iso_Ioo_neg_one_one` between the open interval
 `(-1, 1)` in a linear ordered field and the whole field.
 -/

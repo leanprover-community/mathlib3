@@ -35,13 +35,13 @@ def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0∞ // has_sum f 1 }
 
 namespace pmf
 
-instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0∞) := ⟨λ p a, p.1 a⟩
+instance pmf.fun_like : fun_like (pmf α) α (λ p, ℝ≥0∞) :=
+{ coe := λ p a, p.1 a,
+  coe_injective' := λ p q h, subtype.eq h }
 
-@[ext] protected lemma ext : ∀ {p q : pmf α}, (∀ a, p a = q a) → p = q
-| ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
+@[ext] protected lemma ext {p q : pmf α} (h : ∀ x, p x = q x) : p = q := fun_like.ext p q h
 
-lemma ext_iff (p q : pmf α) : p = q ↔ ∀ x, p x = q x :=
-⟨λ h x, congr_fun (congr_arg _ h) x, pmf.ext⟩
+lemma ext_iff {p q : pmf α} : p = q ↔ ∀ x, p x = q x := fun_like.ext_iff
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 

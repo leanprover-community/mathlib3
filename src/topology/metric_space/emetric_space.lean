@@ -29,7 +29,7 @@ to `emetric_space` at the end.
 
 open set filter classical
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X : Type*}
@@ -181,7 +181,7 @@ theorem uniformity_basis_edist :
   (λ r hr p hp, ⟨min r p, lt_min hr hp,
     λ x hx, lt_of_lt_of_le hx (min_le_left _ _),
     λ x hx, lt_of_lt_of_le hx (min_le_right _ _)⟩)
-  ⟨1, ennreal.zero_lt_one⟩
+  ⟨1, zero_lt_one⟩
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
@@ -377,7 +377,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -645,7 +645,7 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
 is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top,
-  (ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }).subset_compl_right⟩
+  (ball_disjoint $ by { rw top_add, exact le_of_not_lt hy }).subset_compl_right⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 is_open_ball.mem_nhds (mem_ball_self ε0)
@@ -959,7 +959,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   emetric_space γ :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -1061,6 +1061,37 @@ by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_f
 end diam
 
 end emetric
+
+/-!
+### Separation quotient
+-/
+
+instance [pseudo_emetric_space X] : has_edist (uniform_space.separation_quotient X) :=
+⟨λ x y, quotient.lift_on₂' x y edist $ λ x y x' y' hx hy,
+  calc edist x y = edist x' y : edist_congr_right $
+    emetric.inseparable_iff.1 $ separation_rel_iff_inseparable.1 hx
+  ... = edist x' y' : edist_congr_left $
+    emetric.inseparable_iff.1 $ separation_rel_iff_inseparable.1 hy⟩
+
+@[simp] theorem uniform_space.separation_quotient.edist_mk [pseudo_emetric_space X] (x y : X) :
+  @edist (uniform_space.separation_quotient X) _ (quot.mk _ x) (quot.mk _ y) = edist x y :=
+rfl
+
+instance [pseudo_emetric_space X] : emetric_space (uniform_space.separation_quotient X) :=
+@emetric.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
+  { edist_self := λ x, quotient.induction_on' x edist_self,
+    edist_comm := λ x y, quotient.induction_on₂' x y edist_comm,
+    edist_triangle := λ x y z, quotient.induction_on₃' x y z edist_triangle,
+    to_uniform_space := infer_instance,
+    uniformity_edist := (uniformity_basis_edist.map _).eq_binfi.trans $ infi_congr $ λ ε,
+      infi_congr $ λ hε, congr_arg 𝓟
+      begin
+        ext ⟨⟨x⟩, ⟨y⟩⟩,
+        refine ⟨_, λ h, ⟨(x, y), h, rfl⟩⟩,
+        rintro ⟨⟨x', y'⟩, h', h⟩,
+        simp only [prod.ext_iff] at h,
+        rwa [← h.1, ← h.2]
+      end } _
 
 /-!
 ### `additive`, `multiplicative`

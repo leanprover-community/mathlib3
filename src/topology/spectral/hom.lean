@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Spectral maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines spectral maps. A map is spectral when it's continuous and the preimage of a
 compact open set is compact open.
 

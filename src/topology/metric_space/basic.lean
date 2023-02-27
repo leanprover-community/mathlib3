@@ -49,7 +49,7 @@ metric, pseudo_metric, dist
 
 open set filter topological_space bornology
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}
@@ -1127,7 +1127,7 @@ by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
 See Note [forgetful inheritance].
 -/
 def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_metric_space α :=
 { dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
@@ -1139,8 +1139,7 @@ def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
 
 lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
-  (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (m : pseudo_metric_space α) (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 
@@ -1528,12 +1527,10 @@ lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
-  /- WLOG, `b ≤ a`. `wlog h : b ≤ a` works too but it is much slower because Lean tries to prove one
-  case from the other and fails; `tactic.skip` tells Lean not to try. -/
-  wlog h : b ≤ a := le_total b a using [a b, b a] tactic.skip,
-  { rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
-      max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg] },
-  { rwa [nndist_comm, max_comm] }
+  wlog h : b ≤ a,
+  { rw [nndist_comm, max_comm], exact this b a (le_of_not_le h) },
+  rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
+    max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg],
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
@@ -2025,6 +2022,16 @@ instance complete_of_proper [proper_space α] : complete_space α :=
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
+
+/-- A binary product of proper spaces is proper. -/
+instance prod_proper_space {α : Type*} {β : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [proper_space α] [proper_space β] :
+  proper_space (α × β) :=
+{ is_compact_closed_ball := begin
+    rintros ⟨x, y⟩ r,
+    rw ← closed_ball_prod_same x y,
+    apply (is_compact_closed_ball x r).prod (is_compact_closed_ball y r),
+  end }
 
 /-- A finite product of proper spaces is proper. -/
 instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
@@ -2759,13 +2766,13 @@ end metric
 See Note [forgetful inheritance].
 -/
 def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
 
 lemma metric_space.replace_uniformity_eq {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 
@@ -2955,61 +2962,20 @@ end metric
 
 section eq_rel
 
-/-- The canonical equivalence relation on a pseudometric space. -/
-def pseudo_metric.dist_setoid (α : Type u) [pseudo_metric_space α] : setoid α :=
-setoid.mk (λx y, dist x y = 0)
-begin
-  unfold equivalence,
-  repeat { split },
-  { exact pseudo_metric_space.dist_self },
-  { assume x y h, rwa pseudo_metric_space.dist_comm },
-  { assume x y z hxy hyz,
-    refine le_antisymm _ dist_nonneg,
-    calc dist x z ≤ dist x y + dist y z : pseudo_metric_space.dist_triangle _ _ _
-         ... = 0 + 0 : by rw [hxy, hyz]
-         ... = 0 : by simp }
-end
+instance {α : Type u} [pseudo_metric_space α] :
+  has_dist (uniform_space.separation_quotient α) :=
+{ dist := λ p q, quotient.lift_on₂' p q dist $ λ x y x' y' hx hy,
+    by rw [dist_edist, dist_edist, ← uniform_space.separation_quotient.edist_mk x,
+      ← uniform_space.separation_quotient.edist_mk x', quot.sound hx, quot.sound hy] }
 
-local attribute [instance] pseudo_metric.dist_setoid
+lemma uniform_space.separation_quotient.dist_mk {α : Type u} [pseudo_metric_space α] (p q : α) :
+  @dist (uniform_space.separation_quotient α) _ (quot.mk _ p) (quot.mk _ q) = dist p q :=
+rfl
 
-/-- The canonical quotient of a pseudometric space, identifying points at distance `0`. -/
-@[reducible] definition pseudo_metric_quot (α : Type u) [pseudo_metric_space α] : Type* :=
-quotient (pseudo_metric.dist_setoid α)
-
-instance has_dist_metric_quot {α : Type u} [pseudo_metric_space α] :
-  has_dist (pseudo_metric_quot α) :=
-{ dist := quotient.lift₂ (λp q : α, dist p q)
-begin
-  assume x y x' y' hxx' hyy',
-  have Hxx' : dist x x' = 0 := hxx',
-  have Hyy' : dist y y' = 0 := hyy',
-  have A : dist x y ≤ dist x' y' := calc
-    dist x y ≤ dist x x' + dist x' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y : by simp [Hxx']
-    ... ≤ dist x' y' + dist y' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y' : by simp [pseudo_metric_space.dist_comm, Hyy'],
-  have B : dist x' y' ≤ dist x y := calc
-    dist x' y' ≤ dist x' x + dist x y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y' : by simp [pseudo_metric_space.dist_comm, Hxx']
-    ... ≤ dist x y + dist y y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y : by simp [Hyy'],
-  exact le_antisymm A B
-end }
-
-lemma pseudo_metric_quot_dist_eq {α : Type u} [pseudo_metric_space α] (p q : α) :
-  dist ⟦p⟧ ⟦q⟧ = dist p q := rfl
-
-instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
-  metric_space (pseudo_metric_quot α) :=
-{ dist_self := begin
-    refine quotient.ind (λy, _),
-    exact pseudo_metric_space.dist_self _
-  end,
-  eq_of_dist_eq_zero := λxc yc, by exact quotient.induction_on₂ xc yc (λx y H, quotient.sound H),
-  dist_comm :=
-    λxc yc, quotient.induction_on₂ xc yc (λx y, pseudo_metric_space.dist_comm _ _),
-  dist_triangle :=
-    λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, pseudo_metric_space.dist_triangle _ _ _) }
+instance {α : Type u} [pseudo_metric_space α] :
+  metric_space (uniform_space.separation_quotient α) :=
+emetric_space.to_metric_space_of_dist dist (λ x y, quotient.induction_on₂' x y edist_ne_top) $
+  λ x y, quotient.induction_on₂' x y dist_edist
 
 end eq_rel
 

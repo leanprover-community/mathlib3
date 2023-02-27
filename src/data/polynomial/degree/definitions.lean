@@ -1038,7 +1038,10 @@ section ring
 variables [ring R] {p q : R[X]}
 
 lemma degree_sub_le (p q : R[X]) : degree (p - q) ≤ max (degree p) (degree q) :=
-by simpa only [sub_eq_add_neg, degree_neg q] using degree_add_le p (-q)
+by simpa only [degree_neg q] using degree_add_le p (-q)
+
+lemma nat_degree_sub_le (p q : R[X]) : nat_degree (p - q) ≤ max (nat_degree p) (nat_degree q) :=
+by simpa only [← nat_degree_neg q] using nat_degree_add_le p (-q)
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :

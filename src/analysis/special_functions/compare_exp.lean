@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.special_functions.pow
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.asymptotics.specific_asymptotics
 
 /-!
@@ -26,7 +27,7 @@ stronger assumptions (e.g., `im z` is bounded from below and from above) are not
 -/
 
 open asymptotics filter function
-open_locale topological_space
+open_locale topology
 
 namespace complex
 

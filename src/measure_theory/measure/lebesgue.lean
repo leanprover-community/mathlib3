@@ -29,7 +29,7 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 noncomputable theory
 open classical set filter measure_theory measure_theory.measure topological_space
 open ennreal (of_real)
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topology
 
 /-!
 ### Definition of the Lebesgue measure and lengths of intervals
@@ -93,7 +93,7 @@ by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
   volume (emetric.ball a r) = 2 * r :=
 begin
   rcases eq_or_ne r ∞ with rfl|hr,
-  { rw [metric.emetric_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { rw [metric.emetric_ball_top, volume_univ, two_mul, _root_.top_add] },
   { lift r to ℝ≥0 using hr,
     rw [metric.emetric_ball_nnreal, volume_ball, two_mul, ← nnreal.coe_add,
       ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
@@ -103,7 +103,7 @@ end
   volume (emetric.closed_ball a r) = 2 * r :=
 begin
   rcases eq_or_ne r ∞ with rfl|hr,
-  { rw [emetric.closed_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { rw [emetric.closed_ball_top, volume_univ, two_mul, _root_.top_add] },
   { lift r to ℝ≥0 using hr,
     rw [metric.emetric_closed_ball_nnreal, volume_closed_ball, two_mul, ← nnreal.coe_add,
       ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
@@ -542,12 +542,7 @@ begin
   two endpoints, which don't matter since `μ` does not have any atom). -/
   let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
   let u := ⋃ (i : ↥s × ↥s), T i,
-  have hfinite : (s \ u).finite,
-  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra' h,
-    apply hy.2,
-    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
-      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo',
   obtain ⟨A, A_count, hA⟩ :
     ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
     is_open_Union_countable _ (λ p, is_open_Ioo),
@@ -584,12 +579,7 @@ begin
   two endpoints, which don't matter since `μ` does not have any atom). -/
   let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
   let u := ⋃ (i : ↥s × ↥s), T i,
-  have hfinite : (s \ u).finite,
-  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra' h,
-    apply hy.2,
-    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
-      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo',
   obtain ⟨A, A_count, hA⟩ :
     ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
     is_open_Union_countable _ (λ p, is_open_Ioo),
@@ -611,3 +601,32 @@ begin
     apply h'x p pA ⟨xs, xp⟩ },
   { exact false.elim (hx ⟨xs, Hx⟩) }
 end
+
+section summable_norm_Icc
+
+open continuous_map
+
+/- The following lemma is a minor variation on `integrable_of_summable_norm_restrict` in
+`measure_theory.integral.set_integral`, but it is placed here because it needs to know that
+`Icc a b` has volume `b - a`. -/
+
+/-- If the sequence with `n`-th term the the sup norm of `λ x, f (x + n)` on the interval `Icc 0 1`,
+for `n ∈ ℤ`, is summable, then `f` is integrable on `ℝ`. -/
+lemma real.integrable_of_summable_norm_Icc {E : Type*} [normed_add_comm_group E] {f : C(ℝ, E)}
+  (hf : summable (λ n : ℤ, ‖(f.comp $ continuous_map.add_right n).restrict (Icc 0 1)‖)) :
+  integrable f :=
+begin
+  refine integrable_of_summable_norm_restrict (summable_of_nonneg_of_le
+    (λ n : ℤ, mul_nonneg (norm_nonneg (f.restrict (⟨Icc n (n + 1), is_compact_Icc⟩ : compacts ℝ)))
+    ennreal.to_real_nonneg) (λ n, _) hf) (Union_Icc_int_cast ℝ),
+  simp only [compacts.coe_mk, real.volume_Icc, add_sub_cancel', ennreal.to_real_of_real zero_le_one,
+    mul_one, norm_le _ (norm_nonneg _)],
+  intro x,
+  have := ((f.comp $ continuous_map.add_right n).restrict (Icc 0 1)).norm_coe_le_norm
+    ⟨x - n, ⟨sub_nonneg.mpr x.2.1, sub_le_iff_le_add'.mpr x.2.2⟩⟩,
+  simpa only [continuous_map.restrict_apply, comp_apply, coe_add_right, subtype.coe_mk,
+    sub_add_cancel]
+    using this,
+end
+
+end summable_norm_Icc

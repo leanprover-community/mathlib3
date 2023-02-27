@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.modeq
-import data.nat.factors
 import algebra.parity
 
 /-!
 # Parity of natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains theorems about the `even` and `odd` predicates on the natural numbers.
 
@@ -191,13 +193,10 @@ begin
     apply even_mul_succ_self }
 end
 
-lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
-odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
-
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
  λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
-lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := --nat.div_mul_cancel
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n :=
 λ h, nat.div_mul_cancel (even_iff_two_dvd.mp h)
 
 lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
@@ -296,6 +295,12 @@ lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
 lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
 (even.mod_even_iff ha).mpr hn
 
-/-- `2` is not a prime factor of an odd natural number. -/
-lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
-by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }
+theorem odd.of_dvd_nat {m n : ℕ} (hn : odd n) (hm : m ∣ n) : odd m :=
+odd_iff_not_even.2 $ mt hm.even (odd_iff_not_even.1 hn)
+
+/-- `2` is not a factor of an odd natural number. -/
+theorem odd.ne_two_of_dvd_nat {m n : ℕ} (hn : odd n) (hm : m ∣ n) : m ≠ 2 :=
+begin
+  rintro rfl,
+  exact absurd (hn.of_dvd_nat hm) dec_trivial
+end

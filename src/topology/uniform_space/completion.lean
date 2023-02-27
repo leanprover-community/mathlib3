@@ -8,6 +8,9 @@ import topology.uniform_space.abstract_completion
 /-!
 # Hausdorff completions of uniform spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal is to construct a left-adjoint to the inclusion of complete Hausdorff uniform spaces
 into all uniform spaces. Any uniform space `α` gets a completion `completion α` and a morphism
 (ie. uniformly continuous map) `coe : α → completion α` which solves the universal
@@ -44,7 +47,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical topological_space filter
+open_locale uniformity classical topology filter
 
 /-- Space of Cauchy filters
 
@@ -111,14 +114,14 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
   begin
     rw [lift'_lift'_assoc],
     exact monotone_gen,
-    exact (monotone_comp_rel monotone_id monotone_id)
+    exact monotone_id.comp_rel monotone_id
   end
   ... ≤ (𝓤 α).lift' (λs, gen $ comp_rel s s) :
     lift'_mono' $ assume s hs, comp_rel_gen_gen_subset_gen_comp_rel
   ... = ((𝓤 α).lift' $ λs:set(α×α), comp_rel s s).lift' gen :
   begin
     rw [lift'_lift'_assoc],
-    exact (monotone_comp_rel monotone_id monotone_id),
+    exact monotone_id.comp_rel monotone_id,
     exact monotone_gen
   end
   ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity le_rfl

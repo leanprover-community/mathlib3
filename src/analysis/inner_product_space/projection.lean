@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 import analysis.convex.basic
 import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
+import data.is_R_or_C.lemmas
 
 /-!
 # The orthogonal projection
@@ -39,7 +40,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 noncomputable theory
 
 open is_R_or_C real filter linear_map (ker range)
-open_locale big_operators topological_space
+open_locale big_operators topology
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]

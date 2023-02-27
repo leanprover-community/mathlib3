@@ -11,6 +11,9 @@ import order.galois_connection
 
 # Galois connections between preorders are adjunctions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * `galois_connection.adjunction` is the adjunction associated to a galois connection.
 
 -/

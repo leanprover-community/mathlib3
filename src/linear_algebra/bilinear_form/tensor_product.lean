@@ -12,7 +12,7 @@ import linear_algebra.contraction
 
 ## Main definitions
 
-* `bilin_form.tensor_distrib (B₁ ⊗ₜ B₂)`: the bilinear form on `M₁ ⊗ₜ M₂` constructed by applying
+* `bilin_form.tensor_distrib (B₁ ⊗ₜ B₂)`: the bilinear form on `M₁ ⊗ M₂` constructed by applying
   `B₁` on `M₁` and `B₂` on `M₂`.
 * `bilin_form.tensor_distrib_equiv`: `bilin_form.tensor_distrib` as an equivalence on finite free
   modules.

@@ -602,34 +602,26 @@ namespace with_top
 open finset
 
 /-- A product of finite numbers is still finite -/
-lemma prod_lt_top [canonically_ordered_comm_semiring R] [nontrivial R] [decidable_eq R]
-  {s : finset ι} {f : ι → with_top R} (h : ∀ i ∈ s, f i ≠ ⊤) :
+lemma prod_lt_top [comm_monoid_with_zero R] [no_zero_divisors R] [nontrivial R] [decidable_eq R]
+  [has_lt R] {s : finset ι} {f : ι → with_top R} (h : ∀ i ∈ s, f i ≠ ⊤) :
   ∏ i in s, f i < ⊤ :=
-prod_induction f (λ a, a < ⊤) (λ a b h₁ h₂, mul_lt_top h₁.ne h₂.ne) (coe_lt_top 1) $
-  λ a ha, lt_top_iff_ne_top.2 (h a ha)
-
-/-- A sum of finite numbers is still finite -/
-lemma sum_lt_top [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M}
-  (h : ∀ i ∈ s, f i ≠ ⊤) : (∑ i in s, f i) < ⊤ :=
-sum_induction f (λ a, a < ⊤) (λ a b h₁ h₂, add_lt_top.2 ⟨h₁, h₂⟩) zero_lt_top $
-  λ i hi, lt_top_iff_ne_top.2 (h i hi)
+prod_induction f (λ a, a < ⊤) (λ a b h₁ h₂, mul_lt_top' h₁ h₂) (coe_lt_top 1) $
+  λ a ha, with_top.lt_top_iff_ne_top.2 (h a ha)
 
 /-- A sum of numbers is infinite iff one of them is infinite -/
-lemma sum_eq_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
+lemma sum_eq_top_iff [add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
   ∑ i in s, f i = ⊤ ↔ ∃ i ∈ s, f i = ⊤ :=
-begin
-  classical,
-  split,
-  { contrapose!,
-    exact λ h, (sum_lt_top $ λ i hi, (h i hi)).ne },
-  { rintro ⟨i, his, hi⟩,
-    rw [sum_eq_add_sum_diff_singleton his, hi, top_add] }
-end
+by induction s using finset.cons_induction; simp [*, or_and_distrib_right, exists_or_distrib]
 
 /-- A sum of finite numbers is still finite -/
-lemma sum_lt_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
+lemma sum_lt_top_iff [add_comm_monoid M] [has_lt M] {s : finset ι} {f : ι → with_top M} :
   ∑ i in s, f i < ⊤ ↔ ∀ i ∈ s, f i < ⊤ :=
-by simp only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
+by simp only [with_top.lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
+
+/-- A sum of finite numbers is still finite -/
+lemma sum_lt_top [add_comm_monoid M] [has_lt M] {s : finset ι} {f : ι → with_top M}
+  (h : ∀ i ∈ s, f i ≠ ⊤) : (∑ i in s, f i) < ⊤ :=
+sum_lt_top_iff.2 $ λ i hi, with_top.lt_top_iff_ne_top.2 (h i hi)
 
 end with_top
 
@@ -640,13 +632,7 @@ variables {S : Type*}
 lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
   (abv : absolute_value R S) (s : finset ι) (f : ι → R) :
   abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
-begin
-  letI := classical.dec_eq ι,
-  refine finset.induction_on s _ (λ i s hi ih, _),
-  { simp },
-  { simp only [finset.sum_insert hi],
-  exact (abv.add_le _ _).trans (add_le_add le_rfl ih) },
-end
+finset.le_sum_of_subadditive abv (map_zero _) abv.add_le _ _
 
 lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)
   [is_absolute_value abv] (f : ι → R) (s : finset ι) :

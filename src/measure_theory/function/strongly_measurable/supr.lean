@@ -135,7 +135,7 @@ end
 
 theorem ae_strongly_measurable.is_lub {α : Type*} {δ : Type*} [topological_space α]
   [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α] [order_topology α]
-  [topological_space.second_countable_topology α]  [metrizable_space α] {ι : Type*}
+  [topological_space.second_countable_topology α]  [metrizable_space α] {ι : Sort*}
   {μ : measure_theory.measure δ}
   [countable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
   (hg : ∀ᵐ (b : δ) ∂μ, is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :
@@ -157,7 +157,7 @@ end
 
 theorem ae_strongly_measurable.is_glb {α : Type*} {δ : Type*} [topological_space α]
   [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α] [order_topology α]
-  [topological_space.second_countable_topology α]  [metrizable_space α] {ι : Type*}
+  [topological_space.second_countable_topology α]  [metrizable_space α] {ι : Sort*}
   {μ : measure_theory.measure δ}
   [countable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
   (hg : ∀ᵐ (b : δ) ∂μ, is_glb {a : α | ∃ (i : ι), f i b = a} (g b)) :
@@ -166,7 +166,7 @@ theorem ae_strongly_measurable.is_glb {α : Type*} {δ : Type*} [topological_spa
 
 theorem ae_strongly_measurable_supr [measurable_space β] [borel_space β] [complete_linear_order β]
   [order_topology β] [topological_space.second_countable_topology β] [metrizable_space β]
-  {ι : Type*} {μ : measure α} [countable ι] {f : ι → α → β}
+  {ι : Sort*} {μ : measure α} [countable ι] {f : ι → α → β}
   (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
   ae_strongly_measurable (λ (b : α), ⨆ (i : ι), f i b) μ :=
 ae_strongly_measurable.is_lub hf  (ae_of_all μ (λ b, is_lub_supr))
@@ -174,12 +174,12 @@ ae_strongly_measurable.is_lub hf  (ae_of_all μ (λ b, is_lub_supr))
 
 theorem ae_strongly_measurable_infi [measurable_space β] [borel_space β] [complete_linear_order β]
   [order_topology β] [topological_space.second_countable_topology β] [metrizable_space β]
-  {ι : Type*} {μ : measure α} [countable ι] {f : ι → α → β}
+  {ι : Sort*} {μ : measure α} [countable ι] {f : ι → α → β}
   (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
   ae_strongly_measurable (λ (b : α), ⨅ (i : ι), f i b) μ :=
 ae_strongly_measurable.is_glb hf  (ae_of_all μ (λ b, is_glb_infi))
 
-theorem ae_strongly_measurable.ennreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
+theorem ae_strongly_measurable.ennreal_tsum {α : Type*} [measurable_space α] {ι : Sort*}
   [countable ι] {f : ι → α → ennreal} {μ : measure_theory.measure α}
   (h : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
   ae_strongly_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
@@ -189,7 +189,7 @@ begin
   exact λ s, finset.ae_strongly_measurable_sum s (λ i _, h i),
 end
 
-theorem ae_strongly_measurable.nnreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
+theorem ae_strongly_measurable.nnreal_tsum {α : Type*} [measurable_space α] {ι : Sort*}
   [countable ι] {f : ι → α → nnreal} {μ : measure_theory.measure α}
   (h : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
   ae_strongly_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=

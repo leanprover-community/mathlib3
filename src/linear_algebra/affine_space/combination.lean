@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import algebra.invertible
 import algebra.indicator_function
 import algebra.module.big_operators
+import data.fintype.big_operators
 import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp

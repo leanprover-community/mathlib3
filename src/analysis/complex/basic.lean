@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import data.complex.module
 import data.complex.exponential
 import data.is_R_or_C.basic
-import topology.algebra.module.infinite_sum
+import topology.algebra.infinite_sum.module
 import topology.instances.real_vector_space
 
 /-!

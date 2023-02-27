@@ -1065,6 +1065,30 @@ begin
 end
 
 open topological_space
+
+/-- Interval integrals commute with countable sums, when the supremum norms are summable (a
+special case of the dominated convergence theorem). -/
+lemma has_sum_interval_integral_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  has_sum (λ i : ι, ∫ x in a..b, f i x) (∫ x in a..b, (∑' i : ι, f i x)) :=
+begin
+  refine has_sum_integral_of_dominated_convergence
+    (λ i (x : ℝ), ‖(f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)
+    (λ i, (map_continuous $ f i).ae_strongly_measurable)
+    (λ i, ae_of_all _ (λ x hx, ((f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ :
+      compacts ℝ)).norm_coe_le_norm ⟨x, ⟨hx.1.le, hx.2⟩⟩))
+    (ae_of_all _ (λ x hx, hf_sum))
+    interval_integrable_const
+    (ae_of_all _ (λ x hx, summable.has_sum _)),
+  -- next line is slow, & doesn't work with "exact" in place of "apply" -- ?
+  apply continuous_map.summable_apply (summable_of_summable_norm hf_sum) ⟨x, ⟨hx.1.le, hx.2⟩⟩,
+end
+
+lemma tsum_interval_integral_eq_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  ∑' (i : ι), ∫ x in a..b, f i x = ∫ x in a..b, (∑' i : ι, f i x) :=
+(has_sum_interval_integral_of_summable_norm hf_sum).tsum_eq
+
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
 /-- Continuity of interval integral with respect to a parameter, at a point within a set.
@@ -1425,6 +1449,28 @@ end mono
 
 end
 
+section has_sum
+variables {μ : measure ℝ} {f : ℝ → E}
+
+lemma _root_.measure_theory.integrable.has_sum_interval_integral (hfi : integrable f μ) (y : ℝ) :
+  has_sum (λ (n : ℤ), ∫ x in (y + n)..(y + n + 1), f x ∂μ) (∫ x, f x ∂μ) :=
+begin
+  simp_rw integral_of_le (le_add_of_nonneg_right zero_le_one),
+  rw [←integral_univ, ←Union_Ioc_add_int_cast y],
+  exact has_sum_integral_Union (λ i, measurable_set_Ioc) (pairwise_disjoint_Ioc_add_int_cast y)
+    hfi.integrable_on,
+end
+
+lemma _root_.measure_theory.integrable.has_sum_interval_integral_comp_add_int
+  (hfi : integrable f) :
+  has_sum (λ (n : ℤ), ∫ x in 0..1, f (x + n)) (∫ x, f x) :=
+begin
+  convert hfi.has_sum_interval_integral 0 using 2,
+  ext1 n,
+  rw [integral_comp_add_right, zero_add, add_comm],
+end
+
+end has_sum
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 

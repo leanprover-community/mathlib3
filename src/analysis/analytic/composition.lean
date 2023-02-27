@@ -453,7 +453,7 @@ begin
   { rcases p.nnnorm_mul_pow_le_of_lt_radius hrp.2 with ⟨Cp, -, hCp⟩,
     exact ⟨max Cp 1, le_max_right _ _, λ n, (hCp n).trans (le_max_left _ _)⟩ },
   let r0 : ℝ≥0 := (4 * Cp)⁻¹,
-  have r0_pos : 0 < r0 := nnreal.inv_pos.2 (mul_pos zero_lt_four (zero_lt_one.trans_le hCp1)),
+  have r0_pos : 0 < r0 := inv_pos.2 (mul_pos zero_lt_four (zero_lt_one.trans_le hCp1)),
   set r : ℝ≥0 := rp * rq * r0,
   have r_pos : 0 < r := mul_pos (mul_pos rp_pos rq_pos) r0_pos,
   have I : ∀ (i : Σ (n : ℕ), composition n),

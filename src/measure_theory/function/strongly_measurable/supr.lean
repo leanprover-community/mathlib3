@@ -95,7 +95,7 @@ end
 
 end strongly_measurable
 
-section ae_strongly_measureable
+section ae_strongly_measurable
 
 open measure_theory
 
@@ -198,4 +198,4 @@ begin
   exact (ae_strongly_measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
 end
 
-end ae_strongly_measureable
+end ae_strongly_measurable

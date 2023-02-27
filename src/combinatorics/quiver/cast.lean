@@ -44,6 +44,10 @@ lemma hom.cast_eq_iff_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e.cast hu hv = e' ↔ e = e'.cast hu.symm hv.symm :=
 by { subst_vars, refl }
 
+lemma hom.eq_cast_iff_cast_eq {u v u' v' : U} (hu : u = u') (hv : v = v')
+  (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e'.cast hu.symm hv.symm = e :=
+by { subst_vars, refl }
+
 @[simp] lemma hom.cast_rfl_rfl {u v : U} (e : u ⟶ v) :
   e.cast rfl rfl = e := rfl
 

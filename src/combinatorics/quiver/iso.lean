@@ -66,6 +66,21 @@ def iso.to_equiv_map (φ : iso U V) {X Y : U} : (X ⟶ Y) ≃ (φ.obj X ⟶ φ.o
   { rw [←prefunctor.comp_assoc, prefunctor.comp_assoc ψ.inv_prefunctor,
         φ.right_inv, prefunctor.comp_id, ψ.right_inv], }, }
 
+lemma iso.inv_map_map_eq_cast (φ : iso U V) {X Y : U} (f : X ⟶ Y) :
+  φ.inv_prefunctor.map (φ.to_prefunctor.map f) =
+  f.cast (φ.to_equiv.left_inv X).symm (φ.to_equiv.left_inv Y).symm :=
+begin
+  rw ←hom.cast_eq_iff_eq_cast,
+  exact φ.to_equiv_map.left_inv f,
+end
+
+lemma iso.map_inv_map_eq_cast (φ : iso U V) {X Y : V} (f : X ⟶ Y) :
+  φ.to_prefunctor.map (φ.inv_prefunctor.map f) =
+  f.cast (φ.to_equiv.right_inv X).symm (φ.to_equiv.right_inv Y).symm :=
+begin
+  exact φ.symm.inv_map_map_eq_cast _,
+end
+
 -- Thanks Adam Topaz
 @[simps]
 noncomputable
@@ -129,12 +144,17 @@ begin
     apply ψ.to_equiv.injective,
     change ψ.to_equiv.to_fun (φ.to_equiv.inv_fun X) = ψ.to_equiv.to_fun (ψ.to_equiv.inv_fun X),
     rw [(ψ.to_equiv.right_inv X),
-        ←(show φ.to_equiv.to_fun = ψ.to_equiv.to_fun, by { simp [iso.to_equiv, h],})],
+        ←(show φ.to_equiv.to_fun = ψ.to_equiv.to_fun, by { simp only [iso.to_equiv, h],})],
     exact φ.to_equiv.right_inv X, },
   { rintro X Y f,
-    generalize_proofs h1 h2,
-    change (φ.symm.to_equiv_map f) =  hom.equiv_cast h1 h2 (ψ.symm.to_equiv_map f),
-    sorry, },
+    change (φ.symm.to_equiv_map f) =  hom.equiv_cast _ _ (ψ.symm.to_equiv_map f),
+    dsimp [iso.symm],
+    apply ψ.to_equiv_map.injective,
+    simp_rw [iso.to_equiv_map_apply, prefunctor.map_cast, ←prefunctor.map_cast_eq_of_eq h,
+             hom.cast_cast, φ.map_inv_map_eq_cast, hom.cast_cast, hom.eq_cast_iff_cast_eq,
+             hom.cast_cast, ←prefunctor.map_cast_eq_of_eq h.symm, hom.eq_cast_iff_cast_eq,
+             hom.cast_cast, ψ.map_inv_map_eq_cast],
+    apply hom.cast_irrelevant, },
 end
 
 end quiver

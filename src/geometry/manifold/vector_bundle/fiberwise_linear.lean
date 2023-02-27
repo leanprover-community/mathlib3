@@ -11,6 +11,7 @@ This file contains preliminaries for the definition of a smooth vector bundle: a
 `structure_groupoid`, the groupoid of `smooth_fibrewise_linear` functions.
 -/
 
+
 noncomputable theory
 
 open set topological_space
@@ -156,11 +157,9 @@ end
 `B`, and which, at any point `x` in `U`, admits a neighbourhood `u` of `x` such that `e` is equal on
 `u ×ˢ univ` to the application fibrewise of a function `φ : B → (F ≃L[𝕜] F)` which is smooth and has
 smooth inverse.
-
 This is the key mathematical point of the `locality` condition in the construction of the
 `structure_groupoid` of bi-smooth fibrewise linear local homeomorphisms.  The proof is by gluing
 together the various bi-smooth fibrewise linear local homeomorphism which exist locally.
-
 This proof is broken into four parts to fight timeouts. -/
 lemma smooth_fibrewise_linear.locality_aux₄ {e : local_homeomorph (B × F) (B × F)}
   {U : set B}
@@ -202,7 +201,6 @@ end
 /-- Let `e` be a local homeomorphism of `B × F`.  Suppose that at every point `p` in the source of
 `e`, there is some neighbourhood `s` of `p` on which `e` is equal to a bi-smooth fibrewise linear
 local homeomorphism.
-
 Then the source of `e` is of the form `U ×ˢ univ`, for some set `U` in `B`, and, at any point `x` in
 `U`, admits a neighbourhood `u` of `x` such that `e` is equal on `u ×ˢ univ` to some bi-smooth
 fibrewise linear local homeomorphism. -/

@@ -114,7 +114,8 @@ begin
   end
   ... ≤ npf * nqg :
   begin
-    rw lintegral_mul_const' (npf * nqg) _ (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero]),
+    rw lintegral_mul_const' (npf * nqg) _
+      (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero, ennreal.mul_eq_top]),
     nth_rewrite 1 ←one_mul (npf * nqg),
     refine mul_le_mul _ (le_refl (npf * nqg)),
     have hf1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.pos hf_nonzero hf_nontop,

@@ -1123,9 +1123,10 @@ lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (h�
 begin
   by_cases hs : bounded (cthickening ε s),
   { replace hs := hs.mono (self_subset_cthickening _),
-    have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
+    lift ε to ℝ≥0 using hε,
+    have : (2 : ℝ≥0∞) * ε ≠ ⊤ := by simp [ennreal.mul_eq_top],
     refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
-      ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
+      ediam_cthickening_le ε).trans_eq _,
     simp [ennreal.to_real_add hs.ediam_ne_top this, diam] },
   { rw diam_eq_zero_of_unbounded hs,
     positivity }
@@ -1166,7 +1167,7 @@ begin
   refine (h x hx y hy).not_le _,
   calc edist x y ≤ edist z x + edist z y : edist_triangle_left _ _ _
   ... ≤ ↑(r / 2) + ↑(r / 2) : add_le_add hzx.le hzy.le
-  ... = r : by rw [← ennreal.coe_add, nnreal.add_halves]
+  ... = r : by rw [← ennreal.coe_add, add_halves]
 end
 
 lemma _root_.disjoint.exists_cthickenings (hst : disjoint s t) (hs : is_compact s)

@@ -594,7 +594,7 @@ begin
         conv_rhs { rw ← mul_one (t^ n) },
         refine mul_lt_mul' le_rfl _ (zero_le _) (nnreal.zpow_pos t_ne_zero' _),
         rw zpow_neg_one,
-        exact nnreal.inv_lt_one ht,
+        exact inv_lt_one ht,
       end },
   calc ν s = ν (s ∩ f⁻¹' {0}) + ν (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), ν (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
     measure_eq_measure_preimage_add_measure_tsum_Ico_zpow ν f_meas hs ht

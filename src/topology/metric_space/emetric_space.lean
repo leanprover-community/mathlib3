@@ -1063,6 +1063,37 @@ end diam
 end emetric
 
 /-!
+### Separation quotient
+-/
+
+instance [pseudo_emetric_space X] : has_edist (uniform_space.separation_quotient X) :=
+⟨λ x y, quotient.lift_on₂' x y edist $ λ x y x' y' hx hy,
+  calc edist x y = edist x' y : edist_congr_right $
+    emetric.inseparable_iff.1 $ separation_rel_iff_inseparable.1 hx
+  ... = edist x' y' : edist_congr_left $
+    emetric.inseparable_iff.1 $ separation_rel_iff_inseparable.1 hy⟩
+
+@[simp] theorem uniform_space.separation_quotient.edist_mk [pseudo_emetric_space X] (x y : X) :
+  @edist (uniform_space.separation_quotient X) _ (quot.mk _ x) (quot.mk _ y) = edist x y :=
+rfl
+
+instance [pseudo_emetric_space X] : emetric_space (uniform_space.separation_quotient X) :=
+@emetric.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
+  { edist_self := λ x, quotient.induction_on' x edist_self,
+    edist_comm := λ x y, quotient.induction_on₂' x y edist_comm,
+    edist_triangle := λ x y z, quotient.induction_on₃' x y z edist_triangle,
+    to_uniform_space := infer_instance,
+    uniformity_edist := (uniformity_basis_edist.map _).eq_binfi.trans $ infi_congr $ λ ε,
+      infi_congr $ λ hε, congr_arg 𝓟
+      begin
+        ext ⟨⟨x⟩, ⟨y⟩⟩,
+        refine ⟨_, λ h, ⟨(x, y), h, rfl⟩⟩,
+        rintro ⟨⟨x', y'⟩, h', h⟩,
+        simp only [prod.ext_iff] at h,
+        rwa [← h.1, ← h.2]
+      end } _
+
+/-!
 ### `additive`, `multiplicative`
 
 The distance on those type synonyms is inherited without change.

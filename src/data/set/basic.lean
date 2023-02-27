@@ -698,21 +698,8 @@ begin
   exacts [(ha hx).elim, hxt]
 end
 
-theorem subset_insert_iff_of_not_mem {s t : set α} {a : α} (h : a ∉ s) :
-  s ⊆ insert a t ↔ s ⊆ t :=
-begin
-  constructor,
-  { intros g y hy,
-    specialize g hy,
-    rw [mem_insert_iff] at g,
-    rcases g with g | g,
-    { rw [g] at hy,
-      contradiction },
-    { assumption }},
-  { intros g y hy,
-    specialize g hy,
-    exact mem_insert_of_mem _ g }
-end
+theorem subset_insert_iff_of_not_mem (ha : a ∉ s) : s ⊆ insert a t ↔ s ⊆ t :=
+forall₂_congr $ λ b hb, or_iff_right $ ne_of_mem_of_not_mem hb ha
 
 theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 begin
@@ -1317,7 +1304,7 @@ ext $ λ s, subset_empty_iff
 @[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
 eq_univ_of_forall subset_univ
 
-/- The powerset of a singleton contains only `∅` and the singleton itself. -/
+/-- The powerset of a singleton contains only `∅` and the singleton itself. -/
 theorem powerset_singleton (x : α) : 𝒫 ({x} : set α) = {∅, {x}} :=
 by { ext y, rw [mem_powerset_iff, subset_singleton_iff_eq, mem_insert_iff, mem_singleton_iff] }
 

@@ -182,50 +182,30 @@ begin
 end
 
 noncomputable def action_graph.symmetrify_path_star_equiv (x : 𝑨 V ι) :
-  path_star (symmetrify.of.obj x) ≃ list (S × bool) :=
-{ to_fun :=
+  path_star (symmetrify.of.obj x) ≃ list (S ⊕ S) :=
+{ to_fun := by
   begin
-    intro p,
-    obtain ⟨y,p⟩ := p,
-    induction p with z w q e ih, { exact [], },
-    { obtain (f|g) := e,
-      { obtain ⟨s, h⟩ := f,
-        exact ⟨s, tt⟩ :: ih, },
-      { obtain ⟨s, h⟩ := g,
-        exact ⟨s, ff⟩ :: ih, }, },
+    rintros ⟨y, p⟩,
+    induction p with a b p e ih,
+    exact list.nil,
+    exact ih.append [(action_graph.symmetrify_star_equiv V ι a).to_fun ⟨_, e⟩],
   end,
   inv_fun :=
   begin
-    intro l,
-    induction l with s l ih, { exact ⟨x, path.nil⟩, },
-    { obtain ⟨s, b⟩ := s,
-      obtain ⟨y, p⟩ := ih,
-      induction b,
-      exacts [⟨(ι s • (id y : 𝑨 V ι) : 𝑨 V ι), p.cons $ hom.to_pos ⟨s, rfl⟩⟩,
-              ⟨((ι s)⁻¹ • (id y : 𝑨 V ι) : 𝑨 V ι), p.cons $ hom.to_neg ⟨s, smul_inv_smul _ _⟩⟩], },
+    rintros l,
+    induction l with a l ih,
+    exact ⟨_, path.nil⟩,
+    exact ⟨_, ih.2.cons $ ((action_graph.symmetrify_star_equiv V ι ih.1).inv_fun a).2⟩,
   end,
   left_inv :=
-    begin
-      rintro ⟨v, p⟩,
-      induction p with y z q e ih, { refl, },
-      { obtain ⟨s, rfl⟩ := e,
-        simp only [path_star_eq_iff] at ih,
-        obtain ⟨h₁, h₂⟩ := ih,
-        simp only [←h₁, ←h₂],
-        simp,
-        rw [←path.eq_cast_iff_heq rfl (congr_arg (λ x, (ι s • (id x : 𝑨 V ι) : 𝑨 V ι)) h₁.symm),
-            path.cast_cons, path.cast_cast],
-        fapply cons_eq_cons_of_exist_cast h₁,
-        { rw [hom.cast_eq_iff_eq_cast, hom.cast_cast, cast_mk_hom], refl, },
-        { apply path.cast_irrelevant, }, },
-    end,
-  right_inv :=
-    begin
-      rintro l,
-      induction l with s l ih,
-      { refl, },
-      { simp only [subtype.val_eq_coe, eq_self_iff_true, true_and, ←ih], },
-    end }
+  begin
+    rintros ⟨y, p⟩,
+    induction p with a b p e ih,
+    { simp, },
+    sorry
+  end,
+  right_inv := sorry }
+
 /-
 Need to fine a usable def probably in `free_group`
 * `free_group.lift.aux`, but `free_group` uses `bool × S` …
@@ -333,7 +313,7 @@ begin
   fapply prefunctor.ext,
   { simp only [eq_iff_true_of_subsingleton, implies_true_iff], },
   { rintros _ _ ⟨e, he⟩,
-    simp only [prefunctor.comp_map, eq_rec_constant], },
+    simp only [prefunctor.comp_map, eq_rec_constant, action_graph.star_equiv_apply, subtype.coe_mk], },
 end
 
 @[simps] noncomputable def to_coset_graph (v₀ : V) :
@@ -350,7 +330,7 @@ begin
   fapply prefunctor.ext,
   { simp only [eq_iff_true_of_subsingleton, implies_true_iff], },
   { rintros _ _ ⟨_,_⟩,
-    simp only [prefunctor.comp_map, eq_rec_constant], },
+    simp only [prefunctor.comp_map, eq_rec_constant, action_graph.star_equiv_apply, subtype.coe_mk], },
 end
 
 lemma from_coset_graph_to_coset_graph (v₀ : V) :

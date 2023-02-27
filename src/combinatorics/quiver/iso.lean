@@ -120,12 +120,12 @@ noncomputable def iso.of_bijective (φ : U ⥤q V) (hφobj : function.bijective 
     fapply prefunctor.ext,
     { intros X, simp, },
     { intros X Y f,
-      dsimp,
-      generalize_proofs h _ _ h1 h2,
-      induction h1,
-      induction h2,
-      change (equiv.of_bijective _ h).symm (φ.map f) = f,
-      simp only [equiv.of_bijective_symm_apply_apply], },
+      change (equiv.of_bijective φ.map _).symm ((φ.map f).cast _ _) = f.cast _ _,
+      generalize_proofs _ _ _ h₄ h₅,
+      change (equiv.of_bijective φ.map _).symm
+        (hom.cast (congr_arg φ.obj h₄) (congr_arg φ.obj h₅) (φ.map f)) = hom.cast h₄ h₅ f,
+      rw ←prefunctor.map_cast,
+      apply equiv.of_bijective_symm_apply_apply, },
   end,
   right_inv := begin
     fapply prefunctor.ext,

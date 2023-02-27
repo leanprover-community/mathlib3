@@ -149,9 +149,11 @@ end
 `B`, and which, at any point `x` in `U`, admits a neighbourhood `u` of `x` such that `e` is equal on
 `u ×ˢ univ` to some bi-smooth fibrewise linear local homeomorphism.  Then `e` itself is equal to
 some bi-smooth fibrewise linear local homeomorphism.
+
 This is the key mathematical point of the `locality` condition in the construction of the
 `structure_groupoid` of bi-smooth fibrewise linear local homeomorphisms.  The proof is by gluing
 together the various bi-smooth fibrewise linear local homeomorphism which exist locally.
+
 The `U` in the conclusion is the same `U` as in the hypothesis. We state it like this, because this
 is exactly what we need for `smooth_fiberwise_linear`. -/
 lemma smooth_fibrewise_linear.locality_aux₂ (e : local_homeomorph (B × F) (B × F))

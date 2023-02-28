@@ -498,10 +498,28 @@ def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
   try { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) }; try { intro i };
   dsimp;
   apply (relabelling.sub_congr (relabelling.refl _) (mul_zero_relabelling _)).trans;
-  rw sub_zero;
+  rw sub_zero_eq_add_zero;
   exact (add_zero_relabelling _).trans (((mul_one_relabelling _).add_congr
     (mul_zero_relabelling _)).trans $ add_zero_relabelling _)
 end
+
+/-- `1 * x` has the same moves as `x`. -/
+def one_mul : Π (x : pgame.{u}), 1 * x ≡ x
+| ⟨xl, xr, xL, xR⟩ := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_mul_iff], dsimp, simp_rw [is_empty.exists_iff, or_false, exists_const],
+    simp_rw [(((((pgame.zero_mul _).add (one_mul _)).trans (pgame.zero_add _)).sub
+      (xL _).zero_mul).trans (pgame.sub_zero _)).congr_right],
+    refl, },
+  { simp_rw [memᵣ_mul_iff], dsimp, simp_rw [is_empty.exists_iff, or_false, exists_const],
+    simp_rw [(((((pgame.zero_mul _).add (one_mul _)).trans (pgame.zero_add _)).sub
+      (xR _).zero_mul).trans (pgame.sub_zero _)).congr_right],
+    refl, },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+/-- `x * 1` has the same moves as `x`. -/
+def mul_one (x : pgame.{u}) : x * 1 ≡ x := (x.mul_comm _).trans x.one_mul
 
 @[simp] theorem quot_mul_one (x : pgame) : ⟦x * 1⟧ = ⟦x⟧ := quot.sound $ mul_one_relabelling x
 

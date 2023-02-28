@@ -1460,8 +1460,11 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
-@[simp] theorem sub_zero (x : pgame) : x - 0 = x + 0 :=
+@[simp] theorem sub_zero_eq_add_zero (x : pgame) : x - 0 = x + 0 :=
 show x + -0 = x + 0, by rw neg_zero
+
+lemma sub_zero (x : pgame) : x - 0 ≡ x :=
+trans (of_eq x.sub_zero_eq_add_zero) x.add_zero
 
 /-- Use the same name convention as global lemmas. -/
 lemma neg_sub' (x y : pgame.{u}) : -(x - y) = -x - -y := pgame.neg_add _ _

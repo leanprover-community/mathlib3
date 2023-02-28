@@ -85,9 +85,12 @@ alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 
 /-- A set `x` is a von Neumann ordinal when it's a transitive set, that's transitive under `∈`.
 
-There are many equivalences to this definition, which we state and prove. These include:
-- A transitive set that's trichotmous under `∈`
-prove that this further implies that `x` is well-ordered under `∈`. -/
+There are many equivalences to this definition, which we aim to state and prove. These include:
+- A transitive set that's trichotomous under `∈`.
+- A transitive set that's (strictly) totally ordered under `∈`
+  (`is_ordinal_iff_is_strict_total_order`).
+- A transitive set that's well-ordered under `∈` (`is_ordinal_iff_is_well_order`).
+- A hereditarily transitive set. -/
 def is_ordinal (x : Set) : Prop := x.is_transitive ∧ ∀ y z w : Set, y ∈ z → z ∈ w → w ∈ x → y ∈ w
 
 namespace is_ordinal
@@ -224,20 +227,6 @@ protected theorem is_strict_total_order (h : x.is_ordinal) :
 { ..h.is_well_order }
 
 end is_ordinal
-
-theorem is_ordinal_iff_is_trichotomous : x.is_ordinal ↔
-  x.is_transitive ∧ is_trichotomous x.to_set (subrel (∈) _) :=
-⟨λ h, ⟨h.is_transitive, h.is_trichotomous⟩, λ ⟨h₁, h₂⟩, is_ordinal_iff_is_trans.2 ⟨h₁, ⟨begin
-  haveI := h₂,
-  intros a b c hab hbc,
-  rcases trichotomous_of (subrel (∈) _) a c with (hac | rfl | hca),
-  { assumption },
-  { exact (asymm_of (∈) hab hbc).elim },
-  { 
-    have := well_founded.trans_gen ,
-
-  }
-end⟩⟩⟩
 
 theorem is_ordinal_iff_is_strict_total_order : x.is_ordinal ↔
   x.is_transitive ∧ is_strict_total_order x.to_set (subrel (∈) _) :=

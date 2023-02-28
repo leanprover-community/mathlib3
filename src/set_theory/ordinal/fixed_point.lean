@@ -92,7 +92,7 @@ begin
   unfold nfp_family,
   rw @is_normal.sup _ H _ _ ⟨[]⟩,
   apply le_antisymm;
-  refine sup_le (λ l, _),
+  refine ordinal.sup_le (λ l, _),
   { exact le_sup _ (i :: l) },
   { exact (H.self_le _).trans (le_sup _ _) }
 end

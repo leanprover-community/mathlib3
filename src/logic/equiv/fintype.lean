@@ -6,7 +6,7 @@ Authors: Yakov Pechersky
 
 import data.fintype.basic
 import group_theory.perm.sign
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-! # Equivalence between fintypes
 

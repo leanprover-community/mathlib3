@@ -3,10 +3,14 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.finsupp.basic
+import data.finsupp.defs
+import algebra.ring.pi
 
 /-!
 # The pointwise product on `finsupp`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For the convolution product on `finsupp` when the domain has a binary operation,
 see the type synonyms `add_monoid_algebra`

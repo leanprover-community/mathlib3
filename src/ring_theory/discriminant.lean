@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import ring_theory.trace
 import ring_theory.norm
-import number_theory.number_field
+import number_theory.number_field.basic
 
 /-!
 # Discriminant of a family of vectors
@@ -127,8 +127,9 @@ begin
   { simp [discr] },
   { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
+    classical,
     rw [discr_def, trace_matrix_def],
-    simp_rw [← basis.mk_apply b.linear_independent this],
+    simp_rw [← basis.mk_apply b.linear_independent this.ge],
     rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
     exact trace_form_nondegenerate _ _ },
 end
@@ -259,8 +260,6 @@ end
 section integral
 
 variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [is_scalar_tower R K L]
-
-local notation `is_integral` := _root_.is_integral
 
 /-- If `K` and `L` are fields and `is_scalar_tower R K L`, and `b : ι → L` satisfies
 ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`. -/

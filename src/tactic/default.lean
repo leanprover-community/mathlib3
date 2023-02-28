@@ -38,3 +38,4 @@ import tactic.unfold_cases
 import tactic.field_simp
 import tactic.linear_combination
 import tactic.polyrith
+import tactic.expand_exists

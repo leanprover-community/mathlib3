@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 
 import probability.ident_distrib
-import measure_theory.function.l2_space
 import measure_theory.integral.interval_integral
 import analysis.specific_limits.floor_pow
 import analysis.p_series
@@ -18,6 +17,10 @@ We prove the strong law of large numbers, in `probability_theory.strong_law_ae`:
 If `X n` is a sequence of independent identically distributed integrable real-valued random
 variables, then `∑ i in range n, X i / n` converges almost surely to `𝔼[X 0]`.
 We give here the strong version, due to Etemadi, that only requires pairwise independence.
+
+This file also contains the Lᵖ version of the strong law of large numbers provided by
+`probability_theory.strong_law_Lp` which shows `∑ i in range n, X i / n` converges in Lᵖ to
+`𝔼[X 0]` provided `X n` is independent identically distributed and is Lᵖ.
 
 ## Implementation
 
@@ -51,7 +54,7 @@ noncomputable theory
 open measure_theory filter finset asymptotics
 open set (indicator)
 
-open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
+open_locale topology big_operators measure_theory probability_theory ennreal nnreal
 
 namespace probability_theory
 
@@ -477,7 +480,7 @@ begin
         apply sum_le_sum (λ j hj, _),
         refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 (sq_nonneg _)),
         rw (hident j).truncation.variance_eq,
-        exact variance_le_expectation_sq,
+        exact variance_le_expectation_sq (hX 0).truncation,
       end
       ... ≤ 2 * 𝔼[X 0] : sum_variance_truncation_le hint (hnonneg 0) K },
   let C := (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]),
@@ -493,7 +496,7 @@ begin
         { assume j hj,
           exact (hident j).ae_strongly_measurable_fst.mem_ℒp_truncation },
         { assume k hk l hl hkl,
-          exact (hindep k l hkl).comp (A k).measurable (A l).measurable }
+          exact (hindep hkl).comp (A k).measurable (A l).measurable }
       end
     ... = ∑ j in range (u (N - 1)),
             (∑ i in (range N).filter (λ i, j < u i), ((u i : ℝ) ^ 2) ⁻¹) * Var[Y j] :
@@ -714,11 +717,11 @@ begin
   have negm : measurable neg := measurable_id'.neg.max measurable_const,
   have A : ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range n, (pos ∘ (X i)) ω) / n)
     at_top (𝓝 (𝔼[pos ∘ (X 0)])) :=
-      strong_law_aux7 _ hint.pos_part (λ i j hij, (hindep i j hij).comp posm posm)
+      strong_law_aux7 _ hint.pos_part (λ i j hij, (hindep hij).comp posm posm)
         (λ i, (hident i).comp posm) (λ i ω, le_max_right _ _),
   have B : ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range n, (neg ∘ (X i)) ω) / n)
     at_top (𝓝 (𝔼[neg ∘ (X 0)])) :=
-      strong_law_aux7 _ hint.neg_part (λ i j hij, (hindep i j hij).comp negm negm)
+      strong_law_aux7 _ hint.neg_part (λ i j hij, (hindep hij).comp negm negm)
         (λ i, (hident i).comp negm) (λ i ω, le_max_right _ _),
   filter_upwards [A, B] with ω hωpos hωneg,
   convert hωpos.sub hωneg,
@@ -727,5 +730,37 @@ begin
 end
 
 end strong_law_ae
+
+section strong_law_Lp
+
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
+
+/-- *Strong law of large numbers*, Lᵖ version: if `X n` is a sequence of independent
+identically distributed real-valued random variables in Lᵖ, then `∑ i in range n, X i / n`
+converges in Lᵖ to `𝔼[X 0]`. -/
+theorem strong_law_Lp
+  {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (X : ℕ → Ω → ℝ) (hℒp : mem_ℒp (X 0) p)
+  (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
+  (hident : ∀ i, ident_distrib (X i) (X 0)) :
+  tendsto (λ n, snorm (λ ω, (∑ i in range n, X i ω) / n - 𝔼[X 0]) p ℙ) at_top (𝓝 0) :=
+begin
+  have hmeas : ∀ i, ae_strongly_measurable (X i) ℙ :=
+    λ i, (hident i).ae_strongly_measurable_iff.2 hℒp.1,
+  have hint : integrable (X 0) ℙ := hℒp.integrable hp,
+  have havg : ∀ n, ae_strongly_measurable (λ ω, (∑ i in range n, X i ω) / n) ℙ,
+  { intro n,
+    simp_rw div_eq_mul_inv,
+    exact ae_strongly_measurable.mul_const (ae_strongly_measurable_sum _  (λ i _, hmeas i)) _ },
+  refine tendsto_Lp_of_tendsto_in_measure _ hp hp' havg (mem_ℒp_const _) _
+    (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
+  rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
+  { exact (uniform_integrable_average hp $
+      mem_ℒp.uniform_integrable_of_ident_distrib hp hp' hℒp hident).2.1 },
+  { ext n ω,
+    simp only [pi.coe_nat, pi.div_apply, sum_apply] }
+end
+
+end strong_law_Lp
 
 end probability_theory

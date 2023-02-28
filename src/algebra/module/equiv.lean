@@ -9,6 +9,9 @@ import algebra.module.linear_map
 /-!
 # (Semi)linear equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. Here, `σ` is a `ring_hom`
@@ -34,7 +37,6 @@ linear equiv, linear equivalences, linear isomorphism, linear isomorphic
 -/
 
 open function
-open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -45,13 +47,12 @@ section
 set_option old_structure_cmd true
 
 /-- A linear equivalence is an invertible linear map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure linear_equiv {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   (M : Type*) (M₂ : Type*)
   [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends linear_map σ M M₂, M ≃+ M₂
-end
 
 attribute [nolint doc_blame] linear_equiv.to_linear_map
 attribute [nolint doc_blame] linear_equiv.to_add_equiv
@@ -59,6 +60,49 @@ attribute [nolint doc_blame] linear_equiv.to_add_equiv
 notation M ` ≃ₛₗ[`:50 σ `] ` M₂ := linear_equiv σ M M₂
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃ₗ⋆[`:50 R `] ` M₂ := linear_equiv (star_ring_end R) M M₂
+
+/-- `semilinear_equiv_class F σ M M₂` asserts `F` is a type of bundled `σ`-semilinear equivs
+`M → M₂`.
+
+See also `linear_equiv_class F R M M₂` for the case where `σ` is the identity map on `R`.
+
+A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
+is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
+`f (c • x) = (σ c) • f x`. -/
+class semilinear_equiv_class (F : Type*) {R S : out_param Type*} [semiring R] [semiring S]
+  (σ : out_param $ R →+* S) {σ' : out_param $ S →+* R}
+  [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] (M M₂ : out_param Type*)
+  [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
+  extends add_equiv_class F M M₂ :=
+(map_smulₛₗ : ∀ (f : F) (r : R) (x : M), f (r • x) = (σ r) • f x)
+
+-- `R, S, σ, σ'` become metavars, but it's OK since they are outparams.
+attribute [nolint dangerous_instance] semilinear_equiv_class.to_add_equiv_class
+
+/-- `linear_equiv_class F R M M₂` asserts `F` is a type of bundled `R`-linear equivs `M → M₂`.
+This is an abbreviation for `semilinear_equiv_class F (ring_hom.id R) M M₂`.
+-/
+abbreviation linear_equiv_class (F : Type*) (R M M₂ : out_param Type*)
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂] :=
+semilinear_equiv_class F (ring_hom.id R) M M₂
+
+end
+
+namespace semilinear_equiv_class
+
+variables (F : Type*) [semiring R] [semiring S]
+variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
+variables [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R}
+
+-- `σ'` becomes a metavariable, but it's OK since it's an outparam
+@[priority 100, nolint dangerous_instance]
+instance [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] [s : semilinear_equiv_class F σ M M₂] :
+  semilinear_map_class F σ M M₂ :=
+{ coe := (coe : F → M → M₂),
+  coe_injective' := @fun_like.coe_injective F _ _ _,
+  ..s }
+
+end semilinear_equiv_class
 
 namespace linear_equiv
 
@@ -101,9 +145,12 @@ lemma to_linear_map_injective :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
 
-instance : semilinear_map_class (M ≃ₛₗ[σ] M₂) σ M M₂ :=
+instance : semilinear_equiv_class (M ≃ₛₗ[σ] M₂) σ M M₂ :=
 { coe := linear_equiv.to_fun,
-  coe_injective' := λ f g h, to_linear_map_injective (fun_like.coe_injective h),
+  inv := linear_equiv.inv_fun,
+  coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
+  left_inv := linear_equiv.left_inv,
+  right_inv := linear_equiv.right_inv,
   map_add := map_add',
   map_smulₛₗ := map_smul' }
 
@@ -193,7 +240,8 @@ variables (e₁₂ : M₁ ≃ₛₗ[σ₁₂] M₂) (e₂₃ : M₂ ≃ₛₗ[σ
 
 include σ₃₁
 /-- Linear equivalences are transitive. -/
--- Note: The linter thinks the `ring_hom_comp_triple` argument is doubled -- it is not.
+-- Note: the `ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁` is unused, but is convenient to carry around
+-- implicitly for lemmas like `linear_equiv.self_trans_symm`.
 @[trans, nolint unused_arguments]
 def trans : M₁ ≃ₛₗ[σ₁₃] M₃ :=
 { .. e₂₃.to_linear_map.comp e₁₂.to_linear_map,
@@ -219,6 +267,9 @@ rfl
 include σ₃₁
 @[simp] theorem trans_apply (c : M₁) :
   (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃) c = e₂₃ (e₁₂ c) := rfl
+
+theorem coe_trans :
+  (e₁₂.trans e₂₃ : M₁ →ₛₗ[σ₁₃] M₃) = (e₂₃ : M₂ →ₛₗ[σ₂₃] M₃).comp (e₁₂ : M₁ →ₛₗ[σ₁₂] M₂) := rfl
 omit σ₃₁
 
 include σ'
@@ -295,13 +346,15 @@ omit module_M₃
 
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 
-@[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
-  f.trans f.symm = linear_equiv.refl R M :=
+include re₁₂ re₂₁ module_M₁ module_M₂
+@[simp] lemma self_trans_symm (f : M₁ ≃ₛₗ[σ₁₂] M₂) :
+  f.trans f.symm = linear_equiv.refl R₁ M₁ :=
 by { ext x, simp }
 
-@[simp] lemma symm_trans_self [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
-  f.symm.trans f = linear_equiv.refl R M₂ :=
+@[simp] lemma symm_trans_self (f : M₁ ≃ₛₗ[σ₁₂] M₂) :
+  f.symm.trans f = linear_equiv.refl R₂ M₂ :=
 by { ext x, simp }
+omit re₁₂ re₂₁ module_M₁ module_M₂
 
 @[simp, norm_cast] lemma refl_to_linear_map [module R M] :
   (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
@@ -324,9 +377,6 @@ include module_N₁ module_N₂
 theorem map_smul (e : N₁ ≃ₗ[R₁] N₂) (c : R₁) (x : N₁) :
   e (c • x) = c • e x := map_smulₛₗ e c x
 omit module_N₁ module_N₂
-
-@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
-e.to_linear_map.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
@@ -467,6 +517,23 @@ instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
 { smul_comm := linear_equiv.map_smul }
 
 end automorphisms
+
+section of_subsingleton
+
+variables (M M₂) [module R M] [module R M₂] [subsingleton M] [subsingleton M₂]
+
+/-- Any two modules that are subsingletons are isomorphic. -/
+@[simps] def of_subsingleton : M ≃ₗ[R] M₂ :=
+{ to_fun := λ _, 0,
+  inv_fun := λ _, 0,
+  left_inv := λ x, subsingleton.elim _ _,
+  right_inv := λ x, subsingleton.elim _ _,
+  .. (0 : M →ₗ[R] M₂)}
+
+@[simp] lemma of_subsingleton_self : of_subsingleton M M = refl R M :=
+by { ext, simp }
+
+end of_subsingleton
 
 end add_comm_monoid
 

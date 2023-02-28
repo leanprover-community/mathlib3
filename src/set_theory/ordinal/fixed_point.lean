@@ -5,9 +5,13 @@ Authors: Violeta Hernández Palacios, Mario Carneiro
 -/
 
 import set_theory.ordinal.arithmetic
+import set_theory.ordinal.exponential
 
 /-!
 # Fixed points of normal functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove various statements about the fixed points of normal ordinal functions. We state them in
 three forms: as statements about type-indexed families of normal functions, as statements about
@@ -85,7 +89,7 @@ theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : �
   nfp_family f a ≤ b :=
 sup_le $ λ l, begin
   by_cases hι : is_empty ι,
-  { rwa @unique.eq_default _ (@list.unique_of_is_empty ι hι) l },
+  { resetI, rwa unique.eq_default l },
   { haveI := not_is_empty_iff.1 hι,
     induction l with i l IH generalizing a, {exact ab},
     exact (H i (IH ab)).trans (h i) }
@@ -233,20 +237,25 @@ sup_le
 theorem nfp_bfamily_monotone (hf : ∀ i hi, monotone (f i hi)) : monotone (nfp_bfamily o f) :=
 nfp_family_monotone (λ i, hf _ _)
 
-theorem apply_lt_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
-  (∀ i hi, f i hi b < nfp_bfamily o f a) ↔ b < nfp_bfamily o f a :=
+theorem apply_lt_nfp_bfamily (H : ∀ i hi, is_normal (f i hi)) {a b} (hb : b < nfp_bfamily o f a)
+  (i hi) : f i hi b < nfp_bfamily o f a :=
 begin
-  unfold nfp_bfamily,
-  rw ←@apply_lt_nfp_family_iff _ (family_of_bfamily o f) (out_nonempty_iff_ne_zero.2 ho)
-    (λ i, H _ _),
-  refine ⟨λ h i, h _ (typein_lt_self i), λ h i hio, _⟩,
   rw ←family_of_bfamily_enum o f,
-  apply h
+  apply apply_lt_nfp_family _ hb,
+  exact λ _, H _ _
 end
+
+theorem apply_lt_nfp_bfamily_iff (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
+  (∀ i hi, f i hi b < nfp_bfamily o f a) ↔ b < nfp_bfamily o f a :=
+⟨λ h, begin
+  haveI := out_nonempty_iff_ne_zero.2 ho,
+  refine (apply_lt_nfp_family_iff _).1 (λ _, h _ _),
+  exact λ _, H _ _,
+end, apply_lt_nfp_bfamily H⟩
 
 theorem nfp_bfamily_le_apply (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∃ i hi, nfp_bfamily o f a ≤ f i hi b) ↔ nfp_bfamily o f a ≤ b :=
-by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily ho H, simp only [not_le] }
+by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily_iff ho H, simp only [not_le] }
 
 theorem nfp_bfamily_le_fp (H : ∀ i hi, monotone (f i hi)) {a b} (ab : a ≤ b)
   (h : ∀ i hi, f i hi b ≤ b) : nfp_bfamily o f a ≤ b :=
@@ -344,7 +353,7 @@ begin
   refine funext (λ a, le_antisymm _ (sup_le (λ l, _))),
   { rw sup_le_iff,
     intro n,
-    rw [←list.length_repeat unit.star n, ←list.foldr_const f a],
+    rw [←list.length_replicate n unit.star, ←list.foldr_const f a],
     apply le_sup },
   { rw list.foldr_const f a l,
     exact le_sup _ _ },
@@ -495,7 +504,7 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 @[simp] theorem nfp_mul_one {a : ordinal} (ha : 0 < a) : nfp ((*) a) 1 = a ^ omega :=
 begin
   rw [←sup_iterate_eq_nfp, ←sup_opow_nat],

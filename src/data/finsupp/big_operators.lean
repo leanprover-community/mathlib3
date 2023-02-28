@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 
-import data.finsupp.basic
+import data.finsupp.defs
+import data.finset.pairwise
 
 /-!
 
 # Sums of collections of finsupp, and their support
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file provides results about the `finsupp.support` of sums of collections of `finsupp`,
 including sums of `list`, `multiset`, and `finset`.
 
@@ -37,7 +41,7 @@ lemma list.support_sum_subset [add_monoid M] (l : list (ι →₀ M)) :
 begin
   induction l with hd tl IH,
   { simp },
-  { simp only [list.sum_cons, list.foldr_cons, finset.union_comm],
+  { simp only [list.sum_cons, finset.union_comm],
     refine finsupp.support_add.trans (finset.union_subset_union _ IH),
     refl }
 end

@@ -58,12 +58,45 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
 -- `char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)` does not work
 -- here as it would require `ring A`.
 
+/-!
+As an application, a `ℚ`-algebra has characteristic zero.
+-/
+section Q_algebra
+
+variables (R : Type*) [nontrivial R]
+
+/-- A nontrivial `ℚ`-algebra has `char_p` equal to zero.
+
+This cannot be a (local) instance because it would immediately form a loop with the
+instance `algebra_rat`. It's probably easier to go the other way: prove `char_zero R` and
+automatically receive an `algebra ℚ R` instance.
+-/
+lemma algebra_rat.char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
+char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0
+
+/-- A nontrivial `ℚ`-algebra has characteristic zero.
+
+This cannot be a (local) instance because it would immediately form a loop with the
+instance `algebra_rat`. It's probably easier to go the other way: prove `char_zero R` and
+automatically receive an `algebra ℚ R` instance.
+-/
+lemma algebra_rat.char_zero [ring R] [algebra ℚ R] : char_zero R :=
+@char_p.char_p_to_char_zero R _ (algebra_rat.char_p_zero R)
+
+end Q_algebra
+
+/-!
+An algebra over a field has the same characteristic as the field.
+-/
 section
 
 variables (K L : Type*) [field K] [comm_semiring L] [nontrivial L] [algebra K L]
 
 lemma algebra.char_p_iff (p : ℕ) : char_p K p ↔ char_p L p :=
 (algebra_map K L).char_p_iff_char_p p
+
+lemma algebra.ring_char_eq : ring_char K = ring_char L :=
+by { rw [ring_char.eq_iff, algebra.char_p_iff K L], apply ring_char.char_p }
 
 end
 

@@ -9,6 +9,9 @@ import data.set.lattice
 /-!
 # Intervals in `pi`-space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this we prove various simple lemmas about intervals in `Π i, α i`. Closed intervals (`Ici x`,
 `Iic x`, `Icc x y`) are equal to products of their projections to `α i`, while (semi-)open intervals
 usually include the corresponding products as proper subsets.
@@ -94,7 +97,8 @@ lemma disjoint_pi_univ_Ioc_update_left_right {x y : Π i, α i} {i₀ : ι} {m :
   disjoint (pi univ (λ i, Ioc (x i) (update y i₀ m i)))
     (pi univ (λ i, Ioc (update x i₀ m i) (y i))) :=
 begin
-  rintro z ⟨h₁, h₂⟩,
+  rw disjoint_left,
+  rintro z h₁ h₂,
   refine (h₁ i₀ (mem_univ _)).2.not_lt _,
   simpa only [function.update_same] using (h₂ i₀ (mem_univ _)).1
 end

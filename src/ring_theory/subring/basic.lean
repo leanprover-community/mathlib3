@@ -10,6 +10,9 @@ import ring_theory.subsemiring.basic
 /-!
 # Subrings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a ring. This file defines the "bundled" subring type `subring R`, a type
 whose terms correspond to subrings of `R`. This is the preferred way to talk
 about subrings in mathlib. Unbundled subrings (`s : set R` and `is_subring s`)
@@ -71,12 +74,11 @@ section subring_class
 
 /-- `subring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both a multiplicative submonoid and an additive subgroup. -/
-class subring_class (S : Type*) (R : out_param $ Type u) [ring R] [set_like S R]
-  extends subsemiring_class S R :=
-(neg_mem : ∀ {s : S} {a : R}, a ∈ s → -a ∈ s)
+class subring_class (S : Type*) (R : Type u) [ring R] [set_like S R]
+  extends subsemiring_class S R, neg_mem_class S R : Prop
 
 @[priority 100] -- See note [lower instance priority]
-instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [set_like S R]
+instance subring_class.add_subgroup_class (S : Type*) (R : Type u) [set_like S R]
   [ring R] [h : subring_class S R] : add_subgroup_class S R :=
 { .. h }
 
@@ -108,7 +110,7 @@ subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, r
 /-- A subring of a domain is a domain. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_domain s :=
-{ .. subsemiring_class.nontrivial s, .. subsemiring_class.no_zero_divisors s }
+no_zero_divisors.to_is_domain _
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
@@ -149,10 +151,8 @@ def subtype (s : S) : s →+* R :=
  .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
-map_nat_cast (subtype s) n
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-(subtype s : s →+* R).map_int_cast n
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n := map_nat_cast (subtype s) n
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n := map_int_cast (subtype s) n
 
 end subring_class
 
@@ -213,7 +213,7 @@ iff.rfl
 equalities. -/
 protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
 { carrier := s,
-  neg_mem' := hs.symm ▸ S.neg_mem',
+  neg_mem' := λ _, hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
@@ -383,7 +383,7 @@ s.to_subsemiring.no_zero_divisors
 
 /-- A subring of a domain is a domain. -/
 instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+no_zero_divisors.to_is_domain _
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
@@ -415,10 +415,8 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
-map_nat_cast s.subtype
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-s.subtype.map_int_cast n
+@[simp, norm_cast] lemma coe_nat_cast : ∀ n : ℕ, ((n : s) : R) = n := map_nat_cast s.subtype
+@[simp, norm_cast] lemma coe_int_cast : ∀ n : ℤ, ((n : s) : R) = n := map_int_cast s.subtype
 
 /-! ## Partial order -/
 
@@ -437,6 +435,10 @@ instance : has_top (subring R) :=
 @[simp] lemma mem_top (x : R) : x ∈ (⊤ : subring R) := set.mem_univ x
 
 @[simp] lemma coe_top : ((⊤ : subring R) : set R) = set.univ := rfl
+
+/-- The ring equiv between the top element of `subring R` and `R`. -/
+@[simps]
+def top_equiv : (⊤ : subring R) ≃+* R := subsemiring.top_equiv
 
 /-! ## comap -/
 
@@ -563,6 +565,13 @@ instance : has_Inf (subring R) :=
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
+
+@[simp, norm_cast] lemma coe_infi {ι : Sort*} {S : ι → subring R} :
+  (↑(⨅ i, S i) : set R) = ⋂ i, S i :=
+by simp only [infi, coe_Inf, set.bInter_range]
+
+lemma mem_infi {ι : Sort*} {S : ι → subring R} {x : R} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
+by simp only [infi, mem_Inf, set.forall_range_iff]
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
@@ -816,13 +825,11 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 /-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s ×̂ t`
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
-{ carrier := (s : set R) ×ˢ (t : set S),
+{ carrier := s ×ˢ t,
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
-lemma coe_prod (s : subring R) (t : subring S) :
-  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
-rfl
+lemma coe_prod (s : subring R) (t : subring S) : (s.prod t : set (R × S)) = s ×ˢ t := rfl
 
 lemma mem_prod {s : subring R} {t : subring S} {p : R × S} :
   p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
@@ -929,6 +936,9 @@ range_top_iff_surjective.2 hf
   the equalizer of f and g as a subring of R -/
 def eq_locus (f g : R →+* S) : subring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
+
+@[simp] lemma eq_locus_same (f : R →+* S) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
 lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
@@ -1042,14 +1052,13 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
+  rsuffices ⟨L, HL', HP | HP⟩ : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
     (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
-  { rcases this with ⟨L, HL', HP | HP⟩,
-    { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
-      rw list.forall_mem_cons at HL',
-      rw list.prod_cons,
-      exact hs _ HL'.1 _ (ih HL'.2) },
-    rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
+    rw list.forall_mem_cons at HL',
+    rw list.prod_cons,
+    exact hs _ HL'.1 _ (ih HL'.2) },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
     rw [list.prod_cons, neg_mul_eq_mul_neg],
     rw list.forall_mem_cons at HL',
     exact hs _ HL'.1 _ (ih HL'.2) },
@@ -1137,6 +1146,10 @@ S.to_subsemiring.mul_action_with_zero
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
+
+/-- The action by a subsemiring is the action by the underlying ring. -/
+instance [semiring α] [mul_semiring_action R α] (S : subring R) : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
 
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R) R R :=

@@ -754,7 +754,8 @@ theorem image.mk :
   (image f x).to_set = f '' x.to_set :=
 by { ext, simp }
 
-/-- The range of an indexed family of sets. -/
+/-- The range of an indexed family of sets. The universes allow for a more general index type
+  without manual use of `ulift`. -/
 noncomputable def range {α : Type u} (f : α → Set.{max u v}) : Set.{max u v} :=
 ⟦⟨ulift α, quotient.out ∘ f ∘ ulift.down⟩⟧
 

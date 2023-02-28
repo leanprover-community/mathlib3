@@ -56,10 +56,10 @@ lemma kstar_def (l : language α) :
   l∗ = {x | ∃ L : list (free_monoid α), x = L.prod ∧ ∀ y ∈ L, y ∈ l} :=
 rfl
 
-@[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
-@[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := by refl
-lemma nil_mem_one : [] ∈ (1 : language α) := set.mem_singleton _
-lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m := iff.rfl
+@[simp] lemma not_mem_zero (x : free_monoid α) : x ∉ (0 : language α) := id
+@[simp] lemma mem_one (x : free_monoid α) : x ∈ (1 : language α) ↔ x = 1 := by refl
+lemma nil_mem_one : (1 : free_monoid α) ∈ (1 : language α) := set.mem_singleton _
+lemma mem_add (l m : language α) (x : free_monoid α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m := iff.rfl
 lemma mem_mul : x ∈ l * m ↔ ∃ a b, a ∈ l ∧ b ∈ m ∧ a * b = x := mem_image2
 lemma append_mem_mul : a ∈ l → b ∈ m → a * b ∈ l * m := mem_image2_of_mem
 lemma mem_kstar : x ∈ l∗ ↔ ∃ L : list (free_monoid α), x = L.prod ∧ ∀ y ∈ L, y ∈ l := iff.rfl
@@ -119,7 +119,7 @@ end
 
 lemma le_add_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ ≤ m₂ → l₁ + l₂ ≤ m₁ + m₂ := sup_le_sup
 
-lemma mem_supr {ι : Sort v} {l : ι → language α} {x : list α} :
+lemma mem_supr {ι : Sort v} {l : ι → language α} {x : free_monoid α} :
   x ∈ (⨆ i, l i) ↔ ∃ i, x ∈ l i :=
 mem_Union
 

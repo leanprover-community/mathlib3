@@ -25,13 +25,15 @@ variables {α β : Type*}
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
-@[derive [inhabited, complete_boolean_algebra, order_bot, has_mem α]]
+@[derive [inhabited, complete_boolean_algebra, order_bot, has_mem α, has_singleton α, has_insert α]]
 def set_semiring (α : Type*) : Type* := set α
 
 /-- The identity function `set α → set_semiring α`. -/
 protected def set.up : set α ≃ set_semiring α := equiv.refl _
 
 @[simp] lemma set.mem_up {a : α} {s : set α} : a ∈ set.up s ↔ a ∈ s := iff.rfl
+@[simp] lemma set.up_singleton (a : α) : ({a} : set α).up = {a} := rfl
+@[simp] lemma set.up_insert (a : α) (s : set α) : (insert a s).up = insert a s.up := rfl
 
 namespace set_semiring
 
@@ -39,6 +41,8 @@ namespace set_semiring
 protected def down : set_semiring α ≃ set α := equiv.refl _
 
 @[simp] lemma mem_down {a : α} {s : set_semiring α} : a ∈ s.down ↔ a ∈ s := iff.rfl
+@[simp] lemma down_singleton (a : α) : ({a} : set_semiring α).up = {a} := rfl
+@[simp] lemma down_insert (a : α) (s : set_semiring α) : (insert a s).down = insert a s.down := rfl
 
 @[simp] protected lemma down_up (s : set α) : s.up.down = s := rfl
 @[simp] protected lemma up_down (s : set_semiring α) : s.down.up = s := rfl

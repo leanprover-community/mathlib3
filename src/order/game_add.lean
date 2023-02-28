@@ -131,10 +131,8 @@ end prod
 
 namespace sym2
 
-variables (rα)
-
 /-- `sym2.game_add rα x y` means that `x` can be reached from `y` by decreasing either entry. -/
-def game_add : sym2 α → sym2 α → Prop :=
+def game_add (rα : α → α → Prop): sym2 α → sym2 α → Prop :=
 sym2.lift₂
 ⟨λ a₁ b₁ a₂ b₂, prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂),
   λ a₁ b₁ a₂ b₂, begin
@@ -142,7 +140,7 @@ sym2.lift₂
     simp [or_comm]
   end⟩
 
-variables {rα}
+variable {rα}
 
 lemma game_add_iff : ∀ {x y : α × α}, game_add rα ⟦x⟧ ⟦y⟧ ↔
   prod.game_add rα rα x y ∨ prod.game_add rα rα x.swap y :=
@@ -163,10 +161,10 @@ lemma game_add.snd {a b₁ b₂ : α} (h : rα b₁ b₂) : game_add rα ⟦(a, 
 (prod.game_add.snd h).to_sym2
 
 lemma game_add.fst_snd {a₁ a₂ b : α} (h : rα a₁ a₂) : game_add rα ⟦(a₁, b)⟧ ⟦(b, a₂)⟧ :=
-by { rw [sym2.eq_swap], exact game_add.snd h }
+by { rw sym2.eq_swap, exact game_add.snd h }
 
 lemma game_add.snd_fst {a₁ a₂ b : α} (h : rα a₁ a₂) : game_add rα ⟦(b, a₁)⟧ ⟦(a₂, b)⟧ :=
-by { rw [sym2.eq_swap], exact game_add.fst h }
+by { rw sym2.eq_swap, exact game_add.fst h }
 
 end sym2
 

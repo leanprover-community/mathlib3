@@ -48,10 +48,12 @@ least `a`, and `ordinal.nfp_family_le_fp` shows this is the least ordinal with t
 def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal :=
 sup (list.foldr f a)
 
-theorem nfp_family_eq_sup (f : ι → ordinal → ordinal) (a) : nfp_family f a = sup (list.foldr f a) :=
+theorem nfp_family_eq_sup (f : ι → ordinal → ordinal) (a) :
+  nfp_family f a = sup (list.foldr f a) :=
 rfl
 
-theorem foldr_le_nfp_family (f : ι → ordinal → ordinal) (a l) : list.foldr f a l ≤ nfp_family f a :=
+theorem foldr_le_nfp_family (f : ι → ordinal → ordinal) (a l) :
+  list.foldr f a l ≤ nfp_family f a :=
 le_sup _ _
 
 theorem le_nfp_family (f : ι → ordinal → ordinal) (a) : a ≤ nfp_family f a :=

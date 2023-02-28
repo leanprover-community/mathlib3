@@ -78,7 +78,8 @@ alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 
 /-! ### Ordinals as sets -/
 
-/-- A set `x` is a von Neumann ordinal when it's a transitive set, that's transitive under `∈`.
+/-- A set `x` is a von Neumann ordinal when it's a transitive set `x`, such that `y ∈ z ∈ w ∈ x`
+implies `y ∈ w`.
 
 There are many equivalences to this definition, which we aim to state and prove. These include:
 

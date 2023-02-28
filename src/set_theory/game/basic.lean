@@ -504,7 +504,7 @@ def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
 end
 
 /-- `1 * x` has the same moves as `x`. -/
-def one_mul : Π (x : pgame.{u}), 1 * x ≡ x
+lemma one_mul : Π (x : pgame.{u}), 1 * x ≡ x
 | ⟨xl, xr, xL, xR⟩ := begin
   refine identical.ext (λ z, _) (λ z, _),
   { simp_rw [memₗ_mul_iff], dsimp, simp_rw [is_empty.exists_iff, or_false, exists_const],
@@ -519,7 +519,7 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `x * 1` has the same moves as `x`. -/
-def mul_one (x : pgame.{u}) : x * 1 ≡ x := (x.mul_comm _).trans x.one_mul
+lemma mul_one (x : pgame.{u}) : x * 1 ≡ x := (x.mul_comm _).trans x.one_mul
 
 @[simp] theorem quot_mul_one (x : pgame) : ⟦x * 1⟧ = ⟦x⟧ := quot.sound $ mul_one_relabelling x
 

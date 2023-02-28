@@ -61,7 +61,7 @@ by simp_rw [mul_comm x, expect_mul]
 lemma expect_true_univ [fintype α] {f : α → ℂ} : 𝔼 x, f x = (∑ x, f x) / card α :=
 by rw [expect, card_univ]
 
-lemma expect_indicate [fintype α] [nonempty α] [decidable_eq α] (f : α → ℂ) (x : α) :
+lemma expect_indicate_eq [fintype α] [nonempty α] [decidable_eq α] (f : α → ℂ) (x : α) :
   𝔼 i, ite (x = i) (card α) 0 * f i = f x :=
 begin
   simp_rw [expect_true_univ, ite_mul, zero_mul, sum_ite_eq, if_pos (mem_univ _)],
@@ -69,9 +69,9 @@ begin
   simp [fintype.card_ne_zero]
 end
 
-lemma expect_indicate' [fintype α] [nonempty α] [decidable_eq α] (f : α → ℂ) (x : α) :
+lemma expect_indicate_eq' [fintype α] [nonempty α] [decidable_eq α] (f : α → ℂ) (x : α) :
   𝔼 i, ite (i = x) (card α) 0 * f i = f x :=
-by simp_rw [@eq_comm _ _ x, expect_indicate]
+by simp_rw [@eq_comm _ _ x, expect_indicate_eq]
 
 lemma expect_congr {s : finset α} (f g : α → ℂ) (p : α → Prop) [decidable_pred p]
   (h : ∀ x ∈ s, p x → f x = g x) :
@@ -385,15 +385,38 @@ begin
   exact_mod_cast hn
 end
 
-def mk_character_zmod {n : ℕ} (hn : 1 < n) (f : zmod n) : zmod n →+ additive circle :=
-(mk_character_zmod_aux n (by linarith)).comp (add_monoid_hom.mul_left f)
+def mk_character_zmod {n : ℕ} (hn : n ≠ 0) (f : zmod n) : zmod n →+ additive circle :=
+(mk_character_zmod_aux n hn).comp (add_monoid_hom.mul_left f)
 
-def mk_character_aux {ι : Type} [fintype ι] [decidable_eq ι] {n : ι → ℕ} (hn : ∀ i, 1 < n i)
+lemma mk_character_zmod_inj {n : ℕ} (hn : n ≠ 0) :
+  function.injective (mk_character_zmod hn) :=
+begin
+  intros x y h,
+  have := fun_like.congr_fun h (1 : zmod n),
+  simpa using mk_character_zmod_aux_inj hn this,
+end
+
+def mk_character_zmod_hom {n : ℕ} (hn : n ≠ 0) : zmod n →+ zmod n →+ additive circle :=
+{ to_fun := mk_character_zmod hn,
+  map_zero' :=
+  begin
+    ext x : 1,
+    rw [mk_character_zmod, add_monoid_hom.coe_comp, function.comp_app, add_monoid_hom.coe_mul_left,
+      zero_mul, map_zero, add_monoid_hom.zero_apply],
+  end,
+  map_add' := λ x y,
+  begin
+    ext z : 1,
+    simp only [mk_character_zmod, add_monoid_hom.coe_mul_left, add_monoid_hom.coe_comp,
+      add_monoid_hom.add_apply, function.comp_app, add_mul, map_add],
+  end }
+
+def mk_character_aux {ι : Type} [fintype ι] [decidable_eq ι] {n : ι → ℕ} (hn : ∀ i, n i ≠ 0)
   (u : Π i : ι, zmod (n i)) :
   direct_sum ι (λ i, zmod (n i)) →+ additive circle :=
 direct_sum.to_add_monoid (λ i, (mk_character_zmod (hn i) (u i)))
 
-lemma mk_character_aux_inj {ι : Type} [fintype ι] [decidable_eq ι] {n : ι → ℕ} (hn : ∀ i, 1 < n i) :
+lemma mk_character_aux_inj {ι : Type} [fintype ι] [decidable_eq ι] {n : ι → ℕ} (hn : ∀ i, n i ≠ 0) :
   function.injective (mk_character_aux hn) :=
 begin
   intros u v h,
@@ -452,8 +475,9 @@ begin
   obtain ⟨ι, hi, n, hn, ⟨e⟩⟩ := my_classification (additive G),
   resetI,
   classical,
+  have hn' : ∀ i, n i ≠ 0, { intro i, linarith only [hn i] },
   let f : G → character G := monoid_hom.to_additive.symm ∘
-    (λ x, (mk_character_aux hn x).comp (e : additive G →+ direct_sum ι (λ i, zmod (n i)))) ∘
+    (λ x, (mk_character_aux hn' x).comp (e : additive G →+ direct_sum ι (λ i, zmod (n i)))) ∘
       coe_fn ∘ e ∘ additive.of_mul,
   have : function.injective f,
   { refine monoid_hom.to_additive.symm.injective.comp _,
@@ -546,7 +570,7 @@ begin
     star_ring_end_self_apply, expect_mul, mul_expect, coe_coe_eq, ←expect_sum],
   conv in (_ * _) { rw mul_mul_mul_comm },
   simp_rw [←sum_mul, ←coe_inv_circle_eq_conj, ←map_inv, ←coe_mul_unit_sphere, ←map_mul,
-    sum_apply_character, mul_inv_eq_one, expect_indicate],
+    sum_apply_character, mul_inv_eq_one, expect_indicate_eq],
 end
 
 lemma inversion (f : G → ℂ) (x : G) :
@@ -555,7 +579,7 @@ begin
   classical,
   simp_rw [transform, inner_prod_expect, expect_mul, ←expect_sum, mul_right_comm _ (f _),
     ←sum_mul, coe_coe_eq, ←coe_inv_circle_eq_conj, ←map_inv, ←coe_mul_unit_sphere, ←map_mul,
-    sum_apply_character, inv_mul_eq_one, expect_indicate'],
+    sum_apply_character, inv_mul_eq_one, expect_indicate_eq'],
 end
 
 def convolve (f g : G → ℂ) (x : G) : ℂ := 𝔼 y, f y * g (x * y⁻¹)
@@ -594,163 +618,218 @@ end
 lemma transform_convolve {f g : G → ℂ} : transform (convolve f g) = transform f * transform g :=
 funext transform_convolve_apply
 
-local attribute [-instance] zmod.has_coe_t
-@[reducible] instance zmod_has_coe_t_int {n} : has_coe_t (zmod n) ℤ := zmod.has_coe_t _
+-- local attribute [-instance] zmod.has_coe_t
+-- @[reducible] instance zmod_has_coe_t_int {n} : has_coe_t (zmod n) ℤ := zmod.has_coe_t _
 
-def scale_int_endo : ℤ →* monoid.End G :=
+def {u} scale_endo {α : Type u} [comm_monoid α] : ℕ →* monoid.End α :=
 { to_fun := λ z,
   { to_fun := λ g, g ^ z,
-    map_one' := one_zpow _,
-    map_mul' := λ x y, mul_zpow _ _ _ },
+    map_one' := one_pow _,
+    map_mul' := λ x y, mul_pow _ _ _ },
   map_one' :=
   begin
     ext g,
-    simp only [zpow_one, monoid_hom.coe_mk, monoid.coe_one, id.def],
+    simp only [pow_one, monoid_hom.coe_mk, monoid.coe_one, id.def],
   end,
-  map_mul' := λ x y, by { ext g, exact zpow_mul' _ _ _ } }
+  map_mul' := λ x y, by { ext g, exact pow_mul' _ _ _ } }
 
-lemma scale_int_endo_add (z₁ z₂ : ℤ) (g : G) :
-  scale_int_endo (z₁ + z₂) g = scale_int_endo z₁ g * scale_int_endo z₂ g :=
-zpow_add _ _ _
+lemma scale_endo_apply_apply {α : Type*} [comm_monoid α] (a : ℕ) (g : α) :
+  scale_endo a g = g ^ a := rfl
 
-lemma scale_int_endo_sub (z₁ z₂ : ℤ) (g : G) :
-  scale_int_endo (z₁ - z₂) g = scale_int_endo z₁ g * (scale_int_endo z₂ g)⁻¹ :=
-zpow_sub _ _ _
+lemma scale_endo_add {α : Type*} [comm_monoid α] (z₁ z₂ : ℕ) (g : α) :
+  scale_endo (z₁ + z₂) g = scale_endo z₁ g * scale_endo z₂ g :=
+pow_add _ _ _
 
-lemma scale_int_endo_neg (z : ℤ) (g : G) :
-  scale_int_endo (- z) g = (scale_int_endo z g)⁻¹ :=
-zpow_neg _ _
+-- lemma scale_endo_sub (z₁ z₂ : ℤ) (g : G) :
+--   scale_endo (z₁ - z₂) g = scale_endo z₁ g * (scale_endo z₂ g)⁻¹ :=
+-- zpow_sub _ _ _
 
-lemma scale_int_endo_card (g : G) : scale_int_endo (card G) g = 1 :=
-(zpow_coe_nat _ _).trans pow_card_eq_one
+-- lemma scale_endo_neg (z : ℤ) (g : G) :
+--   scale_endo (- z) g = (scale_endo z g)⁻¹ :=
+-- zpow_neg _ _
 
-lemma scale_int_endo_mod (z : ℤ) :
-  (scale_int_endo (z % card G) : monoid.End G) = scale_int_endo z :=
+
+lemma scale_endo_zero_apply {α : Type*} [comm_monoid α] (g : α) : scale_endo 0 g = 1 := pow_zero _
+
+lemma scale_endo_one_apply {α : Type*} [comm_monoid α] (g : α) : scale_endo 1 g = g := pow_one _
+
+lemma scale_endo_mul_apply {α : Type*} [comm_monoid α] (z₁ z₂ : ℕ) (g : α) :
+  scale_endo (z₁ * z₂) g = scale_endo z₁ (scale_endo z₂ g) :=
+pow_mul' _ _ _
+
+lemma scale_endo_card (g : G) : scale_endo (card G) g = 1 := pow_card_eq_one
+
+lemma scale_endo_mod (n : ℕ) :
+  (scale_endo (n % card G) : monoid.End G) = scale_endo n :=
 begin
   ext g,
-  rw [int.mod_def, scale_int_endo_sub, map_mul, monoid.coe_mul, function.comp_app,
-    scale_int_endo_card, inv_one, mul_one],
+  conv_rhs {rw [←nat.mod_add_div n (card G), scale_endo_add, scale_endo_mul_apply, scale_endo_card,
+    mul_one] },
 end
 
-lemma zmod.coe_add {n : ℕ} {x y : zmod n} : ((x + y : zmod n) : ℤ) = (x + y) % n :=
-by rw [←zmod.coe_int_cast, int.cast_add, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
+lemma scale_endo_val {m : ℕ} (h : m = card G) (n : ℕ) :
+  (scale_endo (n : zmod m).val : monoid.End G) = scale_endo n :=
+by rw [zmod.val_nat_cast, h, scale_endo_mod]
 
-lemma zmod.coe_mul {n : ℕ} {x y : zmod n} : ((x * y : zmod n) : ℤ) = (x * y) % n :=
-by rw [←zmod.coe_int_cast, int.cast_mul, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
+-- lemma zmod.coe_add {n : ℕ} {x y : zmod n} : ((x + y : zmod n) : ℤ) = (x + y) % n :=
+-- by rw [←zmod.coe_int_cast, int.cast_add, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
 
-lemma zmod.coe_sub {n : ℕ} {x y : zmod n} : ((x - y : zmod n) : ℤ) = (x - y) % n :=
-by rw [←zmod.coe_int_cast, int.cast_sub, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
+-- lemma zmod.coe_mul {n : ℕ} {x y : zmod n} : ((x * y : zmod n) : ℤ) = (x * y) % n :=
+-- by rw [←zmod.coe_int_cast, int.cast_mul, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
 
-lemma zmod.coe_neg {n : ℕ} {x : zmod n} : ((- x : zmod n) : ℤ) = (- x) % n :=
-by rw [←zmod.coe_int_cast, int.cast_neg, zmod.int_cast_zmod_cast]
+-- lemma zmod.coe_sub {n : ℕ} {x y : zmod n} : ((x - y : zmod n) : ℤ) = (x - y) % n :=
+-- by rw [←zmod.coe_int_cast, int.cast_sub, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
 
-def scale_endo : zmod (card G) →* monoid.End G :=
-{ to_fun := λ z, scale_int_endo z,
-  map_one' :=
-  begin
-    ext g,
-    have : (1 : zmod (card G)) = (1 : ℤ),
-    { simp only [algebra_map.coe_one]},
-    rw [this, zmod.coe_int_cast, scale_int_endo_mod, map_one],
-  end,
-  map_mul' :=
-  begin
-    intros x y,
-    rw [zmod.coe_mul, scale_int_endo_mod, map_mul],
-  end }
+-- lemma zmod.coe_neg {n : ℕ} {x : zmod n} : ((- x : zmod n) : ℤ) = (- x) % n :=
+-- by rw [←zmod.coe_int_cast, int.cast_neg, zmod.int_cast_zmod_cast]
 
-lemma scale_endo_apply_apply (a : zmod (card G)) (g : G) : scale_endo a g = g ^ (a : ℤ) := rfl
-lemma scale_endo_apply (a : zmod (card G)) : scale_endo a = scale_int_endo a := rfl
-
-lemma scale_endo_apply_nat (a : ℤ) (g : G) : scale_endo a g = g ^ a :=
-by { rw [scale_endo_apply, zmod.coe_int_cast, scale_int_endo_mod], refl }
-
-lemma scale_endo_add_apply (z₁ z₂ : zmod (card G)) (g : G) :
-  scale_endo (z₁ + z₂) g = scale_endo z₁ g * scale_endo z₂ g :=
-by { rw [scale_endo_apply, zmod.coe_add, scale_int_endo_mod, scale_int_endo_add], refl }
-
-lemma scale_endo_sub_apply (z₁ z₂ : zmod (card G)) (g : G) :
-  scale_endo (z₁ - z₂) g = scale_endo z₁ g * (scale_endo z₂ g)⁻¹ :=
-by { rw [scale_endo_apply, zmod.coe_sub, scale_int_endo_mod, scale_int_endo_sub], refl }
-
-lemma scale_endo_neg_apply (z : zmod (card G)) (g : G) :
-  scale_endo (- z) g = (scale_endo z g)⁻¹ :=
-by { rw [scale_endo_apply, zmod.coe_neg, scale_int_endo_mod, scale_int_endo_neg], refl }
-
-lemma scale_endo_mul_apply (z₁ z₂ : zmod (card G)) (g : G) :
-  scale_endo (z₁ * z₂) g = scale_endo z₁ (scale_endo z₂ g) :=
-fun_like.congr_fun (map_mul _ _ _) g
-
--- set_option pp.universes true
-
-def {u} units_End_equiv_mul_aut (α : Type u) [monoid α] : mul_aut α ≃* (monoid.End α)ˣ :=
-{ to_fun := λ f,
-  { val := (f : α →* α),
-    inv := (f.symm : α →* α),
-    val_inv := by { ext α, exact mul_equiv.apply_symm_apply f α },
-    inv_val := by { ext α, exact mul_equiv.symm_apply_apply _ α } },
-  inv_fun := λ f,
-  { to_fun := f,
-    inv_fun := (f⁻¹ : (monoid.End α)ˣ),
-    left_inv := fun_like.congr_fun f.inv_mul,
-    right_inv := fun_like.congr_fun f.mul_inv,
-    map_mul' := (f : α →* α).map_mul },
-  left_inv := λ f, by { ext, refl },
-  right_inv := λ f, by { ext, refl },
-  map_mul' := λ f α, by { ext, refl } }
-
-def scale_units_aut : (zmod (card G))ˣ →* mul_aut G :=
-(mul_equiv.symm (units_End_equiv_mul_aut G) : (monoid.End G)ˣ →* mul_aut G).comp
-  (units.map scale_endo)
-
-lemma scale_units_aut_apply (a : (zmod (card G))ˣ) (g : G) :
-  scale_units_aut a g = scale_endo (a : zmod (card G)) g :=
-rfl
-
-lemma scale_units_aut_symm_apply (a : (zmod (card G))ˣ) (g : G) :
-  (scale_units_aut a).symm g = scale_endo ((a⁻¹ : (zmod (card G))ˣ) : zmod (card G)) g :=
-rfl
-
-def dilate (a : (zmod (card G))ˣ) (f : G → ℂ) (x : G) : ℂ := f (scale_endo (a⁻¹ : zmod (card G)) x)
-
-example (a : (zmod (card G))ˣ) (f : G → ℂ) (x : G) : dilate a f x = sorry :=
+lemma annoying_thing {a : ℕ} (ha : a.coprime (card G)) :
+  (a * (a⁻¹ : zmod (card G)).val : zmod (card G)) = 1 :=
 begin
-  rw [dilate],
-  simp only [zmod.inv_coe_unit],
+  haveI : ne_zero (card G) := ⟨fintype.card_ne_zero⟩,
+  rw [zmod.nat_cast_zmod_val, zmod.coe_mul_inv_eq_one _ ha],
 end
 
--- lemma transform_dilate
+@[simp] lemma scale_endo_invert {a : ℕ} (ha : a.coprime (card G)) (g : G) :
+  scale_endo a (scale_endo (a⁻¹ : zmod (card G)).val g) = g :=
+begin
+  rw [←scale_endo_mul_apply, ←scale_endo_val rfl, nat.cast_mul, annoying_thing ha,
+    zmod.val_one_eq_one_mod, scale_endo_mod, scale_endo_one_apply]
+end
 
--- (units.map scale_endo)
--- { to_fun := λ z,
---   { to_fun := scale_endo z,
---     inv_fun := scale_endo z⁻¹,
---     left_inv := λ g,
---     begin
---       have : scale_endo ((z⁻¹ : units _) * z) g = g,
---       {
---         rw z.inv_mul,
---       },
---       -- rw ←function.comp_app,
---     end,
+@[simp] lemma scale_endo_invert' {a : ℕ} (ha : a.coprime (card G)) (g : G) :
+  scale_endo (a⁻¹ : zmod (card G)).val (scale_endo a g) = g :=
+begin
+  rw [←scale_endo_mul_apply, ←scale_endo_val rfl, mul_comm, nat.cast_mul, annoying_thing ha,
+    zmod.val_one_eq_one_mod, scale_endo_mod, scale_endo_one_apply]
+end
 
---   },
-
--- }
-
--- { inv_fun := scale_endo (⅟a),
---   left_inv :=
+-- def scale_endo : zmod (card G) →* monoid.End G :=
+-- { to_fun := λ z, scale_int_endo z,
+--   map_one' :=
 --   begin
---     intro x,
---     rw [scale_endo_apply],
+--     ext g,
+--     have : (1 : zmod (card G)) = (1 : ℤ),
+--     { simp only [algebra_map.coe_one]},
+--     rw [this, zmod.coe_int_cast, scale_int_endo_mod, map_one],
 --   end,
---   ..scale_endo a
+--   map_mul' :=
+--   begin
+--     intros x y,
+--     rw [zmod.coe_mul, scale_int_endo_mod, map_mul],
+--   end }
 
--- }
--- mul_equiv.of_bijective
+-- lemma scale_endo_apply_apply (a : zmod (card G)) (g : G) : scale_endo a g = g ^ (a : ℤ) := rfl
+-- lemma scale_endo_apply (a : zmod (card G)) : scale_endo a = scale_int_endo a := rfl
 
-#check mul_action.to_perm
-#check subgroup.zpowers
-#check invertible
+-- lemma scale_endo_apply_nat (a : ℤ) (g : G) : scale_endo a g = g ^ a :=
+-- by { rw [scale_endo_apply, zmod.coe_int_cast, scale_int_endo_mod], refl }
+
+-- lemma scale_endo_add_apply (z₁ z₂ : zmod (card G)) (g : G) :
+--   scale_endo (z₁ + z₂) g = scale_endo z₁ g * scale_endo z₂ g :=
+-- by { rw [scale_endo_apply, zmod.coe_add, scale_int_endo_mod, scale_int_endo_add], refl }
+
+-- lemma scale_endo_sub_apply (z₁ z₂ : zmod (card G)) (g : G) :
+--   scale_endo (z₁ - z₂) g = scale_endo z₁ g * (scale_endo z₂ g)⁻¹ :=
+-- by { rw [scale_endo_apply, zmod.coe_sub, scale_int_endo_mod, scale_int_endo_sub], refl }
+
+-- lemma scale_endo_neg_apply (z : zmod (card G)) (g : G) :
+--   scale_endo (- z) g = (scale_endo z g)⁻¹ :=
+-- by { rw [scale_endo_apply, zmod.coe_neg, scale_int_endo_mod, scale_int_endo_neg], refl }
+
+def dilate (f : G → ℂ) (a : ℕ) (x : G) : ℂ := f (scale_endo (a⁻¹ : zmod (card G)).val x)
+
+lemma monoid_hom.pow_apply
+  {α β : Type*} [mul_one_class α] [comm_monoid β] (n : ℕ) (f : α →* β) (x : α) :
+  (f ^ n) x = f x ^ n :=
+rfl
+-- begin
+--   induction n with n ih,
+--   { simp },
+--   rw [pow_succ, monoid_hom.mul_apply, ih, pow_succ],
+-- end
+
+lemma scale_endo_apply_hom {α β : Type*} [comm_monoid α] [comm_monoid β]
+  (a : ℕ) (f : α →* β) (x : α) :
+  scale_endo a f x = f (scale_endo a x) :=
+by rw [scale_endo_apply_apply, monoid_hom.pow_apply, ←monoid_hom.map_pow, scale_endo_apply_apply]
+
+lemma transform_dilate (f : G → ℂ) (a : ℕ) (χ : character G) (ha : a.coprime (card G)) :
+  transform (dilate f a) χ = transform f (scale_endo a χ) :=
+begin
+  simp_rw [transform, inner_prod_expect, dilate],
+  refine expect_nbij' (scale_endo (a⁻¹ : zmod (card G)).val) _ _ (scale_endo a) _
+    _ _,
+  { simp only [mem_univ, forall_const] },
+  { intros x hx,
+    rw [coe_coe_eq, coe_coe_eq, scale_endo_apply_hom, scale_endo_invert ha] },
+  { simp only [mem_univ, forall_const] },
+  { simp only [ha, mem_univ, scale_endo_invert, eq_self_iff_true, forall_const] },
+  { simp only [ha, mem_univ, scale_endo_invert', eq_self_iff_true, forall_const] },
+end
+
+def indicate (A : finset G) [decidable_pred (∈ A)] (x : G) : ℂ := if x ∈ A then 1 else 0
+
+local notation (name := indicate) ` 𝟙 ` := indicate
+
+lemma expect_indicate (A : finset G) [decidable_pred (∈ A)] :
+  𝔼 x, 𝟙 A x = A.card / card G :=
+begin
+  classical,
+  simp only [expect_true_univ, indicate],
+  rw [←sum_filter, filter_mem_eq_inter, univ_inter, sum_const, nat.smul_one_eq_coe],
+end
+
+lemma transform_indicate_one (A : finset G) [decidable_pred (∈ A)] :
+  transform (𝟙 A) 1 = A.card / card G :=
+begin
+  rw [transform, inner_prod_expect, ←expect_indicate],
+  simp only [coe_coe_eq, monoid_hom.one_apply, coe_one_unit_sphere, map_one, one_mul],
+end
+
+lemma inner_sum_indicate (A : finset G) [decidable_pred (∈ A)] :
+  inner_prod_sum _ (transform (𝟙 A)) (transform (𝟙 A)) = A.card / card G :=
+begin
+  rw [parseval, inner_prod_expect],
+  convert expect_indicate A using 2,
+  ext x : 1,
+  rw [indicate],
+  split_ifs;
+  simp only [map_one, mul_one, mul_zero],
+end
+
+def additive_monoid_hom {α β : Type*} [add_comm_monoid α] [comm_monoid β] :
+  additive (multiplicative α →* β) ≃+ (α →+ additive β) :=
+add_equiv.mk' (additive.to_mul.trans monoid_hom.to_additive'') $ λ x y, by { ext, refl }
+
+def add_monoid_hom.to_multiplicative₂'' {α β γ : Type*}
+  [add_comm_monoid α] [add_comm_monoid β] [comm_monoid γ] (f : α →+ β →+ additive γ) :
+  multiplicative α →* multiplicative β →* γ :=
+{ to_fun := λ a, (f a.to_add).to_multiplicative'',
+  map_one' := by { ext, simp only [to_add_one, map_zero, to_mul_zero, monoid_hom.one_apply,
+    add_monoid_hom.to_multiplicative''_apply_apply, add_monoid_hom.zero_apply]},
+  map_mul' := λ x y, by { ext z, rw [to_add_mul, map_add], refl } }
+
+lemma injective_thru {α β γ : Type*} [add_comm_monoid α] [add_comm_monoid β] [comm_monoid γ]
+  {f : α →+ β →+ additive γ} (hf : function.injective f) :
+  function.injective f.to_multiplicative₂'' :=
+λ x y h, multiplicative.to_add.injective (hf (add_monoid_hom.to_multiplicative''.injective h))
+
+def to_character {n : ℕ} (hn : n ≠ 0) :
+  multiplicative (zmod n) →* character (multiplicative (zmod n)) :=
+(mk_character_zmod_hom hn).to_multiplicative₂''
+
+lemma to_character_inj {n : ℕ} (hn : n ≠ 0) :
+  function.injective (to_character hn) :=
+injective_thru (mk_character_zmod_inj hn)
+
+def zmod_characters {n : ℕ} (hn : n ≠ 0) :
+  multiplicative (zmod n) ≃* character (multiplicative (zmod n)) :=
+mul_equiv.of_bijective (to_character hn)
+begin
+  haveI : ne_zero n := ⟨hn⟩,
+  rw [fintype.bijective_iff_injective_and_card, card_character],
+  exact ⟨to_character_inj hn, rfl⟩,
+end
 
 end general_fourier

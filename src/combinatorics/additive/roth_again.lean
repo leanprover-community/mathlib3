@@ -10,7 +10,7 @@ noncomputable theory
 
 section general_fourier
 
-variables {α G : Type*} [fintype α] [comm_group G]
+variables {α β G : Type*}  [comm_group G]
 
 open_locale complex_conjugate
 
@@ -26,39 +26,116 @@ by { rw ←coe_inv_circle_eq_conj, simp }
 
 @[simp] lemma coe_coe_eq {χ : character G} {x : G} : (χ : G → ℂ) x = χ x := rfl
 
-def finset.expect {α : Type*} (s : finset α) (f : α → ℂ) : ℂ := (s.sum f) / s.card
+def fintype.expect {α : Type*} (s : finset α) (f : α → ℂ) : ℂ :=
+s.sum f / s.card
 
 open finset
-open fintype (card)
+open fintype (expect) (card)
 
-localized "notation `𝔼` binders `, ` r:(scoped:67 f, expect univ f) := r" in big_operators
+open_locale real complex_conjugate big_operators
 
-localized "notation `𝔼` binders ` in ` s `, ` r:(scoped:67 f, expect s f) := r" in big_operators
+localized "notation `𝔼` binders ` in ` s ` with ` p:(scoped:49 p, p) `, ` r:(scoped:67 f, expect (s.filter p) f) := r" in expectations
+localized "notation `𝔼` binders ` in ` s `, ` r:(scoped:67 f, expect s f) := r" in expectations
+localized "notation `𝔼` binders ` with ` p:(scoped:49 p, p) `, ` r:(scoped:67 f, expect (finset.univ.filter p) f) := r" in expectations
+localized "notation `𝔼` binders `, ` r:(scoped:67 f, expect finset.univ f) := r" in expectations
 
-open_locale big_operators real complex_conjugate
-
-lemma expect_sum {α β : Type*} {s : finset α} {t : finset β} (f : α → β → ℂ) :
+lemma expect_sum {s : finset α} {t : finset β} (f : α → β → ℂ) :
   𝔼 x in s, ∑ y in t, f x y = ∑ y in t, 𝔼 x in s, f x y :=
 begin
   rw [expect, sum_comm, sum_div],
   refl
 end
 
-lemma expect_comm {α β : Type*} {s : finset α} {t : finset β} (f : α → β → ℂ) :
+lemma expect_comm {s : finset α} {t : finset β} (f : α → β → ℂ) :
   𝔼 x in s, 𝔼 y in t, f x y = 𝔼 y in t, 𝔼 x in s, f x y :=
 by rw [expect, expect, ←expect_sum, ←expect_sum, expect, expect,
   div_div, mul_comm, div_div, sum_comm]
 
-lemma expect_mul {α : Type*} {s : finset α} (f : α → ℂ) (x : ℂ) :
+lemma expect_mul {s : finset α} (f : α → ℂ) (x : ℂ) :
   (𝔼 i in s, f i) * x = 𝔼 i in s, f i * x :=
 by { rw [expect, div_mul_eq_mul_div, sum_mul], refl }
 
-lemma mul_expect {α : Type*} {s : finset α} (f : α → ℂ) (x : ℂ) :
-  x * (𝔼 i in s, f i) = 𝔼 i in s, x * f i :=
+lemma mul_expect {s : finset α} (f : α → ℂ) (x : ℂ) : x * (𝔼 i in s, f i) = 𝔼 i in s, x * f i :=
 by simp_rw [mul_comm x, expect_mul]
 
-variables {N : ℕ} {A : finset (zmod N)} {x : zmod N} {f g : zmod N → ℂ}
+lemma expect_true_univ [fintype α] {f : α → ℂ} : 𝔼 x, f x = (∑ x, f x) / card α :=
+by rw [expect, card_univ]
 
+lemma expect_indicate [fintype α] [nonempty α] [decidable_eq α] (f : α → ℂ) (x : α) :
+  𝔼 i, ite (x = i) (card α) 0 * f i = f x :=
+begin
+  simp_rw [expect_true_univ, ite_mul, zero_mul, sum_ite_eq, if_pos (mem_univ _)],
+  rw mul_div_cancel_left,
+  simp [fintype.card_ne_zero]
+end
+
+lemma expect_indicate' [fintype α] [nonempty α] [decidable_eq α] (f : α → ℂ) (x : α) :
+  𝔼 i, ite (i = x) (card α) 0 * f i = f x :=
+by simp_rw [@eq_comm _ _ x, expect_indicate]
+
+lemma expect_congr {s : finset α} (f g : α → ℂ) (p : α → Prop) [decidable_pred p]
+  (h : ∀ x ∈ s, p x → f x = g x) :
+  𝔼 i in s with p i, f i = 𝔼 i in s with p i, g i :=
+begin
+  rw [expect, sum_congr rfl],
+  { refl },
+  simpa using h
+end
+
+lemma expect_congr' {s : finset α} (f g : α → ℂ) (p : α → Prop) [decidable_pred p]
+  (h : ∀ x, p x → f x = g x) :
+  𝔼 i in s with p i, f i = 𝔼 i in s with p i, g i :=
+expect_congr _ _ _ (λ x _, h x)
+
+-- a nondependent version of sum_bij
+lemma sum_nbij {γ : Type*} [add_comm_monoid β]  {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
+  (i : α → γ) (hi : ∀ a ∈ s, i a ∈ t) (h : ∀ a ∈ s, f a = g (i a))
+  (i_inj : ∀ a₁ a₂, a₁ ∈ s → a₂ ∈ s → i a₁ = i a₂ → a₁ = a₂) (i_surj : ∀ b ∈ t, ∃ a ∈ s, b = i a) :
+  (∑ x in s, f x) = (∑ x in t, g x) :=
+sum_bij (λ a _, i a) hi h i_inj i_surj
+
+lemma expect_bij {γ : Type*} {s : finset α} {t : finset γ} {f : α → ℂ} {g : γ → ℂ}
+  (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
+  (i_inj : ∀ a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀ b ∈ t, ∃ a ha, b = i a ha) :
+  (𝔼 x in s, f x) = (𝔼 x in t, g x) :=
+begin
+  rw [expect, expect, card_congr i hi i_inj, sum_bij i hi h i_inj i_surj],
+  simpa [eq_comm] using i_surj,
+end
+
+lemma expect_nbij {γ : Type*} {s : finset α} {t : finset γ} {f : α → ℂ} {g : γ → ℂ}
+  (i : α → γ) (hi : ∀ a ∈ s, i a ∈ t) (h : ∀ a ∈ s, f a = g (i a))
+  (i_inj : ∀ a₁ a₂, a₁ ∈ s → a₂ ∈ s → i a₁ = i a₂ → a₁ = a₂) (i_surj : ∀ b ∈ t, ∃ a ∈ s, b = i a) :
+  (𝔼 x in s, f x) = (𝔼 x in t, g x) :=
+expect_bij (λ a _, i a) hi h i_inj i_surj
+
+lemma expect_bij' {γ : Type*} {s : finset α} {t : finset γ} {f : α → ℂ} {g : γ → ℂ}
+  (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
+  (j : Π a ∈ t, α) (hj : ∀ a ha, j a ha ∈ s) (left_inv : ∀ a ha, j (i a ha) (hi a ha) = a)
+  (right_inv : ∀ a ha, i (j a ha) (hj a ha) = a) :
+  (𝔼 x in s, f x) = (𝔼 x in t, g x) :=
+begin
+  rw [expect, expect, sum_bij' i hi h j hj left_inv right_inv, card_congr i hi],
+  { intros a b ha hb z,
+    rw [←left_inv a ha, ←left_inv b hb],
+    congr' 1 },
+  intros b hb,
+  exact ⟨j b hb, hj _ _, right_inv _ _⟩,
+end
+
+lemma expect_nbij' {γ : Type*} {s : finset α} {t : finset γ} {f : α → ℂ} {g : γ → ℂ}
+  (i : α → γ) (hi : ∀ a ∈ s, i a ∈ t) (h : ∀ a ∈ s, f a = g (i a))
+  (j : γ → α) (hj : ∀ a ∈ t, j a ∈ s) (left_inv : ∀ a ∈ s, j (i a) = a)
+  (right_inv : ∀ a ∈ t, i (j a) = a) :
+  (𝔼 x in s, f x) = (𝔼 x in t, g x) :=
+expect_bij' (λ a _, i a) hi h (λ b _, j b) hj left_inv right_inv
+
+lemma expect_product' {γ : Type*} {s : finset γ} {t : finset α} {f : γ → α → ℂ} :
+  (𝔼 x in s ×ˢ t, f x.1 x.2) = 𝔼 x in s, 𝔼 y in t, f x y :=
+by simp only [expect, expect, card_product, sum_product', ←sum_div, div_div, mul_comm s.card,
+    nat.cast_mul]
+
+-- prod_product'
 -- there are versions of this in mathlib, like exp_map_circle and exp_map_circle_hom
 -- but fuck you let me be me
 def e (r : ℝ) : ℂ := complex.exp (r * (2 * π * complex.I))
@@ -99,14 +176,14 @@ end
 
 lemma conj_e {r : ℝ} : conj (e r) = e (-r) := by { rw [e, e, ←complex.exp_conj], simp }
 
-lemma conj_expect [ne_zero N] : conj (𝔼 i, f i) = 𝔼 i, conj (f i) :=
-by simp only [finset.expect, map_div₀, map_nat_cast, map_sum]
+lemma conj_expect [fintype G] {f : G → ℂ} : conj (𝔼 i, f i) = 𝔼 i, conj (f i) :=
+by simp only [expect_true_univ, map_div₀, map_nat_cast, map_sum]
 
-def inner_expect (α : Type*) [fintype α] (f g : α → ℂ) : ℂ := 𝔼 x, conj (f x) * g x
-def inner_sum' (α : Type*) [fintype α] (f g : α → ℂ) : ℂ := ∑ x, conj (f x) * g x
+def inner_prod_expect (α : Type*) [fintype α] (f g : α → ℂ) : ℂ := 𝔼 x, conj (f x) * g x
+def inner_prod_sum (α : Type*) [fintype α] (f g : α → ℂ) : ℂ := ∑ x, conj (f x) * g x
 
-lemma inner_expect_eq_inner_sum {α : Type*} [fintype α] (f g : α → ℂ) :
-  inner_expect α f g = inner_sum' α f g / card α := rfl
+lemma inner_prod_expect_eq_inner_sum {α : Type*} [fintype α] (f g : α → ℂ) :
+  inner_prod_expect α f g = inner_prod_sum α f g / card α := rfl
 
 lemma character_trivial_iff {χ : character G} : χ = 1 ↔ ∀ u : G, χ u = 1 :=
 by { rw fun_like.ext_iff, simp }
@@ -114,21 +191,23 @@ by { rw fun_like.ext_iff, simp }
 lemma character_nontrivial_iff {χ : character G} : χ ≠ 1 ↔ ∃ u : G, χ u ≠ 1 :=
 by rw [ne.def, character_trivial_iff, not_forall]
 
-lemma inner_sum_self {f : α → ℂ} (hf : ∀ x, (f x).abs = 1) : inner_sum' _ f f = card α :=
+lemma inner_sum_self [fintype α] {f : α → ℂ} (hf : ∀ x, (f x).abs = 1) :
+  inner_prod_sum _ f f = card α :=
 begin
-  rw [inner_sum'],
+  rw [inner_prod_sum],
   simp_rw [mul_comm, complex.mul_conj, complex.norm_sq_eq_abs, hf],
   simp [card_univ],
 end
 
-lemma inner_expect_self [fintype G] {f : G → ℂ} (hf : ∀ x, (f x).abs = 1) : inner_expect _ f f = 1 :=
+lemma inner_prod_expect_self [fintype G] {f : G → ℂ} (hf : ∀ x, (f x).abs = 1) :
+  inner_prod_expect _ f f = 1 :=
 begin
-  rw [inner_expect_eq_inner_sum, inner_sum_self hf, div_self],
+  rw [inner_prod_expect_eq_inner_sum, inner_sum_self hf, div_self],
   rw nat.cast_ne_zero,
   exact fintype.card_ne_zero,
 end
 
-lemma sum_zero_of_nontrivial [fintype G] {χ : character G} {u : G} (hχ : χ u ≠ 1) :
+lemma sum_eq_zero_of_nontrivial [fintype G] {χ : character G} {u : G} (hχ : χ u ≠ 1) :
   (∑ x, χ x : ℂ) = 0 :=
 begin
   have : (∑ x, χ x : ℂ) = χ u * ∑ x, χ x,
@@ -138,42 +217,42 @@ begin
   exact eq_zero_of_mul_eq_self_left hχ' this.symm,
 end.
 
-lemma expect_zero_of_nontrivial [fintype G] {χ : character G} {u : G} (hχ : χ u ≠ 1) :
+lemma expect_eq_zero_of_nontrivial [fintype G] {χ : character G} {u : G} (hχ : χ u ≠ 1) :
   (𝔼 x, χ x : ℂ) = 0 :=
-by rw [finset.expect, sum_zero_of_nontrivial hχ, zero_div]
+by rw [expect, sum_eq_zero_of_nontrivial hχ, zero_div]
 
-lemma inner_sum_zero_of_ne [fintype G] {χ₁ χ₂ : character G} (h : χ₁ ≠ χ₂) :
-  inner_sum' G χ₁ χ₂ = 0 :=
+lemma inner_sum_eq_zero_of_ne [fintype G] {χ₁ χ₂ : character G} (h : χ₁ ≠ χ₂) :
+  inner_prod_sum G χ₁ χ₂ = 0 :=
 begin
   have : χ₁⁻¹ * χ₂ ≠ 1, { rwa [ne.def, inv_mul_eq_one] },
   rw character_nontrivial_iff at this,
   obtain ⟨u, hu⟩ := this,
-  simp_rw [inner_sum', coe_coe_eq, ←conj_eq_inv],
-  simpa using sum_zero_of_nontrivial hu,
+  simp_rw [inner_prod_sum, coe_coe_eq, ←conj_eq_inv],
+  simpa using sum_eq_zero_of_nontrivial hu,
 end
 
-lemma inner_expect_zero_of_ne [fintype G] {χ₁ χ₂ : character G} (h : χ₁ ≠ χ₂) :
-  inner_expect G χ₁ χ₂ = 0 :=
-by rw [inner_expect_eq_inner_sum, inner_sum_zero_of_ne h, zero_div]
+lemma inner_prod_expect_eq_zero_of_ne [fintype G] {χ₁ χ₂ : character G} (h : χ₁ ≠ χ₂) :
+  inner_prod_expect G χ₁ χ₂ = 0 :=
+by rw [inner_prod_expect_eq_inner_sum, inner_sum_eq_zero_of_ne h, zero_div]
 
 lemma inner_sum_orthogonal [fintype G] {χ₁ χ₂ : character G} :
-  inner_sum' G χ₁ χ₂ = card G * if χ₁ = χ₂ then 1 else 0 :=
+  inner_prod_sum G χ₁ χ₂ = if χ₁ = χ₂ then card G else 0 :=
 begin
   split_ifs,
-  { rw [h, inner_sum_self, mul_one], simp },
-  { rw [inner_sum_zero_of_ne h, mul_zero] }
+  { rw [h, inner_sum_self], simp },
+  { rw [inner_sum_eq_zero_of_ne h] }
 end
 
-lemma inner_expect_orthogonal [fintype G] {χ₁ χ₂ : character G} :
-  inner_expect G χ₁ χ₂ = if χ₁ = χ₂ then 1 else 0 :=
+lemma inner_prod_expect_orthogonal [fintype G] {χ₁ χ₂ : character G} :
+  inner_prod_expect G χ₁ χ₂ = if χ₁ = χ₂ then 1 else 0 :=
 begin
   split_ifs,
-  { rw [h, inner_expect_self],
+  { rw [h, inner_prod_expect_self],
     simp only [coe_coe_eq, abs_coe_circle, forall_const] },
-  { rw inner_expect_zero_of_ne h },
+  { rw inner_prod_expect_eq_zero_of_ne h },
 end
 
-def transform [fintype G] (f : G → ℂ) (χ : character G) : ℂ := inner_expect _ f χ
+def transform [fintype G] (f : G → ℂ) (χ : character G) : ℂ := inner_prod_expect G χ f
 
 lemma lin_indep_char [fintype G] : linear_independent ℂ (λ (i : character G), (i : G → ℂ)) :=
 begin
@@ -187,7 +266,7 @@ begin
   intros χ₁ χ₂,
   simp only [pi_Lp.inner_apply, coe_coe_eq, is_R_or_C.inner_apply],
   intro h,
-  exact inner_sum_zero_of_ne h,
+  exact inner_sum_eq_zero_of_ne h,
 end
 
 section
@@ -344,7 +423,8 @@ lemma comp_symm_eq {β δ : Type*} [add_comm_group β] [add_comm_group δ] (e : 
   (e : δ →+ β).comp (e.symm : β →+ δ) = add_monoid_hom.id β :=
 begin
   ext,
-  simp only [add_monoid_hom.coe_comp, add_monoid_hom.coe_coe, add_equiv.self_comp_symm, id.def, add_monoid_hom.id_apply],
+  simp only [add_monoid_hom.coe_comp, add_monoid_hom.coe_coe, add_equiv.self_comp_symm, id.def,
+    add_monoid_hom.id_apply],
 end
 
 -- cf https://discord.com/channels/@me/827209384811561031/1079538520353423380
@@ -365,7 +445,9 @@ begin
   exact this
 end
 
-lemma card_character_le [fintype G] : card G ≤ card (character G) :=
+variable [fintype G]
+
+lemma card_character_le : card G ≤ card (character G) :=
 begin
   obtain ⟨ι, hi, n, hn, ⟨e⟩⟩ := my_classification (additive G),
   resetI,
@@ -382,7 +464,7 @@ begin
   exact fintype.card_le_of_injective _ this,
 end
 
-lemma card_character [fintype G] : card (character G) = card G :=
+lemma card_character : card (character G) = card G :=
 begin
   classical,
   have := @finite_dimensional.fintype_card_le_finrank_of_linear_independent _ (G → ℂ) _ _ _ _ _ _ _
@@ -390,5 +472,285 @@ begin
   simp only [finite_dimensional.finrank_fintype_fun_eq_card] at this,
   exact le_antisymm this card_character_le,
 end
+
+def characters_basis (G : Type*) [comm_group G] [fintype G] : basis (character G) ℂ (G → ℂ) :=
+basis_of_linear_independent_of_card_eq_finrank lin_indep_char $
+  by rw [card_character, finite_dimensional.finrank_fintype_fun_eq_card]
+
+@[simp] lemma characters_basis_apply {i : character G} : characters_basis G i = i :=
+by rw [characters_basis, coe_basis_of_linear_independent_of_card_eq_finrank]
+
+@[simps {fully_applied := ff}] def to_double_dual : G →* character (character G) := monoid_hom.eval
+
+lemma exists_character_of_nontrivial {g : G} (hg : g ≠ 1) : ∃ χ : character G, χ g ≠ 1 :=
+begin
+  classical,
+  by_contra' h,
+  let x : G → ℂ := λ h, if g = h then 1 else 0,
+  have t := (characters_basis G).sum_repr x,
+  simp only [characters_basis_apply] at t,
+  have t₁ := congr_fun t g,
+  have t₂ := congr_fun t 1,
+  simp only [fintype.sum_apply, pi.smul_apply, coe_coe_eq, h, coe_one_unit_sphere, smul_eq_mul,
+    mul_one, map_one] at t₁ t₂,
+  simp only [x, t₁, hg] at t₂,
+  simpa using t₂,
+end
+
+lemma to_double_dual_nontrivial {g : G} (hg : g ≠ 1) : to_double_dual g ≠ 1 :=
+begin
+  obtain ⟨χ, hχ⟩ := exists_character_of_nontrivial hg,
+  contrapose! hχ,
+  simpa using fun_like.congr_fun hχ χ,
+end
+
+lemma to_double_dual_injective :
+  function.injective (to_double_dual : G → character (character G)) :=
+begin
+  rw [←to_double_dual.ker_eq_bot_iff, eq_bot_iff],
+  intro g,
+  simp only [subgroup.mem_bot, monoid_hom.mem_ker],
+  intro hg,
+  contrapose hg,
+  exact to_double_dual_nontrivial hg,
+end
+
+lemma sum_apply_of_nontrivial {x : G} (hx : x ≠ 1) : (∑ χ : character G, χ x : ℂ) = 0 :=
+begin
+  let x' : character (character G) := to_double_dual x,
+  have : x' ≠ 1 := to_double_dual_nontrivial hx,
+  rw character_nontrivial_iff at this,
+  obtain ⟨χ, hχ⟩ := this,
+  exact sum_eq_zero_of_nontrivial hχ,
+end
+
+lemma sum_apply_character [decidable_eq G] {x : G} :
+  (∑ χ : character G, χ x : ℂ) = if x = 1 then card G else 0 :=
+begin
+  split_ifs,
+  { rw [h],
+    simp [card_univ, card_character] },
+  rw [sum_apply_of_nontrivial h],
+end
+
+example [fintype α] {f : α → ℂ} (x : ℂ) : (𝔼 i, f i) * x = 𝔼 i, f i * x :=
+begin
+  rw expect_mul,
+end
+
+lemma parseval {f g : G → ℂ} :
+  inner_prod_sum _ (transform f) (transform g) = inner_prod_expect _ f g :=
+begin
+  classical,
+  simp_rw [inner_prod_sum, transform, inner_prod_expect, conj_expect, map_mul,
+    star_ring_end_self_apply, expect_mul, mul_expect, coe_coe_eq, ←expect_sum],
+  conv in (_ * _) { rw mul_mul_mul_comm },
+  simp_rw [←sum_mul, ←coe_inv_circle_eq_conj, ←map_inv, ←coe_mul_unit_sphere, ←map_mul,
+    sum_apply_character, mul_inv_eq_one, expect_indicate],
+end
+
+lemma inversion (f : G → ℂ) (x : G) :
+  ∑ (χ : character G), transform f χ * χ x = f x :=
+begin
+  classical,
+  simp_rw [transform, inner_prod_expect, expect_mul, ←expect_sum, mul_right_comm _ (f _),
+    ←sum_mul, coe_coe_eq, ←coe_inv_circle_eq_conj, ←map_inv, ←coe_mul_unit_sphere, ←map_mul,
+    sum_apply_character, inv_mul_eq_one, expect_indicate'],
+end
+
+def convolve (f g : G → ℂ) (x : G) : ℂ := 𝔼 y, f y * g (x * y⁻¹)
+
+lemma convolve_eq [decidable_eq G] {f g : G → ℂ} (x : G) :
+  𝔼 yz : G × G with yz.1 * yz.2 = x, f yz.1 * g yz.2 = convolve f g x :=
+calc 𝔼 yz : G × G with yz.1 * yz.2 = x, f yz.1 * g yz.2 =
+      𝔼 yz : G × G with yz.2 = x * yz.1⁻¹, f yz.1 * g yz.2 :
+        by simp_rw [eq_mul_inv_iff_mul_eq, mul_comm]
+    ... = convolve f g x :
+    begin
+      refine expect_nbij prod.fst (by simp) (by simp {contextual := tt}) _ (by simp),
+      { rintro ⟨x, y⟩ ⟨z, w⟩,
+        simp {contextual := tt} },
+    end
+
+lemma convolve_swap {f g : G → ℂ} :
+  convolve f g = convolve g f :=
+begin
+  ext x : 1,
+  refine expect_nbij (λ a, x * a⁻¹) (by simp) _ (by simp) (λ a _, ⟨x * a⁻¹, by simp⟩),
+  simp [mul_comm],
+end
+
+lemma transform_convolve_apply {f g : G → ℂ} (χ : character G) :
+  transform (convolve f g) χ = transform f χ * transform g χ :=
+begin
+  simp_rw [transform, inner_prod_expect, convolve, mul_expect, expect_mul, coe_coe_eq],
+  rw [←expect_product', ←expect_product', univ_product_univ],
+  refine expect_nbij' (λ x, (x.1 * x.2⁻¹, x.2)) (by simp) (λ x _, _) (λ x, (x.1 * x.2, x.2))
+    (by simp) (by simp) (by simp),
+  rw [mul_mul_mul_comm, ←map_mul, ←coe_mul_unit_sphere, ←map_mul, mul_left_comm x.2, mul_inv_self,
+    mul_one],
+end
+
+lemma transform_convolve {f g : G → ℂ} : transform (convolve f g) = transform f * transform g :=
+funext transform_convolve_apply
+
+local attribute [-instance] zmod.has_coe_t
+@[reducible] instance zmod_has_coe_t_int {n} : has_coe_t (zmod n) ℤ := zmod.has_coe_t _
+
+def scale_int_endo : ℤ →* monoid.End G :=
+{ to_fun := λ z,
+  { to_fun := λ g, g ^ z,
+    map_one' := one_zpow _,
+    map_mul' := λ x y, mul_zpow _ _ _ },
+  map_one' :=
+  begin
+    ext g,
+    simp only [zpow_one, monoid_hom.coe_mk, monoid.coe_one, id.def],
+  end,
+  map_mul' := λ x y, by { ext g, exact zpow_mul' _ _ _ } }
+
+lemma scale_int_endo_add (z₁ z₂ : ℤ) (g : G) :
+  scale_int_endo (z₁ + z₂) g = scale_int_endo z₁ g * scale_int_endo z₂ g :=
+zpow_add _ _ _
+
+lemma scale_int_endo_sub (z₁ z₂ : ℤ) (g : G) :
+  scale_int_endo (z₁ - z₂) g = scale_int_endo z₁ g * (scale_int_endo z₂ g)⁻¹ :=
+zpow_sub _ _ _
+
+lemma scale_int_endo_neg (z : ℤ) (g : G) :
+  scale_int_endo (- z) g = (scale_int_endo z g)⁻¹ :=
+zpow_neg _ _
+
+lemma scale_int_endo_card (g : G) : scale_int_endo (card G) g = 1 :=
+(zpow_coe_nat _ _).trans pow_card_eq_one
+
+lemma scale_int_endo_mod (z : ℤ) :
+  (scale_int_endo (z % card G) : monoid.End G) = scale_int_endo z :=
+begin
+  ext g,
+  rw [int.mod_def, scale_int_endo_sub, map_mul, monoid.coe_mul, function.comp_app,
+    scale_int_endo_card, inv_one, mul_one],
+end
+
+lemma zmod.coe_add {n : ℕ} {x y : zmod n} : ((x + y : zmod n) : ℤ) = (x + y) % n :=
+by rw [←zmod.coe_int_cast, int.cast_add, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
+
+lemma zmod.coe_mul {n : ℕ} {x y : zmod n} : ((x * y : zmod n) : ℤ) = (x * y) % n :=
+by rw [←zmod.coe_int_cast, int.cast_mul, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
+
+lemma zmod.coe_sub {n : ℕ} {x y : zmod n} : ((x - y : zmod n) : ℤ) = (x - y) % n :=
+by rw [←zmod.coe_int_cast, int.cast_sub, zmod.int_cast_zmod_cast, zmod.int_cast_zmod_cast]
+
+lemma zmod.coe_neg {n : ℕ} {x : zmod n} : ((- x : zmod n) : ℤ) = (- x) % n :=
+by rw [←zmod.coe_int_cast, int.cast_neg, zmod.int_cast_zmod_cast]
+
+def scale_endo : zmod (card G) →* monoid.End G :=
+{ to_fun := λ z, scale_int_endo z,
+  map_one' :=
+  begin
+    ext g,
+    have : (1 : zmod (card G)) = (1 : ℤ),
+    { simp only [algebra_map.coe_one]},
+    rw [this, zmod.coe_int_cast, scale_int_endo_mod, map_one],
+  end,
+  map_mul' :=
+  begin
+    intros x y,
+    rw [zmod.coe_mul, scale_int_endo_mod, map_mul],
+  end }
+
+lemma scale_endo_apply_apply (a : zmod (card G)) (g : G) : scale_endo a g = g ^ (a : ℤ) := rfl
+lemma scale_endo_apply (a : zmod (card G)) : scale_endo a = scale_int_endo a := rfl
+
+lemma scale_endo_apply_nat (a : ℤ) (g : G) : scale_endo a g = g ^ a :=
+by { rw [scale_endo_apply, zmod.coe_int_cast, scale_int_endo_mod], refl }
+
+lemma scale_endo_add_apply (z₁ z₂ : zmod (card G)) (g : G) :
+  scale_endo (z₁ + z₂) g = scale_endo z₁ g * scale_endo z₂ g :=
+by { rw [scale_endo_apply, zmod.coe_add, scale_int_endo_mod, scale_int_endo_add], refl }
+
+lemma scale_endo_sub_apply (z₁ z₂ : zmod (card G)) (g : G) :
+  scale_endo (z₁ - z₂) g = scale_endo z₁ g * (scale_endo z₂ g)⁻¹ :=
+by { rw [scale_endo_apply, zmod.coe_sub, scale_int_endo_mod, scale_int_endo_sub], refl }
+
+lemma scale_endo_neg_apply (z : zmod (card G)) (g : G) :
+  scale_endo (- z) g = (scale_endo z g)⁻¹ :=
+by { rw [scale_endo_apply, zmod.coe_neg, scale_int_endo_mod, scale_int_endo_neg], refl }
+
+lemma scale_endo_mul_apply (z₁ z₂ : zmod (card G)) (g : G) :
+  scale_endo (z₁ * z₂) g = scale_endo z₁ (scale_endo z₂ g) :=
+fun_like.congr_fun (map_mul _ _ _) g
+
+-- set_option pp.universes true
+
+def {u} units_End_equiv_mul_aut (α : Type u) [monoid α] : mul_aut α ≃* (monoid.End α)ˣ :=
+{ to_fun := λ f,
+  { val := (f : α →* α),
+    inv := (f.symm : α →* α),
+    val_inv := by { ext α, exact mul_equiv.apply_symm_apply f α },
+    inv_val := by { ext α, exact mul_equiv.symm_apply_apply _ α } },
+  inv_fun := λ f,
+  { to_fun := f,
+    inv_fun := (f⁻¹ : (monoid.End α)ˣ),
+    left_inv := fun_like.congr_fun f.inv_mul,
+    right_inv := fun_like.congr_fun f.mul_inv,
+    map_mul' := (f : α →* α).map_mul },
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl },
+  map_mul' := λ f α, by { ext, refl } }
+
+def scale_units_aut : (zmod (card G))ˣ →* mul_aut G :=
+(mul_equiv.symm (units_End_equiv_mul_aut G) : (monoid.End G)ˣ →* mul_aut G).comp
+  (units.map scale_endo)
+
+lemma scale_units_aut_apply (a : (zmod (card G))ˣ) (g : G) :
+  scale_units_aut a g = scale_endo (a : zmod (card G)) g :=
+rfl
+
+lemma scale_units_aut_symm_apply (a : (zmod (card G))ˣ) (g : G) :
+  (scale_units_aut a).symm g = scale_endo ((a⁻¹ : (zmod (card G))ˣ) : zmod (card G)) g :=
+rfl
+
+def dilate (a : (zmod (card G))ˣ) (f : G → ℂ) (x : G) : ℂ := f (scale_endo (a⁻¹ : zmod (card G)) x)
+
+example (a : (zmod (card G))ˣ) (f : G → ℂ) (x : G) : dilate a f x = sorry :=
+begin
+  rw [dilate],
+  simp only [zmod.inv_coe_unit],
+end
+
+-- lemma transform_dilate
+
+-- (units.map scale_endo)
+-- { to_fun := λ z,
+--   { to_fun := scale_endo z,
+--     inv_fun := scale_endo z⁻¹,
+--     left_inv := λ g,
+--     begin
+--       have : scale_endo ((z⁻¹ : units _) * z) g = g,
+--       {
+--         rw z.inv_mul,
+--       },
+--       -- rw ←function.comp_app,
+--     end,
+
+--   },
+
+-- }
+
+-- { inv_fun := scale_endo (⅟a),
+--   left_inv :=
+--   begin
+--     intro x,
+--     rw [scale_endo_apply],
+--   end,
+--   ..scale_endo a
+
+-- }
+-- mul_equiv.of_bijective
+
+#check mul_action.to_perm
+#check subgroup.zpowers
+#check invertible
 
 end general_fourier

@@ -224,13 +224,10 @@ end
 private lemma restrict_nonpos_seq_disjoint : pairwise (disjoint on (restrict_nonpos_seq s i)) :=
 begin
   intros n m h,
+  rw [function.on_fun, set.disjoint_iff_inter_eq_empty],
   rcases lt_or_gt_of_ne h with (h | h),
-  { intro x,
-    rw [set.inf_eq_inter, restrict_nonpos_seq_disjoint' h],
-    exact id },
-  { intro x,
-    rw [set.inf_eq_inter, set.inter_comm, restrict_nonpos_seq_disjoint' h],
-    exact id }
+  { rw [restrict_nonpos_seq_disjoint' h] },
+  { rw [set.inter_comm, restrict_nonpos_seq_disjoint' h] }
 end
 
 private lemma exists_subset_restrict_nonpos' (hi₁ : measurable_set i) (hi₂ : s i < 0)
@@ -262,12 +259,13 @@ begin
       rw [set.mem_Union, exists_prop, and_iff_right_iff_imp],
       exact λ _, h },
     { convert le_of_eq s.empty.symm,
-      ext, simp only [exists_prop, set.mem_empty_eq, set.mem_Union, not_and, iff_false],
+      ext, simp only [exists_prop, set.mem_empty_iff_false, set.mem_Union, not_and, iff_false],
       exact λ h', false.elim (h h') } },
   { intro, exact measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _) },
-  { intros a b hab x hx,
-    simp only [exists_prop, set.mem_Union, set.mem_inter_eq, set.inf_eq_inter] at hx,
-    exact let ⟨⟨_, hx₁⟩, _, hx₂⟩ := hx in restrict_nonpos_seq_disjoint a b hab ⟨hx₁, hx₂⟩ },
+  { intros a b hab,
+    refine set.disjoint_Union_left.mpr (λ ha, _),
+    refine set.disjoint_Union_right.mpr (λ hb, _),
+    exact restrict_nonpos_seq_disjoint hab },
   { apply set.Union_subset,
     intros a x,
     simp only [and_imp, exists_prop, set.mem_Union],
@@ -371,7 +369,7 @@ begin
   { intro n,
     refine le_trans _ (le_of_lt (h_lt _)),
     rw [hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-        of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
+        of_union set.disjoint_sdiff_left _ (hmeas n)],
     { refine add_le_of_nonpos_left _,
       have : s ≤[A] 0 := restrict_le_restrict_Union _ _ hmeas hr,
       refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ (set.diff_subset _ _) this),
@@ -399,7 +397,7 @@ begin
   { apply le_antisymm,
     { refine le_of_tendsto_of_tendsto tendsto_const_nhds hf₂ (eventually_of_forall (λ n, _)),
       rw [← (hB n).2, hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-          of_union (disjoint.comm.1 set.disjoint_diff) _ (hB₁ n)],
+          of_union set.disjoint_sdiff_left _ (hB₁ n)],
       { refine add_le_of_nonpos_left _,
         have : s ≤[A] 0 :=
           restrict_le_restrict_Union _ _ hB₁ (λ m, let ⟨_, h⟩ := (hB m).1 in h),

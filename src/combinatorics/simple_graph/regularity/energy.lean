@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
+import algebra.module.basic
 import combinatorics.simple_graph.density
 
 /-!

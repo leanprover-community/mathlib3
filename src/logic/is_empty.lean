@@ -5,8 +5,12 @@ Authors: Floris van Doorn
 -/
 import logic.function.basic
 import tactic.protected
+
 /-!
 # Types that are empty
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define a typeclass `is_empty`, which expresses that a type has no elements.
 

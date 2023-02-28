@@ -9,6 +9,9 @@ import set_theory.ordinal.arithmetic
 /-!
 # Natural operations on ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal of this file is to define natural addition and multiplication on ordinals, also known as
 the Hessenberg sum and product, and provide a basic API. The natural addition of two ordinals
 `a ♯ b` is recursively defined as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for `a' < a`
@@ -261,7 +264,6 @@ instance add_contravariant_class_le :
 instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 { add := (+),
   add_assoc := nadd_assoc,
-  add_left_cancel := λ a b c, add_left_cancel'',
   add_le_add_left := λ a b, add_le_add_left,
   le_of_add_le_add_left := λ a b c, le_of_add_le_add_left,
   zero := 0,
@@ -313,12 +315,12 @@ theorem nadd_le_nadd_iff_right : ∀ a {b c}, b ♯ a ≤ c ♯ a ↔ b ≤ c :=
 @_root_.add_le_add_iff_right nat_ordinal _ _ _ _
 
 theorem nadd_left_cancel : ∀ {a b c}, a ♯ b = a ♯ c → b = c :=
-@_root_.add_left_cancel nat_ordinal _
+@_root_.add_left_cancel nat_ordinal _ _
 theorem nadd_right_cancel : ∀ {a b c}, a ♯ b = c ♯ b → a = c :=
-@_root_.add_right_cancel nat_ordinal _
+@_root_.add_right_cancel nat_ordinal _ _
 theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
-@add_left_cancel_iff nat_ordinal _
+@add_left_cancel_iff nat_ordinal _ _
 theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
-@add_right_cancel_iff nat_ordinal _
+@add_right_cancel_iff nat_ordinal _ _
 
 end ordinal

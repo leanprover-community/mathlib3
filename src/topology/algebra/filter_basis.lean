@@ -35,7 +35,7 @@ Given a group `G` and a ring `R`:
 -/
 
 open filter set topological_space function
-open_locale topological_space filter pointwise
+open_locale topology filter pointwise
 
 universe u
 
@@ -67,7 +67,7 @@ attribute [to_additive] group_filter_basis.conj'
 attribute [to_additive] group_filter_basis.to_filter_basis
 
 /-- `group_filter_basis` constructor in the commutative group case. -/
-@[to_additive "`add_group_filter_basis` constructor in the commutative group case."]
+@[to_additive "`add_group_filter_basis` constructor in the additive commutative group case."]
 def group_filter_basis_of_comm {G : Type*} [comm_group G]
   (sets                   : set (set G))
   (nonempty               : sets.nonempty)

@@ -206,6 +206,16 @@ calc  ι Q a * ι Q b + ι Q b * ι Q a
         by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
 ... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
 
+lemma ι_mul_comm (a b : M) :
+  ι Q a * ι Q b = algebra_map R _ (quadratic_form.polar Q a b) - ι Q b * ι Q a :=
+eq_sub_of_add_eq (ι_mul_ι_add_swap a b)
+
+/-- $aba$ is a vector. -/
+lemma ι_mul_ι_mul_ι  (a b : M) :
+  ι Q a * ι Q b * ι Q a = ι Q (quadratic_form.polar Q a b • a - Q a • b) :=
+by rw [ι_mul_comm, sub_mul, mul_assoc, ι_sq_scalar, ←algebra.smul_def, ←algebra.commutes,
+  ←algebra.smul_def, ←map_smul, ←map_smul, ←map_sub]
+
 @[simp]
 lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
   (ι Q).range.map (lift Q ⟨f, cond⟩).to_linear_map = f.range :=
@@ -316,6 +326,18 @@ begin
   letI := invertible_ι_of_invertible Q m,
   exactI is_unit_of_invertible (ι Q m),
 end
+
+/-- $aba^{-1}$ is a vector. -/
+lemma ι_mul_ι_mul_inv_of_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
+  ι Q a * ι Q b * ⅟(ι Q a) = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) :=
+by rw [inv_of_ι, map_smul, mul_smul_comm, ι_mul_ι_mul_ι, ←map_smul, smul_sub, smul_smul, smul_smul,
+  inv_of_mul_self, one_smul]
+
+/-- $a^{-1}ba$ is a vector. -/
+lemma inv_of_ι_mul_ι_mul_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
+  ⅟(ι Q a) * ι Q b * ι Q a = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) :=
+by rw [inv_of_ι, map_smul, smul_mul_assoc, smul_mul_assoc, ι_mul_ι_mul_ι, ←map_smul, smul_sub,
+  smul_smul, smul_smul, inv_of_mul_self, one_smul]
 
 end clifford_algebra
 

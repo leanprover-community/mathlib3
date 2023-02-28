@@ -8,6 +8,9 @@ import data.finset.basic
 import data.part
 /-!
 # Finite maps over `multiset`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -249,11 +252,11 @@ m.entries.foldl (λ d s, f d s.1 s.2) (λ d s t, H _ _ _ _ _) d
 
 /-- `any f s` returns `tt` iff there exists a value `v` in `s` such that `f v = tt`. -/
 def any (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∨ f y z) (by { intros,  simp [or.right_comm] }) ff
+s.foldl (λ x y z, x || f y z) (by { intros, simp_rw [bool.bor_assoc, bool.bor_comm] }) ff
 
 /-- `all f s` returns `tt` iff `f v = tt` for all values `v` in `s`. -/
 def all (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∧ f y z) (by { intros, simp [and.right_comm] }) ff
+s.foldl (λ x y z, x && f y z) (by { intros, simp_rw [bool.band_assoc, bool.band_comm] }) tt
 
 /-! ### erase -/
 
@@ -352,7 +355,7 @@ by { induction xs with x xs; [skip, cases x];
                 exists_false, mem_cons_iff, mem_insert, exists_and_distrib_left];
      apply or_congr _ iff.rfl,
      conv { to_lhs, rw ← and_true (a = x_fst) },
-     apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, iff_self, heq_iff_eq] }
+     apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, heq_iff_eq] }
 
 @[simp] theorem insert_singleton_eq {a : α} {b b' : β a} :
   insert a b (singleton a b') = singleton a b :=

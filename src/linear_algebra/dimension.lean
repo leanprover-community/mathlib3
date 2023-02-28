@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
+import algebra.module.big_operators
 import linear_algebra.dfinsupp
 import linear_algebra.invariant_basis_number
 import linear_algebra.isomorphisms
@@ -104,7 +105,7 @@ In particular this agrees with the usual notion of the dimension of a vector spa
 The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
-protected def module.rank : cardinal :=
+@[irreducible] protected def module.rank : cardinal :=
 ⨆ ι : {s : set V // linear_independent K (coe : s → V)}, #ι.1
 
 end
@@ -135,6 +136,7 @@ theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
   module.rank R M ≤ n :=
 begin
+  rw module.rank,
   apply csupr_le',
   rintro ⟨s, li⟩,
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
@@ -238,7 +240,7 @@ begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
       ⟨(equiv.of_injective _ hv.injective).to_embedding⟩, },
-  { simp only [cardinal.lift_le],
+  { simp only [cardinal.lift_le, module.rank],
     apply le_trans,
     swap,
     exact le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range v, hv.coe_range⟩,
@@ -265,14 +267,15 @@ variables (R M)
 @[simp] lemma dim_punit : module.rank R punit = 0 :=
 begin
   apply le_bot_iff.mp,
+  rw module.rank,
   apply csupr_le',
   rintro ⟨s, li⟩,
   apply le_bot_iff.mpr,
   apply cardinal.mk_emptyc_iff.mpr,
   simp only [subtype.coe_mk],
   by_contradiction h,
-  have ne : s.nonempty := ne_empty_iff_nonempty.mp h,
-  simpa using linear_independent.ne_zero (⟨_, ne.some_mem⟩ : s) li,
+  obtain ⟨a, ha⟩ := nonempty_iff_ne_empty.2 h,
+  simpa using linear_independent.ne_zero (⟨a, ha⟩ : s) li,
 end
 
 @[simp] lemma dim_bot : module.rank R (⊥ : submodule R M) = 0 :=
@@ -468,7 +471,7 @@ begin
   { contrapose! h,
     obtain ⟨x, hx⟩ := h,
     suffices : 1 ≤ module.rank R M,
-    { intro h, exact lt_irrefl _ (lt_of_lt_of_le cardinal.zero_lt_one (h ▸ this)) },
+    { intro h, exact this.not_lt (h.symm ▸ zero_lt_one) },
     suffices : linear_independent R (λ (y : ({x} : set M)), ↑y),
     { simpa using (cardinal_le_dim_of_linear_independent this), },
     exact linear_independent_singleton hx },
@@ -514,8 +517,8 @@ begin
     simp only [cardinal.lift_nat_cast, cardinal.nat_cast_inj],
     -- Now we can use invariant basis number to show they have the same cardinality.
     apply card_eq_of_lequiv R,
-    exact (((finsupp.linear_equiv_fun_on_fintype R R ι).symm.trans v.repr.symm) ≪≫ₗ
-      v'.repr) ≪≫ₗ (finsupp.linear_equiv_fun_on_fintype R R ι'), },
+    exact (((finsupp.linear_equiv_fun_on_finite R R ι).symm.trans v.repr.symm) ≪≫ₗ
+      v'.repr) ≪≫ₗ (finsupp.linear_equiv_fun_on_finite R R ι'), },
   { -- `v` is an infinite basis,
     -- so by `infinite_basis_le_maximal_linear_independent`, `v'` is at least as big,
     -- and then applying `infinite_basis_le_maximal_linear_independent` again
@@ -774,6 +777,7 @@ theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι R M) :
   #ι = module.rank R M :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
+  rw module.rank,
   apply le_antisymm,
   { transitivity,
     swap,
@@ -784,10 +788,6 @@ begin
     rintro ⟨s, li⟩,
     apply linear_independent_le_basis v _ li, },
 end
-
--- By this stage we want to have a complete API for `module.rank`,
--- so we set it `irreducible` here, to keep ourselves honest.
-attribute [irreducible] module.rank
 
 theorem basis.mk_range_eq_dim (v : basis ι R M) :
   #(range v) = module.rank R M :=
@@ -988,18 +988,20 @@ begin
 end
 
 section fintype
-variable [fintype η]
 variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
 
 open linear_map
 
-lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
+lemma dim_pi [finite η] : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
+  casesI nonempty_fintype η,
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
   rw [← cardinal.lift_inj, ← this.mk_eq_dim],
   simp [← (b _).mk_range_eq_dim]
 end
+
+variable [fintype η]
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
@@ -1017,12 +1019,6 @@ lemma dim_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
 by simp [dim_fun']
 
 end fintype
-
-end division_ring
-
-section field
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
-variables [add_comm_group V'] [module K V']
 
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
@@ -1059,7 +1055,7 @@ begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
-  refine linear_equiv.of_bijective _ _ _,
+  refine linear_equiv.of_bijective _ ⟨_, _⟩,
   { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
       simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, pi.prod,
@@ -1067,7 +1063,7 @@ begin
       exact linear_map.ext_iff.1 eq c } },
   { rw [← ker_eq_bot, ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
   { rw [← range_eq_top, eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap,
-      map_top, range_subtype],
+      submodule.map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
     simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, set_like.mem_coe,
@@ -1083,7 +1079,7 @@ lemma dim_sup_add_dim_inf_eq (s t : submodule K V) :
     module.rank K s + module.rank K t :=
 dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
-    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
+    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), submodule.map_sup, submodule.map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
     exact le_rfl
@@ -1106,7 +1102,7 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
-end field
+end division_ring
 
 section rank
 
@@ -1139,8 +1135,10 @@ by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end
 
-section field
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+end rank
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables [add_comm_group V'] [module K V']
 
 lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
@@ -1160,13 +1158,6 @@ lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
   rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
-
-end field
-
-end rank
-
-section division_ring
-variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V'] [module K V']
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
@@ -1201,7 +1192,7 @@ lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
   ↑n ≤ module.rank K V ↔
     ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
 begin
-  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
+  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_set_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },
@@ -1299,11 +1290,6 @@ lemma module.rank_le_one_iff_top_is_principal :
   module.rank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
 by rw [← submodule.rank_le_one_iff_is_principal, dim_top]
 
-end division_ring
-
-section field
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V'] [module K V']
-
 lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
   c ≤ rank f ↔
   ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧
@@ -1330,7 +1316,7 @@ lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'
   ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
 begin
   simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
-    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
+    cardinal.lift_eq_nat_iff, cardinal.mk_set_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },
@@ -1338,6 +1324,6 @@ begin
     exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
 end
 
-end field
+end division_ring
 
 end module

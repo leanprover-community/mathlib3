@@ -11,6 +11,9 @@ import logic.equiv.fin
 /-!
 # Collections of tuples of naturals with the same sum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file generalizes `list.nat.antidiagonal n`, `multiset.nat.antidiagonal n`, and
 `finset.nat.antidiagonal n` from the pair of elements `x : ℕ × ℕ` such that `n = x.1 + x.2`, to
 the sequence of elements `x : fin k → ℕ` such that `n = ∑ i, x i`.
@@ -68,16 +71,17 @@ def antidiagonal_tuple : Π k, ℕ → list (fin k → ℕ)
 lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} {x : fin k → ℕ} :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
 begin
-  induction k with k ih generalizing n,
-  { cases n,
+  revert n,
+  refine fin.cons_induction _ _ x,
+  { intro n,
+    cases n,
     { simp },
-    { simp [eq_comm] }, },
-  { refine fin.cons_induction (λ x₀ x, _) x,
+    { simp [eq_comm] } },
+  { intros k x₀ x ih n,
     simp_rw [fin.sum_cons, antidiagonal_tuple, list.mem_bind, list.mem_map,
-      list.nat.mem_antidiagonal, fin.cons_eq_cons, exists_eq_right_right, ih, prod.exists],
-    split,
-    { rintros ⟨a, b, rfl, rfl, rfl⟩, refl },
-    { rintro rfl, exact ⟨_, _, rfl, rfl, rfl⟩, } },
+      list.nat.mem_antidiagonal, fin.cons_eq_cons, exists_eq_right_right, ih,
+      @eq_comm _ _ (prod.snd _), and_comm (prod.snd _ = _), ←prod.mk.inj_iff, prod.mk.eta,
+      exists_prop, exists_eq_right] },
 end
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/

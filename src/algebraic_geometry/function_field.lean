@@ -36,7 +36,7 @@ noncomputable
 abbreviation Scheme.germ_to_function_field [irreducible_space X.carrier] (U : opens X.carrier)
   [h : nonempty U] : X.presheaf.obj (op U) ⟶ X.function_field :=
 X.presheaf.germ ⟨generic_point X.carrier,
-  ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩
+  ((generic_point_spec X.carrier).mem_open_set_iff U.is_open).mpr (by simpa using h)⟩
 
 noncomputable
 instance [irreducible_space X.carrier] (U : opens X.carrier) [nonempty U] :
@@ -53,11 +53,11 @@ begin
   intro ha,
   replace ha := ne_of_apply_ne _ ha,
   have hs : generic_point X.carrier ∈ RingedSpace.basic_open _ s,
-  { rw [← opens.mem_coe, (generic_point_spec X.carrier).mem_open_set_iff, set.top_eq_univ,
-      set.univ_inter, ← set.ne_empty_iff_nonempty, ne.def, ← opens.coe_bot,
-      subtype.coe_injective.eq_iff, ← opens.empty_eq],
+  { rw [← set_like.mem_coe, (generic_point_spec X.carrier).mem_open_set_iff, set.top_eq_univ,
+      set.univ_inter, set.nonempty_iff_ne_empty, ne.def, ← opens.coe_bot,
+      ← set_like.ext'_iff],
     erw basic_open_eq_bot_iff,
-    exacts [ha, (RingedSpace.basic_open _ _).prop] },
+    exacts [ha, (RingedSpace.basic_open _ _).is_open] },
   have := (X.presheaf.germ ⟨_, hs⟩).is_unit_map (RingedSpace.is_unit_res_basic_open _ s),
   rwa Top.presheaf.germ_res_apply at this
 end
@@ -145,7 +145,7 @@ end
 lemma is_affine_open.prime_ideal_of_generic_point {X : Scheme} [is_integral X]
   {U : opens X.carrier} (hU : is_affine_open U) [h : nonempty U] :
   hU.prime_ideal_of ⟨generic_point X.carrier,
-    ((generic_point_spec X.carrier).mem_open_set_iff U.prop).mpr (by simpa using h)⟩ =
+    ((generic_point_spec X.carrier).mem_open_set_iff U.is_open).mpr (by simpa using h)⟩ =
   generic_point (Scheme.Spec.obj $ op $ X.presheaf.obj $ op U).carrier :=
 begin
   haveI : is_affine _ := hU,

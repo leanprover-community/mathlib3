@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Group.basic
+import algebra.hom.equiv.type_tags
 
 /-!
 # Equivalence between `Group` and `AddGroup`

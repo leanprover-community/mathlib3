@@ -3,12 +3,15 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import logic.small
+import logic.small.basic
 import category_theory.category.ulift
 import category_theory.skeletal
 
 /-!
 # Essentially small categories.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A category given by `(C : Type u) [category.{v} C]` is `w`-essentially small
 if there exists a `small_model C : Type w` equipped with `[small_category (small_model C)]`.
@@ -204,14 +207,14 @@ end
 Any thin category is locally small.
 -/
 @[priority 100]
-instance locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+instance locally_small_of_thin {C : Type u} [category.{v} C] [quiver.is_thin C] :
   locally_small.{w} C := {}
 
 /--
 A thin category is essentially small if and only if the underlying type of its skeleton is small.
 -/
 theorem essentially_small_iff_of_thin
-  {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+  {C : Type u} [category.{v} C] [quiver.is_thin C] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
 by simp [essentially_small_iff, category_theory.locally_small_of_thin]
 

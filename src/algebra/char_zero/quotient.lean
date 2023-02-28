@@ -3,11 +3,13 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.char_zero
 import group_theory.quotient_group
 
 /-!
 # Lemmas about quotients in characteristic zero
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {R : Type*} [division_ring R] [char_zero R] {p : R}

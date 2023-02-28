@@ -6,7 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.pequiv
 import data.matrix.block
 import data.matrix.notation
-import data.fintype.card
+import data.fintype.big_operators
 import group_theory.perm.fin
 import group_theory.perm.sign
 import algebra.algebra.basic
@@ -47,7 +47,7 @@ open_locale matrix big_operators
 variables {m n : Type*} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
 variables {R : Type v} [comm_ring R]
 
-local notation `ε` σ:max := ((sign σ : ℤ ) : R)
+local notation `ε ` σ:max := ((sign σ : ℤ) : R)
 
 
 /-- `det` is an `alternating_map` in the rows of the matrix. -/

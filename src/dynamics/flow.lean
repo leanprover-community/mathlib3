@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo
 -/
 
-import topology.algebra.group
+import topology.algebra.group.basic
 import logic.function.iterate
 
 /-!
 # Flows and invariant sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a flow on a topological space `α` by a topological
 monoid `τ` as a continuous monoid-act of `τ` on `α`. Anticipating the

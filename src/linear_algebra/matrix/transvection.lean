@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import data.matrix.basis
 import data.matrix.dmatrix
 import linear_algebra.matrix.determinant
-import linear_algebra.matrix.trace
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 
@@ -81,14 +80,14 @@ def transvection (c : R) : matrix n n R := 1 + matrix.std_basis_matrix i j c
 by simp [transvection]
 
 section
-variable [fintype n]
 
 /-- A transvection matrix is obtained from the identity by adding `c` times the `j`-th row to
 the `i`-th row. -/
-lemma update_row_eq_transvection (c : R) :
+lemma update_row_eq_transvection [finite n] (c : R) :
   update_row (1 : matrix n n R) i (((1 : matrix n n R)) i + c • (1 : matrix n n R) j) =
     transvection i j c :=
 begin
+  casesI nonempty_fintype n,
   ext a b,
   by_cases ha : i = a, by_cases hb : j = b,
   { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
@@ -100,6 +99,8 @@ begin
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
 end
+
+variables [fintype n]
 
 lemma transvection_mul_transvection_same (h : i ≠ j) (c d : R) :
   transvection i j c ⬝ transvection i j d = transvection i j (c + d) :=

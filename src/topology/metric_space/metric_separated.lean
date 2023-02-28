@@ -33,16 +33,17 @@ let ⟨r, r0, hr⟩ := h in ⟨r, r0, λ y hy x hx, edist_comm x y ▸ hr x hx y
 lemma comm : is_metric_separated s t ↔ is_metric_separated t s := ⟨symm, symm⟩
 
 @[simp] lemma empty_left (s : set X) : is_metric_separated ∅ s :=
-⟨1, ennreal.zero_lt_one.ne', λ x, false.elim⟩
+⟨1, one_ne_zero, λ x, false.elim⟩
 
 @[simp] lemma empty_right (s : set X) : is_metric_separated s ∅ :=
 (empty_left s).symm
 
 protected lemma disjoint (h : is_metric_separated s t) : disjoint s t :=
-let ⟨r, r0, hr⟩ := h in λ x hx, r0 $ by simpa using hr x hx.1 x hx.2
+let ⟨r, r0, hr⟩ := h in
+set.disjoint_left.mpr $ λ x hx1 hx2, r0 $ by simpa using hr x hx1 x hx2
 
 lemma subset_compl_right (h : is_metric_separated s t) : s ⊆ tᶜ :=
-λ x hs ht, h.disjoint ⟨hs, ht⟩
+λ x hs ht, h.disjoint.le_bot ⟨hs, ht⟩
 
 @[mono] lemma mono {s' t'} (hs : s ⊆ s') (ht : t ⊆ t') :
   is_metric_separated s' t' → is_metric_separated s t :=

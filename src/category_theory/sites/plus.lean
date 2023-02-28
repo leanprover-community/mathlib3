@@ -75,6 +75,11 @@ begin
 end
 
 @[simp]
+lemma diagram_nat_trans_zero [preadditive D] (X : C) (P Q : Cᵒᵖ ⥤ D) :
+  J.diagram_nat_trans (0 : P ⟶ Q) X = 0 :=
+by { ext j x, dsimp, rw [zero_comp, multiequalizer.lift_ι, comp_zero] }
+
+@[simp]
 lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (X : C) :
   J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
 by { ext, dsimp, simp }
@@ -159,6 +164,10 @@ begin
   dsimp,
   simp,
 end
+
+@[simp]
+lemma plus_map_zero [preadditive D] (P Q : Cᵒᵖ ⥤ D) : J.plus_map (0 : P ⟶ Q) = 0 :=
+by { ext, erw [comp_zero, colimit.ι_map, J.diagram_nat_trans_zero, zero_comp] }
 
 @[simp]
 lemma plus_map_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) :
@@ -336,5 +345,9 @@ begin
   apply J.plus_lift_unique,
   rw [← category.assoc, ← J.to_plus_naturality, category.assoc, J.to_plus_plus_lift],
 end
+
+instance plus_functor_preserves_zero_morphisms [preadditive D] :
+  (plus_functor J D).preserves_zero_morphisms :=
+{ map_zero' := λ F G, by { ext, dsimp, rw [J.plus_map_zero, nat_trans.app_zero] } }
 
 end category_theory.grothendieck_topology

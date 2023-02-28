@@ -5,10 +5,15 @@ Authors: Joachim Breitner
 -/
 import group_theory.order_of_element
 import data.finset.noncomm_prod
-import data.fintype.card
+import data.fintype.big_operators
+import data.nat.gcd.big_operators
+import order.sup_indep
 
 /-!
 # Canonical homomorphism from a finite family of monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the construction of the canonical homomorphism from a family of monoids.
 
@@ -41,6 +46,44 @@ images of different morphisms commute, we obtain a canonical morphism
 
 open_locale big_operators
 
+namespace subgroup
+
+variables {G : Type*} [group G]
+
+/-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
+generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
+@[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
+This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
+lemma eq_one_of_noncomm_prod_eq_one_of_independent {ι : Type*} (s : finset ι) (f : ι → G) (comm)
+  (K : ι → subgroup G) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
+  (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
+begin
+  classical,
+  revert heq1,
+  induction s using finset.induction_on with i s hnmem ih,
+  { simp, },
+  { have hcomm := comm.mono (finset.coe_subset.2 $ finset.subset_insert _ _),
+    simp only [finset.forall_mem_insert] at hmem,
+    have hmem_bsupr: s.noncomm_prod f hcomm ∈ ⨆ (i ∈ (s : set ι)), K i,
+    { refine subgroup.noncomm_prod_mem _ _ _,
+      intros x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
+      exact this (hmem.2 x hx), },
+    intro heq1,
+    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
+    have hnmem' : i ∉ (s : set ι), by simpa,
+    obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
+      subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
+    intros i h,
+    simp only [finset.mem_insert] at h,
+    rcases h with ⟨rfl | _⟩,
+    { exact heq1i },
+    { exact ih hcomm hmem.2 heq1S _ h } }
+end
+
+end subgroup
+
+
 section family_of_monoids
 
 variables {M : Type*} [monoid M]
@@ -54,7 +97,7 @@ variables {N : ι → Type*} [∀ i, monoid (N i)]
 variables (ϕ : Π (i : ι), N i →* M)
 
 -- We assume that the elements of different morphism commute
-variables (hcomm : ∀ (i j : ι), i ≠ j → ∀ (x : N i) (y : N j), commute (ϕ i x) (ϕ j y))
+variables (hcomm : pairwise $ λ i j, ∀ x y, commute (ϕ i x) (ϕ j y))
 include hcomm
 
 -- We use `f` and `g` to denote elements of `Π (i : ι), N i`
@@ -67,15 +110,14 @@ namespace monoid_hom
 
 See also `linear_map.lsum` for a linear version without the commutativity assumption."]
 def noncomm_pi_coprod : (Π (i : ι), N i) →* M :=
-{ to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $
-    by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm _ _ h _ _ } },
+{ to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $ λ i _ j _ h, hcomm h _ _,
   map_one' := by {apply (finset.noncomm_prod_eq_pow_card _ _ _ _ _).trans (one_pow _), simp},
   map_mul' := λ f g,
   begin
     classical,
     convert @finset.noncomm_prod_mul_distrib _ _ _ _ (λ i, ϕ i (f i)) (λ i, ϕ i (g i)) _ _ _,
     { ext i, exact map_mul (ϕ i) (f i) (g i), },
-    { rintros i - j - h, exact hcomm _ _ h _ _ },
+    { rintros i - j - h, exact hcomm h _ _ },
   end }
 
 variable {hcomm}
@@ -105,7 +147,7 @@ def noncomm_pi_coprod_equiv :
 { to_fun := λ ϕ, noncomm_pi_coprod ϕ.1 ϕ.2,
   inv_fun := λ f,
   ⟨ λ i, f.comp (monoid_hom.single N i),
-    λ i j hij x y, commute.map (pi.mul_single_commute i j hij x y) f ⟩,
+    λ i j hij x y, commute.map (pi.mul_single_commute hij x y) f ⟩,
   left_inv := λ ϕ, by { ext, simp, },
   right_inv := λ f, pi_ext (λ i x, by simp) }
 
@@ -194,7 +236,9 @@ lemma independent_range_of_coprime_order [finite ι] [Π i, fintype (H i)]
 begin
   casesI nonempty_fintype ι,
   classical,
-  rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
+  rintros i,
+  rw disjoint_iff_inf_le,
+  rintros f ⟨hxi, hxp⟩, dsimp at hxi hxp,
   rw [supr_subtype', ← noncomm_pi_coprod_range] at hxp,
   rotate, { intros _ _ hj, apply hcomm, exact hj ∘ subtype.ext },
   cases hxp with g hgf, cases hxi with g' hg'f,

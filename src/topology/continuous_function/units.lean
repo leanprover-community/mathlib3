@@ -3,9 +3,9 @@ Copyright (c) 2022 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import topology.continuous_function.compact
 import analysis.normed_space.units
 import algebra.algebra.spectrum
+import topology.continuous_function.algebra
 
 /-!
 # Units of continuous functions
@@ -63,10 +63,9 @@ noncomputable def units_of_forall_is_unit {f : C(X, R)} (h : ∀ x, is_unit (f x
 { to_fun := λ x, (h x).unit,
   continuous_to_fun :=  normed_ring.is_unit_unit_continuous h }
 
-instance : can_lift C(X, R) C(X, Rˣ) :=
-{ coe := λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,
-  cond := λ f, ∀ x, is_unit (f x),
-  prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
+instance can_lift : can_lift C(X, R) C(X, Rˣ)
+  (λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩) (λ f, ∀ x, is_unit (f x)) :=
+{ prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
 
 lemma is_unit_iff_forall_is_unit (f : C(X, R)) :
   is_unit f ↔ ∀ x, is_unit (f x) :=

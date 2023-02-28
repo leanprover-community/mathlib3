@@ -3,7 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.integral.set_integral
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 # Egorov theorem
@@ -21,7 +21,7 @@ convergence in measure.
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topology
 
 namespace measure_theory
 
@@ -56,7 +56,7 @@ begin
   simp_rw [metric.tendsto_at_top, ae_iff] at hfg,
   rw [← nonpos_iff_eq_zero, ← hfg],
   refine measure_mono (λ x, _),
-  simp only [mem_inter_eq, mem_Inter, ge_iff_le, mem_not_convergent_seq_iff],
+  simp only [mem_inter_iff, mem_Inter, ge_iff_le, mem_not_convergent_seq_iff],
   push_neg,
   rintro ⟨hmem, hx⟩,
   refine ⟨hmem, 1 / (n + 1 : ℝ), nat.one_div_pos_of_nat, λ N, _⟩,
@@ -179,7 +179,7 @@ begin
   obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
   rw eventually_at_top,
   refine ⟨egorov.not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N, λ n hn x hx, _⟩,
-  simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_eq,
+  simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_iff,
     not_and, exists_and_distrib_left] at hx,
   obtain ⟨hxs, hx⟩ := hx,
   specialize hx hxs N,

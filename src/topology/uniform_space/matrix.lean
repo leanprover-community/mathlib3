@@ -10,7 +10,7 @@ import data.matrix.basic
 # Uniform space structure on matrices
 -/
 
-open_locale uniformity topological_space
+open_locale uniformity topology
 
 variables (m n 𝕜 : Type*) [uniform_space 𝕜]
 

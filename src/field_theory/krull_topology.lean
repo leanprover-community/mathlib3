@@ -199,7 +199,7 @@ group_filter_basis.is_topological_group (gal_group_basis K L)
 
 section krull_t2
 
-open_locale topological_space filter
+open_locale topology filter
 
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/
@@ -244,8 +244,8 @@ lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
     refine ⟨left_coset f W, left_coset g W,
       ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
-    rintro σ ⟨⟨w1, hw1, h⟩, w2, hw2, hgw2⟩,
-    rw ← hgw2 at h,
+    rw set.disjoint_left,
+    rintro σ ⟨w1, hw1, h⟩ ⟨w2, hw2, rfl⟩,
     rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
     have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,
@@ -276,7 +276,7 @@ begin
   haveI := intermediate_field.adjoin.finite_dimensional (h_int x),
   refine ⟨left_coset σ E.fixing_subgroup,
     ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
-    ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,
+    ⟨1, E.fixing_subgroup.one_mem', mul_one σ⟩, _⟩,
   simp only [mem_left_coset_iff, set_like.mem_coe, intermediate_field.mem_fixing_subgroup_iff,
     not_forall],
   exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,

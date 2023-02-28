@@ -9,13 +9,15 @@ import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.transvection
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
+import measure_theory.measure.haar_of_basis
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
 
-We construct Lebesgue measure on the real line, as a particular case of Stieltjes measure associated
-to the function `x ↦ x`. We obtain as a consequence Lebesgue measure on `ℝⁿ`. We prove that they
-are translation invariant.
+We show that the Lebesgue measure on the real line (constructed as a particular case of additive
+Haar measure on inner product spaces) coincides with the Stieltjes measure associated
+to the function `x ↦ x`. We deduce properties of this measure on `ℝ`, and then of the product
+Lebesgue measure on `ℝⁿ`. In particular, we prove that they are translation invariant.
 
 We show that, on `ℝⁿ`, a linear map acts on Lebesgue measure by rescaling it through the absolute
 value of its determinant, in `real.map_linear_map_volume_pi_eq_smul_volume_pi`.
@@ -25,25 +27,39 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 -/
 
 noncomputable theory
-open classical set filter measure_theory measure_theory.measure
+open classical set filter measure_theory measure_theory.measure topological_space
 open ennreal (of_real)
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topology
 
 /-!
 ### Definition of the Lebesgue measure and lengths of intervals
 -/
 
-/-- Lebesgue measure on the Borel sigma algebra, giving measure `b - a` to the interval `[a, b]`. -/
-instance real.measure_space : measure_space ℝ :=
-⟨stieltjes_function.id.measure⟩
-
 namespace real
 
 variables {ι : Type*} [fintype ι]
 
-open_locale topological_space
+/-- The volume on the real line (as a particular case of the volume on a finite-dimensional
+inner product space) coincides with the Stieltjes measure coming from the identity function. -/
+lemma volume_eq_stieltjes_id : (volume : measure ℝ) = stieltjes_function.id.measure :=
+begin
+  haveI : is_add_left_invariant stieltjes_function.id.measure :=
+  ⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+    by simp only [measure.map_apply (measurable_const_add a) measurable_set_Ioo,
+      sub_sub_sub_cancel_right, stieltjes_function.measure_Ioo, stieltjes_function.id_left_lim,
+      stieltjes_function.id_apply, id.def, preimage_const_add_Ioo]⟩,
+  have A : stieltjes_function.id.measure (std_orthonormal_basis ℝ ℝ).to_basis.parallelepiped = 1,
+  { change stieltjes_function.id.measure (parallelepiped (std_orthonormal_basis ℝ ℝ)) = 1,
+    rcases parallelepiped_orthonormal_basis_one_dim (std_orthonormal_basis ℝ ℝ) with H|H;
+    simp only [H, stieltjes_function.measure_Icc, stieltjes_function.id_apply, id.def, tsub_zero,
+      stieltjes_function.id_left_lim, sub_neg_eq_add, zero_add, ennreal.of_real_one] },
+  conv_rhs { rw [add_haar_measure_unique stieltjes_function.id.measure
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelepiped, A] },
+  simp only [volume, basis.add_haar, one_smul],
+end
 
-theorem volume_val (s) : volume s = stieltjes_function.id.measure s := rfl
+theorem volume_val (s) : volume s = stieltjes_function.id.measure s :=
+by simp [volume_eq_stieltjes_id]
 
 @[simp] lemma volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) :=
 by simp [volume_val]
@@ -77,7 +93,7 @@ by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
   volume (emetric.ball a r) = 2 * r :=
 begin
   rcases eq_or_ne r ∞ with rfl|hr,
-  { rw [metric.emetric_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { rw [metric.emetric_ball_top, volume_univ, two_mul, _root_.top_add] },
   { lift r to ℝ≥0 using hr,
     rw [metric.emetric_ball_nnreal, volume_ball, two_mul, ← nnreal.coe_add,
       ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
@@ -87,7 +103,7 @@ end
   volume (emetric.closed_ball a r) = 2 * r :=
 begin
   rcases eq_or_ne r ∞ with rfl|hr,
-  { rw [emetric.closed_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { rw [emetric.closed_ball_top, volume_univ, two_mul, _root_.top_add] },
   { lift r to ℝ≥0 using hr,
     rw [metric.emetric_closed_ball_nnreal, volume_closed_ball, two_mul, ← nnreal.coe_add,
       ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
@@ -96,8 +112,8 @@ end
 instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨λ x, volume_singleton⟩
 
-@[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (|b - a|) :=
-by rw [interval, volume_Icc, max_sub_min_eq_abs]
+@[simp] lemma volume_interval {a b : ℝ} : volume (uIcc a b) = of_real (|b - a|) :=
+by rw [←Icc_min_max, volume_Icc, max_sub_min_eq_abs]
 
 @[simp] lemma volume_Ioi {a : ℝ} : volume (Ioi a) = ∞ :=
 top_unique $ le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n,
@@ -131,6 +147,23 @@ instance is_finite_measure_restrict_Ioc (x y : ℝ) : is_finite_measure (volume.
 
 instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.restrict (Ioo x y)) :=
 ⟨by simp⟩
+
+lemma volume_le_diam (s : set ℝ) : volume s ≤ emetric.diam s :=
+begin
+  by_cases hs : metric.bounded s,
+  { rw [real.ediam_eq hs, ← volume_Icc],
+    exact volume.mono (real.subset_Icc_Inf_Sup_of_bounded hs) },
+  { rw metric.ediam_of_unbounded hs, exact le_top }
+end
+
+lemma _root_.filter.eventually.volume_pos_of_nhds_real
+  {p : ℝ → Prop} {a : ℝ} (h : ∀ᶠ x in 𝓝 a, p x) :
+  (0 : ℝ≥0∞) < volume {x | p x} :=
+begin
+  rcases h.exists_Ioo_subset with ⟨l, u, hx, hs⟩,
+  refine lt_of_lt_of_le _ (measure_mono hs),
+  simpa [-mem_Ioo] using hx.1.trans hx.2
+end
 
 /-!
 ### Volume of a box in `ℝⁿ`
@@ -184,14 +217,6 @@ begin
   exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr) _).symm
 end
 
-lemma volume_le_diam (s : set ℝ) : volume s ≤ emetric.diam s :=
-begin
-  by_cases hs : metric.bounded s,
-  { rw [real.ediam_eq hs, ← volume_Icc],
-    exact volume.mono (real.subset_Icc_Inf_Sup_of_bounded hs) },
-  { rw metric.ediam_of_unbounded hs, exact le_top }
-end
-
 lemma volume_pi_le_prod_diam (s : set (ι → ℝ)) :
   volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :=
 calc volume s ≤ volume (pi univ (λ i, closure (function.eval i '' s))) :
@@ -210,13 +235,8 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
   by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
 /-!
-### Images of the Lebesgue measure under translation/multiplication in ℝ
+### Images of the Lebesgue measure under multiplication in ℝ
 -/
-
-instance is_add_left_invariant_real_volume :
-  is_add_left_invariant (volume : measure ℝ) :=
-⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
@@ -257,10 +277,6 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
   ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
-
-instance : is_neg_invariant (volume : measure ℝ) :=
-⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simp [show volume.neg (Ioo (p : ℝ) q) = _,
-  from measure.map_apply measurable_neg measurable_set_Ioo]⟩
 
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
@@ -376,19 +392,7 @@ end
 
 end real
 
-open_locale topological_space
-
-lemma filter.eventually.volume_pos_of_nhds_real {p : ℝ → Prop} {a : ℝ} (h : ∀ᶠ x in 𝓝 a, p x) :
-  (0 : ℝ≥0∞) < volume {x | p x} :=
-begin
-  rcases h.exists_Ioo_subset with ⟨l, u, hx, hs⟩,
-  refine lt_of_lt_of_le _ (measure_mono hs),
-  simpa [-mem_Ioo] using hx.1.trans hx.2
-end
-
 section region_between
-
-open_locale classical
 
 variable {α : Type*}
 
@@ -457,6 +461,7 @@ theorem volume_region_between_eq_lintegral'
   (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
 begin
+  classical,
   rw measure.prod_apply,
   { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)})
             = s.indicator (λ x, ennreal.of_real (g x - f x)),
@@ -488,11 +493,8 @@ begin
     (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
   { apply measure_congr,
     apply eventually_eq.rfl.inter,
-    exact
-      ((ae_eq_comp' measurable_fst.ae_measurable
-        hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _ eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _ (ae_eq_comp' measurable_fst.ae_measurable
-        hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+    exact ((quasi_measure_preserving_fst.ae_eq_comp hf.ae_eq_mk).comp₂ _ eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _ $ quasi_measure_preserving_fst.ae_eq_comp hg.ae_eq_mk) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
@@ -527,3 +529,104 @@ volume_region_between_eq_integral' f_int g_int hs
   ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
+
+/-- Consider a real set `s`. If a property is true almost everywhere in `s ∩ (a, b)` for
+all `a, b ∈ s`, then it is true almost everywhere in `s`. Formulated with `μ.restrict`.
+See also `ae_of_mem_of_ae_of_mem_inter_Ioo`. -/
+lemma ae_restrict_of_ae_restrict_inter_Ioo
+  {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
+  (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂(μ.restrict (s ∩ Ioo a b)), p x) :
+  ∀ᵐ x ∂(μ.restrict s), p x :=
+begin
+  /- By second-countability, we cover `s` by countably many intervals `(a, b)` (except maybe for
+  two endpoints, which don't matter since `μ` does not have any atom). -/
+  let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
+  let u := ⋃ (i : ↥s × ↥s), T i,
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo',
+  obtain ⟨A, A_count, hA⟩ :
+    ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
+    is_open_Union_countable _ (λ p, is_open_Ioo),
+  have : s ⊆ (s \ u) ∪ (⋃ p ∈ A, s ∩ T p),
+  { assume x hx,
+    by_cases h'x : x ∈ ⋃ (i : ↥s × ↥s), T i,
+    { rw ← hA at h'x,
+      obtain ⟨p, pA, xp⟩ : ∃ (p : ↥s × ↥s), p ∈ A ∧ x ∈ T p,
+        by simpa only [mem_Union, exists_prop, set_coe.exists, exists_and_distrib_right] using h'x,
+      right,
+      exact mem_bUnion pA ⟨hx, xp⟩ },
+    { exact or.inl ⟨hx, h'x⟩ } },
+  apply ae_restrict_of_ae_restrict_of_subset this,
+  rw [ae_restrict_union_iff, ae_restrict_bUnion_iff _ A_count],
+  split,
+  { have : μ.restrict (s \ u) = 0, by simp only [restrict_eq_zero, hfinite.measure_zero],
+    simp only [this, ae_zero] },
+  { rintros ⟨⟨a, as⟩, ⟨b, bs⟩⟩ -,
+    dsimp [T],
+    rcases le_or_lt b a with hba|hab,
+    { simp only [Ioo_eq_empty_of_le hba, inter_empty, restrict_empty, ae_zero] },
+    { exact h a b as bs hab } }
+end
+
+/-- Consider a real set `s`. If a property is true almost everywhere in `s ∩ (a, b)` for
+all `a, b ∈ s`, then it is true almost everywhere in `s`. Formulated with bare membership.
+See also `ae_restrict_of_ae_restrict_inter_Ioo`. -/
+lemma ae_of_mem_of_ae_of_mem_inter_Ioo
+  {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
+  (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂μ, x ∈ s ∩ Ioo a b → p x) :
+  ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  /- By second-countability, we cover `s` by countably many intervals `(a, b)` (except maybe for
+  two endpoints, which don't matter since `μ` does not have any atom). -/
+  let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
+  let u := ⋃ (i : ↥s × ↥s), T i,
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo',
+  obtain ⟨A, A_count, hA⟩ :
+    ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
+    is_open_Union_countable _ (λ p, is_open_Ioo),
+  have M : ∀ᵐ x ∂μ, x ∉ s \ u, from hfinite.countable.ae_not_mem _,
+  have M' : ∀ᵐ x ∂μ, ∀ (i : ↥s × ↥s) (H : i ∈ A), x ∈ s ∩ T i → p x,
+  { rw ae_ball_iff A_count,
+    rintros ⟨⟨a, as⟩, ⟨b, bs⟩⟩ -,
+    change ∀ᵐ (x : ℝ) ∂μ, x ∈ s ∩ Ioo a b → p x,
+    rcases le_or_lt b a with hba|hab,
+    { simp only [Ioo_eq_empty_of_le hba, inter_empty, is_empty.forall_iff, eventually_true,
+        mem_empty_iff_false], },
+    { exact h a b as bs hab } },
+  filter_upwards [M, M'] with x hx h'x,
+  assume xs,
+  by_cases Hx : x ∈ ⋃ (i : ↥s × ↥s), T i,
+  { rw ← hA at Hx,
+    obtain ⟨p, pA, xp⟩ : ∃ (p : ↥s × ↥s), p ∈ A ∧ x ∈ T p,
+      by simpa only [mem_Union, exists_prop, set_coe.exists, exists_and_distrib_right] using Hx,
+    apply h'x p pA ⟨xs, xp⟩ },
+  { exact false.elim (hx ⟨xs, Hx⟩) }
+end
+
+section summable_norm_Icc
+
+open continuous_map
+
+/- The following lemma is a minor variation on `integrable_of_summable_norm_restrict` in
+`measure_theory.integral.set_integral`, but it is placed here because it needs to know that
+`Icc a b` has volume `b - a`. -/
+
+/-- If the sequence with `n`-th term the the sup norm of `λ x, f (x + n)` on the interval `Icc 0 1`,
+for `n ∈ ℤ`, is summable, then `f` is integrable on `ℝ`. -/
+lemma real.integrable_of_summable_norm_Icc {E : Type*} [normed_add_comm_group E] {f : C(ℝ, E)}
+  (hf : summable (λ n : ℤ, ‖(f.comp $ continuous_map.add_right n).restrict (Icc 0 1)‖)) :
+  integrable f :=
+begin
+  refine integrable_of_summable_norm_restrict (summable_of_nonneg_of_le
+    (λ n : ℤ, mul_nonneg (norm_nonneg (f.restrict (⟨Icc n (n + 1), is_compact_Icc⟩ : compacts ℝ)))
+    ennreal.to_real_nonneg) (λ n, _) hf) (Union_Icc_int_cast ℝ),
+  simp only [compacts.coe_mk, real.volume_Icc, add_sub_cancel', ennreal.to_real_of_real zero_le_one,
+    mul_one, norm_le _ (norm_nonneg _)],
+  intro x,
+  have := ((f.comp $ continuous_map.add_right n).restrict (Icc 0 1)).norm_coe_le_norm
+    ⟨x - n, ⟨sub_nonneg.mpr x.2.1, sub_le_iff_le_add'.mpr x.2.2⟩⟩,
+  simpa only [continuous_map.restrict_apply, comp_apply, coe_add_right, subtype.coe_mk,
+    sub_add_cancel]
+    using this,
+end
+
+end summable_norm_Icc

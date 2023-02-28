@@ -3,8 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
+import algebra.algebra.equiv
 import algebra.big_operators.finsupp
 import algebra.hom.non_unital_alg
+import algebra.module.big_operators
 import linear_algebra.finsupp
 
 /-!
@@ -107,11 +109,13 @@ instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
 { zero          := 0,
   mul           := (*),
   add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  left_distrib  := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, mul_add, mul_zero,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, add_mul, zero_mul,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+      sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   .. finsupp.add_comm_monoid }
@@ -268,9 +272,13 @@ instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 
 variables {S : Type*}
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_smul R (monoid_algebra k G) :=
-finsupp.has_smul
+instance [semiring k] [smul_zero_class R k] :
+  smul_zero_class R (monoid_algebra k G) :=
+finsupp.smul_zero_class
+
+instance [semiring k] [distrib_smul R k] :
+  distrib_smul R (monoid_algebra k G) :=
+finsupp.distrib_smul _ _
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (monoid_algebra k G) :=
@@ -322,7 +330,8 @@ end
 lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
-let F : G × G → k := λ p, by classical; exact if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
+by classical; exact
+let F : G × G → k := λ p, if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
 calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
 ... = ∑ p in f.support ×ˢ g.support, F p : finset.sum_product.symm
@@ -451,7 +460,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables (k) [semiring k] [distrib_smul R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -469,8 +478,8 @@ end⟩
 also commute with the algebra multiplication. -/
 instance smul_comm_class_self [smul_comm_class R k k] :
   smul_comm_class R (monoid_algebra k G) (monoid_algebra k G) :=
-⟨λ t a b,
-begin
+⟨λ t a b, begin
+  classical,
   ext m,
   simp only [mul_apply, finsupp.sum, finset.smul_sum, smul_ite, mul_smul_comm, sum_smul_index',
     implies_true_iff, eq_self_iff_true, coe_smul, ite_eq_right_iff, smul_eq_mul, pi.smul_apply,
@@ -918,11 +927,13 @@ instance : non_unital_non_assoc_semiring (add_monoid_algebra k G) :=
 { zero          := 0,
   mul           := (*),
   add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  left_distrib  := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, mul_add, mul_zero,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+      sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   nsmul     := λ n f, n • f,
@@ -999,9 +1010,9 @@ end mul_one_class
 /-! #### Semiring structure -/
 section semiring
 
-instance {R : Type*} [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_smul R (add_monoid_algebra k G) :=
-finsupp.has_smul
+instance {R : Type*} [semiring k] [smul_zero_class R k] :
+  smul_zero_class R (add_monoid_algebra k G) :=
+finsupp.smul_zero_class
 
 variables [semiring k] [add_monoid G]
 
@@ -1298,22 +1309,22 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables (k) [semiring k] [distrib_smul R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
-@monoid_algebra.is_scalar_tower_self k (multiplicative G) R _ _ _ _ _
+@monoid_algebra.is_scalar_tower_self k (multiplicative G) R _ _ _ _
 
 /-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
 `R = k` in the below. In other words, if the coefficients are commutative amongst themselves, they
 also commute with the algebra multiplication. -/
 instance smul_comm_class_self [smul_comm_class R k k] :
   smul_comm_class R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
-@monoid_algebra.smul_comm_class_self k (multiplicative G) R _ _ _ _ _
+@monoid_algebra.smul_comm_class_self k (multiplicative G) R _ _ _ _
 
 instance smul_comm_class_symm_self [smul_comm_class k R k] :
   smul_comm_class (add_monoid_algebra k G) R (add_monoid_algebra k G) :=
-@monoid_algebra.smul_comm_class_symm_self k (multiplicative G) R _ _ _ _ _
+@monoid_algebra.smul_comm_class_symm_self k (multiplicative G) R _ _ _ _
 
 variables {A : Type u₃} [non_unital_non_assoc_semiring A]
 

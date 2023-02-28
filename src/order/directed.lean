@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import data.set.image
 import order.lattice
 import order.max
+import order.bounds.basic
 
 /-!
 # Directed indexed families and sets
@@ -254,6 +255,39 @@ lemma is_bot_iff_is_min [is_directed α (≥)] : is_bot a ↔ is_min a :=
 ⟨is_bot.is_min, is_min.is_bot⟩
 
 lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
+
+/--
+A function which preserves lub on directed sets
+-/
+def preserve_lub_on_directed [preorder β] (f : α → β) := ∀ (d : set α) (a : α), d.nonempty →
+directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a))
+
+lemma preserve_lub_on_directed_montotone [preorder β] (f : α → β) (h: preserve_lub_on_directed f) :
+  monotone f :=
+begin
+  intros a b hab,
+  rw preserve_lub_on_directed at h,
+  let d := ({a, b} : set α),
+  have e1: is_lub (f '' d) (f b),
+  { apply h,
+    { exact set.insert_nonempty a {b} },
+    { apply directed_on_ordered_pair,
+      { rw reflexive, exact le_refl,  },
+      { exact hab, }, },
+    { rw is_lub,
+      split,
+      { simp only [upper_bounds_insert, upper_bounds_singleton, set.mem_inter_iff, set.mem_Ici,
+          le_refl, and_true],
+        exact hab, },
+      { simp only [upper_bounds_insert, upper_bounds_singleton],
+        rw (set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)),
+        exact λ {x : α}, set.mem_Ici.mpr, } }, },
+  rw [is_lub, is_least] at e1,
+  apply e1.1,
+  rw set.mem_image,
+  use a,
+  simp only [set.mem_insert_iff, eq_self_iff_true, true_or, and_self],
+end
 
 variables (β) [partial_order β]
 

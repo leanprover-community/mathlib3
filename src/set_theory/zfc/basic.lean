@@ -1007,13 +1007,11 @@ by { ext, simp }
 
 /-- An induction principle for sets. If every subset of a class is a member, then the class is
   universal. -/
-theorem eq_univ_of_forall_subset_imp_mem {A : Class}
-  (H : ∀ x : Set.{u}, (x : Class.{u}) ⊆ A → A x) : A = univ :=
+theorem eq_univ_of_powerset_subset {A : Class} (H : powerset A ⊆ A) : A = univ :=
 eq_univ_of_forall begin
-  by_contra',
-  cases this with a ha,
-  exact well_founded.min_mem Set.mem_wf _ ⟨a, ha⟩ (H _ $ λ x hx, not_not.1 $
-    λ hB, well_founded.not_lt_min Set.mem_wf _ ⟨a, ha⟩ hB $ (mem_hom_right _ _).1 hx)
+  by_contra' h,
+  exact well_founded.min_mem Set.mem_wf _ h (H $ λ x hx, not_not.1 $
+    λ hB, well_founded.not_lt_min Set.mem_wf _ h hB $ (mem_hom_right _ _).1 hx)
 end
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/

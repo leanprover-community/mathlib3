@@ -76,7 +76,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 @[norm_cast] lemma abs_coe_nat (n : ℕ) : |(n : ℤ)| = n := abs_of_nonneg (coe_nat_nonneg n)
 
-theorem sign_add_eq_of_sign_eq : ∀ {m n : ℤ} (h : m.sign = n.sign), (m + n).sign = n.sign :=
+theorem sign_add_eq_of_sign_eq : ∀ {m n : ℤ}, m.sign = n.sign → (m + n).sign = n.sign :=
 begin
   have : (1 : ℤ) ≠ -1 := dec_trivial,
   rintro ((_ | m) | m) ((_ | n) | n);

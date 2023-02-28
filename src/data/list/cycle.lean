@@ -624,7 +624,7 @@ rfl
 quotient.induction_on' s (by simp)
 
 @[simp] lemma mem_map {β : Type*} {f : α → β} {b : β} {s : cycle α} :
-  b ∈ s.map f ↔ ∃ (a : α), a ∈ s ∧ f a = b :=
+  b ∈ s.map f ↔ ∃ a, a ∈ s ∧ f a = b :=
 quotient.induction_on' s (by simp)
 
 /-- The `multiset` of lists that can make the cycle. -/

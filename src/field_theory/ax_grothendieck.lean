@@ -22,9 +22,6 @@ noncomputable theory
 
 open mv_polynomial
 
-variables {K : Type*} [comm_semiring K] {ι : Type*} {S : Type*}
-  [set_like S K] [subsemiring_class S K]
-
 /-- Any injective polynomial map over an algebraic extension of a finite field is surjective. -/
 lemma ax_grothendieck_of_locally_finite {K R : Type*} [field K] [finite K] [comm_ring R]
   [finite ι] [algebra K R] (alg : algebra.is_algebraic K R)

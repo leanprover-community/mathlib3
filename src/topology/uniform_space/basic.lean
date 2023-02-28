@@ -1016,14 +1016,14 @@ lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {g : β → 
   (hg : uniform_continuous g) (hf : uniform_continuous f) : uniform_continuous (g ∘ f) :=
 hg.comp hf
 
-lemma filter.has_basis.uniform_continuous_iff [uniform_space β] {p : γ → Prop} {s : γ → set (α×α)}
-  (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)} (hb : (𝓤 β).has_basis q t)
-  {f : α → β} :
+lemma filter.has_basis.uniform_continuous_iff {ι'} [uniform_space β] {p : ι → Prop}
+  {s : ι → set (α×α)} (ha : (𝓤 α).has_basis p s) {q : ι' → Prop} {t : ι' → set (β×β)}
+  (hb : (𝓤 β).has_basis q t) {f : α → β} :
   uniform_continuous f ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y, (x, y) ∈ s j → (f x, f y) ∈ t i :=
 (ha.tendsto_iff hb).trans $ by simp only [prod.forall]
 
-lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → Prop}
-  {s : γ → set (α×α)} (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)}
+lemma filter.has_basis.uniform_continuous_on_iff {ι'} [uniform_space β] {p : ι → Prop}
+  {s : ι → set (α×α)} (ha : (𝓤 α).has_basis p s) {q : ι' → Prop} {t : ι' → set (β×β)}
   (hb : (𝓤 β).has_basis q t) {f : α → β} {S : set α} :
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=

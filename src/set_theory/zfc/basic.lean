@@ -895,7 +895,7 @@ exists_congr $ λ x, and_true _
 
 @[simp] theorem mem_univ_hom (x : Set.{u}) : univ.{u} x := trivial
 
-theorem eq_univ_iff_forall {A : Class.{u}} : A = univ ↔ (∀ x : Set, A x) := set.eq_univ_iff_forall
+theorem eq_univ_iff_forall {A : Class.{u}} : A = univ ↔ ∀ x : Set, A x := set.eq_univ_iff_forall
 theorem eq_univ_of_forall {A : Class.{u}} : (∀ x : Set, A x) → A = univ := set.eq_univ_of_forall
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=

@@ -263,6 +263,26 @@ begin
   { apply hr }
 end
 
+lemma memₗ_mul_iff : Π {x y₁ y₂ : pgame},
+  x ∈ₗ y₁ * y₂ ↔
+    (∃ i j, x ≡ y₁.move_left i * y₂ + y₁ * y₂.move_left j - y₁.move_left i * y₂.move_left j) ∨
+    (∃ i j, x ≡ y₁.move_right i * y₂ + y₁ * y₂.move_right j - y₁.move_right i * y₂.move_right j)
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
+  constructor,
+  { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨_, _, hi⟩, or.inr ⟨_, _, hi⟩], },
+  { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨sum.inl (i, j), h⟩, ⟨sum.inr (i, j), h⟩], },
+end
+
+lemma memᵣ_mul_iff : Π {x y₁ y₂ : pgame},
+  x ∈ᵣ y₁ * y₂ ↔
+    (∃ i j, x ≡ y₁.move_left i * y₂ + y₁ * y₂.move_right j - y₁.move_left i * y₂.move_right j) ∨
+    (∃ i j, x ≡ y₁.move_right i * y₂ + y₁ * y₂.move_left j - y₁.move_right i * y₂.move_left j)
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
+  constructor,
+  { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨_, _, hi⟩, or.inr ⟨_, _, hi⟩], },
+  { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨sum.inl (i, j), h⟩, ⟨sum.inr (i, j), h⟩], },
+end
+
 /-- `x * y` and `y * x` have the same moves. -/
 def mul_comm_relabelling : Π (x y : pgame.{u}), x * y ≡r y * x
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin

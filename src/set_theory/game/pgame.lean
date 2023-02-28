@@ -1298,7 +1298,7 @@ end
 
 lemma memₗ_add_iff : Π {x y₁ y₂ : pgame},
   x ∈ₗ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_left i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_left i))
-| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := begin
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
   constructor,
   { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨_, hi⟩, or.inr ⟨_, hi⟩], },
   { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },
@@ -1306,7 +1306,7 @@ end
 
 lemma memᵣ_add_iff : Π {x y₁ y₂ : pgame},
   x ∈ᵣ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_right i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_right i))
-| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := begin
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
   constructor,
   { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨_, hi⟩, or.inr ⟨_, hi⟩], },
   { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },

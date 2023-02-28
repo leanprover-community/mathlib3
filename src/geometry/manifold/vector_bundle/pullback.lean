@@ -21,7 +21,7 @@ open bundle set
 open_locale manifold
 
 -- variables {𝕜} {B B'} (F E)
-variables {𝕜 B B' F M : Type*} (F : Type*) (E : B → Type*)
+variables {𝕜 B B' M : Type*} (F : Type*) (E : B → Type*)
 
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
@@ -33,6 +33,7 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {EB' : Type*} [normed_add_comm_group EB'] [normed_space 𝕜 EB']
   {HB' : Type*} [topological_space HB'] (IB' : model_with_corners 𝕜 EB' HB')
   [topological_space B'] [charted_space HB' B'] [smooth_manifold_with_corners IB' B']
+  [fiber_bundle F E] [vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB]
   (f : smooth_map IB' IB B' B)
 
 /-- For a smooth vector bundle `E` over a manifold `B` and a smooth map `f : B' → B`, the pullback

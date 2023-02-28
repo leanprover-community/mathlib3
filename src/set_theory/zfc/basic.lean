@@ -944,54 +944,55 @@ Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
 @[simp] theorem to_Set_of_Set (A : Class.{u}) (x : Set.{u}) : to_Set A x ↔ A x :=
 ⟨λ ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λ px, ⟨x, rfl, px⟩⟩
 
-@[simp] theorem mem_hom_left {x : Set.{u}} {A : Class.{u}} : (x : Class.{u}) ∈ A ↔ A x :=
+@[simp, norm_cast] theorem coe_mem {x : Set.{u}} {A : Class.{u}} : (x : Class.{u}) ∈ A ↔ A x :=
 to_Set_of_Set _ _
 
-@[simp] theorem mem_hom_right {x y : Set.{u}} : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
+@[simp] theorem coe_apply {x y : Set.{u}} : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
 
-@[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
+@[simp, norm_cast] theorem coe_subset (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
-@[simp] theorem sep_hom (p : Class.{u}) (x : Set.{u}) :
+@[simp, norm_cast] theorem coe_sep (p : Class.{u}) (x : Set.{u}) :
   (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λ y, Set.mem_sep
 
-@[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
+@[simp, norm_cast] theorem coe_empty : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
 set.ext $ λ y, (iff_false _).2 (Set.not_mem_empty y)
 
-@[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
+@[simp, norm_cast] theorem coe_insert (x y : Set.{u}) :
+  (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
 set.ext $ λ z, iff.symm Set.mem_insert_iff
 
-@[simp] theorem union_hom (x y : Set.{u}) : (x : Class.{u}) ∪ y = (x ∪ y : Set.{u}) :=
+@[simp, norm_cast] theorem coe_union (x y : Set.{u}) : (x : Class.{u}) ∪ y = (x ∪ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_union
 
-@[simp] theorem inter_hom (x y : Set.{u}) : (x : Class.{u}) ∩ y = (x ∩ y : Set.{u}) :=
+@[simp, norm_cast] theorem coe_inter (x y : Set.{u}) : (x : Class.{u}) ∩ y = (x ∩ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_inter
 
-@[simp] theorem diff_hom (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
+@[simp, norm_cast] theorem coe_diff (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_diff
 
-@[simp, norm_cast] theorem powerset_hom_left (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
+@[simp, norm_cast] theorem coe_powerset (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
 set.ext $ λ z, iff.symm Set.mem_powerset
 
-@[simp] theorem powerset_hom_right {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
+@[simp] theorem powerset_coe {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
 
-@[simp] theorem sUnion_hom_right {x : Class} {y : Set} : (⋃₀ x) y ↔ ∃ z : Set, x z ∧ y ∈ z :=
+@[simp] theorem sUnion_coe {x : Class} {y : Set} : (⋃₀ x) y ↔ ∃ z : Set, x z ∧ y ∈ z :=
 begin
   split,
   { rintro ⟨-, ⟨z, rfl, hxz⟩, hyz⟩,
     exact ⟨z, hxz, hyz⟩ },
-  { exact λ ⟨z, hxz, hyz⟩, ⟨_, mem_hom_left.2 hxz, hyz⟩ }
+  { exact λ ⟨z, hxz, hyz⟩, ⟨_, coe_mem.2 hxz, hyz⟩ }
 end
 
-@[simp, norm_cast] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
-set.ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop]).trans
+@[simp, norm_cast] theorem coe_sUnion (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
+set.ext $ λ y, (sUnion_coe.trans $ by simp_rw [coe_apply, exists_prop]).trans
   Set.mem_sUnion.symm
 
 @[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
 begin
   refine λ h, set.ext (λ z, _),
   change x z ↔ y z,
-  rw [←@mem_hom_left z x, ←@mem_hom_left z y],
+  rw [←@coe_mem z x, ←@coe_mem z y],
   exact h z
 end
 
@@ -1002,7 +1003,7 @@ theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z 
 begin
   split,
   { rintro ⟨w, rfl, z, hzx, hwz⟩,
-    exact ⟨z, hzx, mem_hom_left.2 hwz⟩ },
+    exact ⟨z, hzx, coe_mem.2 hwz⟩ },
   { rintro ⟨w, hwx, z, rfl, hwz⟩,
     exact ⟨z, rfl, w, hwx, hwz⟩ }
 end
@@ -1023,7 +1024,7 @@ set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h 
 theorem iota_ex (A) : iota.{u} A ∈ univ.{u} :=
 mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, A y ↔ y = x)
  (λ ⟨x, h⟩, ⟨x, eq.symm $ iota_val A x h⟩)
- (λ hn, ⟨∅, set.ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
+ (λ hn, ⟨∅, set.ext (λ z, coe_empty.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/
 def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.pair x y)) A)
@@ -1038,7 +1039,7 @@ namespace Set
 @[simp] theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f]
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
-Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.mem_hom_right, mem_map], exact
+Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.coe_apply, mem_map], exact
   ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_injective pr in by rw[←fw, wy],
   λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
 
@@ -1060,7 +1061,7 @@ theorem choice_is_func : is_func x (⋃₀ x) (choice x) :=
 theorem choice_mem (y : Set.{u}) (yx : y ∈ x) : (choice x ′ y : Class.{u}) ∈ (y : Class.{u}) :=
 begin
   delta choice,
-  rw [map_fval yx, Class.mem_hom_left, Class.mem_hom_right],
+  rw [map_fval yx, Class.coe_mem, Class.coe_apply],
   exact choice_mem_aux x h y yx
 end
 

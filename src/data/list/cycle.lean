@@ -801,6 +801,15 @@ by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, cha
 
 variables {r : α → α → Prop} {s : cycle α}
 
+theorem chain.imp {r₁ r₂ : α → α → Prop} (H : ∀ a b, r₁ a b → r₂ a b) (p : chain r₁ s) :
+  chain r₂ s :=
+begin
+  induction s using cycle.induction_on,
+  { triv },
+  { rw chain_coe_cons at ⊢ p,
+    exact p.imp H }
+end
+
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
   induction s using cycle.induction_on with a l _,
@@ -840,6 +849,17 @@ theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ 
   { exact hs.2.2 b hb },
   { exact trans (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
 end, cycle.chain_of_pairwise⟩
+
+theorem not_chain_of_trans_of_irrefl [is_trans α r] [is_irrefl α r] (h : chain r s) : s = nil :=
+begin
+  induction s using cycle.induction_on with a l _ h,
+  { refl },
+  { exact (irrefl_of r a $
+      (chain_iff_pairwise.1 h) a (mem_cons_self a _) a (mem_cons_self a _)).elim }
+end
+
+theorem not_chain_of_well_founded [i : is_well_founded α r] (h : chain r s) : s = nil :=
+not_chain_of_trans_of_irrefl $ h.imp $ λ _ _, relation.trans_gen.single
 
 theorem forall_eq_of_chain [is_trans α r] [is_antisymm α r]
   (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=

@@ -9,6 +9,9 @@ import data.nat.cast.basic
 /-!
 # Cast of integers (additional theorems)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves additional properties about the *canonical* homomorphism from
 the integers into an additive group with a one (`int.cast`),
 particularly results involving algebraic homomorphisms or the order structure on `ℤ`
@@ -32,6 +35,12 @@ def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_a
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n := nat.cast_pos
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
+
+lemma to_nat_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.to_nat < b ↔ a < b :=
+by { rw [←to_nat_lt_to_nat, to_nat_coe_nat], exact coe_nat_pos.2 hb.bot_lt }
+
+lemma nat_mod_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.nat_mod b < b :=
+(to_nat_lt hb).2 $ mod_lt_of_pos _ $ coe_nat_pos.2 hb.bot_lt
 
 section cast
 

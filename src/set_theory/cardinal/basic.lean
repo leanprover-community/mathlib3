@@ -16,6 +16,9 @@ import tactic.positivity
 /-!
 # Cardinal Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
 
 ## Main definitions
@@ -612,6 +615,13 @@ lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b 
 by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
+lemma lift_mk_le_lift_mk_mul_of_lift_mk_preimage_le {α : Type u} {β : Type v} {c : cardinal}
+  (f : α → β) (hf : ∀ b : β, lift.{v} #(f ⁻¹' {b}) ≤ c) :
+  lift.{v} #α ≤ lift.{u} #β * c :=
+mk_le_mk_mul_of_mk_preimage_le (λ x : ulift.{v} α, ulift.up.{u} (f x.1)) $ ulift.forall.2 $ λ b,
+  (mk_congr $ (equiv.ulift.image _).trans (equiv.trans
+    (by { rw [equiv.image_eq_preimage], simp [set.preimage] }) equiv.ulift.symm)).trans_le (hf b)
+
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
     inputs, is always bounded above. -/
 theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
@@ -1084,6 +1094,9 @@ theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
 by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
+
+@[simp] lemma mk_eq_aleph_0 (α : Type*) [countable α] [infinite α] : #α = ℵ₀ :=
+mk_le_aleph_0.antisymm $ aleph_0_le_mk _
 
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀ :=
 ⟨λ ⟨h⟩, mk_congr ((@denumerable.eqv α h).trans equiv.ulift.symm),

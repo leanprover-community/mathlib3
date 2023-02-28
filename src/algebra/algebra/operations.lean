@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
+import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
+import algebra.order.kleene
 import data.finset.pointwise
 import data.set.semiring
 import data.set.pointwise.big_operators
@@ -298,8 +300,14 @@ submodule.mem_span_mul_finite_of_mem_span_mul
 
 variables {M N P}
 
-/-- Sub-R-modules of an R-algebra form a semiring. -/
-instance : semiring (submodule R A) :=
+lemma mem_span_singleton_mul {x y : A} : x ∈ span R {y} * P ↔ ∃ z ∈ P, y * z = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map, exists_prop], refl }
+
+lemma mem_mul_span_singleton {x y : A} : x ∈ P * span R {y} ↔ ∃ z ∈ P, z * y = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map_flip, exists_prop], refl }
+
+/-- Sub-R-modules of an R-algebra form an idempotent semiring. -/
+instance : idem_semiring (submodule R A) :=
 { one_mul       := submodule.one_mul,
   mul_one       := submodule.mul_one,
   zero_mul      := bot_mul,
@@ -310,7 +318,9 @@ instance : semiring (submodule R A) :=
   ..add_monoid_with_one.unary,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
-  ..submodule.has_mul }
+  ..submodule.has_mul,
+  ..(by apply_instance : order_bot (submodule R A)),
+  ..(by apply_instance : lattice (submodule R A)) }
 
 variables (M)
 
@@ -491,9 +501,9 @@ le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 (mul_le.2 $ λ r hrn s hsm, mul_mem_mul_rev hsm hrn)
 
 /-- Sub-R-modules of an R-algebra A form a semiring. -/
-instance : comm_semiring (submodule R A) :=
+instance : idem_comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
-  .. submodule.semiring }
+  .. submodule.idem_semiring }
 
 lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
   (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=

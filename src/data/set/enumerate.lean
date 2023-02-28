@@ -3,11 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.wlog
+import data.set.lattice
 import data.nat.order.basic
+import tactic.wlog
 
 /-!
 # Set enumeration
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file allows enumeration of sets given a choice function.
 
@@ -69,6 +73,7 @@ lemma enumerate_inj {n₁ n₂ : ℕ} {a : α} {s : set α} (h_sel : ∀ s a, se
   (h₁ : enumerate s n₁ = some a) (h₂ : enumerate s n₂ = some a) : n₁ = n₂ :=
 begin
   wlog hn : n₁ ≤ n₂,
+  { cases le_total n₁ n₂ with H H; [skip, symmetry]; apply_assumption; assumption },
   { rcases nat.le.dest hn with ⟨m, rfl⟩, clear hn,
     induction n₁ generalizing s,
     case nat.zero

@@ -8,6 +8,7 @@ import algebra.geom_sum
 import data.nat.bitwise
 import data.nat.log
 import data.nat.parity
+import data.nat.prime
 import ring_theory.multiplicity
 
 /-!
@@ -69,21 +70,21 @@ calc
 namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) : multiplicity p 1 = 0 :=
-multiplicity.one_right (prime_iff.mp hp).not_unit
+multiplicity.one_right hp.prime.not_unit
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=
-multiplicity.mul $ prime_iff.mp hp
+multiplicity.mul hp.prime
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m ^ n) = n • (multiplicity p m) :=
-multiplicity.pow $ prime_iff.mp hp
+multiplicity.pow hp.prime
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
-multiplicity_self (prime_iff.mp hp).not_unit hp.ne_zero
+multiplicity_self hp.prime.not_unit hp.ne_zero
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
-multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
+multiplicity_pow_self hp.ne_zero hp.prime.not_unit n
 
 /-- **Legendre's Theorem**
 
@@ -108,7 +109,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
 lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   multiplicity p (p * (n + 1))! = multiplicity p (p * n)! + multiplicity p (n + 1) + 1 :=
 begin
-  have hp' := prime_iff.mp hp,
+  have hp' := hp.prime,
   have h0 : 2 ≤ p := hp.two_le,
   have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
   have h2 : p * n + 1 ≤ p * (n + 1), linarith,
@@ -135,7 +136,7 @@ lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
 begin
   induction n with n ih,
   { simp },
-  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
+  { simp only [succ_eq_add_one, multiplicity.mul, hp, hp.prime, ih,
       multiplicity_factorial_mul_succ, ←add_assoc, nat.cast_one, nat.cast_add, factorial_succ],
     congr' 1,
     rw [add_comm, add_assoc] }
@@ -202,8 +203,8 @@ begin
   exact dvd_mul_right _ _
 end
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+lemma multiplicity_choose_prime_pow_add_multiplicity {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n)
+  (hk0 : k ≠ 0) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
   (have hdisj : disjoint
@@ -213,7 +214,7 @@ le_antisymm
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
-      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
+      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0.bot_lt
         (lt_succ_of_le (log_mono_right hkn)),
       ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
@@ -223,11 +224,16 @@ le_antisymm
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)
 
+lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  multiplicity p (choose (p ^ n) k) =
+    ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0.bot_lt⟩)) :=
+part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
+
 end prime
 
 lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n :=
 begin
-  have h2 := prime_iff.mp prime_two,
+  have h2 := prime_two.prime,
   refine binary_rec _ _,
   { contradiction },
   { intros b n ih h,

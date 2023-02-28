@@ -3,7 +3,6 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.calculus.conformal.normed_space
 import analysis.inner_product_space.basic
 import analysis.special_functions.trigonometric.inverse
 
@@ -18,14 +17,18 @@ This file defines unoriented angles in real inner product spaces.
 
 -/
 
+assert_not_exists has_fderiv_at
+assert_not_exists conformal_at
+
 noncomputable theory
+open real set
 open_locale big_operators
 open_locale real
 open_locale real_inner_product_space
 
 namespace inner_product_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [inner_product_space ℝ V] {x y : V}
 
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. See `orientation.oangle` for the corresponding oriented angle
@@ -52,24 +55,6 @@ by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
 @[simp, norm_cast] lemma _root_.submodule.angle_coe {s : submodule ℝ V} (x y : s) :
   angle (x : V) (y : V) = angle x y :=
 s.subtypeₗᵢ.angle_map x y
-
-lemma is_conformal_map.preserves_angle {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
-  angle (f' u) (f' v) = angle u v :=
-begin
-  obtain ⟨c, hc, li, rfl⟩ := h,
-  exact (angle_smul_smul hc _ _).trans (li.angle_map _ _)
-end
-
-/-- If a real differentiable map `f` is conformal at a point `x`,
-    then it preserves the angles at that point. -/
-lemma conformal_at.preserves_angle {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
-  angle (f' u) (f' v) = angle u v :=
-let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ is_conformal_map.preserves_angle c u v
 
 /-- The cosine of the angle between two vectors. -/
 lemma cos_angle (x y : V) : real.cos (angle x y) = ⟪x, y⟫ / (‖x‖ * ‖y‖) :=
@@ -331,6 +316,41 @@ begin
   rw [← sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
       ← inner_eq_zero_iff_angle_eq_pi_div_two x y, norm_add_pow_two_real, norm_sub_pow_two_real],
   split; intro h; linarith,
+end
+
+/-- The cosine of the angle between two vectors is 1 if and only if the angle is 0. -/
+lemma cos_eq_one_iff_angle_eq_zero : cos (angle x y) = 1 ↔ angle x y = 0 :=
+begin
+  rw ← cos_zero,
+  exact inj_on_cos.eq_iff ⟨angle_nonneg x y, angle_le_pi x y⟩ (left_mem_Icc.2 pi_pos.le),
+end
+
+/-- The cosine of the angle between two vectors is 0 if and only if the angle is π / 2. -/
+lemma cos_eq_zero_iff_angle_eq_pi_div_two : cos (angle x y) = 0 ↔ angle x y = π / 2 :=
+begin
+  rw ← cos_pi_div_two,
+  apply inj_on_cos.eq_iff ⟨angle_nonneg x y, angle_le_pi x y⟩,
+  split; linarith [pi_pos],
+end
+
+/-- The cosine of the angle between two vectors is -1 if and only if the angle is π. -/
+lemma cos_eq_neg_one_iff_angle_eq_pi : cos (angle x y) = -1 ↔ angle x y = π :=
+begin
+  rw ← cos_pi,
+  exact inj_on_cos.eq_iff ⟨angle_nonneg x y, angle_le_pi x y⟩ (right_mem_Icc.2 pi_pos.le),
+end
+
+/-- The sine of the angle between two vectors is 0 if and only if the angle is 0 or π. -/
+lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi :
+  sin (angle x y) = 0 ↔ angle x y = 0 ∨ angle x y = π :=
+by rw [sin_eq_zero_iff_cos_eq, cos_eq_one_iff_angle_eq_zero, cos_eq_neg_one_iff_angle_eq_pi]
+
+/-- The sine of the angle between two vectors is 1 if and only if the angle is π / 2. -/
+lemma sin_eq_one_iff_angle_eq_pi_div_two : sin (angle x y) = 1 ↔ angle x y = π / 2 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h, sin_pi_div_two]⟩,
+  rw [←cos_eq_zero_iff_angle_eq_pi_div_two, ←abs_eq_zero, abs_cos_eq_sqrt_one_sub_sin_sq, h],
+  simp,
 end
 
 end inner_product_geometry

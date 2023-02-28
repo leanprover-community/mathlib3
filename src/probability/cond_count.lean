@@ -127,8 +127,7 @@ begin
   suffices : s ∩ t = s,
   { exact this ▸ λ x hx, hx.2 },
   rw ← @set.finite.to_finset_inj _ _ _ (hsf.inter_of_left _) hsf,
-  exact finset.eq_of_subset_of_card_le
-    (set.finite.to_finset_subset.2 (s.inter_subset_left t)) h.symm.le
+  exact finset.eq_of_subset_of_card_le (set.finite.to_finset_mono $ s.inter_subset_left t) h.ge,
 end
 
 lemma cond_count_eq_zero_iff (hs : s.finite) :

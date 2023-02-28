@@ -21,6 +21,7 @@ so that the second argument only needs to be defined on the support of the first
 noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
+open measure_theory
 
 namespace pmf
 
@@ -54,10 +55,19 @@ begin
     exact ite_eq_right_iff.2 (λ hb, ite_eq_right_iff.2 (λ h, (ha $ h ▸ hb).elim)) }
 end
 
+variable [measurable_space α]
+
 /-- The measure of a set under `pure a` is `1` for sets containing `a` and `0` otherwise -/
-@[simp] lemma to_measure_pure_apply [measurable_space α] (hs : measurable_set s) :
+@[simp] lemma to_measure_pure_apply (hs : measurable_set s) :
   (pure a).to_measure s = if a ∈ s then 1 else 0 :=
 (to_measure_apply_eq_to_outer_measure_apply (pure a) s hs).trans (to_outer_measure_pure_apply a s)
+
+lemma to_measure_pure : (pure a).to_measure = measure.dirac a :=
+measure.ext (λ s hs, by simpa only [to_measure_pure_apply a s hs, measure.dirac_apply' a hs])
+
+@[simp] lemma to_pmf_dirac [countable α] [h : measurable_singleton_class α] :
+  (measure.dirac a).to_pmf = pure a :=
+by rw [to_pmf_eq_iff_to_measure_eq, to_measure_pure]
 
 end measure
 
@@ -74,11 +84,11 @@ variables (p : pmf α) (f : α → pmf β) (g : β → pmf γ)
 
 @[simp] lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b := rfl
 
-@[simp] lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
+@[simp] lemma support_bind : (p.bind f).support = ⋃ a ∈ p.support, (f a).support :=
 set.ext (λ b, by simp [mem_support_iff, ennreal.tsum_eq_zero, not_or_distrib])
 
 lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
-by simp only [support_bind, set.mem_set_of_eq]
+by simp only [support_bind, set.mem_Union, set.mem_set_of_eq]
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -155,18 +165,18 @@ variables {p : pmf α} (f : Π a ∈ p.support, pmf β)
   p.bind_on_support f b = ∑' a, p a * if h : p a = 0 then 0 else f a h b := rfl
 
 @[simp] lemma support_bind_on_support :
-  (p.bind_on_support f).support = {b | ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support} :=
+  (p.bind_on_support f).support = ⋃ (a : α) (h : a ∈ p.support), (f a h).support :=
 begin
   refine set.ext (λ b, _),
   simp only [ennreal.tsum_eq_zero, not_or_distrib, mem_support_iff,
-    bind_on_support_apply, ne.def, not_forall, mul_eq_zero],
+    bind_on_support_apply, ne.def, not_forall, mul_eq_zero, set.mem_Union],
   exact ⟨λ hb, let ⟨a, ⟨ha, ha'⟩⟩ := hb in ⟨a, ha, by simpa [ha] using ha'⟩,
     λ hb, let ⟨a, ha, ha'⟩ := hb in ⟨a, ⟨ha, by simpa [(mem_support_iff _ a).1 ha] using ha'⟩⟩⟩
 end
 
 lemma mem_support_bind_on_support_iff (b : β) :
   b ∈ (p.bind_on_support f).support ↔ ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support :=
-by rw [support_bind_on_support, set.mem_set_of_eq]
+by simp only [support_bind_on_support, set.mem_set_of_eq, set.mem_Union]
 
 /-- `bind_on_support` reduces to `bind` if `f` doesn't depend on the additional hypothesis -/
 @[simp] lemma bind_on_support_eq_bind (p : pmf α) (f : α → pmf β) :

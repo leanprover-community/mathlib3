@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Heather Macbeth
 -/
 import topology.continuous_function.weierstrass
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # The Stone-Weierstrass theorem
@@ -124,8 +124,8 @@ begin
   rw inf_eq,
   refine A.topological_closure.smul_mem
     (A.topological_closure.sub_mem
-      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
-          (A.subalgebra_topological_closure g.property)) _) _,
+      (A.topological_closure.add_mem (A.le_topological_closure f.property)
+          (A.le_topological_closure g.property)) _) _,
   exact_mod_cast abs_mem_subalgebra_closure A _,
 end
 
@@ -145,8 +145,8 @@ begin
   rw sup_eq,
   refine A.topological_closure.smul_mem
     (A.topological_closure.add_mem
-      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
-          (A.subalgebra_topological_closure g.property)) _) _,
+      (A.topological_closure.add_mem (A.le_topological_closure f.property)
+          (A.le_topological_closure g.property)) _) _,
   exact_mod_cast abs_mem_subalgebra_closure A _,
 end
 
@@ -160,7 +160,7 @@ begin
   exact h,
 end
 
-open_locale topological_space
+open_locale topology
 
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top
@@ -296,13 +296,13 @@ begin
   apply set_like.ext',
   let L := A.topological_closure,
   have n : set.nonempty (L : set C(X, ℝ)) :=
-    ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
+    ⟨(1 : C(X, ℝ)), A.le_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
     (L : set C(X, ℝ)) n
     (λ f fm g gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (λ f fm g gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
-      (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
+      (subalgebra.separates_points_monotone (A.le_topological_closure) w)),
   { simp, },
 end
 

@@ -626,7 +626,7 @@ begin
 end
 
 theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) (k : ℕ) :
-  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+  normalized_factors (p ^ k) = multiset.replicate k (normalize p) :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
 theorem normalized_factors_prod_eq (s : multiset α) (hs : ∀ a ∈ s, irreducible a) :
@@ -666,7 +666,7 @@ begin
 end
 
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
-  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+  normalized_factors (p ^ k) = multiset.replicate k (normalize p) :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
@@ -685,7 +685,7 @@ lemma exists_associated_prime_pow_of_unique_normalized_factor {p r : α}
 begin
   use (normalized_factors r).card,
   have := unique_factorization_monoid.normalized_factors_prod hr,
-  rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
+  rwa [multiset.eq_replicate_of_mem (λ b, h), multiset.prod_replicate] at this
 end
 
 lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multiset α}
@@ -865,9 +865,9 @@ variables [dec_dvd : decidable_rel (has_dvd.dvd : R → R → Prop)]
 open multiplicity multiset
 
 include dec_dvd
-lemma le_multiplicity_iff_repeat_le_normalized_factors {a b : R} {n : ℕ}
+lemma le_multiplicity_iff_replicate_le_normalized_factors {a b : R} {n : ℕ}
   (ha : irreducible a) (hb : b ≠ 0) :
-  ↑n ≤ multiplicity a b ↔ repeat (normalize a) n ≤ normalized_factors b :=
+  ↑n ≤ multiplicity a b ↔ replicate n (normalize a) ≤ normalized_factors b :=
 begin
   rw ← pow_dvd_iff_le_multiplicity,
   revert b,
@@ -876,12 +876,12 @@ begin
   split,
   { rintro ⟨c, rfl⟩,
     rw [ne.def, pow_succ, mul_assoc, mul_eq_zero, decidable.not_or_iff_and_not] at hb,
-    rw [pow_succ, mul_assoc, normalized_factors_mul hb.1 hb.2, repeat_succ,
+    rw [pow_succ, mul_assoc, normalized_factors_mul hb.1 hb.2, replicate_succ,
       normalized_factors_irreducible ha, singleton_add, cons_le_cons_iff, ← ih hb.2],
     apply dvd.intro _ rfl },
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,
-    rw [← (normalized_factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_repeat],
+    rw [← (normalized_factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_replicate],
     exact (associated.pow_pow $ associated_normalize a).dvd.trans (dvd.intro u.prod rfl) }
 end
 
@@ -897,9 +897,9 @@ begin
   apply le_antisymm,
   { apply part_enat.le_of_lt_add_one,
     rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
-      le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
+      le_multiplicity_iff_replicate_le_normalized_factors ha hb, ← le_count_iff_replicate_le],
     simp },
-  rw [le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
+  rw [le_multiplicity_iff_replicate_le_normalized_factors ha hb, ← le_count_iff_replicate_le],
 end
 
 omit dec_dvd
@@ -1579,9 +1579,9 @@ eq_of_prod_eq_prod (by rw [factors_prod, factor_set.prod, map_singleton, prod_si
                             subtype.coe_mk])
 
 theorem factors_prime_pow [nontrivial α] {p : associates α} (hp : irreducible p)
-  (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
-eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
-                           multiset.prod_repeat, subtype.coe_mk])
+  (k : ℕ) : factors (p ^ k) = some (multiset.replicate k ⟨p, hp⟩) :=
+eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_replicate,
+                           multiset.prod_replicate, subtype.coe_mk])
 
 include dec_irr
 
@@ -1589,7 +1589,7 @@ theorem prime_pow_dvd_iff_le [nontrivial α] {m p : associates α} (h₁ : m ≠
   (h₂ : irreducible p) {k : ℕ} : p ^ k ≤ m ↔ k ≤ count p m.factors :=
 begin
   obtain ⟨a, nz, rfl⟩ := associates.exists_non_zero_rep h₁,
-  rw [factors_mk _ nz, ← with_top.some_eq_coe, count_some, multiset.le_count_iff_repeat_le,
+  rw [factors_mk _ nz, ← with_top.some_eq_coe, count_some, multiset.le_count_iff_replicate_le,
       ← factors_le, factors_prime_pow h₂, factors_mk _ nz],
   exact with_top.coe_le_coe
 end

@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # Pointwise order on finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lifts order structures on `α` to `ι →₀ α`.
 
 ## Main declarations
@@ -19,7 +22,7 @@ This file lifts order structures on `α` to `ι →₀ α`.
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale big_operators
 
 open finset
 
@@ -116,7 +119,8 @@ by simp [ext_iff, forall_and_distrib]
 
 lemma le_iff' (f g : ι →₀ α) {s : finset ι} (hf : f.support ⊆ s) : f ≤ g ↔ ∀ i ∈ s, f i ≤ g i :=
 ⟨λ h s hs, h s,
-λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+λ h s, by classical; exact
+  if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
 lemma le_iff (f g : ι →₀ α) : f ≤ g ↔ ∀ i ∈ f.support, f i ≤ g i := le_iff' f g $ subset.refl _
 
@@ -156,7 +160,8 @@ lemma support_tsub {f1 f2 : ι →₀ α} : (f1 - f2).support ⊆ f1.support :=
 by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
     not_imp_not, zero_le, implies_true_iff] {contextual := tt}
 
-lemma subset_support_tsub {f1 f2 : ι →₀ α} : f1.support \ f2.support ⊆ (f1 - f2).support :=
+lemma subset_support_tsub [decidable_eq ι] {f1 f2 : ι →₀ α} :
+  f1.support \ f2.support ⊆ (f1 - f2).support :=
 by simp [subset_iff] {contextual := tt}
 
 end canonically_ordered_add_monoid
@@ -183,6 +188,7 @@ end
 
 lemma disjoint_iff {f g : ι →₀ α} : disjoint f g ↔ disjoint f.support g.support :=
 begin
+  classical,
   rw [disjoint_iff, disjoint_iff, finsupp.bot_eq_zero, ← finsupp.support_eq_empty,
     finsupp.support_inf],
   refl,

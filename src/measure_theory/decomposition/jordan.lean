@@ -52,7 +52,7 @@ finite measures. -/
 (pos_part neg_part : measure α)
 [pos_part_finite : is_finite_measure pos_part]
 [neg_part_finite : is_finite_measure neg_part]
-(mutually_singular : pos_part ⊥ₘ neg_part)
+(mutually_singular : pos_part ⟂ₘ neg_part)
 
 attribute [instance] jordan_decomposition.pos_part_finite
 attribute [instance] jordan_decomposition.neg_part_finite
@@ -234,7 +234,7 @@ lemma subset_positive_null_set
   (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
   have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
+  { rw [← hw₁, ← of_union set.disjoint_sdiff_right hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
   have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
@@ -264,7 +264,7 @@ begin
   rw restrict_le_restrict_iff at hsu hsv,
   have a := hsu (hu.diff hv) (u.diff_subset v),
   have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) disjoint_sdiff_self_right)
         (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,
@@ -510,7 +510,7 @@ end
 
 -- TODO: Generalize to vector measures once total variation on vector measures is defined
 lemma mutually_singular_iff (s t : signed_measure α) :
-  s ⊥ᵥ t ↔ s.total_variation ⊥ₘ t.total_variation :=
+  s ⟂ᵥ t ↔ s.total_variation ⟂ₘ t.total_variation :=
 begin
   split,
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -531,7 +531,7 @@ begin
 end
 
 lemma mutually_singular_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
-  s ⊥ᵥ μ ↔ s.total_variation ⊥ₘ μ.ennreal_to_measure :=
+  s ⟂ᵥ μ ↔ s.total_variation ⟂ₘ μ.ennreal_to_measure :=
 begin
   split,
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -550,8 +550,8 @@ begin
 end
 
 lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
-  s.total_variation ⊥ₘ μ ↔
-  s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
+  s.total_variation ⟂ₘ μ ↔
+  s.to_jordan_decomposition.pos_part ⟂ₘ μ ∧ s.to_jordan_decomposition.neg_part ⟂ₘ μ :=
 measure.mutually_singular.add_left_iff
 
 end signed_measure

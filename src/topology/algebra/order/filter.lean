@@ -3,17 +3,20 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.filter
 
 /-!
 # Topology on filters of a space with order topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `𝓝 (f x)` tends to `𝓝 filter.at_top` provided that `f` tends to
 `filter.at_top`, and similarly for `filter.at_bot`.
 -/
 
-open_locale topological_space
+open_locale topology
 
 namespace filter
 

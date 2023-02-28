@@ -84,11 +84,10 @@ There are many equivalences to this definition, which we aim to state and prove.
 
 - A transitive set of transitive sets.
 - A hereditarily transitive set.
-- A transitive set that's transitive under `∈` (`is_ordinal_iff_is_trans`).
+- A transitive set that's transitive under `∈`.
 - A transitive set that's trichotomous under `∈`.
-- A transitive set that's (strictly) totally ordered under `∈`
-  (`is_ordinal_iff_is_strict_total_order`).
-- A transitive set that's well-ordered under `∈` (`is_ordinal_iff_is_well_order`).
+- A transitive set that's (strictly) totally ordered under `∈`.
+- A transitive set that's well-ordered under `∈`.
 -/
 def is_ordinal (x : Set) : Prop := x.is_transitive ∧ ∀ y z w : Set, y ∈ z → z ∈ w → w ∈ x → y ∈ w
 

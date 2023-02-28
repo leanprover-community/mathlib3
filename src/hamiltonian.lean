@@ -12,82 +12,12 @@ variables {V V' : Type*} (G : simple_graph V)
 
 namespace simple_graph
 
-protected def adj.reachable {G : simple_graph V} {u v : V} (h : G.adj u v) :
-  G.reachable u v := ⟨walk.cons h walk.nil⟩
-
-protected def walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
-  G.reachable u v := ⟨p⟩
-
-protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
-  (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
-begin
-  refine h.elim (λ p, _),
-  exact ⟨p.map f⟩
-end
-
 namespace subgraph
 variables {G}
 
-lemma adj.adj_sub {H : G.subgraph} {u v : V} (h : H.adj u v) : G.adj u v := H.adj_sub h
-
 lemma adj.edge_vert {H : G.subgraph} {u v : V} (h : H.adj u v) : u ∈ H.verts := H.edge_vert h
 
-lemma adj.coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
-  H.coe.adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
-
-lemma adj.ne {H : G.subgraph} {u v : V} (h : H.adj u v) : u ≠ v := h.adj_sub.ne
-
 end subgraph
-
-/-- The one-vertex subgraph. -/
-@[simps]
-protected def singleton_subgraph (v : V) : G.subgraph :=
-{ verts := {v},
-  adj := ⊥,
-  adj_sub := by simp [-set.bot_eq_empty],
-  edge_vert := by simp [-set.bot_eq_empty] }
-
-@[simp] lemma singleton_subgraph_le_iff (v : V) (H : G.subgraph) :
-  G.singleton_subgraph v ≤ H ↔ v ∈ H.verts :=
-begin
-  split,
-  { intro h,
-    apply h.1,
-    simp },
-  { intro h,
-    split,
-    { simp [h] },
-    { simp [-set.bot_eq_empty] } }
-end
-
-@[simp] lemma map_singleton_subgraph
-  {G : simple_graph V} {G' : simple_graph V'} (f : G →g G') {v : V} :
-  subgraph.map f (G.singleton_subgraph v) = G'.singleton_subgraph (f v) :=
-begin
-  ext,
-  simp,
-  simp [-set.bot_eq_empty, relation.map],
-end
-
-instance nonempty_singleton_subgraph_verts (v : V) : nonempty (G.singleton_subgraph v).verts :=
-⟨⟨v, by simp⟩⟩
-
-@[simp] lemma singleton_subgraph_connected (v : V) :
-  (G.singleton_subgraph v).connected :=
-begin
-  split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp at ha hb,
-  subst_vars
-end
-
-@[simp] lemma edge_set_singleton_subgraph (v : V) :
-  (G.singleton_subgraph v).edge_set = ∅ :=
-begin
-  ext e,
-  refine e.ind _,
-  simp [-set.bot_eq_empty],
-end
 
 lemma verts_singleton_iff_eq (H : G.subgraph) {v : V} :
   H.verts = {v} ↔ H = G.singleton_subgraph v :=
@@ -109,129 +39,8 @@ begin
     simp, }
 end
 
-@[simp] lemma neighbor_set_singleton_subgraph (v w : V) :
-  (G.singleton_subgraph v).neighbor_set w = ∅ :=
-by { ext u, refl }
-
-/-- The one-edge subgraph. -/
-@[simps]
-protected def subgraph_of_adj {v w : V} (hvw : G.adj v w) : G.subgraph :=
-{ verts := {v, w},
-  adj := λ a b, ⟦(v, w)⟧ = ⟦(a, b)⟧,
-  adj_sub := λ a b h, by { rw [←G.mem_edge_set, ← h], exact hvw },
-  edge_vert := λ a b h, by { apply_fun (λ e, a ∈ e) at h, simpa using h } }
-
-@[simp] lemma edge_set_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).edge_set = {⟦(v, w)⟧} :=
-begin
-  ext e,
-  refine e.ind _,
-  simp only [set.mem_singleton_iff, subgraph.mem_edge_set, subgraph_of_adj_adj, eq_comm,
-    iff_self, forall_2_true_iff],
-end
-
-instance nonempty_subgraph_of_adj_verts {v w : V} (hvw : G.adj v w) :
-  nonempty (G.subgraph_of_adj hvw).verts :=
-⟨⟨v, by simp⟩⟩
-
-@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).connected :=
-begin
-  split,
-  rintro ⟨a, ha⟩ ⟨b, hb⟩,
-  simp at ha hb,
-  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb,
-  { refl, },
-  { apply adj.reachable,
-    simp, },
-  { apply adj.reachable,
-    simp, },
-  { refl }
-end
-
-lemma subgraph_of_adj_symm {v w : V} (hvw : G.adj v w) :
-  G.subgraph_of_adj hvw.symm = G.subgraph_of_adj hvw :=
-by ext; simp [or_comm, and_comm]
-
-@[simp] lemma map_subgraph_of_adj
-  {G : simple_graph V} {G' : simple_graph V'} (f : G →g G')
-  {v w : V} (hvw : G.adj v w) :
-  subgraph.map f (G.subgraph_of_adj hvw) = G'.subgraph_of_adj (f.map_adj hvw) :=
-begin
-  ext,
-  { simp only [subgraph.map_verts, subgraph_of_adj_verts, set.mem_image,
-      set.mem_insert_iff, set.mem_singleton_iff],
-    split,
-    { rintro ⟨u, rfl|rfl, rfl⟩; simp },
-    { rintro (rfl|rfl),
-      { use v, simp },
-      { use w, simp } } },
-  { simp only [relation.map, subgraph.map_adj, subgraph_of_adj_adj, quotient.eq, sym2.rel_iff],
-    split,
-    { rintro ⟨a, b, (⟨rfl,rfl⟩|⟨rfl,rfl⟩), rfl, rfl⟩; simp },
-    { rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩),
-      { use [v, w], simp },
-      { use [w, v], simp } } }
-end
-
-lemma neighbor_set_subgraph_of_adj_subset {u v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).neighbor_set u ⊆ {v, w} :=
-(G.subgraph_of_adj hvw).neighbor_set_subset_verts _
-
-@[simp] lemma neighbor_set_fst_subgraph_of_adj_subset {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).neighbor_set v = {w} :=
-begin
-  ext u,
-  simp,
-  simp [hvw.ne.symm],
-  rw eq_comm
-end
-
-@[simp] lemma neighbor_set_snd_subgraph_of_adj_subset {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).neighbor_set w = {v} :=
-begin
-  rw subgraph_of_adj_symm,
-  exact neighbor_set_fst_subgraph_of_adj_subset _ hvw.symm,
-end
-
-lemma neighbor_set_subgraph_of_adj [decidable_eq V] {u v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).neighbor_set u =
-  (if u = v then {w} else ∅) ∪ (if u = w then {v} else ∅) :=
-begin
-  ext a, simp, split_ifs; subst_vars; simp [eq_comm, *],
-  tauto,
-end
-
 namespace subgraph
 variables {G}
-
-@[simp] lemma verts_sup {H H' : G.subgraph} : (H ⊔ H').verts = H.verts ∪ H'.verts := rfl
-@[simp] lemma verts_inf {H H' : G.subgraph} : (H ⊓ H').verts = H.verts ∩ H'.verts := rfl
-
-protected def Sup (Hs : set G.subgraph) : G.subgraph :=
-{ verts := ⋃₀ (subgraph.verts '' Hs),
-  adj := Sup (subgraph.adj '' Hs),
-  adj_sub := λ v w, begin
-    rintro ⟨p, H, h⟩,
-    simp [h] at H,
-    obtain ⟨H, a⟩ := H,
-    exact H.adj_sub a.2,
-  end,
-  edge_vert := λ v w, begin
-    rintro ⟨p, H, h⟩,
-    simp [h] at H,
-    obtain ⟨H, hH, ha⟩ := H,
-    refine ⟨_, ⟨H, hH, rfl⟩, _⟩,
-    exact H.edge_vert ha,
-  end,
-  symm := λ v w, begin
-    rintro ⟨p, H, h⟩,
-    simp [h] at H,
-    obtain ⟨H, hH, ha⟩ := H,
-    simp [Sup_apply],
-    refine ⟨H, hH, ha.symm⟩
-  end }
-.
 
 lemma sup_induce_le_induce_union (H : G.subgraph) (s s' : set V) :
   H.induce s ⊔ H.induce s' ≤ H.induce (s ∪ s') :=
@@ -267,7 +76,7 @@ begin
   haveI : nonempty (H ⊔ H').verts := ⟨v'⟩,
   split,
   rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [verts_sup, set.mem_union_eq] at ha hb,
+  simp only [verts_sup, set.mem_union] at ha hb,
   obtain (ha|ha) := ha; obtain (hb|hb) := hb,
   { exact reachable.map (subgraph.inclusion (le_sup_left : H ≤ H ⊔ H')) (hH ⟨a, ha⟩ ⟨b, hb⟩) },
   { transitivity v',
@@ -463,25 +272,23 @@ lemma components_disjoint {H C C' : G.subgraph}
 begin
   rw [disjoint_iff, subgraph.eq_bot_iff],
   contrapose! h,
-  rw [set.ne_empty_iff_nonempty] at h,
+  rw [← set.nonempty_iff_ne_empty] at h,
   obtain ⟨v, h, h'⟩ := h,
   apply components.eq_of_mem_verts hC hC' h h',
 end
 
 lemma Sup_components (H : G.subgraph) :
-  subgraph.Sup H.components = H :=
+  (⨆ (C ∈ H.components), C) = H :=
 begin
   ext,
-  { simp only [subgraph.Sup, set.sUnion_image, set.mem_Union, exists_prop,
-      subgraph.top_verts, set.mem_univ, iff_true],
+  { simp only [verts_supr, set.mem_Union, exists_prop],
     split,
     { rintro ⟨C, hC, h⟩,
-      exact (components_le hC).1 h, },
+      exact (components_le hC).1 h },
     { intro hx,
       use H.mk_component (H.coe.connected_component_mk ⟨x, hx⟩),
       simp [hx], } },
-  { simp only [subgraph.Sup, Sup_apply, supr_apply, supr_Prop_eq, set_coe.exists, set.mem_image,
-      subtype.coe_mk, exists_prop, exists_exists_and_eq_and, subgraph.top_adj_iff],
+  { simp only [supr_adj, exists_prop],
     split,
     { rintro ⟨C, hC, ha⟩,
       exact (components_le hC).2 ha },
@@ -526,95 +333,17 @@ lemma components_disjoint {H H'}
   (h : H ≠ H') : disjoint H H' :=
 subgraph.components_disjoint hH hH' h
 
-lemma Sup_components : subgraph.Sup G.components = ⊤ :=
+lemma Sup_components : (⨆ (C ∈ G.components), C) = ⊤ :=
 subgraph.Sup_components (⊤ : G.subgraph)
 
 end connected
 
 
-namespace subgraph
-variables {G}
-
-lemma map_sup {G : simple_graph V} {G' : simple_graph V'} (f : G →g G')
-  {H H' : G.subgraph} :
-  (H ⊔ H').map f = H.map f ⊔ H'.map f :=
-begin
-  ext1,
-  { simp only [set.image_union, map_verts, verts_sup]},
-  { ext,
-    simp only [relation.map, map_adj, sup_adj],
-    split,
-    { rintro ⟨a, b, h|h, rfl, rfl⟩,
-      { exact or.inl ⟨_, _, h, rfl, rfl⟩ },
-      { exact or.inr ⟨_, _, h, rfl, rfl⟩ } },
-    { rintro (⟨a, b, h, rfl, rfl⟩|⟨a, b, h, rfl, rfl⟩),
-      { exact ⟨_, _, or.inl h, rfl, rfl⟩ },
-      { exact ⟨_, _, or.inr h, rfl, rfl⟩ } } },
-end
-
-lemma neighbor_set_sup {H H' : G.subgraph} (v : V) :
-  (H ⊔ H').neighbor_set v = H.neighbor_set v ∪ H'.neighbor_set v :=
-by { ext w, simp }
-
-end subgraph
-
 namespace walk
 variables {G}
 
-/-- The subgraph consisting of the vertices and edges of the walk. -/
-@[simp] protected def to_subgraph : Π {u v : V}, G.walk u v → G.subgraph
-| u _ nil := G.singleton_subgraph u
-| _ _ (cons h p) := G.subgraph_of_adj h ⊔ p.to_subgraph
-
-@[simp] lemma verts_to_subgraph {u v : V} (p : G.walk u v) :
-  p.to_subgraph.verts = {w | w ∈ p.support} :=
-begin
-  induction p,
-  { simp },
-  { ext w,
-    have : w = p_v ∨ w ∈ p_p.support ↔ w ∈ p_p.support :=
-    ⟨by rintro (rfl | h); simp [*], by simp { contextual := tt}⟩,
-    simp only [*, walk.to_subgraph, subgraph.verts_sup, subgraph_of_adj_verts, set.mem_union_eq,
-      set.mem_insert_iff, set.mem_singleton_iff, set.mem_set_of_eq, support_cons,
-      list.mem_cons_iff, or_assoc] }
-end
-
 instance {u v : V} (p : G.walk u v) : nonempty p.to_subgraph.verts :=
 ⟨⟨u, by simp⟩⟩
-
-@[simp] lemma edges_to_subgraph {u v : V} (p : G.walk u v) :
-  p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
-begin
-  induction p,
-  { simp, },
-  { simp only [*, walk.to_subgraph, subgraph.edge_set_sup, edge_set_subgraph_of_adj,
-      set.singleton_union, edges_cons, list.mem_cons_iff],
-    refl, },
-end
-
-@[simp] lemma to_subgraph_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
-  (p.append q).to_subgraph = p.to_subgraph ⊔ q.to_subgraph :=
-by induction p; simp [*, sup_assoc]
-
-@[simp] lemma to_subgraph_reverse {u v : V} (p : G.walk u v) :
-  p.reverse.to_subgraph = p.to_subgraph :=
-begin
-  induction p,
-  { simp },
-  { simp only [*, walk.to_subgraph, reverse_cons, to_subgraph_append, subgraph_of_adj_symm],
-    rw [sup_comm],
-    congr,
-    ext; simp [-set.bot_eq_empty], }
-end
-
-@[simp] lemma to_subgraph_rotate [decidable_eq V] {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
-  (c.rotate h).to_subgraph = c.to_subgraph :=
-by rw [rotate, to_subgraph_append, sup_comm, ← to_subgraph_append, take_spec]
-
-lemma to_subgraph_map {G : simple_graph V} {G' : simple_graph V'} (f : G →g G')
-  {u v : V} (p : G.walk u v) :
-  (p.map f).to_subgraph = subgraph.map f p.to_subgraph :=
-by induction p; simp [*, subgraph.map_sup]
 
 lemma finite_verts_to_subgraph {u v : V} (p : G.walk u v) :
   p.to_subgraph.verts.finite :=
@@ -628,7 +357,7 @@ begin
     apply_instance, },
   { simp [subgraph.neighbor_set_sup],
     apply' set.fintype_union,
-    apply' set.fintype_subset _ (G.neighbor_set_subgraph_of_adj_subset p_h),
+    apply' set.fintype_subset _ (neighbor_set_subgraph_of_adj_subset p_h),
     simp, apply_instance,
     assumption, },
 end
@@ -943,6 +672,13 @@ lemma _root_.simple_graph.walk.is_path.to_subgraph {u v : V} {p : G.walk u v} (h
   p.to_subgraph.is_path :=
 ⟨u, v, p, hp, rfl⟩
 
+lemma _root_.simple_graph.walk.to_subgraph_mem_of_adj {u v : V} (p : G.walk u v) {x y : V}
+  (h : p.to_subgraph.adj x y) : x ∈ p.support :=
+begin
+  rw [← walk.mem_verts_to_subgraph],
+  exact h.fst_mem,
+end
+
 lemma _root_.simple_graph.walk.is_path.degree_to_subgraph_start_le [decidable_eq V]
   {u v : V} {p : G.walk u v} (hp : p.is_path) :
   p.to_subgraph.degree u ≤ 1 :=
@@ -958,15 +694,11 @@ begin
     existsi p_v,
     ext x,
     simp,
-    split,
-    { rintro (h|h),
-      { obtain (rfl|⟨rfl,rfl⟩) := h; refl },
-      { exfalso,
-        simp at hp,
-        apply hp.2,
-        simpa using h.edge_vert, } },
-    { rintro rfl,
-      simp } },
+    intro h,
+    exfalso,
+    simp at hp,
+    apply hp.2,
+    apply walk.to_subgraph_mem_of_adj _ h, },
 end
 
 lemma _root_.simple_graph.walk.is_path.degree_to_subgraph_end_le [decidable_eq V]
@@ -1200,7 +932,7 @@ end
   p.to_subgraph.connected :=
 begin
   induction p,
-  { simp, },
+  { simp [singleton_subgraph_connected], },
   { rw [walk.to_subgraph],
     apply sup_connected _ _ p_v; simp [p_ih], }
 end
@@ -1241,7 +973,7 @@ begin
   { rintro ⟨hi, hc, hone, htwo⟩,
     unfreezingI { induction hn : nat.card H.verts generalizing H },
     { haveI : fintype H.verts := set.finite.fintype hi,
-      simp only [nat.card_eq_fintype_card, set.to_finset_eq_empty_iff, nat.nat_zero_eq_zero,
+      simp only [nat.card_eq_fintype_card, set.to_finset_eq_empty, nat.nat_zero_eq_zero,
         finset.card_eq_zero, ← set.to_finset_card] at hn,
       cases hc, rw hn at hc_nonempty, simpa using hc_nonempty, },
     { haveI : fintype H.verts := set.finite.fintype hi,

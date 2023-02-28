@@ -51,11 +51,6 @@ begin
     rw curry_apply },
 end
 
-@[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
-  tensor_product.direct_sum R M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
-    direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
-by simp [tensor_product.direct_sum]
-
 /-- Tensor products distribute over a direct sum on the left . -/
 def direct_sum_left : (⨁ i₁, M₁ i₁) ⊗[R] M₂' ≃ₗ[R] (⨁ i, M₁ i ⊗[R] M₂') :=
 linear_equiv.of_linear
@@ -79,6 +74,11 @@ def direct_sum_right : M₁' ⊗[R] (⨁ i, M₂ i) ≃ₗ[R] (⨁ i, M₁' ⊗[
   (dfinsupp.map_range.linear_equiv $ λ i, (tensor_product.comm R _ _))
 
 variables {M₁ M₁' M₂ M₂'}
+
+@[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
+  tensor_product.direct_sum R M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
+    direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
+by simp [tensor_product.direct_sum]
 
 @[simp] lemma direct_sum_left_tmul_lof (i : ι₁) (x : M₁ i) (y : M₂') :
   direct_sum_left R M₁ M₂' (direct_sum.lof R _ _ i x ⊗ₜ[R] y)

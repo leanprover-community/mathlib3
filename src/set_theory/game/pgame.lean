@@ -21,7 +21,7 @@ types (thought of as indexing the possible moves for the players Left and Right)
 functions out of these types to `pgame` (thought of as describing the resulting game after making a
 move).
 
-Combinatorial games themselves, as a quotient of pregames, are constructed in `game.lean`.
+Combinatorial games themselves, as a quotient of pregames, are constructed in `basic.lean`.
 
 ## Conway induction
 
@@ -672,6 +672,140 @@ begin
   exact lt_or_equiv_or_gt_or_fuzzy x y
 end
 
+end pgame
+
+-- This can also used for golf `Set.equiv` lemmas, but I'm not sure where to put it.
+/-- An auxiliary definition for `pgame.identical` -/
+def forall_exists_rel {ι₁ ι₂ α₁ α₂ : Type*} (r : α₁ → α₂ → Prop) (s : ι₁ → α₁) (t : ι₂ → α₂) :=
+  (∀ i, ∃ j, r (s i) (t j)) ∧ (∀ j, ∃ i, r (s i) (t j))
+
+namespace forall_exists_rel
+variables {ι₁ ι₂ ι₃ α₁ α₂ α₃ : Type*}
+
+lemma refl {r : α₁ → α₁ → Prop} (s : ι₁ → α₁) (hr : ∀ i, r (s i) (s i)) :
+  forall_exists_rel r s s :=
+⟨λ i, ⟨i, hr _⟩, λ i, ⟨i, hr _⟩⟩
+
+lemma euc {r₁₂ : α₁ → α₂ → Prop} {r₃₂ : α₃ → α₂ → Prop} {r₁₃ : α₁ → α₃ → Prop}
+  {s : ι₁ → α₁} {t : ι₂ → α₂} {u : ι₃ → α₃}
+  (hr : ∀ i j k, r₁₂ (s i) (t j) → r₃₂ (u k) (t j) → r₁₃ (s i) (u k)) :
+  forall_exists_rel r₁₂ s t → forall_exists_rel r₃₂ u t → forall_exists_rel r₁₃ s u :=
+λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.1 i , ⟨k, hk⟩ := h₂.2 j in ⟨k, hr _ _ _ hj hk⟩,
+  λ k, let ⟨j, hj⟩ := h₂.1 k, ⟨i, hi⟩ := h₁.2 j in ⟨i, hr _ _ _ hi hj⟩⟩
+
+lemma symm {r₁₂ : α₁ → α₂ → Prop} {r₂₁ : α₂ → α₁ → Prop}
+  {s : ι₁ → α₁} {t : ι₂ → α₂} (hr : ∀ i j, r₁₂ (s i) (t j) → r₂₁ (t j) (s i)) :
+  forall_exists_rel r₁₂ s t → forall_exists_rel r₂₁ t s :=
+λ h, ⟨λ i, (h.2 i).imp (λ _, hr _ _), λ i, (h.1 i).imp (λ _, hr _ _)⟩
+
+lemma trans {r₁₂ : α₁ → α₂ → Prop} {r₂₃ : α₂ → α₃ → Prop} {r₁₃ : α₁ → α₃ → Prop}
+  {s : ι₁ → α₁} {t : ι₂ → α₂} {u : ι₃ → α₃}
+  (hr : ∀ i j k, r₁₂ (s i) (t j) → r₂₃ (t j) (u k) → r₁₃ (s i) (u k)) :
+  forall_exists_rel r₁₂ s t → forall_exists_rel r₂₃ t u → forall_exists_rel r₁₃ s u :=
+λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.1 i, ⟨k, hk⟩ := h₂.1 j in ⟨k, hr _ _ _ hj hk⟩,
+  λ k, let ⟨j, hj⟩ := h₂.2 k, ⟨i, hi⟩ := h₁.2 j in ⟨i, hr _ _ _ hi hj⟩⟩
+
+end forall_exists_rel
+
+namespace pgame
+open_locale pgame
+
+def identical : Π (x y : pgame), Prop
+| (mk _ _ xL xR) (mk _ _ yL yR) :=
+  ((∀ i, ∃ j, identical (xL i) (yL j)) ∧ (∀ j, ∃ i, identical (xL i) (yL j))) ∧
+    ((∀ i, ∃ j, identical (xR i) (yR j)) ∧ (∀ j, ∃ i, identical (xR i) (yR j)))
+
+localized "infix (name := pgame.identical) ` ≡ `:50 := pgame.identical" in pgame
+
+def memₗ (x y : pgame.{u}) : Prop := ∃ b, x ≡ (y.move_left b)
+def memᵣ (x y : pgame.{u}) : Prop := ∃ b, x ≡ (y.move_right b)
+
+localized "infix (name := pgame.memₗ) ` ∈ₗ `:50 := pgame.memₗ" in pgame
+localized "infix (name := pgame.memᵣ) ` ∈ᵣ `:50 := pgame.memᵣ" in pgame
+
+theorem identical_iff' : Π {x y : pgame}, identical x y ↔
+  forall_exists_rel (≡) x.move_left y.move_left ∧
+    forall_exists_rel (≡) x.move_right y.move_right
+| (mk _ _ _ _) (mk _ _ _ _) := iff.rfl
+
+@[refl] protected theorem identical.refl (x) : x ≡ x :=
+pgame.rec_on x $ λ l r L R IHL IHR, ⟨forall_exists_rel.refl _ IHL, forall_exists_rel.refl _ IHR⟩
+
+protected theorem identical.rfl : ∀ {x}, x ≡ x := identical.refl
+
+@[trans] protected theorem identical.euc {x} : ∀ {y z}, x ≡ y → z ≡ y → x ≡ z :=
+pgame.rec_on x $ λ xl xr xL xR IHL IHR y, pgame.cases_on y $ λ yl yr yL yR ⟨zl, zr, zL, zR⟩
+  ⟨hL₁, hR₁⟩ ⟨hL₂, hR₂⟩, ⟨forall_exists_rel.euc (λ _ _ _, IHL _) hL₁ hL₂,
+  forall_exists_rel.euc (λ _ _ _, IHR _) hR₁ hR₂⟩
+
+@[symm] protected theorem identical.symm {x y} : x ≡ y → y ≡ x :=
+(identical.refl y).euc
+
+protected theorem identical.comm {x y} : x ≡ y ↔ y ≡ x :=
+⟨identical.symm, identical.symm⟩
+
+@[trans] protected theorem identical.trans {x y z} (h₁ : x ≡ y) (h₂ : y ≡ z) : x ≡ z :=
+h₁.euc h₂.symm
+
+theorem identical_of_is_empty (x y : pgame)
+  [is_empty x.left_moves] [is_empty x.right_moves]
+  [is_empty y.left_moves] [is_empty y.right_moves] : identical x y :=
+identical_iff'.2 $ by simp [forall_exists_rel]
+
+def identical_setoid : setoid pgame :=
+⟨identical, identical.refl, λ x y, identical.symm, λ x y z, identical.trans⟩
+
+instance : is_refl pgame (≡) := ⟨identical.refl⟩
+instance : is_symm pgame (≡) := ⟨λ _ _, identical.symm⟩
+instance : is_trans pgame (≡) := ⟨λ _ _ _, identical.trans⟩
+instance : is_equiv pgame (≡) := { }
+
+lemma identical.le {x} : ∀ {y}, x ≡ y → x ≤ y :=
+pgame.rec_on x $ λ xl xr xL xR IHL IHR ⟨yl, yr, yL, yR⟩ ⟨hL, hR⟩, le_of_forall_lf
+  (λ i, let ⟨j, hj⟩ := hL.1 i in lf_of_le_move_left (IHL _ hj))
+  (λ i, let ⟨j, hj⟩ := hR.2 i in lf_of_move_right_le (IHR _ hj))
+
+lemma identical.trans_eq {x y z} (h₁ : x ≡ y) (h₂ : y = z) : x ≡ z := h₁.trans (of_eq h₂)
+
+lemma identical.equiv {x y} (h : x ≡ y) : x ≈ y := ⟨h.le, h.symm.le⟩
+
+theorem identical_iff : Π {x y : pgame}, x ≡ y ↔
+  ((∀ i, (x.move_left i) ∈ₗ y) ∧ (∀ j, (y.move_left j) ∈ₗ x)) ∧
+    ((∀ i, (x.move_right i) ∈ᵣ y) ∧ (∀ j, (y.move_right j) ∈ᵣ x))
+| (mk _ _ _ _) (mk _ _ _ _) := begin
+  convert identical_iff';
+  exact pi_congr (λ i, propext (exists_congr $ λ j, by rw [identical.comm])),
+end
+
+theorem memₗ.congr_right : Π {x y : pgame.{u}},
+  x ≡ y → (∀ {w : pgame.{u}}, w ∈ₗ x ↔ w ∈ₗ y)
+| (mk _ _ xL xR) (mk _ _ yL yR) ⟨⟨h₁, h₂⟩, _⟩ w :=
+  ⟨λ ⟨i, hi⟩, (h₁ i).imp (λ _, hi.trans), λ ⟨j, hj⟩, (h₂ j).imp (λ i hi, hj.trans hi.symm)⟩
+
+theorem memᵣ.congr_right : Π {x y : pgame.{u}},
+  x ≡ y → (∀ {w : pgame.{u}}, w ∈ᵣ x ↔ w ∈ᵣ y)
+| (mk _ _ xL xR) (mk _ _ yL yR) ⟨_, ⟨h₁, h₂⟩⟩ w :=
+  ⟨λ ⟨i, hi⟩, (h₁ i).imp (λ _, hi.trans), λ ⟨j, hj⟩, (h₂ j).imp (λ i hi, hj.trans hi.symm)⟩
+
+theorem memₗ.congr_left : Π {x y : pgame.{u}},
+  x ≡ y → (∀ {w : pgame.{u}}, x ∈ₗ w ↔ y ∈ₗ w)
+| x y h (mk _ _ L R) := ⟨λ ⟨i, hi⟩, ⟨i, h.symm.trans hi⟩, λ ⟨i, hi⟩, ⟨i, h.trans hi⟩⟩
+
+theorem memᵣ.congr_left : Π {x y : pgame.{u}},
+  x ≡ y → (∀ {w : pgame.{u}}, x ∈ᵣ w ↔ y ∈ᵣ w)
+| x y h (mk _ _ L R) := ⟨λ ⟨i, hi⟩, ⟨i, h.symm.trans hi⟩, λ ⟨i, hi⟩, ⟨i, h.trans hi⟩⟩
+
+lemma identical.ext : ∀ {x y} (hl : ∀ z, z ∈ₗ x ↔ z ∈ₗ y) (hr : ∀ z, z ∈ᵣ x ↔ z ∈ᵣ y), x ≡ y
+| (mk _ _ xL xR) (mk _ _ yL yR) hl hr := identical_iff.mpr
+  ⟨⟨λ i, (hl _).mp ⟨i, refl _⟩, λ j, (hl _).mpr ⟨j, refl _⟩⟩,
+    ⟨λ i, (hr _).mp ⟨i, refl _⟩, λ j, (hr _).mpr ⟨j, refl _⟩⟩⟩
+
+lemma identical.congr_right {x y z} (h : x ≡ y) : z ≡ x ↔ z ≡ y :=
+⟨λ hz, hz.trans h, λ hz, hz.trans h.symm⟩
+
+lemma identical.congr_left {x y z} (h : x ≡ y) : x ≡ z ↔ y ≡ z :=
+⟨λ hz, h.symm.trans hz, λ hz, h.trans hz⟩
+
 /-! ### Relabellings -/
 
 /--
@@ -902,6 +1036,30 @@ lemma move_right_neg_symm' {x : pgame} (i) :
   x.move_right i = -(-x).move_left (to_left_moves_neg i) :=
 by simp
 
+lemma memₗ_neg_iff : Π {x y : pgame},
+  x ∈ₗ -y ↔ (∃ i, x ≡ -(y.move_right i))
+| (mk xl xr xL xR) (mk yl yr yL yR) := iff.rfl
+
+lemma memᵣ_neg_iff : Π {x y : pgame},
+  x ∈ᵣ -y ↔ (∃ i, x ≡ -(y.move_left i))
+| (mk xl xr xL xR) (mk yl yr yL yR) := iff.rfl
+
+lemma identical.neg : Π {x₁ x₂ : pgame.{u}} (hx : x₁ ≡ x₂), -x₁ ≡ -x₂
+| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) ⟨⟨hL₁, hL₂⟩, ⟨hR₁, hR₂⟩⟩ :=
+  ⟨⟨λ i, (hR₁ i).imp (λ j, identical.neg), λ j, (hR₂ j).imp (λ i, identical.neg)⟩,
+    ⟨λ i, (hL₁ i).imp (λ j, identical.neg), λ j, (hL₂ j).imp (λ i, identical.neg)⟩⟩
+using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma memₗ_neg_iff' : Π {x y : pgame},
+  x ∈ₗ -y ↔ (∃ z ∈ᵣ y, x ≡ -z)
+| (mk xl xr xL xR) (mk yl yr yL yR) := memₗ_neg_iff.trans
+  ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.neg⟩⟩
+
+lemma memᵣ_neg_iff' : Π {x y : pgame},
+  x ∈ᵣ -y ↔ (∃ z ∈ₗ y, x ≡ -z)
+| (mk xl xr xL xR) (mk yl yr yL yR) := memᵣ_neg_iff.trans
+  ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.neg⟩⟩
+
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x ≡r y → -x ≡r -y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
@@ -1129,6 +1287,132 @@ instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
   rw [pgame.nat_succ, right_moves_add],
   apply_instance
 end
+
+lemma memₗ_add_iff : Π {x y₁ y₂ : pgame},
+  x ∈ₗ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_left i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_left i))
+| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := begin
+  constructor,
+  { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨_, hi⟩, or.inr ⟨_, hi⟩], },
+  { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },
+end
+
+lemma memᵣ_add_iff : Π {x y₁ y₂ : pgame},
+  x ∈ᵣ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_right i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_right i))
+| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := begin
+  constructor,
+  { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨_, hi⟩, or.inr ⟨_, hi⟩], },
+  { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },
+end
+
+lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
+| (mk xl xr xL xR) (mk yl yr yL yR) := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_add_iff], rw [or.comm], dsimp,
+    simp_rw [(add_comm (xL _) _).congr_right, (add_comm _ (yL _)).congr_right], },
+  { simp_rw [memᵣ_add_iff], rw [or.comm], dsimp,
+    simp_rw [(add_comm (xR _) _).congr_right, (add_comm _ (yR _)).congr_right], },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma exists_left_moves_add {x y : pgame.{u}} {p : (x + y).left_moves → Prop} :
+  (∃ i, p i) ↔
+    (∃ i, p (to_left_moves_add (sum.inl i))) ∨ (∃ i, p (to_left_moves_add (sum.inr i))) :=
+begin
+  cases x with xl xr xL xR; cases y with yl yr yL yR,
+  constructor,
+  { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨i, hi⟩, or.inr ⟨i, hi⟩], },
+  { rintros (⟨i, hi⟩ | ⟨i, hi⟩), exacts [⟨_, hi⟩, ⟨_, hi⟩], }
+end
+
+lemma exists_right_moves_add {x y : pgame.{u}} {p : (x + y).right_moves → Prop} :
+  (∃ i, p i) ↔
+    (∃ i, p (to_right_moves_add (sum.inl i))) ∨ (∃ i, p (to_right_moves_add (sum.inr i))) :=
+begin
+  cases x with xl xr xL xR; cases y with yl yr yL yR,
+  constructor,
+  { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨i, hi⟩, or.inr ⟨i, hi⟩], },
+  { rintros (⟨i, hi⟩ | ⟨i, hi⟩), exacts [⟨_, hi⟩, ⟨_, hi⟩], }
+end
+
+lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_add_iff, exists_left_moves_add, or.assoc,
+      add_move_left_inl, add_move_left_inr, (add_assoc _ _ _).congr_right], },
+  { simp_rw [memᵣ_add_iff, exists_right_moves_add, or.assoc,
+      add_move_right_inl, add_move_right_inr, (add_assoc _ _ _).congr_right], },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma add_zero : Π (x : pgame), x + 0 ≡ x
+| (mk xl xr xL xR) := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_add_iff, is_empty.exists_iff, or_false, (add_zero _).congr_right], refl },
+  { simp_rw [memᵣ_add_iff, is_empty.exists_iff, or_false, (add_zero _).congr_right], refl },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma zero_add (x : pgame) : 0 + x ≡ x :=
+(add_comm _ _).trans (add_zero _)
+
+lemma neg_add_rev : Π (x y : pgame.{u}), -(x + y) ≡ -y + -x
+| (mk xl xr xL xR) (mk yl yr yL yR) := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_add_iff, memₗ_neg_iff, exists_right_moves_add,
+      add_move_right_inl, add_move_right_inr, (neg_add_rev _ _).congr_right], rw [or.comm], refl, },
+  { simp_rw [memᵣ_add_iff, memᵣ_neg_iff, exists_left_moves_add,
+      add_move_left_inl, add_move_left_inr, (neg_add_rev _ _).congr_right], rw [or.comm], refl, },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma neg_add (x y : pgame.{u}) : -(x + y) ≡ -x + -y :=
+(neg_add_rev _ _).trans (add_comm _ _)
+
+lemma identical_zero_iff : Π (x : pgame.{u}),
+  x ≡ 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves
+| (mk xl xr xL xR) := begin
+  constructor,
+  { rintros ⟨h₁, h₂⟩,
+    simp_rw [is_empty.forall_iff, and_true, is_empty.exists_iff] at h₁ h₂,
+    exact ⟨⟨h₁⟩, ⟨h₂⟩⟩, },
+  { rintros ⟨h₁, h₂⟩, exactI identical_of_is_empty _ _, },
+end
+
+lemma add_eq_zero_iff : Π (x y : pgame.{u}), x + y ≡ 0 ↔ x ≡ 0 ∧ y ≡ 0
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
+by { simp_rw [identical_zero_iff, left_moves_add, right_moves_add, is_empty_sum], tauto, }
+
+lemma identical.add_right : Π {x₁ x₂ y}, x₁ ≡ x₂ → x₁ + y ≡ x₂ + y
+| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := begin
+  rintros ⟨⟨hL₁, hL₂⟩, ⟨hR₁, hR₂⟩⟩,
+  have h : (mk x₁l x₁r x₁L x₁R) ≡ (mk x₂l x₂r x₂L x₂R) := ⟨⟨hL₁, hL₂⟩, ⟨hR₁, hR₂⟩⟩,
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_add_iff, h.add_right.congr_right],
+    exact or_congr_left' ⟨λ ⟨i, hi⟩, (hL₁ i).imp (λ j hj, hi.trans hj.add_right),
+        λ ⟨i, hi⟩, (hL₂ i).imp (λ j hj, hi.trans hj.add_right.symm)⟩ },
+  { simp_rw [memᵣ_add_iff, h.add_right.congr_right],
+    exact or_congr_left' ⟨λ ⟨i, hi⟩, (hR₁ i).imp (λ j hj, hi.trans hj.add_right),
+        λ ⟨i, hi⟩, (hR₂ i).imp (λ j hj, hi.trans hj.add_right.symm)⟩ },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma identical.add_left {x y₁ y₂} (hy : y₁ ≡ y₂) : x + y₁ ≡ x + y₂ :=
+(add_comm _ _).trans (hy.add_right.trans (add_comm _ _))
+
+lemma identical.add {x₁ x₂ y₁ y₂ : pgame.{u}} (hx : x₁ ≡ x₂) (hy : y₁ ≡ y₂) : x₁ + y₁ ≡ x₂ + y₂ :=
+hx.add_right.trans hy.add_left
+
+lemma memₗ_add_iff' : Π {x y₁ y₂ : pgame},
+  x ∈ₗ y₁ + y₂ ↔ (∃ z ∈ₗ y₁, x ≡ z + y₂) ∨ (∃ z ∈ₗ y₂, x ≡ y₁ + z)
+| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := memₗ_add_iff.trans $ or_congr
+  ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.add_right⟩⟩
+  ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.add_left⟩⟩
+
+lemma memᵣ_add_iff' : Π {x y₁ y₂ : pgame},
+  x ∈ᵣ y₁ + y₂ ↔ (∃ z ∈ᵣ y₁, x ≡ z + y₂) ∨ (∃ z ∈ᵣ y₂, x ≡ y₁ + z)
+| (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) (mk yl yr yL yR) := memᵣ_add_iff.trans $ or_congr
+  ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.add_right⟩⟩
+  ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.add_left⟩⟩
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w + y` has the same moves as `x + z`. -/

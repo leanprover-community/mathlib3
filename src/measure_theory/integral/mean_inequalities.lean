@@ -116,8 +116,7 @@ begin
   begin
     rw lintegral_mul_const' (npf * nqg) _
       (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero, ennreal.mul_eq_top]),
-    nth_rewrite 1 ←one_mul (npf * nqg),
-    refine mul_le_mul _ (le_refl (npf * nqg)),
+    refine mul_le_of_le_one_left' _,
     have hf1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.pos hf_nonzero hf_nontop,
     have hg1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.symm.pos hg_nonzero hg_nontop,
     exact lintegral_mul_le_one_of_lintegral_rpow_eq_one hpq (hf.mul_const _) hf1 hg1,
@@ -195,20 +194,20 @@ begin
     { rw [←ennreal.zero_rpow_of_pos hp0_lt],
       exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
     have h_rw : (1 / 2) ^ p * (2:ℝ≥0∞) ^ (p - 1) = 1 / 2,
-    { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
+    { rw [sub_eq_add_neg, ennreal.rpow_add _ _ two_ne_zero ennreal.coe_ne_top,
         ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, one_div,
-        ennreal.inv_mul_cancel ennreal.two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
+        ennreal.inv_mul_cancel two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
         one_mul, ennreal.rpow_neg_one], },
     rw ←ennreal.mul_le_mul_left (ne_of_lt h_zero_lt_half_rpow).symm _,
     { rw [mul_add, ← mul_assoc, ← mul_assoc, h_rw, ←ennreal.mul_rpow_of_nonneg _ _ hp0, mul_add],
       refine ennreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : ℝ≥0∞) (1/2 : ℝ≥0∞)
         (f a) (g a) _ hp1,
       rw [ennreal.div_add_div_same, one_add_one_eq_two,
-        ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
+        ennreal.div_self two_ne_zero ennreal.coe_ne_top], },
     { rw ← lt_top_iff_ne_top,
       refine ennreal.rpow_lt_top_of_nonneg hp0 _,
       rw [one_div, ennreal.inv_ne_top],
-      exact ennreal.two_ne_zero, },
+      exact two_ne_zero, },
   end
   ... < ⊤ :
   begin

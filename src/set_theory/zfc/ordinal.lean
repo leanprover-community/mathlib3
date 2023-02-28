@@ -86,11 +86,13 @@ alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 /-- A set `x` is a von Neumann ordinal when it's a transitive set, that's transitive under `∈`.
 
 There are many equivalences to this definition, which we aim to state and prove. These include:
+
+- A transitive set of transitive sets (`is_ordinal_iff_transitive_mem_transitive`).
 - A transitive set that's trichotomous under `∈`.
 - A transitive set that's (strictly) totally ordered under `∈`
   (`is_ordinal_iff_is_strict_total_order`).
 - A transitive set that's well-ordered under `∈` (`is_ordinal_iff_is_well_order`).
-- A hereditarily transitive set. -/
+-/
 def is_ordinal (x : Set) : Prop := x.is_transitive ∧ ∀ y z w : Set, y ∈ z → z ∈ w → w ∈ x → y ∈ w
 
 namespace is_ordinal
@@ -137,17 +139,29 @@ begin
     (hx.rel_embedding hy).is_trans⟩
 end
 
-theorem _root_.Set.is_ordinal_of_subset_ordinal (hx : x.is_transitive) (hy : y.is_ordinal)
-  (hxy : x ⊆ y) : x.is_ordinal :=
+end is_ordinal
+
+theorem is_ordinal_of_transitive_of_mem_transitive (hx : x.is_transitive)
+  (H : ∀ y : Set, y ∈ x → y.is_transitive) : x.is_ordinal :=
+⟨hx, λ y z w hyz hzw hwx, (H w hwx).subset_of_mem hzw hyz⟩
+
+theorem is_ordinal_iff_transitive_mem_transitive :
+  x.is_ordinal ↔ x.is_transitive ∧ ∀ y : Set, y ∈ x → y.is_transitive :=
+⟨λ hx, ⟨hx.is_transitive, λ y hy, (hx.mem hy).is_transitive⟩,
+  λ ⟨hx, H⟩, is_ordinal_of_transitive_of_mem_transitive hx H⟩
+
+theorem is_ordinal_of_subset_ordinal (hx : x.is_transitive) (hy : y.is_ordinal) (hxy : x ⊆ y) :
+  x.is_ordinal :=
 ⟨hx, λ a b c hab hbc hcx, hy.mem_trans' hab hbc (hxy hcx)⟩
 
-theorem _root_.Set.is_transitive.subset_of_eq_or_mem (h : y.is_transitive) :
-  x = y ∨ x ∈ y → x ⊆ y :=
+theorem is_transitive.subset_of_eq_or_mem (h : y.is_transitive) : x = y ∨ x ∈ y → x ⊆ y :=
 begin
   rintro (rfl | hx),
   { exact subset_rfl },
   { exact h.subset_of_mem hx }
 end
+
+namespace is_ordinal
 
 theorem subset_of_eq_or_mem (h : y.is_ordinal) : x = y ∨ x ∈ y → x ⊆ y :=
 h.is_transitive.subset_of_eq_or_mem

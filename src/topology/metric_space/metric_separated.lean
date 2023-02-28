@@ -33,7 +33,7 @@ let ⟨r, r0, hr⟩ := h in ⟨r, r0, λ y hy x hx, edist_comm x y ▸ hr x hx y
 lemma comm : is_metric_separated s t ↔ is_metric_separated t s := ⟨symm, symm⟩
 
 @[simp] lemma empty_left (s : set X) : is_metric_separated ∅ s :=
-⟨1, ennreal.zero_lt_one.ne', λ x, false.elim⟩
+⟨1, one_ne_zero, λ x, false.elim⟩
 
 @[simp] lemma empty_right (s : set X) : is_metric_separated s ∅ :=
 (empty_left s).symm

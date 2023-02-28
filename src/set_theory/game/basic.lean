@@ -263,28 +263,42 @@ begin
   { apply hr }
 end
 
+lemma exists_left_moves_mul {x y : pgame.{u}} {p : (x * y).left_moves → Prop} :
+  (∃ i, p i) ↔
+    (∃ i j, p (to_left_moves_mul (sum.inl (i, j)))) ∨
+    (∃ i j, p (to_left_moves_mul (sum.inr (i, j)))) :=
+begin
+  cases x with xl xr xL xR; cases y with yl yr yL yR,
+  constructor,
+  { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨i, j, hi⟩, or.inr ⟨i, j, hi⟩], },
+  { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨_, h⟩, ⟨_, h⟩], },
+end
+
+lemma exists_right_moves_mul {x y : pgame.{u}} {p : (x * y).right_moves → Prop} :
+  (∃ i, p i) ↔
+    (∃ i j, p (to_right_moves_mul (sum.inl (i, j)))) ∨
+    (∃ i j, p (to_right_moves_mul (sum.inr (i, j)))) :=
+begin
+  cases x with xl xr xL xR; cases y with yl yr yL yR,
+  constructor,
+  { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨i, j, hi⟩, or.inr ⟨i, j, hi⟩], },
+  { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨_, h⟩, ⟨_, h⟩], },
+end
+
 lemma memₗ_mul_iff : Π {x y₁ y₂ : pgame},
   x ∈ₗ y₁ * y₂ ↔
     (∃ i j, x ≡ y₁.move_left i * y₂ + y₁ * y₂.move_left j - y₁.move_left i * y₂.move_left j) ∨
     (∃ i j, x ≡ y₁.move_right i * y₂ + y₁ * y₂.move_right j - y₁.move_right i * y₂.move_right j)
-| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
-  constructor,
-  { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨_, _, hi⟩, or.inr ⟨_, _, hi⟩], },
-  { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨sum.inl (i, j), h⟩, ⟨sum.inr (i, j), h⟩], },
-end
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_left_moves_mul
 
 lemma memᵣ_mul_iff : Π {x y₁ y₂ : pgame},
   x ∈ᵣ y₁ * y₂ ↔
     (∃ i j, x ≡ y₁.move_left i * y₂ + y₁ * y₂.move_right j - y₁.move_left i * y₂.move_right j) ∨
     (∃ i j, x ≡ y₁.move_right i * y₂ + y₁ * y₂.move_left j - y₁.move_right i * y₂.move_left j)
-| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
-  constructor,
-  { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨_, _, hi⟩, or.inr ⟨_, _, hi⟩], },
-  { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨sum.inl (i, j), h⟩, ⟨sum.inr (i, j), h⟩], },
-end
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_right_moves_mul
 
 /-- `x * y` and `y * x` have the same moves. -/
-protected def mul_comm : Π (x y : pgame.{u}), x * y ≡ y * x
+protected lemma mul_comm : Π (x y : pgame.{u}), x * y ≡ y * x
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
   refine identical.ext (λ z, _) (λ z, _),
   { simp_rw [memₗ_mul_iff], dsimp, rw [@exists_comm xl, @exists_comm xr],
@@ -329,6 +343,9 @@ instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_
 by { cases x, apply sum.is_empty }
 
 /-- `x * 0` has exactly the same moves as `0`. -/
+protected def mul_zero (x : pgame) : x * 0 ≡ 0 := identical_zero _
+
+/-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling (x : pgame) : x * 0 ≡r 0 := relabelling.is_empty _
 
 /-- `x * 0` is equivalent to `0`. -/
@@ -336,6 +353,9 @@ theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equ
 
 @[simp] theorem quot_mul_zero (x : pgame) : ⟦x * 0⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
+
+/-- `0 * x` has exactly the same moves as `0`. -/
+protected def zero_mul (x : pgame) : 0 * x ≡ 0 := identical_zero _
 
 /-- `0 * x` has exactly the same moves as `0`. -/
 def zero_mul_relabelling (x : pgame) : 0 * x ≡r 0 := relabelling.is_empty _
@@ -357,6 +377,39 @@ def neg_mul_relabelling : Π (x y : pgame.{u}), -x * y ≡r -(x * y)
   exact (neg_mul_relabelling _ _).symm
 end
 using_well_founded { dec_tac := pgame_wf_tac }
+
+/-- `x * -y` and `-(x * y)` have the same moves. -/
+lemma mul_neg : Π (x y : pgame.{u}), x * -y = -(x * y)
+| (mk xl xr xL xR) (mk yl yr yL yR) := begin
+  refine ext rfl rfl _ _,
+  { rintros (⟨i, j⟩ | ⟨i, j⟩) _ ⟨rfl⟩,
+    { refine (@mul_move_left_inl (mk xl xr xL xR) (-mk yl yr yL yR) i j).trans _,
+      dsimp [to_left_moves_neg],
+      rw [pgame.neg_sub', pgame.neg_add],
+      congr',
+      exacts [mul_neg _ (mk _ _ _ _), mul_neg _ _, mul_neg _ _], },
+    { refine (@mul_move_left_inr (mk xl xr xL xR) (-mk yl yr yL yR) i j).trans _,
+      dsimp [to_left_moves_neg],
+      rw [pgame.neg_sub', pgame.neg_add],
+      congr',
+      exacts [mul_neg _ (mk _ _ _ _), mul_neg _ _, mul_neg _ _], }, },
+  { rintros (⟨i, j⟩ | ⟨i, j⟩) _ ⟨rfl⟩,
+    { refine (@mul_move_right_inl (mk xl xr xL xR) (-mk yl yr yL yR) i j).trans _,
+      dsimp [to_left_moves_neg],
+      rw [pgame.neg_sub', pgame.neg_add],
+      congr',
+      exacts [mul_neg _ (mk _ _ _ _), mul_neg _ _, mul_neg _ _], },
+    { refine (@mul_move_right_inr (mk xl xr xL xR) (-mk yl yr yL yR) i j).trans _,
+      dsimp [to_left_moves_neg],
+      rw [pgame.neg_sub', pgame.neg_add],
+      congr',
+      exacts [mul_neg _ (mk _ _ _ _), mul_neg _ _, mul_neg _ _], }, },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+/-- `-x * y` and `-(x * y)` have the same moves. -/
+def neg_mul (x y : pgame.{u}) : -x * y ≡ -(x * y) :=
+((pgame.mul_comm _ _).trans (of_eq (mul_neg _ _))).trans (pgame.mul_comm _ _).neg
 
 @[simp] theorem quot_neg_mul (x y : pgame) : ⟦-x * y⟧ = -⟦x * y⟧ :=
 quot.sound (neg_mul_relabelling x y).equiv
@@ -438,6 +491,20 @@ by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_dist
 
 /-- `x * 1` has the same moves as `x`. -/
 def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
+| ⟨xl, xr, xL, xR⟩ := begin
+  unfold has_one.one,
+  refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),
+    (equiv.empty_sum _ _).trans (equiv.prod_punit _), _, _⟩;
+  try { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) }; try { intro i };
+  dsimp;
+  apply (relabelling.sub_congr (relabelling.refl _) (mul_zero_relabelling _)).trans;
+  rw sub_zero;
+  exact (add_zero_relabelling _).trans (((mul_one_relabelling _).add_congr
+    (mul_zero_relabelling _)).trans $ add_zero_relabelling _)
+end
+
+/-- `x * 1` has the same moves as `x`. -/
+def mul_one : Π (x : pgame.{u}), x * 1 ≡ x
 | ⟨xl, xr, xL, xR⟩ := begin
   unfold has_one.one,
   refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),

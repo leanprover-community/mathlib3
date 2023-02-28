@@ -129,6 +129,18 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
+lemma ext' {x y : pgame.{u}} (hl : x.left_moves = y.left_moves) (hr : x.right_moves = y.right_moves)
+  (hL : x.move_left == y.move_left) (hR : x.move_right == y.move_right) :
+  x = y :=
+by { cases x, cases y, cases hl, cases hr, cases hL, cases hR, refl, }
+
+lemma ext {x y : pgame.{u}} (hl : x.left_moves = y.left_moves) (hr : x.right_moves = y.right_moves)
+  (hL : ∀ i j, i == j → x.move_left i = y.move_left j)
+  (hR : ∀ i j, i == j → x.move_right i = y.move_right j) :
+  x = y :=
+ext' hl hr (function.hfunext hl (λ i j h, heq_of_eq (hL i j h)))
+  (function.hfunext hr (λ i j h, heq_of_eq (hR i j h)))
+
 /--
 Construct a pre-game from list of pre-games describing the available moves for Left and Right.
 -/
@@ -1052,6 +1064,7 @@ lemma memᵣ_neg_iff : Π {x y : pgame},
   x ∈ᵣ -y ↔ (∃ i, x ≡ -(y.move_left i))
 | (mk xl xr xL xR) (mk yl yr yL yR) := iff.rfl
 
+/-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 lemma identical.neg : Π {x₁ x₂ : pgame.{u}} (hx : x₁ ≡ x₂), -x₁ ≡ -x₂
 | (mk x₁l x₁r x₁L x₁R) (mk x₂l x₂r x₂L x₂R) ⟨⟨hL₁, hL₂⟩, ⟨hR₁, hR₂⟩⟩ :=
   ⟨⟨λ i, (hR₁ i).imp (λ j, identical.neg), λ j, (hR₂ j).imp (λ i, identical.neg)⟩,
@@ -1324,6 +1337,7 @@ lemma memᵣ_add_iff : Π {x y₁ y₂ : pgame},
   x ∈ᵣ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_right i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_right i))
 | (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_right_moves_add
 
+/-- `x + y` has exactly the same moves as `y + x`. -/
 protected lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
 | (mk xl xr xL xR) (mk yl yr yL yR) := begin
   refine identical.ext (λ z, _) (λ z, _),
@@ -1334,6 +1348,7 @@ protected lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- `(x + y) + z` has exactly the same moves as `x + (y + z)`. -/
 protected lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) := begin
   refine identical.ext (λ z, _) (λ z, _),
@@ -1344,6 +1359,7 @@ protected lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- `x + 0` has exactly the same moves as `x`. -/
 protected lemma add_zero : Π (x : pgame), x + 0 ≡ x
 | (mk xl xr xL xR) := begin
   refine identical.ext (λ z, _) (λ z, _),
@@ -1352,21 +1368,26 @@ protected lemma add_zero : Π (x : pgame), x + 0 ≡ x
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- `0 + x` has exactly the same moves as `x`. -/
 protected lemma zero_add (x : pgame) : 0 + x ≡ x :=
 (pgame.add_comm _ _).trans x.add_zero
 
-protected lemma neg_add_rev : Π (x y : pgame.{u}), -(x + y) ≡ -y + -x
+/-- `-(x + y)` has exactly the same moves as `-x + -y`. -/
+lemma neg_add : Π (x y : pgame.{u}), -(x + y) = -x + -y
 | (mk xl xr xL xR) (mk yl yr yL yR) := begin
-  refine identical.ext (λ z, _) (λ z, _),
-  { simp_rw [memₗ_add_iff, memₗ_neg_iff, exists_right_moves_add,
-      add_move_right_inl, add_move_right_inr, (neg_add_rev _ _).congr_right], rw [or.comm], refl, },
-  { simp_rw [memᵣ_add_iff, memᵣ_neg_iff, exists_left_moves_add,
-      add_move_left_inl, add_move_left_inr, (neg_add_rev _ _).congr_right], rw [or.comm], refl, },
+  refine ext rfl rfl _ _,
+  { rintros (i | i) _ ⟨rfl⟩,
+    { exact neg_add _ _, },
+    { simpa [to_left_moves_neg] using neg_add _ _, }, },
+  { rintros (i | i) _ ⟨rfl⟩,
+    { exact neg_add _ _, },
+    { simpa [to_right_moves_neg] using neg_add _ _, }, },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-protected lemma neg_add (x y : pgame.{u}) : -(x + y) ≡ -x + -y :=
-(x.neg_add_rev y).trans (pgame.add_comm _ _)
+/-- `-(x + y)` has exactly the same moves as `-y + -x`. -/
+protected lemma neg_add_rev (x y : pgame.{u}) : -(x + y) ≡ -y + -x :=
+identical.trans (of_eq (x.neg_add y)) (pgame.add_comm _ _)
 
 lemma identical_zero_iff : Π (x : pgame.{u}),
   x ≡ 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves
@@ -1379,7 +1400,7 @@ lemma identical_zero_iff : Π (x : pgame.{u}),
 end
 
 /-- Any game without left or right moves is identival to 0. -/
-def identical_zero (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡ 0 :=
+lemma identical_zero (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡ 0 :=
 x.identical_zero_iff.mpr ⟨by apply_instance, by apply_instance⟩
 
 lemma add_eq_zero_iff : Π (x y : pgame.{u}), x + y ≡ 0 ↔ x ≡ 0 ∧ y ≡ 0
@@ -1403,6 +1424,8 @@ using_well_founded { dec_tac := pgame_wf_tac }
 lemma identical.add_left {x y₁ y₂} (hy : y₁ ≡ y₂) : x + y₁ ≡ x + y₂ :=
 (x.add_comm y₁).trans (hy.add_right.trans (y₂.add_comm x))
 
+/-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
+then `w + y` has the same moves as `x + z`. -/
 lemma identical.add {x₁ x₂ y₁ y₂ : pgame.{u}} (hx : x₁ ≡ x₂) (hy : y₁ ≡ y₂) : x₁ + y₁ ≡ x₂ + y₂ :=
 hx.add_right.trans hy.add_left
 
@@ -1440,6 +1463,11 @@ instance : has_sub pgame := ⟨λ x y, x + -y⟩
 @[simp] theorem sub_zero (x : pgame) : x - 0 = x + 0 :=
 show x + -0 = x + 0, by rw neg_zero
 
+/-- Use the same name convention as global lemmas. -/
+lemma neg_sub' (x y : pgame.{u}) : -(x - y) = -x - -y := pgame.neg_add _ _
+
+/-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
+then `w - y` has the same moves as `x - z`. -/
 lemma identical.sub {x₁ x₂ y₁ y₂ : pgame.{u}} (hx : x₁ ≡ x₂) (hy : y₁ ≡ y₂) : x₁ - y₁ ≡ x₂ - y₂ :=
 hx.add hy.neg
 

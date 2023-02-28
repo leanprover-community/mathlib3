@@ -1296,32 +1296,6 @@ instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
   apply_instance
 end
 
-lemma memₗ_add_iff : Π {x y₁ y₂ : pgame},
-  x ∈ₗ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_left i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_left i))
-| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
-  constructor,
-  { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨_, hi⟩, or.inr ⟨_, hi⟩], },
-  { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },
-end
-
-lemma memᵣ_add_iff : Π {x y₁ y₂ : pgame},
-  x ∈ᵣ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_right i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_right i))
-| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := begin
-  constructor,
-  { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨_, hi⟩, or.inr ⟨_, hi⟩], },
-  { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },
-end
-
-protected lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
-| (mk xl xr xL xR) (mk yl yr yL yR) := begin
-  refine identical.ext (λ z, _) (λ z, _),
-  { simp_rw [memₗ_add_iff], dsimp, rw [or.comm],
-    simp_rw [(add_comm (xL _) _).congr_right, (add_comm _ (yL _)).congr_right], },
-  { simp_rw [memᵣ_add_iff], dsimp, rw [or.comm],
-    simp_rw [(add_comm (xR _) _).congr_right, (add_comm _ (yR _)).congr_right], },
-end
-using_well_founded { dec_tac := pgame_wf_tac }
-
 lemma exists_left_moves_add {x y : pgame.{u}} {p : (x + y).left_moves → Prop} :
   (∃ i, p i) ↔
     (∃ i, p (to_left_moves_add (sum.inl i))) ∨ (∃ i, p (to_left_moves_add (sum.inr i))) :=
@@ -1341,6 +1315,24 @@ begin
   { rintros ⟨(i | i), hi⟩, exacts [or.inl ⟨i, hi⟩, or.inr ⟨i, hi⟩], },
   { rintros (⟨i, hi⟩ | ⟨i, hi⟩), exacts [⟨_, hi⟩, ⟨_, hi⟩], }
 end
+
+lemma memₗ_add_iff : Π {x y₁ y₂ : pgame},
+  x ∈ₗ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_left i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_left i))
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_left_moves_add
+
+lemma memᵣ_add_iff : Π {x y₁ y₂ : pgame},
+  x ∈ᵣ y₁ + y₂ ↔ (∃ i, x ≡ (y₁.move_right i) + y₂) ∨ (∃ i, x ≡ y₁ + (y₂.move_right i))
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_right_moves_add
+
+protected lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
+| (mk xl xr xL xR) (mk yl yr yL yR) := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_add_iff], dsimp, rw [or.comm],
+    simp_rw [(add_comm (xL _) _).congr_right, (add_comm _ (yL _)).congr_right], },
+  { simp_rw [memᵣ_add_iff], dsimp, rw [or.comm],
+    simp_rw [(add_comm (xR _) _).congr_right, (add_comm _ (yR _)).congr_right], },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
 
 protected lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) := begin

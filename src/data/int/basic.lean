@@ -86,8 +86,8 @@ namespace int
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
-@[simp] theorem coe_add_one_sign (n : ℕ) : int.sign (n + 1) = 1 := rfl
-@[simp] theorem neg_succ_of_nat_sign (n : ℕ) : int.sign -[1+ n] = -1 := rfl
+@[simp] theorem sign_coe_add_one (n : ℕ) : int.sign (n + 1) = 1 := rfl
+@[simp] theorem sign_neg_succ_of_nat (n : ℕ) : int.sign -[1+ n] = -1 := rfl
 
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 

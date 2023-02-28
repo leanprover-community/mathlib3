@@ -1,12 +1,37 @@
+/-
+Copyright (c) 2023 Adam Topaz, Rémi Bottinelli. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Topaz, Rémi Bottinelli
+-/
 import combinatorics.quiver.basic
 import combinatorics.quiver.cast
 import logic.equiv.basic
 import tactic.nth_rewrite
+/-!
+# Iso
+
+Isomorphisms of quivers, defined as pairs of prefunctors that compose to the identities.
+
+## Main definitions
+
+* For quivers `U` and `V`, `iso U V` is the type of isomorphisms between `U` and `V`, with
+  associated `iso.refl`, `iso.symm`, and `iso.trans` definitions.
+* `iso.of_bijective` is the isomorphism defined by a prefunctor that is bijective on vertices and
+  arrows.
+
+## Notation
+
+* `U ≃q V` is notation for `iso U V`
+
+-/
 
 universes u v w z
 
 namespace quiver
 
+/--
+An isomorphism of quivers is given by a pair of prefunctors whose two composites are the identities.
+-/
 structure iso (U V : Type*) [quiver.{u+1} U] [quiver.{v+1} V] extends prefunctor U V :=
 (inv_prefunctor : V ⥤q U)
 (left_inv : to_prefunctor ⋙q inv_prefunctor = 𝟭q _)
@@ -29,11 +54,13 @@ by { cases φ, cases ψ, cases hto, cases hinv, refl, }
 /-- The identity prefunctor defines an isomorphism. -/
 @[simps] def iso.refl (U : Type*) [quiver.{u+1} U] : iso U U := ⟨𝟭q _, 𝟭q _, rfl, rfl⟩
 
-/-- Swapping `to_prefunctor` and `inv_prefunctor` inverses an iso. -/
+instance : inhabited (iso U U) := ⟨iso.refl U⟩
+
+/-- Swapping `to_prefunctor` and `inv_prefunctor` inverts an isomorphism. -/
 @[simps] def iso.symm (φ : iso U V) : iso V U :=
 ⟨φ.inv_prefunctor, φ.to_prefunctor, φ.right_inv, φ.left_inv⟩
 
-/-- Composing the components of two isos. -/
+/-- Composing the components of two isomorphisms. -/
 @[simps] def iso.trans (φ : iso U V) (ψ : iso V W) : iso U W :=
 { to_prefunctor := φ.to_prefunctor ⋙q ψ.to_prefunctor,
   inv_prefunctor := ψ.inv_prefunctor ⋙q φ.inv_prefunctor,
@@ -59,6 +86,12 @@ lemma iso.inv_obj_obj_eq (φ : iso U V) (X : U) : φ.inv_prefunctor.obj (φ.to_p
 lemma iso.obj_inv_obj_eq (φ : iso U V) (X : V) : φ.to_prefunctor.obj (φ.inv_prefunctor.obj X) = X :=
 φ.to_equiv.right_inv X
 
+lemma iso.to_obj_injective (φ : iso U V) : φ.to_prefunctor.obj.injective :=
+φ.to_equiv.injective
+
+lemma iso.inv_obj_injective (φ : iso U V) : φ.inv_prefunctor.obj.injective :=
+φ.symm.to_equiv.injective
+
 /--
 The equivalence on arrows `X ⟶ Y ≃ (φ.obj X ⟶ φ.obj Y)` induced by the isomorphism `φ`,
 The forward map is `φ.to_prefunctor.map`, but the backward map is the composite of
@@ -83,6 +116,9 @@ The forward map is `φ.to_prefunctor.map`, but the backward map is the composite
       apply hom.cast_irrelevant,
     end }
 
+/--
+The equivalence on arrows `X ⟶ Y ≃ φ.symm.obj X ⟶ φ.symm.obj Y` induced by `φ`.
+-/
 @[simp] def iso.to_equiv_hom' (φ : iso U V) {X Y : V} :
   (X ⟶ Y) ≃ (φ.symm.obj X ⟶ φ.symm.obj Y) := φ.symm.to_equiv_hom
 
@@ -96,10 +132,8 @@ lemma iso.map_inv_map_eq_cast (φ : iso U V) {X Y : V} (f : X ⟶ Y) :
   f.cast (φ.to_equiv.right_inv X).symm (φ.to_equiv.right_inv Y).symm :=
 φ.symm.inv_map_map_eq_cast _
 
--- Thanks Adam Topaz
-@[simps]
-noncomputable
-def iso.of_bijective_inverse_aux (φ : U ⥤q V) (hφobj : φ.obj.bijective)
+/-- The inverse of a bijective (on objects and arrows) prefunctor. -/
+@[simps] noncomputable def iso.of_bijective_inverse_aux (φ : U ⥤q V) (hφobj : φ.obj.bijective)
   (hφmap : ∀ (x y : U), (φ.map : (x ⟶ y) → (φ.obj x ⟶ φ.obj y)).bijective ) :
   V ⥤q U :=
 let
@@ -110,7 +144,7 @@ in
   map := λ X Y, (Ehom _ _).symm ∘ hom.equiv_cast
     (show X = Eobj _, by rw Eobj.apply_symm_apply) (show Y = Eobj _, by rw Eobj.apply_symm_apply) }
 
--- Thanks Adam Topaz
+/-- A bijective (on objects and arrows) prefunctor defines an isomorphism. -/
 noncomputable def iso.of_bijective (φ : U ⥤q V) (hφobj : function.bijective φ.obj)
   (hφmap : ∀ (x y : U), function.bijective (φ.map : (x ⟶ y) → (φ.obj x ⟶ φ.obj y)) ) :
   iso U V :=
@@ -138,14 +172,8 @@ noncomputable def iso.of_bijective (φ : U ⥤q V) (hφobj : function.bijective 
       simpa only [equiv.of_bijective_symm_apply_apply, embedding_like.apply_eq_iff_eq], },
   end }
 
-lemma iso.to_prefunctor_obj_injective (φ : iso U V) : φ.to_prefunctor.obj.injective :=
-φ.to_equiv.injective
-
-lemma iso.inv_prefunctor_obj_injective (φ : iso U V) : φ.inv_prefunctor.obj.injective :=
-φ.symm.to_equiv.injective
-
-@[ext]
-lemma iso.to_prefunctor_ext (φ ψ : iso U V) : φ.to_prefunctor = ψ.to_prefunctor → φ = ψ :=
+/-- Two isomorphisms agreeing on `.prefunctor` are equal. -/
+@[ext] lemma iso.to_prefunctor_ext (φ ψ : iso U V) : φ.to_prefunctor = ψ.to_prefunctor → φ = ψ :=
 begin
   refine λ h, iso.ext _ _ h (prefunctor.ext (λ X, ψ.to_equiv.injective _)
                                             (λ X Y f, ψ.to_equiv_hom.injective _)),

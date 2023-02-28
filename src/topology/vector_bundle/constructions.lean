@@ -85,15 +85,6 @@ variables {F₁ E₁ F₂ E₂}
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear }
 
-variables {e₁ e₂} [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
-  [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
-
-lemma prod_apply [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B} (hx₁ : x ∈ e₁.base_set)
-  (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x) (v₂ : E₂ x) :
-  prod e₁ e₂ ⟨x, (v₁, v₂)⟩
-  = ⟨x, e₁.continuous_linear_equiv_at 𝕜 x hx₁ v₁, e₂.continuous_linear_equiv_at 𝕜 x hx₂ v₂⟩ :=
-rfl
-
 @[simp]
 lemma coord_changeL_prod [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜] ⦃b⦄
   (hb : b ∈ ((e₁.prod e₂).base_set ∩ (e₁'.prod e₂').base_set)) :
@@ -107,6 +98,15 @@ begin
   rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂', (e₁.prod e₂).coord_changeL_apply'],
   exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩]
 end
+
+variables {e₁ e₂} [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
+  [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
+
+lemma prod_apply [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B} (hx₁ : x ∈ e₁.base_set)
+  (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x) (v₂ : E₂ x) :
+  prod e₁ e₂ ⟨x, (v₁, v₂)⟩
+  = ⟨x, e₁.continuous_linear_equiv_at 𝕜 x hx₁ v₁, e₂.continuous_linear_equiv_at 𝕜 x hx₂ v₂⟩ :=
+rfl
 
 end trivialization
 

@@ -91,7 +91,7 @@ namespace is_ordinal
 
 protected theorem is_transitive (h : x.is_ordinal) : x.is_transitive := h.self
 
-protected lemma mem (h : x.is_ordinal) (hy : y ∈ x): is_ordinal y := h.mem hy
+protected lemma mem (h : x.is_ordinal) (hy : y ∈ x) : is_ordinal y := h.mem hy
 
 theorem subset_of_mem (h : x.is_ordinal) : y ∈ x → y ⊆ x := h.is_transitive.subset_of_mem
 

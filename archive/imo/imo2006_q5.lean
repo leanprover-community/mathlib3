@@ -157,7 +157,7 @@ begin
     set b := P.eval a,
     rw sub_eq_zero at hab,
 
-    -- More auxiliary lemmas on degree.
+    -- More auxiliary lemmas on degrees.
     have hPab : (P + X - a - b).nat_degree = P.nat_degree,
     { rw [sub_sub, ←int.cast_add],
       have h₁ : (P + X).nat_degree = P.nat_degree,

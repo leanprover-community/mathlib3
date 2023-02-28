@@ -143,7 +143,7 @@ in
 
 /-- A bijective (on objects and arrows) prefunctor defines an isomorphism. -/
 noncomputable def of_bijective (φ : U ⥤q V) (hφobj : function.bijective φ.obj)
-  (hφmap : ∀ (x y : U), function.bijective (φ.map : (x ⟶ y) → (φ.obj x ⟶ φ.obj y)) ) :
+  (hφmap : ∀ (x y : U), function.bijective (φ.map : (x ⟶ y) → (φ.obj x ⟶ φ.obj y))) :
   iso U V :=
 { to_prefunctor := φ,
   inv_prefunctor := iso.of_bijective_inverse_aux φ hφobj hφmap,

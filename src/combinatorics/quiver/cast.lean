@@ -36,7 +36,7 @@ lemma hom.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v)
   e.cast hu hv = cast (by rw [hu, hv]) e :=
 by { subst_vars, refl }
 
-lemma hom.cast_irrelevant {u v u' v' : U} (hu hu' : u = u') (hv hv' : v = v') (e : u ⟶ v) :
+lemma hom.cast_congr {u v u' v' : U} (hu hu' : u = u') (hv hv' : v = v') (e : u ⟶ v) :
   e.cast hu hv = e.cast hu' hv' :=
 by { cases hu, cases hu', cases hv, cases hv', refl, }
 
@@ -83,7 +83,7 @@ by { cases h, refl, }
 lemma _root_.prefunctor.map_cast (φ : U ⥤q V) {u₁ u₂ v₁ v₂ : U} (hu : u₁ = u₂) (hv : v₁ = v₂)
   (e : u₁ ⟶ v₁) :
   φ.map (hom.cast hu hv e) = (hom.cast (congr_arg φ.obj hu) (congr_arg φ.obj hv) (φ.map e)) :=
-by cases hu; cases hv; refl
+by { cases hu, cases hv, refl }
 
 /-!
 ### Rewriting paths along equalities of vertices
@@ -99,7 +99,7 @@ lemma path.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u 
   p.cast hu hv = cast (by rw [hu, hv]) p:=
 eq.drec (eq.drec (eq.refl (path.cast (eq.refl u) (eq.refl v) p)) hu) hv
 
-lemma path.cast_irrelevant {u v u' v' : U} (hu hu' : u = u') (hv hv' : v = v') (e : path u v) :
+lemma path.cast_congr {u v u' v' : U} (hu hu' : u = u') (hv hv' : v = v') (e : path u v) :
   e.cast hu hv = e.cast hu' hv' :=
 by { cases hu, cases hu', cases hv, cases hv', refl, }
 

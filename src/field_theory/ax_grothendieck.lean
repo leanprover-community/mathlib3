@@ -23,7 +23,7 @@ noncomputable theory
 open mv_polynomial
 
 /-- Any injective polynomial map over an algebraic extension of a finite field is surjective. -/
-lemma ax_grothendieck_of_locally_finite {K R : Type*} [field K] [finite K] [comm_ring R]
+lemma ax_grothendieck_of_locally_finite {ι K R : Type*} [field K] [finite K] [comm_ring R]
   [finite ι] [algebra K R] (alg : algebra.is_algebraic K R)
   (ps : ι → mv_polynomial ι R)
   (hinj : function.injective (λ v i, mv_polynomial.eval v (ps i))) :

@@ -424,7 +424,7 @@ instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β)
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
 instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
-@emetric.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
+@emetric_space.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
@@ -435,7 +435,7 @@ instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
 instance [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
-metric.of_t0_pseudo_metric_space _
+metric_space.of_t0_pseudo_metric_space _
 
 lemma nndist_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, pseudo_metric_space (β i)] (hp : p ≠ ∞) (x y : pi_Lp p β) :

@@ -901,7 +901,7 @@ begin
 end
 
 /-- If a `pseudo_emetric_space` is a T₀ space, then it is an `emetric_space`. -/
-def emetric.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
+def emetric_space.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
   emetric_space α :=
 { eq_of_edist_eq_zero := λ x y hdist, (emetric.inseparable_iff.2 hdist).eq,
   ..‹pseudo_emetric_space α› }
@@ -1023,7 +1023,7 @@ instance [pseudo_emetric_space X] : has_edist (uniform_space.separation_quotient
 rfl
 
 instance [pseudo_emetric_space X] : emetric_space (uniform_space.separation_quotient X) :=
-@emetric.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
+@emetric_space.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
   { edist_self := λ x, quotient.induction_on' x edist_self,
     edist_comm := λ x y, quotient.induction_on₂' x y edist_comm,
     edist_triangle := λ x y z, quotient.induction_on₃' x y z edist_triangle,

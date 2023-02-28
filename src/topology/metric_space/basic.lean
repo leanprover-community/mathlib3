@@ -2696,7 +2696,7 @@ def _root_.metric_space.of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_sp
 /-- A metric space induces an emetric space -/
 @[priority 100] -- see Note [lower instance priority]
 instance _root_.metric_space.to_emetric_space : emetric_space γ :=
-emetric.of_t0_pseudo_emetric_space γ
+emetric_space.of_t0_pseudo_emetric_space γ
 
 lemma is_closed_of_pairwise_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
   (hs : s.pairwise (λ x y, ε ≤ dist x y)) : is_closed s :=

@@ -438,7 +438,7 @@ end
 theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_eq, H.le_iff_deriv]
 
-/- `ordinal.deriv` enumerates the fixed points of a normal function. -/
+/-- `ordinal.deriv` enumerates the fixed points of a normal function. -/
 theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed_points f) :=
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 

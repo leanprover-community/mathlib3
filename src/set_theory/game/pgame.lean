@@ -342,8 +342,6 @@ le_of_forall_lf
   (λ i, pgame.not_le.1 $ λ h, (h₁ hyz h).not_gf $ hxy.move_left_lf i)
   (λ j, pgame.not_le.1 $ λ h, (h₂ h hxy).not_gf $ hyz.lf_move_right j)
 
-instance : has_lt pgame := ⟨λ x y, x ≤ y ∧ x ⧏ y⟩
-
 instance : preorder pgame :=
 { le_refl := λ x, begin
     induction x with _ _ _ _ IHl IHr,
@@ -361,8 +359,8 @@ instance : preorder pgame :=
       le_trans_aux (λ i, (IHyl i).2.2) (λ j, (IHxr j).1),
       le_trans_aux (λ i, (IHzl i).1) (λ j, (IHyr j).2.1)⟩
   end,
-  lt_iff_le_not_le := λ x y, by { rw pgame.not_le, refl },
-  ..pgame.has_le, ..pgame.has_lt }
+  lt := λ x y, x ≤ y ∧ x ⧏ y,
+  ..pgame.has_le, }
 
 theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y := iff.rfl
 theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y := ⟨h₁, h₂⟩

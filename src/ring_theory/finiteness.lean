@@ -130,11 +130,11 @@ lemma fg_unit {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (I : (submodule R A)ˣ) : (I : submodule R A).fg :=
 begin
   have : (1 : A) ∈ (I * ↑I⁻¹ : submodule R A),
-  { rw units.mul_inv, exact one_le.mp le_rfl },
+  { rw I.mul_inv, exact one_le.mp le_rfl },
   obtain ⟨T, T', hT, hT', one_mem⟩ := mem_span_mul_finite_of_mem_mul this,
   refine ⟨T, span_eq_of_le _ hT _⟩,
   rw [← one_mul ↑I, ← mul_one (span R ↑T)],
-  conv_rhs { rw [← units.inv_mul I, ← mul_assoc] },
+  conv_rhs { rw [← I.inv_mul, ← mul_assoc] },
   refine mul_le_mul_left (le_trans _ $ mul_le_mul_right $ span_le.mpr hT'),
   rwa [one_le, span_mul_span],
 end
@@ -300,7 +300,7 @@ lemma fg_restrict_scalars {R S M : Type*} [comm_semiring R] [semiring S] [algebr
 begin
   obtain ⟨X, rfl⟩ := hfin,
   use X,
-  exact (submodule.restrict_scalars_span R S h ↑X).symm
+  exact submodule.span_eq_restrict_scalars R S M X h
 end
 
 lemma fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg)

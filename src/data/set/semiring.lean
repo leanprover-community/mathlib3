@@ -3,6 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import algebra.order.kleene
 import data.set.pointwise.smul
 import algebra.order.kleene
 
@@ -61,7 +62,7 @@ lemma zero_def : (0 : set_semiring α) = set.up ∅ := rfl
 
 @[simp] lemma down_zero : (0 : set_semiring α).down = ∅ := rfl
 
-@[simp] lemma _root_.set.up_empty: (∅ : set α).up = 0 := rfl
+@[simp] lemma _root_.set.up_empty : (∅ : set α).up = 0 := rfl
 
 lemma add_def (s t : set_semiring α) : s + t = (s.down ∪ t.down).up := rfl
 
@@ -78,7 +79,8 @@ section has_mul
 variables [has_mul α]
 
 instance : non_unital_non_assoc_semiring (set_semiring α) :=
-{ mul := λ s t, (s.down * t.down).up,
+{ -- reducibility linter complains if we use `(s.down * t.down).up`
+  mul := λ s t, (image2 (*) s.down t.down).up,
   zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
   left_distrib := λ _ _ _, mul_union,
@@ -109,9 +111,9 @@ variables [has_one α]
 
 instance : has_one (set_semiring α) := { one := set.up 1 }
 
-lemma one_def : (0 : set_semiring α) = set.up ∅ := rfl
+lemma one_def : (1 : set_semiring α) = set.up 1 := rfl
 
-@[simp] lemma down_one : (0 : set_semiring α).down = ∅ := rfl
+@[simp] lemma down_one : (1 : set_semiring α).down = 1 := rfl
 
 @[simp] lemma _root_.set.up_one : (1 : set α).up = 1 := rfl
 

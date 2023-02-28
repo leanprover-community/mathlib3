@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Computational realization of topological spaces (experimental)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides infrastructure to compute with topological spaces.
 
 ## Main declarations

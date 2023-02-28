@@ -8,6 +8,9 @@ import category_theory.arrow
 /-!
 # Commutative squares
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provide an API for commutative squares in categories.
 If `top`, `left`, `right` and `bottom` are four morphisms which are the edges
 of a square, `comm_sq top left right bottom` is the predicate that this

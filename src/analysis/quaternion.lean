@@ -147,6 +147,9 @@ by simpa [←norm_sq_eq_norm_sq]
 @[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
 (continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
 
+@[continuity] lemma continuous_im : continuous (λ q : ℍ, q.im) :=
+by simpa only [←sub_self_re] using continuous_id.sub (continuous_coe.comp continuous_re)
+
 instance : complete_space ℍ :=
 begin
   have : uniform_embedding linear_isometry_equiv_tuple.to_linear_equiv.to_equiv.symm :=

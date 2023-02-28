@@ -126,22 +126,6 @@ begin
       exact @is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate _ _ t 2 n ht hn'.symm } }
 end
 
-@[simp] theorem iterate_comp_eval (P : polynomial ℤ) (k : ℕ) (t : ℤ) :
-  (P.comp^[k] X).eval t = ((λ x, P.eval x)^[k] t) :=
-begin
-  induction k with k IH,
-  { simp },
-  { rw [iterate_succ_apply', iterate_succ_apply', eval_comp, IH] }
-end
-
-@[simp] theorem nat_degree_iterate_comp (P : polynomial ℤ) (k : ℕ) :
-  (P.comp^[k] X).nat_degree = P.nat_degree ^ k :=
-begin
-  induction k with k IH,
-  { simp },
-  { rw [iterate_succ_apply', nat_degree_comp, IH, pow_succ] }
-end
-
 theorem iterate_comp_ne_X {P : polynomial ℤ} (hP : 1 < P.nat_degree) {k : ℕ} (hk : 0 < k) :
   P.comp^[k] X - X ≠ 0 :=
 by { rw sub_ne_zero, apply_fun nat_degree, simpa using (one_lt_pow hP hk.ne').ne' }

@@ -120,52 +120,13 @@ lemma smooth_fiberwise_linear.locality_aux₁ (e : local_homeomorph (B × F) (B 
     (e.restr (u ×ˢ univ)).eq_on_source
       (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on) :=
 begin
-  rw set_coe.forall' at h,
+  rw [set_coe.forall'] at h,
   -- choose s hs hsp φ u hu hφ h2φ heφ using h,
-  -- the following ~40 lines should be `choose s hs hsp φ u hu hφ h2φ heφ using h,`
+  -- the following 2 lines should be `choose s hs hsp φ u hu hφ h2φ heφ using h,`
   -- `choose` produces a proof term that takes a long time to type-check by the kernel (it seems)
-  let s := λ x, classical.some (h x),
-  have hs : ∀ x, is_open (s x) := λ x, (classical.some_spec (h x)).1,
-  have hsp : ∀ x : e.source, x.1 ∈ s x := λ x, (classical.some_spec (h x)).2.1,
-  have h : ∀ x : e.source, ∃ (φ : B → (F ≃L[𝕜] F)) (u : set B) (hu : is_open u)
-      (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x : F →L[𝕜] F)) u)
-      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) u),
-      (e.restr (s x)).eq_on_source
-            (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on) :=
-    λ x, (classical.some_spec (h x)).2.2,
-  let φ : e.source → B → (F ≃L[𝕜] F) := λ x, classical.some (h x),
-  have h : ∀ z : e.source, ∃ (u : set B) (hu : is_open u)
-      (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ z x : F →L[𝕜] F)) u)
-      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ z x).symm : F →L[𝕜] F)) u),
-      (e.restr (s z)).eq_on_source
-            (fiberwise_linear.local_homeomorph (φ z) hu hφ.continuous_on h2φ.continuous_on) :=
-    λ x, classical.some_spec (h x),
-  let u : e.source → set B := λ x, classical.some (h x),
-  have h : ∀ z : e.source, ∃ (hu : is_open (u z))
-      (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ z x : F →L[𝕜] F)) (u z))
-      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ z x).symm : F →L[𝕜] F)) (u z)),
-      (e.restr (s z)).eq_on_source
-            (fiberwise_linear.local_homeomorph (φ z) hu hφ.continuous_on h2φ.continuous_on) :=
-    λ x, classical.some_spec (h x),
-  have hu : ∀ x, is_open (u x) := λ x, classical.some (h x),
-  have h : ∀ z : e.source, ∃ (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ z x : F →L[𝕜] F)) (u z))
-      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ z x).symm : F →L[𝕜] F)) (u z)),
-      (e.restr (s z)).eq_on_source
-            (fiberwise_linear.local_homeomorph (φ z) (hu z) hφ.continuous_on h2φ.continuous_on) :=
-    λ x, classical.some_spec (h x),
-  have hφ : ∀ z, smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ z x : F →L[𝕜] F)) (u z) :=
-    λ x, classical.some (h x),
-  have h : ∀ z : e.source,
-    ∃ (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ z x).symm : F →L[𝕜] F)) (u z)),
-      (e.restr (s z)).eq_on_source
-        (fiberwise_linear.local_homeomorph (φ z) (hu z) (hφ z).continuous_on h2φ.continuous_on) :=
-    λ x, classical.some_spec (h x),
-  have h2φ : ∀ z, smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ z x).symm : F →L[𝕜] F)) (u z) :=
-    λ x, classical.some (h x),
-  have heφ : ∀ z, (e.restr (s z)).eq_on_source
-    (fiberwise_linear.local_homeomorph (φ z) (hu z) (hφ z).continuous_on (h2φ z).continuous_on) :=
-    λ x, classical.some_spec (h x),
-  clear_value s φ u, clear h h h h h h,
+  -- porting note: todo: try using `choose` again in Lean 4
+  simp only [classical.skolem, ← exists_prop] at h,
+  rcases h with ⟨s, hs, hsp, φ, u, hu, hφ, h2φ, heφ⟩,
   have hesu : ∀ p : e.source, e.source ∩ s p = u p ×ˢ univ,
   { intros p,
     rw ← e.restr_source' (s _) (hs _),

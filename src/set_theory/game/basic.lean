@@ -146,7 +146,7 @@ but to prove their properties we need to use the abelian group structure of game
 Hence we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, xR*y + x*yL - xR*yL }`. -/
+`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, xR*y + x*yL - xR*yL}`. -/
 instance : has_mul pgame.{u} :=
 ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -662,6 +662,14 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/
+def inv'_zero' : inv' 0 ≡ 1 :=
+begin
+  refine ⟨_, _⟩,
+  { simp_rw [unique.forall_iff, unique.exists_iff, and_self, pgame.inv_val_is_empty], },
+  { simp_rw [is_empty.forall_iff, and_self], },
+end
+
+/-- `inv' 0` has exactly the same moves as `1`. -/
 def inv'_zero : inv' 0 ≡r 1 :=
 begin
   change mk _ _ _ _ ≡r 1,
@@ -676,6 +684,17 @@ begin
 end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
+
+/-- `inv' 1` has exactly the same moves as `1`. -/
+def inv'_one' : inv' 1 ≡ (1 : pgame.{u}) :=
+begin
+  haveI inst : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
+  { rw lt_self_iff_false, apply_instance },
+  refine ⟨_, _⟩,
+  { simp_rw [unique.forall_iff, unique.exists_iff, pgame.inv_val_is_empty, and_self], },
+  { simp_rw [is_empty.forall_iff, and_true, is_empty.exists_iff],
+    exact (@inv_ty.is_empty _ _ inst _).elim, },
+end
 
 /-- `inv' 1` has exactly the same moves as `1`. -/
 def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
@@ -709,6 +728,10 @@ by { classical, exact (if_neg h.lf.not_equiv').trans (if_pos h) }
 
 theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 by { classical, exact (if_neg h.not_equiv).trans (if_neg h.not_gt) }
+
+/-- `1⁻¹` has exactly the same moves as `1`. -/
+def inv_one' : 1⁻¹ ≡ 1 :=
+by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one' }
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : 1⁻¹ ≡r 1 :=

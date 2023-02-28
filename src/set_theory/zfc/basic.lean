@@ -970,7 +970,7 @@ set.ext $ λ z, iff.symm Set.mem_inter
 @[simp] theorem diff_hom (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_diff
 
-@[simp] theorem powerset_hom_left (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
+@[simp, norm_cast] theorem powerset_hom_left (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
 set.ext $ λ z, iff.symm Set.mem_powerset
 
 @[simp] theorem powerset_hom_right {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
@@ -983,7 +983,7 @@ begin
   { exact λ ⟨z, hxz, hyz⟩, ⟨_, mem_hom_left.2 hxz, hyz⟩ }
 end
 
-@[simp] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
+@[simp, norm_cast] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
 set.ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop]).trans
   Set.mem_sUnion.symm
 

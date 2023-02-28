@@ -120,9 +120,9 @@ lemma one_def : (1 : set_semiring α) = set.up 1 := rfl
 end has_one
 
 instance [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ one := set.up 1,
+{ one := 1,
   mul := (*),
-  nat_cast := λ n, if n = 0 then 0 else set.up 1,
+  nat_cast := λ n, if n = 0 then 0 else 1,
   nat_cast_zero := rfl,
   nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def],
   ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }

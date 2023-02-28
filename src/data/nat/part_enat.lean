@@ -11,6 +11,9 @@ import tactic.norm_num
 /-!
 # Natural numbers with infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The natural numbers and an extra `top` element `⊤`. This implementation uses `part ℕ` as an
 implementation. Use `ℕ∞` instead unless you care about computability.
 
@@ -90,6 +93,8 @@ lemma some_eq_coe (n : ℕ) : some n = n := rfl
 @[simp, norm_cast] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
 
 @[simp] lemma dom_coe (x : ℕ) : (x : part_enat).dom := trivial
+
+instance : can_lift part_enat ℕ coe dom := ⟨λ n hn, ⟨n.get hn, part.some_get _⟩⟩
 
 instance : has_le part_enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩
 instance : has_top part_enat := ⟨none⟩
@@ -322,6 +327,15 @@ instance : canonically_ordered_add_monoid part_enat :=
   ..part_enat.semilattice_sup,
   ..part_enat.order_bot,
   ..part_enat.ordered_add_comm_monoid }
+
+lemma eq_coe_sub_of_add_eq_coe {x y : part_enat} {n : ℕ} (h : x + y = n) :
+  x = ↑(n - y.get (dom_of_le_coe ((le_add_left le_rfl).trans_eq h))) :=
+begin
+  lift x to ℕ using dom_of_le_coe ((le_add_right le_rfl).trans_eq h),
+  lift y to ℕ using dom_of_le_coe ((le_add_left le_rfl).trans_eq h),
+  rw [← nat.cast_add, coe_inj] at h,
+  rw [get_coe, coe_inj, eq_tsub_of_add_eq h]
+end
 
 protected lemma add_lt_add_right {x y z : part_enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=
 begin

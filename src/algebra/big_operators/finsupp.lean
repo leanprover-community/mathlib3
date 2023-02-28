@@ -13,6 +13,9 @@ import group_theory.submonoid.membership
 /-!
 # Big operators for finsupps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems relevant to big operators in finitely supported functions.
 -/
 

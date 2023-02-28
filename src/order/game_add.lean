@@ -116,7 +116,7 @@ def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_
 lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
-by { rw [game_add.fix, well_founded.fix_eq], refl }
+well_founded.fix_eq _ _ _
 
 /-- Induction on the well-founded `prod.game_add` relation.
 
@@ -131,10 +131,8 @@ end prod
 
 namespace sym2
 
-variables (rα rβ)
-
 /-- `sym2.game_add rα x y` means that `x` can be reached from `y` by decreasing either entry. -/
-def game_add : sym2 α → sym2 α → Prop :=
+def game_add (rα : α → α → Prop): sym2 α → sym2 α → Prop :=
 sym2.lift₂
 ⟨λ a₁ b₁ a₂ b₂, prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂),
   λ a₁ b₁ a₂ b₂, begin
@@ -142,15 +140,17 @@ sym2.lift₂
     simp [or_comm]
   end⟩
 
-lemma game_add_iff {rα} : ∀ {x y : α × α}, game_add rα ⟦x⟧ ⟦y⟧ ↔
+variable {rα}
+
+lemma game_add_iff : ∀ {x y : α × α}, game_add rα ⟦x⟧ ⟦y⟧ ↔
   prod.game_add rα rα x y ∨ prod.game_add rα rα x.swap y :=
 by { rintros ⟨_, _⟩ ⟨_, _⟩, refl }
 
-lemma game_add_mk_iff {rα} {a₁ a₂ b₁ b₂ : α} : game_add rα ⟦(a₁, b₁)⟧ ⟦(a₂, b₂)⟧ ↔
+lemma game_add_mk_iff {a₁ a₂ b₁ b₂ : α} : game_add rα ⟦(a₁, b₁)⟧ ⟦(a₂, b₂)⟧ ↔
   prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂) :=
 iff.rfl
 
-lemma _root_.prod.game_add.to_sym2 {rα} {a₁ a₂ b₁ b₂ : α}
+lemma _root_.prod.game_add.to_sym2 {a₁ a₂ b₁ b₂ : α}
   (h : prod.game_add rα rα (a₁, b₁) (a₂, b₂)) : sym2.game_add rα ⟦(a₁, b₁)⟧ ⟦(a₂, b₂)⟧ :=
 game_add_mk_iff.2 $ or.inl $ h
 
@@ -160,21 +160,27 @@ lemma game_add.fst {a₁ a₂ b : α} (h : rα a₁ a₂) : game_add rα ⟦(a�
 lemma game_add.snd {a b₁ b₂ : α} (h : rα b₁ b₂) : game_add rα ⟦(a, b₁)⟧ ⟦(a, b₂)⟧ :=
 (prod.game_add.snd h).to_sym2
 
+lemma game_add.fst_snd {a₁ a₂ b : α} (h : rα a₁ a₂) : game_add rα ⟦(a₁, b)⟧ ⟦(b, a₂)⟧ :=
+by { rw sym2.eq_swap, exact game_add.snd h }
+
+lemma game_add.snd_fst {a₁ a₂ b : α} (h : rα a₁ a₂) : game_add rα ⟦(b, a₁)⟧ ⟦(a₂, b)⟧ :=
+by { rw sym2.eq_swap, exact game_add.fst h }
+
 end sym2
 
 lemma acc.sym2_game_add {a b} (ha : acc rα a) (hb : acc rα b) : acc (sym2.game_add rα) ⟦(a, b)⟧ :=
 begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
-  split;
-  rintros ⟨c, d⟩ ((@⟨_, _, _, rc⟩ | @⟨_, _, _, rd⟩) | (@⟨_, _, _, rd⟩ | @⟨_, _, _, rc⟩)),
+  refine acc.intro _ (λ s, _),
+  induction s using sym2.induction_on with c d,
+  rintros ((rc | rd) | (rd | rc)),
   { exact iha c rc ⟨b, hb⟩ },
   { exact ihb d rd },
-  all_goals
-  { change acc _ ⟦(_, _)⟧,
-    rw sym2.eq_swap },
-  { exact iha d rd ⟨b, hb⟩ },
-  { exact ihb c rc }
+  { rw sym2.eq_swap,
+    exact iha d rd ⟨b, hb⟩ },
+  { rw sym2.eq_swap,
+    exact ihb c rc }
 end
 
 /-- The `sym2.game_add` relation on well-founded inputs is well-founded. -/
@@ -193,7 +199,7 @@ def game_add.fix {C : α → α → Sort*} (hr : well_founded rα)
 lemma game_add.fix_eq {C : α → α → Sort*} (hr : well_founded rα)
   (IH : Π a₁ b₁, (Π a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) (a b : α) :
   game_add.fix hr IH a b = IH a b (λ a' b' h, game_add.fix hr IH a' b') :=
-by { rw [game_add.fix, well_founded.fix_eq], refl }
+well_founded.fix_eq _ _ _
 
 /-- Induction on the well-founded `sym2.game_add` relation. -/
 lemma game_add.induction {C : α → α → Prop} : well_founded rα →

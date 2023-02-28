@@ -9,6 +9,9 @@ import topology.order.basic
 /-!
 ### Topology of ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove some miscellaneous results involving the order topology of ordinals.
 
 ### Main results

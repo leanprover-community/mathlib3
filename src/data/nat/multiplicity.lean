@@ -203,8 +203,8 @@ begin
   exact dvd_mul_right _ _
 end
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+lemma multiplicity_choose_prime_pow_add_multiplicity {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n)
+  (hk0 : k ≠ 0) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
   (have hdisj : disjoint
@@ -214,7 +214,7 @@ le_antisymm
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
-      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
+      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0.bot_lt
         (lt_succ_of_le (log_mono_right hkn)),
       ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
@@ -223,6 +223,11 @@ le_antisymm
   end)
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)
+
+lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  multiplicity p (choose (p ^ n) k) =
+    ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0.bot_lt⟩)) :=
+part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
 
 end prime
 

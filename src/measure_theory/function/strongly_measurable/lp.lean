@@ -25,7 +25,7 @@ Springer, 2016.
 -/
 
 open measure_theory filter topological_space function
-open_locale ennreal topological_space measure_theory
+open_locale ennreal topology measure_theory
 
 namespace measure_theory
 

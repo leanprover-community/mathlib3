@@ -52,7 +52,7 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 -/
 
 open real set filter is_R_or_C submodule function
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
+open_locale big_operators uniformity topology nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
 
@@ -470,9 +470,9 @@ end
   ⇑(b.reindex e) = ⇑b ∘ ⇑(e.symm) :=
 funext (b.reindex_apply e)
 
-@[simp] protected lemma reindex_repr
+@[simp] protected lemma repr_reindex
   (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
-  ((b.reindex e).repr x) i' = (b.repr x) (e.symm i') :=
+  (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by { classical,
   rw [orthonormal_basis.repr_apply_apply, b.repr_apply_apply, orthonormal_basis.coe_reindex] }
 

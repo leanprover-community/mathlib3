@@ -439,4 +439,51 @@ lemma angle_lt_pi_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p
   ∠ p₁ p₂ p₃ < π :=
 (angle_le_pi _ _ _).lt_of_ne $ angle_ne_pi_of_not_collinear h
 
+/-- The cosine of the angle between three points is 1 if and only if the angle is 0. -/
+lemma cos_eq_one_iff_angle_eq_zero {p₁ p₂ p₃ : P} :
+  real.cos (∠ p₁ p₂ p₃) = 1 ↔ ∠ p₁ p₂ p₃ = 0 :=
+cos_eq_one_iff_angle_eq_zero
+
+/-- The cosine of the angle between three points is 0 if and only if the angle is π / 2. -/
+lemma cos_eq_zero_iff_angle_eq_pi_div_two {p₁ p₂ p₃ : P} :
+  real.cos (∠ p₁ p₂ p₃) = 0 ↔ ∠ p₁ p₂ p₃ = π / 2 :=
+cos_eq_zero_iff_angle_eq_pi_div_two
+
+/-- The cosine of the angle between three points is -1 if and only if the angle is π. -/
+lemma cos_eq_neg_one_iff_angle_eq_pi {p₁ p₂ p₃ : P} :
+  real.cos (∠ p₁ p₂ p₃) = -1 ↔ ∠ p₁ p₂ p₃ = π :=
+cos_eq_neg_one_iff_angle_eq_pi
+
+/-- The sine of the angle between three points is 0 if and only if the angle is 0 or π. -/
+lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi {p₁ p₂ p₃ : P} :
+  real.sin (∠ p₁ p₂ p₃) = 0 ↔ ∠ p₁ p₂ p₃ = 0 ∨ ∠ p₁ p₂ p₃ = π :=
+sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi
+
+/-- The sine of the angle between three points is 1 if and only if the angle is π / 2. -/
+lemma sin_eq_one_iff_angle_eq_pi_div_two {p₁ p₂ p₃ : P} :
+  real.sin (∠ p₁ p₂ p₃) = 1 ↔ ∠ p₁ p₂ p₃ = π / 2 :=
+sin_eq_one_iff_angle_eq_pi_div_two
+
+/-- Three points are collinear if and only if the first or third point equals the second or
+the sine of the angle between three points is zero. -/
+lemma collinear_iff_eq_or_eq_or_sin_eq_zero {p₁ p₂ p₃ : P} :
+  collinear ℝ ({p₁, p₂, p₃} : set P) ↔ p₁ = p₂ ∨ p₃ = p₂ ∨ real.sin (∠ p₁ p₂ p₃) = 0 :=
+by rw [sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi,
+       collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi]
+
+/-- If three points are not collinear, the sine of the angle between them is positive. -/
+lemma sin_pos_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p₁, p₂, p₃} : set P)) :
+  0 < real.sin (∠ p₁ p₂ p₃) :=
+real.sin_pos_of_pos_of_lt_pi (angle_pos_of_not_collinear h) (angle_lt_pi_of_not_collinear h)
+
+/-- If three points are not collinear, the sine of the angle between them is nonzero. -/
+lemma sin_ne_zero_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p₁, p₂, p₃} : set P)) :
+  real.sin (∠ p₁ p₂ p₃) ≠ 0 :=
+ne_of_gt (sin_pos_of_not_collinear h)
+
+/-- If the sine of the angle between three points is 0, they are collinear. -/
+lemma collinear_of_sin_eq_zero {p₁ p₂ p₃ : P} (h : real.sin (∠ p₁ p₂ p₃) = 0) :
+  collinear ℝ ({p₁, p₂, p₃} : set P) :=
+imp_of_not_imp_not _ _ sin_ne_zero_of_not_collinear h
+
 end euclidean_geometry

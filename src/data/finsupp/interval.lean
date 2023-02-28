@@ -10,6 +10,9 @@ import data.finsupp.order
 /-!
 # Finite intervals of finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the `locally_finite_order` instance for `ι →₀ α` when `α` itself is locally
 finite and calculates the cardinality of its finite intervals.
 

@@ -76,7 +76,7 @@ conditional expectation, conditional expected value
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 
@@ -856,7 +856,7 @@ lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α 
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ‖g x‖ ∂μ ≤ ∫ x in s, ‖f x‖ ∂μ :=
 begin
-  rw [integral_norm_eq_pos_sub_neg (hg.mono hm) hgi, integral_norm_eq_pos_sub_neg hf hfi],
+  rw [integral_norm_eq_pos_sub_neg hgi, integral_norm_eq_pos_sub_neg hfi],
   have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
     from (@strongly_measurable_const _ _ m _ _).measurable_set_le hg,
   have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},
@@ -1081,7 +1081,7 @@ begin
   { refine mem_ℒp.const_inner _ _, rw Lp_meas_coe, exact Lp.mem_ℒp _, },
   have h_eq : h_mem_Lp.to_Lp _ =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫, from h_mem_Lp.coe_fn_to_Lp,
   refine eventually_eq.trans _ h_eq,
-  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two.ne.symm ennreal.coe_ne_top
+  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ two_ne_zero ennreal.coe_ne_top
     (λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _) _ _ _ _,
   { intros s hs hμs,
     rw [integrable_on, integrable_congr (ae_restrict_of_ae h_eq)],
@@ -1129,7 +1129,7 @@ variables (𝕜 𝕜')
 lemma condexp_L2_comp_continuous_linear_map (hm : m ≤ m0) (T : E' →L[ℝ] E'') (f : α →₂[μ] E') :
   (condexp_L2 𝕜' hm (T.comp_Lp f) : α →₂[μ] E'') =ᵐ[μ] T.comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E') :=
 begin
-  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two.ne.symm ennreal.coe_ne_top
+  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ two_ne_zero ennreal.coe_ne_top
     (λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _)
     (λ s hs hμs, integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs.ne)
     _ _ _,
@@ -1197,7 +1197,7 @@ begin
   exact (Lp.strongly_measurable _).ennnorm
 end
 ... ≤ μ (s ∩ t) * ‖x‖₊ :
-  ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) le_rfl
+  mul_le_mul_right' (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) _
 
 lemma lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') [sigma_finite (μ.trim hm)] :
@@ -1207,8 +1207,7 @@ begin
   { rw Lp_meas_coe,
     exact (Lp.ae_strongly_measurable _).ennnorm },
   refine (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
-  refine ennreal.mul_le_mul _ le_rfl,
-  exact measure_mono (set.inter_subset_left _ _),
+  exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _
 end
 
 /-- If the measure `μ.trim hm` is sigma-finite, then the conditional expectation of a measurable set
@@ -1221,7 +1220,7 @@ begin
     (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { rw Lp_meas_coe, exact Lp.ae_strongly_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x ht hμt).trans _,
-    exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
+    exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _, },
 end
 
 end condexp_L2_indicator
@@ -1284,7 +1283,7 @@ begin
   exact (Lp.strongly_measurable _).ennnorm
 end
 ... ≤ μ (s ∩ t) * ‖x‖₊ :
-  ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) le_rfl
+  mul_le_mul_right' (lintegral_nnnorm_condexp_L2_indicator_le_real hs hμs ht hμt) _
 
 lemma lintegral_nnnorm_condexp_ind_smul_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : G) [sigma_finite (μ.trim hm)] :
@@ -1293,8 +1292,7 @@ begin
   refine lintegral_le_of_forall_fin_meas_le' hm (μ s * ‖x‖₊) _ (λ t ht hμt, _),
   { exact (Lp.ae_strongly_measurable _).ennnorm },
   refine (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
-  refine ennreal.mul_le_mul _ le_rfl,
-  exact measure_mono (set.inter_subset_left _ _),
+  exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _
 end
 
 /-- If the measure `μ.trim hm` is sigma-finite, then the conditional expectation of a measurable set
@@ -1307,7 +1305,7 @@ begin
     (ennreal.mul_lt_top hμs ennreal.coe_ne_top) _ _,
   { exact Lp.ae_strongly_measurable _, },
   { refine λ t ht hμt, (set_lintegral_nnnorm_condexp_ind_smul_le hm hs hμs x ht hμt).trans _,
-    exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
+    exact mul_le_mul_right' (measure_mono (set.inter_subset_left _ _)) _, },
 end
 
 lemma condexp_ind_smul_empty {x : G} :

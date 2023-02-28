@@ -11,6 +11,9 @@ import tactic.norm_num
 /-!
 # Deterministic Finite Automata
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of a Deterministic Finite Automaton (DFA), a state machine which
 determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
 in linear time.
@@ -77,8 +80,7 @@ lemma eval_from_split [fintype σ] {x : list α} {s t : σ} (hlen : fintype.card
 begin
   obtain ⟨n, m, hneq, heq⟩ := fintype.exists_ne_map_eq_of_card_lt
     (λ n : fin (fintype.card σ + 1), M.eval_from s (x.take n)) (by norm_num),
-  wlog hle : (n : ℕ) ≤ m using n m,
-  have hlt : (n : ℕ) < m := (ne.le_iff_lt hneq).mp hle,
+  wlog hle : (n : ℕ) ≤ m, { exact this hlen hx _ _ hneq.symm heq.symm (le_of_not_le hle), },
   have hm : (m : ℕ) ≤ fintype.card σ := fin.is_le m,
   dsimp at heq,
 

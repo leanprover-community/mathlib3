@@ -11,6 +11,9 @@ import order.hom.complete_lattice
 /-!
 # Kleene Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines idempotent semirings and Kleene algebras, which are used extensively in the theory
 of computation.
 

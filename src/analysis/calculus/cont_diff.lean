@@ -170,7 +170,7 @@ local attribute [instance, priority 1001]
 normed_add_comm_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
 
 open set fin filter function
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -2861,20 +2861,20 @@ lemma cont_diff_on.pow {f : E → 𝔸} (hf : cont_diff_on 𝕜 n f s) (m : ℕ)
   cont_diff_on 𝕜 n (λ y, f y ^ m) s :=
 λ y hy, (hf y hy).pow m
 
-lemma cont_diff_within_at.div_const {f : E → 𝕜'} {n} {c : 𝕜'}
-  (hf : cont_diff_within_at 𝕜 n f s x) :
+lemma cont_diff_within_at.div_const {f : E → 𝕜'} {n}
+  (hf : cont_diff_within_at 𝕜 n f s x) (c : 𝕜') :
   cont_diff_within_at 𝕜 n (λ x, f x / c) s x :=
 by simpa only [div_eq_mul_inv] using hf.mul cont_diff_within_at_const
 
-lemma cont_diff_at.div_const {f : E → 𝕜'} {n} {c : 𝕜'} (hf : cont_diff_at 𝕜 n f x) :
+lemma cont_diff_at.div_const {f : E → 𝕜'} {n} (hf : cont_diff_at 𝕜 n f x) (c : 𝕜') :
   cont_diff_at 𝕜 n (λ x, f x / c) x :=
-hf.div_const
+hf.div_const c
 
-lemma cont_diff_on.div_const {f : E → 𝕜'} {n} {c : 𝕜'} (hf : cont_diff_on 𝕜 n f s) :
+lemma cont_diff_on.div_const {f : E → 𝕜'} {n} (hf : cont_diff_on 𝕜 n f s) (c : 𝕜') :
   cont_diff_on 𝕜 n (λ x, f x / c) s :=
-λ x hx, (hf x hx).div_const
+λ x hx, (hf x hx).div_const c
 
-lemma cont_diff.div_const {f : E → 𝕜'} {n} {c : 𝕜'} (hf : cont_diff 𝕜 n f) :
+lemma cont_diff.div_const {f : E → 𝕜'} {n} (hf : cont_diff 𝕜 n f) (c : 𝕜') :
   cont_diff 𝕜 n (λ x, f x / c) :=
 by simpa only [div_eq_mul_inv] using hf.mul cont_diff_const
 

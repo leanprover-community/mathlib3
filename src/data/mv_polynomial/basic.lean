@@ -1265,12 +1265,18 @@ section eval_mem
 
 variables {S subS : Type*} [comm_semiring S] [set_like subS S] [subsemiring_class subS S]
 
-theorem eval₂_mem (f : R →+* S)
-  (p : mv_polynomial σ R) (s : subS)
-  (hs : ∀ i, f (p.coeff i) ∈ s) (v : σ → S) (hv : ∀ i, v i ∈ s) :
+theorem eval₂_mem {f : R →+* S}
+  {p : mv_polynomial σ R} {s : subS}
+  (hs : ∀ i ∈ p.support, f (p.coeff i) ∈ s) {v : σ → S} (hv : ∀ i, v i ∈ s) :
      mv_polynomial.eval₂ f v p ∈ s :=
 begin
   classical,
+  replace hs : ∀ i, f (p.coeff i) ∈ s,
+  { intro i,
+    by_cases hi : i ∈ p.support,
+    { exact hs i hi },
+    { rw [mv_polynomial.not_mem_support_iff.1 hi, f.map_zero],
+      exact zero_mem s } },
   induction p using mv_polynomial.induction_on''' with a a b f ha hb0 ih generalizing hs,
   { simpa using hs 0 },
   { rw [eval₂_add],
@@ -1293,10 +1299,10 @@ begin
       { rwa zero_add at this } } }
 end
 
-theorem eval_mem (p : mv_polynomial σ S) (s : subS)
-  (hs : ∀ i, p.coeff i ∈ s) (v : σ → S) (hv : ∀ i, v i ∈ s) :
-     mv_polynomial.eval v p ∈ s :=
-eval₂_mem (ring_hom.id S) p s hs v hv
+theorem eval_mem {p : mv_polynomial σ S} {s : subS}
+  (hs : ∀ i ∈ p.support, p.coeff i ∈ s) {v : σ → S} (hv : ∀ i, v i ∈ s) :
+    mv_polynomial.eval v p ∈ s :=
+eval₂_mem hs hv
 
 end eval_mem
 

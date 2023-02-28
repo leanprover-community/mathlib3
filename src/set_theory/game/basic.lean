@@ -146,7 +146,7 @@ but to prove their properties we need to use the abelian group structure of game
 Hence we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
+`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, xR*y + x*yL - xR*yL }`. -/
 instance : has_mul pgame.{u} :=
 ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -282,6 +282,23 @@ lemma memᵣ_mul_iff : Π {x y₁ y₂ : pgame},
   { rintros ⟨(⟨i, j⟩ | ⟨i, j⟩), hi⟩, exacts [or.inl ⟨_, _, hi⟩, or.inr ⟨_, _, hi⟩], },
   { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨sum.inl (i, j), h⟩, ⟨sum.inr (i, j), h⟩], },
 end
+
+/-- `x * y` and `y * x` have the same moves. -/
+protected def mul_comm : Π (x y : pgame.{u}), x * y ≡ y * x
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { simp_rw [memₗ_mul_iff], dsimp, rw [@exists_comm xl, @exists_comm xr],
+    simp_rw [((((mul_comm _ _).add (mul_comm _ _)).trans ((_ * xL _).add_comm _)).sub
+        (mul_comm _ _)).congr_right,
+      ((((mul_comm _ _).add (mul_comm _ _)).trans ((_ * xR _).add_comm _)).sub
+        (mul_comm _ _)).congr_right], },
+  { simp_rw [memᵣ_mul_iff], dsimp, rw [@exists_comm xl, @exists_comm xr, or.comm],
+    simp_rw [((((mul_comm _ _).add (mul_comm _ _)).trans ((_ * xL _).add_comm _)).sub
+        (mul_comm _ _)).congr_right,
+      ((((mul_comm _ _).add (mul_comm _ _)).trans ((_ * xR _).add_comm _)).sub
+        (mul_comm _ _)).congr_right], },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `x * y` and `y * x` have the same moves. -/
 def mul_comm_relabelling : Π (x y : pgame.{u}), x * y ≡r y * x

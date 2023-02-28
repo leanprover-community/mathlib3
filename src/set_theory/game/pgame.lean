@@ -1315,9 +1315,9 @@ end
 protected lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
 | (mk xl xr xL xR) (mk yl yr yL yR) := begin
   refine identical.ext (λ z, _) (λ z, _),
-  { simp_rw [memₗ_add_iff], rw [or.comm], dsimp,
+  { simp_rw [memₗ_add_iff], dsimp, rw [or.comm],
     simp_rw [(add_comm (xL _) _).congr_right, (add_comm _ (yL _)).congr_right], },
-  { simp_rw [memᵣ_add_iff], rw [or.comm], dsimp,
+  { simp_rw [memᵣ_add_iff], dsimp, rw [or.comm],
     simp_rw [(add_comm (xR _) _).congr_right, (add_comm _ (yR _)).congr_right], },
 end
 using_well_founded { dec_tac := pgame_wf_tac }

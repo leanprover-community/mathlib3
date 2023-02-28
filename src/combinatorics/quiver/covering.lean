@@ -259,7 +259,6 @@ variable (α : Type*)
   left_inv := λ ⟨(), h⟩, by simp only [id.def, heq_iff_eq, eq_self_iff_true, and_self],
   right_inv := λ h, by simp only [id.def] }
 
-
 /--
 The star around the single object is equivalent to the type of arrows used for `single_obj`.
 Confusing nomenclature though.
@@ -321,13 +320,15 @@ lemma prefunctor.is_covering.eq_star_of_eq
   ∃ hu' : θ₁.obj u' = θ₂.obj u', hom.cast hu hu' (θ₁.map e) = θ₂.map e :=
 begin
   have he : ψ.star _ ⟨_, hom.cast hu rfl (θ₁.map e)⟩ = ψ.star _ ⟨_, θ₂.map e⟩, by
-  { simp only [prefunctor.star, ←prefunctor.comp_obj, ←prefunctor.comp_map, hθ,
-               prefunctor.map_cast],
-    simp only [hom.cast, rec_heq_iff_heq],
-    refine ⟨rfl, _⟩,
-    congr' 1, },
+  { rw [prefunctor.star], dsimp,
+    rw [prefunctor.map_cast, ←prefunctor.comp_map, ←prefunctor.comp_map,
+        ←prefunctor.map_cast_eq_of_eq hθ, quiver.star_eq_iff],
+    have hu' := congr_arg (λ F : U ⥤q W, F.obj u') hθ, dsimp at hu',
+    refine ⟨hu', _⟩,
+    rw [hom.cast_cast],
+    apply hom.cast_irrelevant, },
   obtain ⟨hu', he'⟩ := (quiver.star_eq_iff _ _).mp ((ψc.1 (θ₂.obj u)).1 he),
-  simp only [hom.cast_cast] at he',
+  rw [hom.cast_cast] at he',
   exact ⟨hu', he'⟩,
 end
 

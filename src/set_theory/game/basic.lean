@@ -343,7 +343,7 @@ instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_
 by { cases x, apply sum.is_empty }
 
 /-- `x * 0` has exactly the same moves as `0`. -/
-protected def mul_zero (x : pgame) : x * 0 ≡ 0 := identical_zero _
+protected lemma mul_zero (x : pgame) : x * 0 ≡ 0 := identical_zero _
 
 /-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling (x : pgame) : x * 0 ≡r 0 := relabelling.is_empty _
@@ -355,7 +355,7 @@ theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equ
 @quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
 
 /-- `0 * x` has exactly the same moves as `0`. -/
-protected def zero_mul (x : pgame) : 0 * x ≡ 0 := identical_zero _
+protected lemma zero_mul (x : pgame) : 0 * x ≡ 0 := identical_zero _
 
 /-- `0 * x` has exactly the same moves as `0`. -/
 def zero_mul_relabelling (x : pgame) : 0 * x ≡r 0 := relabelling.is_empty _
@@ -491,20 +491,6 @@ by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_dist
 
 /-- `x * 1` has the same moves as `x`. -/
 def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
-| ⟨xl, xr, xL, xR⟩ := begin
-  unfold has_one.one,
-  refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),
-    (equiv.empty_sum _ _).trans (equiv.prod_punit _), _, _⟩;
-  try { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) }; try { intro i };
-  dsimp;
-  apply (relabelling.sub_congr (relabelling.refl _) (mul_zero_relabelling _)).trans;
-  rw sub_zero;
-  exact (add_zero_relabelling _).trans (((mul_one_relabelling _).add_congr
-    (mul_zero_relabelling _)).trans $ add_zero_relabelling _)
-end
-
-/-- `x * 1` has the same moves as `x`. -/
-def mul_one : Π (x : pgame.{u}), x * 1 ≡ x
 | ⟨xl, xr, xL, xR⟩ := begin
   unfold has_one.one,
   refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),

@@ -908,9 +908,17 @@ lemma heq_of_cast_eq :
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
-lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h : x == y) :
-  @eq.rec α a C x b eq == y :=
-by subst eq; exact h
+lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (e : a = b) (h : x == y) :
+  @eq.rec α a C x b e == y :=
+by subst e; exact h
+
+lemma rec_heq_iff_heq {β} {C : α → Sort*} {x : C a} {y : β} {e : a = b} :
+  @eq.rec α a C x b e == y ↔ x == y :=
+by subst e
+
+lemma heq_rec_iff_heq {β} {C : α → Sort*} {x : β} {y : C a} {e : a = b} :
+  x == @eq.rec α a C y b e ↔ x == y :=
+by subst e
 
 protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
   (x₁ = x₂) ↔ (y₁ = y₂) :=

@@ -357,7 +357,7 @@ but it does not take care of a possible uniformity. If the `E n` have a uniform 
 there will be two non-defeq uniform structures on `Π n, E n`, the product one and the one coming
 from the metric structure. In this case, use `metric_space_of_discrete_uniformity` instead. -/
 protected def metric_space : metric_space (Π n, E n) :=
-metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
+metric_space.of_dist_topology dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
   is_open_iff_dist pi_nat.eq_of_dist_eq_zero
 
 /-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete uniformity,

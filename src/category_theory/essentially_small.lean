@@ -10,6 +10,9 @@ import category_theory.skeletal
 /-!
 # Essentially small categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category given by `(C : Type u) [category.{v} C]` is `w`-essentially small
 if there exists a `small_model C : Type w` equipped with `[small_category (small_model C)]`.
 

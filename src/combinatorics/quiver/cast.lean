@@ -68,6 +68,7 @@ lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
 by { rw [eq_comm, hom.cast_eq_iff_heq], exact ⟨heq.symm, heq.symm⟩ }
 
+/-- `cast`ing arrows along equality of endpoints defines an equivalence. -/
 @[simps] def hom.equiv_cast {u u' v v' : U} (hu : u = u') (hv : v = v') :
   (u ⟶ v) ≃ (u' ⟶ v') :=
 { to_fun := λ e, e.cast hu hv,

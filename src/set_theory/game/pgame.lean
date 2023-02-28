@@ -710,6 +710,11 @@ end forall_exists_rel
 namespace pgame
 open_locale pgame
 
+/-! ### Identity -/
+
+/-- Two pre-games are identical if their left and right sets are identical.
+That is, `identical x y` if every left move of `x` is identical to some left move of `y`,
+every right move of `x` is identical to some right move of `y`, and vice versa. -/
 def identical : Π (x y : pgame), Prop
 | (mk _ _ xL xR) (mk _ _ yL yR) :=
   ((∀ i, ∃ j, identical (xL i) (yL j)) ∧ (∀ j, ∃ i, identical (xL i) (yL j))) ∧
@@ -717,7 +722,10 @@ def identical : Π (x y : pgame), Prop
 
 localized "infix (name := pgame.identical) ` ≡ `:50 := pgame.identical" in pgame
 
+/-- `x ∈ₗ y` if `x` is identical to some left move of `y`. -/
 def memₗ (x y : pgame.{u}) : Prop := ∃ b, x ≡ (y.move_left b)
+
+/-- `x ∈ᵣ y` if `x` is identical to some right move of `y`. -/
 def memᵣ (x y : pgame.{u}) : Prop := ∃ b, x ≡ (y.move_right b)
 
 localized "infix (name := pgame.memₗ) ` ∈ₗ `:50 := pgame.memₗ" in pgame
@@ -1304,7 +1312,7 @@ lemma memᵣ_add_iff : Π {x y₁ y₂ : pgame},
   { rintros (⟨i, h⟩ | ⟨i, h⟩), exacts [⟨sum.inl i, h⟩, ⟨sum.inr i, h⟩], },
 end
 
-lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
+protected lemma add_comm : Π (x y : pgame.{u}), x + y ≡ y + x
 | (mk xl xr xL xR) (mk yl yr yL yR) := begin
   refine identical.ext (λ z, _) (λ z, _),
   { simp_rw [memₗ_add_iff], rw [or.comm], dsimp,
@@ -1334,7 +1342,7 @@ begin
   { rintros (⟨i, hi⟩ | ⟨i, hi⟩), exacts [⟨_, hi⟩, ⟨_, hi⟩], }
 end
 
-lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
+protected lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) := begin
   refine identical.ext (λ z, _) (λ z, _),
   { simp_rw [memₗ_add_iff, exists_left_moves_add, or.assoc,
@@ -1344,7 +1352,7 @@ lemma add_assoc : Π (x y z : pgame.{u}), x + y + z ≡ x + (y + z)
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma add_zero : Π (x : pgame), x + 0 ≡ x
+protected lemma add_zero : Π (x : pgame), x + 0 ≡ x
 | (mk xl xr xL xR) := begin
   refine identical.ext (λ z, _) (λ z, _),
   { simp_rw [memₗ_add_iff, is_empty.exists_iff, or_false, (add_zero _).congr_right], refl },
@@ -1352,10 +1360,10 @@ lemma add_zero : Π (x : pgame), x + 0 ≡ x
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma zero_add (x : pgame) : 0 + x ≡ x :=
-(add_comm _ _).trans (add_zero _)
+protected lemma zero_add (x : pgame) : 0 + x ≡ x :=
+(pgame.add_comm _ _).trans x.add_zero
 
-lemma neg_add_rev : Π (x y : pgame.{u}), -(x + y) ≡ -y + -x
+protected lemma neg_add_rev : Π (x y : pgame.{u}), -(x + y) ≡ -y + -x
 | (mk xl xr xL xR) (mk yl yr yL yR) := begin
   refine identical.ext (λ z, _) (λ z, _),
   { simp_rw [memₗ_add_iff, memₗ_neg_iff, exists_right_moves_add,
@@ -1365,8 +1373,8 @@ lemma neg_add_rev : Π (x y : pgame.{u}), -(x + y) ≡ -y + -x
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma neg_add (x y : pgame.{u}) : -(x + y) ≡ -x + -y :=
-(neg_add_rev _ _).trans (add_comm _ _)
+protected lemma neg_add (x y : pgame.{u}) : -(x + y) ≡ -x + -y :=
+(x.neg_add_rev y).trans (pgame.add_comm _ _)
 
 lemma identical_zero_iff : Π (x : pgame.{u}),
   x ≡ 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves
@@ -1397,7 +1405,7 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma identical.add_left {x y₁ y₂} (hy : y₁ ≡ y₂) : x + y₁ ≡ x + y₂ :=
-(add_comm _ _).trans (hy.add_right.trans (add_comm _ _))
+(x.add_comm y₁).trans (hy.add_right.trans (y₂.add_comm x))
 
 lemma identical.add {x₁ x₂ y₁ y₂ : pgame.{u}} (hx : x₁ ≡ x₂) (hy : y₁ ≡ y₂) : x₁ + y₁ ≡ x₂ + y₂ :=
 hx.add_right.trans hy.add_left

@@ -495,6 +495,7 @@ function.injective.comm_semiring coe subtype.coe_injective
   coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow coe_nat_cast
 
 variables (S P)
+/-- `fractional_ideal.submodule.has_coe` as a bundled `ring_hom`. -/
 @[simps] def coe_submodule_hom : fractional_ideal S P →+* submodule R P :=
 ⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
 variables {S P}

@@ -161,6 +161,72 @@ by assumption
 instance order_dual.is_directed_le [has_le α] [is_directed α (≥)] : is_directed αᵒᵈ (≤) :=
 by assumption
 
+section reflexive
+
+lemma directed_on.insert (h : reflexive r) (a : α) (s : set α) (hd : directed_on r s)
+(ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
+begin
+  rw directed_on,
+  intros,
+  rw [set.mem_insert_iff] at H,
+  rw [set.mem_insert_iff] at H_1,
+  simp only [set.mem_insert_iff, exists_prop],
+  cases H,
+  { cases H_1,
+    { use a,
+      rw [eq_self_iff_true, true_or, true_and, H, H_1, and_self],
+      apply h, },
+    { cases (ha y H_1),
+      use w,
+      cases h_1,
+      split,
+      { exact or.inr h_1_w },
+      { rw H, exact h_1_h, }, }, },
+  { cases H_1,
+    { cases (ha x H),
+      use w,
+      cases h_1,
+      split,
+      { exact or.inr h_1_w },
+      { rw [H_1, and_comm], exact h_1_h, }, },
+    { cases (hd x H y H_1),
+      use w,
+      cases h_1,
+      split,
+      { exact or.inr h_1_w },
+      { exact h_1_h, }, }, }
+end
+
+lemma directed_on.singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
+begin
+  rw directed_on,
+  intros,
+  use a,
+  simp only [set.mem_singleton, true_and],
+  rw [set.mem_singleton_iff] at H,
+  rw [set.mem_singleton_iff] at H_1,
+  rw [H, H_1, and_self],
+  apply h,
+end
+
+lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab: a ≼ b) :
+  directed_on r ({a, b} : set α) :=
+begin
+  apply directed_on.insert h,
+  exact directed_on.singleton h _,
+  intros,
+  rw [set.mem_singleton_iff] at H,
+  use b,
+  split,
+  { rw set.mem_singleton_iff, },
+  { rw H,
+    split,
+    { exact hab, },
+    { apply h, }, }
+end
+
+end reflexive
+
 section preorder
 variables [preorder α] {a : α}
 

@@ -1386,6 +1386,10 @@ lemma identical_zero_iff : Π (x : pgame.{u}),
   { rintros ⟨h₁, h₂⟩, exactI identical_of_is_empty _ _, },
 end
 
+/-- Any game without left or right moves is identival to 0. -/
+def identical_zero (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡ 0 :=
+x.identical_zero_iff.mpr ⟨by apply_instance, by apply_instance⟩
+
 lemma add_eq_zero_iff : Π (x y : pgame.{u}), x + y ≡ 0 ↔ x ≡ 0 ∧ y ≡ 0
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 by { simp_rw [identical_zero_iff, left_moves_add, right_moves_add, is_empty_sum], tauto, }
@@ -1443,6 +1447,9 @@ instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
 @[simp] theorem sub_zero (x : pgame) : x - 0 = x + 0 :=
 show x + -0 = x + 0, by rw neg_zero
+
+lemma identical.sub {x₁ x₂ y₁ y₂ : pgame.{u}} (hx : x₁ ≡ x₂) (hy : y₁ ≡ y₂) : x₁ - y₁ ≡ x₂ - y₂ :=
+hx.add hy.neg
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w - y` has the same moves as `x - z`. -/

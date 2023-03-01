@@ -956,27 +956,27 @@ to_Set_of_Set _ _
 set.ext $ λ y, Set.mem_sep
 
 @[simp, norm_cast] theorem coe_empty : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 (Set.not_mem_empty y)
+set.ext $ λ y, (iff_false _).2 $ Set.not_mem_empty y
 
 @[simp, norm_cast] theorem coe_insert (x y : Set.{u}) :
-  (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
-set.ext $ λ z, iff.symm Set.mem_insert_iff
+  ↑(insert x y) = (@insert Set.{u} Class.{u} _ x y) :=
+set.ext $ λ z, Set.mem_insert_iff
 
-@[simp, norm_cast] theorem coe_union (x y : Set.{u}) : (x : Class.{u}) ∪ y = (x ∪ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_union
+@[simp, norm_cast] theorem coe_union (x y : Set.{u}) : ↑(x ∪ y) = (x : Class.{u}) ∪ y :=
+set.ext $ λ z, Set.mem_union
 
-@[simp, norm_cast] theorem coe_inter (x y : Set.{u}) : (x : Class.{u}) ∩ y = (x ∩ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_inter
+@[simp, norm_cast] theorem coe_inter (x y : Set.{u}) : ↑(x ∩ y) = (x : Class.{u}) ∩ y :=
+set.ext $ λ z, Set.mem_inter
 
-@[simp, norm_cast] theorem coe_diff (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_diff
+@[simp, norm_cast] theorem coe_diff (x y : Set.{u}) : ↑(x \ y) = (x : Class.{u}) \ y :=
+set.ext $ λ z, Set.mem_diff
 
-@[simp, norm_cast] theorem coe_powerset (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
-set.ext $ λ z, iff.symm Set.mem_powerset
+@[simp, norm_cast] theorem coe_powerset (x : Set.{u}) : ↑x.powerset = powerset.{u} x :=
+set.ext $ λ z, Set.mem_powerset
 
-@[simp] theorem powerset_coe {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
+@[simp] theorem powerset_apply {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
 
-@[simp] theorem sUnion_coe {x : Class} {y : Set} : (⋃₀ x) y ↔ ∃ z : Set, x z ∧ y ∈ z :=
+@[simp] theorem sUnion_apply {x : Class} {y : Set} : (⋃₀ x) y ↔ ∃ z : Set, x z ∧ y ∈ z :=
 begin
   split,
   { rintro ⟨-, ⟨z, rfl, hxz⟩, hyz⟩,
@@ -984,9 +984,8 @@ begin
   { exact λ ⟨z, hxz, hyz⟩, ⟨_, coe_mem.2 hxz, hyz⟩ }
 end
 
-@[simp, norm_cast] theorem coe_sUnion (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
-set.ext $ λ y, (sUnion_coe.trans $ by simp_rw [coe_apply, exists_prop]).trans
-  Set.mem_sUnion.symm
+@[simp, norm_cast] theorem coe_sUnion (x : Set.{u}) : ↑(⋃₀ x) = ⋃₀ (x : Class.{u}) :=
+set.ext $ λ y, Set.mem_sUnion.trans (sUnion_apply.trans $ by simp_rw [coe_apply, exists_prop]).symm
 
 @[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
 begin

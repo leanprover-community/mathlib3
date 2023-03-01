@@ -687,7 +687,10 @@ end
 end pgame
 
 -- This can also used for golf `Set.equiv` lemmas, but I'm not sure where to put it.
-/-- An auxiliary definition for `pgame.identical` -/
+/-- An auxiliary definition for `pgame.identical`.
+
+`forall_exists_rel r s t` says that for every `s i` there is some `t j` such that `r (s i) (t j)`,
+and for every `t j` there is some `s i` such that `r (s i) (t j)`. -/
 def forall_exists_rel {ι₁ ι₂ α₁ α₂ : Type*} (r : α₁ → α₂ → Prop) (s : ι₁ → α₁) (t : ι₂ → α₂) :=
   (∀ i, ∃ j, r (s i) (t j)) ∧ (∀ j, ∃ i, r (s i) (t j))
 

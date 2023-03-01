@@ -11,6 +11,9 @@ import category_theory.thin
 /-!
 # Skeleton of a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define skeletal categories as categories in which any two isomorphic objects are equal.
 
 Construct the skeleton of an arbitrary category by taking isomorphism classes, and show it is a

@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.fin.fin2
 import data.pfun
 import data.vector3
-import number_theory.pell
+import number_theory.pell_matiyasevic
 
 /-!
 # Diophantine functions and Matiyasevic's theorem

@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import algebra.algebra.operations
 import algebra.ring.equiv
 import data.nat.choose.sum
+import linear_algebra.basis.bilinear
 import ring_theory.coprime.lemmas
 import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
@@ -783,7 +784,7 @@ lemma is_radical_bot_of_no_zero_divisors {R} [comm_semiring R] [no_zero_divisors
   radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 is_radical_bot_of_no_zero_divisors
 
-instance : comm_semiring (ideal R) := submodule.comm_semiring
+instance : idem_comm_semiring (ideal R) := submodule.idem_comm_semiring
 
 variables (R)
 theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=
@@ -2168,6 +2169,20 @@ begin
   rw ← ring_hom.map_sub at hab,
   exact quotient.eq.mpr hab
 end
+
+variable (R₁)
+
+/-- Quotienting by equal ideals gives equivalent algebras. -/
+def quotient_equiv_alg_of_eq {I J : ideal A} (h : I = J) : (A ⧸ I) ≃ₐ[R₁] A ⧸ J :=
+quotient_equiv_alg I J alg_equiv.refl $ h ▸ (map_id I).symm
+
+@[simp] lemma quotient_equiv_alg_of_eq_mk {I J : ideal A} (h : I = J) (x : A) :
+  quotient_equiv_alg_of_eq R₁ h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
+rfl
+
+@[simp] lemma quotient_equiv_alg_of_eq_symm {I J : ideal A} (h : I = J) :
+  (quotient_equiv_alg_of_eq R₁ h).symm = quotient_equiv_alg_of_eq R₁ h.symm :=
+by ext; refl
 
 end quotient_algebra
 

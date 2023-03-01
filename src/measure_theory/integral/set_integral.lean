@@ -5,8 +5,10 @@ Authors: Zhouhang Zhou, Yury Kudryashov
 -/
 import measure_theory.integral.integrable_on
 import measure_theory.integral.bochner
+import measure_theory.function.locally_integrable
 import order.filter.indicator_function
 import topology.metric_space.thickened_indicator
+import topology.continuous_function.compact
 
 /-!
 # Set integral
@@ -388,6 +390,23 @@ lemma set_integral_eq_of_subset_of_forall_diff_eq_zero
 set_integral_eq_of_subset_of_ae_diff_eq_zero ht.null_measurable_set hts
   (eventually_of_forall (λ x hx, h't x hx))
 
+/-- If a function vanishes almost everywhere on `sᶜ`, then its integral on `s`
+coincides with its integral on the whole space. -/
+lemma set_integral_eq_integral_of_ae_compl_eq_zero
+  (h : ∀ᵐ x ∂μ, x ∉ s → f x = 0) : ∫ x in s, f x ∂μ = ∫ x, f x ∂μ :=
+begin
+  conv_rhs { rw ← integral_univ },
+  symmetry,
+  apply set_integral_eq_of_subset_of_ae_diff_eq_zero null_measurable_set_univ (subset_univ _),
+  filter_upwards [h] with x hx h'x using hx h'x.2,
+end
+
+/-- If a function vanishes on `sᶜ`, then its integral on `s` coincides with its integral on the
+whole space. -/
+lemma set_integral_eq_integral_of_forall_compl_eq_zero
+  (h : ∀ x, x ∉ s → f x = 0) : ∫ x in s, f x ∂μ = ∫ x, f x ∂μ :=
+set_integral_eq_integral_of_ae_compl_eq_zero (eventually_of_forall h)
+
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E]
   {f : α → E} (hf : ae_strongly_measurable f μ) :
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
@@ -691,6 +710,54 @@ begin
 end
 
 end nonneg
+
+section integrable_Union
+
+variables {μ : measure α} [normed_add_comm_group E] [countable β]
+
+lemma integrable_on_Union_of_summable_integral_norm {f : α → E} {s : β → set α}
+  (hs : ∀ (b : β), measurable_set (s b)) (hi : ∀ (b : β), integrable_on f (s b) μ)
+  (h : summable (λ (b : β), ∫ (a : α) in s b, ‖f a‖ ∂μ)) :
+  integrable_on f (Union s) μ :=
+begin
+  refine ⟨ae_strongly_measurable.Union (λ i, (hi i).1), (lintegral_Union_le _ _).trans_lt _⟩,
+  have B := λ (b : β), lintegral_coe_eq_integral (λ (a : α), ‖f a‖₊) (hi b).norm,
+  rw tsum_congr B,
+  have S' : summable (λ (b : β), (⟨∫ (a : α) in s b, ‖f a‖₊ ∂μ,
+    set_integral_nonneg (hs b) (λ a ha, nnreal.coe_nonneg _)⟩ : nnreal)),
+  { rw ←nnreal.summable_coe, exact h },
+  have S'' := ennreal.tsum_coe_eq S'.has_sum,
+  simp_rw [ennreal.coe_nnreal_eq, nnreal.coe_mk, coe_nnnorm] at S'',
+  convert ennreal.of_real_lt_top,
+end
+
+variables [topological_space α] [borel_space α] [metrizable_space α] [is_locally_finite_measure μ]
+
+/-- If `s` is a countable family of compact sets, `f` is a continuous function, and the sequence
+`‖f.restrict (s i)‖ * μ (s i)` is summable, then `f` is integrable on the union of the `s i`. -/
+lemma integrable_on_Union_of_summable_norm_restrict {f : C(α, E)} {s : β → compacts α}
+  (hf : summable (λ i : β, ‖f.restrict (s i)‖ * ennreal.to_real (μ $ s i))) :
+  integrable_on f (⋃ i : β, s i) μ :=
+begin
+  refine integrable_on_Union_of_summable_integral_norm
+    (λ i, (s i).is_compact.is_closed.measurable_set)
+    (λ i, (map_continuous f).continuous_on.integrable_on_compact (s i).is_compact)
+    (summable_of_nonneg_of_le (λ ι, integral_nonneg (λ x, norm_nonneg _)) (λ i, _) hf),
+  rw ←(real.norm_of_nonneg (integral_nonneg (λ a, norm_nonneg _)) : ‖_‖ = ∫ x in s i, ‖f x‖ ∂μ),
+  exact norm_set_integral_le_of_norm_le_const' (s i).is_compact.measure_lt_top
+    (s i).is_compact.is_closed.measurable_set
+    (λ x hx, (norm_norm (f x)).symm ▸ (f.restrict ↑(s i)).norm_coe_le_norm ⟨x, hx⟩)
+end
+
+/-- If `s` is a countable family of compact sets covering `α`, `f` is a continuous function, and
+the sequence `‖f.restrict (s i)‖ * μ (s i)` is summable, then `f` is integrable. -/
+lemma integrable_of_summable_norm_restrict {f : C(α, E)} {s : β → compacts α}
+  (hf : summable (λ i : β, ‖f.restrict (s i)‖ * ennreal.to_real (μ $ s i)))
+  (hs : (⋃ i : β, ↑(s i)) = (univ : set α)) :
+  integrable f μ :=
+by simpa only [hs, integrable_on_univ] using integrable_on_Union_of_summable_norm_restrict hf
+
+end integrable_Union
 
 section tendsto_mono
 

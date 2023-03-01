@@ -10,6 +10,9 @@ import category_theory.lifting_properties.adjunction
 /-!
 # Preservation and reflection of monomorphisms and epimorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide typeclasses that state that a functor preserves or reflects monomorphisms or
 epimorphisms.
 -/

@@ -399,6 +399,8 @@ by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
 
 lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a := by simpa using hr
 
+lemma eval_surjective (x : R) : function.surjective $ eval x := λ y, ⟨C y, eval_C⟩
+
 end eval
 
 section comp

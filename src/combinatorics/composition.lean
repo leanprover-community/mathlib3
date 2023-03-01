@@ -10,6 +10,9 @@ import algebra.big_operators.fin
 /-!
 # Compositions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A composition of a natural number `n` is a decomposition `n = i₀ + ... + i_{k-1}` of `n` into a sum
 of positive integers. Combinatorially, it corresponds to a decomposition of `{0, ..., n-1}` into
 non-empty blocks of consecutive integers, where the `iⱼ` are the lengths of the blocks.

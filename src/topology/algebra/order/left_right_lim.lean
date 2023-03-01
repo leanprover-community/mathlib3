@@ -9,6 +9,9 @@ import topology.algebra.order.left_right
 /-!
 # Left and right limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the (strict) left and right limits of a function.
 
 * `left_lim f x` is the strict left limit of `f` at `x` (using `f x` as a garbage value if `x`

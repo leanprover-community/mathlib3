@@ -9,6 +9,9 @@ import data.multiset.basic
 /-!
 # Sums and products over multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by multisets. This is later used to define products
 and sums indexed by finite sets.
 
@@ -86,8 +89,8 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
-@[simp, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
-by simp [repeat, list.prod_repeat]
+@[simp, to_additive] lemma prod_replicate (n : ℕ) (a : α) : (replicate n a).prod = a ^ n :=
+by simp [replicate, list.prod_replicate]
 
 @[to_additive]
 lemma prod_map_eq_pow_single [decidable_eq ι] (i : ι) (hf : ∀ i' ≠ i, i' ∈ m → f i' = 1) :
@@ -107,7 +110,7 @@ end
 
 @[to_additive]
 lemma pow_count [decidable_eq α] (a : α) : a ^ s.count a = (s.filter (eq a)).prod :=
-by rw [filter_eq, prod_repeat]
+by rw [filter_eq, prod_replicate]
 
 @[to_additive]
 lemma prod_hom [comm_monoid β] (s : multiset α) {F : Type*} [monoid_hom_class F α β] (f : F) :
@@ -134,7 +137,7 @@ quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
-lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod_repeat, one_pow]
+lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod_replicate, one_pow]
 
 @[simp, to_additive]
 lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
@@ -321,7 +324,7 @@ lemma prod_le_prod_map (f : α → α) (h : ∀ x, x ∈ s → x ≤ f x) : s.pr
 
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (h : ∀ x ∈ s, a ≤ x) : a ^ s.card ≤ s.prod :=
-by { rw [←multiset.prod_repeat, ←multiset.map_const], exact prod_map_le_prod _ h }
+by { rw [←multiset.prod_replicate, ←multiset.map_const], exact prod_map_le_prod _ h }
 
 end ordered_comm_monoid
 

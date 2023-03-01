@@ -379,22 +379,22 @@ end ordered_cancel_add_comm_monoid
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E] {𝕜} {a b : 𝕜}
 
-lemma segment_subset_interval (x y : E) : [x -[𝕜] y] ⊆ interval x y :=
+lemma segment_subset_uIcc (x y : E) : [x -[𝕜] y] ⊆ uIcc x y :=
 begin
   cases le_total x y,
-  { rw interval_of_le h,
+  { rw uIcc_of_le h,
     exact segment_subset_Icc h },
-  { rw [interval_of_ge h, segment_symm],
+  { rw [uIcc_of_ge h, segment_symm],
     exact segment_subset_Icc h }
 end
 
 lemma convex.min_le_combo (x y : E) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min x y ≤ a • x + b • y :=
-(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).1
+(segment_subset_uIcc x y ⟨_, _, ha, hb, hab, rfl⟩).1
 
 lemma convex.combo_le_max (x y : E) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • x + b • y ≤ max x y :=
-(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).2
+(segment_subset_uIcc x y ⟨_, _, ha, hb, hab, rfl⟩).2
 
 end linear_ordered_add_comm_monoid
 end ordered_semiring
@@ -440,7 +440,7 @@ begin
   { rw [open_segment_symm, open_segment_eq_Ioo h, max_eq_left h.le, min_eq_right h.le] }
 end
 
-lemma segment_eq_interval (x y : 𝕜) : [x -[𝕜] y] = interval x y := segment_eq_Icc' _ _
+lemma segment_eq_uIcc (x y : 𝕜) : [x -[𝕜] y] = uIcc x y := segment_eq_Icc' _ _
 
 /-- A point is in an `Icc` iff it can be expressed as a convex combination of the endpoints. -/
 lemma convex.mem_Icc (h : x ≤ y) :

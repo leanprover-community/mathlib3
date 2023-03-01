@@ -677,6 +677,8 @@ theorem singleton_injective : function.injective (@singleton Set Set _) :=
 @[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
 by { ext, simp }
 
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
+
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
 
@@ -874,6 +876,8 @@ def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
+@[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
+
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
 
@@ -894,7 +898,10 @@ instance : is_asymm Class (∈) := mem_wf.is_asymm
 theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
 theorem mem_irrefl (x : Class) : x ∉ x := irrefl x
 
-/-- There is no universal set. -/
+/-- **There is no universal set.**
+
+This is stated as `univ ∉ univ`, meaning that `univ` (the class of all sets) is proper (does not
+belong to the class of all sets). -/
 theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 
 /-- Convert a conglomerate (a collection of classes) into a class -/
@@ -949,6 +956,31 @@ set.ext $ λ z, iff.symm Set.mem_powerset
 @[simp] theorem sUnion_hom (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
 set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
+
+@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
+begin
+  refine λ h, set.ext (λ z, _),
+  change x z ↔ y z,
+  rw [←mem_hom_left z x, ←mem_hom_left z y],
+  exact h z
+end
+
+theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
+⟨λ h, by simp [h], ext⟩
+
+theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
+
+@[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
+begin
+  split,
+  { rintro ⟨w, rfl, ⟨z, hzx, hwz⟩⟩,
+    exact ⟨z, hzx, (mem_hom_left _ _).2 hwz⟩ },
+  { rintro ⟨w, hwx, ⟨z, rfl, hwz⟩⟩,
+    exact ⟨z, rfl, ⟨w, hwx, hwz⟩⟩ }
+end
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=
+by { ext, simp }
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}

@@ -8,6 +8,7 @@ import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
+import linear_algebra.bilinear_form
 
 /-!
 # Inner product space
@@ -436,6 +437,15 @@ linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
   (λ r x y, inner_smul_right)
   (λ x y z, inner_add_left)
   (λ r x y, inner_smul_left)
+
+/-- The real inner product as a bilinear form. -/
+@[simps]
+def bilin_form_of_real_inner : bilin_form ℝ F :=
+{ bilin := inner,
+  bilin_add_left := λ x y z, inner_add_left,
+  bilin_smul_left := λ a x y, inner_smul_left,
+  bilin_add_right := λ x y z, inner_add_right,
+  bilin_smul_right := λ a x y, inner_smul_right }
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :

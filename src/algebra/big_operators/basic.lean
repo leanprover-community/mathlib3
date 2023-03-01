@@ -18,6 +18,9 @@ import data.set.pairwise
 /-!
 # Big operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by finite sets (specifically, `finset`).
 
 ## Notation
@@ -245,7 +248,7 @@ by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
 @[simp, priority 1100, to_additive]
 lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
-by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
+by simp only [finset.prod, multiset.map_const, multiset.prod_replicate, one_pow]
 
 @[simp, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
@@ -1126,7 +1129,7 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_repeat b s.card
+(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate s.card b
 
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
@@ -1382,7 +1385,7 @@ begin
   classical,
   apply finset.induction_on' S, { simp },
   intros a T haS _ haT IH,
-  repeat {rw finset.prod_insert haT},
+  repeat { rw finset.prod_insert haT },
   exact mul_dvd_mul (h a haS) IH,
 end
 
@@ -1679,7 +1682,7 @@ lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset
   multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
 begin
   convert (@disjoint_sum_left _ a) (map f i.val),
-  simp [finset.mem_def, and.congr_left_iff, iff_self],
+  simp [and.congr_left_iff, iff_self],
 end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
@@ -1726,7 +1729,7 @@ lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
   finset.sup (finset.range (x.card + 1)) (λ k, x.powerset_len k) = x.powerset :=
 begin
   convert bind_powerset_len x,
-  rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
+  rw [multiset.bind, multiset.join, ←finset.range_val, ←finset.sum_eq_multiset_sum],
   exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr
     (λ _ _ _ _ h, pairwise_disjoint_powerset_len x h)),
 end

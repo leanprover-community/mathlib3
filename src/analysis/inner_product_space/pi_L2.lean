@@ -296,6 +296,7 @@ basis.of_equiv_fun b.repr.to_linear_equiv
 begin
   change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
   ext j,
+  classical,
   rw basis.coe_of_equiv_fun,
   congr,
 end
@@ -402,7 +403,7 @@ protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span �
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
 /-- Any finite subset of a orthonormal family is an `orthonormal_basis` for its span. -/
-protected def span {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
+protected def span [decidable_eq E] {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
   orthonormal_basis s 𝕜 (span 𝕜 (s.image v' : set E)) :=
 let
   e₀' : basis s 𝕜 _ := basis.span (h.linear_independent.comp (coe : s → ι') subtype.coe_injective),
@@ -421,7 +422,8 @@ let
 in
 e₀.map φ.symm
 
-@[simp] protected lemma span_apply {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
+@[simp] protected lemma span_apply [decidable_eq E]
+  {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
@@ -701,7 +703,7 @@ sum has an orthonormal basis indexed by `fin n` and subordinate to that direct s
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
 provides the mapping by which it is subordinate. -/
-def direct_sum.is_internal.subordinate_orthonormal_basis_index
+@[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis_index
   (a : fin n) (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) : ι :=
 ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a).1
 
@@ -712,11 +714,9 @@ lemma direct_sum.is_internal.subordinate_orthonormal_basis_subordinate
   (hV.subordinate_orthonormal_basis hn hV' a) ∈
   V (hV.subordinate_orthonormal_basis_index hn a hV') :=
 by simpa only [direct_sum.is_internal.subordinate_orthonormal_basis,
-  orthonormal_basis.coe_reindex]
+  orthonormal_basis.coe_reindex, direct_sum.is_internal.subordinate_orthonormal_basis_index]
   using hV.collected_orthonormal_basis_mem hV' (λ i, (std_orthonormal_basis 𝕜 (V i)))
     ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a)
-
-attribute [irreducible] direct_sum.is_internal.subordinate_orthonormal_basis_index
 
 end subordinate_orthonormal_basis
 

@@ -70,6 +70,13 @@ lemma mk_smul_mk (r : R) (x : M) (hx : x ∈ s) :
 
 @[to_additive] lemma smul_def (r : R) (x : s) : r • x = ⟨r • x, smul_mem r x.2⟩ := rfl
 
+omit hS
+
+@[simp] lemma forall_smul_mem_iff {R M S : Type*} [monoid R] [mul_action R M]
+  [set_like S M] [smul_mem_class S R M] {N : S} {x : M} :
+  (∀ (a : R), a • x ∈ N) ↔ x ∈ N :=
+⟨λ h, by simpa using h 1, λ h a, smul_mem_class.smul_mem a h⟩
+
 end set_like
 
 /-- A sub_mul_action is a set which is closed under scalar multiplication.  -/

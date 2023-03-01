@@ -12,6 +12,9 @@ import order.conditionally_complete_lattice.basic
 /-!
 # Upper/lower bounds in ordered monoids and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few facts like “`-s` is bounded above iff `s` is bounded below”
 (`bdd_above_neg`).
 -/

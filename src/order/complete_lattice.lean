@@ -1295,6 +1295,54 @@ instance [has_Sup α] [has_Sup β] : has_Sup (α × β) :=
 instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
 ⟨λ s, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
 
+variables {α β}
+
+lemma fst_Inf [has_Inf α] [has_Inf β] (s : set (α × β)) : (Inf s).fst = Inf (prod.fst '' s) := rfl
+
+lemma snd_Inf [has_Inf α] [has_Inf β] (s : set (α × β)) : (Inf s).snd = Inf (prod.snd '' s) := rfl
+
+lemma swap_Inf [has_Inf α] [has_Inf β] (s : set (α × β)) : (Inf s).swap = Inf (prod.swap '' s) :=
+ext
+  (congr_arg Inf $ image_comp prod.fst swap s : _)
+  (congr_arg Inf $ image_comp prod.snd swap s : _)
+
+lemma fst_Sup [has_Sup α] [has_Sup β] (s : set (α × β)) : (Sup s).fst = Sup (prod.fst '' s) := rfl
+
+lemma snd_Sup [has_Sup α] [has_Sup β] (s : set (α × β)) : (Sup s).snd = Sup (prod.snd '' s) := rfl
+
+lemma swap_Sup [has_Sup α] [has_Sup β] (s : set (α × β)) : (Sup s).swap = Sup (prod.swap '' s) :=
+ext
+  (congr_arg Sup $ image_comp prod.fst swap s : _)
+  (congr_arg Sup $ image_comp prod.snd swap s : _)
+
+lemma fst_infi [has_Inf α] [has_Inf β] (f : ι → α × β) : (infi f).fst = ⨅ i, (f i).fst :=
+congr_arg Inf (range_comp _ _).symm
+
+lemma snd_infi [has_Inf α] [has_Inf β] (f : ι → α × β) : (infi f).snd = ⨅ i, (f i).snd :=
+congr_arg Inf (range_comp _ _).symm
+
+lemma swap_infi [has_Inf α] [has_Inf β] (f : ι → α × β) : (infi f).swap = ⨅ i, (f i).swap :=
+by simp_rw [infi, swap_Inf, range_comp]
+
+lemma infi_mk [has_Inf α] [has_Inf β] (f : ι → α) (g : ι → β) :
+  (⨅ i, (f i, g i)) = (⨅ i, f i, ⨅ i, g i) :=
+congr_arg2 prod.mk (fst_infi _) (snd_infi _)
+
+lemma fst_supr [has_Sup α] [has_Sup β] (f : ι → α × β) : (supr f).fst = ⨆ i, (f i).fst :=
+congr_arg Sup (range_comp _ _).symm
+
+lemma snd_supr [has_Sup α] [has_Sup β] (f : ι → α × β) : (supr f).snd = ⨆ i, (f i).snd :=
+congr_arg Sup (range_comp _ _).symm
+
+lemma swap_supr [has_Sup α] [has_Sup β] (f : ι → α × β) : (supr f).swap = ⨆ i, (f i).swap :=
+by simp_rw [supr, swap_Sup, range_comp]
+
+lemma supr_mk [has_Sup α] [has_Sup β] (f : ι → α) (g : ι → β) :
+  (⨆ i, (f i, g i)) = (⨆ i, f i, ⨆ i, g i) :=
+congr_arg2 prod.mk (fst_supr _) (snd_supr _)
+
+variables (α β)
+
 instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × β) :=
 { le_Sup := λ s p hab, ⟨le_Sup $ mem_image_of_mem _ hab, le_Sup $ mem_image_of_mem _ hab⟩,
   Sup_le := λ s p h,
@@ -1310,6 +1358,14 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   .. prod.has_Inf α β }
 
 end prod
+
+lemma Inf_prod [has_Inf α] [has_Inf β] {s : set α} {t : set β} (hs : s.nonempty) (ht : t.nonempty) :
+  Inf (s ×ˢ t) = (Inf s, Inf t) :=
+congr_arg2 prod.mk (congr_arg Inf $ fst_image_prod _ ht) (congr_arg Inf $ snd_image_prod hs _)
+
+lemma Sup_prod [has_Sup α] [has_Sup β] {s : set α} {t : set β} (hs : s.nonempty) (ht : t.nonempty) :
+  Sup (s ×ˢ t) = (Sup s, Sup t) :=
+congr_arg2 prod.mk (congr_arg Sup $ fst_image_prod _ ht) (congr_arg Sup $ snd_image_prod hs _)
 
 section complete_lattice
 variables [complete_lattice α] {a : α} {s : set α}

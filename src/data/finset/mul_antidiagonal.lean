@@ -62,11 +62,11 @@ by simp [mul_antidiagonal, and_rotate]
 
 @[to_additive] lemma mul_antidiagonal_mono_left (h : u ⊆ s) :
   mul_antidiagonal hu ht a ⊆ mul_antidiagonal hs ht a :=
-set.finite.to_finset_subset.2 $ set.mul_antidiagonal_mono_left h
+set.finite.to_finset_mono $ set.mul_antidiagonal_mono_left h
 
 @[to_additive] lemma mul_antidiagonal_mono_right (h : u ⊆ t) :
   mul_antidiagonal hs hu a ⊆ mul_antidiagonal hs ht a :=
-set.finite.to_finset_subset.2 $ set.mul_antidiagonal_mono_right h
+set.finite.to_finset_mono $ set.mul_antidiagonal_mono_right h
 
 @[simp, to_additive] lemma swap_mem_mul_antidiagonal :
   x.swap ∈ finset.mul_antidiagonal hs ht a ↔ x ∈ finset.mul_antidiagonal ht hs a :=

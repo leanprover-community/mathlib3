@@ -191,11 +191,11 @@ begin
   change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-  erw [mul_one, mul_one] at eq1,
-  change f^_ * f^_ = _ * f^_ at eq1,
+  erw [one_mul, one_mul] at eq1,
+  change f^_ * f^_ = f^_ * _ at eq1,
   rw set.not_disjoint_iff_nonempty_inter,
-  refine ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
-    (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
+  refine ⟨f^M * f^N, eq1.symm ▸ mul_mem_left _ _
+    (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨M + N, by rw pow_add⟩⟩,
   generalize_proofs h₁ h₂,
   exact (classical.some_spec h₂).1,
 end
@@ -220,9 +220,8 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
   simp only [localization.mk_mul, one_mul] at eq1,
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-  rw [submonoid.coe_one, mul_one] at eq1,
-  change _ * _ * f^_ = _ * (f^_ * f^_) * f^_ at eq1,
-
+  rw [submonoid.coe_one, one_mul] at eq1,
+  change f^_ * (_ * _) = f^_ * (f^_ * f^_ * _) at eq1,
   rcases x.1.is_prime.mem_or_mem (show a1 * a2 * f ^ N * f ^ M ∈ _, from _) with h1|rid2,
   rcases x.1.is_prime.mem_or_mem h1 with h1|rid1,
   rcases x.1.is_prime.mem_or_mem h1 with h1|h2,
@@ -234,8 +233,8 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h2, rfl⟩), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem N rid1)), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem M rid2)), },
-  { rw [mul_comm _ (f^N), eq1],
-    refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
+  { rw [←mul_comm (f^M), ←mul_comm (f^N), eq1],
+    refine mul_mem_left _ _ (mul_mem_left _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
     generalize_proofs h₁ h₂, exact (classical.some_spec h₂).1 },
 end⟩
 
@@ -273,7 +272,7 @@ begin
     change localization.mk (f^N) 1 * mk _ _ = mk (∑ _, _) _ at eq1,
     rw [mk_mul, one_mul, mk_eq_mk', is_localization.eq] at eq1,
     rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-    rw [submonoid.coe_one, mul_one] at eq1,
+    rw [submonoid.coe_one, one_mul] at eq1,
     simp only [subtype.coe_mk] at eq1,
 
     rcases y.1.is_prime.mem_or_mem (show a * f ^ N * f ^ M ∈ _, from _) with H1 | H3,
@@ -281,8 +280,8 @@ begin
     { exact hy2 H1, },
     { exact y.2 (y.1.is_prime.mem_of_pow_mem N H2), },
     { exact y.2 (y.1.is_prime.mem_of_pow_mem M H3), },
-    { rw [mul_comm _ (f^N), eq1],
-      refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
+    { rw [mul_comm _ (f^N), mul_comm _ (f^M), eq1],
+      refine mul_mem_left _ _ (mul_mem_left _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
       generalize_proofs h₁ h₂, exact (classical.some_spec h₂).1, }, },
 end
 

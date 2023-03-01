@@ -418,12 +418,12 @@ begin
     exact is_preconnected_Icc_aux y x t s h ht hs hab hy hx, },
 end
 
-lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
+lemma is_preconnected_uIcc : is_preconnected (uIcc a b) := is_preconnected_Icc
 
 lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
   is_preconnected s :=
-is_preconnected_of_forall_pair $ λ x hx y hy, ⟨interval x y, h.interval_subset hx hy,
-  left_mem_interval, right_mem_interval, is_preconnected_interval⟩
+is_preconnected_of_forall_pair $ λ x hx y hy, ⟨uIcc x y, h.uIcc_subset hx hy,
+  left_mem_uIcc, right_mem_uIcc, is_preconnected_uIcc⟩
 
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
@@ -504,9 +504,9 @@ lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : c
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- **Intermediate Value Theorem** for continuous functions on closed intervals, unordered case. -/
-lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
-  interval (f a) (f b) ⊆ f '' interval a b :=
-by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
+lemma intermediate_value_uIcc {a b : α} {f : α → δ} (hf : continuous_on f (uIcc a b)) :
+  uIcc (f a) (f b) ⊆ f '' uIcc a b :=
+by cases le_total (f a) (f b); simp [*, is_preconnected_uIcc.intermediate_value]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=
@@ -563,9 +563,9 @@ hs.is_preconnected.intermediate_value ha hb hf
 
 /-- **Intermediate value theorem**: if `f` is continuous on an order-connected set `s` and `a`,
 `b` are two points of this set, then `f` sends `s` to a superset of `[f x, f y]`. -/
-lemma continuous_on.surj_on_interval {s : set α} [hs : ord_connected s] {f : α → δ}
+lemma continuous_on.surj_on_uIcc {s : set α} [hs : ord_connected s] {f : α → δ}
   (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  surj_on f s (interval (f a) (f b)) :=
+  surj_on f s (uIcc (f a) (f b)) :=
 by cases le_total (f a) (f b) with hab hab; simp [hf.surj_on_Icc, *]
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/

@@ -308,19 +308,19 @@ begin
     exact (span_singleton_mul_right_unit D.is_unit _) },
   apply associated_of_dvd_dvd,
   { rw dvd_gcd_iff,
-    split; rw [←ideal.mem_span_singleton, ←hd, mem_span_pair],
+    split; rw [←ideal.mem_span_singleton, ←hd, ideal.mem_span_pair],
     { use [1, 0],
       rw [one_mul, zero_mul, add_zero] },
     { use [0, 1],
       rw [one_mul, zero_mul, zero_add] } },
   { obtain ⟨r, s, rfl⟩ : ∃ r s, r * x + s * y = d,
-    { rw [←mem_span_pair, hd, ideal.mem_span_singleton] },
+    { rw [←ideal.mem_span_pair, hd, ideal.mem_span_singleton] },
     apply dvd_add; apply dvd_mul_of_dvd_right,
     exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
 end
 
 theorem gcd_dvd_iff_exists (a b : R) {z} : gcd a b ∣ z ↔ ∃ x y, z = a * x + b * y :=
-by simp_rw [mul_comm a, mul_comm b, @eq_comm _ z, ←mem_span_pair, ←span_gcd,
+by simp_rw [mul_comm a, mul_comm b, @eq_comm _ z, ←ideal.mem_span_pair, ←span_gcd,
   ideal.mem_span_singleton]
 
 /-- **Bézout's lemma** -/
@@ -328,7 +328,7 @@ theorem exists_gcd_eq_mul_add_mul (a b : R) : ∃ x y, gcd a b = a * x + b * y :
 by rw [←gcd_dvd_iff_exists]
 
 theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
-by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
+by rw [is_coprime, ←ideal.mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
 
 -- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd (x y : R)

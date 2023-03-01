@@ -259,7 +259,7 @@ begin
   { intro h, contrapose! h, rcases h with ⟨hR, hn, hw⟩,
     simp only [circle_integrable_iff R, deriv_circle_map],
     rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
-    replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
+    replace hθ : θ ∈ [0, 2 * π], from Icc_subset_uIcc (Ioc_subset_Icc_self hθ),
     refine not_interval_integrable_of_sub_inv_is_O_punctured _ real.two_pi_pos.ne hθ,
     set f : ℝ → ℂ := λ θ', circle_map c R θ' - circle_map c R θ,
     have : ∀ᶠ θ' in 𝓝[≠] θ, f θ' ∈ ball (0 : ℂ) 1 \ {0},

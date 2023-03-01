@@ -14,6 +14,9 @@ import group_theory.group_action.pi
 /-!
 # Support of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `function.support f = {x | f x ≠ 0}` and prove its basic properties.
 We also define `function.mul_support f = {x | f x ≠ 1}`.
 -/

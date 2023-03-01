@@ -882,36 +882,6 @@ lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
 and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
-lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, c * f x) μ :=
-integrable.smul c h
-
-lemma integrable.const_mul' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable ((λ (x : α), c) * f) μ :=
-integrable.smul c h
-
-lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, f x * c) μ :=
-by simp_rw [mul_comm, h.const_mul _]
-
-lemma integrable.mul_const' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (f * (λ (x : α), c)) μ :=
-integrable.mul_const h c
-
-lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, f x / c) μ :=
-by simp_rw [div_eq_mul_inv, h.mul_const]
-
-lemma integrable.bdd_mul' {f g : α → ℝ} {c : ℝ} (hg : integrable g μ)
-  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
-  integrable (λ x, f x * g x) μ :=
-begin
-  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
-  filter_upwards [hf_bound] with x hx,
-  rw [pi.smul_apply, smul_eq_mul],
-  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
-end
-
 end normed_space
 
 section normed_space_over_complete_field
@@ -931,6 +901,36 @@ end normed_space_over_complete_field
 
 section is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
+
+lemma integrable.const_mul {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, c * f x) μ :=
+integrable.smul c h
+
+lemma integrable.const_mul' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable ((λ (x : α), c) * f) μ :=
+integrable.smul c h
+
+lemma integrable.mul_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x * c) μ :=
+by simp_rw [mul_comm, h.const_mul _]
+
+lemma integrable.mul_const' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (f * (λ (x : α), c)) μ :=
+integrable.mul_const h c
+
+lemma integrable.div_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x / c) μ :=
+by simp_rw [div_eq_mul_inv, h.mul_const]
+
+lemma integrable.bdd_mul' {f g : α → 𝕜} {c : ℝ} (hg : integrable g μ)
+  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
+  filter_upwards [hf_bound] with x hx,
+  rw [pi.smul_apply, smul_eq_mul],
+  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
+end
 
 lemma integrable.of_real {f : α → ℝ} (hf : integrable f μ) :
   integrable (λ x, (f x : 𝕜)) μ :=

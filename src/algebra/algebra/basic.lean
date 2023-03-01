@@ -10,6 +10,7 @@ import algebra.ring.aut
 import algebra.ring.ulift
 import algebra.char_zero.lemmas
 import linear_algebra.span
+import ring_theory.subring.basic
 import tactic.abel
 
 /-!

@@ -8,6 +8,9 @@ import data.multiset.pi
 
 /-!
 # The cartesian product of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset

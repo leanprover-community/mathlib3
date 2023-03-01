@@ -129,8 +129,8 @@ For example, let `(v : ℚ) := 3.4`. The process goes as follows:
 -/
 protected def stream (v : K) : stream $ option (int_fract_pair K)
 | 0 := some (int_fract_pair.of v)
-| (n + 1) := do ap_n ← stream n,
-  if ap_n.fr = 0 then none else int_fract_pair.of ap_n.fr⁻¹
+| (n + 1) := (stream n).bind $ λ ap_n,
+  if ap_n.fr = 0 then none else some (int_fract_pair.of ap_n.fr⁻¹)
 
 /--
 Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at

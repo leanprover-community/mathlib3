@@ -504,19 +504,22 @@ variables [lattice α] {a b c d : α}
 
 lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
 
-@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b :=
-begin
-  split,
-  { rintro H rfl, simpa using H },
-  { refine λ Hne, lt_iff_le_and_ne.2 ⟨inf_le_sup, λ Heq, Hne _⟩,
-    refine le_antisymm _ _,
-    exacts [le_sup_left.trans (Heq.symm.trans_le inf_le_right),
-      le_sup_right.trans (Heq.symm.trans_le inf_le_left)] }
-end
-
 @[simp] lemma sup_le_inf : a ⊔ b ≤ a ⊓ b ↔ a = b :=
 ⟨λ h, le_antisymm (le_sup_left.trans $ h.trans inf_le_right)
   (le_sup_right.trans $ h.trans inf_le_left), by { rintro rfl, simp }⟩
+
+@[simp] lemma inf_eq_sup : a ⊓ b = a ⊔ b ↔ a = b := by rw [←inf_le_sup.ge_iff_eq, sup_le_inf]
+@[simp] lemma sup_eq_inf : a ⊔ b = a ⊓ b ↔ a = b := eq_comm.trans inf_eq_sup
+@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b := by rw [inf_le_sup.lt_iff_ne, ne.def, inf_eq_sup]
+
+lemma inf_eq_and_sup_eq_iff : a ⊓ b = c ∧ a ⊔ b = c ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl := sup_eq_inf.1 (h.2.trans h.1.symm),
+    simpa using h },
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨inf_idem, sup_idem⟩ }
+end
 
 /-!
 #### Distributivity laws

@@ -11,7 +11,7 @@ import data.nat.order.basic
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
 > Any changes to this file require a corresponding PR to mathlib4.
 
-This file defines a simple distance function on naturals from truncated substraction.
+This file defines a simple distance function on naturals from truncated subtraction.
 -/
 
 namespace nat

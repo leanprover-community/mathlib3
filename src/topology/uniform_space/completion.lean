@@ -111,14 +111,14 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
   begin
     rw [lift'_lift'_assoc],
     exact monotone_gen,
-    exact (monotone_comp_rel monotone_id monotone_id)
+    exact monotone_id.comp_rel monotone_id
   end
   ... ≤ (𝓤 α).lift' (λs, gen $ comp_rel s s) :
     lift'_mono' $ assume s hs, comp_rel_gen_gen_subset_gen_comp_rel
   ... = ((𝓤 α).lift' $ λs:set(α×α), comp_rel s s).lift' gen :
   begin
     rw [lift'_lift'_assoc],
-    exact (monotone_comp_rel monotone_id monotone_id),
+    exact monotone_id.comp_rel monotone_id,
     exact monotone_gen
   end
   ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity le_rfl

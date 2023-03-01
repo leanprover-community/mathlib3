@@ -13,12 +13,12 @@ import linear_algebra.affine_space.midpoint
 Mazur-Ulam theorem states that an isometric bijection between two normed affine spaces over `ℝ` is
 affine. We formalize it in three definitions:
 
-* `isometric.to_real_linear_isometry_equiv_of_map_zero` : given `E ≃ᵢ F` sending `0` to `0`,
+* `isometry_equiv.to_real_linear_isometry_equiv_of_map_zero` : given `E ≃ᵢ F` sending `0` to `0`,
   returns `E ≃ₗᵢ[ℝ] F` with the same `to_fun` and `inv_fun`;
-* `isometric.to_real_linear_isometry_equiv` : given `f : E ≃ᵢ F`, returns a linear isometry
+* `isometry_equiv.to_real_linear_isometry_equiv` : given `f : E ≃ᵢ F`, returns a linear isometry
   equivalence `g : E ≃ₗᵢ[ℝ] F` with `g x = f x - f 0`.
-* `isometric.to_real_affine_isometry_equiv` : given `f : PE ≃ᵢ PF`, returns an affine isometry
-  equivalence `g : PE ≃ᵃⁱ[ℝ] PF` whose underlying `isometric` is `f`
+* `isometry_equiv.to_real_affine_isometry_equiv` : given `f : PE ≃ᵢ PF`, returns an affine isometry
+  equivalence `g : PE ≃ᵃⁱ[ℝ] PF` whose underlying `isometry_equiv` is `f`
 
 The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theorem*][Vaisala_2003].
 
@@ -35,7 +35,7 @@ open set affine_map affine_isometry_equiv
 
 noncomputable theory
 
-namespace isometric
+namespace isometry_equiv
 
 include E
 
@@ -48,7 +48,7 @@ begin
   set z := midpoint ℝ x y,
   -- Consider the set of `e : E ≃ᵢ E` such that `e x = x` and `e y = y`
   set s := { e : PE ≃ᵢ PE | e x = x ∧ e y = y },
-  haveI : nonempty s := ⟨⟨isometric.refl PE, rfl, rfl⟩⟩,
+  haveI : nonempty s := ⟨⟨isometry_equiv.refl PE, rfl, rfl⟩⟩,
   -- On the one hand, `e` cannot send the midpoint `z` of `[x, y]` too far
   have h_bdd : bdd_above (range $ λ e : s, dist (e z) z),
   { refine ⟨dist x z + dist x z, forall_range_iff.2 $ subtype.forall.2 _⟩,
@@ -59,7 +59,7 @@ begin
   -- On the other hand, consider the map `f : (E ≃ᵢ E) → (E ≃ᵢ E)`
   -- sending each `e` to `R ∘ e⁻¹ ∘ R ∘ e`, where `R` is the point reflection in the
   -- midpoint `z` of `[x, y]`.
-  set R : PE ≃ᵢ PE := (point_reflection ℝ z).to_isometric,
+  set R : PE ≃ᵢ PE := (point_reflection ℝ z).to_isometry_equiv,
   set f : (PE ≃ᵢ PE) → (PE ≃ᵢ PE) := λ e, ((e.trans R).trans e.symm).trans R,
   -- Note that `f` doubles the value of ``dist (e z) z`
   have hf_dist : ∀ e, dist (f e z) z = 2 * dist (e z) z,
@@ -89,14 +89,14 @@ include F
 lemma map_midpoint (f : PE ≃ᵢ PF) (x y : PE) : f (midpoint ℝ x y) = midpoint ℝ (f x) (f y) :=
 begin
   set e : PE ≃ᵢ PE :=
-    ((f.trans $ (point_reflection ℝ $ midpoint ℝ (f x) (f y)).to_isometric).trans f.symm).trans
-    (point_reflection ℝ $ midpoint ℝ x y).to_isometric,
+    ((f.trans $ (point_reflection ℝ $ midpoint ℝ (f x) (f y)).to_isometry_equiv).trans f.symm).trans
+    (point_reflection ℝ $ midpoint ℝ x y).to_isometry_equiv,
   have hx : e x = x, by simp,
   have hy : e y = y, by simp,
   have hm := e.midpoint_fixed hx hy,
   simp only [e, trans_apply] at hm,
-  rwa [← eq_symm_apply, to_isometric_symm, point_reflection_symm, coe_to_isometric,
-    coe_to_isometric, point_reflection_self, symm_apply_eq, point_reflection_fixed_iff] at hm
+  rwa [← eq_symm_apply, to_isometry_equiv_symm, point_reflection_symm, coe_to_isometry_equiv,
+    coe_to_isometry_equiv, point_reflection_self, symm_apply_eq, point_reflection_fixed_iff] at hm
 end
 
 /-!
@@ -121,7 +121,7 @@ def to_real_linear_isometry_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
 /-- **Mazur-Ulam Theorem**: if `f` is an isometric bijection between two normed vector spaces
 over `ℝ`, then `x ↦ f x - f 0` is a linear isometry equivalence. -/
 def to_real_linear_isometry_equiv (f : E ≃ᵢ F) : E ≃ₗᵢ[ℝ] F :=
-(f.trans (isometric.add_right (f 0)).symm).to_real_linear_isometry_equiv_of_map_zero
+(f.trans (isometry_equiv.add_right (f 0)).symm).to_real_linear_isometry_equiv_of_map_zero
   (by simpa only [sub_eq_add_neg] using sub_self (f 0))
 
 @[simp] lemma to_real_linear_equiv_apply (f : E ≃ᵢ F) (x : E) :
@@ -144,7 +144,7 @@ affine_isometry_equiv.mk' f
 rfl
 
 @[simp] lemma coe_to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) :
-  f.to_real_affine_isometry_equiv.to_isometric = f :=
+  f.to_real_affine_isometry_equiv.to_isometry_equiv = f :=
 by { ext, refl }
 
-end isometric
+end isometry_equiv

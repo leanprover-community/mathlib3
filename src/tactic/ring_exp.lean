@@ -1408,16 +1408,17 @@ meta def eval : expr → ring_exp_m (ex sum)
   pf ← mk_app_class ``div_pf dri [ps, qs, psqs.pretty, psqs_pf],
   pure (psqs.set_info e pf)) <|> eval_base e
 | e@`(@has_pow.pow _ _ %%hp_instance %%ps %%qs) := do
+  ctx ← get_context,
   ps' ← eval ps,
   qs' ← in_exponent $ eval qs,
   psqs ← pow ps' qs',
   psqs_pf ← psqs.proof_term,
-  (do has_pow_pf ← match hp_instance with
-  | `(monoid.has_pow) := lift $ mk_eq_refl e
-  | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
-  end,
-  pf ← lift $ mk_eq_trans has_pow_pf psqs_pf,
-  pure $ psqs.set_info e pf) <|> eval_base e
+  (do
+    lift (is_def_eq hp_instance ctx.info_b.hp_instance
+          <|> fail "has_pow instance must be nat.has_pow or monoid.has_pow"),
+    has_pow_pf ← lift $ mk_eq_refl e,
+    pf ← lift $ mk_eq_trans has_pow_pf psqs_pf,
+    pure $ psqs.set_info e pf) <|> eval_base e
 | ps := eval_base ps
 
 /--

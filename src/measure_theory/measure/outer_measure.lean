@@ -1254,7 +1254,7 @@ lemma extend_mono {s₁ s₂ : set α} (h₁ : measurable_set s₁) (hs : s₁ �
   extend m s₁ ≤ extend m s₂ :=
 begin
   refine le_infi _, intro h₂,
-  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff
+  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_sdiff_self_right
     h₁ (h₂.diff h₁),
   rw union_diff_cancel hs at this,
   rw ← extend_eq m,

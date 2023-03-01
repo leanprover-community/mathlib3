@@ -606,13 +606,16 @@ attribute [mono] edge_finset_mono edge_finset_strict_mono
 
 @[simp] lemma edge_finset_bot : (⊥ : simple_graph V).edge_finset = ∅ := by simp [edge_finset]
 
-@[simp] lemma edge_finset_sup : (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
+@[simp] lemma edge_finset_sup [decidable_eq V] :
+  (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_inf : (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
+@[simp] lemma edge_finset_inf [decidable_eq V] :
+  (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_sdiff : (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
+@[simp] lemma edge_finset_sdiff [decidable_eq V] :
+  (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
 by simp [edge_finset]
 
 lemma edge_finset_card : G.edge_finset.card = fintype.card G.edge_set := set.to_finset_card _
@@ -960,7 +963,7 @@ lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
 begin
   classical,
   rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
-  simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
+  simp [card_disjoint_union (set.disjoint_to_finset.mpr (compl_neighbor_set_disjoint G v))],
 end
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
@@ -1197,7 +1200,7 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, set.to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_subset_to_finset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
@@ -1207,7 +1210,7 @@ begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_subset_to_finset, set.subset_univ] },
 end
 
 end finite

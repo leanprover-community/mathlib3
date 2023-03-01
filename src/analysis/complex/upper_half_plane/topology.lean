@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.upper_half_plane.basic
 import analysis.convex.contractible
-import analysis.convex.topology
+import analysis.convex.normed
 import analysis.convex.complex
 import analysis.complex.re_im_topology
 import topology.homotopy.contractible

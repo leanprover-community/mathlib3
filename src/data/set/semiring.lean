@@ -8,6 +8,9 @@ import data.set.pointwise.smul
 /-!
 # Sets as a semiring under union
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and
 pointwise `*` as multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a
 (commutative) semiring.

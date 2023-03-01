@@ -36,6 +36,12 @@ def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_a
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
+lemma to_nat_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.to_nat < b ↔ a < b :=
+by { rw [←to_nat_lt_to_nat, to_nat_coe_nat], exact coe_nat_pos.2 hb.bot_lt }
+
+lemma nat_mod_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.nat_mod b < b :=
+(to_nat_lt hb).2 $ mod_lt_of_pos _ $ coe_nat_pos.2 hb.bot_lt
+
 section cast
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=

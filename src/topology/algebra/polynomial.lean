@@ -46,7 +46,7 @@ variables {R S : Type*} [semiring R] [topological_space R] [topological_semiring
 protected lemma continuous_eval₂ [semiring S] (p : S[X]) (f : S →+* R) :
   continuous (λ x, p.eval₂ f x) :=
 begin
-  dsimp only [eval₂_eq_sum, finsupp.sum],
+  simp only [eval₂_eq_sum, finsupp.sum],
   exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
 end
 

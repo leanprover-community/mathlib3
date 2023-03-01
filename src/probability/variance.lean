@@ -362,7 +362,7 @@ begin
       { apply mem_ℒp.integrable_sq,
         exact mem_ℒp_finset_sum' _ (λ i hi, (hs _ (mem_insert_of_mem hi))) } },
     { rw mul_assoc,
-      apply integrable.const_mul _ 2,
+      apply integrable.const_mul _ (2:ℝ),
       simp only [mul_sum, sum_apply, pi.mul_apply],
       apply integrable_finset_sum _ (λ i hi, _),
       apply indep_fun.integrable_mul _
@@ -383,7 +383,7 @@ begin
     simp only [mul_assoc, integral_mul_left, pi.mul_apply, pi.bit0_apply, pi.one_apply, sum_apply,
       add_right_eq_self, mul_sum],
     rw integral_finset_sum s (λ i hi, _), swap,
-    { apply integrable.const_mul _ 2,
+    { apply integrable.const_mul _ (2:ℝ),
       apply indep_fun.integrable_mul _
         (mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)))
         (mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi))),

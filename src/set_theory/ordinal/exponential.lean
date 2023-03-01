@@ -10,9 +10,8 @@ import set_theory.ordinal.arithmetic
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
 > Any changes to this file require a corresponding PR to mathlib4.
 
-In this file we define the power function and the logarithm function on ordinals. The latter is used
-to define the Cantor Normal Form.
-
+In this file we define the power function and the logarithm function on ordinals. The two are
+related by `x < (b^c) ↔ log b x < c` for nontrivial inputs `b`, `c`.
 -/
 
 noncomputable theory

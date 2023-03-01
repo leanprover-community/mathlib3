@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import algebra.algebra.operations
 import algebra.ring.equiv
 import data.nat.choose.sum
+import linear_algebra.basis.bilinear
 import ring_theory.coprime.lemmas
 import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
@@ -257,7 +258,7 @@ begin
     simp },
   { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
   { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
-    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index _ _⟩;
+    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index' _ _⟩;
       intros; simp only [zero_smul, add_smul] },
   { rintros c x ⟨a, ha, rfl⟩,
     refine ⟨c • a, λ i, I.mul_mem_left c (ha i), _⟩,
@@ -496,6 +497,12 @@ submodule.prod_span s I
 lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
   (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
 submodule.prod_span_singleton s I
+
+@[simp] lemma multiset_prod_span_singleton (m : multiset R) :
+  (m.map (λ x, ideal.span {x})).prod = ideal.span ({multiset.prod m} : set R) :=
+multiset.induction_on m (by simp)
+  (λ a m ih, by simp only [multiset.map_cons, multiset.prod_cons, ih,
+                           ← ideal.span_singleton_mul_span_singleton])
 
 lemma finset_inf_span_singleton {ι : Type*} (s : finset ι) (I : ι → R)
   (hI : set.pairwise ↑s (is_coprime on I)) :
@@ -777,7 +784,7 @@ lemma is_radical_bot_of_no_zero_divisors {R} [comm_semiring R] [no_zero_divisors
   radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 is_radical_bot_of_no_zero_divisors
 
-instance : comm_semiring (ideal R) := submodule.comm_semiring
+instance : idem_comm_semiring (ideal R) := submodule.idem_comm_semiring
 
 variables (R)
 theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=
@@ -1308,6 +1315,9 @@ begin
   rw [mem_comap, submodule.mem_bot, ← map_zero f] at hx,
   exact eq.symm (hf hx) ▸ (submodule.zero_mem ⊥)
 end
+
+lemma comap_bot_of_injective : ideal.comap f ⊥ = ⊥ :=
+le_bot_iff.mp (ideal.comap_bot_le_of_injective f hf)
 
 end injective
 
@@ -1901,7 +1911,7 @@ end
   (⊥ : ideal (R ⧸ I)).is_maximal ↔ I.is_maximal :=
 ⟨λ hI, (@mk_ker _ _ I) ▸
   @comap_is_maximal_of_surjective _ _ _ _ _ _ (quotient.mk I) quotient.mk_surjective ⊥ hI,
- λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
+ λ hI, by { resetI, letI := quotient.field I, exact bot_is_maximal }⟩
 
 /-- See also `ideal.mem_quotient_iff_mem` in case `I ≤ J`. -/
 @[simp]
@@ -2159,6 +2169,20 @@ begin
   rw ← ring_hom.map_sub at hab,
   exact quotient.eq.mpr hab
 end
+
+variable (R₁)
+
+/-- Quotienting by equal ideals gives equivalent algebras. -/
+def quotient_equiv_alg_of_eq {I J : ideal A} (h : I = J) : (A ⧸ I) ≃ₐ[R₁] A ⧸ J :=
+quotient_equiv_alg I J alg_equiv.refl $ h ▸ (map_id I).symm
+
+@[simp] lemma quotient_equiv_alg_of_eq_mk {I J : ideal A} (h : I = J) (x : A) :
+  quotient_equiv_alg_of_eq R₁ h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
+rfl
+
+@[simp] lemma quotient_equiv_alg_of_eq_symm {I J : ideal A} (h : I = J) :
+  (quotient_equiv_alg_of_eq R₁ h).symm = quotient_equiv_alg_of_eq R₁ h.symm :=
+by ext; refl
 
 end quotient_algebra
 

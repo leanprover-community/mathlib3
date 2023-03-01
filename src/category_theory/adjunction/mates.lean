@@ -9,6 +9,9 @@ import category_theory.conj
 /-!
 # Mate of natural transformations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes the bijection between the 2-cells
 
          L₁                  R₁

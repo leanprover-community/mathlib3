@@ -231,7 +231,7 @@ end quotient
 
 /-- Quotienting by equal ideals gives equivalent rings.
 
-See also `submodule.quot_equiv_of_eq`.
+See also `submodule.quot_equiv_of_eq` and `ideal.quotient_equiv_alg_of_eq`.
 -/
 def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
   (R ⧸ I) ≃+* R ⧸ J :=

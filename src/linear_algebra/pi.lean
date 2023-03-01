@@ -9,6 +9,9 @@ import logic.equiv.fin
 /-!
 # Pi types of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines constructors for linear maps whose domains or codomains are pi types.
 
 It contains theorems relating these to each other, as well as to `linear_map.ker`.

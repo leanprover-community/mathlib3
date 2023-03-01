@@ -9,6 +9,9 @@ import set_theory.ordinal.arithmetic
 /-!
 # Natural operations on ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal of this file is to define natural addition and multiplication on ordinals, also known as
 the Hessenberg sum and product, and provide a basic API. The natural addition of two ordinals
 `a ♯ b` is recursively defined as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for `a' < a`

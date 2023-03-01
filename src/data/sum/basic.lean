@@ -388,10 +388,36 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inl y) := let ⟨x, hx⟩ := hf y in ⟨inl x, congr_arg inl hx⟩
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
+lemma bijective.sum_map {f : α → β} {g : α' → β'} (hf : bijective f) (hg : bijective g) :
+  bijective (sum.map f g) :=
+⟨hf.injective.sum_map hg.injective, hf.surjective.sum_map hg.surjective⟩
+
 end function
 
 namespace sum
 open function
+
+@[simp] lemma map_injective {f : α → γ} {g : β → δ} :
+  injective (sum.map f g) ↔ injective f ∧ injective g :=
+⟨λ h, ⟨λ a₁ a₂ ha, inl_injective $ @h (inl a₁) (inl a₂) (congr_arg inl ha : _),
+      λ b₁ b₂ hb, inr_injective $ @h (inr b₁) (inr b₂) (congr_arg inr hb : _)⟩,
+  λ h, h.1.sum_map h.2⟩
+
+@[simp] lemma map_surjective {f : α → γ} {g : β → δ} :
+  surjective (sum.map f g) ↔ surjective f ∧ surjective g :=
+⟨λ h, ⟨λ c, begin
+  obtain ⟨a | b, h⟩ := h (inl c),
+  { exact ⟨a, inl_injective h⟩ },
+  { cases h },
+end, λ d, begin
+  obtain ⟨a | b, h⟩ := h (inr d),
+  { cases h },
+  { exact ⟨b, inr_injective h⟩ },
+end⟩, λ h, h.1.sum_map h.2⟩
+
+@[simp] lemma map_bijective {f : α → γ} {g : β → δ} :
+  bijective (sum.map f g) ↔ bijective f ∧ bijective g :=
+(map_injective.and map_surjective).trans $ and_and_and_comm _ _ _ _
 
 lemma elim_const_const (c : γ) :
   sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=

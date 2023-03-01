@@ -14,7 +14,7 @@ integrals.  -/
 
 
 open topological_space measure_theory filter metric
-open_locale topological_space filter interval
+open_locale topology filter interval
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {μ : measure ℝ}
           {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space 𝕜 E]

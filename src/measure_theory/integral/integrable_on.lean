@@ -21,7 +21,7 @@ at `l`.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal measure_theory
+open_locale classical topology interval big_operators filter ennreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -231,12 +231,83 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
-lemma integrable_on_iff_integrable_of_support_subset {f : α → E} {s : set α}
-  (h1s : support f ⊆ s) (h2s : measurable_set s) :
+/-- If a function is integrable on a set `s` and nonzero there, then the measurable hull of `s` is
+well behaved: the restriction of the measure to `to_measurable μ s` coincides with its restriction
+to `s`. -/
+lemma integrable_on.restrict_to_measurable (hf : integrable_on f s μ) (h's : ∀ x ∈ s, f x ≠ 0) :
+  μ.restrict (to_measurable μ s) = μ.restrict s :=
+begin
+  rcases exists_seq_strict_anti_tendsto (0 : ℝ) with ⟨u, u_anti, u_pos, u_lim⟩,
+  let v := λ n, to_measurable (μ.restrict s) {x | u n ≤ ‖f x‖},
+  have A : ∀ n, μ (s ∩ v n) ≠ ∞,
+  { assume n,
+    rw [inter_comm, ← measure.restrict_apply (measurable_set_to_measurable _ _),
+      measure_to_measurable],
+    exact (hf.measure_ge_lt_top (u_pos n)).ne },
+  apply measure.restrict_to_measurable_of_cover _ A,
+  assume x hx,
+  have : 0 < ‖f x‖, by simp only [h's x hx, norm_pos_iff, ne.def, not_false_iff],
+  obtain ⟨n, hn⟩ : ∃ n, u n < ‖f x‖, from ((tendsto_order.1 u_lim).2 _ this).exists,
+  refine mem_Union.2 ⟨n, _⟩,
+  exact subset_to_measurable _ _ hn.le
+end
+
+/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
+if `t` is null-measurable. -/
+lemma integrable_on.of_ae_diff_eq_zero (hf : integrable_on f s μ)
+  (ht : null_measurable_set t μ) (h't : ∀ᵐ x ∂μ, x ∈ t \ s → f x = 0) :
+  integrable_on f t μ :=
+begin
+  let u := {x ∈ s | f x ≠ 0},
+  have hu : integrable_on f u μ := hf.mono_set (λ x hx, hx.1),
+  let v := to_measurable μ u,
+  have A : integrable_on f v μ,
+  { rw [integrable_on, hu.restrict_to_measurable],
+    { exact hu },
+    { assume x hx, exact hx.2 } },
+  have B : integrable_on f (t \ v) μ,
+  { apply integrable_on_zero.congr,
+    filter_upwards [ae_restrict_of_ae h't, ae_restrict_mem₀
+      (ht.diff (measurable_set_to_measurable μ u).null_measurable_set)] with x hxt hx,
+    by_cases h'x : x ∈ s,
+    { by_contra H,
+      exact hx.2 (subset_to_measurable μ u ⟨h'x, ne.symm H⟩) },
+    { exact (hxt ⟨hx.1, h'x⟩).symm, } },
+  apply (A.union B).mono_set _,
+  rw union_diff_self,
+  exact subset_union_right _ _
+end
+
+/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
+if `t` is measurable. -/
+lemma integrable_on.of_forall_diff_eq_zero (hf : integrable_on f s μ)
+  (ht : measurable_set t) (h't : ∀ x ∈ t \ s, f x = 0) :
+  integrable_on f t μ :=
+hf.of_ae_diff_eq_zero ht.null_measurable_set (eventually_of_forall h't)
+
+/-- If a function is integrable on a set `s` and vanishes almost everywhere on its complement,
+then it is integrable. -/
+lemma integrable_on.integrable_of_ae_not_mem_eq_zero (hf : integrable_on f s μ)
+  (h't : ∀ᵐ x ∂μ, x ∉ s → f x = 0) : integrable f μ :=
+begin
+  rw ← integrable_on_univ,
+  apply hf.of_ae_diff_eq_zero null_measurable_set_univ,
+  filter_upwards [h't] with x hx h'x using hx h'x.2,
+end
+
+/-- If a function is integrable on a set `s` and vanishes everywhere on its complement,
+then it is integrable. -/
+lemma integrable_on.integrable_of_forall_not_mem_eq_zero (hf : integrable_on f s μ)
+  (h't : ∀ x ∉ s, f x = 0) : integrable f μ :=
+hf.integrable_of_ae_not_mem_eq_zero (eventually_of_forall (λ x hx, h't x hx))
+
+lemma integrable_on_iff_integrable_of_support_subset (h1s : support f ⊆ s) :
   integrable_on f s μ ↔ integrable f μ :=
 begin
   refine ⟨λ h, _, λ h, h.integrable_on⟩,
-  rwa [← indicator_eq_self.2 h1s, integrable_indicator_iff h2s]
+  apply h.integrable_of_forall_not_mem_eq_zero (λ x hx, _),
+  contrapose! hx,
+  exact h1s (mem_support.2 hx),
 end
 
 lemma integrable_on_Lp_of_measure_ne_top {E} [normed_add_comm_group E]

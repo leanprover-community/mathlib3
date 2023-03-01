@@ -12,6 +12,9 @@ import combinatorics.quiver.connected_component
 /-!
 # Groupoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `groupoid` as a typeclass extending `category`,
 asserting that all morphisms have inverses.
 

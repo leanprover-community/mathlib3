@@ -9,6 +9,7 @@ import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
 import algebra.star.self_adjoint
 import algebra.star.unitary
+import topology.algebra.star_subalgebra
 
 /-!
 # Normed star rings and algebras
@@ -30,7 +31,7 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 
 -/
 
-open_locale topological_space
+open_locale topology
 
 local postfix `⋆`:std.prec.max_plus := star
 
@@ -254,3 +255,17 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
+
+namespace star_subalgebra
+
+instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
+  [semi_normed_ring A] [star_ring A] [normed_algebra 𝕜 A] [star_module 𝕜 A]
+  (S : star_subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
+@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.subtype
+
+instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
+  [star_ring A] [cstar_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
+  cstar_ring S :=
+{ norm_star_mul_self := λ x, @cstar_ring.norm_star_mul_self A _ _ _ x }
+
+end star_subalgebra

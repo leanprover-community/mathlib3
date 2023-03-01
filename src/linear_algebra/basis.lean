@@ -15,6 +15,9 @@ import linear_algebra.projection
 
 # Bases
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bases in a module or vector space.
 
 It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
@@ -66,7 +69,7 @@ noncomputable theory
 universe u
 
 open function set submodule
-open_locale classical big_operators
+open_locale big_operators
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {R₂ : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
@@ -101,9 +104,20 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 
 section repr
 
+lemma repr_injective : injective (repr : basis ι R M → M ≃ₗ[R] (ι →₀ R)) :=
+λ f g h, by cases f; cases g; congr'
+
 /-- `b i` is the `i`th basis vector. -/
-instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
-{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
+instance fun_like : fun_like (basis ι R M) ι (λ _, M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1),
+  coe_injective' := λ f g h, repr_injective $ linear_equiv.symm_bijective.injective begin
+    ext x,
+    rw [←finsupp.sum_single x, map_finsupp_sum, map_finsupp_sum],
+    congr' with i r,
+    have := congr_fun h i,
+    dsimp at this,
+    rw [←mul_one r, ←finsupp.smul_single', linear_equiv.map_smul, linear_equiv.map_smul, this],
+  end }
 
 @[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
   ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=
@@ -275,15 +289,11 @@ begin
 end
 
 /-- Two bases are equal if they assign the same coordinates. -/
-lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) :
-  b₁ = b₂ :=
-have b₁.repr = b₂.repr, by { ext, apply h },
-by { cases b₁, cases b₂, simpa }
+lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) : b₁ = b₂ :=
+repr_injective $ by { ext, apply h }
 
 /-- Two bases are equal if their basis vectors are the same. -/
-@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} (h : ∀ i, b₁ i = b₂ i) : b₁ = b₂ :=
-suffices b₁.repr = b₂.repr, by { cases b₁, cases b₂, simpa },
-repr_eq_iff'.mpr (λ i, by rw [h, b₂.repr_self])
+@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} : (∀ i, b₁ i = b₂ i) → b₁ = b₂ := fun_like.ext _ _
 
 end ext
 
@@ -347,26 +357,29 @@ by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcong
 @[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
 funext (b.reindex_apply e)
 
-@[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
-funext $ λ i',
-show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
-by simp
+lemma repr_reindex_apply (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
+show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _, by simp
 
-@[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
-by rw coe_reindex_repr
+@[simp] lemma repr_reindex : (b.reindex e).repr x = (b.repr x).map_domain e :=
+fun_like.ext _ _ $ by simp [repr_reindex_apply]
 
 @[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
 eq_of_apply_eq $ λ i, by simp
 
-/-- `simp` normal form version of `range_reindex` -/
-@[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
-by rw [range_comp, equiv.range_eq_univ, set.image_univ]
-
+/-- `simp` can prove this as `basis.coe_reindex` + `equiv_like.range_comp` -/
 lemma range_reindex : set.range (b.reindex e) = set.range b :=
-by rw [coe_reindex, range_reindex']
+by rw [coe_reindex, equiv_like.range_comp]
+
+@[simp] lemma sum_coords_reindex : (b.reindex e).sum_coords = b.sum_coords :=
+begin
+  ext x,
+  simp only [coe_sum_coords, repr_reindex],
+  exact finsupp.sum_map_domain_index (λ _, rfl) (λ _ _ _, rfl),
+end
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
 def reindex_range : basis (range b) R M :=
+by haveI := classical.dec (nontrivial R); exact
 if h : nontrivial R then
   by letI := h; exact b.reindex (equiv.of_injective b (basis.injective b))
 else
@@ -419,7 +432,7 @@ b.reindex_range_repr' _ rfl
 
 section fintype
 
-variables [fintype ι]
+variables [fintype ι] [decidable_eq M]
 
 /-- `b.reindex_finset_range` is a basis indexed by `finset.univ.image b`,
 the finite set of basis vectors themselves. -/
@@ -440,7 +453,7 @@ lemma reindex_finset_range_repr_self (i : ι) :
     finsupp.single ⟨b i, finset.mem_image_of_mem b (finset.mem_univ i)⟩ 1 :=
 begin
   ext ⟨bi, hbi⟩,
-  rw [reindex_finset_range, reindex_repr, reindex_range_repr_self],
+  rw [reindex_finset_range, repr_reindex, finsupp.map_domain_equiv_apply, reindex_range_repr_self],
   convert finsupp.single_apply_left ((equiv.refl M).subtype_equiv _).symm.injective _ _ _,
   refl
 end
@@ -750,11 +763,13 @@ linear_equiv.trans b.repr
      ..finsupp.equiv_fun_on_finite } : (ι →₀ R) ≃ₗ[R] (ι → R))
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
-def module.fintype_of_fintype [fintype R] : fintype M :=
-fintype.of_equiv _ b.equiv_fun.to_equiv.symm
+def module.fintype_of_fintype (b : basis ι R M) [fintype R] : fintype M :=
+by haveI := classical.dec_eq ι; exact
+  fintype.of_equiv _ b.equiv_fun.to_equiv.symm
 
-theorem module.card_fintype [fintype R] [fintype M] :
+theorem module.card_fintype (b : basis ι R M) [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=
+by classical; exact
 calc card M = card (ι → R)    : card_congr b.equiv_fun.to_equiv
         ... = card R ^ card ι : card_fun
 
@@ -781,7 +796,8 @@ lemma basis.sum_repr (u : M) : ∑ i, b.repr u i • b i = u :=
 b.sum_equiv_fun u
 
 @[simp]
-lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
+lemma basis.equiv_fun_self [decidable_eq ι] (i j : ι) :
+  b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
 lemma basis.repr_sum_self (c : ι → R) : ⇑(b.repr (∑ i, c i • b i)) = c :=
@@ -802,7 +818,7 @@ basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_finite
 @[simp] lemma basis.of_equiv_fun_repr_apply (e : M ≃ₗ[R] (ι → R)) (x : M) (i : ι) :
   (basis.of_equiv_fun e).repr x i = e x i := rfl
 
-@[simp] lemma basis.coe_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
+@[simp] lemma basis.coe_of_equiv_fun [decidable_eq ι] (e : M ≃ₗ[R] (ι → R)) :
   (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
 funext $ λ i, e.injective $ funext $ λ j,
   by simp [basis.of_equiv_fun, ←finsupp.single_eq_pi_single, finsupp.single_eq_update]
@@ -810,6 +826,7 @@ funext $ λ i, e.injective $ funext $ λ j,
 @[simp] lemma basis.of_equiv_fun_equiv_fun
   (v : basis ι R M) : basis.of_equiv_fun v.equiv_fun = v :=
 begin
+  classical,
   ext j,
   simp only [basis.equiv_fun_symm_apply, basis.coe_of_equiv_fun],
   simp_rw [function.update_apply, ite_smul],
@@ -971,7 +988,7 @@ by simp [hli.repr_eq_single j, h]
 
 /-- Given a basis, the `i`th element of the dual basis evaluates to the Kronecker delta on the
 `j`th element of the basis. -/
-lemma mk_coord_apply {i j : ι} :
+lemma mk_coord_apply [decidable_eq ι] {i j : ι} :
   (basis.mk hli hsp).coord i (v j) = if j = i then 1 else 0 :=
 begin
   cases eq_or_ne j i,
@@ -1058,6 +1075,7 @@ mk_apply
 @[simp] lemma coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
   (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
 begin
+  classical,
   apply e.ext,
   intros j,
   transitivity ((e.units_smul w).coord i) ((w j)⁻¹ • (e.units_smul w) j),
@@ -1227,7 +1245,9 @@ let s := set.range v,
     b := hs.to_subtype_range.extend (subset_univ (set.range v)) in
 (basis.extend hs.to_subtype_range).reindex $ equiv.symm $
   calc ι ⊕ (b \ s : set V) ≃ s ⊕ (b \ s : set V) : equiv.sum_congr e (equiv.refl _)
-  ... ≃ b                   : equiv.set.sum_diff_subset (hs.to_subtype_range.subset_extend _)
+  ... ≃ b                   :
+    by haveI := classical.dec_pred (∈ s); exact
+      equiv.set.sum_diff_subset (hs.to_subtype_range.subset_extend _)
 
 lemma subset_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
   s ⊆ hs.extend (set.subset_univ _) :=
@@ -1275,7 +1295,8 @@ variables (K V)
 
 theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
-⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
+by classical; exact
+  ⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
 
 section atoms_of_submodule_lattice
 

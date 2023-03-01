@@ -8,6 +8,9 @@ import data.real.ennreal
 /-!
 # Real conjugate exponents
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `p.is_conjugate_exponent q` registers the fact that the real numbers `p` and `q` are `> 1` and
 satisfy `1/p + 1/q = 1`. This property shows up often in analysis, especially when dealing with
 `L^p` spaces.
@@ -111,5 +114,9 @@ lemma is_conjugate_exponent_iff {p q : ℝ} (h : 1 < p) :
 lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :
   p.is_conjugate_exponent (conjugate_exponent p) :=
 (is_conjugate_exponent_iff h).2 rfl
+
+lemma is_conjugate_exponent_one_div {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) :
+  (1 / a).is_conjugate_exponent (1 / b) :=
+⟨by { rw [lt_div_iff ha, one_mul], linarith }, by { simp_rw one_div_one_div, exact hab }⟩
 
 end real

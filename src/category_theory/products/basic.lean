@@ -10,6 +10,9 @@ import data.prod.basic
 /-!
 # Cartesian products of categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the category instance on `C × D` when `C` and `D` are categories.
 
 We define:

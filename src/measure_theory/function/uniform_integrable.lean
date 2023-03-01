@@ -43,7 +43,7 @@ uniform integrable, uniformly absolutely continuous integral, Vitali convergence
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 
@@ -484,7 +484,7 @@ begin
     { simp [indicator_of_not_mem hx] } },
   refine le_trans (snorm_mono this) _,
   rw snorm_indicator_const hs hp hp',
-  refine ennreal.mul_le_mul (le_of_eq _) le_rfl,
+  refine mul_le_mul_right' (le_of_eq _) _,
   rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hc],
 end
 
@@ -508,7 +508,7 @@ begin
   have hdivp : 0 ≤ 1 / p.to_real,
   { refine one_div_nonneg.2 _,
     rw [← ennreal.zero_to_real, ennreal.to_real_le_to_real ennreal.zero_ne_top hp'],
-    exact le_trans ennreal.zero_lt_one.le hp },
+    exact le_trans (zero_le _) hp },
   have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
     real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
   obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
@@ -638,7 +638,7 @@ lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ]
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 ⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' (λ n, (hf n).1) hg h.2 h.1,
   λ h, ⟨tendsto_in_measure_of_tendsto_snorm
-    (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
+    (lt_of_lt_of_le zero_lt_one hp).ne.symm
     (λ n, (hf n).ae_strongly_measurable)
     hg.ae_strongly_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf hg h⟩⟩
 
@@ -649,7 +649,7 @@ lemma unif_integrable_of' (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ι → α → β
     ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   unif_integrable f p μ :=
 begin
-  have hpzero := (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm,
+  have hpzero := (lt_of_lt_of_le zero_lt_one hp).ne.symm,
   by_cases hμ : μ set.univ = 0,
   { rw measure.measure_univ_eq_zero at hμ,
     exact hμ.symm ▸ unif_integrable_zero_meas },
@@ -896,7 +896,7 @@ begin
       begin
         rw [ennreal.smul_def, ennreal.smul_def, smul_eq_mul, smul_eq_mul],
         simp_rw ennreal.of_real_coe_nnreal at hℐ,
-        refine ennreal.mul_le_mul le_rfl (ennreal.rpow_le_rpow (hℐ C).le
+        refine mul_le_mul' le_rfl (ennreal.rpow_le_rpow (hℐ C).le
           (one_div_nonneg.2 ennreal.to_real_nonneg)),
       end
       ... ≤ snorm ({x | C ≤ ‖f (ℐ C) x‖₊}.indicator (f (ℐ C))) p μ :
@@ -942,7 +942,7 @@ lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ 
   uniform_integrable f p μ ↔ (∀ i, ae_strongly_measurable (f i) μ) ∧
   ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
     ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
-⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,
+⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le zero_lt_one hp).ne.symm hp'⟩,
  λ h, uniform_integrable_of hp hp' h.1 h.2⟩
 
 

@@ -160,7 +160,7 @@ begin
   exact h,
 end
 
-open_locale topological_space
+open_locale topology
 
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top

@@ -9,6 +9,9 @@ import algebra.group_ring_action.basic
 /-!
 # Conjugation action of a group on itself
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the conjugation action of a group on itself. See also `mul_aut.conj` for
 the definition of conjugation as a homomorphism into the automorphism group.
 

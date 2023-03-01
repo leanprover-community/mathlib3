@@ -16,7 +16,7 @@ The specific lemma is `num_derangements_tendsto_inv_e`.
 open filter
 
 open_locale big_operators
-open_locale topological_space
+open_locale topology
 
 theorem num_derangements_tendsto_inv_e :
   tendsto (λ n, (num_derangements n : ℝ) / n.factorial) at_top

@@ -10,6 +10,9 @@ import data.prod.lex
 /-!
 # Multiset coercion to type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines a `has_coe_to_sort` instance for multisets and gives it a `fintype` instance.
 It also defines `multiset.to_enum_finset`, which is another way to enumerate the elements of
 a multiset. These coercions and definitions make it easier to sum over multisets using existing

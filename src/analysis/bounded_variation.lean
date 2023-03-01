@@ -7,6 +7,8 @@ import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
 import algebra.group.basic
+import tactic.swap_var
+import tactic.wlog
 
 /-!
 # Functions of bounded variation
@@ -43,7 +45,7 @@ it possible to use the complete linear order structure of `ℝ≥0∞`. The proo
 more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would always need to check
 that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
-open_locale big_operators nnreal ennreal topological_space uniform_convergence
+open_locale big_operators nnreal ennreal topology uniform_convergence
 open set measure_theory filter
 
 variables {α β : Type*} [linear_order α] [linear_order β]
@@ -86,7 +88,7 @@ begin
   rw [edist_congr_right (h $ p.snd.prop.2 (i+1)), edist_congr_left (h $ p.snd.prop.2 i)],
 end
 
-lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
+lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : eq_on f f' s) :
   evariation_on f s = evariation_on f' s :=
 eq_of_edist_zero_on (λ x xs, by rw [h xs, edist_self])
 
@@ -179,10 +181,9 @@ lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α �
 lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=
 begin
-  wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
-  { assume hx hy,
-    rw edist_comm,
-    exact this hy hx },
+  wlog hxy : x ≤ y,
+  { rw edist_comm,
+    exact this f hy hx (le_of_not_le hxy) },
   let u : ℕ → α := λ n, if n = 0 then x else y,
   have hu : monotone u,
   { assume m n hmn,
@@ -590,13 +591,13 @@ begin
 end
 
 lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
-  (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :
+  (hφ : monotone_on φ t) (φst : maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
 supr_le $ λ ⟨n, u, hu, ut⟩, le_supr_of_le
   ⟨n, φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩ le_rfl
 
 lemma comp_le_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
-  (hφ : antitone_on φ t) (φst : set.maps_to φ t s) :
+  (hφ : antitone_on φ t) (φst : maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
 begin
   refine supr_le _,
@@ -609,39 +610,73 @@ begin
   simpa only [tsub_pos_iff_lt, finset.mem_range] using hx,
 end
 
-lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
-  (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
-  evariation_on (f ∘ φ) t = evariation_on f s :=
+lemma comp_eq_of_monotone_on (f : α → E) {t : set β} (φ : β → α) (hφ : monotone_on φ t) :
+  evariation_on (f ∘ φ) t = evariation_on f (φ '' t) :=
 begin
-  apply le_antisymm (comp_le_of_monotone_on f φ hφ φst),
+  apply le_antisymm (comp_le_of_monotone_on f φ hφ (maps_to_image φ t)),
   casesI is_empty_or_nonempty β,
   { convert zero_le _,
-    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti φsur) },
+    exact evariation_on.subsingleton f
+            ((subsingleton_of_subsingleton.image _).anti (surj_on_image φ t)) },
   let ψ := φ.inv_fun_on t,
-  have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
-  have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
-  have hψ : monotone_on ψ s :=
+  have ψφs : eq_on (φ ∘ ψ) id (φ '' t) := (surj_on_image φ t).right_inv_on_inv_fun_on,
+  have ψts : maps_to ψ (φ '' t) t := (surj_on_image φ t).maps_to_inv_fun_on,
+  have hψ : monotone_on ψ (φ '' t) :=
     function.monotone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
-  change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
-  rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
+  change evariation_on (f ∘ id) (φ '' t) ≤ evariation_on (f ∘ φ) t,
+  rw ←eq_of_eq_on (ψφs.comp_left : eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) (φ '' t)),
   exact comp_le_of_monotone_on _ ψ hψ ψts,
 end
 
-lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
-  (hφ : antitone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
-  evariation_on (f ∘ φ) t = evariation_on f s :=
+-- porting note: move to file `data.set.intervals.basic` once the port is over,
+-- and use it in theorem `polynomial_functions_closure_eq_top`
+-- in the file `topology/continuous_function/weierstrass.lean`
+lemma _root_.set.subsingleton_Icc_of_ge {α : Type*} [partial_order α] {a b : α} (h : b ≤ a) :
+  set.subsingleton (Icc a b) :=
 begin
-  apply le_antisymm (comp_le_of_antitone_on f φ hφ φst),
+  rintros c ⟨ac,cb⟩ d ⟨ad,db⟩,
+  cases le_antisymm (cb.trans h) ac,
+  cases le_antisymm (db.trans h) ad,
+  refl,
+end
+
+lemma comp_inter_Icc_eq_of_monotone_on (f : α → E) {t : set β} (φ : β → α)
+  (hφ : monotone_on φ t) {x y : β} (hx : x ∈ t) (hy : y ∈ t) :
+  evariation_on (f ∘ φ) (t ∩ Icc x y) = evariation_on f ((φ '' t) ∩ Icc (φ x) (φ y)) :=
+begin
+  rcases le_total x y with h|h,
+  { convert comp_eq_of_monotone_on f φ (hφ.mono (set.inter_subset_left t (Icc x y))),
+    apply le_antisymm,
+    { rintro _ ⟨⟨u, us, rfl⟩, vφx, vφy⟩,
+      rcases le_total x u with xu|ux,
+      { rcases le_total u y with uy|yu,
+        { exact ⟨u, ⟨us, ⟨xu, uy⟩⟩, rfl⟩, },
+        { rw le_antisymm vφy (hφ hy us yu),
+          exact ⟨y, ⟨hy, ⟨h, le_rfl⟩⟩, rfl⟩, }, },
+      { rw ←le_antisymm vφx (hφ us hx ux),
+        exact ⟨x, ⟨hx, ⟨le_rfl, h⟩⟩, rfl⟩, }, },
+    { rintro _ ⟨u, ⟨⟨hu, xu, uy⟩, rfl⟩⟩,
+      refine ⟨⟨u, hu, rfl⟩, ⟨hφ hx hu xu, hφ hu hy uy⟩⟩, }, },
+  { rw [evariation_on.subsingleton, evariation_on.subsingleton],
+    exacts [(set.subsingleton_Icc_of_ge (hφ hy hx h)).anti (set.inter_subset_right _ _),
+            (set.subsingleton_Icc_of_ge h).anti (set.inter_subset_right _ _)], },
+end
+
+lemma comp_eq_of_antitone_on (f : α → E) {t : set β} (φ : β → α) (hφ : antitone_on φ t) :
+  evariation_on (f ∘ φ) t = evariation_on f (φ '' t) :=
+begin
+  apply le_antisymm (comp_le_of_antitone_on f φ hφ (maps_to_image φ t)),
   casesI is_empty_or_nonempty β,
   { convert zero_le _,
-    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti φsur) },
+    exact evariation_on.subsingleton f
+      ((subsingleton_of_subsingleton.image _).anti (surj_on_image φ t)) },
   let ψ := φ.inv_fun_on t,
-  have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
-  have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
-  have hψ : antitone_on ψ s :=
+  have ψφs : eq_on (φ ∘ ψ) id (φ '' t) := (surj_on_image φ t).right_inv_on_inv_fun_on,
+  have ψts := (surj_on_image φ t).maps_to_inv_fun_on,
+  have hψ : antitone_on ψ (φ '' t) :=
     function.antitone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
-  change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
-  rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
+  change evariation_on (f ∘ id) (φ '' t) ≤ evariation_on (f ∘ φ) t,
+  rw ←eq_of_eq_on (ψφs.comp_left : eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) (φ '' t)),
   exact comp_le_of_antitone_on _ ψ hψ ψts,
 end
 
@@ -649,7 +684,10 @@ open order_dual
 
 lemma comp_of_dual (f : α → E) (s : set α) :
   evariation_on (f ∘ of_dual) (of_dual ⁻¹' s) = evariation_on f s :=
-comp_eq_of_antitone_on f of_dual (λ _ _ _ _, id) (maps_to_preimage _ _) $ λ x hx, ⟨x, hx, rfl⟩
+begin
+  convert comp_eq_of_antitone_on f of_dual (λ _ _ _ _, id),
+  simp only [equiv.image_preimage],
+end
 
 end evariation_on
 
@@ -753,6 +791,61 @@ begin
         evariation_on.Icc_add_Icc f xy yz ys], },
 end
 
+@[protected]
+lemma edist_zero_of_eq_zero
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : variation_on_from_to f s a b = 0) :
+  edist (f a) (f b) = 0 :=
+begin
+  wlog h' : a ≤ b,
+  { rw edist_comm,
+    apply this hf hb ha _ (le_of_not_le h'),
+    rw [eq_neg_swap, h, neg_zero] },
+  { apply le_antisymm _ (zero_le _),
+    rw [←ennreal.of_real_zero, ←h, eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
+    apply evariation_on.edist_le,
+    exacts [⟨ha, ⟨le_rfl, h'⟩⟩, ⟨hb, ⟨h', le_rfl⟩⟩] },
+end
+
+@[protected]
+lemma eq_left_iff
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
+  variation_on_from_to f s a b = variation_on_from_to f s a c ↔ variation_on_from_to f s b c = 0 :=
+by simp only [←add hf ha hb hc, self_eq_add_right]
+
+@[protected]
+lemma eq_zero_iff_of_le
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) (ab : a ≤ b) :
+  variation_on_from_to f s a b = 0 ↔
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ Icc a b) ⦃y⦄ (hy : y ∈ s ∩ Icc a b), edist (f x) (f y) = 0 :=
+by rw [eq_of_le _ _ ab, ennreal.to_real_eq_zero_iff,
+       or_iff_left (hf a b ha hb), evariation_on.eq_zero_iff]
+
+@[protected]
+lemma eq_zero_iff_of_ge
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) (ba : b ≤ a) :
+  variation_on_from_to f s a b = 0 ↔
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ Icc b a) ⦃y⦄ (hy : y ∈ s ∩ Icc b a), edist (f x) (f y) = 0 :=
+by rw [eq_of_ge _ _ ba, neg_eq_zero, ennreal.to_real_eq_zero_iff,
+       or_iff_left (hf b a hb ha), evariation_on.eq_zero_iff]
+
+@[protected]
+lemma eq_zero_iff
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  variation_on_from_to f s a b = 0 ↔
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ uIcc a b) ⦃y⦄ (hy : y ∈ s ∩ uIcc a b), edist (f x) (f y) = 0 :=
+begin
+  rcases le_total a b with ab|ba,
+  { rw uIcc_of_le ab,
+    exact eq_zero_iff_of_le hf ha hb ab, },
+  { rw uIcc_of_ge ba,
+    exact eq_zero_iff_of_ge hf ha hb ba, },
+end
+
 variables {f} {s}
 
 @[protected]
@@ -793,6 +886,18 @@ begin
     by rw [←add hf as bs cs, add_sub_cancel']
 end
 
+@[protected]
+lemma comp_eq_of_monotone_on (f : α → E) {t : set β} (φ : β → α) (hφ : monotone_on φ t)
+  {x y : β} (hx : x ∈ t) (hy : y ∈ t) :
+  variation_on_from_to (f ∘ φ) t x y = variation_on_from_to f (φ '' t) (φ x) (φ y) :=
+begin
+  rcases le_total x y with h|h,
+  { rw [eq_of_le _ _ h, eq_of_le _ _ (hφ hx hy h),
+        evariation_on.comp_inter_Icc_eq_of_monotone_on f φ hφ hx hy], },
+  { rw [eq_of_ge _ _ h, eq_of_ge _ _ (hφ hy hx h),
+        evariation_on.comp_inter_Icc_eq_of_monotone_on f φ hφ hy hx], },
+end
+
 end variation_on_from_to
 
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone
@@ -828,12 +933,7 @@ lemma lipschitz_on_with.comp_has_bounded_variation_on {f : E → F} {C : ℝ≥0
   (hf : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t)
   (h : has_bounded_variation_on g s) :
   has_bounded_variation_on (f ∘ g) s :=
-begin
-  dsimp [has_bounded_variation_on] at h,
-  apply ne_of_lt,
-  apply (hf.comp_evariation_on_le hg).trans_lt,
-  simp [lt_top_iff_ne_top, h],
-end
+ne_top_of_le_ne_top (ennreal.mul_ne_top ennreal.coe_ne_top h) (hf.comp_evariation_on_le hg)
 
 lemma lipschitz_on_with.comp_has_locally_bounded_variation_on {f : E → F} {C : ℝ≥0} {t : set E}
   (hf : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t)

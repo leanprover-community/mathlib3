@@ -10,6 +10,9 @@ import order.disjointed
 /-!
 # Measurable spaces and measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines measurable spaces and measurable functions.
 
 A measurable space is a set equipped with a σ-algebra, a collection of

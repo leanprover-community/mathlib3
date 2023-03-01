@@ -1056,6 +1056,7 @@ lemma nonempty_sections_of_fintype_cofiltered_system.init
   F.sections.nonempty :=
 begin
   let F' : J ⥤ Top := F ⋙ Top.discrete,
+  haveI : ∀ j, discrete_topology (F'.obj j) := λ _, ⟨rfl⟩,
   haveI : Π (j : J), fintype (F'.obj j) := hf,
   haveI : Π (j : J), nonempty (F'.obj j) := hne,
   obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system F',

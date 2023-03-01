@@ -12,6 +12,9 @@ import data.rat.big_operators
 /-!
 # Miscellaneous definitions, lemmas, and constructions using finsupp
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `finsupp.graph`: the finset of input and output pairs with non-zero outputs.
@@ -901,7 +904,7 @@ prod_bij (λp _, p.val)
   (λ _, by classical; exact mem_subtype.1)
   (λ _ _, rfl)
   (λ _ _ _ _, subtype.eq)
-  (λ b hb, ⟨⟨b, hp b hb⟩, mem_subtype.2 hb, rfl⟩)
+  (λ b hb, ⟨⟨b, hp b hb⟩, by classical; exact mem_subtype.2 hb, rfl⟩)
 
 end zero
 

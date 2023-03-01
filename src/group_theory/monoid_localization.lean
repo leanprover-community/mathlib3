@@ -10,6 +10,9 @@ import algebra.group.units
 /-!
 # Localizations of commutative monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Localizing a commutative ring at one of its submonoids does not rely on the ring's addition, so
 we can generalize localizations to commutative monoids.
 

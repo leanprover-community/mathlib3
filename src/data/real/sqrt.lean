@@ -34,7 +34,7 @@ square root
 -/
 
 open set filter
-open_locale filter nnreal topological_space
+open_locale filter nnreal topology
 
 namespace nnreal
 

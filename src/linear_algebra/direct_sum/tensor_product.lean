@@ -92,11 +92,7 @@ end
 @[simp] lemma direct_sum_left_symm_lof_tmul (i : ι₁) (x : M₁ i) (y : M₂') :
   (direct_sum_left R M₁ M₂').symm (direct_sum.lof R _ _ i (x ⊗ₜ[R] y))
     = direct_sum.lof R _ _ i x ⊗ₜ[R] y :=
-begin
-  dsimp only [direct_sum_left, linear_equiv.of_linear_symm_apply],
-  rw direct_sum.to_module_lof R i,
-  refl,
-end
+by rw [linear_equiv.symm_apply_eq, direct_sum_left_tmul_lof]
 
 @[simp] lemma direct_sum_right_tmul_lof (x : M₁') (i : ι₂) (y : M₂ i) :
   direct_sum_right R M₁' M₂ (x ⊗ₜ[R] direct_sum.lof R _ _ i y)
@@ -110,15 +106,7 @@ end
 @[simp] lemma direct_sum_right_symm_lof_tmul (x : M₁') (i : ι₂) (y : M₂ i):
   (direct_sum_right R M₁' M₂).symm (direct_sum.lof R _ _ i (x ⊗ₜ[R] y))
     = x ⊗ₜ[R] direct_sum.lof R _ _ i y :=
-begin
-  dsimp only [direct_sum_right, linear_equiv.symm_trans_apply,
-    tensor_product.comm_tmul],
-  have := fun_like.congr_arg
-    (tensor_product.comm R M₁' (⨁ i, M₂ i)).symm (direct_sum_left_symm_lof_tmul R i y x),
-  refine eq.trans _ this,
-  congr' 2,
-  exact dfinsupp.map_range_single,
-end
+by rw [linear_equiv.symm_apply_eq, direct_sum_right_tmul_lof]
 
 end tensor_product
 

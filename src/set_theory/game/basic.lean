@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison, Apurva Nakade
+Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison, Apurva Nakade, Yuyang Zhao
 -/
 import set_theory.game.pgame
 import tactic.abel
@@ -662,10 +662,11 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/
-lemma inv'_zero' : inv' 0 ≡ 1 :=
+lemma inv'_zero' : inv' 0 ≡ (1 : pgame.{u}) :=
 begin
   refine ⟨_, _⟩,
-  { simp_rw [unique.forall_iff, unique.exists_iff, and_self, pgame.inv_val_is_empty], },
+  { simp_rw [unique.forall_iff, unique.exists_iff, and_self, pgame.inv_val_is_empty],
+    exact identical_zero _, },
   { simp_rw [is_empty.forall_iff, and_self], },
 end
 
@@ -685,15 +686,17 @@ end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
+universe v
+
 /-- `inv' 1` has exactly the same moves as `1`. -/
-lemma inv'_one' : inv' 1 ≡ (1 : pgame.{u}) :=
+lemma inv'_one' : inv'.{u} 1 ≡ 1 :=
 begin
   haveI inst : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
   refine ⟨_, _⟩,
-  { simp_rw [unique.forall_iff, unique.exists_iff, pgame.inv_val_is_empty, and_self], },
-  { simp_rw [is_empty.forall_iff, and_true, is_empty.exists_iff],
-    exact (@inv_ty.is_empty _ _ inst _).elim, },
+  { simp_rw [unique.forall_iff, unique.exists_iff, pgame.inv_val_is_empty, and_self],
+    exact identical_zero _, },
+  { simp_rw [is_empty.forall_iff, and_true], },
 end
 
 /-- `inv' 1` has exactly the same moves as `1`. -/

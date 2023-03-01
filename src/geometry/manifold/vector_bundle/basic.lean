@@ -68,7 +68,7 @@ variables [topological_space F] [topological_space (total_space E)] [∀ x, topo
 
 /-- A fibre bundle `E` over a base `B` with model fibre `F` is naturally a charted space modelled on
 `B × F`. -/
-instance fiber_bundle.charted_space [fiber_bundle F E] :
+instance fiber_bundle.charted_space' [fiber_bundle F E] :
   charted_space (B × F) (total_space E) :=
 { atlas := (λ e : trivialization F (π E), e.to_local_homeomorph) '' trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,

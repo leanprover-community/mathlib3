@@ -373,10 +373,7 @@ lemma mk_complex_embedding (φ : {φ : K →+* ℂ // ¬ complex_embedding.is_re
   ((mk_complex K φ) : infinite_place K).embedding = φ ∨
     ((mk_complex K φ) : infinite_place K).embedding = complex_embedding.conjugate φ :=
 begin
-  rw @eq_comm _ _ ↑φ,
-  rw @eq_comm _ _ (complex_embedding.conjugate ↑φ),
-  rw ← mk_eq_iff,
-  rw mk_embedding,
+  rw [@eq_comm _ _ ↑φ, @eq_comm _ _ (complex_embedding.conjugate ↑φ), ← mk_eq_iff, mk_embedding],
   refl,
 end
 

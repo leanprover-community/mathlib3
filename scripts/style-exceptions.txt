@@ -5,7 +5,7 @@ src/control/traversable/derive.lean : line 11 : ERR_MOD : Module docstring missi
 src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 100 characters
+src/data/qpf/multivariate/basic.lean : line 76 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
 src/data/rbmap/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/rbmap/default.lean : line 9 : ERR_MOD : Module docstring missing, or too late

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
 import algebra.module.linear_map
+import linear_algebra.basis.bilinear
 import linear_algebra.bilinear_map
 import algebra.euclidean_domain.instances
 import ring_theory.non_zero_divisors

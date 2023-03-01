@@ -316,6 +316,32 @@ lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] 
   (h : i = u.to_topological_space) : u.replace_topology h = u :=
 u.of_core_eq_to_core _ _
 
+/-- Define a `uniform_space` using a "distance" function. The function can be, e.g., the distance in
+a (usual or extended) metric space or an absolute value on a ring. -/
+def uniform_space.of_fun {α β : Type*} [ordered_add_comm_monoid β]
+  (d : α → α → β) (refl : ∀ x, d x x = 0) (symm : ∀ x y, d x y = d y x)
+  (triangle : ∀ x y z, d x z ≤ d x y + d y z)
+  (half : ∀ ε > (0 : β), ∃ δ > (0 : β), ∀ x < δ, ∀ y < δ, x + y < ε) :
+  uniform_space α :=
+uniform_space.of_core
+  { uniformity := ⨅ r > 0, 𝓟 { x | d x.1 x.2 < r },
+    refl := le_infi₂ $ λ r hr, principal_mono.2 $ id_rel_subset.2 $ λ x, by simpa [refl],
+    symm := tendsto_infi_infi $ λ r, tendsto_infi_infi $ λ _, tendsto_principal_principal.2 $
+      λ x hx, by rwa [mem_set_of, symm],
+    comp := le_infi₂ $ λ r hr, let ⟨δ, h0, hδr⟩ := half r hr in le_principal_iff.2 $ mem_of_superset
+      (mem_lift' $ mem_infi_of_mem δ $ mem_infi_of_mem h0 $ mem_principal_self _) $
+      λ ⟨x, z⟩ ⟨y, h₁, h₂⟩, (triangle _ _ _).trans_lt (hδr _ h₁ _ h₂) }
+
+lemma uniform_space.has_basis_of_fun {α β : Type*} [linear_ordered_add_comm_monoid β]
+  (h₀ : ∃ x : β, 0 < x) (d : α → α → β) (refl : ∀ x, d x x = 0) (symm : ∀ x y, d x y = d y x)
+  (triangle : ∀ x y z, d x z ≤ d x y + d y z)
+  (half : ∀ ε > (0 : β), ∃ δ > (0 : β), ∀ x < δ, ∀ y < δ, x + y < ε) :
+  𝓤[uniform_space.of_fun d refl symm triangle half].has_basis ((<) (0 : β))
+    (λ ε, { x | d x.1 x.2 < ε }) :=
+has_basis_binfi_principal'
+  (λ ε₁ h₁ ε₂ h₂, ⟨min ε₁ ε₂, lt_min h₁ h₂, λ _x hx, lt_of_lt_of_le hx (min_le_left _ _),
+    λ _x hx, lt_of_lt_of_le hx (min_le_right _ _)⟩) h₀
+
 section uniform_space
 variables [uniform_space α]
 

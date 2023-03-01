@@ -8,6 +8,9 @@ import topology.uniform_space.abstract_completion
 /-!
 # Hausdorff completions of uniform spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal is to construct a left-adjoint to the inclusion of complete Hausdorff uniform spaces
 into all uniform spaces. Any uniform space `α` gets a completion `completion α` and a morphism
 (ie. uniformly continuous map) `coe : α → completion α` which solves the universal

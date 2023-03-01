@@ -33,8 +33,8 @@ theorem X_dvd_iff {α : Type u} [comm_semiring α] {f : α[X]} : X ∣ f ↔ f.c
 
 theorem X_pow_dvd_iff {f : R[X]} {n : ℕ} :
   X^n ∣ f ↔ ∀ d < n, f.coeff d = 0 :=
-⟨λ ⟨g, hgf⟩ d hd, by {simp only [hgf, coeff_X_pow_mul', ite_eq_right_iff, not_le_of_lt hd,
-    is_empty.forall_iff]}, λ hd,
+⟨λ ⟨g, hgf⟩ d hd, by simp only [hgf, coeff_X_pow_mul', ite_eq_right_iff, not_le_of_lt hd,
+    is_empty.forall_iff], λ hd,
 begin
   induction n with n hn,
   { simp only [pow_zero, one_dvd] },

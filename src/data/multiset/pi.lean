@@ -70,6 +70,14 @@ lemma forall_rel_cons_ext (r : Π ⦃i⦄, α i → α i → Prop) {a₁ a₂ : 
   ∀ j hj, r (cons a₁ f₁ j hj) (cons a₂ f₂ j hj) :=
 by { intros j hj, dsimp [cons], split_ifs with H, { cases H, exact ha }, { exact hf _ _, } }
 
+lemma cons_injective {i : ι} {a : α i} {s : multiset ι} (hs : i ∉ s) :
+  function.injective (@pi.cons _ _ _ _ s a) :=
+assume f₁ f₂ eq, funext $ assume j, funext $ assume h',
+have ne : i ≠ j, from assume h, hs $ h.symm ▸ h',
+have j ∈ i ::ₘ s, from mem_cons_of_mem h',
+calc f₁ j h' = pi.cons a f₁ j this : by rw [pi.cons_ne this ne.symm]
+  ... = pi.cons a f₂ j this : by rw [eq]
+  ... = f₂ j h' : by rw [pi.cons_ne this ne.symm]
 end pi
 
 section
@@ -98,15 +106,6 @@ end
   pi (a ::ₘ m) t = ((t a).bind $ λ b, (pi m t).map $ pi.cons b) :=
 rec_on_cons a m
 
-lemma pi_cons_injective {a : α} {b : β a} {s : multiset α} (hs : a ∉ s) :
-  function.injective (@pi.cons _ _ _ _ s b) :=
-assume f₁ f₂ eq, funext $ assume a', funext $ assume h',
-have ne : a ≠ a', from assume h, hs $ h.symm ▸ h',
-have a' ∈ a ::ₘ s, from mem_cons_of_mem h',
-calc f₁ a' h' = pi.cons b f₁ a' this : by rw [pi.cons_ne this ne.symm]
-  ... = pi.cons b f₂ a' this : by rw [eq]
-  ... = f₂ a' h' : by rw [pi.cons_ne this ne.symm]
-
 lemma card_pi (m : multiset α) (t : Π a, multiset (β a)) :
   card (pi m t) = prod (m.map $ λ a, card (t a)) :=
 multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
@@ -119,7 +118,7 @@ begin
   have has : a ∉ s, by simp at hs; exact hs.1,
   have hs : nodup s, by simp at hs; exact hs.2,
   simp,
-  refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi_cons_injective has), _⟩,
+  refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi.cons_injective has), _⟩,
   refine (ht a $ mem_cons_self _ _).pairwise _,
   from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
     have pi.cons b₁ f a (mem_cons_self _ _) = pi.cons b₂ g a (mem_cons_self _ _),

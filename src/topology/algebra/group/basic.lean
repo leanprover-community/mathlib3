@@ -12,6 +12,9 @@ import topology.algebra.constructions
 /-!
 # Topological groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the following typeclasses:
 
 * `topological_group`, `topological_add_group`: multiplicative and additive topological groups,
@@ -832,8 +835,8 @@ lemma filter.tendsto.const_div' (b : G) {c : G} {f : α → G} {l : filter α}
 tendsto_const_nhds.div' h
 
 @[to_additive sub_const]
-lemma filter.tendsto.div_const' (b : G) {c : G} {f : α → G} {l : filter α}
-  (h : tendsto f l (𝓝 c)) : tendsto (λ k : α, f k / b) l (𝓝 (c / b)) :=
+lemma filter.tendsto.div_const' {c : G} {f : α → G} {l : filter α}
+  (h : tendsto f l (𝓝 c)) (b : G) : tendsto (λ k : α, f k / b) l (𝓝 (c / b)) :=
 h.div' tendsto_const_nhds
 
 variables [topological_space α] {f g : α → G} {s : set α} {x : α}

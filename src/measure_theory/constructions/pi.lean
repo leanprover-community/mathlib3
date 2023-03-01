@@ -5,6 +5,7 @@ Authors: Floris van Doorn
 -/
 import measure_theory.constructions.prod
 import measure_theory.group.measure
+import topology.constructions
 
 /-!
 # Product measures
@@ -537,6 +538,37 @@ begin
   simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi hs), A,
     pi_pi, measure_preimage_inv]
 end
+
+instance pi.is_open_pos_measure [Π i, topological_space (α i)] [Π i, is_open_pos_measure (μ i)] :
+  is_open_pos_measure (measure_theory.measure.pi μ) :=
+begin
+  constructor,
+  rintros U U_open ⟨a, ha⟩,
+  obtain ⟨s, ⟨hs, hsU⟩⟩ := is_open_pi_iff'.1 U_open a ha,
+  refine ne_of_gt (lt_of_lt_of_le _ (measure_mono hsU)),
+  simp only [pi_pi],
+  rw canonically_ordered_comm_semiring.prod_pos,
+  intros i _,
+  apply ((hs i).1.measure_pos (μ i) ⟨a i, (hs i).2⟩),
+end
+
+instance pi.is_finite_measure_on_compacts [Π i, topological_space (α i)]
+  [Π i, is_finite_measure_on_compacts (μ i)] :
+  is_finite_measure_on_compacts (measure_theory.measure.pi μ) :=
+begin
+  constructor,
+  intros K hK,
+  suffices : measure.pi μ (set.univ.pi ( λ j, (function.eval j) '' K)) < ⊤,
+  { exact lt_of_le_of_lt (measure_mono (univ.subset_pi_eval_image K)) this, },
+  rw measure.pi_pi,
+  refine with_top.prod_lt_top _,
+  exact λ i _, ne_of_lt (is_compact.measure_lt_top (is_compact.image hK (continuous_apply i))),
+end
+
+@[to_additive]
+instance pi.is_haar_measure [Π i, group (α i)] [Π i, topological_space (α i)]
+  [Π i, is_haar_measure (μ i)] [Π i, has_measurable_mul (α i)] :
+  is_haar_measure (measure.pi μ) := {}
 
 end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=

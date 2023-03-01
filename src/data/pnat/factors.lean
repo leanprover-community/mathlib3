@@ -12,6 +12,9 @@ import data.multiset.sort
 /-!
 # Prime factors of nonzero naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the factorization of a nonzero natural number `n` as a multiset of primes,
 the multiplicity of `p` in this factors multiset being the p-adic valuation of `n`.
 

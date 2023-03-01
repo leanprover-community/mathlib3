@@ -7,6 +7,8 @@ import analysis.normed_space.basic
 import linear_algebra.finite_dimensional
 import measure_theory.group.fundamental_domain
 import linear_algebra.free_module.pid
+import linear_algebra.linear_independent
+import ring_theory.localization.module
 
 /-!
 # ℤ-lattices
@@ -20,8 +22,8 @@ The ℤ-lattice `L` can be defined in two ways:
   `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `ℝ`.
 
 ## Main results
-* `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
-indeed a fundamental domain of the lattice.
+* `zspan.is_add_fundamental_domain`: for `L : submodule.span ℤ (set.range b)` a ℤ-lattice, proves
+that the set defined by `zspan.fundamental_domain` is indeed a fundamental domain.
 * `zlattice.dim`: for `L : add_subgroup E` with `L` discrete and spanning `E` over `ℝ`, proves that
 `finrank ℤ L = finrank ℝ E`.
 -/
@@ -147,7 +149,7 @@ end
 
 end fintype
 
-lemma zspan.metric.fundamental_domain_bounded [finite ι] :
+lemma zspan.fundamental_domain_metric_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,
@@ -156,7 +158,7 @@ begin
   refine le_trans (dist_le_norm_add_norm x y) _,
   rw [← (zspan.mem_fundamental_domain b).mp hx, ← (zspan.mem_fundamental_domain b).mp hy],
   refine (add_le_add (zspan.fract_map_le b x) (zspan.fract_map_le b y)).trans _,
-  linarith,
+  rw ← two_mul,
 end
 
 lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
@@ -219,12 +221,14 @@ begin
       λ y, ⟨quotient.mk' y, ext_iff.mpr ((zspan.mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
 end
 
+lemma zspan.sub_quo_fract_mem (x : E) [fintype ι] :
+  x - zspan.quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
+begin
+  change x - zspan.fract_map b x ∈ span ℤ (set.range b),
+  simp only [zspan.fract_map_def, sub_sub_cancel, coe_mem],
+end
+
 end zspan
-
-#lint
-
-
-#exit
 
 section zlattice
 
@@ -242,276 +246,136 @@ begin
   suffices : L.to_int_submodule.fg,
   { rwa [fg_iff_add_subgroup_fg, add_subgroup.to_int_submodule_to_add_subgroup] at this, },
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L.to_int_submodule : set E),
--- Let `s` be maximal ℝ-linear independent family of elements of `L`. We show that
--- `L` is finitely generated (as a ℤ-module) because its fits in the exact sequence
--- `0 → L ∩ ker (span ℤ s) → L → L / ker (span ℤ s) → 0`
--- with `L ∩ ker (span ℤ s)` and `L / ker (span ℤ s)` finitely generated.
+  -- Let `s` be a maximal ℝ-linear independent family of elements of `L`. We show that
+  -- `L` is finitely generated (as a ℤ-module) because its fits in the exact sequence
+  -- `0 → L ∩ ker (span ℤ s) → L → L / ker (span ℤ s) → 0`
+  -- with `L ∩ ker (span ℤ s)` and `L / ker (span ℤ s)` finitely generated.
   refine fg_of_fg_map_of_fg_inf_ker (mkq (span ℤ s)) _ _,
   { rw submodule.fg_def,
     use (map (span ℤ s).mkq (add_subgroup.to_int_submodule L)),
     split,
-    { haveI : fintype s := sorry,
+    { haveI : fintype s := set.finite.fintype h3.finite,
       let b := basis.mk h3 (by
         simp only [h2, hs, subtype.range_coe, add_subgroup.coe_to_int_submodule, top_le_iff]),
       rw (_ : submodule.span ℤ s = submodule.span ℤ (set.range b)),
--- Elements of `L / ker (span ℤ s)` are in bijection with element of `L ∩ fundamental_domain s`
--- so there are finitely many since `fundamental_domain s` is bounded.
+      -- Elements of `L / ker (span ℤ s)` are in bijection with element of
+      -- `L ∩ fundamental_domain s` so there are finitely many since
+      -- `fundamental_domain s` is bounded.
       refine @set.finite.of_finite_image _ _ _ ((coe : _ → E) ∘ (zspan.quo_fract_equiv b)) _ _,
-      { obtain ⟨C, hC⟩ := metric.bounded.subset_ball (zspan.metric.bounded_fundamental_domain b) 0,
-
-
-    --    refine set.finite.subset (hd (finset.univ.sum (λ j, ‖b j‖))) _,
+      { obtain ⟨C, hC⟩ := metric.bounded.subset_ball (zspan.fundamental_domain_metric_bounded b) 0,
         refine set.finite.subset (hd C) _,
         rintros _ ⟨_, ⟨⟨x, ⟨hx, rfl⟩⟩, rfl⟩⟩,
         split,
-        { simp *,
-          sorry, },
+        { suffices : span ℤ (set.range b) ≤ L.to_int_submodule,
+          { rw [set_like.mem_coe, ← neg_mem_iff, ← add_mem_cancel_left (by convert hx : x ∈ L),
+              ← sub_eq_add_neg],
+            exact this (zspan.sub_quo_fract_mem b x), },
+          { simpa only [submodule.span_le, add_subgroup.coe_to_int_submodule, basis.coe_mk,
+              subtype.range_coe_subtype, set.set_of_mem_eq], }},
         { simp only [mkq_apply, function.comp_app, mem_closed_ball_zero_iff],
-          exact mem_closed_ball_zero_iff.mp (hC (zspan.fract_map_mem_fundamental_domain b x)), },
-      },
-      sorry,
-      sorry, },
+          exact mem_closed_ball_zero_iff.mp (hC (zspan.fract_map_mem_fundamental_domain b x)), }},
+      { refine function.injective.inj_on (function.injective.comp subtype.coe_injective
+        (zspan.quo_fract_equiv b).injective) _, },
+      { congr,
+        simp only [basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq], }},
     { exact submodule.span_eq _, }},
--- `L ∩ ker (span ℤ s)` is finitely generated because `s` is finite.
+  -- `L ∩ ker (span ℤ s)` is finitely generated because `s` is finite.
   { rw [submodule.ker_mkq (submodule.span ℤ s), inf_of_le_right (submodule.span_le.mpr h1)],
     exact submodule.fg_span (linear_independent.finite h3), }
 end
 
-#exit
-
-  haveI : fintype s,
-  { suffices : s.finite,
-    { exact set.finite.fintype this, },
-    convert h3.finite, },
-  let b := basis.mk h3
-  begin
-    have : set.range (coe : s → E) = (s : set E),
-    { exact subtype.range_coe, },
-    have : submodule.span ℝ (set.range coe) = submodule.span ℝ s,
-    { exact congr_arg (submodule.span ℝ) this, },
-    rw this,
-    rwa h2,
-    rw hs,
-    exact le_rfl,
-  end,
-  have hh : s = set.range b,
-  { rw congr_arg set.range (basis.coe_mk _ _),
-    simp only [subtype.range_coe_subtype, set.set_of_mem_eq], },
-  have hb : set.range b ≤ L, { rwa ← hh, },
-  have hr : submodule.span ℤ s = submodule.span ℤ (set.range b),
-  { exact congr_arg (submodule.span ℤ) hh, },
-  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ s)) _ _,
-  { rw submodule.fg_iff_add_subgroup_fg,
-    rw add_subgroup.fg_iff_add_submonoid.fg,
-    rw ← add_monoid.fg_iff_add_submonoid_fg,
-    convert add_monoid.fg_of_finite,
-    rw hr,
-    change finite (submodule.map (submodule.span ℤ (set.range ⇑b)).mkq L).carrier,
-    rw set.finite_coe_iff,
-    refine set.finite.of_finite_image _ ((zspan.injective_fract_quo_map b).inj_on _),
-    refine set.finite.subset (hd (finset.univ.sum (λ j, ‖b j‖))) _,
-    rintros _ ⟨_, ⟨⟨x, ⟨hx, rfl⟩⟩, rfl⟩⟩,
-    split,
-    { rw zspan.fract_quo_map_eq,
-      rw zspan.fract_map,
-      rw set_like.mem_coe,
-      refine sub_mem hx _,
-      have : submodule.span ℤ (set.range b) ≤ L := submodule.span_le.mpr hb,
-      refine this (submodule.coe_mem _), },
-    { rw mem_closed_ball_zero_iff,
-      exact zspan.fract_map_le _ _, }},
-  { have : L ⊓ linear_map.ker _ = submodule.span ℤ s,
-    { rw submodule.ker_mkq (submodule.span ℤ s),
-      rw inf_eq_right,
-      rwa submodule.span_le, },
-    rw this,
-    exact submodule.fg_span (linear_independent.finite h3), },
+lemma zlattice.module.finite : module.finite ℤ L :=
+begin
+rw [module.finite.iff_add_group_fg, add_group.fg_iff_add_monoid.fg],
+exact (add_monoid.fg_iff_add_submonoid_fg _).mpr
+  ((add_subgroup.fg_iff_add_submonoid.fg L).mp (zlattice.fg hd hs)),
 end
 
-#exit
+variable [no_zero_smul_divisors ℤ E]
 
---- Add a result that `L` is a free ℤ-module
-
-/-- A basis of the lattice `L`.-/
-def zlattice.basis [no_zero_smul_divisors ℤ E]
-  (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-  (hs : submodule.span ℝ (L : set E) = ⊤) :  Σ (n : ℕ), basis (fin n) ℤ L :=
+lemma zlattice.module.free : module.free ℤ L :=
 begin
-  haveI : module.finite ℤ L,
-  { rw module.finite.iff_add_group_fg,
-    rw add_group.fg_iff_add_monoid.fg,
-    have := zlattice.fg hd hs,
-    rw submodule.fg_iff_add_subgroup_fg at this,
-    rw add_subgroup.fg_iff_add_submonoid.fg at this,
-    rw ← add_monoid.fg_iff_add_submonoid_fg at this,
-    convert this, },
-  exact @module.free_of_finite_type_torsion_free' ℤ _ _ _ L _ _ _ _,
+  haveI : module.finite ℤ L := zlattice.module.finite hd hs,
+  haveI : no_zero_smul_divisors ℤ L,
+  { change no_zero_smul_divisors ℤ L.to_int_submodule,
+    exact submodule.no_zero_smul_divisors _, },
+  exact module.free.of_basis (module.free_of_finite_type_torsion_free').2,
 end
 
-lemma zlattice.dim [no_zero_smul_divisors ℤ E]
-  (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-  (hs : submodule.span ℝ (L : set E) = ⊤) :
-  (zlattice.basis hd hs).1 = finite_dimensional.finrank ℝ E :=
+variables [module ℚ E]
+
+open finite_dimensional
+
+lemma zlattice.rank : finrank ℤ L = finrank ℝ E :=
 begin
-  let s := set.range (λ i : fin ((zlattice.basis hd hs).1), (((zlattice.basis hd hs).2 i) : E)),
-  have t1 : submodule.span ℝ s = ⊤,
-  { rw ← hs,
-    rw ← submodule.span_span_of_tower ℤ ℝ s,
-    congr,
-    have := basis.span_eq (zlattice.basis hd hs).2,
-    have z1 := congr_arg (submodule.map L.subtype) this,
-    rw ← submodule.span_image L.subtype at z1,
-    rw submodule.map_subtype_top L at z1,
-    rw ← z1,
-    congr,
-    ext,
-    split,
-    { rintro ⟨_, rfl⟩,
-      simp only [set.mem_image, set.mem_range, exists_exists_eq_and, exists_apply_eq_apply,
-        submodule.coe_subtype], },
-    { rintro ⟨_, ⟨⟨t1, rfl⟩, rfl⟩⟩,
-      simp only [set.mem_range, exists_apply_eq_apply, submodule.coe_subtype], }},
-  have t2 : (zlattice.basis hd hs).1 = finset.card s.to_finset,
-  { rw set.to_finset_range,
-    rw finset.card_image_of_injective,
-    exact (finset.card_fin _).symm,
-    have : function.injective (coe : L → E) := subtype.coe_injective,
-    have := (this.of_comp_iff (zlattice.basis hd hs).2).mpr (zlattice.basis hd hs).2.injective,
-    exact this, },
-  rw t2,
+  haveI : module.finite ℤ L := zlattice.module.finite hd hs,
+  haveI : module.free ℤ L := zlattice.module.free hd hs,
+  let b := module.free.choose_basis ℤ L,
+  have h_spaneq : span ℤ (set.range ((coe : L → E) ∘ b)) = L.to_int_submodule,
+  { convert congr_arg (submodule.map L.to_int_submodule.subtype) b.span_eq,
+    { rw [submodule.map_span, submodule.coe_subtype, set.range_comp], },
+    { rw map_subtype_top, }},
+  have h_spantop : submodule.span ℝ (set.range ((coe : L → E) ∘ b)) = ⊤,
+  { rwa [← @submodule.span_span_of_tower ℤ E ℝ _, h_spaneq], },
+  rw module.free.finrank_eq_card_choose_basis_index,
   apply le_antisymm,
-  { -- Proceed by contradiction
-    by_contradiction,
-    push_neg at h,
-    -- Extract a basis b of E from s
-    obtain ⟨t, ⟨ht1, ⟨ht2, ht3⟩⟩⟩ := exists_linear_independent ℝ s,
-    have ht4 : ⊤ ≤ submodule.span ℝ (set.range (coe : t → E)),
-    { have : set.range (coe : t → E) = (t : set E),
-      { exact subtype.range_coe, },
-      have : submodule.span ℝ (set.range coe) = submodule.span ℝ t,
-      { exact congr_arg (submodule.span ℝ) this, },
-      rw this,
-      rw ht2,
-      rw t1,
-      exact le_rfl, },
-    let b : basis t ℝ E := basis.mk ht3 ht4,
-    haveI : fintype t := set.finite.fintype (s.to_finite.subset ht1),
-    have t3 : t.to_finset.card = finite_dimensional.finrank ℝ E,
-    { rw finite_dimensional.finrank_eq_card_basis b,
-      rw set.to_finset_card, },
-    have : (s \ t).nonempty,
-    { suffices :  0 < (s \ t).to_finset.card,
-      { rw ← set.to_finset_nonempty,
-        rwa ← finset.card_pos, },
-      rw set.to_finset_diff,
-      rw finset.card_sdiff (set.to_finset_mono ht1),
-      rw t3,
-      rwa tsub_pos_iff_lt, },
-    obtain ⟨v, hv1⟩ := this,
-    -- Use fract_map b to prove that n • v - m • v ∈ span ℤ b
-    have t3 : ∃ d : ℤ, d ≠ 0 ∧ d • v ∈ submodule.span ℤ (set.range b),
-    { obtain ⟨n, _, m, _, hnm, h⟩  := @set.infinite.exists_ne_map_eq_of_maps_to ℕ _ _ _
-        (λ n : ℕ, zspan.fract_map b (n • v)) set.infinite_univ _
-        (hd (finset.univ.sum (λ j, ‖b j‖))),
-      { use (n : ℤ) - m,
-        split,
-        { rw sub_ne_zero,
-          exact_mod_cast hnm, },
-        { rw sub_smul,
-          rw ← zspan.fract_map_eq_iff b,
-          dsimp only at h,
-          rw coe_nat_zsmul,
-          rwa coe_nat_zsmul, }},
-      { intros n _,
-        have t4 : s ⊆ L,
-        { rintros _ ⟨i, rfl⟩,
-          simp only [set_like.mem_coe, submodule.coe_mem], },
-        split,
-        { dsimp only [zspan.fract_map],
-          rw set_like.mem_coe,
-          refine sub_mem _ _,
-          { refine nsmul_mem _ n,
-            exact t4 (s.diff_subset _ hv1), },
-          { dsimp only [zspan.floor_map],
-            rw submodule.coe_sum,
-            refine sum_mem _,
-            intros x _,
-            rw submodule.coe_smul,
-            refine zsmul_mem _ _,
-            rw zspan.basis_eq,
-            rw basis.coe_mk,
-            exact t4 (ht1 (subtype.mem x)), }},
-        { rw mem_closed_ball_zero_iff,
-          exact zspan.fract_map_le b _, }}},
-    -- Deduce that there is a ℤ-relation between the vectors of zap_basis
-    let t0 := has_insert.insert v t.to_finset,
-    suffices : ¬ linear_independent ℤ (coe : t0 → E),
-    { have t5 := (zlattice.basis hd hs).2.linear_independent,
-      have z1 := t5.map' L.subtype L.ker_subtype,
-      have t6 := z1.to_subtype_range,
-      have t7 : linear_independent ℤ (coe : s → E),
-      { convert t6, },
-      have z3 : (t0 : set E) ⊆ s,
-      { dsimp only [t0],
-        rw finset.coe_insert,
-        rw set.coe_to_finset,
-        rw set.insert_subset,
-        split,
-        { exact set.mem_of_mem_diff hv1, },
-        { exact ht1, }},
-      have z4 := linear_independent.mono z3,
-      have z5 := z4 t7,
-      exact this z5, },
-    rw fintype.not_linear_independent_iff,
-    obtain ⟨d, ⟨hd1, hd2⟩⟩ := t3,
-    have : set.range b = t.to_finset,
-    { convert subtype.range_coe,
-      exact basis.coe_mk ht3 ht4,
-      exact set.coe_to_finset t, },
-    rw this at hd2,
-    rw mem_span_finset at hd2,
-    obtain ⟨f, hf⟩ := hd2,
-    let g : t0 → ℤ := λ x, ite ((x : E) = v) (- d) (f x),
-    use g,
-    split,
-    { let k : E → E := λ x, ite ((x : E) = v) ((- d) • v)  ((f x) • x),
-      have : ∀ i : t0, g i • (i : E) = k i,
-      { intro i,
-        dsimp only [k, g],
-        split_ifs with h1 h2,
-        { rw h1, },
-        { refl, }},
-      simp_rw this,
-      have := finset.sum_coe_sort t0 k,
-      rw this,
-      rw finset.sum_insert,
-      dsimp [k],
-      rw if_pos _,
-      have : ∀ x ∈ t.to_finset, ¬ x = v,
-      { intros x hx,
-        by_contra,
-        rw h at hx,
-        have := set.not_mem_of_mem_diff hv1,
-        rw set.mem_to_finset at hx,
-        exact this hx, },
-      rw finset.sum_ite_of_false _ _ this,
-      rw hf,
-      rw ← add_zsmul,
-      simp only [add_left_neg, zero_smul],
-      refl,
-      apply (iff.not set.mem_to_finset).mpr,
-      exact set.not_mem_of_mem_diff hv1, },
-    { use v,
-      exact finset.mem_insert_self _ _,
-      dsimp only [g],
-      rw if_pos _,
-      rwa neg_ne_zero,
-      exact subtype.coe_mk _ _, }},
-  { have := finrank_span_le_card s,
-    rw t1 at this,
-    have := @submodule.top_equiv ℝ E _ _ _,
-    have := this.finrank_eq,
-    rwa ← this, },
+  { -- The proof proceeds by proving that there is ℤ-relation between the
+    -- vectors of `b` otherwise.
+    have h : linear_independent ℤ (λ x : set.range ((coe : L → E) ∘ b), (x : E)),
+    { rw linear_independent_subtype_range
+        (function.injective.comp subtype.coe_injective (basis.injective b)),
+      convert b.linear_independent.map' L.to_int_submodule.subtype (submodule.ker_subtype _), },
+    contrapose! h,
+    -- Extract a ℝ-basis `e` of `E` from `b`
+    obtain ⟨t, ⟨ht1, ⟨ht2, ht3⟩⟩⟩ := exists_linear_independent ℝ (set.range ((coe : L → E) ∘ b)),
+    haveI : fintype t := set.finite.fintype ((set.range (coe ∘ b)).to_finite.subset ht1),
+    let e : basis t ℝ E := basis.mk ht3
+      (by { rw [subtype.range_coe, ht2, h_spantop], exact le_rfl, }),
+    -- Then there exists `v` in `b ∖ e`
+    rsuffices ⟨v, hv⟩ : ((set.range ((coe : L → E) ∘ b)) \ (set.range e)).nonempty,
+    { -- and there exist `n, m : ℕ`, `n ≠ m` such that `(n - m) • v ∈ span ℤ e`.
+      obtain ⟨n, -, m, -, hnm, heq⟩ := @set.infinite.exists_ne_map_eq_of_maps_to ℤ _ _ _
+        (λ n : ℤ, zspan.fract_map e (n • v)) set.infinite_univ _
+        (hd (finset.univ.sum (λ j, ‖e j‖))),
+      -- from this we will prove that `e ∪ {v}` is not ℤ-linear independent which will give
+      -- the required contradiction
+      { suffices : ¬ linear_independent ℤ (λ x : has_insert.insert v (set.range e), (x : E)),
+        { contrapose! this,
+          refine linear_independent.mono _ this,
+          exact set.insert_subset.mpr ⟨set.mem_of_mem_diff hv, by
+          { simp only [ht1, basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq], }⟩},
+        rw (@linear_independent.iff_fraction_ring ℤ ℚ _ _ _ _ E _ _ _ _ _ _).not,
+        { -- We prove finally that `e ∪ {v}` is not ℤ-linear independent or, equivalently,
+          -- not ℚ-linear independent by showing that `v ∈ span ℚ e`.
+          rw (linear_independent_insert (set.not_mem_of_mem_diff hv)).not,
+          push_neg,
+          intro _,
+          have hnz : (-n + m : ℚ) ≠ 0,
+          { rwa [add_comm, ← int.cast_neg, ← int.cast_add, int.cast_ne_zero, ← int.sub_eq_add_neg,
+              ne.def, int.sub_eq_zero_iff_eq.not, eq_comm], },
+          apply (submodule.smul_mem_iff (span ℚ (set.range e)) hnz).mp,
+          refine (submodule.span_subset_span ℤ ℚ (set.range e)) _,
+          rwa [(by push_cast : - (n : ℚ) + (m : ℚ) = (-n + m : ℤ)), ← zsmul_eq_smul_cast ℚ,
+            set_like.mem_coe, add_smul, neg_smul, ← zspan.fract_map_eq_iff], }},
+      intros n _,
+      split,
+      { change _ ∈ L.to_int_submodule,
+        simp_rw [zspan.fract_map_def e, ← h_spaneq],
+        refine sub_mem _ _,
+        { exact zsmul_mem (submodule.subset_span (set.diff_subset _ _ hv)) _, },
+        { refine ((span_mono _) (coe_mem (zspan.floor_map e (n • v)))),
+          simp only [ht1, basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq], }},
+      { exact mem_closed_ball_zero_iff.mpr (zspan.fract_map_le e _), }},
+    { rwa [basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq, ← set.to_finset_nonempty,
+        ← finset.card_pos, set.to_finset_diff, finset.card_sdiff (set.to_finset_mono ht1),
+        set.to_finset_range, set.to_finset_card, ← finrank_eq_card_basis e, tsub_pos_iff_lt,
+        finset.card_image_of_injective _],
+      exact function.injective.comp subtype.coe_injective (basis.injective _), }},
+  { rw [← (@submodule.top_equiv ℝ E _ _ _).finrank_eq, ← h_spantop],
+    convert finrank_span_le_card (set.range ((coe : L → E) ∘ b)),
+    rw set.to_finset_range,
+    exact (finset.univ.card_image_of_injective
+      (subtype.coe_injective.comp (basis.injective _))).symm, },
 end
 
 end zlattice

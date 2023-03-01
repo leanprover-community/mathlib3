@@ -10,6 +10,9 @@ import data.sym.sym2
 /-!
 # Simple graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines simple graphs on a vertex type `V` as an
 irreflexive symmetric relation.
 

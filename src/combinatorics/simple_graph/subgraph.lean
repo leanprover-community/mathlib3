@@ -8,6 +8,9 @@ import combinatorics.simple_graph.basic
 /-!
 # Subgraphs of a simple graph
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A subgraph of a simple graph consists of subsets of the graph's vertices and edges such that the
 endpoints of each edge are present in the vertex subset. The edge subset is formalized as a
 sub-relation of the adjacency relation of the simple graph.

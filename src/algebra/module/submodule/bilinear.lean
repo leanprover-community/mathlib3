@@ -9,6 +9,9 @@ import linear_algebra.bilinear_map
 /-!
 # Images of pairs of submodules under bilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `submodule.map₂`, which is later used to implement `submodule.has_mul`.
 
 ## Main results

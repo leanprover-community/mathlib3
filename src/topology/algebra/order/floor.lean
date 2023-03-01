@@ -9,6 +9,9 @@ import topology.algebra.order.group
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves statements about limits and continuity of functions involving `floor`, `ceil` and
 `fract`.
 

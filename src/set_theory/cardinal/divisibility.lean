@@ -10,6 +10,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinal Divisibility
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show basic results about divisibility in the cardinal numbers. This relation can be characterised
 in the following simple way: if `a` and `b` are both less than `ℵ₀`, then `a ∣ b` iff they are
 divisible as natural numbers. If `b` is greater than `ℵ₀`, then `a ∣ b` iff `a ≤ b`. This

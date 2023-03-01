@@ -326,7 +326,7 @@ begin
     have hu' := congr_arg (λ F : U ⥤q W, F.obj u') hθ, dsimp at hu',
     refine ⟨hu', _⟩,
     rw [hom.cast_cast],
-    apply hom.cast_irrelevant, },
+    apply hom.cast_congr, },
   obtain ⟨hu', he'⟩ := (quiver.star_eq_iff _ _).mp ((ψc.1 (θ₂.obj u)).1 he),
   rw [hom.cast_cast] at he',
   exact ⟨hu', he'⟩,

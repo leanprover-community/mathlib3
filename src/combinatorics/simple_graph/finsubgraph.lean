@@ -3,7 +3,7 @@ Copyright (c) 2022 Joanna Choules. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joanna Choules
 -/
-import topology.category.Top.limits
+import category_theory.cofiltered_system
 import combinatorics.simple_graph.subgraph
 
 /-!
@@ -24,7 +24,7 @@ for homomorphisms to a finite codomain.
 
 ## Implementation notes
 
-The proof here uses compactness as formulated in `nonempty_sections_of_fintype_inverse_system`. For
+The proof here uses compactness as formulated in `nonempty_sections_of_finite_inverse_system`. For
 finite subgraphs `G'' ≤ G'`, the inverse system `finsubgraph_hom_functor` restricts homomorphisms
 `G' →fg F` to domain `G''`.
 -/
@@ -99,7 +99,7 @@ begin
     exact fintype.of_injective (λ f, f.to_fun) rel_hom.coe_fn_injective
   end,
   /- Use compactness to obtain a section. -/
-  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system (finsubgraph_hom_functor G F),
+  obtain ⟨u, hu⟩ := nonempty_sections_of_finite_inverse_system (finsubgraph_hom_functor G F),
   refine ⟨⟨λ v, _, _⟩⟩,
   { /- Map each vertex using the homomorphism provided for its singleton subgraph. -/
     exact (u (opposite.op (singleton_finsubgraph v))).to_fun

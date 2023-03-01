@@ -33,7 +33,7 @@ begin
   rw [add_comm _ (y ^ _), ←add_assoc, finset.mul_sum, finset.sum_congr rfl (λ i hi, _)],
   rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ←nat.cast_mul, nat.div_mul_cancel],
   rw [finset.mem_range, lt_tsub_iff_right] at hi,
-  exact hp.dvd_choose_pow i.succ_ne_zero hi,
+  exact hp.dvd_choose_pow i.succ_ne_zero hi.ne,
 end
 
 protected lemma add_pow_prime_eq (hp : p.prime) (h : commute x y) :

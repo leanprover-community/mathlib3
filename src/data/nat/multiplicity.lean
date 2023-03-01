@@ -231,8 +231,10 @@ lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p 
     ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0.bot_lt⟩)) :=
 part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
 
-lemma dvd_choose_pow (hp : prime p) (hk : k ≠ 0) (hkp : k < p ^ n) : p ∣ (p ^ n).choose k :=
+lemma dvd_choose_pow (hp : prime p) (hk : k ≠ 0) (hkp : k ≠ p ^ n) : p ∣ (p ^ n).choose k :=
 begin
+  obtain hkp | hkp := hkp.symm.lt_or_lt,
+  { simp [choose_eq_zero_of_lt hkp] },
   refine multiplicity_ne_zero.1 (λ h, hkp.not_le $ nat.le_of_dvd hk.bot_lt _),
   have H := hp.multiplicity_choose_prime_pow_add_multiplicity hkp.le hk,
   rw [h, zero_add, eq_coe_iff] at H,

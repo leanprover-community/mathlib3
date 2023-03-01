@@ -65,7 +65,7 @@ lemma range_diagonal [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin'.range = (⨆ i ∈ {i | w i ≠ 0}, (linear_map.std_basis K (λi, K) i).range) :=
 begin
   dsimp only [mem_set_of_eq],
-  rw [← map_top, ← supr_range_std_basis, map_supr],
+  rw [← submodule.map_top, ← supr_range_std_basis, submodule.map_supr],
   congr, funext i,
   rw [← linear_map.range_comp, diagonal_comp_std_basis, ← range_smul']
 end

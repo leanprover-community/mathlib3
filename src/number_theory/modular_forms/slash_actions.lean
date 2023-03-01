@@ -20,6 +20,9 @@ open_locale upper_half_plane
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
+-- like `↑ₘ`, but allows the user to specify the ring `R`. Useful to help Lean elaborate.
+local notation `↑ₘ[` R `]` := @coe _ (matrix (fin 2) (fin 2) R) _
+
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
@@ -145,7 +148,7 @@ end
   if for every matrix `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
   and it acts on `ℍ` via Möbius transformations. -/
 lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ) (γ : Γ)  (z : ℍ) :
-  f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
+  f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘ[ℤ]γ 1 0 : ℂ) * z + (↑ₘ[ℤ]γ 1 1 : ℂ))^k * f z :=
 begin
   simp only [subgroup_slash, modular_form.slash],
   convert inv_mul_eq_iff_eq_mul₀ _ using 2,

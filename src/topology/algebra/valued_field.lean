@@ -349,4 +349,7 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
     exact (has_basis_nhds_zero K Γ₀).has_basis_of_dense_inducing completion.dense_inducing_coe,
   end }
 
+@[simp, norm_cast] lemma valued_completion_apply (x : K) : valued.v (x : hat K) = v x :=
+extension_extends x
+
 end valued

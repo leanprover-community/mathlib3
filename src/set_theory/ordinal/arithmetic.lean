@@ -9,6 +9,9 @@ import tactic.by_contra
 /-!
 # Ordinal arithmetic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Ordinals have an addition (corresponding to disjoint union) that turns them into an additive
 monoid, and a multiplication (corresponding to the lexicographic order on the product) that turns
 them into a monoid. One can also define correspondingly a subtraction, a division, a successor

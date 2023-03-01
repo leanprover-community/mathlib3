@@ -120,7 +120,7 @@ def structured_arrow_equivalence : F.elements ≌ structured_arrow punit F :=
 equivalence.mk (to_structured_arrow F) (from_structured_arrow F)
   (nat_iso.of_components (λ X, eq_to_iso (by tidy)) (by tidy))
   (nat_iso.of_components
-    (λ X, { hom := { right := 𝟙 _ }, inv := { right := 𝟙 _ } })
+    (λ X, structured_arrow.iso_mk (iso.refl _) (by tidy))
     (by tidy))
 
 open opposite

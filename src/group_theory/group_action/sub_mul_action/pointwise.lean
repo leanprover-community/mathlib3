@@ -15,7 +15,7 @@ import group_theory.group_action.sub_mul_action
 This file provides `sub_mul_action.monoid` and weaker typeclasses, which show that `sub_mul_action`s
 inherit the same pointwise multiplications as sets.
 
-To match `submodule.semiring`, we do not put these in the `pointwise` locale.
+To match `submodule.idem_semiring`, we do not put these in the `pointwise` locale.
 
 -/
 

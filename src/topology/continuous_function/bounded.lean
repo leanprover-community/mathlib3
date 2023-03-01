@@ -308,10 +308,16 @@ begin
 end
 
 /-- Composition of a bounded continuous function and a continuous function. -/
-@[simps { fully_applied := ff }]
 def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
 { to_continuous_map := f.1.comp g,
   map_bounded' := f.map_bounded'.imp (λ C hC x y, hC _ _) }
+
+@[simp] lemma coe_comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) :
+  coe_fn (f.comp_continuous g) = f ∘ g := rfl
+
+@[simp] lemma comp_continuous_apply {δ : Type*} [topological_space δ]
+  (f : α →ᵇ β) (g : C(δ, α)) (x : δ) : f.comp_continuous g x = f (g x) :=
+rfl
 
 lemma lipschitz_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, α)) :
   lipschitz_with 1 (λ f : α →ᵇ β, f.comp_continuous g) :=
@@ -322,9 +328,12 @@ lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, 
 (lipschitz_comp_continuous g).continuous
 
 /-- Restrict a bounded continuous function to a set. -/
-@[simps apply { fully_applied := ff }]
 def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β :=
 f.comp_continuous $ (continuous_map.id _).restrict s
+
+@[simp] lemma coe_restrict (f : α →ᵇ β) (s : set α) : coe_fn (f.restrict s) = f ∘ coe := rfl
+
+@[simp] lemma restrict_apply (f : α →ᵇ β) (s : set α) (x : s) : f.restrict s x = f x := rfl
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/

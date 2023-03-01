@@ -224,7 +224,13 @@ def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
 
 @[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
 
-/-- The restriction of a continuous map onto the preimage of a set. -/
+@[simp] lemma restrict_apply (f : C(α, β)) (s : set α) (x : s) : f.restrict s x = f x := rfl
+
+@[simp] lemma restrict_apply_mk (f : C(α, β)) (s : set α) (x : α) (hx : x ∈ s) :
+  f.restrict s ⟨x, hx⟩ = f x :=
+rfl
+
+/-- The restriction of a continuous map to the preimage of a set. -/
 @[simps]
 def restrict_preimage (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
 ⟨s.restrict_preimage f, continuous_iff_continuous_at.mpr $ λ x, f.2.continuous_at.restrict_preimage⟩

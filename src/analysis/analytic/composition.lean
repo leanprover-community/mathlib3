@@ -444,8 +444,8 @@ begin
   /- This follows from the fact that the growth rate of `‖qₙ‖` and `‖pₙ‖` is at most geometric,
   giving a geometric bound on each `‖q.comp_along_composition p op‖`, together with the
   fact that there are `2^(n-1)` compositions of `n`, giving at most a geometric loss. -/
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min ennreal.zero_lt_one hq) with ⟨rq, rq_pos, hrq⟩,
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min ennreal.zero_lt_one hp) with ⟨rp, rp_pos, hrp⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min zero_lt_one hq) with ⟨rq, rq_pos, hrq⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min zero_lt_one hp) with ⟨rp, rp_pos, hrp⟩,
   simp only [lt_min_iff, ennreal.coe_lt_one_iff, ennreal.coe_pos] at hrp hrq rp_pos rq_pos,
   obtain ⟨Cq, hCq0, hCq⟩ : ∃ Cq > 0, ∀ n, ‖q n‖₊ * rq^n ≤ Cq :=
     q.nnnorm_mul_pow_le_of_lt_radius hrq.2,
@@ -453,7 +453,7 @@ begin
   { rcases p.nnnorm_mul_pow_le_of_lt_radius hrp.2 with ⟨Cp, -, hCp⟩,
     exact ⟨max Cp 1, le_max_right _ _, λ n, (hCp n).trans (le_max_left _ _)⟩ },
   let r0 : ℝ≥0 := (4 * Cp)⁻¹,
-  have r0_pos : 0 < r0 := nnreal.inv_pos.2 (mul_pos zero_lt_four (zero_lt_one.trans_le hCp1)),
+  have r0_pos : 0 < r0 := inv_pos.2 (mul_pos zero_lt_four (zero_lt_one.trans_le hCp1)),
   set r : ℝ≥0 := rp * rq * r0,
   have r_pos : 0 < r := mul_pos (mul_pos rp_pos rq_pos) r0_pos,
   have I : ∀ (i : Σ (n : ℕ), composition n),

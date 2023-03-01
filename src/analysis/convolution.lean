@@ -211,7 +211,7 @@ lemma bdd_above.convolution_exists_at' {x₀ : G}
   (hf : integrable_on f s μ) (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) (μ.restrict s)) :
   convolution_exists_at f g x₀ L μ :=
 begin
-  rw [convolution_exists_at, ← integrable_on_iff_integrable_of_support_subset h2s hs],
+  rw [convolution_exists_at, ← integrable_on_iff_integrable_of_support_subset h2s],
   set s' := (λ t, - t + x₀) ⁻¹' s,
   have : ∀ᵐ (t : G) ∂(μ.restrict s),
     ‖L (f t) (g (x₀ - t))‖ ≤ s.indicator (λ t, ‖L‖ * ‖f t‖ * ⨆ i : s', ‖g i‖) t,

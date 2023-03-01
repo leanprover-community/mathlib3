@@ -8,6 +8,9 @@ import category_theory.monoidal.category
 
 /-!
 # Endomorphisms of an object in a bicategory, as a monoidal category.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace category_theory

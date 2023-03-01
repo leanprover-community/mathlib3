@@ -1514,7 +1514,7 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
 /-- The map on connected components induced by a graph homomorphism. -/
-def connected_component.map  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
+def connected_component.map (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
 C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
   connected_component.eq.mpr (p.map φ).reachable
 

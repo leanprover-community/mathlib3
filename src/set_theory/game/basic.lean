@@ -408,7 +408,7 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `-x * y` and `-(x * y)` have the same moves. -/
-def neg_mul (x y : pgame.{u}) : -x * y ≡ -(x * y) :=
+lemma neg_mul (x y : pgame.{u}) : -x * y ≡ -(x * y) :=
 ((pgame.mul_comm _ _).trans (of_eq (mul_neg _ _))).trans (pgame.mul_comm _ _).neg
 
 @[simp] theorem quot_neg_mul (x y : pgame) : ⟦-x * y⟧ = -⟦x * y⟧ :=
@@ -662,7 +662,7 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/
-def inv'_zero' : inv' 0 ≡ 1 :=
+lemma inv'_zero' : inv' 0 ≡ 1 :=
 begin
   refine ⟨_, _⟩,
   { simp_rw [unique.forall_iff, unique.exists_iff, and_self, pgame.inv_val_is_empty], },
@@ -686,7 +686,7 @@ end
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
 /-- `inv' 1` has exactly the same moves as `1`. -/
-def inv'_one' : inv' 1 ≡ (1 : pgame.{u}) :=
+lemma inv'_one' : inv' 1 ≡ (1 : pgame.{u}) :=
 begin
   haveI inst : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
@@ -730,7 +730,7 @@ theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 by { classical, exact (if_neg h.not_equiv).trans (if_neg h.not_gt) }
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
-def inv_one' : 1⁻¹ ≡ 1 :=
+lemma inv_one' : 1⁻¹ ≡ 1 :=
 by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one' }
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/

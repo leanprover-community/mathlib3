@@ -772,6 +772,7 @@ theorem identical_of_is_empty (x y : pgame)
   [is_empty y.left_moves] [is_empty y.right_moves] : identical x y :=
 identical_iff'.2 $ by simp [forall_exists_rel]
 
+/-- `identical` as a `setoid`. -/
 def identical_setoid : setoid pgame :=
 ⟨identical, identical.refl, λ x y, identical.symm, λ x y z, identical.trans⟩
 

@@ -18,14 +18,14 @@ open_locale big_operators
 
 variables {R : Type*}
 
-section semiring
+namespace commute
 variables [semiring R] {p : ℕ} {x y : R}
 
-lemma commute.exists_add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
-  ∃ r : R, (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n + p * r :=
+protected lemma add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
+  (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
+    p * ∑ k in finset.range (p ^ n - 1),
+      x ^ (k + 1) * y ^ (p ^ n - (k + 1)) * ↑((p ^ n).choose (k + 1) / p) :=
 begin
-  refine ⟨∑ k in finset.range (p ^ n - 1),
-    x ^ (k + 1) * y ^ (p ^ n - (k + 1)) * ↑((p ^ n).choose (k + 1) / p), _⟩,
   rw [h.add_pow, finset.sum_range_succ_comm, ←nat.sub_add_cancel (pow_pos hp.pos _),
     finset.sum_range_succ'],
   simp only [nat.sub_add_cancel (pow_pos hp.pos _), tsub_zero, mul_one, one_mul,
@@ -36,15 +36,44 @@ begin
   exact hp.dvd_choose_pow i.succ_ne_zero hi,
 end
 
-lemma commute.exists_add_pow_prime_eq (hp : p.prime) (h : commute x y) :
-  ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
-by simpa using h.exists_add_pow_prime_pow_eq hp 1
+protected lemma add_pow_prime_eq (hp : p.prime) (h : commute x y) :
+  (x + y) ^ p = x ^ p + y ^ p +
+    p * ∑ k in finset.range (p - 1), x ^ (k + 1) * y ^ (p - (k + 1)) * ↑(p.choose (k + 1) / p) :=
+by simpa using h.add_pow_prime_pow_eq hp 1
 
-end semiring
+protected lemma exists_add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
+  ∃ r, (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n + p * r :=
+⟨_, h.add_pow_prime_pow_eq hp n⟩
 
-lemma add_pow_prime_eq_pow_add_pow_add_prime_mul [comm_semiring R] {p : ℕ} (hp : p.prime)
-  (x y : R) : ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+protected lemma exists_add_pow_prime_eq (hp : p.prime) (h : commute x y) :
+  ∃ r, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+⟨_, h.add_pow_prime_eq hp⟩
+
+end commute
+
+section comm_semiring
+variables [comm_semiring R] {p : ℕ} {x y : R}
+
+lemma add_pow_prime_pow_eq (hp : p.prime) (x y : R) (n : ℕ) :
+  (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
+    p * ∑ k in finset.range (p ^ n - 1),
+      x ^ (k + 1) * y ^ (p ^ n - (k + 1)) * ↑((p ^ n).choose (k + 1) / p) :=
+(commute.all x y).add_pow_prime_pow_eq hp n
+
+lemma add_pow_prime_eq (hp : p.prime) (x y : R) :
+  (x + y) ^ p = x ^ p + y ^ p +
+    p * ∑ k in finset.range (p - 1), x ^ (k + 1) * y ^ (p - (k + 1)) * ↑(p.choose (k + 1) / p) :=
+(commute.all x y).add_pow_prime_eq hp
+
+lemma exists_add_pow_prime_pow_eq (hp : p.prime) (x y : R) (n : ℕ) :
+  ∃ r, (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n + p * r :=
+(commute.all x y).exists_add_pow_prime_pow_eq hp n
+
+lemma exists_add_pow_prime_eq (hp : p.prime) (x y : R) :
+  ∃ r, (x + y) ^ p = x ^ p + y ^ p + p * r :=
 (commute.all x y).exists_add_pow_prime_eq hp
+
+end comm_semiring
 
 variables (R)
 

@@ -1641,8 +1641,6 @@ by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
 
-variables {G}
-
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
 

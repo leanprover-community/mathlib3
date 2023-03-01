@@ -1586,15 +1586,15 @@ instance : set_like G.connected_component V :=
 
 lemma connected_component_mk_mem {v : V} :
   v ∈ G.connected_component_mk v := by exact rfl
-  
+
 /--
 The equivalence between connected components, induced by an isomorphism of graphs,
 itself defines an equivalence on the supports of each connected component.
 -/
 def connected_component.iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
   C.supp ≃ (connected_component.iso φ C).supp :=
-{ to_fun := λ v, ⟨φ.to_fun v.val, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
-  inv_fun := λ v', ⟨φ.inv_fun v', connected_component.iso_inv_image_comp_eq_iff_eq_map.mpr v'.prop⟩,
+{ to_fun := λ v, ⟨φ v, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
+  inv_fun := λ v', ⟨φ.symm v', connected_component.iso_inv_image_comp_eq_iff_eq_map.mpr v'.prop⟩,
   left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
   right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v), }
 

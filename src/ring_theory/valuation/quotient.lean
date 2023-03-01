@@ -9,12 +9,26 @@ import ring_theory.ideal.quotient_operations
 
 /-!
 # The valuation on a quotient ring
+
+The support of a valuation `v : valuation R Γ₀` is `supp v`. If `J` is an ideal of `R`
+with `h : J ⊆ supp v` then the induced valuation
+on R / J = `ideal.quotient J` is `on_quot v h`.
+
 -/
 
 namespace valuation
 
 variables {R Γ₀ : Type*} [comm_ring R] [linear_ordered_comm_monoid_with_zero Γ₀]
 variables (v : valuation R Γ₀)
+
+/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
+Note: it's just the function; the valuation is `on_quot hJ`. -/
+def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
+  R ⧸ J → Γ₀ :=
+λ q, quotient.lift_on' q v $ λ a b h,
+calc v a = v (b + -(-a + b)) : by simp
+     ... = v b             :
+      v.map_add_supp b $ (ideal.neg_mem_iff _).2 $ hJ $ quotient_add_group.left_rel_apply.mp h
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :
@@ -61,6 +75,10 @@ variables [comm_ring R] [linear_ordered_add_comm_monoid_with_top Γ₀]
 variables (v : add_valuation R Γ₀)
 
 local attribute [reducible] add_valuation
+
+/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
+Note: it's just the function; the valuation is `on_quot hJ`. -/
+def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : (R ⧸ J) → Γ₀ := v.on_quot_val hJ
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :

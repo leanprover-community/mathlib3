@@ -31,10 +31,6 @@ that the class of all valuations (as `Γ₀` varies) on a ring `R` is not a set.
 The "relation" is however reflexive, symmetric and transitive in the obvious
 sense. Note that we use 1.27(iii) of [wedhorn_adic] as the definition of equivalence.
 
-The support of a valuation `v : valuation R Γ₀` is `supp v`. If `J` is an ideal of `R`
-with `h : J ⊆ supp v` then the induced valuation
-on R / J = `ideal.quotient J` is `on_quot v h`.
-
 ## Main definitions
 
 * `valuation R Γ₀`, the type of valuations on `R` with values in `Γ₀`
@@ -504,15 +500,6 @@ begin
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
 
-/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
-Note: it's just the function; the valuation is `on_quot hJ`. -/
-def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
-  R ⧸ J → Γ₀ :=
-λ q, quotient.lift_on' q v $ λ a b h,
-calc v a = v (b + -(-a + b)) : by simp
-     ... = v b             :
-      v.map_add_supp b $ (ideal.neg_mem_iff _).2 $ hJ $ quotient_add_group.left_rel_apply.mp h
-
 lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
   supp (v.comap f) = ideal.comap f v.supp :=
 ideal.ext $ λ x,
@@ -729,10 +716,6 @@ def supp : ideal R := v.supp
 
 lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
 v.map_add_supp a h
-
-/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
-Note: it's just the function; the valuation is `on_quot hJ`. -/
-def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : (R ⧸ J) → Γ₀ := v.on_quot_val hJ
 
 end supp -- end of section
 

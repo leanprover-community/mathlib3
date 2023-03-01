@@ -215,12 +215,8 @@ theorem lt_top (f : r ≺i s) (a : α) : s (f a) f.top := f.down.2 ⟨_, rfl⟩
 theorem init [is_trans β s] (f : r ≺i s) {a : α} {b : β} (h : s b (f a)) : ∃ a', f a' = b :=
 f.down.1 $ trans h $ f.lt_top _
 
-/-- A principal segment is in particular an initial segment. -/
-def to_initial_seg [is_trans β s] (f : r ≺i s) : r ≼i s :=
-⟨f.to_rel_embedding, λ a b, f.init⟩
-
 instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
-⟨λ f, f.to_initial_seg⟩
+⟨λ f, ⟨f.to_rel_embedding, λ a b, f.init⟩⟩
 
 theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
 
@@ -342,7 +338,7 @@ def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ 
 @of_is_empty _ _ empty_relation _ _ punit.star $ λ x, not_false
 
 protected theorem acc [is_trans β s] (f : r ≺i s) (a : α) : acc r a ↔ acc s (f a) :=
-f.to_initial_seg.acc a
+(f : r ≼i s).acc a
 
 end principal_seg
 

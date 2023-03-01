@@ -3,7 +3,6 @@ Copyright (c) 2022 Floris van Doorn, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Heather Macbeth
 -/
-import geometry.manifold.cont_mdiff
 import geometry.manifold.vector_bundle.fiberwise_linear
 import topology.vector_bundle.constructions
 
@@ -51,14 +50,12 @@ fields, they can also be C^k vector bundles, etc.
 
 * `bundle.prod.smooth_vector_bundle`: The direct sum of two smooth vector bundles is a smooth vector
   bundle.
-
-* `smooth_vector_bundle.pullback`: For a smooth vector bundle `E` over a manifold `B` and a smooth
-  map `f : B' → B`, the pullback vector bundle `f *ᵖ E` is a smooth vector bundle.
-
 -/
 
-open bundle set
-open_locale manifold
+assert_not_exists mfderiv
+
+open bundle set local_homeomorph
+open_locale manifold bundle
 
 variables {𝕜 B B' F M : Type*} {E : B → Type*}
 
@@ -71,9 +68,9 @@ variables [topological_space F] [topological_space (total_space E)] [∀ x, topo
 
 /-- A fibre bundle `E` over a base `B` with model fibre `F` is naturally a charted space modelled on
 `B × F`. -/
-instance fiber_bundle.charted_space' : charted_space (B × F) (total_space E) :=
-{ atlas := (λ e : trivialization F (@total_space.proj _ E), e.to_local_homeomorph) ''
-    trivialization_atlas F E,
+instance fiber_bundle.charted_space [fiber_bundle F E] :
+  charted_space (B × F) (total_space E) :=
+{ atlas := (λ e : trivialization F (π E), e.to_local_homeomorph) '' trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
   mem_chart_source := λ x, (trivialization_at F E x.proj).mem_source.mpr
     (mem_base_set_trivialization_at F E x.proj),
@@ -120,7 +117,7 @@ variables (F E) [fiber_bundle F E] [vector_bundle 𝕜 F E]
 /-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
 transition functions. -/
 class smooth_vector_bundle : Prop :=
-(smooth_on_coord_change : ∀ (e e' : trivialization F (@total_space.proj _ E))
+(smooth_on_coord_change : ∀ (e e' : trivialization F (π E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_changeL 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))
@@ -128,6 +125,7 @@ class smooth_vector_bundle : Prop :=
 export smooth_vector_bundle (smooth_on_coord_change)
 
 variables [smooth_vector_bundle F E IB]
+
 
 /-- For a smooth vector bundle `E` over `B` with fibre modelled on `F`, the change-of-co-ordinates
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
@@ -146,12 +144,12 @@ instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
         rw e.symm_coord_changeL e' hb },
       { apply_instance },
       { apply_instance }, },
-    { simp [e.symm_trans_source_eq e', fiberwise_linear.local_homeomorph] },
+    { simp only [e.symm_trans_source_eq e', fiberwise_linear.local_homeomorph,
+      trans_to_local_equiv, symm_to_local_equiv]},
     { rintros ⟨b, v⟩ hb,
-      have hb' : b ∈ e.base_set ∩ e'.base_set :=
-        by simpa only [local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv,
-        local_homeomorph.coe_coe_symm, e.symm_trans_source_eq e',
-        prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb,
+      have hb' : b ∈ e.base_set ∩ e'.base_set,
+      { simpa only [trans_to_local_equiv, symm_to_local_equiv, e.symm_trans_source_eq e',
+          coe_coe_symm, prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb },
       exact e.apply_symm_apply_eq_coord_changeL e' hb' v, }
   end }
 
@@ -166,16 +164,10 @@ begin
   refine ⟨cont_mdiff_on.congr _ heφ.eq_on, cont_mdiff_on.congr _ heφ.symm'.eq_on⟩,
   { rw heφ.source_eq,
     apply smooth_on_fst.prod_mk,
-    have : smooth_on (IB.prod 𝓘(𝕜, F)) (𝓘(𝕜, F →L[𝕜] F).prod 𝓘(𝕜, F))
-      (λ x : B × F, ((φ x.1 : F →L[𝕜] F), x.2)) (U ×ˢ univ) :=
-      hφ.prod_map smooth_on_id,
-    exact is_bounded_bilinear_map_apply.cont_diff.cont_mdiff.comp_cont_mdiff_on this },
+    exact (hφ.comp cont_mdiff_on_fst $ prod_subset_preimage_fst _ _).clm_apply cont_mdiff_on_snd },
   { rw heφ.target_eq,
     apply smooth_on_fst.prod_mk,
-    have : smooth_on (IB.prod 𝓘(𝕜, F)) (𝓘(𝕜, F →L[𝕜] F).prod 𝓘(𝕜, F))
-      (λ x : B × F, (((φ x.1).symm : F →L[𝕜] F), x.2)) (U ×ˢ univ) :=
-      h2φ.prod_map smooth_on_id,
-    exact is_bounded_bilinear_map_apply.cont_diff.cont_mdiff.comp_cont_mdiff_on this },
+    exact (h2φ.comp cont_mdiff_on_fst $ prod_subset_preimage_fst _ _).clm_apply cont_mdiff_on_snd },
 end
 
 /-! ### Core construction for smooth vector bundles -/
@@ -238,26 +230,15 @@ instance bundle.prod.smooth_vector_bundle :
 { smooth_on_coord_change := begin
     rintros _ _ ⟨e₁, e₂, i₁, i₂, rfl⟩ ⟨e₁', e₂', i₁', i₂', rfl⟩,
     resetI,
-    have : smooth_on IB (𝓘(𝕜, F₁ →L[𝕜] F₁).prod 𝓘(𝕜, F₂ →L[𝕜] F₂))
-      (λ b, ((e₁.coord_changeL 𝕜 e₁' b, e₂.coord_changeL 𝕜 e₂' b) : (F₁ →L[𝕜] F₁) × (F₂ →L[𝕜] F₂)))
-      ((e₁.prod e₂).base_set ∩ (e₁'.prod e₂').base_set),
-    { apply smooth_on.prod_mk,
-      { refine (smooth_on_coord_change e₁ e₁').mono _,
-        simp only [trivialization.base_set_prod] with mfld_simps,
-        mfld_set_tac },
-      { refine (smooth_on_coord_change e₂ e₂').mono _,
-        simp only [trivialization.base_set_prod] with mfld_simps,
-        mfld_set_tac } },
-    refine ((continuous_linear_map.prod_mapL 𝕜 F₁ F₁ F₂ F₂).cont_diff.cont_mdiff.comp_cont_mdiff_on
-      this).congr _,
-    { intros b hb,
-      rw [continuous_linear_map.ext_iff],
-      rintro ⟨v₁, v₂⟩,
-      show (e₁.prod e₂).coord_changeL 𝕜 (e₁'.prod e₂') b (v₁, v₂) =
-        (e₁.coord_changeL 𝕜 e₁' b v₁, e₂.coord_changeL 𝕜 e₂' b v₂),
-      rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂',
-        (e₁.prod e₂).coord_changeL_apply'],
-      exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] },
+    rw [smooth_on],
+    refine cont_mdiff_on.congr _ (coord_changeL_prod e₁ e₁' e₂ e₂'),
+    refine cont_mdiff_on.clm_prod_map _ _,
+    { refine (smooth_on_coord_change e₁ e₁').mono _,
+      simp only [trivialization.base_set_prod] with mfld_simps,
+      mfld_set_tac },
+    { refine (smooth_on_coord_change e₂ e₂').mono _,
+      simp only [trivialization.base_set_prod] with mfld_simps,
+      mfld_set_tac },
   end }
 
 end prod

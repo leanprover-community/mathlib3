@@ -11,6 +11,9 @@ import order.liminf_limsup
 /-!
 # Order properties of extended non-negative reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file compiles filter-related results about `ℝ≥0∞` (see data/real/ennreal.lean).
 -/
 

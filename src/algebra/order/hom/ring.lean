@@ -13,6 +13,9 @@ import tactic.wlog
 /-!
 # Ordered ring homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Homomorphisms between ordered (semi)rings that respect the ordering.
 
 ## Main definitions

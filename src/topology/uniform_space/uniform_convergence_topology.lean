@@ -10,6 +10,9 @@ import topology.uniform_space.equiv
 /-!
 # Topology and uniform structure of uniform convergence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files endows `α → β` with the topologies / uniform structures of
 - uniform convergence on `α`
 - uniform convergence on a specified family `𝔖` of sets of `α`, also called `𝔖`-convergence

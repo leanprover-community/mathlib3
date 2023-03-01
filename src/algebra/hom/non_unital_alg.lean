@@ -8,6 +8,9 @@ import algebra.algebra.hom
 /-!
 # Morphisms of non-unital algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines morphisms between two types, each of which carries:
  * an addition,
  * an additive zero,

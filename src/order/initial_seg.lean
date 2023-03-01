@@ -49,7 +49,7 @@ open function
 embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
 range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
-(init : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)
+(init' : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)
 
 localized "infix (name := initial_seg) ` ≼i `:25 := initial_seg" in initial_seg
 
@@ -76,13 +76,13 @@ instance : embedding_like (r ≼i s) α β :=
 
 @[simp] theorem coe_coe_fn (f : r ≼i s) : ((f : r ↪r s) : α → β) = f := rfl
 
-theorem init' (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b :=
-f.init _ _
+theorem init (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b :=
+f.init' _ _
 
 theorem map_rel_iff (f : r ≼i s) {a b : α} : s (f a) (f b) ↔ r a b := f.1.map_rel_iff
 
 theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
-⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, f.map_rel_iff.1 (e.symm ▸ h)⟩,
+⟨λ h, let ⟨a', e⟩ := f.init h in ⟨a', e, f.map_rel_iff.1 (e.symm ▸ h)⟩,
  λ ⟨a', e, h⟩, e ▸ f.map_rel_iff.2 h⟩
 
 /-- An order isomorphism is an initial segment -/
@@ -147,12 +147,12 @@ acc.rec_on (is_well_founded.wf.apply b : acc s b) $ λ x H IH,
 not_forall_not.1 $ λ hn,
 h ⟨x, λ y, ⟨(IH _), λ ⟨a, e⟩, by rw ← e; exact
   (trichotomous _ _).resolve_right
-  (not_or (hn a) (λ hl, not_exists.2 hn (f.init' hl)))⟩⟩
+  (not_or (hn a) (λ hl, not_exists.2 hn (f.init hl)))⟩⟩
 
 /-- Restrict the codomain of an initial segment -/
 def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i subrel s p :=
 ⟨rel_embedding.cod_restrict p f H, λ a ⟨b, m⟩ (h : s b (f a)),
-  let ⟨a', e⟩ := f.init' h in ⟨a', by clear _let_match; subst e; refl⟩⟩
+  let ⟨a', e⟩ := f.init h in ⟨a', by clear _let_match; subst e; refl⟩⟩
 
 @[simp] theorem cod_restrict_apply (p) (f : r ≼i s) (H a) : cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
@@ -167,6 +167,13 @@ def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r 
 
 @[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
   (a) : le_add r s a = sum.inl a := rfl
+
+protected theorem acc (f : r ≼i s) (a : α) : acc r a ↔ acc s (f a) :=
+⟨begin
+    refine λ h, acc.rec_on h (λ a _ ha, acc.intro _ (λ b hb, _)),
+    obtain ⟨a', rfl⟩ := f.init hb,
+    exact ha _ (f.map_rel_iff.mp hb),
+  end, f.to_rel_embedding.acc a⟩
 
 end initial_seg
 
@@ -209,8 +216,11 @@ theorem init [is_trans β s] (f : r ≺i s) {a : α} {b : β} (h : s b (f a)) : 
 f.down.1 $ trans h $ f.lt_top _
 
 /-- A principal segment is in particular an initial segment. -/
+def to_initial_seg [is_trans β s] (f : r ≺i s) : r ≼i s :=
+⟨f.to_rel_embedding, λ a b, f.init⟩
+
 instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
-⟨λ f, ⟨f.to_rel_embedding, λ a b, f.init⟩⟩
+⟨λ f, f.to_initial_seg⟩
 
 theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
 
@@ -331,7 +341,20 @@ def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ 
 @[reducible] def pempty_to_punit : @empty_relation pempty ≺i @empty_relation punit :=
 @of_is_empty _ _ empty_relation _ _ punit.star $ λ x, not_false
 
+protected theorem acc [is_trans β s] (f : r ≺i s) (a : α) : acc r a ↔ acc s (f a) :=
+f.to_initial_seg.acc a
+
 end principal_seg
+
+theorem well_founded_of_principal_seg {β : Type*} (s : β → β → Prop) [is_trans β s]
+  (h : ∀ b, well_founded (subrel s {b' : β | s b' b})) :
+  well_founded s :=
+begin
+  refine ⟨λ b, acc.intro _ (λ b' hb', _)⟩,
+  let f := principal_seg.of_element s b,
+  obtain ⟨b', rfl⟩ := f.down.mp ((principal_seg.of_element_top s b).symm ▸ hb' : s b' f.top),
+  exact (f.acc b').mp ((h b).apply b'),
+end
 
 /-! ### Properties of initial and principal segments -/
 

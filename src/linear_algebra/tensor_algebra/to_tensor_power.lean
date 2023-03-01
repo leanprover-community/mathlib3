@@ -55,8 +55,8 @@ end
 @[simp]
 lemma to_tensor_algebra_galgebra_to_fun (r : R) :
   (@direct_sum.galgebra.to_fun _ R (λ n, ⨂[R]^n M) _ _ _ _ _ _ _ r).to_tensor_algebra
-    = _root_.algebra_map _ _ r :=
-by rw [tensor_power.galgebra_to_fun_def, tensor_power.algebra_map_eq_smul_one, linear_map.map_smul,
+    = algebra_map _ _ r :=
+by rw [tensor_power.galgebra_to_fun_def, tensor_power.algebra_map₀_eq_smul_one, linear_map.map_smul,
     tensor_power.to_tensor_algebra_ghas_one, algebra.algebra_map_eq_smul_one]
 
 end tensor_power
@@ -168,7 +168,7 @@ end
   (of_direct_sum x).to_direct_sum = x :=
 alg_hom.congr_fun to_direct_sum_comp_of_direct_sum x
 
-/-- The tensor algebra is isomorphic to a direct sum of tensor powers -/
+/-- The tensor algebra is isomorphic to a direct sum of tensor powers. -/
 @[simps]
 def equiv_direct_sum : tensor_algebra R M ≃ₐ[R] ⨁ n, ⨂[R]^n M :=
 alg_equiv.of_alg_hom to_direct_sum of_direct_sum

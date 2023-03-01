@@ -214,31 +214,31 @@ instance gmonoid : graded_monoid.gmonoid (λ i, ⨂[R]^i M) :=
 
 /-- The canonical map from `R` to `⨂[R]^0 M` corresponding to the algebra_map of the tensor
 algebra. -/
-def algebra_map : R ≃ₗ[R] ⨂[R]^0 M :=
+def algebra_map₀ : R ≃ₗ[R] ⨂[R]^0 M :=
 linear_equiv.symm $ is_empty_equiv (fin 0)
 
-lemma algebra_map_eq_smul_one (r : R) :
-  (algebra_map r : ⨂[R]^0 M) = r • ₜ1 :=
-by { simp [algebra_map], congr }
+lemma algebra_map₀_eq_smul_one (r : R) :
+  (algebra_map₀ r : ⨂[R]^0 M) = r • ₜ1 :=
+by { simp [algebra_map₀], congr }
 
-lemma algebra_map_one : (algebra_map 1 : ⨂[R]^0 M) = ₜ1 :=
-(algebra_map_eq_smul_one 1).trans (one_smul _ _)
+lemma algebra_map₀_one : (algebra_map₀ 1 : ⨂[R]^0 M) = ₜ1 :=
+(algebra_map₀_eq_smul_one 1).trans (one_smul _ _)
 
-lemma algebra_map_mul {n} (r : R) (a : ⨂[R]^n M) :
-  cast R M (zero_add _) (algebra_map r ₜ* a) = r • a :=
-by rw [ghas_mul_eq_coe_linear_map, algebra_map_eq_smul_one, linear_map.map_smul₂,
+lemma algebra_map₀_mul {n} (r : R) (a : ⨂[R]^n M) :
+  cast R M (zero_add _) (algebra_map₀ r ₜ* a) = r • a :=
+by rw [ghas_mul_eq_coe_linear_map, algebra_map₀_eq_smul_one, linear_map.map_smul₂,
   linear_equiv.map_smul,  ←ghas_mul_eq_coe_linear_map, one_mul]
 
-lemma mul_algebra_map {n} (r : R) (a : ⨂[R]^n M) :
-  cast R M (add_zero _) (a ₜ* algebra_map r) = r • a :=
-by rw [ghas_mul_eq_coe_linear_map, algebra_map_eq_smul_one, linear_map.map_smul,
+lemma mul_algebra_map₀ {n} (r : R) (a : ⨂[R]^n M) :
+  cast R M (add_zero _) (a ₜ* algebra_map₀ r) = r • a :=
+by rw [ghas_mul_eq_coe_linear_map, algebra_map₀_eq_smul_one, linear_map.map_smul,
   linear_equiv.map_smul, ←ghas_mul_eq_coe_linear_map, mul_one]
 
-lemma algebra_map_mul_algebra_map (r s : R) :
-  cast R M (add_zero _) (algebra_map r ₜ* algebra_map s) = algebra_map (r * s) :=
+lemma algebra_map₀_mul_algebra_map₀ (r s : R) :
+  cast R M (add_zero _) (algebra_map₀ r ₜ* algebra_map₀ s) = algebra_map₀ (r * s) :=
 begin
   rw [←smul_eq_mul, linear_equiv.map_smul],
-  exact algebra_map_mul r (@algebra_map R M _ _ _ s),
+  exact algebra_map₀_mul r (@algebra_map₀ R M _ _ _ s),
 end
 
 instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
@@ -246,34 +246,37 @@ instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
   zero_mul := λ i j b, linear_map.map_zero₂ _ _,
   mul_add := λ i j a b₁ b₂, linear_map.map_add _ _ _,
   add_mul := λ i j a₁ a₂ b, linear_map.map_add₂ _ _ _ _,
-  nat_cast := λ n, algebra_map (n : R),
+  nat_cast := λ n, algebra_map₀ (n : R),
   nat_cast_zero := by rw [nat.cast_zero, map_zero],
-  nat_cast_succ := λ n, by rw [nat.cast_succ, map_add, algebra_map_one],
+  nat_cast_succ := λ n, by rw [nat.cast_succ, map_add, algebra_map₀_one],
   ..tensor_power.gmonoid }
 
 example : semiring (⨁ n : ℕ, ⨂[R]^n M) := by apply_instance
 
+/-- The tensor powers form a graded algebra.
+
+Note that this instance implies `algebra R (⨁ n : ℕ, ⨂[R]^n M)` via `direct_sum.algebra`. -/
 instance galgebra : direct_sum.galgebra R (λ i, ⨂[R]^i M) :=
-{ to_fun := (tensor_power.algebra_map : R ≃ₗ[R] ⨂[R]^0 M) .to_linear_map.to_add_monoid_hom,
-  map_one := algebra_map_one,
+{ to_fun := (algebra_map₀ : R ≃ₗ[R] ⨂[R]^0 M).to_linear_map.to_add_monoid_hom,
+  map_one := algebra_map₀_one,
   map_mul := λ r s, graded_monoid_eq_of_cast rfl begin
     rw [←linear_equiv.eq_symm_apply],
-    have := algebra_map_mul_algebra_map r s,
+    have := algebra_map₀_mul_algebra_map₀ r s,
     exact this.symm,
   end,
   commutes := λ r x, graded_monoid_eq_of_cast (add_comm _ _) begin
-    have := (algebra_map_mul r x.snd).trans (mul_algebra_map r x.snd).symm,
+    have := (algebra_map₀_mul r x.snd).trans (mul_algebra_map₀ r x.snd).symm,
     rw [←linear_equiv.eq_symm_apply, cast_symm],
     rw [←linear_equiv.eq_symm_apply, cast_symm, cast_cast] at this,
     exact this,
   end,
   smul_def := λ r x, graded_monoid_eq_of_cast (zero_add x.fst).symm begin
     rw [←linear_equiv.eq_symm_apply, cast_symm],
-    exact (algebra_map_mul r x.snd).symm,
+    exact (algebra_map₀_mul r x.snd).symm,
   end }
 
 lemma galgebra_to_fun_def (r : R) :
-  @direct_sum.galgebra.to_fun ℕ R (λ i, ⨂[R]^i M) _ _ _ _ _ _ _ r = algebra_map r := rfl
+  @direct_sum.galgebra.to_fun ℕ R (λ i, ⨂[R]^i M) _ _ _ _ _ _ _ r = algebra_map₀ r := rfl
 
 example : algebra R (⨁ n : ℕ, ⨂[R]^n M) := by apply_instance
 

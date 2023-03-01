@@ -671,10 +671,52 @@ ring_equiv.is_domain (polynomial (R ⧸ P))
   (polynomial_quotient_equiv_quotient_polynomial P).symm
 
 /-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
+lemma is_prime_map_C_iff_is_prime (P : ideal R) :
+  is_prime (map (C : R →+* R[X]) P : ideal R[X]) ↔ is_prime P :=
+begin
+  split,
+  { intro H,
+    have := @comap_is_prime R R[X] (R →+* R[X]) _ _ _ C (map C P) H,
+    convert this using 1,
+    ext x,
+    simp only [mem_comap, mem_map_C_iff],
+    split,
+    { rintro h (-|n),
+      { simpa only [coeff_C_zero] using h },
+      { simp only [coeff_C_ne_zero (nat.succ_ne_zero _), submodule.zero_mem] } },
+    { intro h, simpa only [coeff_C_zero] using h 0 } },
+  { intro h,
+    constructor,
+    { rw [ne.def, eq_top_iff_one, mem_map_C_iff, not_forall],
+      use 0,
+      rw [coeff_one_zero, ← eq_top_iff_one], exact h.1 },
+    { intros f g, simp only [mem_map_C_iff], contrapose!,
+      rintro ⟨hf, hg⟩,
+      classical,
+      let m := nat.find hf,
+      let n := nat.find hg,
+      refine ⟨m + n, _⟩,
+      rw [coeff_mul, ← finset.insert_erase ((@finset.nat.mem_antidiagonal _ (m,n)).mpr rfl),
+        finset.sum_insert (finset.not_mem_erase _ _), (P.add_mem_iff_left _).not],
+      { apply mt h.2, rw [not_or_distrib], exact ⟨nat.find_spec hf, nat.find_spec hg⟩ },
+      apply P.sum_mem,
+      rintro ⟨i, j⟩ hij,
+      rw [finset.mem_erase, finset.nat.mem_antidiagonal] at hij,
+      simp only [ne.def, prod.mk.inj_iff, not_and_distrib] at hij,
+      obtain (hi|hj) : i < m ∨ j < n,
+      { rw [or_iff_not_imp_left, not_lt, le_iff_lt_or_eq],
+        rintro (hmi|rfl),
+        { rw [← not_le], intro hnj, exact (add_lt_add_of_lt_of_le hmi hnj).ne hij.2.symm, },
+        { simpa only [eq_self_iff_true, not_true, false_or, add_right_inj, not_and_self]
+            using hij, } },
+      { rw [mul_comm], apply P.mul_mem_left, exact not_not.1 (nat.find_min hf hi) },
+      { apply P.mul_mem_left, exact not_not.1 (nat.find_min hg hj) } } }
+end
+
+/-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
 lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
   is_prime (map (C : R →+* R[X]) P : ideal R[X]) :=
-(quotient.is_domain_iff_prime (map C P : ideal R[X])).mp
-  (is_domain_map_C_quotient H)
+(is_prime_map_C_iff_is_prime P).mpr H
 
 /-- Given any ring `R` and an ideal `I` of `R[X]`, we get a map `R → R[x] → R[x]/I`.
   If we let `R` be the image of `R` in `R[x]/I` then we also have a map `R[x] → R'[x]`.

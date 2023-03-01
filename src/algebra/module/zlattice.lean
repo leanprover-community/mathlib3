@@ -3,11 +3,9 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-import analysis.normed_space.basic
-import linear_algebra.finite_dimensional
+
 import measure_theory.group.fundamental_domain
 import linear_algebra.free_module.pid
-import linear_algebra.linear_independent
 import ring_theory.localization.module
 
 /-!

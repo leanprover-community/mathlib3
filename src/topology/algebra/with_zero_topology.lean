@@ -32,7 +32,7 @@ All other instances will (`ordered_topology`, `t3_space`, `has_continuous_mul`) 
 
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set function
 
 namespace linear_ordered_comm_group_with_zero
@@ -163,9 +163,9 @@ instance : has_continuous_mul Γ₀ :=
 ⟨begin
   rw continuous_iff_continuous_at,
   rintros ⟨x, y⟩,
-  wlog hle : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
-  { simpa only [mul_comm, (∘), prod.swap]
-      using tendsto.comp this (continuous_swap.tendsto (x, y)) },
+  wlog hle : x ≤ y generalizing x y,
+  { have := tendsto.comp (this y x (le_of_not_le hle)) (continuous_swap.tendsto (x,y)),
+    simpa only [mul_comm, function.comp, prod.swap], },
   rcases eq_or_ne x 0 with rfl|hx; [rcases eq_or_ne y 0 with rfl|hy, skip],
   { rw [continuous_at, zero_mul],
     refine ((has_basis_nhds_zero.prod_nhds has_basis_nhds_zero).tendsto_iff has_basis_nhds_zero).2

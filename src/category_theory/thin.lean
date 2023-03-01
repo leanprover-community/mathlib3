@@ -9,6 +9,9 @@ import category_theory.isomorphism
 /-!
 # Thin categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A thin category (also known as a sparse category) is a category with at most one morphism between
 each pair of objects.
 

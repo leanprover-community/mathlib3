@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.finprod
-import data.set.pointwise.basic
+import order.filter.pointwise
 import topology.algebra.mul_action
 import algebra.big_operators.pi
+import topology.continuous_function.basic
 
 /-!
 # Theory of topological monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define mixin classes `has_continuous_mul` and `has_continuous_add`. While in many
 applications the underlying type is a monoid (multiplicative or additive), we do not require this in
@@ -18,7 +22,7 @@ the definitions.
 
 universes u v
 open classical set filter topological_space
-open_locale classical topological_space big_operators pointwise
+open_locale classical topology big_operators pointwise
 
 variables {ι α X M N : Type*} [topological_space X]
 
@@ -48,6 +52,8 @@ class has_continuous_mul (M : Type u) [topological_space M] [has_mul M] : Prop :
 section has_continuous_mul
 
 variables [topological_space M] [has_mul M] [has_continuous_mul M]
+
+@[to_additive] instance : has_continuous_mul Mᵒᵈ := ‹has_continuous_mul M›
 
 @[to_additive]
 lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
@@ -101,6 +107,55 @@ lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
 
+@[to_additive] lemma le_nhds_mul (a b : M) : 𝓝 a * 𝓝 b ≤ 𝓝 (a * b) :=
+by { rw [← map₂_mul, ← map_uncurry_prod, ← nhds_prod_eq], exact continuous_mul.tendsto _ }
+
+@[simp, to_additive] lemma nhds_one_mul_nhds {M} [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] (a : M) : 𝓝 (1 : M) * 𝓝 a = 𝓝 a :=
+((le_nhds_mul _ _).trans_eq $ congr_arg _ (one_mul a)).antisymm $
+  le_mul_of_one_le_left' $ pure_le_nhds 1
+
+@[simp, to_additive] lemma nhds_mul_nhds_one {M} [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] (a : M) : 𝓝 a * 𝓝 1 = 𝓝 a :=
+((le_nhds_mul _ _).trans_eq $ congr_arg _ (mul_one a)).antisymm $
+  le_mul_of_one_le_right' $ pure_le_nhds 1
+
+section tendsto_nhds
+
+variables {𝕜 : Type*}
+  [preorder 𝕜] [has_zero 𝕜] [has_mul 𝕜] [topological_space 𝕜] [has_continuous_mul 𝕜]
+  {l : filter α} {f : α → 𝕜} {b c : 𝕜} (hb : 0 < b)
+
+lemma filter.tendsto_nhds_within_Ioi.const_mul [pos_mul_strict_mono 𝕜] [pos_mul_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[>] c)) :
+  tendsto (λ a, b * f a) l (𝓝[>] (b * c)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).const_mul b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_left hb).mpr)
+
+lemma filter.tendsto_nhds_within_Iio.const_mul [pos_mul_strict_mono 𝕜] [pos_mul_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[<] c)) :
+  tendsto (λ a, b * f a) l (𝓝[<] (b * c)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).const_mul b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_left hb).mpr)
+
+lemma filter.tendsto_nhds_within_Ioi.mul_const [mul_pos_strict_mono 𝕜] [mul_pos_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[>] c)) :
+  tendsto (λ a, f a * b) l (𝓝[>] (c * b)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).mul_const b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_right hb).mpr)
+
+lemma filter.tendsto_nhds_within_Iio.mul_const [mul_pos_strict_mono 𝕜] [mul_pos_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[<] c)) :
+  tendsto (λ a, f a * b) l (𝓝[<] (c * b)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).mul_const b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_right hb).mpr)
+
+end tendsto_nhds
+
 /-- Construct a unit from limits of units and their inverses. -/
 @[to_additive filter.tendsto.add_units "Construct an additive unit from limits of additive units
 and their negatives.", simps]
@@ -109,8 +164,8 @@ def filter.tendsto.units [topological_space N] [monoid N] [has_continuous_mul N]
   (h₁ : tendsto (λ x, ↑(f x)) l (𝓝 r₁)) (h₂ : tendsto (λ x, ↑(f x)⁻¹) l (𝓝 r₂)) : Nˣ :=
 { val := r₁,
   inv := r₂,
-  val_inv := tendsto_nhds_unique (by simpa using h₁.mul h₂) tendsto_const_nhds,
-  inv_val := tendsto_nhds_unique (by simpa using h₂.mul h₁) tendsto_const_nhds }
+  val_inv := by { symmetry, simpa using h₁.mul h₂ },
+  inv_val := by { symmetry, simpa using h₂.mul h₁ } }
 
 @[to_additive]
 lemma continuous_at.mul {f g : X → M} {x : X} (hf : continuous_at f x) (hg : continuous_at g x) :
@@ -281,7 +336,7 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
 
 @[to_additive]
-lemma submonoid.submonoid_topological_closure (s : submonoid M) :
+lemma submonoid.le_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -634,3 +689,23 @@ by { rw ← Inf_range, exact has_continuous_mul_Inf (set.forall_range_iff.mpr h'
 by { rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumption }
 
 end lattice_ops
+
+namespace continuous_map
+
+variables [has_mul X] [has_continuous_mul X]
+
+/-- The continuous map `λ y, y * x` -/
+@[to_additive "The continuous map `λ y, y + x"]
+protected def mul_right (x : X) : C(X, X) := mk _ (continuous_mul_right x)
+
+@[to_additive, simp]
+lemma coe_mul_right (x : X) : ⇑(continuous_map.mul_right x) = λ y, y * x := rfl
+
+/-- The continuous map `λ y, x * y` -/
+@[to_additive "The continuous map `λ y, x + y"]
+protected def mul_left (x : X) : C(X, X) := mk _ (continuous_mul_left x)
+
+@[to_additive, simp]
+lemma coe_mul_left (x : X) : ⇑(continuous_map.mul_left x) = λ y, x * y := rfl
+
+end continuous_map

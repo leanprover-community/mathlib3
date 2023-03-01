@@ -128,9 +128,9 @@ lemma abs_circle_transform_bounding_function_le {R r : ℝ} (hr : r < R) (hr' : 
 begin
   have cts := continuous_on_abs_circle_transform_bounding_function hr z,
   have comp : is_compact (closed_ball z r ×ˢ [0, 2 * π]),
-  { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
+  { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_uIcc], },
   have none : (closed_ball z r ×ˢ [0, 2 * π]).nonempty :=
-    (nonempty_closed_ball.2 hr').prod nonempty_interval,
+    (nonempty_closed_ball.2 hr').prod nonempty_uIcc,
   have := is_compact.exists_forall_ge comp none (cts.mono
     (by { intro z, simp only [mem_prod, mem_closed_ball, mem_univ, and_true, and_imp], tauto })),
   simpa only [set_coe.forall, subtype.coe_mk, set_coe.exists],
@@ -158,7 +158,7 @@ begin
   obtain ⟨y1, hy1, hfun⟩ := periodic.exists_mem_Ico₀
     (circle_transform_deriv_periodic R z v f) real.two_pi_pos y,
   have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
-    simp [interval_of_le real.two_pi_pos.le]},
+    simp [uIcc_of_le real.two_pi_pos.le]},
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
    (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1))
    (complex.abs.nonneg _) (complex.abs.nonneg _),

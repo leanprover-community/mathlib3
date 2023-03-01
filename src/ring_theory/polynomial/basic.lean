@@ -70,7 +70,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
-    rw [monomial_eq_C_mul_X, C_mul'],
+    rw [← C_mul_X_pow_eq_monomial, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 (nat.lt_succ_of_le this), rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -98,7 +98,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
-    rw [monomial_eq_C_mul_X, C_mul'],
+    rw [← C_mul_X_pow_eq_monomial, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 this, rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -436,7 +436,7 @@ variables [comm_semiring R] [semiring S]
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself -/
 lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
   (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap (C : R →+* R[X])) : p ∈ I :=
-sum_C_mul_X_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
+sum_C_mul_X_pow_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
 
 /-- The push-forward of an ideal `I` of `R` to `R[X]` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
@@ -460,7 +460,7 @@ begin
   { intros hf,
     rw ← sum_monomial_eq f,
     refine (I.map C : ideal R[X]).sum_mem (λ n hn, _),
-    simp [monomial_eq_C_mul_X],
+    simp [← C_mul_X_pow_eq_monomial],
     rw mul_comm,
     exact (I.map C : ideal R[X]).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
 end
@@ -633,7 +633,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
       simp only [coe_eval₂_ring_hom] at hq,
       simp only [coe_eval₂_ring_hom, hp, hq, ring_hom.map_add] },
     { rintros n ⟨x⟩,
-      simp only [monomial_eq_smul_X, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
+      simp only [← smul_X_eq_monomial, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
         quotient.mk_eq_mk, eval₂_X_pow, eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow,
         eval₂_C, ring_hom.coe_comp, ring_hom.map_mul, eval₂_X] }
   end,
@@ -643,7 +643,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { intros n a,
-      simp only [monomial_eq_smul_X, ← C_mul' a (X ^ n), quotient.lift_mk,
+      simp only [← smul_X_eq_monomial, ← C_mul' a (X ^ n), quotient.lift_mk,
         submodule.quotient.quot_mk_eq_mk, quotient.mk_eq_mk, eval₂_X_pow,
         eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow, eval₂_C, ring_hom.coe_comp,
         ring_hom.map_mul, eval₂_X] },
@@ -1039,8 +1039,11 @@ end⟩
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
 instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] : is_domain (mv_polynomial σ R) :=
-{ .. mv_polynomial.no_zero_divisors,
-  .. add_monoid_algebra.nontrivial }
+begin
+  apply no_zero_divisors.to_is_domain _,
+  exact add_monoid_algebra.nontrivial,
+  exact mv_polynomial.no_zero_divisors
+end
 
 lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [finite σ]
   (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :

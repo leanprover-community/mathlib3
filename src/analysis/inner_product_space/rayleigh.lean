@@ -97,7 +97,9 @@ lemma _root_.linear_map.is_symmetric.has_strict_fderiv_at_re_apply_inner_self
 begin
   convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
   ext y,
-  simp [_root_.bit0, hT.apply_clm x₀ y, real_inner_comm x₀]
+  simp_rw [_root_.bit0, continuous_linear_map.comp_apply, continuous_linear_map.add_apply,
+    innerSL_apply, fderiv_inner_clm_apply, id.def, continuous_linear_map.prod_apply,
+    continuous_linear_map.id_apply, hT.apply_clm x₀ y, real_inner_comm _ x₀],
 end
 
 variables [complete_space F] {T : F →L[ℝ] F}

@@ -114,7 +114,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal filter asymptotics ennreal
+open_locale topology classical nnreal filter asymptotics ennreal
 
 noncomputable theory
 
@@ -992,6 +992,11 @@ forall_eq.2 (has_fderiv_within_at_singleton f x).differentiable_within_at
 
 lemma set.subsingleton.differentiable_on (hs : s.subsingleton) : differentiable_on 𝕜 f s :=
 hs.induction_on differentiable_on_empty (λ x, differentiable_on_singleton)
+
+lemma has_fderiv_at_zero_of_eventually_const
+  (c : F) (hf : f =ᶠ[𝓝 x] (λ y, c)) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x :=
+(has_fderiv_at_const _ _).congr_of_eventually_eq hf
 
 end const
 

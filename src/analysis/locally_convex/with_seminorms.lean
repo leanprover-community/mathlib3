@@ -47,9 +47,9 @@ seminorm, locally convex
 -/
 
 open normed_field set seminorm topological_space
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
-variables {𝕜 𝕜₂ E F G ι ι' : Type*}
+variables {𝕜 𝕜₂ 𝕝 𝕝₂ E F G ι ι' : Type*}
 
 section filter_basis
 
@@ -283,12 +283,92 @@ lemma with_seminorms.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topo
 variables [topological_space E]
 variables {p : seminorm_family 𝕜 E ι}
 
+lemma with_seminorms.topological_add_group (hp : with_seminorms p) : topological_add_group E :=
+begin
+  rw hp.with_seminorms_eq,
+  exact add_group_filter_basis.is_topological_add_group _
+end
+
 lemma with_seminorms.has_basis (hp : with_seminorms p) : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ p.basis_sets) id :=
 begin
   rw (congr_fun (congr_arg (@nhds E) hp.1) 0),
   exact add_group_filter_basis.nhds_zero_has_basis _,
 end
+
+lemma with_seminorms.has_basis_zero_ball (hp : with_seminorms p) : (𝓝 (0 : E)).has_basis
+  (λ sr : finset ι × ℝ, 0 < sr.2) (λ sr, (sr.1.sup p).ball 0 sr.2) :=
+begin
+  refine ⟨λ V, _⟩,
+  simp only [hp.has_basis.mem_iff, seminorm_family.basis_sets_iff, prod.exists],
+  split,
+  { rintros ⟨-, ⟨s, r, hr, rfl⟩, hV⟩,
+    exact ⟨s, r, hr, hV⟩ },
+  { rintros ⟨s, r, hr, hV⟩,
+    exact ⟨_, ⟨s, r, hr, rfl⟩, hV⟩ }
+end
+
+lemma with_seminorms.has_basis_ball (hp : with_seminorms p) {x : E} : (𝓝 (x : E)).has_basis
+  (λ sr : finset ι × ℝ, 0 < sr.2) (λ sr, (sr.1.sup p).ball x sr.2) :=
+begin
+  haveI : topological_add_group E := hp.topological_add_group,
+  rw [← map_add_left_nhds_zero],
+  convert (hp.has_basis_zero_ball.map ((+) x)),
+  ext sr : 1,
+  have : (sr.fst.sup p).ball (x +ᵥ 0) sr.snd = x +ᵥ (sr.fst.sup p).ball 0 sr.snd
+    := eq.symm (seminorm.vadd_ball (sr.fst.sup p)),
+  rwa [vadd_eq_add, add_zero] at this,
+end
+
+/-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
+are exactly the sets which contain seminorm balls around `x`.-/
+lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E) :
+  U ∈ nhds x ↔ ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
+by rw [hp.has_basis_ball.mem_iff, prod.exists]
+
+/-- The open sets of a space whose topology is induced by a family of seminorms
+are exactly the sets which contain seminorm balls around all of their points.-/
+lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
+  is_open U ↔ ∀ x ∈ U, ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
+by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
+
+/- Note that through the following lemmas, one also immediately has that separating families
+of seminorms induce T₂ and T₃ topologies by `topological_add_group.t2_space`
+and `topological_add_group.t3_space` -/
+/-- A separating family of seminorms induces a T₁ topology. -/
+lemma with_seminorms.t1_of_separating (hp : with_seminorms p) (h : ∀ x ≠ 0, ∃ i, p i x ≠ 0) :
+  t1_space E :=
+begin
+  haveI := hp.topological_add_group,
+  refine topological_add_group.t1_space _ _,
+  rw [← is_open_compl_iff, hp.is_open_iff_mem_balls],
+  rintros x (hx : x ≠ 0),
+  cases h x hx with i pi_nonzero,
+  refine ⟨{i}, p i x, by positivity, subset_compl_singleton_iff.mpr _⟩,
+  rw [finset.sup_singleton, mem_ball, zero_sub, map_neg_eq_map, not_lt]
+end
+
+/-- A family of seminorms inducing a T₁ topology is separating. -/
+lemma with_seminorms.separating_of_t1 [t1_space E] (hp : with_seminorms p) (x : E) (hx : x ≠ 0) :
+  ∃ i, p i x ≠ 0 :=
+begin
+  have := ((t1_space_tfae E).out 0 9).mp infer_instance,
+  by_contra' h,
+  refine hx (this _),
+  rw hp.has_basis_zero_ball.specializes_iff,
+  rintros ⟨s, r⟩ (hr : 0 < r),
+  simp only [ball_finset_sup_eq_Inter _ _ _ hr, mem_Inter₂, mem_ball_zero, h, hr, forall_true_iff],
+end
+
+/-- A family of seminorms is separating iff it induces a T₁ topology. -/
+lemma with_seminorms.separating_iff_t1 (hp : with_seminorms p) :
+  (∀ x ≠ 0, ∃ i, p i x ≠ 0) ↔ t1_space E :=
+begin
+  refine ⟨with_seminorms.t1_of_separating hp, _⟩,
+  introI,
+  exact with_seminorms.separating_of_t1 hp,
+end
+
 end topology
 
 section topological_add_group
@@ -324,11 +404,11 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
-lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
-  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
+lemma with_seminorms.continuous_seminorm [nontrivially_normed_field 𝕝]
+  [module 𝕝 E] [has_continuous_const_smul 𝕝 E] {p : seminorm_family 𝕝 E ι} (hp : with_seminorms p)
   (i : ι) : continuous (p i) :=
 begin
-  refine seminorm.continuous _,
+  refine seminorm.continuous one_pos _,
   rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
   exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
 end
@@ -408,7 +488,7 @@ begin
     rcases h with ⟨r, hr, h⟩,
     cases normed_field.exists_lt_norm 𝕜 r with a ha,
     specialize h a (le_of_lt ha),
-    rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
+    rw [seminorm.smul_ball_zero (norm_pos_iff.1 $ hr.trans ha), mul_one] at h,
     refine ⟨‖a‖, lt_trans hr ha, _⟩,
     intros x hx,
     specialize h hx,
@@ -459,15 +539,18 @@ section continuous_bounded
 
 namespace seminorm
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [normed_field 𝕜₂] [add_comm_group F] [module 𝕜₂ F]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [normed_field 𝕝] [module 𝕝 E]
+variables [nontrivially_normed_field 𝕜₂] [add_comm_group F] [module 𝕜₂ F]
+variables [normed_field 𝕝₂] [module 𝕝₂ F]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {τ₁₂ : 𝕝 →+* 𝕝₂} [ring_hom_isometric τ₁₂]
 variables [nonempty ι] [nonempty ι']
 
-lemma continuous_of_continuous_comp {q : seminorm_family 𝕜₂ F ι'}
+lemma continuous_of_continuous_comp {q : seminorm_family 𝕝₂ F ι'}
   [topological_space E] [topological_add_group E]
   [topological_space F] [topological_add_group F] (hq : with_seminorms q)
-  (f : E →ₛₗ[σ₁₂] F) (hf : ∀ i, continuous ((q i).comp f)) : continuous f :=
+  (f : E →ₛₗ[τ₁₂] F) (hf : ∀ i, continuous ((q i).comp f)) : continuous f :=
 begin
   refine continuous_of_continuous_at_zero f _,
   simp_rw [continuous_at, f.map_zero, q.with_seminorms_iff_nhds_eq_infi.mp hq, filter.tendsto_infi,
@@ -477,17 +560,17 @@ begin
   exact (map_zero _).symm
 end
 
-lemma continuous_iff_continuous_comp [normed_algebra ℝ 𝕜₂] [module ℝ F] [is_scalar_tower ℝ 𝕜₂ F]
+lemma continuous_iff_continuous_comp
   {q : seminorm_family 𝕜₂ F ι'} [topological_space E] [topological_add_group E]
-  [topological_space F] [topological_add_group F] [has_continuous_const_smul ℝ F]
+  [topological_space F] [topological_add_group F] [has_continuous_const_smul 𝕜₂ F]
   (hq : with_seminorms q) (f : E →ₛₗ[σ₁₂] F) :
   continuous f ↔ ∀ i, continuous ((q i).comp f) :=
 ⟨λ h i, continuous.comp (hq.continuous_seminorm i) h, continuous_of_continuous_comp hq f⟩
 
-lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜₂ F ι'}
+lemma continuous_from_bounded {p : seminorm_family 𝕝 E ι} {q : seminorm_family 𝕝₂ F ι'}
   [topological_space E] [topological_add_group E] (hp : with_seminorms p)
   [topological_space F] [topological_add_group F] (hq : with_seminorms q)
-  (f : E →ₛₗ[σ₁₂] F) (hf : seminorm.is_bounded p q f) : continuous f :=
+  (f : E →ₛₗ[τ₁₂] F) (hf : seminorm.is_bounded p q f) : continuous f :=
 begin
   refine continuous_of_continuous_comp hq _ (λ i, seminorm.continuous_of_continuous_at_zero _),
   rw [metric.continuous_at_iff', map_zero],
@@ -502,23 +585,23 @@ begin
   refl
 end
 
-lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕜₂ F]
+lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕝₂ F]
   [uniform_space E] [uniform_add_group E]
-  {p : ι → seminorm 𝕜 E} (hp : with_seminorms p) (f : E →ₛₗ[σ₁₂] F)
-  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕜₂ F).comp f ≤ C • s.sup p) :
+  {p : ι → seminorm 𝕝 E} (hp : with_seminorms p) (f : E →ₛₗ[τ₁₂] F)
+  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕝₂ F).comp f ≤ C • s.sup p) :
   continuous f :=
 begin
   rw ←seminorm.is_bounded_const (fin 1) at hf,
-  exact continuous_from_bounded hp (norm_with_seminorms 𝕜₂ F) f hf,
+  exact continuous_from_bounded hp (norm_with_seminorms 𝕝₂ F) f hf,
 end
 
-lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [normed_space 𝕜 E]
+lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [normed_space 𝕝 E]
   [uniform_space F] [uniform_add_group F]
-  {q : ι → seminorm 𝕜₂ F} (hq : with_seminorms q) (f : E →ₛₗ[σ₁₂] F)
-  (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕜 E)) : continuous f :=
+  {q : ι → seminorm 𝕝₂ F} (hq : with_seminorms q) (f : E →ₛₗ[τ₁₂] F)
+  (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕝 E)) : continuous f :=
 begin
   rw ←seminorm.const_is_bounded (fin 1) at hf,
-  exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
+  exact continuous_from_bounded (norm_with_seminorms 𝕝 E) hq f hf,
 end
 
 end seminorm

@@ -3,14 +3,18 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import data.fintype.card
 import group_theory.group_action.defs
 import group_theory.group_action.group
 import data.setoid.basic
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import group_theory.subgroup.basic
 
 /-!
 # Basic properties of group actions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file primarily concerns itself with orbits, stabilizers, and other objects defined in terms of
 actions. Despite this file being called `basic`, low-level helper lemmas for algebraic manipulation
@@ -28,7 +32,7 @@ of `•` belong elsewhere.
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open_locale big_operators pointwise
+open_locale pointwise
 open function
 
 namespace mul_action

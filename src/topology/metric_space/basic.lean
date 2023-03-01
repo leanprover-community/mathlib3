@@ -49,32 +49,10 @@ metric, pseudo_metric, dist
 
 open set filter topological_space bornology
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}
-
-/-- Construct a uniform structure core from a distance function and metric space axioms.
-This is a technical construction that can be immediately used to construct a uniform structure
-from a distance function and metric space axioms but is also useful when discussing
-metrizable topologies, see `pseudo_metric_space.of_metrizable`. -/
-def uniform_space.core_of_dist {α : Type*} (dist : α → α → ℝ)
-  (dist_self : ∀ x : α, dist x x = 0)
-  (dist_comm : ∀ x y : α, dist x y = dist y x)
-  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space.core α :=
-{ uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
-  refl       := le_infi $ assume ε, le_infi $
-    by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
-  comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem (div_pos h zero_lt_two) (subset.refl _)) $
-    have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
-      from assume a b c hac hcb,
-      calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
-        ... < ε / 2 + ε / 2 : add_lt_add hac hcb
-        ... = ε : by rw [div_add_div_same, add_self_div_two],
-    by simpa [comp_rel],
-  symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
-    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [dist_comm] }
 
 /-- Construct a uniform structure from a distance function and metric space axioms -/
 def uniform_space_of_dist
@@ -82,7 +60,8 @@ def uniform_space_of_dist
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
-uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
+uniform_space.of_fun dist dist_self dist_comm dist_triangle $ λ ε ε0,
+  ⟨ε / 2, half_pos ε0, λ x hx y hy, add_halves ε ▸ add_lt_add hx hy⟩
 
 /-- This is an internal lemma used to construct a bornology from a metric in `bornology.of_dist`. -/
 private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
@@ -202,7 +181,7 @@ instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_spa
 /-- Construct a pseudo-metric space structure whose underlying topological space structure
 (definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
-def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
+def pseudo_metric_space.of_dist_topology {α : Type u} [topological_space α] (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
@@ -212,26 +191,11 @@ def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist 
   dist_self := dist_self,
   dist_comm := dist_comm,
   dist_triangle := dist_triangle,
-  to_uniform_space := { is_open_uniformity := begin
-    dsimp only [uniform_space.core_of_dist],
-    intros s,
-    change is_open s ↔ _,
-    rw H s,
-    refine forall₂_congr (λ x x_in, _),
-    erw (has_basis_binfi_principal _ nonempty_Ioi).mem_iff,
-    { refine exists₂_congr (λ ε ε_pos, _),
-      simp only [prod.forall, set_of_subset_set_of],
-      split,
-      { rintros h _ y H rfl,
-        exact h y H },
-      { intros h y hxy,
-        exact h _ _ hxy rfl } },
-    { exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-      λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-      λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩ },
-    { apply_instance }
-    end,
-    ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
+  to_uniform_space :=
+  { is_open_uniformity := λ s, (H s).trans $ forall₂_congr $ λ x _,
+      ((uniform_space.has_basis_of_fun (exists_gt (0 : ℝ))
+        dist _ _ _ _).comap (prod.mk x)).mem_iff.symm.trans mem_comap_prod_mk,
+    to_core := (uniform_space_of_dist dist dist_self dist_comm dist_triangle).to_core },
   uniformity_dist := rfl,
   to_bornology := bornology.of_dist dist dist_self dist_comm dist_triangle,
   cobounded_sets := rfl }
@@ -653,14 +617,15 @@ theorem is_bounded_iff_nndist {s : set α} :
 by simp only [is_bounded_iff_exists_ge 0, nnreal.exists, ← nnreal.coe_le_coe, ← dist_nndist,
   nnreal.coe_mk, exists_prop]
 
+theorem to_uniform_space_eq : ‹pseudo_metric_space α›.to_uniform_space =
+  uniform_space_of_dist dist dist_self dist_comm dist_triangle :=
+uniform_space_eq pseudo_metric_space.uniformity_dist
+
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
 begin
-  rw ← pseudo_metric_space.uniformity_dist.symm,
-  refine has_basis_binfi_principal _ nonempty_Ioi,
-  exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩
+  rw [to_uniform_space_eq],
+  exact uniform_space.has_basis_of_fun (exists_gt _) _ _ _ _ _
 end
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers
@@ -679,6 +644,11 @@ begin
     exact ⟨i, hi, λ x (hx : _ < _), hε $ lt_of_lt_of_le hx H⟩ },
   { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, H⟩ }
 end
+
+theorem uniformity_basis_dist_rat :
+  (𝓤 α).has_basis (λ r : ℚ, 0 < r) (λ r, {p : α × α | dist p.1 p.2 < r}) :=
+metric.mk_uniformity_basis (λ _, rat.cast_pos.2) $ λ ε hε,
+  let ⟨r, hr0, hrε⟩ := exists_rat_btwn hε in ⟨r, rat.cast_pos.1 hr0, hrε.le⟩
 
 theorem uniformity_basis_dist_inv_nat_succ :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < 1 / (↑n+1) }) :=
@@ -1127,7 +1097,7 @@ by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
 See Note [forgetful inheritance].
 -/
 def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_metric_space α :=
 { dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
@@ -1139,8 +1109,7 @@ def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
 
 lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
-  (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (m : pseudo_metric_space α) (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 
@@ -1242,22 +1211,22 @@ theorem real.nndist_eq' (x y : ℝ) : nndist x y = real.nnabs (y - x) := nndist_
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = |x| :=
 by simp [real.dist_eq]
 
-theorem real.dist_left_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+theorem real.dist_left_le_of_mem_uIcc {x y z : ℝ} (h : y ∈ uIcc x z) :
   dist x y ≤ dist x z :=
-by simpa only [dist_comm x] using abs_sub_left_of_mem_interval h
+by simpa only [dist_comm x] using abs_sub_left_of_mem_uIcc h
 
-theorem real.dist_right_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+theorem real.dist_right_le_of_mem_uIcc {x y z : ℝ} (h : y ∈ uIcc x z) :
   dist y z ≤ dist x z :=
-by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
+by simpa only [dist_comm _ z] using abs_sub_right_of_mem_uIcc h
 
-theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y')
-  (hy : y ∈ interval x' y') : dist x y ≤ dist x' y' :=
-abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
+theorem real.dist_le_of_mem_uIcc {x y x' y' : ℝ} (hx : x ∈ uIcc x' y')
+  (hy : y ∈ uIcc x' y') : dist x y ≤ dist x' y' :=
+abs_sub_le_of_uIcc_subset_uIcc $ uIcc_subset_uIcc (by rwa uIcc_comm) (by rwa uIcc_comm)
 
 theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
   dist x y ≤ y' - x' :=
 by simpa only [real.dist_eq, abs_of_nonpos (sub_nonpos.2 $ hx.1.trans hx.2), neg_sub]
-  using real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
+  using real.dist_le_of_mem_uIcc (Icc_subset_uIcc hx) (Icc_subset_uIcc hy)
 
 theorem real.dist_le_of_mem_Icc_01 {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) :
   dist x y ≤ 1 :=
@@ -1477,11 +1446,7 @@ def pseudo_metric_space.induced {α β} (f : α → β)
   edist              := λ x y, edist (f x) (f y),
   edist_dist         := λ x y, edist_dist _ _,
   to_uniform_space   := uniform_space.comap f m.to_uniform_space,
-  uniformity_dist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, dist (f x) (f y)),
-    refine compl_surjective.forall.2 (λ s, compl_mem_comap.trans $ mem_uniformity_dist.trans _),
-    simp only [mem_compl_iff, @imp_not_comm _ (_ ∈ _), ← prod.forall', prod.mk.eta, ball_image_iff]
-  end,
+  uniformity_dist    := (uniformity_basis_dist.comap _).eq_binfi,
   to_bornology       := bornology.induced f,
   cobounded_sets     := set.ext $ compl_surjective.forall.2 $ λ s,
     by simp only [compl_mem_comap, filter.mem_sets, ← is_bounded_def, mem_set_of_eq, compl_compl,
@@ -1528,12 +1493,10 @@ lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
-  /- WLOG, `b ≤ a`. `wlog h : b ≤ a` works too but it is much slower because Lean tries to prove one
-  case from the other and fails; `tactic.skip` tells Lean not to try. -/
-  wlog h : b ≤ a := le_total b a using [a b, b a] tactic.skip,
-  { rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
-      max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg] },
-  { rwa [nndist_comm, max_comm] }
+  wlog h : b ≤ a,
+  { rw [nndist_comm, max_comm], exact this b a (le_of_not_le h) },
+  rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
+    max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg],
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
@@ -1913,8 +1876,8 @@ by simp only [dist_nndist, fin.nndist_insert_nth_insert_nth, nnreal.coe_max]
 lemma real.dist_le_of_mem_pi_Icc {x y x' y' : β → ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
   dist x y ≤ dist x' y' :=
 begin
-  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_interval _ _).trans
-    (dist_le_pi_dist _ _ b)); refine Icc_subset_interval _,
+  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_uIcc _ _).trans
+    (dist_le_pi_dist _ _ b)); refine Icc_subset_uIcc _,
   exacts [⟨hx.1 _, hx.2 _⟩, ⟨hy.1 _, hy.2 _⟩]
 end
 
@@ -2025,6 +1988,16 @@ instance complete_of_proper [proper_space α] : complete_space α :=
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
+
+/-- A binary product of proper spaces is proper. -/
+instance prod_proper_space {α : Type*} {β : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [proper_space α] [proper_space β] :
+  proper_space (α × β) :=
+{ is_compact_closed_ball := begin
+    rintros ⟨x, y⟩ r,
+    rw ← closed_ball_prod_same x y,
+    apply (is_compact_closed_ball x r).prod (is_compact_closed_ball y r),
+  end }
 
 /-- A finite product of proper spaces is proper. -/
 instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
@@ -2282,26 +2255,27 @@ lemma bounded_range_of_tendsto (u : ℕ → α) {x : α} (hu : tendsto u at_top 
   bounded (range u) :=
 hu.cauchy_seq.bounded_range
 
-/-- If a function is continuous at every point of a compact set `k`, then it is bounded on
-some open neighborhood of `k`. -/
-lemma exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at
-  [topological_space β] {k : set β} {f : β → α}
-  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_at f x) :
-  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+/-- If a function is continuous within a set `s` at every point of a compact set `k`, then it is
+bounded on some open neighborhood of `k` in `s`. -/
+lemma exists_is_open_bounded_image_inter_of_is_compact_of_forall_continuous_within_at
+  [topological_space β] {k s : set β} {f : β → α}
+  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_within_at f s x) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' (t ∩ s)) :=
 begin
   apply hk.induction_on,
-  { refine ⟨∅, subset.refl _, is_open_empty, by simp only [image_empty, bounded_empty]⟩ },
+  { exact ⟨∅, subset.refl _, is_open_empty,
+      by simp only [image_empty, bounded_empty, empty_inter]⟩ },
   { rintros s s' hss' ⟨t, s't, t_open, t_bounded⟩,
     exact ⟨t, hss'.trans s't, t_open, t_bounded⟩ },
   { rintros s s' ⟨t, st, t_open, t_bounded⟩ ⟨t', s't', t'_open, t'_bounded⟩,
     refine ⟨t ∪ t', union_subset_union st s't', t_open.union t'_open, _⟩,
-    rw image_union,
+    rw [union_inter_distrib_right, image_union],
     exact t_bounded.union t'_bounded },
   { assume x hx,
     have A : ball (f x) 1 ∈ 𝓝 (f x), from ball_mem_nhds _ zero_lt_one,
-    have B : f ⁻¹' (ball (f x) 1) ∈ 𝓝 x, from hf x hx A,
-    obtain ⟨u, uf, u_open, xu⟩ : ∃ (u : set β) (H : u ⊆ f ⁻¹' ball (f x) 1), is_open u ∧ x ∈ u,
-      from _root_.mem_nhds_iff.1 B,
+    have B : f ⁻¹' (ball (f x) 1) ∈ 𝓝[s] x, from hf x hx A,
+    obtain ⟨u, u_open, xu, uf⟩ : ∃ (u : set β), is_open u ∧ x ∈ u ∧ u ∩ s ⊆ f ⁻¹' ball (f x) 1,
+      from _root_.mem_nhds_within.1 B,
     refine ⟨u, _, u, subset.refl _, u_open, _⟩,
     { apply nhds_within_le_nhds,
       exact u_open.mem_nhds xu },
@@ -2309,16 +2283,35 @@ begin
       exact bounded_ball.mono (image_preimage_subset _ _) } }
 end
 
+/-- If a function is continuous at every point of a compact set `k`, then it is bounded on
+some open neighborhood of `k`. -/
+lemma exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at
+  [topological_space β] {k : set β} {f : β → α}
+  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_at f x) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+begin
+  simp_rw ← continuous_within_at_univ at hf,
+  simpa only [inter_univ]  using
+    exists_is_open_bounded_image_inter_of_is_compact_of_forall_continuous_within_at hk hf,
+end
+
+/-- If a function is continuous on a set `s` containing a compact set `k`, then it is bounded on
+some open neighborhood of `k` in `s`. -/
+lemma exists_is_open_bounded_image_inter_of_is_compact_of_continuous_on
+  [topological_space β] {k s : set β} {f : β → α}
+  (hk : is_compact k) (hks : k ⊆ s) (hf : continuous_on f s) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' (t ∩ s)) :=
+exists_is_open_bounded_image_inter_of_is_compact_of_forall_continuous_within_at hk
+  (λ x hx, hf x (hks hx))
+
 /-- If a function is continuous on a neighborhood of a compact set `k`, then it is bounded on
 some open neighborhood of `k`. -/
 lemma exists_is_open_bounded_image_of_is_compact_of_continuous_on
   [topological_space β] {k s : set β} {f : β → α}
   (hk : is_compact k) (hs : is_open s) (hks : k ⊆ s) (hf : continuous_on f s) :
   ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
-begin
-  apply exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at hk
-  (λ x hx, hf.continuous_at (hs.mem_nhds (hks hx))),
-end
+exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at hk
+  (λ x hx, hf.continuous_at (hs.mem_nhds (hks hx)))
 
 /-- The **Heine–Borel theorem**: In a proper space, a closed bounded set is compact. -/
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
@@ -2616,14 +2609,14 @@ end
 /-- Construct a metric space structure whose underlying topological space structure
 (definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
-def metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
+def metric_space.of_dist_topology {α : Type u} [topological_space α] (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
   (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s)
   (eq_of_dist_eq_zero : ∀ x y : α, dist x y = 0 → x = y) : metric_space α :=
 { eq_of_dist_eq_zero := eq_of_dist_eq_zero,
-  ..pseudo_metric_space.of_metrizable dist dist_self dist_comm dist_triangle H }
+  ..pseudo_metric_space.of_dist_topology dist dist_self dist_comm dist_triangle H }
 
 variables {γ : Type w} [metric_space γ]
 
@@ -2739,13 +2732,13 @@ end metric
 See Note [forgetful inheritance].
 -/
 def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
 
 lemma metric_space.replace_uniformity_eq {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 
@@ -2935,61 +2928,20 @@ end metric
 
 section eq_rel
 
-/-- The canonical equivalence relation on a pseudometric space. -/
-def pseudo_metric.dist_setoid (α : Type u) [pseudo_metric_space α] : setoid α :=
-setoid.mk (λx y, dist x y = 0)
-begin
-  unfold equivalence,
-  repeat { split },
-  { exact pseudo_metric_space.dist_self },
-  { assume x y h, rwa pseudo_metric_space.dist_comm },
-  { assume x y z hxy hyz,
-    refine le_antisymm _ dist_nonneg,
-    calc dist x z ≤ dist x y + dist y z : pseudo_metric_space.dist_triangle _ _ _
-         ... = 0 + 0 : by rw [hxy, hyz]
-         ... = 0 : by simp }
-end
+instance {α : Type u} [pseudo_metric_space α] :
+  has_dist (uniform_space.separation_quotient α) :=
+{ dist := λ p q, quotient.lift_on₂' p q dist $ λ x y x' y' hx hy,
+    by rw [dist_edist, dist_edist, ← uniform_space.separation_quotient.edist_mk x,
+      ← uniform_space.separation_quotient.edist_mk x', quot.sound hx, quot.sound hy] }
 
-local attribute [instance] pseudo_metric.dist_setoid
+lemma uniform_space.separation_quotient.dist_mk {α : Type u} [pseudo_metric_space α] (p q : α) :
+  @dist (uniform_space.separation_quotient α) _ (quot.mk _ p) (quot.mk _ q) = dist p q :=
+rfl
 
-/-- The canonical quotient of a pseudometric space, identifying points at distance `0`. -/
-@[reducible] definition pseudo_metric_quot (α : Type u) [pseudo_metric_space α] : Type* :=
-quotient (pseudo_metric.dist_setoid α)
-
-instance has_dist_metric_quot {α : Type u} [pseudo_metric_space α] :
-  has_dist (pseudo_metric_quot α) :=
-{ dist := quotient.lift₂ (λp q : α, dist p q)
-begin
-  assume x y x' y' hxx' hyy',
-  have Hxx' : dist x x' = 0 := hxx',
-  have Hyy' : dist y y' = 0 := hyy',
-  have A : dist x y ≤ dist x' y' := calc
-    dist x y ≤ dist x x' + dist x' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y : by simp [Hxx']
-    ... ≤ dist x' y' + dist y' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y' : by simp [pseudo_metric_space.dist_comm, Hyy'],
-  have B : dist x' y' ≤ dist x y := calc
-    dist x' y' ≤ dist x' x + dist x y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y' : by simp [pseudo_metric_space.dist_comm, Hxx']
-    ... ≤ dist x y + dist y y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y : by simp [Hyy'],
-  exact le_antisymm A B
-end }
-
-lemma pseudo_metric_quot_dist_eq {α : Type u} [pseudo_metric_space α] (p q : α) :
-  dist ⟦p⟧ ⟦q⟧ = dist p q := rfl
-
-instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
-  metric_space (pseudo_metric_quot α) :=
-{ dist_self := begin
-    refine quotient.ind (λy, _),
-    exact pseudo_metric_space.dist_self _
-  end,
-  eq_of_dist_eq_zero := λxc yc, by exact quotient.induction_on₂ xc yc (λx y H, quotient.sound H),
-  dist_comm :=
-    λxc yc, quotient.induction_on₂ xc yc (λx y, pseudo_metric_space.dist_comm _ _),
-  dist_triangle :=
-    λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, pseudo_metric_space.dist_triangle _ _ _) }
+instance {α : Type u} [pseudo_metric_space α] :
+  metric_space (uniform_space.separation_quotient α) :=
+emetric_space.to_metric_space_of_dist dist (λ x y, quotient.induction_on₂' x y edist_ne_top) $
+  λ x y, quotient.induction_on₂' x y dist_edist
 
 end eq_rel
 

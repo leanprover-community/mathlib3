@@ -10,6 +10,9 @@ import set_theory.cardinal.basic
 /-!
 # Ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Ordinals are defined as equivalences of well-ordered sets under order isomorphism. They are endowed
 with a total order, where an ordinal is smaller than another one if it embeds into it as an
 initial segment (or, equivalently, in any way). This total order is well founded.
@@ -284,9 +287,9 @@ protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 := bot_lt_if
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 := not_lt_bot
 theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a := eq_bot_or_bot_lt
 
-@[simp] theorem zero_lt_one : (0 : ordinal) < 1 := principal_seg.pempty_to_punit.ordinal_type_lt
+instance : zero_le_one_class ordinal := ⟨ordinal.zero_le _⟩
 
-instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
+instance ne_zero.one : ne_zero (1 : ordinal) := ⟨ordinal.one_ne_zero⟩
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/

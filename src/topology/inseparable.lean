@@ -10,6 +10,9 @@ import tactic.tfae
 /-!
 # Inseparable points in a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `specializes` (notation: `x ⤳ y`) : a relation saying that `𝓝 x ≤ 𝓝 y`;
@@ -35,7 +38,7 @@ topological space, separation setoid
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {X Y Z α ι : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [∀ i, topological_space (π i)] {x y z : X} {s : set X} {f : X → Y}
@@ -131,6 +134,8 @@ lemma specializes_rfl : x ⤳ x := le_rfl
 @[refl] lemma specializes_refl (x : X) : x ⤳ x := specializes_rfl
 
 @[trans] lemma specializes.trans : x ⤳ y → y ⤳ z → x ⤳ z := le_trans
+
+lemma specializes_of_eq (e : x = y) : x ⤳ y := e ▸ specializes_refl x
 
 lemma specializes_of_nhds_within (h₁ : 𝓝[s] x ≤ 𝓝[s] y) (h₂ : x ∈ s) : x ⤳ y :=
 specializes_iff_pure.2 $
@@ -255,6 +260,8 @@ namespace inseparable
 @[refl] lemma refl (x : X) : x ~ x := eq.refl (𝓝 x)
 
 lemma rfl : x ~ x := refl x
+
+lemma of_eq (e : x = y) : inseparable x y := e ▸ refl x
 
 @[symm] lemma symm (h : x ~ y) : y ~ x := h.symm
 

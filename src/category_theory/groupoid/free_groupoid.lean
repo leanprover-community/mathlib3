@@ -9,6 +9,7 @@ import category_theory.groupoid
 import tactic.nth_rewrite
 import category_theory.path_category
 import category_theory.quotient
+import combinatorics.quiver.symmetric
 
 /-!
 # Free groupoid on a quiver
@@ -44,14 +45,6 @@ namespace free
 universes u v u' v' u'' v''
 
 variables {V : Type u} [quiver.{v+1} V]
-
-/-- Shorthand for the "forward" arrow corresponding to `f` in `symmetrify V` -/
-abbreviation quiver.hom.to_pos {X Y : V} (f : X ⟶ Y) :
-  (quiver.symmetrify_quiver V).hom X Y := sum.inl f
-
-/-- Shorthand for the "backward" arrow corresponding to `f` in `symmetrify V` -/
-abbreviation quiver.hom.to_neg {X Y : V} (f : X ⟶ Y) :
-  (quiver.symmetrify_quiver V).hom Y X := sum.inr f
 
 /-- Shorthand for the "forward" arrow corresponding to `f` in `paths $ symmetrify V` -/
 abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
@@ -168,9 +161,9 @@ lemma lift_unique (φ : V ⥤q V') (Φ : free_groupoid V ⥤ V')
 begin
   apply quotient.lift_unique,
   apply paths.lift_unique,
-  apply quiver.symmetrify.lift_unique,
+  fapply @quiver.symmetrify.lift_unique _ _ _ _ _ _ _ _ _,
   { rw ←functor.to_prefunctor_comp, exact hΦ, },
-  { rintros X Y f,
+  { constructor, rintros X Y f,
     simp only [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],
     change Φ.map (inv ((quotient.functor red_step).to_prefunctor.map f.to_path)) =
            inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),

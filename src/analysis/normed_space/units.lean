@@ -28,7 +28,7 @@ a unit and 0 if not.  The other major results of this file (notably `inverse_add
 -/
 
 noncomputable theory
-open_locale topological_space
+open_locale topology
 variables {R : Type*} [normed_ring R] [complete_space R]
 
 namespace units

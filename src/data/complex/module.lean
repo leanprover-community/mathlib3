@@ -148,10 +148,9 @@ basis.of_equiv_fun
 @[simp] lemma coe_basis_one_I : ⇑basis_one_I = ![1, I] :=
 funext $ λ i, basis.apply_eq_iff.mpr $ finsupp.ext $ λ j,
 by fin_cases i; fin_cases j;
-    simp only [coe_basis_one_I_repr, finsupp.single_eq_same, finsupp.single_eq_of_ne,
-              matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
-              nat.one_ne_zero, fin.one_eq_zero_iff, fin.zero_eq_one_iff, ne.def, not_false_iff,
-              one_re, one_im, I_re, I_im]
+    simp only [coe_basis_one_I_repr, finsupp.single_eq_of_ne, matrix.cons_val_zero,
+      matrix.cons_val_one, matrix.head_cons, fin.one_eq_zero_iff, ne.def, not_false_iff, I_re,
+      nat.succ_succ_ne_one, one_im, I_im, one_re, finsupp.single_eq_same, fin.zero_eq_one_iff]
 
 instance : finite_dimensional ℝ ℂ := of_fintype_basis basis_one_I
 
@@ -266,6 +265,16 @@ begin
     refine λ h, alg_hom_ext _,
   exacts [h, conj_I.symm ▸ h],
 end
+
+/-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
+{ map_add' := by simp, .. equiv_real_prod }
+
+/-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
+{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
 
 section lift
 

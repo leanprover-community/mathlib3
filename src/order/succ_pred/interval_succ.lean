@@ -9,6 +9,9 @@ import order.succ_pred.basic
 /-!
 # Intervals `Ixx (f x) (f (order.succ x))`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove
 
 * `monotone.bUnion_Ico_Ioc_map_succ`: if `α` is a linear archimedean succ order and `β` is a linear

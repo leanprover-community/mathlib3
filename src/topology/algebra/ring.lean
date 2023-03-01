@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.ring.prod
 import ring_theory.ideal.quotient
 import ring_theory.subring.basic
-import topology.algebra.group
+import topology.algebra.group.basic
 
 /-!
 
@@ -32,7 +32,7 @@ of topological (semi)rings.
 -/
 
 open classical set filter topological_space function
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 section topological_semiring
 variables (α : Type*)
@@ -111,7 +111,7 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-lemma subsemiring.subring_topological_closure (s : subsemiring α) :
+lemma subsemiring.le_topological_closure (s : subsemiring α) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -267,7 +267,7 @@ def subring.topological_closure (S : subring α) : subring α :=
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
 
-lemma subring.subring_topological_closure (s : subring α) :
+lemma subring.le_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :
@@ -369,7 +369,7 @@ instance inhabited {α : Type u} [ring α] : inhabited (ring_topology α) :=
 
 @[ext]
 lemma ext' {f g : ring_topology α} (h : f.is_open = g.is_open) : f = g :=
-by { ext, rw h }
+by { ext : 2, exact h }
 
 /-- The ordering on ring topologies on the ring `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
@@ -452,23 +452,21 @@ def to_add_group_topology (t : ring_topology α) : add_group_topology α :=
 /-- The order embedding from ring topologies on `a` to additive group topologies on `a`. -/
 def to_add_group_topology.order_embedding : order_embedding (ring_topology α)
   (add_group_topology α) :=
-{ to_fun       := λ t, t.to_add_group_topology,
-  inj'         :=
-  begin
-    intros t₁ t₂ h_eq,
-    dsimp only at h_eq,
-    ext,
-    have h_t₁ : t₁.to_topological_space = t₁.to_add_group_topology.to_topological_space := rfl,
-    rw [h_t₁, h_eq],
-    refl,
-  end,
-  map_rel_iff' :=
-  begin
-    intros t₁ t₂,
-    rw [embedding.coe_fn_mk],
-    have h_le : t₁ ≤ t₂ ↔ t₁.to_topological_space ≤ t₂.to_topological_space := by refl,
-    rw h_le,
-    refl,
-  end }
+order_embedding.of_map_le_iff to_add_group_topology $ λ _ _, iff.rfl
 
 end ring_topology
+
+section absolute_value
+
+/-- Construct an absolute value on a semiring `T` from an absolute value on a semiring `R`
+and an injective ring homomorphism `f : T →+* R` -/
+def absolute_value.comp {R S T : Type*} [semiring T] [semiring R] [ordered_semiring S]
+  (v : absolute_value R S) {f : T →+* R} (hf : function.injective f)  :
+  absolute_value T S :=
+{ to_fun := v ∘ f,
+  map_mul' := by simp only [function.comp_app, map_mul, eq_self_iff_true, forall_const],
+  nonneg' := by simp only [v.nonneg, forall_const],
+  eq_zero' := by simp only [map_eq_zero_iff f hf, v.eq_zero, forall_const, iff_self],
+  add_le' := by simp only [function.comp_app, map_add, v.add_le, forall_const], }
+
+end absolute_value

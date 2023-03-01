@@ -10,6 +10,9 @@ import order.antichain
 /-!
 # `r`-sets and slice
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `r`-th slice of a set family and provides a way to say that a set family is
 made of `r`-sets.
 

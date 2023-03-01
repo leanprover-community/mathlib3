@@ -14,6 +14,9 @@ import logic.function.conjugate
 /-!
 # Equivalence between types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we continue the work on equivalences begun in `logic/equiv/defs.lean`, defining
 
 * canonical isomorphisms between various types: e.g.,

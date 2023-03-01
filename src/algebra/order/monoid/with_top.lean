@@ -5,10 +5,13 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.hom.group
 import algebra.order.monoid.order_dual
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.with_zero.basic
 import data.nat.cast.defs
 
-/-! # Adjoining top/bottom elements to ordered monoids. -/
+/-! # Adjoining top/bottom elements to ordered monoids.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -28,6 +31,18 @@ variables [has_one α]
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
 
+@[simp, norm_cast, to_additive coe_nonneg]
+lemma one_le_coe [has_le α] {a : α} : 1 ≤ (a : with_top α) ↔ 1 ≤ a := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_le_zero]
+lemma coe_le_one [has_le α] {a : α} : (a : with_top α) ≤ 1 ↔ a ≤ 1 := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_pos]
+lemma one_lt_coe [has_lt α] {a : α} : 1 < (a : with_top α) ↔ 1 < a := coe_lt_coe
+
+@[simp, norm_cast, to_additive coe_lt_zero]
+lemma coe_lt_one [has_lt α] {a : α} : (a : with_top α) < 1 ↔ a < 1 := coe_lt_coe
+
 @[simp, to_additive] protected lemma map_one {β} (f : α → β) :
   (1 : with_top α).map f = (f 1 : with_top β) := rfl
 
@@ -45,7 +60,7 @@ end has_one
 section has_add
 variables [has_add α] {a b c d : with_top α} {x y : α}
 
-instance : has_add (with_top α) := ⟨λ o₁ o₂, o₁.bind $ λ a, o₂.map $ (+) a⟩
+instance : has_add (with_top α) := ⟨option.map₂ (+)⟩
 
 @[norm_cast] lemma coe_add : ((x + y : α) : with_top α) = x + y := rfl
 @[norm_cast] lemma coe_bit0 : ((bit0 x : α) : with_top α) = bit0 x := rfl
@@ -59,8 +74,8 @@ by cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add]
 
 lemma add_ne_top : a + b ≠ ⊤ ↔ a ≠ ⊤ ∧ b ≠ ⊤ := add_eq_top.not.trans not_or_distrib
 
-lemma add_lt_top [partial_order α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
-by simp_rw [lt_top_iff_ne_top, add_ne_top]
+lemma add_lt_top [has_lt α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
+by simp_rw [with_top.lt_top_iff_ne_top, add_ne_top]
 
 lemma add_eq_coe : ∀ {a b : with_top α} {c : α},
   a + b = c ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a' + b' = c
@@ -192,35 +207,16 @@ end
 end has_add
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-{ add_assoc := begin
-    repeat { refine with_top.rec_top_coe _ _; try { intro }};
-    simp [←with_top.coe_add, add_assoc]
-  end,
+{ add_assoc := λ _ _ _, option.map₂_assoc add_assoc,
   ..with_top.has_add }
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-{ add_comm :=
-  begin
-    repeat { refine with_top.rec_top_coe _ _; try { intro }};
-    simp [←with_top.coe_add, add_comm]
-  end,
+{ add_comm := λ _ _, option.map₂_comm add_comm,
   ..with_top.add_semigroup }
 
 instance [add_zero_class α] : add_zero_class (with_top α) :=
-{ zero_add :=
-  begin
-    refine with_top.rec_top_coe _ _,
-    { simp },
-    { intro,
-      rw [←with_top.coe_zero, ←with_top.coe_add, zero_add] }
-  end,
-  add_zero :=
-  begin
-    refine with_top.rec_top_coe _ _,
-    { simp },
-    { intro,
-      rw [←with_top.coe_zero, ←with_top.coe_add, add_zero] }
-  end,
+{ zero_add := option.map₂_left_identity zero_add,
+  add_zero := option.map₂_right_identity add_zero,
   ..with_top.has_zero,
   ..with_top.has_add }
 
@@ -351,7 +347,19 @@ lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
 with_top.coe_eq_one
 
-@[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
+@[simp, norm_cast, to_additive coe_nonneg]
+lemma one_le_coe [has_one α] [has_le α] {a : α} : 1 ≤ (a : with_bot α) ↔ 1 ≤ a := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_le_zero]
+lemma coe_le_one [has_one α] [has_le α] {a : α} : (a : with_bot α) ≤ 1 ↔ a ≤ 1 := coe_le_coe
+
+@[simp, norm_cast, to_additive coe_pos]
+lemma one_lt_coe [has_one α] [has_lt α] {a : α} : 1 < (a : with_bot α) ↔ 1 < a := coe_lt_coe
+
+@[simp, norm_cast, to_additive coe_lt_zero]
+lemma coe_lt_one [has_one α] [has_lt α] {a : α} : (a : with_bot α) < 1 ↔ a < 1 := coe_lt_coe
+
+@[simp, to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
 
 @[norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_bot α) = n := rfl
@@ -372,7 +380,7 @@ lemma coe_bit1 [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
 @[simp] lemma add_eq_bot : a + b = ⊥ ↔ a = ⊥ ∨ b = ⊥ := with_top.add_eq_top
 lemma add_ne_bot : a + b ≠ ⊥ ↔ a ≠ ⊥ ∧ b ≠ ⊥ := with_top.add_ne_top
 
-lemma bot_lt_add [partial_order α] {a b : with_bot α} : ⊥ < a + b ↔ ⊥ < a ∧ ⊥ < b :=
+lemma bot_lt_add [has_lt α] {a b : with_bot α} : ⊥ < a + b ↔ ⊥ < a ∧ ⊥ < b :=
 @with_top.add_lt_top αᵒᵈ _ _ _ _
 
 lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a' + b' = x := with_top.add_eq_coe

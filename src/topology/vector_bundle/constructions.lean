@@ -80,10 +80,24 @@ namespace trivialization
 variables {F₁ E₁ F₂ E₂}
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
-  (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
+  (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
 
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear }
+
+@[simp]
+lemma coord_changeL_prod [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜] ⦃b⦄
+  (hb : b ∈ ((e₁.prod e₂).base_set ∩ (e₁'.prod e₂').base_set)) :
+  ((e₁.prod e₂).coord_changeL 𝕜 (e₁'.prod e₂') b : F₁ × F₂ →L[𝕜] F₁ × F₂) =
+  (e₁.coord_changeL 𝕜 e₁' b : F₁ →L[𝕜] F₁).prod_map (e₂.coord_changeL 𝕜 e₂' b) :=
+begin
+  rw [continuous_linear_map.ext_iff, continuous_linear_map.coe_prod_map'],
+  rintro ⟨v₁, v₂⟩,
+  show (e₁.prod e₂).coord_changeL 𝕜 (e₁'.prod e₂') b (v₁, v₂) =
+    (e₁.coord_changeL 𝕜 e₁' b v₁, e₂.coord_changeL 𝕜 e₂' b v₂),
+  rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂', (e₁.prod e₂).coord_changeL_apply'],
+  exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩]
+end
 
 variables {e₁ e₂} [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]

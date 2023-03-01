@@ -5,7 +5,9 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import analysis.complex.upper_half_plane.basic
+import analysis.normed_space.finite_dimension
 import linear_algebra.general_linear_group
+import linear_algebra.matrix.general_linear_group
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -328,10 +330,10 @@ lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
   induction n using int.induction_on with n h n h,
   { rw [zpow_zero, coe_one, matrix.one_fin_two] },
-  { simp_rw [zpow_add, zpow_one, special_linear_group.coe_mul, h, coe_T, matrix.mul_fin_two],
+  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, matrix.mul_fin_two],
     congrm !![_, _; _, _],
     rw [mul_one, mul_one, add_comm] },
-  { simp_rw [zpow_sub, zpow_one, special_linear_group.coe_mul, h, coe_T_inv, matrix.mul_fin_two],
+  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, matrix.mul_fin_two],
     congrm !![_, _; _, _]; ring },
 end
 
@@ -386,7 +388,7 @@ begin
   refine subtype.ext _,
   conv_lhs { rw matrix.eta_fin_two ↑ₘg },
   rw [hc, hg],
-  simp only [special_linear_group.coe_mul, coe_T_zpow, coe_S, mul_fin_two],
+  simp only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
   congrm !![_, _; _, _]; ring
 end
 
@@ -420,7 +422,7 @@ localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" 
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
   exact h.2,
 end
 

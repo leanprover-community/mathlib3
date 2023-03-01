@@ -80,7 +80,7 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical complex_conjugate topological_space
+open_locale big_operators nnreal ennreal classical complex_conjugate topology
 
 noncomputable theory
 
@@ -186,7 +186,7 @@ protected def linear_isometry : lp G 2 →ₗᵢ[𝕜] E :=
   map_add' := λ f g, by simp only [tsum_add (hV.summable_of_lp f) (hV.summable_of_lp g),
     lp.coe_fn_add, pi.add_apply, linear_isometry.map_add],
   map_smul' := λ c f, by simpa only [linear_isometry.map_smul, pi.smul_apply, lp.coe_fn_smul]
-    using tsum_const_smul (hV.summable_of_lp f),
+    using tsum_const_smul c (hV.summable_of_lp f),
   norm_map' := λ f, begin
     classical, -- needed for lattice instance on `finset ι`, for `filter.at_top_ne_bot`
     have H : 0 < (2:ℝ≥0∞).to_real := by norm_num,
@@ -365,7 +365,7 @@ begin
     cases b;
     exact orthogonal.complete_space K <|> assumption },
   refine is_hilbert_sum.mk_internal _ K.orthogonal_family_self _,
-  refine le_trans _ (submodule.submodule_topological_closure _),
+  refine le_trans _ (submodule.le_topological_closure _),
   rw [supr_bool_eq, cond, cond],
   refine codisjoint.top_le _,
   exact submodule.is_compl_orthogonal_of_complete_space.codisjoint

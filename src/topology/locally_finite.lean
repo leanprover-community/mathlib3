@@ -9,6 +9,9 @@ import order.filter.small_sets
 /-!
 ### Locally finite families of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a family of sets in a topological space is *locally finite* if at every point `x : X`,
 there is a neighborhood of `x` which meets only finitely many sets in the family.
 
@@ -18,7 +21,7 @@ In this file we give the definition and prove basic properties of locally finite
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 
 open set function filter
-open_locale topological_space filter
+open_locale topology filter
 
 universe u
 variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]

@@ -17,7 +17,7 @@ convenience). This result is known as Fekete's lemma in the literature.
 
 noncomputable theory
 open set filter
-open_locale topological_space
+open_locale topology
 
 /-- A real-valued sequence is subadditive if it satisfies the inequality `u (m + n) ≤ u m + u n`
 for all `m, n`. -/

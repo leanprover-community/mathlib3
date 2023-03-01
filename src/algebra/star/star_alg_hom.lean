@@ -6,6 +6,7 @@ Authors: Jireh Loreaux
 
 import algebra.hom.non_unital_alg
 import algebra.star.prod
+import algebra.algebra.prod
 
 /-!
 # Morphisms of star algebras
@@ -278,7 +279,7 @@ instance : star_alg_hom_class (A →⋆ₐ[R] B) R A B :=
 directly. -/
 instance : has_coe_to_fun (A →⋆ₐ[R] B) (λ _, A → B) := fun_like.has_coe_to_fun
 
-@[simp, protected] lemma coe_coe {F : Type} [star_alg_hom_class F R A B] (f : F) :
+@[simp, protected] lemma coe_coe {F : Type*} [star_alg_hom_class F R A B] (f : F) :
   ⇑(f : A →⋆ₐ[R] B) = f := rfl
 
 initialize_simps_projections star_alg_hom (to_fun → apply)

@@ -56,7 +56,7 @@ open triv_sq_zero_ext
 @[simp] lemma snd_eps [has_zero R] [has_one R] : snd ε = (1 : R) := snd_inr _ _
 
 /-- A version of `triv_sq_zero_ext.snd_mul` with `*` instead of `•`. -/
-@[simp] lemma snd_mul [semiring R] (x y : R[ε]) : snd (x * y) = fst x * snd y + fst y * snd x :=
+@[simp] lemma snd_mul [semiring R] (x y : R[ε]) : snd (x * y) = fst x * snd y + snd x * fst y :=
 snd_mul _ _
 
 @[simp] lemma eps_mul_eps [semiring R] : (ε * ε : R[ε]) = 0 := inr_mul_inr _ _ _

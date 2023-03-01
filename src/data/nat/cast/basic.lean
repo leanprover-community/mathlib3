@@ -14,6 +14,9 @@ import algebra.group.opposite
 /-!
 # Cast of natural numbers (additional theorems)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves additional properties about the *canonical* homomorphism from
 the natural numbers into an additive monoid with a one (`nat.cast`).
 
@@ -27,16 +30,11 @@ variables {α β : Type*}
 
 namespace nat
 
-instance (α : Type*) [add_monoid_with_one α] : coe_is_one_hom ℕ α :=
-{ coe_one := cast_one }
-
-instance (α : Type*) [add_monoid_with_one α] : coe_is_add_monoid_hom ℕ α :=
-{ coe_add := cast_add,
-  coe_zero := cast_zero }
-
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
-add_monoid_hom.coe ℕ α
+{ to_fun := coe,
+  map_add' := cast_add,
+  map_zero' := cast_zero }
 
 @[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
@@ -45,14 +43,12 @@ add_monoid_hom.coe ℕ α
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
-instance (α : Type*) [non_assoc_semiring α] : coe_is_ring_hom ℕ α :=
-{ coe_mul := cast_mul,
-  coe_one := cast_one,
-  .. nat.coe_is_add_monoid_hom α }
-
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
-ring_hom.coe ℕ α
+{ to_fun := coe,
+  map_one' := cast_one,
+  map_mul' := cast_mul,
+  .. cast_add_monoid_hom α }
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 

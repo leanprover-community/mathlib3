@@ -9,6 +9,9 @@ import data.fintype.big_operators
 /-!
 # Intervals in a pi type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that (dependent) functions to locally finite orders equipped with the pointwise
 order are locally finite and calculates the cardinality of their intervals.
 -/

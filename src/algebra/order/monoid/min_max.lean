@@ -8,6 +8,9 @@ import algebra.order.monoid.lemmas
 
 /-!
 # Lemmas about `min` and `max` in an ordered monoid.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

@@ -3,11 +3,14 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.group_ring_action
-import group_theory.group_action.defs
+import algebra.group_ring_action.basic
+import algebra.module.basic
 
 /-!
 # Equivariant homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -34,6 +37,8 @@ The above types have corresponding classes:
 
 -/
 
+assert_not_exists submonoid
+
 variables (M' : Type*)
 variables (X : Type*) [has_smul M' X]
 variables (Y : Type*) [has_smul M' Y]
@@ -49,7 +54,6 @@ variables (R' : Type*) [ring R'] [mul_semiring_action M R']
 variables (S : Type*) [semiring S] [mul_semiring_action M S]
 variables (S' : Type*) [ring S'] [mul_semiring_action M S']
 variables (T : Type*) [semiring T] [mul_semiring_action M T]
-variables (G : Type*) [group G] (H : subgroup G)
 
 set_option old_structure_cmd true
 
@@ -339,70 +343,3 @@ ext $ λ x, by rw [comp_apply, id_apply]
 ext $ λ x, by rw [comp_apply, id_apply]
 
 end mul_semiring_action_hom
-
-section
-variables (M) {R'} (U : subring R') [is_invariant_subring M U]
-
-/-- The canonical inclusion from an invariant subring. -/
-def is_invariant_subring.subtype_hom : U →+*[M] R' :=
-{ map_smul' := λ m s, rfl, ..U.subtype }
-
-@[simp] theorem is_invariant_subring.coe_subtype_hom :
-  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
-
-@[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
-
-end
-
-section coe
-
-variables (M' X Y)
-
-/-- `coe_is_smul_hom M X Y` is a class stating that the coercion map `↑ : X → Y`
-(a.k.a. `coe`) preserves scalar multiplication by `M`.
-
-Note that there is no class corresponding to `mul_action`, `distrib_mul_action` or
-`mul_semiring_action`: instead we assume `coe_is_smul_hom` and `coe_is_add_monoid_hom` or
-`coe_is_ring_hom` in separate parameters.
-This is because `coe_is_smul_hom` has a different set of parameters from those other classes,
-so extending both classes at once wouldn't work.
--/
-class coe_is_smul_hom [has_lift_t X Y] :=
-(coe_smul : ∀ (c : M') (x : X), ↑(c • x) = c • (↑x : Y))
-
-export coe_is_smul_hom (coe_smul)
-
-attribute [simp, norm_cast] coe_smul
-
-/-- `mul_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
-bundled as a scalar-multiplication preserving map. -/
-@[simps { fully_applied := ff }]
-protected def mul_action_hom.coe [has_lift_t X Y] [coe_is_smul_hom M' X Y] : X →[M'] Y :=
-{ to_fun := coe,
-  map_smul' := coe_smul }
-
-variables (M A B)
-
-/-- `distrib_mul_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
-bundled as an equivariant additive monoid homomorphism. -/
-@[simps { fully_applied := ff }]
-protected def distrib_mul_action_hom.coe [has_lift_t A B] [coe_is_add_monoid_hom A B]
-  [coe_is_smul_hom M A B] : A →+[M] B :=
-{ to_fun := coe,
-  .. mul_action_hom.coe M A B,
-  .. add_monoid_hom.coe A B }
-
-variables (M X Y)
-
-/-- `mul_semiring_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
-bundled as an equivariant semiring homomorphism. -/
-@[simps { fully_applied := ff }]
-protected def mul_semiring_action_hom.coe [has_lift_t R S] [coe_is_ring_hom R S]
-  [coe_is_smul_hom M R S] :
-  R →+*[M] S :=
-{ to_fun := coe,
-  .. distrib_mul_action_hom.coe M R S,
-  .. ring_hom.coe R S }
-
-end coe

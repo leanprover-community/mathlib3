@@ -23,7 +23,7 @@ metric space, paracompact space, normal space
 
 variable {α : Type*}
 
-open_locale ennreal topological_space
+open_locale ennreal topology
 open set
 
 namespace emetric
@@ -39,7 +39,7 @@ begin
   have pow_pos : ∀ k : ℕ, (0 : ℝ≥0∞) < 2⁻¹ ^ k,
     from λ k, ennreal.pow_pos (ennreal.inv_pos.2 ennreal.two_ne_top) _,
   have hpow_le : ∀ {m n : ℕ}, m ≤ n → (2⁻¹ : ℝ≥0∞) ^ n ≤ 2⁻¹ ^ m,
-    from λ m n h, ennreal.pow_le_pow_of_le_one (ennreal.inv_le_one.2 ennreal.one_lt_two.le) h,
+    from λ m n h, pow_le_pow_of_le_one' (ennreal.inv_le_one.2 ennreal.one_lt_two.le) h,
   have h2pow : ∀ n : ℕ, 2 * (2⁻¹ : ℝ≥0∞) ^ (n + 1) = 2⁻¹ ^ n,
     by { intro n, simp [pow_succ, ← mul_assoc, ennreal.mul_inv_cancel] },
   -- Consider an open covering `S : set (set α)`
@@ -99,9 +99,9 @@ begin
     rintro ⟨y, rfl, hsub, -, hyx⟩,
     refine hsub (lt_of_lt_of_le hyx _),
     calc 2⁻¹ ^ n = 1 * 2⁻¹ ^ n : (one_mul _).symm
-    ... ≤ 3 * 2⁻¹ ^ n : ennreal.mul_le_mul _ le_rfl,
+    ... ≤ 3 * 2⁻¹ ^ n : mul_le_mul_right' _ _,
     -- TODO: use `norm_num`
-    have : ((1 : ℕ) : ℝ≥0∞) ≤ (3 : ℕ), from ennreal.coe_nat_le_coe_nat.2 (by norm_num1),
+    have : ((1 : ℕ) : ℝ≥0∞) ≤ (3 : ℕ), from nat.cast_le.2 (by norm_num1),
     exact_mod_cast this },
   -- Let us show the rest of the properties. Since the definition expects a family indexed
   -- by a single parameter, we use `ℕ × ι` as the domain.
@@ -135,8 +135,9 @@ begin
     -- For each `m ≤ n + k` there is at most one `j` such that `D m j ∩ B` is nonempty.
     have Hle : ∀ m ≤ n + k, set.subsingleton {j | (D m j ∩ B).nonempty},
     { rintros m hm j₁ ⟨y, hyD, hyB⟩ j₂ ⟨z, hzD, hzB⟩,
-      by_contra h,
-      wlog h : j₁ < j₂ := ne.lt_or_lt h using [j₁ j₂ y z, j₂ j₁ z y],
+      by_contra' h' : j₁ ≠ j₂,
+      wlog h : j₁ < j₂ generalizing j₁ j₂ y z,
+      { exact this z hzD hzB y hyD hyB h'.symm (h'.lt_or_lt.resolve_left h), },
       rcases memD.1 hyD with ⟨y', rfl, hsuby, -, hdisty⟩,
       rcases memD.1 hzD with ⟨z', rfl, -, -, hdistz⟩,
       suffices : edist z' y' < 3 * 2⁻¹ ^ m, from nmem_of_lt_ind h (hsuby this),
@@ -147,7 +148,7 @@ begin
         by apply_rules [ennreal.add_lt_add]
       ... = 2 * (2⁻¹ ^ m + 2⁻¹ ^ (n + k + 1)) : by simp only [two_mul, add_comm]
       ... ≤ 2 * (2⁻¹ ^ m + 2⁻¹ ^ (m + 1)) :
-        ennreal.mul_le_mul le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
+        mul_le_mul' le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
       ... = 3 * 2⁻¹ ^ m : by rw [mul_add, h2pow, bit1, add_mul, one_mul] },
     -- Finally, we glue `Hgt` and `Hle`
     have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite :=

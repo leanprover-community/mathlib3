@@ -17,7 +17,7 @@ provide some definitions (`euclidean.ball`, `euclidean.closed_ball`) and simple 
 distance. This way we hide the usage of `to_euclidean` behind an API.
 -/
 
-open_locale topological_space
+open_locale topology
 open set
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]

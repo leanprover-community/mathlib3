@@ -53,7 +53,7 @@ lemma tsum_coe_indicator_ne_top (p : pmf α) (s : set α) : ∑' a, s.indicator 
 ne_of_lt (lt_of_le_of_lt (tsum_le_tsum (λ a, set.indicator_apply_le (λ _, le_rfl))
   ennreal.summable ennreal.summable) (lt_of_le_of_ne le_top p.tsum_coe_ne_top))
 
-lemma coe_fn_ne_zero (p : pmf α) : ⇑p ≠ 0 :=
+lemma coe_ne_zero (p : pmf α) : ⇑p ≠ 0 :=
 λ hp, zero_ne_one ((tsum_zero.symm.trans (tsum_congr $
   λ x, symm (congr_fun hp x))).trans p.tsum_coe)
 
@@ -63,7 +63,7 @@ def support (p : pmf α) : set α := function.support p
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) : a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 
 lemma support_nonempty (p : pmf α) : p.support.nonempty :=
-function.support_nonempty_iff.2 p.coe_fn_ne_zero
+function.support_nonempty_iff.2 p.coe_ne_zero
 
 lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]

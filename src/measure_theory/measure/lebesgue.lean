@@ -93,7 +93,7 @@ by rw [closed_ball_eq_Icc, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
   volume (emetric.ball a r) = 2 * r :=
 begin
   rcases eq_or_ne r ∞ with rfl|hr,
-  { rw [metric.emetric_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { rw [metric.emetric_ball_top, volume_univ, two_mul, _root_.top_add] },
   { lift r to ℝ≥0 using hr,
     rw [metric.emetric_ball_nnreal, volume_ball, two_mul, ← nnreal.coe_add,
       ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
@@ -103,7 +103,7 @@ end
   volume (emetric.closed_ball a r) = 2 * r :=
 begin
   rcases eq_or_ne r ∞ with rfl|hr,
-  { rw [emetric.closed_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { rw [emetric.closed_ball_top, volume_univ, two_mul, _root_.top_add] },
   { lift r to ℝ≥0 using hr,
     rw [metric.emetric_closed_ball_nnreal, volume_closed_ball, two_mul, ← nnreal.coe_add,
       ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }

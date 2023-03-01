@@ -3,11 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
-
-import algebra.hom.iterate
 import data.int.modeq
-import data.nat.choose.dvd
-import data.nat.choose.sum
+import data.nat.multiplicity
 import group_theory.order_of_element
 import ring_theory.nilpotent
 
@@ -17,23 +14,33 @@ import ring_theory.nilpotent
 
 universes u v
 
+open_locale big_operators
+
 variables {R : Type*}
 
-lemma commute.exists_add_pow_prime_eq [semiring R] {p : ℕ} (hp : p.prime) {x y : R}
- (h : commute x y) : ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+section semiring
+variables [semiring R] {p : ℕ} {x y : R}
+
+lemma commute.exists_add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
+  ∃ r : R, (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n + p * r :=
 begin
-  have : finset.range p = finset.range (p - 1 + 1) := congr_arg _ (nat.succ_pred_prime hp).symm,
-  use (finset.range (p - 1)).sum
-    (λ (n : ℕ), x ^ (n + 1) * y ^ (p - (n + 1)) * ↑(p.choose (n + 1) / p)),
-  rw [h.add_pow, finset.sum_range_succ_comm, this, finset.sum_range_succ'],
-  simp only [tsub_zero, tsub_self, nat.cast_one, nat.choose_zero_right, nat.choose_self,
-    mul_one, one_mul, pow_zero, ← add_assoc, add_right_comm _ _ (y ^ p), finset.mul_sum],
-  rw finset.sum_congr rfl,
-  intros i hi,
-  rw [finset.mem_range] at hi,
-  rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ← nat.cast_mul, nat.div_mul_cancel],
-  exact hp.dvd_choose_self (nat.succ_ne_zero _) (lt_tsub_iff_right.mp hi),
+  refine ⟨∑ k in finset.range (p ^ n - 1),
+    x ^ (k + 1) * y ^ (p ^ n - (k + 1)) * ↑((p ^ n).choose (k + 1) / p), _⟩,
+  rw [h.add_pow, finset.sum_range_succ_comm, ←nat.sub_add_cancel (pow_pos hp.pos _),
+    finset.sum_range_succ'],
+  simp only [nat.sub_add_cancel (pow_pos hp.pos _), tsub_zero, mul_one, one_mul,
+    nat.choose_zero_right, nat.cast_one, pow_zero, tsub_self, nat.choose_self],
+  rw [add_comm _ (y ^ _), ←add_assoc, finset.mul_sum, finset.sum_congr rfl (λ i hi, _)],
+  rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ←nat.cast_mul, nat.div_mul_cancel],
+  rw [finset.mem_range, lt_tsub_iff_right] at hi,
+  exact hp.dvd_choose_pow i.succ_ne_zero hi,
 end
+
+lemma commute.exists_add_pow_prime_eq (hp : p.prime) (h : commute x y) :
+  ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+by simpa using h.exists_add_pow_prime_pow_eq hp 1
+
+end semiring
 
 lemma add_pow_prime_eq_pow_add_pow_add_prime_mul [comm_semiring R] {p : ℕ} (hp : p.prime)
   (x y : R) : ∃ r : R, (x + y) ^ p = x ^ p + y ^ p + p * r :=

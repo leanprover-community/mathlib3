@@ -3,7 +3,7 @@ Copyright (c) 2022 Joanna Choules. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joanna Choules
 -/
-import topology.category.Top.limits
+import category_theory.cofiltered_system
 import combinatorics.simple_graph.subgraph
 
 /-!

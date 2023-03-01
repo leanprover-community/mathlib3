@@ -49,9 +49,6 @@ counterparts in [Chou1994].
   on simple graphs for whether every vertex can be reached from every other,
   and in the latter case, whether the vertex type is nonempty.
 
-* `simple_graph.subgraph.connected` gives subgraphs the connectivity
-  predicate via `simple_graph.subgraph.coe`.
-
 * `simple_graph.connected_component` is the type of connected components of
   a given graph.
 
@@ -1666,27 +1663,6 @@ by { refine C.ind _, exact (λ _, rfl) }
 by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
-
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
-
-lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
-begin
-  split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
-  subst_vars
-end
-
-@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).connected :=
-begin
-  split,
-  rintro ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
-  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
-    refl <|> { apply adj.reachable, simp },
-end
 
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=

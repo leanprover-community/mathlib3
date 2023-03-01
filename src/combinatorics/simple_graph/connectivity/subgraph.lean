@@ -9,6 +9,10 @@ import combinatorics.simple_graph.connectivity
 import combinatorics.simple_graph.subgraph
 /-!
 # Connectivity of subgraphs and induced graphs
+
+* `simple_graph.subgraph.connected` gives subgraphs the connectivity
+  predicate via `simple_graph.subgraph.coe`.
+
 -/
 
 universes u v

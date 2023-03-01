@@ -54,7 +54,7 @@ by simp_rw [ne_locus, finset.union_comm, ne_comm]
 
 @[simp]
 lemma ne_locus_zero_right : f.ne_locus 0 = f.support :=
-by { ext, rw [mem_ne_locus, mem_support_iff, finsupp.coe_zero, pi.zero_apply] }
+by { ext, rw [mem_ne_locus, mem_support_iff, coe_zero, pi.zero_apply] }
 
 @[simp]
 lemma ne_locus_zero_left : (0 : α →₀ N).ne_locus f = f.support :=

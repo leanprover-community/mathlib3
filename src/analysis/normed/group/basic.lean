@@ -1061,6 +1061,52 @@ by { ext c,
   ((*) b) ⁻¹' sphere a r = sphere (a / b) r :=
 by { ext c, simp only [set.mem_preimage, mem_sphere_iff_norm', div_div_eq_mul_div, mul_comm] }
 
+@[to_additive norm_nsmul_le] lemma norm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖ ≤ n * ‖a‖ :=
+begin
+  induction n with n ih, { simp, },
+  simpa only [pow_succ', nat.cast_succ, add_mul, one_mul] using norm_mul_le_of_le ih le_rfl,
+end
+
+@[to_additive nnnorm_nsmul_le] lemma nnnorm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖₊ ≤ n * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_pow_le_mul_norm n a
+
+@[to_additive] lemma pow_mem_closed_ball {n : ℕ} (h : a ∈ closed_ball b r) :
+  a^n ∈ closed_ball (b^n) (n • r) :=
+begin
+  simp only [mem_closed_ball, dist_eq_norm_div, ← div_pow] at h ⊢,
+  refine (norm_pow_le_mul_norm n (a / b)).trans _,
+  simpa only [nsmul_eq_mul] using mul_le_mul_of_nonneg_left h n.cast_nonneg,
+end
+
+@[to_additive] lemma pow_mem_ball {n : ℕ} (hn : 0 < n) (h : a ∈ ball b r) :
+  a^n ∈ ball (b^n) (n • r) :=
+begin
+  simp only [mem_ball, dist_eq_norm_div, ← div_pow] at h ⊢,
+  refine lt_of_le_of_lt (norm_pow_le_mul_norm n (a / b)) _,
+  replace hn : 0 < (n : ℝ), { norm_cast, assumption, },
+  rw nsmul_eq_mul,
+  nlinarith,
+end
+
+@[simp, to_additive] lemma mul_mem_closed_ball_mul_iff {c : E} :
+  a * c ∈ closed_ball (b * c) r ↔ a ∈ closed_ball b r :=
+by simp only [mem_closed_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
+
+@[simp, to_additive] lemma mul_mem_ball_mul_iff {c : E} :
+  a * c ∈ ball (b * c) r ↔ a ∈ ball b r :=
+by simp only [mem_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
+
+@[to_additive] lemma smul_closed_ball'' :
+  a • closed_ball b r = closed_ball (a • b) r :=
+by { ext, simp [mem_closed_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
+  ← eq_inv_mul_iff_mul_eq, mul_assoc], }
+
+@[to_additive] lemma smul_ball'' :
+  a • ball b r = ball (a • b) r :=
+by { ext, simp [mem_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
+  ← eq_inv_mul_iff_mul_eq, mul_assoc], }
+
 namespace isometric
 
 /-- Multiplication `y ↦ x * y` as an `isometry`. -/
@@ -1193,14 +1239,19 @@ lemma le_norm_self (r : ℝ) : r ≤ ‖r‖ := le_abs_self r
 @[simp] lemma norm_coe_nat (n : ℕ) : ‖(n : ℝ)‖ = n := abs_of_nonneg n.cast_nonneg
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ‖(n : ℝ)‖₊ = n := nnreal.eq $ norm_coe_nat _
 
-@[simp] lemma norm_two : ‖(2 : ℝ)‖ = 2 := abs_of_pos (@zero_lt_two ℝ _ _)
+@[simp] lemma norm_two : ‖(2 : ℝ)‖ = 2 := abs_of_pos zero_lt_two
 
 @[simp] lemma nnnorm_two : ‖(2 : ℝ)‖₊ = 2 := nnreal.eq $ by simp
 
 lemma nnnorm_of_nonneg (hr : 0 ≤ r) : ‖r‖₊ = ⟨r, hr⟩ := nnreal.eq $ norm_of_nonneg hr
 
+@[simp] lemma nnnorm_abs (r : ℝ) : ‖(|r|)‖₊ = ‖r‖₊ := by simp [nnnorm]
+
 lemma ennnorm_eq_of_real (hr : 0 ≤ r) : (‖r‖₊ : ℝ≥0∞) = ennreal.of_real r :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hr] }
+
+lemma ennnorm_eq_of_real_abs (r : ℝ) : (‖r‖₊ : ℝ≥0∞) = ennreal.of_real (|r|) :=
+by rw [← real.nnnorm_abs r, real.ennnorm_eq_of_real (abs_nonneg _)]
 
 lemma to_nnreal_eq_nnnorm_of_nonneg (hr : 0 ≤ r) : r.to_nnreal = ‖r‖₊ :=
 begin

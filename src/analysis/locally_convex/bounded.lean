@@ -26,6 +26,11 @@ absorbs `s`.
 * `bornology.is_vonN_bounded.of_topological_space_le`: A coarser topology admits more
 von Neumann-bounded sets.
 * `bornology.is_vonN_bounded.image`: A continuous linear image of a bounded set is bounded.
+* `bornology.is_vonN_bounded_iff_smul_tendsto_zero`: Given any sequence `ε` of scalars which tends
+  to `𝓝[≠] 0`, we have that a set `S` is bounded if and only if for any sequence `x : ℕ → S`,
+  `ε • x` tends to 0. This shows that bounded sets are completely determined by sequences, which is
+  the key fact for proving that sequential continuity implies continuity for linear maps defined on
+  a bornological space
 
 ## References
 
@@ -35,7 +40,7 @@ von Neumann-bounded sets.
 
 variables {𝕜 𝕜' E E' F ι : Type*}
 
-open filter
+open set filter
 open_locale topological_space pointwise
 
 namespace bornology
@@ -127,6 +132,61 @@ begin
 end
 
 end image
+
+section sequence
+
+variables {𝕝 : Type*} [normed_field 𝕜] [nontrivially_normed_field 𝕝] [add_comm_group E] [module 𝕜 E]
+  [module 𝕝 E] [topological_space E] [has_continuous_smul 𝕝 E]
+
+lemma is_vonN_bounded.smul_tendsto_zero {S : set E} {ε : ι → 𝕜} {x : ι → E} {l : filter ι}
+  (hS : is_vonN_bounded 𝕜 S) (hxS : ∀ᶠ n in l, x n ∈ S) (hε : tendsto ε l (𝓝 0)) :
+  tendsto (ε • x) l (𝓝 0) :=
+begin
+  rw tendsto_def at *,
+  intros V hV,
+  rcases hS hV with ⟨r, r_pos, hrS⟩,
+  filter_upwards [hxS, hε _ (metric.ball_mem_nhds 0 $ inv_pos.mpr r_pos)] with n hnS hnr,
+  by_cases this : ε n = 0,
+  { simp [this, mem_of_mem_nhds hV] },
+  { rw [mem_preimage, mem_ball_zero_iff, lt_inv (norm_pos_iff.mpr this) r_pos, ← norm_inv] at hnr,
+    rw [mem_preimage, pi.smul_apply', ← set.mem_inv_smul_set_iff₀ this],
+    exact hrS _ (hnr.le) hnS },
+end
+
+lemma is_vonN_bounded_of_smul_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
+  (hε : ∀ᶠ n in l, ε n ≠ 0) {S : set E}
+  (H : ∀ x : ι → E, (∀ n, x n ∈ S) → tendsto (ε • x) l (𝓝 0)) :
+  is_vonN_bounded 𝕝 S :=
+begin
+  rw (nhds_basis_balanced 𝕝 E).is_vonN_bounded_basis_iff,
+  by_contra' H',
+  rcases H' with ⟨V, ⟨hV, hVb⟩, hVS⟩,
+  have : ∀ᶠ n in l, ∃ x : S, (ε n) • (x : E) ∉ V,
+  { filter_upwards [hε] with n hn,
+    rw absorbs at hVS,
+    push_neg at hVS,
+    rcases hVS _ (norm_pos_iff.mpr $ inv_ne_zero hn) with ⟨a, haε, haS⟩,
+    rcases set.not_subset.mp haS with ⟨x, hxS, hx⟩,
+    refine ⟨⟨x, hxS⟩, λ hnx, _⟩,
+    rw ← set.mem_inv_smul_set_iff₀ hn at hnx,
+    exact hx (hVb.smul_mono haε hnx) },
+  rcases this.choice with ⟨x, hx⟩,
+  refine filter.frequently_false l (filter.eventually.frequently _),
+  filter_upwards [hx, (H (coe ∘ x) (λ n, (x n).2)).eventually (eventually_mem_set.mpr hV)]
+    using λ n, id
+end
+
+/-- Given any sequence `ε` of scalars which tends to `𝓝[≠] 0`, we have that a set `S` is bounded
+  if and only if for any sequence `x : ℕ → S`, `ε • x` tends to 0. This actually works for any
+  indexing type `ι`, but in the special case `ι = ℕ` we get the important fact that convergent
+  sequences fully characterize bounded sets. -/
+lemma is_vonN_bounded_iff_smul_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
+  (hε : tendsto ε l (𝓝[≠] 0)) {S : set E} :
+  is_vonN_bounded 𝕝 S ↔ ∀ x : ι → E, (∀ n, x n ∈ S) → tendsto (ε • x) l (𝓝 0) :=
+⟨λ hS x hxS, hS.smul_tendsto_zero (eventually_of_forall hxS) (le_trans hε nhds_within_le_nhds),
+  is_vonN_bounded_of_smul_tendsto_zero (hε self_mem_nhds_within)⟩
+
+end sequence
 
 section normed_field
 

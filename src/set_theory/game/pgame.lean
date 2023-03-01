@@ -1361,12 +1361,12 @@ theorem star_fuzzy_zero : star ‖ 0 :=
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
 
-@[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
+@[simp] protected theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
-instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
+instance : zero_le_one_class pgame := ⟨pgame.zero_lt_one.le⟩
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
-zero_lt_one.lf
+pgame.zero_lt_one.lf
 
 end pgame

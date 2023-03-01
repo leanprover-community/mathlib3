@@ -328,7 +328,7 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 include V2
 
-@[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
+@[simp] lemma linear_injective_iff (f : P1 →ᵃ[k] P2) :
   function.injective f.linear ↔ function.injective f :=
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
@@ -337,7 +337,7 @@ begin
   rw [h, equiv.comp_injective, equiv.injective_comp],
 end
 
-@[simp] lemma surjective_iff_linear_surjective (f : P1 →ᵃ[k] P2) :
+@[simp] lemma linear_surjective_iff (f : P1 →ᵃ[k] P2) :
   function.surjective f.linear ↔ function.surjective f :=
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
@@ -345,6 +345,10 @@ begin
   { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
+
+@[simp] lemma linear_bijective_iff (f : P1 →ᵃ[k] P2) :
+  function.bijective f.linear ↔ function.bijective f :=
+and_congr f.linear_injective_iff f.linear_surjective_iff
 
 lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
   (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
@@ -404,6 +408,27 @@ by simp [line_map_apply]
 
 @[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
 by simp [line_map_apply]
+
+@[simp] lemma line_map_eq_line_map_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c₁ c₂ : k} :
+  line_map p₀ p₁ c₁ = line_map p₀ p₁ c₂ ↔ p₀ = p₁ ∨ c₁ = c₂ :=
+by rw [line_map_apply, line_map_apply, ←@vsub_eq_zero_iff_eq V1, vadd_vsub_vadd_cancel_right,
+       ←sub_smul, smul_eq_zero, sub_eq_zero, vsub_eq_zero_iff_eq, or_comm, eq_comm]
+
+@[simp] lemma line_map_eq_left_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₀ ↔ p₀ = p₁ ∨ c = 0 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_zero]
+
+@[simp] lemma line_map_eq_right_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₁ ↔ p₀ = p₁ ∨ c = 1 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_one]
+
+variables (k)
+
+lemma line_map_injective [no_zero_smul_divisors k V1] {p₀ p₁ : P1} (h : p₀ ≠ p₁) :
+  function.injective (line_map p₀ p₁ : k → P1) :=
+λ c₁ c₂ hc, (line_map_eq_line_map_iff.mp hc).resolve_left h
+
+variables {k}
 
 include V2
 

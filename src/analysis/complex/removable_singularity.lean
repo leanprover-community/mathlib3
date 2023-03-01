@@ -17,7 +17,7 @@ function `function.update f c (lim (𝓝[≠] c) f)` is complex differentiable i
 -/
 
 open topological_space metric set filter asymptotics function
-open_locale topological_space filter nnreal
+open_locale topological_space filter nnreal real
 
 universe u
 variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
@@ -125,5 +125,36 @@ lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_bounded_under {f : ℂ 
   (hb : is_bounded_under (≤) (𝓝[≠] c) (λ z, ‖f z - f c‖)) :
   tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
 tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o hd hb.is_o_sub_self_inv
+
+/-- The Cauchy formula for the derivative of a holomorphic function. -/
+lemma two_pi_I_inv_smul_circle_integral_sub_sq_inv_smul_of_differentiable
+  {U : set ℂ} (hU : is_open U) {c w₀ : ℂ} {R : ℝ} {f : ℂ → E}
+  (hc : closed_ball c R ⊆ U) (hf : differentiable_on ℂ f U) (hw₀ : w₀ ∈ ball c R) :
+  (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • f z = deriv f w₀ :=
+begin
+  -- We apply the removable singularity theorem and the Cauchy formula to `dslope f w₀`
+  have hR : 0 < R := not_le.mp (ball_eq_empty.not.mp (nonempty_of_mem hw₀).ne_empty),
+  have hf' : differentiable_on ℂ (dslope f w₀) U,
+    from (differentiable_on_dslope (hU.mem_nhds ((ball_subset_closed_ball.trans hc) hw₀))).mpr hf,
+  have h0 := (hf'.diff_cont_on_cl_ball hc).two_pi_I_inv_smul_circle_integral_sub_inv_smul hw₀,
+  rw [← dslope_same, ← h0],
+  congr' 1,
+  transitivity ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • (f z - f w₀),
+  { have h1 : continuous_on (λ (z : ℂ), ((z - w₀) ^ 2)⁻¹) (sphere c R),
+    { refine ((continuous_id'.sub continuous_const).pow 2).continuous_on.inv₀ (λ w hw h, _),
+      exact sphere_disjoint_ball.ne_of_mem hw hw₀ (sub_eq_zero.mp (sq_eq_zero_iff.mp h)) },
+    have h2 : circle_integrable (λ (z : ℂ), ((z - w₀) ^ 2)⁻¹ • f z) c R,
+    { refine continuous_on.circle_integrable (pos_of_mem_ball hw₀).le _,
+      exact h1.smul (hf.continuous_on.mono (sphere_subset_closed_ball.trans hc)) },
+    have h3 : circle_integrable (λ (z : ℂ), ((z - w₀) ^ 2)⁻¹ • f w₀) c R,
+      from continuous_on.circle_integrable (pos_of_mem_ball hw₀).le (h1.smul continuous_on_const),
+    have h4 : ∮ (z : ℂ) in C(c, R), ((z - w₀) ^ 2)⁻¹ = 0,
+      by simpa using circle_integral.integral_sub_zpow_of_ne (dec_trivial : (-2 : ℤ) ≠ -1) c w₀ R,
+    simp only [smul_sub, circle_integral.integral_sub h2 h3, h4,
+      circle_integral.integral_smul_const, zero_smul, sub_zero] },
+  { refine circle_integral.integral_congr (pos_of_mem_ball hw₀).le (λ z hz, _),
+    simp only [dslope_of_ne, metric.sphere_disjoint_ball.ne_of_mem hz hw₀, slope, ← smul_assoc, sq,
+      mul_inv, ne.def, not_false_iff, vsub_eq_sub, algebra.id.smul_eq_mul] }
+end
 
 end complex

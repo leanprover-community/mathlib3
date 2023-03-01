@@ -759,12 +759,26 @@ begin
   rw [h, eq_id_of_mono θ', category.id_comp],
 end
 
+lemma len_lt_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
+  (hi' : Δ ≠ Δ') : Δ'.len < Δ.len :=
+begin
+  cases lt_or_eq_of_le (len_le_of_mono hi),
+  { exact h, },
+  { exfalso,
+    exact hi' (by { ext, exact h.symm,}), },
+end
+
 noncomputable instance : split_epi_category simplex_category :=
 skeletal_equivalence.{0}.inverse.split_epi_category_imp_of_is_equivalence
 
 instance : has_strong_epi_mono_factorisations simplex_category :=
 functor.has_strong_epi_mono_factorisations_imp_of_is_equivalence
   simplex_category.skeletal_equivalence.{0}.inverse
+
+instance : has_strong_epi_images simplex_category :=
+  limits.has_strong_epi_images_of_has_strong_epi_mono_factorisations
+
+instance (Δ Δ' : simplex_category) (θ : Δ ⟶ Δ') : epi (factor_thru_image θ) := strong_epi.epi
 
 lemma image_eq {Δ Δ' Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
   {e : Δ ⟶ Δ'} [epi e] {i : Δ' ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :

@@ -7,6 +7,9 @@ import data.nat.order.basic
 
 /-!
 # Basic properties of lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open function nat (hiding one_pos)
@@ -505,13 +508,6 @@ lemma subset_singleton_iff {a : α} : ∀ L : list α, L ⊆ [a] ↔ ∃ n, L = 
   obtain ⟨n, rfl⟩ := (subset_singleton_iff L).mp h.2,
   exact ⟨n.succ, by simp [mem_singleton.mp h.1]⟩
 end
-
-@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
-by induction l; [refl, simp only [*, map]]; split; refl
-
-theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
-  b₁ = b₂ :=
-by rw map_const at h; exact eq_of_mem_repeat h
 
 @[simp] theorem map_repeat (f : α → β) (a : α) (n) : map f (repeat a n) = repeat (f a) n :=
 by induction n; [refl, simp only [*, repeat, map]]; split; refl
@@ -1149,6 +1145,26 @@ theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈
 ⟨λh, decidable.by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
 λal, lt_of_le_of_ne index_of_le_length $ λ h, index_of_eq_length.1 h al⟩
 
+theorem index_of_append_of_mem {a : α} (h : a ∈ l₁) :
+  index_of a (l₁ ++ l₂) = index_of a l₁ :=
+begin
+  induction l₁ with d₁ t₁ ih,
+  { exfalso, exact not_mem_nil a h },
+  rw list.cons_append,
+  by_cases hh : a = d₁,
+  { iterate 2 { rw index_of_cons_eq _ hh } },
+  rw [index_of_cons_ne _ hh, index_of_cons_ne _ hh, ih (mem_of_ne_of_mem hh h)],
+end
+
+theorem index_of_append_of_not_mem {a : α} (h : a ∉ l₁) :
+  index_of a (l₁ ++ l₂) = l₁.length + index_of a l₂ :=
+begin
+  induction l₁ with d₁ t₁ ih,
+  { rw [list.nil_append, list.length, zero_add] },
+  rw [list.cons_append, index_of_cons_ne _ (ne_of_not_mem_cons h),
+    list.length, ih (not_mem_of_not_mem_cons h), nat.succ_add],
+end
+
 end index_of
 
 /-! ### nth element -/
@@ -1771,12 +1787,29 @@ by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 lemma last_map (f : α → β) {l : list α} (hl : l ≠ []) :
   (l.map f).last (mt eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
 begin
-  induction l with l_ih l_tl l_ih,
+  induction l with l_hd l_tl l_ih,
   { apply (hl rfl).elim },
   { cases l_tl,
     { simp },
     { simpa using l_ih } }
 end
+
+lemma map_eq_repeat_iff {l : list α} {f : α → β} {b : β} :
+  l.map f = repeat b l.length ↔ (∀ x ∈ l, f x = b) :=
+begin
+  induction l with x l' ih,
+  { simp only [repeat, length, not_mem_nil, is_empty.forall_iff, implies_true_iff,
+               map_nil, eq_self_iff_true], },
+  { simp only [map, length, mem_cons_iff, forall_eq_or_imp, repeat_succ, and.congr_right_iff],
+    exact λ _, ih, }
+end
+
+@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
+map_eq_repeat_iff.mpr (λ x _, rfl)
+
+theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
+  b₁ = b₂ :=
+by rw map_const at h; exact eq_of_mem_repeat h
 
 /-! ### map₂ -/
 

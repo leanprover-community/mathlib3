@@ -6,7 +6,6 @@ Authors: Alex J. Best
 import data.finsupp.order
 import order.well_founded_set
 
-
 /-!
 # Partial well ordering on finsupps
 
@@ -24,14 +23,11 @@ It is in a separate file for now so as to not add imports to the file `order.wel
 Dickson, order, partial well order
 -/
 
-
 /-- A version of **Dickson's lemma** any subset of functions `σ →₀ α` is partially well
-ordered, when `σ` is a `fintype` and `α` is a linear well order.
-This version uses finsupps on a fintype as it is intended for use with `mv_power_series`.
+ordered, when `σ` is `finite` and `α` is a linear well order.
+This version uses finsupps on a finite type as it is intended for use with `mv_power_series`.
 -/
-lemma finsupp.is_pwo {α σ : Type*} [has_zero α] [linear_order α] [is_well_order α (<)] [fintype σ]
+lemma finsupp.is_pwo {α σ : Type*} [has_zero α] [linear_order α] [is_well_order α (<)] [finite σ]
   (S : set (σ →₀ α)) : S.is_pwo :=
-begin
-  rw ← finsupp.equiv_fun_on_fintype.symm.image_preimage S,
-  refine set.partially_well_ordered_on.image_of_monotone_on (pi.is_pwo _) (λ a b ha hb, id),
-end
+finsupp.equiv_fun_on_finite.symm_image_image S ▸
+  set.partially_well_ordered_on.image_of_monotone_on (pi.is_pwo _) (λ a b ha hb, id)

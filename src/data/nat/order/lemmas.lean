@@ -11,6 +11,9 @@ import algebra.group_with_zero.divisibility
 /-!
 # Further lemmas about the natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The distinction between this file and `data.nat.order.basic` is not particularly clear.
 They are separated by now to minimize the porting requirements for tactics during the transition to
 mathlib4. After `data.rat.order` has been ported, please feel free to reorganize these two files.
@@ -39,11 +42,6 @@ lemma subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
 lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k ∈ S → k + 1 ∈ S :=
 ⟨by rintro rfl; simp, λ ⟨h0, hs⟩, set.eq_univ_of_forall (set_induction h0 hs)⟩
 
-/-! ### `succ` -/
-
-@[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
-lt_succ_iff.trans nonpos_iff_eq_zero
-
 /-! ### `div` -/
 
 protected lemma lt_div_iff_mul_lt {n d : ℕ} (hnd : d ∣ n) (a : ℕ) : a < n / d ↔ d * a < n :=
@@ -66,7 +64,7 @@ end
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
-  λ h, by rw [← mul_right_inj' hb.ne', ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  λ h, by rw [← mul_right_inj' hb.ne', ← @add_left_cancel_iff _ _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
 protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=

@@ -196,8 +196,8 @@ begin
   rw set.not_disjoint_iff_nonempty_inter,
   refine ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
     (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
-  generalize_proofs h,
-  exact (classical.some_spec h).1,
+  generalize_proofs h₁ h₂,
+  exact (classical.some_spec h₂).1,
 end
 
 variable (f)
@@ -236,7 +236,7 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem M rid2)), },
   { rw [mul_comm _ (f^N), eq1],
     refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
-    generalize_proofs h, exact (classical.some_spec h).1 },
+    generalize_proofs h₁ h₂, exact (classical.some_spec h₂).1 },
 end⟩
 
 /-
@@ -283,7 +283,7 @@ begin
     { exact y.2 (y.1.is_prime.mem_of_pow_mem M H3), },
     { rw [mul_comm _ (f^N), eq1],
       refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
-      generalize_proofs h, exact (classical.some_spec h).1, }, },
+      generalize_proofs h₁ h₂, exact (classical.some_spec h₂).1, }, },
 end
 
 end to_Spec

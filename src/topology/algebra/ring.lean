@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.ring.prod
 import ring_theory.ideal.quotient
 import ring_theory.subring.basic
-import topology.algebra.group
+import topology.algebra.group.basic
 
 /-!
 
@@ -111,7 +111,7 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-lemma subsemiring.subring_topological_closure (s : subsemiring α) :
+lemma subsemiring.le_topological_closure (s : subsemiring α) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -267,7 +267,7 @@ def subring.topological_closure (S : subring α) : subring α :=
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
 
-lemma subring.subring_topological_closure (s : subring α) :
+lemma subring.le_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :
@@ -472,3 +472,18 @@ def to_add_group_topology.order_embedding : order_embedding (ring_topology α)
   end }
 
 end ring_topology
+
+section absolute_value
+
+/-- Construct an absolute value on a semiring `T` from an absolute value on a semiring `R`
+and an injective ring homomorphism `f : T →+* R` -/
+def absolute_value.comp {R S T : Type*} [semiring T] [semiring R] [ordered_semiring S]
+  (v : absolute_value R S) {f : T →+* R} (hf : function.injective f)  :
+  absolute_value T S :=
+{ to_fun := v ∘ f,
+  map_mul' := by simp only [function.comp_app, map_mul, eq_self_iff_true, forall_const],
+  nonneg' := by simp only [v.nonneg, forall_const],
+  eq_zero' := by simp only [map_eq_zero_iff f hf, v.eq_zero, forall_const, iff_self],
+  add_le' := by simp only [function.comp_app, map_add, v.add_le, forall_const], }
+
+end absolute_value

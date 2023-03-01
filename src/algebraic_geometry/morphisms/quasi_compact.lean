@@ -24,6 +24,8 @@ open category_theory category_theory.limits opposite topological_space
 
 universe u
 
+open_locale algebraic_geometry
+
 namespace algebraic_geometry
 
 variables {X Y : Scheme.{u}} (f : X ⟶ Y)
@@ -283,6 +285,56 @@ begin
     rw [supr_subtype, sup_comm],
     conv_rhs { rw supr_subtype },
     exact supr_insert }
+end
+
+lemma exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_affine_open (X : Scheme)
+  {U : opens X.carrier} (hU : is_affine_open U) (x f : X.presheaf.obj (op U))
+  (H : x |_ X.basic_open f = 0) :
+  ∃ n : ℕ, f ^ n * x = 0 :=
+begin
+  rw ← map_zero (X.presheaf.map (hom_of_le $ X.basic_open_le f : X.basic_open f ⟶ U).op) at H,
+  have := (is_localization_basic_open hU f).3,
+  obtain ⟨⟨_, n, rfl⟩, e⟩ := this.mp H,
+  exact ⟨n, by simpa [mul_comm x] using e⟩,
+end
+
+/-- If `x : Γ(X, U)` is zero on `D(f)` for some `f : Γ(X, U)`, and `U` is quasi-compact, then
+`f ^ n * x = 0` for some `n`. -/
+lemma exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_compact (X : Scheme)
+  {U : opens X.carrier} (hU : is_compact U.1) (x f : X.presheaf.obj (op U))
+  (H : x |_ X.basic_open f = 0) :
+  ∃ n : ℕ, f ^ n * x = 0 :=
+begin
+  obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union U.1).mp ⟨hU, U.2⟩,
+  replace e : U = supr (λ i : s, (i : opens X.carrier)),
+  { ext1, simpa using e },
+  have h₁ : ∀ i : s, i.1.1 ≤ U,
+  { intro i, change (i : opens X.carrier) ≤ U, rw e, exact le_supr _ _ },
+  have H' := λ (i : s), exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_affine_open X i.1.2
+    (X.presheaf.map (hom_of_le (h₁ i)).op x) (X.presheaf.map (hom_of_le (h₁ i)).op f) _,
+  swap,
+  { delta Top.presheaf.restrict_open Top.presheaf.restrict at H ⊢,
+    convert congr_arg (X.presheaf.map (hom_of_le _).op) H,
+    { simp only [← comp_apply, ← functor.map_comp], congr },
+    { rw map_zero },
+    { rw X.basic_open_res, exact set.inter_subset_right _ _ } },
+  choose n hn using H',
+  haveI := hs.to_subtype,
+  casesI nonempty_fintype s,
+  use finset.univ.sup n,
+  suffices : ∀ (i : s), X.presheaf.map (hom_of_le (h₁ i)).op (f ^ (finset.univ.sup n) * x) = 0,
+  { subst e,
+    apply X.sheaf.eq_of_locally_eq (λ (i : s), (i : opens X.carrier)),
+    intro i,
+    rw map_zero,
+    apply this },
+  intro i,
+  replace hn := congr_arg
+    (λ x, X.presheaf.map (hom_of_le (h₁ i)).op (f ^ (finset.univ.sup n - n i)) * x) (hn i),
+  dsimp at hn,
+  simp only [← map_mul, ← map_pow] at hn,
+  rwa [mul_zero, ← mul_assoc, ← pow_add, tsub_add_cancel_of_le] at hn,
+  apply finset.le_sup (finset.mem_univ i)
 end
 
 end algebraic_geometry

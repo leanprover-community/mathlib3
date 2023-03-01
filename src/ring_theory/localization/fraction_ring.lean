@@ -57,7 +57,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
     rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    apply int.eq_of_mul_eq_mul_right _ h,
+    apply mul_right_cancel₀ _ h,
     rwa mem_non_zero_divisors_iff_ne_zero at hc,
   end }
 
@@ -116,10 +116,14 @@ local attribute [semireducible] is_fraction_ring.inv
 
 protected lemma mul_inv_cancel (x : K) (hx : x ≠ 0) :
   x * is_fraction_ring.inv A x = 1 :=
-show x * dite _ _ _ = 1, by rw [dif_neg hx,
-  ←is_unit.mul_left_inj (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
-    λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
-  one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (mk'_sec _ x).symm
+show x * dite _ _ _ = 1, begin
+  rw [dif_neg hx, ←is_unit.mul_left_inj
+    (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
+      λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
+    one_mul, mul_assoc],
+  rw [mk'_spec, ←eq_mk'_iff_mul_eq],
+  exact (mk'_sec _ x).symm
+end
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a field.
 See note [reducible non-instances]. -/

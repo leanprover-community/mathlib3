@@ -179,6 +179,13 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
+/-- See also `submodule.smul_bot`. -/
+@[simp] lemma smul_bot' (a : α) : a • (⊥ : submodule R M) = ⊥ := map_bot _
+/-- See also `submodule.smul_sup`. -/
+lemma smul_sup' (a : α) (S T : submodule R M) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+lemma smul_span (a : α) (s : set M) : a • span R s = span R (a • s) := map_span _ _
+lemma span_smul (a : α) (s : set M) : span R (a • s) = a • span R s := eq.symm (span_image _).symm
+
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ M] [smul_comm_class αᵐᵒᵖ R M]
   [is_central_scalar α M] :
   is_central_scalar α (submodule R M) :=

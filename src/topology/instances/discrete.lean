@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import order.succ_pred.basic
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.metric_space.metrizable_uniformity
 
 /-!

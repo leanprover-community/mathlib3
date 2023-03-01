@@ -6,6 +6,7 @@ Authors: Thomas Browning
 
 import algebra.gcd_monoid.multiset
 import combinatorics.partition
+import data.list.modeq
 import group_theory.perm.cycle.basic
 import ring_theory.int.basic
 import tactic.linarith
@@ -129,7 +130,7 @@ begin
   { intro,
     simp },
   { intros σ hσ τ,
-    rw [hσ.cycle_type, hσ.is_cycle_conj.cycle_type, card_support_conj] },
+    rw [hσ.cycle_type, hσ.conj.cycle_type, card_support_conj] },
   { intros σ τ hd hc hσ hτ π,
     rw [← conj_mul, hd.cycle_type, disjoint.cycle_type, hσ, hτ],
     intro a,
@@ -177,7 +178,7 @@ cycle_induction_on
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, coe_singleton, lcm_singleton, order_of_is_cycle hσ,
+  (λ σ hσ, by rw [hσ.cycle_type, coe_singleton, lcm_singleton, hσ.order_of,
     normalize_eq])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
@@ -197,7 +198,7 @@ begin
     rw [cycle_type, multiset.mem_map],
     refine ⟨f.cycle_of x, _, _⟩,
     { rwa [←finset.mem_def, cycle_of_mem_cycle_factors_finset_iff, mem_support] },
-    { simp [order_of_is_cycle (is_cycle_cycle_of _ hx)] } }
+    { simp [(is_cycle_cycle_of _ hx).order_of] } }
 end
 
 lemma two_dvd_card_support {σ : perm α} (hσ : σ ^ 2 = 1) : 2 ∣ σ.support.card :=
@@ -511,7 +512,7 @@ begin
   have hσ1 : order_of (σ : perm α) = fintype.card α := (order_of_subgroup σ).trans hσ,
   have hσ2 : is_cycle ↑σ := is_cycle_of_prime_order'' h0 hσ1,
   have hσ3 : (σ : perm α).support = ⊤ :=
-    finset.eq_univ_of_card (σ : perm α).support ((order_of_is_cycle hσ2).symm.trans hσ1),
+    finset.eq_univ_of_card (σ : perm α).support (hσ2.order_of.symm.trans hσ1),
   have hσ4 : subgroup.closure {↑σ, τ} = ⊤ := closure_prime_cycle_swap h0 hσ2 hσ3 h3,
   rw [eq_top_iff, ←hσ4, subgroup.closure_le, set.insert_subset, set.singleton_subset_iff],
   exact ⟨subtype.mem σ, h2⟩,

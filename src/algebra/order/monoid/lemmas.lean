@@ -5,12 +5,12 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Dami
 Yuyang Zhao
 -/
 import algebra.covariant_and_contravariant
+import order.min_max
 
 /-!
 # Ordered monoids
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/608
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered monoids.
@@ -237,6 +237,14 @@ le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)
 
 end partial_order
 
+section linear_order
+variables [linear_order α] {a b c d : α} [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)]
+
+@[to_additive] lemma min_le_max_of_mul_le_mul (h : a * b ≤ c * d) : min a b ≤ max c d :=
+by { simp_rw [min_le_iff, le_max_iff], contrapose! h, exact mul_lt_mul_of_lt_of_lt h.1.1 h.2.2 }
+
+end linear_order
 end has_mul
 
 -- using one
@@ -796,6 +804,18 @@ iff.intro
    have b = 1, from le_antisymm this hb,
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
+
+@[to_additive] lemma mul_le_mul_iff_of_ge [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (≤)] [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} (ha : a₁ ≤ a₂) (hb : b₁ ≤ b₂) :
+  a₂ * b₂ ≤ a₁ * b₁ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+begin
+  refine ⟨λ h, _, by { rintro ⟨rfl, rfl⟩, refl }⟩,
+  simp only [eq_iff_le_not_lt, ha, hb, true_and],
+  refine ⟨λ ha, h.not_lt _, λ hb, h.not_lt _⟩,
+  { exact mul_lt_mul_of_lt_of_le ha hb },
+  { exact mul_lt_mul_of_le_of_lt ha hb }
+end
 
 section left
 variables [covariant_class α α (*) (≤)] {a b : α}

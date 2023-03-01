@@ -72,6 +72,6 @@ begin
   refine mul_le_mul_left' _ _,
   refine (add_le_add_left (ih ((card_le_of_subset $ subset_cons _).trans hs) _ $ λ i hi,
     (hf₁ _ $ subset_cons _ hi).2.2) _).trans _,
-  rw [mul_tsub, two_mul, ←pow_succ, ←add_tsub_assoc_of_le (pow_le_pow' (@one_le_two ℕ _ _ _ _ _)
+  rw [mul_tsub, two_mul, ←pow_succ, ←add_tsub_assoc_of_le (pow_le_pow' (one_le_two : (1 : ℕ) ≤ 2)
     tsub_le_self), tsub_add_eq_add_tsub hs, card_cons, add_tsub_add_eq_tsub_right],
 end

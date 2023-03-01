@@ -30,6 +30,11 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_closed_ball`: the measure of `closed_ball x r` is `r ^ dim * μ (ball 0 1)`.
 * `add_haar_sphere`: spheres have zero measure.
 
+This makes it possible to associate a Lebesgue measure to an `n`-alternating map in dimension `n`.
+This measure is called `alternating_map.measure`. Its main property is
+`ω.measure_parallelepiped v`, stating that the associated measure of the parallelepiped spanned
+by vectors `v₁, ..., vₙ` is given by `|ω v|`.
+
 We also show that a Lebesgue density point `x` of a set `s` (with respect to closed balls) has
 density one for the rescaled copies `{x} + r • t` of a given set `t` with positive measure, in
 `tendsto_add_haar_inter_smul_one_of_density_one`. In particular, `s` intersects `{x} + r • t` for
@@ -66,9 +71,6 @@ open measure topological_space.positive_compacts finite_dimensional
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
 by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
-
-instance : is_add_haar_measure (volume : measure ℝ) :=
-by { rw ← add_haar_measure_eq_volume, apply_instance }
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
@@ -201,9 +203,11 @@ begin
     real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
+  [borel_space E] [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
+
 lemma map_linear_map_add_haar_eq_smul_add_haar
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
 begin
@@ -237,8 +241,6 @@ end
 /-- The preimage of a set `s` under a linear map `f` with nonzero determinant has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_map
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.det)⁻¹) * μ s :=
 calc μ (f ⁻¹' s) = measure.map f μ s :
@@ -250,8 +252,6 @@ calc μ (f ⁻¹' s) = measure.map f μ s :
 /-- The preimage of a set `s` under a continuous linear map `f` with nonzero determinant has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_map
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →L[ℝ] E} (hf : linear_map.det (f : E →ₗ[ℝ] E) ≠ 0) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (linear_map.det (f : E →ₗ[ℝ] E))⁻¹) * μ s :=
 add_haar_preimage_linear_map μ hf s
@@ -259,8 +259,6 @@ add_haar_preimage_linear_map μ hf s
 /-- The preimage of a set `s` under a linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_equiv
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃ₗ[ℝ] E) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
 begin
@@ -272,8 +270,6 @@ end
 /-- The preimage of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_equiv
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
 add_haar_preimage_linear_equiv μ _ s
@@ -281,8 +277,6 @@ add_haar_preimage_linear_equiv μ _ s
 /-- The image of a set `s` under a linear map `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_linear_map
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E →ₗ[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs f.det) * μ s :=
 begin
@@ -303,8 +297,6 @@ end
 /-- The image of a set `s` under a continuous linear map `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_map
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E →L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
 add_haar_image_linear_map μ _ s
@@ -312,8 +304,6 @@ add_haar_image_linear_map μ _ s
 /-- The image of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_equiv
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
 μ.add_haar_image_linear_map (f : E →ₗ[ℝ] E) s
@@ -321,10 +311,6 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 /-!
 ### Basic properties of Haar measures on real vector spaces
 -/
-
-variables {E : Type*} [normed_add_comm_group E] [measurable_space E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
-  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
   measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
@@ -564,6 +550,56 @@ begin
   rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
     ennreal.of_real, real.to_nnreal_pow zero_le_two],
   simp only [real.to_nnreal_bit0, real.to_nnreal_one, le_refl],
+end
+
+section
+
+/-!
+### The Lebesgue measure associated to an alternating map
+-/
+
+variables {ι G : Type*} [fintype ι] [decidable_eq ι]
+[normed_add_comm_group G] [normed_space ℝ G] [measurable_space G] [borel_space G]
+
+lemma add_haar_parallelepiped (b : basis ι ℝ G) (v : ι → G) :
+  b.add_haar (parallelepiped v) = ennreal.of_real (|b.det v|) :=
+begin
+  haveI : finite_dimensional ℝ G, from finite_dimensional.of_fintype_basis b,
+  have A : parallelepiped v = (b.constr ℕ v) '' (parallelepiped b),
+  { rw image_parallelepiped,
+    congr' 1 with i,
+    exact (b.constr_basis ℕ v i).symm },
+  rw [A, add_haar_image_linear_map, basis.add_haar_self, mul_one,
+    ← linear_map.det_to_matrix b, ← basis.to_matrix_eq_to_matrix_constr],
+  refl,
+end
+
+variables [finite_dimensional ℝ G] {n : ℕ} [_i : fact (finrank ℝ G = n)]
+include _i
+
+/-- The Lebesgue measure associated to an alternating map. It gives measure `|ω v|` to the
+parallelepiped spanned by the vectors `v₁, ..., vₙ`. Note that it is not always a Haar measure,
+as it can be zero, but it is always locally finite and translation invariant. -/
+@[irreducible] noncomputable def _root_.alternating_map.measure
+  (ω : alternating_map ℝ G ℝ (fin n)) : measure G :=
+‖ω (fin_basis_of_finrank_eq ℝ G _i.out)‖₊ • (fin_basis_of_finrank_eq ℝ G _i.out).add_haar
+
+lemma _root_.alternating_map.measure_parallelepiped
+  (ω : alternating_map ℝ G ℝ (fin n)) (v : fin n → G) :
+  ω.measure (parallelepiped v) = ennreal.of_real (|ω v|) :=
+begin
+  conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ G _i.out) },
+  simp only [add_haar_parallelepiped, alternating_map.measure, coe_nnreal_smul_apply,
+    alternating_map.smul_apply, algebra.id.smul_eq_mul, abs_mul,
+    ennreal.of_real_mul (abs_nonneg _), real.ennnorm_eq_of_real_abs]
+end
+
+instance (ω : alternating_map ℝ G ℝ (fin n)) : is_add_left_invariant ω.measure :=
+by { rw [alternating_map.measure], apply_instance }
+
+instance (ω : alternating_map ℝ G ℝ (fin n)) : is_locally_finite_measure ω.measure :=
+by { rw [alternating_map.measure], apply_instance }
+
 end
 
 /-!

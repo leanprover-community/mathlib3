@@ -168,7 +168,7 @@ open measure_theory set classical filter function
 
 open_locale classical topological_space filter ennreal big_operators interval nnreal
 
-variables {ι 𝕜 E F : Type*} [normed_add_comm_group E]
+variables {ι 𝕜 E F A : Type*} [normed_add_comm_group E]
 
 /-!
 ### Integrability at an interval
@@ -235,7 +235,7 @@ by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable
 
 lemma interval_integrable_iff' [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
-by rw [interval_integrable_iff, interval, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
+by rw [interval_integrable_iff, ←Icc_min_max, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
 
 lemma interval_integrable_iff_integrable_Icc_of_le
   {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
@@ -364,7 +364,7 @@ h.2.ae_strongly_measurable
 
 end
 
-variables {f g : ℝ → E} {a b : ℝ} {μ : measure ℝ}
+variables [normed_ring A] {f g : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 
 lemma smul [normed_field 𝕜] [normed_space 𝕜 E]
   {f : ℝ → E} {a b : ℝ} {μ : measure ℝ} (h : interval_integrable f μ a b) (r : 𝕜) :
@@ -383,7 +383,7 @@ lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_inte
   interval_integrable (∑ i in s, f i) μ a b :=
 ⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
 
-lemma mul_continuous_on {f g : ℝ → ℝ}
+lemma mul_continuous_on {f g : ℝ → A}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, f x * g x) μ a b :=
 begin
@@ -391,17 +391,20 @@ begin
   exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
 end
 
-lemma continuous_on_mul {f g : ℝ → ℝ} (hf : interval_integrable f μ a b)
-  (hg : continuous_on g [a, b]) :
+lemma continuous_on_mul {f g : ℝ → A}
+  (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, g x * f x) μ a b :=
-by simpa [mul_comm] using hf.mul_continuous_on hg
+begin
+  rw interval_integrable_iff at hf ⊢,
+  exact hf.continuous_on_mul_of_subset hg is_compact_interval measurable_set_Ioc Ioc_subset_Icc_self
+end
 
-lemma const_mul {f : ℝ → ℝ} {a b : ℝ} {μ : measure ℝ}
-  (hf : interval_integrable f μ a b) (c : ℝ) : interval_integrable (λ x, c * f x) μ a b :=
+lemma const_mul {f : ℝ → A}
+  (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, c * f x) μ a b :=
 hf.continuous_on_mul continuous_on_const
 
-lemma mul_const {f : ℝ → ℝ} {a b : ℝ} {μ : measure ℝ}
-  (hf : interval_integrable f μ a b) (c : ℝ) : interval_integrable (λ x, f x * c) μ a b :=
+lemma mul_const {f : ℝ → A}
+  (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, f x * c) μ a b :=
 hf.mul_continuous_on continuous_on_const
 
 lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
@@ -456,7 +459,7 @@ lemma monotone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : monotone
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
-  exact (hu.integrable_on_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
+  exact (hu.integrable_on_is_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
 end
 
 lemma antitone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : antitone_on u (interval a b)) :
@@ -695,6 +698,10 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
 end basic
+
+lemma integral_of_real {a b : ℝ} {μ : measure ℝ} {f : ℝ → ℝ} :
+  ∫ x in a..b, (f x : ℂ) ∂μ = ↑(∫ x in a..b, f x ∂μ) :=
+by simp only [interval_integral, integral_of_real, complex.of_real_sub]
 
 section continuous_linear_map
 
@@ -2481,7 +2488,11 @@ end
 ### Integration by parts
 -/
 
-theorem integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
+section parts
+
+variables [normed_ring A] [normed_algebra ℝ A] [complete_space A]
+
+theorem integral_deriv_mul_eq_sub {u v u' v' : ℝ → A}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hu' : interval_integrable u' volume a b) (hv' : interval_integrable v' volume a b) :
@@ -2490,18 +2501,20 @@ integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) $
   (hu'.mul_continuous_on (has_deriv_at.continuous_on hv)).add
     (hv'.continuous_on_mul ((has_deriv_at.continuous_on hu)))
 
-theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
+theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → A}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hu' : interval_integrable u' volume a b) (hv' : interval_integrable v' volume a b) :
-  ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
+  ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, u' x * v x :=
 begin
   rw [← integral_deriv_mul_eq_sub hu hv hu' hv', ← integral_sub],
-  { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
+  { exact integral_congr (λ x hx, by simp only [add_sub_cancel']) },
   { exact ((hu'.mul_continuous_on (has_deriv_at.continuous_on hv)).add
       (hv'.continuous_on_mul (has_deriv_at.continuous_on hu))) },
-  { exact hu'.continuous_on_mul (has_deriv_at.continuous_on hv) },
+  { exact hu'.mul_continuous_on (has_deriv_at.continuous_on hv) },
 end
+
+end parts
 
 /-!
 ### Integration by substitution / Change of variables
@@ -2514,7 +2527,7 @@ Change of variables, general form. If `f` is continuous on `[a, b]` and has
 right-derivative `f'` in `(a, b)`, `g` is continuous on `f '' (a, b)` and integrable on
 `f '' [a, b]`, and `f' x • (g ∘ f) x` is integrable on `[a, b]`,
 then we can substitute `u = f x` to get `∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
---/
+-/
 theorem integral_comp_smul_deriv''' {f f' : ℝ → ℝ} {g : ℝ → E}
   (hf : continuous_on f [a, b])
   (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)

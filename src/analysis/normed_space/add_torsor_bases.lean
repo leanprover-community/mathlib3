@@ -33,7 +33,7 @@ include E
 lemma is_open_map_barycentric_coord [nontrivial ι] (b : affine_basis ι 𝕜 P) (i : ι) :
   is_open_map (b.coord i) :=
 affine_map.is_open_map_linear_iff.mp $ (b.coord i).linear.is_open_map_of_finite_dimensional $
-  (b.coord i).surjective_iff_linear_surjective.mpr (b.surjective_coord i)
+  (b.coord i).linear_surjective_iff.mpr (b.surjective_coord i)
 
 variables [finite_dimensional 𝕜 E] (b : affine_basis ι 𝕜 P)
 

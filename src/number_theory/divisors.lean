@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
 import data.nat.interval
-import data.nat.prime
+import data.nat.factors
 
 /-!
 # Divisor finsets
@@ -181,12 +181,9 @@ lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, si
 lemma divisors_antidiagonal_one : divisors_antidiagonal 1 = {(1,1)} :=
 by { ext, simp [nat.mul_eq_one_iff, prod.ext_iff], }
 
-lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
-  x.swap ∈ divisors_antidiagonal n :=
-begin
-  rw [mem_divisors_antidiagonal, mul_comm] at h,
-  simp [h.1, h.2],
-end
+@[simp] lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} :
+  x.swap ∈ divisors_antidiagonal n ↔ x ∈ divisors_antidiagonal n :=
+by rw [mem_divisors_antidiagonal, mem_divisors_antidiagonal, mul_comm, prod.swap]
 
 lemma fst_mem_divisors_of_mem_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
   x.fst ∈ divisors n :=
@@ -204,19 +201,12 @@ end
 
 @[simp]
 lemma map_swap_divisors_antidiagonal :
-  (divisors_antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩
-  = divisors_antidiagonal n :=
+  (divisors_antidiagonal n).map (equiv.prod_comm _ _).to_embedding = divisors_antidiagonal n :=
 begin
+  rw [← coe_inj, coe_map, equiv.coe_to_embedding, equiv.coe_prod_comm,
+    set.image_swap_eq_preimage_swap],
   ext,
-  simp only [exists_prop, mem_divisors_antidiagonal, finset.mem_map, function.embedding.coe_fn_mk,
-             ne.def, prod.swap_prod_mk, prod.exists],
-  split,
-  { rintros ⟨x, y, ⟨⟨rfl, h⟩, rfl⟩⟩,
-    simp [mul_comm, h], },
-  { rintros ⟨rfl, h⟩,
-    use [a.snd, a.fst],
-    rw mul_comm,
-    simp [h] }
+  exact swap_mem_divisors_antidiagonal,
 end
 
 @[simp] lemma image_fst_divisors_antidiagonal :
@@ -233,26 +223,21 @@ end
 lemma map_div_right_divisors :
   n.divisors.map ⟨λ d, (d, n/d), λ p₁ p₂, congr_arg prod.fst⟩ = n.divisors_antidiagonal :=
 begin
-  obtain rfl | hn := decidable.eq_or_ne n 0,
-  { simp },
   ext ⟨d, nd⟩,
-  simp only [and_true, finset.mem_map, exists_eq_left, ne.def, hn, not_false_iff,
-    mem_divisors_antidiagonal, function.embedding.coe_fn_mk, mem_divisors],
+  simp only [mem_map, mem_divisors_antidiagonal, function.embedding.coe_fn_mk, mem_divisors,
+    prod.ext_iff, exists_prop, and.left_comm, exists_eq_left],
   split,
-  { rintro ⟨a, ⟨k, rfl⟩, h⟩,
-    obtain ⟨rfl, rfl⟩ := prod.mk.inj_iff.1 h,
-    have := (mul_ne_zero_iff.1 hn).1,
-    rw nat.mul_div_cancel_left _ (zero_lt_iff.mpr this), },
-  { rintro rfl,
-    refine ⟨d, dvd_mul_right _ _, _⟩,
-    have := (mul_ne_zero_iff.1 hn).1,
-    rw nat.mul_div_cancel_left _ (zero_lt_iff.mpr this) }
+  { rintro ⟨⟨⟨k, rfl⟩, hn⟩, rfl⟩,
+    rw [nat.mul_div_cancel_left _ (left_ne_zero_of_mul hn).bot_lt],
+    exact ⟨rfl, hn⟩ },
+  { rintro ⟨rfl, hn⟩,
+    exact ⟨⟨dvd_mul_right _ _, hn⟩, nat.mul_div_cancel_left _ (left_ne_zero_of_mul hn).bot_lt⟩ }
 end
 
 lemma map_div_left_divisors :
   n.divisors.map ⟨λ d, (n/d, d), λ p₁ p₂, congr_arg prod.snd⟩ = n.divisors_antidiagonal :=
 begin
-  apply finset.map_injective ⟨prod.swap, prod.swap_right_inverse.injective⟩,
+  apply finset.map_injective (equiv.prod_comm _ _).to_embedding,
   rw [map_swap_divisors_antidiagonal, ←map_div_right_divisors, finset.map_map],
   refl,
 end

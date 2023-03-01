@@ -7,6 +7,7 @@ import data.num.bitwise
 import data.int.char_zero
 import data.nat.gcd.basic
 import data.nat.psub
+import data.nat.size
 
 /-!
 # Properties of the binary representation of integers

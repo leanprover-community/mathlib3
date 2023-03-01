@@ -325,7 +325,7 @@ forall_mem_nonempty_iff_ne_bot.symm.trans $ hl.forall_iff $ λ _ _, nonempty.mon
 lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
   l = ⊥ ↔ ∃ i, p i ∧ s i = ∅ :=
 not_iff_not.1 $ ne_bot_iff.symm.trans $ hl.ne_bot_iff.trans $
-by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
+by simp only [not_exists, not_and, nonempty_iff_ne_empty]
 
 lemma generate_ne_bot_iff {s : set (set α)} :
   ne_bot (generate s) ↔ ∀ t ⊆ s, t.finite → (⋂₀ t).nonempty :=
@@ -561,7 +561,7 @@ lemma has_basis.inf_principal_ne_bot_iff (hl : l.has_basis p s) {t : set α} :
 lemma has_basis.disjoint_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   disjoint l l' ↔ ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
 not_iff_not.mp $ by simp only [disjoint_iff, ← ne.def, ← ne_bot_iff, hl.inf_basis_ne_bot_iff hl',
-  not_exists, bot_eq_empty, ne_empty_iff_nonempty, inf_eq_inter]
+  not_exists, bot_eq_empty, ←nonempty_iff_ne_empty, inf_eq_inter]
 
 lemma _root_.disjoint.exists_mem_filter_basis (h : disjoint l l') (hl : l.has_basis p s)
   (hl' : l'.has_basis p' s') :

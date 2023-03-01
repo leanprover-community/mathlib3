@@ -283,8 +283,17 @@ instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topologica
     rw [←smul_eq_mul, ←smul_eq_mul, smul_comm],
   end }
 
-
 end algebraic_structure
+
+section uniform
+
+variables [uniform_space β] [uniform_space γ] [has_zero γ]
+  [zero_at_infty_continuous_map_class F β γ]
+
+lemma uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
+(map_continuous f).uniform_continuous_of_zero_at_infty (zero_at_infty f)
+
+end uniform
 
 /-! ### Metric structure
 

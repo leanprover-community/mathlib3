@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.pi
 import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
 import data.real.sqrt
@@ -16,7 +17,6 @@ about these definitions.
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
-noncomputable theory
 open filter metric function set
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -47,6 +47,10 @@ instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul �
     by simpa [dist_eq_norm, smul_sub] using normed_space.norm_smul_le x (y₁ - y₂),
   dist_pair_smul' := λ x₁ x₂ y,
     by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
+
+-- Shortcut instance, as otherwise this will be found by `normed_space.to_module` and be
+-- noncomputable.
+instance : module ℝ ℝ := by apply_instance
 
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
@@ -185,7 +189,7 @@ In many cases the actual implementation is not important, so we don't mark the p
 See also `cont_diff_homeomorph_unit_ball` and `cont_diff_on_homeomorph_unit_ball_symm` for
 smoothness properties that hold when `E` is an inner-product space. -/
 @[simps { attrs := [] }]
-def homeomorph_unit_ball [normed_space ℝ E] :
+noncomputable def homeomorph_unit_ball [normed_space ℝ E] :
   E ≃ₜ ball (0 : E) 1 :=
 { to_fun := λ x, ⟨(1 + ‖x‖^2).sqrt⁻¹ • x, begin
     have : 0 < 1 + ‖x‖ ^ 2, by positivity,

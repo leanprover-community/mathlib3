@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yaël Dillies
 -/
 import order.locally_finite
+import data.set.intervals.monoid
 
 /-!
 # Intervals as finsets
@@ -22,7 +23,8 @@ https://github.com/leanprover-community/mathlib/pull/14448#discussion_r906109235
 for some ideas.
 -/
 
-open_locale big_operators
+open function order_dual
+open_locale big_operators finset_interval
 
 variables {ι α : Type*}
 
@@ -497,79 +499,164 @@ by { ext, simp [eq_comm] }
 
 end linear_order
 
+section lattice
+variables [lattice α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+lemma interval_to_dual (a b : α) : [to_dual a, to_dual b] = [a, b].map to_dual.to_embedding :=
+Icc_to_dual _ _
+
+@[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
+by rw [interval, inf_eq_left.2 h, sup_eq_right.2 h]
+
+@[simp] lemma interval_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
+by rw [interval, inf_eq_right.2 h, sup_eq_left.2 h]
+
+lemma interval_swap (a b : α) : [a, b] = [b, a] := by rw [interval, interval, inf_comm, sup_comm]
+
+@[simp] lemma interval_self : [a, a] = {a} := by simp [interval]
+
+@[simp] lemma nonempty_interval : finset.nonempty [a, b] := nonempty_Icc.2 inf_le_sup
+
+lemma Icc_subset_interval : Icc a b ⊆ [a, b] := Icc_subset_Icc inf_le_left le_sup_right
+lemma Icc_subset_interval' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_sup_left
+
+@[simp] lemma left_mem_interval : a ∈ [a, b] := mem_Icc.2 ⟨inf_le_left, le_sup_left⟩
+@[simp] lemma right_mem_interval : b ∈ [a, b] := mem_Icc.2 ⟨inf_le_right, le_sup_right⟩
+
+lemma mem_interval_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] :=
+Icc_subset_interval $ mem_Icc.2 ⟨ha, hb⟩
+
+lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
+Icc_subset_interval' $ mem_Icc.2 ⟨hb, ha⟩
+
+lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
+by { rw mem_interval at h₁ h₂, exact Icc_subset_Icc (le_inf h₁.1 h₂.1) (sup_le h₁.2 h₂.2) }
+
+lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+by { rw mem_Icc at ha hb, exact Icc_subset_Icc (le_inf ha.1 hb.1) (sup_le ha.2 hb.2) }
+
+lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
+⟨λ h, ⟨h left_mem_interval, h right_mem_interval⟩, λ h, interval_subset_interval h.1 h.2⟩
+
+lemma interval_subset_interval_iff_le' :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
+Icc_subset_Icc_iff inf_le_sup
+
+lemma interval_subset_interval_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
+interval_subset_interval h right_mem_interval
+
+lemma interval_subset_interval_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
+interval_subset_interval left_mem_interval h
+
+end lattice
+
+section distrib_lattice
+variables [distrib_lattice α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+lemma eq_of_mem_interval_of_mem_interval : a ∈ [b, c] → b ∈ [a, c] → a = b :=
+by { simp_rw mem_interval, exact set.eq_of_mem_interval_of_mem_interval }
+
+lemma eq_of_mem_interval_of_mem_interval' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
+by { simp_rw mem_interval, exact set.eq_of_mem_interval_of_mem_interval' }
+
+lemma interval_injective_right (a : α) : injective (λ b, [b, a]) :=
+λ b c h, by { rw ext_iff at h,
+  exact eq_of_mem_interval_of_mem_interval ((h _).1 left_mem_interval) ((h _).2 left_mem_interval) }
+
+lemma interval_injective_left (a : α) : injective (interval a) :=
+by simpa only [interval_swap] using interval_injective_right a
+
+end distrib_lattice
+
+section linear_order
+variables [linear_order α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
+
+lemma interval_of_not_le (h : ¬ a ≤ b) : [a, b] = Icc b a := interval_of_ge $ le_of_not_ge h
+lemma interval_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b := interval_of_le $ le_of_not_ge h
+
+lemma interval_eq_union : [a, b] = Icc a b ∪ Icc b a :=
+coe_injective $ by { push_cast, exact set.interval_eq_union }
+
+lemma mem_interval' : a ∈ [b, c] ↔ b ≤ a ∧ a ≤ c ∨ c ≤ a ∧ a ≤ b := by simp [interval_eq_union]
+
+lemma not_mem_interval_of_lt : c < a → c < b → c ∉ [a, b] :=
+by { rw mem_interval, exact set.not_mem_interval_of_lt }
+
+lemma not_mem_interval_of_gt : a < c → b < c → c ∉ [a, b] :=
+by { rw mem_interval, exact set.not_mem_interval_of_gt }
+
+lemma interval_subset_interval_iff_le :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ min a₂ b₂ ≤ min a₁ b₁ ∧ max a₁ b₁ ≤ max a₂ b₂ :=
+interval_subset_interval_iff_le'
+
+/-- A sort of triangle inequality. -/
+lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
+coe_subset.1 $ by { push_cast, exact set.interval_subset_interval_union_interval }
+
+end linear_order
+
 section ordered_cancel_add_comm_monoid
-variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
-  [locally_finite_order α]
+variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [locally_finite_order α]
 
-lemma image_add_left_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Icc],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Icc at hy,
-    exact ⟨add_le_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_left_Icc (a b c : α) :
+  (Icc a b).map (add_left_embedding c) = Icc (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Icc, coe_Icc], exact set.image_const_add_Icc _ _ _ }
 
-lemma image_add_left_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Ico],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ico at hy,
-    exact ⟨add_le_add_left hy.1 c, add_lt_add_left hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Ico.2 ⟨le_of_add_le_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_right_Icc (a b c : α) :
+  (Icc a b).map (add_right_embedding c) = Icc (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Icc, coe_Icc], exact set.image_add_const_Icc _ _ _ }
 
-lemma image_add_left_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Ioc],
-  refine ⟨_, λ hx, _⟩,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ioc at hy,
-    exact ⟨add_lt_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
-  { obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_left_Ico (a b c : α) :
+  (Ico a b).map (add_left_embedding c) = Ico (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Ico, coe_Ico], exact set.image_const_add_Ico _ _ _ }
 
-lemma image_add_left_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Ioo],
-  refine ⟨_, λ hx, _⟩,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ioo at hy,
-    exact ⟨add_lt_add_left hy.1 c, add_lt_add_left hy.2 c⟩ },
-  { obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_right_Ico (a b c : α) :
+  (Ico a b).map (add_right_embedding c) = Ico (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Ico, coe_Ico], exact set.image_add_const_Ico _ _ _ }
 
-lemma image_add_right_Icc (a b c : α) : (Icc a b).image (+ c) = Icc (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Icc a b c }
+@[simp] lemma map_add_left_Ioc (a b c : α) :
+  (Ioc a b).map (add_left_embedding c) = Ioc (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Ioc, coe_Ioc], exact set.image_const_add_Ioc _ _ _ }
+
+@[simp] lemma map_add_right_Ioc (a b c : α) :
+  (Ioc a b).map (add_right_embedding c) = Ioc (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Ioc, coe_Ioc], exact set.image_add_const_Ioc _ _ _ }
+
+@[simp] lemma map_add_left_Ioo (a b c : α) :
+  (Ioo a b).map (add_left_embedding c) = Ioo (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Ioo, coe_Ioo], exact set.image_const_add_Ioo _ _ _ }
+
+@[simp] lemma map_add_right_Ioo (a b c : α) :
+  (Ioo a b).map (add_right_embedding c) = Ioo (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Ioo, coe_Ioo], exact set.image_add_const_Ioo _ _ _ }
+
+variables [decidable_eq α]
+
+@[simp] lemma image_add_left_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (c + a) (c + b) :=
+by { rw [← map_add_left_Icc, map_eq_image], refl }
+
+@[simp] lemma image_add_left_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (c + a) (c + b) :=
+by { rw [← map_add_left_Ico, map_eq_image], refl }
+
+@[simp] lemma image_add_left_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (c + a) (c + b) :=
+by { rw [← map_add_left_Ioc, map_eq_image], refl }
+
+@[simp] lemma image_add_left_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (c + a) (c + b) :=
+by { rw [← map_add_left_Ioo, map_eq_image], refl }
+
+@[simp] lemma image_add_right_Icc (a b c : α) : (Icc a b).image (+ c) = Icc (a + c) (b + c) :=
+by { rw [← map_add_right_Icc, map_eq_image], refl }
 
 lemma image_add_right_Ico (a b c : α) : (Ico a b).image (+ c) = Ico (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Ico a b c }
+by { rw [← map_add_right_Ico, map_eq_image], refl }
 
 lemma image_add_right_Ioc (a b c : α) : (Ioc a b).image (+ c) = Ioc (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Ioc a b c }
+by { rw [← map_add_right_Ioc, map_eq_image], refl }
 
 lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (+ c) = Ioo (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
+by { rw [← map_add_right_Ioo, map_eq_image], refl }
 
 end ordered_cancel_add_comm_monoid
 

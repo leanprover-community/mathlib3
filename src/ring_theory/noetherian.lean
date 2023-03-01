@@ -352,7 +352,7 @@ theorem is_noetherian.exists_endomorphism_iterate_ker_inf_range_eq_bot
 begin
   obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I
     (f.iterate_ker.comp ⟨λ n, n+1, λ n m w, by linarith⟩),
-  specialize w (2 * n + 1) (by linarith),
+  specialize w (2 * n + 1) (by linarith only),
   dsimp at w,
   refine ⟨n+1, nat.succ_ne_zero _, _⟩,
   rw eq_bot_iff,
@@ -362,7 +362,7 @@ begin
   change ((f ^ (n + 1)) * (f ^ (n + 1))) y = 0 at h,
   rw ←pow_add at h,
   convert h using 3,
-  linarith,
+  ring
 end
 
 /-- Any surjective endomorphism of a Noetherian module is injective. -/

@@ -567,7 +567,7 @@ lemma coe_map_ring_hom_eq_coe_map [ring_hom_class F R[X] S[X]] (φ : F)
 -- TODO: Generalize to `fun_like` classes,
 /-- Lift an monoid with zero homomorphism `R[X] →*₀ G₀` to a `ratfunc R →*₀ G₀`
 on the condition that `φ` maps non zero divisors to non zero divisors,
-by mapping both the numerator and denominator and quotienting them. --/
+by mapping both the numerator and denominator and quotienting them. -/
 def lift_monoid_with_zero_hom (φ : R[X] →*₀ G₀) (hφ : R[X]⁰ ≤ G₀⁰.comap φ) :
   ratfunc R →*₀ G₀ :=
 { to_fun := λ f, ratfunc.lift_on f (λ p q, φ p / (φ q)) $ λ p q p' q' hq hq' h, begin
@@ -609,7 +609,7 @@ begin
 end
 
 /-- Lift an injective ring homomorphism `R[X] →+* L` to a `ratfunc R →+* L`
-by mapping both the numerator and denominator and quotienting them. --/
+by mapping both the numerator and denominator and quotienting them. -/
 def lift_ring_hom (φ : R[X] →+* L) (hφ : R[X]⁰ ≤ L⁰.comap φ) : ratfunc R →+* L :=
 { map_add' := λ x y, by { simp only [monoid_with_zero_hom.to_fun_eq_coe],
     casesI subsingleton_or_nontrivial R,
@@ -783,7 +783,7 @@ lemma coe_map_alg_hom_eq_coe_map (φ : K[X] →ₐ[S] R[X])
   (map_alg_hom φ hφ : ratfunc K → ratfunc R) = map φ hφ := rfl
 
 /-- Lift an injective algebra homomorphism `K[X] →ₐ[S] L` to a `ratfunc K →ₐ[S] L`
-by mapping both the numerator and denominator and quotienting them. --/
+by mapping both the numerator and denominator and quotienting them. -/
 def lift_alg_hom : ratfunc K →ₐ[S] L :=
 { commutes' := λ r, by simp_rw [ring_hom.to_fun_eq_coe, alg_hom.to_ring_hom_eq_coe,
     algebra_map_apply r, lift_ring_hom_apply_div, alg_hom.coe_to_ring_hom, map_one,

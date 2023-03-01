@@ -8,6 +8,7 @@ import algebra.hom.group_action
 import algebra.regular.smul
 import data.finset.preimage
 import data.list.alist
+import data.rat.big_operators
 
 /-!
 # Miscellaneous definitions, lemmas, and constructions using finsupp
@@ -372,7 +373,7 @@ lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
 by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
 
 @[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
-by ext x; simp only [equiv_map_domain_apply, finsupp.coe_zero, pi.zero_apply]
+by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
 
 /-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
 `(α →₀ M) ≃ (β →₀ M)`.
@@ -736,7 +737,7 @@ lemma comap_domain_add (v₁ v₂ : β →₀ M)
   (hv₁ : set.inj_on f (f ⁻¹' ↑(v₁.support))) (hv₂ : set.inj_on f (f ⁻¹' ↑(v₂.support)))
   (hv₁₂ : set.inj_on f (f ⁻¹' ↑((v₁ + v₂).support))) :
   comap_domain f (v₁ + v₂) hv₁₂ = comap_domain f v₁ hv₁ + comap_domain f v₂ hv₂ :=
-by { ext, simp only [comap_domain_apply, finsupp.coe_add, pi.add_apply] }
+by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
 
 /-- A version of `finsupp.comap_domain_add` that's easier to use. -/
 lemma comap_domain_add_of_injective (hf : function.injective f) (v₁ v₂ : β →₀ M) :
@@ -1298,7 +1299,7 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 `[]`. See note [implicit instance arguments].
 -/
 
-@[simp] protected lemma coe_smul [add_monoid M] [distrib_smul R M]
+@[simp] lemma coe_smul [add_monoid M] [distrib_smul R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply [add_monoid M] [distrib_smul R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl

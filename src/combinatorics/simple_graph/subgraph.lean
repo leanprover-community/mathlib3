@@ -116,7 +116,7 @@ G'.adj_sub h
 protected lemma adj.coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
   H.coe.adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
 
-/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
+/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. -/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
 lemma is_spanning_iff {G' : subgraph G} : G'.is_spanning ↔ G'.verts = set.univ :=

@@ -8,6 +8,9 @@ import algebra.group.units
 /-!
 # Monoid homomorphisms and units
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to lift monoid homomorphisms to group homomorphisms of their units subgroups. It
 also contains unrelated results about `units` that depend on `monoid_hom`.
 
@@ -142,8 +145,10 @@ units.lift_right f
   (λ g, ⟨f g, f g⁻¹, map_mul_eq_one f (mul_inv_self _), map_mul_eq_one f (inv_mul_self _)⟩)
   (λ g, rfl)
 
-@[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
-  (f.to_hom_units g : M) = f g := rfl
+@[simp, to_additive]
+lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G) :
+  (f.to_hom_units g : M) = f g :=
+rfl
 
 end monoid_hom
 

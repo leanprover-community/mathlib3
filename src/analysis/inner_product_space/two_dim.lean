@@ -215,7 +215,7 @@ def right_angle_rotation_aux₂ : E →ₗᵢ[ℝ] E :=
         have : finrank ℝ E = 2 := fact.out _,
         linarith },
       obtain ⟨w, hw₀⟩ : ∃ w : Kᗮ, w ≠ 0 := exists_ne 0,
-      have hw' : ⟪x, (w:E)⟫ = 0 := inner_right_of_mem_orthogonal_singleton x w.2, -- hw'₀,
+      have hw' : ⟪x, (w:E)⟫ = 0 := submodule.mem_orthogonal_singleton_iff_inner_right.mp w.2,
       have hw : (w:E) ≠ 0 := λ h, hw₀ (submodule.coe_eq_zero.mp h),
       refine le_of_mul_le_mul_right _ (by rwa norm_pos_iff : 0 < ‖(w:E)‖),
       rw ← o.abs_area_form_of_orthogonal hw',

@@ -8,7 +8,7 @@ import category_theory.limits.shapes.biproducts
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.biproducts
 import category_theory.limits.preserves.shapes.products
-import category_theory.preadditive.default
+import category_theory.preadditive.basic
 import tactic.abel
 
 /-!

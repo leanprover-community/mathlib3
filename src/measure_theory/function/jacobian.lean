@@ -1243,6 +1243,25 @@ begin
   refl
 end
 
+/-- Change of variable formula for differentiable functions (one-variable version): if a function
+`f` is injective and differentiable on a measurable set `s ⊆ ℝ`, then the Bochner integral of a
+function `g : ℝ → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
+theorem integral_image_eq_integral_abs_deriv_smul {s : set ℝ} {f : ℝ → ℝ} {f' : ℝ → ℝ}
+  [complete_space F] (hs : measurable_set s) (hf' : ∀ x ∈ s, has_deriv_within_at f (f' x) s x)
+  (hf : inj_on f s) (g : ℝ → F) :
+  ∫ x in f '' s, g x = ∫ x in s, |(f' x)| • g (f x) :=
+begin
+  convert integral_image_eq_integral_abs_det_fderiv_smul volume hs
+    (λ x hx, (hf' x hx).has_fderiv_within_at) hf g,
+  ext1 x,
+  rw (by { ext, simp } : (1 : ℝ →L[ℝ] ℝ).smul_right (f' x) = (f' x) • (1 : ℝ →L[ℝ] ℝ)),
+  rw [continuous_linear_map.det, continuous_linear_map.coe_smul],
+  have : ((1 : ℝ →L[ℝ] ℝ) : ℝ →ₗ[ℝ] ℝ) = (1 : ℝ →ₗ[ℝ] ℝ) := by refl,
+  rw [this, linear_map.det_smul, finite_dimensional.finrank_self],
+  suffices : (1 : ℝ →ₗ[ℝ] ℝ).det = 1, { rw this, simp },
+  exact linear_map.det_id,
+end
+
 theorem integral_target_eq_integral_abs_det_fderiv_smul [complete_space F]
   {f : local_homeomorph E E} (hf' : ∀ x ∈ f.source, has_fderiv_at f (f' x) x) (g : E → F) :
   ∫ x in f.target, g x ∂μ = ∫ x in f.source, |(f' x).det| • g (f x) ∂μ :=

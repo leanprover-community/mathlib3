@@ -419,7 +419,7 @@ has_basis_binfi_principal'
   (λ r₁ hr₁ r₂ hr₂, ⟨_, hr₁.min hr₂,
     λ _, mem_base_set.mono _ le_rfl le_rfl (λ x hx, min_le_left _ _),
     λ _, mem_base_set.mono _ le_rfl le_rfl (λ x hx, min_le_right _ _)⟩)
-  ⟨λ _, ⟨1, @zero_lt_one ℝ _ _⟩, λ _ _, rfl⟩
+  ⟨λ _, ⟨1, zero_lt_one⟩, λ _ _, rfl⟩
 
 lemma has_basis_to_filter_distortion_Union (l : integration_params) (I : box ι) (c : ℝ≥0)
   (π₀ : prepartition I) :

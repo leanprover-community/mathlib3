@@ -286,7 +286,7 @@ begin
       { refine eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ _),
         apply subset_closure,
         simp [-uncurry_apply_pair], } },
-    { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, } },
+    { simp [f', hfx, integral_undef], } },
   exact strongly_measurable_of_tendsto _ hf' h2f'
 end
 

@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action.basic
 import group_theory.subgroup.basic
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 /-!
 # Conjugation action of a group on itself
 

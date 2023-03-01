@@ -10,7 +10,6 @@ import logic.function.basic
 # Extra facts about `prod`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/545
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `prod.swap : α × β → β × α` and proves various simple lemmas about `prod`.
@@ -68,8 +67,9 @@ lemma map_map {ε ζ : Type*}
   prod.map g g' (prod.map f f' x) = prod.map (g ∘ f) (g' ∘ f') x :=
 rfl
 
-@[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
-⟨prod.mk.inj, by cc⟩
+variables {a a₁ a₂ : α} {b b₁ b₂ : β}
+
+@[simp] lemma mk.inj_iff : (a₁, b₁) = (a₂, b₂) ↔ a₁ = a₂ ∧ b₁ = b₂ := ⟨prod.mk.inj, by cc⟩
 
 lemma mk.inj_left {α β : Type*} (a : α) :
   function.injective (prod.mk a : β → α × β) :=
@@ -78,6 +78,9 @@ by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true
 lemma mk.inj_right {α β : Type*} (b : β) :
   function.injective (λ a, prod.mk a b : α → α × β) :=
 by { intros b₁ b₂ h, by simpa only [and_true, eq_self_iff_true, mk.inj_iff] using h }
+
+lemma mk_inj_left : (a, b₁) = (a, b₂) ↔ b₁ = b₂ := (mk.inj_left _).eq_iff
+lemma mk_inj_right : (a₁, b) = (a₂, b) ↔ a₁ = a₂ := (mk.inj_right _).eq_iff
 
 lemma ext_iff {p q : α × β} : p = q ↔ p.1 = q.1 ∧ p.2 = q.2 :=
 by rw [← @mk.eta _ _ p, ← @mk.eta _ _ q, mk.inj_iff]
@@ -148,6 +151,8 @@ lemma fst_eq_iff : ∀ {p : α × β} {x : α}, p.1 = x ↔ p = (x, p.2)
 lemma snd_eq_iff : ∀ {p : α × β} {x : β}, p.2 = x ↔ p = (p.1, x)
 | ⟨a, b⟩ x := by simp
 
+variables {r : α → α → Prop} {s : β → β → Prop} {x y : α × β}
+
 theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
   {p q : α × β} : prod.lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
 ⟨λ h, by cases h; simp *,
@@ -156,6 +161,8 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
  | (a, b), (c, d), or.inr ⟨e, h⟩ :=
    by change a = c at e; subst e; exact lex.right _ h
  end⟩
+
+lemma lex_iff : lex r s x y ↔ r x.1 y.1 ∨ x.1 = y.1 ∧ s x.2 y.2 := lex_def _ _
 
 instance lex.decidable [decidable_eq α]
   (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
@@ -177,6 +184,9 @@ instance is_refl_left {r : α → α → Prop} {s : β → β → Prop} [is_refl
 instance is_refl_right {r : α → α → Prop} {s : β → β → Prop} [is_refl β s] :
   is_refl (α × β) (lex r s) :=
 ⟨lex.refl_right _ _⟩
+
+instance is_irrefl [is_irrefl α r] [is_irrefl β s] : is_irrefl (α × β) (lex r s) :=
+⟨by rintro ⟨i, a⟩ (⟨_, _, h⟩ | ⟨_, h⟩); exact irrefl _ h⟩
 
 @[trans] lemma lex.trans {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_trans β s] :
   ∀ {x y z : α × β}, prod.lex r s x y → prod.lex r s y z → prod.lex r s x z
@@ -210,6 +220,15 @@ instance is_total_right {r : α → α → Prop} {s : β → β → Prop} [is_tr
   { exact or.inl (lex.left _ _ hij) },
   { exact (total_of (s) a b).imp (lex.right _) (lex.right _), },
   { exact or.inr (lex.left _ _ hji) }
+end⟩
+
+instance is_trichotomous [is_trichotomous α r] [is_trichotomous β s] :
+  is_trichotomous (α × β) (lex r s) :=
+⟨λ ⟨i, a⟩ ⟨j, b⟩, begin
+  obtain hij | rfl | hji := trichotomous_of r i j,
+  { exact or.inl (lex.left _ _ hij) },
+  { exact (trichotomous_of s a b).imp3 (lex.right _) (congr_arg _) (lex.right _) },
+  { exact or.inr (or.inr $ lex.left _ _ hji) }
 end⟩
 
 end prod

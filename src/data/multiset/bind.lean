@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.big_operators.multiset
+import algebra.big_operators.multiset.basic
 
 /-!
 # Bind operation for multisets
@@ -162,10 +162,9 @@ infixr (name := multiset.product) ` ×ˢ `:82 := multiset.product
 by { rw [product, list.product, ←coe_bind], simp }
 
 @[simp] lemma zero_product : @product α β 0 t = 0 := rfl
---TODO: Add `product_zero`
-
-@[simp] lemma cons_product : (a ::ₘ s) ×ˢ t = map (prod.mk a) t + s ×ˢ t :=
-by simp [product]
+@[simp] lemma cons_product : (a ::ₘ s) ×ˢ t = map (prod.mk a) t + s ×ˢ t := by simp [product]
+@[simp] lemma product_zero : s ×ˢ (0 : multiset β) = 0 := by simp [product]
+@[simp] lemma product_cons : s ×ˢ (b ::ₘ t) = s.map (λ a, (a, b)) + s ×ˢ t := by simp [product]
 
 @[simp] lemma product_singleton : ({a} : multiset α) ×ˢ ({b} : multiset β) = {(a, b)} :=
 by simp only [product, bind_singleton, map_singleton]

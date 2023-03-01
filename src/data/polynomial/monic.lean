@@ -213,6 +213,18 @@ end monic
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
+lemma monic.eq_one_of_is_unit (hm : monic p) (hpu : is_unit p) : p = 1 :=
+begin
+  nontriviality R,
+  obtain ⟨q, h⟩ := hpu.exists_right_inv,
+  have := hm.nat_degree_mul' (right_ne_zero_of_mul_eq_one h),
+  rw [h, nat_degree_one, eq_comm, add_eq_zero_iff] at this,
+  exact hm.nat_degree_eq_zero_iff_eq_one.mp this.1,
+end
+
+lemma monic.is_unit_iff (hm : p.monic) : is_unit p ↔ p = 1 :=
+⟨hm.eq_one_of_is_unit, λ h, h.symm ▸ is_unit_one⟩
+
 end semiring
 
 section comm_semiring
@@ -232,37 +244,6 @@ end
 lemma monic_prod_of_monic (s : finset ι) (f : ι → R[X]) (hs : ∀ i ∈ s, monic (f i)) :
   monic (∏ i in s, f i) :=
 monic_multiset_prod_of_monic s.1 f hs
-
-lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
-begin
-  rw [is_unit_iff_dvd_one, is_unit_iff_dvd_one],
-  split,
-  { rintros ⟨g, hg⟩,
-    replace hg := congr_arg (eval 0) hg,
-    rw [eval_one, eval_mul, eval_C] at hg,
-    exact ⟨g.eval 0, hg⟩ },
-  { rintros ⟨y, hy⟩,
-    exact ⟨C y, by rw [← C_mul, ← hy, C_1]⟩ }
-end
-
-lemma eq_one_of_is_unit_of_monic (hm : monic p) (hpu : is_unit p) : p = 1 :=
-have degree p ≤ 0,
-  from calc degree p ≤ degree (1 : R[X]) :
-    let ⟨u, hu⟩ := is_unit_iff_dvd_one.1 hpu in
-    if hu0 : u = 0
-    then begin
-        rw [hu0, mul_zero] at hu,
-        rw [← mul_one p, hu, mul_zero],
-        simp
-      end
-    else have p.leading_coeff * u.leading_coeff ≠ 0,
-        by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];
-          exact hu0,
-      by rw [hu, degree_mul' this];
-        exact le_add_of_nonneg_right (degree_nonneg_iff_ne_zero.2 hu0)
-  ... ≤ 0 : degree_one_le,
-by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
-    ← leading_coeff, hm.leading_coeff, C_1]
 
 lemma monic.next_coeff_multiset_prod (t : multiset ι) (f : ι → R[X])
   (h : ∀ i ∈ t, monic (f i)) :
@@ -381,9 +362,7 @@ begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simpa using h },
   apply hn,
-  rwa [← @nat_degree_X_pow_sub_C _ _ _ n (1 : R),
-      eq_one_of_is_unit_of_monic (monic_X_pow_sub_C (1 : R) hn),
-      nat_degree_one]
+  rw [←@nat_degree_one R, ←(monic_X_pow_sub_C _ hn).eq_one_of_is_unit h, nat_degree_X_pow_sub_C],
 end
 
 lemma monic.sub_of_left {p q : R[X]} (hp : monic p) (hpq : degree q < degree p) :

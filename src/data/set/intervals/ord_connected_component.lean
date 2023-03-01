@@ -9,6 +9,9 @@ import tactic.wlog
 /-!
 # Order connected components of a set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `set.ord_connected_component s x` to be the set of `y` such that
 `set.interval x y ⊆ s` and prove some basic facts about this definition. At the moment of writing,
 this construction is used only to prove that any linear order with order topology is a T₅ space,

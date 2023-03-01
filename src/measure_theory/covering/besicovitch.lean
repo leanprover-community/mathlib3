@@ -1109,7 +1109,7 @@ begin
   { exact closed_ball_subset_closed_ball hr.2 }
 end
 
-variables [metric_space β] [measurable_space β] [borel_space β] [sigma_compact_space β]
+variables [metric_space β] [measurable_space β] [borel_space β] [second_countable_topology β]
   [has_besicovitch_covering β]
 
 /-- In a space with the Besicovitch covering property, the ratio of the measure of balls converges
@@ -1119,7 +1119,6 @@ lemma ae_tendsto_rn_deriv
   ∀ᵐ x ∂μ, tendsto (λ r, ρ (closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ] with x hx,
   exact hx.comp (tendsto_filter_at μ x)
 end
@@ -1134,7 +1133,6 @@ lemma ae_tendsto_measure_inter_div_of_measurable_set
   ∀ᵐ x ∂μ, tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (s.indicator 1 x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_measure_inter_div_of_measurable_set
     (besicovitch.vitali_family μ) hs],
   assume x hx,
@@ -1150,10 +1148,7 @@ See also `is_doubling_measure.ae_tendsto_measure_inter_div`. -/
 lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure μ] (s : set β) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=
-begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
-    with x hx using hx.comp (tendsto_filter_at μ x),
-end
+by filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
+    with x hx using hx.comp (tendsto_filter_at μ x)
 
 end besicovitch

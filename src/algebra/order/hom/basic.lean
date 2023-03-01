@@ -3,13 +3,12 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import tactic.positivity
+import algebra.hom.group
 
 /-!
 # Algebraic order homomorphism classes
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/627
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines hom classes for common properties at the intersection of order theory and algebra.
@@ -85,14 +84,3 @@ by simpa only [div_mul_div_cancel'] using map_mul_le_mul f (a / b) (b / c)
 lemma le_map_div_add_map_div [group α] [add_comm_semigroup β] [has_le β]
   [mul_le_add_hom_class F α β] (f : F) (a b c: α) : f (a / c) ≤ f (a / b) + f (b / c) :=
 by simpa only [div_mul_div_cancel'] using map_mul_le_add f (a / b) (b / c)
-
-namespace tactic
-open positivity
-
-/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
-@[positivity]
-meta def positivity_map : expr → tactic strictness
-| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
-| _ := failed
-
-end tactic

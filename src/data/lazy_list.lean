@@ -7,6 +7,9 @@ Authors: Leonardo de Moura
 /-!
 # Lazy lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type `lazy_list α` is a lazy list with elements of type `α`.
 In the VM, these are potentially infinite lists
 where all elements after the first are computed on-demand.

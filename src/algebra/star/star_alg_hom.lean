@@ -6,6 +6,7 @@ Authors: Jireh Loreaux
 
 import algebra.hom.non_unital_alg
 import algebra.star.prod
+import algebra.algebra.prod
 
 /-!
 # Morphisms of star algebras

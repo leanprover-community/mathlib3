@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.gcd_monoid.basic
+import data.multiset.finset_ops
+import data.multiset.fold
 
 /-!
 # GCD and LCM operations on multisets

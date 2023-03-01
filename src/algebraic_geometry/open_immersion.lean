@@ -11,6 +11,7 @@ import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
 import algebra.category.Ring.instances
+import topology.local_at_target
 
 /-!
 # Open immersions of structured spaces
@@ -110,7 +111,7 @@ variables {X Y : PresheafedSpace.{v} C} {f : X ⟶ Y} (H : is_open_immersion f)
 abbreviation open_functor := H.base_open.is_open_map.functor
 
 /-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
-@[simps] noncomputable
+@[simps hom_c_app] noncomputable
 def iso_restrict : X ≅ Y.restrict H.base_open :=
 PresheafedSpace.iso_of_components (iso.refl _)
 begin
@@ -140,11 +141,11 @@ begin
     transitivity f.c.app x ≫ X.presheaf.map (𝟙 _),
     { congr },
     { erw [X.presheaf.map_id, category.comp_id] } },
-  { simp }
+  { refl, }
 end
 
 @[simp] lemma iso_restrict_inv_of_restrict : H.iso_restrict.inv ≫ f = Y.of_restrict _ :=
-by { rw iso.inv_comp_eq, simp }
+by { rw [iso.inv_comp_eq, iso_restrict_hom_of_restrict] }
 
 instance mono [H : is_open_immersion f] : mono f :=
 by { rw ← H.iso_restrict_hom_of_restrict, apply mono_comp }
@@ -1951,6 +1952,10 @@ lemma morphism_restrict_base_coe {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carri
   @coe U Y.carrier _ ((f ∣_ U).1.base x) = f.1.base x.1 :=
 congr_arg (λ f, PresheafedSpace.hom.base (LocallyRingedSpace.hom.val f) x) (morphism_restrict_ι f U)
 
+lemma morphism_restrict_val_base {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+  ⇑(f ∣_ U).1.base = U.1.restrict_preimage f.1.base :=
+funext (λ x, subtype.ext (morphism_restrict_base_coe f U x))
+
 lemma image_morphism_restrict_preimage {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier)
   (V : opens U) :
   ((opens.map f.val.base).obj U).open_embedding.is_open_map.functor.obj
@@ -2065,6 +2070,31 @@ begin
   ext1, dsimp [opens.map, opens.inclusion],
   rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, subtype.range_coe],
   exact Y.basic_open_le r
+end
+
+/--
+The stalk map of a restriction of a morphism is isomorphic to the stalk map of the original map.
+-/
+def morphism_restrict_stalk_map {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (x) :
+  arrow.mk (PresheafedSpace.stalk_map (f ∣_ U).1 x) ≅
+    arrow.mk (PresheafedSpace.stalk_map f.1 x.1) :=
+begin
+  fapply arrow.iso_mk',
+  { refine Y.restrict_stalk_iso U.open_embedding ((f ∣_ U).1 x) ≪≫ Top.presheaf.stalk_congr _ _,
+    apply inseparable.of_eq,
+    exact morphism_restrict_base_coe f U x },
+  { exact X.restrict_stalk_iso _ _ },
+  { apply Top.presheaf.stalk_hom_ext,
+    intros V hxV,
+    simp only [Top.presheaf.stalk_congr_hom, category_theory.category.assoc,
+      category_theory.iso.trans_hom],
+    erw PresheafedSpace.restrict_stalk_iso_hom_eq_germ_assoc,
+    erw PresheafedSpace.stalk_map_germ_assoc _ _ ⟨_, _⟩,
+    rw [Top.presheaf.germ_stalk_specializes'_assoc],
+    erw PresheafedSpace.stalk_map_germ _ _ ⟨_, _⟩,
+    erw PresheafedSpace.restrict_stalk_iso_hom_eq_germ,
+    rw [morphism_restrict_c_app, category.assoc, Top.presheaf.germ_res],
+    refl }
 end
 
 instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :

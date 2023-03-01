@@ -380,6 +380,25 @@ begin
           (λ i, hr i (set.mem_univ _))).symm
 end
 
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumsphere. -/
+@[simp] lemma circumsphere_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumsphere = s.circumsphere :=
+begin
+  refine s.circumsphere_unique_dist_eq.2 _ ⟨_, _⟩; rw ←s.reindex_range_points e,
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.1 },
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.2 }
+end
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumcenter. -/
+@[simp] lemma circumcenter_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumcenter = s.circumcenter :=
+by simp_rw [←circumcenter, circumsphere_reindex]
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumradius. -/
+@[simp] lemma circumradius_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumradius = s.circumradius :=
+by simp_rw [←circumradius, circumsphere_reindex]
+
 local attribute [instance] affine_subspace.to_add_torsor
 
 /-- The orthogonal projection of a point `p` onto the hyperplane spanned by the simplex's points. -/
@@ -851,6 +870,53 @@ lemma circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional 
   sx₁.circumcenter = sx₂.circumcenter :=
 begin
   rcases exists_circumcenter_eq_of_cospherical hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in an n-dimensional
+subspace have the same circumsphere. -/
+lemma exists_circumsphere_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
+  ∃ c : sphere P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumsphere = c :=
+begin
+  obtain ⟨r, hr⟩ := exists_circumradius_eq_of_cospherical_subset h hd hc,
+  obtain ⟨c, hc⟩ := exists_circumcenter_eq_of_cospherical_subset h hd hc,
+  exact ⟨⟨c, r⟩, λ sx hsx, sphere.ext _ _ (hc sx hsx) (hr sx hsx)⟩
+end
+
+/-- Two n-simplices among cospherical points in an n-dimensional
+subspace have the same circumsphere. -/
+lemma circumsphere_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumsphere = sx₂.circumsphere :=
+begin
+  rcases exists_circumsphere_eq_of_cospherical_subset h hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in n-space have the same
+circumsphere. -/
+lemma exists_circumsphere_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
+  ∃ c : sphere P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumsphere = c :=
+begin
+  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
+  refine exists_circumsphere_eq_of_cospherical_subset _ hd hc,
+  exact set.subset_univ _
+end
+
+/-- Two n-simplices among cospherical points in n-space have the same
+circumsphere. -/
+lemma circumsphere_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumsphere = sx₂.circumsphere :=
+begin
+  rcases exists_circumsphere_eq_of_cospherical hd hc with ⟨r, hr⟩,
   rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
 end
 

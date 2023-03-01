@@ -229,7 +229,7 @@ variables {x : ℝ}
 open exp_neg_inv_glue
 
 lemma pos_denom (x) : 0 < exp_neg_inv_glue x + exp_neg_inv_glue (1 - x) :=
-((@zero_lt_one ℝ _ _).lt_or_lt x).elim
+(zero_lt_one.lt_or_lt x).elim
   (λ hx, add_pos_of_pos_of_nonneg (pos_of_pos hx) (nonneg _))
   (λ hx, add_pos_of_nonneg_of_pos (nonneg _) (pos_of_pos $ sub_pos.2 hx))
 

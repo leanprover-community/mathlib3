@@ -38,11 +38,6 @@ maps. Instead we define it as a predicate over bare functions, although it reall
 for linear functions, because Lean is really good at finding coercions to bare functions (whereas
 coercing from continuous linear maps to linear maps often needs type ascriptions).
 
-## TODO
-
-Once we have the strong operator topology on spaces of linear maps between two TVSs,
-`is_closed_set_of_is_compact_operator` should be generalized to this setup.
-
 ## References
 
 * Bourbaki, *Spectral Theory*, chapters 3 to 5, to be published (2022)
@@ -375,56 +370,57 @@ hf
 
 end continuous
 
+/-- The set of compact operators from a normed space to a complete topological vector space is
+closed. -/
 lemma is_closed_set_of_is_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
-  [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
-  [normed_space 𝕜₂ M₂] [complete_space M₂] :
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*} [seminormed_add_comm_group M₁]
+  [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂] [uniform_space M₂] [uniform_add_group M₂]
+  [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂] [complete_space M₂] :
   is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=
 begin
   refine is_closed_of_closure_subset _,
   rintros u hu,
-  rw metric.mem_closure_iff at hu,
+  rw [mem_closure_iff_nhds_zero] at hu,
   suffices : totally_bounded (u '' metric.closed_ball 0 1),
   { change is_compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
     rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂)
       zero_lt_one,
     exact is_compact_of_totally_bounded_is_closed this.closure is_closed_closure },
-  rw metric.totally_bounded_iff,
-  intros ε hε,
-  rcases hu (ε/2) (by linarith) with ⟨v, hv, huv⟩,
-  rcases (hv.is_compact_closure_image_closed_ball 1).finite_cover_balls
-    (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
+  rw totally_bounded_iff_subset_finite_Union_nhds_zero,
+  intros U hU,
+  rcases exists_nhds_zero_half hU with ⟨V, hV, hVU⟩,
+  let SV : set M₁ × set M₂ := ⟨closed_ball 0 1, -V⟩,
+  rcases hu {f | ∀ x ∈ SV.1, f x ∈ SV.2} (continuous_linear_map.has_basis_nhds_zero.mem_of_mem
+    ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, neg_mem_nhds_zero M₂ hV⟩) with ⟨v, hv, huv⟩,
+  rcases totally_bounded_iff_subset_finite_Union_nhds_zero.mp
+    (hv.is_compact_closure_image_closed_ball 1).totally_bounded V hV with ⟨T, hT, hTv⟩,
   have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,
   refine ⟨T, hT, _⟩,
-  rw image_subset_iff at ⊢ hTv,
+  rw [image_subset_iff, preimage_Union₂] at ⊢ hTv,
   intros x hx,
   specialize hTv hx,
-  rw [mem_preimage, mem_Union₂] at ⊢ hTv,
+  rw [mem_Union₂] at ⊢ hTv,
   rcases hTv with ⟨t, ht, htx⟩,
   refine ⟨t, ht, _⟩,
-  suffices : dist (u x) (v x) < ε/2,
-  { rw mem_ball at *,
-    linarith [dist_triangle (u x) (v x) t] },
-  rw mem_closed_ball_zero_iff at hx,
-  calc dist (u x) (v x)
-      = ‖u x - v x‖ : dist_eq_norm _ _
-  ... = ‖(u - v) x‖ : by rw continuous_linear_map.sub_apply; refl
-  ... ≤ ‖u - v‖ : (u - v).unit_le_op_norm x hx
-  ... = dist u v : (dist_eq_norm _ _).symm
-  ... < ε/2 : huv
+  rw [mem_preimage, mem_vadd_set_iff_neg_vadd_mem, vadd_eq_add, neg_add_eq_sub] at ⊢ htx,
+  convert hVU _ htx _ (huv x hx) using 1,
+  rw [continuous_linear_map.sub_apply],
+  abel
 end
 
 lemma compact_operator_topological_closure {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
-  [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
-  [normed_space 𝕜₂ M₂] [complete_space M₂] :
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*}
+  [seminormed_add_comm_group M₁] [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [uniform_space M₂] [uniform_add_group M₂] [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
+  [complete_space M₂] [has_continuous_smul 𝕜₂ (M₁ →SL[σ₁₂] M₂)] :
   (compact_operator σ₁₂ M₁ M₂).topological_closure = compact_operator σ₁₂ M₁ M₂ :=
 set_like.ext' (is_closed_set_of_is_compact_operator.closure_eq)
 
 lemma is_compact_operator_of_tendsto {ι 𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
-  [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
-  [normed_space 𝕜₂ M₂] [complete_space M₂] {l : filter ι} [l.ne_bot] {F : ι → M₁ →SL[σ₁₂] M₂}
-  {f : M₁ →SL[σ₁₂] M₂} (hf : tendsto F l (𝓝 f)) (hF : ∀ᶠ i in l, is_compact_operator (F i)) :
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*}
+  [seminormed_add_comm_group M₁] [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [uniform_space M₂] [uniform_add_group M₂] [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
+  [complete_space M₂] {l : filter ι} [l.ne_bot] {F : ι → M₁ →SL[σ₁₂] M₂} {f : M₁ →SL[σ₁₂] M₂}
+  (hf : tendsto F l (𝓝 f)) (hF : ∀ᶠ i in l, is_compact_operator (F i)) :
   is_compact_operator f :=
 is_closed_set_of_is_compact_operator.mem_of_tendsto hf hF

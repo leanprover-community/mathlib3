@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.modeq
-import data.nat.prime
+import data.nat.factors
 import algebra.parity
 
 /-!
@@ -78,6 +78,16 @@ even_iff_two_dvd.symm.not.trans not_even_iff
 
 instance : decidable_pred (even : ℕ → Prop) := λ n, decidable_of_iff _ even_iff.symm
 instance : decidable_pred (odd : ℕ → Prop) := λ n, decidable_of_iff _ odd_iff_not_even.symm
+
+theorem mod_two_add_add_odd_mod_two (m : ℕ) {n : ℕ} (hn : odd n) : m % 2 + (m + n) % 2 = 1 :=
+(even_or_odd m).elim (λ hm, by rw [even_iff.1 hm, odd_iff.1 (hm.add_odd hn)]) $
+  λ hm, by rw [odd_iff.1 hm, even_iff.1 (hm.add_odd hn)]
+
+@[simp] theorem mod_two_add_succ_mod_two (m : ℕ) : m % 2 + (m + 1) % 2 = 1 :=
+mod_two_add_add_odd_mod_two m odd_one
+
+@[simp] theorem succ_mod_two_add_mod_two (m : ℕ) : (m + 1) % 2 + m % 2 = 1 :=
+by rw [add_comm, mod_two_add_succ_mod_two]
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 

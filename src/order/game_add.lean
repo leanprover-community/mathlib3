@@ -10,7 +10,6 @@ import logic.relation
 # Game addition relation
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/645
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines, given relations `rα : α → α → Prop` and `rβ : β → β → Prop`, a relation

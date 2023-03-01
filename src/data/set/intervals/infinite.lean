@@ -52,7 +52,7 @@ instance [no_min_order α] {a : α} : infinite (Iic a) := no_min_order.infinite
 lemma Iic_infinite [no_min_order α] (a : α) : (Iic a).infinite := infinite_coe_iff.1 Iic.infinite
 
 instance [no_max_order α] {a : α} : infinite (Ioi a) := no_max_order.infinite
-lemma Ioi_infinite [no_min_order α] (a : α) : (Iio a).infinite := infinite_coe_iff.1 Iio.infinite
+lemma Ioi_infinite [no_max_order α] (a : α) : (Ioi a).infinite := infinite_coe_iff.1 Ioi.infinite
 
 instance [no_max_order α] {a : α} : infinite (Ici a) := no_max_order.infinite
 lemma Ici_infinite [no_max_order α] (a : α) : (Ici a).infinite := infinite_coe_iff.1 Ici.infinite

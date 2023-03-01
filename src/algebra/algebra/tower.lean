@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Anne Baanen
 -/
 
-import algebra.algebra.basic
+import algebra.algebra.equiv
 
 /-!
 # Towers of algebras
@@ -256,7 +256,7 @@ span_induction hx (λ x hx, let ⟨p, q, hp, hq, hpq⟩ := set.mem_smul.1 hx in
   (λ x y ihx ihy, by { rw smul_add, exact add_mem ihx ihy })
   (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
-theorem span_smul {s : set S} (hs : span R s = ⊤) (t : set A) :
+theorem span_smul_of_span_eq_top {s : set S} (hs : span R s = ⊤) (t : set A) :
   span R (s • t) = (span S t).restrict_scalars R :=
 le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul.1 hx in
   hpqx ▸ (span S t).smul_mem p (subset_span hqt)) $

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Module.basic
-import category_theory.linear.default
+import category_theory.linear.basic
 import category_theory.preadditive.yoneda
 
 /-!

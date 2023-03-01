@@ -292,7 +292,7 @@ def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
 
 @[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
-function.extend_apply hg.injective _ _ _
+hg.injective.extend_apply _ _ _
 
 @[simp] lemma extend_apply' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) {y : β} (h : ¬∃ x, g x = y) :
@@ -1662,6 +1662,10 @@ by rw [← lintegral_congr_ae (indicator_ae_eq_of_ae_eq_set hs.to_measurable_ae_
   lintegral_indicator _ (measurable_set_to_measurable _ _),
   measure.restrict_congr_set hs.to_measurable_ae_eq]
 
+lemma lintegral_indicator_const {s : set α} (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) a ∂μ = c * μ s :=
+by rw [lintegral_indicator _ hs, set_lintegral_const]
+
 lemma set_lintegral_eq_const {f : α → ℝ≥0∞} (hf : measurable f) (r : ℝ≥0∞) :
   ∫⁻ x in {x | f x = r}, f x ∂μ = r * μ {x | f x = r} :=
 begin
@@ -2160,6 +2164,12 @@ lemma set_lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α �
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
 by rw [restrict_map hg hs, lintegral_map hf hg]
 
+lemma lintegral_indicator_const_comp {mβ : measurable_space β}
+  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
+by rw [lintegral_comp (measurable_const.indicator hs) hf, lintegral_indicator_const hs,
+  measure.map_apply hf hs]
+
 /-- If `g : α → β` is a measurable embedding and `f : β → ℝ≥0∞` is any function (not necessarily
 measurable), then `∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ`. Compare with `lintegral_map` wich
 applies to any measurable `g : α → β` but requires that `f` is measurable as well. -/
@@ -2214,6 +2224,12 @@ lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν :
 by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
 
 section dirac_and_count
+
+@[priority 10]
+instance _root_.measurable_space.top.measurable_singleton_class {α : Type*} :
+  @measurable_singleton_class α (⊤ : measurable_space α) :=
+{ measurable_set_singleton := λ i, measurable_space.measurable_set_top, }
+
 variable [measurable_space α]
 
 lemma lintegral_dirac' (a : α) {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -2238,6 +2254,35 @@ begin
   rw [count, lintegral_sum_measure],
   congr,
   exact funext (λ a, lintegral_dirac a f),
+end
+
+lemma _root_.ennreal.tsum_const_eq [measurable_singleton_class α] (c : ℝ≥0∞) :
+  (∑' (i : α), c) = c * (measure.count (univ : set α)) :=
+by rw [← lintegral_count, lintegral_const]
+
+/-- Markov's inequality for the counting measure with hypothesis using `tsum` in `ℝ≥0∞`. -/
+lemma _root_.ennreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0∞} (a_mble : measurable a) {c : ℝ≥0∞} (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) (ε_ne_top : ε ≠ ∞) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw ← lintegral_count at tsum_le_c,
+  apply (measure_theory.meas_ge_le_lintegral_div a_mble.ae_measurable ε_ne_zero ε_ne_top).trans,
+  exact ennreal.div_le_div tsum_le_c rfl.le,
+end
+
+/-- Markov's inequality for counting measure with hypothesis using `tsum` in `ℝ≥0`. -/
+lemma _root_.nnreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0} (a_mble : measurable a) (a_summable : summable a)
+  {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw [show (λ i, ε ≤ a i) = (λ i, (ε : ℝ≥0∞) ≤ (coe ∘ a) i),
+        by { funext i, simp only [ennreal.coe_le_coe], }],
+  apply ennreal.count_const_le_le_of_tsum_le (measurable_coe_nnreal_ennreal.comp a_mble)
+          _ (by exact_mod_cast ε_ne_zero) (@ennreal.coe_ne_top ε),
+  convert ennreal.coe_le_coe.mpr tsum_le_c,
+  rw ennreal.tsum_coe_eq a_summable.has_sum,
 end
 
 end dirac_and_count

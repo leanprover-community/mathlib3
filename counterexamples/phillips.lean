@@ -532,7 +532,7 @@ begin
     ⊆ ⋃ y ∈ φ.to_bounded_additive_measure.discrete_support, {x | y ∈ spf Hcont x},
   { assume x hx,
     dsimp at hx,
-    rw [← ne.def, ne_empty_iff_nonempty] at hx,
+    rw [← ne.def, ←nonempty_iff_ne_empty] at hx,
     simp only [exists_prop, mem_Union, mem_set_of_eq],
     exact hx },
   apply countable.mono (subset.trans A B),

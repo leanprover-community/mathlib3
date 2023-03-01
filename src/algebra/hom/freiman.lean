@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.big_operators.multiset
+import algebra.big_operators.multiset.basic
 import data.fun_like.basic
 
 /-!
@@ -72,7 +72,7 @@ notation (name := freiman_hom) A ` →*[`:25 n:25 `] `:0 β:0 := freiman_hom A �
 /-- `add_freiman_hom_class F s β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`. -/
 class add_freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*)
-  [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
+  [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] : Prop :=
 (map_sum_eq_map_sum' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
   (htA : ∀ ⦃x⦄, x ∈ t → x ∈ A) (hs : s.card = n) (ht : t.card = n) (h : s.sum = t.sum) :
   (s.map f).sum = (t.map f).sum)
@@ -83,7 +83,7 @@ You should extend this class when you extend `freiman_hom`. -/
 "`add_freiman_hom_class F A β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`."]
 class freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*) [comm_monoid α]
-  [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
+  [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] : Prop :=
 (map_prod_eq_map_prod' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
   (htA : ∀ ⦃x⦄, x ∈ t → x ∈ A) (hs : s.card = n) (ht : t.card = n) (h : s.prod = t.prod) :
   (s.map f).prod = (t.map f).prod)
@@ -369,7 +369,7 @@ def freiman_hom.to_freiman_hom (h : m ≤ n) (f : A →*[n] β) : A →*[m] β :
 /-- A `n`-Freiman homomorphism is also a `m`-Freiman homomorphism for any `m ≤ n`. -/
 @[to_additive add_freiman_hom.add_freiman_hom_class_of_le "An additive `n`-Freiman homomorphism is
 also an additive `m`-Freiman homomorphism for any `m ≤ n`."]
-def freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ n) :
+lemma freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ n) :
   freiman_hom_class F A β m :=
 { map_prod_eq_map_prod' := λ f s t hsA htA hs ht hst,
     map_prod_eq_map_prod_of_le f hsA htA hs ht hst h }

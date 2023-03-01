@@ -124,19 +124,19 @@ noncomputable instance unique_nim_one_right_moves : unique (nim 1).right_moves :
 (equiv.cast $ right_moves_nim 1).unique
 
 @[simp] theorem default_nim_one_left_moves_eq :
-  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
 @[simp] theorem default_nim_one_right_moves_eq :
-  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
 @[simp] theorem to_left_moves_nim_one_symm (i) :
-  (@to_left_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+  (@to_left_moves_nim 1).symm i = ⟨0, zero_lt_one⟩ :=
 by simp
 
 @[simp] theorem to_right_moves_nim_one_symm (i) :
-  (@to_right_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+  (@to_right_moves_nim 1).symm i = ⟨0, zero_lt_one⟩ :=
 by simp
 
 theorem nim_one_move_left (x) : (nim 1).move_left x = nim 0 :=

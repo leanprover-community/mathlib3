@@ -205,7 +205,7 @@ begin
     { simp },
     { specialize IH (y :: l) h.of_cons _,
       { simpa [nat.succ_lt_succ_iff] using hn },
-      simp only [swap_apply_eq_iff, equiv.perm.coe_mul, form_perm_cons_cons, nth_le],
+      simp only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
       generalize_proofs at IH,
       rw [IH, swap_apply_of_ne_of_ne, nth_le];
       { rintro rfl,

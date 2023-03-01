@@ -289,22 +289,6 @@ end
 
 lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l₁ ∩ l₂) := nodup.filter _
 
-@[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
-⟨λ h, (h.sublist (map_ret_sublist_sublists _)).of_map _,
- λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 h.to_ne)⟩
-
-@[simp] theorem nodup_sublists' {l : list α} : nodup (sublists' l) ↔ nodup l :=
-by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
-       nodup_sublists, nodup_reverse]
-
-alias nodup_sublists ↔ nodup.of_sublists nodup.sublists
-alias nodup_sublists' ↔ nodup.of_sublists' nodup.sublists'
-
-attribute [protected] nodup.sublists nodup.sublists'
-
-lemma nodup_sublists_len (n : ℕ) (h : nodup l) : (sublists_len n l).nodup :=
-h.sublists'.sublist $ sublists_len_sublist_sublists' _ _
-
 lemma nodup.diff_eq_filter [decidable_eq α] :
   ∀ {l₁ l₂ : list α} (hl₁ : l₁.nodup), l₁.diff l₂ = l₁.filter (∉ l₂)
 | l₁ []      hl₁ := by simp

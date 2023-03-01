@@ -3,7 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández, Yaël Dillies. All rights 
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
-import algebra.order.hom.basic
+import tactic.positivity
 import data.real.nnreal
 
 /-!

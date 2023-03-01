@@ -282,6 +282,10 @@ de.to_dense_inducing.dense_image
 
 end dense_embedding
 
+lemma dense_embedding_id {α : Type*} [topological_space α] : dense_embedding (id : α → α) :=
+{ dense := dense_range_id,
+  .. embedding_id }
+
 lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
   dense_embedding (coe : s → α) :=
 { dense := hs.dense_range_coe,

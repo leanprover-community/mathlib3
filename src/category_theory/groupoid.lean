@@ -75,6 +75,12 @@ instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
 
 @[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
 
+instance functor_map_reverse {D : Type*} [groupoid D] (F : C ⥤ D) :
+  F.to_prefunctor.map_reverse :=
+{ map_reverse' := λ X Y f, by
+  simp only [quiver.reverse, quiver.has_reverse.reverse', groupoid.inv_eq_inv,
+               functor.to_prefunctor_map, functor.map_inv], }
+
 variables (X Y)
 
 /-- In a groupoid, isomorphisms are equivalent to morphisms. -/

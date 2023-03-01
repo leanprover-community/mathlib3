@@ -105,7 +105,7 @@ by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_char
   ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_cont_diff_bump.support_eq]
 
 lemma is_open_support : is_open (support f) :=
-by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
+by { rw support_eq_inter_preimage, exact is_open_ext_chart_at_preimage I c is_open_ball }
 
 lemma support_eq_symm_image :
   support f = (ext_chart_at I c).symm '' (ball (ext_chart_at I c c) f.R ∩ range I) :=
@@ -152,7 +152,7 @@ lemma eventually_eq_one_of_dist_lt (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) < f.r) :
   f =ᶠ[𝓝 x] 1 :=
 begin
-  filter_upwards [is_open.mem_nhds (ext_chart_preimage_open_of_open I c is_open_ball) ⟨hs, hd⟩],
+  filter_upwards [is_open.mem_nhds (is_open_ext_chart_at_preimage I c is_open_ball) ⟨hs, hd⟩],
   rintro z ⟨hzs, hzd : _ < _⟩,
   exact f.one_of_dist_le hzs hzd.le
 end
@@ -176,7 +176,7 @@ lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 lemma compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
 (euclidean.is_compact_closed_ball.inter_right I.closed_range).image_of_continuous_on $
-  (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
+  (continuous_on_ext_chart_at_symm _ _).mono f.closed_ball_subset
 
 /-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is
 known to include the support of `f`. These closed balls (in the model normed space `E`) intersected
@@ -198,7 +198,7 @@ lemma is_closed_image_of_is_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ s
 begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
   refine continuous_on.preimage_closed_of_closed
-    ((ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
+    ((continuous_on_ext_chart_at_symm _ _).mono f.closed_ball_subset) _ hsc,
   exact is_closed.inter is_closed_closed_ball I.closed_range
 end
 
@@ -273,7 +273,7 @@ lemma nhds_basis_tsupport :
 begin
   have : (𝓝 c).has_basis (λ f : smooth_bump_function I c, true)
     (λ f, (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)),
-  { rw [← ext_chart_at_symm_map_nhds_within_range I c],
+  { rw [← map_ext_chart_at_symm_nhds_within_range I c],
     exact nhds_within_range_basis.map _ },
   refine this.to_has_basis' (λ f hf, ⟨f, trivial, f.tsupport_subset_symm_image_closed_ball⟩)
     (λ f _, f.tsupport_mem_nhds),

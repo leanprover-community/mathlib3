@@ -365,7 +365,7 @@ begin
     cases b;
     exact orthogonal.complete_space K <|> assumption },
   refine is_hilbert_sum.mk_internal _ K.orthogonal_family_self _,
-  refine le_trans _ (submodule.submodule_topological_closure _),
+  refine le_trans _ (submodule.le_topological_closure _),
   rw [supr_bool_eq, cond, cond],
   refine codisjoint.top_le _,
   exact submodule.is_compl_orthogonal_of_complete_space.codisjoint

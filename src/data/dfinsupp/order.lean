@@ -119,7 +119,7 @@ variables (α) [Π i, canonically_ordered_add_monoid (α i)]
 
 instance : order_bot (Π₀ i, α i) :=
 { bot := 0,
-  bot_le := by simp only [le_def, dfinsupp.coe_zero, pi.zero_apply, implies_true_iff, zero_le] }
+  bot_le := by simp only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le] }
 
 variables {α}
 

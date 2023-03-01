@@ -208,6 +208,10 @@ by simp [← to_matrix_eq_to_matrix']
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
+@[simp] lemma det_to_lin' (f : matrix ι ι R) :
+  linear_map.det (f.to_lin') = f.det :=
+by simp only [← to_lin_eq_to_lin', det_to_lin]
+
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]
 lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)

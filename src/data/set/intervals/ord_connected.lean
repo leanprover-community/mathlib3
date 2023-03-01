@@ -9,6 +9,9 @@ import data.set.lattice
 /-!
 # Order-connected sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
 interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
 the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α` is a

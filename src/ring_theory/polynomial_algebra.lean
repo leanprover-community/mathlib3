@@ -58,8 +58,8 @@ begin
   dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
   rw finset.smul_sum,
   congr' with i : 1,
-  rw [←algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
-    ←algebra.smul_def, smul_monomial],
+  rw [← algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
+      ← algebra.smul_def, smul_monomial],
 end
 
 /--
@@ -159,7 +159,7 @@ begin
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def, smul_tmul, sum_def, ←tmul_sum],
-    conv_rhs { rw [←sum_C_mul_X_eq p], },
+    conv_rhs { rw [←sum_C_mul_X_pow_eq p], },
     simp only [algebra.smul_def],
     refl, },
   { intros p q hp hq,
@@ -245,7 +245,7 @@ begin
   convert eval₂_monomial _ _,
   simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
-  rw [monomial_eq_smul_X, ← tensor_product.smul_tmul],
+  rw [← smul_X_eq_monomial, ← tensor_product.smul_tmul],
   congr' with i' j'; simp
 end
 

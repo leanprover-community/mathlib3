@@ -160,6 +160,16 @@ protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
 protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.injective
 
+/-- Bijective affine maps are affine isomorphisms. -/
+@[simps]
+noncomputable def of_bijective {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) : P₁ ≃ᵃ[k] P₂ :=
+{ linear := linear_equiv.of_bijective φ.linear (φ.linear_bijective_iff.mpr hφ),
+  map_vadd' := φ.map_vadd,
+  ..(equiv.of_bijective _ hφ) }
+
+lemma of_bijective.symm_eq {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) :
+  (of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
+
 @[simp] lemma range_eq (e : P₁ ≃ᵃ[k] P₂) : range e = univ := e.surjective.range_eq
 
 @[simp] lemma apply_symm_apply (e : P₁ ≃ᵃ[k] P₂) (p : P₂) : e (e.symm p) = p :=

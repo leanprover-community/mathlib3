@@ -10,6 +10,9 @@ import data.int.cast.basic
 /-!
 # Lifting algebraic data classes along injective/surjective maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides definitions that are meant to deal with
 situations such as the following:
 

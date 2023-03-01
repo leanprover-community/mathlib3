@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import algebra.ne_zero
 import algebra.order.with_zero
 import order.rel_iso.basic
-import data.nat.order.lemmas
+import data.nat.order.basic
 import order.hom.set
 
 /-!
@@ -777,6 +777,10 @@ ext rfl
   cast h (cast_add m' i) = cast_add m i :=
 ext rfl
 
+lemma cast_add_cast_add {m n p : ℕ} (i : fin m) :
+  cast_add p (cast_add n i) = cast (add_assoc _ _ _).symm (cast_add (n + p) i) :=
+ext rfl
+
 /-- The cast of the successor is the succesor of the cast. See `fin.succ_cast_eq` for rewriting in
 the reverse direction. -/
 @[simp] lemma cast_succ_eq {n' : ℕ} (i : fin n) (h : n.succ = n'.succ) :
@@ -940,6 +944,18 @@ ext rfl
 @[simp] lemma cast_nat_add_left {n m m' : ℕ} (i : fin n) (h : m' + n = m + n) :
   cast h (nat_add m' i) = nat_add m i :=
 ext $ (congr_arg (+ (i : ℕ)) (add_right_cancel h) : _)
+
+lemma cast_add_nat_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  cast_add p (nat_add m i) = cast (add_assoc _ _ _).symm (nat_add m (cast_add p i)) :=
+ext rfl
+
+lemma nat_add_cast_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  nat_add m (cast_add p i) = cast (add_assoc _ _ _) (cast_add p (nat_add m i)) :=
+ext rfl
+
+lemma nat_add_nat_add (m n : ℕ) {p : ℕ} (i : fin p) :
+  nat_add m (nat_add n i) = cast (add_assoc _ _ _) (nat_add (m + n) i) :=
+ext $ (add_assoc _ _ _).symm
 
 @[simp] lemma cast_nat_add_zero {n n' : ℕ} (i : fin n) (h : 0 + n = n') :
   cast h (nat_add 0 i) = cast ((zero_add _).symm.trans h) i :=
@@ -1221,7 +1237,7 @@ end
 
 /-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = fin.last n` and
 `i = j.cast_succ`, `j : fin n`. -/
-@[elab_as_eliminator, elab_strategy]
+@[elab_as_eliminator]
 def last_cases {n : ℕ} {C : fin (n + 1) → Sort*}
   (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin (n + 1)) : C i :=
 reverse_induction hlast (λ i _, hcast i) i
@@ -1238,7 +1254,7 @@ reverse_induction_cast_succ _ _ _
 
 /-- Define `f : Π i : fin (m + n), C i` by separately handling the cases `i = cast_add n i`,
 `j : fin m` and `i = nat_add m j`, `j : fin n`. -/
-@[elab_as_eliminator, elab_strategy]
+@[elab_as_eliminator]
 def add_cases {m n : ℕ} {C : fin (m + n) → Sort u}
   (hleft : Π i, C (cast_add n i))
   (hright : Π i, C (nat_add m i)) (i : fin (m + n)) : C i :=
@@ -1247,7 +1263,7 @@ else eq.rec_on (nat_add_sub_nat_cast (le_of_not_lt hi)) (hright _)
 
 @[simp] lemma add_cases_left {m n : ℕ} {C : fin (m + n) → Sort*}
   (hleft : Π i, C (cast_add n i)) (hright : Π i, C (nat_add m i)) (i : fin m) :
-  add_cases hleft hright (fin.cast_add n i) = hleft i :=
+  @add_cases _ _ C hleft hright (fin.cast_add n i) = hleft i :=
 begin
   cases i with i hi,
   rw [add_cases, dif_pos (cast_add_lt _ _)],
@@ -1256,7 +1272,7 @@ end
 
 @[simp] lemma add_cases_right {m n : ℕ} {C : fin (m + n) → Sort*}
   (hleft : Π i, C (cast_add n i)) (hright : Π i, C (nat_add m i)) (i : fin n) :
-  add_cases hleft hright (nat_add m i) = hright i :=
+  @add_cases _ _ C hleft hright (nat_add m i) = hright i :=
 begin
   have : ¬ (nat_add m i : ℕ) < m, from (le_coe_nat_add _ _).not_lt,
   rw [add_cases, dif_neg this],

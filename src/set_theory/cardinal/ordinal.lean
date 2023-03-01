@@ -509,6 +509,9 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+lemma mul_le_max_of_aleph_0_le_right {a b : cardinal} (h : ℵ₀ ≤ b) : a * b ≤ max a b :=
+by simpa only [mul_comm, max_comm] using mul_le_max_of_aleph_0_le_left h
+
 lemma mul_eq_max_of_aleph_0_le_right {a b : cardinal} (h' : a ≠ 0) (h : ℵ₀ ≤ b) : a * b = max a b :=
 begin
   rw [mul_comm, max_comm],

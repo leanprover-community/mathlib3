@@ -174,7 +174,7 @@ end
 begin
   ext1,
   dsimp [RingedSpace.basic_open],
-  rw set.image_inter subtype.coe_injective,
+  rw ←set.image_inter subtype.coe_injective,
   congr,
   ext,
   simp_rw map_mul,

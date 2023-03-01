@@ -9,7 +9,6 @@ import order.synonym
 # Minimal/maximal and bottom/top elements
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/567
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines predicates for elements to be minimal/maximal or bottom/top and typeclasses

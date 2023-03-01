@@ -10,6 +10,9 @@ import group_theory.group_action.units
 /-!
 # Further lemmas about units in a `monoid_with_zero` or a `group_with_zero`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 variables {α M₀ G₀ M₀' G₀' F F' : Type*}
@@ -154,16 +157,6 @@ begin
 end
 
 @[simp] lemma map_div₀ : f (a / b) = f a / f b := map_div' f (map_inv₀ f) a b
-
-@[simp]
-lemma coe_inv₀ [has_lift_t G₀ G₀'] [coe_is_monoid_with_zero_hom G₀ G₀']
-  (a : G₀) : ↑(a⁻¹) = (↑a : G₀')⁻¹ :=
-map_inv₀ (monoid_with_zero_hom.coe G₀ G₀') a
-
-@[simp]
-lemma coe_div₀ [has_lift_t G₀ G₀'] [coe_is_monoid_with_zero_hom G₀ G₀']
-  (a b : G₀) : ↑(a / b) = (↑a : G₀') / ↑b :=
-map_div₀ (monoid_with_zero_hom.coe G₀ G₀') a b
 
 end group_with_zero
 

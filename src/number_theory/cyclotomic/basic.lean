@@ -530,27 +530,17 @@ char_zero_of_injective_algebra_map ((algebra_map K _).injective)
 
 instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
-{ exists_prim_root := λ a han,
-  begin
-    rw mem_singleton_iff at han,
-    subst a,
-    obtain ⟨r, hr⟩ := exists_root_of_splits (algebra_map K (cyclotomic_field n K))
-      (splitting_field.splits _) (degree_cyclotomic_pos n K (n.pos)).ne',
-    refine ⟨r, _⟩,
-    haveI := ne_zero.of_no_zero_smul_divisors K (cyclotomic_field n K) n,
-    rwa [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hr
-  end,
-  adjoin_roots :=
-  begin
-    rw [←algebra.eq_top_iff, ←splitting_field.adjoin_roots, eq_comm],
-    letI := classical.dec_eq (cyclotomic_field n K),
-    obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
-      (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
-      ne_zero.nat_of_injective (algebra_map K _).injective,
-    rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
-    exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
-  end }
+begin
+  haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
+    ne_zero.nat_of_injective (algebra_map K _).injective,
+  letI := classical.dec_eq (cyclotomic_field n K),
+  obtain ⟨ζ, hζ⟩ := exists_root_of_splits (algebra_map K (cyclotomic_field n K))
+    (splitting_field.splits _) (degree_cyclotomic_pos n K n.pos).ne',
+  rw [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hζ,
+  refine ⟨forall_eq.2 ⟨ζ, hζ⟩, _⟩,
+  rw [←algebra.eq_top_iff, ←splitting_field.adjoin_roots, eq_comm],
+  exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
+end
 
 end cyclotomic_field
 

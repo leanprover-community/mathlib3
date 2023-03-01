@@ -347,15 +347,15 @@ unique_diff_within_at.mono h $ inter_subset_inter (preimage_mono st) (subset.ref
 lemma unique_mdiff_within_at.inter' (hs : unique_mdiff_within_at I s x) (ht : t ∈ 𝓝[s] x) :
   unique_mdiff_within_at I (s ∩ t) x :=
 begin
-  rw [unique_mdiff_within_at, ext_chart_preimage_inter_eq],
-  exact unique_diff_within_at.inter' hs (ext_chart_preimage_mem_nhds_within I x ht)
+  rw [unique_mdiff_within_at, ext_chart_at_preimage_inter_eq],
+  exact unique_diff_within_at.inter' hs (ext_chart_at_preimage_mem_nhds_within I x ht)
 end
 
 lemma unique_mdiff_within_at.inter (hs : unique_mdiff_within_at I s x) (ht : t ∈ 𝓝 x) :
   unique_mdiff_within_at I (s ∩ t) x :=
 begin
-  rw [unique_mdiff_within_at, ext_chart_preimage_inter_eq],
-  exact unique_diff_within_at.inter hs (ext_chart_preimage_mem_nhds I x ht)
+  rw [unique_mdiff_within_at, ext_chart_at_preimage_inter_eq],
+  exact unique_diff_within_at.inter hs (ext_chart_at_preimage_mem_nhds I x ht)
 end
 
 lemma is_open.unique_mdiff_within_at (xs : x ∈ s) (hs : is_open s) : unique_mdiff_within_at I s x :=
@@ -468,17 +468,17 @@ end
 lemma has_mfderiv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_mfderiv_within_at I I' f (s ∩ t) x f' ↔ has_mfderiv_within_at I I' f s x f' :=
 begin
-  rw [has_mfderiv_within_at, has_mfderiv_within_at, ext_chart_preimage_inter_eq,
+  rw [has_mfderiv_within_at, has_mfderiv_within_at, ext_chart_at_preimage_inter_eq,
       has_fderiv_within_at_inter', continuous_within_at_inter' h],
-  exact ext_chart_preimage_mem_nhds_within I x h,
+  exact ext_chart_at_preimage_mem_nhds_within I x h,
 end
 
 lemma has_mfderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_mfderiv_within_at I I' f (s ∩ t) x f' ↔ has_mfderiv_within_at I I' f s x f' :=
 begin
-  rw [has_mfderiv_within_at, has_mfderiv_within_at, ext_chart_preimage_inter_eq,
+  rw [has_mfderiv_within_at, has_mfderiv_within_at, ext_chart_at_preimage_inter_eq,
       has_fderiv_within_at_inter, continuous_within_at_inter h],
-  exact ext_chart_preimage_mem_nhds I x h,
+  exact ext_chart_at_preimage_mem_nhds I x h,
 end
 
 lemma has_mfderiv_within_at.union
@@ -564,17 +564,17 @@ by simp only [mdifferentiable_within_at, mdifferentiable_at, continuous_within_a
 lemma mdifferentiable_within_at_inter (ht : t ∈ 𝓝 x) :
   mdifferentiable_within_at I I' f (s ∩ t) x ↔ mdifferentiable_within_at I I' f s x :=
 begin
-  rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_preimage_inter_eq,
+  rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_at_preimage_inter_eq,
       differentiable_within_at_inter, continuous_within_at_inter ht],
-  exact ext_chart_preimage_mem_nhds I x ht
+  exact ext_chart_at_preimage_mem_nhds I x ht
 end
 
 lemma mdifferentiable_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   mdifferentiable_within_at I I' f (s ∩ t) x ↔ mdifferentiable_within_at I I' f s x :=
 begin
-  rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_preimage_inter_eq,
+  rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_at_preimage_inter_eq,
       differentiable_within_at_inter', continuous_within_at_inter' ht],
-  exact ext_chart_preimage_mem_nhds_within I x ht
+  exact ext_chart_at_preimage_mem_nhds_within I x ht
 end
 
 lemma mdifferentiable_at.mdifferentiable_within_at
@@ -619,8 +619,9 @@ end
 
 lemma mfderiv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_mdiff_within_at I s x) :
   mfderiv_within I I' f (s ∩ t) x = mfderiv_within I I' f s x :=
-by rw [mfderiv_within, mfderiv_within, ext_chart_preimage_inter_eq,
-  mdifferentiable_within_at_inter ht, fderiv_within_inter (ext_chart_preimage_mem_nhds I x ht) hs]
+by rw [mfderiv_within, mfderiv_within, ext_chart_at_preimage_inter_eq,
+  mdifferentiable_within_at_inter ht,
+  fderiv_within_inter (ext_chart_at_preimage_mem_nhds I x ht) hs]
 
 lemma mdifferentiable_at_iff_of_mem_source {x' : M} {y : M'}
   (hx : x' ∈ (charted_space.chart_at H x).source)
@@ -705,7 +706,7 @@ begin
   apply has_fderiv_within_at.congr_of_eventually_eq h.2,
   { have : (ext_chart_at I x).symm ⁻¹' {y | f₁ y = f y} ∈
       𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
-      ext_chart_preimage_mem_nhds_within I x h₁,
+      ext_chart_at_preimage_mem_nhds_within I x h₁,
     apply filter.mem_of_superset this (λy, _),
     simp only [hx] with mfld_simps {contextual := tt} },
   { simp only [hx] with mfld_simps },
@@ -816,7 +817,7 @@ lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
 begin
   apply @filter.mem_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
-    (ext_chart_preimage_mem_nhds_within I x
+    (ext_chart_at_preimage_mem_nhds_within I x
       (h.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
   mfld_set_tac,
 end
@@ -837,10 +838,10 @@ begin
     ((ext_chart_at I x) x),
   { have : (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x)).source)
     ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
-      (ext_chart_preimage_mem_nhds_within I x
+      (ext_chart_at_preimage_mem_nhds_within I x
         (hf.1.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
     unfold has_mfderiv_within_at at *,
-    rw [← has_fderiv_within_at_inter' this, ← ext_chart_preimage_inter_eq] at hf ⊢,
+    rw [← has_fderiv_within_at_inter' this, ← ext_chart_at_preimage_inter_eq] at hf ⊢,
     have : written_in_ext_chart_at I I' x f ((ext_chart_at I x) x)
         = (ext_chart_at I' (f x)) (f x),
       by simp only with mfld_simps,
@@ -1283,7 +1284,7 @@ lemma has_mfderiv_at.neg (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') :
 
 lemma mdifferentiable_at.neg (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) :
   mdifferentiable_at I 𝓘(𝕜, E') (-f) z :=
-(hf.has_mfderiv_at.neg ).mdifferentiable_at
+hf.has_mfderiv_at.neg.mdifferentiable_at
 
 lemma mdifferentiable.neg {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f) :
   mdifferentiable I 𝓘(𝕜, E') (-f) :=

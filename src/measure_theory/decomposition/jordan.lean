@@ -250,7 +250,7 @@ lemma subset_negative_null_set
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   have := subset_positive_null_set hu hv hw hsu,
-  simp only [pi.neg_apply, neg_eq_zero, vector_measure.coe_neg] at this,
+  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
   exact this hw₁ hw₂ hwt,
 end
 
@@ -281,7 +281,7 @@ begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
   have := of_diff_eq_zero_of_symm_diff_eq_zero_positive hu hv hsu hsv,
-  simp only [pi.neg_apply, neg_eq_zero, vector_measure.coe_neg] at this,
+  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
   exact this hs,
 end
 
@@ -310,7 +310,7 @@ begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
   have := of_inter_eq_of_symm_diff_eq_zero_positive hu hv hw hsu hsv,
-  simp only [pi.neg_apply, neg_inj, neg_eq_zero, vector_measure.coe_neg] at this,
+  simp only [pi.neg_apply, neg_inj, neg_eq_zero, coe_neg] at this,
   exact this hs,
 end
 

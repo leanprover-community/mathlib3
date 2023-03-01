@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jesse Reimann, Kalle Kytölä
 -/
 import topology.continuous_function.bounded
+import topology.sets.compacts
 
 /-!
 #  Riesz–Markov–Kakutani representation theorem

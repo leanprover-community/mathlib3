@@ -3,7 +3,9 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import tactic.congr
 import tactic.protected
+import tactic.rcases
 import tactic.split_ifs
 import logic.basic
 
@@ -11,7 +13,6 @@ import logic.basic
 # More basic logic properties
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/537
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A few more logic lemmas. These are in their own file, rather than `logic.basic`, because it is
@@ -63,3 +64,9 @@ dite_dite_distrib_left
 
 lemma ite_ite_distrib_right : ite p (ite q a b) c = ite q (ite p a c) (ite p b c) :=
 dite_dite_distrib_right
+
+lemma Prop.forall {f : Prop → Prop} : (∀ p, f p) ↔ f true ∧ f false :=
+⟨λ h, ⟨h _, h _⟩, by { rintro ⟨h₁, h₀⟩ p, by_cases hp : p; simp only [hp]; assumption }⟩
+
+lemma Prop.exists {f : Prop → Prop} : (∃ p, f p) ↔ f true ∨ f false :=
+⟨λ ⟨p, h⟩, by refine (em p).imp _ _; intro H; convert h; simp [H], by rintro (h | h); exact ⟨_, h⟩⟩

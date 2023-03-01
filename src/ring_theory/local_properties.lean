@@ -417,7 +417,7 @@ begin
     by simp_rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul],
   rw [← e, this] at hx₁,
   replace hx₁ := congr_arg (submodule.span R) hx₁,
-  rw submodule.span_smul_eq at hx₁,
+  rw submodule.span_smul at hx₁,
   replace hx : _ ∈ y' • submodule.span R (s : set S') := set.smul_mem_smul_set hx,
   rw hx₁ at hx,
   erw [← g.map_smul, ← submodule.map_span (g : S →ₗ[R] S')] at hx,

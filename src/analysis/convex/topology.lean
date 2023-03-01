@@ -274,7 +274,7 @@ begin
   have hne : t ≠ 0, from (one_pos.trans ht).ne',
   refine ⟨homothety x t⁻¹ y, hs.open_segment_interior_closure_subset_interior hx hy _,
     (affine_equiv.homothety_units_mul_hom x (units.mk0 t hne)).apply_symm_apply y⟩,
-  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (@one_pos ℝ _ _), ← image_inv,
+  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (zero_lt_one' ℝ), ← image_inv,
     image_image, homothety_eq_line_map],
   exact mem_image_of_mem _ ht
 end

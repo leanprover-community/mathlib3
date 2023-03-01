@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
 import topology.uniform_space.uniform_convergence
+import topology.uniform_space.equicontinuity
 import topology.separation
 
 /-!
@@ -178,7 +179,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
 ### Heine-Cantor theorem
 -/
 
-/-- Heine-Cantor: a continuous function on a compact separated uniform space is uniformly
+/-- Heine-Cantor: a continuous function on a compact uniform space is uniformly
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
@@ -201,6 +202,40 @@ begin
   exact compact_space.uniform_continuous_of_continuous hf,
 end
 
+/-- If `s` is compact and `f` is continuous at all points of `s`, then `f` is
+"uniformly continuous at the set `s`", i.e. `f x` is close to `f y` whenever `x ∈ s` and `y` is
+close to `x` (even if `y` is not itself in `s`, so this is a stronger assertion than
+`uniform_continuous_on s`). -/
+lemma is_compact.uniform_continuous_at_of_continuous_at {r : set (β × β)} {s : set α}
+  (hs : is_compact s) (f : α → β) (hf : ∀ a ∈ s, continuous_at f a) (hr : r ∈ 𝓤 β) :
+  {x : α × α | x.1 ∈ s → (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
+begin
+  obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
+  choose U hU T hT hb using λ a ha, exists_mem_nhds_ball_subset_of_mem_nhds
+    ((hf a ha).preimage_mem_nhds $ mem_nhds_left _ ht),
+  obtain ⟨fs, hsU⟩ := hs.elim_nhds_subcover' U hU,
+  apply mem_of_superset ((bInter_finset_mem fs).2 $ λ a _, hT a a.2),
+  rintro ⟨a₁, a₂⟩ h h₁,
+  obtain ⟨a, ha, haU⟩ := set.mem_Union₂.1 (hsU h₁),
+  apply htr,
+  refine ⟨f a, htsymm.mk_mem_comm.1 (hb _ _ _ haU _), hb _ _ _ haU _⟩,
+  exacts [mem_ball_self _ (hT a a.2), mem_Inter₂.1 h a ha],
+end
+
+lemma continuous.uniform_continuous_of_zero_at_infty {f : α → β} [has_zero β]
+  (h_cont : continuous f) (h_zero : tendsto f (cocompact α) (𝓝 0)) : uniform_continuous f :=
+uniform_continuous_def.2 $ λ r hr, begin
+  obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
+  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (h_zero $ mem_nhds_left 0 ht),
+  apply mem_of_superset (symmetrize_mem_uniformity $ hs.uniform_continuous_at_of_continuous_at
+    f (λ _ _, h_cont.continuous_at) $ symmetrize_mem_uniformity hr),
+  rintro ⟨b₁, b₂⟩ h,
+  by_cases h₁ : b₁ ∈ s, { exact (h.1 h₁).1 },
+  by_cases h₂ : b₂ ∈ s, { exact (h.2 h₂).2 },
+  apply htr,
+  exact ⟨0, htsymm.mk_mem_comm.1 (hst h₁), hst h₂⟩,
+end
+
 /-- A family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is locally compact,
 `β` is compact and `f` is continuous on `U × (univ : set β)` for some neighborhood `U` of `x`. -/
 lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space β]
@@ -220,3 +255,18 @@ locally compact and `β` is compact. -/
 lemma continuous.tendsto_uniformly [locally_compact_space α] [compact_space β] [uniform_space γ]
   (f : α → β → γ) (h : continuous ↿f) (x : α) : tendsto_uniformly f (f x) (𝓝 x) :=
 h.continuous_on.tendsto_uniformly univ_mem
+
+section uniform_convergence
+
+/-- An equicontinuous family of functions defined on a compact uniform space is automatically
+uniformly equicontinuous. -/
+lemma compact_space.uniform_equicontinuous_of_equicontinuous {ι : Type*} {F : ι → β → α}
+  [compact_space β] (h : equicontinuous F) :
+  uniform_equicontinuous F :=
+begin
+  rw equicontinuous_iff_continuous at h,
+  rw uniform_equicontinuous_iff_uniform_continuous,
+  exact compact_space.uniform_continuous_of_continuous h
+end
+
+end uniform_convergence

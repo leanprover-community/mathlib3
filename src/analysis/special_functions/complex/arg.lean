@@ -169,7 +169,7 @@ end
 by simp [arg, zero_le_one]
 
 @[simp] lemma arg_neg_one : arg (-1) = π :=
-by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _ _)]
+by simp [arg, le_refl, not_le.2 (zero_lt_one' ℝ)]
 
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]

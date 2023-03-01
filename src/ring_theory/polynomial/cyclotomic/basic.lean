@@ -881,7 +881,7 @@ begin
     rw [polynomial.map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
     refine is_coprime.mul_dvd (cyclotomic.is_coprime_rat (λ h, _)) _ _,
     { replace h : n * p = n * 1 := by simp [h],
-      exact nat.prime.ne_one hp (nat.eq_of_mul_eq_mul_left hnpos h) },
+      exact nat.prime.ne_one hp (mul_left_cancel₀ hnpos.ne' h) },
     { have hpos : 0 < n * p := mul_pos hnpos hp.pos,
       have hprim := complex.is_primitive_root_exp _ hpos.ne',
       rw [cyclotomic_eq_minpoly_rat hprim hpos],
@@ -1014,7 +1014,7 @@ begin
     rw [cyclotomic_mul_prime_pow_eq R (ne_zero.not_char_dvd R p m) hk,
         is_root.def, eval_pow, h, zero_pow],
     simp only [tsub_pos_iff_lt],
-    apply strict_mono_pow hp.out.one_lt (nat.pred_lt hk.ne') }
+    apply pow_strict_mono_right hp.out.one_lt (nat.pred_lt hk.ne') }
 end
 
 end char_p

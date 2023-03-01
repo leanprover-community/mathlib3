@@ -78,7 +78,7 @@ end
 
 @[simp] lemma continuous_at_inv {𝕜 : Type*} [nontrivially_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
-by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
+by simpa [(zero_lt_one' ℤ).not_le] using @continuous_at_zpow _ _ (-1) x
 
 end normed_field
 

@@ -583,7 +583,9 @@ end complete_lattice_hom
 
 namespace complete_lattice_hom
 
-/-- `set.preimage` as a complete lattice homomorphism. -/
+/-- `set.preimage` as a complete lattice homomorphism.
+
+See also `Sup_hom.set_image`. -/
 def set_preimage (f : α → β) : complete_lattice_hom (set β) (set α) :=
 { to_fun := preimage f,
   map_Sup' := λ s, preimage_sUnion.trans $ by simp only [set.Sup_eq_sUnion, set.sUnion_image],
@@ -597,3 +599,30 @@ lemma set_preimage_comp (g : β → γ) (f : α → β) :
   set_preimage (g ∘ f) = (set_preimage f).comp (set_preimage g) := rfl
 
 end complete_lattice_hom
+
+lemma set.image_Sup {f : α → β} (s : set (set α)) :
+  f '' Sup s = Sup (image f '' s) :=
+begin
+  ext b,
+  simp only [Sup_eq_sUnion, mem_image, mem_sUnion, exists_prop, sUnion_image, mem_Union],
+  split,
+  { rintros ⟨a, ⟨t, ht₁, ht₂⟩, rfl⟩, exact ⟨t, ht₁, a, ht₂, rfl⟩, },
+  { rintros ⟨t, ht₁, a, ht₂, rfl⟩, exact ⟨a, ⟨t, ht₁, ht₂⟩, rfl⟩, },
+end
+
+/-- Using `set.image`, a function between types yields a `Sup_hom` between their lattices of
+subsets.
+
+See also `complete_lattice_hom.set_preimage`. -/
+@[simps] def Sup_hom.set_image (f : α → β) : Sup_hom (set α) (set β) :=
+{ to_fun := image f,
+  map_Sup' := set.image_Sup }
+
+/-- An equivalence of types yields an order isomorphism between their lattices of subsets. -/
+@[simps] def equiv.to_order_iso_set (e : α ≃ β) : set α ≃o set β :=
+{ to_fun  := image e,
+  inv_fun := image e.symm,
+  left_inv  := λ s, by simp only [← image_comp, equiv.symm_comp_self, id.def, image_id'],
+  right_inv := λ s, by simp only [← image_comp, equiv.self_comp_symm, id.def, image_id'],
+  map_rel_iff' :=
+    λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }

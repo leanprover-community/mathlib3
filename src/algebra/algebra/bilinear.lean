@@ -165,18 +165,27 @@ variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
 
 lemma mul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (mul_left R x) :=
-by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_right_injective₀ hx }
+begin
+  letI : nontrivial A := ⟨⟨x, 0, hx⟩⟩,
+  letI := no_zero_divisors.to_is_domain A,
+  exact mul_right_injective₀ hx,
+end
 
 lemma mul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (mul_right R x) :=
-by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_left_injective₀ hx }
+begin
+  letI : nontrivial A := ⟨⟨x, 0, hx⟩⟩,
+  letI := no_zero_divisors.to_is_domain A,
+  exact mul_left_injective₀ hx,
+end
 
 lemma mul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (mul R A x) :=
-by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_right_injective₀ hx }
+begin
+  letI : nontrivial A := ⟨⟨x, 0, hx⟩⟩,
+  letI := no_zero_divisors.to_is_domain A,
+  exact mul_right_injective₀ hx,
+end
 
 end ring
 

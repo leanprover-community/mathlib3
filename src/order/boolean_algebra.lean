@@ -8,6 +8,9 @@ import order.heyting.basic
 /-!
 # (Generalized) Boolean algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Boolean algebra is a bounded distributive lattice with a complement operator. Boolean algebras
 generalize the (classical) logic of propositions and the lattice of subsets of a set.
 

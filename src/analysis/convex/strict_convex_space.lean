@@ -234,7 +234,7 @@ by simp only [mem_segment_iff_same_ray, same_ray_iff_norm_add, dist_eq_norm',
 
 lemma norm_midpoint_lt_iff (h : ‖x‖ = ‖y‖) : ‖(1/2 : ℝ) • (x + y)‖ < ‖x‖ ↔ x ≠ y :=
 by rw [norm_smul, real.norm_of_nonneg (one_div_nonneg.2 zero_le_two), ←inv_eq_one_div,
-    ←div_eq_inv_mul, div_lt_iff (@zero_lt_two ℝ _ _), mul_two, ←not_same_ray_iff_of_norm_eq h,
+    ←div_eq_inv_mul, div_lt_iff (zero_lt_two' ℝ), mul_two, ←not_same_ray_iff_of_norm_eq h,
     not_same_ray_iff_norm_add_lt, h]
 
 variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]

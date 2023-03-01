@@ -7,9 +7,6 @@ apply_nolint free_algebra.semiring check_reducibility
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 
--- category_theory/limits/shapes/finite_products.lean
-apply_nolint category_theory.limits.has_fintype_coproducts fintype_finite
-
 -- computability/partrec.lean
 apply_nolint computable doc_blame
 apply_nolint computable₂ doc_blame
@@ -131,9 +128,6 @@ apply_nolint tactic.interactive.traversable_law_starter doc_blame
 apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
-
--- data/finsupp/pwo.lean
-apply_nolint finsupp.is_pwo fintype_finite
 
 -- data/fintype/card_embedding.lean
 apply_nolint fintype.card_embedding_eq_of_infinite fintype_finite
@@ -353,13 +347,6 @@ apply_nolint stream.is_bisimulation doc_blame
 
 -- geometry/euclidean/circumcenter.lean
 apply_nolint affine_independent.exists_unique_dist_eq fintype_finite
-
--- geometry/manifold/whitney_embedding.lean
-apply_nolint smooth_bump_covering.exists_immersion_euclidean fintype_finite
-
--- group_theory/coset.lean
-apply_nolint add_subgroup.card_quotient_dvd_card fintype_finite
-apply_nolint subgroup.card_quotient_dvd_card fintype_finite
 
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly

@@ -6,7 +6,7 @@ Authors: Yakov Pechersky
 import algebra.big_operators.basic
 import data.list.min_max
 import algebra.tropical.basic
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.finset
 
 /-!
 

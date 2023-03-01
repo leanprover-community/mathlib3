@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.set.intervals.basic
+import data.set.n_ary
 
 /-!
 
 # Upper / lower bounds
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define:
 
@@ -622,7 +626,7 @@ lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) := @is_glb
 
 lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
 let ⟨a', ha'⟩ := exists_lt a in
-ne_empty_iff_nonempty.1 $ λ h, not_le_of_lt ha' $ hs.right $ by simp only [h, upper_bounds_empty]
+nonempty_iff_ne_empty.2 $ λ h, not_le_of_lt ha' $ hs.right $ by simp only [h, upper_bounds_empty]
 
 lemma is_glb.nonempty [no_max_order α] (hs : is_glb s a) : s.nonempty := hs.dual.nonempty
 

@@ -7,6 +7,9 @@ import algebra.group_power.lemmas
 
 /-!  # Squares, even and odd elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some general facts about squares, even and odd elements of semirings.
 
 In the implementation, we define `is_square` and we let `even` be the notion transported by

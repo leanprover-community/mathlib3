@@ -9,7 +9,6 @@ import data.int.cast.defs
 # Characteristic zero
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/None
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A ring `R` is called of characteristic zero if every natural number `n` is non-zero when considered

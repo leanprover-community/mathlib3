@@ -750,8 +750,18 @@ def mk_continuous₂ (f : E →ₛₗ[σ₁₃] F →ₛₗ[σ₂₃] G) (C : �
   E →SL[σ₁₃] F →SL[σ₂₃] G :=
 linear_map.mk_continuous
   { to_fun := λ x, (f x).mk_continuous (C * ‖x‖) (hC x),
-    map_add' := λ x y, by { ext z, simp },
-    map_smul' := λ c x, by { ext z, simp } }
+    map_add' := λ x y,
+    begin
+      ext z,
+      rw [continuous_linear_map.add_apply, mk_continuous_apply, mk_continuous_apply,
+          mk_continuous_apply, map_add, add_apply]
+    end,
+    map_smul' := λ c x,
+    begin
+      ext z,
+      rw [continuous_linear_map.smul_apply, mk_continuous_apply, mk_continuous_apply, map_smulₛₗ,
+          smul_apply]
+    end, }
   (max C 0) $ λ x, (mk_continuous_norm_le' _ _).trans_eq $
     by rw [max_mul_of_nonneg _ _ (norm_nonneg x), zero_mul]
 

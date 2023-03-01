@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
 import combinatorics.simple_graph.ends.defs
-import topology.category.Top
+import category_theory.cofiltered_system
 /-!
 # Properties of the ends of graphs
 
@@ -46,10 +46,6 @@ A locally finite preconnected infinite graph has at least one end.
 -/
 lemma nonempty_ends_of_infinite [Glf : locally_finite G] [fact $ preconnected G] [Vi : infinite V] :
   G.end.nonempty :=
-begin
-  classical,
-  haveI : ∀ K, fintype (G.component_compl_functor.obj K) := λ K, fintype.of_finite _,
-  apply nonempty_sections_of_fintype_inverse_system G.component_compl_functor,
-end
+by classical; apply nonempty_sections_of_finite_inverse_system G.component_compl_functor
 
 end simple_graph

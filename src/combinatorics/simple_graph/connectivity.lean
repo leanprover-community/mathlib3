@@ -1407,12 +1407,7 @@ lemma iso.reachable_iff {G : simple_graph V} {G' : simple_graph V'}
 
 lemma iso.symm_apply_reachable {G : simple_graph V} {G' : simple_graph V'}
   {φ : G ≃g G'} {u : V} {v : V'} : G.reachable (φ.symm v) u ↔ G'.reachable v (φ u) :=
-begin
-  rw [←φ.left_inv u, ←φ.right_inv v],
-  simp only [equiv.inv_fun_as_coe, equiv.to_fun_as_coe, rel_iso.coe_fn_to_equiv,
-    rel_iso.symm_apply_apply],
-  rw [iso.reachable_iff],
-end
+by rw [← iso.reachable_iff, rel_iso.apply_symm_apply]
 
 variables (G)
 

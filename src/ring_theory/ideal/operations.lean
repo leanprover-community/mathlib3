@@ -2170,6 +2170,20 @@ begin
   exact quotient.eq.mpr hab
 end
 
+variable (R₁)
+
+/-- Quotienting by equal ideals gives equivalent algebras. -/
+def quotient_equiv_alg_of_eq {I J : ideal A} (h : I = J) : (A ⧸ I) ≃ₐ[R₁] A ⧸ J :=
+quotient_equiv_alg I J alg_equiv.refl $ h ▸ (map_id I).symm
+
+@[simp] lemma quotient_equiv_alg_of_eq_mk {I J : ideal A} (h : I = J) (x : A) :
+  quotient_equiv_alg_of_eq R₁ h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
+rfl
+
+@[simp] lemma quotient_equiv_alg_of_eq_symm {I J : ideal A} (h : I = J) :
+  (quotient_equiv_alg_of_eq R₁ h).symm = quotient_equiv_alg_of_eq R₁ h.symm :=
+by ext; refl
+
 end quotient_algebra
 
 end comm_ring

@@ -514,7 +514,7 @@ variables {X : Type u} {Y : Type v} {Z : Type w}
 variables [nonempty Z] [metric_space Z] [metric_space X] [metric_space Y]
           {Φ : Z → X} {Ψ : Z → Y} {ε : ℝ}
 open _root_.sum (inl inr)
-local attribute [instance] pseudo_metric.dist_setoid
+local attribute [instance] uniform_space.separation_setoid
 
 /-- Given two isometric embeddings `Φ : Z → X` and `Ψ : Z → Y`, we define a pseudo metric space
 structure on `X ⊕ Y` by declaring that `Φ x` and `Ψ x` are at distance `0`. -/
@@ -526,20 +526,15 @@ def glue_premetric (hΦ : isometry Φ) (hΨ : isometry Ψ) : pseudo_metric_space
 
 /-- Given two isometric embeddings `Φ : Z → X` and `Ψ : Z → Y`, we define a
 space  `glue_space hΦ hΨ` by identifying in `X ⊕ Y` the points `Φ x` and `Ψ x`. -/
+@[derive metric_space]
 def glue_space (hΦ : isometry Φ) (hΨ : isometry Ψ) : Type* :=
-@pseudo_metric_quot _ (glue_premetric hΦ hΨ)
-
-instance metric_space_glue_space (hΦ : isometry Φ) (hΨ : isometry Ψ) :
-  metric_space (glue_space hΦ hΨ) :=
-@metric_space_quot _ (glue_premetric hΦ hΨ)
+@uniform_space.separation_quotient _ (glue_premetric hΦ hΨ).to_uniform_space
 
 /-- The canonical map from `X` to the space obtained by gluing isometric subsets in `X` and `Y`. -/
-def to_glue_l (hΦ : isometry Φ) (hΨ : isometry Ψ) (x : X) : glue_space hΦ hΨ :=
-by letI : pseudo_metric_space (X ⊕ Y) := glue_premetric hΦ hΨ; exact ⟦inl x⟧
+def to_glue_l (hΦ : isometry Φ) (hΨ : isometry Ψ) (x : X) : glue_space hΦ hΨ := quotient.mk' (inl x)
 
 /-- The canonical map from `Y` to the space obtained by gluing isometric subsets in `X` and `Y`. -/
-def to_glue_r (hΦ : isometry Φ) (hΨ : isometry Ψ) (y : Y) : glue_space hΦ hΨ :=
-by letI : pseudo_metric_space (X ⊕ Y) := glue_premetric hΦ hΨ; exact ⟦inr y⟧
+def to_glue_r (hΦ : isometry Φ) (hΨ : isometry Ψ) (y : Y) : glue_space hΦ hΨ := quotient.mk' (inr y)
 
 instance inhabited_left (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited X] :
   inhabited (glue_space hΦ hΨ) :=
@@ -552,9 +547,11 @@ instance inhabited_right (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited Y] :
 lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   (to_glue_l hΦ hΨ) ∘ Φ = (to_glue_r hΦ hΨ) ∘ Ψ :=
 begin
-  letI : pseudo_metric_space (X ⊕ Y) := glue_premetric hΦ hΨ,
+  letI i : pseudo_metric_space (X ⊕ Y) := glue_premetric hΦ hΨ,
+  letI := i.to_uniform_space,
   funext,
-  simp only [comp, to_glue_l, to_glue_r, quotient.eq],
+  simp only [comp, to_glue_l, to_glue_r],
+  refine uniform_space.separation_quotient.mk_eq_mk.2 (metric.inseparable_iff.2 _),
   exact glue_dist_glued_points Φ Ψ 0 x
 end
 
@@ -636,20 +633,15 @@ def inductive_premetric (I : ∀ n, isometry (f n)) :
                 inductive_limit_dist_eq_dist I y z m hy hz]
   end }
 
-local attribute [instance] inductive_premetric pseudo_metric.dist_setoid
+local attribute [instance] inductive_premetric uniform_space.separation_setoid
 
 /-- The type giving the inductive limit in a metric space context. -/
-def inductive_limit (I : ∀ n, isometry (f n)) : Type* :=
-@pseudo_metric_quot _ (inductive_premetric I)
-
-/-- Metric space structure on the inductive limit. -/
-instance metric_space_inductive_limit (I : ∀ n, isometry (f n)) :
-  metric_space (inductive_limit I) :=
-@metric_space_quot _ (inductive_premetric I)
+@[derive metric_space] def inductive_limit (I : ∀ n, isometry (f n)) : Type* :=
+@uniform_space.separation_quotient _ (inductive_premetric I).to_uniform_space
 
 /-- Mapping each `X n` to the inductive limit. -/
 def to_inductive_limit (I : ∀ n, isometry (f n)) (n : ℕ) (x : X n) : metric.inductive_limit I :=
-by letI : pseudo_metric_space (Σ n, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
+quotient.mk' (sigma.mk n x)
 
 instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_limit I) :=
 ⟨to_inductive_limit _ 0 default⟩
@@ -667,8 +659,10 @@ end
 lemma to_inductive_limit_commute (I : ∀ n, isometry (f n)) (n : ℕ) :
   (to_inductive_limit I n.succ) ∘ (f n) = to_inductive_limit I n :=
 begin
+  letI := inductive_premetric I,
   funext,
-  simp only [comp, to_inductive_limit, quotient.eq],
+  simp only [comp, to_inductive_limit],
+  refine uniform_space.separation_quotient.mk_eq_mk.2 (metric.inseparable_iff.2 _),
   show inductive_limit_dist f ⟨n.succ, f n x⟩ ⟨n, x⟩ = 0,
   { rw [inductive_limit_dist_eq_dist I ⟨n.succ, f n x⟩ ⟨n, x⟩ n.succ,
         le_rec_on_self, le_rec_on_succ, le_rec_on_self, dist_self],

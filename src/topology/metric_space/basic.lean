@@ -2962,61 +2962,20 @@ end metric
 
 section eq_rel
 
-/-- The canonical equivalence relation on a pseudometric space. -/
-def pseudo_metric.dist_setoid (α : Type u) [pseudo_metric_space α] : setoid α :=
-setoid.mk (λx y, dist x y = 0)
-begin
-  unfold equivalence,
-  repeat { split },
-  { exact pseudo_metric_space.dist_self },
-  { assume x y h, rwa pseudo_metric_space.dist_comm },
-  { assume x y z hxy hyz,
-    refine le_antisymm _ dist_nonneg,
-    calc dist x z ≤ dist x y + dist y z : pseudo_metric_space.dist_triangle _ _ _
-         ... = 0 + 0 : by rw [hxy, hyz]
-         ... = 0 : by simp }
-end
+instance {α : Type u} [pseudo_metric_space α] :
+  has_dist (uniform_space.separation_quotient α) :=
+{ dist := λ p q, quotient.lift_on₂' p q dist $ λ x y x' y' hx hy,
+    by rw [dist_edist, dist_edist, ← uniform_space.separation_quotient.edist_mk x,
+      ← uniform_space.separation_quotient.edist_mk x', quot.sound hx, quot.sound hy] }
 
-local attribute [instance] pseudo_metric.dist_setoid
+lemma uniform_space.separation_quotient.dist_mk {α : Type u} [pseudo_metric_space α] (p q : α) :
+  @dist (uniform_space.separation_quotient α) _ (quot.mk _ p) (quot.mk _ q) = dist p q :=
+rfl
 
-/-- The canonical quotient of a pseudometric space, identifying points at distance `0`. -/
-@[reducible] definition pseudo_metric_quot (α : Type u) [pseudo_metric_space α] : Type* :=
-quotient (pseudo_metric.dist_setoid α)
-
-instance has_dist_metric_quot {α : Type u} [pseudo_metric_space α] :
-  has_dist (pseudo_metric_quot α) :=
-{ dist := quotient.lift₂ (λp q : α, dist p q)
-begin
-  assume x y x' y' hxx' hyy',
-  have Hxx' : dist x x' = 0 := hxx',
-  have Hyy' : dist y y' = 0 := hyy',
-  have A : dist x y ≤ dist x' y' := calc
-    dist x y ≤ dist x x' + dist x' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y : by simp [Hxx']
-    ... ≤ dist x' y' + dist y' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y' : by simp [pseudo_metric_space.dist_comm, Hyy'],
-  have B : dist x' y' ≤ dist x y := calc
-    dist x' y' ≤ dist x' x + dist x y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y' : by simp [pseudo_metric_space.dist_comm, Hxx']
-    ... ≤ dist x y + dist y y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y : by simp [Hyy'],
-  exact le_antisymm A B
-end }
-
-lemma pseudo_metric_quot_dist_eq {α : Type u} [pseudo_metric_space α] (p q : α) :
-  dist ⟦p⟧ ⟦q⟧ = dist p q := rfl
-
-instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
-  metric_space (pseudo_metric_quot α) :=
-{ dist_self := begin
-    refine quotient.ind (λy, _),
-    exact pseudo_metric_space.dist_self _
-  end,
-  eq_of_dist_eq_zero := λxc yc, by exact quotient.induction_on₂ xc yc (λx y H, quotient.sound H),
-  dist_comm :=
-    λxc yc, quotient.induction_on₂ xc yc (λx y, pseudo_metric_space.dist_comm _ _),
-  dist_triangle :=
-    λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, pseudo_metric_space.dist_triangle _ _ _) }
+instance {α : Type u} [pseudo_metric_space α] :
+  metric_space (uniform_space.separation_quotient α) :=
+emetric_space.to_metric_space_of_dist dist (λ x y, quotient.induction_on₂' x y edist_ne_top) $
+  λ x y, quotient.induction_on₂' x y dist_edist
 
 end eq_rel
 

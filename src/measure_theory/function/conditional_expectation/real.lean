@@ -212,7 +212,7 @@ begin
   obtain ⟨δ, hδ, h⟩ := hg.snorm_indicator_le μ le_rfl ennreal.one_ne_top hε,
   set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (snorm g 1 μ).to_nnreal with hC,
   have hCpos : 0 < C :=
-    mul_pos (nnreal.inv_pos.2 hδ) (ennreal.to_nnreal_pos hne hg.snorm_lt_top.ne),
+    mul_pos (inv_pos.2 hδ) (ennreal.to_nnreal_pos hne hg.snorm_lt_top.ne),
   have : ∀ n, μ {x : α | C ≤ ‖μ[g | ℱ n] x‖₊} ≤ ennreal.of_real δ,
   { intro n,
     have := mul_meas_ge_le_pow_snorm' μ one_ne_zero ennreal.one_ne_top

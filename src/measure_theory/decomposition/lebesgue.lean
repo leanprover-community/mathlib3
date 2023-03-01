@@ -429,7 +429,7 @@ begin
     by_cases hb : 0 < νA,
     { suffices : ∀ b, 0 < b → μA ≤ b,
       { by_contra,
-        have h' := this (μA / 2) (nnreal.half_pos (zero_lt_iff.2 h)),
+        have h' := this (μA / 2) (half_pos (zero_lt_iff.2 h)),
         rw ← @not_not (μA ≤ μA / 2) at h',
         exact h' (not_le.2 (nnreal.half_lt_self h)) },
       intros c hc,

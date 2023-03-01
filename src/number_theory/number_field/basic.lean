@@ -113,14 +113,15 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
   [is_integral_closure R ℤ K] : 𝓞 K ≃+* R :=
 (is_integral_closure.equiv ℤ R K _).symm.to_ring_equiv
 
-variables (K)
+variable (K)
+variable [number_field K]
 
-instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
+instance : char_zero (𝓞 K) := char_zero.of_module _ K
 
-instance [number_field K] : is_noetherian ℤ (𝓞 K) := is_integral_closure.is_noetherian _ ℚ K _
+instance : is_noetherian ℤ (𝓞 K) := is_integral_closure.is_noetherian _ ℚ K _
 
 /-- The ring of integers of a number field is not a field. -/
-lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
+lemma not_is_field : ¬ is_field (𝓞 K) :=
 begin
   have h_inj : function.injective ⇑(algebra_map ℤ (𝓞 K)),
   { exact ring_hom.injective_int (algebra_map ℤ (𝓞 K)) },
@@ -129,60 +130,80 @@ begin
     (((is_integral_closure.is_integral_algebra ℤ K).is_field_iff_is_field h_inj).mpr hf)
 end
 
-instance [number_field K] : is_dedekind_domain (𝓞 K) :=
+instance : is_dedekind_domain (𝓞 K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
--- TODO. Do the general case : is_integral_closure instead
-instance [number_field K] : free ℤ (𝓞 K) :=
+variables (R : Type*) [comm_ring R] [algebra R K]
+
+lemma _root_.number_field.is_integral_closure.free (hc : is_integral_closure R ℤ K) :
+  free ℤ R :=
 begin
-  have basis : Σ n, basis (fin n) ℤ (𝓞 K) := free_of_finite_type_torsion_free',
+  haveI : no_zero_smul_divisors ℤ R := function.injective.no_zero_smul_divisors _
+    hc.algebra_map_injective (map_zero _) (map_zsmul _),
+  haveI : is_noetherian ℤ R := is_integral_closure.is_noetherian _ ℚ K _,
+  have basis : Σ n, basis (fin n) ℤ R := free_of_finite_type_torsion_free',
   obtain ⟨n, b⟩ := basis,
-  exact free.of_basis b
+  exact free.of_basis b,
 end
 
+lemma _root_.number_field.is_integral_closure.is_localization
+  (hc : is_integral_closure R ℤ K) :
+  is_localization (algebra.algebra_map_submonoid R (non_zero_divisors ℤ)) K :=
+begin
+  haveI : char_zero R := char_zero.of_module _ K,
+  haveI : is_domain R := ring_equiv.is_domain (𝓞 K) (number_field.ring_of_integers.equiv R).symm,
+  refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
+  { rintros ⟨_, ⟨x, ⟨hx, rfl⟩⟩⟩,
+    rw [is_unit_iff_ne_zero, map_ne_zero_iff _ (is_integral_closure.algebra_map_injective R ℤ K),
+      subtype.coe_mk, map_ne_zero_iff _ (ring_hom.injective_int (algebra_map ℤ R))],
+    exact mem_non_zero_divisors_iff_ne_zero.mp hx, },
+  { obtain ⟨m, hm⟩ := is_integral.exists_multiple_integral_of_is_localization
+      (non_zero_divisors ℤ) z (is_separable.is_integral ℚ z),
+    obtain ⟨x, hx⟩ := hc.is_integral_iff.mp hm,
+    exact ⟨⟨x, ⟨m, ⟨m, ⟨set_like.coe_mem m, rfl⟩⟩⟩⟩, by {simp only [hx, coe_coe,
+      set_like.coe_mk, map_int_cast, submonoid.smul_def, mul_comm, zsmul_eq_mul], }⟩, },
+  { simp only [hc.algebra_map_injective h], },
+  { rintros ⟨⟨_, ⟨m, ⟨hm, rfl⟩⟩⟩, h⟩,
+    refine congr_arg (algebra_map R K) ((mul_right_inj' _).mp h),
+    rw [subtype.coe_mk, map_ne_zero_iff _ (ring_hom.injective_int (algebra_map ℤ R))],
+    exact mem_non_zero_divisors_iff_ne_zero.mp hm, },
+end
+
+instance : free ℤ (𝓞 K) := is_integral_closure.free K _ infer_instance
+
+instance : is_localization (algebra.algebra_map_submonoid (𝓞 K) (non_zero_divisors ℤ)) K :=
+is_integral_closure.is_localization K _ infer_instance
+
 /-- A ℤ-basis of the ring of integers of `K`. -/
-noncomputable def basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℤ (𝓞 K)
+noncomputable def basis : basis (free.choose_basis_index ℤ (𝓞 K)) ℤ (𝓞 K)
 := free.choose_basis ℤ (𝓞 K)
 
 end ring_of_integers
 
-instance [number_field K]:
-  is_localization (algebra.algebra_map_submonoid (𝓞 K) (non_zero_divisors ℤ)) K :=
-begin
-refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
-    { rintro ⟨y, hy⟩,
-      simp only [subalgebra.algebra_map_eq, is_unit_iff_ne_zero, algebra.id.map_eq_id,
-        ring_hom_comp_triple.comp_eq, set_like.coe_mk, alg_hom.coe_to_ring_hom, subalgebra.coe_val,
-        ne.def],
-      intro h0,
-      simpa [(subalgebra.coe_eq_zero _).1 h0, algebra.algebra_map_submonoid,
-        mem_non_zero_divisors_iff_ne_zero] using hy },
-    { obtain ⟨⟨m, mzdiv⟩, hm⟩ := is_integral.exists_multiple_integral_of_is_localization
-        (non_zero_divisors ℤ) z (is_separable.is_integral ℚ z),
-      refine ⟨⟨⟨_, hm⟩, ⟨m, ⟨m, ⟨mzdiv, by simp⟩⟩⟩⟩, _⟩,
-      simp [subalgebra.algebra_map_eq, submonoid.smul_def, mul_comm] },
-    { simp [is_fraction_ring.injective (𝓞 K) K h] },
-    { rintro ⟨⟨m, mzdiv⟩, hm⟩,
-      suffices : m ≠ 0,
-      { congr,
-        simpa [this] using hm },
-      intro h0,
-      rw [h0] at mzdiv,
-      simpa [algebra.algebra_map_submonoid, mem_non_zero_divisors_iff_ne_zero] using mzdiv },
-end
+variable [number_field K]
 
-/-- A basis of `K` over ℚ that is also a basis of `𝓞 K` over ℤ. -/
-noncomputable def integral_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℚ K :=
+/-- A basis of `K` over `ℚ` that is also a basis of `𝓞 K` over `ℤ`. -/
+noncomputable def integral_basis : basis (free.choose_basis_index ℤ (𝓞 K)) ℚ K :=
 basis.localization_localization ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K)
 
-lemma integral_basis_apply [number_field K] (i : free.choose_basis_index ℤ (𝓞 K)) :
+@[simp]
+lemma integral_basis_apply (i : free.choose_basis_index ℤ (𝓞 K)) :
   (integral_basis K) i = (algebra_map (𝓞 K) K) (ring_of_integers.basis K i) :=
 basis.localization_localization_apply ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K) i
 
-lemma rank_eq_rank [number_field K] :
-  finite_dimensional.finrank ℤ (𝓞 K) = finite_dimensional.finrank ℚ K :=
-by rw [free.finrank_eq_card_choose_basis_index,
-  finite_dimensional.finrank_eq_card_basis (integral_basis K)]
+variables (R : Type*) [comm_ring R] [algebra R K]
+
+lemma is_integral_closure.rank (hc : is_integral_closure R ℤ K) :
+  finite_dimensional.finrank ℤ R = finite_dimensional.finrank ℚ K :=
+begin
+  haveI : free ℤ R := is_integral_closure.free K R hc,
+  haveI : is_noetherian ℤ R := is_integral_closure.is_noetherian _ ℚ K _,
+  haveI : is_localization (algebra.algebra_map_submonoid R (non_zero_divisors ℤ)) K :=
+  is_integral_closure.is_localization K R hc,
+  let b := basis.localization_localization ℚ (non_zero_divisors ℤ) K (free.choose_basis ℤ R),
+  rw free.finrank_eq_card_choose_basis_index,
+  rw finite_dimensional.finrank_eq_card_basis b,
+end
 
 end number_field
 

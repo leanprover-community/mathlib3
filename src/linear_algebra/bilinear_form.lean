@@ -1090,15 +1090,15 @@ begin
     exact hx.2 _ submodule.mem_top }
 end
 
-lemma to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal
+lemma to_lin_restrict_range_dual_coannihilator_eq_orthogonal
   (B : bilin_form K V) (W : subspace K V) :
-  (B.to_lin.dom_restrict W).range.dual_annihilator_comap = B.orthogonal W :=
+  (B.to_lin.dom_restrict W).range.dual_coannihilator = B.orthogonal W :=
 begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
   { intros y hy,
-    rw submodule.mem_dual_annihilator_comap at hx,
+    rw submodule.mem_dual_coannihilator at hx,
     refine hx (B.to_lin.dom_restrict W ⟨y, hy⟩) ⟨⟨y, hy⟩, rfl⟩ },
-  { rw submodule.mem_dual_annihilator_comap,
+  { rw submodule.mem_dual_coannihilator,
     rintro _ ⟨⟨w, hw⟩, rfl⟩,
     exact hx w hw }
 end
@@ -1113,9 +1113,9 @@ lemma finrank_add_finrank_orthogonal
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ b₁,
-      ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
+      ← to_lin_restrict_range_dual_coannihilator_eq_orthogonal _ _,
       finrank_map_subtype_eq],
-  conv_rhs { rw [← @subspace.finrank_add_finrank_dual_annihilator_comap_eq K V _ _ _ _
+  conv_rhs { rw [← @subspace.finrank_add_finrank_dual_coannihilator_eq K V _ _ _ _
                   (B.to_lin.dom_restrict W).range,
                  add_comm, ← add_assoc, add_comm (finrank K ↥((B.to_lin.dom_restrict W).ker)),
                  linear_map.finrank_range_add_finrank_ker] },

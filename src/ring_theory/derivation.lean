@@ -520,7 +520,7 @@ tensor_product.algebra_tensor_module.lift ((linear_map.lsmul S (S →ₗ[R] M)).
 
 lemma derivation.tensor_product_to_tmul (D : derivation R S M) (s t : S) :
   D.tensor_product_to (s ⊗ₜ t) = s • D t :=
-tensor_product.lift.tmul s t
+rfl
 
 lemma derivation.tensor_product_to_mul (D : derivation R S M) (x y : S ⊗[R] S) :
   D.tensor_product_to (x * y) = tensor_product.lmul' R x • D.tensor_product_to y +
@@ -815,7 +815,7 @@ begin
   { generalize : f x = y, obtain ⟨y, rfl⟩ := ideal.quotient.mk_surjective y, refl },
   have e₂ : x = kaehler_differential.quotient_cotangent_ideal_ring_equiv
     R S (is_scalar_tower.to_alg_hom R S _ x),
-  { exact ((tensor_product.lmul'_apply_tmul x 1).trans (mul_one x)).symm },
+  { exact (mul_one x).symm },
   split,
   { intro e,
     exact (e₁.trans (@ring_equiv.congr_arg _ _ _ _ _ _

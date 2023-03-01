@@ -407,14 +407,14 @@ end
 @[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
-  refine ⟨to_Ico_div ψ two_pi_pos θ, _⟩,
+  refine ⟨-to_Ico_div ψ two_pi_pos θ, _⟩,
   rw [to_Ico_mod_sub_self, zsmul_eq_mul, mul_comm]
 end
 
 @[simp] lemma coe_to_Ioc_mod (θ ψ : ℝ) : ↑(to_Ioc_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
-  refine ⟨to_Ioc_div ψ two_pi_pos θ, _⟩,
+  refine ⟨-to_Ioc_div ψ two_pi_pos θ, _⟩,
   rw [to_Ioc_mod_sub_self, zsmul_eq_mul, mul_comm]
 end
 

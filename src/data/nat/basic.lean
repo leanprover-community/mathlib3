@@ -210,18 +210,14 @@ by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
 @[simp] theorem add_def {a b : ℕ} : nat.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℕ} : nat.mul a b = a * b := rfl
 
-lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
-| 0 0 h := ⟨0, by simp⟩
-| 0 (n+1) h := ⟨n+1, by simp⟩
-| (m+1) (n+1) h :=
-  let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
-  ⟨k, by simp [hk, add_comm, add_left_comm]⟩
+lemma exists_eq_add_of_le (h : m ≤ n) : ∃ k : ℕ, n = m + k :=
+⟨n - m, (nat.add_sub_of_le h).symm⟩
 
-lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
-| 0 0 h := false.elim $ lt_irrefl _ h
-| 0 (n+1) h := ⟨n, by simp⟩
-| (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
-  ⟨k, by simp [hk]⟩
+lemma exists_eq_add_of_le' (h : m ≤ n) : ∃ k : ℕ, n = k + m :=
+⟨n - m, (nat.sub_add_cancel h).symm⟩
+
+lemma exists_eq_add_of_lt (h : m < n) : ∃ k : ℕ, n = m + k + 1 :=
+⟨n - (m + 1), by rw [add_right_comm, nat.add_sub_of_le h]⟩
 
 /-! ### `pred` -/
 

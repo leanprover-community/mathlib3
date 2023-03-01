@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import algebra.group.pi
 import algebra.group.prod
 import algebra.hom.iterate
+import logic.equiv.set
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -67,9 +68,9 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
 @[simp, norm_cast] lemma coe_one : ⇑(1 : perm α) = id := rfl
 @[simp, norm_cast] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
-
 @[norm_cast] lemma coe_pow (f : perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ _ _, rfl) _ _
+@[simp] lemma iterate_eq_pow (f : perm α) (n : ℕ) : (f^[n]) = ⇑(f ^ n) := (coe_pow _ _).symm
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
@@ -79,9 +80,9 @@ lemma zpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
 by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
 
-@[simp] lemma iterate_eq_pow (f : perm α) : ∀ n, f^[n] = ⇑(f ^ n)
-| 0       := rfl
-| (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
+@[simp] lemma image_inv (f : perm α) (s : set α) : ⇑f⁻¹ '' s = f ⁻¹' s := f⁻¹.image_eq_preimage _
+@[simp] lemma preimage_inv (f : perm α) (s : set α) : ⇑f⁻¹ ⁻¹' s = f '' s :=
+(f.image_eq_preimage _).symm
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -494,3 +495,25 @@ lemma zpow_mul_right : ∀ n : ℤ, equiv.mul_right a ^ n = equiv.mul_right (a ^
 
 end group
 end equiv
+
+open equiv function
+
+namespace set
+variables {α : Type*} {f : perm α} {s t : set α}
+
+@[simp] lemma bij_on_perm_inv : bij_on ⇑f⁻¹ t s ↔ bij_on f s t := equiv.bij_on_symm
+
+alias bij_on_perm_inv ↔ bij_on.of_perm_inv bij_on.perm_inv
+
+lemma maps_to.perm_pow : maps_to f s s → ∀ n : ℕ, maps_to ⇑(f ^ n) s s :=
+by { simp_rw equiv.perm.coe_pow, exact maps_to.iterate }
+lemma surj_on.perm_pow : surj_on f s s → ∀ n : ℕ, surj_on ⇑(f ^ n) s s :=
+by { simp_rw equiv.perm.coe_pow, exact surj_on.iterate }
+lemma bij_on.perm_pow : bij_on f s s → ∀ n : ℕ, bij_on ⇑(f ^ n) s s :=
+by { simp_rw equiv.perm.coe_pow, exact bij_on.iterate }
+
+lemma bij_on.perm_zpow (hf : bij_on f s s) : ∀ n : ℤ, bij_on ⇑(f ^ n) s s
+| (int.of_nat n) := hf.perm_pow _
+| (int.neg_succ_of_nat n) := by { rw zpow_neg_succ_of_nat, exact (hf.perm_pow _).perm_inv }
+
+end set

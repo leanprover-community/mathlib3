@@ -132,7 +132,7 @@ begin
       { exfalso, exact h₂ (le_of_lt h₁), },
       { exfalso, exact hm a (eq_of_le_of_not_lt h₂ h₁), }, },
     simpa only [order_hom.coe_fun_mk, lt_self_iff_false, if_false, le_refl, if_true,
-      ulift.up_inj, fin.one_eq_zero_iff] using h, },
+      ulift.up_inj, fin.one_eq_zero_iff, nat.succ_succ_ne_one] using h, },
   { intro h,
     exact concrete_category.epi_of_surjective f h, },
 end

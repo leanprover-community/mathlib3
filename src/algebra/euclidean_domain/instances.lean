@@ -33,7 +33,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   r := λ a b, a.nat_abs < b.nat_abs,
   r_well_founded := measure_wf (λ a, int.nat_abs a),
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $
-    by { rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs],
+    by { rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), int.coe_nat_abs],
       exact int.mod_lt _ b0 },
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by {rw [← mul_one a.nat_abs, int.nat_abs_mul],

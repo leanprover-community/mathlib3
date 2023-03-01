@@ -169,6 +169,13 @@ lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.deg
   p.nat_degree ≤ q.nat_degree :=
 with_bot.gi_unbot'_bot.gc.monotone_l hpq
 
+lemma nat_degree_lt_nat_degree {p q : R[X]} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
+  p.nat_degree < q.nat_degree :=
+begin
+  by_cases hq : q = 0, { exact (not_lt_bot $ hq.subst hpq).elim },
+  rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_lt_coe] at hpq
+end
+
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 by rw [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
     with_bot.coe_zero]
@@ -1031,7 +1038,10 @@ section ring
 variables [ring R] {p q : R[X]}
 
 lemma degree_sub_le (p q : R[X]) : degree (p - q) ≤ max (degree p) (degree q) :=
-by simpa only [sub_eq_add_neg, degree_neg q] using degree_add_le p (-q)
+by simpa only [degree_neg q] using degree_add_le p (-q)
+
+lemma nat_degree_sub_le (p q : R[X]) : nat_degree (p - q) ≤ max (nat_degree p) (nat_degree q) :=
+by simpa only [← nat_degree_neg q] using nat_degree_add_le p (-q)
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :

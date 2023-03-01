@@ -8,6 +8,7 @@ import computability.NFA
 
 /-!
 # Epsilon Nondeterministic Finite Automata
+
 This file contains the definition of an epsilon Nondeterministic Finite Automaton (`ε_NFA`), a state
 machine which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
 regular set by evaluating the string over every possible path, also having access to ε-transitons,
@@ -17,6 +18,7 @@ supplied for true `ε_NFA`'s.
 -/
 
 open set
+open_locale computability
 
 universes u v
 
@@ -116,7 +118,7 @@ end
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
   (hlen : fintype.card (set σ) ≤ list.length x) :
   ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
-  {a} * language.star {b} * {c} ≤ M.accepts :=
+    {a} * {b}∗ * {c} ≤ M.accepts :=
 begin
   rw ←to_NFA_correct at hx ⊢,
   exact M.to_NFA.pumping_lemma hx hlen

@@ -13,6 +13,9 @@ import group_theory.group_action.pi
 /-!
 # Cauchy sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A basic theory of Cauchy sequences, used in the construction of the reals and p-adic numbers. Where
 applicable, lemmas that will be reused in other contexts have been stated in extra generality.
 

@@ -12,6 +12,9 @@ import tactic.wlog
 /-!
 # Omega Complete Partial Orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we
 call `ωSup`). In this sense, it is strictly weaker than join complete

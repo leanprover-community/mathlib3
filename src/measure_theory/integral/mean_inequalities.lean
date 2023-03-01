@@ -74,7 +74,7 @@ def fun_mul_inv_snorm (f : α → ℝ≥0∞) (p : ℝ) (μ : measure α) : α �
 lemma fun_eq_fun_mul_inv_snorm_mul_snorm {p : ℝ} (f : α → ℝ≥0∞)
   (hf_nonzero : ∫⁻ a, (f a) ^ p ∂μ ≠ 0) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) {a : α} :
   f a = (fun_mul_inv_snorm f p μ a) * (∫⁻ c, (f c)^p ∂μ)^(1/p) :=
-by simp [fun_mul_inv_snorm, mul_assoc, inv_mul_cancel, hf_nonzero, hf_top]
+by simp [fun_mul_inv_snorm, mul_assoc, ennreal.inv_mul_cancel, hf_nonzero, hf_top]
 
 lemma fun_mul_inv_snorm_rpow {p : ℝ} (hp0 : 0 < p) {f : α → ℝ≥0∞} {a : α} :
   (fun_mul_inv_snorm f p μ a) ^ p = (f a)^p * (∫⁻ c, (f c) ^ p ∂μ)⁻¹ :=
@@ -90,7 +90,7 @@ lemma lintegral_rpow_fun_mul_inv_snorm_eq_one {p : ℝ} (hp0_lt : 0 < p) {f : α
   ∫⁻ c, (fun_mul_inv_snorm f p μ c)^p ∂μ = 1 :=
 begin
   simp_rw fun_mul_inv_snorm_rpow hp0_lt,
-  rw [lintegral_mul_const', mul_inv_cancel hf_nonzero hf_top],
+  rw [lintegral_mul_const', ennreal.mul_inv_cancel hf_nonzero hf_top],
   rwa inv_ne_top
 end
 

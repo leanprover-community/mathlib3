@@ -46,7 +46,7 @@ begin
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],
   intros _ ht,
   rw mem_powerset_len at ht,
-  simp [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
+  simp [ht, map_const, prod_replicate, prod_hom', map_id', card_sub],
 end
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + λ` where `λ` runs
@@ -88,7 +88,7 @@ begin
   rw [esymm, esymm, ←multiset.sum_map_mul_left, multiset.powerset_len_map, multiset.map_map,
     map_congr (eq.refl _)],
   intros x hx,
-  rw [(by { exact (mem_powerset_len.mp hx).right.symm }), ←prod_repeat, ←multiset.map_const],
+  rw [(by { exact (mem_powerset_len.mp hx).right.symm }), ←prod_replicate, ←multiset.map_const],
   nth_rewrite 2 ←map_id' x,
   rw [←prod_map_mul, map_congr (eq.refl _)],
   exact λ z _, neg_one_mul z,

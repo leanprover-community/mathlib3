@@ -862,7 +862,7 @@ tensor_product.lift $ by
 lemma dom_coprod'_apply
   (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
   dom_coprod' (a ⊗ₜ[R'] b) = dom_coprod a b :=
-by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+rfl
 
 end alternating_map
 

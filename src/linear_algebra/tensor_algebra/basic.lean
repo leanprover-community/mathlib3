@@ -70,47 +70,56 @@ variables {M}
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.
 -/
-def ι : M →ₗ[R] (tensor_algebra R M) :=
+@[irreducible] def ι : M →ₗ[R] (tensor_algebra R M) :=
 { to_fun := λ m, (ring_quot.mk_alg_hom R _ (free_algebra.ι R m)),
   map_add' := λ x y, by { rw [←alg_hom.map_add], exact ring_quot.mk_alg_hom_rel R rel.add, },
   map_smul' := λ r x, by { rw [←alg_hom.map_smul], exact ring_quot.mk_alg_hom_rel R rel.smul, } }
 
 lemma ring_quot_mk_alg_hom_free_algebra_ι_eq_ι (m : M) :
-  ring_quot.mk_alg_hom R (rel R M) (free_algebra.ι R m) = ι R m := rfl
+  ring_quot.mk_alg_hom R (rel R M) (free_algebra.ι R m) = ι R m :=
+by { rw [ι], refl }
 
 /--
 Given a linear map `f : M → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
 of `f` to a morphism of `R`-algebras `tensor_algebra R M → A`.
 -/
-@[simps symm_apply]
+@[irreducible, simps symm_apply]
 def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_algebra R M →ₐ[R] A) :=
 { to_fun := ring_quot.lift_alg_hom R ∘ λ f,
-    ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simp [algebra.smul_def]⟩,
+    ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h;
+        simp only [algebra.smul_def, free_algebra.lift_ι_apply, linear_map.map_smulₛₗ,
+          ring_hom.id_apply, map_mul, alg_hom.commutes, map_add]⟩,
   inv_fun := λ F, F.to_linear_map.comp (ι R),
-  left_inv := λ f, linear_map.ext $ λ x,
-    (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply f x),
-  right_inv := λ F, ring_quot.ring_quot_ext' _ _ _ $ free_algebra.hom_ext $ funext $ λ x,
-    (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply _ _) }
+  left_inv := λ f, begin
+    rw [ι],
+    ext1 x,
+    exact (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply f x),
+  end,
+  right_inv := λ F, ring_quot.ring_quot_ext' _ _ _ $ free_algebra.hom_ext $ funext $ λ x, begin
+    rw [ι],
+    exact (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply _ _)
+  end }
 
 variables {R}
 
 @[simp]
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) :
-  (lift R f).to_linear_map.comp (ι R) = f := (lift R).symm_apply_apply f
+  (lift R f).to_linear_map.comp (ι R) = f :=
+by { convert (lift R).symm_apply_apply f, simp only [lift, equiv.coe_fn_symm_mk] }
 
 @[simp]
 theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (x) :
-  lift R f (ι R x) = f x := by { dsimp [lift, ι], refl, }
+  lift R f (ι R x) = f x :=
+by { conv_rhs { rw ← ι_comp_lift f}, refl }
 
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R f :=
-(lift R).symm_apply_eq
+by { rw ← (lift R).symm_apply_eq, simp only [lift, equiv.coe_fn_symm_mk] }
 
 -- Marking `tensor_algebra` irreducible makes `ring` instances inaccessible on quotients.
 -- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
 -- For now, we avoid this by not marking it irreducible.
-attribute [irreducible] ι lift
 
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : tensor_algebra R M →ₐ[R] A) :

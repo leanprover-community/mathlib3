@@ -112,4 +112,8 @@ lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :
   p.is_conjugate_exponent (conjugate_exponent p) :=
 (is_conjugate_exponent_iff h).2 rfl
 
+lemma is_conjugate_exponent_one_div {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) :
+  (1 / a).is_conjugate_exponent (1 / b) :=
+⟨by { rw [lt_div_iff ha, one_mul], linarith }, by { simp_rw one_div_one_div, exact hab }⟩
+
 end real

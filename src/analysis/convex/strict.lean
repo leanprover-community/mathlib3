@@ -159,10 +159,8 @@ lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) := ord_connect
 lemma strict_convex_Ioo (r s : β) : strict_convex 𝕜 (Ioo r s) := ord_connected_Ioo.strict_convex
 lemma strict_convex_Ico (r s : β) : strict_convex 𝕜 (Ico r s) := ord_connected_Ico.strict_convex
 lemma strict_convex_Ioc (r s : β) : strict_convex 𝕜 (Ioc r s) := ord_connected_Ioc.strict_convex
-lemma strict_convex_interval (r s : β) : strict_convex 𝕜 (interval r s) := strict_convex_Icc _ _
-
-lemma strict_convex_interval_oc (r s : β) : strict_convex 𝕜 (interval_oc r s) :=
-strict_convex_Ioc _ _
+lemma strict_convex_uIcc (r s : β) : strict_convex 𝕜 (uIcc r s) := strict_convex_Icc _ _
+lemma strict_convex_uIoc (r s : β) : strict_convex 𝕜 (uIoc r s) := strict_convex_Ioc _ _
 
 end linear_ordered_cancel_add_comm_monoid
 end module

@@ -340,11 +340,9 @@ begin
       { simp only [X.basic_open_res],
         rintros x ⟨H₁, H₂⟩, exact ⟨h₂ H₁, H₂⟩ } } },
   use n,
-  conv_lhs at e { rw mul_comm },
-  conv_rhs at e { rw mul_comm },
   simp only [pow_add, map_pow, map_mul, ← comp_apply, ← mul_assoc,
     ← functor.map_comp, subtype.coe_mk] at e ⊢,
-  convert e
+  exact e
 end
 
 lemma exists_eq_pow_mul_of_is_compact_of_is_quasi_separated (X : Scheme)
@@ -468,15 +466,15 @@ begin
       using e.symm },
   { intros x y,
     rw [← sub_eq_zero, ← map_sub, ring_hom.algebra_map_to_algebra],
-    simp_rw [← @sub_eq_zero _ _ (x * _) (y * _), ← sub_mul],
+    simp_rw [← @sub_eq_zero _ _ (_ * x) (_ * y), ← mul_sub],
     generalize : x - y = z,
     split,
     { intro H,
       obtain ⟨n, e⟩ := exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_compact X hU _ _ H,
       refine ⟨⟨_, n, rfl⟩, _⟩,
       simpa [mul_comm z] using e },
-    { rintro ⟨⟨_, n, rfl⟩, e : z * f ^ n = 0⟩,
-      rw [← ((RingedSpace.is_unit_res_basic_open _ f).pow n).mul_left_inj, zero_mul, ← map_pow,
+    { rintro ⟨⟨_, n, rfl⟩, e : f ^ n * z = 0⟩,
+      rw [← ((RingedSpace.is_unit_res_basic_open _ f).pow n).mul_right_inj, mul_zero, ← map_pow,
         ← map_mul, e, map_zero] } }
 end
 

@@ -244,7 +244,7 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
     by simp [prod.swap, (∘)]; exact tendsto_map.comp tendsto_swap_uniformity,
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) u.uniformity).lift' (λs, comp_rel s s) =
           u.uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
-      map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
+      map_lift'_eq2 $ monotone_id.comp_rel monotone_id
     ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘
             (λs:set (α×α), comp_rel s (comp_rel s s))) :
       lift'_mono' $ assume s hs ⟨a, b⟩ ⟨c, ⟨⟨a₁, a₂⟩, ha, a_eq⟩, ⟨⟨b₁, b₂⟩, hb, b_eq⟩⟩,
@@ -259,7 +259,7 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
     ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧))
             (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
       by rw [map_lift'_eq];
-        exact monotone_comp_rel monotone_id (monotone_comp_rel monotone_id monotone_id)
+        exact monotone_id.comp_rel (monotone_id.comp_rel monotone_id)
     ... ≤ map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity :
       map_mono comp_le_uniformity3,
   is_open_uniformity := assume s,

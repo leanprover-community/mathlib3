@@ -80,10 +80,11 @@ theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime)
 begin
   refine le_antisymm (λ a ha, _) ideal.le_comap_map,
   obtain ⟨⟨b, s⟩, h⟩ := (mem_map_algebra_map_iff M S).1 (ideal.mem_comap.1 ha),
-  replace h : algebra_map R S (a * s) = algebra_map R S b := by simpa only [←map_mul] using h,
+  replace h : algebra_map R S (s * a) = algebra_map R S b :=
+    by simpa only [←map_mul, mul_comm] using h,
   obtain ⟨c, hc⟩ := (eq_iff_exists M S).1 h,
-  have : a * (s * c) ∈ I := by { rw [←mul_assoc, hc], exact I.mul_mem_right c b.2 },
-  exact (hI.mem_or_mem this).resolve_right (λ hsc, hM.le_bot ⟨(s * c).2, hsc⟩)
+  have : (↑c * ↑s) * a ∈ I := by { rw [mul_assoc, hc], exact I.mul_mem_left c b.2 },
+  exact (hI.mem_or_mem this).resolve_left (λ hsc, hM.le_bot ⟨(c * s).2, hsc⟩)
 end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
@@ -187,6 +188,18 @@ begin
     exact or.inl (mul_left_cancel₀ (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn
       (by rw [← ring_hom.map_mul, ← mk'_eq_mul_mk'_one, mk'_self, ring_hom.map_one]))) }
+end
+
+open_locale non_zero_divisors
+
+lemma bot_lt_comap_prime [is_domain R] (hM : M ≤ R⁰)
+  (p : ideal S) [hpp : p.is_prime] (hp0 : p ≠ ⊥) :
+  ⊥ < ideal.comap (algebra_map R S) p :=
+begin
+  haveI : is_domain S := is_domain_of_le_non_zero_divisors _ hM,
+  convert (order_iso_of_prime M S).lt_iff_lt.mpr
+    (show (⟨⊥, ideal.bot_prime⟩ : {p : ideal S // p.is_prime}) < ⟨p, hpp⟩, from hp0.bot_lt),
+  exact (ideal.comap_bot_of_injective (algebra_map R S) (is_localization.injective _ hM)).symm,
 end
 
 end comm_ring

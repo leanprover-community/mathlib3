@@ -1028,7 +1028,7 @@ t.zero_smul_subset.antisymm $ by simpa [mem_smul] using ht
 
 /-- A nonempty set is scaled by zero to the singleton set containing 0. -/
 lemma zero_smul_finset {s : finset β} (h : s.nonempty) : (0 : α) • s = (0 : finset β) :=
-coe_injective $ by simpa using set.zero_smul_set h
+coe_injective $ by simpa using @set.zero_smul_set α _ _ _ _ _ h
 
 lemma zero_smul_finset_subset (s : finset β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, mem_zero.2 $ zero_smul α x

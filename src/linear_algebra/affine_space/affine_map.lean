@@ -501,9 +501,9 @@ by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zer
 
 omit V1
 
-lemma image_interval {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
+lemma image_uIcc {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
   (a b : k) :
-  f '' set.interval a b = set.interval (f a) (f b) :=
+  f '' set.uIcc a b = set.uIcc (f a) (f b) :=
 begin
   have : ⇑f = (λ x, x + f 0) ∘ λ x, x * (f 1 - f 0),
   { ext x,
@@ -511,7 +511,7 @@ begin
     rw [← f.linear_map_vsub, ← f.linear.map_smul, ← f.map_vadd],
     simp only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
   rw [this, set.image_comp],
-  simp only [set.image_add_const_interval, set.image_mul_const_interval]
+  simp only [set.image_add_const_uIcc, set.image_mul_const_uIcc]
 end
 
 section

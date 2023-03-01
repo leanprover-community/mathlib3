@@ -389,6 +389,17 @@ is the residue field of `R`. -/
   map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
   map_one' := map_equiv_refl }
 
+section mul_semiring_action
+variables (G : Type*) [group G] [mul_semiring_action G R]
+
+/-- If `G` acts on `R` as a `mul_semiring_action`, then it also acts on `residue_field R`. -/
+instance : mul_semiring_action G (local_ring.residue_field R) :=
+mul_semiring_action.comp_hom _ $ map_aut.comp (mul_semiring_action.to_ring_aut G R)
+
+@[simp] lemma residue_smul (g : G) (r : R) : residue R (g • r) = g • residue R r := rfl
+
+end mul_semiring_action
+
 end residue_field
 
 lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective φ) :

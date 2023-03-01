@@ -128,7 +128,7 @@ there is no good way to generalize over universe parameters, so we can't fully s
 type that it does not depend on the choice of basis. Instead you can use the `det_aux_def'` lemma,
 or avoid mentioning a basis at all using `linear_map.det`.
 -/
-def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
+@[irreducible] def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
     (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
@@ -140,10 +140,7 @@ See also `det_aux_def'` which allows you to vary the basis.
 -/
 lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
   linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
-rfl
-
--- Discourage the elaborator from unfolding `det_aux` and producing a huge term.
-attribute [irreducible] linear_map.det_aux
+by  { rw [det_aux], refl }
 
 lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (tb : trunc $ basis ι A M) (b' : basis ι' A M) (f : M →ₗ[A] M) :

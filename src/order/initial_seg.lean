@@ -56,7 +56,18 @@ localized "infix (name := initial_seg) ` ≼i `:25 := initial_seg" in initial_se
 namespace initial_seg
 
 instance : has_coe (r ≼i s) (r ↪r s) := ⟨initial_seg.to_rel_embedding⟩
-instance : has_coe_to_fun (r ≼i s) (λ _, α → β) := ⟨λ f x, (f : r ↪r s) x⟩
+
+instance : embedding_like (r ≼i s) α β :=
+{ coe := λ f, f.to_fun,
+  coe_injective' :=
+    begin
+      rintro ⟨f, hf⟩ ⟨g, hg⟩ h,
+      congr' with x,
+      exact congr_fun h x
+    end,
+  injective' := λ f, f.inj' }
+
+@[ext] lemma ext {f g : r ≼i s} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl
@@ -68,9 +79,11 @@ instance : has_coe_to_fun (r ≼i s) (λ _, α → β) := ⟨λ f x, (f : r ↪r
 theorem init' (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b :=
 f.init _ _
 
+theorem map_rel_iff (f : r ≼i s) {a b : α} : s (f a) (f b) ↔ r a b := f.1.map_rel_iff
+
 theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
-⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, (f : r ↪r s).map_rel_iff.1 (e.symm ▸ h)⟩,
- λ ⟨a', e, h⟩, e ▸ (f : r ↪r s).map_rel_iff.2 h⟩
+⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, f.map_rel_iff.1 (e.symm ▸ h)⟩,
+ λ ⟨a', e, h⟩, e ▸ f.map_rel_iff.2 h⟩
 
 /-- An order isomorphism is an initial segment -/
 def of_iso (f : r ≃r s) : r ≼i s :=
@@ -86,7 +99,7 @@ instance (r : α → α → Prop) : inhabited (r ≼i r) := ⟨initial_seg.refl 
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
 ⟨f.1.trans g.1, λ a c h, begin
   simp at h ⊢,
-  rcases g.2 _ _ h with ⟨b, rfl⟩, have h := g.1.map_rel_iff.1 h,
+  rcases g.2 _ _ h with ⟨b, rfl⟩, have h := g.map_rel_iff.1 h,
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
@@ -97,14 +110,11 @@ end⟩
 theorem unique_of_trichotomous_of_irrefl [is_trichotomous β s] [is_irrefl β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
-  suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact rel_embedding.coe_fn_injective this },
-  funext a, have := h a, induction this with a H IH,
-  refine extensional_of_trichotomous_of_irrefl s (λ x, ⟨λ h, _, λ h, _⟩),
-  { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
-    rw IH _ h', exact (g : r ↪r s).map_rel_iff.2 h' },
-  { rcases g.init_iff.1 h with ⟨y, rfl, h'⟩,
-    rw ← IH _ h', exact (f : r ↪r s).map_rel_iff.2 h' }
+  ext a,
+  have := h a, induction this with a H IH,
+  refine extensional_of_trichotomous_of_irrefl s (λ x, _),
+  simp only [f.init_iff, g.init_iff],
+  exact exists_congr (λ x, and_congr_left $ λ hx, IH _ hx ▸ iff.rfl)
 end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=

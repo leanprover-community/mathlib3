@@ -180,7 +180,7 @@ graded_algebra.of_alg_hom _
     dsimp,
     rw [decompose_aux_single, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (λ i x, by convert (decompose_aux_coe f x : _))
+  (λ i x, by rw [decompose_aux_coe f x])
 
 -- Lean can't find this later without us repeating it
 instance grade_by.decomposition : direct_sum.decomposition (grade_by R f) :=

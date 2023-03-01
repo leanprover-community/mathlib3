@@ -56,7 +56,7 @@ lemma mul_tsupport_eq_empty_iff {f : X → α} : mul_tsupport f = ∅ ↔ f = 1 
 by rw [mul_tsupport, closure_empty_iff, mul_support_eq_empty_iff]
 
 @[to_additive]
-lemma image_eq_zero_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
+lemma image_eq_one_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
 mul_support_subset_iff'.mp (subset_mul_tsupport f) x hx
 
 @[to_additive]

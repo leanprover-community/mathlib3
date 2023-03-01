@@ -9,6 +9,9 @@ import algebra.order.monoid.min_max
 /-!
 # zip & unzip
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides results about `list.zip_with`, `list.zip` and `list.unzip` (definitions are in
 core Lean).
 `zip_with f l₁ l₂` applies `f : α → β → γ` pointwise to a list `l₁ : list α` and `l₂ : list β`. It

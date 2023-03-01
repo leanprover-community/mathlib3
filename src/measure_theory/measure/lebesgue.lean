@@ -112,7 +112,7 @@ end
 instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨λ x, volume_singleton⟩
 
-@[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (|b - a|) :=
+@[simp] lemma volume_interval {a b : ℝ} : volume (uIcc a b) = of_real (|b - a|) :=
 by rw [←Icc_min_max, volume_Icc, max_sub_min_eq_abs]
 
 @[simp] lemma volume_Ioi {a : ℝ} : volume (Ioi a) = ∞ :=
@@ -542,12 +542,7 @@ begin
   two endpoints, which don't matter since `μ` does not have any atom). -/
   let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
   let u := ⋃ (i : ↥s × ↥s), T i,
-  have hfinite : (s \ u).finite,
-  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra' h,
-    apply hy.2,
-    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
-      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo',
   obtain ⟨A, A_count, hA⟩ :
     ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
     is_open_Union_countable _ (λ p, is_open_Ioo),
@@ -584,12 +579,7 @@ begin
   two endpoints, which don't matter since `μ` does not have any atom). -/
   let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
   let u := ⋃ (i : ↥s × ↥s), T i,
-  have hfinite : (s \ u).finite,
-  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra' h,
-    apply hy.2,
-    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
-      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo',
   obtain ⟨A, A_count, hA⟩ :
     ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
     is_open_Union_countable _ (λ p, is_open_Ioo),

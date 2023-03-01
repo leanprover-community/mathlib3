@@ -3,8 +3,10 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.complex.determinant
-import data.complex.is_R_or_C
+import data.complex.module
+import data.is_R_or_C.basic
+import topology.algebra.module.infinite_sum
+import topology.instances.real_vector_space
 
 /-!
 # Normed space structure on `ℂ`.
@@ -28,6 +30,9 @@ isometries in `of_real_li` and `conj_lie`.
 
 We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/
+
+assert_not_exists absorbs
+
 noncomputable theory
 
 namespace complex
@@ -151,6 +156,36 @@ lemma norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n �
   ‖ζ‖ = 1 :=
 congr_arg coe (nnnorm_eq_one_of_pow_eq_one h hn)
 
+lemma equiv_real_prod_apply_le (z : ℂ) : ‖equiv_real_prod z‖ ≤ abs z :=
+by simp [prod.norm_def, abs_re_le_abs, abs_im_le_abs]
+
+lemma equiv_real_prod_apply_le' (z : ℂ) : ‖equiv_real_prod z‖ ≤ 1 * abs z :=
+by simpa using equiv_real_prod_apply_le z
+
+lemma lipschitz_equiv_real_prod : lipschitz_with 1 equiv_real_prod :=
+by simpa using
+  add_monoid_hom_class.lipschitz_of_bound equiv_real_prod_lm 1 equiv_real_prod_apply_le'
+
+lemma antilipschitz_equiv_real_prod : antilipschitz_with (nnreal.sqrt 2) equiv_real_prod :=
+by simpa using
+  add_monoid_hom_class.antilipschitz_of_bound equiv_real_prod_lm abs_le_sqrt_two_mul_max
+
+lemma uniform_embedding_equiv_real_prod : uniform_embedding equiv_real_prod :=
+antilipschitz_equiv_real_prod.uniform_embedding lipschitz_equiv_real_prod.uniform_continuous
+
+instance : complete_space ℂ :=
+(complete_space_congr uniform_embedding_equiv_real_prod).mpr infer_instance
+
+/-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_clm : ℂ ≃L[ℝ] ℝ × ℝ :=
+equiv_real_prod_lm.to_continuous_linear_equiv_of_bounds 1 (real.sqrt 2)
+equiv_real_prod_apply_le'
+(λ p, abs_le_sqrt_two_mul_max (equiv_real_prod.symm p))
+
+instance : proper_space ℂ :=
+(id lipschitz_equiv_real_prod : lipschitz_with 1 equiv_real_prod_clm.to_homeomorph).proper_space
+
 /-- The `abs` function on `ℂ` is proper. -/
 lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
 tendsto_norm_cocompact_at_top
@@ -172,13 +207,6 @@ def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [abs_re_l
 
 @[simp] lemma re_clm_apply (z : ℂ) : (re_clm : ℂ → ℝ) z = z.re := rfl
 
-@[simp] lemma re_clm_norm : ‖re_clm‖ = 1 :=
-le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
-calc 1 = ‖re_clm 1‖ : by simp
-   ... ≤ ‖re_clm‖ : unit_le_op_norm _ _ (by simp)
-
-@[simp] lemma re_clm_nnnorm : ‖re_clm‖₊ = 1 := subtype.ext re_clm_norm
-
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_le_abs])
 
@@ -187,13 +215,6 @@ def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_l
 @[simp] lemma im_clm_coe : (coe (im_clm) : ℂ →ₗ[ℝ] ℝ) = im_lm := rfl
 
 @[simp] lemma im_clm_apply (z : ℂ) : (im_clm : ℂ → ℝ) z = z.im := rfl
-
-@[simp] lemma im_clm_norm : ‖im_clm‖ = 1 :=
-le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
-calc 1 = ‖im_clm I‖ : by simp
-   ... ≤ ‖im_clm‖ : unit_le_op_norm _ _ (by simp)
-
-@[simp] lemma im_clm_nnnorm : ‖im_clm‖₊ = 1 := subtype.ext im_clm_norm
 
 lemma restrict_scalars_one_smul_right' (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
@@ -225,14 +246,6 @@ by rw [← dist_conj_conj, conj_conj]
 lemma nndist_conj_comm (z w : ℂ) : nndist (conj z) w = nndist z (conj w) :=
 subtype.ext $ dist_conj_comm _ _
 
-/-- The determinant of `conj_lie`, as a linear map. -/
-@[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
-det_conj_ae
-
-/-- The determinant of `conj_lie`, as a linear equiv. -/
-@[simp] lemma linear_equiv_det_conj_lie : conj_lie.to_linear_equiv.det = -1 :=
-linear_equiv_det_conj_ae
-
 instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := continuous_star
@@ -252,11 +265,6 @@ def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 @[simp] lemma conj_cle_coe : conj_cle.to_linear_equiv = conj_ae.to_linear_equiv := rfl
 
 @[simp] lemma conj_cle_apply (z : ℂ) : conj_cle z = conj z := rfl
-
-@[simp] lemma conj_cle_norm : ‖(conj_cle : ℂ →L[ℝ] ℂ)‖ = 1 :=
-conj_lie.to_linear_isometry.norm_to_continuous_linear_map
-
-@[simp] lemma conj_cle_nnorm : ‖(conj_cle : ℂ →L[ℝ] ℂ)‖₊ = 1 := subtype.ext conj_cle_norm
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_real⟩
@@ -280,10 +288,6 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 @[simp] lemma of_real_clm_coe : (of_real_clm : ℝ →ₗ[ℝ] ℂ) = of_real_am.to_linear_map := rfl
 
 @[simp] lemma of_real_clm_apply (x : ℝ) : of_real_clm x = x := rfl
-
-@[simp] lemma of_real_clm_norm : ‖of_real_clm‖ = 1 := of_real_li.norm_to_continuous_linear_map
-
-@[simp] lemma of_real_clm_nnnorm : ‖of_real_clm‖₊ = 1 := subtype.ext $ of_real_clm_norm
 
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
@@ -320,28 +324,6 @@ by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex
 
 end complex_order
 
-section
-
-variables {α β γ : Type*}
-  [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
-
-/-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
-@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
-def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
-{ map_add' := by simp, .. equiv_real_prod }
-
-/-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
-@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
-def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
-{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
-
-/-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
-@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
-def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
-equiv_real_prod_add_hom_lm.to_continuous_linear_equiv
-
-end
-
 lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
   has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
 begin
@@ -349,7 +331,7 @@ begin
   -- `has_sum.mapL` here:
   refine ⟨λ h, ⟨re_clm.has_sum h, im_clm.has_sum h⟩, _⟩,
   rintro ⟨h₁, h₂⟩,
-  convert (h₁.prod_mk h₂).mapL equiv_real_prodₗ.symm.to_continuous_linear_map,
+  convert (h₁.prod_mk h₂).mapL equiv_real_prod_clm.symm.to_continuous_linear_map,
   { ext x; refl },
   { cases c, refl }
 end

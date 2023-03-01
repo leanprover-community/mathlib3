@@ -7,6 +7,7 @@ This file is to a certain extent based on `quotient_module.lean` by Johannes Hö
 -/
 import group_theory.congruence
 import group_theory.coset
+import group_theory.subgroup.finite
 import group_theory.subgroup.pointwise
 
 /-!

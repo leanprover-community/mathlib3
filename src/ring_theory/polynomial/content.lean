@@ -58,6 +58,9 @@ begin
   exact (hp 0 (dvd_zero (C 0))).ne_zero rfl,
 end
 
+lemma is_primitive_of_dvd {p q : R[X]} (hp : is_primitive p) (hq : q ∣ p) : is_primitive q :=
+λ a ha, is_primitive_iff_is_unit_of_C_dvd.mp hp a (dvd_trans ha hq)
+
 end primitive
 
 variables {R : Type*} [comm_ring R] [is_domain R]
@@ -380,15 +383,6 @@ begin
     p.eq_C_content_mul_prim_part, q.eq_C_content_mul_prim_part] },
   rw [content_mul, ring_hom.map_mul],
   ring,
-end
-
-lemma is_primitive.is_primitive_of_dvd {p q : R[X]} (hp : p.is_primitive) (hdvd : q ∣ p) :
-  q.is_primitive :=
-begin
-  rcases hdvd with ⟨r, rfl⟩,
-  rw [is_primitive_iff_content_eq_one, ← normalize_content, normalize_eq_one, is_unit_iff_dvd_one],
-  apply dvd.intro r.content,
-  rwa [is_primitive_iff_content_eq_one, content_mul] at hp,
 end
 
 lemma is_primitive.dvd_prim_part_iff_dvd {p q : R[X]}

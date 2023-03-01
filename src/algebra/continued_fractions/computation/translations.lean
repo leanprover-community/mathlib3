@@ -68,15 +68,8 @@ parts of a value in case of termination.
 lemma succ_nth_stream_eq_none_iff : int_fract_pair.stream v (n + 1) = none
   ↔ (int_fract_pair.stream v n = none ∨ ∃ ifp, int_fract_pair.stream v n = some ifp ∧ ifp.fr = 0) :=
 begin
-  cases stream_nth_eq : (int_fract_pair.stream v n) with ifp,
-  case option.none : { simp [stream_nth_eq, int_fract_pair.stream] },
-  case option.some :
-  { cases ifp with _ fr,
-    by_cases h : fr = 0, -- `finish [int_fract_pair.stream]` closes both goals
-    { simp [int_fract_pair.stream, h, stream_nth_eq] },
-    { suffices : ¬ (int_fract_pair.of fr⁻¹: option $ int_fract_pair K) = none,
-        by simp [int_fract_pair.stream, h, stream_nth_eq, this],
-      exact λ h, option.no_confusion h } }
+  rw [int_fract_pair.stream],
+  cases int_fract_pair.stream v n; simp [imp_false]
 end
 
 /--
@@ -88,31 +81,7 @@ lemma succ_nth_stream_eq_some_iff {ifp_succ_n : int_fract_pair K} :
   ↔ ∃ (ifp_n : int_fract_pair K), int_fract_pair.stream v n = some ifp_n
       ∧ ifp_n.fr ≠ 0
       ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n :=
-begin
-  split,
-  { assume stream_succ_nth_eq,
-    have : int_fract_pair.stream v (n + 1) ≠ none, by simp [stream_succ_nth_eq],
-    have : ¬int_fract_pair.stream v n = none
-           ∧ ¬(∃ ifp, int_fract_pair.stream v n = some ifp ∧ ifp.fr = 0), by
-    { have not_none_not_fract_zero,
-        from (not_iff_not_of_iff succ_nth_stream_eq_none_iff).elim_left this,
-      exact (not_or_distrib.elim_left not_none_not_fract_zero) },
-    cases this with stream_nth_ne_none nth_fr_ne_zero,
-    replace nth_fr_ne_zero : ∀ ifp, int_fract_pair.stream v n = some ifp → ifp.fr ≠ 0, by
-      simpa using nth_fr_ne_zero,
-    obtain ⟨ifp_n, stream_nth_eq⟩ : ∃ ifp_n, int_fract_pair.stream v n = some ifp_n, from
-      option.ne_none_iff_exists'.mp stream_nth_ne_none,
-    existsi ifp_n,
-    have ifp_n_fr_ne_zero : ifp_n.fr ≠ 0, from nth_fr_ne_zero ifp_n stream_nth_eq,
-    cases ifp_n with _ ifp_n_fr,
-    suffices : int_fract_pair.of ifp_n_fr⁻¹ = ifp_succ_n,
-      by simpa [stream_nth_eq, ifp_n_fr_ne_zero],
-    simp only [int_fract_pair.stream, stream_nth_eq, ifp_n_fr_ne_zero, option.some_bind, if_false]
-      at stream_succ_nth_eq,
-    injection stream_succ_nth_eq },
-  { rintro ⟨⟨_⟩, ifp_n_props⟩, -- `finish [int_fract_pair.stream, ifp_n_props]` closes this goal
-    simpa only [int_fract_pair.stream, ifp_n_props, option.some_bind, if_false] }
-end
+by simp [int_fract_pair.stream, ite_eq_iff]
 
 lemma exists_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}
   (stream_succ_nth_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n)
@@ -121,19 +90,10 @@ lemma exists_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}
 begin
   -- get the witness from `succ_nth_stream_eq_some_iff` and prove that it has the additional
   -- properties
-  rcases (succ_nth_stream_eq_some_iff.elim_left stream_succ_nth_eq) with
-    ⟨ifp_n, stream_nth_eq, nth_fr_ne_zero, _⟩,
-  existsi ifp_n,
-  cases ifp_n with _ ifp_n_fr,
-  suffices : ifp_n_fr⁻¹ = ⌊ifp_n_fr⁻¹⌋, by simpa [stream_nth_eq],
-  have : int_fract_pair.of ifp_n_fr⁻¹ = ifp_succ_n := h_right_right,
-  cases ifp_succ_n with _ ifp_succ_n_fr,
-  change ifp_succ_n_fr = 0 at succ_nth_fr_eq_zero,
-  have : int.fract ifp_n_fr⁻¹ = ifp_succ_n_fr, by injection this,
-  have : int.fract ifp_n_fr⁻¹ = 0, by rwa [succ_nth_fr_eq_zero] at this,
-  calc
-    ifp_n_fr⁻¹ = int.fract ifp_n_fr⁻¹ + ⌊ifp_n_fr⁻¹⌋ : by rw (int.fract_add_floor ifp_n_fr⁻¹)
-           ... = ⌊ifp_n_fr⁻¹⌋                    : by simp [‹int.fract ifp_n_fr⁻¹ = 0›]
+  rcases (succ_nth_stream_eq_some_iff.mp stream_succ_nth_eq) with
+    ⟨ifp_n, seq_nth_eq, nth_fr_ne_zero, rfl⟩,
+  refine ⟨ifp_n, seq_nth_eq, _⟩,
+  simpa only [int_fract_pair.of, int.fract, sub_eq_zero] using succ_nth_fr_eq_zero
 end
 
 end int_fract_pair
@@ -185,12 +145,7 @@ Let's first show how the termination of one sequence implies the termination of 
 
 lemma of_terminated_at_iff_int_fract_pair_seq1_terminated_at :
   (of v).terminated_at n ↔ (int_fract_pair.seq1 v).snd.terminated_at n :=
-begin
-  rw [terminated_at_iff_s_none, of],
-  rcases (int_fract_pair.seq1 v) with ⟨head, ⟨st⟩⟩,
-  cases st_n_eq : st n;
-  simp [of, st_n_eq, seq.map, seq.nth, stream.map, seq.terminated_at, stream.nth]
-end
+option.map_eq_none
 
 lemma of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none :
   (of v).terminated_at n ↔ int_fract_pair.stream v (n + 1) = none :=
@@ -241,7 +196,7 @@ lemma nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero {ifp_n : int_fract_
   (stream_nth_eq : int_fract_pair.stream v n = some ifp_n) (nth_fr_ne_zero : ifp_n.fr ≠ 0) :
   (of v).s.nth n = some ⟨1, (int_fract_pair.of ifp_n.fr⁻¹).b⟩ :=
 have int_fract_pair.stream v (n + 1) = some (int_fract_pair.of ifp_n.fr⁻¹), by
-  { cases ifp_n, simp [int_fract_pair.stream, stream_nth_eq, nth_fr_ne_zero], refl },
+  { cases ifp_n, simp [int_fract_pair.stream, stream_nth_eq, nth_fr_ne_zero] },
 nth_of_eq_some_of_succ_nth_int_fract_pair_stream this
 
 end values

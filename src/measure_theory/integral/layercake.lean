@@ -181,7 +181,7 @@ begin
   have eq₂ : ∀ ω, ∫ t in 0..f ω, g t = ∫ t in 0..f ω, G t,
   { refine λ ω, interval_integral.integral_congr_ae _,
     have fω_nn : 0 ≤ f ω := f_nn ω,
-    rw [interval_oc_of_le fω_nn,
+    rw [uIoc_of_le fω_nn,
         ← ae_restrict_iff' (measurable_set_Ioc : measurable_set (Ioc (0 : ℝ) (f ω)))],
     exact g_eq_G_on (f ω), },
   simp_rw [eq₁, eq₂],

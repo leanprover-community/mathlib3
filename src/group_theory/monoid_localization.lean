@@ -72,7 +72,7 @@ satisfies this predicate, then `N` is isomorphic to the localization of `M` at `
   extends add_monoid_hom M N :=
 (map_add_units' : ∀ y : S, is_add_unit (to_fun y))
 (surj' : ∀ z : N, ∃ x : M × S, z + to_fun x.2 = to_fun x.1)
-(eq_iff_exists' : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, x + c = y + c)
+(eq_iff_exists' : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, ↑c + x = ↑c + y)
 
 /-- The add_monoid hom underlying a `localization_map` of `add_comm_monoid`s. -/
 add_decl_doc localization_map.to_add_monoid_hom
@@ -92,7 +92,7 @@ satisfies this predicate, then `N` is isomorphic to the localization of `M` at `
 extends monoid_hom M N :=
 (map_units' : ∀ y : S, is_unit (to_fun y))
 (surj' : ∀ z : N, ∃ x : M × S, z * to_fun x.2 = to_fun x.1)
-(eq_iff_exists' : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, x * c = y * c)
+(eq_iff_exists' : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, ↑c * x = c * y)
 
 attribute [to_additive add_submonoid.localization_map] submonoid.localization_map
 attribute [to_additive add_submonoid.localization_map.to_add_monoid_hom]
@@ -124,20 +124,21 @@ submonoid of `M`, whose quotient is the localization of `M` at `S`. -/
 `S` a submonoid of `M`, whose quotient is the localization of `M` at `S`."]
 def r' : con (M × S) :=
 begin
-  refine { r := λ a b : M × S, ∃ c : S, a.1 * b.2 * c = b.1 * a.2 * c,
+  -- note we multiply by `c` on the left so that we can later generalize to `•`
+  refine { r := λ a b : M × S, ∃ c : S, ↑c * (↑b.2 * a.1) = c * (a.2 * b.1),
     iseqv := ⟨λ a, ⟨1, rfl⟩, λ a b ⟨c, hc⟩, ⟨c, hc.symm⟩, _⟩,
     .. },
   { rintros a b c ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
-    use b.2 * t₁ * t₂,
+    use t₂ * t₁ * b.2,
     simp only [submonoid.coe_mul],
-    calc a.1 * c.2 * (b.2 * t₁ * t₂) = a.1 * b.2 * t₁ * c.2 * t₂ : by ac_refl
-    ... = b.1 * c.2 * t₂ * a.2 * t₁ : by { rw ht₁, ac_refl }
-    ... = c.1 * a.2 * (b.2 * t₁ * t₂) : by { rw ht₂, ac_refl } },
+    calc (t₂ * t₁ * b.2 : M) * (c.2 * a.1) = t₂ * c.2 * (t₁ * (b.2 * a.1)) : by ac_refl
+    ... = t₁ * a.2 * (t₂ * (c.2 * b.1)) : by { rw ht₁, ac_refl }
+    ... = t₂ * t₁ * b.2 * (a.2 * c.1) : by { rw ht₂, ac_refl } },
   { rintros a b c d ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
-    use t₁ * t₂,
-    calc (a.1 * c.1) * (b.2 * d.2) * (t₁ * t₂) = (a.1 * b.2 * t₁) * (c.1 * d.2 * t₂) :
+    use t₂ * t₁,
+    calc (t₂ * t₁ : M) * ((b.2 * d.2) * (a.1 * c.1)) = (t₂ * (d.2 * c.1)) * (t₁ * (b.2 * a.1)) :
       by ac_refl
-    ... = (b.1 * d.1) * (a.2 * c.2) * (t₁ * t₂) : by { rw [ht₁, ht₂], ac_refl } }
+    ... = (t₂ * t₁ : M) * ((a.2 * c.2) * (b.1 * d.1)) : by { rw [ht₁, ht₂], ac_refl } }
 end
 
 /-- The congruence relation used to localize a `comm_monoid` at a submonoid can be expressed
@@ -148,19 +149,19 @@ submonoid can be expressed equivalently as an infimum (see `add_localization.r`)
 explicitly (see `add_localization.r'`)."]
 theorem r_eq_r' : r S = r' S :=
 le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
-  le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
+  le_Inf $ λ b H ⟨p, q⟩ ⟨x, y⟩ ⟨t, ht⟩,
     begin
-      rw [← mul_one (p, q), ← mul_one y],
-      refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,
-      convert b.symm (b.mul (b.refl y) (H (q * t))) using 1,
-      rw [prod.mk_mul_mk, submonoid.coe_mul, ← mul_assoc, ht, mul_left_comm, mul_assoc],
-      refl
+      rw [← one_mul (p, q), ← one_mul (x, y)],
+      refine b.trans (b.mul (H (t * y)) (b.refl _)) _,
+      convert b.symm (b.mul (H (t * q)) (b.refl (x, y))) using 1,
+      dsimp only [prod.mk_mul_mk, submonoid.coe_mul] at ⊢ ht,
+      simp_rw [mul_assoc, ht, mul_comm y q],
     end
 
 variables {S}
 
 @[to_additive]
-lemma r_iff_exists {x y : M × S} : r S x y ↔ ∃ c : S, x.1 * y.2 * c = y.1 * x.2 * c :=
+lemma r_iff_exists {x y : M × S} : r S x y ↔ ∃ c : S, ↑c * (↑y.2 * x.1) = c * (x.2 * y.1) :=
 by rw r_eq_r' S; refl
 
 end localization
@@ -323,7 +324,7 @@ induction_on₂ x y $ λ x y, induction_on z $ H x y
 
 @[to_additive] lemma one_rel (y : S) : r S 1 (y, y) := λ b hb, hb y
 
-@[to_additive] theorem r_of_eq {x y : M × S} (h : y.1 * x.2 = x.1 * y.2) : r S x y :=
+@[to_additive] theorem r_of_eq {x y : M × S} (h : ↑y.2 * x.1 = ↑x.2 * y.1) : r S x y :=
 r_iff_exists.2 ⟨1, by rw h⟩
 
 @[to_additive] lemma mk_self (a : S) : mk (a : M) a = 1 :=
@@ -344,7 +345,12 @@ begin
   rw r_eq_r' at h ⊢,
   cases h with t ht,
   use t,
-  simp only [smul_mul_assoc, ht]
+  dsimp only [subtype.coe_mk] at ht ⊢,
+  -- TODO: this definition should take `smul_comm_class R M M` instead of `is_scalar_tower R M M` if
+  -- we ever want to generalize to the non-commutative case.
+  haveI : smul_comm_class R M M :=
+    ⟨λ r m₁ m₂, by simp_rw [smul_eq_mul, mul_comm m₁, smul_mul_assoc]⟩,
+  simp only [mul_smul_comm, ht],
 end
 
 instance [has_smul R M] [is_scalar_tower R M M] :
@@ -406,7 +412,7 @@ namespace monoid_hom
 @[to_additive "Makes a localization map from an `add_comm_monoid` hom satisfying the characteristic
 predicate."]
 def to_localization_map (f : M →* N) (H1 : ∀ y : S, is_unit (f y))
-  (H2 : ∀ z, ∃ x : M × S, z * f x.2 = f x.1) (H3 : ∀ x y, f x = f y ↔ ∃ c : S, x * c = y * c) :
+  (H2 : ∀ z, ∃ x : M × S, z * f x.2 = f x.1) (H3 : ∀ x y, f x = f y ↔ ∃ c : S, ↑c * x = ↑c * y) :
   submonoid.localization_map S N :=
 { map_units' := H1,
   surj' := H2,
@@ -440,7 +446,7 @@ by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, simp only, exact fu
   ∃ x : M × S, z * f.to_map x.2 = f.to_map x.1 := f.3 z
 
 @[to_additive] lemma eq_iff_exists (f : localization_map S N) {x y} :
-  f.to_map x = f.to_map y ↔ ∃ c : S, x * c = y * c := f.4 x y
+  f.to_map x = f.to_map y ↔ ∃ c : S, ↑c * x = c * y := f.4 x y
 
 /-- Given a localization map `f : M →* N`, a section function sending `z : N` to some
 `(x, y) : M × S` such that `f x * (f y)⁻¹ = z`. -/
@@ -565,14 +571,18 @@ by rw [mul_comm, mk'_spec]
 by rw [eq_comm, eq_mk'_iff_mul_eq, eq_comm]
 
 @[to_additive] lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : S} :
-  f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ f.to_map (x₁ * y₂) = f.to_map (x₂ * y₁) :=
-⟨λ H, by rw [f.to_map.map_mul, f.mk'_eq_iff_eq_mul.1 H, mul_assoc,
-  mul_comm (f.to_map _), ←mul_assoc, mk'_spec, f.to_map.map_mul],
+  f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ f.to_map (y₂ * x₁) = f.to_map (y₁ * x₂) :=
+⟨λ H, by rw [f.to_map.map_mul,  f.to_map.map_mul, f.mk'_eq_iff_eq_mul.1 H, ←mul_assoc, mk'_spec',
+  mul_comm],
  λ H, by rw [mk'_eq_iff_eq_mul, mk', mul_assoc, mul_comm _ (f.to_map y₁), ←mul_assoc,
-  ←f.to_map.map_mul, ←H, f.to_map.map_mul, mul_inv_right f.map_units]⟩
+  ←f.to_map.map_mul, mul_comm x₂, ←H, ←mul_comm x₁, f.to_map.map_mul, mul_inv_right f.map_units]⟩
+
+@[to_additive] lemma mk'_eq_iff_eq' {x₁ x₂} {y₁ y₂ : S} :
+  f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ f.to_map (x₁ * y₂) = f.to_map (x₂ * y₁) :=
+by simp only [f.mk'_eq_iff_eq, mul_comm]
 
 @[to_additive] protected lemma eq {a₁ b₁} {a₂ b₂ : S} :
-  f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ ∃ c : S, a₁ * b₂ * c = b₁ * a₂ * c :=
+  f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ ∃ c : S, ↑c * (↑b₂ * a₁) = c * (a₂ * b₁) :=
 f.mk'_eq_iff_eq.trans $ f.eq_iff_exists
 
 @[to_additive] protected lemma eq' {a₁ b₁} {a₂ b₂ : S} :
@@ -594,12 +604,16 @@ such that `x₁ * y₂ * c = x₂ * y₁ * c`. -/
 and `y₁ ∈ S`, if `x₂ : M, y₂ ∈ S` are such that `(f x₁ - f y₁) + f y₂ = f x₂`, then there exists
 `c ∈ S` such that `x₁ + y₂ + c = x₂ + y₁ + c`."]
 lemma exists_of_sec_mk' (x) (y : S) :
-  ∃ c : S, x * (f.sec $ f.mk' x y).2 * c = (f.sec $ f.mk' x y).1 * y * c :=
+  ∃ c : S, ↑c * (↑(f.sec $ f.mk' x y).2 * x) = c * (y * (f.sec $ f.mk' x y).1) :=
 f.eq_iff_exists.1 $ f.mk'_eq_iff_eq.1 $ (mk'_sec _ _).symm
 
-@[to_additive] lemma mk'_eq_of_eq {a₁ b₁ : M} {a₂ b₂ : S} (H : b₁ * a₂ = a₁ * b₂) :
+@[to_additive] lemma mk'_eq_of_eq {a₁ b₁ : M} {a₂ b₂ : S} (H : ↑a₂ * b₁ = ↑b₂ * a₁) :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ :=
 f.mk'_eq_iff_eq.2 $ H ▸ rfl
+
+@[to_additive] lemma mk'_eq_of_eq' {a₁ b₁ : M} {a₂ b₂ : S} (H : b₁ * ↑a₂ = a₁ * ↑b₂) :
+  f.mk' a₁ a₂ = f.mk' b₁ b₂ :=
+f.mk'_eq_of_eq $ by simpa only [mul_comm] using H
 
 @[simp, to_additive] lemma mk'_self' (y : S) :
   f.mk' (y : M) y = 1 :=
@@ -646,9 +660,9 @@ lemma eq_of_eq (hg : ∀ y : S, is_unit (g y)) {x y} (h : f.to_map x = f.to_map 
   g x = g y :=
 begin
   obtain ⟨c, hc⟩ := f.eq_iff_exists.1 h,
-  rw [←mul_one (g x), ←is_unit.mul_lift_right_inv (g.restrict S) hg c],
-  show _ * (g c * _) = _,
-  rw [←mul_assoc, ←g.map_mul, hc, mul_inv_left hg, g.map_mul, mul_comm],
+  rw [←one_mul (g x), ←is_unit.lift_right_inv_mul (g.restrict S) hg c],
+  show (_ * g c) * _ = _,
+  rw [mul_assoc, ←g.map_mul, hc, mul_comm, mul_inv_left hg, g.map_mul],
 end
 
 /-- Given `comm_monoid`s `M, P`, localization maps `f : M →* N, k : P →* Q` for submonoids
@@ -1212,7 +1226,7 @@ def monoid_of : submonoid.localization_map S (localization S) :=
   surj' := λ z, induction_on z $ λ x, ⟨x,
     by rw [mk_mul, mul_comm x.fst, ← mk_mul, mk_self, one_mul]⟩,
   eq_iff_exists' := λ x y, mk_eq_mk_iff.trans $ r_iff_exists.trans $
-    show (∃ (c : S), x * 1 * c = y * 1 * c) ↔ _, by rw [mul_one, mul_one],
+    show (∃ (c : S), ↑c * (1 * x) = c * (1 * y)) ↔ _, by rw [one_mul, one_mul],
   ..(r S).mk'.comp $ monoid_hom.inl M S }
 
 variables {S}

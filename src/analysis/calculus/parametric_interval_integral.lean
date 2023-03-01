@@ -39,8 +39,8 @@ lemma has_fderiv_at_integral_of_dominated_loc_of_lip {F : H → ℝ → E} {F' :
   interval_integrable F' μ a b ∧
     has_fderiv_at (λ x, ∫ t in a..b, F x t ∂μ) (∫ t in a..b, F' t ∂μ) x₀ :=
 begin
-  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
-    ← ae_restrict_iff' measurable_set_interval_oc] at *,
+  simp only [interval_integrable_iff, interval_integral_eq_integral_uIoc,
+    ← ae_restrict_iff' measurable_set_uIoc] at *,
   have := has_fderiv_at_integral_of_dominated_loc_of_lip ε_pos hF_meas hF_int hF'_meas h_lip
     bound_integrable h_diff,
   exact ⟨this.1, this.2.const_smul _⟩
@@ -60,8 +60,8 @@ lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → ℝ → E} {F'
   (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x t) (F' x t) x) :
   has_fderiv_at (λ x, ∫ t in a..b, F x t ∂μ) (∫ t in a..b, F' x₀ t ∂μ) x₀ :=
 begin
-  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
-    ← ae_restrict_iff' measurable_set_interval_oc] at *,
+  simp only [interval_integrable_iff, interval_integral_eq_integral_uIoc,
+    ← ae_restrict_iff' measurable_set_uIoc] at *,
   exact (has_fderiv_at_integral_of_dominated_of_fderiv_le ε_pos hF_meas hF_int hF'_meas h_bound
     bound_integrable h_diff).const_smul _
 end
@@ -82,8 +82,8 @@ lemma has_deriv_at_integral_of_dominated_loc_of_lip {F : 𝕜 → ℝ → E} {F'
   (interval_integrable F' μ a b) ∧
     has_deriv_at (λ x, ∫ t in a..b, F x t ∂μ) (∫ t in a..b, F' t ∂μ) x₀ :=
 begin
-  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
-    ← ae_restrict_iff' measurable_set_interval_oc] at *,
+  simp only [interval_integrable_iff, interval_integral_eq_integral_uIoc,
+    ← ae_restrict_iff' measurable_set_uIoc] at *,
   have := has_deriv_at_integral_of_dominated_loc_of_lip ε_pos hF_meas hF_int hF'_meas h_lipsch
     bound_integrable h_diff,
   exact ⟨this.1, this.2.const_smul _⟩
@@ -104,8 +104,8 @@ lemma has_deriv_at_integral_of_dominated_loc_of_deriv_le {F : 𝕜 → ℝ → E
   (interval_integrable (F' x₀) μ a b) ∧
     has_deriv_at (λ x, ∫ t in a..b, F x t ∂μ) (∫ t in a..b, F' x₀ t ∂μ) x₀ :=
 begin
-  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
-    ← ae_restrict_iff' measurable_set_interval_oc] at *,
+  simp only [interval_integrable_iff, interval_integral_eq_integral_uIoc,
+    ← ae_restrict_iff' measurable_set_uIoc] at *,
   have := has_deriv_at_integral_of_dominated_loc_of_deriv_le ε_pos hF_meas hF_int hF'_meas h_bound
     bound_integrable h_diff,
   exact ⟨this.1, this.2.const_smul _⟩

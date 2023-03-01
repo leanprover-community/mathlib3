@@ -303,7 +303,7 @@ section complete_subspace
 
 /-! ## The subspace `Lp_meas` is complete.
 
-We define an `isometric` between `Lp_meas_subgroup` and the `Lp` space corresponding to the
+We define an `isometry_equiv` between `Lp_meas_subgroup` and the `Lp` space corresponding to the
 measure `μ.trim hm`. As a consequence, the completeness of `Lp` implies completeness of
 `Lp_meas_subgroup` (and `Lp_meas`). -/
 
@@ -488,7 +488,7 @@ variables (𝕜)
 /-- `Lp_meas_subgroup` and `Lp_meas` are isometric. -/
 def Lp_meas_subgroup_to_Lp_meas_iso [hp : fact (1 ≤ p)] :
   Lp_meas_subgroup F m p μ ≃ᵢ Lp_meas F 𝕜 m p μ :=
-isometric.refl (Lp_meas_subgroup F m p μ)
+isometry_equiv.refl (Lp_meas_subgroup F m p μ)
 
 /-- `Lp_meas` and `Lp F p (μ.trim hm)` are isometric, with a linear equivalence. -/
 def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :

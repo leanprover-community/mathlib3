@@ -125,7 +125,7 @@ end
 namespace monic
 
 @[simp]
-lemma nat_degree_eq_zero_iff_eq_one {p : R[X]} (hp : p.monic) :
+lemma nat_degree_eq_zero_iff_eq_one (hp : p.monic) :
   p.nat_degree = 0 ↔ p = 1 :=
 begin
   split; intro h,
@@ -137,11 +137,11 @@ begin
 end
 
 @[simp]
-lemma degree_le_zero_iff_eq_one {p : R[X]} (hp : p.monic) :
+lemma degree_le_zero_iff_eq_one (hp : p.monic) :
   p.degree ≤ 0 ↔ p = 1 :=
 by rw [←hp.nat_degree_eq_zero_iff_eq_one, nat_degree_eq_zero_iff_degree_le_zero]
 
-lemma nat_degree_mul {p q : R[X]} (hp : p.monic) (hq : q.monic) :
+lemma nat_degree_mul (hp : p.monic) (hq : q.monic) :
   (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 begin
   nontriviality R,
@@ -149,7 +149,7 @@ begin
   simp [hp.leading_coeff, hq.leading_coeff]
 end
 
-lemma degree_mul_comm {p : R[X]} (hp : p.monic) (q : R[X]) :
+lemma degree_mul_comm (hp : p.monic) (q : R[X]) :
   (p * q).degree = (q * p).degree :=
 begin
   by_cases h : q = 0,
@@ -159,14 +159,14 @@ begin
   { rwa [hp.leading_coeff, one_mul, leading_coeff_ne_zero] }
 end
 
-lemma nat_degree_mul' {p q : R[X]} (hp : p.monic) (hq : q ≠ 0) :
+lemma nat_degree_mul' (hp : p.monic) (hq : q ≠ 0) :
   (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 begin
   rw [nat_degree_mul', add_comm],
   simpa [hp.leading_coeff, leading_coeff_ne_zero]
 end
 
-lemma nat_degree_mul_comm {p : R[X]} (hp : p.monic) (q : R[X]) :
+lemma nat_degree_mul_comm (hp : p.monic) (q : R[X]) :
   (p * q).nat_degree = (q * p).nat_degree :=
 begin
   by_cases h : q = 0,
@@ -175,7 +175,19 @@ begin
   simpa [hp.leading_coeff, leading_coeff_ne_zero]
 end
 
-lemma next_coeff_mul {p q : R[X]} (hp : monic p) (hq : monic q) :
+lemma not_dvd_of_nat_degree_lt (hp : monic p)
+  (h0 : q ≠ 0) (hl : nat_degree q < nat_degree p) : ¬ p ∣ q :=
+begin
+  rintro ⟨r, rfl⟩,
+  rw [hp.nat_degree_mul' $ right_ne_zero_of_mul h0] at hl,
+  exact hl.not_le (nat.le_add_right _ _)
+end
+
+lemma not_dvd_of_degree_lt (hp : monic p)
+  (h0 : q ≠ 0) (hl : degree q < degree p) : ¬ p ∣ q :=
+monic.not_dvd_of_nat_degree_lt hp h0 $ nat_degree_lt_nat_degree h0 hl
+
+lemma next_coeff_mul (hp : monic p) (hq : monic q) :
   next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
   nontriviality,
@@ -333,6 +345,9 @@ begin
   apply hf,
   rw [← leading_coeff_of_injective hf, hp.leading_coeff, f.map_one]
 end
+
+theorem _root_.function.injective.monic_map_iff {p : R[X]} : p.monic ↔ (p.map f).monic :=
+⟨monic.map _, polynomial.monic_of_injective hf⟩
 
 end injective
 

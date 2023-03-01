@@ -709,6 +709,7 @@ begin
       apply apply_first_diff_ne hne',
       rw [le_zero_iff.1 h],
       apply apply_eq_of_dist_lt _ le_rfl,
+      rw pow_zero,
       exact hxy },
     have hn : first_diff x.1 y.1 = n + 1 := (nat.succ_pred_eq_of_pos diff_pos).symm,
     rw [dist', dist_eq_of_ne hne', hn],

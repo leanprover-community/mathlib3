@@ -3,11 +3,14 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
+import algebra.big_operators.basic
 import algebra.field.opposite
 import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
 import group_theory.coset
+import group_theory.subgroup.zpowers
+import group_theory.submonoid.membership
 
 /-!
 # Periodicity

@@ -67,7 +67,7 @@ private def isometry_rel : nonempty_compacts ℓ_infty_ℝ → nonempty_compacts
 
 /-- This is indeed an equivalence relation -/
 private lemma is_equivalence_isometry_rel : equivalence isometry_rel :=
-⟨λ x, ⟨isometric.refl _⟩, λ x y ⟨e⟩, ⟨e.symm⟩, λ x y z ⟨e⟩ ⟨f⟩, ⟨e.trans f⟩⟩
+⟨λ x, ⟨isometry_equiv.refl _⟩, λ x y ⟨e⟩, ⟨e.symm⟩, λ x y z ⟨e⟩ ⟨f⟩, ⟨e.trans f⟩⟩
 
 /-- setoid instance identifying two isometric nonempty compact subspaces of ℓ^∞(ℝ) -/
 instance isometry_rel.setoid : setoid (nonempty_compacts ℓ_infty_ℝ) :=
@@ -93,13 +93,13 @@ begin
   simp only [to_GH_space, quotient.eq],
   refine ⟨λ h, _, _⟩,
   { rcases setoid.symm h with ⟨e⟩,
-    have f := (Kuratowski_embedding.isometry X).isometric_on_range.trans e,
+    have f := (Kuratowski_embedding.isometry X).isometry_equiv_on_range.trans e,
     use [λ x, f x, isometry_subtype_coe.comp f.isometry],
     rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe],
     refl },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
-    have f := ((Kuratowski_embedding.isometry X).isometric_on_range.symm.trans
-               isomΨ.isometric_on_range).symm,
+    have f := ((Kuratowski_embedding.isometry X).isometry_equiv_on_range.symm.trans
+               isomΨ.isometry_equiv_on_range).symm,
     have E : (range Ψ ≃ᵢ nonempty_compacts.Kuratowski_embedding X) =
         (p ≃ᵢ range (Kuratowski_embedding X)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
@@ -127,7 +127,7 @@ end
 
 /-- Two nonempty compact spaces have the same image in `GH_space` if and only if they are
 isometric. -/
-lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [compact_space X]
+lemma to_GH_space_eq_to_GH_space_iff_isometry_equiv {X : Type u} [metric_space X] [compact_space X]
   [nonempty X] {Y : Type v} [metric_space Y] [compact_space Y] [nonempty Y] :
   to_GH_space X = to_GH_space Y ↔ nonempty (X ≃ᵢ Y) :=
 ⟨begin
@@ -137,15 +137,15 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [co
              (nonempty_compacts.Kuratowski_embedding Y))
           = ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
-  have f := (Kuratowski_embedding.isometry X).isometric_on_range,
-  have g := (Kuratowski_embedding.isometry Y).isometric_on_range.symm,
+  have f := (Kuratowski_embedding.isometry X).isometry_equiv_on_range,
+  have g := (Kuratowski_embedding.isometry Y).isometry_equiv_on_range.symm,
   exact ⟨f.trans $ (cast I e).trans g⟩
 end,
 begin
   rintro ⟨e⟩,
   simp only [to_GH_space, quotient.eq],
-  have f := (Kuratowski_embedding.isometry X).isometric_on_range.symm,
-  have g := (Kuratowski_embedding.isometry Y).isometric_on_range,
+  have f := (Kuratowski_embedding.isometry X).isometry_equiv_on_range.symm,
+  have g := (Kuratowski_embedding.isometry Y).isometry_equiv_on_range,
   have I : ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))) =
     ((nonempty_compacts.Kuratowski_embedding X) ≃ᵢ
       (nonempty_compacts.Kuratowski_embedding Y)),
@@ -408,9 +408,9 @@ instance : metric_space GH_space :=
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)
           (range_nonempty _) hΦ.bounded hΨ.bounded } },
     have T : ((range Ψ) ≃ᵢ y.rep) = ((range Φ) ≃ᵢ y.rep), by rw this,
-    have eΨ := cast T Ψisom.isometric_on_range.symm,
-    have e := Φisom.isometric_on_range.trans eΨ,
-    rw [← x.to_GH_space_rep, ← y.to_GH_space_rep, to_GH_space_eq_to_GH_space_iff_isometric],
+    have eΨ := cast T Ψisom.isometry_equiv_on_range.symm,
+    have e := Φisom.isometry_equiv_on_range.trans eΨ,
+    rw [← x.to_GH_space_rep, ← y.to_GH_space_rep, to_GH_space_eq_to_GH_space_iff_isometry_equiv],
     exact ⟨e⟩
   end,
   dist_triangle := λ x y z, begin
@@ -1016,9 +1016,9 @@ begin
   have : ∀ n, (X3 n).to_GH_space = u n,
   { assume n,
     rw [nonempty_compacts.to_GH_space, ← (u n).to_GH_space_rep,
-        to_GH_space_eq_to_GH_space_iff_isometric],
+        to_GH_space_eq_to_GH_space_iff_isometry_equiv],
     constructor,
-    convert (isom n).isometric_on_range.symm, },
+    convert (isom n).isometry_equiv_on_range.symm, },
   -- Finally, we have proved the convergence of `u n`
   exact ⟨L.to_GH_space, by simpa only [this] using M⟩
 end

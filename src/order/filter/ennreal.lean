@@ -60,8 +60,8 @@ begin
   let g := λ x : ℝ≥0∞, a * x,
   have hg_bij : function.bijective g,
   from function.bijective_iff_has_inverse.mpr ⟨(λ x, a⁻¹ * x),
-    ⟨λ x, by simp [←mul_assoc, inv_mul_cancel ha_zero ha_top],
-    λ x, by simp [g, ←mul_assoc, mul_inv_cancel ha_zero ha_top]⟩⟩,
+    ⟨λ x, by simp [←mul_assoc, ennreal.inv_mul_cancel ha_zero ha_top],
+    λ x, by simp [g, ←mul_assoc, ennreal.mul_inv_cancel ha_zero ha_top]⟩⟩,
   have hg_mono : strict_mono g,
     from monotone.strict_mono_of_injective
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,

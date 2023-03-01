@@ -426,6 +426,9 @@ begin
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
 
+lemma mem_span_pair {x y z : M} : z ∈ span R ({x, y} : set M) ↔ ∃ a b : R, a • x + b • y = z :=
+by simp_rw [mem_span_insert, mem_span_singleton, exists_prop, exists_exists_eq_and, eq_comm]
+
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]
 

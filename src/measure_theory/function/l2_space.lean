@@ -236,8 +236,8 @@ lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
   = ∫ x, conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
-  have hf_ae := f.coe_fn_to_Lp μ,
-  have hg_ae := g.coe_fn_to_Lp μ,
+  have hf_ae := f.coe_fn_to_Lp 2 μ 𝕜,
+  have hg_ae := g.coe_fn_to_Lp 2 μ 𝕜,
   filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
   simp

@@ -10,6 +10,7 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
 import linear_algebra.matrix.to_lin
 import topology.algebra.module.finite_dimension
+import topology.algebra.module.infinite_sum
 import topology.instances.matrix
 
 /-!

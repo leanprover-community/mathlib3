@@ -113,9 +113,8 @@ let hζ := zeta_spec n K L,
   end,
   right_inv := λ x, begin
     simp only [monoid_hom.to_fun_eq_coe],
-    generalize_proofs _ _ h,
-    have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly
-                                      ((hμ x).power_basis K) h),
+    generalize_proofs _ h,
+    have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly ((hμ x).power_basis K) h),
     have := (hζ.power_basis K).equiv_of_minpoly_gen ((hμ x).power_basis K) h,
     rw hζ.power_basis_gen K at this,
     rw [this, is_primitive_root.power_basis_gen] at key,
@@ -142,7 +141,7 @@ let hζ := (zeta_spec n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos in
 lemma from_zeta_aut_spec : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
   simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],
-  generalize_proofs _ hζ h _ hμ _,
+  generalize_proofs hζ h _ hμ _,
   rw [←hζ.power_basis_gen K] {occs := occurrences.pos [4]},
   rw [power_basis.equiv_of_minpoly_gen, hμ.power_basis_gen K],
   convert h.some_spec.some_spec,

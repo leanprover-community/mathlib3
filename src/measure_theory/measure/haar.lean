@@ -498,7 +498,7 @@ by simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq, haar_content_apply]
 lemma haar_content_outer_measure_self_pos {K₀ : positive_compacts G} :
   0 < (haar_content K₀).outer_measure K₀ :=
 begin
-  apply ennreal.zero_lt_one.trans_le,
+  refine zero_lt_one.trans_le _,
   rw [content.outer_measure_eq_infi],
   refine le_infi₂ (λ U hU, le_infi $ λ hK₀, le_trans _ $ le_supr₂ K₀.to_compacts hK₀),
   exact haar_content_self.ge,

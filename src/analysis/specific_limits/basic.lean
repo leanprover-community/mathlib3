@@ -503,10 +503,10 @@ begin
   lift w to ι → ℝ≥0 using hw,
   rcases exists_pos_sum_of_countable hε ι with ⟨δ', Hpos, Hsum⟩,
   have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
-  refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
+  refine ⟨λ i, δ' i / max 1 (w i), λ i, div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
   rw [coe_div (this i).ne'],
-  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  refine mul_le_of_le_div' (mul_le_mul_left' (ennreal.inv_le_inv.2 _) _),
   exact coe_le_coe.2 (le_max_right _ _)
 end
 

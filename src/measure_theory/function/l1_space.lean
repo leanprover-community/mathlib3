@@ -147,7 +147,8 @@ has_finite_integral_congr' $ h.fun_comp norm
 
 lemma has_finite_integral_const_iff {c : β} :
   has_finite_integral (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ∞ :=
-by simp [has_finite_integral, lintegral_const, lt_top_iff_ne_top, or_iff_not_imp_left]
+by simp [has_finite_integral, lintegral_const, lt_top_iff_ne_top, ennreal.mul_eq_top,
+  or_iff_not_imp_left]
 
 lemma has_finite_integral_const [is_finite_measure μ] (c : β) :
   has_finite_integral (λ x : α, c) μ :=

@@ -18,7 +18,7 @@ The ℤ-lattice `L` can be defined in two ways:
   `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `ℝ`.
 
 ## Main results
-* `zspan.is_add_fundamental_domain`: proves that the set defined by `zsapn.fundamental_domain` is
+* `zspan.is_add_fundamental_domain`: proves that the set defined by `zspan.fundamental_domain` is
 indeed a fundamental domain of the lattice.
 * `zlattice.dim`: for `L : add_subgroup E` with `L` discrete and spanning `E` over `ℝ`, proves that
 `finrank ℤ L = finrank ℝ E`.
@@ -145,7 +145,7 @@ end
 
 end fintype
 
-lemma zspan.metric.fundamental_domain_bounded [finite ι] :
+lemma zspan.fundamental_domain_metric_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,
@@ -154,7 +154,7 @@ begin
   refine le_trans (dist_le_norm_add_norm x y) _,
   rw [← (zspan.mem_fundamental_domain b).mp hx, ← (zspan.mem_fundamental_domain b).mp hy],
   refine (add_le_add (zspan.fract_map_le b x) (zspan.fract_map_le b y)).trans _,
-  linarith,
+  rw ← two_mul,
 end
 
 lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]

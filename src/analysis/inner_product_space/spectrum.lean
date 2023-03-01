@@ -163,7 +163,7 @@ begin
   { simpa only [linear_isometry_equiv.symm_apply_apply, linear_isometry_equiv.apply_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
-  have hwT : T (w μ) = (μ : 𝕜) • w μ := mem_eigenspace_iff.1 (w μ).2,
+  have hwT : ∀ μ, T (w μ) = (μ : 𝕜) • w μ := λ μ, mem_eigenspace_iff.1 (w μ).2,
   simp only [hwT, diagonalization_symm_apply, map_sum, submodule.coe_smul_of_tower],
 end
 

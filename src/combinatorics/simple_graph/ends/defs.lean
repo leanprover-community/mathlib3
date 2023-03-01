@@ -221,7 +221,7 @@ begin
   { dsimp [component_compl],
     rw set.compl_empty,
     haveI := @finite.of_subsingleton _ Gpc.out.subsingleton_connected_component,
-    exact finite.of_equiv _ (connected_component.iso (induce_univ_iso G)).symm, },
+    exact finite.of_equiv _ (induce_univ_iso G).connected_component_equiv.symm, },
   -- Otherwise, we consider the function `touch` mapping a connected component to one of its
   -- vertices adjacent to `K`.
   { let touch : G.component_compl K → {v : V | ∃ k : V, k ∈ K ∧ G.adj k v} :=

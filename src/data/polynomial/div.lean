@@ -44,7 +44,7 @@ begin
     obtain ⟨k, hgk⟩ := polynomial.X_dvd_iff.mpr this.symm,
     use k,
     rwa [pow_succ, mul_comm X _, mul_assoc, ← hgk]},
-end ⟩
+end⟩
 
 end comm_semiring
 

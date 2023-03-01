@@ -3,7 +3,7 @@ Copyright (c) 2022 Anand Rao, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
-import category_theory.mittag_leffler
+import category_theory.cofiltered_system
 import combinatorics.simple_graph.connectivity
 import data.set_like.basic
 

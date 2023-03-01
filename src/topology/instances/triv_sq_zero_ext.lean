@@ -89,14 +89,15 @@ instance [has_add R] [has_add M]
   has_continuous_add (tsze R M) :=
 prod.has_continuous_add
 
-instance [has_mul R] [has_add M] [has_smul R M]
-  [has_continuous_mul R] [has_continuous_smul R M] [has_continuous_add M] :
+instance [has_mul R] [has_add M] [has_smul R M] [has_smul Rᵐᵒᵖ M]
+  [has_continuous_mul R] [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M]
+  [has_continuous_add M] :
   has_continuous_mul (tsze R M) :=
 ⟨((continuous_fst.comp _root_.continuous_fst).mul (continuous_fst.comp _root_.continuous_snd))
   .prod_mk $
     ((continuous_fst.comp _root_.continuous_fst).smul
      (continuous_snd.comp _root_.continuous_snd)).add
-    ((continuous_fst.comp _root_.continuous_snd).smul
+    ((mul_opposite.continuous_op.comp $ continuous_fst.comp $ _root_.continuous_snd).smul
      (continuous_snd.comp _root_.continuous_fst))⟩
 
 instance [has_neg R] [has_neg M]
@@ -104,13 +105,18 @@ instance [has_neg R] [has_neg M]
   has_continuous_neg (tsze R M) :=
 prod.has_continuous_neg
 
-instance [semiring R] [add_comm_monoid M] [module R M]
-  [topological_semiring R] [has_continuous_add M] [has_continuous_smul R M] :
-  topological_semiring (tsze R M) :=
+/-- This is not an instance due to complaints by the `fails_quickly` linter. At any rate, we only
+really care about the `topological_ring` instance below. -/
+lemma topological_semiring [semiring R] [add_comm_monoid M] [module R M] [module Rᵐᵒᵖ M]
+  [topological_semiring R] [has_continuous_add M]
+  [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M] :
+  -- note: lean times out looking for the non_assoc_semiring instance without this hint
+  @topological_semiring (tsze R M) _ (non_assoc_semiring.to_non_unital_non_assoc_semiring _) :=
 {}
 
-instance [comm_ring R] [add_comm_group M] [module R M]
-  [topological_ring R] [topological_add_group M] [has_continuous_smul R M] :
+instance [ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M]
+  [topological_ring R] [topological_add_group M]
+  [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M] :
   topological_ring (tsze R M) :=
 {}
 

@@ -170,7 +170,7 @@ open_locale fourier_transform
 tends to 0 at infinity. -/
 lemma real.fourier_integral_zero_at_infty_of_continuous_compact_support
   (hc : continuous f) (hs : has_compact_support f) :
-  tendsto (real.fourier_integral f) (cocompact ℝ) (𝓝 0) :=
+  tendsto (𝓕 f) (cocompact ℝ) (𝓝 0) :=
 begin
   refine ((zero_at_infty_integral_mul_exp_of_continuous_compact_support hc hs).comp
     (tendsto_cocompact_mul_left₀

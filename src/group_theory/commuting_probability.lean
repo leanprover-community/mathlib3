@@ -11,6 +11,9 @@ import group_theory.index
 
 /-!
 # Commuting Probability
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file introduces the commuting probability of finite groups.
 
 ## Main definitions

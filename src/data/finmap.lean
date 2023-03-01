@@ -252,11 +252,11 @@ m.entries.foldl (λ d s, f d s.1 s.2) (λ d s t, H _ _ _ _ _) d
 
 /-- `any f s` returns `tt` iff there exists a value `v` in `s` such that `f v = tt`. -/
 def any (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∨ f y z) (by { intros,  simp [or.right_comm] }) ff
+s.foldl (λ x y z, x || f y z) (by { intros, simp_rw [bool.bor_assoc, bool.bor_comm] }) ff
 
 /-- `all f s` returns `tt` iff `f v = tt` for all values `v` in `s`. -/
 def all (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∧ f y z) (by { intros, simp [and.right_comm] }) ff
+s.foldl (λ x y z, x && f y z) (by { intros, simp_rw [bool.band_assoc, bool.band_comm] }) tt
 
 /-! ### erase -/
 

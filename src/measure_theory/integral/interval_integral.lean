@@ -1065,6 +1065,30 @@ begin
 end
 
 open topological_space
+
+/-- Interval integrals commute with countable sums, when the supremum norms are summable (a
+special case of the dominated convergence theorem). -/
+lemma has_sum_interval_integral_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  has_sum (λ i : ι, ∫ x in a..b, f i x) (∫ x in a..b, (∑' i : ι, f i x)) :=
+begin
+  refine has_sum_integral_of_dominated_convergence
+    (λ i (x : ℝ), ‖(f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)
+    (λ i, (map_continuous $ f i).ae_strongly_measurable)
+    (λ i, ae_of_all _ (λ x hx, ((f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ :
+      compacts ℝ)).norm_coe_le_norm ⟨x, ⟨hx.1.le, hx.2⟩⟩))
+    (ae_of_all _ (λ x hx, hf_sum))
+    interval_integrable_const
+    (ae_of_all _ (λ x hx, summable.has_sum _)),
+  -- next line is slow, & doesn't work with "exact" in place of "apply" -- ?
+  apply continuous_map.summable_apply (summable_of_summable_norm hf_sum) ⟨x, ⟨hx.1.le, hx.2⟩⟩,
+end
+
+lemma tsum_interval_integral_eq_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  ∑' (i : ι), ∫ x in a..b, f i x = ∫ x in a..b, (∑' i : ι, f i x) :=
+(has_sum_interval_integral_of_summable_norm hf_sum).tsum_eq
+
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
 /-- Continuity of interval integral with respect to a parameter, at a point within a set.

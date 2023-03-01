@@ -1541,8 +1541,8 @@ end
 
 @[simp] lemma connected_component.iso_inv_image_comp_eq_iff_eq_map
   {C : G.connected_component} :
-   G.connected_component_mk (φ.symm v') = C ↔
-  G'.connected_component_mk v' = C.map φ :=
+  G.connected_component_mk (φ.symm v') = C ↔
+    G'.connected_component_mk v' = C.map φ :=
 begin
   refine C.ind (λ u, _),
   simp only [iso.symm_apply_reachable, connected_component.eq, coe_coe,

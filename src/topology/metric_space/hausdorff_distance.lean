@@ -167,7 +167,7 @@ by simp only [inf_edist, infi_image, hΦ.edist_eq]
 lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
   ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ monotone F :=
 begin
-  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
+  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between zero_lt_one,
   let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
   have F_subset : ∀ n, F n ⊆ U,
   { assume n x hx,
@@ -178,7 +178,7 @@ begin
   show monotone F,
   { assume m n hmn x hx,
     simp only [mem_Ici, mem_preimage] at hx ⊢,
-    apply le_trans (ennreal.pow_le_pow_of_le_one a_lt_one.le hmn) hx },
+    apply le_trans (pow_le_pow_of_le_one' a_lt_one.le hmn) hx },
   show (⋃ n, F n) = U,
   { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
     have : ¬(x ∈ Uᶜ), by simpa using hx,
@@ -1111,7 +1111,7 @@ begin
     add_le_add hyy'.le $ edist_le_diam_of_mem hy' hx').trans_eq _),
   -- Now we're done, but `ring` won't do it because we're on `ennreal` :(
   rw [←add_assoc, ←two_mul, mul_add,
-    ennreal.mul_div_cancel' ennreal.two_ne_zero ennreal.two_ne_top],
+    ennreal.mul_div_cancel' two_ne_zero ennreal.two_ne_top],
   abel,
 end
 

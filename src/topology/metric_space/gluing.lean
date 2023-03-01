@@ -482,7 +482,7 @@ end
 
 local attribute [instance] sigma.metric_space
 
-open_locale topological_space
+open_locale topology
 open filter
 
 /-- The injection of a space in a disjoint union is an isometry -/

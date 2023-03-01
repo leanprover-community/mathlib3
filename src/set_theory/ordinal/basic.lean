@@ -10,6 +10,9 @@ import set_theory.cardinal.basic
 /-!
 # Ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Ordinals are defined as equivalences of well-ordered sets under order isomorphism. They are endowed
 with a total order, where an ordinal is smaller than another one if it embeds into it as an
 initial segment (or, equivalently, in any way). This total order is well founded.

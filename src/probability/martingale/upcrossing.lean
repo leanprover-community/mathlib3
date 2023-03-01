@@ -53,7 +53,7 @@ We mostly follow the proof from [Kallenberg, *Foundations of modern probability*
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 

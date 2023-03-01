@@ -41,7 +41,7 @@ Vitali-Carathéodory theorem, in the file `measure_theory.vitali_caratheodory`.
 
 -/
 
-open_locale ennreal nnreal topological_space bounded_continuous_function
+open_locale ennreal nnreal topology bounded_continuous_function
 open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]

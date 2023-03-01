@@ -12,6 +12,9 @@ import tactic.linarith
 /-!
 # Results about big operators over intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove results about big operators over intervals (mostly the `ℕ`-valued `Ico m n`).
 -/
 

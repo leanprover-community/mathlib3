@@ -15,7 +15,7 @@ by showing that intervals belong to the relevant Vitali family.
 -/
 
 open set measure_theory is_doubling_measure filter
-open_locale topological_space
+open_locale topology
 
 namespace real
 

@@ -284,7 +284,7 @@ lemma fg_restrict_scalars {R S M : Type*} [comm_semiring R] [semiring S] [algebr
 begin
   obtain ⟨X, rfl⟩ := hfin,
   use X,
-  exact submodule.span_eq_restrict_scalars R S M X h
+  exact (submodule.restrict_scalars_span R S h ↑X).symm
 end
 
 lemma fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg)

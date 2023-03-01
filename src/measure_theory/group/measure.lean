@@ -27,7 +27,7 @@ We also give analogues of all these notions in the additive world.
 
 noncomputable theory
 
-open_locale nnreal ennreal pointwise big_operators topological_space
+open_locale nnreal ennreal pointwise big_operators topology
 open has_inv set function measure_theory.measure filter
 
 variables {𝕜 G H : Type*} [measurable_space G] [measurable_space H]

@@ -79,7 +79,7 @@ We use the following notation localized in `measure_theory`. It is defined in
 
 Hausdorff measure, Hausdorff dimension, dimension
 -/
-open_locale measure_theory ennreal nnreal topological_space
+open_locale measure_theory ennreal nnreal topology
 open measure_theory measure_theory.measure set topological_space finite_dimensional filter
 
 variables {ι X Y : Type*} [emetric_space X] [emetric_space Y]

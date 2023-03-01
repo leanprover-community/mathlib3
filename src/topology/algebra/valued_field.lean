@@ -29,7 +29,7 @@ Then we extend the valuation given on `K` to a valuation on `hat K`.
 -/
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 section division_ring
 

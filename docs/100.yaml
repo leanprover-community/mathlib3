@@ -133,6 +133,9 @@
   author : Moritz Doll
 36:
   title  : Brouwer Fixed Point Theorem
+  author : Brendan Seamas Murphy
+  links  :
+    result: https://github.com/Shamrock-Frost/BrouwerFixedPoint/blob/master/src/brouwer_fixed_point.lean
 37:
   title  : The Solution of a Cubic
   author : Jeoff Lee

@@ -29,7 +29,7 @@ lemma is_sheaf_of_is_terminal_of_indiscrete {X : Top.{w}} (hind : X.str = ⊤) (
   { convert presieve.is_sheaf_for_top_sieve _, rw ←sieve.id_mem_iff_eq_top,
     have := (U.eq_bot_or_top hind).resolve_left hne, subst this,
     obtain he | ⟨⟨x⟩⟩ := is_empty_or_nonempty X,
-    { exact (hne $ topological_space.opens.ext_iff.1 $ set.univ_eq_empty_iff.2 he).elim },
+    { exact (hne $ set_like.ext'_iff.2 $ set.univ_eq_empty_iff.2 he).elim },
     obtain ⟨U, f, hf, hm⟩ := hs x trivial,
     obtain rfl | rfl := U.eq_bot_or_top hind,
     { cases hm }, { convert hf } },

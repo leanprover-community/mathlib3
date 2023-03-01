@@ -43,7 +43,7 @@ in the one for `lift_prop_within_at`.
 -/
 
 noncomputable theory
-open_locale classical manifold topological_space
+open_locale classical manifold topology
 
 open set filter
 

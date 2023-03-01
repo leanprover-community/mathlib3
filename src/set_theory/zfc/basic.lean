@@ -44,6 +44,8 @@ Then the rest is usual set theory.
   function `x → y`. That is, each member of `x` is related by the ZFC set to exactly one member of
   `y`.
 * `Set.funs`: ZFC set of ZFC functions `x → y`.
+* `Set.hereditarily p x`: Predicate that every set in the transitive closure of `x` has property
+  `p`.
 * `Class.iota`: Definite description operator.
 
 ## Notes
@@ -131,6 +133,9 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 
 @[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
+
+protected theorem equiv.comm {x y} : equiv x y ↔ equiv y x :=
+⟨equiv.symm, equiv.symm⟩
 
 @[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
@@ -252,7 +257,7 @@ instance : inhabited pSet := ⟨∅⟩
 
 instance : is_empty (type (∅)) := pempty.is_empty
 
-@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
+@[simp] theorem not_mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -528,8 +533,8 @@ protected def empty : Set := mk ∅
 instance : has_emptyc Set := ⟨Set.empty⟩
 instance : inhabited Set := ⟨∅⟩
 
-@[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
-quotient.induction_on x pSet.mem_empty
+@[simp] theorem not_mem_empty (x) : x ∉ (∅ : Set.{u}) :=
+quotient.induction_on x pSet.not_mem_empty
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -546,9 +551,10 @@ begin
   exact ⟨a, h⟩
 end
 
-theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
-⟨λ h y, (h.symm ▸ mem_empty y),
-λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (mem_empty _)⟩)⟩
+theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x := by { rw ext_iff, simp }
+
+theorem eq_empty_or_nonempty (u : Set) : u = ∅ ∨ u.nonempty :=
+by { rw [eq_empty, ←not_exists], apply em' }
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
@@ -586,10 +592,14 @@ theorem mem_insert_of_mem {y z : Set} (x) (h : z ∈ y): z ∈ insert x y := mem
 by { ext, simp }
 
 @[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
-iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o, or.inl⟩
+iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (not_mem_empty _)) o, or.inl⟩
 
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
+
+theorem insert_nonempty (u v : Set) : (insert u v).nonempty := ⟨u, mem_insert u v⟩
+
+theorem singleton_nonempty (u : Set) : Set.nonempty {u} := insert_nonempty u ∅
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
@@ -666,18 +676,18 @@ quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
 theorem mem_sUnion_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃₀ x :=
 mem_sUnion.2 ⟨z, hz, hy⟩
 
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
+
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
+
+@[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
+by { ext, simp }
 
 theorem singleton_injective : function.injective (@singleton Set Set _) :=
 λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
 
 @[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
-
-@[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
-by { ext, simp }
-
-@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
@@ -849,6 +859,36 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
 
+/-- Given a predicate `p` on ZFC sets. `hereditarily p x` means that `x` has property `p` and the
+members of `x` are all `hereditarily p`. -/
+def hereditarily (p : Set → Prop) : Set → Prop
+| x := p x ∧ ∀ y ∈ x, hereditarily y
+using_well_founded { dec_tac := `[assumption] }
+
+section hereditarily
+
+variables {p : Set.{u} → Prop} {x y : Set.{u}}
+
+lemma hereditarily_iff :
+  hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
+by rw [← hereditarily]
+
+alias hereditarily_iff ↔ hereditarily.def _
+
+lemma hereditarily.self (h : x.hereditarily p) : p x := h.def.1
+lemma hereditarily.mem (h : x.hereditarily p) (hy : y ∈ x) : y.hereditarily p := h.def.2 _ hy
+
+lemma hereditarily.empty : hereditarily p x → p ∅ :=
+begin
+  apply x.induction_on,
+  intros y IH h,
+  rcases Set.eq_empty_or_nonempty y with (rfl|⟨a, ha⟩),
+  { exact h.self },
+  { exact IH a ha (h.mem ha) }
+end
+
+end hereditarily
+
 end Set
 
 /-- The collection of all classes.
@@ -876,10 +916,16 @@ def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
+theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.rfl
+
 @[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
 
-theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
+@[simp] theorem not_empty_hom (x : Set.{u}) : ¬ (∅ : Class.{u}) x := id
+
+@[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+@[simp] theorem mem_univ_hom (x : Set.{u}) : univ.{u} x := trivial
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=
 ⟨begin
@@ -907,8 +953,14 @@ theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
 
+@[simp] theorem Cong_to_Class_empty : Cong_to_Class ∅ = ∅ :=
+by { ext, simp [Cong_to_Class] }
+
 /-- Convert a class into a conglomerate (a collection of classes) -/
 def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
+
+@[simp] theorem Class_to_Cong_empty : Class_to_Cong ∅ = ∅ :=
+by { ext, simp [Class_to_Cong] }
 
 /-- The power class of a class is the class of all subclasses that are ZFC sets -/
 def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
@@ -936,7 +988,7 @@ to_Set_of_Set _ _
 set.ext $ λ y, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
+set.ext $ λ y, (iff_false _).2 (Set.not_mem_empty y)
 
 @[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
 set.ext $ λ z, iff.symm Set.mem_insert_iff

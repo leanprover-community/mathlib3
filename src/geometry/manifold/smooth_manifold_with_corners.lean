@@ -114,7 +114,7 @@ noncomputable theory
 universes u v w u' v' w'
 
 open set filter function
-open_locale manifold filter topological_space
+open_locale manifold filter topology
 
 localized "notation (name := with_top.nat.top) `∞` := (⊤ : ℕ∞)" in manifold
 
@@ -702,7 +702,7 @@ instance : smooth_manifold_with_corners I s := { ..s.has_groupoid (cont_diff_gro
 end topological_space.opens
 
 section extended_charts
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 E M H E' M' H' : Type*} [nontrivially_normed_field 𝕜]
   [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]

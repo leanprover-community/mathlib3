@@ -546,6 +546,10 @@ begin
     apply coe_ideal_le_one },
 end
 
+@[simp] lemma one_le {I : fractional_ideal S P} :
+  1 ≤ I ↔ (1 : P) ∈ I :=
+by rw [← coe_le_coe, coe_one, submodule.one_le, mem_coe]
+
 variables (S P)
 
 /-- `coe_ideal_hom (S : submonoid R) P` is `coe : ideal R → fractional_ideal S P` as a ring hom -/
@@ -912,8 +916,7 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0)
 I.is_fractional.div_of_nonzero J.is_fractional $ λ H, h $
   coe_to_submodule_injective $ H.trans coe_zero.symm
 
-noncomputable instance fractional_ideal_has_div :
-  has_div (fractional_ideal R₁⁰ K) :=
+noncomputable instance : has_div (fractional_ideal R₁⁰ K) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I / J, fractional_div_of_nonzero h⟩ ⟩
 
 variables {I J : fractional_ideal R₁⁰ K} [ J ≠ 0 ]
@@ -1109,6 +1112,10 @@ lemma mem_span_singleton_self (x : P) :
 (mem_span_singleton S).mpr ⟨1, one_smul _ _⟩
 
 variables {S}
+
+@[simp] lemma span_singleton_le_iff_mem {x : P} {I : fractional_ideal S P} :
+  span_singleton S x ≤ I ↔ x ∈ I :=
+by rw [← coe_le_coe, coe_span_singleton, submodule.span_singleton_le_iff_mem x ↑I, mem_coe]
 
 lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
   span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=

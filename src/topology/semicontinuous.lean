@@ -51,7 +51,7 @@ ones for lower semicontinuous functions using `order_dual`.
 
 -/
 
-open_locale topological_space big_operators ennreal
+open_locale topology big_operators ennreal
 open set function filter
 
 variables {α : Type*} [topological_space α] {β : Type*} [preorder β]

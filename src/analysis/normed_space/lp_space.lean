@@ -970,7 +970,7 @@ end single
 section topology
 
 open filter
-open_locale topological_space uniformity
+open_locale topology uniformity
 
 /-- The coercion from `lp E p` to `Π i, E i` is uniformly continuous. -/
 lemma uniform_continuous_coe [_i : fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=

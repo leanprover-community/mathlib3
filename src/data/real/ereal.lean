@@ -54,7 +54,7 @@ noncomputable theory
 
 /-- ereal : The type `[-∞, ∞]` -/
 @[derive [has_bot, has_zero, has_one, nontrivial, add_monoid,
-  has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid]]
+  has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid, zero_le_one_class]]
 def ereal := with_bot (with_top ℝ)
 
 /-- The canonical inclusion froms reals to ereals. Do not use directly: as this is registered as
@@ -280,6 +280,10 @@ end
 @[simp] lemma to_real_coe_ennreal : ∀ {x : ℝ≥0∞}, to_real (x : ereal) = ennreal.to_real x
 | ⊤ := rfl
 | (some x) := rfl
+
+@[simp] lemma coe_ennreal_of_real {x : ℝ} :
+  (ennreal.of_real x : ereal) = max x 0 :=
+rfl
 
 lemma coe_nnreal_eq_coe_real (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) = (x : ℝ) := rfl
 
@@ -715,6 +719,37 @@ begin
   { simp only [top_mul_top, to_real_top, mul_zero] }
 end
 
+protected lemma neg_mul (x y : ereal) : -x * y = -(x * y) :=
+begin
+  induction x using ereal.rec; induction y using ereal.rec,
+  { refl },
+  { rcases lt_trichotomy 0 y with hy | rfl | hy,
+    { rw [bot_mul_coe_of_pos hy, neg_bot, top_mul_coe_of_pos hy] },
+    { rw [coe_zero, mul_zero, mul_zero, neg_zero] },
+    { rw [bot_mul_coe_of_neg hy, neg_bot, neg_top, top_mul_coe_of_neg hy] } },
+  { refl },
+  { rcases lt_trichotomy 0 x with hx | rfl | hx,
+    { rw [coe_mul_bot_of_pos hx, neg_bot, ← coe_neg, coe_mul_bot_of_neg (neg_neg_of_pos hx)], },
+    { rw [coe_zero, zero_mul, neg_zero, zero_mul] },
+    { rw [coe_mul_bot_of_neg hx, neg_top, ← coe_neg, coe_mul_bot_of_pos (neg_pos_of_neg hx)], }, },
+  { norm_cast, exact neg_mul _ _, },
+  { rcases lt_trichotomy 0 x with hx | rfl | hx,
+    { rw [coe_mul_top_of_pos hx, neg_top, ← coe_neg, coe_mul_top_of_neg (neg_neg_of_pos hx)], },
+    { rw [coe_zero, zero_mul, neg_zero, zero_mul] },
+    { rw [coe_mul_top_of_neg hx, neg_bot, ← coe_neg, coe_mul_top_of_pos (neg_pos_of_neg hx)], }, },
+  { refl },
+  { rcases lt_trichotomy 0 y with hy | rfl | hy,
+    { rw [top_mul_coe_of_pos hy, neg_top, bot_mul_coe_of_pos hy] },
+    { rw [coe_zero, mul_zero, mul_zero, neg_zero] },
+    { rw [top_mul_coe_of_neg hy, neg_top, neg_bot, bot_mul_coe_of_neg hy] } },
+  { refl }
+end
+
+instance : has_distrib_neg ereal :=
+{ neg_mul := ereal.neg_mul,
+  mul_neg := λ x y, by { rw [x.mul_comm, x.mul_comm], exact y.neg_mul x, },
+  ..ereal.has_involutive_neg }
+
 /-! ### Absolute value -/
 
 /-- The absolute value from `ereal` to `ℝ≥0∞`, mapping `⊥` and `⊤` to `⊤` and
@@ -726,6 +761,8 @@ protected def abs : ereal → ℝ≥0∞
 
 @[simp] lemma abs_top : (⊤ : ereal).abs = ⊤ := rfl
 @[simp] lemma abs_bot : (⊥ : ereal).abs = ⊤ := rfl
+
+lemma abs_def (x : ℝ) : (x : ereal).abs = ennreal.of_real (|x|) := rfl
 
 lemma abs_coe_lt_top (x : ℝ) : (x : ereal).abs < ⊤ :=
 ennreal.of_real_lt_top
@@ -740,6 +777,9 @@ end
 
 @[simp] lemma abs_zero : (0 : ereal).abs = 0 :=
 by rw [abs_eq_zero_iff]
+
+@[simp] lemma coe_abs (x : ℝ) : ((x : ereal).abs : ereal) = (|x| : ℝ) :=
+by rcases lt_trichotomy 0 x with hx | rfl | hx; simp [abs_def]
 
 @[simp] lemma abs_mul (x y : ereal) : (x * y).abs = x.abs * y.abs :=
 begin
@@ -814,31 +854,43 @@ begin
   { refl }
 end
 
+lemma sign_mul_abs (x : ereal) :
+  (sign x * x.abs : ereal) = x :=
+begin
+  induction x using ereal.rec,
+  { simp },
+  { rcases lt_trichotomy 0 x with hx | rfl | hx,
+    { simp [sign_pos hx, abs_of_pos hx] },
+    { simp },
+    { simp [sign_neg hx, abs_of_neg hx] } },
+  { simp }
+end
+
 lemma sign_eq_and_abs_eq_iff_eq {x y : ereal} :
   (x.abs = y.abs ∧ sign x = sign y) ↔ x = y :=
 begin
-  split, swap,
-  { rintros rfl, simp only [eq_self_iff_true, and_self] },
-  rintros ⟨habs, hsign⟩,
-  induction x using ereal.rec; induction y using ereal.rec,
-  { refl },
-  { simpa only using abs_coe_lt_top y },
-  { simpa only using hsign },
-  { simpa only using abs_coe_lt_top x },
-  { have : |x| = |y|,
-      by simpa only [ereal.abs, ennreal.of_real_eq_of_real_iff, abs_nonneg] using habs,
-    rcases abs_eq_abs.1 this with rfl|h,
-    { refl },
-    { rcases lt_trichotomy x 0 with hx|rfl|hx,
-      { have hy : 0 < y, by simpa only [h, right.neg_neg_iff] using hx,
-        simpa only [hx, hy, sign_coe, sign_neg, sign_pos] using hsign },
-      { simp only [zero_eq_neg.1 h] },
-      { have hy : y < 0, by simpa only [h, right.neg_pos_iff] using hx,
-        simpa only [hx, hy, sign_coe, sign_neg, sign_pos] using hsign } } },
-  { simpa only using abs_coe_lt_top x },
-  { simpa only },
-  { simpa only using abs_coe_lt_top y },
-  { refl }
+  split,
+  { rintros ⟨habs, hsign⟩, rw [← x.sign_mul_abs, ← y.sign_mul_abs, habs, hsign] },
+  { rintros rfl, simp only [eq_self_iff_true, and_self] }
+end
+
+lemma le_iff_sign {x y : ereal} :
+  x ≤ y ↔ sign x < sign y ∨
+    sign x = sign_type.neg ∧ sign y = sign_type.neg ∧ y.abs ≤ x.abs ∨
+    sign x = sign_type.zero ∧ sign y = sign_type.zero ∨
+    sign x = sign_type.pos ∧ sign y = sign_type.pos ∧ x.abs ≤ y.abs :=
+begin
+  split,
+  { intro h,
+    rcases (sign.monotone h).lt_or_eq with hs | hs,
+    { exact or.inl hs },
+    { rw [← x.sign_mul_abs, ← y.sign_mul_abs] at h,
+      cases sign y; rw [hs] at *,
+      { simp },
+      { simp at ⊢ h, exact or.inl h },
+      { simpa using h, }, }, },
+  { rintros (h | h | h | h), { exact (sign.monotone.reflect_lt h).le, },
+    all_goals { rw [← x.sign_mul_abs, ← y.sign_mul_abs], simp [h] } }
 end
 
 instance : comm_monoid_with_zero ereal :=
@@ -848,6 +900,20 @@ instance : comm_monoid_with_zero ereal :=
   end,
   mul_comm := ereal.mul_comm,
   ..ereal.has_mul, ..ereal.has_one, ..ereal.has_zero, ..ereal.mul_zero_one_class }
+
+instance : pos_mul_mono ereal :=
+pos_mul_mono_iff_covariant_pos.2 ⟨begin
+  rintros ⟨x, x0⟩ a b h, dsimp,
+  rcases le_iff_sign.mp h with h | h | h | h,
+  { rw [le_iff_sign], left, simp [sign_pos x0, h] },
+  all_goals { rw [← x.sign_mul_abs, ← a.sign_mul_abs, ← b.sign_mul_abs, sign_pos x0],
+    simp only [h], dsimp,
+    simp only [neg_mul, mul_neg, ereal.neg_le_neg_iff, one_mul, le_refl, zero_mul, mul_zero] },
+  all_goals { norm_cast, exact mul_le_mul_left' h.2.2 _, },
+end⟩
+instance : mul_pos_mono ereal := pos_mul_mono_iff_mul_pos_mono.1 ereal.pos_mul_mono
+instance : pos_mul_reflect_lt ereal := pos_mul_mono.to_pos_mul_reflect_lt
+instance : mul_pos_reflect_lt ereal := mul_pos_mono.to_mul_pos_reflect_lt
 
 @[simp, norm_cast] lemma coe_pow (x : ℝ) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=
 map_pow (⟨coe, coe_one, coe_mul⟩ : ℝ →* ereal) _ _

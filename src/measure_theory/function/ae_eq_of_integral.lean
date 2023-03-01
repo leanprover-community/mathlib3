@@ -162,7 +162,7 @@ end
 
 section ennreal
 
-open_locale topological_space
+open_locale topology
 
 lemma ae_le_of_forall_set_lintegral_le_of_sigma_finite [sigma_finite μ]
   {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g)

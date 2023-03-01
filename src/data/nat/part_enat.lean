@@ -11,6 +11,9 @@ import tactic.norm_num
 /-!
 # Natural numbers with infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The natural numbers and an extra `top` element `⊤`. This implementation uses `part ℕ` as an
 implementation. Use `ℕ∞` instead unless you care about computability.
 

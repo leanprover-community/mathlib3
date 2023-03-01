@@ -43,7 +43,7 @@ in terms of extended charts in `cont_mdiff_on_iff` and `cont_mdiff_iff`.
 -/
 
 open set function filter charted_space smooth_manifold_with_corners
-open_locale topological_space manifold
+open_locale topology manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 
@@ -1624,14 +1624,24 @@ lemma continuous_linear_map.cont_mdiff (L : E →L[𝕜] F) :
 L.cont_diff.cont_mdiff
 
 -- the following proof takes very long to elaborate in pure term mode
+lemma cont_mdiff_within_at.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {s : set M} {x : M}
+  (hg : cont_mdiff_within_at I 𝓘(𝕜, F →L[𝕜] F'') n g s x)
+  (hf : cont_mdiff_within_at I 𝓘(𝕜, F' →L[𝕜] F) n f s x) :
+  cont_mdiff_within_at I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) s x :=
+@cont_diff_within_at.comp_cont_mdiff_within_at _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  (λ x : (F →L[𝕜] F'') × (F' →L[𝕜] F), x.1.comp x.2) (λ x, (g x, f x)) s _ x
+  (by { apply cont_diff.cont_diff_at, exact cont_diff_fst.clm_comp cont_diff_snd })
+  (hg.prod_mk_space hf) (by simp_rw [preimage_univ, subset_univ])
+
 lemma cont_mdiff_at.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {x : M}
   (hg : cont_mdiff_at I 𝓘(𝕜, F →L[𝕜] F'') n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F) n f x) :
   cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) x :=
-@cont_diff_at.comp_cont_mdiff_at _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-  (λ x : (F →L[𝕜] F'') × (F' →L[𝕜] F), x.1.comp x.2) (λ x, (g x, f x)) x
-  (by { apply cont_diff.cont_diff_at, apply is_bounded_bilinear_map.cont_diff,
-    exact is_bounded_bilinear_map_comp }) -- todo: simplify after #16946
-  (hg.prod_mk_space hf)
+(hg.cont_mdiff_within_at.clm_comp hf.cont_mdiff_within_at).cont_mdiff_at univ_mem
+
+lemma cont_mdiff_on.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {s : set M}
+  (hg : cont_mdiff_on I 𝓘(𝕜, F →L[𝕜] F'') n g s) (hf : cont_mdiff_on I 𝓘(𝕜, F' →L[𝕜] F) n f s) :
+  cont_mdiff_on I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) s :=
+λ x hx, (hg x hx).clm_comp (hf x hx)
 
 lemma cont_mdiff.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F}
   (hg : cont_mdiff I 𝓘(𝕜, F →L[𝕜] F'') n g) (hf : cont_mdiff I 𝓘(𝕜, F' →L[𝕜] F) n f) :

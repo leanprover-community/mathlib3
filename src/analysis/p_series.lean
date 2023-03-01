@@ -26,7 +26,7 @@ p-series, Cauchy condensation test
 -/
 
 open filter
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topology
 
 /-!
 ### Cauchy condensation test

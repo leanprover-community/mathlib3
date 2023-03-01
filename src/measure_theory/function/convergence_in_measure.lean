@@ -37,7 +37,7 @@ convergence in measure and other notions of convergence.
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory topological_space
+open_locale nnreal ennreal measure_theory topology
 
 namespace measure_theory
 

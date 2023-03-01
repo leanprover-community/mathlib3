@@ -36,7 +36,7 @@ We introduce the following notation for the lower Lebesgue integral of a functio
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter ennreal function (support)
-open_locale classical topological_space big_operators nnreal ennreal measure_theory
+open_locale classical topology big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -2415,6 +2415,20 @@ lemma with_density_add_right (f : α → ℝ≥0∞) {g : α → ℝ≥0∞} (hg
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 by simpa only [add_comm] using with_density_add_left hg f
 
+lemma with_density_add_measure {m : measurable_space α} (μ ν : measure α) (f : α → ℝ≥0∞) :
+  (μ + ν).with_density f = μ.with_density f + ν.with_density f :=
+begin
+  ext1 s hs,
+  simp only [with_density_apply f hs, restrict_add, lintegral_add_measure, measure.add_apply],
+end
+
+lemma with_density_sum {ι : Type*} {m : measurable_space α} (μ : ι → measure α) (f : α → ℝ≥0∞) :
+  (sum μ).with_density f = sum (λ n, (μ n).with_density f) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply f hs, restrict_sum μ hs, lintegral_sum_measure],
+end
+
 lemma with_density_smul (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :
   μ.with_density (r • f) = r • μ.with_density f :=
 begin
@@ -2483,7 +2497,7 @@ lemma with_density_indicator_one {s : set α} (hs : measurable_set s) :
 by rw [with_density_indicator hs, with_density_one]
 
 lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
-  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
+  μ.with_density (λ x, ennreal.of_real $ f x) ⟂ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
 begin
   set S : set α := { x | f x < 0 } with hSdef,
   have hS : measurable_set S := measurable_set_lt hf measurable_const,

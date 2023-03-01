@@ -24,7 +24,7 @@ is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
 -/
 
 noncomputable theory
-open_locale classical nnreal topological_space
+open_locale classical nnreal topology
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
 variables {𝕜 𝕜₂ 𝕜₃ E Eₗ F Fₗ G Gₗ 𝓕 : Type*}
@@ -1250,7 +1250,7 @@ end
 
 section completeness
 
-open_locale topological_space
+open_locale topology
 open filter
 
 variables {E' : Type*} [seminormed_add_comm_group E'] [normed_space 𝕜 E'] [ring_hom_isometric σ₁₂]

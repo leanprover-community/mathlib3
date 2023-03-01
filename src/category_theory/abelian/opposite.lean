@@ -121,6 +121,46 @@ by simp
 def cokernel_unop_unop : cokernel g.unop ≅ (kernel g).unop :=
 (cokernel_unop_op g).unop.symm
 
+/-- The opposite of the image of `g.unop` is the image of `g.` -/
+def image_unop_op : opposite.op (image g.unop) ≅ image g :=
+(abelian.image_iso_image _).op ≪≫ (cokernel_op_op _).symm ≪≫
+  cokernel_iso_of_eq (cokernel.π_unop _) ≪≫ (cokernel_epi_comp _ _)
+  ≪≫ (cokernel_comp_is_iso _ _) ≪≫ (abelian.coimage_iso_image' _)
+
+/-- The opposite of the image of `f` is the image of `f.op`. -/
+def image_op_op : opposite.op (image f) ≅ image f.op := image_unop_op f.op
+
+/-- The image of `f.op` is the opposite of the image of `f`. -/
+def image_op_unop : (image f.op).unop ≅ image f := (image_unop_op f.op).unop
+
+/-- The image of `g` is the opposite of the image of `g.unop.` -/
+def image_unop_unop : (image g).unop ≅ image g.unop := (image_unop_op g).unop
+
+lemma image_ι_op_comp_image_unop_op_hom :
+  (image.ι g.unop).op ≫ (image_unop_op g).hom = factor_thru_image g :=
+begin
+  dunfold image_unop_op,
+  simp only [←category.assoc, ←op_comp, iso.trans_hom, iso.symm_hom, iso.op_hom, cokernel_op_op_inv,
+    cokernel_comp_is_iso_hom, cokernel_epi_comp_hom, cokernel_iso_of_eq_hom_comp_desc_assoc,
+    abelian.coimage_iso_image'_hom, eq_to_hom_refl, is_iso.inv_id,
+    category.id_comp (cokernel.π (kernel.ι g))],
+  simp only [category.assoc, abelian.image_iso_image_hom_comp_image_ι, kernel.lift_ι,
+    quiver.hom.op_unop, cokernel.π_desc],
+end
+
+lemma image_unop_op_hom_comp_image_ι :
+  (image_unop_op g).hom ≫ image.ι g = (factor_thru_image g.unop).op :=
+by simp only [←cancel_epi (image.ι g.unop).op, ←category.assoc, image_ι_op_comp_image_unop_op_hom,
+  ←op_comp, image.fac, quiver.hom.op_unop]
+
+lemma factor_thru_image_comp_image_unop_op_inv :
+  factor_thru_image g ≫ (image_unop_op g).inv = (image.ι g.unop).op :=
+by rw [iso.comp_inv_eq, image_ι_op_comp_image_unop_op_hom]
+
+lemma image_unop_op_inv_comp_op_factor_thru_image :
+  (image_unop_op g).inv ≫ (factor_thru_image g.unop).op = image.ι g :=
+by rw [iso.inv_comp_eq, image_unop_op_hom_comp_image_ι]
+
 end
 
 end category_theory

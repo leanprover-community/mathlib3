@@ -9,6 +9,9 @@ import control.traversable.instances
 /-!
 # Traversable instance for dlists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the equivalence between `list α` and `dlist α` and the traversable instance
 for `dlist`.
 -/

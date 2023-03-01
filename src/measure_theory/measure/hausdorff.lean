@@ -111,7 +111,7 @@ dimension.
 Hausdorff measure, measure, metric measure
 -/
 
-open_locale nnreal ennreal topological_space big_operators
+open_locale nnreal ennreal topology big_operators
 
 open emetric set function filter encodable finite_dimensional topological_space
 

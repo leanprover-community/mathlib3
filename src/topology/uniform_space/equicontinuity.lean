@@ -81,7 +81,7 @@ equicontinuity, uniform convergence, ascoli
 section
 
 open uniform_space filter set
-open_locale uniformity topological_space uniform_convergence
+open_locale uniformity topology uniform_convergence
 
 variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]

@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 
 import set_theory.ordinal.arithmetic
+import set_theory.ordinal.exponential
 
 /-!
 # Cantor Normal Form

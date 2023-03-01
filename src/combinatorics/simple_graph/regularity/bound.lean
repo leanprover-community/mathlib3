@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import algebra.order.chebyshev
 import analysis.special_functions.pow
 import order.partition.equipartition
 
@@ -10,6 +11,8 @@ import order.partition.equipartition
 # Numerical bounds for Szemerédi Regularity Lemma
 
 This file gathers the numerical facts required by the proof of Szemerédi's regularity lemma.
+
+This entire file is internal to the proof of Szemerédi Regularity Lemma.
 
 ## Main declarations
 
@@ -21,6 +24,7 @@ This file gathers the numerical facts required by the proof of Szemerédi's regu
 -/
 
 open finset fintype function real
+open_locale big_operators
 
 namespace szemeredi_regularity
 
@@ -142,6 +146,38 @@ lemma initial_bound_le_bound : initial_bound ε l ≤ bound ε l :=
 
 lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bound_le_bound ε l
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
+
+variables {ι 𝕜 : Type*} [linear_ordered_field 𝕜] (r : ι → ι → Prop) [decidable_rel r]
+  {s t : finset ι} {x : 𝕜}
+
+lemma mul_sq_le_sum_sq (hst : s ⊆ t) (f : ι → 𝕜) (hs : x^2 ≤ ((∑ i in s, f i) / s.card) ^ 2)
+  (hs' : (s.card : 𝕜) ≠ 0) :
+  (s.card : 𝕜) * x ^ 2 ≤ ∑ i in t, f i ^ 2 :=
+(mul_le_mul_of_nonneg_left (hs.trans sum_div_card_sq_le_sum_sq_div_card) $
+  nat.cast_nonneg _).trans $ (mul_div_cancel' _ hs').le.trans $ sum_le_sum_of_subset_of_nonneg hst $
+    λ i _ _, sq_nonneg _
+
+lemma add_div_le_sum_sq_div_card (hst : s ⊆ t) (f : ι → 𝕜) (d : 𝕜) (hx : 0 ≤ x)
+  (hs : x ≤ |(∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card|)
+  (ht : d ≤ ((∑ i in t, f i)/t.card)^2) :
+  d + s.card/t.card * x^2 ≤ (∑ i in t, f i^2)/t.card :=
+begin
+  obtain hscard | hscard := (s.card.cast_nonneg : (0 : 𝕜) ≤ s.card).eq_or_lt,
+  { simpa [←hscard] using ht.trans sum_div_card_sq_le_sum_sq_div_card },
+  have htcard : (0:𝕜) < t.card := hscard.trans_le (nat.cast_le.2 (card_le_of_subset hst)),
+  have h₁ : x^2 ≤ ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card)^2 :=
+    sq_le_sq.2 (by rwa [abs_of_nonneg hx]),
+  have h₂ : x^2 ≤ ((∑ i in s, (f i - (∑ j in t, f j)/t.card))/s.card)^2,
+  { apply h₁.trans,
+    rw [sum_sub_distrib, sum_const, nsmul_eq_mul, sub_div, mul_div_cancel_left _ hscard.ne'] },
+  apply (add_le_add_right ht _).trans,
+  rw [←mul_div_right_comm, le_div_iff htcard, add_mul, div_mul_cancel _ htcard.ne'],
+  have h₃ := mul_sq_le_sum_sq hst (λ i, f i - (∑ j in t, f j) / t.card) h₂ hscard.ne',
+  apply (add_le_add_left h₃ _).trans,
+  simp [←mul_div_right_comm _ (t.card : 𝕜), sub_div' _ _ _ htcard.ne', ←sum_div, ←add_div, mul_pow,
+    div_le_iff (sq_pos_of_ne_zero _ htcard.ne'), sub_sq, sum_add_distrib, ←sum_mul, ←mul_sum],
+  ring_nf,
+end
 
 end szemeredi_regularity
 

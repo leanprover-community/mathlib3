@@ -43,7 +43,7 @@ uniform integrable, uniformly absolutely continuous integral, Vitali convergence
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 

@@ -6,7 +6,10 @@ Authors: Johan Commelin, Floris van Doorn
 import data.set.finite
 import data.set.pointwise.smul
 
-/-! # Finiteness lemmas for pointwise operations on sets -/
+/-! # Finiteness lemmas for pointwise operations on sets 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open_locale pointwise
 

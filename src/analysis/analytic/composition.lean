@@ -67,7 +67,7 @@ noncomputable theory
 
 variables {𝕜 : Type*} {E F G H : Type*}
 open filter list
-open_locale topological_space big_operators classical nnreal ennreal
+open_locale topology big_operators classical nnreal ennreal
 
 section topological
 variables [comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [add_comm_group G]

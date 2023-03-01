@@ -76,7 +76,7 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory filter
-open_locale nnreal ennreal big_operators topological_space measure_theory
+open_locale nnreal ennreal big_operators topology measure_theory
 
 variables {α E F G : Type*} {m m0 : measurable_space α} {p : ℝ≥0∞} {q : ℝ} {μ ν : measure α}
   [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]
@@ -1324,6 +1324,16 @@ lemma mem_ℒp.smul {p q r : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
   mem_ℒp (φ • f) p μ :=
 ⟨hφ.1.smul hf.1, (snorm_smul_le_mul_snorm hf.1 hφ.1 hpqr).trans_lt
   (ennreal.mul_lt_top hφ.snorm_ne_top hf.snorm_ne_top)⟩
+
+lemma mem_ℒp.smul_of_top_right {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f p μ) (hφ : mem_ℒp φ ∞ μ) :
+  mem_ℒp (φ • f) p μ :=
+by { apply hf.smul hφ, simp only [ennreal.div_top, zero_add] }
+
+lemma mem_ℒp.smul_of_top_left {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f ∞ μ) (hφ : mem_ℒp φ p μ) :
+  mem_ℒp (φ • f) p μ :=
+by { apply hf.smul hφ, simp only [ennreal.div_top, add_zero] }
 
 end normed_space
 

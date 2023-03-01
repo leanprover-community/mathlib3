@@ -9,6 +9,9 @@ import group_theory.group_action.conj_act
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the actions
 
 * `subgroup.pointwise_mul_action`

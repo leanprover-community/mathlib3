@@ -251,7 +251,7 @@ begin
   rwa cast_ne_zero,
 end
 
-open_locale filter topological_space
+open_locale filter topology
 open real
 
 section numerical_bounds

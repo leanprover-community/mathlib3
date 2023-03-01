@@ -128,7 +128,7 @@ proofs or statements do not apply directly.
 -/
 
 open set filter
-open_locale ennreal topological_space nnreal big_operators
+open_locale ennreal topology nnreal big_operators
 
 namespace measure_theory
 namespace measure

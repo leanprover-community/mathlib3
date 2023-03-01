@@ -5,7 +5,7 @@ Authors: Benjamin Davidson, Devon Tuma, Eric Rodriguez, Oliver Nash
 -/
 
 import tactic.positivity
-import topology.order.basic
+import topology.algebra.order.group
 import topology.algebra.field
 
 /-!
@@ -17,7 +17,7 @@ import topology.algebra.field
 open set filter topological_space
 open function
 open order_dual (to_dual of_dual)
-open_locale topological_space classical filter
+open_locale topology classical filter
 
 variables {α β : Type*}
 variables [linear_ordered_field α] [topological_space α] [order_topology α]

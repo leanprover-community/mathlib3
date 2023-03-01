@@ -55,6 +55,8 @@ def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, { to_fun := f, continuous_to_fun := continuous_bot } }
 
+instance {X : Type u} : discrete_topology (discrete.obj X) := ⟨rfl⟩
+
 /-- The trivial topology on any type. -/
 def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,

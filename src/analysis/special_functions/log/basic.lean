@@ -21,7 +21,7 @@ logarithm, continuity
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real

@@ -140,7 +140,7 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale topological_space big_operators nnreal ennreal measure_theory
+open_locale topology big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
 namespace measure_theory
@@ -769,6 +769,10 @@ end
 integral_zero α E
 
 variables {α E}
+
+lemma integrable_of_integral_eq_one {f : α → ℝ} (h : ∫ x, f x ∂μ = 1) :
+  integrable f μ :=
+by { contrapose h, rw integral_undef h, exact zero_ne_one }
 
 lemma integral_add (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a + g a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=

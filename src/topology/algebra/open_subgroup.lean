@@ -29,7 +29,7 @@ Note that this notion is especially relevant in a non-archimedean context, for i
 -/
 
 open topological_space
-open_locale topological_space
+open_locale topology
 
 /-- The type of open subgroups of a topological additive group. -/
 @[ancestor add_subgroup]

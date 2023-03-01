@@ -36,7 +36,7 @@ This version is given in `vitali.vitali_family`.
 variables {α ι : Type*}
 
 open set metric measure_theory topological_space filter
-open_locale nnreal classical ennreal topological_space
+open_locale nnreal classical ennreal topology
 
 namespace vitali
 

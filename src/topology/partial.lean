@@ -9,12 +9,15 @@ import order.filter.partial
 /-!
 # Partial functions and topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove properties of `filter.ptendsto` etc in topological spaces. We also introduce
 `pcontinuous`, a version of `continuous` for partially defined functions.
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 variables {α β : Type*} [topological_space α]
 

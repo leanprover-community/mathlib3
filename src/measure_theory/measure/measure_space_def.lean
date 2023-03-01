@@ -54,7 +54,7 @@ measure, almost everywhere, measure space
 noncomputable theory
 
 open classical set filter (hiding map) function measurable_space
-open_locale classical topological_space big_operators filter ennreal nnreal
+open_locale classical topology big_operators filter ennreal nnreal
 
 variables {α β γ δ ι : Type*}
 

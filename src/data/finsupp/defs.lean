@@ -9,6 +9,9 @@ import group_theory.submonoid.basic
 /-!
 # Type of functions with finite support
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For any type `α` and any type `M` with zero, we define the type `finsupp α M` (notation: `α →₀ M`)
 of finitely supported functions from `α` to `M`, i.e. the functions which are zero everywhere
 on `α` except on a finite set.

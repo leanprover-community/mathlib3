@@ -1567,10 +1567,10 @@ def connected_component.supp (C : G.connected_component) :=
   function.injective (connected_component.supp : G.connected_component → set V) :=
 begin
   refine connected_component.ind₂ _,
-  intros v w h,
-  simp only [set.ext_iff, connected_component.eq, set.mem_set_of_eq, connected_component.supp] at
-     h ⊢,
-  exact ((h v).mp (reachable.refl _)),
+  intros v w,
+  simp only [connected_component.supp, set.ext_iff, connected_component.eq, set.mem_set_of_eq],
+  intro h,
+  rw [reachable_comm, h],
 end
 
 @[simp]

@@ -314,20 +314,8 @@ protected lemma mul_comm : Π (x y : pgame.{u}), x * y ≡ y * x
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-/-- `x * y` and `y * x` have the same moves. -/
-def mul_comm_relabelling : Π (x y : pgame.{u}), x * y ≡r y * x
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
-  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
-    (equiv.sum_comm _ _).trans (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)), _, _⟩;
-  rintro (⟨i, j⟩ | ⟨i, j⟩);
-  dsimp;
-  exact ((add_comm_relabelling _ _).trans $ (mul_comm_relabelling _ _).add_congr
-    (mul_comm_relabelling _ _)).sub_congr (mul_comm_relabelling _ _)
-end
-using_well_founded { dec_tac := pgame_wf_tac }
-
 theorem quot_mul_comm (x y : pgame.{u}) : ⟦x * y⟧ = ⟦y * x⟧ :=
-quot.sound (mul_comm_relabelling x y).equiv
+quot.sound (x.mul_comm y).equiv
 
 /-- `x * y` is equivalent to `y * x`. -/
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
@@ -345,11 +333,8 @@ by { cases x, apply sum.is_empty }
 /-- `x * 0` has exactly the same moves as `0`. -/
 protected lemma mul_zero (x : pgame) : x * 0 ≡ 0 := identical_zero _
 
-/-- `x * 0` has exactly the same moves as `0`. -/
-def mul_zero_relabelling (x : pgame) : x * 0 ≡r 0 := relabelling.is_empty _
-
 /-- `x * 0` is equivalent to `0`. -/
-theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equiv
+theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := x.mul_zero.equiv
 
 @[simp] theorem quot_mul_zero (x : pgame) : ⟦x * 0⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
@@ -357,26 +342,11 @@ theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equ
 /-- `0 * x` has exactly the same moves as `0`. -/
 protected lemma zero_mul (x : pgame) : 0 * x ≡ 0 := identical_zero _
 
-/-- `0 * x` has exactly the same moves as `0`. -/
-def zero_mul_relabelling (x : pgame) : 0 * x ≡r 0 := relabelling.is_empty _
-
 /-- `0 * x` is equivalent to `0`. -/
-theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := (zero_mul_relabelling x).equiv
+theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := x.zero_mul.equiv
 
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
-
-/-- `-x * y` and `-(x * y)` have the same moves. -/
-def neg_mul_relabelling : Π (x y : pgame.{u}), -x * y ≡r -(x * y)
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
-  refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
-  rintro (⟨i, j⟩ | ⟨i, j⟩);
-  dsimp;
-  apply ((neg_add_relabelling _ _).trans _).symm;
-  apply ((neg_add_relabelling _ _).trans (relabelling.add_congr _ _)).sub_congr;
-  exact (neg_mul_relabelling _ _).symm
-end
-using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `x * -y` and `-(x * y)` have the same moves. -/
 lemma mul_neg : Π (x y : pgame.{u}), x * -y = -(x * y)
@@ -412,15 +382,10 @@ def neg_mul (x y : pgame.{u}) : -x * y ≡ -(x * y) :=
 ((pgame.mul_comm _ _).trans (of_eq (mul_neg _ _))).trans (pgame.mul_comm _ _).neg
 
 @[simp] theorem quot_neg_mul (x y : pgame) : ⟦-x * y⟧ = -⟦x * y⟧ :=
-quot.sound (neg_mul_relabelling x y).equiv
-
-/-- `x * -y` and `-(x * y)` have the same moves. -/
-def mul_neg_relabelling (x y : pgame) : x * -y ≡r -(x * y) :=
-(mul_comm_relabelling x _).trans $
-  (neg_mul_relabelling _ x).trans (mul_comm_relabelling y x).neg_congr
+quot.sound (neg_mul x y).equiv
 
 @[simp] theorem quot_mul_neg (x y : pgame) : ⟦x * -y⟧ = -⟦x * y⟧ :=
-quot.sound (mul_neg_relabelling x y).equiv
+quot.sound (of_eq (mul_neg x y))
 
 @[simp] theorem quot_left_distrib : Π (x y z : pgame), ⟦x * (y + z)⟧ = ⟦x * y⟧ + ⟦x * z⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -489,20 +454,6 @@ quotient.exact $ quot_right_distrib _ _ _
 @[simp] theorem quot_right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
 by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_distrib, quot_neg_mul] }
 
-/-- `x * 1` has the same moves as `x`. -/
-def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
-| ⟨xl, xr, xL, xR⟩ := begin
-  unfold has_one.one,
-  refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),
-    (equiv.empty_sum _ _).trans (equiv.prod_punit _), _, _⟩;
-  try { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) }; try { intro i };
-  dsimp;
-  apply (relabelling.sub_congr (relabelling.refl _) (mul_zero_relabelling _)).trans;
-  rw sub_zero_eq_add_zero;
-  exact (add_zero_relabelling _).trans (((mul_one_relabelling _).add_congr
-    (mul_zero_relabelling _)).trans $ add_zero_relabelling _)
-end
-
 /-- `1 * x` has the same moves as `x`. -/
 lemma one_mul : Π (x : pgame.{u}), 1 * x ≡ x
 | ⟨xl, xr, xL, xR⟩ := begin
@@ -518,22 +469,18 @@ lemma one_mul : Π (x : pgame.{u}), 1 * x ≡ x
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-/-- `x * 1` has the same moves as `x`. -/
-lemma mul_one (x : pgame.{u}) : x * 1 ≡ x := (x.mul_comm _).trans x.one_mul
-
-@[simp] theorem quot_mul_one (x : pgame) : ⟦x * 1⟧ = ⟦x⟧ := quot.sound $ mul_one_relabelling x
-
-/-- `x * 1` is equivalent to `x`. -/
-theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one x
-
-/-- `1 * x` has the same moves as `x`. -/
-def one_mul_relabelling (x : pgame) : 1 * x ≡r x :=
-(mul_comm_relabelling 1 x).trans $ mul_one_relabelling x
-
-@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ := quot.sound $ one_mul_relabelling x
+@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ := quot.sound $ (one_mul x).equiv
 
 /-- `1 * x` is equivalent to `x`. -/
 theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul x
+
+/-- `x * 1` has the same moves as `x`. -/
+lemma mul_one (x : pgame.{u}) : x * 1 ≡ x := (x.mul_comm _).trans x.one_mul
+
+@[simp] theorem quot_mul_one (x : pgame) : ⟦x * 1⟧ = ⟦x⟧ := quot.sound $ (mul_one x).equiv
+
+/-- `x * 1` is equivalent to `x`. -/
+theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one x
 
 theorem quot_mul_assoc : Π (x y z : pgame), ⟦x * y * z⟧ = ⟦x * (y * z)⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -662,31 +609,17 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/
-def inv'_zero' : inv' 0 ≡ 1 :=
+def inv'_zero : inv' 0 ≡ 1 :=
 begin
   refine ⟨_, _⟩,
   { simp_rw [unique.forall_iff, unique.exists_iff, and_self, pgame.inv_val_is_empty], },
   { simp_rw [is_empty.forall_iff, and_self], },
 end
 
-/-- `inv' 0` has exactly the same moves as `1`. -/
-def inv'_zero : inv' 0 ≡r 1 :=
-begin
-  change mk _ _ _ _ ≡r 1,
-  refine ⟨_, _, λ i, _, is_empty.elim _⟩,
-  { apply equiv.equiv_punit (inv_ty _ _ _),
-    apply_instance },
-  { apply equiv.equiv_pempty (inv_ty _ _ _),
-    apply_instance },
-  { simp },
-  { dsimp,
-    apply_instance }
-end
-
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
 /-- `inv' 1` has exactly the same moves as `1`. -/
-def inv'_one' : inv' 1 ≡ (1 : pgame.{u}) :=
+def inv'_one : inv' 1 ≡ (1 : pgame.{u}) :=
 begin
   haveI inst : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
@@ -694,19 +627,6 @@ begin
   { simp_rw [unique.forall_iff, unique.exists_iff, pgame.inv_val_is_empty, and_self], },
   { simp_rw [is_empty.forall_iff, and_true, is_empty.exists_iff],
     exact (@inv_ty.is_empty _ _ inst _).elim, },
-end
-
-/-- `inv' 1` has exactly the same moves as `1`. -/
-def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
-begin
-  change relabelling (mk _ _ _ _) 1,
-  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
-  { rw lt_self_iff_false, apply_instance },
-  refine ⟨_, _, λ i, _, is_empty.elim _⟩; dsimp,
-  { apply equiv.equiv_punit },
-  { apply equiv.equiv_of_is_empty },
-  { simp },
-  { apply_instance }
 end
 
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
@@ -730,11 +650,7 @@ theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 by { classical, exact (if_neg h.not_equiv).trans (if_neg h.not_gt) }
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
-def inv_one' : 1⁻¹ ≡ 1 :=
-by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one' }
-
-/-- `1⁻¹` has exactly the same moves as `1`. -/
-def inv_one : 1⁻¹ ≡r 1 :=
+def inv_one : 1⁻¹ ≡ 1 :=
 by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one }
 
 theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv

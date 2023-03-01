@@ -471,6 +471,29 @@ end
 
 end image
 
+/-! ### Lemmas about the powerset and image. -/
+
+/-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
+theorem powerset_insert (s : set α) (a : α) :
+  𝒫 (insert a s) = 𝒫 s ∪ (insert a '' 𝒫 s) :=
+begin
+  ext t,
+  simp_rw [mem_union, mem_image, mem_powerset_iff],
+  split,
+  { intro h,
+    by_cases hs : a ∈ t,
+    { right,
+      refine ⟨t \ {a}, _, _⟩,
+      { rw [diff_singleton_subset_iff],
+        assumption },
+      { rw [insert_diff_singleton, insert_eq_of_mem hs] }},
+    { left,
+      exact (subset_insert_iff_of_not_mem hs).mp h}},
+  { rintros (h | ⟨s', h₁, rfl⟩),
+    { exact subset_trans h (subset_insert a s) },
+    { exact insert_subset_insert h₁ }}
+end
+
 /-! ### Lemmas about range of a function. -/
 section range
 variables {f : ι → α} {s t : set α}

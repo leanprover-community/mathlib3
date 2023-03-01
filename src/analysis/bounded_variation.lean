@@ -933,12 +933,7 @@ lemma lipschitz_on_with.comp_has_bounded_variation_on {f : E → F} {C : ℝ≥0
   (hf : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t)
   (h : has_bounded_variation_on g s) :
   has_bounded_variation_on (f ∘ g) s :=
-begin
-  dsimp [has_bounded_variation_on] at h,
-  apply ne_of_lt,
-  apply (hf.comp_evariation_on_le hg).trans_lt,
-  simp [lt_top_iff_ne_top, h],
-end
+ne_top_of_le_ne_top (ennreal.mul_ne_top ennreal.coe_ne_top h) (hf.comp_evariation_on_le hg)
 
 lemma lipschitz_on_with.comp_has_locally_bounded_variation_on {f : E → F} {C : ℝ≥0} {t : set E}
   (hf : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t)

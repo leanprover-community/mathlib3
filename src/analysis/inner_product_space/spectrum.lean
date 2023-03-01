@@ -160,13 +160,11 @@ lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -is_symmetric.diagonalization_symm_apply]
+  { simpa only [linear_isometry_equiv.symm_apply_apply, linear_isometry_equiv.apply_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
-  have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
-  { intros μ,
-    simpa [mem_eigenspace_iff] using (w μ).prop },
-  simp [hwT],
+  have hwT : T (w μ) = (μ : 𝕜) • w μ := mem_eigenspace_iff.1 (w μ).2,
+  simp only [hwT, diagonalization_symm_apply, map_sum, submodule.coe_smul_of_tower],
 end
 
 end version1

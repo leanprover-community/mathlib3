@@ -1584,9 +1584,9 @@ instance : set_like G.connected_component V :=
 @[simp] lemma connected_component.mem_supp_iff (C : G.connected_component) (v : V) :
   v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
 
-lemma connected_component_mk_mem (G : simple_graph V) {v : V} :
-  v ∈ G.connected_component_mk v := by { exact rfl, }
-
+lemma connected_component_mk_mem {v : V} :
+  v ∈ G.connected_component_mk v := by exact rfl
+  
 /--
 The equivalence between connected components, induced by an isomorphism of graphs,
 itself defines an equivalence on the supports of each connected component.

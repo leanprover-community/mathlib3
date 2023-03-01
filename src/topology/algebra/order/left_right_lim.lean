@@ -9,6 +9,9 @@ import topology.algebra.order.left_right
 /-!
 # Left and right limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the (strict) left and right limits of a function.
 
 * `left_lim f x` is the strict left limit of `f` at `x` (using `f x` as a garbage value if `x`
@@ -31,7 +34,7 @@ Prove corresponding stronger results for strict_mono and strict_anti functions.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 section
 
@@ -253,15 +256,13 @@ begin
   have fs_count : (f '' s).countable,
   { have A : (f '' s).pairwise_disjoint (λ x, Ioo x (z (inv_fun_on f s x))),
     { rintros _ ⟨u, us, rfl⟩ _ ⟨v, vs, rfl⟩ huv,
-      wlog h'uv : u ≤ v := le_total u v using [u v, v u] tactic.skip,
-      { rcases eq_or_lt_of_le h'uv with rfl|h''uv,
-        { exact (huv rfl).elim },
-        apply disjoint_iff_forall_ne.2,
-        rintros a ha b hb rfl,
-        simp [I.left_inv_on_inv_fun_on us, I.left_inv_on_inv_fun_on vs] at ha hb,
-        exact lt_irrefl _ ((ha.2.trans_le ((hz u us).2 v h''uv)).trans hb.1) },
-      { assume hu hv h'uv,
-        exact (this hv hu h'uv.symm).symm } },
+      wlog hle : u ≤ v generalizing u v,
+      { exact (this v vs u us huv.symm (le_of_not_le hle)).symm },
+      have hlt : u < v, from hle.lt_of_ne (ne_of_apply_ne _ huv),
+      apply disjoint_iff_forall_ne.2,
+      rintros a ha b hb rfl,
+      simp only [I.left_inv_on_inv_fun_on us, I.left_inv_on_inv_fun_on vs] at ha hb,
+      exact lt_irrefl _ ((ha.2.trans_le ((hz u us).2 v hlt)).trans hb.1) },
     apply set.pairwise_disjoint.countable_of_Ioo A,
     rintros _ ⟨y, ys, rfl⟩,
     simpa only [I.left_inv_on_inv_fun_on ys] using (hz y ys).1 },

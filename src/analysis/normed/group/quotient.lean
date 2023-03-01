@@ -92,7 +92,7 @@ noncomputable theory
 
 
 open quotient_add_group metric set
-open_locale topological_space nnreal
+open_locale topology nnreal
 
 variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group N]
 

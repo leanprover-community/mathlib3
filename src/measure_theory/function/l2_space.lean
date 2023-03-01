@@ -34,15 +34,15 @@ variables {α F : Type*} {m : measurable_space α} {μ : measure α} [normed_add
 lemma mem_ℒp.integrable_sq {f : α → ℝ} (h : mem_ℒp f 2 μ) :
   integrable (λ x, (f x)^2) μ :=
 by simpa [← mem_ℒp_one_iff_integrable]
-  using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
+  using h.norm_rpow two_ne_zero ennreal.two_ne_top
 
 lemma mem_ℒp_two_iff_integrable_sq_norm {f : α → F} (hf : ae_strongly_measurable f μ) :
   mem_ℒp f 2 μ ↔ integrable (λ x, ‖f x‖^2) μ :=
 begin
   rw ← mem_ℒp_one_iff_integrable,
-  convert (mem_ℒp_norm_rpow_iff hf ennreal.two_ne_zero ennreal.two_ne_top).symm,
+  convert (mem_ℒp_norm_rpow_iff hf two_ne_zero ennreal.two_ne_top).symm,
   { simp },
-  { rw [div_eq_mul_inv, ennreal.mul_inv_cancel ennreal.two_ne_zero ennreal.two_ne_top] }
+  { rw [div_eq_mul_inv, ennreal.mul_inv_cancel two_ne_zero ennreal.two_ne_top] }
 end
 
 lemma mem_ℒp_two_iff_integrable_sq {f : α → ℝ} (hf : ae_strongly_measurable f μ) :
@@ -119,11 +119,11 @@ begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
     ennreal.to_real_eq_to_real (ennreal.pow_ne_top (Lp.snorm_ne_top f)) _],
-  { rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top, snorm',
+  { rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' two_ne_zero ennreal.two_ne_top, snorm',
       ← ennreal.rpow_mul, one_div, h_two],
     simp, },
   { refine (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _).ne,
-    rw [← h_two, ← snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top],
+    rw [← h_two, ← snorm_eq_snorm' two_ne_zero ennreal.two_ne_top],
     exact Lp.snorm_lt_top f, },
 end
 

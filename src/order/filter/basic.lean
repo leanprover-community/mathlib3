@@ -2531,6 +2531,10 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (⨅ i, x i) y :=
 hi.mono_left $ infi_le _ _
 
+theorem tendsto_infi_infi {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (infi x) (infi y) :=
+tendsto_infi.2 $ λ i, tendsto_infi' i (h i)
+
 @[simp] lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=
 by simp only [tendsto, map_sup, sup_le_iff]
@@ -2542,6 +2546,10 @@ lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
 @[simp] lemma tendsto_supr {f : α → β} {x : ι → filter α} {y : filter β} :
   tendsto f (⨆ i, x i) y ↔ ∀ i, tendsto f (x i) y :=
 by simp only [tendsto, map_supr, supr_le_iff]
+
+theorem tendsto_supr_supr {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (supr x) (supr y) :=
+tendsto_supr.2 $ λ i, (h i).mono_right $ le_supr _ _
 
 @[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=
@@ -2580,8 +2588,9 @@ lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β
   ¬ tendsto f a b₂ :=
 λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot.ne hb.eq_bot
 
-lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop} [∀ x, decidable (p x)]
-  (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
+protected lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop}
+  [∀ x, decidable (p x)] (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂)
+  (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
   tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
 begin
   simp only [tendsto_def, mem_inf_principal] at *,
@@ -2593,8 +2602,8 @@ begin
   exacts [hp₀ h, hp₁ h],
 end
 
-lemma tendsto.if' {α β : Type*} {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop}
-  [decidable_pred p] (hf : tendsto f l₁ l₂) (hg : tendsto g l₁ l₂) :
+protected lemma tendsto.if' {α β : Type*} {l₁ : filter α} {l₂ : filter β} {f g : α → β}
+  {p : α → Prop} [decidable_pred p] (hf : tendsto f l₁ l₂) (hg : tendsto g l₁ l₂) :
   tendsto (λ a, if p a then f a else g a) l₁ l₂ :=
 begin
   replace hf : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂ := tendsto_inf_left hf,
@@ -2602,7 +2611,7 @@ begin
   exact hf.if hg,
 end
 
-lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
+protected lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
   {s : set α} [∀ x, decidable (x ∈ s)]
   (h₀ : tendsto f (l₁ ⊓ 𝓟 s) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 sᶜ) l₂) :
   tendsto (piecewise s f g) l₁ l₂ :=

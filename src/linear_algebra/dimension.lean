@@ -1063,7 +1063,7 @@ begin
       exact linear_map.ext_iff.1 eq c } },
   { rw [← ker_eq_bot, ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
   { rw [← range_eq_top, eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap,
-      map_top, range_subtype],
+      submodule.map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
     simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, set_like.mem_coe,
@@ -1079,7 +1079,7 @@ lemma dim_sup_add_dim_inf_eq (s t : submodule K V) :
     module.rank K s + module.rank K t :=
 dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
-    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
+    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), submodule.map_sup, submodule.map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
     exact le_rfl

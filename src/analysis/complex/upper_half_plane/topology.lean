@@ -19,7 +19,7 @@ various instances.
 
 noncomputable theory
 open set filter function topological_space complex
-open_locale filter topological_space upper_half_plane
+open_locale filter topology upper_half_plane
 
 namespace upper_half_plane
 

@@ -90,7 +90,7 @@ abbreviation to_Γ_Spec_map_basic_open : opens X :=
 
 /-- The preimage is the basic open in `X` defined by the same element `r`. -/
 lemma to_Γ_Spec_map_basic_open_eq : X.to_Γ_Spec_map_basic_open r = X.to_RingedSpace.basic_open r :=
-subtype.eq (X.to_Γ_Spec_preim_basic_open_eq r)
+opens.ext (X.to_Γ_Spec_preim_basic_open_eq r)
 
 /-- The map from the global sections `Γ(X)` to the sections on the (preimage of) a basic open. -/
 abbreviation to_to_Γ_Spec_map_basic_open :

@@ -6,9 +6,13 @@ Authors: Patrick Massot, Yury Kudryashov
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.equicontinuity
 import topology.separation
+import topology.support
 
 /-!
 # Compact separated uniform spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main statements
 
@@ -32,7 +36,7 @@ loop.
 uniform space, uniform continuity, compact space
 -/
 
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 open filter uniform_space set
 
 variables {α β γ : Type*} [uniform_space α] [uniform_space β]
@@ -197,19 +201,39 @@ begin
   exacts [mem_ball_self _ (hT a a.2), mem_Inter₂.1 h a ha],
 end
 
-lemma continuous.uniform_continuous_of_zero_at_infty {f : α → β} [has_zero β]
-  (h_cont : continuous f) (h_zero : tendsto f (cocompact α) (𝓝 0)) : uniform_continuous f :=
+lemma continuous.uniform_continuous_of_tendsto_cocompact {f : α → β} {x : β}
+  (h_cont : continuous f) (hx : tendsto f (cocompact α) (𝓝 x)) : uniform_continuous f :=
 uniform_continuous_def.2 $ λ r hr, begin
   obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
-  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (h_zero $ mem_nhds_left 0 ht),
+  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (hx $ mem_nhds_left _ ht),
   apply mem_of_superset (symmetrize_mem_uniformity $ hs.uniform_continuous_at_of_continuous_at
     f (λ _ _, h_cont.continuous_at) $ symmetrize_mem_uniformity hr),
   rintro ⟨b₁, b₂⟩ h,
   by_cases h₁ : b₁ ∈ s, { exact (h.1 h₁).1 },
   by_cases h₂ : b₂ ∈ s, { exact (h.2 h₂).2 },
   apply htr,
-  exact ⟨0, htsymm.mk_mem_comm.1 (hst h₁), hst h₂⟩,
+  exact ⟨x, htsymm.mk_mem_comm.1 (hst h₁), hst h₂⟩,
 end
+
+/-- If `f` has compact multiplicative support, then `f` tends to 1 at infinity. -/
+@[to_additive "If `f` has compact support, then `f` tends to zero at infinity."]
+lemma has_compact_mul_support.is_one_at_infty {f : α → γ} [topological_space γ] [has_one γ]
+  (h : has_compact_mul_support f) : tendsto f (cocompact α) (𝓝 1) :=
+begin
+  -- porting note: move to src/topology/support.lean once the port is over
+  intros N hN,
+  rw [mem_map, mem_cocompact'],
+  refine ⟨mul_tsupport f, h.is_compact, _⟩,
+  rw compl_subset_comm,
+  intros v hv,
+  rw [mem_preimage, image_eq_one_of_nmem_mul_tsupport hv],
+  exact mem_of_mem_nhds hN,
+end
+
+@[to_additive]
+lemma has_compact_mul_support.uniform_continuous_of_continuous {f : α → β} [has_one β]
+  (h1 : has_compact_mul_support f) (h2 : continuous f) : uniform_continuous f :=
+h2.uniform_continuous_of_tendsto_cocompact h1.is_one_at_infty
 
 /-- A family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is locally compact,
 `β` is compact and `f` is continuous on `U × (univ : set β)` for some neighborhood `U` of `x`. -/

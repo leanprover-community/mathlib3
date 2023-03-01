@@ -22,7 +22,7 @@ We also give versions of these statements which are localized to a set.
 -/
 
 open set metric topological_space function asymptotics filter
-open_locale topological_space nnreal big_operators
+open_locale topology nnreal big_operators
 
 variables {α β 𝕜 E F : Type*}
   [is_R_or_C 𝕜]

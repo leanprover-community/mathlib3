@@ -9,6 +9,9 @@ import data.pnat.defs
 /-!
 # Finite intervals of positive naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that `ℕ+` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.
 -/

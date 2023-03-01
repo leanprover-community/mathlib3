@@ -150,6 +150,7 @@ lemma nth_injective_of_infinite (hp : (set_of p).infinite) : function.injective 
 begin
   intros m n h,
   wlog h' : m ≤ n,
+  { exact (this p hp h.symm (le_of_not_le h')).symm },
   rw le_iff_lt_or_eq at h',
   obtain (h' | rfl) := h',
   { simpa [h] using nth_strict_mono p hp h' },

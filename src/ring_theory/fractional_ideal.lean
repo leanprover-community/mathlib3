@@ -494,6 +494,12 @@ instance : comm_semiring (fractional_ideal S P) :=
 function.injective.comm_semiring coe subtype.coe_injective
   coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow coe_nat_cast
 
+variables (S P)
+/-- `fractional_ideal.submodule.has_coe` as a bundled `ring_hom`. -/
+@[simps] def coe_submodule_hom : fractional_ideal S P →+* submodule R P :=
+⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
+variables {S P}
+
 section order
 
 lemma add_le_add_left {I J : fractional_ideal S P} (hIJ : I ≤ J) (J' : fractional_ideal S P) :
@@ -545,6 +551,10 @@ begin
     rw ← hI,
     apply coe_ideal_le_one },
 end
+
+@[simp] lemma one_le {I : fractional_ideal S P} :
+  1 ≤ I ↔ (1 : P) ∈ I :=
+by rw [← coe_le_coe, coe_one, submodule.one_le, mem_coe]
 
 variables (S P)
 
@@ -706,21 +716,11 @@ variables {S}
 
 lemma fg_unit (I : (fractional_ideal S P)ˣ) :
   fg (I : submodule R P) :=
-begin
-  have : (1 : P) ∈ (I * ↑I⁻¹ : fractional_ideal S P),
-  { rw units.mul_inv, exact one_mem_one _ },
-  obtain ⟨T, T', hT, hT', one_mem⟩ := mem_span_mul_finite_of_mem_mul this,
-  refine ⟨T, submodule.span_eq_of_le _ hT _⟩,
-  rw [← one_mul ↑I, ← mul_one (span R ↑T)],
-  conv_rhs { rw [← coe_one, ← units.mul_inv I, coe_mul, mul_comm ↑↑I, ← mul_assoc] },
-  refine submodule.mul_le_mul_left
-    (le_trans _ (submodule.mul_le_mul_right (submodule.span_le.mpr hT'))),
-  rwa [submodule.one_le, submodule.span_mul_span]
-end
+submodule.fg_unit $ units.map (coe_submodule_hom S P).to_monoid_hom I
 
 lemma fg_of_is_unit (I : fractional_ideal S P) (h : is_unit I) :
   fg (I : submodule R P) :=
-by { rcases h with ⟨I, rfl⟩, exact fg_unit I }
+fg_unit h.unit
 
 lemma _root_.ideal.fg_of_is_unit (inj : function.injective (algebra_map R P))
   (I : ideal R) (h : is_unit (I : fractional_ideal S P)) :
@@ -912,8 +912,7 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0)
 I.is_fractional.div_of_nonzero J.is_fractional $ λ H, h $
   coe_to_submodule_injective $ H.trans coe_zero.symm
 
-noncomputable instance fractional_ideal_has_div :
-  has_div (fractional_ideal R₁⁰ K) :=
+noncomputable instance : has_div (fractional_ideal R₁⁰ K) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I / J, fractional_div_of_nonzero h⟩ ⟩
 
 variables {I J : fractional_ideal R₁⁰ K} [ J ≠ 0 ]
@@ -1109,6 +1108,10 @@ lemma mem_span_singleton_self (x : P) :
 (mem_span_singleton S).mpr ⟨1, one_smul _ _⟩
 
 variables {S}
+
+@[simp] lemma span_singleton_le_iff_mem {x : P} {I : fractional_ideal S P} :
+  span_singleton S x ≤ I ↔ x ∈ I :=
+by rw [← coe_le_coe, coe_span_singleton, submodule.span_singleton_le_iff_mem x ↑I, mem_coe]
 
 lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
   span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=

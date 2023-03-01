@@ -28,7 +28,7 @@ The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M�
 -/
 
 open filter linear_map (ker range)
-open_locale topological_space big_operators filter
+open_locale topology big_operators filter
 
 universes u v w u'
 

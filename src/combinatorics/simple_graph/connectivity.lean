@@ -1573,7 +1573,7 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-variables {G} {V'} {G'} {G''}
+variables {V' G G' G''}
 
 namespace connected_component
 
@@ -1665,8 +1665,6 @@ by { ext ⟨v⟩, refl, }
   φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
 
 end iso
-
-variables {G}
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected

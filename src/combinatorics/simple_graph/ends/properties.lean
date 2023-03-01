@@ -28,7 +28,7 @@ instance [finite V] : is_empty G.end :=
 /--
 The `component_compl`s chosen by an end are all infinite.
 -/
-lemma end_component_compl_infinite (e : G.end) (K : (finset V)ᵒᵖ) : (e K).supp.infinite :=
+lemma end_component_compl_infinite (e : G.end) (K : (finset V)ᵒᵖ) : (e.val K).supp.infinite :=
 begin
   apply (e.val K).infinite_iff_in_all_ranges.mpr (λ L h, _),
   change opposite.unop K ⊆ opposite.unop (opposite.op L) at h,

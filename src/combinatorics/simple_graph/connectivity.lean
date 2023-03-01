@@ -1487,7 +1487,7 @@ protected lemma connected_component.exact {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
 @quotient.eq _ G.reachable_setoid _ _
 
-lemma connected_component_mk_eq_of_adj {v w : V} (a : .adj w) :
+lemma connected_component_mk_eq_of_adj {v w : V} (a : G.adj v w) :
   G.connected_component_mk v = G.connected_component_mk w :=
 connected_component.sound a.reachable
 
@@ -1532,11 +1532,11 @@ variables {φ : G ≃g G'} {v : V} {v' : V'}
 
 @[simp] lemma connected_component.iso_image_comp_eq_map_iff_eq_comp
   {C : G.connected_component} :
-  (G'.connected_component_mk (φ v)) = C.map φ.to_hom ↔ (G.connected_component_mk v) = C :=
+  G'.connected_component_mk (φ v) = C.map φ ↔ (G.connected_component_mk v) = C :=
 begin
   refine C.ind (λ u, _),
-  simp only [connected_component.map_mk, connected_component.eq],
-  exact iso.reachable_iff,
+  simp only [iso.reachable_iff, coe_coe, connected_component.map_mk,
+  rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, connected_component.eq],
 end
 
 @[simp] lemma connected_component.iso_inv_image_comp_eq_iff_eq_map

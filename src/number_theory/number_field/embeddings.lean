@@ -344,7 +344,7 @@ by rw [is_complex_iff, is_real_iff]
 
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
 noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
-complex_embedding.is_real.embedding (is_real_iff.mp hw)
+(is_real_iff.mp hw).embedding
 
 @[simp]
 lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K):
@@ -395,7 +395,6 @@ lemma mk_complex.apply (φ : {φ : K →+* ℂ // ¬ complex_embedding.is_real �
 
 variable [number_field K]
 
--- TODO. use mk_complex_embedding to simplify this proof?
 lemma mk_complex.filter (w : { w : infinite_place K // w.is_complex }) :
   finset.univ.filter (λ φ, mk_complex K φ = w) =
     { ⟨w.1.embedding, is_complex_iff.1 w.2⟩,

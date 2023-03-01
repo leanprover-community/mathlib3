@@ -169,7 +169,7 @@ noncomputable def of_bijective (φ : U ⥤q V) (hφobj : function.bijective φ.o
       simpa only [equiv.of_bijective_symm_apply_apply, embedding_like.apply_eq_iff_eq], },
   end }
 
-/-- Two isomorphisms agreeing on `.prefunctor` are equal. -/
+/-- Two isomorphisms agreeing on `.to_prefunctor` are equal. -/
 @[ext] lemma to_prefunctor_ext (φ ψ : iso U V) : φ.to_prefunctor = ψ.to_prefunctor → φ = ψ :=
 begin
   refine λ h, iso.ext _ _ h (prefunctor.ext (λ X, ψ.to_equiv.injective _)

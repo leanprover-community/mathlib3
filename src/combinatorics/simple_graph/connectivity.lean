@@ -1573,7 +1573,7 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-variables {G} {V'} {G'} {G''}
+variables {V' G G' G''}
 
 namespace connected_component
 

@@ -10,6 +10,9 @@ import data.nat.interval
 /-!
 # Periodic Functions on ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file identifies a few functions on `ℕ` which are periodic, and also proves a lemma about
 periodic predicates which helps determine their cardinality when filtering intervals over them.
 -/

@@ -12,6 +12,9 @@ import tactic.linarith
 /-!
 # Cardinals and ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 

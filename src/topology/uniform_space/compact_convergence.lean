@@ -9,6 +9,9 @@ import topology.uniform_space.uniform_convergence
 /-!
 # Compact convergence (uniform convergence on compact sets)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a topological space `α` and a uniform space `β` (e.g., a metric space or a topological group),
 the space of continuous maps `C(α, β)` carries a natural uniform space structure. We define this
 uniform space structure in this file and also prove the following properties of the topology it

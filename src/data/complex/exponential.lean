@@ -1625,6 +1625,18 @@ begin
   exact add_one_le_exp_of_nonpos h.le,
 end
 
+lemma one_sub_div_pow_le_exp_neg {n : ℕ} {t : ℝ} (ht' : t ≤ n) : (1 - t / n) ^ n ≤ exp (-t) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp, rwa nat.cast_zero at ht' },
+  convert pow_le_pow_of_le_left _ (add_one_le_exp (-(t / n))) n,
+  { abel },
+  { rw ←real.exp_nat_mul, congr' 1,
+    field_simp [nat.cast_ne_zero.mpr hn], ring },
+  { rwa [add_comm, ←sub_eq_add_neg, sub_nonneg, div_le_one],
+    positivity }
+end
+
 end real
 
 namespace tactic

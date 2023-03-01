@@ -36,14 +36,35 @@ instance : mul_zero_class (with_top α) :=
 
 lemma mul_def {a b : with_top α} : a * b = if a = 0 ∨ b = 0 then 0 else option.map₂ (*) a b := rfl
 
-@[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
-by cases a; simp [mul_def, h]; refl
+lemma mul_top' {a : with_top α} : a * ⊤ = if a = 0 then 0 else ⊤ :=
+by induction a using with_top.rec_top_coe; simp [mul_def]; refl
 
-@[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=
-by cases a; simp [mul_def, h]; refl
+@[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ := by rw [mul_top', if_neg h]
+
+lemma top_mul' {a : with_top α} : ⊤ * a = if a = 0 then 0 else ⊤ :=
+by induction a using with_top.rec_top_coe; simp [mul_def]; refl
+
+@[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ := by rw [top_mul', if_neg h]
 
 @[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
 top_mul top_ne_zero
+
+theorem mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ a ≠ 0 ∧ b = ⊤ ∨ a = ⊤ ∧ b ≠ 0 :=
+begin
+  rw [mul_def, ite_eq_iff, ← none_eq_top, option.map₂_eq_none_iff],
+  have ha : a = 0 → a ≠ none := λ h, h.symm ▸ zero_ne_top,
+  have hb : b = 0 → b ≠ none := λ h, h.symm ▸ zero_ne_top,
+  tauto
+end
+
+theorem mul_lt_top' [has_lt α] {a b : with_top α} (ha : a < ⊤) (hb : b < ⊤) : a * b < ⊤ :=
+begin
+  rw [with_top.lt_top_iff_ne_top] at *,
+  simp only [ne.def, mul_eq_top_iff, *, and_false, false_and, false_or, not_false_iff]
+end
+
+theorem mul_lt_top [has_lt α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
+  mul_lt_top' (with_top.lt_top_iff_ne_top.2 ha) (with_top.lt_top_iff_ne_top.2 hb)
 
 instance [no_zero_divisors α] : no_zero_divisors (with_top α) :=
 begin
@@ -59,7 +80,7 @@ section mul_zero_class
 
 variables [mul_zero_class α]
 
-@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
+@[simp, norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
 decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
 by { simp [*, mul_def] }
@@ -68,22 +89,6 @@ lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λ
 | none     := show (if (⊤:with_top α) = 0 ∨ (b:with_top α) = 0 then 0 else ⊤ : with_top α) = ⊤,
     by simp [hb]
 | (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul.symm
-
-@[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
-begin
-  cases a; cases b; simp only [none_eq_top, some_eq_coe],
-  { simp [← coe_mul] },
-  { by_cases hb : b = 0; simp [hb] },
-  { by_cases ha : a = 0; simp [ha] },
-  { simp [← coe_mul] }
-end
-
-lemma mul_lt_top [preorder α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
-begin
-  lift a to α using ha,
-  lift b to α using hb,
-  simp only [← coe_mul, coe_lt_top]
-end
 
 @[simp] lemma untop'_zero_mul (a b : with_top α) : (a * b).untop' 0 = a.untop' 0 * b.untop' 0 :=
 begin
@@ -127,7 +132,7 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
       induction y using with_top.rec_top_coe,
       { have : (f x : with_top S) ≠ 0, by simpa [hf.eq_iff' (map_zero f)] using hx,
         simp [hx, this] },
-      simp [← coe_mul]
+      simp only [← coe_mul, map_coe, map_mul]
     end,
   .. f.to_zero_hom.with_top_map, .. f.to_monoid_hom.to_one_hom.with_top_map }
 
@@ -163,7 +168,7 @@ begin
   induction c using with_top.rec_top_coe,
   { by_cases ha : a = 0; simp [ha] },
   { by_cases hc : c = 0, { simp [hc] },
-    simp [mul_coe hc], cases a; cases b,
+    simp only [mul_coe hc], cases a; cases b,
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
@@ -216,6 +221,15 @@ with_top.top_mul h
 @[simp] lemma bot_mul_bot : (⊥ * ⊥ : with_bot α) = ⊥ :=
 with_top.top_mul_top
 
+theorem mul_eq_bot_iff {a b : with_bot α} : a * b = ⊥ ↔ a ≠ 0 ∧ b = ⊥ ∨ a = ⊥ ∧ b ≠ 0 :=
+with_top.mul_eq_top_iff
+
+theorem bot_lt_mul' [has_lt α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
+@with_top.mul_lt_top' αᵒᵈ _ _ _ _ _ _ ha hb
+
+theorem bot_lt_mul [has_lt α] {a b : with_bot α} (ha : a ≠ ⊥) (hb : b ≠ ⊥) : ⊥ < a * b :=
+@with_top.mul_lt_top αᵒᵈ _ _ _ _ _ _ ha hb
+
 end has_mul
 
 section mul_zero_class
@@ -227,16 +241,6 @@ with_top.coe_mul
 
 lemma mul_coe {b : α} (hb : b ≠ 0) {a : with_bot α} : a * b = a.bind (λa:α, ↑(a * b)) :=
 with_top.mul_coe hb
-
-@[simp] lemma mul_eq_bot_iff {a b : with_bot α} : a * b = ⊥ ↔ (a ≠ 0 ∧ b = ⊥) ∨ (a = ⊥ ∧ b ≠ 0) :=
-with_top.mul_eq_top_iff
-
-lemma bot_lt_mul [preorder α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
-begin
-  lift a to α using ne_bot_of_gt ha,
-  lift b to α using ne_bot_of_gt hb,
-  simp only [← coe_mul, bot_lt_coe],
-end
 
 end mul_zero_class
 

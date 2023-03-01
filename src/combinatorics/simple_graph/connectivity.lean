@@ -1515,7 +1515,7 @@ C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
 @[simp] lemma connected_component.map_mk (φ : G →g G') (v : V) :
   (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
 
-@[simp] lemma connected_component.image_comp_eq_map_iff_eq_comp
+@[simp] lemma connected_component.iso_mk_image_eq_map_map_iff_eq_comp
   (φ : G ≃g G') (v : V) (C : G.connected_component) :
   (G'.connected_component_mk (φ v)) = C.map φ ↔ (G.connected_component_mk v) = C :=
 begin
@@ -1597,6 +1597,10 @@ begin
   simp only [connected_component.eq, set.mem_set_of_eq] at hu hw,
   exact this (reachable.trans hu $ reachable.symm hw).some hu hw,
 end
+
+instance : set_like G.connected_component V :=
+{ coe := connected_component.supp,
+  coe_injective' := λ C D, sorry, }
 
 end connected_component
 

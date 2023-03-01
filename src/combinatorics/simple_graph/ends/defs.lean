@@ -46,7 +46,7 @@ end
 lemma component_compl.supp_inj {C D : G.component_compl K} : C.supp = D.supp ↔ C = D :=
 component_compl.supp_injective.eq_iff
 
-instance : set_like (G.component_compl K) V :=
+instance component_compl.set_like : set_like (G.component_compl K) V :=
 { coe := component_compl.supp,
   coe_injective' := λ C D, (component_compl.supp_inj).mp, }
 
@@ -350,6 +350,8 @@ begin
                set.disjoint_Union₂_left, set.mem_set_of_eq],
     exact ⟨D.disjoint_right, λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
 end
+
+
 
 section ends
 

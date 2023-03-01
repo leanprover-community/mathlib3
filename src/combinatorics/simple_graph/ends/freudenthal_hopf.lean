@@ -41,8 +41,8 @@ variable [locally_finite G]
 
 lemma hom_not_injective
   {H K : (finset V)ᵒᵖ}
-  {C : G.component_compl_functor.to_eventual_ranges.obj H}
-  {D D' : G.component_compl_functor.to_eventual_ranges.obj K}
+  (C : G.component_compl_functor.to_eventual_ranges.obj H)
+  (D D' : G.component_compl_functor.to_eventual_ranges.obj K)
   (Ddist : D ≠ D')
   (h : D.val.supp ⊆ C.val.supp) (h' : D'.val.supp ⊆ C.val.supp) :
   ¬ (injective $
@@ -98,8 +98,8 @@ include Gpc
 lemma hom_not_injective_of_nicely_arranged
   {H K : (finset V)ᵒᵖ}
   (Hnempty : (unop H).nonempty)
-  {E : G.component_compl_functor.to_eventual_ranges.obj H}
-  {F : G.component_compl_functor.to_eventual_ranges.obj K}
+  (E : G.component_compl_functor.to_eventual_ranges.obj H)
+  (F : G.component_compl_functor.to_eventual_ranges.obj K)
   (H_F : (H.unop : set V) ⊆ F.val.supp)
   (K_E : (K.unop : set V) ⊆ E.val.supp)
   {hK : fin 3 ↪ (G.component_compl_functor.to_eventual_ranges.obj H)} :
@@ -108,7 +108,7 @@ lemma hom_not_injective_of_nicely_arranged
       (op_hom_of_le $ finset.subset_union_left K.unop H.unop : op (K.unop ∪ H.unop) ⟶ K)) :=
 begin
   obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ := (fin.fin3_embedding_iff' E).mp ⟨hK⟩,
-  apply @hom_not_injective V G Gpc _ _ _ F E₁ E₂ h₁₂ _ _,
+  apply hom_not_injective Gpc F E₁ E₂ h₁₂ _ _,
   { apply subset_of_nicely_arranged Gpc _ _ Hnempty E.val E₁.val,
     any_goals
     { rw infinite_iff_in_eventual_range },

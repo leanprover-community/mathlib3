@@ -75,18 +75,6 @@ begin
   exact ⟨w, hw⟩,
 end
 
-protected
-lemma preconnected.exists_walk (hconn : G.preconnected) (u v : V) :
-  ∃ (p : G.walk u v), (p.length : ℕ∞) = G.edist u v :=
-(hconn u v).exists_walk
-
-noncomputable
-def preconnected.dist (hconn : G.preconnected) (u v : V) : ℕ := (hconn.exists_walk u v).some.length
-
-@[simp]
-lemma preconnected.dist_eq (hconn : G.preconnected) (u v : V) :
-  (hconn.dist u v : ℕ∞) = G.edist u v := (hconn.exists_walk u v).some_spec
-
 
 lemma edist_le {u v : V} (p : G.walk u v) : G.edist u v ≤ p.length := infi_le _ p
 
@@ -266,15 +254,49 @@ begin
   apply φ.edist_le,
 end
 
+section preconnected
+
+lemma preconnected.exists_walk (G : simple_graph V) [hc : fact G.preconnected] (u v : V) :
+  ∃ (p : G.walk u v), (p.length : ℕ∞) = G.edist u v :=
+(hc.out u v).exists_walk
+
+noncomputable def dist (G : simple_graph V)
+  [hc : fact $ G.preconnected] (u v : V) : ℕ :=
+well_founded.min nat.lt_wf (set.range (walk.length : G.walk u v → ℕ))
+  (@set.range_nonempty _ _ (hc.out u v) _)
+
+@[simp]
+lemma coe_dist_eq [hc : fact G.preconnected] (u v : V) :
+  (dist G u v : ℕ∞) = G.edist u v :=
+begin
+  apply le_antisymm,
+  { apply le_edist, rintro p, apply well_founded.min_le, exact ⟨p, rfl⟩, },
+  { obtain ⟨p,h⟩ := well_founded.min_mem nat.lt_wf (set.range (walk.length : G.walk u v → ℕ))
+                                                   (@set.range_nonempty _ _ (hc.out u v) _),
+    rw [dist, ←h],
+    exact (edist_le p), }
+end
+
+noncomputable
+instance (G : simple_graph V) [hc : fact G.preconnected] : metric_space (path_metric G) :=
+emetric_space.to_metric_space_of_dist (λ u v, (G.dist u v : ℝ))
+  (λ u v, by
+    { simp only [has_edist.edist, ne, ←enat.coe_ennreal_top, enat.coe_ennreal_inj],
+      exact reachable_iff_edist_ne_top.mp (hc.out u v), })
+  (λ u v, by simp only [has_edist.edist, ←coe_dist_eq,enat.coe_ennreal_coe, ennreal.to_real_nat])
+
+end preconnected
+
+
 lemma enough_space_of_transitive [lf : locally_finite G] [hV : infinite V] [decidable_eq V]
-  (Gpc : G.preconnected) (ht : ∀ u v, ∃ φ : G ≃g G, φ u = v) (K : finset V) :
+  [Gpc : fact G.preconnected] (ht : ∀ u v, ∃ φ : G ≃g G, φ u = v) (K : finset V) :
   ∃ φ : G ≃g G, disjoint (K.image φ) K :=
 begin
   obtain (rfl|⟨u, uK⟩) := finset.eq_empty_or_nonempty K,
   { simp, },
-  { let m := (K.image (λ y, Gpc.dist u y)).max' (finset.nonempty.image ⟨u, uK⟩ _),
+  { let m := (K.image (λ y, G.dist u y)).max' (finset.nonempty.image ⟨u, uK⟩ _),
     have Km : ∀ ⦃y⦄, y ∈ K → G.edist u y ≤ m := λ y yK, by
-    { simp only [←Gpc.dist_eq, nat.cast_le],
+    { rw [←coe_dist_eq, nat.cast_le],
       refine finset.le_max' _ _ (finset.mem_image_of_mem _ yK), },
     obtain ⟨v, hv⟩ := set.nonempty_compl.mpr (G.closed_ball_ne_univ_of_infinite u (m + m)),
     obtain ⟨φ, rfl⟩ := ht u v,

@@ -160,6 +160,12 @@ comap_of_involutive compl_involutive h _
 
 end functors
 
+@[simp] lemma map_const {m} (b : β) : measurable_space.map (λ a : α, b) m = ⊤ :=
+eq_top_iff.2 $ by { rintro s hs, by_cases b ∈ s; change measurable_set (preimage _ _); simp [*] }
+
+@[simp] lemma comap_const {m} (b : β) : measurable_space.comap (λ a : α, b) m = ⊥ :=
+eq_bot_iff.2 $ by { rintro _ ⟨s, -, rfl⟩, by_cases b ∈ s; simp [*] }
+
 lemma comap_generate_from {f : α → β} {s : set (set β)} :
   (generate_from s).comap f = generate_from (preimage f '' s) :=
 le_antisymm

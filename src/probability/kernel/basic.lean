@@ -12,7 +12,7 @@ import measure_theory.constructions.prod
 A kernel from a measurable space `α` to another measurable space `β` is a measurable map
 `α → measure β`, where the measurable space instance on `measure β` is the one defined in
 `measure_theory.measure.measurable_space`. That is, a kernel `κ` verifies that for all measurable
-sets `s` of `β`, `λ a, κ a s` is measurable.
+sets `s` of `β`, `a ↦ κ a s` is measurable.
 
 ## Main definitions
 
@@ -288,6 +288,117 @@ begin
 end
 
 end s_finite
+
+section deterministic
+
+/-- Kernel which to `a` associates the dirac measure at `f a`. This is a Markov kernel. -/
+noncomputable
+def deterministic {f : α → β} (hf : measurable f) :
+  kernel α β :=
+{ val := λ a, measure.dirac (f a),
+  property :=
+    begin
+      refine measure.measurable_of_measurable_coe _ (λ s hs, _),
+      simp_rw measure.dirac_apply' _ hs,
+      refine measurable.indicator _ (hf hs),
+      simp only [pi.one_apply, measurable_const],
+    end, }
+
+lemma deterministic_apply {f : α → β} (hf : measurable f) (a : α) :
+  deterministic hf a = measure.dirac (f a) := rfl
+
+lemma deterministic_apply' {f : α → β} (hf : measurable f) (a : α) {s : set β}
+  (hs : measurable_set s) :
+  deterministic hf a s = s.indicator (λ _, 1) (f a) :=
+begin
+  rw [deterministic],
+  change measure.dirac (f a) s = s.indicator 1 (f a),
+  simp_rw measure.dirac_apply' _ hs,
+end
+
+instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
+  is_markov_kernel (deterministic hf) :=
+⟨λ a, by { rw deterministic_apply hf, apply_instance, }⟩
+
+end deterministic
+
+section const
+
+omit mα mβ
+
+/-- Constant kernel, which always returns the same measure. -/
+def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_space β} (μβ : measure β) :
+  kernel α β :=
+{ val := λ _, μβ,
+  property := measure.measurable_of_measurable_coe _ (λ s hs, measurable_const), }
+
+include mα mβ
+
+instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
+  is_finite_kernel (const α μβ) :=
+⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
+
+instance is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
+  is_markov_kernel (const α μβ) :=
+⟨λ a, hμβ⟩
+
+end const
+
+omit mα
+
+/-- In a countable space with measurable singletons, every function `α → measure β` defines a
+kernel. -/
+def of_fun_of_countable [measurable_space α] {mβ : measurable_space β}
+  [countable α] [measurable_singleton_class α] (f : α → measure β) :
+  kernel α β :=
+{ val := f,
+  property := measurable_of_countable f }
+
+include mα
+
+section restrict
+variables {s t : set β}
+
+/-- Kernel given by the restriction of the measures in the image of a kernel to a set. -/
+protected noncomputable
+def restrict (κ : kernel α β) (hs : measurable_set s) : kernel α β :=
+{ val := λ a, (κ a).restrict s,
+  property :=
+  begin
+    refine measure.measurable_of_measurable_coe _ (λ t ht, _),
+    simp_rw measure.restrict_apply ht,
+    exact kernel.measurable_coe κ (ht.inter hs),
+  end, }
+
+lemma restrict_apply (κ : kernel α β) (hs : measurable_set s) (a : α) :
+  kernel.restrict κ hs a = (κ a).restrict s := rfl
+
+lemma restrict_apply' (κ : kernel α β) (hs : measurable_set s) (a : α) (ht : measurable_set t) :
+  kernel.restrict κ hs a t = (κ a) (t ∩ s) :=
+by rw [restrict_apply κ hs a, measure.restrict_apply ht]
+
+lemma lintegral_restrict (κ : kernel α β) (hs : measurable_set s) (a : α) (f : β → ℝ≥0∞) :
+  ∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a) :=
+by rw restrict_apply
+
+instance is_finite_kernel.restrict (κ : kernel α β) [is_finite_kernel κ] (hs : measurable_set s) :
+  is_finite_kernel (kernel.restrict κ hs) :=
+begin
+  refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
+  rw restrict_apply' κ hs a measurable_set.univ,
+  exact measure_le_bound κ a _,
+end
+
+instance is_s_finite_kernel.restrict (κ : kernel α β) [is_s_finite_kernel κ]
+  (hs : measurable_set s) :
+  is_s_finite_kernel (kernel.restrict κ hs) :=
+begin
+  refine ⟨⟨λ n, kernel.restrict (seq κ n) hs, infer_instance, _⟩⟩,
+  ext1 a,
+  simp_rw [sum_apply, restrict_apply, ← measure.restrict_sum _ hs, ← sum_apply, kernel_sum_seq],
+end
+
+end restrict
 
 end kernel
 

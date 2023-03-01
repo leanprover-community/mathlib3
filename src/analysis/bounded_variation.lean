@@ -41,9 +41,8 @@ it possible to use the complete linear order structure of `ℝ≥0∞`. The proo
 more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would always need to check
 that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
-
-open_locale big_operators nnreal ennreal
-open set measure_theory
+open_locale big_operators nnreal ennreal topological_space uniform_convergence
+open set measure_theory filter
 
 variables {α β : Type*} [linear_order α] [linear_order β]
 {E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
@@ -205,6 +204,52 @@ begin
     exacts [hx, hy] },
   convert sum_le f 1 hu us,
   simp [u, edist_comm],
+end
+
+lemma lower_continuous_aux {ι : Type*} {F : ι → α → E} {p : filter ι}
+  {f : α → E} {s : set α} (Ffs : ∀ x ∈ s, tendsto (λ i, F i x) p (𝓝 (f x)))
+  {v : ℝ≥0∞} (hv : v < evariation_on f s) : ∀ᶠ (n : ι) in p, v < evariation_on (F n) s :=
+begin
+  obtain ⟨⟨n, ⟨u, um, us⟩⟩, hlt⟩ :
+    ∃ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
+      v < ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)) :=
+    lt_supr_iff.mp hv,
+  have : tendsto (λ j, ∑ (i : ℕ) in finset.range n, edist (F j (u (i + 1))) (F j (u i)))
+           p (𝓝 (∑ (i : ℕ) in finset.range n, edist (f (u (i + 1))) (f (u i)))),
+  { apply tendsto_finset_sum,
+    exact λ i hi, tendsto.edist (Ffs (u i.succ) (us i.succ)) (Ffs (u i) (us i)) },
+  exact (eventually_gt_of_tendsto_gt hlt this).mono
+    (λ i h, lt_of_lt_of_le h (sum_le (F i) n um us)),
+end
+
+/--
+The map `λ f, evariation_on f s` is lower semicontinuous for pointwise convergence *on `s`*.
+Pointwise convergence on `s` is encoded here as uniform convergence on the family consisting of the
+singletons of elements of `s`.
+-/
+@[protected]
+lemma lower_semicontinuous (s : set α) :
+  lower_semicontinuous (λ f : α →ᵤ[s.image singleton] E, evariation_on f s) :=
+begin
+  intro f,
+  apply @lower_continuous_aux _ _ _ _ (uniform_on_fun α E (s.image singleton)) id (𝓝 f) f s _,
+  simpa only [uniform_on_fun.tendsto_iff_tendsto_uniformly_on, mem_image, forall_exists_index,
+              and_imp, forall_apply_eq_imp_iff₂,
+              tendsto_uniformly_on_singleton_iff_tendsto] using @tendsto_id _ (𝓝 f),
+end
+
+/--
+The map `λ f, evariation_on f s` is lower semicontinuous for uniform convergence on `s`.
+-/
+lemma lower_semicontinuous_uniform_on (s : set α) :
+  lower_semicontinuous (λ f : α →ᵤ[{s}] E, evariation_on f s) :=
+begin
+  intro f,
+  apply @lower_continuous_aux _ _ _ _ (uniform_on_fun α E {s}) id (𝓝 f) f s _,
+  have := @tendsto_id _ (𝓝 f),
+  rw uniform_on_fun.tendsto_iff_tendsto_uniformly_on at this,
+  simp_rw ←tendsto_uniformly_on_singleton_iff_tendsto,
+  exact λ x xs, ((this s rfl).mono (singleton_subset_iff.mpr xs)),
 end
 
 lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]

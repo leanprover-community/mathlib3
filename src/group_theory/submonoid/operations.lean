@@ -12,6 +12,9 @@ import group_theory.subsemigroup.operations
 /-!
 # Operations on `submonoid`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
 ## Main definitions

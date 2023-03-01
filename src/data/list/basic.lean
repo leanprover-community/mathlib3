@@ -7,6 +7,9 @@ import data.nat.order.basic
 
 /-!
 # Basic properties of lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open function nat (hiding one_pos)

@@ -955,6 +955,13 @@ by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
 @[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
 interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
 
+@[to_additive] lemma smul_mem_nhds (a : α) {x : β} (ht : t ∈ 𝓝 x) :
+  a • t ∈ 𝓝 (a • x) :=
+begin
+  rcases mem_nhds_iff.1 ht with ⟨u, ut, u_open, hu⟩,
+  exact mem_nhds_iff.2 ⟨a • u, smul_set_mono ut, u_open.smul a, smul_mem_smul_set hu⟩,
+end
+
 variables [topological_space α]
 
 @[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
@@ -973,6 +980,14 @@ subset_interior_smul_right
 @[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
 subset_interior_smul
 
+@[to_additive] lemma singleton_mul_mem_nhds (a : α) {b : α} (h : s ∈ 𝓝 b) :
+  {a} * s ∈ 𝓝 (a * b) :=
+by { have := smul_mem_nhds a h, rwa ← singleton_smul at this }
+
+@[to_additive] lemma singleton_mul_mem_nhds_of_nhds_one (a : α) (h : s ∈ 𝓝 (1 : α)) :
+  {a} * s ∈ 𝓝 a :=
+by simpa only [mul_one] using singleton_mul_mem_nhds a h
+
 end has_continuous_const_smul
 
 section has_continuous_const_smul_op
@@ -986,6 +1001,17 @@ interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul
 
 @[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
+
+@[to_additive] lemma mul_singleton_mem_nhds (a : α) {b : α} (h : s ∈ 𝓝 b) :
+  s * {a} ∈ 𝓝 (b * a) :=
+begin
+  simp only [←bUnion_op_smul_set, mem_singleton_iff, Union_Union_eq_left],
+  exact smul_mem_nhds _ h,
+end
+
+@[to_additive] lemma mul_singleton_mem_nhds_of_nhds_one (a : α) (h : s ∈ 𝓝 (1 : α)) :
+  s * {a} ∈ 𝓝 a :=
+by simpa only [one_mul] using mul_singleton_mem_nhds a h
 
 end has_continuous_const_smul_op
 

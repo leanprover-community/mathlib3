@@ -70,7 +70,7 @@ begin
   { have b_pos : 0 < b := zero_le_one.trans_lt hb,
     rw [succ_eq_add_one, add_le_add_iff_right, ←ih (y / b) (div_lt_self hy.bot_lt hb)
       (nat.div_pos h.1 b_pos).ne', le_div_iff_mul_le b_pos, pow_succ'] },
-  { exact iff_of_false (λ hby, h ⟨(le_self_pow hb.le x.succ_ne_zero).trans hby, hb⟩)
+  { exact iff_of_false (λ hby, h ⟨(le_self_pow x.succ_ne_zero _).trans hby, hb⟩)
       (not_succ_le_zero _) }
 end
 

@@ -1583,10 +1583,10 @@ end
 @[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
 set.ext (λ _, p.mem_verts_to_subgraph)
 
-lemma first_mem_verts_to_subgraph (p : G.walk u v) : u ∈ p.to_subgraph.verts :=
+lemma start_mem_verts_to_subgraph (p : G.walk u v) : u ∈ p.to_subgraph.verts :=
 by simp [mem_verts_to_subgraph]
 
-lemma last_mem_verts_to_subgraph (p : G.walk u v) : v ∈ p.to_subgraph.verts :=
+lemma end_mem_verts_to_subgraph (p : G.walk u v) : v ∈ p.to_subgraph.verts :=
 by simp [mem_verts_to_subgraph]
 
 lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
@@ -1631,25 +1631,11 @@ begin
     apply set.to_finite, },
 end
 
-lemma to_subgraph_map_hom_le {H : G.subgraph} {u v : H.verts} (p : H.coe.walk u v) :
-  subgraph.map H.hom p.to_subgraph ≤ H :=
-begin
-  split,
-  { simp only [subgraph.map_verts, subgraph.hom_apply, set.image_subset_iff,
-               subtype.coe_preimage_self, set.subset_univ], },
-  { rintro x y ⟨_, _, a, rfl, rfl⟩,
-    exact p.to_subgraph.adj_sub a, },
-end
-
 lemma to_subgraph_le_induce_support (p : G.walk u v) :
   p.to_subgraph ≤ (⊤ : G.subgraph).induce {v | v ∈ p.support} :=
-begin
-  refine ⟨subset_of_eq p.verts_to_subgraph, λ x y h, _⟩,
-  have : ⟦(x,y)⟧ ∈ p.edges := p.mem_edges_to_subgraph.mp h,
-  refine ⟨p.fst_mem_support_of_mem_edges this,
-          p.snd_mem_support_of_mem_edges this,
-          p.adj_of_mem_edges this⟩,
-end
+calc p.to_subgraph = p.to_subgraph.induce {v | v ∈ p.support} :
+                        by rw [← walk.verts_to_subgraph, subgraph.induce_self_verts]
+               ... ≤ (⊤ : G.subgraph).induce {v | v ∈ p.support} : subgraph.induce_mono_left le_top
 
 end walk
 

@@ -887,6 +887,14 @@ lemma map_le_iff_le_comap (f : V ↪ W) (G : simple_graph V) (G' : simple_graph 
 lemma map_comap_le (f : V ↪ W) (G : simple_graph W) : (G.comap f).map f ≤ G :=
 by { rw map_le_iff_le_comap, exact le_refl _ }
 
+lemma le_comap_of_subsingleton (f : V → W) [subsingleton V] :
+  G ≤ G'.comap f :=
+by { intros v w, simp [subsingleton.elim v w] }
+
+lemma map_le_of_subsingleton (f : V ↪ W) [subsingleton V] :
+  G.map f ≤ G' :=
+by { rw [map_le_iff_le_comap], apply le_comap_of_subsingleton }
+
 /-! ## Induced graphs -/
 
 /- Given a set `s` of vertices, we can restrict a graph to those vertices by restricting its
@@ -900,12 +908,7 @@ outside the set. This is a wrapper around `simple_graph.comap`. -/
 G.comap (function.embedding.subtype _)
 
 @[simp] lemma induce_singleton_eq_top (v : V) : G.induce {v} = ⊤ :=
-begin
-  ext ⟨v, hv⟩ ⟨w, hw⟩,
-  rw [set.mem_singleton_iff] at hv hw,
-  subst_vars,
-  simp only [simple_graph.irrefl],
-end
+by { rw [eq_top_iff], apply le_comap_of_subsingleton }
 
 /-- Given a graph on a set of vertices, we can make it be a `simple_graph V` by
 adding in the remaining vertices without adding in any additional edges.

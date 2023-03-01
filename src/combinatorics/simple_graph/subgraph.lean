@@ -704,6 +704,16 @@ begin
     apply G''.adj_sub, }
 end
 
+lemma coe_subgraph_le {H : G.subgraph} (H' : H.coe.subgraph) :
+  H'.coe_subgraph ≤ H :=
+begin
+  split,
+  { simp only [subgraph.map_verts, subgraph.hom_apply, set.image_subset_iff,
+      subtype.coe_preimage_self, set.subset_univ] },
+  { rintro v w ⟨_, _, h, rfl, rfl⟩,
+    exact H'.adj_sub h }
+end
+
 lemma coe_subgraph_injective (G' : G.subgraph) :
   function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
 function.left_inverse.injective restrict_coe_subgraph

@@ -5,7 +5,7 @@ Authors: Patrick Massot, Riccardo Brasca
 -/
 import analysis.normed_space.basic
 import analysis.normed.group.hom
-import ring_theory.ideal.quotient
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Quotients of seminormed groups

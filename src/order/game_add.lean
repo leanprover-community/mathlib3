@@ -17,6 +17,8 @@ This file defines, given relations `rα : α → α → Prop` and `rβ : β → 
 decreasing either entry (with respect to `rα` and `rβ`). It is so called since it models the
 subsequency relation on the addition of combinatorial games.
 
+We also define `sym2.game_add`, which is the unordered pair analog of `prod.game_add`.
+
 ## Main definitions and results
 
 - `prod.game_add`: the game addition relation on ordered pairs.
@@ -43,7 +45,9 @@ variables (rα rβ)
   that `a₂ ⟶ a₁` is a valid move in game `α`, and `rβ b₁ b₂` means that `b₂ ⟶ b₁` is a valid move
   in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition of `α` and `β`:
   the player is free to choose one of the games and make a move in it, while leaving the other game
-  unchanged. -/
+  unchanged.
+
+  See `sym2.game_add` for the unordered pair analog. -/
 inductive game_add : α × β → α × β → Prop
 | fst {a₁ a₂ b} : rα a₁ a₂ → game_add (a₁, b) (a₂, b)
 | snd {a b₁ b₂} : rβ b₁ b₂ → game_add (a, b₁) (a, b₂)
@@ -131,7 +135,10 @@ end prod
 
 namespace sym2
 
-/-- `sym2.game_add rα x y` means that `x` can be reached from `y` by decreasing either entry. -/
+/-- `sym2.game_add rα x y` means that `x` can be reached from `y` by decreasing either entry with
+  respect to the relation `rα`.
+
+  See `prod.game_add` for the ordered pair analog. -/
 def game_add (rα : α → α → Prop): sym2 α → sym2 α → Prop :=
 sym2.lift₂
 ⟨λ a₁ b₁ a₂ b₂, prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂),

@@ -130,21 +130,19 @@ begin
     split; { exact λ h w, h w, }},
 end
 
-variables (K) (R : Type*) [comm_ring R] [algebra R K] (hc : is_integral_closure R ℤ K)
+variables (K)
 
-/-- The image of `R` as a subring of `ℝ^r₁ × ℂ^r₂`. -/
+/-- The image of `𝓞 K` as a subring of `ℝ^r₁ × ℂ^r₂`. -/
 def integer_lattice : subring E :=
-subring.map (canonical_embedding K) (ring_hom.range (algebra_map R K))
+subring.map (canonical_embedding K) (ring_hom.range (algebra_map (𝓞 K) K))
 
-include hc
-
-/-- The ring equiv between `R` and the integer lattice. -/
+/-- The ring equiv between `𝓞 K` and the integer lattice. -/
 def integer_linear_equiv [number_field K] :
-  R ≃ₗ[ℤ] (integer_lattice K R) :=
+  𝓞 K ≃ₗ[ℤ] (integer_lattice K) :=
 begin
   refine linear_equiv.of_bijective _ _,
   { refine linear_map.mk _ _ _,
-    exact λ x, ⟨canonical_embedding K (algebra_map R K x), algebra_map R K x,
+    exact λ x, ⟨canonical_embedding K (algebra_map (𝓞 K) K x), algebra_map (𝓞 K) K x,
       by simp only [subring.mem_carrier, ring_hom.mem_range, exists_apply_eq_apply], rfl⟩,
     { intros _ _,
       simpa only [map_add], },
@@ -152,14 +150,13 @@ begin
       simpa only [zsmul_eq_mul, map_mul, map_int_cast], }},
   { split,
     { intros _ _ h,
-      apply hc.algebra_map_injective,
-      apply canonical_embedding_injective K,
-      rwa ← subtype.coe_inj at h, },
+      rw [linear_map.coe_mk, subtype.mk_eq_mk] at h,
+      exact (is_fraction_ring.injective (𝓞 K) K) (canonical_embedding_injective K h), },
     { exact λ ⟨_, ⟨_, ⟨⟨a, rfl⟩, rfl⟩⟩⟩, ⟨a, rfl⟩, }}
 end
 
 lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
-  ((integer_lattice K R : set E) ∩ (metric.closed_ball 0 r)).finite :=
+  ((integer_lattice K : set E) ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
   { convert set.finite_empty,
@@ -171,23 +168,21 @@ begin
       exact λ x, le_iff_le x r, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
     ext, split,
-    { rintros ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,
-      exact ⟨x, ⟨⟨hc.is_integral_iff.mpr hx1, (heq x).mp hx2⟩, rfl⟩⟩, },
+    { rintros ⟨⟨_, ⟨⟨x, rfl⟩, rfl⟩⟩, hx2⟩,
+      exact ⟨x, ⟨⟨set_like.coe_mem x, (heq x).mp hx2⟩, rfl⟩⟩, },
     { rintros ⟨x, ⟨⟨ hx1, hx2⟩, rfl⟩⟩,
-      refine ⟨_, (heq x).mpr hx2⟩,
-      obtain ⟨y, rfl⟩ := hc.is_integral_iff.mp hx1,
-      exact ⟨algebra_map R K y, ⟨by use y, rfl⟩⟩, }}
+      exact ⟨⟨x, ⟨⟨⟨x, hx1⟩, rfl⟩, rfl⟩⟩, (heq x).mpr hx2⟩, }},
 end
 
-lemma integer_lattice.countable [number_field K] : countable (integer_lattice K R) :=
+lemma integer_lattice.countable [number_field K] : countable (integer_lattice K) :=
 begin
-  suffices : (⋃ n : ℕ, ((integer_lattice K R : set E) ∩ (metric.closed_ball 0 n))).countable,
+  suffices : (⋃ n : ℕ, ((integer_lattice K : set E) ∩ (metric.closed_ball 0 n))).countable,
   { refine set.countable.to_subtype (set.countable.mono _ this),
     rintros _ ⟨x, ⟨hx, rfl⟩⟩,
     rw set.mem_Union,
     use nat.ceil (‖canonical_embedding K x‖),
     exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
-  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K R hc n).countable), },
+  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable), },
 end
 
 end number_field.canonical_embedding

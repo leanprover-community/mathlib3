@@ -55,8 +55,8 @@ noncomputable theory
 
 variables {𝕜 𝕜' E F : Type*}
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
-variables [normed_add_comm_group F] [normed_space ℝ F]
+variables [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
+variables [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F]
 
 variables (E F)
 

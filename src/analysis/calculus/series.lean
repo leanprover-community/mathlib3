@@ -26,8 +26,8 @@ open_locale topology nnreal big_operators
 
 variables {α β 𝕜 E F : Type*}
   [is_R_or_C 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E]
-  [normed_add_comm_group F] [complete_space F]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+  [add_comm_group F] [normed_add_comm_group F] [complete_space F]
   {u : α → ℝ}
 
 /-! ### Continuity -/

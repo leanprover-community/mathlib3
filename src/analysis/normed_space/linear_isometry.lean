@@ -37,13 +37,16 @@ variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F 𝓕 : Type*} [semiring R] [semir
   [ring_hom_comp_triple σ₂₃ σ₃₄ σ₂₄] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
   [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁] [ring_hom_comp_triple σ₄₂ σ₂₁ σ₄₁]
   [ring_hom_comp_triple σ₄₃ σ₃₂ σ₄₂] [ring_hom_comp_triple σ₄₃ σ₃₁ σ₄₁]
+  [add_comm_group E] [add_comm_group E₂] [add_comm_group E₃] [add_comm_group E₄]
   [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [seminormed_add_comm_group E₃]
   [seminormed_add_comm_group E₄] [module R E] [module R₂ E₂] [module R₃ E₃] [module R₄ E₄]
-  [normed_add_comm_group F] [module R F]
+  [add_comm_group F] [normed_add_comm_group F] [module R F]
 
 /-- A `σ₁₂`-semilinear isometric embedding of a normed `R`-module into an `R₂`-module. -/
-structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [seminormed_add_comm_group E]
-  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] extends E →ₛₗ[σ₁₂] E₂ :=
+structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*)
+  [add_comm_group E] [add_comm_group E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂]
+  [module R E] [module R₂ E₂] extends E →ₛₗ[σ₁₂] E₂ :=
 (norm_map' : ∀ x, ‖to_linear_map x‖ = ‖x‖)
 
 notation E ` →ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry σ₁₂ E E₂
@@ -60,8 +63,9 @@ A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ :
 is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 `f (c • x) = (σ c) • f x`. -/
 class semilinear_isometry_class (𝓕 : Type*) {R R₂ : out_param Type*} [semiring R] [semiring R₂]
-  (σ₁₂ : out_param $ R →+* R₂) (E E₂ : out_param Type*) [seminormed_add_comm_group E]
-  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
+  (σ₁₂ : out_param $ R →+* R₂) (E E₂ : out_param Type*)
+  [add_comm_group E] [add_comm_group E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
   extends semilinear_map_class 𝓕 σ₁₂ E E₂ :=
 (norm_map : ∀ (f : 𝓕) (x : E), ‖f x‖ = ‖x‖)
 
@@ -71,6 +75,7 @@ class semilinear_isometry_class (𝓕 : Type*) {R R₂ : out_param Type*} [semir
 This is an abbreviation for `semilinear_isometry_class F (ring_hom.id R) E E₂`.
 -/
 abbreviation linear_isometry_class (𝓕 : Type*) (R E E₂ : out_param Type*) [semiring R]
+  [add_comm_group E] [add_comm_group E₂]
   [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R E₂] :=
 semilinear_isometry_class 𝓕 (ring_hom.id R) E E₂
 
@@ -152,8 +157,10 @@ fun_like.coe_injective
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
-def simps.apply (σ₁₂ : R →+* R₂) (E E₂ : Type*) [seminormed_add_comm_group E]
-  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] (h : E →ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
+def simps.apply (σ₁₂ : R →+* R₂) (E E₂ : Type*)
+  [add_comm_group E] [add_comm_group E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂]
+  [module R E] [module R₂ E₂] (h : E →ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
 
 initialize_simps_projections linear_isometry (to_linear_map_to_fun → apply)
 
@@ -336,8 +343,10 @@ end submodule
 
 /-- A semilinear isometric equivalence between two normed vector spaces. -/
 structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
-  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
-  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] extends E ≃ₛₗ[σ₁₂] E₂ :=
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*)
+  [add_comm_group E] [add_comm_group E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂]
+  [module R E] [module R₂ E₂] extends E ≃ₛₗ[σ₁₂] E₂ :=
 (norm_map' : ∀ x, ‖to_linear_equiv x‖ = ‖x‖)
 
 notation E ` ≃ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry_equiv σ₁₂ E E₂
@@ -357,6 +366,7 @@ is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 class semilinear_isometry_equiv_class (𝓕 : Type*) {R R₂ : out_param Type*}
   [semiring R] [semiring R₂] (σ₁₂ : out_param $ R →+* R₂) {σ₂₁ : out_param $ R₂ →+* R}
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : out_param Type*)
+  [add_comm_group E] [add_comm_group E₂]
   [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
   extends semilinear_equiv_class 𝓕 σ₁₂ E E₂ :=
 (norm_map : ∀ (f : 𝓕) (x : E), ‖f x‖ = ‖x‖)
@@ -367,6 +377,7 @@ class semilinear_isometry_equiv_class (𝓕 : Type*) {R R₂ : out_param Type*}
 This is an abbreviation for `semilinear_isometry_equiv_class F (ring_hom.id R) E E₂`.
 -/
 abbreviation linear_isometry_equiv_class (𝓕 : Type*) (R E E₂ : out_param Type*) [semiring R]
+  [add_comm_group E] [add_comm_group E₂]
   [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R E₂] :=
 semilinear_isometry_equiv_class 𝓕 (ring_hom.id R) E E₂
 
@@ -537,13 +548,16 @@ def symm : E₂ ≃ₛₗᵢ[σ₂₁] E :=
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
 def simps.apply (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
-  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
-  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*)
+  [add_comm_group E] [add_comm_group E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂]
+  [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
 
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
-  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
-  [seminormed_add_comm_group E₂]
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*)
+  [add_comm_group E] [add_comm_group E₂]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂]
   [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E₂ → E := h.symm
 
 initialize_simps_projections linear_isometry_equiv

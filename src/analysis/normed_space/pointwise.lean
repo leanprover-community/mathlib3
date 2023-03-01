@@ -21,7 +21,7 @@ open_locale pointwise topology
 variables {𝕜 E : Type*} [normed_field 𝕜]
 
 section seminormed_add_comm_group
-variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
+variables [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (‖c‖ * r) :=
@@ -309,7 +309,7 @@ by simp_rw [sub_eq_add_neg, neg_closed_ball, closed_ball_add_closed_ball hε hδ
 end seminormed_add_comm_group
 
 section normed_add_comm_group
-variables [normed_add_comm_group E] [normed_space 𝕜 E]
+variables [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_closed_ball (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • closed_ball x r = closed_ball (c • x) (‖c‖ * r) :=

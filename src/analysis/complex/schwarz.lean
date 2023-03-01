@@ -53,7 +53,7 @@ namespace complex
 
 section space
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {R R₁ R₂ : ℝ} {f : ℂ → E}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E] {R R₁ R₂ : ℝ} {f : ℂ → E}
   {c z z₀ : ℂ}
 
 /-- An auxiliary lemma for `complex.norm_dslope_le_div_of_maps_to_ball`. -/

@@ -19,7 +19,7 @@ open_locale pointwise topology
 variables {E : Type*}
 
 section seminormed_group
-variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
+variables [group E] [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
@@ -39,7 +39,7 @@ by { simp_rw [bounded_iff_forall_norm_le', ←image_inv, ball_image_iff, norm_in
 end seminormed_group
 
 section seminormed_comm_group
-variables [seminormed_comm_group E] {ε δ : ℝ} {s t : set E} {x y : E}
+variables [comm_group E] [seminormed_comm_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 section emetric
 open emetric
@@ -126,7 +126,8 @@ lemma closed_ball_one_div_singleton : closed_ball 1 δ / {x} = closed_ball x⁻�
 -- `vadd_closed_ball` for `normed_add_torsor`s, so we give it higher simp priority.
 -- (There is no `normed_mul_torsor`, hence the asymmetry between additive and multiplicative
 -- versions.)
-@[simp, priority 1100] lemma vadd_closed_ball_zero {E : Type*} [seminormed_add_comm_group E] (δ : ℝ)
+@[simp, priority 1100] lemma vadd_closed_ball_zero {E : Type*} [add_comm_group E]
+  [seminormed_add_comm_group E] (δ : ℝ)
   (x : E) :
   x +ᵥ metric.closed_ball 0 δ = metric.closed_ball x δ :=
 by { ext, simp [mem_vadd_set_iff_neg_vadd_mem, neg_add_eq_sub, dist_eq_norm_sub] }

@@ -34,7 +34,7 @@ open_locale filter topology real ennreal
 
 section continuous_compact_support
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : ℝ → E}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E] {f : ℝ → E}
 
 /-- The integrand in the Riemann-Lebesgue lemma is integrable. -/
 lemma fourier_integrand_integrable (hf : integrable f) (t : ℝ) :

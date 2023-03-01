@@ -41,8 +41,8 @@ open complex
 
 namespace mdifferentiable
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space ℂ F] [strict_convex_space ℝ F]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℂ F] [strict_convex_space ℝ F]
 
 variables {M : Type*} [topological_space M] [compact_space M] [charted_space E M]
   [smooth_manifold_with_corners 𝓘(ℂ, E) M]

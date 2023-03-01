@@ -320,7 +320,7 @@ lemma strongly_measurable_limit_process' :
 strongly_measurable_limit_process.mono (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _))
 
 lemma mem_ℒp_limit_process_of_snorm_bdd {R : ℝ≥0} {p : ℝ≥0∞}
-  {F : Type*} [normed_add_comm_group F] {ℱ : filtration ℕ m} {f : ℕ → Ω → F}
+  {F : Type*} [add_comm_group F] [normed_add_comm_group F] {ℱ : filtration ℕ m} {f : ℕ → Ω → F}
   (hfm : ∀ n, ae_strongly_measurable (f n) μ) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
   mem_ℒp (limit_process f ℱ μ) p μ :=
 begin

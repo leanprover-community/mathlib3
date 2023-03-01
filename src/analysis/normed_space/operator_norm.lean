@@ -33,6 +33,8 @@ section semi_normed
 
 open metric continuous_linear_map
 
+variables [add_comm_group E] [add_comm_group Eₗ] [add_comm_group F]
+  [add_comm_group Fₗ] [add_comm_group G] [add_comm_group Gₗ]
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group Eₗ] [seminormed_add_comm_group F]
   [seminormed_add_comm_group Fₗ] [seminormed_add_comm_group G] [seminormed_add_comm_group Gₗ]
 
@@ -338,7 +340,7 @@ begin
       ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, hε⟩, λ f hf, _⟩,
     change ∀ x, _ at hf,
     simp_rw mem_closed_ball_zero_iff at hf,
-    rw @mem_closed_ball_zero_iff _ seminormed_add_comm_group.to_seminormed_add_group,
+    rw mem_closed_ball_zero_iff,
     refine op_norm_le_of_shell' (div_pos one_pos hc₀) hε.le hc₁ (λ x hx₁ hxc, _),
     rw div_mul_cancel 1 hc₀.ne.symm at hx₁,
     exact (hf x hxc.le).trans (le_mul_of_one_le_right hε.le hx₁) },
@@ -455,7 +457,8 @@ lemma exists_mul_lt_of_lt_op_norm (f : E →SL[σ₁₂] F) {r : ℝ} (hr₀ : 0
   ∃ x, r * ‖x‖ < ‖f x‖ :=
 by { lift r to ℝ≥0 using hr₀, exact f.exists_mul_lt_apply_of_lt_op_nnnorm hr }
 
-lemma exists_lt_apply_of_lt_op_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma exists_lt_apply_of_lt_op_nnnorm
+  {𝕜 𝕜₂ E F : Type*} [add_comm_group E] [add_comm_group F] [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) {r : ℝ≥0} (hr : r < ‖f‖₊) : ∃ x : E, ‖x‖₊ < 1 ∧ r < ‖f x‖₊ :=
@@ -472,7 +475,8 @@ begin
   rwa [map_smulₛₗ f, nnnorm_smul, ←nnreal.div_lt_iff hfy, div_eq_mul_inv, this],
 end
 
-lemma exists_lt_apply_of_lt_op_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma exists_lt_apply_of_lt_op_norm
+  {𝕜 𝕜₂ E F : Type*} [add_comm_group E][add_comm_group F] [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) {r : ℝ} (hr : r < ‖f‖) : ∃ x : E, ‖x‖ < 1 ∧ r < ‖f x‖ :=
@@ -483,7 +487,8 @@ begin
     exact f.exists_lt_apply_of_lt_op_nnnorm hr, }
 end
 
-lemma Sup_unit_ball_eq_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_unit_ball_eq_nnnorm
+  {𝕜 𝕜₂ E F : Type*} [add_comm_group E] [add_comm_group F] [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ‖f x‖₊) '' ball 0 1) = ‖f‖₊ :=
@@ -496,13 +501,15 @@ begin
     exact ⟨_, ⟨x, mem_ball_zero_iff.2 hx, rfl⟩, hxf⟩ },
 end
 
-lemma Sup_unit_ball_eq_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_unit_ball_eq_norm
+  {𝕜 𝕜₂ E F : Type*} [add_comm_group E] [add_comm_group F] [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ‖f x‖) '' ball 0 1) = ‖f‖ :=
 by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2 f.Sup_unit_ball_eq_nnnorm
 
-lemma Sup_closed_unit_ball_eq_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_closed_unit_ball_eq_nnnorm
+  {𝕜 𝕜₂ E F : Type*} [add_comm_group E] [add_comm_group F] [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ‖f x‖₊) '' closed_ball 0 1) = ‖f‖₊ :=
@@ -515,7 +522,8 @@ begin
     (set.image_subset _ ball_subset_closed_ball),
 end
 
-lemma Sup_closed_unit_ball_eq_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_closed_unit_ball_eq_norm
+  {𝕜 𝕜₂ E F : Type*} [add_comm_group E] [add_comm_group F] [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ‖f x‖) '' closed_ball 0 1) = ‖f‖ :=
@@ -803,7 +811,7 @@ lemma _root_.continuous.const_clm_comp {X} [topological_space X] {f : X → E �
 -- Giving the implicit argument speeds up elaboration significantly
 lemma _root_.continuous.clm_comp_const {X} [topological_space X] {g : X → F →SL[σ₂₃] G}
   (hg : continuous g) (f : E →SL[σ₁₂] F) : continuous (λ x, (g x).comp f : X → E →SL[σ₁₃] G) :=
-(@continuous_linear_map.flip _ _ _ _ _ (E →SL[σ₁₃] G) _ _ _ _ _ _ _ _ _ _ _ _ _
+(@continuous_linear_map.flip _ _ _ _ _ (E →SL[σ₁₃] G) _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
   (compSL E F G σ₁₂ σ₂₃) f).continuous.comp hg
 
 omit σ₁₃
@@ -828,10 +836,10 @@ def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[
 section prod
 
 universes u₁ u₂ u₃ u₄
-variables (M₁ : Type u₁) [seminormed_add_comm_group M₁] [normed_space 𝕜 M₁]
-          (M₂ : Type u₂) [seminormed_add_comm_group M₂] [normed_space 𝕜 M₂]
-          (M₃ : Type u₃) [seminormed_add_comm_group M₃] [normed_space 𝕜 M₃]
-          (M₄ : Type u₄) [seminormed_add_comm_group M₄] [normed_space 𝕜 M₄]
+variables (M₁ : Type u₁) [add_comm_group M₁] [seminormed_add_comm_group M₁] [normed_space 𝕜 M₁]
+          (M₂ : Type u₂) [add_comm_group M₂] [seminormed_add_comm_group M₂] [normed_space 𝕜 M₂]
+          (M₃ : Type u₃) [add_comm_group M₃] [seminormed_add_comm_group M₃] [normed_space 𝕜 M₃]
+          (M₄ : Type u₄) [add_comm_group M₄] [seminormed_add_comm_group M₄] [normed_space 𝕜 M₄]
 
 variables {Eₗ} (𝕜)
 /-- `continuous_linear_map.prod_map` as a continuous linear map. -/
@@ -1043,7 +1051,7 @@ end continuous_linear_map
 namespace submodule
 
 lemma norm_subtypeL_le (K : submodule 𝕜 E) : ‖K.subtypeL‖ ≤ 1 :=
-K.subtypeₗᵢ.norm_to_continuous_linear_map_le
+(K.subtypeₗᵢ : _).norm_to_continuous_linear_map_le
 
 end submodule
 
@@ -1083,7 +1091,8 @@ end continuous_linear_equiv
 variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
 namespace continuous_linear_map
-variables {E' F' : Type*} [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
+variables {E' F' : Type*} [add_comm_group E'] [add_comm_group F']
+variables [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
 
 variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nontrivially_normed_field 𝕜₁']
   [nontrivially_normed_field 𝕜₂'] [normed_space 𝕜₁' E'] [normed_space 𝕜₂' F']
@@ -1125,6 +1134,8 @@ end semi_normed
 
 section normed
 
+variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
+  [add_comm_group Fₗ]
 variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]
   [normed_add_comm_group Fₗ]
 
@@ -1253,7 +1264,7 @@ section completeness
 open_locale topology
 open filter
 
-variables {E' : Type*} [seminormed_add_comm_group E'] [normed_space 𝕜 E'] [ring_hom_isometric σ₁₂]
+variables {E' : Type*} [add_comm_group E'] [seminormed_add_comm_group E'] [normed_space 𝕜 E'] [ring_hom_isometric σ₁₂]
 
 /-- Construct a bundled continuous (semi)linear map from a map `f : E → F` and a proof of the fact
 that it belongs to the closure of the image of a bounded set `s : set (E →SL[σ₁₂] F)` under coercion
@@ -1519,7 +1530,7 @@ variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
 
-variables {𝕜₂' : Type*} [nontrivially_normed_field 𝕜₂'] {F' : Type*} [normed_add_comm_group F']
+variables {𝕜₂' : Type*} [nontrivially_normed_field 𝕜₂'] {F' : Type*} [add_comm_group F'] [normed_add_comm_group F']
   [normed_space 𝕜₂' F'] {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂'' : 𝕜₂ →+* 𝕜₂'}
   {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_inv_pair σ₂' σ₂''] [ring_hom_inv_pair σ₂'' σ₂']
@@ -1696,7 +1707,7 @@ begin
 end
 
 variables {𝕜} {𝕜₄ : Type*} [nontrivially_normed_field 𝕜₄]
-variables {H : Type*} [normed_add_comm_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
+variables {H : Type*} [add_comm_group H] [normed_add_comm_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
 variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
 variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃}
 variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
@@ -1729,7 +1740,8 @@ omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
 
 /-- A pair of continuous linear equivalences generates an continuous linear equivalence between
 the spaces of continuous linear maps. -/
-def arrow_congr {F H : Type*} [normed_add_comm_group F] [normed_add_comm_group H]
+def arrow_congr {F H : Type*} [add_comm_group F] [add_comm_group H]
+  [normed_add_comm_group F] [normed_add_comm_group H]
   [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
   (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
   (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
@@ -1746,6 +1758,6 @@ A bounded bilinear form `B` in a real normed space is *coercive*
 if there is some positive constant C such that `C * ‖u‖ * ‖u‖ ≤ B u u`.
 -/
 def is_coercive
-  [normed_add_comm_group E] [normed_space ℝ E]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
   (B : E →L[ℝ] E →L[ℝ] ℝ) : Prop :=
 ∃ C, (0 < C) ∧ ∀ u, C * ‖u‖ * ‖u‖ ≤ B u u

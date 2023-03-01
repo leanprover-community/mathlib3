@@ -154,7 +154,7 @@ end
 
 section to_smul
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
 
 /-- If `f` is a box-additive map, then so is the map sending `I` to the scalar multiplication
 by `f I` as a continuous linear map from `E` to itself. -/

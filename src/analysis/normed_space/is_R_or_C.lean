@@ -28,7 +28,7 @@ This file exists mainly to avoid importing `is_R_or_C` in the main normed space 
 
 open metric
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_add_comm_group E]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 lemma is_R_or_C.norm_coe_norm {z : E} : ‖(‖z‖ : 𝕜)‖ = ‖z‖ := by simp
 

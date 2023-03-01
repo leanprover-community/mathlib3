@@ -424,7 +424,7 @@ of `C(X, E)` (i.e. locally uniform convergence). -/
 open topological_space
 
 variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X]
-variables {E : Type*} [normed_add_comm_group E] [complete_space E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [complete_space E]
 
 lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
   (hF : ∀ K : compacts X, summable (λ i, ‖(F i).restrict K‖)) :

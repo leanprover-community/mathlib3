@@ -31,7 +31,7 @@ of `𝕜`).
 universes u v
 
 namespace real
-variables {E : Type*} [seminormed_add_comm_group E] [normed_space ℝ E]
+variables {E : Type*} [add_comm_group E] [seminormed_add_comm_group E] [normed_space ℝ E]
 
 /-- Hahn-Banach theorem for continuous linear functions over `ℝ`. -/
 theorem exists_extension_norm_eq (p : subspace ℝ E) (f : p →L[ℝ] ℝ) :
@@ -58,7 +58,7 @@ end real
 section is_R_or_C
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [seminormed_add_comm_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [add_comm_group F] [seminormed_add_comm_group F] [normed_space 𝕜 F]
 
 /-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :

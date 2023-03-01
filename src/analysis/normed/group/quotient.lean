@@ -94,7 +94,9 @@ noncomputable theory
 open quotient_add_group metric set
 open_locale topology nnreal
 
-variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group N]
+variables {M N : Type*}
+variables [add_comm_group M] [add_comm_group N]
+variables [seminormed_add_comm_group M] [seminormed_add_comm_group N]
 
 /-- The definition of the norm on the quotient by an additive subgroup. -/
 noncomputable
@@ -443,7 +445,8 @@ structure is_quotient (f : normed_add_group_hom M N) : Prop :=
 /-- Given  `f : normed_add_group_hom M N` such that `f s = 0` for all `s ∈ S`, where,
 `S : add_subgroup M` is closed, the induced morphism `normed_add_group_hom (M ⧸ S) N`. -/
 noncomputable
-def lift {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+def lift {N : Type*}
+  [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0) :
   normed_add_group_hom (M ⧸ S) N :=
 { bound' :=
@@ -458,11 +461,11 @@ def lift {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
   end,
   .. quotient_add_group.lift S f.to_add_monoid_hom hf }
 
-lemma lift_mk {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_mk {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0) (m : M) :
   lift S f hf (S.normed_mk m) = f m := rfl
 
-lemma lift_unique {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_unique {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (g : normed_add_group_hom (M ⧸ S) N) :
   g.comp (S.normed_mk) = f → g = lift S f hf :=
@@ -502,7 +505,7 @@ begin
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
 end
 
-lemma lift_norm_le {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_norm_le {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   {c : ℝ≥0} (fb : ‖f‖ ≤ c) :
   ‖lift S f hf‖ ≤ c :=
@@ -529,7 +532,7 @@ begin
     { rw [mul_add, mul_div_cancel'], exact_mod_cast hc.ne' } },
 end
 
-lemma lift_norm_noninc {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
+lemma lift_norm_noninc {N : Type*} [add_comm_group N] [seminormed_add_comm_group N] (S : add_subgroup M)
   (f : normed_add_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (fb : f.norm_noninc) :
   (lift S f hf).norm_noninc :=
@@ -565,7 +568,7 @@ add_subgroup.seminormed_add_comm_group_quotient S.to_add_subgroup
 
 instance submodule.quotient.normed_add_comm_group [hS : is_closed (S : set M)] :
   normed_add_comm_group (M ⧸ S) :=
-@add_subgroup.normed_add_comm_group_quotient _ _ S.to_add_subgroup hS
+@add_subgroup.normed_add_comm_group_quotient _ _ _ S.to_add_subgroup hS
 
 instance submodule.quotient.complete_space [complete_space M] : complete_space (M ⧸ S) :=
 quotient_add_group.complete_space M S.to_add_subgroup

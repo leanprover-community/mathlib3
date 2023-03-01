@@ -50,7 +50,7 @@ open set measure_theory filter
 
 variables {α β : Type*} [linear_order α] [linear_order β]
 {E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
-{V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
+{V : Type*} [add_comm_group V] [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
 
 /-- The (extended real valued) variation of a function `f` on a set `s` inside a linear order is
 the supremum of the sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing

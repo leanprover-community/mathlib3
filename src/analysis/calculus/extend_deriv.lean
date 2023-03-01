@@ -20,8 +20,8 @@ of the one-dimensional derivative `deriv ℝ f`.
 -/
 
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F]
 
 open filter set metric continuous_linear_map
 open_locale topology

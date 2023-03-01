@@ -45,7 +45,7 @@ open_locale ennreal nnreal topology bounded_continuous_function
 open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
-variables (E : Type*) [normed_add_comm_group E]
+variables (E : Type*) [add_comm_group E] [normed_add_comm_group E]
   [second_countable_topology_either α E]
 variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
 

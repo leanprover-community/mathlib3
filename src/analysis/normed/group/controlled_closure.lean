@@ -17,8 +17,8 @@ lemmas in this file]."
 open filter finset
 open_locale topology big_operators
 
-variables {G : Type*} [normed_add_comm_group G] [complete_space G]
-variables {H : Type*} [normed_add_comm_group H]
+variables {G : Type*} [add_comm_group G] [normed_add_comm_group G] [complete_space G]
+variables {H : Type*} [add_comm_group H] [normed_add_comm_group H]
 
 /-- Given `f : normed_add_group_hom G H` for some complete `G` and a subgroup `K` of `H`, if every
 element `x` of `K` has a preimage under `f` whose norm is at most `C*‖x‖` then the same holds for
@@ -108,7 +108,7 @@ This is useful in particular if `j` is the inclusion of a normed group into its 
 (in this case the closure is the full target group).
 -/
 lemma controlled_closure_range_of_complete {f : normed_add_group_hom G H}
-  {K : Type*} [seminormed_add_comm_group K] {j : normed_add_group_hom K H} (hj : ∀ x, ‖j x‖ = ‖x‖)
+  {K : Type*} [add_comm_group K] [seminormed_add_comm_group K] {j : normed_add_group_hom K H} (hj : ∀ x, ‖j x‖ = ‖x‖)
   {C ε : ℝ} (hC : 0 < C) (hε : 0 < ε) (hyp : ∀ k, ∃ g, f g = j k ∧ ‖g‖ ≤ C*‖k‖) :
   f.surjective_on_with j.range.topological_closure (C + ε) :=
 begin

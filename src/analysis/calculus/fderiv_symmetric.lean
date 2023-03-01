@@ -50,7 +50,7 @@ rectangle are contained in `s` by convexity. The general case follows by lineari
 open asymptotics set
 open_locale topology
 
-variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {E F : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
 [normed_add_comm_group F] [normed_space ℝ F]
 {s : set E} (s_conv : convex ℝ s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}

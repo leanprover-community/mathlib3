@@ -422,7 +422,7 @@ begin
   rw [p.with_seminorms_iff_nhds_eq_infi, topological_add_group.ext_iff infer_instance
         (topological_add_group_infi $ λ i, infer_instance), nhds_infi],
   congrm (_ = ⨅ i, _),
-  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  exact @comap_norm_nhds_zero _ _ (p i).to_add_group_seminorm.to_seminormed_add_group,
   all_goals {apply_instance}
 end
 
@@ -439,7 +439,7 @@ begin
   rw [p.with_seminorms_iff_nhds_eq_infi, uniform_add_group.ext_iff infer_instance
         (uniform_add_group_infi $ λ i, infer_instance), to_topological_space_infi, nhds_infi],
   congrm (_ = ⨅ i, _),
-  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  exact @comap_norm_nhds_zero _ _ (p i).to_add_group_seminorm.to_seminormed_add_group,
   all_goals {apply_instance}
 end
 
@@ -448,7 +448,7 @@ end topological_add_group
 section normed_space
 
 /-- The topology of a `normed_space 𝕜 E` is induced by the seminorm `norm_seminorm 𝕜 E`. -/
-lemma norm_with_seminorms (𝕜 E) [normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E] :
+lemma norm_with_seminorms (𝕜 E) [normed_field 𝕜] [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕜 E] :
   with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
 begin
   let p : seminorm_family 𝕜 E (fin 1) := λ _, norm_seminorm 𝕜 E,
@@ -585,7 +585,8 @@ begin
   refl
 end
 
-lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕝₂ F]
+lemma cont_with_seminorms_normed_space
+  (F) [add_comm_group F] [seminormed_add_comm_group F] [normed_space 𝕝₂ F]
   [uniform_space E] [uniform_add_group E]
   {p : ι → seminorm 𝕝 E} (hp : with_seminorms p) (f : E →ₛₗ[τ₁₂] F)
   (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕝₂ F).comp f ≤ C • s.sup p) :
@@ -595,7 +596,8 @@ begin
   exact continuous_from_bounded hp (norm_with_seminorms 𝕝₂ F) f hf,
 end
 
-lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [normed_space 𝕝 E]
+lemma cont_normed_space_to_with_seminorms
+  (E) [add_comm_group E] [seminormed_add_comm_group E] [normed_space 𝕝 E]
   [uniform_space F] [uniform_add_group F]
   {q : ι → seminorm 𝕝₂ F} (hq : with_seminorms q) (f : E →ₛₗ[τ₁₂] F)
   (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕝 E)) : continuous f :=
@@ -633,7 +635,7 @@ end locally_convex_space
 
 section normed_space
 
-variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [seminormed_add_comm_group E]
+variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [add_comm_group E] [seminormed_add_comm_group E]
 
 /-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
 slightly weaker instance version. -/

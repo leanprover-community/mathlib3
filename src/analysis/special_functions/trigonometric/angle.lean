@@ -23,7 +23,7 @@ noncomputable theory
 namespace real
 
 /-- The type of angles -/
-@[derive [normed_add_comm_group, inhabited, has_coe_t ℝ]]
+@[derive [add_comm_group, normed_add_comm_group, inhabited, has_coe_t ℝ]]
 def angle : Type := add_circle (2 * π)
 
 namespace angle

@@ -73,7 +73,7 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
   end,
   to_algebra := complex.algebra }
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E]
 
 /-- The module structure from `module.complex_to_real` is a normed space. -/
 @[priority 900] -- see Note [lower instance priority]

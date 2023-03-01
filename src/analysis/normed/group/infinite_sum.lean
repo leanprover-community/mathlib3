@@ -30,7 +30,9 @@ infinite series, absolute convergence, normed group
 open_locale classical big_operators topology nnreal
 open finset filter metric
 
-variables {ι α E F : Type*} [seminormed_add_comm_group E] [seminormed_add_comm_group F]
+variables {ι α E F : Type*}
+variables [add_comm_group E] [add_comm_group F]
+variables [seminormed_add_comm_group E] [seminormed_add_comm_group F]
 
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → E} :
   cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔

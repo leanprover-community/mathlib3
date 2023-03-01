@@ -70,7 +70,8 @@ if `f =O[l] 1`. -/
 def bounded_at_filter [has_norm β] (l : filter α) (f : α → β) : Prop :=
 asymptotics.is_O l f (1 : α → ℝ)
 
-lemma zero_at_filter.bounded_at_filter [normed_add_comm_group β] {l : filter α} {f : α → β}
+lemma zero_at_filter.bounded_at_filter
+  [add_comm_group β] [normed_add_comm_group β] {l : filter α} {f : α → β}
   (hf : zero_at_filter l f) : bounded_at_filter l f :=
 begin
   rw [zero_at_filter, ← asymptotics.is_o_const_iff (one_ne_zero' ℝ)] at hf,
@@ -81,18 +82,21 @@ lemma const_bounded_at_filter [normed_field β] (l : filter α) (c : β) :
   bounded_at_filter l (function.const α c : α → β) :=
 asymptotics.is_O_const_const c one_ne_zero l
 
-lemma bounded_at_filter.add [normed_add_comm_group β] {l : filter α} {f g : α → β}
+lemma bounded_at_filter.add
+  [add_comm_group β] [normed_add_comm_group β] {l : filter α} {f g : α → β}
   (hf : bounded_at_filter l f) (hg : bounded_at_filter l g) :
   bounded_at_filter l (f + g) :=
 by simpa using hf.add hg
 
-lemma bounded_at_filter.neg [normed_add_comm_group β] {l : filter α} {f : α → β}
+lemma bounded_at_filter.neg
+  [add_comm_group β] [normed_add_comm_group β] {l : filter α} {f : α → β}
   (hf : bounded_at_filter l f) :
   bounded_at_filter l (-f) :=
 hf.neg_left
 
-lemma bounded_at_filter.smul {𝕜 : Type*} [normed_field 𝕜] [normed_add_comm_group β]
-  [normed_space 𝕜 β] {l : filter α} {f : α → β} (c : 𝕜) (hf : bounded_at_filter l f) :
+lemma bounded_at_filter.smul
+  {𝕜 : Type*} [normed_field 𝕜] [add_comm_group β] [normed_add_comm_group β] [normed_space 𝕜 β]
+  {l : filter α} {f : α → β} (c : 𝕜) (hf : bounded_at_filter l f) :
   bounded_at_filter l (c • f) :=
 hf.const_smul_left c
 

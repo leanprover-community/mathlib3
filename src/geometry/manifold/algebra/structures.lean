@@ -17,7 +17,7 @@ open_locale manifold
 section smooth_ring
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 set_option default_priority 100 -- see Note [default priority]
 

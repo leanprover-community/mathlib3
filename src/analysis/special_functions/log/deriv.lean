@@ -115,7 +115,7 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {x : E}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {x : E}
   {f' : E →L[ℝ] ℝ} {s : set E}
 
 lemma has_fderiv_within_at.log (hf : has_fderiv_within_at f f' s x) (hx : f x ≠ 0) :

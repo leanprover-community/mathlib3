@@ -157,7 +157,7 @@ begin
     refl, }
 end
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal
 to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
@@ -211,7 +211,7 @@ protected lemma lintegral_preimage (t : ℝ) (f : unit_add_circle → ℝ≥0∞
   ∫⁻ a in Ioc t (t + 1), f a = ∫⁻ b : unit_add_circle, f b :=
 add_circle.lintegral_preimage 1 t f
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- The integral of an almost-everywhere strongly measurable function over `unit_add_circle` is
 equal to the integral over an interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
@@ -227,7 +227,7 @@ add_circle.interval_integral_preimage 1 t f
 
 end unit_add_circle
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 namespace function
 

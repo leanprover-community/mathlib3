@@ -173,10 +173,10 @@ open set fin filter function
 open_locale topology
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-{X : Type*} [normed_add_comm_group X] [normed_space 𝕜 X]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
+{X : Type*} [add_comm_group X] [normed_add_comm_group X] [normed_space 𝕜 X]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x x₀ : E} {c : F}
 {b : E × F → G} {m n : ℕ∞}
 
@@ -2985,8 +2985,8 @@ end const_smul
 /-! ### Cartesian product of two functions -/
 
 section prod_map
-variables {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
+variables {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
+variables {F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕜 F']
 
 /-- The product map of two `C^n` functions within a set at a point is `C^n`
 within the product set at the product point. -/
@@ -3004,8 +3004,8 @@ lemma cont_diff_within_at.prod_map
 cont_diff_within_at.prod_map' hf hg
 
 /-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
-lemma cont_diff_on.prod_map {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-  {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
+lemma cont_diff_on.prod_map {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕜 F']
   {s : set E} {t : set E'} {f : E → F} {g : E' → F'}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g t) :
   cont_diff_on 𝕜 n (prod.map f g) (s ×ˢ t) :=
@@ -3334,8 +3334,8 @@ section real
 
 variables
 {𝕂 : Type*} [is_R_or_C 𝕂]
-{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕂 E']
-{F' : Type*} [normed_add_comm_group F'] [normed_space 𝕂 F']
+{E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [normed_space 𝕂 E']
+{F' : Type*} [add_comm_group F'] [normed_add_comm_group F'] [normed_space 𝕂 F']
 
 /-- If a function has a Taylor series at order at least 1, then at points in the interior of the
     domain of definition, the term of order 1 of this series is a strict derivative of `f`. -/
@@ -3415,7 +3415,7 @@ end
 
 /-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
 then `f` is Lipschitz in a neighborhood of `x` within `s`. -/
-lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [normed_add_comm_group E]
+lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [add_comm_group E] [normed_add_comm_group E]
   [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) :
@@ -3424,7 +3424,7 @@ lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [normed
 
 /-- If `f` is `C^1` within a conves set `s` at `x`, then it is Lipschitz on a neighborhood of `x`
 within `s`. -/
-lemma cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_add_comm_group E]
+lemma cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [add_comm_group E] [normed_add_comm_group E]
   [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F] {f : E → F} {s : set E}
   {x : E} (hf : cont_diff_within_at ℝ 1 f s x) (hs : convex ℝ s) :
   ∃ (K : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=

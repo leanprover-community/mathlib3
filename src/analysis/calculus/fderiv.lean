@@ -122,10 +122,10 @@ noncomputable theory
 section
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜 G']
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
+variables {G' : Type*} [add_comm_group G'] [normed_add_comm_group G'] [normed_space 𝕜 G']
 
 /-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition
@@ -2225,7 +2225,7 @@ end bilinear_map
 section clm_comp_apply
 /-! ### Derivative of the pointwise composition/application of continuous linear maps -/
 
-variables {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H] {c : E → G →L[𝕜] H}
+variables {H : Type*} [add_comm_group H] [normed_add_comm_group H] [normed_space 𝕜 H] {c : E → G →L[𝕜] H}
   {c' : E →L[𝕜] G →L[𝕜] H} {d : E → F →L[𝕜] G} {d' : E →L[𝕜] F →L[𝕜] G} {u : E → G}
   {u' : E →L[𝕜] G}
 
@@ -2947,8 +2947,8 @@ section
 -/
 
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F]
 variables {f : E → F} {f' : E →L[ℝ] F} {x : E}
 
 theorem has_fderiv_at_filter_real_equiv {L : filter E} :
@@ -2974,8 +2974,8 @@ end
 section tangent_cone
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 {f : E → F} {s : set E} {f' : E →L[𝕜] F}
 
 /-- The image of a tangent cone under the differential of a map is included in the tangent cone to
@@ -3040,9 +3040,9 @@ respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`
 
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
 variables [is_scalar_tower 𝕜 𝕜' E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
+variables {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
 variables [is_scalar_tower 𝕜 𝕜' F]
 variables {f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
 

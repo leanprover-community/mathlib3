@@ -62,73 +62,82 @@ notation `‖` e `‖₊` := nnnorm e
 
 /-- A seminormed group is an additive group endowed with a norm for which `dist x y = ‖x - y‖`
 defines a pseudometric space structure. -/
-class seminormed_add_group (E : Type*) extends has_norm E, add_group E, pseudo_metric_space E :=
+class seminormed_add_group (E : Type*) [add_group E] extends has_norm E,  pseudo_metric_space E :=
 (dist := λ x y, ‖x - y‖)
 (dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A seminormed group is a group endowed with a norm for which `dist x y = ‖x / y‖` defines a
 pseudometric space structure. -/
 @[to_additive]
-class seminormed_group (E : Type*) extends has_norm E, group E, pseudo_metric_space E :=
+class seminormed_group (E : Type*) [group E] extends has_norm E, pseudo_metric_space E :=
 (dist := λ x y, ‖x / y‖)
 (dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ‖x - y‖` defines a
 metric space structure. -/
-class normed_add_group (E : Type*) extends has_norm E, add_group E, metric_space E :=
+class normed_add_group (E : Type*) [add_group E] extends has_norm E, metric_space E :=
 (dist := λ x y, ‖x - y‖)
 (dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A normed group is a group endowed with a norm for which `dist x y = ‖x / y‖` defines a metric
 space structure. -/
 @[to_additive]
-class normed_group (E : Type*) extends has_norm E, group E, metric_space E :=
+class normed_group (E : Type*) [group E] extends has_norm E, metric_space E :=
 (dist := λ x y, ‖x / y‖)
 (dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 /-- A seminormed group is an additive group endowed with a norm for which `dist x y = ‖x - y‖`
-defines a pseudometric space structure. -/
-class seminormed_add_comm_group (E : Type*)
-  extends has_norm E, add_comm_group E, pseudo_metric_space E :=
+defines a pseudometric space structure.
+
+TODO: remove this, it is the same as `seminormed_add_group` -/
+class seminormed_add_comm_group (E : Type*) [add_comm_group E]
+  extends has_norm E, pseudo_metric_space E :=
 (dist := λ x y, ‖x - y‖)
 (dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A seminormed group is a group endowed with a norm for which `dist x y = ‖x / y‖`
-defines a pseudometric space structure. -/
+defines a pseudometric space structure.
+
+TODO: remove this, it is the same as `seminormed_group` -/
 @[to_additive]
-class seminormed_comm_group (E : Type*)
-  extends has_norm E, comm_group E, pseudo_metric_space E :=
+class seminormed_comm_group (E : Type*) [comm_group E]
+  extends has_norm E, pseudo_metric_space E :=
 (dist := λ x y, ‖x / y‖)
 (dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ‖x - y‖` defines a
-metric space structure. -/
-class normed_add_comm_group (E : Type*) extends has_norm E, add_comm_group E, metric_space E :=
+metric space structure.
+
+TODO: remove this, it is the same as `normed_add_group` -/
+class normed_add_comm_group (E : Type*) [add_comm_group E] extends has_norm E, metric_space E :=
 (dist := λ x y, ‖x - y‖)
 (dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A normed group is a group endowed with a norm for which `dist x y = ‖x / y‖` defines a metric
-space structure. -/
+space structure.
+
+TODO: remove this, it is the same as `normed_group` -/
 @[to_additive]
-class normed_comm_group (E : Type*) extends has_norm E, comm_group E, metric_space E :=
+class normed_comm_group (E : Type*) [comm_group E] extends has_norm E, metric_space E :=
 (dist := λ x y, ‖x / y‖)
 (dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance normed_group.to_seminormed_group [normed_group E] : seminormed_group E :=
+instance normed_group.to_seminormed_group [group E] [normed_group E] : seminormed_group E :=
 { ..‹normed_group E› }
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance normed_comm_group.to_seminormed_comm_group [normed_comm_group E] :
+instance normed_comm_group.to_seminormed_comm_group [comm_group E] [normed_comm_group E] :
   seminormed_comm_group E :=
 { ..‹normed_comm_group E› }
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance seminormed_comm_group.to_seminormed_group [seminormed_comm_group E] : seminormed_group E :=
+instance seminormed_comm_group.to_seminormed_group [comm_group E] [seminormed_comm_group E] :
+  seminormed_group E :=
 { ..‹seminormed_comm_group E› }
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance normed_comm_group.to_normed_group [normed_comm_group E] : normed_group E :=
+instance normed_comm_group.to_normed_group [comm_group E] [normed_comm_group E] : normed_group E :=
 { ..‹normed_comm_group E› }
 
 /-- Construct a `normed_group` from a `seminormed_group` satisfying `∀ x, ‖x‖ = 0 → x = 1`. This
@@ -138,7 +147,7 @@ instance as a special case of a more general `seminormed_group` instance. -/
 `∀ x, ‖x‖ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level when
 declaring a `normed_add_group` instance as a special case of a more general `seminormed_add_group`
 instance.", reducible] -- See note [reducible non-instances]
-def normed_group.of_separation [seminormed_group E] (h : ∀ x : E, ‖x‖ = 0 → x = 1) :
+def normed_group.of_separation [group E] [seminormed_group E] (h : ∀ x : E, ‖x‖ = 0 → x = 1) :
   normed_group E :=
 { to_metric_space :=
   { eq_of_dist_eq_zero := λ x y hxy, div_eq_one.1 $ h _ $ by rwa ←‹seminormed_group E›.dist_eq },
@@ -152,7 +161,8 @@ instance. -/
 `∀ x, ‖x‖ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level when
 declaring a `normed_add_comm_group` instance as a special case of a more general
 `seminormed_add_comm_group` instance.", reducible] -- See note [reducible non-instances]
-def normed_comm_group.of_separation [seminormed_comm_group E] (h : ∀ x : E, ‖x‖ = 0 → x = 1) :
+def normed_comm_group.of_separation [comm_group E] [seminormed_comm_group E]
+  (h : ∀ x : E, ‖x‖ = 0 → x = 1) :
   normed_comm_group E :=
 { ..‹seminormed_comm_group E›, ..normed_group.of_separation h }
 
@@ -280,6 +290,7 @@ instance : normed_add_comm_group punit :=
 @[simp] lemma punit.norm_eq_zero (r : punit) : ‖r‖ = 0 := rfl
 
 section seminormed_group
+variables [group E] [group F] [group G]
 variables [seminormed_group E] [seminormed_group F] [seminormed_group G] {s : set E}
   {a a₁ a₂ b b₁ b₂ : E} {r r₁ r₂ : ℝ}
 
@@ -888,7 +899,8 @@ structure on the domain. -/
 @[reducible, -- See note [reducible non-instances]
 to_additive "A group homomorphism from an `add_group` to a `seminormed_add_group` induces a
 `seminormed_add_group` structure on the domain."]
-def seminormed_group.induced [group E] [seminormed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕) :
+def seminormed_group.induced [group E] [group F] [seminormed_group F] [monoid_hom_class 𝓕 E F]
+  (f : 𝓕) :
   seminormed_group E :=
 { norm := λ x, ‖f x‖,
   dist_eq := λ x y, by simpa only [map_div, ←dist_eq_norm_div],
@@ -899,7 +911,8 @@ def seminormed_group.induced [group E] [seminormed_group F] [monoid_hom_class �
 @[reducible, -- See note [reducible non-instances]
 to_additive "A group homomorphism from an `add_comm_group` to a `seminormed_add_group` induces a
 `seminormed_add_comm_group` structure on the domain."]
-def seminormed_comm_group.induced [comm_group E] [seminormed_group F] [monoid_hom_class 𝓕 E F]
+def seminormed_comm_group.induced [comm_group E] [comm_group F] [seminormed_group F]
+  [monoid_hom_class 𝓕 E F]
   (f : 𝓕) : seminormed_comm_group E :=
 { ..seminormed_group.induced E F f }
 
@@ -908,7 +921,7 @@ structure on the domain. -/
 @[reducible,  -- See note [reducible non-instances].
 to_additive "An injective group homomorphism from an `add_group` to a `normed_add_group` induces a
 `normed_add_group` structure on the domain."]
-def normed_group.induced [group E] [normed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕)
+def normed_group.induced [group E] [group F] [normed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕)
   (h : injective f) : normed_group E :=
 { ..seminormed_group.induced E F f, ..metric_space.induced f h _ }
 
@@ -917,13 +930,14 @@ def normed_group.induced [group E] [normed_group F] [monoid_hom_class 𝓕 E F] 
 @[reducible,  -- See note [reducible non-instances].
 to_additive "An injective group homomorphism from an `comm_group` to a `normed_comm_group` induces a
 `normed_comm_group` structure on the domain."]
-def normed_comm_group.induced [comm_group E] [normed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕)
-  (h : injective f) : normed_comm_group E :=
+def normed_comm_group.induced [comm_group E] [group F] [normed_group F] [monoid_hom_class 𝓕 E F]
+  (f : 𝓕) (h : injective f) : normed_comm_group E :=
 { ..seminormed_group.induced E F f, ..metric_space.induced f h _ }
 
 end induced
 
 section seminormed_comm_group
+variables [comm_group E] [comm_group F]
 variables [seminormed_comm_group E] [seminormed_comm_group F] {a a₁ a₂ b b₁ b₂ : E} {r r₁ r₂ : ℝ}
 
 @[to_additive] instance normed_group.to_has_isometric_smul_left : has_isometric_smul E E :=
@@ -965,7 +979,7 @@ by simpa only [div_eq_mul_inv, dist_inv_inv] using dist_mul_mul_le a₁ a₂⁻�
 by simpa only [dist_mul_left, dist_mul_right, dist_comm b₂]
   using abs_dist_sub_le (a₁ * a₂) (b₁ * b₂) (b₁ * a₂)
 
-lemma norm_multiset_sum_le {E} [seminormed_add_comm_group E] (m : multiset E) :
+lemma norm_multiset_sum_le {E} [add_comm_group E] [seminormed_add_comm_group E] (m : multiset E) :
   ‖m.sum‖ ≤ (m.map (λ x, ‖x‖)).sum :=
 m.le_sum_of_subadditive norm norm_zero norm_add_le
 
@@ -978,7 +992,7 @@ begin
   { exact norm_mul_le' _ _ }
 end
 
-lemma norm_sum_le {E} [seminormed_add_comm_group E] (s : finset ι) (f : ι → E) :
+lemma norm_sum_le {E} [add_comm_group E] [seminormed_add_comm_group E] (s : finset ι) (f : ι → E) :
   ‖∑ i in s, f i‖ ≤ ∑ i in s, ‖f i‖ :=
 s.le_sum_of_subadditive norm norm_zero norm_add_le f
 
@@ -1231,7 +1245,7 @@ end rat
 -- Now that we've installed the norm on `ℤ`,
 -- we can state some lemmas about `zsmul`.
 section
-variables [seminormed_comm_group α]
+variables [comm_group α] [seminormed_comm_group α]
 
 @[to_additive norm_zsmul_le]
 lemma norm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖ ≤ ‖n‖ * ‖a‖ :=
@@ -1322,7 +1336,7 @@ end
 end seminormed_comm_group
 
 section normed_group
-variables [normed_group E] [normed_group F] {a b : E}
+variables [group E] [group F] [normed_group E] [normed_group F] {a b : E}
 
 @[simp, to_additive norm_eq_zero] lemma norm_eq_zero'' : ‖a‖ = 0 ↔ a = 1 := norm_eq_zero'''
 
@@ -1372,7 +1386,7 @@ def norm_group_norm : group_norm E :=
 end normed_group
 
 section normed_add_group
-variables [normed_add_group E] [topological_space α] {f : α → E}
+variables [add_group E] [normed_add_group E] [topological_space α] {f : α → E}
 
 /-! Some relations with `has_compact_support` -/
 
@@ -1389,7 +1403,7 @@ end normed_add_group
 
 section normed_add_group_source
 
-variables [normed_add_group α] {f : α → E}
+variables [add_group α] [normed_add_group α] {f : α → E}
 
 @[to_additive]
 lemma has_compact_mul_support.exists_pos_le_norm [has_one E] (hf : has_compact_mul_support f) :
@@ -1429,18 +1443,19 @@ lemma nnnorm_def (x : ulift E) : ‖x‖₊ = ‖x.down‖₊ := rfl
 
 end has_nnnorm
 
-@[to_additive] instance seminormed_group [seminormed_group E] : seminormed_group (ulift E) :=
+@[to_additive] instance seminormed_group [group E] [seminormed_group E] : seminormed_group (ulift E) :=
 seminormed_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E)
 
 @[to_additive]
-instance seminormed_comm_group [seminormed_comm_group E] : seminormed_comm_group (ulift E) :=
+instance seminormed_comm_group [comm_group E] [seminormed_comm_group E] :
+  seminormed_comm_group (ulift E) :=
 seminormed_comm_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E)
 
-@[to_additive] instance normed_group [normed_group E] : normed_group (ulift E) :=
+@[to_additive] instance normed_group [group E] [normed_group E] : normed_group (ulift E) :=
 normed_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E) down_injective
 
 @[to_additive]
-instance normed_comm_group [normed_comm_group E] : normed_comm_group (ulift E) :=
+instance normed_comm_group [comm_group E] [normed_comm_group E] : normed_comm_group (ulift E) :=
 normed_comm_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E) down_injective
 
 end ulift
@@ -1477,28 +1492,29 @@ instance : has_nnnorm (multiplicative E) := ‹has_nnnorm E›
 
 end has_nnnorm
 
-instance [seminormed_group E] : seminormed_add_group (additive E) :=
+instance [group E] [seminormed_group E] : seminormed_add_group (additive E) :=
 { dist_eq := dist_eq_norm_div }
 
-instance [seminormed_add_group E] : seminormed_group (multiplicative E) :=
+instance [add_group E] [seminormed_add_group E] : seminormed_group (multiplicative E) :=
 { dist_eq := dist_eq_norm_sub }
 
-instance [seminormed_comm_group E] : seminormed_add_comm_group (additive E) :=
+instance [comm_group E] [seminormed_comm_group E] : seminormed_add_comm_group (additive E) :=
 { ..additive.seminormed_add_group }
 
-instance [seminormed_add_comm_group E] : seminormed_comm_group (multiplicative E) :=
+instance [add_comm_group E] [seminormed_add_comm_group E] :
+  seminormed_comm_group (multiplicative E) :=
 { ..multiplicative.seminormed_group }
 
-instance [normed_group E] : normed_add_group (additive E) :=
+instance [group E] [normed_group E] : normed_add_group (additive E) :=
 { ..additive.seminormed_add_group }
 
-instance [normed_add_group E] : normed_group (multiplicative E) :=
+instance [add_group E] [normed_add_group E] : normed_group (multiplicative E) :=
 { ..multiplicative.seminormed_group }
 
-instance [normed_comm_group E] : normed_add_comm_group (additive E) :=
+instance [comm_group E] [normed_comm_group E] : normed_add_comm_group (additive E) :=
 { ..additive.seminormed_add_group }
 
-instance [normed_add_comm_group E] : normed_comm_group (multiplicative E) :=
+instance [add_comm_group E] [normed_add_comm_group E] : normed_comm_group (multiplicative E) :=
 { ..multiplicative.seminormed_group }
 
 end additive_multiplicative
@@ -1530,16 +1546,18 @@ instance : has_nnnorm Eᵒᵈ := ‹has_nnnorm E›
 end has_nnnorm
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance [seminormed_group E] : seminormed_group Eᵒᵈ := ‹seminormed_group E›
+instance [group E] [seminormed_group E] : seminormed_group Eᵒᵈ := ‹seminormed_group E›
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance [seminormed_comm_group E] : seminormed_comm_group Eᵒᵈ := ‹seminormed_comm_group E›
+instance [comm_group E] [seminormed_comm_group E] : seminormed_comm_group Eᵒᵈ :=
+‹seminormed_comm_group E›
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance [normed_group E] : normed_group Eᵒᵈ := ‹normed_group E›
+instance [group E] [normed_group E] : normed_group Eᵒᵈ := ‹normed_group E›
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance [normed_comm_group E] : normed_comm_group Eᵒᵈ := ‹normed_comm_group E›
+instance [comm_group E] [normed_comm_group E] : normed_comm_group Eᵒᵈ :=
+‹normed_comm_group E›
 
 end order_dual
 
@@ -1559,7 +1577,7 @@ lemma norm_prod_le_iff : ‖x‖ ≤ r ↔ ‖x.1‖ ≤ r ∧ ‖x.2‖ ≤ r :
 end has_norm
 
 section seminormed_group
-variables [seminormed_group E] [seminormed_group F]
+variables [group E] [group F] [seminormed_group E] [seminormed_group F]
 
 /-- Product of seminormed groups, using the sup norm. -/
 @[to_additive "Product of seminormed groups, using the sup norm."]
@@ -1573,16 +1591,19 @@ end seminormed_group
 
 /-- Product of seminormed groups, using the sup norm. -/
 @[to_additive "Product of seminormed groups, using the sup norm."]
-instance [seminormed_comm_group E] [seminormed_comm_group F] : seminormed_comm_group (E × F) :=
+instance [comm_group E] [comm_group F] [seminormed_comm_group E] [seminormed_comm_group F] :
+  seminormed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
 /-- Product of normed groups, using the sup norm. -/
 @[to_additive "Product of normed groups, using the sup norm."]
-instance [normed_group E] [normed_group F] : normed_group (E × F) := { ..prod.seminormed_group }
+instance [group E] [group F][normed_group E] [normed_group F] : normed_group (E × F) :=
+{ ..prod.seminormed_group }
 
 /-- Product of normed groups, using the sup norm. -/
 @[to_additive "Product of normed groups, using the sup norm."]
-instance [normed_comm_group E] [normed_comm_group F] : normed_comm_group (E × F) :=
+instance [comm_group E] [comm_group F] [normed_comm_group E] [normed_comm_group F] :
+  normed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
 
@@ -1592,7 +1613,8 @@ section pi
 variables {π : ι → Type*} [fintype ι]
 
 section seminormed_group
-variables [Π i, seminormed_group (π i)] [seminormed_group E] (f : Π i, π i) {x : Π i, π i} {r : ℝ}
+variables [Π i, group (π i)] [group E] [Π i, seminormed_group (π i)] [seminormed_group E]
+variables (f : Π i, π i) {x : Π i, π i} {r : ℝ}
 
 /-- Finite product of seminormed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
@@ -1673,18 +1695,19 @@ end seminormed_group
 
 /-- Finite product of seminormed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-instance pi.seminormed_comm_group [Π i, seminormed_comm_group (π i)] :
+instance pi.seminormed_comm_group [Π i, comm_group (π i)] [Π i, seminormed_comm_group (π i)] :
   seminormed_comm_group (Π i, π i) :=
 { ..pi.seminormed_group }
 
 /-- Finite product of normed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-instance pi.normed_group [Π i, normed_group (π i)] : normed_group (Π i, π i) :=
+instance pi.normed_group [Π i, group (π i)] [Π i, normed_group (π i)] : normed_group (Π i, π i) :=
 { ..pi.seminormed_group }
 
 /-- Finite product of normed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-instance pi.normed_comm_group [Π i, normed_comm_group (π i)] : normed_comm_group (Π i, π i) :=
+instance pi.normed_comm_group [Π i, comm_group (π i)] [Π i, normed_comm_group (π i)] :
+  normed_comm_group (Π i, π i) :=
 { ..pi.seminormed_group }
 
 end pi
@@ -1727,7 +1750,7 @@ end mul_opposite
 
 namespace subgroup
 section seminormed_group
-variables [seminormed_group E] {s : subgroup E}
+variables [group E] [seminormed_group E] {s : subgroup E}
 
 /-- A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm. -/
@@ -1753,15 +1776,18 @@ lemma norm_coe {s : subgroup E} (x : s) : ‖(x : E)‖ = ‖x‖ := rfl
 
 end seminormed_group
 
-@[to_additive] instance seminormed_comm_group [seminormed_comm_group E] {s : subgroup E} :
+@[to_additive] instance seminormed_comm_group [comm_group E] [seminormed_comm_group E]
+  {s : subgroup E} :
   seminormed_comm_group s :=
 seminormed_comm_group.induced _ _ s.subtype
 
-@[to_additive] instance normed_group [normed_group E] {s : subgroup E} : normed_group s :=
+@[to_additive] instance normed_group [group E] [normed_group E] {s : subgroup E} :
+  normed_group s :=
 normed_group.induced _ _ s.subtype subtype.coe_injective
 
 @[to_additive]
-instance normed_comm_group [normed_comm_group E] {s : subgroup E} : normed_comm_group s :=
+instance normed_comm_group [comm_group E] [normed_comm_group E] {s : subgroup E} :
+  normed_comm_group s :=
 normed_comm_group.induced _ _ s.subtype subtype.coe_injective
 
 end subgroup
@@ -1773,16 +1799,16 @@ namespace submodule
 /-- A submodule of a seminormed group is also a seminormed group, with the restriction of the norm.
 -/
 -- See note [implicit instance arguments]
-instance seminormed_add_comm_group {_ : ring 𝕜} [seminormed_add_comm_group E] {_ : module 𝕜 E}
-  (s : submodule 𝕜 E) :
+instance seminormed_add_comm_group {_ : ring 𝕜} [add_comm_group E] [seminormed_add_comm_group E]
+  {_ : module 𝕜 E} (s : submodule 𝕜 E) :
   seminormed_add_comm_group s :=
 seminormed_add_comm_group.induced _ _ s.subtype.to_add_monoid_hom
 
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
 norm in `E`. -/
 -- See note [implicit instance arguments].
-@[simp] lemma coe_norm {_ : ring 𝕜} [seminormed_add_comm_group E] {_ : module 𝕜 E}
-  {s : submodule 𝕜 E} (x : s) :
+@[simp] lemma coe_norm {_ : ring 𝕜} [add_comm_group E] [seminormed_add_comm_group E]
+  {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
   ‖x‖ = ‖(x : E)‖ := rfl
 
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
@@ -1790,13 +1816,14 @@ norm in `s`.
 
 This is a reversed version of the `simp` lemma `submodule.coe_norm` for use by `norm_cast`. -/
 -- See note [implicit instance arguments].
-@[norm_cast] lemma norm_coe {_ : ring 𝕜} [seminormed_add_comm_group E] {_ : module 𝕜 E}
-  {s : submodule 𝕜 E} (x : s) :
+@[norm_cast] lemma norm_coe {_ : ring 𝕜} [add_comm_group E] [seminormed_add_comm_group E]
+  {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
   ‖(x : E)‖ = ‖x‖ := rfl
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm. -/
 -- See note [implicit instance arguments].
-instance {_ : ring 𝕜} [normed_add_comm_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) :
+instance {_ : ring 𝕜} [add_comm_group E] [normed_add_comm_group E] {_ : module 𝕜 E}
+  (s : submodule 𝕜 E) :
   normed_add_comm_group s :=
 { ..submodule.seminormed_add_comm_group s }
 

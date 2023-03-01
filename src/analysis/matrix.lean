@@ -54,6 +54,7 @@ variables {R l m n α β : Type*} [fintype l] [fintype m] [fintype n]
 section linf_linf
 
 section seminormed_add_comm_group
+variables [add_comm_group α] [add_comm_group β]
 variables [seminormed_add_comm_group α] [seminormed_add_comm_group β]
 
 /-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed group. Not
@@ -142,14 +143,14 @@ end seminormed_add_comm_group
 /-- Normed group instance (using sup norm of sup norm) for matrices over a normed group.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def normed_add_comm_group [normed_add_comm_group α] :
+protected def normed_add_comm_group [add_comm_group α] [normed_add_comm_group α] :
   normed_add_comm_group (matrix m n α) :=
 pi.normed_add_comm_group
 
 section normed_space
 local attribute [instance] matrix.seminormed_add_comm_group
 
-variables [normed_field R] [seminormed_add_comm_group α] [normed_space R α]
+variables [normed_field R] [add_comm_group α] [seminormed_add_comm_group α] [normed_space R α]
 
 /-- Normed space instance (using sup norm of sup norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -174,7 +175,7 @@ section linfty_op
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_seminormed_add_comm_group [seminormed_add_comm_group α] :
+protected def linfty_op_seminormed_add_comm_group [add_comm_group α] [seminormed_add_comm_group α] :
   seminormed_add_comm_group (matrix m n α) :=
 (by apply_instance : seminormed_add_comm_group (m → pi_Lp 1 (λ j : n, α)))
 
@@ -182,7 +183,7 @@ protected def linfty_op_seminormed_add_comm_group [seminormed_add_comm_group α]
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_normed_add_comm_group [normed_add_comm_group α] :
+protected def linfty_op_normed_add_comm_group [add_comm_group α] [normed_add_comm_group α] :
   normed_add_comm_group (matrix m n α) :=
 (by apply_instance : normed_add_comm_group (m → pi_Lp 1 (λ j : n, α)))
 
@@ -190,7 +191,8 @@ protected def linfty_op_normed_add_comm_group [normed_add_comm_group α] :
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_normed_space [normed_field R] [seminormed_add_comm_group α]
+protected def linfty_op_normed_space
+  [normed_field R] [add_comm_group α] [seminormed_add_comm_group α]
   [normed_space R α] :
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
@@ -350,7 +352,7 @@ def frobenius_seminormed_add_comm_group [seminormed_add_comm_group α] :
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-def frobenius_normed_add_comm_group [normed_add_comm_group α] :
+def frobenius_normed_add_comm_group [add_comm_group α] [normed_add_comm_group α] :
   normed_add_comm_group (matrix m n α) :=
 (by apply_instance : normed_add_comm_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 

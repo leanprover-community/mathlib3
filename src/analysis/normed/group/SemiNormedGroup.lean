@@ -22,24 +22,33 @@ universes u
 open category_theory
 
 /-- The category of seminormed abelian groups and bounded group homomorphisms. -/
-def SemiNormedGroup : Type (u+1) := bundled seminormed_add_comm_group
+structure SemiNormedGroup : Type (u+1) :=
+(carrier : Type u)
+[is_add_comm_group : add_comm_group carrier]
+[is_seminormed_add_comm_group : seminormed_add_comm_group carrier]
+
+attribute [instance] SemiNormedGroup.is_add_comm_group SemiNormedGroup.is_seminormed_add_comm_group
 
 namespace SemiNormedGroup
 
-instance bundled_hom : bundled_hom @normed_add_group_hom :=
-⟨@normed_add_group_hom.to_fun, @normed_add_group_hom.id, @normed_add_group_hom.comp,
-  @normed_add_group_hom.coe_inj⟩
+instance : has_coe_to_sort SemiNormedGroup.{u} (Type u) := ⟨SemiNormedGroup.carrier⟩
 
-attribute [derive [large_category, concrete_category]] SemiNormedGroup
+instance SemiNormedGroup_large_category : large_category SemiNormedGroup.{u} :=
+{ hom   := λ M N, normed_add_group_hom M N,
+  id    := λ M, normed_add_group_hom.id M,
+  comp  := λ A B C f g, g.comp f,
+  id_comp' := λ X Y f, normed_add_group_hom.ext $ λ _, rfl,
+  comp_id' := λ X Y f, normed_add_group_hom.ext $ λ _, rfl,
+  assoc' := λ W X Y Z f g h, normed_add_group_hom.comp_assoc _ _ _ }
 
-instance : has_coe_to_sort SemiNormedGroup (Type u) := bundled.has_coe_to_sort
+instance SemiNormedGroup_concrete_category : concrete_category.{u} SemiNormedGroup.{u} :=
+{ forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
+  forget_faithful := { } }
 
 /-- Construct a bundled `SemiNormedGroup` from the underlying type and typeclass. -/
-def of (M : Type u) [seminormed_add_comm_group M] : SemiNormedGroup := bundled.of M
+def of (M : Type u) [add_comm_group M] [seminormed_add_comm_group M] : SemiNormedGroup := ⟨M⟩
 
-instance (M : SemiNormedGroup) : seminormed_add_comm_group M := M.str
-
-@[simp] lemma coe_of (V : Type u) [seminormed_add_comm_group V] :
+@[simp] lemma coe_of (V : Type u) [add_comm_group V] [seminormed_add_comm_group V] :
   (SemiNormedGroup.of V : Type u) = V := rfl
 @[simp] lemma coe_id (V : SemiNormedGroup) : ⇑(𝟙 V) = id := rfl
 @[simp] lemma coe_comp {M N K : SemiNormedGroup} (f : M ⟶ N) (g : N ⟶ K) :
@@ -47,7 +56,7 @@ instance (M : SemiNormedGroup) : seminormed_add_comm_group M := M.str
 
 instance : inhabited SemiNormedGroup := ⟨of punit⟩
 
-instance of_unique (V : Type u) [seminormed_add_comm_group V] [i : unique V] :
+instance of_unique (V : Type u) [add_comm_group V] [seminormed_add_comm_group V] [i : unique V] :
   unique (SemiNormedGroup.of V) := i
 
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup := {}
@@ -82,11 +91,11 @@ end SemiNormedGroup
 `SemiNormedGroup₁` is a type synonym for `SemiNormedGroup`,
 which we shall equip with the category structure consisting only of the norm non-increasing maps.
 -/
-def SemiNormedGroup₁ : Type (u+1) := bundled seminormed_add_comm_group
+def SemiNormedGroup₁ : Type (u+1) := SemiNormedGroup
 
 namespace SemiNormedGroup₁
 
-instance : has_coe_to_sort SemiNormedGroup₁ (Type u) := bundled.has_coe_to_sort
+instance : has_coe_to_sort SemiNormedGroup₁ (Type u) := SemiNormedGroup.has_coe_to_sort
 
 instance : large_category.{u} SemiNormedGroup₁ :=
 { hom := λ X Y, { f : normed_add_group_hom X Y // f.norm_noninc },
@@ -105,9 +114,8 @@ instance : concrete_category.{u} SemiNormedGroup₁ :=
   forget_faithful := {} }
 
 /-- Construct a bundled `SemiNormedGroup₁` from the underlying type and typeclass. -/
-def of (M : Type u) [seminormed_add_comm_group M] : SemiNormedGroup₁ := bundled.of M
-
-instance (M : SemiNormedGroup₁) : seminormed_add_comm_group M := M.str
+def of (M : Type u) [add_comm_group M] [seminormed_add_comm_group M] : SemiNormedGroup₁ :=
+⟨M⟩
 
 /-- Promote a morphism in `SemiNormedGroup` to a morphism in `SemiNormedGroup₁`. -/
 def mk_hom {M N : SemiNormedGroup} (f : M ⟶ N) (i : f.norm_noninc) :
@@ -131,7 +139,7 @@ instance : has_forget₂ SemiNormedGroup₁ SemiNormedGroup :=
   { obj := λ X, X,
     map := λ X Y f, f.1, }, }
 
-@[simp] lemma coe_of (V : Type u) [seminormed_add_comm_group V] :
+@[simp] lemma coe_of (V : Type u) [add_comm_group V] [seminormed_add_comm_group V] :
   (SemiNormedGroup₁.of V : Type u) = V := rfl
 @[simp] lemma coe_id (V : SemiNormedGroup₁) : ⇑(𝟙 V) = id := rfl
 @[simp] lemma coe_comp {M N K : SemiNormedGroup₁} (f : M ⟶ N) (g : N ⟶ K) :
@@ -142,7 +150,7 @@ instance : has_forget₂ SemiNormedGroup₁ SemiNormedGroup :=
 
 instance : inhabited SemiNormedGroup₁ := ⟨of punit⟩
 
-instance of_unique (V : Type u) [seminormed_add_comm_group V] [i : unique V] :
+instance of_unique (V : Type u) [add_comm_group V] [seminormed_add_comm_group V] [i : unique V] :
   unique (SemiNormedGroup₁.of V) := i
 
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=

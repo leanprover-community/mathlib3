@@ -36,7 +36,7 @@ open_locale topology
 local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star group is a normed group with a compatible `star` which is isometric. -/
-class normed_star_group (E : Type*) [seminormed_add_comm_group E] [star_add_monoid E] : Prop :=
+class normed_star_group (E : Type*) [add_comm_group E] [seminormed_add_comm_group E] [star_add_monoid E] : Prop :=
 (norm_star : ∀ x : E, ‖x⋆‖ = ‖x‖)
 
 export normed_star_group (norm_star)
@@ -45,7 +45,7 @@ attribute [simp] norm_star
 variables {𝕜 E α : Type*}
 
 section normed_star_group
-variables [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
+variables [add_comm_group E] [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
 
 @[simp] lemma nnnorm_star (x : E) : ‖star x‖₊ = ‖x‖₊ := subtype.ext $ norm_star _
 
@@ -238,7 +238,7 @@ x.prop.nnnorm_pow_two_pow _
 section starₗᵢ
 
 variables [comm_semiring 𝕜] [star_ring 𝕜]
-variables [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
+variables [add_comm_group E] [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
 variables [module 𝕜 E] [star_module 𝕜 E]
 
 variables (𝕜)

@@ -79,7 +79,7 @@ open_locale filter ennreal measure_theory nnreal topology
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
-{E : Type*} [normed_add_comm_group E]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 include v
 

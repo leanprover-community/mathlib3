@@ -115,7 +115,7 @@ end bounded
 section normed_space
 
 variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
-  {M₁ M₂ M₃ : Type*} [seminormed_add_comm_group M₁] [topological_space M₂]
+  {M₁ M₂ M₃ : Type*} [add_comm_group M₁] [seminormed_add_comm_group M₁] [topological_space M₂]
   [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
 
 lemma is_compact_operator.image_subset_compact_of_bounded [has_continuous_const_smul 𝕜₂ M₂]
@@ -373,7 +373,7 @@ end continuous
 /-- The set of compact operators from a normed space to a complete topological vector space is
 closed. -/
 lemma is_closed_set_of_is_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*} [seminormed_add_comm_group M₁]
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*} [add_comm_group M₁] [seminormed_add_comm_group M₁]
   [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂] [uniform_space M₂] [uniform_add_group M₂]
   [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂] [complete_space M₂] :
   is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=

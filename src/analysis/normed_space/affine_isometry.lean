@@ -33,7 +33,9 @@ algebra-homomorphisms.)
 open function set
 
 variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ : Type*) {P₃ P₄ : Type*}
-  [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
+  [normed_field 𝕜]
+  [add_comm_group V] [add_comm_group V₁] [add_comm_group V₂] [add_comm_group V₃] [add_comm_group V₄]
+  [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
   [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
     [seminormed_add_comm_group V₄]
   [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]

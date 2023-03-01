@@ -41,9 +41,9 @@ submultiplicative: for a composition of maps, we have only `‖f.comp g‖ ≤ �
 namespace continuous_affine_map
 
 variables {𝕜 R V W W₂ P Q Q₂ : Type*}
-variables [normed_add_comm_group V] [metric_space P] [normed_add_torsor V P]
-variables [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
-variables [normed_add_comm_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
+variables [add_comm_group V] [normed_add_comm_group V] [metric_space P] [normed_add_torsor V P]
+variables [add_comm_group W] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
+variables [add_comm_group W₂] [normed_add_comm_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
 variables [normed_field R] [normed_space R V] [normed_space R W] [normed_space R W₂]
 variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
 

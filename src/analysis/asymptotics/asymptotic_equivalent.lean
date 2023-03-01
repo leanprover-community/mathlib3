@@ -61,7 +61,7 @@ open_locale topology
 
 section normed_add_comm_group
 
-variables {α β : Type*} [normed_add_comm_group β]
+variables {α β : Type*} [add_comm_group β] [normed_add_comm_group β]
 
 /-- Two functions `u` and `v` are said to be asymptotically equivalent along a filter `l` when
     `u x - v x = o(v x)` as x converges along `l`. -/
@@ -221,7 +221,8 @@ end normed_field
 
 section smul
 
-lemma is_equivalent.smul {α E 𝕜 : Type*} [normed_field 𝕜] [normed_add_comm_group E]
+lemma is_equivalent.smul
+  {α E 𝕜 : Type*} [normed_field 𝕜] [add_comm_group E] [normed_add_comm_group E]
   [normed_space 𝕜 E] {a b : α → 𝕜} {u v : α → E} {l : filter α} (hab : a ~[l] b) (huv : u ~[l] v) :
   (λ x, a x • u x) ~[l] (λ x, b x • v x) :=
 begin
@@ -314,7 +315,7 @@ end asymptotics
 open filter asymptotics
 open_locale asymptotics
 
-variables {α β : Type*} [normed_add_comm_group β]
+variables {α β : Type*} [add_comm_group β] [normed_add_comm_group β]
 
 lemma filter.eventually_eq.is_equivalent {u v : α → β} {l : filter α} (h : u =ᶠ[l] v) : u ~[l] v :=
 is_equivalent.congr_right (is_o_refl_left _ _) h

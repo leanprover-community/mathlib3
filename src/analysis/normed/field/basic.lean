@@ -106,12 +106,13 @@ export norm_one_class (norm_one)
 
 attribute [simp] norm_one
 
-@[simp] lemma nnnorm_one [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+@[simp] lemma nnnorm_one [add_comm_group α] [seminormed_add_comm_group α] [has_one α]
+  [norm_one_class α] :
   ‖(1 : α)‖₊ = 1 :=
 nnreal.eq norm_one
 
-lemma norm_one_class.nontrivial (α : Type*) [seminormed_add_comm_group α] [has_one α]
-  [norm_one_class α] :
+lemma norm_one_class.nontrivial
+  (α : Type*) [add_comm_group α] [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
   nontrivial α :=
 nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $ by simp
 
@@ -127,15 +128,18 @@ instance non_unital_normed_ring.to_normed_add_comm_group [β : non_unital_normed
 instance non_unital_semi_normed_ring.to_seminormed_add_comm_group [non_unital_semi_normed_ring α] :
   seminormed_add_comm_group α := { ..‹non_unital_semi_normed_ring α› }
 
-instance [seminormed_add_comm_group α] [has_one α] [norm_one_class α] : norm_one_class (ulift α) :=
+instance [add_comm_group α] [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+  norm_one_class (ulift α) :=
 ⟨by simp [ulift.norm_def]⟩
 
-instance prod.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α]
-  [seminormed_add_comm_group β] [has_one β] [norm_one_class β] :
+instance prod.norm_one_class
+  [add_comm_group α] [seminormed_add_comm_group α] [has_one α] [norm_one_class α]
+  [add_comm_group β] [seminormed_add_comm_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
 instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [fintype ι]
+  [Π i, add_comm_group (α i)]
   [Π i, seminormed_add_comm_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
   norm_one_class (Π i, α i) :=
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
@@ -391,7 +395,7 @@ instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
-  ..pi.normed_add_comm_group }
+  ..pi.semi_normed_ring }
 
 instance mul_opposite.normed_ring : normed_ring αᵐᵒᵖ :=
 { norm_mul := norm_mul_le,
@@ -678,15 +682,16 @@ nnreal.eq $ real.norm_of_nonneg x.2
 
 end nnreal
 
-@[simp] lemma norm_norm [seminormed_add_comm_group α] (x : α) : ‖‖x‖‖ = ‖x‖ :=
+@[simp] lemma norm_norm [add_comm_group α] [seminormed_add_comm_group α] (x : α) : ‖‖x‖‖ = ‖x‖ :=
 real.norm_of_nonneg (norm_nonneg _)
 
-@[simp] lemma nnnorm_norm [seminormed_add_comm_group α] (a : α) : ‖‖a‖‖₊ = ‖a‖₊ :=
+@[simp] lemma nnnorm_norm [add_comm_group α] [seminormed_add_comm_group α] (a : α) :
+  ‖‖a‖‖₊ = ‖a‖₊ :=
 by simpa [real.nnnorm_of_nonneg (norm_nonneg a)]
 
 /-- A restatement of `metric_space.tendsto_at_top` in terms of the norm. -/
 lemma normed_add_comm_group.tendsto_at_top [nonempty α] [semilattice_sup α] {β : Type*}
-  [seminormed_add_comm_group β] {f : α → β} {b : β} :
+  [add_comm_group β] [seminormed_add_comm_group β] {f : α → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N ≤ n → ‖f n - b‖ < ε :=
 (at_top_basis.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
@@ -695,7 +700,7 @@ A variant of `normed_add_comm_group.tendsto_at_top` that
 uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
 -/
 lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_max_order α]
-  {β : Type*} [seminormed_add_comm_group β]
+  {β : Type*} [add_comm_group β] [seminormed_add_comm_group β]
   {f : α → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ‖f n - b‖ < ε :=
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])

@@ -20,9 +20,10 @@ is always a complemented subspace.
 complemented subspace, normed vector space
 -/
 
-variables {𝕜 E F G : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
-  [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F] [normed_add_comm_group G]
-  [normed_space 𝕜 G]
+variables {𝕜 E F G : Type*} [nontrivially_normed_field 𝕜]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+  [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+  [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
 
 noncomputable theory
 

@@ -32,7 +32,7 @@ open filter function nat formal_multilinear_series emetric set
 open_locale topology big_operators
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
   {p q : formal_multilinear_series 𝕜 𝕜 E} {f g : 𝕜 → E}
   {n : ℕ} {z z₀ : 𝕜} {y : fin n → 𝕜}
 

@@ -940,7 +940,7 @@ begin
   rw [← integral_map measurable_swap.ae_measurable hf, prod_swap]
 end
 
-variables {E' : Type*} [normed_add_comm_group E'] [complete_space E'] [normed_space ℝ E']
+variables {E' : Type*} [add_comm_group E'] [normed_add_comm_group E'] [complete_space E'] [normed_space ℝ E']
 
 /-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
   we separate them out as separate lemmas, because they involve quite some steps. -/

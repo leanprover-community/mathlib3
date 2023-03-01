@@ -121,9 +121,9 @@ end
 namespace formal_multilinear_series
 
 variables [nontrivially_normed_field 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E]
-  [normed_add_comm_group F] [normed_space 𝕜 F]
-  [normed_add_comm_group G] [normed_space 𝕜 G]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+  [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+  [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
 
 variables (p : formal_multilinear_series 𝕜 E F)
 
@@ -235,7 +235,7 @@ end order
 section coef
 
 variables [nontrivially_normed_field 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
   {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E}
   {n : ℕ} {z z₀ : 𝕜} {y : fin n → 𝕜}
 
@@ -268,7 +268,7 @@ end coef
 section fslope
 
 variables [nontrivially_normed_field 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E]
+  [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
   {p : formal_multilinear_series 𝕜 𝕜 E} {n : ℕ}
 
 /-- The formal counterpart of `dslope`, corresponding to the expansion of `(f z - f 0) / z`. If `f`
@@ -296,13 +296,14 @@ section const
 of degree zero is `c`. It is the power series expansion of the constant function equal to `c`
 everywhere. -/
 def const_formal_multilinear_series (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [has_continuous_const_smul 𝕜 E]
-  [topological_add_group E] {F : Type*} [normed_add_comm_group F] [topological_add_group F]
+  (E : Type*) [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] [has_continuous_const_smul 𝕜 E]
+  [topological_add_group E] {F : Type*} [add_comm_group F] [normed_add_comm_group F] [topological_add_group F]
   [normed_space 𝕜 F]  [has_continuous_const_smul 𝕜 F] (c : F) : formal_multilinear_series 𝕜 E F
 | 0 := continuous_multilinear_map.curry0 _ _ c
 | _ := 0
 
 @[simp] lemma const_formal_multilinear_series_apply [nontrivially_normed_field 𝕜]
+  [add_comm_group E] [add_comm_group F]
   [normed_add_comm_group E] [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F]
   {c : F} {n : ℕ} (hn : n ≠ 0) :
   const_formal_multilinear_series 𝕜 E c n = 0 :=

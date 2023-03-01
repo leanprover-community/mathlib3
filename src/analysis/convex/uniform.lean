@@ -37,14 +37,14 @@ uniform bound. Namely, over the `x` and `y` of norm `1`, `‖x + y‖` is unifor
 by a constant `< 2` when `‖x - y‖` is uniformly bounded below by a positive constant.
 
 See also `uniform_convex_space.of_uniform_convex_closed_unit_ball`. -/
-class uniform_convex_space (E : Type*) [seminormed_add_comm_group E] : Prop :=
+class uniform_convex_space (E : Type*) [add_comm_group E] [seminormed_add_comm_group E] : Prop :=
 (uniform_convex : ∀ ⦃ε : ℝ⦄, 0 < ε → ∃ δ, 0 < δ ∧
   ∀ ⦃x : E⦄, ‖x‖ = 1 → ∀ ⦃y⦄, ‖y‖ = 1 → ε ≤ ‖x - y‖ → ‖x + y‖ ≤ 2 - δ)
 
 variables {E : Type*}
 
 section seminormed_add_comm_group
-variables (E) [seminormed_add_comm_group E] [uniform_convex_space E] {ε : ℝ}
+variables (E) [add_comm_group E] [seminormed_add_comm_group E] [uniform_convex_space E] {ε : ℝ}
 
 lemma exists_forall_sphere_dist_add_le_two_sub (hε : 0 < ε) :
   ∃ δ, 0 < δ ∧ ∀ ⦃x : E⦄, ‖x‖ = 1 → ∀ ⦃y⦄, ‖y‖ = 1 → ε ≤ ‖x - y‖ → ‖x + y‖ ≤ 2 - δ :=
@@ -118,7 +118,7 @@ end
 
 end seminormed_add_comm_group
 
-variables [normed_add_comm_group E] [normed_space ℝ E] [uniform_convex_space E]
+variables [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [uniform_convex_space E]
 
 @[priority 100] -- See note [lower instance priority]
 instance uniform_convex_space.to_strict_convex_space : strict_convex_space ℝ E :=

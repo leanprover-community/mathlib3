@@ -18,8 +18,8 @@ open function metric set filter finset linear_map (range ker)
 open_locale classical topology big_operators nnreal
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
 (f : E →L[𝕜] F)
 include 𝕜
 

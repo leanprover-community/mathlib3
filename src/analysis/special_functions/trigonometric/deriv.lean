@@ -242,7 +242,7 @@ end
 section
 /-! ### Simp lemmas for derivatives of `λ x, complex.cos (f x)` etc., `f : E → ℂ` -/
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
 
 /-! #### `complex.cos` -/
@@ -717,7 +717,7 @@ section
 
 /-! ### Simp lemmas for derivatives of `λ x, real.cos (f x)` etc., `f : E → ℝ` -/
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
 /-! #### `real.cos` -/

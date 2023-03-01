@@ -193,7 +193,9 @@ end
 end add_torsor
 
 namespace affine_isometry
-variables [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group W]
+variables [normed_field 𝕜]
+  [add_comm_group V] [add_comm_group W]
+  [seminormed_add_comm_group V] [seminormed_add_comm_group W]
   [normed_space 𝕜 V] [normed_space 𝕜 W] [metric_space P] [pseudo_metric_space Q]
   [normed_add_torsor V P] [normed_add_torsor W Q]
 include V W

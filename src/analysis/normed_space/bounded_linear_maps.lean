@@ -54,15 +54,15 @@ open_locale classical big_operators topology
 open filter (tendsto) metric continuous_linear_map
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-          {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-          {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-          {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+          {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+          {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F]
+          {G : Type*} [add_comm_group G] [normed_add_comm_group G] [normed_space 𝕜 G]
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `‖f x‖ ≤ M * ‖x‖` for some positive constant `M`. -/
 structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] (f : E → F)
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E]
+  {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space 𝕜 F] (f : E → F)
   extends is_linear_map 𝕜 f : Prop :=
 (bound : ∃ M, 0 < M ∧ ∀ x : E, ‖f x‖ ≤ M * ‖x‖)
 
@@ -243,7 +243,7 @@ variables {R : Type*}
 variables {𝕜₂ 𝕜' : Type*} [nontrivially_normed_field 𝕜'] [nontrivially_normed_field 𝕜₂]
 variables {M : Type*} [topological_space M]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂}
-variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
+variables {G' : Type*} [add_comm_group G'] [normed_add_comm_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
 variables [smul_comm_class 𝕜₂ 𝕜' G']
 
 section semiring
@@ -405,7 +405,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right
   end }
 
 lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
-  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+  [normed_algebra 𝕜 𝕜'] {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
   [is_scalar_tower 𝕜 𝕜' E] :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
 (lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E).is_bounded_bilinear_map

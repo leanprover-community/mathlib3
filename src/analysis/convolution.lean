@@ -96,6 +96,7 @@ universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
 {F : Type uF} {F' : Type uF'} {F'' : Type uF''} {P : Type uP}
 
+variables [add_comm_group E] [add_comm_group E'] [add_comm_group E''] [add_comm_group F]
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
   [normed_add_comm_group F]
   {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
@@ -941,7 +942,7 @@ namespace cont_diff_bump
 
 variables {n : ℕ∞}
 variables [normed_space ℝ E']
-variables [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
+variables [add_comm_group G] [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
 variables [complete_space E']
 variables {a : G} {φ : cont_diff_bump (0 : G)}
 
@@ -1017,7 +1018,9 @@ variables [measurable_space G] {μ ν : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 
 section assoc
+variables [add_comm_group F']
 variables [normed_add_comm_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+variables [add_comm_group F'']
 variables [normed_add_comm_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
 variables {k : G → E''}
 variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
@@ -1122,7 +1125,7 @@ end
 
 end assoc
 
-variables [normed_add_comm_group G] [borel_space G]
+variables [add_comm_group G] [normed_add_comm_group G] [borel_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
@@ -1379,6 +1382,7 @@ In this version, all the types belong to the same universe (to get an induction 
 proof). Use instead `cont_diff_on_convolution_right_with_param`, which removes this restriction. -/
 lemma cont_diff_on_convolution_right_with_param_aux
   {G : Type uP} {E' : Type uP} {F : Type uP} {P : Type uP}
+  [add_comm_group G] [add_comm_group E'] [add_comm_group F] [add_comm_group P]
   [normed_add_comm_group E'] [normed_add_comm_group F]
   [normed_space 𝕜 E'] [normed_space ℝ F] [normed_space 𝕜 F] [complete_space F]
   [measurable_space G] {μ : measure G} [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]

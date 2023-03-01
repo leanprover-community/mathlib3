@@ -85,10 +85,10 @@ variables {𝕜₁ : Type*} [nontrivially_normed_field 𝕜₁] {𝕜₂ : Type*
 
 variables {B : Type*} [topological_space B]
 
-variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜₁ F₁]
+variables (F₁ : Type*) [add_comm_group F₁] [normed_add_comm_group F₁] [normed_space 𝕜₁ F₁]
   (E₁ : B → Type*) [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜₁ (E₁ x)]
   [topological_space (total_space E₁)]
-variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
+variables (F₂ : Type*) [add_comm_group F₂] [normed_add_comm_group F₂] [normed_space 𝕜₂ F₂]
   (E₂ : B → Type*) [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜₂ (E₂ x)]
   [topological_space (total_space E₂)]
 

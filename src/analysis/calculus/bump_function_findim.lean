@@ -26,7 +26,7 @@ open set metric topological_space function asymptotics measure_theory finite_dim
 continuous_linear_map filter measure_theory.measure
 open_locale pointwise topology nnreal big_operators convolution
 
-variables {E : Type*} [normed_add_comm_group E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E]
 
 section
 
@@ -478,7 +478,7 @@ variable {E}
 end helper_definitions
 
 @[priority 100]
-instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
+instance {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
   has_cont_diff_bump E :=
 begin
   refine ⟨⟨_⟩⟩,

@@ -335,7 +335,7 @@ end
 /-- Averaging with respect to a finite measure is the same as integraing against
 `measure_theory.finite_measure.normalize`. -/
 lemma average_eq_integral_normalize
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   (nonzero : μ ≠ 0) (f : Ω → E) :
   average (μ : measure Ω) f = ∫ ω, f ω ∂(μ.normalize : measure Ω) :=
 begin

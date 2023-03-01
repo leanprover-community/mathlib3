@@ -186,7 +186,7 @@ fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s < ∞ → ‖T s‖ 
 
 namespace dominated_fin_meas_additive
 
-variables {β : Type*} [seminormed_add_comm_group β] {T T' : set α → β} {C C' : ℝ}
+variables {β : Type*} [add_comm_group β] [seminormed_add_comm_group β] {T T' : set α → β} {C C' : ℝ}
 
 lemma zero {m : measurable_space α} (μ : measure α) (hC : 0 ≤ C) :
   dominated_fin_meas_additive μ (0 : set α → β) C :=
@@ -196,7 +196,7 @@ begin
   exact mul_nonneg hC to_real_nonneg,
 end
 
-lemma eq_zero_of_measure_zero {β : Type*} [normed_add_comm_group β] {T : set α → β} {C : ℝ}
+lemma eq_zero_of_measure_zero {β : Type*} [add_comm_group β] [normed_add_comm_group β] {T : set α → β} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) {s : set α}
   (hs : measurable_set s) (hs_zero : μ s = 0) :
   T s = 0 :=
@@ -206,7 +206,7 @@ begin
   rw [hs_zero, ennreal.zero_to_real, mul_zero],
 end
 
-lemma eq_zero {β : Type*} [normed_add_comm_group β] {T : set α → β} {C : ℝ}
+lemma eq_zero {β : Type*} [add_comm_group β] [normed_add_comm_group β] {T : set α → β} {C : ℝ}
   {m : measurable_space α} (hT : dominated_fin_meas_additive (0 : measure α) T C)
   {s : set α} (hs : measurable_set s) :
   T s = 0 :=

@@ -95,7 +95,7 @@ namespace measure
 /-- If a set is disjoint of its translates by infinitely many bounded vectors, then it has measure
 zero. This auxiliary lemma proves this assuming additionally that the set is bounded. -/
 lemma add_haar_eq_zero_of_disjoint_translates_aux
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {s : set E} (u : ℕ → E) (sb : bounded s) (hu : bounded (range u))
   (hs : pairwise (disjoint on (λ n, {u n} + s))) (h's : measurable_set s) :
@@ -117,7 +117,7 @@ end
 /-- If a set is disjoint of its translates by infinitely many bounded vectors, then it has measure
 zero. -/
 lemma add_haar_eq_zero_of_disjoint_translates
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {s : set E} (u : ℕ → E) (hu : bounded (range u))
   (hs : pairwise (disjoint on (λ n, {u n} + s))) (h's : measurable_set s) :
@@ -138,7 +138,7 @@ end
 
 /-- A strict vector subspace has measure zero. -/
 lemma add_haar_submodule
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (s : submodule ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
 begin
@@ -168,7 +168,7 @@ end
 
 /-- A strict affine subspace has measure zero. -/
 lemma add_haar_affine_subspace
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (s : affine_subspace ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
 begin
@@ -203,9 +203,9 @@ begin
     real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
+variables {E : Type*} [add_comm_group E] [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
   [borel_space E] [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
-  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
+  {F : Type*} [add_comm_group F] [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :
@@ -407,7 +407,7 @@ general Haar measures on general commutative groups. -/
 /-! ### Measure of balls -/
 
 lemma add_haar_ball_center
-  {E : Type*} [normed_add_comm_group E] [measurable_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (ball x r) = μ (ball (0 : E) r) :=
 begin
@@ -416,7 +416,7 @@ begin
 end
 
 lemma add_haar_closed_ball_center
-  {E : Type*} [normed_add_comm_group E] [measurable_space E]
+  {E : Type*} [add_comm_group E] [normed_add_comm_group E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
 begin

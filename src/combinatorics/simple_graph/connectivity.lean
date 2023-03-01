@@ -1487,9 +1487,9 @@ protected lemma connected_component.exact {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
 @quotient.eq _ G.reachable_setoid _ _
 
-lemma connected_component_mk_eq_of_adj (G : simple_graph V) {v w : V}
-  (a : G.adj v w) : G.connected_component_mk v = G.connected_component_mk w :=
-connected_component.eq.mpr a.reachable
+lemma connected_component_mk_eq_of_adj {v w : V} (a : .adj w) :
+  G.connected_component_mk v = G.connected_component_mk w :=
+connected_component.sound a.reachable
 
 /-- The `connected_component` specialization of `quot.lift`. Provides the stronger
 assumption that the vertices are connected by a path. -/

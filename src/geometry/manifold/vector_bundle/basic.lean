@@ -231,7 +231,7 @@ instance bundle.prod.smooth_vector_bundle :
     rintros _ _ ⟨e₁, e₂, i₁, i₂, rfl⟩ ⟨e₁', e₂', i₁', i₂', rfl⟩,
     resetI,
     rw [smooth_on],
-    refine cont_mdiff_on.congr _ (coord_changeL_prod e₁ e₁' e₂ e₂'),
+    refine cont_mdiff_on.congr _ (e₁.coord_changeL_prod 𝕜 e₁' e₂ e₂'),
     refine cont_mdiff_on.clm_prod_map _ _,
     { refine (smooth_on_coord_change e₁ e₁').mono _,
       simp only [trivialization.base_set_prod] with mfld_simps,

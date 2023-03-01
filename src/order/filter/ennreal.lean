@@ -100,8 +100,7 @@ lemma limsup_mul_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
 calc f.limsup (u * v) ≤ f.limsup (λ x, (f.limsup u) * v x) :
   begin
     refine limsup_le_limsup _ _,
-    { filter_upwards [@eventually_le_limsup _ f _ u] with x hx,
-      exact ennreal.mul_le_mul hx le_rfl, },
+    { filter_upwards [@eventually_le_limsup _ f _ u] with x hx using mul_le_mul_right' hx _ },
     { is_bounded_default, },
   end
 ... = f.limsup u * f.limsup v : limsup_const_mul

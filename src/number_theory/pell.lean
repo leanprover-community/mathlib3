@@ -118,9 +118,8 @@ theorem exists_iff_not_is_square {d : ℤ} (h₀ : 0 < d) :
 begin
   refine ⟨_, exists_of_not_is_square h₀⟩,
   rintros ⟨x, y, hxy, hy⟩ ⟨a, rfl⟩,
-  rw [← sq, ← mul_pow, sq_sub_sq, int.mul_eq_one_iff_eq_one_or_neg_one] at hxy,
-  replace hxy := hxy.elim (λ h, h.1.trans h.2.symm) (λ h, h.1.trans h.2.symm),
-  simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using hxy,
+  rw [← sq, ← mul_pow, sq_sub_sq] at hxy,
+  simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
 end
 
 end existence

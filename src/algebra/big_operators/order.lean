@@ -110,7 +110,7 @@ variables {f g : ι → N} {s t : finset ι}
 equal to the corresponding factor `g i` of another finite product, then
 `∏ i in s, f i ≤ ∏ i in s, g i`. -/
 @[to_additive sum_le_sum]
-lemma prod_le_prod'' (h : ∀ i ∈ s, f i ≤ g i) : ∏ i in s, f i ≤ ∏ i in s, g i :=
+lemma prod_le_prod' (h : ∀ i ∈ s, f i ≤ g i) : ∏ i in s, f i ≤ ∏ i in s, g i :=
 multiset.prod_map_le_prod_map f g h
 
 /-- In an ordered additive commutative monoid, if each summand `f i` of one finite sum is less than
@@ -119,14 +119,14 @@ or equal to the corresponding summand `g i` of another finite sum, then
 add_decl_doc sum_le_sum
 
 @[to_additive sum_nonneg] lemma one_le_prod' (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
-le_trans (by rw prod_const_one) (prod_le_prod'' h)
+le_trans (by rw prod_const_one) (prod_le_prod' h)
 
 @[to_additive finset.sum_nonneg']
 lemma one_le_prod'' (h : ∀ (i : ι), 1 ≤ f i) : 1 ≤ ∏ (i : ι) in s, f i :=
 finset.one_le_prod' (λ i hi, h i)
 
 @[to_additive sum_nonpos] lemma prod_le_one' (h : ∀i ∈ s, f i ≤ 1) : (∏ i in s, f i) ≤ 1 :=
-(prod_le_prod'' h).trans_eq (by rw prod_const_one)
+(prod_le_prod' h).trans_eq (by rw prod_const_one)
 
 @[to_additive sum_le_sum_of_subset_of_nonneg]
 lemma prod_le_prod_of_subset_of_one_le' (h : s ⊆ t) (hf : ∀ i ∈ t, i ∉ s → 1 ≤ f i) :
@@ -367,7 +367,7 @@ begin
   classical,
   rcases Hlt with ⟨i, hi, hlt⟩,
   rw [← insert_erase hi, prod_insert (not_mem_erase _ _), prod_insert (not_mem_erase _ _)],
-  exact mul_lt_mul_of_lt_of_le hlt (prod_le_prod'' $ λ j hj, Hle j  $ mem_of_mem_erase hj)
+  exact mul_lt_mul_of_lt_of_le hlt (prod_le_prod' $ λ j hj, Hle j  $ mem_of_mem_erase hj)
 end
 
 @[to_additive sum_lt_sum_of_nonempty]
@@ -432,7 +432,7 @@ begin
   refine finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) (λ a s ha ih H, _),
   specialize ih (λ i, H i ∘ finset.mem_insert_of_mem),
   rw [finset.prod_insert ha, finset.prod_insert ha, finset.forall_mem_insert, ←ih],
-  exact mul_eq_mul_iff_eq_and_eq (H a (s.mem_insert_self a)) (finset.prod_le_prod''
+  exact mul_eq_mul_iff_eq_and_eq (H a (s.mem_insert_self a)) (finset.prod_le_prod'
     (λ i, H i ∘ finset.mem_insert_of_mem)),
 end
 
@@ -447,7 +447,7 @@ theorem exists_lt_of_prod_lt' (Hlt : ∏ i in s, f i < ∏ i in s, g i) :
   ∃ i ∈ s, f i < g i :=
 begin
   contrapose! Hlt with Hle,
-  exact prod_le_prod'' Hle
+  exact prod_le_prod' Hle
 end
 
 @[to_additive exists_le_of_sum_le]
@@ -482,7 +482,7 @@ lemma prod_nonneg (h0 : ∀ i ∈ s, 0 ≤ f i) : 0 ≤ ∏ i in s, f i :=
 prod_induction f (λ i, 0 ≤ i) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
 /-- If all `f i`, `i ∈ s`, are nonnegative and each `f i` is less than or equal to `g i`, then the
-product of `f i` is less than or equal to the product of `g i`. See also `finset.prod_le_prod''` for
+product of `f i` is less than or equal to the product of `g i`. See also `finset.prod_le_prod'` for
 the case of an ordered commutative multiplicative monoid. -/
 lemma prod_le_prod (h0 : ∀ i ∈ s, 0 ≤ f i) (h1 : ∀ i ∈ s, f i ≤ g i) :
   ∏ i in s, f i ≤ ∏ i in s, g i :=
@@ -551,18 +551,6 @@ lemma _root_.canonically_ordered_comm_semiring.prod_pos [nontrivial R] :
   0 < ∏ i in s, f i ↔ (∀ i ∈ s, (0 : R) < f i) :=
 canonically_ordered_comm_semiring.multiset_prod_pos.trans $ by simp
 
-lemma prod_le_prod' (h : ∀ i ∈ s, f i ≤ g i) :
-  ∏ i in s, f i ≤ ∏ i in s, g i :=
-begin
-  classical,
-  induction s using finset.induction with a s has ih h,
-  { simp },
-  { rw [finset.prod_insert has, finset.prod_insert has],
-    apply mul_le_mul',
-    { exact h _ (finset.mem_insert_self a s) },
-    { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
-end
-
 /-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
   sum of the products of `g` and `h`. This is the version for `canonically_ordered_comm_semiring`.
 -/
@@ -587,7 +575,7 @@ variables [fintype ι]
 
 @[to_additive sum_mono, mono]
 lemma prod_mono' [ordered_comm_monoid M] : monotone (λ f : ι → M, ∏ i, f i) :=
-λ f g hfg, finset.prod_le_prod'' $ λ x _, hfg x
+λ f g hfg, finset.prod_le_prod' $ λ x _, hfg x
 
 attribute [mono] sum_mono
 

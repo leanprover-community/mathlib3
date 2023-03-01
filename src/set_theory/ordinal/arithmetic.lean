@@ -1763,6 +1763,7 @@ end
 
 end
 
+
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 
 @[simp] theorem one_add_nat_cast (m : ℕ) : 1 + (m : ordinal) = succ m :=

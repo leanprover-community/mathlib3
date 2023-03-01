@@ -168,14 +168,10 @@ theorem add_pow_char_of_commute [semiring R] {p : ℕ} [hp : fact p.prime]
   (x + y)^p = x^p + y^p :=
 let ⟨r, hr⟩ := h.exists_add_pow_prime_eq hp.out in by simp [hr]
 
-theorem add_pow_char_pow_of_commute [semiring R] {p : ℕ} [fact p.prime]
-  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+theorem add_pow_char_pow_of_commute [semiring R] {p n : ℕ} [hp : fact p.prime] [char_p R p]
+  (x y : R) (h : commute x y) :
   (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
-begin
-  induction n, { simp, },
-  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
-  apply add_pow_char_of_commute, apply commute.pow_pow h,
-end
+let ⟨r, hr⟩ := h.exists_add_pow_prime_pow_eq hp.out n in by simp [hr]
 
 theorem sub_pow_char_of_commute [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :

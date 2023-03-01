@@ -31,7 +31,7 @@ theorem X_dvd_iff {α : Type u} [comm_semiring α] {f : α[X]} : X ∣ f ↔ f.c
 ⟨λ ⟨g, hfg⟩, by rw [hfg, mul_comm, coeff_mul_X_zero],
 λ hf, ⟨f.div_X, by rw [mul_comm, ← add_zero (f.div_X * X), ← C_0, ← hf, div_X_mul_X_add]⟩⟩
 
-theorem X_pow_dvd_iff {α : Type u} [comm_semiring α] {f : α[X]} {n : ℕ} :
+theorem X_pow_dvd_iff {f : R[X]} {n : ℕ} :
   X^n ∣ f ↔ ∀ d < n, f.coeff d = 0 :=
 ⟨λ ⟨g, hgf⟩ d hd, by {simp only [hgf, coeff_X_pow_mul', ite_eq_right_iff, not_le_of_lt hd,
     is_empty.forall_iff]}, λ hd,

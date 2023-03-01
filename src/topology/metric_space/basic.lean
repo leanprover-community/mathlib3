@@ -727,12 +727,10 @@ metric.uniformity_basis_dist_le.uniform_continuous_on_iff metric.uniformity_basi
 theorem uniform_embedding_iff [pseudo_metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ :=
-uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
-⟨λ H δ δ0, let ⟨t, tu, ht⟩ := H _ (dist_mem_uniformity δ0),
-               ⟨ε, ε0, hε⟩ := mem_uniformity_dist.1 tu in
-  ⟨ε, ε0, λ a b h, ht _ _ (hε h)⟩,
- λ H s su, let ⟨δ, δ0, hδ⟩ := mem_uniformity_dist.1 su, ⟨ε, ε0, hε⟩ := H _ δ0 in
-  ⟨_, dist_mem_uniformity ε0, λ a b h, hδ (hε h)⟩⟩
+begin
+  simp only [uniformity_basis_dist.uniform_embedding_iff uniformity_basis_dist, exists_prop],
+  refl
+end
 
 /-- If a map between pseudometric spaces is a uniform embedding then the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y`. -/
@@ -2672,43 +2670,33 @@ end
 lemma subsingleton_sphere (x : γ) {r : ℝ} (hr : r ≤ 0) : (sphere x r).subsingleton :=
 (subsingleton_closed_ball x hr).anti sphere_subset_closed_ball
 
-/-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
-and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
-theorem uniform_embedding_iff' [metric_space β] {f : γ → β} :
-  uniform_embedding f ↔
-  (∀ ε > 0, ∃ δ > 0, ∀ {a b : γ}, dist a b < δ → dist (f a) (f b) < ε) ∧
-  (∀ δ > 0, ∃ ε > 0, ∀ {a b : γ}, dist (f a) (f b) < ε → dist a b < δ) :=
-begin
-  split,
-  { assume h,
-    exact ⟨uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1,
-          (uniform_embedding_iff.1 h).2.2⟩ },
-  { rintros ⟨h₁, h₂⟩,
-    refine uniform_embedding_iff.2 ⟨_, uniform_continuous_iff.2 h₁, h₂⟩,
-    assume x y hxy,
-    have : dist x y ≤ 0,
-    { refine le_of_forall_lt' (λδ δpos, _),
-      rcases h₂ δ δpos with ⟨ε, εpos, hε⟩,
-      have : dist (f x) (f y) < ε, by simpa [hxy],
-      exact hε this },
-    simpa using this }
-end
-
 @[priority 100] -- see Note [lower instance priority]
 instance _root_.metric_space.to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
+/-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
+and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
+theorem uniform_embedding_iff' [metric_space β] {f : γ → β} :
+  uniform_embedding f ↔
+    (∀ ε > 0, ∃ δ > 0, ∀ {a b : γ}, dist a b < δ → dist (f a) (f b) < ε) ∧
+    (∀ δ > 0, ∃ ε > 0, ∀ {a b : γ}, dist (f a) (f b) < ε → dist a b < δ) :=
+begin
+  simp only [uniform_embedding_iff_uniform_inducing,
+    uniformity_basis_dist.uniform_inducing_iff uniformity_basis_dist, exists_prop],
+  refl
+end
+
 /-- If a `pseudo_metric_space` is a T₀ space, then it is a `metric_space`. -/
-def of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_space α] [t0_space α] :
+def _root_.metric_space.of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_space α] [t0_space α] :
   metric_space α :=
 { eq_of_dist_eq_zero := λ x y hdist, inseparable.eq $ metric.inseparable_iff.2 hdist,
   ..‹pseudo_metric_space α› }
 
 /-- A metric space induces an emetric space -/
 @[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_emetric_space : emetric_space γ :=
-emetric.of_t0_pseudo_emetric_space γ
+instance _root_.metric_space.to_emetric_space : emetric_space γ :=
+emetric_space.of_t0_pseudo_emetric_space γ
 
 lemma is_closed_of_pairwise_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
   (hs : s.pairwise (λ x y, ε ≤ dist x y)) : is_closed s :=
@@ -2766,17 +2754,15 @@ def emetric_space.to_metric_space_of_dist {α : Type u} [e : emetric_space α]
   (edist_ne_top : ∀x y: α, edist x y ≠ ⊤)
   (h : ∀x y, dist x y = ennreal.to_real (edist x y)) :
   metric_space α :=
-{ dist := dist,
-  eq_of_dist_eq_zero := λx y hxy,
-    by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
-  ..pseudo_emetric_space.to_pseudo_metric_space_of_dist dist edist_ne_top h, }
+@metric_space.of_t0_pseudo_metric_space α
+  (pseudo_emetric_space.to_pseudo_metric_space_of_dist dist edist_ne_top h) _
 
 /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
 uniformity are defeq in the metric space and the emetric space. -/
-def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
+def emetric_space.to_metric_space {α : Type u} [emetric_space α] (h : ∀ x y : α, edist x y ≠ ⊤) :
   metric_space α :=
-emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
+emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λ x y, rfl)
 
 /-- Build a new metric space from an old one where the bundled bornology structure is provably
 (but typically non-definitionaly) equal to some given bornology structure.
@@ -2829,6 +2815,7 @@ instance : metric_space empty :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
+  edist := λ _ _, 0,
   eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
   dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
   to_uniform_space := empty.uniform_space,
@@ -2838,6 +2825,7 @@ instance : metric_space punit.{u + 1} :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
+  edist := λ _ _, 0,
   eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
   dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
   to_uniform_space := punit.uniform_space,

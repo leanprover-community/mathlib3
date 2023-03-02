@@ -139,7 +139,9 @@ lemma _root_.number_field.is_integral_closure.is_localization :
   is_localization (algebra.algebra_map_submonoid R (non_zero_divisors ℤ)) K :=
 begin
   haveI : char_zero R := char_zero.of_module _ K,
-  haveI : is_domain R := ring_equiv.is_domain (𝓞 K) (number_field.ring_of_integers.equiv R).symm,
+  haveI : is_domain R :=
+    (is_integral_closure.equiv ℤ R K (integral_closure ℤ K)).to_ring_equiv.is_domain
+      (integral_closure ℤ K),
   refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
   { rintros ⟨_, x, hx, rfl⟩,
     simpa only [int.cast_is_unit_iff, eq_int_cast, set_like.coe_mk, map_int_cast]

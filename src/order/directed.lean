@@ -259,8 +259,9 @@ lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_
 /--
 A function which preserves lub on directed sets
 -/
-def preserve_lub_on_directed [preorder β] (f : α → β) := ∀ (d : set α) (a : α), d.nonempty →
-directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a))
+def preserve_lub_on_directed [preorder β] (f : α → β) : Prop :=
+∀ (d : set α) (a : α), d.nonempty →
+  directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a))
 
 lemma preserve_lub_on_directed_montotone [preorder β] (f : α → β) (h: preserve_lub_on_directed f) :
   monotone f :=

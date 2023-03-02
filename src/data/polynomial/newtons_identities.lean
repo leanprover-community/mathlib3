@@ -237,7 +237,6 @@ open_locale classical
 lemma mv_polynomial.dvd_iff (σ : Type*)  [fintype σ] (R : Type*) [comm_ring R] (p : mv_polynomial σ R) (i : σ): mv_polynomial.eval₂ mv_polynomial.C (λ t, if t = i then 0 else mv_polynomial.X t) p = 0 → mv_polynomial.X i ∣ p :=
 begin
   sorry
-
 end
 
 lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=

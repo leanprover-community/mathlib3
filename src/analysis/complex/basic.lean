@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.complex.module
+import data.complex.exponential
 import data.is_R_or_C.basic
-import topology.algebra.module.infinite_sum
+import topology.algebra.infinite_sum.module
 import topology.instances.real_vector_space
 
 /-!
@@ -42,6 +43,9 @@ open_locale complex_conjugate topology
 instance : has_norm ℂ := ⟨abs⟩
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ‖z‖ = abs z := rfl
+
+lemma norm_exp_of_real_mul_I (t : ℝ) : ‖exp (t * I)‖ = 1 :=
+by simp only [norm_eq_abs, abs_exp_of_real_mul_I]
 
 instance : normed_add_comm_group ℂ :=
 add_group_norm.to_normed_add_comm_group

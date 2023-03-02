@@ -6,6 +6,8 @@ Authors: Johannes Hölzl
 import topology.instances.nnreal
 import topology.algebra.order.monotone_continuity
 import analysis.normed.group.basic
+import topology.algebra.infinite_sum.real
+
 /-!
 # Extended non-negative reals
 -/
@@ -159,7 +161,7 @@ tendsto_nhds_top_iff_nat.2 h
 
 lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
 tendsto_nhds_top $ λ n, mem_at_top_sets.2
-  ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
+  ⟨n + 1, λ m hm, mem_set_of.2 $ nat.cast_lt.2 $ nat.lt_of_succ_le hm⟩
 
 @[simp, norm_cast] lemma tendsto_coe_nhds_top {f : α → ℝ≥0} {l : filter α} :
   tendsto (λ x, (f x : ℝ≥0∞)) l (𝓝 ∞) ↔ tendsto f l at_top :=
@@ -169,7 +171,7 @@ by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
 lemma tendsto_of_real_at_top : tendsto ennreal.of_real at_top (𝓝 ∞) :=
 tendsto_coe_nhds_top.2 tendsto_real_to_nnreal_at_top
 
-lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅ a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
 lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_bot_basis
@@ -447,7 +449,7 @@ begin
   have : tendsto (* x) (𝓝[<] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, ennreal.zero_lt_one⟩,
+  haveI : (𝓝[<] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ⟨0, zero_lt_one⟩,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
@@ -1422,7 +1424,7 @@ begin
 end⟩
 
 lemma continuous_of_le_add_edist {f : α → ℝ≥0∞} (C : ℝ≥0∞)
-  (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
+  (hC : C ≠ ⊤) (h : ∀ x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
   rcases eq_or_ne C 0 with (rfl|C0),
   { simp only [zero_mul, add_zero] at h,
@@ -1432,7 +1434,7 @@ begin
     { have : f =ᶠ[𝓝 x] (λ _, ∞),
       { filter_upwards [emetric.ball_mem_nhds x ennreal.coe_lt_top],
         refine λ y (hy : edist y x < ⊤), _, rw edist_comm at hy,
-        simpa [hx, hC, hy.ne] using h x y },
+        simpa [hx, ennreal.mul_ne_top hC hy.ne] using h x y },
       exact this.continuous_at },
     { refine (ennreal.tendsto_nhds hx).2 (λ ε (ε0 : 0 < ε), _),
       filter_upwards [emetric.closed_ball_mem_nhds x (ennreal.div_pos_iff.2 ⟨ε0.ne', hC⟩)],

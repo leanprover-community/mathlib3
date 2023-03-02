@@ -20,15 +20,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install bibtool
+        if: ${{ 'STYLE_LINT_RUNNER' == 'ubuntu-latest' }}
+        run: sudo apt install -y bibtool
+
       - name: install Python
         if: ${{ 'STYLE_LINT_RUNNER' == 'ubuntu-latest' }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
-      - name: lint
+      - name: lint style
         run: |
           ./scripts/lint-style.sh
+
+      - name: lint references.bib
+        run: |
+          ./scripts/lint-bib.sh
 
   build:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'

@@ -3,12 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import algebra.big_operators.intervals
-import algebra.big_operators.nat_antidiagonal
+import data.nat.parity
 import logic.encodable.lattice
-import topology.algebra.mul_action
-import topology.algebra.order.monotone_convergence
-import topology.instances.real
+import topology.algebra.uniform_group
+import topology.algebra.star
 
 /-!
 # Infinite sum over a topological monoid
@@ -27,8 +25,8 @@ generally, see `has_sum.tendsto_sum_nat`.
 -/
 
 noncomputable theory
-open finset filter function classical
-open_locale topology classical big_operators nnreal
+open classical filter finset function
+open_locale big_operators classical topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -253,56 +251,6 @@ lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_mo
   (he : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   summable f ↔ summable g :=
 hes.exists.trans $ exists_congr $ @he
-
-section mul_opposite
-open mul_opposite
-
-lemma has_sum.op (hf : has_sum f a) : has_sum (λ a, op (f a)) (op a) :=
-(hf.map (@op_add_equiv α _) continuous_op : _)
-
-lemma summable.op (hf : summable f) : summable (op ∘ f) := hf.has_sum.op.summable
-
-lemma has_sum.unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} (hf : has_sum f a) :
-  has_sum (λ a, unop (f a)) (unop a) :=
-(hf.map (@op_add_equiv α _).symm continuous_unop : _)
-
-lemma summable.unop {f : β → αᵐᵒᵖ} (hf : summable f) : summable (unop ∘ f) :=
-hf.has_sum.unop.summable
-
-@[simp] lemma has_sum_op : has_sum (λ a, op (f a)) (op a) ↔ has_sum f a :=
-⟨has_sum.unop, has_sum.op⟩
-
-@[simp] lemma has_sum_unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} :
-  has_sum (λ a, unop (f a)) (unop a) ↔ has_sum f a :=
-⟨has_sum.op, has_sum.unop⟩
-
-@[simp] lemma summable_op : summable (λ a, op (f a)) ↔ summable f :=
-⟨summable.unop, summable.op⟩
-
-@[simp] lemma summable_unop {f : β → αᵐᵒᵖ} : summable (λ a, unop (f a)) ↔ summable f :=
-⟨summable.op, summable.unop⟩
-
-end mul_opposite
-
-section has_continuous_star
-variables [star_add_monoid α] [has_continuous_star α]
-
-lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
-by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
-
-lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
-hf.has_sum.star.summable
-
-lemma summable.of_star (hf : summable (λ b, star (f b))) : summable f :=
-by simpa only [star_star] using hf.star
-
-@[simp] lemma summable_star_iff : summable (λ b, star (f b)) ↔ summable f :=
-⟨summable.of_star, summable.star⟩
-
-@[simp] lemma summable_star_iff' : summable (star f) ↔ summable f :=
-summable_star_iff
-
-end has_continuous_star
 
 variable [has_continuous_add α]
 
@@ -562,17 +510,6 @@ lemma tsum_eq_tsum_of_ne_zero_bij {g : γ → α} (i : support g → β)
   ∑' x, f x  = ∑' y, g y :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i hi hf hfg
 
-lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
-begin
-  by_cases h : summable f,
-  { exact h.has_sum.op.tsum_eq, },
-  { have ho := summable_op.not.mpr h,
-    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero] },
-end
-
-lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
-mul_opposite.op_injective tsum_op.symm
-
 /-! ### `tsum` on subsets -/
 
 @[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
@@ -655,19 +592,6 @@ begin
 end
 
 end has_continuous_add
-
-section has_continuous_star
-variables [star_add_monoid α] [has_continuous_star α]
-
-lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
-begin
-  by_cases hf : summable f,
-  { exact hf.has_sum.star.tsum_eq.symm, },
-  { rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_star hf),
-        star_zero] },
-end
-
-end has_continuous_star
 
 open encodable
 
@@ -763,33 +687,6 @@ lemma tsum_even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
 (he.has_sum.even_add_odd ho.has_sum).tsum_eq.symm
 
 end tsum
-
-section prod
-
-variables [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
-
-lemma has_sum.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
-  (hf : has_sum f a) (hg : has_sum g b) :
-  has_sum (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
-by simp [has_sum, ← prod_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
-
-end prod
-
-section pi
-variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
-
-lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
-  has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp only [has_sum, tendsto_pi_nhds, sum_apply]
-
-lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
-by simp only [summable, pi.has_sum, skolem]
-
-lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
-  (∑' i, f i) x = ∑' i, f i x :=
-(pi.has_sum.mp hf.has_sum x).tsum_eq.symm
-
-end pi
 
 section topological_group
 variables [add_comm_group α] [topological_space α] [topological_add_group α]
@@ -1052,306 +949,6 @@ end nat
 
 end topological_group
 
-section topological_semiring
-variables [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α]
-variables {f g : β → α} {a a₁ a₂ : α}
-lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-by simpa only using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
-
-lemma has_sum.mul_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b * a₂) (a₁ * a₂) :=
-by simpa only using hf.map (add_monoid_hom.mul_right a₂) (continuous_id.mul continuous_const)
-
-lemma summable.mul_left (a) (hf : summable f) : summable (λb, a * f b) :=
-(hf.has_sum.mul_left _).summable
-
-lemma summable.mul_right (a) (hf : summable f) : summable (λb, f b * a) :=
-(hf.has_sum.mul_right _).summable
-
-section tsum
-variables [t2_space α]
-
-lemma summable.tsum_mul_left (a) (hf : summable f) : ∑'b, a * f b = a * ∑'b, f b :=
-(hf.has_sum.mul_left _).tsum_eq
-
-lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
-(hf.has_sum.mul_right _).tsum_eq
-
-lemma commute.tsum_right (a) (h : ∀ b, commute a (f b)) : commute a (∑' b, f b) :=
-if hf : summable f then
-  (hf.tsum_mul_left a).symm.trans ((congr_arg _ $ funext h).trans (hf.tsum_mul_right a))
-else
-  (tsum_eq_zero_of_not_summable hf).symm ▸ commute.zero_right _
-
-lemma commute.tsum_left (a) (h : ∀ b, commute (f b) a) : commute (∑' b, f b) a :=
-(commute.tsum_right _ $ λ b, (h b).symm).symm
-
-end tsum
-
-end topological_semiring
-
-section const_smul
-variables {R : Type*}
-[monoid R]
-[topological_space α] [add_comm_monoid α]
-[distrib_mul_action R α] [has_continuous_const_smul R α]
-{f : β → α}
-
-lemma has_sum.const_smul {a : α} (r : R) (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const_smul r)
-
-lemma summable.const_smul (r : R) (hf : summable f) : summable (λ z, r • f z) :=
-(hf.has_sum.const_smul r).summable
-
-lemma tsum_const_smul [t2_space α] (r : R) (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
-(hf.has_sum.const_smul r).tsum_eq
-
-end const_smul
-
-section smul_const
-variables {R : Type*}
-[semiring R] [topological_space R]
-[topological_space α] [add_comm_monoid α]
-[module R α] [has_continuous_smul R α]
-{f : β → R}
-
-lemma has_sum.smul_const {r : R} (hf : has_sum f r) (a : α) : has_sum (λ z, f z • a) (r • a) :=
-hf.map ((smul_add_hom R α).flip a) (continuous_id.smul continuous_const)
-
-lemma summable.smul_const (hf : summable f) (a : α) : summable (λ z, f z • a) :=
-(hf.has_sum.smul_const a).summable
-
-lemma tsum_smul_const [t2_space α] (hf : summable f) (a : α) : ∑' z, f z • a = (∑' z, f z) • a :=
-(hf.has_sum.smul_const a).tsum_eq
-
-end smul_const
-
-section division_ring
-
-variables [division_ring α] [topological_space α] [topological_ring α]
-{f g : β → α} {a a₁ a₂ : α}
-
-lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
-by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
-
-lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
-(h.has_sum.div_const b).summable
-
-lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum (λb, a₂ * f b) (a₂ * a₁) ↔ has_sum f a₁ :=
-⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a₂⁻¹, has_sum.mul_left _⟩
-
-lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum (λb, f b * a₂) (a₁ * a₂) ↔ has_sum f a₁ :=
-⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a₂⁻¹, has_sum.mul_right _⟩
-
-lemma has_sum_div_const_iff (h : a₂ ≠ 0) : has_sum (λb, f b / a₂) (a₁ / a₂) ↔ has_sum f a₁ :=
-by simpa only [div_eq_mul_inv] using has_sum_mul_right_iff (inv_ne_zero h)
-
-lemma summable_mul_left_iff (h : a ≠ 0) : summable (λb, a * f b) ↔ summable f :=
-⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹, λ H, H.mul_left _⟩
-
-lemma summable_mul_right_iff (h : a ≠ 0) : summable (λb, f b * a) ↔ summable f :=
-⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹, λ H, H.mul_right _⟩
-
-lemma summable_div_const_iff (h : a ≠ 0) : summable (λb, f b / a) ↔ summable f :=
-by simpa only [div_eq_mul_inv] using summable_mul_right_iff (inv_ne_zero h)
-
-lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
-if hf : summable f then hf.tsum_mul_left a
-else if ha : a = 0 then by simp [ha]
-else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).mp hf), mul_zero]
-
-lemma tsum_mul_right [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
-if hf : summable f then hf.tsum_mul_right a
-else if ha : a = 0 then by simp [ha]
-else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).mp hf), zero_mul]
-
-lemma tsum_div_const [t2_space α] : (∑' x, f x / a) = (∑' x, f x) / a :=
-by simpa only [div_eq_mul_inv] using tsum_mul_right
-
-end division_ring
-
-section order_topology
-variables [ordered_add_comm_monoid α] [topological_space α] [order_closed_topology α]
-variables {f g : β → α} {a a₁ a₂ : α}
-
-lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
-le_of_tendsto_of_tendsto' hf hg $ assume s, sum_le_sum $ assume b _, h b
-
-@[mono] lemma has_sum_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f ≤ g) : a₁ ≤ a₂ :=
-has_sum_le h hf hg
-
-lemma has_sum_le_of_sum_le (hf : has_sum f a) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
-  a ≤ a₂ :=
-le_of_tendsto' hf h
-
-lemma le_has_sum_of_le_sum (hf : has_sum f a) (h : ∀ s : finset β, a₂ ≤ ∑ b in s, f b) :
-  a₂ ≤ a :=
-ge_of_tendsto' hf h
-
-lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
-  (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
-have has_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
-begin
-  refine (has_sum_iff_has_sum_of_ne_zero_bij (i ∘ coe) _ _ _).2 hf,
-  { exact assume c₁ c₂ eq, hi eq },
-  { intros c hc,
-    rw [mem_support] at hc,
-    cases eq : partial_inv i c with b; rw eq at hc,
-    { contradiction },
-    { rw [partial_inv_of_injective hi] at eq,
-      exact ⟨⟨b, hc⟩, eq⟩ } },
-  { assume c, simp [partial_inv_left hi, option.cases_on'] }
-end,
-begin
-  refine has_sum_le (assume c, _) this hg,
-  by_cases c ∈ set.range i,
-  { rcases h with ⟨b, rfl⟩,
-    rw [partial_inv_left hi, option.cases_on'],
-    exact h _ },
-  { have : partial_inv i c = none := dif_neg h,
-    rw [this, option.cases_on'],
-    exact hs _ h }
-end
-
-lemma tsum_le_tsum_of_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
-  (h : ∀b, f b ≤ g (i b)) (hf : summable f) (hg : summable g) : tsum f ≤ tsum g :=
-has_sum_le_inj i hi hs h hf.has_sum hg.has_sum
-
-lemma sum_le_has_sum (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
-  ∑ b in s, f b ≤ a :=
-ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
-  sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
-
-lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
-  is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto_at_top (finset.sum_mono_set_of_nonneg h) hf
-
-lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
-calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
-... ≤ a : sum_le_has_sum _ (by { convert hb, simp }) hf
-
-lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
-  ∑ b in s, f b ≤ ∑' b, f b :=
-sum_le_has_sum s hs hf.has_sum
-
-lemma le_tsum (hf : summable f) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ ∑' b, f b :=
-le_has_sum (summable.has_sum hf) b hb
-
-lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : ∑'b, f b ≤ ∑'b, g b :=
-has_sum_le h hf.has_sum hg.has_sum
-
-@[mono] lemma tsum_mono (hf : summable f) (hg : summable g) (h : f ≤ g) :
-  ∑' n, f n ≤ ∑' n, g n :=
-tsum_le_tsum h hf hg
-
-lemma tsum_le_of_sum_le (hf : summable f) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
-  ∑' b, f b ≤ a₂ :=
-has_sum_le_of_sum_le hf.has_sum h
-
-lemma tsum_le_of_sum_le' (ha₂ : 0 ≤ a₂) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
-  ∑' b, f b ≤ a₂ :=
-begin
-  by_cases hf : summable f,
-  { exact tsum_le_of_sum_le hf h },
-  { rw tsum_eq_zero_of_not_summable hf,
-    exact ha₂ }
-end
-
-lemma has_sum.nonneg (h : ∀ b, 0 ≤ g b) (ha : has_sum g a) : 0 ≤ a :=
-has_sum_le h has_sum_zero ha
-
-lemma has_sum.nonpos (h : ∀ b, g b ≤ 0) (ha : has_sum g a) : a ≤ 0 :=
-has_sum_le h ha has_sum_zero
-
-lemma tsum_nonneg (h : ∀ b, 0 ≤ g b) : 0 ≤ ∑'b, g b :=
-begin
-  by_cases hg : summable g,
-  { exact hg.has_sum.nonneg h },
-  { simp [tsum_eq_zero_of_not_summable hg] }
-end
-
-lemma tsum_nonpos (h : ∀ b, f b ≤ 0) : ∑'b, f b ≤ 0 :=
-begin
-  by_cases hf : summable f,
-  { exact hf.has_sum.nonpos h },
-  { simp [tsum_eq_zero_of_not_summable hf] }
-end
-
-end order_topology
-
-section ordered_topological_group
-
-variables [ordered_add_comm_group α] [topological_space α] [topological_add_group α]
-  [order_closed_topology α] {f g : β → α} {a₁ a₂ : α}
-
-lemma has_sum_lt {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
-  (hf : has_sum f a₁) (hg : has_sum g a₂) :
-  a₁ < a₂ :=
-have update f i 0 ≤ update g i 0 := update_le_update_iff.mpr ⟨rfl.le, λ i _, h i⟩,
-have 0 - f i + a₁ ≤ 0 - g i + a₂ := has_sum_le this (hf.update i 0) (hg.update i 0),
-by simpa only [zero_sub, add_neg_cancel_left] using add_lt_add_of_lt_of_le hi this
-
-@[mono] lemma has_sum_strict_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f < g) : a₁ < a₂ :=
-let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt hle hi hf hg
-
-lemma tsum_lt_tsum {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
-  (hf : summable f) (hg : summable g) :
-  ∑' n, f n < ∑' n, g n :=
-has_sum_lt h hi hf.has_sum hg.has_sum
-
-@[mono] lemma tsum_strict_mono (hf : summable f) (hg : summable g) (h : f < g) :
-  ∑' n, f n < ∑' n, g n :=
-let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hf hg
-
-lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g i) :
-  0 < ∑' b, g b :=
-by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
-
-lemma has_sum_zero_iff_of_nonneg (hf : ∀ i, 0 ≤ f i) : has_sum f 0 ↔ f = 0 :=
-begin
-  split,
-  { intros hf',
-    ext i,
-    by_contra hi',
-    have hi : 0 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
-    simpa using has_sum_lt hf hi has_sum_zero hf' },
-  { rintros rfl,
-    exact has_sum_zero },
-end
-
-end ordered_topological_group
-
-section canonically_ordered
-variables [canonically_ordered_add_monoid α] [topological_space α] [order_closed_topology α]
-variables {f : β → α} {a : α}
-
-lemma le_has_sum' (hf : has_sum f a) (b : β) : f b ≤ a :=
-le_has_sum hf b $ λ _ _, zero_le _
-
-lemma le_tsum' (hf : summable f) (b : β) : f b ≤ ∑' b, f b :=
-le_tsum hf b $ λ _ _, zero_le _
-
-lemma has_sum_zero_iff : has_sum f 0 ↔ ∀ x, f x = 0 :=
-begin
-  refine ⟨_, λ h, _⟩,
-  { contrapose!,
-    exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (pos_iff_ne_zero.2 hx) (le_has_sum' h x)) },
-  { convert has_sum_zero,
-    exact funext h }
-end
-
-lemma tsum_eq_zero_iff (hf : summable f) : ∑' i, f i = 0 ↔ ∀ x, f x = 0 :=
-by rw [←has_sum_zero_iff, hf.has_sum_iff]
-
-lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 0 :=
-by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
-
-lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto_at_top (finset.sum_mono_set f) hf
-
-end canonically_ordered
-
 section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
@@ -1529,275 +1126,124 @@ end
 lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
 
-lemma summable.tendsto_top_of_pos {α : Type*}
-  [linear_ordered_field α] [topological_space α] [order_topology α] {f : ℕ → α}
-  (hf : summable f⁻¹) (hf' : ∀ n, 0 < f n) : tendsto f at_top at_top :=
-begin
-  rw [show f = f⁻¹⁻¹, by { ext, simp }],
-  apply filter.tendsto.inv_tendsto_zero,
-  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
-    (summable.tendsto_at_top_zero hf),
-  rw eventually_iff_exists_mem,
-  refine ⟨set.Ioi 0, Ioi_mem_at_top _, λ _ _, _⟩,
-  rw [set.mem_Ioi, inv_eq_one_div, one_div, pi.inv_apply, _root_.inv_pos],
-  exact hf' _,
-end
-
 end topological_group
 
-section preorder
+section const_smul
+variables [monoid γ] [topological_space α] [add_comm_monoid α] [distrib_mul_action γ α]
+  [has_continuous_const_smul γ α] {f : β → α}
 
-variables {E : Type*} [preorder E] [add_comm_monoid E]
-  [topological_space E] [order_closed_topology E] [t2_space E]
+lemma has_sum.const_smul {a : α} (b : γ) (hf : has_sum f a) : has_sum (λ i, b • f i) (b • a) :=
+hf.map (distrib_mul_action.to_add_monoid_hom α _) $ continuous_const_smul _
 
-lemma tsum_le_of_sum_range_le {f : ℕ → E} {c : E} (hsum : summable f)
-  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
-let ⟨l, hl⟩ := hsum in hl.tsum_eq.symm ▸ le_of_tendsto' hl.tendsto_sum_nat h
+lemma summable.const_smul (b : γ) (hf : summable f) : summable (λ i, b • f i) :=
+(hf.has_sum.const_smul _).summable
 
-end preorder
+lemma tsum_const_smul [t2_space α] (b : γ) (hf : summable f) : ∑' i, b • f i = b • ∑' i, f i :=
+(hf.has_sum.const_smul _).tsum_eq
 
-section linear_order
+end const_smul
 
-/-! For infinite sums taking values in a linearly ordered monoid, the existence of a least upper
-bound for the finite sums is a criterion for summability.
+/-! ### Product and pi types -/
 
-This criterion is useful when applied in a linearly ordered monoid which is also a complete or
-conditionally complete linear order, such as `ℝ`, `ℝ≥0`, `ℝ≥0∞`, because it is then easy to check
-the existence of a least upper bound.
--/
+section prod
+variables [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
 
-lemma has_sum_of_is_lub_of_nonneg [linear_ordered_add_comm_monoid β] [topological_space β]
-  [order_topology β] {f : α → β} (b : β) (h : ∀ b, 0 ≤ f b)
-  (hf : is_lub (set.range (λ s, ∑ a in s, f a)) b) :
-  has_sum f b :=
-tendsto_at_top_is_lub (finset.sum_mono_set_of_nonneg h) hf
+lemma has_sum.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
+  (hf : has_sum f a) (hg : has_sum g b) :
+  has_sum (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
+by simp [has_sum, ← prod_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
 
-lemma has_sum_of_is_lub [canonically_linear_ordered_add_monoid β] [topological_space β]
-   [order_topology β] {f : α → β} (b : β) (hf : is_lub (set.range (λ s, ∑ a in s, f a)) b) :
-  has_sum f b :=
-tendsto_at_top_is_lub (finset.sum_mono_set f) hf
+end prod
 
-lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]
-  [uniform_add_group β] [complete_space β] {f : α → β} :
-  summable (λ x, |f x|) ↔ summable f :=
-have h1 : ∀ x : {x | 0 ≤ f x}, |f x| = f x := λ x, abs_of_nonneg x.2,
-have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, |f x| = -f x := λ x, abs_of_neg (not_le.1 x.2),
-calc summable (λ x, |f x|) ↔
-  summable (λ x : {x | 0 ≤ f x}, |f x|) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, |f x|) :
-  summable_subtype_and_compl.symm
-... ↔ summable (λ x : {x | 0 ≤ f x}, f x) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, -f x) :
-  by simp only [h1, h2]
-... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
+section pi
+variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
 
-alias summable_abs_iff ↔ summable.of_abs summable.abs
+lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
+  has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
+by simp only [has_sum, tendsto_pi_nhds, sum_apply]
 
-lemma finite_of_summable_const [linear_ordered_add_comm_group β] [archimedean β]
-  [topological_space β] [order_closed_topology β] {b : β} (hb : 0 < b)
-  (hf : summable (λ a : α, b)) :
-  set.finite (set.univ : set α) :=
+lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
+by simp only [summable, pi.has_sum, skolem]
+
+lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
+  (∑' i, f i) x = ∑' i, f i x :=
+(pi.has_sum.mp hf.has_sum x).tsum_eq.symm
+
+end pi
+
+/-! ### Multiplicative opposite -/
+
+section mul_opposite
+open mul_opposite
+variables [add_comm_monoid α] [topological_space α] {f : β → α} {a : α}
+
+lemma has_sum.op (hf : has_sum f a) : has_sum (λ a, op (f a)) (op a) :=
+(hf.map (@op_add_equiv α _) continuous_op : _)
+
+lemma summable.op (hf : summable f) : summable (op ∘ f) := hf.has_sum.op.summable
+
+lemma has_sum.unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} (hf : has_sum f a) :
+  has_sum (λ a, unop (f a)) (unop a) :=
+(hf.map (@op_add_equiv α _).symm continuous_unop : _)
+
+lemma summable.unop {f : β → αᵐᵒᵖ} (hf : summable f) : summable (unop ∘ f) :=
+hf.has_sum.unop.summable
+
+@[simp] lemma has_sum_op : has_sum (λ a, op (f a)) (op a) ↔ has_sum f a :=
+⟨has_sum.unop, has_sum.op⟩
+
+@[simp] lemma has_sum_unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} :
+  has_sum (λ a, unop (f a)) (unop a) ↔ has_sum f a :=
+⟨has_sum.op, has_sum.unop⟩
+
+@[simp] lemma summable_op : summable (λ a, op (f a)) ↔ summable f := ⟨summable.unop, summable.op⟩
+
+@[simp] lemma summable_unop {f : β → αᵐᵒᵖ} : summable (λ a, unop (f a)) ↔ summable f :=
+⟨summable.op, summable.unop⟩
+
+variables [t2_space α]
+
+lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
 begin
-  have H : ∀ s : finset α, s.card • b ≤ ∑' a : α, b,
-  { intros s,
-    simpa using sum_le_has_sum s (λ a ha, hb.le) hf.has_sum },
-  obtain ⟨n, hn⟩ := archimedean.arch (∑' a : α, b) hb,
-  have : ∀ s : finset α, s.card ≤ n,
-  { intros s,
-    simpa [nsmul_le_nsmul_iff hb] using (H s).trans hn },
-  haveI : fintype α := fintype_of_finset_card_le n this,
-  exact set.finite_univ
+  by_cases h : summable f,
+  { exact h.has_sum.op.tsum_eq },
+  { have ho := summable_op.not.mpr h,
+    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero] }
 end
 
-end linear_order
+lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
+mul_opposite.op_injective tsum_op.symm
 
-section cauchy_seq
-open filter
+end mul_opposite
 
-/-- If the extended distance between consecutive points of a sequence is estimated
-by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [pseudo_emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
-  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+/-! ### Interaction with the star -/
+
+section has_continuous_star
+variables [add_comm_monoid α] [topological_space α] [star_add_monoid α] [has_continuous_star α]
+  {f : β → α} {a : α}
+
+lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
+by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
+
+lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
+hf.has_sum.star.summable
+
+lemma summable.of_star (hf : summable (λ b, star (f b))) : summable f :=
+by simpa only [star_star] using hf.star
+
+@[simp] lemma summable_star_iff : summable (λ b, star (f b)) ↔ summable f :=
+⟨summable.of_star, summable.star⟩
+
+@[simp] lemma summable_star_iff' : summable (star f) ↔ summable f := summable_star_iff
+
+variables [t2_space α]
+
+lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
 begin
-  refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
-  -- Actually we need partial sums of `d` to be a Cauchy sequence
-  replace hd : cauchy_seq (λ (n : ℕ), ∑ x in range n, d x) :=
-    let ⟨_, H⟩ := hd in H.tendsto_sum_nat.cauchy_seq,
-  -- Now we take the same `N` as in one of the definitions of a Cauchy sequence
-  refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
-  have hsum := hN n hn,
-  -- We simplify the known inequality
-  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, add_tsub_cancel_left] at hsum,
-  norm_cast at hsum,
-  replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
-  rw edist_comm,
-  -- Then use `hf` to simplify the goal to the same form
-  apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn (λ k _ _, hf k)),
-  assumption_mod_cast
+  by_cases hf : summable f,
+  { exact hf.has_sum.star.tsum_eq.symm, },
+  { rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_star hf),
+        star_zero] },
 end
 
-/-- If the distance between consecutive points of a sequence is estimated by a summable series,
-then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_dist_le_of_summable [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
-  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
-begin
-  refine metric.cauchy_seq_iff'.2 (λε εpos, _),
-  replace hd : cauchy_seq (λ (n : ℕ), ∑ x in range n, d x) :=
-    let ⟨_, H⟩ := hd in H.tendsto_sum_nat.cauchy_seq,
-  refine (metric.cauchy_seq_iff'.1 hd ε εpos).imp (λ N hN n hn, _),
-  have hsum := hN n hn,
-  rw [real.dist_eq, ← sum_Ico_eq_sub _ hn] at hsum,
-  calc dist (f n) (f N) = dist (f N) (f n) : dist_comm _ _
-  ... ≤ ∑ x in Ico N n, d x : dist_le_Ico_sum_of_dist_le hn (λ k _ _, hf k)
-  ... ≤ |∑ x in Ico N n, d x| : le_abs_self _
-  ... < ε : hsum
-end
-
-lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
-  (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
-cauchy_seq_of_dist_le_of_summable _ (λ _, le_rfl) h
-
-lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
-  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
-  (n : ℕ) :
-  dist (f n) a ≤ ∑' m, d (n + m) :=
-begin
-  refine le_of_tendsto (tendsto_const_nhds.dist ha)
-    (eventually_at_top.2 ⟨n, λ m hnm, _⟩),
-  refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
-  rw [sum_Ico_eq_sum_range],
-  refine sum_le_tsum (range _) (λ _ _, le_trans dist_nonneg (hf _)) _,
-  exact hd.comp_injective (add_right_injective n)
-end
-
-lemma dist_le_tsum_of_dist_le_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
-  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a)) :
-  dist (f 0) a ≤ tsum d :=
-by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
-
-lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
-  (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
-  dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
-show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
-dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_rfl) h ha n
-
-lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
-  (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :
-  dist (f 0) a ≤ ∑' n, dist (f n) (f n.succ) :=
-by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
-
-end cauchy_seq
-
-/-! ## Multipliying two infinite sums
-
-In this section, we prove various results about `(∑' x : β, f x) * (∑' y : γ, g y)`. Note that we
-always assume that the family `λ x : β × γ, f x.1 * g x.2` is summable, since there is no way to
-deduce this from the summmabilities of `f` and `g` in general, but if you are working in a normed
-space, you may want to use the analogous lemmas in `analysis/normed_space/basic`
-(e.g `tsum_mul_tsum_of_summable_norm`).
-
-We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
-`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_eq_tsum_sum_antidiagonal`).
-
-### Arbitrary index types
--/
-
-section tsum_mul_tsum
-
-variables [topological_space α] [t3_space α] [non_unital_non_assoc_semiring α]
-  [topological_semiring α] {f : β → α} {g : γ → α} {s t u : α}
-
-lemma has_sum.mul_eq (hf : has_sum f s) (hg : has_sum g t)
-  (hfg : has_sum (λ (x : β × γ), f x.1 * g x.2) u) :
-  s * t = u :=
-have key₁ : has_sum (λ b, f b * t) (s * t),
-  from hf.mul_right t,
-have this : ∀ b : β, has_sum (λ c : γ, f b * g c) (f b * t),
-  from λ b, hg.mul_left (f b),
-have key₂ : has_sum (λ b, f b * t) u,
-  from has_sum.prod_fiberwise hfg this,
-key₁.unique key₂
-
-lemma has_sum.mul (hf : has_sum f s) (hg : has_sum g t)
-  (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
-  has_sum (λ (x : β × γ), f x.1 * g x.2) (s * t) :=
-let ⟨u, hu⟩ := hfg in
-(hf.mul_eq hg hu).symm ▸ hu
-
-/-- Product of two infinites sums indexed by arbitrary types.
-    See also `tsum_mul_tsum_of_summable_norm` if `f` and `g` are abolutely summable. -/
-lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
-  (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
-  (∑' x, f x) * (∑' y, g y) = (∑' z : β × γ, f z.1 * g z.2) :=
-hf.has_sum.mul_eq hg.has_sum hfg.has_sum
-
-end tsum_mul_tsum
-
-section cauchy_product
-
-/-! ### `ℕ`-indexed families (Cauchy product)
-
-We prove two versions of the Cauchy product formula. The first one is
-`tsum_mul_tsum_eq_tsum_sum_range`, where the `n`-th term is a sum over `finset.range (n+1)`
-involving `nat` subtraction.
-In order to avoid `nat` subtraction, we also provide `tsum_mul_tsum_eq_tsum_sum_antidiagonal`,
-where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
-`finset` `finset.nat.antidiagonal n` -/
-
-variables {f : ℕ → α} {g : ℕ → α}
-
-open finset
-
-variables [topological_space α] [non_unital_non_assoc_semiring α]
-
-/- The family `(k, l) : ℕ × ℕ ↦ f k * g l` is summable if and only if the family
-`(n, k, l) : Σ (n : ℕ), nat.antidiagonal n ↦ f k * g l` is summable. -/
-lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
-  summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
-  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
-nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
-
-variables [t3_space α] [topological_semiring α]
-
-lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
-  (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
-  summable (λ n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
-begin
-  rw summable_mul_prod_iff_summable_mul_sigma_antidiagonal at h,
-  conv {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
-  exact h.sigma' (λ n, (has_sum_fintype _).summable),
-end
-
-/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
-    expressed by summing on `finset.nat.antidiagonal`.
-    See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`
-    if `f` and `g` are absolutely summable. -/
-lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal (hf : summable f) (hg : summable g)
-  (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
-  (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
-begin
-  conv_rhs {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
-  rw [tsum_mul_tsum hf hg hfg, ← nat.sigma_antidiagonal_equiv_prod.tsum_eq (_ : ℕ × ℕ → α)],
-  exact tsum_sigma' (λ n, (has_sum_fintype _).summable)
-    (summable_mul_prod_iff_summable_mul_sigma_antidiagonal.mp hfg)
-end
-
-lemma summable_sum_mul_range_of_summable_mul {f g : ℕ → α}
-  (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
-  summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
-begin
-  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
-  exact summable_sum_mul_antidiagonal_of_summable_mul h
-end
-
-/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
-    expressed by summing on `finset.range`.
-    See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`
-    if `f` and `g` are absolutely summable. -/
-lemma tsum_mul_tsum_eq_tsum_sum_range (hf : summable f) (hg : summable g)
-  (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
-  (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=
-begin
-  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
-  exact tsum_mul_tsum_eq_tsum_sum_antidiagonal hf hg hfg
-end
-
-end cauchy_product
+end has_continuous_star

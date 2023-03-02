@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Eric Wieser
 import algebra.quaternion
 import analysis.inner_product_space.basic
 import analysis.inner_product_space.pi_L2
+import topology.algebra.algebra
 
 /-!
 # Quaternions as a normed algebra
@@ -61,6 +62,12 @@ by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, re
 @[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ‖(a : ℍ)‖₊ = ‖a‖₊ :=
 subtype.ext $ norm_coe a
 
+@[simp] lemma norm_conj (a : ℍ) : ‖conj a‖ = ‖a‖ :=
+by simp_rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_conj]
+
+@[simp] lemma nnnorm_conj (a : ℍ) : ‖conj a‖₊ = ‖a‖₊ :=
+subtype.ext $ norm_conj a
+
 noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := λ a b, by { simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
@@ -68,7 +75,10 @@ noncomputable instance : normed_division_ring ℍ :=
 
 instance : normed_algebra ℝ ℍ :=
 { norm_smul_le := λ a x, (norm_smul a x).le,
-  to_algebra := quaternion.algebra }
+  to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
+
+instance : cstar_ring ℍ :=
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_conj x) }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 
@@ -115,6 +125,16 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
 
+@[continuity] lemma continuous_conj : continuous (conj : ℍ → ℍ) :=
+continuous_star
+
+@[continuity] lemma continuous_coe : continuous (coe : ℝ → ℍ) :=
+continuous_algebra_map ℝ ℍ
+
+@[continuity] lemma continuous_norm_sq : continuous (norm_sq : ℍ → ℝ) :=
+by simpa [←norm_sq_eq_norm_sq]
+  using (continuous_norm.mul continuous_norm : continuous (λ q : ℍ, ‖q‖ * ‖q‖))
+
 @[continuity] lemma continuous_re : continuous (λ q : ℍ, q.re) :=
 (continuous_apply 0).comp linear_isometry_equiv_tuple.continuous
 
@@ -126,6 +146,9 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
 
 @[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
 (continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im : continuous (λ q : ℍ, q.im) :=
+by simpa only [←sub_self_re] using continuous_id.sub (continuous_coe.comp continuous_re)
 
 instance : complete_space ℍ :=
 begin

@@ -3,17 +3,34 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Yury Kudryashov, Frédéric Dupuis
 -/
+import topology.algebra.infinite_sum.basic
 import topology.algebra.module.basic
-import topology.algebra.infinite_sum
 
 /-! # Infinite sums in topological vector spaces -/
+
+variables {ι R R₂ M M₂ : Type*}
+
+section smul_const
+variables [semiring R] [topological_space R] [topological_space M] [add_comm_monoid M] [module R M]
+  [has_continuous_smul R M] {f : ι → R}
+
+lemma has_sum.smul_const {r : R} (hf : has_sum f r) (a : M) : has_sum (λ z, f z • a) (r • a) :=
+hf.map ((smul_add_hom R M).flip a) (continuous_id.smul continuous_const)
+
+lemma summable.smul_const (hf : summable f) (a : M) : summable (λ z, f z • a) :=
+(hf.has_sum.smul_const _).summable
+
+lemma tsum_smul_const [t2_space M] (hf : summable f) (a : M) : ∑' z, f z • a = (∑' z, f z) • a :=
+(hf.has_sum.smul_const _).tsum_eq
+
+end smul_const
 
 section has_sum
 
 -- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
 -- don't have bundled continuous additive homomorphisms.
 
-variables {ι R R₂ M M₂ : Type*} [semiring R] [semiring R₂] [add_comm_monoid M] [module R M]
+variables [semiring R] [semiring R₂] [add_comm_monoid M] [module R M]
   [add_comm_monoid M₂] [module R₂ M₂] [topological_space M] [topological_space M₂]
   {σ : R →+* R₂} {σ' : R₂ →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
 

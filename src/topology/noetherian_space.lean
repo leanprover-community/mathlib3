@@ -9,6 +9,9 @@ import topology.sets.closeds
 /-!
 # Noetherian space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Noetherian space is a topological space that satisfies any of the following equivalent conditions:
 - `well_founded ((>) : opens α → opens α → Prop)`
 - `well_founded ((<) : closeds α → closeds α → Prop)`

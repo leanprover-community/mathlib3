@@ -550,19 +550,21 @@ lemma snd_multiset_prod {ι} [decidable_eq ι] [comm_semiring R] [add_comm_monoi
   (s.map f).prod.snd =
     (s.map (λ i, ((s.erase i).map (λ j, (f j).fst)).prod • (f i).snd)).sum :=
 begin
-  have : ∀ (l : list ι) (f : ι → tsze R M), (l.map f).enum = l.enum.map (prod.map id f),
-  { intros l f,
-    induction l with x xs ih,
-    { refl },
-    { rw [list.map_cons, list.enum_cons, list.enum_cons, list.map_cons,
-        ←list.map_fst_add_enum_eq_enum_from, ←list.map_fst_add_enum_eq_enum_from,
-        ih, list.map_map, list.map_map, prod.map_comp_map,
-        function.comp.left_id, function.comp.right_id, prod.map_mk, list.map_map, id], },
-    },
-  induction s,
+  rcases s with ⟨l⟩,
   dsimp,
-  simp only [multiset.coe_prod, multiset.coe_sum, snd_list_prod, list.map_enum],
+  simp_rw [multiset.coe_prod, multiset.coe_sum, snd_list_prod, list.enum_map,
+    op_smul_eq_smul, list.map_map, function.comp, prod.map_snd, prod.map_fst, smul_smul,
+    id.def, ←list.prod_append],
+  conv_rhs
+  { find (list.map _ _)
+    { congr,
+      { skip },
+      { rw ← list.enum_map_snd l } } },
+  simp_rw [list.map_map, function.comp],
+  congr' 2 with ⟨n, i⟩,
   congr' 1,
+  dsimp only,
+  sorry
 end
 
 lemma snd_prod {ι} [decidable_eq ι] [comm_semiring R] [add_comm_monoid M]

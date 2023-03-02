@@ -147,7 +147,7 @@ def image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) :
   map_add' := image_union _,
   map_mul' := λ _ _, image_mul f }
 
-lemma down_image_def [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set_semiring α) :
+lemma image_hom_def [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set_semiring α) :
   image_hom f s = (image f s.down).up := rfl
 
 @[simp] lemma down_image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set_semiring α) :

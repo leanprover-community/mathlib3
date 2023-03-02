@@ -180,18 +180,52 @@ lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noethe
   is_noetherian_ring C :=
 is_noetherian_ring_iff.mpr $ is_noetherian_of_tower A (is_integral_closure.is_noetherian A K L C)
 
+/- If `L` is a finite separable extension of `K = Frac(A)` and `L` has no zero smul divisors by `A`,
+the integral closure `C` of `A` in `L` has no zero smul divisors by `A`. -/
+lemma is_integral_closure.no_zero_smul_divisors [no_zero_smul_divisors A L] :
+  no_zero_smul_divisors A C :=
+begin
+  refine function.injective.no_zero_smul_divisors
+      _ (is_integral_closure.algebra_map_injective C A L) (map_zero _) (λ _ _, _),
+  simp only [algebra.algebra_map_eq_smul_one, is_scalar_tower.smul_assoc],
+ end
+
 /- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a principal ring
 and `L` has no zero smul divisors by `A`, the integral closure `C` of `A` in `L` is
 a free `A`-module. -/
 lemma is_integral_closure.module_free [no_zero_smul_divisors A L] [is_principal_ideal_ring A] :
   module.free A C :=
 begin
-  haveI : no_zero_smul_divisors A C,
-  {refine function.injective.no_zero_smul_divisors
-      _ (is_integral_closure.algebra_map_injective C A L) (map_zero _) (λ _ _, _),
-    simp only [algebra.algebra_map_eq_smul_one, is_scalar_tower.smul_assoc], },
+  haveI : no_zero_smul_divisors A C := is_integral_closure.no_zero_smul_divisors A K L C,
   haveI : is_noetherian A C := is_integral_closure.is_noetherian A K L _,
   exact module.free_of_finite_type_torsion_free',
+end
+
+/- If `L` is a finite separable extension of `K = Frac(A)` and `L` has no zero smul divisors by `A`,
+then `L` is the localization of the integral closure `C` of `A` in `L` at `A⁰`. -/
+lemma is_integral_closure.is_localization [no_zero_smul_divisors A L] :
+  is_localization (algebra.algebra_map_submonoid C A⁰) L :=
+begin
+  haveI : is_domain C :=
+    (is_integral_closure.equiv A C L (integral_closure A L)).to_ring_equiv.is_domain
+      (integral_closure A L),
+  haveI : no_zero_smul_divisors A C := is_integral_closure.no_zero_smul_divisors A K L C,
+  refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
+  { rintros ⟨_, x, hx, rfl⟩,
+    rw [is_unit_iff_ne_zero, map_ne_zero_iff _ (is_integral_closure.algebra_map_injective C A L),
+      subtype.coe_mk, map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective A C)],
+    exact mem_non_zero_divisors_iff_ne_zero.mp hx, },
+  { obtain ⟨m, hm⟩ := is_integral.exists_multiple_integral_of_is_localization A⁰ z
+      (is_separable.is_integral K z),
+    obtain ⟨x, hx⟩ : ∃ x, algebra_map C L x = m • z := is_integral_closure.is_integral_iff.mp hm,
+    refine ⟨⟨x, algebra_map A C m, m, set_like.coe_mem m, rfl⟩, _⟩,
+    rw [subtype.coe_mk, ← is_scalar_tower.algebra_map_apply, hx, mul_comm, submonoid.smul_def,
+      smul_def], },
+  { simp only [is_integral_closure.algebra_map_injective C A L h], },
+  { rintros ⟨⟨_, m, hm, rfl⟩, h⟩,
+    refine congr_arg (algebra_map C L) ((mul_right_inj' _).mp h),
+    rw [subtype.coe_mk, map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective A C)],
+    exact mem_non_zero_divisors_iff_ne_zero.mp hm, },
 end
 
 variables {A K}

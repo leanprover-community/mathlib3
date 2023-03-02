@@ -182,22 +182,67 @@ protected theorem map_rel_iff (f : r ↠r s) {a b} : s (f a) (f b) ↔ r a b := 
 protected theorem is_irrefl (f : r ↠r s) :
   is_irrefl α r ↔ is_irrefl β s :=
 begin
-  split; introI,
-  { refine ⟨λ a h, _⟩,
-    obtain ⟨a, rfl⟩ := f.surjective a,
-    exact irrefl a (f.map_rel_iff.mp h), },
-  { exact rel_hom_class.is_irrefl f, },
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_refl (f : r ↠r s) :
+  is_refl α r ↔ is_refl β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_symm (f : r ↠r s) :
+  is_symm α r ↔ is_symm β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₂, f.map_rel_iff] at ⊢ h; exact h
 end
 
 protected theorem is_asymm (f : r ↠r s) :
   is_asymm α r ↔ is_asymm β s :=
 begin
-  split; introI,
-  { refine ⟨λ a b h₁ h₂, _⟩,
-    obtain ⟨a, rfl⟩ := f.surjective a,
-    obtain ⟨b, rfl⟩ := f.surjective b,
-    exact asymm (f.map_rel_iff.mp h₁) (f.map_rel_iff.mp h₂), },
-  { exact rel_hom_class.is_asymm f, },
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₂, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_trans (f : r ↠r s) :
+  is_trans α r ↔ is_trans β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₃, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_total (f : r ↠r s) :
+  is_total α r ↔ is_total β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₂, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_preorder (f : r ↠r s) :
+  is_preorder α r ↔ is_preorder β s :=
+begin
+  split; intros h; cases h with h₁ h₂,
+  exactI {..f.is_refl.mp h₁, ..f.is_trans.mp h₂},
+  exactI {..f.is_refl.mpr h₁, ..f.is_trans.mpr h₂},
+end
+
+protected theorem is_equiv (f : r ↠r s) :
+  is_equiv α r ↔ is_equiv β s :=
+begin
+  split; intros h; cases h with h₁ h₂,
+  exactI {..f.is_preorder.mp h₁, ..f.is_symm.mp h₂},
+  exactI {..f.is_preorder.mpr h₁, ..f.is_symm.mpr h₂},
+end
+
+protected theorem is_strict_order (f : r ↠r s) :
+  is_strict_order α r ↔ is_strict_order β s :=
+begin
+  split; intros h; cases h with h₁ h₂,
+  exactI {..f.is_irrefl.mp h₁, ..f.is_trans.mp h₂},
+  exactI {..f.is_irrefl.mpr h₁, ..f.is_trans.mpr h₂},
 end
 
 protected theorem acc (f : r ↠r s) (a : α) :

@@ -199,12 +199,12 @@ end
 lemma directed_on.singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
 begin
   rw directed_on,
-  intros,
+  intros x hx y hy,
   use a,
   simp only [set.mem_singleton, true_and],
-  rw [set.mem_singleton_iff] at H,
-  rw [set.mem_singleton_iff] at H_1,
-  rw [H, H_1, and_self],
+  rw [set.mem_singleton_iff] at hx,
+  rw [set.mem_singleton_iff] at hy,
+  rw [hx, hy, and_self],
   apply h,
 end
 
@@ -213,12 +213,12 @@ lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab : a ≼ b) :
 begin
   apply directed_on.insert h,
   exact directed_on.singleton h _,
-  intros,
-  rw [set.mem_singleton_iff] at H,
+  intros b' hb,
+  rw [set.mem_singleton_iff] at hb,
   use b,
   split,
   { rw set.mem_singleton_iff, },
-  { rw H,
+  { rw hb,
     split,
     { exact hab, },
     { apply h, }, }

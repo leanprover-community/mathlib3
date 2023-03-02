@@ -1392,6 +1392,9 @@ lift_alg_hom_injective _ (polynomial.algebra_map_hahn_series_injective _)
 @[simp, norm_cast] lemma coe_add : ((f + g : ratfunc F) : laurent_series F) = f + g :=
 (coe_alg_hom F).map_add _ _
 
+@[simp, norm_cast] lemma coe_sub : ((f - g : ratfunc F) : laurent_series F) = f - g :=
+(coe_alg_hom F).map_sub _ _
+
 @[simp, norm_cast] lemma coe_mul : ((f * g : ratfunc F) : laurent_series F) = f * g :=
 (coe_alg_hom F).map_mul _ _
 

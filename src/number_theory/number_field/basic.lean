@@ -141,8 +141,7 @@ begin
   haveI : no_zero_smul_divisors ℤ R := function.injective.no_zero_smul_divisors _
     (is_integral_closure.algebra_map_injective R ℤ K) (map_zero _) (map_zsmul _),
   haveI : is_noetherian ℤ R := is_integral_closure.is_noetherian _ ℚ K _,
-  obtain ⟨n, b⟩ : Σ n, basis (fin n) ℤ R := free_of_finite_type_torsion_free',
-  exact free.of_basis b,
+  exact free_of_finite_type_torsion_free',
 end
 
 lemma _root_.number_field.is_integral_closure.is_localization :

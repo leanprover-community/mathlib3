@@ -37,6 +37,10 @@ theorem cast_injective [add_group_with_one α] [char_zero α] : function.injecti
 theorem cast_ne_zero [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
+theorem cast_is_unit_iff [division_ring α] [char_zero α] {n : ℤ} :
+  is_unit (n : α) ↔ n ≠ 0:=
+by rw [is_unit_iff_ne_zero, int.cast_ne_zero]
+
 @[simp, norm_cast]
 theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℤ}
   (n_dvd : n ∣ m) : ((m / n : ℤ) : k) = m / n :=

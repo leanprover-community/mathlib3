@@ -395,7 +395,7 @@ lemma sub_coeff {x y : hahn_series Γ R} {a : Γ} :
   (x - y).coeff a = x.coeff a - y.coeff a := by simp
 
 lemma neg_order [has_zero Γ] {f : hahn_series Γ R} : (- f).order = f.order :=
-  by {by_cases hf : f = 0, simp only [hf, neg_zero], simp only [order, support_neg, neg_eq_zero]}
+  by { by_cases hf : f = 0, { simp only [hf, neg_zero] }, simp only [order, support_neg, neg_eq_zero] }
 
 end add_group
 

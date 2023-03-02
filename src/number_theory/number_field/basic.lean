@@ -135,15 +135,6 @@ is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
 variables (R : Type*) [comm_ring R] [algebra R K] [is_integral_closure R ℤ K]
 
-lemma _root_.number_field.is_integral_closure.free  :
-  free ℤ R :=
-begin
-  haveI : no_zero_smul_divisors ℤ R := function.injective.no_zero_smul_divisors _
-    (is_integral_closure.algebra_map_injective R ℤ K) (map_zero _) (map_zsmul _),
-  haveI : is_noetherian ℤ R := is_integral_closure.is_noetherian _ ℚ K _,
-  exact free_of_finite_type_torsion_free',
-end
-
 lemma _root_.number_field.is_integral_closure.is_localization :
   is_localization (algebra.algebra_map_submonoid R (non_zero_divisors ℤ)) K :=
 begin
@@ -151,23 +142,22 @@ begin
   haveI : is_domain R := ring_equiv.is_domain (𝓞 K) (number_field.ring_of_integers.equiv R).symm,
   refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
   { rintros ⟨_, x, hx, rfl⟩,
-    rw [is_unit_iff_ne_zero, map_ne_zero_iff _ (is_integral_closure.algebra_map_injective R ℤ K),
-      subtype.coe_mk, map_ne_zero_iff _ (ring_hom.injective_int (algebra_map ℤ R))],
-    exact mem_non_zero_divisors_iff_ne_zero.mp hx, },
+    simpa only [int.cast_is_unit_iff, eq_int_cast, set_like.coe_mk, map_int_cast]
+      using mem_non_zero_divisors_iff_ne_zero.mp hx, },
   { obtain ⟨m, hm⟩ := is_integral.exists_multiple_integral_of_is_localization
       (non_zero_divisors ℤ) z (is_separable.is_integral ℚ z),
     obtain ⟨x, hx⟩ : ∃ x, algebra_map R K x = m • z := is_integral_closure.is_integral_iff.mp hm,
     use ⟨x, m, m, set_like.coe_mem m, rfl⟩,
     simp only [hx, coe_coe, set_like.coe_mk, map_int_cast, submonoid.smul_def, mul_comm,
-        zsmul_eq_mul] },
+      zsmul_eq_mul] },
   { simp only [is_integral_closure.algebra_map_injective R ℤ K h], },
   { rintros ⟨⟨_, m, hm, rfl⟩, h⟩,
     refine congr_arg (algebra_map R K) ((mul_right_inj' _).mp h),
-    rw [subtype.coe_mk, map_ne_zero_iff _ (ring_hom.injective_int (algebra_map ℤ R))],
-    exact mem_non_zero_divisors_iff_ne_zero.mp hm, },
+    simpa only [eq_int_cast, set_like.coe_mk, int.cast_eq_zero, ne.def]
+      using mem_non_zero_divisors_iff_ne_zero.mp hm, },
 end
 
-instance : free ℤ (𝓞 K) := is_integral_closure.free K _
+instance : free ℤ (𝓞 K) := is_integral_closure.module_free ℤ ℚ K _
 
 instance : is_localization (algebra.algebra_map_submonoid (𝓞 K) (non_zero_divisors ℤ)) K :=
 is_integral_closure.is_localization K _

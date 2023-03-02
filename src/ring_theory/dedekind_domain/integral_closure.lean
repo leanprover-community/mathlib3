@@ -3,6 +3,7 @@ Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
+import linear_algebra.free_module.pid
 import ring_theory.dedekind_domain.basic
 import ring_theory.trace
 
@@ -178,6 +179,20 @@ Noetherian. -/
 lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetherian_ring A] :
   is_noetherian_ring C :=
 is_noetherian_ring_iff.mpr $ is_noetherian_of_tower A (is_integral_closure.is_noetherian A K L C)
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a principal ring
+and `L` has no zero smul divisors by `A`, the integral closure `C` of `A` in `L` is
+a free `A`-module. -/
+lemma is_integral_closure.module_free [no_zero_smul_divisors A L] [is_principal_ideal_ring A] :
+  module.free A C :=
+begin
+  haveI : no_zero_smul_divisors A C,
+  {refine function.injective.no_zero_smul_divisors
+      _ (is_integral_closure.algebra_map_injective C A L) (map_zero _) (λ _ _, _),
+    simp only [algebra.algebra_map_eq_smul_one, is_scalar_tower.smul_assoc], },
+  haveI : is_noetherian A C := is_integral_closure.is_noetherian A K L _,
+  exact module.free_of_finite_type_torsion_free',
+end
 
 variables {A K}
 

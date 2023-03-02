@@ -8,6 +8,7 @@ import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra.basic
 import group_theory.finiteness
 import ring_theory.ideal.operations
+import ring_theory.ideal.quotient
 
 /-!
 # Finiteness conditions in commutative algebra

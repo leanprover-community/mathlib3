@@ -263,29 +263,36 @@ instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field
 /-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
 moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of
 the rescaling element that shows up in applications. -/
-lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
-  (hx : ‖x‖ ≠ 0) : ∃d:α, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+lemma rescale_to_shell_semi_normed_zpow {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : ‖x‖ ≠ 0) :
+  ∃ n : ℤ, c ^ n ≠ 0 ∧ ‖c ^ n • x‖ < ε ∧ (ε / ‖c‖ ≤ ‖c ^ n • x‖) ∧ (‖c ^ n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
 begin
   have xεpos : 0 < ‖x‖/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
   rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ‖c‖ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ‖c^(n+1)‖ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
-  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
-  show (c ^ (n + 1))⁻¹  ≠ 0,
-    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show ‖(c ^ (n + 1))⁻¹ • x‖ < ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
+  refine ⟨-(n+1), _, _, _, _⟩,
+  show c ^ (-(n + 1)) ≠ 0, from zpow_ne_zero _ (norm_pos_iff.1 cpos),
+  show ‖c ^ (-(n + 1)) • x‖ < ε,
+  { rw [norm_smul, zpow_neg, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
     exact (div_lt_iff εpos).1 (hn.2) },
-  show ε / ‖c‖ ≤ ‖(c ^ (n + 1))⁻¹ • x‖,
-  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
+  show ε / ‖c‖ ≤ ‖c ^ (-(n + 1)) • x‖,
+  { rw [zpow_neg, div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
         zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
-  show ‖(c ^ (n + 1))⁻¹‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖,
-  { have : ε⁻¹ * ‖c‖ * ‖x‖ = ε⁻¹ * ‖x‖ * ‖c‖, by ring,
-    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+  show ‖c ^ (-(n + 1))‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖,
+  { rw [zpow_neg, norm_inv, inv_inv, norm_zpow, zpow_add₀ cpos.ne', zpow_one, mul_right_comm,
+      ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
+
+/-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
+moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
+lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : ‖x‖ ≠ 0) : ∃d:α, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+let ⟨n, hn⟩ := rescale_to_shell_semi_normed_zpow hc εpos hx in ⟨_, hn⟩
 
 end seminormed_add_comm_group
 
@@ -369,12 +376,16 @@ by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_dif
 
 variables {α}
 
+lemma rescale_to_shell_zpow {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
+  ∃ n : ℤ, c ^ n ≠ 0 ∧ ‖c ^ n • x‖ < ε ∧ (ε / ‖c‖ ≤ ‖c ^ n • x‖) ∧ (‖c ^ n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+rescale_to_shell_semi_normed_zpow hc εpos (mt norm_eq_zero.1 hx)
+
 /-- If there is a scalar `c` with `‖c‖>1`, then any element can be moved by scalar multiplication to
 any shell of width `‖c‖`. Also recap information on the norm of the rescaling element that shows
 up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
-rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
+rescale_to_shell_semi_normed hc εpos (mt norm_eq_zero.1 hx)
 
 end normed_add_comm_group
 

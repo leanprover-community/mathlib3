@@ -7,6 +7,7 @@ import data.set.image
 import order.lattice
 import order.max
 import order.bounds.basic
+import tactic.norm_num
 
 /-!
 # Directed indexed families and sets
@@ -196,6 +197,58 @@ begin
       split,
       { exact or.inr h_1_w },
       { exact h_1_h, }, }, }
+end
+
+lemma eg1 : directed_on (≤) (insert (1,1) ({(1,0), (0,1)} : set (ℕ × ℕ))) :=
+begin
+  rw directed_on,
+  intros,
+  cases H,
+  { use x,
+    split,
+    { exact set.mem_union_left {(1, 0), (0, 1)} H, },
+    { split,
+      { exact rfl.ge, },
+      { cases H_1,
+        { rw [H, H_1], },
+        cases H_1,
+        { rw [H, H_1], norm_num, },
+        { rw [set.mem_singleton_iff] at H_1, rw [H, H_1], norm_num, } } }, },
+  { use (1,1),
+    split,
+    { simp, },
+    split,
+    { cases H,
+      { rw H, norm_num, },
+      { rw [set.mem_singleton_iff] at H, rw H, norm_num, }, },
+    { cases H_1,
+      { rw H_1, },
+      { cases H_1,
+        { rw H_1, norm_num, },
+        { rw [set.mem_singleton_iff] at H_1, rw H_1, norm_num, }, }, }, }
+end
+
+example : ¬directed_on (≤) ({(1,0), (0,1)} : set (ℕ × ℕ)) :=
+begin
+  rw directed_on,
+  simp,
+  use 1,
+  use 0,
+  split,
+  { simp, },
+  { use 0,
+    use 1,
+    split,
+    { simp, },
+    { intros x y h,
+      norm_num,
+      intro hx,
+      have e1: ¬(x = 0) := by exact nat.one_le_iff_ne_zero.mp hx,
+      have e2: ¬(x = 0 ∧ y = 1) := by exact not_and_of_not_left (y = 1) e1,
+      have e2': (x = 0 ∧ y = 1) = false := by exact eq_false_intro e2,
+      rw e2' at h,
+      simp only [or_false] at h,
+      exact h.2, } }
 end
 
 lemma directed_on.singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=

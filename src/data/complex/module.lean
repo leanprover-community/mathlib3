@@ -211,8 +211,7 @@ by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_rea
 @[priority 900]
 instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
   [star_module ℂ E] : star_module ℝ E :=
-⟨λ r a, by rw [← one_smul ℂ (star a), ← smul_assoc, ← star_one, ← star_smul, ← star_smul,
-    smul_assoc, one_smul]⟩
+⟨λ r a, by rw [←smul_one_smul ℂ r a, star_smul, star_smul, star_one, smul_one_smul]⟩
 
 namespace complex
 

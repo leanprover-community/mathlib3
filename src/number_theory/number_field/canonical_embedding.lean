@@ -195,64 +195,112 @@ open_locale complex_conjugate
 variable (K)
 
 /-- The embedding of `K` into `K →+* (K →+* ℂ) → ℂ` defined by sending `x : K` to the vector of its
-image by all the complex embeddings. -/
+image by all the complex embeddings of `K`. -/
 def _root_.number_field.embedding_embedding : K →+* (K →+* ℂ) → ℂ :=
 { to_fun := λ x φ, φ x,
-  map_zero' :=
-  begin
-    funext φ,
-    exact map_zero φ,
-  end,
-  map_one' :=
-  begin
-    funext φ,
-    exact map_one φ,
-  end,
-  map_add' :=
-  begin
-    intros x y,
-    funext φ,
-    exact map_add φ x y,
-  end,
-  map_mul' :=
-  begin
-    intros x y,
-    funext φ,
-    exact map_mul φ x y,
-  end }
+  map_zero' := funext (λ φ, map_zero φ),
+  map_one' := funext (λ φ, map_one φ),
+  map_add' := λ x y, funext (λ φ, map_add φ x y),
+  map_mul' := λ x y, funext (λ φ, map_mul φ x y), }
 
-/-- the map from `E` to `((K →+* ℂ) → ℂ)` so that we have a commuting diagramm, see `commutes`. -/
+/-- The map from `(K →+* ℂ) → ℂ` to `E` that gives a commuting diagramm, see
+`number_field.canonical_embedding.commutes`. -/
+def comm_map : ((K →+* ℂ) → ℂ) →ₗ[ℝ] E:=
+{ to_fun :=
+  begin
+    exact λ e, ⟨λ w, (e w.val.embedding).re, λ w, (e w.val.embedding)⟩,
+  end,
+  map_smul' :=
+  begin
+    intros r e,
+    simp_rw [ring_hom.id_apply, prod.smul_mk, pi.smul_def, smul_eq_mul, complex.real_smul,
+      complex.of_real_mul_re],
+  end,
+  map_add' := sorry, }
+
+@[simp]
+lemma toto {φ : K →+* ℂ} (h : complex_embedding.is_real φ) (x : K) :
+  (φ x).re = complex_embedding.is_real.embedding h x := sorry
+
+lemma embedding_embedding_comm_map_eq_zero [number_field K] (x : K) :
+  comm_map K (number_field.embedding_embedding K x) = 0 ↔ x = 0 :=
+begin
+  simp_rw [number_field.embedding_embedding, comm_map, subtype.val_eq_coe, ring_hom.coe_mk,
+    linear_map.coe_mk, prod.mk_eq_zero],
+  split,
+  { obtain ⟨w⟩ := infinite_place.nonempty K,
+    intro h,
+    by_cases hw : is_real w,
+    { apply (map_eq_zero_iff _ (is_real_iff.mp hw).embedding.injective).mp,
+      rw ← complex.of_real_re (((is_real_iff.mp hw).embedding) x),
+      rw (congr_arg complex.re ((is_real_iff.mp hw).coe_embedding_apply x)),
+      exact congr_fun h.1 ⟨w, hw⟩, },
+    { exact (map_eq_zero _).mp (congr_fun h.2 ⟨w, not_is_real_iff_is_complex.mp hw⟩), }},
+  { intro h,
+    simp_rw [h, map_zero, complex.zero_re],
+    exact ⟨rfl, rfl⟩, },
+end
+
+lemma commutes (x : K) :
+  comm_map K (number_field.embedding_embedding K x) = canonical_embedding K x :=
+begin
+  simp only [comm_map, number_field.embedding_embedding, canonical_embedding, subtype.val_eq_coe,
+    ring_hom.coe_mk, linear_map.coe_mk, ring_hom.prod_apply, prod.mk.inj_iff, pi.ring_hom_apply],
+  split,
+  { ext w,
+    rw [pi.ring_hom_apply, ← complex_embedding.is_real.coe_embedding_apply
+      (is_real_iff.mp w.prop) x, complex.of_real_re],
+    refl, },
+  { ext1 w,
+    simp only [pi.ring_hom_apply], },
+end
+
+#exit
+
 def comm_map : E →ₗ[ℝ] ((K →+* ℂ) → ℂ) :=
 { to_fun :=
   begin
-  rintro ⟨xr, xc⟩,
-  intro φ,
+  rintro ⟨xr, xc⟩ φ,
   by_cases h : complex_embedding.is_real φ,
   { exact xr (mk_real K ⟨φ, h⟩), },
-  { let w := mk_complex K ⟨φ, h⟩,
-    exact ite (w.1.embedding = φ) (xc w) (conj (xc w)), }
+  { exact ite ((mk_complex K ⟨φ, h⟩).1.embedding = φ) (xc (mk_complex K ⟨φ, h⟩))
+      (conj (xc (mk_complex K ⟨φ, h⟩))), }
   end,
   map_add' :=
   begin
     rintros ⟨_, _⟩ ⟨_, _⟩,
     ext1 φ,
     by_cases h : complex_embedding.is_real φ,
-    { simp only [dif_pos h, prod.mk_add_mk, pi.add_apply, complex.of_real_add], },
-    { simp only [dif_neg h, subtype.val_eq_coe, mk_complex_coe, subtype.coe_mk, prod.mk_add_mk,
-        pi.add_apply, map_add],
-      split_ifs;
-      simp only [eq_self_iff_true], },
+    { simpa only [pi.add_apply, dif_pos h, ← complex.of_real_add], },
+    { simp only [pi.add_apply, dif_neg h],
+      split_ifs,
+      { refl, },
+      { dsimp, rw map_add, }},
   end,
   map_smul' :=
   begin
     rintros _ ⟨_, _⟩,
     ext1 φ,
     by_cases h : complex_embedding.is_real φ,
-    { simp only [dif_pos h, prod.smul_mk, pi.smul_apply, algebra.id.smul_eq_mul,
-        complex.of_real_mul, ring_hom.id_apply, is_R_or_C.of_real_smul], },
+    { simp_rw prod.smul_mk,
+      simp_rw pi.smul_apply,
+      simp_rw ring_hom.id_apply,
+      simp only [dif_pos h, is_R_or_C.of_real_smul, complex.of_real_mul],
+      dsimp,
+      rw complex.of_real_mul,
+      -- simp only [prod.smul_mk, pi.smul_apply],
+      -- simp [prod.smul_mk, pi.smul_apply, dif_pos h, algebra.id.smul_eq_mul, is_R_or_C.of_real_smul, complex.of_real_mul],
+
+      -- refl,
+--      simp [dif_pos h, prod.smul_mk, pi.smul_apply, algebra.id.smul_eq_mul,
+--        complex.of_real_mul, ring_hom.id_apply, is_R_or_C.of_real_smul],
+--      dsimp,
+        },
     { simp only [dif_neg h, prod.smul_mk, pi.smul_apply, complex.real_smul, map_mul,
         is_R_or_C.conj_of_real, ring_hom.id_apply, mul_ite], }
   end }
+
+#exit
 
 lemma commutes (x : K) :
   number_field.embedding_embedding K x = comm_map K (canonical_embedding K x) :=
@@ -280,7 +328,7 @@ begin
   { have t1 : ⊤ ≤ submodule.span ℝ (set.range (canonical_embedding K ∘ b)),
     { rw linear_independent_iff_card_le_finrank_span at this,
       rw ← free.finrank_eq_card_choose_basis_index at this,
-      rw rank_eq_rank at this,
+      rw is_integral_closure.rank K (𝓞 K) infer_instance at this,
       rw ← number_field.canonical_embedding.rank at this,
       have t10 : finrank ℝ E = finrank ℝ (⊤ : submodule ℝ E) := finrank_top.symm,
       rw t10 at this,

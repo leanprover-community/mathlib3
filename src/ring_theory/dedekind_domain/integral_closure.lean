@@ -5,6 +5,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import linear_algebra.free_module.pid
 import ring_theory.dedekind_domain.basic
+import ring_theory.localization.module
 import ring_theory.trace
 
 /-!
@@ -226,6 +227,20 @@ begin
     refine congr_arg (algebra_map C L) ((mul_right_inj' _).mp h),
     rw [subtype.coe_mk, map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective A C)],
     exact mem_non_zero_divisors_iff_ne_zero.mp hm, },
+end
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a principal ring
+and `L` has no zero smul divisors by `A`, the `A`-rank of the integral closure `C` of `A` in `L`
+is equal to the `K`-rank of `L`. -/
+lemma is_integral_closure.rank [is_principal_ideal_ring A] [no_zero_smul_divisors A L] :
+  finite_dimensional.finrank A C = finite_dimensional.finrank K L :=
+begin
+  haveI : module.free A C := is_integral_closure.module_free A K L C,
+  haveI : is_noetherian A C := is_integral_closure.is_noetherian A K L C,
+  haveI : is_localization (algebra.algebra_map_submonoid C A⁰) L :=
+    is_integral_closure.is_localization A K L C,
+  let b := basis.localization_localization K A⁰ L (module.free.choose_basis A C),
+  rw [module.free.finrank_eq_card_choose_basis_index, finite_dimensional.finrank_eq_card_basis b],
 end
 
 variables {A K}

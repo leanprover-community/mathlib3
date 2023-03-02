@@ -5,9 +5,7 @@ Authors: Ashvni Narayanan, Anne Baanen
 -/
 
 import algebra.char_p.algebra
-import linear_algebra.free_module.pid
 import ring_theory.dedekind_domain.integral_closure
-import ring_theory.localization.module
 
 /-!
 # Number fields
@@ -155,18 +153,9 @@ lemma integral_basis_apply (i : free.choose_basis_index ℤ (𝓞 K)) :
   integral_basis K i = algebra_map (𝓞 K) K (ring_of_integers.basis K i) :=
 basis.localization_localization_apply ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K) i
 
-variables (R : Type*) [comm_ring R] [algebra R K] [is_integral_closure R ℤ K]
-
-lemma is_integral_closure.rank  :
-  finite_dimensional.finrank ℤ R = finite_dimensional.finrank ℚ K :=
-begin
-  haveI : free ℤ R := is_integral_closure.module_free ℤ ℚ K R,
-  haveI : is_noetherian ℤ R := is_integral_closure.is_noetherian _ ℚ K _,
-  haveI : is_localization (algebra.algebra_map_submonoid R (non_zero_divisors ℤ)) K :=
-    is_integral_closure.is_localization ℤ ℚ K R,
-  let b := basis.localization_localization ℚ (non_zero_divisors ℤ) K (free.choose_basis ℤ R),
-  rw [free.finrank_eq_card_choose_basis_index, finite_dimensional.finrank_eq_card_basis b],
-end
+lemma ring_of_integers.rank  :
+  finite_dimensional.finrank ℤ (𝓞 K) = finite_dimensional.finrank ℚ K :=
+is_integral_closure.rank ℤ ℚ K (𝓞 K)
 
 end number_field
 

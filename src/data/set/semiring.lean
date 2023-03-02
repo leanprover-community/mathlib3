@@ -141,10 +141,16 @@ instance [comm_monoid α] : canonically_ordered_comm_semiring (set_semiring α) 
 with respect to the pointwise operations on sets. -/
 def image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) :
   set_semiring α →+* set_semiring β :=
-{ to_fun := image f,
+{ to_fun := λ s, (image f s.down).up,
   map_zero' := image_empty _,
-  map_one' := by rw [image_one, map_one, singleton_one],
+  map_one' := by rw [down_one, image_one, map_one, singleton_one, set.up_one],
   map_add' := image_union _,
   map_mul' := λ _ _, image_mul f }
+
+@[simp] lemma down_image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set_semiring α) :
+  (image_hom f s).down = f '' s.down := rfl
+
+@[simp] lemma image_hom_up [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set α) :
+  image_hom f s.up = (f '' s).up := rfl
 
 end set_semiring

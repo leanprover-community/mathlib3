@@ -10,8 +10,9 @@ import set_theory.ordinal.arithmetic
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
 > Any changes to this file require a corresponding PR to mathlib4.
 
-In this file we define the power function and the logarithm function on ordinals,
-
+In this file we define the power function and the logarithm function on ordinals. The two are
+related by the lemma `ordinal.opow_le_iff_le_log : (b^c) ≤ x ↔ c ≤ log b x` for nontrivial inputs 
+`b`, `c`.
 -/
 
 noncomputable theory

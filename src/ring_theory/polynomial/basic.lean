@@ -895,7 +895,7 @@ begin
   refine ⟨aeval f (q * q') v, linear_map.mem_ker.1 h_eval₂_pqq',
           aeval f (p * p') v, linear_map.mem_ker.1 h_eval₂_qpp', _⟩,
   rw [add_comm, mul_comm p p', mul_comm q q'],
-  simpa using congr_arg (λ p : R[X], aeval f p v) hpq'
+  simpa only [map_add, map_mul, aeval_one] using congr_arg (λ p : R[X], aeval f p v) hpq'
 end
 
 end polynomial

@@ -5,7 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.basic
 import topology.algebra.group_completion
-import topology.algebra.ring
+import topology.algebra.ring.ideal
 
 /-!
 # Completion of topological rings:

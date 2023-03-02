@@ -83,7 +83,7 @@ instance : non_unital_non_assoc_semiring (set_semiring α) :=
 
 lemma mul_def (s t : set_semiring α) : s * t = (s.down * t.down).up := rfl
 
-@[simp] lemma down_mul (s t : set_semiring α) : (s + t).down = s.down ∪ t.down := rfl
+@[simp] lemma down_mul (s t : set_semiring α) : (s * t).down = s.down * t.down := rfl
 
 @[simp] lemma _root_.set.up_mul (s t : set α) : (s * t).up = s.up * t.up := rfl
 

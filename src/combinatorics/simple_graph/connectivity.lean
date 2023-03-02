@@ -1656,10 +1656,10 @@ variables {φ : G ≃g G'} {v : V} {v' : V'}
 
 @[simp] lemma iso_image_comp_eq_map_iff_eq_comp
   {C : G.connected_component} :
-  G'.connected_component_mk (φ v) = C.map φ ↔ (G.connected_component_mk v) = C :=
+  G'.connected_component_mk (φ v) = C.map (↑(↑φ : G ↪g G'))  ↔ (G.connected_component_mk v) = C :=
 begin
   refine C.ind (λ u, _),
-  simp only [iso.reachable_iff, coe_coe, connected_component.map_mk,
+  simp only [iso.reachable_iff, connected_component.map_mk,
     rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, connected_component.eq],
 end
 
@@ -2093,3 +2093,4 @@ sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 end bridge_edges
 
 end simple_graph
+

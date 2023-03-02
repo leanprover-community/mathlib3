@@ -156,6 +156,8 @@ end
 @[simp]
 lemma compose_path_id {X : paths C} : compose_path (𝟙 X) = 𝟙 X := rfl
 
+#print compose_path_id
+
 @[simp]
 lemma compose_path_comp' {X Y Z : paths C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   compose_path (f ≫ g) = compose_path f ≫ compose_path g :=

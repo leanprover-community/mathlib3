@@ -260,7 +260,7 @@ map_sum p.subtype _ _
 
 /-! ### Actions by `submodule`s
 
-These instances tranfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
+These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
 onto the action by an element `s : S` of a submodule `S : submodule R M` such that
 `s +ᵥ a = (s : M) +ᵥ a`.
 

@@ -397,10 +397,11 @@ begin
   exact ⟨n, b.map ψ.symm⟩
 end
 
-lemma module.free_of_finite_type_torsion_free [fintype ι] {s : ι → M}
+lemma module.free_of_finite_type_torsion_free [finite ι] {s : ι → M}
   (hs : span R (range s) = ⊤) [no_zero_smul_divisors R M] :
   module.free R M :=
 begin
+  casesI nonempty_fintype ι,
   obtain ⟨n, b⟩ : Σ n, basis (fin n) R M := module.basis_of_finite_type_torsion_free hs,
   exact module.free.of_basis b,
 end

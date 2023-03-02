@@ -1651,34 +1651,10 @@ by { refine C.ind _, exact (λ _, rfl) }
   (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
 
-namespace iso
-
-/-- An isomorphism of graphs induces a bijection of connected components. -/
-@[simps]
-def connected_component_equiv (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
-{ to_fun := connected_component.map φ.to_hom,
-  inv_fun := connected_component.map φ.symm.to_hom,
-  left_inv := λ C, connected_component.ind
-    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
-  right_inv := λ C, connected_component.ind
-    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
-
-@[simp] lemma connected_component_equiv_refl :
-  (iso.refl : G ≃g G).connected_component_equiv = equiv.refl _ :=
-by { ext ⟨v⟩, refl, }
-
-@[simp] lemma connected_component_equiv_symm (φ : G ≃g G') :
-  φ.symm.connected_component_equiv = φ.connected_component_equiv.symm := by { ext ⟨_⟩, refl, }
-
-@[simp] lemma connected_component_equiv_trans (φ : G ≃g G') (φ' : G' ≃g G'') :
-  connected_component_equiv (φ.trans φ') =
-  φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
-
-end iso
 
 variables {φ : G ≃g G'} {v : V} {v' : V'}
 
-@[simp] lemma connected_component.iso_image_comp_eq_map_iff_eq_comp
+@[simp] lemma iso_image_comp_eq_map_iff_eq_comp
   {C : G.connected_component} :
   G'.connected_component_mk (φ v) = C.map φ ↔ (G.connected_component_mk v) = C :=
 begin
@@ -1687,7 +1663,7 @@ begin
     rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, connected_component.eq],
 end
 
-@[simp] lemma connected_component.iso_inv_image_comp_eq_iff_eq_map
+@[simp] lemma iso_inv_image_comp_eq_iff_eq_map
   {C : G.connected_component} :
   G.connected_component_mk (φ.symm v') = C ↔
     G'.connected_component_mk v' = C.map φ :=
@@ -1699,7 +1675,7 @@ end
 
 /-- An isomorphism of graphs induces a bijection of connected components. -/
 @[simps]
-def connected_component.iso (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+def iso (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
 { to_fun := connected_component.map φ,
   inv_fun := connected_component.map φ.symm,
   left_inv := λ C, connected_component.ind
@@ -1708,10 +1684,10 @@ def connected_component.iso (φ : G ≃g G') : G.connected_component ≃ G'.conn
     (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
 
 /-- The set of vertices in a connected component of a graph. -/
-def connected_component.supp (C : G.connected_component) :=
+def supp (C : G.connected_component) :=
   { v | G.connected_component_mk v = C }
 
-@[ext] lemma connected_component.supp_injective :
+@[ext] lemma supp_injective :
   function.injective (connected_component.supp : G.connected_component → set V) :=
 begin
   refine connected_component.ind₂ _,
@@ -1722,14 +1698,14 @@ begin
 end
 
 @[simp]
-lemma connected_component.supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
+lemma supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
 connected_component.supp_injective.eq_iff
 
 instance : set_like G.connected_component V :=
 { coe := connected_component.supp,
   coe_injective' := connected_component.supp_injective, }
 
-@[simp] lemma connected_component.mem_supp_iff (C : G.connected_component) (v : V) :
+@[simp] lemma mem_supp_iff (C : G.connected_component) (v : V) :
   v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
 
 lemma connected_component_mk_mem {v : V} :
@@ -1739,7 +1715,7 @@ lemma connected_component_mk_mem {v : V} :
 The equivalence between connected components, induced by an isomorphism of graphs,
 itself defines an equivalence on the supports of each connected component.
 -/
-def connected_component.iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
+def iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
   C.supp ≃ (connected_component.iso φ C).supp :=
 { to_fun := λ v, ⟨φ v, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
   inv_fun := λ v', ⟨φ.symm v', connected_component.iso_inv_image_comp_eq_iff_eq_map.mpr v'.prop⟩,

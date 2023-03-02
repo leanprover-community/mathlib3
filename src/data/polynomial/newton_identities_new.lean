@@ -33,21 +33,38 @@ coefficients in the commutative ring `R`.
 namespace polynomial
 namespace symmetric
 
-variables (R : Type*) [comm_ring R] (n k : ℕ)
+variables (R : Type*) [comm_ring R] (n: ℕ) (k : ℤ)
 
 
 open_locale polynomial
 open_locale big_operators
 open finset polynomial
 
-noncomputable def e : mv_polynomial (fin n) R :=
-polynomial.coeff (∏ i : fin n, (X + C (mv_polynomial.X i))) k
+-- noncomputable def e : mv_polynomial (fin n) R :=
+-- polynomial.coeff (∏ i : fin n, (X + C (mv_polynomial.X i))) k
 
 noncomputable def s : mv_polynomial (fin n) R :=
-polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
+if k ≤ n ∧ k ≥ 0 then polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) (int.to_nat k)
+else 0
 
 noncomputable def p : mv_polynomial (fin n) R :=
-∑ i : fin n, (mv_polynomial.X i) ^ k
+∑ i : fin n, (mv_polynomial.X i) ^ (int.to_nat k)
+
+lemma s_symm : ∀ k : ℤ, k ≤ n → k ≥ 0 → s R n k = 
+  (-1)^(n - k.to_nat) * mv_polynomial.esymm (fin n) R (n - k.to_nat) :=
+begin
+  intros k hk1 hk2,
+  rw [s], 
+  split_ifs,
+  rw [finset.prod, multiset.prod_X_sub_C_coeff', finset.esymm_map_val],
+  congr;
+  exact finset.card_fin n,
+  change k.to_nat ≤ finset.card _,
+  rwa finset.card_fin n,
+  sorry,
+  sorry,
+end
+
 
 end symmetric
 end polynomial

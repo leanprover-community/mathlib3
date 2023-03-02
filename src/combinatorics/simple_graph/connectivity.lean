@@ -1673,15 +1673,34 @@ begin
     connected_component.map_mk, rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn],
 end
 
+end connected_component
+
+namespace iso
+
 /-- An isomorphism of graphs induces a bijection of connected components. -/
 @[simps]
-def iso (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+def connected_component_equiv (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
 { to_fun := connected_component.map φ,
   inv_fun := connected_component.map φ.symm,
   left_inv := λ C, connected_component.ind
     (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
   right_inv := λ C, connected_component.ind
     (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
+
+@[simp] lemma connected_component_equiv_refl :
+  (iso.refl : G ≃g G).connected_component_equiv = equiv.refl _ :=
+by { ext ⟨v⟩, refl, }
+
+@[simp] lemma connected_component_equiv_symm (φ : G ≃g G') :
+  φ.symm.connected_component_equiv = φ.connected_component_equiv.symm := by { ext ⟨_⟩, refl, }
+
+@[simp] lemma connected_component_equiv_trans (φ : G ≃g G') (φ' : G' ≃g G'') :
+  connected_component_equiv (φ.trans φ') =
+  φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
+
+end iso
+
+namespace connected_component
 
 /-- The set of vertices in a connected component of a graph. -/
 def supp (C : G.connected_component) :=
@@ -1716,7 +1735,7 @@ The equivalence between connected components, induced by an isomorphism of graph
 itself defines an equivalence on the supports of each connected component.
 -/
 def iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
-  C.supp ≃ (connected_component.iso φ C).supp :=
+  C.supp ≃ (φ.connected_component_equiv C).supp :=
 { to_fun := λ v, ⟨φ v, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
   inv_fun := λ v', ⟨φ.symm v', connected_component.iso_inv_image_comp_eq_iff_eq_map.mpr v'.prop⟩,
   left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),

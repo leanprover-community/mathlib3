@@ -157,7 +157,7 @@ end
 
 lemma zero_eq_quo_add_sum_rem_div_zero {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
-  (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
+  (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
   (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) : q = 0 ∧ ∀ i ∈ s, r i = 0 :=
 begin
   have hzero : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
@@ -176,7 +176,6 @@ begin
         dvd_mul_of_dvd_right (finset.dvd_prod_of_mem g hjs) q,
       have hgdsum : (g j) ∣ ∑ (i : ι) in s, r i * ∏ (i : ι) in s.erase i, g i :=
         (dvd_add_right (hgdvdprod)).mp hgdvd,
-
       sorry },
     sorry,
      },
@@ -199,25 +198,19 @@ lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι)
   (hf' : (↑f : K) / ∏ i in s, ↑(g i) = ↑q' + ∑ i in s, ↑(r' i) / ↑(g i)) :
     q = q' ∧ ∀ i ∈ s, r i = r' i :=
 begin
-  -- cases approach discarded in favour of separate lemmas. code below can maybe be reused,
-  -- but will be removed eventually...
-  cases em (f = 0),
-  { -- How do we clear denominators?
-    rw div_eq_iff _ at hf hf',
-    { simp only [add_mul, finset.sum_mul, h] at hf hf',
-      push_cast at hf hf',
-
-      have hgr : ∀ i : ι, i ∈ s → g i ∣ r i,
-      { intros i his,
-        have hg0 : (g i) ∣ 0 := dvd_zero ↑(g i),
-        sorry },
-      sorry },
-    { norm_cast,
-      exact (monic_prod_of_monic s g hg).ne_zero },
-    { norm_cast,
-      exact (monic_prod_of_monic s g hg).ne_zero } },
-  {
-    sorry }
+  have hsub : (0 : K) = (↑q + ∑ (i : ι) in s, ↑(r i) / ↑(g i)) - (↑q' + ∑ (i : ι) in s, ↑(r' i) / ↑(g i)),
+  { rw [← hf, ← hf', sub_self] },
+  have hsub' : (0 : K) = ↑(q - q') + ∑ (i : ι) in s, ↑((r i) - (r' i)) / ↑(g i),
+  { 
+    sorry },
+  have hzerocase := zero_eq_quo_add_sum_rem_div_zero R K s hg hcop (q - q') (λ i, r i - r' i)
+    (λ i, (lt_of_le_of_lt (degree_sub_le (r i) (r' i)) (max_lt (hdeg i) (hdeg' i)))) hsub',
+  { split,
+    { rw ← sub_eq_zero,
+      exact hzerocase.1 },
+    { intros i hi,
+      rw ← sub_eq_zero,
+      exact hzerocase.2 i hi } },
 end
 
 -- To be removed (does this even make sense?!!?!?!)

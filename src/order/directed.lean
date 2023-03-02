@@ -210,7 +210,7 @@ begin
   apply h,
 end
 
-lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab: a ≼ b) :
+lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab : a ≼ b) :
   directed_on r ({a, b} : set α) :=
 begin
   apply directed_on.insert h,

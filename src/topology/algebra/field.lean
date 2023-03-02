@@ -3,7 +3,7 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison
 -/
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.group_with_zero
 import topology.local_extr
 import field_theory.subfield

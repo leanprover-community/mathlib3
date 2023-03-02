@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.uniform_mul_action
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.star
 import topology.algebra.order.field
 import ring_theory.subring.basic

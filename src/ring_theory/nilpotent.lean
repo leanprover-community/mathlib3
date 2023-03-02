@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import data.nat.choose.sum
 import algebra.algebra.bilinear
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Nilpotent elements

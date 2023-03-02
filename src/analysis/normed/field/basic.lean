@@ -474,6 +474,15 @@ nnreal.eq $ by simp
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ‖a ^ n‖₊ = ‖a‖₊ ^ n :=
 map_zpow₀ (nnnorm_hom : α →*₀ ℝ≥0)
 
+lemma dist_inv_inv₀ {z w : α} (hz : z ≠ 0) (hw : w ≠ 0) :
+  dist z⁻¹ w⁻¹ = (dist z w) / (‖z‖ * ‖w‖) :=
+by rw [dist_eq_norm, inv_sub_inv' hz hw, norm_mul, norm_mul, norm_inv, norm_inv, mul_comm ‖z‖⁻¹,
+  mul_assoc, dist_eq_norm', div_eq_mul_inv, mul_inv]
+
+lemma nndist_inv_inv₀ {z w : α} (hz : z ≠ 0) (hw : w ≠ 0) :
+  nndist z⁻¹ w⁻¹ = (nndist z w) / (‖z‖₊ * ‖w‖₊) :=
+by { rw ← nnreal.coe_eq, simp [-nnreal.coe_eq, dist_inv_inv₀ hz hw], }
+
 /-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
 infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
 lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :

@@ -158,8 +158,9 @@ begin
   { obtain ⟨m, hm⟩ := is_integral.exists_multiple_integral_of_is_localization
       (non_zero_divisors ℤ) z (is_separable.is_integral ℚ z),
     obtain ⟨x, hx⟩ : ∃ x, algebra_map R K x = m • z := is_integral_closure.is_integral_iff.mp hm,
-    exact ⟨⟨x, ⟨m, ⟨m, ⟨set_like.coe_mem m, rfl⟩⟩⟩⟩, by {simp only [hx, coe_coe,
-      set_like.coe_mk, map_int_cast, submonoid.smul_def, mul_comm, zsmul_eq_mul], }⟩, },
+    use ⟨x, m, m, set_like.coe_mem m, rfl⟩,
+    simp only [hx, coe_coe, set_like.coe_mk, map_int_cast, submonoid.smul_def, mul_comm,
+        zsmul_eq_mul] },
   { simp only [is_integral_closure.algebra_map_injective R ℤ K h], },
   { rintros ⟨⟨_, m, hm, rfl⟩, h⟩,
     refine congr_arg (algebra_map R K) ((mul_right_inj' _).mp h),

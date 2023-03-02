@@ -153,6 +153,11 @@ variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
   = (algebra_map R S c) • restrict_scalars.add_equiv R S M x :=
 rfl
 
+lemma restrict_scalars.smul_def (c : R) (x : restrict_scalars R S M) :
+  c • x = (restrict_scalars.add_equiv R S M).symm
+    (algebra_map R S c • restrict_scalars.add_equiv R S M x) :=
+rfl
+
 lemma restrict_scalars.add_equiv_symm_map_algebra_map_smul (r : R) (x : M) :
   (restrict_scalars.add_equiv R S M).symm (algebra_map R S r • x)
   = r • (restrict_scalars.add_equiv R S M).symm x :=

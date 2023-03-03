@@ -347,20 +347,22 @@ end principal_seg
 A relation is well-founded iff every principal segment of it is well-founded.
 
 In this lemma we use `subrel` to indicate its principal segments because it's usually more
-convenient to use. If you want to reason about `principal_seg`:
-* For the backward direction, `principal_seg.of_element` shows these `subrel`s are indeed principal
-segments.
-* For the forward direction, `rel_hom_class.well_founded` is already available for use.
+convenient to use.
 -/
 theorem well_founded_iff_principal_seg {β : Type*} {s : β → β → Prop} [is_trans β s] :
   well_founded s ↔ (∀ b, well_founded (subrel s {b' | s b' b})) :=
 begin
-  refine ⟨λ h b, ⟨λ b', ((principal_seg.of_element _ b).acc b').mpr (h.apply b')⟩,
-    λ h, ⟨λ b, acc.intro _ (λ b' hb', _)⟩⟩,
+  refine ⟨λ wf b, ⟨λ b', ((principal_seg.of_element _ b).acc b').mpr (wf.apply b')⟩,
+    λ wf, ⟨λ b, acc.intro _ (λ b' hb', _)⟩⟩,
   let f := principal_seg.of_element s b,
   obtain ⟨b', rfl⟩ := f.down.mp ((principal_seg.of_element_top s b).symm ▸ hb' : s b' f.top),
-  exact (f.acc b').mp ((h b).apply b'),
+  exact (f.acc b').mp ((wf b).apply b'),
 end
+
+theorem {u} well_founded_iff_principal_seg' {β : Type u} {s : β → β → Prop} [is_trans β s] :
+  well_founded s ↔ (∀ (α : Type u) (r : α → α → Prop) (f : r ≺i s), well_founded r) :=
+⟨λ wf α r f, rel_hom_class.well_founded f.to_rel_embedding wf,
+  λ h, well_founded_iff_principal_seg.mpr (λ b, h _ _ (principal_seg.of_element s b))⟩
 
 /-! ### Properties of initial and principal segments -/
 

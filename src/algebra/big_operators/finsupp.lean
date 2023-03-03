@@ -514,7 +514,7 @@ end
 
 @[simp, to_additive]
 lemma prod_indicator_const_index [has_zero M] [comm_monoid N]
-  (s : finset α) (m : M) {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
+  {s : finset α} (m : M) {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
   (indicator s (λ _ _, m)).prod h = ∏ x in s, h x m :=
 (prod_indicator_index _ h_zero).trans $ @prod_attach _ _ _ _ (λ i, h i m)
 

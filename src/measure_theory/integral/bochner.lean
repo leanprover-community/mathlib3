@@ -1402,6 +1402,40 @@ theorem integral_sum_measure {ι} {m : measurable_space α} {f : α → E} {μ :
   ∫ a, f a ∂measure.sum μ = ∑' i, ∫ a, f a ∂μ i :=
 (has_sum_integral_measure hf).tsum_eq.symm
 
+lemma integral_tsum {ι} [countable ι] {f : ι → α → E} (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  (hf' : ∑' i, ∫⁻ (a : α), ‖f i a‖₊ ∂μ ≠ ⊤) :
+  ∫ (a : α), (∑' i, f i a) ∂μ = ∑' i, ∫ (a : α), f i a ∂μ :=
+begin
+  have hf'' : ∀ i, ae_measurable (λ x, (‖f i x‖₊ : ennreal)) μ,
+  { exact_mod_cast λ i, (hf i).nnnorm.ae_measurable },
+  have hhh : ∀ᵐ (a : α) ∂μ, summable (λ n, (‖f n a‖₊ : ℝ)),
+  { rw ← lintegral_tsum hf'' at hf',
+    refine (ae_lt_top' (ae_measurable_ennreal_tsum hf'') hf').mono _,
+    intros x hx,
+    rw ← ennreal.tsum_coe_ne_top_iff_summable_coe,
+    exact hx.ne, },
+  convert (measure_theory.has_sum_integral_of_dominated_convergence (λ i a, ‖f i a‖₊) hf _
+    hhh _ _).tsum_eq.symm,
+  { intros n,
+    filter_upwards with x,
+    refl, },
+  { split,
+    { simp_rw [← coe_nnnorm, ← nnreal.coe_tsum],
+      apply ae_strongly_measurable.coe_nnreal_real,
+      rw ae_strongly_measurable_iff_ae_measurable,
+      apply ae_measurable_nnreal_tsum,
+      exact λ i, (hf i).nnnorm.ae_measurable, },
+    { dsimp [has_finite_integral],
+      have : ∫⁻ a, ∑' n, ‖f n a‖₊ ∂μ < ⊤ := by rwa [lintegral_tsum hf'', lt_top_iff_ne_top],
+      convert this using 1,
+      apply lintegral_congr_ae,
+      simp_rw [← coe_nnnorm, ← nnreal.coe_tsum, nnreal.nnnorm_eq],
+      filter_upwards [hhh] with a ha,
+      exact ennreal.coe_tsum (nnreal.summable_coe.mp ha), }, },
+  { filter_upwards [hhh] with x hx,
+    exact (summable_of_summable_norm hx).has_sum, },
+end
+
 @[simp] lemma integral_smul_measure (f : α → E) (c : ℝ≥0∞) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin

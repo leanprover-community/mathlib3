@@ -215,6 +215,7 @@ theorem lt_top (f : r ≺i s) (a : α) : s (f a) f.top := f.down.2 ⟨_, rfl⟩
 theorem init [is_trans β s] (f : r ≺i s) {a : α} {b : β} (h : s b (f a)) : ∃ a', f a' = b :=
 f.down.1 $ trans h $ f.lt_top _
 
+/-- A principal segment is in particular an initial segment. -/
 instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
 ⟨λ f, ⟨f.to_rel_embedding, λ a b, f.init⟩⟩
 
@@ -342,11 +343,17 @@ protected theorem acc [is_trans β s] (f : r ≺i s) (a : α) : acc r a ↔ acc 
 
 end principal_seg
 
-theorem well_founded_of_principal_seg {β : Type*} (s : β → β → Prop) [is_trans β s]
-  (h : ∀ b, well_founded (subrel s {b' : β | s b' b})) :
-  well_founded s :=
+/-- A relation is well-founded iff every principal segment of it is well-founded.
+
+In this lemma we use `subrel` to indicate its principal segments because it's usually more
+convenient to use.
+For the backward direction, `principal_seg.of_element` shows these `subrel`s are indeed principal
+segments. For the forward direction, see `rel_hom_class.well_founded`. -/
+theorem well_founded_iff_principal_seg {β : Type*} {s : β → β → Prop} [is_trans β s] :
+  well_founded s ↔ (∀ b, well_founded (subrel s {b' | s b' b})) :=
 begin
-  refine ⟨λ b, acc.intro _ (λ b' hb', _)⟩,
+  refine ⟨λ h b, ⟨λ b', ((principal_seg.of_element _ b).acc b').mpr (h.apply b')⟩,
+    λ h, ⟨λ b, acc.intro _ (λ b' hb', _)⟩⟩,
   let f := principal_seg.of_element s b,
   obtain ⟨b', rfl⟩ := f.down.mp ((principal_seg.of_element_top s b).symm ▸ hb' : s b' f.top),
   exact (f.acc b').mp ((h b).apply b'),

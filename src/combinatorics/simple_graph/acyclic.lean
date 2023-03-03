@@ -8,6 +8,9 @@ import combinatorics.simple_graph.connectivity
 
 # Acyclic graphs and trees
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module introduces *acyclic graphs* (a.k.a. *forests*) and *trees*.
 
 ## Main definitions

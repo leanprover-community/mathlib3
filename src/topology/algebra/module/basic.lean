@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.mul_action
 import topology.algebra.uniform_group
 import topology.continuous_function.basic

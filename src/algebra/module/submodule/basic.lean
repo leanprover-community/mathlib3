@@ -264,13 +264,11 @@ These instances transfer the action by an element `m : M` of a `R`-module `M` wr
 onto the action by an element `s : S` of a submodule `S : submodule R M` such that
 `s +ᵥ a = (s : M) +ᵥ a`.
 
-These instances work particularly well in conjunction with `module.to_add_action`, enabling
-`s +ᵥ m` as an alias for `↑s + m`.
 -/
 
 variables {α β : Type*}
 
-instance [has_vadd M α] : has_vadd p α := has_vadd.comp _ p.subtype
+instance p.to_add_submonoid.has_add [has_vadd M α] : has_vadd p α := has_vadd.comp _ p.subtype
 
 instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α β] :
   vadd_comm_class p α β := ⟨λ a, (vadd_comm (a : M) : _)⟩

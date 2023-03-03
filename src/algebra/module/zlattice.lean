@@ -78,18 +78,17 @@ end
 
 end basis
 
-section real_case
+section ordered_field
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
-variables (b : basis ι ℝ E)
+variables {K : Type*} [normed_linear_ordered_field K]
+variables [normed_add_comm_group E] [normed_space K E]
+variables (b : basis ι K E)
 
 /-- The fundamental domain of the ℤ-lattice spanned by `b`. See `zspan.is_add_fundamental_domain`
 for the proof that it is the fundamental domain. -/
-def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : ℝ) 1 }
+def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : K) 1 }
 
-section fintype
-
-variable [fintype ι]
+variables [floor_ring K] [fintype ι]
 
 /-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
 by rounding down its coordinates on the basis `b`. -/
@@ -98,7 +97,7 @@ def zspan.floor_map : E → span ℤ (set.range b) :=
 
 lemma zspan.floor_map_single (m : E) (i : ι) :
   b.repr (zspan.floor_map b m) i = int.floor (b.repr m i) :=
-by simp only [zspan.floor_map, zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.single_apply,
+by simp only [zspan.floor_map, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
   finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
   finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, zspan.basis_apply, linear_equiv.map_sum]
 
@@ -121,7 +120,7 @@ begin
   simp_rw [zspan.fract_map_single, int.fract_eq_fract],
   use (zspan.basis ℤ b).repr ⟨v, h⟩ i,
   rw [map_add, finsupp.coe_add, pi.add_apply, add_tsub_cancel_right,
-    ← (eq_int_cast (algebra_map ℤ ℝ) _), zspan.repr_apply, coe_mk],
+    ← (eq_int_cast (algebra_map ℤ K) _), zspan.repr_apply, coe_mk],
 end
 
 lemma zspan.mem_fundamental_domain {x : E} :
@@ -140,10 +139,17 @@ begin
   rw [eq_comm, basis.ext_elem_iff b],
   simp only [int.fract_eq_fract, zspan.fract_map_single],
   simp_rw [zspan.mem_span_iff, sub_eq_neg_add, map_add, linear_equiv.map_neg, finsupp.coe_add,
-    finsupp.coe_neg, pi.add_apply, pi.neg_apply, ← (eq_int_cast (algebra_map ℤ ℝ) _)],
+    finsupp.coe_neg, pi.add_apply, pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _)],
 end
 
-lemma zspan.fract_map_le (m : E) :
+end ordered_field
+
+section real_case
+
+variables [normed_add_comm_group E] [normed_space ℝ E]
+variables (b : basis ι ℝ E)
+
+lemma zspan.fract_map_le [fintype ι] (m : E) :
   ‖zspan.fract_map b m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
 begin
   calc
@@ -158,8 +164,6 @@ begin
     refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
     rw one_mul,
 end
-
-end fintype
 
 lemma zspan.fundamental_domain_metric_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=

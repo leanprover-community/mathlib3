@@ -343,12 +343,15 @@ protected theorem acc [is_trans β s] (f : r ≺i s) (a : α) : acc r a ↔ acc 
 
 end principal_seg
 
-/-- A relation is well-founded iff every principal segment of it is well-founded.
+/--
+A relation is well-founded iff every principal segment of it is well-founded.
 
 In this lemma we use `subrel` to indicate its principal segments because it's usually more
-convenient to use.
-For the backward direction, `principal_seg.of_element` shows these `subrel`s are indeed principal
-segments. For the forward direction, see `rel_hom_class.well_founded`. -/
+convenient to use. If you want to reason about `principal_seg`:
+* For the backward direction, `principal_seg.of_element` shows these `subrel`s are indeed principal
+segments.
+* For the forward direction, `rel_hom_class.well_founded` is already available for use.
+-/
 theorem well_founded_iff_principal_seg {β : Type*} {s : β → β → Prop} [is_trans β s] :
   well_founded s ↔ (∀ b, well_founded (subrel s {b' | s b' b})) :=
 begin

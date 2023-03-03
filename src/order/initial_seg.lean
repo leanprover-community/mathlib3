@@ -168,6 +168,13 @@ def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r 
 @[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
   (a) : le_add r s a = sum.inl a := rfl
 
+protected theorem acc (f : r ≼i s) (a : α) : acc r a ↔ acc s (f a) :=
+⟨begin
+    refine λ h, acc.rec_on h (λ a _ ha, acc.intro _ (λ b hb, _)),
+    obtain ⟨a', rfl⟩ := f.init hb,
+    exact ha _ (f.map_rel_iff.mp hb),
+  end, f.to_rel_embedding.acc a⟩
+
 end initial_seg
 
 /-!
@@ -331,7 +338,26 @@ def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ 
 @[reducible] def pempty_to_punit : @empty_relation pempty ≺i @empty_relation punit :=
 @of_is_empty _ _ empty_relation _ _ punit.star $ λ x, not_false
 
+protected theorem acc [is_trans β s] (f : r ≺i s) (a : α) : acc r a ↔ acc s (f a) :=
+(f : r ≼i s).acc a
+
 end principal_seg
+
+/-- A relation is well-founded iff every principal segment of it is well-founded.
+
+In this lemma we use `subrel` to indicate its principal segments because it's usually more
+convenient to use.
+For the backward direction, `principal_seg.of_element` shows these `subrel`s are indeed principal
+segments. For the forward direction, see `rel_hom_class.well_founded`. -/
+theorem well_founded_iff_principal_seg {β : Type*} {s : β → β → Prop} [is_trans β s] :
+  well_founded s ↔ (∀ b, well_founded (subrel s {b' | s b' b})) :=
+begin
+  refine ⟨λ h b, ⟨λ b', ((principal_seg.of_element _ b).acc b').mpr (h.apply b')⟩,
+    λ h, ⟨λ b, acc.intro _ (λ b' hb', _)⟩⟩,
+  let f := principal_seg.of_element s b,
+  obtain ⟨b', rfl⟩ := f.down.mp ((principal_seg.of_element_top s b).symm ▸ hb' : s b' f.top),
+  exact (f.acc b').mp ((h b).apply b'),
+end
 
 /-! ### Properties of initial and principal segments -/
 

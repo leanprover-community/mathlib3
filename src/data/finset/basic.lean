@@ -463,6 +463,9 @@ theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := no
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 
+@[simp] lemma val_eq_singleton_iff {a : α} {s : finset α} : s.val = {a} ↔ s = {a} :=
+by { rw ←val_inj, refl }
+
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
 
@@ -546,14 +549,6 @@ instance [nonempty α] : nontrivial (finset α) :=
 instance [is_empty α] : unique (finset α) :=
 { default := ∅,
   uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
-
-instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
-  is_empty {s : finset ι // s.nonempty} :=
-⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
-
-instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
-  nonempty {s : finset ι // s.nonempty} :=
-h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
 
 end singleton
 
@@ -1038,10 +1033,6 @@ begin
     (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
   exact ⟨i, hic, hi⟩
 end
-
-instance semilattice_sup_subtype_nonempty :
-  semilattice_sup {s : finset α // s.nonempty} :=
-subtype.semilattice_sup $ λ s t hs ht, hs.mono $ subset_union_left _ _
 
 /-! #### inter -/
 
@@ -2226,6 +2217,11 @@ lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := s.val.c
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {s : finset α} : s.to_list = [a] ↔ s = {a} :=
+by rw [to_list, to_list_eq_singleton_iff, val_eq_singleton_iff]
+
+@[simp] lemma to_list_singleton : ∀ a, ({a} : finset α).to_list = [a] := to_list_singleton
 
 lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=

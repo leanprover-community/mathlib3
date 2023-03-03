@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.specific_limits.basic
 import topology.urysohns_lemma
 import topology.continuous_function.bounded
 import topology.uniform_space.cauchy
@@ -20,7 +21,7 @@ space structure.
 -/
 
 open set filter metric
-open_locale bounded_continuous_function filter topological_space
+open_locale bounded_continuous_function filter topology
 
 namespace topological_space
 
@@ -115,8 +116,6 @@ begin
   letI : metric_space Y := metrizable_space_metric Y,
   apply_instance
 end
-
-instance [i : metrizable_space X] : metrizable_space Xᵒᵈ := i
 
 /-- Given an embedding of a topological space into a metrizable space, the source space is also
 metrizable. -/

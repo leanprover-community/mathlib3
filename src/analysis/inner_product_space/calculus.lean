@@ -26,7 +26,7 @@ The last part of the file should be generalized to `pi_Lp`.
 noncomputable theory
 
 open is_R_or_C real filter
-open_locale big_operators classical topological_space
+open_locale big_operators classical topology
 
 section deriv_inner
 

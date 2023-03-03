@@ -40,7 +40,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 

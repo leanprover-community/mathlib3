@@ -175,7 +175,7 @@ linear_equiv.to_continuous_linear_equiv_of_bounds f a a⁻¹
 
 end seminormed
 
-/- ## The span of a single vector -/
+/-! ## The span of a single vector -/
 
 section seminormed
 

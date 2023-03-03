@@ -226,10 +226,15 @@ end map
 section centralizer
 variables (R) {A}
 
+lemma _root_.set.star_mem_centralizer {a : A} {s : set A}
+  (h : ∀ (a : A), a ∈ s → star a ∈ s) (ha : a ∈ set.centralizer s) :
+  star a ∈ set.centralizer s :=
+λ y hy, by simpa using congr_arg star (ha _ (h _ hy)).symm
+
 /-- The centralizer, or commutant, of a *-closed set as star subalgebra. -/
 def centralizer
   (s : set A) (w : ∀ (a : A), a ∈ s → star a ∈ s) : star_subalgebra R A :=
-{ star_mem' := λ x xm y hy, by simpa using congr_arg star (xm _ (w _ hy)).symm,
+{ star_mem' := λ x, set.star_mem_centralizer w,
   ..subalgebra.centralizer R s, }
 
 @[simp]

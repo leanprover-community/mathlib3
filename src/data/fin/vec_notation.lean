@@ -11,6 +11,9 @@ import meta.univs
 /-!
 # Matrix and vector notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines notation for vectors and matrices. Given `a b c d : α`,
 the notation allows us to write `![a, b, c, d] : fin 4 → α`.
 Nesting vectors gives coefficients of a matrix, so `![![a, b], ![c, d]] : fin 2 → fin 2 → α`.

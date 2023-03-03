@@ -10,6 +10,9 @@ import data.list.of_fn
 /-!
 # Pointwise operations with lists of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some lemmas about pointwise algebraic operations with lists of sets.
 -/
 

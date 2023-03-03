@@ -28,7 +28,7 @@ Most proofs are adapted from the corresponding proofs on `ℝ≥0∞`.
 noncomputable theory
 
 open classical set filter metric topological_space
-open_locale classical topological_space ennreal nnreal big_operators filter
+open_locale classical topology ennreal nnreal big_operators filter
 
 variables {α : Type*} [topological_space α]
 

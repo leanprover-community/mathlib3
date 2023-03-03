@@ -600,7 +600,7 @@ lemma tsum_eval {α : Type*} {p : α → continuous_multilinear_map 𝕜 E G} (h
   (m : Π i, E i) : (∑' a, p a) m = ∑' a, p a m :=
 (has_sum_eval hp.has_sum m).tsum_eq.symm
 
-open_locale topological_space
+open_locale topology
 open filter
 
 /-- If the target space is complete, the space of continuous multilinear maps with its norm is also

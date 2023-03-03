@@ -10,6 +10,9 @@ import group_theory.perm.basic
 /-!
 # Support of a permutation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 In the following, `f g : equiv.perm α`.

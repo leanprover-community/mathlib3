@@ -8,6 +8,9 @@ import data.finset.prod
 /-!
 # N-ary images of finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `finset.image₂`, the binary image of finsets. This is the finset version of
 `set.image2`. This is mostly useful to define pointwise operations.
 

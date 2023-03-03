@@ -90,7 +90,7 @@ theorem coe_fn_coe_trans
 
 /-- Non-dependent version of `coe_fn_coe_trans`, helps `rw` figure out the argument. -/
 theorem coe_fn_coe_trans'
-  {α β γ} {δ : out_param $ _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
+  {α β γ} {δ : _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 @[simp] theorem coe_fn_coe_base
@@ -99,7 +99,7 @@ theorem coe_fn_coe_trans'
 
 /-- Non-dependent version of `coe_fn_coe_base`, helps `rw` figure out the argument. -/
 theorem coe_fn_coe_base'
-  {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
+  {α β} {γ : _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 -- This instance should have low priority, to ensure we follow the chain
@@ -908,9 +908,17 @@ lemma heq_of_cast_eq :
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
-lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h : x == y) :
-  @eq.rec α a C x b eq == y :=
-by subst eq; exact h
+lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (e : a = b) (h : x == y) :
+  @eq.rec α a C x b e == y :=
+by subst e; exact h
+
+lemma rec_heq_iff_heq {β} {C : α → Sort*} {x : C a} {y : β} {e : a = b} :
+  @eq.rec α a C x b e == y ↔ x == y :=
+by subst e
+
+lemma heq_rec_iff_heq {β} {C : α → Sort*} {x : β} {y : C a} {e : a = b} :
+  x == @eq.rec α a C y b e ↔ x == y :=
+by subst e
 
 protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
   (x₁ = x₂) ↔ (y₁ = y₂) :=

@@ -9,6 +9,9 @@ import data.set.intervals.monoid
 /-!
 # Intervals as finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about all the `finset.Ixx`, which are defined in
 `order.locally_finite`.
 

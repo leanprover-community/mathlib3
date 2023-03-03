@@ -582,15 +582,13 @@ by simpa [re_add_im] using abs.add_le z.re (z.im * I)
 lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
 begin
   cases z with x y,
-  simp only [abs, norm_sq_mk, ← sq],
-  wlog hle : |x| ≤ |y| := le_total (|x|) (|y|) using [x y, y x] tactic.skip,
-  { simp only [absolute_value.coe_mk, mul_hom.coe_mk, norm_sq_mk, ←sq],
-    calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
-      real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
-    ... = real.sqrt 2 * max (|x|) (|y|) :
-      by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs] },
-  { dsimp,
-    rwa [add_comm, max_comm] }
+  simp only [abs_apply, norm_sq_mk, ← sq],
+  wlog hle : |x| ≤ |y|,
+  { rw [add_comm, max_comm], exact this _ _ (le_of_not_le hle), },
+  calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
+    real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
+  ... = real.sqrt 2 * max (|x|) (|y|) :
+    by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs],
 end
 
 lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=

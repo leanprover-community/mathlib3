@@ -15,7 +15,7 @@ of `cau_seq` Cauchy sequences.
 
 universes u v
 open set filter
-open_locale topological_space classical
+open_locale topology classical
 
 variable {β : Type v}
 

@@ -26,7 +26,7 @@ open_locale nnreal ennreal uniformity
 open set filter bornology
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
-`K * edist x y ≤ edist (f x) (f y)`. -/
+`edist x y ≤ K * edist (f x) (f y)`. -/
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 
@@ -222,3 +222,10 @@ lemma lipschitz_with.to_right_inverse [pseudo_emetric_space α] [pseudo_emetric_
   {f : α → β} (hf : lipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   antilipschitz_with K g :=
 λ x y, by simpa only [hg _] using hf (g x) (g y)
+
+/-- The preimage of a proper space under a Lipschitz homeomorphism is proper. -/
+@[protected]
+theorem lipschitz_with.proper_space [pseudo_metric_space α] [metric_space β] [proper_space β]
+  {K : ℝ≥0} {f : α ≃ₜ β} (hK : lipschitz_with K f) :
+  proper_space α :=
+(hK.to_right_inverse f.right_inv).proper_space f.symm.continuous f.symm.surjective

@@ -17,7 +17,7 @@ local postfix `⋆`:std.prec.max_plus := star
 
 section
 
-open_locale topological_space ennreal
+open_locale topology ennreal
 open filter ennreal spectrum cstar_ring
 
 section unitary_spectrum

@@ -5,7 +5,7 @@ Authors: Eric Wieser
 -/
 
 import linear_algebra.exterior_algebra.basic
-import linear_algebra.clifford_algebra
+import linear_algebra.clifford_algebra.basic
 
 /-!
 Tests that the ring instances for `free_algebra` and derived quotient types actually work.

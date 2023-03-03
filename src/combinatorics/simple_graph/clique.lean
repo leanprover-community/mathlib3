@@ -9,6 +9,9 @@ import data.finset.pairwise
 /-!
 # Graph cliques
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines cliques in simple graphs. A clique is a set of vertices that are pairwise
 adjacent.
 

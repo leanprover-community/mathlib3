@@ -8,6 +8,7 @@ import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
+import algebra.order.kleene
 import data.finset.pointwise
 import data.set.semiring
 import data.set.pointwise.big_operators
@@ -299,8 +300,14 @@ submodule.mem_span_mul_finite_of_mem_span_mul
 
 variables {M N P}
 
-/-- Sub-R-modules of an R-algebra form a semiring. -/
-instance : semiring (submodule R A) :=
+lemma mem_span_singleton_mul {x y : A} : x ∈ span R {y} * P ↔ ∃ z ∈ P, y * z = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map, exists_prop], refl }
+
+lemma mem_mul_span_singleton {x y : A} : x ∈ P * span R {y} ↔ ∃ z ∈ P, z * y = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map_flip, exists_prop], refl }
+
+/-- Sub-R-modules of an R-algebra form an idempotent semiring. -/
+instance : idem_semiring (submodule R A) :=
 { one_mul       := submodule.one_mul,
   mul_one       := submodule.mul_one,
   zero_mul      := bot_mul,
@@ -311,7 +318,9 @@ instance : semiring (submodule R A) :=
   ..add_monoid_with_one.unary,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
-  ..submodule.has_mul }
+  ..submodule.has_mul,
+  ..(by apply_instance : order_bot (submodule R A)),
+  ..(by apply_instance : lattice (submodule R A)) }
 
 variables (M)
 
@@ -452,12 +461,13 @@ by rw [←comap_equiv_eq_map_symm, ←comap_equiv_eq_map_symm, comap_op_pow]
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/
+@[simps]
 def span.ring_hom : set_semiring A →+* submodule R A :=
-{ to_fun := submodule.span R,
+{ to_fun := λ s, submodule.span R s.down,
   map_zero' := span_empty,
   map_one' := one_eq_span.symm,
   map_add' := span_union,
-  map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
+  map_mul' := λ s t, by rw [set_semiring.down_mul, span_mul_span, ← image_mul_prod] }
 
 section
 variables {α : Type*} [monoid α] [mul_semiring_action α A] [smul_comm_class α R A]
@@ -492,9 +502,9 @@ le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 (mul_le.2 $ λ r hrn s hsm, mul_mem_mul_rev hsm hrn)
 
 /-- Sub-R-modules of an R-algebra A form a semiring. -/
-instance : comm_semiring (submodule R A) :=
+instance : idem_comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
-  .. submodule.semiring }
+  .. submodule.idem_semiring }
 
 lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
   (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=
@@ -514,22 +524,23 @@ variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
 instance module_set : module (set_semiring A) (submodule R A) :=
-{ smul := λ s P, span R s * P,
+{ smul := λ s P, span R s.down * P,
   smul_add := λ _ _ _, mul_add _ _ _,
-  add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
-  mul_smul := λ s t P, show _ = _ * (_ * _),
-    by { rw [← mul_assoc, span_mul_span, ← image_mul_prod] },
-  one_smul := λ P, show span R {(1 : A)} * P = _,
-    by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
-  zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
+  add_smul := λ s t P,
+    by simp_rw [has_smul.smul, set_semiring.down_add, span_union, sup_mul, add_eq_sup],
+  mul_smul := λ s t P,
+    by simp_rw [has_smul.smul, set_semiring.down_mul, ← mul_assoc, span_mul_span],
+  one_smul := λ P,
+    by simp_rw [has_smul.smul, set_semiring.down_one, ←one_eq_span_one_set, one_mul],
+  zero_smul := λ P,
+    by simp_rw [has_smul.smul, set_semiring.down_zero, span_empty, bot_mul, bot_eq_zero],
   smul_zero := λ _, mul_bot _ }
-
 
 variables {R A}
 
-lemma smul_def {s : set_semiring A} {P : submodule R A} : s • P = span R s * P := rfl
+lemma smul_def (s : set_semiring A) (P : submodule R A) : s • P = span R s.down * P := rfl
 
-lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ≤ t.down)
+lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ⊆ t.down)
   (h₂ : M ≤ N) : s • M ≤ t • N :=
 mul_le_mul (span_mono h₁) h₂
 

@@ -9,6 +9,9 @@ import data.qpf.multivariate.basic
 
 /-!
 # Dependent product and sum of QPFs are QPFs
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u

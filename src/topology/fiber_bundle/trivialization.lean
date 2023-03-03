@@ -48,7 +48,7 @@ type of linear trivializations is not even particularly well-behaved.
 -/
 
 open topological_space filter set bundle
-open_locale topological_space classical bundle
+open_locale topology classical bundle
 
 variables {ι : Type*} {B : Type*} {F : Type*} {E : B → Type*}
 variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z → B}

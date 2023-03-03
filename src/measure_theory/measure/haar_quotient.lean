@@ -72,103 +72,10 @@ theorem ae_strongly_measurable.coe_nnreal_real {α : Type*} [measurable_space α
   {f : α → nnreal} {μ : measure_theory.measure α} (hf : ae_strongly_measurable f μ) :
 ae_strongly_measurable (λ (x : α), (f x : real)) μ := nnreal.continuous_coe.comp_ae_strongly_measurable hf
 
-
-/--
-
--/
-lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
-  {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-  [measurable_space E] [borel_space E] [complete_space E]
-  {f : β → α → E}
-  (hf : ∀ (i : β), ae_strongly_measurable (f i) μ)
-  (hf' : ∑' (i : β), ∫⁻ (a : α), ‖f i a‖₊ ∂μ ≠ ⊤) :
-  ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
-begin
-  have hf'' := (λ i, (hf i).ae_measurable.nnnorm.coe_nnreal_ennreal),
-  have hhh : ∀ᵐ (a : α) ∂μ, summable (λ (n : β), (‖f n a‖₊ : ℝ)),
-  { haveI : countable β := sorry,
-    rw ← lintegral_tsum hf'' at hf',
-    refine (ae_lt_top' (ae_measurable.ennreal_tsum hf'') hf').mono _,
-    intros x hx,
-    rw ← ennreal.tsum_coe_ne_top_iff_summable_coe,
-    exact hx.ne, },
-  convert (measure_theory.has_sum_integral_of_dominated_convergence (λ i a, ‖f i a‖₊) hf _
-    hhh _ _).tsum_eq.symm,
-  { intros n,
-    filter_upwards with x,
-    refl, },
-  { split,
-    { simp_rw [← coe_nnnorm, ← nnreal.coe_tsum],
-      apply ae_strongly_measurable.coe_nnreal_real,
-      apply ae_strongly_measurable.nnreal_tsum,
-      exact (λ i, (hf i).nnnorm), },
-    { dsimp [has_finite_integral],
-      have : ∫⁻ (a : α), ∑' (n : β), ‖f n a‖₊ ∂μ < ⊤,
-      { rw [lintegral_tsum, lt_top_iff_ne_top],
-        { exact hf', },
-        { exact_mod_cast λ i, (hf i).ae_measurable.nnnorm, }, },
-      convert this using 1,
-      apply lintegral_congr_ae,
-      simp_rw [← coe_nnnorm, ← nnreal.coe_tsum, nnreal.nnnorm_eq],
-      filter_upwards [hhh] with a ha,
-      exact ennreal.coe_tsum (nnreal.summable_coe.mp ha), }, },
-  { filter_upwards [hhh] with x hx,
-    exact (summable_of_summable_norm hx).has_sum, },
-end
-
 open_locale ennreal
 
 open measure_theory
 
--- move to facts about integrable functions
-lemma integrable.mul_ℒ_infinity  {G : Type*} {E : Type*} [normed_ring E] [normed_algebra ℝ E]
-  [measurable_space E] [borel_space E] [has_measurable_mul₂ E] [measurable_space G]
-  {μ : measure G}
-  (f : G → E)
-  (f_ℒ_1 : integrable f μ)
-  (g : G → E)
-  (g_measurable : ae_strongly_measurable g μ)
-  (g_ℒ_infinity : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ < ∞) :
-  integrable (λ (x : G), f x * g x) μ :=
-begin
-  let s : set ℝ≥0∞ := {a : ℝ≥0∞ | μ {x : G | a < (λ (x : G), ↑‖g x‖₊) x} = 0},
-  have : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ = Inf s := ess_sup_eq_Inf _ _,
-  obtain ⟨a₀, has : μ _ = 0, ha₀⟩ : ∃ (a : ℝ≥0∞) (H : a ∈ s), a < ⊤,
-  { rw ← Inf_lt_iff,
-    rw ← ess_sup_eq_Inf,
-    exact g_ℒ_infinity },
-  rw ennreal.lt_iff_exists_coe at ha₀,
-  obtain ⟨a, rfl, -⟩ := ha₀,
-  rw integrable at f_ℒ_1 ⊢,
-  rw measure_theory.has_finite_integral_iff_norm at f_ℒ_1 ⊢,
-  refine ⟨f_ℒ_1.1.mul g_measurable, _⟩,
-  calc ∫⁻ (x : G), ennreal.of_real (‖f x * g x‖) ∂μ ≤
-    ∫⁻ (x : G), ennreal.of_real (‖f x‖ * ‖g x‖) ∂μ : _
-    ... ≤  ∫⁻ (x : G), ennreal.of_real (‖f x‖ * a) ∂μ : _
-    ... =  ∫⁻ (x : G), (ennreal.of_real (‖f x‖) * a) ∂μ : _
-    ... = ∫⁻ (x : G), ennreal.of_real (‖f x‖) ∂μ * a : _
-    ... < ⊤ : _ ,
-  { mono,
-    { exact rfl.le, },
-    { intros x,
-      apply ennreal.of_real_le_of_real,
-      exact norm_mul_le _ _, }, },
-  { apply measure_theory.lintegral_mono_ae,
-    rw ← compl_mem_ae_iff at has,
-    filter_upwards [has] with x hx,
-    apply ennreal.of_real_le_of_real,
-    refine mul_le_mul rfl.le _ (norm_nonneg _) (norm_nonneg _),
-    exact_mod_cast le_of_not_lt hx },
-  { congr,
-    ext1 x,
-    rw ennreal.of_real_mul,
-    { simp },
-    { exact norm_nonneg _ } },
-  { refine measure_theory.lintegral_mul_const'' _ (ae_strongly_measurable.ae_measurable _),
-    exact (ennreal.continuous_of_real.comp continuous_norm).comp_ae_strongly_measurable f_ℒ_1.1 },
-  { apply ennreal.mul_lt_top f_ℒ_1.2.ne,
-    simp, }
-end
 
 open set measure_theory topological_space measure_theory.measure
 open_locale pointwise nnreal

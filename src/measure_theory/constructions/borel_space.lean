@@ -1380,25 +1380,6 @@ begin
   rw [A, B, C, add_assoc],
 end
 
-lemma ae_measurable_ennreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
-  [countable ι] {f : ι → α → ennreal} {μ : measure_theory.measure α}
-  (h : ∀ (i : ι), ae_measurable (f i) μ) :
-  ae_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
-begin
-  simp_rw [ennreal.tsum_eq_supr_sum],
-  apply ae_measurable_supr,
-  exact λ s, finset.ae_measurable_sum s (λ i _, h i),
-end
-
-lemma ae_measurable_nnreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
-  [countable ι] {f : ι → α → nnreal} {μ : measure_theory.measure α}
-  (h : ∀ (i : ι), ae_measurable (f i) μ) :
-  ae_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
-begin
-  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
-  exact (ae_measurable_ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
-end
-
 section pseudo_metric_space
 
 variables [pseudo_metric_space α] [measurable_space α] [opens_measurable_space α]
@@ -1782,6 +1763,16 @@ lemma ae_measurable.ennreal_tsum {ι} [countable ι] {f : ι → α → ℝ≥0�
   ae_measurable (λ x, ∑' i, f i x) μ :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
+
+@[measurability]
+lemma ae_measurable.nnreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
+  [countable ι] {f : ι → α → nnreal} {μ : measure_theory.measure α}
+  (h : ∀ (i : ι), ae_measurable (f i) μ) :
+  ae_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
+begin
+  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
+  exact (ae_measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
+end
 
 @[measurability]
 lemma measurable_coe_real_ereal : measurable (coe : ℝ → ereal) :=

@@ -313,18 +313,19 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 @[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) (a : α) :
   (of_element r a).top = a := rfl
 
+/-- Any principal segment of a well order is order-isomorphic to a `subrel` -/
 @[simps apply]
-noncomputable def equiv_subrel (f : r ≺i s) : r ≃r subrel s {b | s b f.top} :=
+noncomputable def iso_subrel (f : r ≺i s) : r ≃r subrel s {b | s b f.top} :=
 { to_equiv := (equiv.of_injective f f.injective).trans (equiv.set_congr
     (funext (λ x, propext f.down.symm))),
   map_rel_iff' := λ a₁ a₂, f.map_rel_iff, }
 
-@[simp] theorem apply_equiv_subrel_symm (f : r ≺i s) (b : {b | s b f.top}) :
-  f ((equiv_subrel f).symm b) = b :=
+@[simp] theorem apply_iso_subrel_symm (f : r ≺i s) (b : {b | s b f.top}) :
+  f ((iso_subrel f).symm b) = b :=
 equiv.apply_of_injective_symm f.injective _
 
-@[simp] theorem equiv_subrel_symm_apply (f : r ≺i s) (a : α) :
-  (equiv_subrel f).symm ⟨f a, f.down.mpr ⟨a, rfl⟩⟩ = a :=
+@[simp] theorem iso_subrel_symm_apply (f : r ≺i s) (a : α) :
+  (iso_subrel f).symm ⟨f a, f.down.mpr ⟨a, rfl⟩⟩ = a :=
 equiv.of_injective_symm_apply f.injective _
 
 /-- Restrict the codomain of a principal segment -/

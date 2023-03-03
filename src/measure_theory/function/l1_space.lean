@@ -643,6 +643,27 @@ begin
     exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hint.2) },
 end
 
+/-
+theorem measure_theory.snorm_smul_le_mul_snorm {α : Type u_1} {E : Type u_2}
+  {m0 : measurable_space α} {μ : measure_theory.measure α} [normed_add_comm_group E]
+  {𝕜 : Type u_5} [normed_field 𝕜] [normed_space 𝕜 E] {p q r : ennreal} {f : α → E}
+  (hf : measure_theory.ae_strongly_measurable f μ) {φ : α → 𝕜}
+  (hφ : measure_theory.ae_strongly_measurable φ μ) (hpqr : 1 / p = 1 / q + 1 / r) :
+measure_theory.snorm (φ • f) p μ ≤ measure_theory.snorm φ q μ * measure_theory.snorm f r μ
+
+-/
+
+lemma integrable.mul_ℒ_infinity  {G : Type*} {E : Type*} [normed_ring E] [normed_algebra ℝ E]
+  [measurable_space E] [borel_space E] [has_measurable_mul₂ E] [measurable_space G]
+  {μ : measure G}
+  (f : G → E)
+  (f_ℒ_1 : integrable f μ)
+  (g : G → E)
+  (g_measurable : ae_strongly_measurable g μ)
+  (g_ℒ_infinity : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ < ∞) :
+  integrable (λ (x : G), f x * g x) μ :=
+sorry
+
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ‖f a‖) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]

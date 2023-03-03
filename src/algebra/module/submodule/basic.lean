@@ -264,6 +264,9 @@ These instances transfer the action by an element `m : M` of a `R`-module `M` wr
 onto the action by an element `s : S` of a submodule `S : submodule R M` such that
 `s +ᵥ a = (s : M) +ᵥ a`.
 
+These instances work particularly well in conjunction with `add_group.to_add_action`, enabling
+`s +ᵥ m` as an alias for `↑s + m`.
+
 -/
 
 variables {α β : Type*}

@@ -488,7 +488,7 @@ begin
   exact h2,
 end
 
-lemma indicator_eq_sum_single [add_comm_monoid M] (s : finset α) (f : Π a ∈ s, M) :
+lemma indicator_eq_sum_single [add_comm_monoid M] {s : finset α} (f : Π a ∈ s, M) :
   indicator s f = ∑ x in s.attach, single x (f x x.2) :=
 begin
   rw [← sum_single (indicator s f), sum, sum_subset (support_indicator_subset _ _), ← sum_attach],
@@ -497,6 +497,10 @@ begin
   intros i _ hi,
   rw [not_mem_support_iff.mp hi, single_zero],
 end
+
+lemma indicator_const_eq_sum_single [add_comm_monoid M] (s : finset α) (m : M) :
+  indicator s (λ _ _, m) = ∑ x in s, single x m :=
+(indicator_eq_sum_single _).trans $ @sum_attach _ _ _ _ (λ i, single i m)
 
 @[simp, to_additive]
 lemma prod_indicator_index [has_zero M] [comm_monoid N]
@@ -507,6 +511,12 @@ begin
   refine finset.prod_congr rfl (λ x hx, _),
   rw [indicator_of_mem],
 end
+
+@[simp, to_additive]
+lemma prod_indicator_const_index [has_zero M] [comm_monoid N]
+  (s : finset α) (m : M) {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
+  (indicator s (λ _ _, m)).prod h = ∏ x in s, h x m :=
+(prod_indicator_index _ h_zero).trans $ @prod_attach _ _ _ _ (λ i, h i m)
 
 end finsupp
 

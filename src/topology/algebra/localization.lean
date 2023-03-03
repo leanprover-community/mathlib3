@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
 import ring_theory.localization.basic
-import topology.algebra.ring
+import topology.algebra.ring.basic
 
 /-!
 

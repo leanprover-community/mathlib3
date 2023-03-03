@@ -3,6 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
+import algebra.big_operators.intervals
 import topology.algebra.infinite_sum.order
 import topology.instances.real
 

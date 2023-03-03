@@ -8,6 +8,9 @@ import category_theory.comm_sq
 /-!
 # Lifting properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the lifting property of two morphisms in a category and
 shows basic properties of this notion.
 

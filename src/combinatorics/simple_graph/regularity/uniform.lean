@@ -9,6 +9,9 @@ import set_theory.ordinal.basic
 /-!
 # Graph uniformity and uniform partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define uniformity of a pair of vertices in a graph and uniformity of a partition of
 vertices of a graph. Both are also known as ε-regularity.
 

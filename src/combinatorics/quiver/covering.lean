@@ -3,9 +3,8 @@ Copyright (c) 2022 Antoine Labelle, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle, Rémi Bottinelli
 -/
-import combinatorics.quiver.basic
-import combinatorics.quiver.symmetric
 import combinatorics.quiver.cast
+import combinatorics.quiver.symmetric
 import data.sigma.basic
 
 /-!
@@ -53,11 +52,11 @@ variables {U : Type*} [quiver.{u+1} U]
 /-- The `quiver.costar` at a vertex is the collection of arrows whose target is the vertex. -/
 @[reducible] def quiver.costar (u : U) := Σ (v : U), (v ⟶ u)
 
-/-- A prefunctor induces a map of quiver.stars at any vertex. -/
+/-- A prefunctor induces a map of `quiver.star` at any vertex. -/
 @[simps] def prefunctor.star (u : U) : quiver.star u → quiver.star (φ.obj u) :=
 λ F, ⟨φ.obj F.1, φ.map F.2⟩
 
-/-- A prefunctor induces a map of quiver.costars at any vertex. -/
+/-- A prefunctor induces a map of `quiver.costar` at any vertex. -/
 @[simps] def prefunctor.costar (u : U) : quiver.costar u → quiver.costar (φ.obj u) :=
 λ F, ⟨φ.obj F.1, φ.map F.2⟩
 
@@ -75,10 +74,10 @@ variables {U : Type*} [quiver.{u+1} U]
 
 /-- A prefunctor is a covering of quivers if it defines bijections on all stars and costars. -/
 @[reducible] def prefunctor.is_covering :=
-  (∀ u, function.bijective (φ.star u)) ∧ (∀ u, function.bijective (φ.costar u))
+(∀ u, bijective (φ.star u)) ∧ ∀ u, bijective (φ.costar u)
 
-@[simp] lemma prefunctor.map_inj_of_is_covering (hφ : φ.is_covering) {u v : U} :
-  function.injective (λ (f : u ⟶ v), φ.map f) :=
+@[simp] lemma prefunctor.is_covering.map_injective (hφ : φ.is_covering) {u v : U} :
+  injective (λ (f : u ⟶ v), φ.map f) :=
 begin
   rintro f g he,
   have : φ.star u (⟨_, f⟩ : quiver.star u) = φ.star u (⟨_, g⟩ : quiver.star u), by
@@ -92,16 +91,16 @@ lemma prefunctor.is_covering.comp (hφ : φ.is_covering) (hψ : ψ.is_covering) 
 
 lemma prefunctor.is_covering.of_comp_right (hψ : ψ.is_covering) (hφψ : (φ ⋙q ψ).is_covering) :
   φ.is_covering :=
-⟨ λ u, (function.bijective.of_comp_iff' (hψ.left $ φ.obj u) (φ.star u)).mp (hφψ.left u),
-  λ u, (function.bijective.of_comp_iff' (hψ.right $ φ.obj u) (φ.costar u)).mp (hφψ.right u)⟩
+⟨ λ u, (bijective.of_comp_iff' (hψ.left $ φ.obj u) (φ.star u)).mp (hφψ.left u),
+  λ u, (bijective.of_comp_iff' (hψ.right $ φ.obj u) (φ.costar u)).mp (hφψ.right u)⟩
 
 lemma prefunctor.is_covering.of_comp_left (hφ : φ.is_covering) (hφψ : (φ ⋙q ψ).is_covering)
-  (φsur : function.surjective φ.obj) : ψ.is_covering :=
+  (φsur : surjective φ.obj) : ψ.is_covering :=
 begin
   refine ⟨λ v, _, λ v, _⟩;
   obtain ⟨u, rfl⟩ := φsur v,
-  exacts [(function.bijective.of_comp_iff _ (hφ.left u)).mp (hφψ.left u),
-          (function.bijective.of_comp_iff _ (hφ.right u)).mp (hφψ.right u)],
+  exacts [(bijective.of_comp_iff _ (hφ.left u)).mp (hφψ.left u),
+          (bijective.of_comp_iff _ (hφ.right u)).mp (hφψ.right u)],
 end
 
 /--
@@ -160,10 +159,10 @@ begin
   refine ⟨λ u, _, λ u, _⟩;
   simp only [φ.symmetrify_star u, φ.symmetrify_costar u,
              equiv_like.comp_bijective, equiv_like.bijective_comp],
-  exacts [⟨function.injective.sum_map (hφ.left u).left (hφ.right u).left,
-           function.surjective.sum_map (hφ.left u).right (hφ.right u).right⟩,
-          ⟨function.injective.sum_map (hφ.right u).left (hφ.left u).left,
-           function.surjective.sum_map (hφ.right u).right (hφ.left u).right⟩],
+  exacts [⟨injective.sum_map (hφ.left u).left (hφ.right u).left,
+           surjective.sum_map (hφ.left u).right (hφ.right u).right⟩,
+          ⟨injective.sum_map (hφ.right u).left (hφ.left u).left,
+           surjective.sum_map (hφ.right u).right (hφ.left u).right⟩],
 end
 
 /-- The path star at a vertex `u` is the type of all paths starting at `u`. -/
@@ -177,7 +176,7 @@ def prefunctor.path_star (u : U) : quiver.path_star u → quiver.path_star (φ.o
   φ.path_star u ⟨v, p⟩ = ⟨φ.obj v, φ.map_path p⟩ := rfl
 
 theorem prefunctor.path_star_bijective (hφ : φ.is_covering) (u : U) :
-  function.bijective (φ.path_star u) :=
+  bijective (φ.path_star u) :=
 begin
   dsimp [prefunctor.path_star],
   split,
@@ -238,20 +237,20 @@ variables [has_involutive_reverse U] [has_involutive_reverse V] [prefunctor.map_
   (quiver.star_equiv_costar u).symm ⟨v, e⟩ = ⟨v, reverse e⟩ := rfl
 
 lemma prefunctor.costar_conj_star (u : U) : (φ.costar u) =
-  (quiver.star_equiv_costar (φ.obj u)) ∘ (φ.star u) ∘ (quiver.star_equiv_costar u).symm :=
+  quiver.star_equiv_costar (φ.obj u) ∘ φ.star u ∘ (quiver.star_equiv_costar u).symm :=
 by { ext ⟨v, f⟩; simp, }
 
 lemma prefunctor.bijective_costar_iff_bijective_star (u : U) :
-  function.bijective (φ.costar u) ↔ function.bijective (φ.star u) :=
+  bijective (φ.costar u) ↔ bijective (φ.star u) :=
 begin
-  rw [prefunctor.costar_conj_star, function.bijective.of_comp_iff', function.bijective.of_comp_iff];
+  rw [prefunctor.costar_conj_star, bijective.of_comp_iff', bijective.of_comp_iff];
   exact equiv.bijective _,
 end
 
-lemma prefunctor.is_covering_of_bijective_star (h : ∀ u, function.bijective (φ.star u)) :
+lemma prefunctor.is_covering_of_bijective_star (h : ∀ u, bijective (φ.star u)) :
   φ.is_covering := ⟨h, λ u, (φ.bijective_costar_iff_bijective_star u).2 (h u)⟩
 
-lemma prefunctor.is_covering_of_bijective_costar (h : ∀ u, function.bijective (φ.costar u)) :
+lemma prefunctor.is_covering_of_bijective_costar (h : ∀ u, bijective (φ.costar u)) :
   φ.is_covering := ⟨λ u, (φ.bijective_costar_iff_bijective_star u).1 (h u), h⟩
 
 end has_involutive_reverse

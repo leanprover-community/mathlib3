@@ -804,21 +804,13 @@ by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ_iff], apply typein_lt_s
 
 @[simp] theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
-⟨λ h, begin
-  by_contra hne,
-  cases lt_or_gt_of_ne hne with hlt hlt;
-    apply (is_well_order.is_irrefl r).1,
-    { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
-    { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
-end, λ h, by simp_rw h⟩
+(typein.principal_seg r).equiv_subrel.symm.injective.eq_iff.trans subtype.mk_eq_mk
 
 /-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
 @[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
 { to_fun := λ x, enum r x.1 x.2,
   inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
-  left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
-  right_inv := λ h, enum_typein _ _,
-  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
+  ..(typein.principal_seg r).equiv_subrel.symm }
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=

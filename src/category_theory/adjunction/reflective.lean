@@ -10,6 +10,9 @@ import category_theory.epi_mono
 /-!
 # Reflective functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Basic properties of reflective functors, especially those relating to their essential image.
 
 Note properties of reflective functors relating to limits and colimits are included in

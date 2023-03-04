@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.limits.cones
-import category_theory.structured_arrow
 import category_theory.fin_category
 
 /-!

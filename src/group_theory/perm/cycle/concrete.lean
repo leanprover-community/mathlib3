@@ -107,7 +107,7 @@ begin
   rw cycle_type_eq [l.attach.form_perm],
   { simp only [map, function.comp_app],
     rw [support_form_perm_of_nodup _ hl, card_to_finset, dedup_eq_self.mpr hl],
-    { simpa },
+    { simp },
     { intros x h,
       simpa [h, nat.succ_le_succ_iff] using hn } },
   { simp },
@@ -262,7 +262,7 @@ begin
     rw ←support_cycle_of_eq_nil_iff at hx,
     simp [hx] },
   { rintro ⟨h, hx⟩,
-    simpa using same_cycle.nat_of_mem_support _ h hx }
+    simpa using h.exists_pow_eq_of_mem_support hx }
 end
 
 lemma nodup_to_list (p : perm α) (x : α) :
@@ -274,16 +274,16 @@ begin
   have hc : is_cycle (cycle_of p x) := is_cycle_cycle_of p hx,
   rw nodup_iff_nth_le_inj,
   rintros n m hn hm,
-  rw [length_to_list, ←order_of_is_cycle hc] at hm hn,
+  rw [length_to_list, ←hc.order_of] at hm hn,
   rw [←cycle_of_apply_self, ←ne.def, ←mem_support] at hx,
   rw [nth_le_to_list, nth_le_to_list,
       ←cycle_of_pow_apply_self p x n, ←cycle_of_pow_apply_self p x m],
   cases n; cases m,
   { simp },
-  { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of m.zero_lt_succ hm,
+  { rw [←hc.support_pow_of_pos_of_lt_order_of m.zero_lt_succ hm,
         mem_support, cycle_of_pow_apply_self] at hx,
     simp [hx.symm] },
-  { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of n.zero_lt_succ hn,
+  { rw [←hc.support_pow_of_pos_of_lt_order_of n.zero_lt_succ hn,
         mem_support, cycle_of_pow_apply_self] at hx,
     simp [hx] },
   intro h,
@@ -305,11 +305,11 @@ lemma next_to_list_eq_apply (p : perm α) (x y : α) (hy : y ∈ to_list p x) :
   next (to_list p x) y hy = p y :=
 begin
   rw mem_to_list_iff at hy,
-  obtain ⟨k, hk, hk'⟩ := hy.left.nat_of_mem_support _ hy.right,
+  obtain ⟨k, hk, hk'⟩ := hy.left.exists_pow_eq_of_mem_support hy.right,
   rw ←nth_le_to_list p x k (by simpa using hk) at hk',
   simp_rw ←hk',
   rw [next_nth_le _ (nodup_to_list _ _), nth_le_to_list, nth_le_to_list, ←mul_apply, ←pow_succ,
-      length_to_list, pow_apply_eq_pow_mod_order_of_cycle_of_apply p (k + 1), order_of_is_cycle],
+      length_to_list, pow_apply_eq_pow_mod_order_of_cycle_of_apply p (k + 1), is_cycle.order_of],
   exact is_cycle_cycle_of _ (mem_support.mp hy.right)
 end
 
@@ -317,7 +317,7 @@ lemma to_list_pow_apply_eq_rotate (p : perm α) (x : α) (k : ℕ) :
   p.to_list ((p ^ k) x) = (p.to_list x).rotate k :=
 begin
   apply ext_le,
-  { simp },
+  { simp only [length_to_list, cycle_of_self_apply_pow, length_rotate]},
   { intros n hn hn',
     rw [nth_le_to_list, nth_le_rotate, nth_le_to_list, length_to_list,
         pow_mod_card_support_cycle_of_self_apply, pow_add, mul_apply] }
@@ -327,7 +327,7 @@ lemma same_cycle.to_list_is_rotated {f : perm α} {x y : α} (h : same_cycle f x
   to_list f x ~r to_list f y :=
 begin
   by_cases hx : x ∈ f.support,
-  { obtain ⟨_ | k, hk, hy⟩ := h.nat_of_mem_support _ hx,
+  { obtain ⟨_ | k, hk, hy⟩ := h.exists_pow_eq_of_mem_support hx,
     { simp only [coe_one, id.def, pow_zero] at hy,
       simp [hy] },
     use k.succ,
@@ -341,7 +341,7 @@ lemma pow_apply_mem_to_list_iff_mem_support {n : ℕ} :
 begin
   rw [mem_to_list_iff, and_iff_right_iff_imp],
   refine λ _, same_cycle.symm _,
-  rw same_cycle_pow_left_iff
+  rw same_cycle_pow_left
 end
 
 lemma to_list_form_perm_nil (x : α) :
@@ -389,7 +389,7 @@ begin
         form_perm_nil] },
   ext y,
   by_cases hy : same_cycle f x y,
-  { obtain ⟨k, hk, rfl⟩ := hy.nat_of_mem_support _ (mem_support.mpr hx),
+  { obtain ⟨k, hk, rfl⟩ := hy.exists_pow_eq_of_mem_support (mem_support.mpr hx),
     rw [cycle_of_apply_apply_pow_self, list.form_perm_apply_mem_eq_next (nodup_to_list f x),
         next_to_list_eq_apply, pow_succ, mul_apply],
     rw mem_to_list_iff,
@@ -537,7 +537,7 @@ def iso_cycle' : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.
 notation `c[` l:(foldr `, ` (h t, list.cons h t) list.nil `]`) :=
   cycle.form_perm ↑l (cycle.nodup_coe_iff.mpr dec_trivial)
 
-instance repr_perm [has_repr α] : has_repr (perm α) :=
+meta instance repr_perm [has_repr α] : has_repr (perm α) :=
 ⟨λ f, repr (multiset.pmap (λ (g : perm α) (hg : g.is_cycle),
   iso_cycle ⟨g, hg⟩) -- to_cycle is faster?
   (perm.cycle_factors_finset f).val

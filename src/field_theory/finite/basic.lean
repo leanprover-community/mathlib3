@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import tactic.apply_fun
-import algebra.ring.equiv
-import data.zmod.algebra
-import linear_algebra.finite_dimensional
-import ring_theory.integral_domain
 import field_theory.separable
+import field_theory.splitting_field
+import ring_theory.integral_domain
+import tactic.apply_fun
 
 /-!
 # Finite fields
@@ -46,10 +44,10 @@ diamonds, as `fintype` carries data.
 variables {K : Type*} {R : Type*}
 local notation `q` := fintype.card K
 
+open finset function
 open_locale big_operators polynomial
 
 namespace finite_field
-open finset function
 
 section polynomial
 
@@ -266,8 +264,8 @@ begin
   apply nodup_roots,
   rw separable_def,
   convert is_coprime_one_right.neg_right using 1,
-  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
+      zero_sub] },
   end
 
 instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
@@ -337,7 +335,7 @@ end zmod
 namespace char_p
 
 lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
-  (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+  (p : ℕ) [ne_zero p] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,
@@ -419,6 +417,14 @@ theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a �
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
 
+theorem order_of_units_dvd_card_sub_one {p : ℕ} [fact p.prime] (u : (zmod p)ˣ) :
+  order_of u ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ units_pow_card_sub_one_eq_one _ _
+
+theorem order_of_dvd_card_sub_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
+  order_of a ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ pow_card_sub_one_eq_one ha
+
 open polynomial
 
 lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
@@ -444,7 +450,10 @@ section
 
 namespace finite_field
 
-variables {F : Type*} [field F] [fintype F]
+variables {F : Type*} [field F]
+
+section finite
+variables [finite F]
 
 /-- In a finite field of characteristic `2`, all elements are squares. -/
 lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
@@ -452,6 +461,25 @@ begin
   haveI hF' : char_p F 2 := ring_char.of_eq hF,
   exact is_square_of_char_two' a,
 end
+
+/-- In a finite field of odd characteristic, not every element is a square. -/
+lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
+begin
+  -- Idea: the squaring map on `F` is not injective, hence not surjective
+  let sq : F → F := λ x, x ^ 2,
+  have h : ¬ injective sq,
+  { simp only [injective, not_forall, exists_prop],
+    refine ⟨-1, 1, _, ring.neg_one_ne_one_of_char_ne_two hF⟩,
+    simp only [sq, one_pow, neg_one_sq] },
+  rw finite.injective_iff_surjective at h, -- sq not surjective
+  simp_rw [is_square, ←pow_two, @eq_comm _ _ (_ ^ 2)],
+  push_neg at ⊢ h,
+  exact h,
+end
+
+end finite
+
+variables [fintype F]
 
 /-- The finite field `F` has even cardinality iff it has characteristic `2`. -/
 lemma even_card_iff_char_two : ring_char F = 2 ↔ fintype.card F % 2 = 0 :=
@@ -522,27 +550,6 @@ begin
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
-end
-
-/-- In a finite field of odd characteristic, not every element is a square. -/
-lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
-begin
-  -- idea: the squaring map on `F` is not injetive, hence not surjective
-  let sq : F → F := λ x, x ^ 2,
-  have h : ¬ function.injective sq,
-  { simp only [function.injective, not_forall, exists_prop],
-    use [-1, 1],
-    split,
-    { simp only [sq, one_pow, neg_one_sq], },
-    { exact ring.neg_one_ne_one_of_char_ne_two hF, }, },
-  have h₁ := mt (finite.injective_iff_surjective.mpr) h, -- sq not surjective
-  push_neg at h₁,
-  cases h₁ with a h₁,
-  use a,
-  simp only [is_square, sq, not_exists, ne.def] at h₁ ⊢,
-  intros b hb,
-  rw ← pow_two at hb,
-  exact h₁ b hb.symm,
 end
 
 end finite_field

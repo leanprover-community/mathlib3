@@ -3,7 +3,9 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import ring_theory.integral_domain
+import algebra.char_p.basic
+import algebra.euclidean_domain.instances
+import algebra.group.conj_finite
 
 /-!
 # Multiplicative characters of finite rings and fields
@@ -102,6 +104,7 @@ def trivial : mul_char R R' :=
   map_nonunit' := by { intros a ha, simp only [ha, if_false], },
   map_one' := by simp only [is_unit_one, if_true],
   map_mul' := by { intros x y,
+                   classical,
                    simp only [is_unit.mul_iff, boole_mul],
                    split_ifs; tauto, } }
 
@@ -173,6 +176,7 @@ def of_unit_hom (f : Rˣ →* R'ˣ) : mul_char R R' :=
                    simp only [h1, dif_pos, units.coe_eq_one, map_one, is_unit_one], },
   map_mul' :=
   begin
+    classical,
     intros x y,
     by_cases hx : is_unit x,
     { simp only [hx, is_unit.mul_iff, true_and, dif_pos],
@@ -247,7 +251,7 @@ instance inhabited : inhabited (mul_char R R') := ⟨1⟩
 /-- Evaluation of the trivial character -/
 @[simp]
 lemma one_apply_coe (a : Rˣ) : (1 : mul_char R R') a = 1 :=
-dif_pos a.is_unit
+by { classical, exact dif_pos a.is_unit }
 
 /-- Multiplication of multiplicative characters. (This needs the target to be commutative.) -/
 def mul (χ χ' : mul_char R R') : mul_char R R' :=

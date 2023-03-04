@@ -4,13 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import algebra.is_prime_pow
-import field_theory.separable
 import linear_algebra.free_module.finite.rank
-import linear_algebra.free_module.pid
-import linear_algebra.matrix.nonsingular_inverse
 import ring_theory.dedekind_domain.ideal
-import ring_theory.localization.module
 
 /-!
 # Ramification index and inertia degree
@@ -147,7 +142,7 @@ begin
   refine ramification_idx_spec (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
     rw [dvd_iff_normalized_factors_le_normalized_factors (pow_ne_zero _ hP0) hp0,
         normalized_factors_pow, normalized_factors_irreducible hPirr, normalize_eq,
-        multiset.nsmul_singleton, ← multiset.le_count_iff_repeat_le],
+        multiset.nsmul_singleton, ← multiset.le_count_iff_replicate_le],
   { exact (nat.lt_succ_self _).not_le },
 end
 
@@ -422,8 +417,8 @@ begin
     have mem_span_b :
       ((submodule.mkq (map (algebra_map R S) p)) x :
         S ⧸ map (algebra_map R S) p) ∈ submodule.span (R ⧸ p) (set.range b) := b.mem_span _,
-    rw [← @submodule.restrict_scalars_mem R, algebra.span_restrict_scalars_eq_span_of_surjective
-        (show function.surjective (algebra_map R (R ⧸ p)), from ideal.quotient.mk_surjective) _,
+    rw [← @submodule.restrict_scalars_mem R,
+        submodule.restrict_scalars_span R (R ⧸ p) ideal.quotient.mk_surjective,
         b_eq_b', set.range_comp, ← submodule.map_span]
       at mem_span_b,
     obtain ⟨y, y_mem, y_eq⟩ := submodule.mem_map.mp mem_span_b,
@@ -457,7 +452,7 @@ quotient.algebra_quotient_of_le_comap (ideal.map_le_iff_le_comap.mp le_pow_ramif
   algebra_map (R ⧸ p) (S ⧸ P ^ e) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
 rfl
 
-variables [hfp : fact (ramification_idx f p P ≠ 0)]
+variables [hfp : ne_zero (ramification_idx f p P)]
 include hfp
 
 /-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`.
@@ -586,7 +581,7 @@ begin
   letI := classical.dec_eq (ideal S),
   rw [sup_eq_prod_inf_factors _ (pow_ne_zero _ hP0), normalized_factors_pow,
       normalized_factors_irreducible ((ideal.prime_iff_is_prime hP0).mpr hP).irreducible,
-      normalize_eq, multiset.nsmul_singleton, multiset.inter_repeat, multiset.prod_repeat],
+      normalize_eq, multiset.nsmul_singleton, multiset.inter_replicate, multiset.prod_replicate],
   rw [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq] at a_mem a_not_mem,
   rwa [ideal.count_normalized_factors_eq a_mem a_not_mem, min_eq_left i.le_succ],
   { intro ha,
@@ -603,7 +598,7 @@ noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_domain S] [is
 begin
   choose a a_mem a_not_mem using set_like.exists_of_lt
     (ideal.strict_anti_pow P hP (ideal.is_prime.ne_top infer_instance) (le_refl i.succ)),
-  refine (linear_equiv.of_bijective _ _ _).symm,
+  refine (linear_equiv.of_bijective _ ⟨_, _⟩).symm,
   { exact quotient_to_quotient_range_pow_quot_succ f p P a_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_injective f p P hi a_mem a_not_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_surjective f p P hP hi a_mem a_not_mem }
@@ -645,7 +640,7 @@ lemma dim_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S] [p.is_
   e • @module.rank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
 begin
-  letI : fact (e ≠ 0) := ⟨he⟩,
+  letI : ne_zero e := ⟨he⟩,
   have := dim_pow_quot f p P hP0 0 (nat.zero_le e),
   rw [pow_zero, nat.sub_zero, ideal.one_eq_top, ideal.map_top] at this,
   exact (dim_top (R ⧸ p) _).symm.trans this
@@ -659,7 +654,7 @@ lemma finrank_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S]
   e * @finrank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
 begin
-  letI : fact (e ≠ 0) := ⟨he⟩,
+  letI : ne_zero e := ⟨he⟩,
   letI : algebra (R ⧸ p) (S ⧸ P) := quotient.algebra_quotient_of_ramification_idx_ne_zero f p P,
   letI := ideal.quotient.field p,
   have hdim := dim_prime_pow_ramification_idx _ _ _ hP0 he,
@@ -698,7 +693,7 @@ is_dedekind_domain.ramification_idx_ne_zero
   (ideal.le_of_dvd (dvd_of_mem_factors (multiset.mem_to_finset.mp P.2)))
 
 instance factors.fact_ramification_idx_ne_zero (P : (factors (map (algebra_map R S) p)).to_finset) :
-  fact (ramification_idx (algebra_map R S) p P ≠ 0) :=
+  ne_zero (ramification_idx (algebra_map R S) p P) :=
 ⟨factors.ramification_idx_ne_zero p P⟩
 
 local attribute [instance] quotient.algebra_quotient_of_ramification_idx_ne_zero
@@ -768,6 +763,8 @@ rfl
     λ P, ideal.quotient.mk _ (algebra_map _ _ x) :=
 rfl
 
+variables (S)
+
 /-- **Chinese remainder theorem** for a ring of integers: if the prime ideal `p : ideal R`
 factors in `S` as `∏ i, P i ^ e i`,
 then `S ⧸ I` factors `R ⧸ I`-linearly as `Π i, R ⧸ (P i ^ e i)`. -/
@@ -785,6 +782,8 @@ noncomputable def factors.pi_quotient_linear_equiv
    congr
   end,
   .. factors.pi_quotient_equiv p hp }
+
+variables {S}
 
 open_locale big_operators
 
@@ -822,7 +821,7 @@ begin
   { rw ← finset.sum_attach,
     refine finset.sum_congr rfl (λ P _, _),
     rw factors.finrank_pow_ramification_idx },
-  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv p _).symm,
+  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv S p _).symm,
     rwa [ne.def, ideal.map_eq_bot_iff_le_ker, (ring_hom.injective_iff_ker_eq_bot _).mp inj_RS,
          le_bot_iff] },
   { exact finrank_quotient_map p K L },

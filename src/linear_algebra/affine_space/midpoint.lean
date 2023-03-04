@@ -93,6 +93,17 @@ left_vsub_line_map _ _ _
 @[simp] lemma right_vsub_midpoint (p₁ p₂ : P) : p₂ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₂ -ᵥ p₁) :=
 by rw [midpoint_comm, left_vsub_midpoint]
 
+lemma midpoint_vsub (p₁ p₂ p : P) :
+  midpoint R p₁ p₂ -ᵥ p = (⅟2:R) • (p₁ -ᵥ p) + (⅟2:R) • (p₂ -ᵥ p) :=
+by rw [←vsub_sub_vsub_cancel_right p₁ p p₂, smul_sub, sub_eq_add_neg, ←smul_neg,
+       neg_vsub_eq_vsub_rev, add_assoc, inv_of_two_smul_add_inv_of_two_smul, ←vadd_vsub_assoc,
+       midpoint_comm, midpoint, line_map_apply]
+
+lemma vsub_midpoint (p₁ p₂ p : P) :
+  p -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p -ᵥ p₁) + (⅟2:R) • (p -ᵥ p₂) :=
+by rw [←neg_vsub_eq_vsub_rev, midpoint_vsub, neg_add, ←smul_neg, ←smul_neg,
+       neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev]
+
 @[simp] lemma midpoint_sub_left (v₁ v₂ : V) : midpoint R v₁ v₂ - v₁ = (⅟2:R) • (v₂ - v₁) :=
 midpoint_vsub_left v₁ v₂
 
@@ -106,6 +117,18 @@ left_vsub_midpoint v₁ v₂
 right_vsub_midpoint v₁ v₂
 
 variable (R)
+
+@[simp] lemma midpoint_eq_left_iff {x y : P} : midpoint R x y = x ↔ x = y :=
+by rw [midpoint_eq_iff, point_reflection_self]
+
+@[simp] lemma left_eq_midpoint_iff {x y : P} : x = midpoint R x y ↔ x = y :=
+by rw [eq_comm, midpoint_eq_left_iff]
+
+@[simp] lemma midpoint_eq_right_iff {x y : P} : midpoint R x y = y ↔ x = y :=
+by rw [midpoint_comm, midpoint_eq_left_iff, eq_comm]
+
+@[simp] lemma right_eq_midpoint_iff {x y : P} : y = midpoint R x y ↔ x = y :=
+by rw [eq_comm, midpoint_eq_right_iff]
 
 lemma midpoint_eq_midpoint_iff_vsub_eq_vsub {x x' y y' : P} :
   midpoint R x y = midpoint R x' y' ↔ x -ᵥ x' = y' -ᵥ y :=

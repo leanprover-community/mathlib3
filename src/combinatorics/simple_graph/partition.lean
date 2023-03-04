@@ -9,6 +9,9 @@ import combinatorics.simple_graph.coloring
 /-!
 # Graph partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides an interface for dealing with partitions on simple graphs. A partition of
 a graph `G`, with vertices `V`, is a set `P` of disjoint nonempty subsets of `V` such that:
 

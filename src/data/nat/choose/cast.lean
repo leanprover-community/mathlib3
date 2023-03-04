@@ -39,6 +39,6 @@ by rw [eq_div_iff_mul_eq (nat.cast_ne_zero.2 b.factorial_ne_zero : (b! : K) ≠ 
 lemma cast_choose_two (a : ℕ) :
   (a.choose 2 : K) = a * (a - 1) / 2 :=
 by rw [←cast_desc_factorial_two, desc_factorial_eq_factorial_mul_choose, factorial_two, mul_comm,
-    cast_mul, cast_two, eq_div_iff_mul_eq (two_ne_zero' : (2 : K) ≠ 0)]
+    cast_mul, cast_two, eq_div_iff_mul_eq (two_ne_zero : (2 : K) ≠ 0)]
 
 end nat

@@ -10,6 +10,9 @@ import set_theory.ordinal.fixed_point
 /-!
 # Cofinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions
@@ -445,8 +448,8 @@ variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}}
 protected theorem cof_eq (hf : is_fundamental_sequence a o f) : a.cof.ord = o :=
 hf.1.antisymm' $ by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) }
 
-protected theorem strict_mono (hf : is_fundamental_sequence a o f) :
-  ∀ {i j} (hi) (hj), i < j → f i hi < f j hj :=
+protected theorem strict_mono (hf : is_fundamental_sequence a o f) {i j} :
+  ∀ hi hj, i < j → f i hi < f j hj :=
 hf.2.1
 
 theorem blsub_eq (hf : is_fundamental_sequence a o f) : blsub.{u u} o f = a :=
@@ -498,9 +501,8 @@ end is_fundamental_sequence
 theorem exists_fundamental_sequence (a : ordinal.{u}) :
   ∃ f, is_fundamental_sequence a a.cof.ord f :=
 begin
-  suffices : ∃ o f, is_fundamental_sequence a o f,
-  { rcases this with ⟨o, f, hf⟩,
-    exact ⟨_, hf.ord_cof⟩ },
+  rsuffices ⟨o, f, hf⟩ : ∃ o f, is_fundamental_sequence a o f,
+  { exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
   haveI := wo,
@@ -514,9 +516,8 @@ begin
     rwa [hrr'.2, @enum_lt_enum _ r'] },
   { rw [←hf, lsub_le_iff],
     intro i,
-    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
-    { rcases this with ⟨i', hi', hfg⟩,
-      exact hfg.trans_lt (lt_blsub _ _ _) },
+    rsuffices ⟨i', hi', hfg⟩ : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
+    { exact hfg.trans_lt (lt_blsub _ _ _) },
     by_cases h : ∀ j, r j i → f j < f i,
     { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
       rw bfamily_of_family'_typein,
@@ -712,7 +713,7 @@ end ordinal
 namespace cardinal
 open ordinal
 
-local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
+local infixr (name := cardinal.pow) ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
 /-- A cardinal is a limit if it is not zero or a successor
   cardinal. Note that `ℵ₀` is a limit cardinal by this definition. -/
@@ -764,7 +765,7 @@ begin
   { refine ⟨beth_ne_zero o, λ a ha, _⟩,
     rw beth_limit ⟨h, H⟩ at ha,
     rcases exists_lt_of_lt_csupr' ha with ⟨⟨i, hi⟩, ha⟩,
-    have := power_le_power_left two_ne_zero' ha.le,
+    have := power_le_power_left two_ne_zero ha.le,
     rw ←beth_succ at this,
     exact this.trans_lt (beth_lt.2 (H i hi)) }
 end

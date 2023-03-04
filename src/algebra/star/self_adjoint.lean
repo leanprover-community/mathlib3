@@ -10,6 +10,9 @@ import group_theory.subgroup.basic
 /-!
 # Self-adjoint, skew-adjoint and normal elements of a star additive group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `self_adjoint R` (resp. `skew_adjoint R`), where `R` is a star additive group,
 as the additive subgroup containing the elements that satisfy `star x = x` (resp. `star x = -x`).
 This includes, for instance, (skew-)Hermitian operators on Hilbert spaces.
@@ -57,6 +60,23 @@ namespace is_self_adjoint
 lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
+
+@[simp]
+lemma star_iff [has_involutive_star R] {x : R} : is_self_adjoint (star x) ↔ is_self_adjoint x :=
+by simpa only [is_self_adjoint, star_star] using eq_comm
+
+@[simp]
+lemma star_mul_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (star x * x) :=
+by simp only [is_self_adjoint, star_mul, star_star]
+
+@[simp]
+lemma mul_star_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (x * star x) :=
+by simpa only [star_star] using star_mul_self (star x)
+
+/-- Functions in a `star_hom_class` preserve self-adjoint elements. -/
+lemma star_hom_apply {F R S : Type*} [has_star R] [has_star S] [star_hom_class F R S]
+  {x : R} (hx : is_self_adjoint x) (f : F) : is_self_adjoint (f x) :=
+show star (f x) = f x, from map_star f x ▸ congr_arg f hx
 
 section add_group
 variables [add_group R] [star_add_monoid R]
@@ -246,9 +266,9 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 @[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
-lemma rat_cast_mem : ∀ (x : ℚ), (x : R) ∈ self_adjoint R
+lemma rat_cast_mem : ∀ (x : ℚ), is_self_adjoint (x : R)
 | ⟨a, b, h1, h2⟩ :=
-  by rw [mem_iff, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
+  by rw [is_self_adjoint, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
 
 instance : has_rat_cast (self_adjoint R) :=
 ⟨λ n, ⟨n, rat_cast_mem n⟩⟩

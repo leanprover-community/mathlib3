@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Kyle Miller
 -/
 
-import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.clique
 import data.nat.lattice
 import data.setoid.partition
@@ -12,6 +11,9 @@ import order.antichain
 
 /-!
 # Graph Coloring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines colorings of simple graphs (also known as proper
 colorings in the literature). A graph coloring is the attribution of
@@ -100,7 +102,7 @@ lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_class
 ⟨v, rfl⟩
 
 lemma coloring.color_classes_finite [finite α] : C.color_classes.finite :=
-set.finite_coe_iff.1 $ setoid.finite_classes_ker _
+setoid.finite_classes_ker _
 
 lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
   fintype.card C.color_classes ≤ fintype.card α :=
@@ -213,7 +215,7 @@ begin
   split,
   { rintro hc,
     have C : G.coloring (fin n) := hc.to_coloring (by simp),
-    let f := embedding.complete_graph (fin.coe_embedding n).to_embedding,
+    let f := embedding.complete_graph fin.coe_embedding,
     use f.to_hom.comp C,
     intro v,
     cases C with color valid,
@@ -222,7 +224,7 @@ begin
     refine ⟨coloring.mk _ _⟩,
     { exact λ v, ⟨C v, Cf v⟩, },
     { rintro v w hvw,
-      simp only [subtype.mk_eq_mk, ne.def],
+      simp only [fin.mk_eq_mk, ne.def],
       exact C.valid hvw, } }
 end
 

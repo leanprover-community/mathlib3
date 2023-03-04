@@ -5,8 +5,7 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import algebra.punit_instances
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient_operations
 
 /-!
 
@@ -172,11 +171,11 @@ def to_preorder : preorder R := preorder.lift v
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
 @[simp] lemma zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x = 0 ↔ x = 0 :=
-v.to_monoid_with_zero_hom.map_eq_zero
+map_eq_zero v
 
 lemma ne_zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x ≠ 0 ↔ x ≠ 0 :=
-v.to_monoid_with_zero_hom.map_ne_zero
+map_ne_zero v
 
 theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
@@ -239,15 +238,13 @@ begin
   suffices : ¬v (x + y) < max (v x) (v y),
     from or_iff_not_imp_right.1 (le_iff_eq_or_lt.1 (v.map_add x y)) this,
   intro h',
-  wlog vyx : v y < v x using x y,
-  { apply lt_or_gt_of_ne h.symm },
-  { rw max_eq_left_of_lt vyx at h',
-    apply lt_irrefl (v x),
-    calc v x = v ((x+y) - y)         : by simp
-         ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
-         ... < v x                   : max_lt h' vyx },
-  { apply this h.symm,
-    rwa [add_comm, max_comm] at h' }
+  wlog vyx : v y < v x,
+  { refine this v h.symm _ (h.lt_or_lt.resolve_right vyx), rwa [add_comm, max_comm] },
+  rw max_eq_left_of_lt vyx at h',
+  apply lt_irrefl (v x),
+  calc v x = v ((x+y) - y)         : by simp
+        ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
+        ... < v x                   : max_lt h' vyx
 end
 
 lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=
@@ -694,9 +691,6 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
   v x⁻¹ = - (v x) :=
 map_inv₀ v.valuation x
 
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-map_units_inv v.valuation x
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x
 
@@ -813,7 +807,9 @@ end add_valuation
 
 section valuation_notation
 
-localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
-localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+localized "notation (name := nat.multiplicative_zero)
+  `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation (name := int.multiplicative_zero)
+  `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
 
 end valuation_notation

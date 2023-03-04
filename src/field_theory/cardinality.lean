@@ -50,7 +50,7 @@ lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_
 begin
   refine ⟨λ ⟨h⟩, by exactI fintype.is_prime_pow_card_of_field, _⟩,
   rintros ⟨p, n, hp, hn, hα⟩,
-  haveI := fact.mk (nat.prime_iff.mpr hp),
+  haveI := fact.mk hp.nat_prime,
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
 end
 

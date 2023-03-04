@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.multilinear.basic
-import linear_algebra.free_module.finite.basic
+import linear_algebra.free_module.finite.matrix
 
 /-! # Multilinear maps over finite dimensional spaces
 
@@ -21,8 +21,8 @@ there.
 namespace multilinear_map
 
 variables {ι R M₂ : Type*} {M₁ : ι → Type*}
-variables [decidable_eq ι]
-variables [fintype ι] [comm_ring R] [add_comm_group M₂] [module R M₂]
+variables [decidable_eq ι] [finite ι]
+variables [comm_ring R] [add_comm_group M₂] [module R M₂]
 variables [Π i, add_comm_group (M₁ i)] [Π i, module R (M₁ i)]
 variables [module.finite R M₂] [module.free R M₂]
 variables [∀ i, module.finite R (M₁ i)] [∀ i, module.free R (M₁ i)]
@@ -36,7 +36,8 @@ begin
     by exactI ∀ [Π i, module R (N i)],
     by exactI ∀ [∀ i, module.finite R (N i)] [∀ i, module.free R (N i)],
       module.free R (multilinear_map R N M₂) ∧ module.finite R (multilinear_map R N M₂),
-  { casesI this _ (M₁ ∘ (fintype.equiv_fin ι).symm),
+  { casesI nonempty_fintype ι,
+    casesI this _ (M₁ ∘ (fintype.equiv_fin ι).symm),
     have e := dom_dom_congr_linear_equiv' R M₁ M₂ (fintype.equiv_fin ι),
     exact ⟨module.free.of_equiv e.symm, module.finite.equiv e.symm⟩, },
   introsI n N _ _ _ _,

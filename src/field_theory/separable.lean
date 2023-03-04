@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.polynomial.big_operators
 import algebra.squarefree
-import field_theory.minpoly
-import field_theory.splitting_field
 import data.polynomial.expand
+import data.polynomial.splits
+import field_theory.minpoly.field
+import ring_theory.power_basis
 
 /-!
 
@@ -168,7 +168,7 @@ end
 
 lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → R[X]}
   (h1 : pairwise (is_coprime on f)) (h2 : ∀ x, (f x).separable) : (∏ x, f x).separable :=
-separable_prod' (λ x hx y hy hxy, h1 x y hxy) (λ x hx, h2 x)
+separable_prod' (λ x hx y hy hxy, h1 hxy) (λ x hx, h2 x)
 
 lemma separable.inj_of_prod_X_sub_C [nontrivial R] {ι : Sort*} {f : ι → R} {s : finset ι}
   (hfs : (∏ i in s, (X - C (f i))).separable)
@@ -335,7 +335,9 @@ theorem unique_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : 0 
   n₁ = n₂ ∧ g₁ = g₂ :=
 begin
   revert g₁ g₂,
-  wlog hn : n₁ ≤ n₂ := le_total n₁ n₂ using [n₁ n₂, n₂ n₁],
+  wlog hn : n₁ ≤ n₂,
+  { intros g₁ g₂ hg₁ Hg₁ hg₂ Hg₂,
+    simpa only [eq_comm] using this hf hp n₂ n₁ (le_of_not_le hn) g₂ g₁ hg₂ Hg₂ hg₁ Hg₁ },
   have hf0 : f ≠ 0 := hf.ne_zero,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
     rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp n₁)] at hgf₂, subst hgf₂,
@@ -344,8 +346,6 @@ begin
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
       simp_rw expand_C at hf, exact absurd (is_unit_C.2 hr) hf.1 },
     { rw [add_zero, pow_zero, expand_one], split; refl } },
-  obtain ⟨hn, hg⟩ := this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁,
-  exact ⟨hn.symm, hg.symm⟩
 end
 
 end char_p
@@ -365,9 +365,8 @@ begin
   rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
   -- Suppose `(n : F) = 0`, then the derivative is `0`, so `X ^ n - 1` is a unit, contradiction.
   rintro (h : is_coprime _ _) hn',
-  rw [← C_eq_nat_cast, hn', C.map_zero, zero_mul, is_coprime_zero_right] at h,
-  have := not_is_unit_X_pow_sub_one F n,
-  contradiction
+  rw [hn', C_0, zero_mul, is_coprime_zero_right] at h,
+  exact not_is_unit_X_pow_sub_one F n h
 end
 
 section splits
@@ -486,7 +485,7 @@ variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+⟨λ x, is_integral_of_is_scalar_tower (is_separable.is_integral F x),
  λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
@@ -494,8 +493,7 @@ is_separable_iff.2 $ λ x, begin
   refine (is_separable_iff.1 h (algebra_map K E x)).imp
     is_integral_tower_bot_of_is_integral_field (λ hs, _),
   obtain ⟨q, hq⟩ := minpoly.dvd F x
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
-      (minpoly.aeval F ((algebra_map K E) x))),
+    ((aeval_algebra_map_eq_zero_iff _ _ _).mp (minpoly.aeval F ((algebra_map K E) x))),
   rw hq at hs,
   exact hs.of_mul_left
 end

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Justus Springer
 -/
 import order.complete_lattice
+import data.fintype.lattice
 import category_theory.limits.shapes.pullbacks
 import category_theory.category.preorder
 import category_theory.limits.shapes.products

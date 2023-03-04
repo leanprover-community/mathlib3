@@ -824,3 +824,28 @@ lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' �
 image.lift_fac _
 
 end category_theory.limits
+
+namespace category_theory.functor
+
+open category_theory.limits
+
+variables {C D : Type*} [category C] [category D]
+
+lemma has_strong_epi_mono_factorisations_imp_of_is_equivalence (F : C ⥤ D) [is_equivalence F]
+  [h : has_strong_epi_mono_factorisations C] :
+  has_strong_epi_mono_factorisations D :=
+⟨λ X Y f, begin
+  let em : strong_epi_mono_factorisation (F.inv.map f) :=
+    (has_strong_epi_mono_factorisations.has_fac (F.inv.map f)).some,
+  haveI : mono (F.map em.m ≫ F.as_equivalence.counit_iso.hom.app Y) := mono_comp _ _,
+  haveI : strong_epi (F.as_equivalence.counit_iso.inv.app X ≫ F.map em.e) := strong_epi_comp _ _,
+  exact nonempty.intro
+  { I := F.obj em.I,
+    e := F.as_equivalence.counit_iso.inv.app X ≫ F.map em.e,
+    m := F.map em.m ≫ F.as_equivalence.counit_iso.hom.app Y,
+    fac' := by simpa only [category.assoc, ← F.map_comp_assoc, em.fac',
+      is_equivalence.fun_inv_map, iso.inv_hom_id_app, iso.inv_hom_id_app_assoc]
+        using category.comp_id _, },
+end⟩
+
+end category_theory.functor

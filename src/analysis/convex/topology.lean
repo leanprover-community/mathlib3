@@ -3,33 +3,24 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
-import analysis.convex.jensen
-import analysis.normed.group.pointwise
-import topology.algebra.module.finite_dimension
-import analysis.normed_space.ray
+import analysis.convex.combination
+import analysis.convex.strict
 import topology.path_connected
 import topology.algebra.affine
+import topology.algebra.module.basic
 
 /-!
-# Topological and metric properties of convex sets
+# Topological properties of convex sets
 
 We prove the following facts:
 
 * `convex.interior` : interior of a convex set is convex;
 * `convex.closure` : closure of a convex set is convex;
 * `set.finite.compact_convex_hull` : convex hull of a finite set is compact;
-* `set.finite.is_closed_convex_hull` : convex hull of a finite set is closed;
-* `convex_on_norm`, `convex_on_dist` : norm and distance to a fixed point is convex on any convex
-  set;
-* `convex_on_univ_norm`, `convex_on_univ_dist` : norm and distance to a fixed point is convex on
-  the whole space;
-* `convex_hull_ediam`, `convex_hull_diam` : convex hull of a set has the same (e)metric diameter
-  as the original set;
-* `bounded_convex_hull` : convex hull of a set is bounded if and only if the original set
-  is bounded.
-* `bounded_std_simplex`, `is_closed_std_simplex`, `compact_std_simplex`: topological properties
-  of the standard simplex;
+* `set.finite.is_closed_convex_hull` : convex hull of a finite set is closed.
 -/
+
+assert_not_exists has_norm
 
 variables {ι : Type*} {E : Type*}
 
@@ -52,11 +43,10 @@ lemma std_simplex_subset_closed_ball :
   std_simplex ℝ ι ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
-  rw [metric.mem_closed_ball, dist_zero_right],
-  refine (nnreal.coe_one ▸ nnreal.coe_le_coe.2 $ finset.sup_le $ λ x hx, _),
-  change |f x| ≤ 1,
-  rw [abs_of_nonneg $ hf.1 x],
-  exact (mem_Icc_of_mem_std_simplex hf x).2
+  rw [metric.mem_closed_ball, dist_pi_le_iff zero_le_one],
+  intros x,
+  rw [pi.zero_apply, real.dist_0_eq_abs, abs_of_nonneg $ hf.1 x],
+  exact (mem_Icc_of_mem_std_simplex hf x).2,
 end
 
 variable (ι)
@@ -72,8 +62,8 @@ lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ℝ ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ℝ ι) :=
-metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
+lemma is_compact_std_simplex : is_compact (std_simplex ℝ ι) :=
+metric.is_compact_iff_is_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
 
@@ -192,18 +182,50 @@ hs.add_smul_mem_interior' (subset_closure hx) hy ht
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 protected lemma convex.interior {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (interior s) :=
-convex_iff_open_segment_subset.mpr $ λ x y hx hy,
+convex_iff_open_segment_subset.mpr $ λ x hx y hy,
   hs.open_segment_closure_interior_subset_interior (interior_subset_closure hx) hy
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 protected lemma convex.closure {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (closure s) :=
-λ x y hx hy a b ha hb hab,
+λ x hx y hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
-have hf : continuous (λ p : E × E, f p.1 p.2), from
-  (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
-show f x y ∈ closure s, from
-  mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
-  (hs hx' hy' ha hb hab))
+have hf : continuous (function.uncurry f),
+  from (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
+show f x y ∈ closure s,
+  from map_mem_closure₂ hf hx hy (λ x' hx' y' hy', hs hx' hy' ha hb hab)
+
+open affine_map
+
+/-- A convex set `s` is strictly convex provided that for any two distinct points of
+`s \ interior s`, the line passing through these points has nonempty intersection with
+`interior s`. -/
+protected lemma convex.strict_convex' {s : set E} (hs : convex 𝕜 s)
+  (h : (s \ interior s).pairwise $ λ x y, ∃ c : 𝕜, line_map x y c ∈ interior s) :
+  strict_convex 𝕜 s :=
+begin
+  refine strict_convex_iff_open_segment_subset.2 _,
+  intros x hx y hy hne,
+  by_cases hx' : x ∈ interior s, { exact hs.open_segment_interior_self_subset_interior hx' hy },
+  by_cases hy' : y ∈ interior s, { exact hs.open_segment_self_interior_subset_interior hx hy' },
+  rcases h ⟨hx, hx'⟩ ⟨hy, hy'⟩ hne with ⟨c, hc⟩,
+  refine (open_segment_subset_union x y ⟨c, rfl⟩).trans (insert_subset.2 ⟨hc, union_subset _ _⟩),
+  exacts [hs.open_segment_self_interior_subset_interior hx hc,
+    hs.open_segment_interior_self_subset_interior hc hy]
+end
+
+/-- A convex set `s` is strictly convex provided that for any two distinct points `x`, `y` of
+`s \ interior s`, the segment with endpoints `x`, `y` has nonempty intersection with
+`interior s`. -/
+protected lemma convex.strict_convex {s : set E} (hs : convex 𝕜 s)
+  (h : (s \ interior s).pairwise $ λ x y, ([x -[𝕜] y] \ frontier s).nonempty) :
+  strict_convex 𝕜 s :=
+begin
+  refine (hs.strict_convex' $ h.imp_on $ λ x hx y hy hne, _),
+  simp only [segment_eq_image_line_map, ← self_diff_frontier],
+  rintro ⟨_, ⟨⟨c, hc, rfl⟩, hcs⟩⟩,
+  refine ⟨c, hs.segment_subset hx.1 hy.1 _, hcs⟩,
+  exact (segment_eq_image_line_map 𝕜 x y).symm ▸ mem_image_of_mem _ hc
+end
 
 end has_continuous_const_smul
 
@@ -217,7 +239,7 @@ lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
-  apply (compact_std_simplex _).image,
+  apply (is_compact_std_simplex _).image,
   haveI := hs.fintype,
   apply linear_map.continuous_on_pi
 end
@@ -241,7 +263,7 @@ begin
   have hne : t ≠ 0, from (one_pos.trans ht).ne',
   refine ⟨homothety x t⁻¹ y, hs.open_segment_interior_closure_subset_interior hx hy _,
     (affine_equiv.homothety_units_mul_hom x (units.mk0 t hne)).apply_symm_apply y⟩,
-  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (@one_pos ℝ _ _), ← image_inv,
+  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (zero_lt_one' ℝ), ← image_inv,
     image_image, homothety_eq_line_map],
   exact mem_image_of_mem _ ht
 end
@@ -296,113 +318,3 @@ protected lemma topological_add_group.path_connected : path_connected_space E :=
 path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
 
 end has_continuous_smul
-
-/-! ### Normed vector space -/
-
-section normed_space
-variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
-
-/-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
-and `convex_on_univ_norm`. -/
-lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
-⟨hs, λ x y hx hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
-        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
-
-/-- The norm on a real normed space is convex on the whole space. See also `seminorm.convex_on`
-and `convex_on_norm`. -/
-lemma convex_on_univ_norm : convex_on ℝ univ (norm : E → ℝ) := convex_on_norm convex_univ
-
-lemma convex_on_dist (z : E) (hs : convex ℝ s) : convex_on ℝ s (λ z', dist z' z) :=
-by simpa [dist_eq_norm, preimage_preimage]
-  using (convex_on_norm (hs.translate (-z))).comp_affine_map
-    (affine_map.id ℝ E - affine_map.const ℝ E z)
-
-lemma convex_on_univ_dist (z : E) : convex_on ℝ univ (λz', dist z' z) :=
-convex_on_dist z convex_univ
-
-lemma convex_ball (a : E) (r : ℝ) : convex ℝ (metric.ball a r) :=
-by simpa only [metric.ball, sep_univ] using (convex_on_univ_dist a).convex_lt r
-
-lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r) :=
-by simpa only [metric.closed_ball, sep_univ] using (convex_on_univ_dist a).convex_le r
-
-lemma convex.thickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (thickening δ s) :=
-by { rw ←add_ball_zero, exact hs.add (convex_ball 0 _) }
-
-lemma convex.cthickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (cthickening δ s) :=
-begin
-  obtain hδ | hδ := le_total 0 δ,
-  { rw cthickening_eq_Inter_thickening hδ,
-    exact convex_Inter₂ (λ _ _, hs.thickening _) },
-  { rw cthickening_of_nonpos hδ,
-    exact hs.closure }
-end
-
-/-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
-disjoint convex sets containing them. -/
-lemma disjoint.exists_open_convexes (disj : disjoint s t) (hs₁ : convex ℝ s) (hs₂ : is_compact s)
-  (ht₁ : convex ℝ t) (ht₂ : is_closed t) :
-  ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
-  ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
-    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
-
-/-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
-of `s` at distance at least `dist x y` from `y`. -/
-lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s) (y : E) :
-  ∃ x' ∈ s, dist x y ≤ dist x' y :=
-(convex_on_dist y (convex_convex_hull ℝ _)).exists_ge_of_mem_convex_hull hx
-
-/-- Given a point `x` in the convex hull of `s` and a point `y` in the convex hull of `t`,
-there exist points `x' ∈ s` and `y' ∈ t` at distance at least `dist x y`. -/
-lemma convex_hull_exists_dist_ge2 {s t : set E} {x y : E}
-  (hx : x ∈ convex_hull ℝ s) (hy : y ∈ convex_hull ℝ t) :
-  ∃ (x' ∈ s) (y' ∈ t), dist x y ≤ dist x' y' :=
-begin
-  rcases convex_hull_exists_dist_ge hx y with ⟨x', hx', Hx'⟩,
-  rcases convex_hull_exists_dist_ge hy x' with ⟨y', hy', Hy'⟩,
-  use [x', hx', y', hy'],
-  exact le_trans Hx' (dist_comm y x' ▸ dist_comm y' x' ▸ Hy')
-end
-
-/-- Emetric diameter of the convex hull of a set `s` equals the emetric diameter of `s. -/
-@[simp] lemma convex_hull_ediam (s : set E) :
-  emetric.diam (convex_hull ℝ s) = emetric.diam s :=
-begin
-  refine (emetric.diam_le $ λ x hx y hy, _).antisymm (emetric.diam_mono $ subset_convex_hull ℝ s),
-  rcases convex_hull_exists_dist_ge2 hx hy with ⟨x', hx', y', hy', H⟩,
-  rw edist_dist,
-  apply le_trans (ennreal.of_real_le_of_real H),
-  rw ← edist_dist,
-  exact emetric.edist_le_diam_of_mem hx' hy'
-end
-
-/-- Diameter of the convex hull of a set `s` equals the emetric diameter of `s. -/
-@[simp] lemma convex_hull_diam (s : set E) :
-  metric.diam (convex_hull ℝ s) = metric.diam s :=
-by simp only [metric.diam, convex_hull_ediam]
-
-/-- Convex hull of `s` is bounded if and only if `s` is bounded. -/
-@[simp] lemma bounded_convex_hull {s : set E} :
-  metric.bounded (convex_hull ℝ s) ↔ metric.bounded s :=
-by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
-
-@[priority 100]
-instance normed_space.path_connected : path_connected_space E :=
-topological_add_group.path_connected
-
-@[priority 100]
-instance normed_space.loc_path_connected : loc_path_connected_space E :=
-loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
-  (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
-
-lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
-  dist x y + dist y z = dist x z :=
-begin
-  simp only [dist_eq_norm, mem_segment_iff_same_ray] at *,
-  simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
-end
-
-end normed_space

@@ -231,8 +231,7 @@ protected lemma eq_of_smul_eq_smul_left {a : ℤ} {b c : ℤ√d}
 begin
   rw ext at h ⊢,
   apply and.imp _ _ h;
-  { simp only [smul_re, smul_im],
-    exact int.eq_of_mul_eq_mul_left ha },
+  { simpa only [smul_re, smul_im] using mul_left_cancel₀ ha },
 end
 
 section gcd
@@ -641,7 +640,7 @@ let g := x.gcd y in or.elim g.eq_zero_or_pos
     let ⟨m, n, co, (hx : x = m * g), (hy : y = n * g)⟩ := nat.exists_coprime gpos in
     begin
       rw [hx, hy] at h,
-      have : m * m = d * (n * n) := nat.eq_of_mul_eq_mul_left (mul_pos gpos gpos)
+      have : m * m = d * (n * n) := mul_left_cancel₀ (mul_pos gpos gpos).ne'
         (by simpa [mul_comm, mul_left_comm] using h),
       have co2 := let co1 := co.mul_right co in co1.mul co1,
       exact nonsquare.ns d m (nat.dvd_antisymm (by rw this; apply dvd_mul_right) $
@@ -696,9 +695,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
+instance : no_zero_divisors ℤ√d :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero }
+
 instance : is_domain ℤ√d :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
+by exact no_zero_divisors.to_is_domain _
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
@@ -761,7 +762,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
-  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, map_int_cast]⟩,
   left_inv := λ r, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 

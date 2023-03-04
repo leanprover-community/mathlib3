@@ -5,8 +5,9 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import analysis.complex.upper_half_plane.basic
+import analysis.normed_space.finite_dimension
 import linear_algebra.general_linear_group
-import analysis.matrix
+import linear_algebra.matrix.general_linear_group
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -62,7 +63,7 @@ we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
-open complex (hiding abs_one abs_two abs_mul abs_add)
+open complex (hiding abs_two)
 open matrix (hiding mul_smul) matrix.special_linear_group upper_half_plane
 noncomputable theory
 
@@ -108,7 +109,6 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
@@ -117,6 +117,9 @@ lemma tendsto_norm_sq_coprime_pair :
   filter.tendsto (λ p : fin 2 → ℤ, ((p 0 : ℂ) * z + p 1).norm_sq)
   cofinite at_top :=
 begin
+  -- using this instance rather than the automatic `function.module` makes unification issues in
+  -- `linear_equiv.closed_embedding_of_injective` less bad later in the proof.
+  letI : module ℝ (fin 2 → ℝ) := normed_space.to_module,
   let π₀ : (fin 2 → ℝ) →ₗ[ℝ] ℝ := linear_map.proj 0,
   let π₁ : (fin 2 → ℝ) →ₗ[ℝ] ℝ := linear_map.proj 1,
   let f : (fin 2 → ℝ) →ₗ[ℝ] ℂ := π₀.smul_right (z:ℂ) + π₁.smul_right 1,
@@ -134,7 +137,7 @@ begin
   rw this,
   have hf : f.ker = ⊥,
   { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) :=
-      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • (conj_ae  : ℂ →ₗ[ℝ] ℂ))],
+      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • ((conj_ae : ℂ →ₐ[ℝ] ℂ) : ℂ →ₗ[ℝ] ℂ))],
     suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
     { exact linear_map.ker_eq_bot_of_inverse this },
     apply linear_map.ext,
@@ -152,14 +155,18 @@ begin
         conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
         inv_mul_eq_iff_eq_mul₀ hz],
       simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
-  have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
+  have hf' : closed_embedding f,
+  { -- for some reason we get a timeout if we try and apply this lemma in a more sensible way
+    have := @linear_equiv.closed_embedding_of_injective ℝ _ (fin 2 → ℝ) _ (id _) ℂ _ _ _ _,
+    rotate 2,
+    exact f,
+    exact this hf },
   have h₂ : tendsto (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p) cofinite (cocompact _),
   { convert tendsto.pi_map_Coprod (λ i, int.tendsto_coe_cofinite),
     { rw Coprod_cofinite },
     { rw Coprod_cocompact } },
-  exact tendsto_norm_sq_cocompact_at_top.comp (h₁.comp h₂)
+  exact tendsto_norm_sq_cocompact_at_top.comp (hf'.tendsto_cocompact.comp h₂),
 end
-
 
 /-- Given `coprime_pair` `p=(c,d)`, the matrix `[[a,b],[*,*]]` is sent to `a*c+b*d`.
   This is the linear map version of this operation.
@@ -307,38 +314,6 @@ begin
     exact hg ⟨g1, this⟩ },
 end
 
-/-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T : SL(2,ℤ) := ⟨!![1, 1; 0, 1], by norm_num [matrix.det_fin_two_of]⟩
-
-/-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
-def S : SL(2,ℤ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
-
-lemma coe_S : ↑ₘS = !![0, -1; 1, 0] := rfl
-
-lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
-
-lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
-
-lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
-begin
-  induction n using int.induction_on with n h n h,
-  { rw [zpow_zero, coe_one, matrix.one_fin_two] },
-  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, matrix.mul_fin_two],
-    congrm !![_, _; _, _],
-    rw [mul_one, mul_one, add_comm] },
-  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, matrix.mul_fin_two],
-    congrm !![_, _; _, _]; ring },
-end
-
-@[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
-by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
-
-@[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
-by simpa using T_pow_mul_apply_one 1 g
-
-@[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
-by simpa using T_pow_mul_apply_one (-1) g
-
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
@@ -409,13 +384,13 @@ def fd : set ℍ :=
 def fdo : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := modular_group.fd" in modular
+localized "notation (name := modular_group.fd) `𝒟` := modular_group.fd" in modular
 
-localized "notation `𝒟ᵒ` := modular_group.fdo" in modular
+localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" in modular
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
   exact h.2,
 end
 

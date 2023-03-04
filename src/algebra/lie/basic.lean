@@ -11,6 +11,9 @@ import tactic.noncomm_ring
 /-!
 # Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Lie rings and Lie algebras over a commutative ring together with their
 modules, morphisms and equivalences, as well as various lemmas to make these definitions usable.
 
@@ -450,10 +453,10 @@ e.to_linear_equiv.surjective
 
 /-- A bijective morphism of Lie algebras yields an equivalence of Lie algebras. -/
 @[simps] noncomputable def of_bijective (f : L₁ →ₗ⁅R⁆ L₂)
-  (h₁ : function.injective f) (h₂ : function.surjective f) : L₁ ≃ₗ⁅R⁆ L₂ :=
+  (h : function.bijective f) : L₁ ≃ₗ⁅R⁆ L₂ :=
 { to_fun   := f,
   map_lie' := f.map_lie,
-  .. (linear_equiv.of_bijective (f : L₁ →ₗ[R] L₂) h₁ h₂), }
+  .. (linear_equiv.of_bijective (f : L₁ →ₗ[R] L₂) h), }
 
 end lie_equiv
 

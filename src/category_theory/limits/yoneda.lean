@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.functor_category
+import tactic.assert_exists
 
 /-!
 # Limit properties relating to the (co)yoneda embedding.
@@ -146,3 +147,8 @@ instance coyoneda_functor_reflects_limits : reflects_limits (@coyoneda D _) :=
 limits.fully_faithful_reflects_limits _
 
 end category_theory
+
+-- We don't need to have developed any algebra or set theory to reach (at least) this point
+-- in the category theory hierarchy.
+assert_not_exists set.range
+assert_not_exists add_comm_monoid

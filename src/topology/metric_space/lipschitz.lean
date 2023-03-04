@@ -5,6 +5,7 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import logic.function.iterate
 import data.set.intervals.proj_Icc
+import topology.algebra.order.field
 import topology.metric_space.basic
 import topology.bornology.hom
 
@@ -39,7 +40,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
@@ -223,7 +224,7 @@ end
 protected lemma prod_mk_left (a : α) : lipschitz_with 1 (prod.mk a : β → α × β) :=
 by simpa only [max_eq_right zero_le_one] using (lipschitz_with.const a).prod lipschitz_with.id
 
-protected lemma prod_mk_right (b : α) : lipschitz_with 1 (λ a : α, (a, b)) :=
+protected lemma prod_mk_right (b : β) : lipschitz_with 1 (λ a : α, (a, b)) :=
 by simpa only [max_eq_left zero_le_one] using lipschitz_with.id.prod (lipschitz_with.const b)
 
 protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
@@ -239,7 +240,7 @@ end
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by rw [pow_succ']; exact (iterate n).comp hf
 
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
@@ -264,7 +265,7 @@ protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
 
 protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric

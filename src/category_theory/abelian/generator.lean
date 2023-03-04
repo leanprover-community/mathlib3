@@ -50,7 +50,6 @@ end
 theorem has_projective_separator [has_colimits C] [enough_projectives C] (G : C)
   (hG : is_coseparator G) : ∃ G : C, projective G ∧ is_separator G :=
 begin
-  haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
   obtain ⟨T, hT₁, hT₂⟩ := has_injective_coseparator (op G) ((is_separator_op_iff _).2 hG),
   exactI ⟨unop T, infer_instance, (is_separator_unop_iff _).2 hT₂⟩
 end

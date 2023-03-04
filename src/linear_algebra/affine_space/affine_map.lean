@@ -3,13 +3,11 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import algebra.add_torsor
-import data.set.intervals.unordered_interval
+import data.set.pointwise.interval
 import linear_algebra.affine_space.basic
 import linear_algebra.bilinear_map
 import linear_algebra.pi
 import linear_algebra.prod
-import tactic.abel
 
 /-!
 # Affine maps
@@ -330,7 +328,7 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 include V2
 
-@[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
+@[simp] lemma linear_injective_iff (f : P1 →ᵃ[k] P2) :
   function.injective f.linear ↔ function.injective f :=
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
@@ -339,7 +337,7 @@ begin
   rw [h, equiv.comp_injective, equiv.injective_comp],
 end
 
-@[simp] lemma surjective_iff_linear_surjective (f : P1 →ᵃ[k] P2) :
+@[simp] lemma linear_surjective_iff (f : P1 →ᵃ[k] P2) :
   function.surjective f.linear ↔ function.surjective f :=
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
@@ -347,6 +345,10 @@ begin
   { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
+
+@[simp] lemma linear_bijective_iff (f : P1 →ᵃ[k] P2) :
+  function.bijective f.linear ↔ function.bijective f :=
+and_congr f.linear_injective_iff f.linear_surjective_iff
 
 lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
   (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
@@ -406,6 +408,27 @@ by simp [line_map_apply]
 
 @[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
 by simp [line_map_apply]
+
+@[simp] lemma line_map_eq_line_map_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c₁ c₂ : k} :
+  line_map p₀ p₁ c₁ = line_map p₀ p₁ c₂ ↔ p₀ = p₁ ∨ c₁ = c₂ :=
+by rw [line_map_apply, line_map_apply, ←@vsub_eq_zero_iff_eq V1, vadd_vsub_vadd_cancel_right,
+       ←sub_smul, smul_eq_zero, sub_eq_zero, vsub_eq_zero_iff_eq, or_comm, eq_comm]
+
+@[simp] lemma line_map_eq_left_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₀ ↔ p₀ = p₁ ∨ c = 0 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_zero]
+
+@[simp] lemma line_map_eq_right_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₁ ↔ p₀ = p₁ ∨ c = 1 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_one]
+
+variables (k)
+
+lemma line_map_injective [no_zero_smul_divisors k V1] {p₀ p₁ : P1} (h : p₀ ≠ p₁) :
+  function.injective (line_map p₀ p₁ : k → P1) :=
+λ c₁ c₂ hc, (line_map_eq_line_map_iff.mp hc).resolve_left h
+
+variables {k}
 
 include V2
 
@@ -478,9 +501,9 @@ by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zer
 
 omit V1
 
-lemma image_interval {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
+lemma image_uIcc {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
   (a b : k) :
-  f '' set.interval a b = set.interval (f a) (f b) :=
+  f '' set.uIcc a b = set.uIcc (f a) (f b) :=
 begin
   have : ⇑f = (λ x, x + f 0) ∘ λ x, x * (f 1 - f 0),
   { ext x,
@@ -488,7 +511,7 @@ begin
     rw [← f.linear_map_vsub, ← f.linear.map_smul, ← f.map_vadd],
     simp only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
   rw [this, set.image_comp],
-  simp only [set.image_add_const_interval, set.image_mul_const_interval]
+  simp only [set.image_add_const_uIcc, set.image_mul_const_uIcc]
 end
 
 section
@@ -621,3 +644,14 @@ rfl
 end comm_ring
 
 end affine_map
+
+section
+variables {𝕜 E F : Type*} [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+/-- Applying an affine map to an affine combination of two points yields an affine combination of
+the images. -/
+lemma convex.combo_affine_apply {x y : E} {a b : 𝕜} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
+by { simp only [convex.combo_eq_smul_sub_add h, ←vsub_eq_sub], exact f.apply_line_map _ _ _ }
+
+end

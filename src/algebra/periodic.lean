@@ -3,14 +3,20 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
+import algebra.big_operators.basic
 import algebra.field.opposite
 import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
 import group_theory.coset
+import group_theory.subgroup.zpowers
+import group_theory.submonoid.membership
 
 /-!
 # Periodicity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define and then prove facts about periodic and antiperiodic functions.
 
@@ -41,13 +47,11 @@ namespace function
 @[simp] def periodic [has_add α] (f : α → β) (c : α) : Prop :=
 ∀ x : α, f (x + c) = f x
 
-lemma periodic.funext [has_add α]
-  (h : periodic f c) :
+protected lemma periodic.funext [has_add α] (h : periodic f c) :
   (λ x, f (x + c)) = f :=
 funext h
 
-lemma periodic.comp [has_add α]
-  (h : periodic f c) (g : β → γ) :
+protected lemma periodic.comp [has_add α] (h : periodic f c) (g : β → γ) :
   periodic (g ∘ f) c :=
 by simp * at *
 
@@ -57,35 +61,31 @@ lemma periodic.comp_add_hom [has_add α] [has_add γ]
 λ x, by simp only [hg c, h (g x), add_hom.map_add, comp_app]
 
 @[to_additive]
-lemma periodic.mul [has_add α] [has_mul β]
-  (hf : periodic f c) (hg : periodic g c) :
+protected lemma periodic.mul [has_add α] [has_mul β] (hf : periodic f c) (hg : periodic g c) :
   periodic (f * g) c :=
 by simp * at *
 
 @[to_additive]
-lemma periodic.div [has_add α] [has_div β]
-  (hf : periodic f c) (hg : periodic g c) :
+protected lemma periodic.div [has_add α] [has_div β] (hf : periodic f c) (hg : periodic g c) :
   periodic (f / g) c :=
 by simp * at *
 
 @[to_additive]
-lemma _root_.list.periodic_prod [has_add α] [comm_monoid β]
+lemma _root_.list.periodic_prod [has_add α] [monoid β]
   (l : list (α → β)) (hl : ∀ f ∈ l, periodic f c) :
   periodic l.prod c :=
 begin
   induction l with g l ih hl,
   { simp, },
-  { simp only [list.mem_cons_iff, forall_eq_or_imp] at hl,
-    obtain ⟨hg, hl⟩ := hl,
-    simp only [list.prod_cons],
-    exact hg.mul (ih hl), },
+  { rw [list.forall_mem_cons] at hl,
+    simpa only [list.prod_cons] using hl.1.mul (ih hl.2) }
 end
 
 @[to_additive]
 lemma _root_.multiset.periodic_prod [has_add α] [comm_monoid β]
   (s : multiset (α → β)) (hs : ∀ f ∈ s, periodic f c) :
   periodic s.prod c :=
-s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ (multiset.mem_to_list f s).mp hf
+s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ multiset.mem_to_list.mp hf
 
 @[to_additive]
 lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
@@ -94,11 +94,11 @@ lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
 s.prod_to_list f ▸ (s.to_list.map f).periodic_prod (by simpa [-periodic])
 
 @[to_additive]
-lemma periodic.smul [has_add α] [has_smul γ β] (h : periodic f c) (a : γ) :
+protected lemma periodic.smul [has_add α] [has_smul γ β] (h : periodic f c) (a : γ) :
   periodic (a • f) c :=
 by simp * at *
 
-lemma periodic.const_smul [add_monoid α] [group γ] [distrib_mul_action γ α]
+protected lemma periodic.const_smul [add_monoid α] [group γ] [distrib_mul_action γ α]
   (h : periodic f c) (a : γ) :
   periodic (λ x, f (a • x)) (a⁻¹ • c) :=
 λ x, by simpa only [smul_add, smul_inv_smul] using h (a • x)
@@ -112,8 +112,7 @@ begin
   simpa only [smul_add, smul_inv_smul₀ ha] using h (a • x),
 end
 
-lemma periodic.const_mul [division_ring α]
-  (h : periodic f c) (a : α) :
+protected lemma periodic.const_mul [division_ring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (a * x)) (a⁻¹ * c) :=
 h.const_smul₀ a
 
@@ -127,13 +126,11 @@ lemma periodic.const_inv_smul₀ [add_comm_monoid α] [division_ring γ] [module
   periodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv] using h.const_smul₀ a⁻¹
 
-lemma periodic.const_inv_mul [division_ring α]
-  (h : periodic f c) (a : α) :
+lemma periodic.const_inv_mul [division_ring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (a⁻¹ * x)) (a * c) :=
 h.const_inv_smul₀ a
 
-lemma periodic.mul_const [division_ring α]
-  (h : periodic f c) (a : α) :
+lemma periodic.mul_const [division_ring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a)) (c * a⁻¹) :=
 h.const_smul₀ $ mul_opposite.op a
 
@@ -142,40 +139,33 @@ lemma periodic.mul_const' [division_ring α]
   periodic (λ x, f (x * a)) (c / a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const a
 
-lemma periodic.mul_const_inv [division_ring α]
-  (h : periodic f c) (a : α) :
+lemma periodic.mul_const_inv [division_ring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a⁻¹)) (c * a) :=
 h.const_inv_smul₀ $ mul_opposite.op a
 
-lemma periodic.div_const [division_ring α]
-  (h : periodic f c) (a : α) :
+lemma periodic.div_const [division_ring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x / a)) (c * a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const_inv a
 
-lemma periodic.add_period [add_semigroup α]
-  (h1 : periodic f c₁) (h2 : periodic f c₂) :
+lemma periodic.add_period [add_semigroup α] (h1 : periodic f c₁) (h2 : periodic f c₂) :
   periodic f (c₁ + c₂) :=
 by simp [*, ← add_assoc] at *
 
-lemma periodic.sub_eq [add_group α]
-  (h : periodic f c) (x : α) :
+lemma periodic.sub_eq [add_group α] (h : periodic f c) (x : α) :
   f (x - c) = f x :=
 by simpa only [sub_add_cancel] using (h (x - c)).symm
 
-lemma periodic.sub_eq' [add_comm_group α]
-  (h : periodic f c) :
+lemma periodic.sub_eq' [add_comm_group α] (h : periodic f c) :
   f (c - x) = f (-x) :=
 by simpa only [sub_eq_neg_add] using h (-x)
 
-lemma periodic.neg [add_group α]
-  (h : periodic f c) :
+protected lemma periodic.neg [add_group α] (h : periodic f c) :
   periodic f (-c) :=
 by simpa only [sub_eq_add_neg, periodic] using h.sub_eq
 
-lemma periodic.sub_period [add_comm_group α]
-  (h1 : periodic f c₁) (h2 : periodic f c₂) :
+lemma periodic.sub_period [add_group α] (h1 : periodic f c₁) (h2 : periodic f c₂) :
   periodic f (c₁ - c₂) :=
-let h := h2.neg in by simp [*, sub_eq_add_neg, add_comm c₁, ← add_assoc] at *
+by simpa only [sub_eq_add_neg] using h1.add_period h2.neg
 
 lemma periodic.const_add [add_semigroup α] (h : periodic f c) (a : α) :
   periodic (λ x, f (a + x)) c :=
@@ -183,63 +173,49 @@ lemma periodic.const_add [add_semigroup α] (h : periodic f c) (a : α) :
 
 lemma periodic.add_const [add_comm_semigroup α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x + a)) c :=
-λ x, by simpa [add_assoc x c a, add_comm c, ←add_assoc x a c] using h (x + a)
+by simpa only [add_comm] using h.const_add a
 
 lemma periodic.const_sub [add_comm_group α] (h : periodic f c) (a : α) :
   periodic (λ x, f (a - x)) c :=
-begin
-  rw [←neg_neg c],
-  refine periodic.neg _,
-  intro x,
-  simpa [sub_add_eq_sub_sub] using h (a - x)
-end
+λ x, by simp only [← sub_sub, h.sub_eq]
 
 lemma periodic.sub_const [add_comm_group α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x - a)) c :=
-λ x, by simpa [add_comm x c, add_sub_assoc, add_comm c (x - a)] using h (x - a)
+by simpa only [sub_eq_add_neg] using h.add_const (-a)
 
-lemma periodic.nsmul [add_monoid α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.nsmul [add_monoid α] (h : periodic f c) (n : ℕ) :
   periodic f (n • c) :=
 by induction n; simp [nat.succ_eq_add_one, add_nsmul, ← add_assoc, zero_nsmul, *] at *
 
-lemma periodic.nat_mul [semiring α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.nat_mul [semiring α] (h : periodic f c) (n : ℕ) :
   periodic f (n * c) :=
 by simpa only [nsmul_eq_mul] using h.nsmul n
 
-lemma periodic.neg_nsmul [add_group α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.neg_nsmul [add_group α] (h : periodic f c) (n : ℕ) :
   periodic f (-(n • c)) :=
 (h.nsmul n).neg
 
-lemma periodic.neg_nat_mul [ring α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.neg_nat_mul [ring α] (h : periodic f c) (n : ℕ) :
   periodic f (-(n * c)) :=
 (h.nat_mul n).neg
 
-lemma periodic.sub_nsmul_eq [add_group α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.sub_nsmul_eq [add_group α] (h : periodic f c) (n : ℕ) :
   f (x - n • c) = f x :=
 by simpa only [sub_eq_add_neg] using h.neg_nsmul n x
 
-lemma periodic.sub_nat_mul_eq [ring α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.sub_nat_mul_eq [ring α] (h : periodic f c) (n : ℕ) :
   f (x - n * c) = f x :=
 by simpa only [nsmul_eq_mul] using h.sub_nsmul_eq n
 
-lemma periodic.nsmul_sub_eq [add_comm_group α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.nsmul_sub_eq [add_comm_group α] (h : periodic f c) (n : ℕ) :
   f (n • c - x) = f (-x) :=
-by simpa only [sub_eq_neg_add] using h.nsmul n (-x)
+(h.nsmul n).sub_eq'
 
-lemma periodic.nat_mul_sub_eq [ring α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.nat_mul_sub_eq [ring α] (h : periodic f c) (n : ℕ) :
   f (n * c - x) = f (-x) :=
 by simpa only [sub_eq_neg_add] using h.nat_mul n (-x)
 
-lemma periodic.zsmul [add_group α]
-  (h : periodic f c) (n : ℤ) :
+protected lemma periodic.zsmul [add_group α] (h : periodic f c) (n : ℤ) :
   periodic f (n • c) :=
 begin
   cases n,
@@ -247,58 +223,47 @@ begin
   { simpa only [zsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
 end
 
-lemma periodic.int_mul [ring α]
-  (h : periodic f c) (n : ℤ) :
+protected lemma periodic.int_mul [ring α] (h : periodic f c) (n : ℤ) :
   periodic f (n * c) :=
 by simpa only [zsmul_eq_mul] using h.zsmul n
 
-lemma periodic.sub_zsmul_eq [add_group α]
-  (h : periodic f c) (n : ℤ) :
+lemma periodic.sub_zsmul_eq [add_group α] (h : periodic f c) (n : ℤ) :
   f (x - n • c) = f x :=
 (h.zsmul n).sub_eq x
 
-lemma periodic.sub_int_mul_eq [ring α]
-  (h : periodic f c) (n : ℤ) :
+lemma periodic.sub_int_mul_eq [ring α] (h : periodic f c) (n : ℤ) :
   f (x - n * c) = f x :=
 (h.int_mul n).sub_eq x
 
-lemma periodic.zsmul_sub_eq [add_comm_group α]
-  (h : periodic f c) (n : ℤ) :
+lemma periodic.zsmul_sub_eq [add_comm_group α] (h : periodic f c) (n : ℤ) :
   f (n • c - x) = f (-x) :=
-by simpa only [sub_eq_neg_add] using h.zsmul n (-x)
+(h.zsmul _).sub_eq'
 
-lemma periodic.int_mul_sub_eq [ring α]
-  (h : periodic f c) (n : ℤ) :
+lemma periodic.int_mul_sub_eq [ring α] (h : periodic f c) (n : ℤ) :
   f (n * c - x) = f (-x) :=
-by simpa only [sub_eq_neg_add] using h.int_mul n (-x)
+(h.int_mul _).sub_eq'
 
-lemma periodic.eq [add_zero_class α]
-  (h : periodic f c) :
+protected lemma periodic.eq [add_zero_class α] (h : periodic f c) :
   f c = f 0 :=
 by simpa only [zero_add] using h 0
 
-lemma periodic.neg_eq [add_group α]
-  (h : periodic f c) :
+protected lemma periodic.neg_eq [add_group α] (h : periodic f c) :
   f (-c) = f 0 :=
 h.neg.eq
 
-lemma periodic.nsmul_eq [add_monoid α]
-  (h : periodic f c) (n : ℕ) :
+protected lemma periodic.nsmul_eq [add_monoid α] (h : periodic f c) (n : ℕ) :
   f (n • c) = f 0 :=
 (h.nsmul n).eq
 
-lemma periodic.nat_mul_eq [semiring α]
-  (h : periodic f c) (n : ℕ) :
+lemma periodic.nat_mul_eq [semiring α] (h : periodic f c) (n : ℕ) :
   f (n * c) = f 0 :=
 (h.nat_mul n).eq
 
-lemma periodic.zsmul_eq [add_group α]
-  (h : periodic f c) (n : ℤ) :
+lemma periodic.zsmul_eq [add_group α] (h : periodic f c) (n : ℤ) :
   f (n • c) = f 0 :=
 (h.zsmul n).eq
 
-lemma periodic.int_mul_eq [ring α]
-  (h : periodic f c) (n : ℤ) :
+lemma periodic.int_mul_eq [ring α] (h : periodic f c) (n : ℤ) :
   f (n * c) = f 0 :=
 (h.int_mul n).eq
 
@@ -367,25 +332,22 @@ rfl
 @[simp] def antiperiodic [has_add α] [has_neg β] (f : α → β) (c : α) : Prop :=
 ∀ x : α, f (x + c) = -f x
 
-lemma antiperiodic.funext [has_add α] [has_neg β]
-  (h : antiperiodic f c) :
+protected lemma antiperiodic.funext [has_add α] [has_neg β] (h : antiperiodic f c) :
   (λ x, f (x + c)) = -f :=
 funext h
 
-lemma antiperiodic.funext' [has_add α] [has_involutive_neg β]
-  (h : antiperiodic f c) :
+protected lemma antiperiodic.funext' [has_add α] [has_involutive_neg β] (h : antiperiodic f c) :
   (λ x, -f (x + c)) = f :=
 (eq_neg_iff_eq_neg.mp h.funext).symm
 
 /-- If a function is `antiperiodic` with antiperiod `c`, then it is also `periodic` with period
   `2 * c`. -/
-lemma antiperiodic.periodic [semiring α] [has_involutive_neg β]
-  (h : antiperiodic f c) :
+protected lemma antiperiodic.periodic [semiring α] [has_involutive_neg β] (h : antiperiodic f c) :
   periodic f (2 * c) :=
 by simp [two_mul, ← add_assoc, h _]
 
-lemma antiperiodic.eq [add_zero_class α] [has_neg β]
-  (h : antiperiodic f c) : f c = -f 0 :=
+protected lemma antiperiodic.eq [add_zero_class α] [has_neg β] (h : antiperiodic f c) :
+  f c = -f 0 :=
 by simpa only [zero_add] using h 0
 
 lemma antiperiodic.nat_even_mul_periodic [semiring α] [has_involutive_neg β]
@@ -408,37 +370,16 @@ lemma antiperiodic.int_odd_mul_antiperiodic [ring α] [has_involutive_neg β]
   antiperiodic f (n * (2 * c) + c) :=
 λ x, by rw [← add_assoc, h, h.periodic.int_mul]
 
-lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [subtraction_monoid β]
-  (h : antiperiodic f c) (hi : f 0 = 0) (n : ℕ) :
-  f (n * c) = 0 :=
-begin
-  rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
-  have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [← two_mul, hk, hi] using (h.nat_even_mul_periodic k).eq },
-  { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
-end
-
-lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [subtraction_monoid β]
-  (h : antiperiodic f c) (hi : f 0 = 0) (n : ℤ) :
-  f (n * c) = 0 :=
-begin
-  rcases int.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
-  have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [← two_mul, hk, hi] using (h.int_even_mul_periodic k).eq },
-  { simpa [add_mul, hk, hi] using (h.int_odd_mul_antiperiodic k).eq },
-end
-
 lemma antiperiodic.sub_eq [add_group α] [has_involutive_neg β]
   (h : antiperiodic f c) (x : α) :
   f (x - c) = -f x :=
 by simp only [eq_neg_iff_eq_neg.mp (h (x - c)), sub_add_cancel]
 
-lemma antiperiodic.sub_eq' [add_comm_group α] [has_neg β]
-  (h : antiperiodic f c) :
+lemma antiperiodic.sub_eq' [add_comm_group α] [has_neg β] (h : antiperiodic f c) :
   f (c - x) = -f (-x) :=
 by simpa only [sub_eq_neg_add] using h (-x)
 
-lemma antiperiodic.neg [add_group α] [has_involutive_neg β]
+protected lemma antiperiodic.neg [add_group α] [has_involutive_neg β]
   (h : antiperiodic f c) :
   antiperiodic f (-c) :=
 by simpa only [sub_eq_add_neg, antiperiodic] using h.sub_eq
@@ -448,29 +389,33 @@ lemma antiperiodic.neg_eq [add_group α] [has_involutive_neg β]
   f (-c) = -f 0 :=
 by simpa only [zero_add] using h.neg 0
 
+lemma antiperiodic.nat_mul_eq_of_eq_zero [ring α] [neg_zero_class β]
+  (h : antiperiodic f c) (hi : f 0 = 0) : ∀ n : ℕ, f (n * c) = 0
+| 0 := by rwa [nat.cast_zero, zero_mul]
+| (n + 1) := by simp [add_mul, antiperiodic.nat_mul_eq_of_eq_zero n, h _]
+
+lemma antiperiodic.int_mul_eq_of_eq_zero [ring α] [subtraction_monoid β]
+  (h : antiperiodic f c) (hi : f 0 = 0) : ∀ n : ℤ, f (n * c) = 0
+| (n : ℕ) := by rwa [int.cast_coe_nat, h.nat_mul_eq_of_eq_zero]
+| -[1+n] := by rw [int.cast_neg_succ_of_nat, neg_mul, ← mul_neg, h.neg.nat_mul_eq_of_eq_zero hi]
+
 lemma antiperiodic.const_add [add_semigroup α] [has_neg β] (h : antiperiodic f c) (a : α) :
   antiperiodic (λ x, f (a + x)) c :=
 λ x, by simpa [add_assoc] using h (a + x)
 
 lemma antiperiodic.add_const [add_comm_semigroup α] [has_neg β] (h : antiperiodic f c) (a : α) :
   antiperiodic (λ x, f (x + a)) c :=
-λ x, by simpa [add_assoc x c a, add_comm c, ←add_assoc x a c] using h (x + a)
+λ x, by simpa only [add_right_comm] using h (x + a)
 
 lemma antiperiodic.const_sub [add_comm_group α] [has_involutive_neg β] (h : antiperiodic f c)
-  (a : α) :
-  antiperiodic (λ x, f (a - x)) c :=
-begin
-  rw [←neg_neg c],
-  refine antiperiodic.neg _,
-  intro x,
-  simpa [sub_add_eq_sub_sub] using h (a - x)
-end
+  (a : α) : antiperiodic (λ x, f (a - x)) c :=
+λ x, by simp only [← sub_sub, h.sub_eq]
 
 lemma antiperiodic.sub_const [add_comm_group α] [has_neg β] (h : antiperiodic f c) (a : α) :
   antiperiodic (λ x, f (x - a)) c :=
-λ x, by simpa [add_comm x c, add_sub_assoc, add_comm c (x - a)] using h (x - a)
+by simpa only [sub_eq_add_neg] using h.add_const (-a)
 
-lemma antiperiodic.smul [has_add α] [monoid γ] [add_group β] [distrib_mul_action γ β]
+protected lemma antiperiodic.smul [has_add α] [monoid γ] [add_group β] [distrib_mul_action γ β]
   (h : antiperiodic f c) (a : γ) :
   antiperiodic (a • f) c :=
 by simp * at *
@@ -520,47 +465,47 @@ lemma antiperiodic.mul_const_inv [division_ring α] [has_neg β]
   antiperiodic (λ x, f (x * a⁻¹)) (c * a) :=
 h.const_inv_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
-lemma antiperiodic.div_inv [division_ring α] [has_neg β]
+protected lemma antiperiodic.div_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x / a)) (c * a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const_inv ha
 
-lemma antiperiodic.add [add_group α] [has_involutive_neg β]
+protected lemma antiperiodic.add [add_group α] [has_involutive_neg β]
   (h1 : antiperiodic f c₁) (h2 : antiperiodic f c₂) :
   periodic f (c₁ + c₂) :=
 by simp [*, ← add_assoc] at *
 
-lemma antiperiodic.sub [add_comm_group α] [has_involutive_neg β]
+protected lemma antiperiodic.sub [add_group α] [has_involutive_neg β]
   (h1 : antiperiodic f c₁) (h2 : antiperiodic f c₂) :
   periodic f (c₁ - c₂) :=
-let h := h2.neg in by simp [*, sub_eq_add_neg, add_comm c₁, ← add_assoc] at *
+by simpa only [sub_eq_add_neg] using h1.add h2.neg
 
 lemma periodic.add_antiperiod [add_group α] [has_neg β]
   (h1 : periodic f c₁) (h2 : antiperiodic f c₂) :
   antiperiodic f (c₁ + c₂) :=
 by simp [*, ← add_assoc] at *
 
-lemma periodic.sub_antiperiod [add_comm_group α] [has_involutive_neg β]
+lemma periodic.sub_antiperiod [add_group α] [has_involutive_neg β]
   (h1 : periodic f c₁) (h2 : antiperiodic f c₂) :
   antiperiodic f (c₁ - c₂) :=
-let h := h2.neg in by simp [*, sub_eq_add_neg, add_comm c₁, ← add_assoc] at *
+by simpa only [sub_eq_add_neg] using h1.add_antiperiod h2.neg
 
 lemma periodic.add_antiperiod_eq [add_group α] [has_neg β]
   (h1 : periodic f c₁) (h2 : antiperiodic f c₂) :
   f (c₁ + c₂) = -f 0 :=
 (h1.add_antiperiod h2).eq
 
-lemma periodic.sub_antiperiod_eq [add_comm_group α] [has_involutive_neg β]
+lemma periodic.sub_antiperiod_eq [add_group α] [has_involutive_neg β]
   (h1 : periodic f c₁) (h2 : antiperiodic f c₂) :
   f (c₁ - c₂) = -f 0 :=
 (h1.sub_antiperiod h2).eq
 
-lemma antiperiodic.mul [has_add α] [has_mul β] [has_distrib_neg β]
+protected lemma antiperiodic.mul [has_add α] [has_mul β] [has_distrib_neg β]
   (hf : antiperiodic f c) (hg : antiperiodic g c) :
   periodic (f * g) c :=
 by simp * at *
 
-lemma antiperiodic.div [has_add α] [division_monoid β] [has_distrib_neg β]
+protected lemma antiperiodic.div [has_add α] [division_monoid β] [has_distrib_neg β]
   (hf : antiperiodic f c) (hg : antiperiodic g c) :
   periodic (f / g) c :=
 by simp [*, neg_div_neg_eq] at *

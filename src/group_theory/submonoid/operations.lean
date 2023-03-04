@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.order.monoid.cancel.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations
 
 /-!
 # Operations on `submonoid`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
@@ -75,11 +79,11 @@ def submonoid.to_add_submonoid : submonoid M ≃o add_submonoid (additive M) :=
 { to_fun := λ S,
   { carrier := additive.to_mul ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   inv_fun := λ S,
   { carrier := additive.of_mul ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -115,11 +119,11 @@ def add_submonoid.to_submonoid : add_submonoid A ≃o submonoid (multiplicative 
 { to_fun := λ S,
   { carrier := multiplicative.to_add ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   inv_fun := λ S,
   { carrier := multiplicative.of_add ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -388,25 +392,29 @@ end galois_insertion
 
 end submonoid
 
-namespace submonoid_class
+namespace one_mem_class
 
-variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
+variables {A M₁ : Type*} [set_like A M₁] [has_one M₁] [hA : one_mem_class A M₁] (S' : A)
 include hA
 
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
-instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
+instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}
-@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M) = 1 ↔ x = 1 :=
-(subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
+@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M₁) = 1 ↔ x = 1 :=
+(subtype.ext_iff.symm : (x : M₁) = (1 : S') ↔ x = 1)
 variables (S')
 
-@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
+@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem_class.one_mem S'⟩ := rfl
 
-omit hA
+end one_mem_class
+
+namespace submonoid_class
+
+variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 
 /-- An `add_submonoid` of an `add_monoid` inherits a scalar multiplication. -/
 instance _root_.add_submonoid_class.has_nsmul {M} [add_monoid M] {A : Type*} [set_like A M]
@@ -597,8 +605,10 @@ def top_equiv : (⊤ : submonoid M) ≃* M :=
   (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
 rfl
 
-/-- A submonoid is isomorphic to its image under an injective function -/
-@[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `mul_equiv.submonoid_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_equiv.add_submonoid_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
@@ -780,7 +790,7 @@ rfl
 iff.rfl
 
 @[to_additive] lemma mrange_eq_map (f : F) : mrange f = (⊤ : submonoid M).map f :=
-copy_eq _
+submonoid.copy_eq _
 omit mc
 
 @[to_additive]
@@ -826,6 +836,10 @@ f.comp (submonoid_class.subtype _)
 lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
   (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
+
+@[simp, to_additive] lemma restrict_mrange (f : M →* N) : (f.restrict S).mrange = S.map f :=
+by simp_rw [set_like.ext_iff, mem_mrange, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
+  iff_self, forall_const]
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.",
@@ -876,6 +890,10 @@ include mc
 @[simp, to_additive] lemma comap_bot' (f : F) :
   (⊥ : submonoid N).comap f = mker f := rfl
 omit mc
+
+@[simp, to_additive]
+lemma restrict_mker (f : M →* N) : (f.restrict S).mker = f.mker.comap S.subtype :=
+rfl
 
 @[to_additive] lemma range_restrict_mker (f : M →* N) : mker (mrange_restrict f) = mker f :=
 begin
@@ -1039,14 +1057,24 @@ a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`.
 See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
 between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
-for a variant for `add_monoid_hom`s.", simps]
+for a variant for `add_monoid_hom`s."]
 def submonoid_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
-{ to_fun := λ x, ⟨e x, _⟩,
-  inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
-  ..e.to_monoid_hom.submonoid_map S,
-  ..e.to_equiv.image S }
+{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
+
+@[simp, to_additive]
+lemma coe_submonoid_map_apply (e : M ≃* N) (S : submonoid M) (g : S) :
+  ((submonoid_map e S g : S.map (e : M →* N)) : N) = e g := rfl
+
+@[simp, to_additive add_equiv.add_submonoid_map_symm_apply]
+lemma submonoid_map_symm_apply (e : M ≃* N) (S : submonoid M) (g : S.map (e : M →* N)) :
+  (e.submonoid_map S).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 end mul_equiv
+
+@[simp, to_additive]
+lemma submonoid.equiv_map_of_injective_coe_mul_equiv (e : M ≃* N) :
+  S.equiv_map_of_injective (e : M →* N) (equiv_like.injective e) = e.submonoid_map S :=
+by { ext, refl }
 
 section actions
 /-! ### Actions by `submonoid`s

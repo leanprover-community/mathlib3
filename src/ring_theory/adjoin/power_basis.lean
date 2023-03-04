@@ -27,11 +27,11 @@ open_locale big_operators
 
 /-- The elements `1, x, ..., x ^ (d - 1)` for a basis for the `K`-module `K[x]`,
 where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis_aux {x : S} (hx : _root_.is_integral K x) :
+noncomputable def adjoin.power_basis_aux {x : S} (hx : is_integral K x) :
   basis (fin (minpoly K x).nat_degree) K (adjoin K ({x} : set S)) :=
 begin
   have hST : function.injective (algebra_map (adjoin K ({x} : set S)) S) := subtype.coe_injective,
-  have hx' : _root_.is_integral K
+  have hx' : is_integral K
     (show adjoin K ({x} : set S), from ⟨x, subset_adjoin (set.mem_singleton x)⟩),
   { apply (is_integral_algebra_map_iff hST).mp,
     convert hx,
@@ -39,7 +39,7 @@ begin
   have minpoly_eq := minpoly.eq_of_algebra_map_eq hST hx' rfl,
   apply @basis.mk (fin (minpoly K x).nat_degree) _
     (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
-  { have := hx'.linear_independent_pow,
+  { have := linear_independent_pow _,
     rwa minpoly_eq at this },
   { rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,
@@ -49,13 +49,13 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
+      exact aeval_algebra_map_apply S (⟨x, _⟩ : adjoin K {x}) _, } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
 where `d` is the degree of the minimal polynomial of `x`. See `algebra.adjoin.power_basis'` for
 a version over a more general base ring. -/
-@[simps gen dim] noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
+@[simps gen dim] noncomputable def adjoin.power_basis {x : S} (hx : is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
   dim := (minpoly K x).nat_degree,
@@ -69,7 +69,7 @@ open algebra
 /-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. See `power_basis.of_gen_mem_adjoin'`
 for a version over a more general base ring. -/
 @[simps] noncomputable def power_basis.of_gen_mem_adjoin {x : S} (B : power_basis K S)
-  (hint : _root_.is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
+  (hint : is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
 (algebra.adjoin.power_basis hint).map $
   (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
   subalgebra.top_equiv
@@ -173,7 +173,7 @@ if `minpoly K B.gen = (minpoly R B.gen).map (algebra_map R L)`. This is the case
 if `R` is a GCD domain and `K` is its fraction ring. -/
 lemma to_matrix_is_integral {B B' : power_basis K S} {P : R[X]} (h : aeval B.gen P = B'.gen)
   (hB : is_integral R B.gen) (hmin : minpoly K B.gen = (minpoly R B.gen).map (algebra_map R K)) :
-  ∀ i j, _root_.is_integral R (B.basis.to_matrix B'.basis i j) :=
+  ∀ i j, is_integral R (B.basis.to_matrix B'.basis i j) :=
 begin
   intros i j,
   rw [B.basis.to_matrix_apply, B'.coe_basis],

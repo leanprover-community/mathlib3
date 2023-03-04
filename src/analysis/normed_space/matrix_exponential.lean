@@ -149,9 +149,9 @@ begin
 end
 
 lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → matrix m m 𝔸)
-  (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
+  (h : (s : set ι).pairwise $ λ i j, commute (f i) (f j)) :
   exp 𝕂 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 (f i))
-    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
+    (λ i hi j hj _, (h.of_refl hi hj).exp 𝕂) :=
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,

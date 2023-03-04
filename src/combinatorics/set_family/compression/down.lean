@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.card
-import data.fintype.basic
 
 /-!
 # Down-compressions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines down-compression.
 
@@ -128,9 +130,9 @@ namespace down
 resulting finset is not already in `𝒜`. -/
 def compression (a : α) (𝒜 : finset (finset α)) : finset (finset α) :=
 (𝒜.filter $ λ s, erase s a ∈ 𝒜).disj_union ((𝒜.image $ λ s, erase s a).filter $ λ s, s ∉ 𝒜) $
-  λ s h₁ h₂, (mem_filter.1 h₂).2 (mem_filter.1 h₁).1
+  disjoint_left.2 $ λ s h₁ h₂, (mem_filter.1 h₂).2 (mem_filter.1 h₁).1
 
-localized "notation `𝓓 ` := down.compression" in finset_family
+localized "notation (name := down.compression) `𝓓 ` := down.compression" in finset_family
 
 /-- `a` is in the down-compressed family iff it's in the original and its compression is in the
 original, or it's not in the original but it's the compression of something in the original. -/
@@ -181,7 +183,7 @@ end
 begin
   rw [compression, card_disj_union, image_filter, card_image_of_inj_on ((erase_inj_on' _).mono $
     λ s hs, _), ←card_disjoint_union, filter_union_filter_neg_eq],
-  { exact disjoint_filter_filter_neg _ _ },
+  { exact disjoint_filter_filter_neg _ _ _ },
   rw [mem_coe, mem_filter] at hs,
   exact not_imp_comm.1 erase_eq_of_not_mem (ne_of_mem_of_not_mem hs.1 hs.2).symm,
 end

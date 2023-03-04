@@ -49,7 +49,7 @@ in general), and `ι` is countable.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open topological_space set metric filter function
 
 local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
@@ -357,7 +357,7 @@ but it does not take care of a possible uniformity. If the `E n` have a uniform 
 there will be two non-defeq uniform structures on `Π n, E n`, the product one and the one coming
 from the metric structure. In this case, use `metric_space_of_discrete_uniformity` instead. -/
 protected def metric_space : metric_space (Π n, E n) :=
-metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
+metric_space.of_dist_topology dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
   is_open_iff_dist pi_nat.eq_of_dist_eq_zero
 
 /-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete uniformity,
@@ -393,7 +393,7 @@ begin
       { simp only [le_infi_iff, le_principal_iff],
         assume n,
         refine mem_infi_of_mem ((1/2)^n) _,
-        refine mem_infi_of_mem (by norm_num) _,
+        refine mem_infi_of_mem (by positivity) _,
         simp only [mem_principal, set_of_subset_set_of, prod.forall],
         assume x y hxy,
         exact apply_eq_of_dist_lt hxy le_rfl }
@@ -669,7 +669,7 @@ begin
   { assume x,
     apply subtype.coe_injective.eq_iff.1,
     simpa only using fs x.val x.property },
-  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, continuous_subtype_mk _ f_cont⟩,
+  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, f_cont.subtype_mk _⟩,
 end
 
 end pi_nat
@@ -709,6 +709,7 @@ begin
       apply apply_first_diff_ne hne',
       rw [le_zero_iff.1 h],
       apply apply_eq_of_dist_lt _ le_rfl,
+      rw pow_zero,
       exact hxy },
     have hn : first_diff x.1 y.1 = n + 1 := (nat.succ_pred_eq_of_pos diff_pos).symm,
     rw [dist', dist_eq_of_ne hne', hn],
@@ -800,7 +801,7 @@ lemma dist_le_dist_pi_of_dist_lt {x y : Π i, F i} {i : ι} (h : dist x y < (1/2
   dist (x i) (y i) ≤ dist x y :=
 by simpa only [not_le.2 h, false_or] using min_le_iff.1 (min_dist_le_dist_pi x y i)
 
-open_locale big_operators topological_space
+open_locale big_operators topology
 open filter
 
 open_locale nnreal

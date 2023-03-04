@@ -54,13 +54,7 @@ by simp only [erase_lead, erase_zero]
 
 @[simp] lemma erase_lead_add_monomial_nat_degree_leading_coeff (f : R[X]) :
   f.erase_lead + monomial f.nat_degree f.leading_coeff = f :=
-begin
-  ext i,
-  simp only [erase_lead_coeff, coeff_monomial, coeff_add, @eq_comm _ _ i],
-  split_ifs with h,
-  { subst i, simp only [leading_coeff, zero_add] },
-  { exact add_zero _ }
-end
+(add_comm _ _).trans (f.monomial_add_erase _)
 
 @[simp] lemma erase_lead_add_C_mul_X_pow (f : R[X]) :
   f.erase_lead + (C f.leading_coeff) * X ^ f.nat_degree = f :=
@@ -76,7 +70,7 @@ by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
-  rw [ne.def, ← card_support_eq_zero, erase_lead_support],
+  rw [ne, ← card_support_eq_zero, erase_lead_support],
   exact (zero_lt_one.trans_le $ (tsub_le_tsub_right f0 1).trans
     finset.pred_card_le_card_erase).ne.symm
 end
@@ -85,7 +79,7 @@ lemma lt_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f
   a < f.nat_degree :=
 begin
   rw [erase_lead_support, mem_erase] at h,
-  exact lt_of_le_of_ne (le_nat_degree_of_mem_supp a h.2) h.1,
+  exact (le_nat_degree_of_mem_supp a h.2).lt_of_ne h.1,
 end
 
 lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
@@ -157,14 +151,7 @@ begin
     exact nd (nat_degree_add_eq_right_of_nat_degree_lt pq) }
 end
 
-lemma erase_lead_degree_le : (erase_lead f).degree ≤ f.degree :=
-begin
-  rw degree_le_iff_coeff_zero,
-  intros i hi,
-  rw erase_lead_coeff,
-  split_ifs with h, { refl },
-  apply coeff_eq_zero_of_degree_lt hi
-end
+lemma erase_lead_degree_le : (erase_lead f).degree ≤ f.degree := f.degree_erase_le _
 
 lemma erase_lead_nat_degree_le_aux : (erase_lead f).nat_degree ≤ f.nat_degree :=
 nat_degree_le_nat_degree erase_lead_degree_le
@@ -248,7 +235,7 @@ lemma mono_map_nat_degree_eq {S F : Type*} [semiring S]
 begin
   refine induction_with_nat_degree_le (λ p, _ = fu _) p.nat_degree (by simp [fu0]) _ _ _ rfl.le,
   { intros n r r0 np,
-    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
+    rw [nat_degree_C_mul_X_pow _ _ r0, C_mul_X_pow_eq_monomial, φ_mon_nat _ _ r0] },
   { intros f g fg gp fk gk,
     rw [nat_degree_add_eq_right_of_nat_degree_lt fg, _root_.map_add],
     by_cases FG : k ≤ f.nat_degree,
@@ -310,10 +297,10 @@ begin
       { rw [fin.range_cast_succ, set.mem_def],
         exact lt_of_lt_of_le hij (nat.lt_succ_iff.mp j.2) },
       obtain ⟨i, rfl⟩ := hi,
-      rw function.extend_apply fin.cast_succ.injective,
+      rw fin.cast_succ.injective.extend_apply,
       by_cases hj : ∃ j₀, fin.cast_succ j₀ = j,
       { obtain ⟨j, rfl⟩ := hj,
-        rwa [function.extend_apply fin.cast_succ.injective, hk.lt_iff_lt,
+        rwa [fin.cast_succ.injective.extend_apply, hk.lt_iff_lt,
           ←fin.cast_succ_lt_cast_succ_iff] },
       { rw [function.extend_apply' _ _ _ hj],
         apply lt_nat_degree_of_mem_erase_lead_support,
@@ -326,13 +313,13 @@ begin
     { intro i,
       by_cases hi : ∃ i₀, fin.cast_succ i₀ = i,
       { obtain ⟨i, rfl⟩ := hi,
-        rw function.extend_apply fin.cast_succ.injective,
+        rw fin.cast_succ.injective.extend_apply,
         exact hx i },
       { rw [function.extend_apply' _ _ _ hi, ne, leading_coeff_eq_zero,
           ←card_support_eq_zero, h],
         exact n.succ_ne_zero } },
     { rw fin.sum_univ_cast_succ,
-      simp only [function.extend_apply fin.cast_succ.injective],
+      simp only [fin.cast_succ.injective.extend_apply],
       rw [←hf, function.extend_apply', function.extend_apply', erase_lead_add_C_mul_X_pow],
       all_goals { exact H } } },
 end

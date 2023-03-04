@@ -5,7 +5,6 @@ Authors: Floris van Doorn
 -/
 import tactic.interval_cases
 import algebra.big_operators.order
-import algebra.big_operators.part_enat
 import data.nat.multiplicity
 
 /-!
@@ -36,7 +35,7 @@ begin
   { suffices : multiplicity 2 (k! : ℤ) = (n * (n - 1) / 2 : ℕ),
     { rw [← part_enat.coe_lt_coe, ← this], change multiplicity ((2 : ℕ) : ℤ) _ < _,
       simp_rw [int.coe_nat_multiplicity, multiplicity_two_factorial_lt hk.lt.ne.symm] },
-    rw [h, multiplicity.finset.prod prime_2, ← sum_range_id, ← sum_nat_coe_enat],
+    rw [h, multiplicity.finset.prod prime_2, ← sum_range_id, nat.cast_sum],
     apply sum_congr rfl, intros i hi,
     rw [multiplicity_sub_of_gt, multiplicity_pow_self_of_prime prime_2],
     rwa [multiplicity_pow_self_of_prime prime_2, multiplicity_pow_self_of_prime prime_2,

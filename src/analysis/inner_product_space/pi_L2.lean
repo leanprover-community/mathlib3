@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
-import linear_algebra.finite_dimensional
 import analysis.normed_space.pi_Lp
+import linear_algebra.finite_dimensional
+import linear_algebra.unitary_group
 
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
@@ -50,8 +51,8 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 
 -/
 
-open real set filter is_R_or_C submodule
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
+open real set filter is_R_or_C submodule function
+open_locale big_operators uniformity topology nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
 
@@ -69,7 +70,8 @@ we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
-{ inner := λ x y, ∑ i, inner (x i) (y i),
+{ to_normed_add_comm_group := infer_instance,
+  inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner := λ x,
     by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
   conj_sym :=
@@ -100,11 +102,11 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
 lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ‖x‖₊ = nnreal.sqrt (∑ i, ‖x i‖₊ ^ 2) :=
 pi_Lp.nnnorm_eq_of_L2 x
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ‖x‖ = real.sqrt (∑ i, ‖x i‖ ^ 2) :=
 by simpa only [real.coe_sqrt, nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) x.nnnorm_eq
 
 lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
@@ -144,7 +146,7 @@ def direct_sum.is_internal.isometry_L2_of_orthogonal_family
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
-  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV.injective hV.surjective,
+  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV,
   refine (e₂.symm.trans e₁).isometry_of_inner _,
   suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
   { intros v₀ w₀,
@@ -164,7 +166,7 @@ end
 begin
   classical,
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
-  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV.injective hV.surjective,
+  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV,
   suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
   { exact this (e₁.symm w) },
   intros v,
@@ -285,7 +287,7 @@ begin
     euclidean_space.inner_single_left, euclidean_space.single_apply, map_one, one_mul],
 end
 
-/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
+/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` -/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
 basis.of_equiv_fun b.repr.to_linear_equiv
 
@@ -294,6 +296,7 @@ basis.of_equiv_fun b.repr.to_linear_equiv
 begin
   change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
   ext j,
+  classical,
   rw basis.coe_of_equiv_fun,
   congr,
 end
@@ -331,6 +334,12 @@ begin
   refl,
 end
 
+protected lemma orthogonal_projection_eq_sum {U : submodule 𝕜 E} [complete_space U]
+  (b : orthonormal_basis ι 𝕜 U) (x : E) :
+  orthogonal_projection U x = ∑ i, ⟪(b i : E), x⟫ • b i :=
+by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
+  using (b.sum_repr (orthogonal_projection U x)).symm
+
 /-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
 protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
   (L : E ≃ₗᵢ[𝕜] G) :
@@ -340,6 +349,11 @@ protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basi
 @[simp] protected lemma map_apply {G : Type*} [inner_product_space 𝕜 G]
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) :
   b.map L i = L (b i) := rfl
+
+@[simp] protected lemma to_basis_map {G : Type*} [inner_product_space 𝕜 G]
+  (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) :
+  (b.map L).to_basis = b.to_basis.map L.to_linear_equiv :=
+rfl
 
 /-- A basis that is orthonormal is an orthonormal basis. -/
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
@@ -389,7 +403,7 @@ protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span �
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
 /-- Any finite subset of a orthonormal family is an `orthonormal_basis` for its span. -/
-protected def span {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
+protected def span [decidable_eq E] {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
   orthonormal_basis s 𝕜 (span 𝕜 (s.image v' : set E)) :=
 let
   e₀' : basis s 𝕜 _ := basis.span (h.linear_independent.comp (coe : s → ι') subtype.coe_injective),
@@ -408,7 +422,8 @@ let
 in
 e₀.map φ.symm
 
-@[simp] protected lemma span_apply {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
+@[simp] protected lemma span_apply [decidable_eq E]
+  {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
@@ -455,76 +470,115 @@ end
   ⇑(b.reindex e) = ⇑b ∘ ⇑(e.symm) :=
 funext (b.reindex_apply e)
 
-@[simp] protected lemma reindex_repr
+@[simp] protected lemma repr_reindex
   (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
-  ((b.reindex e).repr x) i' = (b.repr x) (e.symm i') :=
+  (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by { classical,
   rw [orthonormal_basis.repr_apply_apply, b.repr_apply_apply, orthonormal_basis.coe_reindex] }
 
 end orthonormal_basis
 
-/-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
-of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
-`e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
-`E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
-@[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
-  (f : E ≃ₗᵢ[𝕜] E') :
-  ((v.map f.to_linear_equiv).to_orthonormal_basis (hv.map_linear_isometry_equiv f)).repr =
-    f.symm.trans (v.to_orthonormal_basis hv).repr :=
-linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
-
-/-- `ℂ` is isometric to `ℝ²` with the Euclidean inner product. -/
-def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+/-- `![1, I]` is an orthonormal basis for `ℂ` considered as a real inner product space. -/
+def complex.orthonormal_basis_one_I : orthonormal_basis (fin 2) ℝ ℂ :=
 (complex.basis_one_I.to_orthonormal_basis
 begin
   rw orthonormal_iff_ite,
   intros i, fin_cases i;
   intros j; fin_cases j;
   simp [real_inner_eq_re_inner]
-end).repr
+end)
 
-@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
-  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
-begin
-  convert complex.basis_one_I.equiv_fun_symm_apply x,
-  { simpa },
-  { simp },
-end
+@[simp] lemma complex.orthonormal_basis_one_I_repr_apply (z : ℂ) :
+  complex.orthonormal_basis_one_I.repr z =  ![z.re, z.im] :=
+rfl
 
-lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
-  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
-by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
-  complex.isometry_euclidean.symm_apply_apply z]
+@[simp] lemma complex.orthonormal_basis_one_I_repr_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.orthonormal_basis_one_I.repr.symm x = (x 0) + (x 1) * I :=
+rfl
 
-@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
-  complex.isometry_euclidean z 0 = z.re :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+@[simp] lemma complex.to_basis_orthonormal_basis_one_I :
+  complex.orthonormal_basis_one_I.to_basis = complex.basis_one_I :=
+basis.to_basis_to_orthonormal_basis _ _
 
-@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
-  complex.isometry_euclidean z 1 = z.im :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+@[simp] lemma complex.coe_orthonormal_basis_one_I :
+  (complex.orthonormal_basis_one_I : (fin 2) → ℂ) = ![1, I] :=
+by simp [complex.orthonormal_basis_one_I]
 
 /-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
-def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
-complex.isometry_euclidean.trans (v.to_orthonormal_basis hv).repr.symm
+def complex.isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F) : ℂ ≃ₗᵢ[ℝ] F :=
+complex.orthonormal_basis_one_I.repr.trans v.repr.symm
 
-@[simp] lemma complex.map_isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v)
+@[simp] lemma complex.map_isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F)
   (f : F ≃ₗᵢ[ℝ] F') :
-  complex.isometry_of_orthonormal (hv.map_linear_isometry_equiv f) =
-    (complex.isometry_of_orthonormal hv).trans f :=
-by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
+  complex.isometry_of_orthonormal (v.map f) =
+    (complex.isometry_of_orthonormal v).trans f :=
+by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc, orthonormal_basis.map]
 
 lemma complex.isometry_of_orthonormal_symm_apply
-  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (f : F) :
-  (complex.isometry_of_orthonormal hv).symm f = (v.coord 0 f : ℂ) + (v.coord 1 f : ℂ) * I :=
+  (v : orthonormal_basis (fin 2) ℝ F) (f : F) :
+  (complex.isometry_of_orthonormal v).symm f
+  = (v.to_basis.coord 0 f : ℂ) + (v.to_basis.coord 1 f : ℂ) * I :=
 by simp [complex.isometry_of_orthonormal]
 
 lemma complex.isometry_of_orthonormal_apply
-  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (z : ℂ) :
-  complex.isometry_of_orthonormal hv z = z.re • v 0 + z.im • v 1 :=
-by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
+  (v : orthonormal_basis (fin 2) ℝ F) (z : ℂ) :
+  complex.isometry_of_orthonormal v z = z.re • v 0 + z.im • v 1 :=
+by simp [complex.isometry_of_orthonormal, ← v.sum_repr_symm]
 
 open finite_dimensional
+
+/-! ### Matrix representation of an orthonormal basis with respect to another -/
+
+section to_matrix
+variables [decidable_eq ι]
+
+section
+variables (a b : orthonormal_basis ι 𝕜 E)
+
+/-- The change-of-basis matrix between two orthonormal bases `a`, `b` is a unitary matrix. -/
+lemma orthonormal_basis.to_matrix_orthonormal_basis_mem_unitary :
+  a.to_basis.to_matrix b ∈ matrix.unitary_group ι 𝕜 :=
+begin
+  rw matrix.mem_unitary_group_iff',
+  ext i j,
+  convert a.repr.inner_map_map (b i) (b j),
+  rw orthonormal_iff_ite.mp b.orthonormal i j,
+  refl,
+end
+
+/-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
+unit length. -/
+@[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
+  ‖a.to_basis.det b‖ = 1 :=
+begin
+  have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,
+  { simpa [is_R_or_C.mul_conj]
+      using (matrix.det_of_mem_unitary (a.to_matrix_orthonormal_basis_mem_unitary b)).2 },
+  norm_cast at this,
+  rwa [← sqrt_norm_sq_eq_norm, sqrt_eq_one],
+end
+
+end
+
+section real
+variables (a b : orthonormal_basis ι ℝ F)
+
+/-- The change-of-basis matrix between two orthonormal bases `a`, `b` is an orthogonal matrix. -/
+lemma orthonormal_basis.to_matrix_orthonormal_basis_mem_orthogonal :
+  a.to_basis.to_matrix b ∈ matrix.orthogonal_group ι ℝ :=
+a.to_matrix_orthonormal_basis_mem_unitary b
+
+/-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` is ±1. -/
+lemma orthonormal_basis.det_to_matrix_orthonormal_basis_real :
+  a.to_basis.det b = 1 ∨ a.to_basis.det b = -1 :=
+begin
+  rw ← sq_eq_one_iff,
+  simpa [unitary, sq] using matrix.det_of_mem_unitary (a.to_matrix_orthonormal_basis_mem_unitary b)
+end
+
+end real
+
+end to_matrix
 
 /-! ### Existence of orthonormal basis, etc. -/
 
@@ -573,6 +627,28 @@ begin
   { simp },
 end
 
+lemma _root_.orthonormal.exists_orthonormal_basis_extension_of_card_eq
+  {ι : Type*} [fintype ι] (card_ι : finrank 𝕜 E = fintype.card ι) {v : ι → E} {s : set ι}
+  (hv : orthonormal 𝕜 (s.restrict v)) :
+  ∃ b : orthonormal_basis ι 𝕜 E, ∀ i ∈ s, b i = v i :=
+begin
+  have hsv : injective (s.restrict v) := hv.linear_independent.injective,
+  have hX : orthonormal 𝕜 (coe : set.range (s.restrict v) → E),
+  { rwa orthonormal_subtype_range hsv },
+  obtain ⟨Y, b₀, hX, hb₀⟩ := hX.exists_orthonormal_basis_extension,
+  have hιY : fintype.card ι = Y.card,
+  { refine (card_ι.symm.trans _),
+    exact finite_dimensional.finrank_eq_card_finset_basis b₀.to_basis },
+  have hvsY : s.maps_to v Y := (s.maps_to_image v).mono_right (by rwa ← range_restrict),
+  have hsv' : set.inj_on v s,
+  { rw set.inj_on_iff_injective,
+    exact hsv },
+  obtain ⟨g, hg⟩ := hvsY.exists_equiv_extend_of_card_eq hιY hsv',
+  use b₀.reindex g.symm,
+  intros i hi,
+  { simp [hb₀, hg i hi] },
+end
+
 variables (𝕜 E)
 
 /-- A finite-dimensional inner product space admits an orthonormal basis. -/
@@ -581,24 +657,27 @@ lemma _root_.exists_orthonormal_basis :
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_orthonormal_basis_extension in
 ⟨w, hw, hw''⟩
 
-/-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
-def orthonormal_basis_index : finset E :=
-classical.some (exists_orthonormal_basis 𝕜 E)
-
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def std_orthonormal_basis : orthonormal_basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=
-classical.some (classical.some_spec (exists_orthonormal_basis 𝕜 E))
+@[irreducible] def std_orthonormal_basis : orthonormal_basis (fin (finrank 𝕜 E)) 𝕜 E :=
+begin
+  let b := classical.some (classical.some_spec $ exists_orthonormal_basis 𝕜 E),
+  rw [finrank_eq_card_basis b.to_basis],
+  exact b.reindex (fintype.equiv_fin_of_card_eq rfl),
+end
 
-@[simp] lemma coe_std_orthonormal_basis : ⇑(std_orthonormal_basis 𝕜 E) = coe :=
-classical.some_spec (classical.some_spec (exists_orthonormal_basis 𝕜 E))
+/-- An orthonormal basis of `ℝ` is made either of the vector `1`, or of the vector `-1`. -/
+lemma orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
+  ⇑b = (λ _, (1 : ℝ)) ∨ ⇑b = (λ _, (-1 : ℝ)) :=
+begin
+  haveI : unique ι, from b.to_basis.unique,
+  have : b default = 1 ∨ b default = - 1,
+  { have : ‖b default‖ = 1, from b.orthonormal.1 _,
+    rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },
+  rw eq_const_of_unique b,
+  refine this.imp _ _; simp,
+end
 
 variables {𝕜 E}
-
-/-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
-def fin_std_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) : orthonormal_basis (fin n) 𝕜 E :=
-have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
-by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E).to_basis, hn],
-(std_orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
 
 section subordinate_orthonormal_basis
 open direct_sum
@@ -609,7 +688,7 @@ variables {n : ℕ} (hn : finrank 𝕜 E = n) [decidable_eq ι]
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
 @[irreducible] def direct_sum.is_internal.sigma_orthonormal_basis_index_equiv
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
-  (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
+  (Σ i, fin (finrank 𝕜 (V i))) ≃ fin n :=
 let b := hV.collected_orthonormal_basis hV' (λ i, (std_orthonormal_basis 𝕜 (V i))) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b.to_basis).symm.trans hn
 
@@ -624,7 +703,7 @@ sum has an orthonormal basis indexed by `fin n` and subordinate to that direct s
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
 provides the mapping by which it is subordinate. -/
-def direct_sum.is_internal.subordinate_orthonormal_basis_index
+@[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis_index
   (a : fin n) (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) : ι :=
 ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a).1
 
@@ -635,11 +714,9 @@ lemma direct_sum.is_internal.subordinate_orthonormal_basis_subordinate
   (hV.subordinate_orthonormal_basis hn hV' a) ∈
   V (hV.subordinate_orthonormal_basis_index hn a hV') :=
 by simpa only [direct_sum.is_internal.subordinate_orthonormal_basis,
-  orthonormal_basis.coe_reindex]
+  orthonormal_basis.coe_reindex, direct_sum.is_internal.subordinate_orthonormal_basis_index]
   using hV.collected_orthonormal_basis_mem hV' (λ i, (std_orthonormal_basis 𝕜 (V i)))
     ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a)
-
-attribute [irreducible] direct_sum.is_internal.subordinate_orthonormal_basis_index
 
 end subordinate_orthonormal_basis
 
@@ -653,7 +730,7 @@ space, there exists an isometry from the orthogonal complement of a nonzero sing
 def orthonormal_basis.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   orthonormal_basis (fin n) 𝕜 (𝕜 ∙ v)ᗮ :=
-(fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv))
+(std_orthonormal_basis _ _).reindex $ fin_congr $ finrank_orthogonal_span_singleton hv
 
 section linear_isometry
 
@@ -680,11 +757,9 @@ begin
       ...               = finrank 𝕜 V - finrank 𝕜 S : by simp only
         [linear_map.finrank_range_of_inj L.injective]
       ...               = finrank 𝕜 Sᗮ : by simp only
-        [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-      ...               = d : dim_S_perp,
-    let BS := (fin_std_orthonormal_basis dim_S_perp),
-    let BLS := (fin_std_orthonormal_basis dim_LS_perp),
-    exact BS.repr.trans BLS.repr.symm },
+        [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left],
+    exact (std_orthonormal_basis 𝕜 Sᗮ).repr.trans
+      ((std_orthonormal_basis 𝕜 LSᗮ).reindex $ fin_congr dim_LS_perp).repr.symm },
   let L3 := (LS)ᗮ.subtypeₗᵢ.comp E.to_linear_isometry,
   -- Project onto S and Sᗮ
   haveI : complete_space S := finite_dimensional.complete 𝕜 S,
@@ -694,7 +769,7 @@ begin
   -- Build a linear map from the isometries on S and Sᗮ
   let M := L.to_linear_map.comp p1 + L3.to_linear_map.comp p2,
   -- Prove that M is an isometry
-  have M_norm_map : ∀ (x : V), ∥M x∥ = ∥x∥,
+  have M_norm_map : ∀ (x : V), ‖M x‖ = ‖x‖,
   { intro x,
     -- Apply M to the orthogonal decomposition of x
     have Mx_decomp : M x = L (p1 x) + L3 (p2 x),
@@ -702,7 +777,8 @@ begin
       linear_isometry.coe_to_linear_map]},
     -- Mx_decomp is the orthogonal decomposition of M x
     have Mx_orth : ⟪ L (p1 x), L3 (p2 x) ⟫ = 0,
-    { have Lp1x : L (p1 x) ∈ L.to_linear_map.range := L.to_linear_map.mem_range_self (p1 x),
+    { have Lp1x : L (p1 x) ∈ L.to_linear_map.range :=
+        linear_map.mem_range_self L.to_linear_map (p1 x),
       have Lp2x : L3 (p2 x) ∈ (L.to_linear_map.range)ᗮ,
       { simp only [L3, linear_isometry.coe_comp, function.comp_app, submodule.coe_subtypeₗᵢ,
           ← submodule.range_subtype (LSᗮ)],

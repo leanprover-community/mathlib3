@@ -5,8 +5,9 @@ Authors: Mario Carneiro
 -/
 import data.num.bitwise
 import data.int.char_zero
-import data.nat.gcd
+import data.nat.gcd.basic
 import data.nat.psub
+import data.nat.size
 
 /-!
 # Properties of the binary representation of integers
@@ -320,8 +321,7 @@ try { intros, refl }; try { transfer };
 simp [add_comm, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
 
 instance : ordered_cancel_add_comm_monoid num :=
-{ add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
-  lt                         := (<),
+{ lt                         := (<),
   lt_iff_le_not_le           := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
   le                         := (≤),
   le_refl                    := by transfer,

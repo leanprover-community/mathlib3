@@ -13,6 +13,9 @@ import algebra.big_operators.nat_antidiagonal
 /-!
 # Sums of binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes variants of the binomial theorem and other results on sums of binomial
 coefficients. Theorems whose proofs depend on such sums may also go in this file for import
 reasons.
@@ -31,7 +34,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 
 include h
 
-/-- A version of the **binomial theorem** for noncommutative semirings. -/
+/-- A version of the **binomial theorem** for commuting elements in noncommutative semirings. -/
 theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
@@ -93,7 +96,7 @@ lemma sum_range_choose_halfway (m : nat) :
 have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
   ∑ i in range (m + 1), choose (2 * m + 1) i,
 from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
-(nat.mul_right_inj zero_lt_two).1 $
+mul_right_injective₀ two_ne_zero $
 calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
   (∑ i in range (m + 1), choose (2 * m + 1) i) +
     ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :

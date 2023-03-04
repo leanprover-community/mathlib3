@@ -95,3 +95,10 @@ begin
   success_if_fail {{ ring_nf {recursive := ff} }},
   ring_nf
 end
+
+-- instances do not have to syntactically be `monoid.has_pow`
+example {R} [comm_semiring R] (x : ℕ → R) : x ^ 2 = x * x := by ring
+
+-- even if there's an instance we don't recognize, we treat it as an atom
+example {R} [field R] (x : ℕ → R) :
+  (x ^ (2 : ℤ)) ^ 2 = (x ^ (2 : ℤ)) * (x ^ (2 : ℤ)) := by ring

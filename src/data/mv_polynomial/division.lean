@@ -69,11 +69,14 @@ x.mod_of s
 
 @[simp] lemma coeff_mod_monomial_of_not_le {s' s : σ →₀ ℕ} (x : mv_polynomial σ R) (h : ¬s ≤ s') :
   coeff s' (mod_monomial s x) = coeff s' x :=
-x.mod_of_apply_of_not_le h
+x.mod_of_apply_of_not_exists_add $ begin
+  rintro ⟨d, rfl⟩,
+  exact h le_add_self
+end
 
 @[simp] lemma coeff_mod_monomial_of_le {s' s : σ →₀ ℕ} (x : mv_polynomial σ R) (h : s ≤ s') :
   coeff s' (mod_monomial s x) = 0 :=
-x.mod_of_apply_of_le h
+x.mod_of_apply_of_exists_add $ (exists_add_of_le h).imp $ λ c h, by rwa [add_comm, eq_comm]
 
 @[simp] lemma mod_monomial_monomial_mul (s : σ →₀ ℕ) (x : mv_polynomial σ R) :
   mod_monomial s (monomial s 1 * x) = 0 :=

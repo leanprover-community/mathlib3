@@ -30,8 +30,10 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 **unimodular**.
 -/
 
-open measure_theory
-open_locale measure_theory
+noncomputable theory
+
+open set measure_theory topological_space measure_theory.measure
+open_locale pointwise measure_theory topology big_operators nnreal ennreal
 
 @[to_additive ae_strongly_measurable_of_absolutely_continuous_add]
 lemma ae_strongly_measurable_of_absolutely_continuous {α β : Type*} [measurable_space α]
@@ -41,20 +43,6 @@ begin
   obtain ⟨g₁, hg₁, hg₁'⟩ := hμ,
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
 end
-
-open_locale big_operators nnreal
-
-noncomputable theory
-
-open_locale topology
-
-open_locale ennreal
-
-open measure_theory
-
-
-open set measure_theory topological_space measure_theory.measure
-open_locale pointwise nnreal
 
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]
@@ -184,7 +172,6 @@ lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
 
 ---------------------------- UNFOLDING TRICK ---------------
 
-open_locale big_operators ennreal
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
 

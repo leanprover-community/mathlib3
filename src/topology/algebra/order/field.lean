@@ -12,6 +12,13 @@ import topology.algebra.field
 /-!
 # Topologies on linear ordered fields
 
+## Porting notes
+
+Some proofs in this file changed a lot while porting to Mathlib 4, and better versions of some
+auxiliary lemmas were added elsewhere. So, auxiliary lemmas in this file are made private to ensure
+that they are not used in the rest of the library. If you want to use some of these lemmas, then
+please formulate a version about `group_with_zero` instead (e.g., by backporting from mathlib 4)
+instead of removing `private` modifier in this file.
 -/
 
 
@@ -26,7 +33,7 @@ variables {l : filter β} {f g : β → α}
 
 section continuous_mul
 
-lemma mul_tendsto_nhds_zero_right (x : α) :
+private lemma mul_tendsto_nhds_zero_right (x : α) :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
 begin
   have hx : 0 < 2 * (1 + |x|) := by positivity,
@@ -42,7 +49,7 @@ begin
     ... ≤ 2 * (1 + |x|) : by linarith,
 end
 
-lemma mul_tendsto_nhds_zero_left (x : α) :
+private lemma mul_tendsto_nhds_zero_left (x : α) :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 x ×ᶠ 𝓝 0) $ 𝓝 0 :=
 begin
   intros s hs,
@@ -53,7 +60,7 @@ begin
     h (⟨hy.2, hy.1⟩ : (prod.mk y.2 y.1) ∈ U ×ˢ V) : y.1 * y.2 ∈ s)⟩,
 end
 
-lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
+private lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
   𝓝 x₀ = map (λ x, x₀*x) (𝓝 1) :=
 begin
   have hx₀' : 0 < |x₀| := abs_pos.2 hx₀,
@@ -80,11 +87,11 @@ begin
     rwa [mul_div_assoc', mul_div_cancel_left x hx₀] at hit }
 end
 
-lemma nhds_eq_map_mul_right_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
+private lemma nhds_eq_map_mul_right_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
   𝓝 x₀ = map (λ x, x*x₀) (𝓝 1) :=
 by simp_rw [mul_comm _ x₀, nhds_eq_map_mul_left_nhds_one hx₀]
 
-lemma mul_tendsto_nhds_one_nhds_one :
+private lemma mul_tendsto_nhds_one_nhds_one :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 1 ×ᶠ 𝓝 1) $ 𝓝 1 :=
 begin
   rw ((nhds_basis_Ioo_pos (1 : α)).prod $ nhds_basis_Ioo_pos (1 : α)).tendsto_iff

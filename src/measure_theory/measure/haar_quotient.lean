@@ -345,9 +345,10 @@ begin
   let π : G → G ⧸ Γ := quotient_group.mk,
   have meas_π : measurable π := continuous_quotient_mk.measurable,
   refine mul_unfolding_trick' h𝓕 (f * (g ∘ (coe : G → G ⧸ Γ))) _ (F * g) (F_ae_measurable.mul hg) _,
-  { refine integrable.mul_ℒ_infinity f f_ℒ_1 (λ x : G, g (x : G ⧸ Γ)) _ _,
-    { exact (ae_strongly_measurable_of_absolutely_continuous h𝓕.absolutely_continuous_map _
-        hg).comp_measurable meas_π, },
+  { have : ae_strongly_measurable (λ x : G, g (x : G ⧸ Γ)) μ,
+    { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,
+      exact h𝓕.absolutely_continuous_map },
+    refine integrable.smul_ess_sup f_ℒ_1 this _,
     { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
       rw [← mul_ess_sup_of_g h𝓕 (λ x, ↑‖g x‖₊) hg'.ae_measurable],

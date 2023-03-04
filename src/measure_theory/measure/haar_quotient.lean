@@ -49,7 +49,7 @@ open_locale big_operators nnreal
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 
 -- note: flip `measure_theory.ae_lt_top` and `measure_theory.ae_lt_top'`
 

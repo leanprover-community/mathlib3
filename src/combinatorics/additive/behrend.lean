@@ -42,7 +42,7 @@ integer points on that sphere and map them onto `ℕ` in a way that preserves ar
 Salem-Spencer, Behrend construction, arithmetic progression, sphere, strictly convex
 -/
 
-open finset nat real
+open finset nat (hiding log) real
 open_locale big_operators pointwise
 
 namespace behrend

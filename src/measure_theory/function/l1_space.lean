@@ -643,6 +643,38 @@ begin
     exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hint.2) },
 end
 
+/-- Hölder's inequality for integrable functions: the scalar multiplication of an integrable
+vector-valued function by a scalar function with finite essential supremum is integrable. -/
+lemma integrable.ess_sup_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] {f : α → β}
+  (hf : integrable f μ) {g : α → 𝕜} (g_ae_strongly_measurable : ae_strongly_measurable g μ)
+  (ess_sup_g : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ ≠ ∞) :
+  integrable (λ (x : α), g x • f x) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable at *,
+  refine ⟨g_ae_strongly_measurable.smul hf.1, _⟩,
+  have h : (1:ℝ≥0∞) / 1 = 1 / ∞ + 1 / 1 := by norm_num,
+  have hg' : snorm g ∞ μ ≠ ∞ := by rwa snorm_exponent_top,
+  calc snorm (λ (x : α), g x • f x) 1 μ
+      ≤ _ : measure_theory.snorm_smul_le_mul_snorm hf.1 g_ae_strongly_measurable h
+  ... < ∞ : ennreal.mul_lt_top hg' hf.2.ne,
+end
+
+/-- Hölder's inequality for integrable functions: the scalar multiplication of an integrable
+scalar-valued function by a vector-value function with finite essential supremum is integrable. -/
+lemma integrable.smul_ess_sup {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] {f : α → 𝕜}
+  (hf : integrable f μ) {g : α → β} (g_ae_strongly_measurable : ae_strongly_measurable g μ)
+  (ess_sup_g : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ ≠ ∞) :
+  integrable (λ (x : α), f x • g x) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable at *,
+  refine ⟨hf.1.smul g_ae_strongly_measurable, _⟩,
+  have h : (1:ℝ≥0∞) / 1 = 1 / 1 + 1 / ∞ := by norm_num,
+  have hg' : snorm g ∞ μ ≠ ∞ := by rwa snorm_exponent_top,
+  calc snorm (λ (x : α), f x • g x) 1 μ
+      ≤ _ : measure_theory.snorm_smul_le_mul_snorm g_ae_strongly_measurable hf.1 h
+  ... < ∞ : ennreal.mul_lt_top hf.2.ne hg',
+end
+
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ‖f a‖) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]

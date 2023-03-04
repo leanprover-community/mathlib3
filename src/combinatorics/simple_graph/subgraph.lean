@@ -8,6 +8,9 @@ import combinatorics.simple_graph.basic
 /-!
 # Subgraphs of a simple graph
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A subgraph of a simple graph consists of subsets of the graph's vertices and edges such that the
 endpoints of each edge are present in the vertex subset. The edge subset is formalized as a
 sub-relation of the adjacency relation of the simple graph.
@@ -275,9 +278,9 @@ instance : has_Sup G.subgraph :=
 
 instance : has_Inf G.subgraph :=
 ⟨λ s, { verts := ⋂ G' ∈ s, verts G',
-        adj := λ a b, (∀ G' ∈ s, adj G' a b) ∧ G.adj a b,
+        adj := λ a b, (∀ ⦃G'⦄, G' ∈ s → adj G' a b) ∧ G.adj a b,
         adj_sub := λ a b, and.right,
-        edge_vert := λ a b hab, set.mem_Inter₂_of_mem $ λ G' hG', G'.edge_vert $ hab.1 _ hG',
+        edge_vert := λ a b hab, set.mem_Inter₂_of_mem $ λ G' hG', G'.edge_vert $ hab.1 hG',
         symm := λ _ _, and.imp (forall₂_imp $ λ _ _, adj.symm) G.adj_symm }⟩
 
 @[simp] lemma sup_adj : (G₁ ⊔ G₂).adj a b ↔ G₁.adj a b ∨ G₂.adj a b := iff.rfl
@@ -348,7 +351,7 @@ instance : complete_distrib_lattice G.subgraph :=
   Sup_le := λ s G' hG', ⟨set.Union₂_subset $ λ H hH, (hG' _ hH).1,
     by { rintro a b ⟨H, hH, hab⟩, exact (hG' _ hH).2 hab }⟩,
   Inf := Inf,
-  Inf_le := λ s G' hG', ⟨set.Inter₂_subset G' hG', λ a b hab, hab.1 _ hG'⟩,
+  Inf_le := λ s G' hG', ⟨set.Inter₂_subset G' hG', λ a b hab, hab.1 hG'⟩,
   le_Inf := λ s G' hG', ⟨set.subset_Inter₂ $ λ H hH, (hG' _ hH).1,
     λ a b hab, ⟨λ H hH, (hG' _ hH).2 hab, G'.adj_sub hab⟩⟩,
   inf_Sup_le_supr_inf := λ G' s, begin

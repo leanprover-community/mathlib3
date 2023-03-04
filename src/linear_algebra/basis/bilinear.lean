@@ -8,6 +8,9 @@ import linear_algebra.bilinear_map
 
 /-!
 # Lemmas about bilinear maps with a basis over each argument
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 namespace linear_map
 

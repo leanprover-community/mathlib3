@@ -92,7 +92,7 @@ instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u
         initial_seg.coe_fn_to_rel_embedding, embedding.coe_fn_mk]
       using @rel_embedding.map_rel_iff _ _ _ _ f.to_rel_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b H, begin
-      rcases f.init' (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
+      rcases f.init (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
       { rw fl at h, cases h },
       { rw fr at h, exact ⟨a', sum.inr.inj h⟩ }
     end⟩⟩⟩

@@ -10,6 +10,9 @@ import data.sym.sym2
 /-!
 # Simple graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines simple graphs on a vertex type `V` as an
 irreflexive symmetric relation.
 
@@ -40,8 +43,9 @@ finitely many vertices.
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
 
-* `boolean_algebra` instance: Under the subgraph relation, `simple_graph` forms a `boolean_algebra`.
-  In other words, this is the lattice of spanning subgraphs of the complete graph.
+* `complete_boolean_algebra` instance: Under the subgraph relation, `simple_graph` forms a
+  `complete_boolean_algebra`. In other words, this is the complete lattice of spanning subgraphs of
+  the complete graph.
 
 ## Notations
 
@@ -211,7 +215,7 @@ instance : has_Sup (simple_graph V) :=
         loopless := by { rintro a ⟨G, hG, ha⟩, exact ha.ne rfl } }⟩
 
 instance : has_Inf (simple_graph V) :=
-⟨λ s, { adj := λ a b, (∀ G ∈ s, adj G a b) ∧ a ≠ b,
+⟨λ s, { adj := λ a b, (∀ ⦃G⦄, G ∈ s → adj G a b) ∧ a ≠ b,
         symm := λ _ _, and.imp (forall₂_imp $ λ _ _, adj.symm) ne.symm,
         loopless := λ a h, h.2 rfl }⟩
 
@@ -238,7 +242,9 @@ by simp [infi, Inf_adj_of_nonempty (set.range_nonempty _)]
 
 /-- For graphs `G`, `H`, `G ≤ H` iff `∀ a b, G.adj a b → H.adj a b`. -/
 instance : distrib_lattice (simple_graph V) :=
-adj_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
+{ le := λ G H, ∀ ⦃a b⦄, G.adj a b → H.adj a b,
+  ..show distrib_lattice (simple_graph V),
+    from adj_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl) }
 
 instance : complete_boolean_algebra (simple_graph V) :=
 { le := (≤),
@@ -258,7 +264,7 @@ instance : complete_boolean_algebra (simple_graph V) :=
   le_Sup := λ s G hG a b hab, ⟨G, hG, hab⟩,
   Sup_le := λ s G hG a b, by { rintro ⟨H, hH, hab⟩, exact hG _ hH hab },
   Inf := Inf,
-  Inf_le := λ s G hG a b hab, hab.1 _ hG,
+  Inf_le := λ s G hG a b hab, hab.1 hG,
   le_Inf := λ s G hG a b hab, ⟨λ H hH, hG _ hH hab, hab.ne⟩,
   inf_Sup_le_supr_inf := λ G s a b hab, by simpa only [exists_prop, Sup_adj, and_imp,
     forall_exists_index, Inf_adj, supr_adj, inf_adj, ←exists_and_distrib_right,

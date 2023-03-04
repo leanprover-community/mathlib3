@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Towers of algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove basic facts about towers of algebra.
 
 An algebra tower A/S/R is expressed by having instances of `algebra A S`,

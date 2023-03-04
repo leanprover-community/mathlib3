@@ -61,8 +61,8 @@ lemma map_bind (q : α → pmf β) (f : β → γ) :
   (p.map f).bind q = p.bind (q ∘ f) :=
 (bind_bind _ _ _).trans (congr_arg _ (funext (λ a, pure_bind _ _)))
 
-lemma map_const (p : pmf α) (b : β) :
-  p.map (function.const α b) = pure b := by simp only [map, bind_const, function.comp_const]
+@[simp] lemma map_const : p.map (function.const α b) = pure b :=
+by simp only [map, bind_const, function.comp_const]
 
 section measure
 

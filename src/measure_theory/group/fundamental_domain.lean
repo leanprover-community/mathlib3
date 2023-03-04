@@ -8,15 +8,21 @@ import measure_theory.integral.set_integral
 
 /-!
 # Fundamental domain of a group action
+
 A set `s` is said to be a *fundamental domain* of an action of a group `G` on a measurable space `α`
 with respect to a measure `μ` if
+
 * `s` is a measurable set;
+
 * the sets `g • s` over all `g : G` cover almost all points of the whole space;
+
 * the sets `g • s`, are pairwise a.e. disjoint, i.e., `μ (g₁ • s ∩ g₂ • s) = 0` whenever `g₁ ≠ g₂`;
   we require this for `g₂ = 1` in the definition, then deduce it for any two `g₁ ≠ g₂`.
+
 In this file we prove that in case of a countable group `G` and a measure preserving action, any two
 fundamental domains have the same measure, and for a `G`-invariant function, its integrals over any
 two fundamental domains are equal to each other.
+
 We also generate additive versions of all theorems in this file using the `to_additive` attribute.
 
 ## Main declarations

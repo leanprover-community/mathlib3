@@ -30,6 +30,16 @@ begin
   simp only [is_unit.unit_spec, units.coe_one, surj_units_apply_is_unit is_unit_one]
 end
 
+@[simp] lemma coe_surj_units_apply_eq_iff {x : M} [decidable (is_unit (x : M))] :
+  (surj_units x : M) = x ↔ is_unit x :=
+begin
+  by_cases h : is_unit x,
+  { simp [surj_units_apply_is_unit h, h] },
+  { simp only [surj_units_apply_not_is_unit h, h, units.coe_one, iff_false],
+    contrapose! h,
+    simp [←h] }
+end
+
 lemma surj_units_apply_inv_mul_surj_units_apply (x : M) [decidable (is_unit x)] :
   (surj_units x)⁻¹ * surj_units x = 1 :=
 begin

@@ -164,7 +164,7 @@ begin
       ext,
       exact tendsto_nhds_unique h' (Exists.some_spec H) },
     { simp } },
-  { refine ((tendsto_inv₀ (units.ne_zero _)).comp h').congr _,
+  { refine (h'.inv₀ (units.ne_zero _)).congr _,
     intro,
     simp }
 end
@@ -682,7 +682,7 @@ begin
         { refine lt_of_le_of_ne (ge_of_tendsto' hx' (λ t, _)) x'.ne_zero.symm,
           exact prod_nonneg (λ b _, add_nonneg zero_le_one (mul_nonneg zero_le_two (hf _))) },
         refine ((inv_pos_of_pos xpos).trans_le _).ne',
-        refine le_of_tendsto_of_tendsto' ((real.tendsto_inv xpos.ne').comp hx') hy (λ t, _),
+        refine le_of_tendsto_of_tendsto' (hx'.inv₀ xpos.ne') hy (λ t, _),
         simp only [is_unit_iff_ne_zero],
         induction t using finset.cons_induction_on with a t ha IH,
         { simp only [comp_app, filter_true_of_mem, not_mem_empty, is_empty.forall_iff,

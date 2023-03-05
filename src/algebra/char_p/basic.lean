@@ -14,6 +14,7 @@ import ring_theory.nilpotent
 
 universes u v
 
+open finset
 open_locale big_operators
 
 variables {R : Type*}
@@ -23,22 +24,25 @@ variables [semiring R] {p : ℕ} {x y : R}
 
 protected lemma add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
   (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
-    p * ∑ k in finset.range (p ^ n - 1),
-      x ^ (k + 1) * y ^ (p ^ n - (k + 1)) * ↑((p ^ n).choose (k + 1) / p) :=
+    p * ∑ k in Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * ↑((p ^ n).choose k / p) :=
 begin
-  rw [h.add_pow, finset.sum_range_succ_comm, ←nat.sub_add_cancel (pow_pos hp.pos _),
-    finset.sum_range_succ'],
+  rw [h.add_pow, sum_range_succ_comm, ←nat.sub_add_cancel (pow_pos hp.pos _), sum_range_succ'],
   simp only [nat.sub_add_cancel (pow_pos hp.pos _), tsub_zero, mul_one, one_mul,
     nat.choose_zero_right, nat.cast_one, pow_zero, tsub_self, nat.choose_self],
-  rw [add_comm _ (y ^ _), ←add_assoc, finset.mul_sum, finset.sum_congr rfl (λ i hi, _)],
-  rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ←nat.cast_mul, nat.div_mul_cancel],
-  rw [finset.mem_range, lt_tsub_iff_right] at hi,
-  exact hp.dvd_choose_pow i.succ_ne_zero hi.ne,
+  rw [add_comm _ (y ^ _), ←add_assoc, mul_sum, sum_bij' (λ n _, n + 1) _ (λ i hi, _) (λ n _, n - 1)
+    (λ i hi, _) (λ _ _, rfl)],
+  { exact λ a ha, tsub_add_cancel_of_le (mem_Ioo.1 ha).1 },
+  { simp [lt_tsub_iff_right] },
+  { rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ←nat.cast_mul, nat.div_mul_cancel],
+    rw [mem_range, lt_tsub_iff_right] at hi,
+    exact hp.dvd_choose_pow i.succ_ne_zero hi.ne },
+  { rw mem_Ioo at hi,
+    exact mem_range.2 (tsub_lt_tsub_right_of_le hi.1 hi.2) }
 end
 
 protected lemma add_pow_prime_eq (hp : p.prime) (h : commute x y) :
   (x + y) ^ p = x ^ p + y ^ p +
-    p * ∑ k in finset.range (p - 1), x ^ (k + 1) * y ^ (p - (k + 1)) * ↑(p.choose (k + 1) / p) :=
+    p * ∑ k in finset.Ioo 0 p, x ^ k * y ^ (p - k) * ↑(p.choose k / p) :=
 by simpa using h.add_pow_prime_pow_eq hp 1
 
 protected lemma exists_add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
@@ -56,13 +60,12 @@ variables [comm_semiring R] {p : ℕ} {x y : R}
 
 lemma add_pow_prime_pow_eq (hp : p.prime) (x y : R) (n : ℕ) :
   (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
-    p * ∑ k in finset.range (p ^ n - 1),
-      x ^ (k + 1) * y ^ (p ^ n - (k + 1)) * ↑((p ^ n).choose (k + 1) / p) :=
+    p * ∑ k in finset.Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * ↑((p ^ n).choose k / p) :=
 (commute.all x y).add_pow_prime_pow_eq hp n
 
 lemma add_pow_prime_eq (hp : p.prime) (x y : R) :
   (x + y) ^ p = x ^ p + y ^ p +
-    p * ∑ k in finset.range (p - 1), x ^ (k + 1) * y ^ (p - (k + 1)) * ↑(p.choose (k + 1) / p) :=
+    p * ∑ k in finset.Ioo 0 p, x ^ k * y ^ (p - k) * ↑(p.choose k / p) :=
 (commute.all x y).add_pow_prime_eq hp
 
 lemma exists_add_pow_prime_pow_eq (hp : p.prime) (x y : R) (n : ℕ) :

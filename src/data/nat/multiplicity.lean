@@ -241,6 +241,9 @@ begin
   exact H.1,
 end
 
+lemma dvd_choose_pow_iff (hp : prime p) : p ∣ (p ^ n).choose k ↔ k ≠ 0 ∧ k ≠ p ^ n :=
+by refine ⟨λ h, ⟨_, _⟩, λ h, dvd_choose_pow hp h.1 h.2⟩; rintro rfl; simpa [hp.ne_one] using h
+
 end prime
 
 lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n :=

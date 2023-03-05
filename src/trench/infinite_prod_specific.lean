@@ -1,5 +1,4 @@
 import trench.infinite_prod
-import to_mathlib.topology.algebra.order.monotone_convergence
 import analysis.p_series
 
 noncomputable theory
@@ -8,14 +7,18 @@ open_locale topology classical big_operators nnreal filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-example (f : finset ℕ → ℝ) (x : ℝ) (hf : monotone f) :
-  tendsto f at_top (𝓝 x) ↔ tendsto (λ n : ℕ, f (range n)) at_top (𝓝 x) :=
-tendsto_iff_tendsto_subseq_of_monotone hf tendsto_finset_range
-
 lemma real.converges_prod_one_add_nat_rpow_inv_iff {a : ℝ} :
   converges_prod (λ n : ℕ, (1 : ℝ) + (n ^ a)⁻¹) ↔ 1 < a :=
 begin
   rw [converges_prod_one_add_iff_summable, real.summable_nat_rpow_inv],
+  intro,
+  positivity
+end
+
+lemma real.converges_prod_one_sub_nat_rpow_inv_iff {a : ℝ} :
+  converges_prod (λ n : ℕ, (1 : ℝ) - (n ^ a)⁻¹) ↔ 1 < a :=
+begin
+  rw [converges_prod_one_sub_iff_summable, real.summable_nat_rpow_inv],
   intro,
   positivity
 end

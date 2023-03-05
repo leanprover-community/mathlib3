@@ -47,6 +47,17 @@ inf_sdiff_distrib_right _ _ _
 lemma inter_set_of (s : set α) (p : α → Prop) : s ∩ {a | p a} = {a ∈ s | p a} := rfl
 lemma set_of_inter (p : α → Prop) (s : set α) : {a | p a} ∩ s = {a ∈ s | p a} := inter_comm _ _
 
+variables [preorder α] {s : set α}
+
+protected lemma finite.upper_closure [locally_finite_order_top α] (hs : s.finite) :
+  (upper_closure s : set α).finite :=
+by { rw coe_upper_closure, exact hs.bUnion (λ _ _, finite_Ici _) }
+
+protected lemma finite.lower_closure [locally_finite_order_bot α] (hs : s.finite) :
+  (lower_closure s : set α).finite :=
+by { rw coe_lower_closure, exact hs.bUnion (λ _ _, finite_Iic _) }
+
+
 end set
 
 attribute [measurability] measurable_one
@@ -92,14 +103,6 @@ attribute [simp] integrable_const
 @[simp] lemma integral_indicator_one (hs : measurable_set s) :
   ∫ a, s.indicator 1 a ∂μ = (μ s).to_real :=
 (integral_indicator_const 1 hs).trans $ mul_one _
-
-lemma ae_restrict_iff_subtype' (hs : null_measurable_set s μ) {p : α → Prop} :
-  (∀ᵐ x ∂μ.restrict s, p x) ↔ ∀ᵐ (x : s) ∂μ.comap coe, p x :=
-begin
-  obtain ⟨t, ht, hst⟩ := hs,
-  rw [ae_restrict_congr_set hst, ae_restrict_iff_subtype ht],
-  sorry
-end
 
 /-- **First moment method**. An integrable function is smaller than its mean on a set of positive
 measure. -/
@@ -182,11 +185,10 @@ avoiding a null set. -/
 lemma exists_not_mem_le_integral (hμ : μ ≠ 0) (hf : integrable f μ) (hN : μ N = 0) :
   ∃ x ∉ N, f x ≤ ∫ a, f a ∂μ / (μ univ).to_real :=
 begin
-  have hμN : Nᶜ =ᵐ[μ] univ,
-  { simpa only [compl_empty] using (ae_eq_empty.2 hN).compl },
-  simpa [measure.restrict_congr_set hμN, measure_congr hμN] using exists_set_le_integral _
-    (measure_ne_top _ _) hf.integrable_on (null_measurable_set.of_null hN).compl,
-  { rwa [measure_congr hμN, measure.measure_univ_ne_zero] }
+  have := measure_le_integral_pos hμ hf,
+  rw ←measure_diff_null hN at this,
+  obtain ⟨x, hx, hxN⟩ := nonempty_of_measure_ne_zero this.ne',
+  exact ⟨x, hxN, hx⟩,
 end
 
 /-- **First moment method**. The maximum of an integrable function is greater than its mean, while
@@ -294,11 +296,10 @@ lemma exists_not_mem_lintegral_le (hμ : μ ≠ 0) (hf : ae_measurable f μ) (hN
   (hint : ∫⁻ a, f a ∂μ ≠ ⊤) :
   ∃ x ∉ N, ∫⁻ a, f a ∂μ / μ univ ≤ f x :=
 begin
-  have hμN : Nᶜ =ᵐ[μ] univ,
-  { simpa only [compl_empty] using (ae_eq_empty.2 hN).compl },
-  simpa [hint, measure.restrict_congr_set hμN, measure_congr hμN]
-    using exists_set_lintegral_le _ hf.restrict (null_measurable_set.of_null hN).compl,
-  { rwa [measure_congr hμN, measure.measure_univ_ne_zero] }
+  have := measure_lintegral_le_pos hμ hf hint,
+  rw ←measure_diff_null hN at this,
+  obtain ⟨x, hx, hxN⟩ := nonempty_of_measure_ne_zero this.ne',
+  exact ⟨x, hxN, hx⟩,
 end
 
 variables [is_finite_measure μ]
@@ -320,20 +321,11 @@ avoiding a null set. -/
 lemma exists_not_mem_le_lintegral (hμ : μ ≠ 0) (hf : ae_measurable f μ) (hN : μ N = 0) :
   ∃ x ∉ N, f x ≤ ∫⁻ a, f a ∂μ / μ univ :=
 begin
-  have hμN : Nᶜ =ᵐ[μ] univ,
-  { simpa only [compl_empty] using (ae_eq_empty.2 hN).compl },
-  simpa [measure.restrict_congr_set hμN, measure_congr hμN] using exists_set_le_lintegral _
-    (measure_ne_top _ _) hf.restrict (null_measurable_set.of_null hN).compl,
-  { rwa [measure_congr hμN, measure.measure_univ_ne_zero] }
+  have := measure_le_lintegral_pos hμ hf,
+  rw ←measure_diff_null hN at this,
+  obtain ⟨x, hx, hxN⟩ := nonempty_of_measure_ne_zero this.ne',
+  exact ⟨x, hxN, hx⟩,
 end
-
-lemma exists_le_lintegral_of_le [is_finite_measure μ] (hf : measurable f) (hr : ∫⁻ a, f a ∂μ ≤ r) :
-  ∃ x, f x ≤ r / μ univ :=
-sorry
-
-lemma exists_lintegral_le_of_le [is_finite_measure μ] (hf : measurable f) (hr : r ≤ ∫⁻ a, f a ∂μ) :
-  ∃ x, r / μ univ ≤ f x :=
-sorry
 
 end
 
@@ -341,11 +333,11 @@ open filter measure_theory set
 open_locale big_operators ennreal nnreal
 
 namespace with_top
-variables {α : Type*} [preorder α] {s : set (with_top α)}
+variables {α : Type*} {s : set (with_top α)}
 
 open_locale classical
 
-lemma Sup_eq [has_Sup α] (hs : ⊤ ∉ s) (hs' : bdd_above (coe ⁻¹' s : set α)) :
+lemma Sup_eq [preorder α] [has_Sup α] (hs : ⊤ ∉ s) (hs' : bdd_above (coe ⁻¹' s : set α)) :
   Sup s = ↑(Sup (coe ⁻¹' s) : α) :=
 (if_neg hs).trans $ if_pos hs'
 
@@ -379,25 +371,25 @@ lemma bergelson (hs : ∀ n, measurable_set (s n)) (hr₀ : r ≠ 0) (hr : ∀ n
   ∃ t : set ℕ, t.infinite ∧ ∀ ⦃u⦄, u ⊆ t → u.finite → 0 < μ (⋂ n ∈ u, s n) :=
 begin
   let M : (α → ℝ) → set α := λ f, {x | snorm_ess_sup f μ < ‖f x‖₊},
-  let N : set α := ⋃ u : finset ℕ, M (set.indicator (u.inf s) 1),
+  let N : set α := ⋃ u : finset ℕ, M (set.indicator (⋂ n ∈ u, s n) 1),
   have hN₀ : μ N = 0 := measure_Union_null (λ u, meas_lt_of_snorm_ess_sup_le le_rfl
     ⟨1, eventually_map.2 $ eventually_of_forall $ _⟩),
-  have hN₁ : ∀ u : finset ℕ, (u.inf s \ N).nonempty → 0 < μ (u.inf s),
-  sorry { simp_rw pos_iff_ne_zero,
+  have hN₁ : ∀ u : finset ℕ, ((⋂ n ∈ u, s n) \ N).nonempty → 0 < μ (⋂ n ∈ u, s n),
+  { simp_rw pos_iff_ne_zero,
     rintro u ⟨x, hx⟩ hu,
     refine hx.2 (mem_Union.2 ⟨u, (_ : _ < _)⟩),
     rw [indicator_of_mem hx.1, snorm_ess_sup_eq_zero_iff.2],
     simp,
     rwa [_root_.indicator_ae_eq_zero, function.support_one, inter_univ] },
   swap,
-  sorry { rintro x,
+  { rintro x,
     rw indicator,
     split_ifs; simp },
   let f : ℕ → α → ℝ≥0∞ := λ n, (↑(n + 1) : ℝ≥0∞)⁻¹ • ∑ k in finset.range (n + 1), (s k).indicator 1,
   have hfapply : ∀ n a, f n a = (↑(n + 1))⁻¹ * ∑ k in finset.range (n + 1), (s k).indicator 1 a,
   { simp only [f, pi.coe_nat, pi.smul_apply, pi.inv_apply, finset.sum_apply, eq_self_iff_true,
     forall_const, implies_true_iff, smul_eq_mul] },
-  have : 0 ≤ f,
+  have hf₀ : 0 ≤ f,
   { exact zero_le _ },
   have hf' : ∀ n, measurable (∑ k in finset.range n, (s k).indicator 1 : α → ℝ≥0∞),
   { exact λ n, (finset.measurable_sum' _ $ λ i _, measurable_one.indicator $ hs i) },
@@ -424,21 +416,40 @@ begin
     { simp [mul_comm] },
     { exact λ _ _, measurable_one.indicator (hs _) },
     { exact finset.measurable_sum _ (λ _ _, measurable_one.indicator $ hs _) } },
-  obtain ⟨x, hx⟩ := exists_lintegral_le_of_le (measurable_limsup hf)
-    ((le_limsup_of_le ⟨μ univ, eventually_map.2 _⟩ $ λ b hb, _).trans $ limsup_lintegral_le hf
-    (λ n, ae_of_all μ $ hf₁ n) $
-    ne_of_eq_of_ne lintegral_one is_finite_measure.measure_univ_lt_top.ne),
+  have hμ : μ ≠ 0,
+  { unfreezingI { rintro rfl },
+    exact hr₀ (le_bot_iff.1 $ hr 0) },
+  obtain ⟨x, hxN, hx⟩ := exists_not_mem_lintegral_le hμ (measurable_limsup hf).ae_measurable hN₀
+    (ne_top_of_le_ne_top (measure_ne_top μ univ) _),
+  replace hx := (ennreal.div_le_div_right ((le_limsup_of_le ⟨μ univ, eventually_map.2 _⟩ $ λ b hb,
+    _).trans $ limsup_lintegral_le hf (λ n, ae_of_all μ $ hf₁ n) $
+    ne_of_eq_of_ne lintegral_one is_finite_measure.measure_univ_lt_top.ne) _).trans hx,
   refine ⟨{n | x ∈ s n}, λ hxs, _, λ u hux hu, _⟩,
-  { refine ((ennreal.div_pos_iff.2 ⟨hr₀, (measure_lt_top _ _).ne⟩).trans_le hx).ne' _,
-    dsimp,
-    rw limsup_eq,
-    sorry },
-  { simp_rw [←hu.mem_to_finset, ←finset.inf_set_eq_bInter],
-    refine hN₁ _ _,
-    sorry },
+  -- This next block proves that a set of strictly positive natural density is infinite, mixed with
+  -- the fact that `{n | x ∈ s n}` has strictly positive natural density.
+  -- TODO: Separate it out to a lemma once we have a natural density API.
+  { refine ((ennreal.div_pos_iff.2 ⟨hr₀, (measure_lt_top _ _).ne⟩).trans_le hx).ne'
+      (tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+      _ _ $
+        λ n, _).limsup_eq,
+    exact λ n, (↑(n + 1)) ⁻¹ * hxs.to_finset.card,
+    simpa using ennreal.tendsto.mul_const (ennreal.tendsto_inv_nat_nhds_zero.comp $ tendsto_add_at_top_nat 1) (or.inr $ ennreal.nat_ne_top _),
+    exact (λ n, hf₀ n x),
+    refine mul_le_mul_left' _ _,
+    classical,
+    simp_rw [finset.sum_apply, indicator_apply, pi.one_apply, finset.sum_boole],
+    exact nat.cast_le.2 (finset.card_le_of_subset $ λ m hm, hxs.mem_to_finset.2
+      (finset.mem_filter.1 hm).2) },
+  { simp_rw ←hu.mem_to_finset,
+    exact hN₁ _ ⟨x, mem_Inter₂.2 $ λ n hn, hux $ hu.mem_to_finset.1 hn, hxN⟩ },
   { refine eventually_of_forall (λ n, _),
     rw [←one_mul (μ univ), ←lintegral_const],
     exact lintegral_mono (hf₁ _) },
   { obtain ⟨n, hn⟩ := hb.exists,
-    exact (hf₂ _).trans hn }
+    exact (hf₂ _).trans hn },
+  { rw ←lintegral_one,
+    refine lintegral_mono (λ a, limsup_le_of_le ⟨0, λ R hR, _⟩ $
+      eventually_of_forall $ λ n, hf₁ _ _),
+    obtain ⟨r', hr'⟩ := (eventually_map.1 hR).exists,
+    exact (hf₀ _ _).trans hr' }
 end

@@ -1,11 +1,54 @@
 import combinatorics.simple_graph.matching
 import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.coloring
+import combinatorics.simple_graph.metric
 
 noncomputable theory
 
 namespace simple_graph
+universes u
+variables {V : Type u} {G : simple_graph V}
 
-variables {V : Type*} {G : simple_graph V}
+theorem disjoint_iff (G G' : simple_graph V) :
+  disjoint G G' ↔ ∀ v w, G.adj v w → G'.adj v w → false :=
+begin
+  split,
+  { intros hd v w h h',
+    exact hd inf_le_left inf_le_right ⟨h, h'⟩, },
+  { intros h H hH hH' v w hvw,
+    exact h _ _ (hH hvw) (hH' hvw), }
+end
+
+lemma walk.bypass_eq_of_length_le [decidable_eq V]
+  {u v : V} (p : G.walk u v) (h : p.length ≤ p.bypass.length) :
+  p.bypass = p :=
+begin
+  induction p with a b c d he p ih,
+  { simp only [walk.bypass], },
+  { simp only [walk.bypass],
+    split_ifs with hb,
+    { exfalso,
+      simp only [hb, walk.bypass, walk.length_cons, dif_pos] at h,
+      have := h.trans ((walk.length_drop_until_le p.bypass hb).trans (walk.length_bypass_le p)),
+      exact nat.not_succ_le_self _ this, },
+    { simp only [hb, walk.bypass, walk.length_cons, not_false_iff, dif_neg, add_le_add_iff_right] at h,
+      simp [ih h], } }
+end
+
+protected
+lemma reachable.exists_path_of_dist {u v : V} (hr : G.reachable u v) :
+  ∃ (p : G.walk u v), p.is_path ∧ p.length = G.dist u v :=
+begin
+  classical,
+  obtain ⟨p, h⟩ := hr.exists_walk_of_dist,
+  refine ⟨p, _, h⟩,
+  have : p.bypass = p,
+  { have := calc p.length = G.dist u v : h
+                      ... ≤ p.bypass.length : dist_le p.bypass,
+    exact walk.bypass_eq_of_length_le p this },
+  rw [← this],
+  apply walk.bypass_is_path,
+end
 
 /-- The vertices in the same connected component. -/
 def connected_component.supp (c : G.connected_component) : set V :=
@@ -181,11 +224,8 @@ begin
   rw [set.disjoint_iff],
   rintro w ⟨hg, hh⟩,
   exfalso,
-  rw [disjoint] at hd,
-  have : (G ⊓ H).adj v w,
-  { simp only [mem_neighbor_set] at hg hh,
-    simp [hg, hh], },
-  exact hd inf_le_left inf_le_right this,
+  rw [disjoint_iff] at hd,
+  exact hd _ _ hg hh,
 end
 
 lemma disj_union_regular {G H : simple_graph V} [G.locally_finite] [H.locally_finite]
@@ -343,6 +383,464 @@ begin
 end
 
 end perfect_matchings_disjoint
+
+section colorings
+/-! ### Colorings and matchings
+
+In this section we prove that the union of two perfect matchings is two-colorable (i.e., bipartite).
+-/
+
+def connected_component.out (c : G.connected_component) : V := c.out
+
+lemma connected_component.out_eq (c : G.connected_component) :
+  G.connected_component_mk c.out = c := quot.out_eq _
+
+lemma reachable_out_connected_component_mk (G : simple_graph V) (v : V) :
+  G.reachable (G.connected_component_mk v).out v :=
+begin
+  rw [← connected_component.eq, connected_component.out_eq],
+end
+
+/-- The distance from a vertex to an arbitrary basepoint in its connected component. -/
+def basepoint_dist (G : simple_graph V) (v : V) : ℕ :=
+G.dist (G.connected_component_mk v).out v
+
+def basepoint_mod2dist (G : simple_graph V) (v : V) : bool := even (G.basepoint_dist v)
+
+/-- A walk whose edges alternate between two graphs. A `p : alt_graph G G' s e v w` is
+a walk where if `s` is true it starts incident to `G` and if `e` is true ends incident to `G'`.
+This way if the inner bools match up they can be appended. -/
+inductive alt_walk (G G' : simple_graph V) : bool → bool → V → V → Type u
+| nil (b : bool) (v : V) : alt_walk b b v v
+| cons1 (e : bool) (u v w : V) (h : G.adj u v) (p : alt_walk ff e v w) : alt_walk tt e u w
+| cons2 (e : bool) (u v w : V) (h : G'.adj u v) (p : alt_walk tt e v w) : alt_walk ff e u w
+
+/-- Converts an alternating walk to a walk on `G ⊔ G'`. -/
+def alt_walk.to_walk {G G' : simple_graph V} :
+  Π {s e : bool} {u v : V}, alt_walk G G' s e u v → (G ⊔ G').walk u v
+| _ _ _ _ (alt_walk.nil _ _) := walk.nil
+| _ _ _ _ (alt_walk.cons1 _ _ _ _ h p) := walk.cons (or.inl h) (alt_walk.to_walk p)
+| _ _ _ _ (alt_walk.cons2 _ _ _ _ h p) := walk.cons (or.inr h) (alt_walk.to_walk p)
+
+/-- Since we're keeping track of incidences, we can tell whether the length of
+an alternating walk is even. -/
+theorem even_alt_walk_length {G G' : simple_graph V} {s e : bool} {u v : V}
+  (p : alt_walk G G' s e u v) : even p.to_walk.length ↔ s = e :=
+begin
+  induction p,
+  { simp [alt_walk.to_walk], },
+  { simp only [alt_walk.to_walk, nat.even_add_one, p_ih, walk.length_cons],
+    cases p_e; simp, },
+  { simp only [alt_walk.to_walk, nat.even_add_one, p_ih, walk.length_cons],
+    cases p_e; simp, },
+end
+
+/-- Whether the walk is nil or whose first edge is in G. -/
+def walk.starts_with_fst {G G' : simple_graph V} [decidable_rel G.adj] [decidable_rel G'.adj] :
+  Π {u v : V}, (G ⊔ G').walk u v → Prop
+| _ _ walk.nil := tt
+| _ _ (walk.cons' u v w h p) := G.adj u v
+
+/-- Whether the walk is nil or whose first edge is in G'. -/
+def walk.starts_with_snd {G G' : simple_graph V} [decidable_rel G.adj] [decidable_rel G'.adj] :
+  Π {u v : V}, (G ⊔ G').walk u v → bool
+| _ _ walk.nil := tt
+| _ _ (walk.cons' u v w h p) := G'.adj u v
+
+lemma walk.starts_with_fst_or_snd
+  {G G' : simple_graph V} [decidable_rel G.adj] [decidable_rel G'.adj]
+  {u v : V} (p : (G ⊔ G').walk u v) :
+  p.starts_with_fst ∨ p.starts_with_snd :=
+begin
+  cases p; simp [walk.starts_with_fst, walk.starts_with_snd],
+  assumption,
+end
+
+/-- A boolean-controlled version of `walk.starts_with_fst` and `walk.starts_with_end`. -/
+def walk.starts_with_opt {G G' : simple_graph V} [decidable_rel G.adj] [decidable_rel G'.adj]
+  {u v : V} (p : (G ⊔ G').walk u v) (b : bool) : Prop :=
+  if b then walk.starts_with_fst p else walk.starts_with_snd p
+
+lemma walk.start_with_opt_tail
+  {m m' : simple_graph V} [decidable_rel m.adj] [decidable_rel m'.adj]
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {u w v : V} (huv : (m ⊔ m').adj u v) (p : (m ⊔ m').walk v w)
+  (hp : (walk.cons huv p).is_path)
+  (s : bool)
+  (hs : (walk.cons huv p).starts_with_opt s) :
+  p.starts_with_opt (!s) :=
+begin
+  cases p,
+  { simp! [walk.starts_with_opt], },
+  { simp only [walk.cons_is_path_iff, not_or_distrib, walk.support_cons, list.mem_cons_iff] at hp,
+    simp! [walk.starts_with_opt],
+    simp! [walk.starts_with_opt] at hs,
+    cases s,
+    { simp only [coe_sort_ff, is_empty.forall_iff, if_true],
+      simp only [coe_sort_ff, if_false] at hs,
+      cases p_h,
+      { assumption },
+      { exfalso,
+        cases hm'.is_matching.adj_unique hs.symm p_h,
+        simpa using hp, } },
+    { simp only [coe_sort_tt, forall_true_left, if_false],
+      simp only [coe_sort_tt, if_true] at hs,
+      cases p_h,
+      { exfalso,
+        cases hm.is_matching.adj_unique hs.symm p_h,
+        simpa using hp, },
+      { assumption } } }
+end
+
+/-- Given a path in the sup of two perfect matchings, convert it into an alternating walk. -/
+def walk.matchings_lift_alt_walk_of_path {m m' : simple_graph V}
+  [decidable_rel m.adj] [decidable_rel m'.adj]
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) :
+  Π {u v : V} (p : (m ⊔ m').walk u v) (hp : p.is_path)
+    (s : bool) (hs : p.starts_with_opt s),
+    Σ (e : bool), alt_walk m m' s e u v
+| _ _ walk.nil _ s _ := ⟨s, alt_walk.nil _ _⟩
+| _ _ (walk.cons' u v w huv p) hp tt hs :=
+  let r := walk.matchings_lift_alt_walk_of_path p
+            (by { rw [walk.cons_is_path_iff] at hp, exact hp.1 })
+            ff (walk.start_with_opt_tail hm hm' huv p hp tt hs)
+  in ⟨r.1, alt_walk.cons1 _ _ _ _ hs r.2⟩
+| _ _ (walk.cons' u v w huv p) hp ff hs :=
+  let r := walk.matchings_lift_alt_walk_of_path p
+            (by { rw [walk.cons_is_path_iff] at hp, exact hp.1 })
+            tt (walk.start_with_opt_tail hm hm' huv p hp ff hs)
+  in ⟨r.1, alt_walk.cons2 _ _ _ _
+            begin simpa [walk.starts_with_opt, walk.starts_with_snd] using hs end r.2⟩
+
+theorem walk.matchings_lift_alt_walk_of_path_to_walk {m m' : simple_graph V}
+  [decidable_rel m.adj] [decidable_rel m'.adj]
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {u v : V} (p : (m ⊔ m').walk u v) (hp : p.is_path)
+  (s : bool) (hs : p.starts_with_opt s) :
+  (p.matchings_lift_alt_walk_of_path hm hm' hp s hs).2.to_walk = p :=
+begin
+  induction p with _ u v w huv p ih generalizing s,
+  { simp! },
+  { have := walk.start_with_opt_tail hm hm' huv p hp s hs,
+    rw [walk.cons_is_path_iff] at hp,
+    have := ih hp.1 (!s) this,
+    cases s; simp! [*], },
+end
+
+theorem walk.matchings_paths_unique_of_starts_with {m m' : simple_graph V}
+  [decidable_rel m.adj] [decidable_rel m'.adj]
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {u v : V} (p q : (m ⊔ m').walk u v) (hp : p.is_path) (hq : q.is_path)
+  (s : bool) (hsp : p.starts_with_opt s) (hsq : q.starts_with_opt s) :
+  p = q :=
+begin
+  induction p,
+  { 
+
+  },
+end
+
+/-| _ _ (walk.nil) _ := ⟨tt, alt_walk.nil tt _⟩
+-- Since nil can't really decide what the endpoint bools should be, we need another base case:
+| _ _ (walk.cons' u v _ h walk.nil) _ :=
+  if ha : m.adj u v then
+    ⟨tt, ff, alt_walk.cons1 _ _ _ _ ha (alt_walk.nil _ _)⟩
+  else
+    have ha : m'.adj u v := by simpa [ha] using h,
+    ⟨ff, tt, alt_walk.cons2 _ _ _ _ ha (alt_walk.nil _ _)⟩
+| _ _ (walk.cons' u v w h p) hp :=
+  let r := walk.matchings_lift_alt_walk_of_path p
+    (by { rw [walk.cons_is_path_iff] at hp, exact hp.1 }) in
+  match r with
+  | ⟨tt, e, r'⟩ :=
+    have ha : m'.adj u v := by {  },
+    sorry
+  | ⟨ff, e, r'⟩ := sorry-/
+
+
+lemma parity_path_sup_matchings (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {v w : V} (p : (m ⊔ m').walk v w) (hp : p.is_path) :
+  even p.length ↔ even (G.dist v w) :=
+begin
+
+end
+
+lemma even_length_loop_sup_matchings (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {v : V} (p : (m ⊔ m').walk v v) : even p.length :=
+begin
+  induction hn : p.length using nat.strong_induction_on with n ih generalizing p,
+  by_cases hc : p.is_cycle,
+  {
+
+  },
+  cases p with _ _ w _ hvw p,
+  { exact even_zero, },
+  {
+
+  }
+end
+
+#exit
+
+/-lemma even_length_loop_sup_matchings (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {v : V} (p : (m ⊔ m').walk v v) : even p.length :=
+begin
+  induction hn : p.length using nat.strong_induction_on with n ih generalizing p,
+  by_cases hc : p.is_cycle,
+  { sorry
+
+  },
+  { rw [← hn],
+    cases p,
+    { simp only [walk.length_nil, even_zero], },
+    --simp only [walk.length_cons] at hn,
+    simp only [walk.cons_is_cycle_iff, not_and, not_not] at hc,
+    by_cases hpp : p_p.is_path,
+    { specialize hc hpp,
+
+    },
+  },
+end-/
+
+lemma even_basepoint_dist_sup_matchings (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {v w : V} (hvw : (m ⊔ m').adj v w) :
+  even ((m ⊔ m').basepoint_dist v) ↔ ¬even ((m ⊔ m').basepoint_dist w) :=
+begin
+  have : (m ⊔ m').connected_component_mk v = (m ⊔ m').connected_component_mk w,
+  { exact connected_component.sound hvw.reachable, },
+  simp only [basepoint_dist, this],
+  obtain ⟨pw, hpw⟩ := (reachable_out_connected_component_mk (m ⊔ m') w).exists_walk_of_dist,
+  have h := (reachable_out_connected_component_mk (m ⊔ m') w).trans hvw.symm.reachable,
+  obtain ⟨pv, hpv⟩ := h.exists_walk_of_dist,
+  rw [← hpw, ← hpv],
+  have : even (walk.cons hvw.symm (pv.reverse.append pw)).length :=
+    even_length_loop_sup_matchings m m' hm hm' _,
+  simp only [nat.even_add, not_iff, walk.length_cons, walk.length_append, walk.length_reverse,
+    nat.not_even_one, iff_false] at this,
+  simp [← this],
+end
+
+lemma basepoint_mod2dist_sup_matchings (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  {v w : V} (hvw : (m ⊔ m').adj v w) :
+  (m ⊔ m').basepoint_mod2dist v ≠ ((m ⊔ m').basepoint_mod2dist w) :=
+begin
+  simp only [basepoint_mod2dist, even_basepoint_dist_sup_matchings m m' hm hm' hvw,
+    bool.to_bool_not, ne.def, bool.bnot_not_eq],
+end
+
+end colorings
+
+/-- Given two perfect matchings, alternately follow one then the other to create
+a sequence of vertices. -/
+noncomputable!
+def ham_cycle_aux (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) : Π (n : ℕ), V
+| 0 := v
+| (n+1) := if even n then hm.other (ham_cycle_aux n) else hm'.other (ham_cycle_aux n)
+
+@[simp]
+lemma ham_cycle_aux_odd (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) (k : ℕ) :
+  ham_cycle_aux m m' hm hm' v (2 * k + 1) = hm.other (ham_cycle_aux m m' hm hm' v (2 * k)) :=
+by simp [ham_cycle_aux]
+
+@[simp]
+lemma ham_cycle_aux_even_succ (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) (k : ℕ) :
+  ham_cycle_aux m m' hm hm' v (2 * (k + 1))
+    = hm'.other (hm.other (ham_cycle_aux m m' hm hm' v (2 * k))) :=
+by simp [nat.mul_succ, ham_cycle_aux, nat.even_add_one]
+
+lemma ham_cycle_aux_prop_even (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) (n : ℕ) (hn : even n) :
+  m.adj (ham_cycle_aux m m' hm hm' v n) (ham_cycle_aux m m' hm hm' v (n + 1)) :=
+begin
+  simp [ham_cycle_aux, hn, hm.adj_other],
+end
+
+lemma ham_cycle_aux_prop_not_even (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) (n : ℕ) (hn : ¬even n) :
+  m'.adj (ham_cycle_aux m m' hm hm' v n) (ham_cycle_aux m m' hm hm' v (n + 1)) :=
+begin
+  simp [ham_cycle_aux, hn, hm'.adj_other],
+end
+
+-- lemma ham_cycle_aux_prop (m m' : simple_graph V)
+--   (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+--   (k : ℕ) (v : V) :
+--   m.adj (ham_cycle_aux m m' hm hm' v (2 * k)) (ham_cycle_aux m m' hm hm' v (2 * k + 1))
+--     ∧ m'.adj (ham_cycle_aux m m' hm hm' v (2 * k + 1)) (ham_cycle_aux m m' hm hm' v (2 * k + 2)) :=
+-- begin
+--   induction k with k ih generalizing v,
+--   { simp [ham_cycle_aux, hm.adj_other, hm'.adj_other], },
+--   { simp [ham_cycle_aux, nat.even_add_one] at ih,
+--     simp [nat.mul_succ, ham_cycle_aux, (ih _).1, (ih _).2, nat.even_add_one], },
+-- end
+
+lemma adj_ham_cycle_aux (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) (n : ℕ) :
+  (m ⊔ m').adj (ham_cycle_aux m m' hm hm' v n) (ham_cycle_aux m m' hm hm' v (n + 1)) :=
+begin
+  cases n,
+  { simp [ham_cycle_aux, hm.adj_other, hm'.adj_other], },
+  { simp only [ham_cycle_aux],
+    by_cases he : even n,
+    { simp [he, nat.even_add_one],
+      right,
+      apply hm'.adj_other },
+    { simp [he, nat.even_add_one],
+      left,
+      apply hm.adj_other }, }
+end
+
+/--
+Given two perfect matchings, the walk associated to `ham_cycle_aux`.
+-/
+noncomputable!
+def ham_cycle_aux_walk (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) :
+  Π (n : ℕ), (m ⊔ m').walk v (ham_cycle_aux m m' hm hm' v n)
+| 0 := walk.nil
+| (n+1) := (ham_cycle_aux_walk n).concat (adj_ham_cycle_aux m m' hm hm' v n)
+
+lemma ham_cycle_aux_not_injective (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) [finite V] :
+  ¬ function.injective (ham_cycle_aux m m' hm hm' v) :=
+not_injective_infinite_finite _
+
+lemma _root_.nat.not_injective {α : Type*} (f : ℕ → α) (hf : ¬ function.injective f) :
+  ∃ a b, a < b ∧ f a = f b :=
+begin
+  rw [function.injective] at hf,
+  push_neg at hf,
+  obtain ⟨a, b, h, hn⟩ := hf,
+  cases ne.lt_or_lt hn with hn hn,
+  { exact ⟨a, b, hn, h⟩, },
+  { exact ⟨b, a, hn, h.symm⟩, }
+end
+
+lemma ham_cycle_aux_even_periodic' (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  (hd : disjoint m m')
+  (v : V) (a b : ℕ)
+  (h : ham_cycle_aux m m' hm hm' v (a + b) = ham_cycle_aux m m' hm hm' v a) :
+  even b :=
+begin
+  obtain (rfl | hpos) := nat.eq_zero_or_pos b,
+  { exact even_zero },
+  let b' := Inf { b' | 0 < b' ∧
+    ham_cycle_aux m m' hm hm' v (a + b') = ham_cycle_aux m m' hm hm' v a },
+  suffices : even b',
+  {
+
+  },
+end
+
+lemma ham_cycle_aux_eq_of_twosucc_eq (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  (v : V) (a b : ℕ)
+  (h : ham_cycle_aux m m' hm hm' v (a + 2 * b) = ham_cycle_aux m m' hm hm' v a) :
+  ham_cycle_aux m m' hm hm' v (2 * b) = ham_cycle_aux m m' hm hm' v 0 :=
+begin
+  induction a with a ih,
+  { simpa only [mul_zero, zero_add] using h},
+  { simp only [nat.mul_succ, nat.succ_add, ham_cycle_aux, nat.even_add_one, nat.even_add,
+      even.mul_right, even_zero, not_true,
+      not_false_iff, iff_self, if_true, if_false, iff_false, iff_true] at h,
+    by_cases hea : even a,
+    { simp only [hea, if_true] at h,
+      replace h := hm.other_involutive.injective h,
+      exact ih h, },
+    { simp only [hea, if_false] at h,
+      replace h := hm'.other_involutive.injective h,
+      exact ih h, } }
+end
+
+lemma ham_cycle_aux_fwd_periodic (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  (v : V) (a b c : ℕ) (he : even a ↔ even b)
+  (h : ham_cycle_aux m m' hm hm' v a = ham_cycle_aux m m' hm hm' v b) :
+  ham_cycle_aux m m' hm hm' v (a + c) = ham_cycle_aux m m' hm hm' v (b + c) :=
+begin
+  induction c with c ih,
+  exact h,
+  simp [nat.add_succ, ham_cycle_aux, ih, nat.even_add, he],
+end
+
+lemma ham_cycle_aux_eq_of_twosucc_eq' (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  (v : V) (a b : ℕ)
+  (h : ham_cycle_aux m m' hm hm' v (a + b) = ham_cycle_aux m m' hm hm' v a) :
+  ham_cycle_aux m m' hm hm' v (2 * b) = ham_cycle_aux m m' hm hm' v 0 :=
+begin
+  apply ham_cycle_aux_eq_of_twosucc_eq m m' hm hm' v a,
+  have := ham_cycle_aux_fwd_periodic m m' hm hm' v (a + b) a b _ h,
+  rw [two_mul, ← add_assoc, this, h],
+  simp [nat.even_add],
+end
+
+lemma ham_cycle_aux_eq_of_succ_eq (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  (hd : disjoint m m')
+  (v : V) (a b : ℕ)
+  (h : ham_cycle_aux m m' hm hm' v (a + b) = ham_cycle_aux m m' hm hm' v a) :
+  ham_cycle_aux m m' hm hm' v b = ham_cycle_aux m m' hm hm' v 0 :=
+begin
+  induction a with a ih generalizing b,
+  { simpa using h },
+  { simp [nat.succ_add, ham_cycle_aux] at h,
+    by_cases hea : even a,
+    { by_cases heb : even b,
+      { simp [nat.even_add, hea, heb] at h,
+        exact ih _ (hm.other_involutive.injective h), },
+      { cases b,
+        { simp [nat.even_add, hea, heb] at h, },
+        { simp [nat.even_add_one] at heb,
+          simp [nat.even_add, hea, heb, ham_cycle_aux, nat.add_succ, nat.even_add_one] at h,
+
+        }
+      }
+    }
+  }
+end
+
+lemma ham_cycle_aux_eq_of_succ_eq' (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching)
+  (hd : disjoint m m')
+  (v : V) (a b : ℕ)
+  (h : ham_cycle_aux m m' hm hm' v (a + 1) = ham_cycle_aux m m' hm hm' v (b + 1)) :
+  ham_cycle_aux m m' hm hm' v a = ham_cycle_aux m m' hm hm' v b :=
+begin
+  rw disjoint_iff at hd,
+  simp [ham_cycle_aux] at h,
+  by_cases hea : even a,
+  { by_cases heb : even b,
+    { simp only [hea, heb, if_true] at h,
+      exact hm.other_involutive.injective h, },
+    { exfalso,
+      simp only [hea, heb, if_true, if_false] at h,
+      have k1 := ham_cycle_aux_prop_even m m' hm hm' v a hea,
+      simp [ham_cycle_aux, hea, h] at k1,
+      have k2 := ham_cycle_aux_prop_not_even m m' hm hm' v _ heb,
+      simp [ham_cycle_aux, heb, ← h] at k2,
+    },
+
+  }
+end
+
+lemma aoeu (m m' : simple_graph V)
+  (hm : m.is_perfect_matching) (hm' : m'.is_perfect_matching) (v : V) [fintype V] :
+  ∃ n, 0 < n ∧ ham_cycle_aux m m' hm hm' v n = v :=
+begin
+  obtain ⟨a, b, hab, h⟩ := nat.not_injective _ (ham_cycle_aux_not_injective m m' hm hm' v),
+  use [b - a, nat.sub_pos_of_lt hab],
+end
+
 
 theorem neighbor_set_from_edge_set_insert [decidable_eq V] (s : set (sym2 V)) (u v w : V)
   (h : u ≠ v) :

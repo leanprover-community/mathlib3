@@ -49,8 +49,7 @@ lemma bind_pure_comp : bind p (pure ∘ f) = map f p := rfl
 
 lemma map_id : map id p = p := bind_pure _
 
-lemma map_comp (g : β → γ) : (p.map f).map g = p.map (g ∘ f) :=
-by simp only [map, bind_bind, pure_bind]
+lemma map_comp (g : β → γ) : (p.map f).map g = p.map (g ∘ f) := by simp [map]
 
 lemma pure_map (a : α) : (pure a).map f = pure (f a) := pure_bind _ _
 

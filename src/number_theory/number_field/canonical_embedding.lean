@@ -231,48 +231,55 @@ begin
       is_R_or_C.conj_of_real], }
 end
 
-example [number_field K] {x : (K →+* ℂ) → ℂ} (hx : x ∈ submodule.span ℝ
-    (set.range (λ i, number_field.full_embedding K (integral_basis K i)))) :
-  comm_map K x = 0 → x = 0 :=
+open number_field
+
+lemma comm_map_eq_zero [number_field K] {x : (K →+* ℂ) → ℂ} (hx : x ∈ submodule.span ℝ
+    (set.range (λ i, full_embedding K (integral_basis K i))))
+    (hc : comm_map K x = 0):
+  x = 0 :=
 begin
-  intro h,
   ext1 φ,
   rw pi.zero_apply,
   by_cases hφ : complex_embedding.is_real φ,
   { have : ((x φ).re : ℂ) = x φ,
     { rw ← complex.eq_conj_iff_re,
-      rw ← number_field.full_embedding.conj_apply K _ hx,
+      rw ← full_embedding.conj_apply K _ hx,
       rw complex_embedding.is_real_iff.mp hφ, },
     rw ← this,
     have hw : is_real (mk φ) := ⟨φ, hφ, rfl⟩,
     have := congr_arg (coe : ℝ → ℂ)
       (congr_arg (λ x : ({w // is_real w} → ℝ) × ({w // is_complex w} → ℂ), x.1 ⟨mk φ,
-      hw⟩) h),
+      hw⟩) hc),
     convert this,
     convert (complex_embeddings.is_real.embedding_mk hφ).symm, },
   { have hw : is_complex (mk φ) := ⟨φ, hφ, rfl⟩,
     have := congr_arg (λ x : ({w // is_real w} → ℝ) × ({w // is_complex w} → ℂ),
-      x.2 ⟨mk φ, hw⟩) h,
+      x.2 ⟨mk φ, hw⟩) hc,
     by_cases h2 : φ = (infinite_place.mk φ).embedding,
     { convert this, },
     { rw ← map_eq_zero_iff (star_ring_end ℂ) star_injective,
-      rw ← number_field.full_embedding.conj_apply K _ hx,
-      have t1 : φ = complex_embedding.conjugate (infinite_place.mk φ).embedding := sorry,
+      rw ← full_embedding.conj_apply K _ hx,
+      have t1 : φ = complex_embedding.conjugate (infinite_place.mk φ).embedding,
+      { have t1 : infinite_place.mk ((infinite_place.mk φ).embedding) = mk φ,
+        { simp only [mk_embedding], },
+        have t2 := mk_eq_iff.mp t1,
+        have t3 := t2.resolve_left _,
+        exact t3.symm,
+        exact ne_comm.mp h2, },
       rw t1,
       have := congr_arg (λ x : ({w // is_real w} → ℝ) × ({w // is_complex w} → ℂ),
-        x.2 ⟨mk φ, hw⟩) h,
+        x.2 ⟨mk φ, hw⟩) hc,
       convert this,
       ext1,
       simp only [complex_embedding.conjugate_coe_eq, star_ring_end_self_apply], }},
 end
 
-#exit
-
 lemma commutes (x : K) :
-  comm_map K (number_field.full_embedding K x) = canonical_embedding K x :=
+  comm_map K (full_embedding K x) = canonical_embedding K x :=
 begin
-  simp only [comm_map, number_field.full_embedding, canonical_embedding, subtype.val_eq_coe,
-    ring_hom.coe_mk, linear_map.coe_mk, ring_hom.prod_apply, prod.mk.inj_iff, pi.ring_hom_apply],
+  simp only [comm_map, full_embedding, canonical_embedding, subtype.val_eq_coe,
+    ring_hom.coe_mk, linear_map.coe_mk, ring_hom.prod_apply, prod.mk.inj_iff,
+    pi.ring_hom_apply],
   split,
   { ext w,
     simp only [pi.ring_hom_apply, ← complex_embedding.is_real.coe_embedding_apply
@@ -282,43 +289,38 @@ begin
     simp only [pi.ring_hom_apply], },
 end
 
-
-
 /-- A basis of `E` over `ℝ` that is also a basis of the `unit_lattice` over `ℤ`.-/
 def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℝ E :=
 begin
   let h : (K →+* ℂ) ≃ free.choose_basis_index ℤ (𝓞 K) := sorry,
-  suffices : linear_independent ℝ (λ i,
-    number_field.full_embedding K (integral_basis K (h i))),
-  { have t1 : linear_independent ℝ (λ i, number_field.full_embedding K (integral_basis K i)),
-    { refine (linear_independent_equiv' h.symm _).mpr this,
+  suffices : linear_independent ℂ (λ i, full_embedding K (integral_basis K (h i))),
+  { have t0 := @linear_independent.restrict_scalars _ ℝ ℂ _ _ _ _ _ _ _ _ _
+    (smul_left_injective ℝ one_ne_zero) this,
+    have t1 : linear_independent ℝ (λ i, full_embedding K (integral_basis K i)),
+    { refine (linear_independent_equiv' h.symm _).mpr t0,
       ext1 φ,
       simp only [equiv.apply_symm_apply, function.comp_app], },
     have t2 : linear_independent ℝ (λ i,
-      (comm_map K ∘ number_field.full_embedding K) (integral_basis K i)),
+      (comm_map K ∘ full_embedding K) (integral_basis K i)),
     { refine linear_independent.map t1 _,
-
       refine linear_map.disjoint_ker.mpr _,
-      intros x hx,
-
---      intros s hs1 hs2 x hx,
---      have t3 := hs1 hx,
---      rw mem_span_set at t3,
-
-      },
-
-
---    := linear_independent.map t1 _,
---        := (linear_independent_equiv' h.symm _).mpr this,
-
-
-
-    refine basis.mk this (le_of_eq (eq_of_le_of_finrank_le le_top _).symm),
-    rw [finrank_top, number_field.canonical_embedding.rank, ← set.finrank,
-      ← linear_independent_iff_card_eq_finrank_span.mp this, ← ring_of_integers.rank,
+      intros x hx hc,
+      exact comm_map_eq_zero K hx hc, },
+    have t3 : linear_independent ℝ (λ i, canonical_embedding K (integral_basis K i)),
+    { refine (linear_independent_equiv' (equiv.refl _) _).mp t2,
+      ext1 i,
+      exact (commutes K (integral_basis K i)).symm, },
+    refine basis.mk t3 (le_of_eq (eq_of_le_of_finrank_le le_top _).symm),
+    rw [finrank_top, canonical_embedding.rank, ← set.finrank,
+      ← linear_independent_iff_card_eq_finrank_span.mp t3, ← ring_of_integers.rank,
      free.finrank_eq_card_choose_basis_index], },
---  let h : (K →+* ℂ) ≃ free.choose_basis_index ℤ (𝓞 K) := sorry,
---  rw ← linear_independent_equiv h,
+  let B := pi.basis_fun ℂ (K →+* ℂ),
+  let M := B.to_matrix (λ i, full_embedding K (integral_basis K (h i))),
+  suffices : M.det ≠ 0,
+  { rw ← is_unit_iff_ne_zero at this,
+    rw ← basis.det_apply at this,
+    rw ← is_basis_iff_det at this,
+    exact this.1, },
 
   sorry,
 end

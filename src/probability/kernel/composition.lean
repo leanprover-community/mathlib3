@@ -75,7 +75,7 @@ section product
 We define a kernel product `prod : kernel α β → kernel (α × β) γ → kernel α (β × γ)`.
 -/
 
-variables {γ : Type*} {mγ : measurable_space γ}
+variables {γ : Type*} {mγ : measurable_space γ} {s : set (β × γ)}
 
 include mγ
 
@@ -121,7 +121,7 @@ begin
 end
 
 lemma prod_fun_tsum_right (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η]
-  (a : α) {s : set (β × γ)} (hs : measurable_set s) :
+  (a : α) (hs : measurable_set s) :
   prod_fun κ η a s = ∑' n, prod_fun κ (seq η n) a s :=
 begin
   simp_rw [prod_fun, (measure_sum_seq η _).symm],
@@ -142,14 +142,13 @@ lemma prod_fun_tsum_left (κ : kernel α β) (η : kernel (α × β) γ) [is_s_f
 by simp_rw [prod_fun, (measure_sum_seq κ _).symm, lintegral_sum_measure]
 
 lemma prod_fun_eq_tsum (κ : kernel α β) [is_s_finite_kernel κ]
-  (η : kernel (α × β) γ) [is_s_finite_kernel η]
-  (a : α) {s : set (β × γ)} (hs : measurable_set s) :
+  (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α) (hs : measurable_set s) :
   prod_fun κ η a s = ∑' n m, prod_fun (seq κ n) (seq η m) a s :=
 by simp_rw [prod_fun_tsum_left κ η a s, prod_fun_tsum_right _ η a hs]
 
 /-- Auxiliary lemma for `measurable_prod_fun`. -/
 lemma measurable_prod_fun_of_finite (κ : kernel α β) [is_finite_kernel κ]
-  (η : kernel (α × β) γ) [is_finite_kernel η] {s : set (β × γ)} (hs : measurable_set s) :
+  (η : kernel (α × β) γ) [is_finite_kernel η] (hs : measurable_set s) :
   measurable (λ a, prod_fun κ η a s) :=
 begin
   simp only [prod_fun],
@@ -165,7 +164,7 @@ begin
 end
 
 lemma measurable_prod_fun (κ : kernel α β) [is_s_finite_kernel κ]
-  (η : kernel (α × β) γ) [is_s_finite_kernel η] {s : set (β × γ)} (hs : measurable_set s) :
+  (η : kernel (α × β) γ) [is_s_finite_kernel η] (hs : measurable_set s) :
   measurable (λ a, prod_fun κ η a s) :=
 begin
   simp_rw prod_fun_tsum_right κ η _ hs,
@@ -203,7 +202,7 @@ localized "infix (name := kernel.prod) ` ⊗ₖ `:100 := probability_theory.kern
   probability_theory
 
 lemma prod_apply_eq_prod_fun (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
-  [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
+  [is_s_finite_kernel η] (a : α) (hs : measurable_set s) :
   (κ ⊗ₖ η) a s = prod_fun κ η a s :=
 begin
   rw [prod],
@@ -214,7 +213,7 @@ begin
 end
 
 lemma prod_apply (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
-  [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
+  [is_s_finite_kernel η] (a : α) (hs : measurable_set s) :
   (κ ⊗ₖ η) a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂(κ a) :=
 prod_apply_eq_prod_fun κ η a hs
 
@@ -274,7 +273,7 @@ begin
 end
 
 lemma prod_eq_tsum_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
-  [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
+  [is_s_finite_kernel η] (a : α) (hs : measurable_set s) :
   (κ ⊗ₖ η) a s = ∑' (n m : ℕ), (seq κ n ⊗ₖ seq η m) a s :=
 by { simp_rw prod_apply_eq_prod_fun _ _ _ hs, exact prod_fun_eq_tsum κ η a hs, }
 
@@ -341,7 +340,7 @@ end
 end product
 
 section map_comap
-/-! ### map, comap and composition -/
+/-! ### map, comap -/
 
 variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → α}
 
@@ -429,11 +428,16 @@ instance is_s_finite_kernel.comap (κ : kernel α β) [is_s_finite_kernel κ] (h
   is_s_finite_kernel (comap κ g hg) :=
 ⟨⟨λ n, comap (seq κ n) g hg, infer_instance, (sum_comap_seq κ hg).symm⟩⟩
 
-omit mγ
+end map_comap
+
+section comp
+/-! ### Composition of two kernels -/
 
 /-- Define a `kernel (γ × α) β` from a `kernel α β` by taking the comap of the projection. -/
 def prod_mk_left (κ : kernel α β) (γ : Type*) [measurable_space γ] : kernel (γ × α) β :=
 comap κ prod.snd measurable_snd
+
+variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → α}
 
 include mγ
 
@@ -531,6 +535,7 @@ instance is_s_finite_kernel.comp (η : kernel β γ) [is_s_finite_kernel η]
   is_s_finite_kernel (η ∘ₖ κ) :=
 by { rw comp, apply_instance, }
 
+/-- Composition of kernels is associative. -/
 lemma comp_assoc {δ : Type*} {mδ : measurable_space δ} (ξ : kernel γ δ) [is_s_finite_kernel ξ]
   (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ] :
   (ξ ∘ₖ η ∘ₖ κ) = ξ ∘ₖ (η ∘ₖ κ) :=
@@ -555,7 +560,7 @@ begin
     lintegral_dirac' _ (kernel.measurable_coe κ hs)],
 end
 
-end map_comap
+end comp
 
 end kernel
 

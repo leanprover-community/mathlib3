@@ -59,7 +59,7 @@ extends linear_ordered_field α, has_norm α, metric_space α :=
 property: `|a| ≤ |b|` implies `‖a‖ ≤ ‖b‖`. -/
 class normed_lattice_field (α : Type*)
 extends normed_linear_ordered_field α :=
-(solid: ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
+(solid : ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
 
 @[to_additive, priority 100]
 instance normed_ordered_group.to_normed_comm_group [normed_ordered_group α] : normed_comm_group α :=

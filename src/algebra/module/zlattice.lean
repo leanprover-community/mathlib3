@@ -160,7 +160,7 @@ begin
     { convert mul_le_mul_of_nonneg_right this (norm_nonneg _ : 0 ≤ ‖b i ‖),
       exact (one_mul _).symm, },
     rw (norm_one.symm : 1 = ‖(1 : K)‖),
-    apply solid,
+    apply norm_le_norm_of_abs_le_abs,
     rw [abs_one, int.abs_fract],
     exact le_of_lt (int.fract_lt_one _),
 end

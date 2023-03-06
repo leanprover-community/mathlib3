@@ -22,8 +22,8 @@ The ℤ-lattice `L` can be defined in two ways:
 ## Main results
 * `zspan.is_add_fundamental_domain`: for `L : submodule.span ℤ (set.range b)` a ℤ-lattice, proves
 that the set defined by `zspan.fundamental_domain` is indeed a fundamental domain.
-* `zlattice.dim`: for `L : add_subgroup E` with `L` discrete and spanning `E` over `ℝ`, proves that
-`finrank ℤ L = finrank ℝ E`.
+* `zlattice.dim`: for `L : add_subgroup E` with `L` discrete and spanning `E` over `K`, proves that
+`finrank ℤ L = finrank K E`.
 -/
 
 open_locale classical
@@ -197,6 +197,30 @@ begin
       ← vadd_eq_add, ← vadd_def, eq_comm, ← zspan.mem_fundamental_domain], },
 end
 
+open subtype
+
+/-- The map `zspan.fract_map` lift to an equiv between `E ⧸ span ℤ (set.range b)`
+and `zspan.fundamental_domain b` . -/
+def zspan.quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (zspan.fundamental_domain b) :=
+begin
+  refine equiv.of_bijective _ _,
+  { refine λ q, quotient.lift_on' q _ _,
+    { exact λ x, ⟨zspan.fract_map b x, zspan.fract_map_mem_fundamental_domain b x⟩, },
+    { exact λ _ _ h, mk_eq_mk.mpr
+        ((zspan.fract_map_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
+  { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
+      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← zspan.fract_map_eq_iff,
+      ← @mk_eq_mk _ (zspan.fundamental_domain b)], }),
+      λ y, ⟨quotient.mk' y, ext_iff.mpr ((zspan.mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
+end
+
+lemma zspan.sub_quo_fract_mem (x : E) [fintype ι] :
+  x - zspan.quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
+begin
+  change x - zspan.fract_map b x ∈ span ℤ (set.range b),
+  simp only [zspan.fract_map_def, sub_sub_cancel, coe_mem],
+end
+
 end normed_lattice_field
 
 section real
@@ -231,29 +255,7 @@ begin
     (λ x, zspan.exist_vadd_mem_fundamental_domain b x),
 end
 
-open subtype
-
-/-- The map `zspan.fract_map` lift to an equiv between `E ⧸ span ℤ (set.range b)`
-and `zspan.fundamental_domain b` . -/
-def zspan.quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (zspan.fundamental_domain b) :=
-begin
-  refine equiv.of_bijective _ _,
-  { refine λ q, quotient.lift_on' q _ _,
-    { exact λ x, ⟨zspan.fract_map b x, zspan.fract_map_mem_fundamental_domain b x⟩, },
-    { exact λ _ _ h, mk_eq_mk.mpr
-        ((zspan.fract_map_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
-  { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
-      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← zspan.fract_map_eq_iff,
-      ← @mk_eq_mk _ (zspan.fundamental_domain b)], }),
-      λ y, ⟨quotient.mk' y, ext_iff.mpr ((zspan.mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
-end
-
-lemma zspan.sub_quo_fract_mem (x : E) [fintype ι] :
-  x - zspan.quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
-begin
-  change x - zspan.fract_map b x ∈ span ℤ (set.range b),
-  simp only [zspan.fract_map_def, sub_sub_cancel, coe_mem],
-end
+end real
 
 end zspan
 
@@ -261,10 +263,11 @@ section zlattice
 
 open submodule
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables [finite_dimensional ℝ E] {L : add_subgroup E}
+variables {K : Type*} [normed_lattice_field K] [floor_ring K]
+variables {E : Type*} [normed_add_comm_group E] [normed_space K E]
+variables [finite_dimensional K E] {L : add_subgroup E}
 variables (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-variables (hs : span ℝ (L : set E) = ⊤)
+variables (hs : span K (L : set E) = ⊤)
 
 include hd hs
 
@@ -272,8 +275,8 @@ lemma zlattice.fg : add_subgroup.fg L :=
 begin
   suffices : L.to_int_submodule.fg,
   { rwa [fg_iff_add_subgroup_fg, add_subgroup.to_int_submodule_to_add_subgroup] at this, },
-  obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L.to_int_submodule : set E),
-  -- Let `s` be a maximal ℝ-linear independent family of elements of `L`. We show that
+  obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent K (L.to_int_submodule : set E),
+  -- Let `s` be a maximal `K`-linear independent family of elements of `L`. We show that
   -- `L` is finitely generated (as a ℤ-module) because its fits in the exact sequence
   -- `0 → L ∩ ker (span ℤ s) → L → L / ker (span ℤ s) → 0`
   -- with `L ∩ ker (span ℤ s)` and `L / ker (span ℤ s)` finitely generated.
@@ -333,7 +336,7 @@ variables [module ℚ E]
 
 open finite_dimensional
 
-lemma zlattice.rank : finrank ℤ L = finrank ℝ E :=
+lemma zlattice.rank : finrank ℤ L = finrank K E :=
 begin
   haveI : module.finite ℤ L := zlattice.module.finite hd hs,
   haveI : module.free ℤ L := zlattice.module.free hd hs,
@@ -342,8 +345,8 @@ begin
   { convert congr_arg (submodule.map L.to_int_submodule.subtype) b.span_eq,
     { rw [submodule.map_span, submodule.coe_subtype, set.range_comp], },
     { rw map_subtype_top, }},
-  have h_spantop : submodule.span ℝ (set.range ((coe : L → E) ∘ b)) = ⊤,
-  { rwa [← @submodule.span_span_of_tower ℤ E ℝ _, h_spaneq], },
+  have h_spantop : submodule.span K (set.range ((coe : L → E) ∘ b)) = ⊤,
+  { rwa [← @submodule.span_span_of_tower ℤ E K _, h_spaneq], },
   rw module.free.finrank_eq_card_choose_basis_index,
   apply le_antisymm,
   { -- The proof proceeds by proving that there is ℤ-relation between the
@@ -353,10 +356,10 @@ begin
         (function.injective.comp subtype.coe_injective (basis.injective b)),
       convert b.linear_independent.map' L.to_int_submodule.subtype (submodule.ker_subtype _), },
     contrapose! h,
-    -- Extract a ℝ-basis `e` of `E` from `b`
-    obtain ⟨t, ⟨ht1, ⟨ht2, ht3⟩⟩⟩ := exists_linear_independent ℝ (set.range ((coe : L → E) ∘ b)),
+    -- Extract a `K`-basis `e` of `E` from `b`
+    obtain ⟨t, ⟨ht1, ⟨ht2, ht3⟩⟩⟩ := exists_linear_independent K (set.range ((coe : L → E) ∘ b)),
     haveI : fintype t := set.finite.fintype ((set.range (coe ∘ b)).to_finite.subset ht1),
-    let e : basis t ℝ E := basis.mk ht3
+    let e : basis t K E := basis.mk ht3
       (by { rw [subtype.range_coe, ht2, h_spantop], exact le_rfl, }),
     -- Then there exists `v` in `b ∖ e`
     rsuffices ⟨v, hv⟩ : ((set.range ((coe : L → E) ∘ b)) \ (set.range e)).nonempty,
@@ -398,7 +401,7 @@ begin
         set.to_finset_range, set.to_finset_card, ← finrank_eq_card_basis e, tsub_pos_iff_lt,
         finset.card_image_of_injective _],
       exact function.injective.comp subtype.coe_injective (basis.injective _), }},
-  { rw [← (@submodule.top_equiv ℝ E _ _ _).finrank_eq, ← h_spantop],
+  { rw [← (@submodule.top_equiv K E _ _ _).finrank_eq, ← h_spantop],
     convert finrank_span_le_card (set.range ((coe : L → E) ∘ b)),
     rw set.to_finset_range,
     exact (finset.univ.card_image_of_injective

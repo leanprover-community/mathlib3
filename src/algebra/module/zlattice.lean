@@ -7,6 +7,7 @@ Authors: Xavier Roblot
 import analysis.normed.order.basic
 import linear_algebra.free_module.pid
 import measure_theory.group.fundamental_domain
+import ring_theory.localization.module
 
 /-!
 # ℤ-lattices

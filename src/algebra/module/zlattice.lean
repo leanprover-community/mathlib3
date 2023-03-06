@@ -10,14 +10,15 @@ import ring_theory.localization.module
 
 /-!
 # ℤ-lattices
-Let `E` be a finite dimensional real vector space. A (full) ℤ-lattice `L` of `E` is a discrete
-subgroup of `E` such that `L` spans `E` over `ℝ`.
+Let `E` be a finite dimensional vector space over a `normed_lattice_field` `K` that is also
+a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete subgroup of `E` such
+that `L` spans `E` over `K`.
 
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
 * As `L : add_subgroup E` with the additional properties:
   `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
-  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `ℝ`.
+  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `K`.
 
 ## Main results
 * `zspan.is_add_fundamental_domain`: for `L : submodule.span ℤ (set.range b)` a ℤ-lattice, proves

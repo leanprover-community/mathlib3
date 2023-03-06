@@ -14,7 +14,7 @@ that give the user more control over where to perform a rewrite.
 
 ## Main definitions
 
-* `nth_write n rules`: performs only the `n`th possible rewrite using the `rules`.
+* `nth_rewrite n rules`: performs only the `n`th possible rewrite using the `rules`.
 * `nth_rewrite_lhs`: as above, but only rewrites on the left hand side of an equation or iff.
 * `nth_rewrite_rhs`: as above, but only rewrites on the right hand side of an equation or iff.
 
@@ -56,7 +56,7 @@ do r ← to_expr p.rule tt ff,
 /-- Get the `n`th rewrite of rewrite rules `q` in expression `e`,
 or fail if there are not enough such rewrites. -/
 meta def get_nth_rewrite (n : ℕ) (q : rw_rules_t) (e : expr) : tactic tracked_rewrite :=
-do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= nth_rewrite e,
+do rewrites ← q.rules.mmap $ λ r, unpack_rule r >>= all_rewrites e,
    rewrites.join.nth n <|> fail "failed: not enough rewrites found"
 
 /-- Rewrite the `n`th occurrence of the rewrite rules `q` of (optionally after zooming into) a
@@ -107,10 +107,12 @@ meta def nth_rewrite
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
 nth_rewrite_core [] n q l
 
-meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
+meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) :
+  tactic unit :=
 nth_rewrite_core [dir.F, dir.A] n q l
 
-meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
+meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) :
+  tactic unit :=
 nth_rewrite_core [dir.A] n q l
 
 copy_doc_string nth_rewrite → nth_rewrite_lhs nth_rewrite_rhs

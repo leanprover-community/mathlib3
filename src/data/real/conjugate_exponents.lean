@@ -3,10 +3,13 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import data.real.basic
+import data.real.ennreal
 
 /-!
 # Real conjugate exponents
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `p.is_conjugate_exponent q` registers the fact that the real numbers `p` and `q` are `> 1` and
 satisfy `1/p + 1/q = 1`. This property shows up often in analysis, especially when dealing with
@@ -54,7 +57,7 @@ lemma sub_one_ne_zero : p - 1 ≠ 0 :=
 ne_of_gt h.sub_one_pos
 
 lemma one_div_pos : 0 < 1/p :=
-one_div_pos_of_pos h.pos
+one_div_pos.2 h.pos
 
 lemma one_div_nonneg : 0 ≤ 1/p :=
 le_of_lt h.one_div_pos
@@ -65,7 +68,7 @@ ne_of_gt (h.one_div_pos)
 lemma conj_eq : q = p/(p-1) :=
 begin
   have := h.inv_add_inv_conj,
-  rw [← eq_sub_iff_add_eq', one_div_eq_inv, inv_eq_iff] at this,
+  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff_inv_eq] at this,
   field_simp [← this, h.ne_zero]
 end
 
@@ -78,8 +81,29 @@ lemma mul_eq_add : p * q = p + q :=
 by simpa only [sub_mul, sub_eq_iff_eq_add, one_mul] using h.sub_one_mul_conj
 
 @[symm] protected lemma symm : q.is_conjugate_exponent p :=
-{ one_lt := by { rw [h.conj_eq], exact one_lt_div_of_lt _ h.sub_one_pos (sub_one_lt p) },
+{ one_lt := by { rw [h.conj_eq], exact (one_lt_div h.sub_one_pos).mpr (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }
+
+lemma div_conj_eq_sub_one : p / q = p - 1 :=
+begin
+  field_simp [h.symm.ne_zero],
+  rw h.sub_one_mul_conj
+end
+
+lemma one_lt_nnreal : 1 < real.to_nnreal p :=
+begin
+  rw [←real.to_nnreal_one, real.to_nnreal_lt_to_nnreal_iff h.pos],
+  exact h.one_lt,
+end
+
+lemma inv_add_inv_conj_nnreal : 1 / real.to_nnreal p + 1 / real.to_nnreal q = 1 :=
+by rw [← real.to_nnreal_one, ← real.to_nnreal_div' h.nonneg, ← real.to_nnreal_div' h.symm.nonneg,
+  ← real.to_nnreal_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
+
+lemma inv_add_inv_conj_ennreal : 1 / ennreal.of_real p + 1 / ennreal.of_real q = 1 :=
+by rw [← ennreal.of_real_one, ← ennreal.of_real_div_of_pos h.pos,
+  ← ennreal.of_real_div_of_pos h.symm.pos,
+  ← ennreal.of_real_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
 
 end is_conjugate_exponent
 
@@ -90,5 +114,9 @@ lemma is_conjugate_exponent_iff {p q : ℝ} (h : 1 < p) :
 lemma is_conjugate_exponent_conjugate_exponent {p : ℝ} (h : 1 < p) :
   p.is_conjugate_exponent (conjugate_exponent p) :=
 (is_conjugate_exponent_iff h).2 rfl
+
+lemma is_conjugate_exponent_one_div {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) :
+  (1 / a).is_conjugate_exponent (1 / b) :=
+⟨by { rw [lt_div_iff ha, one_mul], linarith }, by { simp_rw one_div_one_div, exact hab }⟩
 
 end real

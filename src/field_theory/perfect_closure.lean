@@ -3,10 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.char_p
-import data.equiv.ring
-import algebra.group_with_zero_power
-import algebra.iterate_hom
+import algebra.char_p.basic
+import algebra.hom.iterate
+import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field
@@ -18,64 +17,81 @@ open function
 
 section defs
 
-variables (K : Type u) [field K] (p : ℕ) [fact p.prime] [char_p K p]
+variables (R : Type u) [comm_semiring R] (p : ℕ) [fact p.prime] [char_p R p]
 
-/-- A perfect field is a field of characteristic p that has p-th root. -/
-class perfect_field (K : Type u) [field K] (p : ℕ) [fact p.prime] [char_p K p] : Type u :=
-(pth_root' : K → K)
-(frobenius_pth_root' : ∀ x, frobenius K p (pth_root' x) = x)
+/-- A perfect ring is a ring of characteristic p that has p-th root. -/
+class perfect_ring : Type u :=
+(pth_root' : R → R)
+(frobenius_pth_root' : ∀ x, frobenius R p (pth_root' x) = x)
+(pth_root_frobenius' : ∀ x, pth_root' (frobenius R p x) = x)
 
-/-- Frobenius automorphism of a perfect field. -/
-def frobenius_equiv [perfect_field K p] : K ≃+* K :=
-{ inv_fun := perfect_field.pth_root' p,
-  left_inv := λ x, frobenius_inj K p $ perfect_field.frobenius_pth_root' _,
-  right_inv := perfect_field.frobenius_pth_root',
-  .. frobenius K p }
+/-- Frobenius automorphism of a perfect ring. -/
+def frobenius_equiv [perfect_ring R p] : R ≃+* R :=
+{ inv_fun := perfect_ring.pth_root' p,
+  left_inv := perfect_ring.pth_root_frobenius',
+  right_inv := perfect_ring.frobenius_pth_root',
+  .. frobenius R p }
 
-/-- `p`-th root of a number in a `perfect_field` as a `ring_hom`. -/
-def pth_root [perfect_field K p] : K →+* K :=
-(frobenius_equiv K p).symm.to_ring_hom
+/-- `p`-th root of an element in a `perfect_ring` as a `ring_hom`. -/
+def pth_root [perfect_ring R p] : R →+* R :=
+(frobenius_equiv R p).symm
 
 end defs
 
 section
 
-variables {K : Type u} [field K] {L : Type v} [field L] (f : K →* L) (g : K →+* L)
-  {p : ℕ} [fact p.prime] [char_p K p] [perfect_field K p] [char_p L p] [perfect_field L p]
+variables {R : Type u} [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
+  {p : ℕ} [fact p.prime] [char_p R p] [perfect_ring R p] [char_p S p] [perfect_ring S p]
 
-@[simp] lemma coe_frobenius_equiv : ⇑(frobenius_equiv K p) = frobenius K p := rfl
+@[simp] lemma coe_frobenius_equiv : ⇑(frobenius_equiv R p) = frobenius R p := rfl
 
-@[simp] lemma  coe_frobenius_equiv_symm : ⇑(frobenius_equiv K p).symm = pth_root K p := rfl
+@[simp] lemma coe_frobenius_equiv_symm : ⇑(frobenius_equiv R p).symm = pth_root R p := rfl
 
-@[simp] theorem frobenius_pth_root (x : K) : frobenius K p (pth_root K p x) = x :=
-(frobenius_equiv K p).apply_symm_apply x
+@[simp] theorem frobenius_pth_root (x : R) : frobenius R p (pth_root R p x) = x :=
+(frobenius_equiv R p).apply_symm_apply x
 
-@[simp] theorem pth_root_frobenius (x : K) : pth_root K p (frobenius K p x) = x :=
-(frobenius_equiv K p).symm_apply_apply x
+@[simp] theorem pth_root_pow_p (x : R) : pth_root R p x ^ p = x :=
+frobenius_pth_root x
 
-theorem left_inverse_pth_root_frobenius : left_inverse (pth_root K p) (frobenius K p) :=
+@[simp] theorem pth_root_frobenius (x : R) : pth_root R p (frobenius R p x) = x :=
+(frobenius_equiv R p).symm_apply_apply x
+
+@[simp] theorem pth_root_pow_p' (x : R) : pth_root R p (x ^ p) = x :=
+pth_root_frobenius x
+
+theorem left_inverse_pth_root_frobenius : left_inverse (pth_root R p) (frobenius R p) :=
 pth_root_frobenius
 
-theorem eq_pth_root_iff {x y : K} : x = pth_root K p y ↔ frobenius K p x = y :=
-(frobenius_equiv K p).to_equiv.eq_symm_apply
+theorem right_inverse_pth_root_frobenius : function.right_inverse (pth_root R p) (frobenius R p) :=
+frobenius_pth_root
 
-theorem pth_root_eq_iff {x y : K} : pth_root K p x = y ↔ x = frobenius K p y :=
-(frobenius_equiv K p).to_equiv.symm_apply_eq
+theorem commute_frobenius_pth_root : function.commute (frobenius R p) (pth_root R p) :=
+λ x, (frobenius_pth_root x).trans (pth_root_frobenius x).symm
 
-theorem monoid_hom.map_pth_root (x : K) : f (pth_root K p x) = pth_root L p (f x) :=
+theorem eq_pth_root_iff {x y : R} : x = pth_root R p y ↔ frobenius R p x = y :=
+(frobenius_equiv R p).to_equiv.eq_symm_apply
+
+theorem pth_root_eq_iff {x y : R} : pth_root R p x = y ↔ x = frobenius R p y :=
+(frobenius_equiv R p).to_equiv.symm_apply_eq
+
+theorem monoid_hom.map_pth_root (x : R) : f (pth_root R p x) = pth_root S p (f x) :=
 eq_pth_root_iff.2 $ by rw [← f.map_frobenius, frobenius_pth_root]
 
-theorem monoid_hom.map_iterate_pth_root (x : K) (n : ℕ) :
-  f (pth_root K p^[n] x) = (pth_root L p^[n] (f x)) :=
+theorem monoid_hom.map_iterate_pth_root (x : R) (n : ℕ) :
+  f (pth_root R p^[n] x) = (pth_root S p^[n] (f x)) :=
 semiconj.iterate_right f.map_pth_root n x
 
-theorem ring_hom.map_pth_root (x : K) :
-  g (pth_root K p x) = pth_root L p (g x) :=
+theorem ring_hom.map_pth_root (x : R) :
+  g (pth_root R p x) = pth_root S p (g x) :=
 g.to_monoid_hom.map_pth_root x
 
-theorem ring_hom.map_iterate_pth_root (x : K) (n : ℕ) :
-  g (pth_root K p^[n] x) = (pth_root L p^[n] (g x)) :=
+theorem ring_hom.map_iterate_pth_root (x : R) (n : ℕ) :
+  g (pth_root R p^[n] x) = (pth_root S p^[n] (g x)) :=
 g.to_monoid_hom.map_iterate_pth_root x n
+
+variables (p)
+lemma injective_pow_p {x y : R} (hxy : x ^ p = y ^ p) : x = y :=
+left_inverse_pth_root_frobenius.injective hxy
 
 end
 
@@ -84,10 +100,8 @@ section
 variables (K : Type u) [comm_ring K] (p : ℕ) [fact p.prime] [char_p K p]
 
 /-- `perfect_closure K p` is the quotient by this relation. -/
-inductive perfect_closure.r : (ℕ × K) → (ℕ × K) → Prop
+@[mk_iff] inductive perfect_closure.r : (ℕ × K) → (ℕ × K) → Prop
 | intro : ∀ n x, perfect_closure.r (n, x) (n+1, frobenius K p x)
-
-mk_iff_of_inductive_prop perfect_closure.r perfect_closure.r_iff
 
 /-- The perfect closure is the smallest extension that makes frobenius surjective. -/
 def perfect_closure : Type u := quot (perfect_closure.r K p)
@@ -209,6 +223,7 @@ end)⟩
 instance : has_zero (perfect_closure K p) := ⟨mk K p (0, 0)⟩
 
 lemma zero_def : (0 : perfect_closure K p) = mk K p (0, 0) := rfl
+@[simp] lemma mk_zero_zero : mk K p (0, 0) = 0 := rfl
 
 theorem mk_zero (n : ℕ) : mk K p (n, 0) = 0 :=
 by induction n with n ih; [refl, rw ← ih]; symmetry; apply quot.sound;
@@ -219,22 +234,26 @@ theorem r.sound (m n : ℕ) (x y : K) (H : frobenius K p^[m] x = y) :
 by subst H; induction m with m ih; [simp only [zero_add, iterate_zero_apply],
   rw [ih, nat.succ_add, iterate_succ']]; apply quot.sound; apply r.intro
 
-instance : comm_ring (perfect_closure K p) :=
+instance : add_comm_group (perfect_closure K p) :=
 { add_assoc := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, congr_arg (quot.mk _) $
-    by simp only [add_assoc, ring_hom.iterate_map_add,
-      ← iterate_add_apply, add_comm, add_left_comm],
+    by simp only [ring_hom.iterate_map_add, ← iterate_add_apply, add_assoc, add_comm s _],
   zero := 0,
   zero_add := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, zero_add]),
   add_zero := λ e, quot.induction_on e (λ ⟨n, x⟩, congr_arg (quot.mk _) $
     by simp only [ring_hom.iterate_map_zero, iterate_zero_apply, add_zero]),
-  add_left_neg := λ e, quot.induction_on e (λ ⟨n, x⟩,
+  sub_eq_add_neg := λ a b, rfl,
+  add_left_neg := λ e, by exact quot.induction_on e (λ ⟨n, x⟩,
     by simp only [quot_mk_eq_mk, neg_mk, mk_add_mk,
       ring_hom.iterate_map_neg, add_left_neg, mk_zero]),
   add_comm := λ e f, quot.induction_on e (λ ⟨m, x⟩, quot.induction_on f (λ ⟨n, y⟩,
     congr_arg (quot.mk _) $ by simp only [add_comm])),
-  left_distrib := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
+  .. (infer_instance : has_add (perfect_closure K p)),
+  .. (infer_instance : has_neg (perfect_closure K p)) }
+
+instance : comm_ring (perfect_closure K p) :=
+{ left_distrib := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, show quot.mk _ _ = quot.mk _ _,
     by simp only [add_assoc, add_comm, add_left_comm]; apply r.sound;
     simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
@@ -244,8 +263,8 @@ instance : comm_ring (perfect_closure K p) :=
     by simp only [add_assoc, add_comm _ s, add_left_comm _ s]; apply r.sound;
     simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
       ← iterate_add_apply, add_mul, add_comm, add_left_comm],
-  .. (infer_instance : has_add (perfect_closure K p)),
-  .. (infer_instance : has_neg (perfect_closure K p)),
+  .. perfect_closure.add_comm_group K p,
+  .. add_monoid_with_one.unary,
   .. (infer_instance : comm_monoid (perfect_closure K p)) }
 
 theorem eq_iff' (x y : ℕ × K) : mk K p x = mk K p y ↔
@@ -280,7 +299,7 @@ end
 theorem nat_cast (n x : ℕ) : (x : perfect_closure K p) = mk K p (n, x) :=
 begin
   induction n with n ih,
-  { induction x with x ih, {refl},
+  { induction x with x ih, {simp},
     rw [nat.cast_succ, nat.cast_succ, ih], refl },
   rw ih, apply quot.sound,
   conv {congr, skip, skip, rw ← frobenius_nat_cast K p x},
@@ -314,12 +333,11 @@ begin
   { apply this },
   intro p, induction p with p ih,
   case nat.zero { apply r.sound, rw [(frobenius _ _).iterate_map_one, pow_zero] },
-  case nat.succ {
-    rw [pow_succ, ih],
+  case nat.succ
+  { rw [pow_succ, ih],
     symmetry,
     apply r.sound,
-    simp only [pow_succ, (frobenius _ _).iterate_map_mul]
-  }
+    simp only [pow_succ, (frobenius _ _).iterate_map_mul] }
 end
 
 /-- Embedding of `K` into `perfect_closure K p` -/
@@ -334,7 +352,7 @@ lemma of_apply (x : K) : of K p x = mk _ _ (0, x) := rfl
 
 end ring
 
-theorem eq_iff [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
+theorem eq_iff [comm_ring K] [is_domain K] (p : ℕ) [fact p.prime] [char_p K p]
   (x y : ℕ × K) : quot.mk (r K p) x = quot.mk (r K p) y ↔
     (frobenius K p^[y.1] x.2) = (frobenius K p^[x.1] y.2) :=
 (eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, (frobenius_inj K p).iterate z $
@@ -347,11 +365,11 @@ variables [field K] (p : ℕ) [fact p.prime] [char_p K p]
 
 instance : has_inv (perfect_closure K p) :=
 ⟨quot.lift (λ x:ℕ×K, quot.mk (r K p) (x.1, x.2⁻¹)) (λ x y (H : r K p x y), match x, y, H with
-| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow', apply r.intro }
+| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow, apply r.intro }
 end)⟩
 
 instance : field (perfect_closure K p) :=
-{ zero_ne_one := λ H, zero_ne_one ((eq_iff _ _ _ _).1 H),
+{ exists_pair_ne := ⟨0, 1, λ H, zero_ne_one ((eq_iff _ _ _ _).1 H)⟩,
   mul_inv_cancel := λ e, induction_on e $ λ ⟨m, x⟩ H,
     have _ := mt (eq_iff _ _ _ _).2 H, (eq_iff _ _ _ _).2
       (by simp only [(frobenius _ _).iterate_map_one, (frobenius K p).iterate_map_zero,
@@ -362,12 +380,14 @@ instance : field (perfect_closure K p) :=
   .. (infer_instance : comm_ring (perfect_closure K p)) }
 
 
-instance : perfect_field (perfect_closure K p) p :=
+instance : perfect_ring (perfect_closure K p) p :=
 { pth_root' := λ e, lift_on e (λ x, mk K p (x.1 + 1, x.2)) (λ x y H,
     match x, y, H with
     | _, _, r.intro n x := quot.sound (r.intro _ _)
     end),
   frobenius_pth_root' := λ e, induction_on e (λ ⟨n, x⟩,
+    by { simp only [lift_on_mk, frobenius_mk], exact (quot.sound $ r.intro _ _).symm }),
+  pth_root_frobenius' := λ e, induction_on e (λ ⟨n, x⟩,
     by { simp only [lift_on_mk, frobenius_mk], exact (quot.sound $ r.intro _ _).symm }) }
 
 theorem eq_pth_root (x : ℕ × K) :
@@ -378,9 +398,9 @@ begin
   rw [iterate_succ_apply', ← ih]; refl
 end
 
-/-- Given a field `K` of characteristic `p` and a perfect field `L` of the same characteristic,
+/-- Given a field `K` of characteristic `p` and a perfect ring `L` of the same characteristic,
 any homomorphism `K →+* L` can be lifted to `perfect_closure K p`. -/
-def lift (L : Type v) [field L] [char_p L p] [perfect_field L p] :
+def lift (L : Type v) [comm_semiring L] [char_p L p] [perfect_ring L p] :
   (K →+* L) ≃ (perfect_closure K p →+* L) :=
 begin
   have := left_inverse_pth_root_frobenius.iterate,
@@ -410,3 +430,11 @@ end
 end field
 
 end perfect_closure
+
+/-- A reduced ring with prime characteristic and surjective frobenius map is perfect. -/
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
+  [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
+  perfect_ring k p :=
+{ pth_root' := function.surj_inv h,
+  frobenius_pth_root' := function.surj_inv_eq h,
+  pth_root_frobenius' := λ x, frobenius_inj _ _ $ function.surj_inv_eq h _ }

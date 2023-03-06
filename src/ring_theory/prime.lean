@@ -4,13 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.associated
-import algebra.big_operators
+import algebra.big_operators.basic
 /-!
 # Prime elements in rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file contains lemmas about prime elements of commutative rings.
 -/
 
-variables {R : Type*} [integral_domain R]
+section cancel_comm_monoid_with_zero
+
+variables {R : Type*} [cancel_comm_monoid_with_zero R]
 open finset
 
 open_locale big_operators
@@ -36,12 +41,12 @@ begin
     have hit : i ∉ t, from λ hit, his (htus ▸ mem_union_left _ hit),
     have hiu : i ∉ u, from λ hiu, his (htus ▸ mem_union_right _ hiu),
     obtain ⟨d, rfl⟩ | ⟨d, rfl⟩ : p i ∣ b ∨ p i ∣ c,
-      from hpi.div_or_div ⟨a, by rw [← hbc, mul_comm]⟩,
-    { rw [mul_assoc, mul_comm a, domain.mul_right_inj hpi.ne_zero] at hbc,
+      from hpi.dvd_or_dvd ⟨a, by rw [← hbc, mul_comm]⟩,
+    { rw [mul_assoc, mul_comm a, mul_right_inj' hpi.ne_zero] at hbc,
       exact ⟨insert i t, u, d, c, by rw [insert_union, htus],
         disjoint_insert_left.2 ⟨hiu, htu⟩,
           by simp [hbc, prod_insert hit, mul_assoc, mul_comm, mul_left_comm]⟩ },
-    { rw [← mul_assoc, mul_right_comm b, domain.mul_left_inj hpi.ne_zero] at hbc,
+    { rw [← mul_assoc, mul_right_comm b, mul_left_inj' hpi.ne_zero] at hbc,
       exact ⟨t, insert i u, b, d, by rw [union_insert, htus],
         disjoint_insert_right.2 ⟨hit, htu⟩,
           by simp [← hbc, prod_insert hiu, mul_assoc, mul_comm, mul_left_comm]⟩ } }
@@ -62,3 +67,24 @@ begin
     ⟨t, u, b, c, htus, htu, rfl, rfl, rfl⟩,
   exact ⟨t.card, u.card, b, c, by rw [← card_disjoint_union htu, htus, card_range], by simp⟩,
 end
+
+end cancel_comm_monoid_with_zero
+
+section comm_ring
+
+variables {α : Type*} [comm_ring α]
+
+lemma prime.neg {p : α} (hp : prime p) : prime (-p) :=
+begin
+  obtain ⟨h1, h2, h3⟩ := hp,
+  exact ⟨neg_ne_zero.mpr h1, by rwa is_unit.neg_iff, by simpa [neg_dvd] using h3⟩
+end
+
+lemma prime.abs [linear_order α] {p : α} (hp : prime p) : prime (abs p) :=
+begin
+  obtain h|h := abs_choice p; rw h,
+  { exact hp },
+  { exact hp.neg }
+end
+
+end comm_ring

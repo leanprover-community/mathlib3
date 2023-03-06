@@ -6,7 +6,33 @@ Authors: Sean Leather, Mario Carneiro
 import data.list.sigma
 
 /-!
-# Association lists
+# Association Lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file defines association lists. An association list is a list where every element consists of
+a key and a value, and no two entries have the same key. The type of the value is allowed to be
+dependent on the type of the key.
+
+This type dependence is implemented using `sigma`: The elements of the list are of type `sigma β`,
+for some type index `β`.
+
+## Main definitions
+
+Association lists are represented by the `alist` structure. This file defines this structure and
+provides ways to access, modify, and combine `alist`s.
+
+* `alist.keys` returns a list of keys of the alist.
+* `alist.has_mem` returns membership in the set of keys.
+* `alist.erase` removes a certain key.
+* `alist.insert` adds a key-value mapping to the list.
+* `alist.union` combines two association lists.
+
+## References
+
+* <https://en.wikipedia.org/wiki/Association_list>
+
 -/
 
 universes u v w
@@ -20,9 +46,11 @@ structure alist (β : α → Type v) : Type (max u v) :=
 (entries : list (sigma β))
 (nodupkeys : entries.nodupkeys)
 
+/-- Given `l : list (sigma β)`, create a term of type `alist β` by removing
+entries with duplicate keys. -/
 def list.to_alist [decidable_eq α] {β : α → Type v} (l : list (sigma β)) : alist β :=
 { entries := _,
-  nodupkeys := nodupkeys_erase_dupkeys l }
+  nodupkeys := nodupkeys_dedupkeys l }
 
 namespace alist
 
@@ -35,14 +63,14 @@ lemma ext_iff {s t : alist β} : s = t ↔ s.entries = t.entries :=
 instance [decidable_eq α] [∀ a, decidable_eq (β a)] : decidable_eq (alist β) :=
 λ xs ys, by rw ext_iff; apply_instance
 
-/- keys -/
+/-! ### keys -/
 
 /-- The list of keys of an association list. -/
 def keys (s : alist β) : list α := s.entries.keys
 
 theorem keys_nodup (s : alist β) : s.keys.nodup := s.nodupkeys
 
-/- mem -/
+/-! ### mem -/
 
 /-- The predicate `a ∈ s` means that `s` has a value associated to the key `a`. -/
 instance : has_mem α (alist β) := ⟨λ a s, a ∈ s.keys⟩
@@ -52,21 +80,21 @@ theorem mem_keys {a : α} {s : alist β} : a ∈ s ↔ a ∈ s.keys := iff.rfl
 theorem mem_of_perm {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) : a ∈ s₁ ↔ a ∈ s₂ :=
 (p.map sigma.fst).mem_iff
 
-/- empty -/
+/-! ### empty -/
 
 /-- The empty association list. -/
 instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
 
 instance : inhabited (alist β) := ⟨∅⟩
 
-theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
+@[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
 not_mem_nil a
 
 @[simp] theorem empty_entries : (∅ : alist β).entries = [] := rfl
 
 @[simp] theorem keys_empty : (∅ : alist β).keys = [] := rfl
 
-/- singleton -/
+/-! ### singleton -/
 
 /-- The singleton association list. -/
 def singleton (a : α) (b : β a) : alist β :=
@@ -77,9 +105,11 @@ def singleton (a : α) (b : β a) : alist β :=
 
 @[simp] theorem keys_singleton (a : α) (b : β a) : (singleton a b).keys = [a] := rfl
 
-variables [decidable_eq α]
+/-! ### lookup -/
 
-/- lookup -/
+section
+
+variables [decidable_eq α]
 
 /-- Look up the value associated to a key in an association list. -/
 def lookup (a : α) (s : alist β) : option (β a) :=
@@ -95,6 +125,10 @@ theorem lookup_eq_none {a : α} {s : alist β} :
   lookup a s = none ↔ a ∉ s :=
 lookup_eq_none
 
+theorem mem_lookup_iff {a : α} {b : β a} {s : alist β} :
+  b ∈ lookup a s ↔ sigma.mk a b ∈ s.entries :=
+mem_lookup_iff s.nodupkeys
+
 theorem perm_lookup {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   s₁.lookup a = s₂.lookup a :=
 perm_lookup _ s₁.nodupkeys s₂.nodupkeys p
@@ -102,7 +136,7 @@ perm_lookup _ s₁.nodupkeys s₂.nodupkeys p
 instance (a : α) (s : alist β) : decidable (a ∈ s) :=
 decidable_of_iff _ lookup_is_some
 
-/- replace -/
+/-! ### replace -/
 
 /-- Replace a key with a given value in an association list.
   If the key is not present it does nothing. -/
@@ -121,22 +155,25 @@ theorem perm_replace {a : α} {b : β a} {s₁ s₂ : alist β} :
   s₁.entries ~ s₂.entries → (replace a b s₁).entries ~ (replace a b s₂).entries :=
 perm.kreplace s₁.nodupkeys
 
+end
+
 /-- Fold a function over the key-value pairs in the map. -/
 def foldl {δ : Type w} (f : δ → Π a, β a → δ) (d : δ) (m : alist β) : δ :=
 m.entries.foldl (λ r a, f r a.1 a.2) d
 
-/- erase -/
+/-! ### erase -/
 
-/-- Erase a key from the map. If the key is not present it does nothing. -/
-def erase (a : α) (s : alist β) : alist β :=
-⟨kerase a s.entries, kerase_nodupkeys _ s.nodupkeys⟩
+section
 
-@[simp] theorem keys_erase (a : α) (s : alist β) :
-  (erase a s).keys = s.keys.erase a :=
-by simp only [erase, keys, keys_kerase]
+variables [decidable_eq α]
+
+/-- Erase a key from the map. If the key is not present, do nothing. -/
+def erase (a : α) (s : alist β) : alist β := ⟨s.entries.kerase a, s.nodupkeys.kerase a⟩
+
+@[simp] lemma keys_erase (a : α) (s : alist β) : (erase a s).keys = s.keys.erase a := keys_kerase
 
 @[simp] theorem mem_erase {a a' : α} {s : alist β} : a' ∈ erase a s ↔ a' ≠ a ∧ a' ∈ s :=
-by rw [mem_keys, keys_erase, mem_erase_iff_of_nodup s.keys_nodup, ←mem_keys]
+by rw [mem_keys, keys_erase, s.keys_nodup.mem_erase_iff, ←mem_keys]
 
 theorem perm_erase {a : α} {s₁ s₂ : alist β} :
   s₁.entries ~ s₂.entries → (erase a s₁).entries ~ (erase a s₂).entries :=
@@ -153,7 +190,7 @@ theorem erase_erase (a a' : α) (s : alist β) :
   (s.erase a).erase a' = (s.erase a').erase a :=
 ext $ kerase_kerase
 
-/- insert -/
+/-! ### insert -/
 
 /-- Insert a key-value pair into an association list and erase any existing pair
   with the same key. -/
@@ -167,6 +204,13 @@ rfl
 theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
 by rw [insert_entries, kerase_of_not_mem_keys h]
+
+-- Todo: rename to `insert_of_not_mem`.
+theorem insert_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
+  insert a b s = ⟨⟨a, b⟩ :: s.entries, nodupkeys_cons.2 ⟨h, s.2⟩⟩ :=
+ext $ insert_entries_of_neg h
+
+@[simp] theorem insert_empty (a) (b : β a) : insert a b ∅ = singleton a b := rfl
 
 @[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :
   a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=
@@ -188,7 +232,7 @@ by simp only [lookup, insert, lookup_kinsert]
 lookup_kinsert_ne h
 
 @[simp] theorem lookup_to_alist {a} (s : list (sigma β)) : lookup a s.to_alist = s.lookup a :=
-by rw [list.to_alist,lookup,lookup_erase_dupkeys]
+by rw [list.to_alist,lookup,lookup_dedupkeys]
 
 @[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) :
   (s.insert a b).insert a b' = s.insert a b' :=
@@ -206,17 +250,61 @@ ext $ by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.s
   heq_iff_eq, eq_self_iff_true]
 
 @[simp] theorem entries_to_alist (xs : list (sigma β)) :
-  (list.to_alist xs).entries = erase_dupkeys xs := rfl
+  (list.to_alist xs).entries = dedupkeys xs := rfl
 
 theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) :
   list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl
 
-/- extract -/
+theorem mk_cons_eq_insert (c : sigma β) (l : list (sigma β)) (h : (c :: l).nodupkeys) :
+  (⟨c :: l, h⟩ : alist β) = insert c.1 c.2 ⟨l, nodupkeys_of_nodupkeys_cons h⟩ :=
+by simpa [insert] using (kerase_of_not_mem_keys $ not_mem_keys_of_nodupkeys_cons h).symm
+
+/-- Recursion on an `alist`, using `insert`. Use as `induction l using alist.insert_rec`. -/
+@[elab_as_eliminator] def insert_rec {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b)) : Π l : alist β, C l
+| ⟨[], _⟩     := H0
+| ⟨c :: l, h⟩ := begin
+  rw mk_cons_eq_insert,
+  refine IH _ _ _ _ (insert_rec _),
+  exact not_mem_keys_of_nodupkeys_cons h
+end
+
+-- Test that the `induction` tactic works on `insert_rec`.
+example (l : alist β) : true := by induction l using alist.insert_rec; trivial
+
+@[simp] theorem insert_rec_empty {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b)) :
+  @insert_rec α β _ C H0 IH ∅ = H0 :=
+by { change @insert_rec α β _ C H0 IH ⟨[], _⟩ = H0, rw insert_rec }
+
+theorem insert_rec_insert {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b))
+  {c : sigma β} {l : alist β} (h : c.1 ∉ l) :
+  @insert_rec α β _ C H0 IH (l.insert c.1 c.2) = IH c.1 c.2 l h (@insert_rec α β _ C H0 IH l) :=
+begin
+  cases l with l hl,
+  suffices : @insert_rec α β _ C H0 IH ⟨c :: l, nodupkeys_cons.2 ⟨h, hl⟩⟩ ==
+    IH c.1 c.2 ⟨l, hl⟩ h (@insert_rec α β _ C H0 IH ⟨l, hl⟩),
+  { cases c,
+    apply eq_of_heq,
+    convert this;
+      rw insert_of_neg h },
+  rw insert_rec,
+  apply cast_heq
+end
+
+theorem recursion_insert_mk {C : alist β → Sort*} (H0 : C ∅)
+  (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b))
+  {a : α} (b : β a) {l : alist β} (h : a ∉ l) :
+  @insert_rec α β _ C H0 IH (l.insert a b) = IH a b l h (@insert_rec α β _ C H0 IH l) :=
+@insert_rec_insert α β _ C H0 IH ⟨a, b⟩ l h
+
+/-! ### extract -/
 
 /-- Erase a key from the map, and return the corresponding value, if found. -/
 def extract (a : α) (s : alist β) : option (β a) × alist β :=
 have (kextract a s.entries).2.nodupkeys,
-by rw [kextract_eq_lookup_kerase]; exact kerase_nodupkeys _ s.nodupkeys,
+by rw [kextract_eq_lookup_kerase]; exact s.nodupkeys.kerase _,
 match kextract a s.entries, this with
 | (b, l), h := (b, ⟨l, h⟩)
 end
@@ -225,13 +313,13 @@ end
   extract a s = (lookup a s, erase a s) :=
 by simp [extract]; split; refl
 
-/- union -/
+/-! ### union -/
 
 /-- `s₁ ∪ s₂` is the key-based union of two association lists. It is
 left-biased: if there exists an `a ∈ s₁`, `lookup a (s₁ ∪ s₂) = lookup a s₁`.
 -/
 def union (s₁ s₂ : alist β) : alist β :=
-⟨kunion s₁.entries s₂.entries, kunion_nodupkeys s₁.nodupkeys s₂.nodupkeys⟩
+⟨s₁.entries.kunion s₂.entries, s₁.nodupkeys.kunion s₂.nodupkeys⟩
 
 instance : has_union (alist β) := ⟨union⟩
 
@@ -281,11 +369,15 @@ theorem union_assoc {s₁ s₂ s₃ : alist β} : ((s₁ ∪ s₂) ∪ s₃).ent
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
 (by simp [decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
 
-/- disjoint -/
+end
+
+/-! ### disjoint -/
 
 /-- Two associative lists are disjoint if they have no common keys. -/
-def disjoint (s₁ s₂ : alist β) :=
+def disjoint (s₁ s₂ : alist β) : Prop :=
 ∀ k ∈ s₁.keys, ¬ k ∈ s₂.keys
+
+variables [decidable_eq α]
 
 theorem union_comm_of_disjoint {s₁ s₂ : alist β} (h : disjoint s₁ s₂) :
   (s₁ ∪ s₂).entries ~ (s₂ ∪ s₁).entries :=

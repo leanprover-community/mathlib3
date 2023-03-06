@@ -1,17 +1,20 @@
 /-
 Copyright (c) 2019 Patrick Massot All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Patrick Massot, Simon Hudon
+Authors: Patrick Massot, Simon Hudon
+-/
+import tactic.core
+import logic.basic
 
-A tactic pushing negations into an expression
+/-!
+# A tactic pushing negations into an expression
 -/
 
-
-
-import tactic.interactive
-import algebra.order
-
 open tactic expr
+
+/- Enable the option `trace.push_neg.use_distrib` in order to have `¬ (p ∧ q)` normalized to
+`¬ p ∨ ¬ q`, rather than the default `p → ¬ q`. -/
+declare_trace push_neg.use_distrib
 
 namespace push_neg
 section
@@ -23,7 +26,8 @@ variable  (s : α → Prop)
 
 local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
-theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
+theorem not_and_eq : (¬ (p ∧ q)) = (p → ¬ q) := propext not_and
+theorem not_and_distrib_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
 theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall
 theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists
@@ -51,8 +55,13 @@ do e ← whnf_reducible e,
       match ne with
       | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
-      | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
-                            return (some (`(¬ %%a ∨ ¬ %%b), pr))
+      | `(%%a ∧ %%b)  := do distrib ← get_bool_option `trace.push_neg.use_distrib ff,
+                            if distrib then do
+                              pr ← mk_app ``not_and_distrib_eq [a, b],
+                              return (some (`(¬ (%%a : Prop) ∨ ¬ %%b), pr))
+                            else do
+                              pr ← mk_app ``not_and_eq [a, b],
+                              return (some (`((%%a : Prop) → ¬ %%b), pr))
       | `(%%a ∨ %%b)  := do pr ← mk_app ``not_or_eq [a, b],
                             return (some (`(¬ %%a ∧ ¬ %%b), pr))
       | `(%%a ≤ %%b)  := do e ← to_expr ``(%%b < %%a),
@@ -117,8 +126,8 @@ end push_neg
 open interactive (parse loc.ns loc.wildcard)
 open interactive.types (location texpr)
 open lean.parser (tk ident many) interactive.loc
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.optional) `?`:9001 := optional
+local postfix (name := parser.many) *:9001 := many
 open push_neg
 
 /--
@@ -144,13 +153,16 @@ at every assumption and the goal using `push_neg at *` or at selected assumption
 using say `push_neg at h h' ⊢` as usual.
 -/
 meta def tactic.interactive.push_neg : parse location → tactic unit
-| (loc.ns loc_l) := loc_l.mmap'
-                      (λ l, match l with
-                            | some h := do push_neg_at_hyp h,
-                                            try `[simp only [push_neg.not_eq] at h { eta := ff }]
-                            | none   := do push_neg_at_goal,
-                                            try `[simp only [push_neg.not_eq] { eta := ff }]
-                            end)
+| (loc.ns loc_l) :=
+  loc_l.mmap'
+    (λ l, match l with
+          | some h := do push_neg_at_hyp h,
+                          try $ interactive.simp_core { eta := ff } failed tt
+                                 [simp_arg_type.expr ``(push_neg.not_eq)] []
+                                 (interactive.loc.ns [some h])
+          | none   := do push_neg_at_goal,
+                          try `[simp only [push_neg.not_eq] { eta := ff }]
+          end)
 | loc.wildcard := do
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
@@ -167,7 +179,7 @@ lemma imp_of_not_imp_not (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) :=
 
 /-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
 meta def name_with_opt : lean.parser (name × option name) :=
-prod.mk <$> ident <*> (some <$> (tk "with" >> ident) <|> return none)
+prod.mk <$> ident <*> (some <$> (tk "with" *> ident) <|> return none)
 
 /--
 Transforms the goal into its contrapositive.
@@ -179,11 +191,15 @@ Transforms the goal into its contrapositive.
 * `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
 * `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 -/
-meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_with_opt? → tactic unit
-| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
+meta def tactic.interactive.contrapose (push : parse (tk "!" )?) :
+  parse name_with_opt? → tactic unit
+| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >>
+  intro (h'.get_or_else h) >> skip
 | none :=
-  do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
-  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",
+  do `(%%P → %%Q) ← target | fail
+    "The goal is not an implication, and you didn't specify an assumption",
+  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail
+    "contrapose only applies to nondependent arrows between props",
   apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))
 
@@ -192,3 +208,56 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.contrapose],
   tags       := ["logic"] }
+
+
+/-!
+## `#push_neg` command
+A user command to run `push_neg`. Mostly copied from the `#norm_num` and `#simp` commands.
+-/
+
+namespace tactic
+
+open lean.parser
+open interactive.types
+setup_tactic_parser
+
+/--
+The syntax is `#push_neg e`, where `e` is an expression,
+which will print the `push_neg` form of `e`.
+
+`#push_neg` understands local variables, so you can use them to
+introduce parameters.
+-/
+@[user_command] meta def push_neg_cmd (_ : parse $ tk "#push_neg") : lean.parser unit :=
+do
+  e ← texpr,
+
+  /- Synthesize a `tactic_state` including local variables as hypotheses under which
+     `normalize_negations` may be safely called with expected behaviour given the `variables` in the
+     environment. -/
+  (ts, _) ← synthesize_tactic_state_with_variables_as_hyps [e],
+
+  /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
+  result ← lean.parser.of_tactic $ λ _, do
+  { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+       hypotheses added to the `ts : tactic_state` which we are using. -/
+    e ← to_expr e,
+
+    /- Run `push_neg` on the expression. -/
+    (e_neg, _) ← normalize_negations e,
+
+    /- Run a `simp` to change any `¬ a = b` to `a ≠ b`; report the result, or, if the `simp` fails
+    (because no `¬ a = b` appear in the expression), return what `push_neg` gave. -/
+    prod.fst <$> e_neg.simp { eta := ff } failed tt [] [simp_arg_type.expr ``(push_neg.not_eq)]
+    <|> pure e_neg } ts,
+
+  /- Trace the result. -/
+  trace result
+
+add_tactic_doc
+{ name                     := "#push_neg",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.push_neg_cmd],
+  tags                     := ["logic"] }
+
+end tactic

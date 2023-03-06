@@ -7,7 +7,7 @@ Tests for `finish using [...]`
 -/
 
 import tactic.finish
-import algebra.ordered_ring
+import algebra.order.ring.defs
 
 section list_rev
 open list
@@ -45,7 +45,9 @@ end barber
 
 constant real : Type
 @[instance] constant orreal : ordered_ring real
-@[irreducible] noncomputable instance : has_lt real := by apply_instance -- TODO(Mario): suspicious fix
+
+-- TODO(Mario): suspicious fix
+@[irreducible] noncomputable instance : has_lt real := by apply_instance
 constants (log exp : real → real)
 constant  log_exp_eq : ∀ x, log (exp x) = x
 constant  exp_log_eq : ∀ {x}, x > 0 → exp (log x) = x
@@ -54,4 +56,4 @@ constant  exp_add    : ∀ x y, exp (x + y) = exp x * exp y
 
 theorem log_mul' {x y : real} (hx : x > 0) (hy : y > 0) :
   log (x * y) = log x + log y :=
-by finish using [log_exp_eq, exp_log_eq, exp_add]
+by rw [←log_exp_eq (log x + log y), exp_add, exp_log_eq hx, exp_log_eq hy]

@@ -8,6 +8,9 @@ import order.filter.basic
 /-!
 # Minimum and maximum w.r.t. a filter and on a aet
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 
 This file defines six predicates of the form `is_A_B`, where `A` is `min`, `max`, or `extr`,
@@ -17,7 +20,7 @@ and `B` is `filter` or `on`.
 * `is_max_filter f l a` means that `f x ≤ f a` in some `l`-neighborhood of `a`;
 * `is_extr_filter f l a` means `is_min_filter f l a` or `is_max_filter f l a`.
 
-Similar predicates with `_on` suffix are particular cases for `l = principal s`.
+Similar predicates with `_on` suffix are particular cases for `l = 𝓟 s`.
 
 ## Main statements
 
@@ -32,7 +35,7 @@ Similar predicates with `_on` suffix are particular cases for `l = principal s`.
 
 * `is_*_*.comp_mono` : if `x` is an extremum for `f` and `g` is a monotone function,
   then `x` is an extremum for `g ∘ f`;
-* `is_*_*.comp_antimono` : similarly for the case of monotonically decreasing `g`;
+* `is_*_*.comp_antitone` : similarly for the case of antitone `g`;
 * `is_*_*.bicomp_mono` : if `x` is an extremum of the same type for `f` and `g`
   and a binary operation `op` is monotone in both arguments, then `x` is an extremum
   of the same type for `λ x, op (f x) (g x)`.
@@ -63,8 +66,8 @@ Similar predicates with `_on` suffix are particular cases for `l = principal s`.
 
 * Multiplication and division;
 * `is_*_*.bicompl` : if `x` is a minimum for `f`, `y` is a minimum for `g`, and `op` is a monotone
-  binary operation, then `(x, y)` is a minimum for `uncurry (bicompl op f g)`. From this point of view,
-  `is_*_*.bicomp` is a composition
+  binary operation, then `(x, y)` is a minimum for `uncurry (bicompl op f g)`. From this point
+  of view, `is_*_*.bicomp` is a composition
 * It would be nice to have a tactic that specializes `comp_(anti)mono` or `bicomp_mono`
   based on a proof of monotonicity of a given (binary) function. The tactic should maintain a `meta`
   list of known (anti)monotone (binary) functions with their names, as well as a list of special
@@ -76,6 +79,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 open set filter
+open_locale filter
 
 section preorder
 
@@ -95,13 +99,13 @@ def is_max_filter : Prop := ∀ᶠ x in l, f x ≤ f a
 def is_extr_filter : Prop := is_min_filter f l a ∨ is_max_filter f l a
 
 /-- `is_min_on f s a` means that `f a ≤ f x` for all `x ∈ a`. Note that we do not assume `a ∈ s`. -/
-def is_min_on := is_min_filter f (principal s) a
+def is_min_on := is_min_filter f (𝓟 s) a
 
 /-- `is_max_on f s a` means that `f x ≤ f a` for all `x ∈ a`. Note that we do not assume `a ∈ s`. -/
-def is_max_on := is_max_filter f (principal s) a
+def is_max_on := is_max_filter f (𝓟 s) a
 
 /-- `is_extr_on f s a` means `is_min_on f s a` or `is_max_on f s a` -/
-def is_extr_on : Prop := is_extr_filter f (principal s) a
+def is_extr_on : Prop := is_extr_filter f (𝓟 s) a
 
 variables {f s a l} {t : set α} {l' : filter α}
 
@@ -119,6 +123,14 @@ univ_subset_iff.trans eq_univ_iff_forall
 lemma is_max_on_univ_iff : is_max_on f univ a ↔ ∀ x, f x ≤ f a :=
 univ_subset_iff.trans eq_univ_iff_forall
 
+lemma is_min_filter.tendsto_principal_Ici (h : is_min_filter f l a) :
+  tendsto f l (𝓟 $ Ici (f a)) :=
+tendsto_principal.2 h
+
+lemma is_max_filter.tendsto_principal_Iic (h : is_max_filter f l a) :
+  tendsto f l (𝓟 $ Iic (f a)) :=
+tendsto_principal.2 h
+
 /-! ### Conversion to `is_extr_*` -/
 
 lemma is_min_filter.is_extr : is_min_filter f l a → is_extr_filter f l a := or.inl
@@ -132,10 +144,10 @@ lemma is_max_on.is_extr (h : is_max_on f s a) : is_extr_on f s a := h.is_extr
 /-! ### Constant function -/
 
 lemma is_min_filter_const {b : β} : is_min_filter (λ _, b) l a :=
-univ_mem_sets' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_max_filter_const {b : β} : is_max_filter (λ _, b) l a :=
-univ_mem_sets' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_extr_filter_const {b : β} : is_extr_filter (λ _, b) l a := is_min_filter_const.is_extr
 
@@ -147,22 +159,24 @@ lemma is_extr_on_const {b : β} : is_extr_on (λ _, b) s a := is_extr_filter_con
 
 /-! ### Order dual -/
 
-lemma is_min_filter_dual_iff : @is_min_filter α (order_dual β) _ f l a ↔ is_max_filter f l a :=
+open order_dual (to_dual)
+
+lemma is_min_filter_dual_iff : is_min_filter (to_dual ∘ f) l a ↔ is_max_filter f l a :=
 iff.rfl
 
-lemma is_max_filter_dual_iff : @is_max_filter α (order_dual β) _ f l a ↔ is_min_filter f l a :=
+lemma is_max_filter_dual_iff : is_max_filter (to_dual ∘ f) l a ↔ is_min_filter f l a :=
 iff.rfl
 
-lemma is_extr_filter_dual_iff : @is_extr_filter α (order_dual β) _ f l a ↔ is_extr_filter f l a :=
+lemma is_extr_filter_dual_iff : is_extr_filter (to_dual ∘ f) l a ↔ is_extr_filter f l a :=
 or_comm _ _
 
 alias is_min_filter_dual_iff ↔ is_min_filter.undual is_max_filter.dual
 alias is_max_filter_dual_iff ↔ is_max_filter.undual is_min_filter.dual
 alias is_extr_filter_dual_iff ↔ is_extr_filter.undual is_extr_filter.dual
 
-lemma is_min_on_dual_iff : @is_min_on α (order_dual β) _ f s a ↔ is_max_on f s a := iff.rfl
-lemma is_max_on_dual_iff : @is_max_on α (order_dual β) _ f s a ↔ is_min_on f s a := iff.rfl
-lemma is_extr_on_dual_iff : @is_extr_on α (order_dual β) _ f s a ↔ is_extr_on f s a := or_comm _ _
+lemma is_min_on_dual_iff : is_min_on (to_dual ∘ f) s a ↔ is_max_on f s a := iff.rfl
+lemma is_max_on_dual_iff : is_max_on (to_dual ∘ f) s a ↔ is_min_on f s a := iff.rfl
+lemma is_extr_on_dual_iff : is_extr_on (to_dual ∘ f) s a ↔ is_extr_on f s a := or_comm _ _
 
 alias is_min_on_dual_iff ↔ is_min_on.undual is_max_on.dual
 alias is_max_on_dual_iff ↔ is_max_on.undual is_min_on.dual
@@ -211,28 +225,28 @@ hf.on_subset (inter_subset_left s t)
 
 lemma is_min_filter.comp_mono (hf : is_min_filter f l a) {g : β → γ} (hg : monotone g) :
   is_min_filter (g ∘ f) l a :=
-mem_sets_of_superset hf $ λ x hx, hg hx
+mem_of_superset hf $ λ x hx, hg hx
 
 lemma is_max_filter.comp_mono (hf : is_max_filter f l a) {g : β → γ} (hg : monotone g) :
   is_max_filter (g ∘ f) l a :=
-mem_sets_of_superset hf $ λ x hx, hg hx
+mem_of_superset hf $ λ x hx, hg hx
 
 lemma is_extr_filter.comp_mono (hf : is_extr_filter f l a) {g : β → γ} (hg : monotone g) :
   is_extr_filter (g ∘ f) l a :=
 hf.elim (λ hf, (hf.comp_mono hg).is_extr)  (λ hf, (hf.comp_mono hg).is_extr)
 
-lemma is_min_filter.comp_antimono (hf : is_min_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_min_filter.comp_antitone (hf : is_min_filter f l a) {g : β → γ}
+  (hg : antitone g) :
   is_max_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
-lemma is_max_filter.comp_antimono (hf : is_max_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_max_filter.comp_antitone (hf : is_max_filter f l a) {g : β → γ}
+  (hg : antitone g) :
   is_min_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
-lemma is_extr_filter.comp_antimono (hf : is_extr_filter f l a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_extr_filter.comp_antitone (hf : is_extr_filter f l a) {g : β → γ}
+  (hg : antitone g) :
   is_extr_filter (g ∘ f) l a :=
 hf.dual.comp_mono (λ x y h, hg h)
 
@@ -248,30 +262,30 @@ lemma is_extr_on.comp_mono (hf : is_extr_on f s a) {g : β → γ} (hg : monoton
   is_extr_on (g ∘ f) s a :=
 hf.comp_mono hg
 
-lemma is_min_on.comp_antimono (hf : is_min_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_min_on.comp_antitone (hf : is_min_on f s a) {g : β → γ}
+  (hg : antitone g) :
   is_max_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_max_on.comp_antimono (hf : is_max_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_max_on.comp_antitone (hf : is_max_on f s a) {g : β → γ}
+  (hg : antitone g) :
   is_min_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_extr_on.comp_antimono (hf : is_extr_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_extr_on.comp_antitone (hf : is_extr_on f s a) {g : β → γ}
+  (hg : antitone g) :
   is_extr_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
 lemma is_min_filter.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_min_filter f l a) {g : α → γ} (hg : is_min_filter g l a) :
   is_min_filter (λ x, op (f x) (g x)) l a :=
-mem_sets_of_superset (inter_mem_sets hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
+mem_of_superset (inter_mem hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
 
 lemma is_max_filter.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_max_filter f l a) {g : α → γ} (hg : is_max_filter g l a) :
   is_max_filter (λ x, op (f x) (g x)) l a :=
-mem_sets_of_superset (inter_mem_sets hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
+mem_of_superset (inter_mem hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
 
 -- No `extr` version because we need `hf` and `hg` to be of the same kind
 
@@ -297,8 +311,8 @@ lemma is_max_filter.comp_tendsto {g : δ → α} {l' : filter δ} {b : δ} (hf :
   is_max_filter (f ∘ g) l' b :=
 hg hf
 
-lemma is_extr_filter.comp_tendsto {g : δ → α} {l' : filter δ} {b : δ} (hf : is_extr_filter f l (g b))
-  (hg : tendsto g l' l) :
+lemma is_extr_filter.comp_tendsto {g : δ → α} {l' : filter δ} {b : δ}
+  (hf : is_extr_filter f l (g b)) (hg : tendsto g l' l) :
   is_extr_filter (f ∘ g) l' b :=
 hf.elim (λ hf, (hf.comp_tendsto hg).is_extr) (λ hf, (hf.comp_tendsto hg).is_extr)
 
@@ -314,6 +328,21 @@ lemma is_extr_on.on_preimage (g : δ → α) {b : δ} (hf : is_extr_on f s (g b)
   is_extr_on (f ∘ g) (g ⁻¹' s) b :=
 hf.elim (λ hf, (hf.on_preimage g).is_extr) (λ hf, (hf.on_preimage g).is_extr)
 
+lemma is_min_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_min_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_min_on (f ∘ g) t b :=
+λ y hy, by simpa only [mem_set_of_eq, ha, (∘)] using hf (hg hy)
+
+lemma is_max_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_max_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_max_on (f ∘ g) t b :=
+hf.dual.comp_maps_to hg ha
+
+lemma is_extr_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_extr_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_extr_on (f ∘ g) t b :=
+hf.elim (λ h, or.inl $ h.comp_maps_to hg ha) (λ h, or.inr $ h.comp_maps_to hg ha)
+
 end preorder
 
 /-! ### Pointwise addition -/
@@ -324,12 +353,12 @@ variables [ordered_add_comm_monoid β] {f g : α → β} {a : α} {s : set α} {
 lemma is_min_filter.add (hf : is_min_filter f l a) (hg : is_min_filter g l a) :
   is_min_filter (λ x, f x + g x) l a :=
 show is_min_filter (λ x, f x + g x) l a,
-from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add' hx hy) hg
+from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add hx hy) hg
 
 lemma is_max_filter.add (hf : is_max_filter f l a) (hg : is_max_filter g l a) :
   is_max_filter (λ x, f x + g x) l a :=
 show is_max_filter (λ x, f x + g x) l a,
-from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add' hx hy) hg
+from hf.bicomp_mono (λ x x' hx y y' hy, add_le_add hx hy) hg
 
 lemma is_min_on.add (hf : is_min_on f s a) (hg : is_min_on g s a) :
   is_min_on (λ x, f x + g x) s a :=
@@ -348,38 +377,38 @@ section ordered_add_comm_group
 variables [ordered_add_comm_group β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.neg (hf : is_min_filter f l a) : is_max_filter (λ x, -f x) l a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_max_filter.neg (hf : is_max_filter f l a) : is_min_filter (λ x, -f x) l a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_extr_filter.neg (hf : is_extr_filter f l a) : is_extr_filter (λ x, -f x) l a :=
 hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)
 
 lemma is_min_on.neg (hf : is_min_on f s a) : is_max_on (λ x, -f x) s a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_max_on.neg (hf : is_max_on f s a) : is_min_on (λ x, -f x) s a :=
-hf.comp_antimono (λ x y hx, neg_le_neg hx)
+hf.comp_antitone (λ x y hx, neg_le_neg hx)
 
 lemma is_extr_on.neg (hf : is_extr_on f s a) : is_extr_on (λ x, -f x) s a :=
 hf.elim (λ hf, hf.neg.is_extr) (λ hf, hf.neg.is_extr)
 
 lemma is_min_filter.sub (hf : is_min_filter f l a) (hg : is_max_filter g l a) :
   is_min_filter (λ x, f x - g x) l a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma is_max_filter.sub (hf : is_max_filter f l a) (hg : is_min_filter g l a) :
   is_max_filter (λ x, f x - g x) l a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma is_min_on.sub (hf : is_min_on f s a) (hg : is_max_on g s a) :
   is_min_on (λ x, f x - g x) s a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma is_max_on.sub (hf : is_max_on f s a) (hg : is_min_on g s a) :
   is_max_on (λ x, f x - g x) s a :=
-hf.add hg.neg
+by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 end ordered_add_comm_group
 
@@ -435,9 +464,9 @@ end semilattice_inf
 
 /-! ### Pointwise `min`/`max` -/
 
-section decidable_linear_order
+section linear_order
 
-variables [decidable_linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_min_filter.min (hf : is_min_filter f l a) (hg : is_min_filter g l a) :
   is_min_filter (λ x, min (f x) (g x)) l a :=
@@ -475,4 +504,74 @@ lemma is_max_on.max (hf : is_max_on f s a) (hg : is_max_on g s a) :
   is_max_on (λ x, max (f x) (g x)) s a :=
 hf.max hg
 
-end decidable_linear_order
+end linear_order
+
+section eventually
+
+/-! ### Relation with `eventually` comparisons of two functions -/
+
+lemma filter.eventually_le.is_max_filter {α β : Type*} [preorder β] {f g : α → β} {a : α}
+  {l : filter α} (hle : g ≤ᶠ[l] f) (hfga : f a = g a) (h : is_max_filter f l a) :
+  is_max_filter g l a :=
+begin
+  refine hle.mp (h.mono $ λ x hf hgf, _),
+  rw ← hfga,
+  exact le_trans hgf hf
+end
+
+lemma is_max_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
+  (h : is_max_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_max_filter g l a :=
+heq.symm.le.is_max_filter hfga h
+
+lemma filter.eventually_eq.is_max_filter_iff {α β : Type*} [preorder β] {f g : α → β} {a : α}
+  {l : filter α} (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_max_filter f l a ↔ is_max_filter g l a :=
+⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
+
+lemma filter.eventually_le.is_min_filter {α β : Type*} [preorder β] {f g : α → β} {a : α}
+  {l : filter α} (hle : f ≤ᶠ[l] g) (hfga : f a = g a) (h : is_min_filter f l a) :
+  is_min_filter g l a :=
+@filter.eventually_le.is_max_filter _ βᵒᵈ _ _ _ _ _ hle hfga h
+
+lemma is_min_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
+  (h : is_min_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_min_filter g l a :=
+heq.le.is_min_filter hfga h
+
+lemma filter.eventually_eq.is_min_filter_iff {α β : Type*} [preorder β] {f g : α → β} {a : α}
+  {l : filter α} (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_min_filter f l a ↔ is_min_filter g l a :=
+⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
+
+lemma is_extr_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
+  (h : is_extr_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_extr_filter g l a :=
+begin
+  rw is_extr_filter at *,
+  rwa [← heq.is_max_filter_iff hfga, ← heq.is_min_filter_iff hfga],
+end
+
+lemma filter.eventually_eq.is_extr_filter_iff {α β : Type*} [preorder β] {f g : α → β} {a : α}
+  {l : filter α} (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_extr_filter f l a ↔ is_extr_filter g l a :=
+⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
+
+end eventually
+
+/-! ### `is_max_on`/`is_min_on` imply `csupr`/`cinfi` -/
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] {f : β → α} {s : set β} {x₀ : β}
+
+lemma is_max_on.supr_eq (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
+  (⨆ x : s, f x) = f x₀ :=
+begin
+  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
+  exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
+end
+
+lemma is_min_on.infi_eq (hx₀ : x₀ ∈ s) (h : is_min_on f s x₀) : (⨅ x : s, f x) = f x₀ :=
+@is_max_on.supr_eq αᵒᵈ β _ _ _ _ hx₀ h
+
+end conditionally_complete_linear_order

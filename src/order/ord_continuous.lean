@@ -3,19 +3,21 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Johannes Hölzl
 -/
-import order.conditionally_complete_lattice
-import logic.function.iterate
-import order.order_iso
+import order.conditionally_complete_lattice.basic
+import order.rel_iso.basic
 
 /-!
 # Order continuity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a function is *left order continuous* if it sends all least upper bounds
 to least upper bounds. The order dual notion is called *right order continuity*.
 
 For monotone functions `ℝ → ℝ` these notions correspond to the usual left and right continuity.
 
-We prove some basic lemmas (`map_sup`, `map_Sup` etc) and prove that an `order_iso` is both left
+We prove some basic lemmas (`map_sup`, `map_Sup` etc) and prove that an `rel_iso` is both left
 and right order continuous.
 -/
 
@@ -23,7 +25,7 @@ universes u v w x
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
-open set function
+open function order_dual set
 
 /-!
 ### Definitions
@@ -51,8 +53,8 @@ protected lemma id : left_ord_continuous (id : α → α) := λ s x h, by simpa 
 
 variable {α}
 
-protected lemma order_dual (hf : left_ord_continuous f) :
-  @right_ord_continuous (order_dual α) (order_dual β) _ _ f := hf 
+protected lemma order_dual : left_ord_continuous f → right_ord_continuous (to_dual ∘ f ∘ of_dual) :=
+id
 
 lemma map_is_greatest (hf : left_ord_continuous f) {s : set α} {x : α} (h : is_greatest s x):
   is_greatest (f '' s) (f x) :=
@@ -91,23 +93,15 @@ by simp only [lt_iff_le_not_le, hf.le_iff h]
 
 variable (f)
 
-/-- Convert an injective left order continuous function to an order embeddings. -/
-def to_le_order_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop) :=
-⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
-
-/-- Convert an injective left order continuous function to an order embeddings. -/
-def to_lt_order_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ((<) : α → α → Prop) ≼o ((<) : β → β → Prop) :=
-⟨⟨f, h⟩, λ x y, (hf.lt_iff h).symm⟩
+/-- Convert an injective left order continuous function to an order embedding. -/
+def to_order_embedding (hf : left_ord_continuous f) (h : injective f) :
+  α ↪o β :=
+⟨⟨f, h⟩, λ x y, hf.le_iff h⟩
 
 variable {f}
 
-@[simp] lemma coe_to_le_order_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_le_order_embedding f h) = f := rfl
-
-@[simp] lemma coe_to_lt_order_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_lt_order_embedding f h) = f := rfl
+@[simp] lemma coe_to_order_embedding (hf : left_ord_continuous f) (h : injective f) :
+  ⇑(hf.to_order_embedding f h) = f := rfl
 
 end semilattice_sup
 
@@ -156,15 +150,15 @@ protected lemma id : right_ord_continuous (id : α → α) := λ s x h, by simpa
 
 variable {α}
 
-protected lemma order_dual (hf : right_ord_continuous f) :
-  @left_ord_continuous (order_dual α) (order_dual β) _ _ f := hf 
+protected lemma order_dual : right_ord_continuous f → left_ord_continuous (to_dual ∘ f ∘ of_dual) :=
+id
 
 lemma map_is_least (hf : right_ord_continuous f) {s : set α} {x : α} (h : is_least s x):
   is_least (f '' s) (f x) :=
 hf.order_dual.map_is_greatest h
 
 lemma mono (hf : right_ord_continuous f) : monotone f :=
-hf.order_dual.mono.order_dual
+hf.order_dual.mono.dual
 
 lemma comp (hg : right_ord_continuous g) (hf : right_ord_continuous f) :
   right_ord_continuous (g ∘ f) :=
@@ -194,23 +188,14 @@ hf.order_dual.lt_iff h
 
 variable (f)
 
-/-- Convert an injective left order continuous function to an order embeddings. -/
-def to_le_order_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop) :=
-⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
-
-/-- Convert an injective left order continuous function to an order embeddings. -/
-def to_lt_order_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ((<) : α → α → Prop) ≼o ((<) : β → β → Prop) :=
-⟨⟨f, h⟩, λ x y, (hf.lt_iff h).symm⟩
+/-- Convert an injective left order continuous function to a `order_embedding`. -/
+def to_order_embedding (hf : right_ord_continuous f) (h : injective f) : α ↪o β :=
+⟨⟨f, h⟩, λ x y, hf.le_iff h⟩
 
 variable {f}
 
-@[simp] lemma coe_to_le_order_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_le_order_embedding f h) = f := rfl
-
-@[simp] lemma coe_to_lt_order_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_lt_order_embedding f h) = f := rfl
+@[simp] lemma coe_to_order_embedding (hf : right_ord_continuous f) (h : injective f) :
+  ⇑(hf.to_order_embedding f h) = f := rfl
 
 end semilattice_inf
 
@@ -253,17 +238,17 @@ namespace order_iso
 
 section preorder
 
-variables [preorder α] [preorder β] (e : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop))
+variables [preorder α] [preorder β] (e : α ≃o β)
   {s : set α} {x : α}
 
 protected lemma left_ord_continuous : left_ord_continuous e :=
 λ s x hx,
-⟨monotone.mem_upper_bounds_image (λ x y, e.ord.1) hx.1,
+⟨monotone.mem_upper_bounds_image (λ x y, e.map_rel_iff.2) hx.1,
   λ y hy, e.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', e.rel_symm_apply.2 $ hy $
     mem_image_of_mem _ hx'⟩
 
 protected lemma right_ord_continuous : right_ord_continuous e :=
-@order_iso.left_ord_continuous (order_dual α) (order_dual β) _ _ e.rsymm
+order_iso.left_ord_continuous e.dual
 
 end preorder
 

@@ -1,8 +1,13 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-Main procedure for linear natural number arithmetic. -/
+/-
+Main procedure for linear natural number arithmetic.
+-/
+
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
 import tactic.omega.nat.neg_elim
@@ -25,8 +30,8 @@ attribute [sugar_nat]
   and_true true_and
   ge gt mul_add add_mul mul_comm
   one_mul mul_one
-  classical.imp_iff_not_or
-  classical.iff_iff_not_or_and_or_not
+  imp_iff_not_or
+  iff_iff_not_or_and_or_not
 
 meta def desugar := `[try {simp only with sugar_nat at *}]
 
@@ -89,7 +94,8 @@ meta def prove_sub_free : preform → tactic expr
      return `(@and.intro (preform.sub_free %%`(p))
        (preform.sub_free %%`(q)) %%x %%y)
 
-/-- Given a p : preform, return the expr of a term t : p.unsat, where p is subtraction- and negation-free. -/
+/-- Given a p : preform, return the expr of a term t : p.unsat, where p is subtraction- and
+negation-free. -/
 meta def prove_unsat_sub_free (p : preform) : tactic expr :=
 do x ← prove_neg_free p,
    y ← prove_sub_free p,

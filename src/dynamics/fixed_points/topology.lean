@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # Topological properties of fixed points
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Currently this file contains two lemmas:
 
 - `is_fixed_pt_of_tendsto_iterate`: if `f^n(x) → y` and `f` is continuous at `y`, then `f y = y`;
@@ -22,7 +25,7 @@ fixed points, iterates
 variables {α : Type*} [topological_space α] [t2_space α] {f : α → α}
 
 open function filter
-open_locale topological_space
+open_locale topology
 
 /-- If the iterates `f^[n] x` converge to `y` and `f` is continuous at `y`,
 then `y` is a fixed point for `f`. -/
@@ -30,7 +33,7 @@ lemma is_fixed_pt_of_tendsto_iterate {x y : α} (hy : tendsto (λ n, f^[n] x) at
   (hf : continuous_at f y) :
   is_fixed_pt f y :=
 begin
-  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hy,
+  refine tendsto_nhds_unique ((tendsto_add_at_top_iff_nat 1).1 _) hy,
   simp only [iterate_succ' f],
   exact hf.tendsto.comp hy
 end

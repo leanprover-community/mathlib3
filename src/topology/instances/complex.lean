@@ -1,143 +1,97 @@
 /-
-Copyright (c) 2018 Mario Carneiro. All rights reserved.
+Copyright (c) 2022 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
-
-Topology of the complex numbers.
+Authors: Xavier Roblot
 -/
-import data.complex.basic
-import topology.instances.real
 
-noncomputable theory
-open filter metric
-open_locale topological_space
+import topology.algebra.uniform_field
+import analysis.complex.basic
+import field_theory.adjoin
 
-namespace complex
+/-!
+# Some results about the topology of ℂ
+-/
 
--- TODO(Mario): these proofs are all copied from analysis/real. Generalize
--- to normed fields
-instance : metric_space ℂ :=
-{ dist               := λx y, (x - y).abs,
-  dist_self          := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp [sub_eq_zero],
-  dist_comm          := assume x y, complex.abs_sub _ _,
-  dist_triangle      := assume x y z, complex.abs_sub_le _ _ _ }
+section complex_subfield
 
-theorem dist_eq (x y : ℂ) : dist x y = (x - y).abs := rfl
+open complex set
 
-theorem uniform_continuous_add : uniform_continuous (λp : ℂ × ℂ, p.1 + p.2) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
-⟨δ, δ0, λ a b h, let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ h₁ h₂⟩
+open_locale complex_conjugate
 
-theorem uniform_continuous_neg : uniform_continuous (@has_neg.neg ℂ _) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
-  by rw dist_comm at h; simpa [dist_eq] using h⟩
-
-instance : uniform_add_group ℂ :=
-uniform_add_group.mk' uniform_continuous_add uniform_continuous_neg
-
-instance : topological_add_group ℂ := by apply_instance -- short-circuit type class inference
-
-lemma uniform_continuous_inv (s : set ℂ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
-  uniform_continuous (λp:s, p.1⁻¹) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma abs ε0 r0 in
-⟨δ, δ0, λ a b h, Hδ (H _ a.2) (H _ b.2) h⟩
-
-lemma uniform_continuous_abs : uniform_continuous (abs : ℂ → ℝ) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0,
-  ⟨ε, ε0, λ a b, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _)⟩
-
-lemma continuous_abs : continuous (abs : ℂ → ℝ) :=
-uniform_continuous_abs.continuous
-
-lemma tendsto_inv {r : ℂ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
-by rw ← abs_pos at r0; exact
-tendsto_of_uniform_continuous_subtype
-  (uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (mem_nhds_sets (continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
-
-lemma continuous_inv : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
-continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
-  tendsto.comp (tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
-
-lemma continuous.inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
-  continuous (λa, (f a)⁻¹) :=
-show continuous ((has_inv.inv ∘ @subtype.val ℂ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from continuous_inv.comp (continuous_subtype_mk _ hf)
-
-lemma uniform_continuous_mul_const {x : ℂ} : uniform_continuous ((*) x) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases no_top (abs x) with y xy,
-  have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
-  refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
-  rw [dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],
-  exact mul_lt_mul' (le_of_lt xy) h (abs_nonneg _) y0
+/-- The only closed subfields of `ℂ` are `ℝ` and `ℂ`. -/
+lemma complex.subfield_eq_of_closed {K : subfield ℂ} (hc : is_closed (K : set ℂ)) :
+  K = of_real.field_range ∨ K = ⊤ :=
+begin
+  suffices : range (coe : ℝ → ℂ) ⊆ K,
+  { rw [range_subset_iff, ← coe_algebra_map] at this,
+    have := (subalgebra.is_simple_order_of_finrank finrank_real_complex).eq_bot_or_eq_top
+      (subfield.to_intermediate_field K this).to_subalgebra,
+    simp_rw ← set_like.coe_set_eq at this ⊢,
+    convert this using 2,
+    simpa only [ring_hom.coe_field_range, algebra.coe_bot, coe_algebra_map], },
+  suffices : range (coe : ℝ → ℂ) ⊆ closure (set.range ((coe : ℝ → ℂ) ∘ (coe : ℚ → ℝ))),
+  { refine subset_trans this _,
+    rw ← is_closed.closure_eq hc,
+    apply closure_mono,
+    rintros _ ⟨_, rfl⟩,
+    simp only [function.comp_app, of_real_rat_cast, set_like.mem_coe, subfield_class.coe_rat_mem] },
+  nth_rewrite 1 range_comp,
+  refine subset_trans _ (image_closure_subset_closure_image continuous_of_real),
+  rw dense_range.closure_range rat.dense_embedding_coe_real.dense,
+  simp only [image_univ],
 end
 
-lemma uniform_continuous_mul (s : set (ℂ × ℂ))
-  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, abs (x : ℂ × ℂ).1 < r₁ ∧ abs x.2 < r₂) :
-  uniform_continuous (λp:s, p.1.1 * p.1.2) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
-⟨δ, δ0, λ a b h,
-  let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
+/-- Let `K` a subfield of `ℂ` and let `ψ : K →+* ℂ` a ring homomorphism. Assume that `ψ` is uniform
+continuous, then `ψ` is either the inclusion map or the composition of the inclusion map with the
+complex conjugation. -/
+lemma complex.uniform_continuous_ring_hom_eq_id_or_conj (K : subfield ℂ) {ψ : K →+* ℂ}
+  (hc : uniform_continuous ψ) : ψ.to_fun = K.subtype ∨ ψ.to_fun = conj ∘ K.subtype :=
+begin
+  letI : topological_division_ring ℂ := topological_division_ring.mk,
+  letI : topological_ring K.topological_closure :=
+      subring.topological_ring K.topological_closure.to_subring,
+  set ι : K → K.topological_closure := subfield.inclusion K.le_topological_closure,
+  have ui : uniform_inducing ι :=
+    ⟨ by { erw [uniformity_subtype, uniformity_subtype, filter.comap_comap], congr, } ⟩,
+  let di := ui.dense_inducing _,
+  { -- extψ : closure(K) →+* ℂ is the extension of ψ : K →+* ℂ
+    let extψ := dense_inducing.extend_ring_hom ui di.dense hc,
+    haveI := (uniform_continuous_uniformly_extend ui di.dense hc).continuous,
+    cases complex.subfield_eq_of_closed (subfield.is_closed_topological_closure K),
+    { left,
+      let j := ring_equiv.subfield_congr h,
+      -- ψ₁ is the continuous ring hom `ℝ →+* ℂ` constructed from `j : closure (K) ≃+* ℝ`
+      -- and `extψ : closure (K) →+* ℂ`
+      let ψ₁ := ring_hom.comp extψ (ring_hom.comp j.symm.to_ring_hom of_real.range_restrict),
+      ext1 x,
+      rsuffices ⟨r, hr⟩ : ∃ r : ℝ, of_real.range_restrict r = j (ι x),
+      { have := ring_hom.congr_fun
+          (ring_hom_eq_of_real_of_continuous (by continuity! : continuous ψ₁)) r,
+        rw [ring_hom.comp_apply, ring_hom.comp_apply, hr, ring_equiv.to_ring_hom_eq_coe] at this,
+        convert this using 1,
+        { exact (dense_inducing.extend_eq di hc.continuous _).symm, },
+        { rw [← of_real.coe_range_restrict, hr], refl, }},
+      obtain ⟨r, hr⟩ := set_like.coe_mem (j (ι x)),
+      exact ⟨r, subtype.ext hr⟩, },
+    { -- ψ₁ is the continuous ring hom `ℂ →+* ℂ` constructed from `closure (K) ≃+* ℂ`
+      -- and `extψ : closure (K) →+* ℂ`
+      let ψ₁ := ring_hom.comp extψ (ring_hom.comp (ring_equiv.subfield_congr h).symm.to_ring_hom
+        (@subfield.top_equiv ℂ _).symm.to_ring_hom),
+      cases ring_hom_eq_id_or_conj_of_continuous (by continuity! : continuous ψ₁) with h h,
+      { left, ext1 z,
+        convert (ring_hom.congr_fun h z) using 1,
+        exact (dense_inducing.extend_eq di hc.continuous z).symm, },
+      { right, ext1 z,
+        convert (ring_hom.congr_fun h z) using 1,
+        exact (dense_inducing.extend_eq di hc.continuous z).symm, }}},
+  { let j : { x // x ∈ closure (id '' {x | (K : set ℂ) x })} → (K.topological_closure : set ℂ) :=
+      λ x, ⟨x, by { convert x.prop, simpa only [id.def, set.image_id'], }⟩,
+    convert dense_range.comp (function.surjective.dense_range _)
+      (dense_embedding.subtype (dense_embedding_id) (K : set ℂ)).dense
+      (by continuity : continuous j),
+    rintros ⟨y, hy⟩,
+    use ⟨y, by { convert hy, simpa only [id.def, set.image_id'], }⟩,
+    simp only [subtype.mk_eq_mk, subtype.coe_mk], }
+end
 
-protected lemma continuous_mul : continuous (λp : ℂ × ℂ, p.1 * p.2) :=
-continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
-tendsto_of_uniform_continuous_subtype
-  (uniform_continuous_mul
-    ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
-    (λ x, id))
-  (mem_nhds_sets
-    (is_open_prod
-      (continuous_abs _ $ is_open_gt' (abs a₁ + 1))
-      (continuous_abs _ $ is_open_gt' (abs a₂ + 1)))
-    ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
-
-local attribute [semireducible] real.le
-
-lemma uniform_continuous_re : uniform_continuous re :=
-metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε, ε0, λ _ _, lt_of_le_of_lt (abs_re_le_abs _)⟩)
-
-lemma continuous_re : continuous re := uniform_continuous_re.continuous
-
-lemma uniform_continuous_im : uniform_continuous im :=
-metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε, ε0, λ _ _, lt_of_le_of_lt (abs_im_le_abs _)⟩)
-
-lemma continuous_im : continuous im := uniform_continuous_im.continuous
-
-lemma uniform_continuous_of_real : uniform_continuous of_real :=
-metric.uniform_continuous_iff.2 (λ ε ε0, ⟨ε, ε0, λ _ _,
-  by rw [real.dist_eq, complex.dist_eq, of_real_eq_coe, of_real_eq_coe, ← of_real_sub, abs_of_real];
-    exact id⟩)
-
-lemma continuous_of_real : continuous of_real := uniform_continuous_of_real.continuous
-
-instance : topological_ring ℂ :=
-{ continuous_mul := complex.continuous_mul, ..complex.topological_add_group }
-
-instance : topological_semiring ℂ := by apply_instance -- short-circuit type class inference
-
-/-- `ℂ` is homeomorphic to the real plane with `max` norm. -/
-def real_prod_homeo : ℂ ≃ₜ (ℝ × ℝ) :=
-{ to_equiv := real_prod_equiv,
-  continuous_to_fun := continuous_re.prod_mk continuous_im,
-  continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
-    by simp only [mk_eq_add_mul_I]; exact
-      (continuous_of_real.comp continuous_fst).add
-      ((continuous_of_real.comp continuous_snd).mul continuous_const) }
-
-instance : proper_space ℂ :=
-⟨λx r, begin
-  refine real_prod_homeo.symm.compact_preimage.1
-    (compact_of_is_closed_subset
-      ((proper_space.compact_ball x.re r).prod (proper_space.compact_ball x.im r))
-      (continuous_iff_is_closed.1 real_prod_homeo.symm.continuous _ is_closed_ball) _),
-  exact λ p h, ⟨
-    le_trans (abs_re_le_abs (⟨p.1, p.2⟩ - x)) h,
-    le_trans (abs_im_le_abs (⟨p.1, p.2⟩ - x)) h⟩
-end⟩
-
-end complex
+end complex_subfield

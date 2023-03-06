@@ -3,7 +3,6 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Oliver Nash
 -/
-import tactic.doc_commands
 import tactic.abel
 
 namespace tactic
@@ -24,12 +23,12 @@ meta def noncomm_ring :=
              mul_assoc,
              -- Expand powers to numerals.
              pow_bit0, pow_bit1, pow_one,
-             -- Replace multiplication by numerals with `gsmul`.
+             -- Replace multiplication by numerals with `zsmul`.
              bit0_mul, mul_bit0, bit1_mul, mul_bit1, one_mul, mul_one, zero_mul, mul_zero,
-             -- Pull `gsmul n` out the front so `abel` can see them.
-             ←mul_gsmul_assoc, ←mul_gsmul_left,
+             -- Pull `zsmul n` out the front so `abel` can see them.
+             mul_smul_comm, smul_mul_assoc,
              -- Pull out negations.
-             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm];
+             neg_mul, mul_neg] {fail_if_unchanged := ff};
   abel]
 
 add_tactic_doc

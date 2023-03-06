@@ -3,7 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import control.equiv_functor.instances
+import logic.equiv.defs
+import tactic.clear
+import tactic.simp_result
+import tactic.apply
+import control.equiv_functor.instances -- these make equiv_rw more powerful!
+import logic.equiv.functor              -- so do these!
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -36,9 +41,9 @@ along with some structural congruence lemmas such as
 The main `equiv_rw` function, when operating on the goal, simply generates a new equivalence `e'`
 with left hand side matching the target, and calls `apply e'.inv_fun`.
 
-When operating on a hypothesis `x : α`, we introduce a new fact `h : x = e.symm (e x)`,
-revert this, and then attempt to `generalize`, replacing all occurrences of `e x` with a new constant `y`,
-before `intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
+When operating on a hypothesis `x : α`, we introduce a new fact `h : x = e.symm (e x)`, revert this,
+and then attempt to `generalize`, replacing all occurrences of `e x` with a new constant `y`, before
+`intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
 
 ## Future improvements
 In a future PR I anticipate that `derive equiv_functor` should work on many examples,
@@ -69,10 +74,8 @@ namespace tactic
 -- (example goal: we could rewrite along an isomorphism of rings (either as `R ≅ S` or `R ≃+* S`)
 -- and turn an `x : mv_polynomial σ R` into an `x : mv_polynomial σ S`.).
 
-meta def equiv_congr_lemmas : tactic (list expr) :=
-do exprs ←
-  [
-  `equiv.of_iff,
+meta def equiv_congr_lemmas : list (tactic expr) :=
+[ `equiv.of_iff,
   -- TODO decide what to do with this; it's an equiv_bifunctor?
   `equiv.equiv_congr,
   -- The function arrow is technically a bifunctor `Typeᵒᵖ → Type → Type`,
@@ -94,11 +97,11 @@ do exprs ←
   `bifunctor.map_equiv,
   -- Handles `list`, `option`, `unique`, and many others:
   `equiv_functor.map_equiv,
-  -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
+  -- We have to filter results to ensure we don't cheat and use exclusively
+  -- `equiv.refl` and `iff.refl`!
   `equiv.refl,
   `iff.refl
-  ].mmap (λ n, try_core (mk_const n)),
-  return (exprs.map option.to_list).join -- TODO: implement `.mfilter_map mk_const`?
+  ].map (λ n, mk_const n)
 
 declare_trace equiv_rw_type
 
@@ -120,8 +123,6 @@ and tries to solve it using `eq : α ≃ β` and congruence lemmas.
 -/
 meta def equiv_rw_type_core (eq : expr) (cfg : equiv_rw_cfg) : tactic unit :=
 do
-  -- Assemble the relevant lemmas.
-  equiv_congr_lemmas ← equiv_congr_lemmas,
   /-
     We now call `solve_by_elim` to try to generate the requested equivalence.
     There are a few subtleties!
@@ -134,14 +135,18 @@ do
   solve_by_elim
   { use_symmetry := false,
     use_exfalso := false,
-    lemmas := some (eq :: equiv_congr_lemmas),
+    lemma_thunks := some (pure eq :: equiv_congr_lemmas),
+    ctx_thunk := pure [],
     max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
+    backtrack_all_goals := tt,
     -- If solve_by_elim gets stuck, make sure it isn't because there's a later `≃` or `↔` goal
     -- that we should still attempt.
-    discharger :=  `[show _ ≃ _] <|> `[show _ ↔ _] <|>
+    discharger :=
+      `[success_if_fail { match_target _ ≃ _ }] >> `[success_if_fail { match_target _ ↔ _ }] >>
+      (`[show _ ≃ _] <|> `[show _ ↔ _]) <|>
       trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
     -- We use the `accept` tactic in `solve_by_elim` to provide tracing.
     accept := λ goals, lock_tactic_state (do
@@ -170,7 +175,8 @@ do
   -- Now call `equiv_rw_type_core`.
   new_eqv ← prod.snd <$> (solve_aux equiv_ty $ equiv_rw_type_core eqv cfg),
   -- Check that we actually used the equivalence `eq`
-  -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
+  -- (`equiv_rw_type_core` will always find `equiv.refl`,
+  -- but hopefully only after all other possibilities)
   new_eqv ← instantiate_mvars new_eqv,
   -- We previously had `guard (eqv.occurs new_eqv)` here, but `kdepends_on` is more reliable.
   kdepends_on new_eqv eqv >>= guardb <|> (do
@@ -210,17 +216,16 @@ dsimp_result (do
   -- Reintroduce `x` (now of type `b`), and the hypothesis `h`.
   intro x,
   h ← intro1,
-  -- We may need to unfreeze `x` before we can `subst` or `clear` it.
-  unfreeze x',
   -- Finally, if we're working on properties, substitute along `h`, then do some cleanup,
   -- and if we're working on data, just throw out the old `x`.
   b ← target >>= is_prop,
   if b then do
     subst h,
-    `[try { simp only [] with equiv_rw_simp }]
+    `[try { simp only with equiv_rw_simp }]
   else
-    clear' tt [x'] <|>
-      fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
+    -- We may need to unfreeze `x` before we can `clear` it.
+    unfreezing_hyp x' (clear' tt [x']) <|> fail
+      format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip)
   {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.
 
@@ -236,33 +241,71 @@ do
 end tactic
 
 namespace tactic.interactive
-open lean.parser
-open interactive interactive.types
-open tactic
 
-local postfix `?`:9001 := optional
+open tactic
+setup_tactic_parser
+
+/-- Auxiliary function to call `equiv_rw_hyp` on a `list pexpr` recursively. -/
+meta def equiv_rw_hyp_aux (hyp : name) (cfg : equiv_rw_cfg) (permissive : bool := ff) :
+  list expr → itactic
+| []       := skip
+| (e :: t) := do
+  if permissive then equiv_rw_hyp hyp e cfg <|> skip
+  else equiv_rw_hyp hyp e cfg,
+  equiv_rw_hyp_aux t
+
+/-- Auxiliary function to call `equiv_rw_target` on a `list pexpr` recursively. -/
+meta def equiv_rw_target_aux (cfg : equiv_rw_cfg) (permissive : bool) :
+  list expr → itactic
+| []       := skip
+| (e :: t) := do
+  if permissive then equiv_rw_target e cfg <|> skip
+  else equiv_rw_target e cfg,
+  equiv_rw_target_aux t
 
 /--
-`equiv_rw e at h`, where `h : α` is a hypothesis, and `e : α ≃ β`,
-will attempt to transport `h` along `e`, producing a new hypothesis `h : β`,
-with all occurrences of `h` in other hypotheses and the goal replaced with `e.symm h`.
+`equiv_rw e at h₁ h₂ ⋯`, where each `hᵢ : α` is a hypothesis, and `e : α ≃ β`,
+will attempt to transport each `hᵢ` along `e`, producing a new hypothesis `hᵢ : β`,
+with all occurrences of `hᵢ` in other hypotheses and the goal replaced with `e.symm hᵢ`.
 
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw` will also try rewriting under (equiv_)functors, so can turn
+`equiv_rw [e₁, e₂, ⋯] at h₁ h₂ ⋯` is equivalent to
+`{ equiv_rw [e₁, e₂, ⋯] at h₁, equiv_rw [e₁, e₂, ⋯] at h₂, ⋯ }`.
+
+`equiv_rw [e₁, e₂, ⋯] at *` will attempt to apply `equiv_rw [e₁, e₂, ⋯]` on the goal
+and on each expression available in the local context (except on the `eᵢ`s themselves),
+failing silently when it can't. Failing on a rewrite for a certain `eᵢ` at a certain
+hypothesis `h` doesn't stop `equiv_rw` from trying the other equivalences on the list
+at `h`. This only happens for the wildcard location.
+
+`equiv_rw` will also try rewriting under (equiv_)functors, so it can turn
 a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ unique α` into `⊢ unique β`.
 
 The maximum search depth for rewriting in subexpressions is controlled by
 `equiv_rw e {max_depth := n}`.
 -/
-meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) : itactic :=
-do e ← to_expr e,
-   match loc with
-   | (some hyp) := equiv_rw_hyp hyp e cfg
-   | none := equiv_rw_target e cfg
-   end
+meta def equiv_rw
+  (l : parse pexpr_list_or_texpr)
+  (locat : parse location)
+  (cfg : equiv_rw_cfg := {}) : itactic := do
+es ← l.mmap (λ e, to_expr e),
+match locat with
+| loc.wildcard := do
+  equiv_rw_target_aux cfg tt es,
+  ctx ← local_context,
+  ctx.mmap (λ e, if e ∈ es then skip else equiv_rw_hyp_aux e.local_pp_name cfg tt es),
+  skip
+| loc.ns names := do
+  names.mmap
+    (λ hyp', match hyp' with
+    | some hyp := equiv_rw_hyp_aux hyp cfg ff es
+    | none     := equiv_rw_target_aux cfg ff es
+    end),
+  skip
+end
 
 add_tactic_doc
 { name        := "equiv_rw",

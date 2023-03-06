@@ -1,10 +1,15 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
-
-DNF transformation. -/
+Authors: Seul Baek
+-/
+import data.list.prod_sigma
 import tactic.omega.clause
 import tactic.omega.int.form
+
+/-!
+# DNF transformation
+-/
 
 namespace omega
 namespace int
@@ -24,9 +29,9 @@ lemma push_neg_equiv :
   ∀ {p : preform}, preform.equiv (push_neg p) (¬* p) :=
 begin
   preform.induce `[intros v; try {refl}],
-  { simp only [classical.not_not, push_neg, preform.holds] },
+  { simp only [not_not, push_neg, preform.holds] },
   { simp only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
-  { simp only [preform.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
+  { simp only [preform.holds, push_neg, not_and_distrib, ihp v, ihq v] }
 end
 
 /-- NNF transformation -/
@@ -99,7 +104,7 @@ lemma le_and_le_iff_eq {α : Type} [partial_order α] {a b : α} :
 begin
   constructor; intro h1,
   { cases h1, apply le_antisymm; assumption },
-  { constructor; apply le_of_eq; rw h1  }
+  { constructor; apply le_of_eq; rw h1 }
 end
 
 lemma implies_neg_elim : ∀ {p : preform}, preform.implies p (neg_elim p) :=
@@ -107,7 +112,7 @@ begin
   preform.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
     { simp only [le_and_le_iff_eq.symm,
-        classical.not_and_distrib, not_le,
+        not_and_distrib, not_le,
         preterm.val, preform.holds] at h,
       simp only [int.add_one_le_iff, preterm.add_one,
         preterm.val, preform.holds, neg_elim],
@@ -150,21 +155,21 @@ begin
       rw [list.forall_mem_singleton],
       simp only [val_canonize,
         preterm.val, term.val_sub],
-      rw [le_sub, sub_zero], assumption } },
-    { cases h1 },
-    { cases h2 with h2 h2;
-      [ {cases (ihp h1.left h2) with c h3},
-        {cases (ihq h1.right h2) with c h3}];
-      cases h3 with h3 h4;
-      refine ⟨c, list.mem_append.elim_right _, h4⟩;
-      [left,right]; assumption },
-    { rcases (ihp h1.left h2.left) with ⟨cp, hp1, hp2⟩,
-      rcases (ihq h1.right h2.right) with ⟨cq, hq1, hq2⟩,
-      refine ⟨clause.append cp cq, ⟨_, clause.holds_append hp2 hq2⟩⟩,
-      simp only [dnf_core, list.mem_map],
-      refine ⟨(cp,cq),⟨_,rfl⟩⟩,
-      rw list.mem_product,
-      constructor; assumption }
+      rw [le_sub_comm, sub_zero], assumption } },
+  { cases h1 },
+  { cases h2 with h2 h2;
+    [ {cases (ihp h1.left h2) with c h3},
+      {cases (ihq h1.right h2) with c h3}];
+    cases h3 with h3 h4;
+    refine ⟨c, list.mem_append.elim_right _, h4⟩;
+    [left,right]; assumption },
+  { rcases (ihp h1.left h2.left) with ⟨cp, hp1, hp2⟩,
+    rcases (ihq h1.right h2.right) with ⟨cq, hq1, hq2⟩,
+    refine ⟨clause.append cp cq, ⟨_, clause.holds_append hp2 hq2⟩⟩,
+    simp only [dnf_core, list.mem_map],
+    refine ⟨(cp,cq),⟨_,rfl⟩⟩,
+    rw list.mem_product,
+    constructor; assumption }
 end
 
 lemma clauses_sat_dnf_core {p : preform} :

@@ -1,10 +1,15 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
-
-DNF transformation. -/
+Authors: Seul Baek
+-/
+import data.list.prod_sigma
 import tactic.omega.clause
 import tactic.omega.nat.form
+
+/-!
+# DNF transformation
+-/
 
 namespace omega
 namespace nat
@@ -38,7 +43,7 @@ begin
     rw list.forall_mem_singleton,
     simp only [val_canonize (h0.left), val_canonize (h0.right),
       term.val_sub, preform.holds, sub_eq_add_neg] at *,
-    rw [←sub_eq_add_neg, le_sub, sub_zero, int.coe_nat_le],
+    rw [←sub_eq_add_neg, le_sub_comm, sub_zero, int.coe_nat_le],
     assumption },
   { cases h1 },
   { cases h2 with h2 h2;
@@ -68,7 +73,8 @@ def bools.or : list bool → list bool → list bool
 | bs1       []        := bs1
 | (b1::bs1) (b2::bs2) := (b1 || b2)::(bools.or bs1 bs2)
 
-/-- Return a list of bools that encodes which variables have nonzero coefficients in any one of the input terms -/
+/-- Return a list of bools that encodes which variables have nonzero coefficients in any one of the
+input terms. -/
 def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)
@@ -127,6 +133,7 @@ begin
   constructor, apply h5.left,
   rw list.forall_mem_append,
   apply and.intro (holds_nonneg_consts _) h5.right,
+  assume x,
   apply int.coe_nat_nonneg
 end
 

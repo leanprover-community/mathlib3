@@ -1,28 +1,23 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anne Baanen
-
-Notation for vectors and matrices
+Authors: Anne Baanen, Eric Wieser
 -/
-
-import data.fintype.card
 import data.matrix.basic
+import data.fin.vec_notation
 import tactic.fin_cases
+import algebra.big_operators.fin
 
 /-!
 # Matrix and vector notation
 
-This file defines notation for vectors and matrices. Given `a b c d : α`,
-the notation allows us to write `![a, b, c, d] : fin 4 → α`.
-Nesting vectors gives a matrix, so `![![a, b], ![c, d]] : matrix (fin 2) (fin 2) α`.
-This file includes `simp` lemmas for applying operations in
-`data.matrix.basic` to values built out of this notation.
+This file includes `simp` lemmas for applying operations in `data.matrix.basic` to values built out
+of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
+`data.fin.vec_notation`.
 
-## Main definitions
-
-* `vec_empty` is the empty vector (or `0` by `n` matrix) `![]`
-* `vec_cons` prepends an entry to a vector, so `![a, b]` is `vec_cons a (vec_cons b vec_empty)`
+This also provides the new notation `!![a, b; c, d] = matrix.of ![![a, b], ![c, d]]`.
+This notation also works for empty matrices; `!![,,,] : matrix (fin 0) (fin 3)` and
+`!![;;;] : matrix (fin 3) (fin 0)`.
 
 ## Implementation notes
 
@@ -33,104 +28,109 @@ already appears in the input.
 
 ## Notations
 
-The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
+This file provide notation `!![a, b; c, d]` for matrices, which corresponds to
+`matrix.of ![![a, b], ![c, d]]`.
+A parser for `a, b; c, d`-style strings is provided as `matrix.entry_parser`, while
+`matrix.notation` provides the hook for the `!!` notation.
+Note that in lean 3 the pretty-printer will not show `!!` notation, instead showing the version
+with `of ![![...]]`.
+
+## Examples
+
+Examples of usage can be found in the `test/matrix.lean` file.
 -/
 
 namespace matrix
 
 universe u
-variables {α : Type u}
+variables {α : Type u} {o n m : ℕ} {m' n' o' : Type*}
 
 open_locale matrix
 
-section matrix_notation
+/-- Matrices can be reflected whenever their entries can. We insert an `@id (matrix m' n' α)` to
+prevent immediate decay to a function. -/
+meta instance matrix.reflect [reflected_univ.{u}] [reflected_univ.{u_1}] [reflected_univ.{u_2}]
+  [reflected _ α] [reflected _ m'] [reflected _ n']
+  [h : has_reflect (m' → n' → α)] : has_reflect (matrix m' n' α) :=
+λ m, (by reflect_name : reflected _ @id.{(max u_1 u_2 u) + 1}).subst₂
+  ((by reflect_name : reflected _ @matrix.{u_1 u_2 u}).subst₃ `(_) `(_) `(_)) $
+  by { dunfold matrix, exact h m }
 
-/-- `![]` is the vector with no entries. -/
-def vec_empty : fin 0 → α :=
-fin_zero_elim
+section parser
+open lean
+open lean.parser
+open interactive
+open interactive.types
 
-/-- `vec_cons h t` prepends an entry `h` to a vector `t`.
+/-- Parse the entries of a matrix -/
+meta def entry_parser {α : Type} (p : parser α) :
+  parser (Σ m n, fin m → fin n → α) :=
+do
+  -- a list of lists if the matrix has at least one row, or the number of columns if the matrix has
+  -- zero rows.
+  let p : parser (list (list α) ⊕ ℕ) :=
+    (sum.inl <$> (
+      (pure [] <* tk ";").repeat_at_least 1 <|> -- empty rows
+      (sep_by_trailing (tk ";") $ sep_by_trailing (tk ",") p)) <|>
+    (sum.inr <$> list.length <$> many (tk ","))), -- empty columns
+  which ← p,
+  match which with
+  | (sum.inl l) := do
+    h :: tl ← pure l,
+    let n := h.length,
+    l : list (vector α n) ← l.mmap (λ row,
+      if h : row.length = n then
+        pure (⟨row, h⟩ : vector α n)
+      else
+        interaction_monad.fail "Rows must be of equal length"),
+    pure ⟨l.length, n, λ i j, (l.nth_le _ i.prop).nth j⟩
+  | (sum.inr n) :=
+    pure ⟨0, n, fin_zero_elim⟩
+  end
 
-The inverse functions are `vec_head` and `vec_tail`.
-The notation `![a, b, ...]` expands to `vec_cons a (vec_cons b ...)`.
+-- Lean can't find this instance without some help. We only need it available in `Type 0`, and it is
+-- a massive amount of effort to make it universe-polymorphic.
+@[instance] meta def sigma_sigma_fin_matrix_has_reflect {α : Type}
+  [has_reflect α] [reflected _ α] :
+  has_reflect (Σ (m n : ℕ), fin m → fin n → α) :=
+@sigma.reflect.{0 0} _ _ ℕ (λ m, Σ n, fin m → fin n → α) _ _ _ $ λ i,
+  @sigma.reflect.{0 0} _ _ ℕ _ _ _ _ (λ j, infer_instance)
+
+/-- `!![a, b; c, d]` notation for matrices indexed by `fin m` and `fin n`. See the module docstring
+for details. -/
+@[user_notation]
+meta def «notation» (_ : parse $ tk "!![")
+  (val : parse (entry_parser (parser.pexpr 1) <* tk "]")) : parser pexpr :=
+do
+  let ⟨m, n, entries⟩ := val,
+  let entry_vals := pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries),
+  pure (``(@matrix.of (fin %%`(m)) (fin %%`(n)) _).app entry_vals)
+
+end parser
+
+variables (a b : ℕ)
+
+/-- Use `![...]` notation for displaying a `fin`-indexed matrix, for example:
+
+```
+#eval !![1, 2; 3, 4] + !![3, 4; 5, 6]  -- !![4, 6; 8, 10]
+```
 -/
-def vec_cons {n : ℕ} (h : α) (t : fin n → α) : fin n.succ → α :=
-fin.cons h t
+instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
+{ repr := λ f,
+  "!![" ++ (string.intercalate "; " $ (list.fin_range m).map $ λ i,
+    string.intercalate ", " $ (list.fin_range n).map (λ j, repr (f i j)))  ++ "]" }
 
-notation `![` l:(foldr `, ` (h t, vec_cons h t) vec_empty `]`) := l
-
-/-- `vec_head v` gives the first entry of the vector `v` -/
-def vec_head {n : ℕ} (v : fin n.succ → α) : α :=
-v 0
-
-/-- `vec_tail v` gives a vector consisting of all entries of `v` except the first -/
-def vec_tail {n : ℕ} (v : fin n.succ → α) : fin n → α :=
-v ∘ fin.succ
-
-end matrix_notation
-
-variables {m n o : ℕ} {m' n' o' : Type} [fintype m'] [fintype n'] [fintype o']
-
-lemma empty_eq (v : fin 0 → α) : v = ![] :=
-by { ext i, fin_cases i }
-
-section val
-
-@[simp] lemma cons_val_zero (x : α) (u : fin m → α) : vec_cons x u 0 = x := rfl
-
-@[simp] lemma cons_val_zero' (h : 0 < m.succ) (x : α) (u : fin m → α) :
-  vec_cons x u ⟨0, h⟩ = x :=
-rfl
-
-@[simp] lemma cons_val_succ (x : α) (u : fin m → α) (i : fin m) :
-  vec_cons x u i.succ = u i :=
-by simp [vec_cons]
-
-@[simp] lemma cons_val_succ' {i : ℕ} (h : i.succ < m.succ) (x : α) (u : fin m → α) :
-  vec_cons x u ⟨i.succ, h⟩ = u ⟨i, nat.lt_of_succ_lt_succ h⟩ :=
-by simp [vec_cons, fin.cons, fin.cases]
-
-@[simp] lemma head_cons (x : α) (u : fin m → α) :
-  vec_head (vec_cons x u) = x :=
-rfl
-
-@[simp] lemma tail_cons (x : α) (u : fin m → α) :
-  vec_tail (vec_cons x u) = u :=
-by { ext, simp [vec_tail] }
-
-@[simp] lemma empty_val' {n' : Type} (j : n') :
-  (λ i, (![] : fin 0 → n' → α) i j) = ![] :=
-empty_eq _
-
-@[simp] lemma cons_val' (v : n' → α) (B : matrix (fin m) n' α) (i j) :
+@[simp] lemma cons_val' (v : n' → α) (B : fin m → n' → α) (i j) :
   vec_cons v B i j = vec_cons (v j) (λ i, B i j) i :=
 by { refine fin.cases _ _ i; simp }
 
-@[simp] lemma head_val' (B : matrix (fin m.succ) n' α) (j : n') :
+@[simp] lemma head_val' (B : fin m.succ → n' → α) (j : n') :
   vec_head (λ i, B i j) = vec_head B j := rfl
 
-@[simp] lemma tail_val' (B : matrix (fin m.succ) n' α) (j : n') :
+@[simp] lemma tail_val' (B : fin m.succ → n' → α) (j : n') :
   vec_tail (λ i, B i j) = λ i, vec_tail B i j :=
 by { ext, simp [vec_tail] }
-
-@[simp] lemma cons_head_tail (u : fin m.succ → α) :
- vec_cons (vec_head u) (vec_tail u) = u :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
-
-/-- `![a, b, ...] 1` is equal to `b`.
-
-  The simplifier needs a special lemma for length `≥ 2`, in addition to
-  `cons_val_succ`, because `1 : fin 1 = 0 : fin 1`.
--/
-@[simp] lemma cons_val_one (x : α) (u : fin m.succ → α) :
-  vec_cons x u 1 = vec_head u :=
-cons_val_succ x u 0
-
-@[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
-  vec_cons x u i = x :=
-by { fin_cases i, refl }
-
-end val
 
 section dot_product
 
@@ -146,6 +146,10 @@ by simp [dot_product, fin.sum_univ_succ, vec_head, vec_tail]
 @[simp] lemma dot_product_cons (v : fin n.succ → α) (x : α) (w : fin n → α) :
   dot_product v (vec_cons x w) = vec_head v * x + dot_product (vec_tail v) w :=
 by simp [dot_product, fin.sum_univ_succ, vec_head, vec_tail]
+
+@[simp] lemma cons_dot_product_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  dot_product (vec_cons x v) (vec_cons y w) = x * y + dot_product v w :=
+by simp
 
 end dot_product
 
@@ -169,19 +173,21 @@ end col_row
 
 section transpose
 
-@[simp] lemma transpose_empty_rows (A : matrix m' (fin 0) α) : Aᵀ = ![] := empty_eq _
+@[simp] lemma transpose_empty_rows (A : matrix m' (fin 0) α) : Aᵀ = of ![] := empty_eq _
 
-@[simp] lemma transpose_empty_cols : (![] : matrix (fin 0) m' α)ᵀ = λ i, ![] :=
+@[simp] lemma transpose_empty_cols (A : matrix (fin 0) m' α) : Aᵀ = of (λ i, ![]) :=
 funext (λ i, empty_eq _)
 
 @[simp] lemma cons_transpose (v : n' → α) (A : matrix (fin m) n' α) :
-  (vec_cons v A)ᵀ = λ i, vec_cons (v i) (Aᵀ i) :=
+  (of (vec_cons v A))ᵀ = of (λ i, vec_cons (v i) (Aᵀ i)) :=
 by { ext i j, refine fin.cases _ _ j; simp }
 
-@[simp] lemma head_transpose (A : matrix m' (fin n.succ) α) : vec_head (Aᵀ) = vec_head ∘ A :=
+@[simp] lemma head_transpose (A : matrix m' (fin n.succ) α) :
+  vec_head (of.symm Aᵀ) = vec_head ∘ (of.symm A) :=
 rfl
 
-@[simp] lemma tail_transpose (A : matrix m' (fin n.succ) α) : vec_tail (Aᵀ) = (vec_tail ∘ A)ᵀ :=
+@[simp] lemma tail_transpose (A : matrix m' (fin n.succ) α) :
+  vec_tail (of.symm Aᵀ) = (vec_tail ∘ A)ᵀ :=
 by { ext i j, refl }
 
 end transpose
@@ -190,24 +196,25 @@ section mul
 
 variables [semiring α]
 
-@[simp] lemma empty_mul (A : matrix (fin 0) n' α) (B : matrix n' o' α) :
-  A ⬝ B = ![] :=
+@[simp] lemma empty_mul [fintype n'] (A : matrix (fin 0) n' α) (B : matrix n' o' α) :
+  A ⬝ B = of ![] :=
 empty_eq _
 
 @[simp] lemma empty_mul_empty (A : matrix m' (fin 0) α) (B : matrix (fin 0) o' α) :
   A ⬝ B = 0 :=
 rfl
 
-@[simp] lemma mul_empty (A : matrix m' n' α) (B : matrix n' (fin 0) α) :
-  A ⬝ B = λ _, ![] :=
+@[simp] lemma mul_empty [fintype n'] (A : matrix m' n' α) (B : matrix n' (fin 0) α) :
+  A ⬝ B = of (λ _, ![]) :=
 funext (λ _, empty_eq _)
 
-lemma mul_val_succ (A : matrix (fin m.succ) n' α) (B : matrix n' o' α) (i : fin m) (j : o') :
-  (A ⬝ B) i.succ j = (vec_tail A ⬝ B) i j := rfl
+lemma mul_val_succ [fintype n']
+  (A : matrix (fin m.succ) n' α) (B : matrix n' o' α) (i : fin m) (j : o') :
+  (A ⬝ B) i.succ j = (of (vec_tail (of.symm A)) ⬝ B) i j := rfl
 
-@[simp] lemma cons_mul (v : n' → α) (A : matrix (fin m) n' α) (B : matrix n' o' α) :
-  vec_cons v A ⬝ B = vec_cons (vec_mul v B) (A  ⬝ B) :=
-by { ext i j, refine fin.cases _ _ i, { refl }, simp [mul_val_succ] }
+@[simp] lemma cons_mul [fintype n'] (v : n' → α) (A : fin m → n' → α) (B : matrix n' o' α) :
+  of (vec_cons v A) ⬝ B = of (vec_cons (vec_mul v B) (of.symm (of A ⬝ B))) :=
+by { ext i j, refine fin.cases _ _ i, { refl },  simp [mul_val_succ], }
 
 end mul
 
@@ -219,17 +226,21 @@ variables [semiring α]
   vec_mul v B = 0 :=
 rfl
 
-@[simp] lemma vec_mul_empty (v : n' → α) (B : matrix n' (fin 0) α) :
+@[simp] lemma vec_mul_empty [fintype n'] (v : n' → α) (B : matrix n' (fin 0) α) :
   vec_mul v B = ![] :=
 empty_eq _
 
-@[simp] lemma cons_vec_mul (x : α) (v : fin n → α) (B : matrix (fin n.succ) o' α) :
-  vec_mul (vec_cons x v) B = x • (vec_head B) + vec_mul v (vec_tail B) :=
+@[simp] lemma cons_vec_mul (x : α) (v : fin n → α) (B : fin n.succ → o' → α) :
+  vec_mul (vec_cons x v) (of B) = x • (vec_head B) + vec_mul v (of $ vec_tail B) :=
 by { ext i, simp [vec_mul] }
 
-@[simp] lemma vec_mul_cons (v : fin n.succ → α) (w : o' → α) (B : matrix (fin n) o' α) :
-  vec_mul v (vec_cons w B) = vec_head v • w + vec_mul (vec_tail v) B :=
+@[simp] lemma vec_mul_cons (v : fin n.succ → α) (w : o' → α) (B : fin n → o' → α) :
+  vec_mul v (of $ vec_cons w B) = vec_head v • w + vec_mul (vec_tail v) (of B) :=
 by { ext i, simp [vec_mul] }
+
+@[simp] lemma cons_vec_mul_cons (x : α) (v : fin n → α) (w : o' → α) (B : fin n → o' → α) :
+  vec_mul (vec_cons x v) (of $ vec_cons w B) = x • w + vec_mul v (of B) :=
+by simp
 
 end vec_mul
 
@@ -237,7 +248,7 @@ section mul_vec
 
 variables [semiring α]
 
-@[simp] lemma empty_mul_vec (A : matrix (fin 0) n' α) (v : n' → α) :
+@[simp] lemma empty_mul_vec [fintype n'] (A : matrix (fin 0) n' α) (v : n' → α) :
   mul_vec A v = ![] :=
 empty_eq _
 
@@ -245,12 +256,13 @@ empty_eq _
   mul_vec A v = 0 :=
 rfl
 
-@[simp] lemma cons_mul_vec (v : n' → α) (A : fin m → n' → α) (w : n' → α) :
-  mul_vec (vec_cons v A) w = vec_cons (dot_product v w) (mul_vec A w) :=
+@[simp] lemma cons_mul_vec [fintype n'] (v : n' → α) (A : fin m → n' → α) (w : n' → α) :
+  mul_vec (of $ vec_cons v A) w = vec_cons (dot_product v w) (mul_vec (of A) w) :=
 by { ext i, refine fin.cases _ _ i; simp [mul_vec] }
 
-@[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α) (v : fin n → α) :
-  mul_vec A (vec_cons x v) = (x • vec_head ∘ A) + mul_vec (vec_tail ∘ A) v :=
+@[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α)
+  (v : fin n → α) :
+  mul_vec (of A) (vec_cons x v) = (x • vec_head ∘ A) + mul_vec (of (vec_tail ∘ A)) v :=
 by { ext i, simp [mul_vec, mul_comm] }
 
 end mul_vec
@@ -273,7 +285,7 @@ by { ext i, refine fin.cases _ _ i; simp [vec_mul_vec] }
 
 @[simp] lemma vec_mul_vec_cons (v : m' → α) (x : α) (w : fin n → α) :
   vec_mul_vec v (vec_cons x w) = λ i, v i • vec_cons x w :=
-by { ext i j, simp [vec_mul_vec]}
+by { ext i j, rw [vec_mul_vec, pi.smul_apply, smul_eq_mul] }
 
 end vec_mul_vec
 
@@ -281,80 +293,117 @@ section smul
 
 variables [semiring α]
 
-@[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
+@[simp] lemma smul_mat_empty {m' : Type*} (x : α) (A : fin 0 → m' → α) : x • A = ![] := empty_eq _
 
-@[simp] lemma smul_cons (x y : α) (v : fin n → α) :
-  x • vec_cons y v = vec_cons (x * y) (x • v) :=
+@[simp] lemma smul_mat_cons (x : α) (v : n' → α) (A : fin m → n' → α) :
+  x • vec_cons v A = vec_cons (x • v) (x • A) :=
 by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
 
-section add
+section submatrix
 
-variables [has_add α]
-
-@[simp] lemma empty_add_empty (v w : fin 0 → α) : v + w = ![] := empty_eq _
-
-@[simp] lemma cons_add (x : α) (v : fin n → α) (w : fin n.succ → α) :
-  vec_cons x v + w = vec_cons (x + vec_head w) (v + vec_tail w) :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
-
-@[simp] lemma add_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
-  v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
-
-end add
-
-section zero
-
-variables [has_zero α]
-
-@[simp] lemma zero_empty : (0 : fin 0 → α) = ![] :=
+@[simp] lemma submatrix_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
+  submatrix A row col = ![] :=
 empty_eq _
 
-@[simp] lemma cons_zero_zero : vec_cons (0 : α) (0 : fin n → α) = 0 :=
-by { ext i j, refine fin.cases _ _ i, { refl }, simp }
+@[simp] lemma submatrix_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
+  submatrix A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (submatrix A row col) :=
+by { ext i j, refine fin.cases _ _ i; simp [submatrix] }
 
-@[simp] lemma head_zero : vec_head (0 : fin n.succ → α) = 0 := rfl
+end submatrix
 
-@[simp] lemma tail_zero : vec_tail (0 : fin n.succ → α) = 0 := rfl
+section vec2_and_vec3
 
-@[simp] lemma cons_eq_zero_iff {v : fin n → α} {x : α} :
-  vec_cons x v = 0 ↔ x = 0 ∧ v = 0 :=
-⟨ λ h, ⟨ congr_fun h 0, by { convert congr_arg vec_tail h, simp } ⟩,
-  λ ⟨hx, hv⟩, by simp [hx, hv] ⟩
+section one
 
-open_locale classical
+variables [has_zero α] [has_one α]
 
-lemma cons_nonzero_iff {v : fin n → α} {x : α} :
-  vec_cons x v ≠ 0 ↔ (x ≠ 0 ∨ v ≠ 0) :=
-⟨ λ h, not_and_distrib.mp (h ∘ cons_eq_zero_iff.mpr),
-  λ h, mt cons_eq_zero_iff.mp (not_and_distrib.mpr h) ⟩
+lemma one_fin_two : (1 : matrix (fin 2) (fin 2) α) = !![1, 0; 0, 1] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
 
-end zero
+lemma one_fin_three : (1 : matrix (fin 3) (fin 3) α) = !![1, 0, 0; 0, 1, 0; 0, 0, 1] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
 
-section neg
+end one
 
-variables [has_neg α]
+lemma eta_fin_two (A : matrix (fin 2) (fin 2) α) : A = !![A 0 0, A 0 1; A 1 0, A 1 1] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
 
-@[simp] lemma neg_empty (v : fin 0 → α) : -v = ![] := empty_eq _
+lemma eta_fin_three (A : matrix (fin 3) (fin 3) α) :
+  A = !![A 0 0, A 0 1, A 0 2;
+         A 1 0, A 1 1, A 1 2;
+         A 2 0, A 2 1, A 2 2] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
 
-@[simp] lemma neg_cons (x : α) (v : fin n → α) :
-  -(vec_cons x v) = vec_cons (-x) (-v) :=
-by { ext i, refine fin.cases _ _ i; simp }
+lemma mul_fin_two [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
+  !![a₁₁, a₁₂;
+     a₂₁, a₂₂] ⬝ !![b₁₁, b₁₂;
+                    b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
+                                   a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
+begin
+  ext i j,
+  fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]
+end
 
-end neg
+lemma mul_fin_three [add_comm_monoid α] [has_mul α]
+  (a₁₁ a₁₂ a₁₃ a₂₁ a₂₂ a₂₃ a₃₁ a₃₂ a₃₃ b₁₁ b₁₂ b₁₃ b₂₁ b₂₂ b₂₃ b₃₁ b₃₂ b₃₃ : α) :
+  !![a₁₁, a₁₂, a₁₃;
+     a₂₁, a₂₂, a₂₃;
+     a₃₁, a₃₂, a₃₃] ⬝ !![b₁₁, b₁₂, b₁₃;
+                         b₂₁, b₂₂, b₂₃;
+                         b₃₁, b₃₂, b₃₃] =
+  !![a₁₁*b₁₁ + a₁₂*b₂₁ + a₁₃*b₃₁, a₁₁*b₁₂ + a₁₂*b₂₂ + a₁₃*b₃₂, a₁₁*b₁₃ + a₁₂*b₂₃ + a₁₃*b₃₃;
+     a₂₁*b₁₁ + a₂₂*b₂₁ + a₂₃*b₃₁, a₂₁*b₁₂ + a₂₂*b₂₂ + a₂₃*b₃₂, a₂₁*b₁₃ + a₂₂*b₂₃ + a₂₃*b₃₃;
+     a₃₁*b₁₁ + a₃₂*b₂₁ + a₃₃*b₃₁, a₃₁*b₁₂ + a₃₂*b₂₂ + a₃₃*b₃₂, a₃₁*b₁₃ + a₃₂*b₂₃ + a₃₃*b₃₃] :=
+begin
+  ext i j,
+  fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ, ←add_assoc],
+end
 
-section minor
+lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
+  ![a₀, a₁] = ![b₀, b₁] :=
+by subst_vars
 
-@[simp] lemma minor_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
-  minor A row col = ![] :=
-empty_eq _
+lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
+by subst_vars
 
-@[simp] lemma minor_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
-  minor A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (minor A row col) :=
-by { ext i j, refine fin.cases _ _ i; simp [minor] }
+lemma vec2_add [has_add α] (a₀ a₁ b₀ b₁ : α) :
+  ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
+by rw [cons_add_cons, cons_add_cons, empty_add_empty]
 
-end minor
+lemma vec3_add [has_add α] (a₀ a₁ a₂ b₀ b₁ b₂ : α) :
+  ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
+by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
+
+lemma smul_vec2 {R : Type*} [has_smul R α] (x : R) (a₀ a₁ : α) :
+  x • ![a₀, a₁] = ![x • a₀, x • a₁] :=
+by rw [smul_cons, smul_cons, smul_empty]
+
+lemma smul_vec3 {R : Type*} [has_smul R α] (x : R) (a₀ a₁ a₂ : α) :
+  x • ![a₀, a₁, a₂] = ![x • a₀, x • a₁, x • a₂] :=
+by rw [smul_cons, smul_cons, smul_cons, smul_empty]
+
+variables [add_comm_monoid α] [has_mul α]
+
+lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
+  ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
+
+@[simp] lemma vec2_dot_product (v w : fin 2 → α) :
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 :=
+vec2_dot_product'
+
+lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
+  ![a₀, a₁, a₂] ⬝ᵥ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
+       dot_product_empty, add_zero, add_assoc]
+
+@[simp] lemma vec3_dot_product (v w : fin 3 → α) :
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+vec3_dot_product'
+
+end vec2_and_vec3
 
 end matrix

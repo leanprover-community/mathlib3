@@ -9,14 +9,15 @@ Because this file imports some complicated tactics, it has many transitive depen
 
 As (non-exhaustive) examples, these includes things like:
 * algebra.group_power
-* algebra.ordered_ring
+* algebra.order.ring
 * data.rat
 * data.nat.prime
 * data.list.perm
 * data.set.lattice
-* data.equiv.encodable
+* data.equiv.encodable.basic
 * order.complete_lattice
 -/
+import tactic.basic -- ensure basic tactics are available
 import tactic.abel
 import tactic.ring_exp
 import tactic.noncomm_ring
@@ -28,3 +29,13 @@ import tactic.interval_cases
 import tactic.reassoc_axiom -- most likely useful only for category_theory
 import tactic.slice
 import tactic.subtype_instance
+import tactic.derive_fintype
+import tactic.group
+import tactic.cancel_denoms
+import tactic.zify
+import tactic.transport
+import tactic.unfold_cases
+import tactic.field_simp
+import tactic.linear_combination
+import tactic.polyrith
+import tactic.expand_exists

@@ -110,10 +110,7 @@ add_tactic_doc
 `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax
 `by_cases h : p`.
 
-This tactic requires that `p` is decidable. To ensure that all propositions are decidable via
-classical reasoning, use `open_locale classical`
-(or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using
-mathlib).
+If `p` is not already decidable, `by_cases` will use the instance `classical.prop_decidable p`.
 -/
 add_tactic_doc
 { name       := "by_cases",
@@ -221,6 +218,9 @@ The `congr` tactic attempts to identify both sides of an equality goal `A = B`,
 leaving as new goals the subterms of `A` and `B` which are not definitionally equal.
 Example: suppose the goal is `x * f y = g w * f z`. Then `congr` will produce two goals:
 `x = g w` and `y = z`.
+
+If `x y : t`, and an instance `subsingleton t` is in scope, then any goals of the form
+`x = y` are solved automatically.
 
 Note that `congr` can be over-aggressive at times; the `congr'` tactic in mathlib
 provides a more refined approach, by taking a parameter that limits the recursion depth.
@@ -590,7 +590,7 @@ add_tactic_doc
 { name       := "specialize",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.specialize],
-  tags       := ["core", "hypothesis management", "lemma application"] }
+  tags       := ["core", "context management", "lemma application"] }
 
 add_tactic_doc
 { name       := "split",
@@ -693,3 +693,82 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.with_cases],
   tags       := ["core", "combinator"] }
+
+/- conv mode tactics -/
+
+/--
+Navigate to the left-hand-side of a relation.
+A goal of `| a = b` will turn into the goal `| a`.
+-/
+add_tactic_doc
+{ name       := "conv: to_lhs",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.to_lhs],
+  tags       := ["conv"] }
+
+/--
+Navigate to the right-hand-side of a relation.
+A goal of `| a = b` will turn into the goal `| b`.
+-/
+add_tactic_doc
+{ name       := "conv: to_rhs",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.to_rhs],
+  tags       := ["conv"] }
+
+/--
+Navigate into every argument of the current head function.
+A target of `| (a * b) * c` will turn into the two targets `| a * b` and `| c`.
+-/
+add_tactic_doc
+{ name       := "conv: congr",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.congr],
+  tags       := ["conv"] }
+
+/--
+Navigate into the contents of top-level `λ` binders.
+A target of `| λ a, a + b` will turn into the target `| a + b` and introduce `a` into the local
+context.
+If there are multiple binders, all of them will be entered, and if there are none, this tactic is a
+no-op.
+-/
+add_tactic_doc
+{ name       := "conv: funext",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.funext],
+  tags       := ["conv"] }
+
+/--
+Navigate into the first scope matching the expression.
+
+For a target of `| ∀ c, a + (b + c) = 1`, `find (b + _) { ... }` will run the tactics within the
+`{}` with a target of `| b + c`.
+-/
+add_tactic_doc
+{ name       := "conv: find",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.find],
+  tags       := ["conv"] }
+
+/--
+Navigate into the numbered scopes matching the expression.
+
+For a target of `| λ c, 10 * c + 20 * c + 30 * c`, `for (_ * _) [1, 3] { ... }` will run the
+tactics within the `{}` with first a target of `| 10 * c`, then a target of `| 30 * c`.
+-/
+add_tactic_doc
+{ name       := "conv: for",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.for],
+  tags       := ["conv"] }
+
+/--
+End conversion of the current goal. This is often what is needed when muscle memory would type
+`sorry`.
+-/
+add_tactic_doc
+{ name       := "conv: skip",
+  category   := doc_category.tactic,
+  decl_names := [`conv.interactive.skip],
+  tags       := ["conv"] }

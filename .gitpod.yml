@@ -1,0 +1,10 @@
+image:
+  file: .docker/gitpod/mathlib/Dockerfile
+
+vscode:
+  extensions:
+    - jroesch.lean
+
+tasks:
+  - init: leanpkg configure && leanproject get-cache --fallback=download-all
+    command: . /home/gitpod/.profile

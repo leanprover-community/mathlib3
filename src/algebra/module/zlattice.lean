@@ -3,9 +3,9 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-import analysis.normed_space.basic
-import measure_theory.group.fundamental_domain
+import analysis.normed.order.basic
 import linear_algebra.free_module.pid
+import measure_theory.group.fundamental_domain
 import ring_theory.localization.module
 
 /-!
@@ -330,7 +330,7 @@ begin
   haveI : no_zero_smul_divisors ℤ L,
   { change no_zero_smul_divisors ℤ L.to_int_submodule,
     exact submodule.no_zero_smul_divisors _, },
-  exact module.free.of_basis (module.free_of_finite_type_torsion_free').2,
+  exact module.free_of_finite_type_torsion_free',
 end
 
 variables [module ℚ E]

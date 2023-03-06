@@ -28,6 +28,52 @@ open_locale classical
 
 noncomputable theory
 
+section solid
+
+class is_solid (α : Type*) [normed_linear_ordered_add_group α] : Prop :=
+(solid: ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
+
+instance normed_linear_ordered_field.to_normed_linear_ordered_add_group (α : Type*)
+  [normed_linear_ordered_field α] : normed_linear_ordered_add_group α :=
+{ dist_eq := normed_linear_ordered_field.dist_eq }
+
+instance : is_solid ℝ := { solid := λ _ _, id }
+
+instance : is_solid ℚ :=
+{  solid :=
+  begin
+    intros a b h,
+ simpa [norm, ← rat.cast_abs],
+  end }
+
+end solid
+
+section normed_lattice_field
+
+class normed_lattice_field (α : Type*)
+extends normed_linear_ordered_field α :=
+(solid: ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
+
+instance normed_lattice_field.to_normed_lattice_add_comm_group  (α : Type*)
+  [normed_lattice_field α] : normed_lattice_add_comm_group α :=
+⟨λ _ _ h c, add_le_add_left h c, normed_lattice_field.solid⟩
+
+instance real.normed_lattice_field : normed_lattice_field ℝ := ⟨λ _ _, id⟩
+
+instance rat.normed_lattice_field : normed_lattice_field ℚ :=
+{ solid := λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le], }
+
+
+variables {K : Type*} [normed_lattice_field K]
+
+example (a b : K) (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ := solid h
+
+#exit
+
+
+
+end normed_lattice_field
+
 section zspan
 
 open measure_theory measurable_set submodule
@@ -80,7 +126,7 @@ end basis
 
 section ordered_field
 
-variables {K : Type*} [normed_linear_ordered_field K]
+variables {K : Type*} [normed_linear_ordered_field K] [is_solid K]
 variables [normed_add_comm_group E] [normed_space K E]
 variables (b : basis ι K E)
 
@@ -142,12 +188,12 @@ begin
     finsupp.coe_neg, pi.add_apply, pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _)],
 end
 
-end ordered_field
+-- end ordered_field
 
-section real_case
+-- section real_case
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
-variables (b : basis ι ℝ E)
+-- variables [normed_add_comm_group E] [normed_space ℝ E]
+-- variables (b : basis ι ℝ E)
 
 lemma zspan.fract_map_le [fintype ι] (m : E) :
   ‖zspan.fract_map b m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
@@ -160,10 +206,18 @@ begin
     ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i)‖ * ‖b i‖) : by simp_rw norm_smul
     ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum _,
     intros i _,
-    rw [real.norm_eq_abs, int.abs_fract],
-    refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
-    rw one_mul,
+    suffices : ‖int.fract (((b.repr) m) i)‖ ≤ 1,
+    { have := mul_le_mul_of_nonneg_right this (norm_nonneg _ : 0 ≤ ‖b i ‖),
+      rw one_mul at this,
+      exact this, },
+    rw (norm_one.symm : 1 = ‖(1:K)‖),
+    apply is_solid.solid,
+    rw abs_one,
+    rw int.abs_fract,
+    exact le_of_lt (int.fract_lt_one _),
 end
+
+#exit
 
 lemma zspan.fundamental_domain_metric_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
@@ -181,9 +235,9 @@ lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable
   [finite ι]:
   measurable_set (zspan.fundamental_domain b) :=
 begin
-  haveI : finite_dimensional ℝ E := finite_dimensional.of_fintype_basis b,
-  let f := (finsupp.linear_equiv_fun_on_finite ℝ ℝ ι).to_linear_map.comp b.repr.to_linear_map,
-  let D : set (ι → ℝ) := set.pi set.univ (λ i : ι, (set.Ico (0 : ℝ) 1)),
+  haveI : finite_dimensional K E := finite_dimensional.of_fintype_basis b,
+  let f := (finsupp.linear_equiv_fun_on_finite K K ι).to_linear_map.comp b.repr.to_linear_map,
+  let D : set (ι → K) := set.pi set.univ (λ i : ι, (set.Ico (0 : K) 1)),
   rw ( _ : zspan.fundamental_domain b = f⁻¹' D),
   { refine measurable_set_preimage (linear_map.continuous_of_finite_dimensional f).measurable _,
     exact pi set.univ.to_countable (λ (i : ι) (H : i ∈ set.univ), measurable_set_Ico), },

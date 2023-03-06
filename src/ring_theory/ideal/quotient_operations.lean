@@ -510,4 +510,155 @@ lemma quot_quot_equiv_comm_algebra_map (x : R) :
 
 end algebra
 
+section algebra_quotient
+
+variables (R) {A : Type*} [comm_semiring R] [comm_ring A] [algebra R A]
+variables (I J : ideal A)
+
+/-- The natural algebra homomorphism `A / I → A / (I ⊔ J)`. -/
+def quot_left_to_quot_supₐ : A ⧸ I →ₐ[R] A ⧸ (I ⊔ J) :=
+alg_hom.mk (quot_left_to_quot_sup I J) rfl (map_mul _) rfl (map_add _) (λ _, rfl)
+
+@[simp]
+lemma quot_left_to_quot_supₐ_to_ring_hom :
+  (quot_left_to_quot_supₐ R I J).to_ring_hom = quot_left_to_quot_sup I J :=
+rfl
+
+@[simp]
+lemma coe_quot_left_to_quot_supₐ :
+  ⇑(quot_left_to_quot_supₐ R I J) = quot_left_to_quot_sup I J :=
+rfl
+
+/-- The algebra homomorphism `(A / I) / J' -> A / (I ⊔ J) induced by `quot_left_to_quot_sup`,
+  where `J'` is the projection of `J` in `A / I`. -/
+def quot_quot_to_quot_supₐ : (A ⧸ I) ⧸ J.map (I^.quotient.mkₐ R) →ₐ[R] A ⧸ I ⊔ J :=
+alg_hom.mk (quot_quot_to_quot_sup I J) rfl (map_mul _) rfl (map_add _) (λ _, rfl)
+
+@[simp]
+lemma quot_quot_to_quot_supₐ_to_ring_hom :
+  (quot_quot_to_quot_supₐ R I J).to_ring_hom = quot_quot_to_quot_sup I J :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_to_quot_supₐ :
+  ⇑(quot_quot_to_quot_supₐ R I J) = quot_quot_to_quot_sup I J :=
+rfl
+
+/-- The composition of the algebra homomorphisms `A → (A / I)` and `(A / I) → (A / I) / J'`,
+  where `J'` is the projection `J` in `A / I`. -/
+def quot_quot_mkₐ : A →ₐ[R] ((A ⧸ I) ⧸ J.map (I^.quotient.mkₐ R)) :=
+alg_hom.mk (quot_quot_mk I J) rfl (map_mul _) rfl (map_add _) (λ _, rfl)
+
+@[simp]
+lemma quot_quot_mkₐ_to_ring_hom :
+  (quot_quot_mkₐ R I J).to_ring_hom = quot_quot_mk I J :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_mkₐ :
+  ⇑(quot_quot_mkₐ R I J) = quot_quot_mk I J :=
+rfl
+
+/-- The injective algebra homomorphism `A / (I ⊔ J) → (A / I) / J'`induced by `quot_quot_mk`,
+  where `J'` is the projection `J` in `A / I`. -/
+def lift_sup_quot_quot_mkₐ (I J : ideal A) :
+  A ⧸ (I ⊔ J) →ₐ[R] (A ⧸ I) ⧸ J.map (I^.quotient.mkₐ R) :=
+alg_hom.mk (lift_sup_quot_quot_mk I J) rfl (map_mul _) rfl (map_add _) (λ _, rfl)
+
+@[simp]
+lemma lift_sup_quot_quot_mkₐ_to_ring_hom :
+  (lift_sup_quot_quot_mkₐ R I J).to_ring_hom = lift_sup_quot_quot_mk I J :=
+rfl
+
+@[simp]
+lemma coe_lift_sup_quot_quot_mkₐ :
+  ⇑(lift_sup_quot_quot_mkₐ R I J) = lift_sup_quot_quot_mk I J :=
+rfl
+
+/-- `quot_quot_to_quot_add` and `lift_sup_quot_quot_mk` are inverse isomorphisms. In the case where
+    `I ≤ J`, this is the Third Isomorphism Theorem (see `quot_quot_equiv_quot_of_le`). -/
+def quot_quot_equiv_quot_supₐ : ((A ⧸ I) ⧸ J.map (I^.quotient.mkₐ R)) ≃ₐ[R] A ⧸ I ⊔ J :=
+@alg_equiv.of_ring_equiv R _ _ _ _ _ _ _ (quot_quot_equiv_quot_sup I J) (λ _, rfl)
+
+@[simp]
+lemma quot_quot_equiv_quot_supₐ_to_ring_equiv :
+  (quot_quot_equiv_quot_supₐ R I J).to_ring_equiv = quot_quot_equiv_quot_sup I J :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_equiv_quot_supₐ :
+  ⇑(quot_quot_equiv_quot_supₐ R I J) = quot_quot_equiv_quot_sup I J :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_symm_quot_quot_mkₐ (x : A) :
+  (quot_quot_equiv_quot_supₐ R I J).symm ((I ⊔ J)^.quotient.mkₐ R x) =
+    quot_quot_mkₐ R I J x :=
+rfl
+
+/-- The natural algebra isomorphism `(A / I) / J' → (A / J) / I'`,
+  where `J'` (resp. `I'`) is the projection of `J` in `A / I` (resp. `I` in `A / J`). -/
+def quot_quot_equiv_commₐ :
+  ((A ⧸ I) ⧸ J.map (I^.quotient.mkₐ R)) ≃ₐ[R]
+    ((A ⧸ J) ⧸ I.map (J^.quotient.mkₐ R)) :=
+@alg_equiv.of_ring_equiv R _ _ _ _ _ _ _ (quot_quot_equiv_comm I J) (λ _, rfl)
+
+@[simp]
+lemma quot_quot_equiv_commₐ_to_ring_equiv :
+  (quot_quot_equiv_commₐ R I J).to_ring_equiv = quot_quot_equiv_comm I J :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_equiv_commₐ :
+  ⇑(quot_quot_equiv_commₐ R I J) = quot_quot_equiv_comm I J :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_comm_comp_quot_quot_mkₐ :
+  alg_hom.comp ↑(quot_quot_equiv_commₐ R I J) (quot_quot_mkₐ R I J) = quot_quot_mkₐ R J I :=
+alg_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
+
+-- @[simp]
+-- lemma quot_quot_equiv_comm_symmₐ :
+--   (quot_quot_equiv_commₐ R I J).symm = quot_quot_equiv_commₐ R J I :=
+-- by convert rfl
+
+variables {I J}
+
+/-- The **third isomoprhism theorem** for rings. See `quot_quot_equiv_quot_sup` for version
+    that does not assume an inclusion of ideals. -/
+def quot_quot_equiv_quot_of_leₐ (h : I ≤ J) :
+  ((A ⧸ I) ⧸ (J.map (I^.quotient.mkₐ R))) ≃ₐ[R] A ⧸ J :=
+@alg_equiv.of_ring_equiv R _ _ _ _ _ _ _ (quot_quot_equiv_quot_of_le h) (λ _, rfl)
+
+@[simp]
+lemma quot_quot_equiv_quot_of_leₐ_to_ring_equiv (h : I ≤ J) :
+  (quot_quot_equiv_quot_of_leₐ R h).to_ring_equiv = quot_quot_equiv_quot_of_le h :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_equiv_quot_of_leₐ (h : I ≤ J) :
+  ⇑(quot_quot_equiv_quot_of_leₐ R h) = quot_quot_equiv_quot_of_le h :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_symm_mkₐ (x : A) (h : I ≤ J) :
+  (quot_quot_equiv_quot_of_leₐ R h).symm (J^.quotient.mkₐ R x) =
+    (quot_quot_mkₐ R I J x) :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_comp_quot_quot_mkₐ (h : I ≤ J) :
+  alg_hom.comp ↑(quot_quot_equiv_quot_of_leₐ R h) (quot_quot_mkₐ R I J) =
+    J^.quotient.mkₐ R :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_symm_comp_mkₐ (h : I ≤ J) :
+  alg_hom.comp ↑(quot_quot_equiv_quot_of_leₐ R h).symm (J^.quotient.mkₐ R) =
+    quot_quot_mkₐ R I J :=
+rfl
+
+end algebra_quotient
+
 end double_quot

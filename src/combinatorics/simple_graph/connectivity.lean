@@ -10,6 +10,9 @@ import data.list.rotate
 
 # Graph connectivity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a simple graph,
 
 * A *walk* is a finite sequence of adjacent vertices, and can be

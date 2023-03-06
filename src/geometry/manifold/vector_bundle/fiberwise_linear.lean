@@ -284,4 +284,4 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
   (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
   (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
   e.eq_on_source (fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on) :=
-show e ∈ set.Union _ ↔ _, by simp only [mem_Union]; refl
+show e ∈ set.Union _ ↔ _, by { simp only [mem_Union], refl }

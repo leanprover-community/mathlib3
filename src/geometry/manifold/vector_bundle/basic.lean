@@ -19,7 +19,7 @@ Now, we define `smooth_vector_bundle` as the `Prop` of having smooth transition 
 Recall the structure groupoid `smooth_fiberwise_linear` on `B × F` consisting of smooth, fibrewise
 linear local homeomorphisms.  We show that our definition of "smooth vector bundle" implies
 `has_groupoid` for this groupoid, and show (by a "composition" of `has_groupoid` instances) that
-this means that a smooth vector bundle is a smooth manifold
+this means that a smooth vector bundle is a smooth manifold.
 
 Since `smooth_vector_bundle` is a mixin, it should be easy to make variants and for many such
 variants to coexist -- vector bundles can be smooth vector bundles over several different base
@@ -44,8 +44,8 @@ fields, they can also be C^k vector bundles, etc.
 * `bundle.total_space.smooth_manifold_with_corners`: A smooth vector bundle is naturally a smooth
   manifold.
 
-* `vector_bundle_core.smooth_vector_bundle`: If a (topological) `vector_bundle_core` smooth, in the
-  sense of having smooth transition functions, then the vector bundle constructed from it is a
+* `vector_bundle_core.smooth_vector_bundle`: If a (topological) `vector_bundle_core` is smooth, in
+  the sense of having smooth transition functions, then the vector bundle constructed from it is a
   smooth vector bundle.
 
 * `bundle.prod.smooth_vector_bundle`: The direct sum of two smooth vector bundles is a smooth vector
@@ -95,14 +95,13 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
   [topological_space B] [charted_space HB B] [smooth_manifold_with_corners IB B]
-  {EB' : Type*} [normed_add_comm_group EB'] [normed_space 𝕜 EB']
-  {HB' : Type*} [topological_space HB'] (IB' : model_with_corners 𝕜 EB' HB')
-  [topological_space B'] [charted_space HB' B'] [smooth_manifold_with_corners IB' B']
 
 variables (F E) [fiber_bundle F E] [vector_bundle 𝕜 F E]
 
-/-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
-transition functions. -/
+/-- When `B` is a smooth manifold with corners with respect to a model `IB` and `E` is a
+topological vector bundle over `B` with fibers isomorphic to `F`, then `smooth_vector_bundle F E IB`
+registers that the bundle is smooth, in the sense of having smooth transition functions.
+This is a mixin, not carrying any new data`. -/
 class smooth_vector_bundle : Prop :=
 (smooth_on_coord_change : ∀ (e e' : trivialization F (π E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
@@ -211,7 +210,7 @@ variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E
   [vector_bundle 𝕜 F₁ E₁] [vector_bundle 𝕜 F₂ E₂]
   [smooth_vector_bundle F₁ E₁ IB] [smooth_vector_bundle F₂ E₂ IB]
 
-/-- The direct sum of two smooth vector bundles is a smooth vector bundle. -/
+/-- The direct sum of two smooth vector bundles over the same base is a smooth vector bundle. -/
 instance bundle.prod.smooth_vector_bundle :
   smooth_vector_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) IB :=
 { smooth_on_coord_change := begin

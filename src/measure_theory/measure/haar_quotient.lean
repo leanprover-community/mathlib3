@@ -290,7 +290,7 @@ begin
     { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
       rw [← mul_ess_sup_of_g h𝓕 (λ x, ↑‖g x‖₊) hg'.ae_measurable],
-      exact g_ℒ_infinity, }, },
+      exact g_ℒ_infinity.ne, }, },
   { intros x,
     rw [hFf x, ← tsum_mul_right],
     congr,

@@ -11,6 +11,9 @@ import data.int.order.units
 /-!
 # Sign of a permutation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition of this file is `equiv.perm.sign`, associating a `ℤˣ` sign with a
 permutation.
 

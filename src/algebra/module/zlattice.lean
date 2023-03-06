@@ -3,7 +3,7 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-
+import analysis.normed_space.basic
 import measure_theory.group.fundamental_domain
 import linear_algebra.free_module.pid
 import ring_theory.localization.module
@@ -34,45 +34,63 @@ section zspan
 
 open measure_theory measurable_set submodule
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables {ι : Type*} (b : basis ι ℝ E)
+variables {E ι : Type*}
 
-/-- The ℤ-lattice spanned by `b` admits `b` as a ℤ-basis. -/
-def zspan.basis : basis ι ℤ (span ℤ (set.range b)) :=
-basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (ne_zero.ne 1)))
+section basis
+
+variables {R K : Type*} [comm_ring R] [division_ring K] [algebra R K] [add_comm_group E]
+  [module K E] [module R E] [is_scalar_tower R K E] [no_zero_smul_divisors R K]
+variables (b : basis ι K E)
+
+variable (R)
+
+/-- The R-lattice spanned by `b` admits `b` as a R-basis. -/
+def zspan.basis : basis ι R (span R (set.range b)) :=
+basis.span (b.linear_independent.restrict_scalars (smul_left_injective R (ne_zero.ne 1)))
 
 @[simp]
-lemma zspan.basis_apply (i : ι) : (zspan.basis b i : E) = b i :=
+lemma zspan.basis_apply (i : ι) : (zspan.basis R b i : E) = b i :=
   by simp only [zspan.basis, basis.span_apply]
 
 @[simp]
-lemma zspan.repr_apply (m : span ℤ (set.range b)) [finite ι] (i : ι)  :
-  ((zspan.basis b).repr m i : ℝ) = b.repr m i :=
+lemma zspan.repr_apply (m : span R (set.range b)) [finite ι] (i : ι)  :
+  algebra_map R K ((zspan.basis R b).repr m i) = b.repr m i :=
 begin
   casesI nonempty_fintype ι,
-  rw ← congr_arg (coe : _ → E) (basis.sum_repr (zspan.basis b) m),
-  simp only [coe_sum, coe_smul_of_tower, zspan.basis_apply, linear_equiv.map_sum,
-    zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.single_apply, finset.sum_apply', basis.repr_self,
-    finsupp.smul_single', mul_one, finset.sum_ite_eq', finset.mem_univ, if_true],
+  rw ← congr_arg (coe : _ → E) (basis.sum_repr (zspan.basis R b) m),
+  simp_rw [coe_sum, coe_smul_of_tower, zspan.basis_apply, linear_equiv.map_sum,
+    ← is_scalar_tower.algebra_map_smul K, b.repr.map_smul, basis.repr_self, algebra_map_smul,
+    finsupp.smul_single, finset.sum_apply', algebra.algebra_map_eq_smul_one, finsupp.single_apply,
+    finset.sum_ite_eq', finset.mem_univ],
+  refl,
 end
 
 lemma zspan.mem_span_iff [finite ι] (m : E) :
-  m ∈ span ℤ (set.range b) ↔ ∀ i, ∃ c : ℤ, b.repr m i = c :=
+  m ∈ span R (set.range b) ↔ ∀ i, ∃ c : R, b.repr m i = algebra_map R K c :=
 begin
   casesI nonempty_fintype ι,
   split,
-  { exact λ hm i, ⟨(zspan.basis b).repr ⟨m, hm⟩ i, (zspan.repr_apply b ⟨m, hm⟩ i).symm⟩, },
+  { exact λ hm i, ⟨(zspan.basis R b).repr ⟨m, hm⟩ i, (zspan.repr_apply R b ⟨m, hm⟩ i).symm⟩, },
   { intros h,
     rw ← b.sum_repr m,
-    refine sum_mem _,
-    intros i _,
-    rw [(h i).some_spec, ← zsmul_eq_smul_cast ℝ],
-    exact zsmul_mem (subset_span (set.mem_range_self i)) _, }
+    refine sum_mem (λ i _ , _),
+    rw [(h i).some_spec, @is_scalar_tower.algebra_map_smul R K],
+    exact smul_mem _ _ (subset_span (set.mem_range_self i)), }
 end
+
+end basis
+
+section normed_lattice_field
+
+variables {K : Type*} [normed_lattice_field K]
+variables [normed_add_comm_group E] [normed_space K E]
+variables (b : basis ι K E)
 
 /-- The fundamental domain of the ℤ-lattice spanned by `b`. See `zspan.is_add_fundamental_domain`
 for the proof that it is the fundamental domain. -/
-def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : ℝ) 1 }
+def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : K) 1 }
+
+variables [floor_ring K]
 
 section fintype
 
@@ -81,11 +99,11 @@ variable [fintype ι]
 /-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
 by rounding down its coordinates on the basis `b`. -/
 def zspan.floor_map : E → span ℤ (set.range b) :=
-λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • zspan.basis b i)
+λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • zspan.basis ℤ b i)
 
 lemma zspan.floor_map_single (m : E) (i : ι) :
   b.repr (zspan.floor_map b m) i = int.floor (b.repr m i) :=
-by simp only [zspan.floor_map, zsmul_eq_smul_cast ℝ, b.repr.map_smul, finsupp.single_apply,
+by simp only [zspan.floor_map, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
   finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
   finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, zspan.basis_apply, linear_equiv.map_sum]
 
@@ -106,9 +124,9 @@ lemma zspan.fract_map_zspan_add (m : E) {v : E} (h : v ∈ span ℤ (set.range b
 begin
   refine (basis.ext_elem_iff b).mpr (λ i, _),
   simp_rw [zspan.fract_map_single, int.fract_eq_fract],
-  use (zspan.basis b).repr ⟨v, h⟩ i,
-  simp only [map_add, finsupp.coe_add, pi.add_apply, add_tsub_cancel_right, zspan.repr_apply,
-    coe_mk],
+  use (zspan.basis ℤ b).repr ⟨v, h⟩ i,
+  rw [map_add, finsupp.coe_add, pi.add_apply, add_tsub_cancel_right,
+    ← (eq_int_cast (algebra_map ℤ K) _), zspan.repr_apply, coe_mk],
 end
 
 lemma zspan.mem_fundamental_domain {x : E} :
@@ -125,8 +143,9 @@ lemma zspan.fract_map_eq_iff (m n : E) :
 zspan.fract_map b m = zspan.fract_map b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
   rw [eq_comm, basis.ext_elem_iff b],
-  simp only [int.fract_eq_fract, zspan.mem_span_iff, zspan.fract_map_single, sub_eq_neg_add,
-    map_add, linear_equiv.map_neg, finsupp.coe_add, finsupp.coe_neg, pi.add_apply, pi.neg_apply],
+  simp only [int.fract_eq_fract, zspan.fract_map_single],
+  simp_rw [zspan.mem_span_iff, sub_eq_neg_add, map_add, linear_equiv.map_neg, finsupp.coe_add,
+    finsupp.coe_neg, pi.add_apply, pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _)],
 end
 
 lemma zspan.fract_map_le (m : E) :
@@ -138,11 +157,14 @@ begin
     ... = ‖finset.univ.sum (λ i, int.fract (b.repr m i) • b i)‖ : by simp_rw zspan.fract_map_single
     ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i) • b i‖) : norm_sum_le _ _
     ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i)‖ * ‖b i‖) : by simp_rw norm_smul
-    ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum _,
-    intros i _,
-    rw [real.norm_eq_abs, int.abs_fract],
-    refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
-    rw one_mul,
+    ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum (λ i _, _),
+    suffices : ‖int.fract (((b.repr) m) i)‖ ≤ 1,
+    { convert mul_le_mul_of_nonneg_right this (norm_nonneg _ : 0 ≤ ‖b i ‖),
+      exact (one_mul _).symm, },
+    rw (norm_one.symm : 1 = ‖(1 : K)‖),
+    apply norm_le_norm_of_abs_le_abs,
+    rw [abs_one, int.abs_fract],
+    exact le_of_lt (int.fract_lt_one _),
 end
 
 end fintype
@@ -159,6 +181,29 @@ begin
   rw ← two_mul,
 end
 
+lemma zspan.exist_vadd_mem_fundamental_domain [finite ι] (x : E) :
+  ∃! v : span ℤ (set.range b), v +ᵥ x ∈ zspan.fundamental_domain b :=
+begin
+  casesI nonempty_fintype ι,
+  use (-zspan.floor_map b x),
+  split,
+  { simp_rw [zspan.fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add,
+      add_subgroup_class.coe_neg, neg_add_eq_sub, ← zspan.fract_map_def],
+    simp only [zspan.fract_map_single, int.fract_nonneg, int.fract_lt_one, true_and,
+      set.mem_set_of_eq, implies_true_iff], },
+  { intros y _,
+    rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
+      ← zspan.fract_map_def, ← zspan.fract_map_zspan_add b _ (subtype.mem y), add_comm,
+      ← vadd_eq_add, ← vadd_def, eq_comm, ← zspan.mem_fundamental_domain], },
+end
+
+end normed_lattice_field
+
+section real
+
+variables [normed_add_comm_group E] [normed_space ℝ E]
+variables (b : basis ι ℝ E)
+
 lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
   [finite ι]:
   measurable_set (zspan.fundamental_domain b) :=
@@ -173,22 +218,6 @@ begin
     simp only [zspan.fundamental_domain, set.mem_set_of_eq, linear_map.coe_comp,
       linear_equiv.coe_to_linear_map, set.mem_preimage, function.comp_app, set.mem_univ_pi,
       finsupp.linear_equiv_fun_on_finite_apply], },
-end
-
-lemma zspan.exist_vadd_mem_fundamental_domain (x : E) [finite ι] :
-  ∃! v : span ℤ (set.range b), v +ᵥ x ∈ zspan.fundamental_domain b :=
-begin
-  casesI nonempty_fintype ι,
-  use (-zspan.floor_map b x),
-  split,
-  { simp_rw [zspan.fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add,
-      add_subgroup_class.coe_neg, neg_add_eq_sub, ← zspan.fract_map_def],
-    simp only [zspan.fract_map_single, int.fract_nonneg, int.fract_lt_one, true_and,
-      set.mem_set_of_eq, implies_true_iff], },
-  { intros y _,
-    rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
-      ← zspan.fract_map_def, ← zspan.fract_map_zspan_add b _ (subtype.mem y), add_comm,
-      ← vadd_eq_add, ← vadd_def, eq_comm, ← zspan.mem_fundamental_domain], },
 end
 
 lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_measurable_space E]

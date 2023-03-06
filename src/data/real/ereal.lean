@@ -10,6 +10,9 @@ import data.sign
 /-!
 # The extended reals [-∞, ∞].
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ereal`, the real numbers together with a top and bottom element,
 referred to as ⊤ and ⊥. It is implemented as `with_bot (with_top ℝ)`
 

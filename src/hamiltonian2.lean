@@ -807,9 +807,8 @@ begin
   obtain ⟨p, hp, hpw⟩ := hvr.exists_path_of_dist,
   obtain ⟨q, hq, hqw⟩ := hwr.exists_path_of_dist,
   simp only [basepoint_dist, ← this, ← hpw, ← hqw],
-  have htri1 := reachable.dist_triangle hvw.reachable hwr,
   have htri2 := reachable.dist_triangle hvw.symm.reachable hvr,
-  simp [hvw, hvw.symm, dist_eq_one_of_adj] at htri1 htri2,
+  simp [hvw, hvw.symm, dist_eq_one_of_adj] at htri2,
   clear hvr hwr this,
   by_cases hq' : (walk.cons hvw q).is_path,
   { rw parity_path_sup_matchings m m' hm hm' _ _ hp hq',
@@ -820,7 +819,7 @@ begin
     { simp only [walk.support_cons, list.mem_cons_iff] at hq',
       obtain (rfl | hq') := hq',
       { cases hvw.ne rfl, },
-      { simp [← hpw, ← hqw] at htri1 htri2,
+      { simp [← hpw, ← hqw] at htri2,
         simp only [add_comm, add_le_add_iff_left] at htri2,
         have := walk.length_drop_until_le _ hq',
         have := (this.trans htri2).trans hpw.le,
@@ -874,6 +873,172 @@ begin
 end
 
 end colorings
+
+section two_coloring
+
+/-! ### 2-regular two-colorable graphs
+
+In this section, we show that a 2-regular two-colorable connected graph is an even-length cycle,
+in that there is an enumeration of its vertices by `fin (2 * k)`.
+-/
+
+/--
+Given that `G.adj u v`, get the other vertex adjacent to `v`.
+-/
+def two_regular_other [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) : V :=
+(G.neighbor_finset v).choose (λ w, w ≠ u)
+begin
+  specialize h v,
+  rw [degree, finset.card_eq_two] at h,
+  obtain ⟨w, w', h⟩ := h,
+  obtain (rfl | hne) := eq_or_ne u w,
+  { use w',
+    rw [h.2], simp,
+    simp only [h.1.symm, finset.mem_attach, ne.def, not_false_iff, true_and,
+      subtype.forall, mem_neighbor_finset], },
+  { use w,
+    rw [h.2],
+    simp [hne.symm, h.1.symm, imp_false],
+    rw [adj_comm, ← mem_neighbor_finset, h.2] at huv,
+    simp [hne] at huv,
+    exact huv.symm, }
+end
+
+lemma two_regular_other_adj [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) : G.adj v (G.two_regular_other h huv) :=
+begin
+  simp [two_regular_other],
+  rw [← mem_neighbor_finset],
+  apply finset.choose_mem,
+end
+
+lemma two_regular_other_ne [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) : G.two_regular_other h huv ≠ u :=
+begin
+  simp [two_regular_other],
+  generalize_proofs hp,
+  exact finset.choose_property _ _ hp,
+end
+
+def follow_cycle' [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2) :
+  Π {u v : V} (huv : G.adj u v), ℕ → V
+| u v huv 0 := u
+| u v huv 1 := v
+| u v huv (n + 1) := follow_cycle' (G.two_regular_other_adj h huv) n
+
+lemma follow_cycle'_adj_succ [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℕ) :
+  G.adj (G.follow_cycle' h huv n) (G.follow_cycle' h huv (n + 1)) :=
+begin
+  cases n,
+  { exact huv },
+  induction n generalizing u v,
+  { apply two_regular_other_adj, },
+  { simp [follow_cycle'],
+    simp [follow_cycle'] at n_ih,
+    apply n_ih,
+    apply G.two_regular_other_adj, }
+end
+
+def follow_cycle [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) : ℤ → V
+| (int.of_nat n) := G.follow_cycle' h huv n
+| -[1+ n] := G.follow_cycle' h huv.symm (n + 2)
+
+lemma follow_cycle_coe [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℕ) :
+  G.follow_cycle h huv n = G.follow_cycle' h huv n := rfl
+
+lemma follow_cycle_zero [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) :
+  G.follow_cycle h huv 0 = u := rfl
+
+lemma follow_cycle_one [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) :
+  G.follow_cycle h huv 1 = v := rfl
+
+lemma follow_cycle_neg_coe [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℕ) :
+  G.follow_cycle h huv (- n) = G.follow_cycle' h (G.two_regular_other_adj h huv.symm) n :=
+begin
+  cases n,
+  { simp [follow_cycle_zero, follow_cycle'], },
+  { simp [],
+    rw [add_comm, ← neg_add, ← int.coe_nat_one, ← int.coe_nat_add, ← int.neg_succ_of_nat_coe],
+    rw [follow_cycle],
+    simp [follow_cycle'], }
+end
+
+/-- Key basic property of `G.follow_cycle`.
+This is showing that `ℤ` as a line has a graph homomorphism to `G`.  -/
+lemma follow_cycle_adj_succ [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℤ) :
+  G.adj (G.follow_cycle h huv n) (G.follow_cycle h huv (n + 1)) :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := int.eq_coe_or_neg n,
+  { rw [int.coe_nat_add_one_out, follow_cycle_coe, follow_cycle_coe],
+    apply follow_cycle'_adj_succ, },
+  { cases n,
+    { simp [follow_cycle_zero, follow_cycle_one, huv], },
+    { rw [follow_cycle_neg_coe],
+      simp only [neg_add_cancel_comm, nat.cast_succ, neg_add_rev, follow_cycle_neg_coe],
+      rw [adj_comm],
+      apply follow_cycle'_adj_succ, } },
+end
+
+/-- We also need this to ensure that the function is actually always going in the same direction. -/
+lemma follow_cycle_eq_two_regular_other [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℤ) :
+  G.follow_cycle h huv (n + 2) = G.two_regular_other h (G.follow_cycle_adj_succ h huv n) :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := int.eq_coe_or_neg n,
+  { change G.follow_cycle h huv ↑(n + 2) = _,
+    simp_rw [follow_cycle_coe, follow_cycle'],
+    simp_rw [← int.coe_nat_succ, follow_cycle_coe],
+    cases n,
+    { simp [follow_cycle'],
+
+    },
+  },
+  have := int.eq_coe_or_neg,
+  cases n,
+  { generalize_proofs hp,
+    rw [← int.of_nat_succ],
+
+  }
+end
+
+/-- This is also important-/
+lemma follow_cycle_ne [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℤ) :
+  G.follow_cycle h huv n ≠ G.follow_cycle h huv (n + 2) :=
+begin
+end
+
+lemma follow_cycle_eq_of_adj [decidable_eq V]
+  (G : simple_graph V) [G.locally_finite] (h : G.is_regular_of_degree 2)
+  {u v : V} (huv : G.adj u v) (n : ℤ)
+  {w : V} (hw : G.adj w (G.follow_cycle h huv n)) :
+  w = G.follow_cycle h huv (n - 1) ∨ w = G.follow_cycle h huv (n + 1) :=
+begin
+
+end
+
+end two_coloring
 
 /-- Given two perfect matchings, alternately follow one then the other to create
 a sequence of vertices. -/

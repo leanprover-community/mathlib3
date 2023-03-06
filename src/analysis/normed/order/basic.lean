@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Yaël Dillies
 -/
 import algebra.order.group.type_tags
+import analysis.normed.order.lattice
 import analysis.normed_space.basic
 
 /-!
@@ -54,6 +55,12 @@ extends linear_ordered_field α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 (norm_mul' : ∀ x y : α, ‖x * y‖ = ‖x‖ * ‖y‖)
 
+/-- A `normed_lattice_field` is a `normed_linear_ordered_field` that satisfies also the `solid`
+property: `|a| ≤ |b|` implies `‖a‖ ≤ ‖b‖`. -/
+class normed_lattice_field (α : Type*)
+extends normed_linear_ordered_field α :=
+(solid: ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
+
 @[to_additive, priority 100]
 instance normed_ordered_group.to_normed_comm_group [normed_ordered_group α] : normed_comm_group α :=
 ⟨normed_ordered_group.dist_eq⟩
@@ -68,12 +75,22 @@ instance normed_linear_ordered_group.to_normed_ordered_group [normed_linear_orde
 { dist_eq := normed_linear_ordered_field.dist_eq,
   norm_mul' := normed_linear_ordered_field.norm_mul' }
 
+@[priority 100] instance normed_lattice_field.to_normed_lattice_add_comm_group  (α : Type*)
+  [normed_lattice_field α] : normed_lattice_add_comm_group α :=
+⟨λ _ _ h c, add_le_add_left h c, normed_lattice_field.solid⟩
+
 instance : normed_linear_ordered_field ℚ :=
 ⟨dist_eq_norm, norm_mul⟩
+
+instance rat.normed_lattice_field : normed_lattice_field ℚ :=
+⟨λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le]⟩
 
 noncomputable
 instance : normed_linear_ordered_field ℝ :=
 ⟨dist_eq_norm, norm_mul⟩
+
+noncomputable
+instance real.normed_lattice_field : normed_lattice_field ℝ := ⟨λ _ _, id⟩
 
 @[to_additive] instance [normed_ordered_group α] : normed_ordered_group αᵒᵈ :=
 { ..normed_ordered_group.to_normed_comm_group, ..order_dual.ordered_comm_group }

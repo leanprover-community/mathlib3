@@ -177,7 +177,7 @@ local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict
 
 
 @[to_additive]
-lemma mul_ess_sup_of_g [μ.is_mul_right_invariant] (g : G ⧸ Γ → ℝ≥0∞)
+lemma mul_ess_sup_of_g [μ.is_mul_right_invariant] {g : G ⧸ Γ → ℝ≥0∞}
   (g_measurable : ae_measurable g μ_𝓕) :
   ess_sup g μ_𝓕 = ess_sup (λ (x : G), g x) μ :=
 begin
@@ -230,6 +230,63 @@ begin
   simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
 end
 
+-- do we need a summability hypothesis here? tbd
+lemma mul_action.automorphize_smul_left {α : Type*} {β : Type*} [group α] [mul_action α β]
+  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : β → γ)
+  {R : Type*} [monoid R] [distrib_mul_action R γ] [has_continuous_const_smul R γ]
+  (g : quotient (mul_action.orbit_rel α β) → R) :
+  mul_action.automorphize ((g ∘ quotient.mk') • f)
+  = g • (mul_action.automorphize f : quotient (mul_action.orbit_rel α β) → γ) :=
+begin
+  ext x,
+  apply quotient.induction_on' x,
+  intro b,
+  simp [mul_action.automorphize],
+  set π : β → quotient (mul_action.orbit_rel α β) := quotient.mk',
+  have H₁ : ∀ a : α, π (a • b) = π b := sorry,
+  change ∑' a : α, g (π (a • b)) • f (a • b) = g (π b) • ∑' a : α, f (a • b),
+  simp_rw [H₁],
+  rw tsum_const_smul,
+  sorry,
+end
+
+-- do we need a summability hypothesis here? tbd
+lemma mul_action.automorphize_smul_right {α : Type*} {β : Type*} [group α] [mul_action α β]
+  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ]
+  (f : quotient (mul_action.orbit_rel α β) → γ)
+  {R : Type*} [topological_space R] [t2_space R] [semiring R]
+  [distrib_mul_action R γ] [has_continuous_const_smul R γ]
+  (g : β → R) :
+  (mul_action.automorphize (g • (f ∘ quotient.mk')) : quotient (mul_action.orbit_rel α β) → γ)
+  = (mul_action.automorphize g : quotient (mul_action.orbit_rel α β) → R) • f :=
+sorry
+
+@[to_additive]
+def quotient_group.automorphize {G : Type*} [group G] {Γ : subgroup G} {γ : Type*}
+  [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : G → γ) :
+  G ⧸ Γ → γ :=
+mul_action.automorphize f
+
+lemma quotient_group.automorphize_smul_left {G : Type*} [group G] {Γ : subgroup G}
+  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : G → γ)
+  {R : Type*} [monoid R] [distrib_mul_action R γ] [has_continuous_const_smul R γ]
+  (g : G ⧸ Γ → R) :
+  quotient_group.automorphize ((g ∘ quotient.mk') • f)
+  = g • (quotient_group.automorphize f : G ⧸ Γ → γ) :=
+mul_action.automorphize_smul_left f g
+
+-- do we need a summability hypothesis here? tbd
+lemma quotient_group.automorphize_smul_right {G : Type*} [group G] {Γ : subgroup G}
+  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ]
+  (f : G ⧸ Γ → γ)
+  {R : Type*} [topological_space R] [t2_space R] [semiring R]
+  [distrib_mul_action R γ] [has_continuous_const_smul R γ]
+  (g : G → R) :
+  (mul_action.automorphize (g • (f ∘ quotient.mk')) : G ⧸ Γ → γ)
+  = (mul_action.automorphize g : G ⧸ Γ → R) • f :=
+sorry
+
+/- question: how to deduce `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
 include h𝓕
 
 /-- This is the "unfolding" trick
@@ -240,30 +297,20 @@ PROOF:
 ... = ∫_(G/Γ) F
  -/
 @[to_additive]
-lemma mul_unfolding_trick' [μ.is_mul_right_invariant] (f : G → ℂ) (f_ℒ_1 : integrable f μ)
-  (F : G ⧸ Γ → ℂ)
-  (F_ae_measurable : ae_strongly_measurable F μ_𝓕) -- NEEDED?? or can be proved?
-  (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
-  ∫ (x : G), f x ∂μ = ∫ (x : G ⧸ Γ), F x ∂μ_𝓕 :=
-begin
-  haveI : encodable Γ := encodable.of_countable Γ,
-  set π : G → G ⧸ Γ := quotient_group.mk,
-  calc ∫ (x : G), f x ∂μ  = ∑' (γ : Γ.opposite), ∫ x in 𝓕, f(γ • x) ∂μ :
-    h𝓕.integral_eq_tsum'' f f_ℒ_1
-  ... = ∫ x in 𝓕, ∑' (γ : Γ.opposite), f(γ • x) ∂μ : _
-  ... = ∫ x in 𝓕, F (π x) ∂μ : _
-  ... = ∫ (x : G ⧸ Γ), F x ∂μ_𝓕 :
-    (integral_map (continuous_quotient_mk.ae_measurable : ae_measurable π (μ.restrict 𝓕))
-      F_ae_measurable).symm,
-  { rw integral_tsum,
-    { exact λ i, (f_ℒ_1.1.comp_quasi_measure_preserving
+lemma mul_unfolding_trick' [μ.is_mul_right_invariant] {f : G → ℂ} (hf₁ : integrable f μ)
+  (hf₂ : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
+  ∫ x : G, f x ∂μ = ∫ x : G ⧸ Γ, quotient_group.automorphize f x ∂μ_𝓕 :=
+calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) ∂μ : h𝓕.integral_eq_tsum'' f hf₁
+... = ∫ x in 𝓕, ∑' γ : Γ.opposite, f (γ • x) ∂μ :
+  begin
+    rw integral_tsum,
+    { exact λ i, (hf₁.1.comp_quasi_measure_preserving
         (measure_preserving_smul i μ).quasi_measure_preserving).restrict, },
-    { rw ← h𝓕.lintegral_eq_tsum'' (λ x, ‖f (x)‖₊),
-      exact ne_of_lt f_ℒ_1.2, }, },
-  { congr,
-    ext1 x,
-    exact (hFf x).symm, },
-end
+    { rw ← h𝓕.lintegral_eq_tsum'' (λ x, ‖f x‖₊),
+      exact ne_of_lt hf₁.2, },
+  end
+... = ∫ x : G ⧸ Γ, quotient_group.automorphize f x ∂μ_𝓕 :
+  (integral_map continuous_quotient_mk.ae_measurable hf₂).symm
 
 --- STOPPED 2/06/23.
 
@@ -274,28 +321,36 @@ lemma mul_unfolding_trick [μ.is_mul_right_invariant]
   (f_ℒ_1 : integrable f μ)
   {g : G ⧸ Γ → ℂ}
   (hg : ae_strongly_measurable g μ_𝓕)
-  (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 < ∞)
-  {F : G ⧸ Γ → ℂ}
-  (F_ae_measurable : ae_strongly_measurable F μ_𝓕) -- NEEDED??
-  (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
-  ∫ (x : G), f x * g (x : G ⧸ Γ) ∂μ = ∫ (x : G ⧸ Γ), F x * g x ∂μ_𝓕 :=
+  (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)
+  (F_ae_measurable : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
+  ∫ x : G, f x * g (x : G ⧸ Γ) ∂μ = ∫ x : G ⧸ Γ, quotient_group.automorphize f x * g x ∂μ_𝓕 :=
 begin
   let π : G → G ⧸ Γ := quotient_group.mk,
   have meas_π : measurable π := continuous_quotient_mk.measurable,
-  refine mul_unfolding_trick' h𝓕 (f * (g ∘ (coe : G → G ⧸ Γ))) _ (F * g) (F_ae_measurable.mul hg) _,
-  { have : ae_strongly_measurable (λ x : G, g (x : G ⧸ Γ)) μ,
-    { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,
-      exact h𝓕.absolutely_continuous_map },
-    refine integrable.smul_ess_sup f_ℒ_1 this _,
-    { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
-        (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
-      rw [← mul_ess_sup_of_g h𝓕 (λ x, ↑‖g x‖₊) hg'.ae_measurable],
-      exact g_ℒ_infinity.ne, }, },
-  { intros x,
-    rw [hFf x, ← tsum_mul_right],
-    congr,
-    ext1 γ,
-    congr' 2,
-    obtain ⟨γ₀, hγ₀⟩ := γ,
-    simpa [quotient_group.eq, (•)] using hγ₀, },
+  set F : G ⧸ Γ → ℂ := quotient_group.automorphize f,
+  have H₀ : quotient_group.automorphize (f * (g ∘ π)) = quotient_group.automorphize f * g :=
+    quotient_group.automorphize_smul_right g f,
+  calc
+    ∫ (x : G), f x * g (π x) ∂μ =
+      ∫ (x : G ⧸ Γ), quotient_group.automorphize (f * (g ∘ π)) x ∂μ_𝓕 :
+    begin
+      have H₁ : integrable (f * (g ∘ π)) μ,
+      { have : ae_strongly_measurable (λ x : G, g (x : G ⧸ Γ)) μ,
+        { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,
+          exact h𝓕.absolutely_continuous_map },
+        refine integrable.smul_ess_sup f_ℒ_1 this _,
+        { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
+            (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
+          rw [← mul_ess_sup_of_g h𝓕 hg'.ae_measurable],
+          exact g_ℒ_infinity } },
+      have H₂ : ae_strongly_measurable (quotient_group.automorphize (f * (g ∘ π))) μ_𝓕,
+      { simp_rw [H₀],
+        exact F_ae_measurable.mul hg },
+      apply mul_unfolding_trick' h𝓕 H₁ H₂,
+    end
+    ... = ∫ (x : G ⧸ Γ), quotient_group.automorphize f x * g x ∂μ_𝓕 :
+      begin
+        simp_rw [H₀],
+        refl,
+      end,
 end

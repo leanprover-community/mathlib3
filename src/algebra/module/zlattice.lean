@@ -3,7 +3,7 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-import analysis.normed_space.basic
+import analysis.normed.order.basic
 import measure_theory.group.fundamental_domain
 
 /-!
@@ -27,52 +27,6 @@ indeed a fundamental domain of the lattice.
 open_locale classical
 
 noncomputable theory
-
-section solid
-
-class is_solid (α : Type*) [normed_linear_ordered_add_group α] : Prop :=
-(solid: ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
-
-instance normed_linear_ordered_field.to_normed_linear_ordered_add_group (α : Type*)
-  [normed_linear_ordered_field α] : normed_linear_ordered_add_group α :=
-{ dist_eq := normed_linear_ordered_field.dist_eq }
-
-instance : is_solid ℝ := { solid := λ _ _, id }
-
-instance : is_solid ℚ :=
-{  solid :=
-  begin
-    intros a b h,
- simpa [norm, ← rat.cast_abs],
-  end }
-
-end solid
-
-section normed_lattice_field
-
-class normed_lattice_field (α : Type*)
-extends normed_linear_ordered_field α :=
-(solid: ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
-
-instance normed_lattice_field.to_normed_lattice_add_comm_group  (α : Type*)
-  [normed_lattice_field α] : normed_lattice_add_comm_group α :=
-⟨λ _ _ h c, add_le_add_left h c, normed_lattice_field.solid⟩
-
-instance real.normed_lattice_field : normed_lattice_field ℝ := ⟨λ _ _, id⟩
-
-instance rat.normed_lattice_field : normed_lattice_field ℚ :=
-{ solid := λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le], }
-
-
-variables {K : Type*} [normed_lattice_field K]
-
-example (a b : K) (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ := solid h
-
-#exit
-
-
-
-end normed_lattice_field
 
 section zspan
 
@@ -124,9 +78,9 @@ end
 
 end basis
 
-section ordered_field
+section normed_lattice_field
 
-variables {K : Type*} [normed_linear_ordered_field K] [is_solid K]
+variables {K : Type*} [normed_lattice_field K]
 variables [normed_add_comm_group E] [normed_space K E]
 variables (b : basis ι K E)
 
@@ -134,7 +88,11 @@ variables (b : basis ι K E)
 for the proof that it is the fundamental domain. -/
 def zspan.fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : K) 1 }
 
-variables [floor_ring K] [fintype ι]
+variables [floor_ring K]
+
+section fintype
+
+variable [fintype ι]
 
 /-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
 by rounding down its coordinates on the basis `b`. -/
@@ -188,14 +146,7 @@ begin
     finsupp.coe_neg, pi.add_apply, pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _)],
 end
 
--- end ordered_field
-
--- section real_case
-
--- variables [normed_add_comm_group E] [normed_space ℝ E]
--- variables (b : basis ι ℝ E)
-
-lemma zspan.fract_map_le [fintype ι] (m : E) :
+lemma zspan.fract_map_le (m : E) :
   ‖zspan.fract_map b m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
 begin
   calc
@@ -204,20 +155,17 @@ begin
     ... = ‖finset.univ.sum (λ i, int.fract (b.repr m i) • b i)‖ : by simp_rw zspan.fract_map_single
     ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i) • b i‖) : norm_sum_le _ _
     ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i)‖ * ‖b i‖) : by simp_rw norm_smul
-    ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum _,
-    intros i _,
+    ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum (λ i _, _),
     suffices : ‖int.fract (((b.repr) m) i)‖ ≤ 1,
-    { have := mul_le_mul_of_nonneg_right this (norm_nonneg _ : 0 ≤ ‖b i ‖),
-      rw one_mul at this,
-      exact this, },
-    rw (norm_one.symm : 1 = ‖(1:K)‖),
-    apply is_solid.solid,
-    rw abs_one,
-    rw int.abs_fract,
+    { convert mul_le_mul_of_nonneg_right this (norm_nonneg _ : 0 ≤ ‖b i ‖),
+      exact (one_mul _).symm, },
+    rw (norm_one.symm : 1 = ‖(1 : K)‖),
+    apply solid,
+    rw [abs_one, int.abs_fract],
     exact le_of_lt (int.fract_lt_one _),
 end
 
-#exit
+end fintype
 
 lemma zspan.fundamental_domain_metric_bounded [finite ι] :
   metric.bounded (zspan.fundamental_domain b) :=
@@ -231,23 +179,7 @@ begin
   rw ← two_mul,
 end
 
-lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
-  [finite ι]:
-  measurable_set (zspan.fundamental_domain b) :=
-begin
-  haveI : finite_dimensional K E := finite_dimensional.of_fintype_basis b,
-  let f := (finsupp.linear_equiv_fun_on_finite K K ι).to_linear_map.comp b.repr.to_linear_map,
-  let D : set (ι → K) := set.pi set.univ (λ i : ι, (set.Ico (0 : K) 1)),
-  rw ( _ : zspan.fundamental_domain b = f⁻¹' D),
-  { refine measurable_set_preimage (linear_map.continuous_of_finite_dimensional f).measurable _,
-    exact pi set.univ.to_countable (λ (i : ι) (H : i ∈ set.univ), measurable_set_Ico), },
-  { ext,
-    simp only [zspan.fundamental_domain, set.mem_set_of_eq, linear_map.coe_comp,
-      linear_equiv.coe_to_linear_map, set.mem_preimage, function.comp_app, set.mem_univ_pi,
-      finsupp.linear_equiv_fun_on_finite_apply], },
-end
-
-lemma zspan.exist_vadd_mem_fundamental_domain (x : E) [finite ι] :
+lemma zspan.exist_vadd_mem_fundamental_domain [finite ι] (x : E) :
   ∃! v : span ℤ (set.range b), v +ᵥ x ∈ zspan.fundamental_domain b :=
 begin
   casesI nonempty_fintype ι,
@@ -263,6 +195,29 @@ begin
       ← vadd_eq_add, ← vadd_def, eq_comm, ← zspan.mem_fundamental_domain], },
 end
 
+end normed_lattice_field
+
+section real
+
+variables [normed_add_comm_group E] [normed_space ℝ E]
+variables (b : basis ι ℝ E)
+
+lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
+  [finite ι]:
+  measurable_set (zspan.fundamental_domain b) :=
+begin
+  haveI : finite_dimensional ℝ E := finite_dimensional.of_fintype_basis b,
+  let f := (finsupp.linear_equiv_fun_on_finite ℝ ℝ ι).to_linear_map.comp b.repr.to_linear_map,
+  let D : set (ι → ℝ) := set.pi set.univ (λ i : ι, (set.Ico (0 : ℝ) 1)),
+  rw ( _ : zspan.fundamental_domain b = f⁻¹' D),
+  { refine measurable_set_preimage (linear_map.continuous_of_finite_dimensional f).measurable _,
+    exact pi set.univ.to_countable (λ (i : ι) (H : i ∈ set.univ), measurable_set_Ico), },
+  { ext,
+    simp only [zspan.fundamental_domain, set.mem_set_of_eq, linear_map.coe_comp,
+      linear_equiv.coe_to_linear_map, set.mem_preimage, function.comp_app, set.mem_univ_pi,
+      finsupp.linear_equiv_fun_on_finite_apply], },
+end
+
 lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_measurable_space E]
   (μ : measure E) :
   is_add_fundamental_domain (span ℤ (set.range b)).to_add_subgroup
@@ -274,6 +229,6 @@ begin
     (λ x, zspan.exist_vadd_mem_fundamental_domain b x),
 end
 
-end real_case
+end real
 
 end zspan

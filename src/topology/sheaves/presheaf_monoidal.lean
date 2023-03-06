@@ -144,6 +144,12 @@ F.map (hom_of_le $ by { rintros _ ⟨x, hx, rfl⟩, exact x.2 } :
   hom_inv_id' := by { rw [←F.map_comp, ←op_comp], convert F.map_id _ },
   inv_hom_id' := by { rw [←F.map_comp, ←op_comp], convert F.map_id _ } }
 
+def restrict_subset_top (ℱ : presheaf AddCommGroup.{u} X) {U : opens X} {V : opens (Top.of U)} :
+    (ℱ.restrict_presheaf U).obj (op V) ≅ ℱ.obj (op $ U.open_embedding.is_open_map.functor.obj V) := sorry
+
+def restrict_subset_top' (ℱ : presheaf AddCommGroup.{u} X) {U V : opens X} (ι : V ⟶ U) :
+    ℱ.obj (op V) ≅ (ℱ.restrict_presheaf U).obj (op $ (opens.map U.inclusion).obj V) := sorry
+
 @[simps] def restrict_subset_sections_map.app {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
   (α : F.restrict_presheaf V ⟶ G.restrict_presheaf V) (W : opens (Top.of U)):

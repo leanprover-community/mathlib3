@@ -1,6 +1,8 @@
 import topology.sheaves.presheaf_monoidal
 import topology.sheaves.sheaf_condition.unique_gluing
 import algebra.category.Group.colimits
+import algebra.category.Group.basic
+import algebra.category.Group.limits
 
 noncomputable theory
 
@@ -15,16 +17,54 @@ variables {X : Top.{u}}
 
 alias presheaf.monoidal.ihom_obj ← presheaf.ihom_obj
 
+/-
 lemma restrict_is_sheaf {F : Top.presheaf AddCommGroup.{u} X} (hF : is_sheaf F) (U : opens X) :
     is_sheaf (F.restrict_presheaf U) :=
   sorry
 
 def sheaf_restrict (F : sheaf AddCommGroup.{u} X) (U : opens X) :
     sheaf AddCommGroup.{u} (Top.of U) := ⟨_, restrict_is_sheaf F.cond U⟩
+-/
 
-lemma ihom_obj_is_sheaf_of_is_sheaf {F G : Top.presheaf AddCommGroup.{u} X}
-    (hF : is_sheaf F) (hG : is_sheaf G) : is_sheaf (presheaf.ihom_obj F G) :=
+-- why is this notation not imported 😿
+infixl ` |_ `: 80 := Top.presheaf.restrict_open
+
+lemma ihom_obj_is_sheaf_of_is_sheaf {ℱ 𝒢 : Top.presheaf AddCommGroup.{u} X}
+    (h𝒢 : is_sheaf 𝒢) : is_sheaf (presheaf.ihom_obj ℱ 𝒢) :=
+begin
+  -- https://stacks.math.columbia.edu/tag/00AK
+  haveI := AddCommGroup.forget_preserves_limits.{u u},
+  rw is_sheaf_iff_is_sheaf_unique_gluing _,
+  any_goals { apply_instance, },
+  rintros A U_ sf_ h,
+  have h𝒢' := (is_sheaf_iff_is_sheaf_unique_gluing _).elim_left h𝒢,
+  let : (ℱ.restrict_presheaf (supr U_) ⟶ 𝒢.restrict_presheaf (supr U_)) :=
+    --(restrict_presheaf_functor (supr U_)).map
+  { -- technically only need h𝒢
+    -- https://stacks.math.columbia.edu/tag/04TN
+    app := λ U',
+    { to_fun := λ s,
+    begin
+      dsimp at ⊢ s,
+      set U := (supr U_).open_embedding.is_open_map.functor.obj U'.unop with ←h,
+      rw h at ⊢ s,
+      let s_ := λ (i : A), s |_ (U_ i ⊓ U),
+      let φ_ := λ (i : A), (category_theory.whisker_left (opens.map (U_ i).inclusion).op $ sf_ i).app (opposite.op $ U_ i ⊓ U),
+      dsimp at φ_,
+      type_check λ (i : A), (φ_ i) (s_ i),
+
+      admit,
+    end,
+      map_zero' := sorry,
+      map_add' := sorry },
+    naturality' := sorry,
+  },
+  existsi this,
+
+
+
   sorry -- probably harder
+end
 
 instance : monoidal_category ((opens X)ᵒᵖ ⥤ AddCommGroup.{u}) :=
   presheaf.monoidal.monoidal_presheaf_AddCommGroup
@@ -137,22 +177,22 @@ namespace constructions
 @[simps] def tensor_obj' (F G : sheaf AddCommGroup.{u} X) : sheaf AddCommGroup.{u} X :=
 (presheaf_to_Sheaf _ _).obj $ F.val ⊗ G.val
 
-local infixr (name := tensor_obj') `⊙`:50 := tensor_obj'
+local infixr (name := tensor_obj'') `⊗ₛ`:50 := tensor_obj'
 
 @[simps] def tensor_obj'_swap (F G : sheaf AddCommGroup.{u} X) :
-  F ⊙ G ≅ G ⊙ F :=
+  F ⊗ₛ G ≅ G ⊗ₛ F :=
 presheaf_to_Sheaf_map_iso $ presheaf_tensor_obj_swap F.val G.val
 
 open category_theory.grothendieck_topology
 
 @[simps] def tensor_hom' {X₁ Y₁ X₂ Y₂ : sheaf AddCommGroup.{u} X}
-  (α : X₁ ⟶ Y₁) (β : X₂ ⟶ Y₂) : (X₁ ⊙ X₂ ⟶ Y₁ ⊙ Y₂) :=
-⟨sheafify_map _ $ α.val ⊗ β.val⟩
+    (α : X₁ ⟶ Y₁) (β : X₂ ⟶ Y₂) : (X₁ ⊗ₛ X₂ ⟶ Y₁ ⊗ₛ Y₂) :=
+  ⟨sheafify_map _ $ α.val ⊗ β.val⟩
 
 local infixr (name := tensor_hom') `⊙`:81 := tensor_hom'
 
-lemma tensor_id' (F G : sheaf AddCommGroup.{u} X) : (𝟙 F) ⊙ (𝟙 G) = 𝟙 (tensor_obj' F G) :=
-Sheaf.hom.ext _ _ $ by simpa
+lemma tensor_id' (F G : sheaf AddCommGroup.{u} X) : (𝟙 F) ⊙ (𝟙 G) = 𝟙 (F ⊗ₛ G) :=
+  Sheaf.hom.ext _ _ $ by simpa
 
 lemma tensor_comp' {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : sheaf AddCommGroup.{u} X}
   (α₁ : X₁ ⟶ Y₁) (α₂ : X₂ ⟶ Y₂) (β₁ : Y₁ ⟶ Z₁) (β₂ : Y₂ ⟶ Z₂) :
@@ -160,18 +200,18 @@ lemma tensor_comp' {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : sheaf AddCommGroup.{u} X}
 Sheaf.hom.ext _ _ $ by simp
 
 @[simps] def tensor_unit' : sheaf AddCommGroup.{u} X :=
-(presheaf_to_Sheaf _ AddCommGroup).obj (𝟙_ _)
+  (presheaf_to_Sheaf _ AddCommGroup).obj (𝟙_ _)
 
 @[simps] def tensor_left' (F : sheaf AddCommGroup.{u} X) :
   sheaf AddCommGroup.{u} X ⥤ sheaf AddCommGroup.{u} X :=
-{ obj := λ G, tensor_obj' F G,
+{ obj := λ G, F ⊗ₛ G,
   map := λ _ _ α, tensor_hom' (𝟙 F) α,
   map_id' := λ G, Sheaf.hom.ext _ _ $ by simpa,
   map_comp' := λ _ _ _ α β, Sheaf.hom.ext _ _ $ by simp }
 
 @[simps] def ihom_obj' (F G : sheaf AddCommGroup.{u} X) : sheaf AddCommGroup.{u} X :=
 { val := presheaf.monoidal.ihom_obj F.val G.val,
-  cond := ihom_obj_is_sheaf_of_is_sheaf F.cond G.cond }
+  cond := ihom_obj_is_sheaf_of_is_sheaf G.cond }
 
 local notation `⟦` F, G `⟧` := ihom_obj' F G
 
@@ -212,9 +252,9 @@ local notation (name := local_adj) `adj` :=
   adjunction.comp (presheaf.monoidal.tensor_ihom_adj F.val)
     (sheafification_adjunction (opens.grothendieck_topology X) _)
 
-@[simps] def hom_equiv'.from_tensor (G₁ G₂ : sheaf AddCommGroup X) (α : (tensor_left' F).obj G₁ ⟶ G₂) :
-  G₁ ⟶ ⟦F, G₂⟧ :=
-Sheaf.hom.mk $ (adj .hom_equiv _ G₂ α)
+@[simps] def hom_equiv'.from_tensor (G₁ G₂ : sheaf AddCommGroup X)
+    (α : (tensor_left' F).obj G₁ ⟶ G₂) : G₁ ⟶ ⟦F, G₂⟧ :=
+  Sheaf.hom.mk $ (adj .hom_equiv _ G₂ α)
 
 @[simps] def hom_equiv'.to_tensor (G₁ G₂ : sheaf AddCommGroup X) (α : G₁ ⟶ ⟦F, G₂⟧) :
   (tensor_left' F).obj G₁ ⟶ G₂ :=
@@ -378,20 +418,20 @@ end tensor_left'_ihom'_adj
     apply tensor_left'_ihom'_adj.hom_equiv_counit'_aux,
   end }
 
-@[simps] def curry {F G H : sheaf AddCommGroup.{u} X} (f : tensor_obj' F G ⟶ H) : G ⟶ ⟦F, H⟧ :=
+@[simps] def curry {F G H : sheaf AddCommGroup.{u} X} (f : F ⊗ₛ G ⟶ H) : G ⟶ ⟦F, H⟧ :=
 (tensor_left'_ihom'_adj F).hom_equiv _ _ f
 
-def curry' {F G H : sheaf AddCommGroup.{u} X} (f : tensor_obj' F G ⟶ H) : F ⟶ ⟦G, H⟧ :=
+def curry' {F G H : sheaf AddCommGroup.{u} X} (f : F ⊗ₛ G ⟶ H) : F ⟶ ⟦G, H⟧ :=
 curry $ (tensor_obj'_swap G F).hom ≫ f
 
-@[simps] def uncurry {F G H : sheaf AddCommGroup.{u} X} (f : G ⟶ ⟦F, H⟧) : tensor_obj' F G ⟶ H :=
+@[simps] def uncurry {F G H : sheaf AddCommGroup.{u} X} (f : G ⟶ ⟦F, H⟧) : F ⊗ₛ G ⟶ H :=
 ((tensor_left'_ihom'_adj F).hom_equiv _ _).symm f
 
-@[simps] def uncurry' {F G H : sheaf AddCommGroup.{u} X} (f : F ⟶ ⟦G, H⟧) : tensor_obj' F G ⟶ H :=
+@[simps] def uncurry' {F G H : sheaf AddCommGroup.{u} X} (f : F ⟶ ⟦G, H⟧) : F ⊗ₛ G ⟶ H :=
 uncurry $ curry' $ uncurry f
 
 lemma uncurry'_val_app_apply2 {F G H : sheaf AddCommGroup.{u} X} (f : F ⟶ ⟦G, H⟧) (U : (opens X)ᵒᵖ)
-    (x : (tensor_obj' F G).val.obj U) :
+    (x : (F ⊗ₛ G).val.obj U) :
     (uncurry' f).val.app U x =
     (uncurry f).val.app U ((tensor_obj'_swap F G).hom.val.app U x) :=
   sorry
@@ -515,23 +555,21 @@ def aux0 : F.val ⊗ G.val ⟶ presheaf.monoidal.ihom_obj H.val
     ((opens.grothendieck_topology X).sheafify ((F.val ⊗ G.val) ⊗ H.val)) :=
   sorry
 
+@[reducible]
 def to_sheafify_once :
-  tensor_obj' (tensor_obj' F G) H ⟶ (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) :=
-uncurry' $ ((sheafification_adjunction _ _).hom_equiv _ _).symm $ by exact aux0 F G H
+  (F ⊗ₛ G) ⊗ₛ H ⟶ (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) :=
+uncurry' $ (((sheafification_adjunction _ _).hom_equiv _ _).symm $ by exact aux0 F G H
 
-lemma to_sheafify_once_def :
-  to_sheafify_once F G H = uncurry' (((sheafification_adjunction _ _).hom_equiv _ _).symm $
-    by exact aux0 F G H) := rfl
 
 @[simps] def from_sheafify_once :
-  (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) ⟶ tensor_obj' (tensor_obj' F G) H :=
+  (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) ⟶ (F ⊗ₛ G) ⊗ₛ H :=
 (presheaf_to_Sheaf _ _).map $ (to_sheafify _ _) ⊗ 𝟙 _
 
 lemma from_sheafify_once_def :
   from_sheafify_once F G H = ((presheaf_to_Sheaf _ _).map $ (to_sheafify _ _) ⊗ 𝟙 _) := rfl
 
 @[simps] def iso_sheafify_once :
-  tensor_obj' (tensor_obj' F G) H ≅ (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) :=
+  (F ⊗ₛ G) ⊗ₛ H ≅ (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val) :=
 -- sheaf_iso_mk
 { hom := to_sheafify_once F G H,
   inv := from_sheafify_once F G H,
@@ -649,17 +687,17 @@ def aux0 : G.val ⊗ H.val ⟶ presheaf.monoidal.ihom_obj F.val
   sorry
 
 def to_sheafify_once :
-  tensor_obj' F (tensor_obj' G H) ⟶
+  F ⊗ₛ (G ⊗ₛ H) ⟶
   (presheaf_to_Sheaf _ _).obj (F.val ⊗ G.val ⊗ H.val) :=
 uncurry $ ((sheafification_adjunction _ _).hom_equiv _ _).symm $ by exact aux0 F G H
 
 def from_sheafify_once :
   (presheaf_to_Sheaf _ _).obj (F.val ⊗ G.val ⊗ H.val) ⟶
-  tensor_obj' F (tensor_obj' G H) :=
+  F ⊗ₛ (G ⊗ₛ H) :=
 (presheaf_to_Sheaf _ _).map $ 𝟙 _ ⊗ to_sheafify _ _
 
 @[simps] def iso_sheafify_once :
-  tensor_obj' F (tensor_obj' G H) ≅ (presheaf_to_Sheaf _ _).obj (F.val ⊗ (G.val ⊗ H.val)) :=
+  F ⊗ₛ (G ⊗ₛ H) ≅ (presheaf_to_Sheaf _ _).obj (F.val ⊗ (G.val ⊗ H.val)) :=
 { hom := to_sheafify_once F G H,
   inv := from_sheafify_once F G H,
   hom_inv_id' := sorry,
@@ -668,7 +706,7 @@ def from_sheafify_once :
 end associator_left
 
 def associator' (F G H : sheaf AddCommGroup.{u} X) :
-  (tensor_obj' (tensor_obj' F G) H) ≅ (tensor_obj' F (tensor_obj' G H)) :=
+  (F ⊗ₛ G) ⊗ₛ H ≅ F ⊗ₛ (G ⊗ₛ H) :=
 (associator_right.iso_sheafify_once F G H).trans $
   (presheaf_to_Sheaf_iso (α_ _ _ _)).trans $
     (associator_left.iso_sheafify_once F G H).symm

@@ -12,7 +12,7 @@ import topology.vector_bundle.basic
 This file contains several standard constructions on vector bundles:
 
 * `bundle.trivial.vector_bundle 𝕜 B F`: the trivial vector bundle with scalar field `𝕜` and model
-  fibre `F` over the base `B`
+  fiber `F` over the base `B`
 
 * `vector_bundle.prod`: for vector bundles `E₁` and `E₂` with scalar field `𝕜` over a common base,
   a vector bundle structure on their direct sum `E₁ ×ᵇ E₂` (the notation stands for

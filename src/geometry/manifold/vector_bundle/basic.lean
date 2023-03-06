@@ -10,13 +10,13 @@ import topology.vector_bundle.constructions
 
 This file defines smooth vector bundles over a smooth manifold.
 
-Let `E` be a topological vector bundle, with model fibre `F` and base space `B`.  We consider `E` as
+Let `E` be a topological vector bundle, with model fiber `F` and base space `B`.  We consider `E` as
 carrying a charted space structure given by its trivializations -- these are charts to `B × F`.
 Then, by "composition", if `B` is itself a charted space over `H` (e.g. a smooth manifold), then `E`
 is also a charted space over `H × F`
 
 Now, we define `smooth_vector_bundle` as the `Prop` of having smooth transition functions.
-Recall the structure groupoid `smooth_fiberwise_linear` on `B × F` consisting of smooth, fibrewise
+Recall the structure groupoid `smooth_fiberwise_linear` on `B × F` consisting of smooth, fiberwise
 linear local homeomorphisms.  We show that our definition of "smooth vector bundle" implies
 `has_groupoid` for this groupoid, and show (by a "composition" of `has_groupoid` instances) that
 this means that a smooth vector bundle is a smooth manifold.
@@ -27,18 +27,18 @@ fields, they can also be C^k vector bundles, etc.
 
 ## Main definitions and constructions
 
-* `fiber_bundle.charted_space`: A fibre bundle `E` over a base `B` with model fibre `F` is naturally
+* `fiber_bundle.charted_space`: A fiber bundle `E` over a base `B` with model fiber `F` is naturally
   a charted space modelled on `B × F`.
 
-* `fiber_bundle.charted_space'`: Let `B` be a charted space modelled on `HB`.  Then a fibre bundle
-  `E` over a base `B` with model fibre `F` is naturally a charted space modelled on `HB.prod F`.
+* `fiber_bundle.charted_space'`: Let `B` be a charted space modelled on `HB`.  Then a fiber bundle
+  `E` over a base `B` with model fiber `F` is naturally a charted space modelled on `HB.prod F`.
 
 * `smooth_vector_bundle`: Mixin class stating that a (topological) `vector_bundle` is smooth, in the
   sense of having smooth transition functions.
 
-* `smooth_fiberwise_linear.has_groupoid`: For a smooth vector bundle `E` over `B` with fibre
+* `smooth_fiberwise_linear.has_groupoid`: For a smooth vector bundle `E` over `B` with fiber
   modelled on `F`, the change-of-co-ordinates between two trivializations `e`, `e'` for `E`,
-  considered as charts to `B × F`, is smooth and fibrewise linear, in the sense of belonging to the
+  considered as charts to `B × F`, is smooth and fiberwise linear, in the sense of belonging to the
   structure groupoid `smooth_fiberwise_linear`.
 
 * `bundle.total_space.smooth_manifold_with_corners`: A smooth vector bundle is naturally a smooth
@@ -66,7 +66,7 @@ variables [topological_space F] [topological_space (total_space E)] [∀ x, topo
   {HB : Type*} [topological_space HB]
   [topological_space B] [charted_space HB B]
 
-/-- A fibre bundle `E` over a base `B` with model fibre `F` is naturally a charted space modelled on
+/-- A fiber bundle `E` over a base `B` with model fiber `F` is naturally a charted space modelled on
 `B × F`. -/
 instance fiber_bundle.charted_space [fiber_bundle F E] :
   charted_space (B × F) (total_space E) :=
@@ -78,8 +78,8 @@ instance fiber_bundle.charted_space [fiber_bundle F E] :
 
 local attribute [reducible] model_prod
 
-/-- Let `B` be a charted space modelled on `HB`.  Then a fibre bundle `E` over a base `B` with model
-fibre `F` is naturally a charted space modelled on `HB.prod F`. -/
+/-- Let `B` be a charted space modelled on `HB`.  Then a fiber bundle `E` over a base `B` with model
+fiber `F` is naturally a charted space modelled on `HB.prod F`. -/
 instance fiber_bundle.charted_space' [fiber_bundle F E] :
   charted_space (model_prod HB F) (total_space E) :=
 charted_space.comp _ (model_prod B F) _
@@ -113,9 +113,9 @@ export smooth_vector_bundle (smooth_on_coord_change)
 variables [smooth_vector_bundle F E IB]
 
 
-/-- For a smooth vector bundle `E` over `B` with fibre modelled on `F`, the change-of-co-ordinates
+/-- For a smooth vector bundle `E` over `B` with fiber modelled on `F`, the change-of-co-ordinates
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
-fibrewise linear. -/
+fiberwise linear. -/
 instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
 { compatible := begin
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,

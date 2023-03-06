@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Heather Macbeth
 -/
 import geometry.manifold.cont_mdiff
 
-/-! # The groupoid of smooth, fibrewise-linear maps
+/-! # The groupoid of smooth, fiberwise-linear maps
 
 This file contains preliminaries for the definition of a smooth vector bundle: an associated
 `structure_groupoid`, the groupoid of `smooth_fiberwise_linear` functions.

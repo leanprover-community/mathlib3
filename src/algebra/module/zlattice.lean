@@ -3,10 +3,9 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-import analysis.normed_space.basic
+
+import analysis.normed.order.basic
 import measure_theory.group.fundamental_domain
-import linear_algebra.free_module.pid
-import ring_theory.localization.module
 
 /-!
 # ℤ-lattices

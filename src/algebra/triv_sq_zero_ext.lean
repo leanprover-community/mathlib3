@@ -60,6 +60,8 @@ R × M
 
 local notation `tsze` := triv_sq_zero_ext
 
+open_locale big_operators
+
 namespace triv_sq_zero_ext
 
 open mul_opposite (op)
@@ -204,6 +206,12 @@ prod.module
 @[simp] lemma snd_smul [has_smul S R] [has_smul S M] (s : S) (x : tsze R M) :
   (s • x).snd = s • x.snd := rfl
 
+lemma fst_sum {ι} [add_comm_monoid R] [add_comm_monoid M] (s : finset ι) (f : ι → tsze R M) :
+  (∑ i in s, f i).fst = ∑ i in s, (f i).fst := prod.fst_sum
+
+lemma snd_sum {ι} [add_comm_monoid R] [add_comm_monoid M] (s : finset ι) (f : ι → tsze R M) :
+  (∑ i in s, f i).snd = ∑ i in s, (f i).snd := prod.snd_sum
+
 section
 variables (M)
 
@@ -224,6 +232,10 @@ ext rfl (sub_zero _).symm
 @[simp] lemma inl_smul [monoid S] [add_monoid M] [has_smul S R] [distrib_mul_action S M]
   (s : S) (r : R) : (inl (s • r) : tsze R M) = s • inl r :=
 ext rfl (smul_zero s).symm
+
+lemma inl_sum {ι} [add_comm_monoid R] [add_comm_monoid M] (s : finset ι) (f : ι → R) :
+  (inl (∑ i in s, f i) : tsze R M) = ∑ i in s, inl (f i) :=
+(linear_map.inl ℕ _ _).map_sum
 
 end
 
@@ -247,6 +259,10 @@ ext (sub_zero _).symm rfl
 @[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S M]
   (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=
 ext (smul_zero _).symm rfl
+
+lemma inr_sum {ι} [add_comm_monoid R] [add_comm_monoid M] (s : finset ι) (f : ι → M) :
+  (inr (∑ i in s, f i) : tsze R M) = ∑ i in s, inr (f i) :=
+(linear_map.inr ℕ _ _).map_sum
 
 end
 
@@ -397,8 +413,6 @@ instance [ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] :
   non_assoc_ring (tsze R M) :=
 { .. triv_sq_zero_ext.add_group_with_one,
   .. triv_sq_zero_ext.non_assoc_semiring }
-
-open_locale big_operators
 
 /-- In the general non-commutative case, the power operator is
 

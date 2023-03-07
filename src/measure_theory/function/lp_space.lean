@@ -1243,8 +1243,7 @@ begin
       swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
       refine lintegral_mono_ae _,
       filter_upwards [@ennreal.ae_le_ess_sup _ _ μ (λ x, ↑‖φ x‖₊)] with x hx,
-      refine ennreal.mul_le_mul _ le_rfl,
-      exact ennreal.rpow_le_rpow hx ennreal.to_real_nonneg,
+      exact mul_le_mul_right' (ennreal.rpow_le_rpow hx ennreal.to_real_nonneg) _
     end
   ... = ess_sup (λ x, ↑‖φ x‖₊) μ * (∫⁻ x, ↑‖f x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
     begin
@@ -1283,12 +1282,12 @@ begin
   { simp [hp_zero], },
   have hq_ne_zero : q ≠ 0,
   { intro hq_zero,
-    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, ennreal.top_add,
+    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, top_add,
       ennreal.inv_eq_top] at hpqr,
     exact hpqr, },
   have hr_ne_zero : r ≠ 0,
   { intro hr_zero,
-    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, ennreal.add_top,
+    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, add_top,
       ennreal.inv_eq_top] at hpqr,
     exact hpqr, },
   by_cases hq_top : q = ∞,
@@ -1744,7 +1743,7 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
         rw [snorm_congr_ae (coe_fn_add _ _)],
         exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
       end,
-      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ ennreal.zero_lt_one.trans_le hp.1).1 } }
+      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ zero_lt_one.trans_le hp.1).1 } }
 
 -- check no diamond is created
 example [fact (1 ≤ p)] :
@@ -1822,7 +1821,7 @@ lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
 begin
   by_cases hμ0 : μ = 0,
   { rw [hμ0, snorm_ess_sup_measure_zero],
-    exact ennreal.coe_nonneg },
+    exact zero_le _ },
   { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
 end
 
@@ -2678,7 +2677,7 @@ begin
   have h_cau' : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) (p.to_real) μ < B N,
   { intros N n m hn hm,
     specialize h_cau N n m hn hm,
-    rwa snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp).ne.symm hp_top at h_cau, },
+    rwa snorm_eq_snorm' (zero_lt_one.trans_le hp).ne.symm hp_top at h_cau, },
   exact ae_tendsto_of_cauchy_snorm' hf hp1 hB h_cau',
 end
 
@@ -2715,7 +2714,7 @@ lemma mem_ℒp_of_cauchy_tendsto (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀
 begin
   refine ⟨h_lim_meas, _⟩,
   rw ennreal.tendsto_at_top_zero at h_tendsto,
-  cases (h_tendsto 1 ennreal.zero_lt_one) with N h_tendsto_1,
+  cases (h_tendsto 1 zero_lt_one) with N h_tendsto_1,
   specialize h_tendsto_1 N (le_refl N),
   have h_add : f_lim = f_lim - f N + f N, by abel,
   rw h_add,

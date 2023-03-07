@@ -8,6 +8,7 @@ import group_theory.torsion
 import number_theory.number_field.norm
 import number_theory.number_field.canonical_embedding
 import ring_theory.ideal.norm
+import ring_theory.roots_of_unity
 
 /-!
  # Units of a number field
@@ -175,7 +176,6 @@ end
 
 lemma torsion_eq_roots_of_unity [number_field K]  :
   torsion K = roots_of_unity (torsion_order K) (𝓞 K) :=
-  torsion K = roots_of_unity (torsion_order K) (𝓞 K) :=
 begin
   ext,
   rw mem_roots_of_unity',
@@ -199,7 +199,7 @@ begin
       convert hx, }},
 end
 
-end roots_of_unity
+end torsion
 
 namespace dirichlet
 
@@ -209,21 +209,21 @@ open number_field.canonical_embedding
 @[reducible]
 def log_embedding : (𝓤 K) → (number_field.infinite_place K → ℝ) := λ x w, real.log (w x)
 
-open units number_field number_field.infinite_place number_field.dirichlet finite_dimensional
+open units number_field number_field.infinite_place number_field.units.dirichlet finite_dimensional
 
 lemma log_embedding.map_one : log_embedding K 1 = 0 :=
-by simpa only [log_embedding, number_field.unit.coe_one, map_one, real.log_one]
+by simpa only [log_embedding, coe_one, map_one, real.log_one]
 
 lemma log_embedding.map_mul (x y : 𝓤 K) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-by simpa only [log_embedding, real.log_mul, number_field.unit.coe_mul, map_mul, ne.def,
-  map_eq_zero, number_field.unit.coe_ne_zero, not_false_iff]
+by simpa only [log_embedding, real.log_mul, coe_mul, map_mul, ne.def, map_eq_zero, coe_ne_zero,
+  not_false_iff]
 
 lemma log_embedding.map_inv (x : 𝓤 K) : log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa only [log_embedding, real.log_inv, number_field.unit.coe_inv, map_inv₀]
+by simpa only [log_embedding, real.log_inv, coe_inv, map_inv₀]
 
 lemma log_embedding.map_pow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n * log_embedding K x :=
-by simpa only [log_embedding, map_zpow₀, real.log_zpow, number_field.unit.coe_zpow]
+by simpa only [log_embedding, map_zpow₀, real.log_zpow, coe_zpow]
 
 lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
@@ -232,8 +232,7 @@ begin
   rw function.funext_iff,
   simp_rw pi.zero_apply,
   split,
-  { exact λ h w, real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr
-      number_field.unit.coe_ne_zero) (h w), },
+  { exact λ h w, real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr coe_ne_zero) (h w), },
   { intros h w,
     simp only [h w, real.log_one], },
 end
@@ -264,11 +263,11 @@ begin
     { intros h w,
       specialize h w,
       rwa [← real.log_le_iff_le_exp, ← real.le_log_iff_exp_le],
-      all_goals { exact infinite_place.pos_iff.mpr number_field.unit.coe_ne_zero, }},
+      all_goals { exact infinite_place.pos_iff.mpr coe_ne_zero, }},
     { intros h w,
       specialize h w,
       rwa [real.log_le_iff_le_exp, real.le_log_iff_exp_le],
-      all_goals { exact infinite_place.pos_iff.mpr number_field.unit.coe_ne_zero, }}}
+      all_goals { exact infinite_place.pos_iff.mpr coe_ne_zero, }}}
 end
 
 /-- The lattice formed by the image of the logarithmic embedding.-/
@@ -289,8 +288,8 @@ def unit_lattice : submodule ℤ (number_field.infinite_place K → ℝ) :=
 variable [number_field K]
 
 lemma unit_lattice_kernel (x : 𝓤 K) :
-  log_embedding K x = 0 ↔ x ∈ roots_of_unity K :=
-by rw [log_embedding.eq_zero_iff, mem_roots_of_unity K x]
+  log_embedding K x = 0 ↔ x ∈ torsion K :=
+by rw [log_embedding.eq_zero_iff, mem_torsion K x]
 
 lemma unit_lattice_discrete (r : ℝ) :
   ((unit_lattice K : set (number_field.infinite_place K → ℝ)) ∩ (metric.closed_ball 0 r)).finite :=
@@ -302,7 +301,7 @@ begin
   { let A := {x : 𝓤 K  | is_integral ℤ (x : K) ∧ ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp r},
     have t1 : A.finite,
     { suffices : ((coe : (𝓤 K) → K) '' A).finite,
-      { refine this.of_finite_image (set.inj_on_of_injective (units_to_field_injective K) _), },
+      { refine this.of_finite_image (set.inj_on_of_injective (to_field_injective K) _), },
       refine set.finite.subset (embeddings.finite_of_norm_le K ℂ (real.exp r)) _,
       rintros _ ⟨x, ⟨hx, rfl ⟩⟩,
       exact hx, },
@@ -366,9 +365,9 @@ begin
       simp_rw [log_embedding.component, apply_ite real.log, real.log_pow, nat.cast_two], },
     { intros x _,
       split_ifs;
-      simp only [ne.def, map_eq_zero, number_field.unit.coe_ne_zero, not_false_iff, pow_eq_zero_iff,
+      simp only [ne.def, map_eq_zero, coe_ne_zero, not_false_iff, pow_eq_zero_iff,
         nat.succ_pos'], }},
-  rw ← number_field.unit.coe_coe,
+  rw ← coe_coe,
   rw ← ring_of_integers.norm_apply_coe ℚ (x : 𝓞 K),
   rw ← rat.cast_abs,
   rw unit.abs_norm K x,
@@ -722,7 +721,7 @@ begin
     intros z hz,
     have t1 := congr_arg z (congr_arg (coe : (𝓞 K) → K) hu),
     have t2 := seq.antitone K w hB n m hnm z hz,
-    simp only [coe_coe, mul_mem_class.coe_mul, number_field.unit.coe_coe, map_mul] at t1 t2,
+    simp only [coe_coe, mul_mem_class.coe_mul, coe_coe, map_mul] at t1 t2,
     rw ← t1 at t2,
     refine (mul_lt_iff_lt_one_right _).mp t2,
     exact pos_iff.mpr (seq.ne_zero K w hB n), },
@@ -762,7 +761,7 @@ begin
     specialize hu z hz,
     refine real.log_neg _ _,
     { rw pos_iff,
-    exact number_field.unit.coe_ne_zero, },
+    exact coe_ne_zero, },
     { exact hu, }},
 end
 
@@ -914,8 +913,5 @@ begin
 end
 
 end dirichlet
-
-end number_field.units
-
 
 end number_field.units

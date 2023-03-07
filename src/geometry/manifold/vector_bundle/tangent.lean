@@ -128,7 +128,6 @@ def tangent_bundle := bundle.total_space (tangent_space I : M → Type*)
 
 local notation `TM` := tangent_bundle I M
 
-variable {M}
 
 section tangent_bundle_instances
 
@@ -145,8 +144,6 @@ instance : module 𝕜 (tangent_space I x) := by apply_instance
 instance : inhabited (tangent_space I x) := ⟨0⟩
 
 end
-
-variable (M)
 
 instance : topological_space TM :=
 (tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space

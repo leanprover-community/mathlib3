@@ -20,7 +20,6 @@ This file defines pullbacks of smooth vector bundles over a smooth manifold.
 open bundle set
 open_locale manifold
 
--- variables {𝕜} {B B'} (F E)
 variables {𝕜 B B' M : Type*} (F : Type*) (E : B → Type*)
 
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Ring.basic
 import topology.category.Top.basic
-import topology.algebra.ring
+import topology.algebra.ring.basic
 
 /-!
 # Category of topological commutative rings

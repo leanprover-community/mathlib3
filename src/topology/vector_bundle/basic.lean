@@ -20,7 +20,7 @@ To have a vector bundle structure on `bundle.total_space E`, one should addition
 following properties:
 
 * The bundle trivializations in the trivialization atlas should be continuous linear equivs in the
-fibres;
+fibers;
 * For any two trivializations `e`, `e'` in the atlas the transition function considered as a map
 from `B` into `F →L[R] F` is continuous on `e.base_set ∩ e'.base_set` with respect to the operator
 norm topology on `F →L[R] F`.
@@ -49,8 +49,8 @@ section topological_vector_space
 variables {B F E} [semiring R]
   [topological_space F]  [topological_space B]
 
-/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fibrewise linear with
-respect to given module structures on its fibres and the model fibre. -/
+/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fiberwise linear with
+respect to given module structures on its fibers and the model fiber. -/
 protected class pretrivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : pretrivialization F (π E)) :
   Prop :=
@@ -138,8 +138,8 @@ end pretrivialization
 
 variables (R) [topological_space (total_space E)]
 
-/-- A mixin class for `trivialization`, stating that a trivialization is fibrewise linear with
-respect to given module structures on its fibres and the model fibre. -/
+/-- A mixin class for `trivialization`, stating that a trivialization is fiberwise linear with
+respect to given module structures on its fibers and the model fiber. -/
 protected class trivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : trivialization F (π E)) : Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))

@@ -194,6 +194,7 @@ p.to_sub_mul_action.smul_mem_iff' g
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
+
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
   has_smul S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
@@ -256,6 +257,34 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
 map_sum p.subtype _ _
+
+/-! ### Actions by `submodule`s
+
+These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
+onto the action by an element `s : S` of a submodule `S : submodule R M` such that
+`s +ᵥ a = (s : M) +ᵥ a`.
+
+These instances work particularly well in conjunction with `add_group.to_add_action`, enabling
+`s +ᵥ m` as an alias for `↑s + m`.
+
+-/
+
+variables {α β : Type*}
+
+instance p.to_add_submonoid.has_add [has_vadd M α] : has_vadd p α := has_vadd.comp _ p.subtype
+
+instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α β] :
+  vadd_comm_class p α β := ⟨λ a, (vadd_comm (a : M) : _)⟩
+
+instance [has_vadd M α] [has_faithful_vadd M α] :
+  has_faithful_vadd p α := ⟨λ x y h, subtype.ext $ eq_of_vadd_eq_vadd h⟩
+
+/-- The action by a submodule is the action by the underlying submodule. -/
+instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.to_add_monoid_hom
+
+variable {p}
+
+lemma vadd_def [has_vadd M α] (g : p) (m : α) : g +ᵥ m = (g : M) +ᵥ m := rfl
 
 section restrict_scalars
 variables (S) [semiring S] [module S M] [module R M] [has_smul S R] [is_scalar_tower S R M]

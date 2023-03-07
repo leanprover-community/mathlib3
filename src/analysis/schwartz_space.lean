@@ -90,6 +90,18 @@ begin
   exact ⟨max C 1, by positivity, λ x, (hC x).trans (le_max_left _ _)⟩,
 end
 
+lemma is_O_cocompact (f : 𝓢(E, F)) (k : ℕ) :
+  asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ (-k : ℤ)) :=
+begin
+  obtain ⟨d, hd, hd'⟩ := f.decay k 0,
+  simp_rw norm_iterated_fderiv_zero at hd',
+  simp_rw [asymptotics.is_O, asymptotics.is_O_with],
+  refine ⟨d, filter.eventually.filter_mono filter.cocompact_le_cofinite _⟩,
+  refine (filter.eventually_cofinite_ne 0).mp (filter.eventually_of_forall (λ x hx, _)),
+  rwa [real.norm_of_nonneg (zpow_nonneg (norm_nonneg _) _), zpow_neg, ←div_eq_mul_inv, le_div_iff'],
+  exacts [hd' x, zpow_pos_of_pos (norm_pos_iff.mpr hx) _],
+end
+
 /-- Every Schwartz function is smooth. -/
 lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_le le_top
 
@@ -485,13 +497,17 @@ section bounded_continuous_function
 
 open_locale bounded_continuous_function
 
-/-- Schwartz functions as bounded continuous functions-/
+/-- Schwartz functions as bounded continuous functions -/
 def to_bounded_continuous_function (f : 𝓢(E, F)) : E →ᵇ F :=
 bounded_continuous_function.of_normed_add_comm_group f (schwartz_map.continuous f)
   (schwartz_map.seminorm ℝ 0 0 f) (norm_le_seminorm ℝ f)
 
 @[simp] lemma to_bounded_continuous_function_apply (f : 𝓢(E, F)) (x : E) :
   f.to_bounded_continuous_function x = f x := rfl
+
+/-- Schwartz functions as continuous functions -/
+def to_continuous_map (f : 𝓢(E, F)) : C(E, F) :=
+f.to_bounded_continuous_function.to_continuous_map
 
 variables (𝕜 E F)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
@@ -532,5 +548,6 @@ def delta (x : E) : 𝓢(E, F) →L[𝕜] F :=
 @[simp] lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
 
 end bounded_continuous_function
+
 
 end schwartz_map

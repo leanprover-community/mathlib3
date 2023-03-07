@@ -227,7 +227,7 @@ lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_me
 begin
   casesI nonempty_fintype ι,
   exact is_add_fundamental_domain.mk'
-    (null_measurable_set (zspan.fundamental_domain_measurable b))
+    (null_measurable_set (zspan.fundamental_domain_measurable_set b))
     (λ x, zspan.exist_vadd_mem_fundamental_domain b x),
 end
 

@@ -139,7 +139,7 @@ begin
   -- itself, so it is proved using `async` rather than being formulated as a separate lemma.
   have claim : ∀ (x : ℝ), max 0 (-2 * R) < x →
     ∀ (y : ℝ), x + R ≤ y → y ^ (-b) ≤ (1 / 2) ^ (-b) * x ^ (-b),
-  async { intros x hx y hy,
+  { intros x hx y hy,
     rw max_lt_iff at hx,
     have hxR : 0 < x + R,
     { rcases le_or_lt 0 R with h|h,
@@ -167,13 +167,12 @@ begin
   rw max_lt_iff at hx',
   rw [norm_norm, continuous_map.norm_le _
     (mul_nonneg (mul_nonneg hc.le $ rpow_nonneg_of_nonneg one_half_pos.le _) (norm_nonneg _))],
-  simp_rw continuous_map.restrict_apply_mk,
   refine λ y, (hd y.1 (by linarith [hx.1, y.2.1])).trans _,
-  rwa [mul_assoc, mul_le_mul_left hc, norm_of_nonneg, norm_of_nonneg],
-  { convert claim x (by linarith only [hx.1]) y.1 y.2.1,
-    { apply abs_of_nonneg, linarith [y.2.1] },
-    { exact abs_of_pos hx'.1 } },
-  all_goals { exact rpow_nonneg_of_nonneg (abs_nonneg _) _ },
+  have A : ∀ (x : ℝ), 0 ≤ |x| ^ (-b), from λ x, by positivity,
+  rwa [mul_assoc, mul_le_mul_left hc, norm_of_nonneg (A _), norm_of_nonneg (A _)],
+  convert claim x (by linarith only [hx.1]) y.1 y.2.1,
+  { apply abs_of_nonneg, linarith [y.2.1] },
+  { exact abs_of_pos hx'.1 },
 end
 
 lemma is_O_norm_Icc_restrict_at_bot {f : C(ℝ, E)} {b : ℝ} (hb : 0 < b)
@@ -197,7 +196,7 @@ begin
       neg_neg] }
 end
 
-lemma is_O_norm_restrict_cocompact {f : C(ℝ, E)} {b : ℝ} (hb : 0 < b)
+lemma is_O_norm_restrict_cocompact (f : C(ℝ, E)) {b : ℝ} (hb : 0 < b)
   (hf : is_O (cocompact ℝ) f (λ x : ℝ, |x| ^ (-b))) (K : compacts ℝ) :
   is_O (cocompact ℝ) (λ x, ‖(f.comp (continuous_map.add_right x)).restrict K‖) (λ x, |x| ^ (-b)) :=
 begin
@@ -221,24 +220,25 @@ begin
 end
 
 
-/-- **Poisson's summation formula**, assuming that both `f` decays as
+/-- **Poisson's summation formula**, assuming that `f` decays as
 `|x| ^ (-b)` for some `1 < b` and its Fourier transform is summable. -/
-lemma real.tsum_eq_tsum_fourier_integral_of_rpow_decay_of_summable {f : C(ℝ, ℂ)}
+lemma real.tsum_eq_tsum_fourier_integral_of_rpow_decay_of_summable {f : ℝ → ℂ} (hc : continuous f)
   {b : ℝ} (hb : 1 < b) (hf : is_O (cocompact ℝ) f (λ x : ℝ, |x| ^ (-b)))
   (hFf : summable (λ n : ℤ, 𝓕 f n)) :
   ∑' (n : ℤ), f n = ∑' (n : ℤ), 𝓕 f n :=
 real.tsum_eq_tsum_fourier_integral
-  (λ K, summable_of_is_O (real.summable_abs_int_rpow hb) ((is_O_norm_restrict_cocompact
+  (λ K, summable_of_is_O (real.summable_abs_int_rpow hb)
+    ((is_O_norm_restrict_cocompact (continuous_map.mk _ hc)
     (zero_lt_one.trans hb) hf K).comp_tendsto int.tendsto_coe_cofinite)) hFf
 
 /-- **Poisson's summation formula**, assuming that both `f` and its Fourier transform decay as
 `|x| ^ (-b)` for some `1 < b`. (This is the one-dimensional case of Corollary VII.2.6 of Stein and
 Weiss, *Introduction to Fourier analysis on Euclidean spaces*.) -/
-lemma real.tsum_eq_tsum_fourier_integral_of_rpow_decay {f : C(ℝ, ℂ)} {b : ℝ} (hb : 1 < b)
-  (hf : is_O (cocompact ℝ) f (λ x : ℝ, |x| ^ (-b)))
+lemma real.tsum_eq_tsum_fourier_integral_of_rpow_decay {f : ℝ → ℂ} (hc : continuous f)
+  {b : ℝ} (hb : 1 < b) (hf : is_O (cocompact ℝ) f (λ x : ℝ, |x| ^ (-b)))
   (hFf : is_O (cocompact ℝ) (𝓕 f) (λ x : ℝ, |x| ^ (-b))) :
   ∑' (n : ℤ), f n = ∑' (n : ℤ), 𝓕 f n :=
-real.tsum_eq_tsum_fourier_integral_of_rpow_decay_of_summable hb hf
+real.tsum_eq_tsum_fourier_integral_of_rpow_decay_of_summable hc hb hf
   (summable_of_is_O (real.summable_abs_int_rpow hb) (hFf.comp_tendsto int.tendsto_coe_cofinite))
 
 end rpow_decay
@@ -253,10 +253,8 @@ begin
   -- We know that Schwartz functions are `O(‖x ^ (-b)‖)` for *every* `b`; for this argument we take
   -- `b = 2` and work with that.
   simp_rw ←hfg,
-  convert @real.tsum_eq_tsum_fourier_integral_of_rpow_decay f.to_continuous_map _ one_lt_two _ _,
-  { simpa only [←rpow_int_cast, nat.cast_two, int.cast_neg, int.cast_two] using f.is_O_cocompact 2},
-  { change 𝓕 f =O[_] _, simpa only [hfg, ←rpow_int_cast, nat.cast_two, int.cast_neg, int.cast_two]
-    using g.is_O_cocompact 2 },
+  exact real.tsum_eq_tsum_fourier_integral_of_rpow_decay f.continuous one_lt_two
+    (f.is_O_cocompact_rpow (-2)) (by simpa only [hfg] using g.is_O_cocompact_rpow (-2))
 end
 
 end schwartz

@@ -9,6 +9,7 @@ import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
 import tactic.positivity
+import analysis.special_functions.pow
 
 /-!
 # Schwartz space
@@ -90,7 +91,7 @@ begin
   exact ⟨max C 1, by positivity, λ x, (hC x).trans (le_max_left _ _)⟩,
 end
 
-lemma is_O_cocompact (f : 𝓢(E, F)) (k : ℕ) :
+lemma is_O_cocompact_zpow_neg_nat (f : 𝓢(E, F)) (k : ℕ) :
   asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ (-k : ℤ)) :=
 begin
   obtain ⟨d, hd, hd'⟩ := f.decay k 0,
@@ -100,6 +101,22 @@ begin
   refine (filter.eventually_cofinite_ne 0).mp (filter.eventually_of_forall (λ x hx, _)),
   rwa [real.norm_of_nonneg (zpow_nonneg (norm_nonneg _) _), zpow_neg, ←div_eq_mul_inv, le_div_iff'],
   exacts [hd' x, zpow_pos_of_pos (norm_pos_iff.mpr hx) _],
+end
+
+lemma is_O_cocompact_rpow [proper_space E] (f : 𝓢(E, F)) (s : ℝ) :
+  asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ s) :=
+begin
+  let k := ⌈-s⌉₊,
+  have hk : -(k : ℝ) ≤ s, from neg_le.mp (nat.le_ceil (-s)),
+  refine (is_O_cocompact_zpow_neg_nat f k).trans _,
+  refine (_ : asymptotics.is_O filter.at_top
+    (λ x:ℝ, x ^ (-k : ℤ)) (λ x:ℝ, x ^ s)).comp_tendsto tendsto_norm_cocompact_at_top,
+  simp_rw [asymptotics.is_O, asymptotics.is_O_with],
+  refine ⟨1, filter.eventually_of_mem (filter.eventually_ge_at_top 1) (λ x hx, _)⟩,
+  rw [one_mul, real.norm_of_nonneg (real.rpow_nonneg_of_nonneg (zero_le_one.trans hx) _),
+    real.norm_of_nonneg (zpow_nonneg (zero_le_one.trans hx) _), ←real.rpow_int_cast, int.cast_neg,
+    int.cast_coe_nat],
+  exact real.rpow_le_rpow_of_exponent_le hx hk,
 end
 
 /-- Every Schwartz function is smooth. -/
@@ -548,6 +565,5 @@ def delta (x : E) : 𝓢(E, F) →L[𝕜] F :=
 @[simp] lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
 
 end bounded_continuous_function
-
 
 end schwartz_map

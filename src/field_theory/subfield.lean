@@ -10,6 +10,9 @@ import algebra.order.field.inj_surj
 /-!
 # Subfields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `K` be a field. This file defines the "bundled" subfield type `subfield K`, a type
 whose terms correspond to subfields of `K`. This is the preferred way to talk
 about subfields in mathlib. Unbundled subfields (`s : set K` and `is_subfield s`)

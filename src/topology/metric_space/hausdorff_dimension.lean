@@ -532,4 +532,4 @@ in `F`. -/
 lemma cont_diff.dense_compl_range_of_finrank_lt_finrank [finite_dimensional ℝ F] {f : E → F}
   (h : cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
   dense (range f)ᶜ :=
-dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ ennreal.coe_nat_lt_coe_nat.2 hEF
+dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ nat.cast_lt.2 hEF

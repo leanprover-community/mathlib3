@@ -37,17 +37,11 @@ namespace category_theory.abelian.pseudoelement
 
 /-- `x` is given by `t ↦ (t, 2 * t)`. -/
 def x : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
-begin
-  constructor,
-  exact biprod.lift (of_hom id) (of_hom (2 * id)),
-end
+over.mk (biprod.lift (of_hom id) (of_hom (2 * id)))
 
 /-- `y` is given by `t ↦ (t, t)`. -/
 def y : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
-begin
-  constructor,
-  exact biprod.lift (of_hom id) (of_hom id),
-end
+over.mk (biprod.lift (of_hom id) (of_hom id))
 
 /-- `biprod.fst ≫ x` is pseudoequal to `biprod.fst y`. -/
 lemma fst_x_pseudo_eq_fst_y : pseudo_equal _ (app biprod.fst x) (app biprod.fst y) :=

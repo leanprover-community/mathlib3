@@ -147,7 +147,7 @@ begin
     exact ⟨n, ⟨hn, by { rwa [← coe_ext, coe_pow], }⟩⟩, },
 end
 
-instance torsion_finite [number_field K] : finite (torsion K) :=
+lemma torsion_finite [number_field K] : finite (torsion K) :=
 begin
   suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (torsion K )}).finite,
   { exact set.finite_coe_iff.mpr (set.finite.of_finite_image this
@@ -160,18 +160,43 @@ begin
     convert λ w, le_of_eq (((mem_torsion K _).mp hu) w) using 1, },
 end
 
+instance [number_field K] : fintype (torsion K) :=
+@fintype.of_finite (torsion K) (torsion_finite K)
+
 instance torsion_cyclic [number_field K] : is_cyclic (torsion K) :=
 subgroup_units_cyclic _
 
 def torsion_order [number_field K] : ℕ+ :=
 begin
-  haveI : fintype (torsion K) := fintype.of_finite ↥(torsion K),
+  haveI : fintype (torsion K) := fintype.of_finite (torsion K),
   refine ⟨fintype.card (torsion K), _⟩,
   exact fintype.card_pos,
 end
 
 lemma torsion_eq_roots_of_unity [number_field K]  :
-  torsion K = roots_of_unity (torsion_order K) (𝓞 K) := sorry
+  torsion K = roots_of_unity (torsion_order K) (𝓞 K) :=
+begin
+  ext,
+  rw mem_roots_of_unity',
+  rw torsion_order,
+  split,
+  { intro hx,
+    have := @pow_card_eq_one (torsion K) ⟨x, hx⟩ _ _,
+    simp only [submonoid_class.mk_pow, subgroup.mk_eq_one_iff] at this,
+    have := congr_arg (coe : (𝓤 K) → (𝓞 K)) this,
+    rw units.coe_pow at this,
+    convert this, },
+  { intro hx,
+    rw torsion,
+    rw comm_group.mem_torsion,
+    rw is_of_fin_order_iff_pow_eq_one,
+    use fintype.card (torsion K),
+    split,
+    { exact fintype.card_pos, },
+    { rw units.ext_iff,
+      rw units.coe_pow,
+      convert hx, }},
+end
 
 end torsion
 

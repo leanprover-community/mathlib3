@@ -279,7 +279,7 @@ instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α 
 instance [has_vadd M α] [has_faithful_vadd M α] :
   has_faithful_vadd p α := ⟨λ x y h, subtype.ext $ eq_of_vadd_eq_vadd h⟩
 
-/-- The action by a submodule is the action by the underlying submodule. -/
+/-- The action by a submodule is the action by the underlying module. -/
 instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.to_add_monoid_hom
 
 variable {p}

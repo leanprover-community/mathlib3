@@ -107,7 +107,7 @@ section is_O
 
 variables (f : 𝓢(E, F))
 
-/-- Auxiliary lemma, used in proving the more general result `is_O_compact_zpow`. -/
+/-- Auxiliary lemma, used in proving the more general result `is_O_cocompact_zpow`. -/
 lemma is_O_cocompact_zpow_neg_nat (k : ℕ) :
   asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ (-k : ℤ)) :=
 begin

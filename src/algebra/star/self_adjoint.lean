@@ -57,6 +57,9 @@ is_star_normal.star_comm_self
 
 namespace is_self_adjoint
 
+-- named to match `commute.all`
+lemma all [has_star R] [has_trivial_star R] (r : R) : is_self_adjoint r := star_trivial _
+
 lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
@@ -155,11 +158,11 @@ by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
 end field
 
 section has_smul
-variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
+variables [has_star R] [add_monoid A] [star_add_monoid A] [has_smul R A] [star_module R A]
 
-lemma smul [has_smul R A] [star_module R A] (r : R) {x : A} (hx : is_self_adjoint x) :
+lemma smul {r : R} (hr : is_self_adjoint r) {x : A} (hx : is_self_adjoint x) :
   is_self_adjoint (r • x) :=
-by simp only [is_self_adjoint_iff, star_smul, star_trivial, hx.star_eq]
+by simp only [is_self_adjoint_iff, star_smul, star_trivial, hx.star_eq, hr.star_eq]
 
 end has_smul
 
@@ -294,7 +297,7 @@ section has_smul
 variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
 instance [has_smul R A] [star_module R A] : has_smul R (self_adjoint A) :=
-⟨λ r x, ⟨r • x, x.prop.smul r⟩⟩
+⟨λ r x, ⟨r • x, (is_self_adjoint.all _).smul x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [has_smul R A] [star_module R A] (r : R) (x : self_adjoint A) :
   ↑(r • x) = r • (x : A) := rfl

@@ -9,6 +9,9 @@ import linear_algebra.prod
 /-!
 # Partially defined linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `linear_pmap R E F` or `E →ₗ.[R] F` is a linear map from a submodule of `E` to `F`.
 We define a `semilattice_inf` with `order_bot` instance on this this, and define three operations:
 

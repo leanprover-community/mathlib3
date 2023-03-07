@@ -1765,6 +1765,16 @@ by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
 
 @[measurability]
+lemma ae_measurable.nnreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
+  [countable ι] {f : ι → α → nnreal} {μ : measure_theory.measure α}
+  (h : ∀ (i : ι), ae_measurable (f i) μ) :
+  ae_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
+begin
+  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
+  exact (ae_measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
+end
+
+@[measurability]
 lemma measurable_coe_real_ereal : measurable (coe : ℝ → ereal) :=
 continuous_coe_real_ereal.measurable
 

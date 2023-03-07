@@ -11,15 +11,19 @@ import algebra.module.zlattice
 
 /-!
 # Canonical embedding of a number field
-The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
+The `canonical_embedding` of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
 `K →+* ℝ^r₁ × ℂ^r₂` that sends `x ∈ K` to `(φ_₁(x),...,φ_r₁(x)) × (ψ_₁(x),..., ψ_r₂(x))` where
 `φ_₁,...,φ_r₁` are its real embeddings and `ψ_₁,..., ψ_r₂` are its complex embeddings (up to
 complex conjugation).
 
 ## Main definitions and results
 * `number_field.canonical_embedding.ring_of_integers.inter_ball_finite`: the intersection of the
-image of the ring of integers by the canonical embedding and any ball centered at `0` of finite
-radius is finite.
+image of `𝓞 K` by `canonical_embedding` and any ball centered at `0` of finite radius is finite.
+* `number_field.canonical_embedding.lattice_basis`:  a `ℝ`-basis of `ℝ^r₁ × ℂ^r₂` that is also
+a `ℤ`-basis of the image of `𝓞 K` by `canonical_embedding`.
+* `number_field.canonical_embedding.exists_ne_zero_mem_ring_of_integers_le`: for
+`f : (infinite_place K) → nnreal` such that `prod_w f w` is large enough, returns `a : 𝓞 K` with
+`a ≠ 0` and `∀ w : infinite_place K, w a < f w`.
 
 ## Tags
 number field, infinite places
@@ -146,8 +150,8 @@ def equiv_integer_lattice [number_field K] :
 begin
   refine linear_equiv.of_bijective _ _,
   { refine linear_map.mk _ _ _,
-    exact λ x, ⟨canonical_embedding K (algebra_map (𝓞 K) K x), algebra_map (𝓞 K) K x,
-      by simp only [subring.mem_carrier, ring_hom.mem_range, exists_apply_eq_apply], rfl⟩,
+    { exact λ x, ⟨canonical_embedding K (algebra_map (𝓞 K) K x), algebra_map (𝓞 K) K x,
+      by simp only [subring.mem_carrier, ring_hom.mem_range, exists_apply_eq_apply], rfl⟩, } ,
     { intros _ _,
       simpa only [map_add], },
     { intros _ _,
@@ -156,7 +160,7 @@ begin
     { intros _ _ h,
       rw [linear_map.coe_mk, subtype.mk_eq_mk] at h,
       exact (is_fraction_ring.injective (𝓞 K) K) (canonical_embedding_injective K h), },
-    { exact λ ⟨_, ⟨_, ⟨⟨a, rfl⟩, rfl⟩⟩⟩, ⟨a, rfl⟩, }}
+    { exact λ ⟨_, _, ⟨a, rfl⟩, rfl⟩, ⟨a, rfl⟩, }}
 end
 
 lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
@@ -172,10 +176,10 @@ begin
       exact λ x, le_iff_le x r, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
     ext, split,
-    { rintros ⟨⟨_, ⟨⟨x, rfl⟩, rfl⟩⟩, hx2⟩,
+    { rintros ⟨⟨_, ⟨x, rfl⟩, rfl⟩, hx2⟩,
       exact ⟨x, ⟨⟨set_like.coe_mem x, (heq x).mp hx2⟩, rfl⟩⟩, },
-    { rintros ⟨x, ⟨⟨ hx1, hx2⟩, rfl⟩⟩,
-      exact ⟨⟨x, ⟨⟨⟨x, hx1⟩, rfl⟩, rfl⟩⟩, (heq x).mpr hx2⟩, }},
+    { rintros ⟨x, ⟨ hx1, hx2⟩, rfl⟩,
+      exact ⟨⟨x, ⟨⟨x, hx1⟩, rfl⟩, rfl⟩, (heq x).mpr hx2⟩, }},
 end
 
 lemma integer_lattice.countable [number_field K] : countable (integer_lattice K) :=
@@ -203,8 +207,6 @@ def _root_.number_field.full_embedding : K →+* (K →+* ℂ) → ℂ :=
   map_one' := funext (λ φ, map_one φ),
   map_add' := λ x y, funext (λ φ, map_add φ x y),
   map_mul' := λ x y, funext (λ φ, map_mul φ x y), }
-
-example (p q : Prop) (hp : p) (hq : q) : p ∧ q := ⟨hp, hq⟩
 
 /-- The map from `(K →+* ℂ) → ℂ` to `space K` that gives a commuting diagramm, see
 `number_field.canonical_embedding.commutes`. -/
@@ -246,10 +248,10 @@ begin
         complex_embedding.is_real_iff.mp hφ], }},
   { have heqz := congr_arg (λ x : (space K), x.2 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc,
     by_cases h_same : φ = (infinite_place.mk φ).embedding,
-    { convert heqz, },
+    { convert heqz using 2, },
     { rw [ ← map_eq_zero_iff (star_ring_end ℂ) star_injective, ← full_embedding.conj_apply K _ hx],
       rw (_ : φ = complex_embedding.conjugate (infinite_place.mk φ).embedding),
-      { convert heqz,
+      { convert heqz using 2,
         ext1 φ,
         simp only [complex_embedding.conjugate_coe_eq, star_ring_end_self_apply], },
       { rw eq_comm,
@@ -275,6 +277,9 @@ def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)
 begin
   let e : (K →+* ℂ) ≃ free.choose_basis_index ℤ (𝓞 K) :=
     equiv_of_card_eq ((embeddings.card K ℂ).trans (finrank_eq_card_basis (integral_basis K))),
+  -- Assume that `full_embedding K (integral_basis K)` is `ℂ`-linear independent then we deduce
+  -- using `comm_map_eq_zero` that `canonical_embedding K (integral_basis K)` is
+  -- `ℂ`-linear independent and thus `ℤ`-linear independent and yields the desired basis.
   suffices : linear_independent ℂ (λ i, full_embedding K (integral_basis K (e i))),
   { replace := @linear_independent.restrict_scalars _ ℝ ℂ _ _ _ _ _ _ _ _ _
       (smul_left_injective ℝ one_ne_zero) this,
@@ -283,7 +288,7 @@ begin
       ext1 φ,
       simp only [equiv.apply_symm_apply, function.comp_app], },
     replace : linear_independent ℝ (λ i, (comm_map K ∘ full_embedding K) (integral_basis K i)),
-    { refine linear_independent.map this
+    { exact linear_independent.map this
         (linear_map.disjoint_ker.mpr (λ x hx hc, comm_map_eq_zero K hx hc)), },
     replace : linear_independent ℝ (λ i, canonical_embedding K (integral_basis K i)),
     { refine (linear_independent_equiv' (equiv.refl _) _).mp this,
@@ -293,6 +298,9 @@ begin
     rw [finrank_top, canonical_embedding.space_rank, ← set.finrank,
       ← linear_independent_iff_card_eq_finrank_span.mp this, ← ring_of_integers.rank,
       free.finrank_eq_card_choose_basis_index], },
+  -- To prove that `full_embedding K (integral_basis K)` is `ℂ`-linear independent, we
+  -- prove that the square of the determinant of its matrix on the standard basis of
+  -- `((K →* ℂ) → ℂ)` is the discrimininant of the `ℚ`-algebra `K` and thus it is not zero.
   let B := pi.basis_fun ℂ (K →+* ℂ),
   let M := B.to_matrix (λ i, full_embedding K (integral_basis K (e i))),
   suffices : M.det ≠ 0,
@@ -331,10 +339,10 @@ begin
       { rintro ⟨_, ⟨a, rfl⟩, rfl⟩,
         exact ⟨a, ⟨a, trivial, rfl⟩, rfl⟩, }},
     { rw ← set.range_comp,
-      congr,
+      refine congr_arg _ _,
       ext, simpa only [integral_basis_apply, function.comp_app, alg_hom.to_linear_map_apply], }},
   { rw ← set.range_comp,
-    congr,
+    refine congr_arg _ _,
     ext1, simpa only [lattice_basis_apply, integral_basis_apply, function.comp_app,
       alg_hom.to_linear_map_apply], },
 end
@@ -379,55 +387,21 @@ convex.prod (convex_pi (λ i _, (convex_ball 0 (f i)))) (convex_pi (λ i _, (con
 lemma convex_body_mem (f : infinite_place K → nnreal) (x : K) :
   canonical_embedding K x ∈ (convex_body K f) ↔ ∀ w : infinite_place K, w x < f w :=
 begin
-  have : (∀ w :infinite_place K, w x < f w)  = (∀ w : infinite_place K, w.is_real ∨ w.is_complex →
-    w x < f w) := sorry,
-  simp_rw this,
-  rw ball_or_left_distrib,
-  rw set.mem_prod,
-  rw convex_body_real,
-  rw convex_body_complex,
-  rw set.mem_pi,
-  rw set.mem_pi,
-  simp only [set.mem_univ, mem_ball_zero_iff, forall_true_left, real.norm_eq_abs,
-    subtype.forall, subtype.coe_mk, complex.norm_eq_abs],
-  simp_rw apply_at_real_infinite_place,
-  simp_rw apply_at_complex_infinite_place,
-  simp_rw ← infinite_place.apply,
-  simp_rw mk_embedding,
-
-  simp,
-
-  split,
-  { rintros ⟨hr, hc⟩ w,
-    by_cases h : is_real w,
-    { convert hr w h,
-      rw ← is_real.place_embedding_apply,
-      refl, },
-    { rw not_is_real_iff_is_complex at h,
-      exact hc w h, }},
-  { rintro h,
-    split,
-    { intros w hw,
-      convert h w,
-      rw ← is_real.place_embedding_apply,
-      refl, },
-    { intros w hw,
-      exact h w, }}
+  suffices : (∀ w : infinite_place K, w x < f w) ↔
+    (∀ w : infinite_place K, w.is_real ∨ w.is_complex → w x < f w),
+  { simp only [this, ball_or_left_distrib, set.mem_prod, convex_body_real, convex_body_complex,
+    set.mem_univ_pi, apply_at_real_infinite_place, mem_ball_zero_iff, real.norm_eq_abs,
+    is_real.abs_embedding_apply, subtype.forall, subtype.coe_mk, apply_at_complex_infinite_place,
+    complex.norm_eq_abs, abs_embedding], },
+  simp only [← infinite_place.not_is_real_iff_is_complex, em, forall_true_left],
 end
-
-#exit
 
 variable [number_field K]
 
-/-- The complex Haar measure giving measure 1 to the unit box with ℂ ≃ ℝ × ℝ -/
+/-- The complex Haar measure giving measure 1 to the unit box in `ℂ ≃ ℝ × ℝ`. -/
 @[reducible]
 def unit_measure : measure (space K) :=
 measure.prod (measure.pi (λ _, volume)) (measure.pi (λ _, complex.basis_one_I.add_haar))
-
-instance : sigma_finite complex.basis_one_I.add_haar := infer_instance
-instance : sigma_finite
-  (measure.pi (λ w : { w : infinite_place K // is_complex w}, complex.basis_one_I.add_haar)) :=
-  infer_instance
 
 instance : measure.is_add_haar_measure (unit_measure K) :=
 begin
@@ -443,16 +417,9 @@ lemma convex_body_real.volume (f : infinite_place K → nnreal) :
   measure.pi (λ _, volume) (convex_body_real K f) =
     2 ^ card {w : infinite_place K // is_real w} *
     finset.univ.prod (λ w : {w : infinite_place K // is_real w}, f w) :=
-begin
-  rw convex_body_real,
-  rw measure.pi_pi,
-  simp_rw real.volume_ball,
-  simp_rw ennreal.of_real_mul (by norm_num : 0 ≤ (2 : ℝ)),
-  simp only [ennreal.of_real_bit0, ennreal.of_real_one, ennreal.of_real_coe_nnreal],
-  rw finset.prod_mul_distrib,
-  rw finset.prod_const,
-  rw finset.card_univ,
-end
+by simp_rw [convex_body_real, measure.pi_pi, real.volume_ball,
+  ennreal.of_real_mul (by norm_num : 0 ≤ (2 : ℝ)), ennreal.of_real_bit0, ennreal.of_real_one,
+  ennreal.of_real_coe_nnreal, finset.prod_mul_distrib, finset.prod_const, finset.card_univ]
 
 lemma convex_body_complex.volume (f : infinite_place K → nnreal) :
   (measure.pi (λ _, complex.basis_one_I.add_haar)) (convex_body_complex K f) =
@@ -464,69 +431,52 @@ begin
   haveI : has_measurable_add ℂ := infer_instance,
   haveI : measure.is_add_haar_measure (measure.pi (λ w : { w : infinite_place K // is_complex w },
     complex.basis_one_I.add_haar)) := @measure.pi.is_add_haar_measure _ _ _ _ _ _ _ _ _ _,
-  rw convex_body_complex,
-  rw measure.pi_pi,
+  rw [ convex_body_complex, measure.pi_pi],
   conv { to_lhs, congr, skip, funext,
     rw measure.add_haar_ball complex.basis_one_I.add_haar 0 (f i).prop,
     rw ennreal.of_real_pow (f i).prop, },
-  rw finset.prod_mul_distrib,
-  rw finset.prod_const,
-  rw mul_comm,
-  rw complex.finrank_real_complex,
-  rw finset.card_univ,
-  simp_rw ennreal.of_real_coe_nnreal,
+  simp_rw [finset.prod_mul_distrib, finset.prod_const, mul_comm, complex.finrank_real_complex,
+    finset.card_univ, ennreal.of_real_coe_nnreal],
 end
 
-/-- The fudge factor that appears in the computation of the volume of `convex_body`.-/
+/-- The fudge factor that appears in the formula for the volume of `convex_body`.-/
 def constant_volume : ennreal := 2 ^ card {w : infinite_place K // is_real w} *
   (complex.basis_one_I.add_haar) (metric.ball 0 1) ^ card {w : infinite_place K // is_complex w}
 
 lemma constant_volume_pos : 0 < (constant_volume K) :=
 begin
-  refine ennreal.mul_pos _ _,
-  { refine ennreal.pow_ne_zero _ _,
-    exact ne_zero.ne 2, },
-  { refine ennreal.pow_ne_zero _ _,
-    refine ne_of_gt _,
-    exact metric.measure_ball_pos _ _ (by norm_num), },
+  refine ennreal.mul_pos (ne_zero.ne _) _,
+  exact ennreal.pow_ne_zero (ne_of_gt (metric.measure_ball_pos _ _ (by norm_num))) _,
 end
 
 lemma constant_volume_lt_top : (constant_volume K) < ⊤ :=
 begin
   refine ennreal.mul_lt_top _ _,
-  { refine ne_of_lt _,
-    refine ennreal.pow_lt_top _ _,
-    exact lt_top_iff_ne_top.mpr ennreal.two_ne_top, },
-  { refine ne_of_lt _,
-    refine ennreal.pow_lt_top _ _,
-    exact measure_ball_lt_top, },
+  { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
+  { exact ne_of_lt (ennreal.pow_lt_top measure_ball_lt_top _), },
 end
 
 lemma convex_body.volume (f : infinite_place K → nnreal) :
   (unit_measure K) (convex_body K f) = (constant_volume K) *
     finset.univ.prod (λ w : infinite_place K, (ite (w.is_real) (f w) (f w ^ 2))) :=
 begin
-  rw measure.prod_prod _ _,
-  { rw convex_body_real.volume,
-    rw convex_body_complex.volume,
-    rw constant_volume,
-    rw finset.prod_ite,
-    have : ∀ (w : infinite_place K), w ∈ finset.filter (λ w : infinite_place K, w.is_real)
-      finset.univ ↔ w.is_real,
-    { intro _,
-      simp only [finset.mem_filter, finset.mem_univ, true_and], },
-    rw finset.prod_subtype _ this _,
-    have : ∀ (w : infinite_place K), w ∈ finset.filter (λ w : infinite_place K, ¬ w.is_real)
-      finset.univ ↔ w.is_complex,
-    { intro _,
-      simp only [not_is_real_iff_is_complex, finset.mem_filter, finset.mem_univ, true_and], },
-    rw finset.prod_subtype _ this _,
-    rw ← mul_assoc,
-    nth_rewrite 1 mul_assoc,
-    nth_rewrite 2 mul_comm,
-    rw ← mul_assoc,
-    rw ← mul_assoc, },
-  { apply_instance, },
+  haveI : sigma_finite complex.basis_one_I.add_haar := infer_instance,
+  haveI : sigma_finite (measure.pi (λ w : { w : infinite_place K // is_complex w},
+    complex.basis_one_I.add_haar)) := infer_instance,
+  rw [measure.prod_prod, convex_body_real.volume, constant_volume, mul_assoc, mul_assoc,
+    ennreal.mul_eq_mul_left _ _],
+  { rw [mul_comm, finset.prod_ite, convex_body_complex.volume, mul_assoc,
+      ennreal.mul_eq_mul_left _ _],
+    { rw mul_comm,
+      refine congr_arg2 _ _ _;
+      { rw eq_comm,
+        refine finset.prod_subtype _ _ _,
+        simp only [finset.mem_filter, finset.mem_univ, true_and, iff_self, forall_const,
+          not_is_real_iff_is_complex], }},
+    { exact ennreal.pow_ne_zero (ne_of_gt (metric.measure_ball_pos _ _ (by norm_num))) _, },
+    { exact ne_of_lt (ennreal.pow_lt_top measure_ball_lt_top _), }},
+  { exact ne_zero.ne _, },
+  { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
 end
 
 /-- The bound that appears in Minkowski theorem, see
@@ -537,46 +487,27 @@ def minkowski_bound : ennreal := (unit_measure K) (zspan.fundamental_domain (lat
 lemma minkowski_bound_lt_top : minkowski_bound K < ⊤ :=
 begin
   refine ennreal.mul_lt_top _ _,
-  { refine ne_of_lt _,
-    refine metric.bounded.measure_lt_top _,
-    exact zspan.fundamental_domain_metric_bounded (lattice_basis K), },
-  { refine ne_of_lt _,
-    refine ennreal.pow_lt_top _ _,
-    exact lt_top_iff_ne_top.mpr ennreal.two_ne_top, },
+  { exact ne_of_lt (zspan.fundamental_domain_metric_bounded (lattice_basis K)).measure_lt_top, },
+  { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
 end
 
 lemma exists_ne_zero_mem_ring_of_integers_le {f : (infinite_place K) → nnreal}
-  (h : minkowski_bound K < (unit_measure K) (convex_body K f)) :
+  (hf : minkowski_bound K < (unit_measure K) (convex_body K f)) :
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin
-  have t1 := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),
   haveI : countable (submodule.span ℤ (set.range (lattice_basis K))).to_add_subgroup,
-    { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)),
-      rw lattice_basis_span,
-      exact integer_lattice.countable K, },
-  have t2 := exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
-    (unit_measure K) t1 h (convex_body.symmetric K f) (convex_body.convex K f),
-  obtain ⟨x, hnz, hmem⟩ := t2,
-  rsuffices ⟨a, ha1, ha2⟩ : ∃ a : 𝓞 K, a ≠ 0 ∧ canonical_embedding K a = x,
-  { rw ← ha2 at hmem,
-    rw convex_body_mem at hmem,
-    use a,
-    exact ⟨ha1, hmem⟩, },
-  have t3 : (x : space K) ∈ (integer_lattice K),
-  { rw ← set_like.mem_coe,
-    rw ← lattice_basis_span,
-    have := set_like.coe_mem x,
-    rwa ← set_like.mem_coe at this, },
-  obtain ⟨_, ⟨z, rfl⟩, hz2⟩ := t3,
-  use z,
-  split,
-  { contrapose! hnz,
-    rw eq_comm at hz2,
-    rw hnz at hz2,
-    rw map_zero at hz2,
-    rw map_zero at hz2,
-    rwa submodule.coe_eq_zero at hz2, },
-  { exact hz2, },
+  { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)),
+    rw lattice_basis_span,
+    exact integer_lattice.countable K, },
+  have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),
+  obtain ⟨⟨x, hx⟩, hnz, hmem⟩ :=
+    exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
+    (unit_measure K) h_funddomain hf (convex_body.symmetric K f) (convex_body.convex K f),
+  rw [submodule.mem_to_add_subgroup, ← set_like.mem_coe, lattice_basis_span] at hx,
+  obtain ⟨_, ⟨a, rfl⟩, rfl⟩ := hx,
+  refine ⟨a, _, by { rwa ← convex_body_mem, }⟩,
+  contrapose! hnz,
+  simp only [hnz, map_zero, submodule.mk_eq_zero],
 end
 
 end convex_body

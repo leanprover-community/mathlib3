@@ -104,6 +104,14 @@ h.transpose.map _ $ λ _, rfl
   (A + B).is_hermitian :=
 (conj_transpose_add _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
+@[simp] lemma is_hermitian.smul {r : α} {A : matrix n n β} [has_smul α β] [star_module α β]
+  (hr : is_self_adjoint r) (h : A.is_hermitian) :
+  (r • A).is_hermitian :=
+(star_smul _ _).trans _
+
+#check matrix.has_star
+#check is_self_adjoint.smul
+
 @[simp] lemma is_hermitian.submatrix {A : matrix n n α} (h : A.is_hermitian) (f : m → n) :
   (A.submatrix f f).is_hermitian :=
 (conj_transpose_submatrix _ _ _).trans (h.symm ▸ rfl)

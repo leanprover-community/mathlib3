@@ -8,6 +8,7 @@ import analysis.normed_space.exponential
 import analysis.matrix
 import linear_algebra.matrix.zpow
 import linear_algebra.matrix.hermitian
+import linear_algebra.matrix.pos_def
 import linear_algebra.matrix.symmetric
 import topology.uniform_space.matrix
 
@@ -197,6 +198,18 @@ end
 lemma exp_units_conj' (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
   exp 𝕂 (↑(U⁻¹) ⬝ A ⬝ U : matrix m m 𝔸) = ↑(U⁻¹) ⬝ exp 𝕂 A ⬝ U :=
 exp_units_conj 𝕂 U⁻¹ A
+
+
+lemma is_hermitian.pos_def_exp {R} [is_R_or_C R] [normed_algebra 𝕂 R] {A : matrix m m R}
+  (h : A.is_hermitian) : (exp 𝕂 A).pos_def :=
+⟨h.exp _, λ x hx, begin
+  have : commute ((1 / 2 : R) • A) ((1 / 2 : R) • A) := commute.refl _,
+  rw [←one_smul R A, ← half_add_self (1 : R), add_div, add_smul,
+    exp_add_of_commute 𝕂 _ _ this, ←matrix.mul_vec_mul_vec, dot_product_mul_vec],
+  rw [←h.eq] {occs := occurrences.pos [1]},
+  rw ←conj_transpose_smul (1 / 2 : R),
+end⟩
+
 
 end normed
 

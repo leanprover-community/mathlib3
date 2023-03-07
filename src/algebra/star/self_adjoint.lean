@@ -58,6 +58,7 @@ is_star_normal.star_comm_self
 namespace is_self_adjoint
 
 -- named to match `commute.all`
+/-- All elements are self-adjoint when `star` is trivial. -/
 lemma all [has_star R] [has_trivial_star R] (r : R) : is_self_adjoint r := star_trivial _
 
 lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx

@@ -42,6 +42,9 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables (I)
 
+namespace hide /- we temporarily put everything in a namespace to not have name clashes with
+the existing `tangent_bundle_core`. -/
+
 /-- Auxiliary lemma for tangent spaces: the derivative of a coordinate change between two charts is
   smooth on its source. -/
 lemma cont_diff_on_fderiv_coord_change (i j : atlas H M) :
@@ -264,3 +267,5 @@ rfl
   ((tangent_bundle_model_space_homeomorph H I).symm : model_prod H E → tangent_bundle I H)
   = (equiv.sigma_equiv_prod H E).symm :=
 rfl
+
+end hide

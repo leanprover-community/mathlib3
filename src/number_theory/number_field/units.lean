@@ -3,6 +3,7 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
+
 import group_theory.torsion
 import number_theory.number_field.norm
 import number_theory.number_field.canonical_embedding
@@ -10,11 +11,11 @@ import ring_theory.ideal.norm
 
 /-!
  # Units of a number field
- This file defines and proves results about the group `𝓤 K` of units of the ring of integers of a
- number field `K`.
+This file defines and proves results about the group `𝓤 K` of units of the ring of integers `𝓞 K`
+of a number field `K`.
 
  ## Tags
- number field, units
+number field, units
  -/
 
 open_locale classical number_field
@@ -25,14 +26,14 @@ variables (K : Type*) [field K]
 
 localized "notation `𝓤`K := (number_field.ring_of_integers K)ˣ" in number_field.units
 
-namespace number_field
+namespace number_field.units
 
 open number_field units
 
-/-- The `monoid_hom` from the group of units to the field.-/
-def units_to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
+/-- The `monoid_hom` from the group of units to the field. -/
+def to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
 
-lemma units_to_field_injective : function.injective (units_to_field K) :=
+lemma to_field_injective : function.injective (to_field K) :=
 begin
   have t1 : function.injective (coe_hom K) := by ext,
   have t2 : function.injective (units.map (algebra_map (𝓞 K) K).to_monoid_hom) :=
@@ -43,31 +44,29 @@ begin
     simp_rw [units.coe_map] at t1,
     exact (no_zero_smul_divisors.algebra_map_injective (𝓞 K) K) t1,
   end,
-  rw [units_to_field, monoid_hom.coe_comp],
+  rw [to_field, monoid_hom.coe_comp],
   exact function.injective.comp t1 t2,
 end
 
-instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨units_to_field K⟩
+instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨to_field K⟩
 
 section coe
-
-namespace unit
 
 variable {K}
 
 @[simp]
-lemma coe_ext {x y : 𝓤 K} : (x : K) = (y : K) ↔ x = y := (units_to_field_injective K).eq_iff
+lemma coe_ext {x y : 𝓤 K} : (x : K) = (y : K) ↔ x = y := (to_field_injective K).eq_iff
 
 @[simp]
-lemma coe_inv {x : 𝓤 K} : ((x⁻¹ : 𝓤 K) : K) = (x : K)⁻¹ := map_inv (units_to_field K) x
+lemma coe_inv {x : 𝓤 K} : ((x⁻¹ : 𝓤 K) : K) = (x : K)⁻¹ := map_inv (to_field K) x
 
 @[simp]
 lemma coe_pow {x : 𝓤 K} {n : ℕ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
-  map_pow (units_to_field K) x n
+  map_pow (to_field K) x n
 
 @[simp]
 lemma coe_zpow {x : 𝓤 K} {n : ℤ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
-  map_zpow (units_to_field K) x n
+  map_zpow (to_field K) x n
 
 @[simp]
 lemma coe_mul {x y : 𝓤 K} : ((x * y : 𝓤 K) : K) = (x : K) * (y : K) := rfl
@@ -82,8 +81,6 @@ lemma coe_one : ((1 : 𝓤 K) : K) = (1 : K) := rfl
 lemma coe_ne_zero {x : 𝓤 K} : (x : K) ≠ 0 :=
 subtype.coe_injective.ne_iff.2 (units.ne_zero x)
 
-end unit
-
 end coe
 
 -- TODO. That should be tautological
@@ -93,7 +90,7 @@ begin
   split,
   { rintros ⟨u, rfl⟩,
     convert ring_of_integers.is_integral_coe u.inv,
-    simp only [number_field.unit.coe_coe, inv_eq_coe_inv, number_field.unit.coe_inv], },
+    simp only [coe_coe, inv_eq_coe_inv, coe_inv], },
   { intro h,
     rw is_unit_iff_exists_inv,
     use ⟨x⁻¹, h⟩,
@@ -128,45 +125,49 @@ begin
     exact congr_arg (coe : (𝓞 ℚ) → ℚ) this, }
 end
 
-section roots_of_unity
+section torsion
 
 open number_field number_field.infinite_place
 
-/-- The subgroup of roots of unity.-/
-def roots_of_unity : subgroup 𝓤 K := comm_group.torsion (𝓤 K)
+/-- The torsion subgroup of the group of units. -/
+def torsion : subgroup 𝓤 K := comm_group.torsion (𝓤 K)
 
-lemma mem_roots_of_unity [number_field K] (x : (𝓤 K)) :
-  x ∈ roots_of_unity K ↔ ∀ w : infinite_place K, w x = 1 :=
+lemma mem_torsion (x : (𝓤 K)) [number_field K] :
+  x ∈ torsion K ↔ ∀ w : infinite_place K, w x = 1 :=
 begin
   rw (eq_iff_eq x 1 : (∀ w : infinite_place K, w x = 1) ↔ ∀ (φ : K →+* ℂ), ‖φ (x : K)‖ = 1),
-  rw [roots_of_unity, comm_group.mem_torsion, is_of_fin_order_iff_pow_eq_one],
+  rw [torsion, comm_group.mem_torsion, is_of_fin_order_iff_pow_eq_one],
   split,
   { rintros ⟨n, ⟨hn1, hn2⟩⟩ φ,
     lift n to ℕ+ using hn1,
-    rw [ ← number_field.unit.coe_ext, number_field.unit.coe_pow] at hn2,
+    rw [ ← coe_ext, coe_pow] at hn2,
     exact norm_map_one_of_pow_eq_one φ.to_monoid_hom hn2, },
   { intro h,
     obtain ⟨n , ⟨hn, hx⟩⟩ := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
-    exact ⟨n, ⟨hn, by { rwa [← number_field.unit.coe_ext, number_field.unit.coe_pow], }⟩⟩, },
+    exact ⟨n, ⟨hn, by { rwa [← coe_ext, coe_pow], }⟩⟩, },
 end
 
-lemma roots_of_unity_finite [number_field K]: finite (roots_of_unity K) :=
+instance torsion_finite [number_field K] : finite (torsion K) :=
 begin
-  suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (roots_of_unity K )}).finite,
+  suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (torsion K )}).finite,
   { exact set.finite_coe_iff.mpr (set.finite.of_finite_image this
-      ((units_to_field_injective K).inj_on _)), },
+      ((to_field_injective K).inj_on _)), },
   refine (embeddings.finite_of_norm_le K ℂ 1).subset _,
   rintros a ⟨⟨u, _, _, _⟩, ⟨hu, rfl⟩⟩,
   split,
   { exact u.2, },
   { rw ← le_iff_le,
-    convert λ w, le_of_eq (((mem_roots_of_unity K _).mp hu) w) using 1, },
+    convert λ w, le_of_eq (((mem_torsion K _).mp hu) w) using 1, },
 end
 
-lemma roots_of_unity_cyclic [number_field K]: is_cyclic (roots_of_unity K) :=
+instance torsion_cyclic [number_field K] : is_cyclic (torsion K) :=
+subgroup_units_cyclic _
+
+def torsion_order [number_field K] : ℕ+ :=
 begin
-  haveI := roots_of_unity_finite K,
-  exact subgroup_units_cyclic _,
+  haveI : fintype (torsion K) := fintype.of_finite ↥(torsion K),
+  refine ⟨fintype.card (torsion K), _⟩,
+  exact fintype.card_pos,
 end
 
 end roots_of_unity
@@ -885,4 +886,4 @@ end
 
 end dirichlet
 
-end number_field
+end number_field.units

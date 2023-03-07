@@ -8,6 +8,9 @@ import category_theory.limits.has_limits
 /-!
 # Preservation and reflection of (co)limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There are various distinct notions of "preserving limits". The one we
 aim to capture here is: A functor F : C → D "preserves limits" if it
 sends every limit cone in C to a limit cone in D. Informally, F

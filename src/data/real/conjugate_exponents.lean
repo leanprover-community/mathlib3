@@ -8,6 +8,9 @@ import data.real.ennreal
 /-!
 # Real conjugate exponents
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `p.is_conjugate_exponent q` registers the fact that the real numbers `p` and `q` are `> 1` and
 satisfy `1/p + 1/q = 1`. This property shows up often in analysis, especially when dealing with
 `L^p` spaces.

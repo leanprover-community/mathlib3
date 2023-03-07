@@ -1,16 +1,16 @@
 /-
-Copyright (c) 2022 Rémi Bottinelli, Junyan Xu. All rights reserved.
+Copyright (c) 2022 Kyle Miller, Adam Topaz, Rémi Bottinelli, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémi Bottinelli, Junyan Xu
+Authors: Kyle Miller, Adam Topaz, Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.filtered
 import data.set.finite
+import topology.category.Top.limits
 
 /-!
-# The Mittag-Leffler condition
+# Cofiltered systems
 
-This files defines the Mittag-Leffler condition for cofiltered systems and (TODO) other properties
-of such systems and their sections.
+This file deals with properties of cofiltered (and inverse) systems.
 
 ## Main definitions
 
@@ -27,6 +27,10 @@ Given a functor `F : J ⥤ Type v`:
 
 ## Main statements
 
+* `nonempty_sections_of_finite_cofiltered_system` shows that if `J` is cofiltered and each
+  `F.obj j` is nonempty and finite, `F.sections` is nonempty.
+* `nonempty_sections_of_finite_inverse_system` is a specialization of the above to `J` being a
+   directed set (and `F : Jᵒᵖ ⥤ Type v`).
 * `is_mittag_leffler_of_exists_finite_range` shows that if `J` is cofiltered and for all `j`,
   there exists some `i` and `f : i ⟶ j` such that the range of `F.map f` is finite, then
   `F` is Mittag-Leffler.
@@ -35,7 +39,6 @@ Given a functor `F : J ⥤ Type v`:
 
 ## Todo
 
-* Specialize to inverse systems and fintype systems.
 * Prove [Stacks: Lemma 0597](https://stacks.math.columbia.edu/tag/0597)
 
 ## References
@@ -48,12 +51,81 @@ Mittag-Leffler, surjective, eventual range, inverse system,
 
 -/
 
-universes u v
+universes u v w
+
+open category_theory category_theory.is_cofiltered set category_theory.functor_to_types
+
+section finite_konig
+
+/-- This bootstraps `nonempty_sections_of_finite_inverse_system`. In this version,
+the `F` functor is between categories of the same universe, and it is an easy
+corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
+lemma nonempty_sections_of_finite_cofiltered_system.init
+  {J : Type u} [small_category J] [is_cofiltered_or_empty J] (F : J ⥤ Type u)
+  [hf : ∀ j, finite (F.obj j)] [hne : ∀ j, nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  let F' : J ⥤ Top := F ⋙ Top.discrete,
+  haveI : ∀ j, discrete_topology (F'.obj j) := λ _, ⟨rfl⟩,
+  haveI : ∀ j, finite (F'.obj j) := hf,
+  haveI : ∀ j, nonempty (F'.obj j) := hne,
+  obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system F',
+  exact ⟨u, λ _ _, hu⟩,
+end
+
+/-- The cofiltered limit of nonempty finite types is nonempty.
+
+See `nonempty_sections_of_finite_inverse_system` for a specialization to inverse limits. -/
+theorem nonempty_sections_of_finite_cofiltered_system
+  {J : Type u} [category.{w} J] [is_cofiltered_or_empty J] (F : J ⥤ Type v)
+  [∀ (j : J), finite (F.obj j)] [∀ (j : J), nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  -- Step 1: lift everything to the `max u v w` universe.
+  let J' : Type (max w v u) := as_small.{max w v} J,
+  let down : J' ⥤ J := as_small.down,
+  let F' : J' ⥤ Type (max u v w) := down ⋙ F ⋙ ulift_functor.{(max u w) v},
+  haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
+  haveI : ∀ i, finite (F'.obj i) := λ i, finite.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
+  -- Step 2: apply the bootstrap theorem
+  casesI is_empty_or_nonempty J,
+  { fsplit; exact is_empty_elim },
+  haveI : is_cofiltered J := ⟨⟩,
+  obtain ⟨u, hu⟩ := nonempty_sections_of_finite_cofiltered_system.init F',
+  -- Step 3: interpret the results
+  use λ j, (u ⟨j⟩).down,
+  intros j j' f,
+  have h := @hu (⟨j⟩ : J') (⟨j'⟩ : J') (ulift.up f),
+  simp only [as_small.down, functor.comp_map, ulift_functor_map, functor.op_map] at h,
+  simp_rw [←h],
+  refl,
+end
+
+/-- The inverse limit of nonempty finite types is nonempty.
+
+See `nonempty_sections_of_finite_cofiltered_system` for a generalization to cofiltered limits.
+That version applies in almost all cases, and the only difference is that this version
+allows `J` to be empty.
+
+This may be regarded as a generalization of Kőnig's lemma.
+To specialize: given a locally finite connected graph, take `Jᵒᵖ` to be `ℕ` and
+`F j` to be length-`j` paths that start from an arbitrary fixed vertex.
+Elements of `F.sections` can be read off as infinite rays in the graph. -/
+theorem nonempty_sections_of_finite_inverse_system
+  {J : Type u} [preorder J] [is_directed J (≤)] (F : Jᵒᵖ ⥤ Type v)
+  [∀ (j : Jᵒᵖ), finite (F.obj j)] [∀ (j : Jᵒᵖ), nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  casesI is_empty_or_nonempty J,
+  { haveI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
+    exact ⟨is_empty_elim, is_empty_elim⟩, },
+  { exact nonempty_sections_of_finite_cofiltered_system _, },
+end
+
+end finite_konig
 
 namespace category_theory
 namespace functor
-
-open is_cofiltered set functor_to_types
 
 variables {J : Type u} [category J] (F : J ⥤ Type v) {i j k : J} (s : set (F.obj i))
 
@@ -100,8 +172,8 @@ begin
 end
 
 lemma is_mittag_leffler_of_surjective
-  (h : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) : F.is_mittag_leffler :=
-λ j, ⟨j, 𝟙 j, λ k g, by rw [map_id, types_id, range_id, (h k j g).range_eq]⟩
+  (h : ∀ ⦃i j : J⦄ (f :i ⟶ j), (F.map f).surjective) : F.is_mittag_leffler :=
+λ j, ⟨j, 𝟙 j, λ k g, by rw [map_id, types_id, range_id, (h g).range_eq]⟩
 
 /-- The subfunctor of `F` obtained by restricting to the preimages of a set `s ∈ F.obj i`. -/
 @[simps] def to_preimages : J ⥤ Type v :=
@@ -113,6 +185,9 @@ lemma is_mittag_leffler_of_surjective
   end,
   map_id' := λ j, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ j k l f g, by { simp_rw F.map_comp, refl } }
+
+instance to_preimages_finite [∀ j, finite (F.obj j)] :
+  ∀ j, finite ((F.to_preimages s).obj j) := λ j, subtype.finite
 
 variable [is_cofiltered_or_empty J]
 
@@ -190,6 +265,9 @@ The subfunctor of `F` obtained by restricting to the eventual range at each inde
   map_id' := λ i, by { simp_rw F.map_id, ext, refl },
   map_comp' := λ _ _ _ _ _, by { simp_rw F.map_comp, refl } }
 
+instance to_eventual_ranges_finite [∀ j, finite (F.obj j)] :
+  ∀ j, finite (F.to_eventual_ranges.obj j) := λ j, subtype.finite
+
 /--
 The sections of the functor `F : J ⥤ Type v` are in bijection with the sections of
 `F.eventual_ranges`.
@@ -204,7 +282,7 @@ def to_eventual_ranges_sections_equiv : F.to_eventual_ranges.sections ≃ F.sect
 If `F` satisfies the Mittag-Leffler condition, its restriction to eventual ranges is a surjective
 functor.
 -/
-lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) (f : i ⟶ j) :
+lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) ⦃i j⦄ (f : i ⟶ j) :
   (F.to_eventual_ranges.map f).surjective :=
 λ ⟨x, hx⟩, by { obtain ⟨y, hy, rfl⟩ := h.subset_image_eventual_range F f hx, exact ⟨⟨y, hy⟩, rfl⟩ }
 
@@ -215,10 +293,68 @@ let ⟨i, f, h⟩ := F.is_mittag_leffler_iff_eventual_range.1 h j in
 by { rw [to_eventual_ranges_obj, h], apply_instance }
 
 /-- If `F` has all arrows surjective, then it "factors through a poset". -/
-lemma thin_diagram_of_surjective (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)
-  (i j) (f g : i ⟶ j) : F.map f = F.map g :=
+lemma thin_diagram_of_surjective (Fsur : ∀ ⦃i j : J⦄ (f : i ⟶ j), (F.map f).surjective)
+  {i j} (f g : i ⟶ j) : F.map f = F.map g :=
 let ⟨k, φ, hφ⟩ := cone_maps f g in
-(Fsur k i φ).injective_comp_right $ by simp_rw [← types_comp, ← F.map_comp, hφ]
+(Fsur φ).injective_comp_right $ by simp_rw [← types_comp, ← F.map_comp, hφ]
+
+lemma to_preimages_nonempty_of_surjective [hFn : ∀ (j : J), nonempty (F.obj j)]
+  (Fsur : ∀ ⦃i j : J⦄ (f : i ⟶ j), (F.map f).surjective)
+  (hs : s.nonempty) (j) : nonempty ((F.to_preimages s).obj j) :=
+begin
+  simp only [to_preimages_obj, nonempty_coe_sort, nonempty_Inter, mem_preimage],
+  obtain (h|⟨⟨ji⟩⟩) := is_empty_or_nonempty (j ⟶ i),
+  { exact ⟨(hFn j).some, λ ji, h.elim ji⟩, },
+  { obtain ⟨y, ys⟩ := hs,
+    obtain ⟨x, rfl⟩ := Fsur ji y,
+    exact ⟨x, λ ji', (F.thin_diagram_of_surjective Fsur ji' ji).symm ▸ ys⟩, },
+end
+
+lemma eval_section_injective_of_eventually_injective
+  {j} (Finj : ∀ i (f : i ⟶ j), (F.map f).injective) (i) (f : i ⟶ j) :
+  (λ s : F.sections, s.val j).injective :=
+begin
+  refine λ s₀ s₁ h, subtype.ext $ funext $ λ k, _,
+  obtain ⟨m, mi, mk, _⟩ := cone_objs i k,
+  dsimp at h,
+  rw [←s₀.prop (mi ≫ f), ←s₁.prop (mi ≫ f)] at h,
+  rw [←s₀.prop mk, ←s₁.prop mk],
+  refine congr_arg _ (Finj m (mi ≫ f) h),
+end
+
+section finite_cofiltered_system
+
+variables [∀ (j : J), nonempty (F.obj j)] [∀ (j : J), finite (F.obj j)]
+  (Fsur : ∀ ⦃i j : J⦄ (f :i ⟶ j), (F.map f).surjective)
+
+include Fsur
+lemma eval_section_surjective_of_surjective (i : J) :
+  (λ s : F.sections, s.val i).surjective := λ x,
+begin
+  let s : set (F.obj i) := {x},
+  haveI := F.to_preimages_nonempty_of_surjective s Fsur (singleton_nonempty x),
+  obtain ⟨sec, h⟩ := nonempty_sections_of_finite_cofiltered_system (F.to_preimages s),
+  refine ⟨⟨λ j, (sec j).val, λ j k jk, by simpa [subtype.ext_iff] using h jk⟩, _⟩,
+  { have := (sec i).prop,
+    simp only [mem_Inter, mem_preimage, mem_singleton_iff] at this,
+    replace this := this (𝟙 i), rwa [map_id_apply] at this, },
+end
+
+lemma eventually_injective [nonempty J] [finite F.sections] :
+  ∃ j, ∀ i (f : i ⟶ j), (F.map f).injective :=
+begin
+  haveI : ∀ j, fintype (F.obj j) := λ j, fintype.of_finite (F.obj j),
+  haveI : fintype F.sections := fintype.of_finite F.sections,
+  have card_le : ∀ j, fintype.card (F.obj j) ≤ fintype.card F.sections :=
+    λ j, fintype.card_le_of_surjective _ (F.eval_section_surjective_of_surjective Fsur j),
+  let fn := λ j, fintype.card F.sections - fintype.card (F.obj j),
+  refine ⟨fn.argmin nat.well_founded_lt.wf, λ i f, ((fintype.bijective_iff_surjective_and_card _).2
+    ⟨Fsur f, le_antisymm _ (fintype.card_le_of_surjective _ $ Fsur f)⟩).1⟩,
+  rw [← nat.sub_sub_self (card_le i), tsub_le_iff_tsub_le],
+  apply fn.argmin_le,
+end
+
+end finite_cofiltered_system
 
 end functor
 end category_theory

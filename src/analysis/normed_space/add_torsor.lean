@@ -5,7 +5,7 @@ Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import analysis.normed.group.add_torsor
-import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.midpoint_zero
 import linear_algebra.affine_space.affine_subspace
 import topology.instances.real_vector_space
 

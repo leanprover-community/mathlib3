@@ -12,6 +12,9 @@ import category_theory.category.ulift
 /-!
 # Filtered categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category is filtered if every finite diagram admits a cocone.
 We give a simple characterisation of this condition as
 1. for every pair of objects there exists another object "to the right",

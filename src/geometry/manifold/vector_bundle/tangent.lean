@@ -123,17 +123,7 @@ def tangent_bundle := bundle.total_space (tangent_space I : M → Type*)
 
 local notation `TM` := tangent_bundle I M
 
--- /-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
--- bundle is represented internally as a sigma type, the notation `p.1` also works for the projection
--- of the point `p`. -/
--- def tangent_bundle.proj : TM → M :=
--- λ p, p.1
-
 variable {M}
-
--- @[simp, mfld_simps] lemma tangent_bundle.proj_apply (x : M) (v : tangent_space I x) :
---   tangent_bundle.proj I M ⟨x, v⟩ = x :=
--- rfl
 
 section tangent_bundle_instances
 
@@ -194,14 +184,6 @@ instance tangent_bundle.smooth_vector_bundle :
 end tangent_bundle_instances
 
 variable (M)
-
--- /-- The tangent bundle projection on the basis is a continuous map. -/
--- lemma tangent_bundle_proj_continuous : continuous (tangent_bundle.proj I M) :=
--- continuous_proj E (tangent_space I : M → Type*)
-
--- /-- The tangent bundle projection on the basis is an open map. -/
--- lemma tangent_bundle_proj_open : is_open_map (tangent_bundle.proj I M) :=
--- is_open_map_proj E (tangent_space I : M → Type*)
 
 /-- In the tangent bundle to the model space, the charts are just the canonical identification
 between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/

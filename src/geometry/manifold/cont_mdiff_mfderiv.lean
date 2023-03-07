@@ -20,7 +20,7 @@ and related notions.
 -/
 
 open set function filter charted_space smooth_manifold_with_corners
-open_locale topology manifold
+open_locale topology manifold bundle
 
 noncomputable theory
 
@@ -47,6 +47,71 @@ end
 
 end continuous_linear_map
 
+
+section fiber_bundle
+open bundle (total_space total_space.proj) trivialization
+
+variables {F B X : Type*} {E : B → Type*} [topological_space B] [topological_space F]
+  [topological_space (total_space E)] [Π b, topological_space (E b)] [fiber_bundle F E]
+  [topological_space X]
+
+@[simp, mfld_simps]
+lemma mem_trivialization_at_proj_source {x : total_space E} :
+  x ∈ (trivialization_at F E x.proj).source :=
+(trivialization.mem_source _).mpr $ mem_base_set_trivialization_at F E x.proj
+
+@[simp, mfld_simps]
+lemma trivialization_at_proj_fst {x : total_space E} :
+  ((trivialization_at F E x.proj) x).1 = x.proj :=
+coe_fst' _ $ mem_base_set_trivialization_at F E x.proj
+
+variable (F)
+/-- Characterization of continuous functions into a fiber bundle. -/
+lemma continuous_within_at_total_space (f : X → total_space E) {s : set X} {x₀ : X} :
+  continuous_within_at f s x₀ ↔
+  continuous_within_at (λ x, (f x).proj) s x₀ ∧
+  continuous_within_at (λ x, ((trivialization_at F E (f x₀).proj) (f x)).2) s x₀ :=
+begin
+  refine (and_iff_right_iff_imp.2 $ λ hf, _).symm.trans (and_congr_right $ λ hf, _),
+  { refine (continuous_proj F E).continuous_within_at.comp hf (maps_to_image f s) },
+  have h1 : (λ x, (f x).proj) ⁻¹' (trivialization_at F E (f x₀).proj).base_set ∈ 𝓝[s] x₀ :=
+    hf.preimage_mem_nhds_within ((open_base_set _).mem_nhds (mem_base_set_trivialization_at F E _)),
+  have h2 : continuous_within_at (λ x, (trivialization_at F E (f x₀).proj (f x)).1) s x₀,
+  { refine hf.congr_of_eventually_eq (eventually_of_mem h1 $ λ x hx, _) trivialization_at_proj_fst,
+    rw [coe_fst'],
+    exact hx },
+  rw [(trivialization_at F E (f x₀).proj).continuous_within_at_iff_continuous_within_at_comp_left],
+  { simp_rw [continuous_within_at_prod_iff, function.comp, trivialization.coe_coe, h2, true_and] },
+  { apply mem_trivialization_at_proj_source },
+  { rwa [source_eq, preimage_preimage] }
+end
+
+/-- Characterization of continuous functions into a fiber bundle. -/
+lemma continuous_at_total_space (f : X → total_space E) {x₀ : X} :
+  continuous_at f x₀ ↔ continuous_at (λ x, (f x).proj) x₀ ∧
+  continuous_at (λ x, ((trivialization_at F E (f x₀).proj) (f x)).2) x₀ :=
+by { simp_rw [← continuous_within_at_univ], exact continuous_within_at_total_space F f }
+
+end fiber_bundle
+
+namespace local_homeomorph
+
+variables {𝕜 E M H E' M' H' : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]
+  (f f' : local_homeomorph M H) (I : model_with_corners 𝕜 E H)
+  [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H'] [topological_space M']
+  (I' : model_with_corners 𝕜 E' H')
+  (x : M) {s t : set M}
+  [charted_space H M] [charted_space H' M']
+
+lemma ext_chart_at_prod_apply (x y : M × M') :
+  ext_chart_at (I.prod I') x y = (ext_chart_at I x.1 y.1, ext_chart_at I' x.2 y.2) :=
+by simp only with mfld_simps
+
+
+end local_homeomorph
+
+
 /-! ### Definition of smooth functions between manifolds -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
@@ -66,8 +131,37 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
+-- declare some additional normed spaces, used for fibers of vector bundles
+{F₁ : Type*} [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
+{F₂ : Type*} [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
 -- declare functions, sets, points and smoothness indices
 {f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : ℕ∞}
+
+-- move to cont_mdiff
+lemma cont_mdiff_within_at.fst {f : N → M × M'} {s : set N} {x : N}
+  (hf : cont_mdiff_within_at J (I.prod I') n f s x) :
+  cont_mdiff_within_at J I n (λ x, (f x).1) s x :=
+cont_mdiff_within_at_fst.comp x hf (maps_to_image f s)
+
+lemma cont_mdiff_within_at.snd {f : N → M × M'} {s : set N} {x : N}
+  (hf : cont_mdiff_within_at J (I.prod I') n f s x) :
+  cont_mdiff_within_at J I' n (λ x, (f x).2) s x :=
+cont_mdiff_within_at_snd.comp x hf (maps_to_image f s)
+
+lemma cont_mdiff_within_at_prod_iff (f : M → M' × N') {s : set M} {x : M} :
+  cont_mdiff_within_at I (I'.prod J') n f s x ↔
+  cont_mdiff_within_at I I' n (prod.fst ∘ f) s x ∧
+  cont_mdiff_within_at I J' n (prod.snd ∘ f) s x :=
+by { refine ⟨λ h, ⟨h.fst, h.snd⟩, λ h, _⟩, simpa only [prod.mk.eta] using h.1.prod_mk h.2 }
+
+lemma cont_mdiff_at_prod_iff (f : M → M' × N') {x : M} :
+  cont_mdiff_at I (I'.prod J') n f x ↔
+  cont_mdiff_at I I' n (prod.fst ∘ f) x ∧ cont_mdiff_at I J' n (prod.snd ∘ f) x :=
+by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_prod_iff f }
+
+lemma cont_mdiff_at_congr (h : f₁ =ᶠ[𝓝 x] f) :
+  cont_mdiff_at I I' n f₁ x ↔ cont_mdiff_at I I' n f x :=
+(cont_diff_within_at_local_invariant_prop I I' n).lift_prop_at_congr_iff_of_eventually_eq h
 
 /-! ### Deducing differentiability from smoothness -/
 
@@ -116,6 +210,121 @@ lemma smooth.mdifferentiable_within_at (hf : smooth I I' f) :
   mdifferentiable_within_at I I' f s x :=
 hf.mdifferentiable_at.mdifferentiable_within_at
 
+
+/-! ### Smoothness of the projection in a basic smooth bundle -/
+
+namespace vector_bundle_core
+
+-- cont_mdiff_at_iff_target doesn't hold anymore!?
+
+-- /-- A version of `cont_mdiff_at_iff_target` when the codomain is the total space of
+--   a smooth vector bundle. The continuity condition in the RHS is weaker. -/
+-- lemma cont_mdiff_at_iff_target {ι} (Z : vector_bundle_core 𝕜 M E' ι) {f : N → Z.total_space}
+--   {x : N} {n : ℕ∞} :
+--   cont_mdiff_at J (I.prod 𝓘(𝕜, E')) n f x ↔ continuous_at (bundle.total_space.proj ∘ f) x ∧
+--     cont_mdiff_at J 𝓘(𝕜, E × E') n (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
+-- begin
+--   rw [cont_mdiff_at_iff_target, and.congr_left_iff],
+--   refine λ hf, ⟨λ h, Z.continuous_proj.continuous_at.comp h, λ h, _⟩,
+--   exact (Z.local_triv (achart _ (f x).1))
+--     .continuous_at_of_comp_left h (mem_chart_source _ _) (h.prod hf.continuous_at.snd),
+--   refine Z.local_triv .continuous_at_of_comp_left h
+--     (mem_base_set_trivialization_at E' Z _) _,
+--   suffices : continuous_at (λ x, ((f x).1, (trivialization_at E' Z (f x).proj (f x)).2)) x,
+--   { refine this.congr sorry, },
+--   refine h.prod _, sorry,
+-- end
+
+
+end vector_bundle_core
+
+namespace bundle -- move to vector_bundle.basic
+
+variables
+  {Z : M → Type*} [topological_space (total_space Z)] [∀ b, topological_space (Z b)]
+  [∀ b, add_comm_monoid (Z b)] [∀ b, module 𝕜 (Z b)]
+  [fiber_bundle F₁ Z] [vector_bundle 𝕜 F₁ Z] [smooth_vector_bundle F₁ Z I]
+
+/-- Characterization of C^n functions into a smooth vector bundle. -/
+lemma cont_mdiff_within_at_total_space (f : N → total_space Z) {s : set N} {x₀ : N} :
+  cont_mdiff_within_at J (I.prod (𝓘(𝕜, F₁))) n f s x₀ ↔
+  cont_mdiff_within_at J I n (λ x, (f x).proj) s x₀ ∧
+  cont_mdiff_within_at J 𝓘(𝕜, F₁) n (λ x, (trivialization_at F₁ Z (f x₀).proj (f x)).2) s x₀ :=
+begin
+  simp only [cont_mdiff_within_at_iff_target] {single_pass := tt},
+  rw [and_and_and_comm, ← continuous_within_at_total_space, and.congr_right_iff],
+  intros hf,
+  simp_rw [model_with_corners_self_prod, fiber_bundle.ext_chart_at, function.comp,
+    local_equiv.trans_apply, local_equiv.prod_coe, local_equiv.refl_coe,
+    ext_chart_at_self_apply, model_with_corners_self_coe, id_def],
+  refine (cont_mdiff_within_at_prod_iff _).trans _, -- rw doesn't do this?
+  have h1 : (λ x, (f x).proj) ⁻¹' (trivialization_at F₁ Z (f x₀).proj).base_set ∈ 𝓝[s] x₀ :=
+    ((continuous_proj F₁ Z).continuous_within_at.comp hf (maps_to_image f s))
+      .preimage_mem_nhds_within
+      ((trivialization.open_base_set _).mem_nhds (mem_base_set_trivialization_at F₁ Z _)),
+  refine and_congr (eventually_eq.cont_mdiff_within_at_iff (eventually_of_mem h1 $ λ x hx, _) _)
+    iff.rfl,
+  { simp_rw [function.comp, local_homeomorph.coe_coe, trivialization.coe_coe],
+    rw [trivialization.coe_fst'],
+    exact hx },
+  { simp only with mfld_simps },
+end
+
+/-- Characterization of C^n functions into a smooth vector bundle. -/
+lemma cont_mdiff_at_total_space (f : N → total_space Z) (x₀ : N) :
+  cont_mdiff_at J (I.prod (𝓘(𝕜, F₁))) n f x₀ ↔
+  cont_mdiff_at J I n (λ x, (f x).proj) x₀ ∧
+  cont_mdiff_at J 𝓘(𝕜, F₁) n (λ x, (trivialization_at F₁ Z (f x₀).proj (f x)).2) x₀ :=
+by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_total_space f }
+
+variables (Z)
+lemma cont_mdiff_proj : cont_mdiff (I.prod 𝓘(𝕜, F₁)) I n (π Z) :=
+begin
+  intro x,
+  rw [cont_mdiff_at, cont_mdiff_within_at_iff'],
+  refine ⟨(continuous_proj F₁ Z).continuous_within_at, _⟩,
+  simp_rw [(∘), fiber_bundle.ext_chart_at],
+  apply cont_diff_within_at_fst.congr,
+  { rintros ⟨a, b⟩ hab,
+    simp only with mfld_simps at hab,
+    have : ((chart_at H x.1).symm (I.symm a), b) ∈ (trivialization_at F₁ Z x.fst).target,
+    { simp only [hab] with mfld_simps },
+    simp only [trivialization.proj_symm_apply _ this, hab] with mfld_simps },
+  { simp only with mfld_simps }
+end
+
+lemma smooth_proj : smooth (I.prod 𝓘(𝕜, F₁)) I (π Z) :=
+cont_mdiff_proj Z
+
+lemma cont_mdiff_on_proj {s : set (total_space Z)} :
+  cont_mdiff_on (I.prod 𝓘(𝕜, F₁)) I n (π Z) s :=
+(bundle.cont_mdiff_proj Z).cont_mdiff_on
+
+lemma smooth_on_proj {s : set (total_space Z)} :
+  smooth_on (I.prod 𝓘(𝕜, F₁)) I (π Z) s :=
+cont_mdiff_on_proj Z
+
+lemma cont_mdiff_at_proj {p : total_space Z} :
+  cont_mdiff_at (I.prod 𝓘(𝕜, F₁)) I n
+    (π Z) p :=
+(bundle.cont_mdiff_proj Z).cont_mdiff_at
+
+lemma smooth_at_proj {p : total_space Z} :
+  smooth_at (I.prod 𝓘(𝕜, F₁)) I (π Z) p :=
+bundle.cont_mdiff_at_proj Z
+
+lemma cont_mdiff_within_at_proj
+  {s : set (total_space Z)}
+  {p : total_space Z} :
+  cont_mdiff_within_at (I.prod 𝓘(𝕜, F₁)) I n (π Z) s p :=
+(bundle.cont_mdiff_at_proj Z).cont_mdiff_within_at
+
+lemma smooth_within_at_proj
+  {s : set (total_space Z)}
+  {p : total_space Z} :
+  smooth_within_at (I.prod 𝓘(𝕜, F₁)) I (π Z) s p :=
+bundle.cont_mdiff_within_at_proj Z
+
 section mfderiv
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
@@ -123,34 +332,11 @@ variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M'
 
 /-! ### Computations with `mfderiv` -/
 
-/-- For a function `f` from a manifold `M` to a normed space `E'`, the `mfderiv` of `-f` is the
-negation of the `mfderiv` of `f` (abusing the identification of the tangent spaces to `E'` at `f x`
-and `- f x` with `E'`). -/
-lemma mfderiv_neg (f : M → E') (x : M) :
-  (mfderiv I 𝓘(𝕜, E') (-f) x : tangent_space I x →L[𝕜] E') =
-  (- mfderiv I 𝓘(𝕜, E') f x : tangent_space I x →L[𝕜] E') :=
-begin
-  classical,
-  simp only [mfderiv, dite_eq_ite] with mfld_simps,
-  by_cases hf : mdifferentiable_at I 𝓘(𝕜, E') f x,
-  { have hf_neg : mdifferentiable_at I 𝓘(𝕜, E') (-f) x :=
-      ((cont_diff_neg.cont_mdiff _).mdifferentiable_at (le_refl _)).comp _ hf,
-    rw [if_pos hf, if_pos hf_neg],
-    apply fderiv_within_neg (I.unique_diff _ (set.mem_range_self _)) },
-  { have hf_neg : ¬ mdifferentiable_at I 𝓘(𝕜, E') (-f) x,
-    { intros h,
-      apply hf,
-      convert ((cont_diff_neg.cont_mdiff _).mdifferentiable_at (le_refl _)).comp _ h,
-      ext,
-      simp only [comp_app, pi.neg_apply, neg_neg] },
-    rw [if_neg hf, if_neg hf_neg, neg_zero] },
-end
-
 /-- The derivative of the projection `M × M' → M` is the projection `TM × TM' → TM` -/
 lemma mfderiv_fst (x : M × M') :
   mfderiv (I.prod I') I prod.fst x = continuous_linear_map.fst 𝕜 E E' :=
 begin
-  simp_rw [mfderiv, dif_pos smooth_at_fst.mdifferentiable_at, written_in_ext_chart_at,
+  simp_rw [mfderiv, if_pos smooth_at_fst.mdifferentiable_at, written_in_ext_chart_at,
     ext_chart_at_prod, function.comp, local_equiv.prod_coe, local_equiv.prod_coe_symm],
   have : unique_diff_within_at 𝕜 (range (I.prod I')) (ext_chart_at (I.prod I') x x) :=
   (I.prod I').unique_diff _ (mem_range_self _),
@@ -169,7 +355,7 @@ end
 lemma mfderiv_snd (x : M × M') :
   mfderiv (I.prod I') I' prod.snd x = continuous_linear_map.snd 𝕜 E E' :=
 begin
-  simp_rw [mfderiv, dif_pos smooth_at_snd.mdifferentiable_at, written_in_ext_chart_at,
+  simp_rw [mfderiv, if_pos smooth_at_snd.mdifferentiable_at, written_in_ext_chart_at,
     ext_chart_at_prod, function.comp, local_equiv.prod_coe, local_equiv.prod_coe_symm],
   have : unique_diff_within_at 𝕜 (range (I.prod I')) (ext_chart_at (I.prod I') x x) :=
   (I.prod I').unique_diff _ (mem_range_self _),
@@ -206,26 +392,20 @@ end
 
 open bundle
 variables
-  {Z : M → Type*} [topological_space (total_space Z)] [∀ b, topological_space (Z b)]
-  [∀ b, add_comm_monoid (Z b)] [∀ b, module 𝕜 (Z b)]
-  [fiber_bundle F Z] [vector_bundle 𝕜 F Z] [smooth_vector_bundle F Z I]
-  {Z' : M' → Type*} [topological_space (total_space Z')] [∀ b, topological_space (Z' b)]
-  [∀ b, add_comm_monoid (Z' b)] [∀ b, module 𝕜 (Z' b)]
-  [fiber_bundle F' Z'] [vector_bundle 𝕜 F' Z'] [smooth_vector_bundle F' Z' I']
+  {Z₂ : M' → Type*} [topological_space (total_space Z₂)] [∀ b, topological_space (Z₂ b)]
+  [∀ b, add_comm_monoid (Z₂ b)] [∀ b, module 𝕜 (Z₂ b)]
+  [fiber_bundle F₂ Z₂] [vector_bundle 𝕜 F₂ Z₂] [smooth_vector_bundle F₂ Z₂ I']
 
-variables (I I' Z Z' F F')
+variables (I I' Z Z₂ F₁ F₂)
 
 /-- When `ϕ` is a continuous linear map that changes vectors in charts around `x` to vectors
-  in charts around `y`, `in_coordinates' Z Z' x₀ x y₀ y ϕ` is a coordinate change of this continuous
+  in charts around `y`, `in_coordinates' Z Z₂ x₀ x y₀ y ϕ` is a coordinate change of this continuous
   linear map that makes sense from charts around `x₀` to charts around `y₀`
-  by composing it with appropriate coordinate changes given by smooth vector bundles `Z` and `Z'`.
-  -/
-def in_coordinates' (x₀ x : M) (y₀ y : M') (ϕ : F →L[𝕜] F') : F →L[𝕜] F' :=
--- double check definition!
-((trivialization_at F' Z' y).coord_changeL 𝕜 (trivialization_at F' Z' y₀) y : F' →L[𝕜] F') ∘L ϕ ∘L
-((trivialization_at F Z x₀).coord_changeL 𝕜 (trivialization_at F Z x) x : F →L[𝕜] F)
--- Z'.coord_change (achart H' y) (achart H' y₀) (chart_at H' y y) ∘L ϕ ∘L
---   Z.coord_change (achart H x₀) (achart H x) (chart_at H x₀ x)
+  by composing it with appropriate coordinate changes given by smooth vector bundles `Z` and `Z₂`.
+-/
+def in_coordinates' (x₀ x : M) (y₀ y : M') (ϕ : F₁ →L[𝕜] F₂) : F₁ →L[𝕜] F₂ :=
+((trivialization_at F₂ Z₂ y).coord_changeL 𝕜 (trivialization_at F₂ Z₂ y₀) y : F₂ →L[𝕜] F₂) ∘L ϕ ∘L
+((trivialization_at F₁ Z x₀).coord_changeL 𝕜 (trivialization_at F₁ Z x) x : F₁ →L[𝕜] F₁)
 
 /-- When `ϕ x` is a continuous linear map that changes vectors in charts around `f x` to vectors
   in charts around `g x`, `in_coordinates I I' f g ϕ x₀ x` is a coordinate change of this continuous
@@ -233,17 +413,23 @@ def in_coordinates' (x₀ x : M) (y₀ y : M') (ϕ : F →L[𝕜] F') : F →L[�
   by composing it with appropriate coordinate changes. -/
 noncomputable def in_coordinates (f : N → M) (g : N → M') (ϕ : N → E →L[𝕜] E') :
   N → N → E →L[𝕜] E' :=
-λ x₀ x, in_coordinates' E E' (tangent_space I) (tangent_space I')
-  (f x₀) (f x) (g x₀) (g x) (ϕ x)
+λ x₀ x, in_coordinates' E E' (tangent_space I) (tangent_space I') (f x₀) (f x) (g x₀) (g x) (ϕ x)
 
-
-lemma in_coordinates'_tangent_bundle_core_model_space
-  (x₀ x : H) (y₀ y : H') (ϕ : E →L[𝕜] E') : in_coordinates' E E' (tangent_space I) (tangent_space I')
-    x₀ x y₀ y ϕ = ϕ :=
-by sorry -- simp_rw [in_coordinates', tangent_bundle_core_coord_change_model_space,
-  --continuous_linear_map.id_comp, continuous_linear_map.comp_id]
+-- /-- The map `in_coordinates'` is trivial if `M'` is the -/
+-- lemma in_coordinates'_tangent_bundle_core_model_space
+--   (x₀ x : H) (y₀ y : H') (ϕ : E →L[𝕜] E') :
+--     in_coordinates' E E' (tangent_space I) (tangent_space I') x₀ x y₀ y ϕ = ϕ :=
+-- by simp_rw [in_coordinates', tangent_bundle_core_coord_change_achart,
+--   continuous_linear_map.id_comp, continuous_linear_map.comp_id]
 
 variables {I I'}
+
+lemma cont_mdiff_within_at.mfderiv {s : set N} {x : N} (f : N → M → M') (g : N → M)
+  (hf : cont_mdiff_within_at (J.prod I) I' n (function.uncurry f) (s ×ˢ univ) (x, g x))
+  (hg : cont_mdiff_within_at J I m g s x) (hmn : m + 1 ≤ n) :
+  cont_mdiff_within_at J 𝓘(𝕜, E →L[𝕜] E') m
+    (in_coordinates I I' g (λ x, f x (g x)) (λ x', mfderiv I I' (f x') (g x')) x) s x :=
+sorry
 
 /-- The appropriate (more general) formulation of `cont_mdiff_at.mfderiv''`. -/
 lemma cont_mdiff_at.mfderiv''' {x : N} (f : N → M → M') (g : N → M)
@@ -360,8 +546,15 @@ is `C^m` when `m+1 ≤ n`. -/
 theorem cont_mdiff_on.cont_mdiff_on_tangent_map_within
   (hf : cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
   cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s)
-  ((tangent_bundle.proj I M) ⁻¹' s) :=
+  (π (tangent_space I) ⁻¹' s) :=
 begin
+  intros x hx,
+  have hm' : m ≤ n := (self_le_add_right m 1).trans hmn,
+  rw [cont_mdiff_within_at_total_space],
+  refine ⟨(hf.of_le hm' x.proj hx).comp _ (cont_mdiff_proj (tangent_space I)).cont_mdiff_at
+    .cont_mdiff_within_at (maps_to_preimage _ s), _⟩,
+  simp only with mfld_simps,
+  simp only [tangent_map_within],
   sorry
 end
 
@@ -369,13 +562,8 @@ end
 derivative is continuous there. -/
 theorem cont_mdiff_on.continuous_on_tangent_map_within
   (hf : cont_mdiff_on I I' n f s) (hmn : 1 ≤ n) (hs : unique_mdiff_on I s) :
-  continuous_on (tangent_map_within I I' f s) ((tangent_bundle.proj I M) ⁻¹' s) :=
-begin
-  have : cont_mdiff_on I.tangent I'.tangent 0 (tangent_map_within I I' f s)
-         ((tangent_bundle.proj I M) ⁻¹' s) :=
-    hf.cont_mdiff_on_tangent_map_within hmn hs,
-  exact this.continuous_on
-end
+  continuous_on (tangent_map_within I I' f s) (π (tangent_space I) ⁻¹' s) :=
+(hf.cont_mdiff_on_tangent_map_within (show 0 + 1 ≤ n, from hmn) hs).continuous_on
 
 /-- If a function is `C^n`, then its bundled derivative is `C^m` when `m+1 ≤ n`. -/
 theorem cont_mdiff.cont_mdiff_tangent_map
@@ -400,116 +588,39 @@ end
 
 end tangent_map
 
-/-! ### Smoothness of the projection in a basic smooth bundle -/
-
-namespace bundle
-
-variables
-  (Z : M → Type*) [topological_space (total_space Z)] [∀ b, topological_space (Z b)]
-  [∀ b, add_comm_monoid (Z b)] [∀ b, module 𝕜 (Z b)]
-  [fiber_bundle E' Z] [vector_bundle 𝕜 E' Z] [smooth_vector_bundle E' Z I]
-
-/-- A version of `cont_mdiff_at_iff_target` when the codomain is the total space of
-  a `basic_smooth_vector_bundle_core`. The continuity condition in the RHS is weaker. -/
-lemma cont_mdiff_at_iff_target {f : N → total_space Z}
-  {x : N} {n : ℕ∞} :
-  cont_mdiff_at J (I.prod 𝓘(𝕜, E')) n f x ↔ continuous_at (bundle.total_space.proj ∘ f) x ∧
-    cont_mdiff_at J 𝓘(𝕜, E × E') n (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
-begin
-  rw [cont_mdiff_at_iff_target, and.congr_left_iff],
-  refine λ hf, ⟨λ h, (continuous_proj E' Z).continuous_at.comp h, λ h, _⟩,
-  refine (trivialization_at E' Z _).continuous_at_of_comp_left h
-    (mem_base_set_trivialization_at E' Z _) _,
-  suffices : continuous_at (λ x, ((f x).1, (trivialization_at E' Z (f x).proj (f x)).2)) x,
-  { refine this.congr sorry, },
-  refine h.prod _, sorry,
-end
-
-lemma smooth_iff_target {f : N → total_space Z} :
-  smooth J (I.prod 𝓘(𝕜, E')) f ↔ continuous (bundle.total_space.proj ∘ f) ∧
-  ∀ x, smooth_at J 𝓘(𝕜, E × E') (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
-by simp_rw [smooth, smooth_at, cont_mdiff, bundle.cont_mdiff_at_iff_target Z, forall_and_distrib,
-  continuous_iff_continuous_at]
-
-lemma cont_mdiff_proj :
-  cont_mdiff (I.prod 𝓘(𝕜, E')) I n (@total_space.proj M Z) :=
-begin
-  assume x,
-  rw [cont_mdiff_at, cont_mdiff_within_at_iff'],
-  refine ⟨(continuous_proj E' Z).continuous_within_at, _⟩,
-  simp only [(∘), fiber_bundle.charted_space_chart_at] with mfld_simps,
-  apply cont_diff_within_at_fst.congr,
-  { rintros ⟨a, b⟩ hab,
-    simp only with mfld_simps at hab,
-    simp only [hab] with mfld_simps },
-  { simp only with mfld_simps }
-end
-
-lemma smooth_proj : smooth (I.prod 𝓘(𝕜, E')) I (@total_space.proj M Z) :=
-cont_mdiff_proj Z
-
-lemma cont_mdiff_on_proj {s : set (total_space Z)} :
-  cont_mdiff_on (I.prod 𝓘(𝕜, E')) I n (@total_space.proj M Z) s :=
-(bundle.cont_mdiff_proj Z).cont_mdiff_on
-
-lemma smooth_on_proj {s : set (total_space Z)} :
-  smooth_on (I.prod 𝓘(𝕜, E')) I (@total_space.proj M Z) s :=
-cont_mdiff_on_proj Z
-
-lemma cont_mdiff_at_proj {p : total_space Z} :
-  cont_mdiff_at (I.prod 𝓘(𝕜, E')) I n
-    (@total_space.proj M Z) p :=
-(bundle.cont_mdiff_proj Z).cont_mdiff_at
-
-lemma smooth_at_proj {p : total_space Z} :
-  smooth_at (I.prod 𝓘(𝕜, E')) I (@total_space.proj M Z) p :=
-bundle.cont_mdiff_at_proj Z
-
-lemma cont_mdiff_within_at_proj
-  {s : set (total_space Z)}
-  {p : total_space Z} :
-  cont_mdiff_within_at (I.prod 𝓘(𝕜, E')) I n
-    (@total_space.proj M Z) s p :=
-(bundle.cont_mdiff_at_proj Z).cont_mdiff_within_at
-
-lemma smooth_within_at_proj
-  {s : set (total_space Z)}
-  {p : total_space Z} :
-  smooth_within_at (I.prod 𝓘(𝕜, E')) I
-    (@total_space.proj M Z) s p :=
-bundle.cont_mdiff_within_at_proj Z
-
-/-- If an element of `E'` is invariant under all coordinate changes, then one can define a
-corresponding section of the fiber bundle, which is smooth. This applies in particular to the
-zero section of a vector bundle. Another example (not yet defined) would be the identity
-section of the endomorphism bundle of a vector bundle. -/
-lemma smooth_const_section (v : E')
-  (h : ∀ (i j : atlas H M), ∀ x ∈ i.1.source ∩ j.1.source, Z.coord_change i j (i.1 x) v = v) :
-  smooth I (I.prod 𝓘(𝕜, E'))
-    (show M → total_space Z, from λ x, ⟨x, v⟩) :=
-begin
-  assume x,
-  rw [cont_mdiff_at, cont_mdiff_within_at_iff'],
-  split,
-  { apply continuous.continuous_within_at,
-    apply fiber_bundle_core.continuous_const_section,
-    assume i j y hy,
-    exact h _ _ _ hy },
-  { have : cont_diff 𝕜 ⊤ (λ (y : E), (y, v)) := cont_diff_id.prod cont_diff_const,
-    apply this.cont_diff_within_at.congr,
-    { assume y hy,
-      simp only with mfld_simps at hy,
-      simp only [chart, hy, chart_at, prod.mk.inj_iff, to_vector_bundle_core]
-        with mfld_simps,
-      apply h,
-      simp only [hy, subtype.val_eq_coe] with mfld_simps },
-    { simp only [chart, chart_at, prod.mk.inj_iff, to_vector_bundle_core]
-        with mfld_simps,
-      apply h,
-      simp only [subtype.val_eq_coe] with mfld_simps } }
-end
+-- don't port
+-- /-- If an element of `E'` is invariant under all coordinate changes, then one can define a
+-- corresponding section of the fiber bundle, which is smooth. This applies in particular to the
+-- zero section of a vector bundle. Another example (not yet defined) would be the identity
+-- section of the endomorphism bundle of a vector bundle. -/
+-- lemma smooth_const_section {ι} (Z : vector_bundle_core 𝕜 M F ι) (v : E')
+--   (h : ∀ (i j : atlas H M), ∀ x ∈ i.1.source ∩ j.1.source, Z.coord_change i j (i.1 x) v = v) :
+--   smooth I (I.prod 𝓘(𝕜, E'))
+--     (show M → total_space Z, from λ x, ⟨x, v⟩) :=
+-- begin
+--   assume x,
+--   rw [cont_mdiff_at, cont_mdiff_within_at_iff'],
+--   split,
+--   { apply continuous.continuous_within_at,
+--     apply fiber_bundle_core.continuous_const_section,
+--     assume i j y hy,
+--     exact h _ _ _ hy },
+--   { have : cont_diff 𝕜 ⊤ (λ (y : E), (y, v)) := cont_diff_id.prod cont_diff_const,
+--     apply this.cont_diff_within_at.congr,
+--     { assume y hy,
+--       simp only with mfld_simps at hy,
+--       simp only [chart, hy, chart_at, prod.mk.inj_iff, to_vector_bundle_core]
+--         with mfld_simps,
+--       apply h,
+--       simp only [hy, subtype.val_eq_coe] with mfld_simps },
+--     { simp only [chart, chart_at, prod.mk.inj_iff, to_vector_bundle_core]
+--         with mfld_simps,
+--       apply h,
+--       simp only [subtype.val_eq_coe] with mfld_simps } }
+-- end
 
 end bundle
+open bundle
 
 /-! ### Smoothness of the tangent bundle projection -/
 
@@ -517,53 +628,56 @@ namespace tangent_bundle
 
 include Is
 
-lemma cont_mdiff_proj :
-  cont_mdiff I.tangent I n (proj I M) :=
-bundle.cont_mdiff_proj _
+-- lemma cont_mdiff_proj :
+--   cont_mdiff I.tangent I n (proj I M) :=
+-- bundle.cont_mdiff_proj _
 
-lemma smooth_proj : smooth I.tangent I (proj I M) :=
-bundle.smooth_proj _
+-- lemma smooth_proj : smooth I.tangent I (proj I M) :=
+-- bundle.smooth_proj _
 
-lemma cont_mdiff_on_proj {s : set (tangent_bundle I M)} :
-  cont_mdiff_on I.tangent I n (proj I M) s :=
-bundle.cont_mdiff_on_proj _
+-- lemma cont_mdiff_on_proj {s : set (tangent_bundle I M)} :
+--   cont_mdiff_on I.tangent I n (proj I M) s :=
+-- bundle.cont_mdiff_on_proj _
 
-lemma smooth_on_proj {s : set (tangent_bundle I M)} :
-  smooth_on I.tangent I (proj I M) s :=
-bundle.smooth_on_proj _
+-- lemma smooth_on_proj {s : set (tangent_bundle I M)} :
+--   smooth_on I.tangent I (proj I M) s :=
+-- bundle.smooth_on_proj _
 
-lemma cont_mdiff_at_proj {p : tangent_bundle I M} :
-  cont_mdiff_at I.tangent I n
-    (proj I M) p :=
-bundle.cont_mdiff_at_proj _
+-- lemma cont_mdiff_at_proj {p : tangent_bundle I M} :
+--   cont_mdiff_at I.tangent I n
+--     (proj I M) p :=
+-- bundle.cont_mdiff_at_proj _
 
-lemma smooth_at_proj {p : tangent_bundle I M} :
-  smooth_at I.tangent I (proj I M) p :=
-bundle.smooth_at_proj _
+-- lemma smooth_at_proj {p : tangent_bundle I M} :
+--   smooth_at I.tangent I (proj I M) p :=
+-- bundle.smooth_at_proj _
 
-lemma cont_mdiff_within_at_proj
-  {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
-  cont_mdiff_within_at I.tangent I n
-    (proj I M) s p :=
-bundle.cont_mdiff_within_at_proj _
+-- lemma cont_mdiff_within_at_proj
+--   {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
+--   cont_mdiff_within_at I.tangent I n
+--     (proj I M) s p :=
+-- bundle.cont_mdiff_within_at_proj _
 
-lemma smooth_within_at_proj
-  {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
-  smooth_within_at I.tangent I
-    (proj I M) s p :=
-bundle.smooth_within_at_proj _
+-- lemma smooth_within_at_proj
+--   {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
+--   smooth_within_at I.tangent I
+--     (proj I M) s p :=
+-- bundle.smooth_within_at_proj _
 
 variables (I M)
 /-- The zero section of the tangent bundle -/
 def zero_section : M → tangent_bundle I M := λ x, ⟨x, 0⟩
 variables {I M}
 
+
 lemma smooth_zero_section : smooth I I.tangent (zero_section I M) :=
 begin
-  apply bundle.smooth_const_section (tangent_bundle_core I M) 0,
-  assume i j x hx,
-  simp only [tangent_bundle_core, continuous_linear_map.map_zero, continuous_linear_map.coe_coe]
-    with mfld_simps,
+  intro x,
+  rw [bundle.cont_mdiff_at_total_space],
+  refine ⟨cont_mdiff_at_id, _⟩,
+  sorry,
+  -- simp only [tangent_bundle_core, continuous_linear_map.map_zero, continuous_linear_map.coe_coe]
+  --   with mfld_simps,
 end
 
 open bundle
@@ -607,11 +721,11 @@ begin
   rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
   congr' 2,
   apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps },
+  { simp only [prod.mk.inj_iff] with mfld_simps, sorry },
   { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
     simp only with mfld_simps },
   { simp only with mfld_simps at hy,
-    simp only [hy, prod.mk.inj_iff] with mfld_simps },
+    simp only [hy, prod.mk.inj_iff] with mfld_simps, sorry },
 end
 
 end tangent_bundle

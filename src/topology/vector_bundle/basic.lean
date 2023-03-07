@@ -656,6 +656,12 @@ fiber_bundle_core.continuous_proj Z
 lemma is_open_map_proj : is_open_map Z.proj :=
 fiber_bundle_core.is_open_map_proj Z
 
+@[simp, mfld_simps] lemma trivialization_coord_change_eq {b b₁ b₂ : B}
+  (hb : b ∈ Z.base_set (Z.index_at b₁) ∩ Z.base_set (Z.index_at b₂)) (v : F) :
+  (trivialization_at F Z.fiber b₁).coord_changeL R (trivialization_at F Z.fiber b₂) b v =
+  Z.coord_change (Z.index_at b₁) (Z.index_at b₂) b v :=
+Z.local_triv_coord_change_eq _ _ hb v
+
 end vector_bundle_core
 
 end

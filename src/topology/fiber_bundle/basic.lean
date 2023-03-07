@@ -169,7 +169,7 @@ variables {ι : Type*} {B : Type*} {F : Type*}
 open topological_space filter set bundle
 open_locale topology classical bundle
 
-attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
+attribute [mfld_simps] total_space_mk coe_fst coe_snd coe_snd_map_apply
   coe_snd_map_smul total_space.mk_cast
 
 /-! ### General definition of fiber bundles -/

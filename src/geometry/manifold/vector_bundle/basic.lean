@@ -96,6 +96,26 @@ begin
   rw [trivialization.coe_coe,
     trivialization.coe_fst' _ (mem_base_set_trivialization_at F E x.proj)]
 end
+end
+
+section
+variables [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
+  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+
+  {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
+  {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
+  [topological_space B] [charted_space HB B]
+  [fiber_bundle F E]
+
+protected lemma fiber_bundle.ext_chart_at (x : total_space E) :
+  ext_chart_at (IB.prod 𝓘(𝕜, F)) x =
+  (trivialization_at F E x.proj).to_local_equiv ≫
+  (ext_chart_at IB x.proj).prod (local_equiv.refl F) :=
+begin
+  simp_rw [ext_chart_at, fiber_bundle.charted_space_chart_at, extend],
+  simp only [local_equiv.trans_assoc] with mfld_simps,
+end
 
 end
 
@@ -109,8 +129,9 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
   [topological_space B] [charted_space HB B] [smooth_manifold_with_corners IB B]
+  [fiber_bundle F E]
 
-variables (F E) [fiber_bundle F E] [vector_bundle 𝕜 F E]
+variables (F E) [vector_bundle 𝕜 F E]
 
 /-- When `B` is a smooth manifold with corners with respect to a model `IB` and `E` is a
 topological vector bundle over `B` with fibers isomorphic to `F`, then `smooth_vector_bundle F E IB`

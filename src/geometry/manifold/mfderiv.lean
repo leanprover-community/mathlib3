@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.local_invariant_properties
+
 import geometry.manifold.vector_bundle.tangent
 
 /-!
@@ -93,7 +93,7 @@ Derivative, manifold
 -/
 
 noncomputable theory
-open_locale classical topology manifold
+open_locale classical topology manifold bundle
 
 open set
 
@@ -683,16 +683,16 @@ begin
   exact tangent_map_within_subset (subset_univ _) hs h,
 end
 
-@[simp, mfld_simps] lemma tangent_map_within_tangent_bundle_proj {p : tangent_bundle I M} :
-  tangent_bundle.proj I' M' (tangent_map_within I I' f s p) = f (tangent_bundle.proj I M p) := rfl
-
 @[simp, mfld_simps] lemma tangent_map_within_proj {p : tangent_bundle I M} :
+  (tangent_map_within I I' f s p).proj = f p.proj := rfl
+
+@[simp, mfld_simps] lemma tangent_map_within_fst {p : tangent_bundle I M} :
   (tangent_map_within I I' f s p).1 = f p.1 := rfl
 
-@[simp, mfld_simps] lemma tangent_map_tangent_bundle_proj {p : tangent_bundle I M} :
-  tangent_bundle.proj I' M' (tangent_map I I' f p) = f (tangent_bundle.proj I M p) := rfl
-
 @[simp, mfld_simps] lemma tangent_map_proj {p : tangent_bundle I M} :
+  (tangent_map I I' f p).proj = f p.proj := rfl
+
+@[simp, mfld_simps] lemma tangent_map_fst {p : tangent_bundle I M} :
   (tangent_map I I' f p).1 = f p.1 := rfl
 
 omit Is I's
@@ -1191,7 +1191,7 @@ end
 by { ext1 ⟨x, v⟩, simp [tangent_map] }
 
 lemma tangent_map_within_id {p : tangent_bundle I M}
-  (hs : unique_mdiff_within_at I s (tangent_bundle.proj I M p)) :
+  (hs : unique_mdiff_within_at I s p.proj) :
   tangent_map_within I I (id : M → M) s p = p :=
 begin
   simp only [tangent_map_within, id.def],
@@ -1667,7 +1667,7 @@ lemma mdifferentiable_at.mfderiv_prod {f : N → M} {g : N → M'} {x : N}
   mfderiv J (I.prod I') (λ x, (f x, g x)) x = (mfderiv J I f x).prod (mfderiv J I' g x) :=
 begin
   classical,
-  simp_rw [mfderiv, dif_pos (hf.prod_mk hg), dif_pos hf, dif_pos hg],
+  simp_rw [mfderiv, if_pos (hf.prod_mk hg), if_pos hf, if_pos hg],
   exact hf.2.fderiv_within_prod hg.2 (J.unique_diff _ (mem_range_self _))
 end
 
@@ -1904,7 +1904,7 @@ begin
 end
 
 lemma unique_mdiff_on.tangent_bundle_proj_preimage (hs : unique_mdiff_on I s):
-  unique_mdiff_on I.tangent ((tangent_bundle.proj I M) ⁻¹' s) :=
+  unique_mdiff_on I.tangent (π (tangent_space I) ⁻¹' s) :=
 hs.smooth_bundle_preimage
 
 end unique_mdiff

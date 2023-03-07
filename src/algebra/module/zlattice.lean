@@ -10,6 +10,7 @@ import measure_theory.group.fundamental_domain
 
 /-!
 # ℤ-lattices
+
 Let `E` be a finite dimensional vector space over a `normed_lattice_field` `K` that is also
 a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete subgroup of `E` such
 that `L` spans `E` over `K`.
@@ -229,7 +230,8 @@ section real
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables (b : basis ι ℝ E)
 
-lemma zspan.fundamental_domain_measurable [measurable_space E] [opens_measurable_space E]
+@[measurability]
+lemma zspan.fundamental_domain_measurable_set [measurable_space E] [opens_measurable_space E]
   [finite ι]:
   measurable_set (zspan.fundamental_domain b) :=
 begin
@@ -252,7 +254,7 @@ lemma zspan.is_add_fundamental_domain [finite ι] [measurable_space E] [opens_me
 begin
   casesI nonempty_fintype ι,
   exact is_add_fundamental_domain.mk'
-    (null_measurable_set (zspan.fundamental_domain_measurable b))
+    (null_measurable_set (zspan.fundamental_domain_measurable_set b))
     (λ x, zspan.exist_vadd_mem_fundamental_domain b x),
 end
 

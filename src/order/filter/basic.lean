@@ -2588,19 +2588,29 @@ lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β
   ¬ tendsto f a b₂ :=
 λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot.ne hb.eq_bot
 
+lemma comap_ite (p : α → Prop) [decidable_pred p] (f g : α → β) (l : filter β) :
+  comap (λ x, ite (p x) (f x) (g x)) l = comap f l ⊓ 𝓟 {x | p x} ⊔ comap g l ⊓ 𝓟 {x | ¬p x} :=
+begin
+  ext s,
+  simp only [mem_comap', ite_eq_iff, mem_sup, mem_inf_principal, mem_set_of_eq, or_imp_distrib,
+    forall_and_distrib, set_of_and, inter_mem_iff, and_imp, imp.swap]
+end
+
+lemma comap_max [linear_order β] (f g : α → β) (l : filter β) :
+  comap (λ x, max (f x) (g x)) l = comap f l ⊓ 𝓟 {x | g x < f x} ⊔ comap g l ⊓ 𝓟 {x | f x ≤ g x} :=
+by simp only [max_def, comap_ite, not_le, sup_comm]
+
+lemma tendsto_ite {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop} [decidable_pred p] :
+  tendsto (λ x, if p x then f x else g x) l₁ l₂ ↔
+    tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂ ∧ tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂ :=
+by simp only [tendsto_iff_comap, comap_ite, ← compl_set_of,
+  (is_compl_principal {x | p x}).le_inf_sup_inf]
+
 protected lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop}
   [∀ x, decidable (p x)] (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂)
   (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
   tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
-begin
-  simp only [tendsto_def, mem_inf_principal] at *,
-  intros s hs,
-  filter_upwards [h₀ s hs, h₁ s hs],
-  simp only [mem_preimage],
-  intros x hp₀ hp₁,
-  split_ifs,
-  exacts [hp₀ h, hp₁ h],
-end
+tendsto_ite.2 ⟨h₀, h₁⟩
 
 protected lemma tendsto.if' {α β : Type*} {l₁ : filter α} {l₂ : filter β} {f g : α → β}
   {p : α → Prop} [decidable_pred p] (hf : tendsto f l₁ l₂) (hg : tendsto g l₁ l₂) :

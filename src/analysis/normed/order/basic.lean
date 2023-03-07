@@ -82,7 +82,7 @@ instance normed_linear_ordered_group.to_normed_ordered_group [normed_linear_orde
 instance : normed_linear_ordered_field ℚ :=
 ⟨dist_eq_norm, norm_mul⟩
 
-instance rat.normed_lattice_field : normed_lattice_field ℚ :=
+instance : normed_lattice_field ℚ :=
 ⟨λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le]⟩
 
 noncomputable
@@ -90,7 +90,7 @@ instance : normed_linear_ordered_field ℝ :=
 ⟨dist_eq_norm, norm_mul⟩
 
 noncomputable
-instance real.normed_lattice_field : normed_lattice_field ℝ := ⟨λ _ _, id⟩
+instance : normed_lattice_field ℝ := ⟨λ _ _, id⟩
 
 @[to_additive] instance [normed_ordered_group α] : normed_ordered_group αᵒᵈ :=
 { ..normed_ordered_group.to_normed_comm_group, ..order_dual.ordered_comm_group }

@@ -163,7 +163,7 @@ variables [has_star R] [add_monoid A] [star_add_monoid A] [has_smul R A] [star_m
 
 lemma smul {r : R} (hr : is_self_adjoint r) {x : A} (hx : is_self_adjoint x) :
   is_self_adjoint (r • x) :=
-by simp only [is_self_adjoint_iff, star_smul, star_trivial, hx.star_eq, hr.star_eq]
+by simp only [is_self_adjoint_iff, star_smul, hr.star_eq, hx.star_eq]
 
 end has_smul
 

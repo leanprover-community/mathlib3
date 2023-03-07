@@ -6,79 +6,34 @@ Authors: Floris van Doorn, Heather Macbeth
 
 import geometry.manifold.vector_bundle.basic
 
-open bundle set smooth_manifold_with_corners
-open_locale manifold topological_space
+/-! # Tangent bundles
+
+This file defines the tangent bundle as a smooth vector bundle.
+
+Let `M` be a smooth manifold with corners with model `I` on `(E, H)`. We define the tangent bundle
+of `M` using the `vector_bundle_core` construction indexed by the charts of `M`. Given two charts
+`i, j : local_homeomorph M H`, we can consider the corresponding local equivalences to `E`:
+`i.extend I` and `j.extend I` which have type `local_equiv M E`. Then the transition map for the
+tangent space between the charts `i` and `j` at a point `x : M` is the derivative of the composite
+```
+    (i.extend I).symm   j.extend I
+  E ----------------> M ---------> E
+```
+within the set `range I ⊆ E` at `i.extend I x : E`.
+This defines a smooth vector bundle `tangent_bundle` with fibers `tangent_space`.
+
+## Main definitions
+
+* `tangent_space I M x` is the fiber of the tangent bundle at `x : M`, which is defined to be `E`.
+
+* `tangent_bundle I M` is the total space of `tangent_space I M`, proven to be a smooth vector
+  bundle.
+-/
+
+open bundle set smooth_manifold_with_corners local_homeomorph
+open_locale manifold topology
 
 noncomputable theory
-
-section -- todo: move
-
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-
-lemma fderiv_within_fderiv_within {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
-  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
-  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) (v : E) :
-  fderiv_within 𝕜 g t y (fderiv_within 𝕜 f s x v) = fderiv_within 𝕜 (g ∘ f) s x v :=
-by { subst y, rw [fderiv_within.comp x hg hf h hxs], refl }
-
-end
-
-
-section -- todo: move
-
-variables {𝕜 E M H E' M' H' H'' : Type*} [nontrivially_normed_field 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]
-  (f f' : local_homeomorph M H) (I : model_with_corners 𝕜 E H)
-  [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H'] [topological_space M']
-  (I' : model_with_corners 𝕜 E' H')
-  {x : M} {s t : set M}
-  [topological_space H'']
-
-namespace local_homeomorph
-
-lemma extend_left_inv {x : M} (hxf : x ∈ f.source) : (f.extend I).symm (f.extend I x) = x :=
-(f.extend I).left_inv $ by rwa f.extend_source
-
-lemma extend_coord_change_source_mem_nhds_within {x : E}
-  (hx : x ∈ ((f.extend I).symm ≫ f'.extend I).source) :
-  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] x :=
-begin
-  rw [f.extend_coord_change_source] at hx ⊢,
-  obtain ⟨x, hx, rfl⟩ := hx,
-  refine I.image_mem_nhds_within _,
-  refine (local_homeomorph.open_source _).mem_nhds hx
-end
-
-lemma extend_coord_change_source_mem_nhds_within' {x : M}
-  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
-  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] f.extend I x :=
-begin
-  apply extend_coord_change_source_mem_nhds_within,
-  rw [← extend_image_source_inter],
-  exact mem_image_of_mem _ ⟨hxf, hxf'⟩,
-end
-
-lemma cont_diff_within_at_extend_coord_change'
-  [charted_space H M] [smooth_manifold_with_corners I M]
-  (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) {x : M}
-  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
-  cont_diff_within_at 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm) (range I) (f'.extend I x) :=
-begin
-  refine (local_homeomorph.cont_diff_on_extend_coord_change I hf hf' _ _).mono_of_mem _,
-  { rw [← f'.extend_image_source_inter], exact mem_image_of_mem _ ⟨hxf', hxf⟩ },
-  exact f'.extend_coord_change_source_mem_nhds_within' f I hxf' hxf
-end
-
-lemma symm_trans_source' (e : local_homeomorph H' H) (e' : local_homeomorph H' H'') :
-  (e.symm ≫ₕ e').source = e.target ∩ e.symm ⁻¹' (e.source ∩ e'.source) :=
-trans_source' _ _
-
-end local_homeomorph
-end
-open local_homeomorph
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -87,6 +42,8 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables (I)
 
+/-- Auxiliary lemma for tangent spaces: the derivative of a coordinate change between two charts is
+  smooth on its source. -/
 lemma cont_diff_on_fderiv_coord_change (i j : atlas H M) :
   cont_diff_on 𝕜 ∞ (fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I))
     ((i.1.extend I).symm ≫ j.1.extend I).source :=
@@ -119,7 +76,7 @@ open smooth_manifold_with_corners
   end,
   continuous_on_coord_change := λ i j, begin
       refine (cont_diff_on_fderiv_coord_change I i j).continuous_on.comp
-        ((i.1.extend_continuous_on I).mono _) _,
+        ((i.1.continuous_on_extend I).mono _) _,
       { rw [i.1.extend_source], exact inter_subset_left _ _ },
       simp_rw [← i.1.extend_image_source_inter, maps_to_image]
     end,
@@ -131,9 +88,9 @@ open smooth_manifold_with_corners
       filter_upwards [nhds_within_le_nhds this] with y hy,
       simp_rw [function.comp_apply, (j.1.extend I).left_inv hy] },
     { simp_rw [function.comp_apply, i.1.extend_left_inv I hxi, j.1.extend_left_inv I hxj] },
-    { exact (k.1.cont_diff_within_at_extend_coord_change' j.1 I (subset_maximal_atlas I k.2)
+    { exact (cont_diff_within_at_extend_coord_change' I (subset_maximal_atlas I k.2)
         (subset_maximal_atlas I j.2) hxk hxj).differentiable_within_at le_top },
-    { exact (j.1.cont_diff_within_at_extend_coord_change' i.1 I (subset_maximal_atlas I j.2)
+    { exact (cont_diff_within_at_extend_coord_change' I (subset_maximal_atlas I j.2)
         (subset_maximal_atlas I i.2) hxj hxi).differentiable_within_at le_top },
     { intros x hx, exact mem_range_self _ },
     { exact I.unique_diff_at_image },
@@ -141,13 +98,19 @@ open smooth_manifold_with_corners
   end }
 
 variables {M}
+
+lemma tangent_bundle_core_coord_change_achart (x x' z : M) :
+  (tangent_bundle_core I M).coord_change (achart H x) (achart H x') z =
+  fderiv_within 𝕜 (ext_chart_at I x' ∘ (ext_chart_at I x).symm) (range I) (ext_chart_at I x z) :=
+rfl
+
 include I
 
 /-- The tangent space at a point of the manifold `M`. It is just `E`. We could use instead
 `(tangent_bundle_core I M).to_topological_vector_bundle_core.fiber x`, but we use `E` to help the
 kernel.
 -/
-@[nolint unused_arguments]
+@[nolint unused_arguments, derive [topological_space, add_comm_group, topological_add_group]]
 def tangent_space (x : M) : Type* := E
 
 omit I
@@ -174,8 +137,8 @@ rfl
 
 section tangent_bundle_instances
 
-/- In general, the definition of tangent_bundle and tangent_space are not reducible, so that type
-class inference does not pick wrong instances. In this section, we record the right instances for
+/- In general, the definition of tangent_space is not reducible, so that type class inference
+does not pick wrong instances. In this section, we record the right instances for
 them, noting in particular that the tangent bundle is a smooth manifold. -/
 
 section
@@ -183,9 +146,6 @@ local attribute [reducible] tangent_space
 
 variables {M} (x : M)
 
-instance : topological_space (tangent_space I x) := by apply_instance
-instance : add_comm_group (tangent_space I x) := by apply_instance
-instance : topological_add_group (tangent_space I x) := by apply_instance
 instance : module 𝕜 (tangent_space I x) := by apply_instance
 instance : inhabited (tangent_space I x) := ⟨0⟩
 

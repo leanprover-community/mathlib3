@@ -103,9 +103,8 @@ begin
     { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K, is_real w))
         (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,
-      simpa only [apply_at_real_infinite_place, coe_nnnorm, real.norm_eq_abs,
-        function.embedding.coe_subtype, subtype.coe_mk]
-      using is_real.place_embedding_apply w.prop x, },
+      simp only [apply_at_real_infinite_place, coe_nnnorm, real.norm_eq_abs,
+        function.embedding.coe_subtype, subtype.coe_mk, is_real.abs_embedding_apply], },
     { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K,
         is_complex w)) (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,

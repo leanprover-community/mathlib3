@@ -354,6 +354,11 @@ begin
   exact congr_fun (congr_arg coe_fn (mk_embedding w)) x,
 end
 
+@[simp]
+lemma is_real.abs_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K) :
+  abs (is_real.embedding hw x) = w x :=
+by { rw ← is_real.place_embedding_apply hw x, congr, }
+
 variable (K)
 
 /-- The map from real embeddings to real infinite places as an equiv -/

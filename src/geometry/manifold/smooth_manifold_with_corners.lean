@@ -945,8 +945,7 @@ begin
   exact I.image_mem_nhds_within ((local_homeomorph.open_source _).mem_nhds hz)
 end
 
-lemma cont_diff_within_at_extend_coord_change'
-  [charted_space H M] [smooth_manifold_with_corners I M]
+lemma cont_diff_within_at_extend_coord_change' [charted_space H M]
   (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) {x : M}
   (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
   cont_diff_within_at 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm) (range I) (f'.extend I x) :=

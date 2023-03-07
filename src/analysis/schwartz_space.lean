@@ -91,7 +91,24 @@ begin
   exact ⟨max C 1, by positivity, λ x, (hC x).trans (le_max_left _ _)⟩,
 end
 
-lemma is_O_cocompact_zpow_neg_nat (f : 𝓢(E, F)) (k : ℕ) :
+/-- Every Schwartz function is smooth. -/
+lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_le le_top
+
+/-- Every Schwartz function is continuous. -/
+@[continuity, protected] lemma continuous (f : 𝓢(E, F)) : continuous f := (f.smooth 0).continuous
+
+/-- Every Schwartz function is differentiable. -/
+@[protected] lemma differentiable (f : 𝓢(E, F)) : differentiable ℝ f :=
+(f.smooth 1).differentiable rfl.le
+
+@[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
+
+section is_O
+
+variables (f : 𝓢(E, F))
+
+/-- Auxiliary lemma, used in proving the more general result `is_O_compact_zpow`. -/
+lemma is_O_cocompact_zpow_neg_nat (k : ℕ) :
   asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ (-k : ℤ)) :=
 begin
   obtain ⟨d, hd, hd'⟩ := f.decay k 0,
@@ -103,7 +120,7 @@ begin
   exacts [hd' x, zpow_pos_of_pos (norm_pos_iff.mpr hx) _],
 end
 
-lemma is_O_cocompact_rpow [proper_space E] (f : 𝓢(E, F)) (s : ℝ) :
+lemma is_O_cocompact_rpow [proper_space E] (s : ℝ) :
   asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ s) :=
 begin
   let k := ⌈-s⌉₊,
@@ -119,17 +136,11 @@ begin
   exact real.rpow_le_rpow_of_exponent_le hx hk,
 end
 
-/-- Every Schwartz function is smooth. -/
-lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_le le_top
+lemma is_O_cocompact_zpow [proper_space E] (k : ℤ) :
+  asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ k) :=
+by simpa only [real.rpow_int_cast] using is_O_cocompact_rpow f k
 
-/-- Every Schwartz function is continuous. -/
-@[continuity, protected] lemma continuous (f : 𝓢(E, F)) : continuous f := (f.smooth 0).continuous
-
-/-- Every Schwartz function is differentiable. -/
-@[protected] lemma differentiable (f : 𝓢(E, F)) : differentiable ℝ f :=
-(f.smooth 1).differentiable rfl.le
-
-@[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
+end is_O
 
 section aux
 

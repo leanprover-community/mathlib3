@@ -62,7 +62,8 @@ end
 
 variables (M)
 open smooth_manifold_with_corners
-/- The `vector_bundle_core` defining the tangent bundle.  -/
+
+/- The `vector_bundle_core` defining the tangent bundle. -/
 @[simps] def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,

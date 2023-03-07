@@ -271,7 +271,7 @@ These instances work particularly well in conjunction with `add_group.to_add_act
 
 variables {α β : Type*}
 
-instance p.to_add_submonoid.has_add [has_vadd M α] : has_vadd p α := has_vadd.comp _ p.subtype
+instance [has_vadd M α] : has_vadd p α := p.to_add_submonoid.has_vadd
 
 instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α β] :
   vadd_comm_class p α β := ⟨λ a, (vadd_comm (a : M) : _)⟩

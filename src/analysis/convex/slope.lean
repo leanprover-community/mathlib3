@@ -5,6 +5,7 @@ Authors: Yury Kudriashov, Malo Jaffré
 -/
 import analysis.convex.function
 import tactic.field_simp
+import tactic.linarith
 
 /-!
 # Slopes of convex functions

@@ -327,7 +327,7 @@ instance is_finite_kernel.prod (κ : kernel α β) [is_finite_kernel κ]
   λ a, calc (κ ⊗ₖ η) a set.univ
     ≤ (κ a set.univ) * is_finite_kernel.bound η : prod_apply_univ_le κ η a
 ... ≤ is_finite_kernel.bound κ * is_finite_kernel.bound η :
-        ennreal.mul_le_mul (measure_le_bound κ a set.univ) le_rfl, ⟩⟩
+        mul_le_mul (measure_le_bound κ a set.univ) le_rfl (zero_le _) (zero_le _), ⟩⟩
 
 instance is_s_finite_kernel.prod (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η] :

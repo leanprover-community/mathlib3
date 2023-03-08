@@ -10,6 +10,9 @@ import topology.paracompact
 /-!
 # (Extended) metric spaces are paracompact
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide two instances:
 
 * `emetric.paracompact_space`: a `pseudo_emetric_space` is paracompact; formalization is based

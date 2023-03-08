@@ -10,6 +10,9 @@ import linear_algebra.prod
 /-!
 # The star operation, bundled as a star-linear equiv
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `star_linear_equiv`, which is the star operation bundled as a star-linear map.
 It is defined on a star algebra `A` over the base ring `R`.
 

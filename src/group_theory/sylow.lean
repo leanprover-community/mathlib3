@@ -615,7 +615,7 @@ def of_card [fintype G] {p : ℕ} [hp : fact p.prime] (H : subgroup G) [fintype 
       (P.card_eq_multiplicity.trans card_eq.symm).le).symm ▸ λ _, P.3,
   end }
 
-@[simp] lemma coe_of_card [fintype G] {p : ℕ} [hp : fact p.prime] (H : subgroup G) [fintype H]
+@[simp, norm_cast] lemma coe_of_card [fintype G] {p : ℕ} [hp : fact p.prime] (H : subgroup G) [fintype H]
   (card_eq: card H = p ^ (card G).factorization p) : ↑(of_card H card_eq) = H := rfl
 
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G)

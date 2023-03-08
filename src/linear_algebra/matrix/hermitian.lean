@@ -37,6 +37,8 @@ def is_hermitian (A : matrix n n α) : Prop := Aᴴ = A
 
 lemma is_hermitian.eq {A : matrix n n α} (h : A.is_hermitian) : Aᴴ = A := h
 
+lemma is_hermitian.is_self_adjoint {A : matrix n n α} (h : A.is_hermitian) : is_self_adjoint A := h
+
 @[ext]
 lemma is_hermitian.ext {A : matrix n n α} : (∀ i j, star (A j i) = A i j) → A.is_hermitian :=
 by { intros h, ext i j, exact h i j }
@@ -49,11 +51,11 @@ lemma is_hermitian.ext_iff {A : matrix n n α} : A.is_hermitian ↔ ∀ i j, sta
 
 lemma is_hermitian_mul_conj_transpose_self [fintype n] (A : matrix n n α) :
   (A ⬝ Aᴴ).is_hermitian :=
-by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
+is_self_adjoint.mul_star_self A
 
 lemma is_hermitian_transpose_mul_self [fintype n] (A : matrix n n α) :
   (Aᴴ ⬝ A).is_hermitian :=
-by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
+is_self_adjoint.star_mul_self A
 
 lemma is_hermitian_conj_transpose_mul_mul [fintype m] {A : matrix m m α} (B : matrix m n α)
   (hA : A.is_hermitian) : (Bᴴ ⬝ A ⬝ B).is_hermitian :=
@@ -102,7 +104,7 @@ h.transpose.map _ $ λ _, rfl
 
 @[simp] lemma is_hermitian.add {A B : matrix n n α} (hA : A.is_hermitian) (hB : B.is_hermitian) :
   (A + B).is_hermitian :=
-(conj_transpose_add _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
+hA.is_self_adjoint.add hB.is_self_adjoint
 
 @[simp] lemma is_hermitian.submatrix {A : matrix n n α} (h : A.is_hermitian) (f : m → n) :
   (A.submatrix f f).is_hermitian :=

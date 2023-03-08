@@ -84,6 +84,11 @@ by cases f; cases g; cases h; refl
 @[ext] theorem ext (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext h
 
+instance : continuous_map_class C^n⟮I, M; I', M'⟯ M M' :=
+{ coe := (λ f, ⇑f),
+  coe_injective' := coe_inj,
+  map_continuous := λ f, f.cont_mdiff.continuous }
+
 /-- The identity as a smooth map. -/
 def id : C^n⟮I, M; I, M⟯ := ⟨id, cont_mdiff_id⟩
 

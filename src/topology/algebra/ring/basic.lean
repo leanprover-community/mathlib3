@@ -11,6 +11,9 @@ import topology.algebra.group.basic
 
 # Topological (semi)rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological (semi)ring is a (semi)ring equipped with a topology such that all operations are
 continuous. Besides this definition, this file proves that the topological closure of a subring
 (resp. an ideal) is a subring (resp. an ideal) and defines products and quotients

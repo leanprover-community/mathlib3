@@ -82,8 +82,8 @@ lemma star_hom_apply {F R S : Type*} [has_star R] [has_star S] [star_hom_class F
   {x : R} (hx : is_self_adjoint x) (f : F) : is_self_adjoint (f x) :=
 show star (f x) = f x, from map_star f x ▸ congr_arg f hx
 
-section add_group
-variables [add_group R] [star_add_monoid R]
+section add_monoid
+variables [add_monoid R] [star_add_monoid R]
 
 variables (R)
 
@@ -94,19 +94,27 @@ variables {R}
 lemma add {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x + y) :=
 by simp only [is_self_adjoint_iff, star_add, hx.star_eq, hy.star_eq]
 
+lemma bit0 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit0 x) :=
+by simp only [is_self_adjoint_iff, star_bit0, hx.star_eq]
+
+end add_monoid
+
+section add_group
+variables [add_group R] [star_add_monoid R]
+
 lemma neg {x : R} (hx : is_self_adjoint x) : is_self_adjoint (-x) :=
 by simp only [is_self_adjoint_iff, star_neg, hx.star_eq]
 
 lemma sub {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x - y) :=
 by simp only [is_self_adjoint_iff, star_sub, hx.star_eq, hy.star_eq]
 
-lemma bit0 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit0 x) :=
-by simp only [is_self_adjoint_iff, star_bit0, hx.star_eq]
-
 end add_group
 
-section non_unital_semiring
-variables [non_unital_semiring R] [star_ring R]
+section semigroup
+variables [semigroup R] [star_semigroup R]
+
+lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
+⟨by simp only [hx.star_eq]⟩
 
 lemma conjugate {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (z * x * star z) :=
 by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
@@ -114,13 +122,10 @@ by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
 lemma conjugate' {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (star z * x * z) :=
 by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
 
-lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
-⟨by simp only [hx.star_eq]⟩
+end semigroup
 
-end non_unital_semiring
-
-section ring
-variables [ring R] [star_ring R]
+section monoid
+variables [monoid R] [star_semigroup R]
 
 variables (R)
 
@@ -128,33 +133,57 @@ lemma _root_.is_self_adjoint_one : is_self_adjoint (1 : R) := star_one R
 
 variables {R}
 
-lemma bit1 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit1 x) :=
-by simp only [is_self_adjoint_iff, star_bit1, hx.star_eq]
-
 lemma pow {x : R} (hx : is_self_adjoint x) (n : ℕ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_pow, hx.star_eq]
 
-end ring
+end monoid
 
-section non_unital_comm_ring
-variables [non_unital_comm_ring R] [star_ring R]
+section semiring
+variables [semiring R] [star_ring R]
+
+lemma bit1 {x : R} (hx : is_self_adjoint x) : is_self_adjoint (bit1 x) :=
+by simp only [is_self_adjoint_iff, star_bit1, hx.star_eq]
+
+@[simp] lemma _root_.is_self_adjoint_nat_cast (n : ℕ) : is_self_adjoint (n : R) :=
+star_nat_cast _
+
+end semiring
+
+section comm_semigroup
+variables [comm_semigroup R] [star_semigroup R]
 
 lemma mul {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x * y) :=
 by simp only [is_self_adjoint_iff, star_mul', hx.star_eq, hy.star_eq]
 
-end non_unital_comm_ring
+end comm_semigroup
 
-section field
-variables [field R] [star_ring R]
+section ring
+variables [ring R] [star_ring R]
+
+@[simp] lemma _root_.is_self_adjoint_int_cast (z : ℤ) : is_self_adjoint (z : R) :=
+star_int_cast _
+
+end ring
+
+section division_ring
+variables [division_ring R] [star_ring R]
 
 lemma inv {x : R} (hx : is_self_adjoint x) : is_self_adjoint x⁻¹ :=
 by simp only [is_self_adjoint_iff, star_inv', hx.star_eq]
 
-lemma div {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x / y) :=
-by simp only [is_self_adjoint_iff, star_div', hx.star_eq, hy.star_eq]
-
 lemma zpow {x : R} (hx : is_self_adjoint x) (n : ℤ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
+
+lemma _root_.is_self_adjoint_rat_cast (x : ℚ) : is_self_adjoint (x : R) :=
+star_rat_cast _
+
+end division_ring
+
+section field
+variables [field R] [star_ring R]
+
+lemma div {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x / y) :=
+by simp only [is_self_adjoint_iff, star_div', hx.star_eq, hy.star_eq]
 
 end field
 
@@ -227,16 +256,10 @@ instance : has_one (self_adjoint R) := ⟨⟨1, is_self_adjoint_one R⟩⟩
 instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
 instance : has_nat_cast (self_adjoint R) :=
-⟨λ n, ⟨n, nat.rec_on n (by simp [zero_mem])
-  (λ k hk, (@nat.cast_succ R _ k).symm ▸ add_mem hk (is_self_adjoint_one R))⟩⟩
+⟨λ n, ⟨n, is_self_adjoint_nat_cast _⟩⟩
 
 instance : has_int_cast (self_adjoint R) :=
-⟨λ n, ⟨n,
-  begin
-    cases n;
-    simp [show ↑n ∈ self_adjoint R, from (n : self_adjoint R).2],
-    refine add_mem (is_self_adjoint_one R).neg (n : self_adjoint R).2.neg,
-  end ⟩ ⟩
+⟨λ n, ⟨n, is_self_adjoint_int_cast _⟩ ⟩
 
 instance : has_pow (self_adjoint R) ℕ :=
 ⟨λ x n, ⟨(x : R) ^ n, x.prop.pow n⟩⟩
@@ -285,18 +308,14 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 @[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
-lemma rat_cast_mem : ∀ (x : ℚ), is_self_adjoint (x : R)
-| ⟨a, b, h1, h2⟩ :=
-  by rw [is_self_adjoint, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
-
 instance : has_rat_cast (self_adjoint R) :=
-⟨λ n, ⟨n, rat_cast_mem n⟩⟩
+⟨λ n, ⟨n, is_self_adjoint_rat_cast n⟩⟩
 
 @[simp, norm_cast] lemma coe_rat_cast (x : ℚ) : ↑(x : self_adjoint R) = (x : R) :=
 rfl
 
 instance has_qsmul : has_smul ℚ (self_adjoint R) :=
-⟨λ a x, ⟨a • x, by rw rat.smul_def; exact (rat_cast_mem a).mul x.prop⟩⟩
+⟨λ a x, ⟨a • x, by rw rat.smul_def; exact is_self_adjoint.mul (is_self_adjoint_rat_cast a) x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
 rfl

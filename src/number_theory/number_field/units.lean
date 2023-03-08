@@ -3,7 +3,6 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-
 import group_theory.torsion
 import number_theory.number_field.norm
 import number_theory.number_field.canonical_embedding
@@ -271,6 +270,7 @@ begin
 end
 
 /-- The lattice formed by the image of the logarithmic embedding.-/
+-- TODO. Should be an add_subgroup
 def unit_lattice : submodule ℤ (number_field.infinite_place K → ℝ) :=
 { carrier := set.range (log_embedding K),
   add_mem' :=
@@ -488,19 +488,20 @@ def unit_lattice_span_map :
     intros _ _,
     ext,
     split_ifs,
-    { simp only [coe_coe, submodule.coe_add, pi.add_apply, if_pos h], },
-    { simp only [coe_coe, submodule.coe_add, pi.add_apply, if_neg h, mul_add], },
+    { sorry; simp [coe_coe, submodule.coe_add, pi.add_apply, if_pos h, coe_coe, submodule.coe_add,
+        pi.add_apply, add_left_inj, eq_self_iff_true], },
+    { sorry; simp [coe_coe, submodule.coe_add, pi.add_apply, if_neg h, mul_add], },
   end,
   map_smul' :=
   begin
     intros s x,
     ext,
     split_ifs,
-    { simp only [if_pos h, coe_coe, submodule.coe_smul_of_tower, pi.smul_apply,
+    { sorry; simp only [if_pos h, coe_coe, submodule.coe_smul_of_tower, pi.smul_apply,
         ring_hom.id_apply], },
     { simp only [if_neg h, coe_coe, submodule.coe_smul_of_tower, pi.smul_apply,
         algebra.id.smul_eq_mul, ring_hom.id_apply],
-      ring, },
+      sorry; ring, },
   end, }
 
   lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal}
@@ -721,7 +722,8 @@ begin
     intros z hz,
     have t1 := congr_arg z (congr_arg (coe : (𝓞 K) → K) hu),
     have t2 := seq.antitone K w hB n m hnm z hz,
-    simp only [coe_coe, mul_mem_class.coe_mul, coe_coe, map_mul] at t1 t2,
+    simp [coe_coe, mul_mem_class.coe_mul, coe_coe, map_mul, coe_coe, mul_mem_class.coe_mul,
+      coe_coe, map_mul] at t1 t2,
     rw ← t1 at t2,
     refine (mul_lt_iff_lt_one_right _).mp t2,
     exact pos_iff.mpr (seq.ne_zero K w hB n), },
@@ -893,21 +895,29 @@ begin
   simpa only [fintype.card_subtype_compl, fintype.card_subtype_eq],
 end
 
-/-- A ℤ-basis of `unit_lattice K`.-/
-def unit_lattice.basis : Σ (n : ℕ), basis (fin n) ℤ (unit_lattice K) :=
+lemma unit_lattice_add_subgroup_discrete (r : ℝ) :
+  (((unit_lattice_submodule K).to_add_subgroup : set (linear_map.ker (lognorm K)))
+    ∩ (metric.closed_ball 0 r)).finite
+  := sorry
+
+
+lemma unit_lattice.module.free : module.free ℤ (unit_lattice_submodule K) :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-  let b := zlattice.basis (unit_lattice_submodule_discrete K) (unit_lattice.full_lattice' K),
-  let c := basis.map b.2 (unit_lattice_equiv K).symm,
-  exact ⟨b.1, c⟩,
+
+  exact zlattice.module.free ((unit_lattice_add_subgroup_discrete K)) (unit_lattice.full_lattice' K),
+--  let b := zlattice.basis (unit_lattice_submodule_discrete K) (unit_lattice.full_lattice' K),
+--  let c := basis.map b.2 (unit_lattice_equiv K).symm,
+--  exact ⟨b.1, c⟩,
 end
 
-lemma unit_lattice.dim : (unit_lattice.basis K).1 = unit_rank K :=
+lemma unit_lattice.dim : finrank ℤ (unit_lattice_submodule K) = unit_rank K :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-  have := zlattice.dim (unit_lattice_submodule_discrete K) (unit_lattice.full_lattice' K),
+  haveI : module ℚ (linear_map.ker (lognorm K)) := sorry,
+  have := zlattice.rank (unit_lattice_add_subgroup_discrete K) (unit_lattice.full_lattice' K),
   rw rank_ker K at this,
   exact this,
 end

@@ -113,14 +113,14 @@ end add_group
 section semigroup
 variables [semigroup R] [star_semigroup R]
 
-lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
-⟨by simp only [hx.star_eq]⟩
-
 lemma conjugate {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (z * x * star z) :=
 by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
 
 lemma conjugate' {x : R} (hx : is_self_adjoint x) (z : R) : is_self_adjoint (star z * x * z) :=
 by simp only [is_self_adjoint_iff, star_mul, star_star, mul_assoc, hx.star_eq]
+
+lemma is_star_normal {x : R} (hx : is_self_adjoint x) : is_star_normal x :=
+⟨by simp only [hx.star_eq]⟩
 
 end semigroup
 

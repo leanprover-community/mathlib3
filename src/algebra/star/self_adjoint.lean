@@ -121,7 +121,6 @@ by simp only [is_self_adjoint_iff, add_comm, star_add, star_star]
 
 end add_comm_monoid
 
-
 section semigroup
 variables [semigroup R] [star_semigroup R]
 

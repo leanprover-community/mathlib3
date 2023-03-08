@@ -135,11 +135,11 @@ variables [add_comm_monoid α] [star_add_monoid α]
 
 lemma is_hermitian_add_transpose_self (A : matrix n n α) :
   (A + Aᴴ).is_hermitian :=
-by simp [is_hermitian, add_comm]
+is_self_adjoint_add_star_self A
 
 lemma is_hermitian_transpose_add_self (A : matrix n n α) :
   (Aᴴ + A).is_hermitian :=
-by simp [is_hermitian, add_comm]
+is_self_adjoint_star_add_self A
 
 end add_comm_monoid
 

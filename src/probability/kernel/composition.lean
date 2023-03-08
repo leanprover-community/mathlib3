@@ -38,7 +38,7 @@ Kernels built from other kernels:
   We define a notation `η ∘ₖ κ = comp η κ`.
   `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 * `prod (κ : kernel α β) (η : kernel α γ) : kernel α (β × γ)`: product of 2 s-finite kernels.
-  `∫⁻ bc, f bc ∂((κ ⊗ₖ η) a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η a) ∂(κ a)`
+  `∫⁻ bc, f bc ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η a) ∂(κ a)`
 
 ## Main statements
 

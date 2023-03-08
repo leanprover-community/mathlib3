@@ -49,7 +49,7 @@ class normed_lattice_add_comm_group (α : Type*)
 lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ :=
 normed_lattice_add_comm_group.solid a b h
 
-alias solid <- norm_le_norm_of_abs_le_abs
+alias solid ← norm_le_norm_of_abs_le_abs
 
 instance : normed_lattice_add_comm_group ℝ :=
 { add_le_add_left := λ _ _ h _, add_le_add le_rfl h,

@@ -606,7 +606,7 @@ end
 /-- A subgroup with cardinality `p ^ n` is a Sylow group
  where `n` is the multiplicity of `p` in the group order. -/
 def of_card [fintype G] {p : ℕ} [hp : fact p.prime] (H : subgroup G) [fintype H]
-  (card_eq: card H = p ^ (card G).factorization p) : sylow p G :=
+  (card_eq : card H = p ^ (card G).factorization p) : sylow p G :=
 { to_subgroup := H,
   is_p_group' := is_p_group.of_card card_eq,
   is_maximal' := begin

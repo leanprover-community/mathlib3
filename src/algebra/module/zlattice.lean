@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
 import analysis.normed.order.basic
+import linear_algebra.finite_dimensional
 import measure_theory.group.fundamental_domain
 
 /-!
@@ -35,49 +36,49 @@ open measure_theory measurable_set submodule
 
 variables {E ι : Type*}
 
-section basis
+-- section basis
 
-variables {R K : Type*} [comm_ring R] [division_ring K] [algebra R K] [add_comm_group E]
-  [module K E] [module R E] [is_scalar_tower R K E] [no_zero_smul_divisors R K]
-variables (b : basis ι K E)
+-- variables {R K : Type*} [comm_ring R] [division_ring K] [algebra R K] [add_comm_group E]
+--   [module K E] [module R E] [is_scalar_tower R K E] [no_zero_smul_divisors R K]
+-- variables (b : basis ι K E)
 
-variable (R)
+-- variable (R)
 
-/-- The R-lattice spanned by `b` admits `b` as a R-basis. -/
-protected def basis : basis ι R (span R (set.range b)) :=
-basis.span (b.linear_independent.restrict_scalars (smul_left_injective R (ne_zero.ne 1)))
+-- /-- The R-lattice spanned by `b` admits `b` as a R-basis. -/
+-- protected def basis : basis ι R (span R (set.range b)) :=
+-- basis.span (b.linear_independent.restrict_scalars (smul_left_injective R (ne_zero.ne 1)))
 
-@[simp]
-lemma basis_apply (i : ι) : (zspan.basis R b i : E) = b i :=
-  by simp only [zspan.basis, basis.span_apply]
+-- @[simp]
+-- lemma basis_apply (i : ι) : (zspan.basis R b i : E) = b i :=
+--   by simp only [zspan.basis, basis.span_apply]
 
-@[simp]
-lemma repr_apply (m : span R (set.range b)) [finite ι] (i : ι)  :
-  algebra_map R K ((zspan.basis R b).repr m i) = b.repr m i :=
-begin
-  casesI nonempty_fintype ι,
-  rw ← congr_arg (coe : _ → E) (basis.sum_repr (zspan.basis R b) m),
-  simp_rw [coe_sum, coe_smul_of_tower, basis_apply, linear_equiv.map_sum,
-    ← is_scalar_tower.algebra_map_smul K, b.repr.map_smul, basis.repr_self, algebra_map_smul,
-    finsupp.smul_single, finset.sum_apply', algebra.algebra_map_eq_smul_one, finsupp.single_apply,
-    finset.sum_ite_eq', finset.mem_univ],
-  refl,
-end
+-- @[simp]
+-- lemma repr_apply (m : span R (set.range b)) [finite ι] (i : ι)  :
+--   algebra_map R K ((zspan.basis R b).repr m i) = b.repr m i :=
+-- begin
+--   casesI nonempty_fintype ι,
+--   rw ← congr_arg (coe : _ → E) (basis.sum_repr (zspan.basis R b) m),
+--   simp_rw [coe_sum, coe_smul_of_tower, basis_apply, linear_equiv.map_sum,
+--     ← is_scalar_tower.algebra_map_smul K, b.repr.map_smul, basis.repr_self, algebra_map_smul,
+--     finsupp.smul_single, finset.sum_apply', algebra.algebra_map_eq_smul_one, finsupp.single_apply,
+--     finset.sum_ite_eq', finset.mem_univ],
+--   refl,
+-- end
 
-lemma mem_span_iff [finite ι] (m : E) :
-  m ∈ span R (set.range b) ↔ ∀ i, ∃ c : R, b.repr m i = algebra_map R K c :=
-begin
-  casesI nonempty_fintype ι,
-  split,
-  { exact λ hm i, ⟨(zspan.basis R b).repr ⟨m, hm⟩ i, (repr_apply R b ⟨m, hm⟩ i).symm⟩, },
-  { intros h,
-    rw ← b.sum_repr m,
-    refine sum_mem (λ i _ , _),
-    rw [(h i).some_spec, @is_scalar_tower.algebra_map_smul R K],
-    exact smul_mem _ _ (subset_span (set.mem_range_self i)), }
-end
+-- lemma mem_span_iff [finite ι] (m : E) :
+--   m ∈ span R (set.range b) ↔ ∀ i, ∃ c : R, b.repr m i = algebra_map R K c :=
+-- begin
+--   casesI nonempty_fintype ι,
+--   split,
+--   { exact λ hm i, ⟨(zspan.basis R b).repr ⟨m, hm⟩ i, (repr_apply R b ⟨m, hm⟩ i).symm⟩, },
+--   { intros h,
+--     rw ← b.sum_repr m,
+--     refine sum_mem (λ i _ , _),
+--     rw [(h i).some_spec, @is_scalar_tower.algebra_map_smul R K],
+--     exact smul_mem _ _ (subset_span (set.mem_range_self i)), }
+-- end
 
-end basis
+-- end basis
 
 section normed_lattice_field
 
@@ -98,13 +99,14 @@ variable [fintype ι]
 /-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
 by rounding down its coordinates on the basis `b`. -/
 def floor : E → span ℤ (set.range b) :=
-λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • zspan.basis ℤ b i)
+λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • b.restrict_scalars ℤ i)
 
 lemma floor_single (m : E) (i : ι) :
   b.repr (floor b m) i = int.floor (b.repr m i) :=
 by simp only [floor, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
   finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
-  finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, basis_apply, linear_equiv.map_sum]
+  finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply,
+  linear_equiv.map_sum]
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
@@ -123,9 +125,9 @@ lemma fract_zspan_add (m : E) {v : E} (h : v ∈ span ℤ (set.range b)) :
 begin
   refine (basis.ext_elem_iff b).mpr (λ i, _),
   simp_rw [fract_single, int.fract_eq_fract],
-  use (zspan.basis ℤ b).repr ⟨v, h⟩ i,
+  use (b.restrict_scalars ℤ).repr ⟨v, h⟩ i,
   rw [map_add, finsupp.coe_add, pi.add_apply, add_tsub_cancel_right,
-    ← (eq_int_cast (algebra_map ℤ K) _), zspan.repr_apply, coe_mk],
+    ← (eq_int_cast (algebra_map ℤ K) _), basis.restrict_scalars_repr_apply, coe_mk],
 end
 
 lemma mem_fundamental_domain {x : E} :
@@ -143,8 +145,9 @@ lemma fract_eq_iff (m n : E) :
 begin
   rw [eq_comm, basis.ext_elem_iff b],
   simp only [int.fract_eq_fract, fract_single],
-  simp_rw [mem_span_iff, sub_eq_neg_add, map_add, linear_equiv.map_neg, finsupp.coe_add,
-    finsupp.coe_neg, pi.add_apply, pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _)],
+  simp_rw [basis.restrict_scalars_mem_span_iff, sub_eq_neg_add, map_add, linear_equiv.map_neg,
+    finsupp.coe_add, finsupp.coe_neg, pi.add_apply, pi.neg_apply,
+    ← (eq_int_cast (algebra_map ℤ K) _)],
 end
 
 lemma fract_le (m : E) :

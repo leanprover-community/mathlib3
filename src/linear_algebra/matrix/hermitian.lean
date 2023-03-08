@@ -148,11 +148,11 @@ variables [add_group α] [star_add_monoid α]
 
 @[simp] lemma is_hermitian.neg {A : matrix n n α} (h : A.is_hermitian) :
   (-A).is_hermitian :=
-(conj_transpose_neg _).trans (congr_arg _ h)
+is_self_adjoint.neg h
 
 @[simp] lemma is_hermitian.sub {A B : matrix n n α} (hA : A.is_hermitian) (hB : B.is_hermitian) :
   (A - B).is_hermitian :=
-(conj_transpose_sub _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
+is_self_adjoint.sub hA hB
 
 end add_group
 

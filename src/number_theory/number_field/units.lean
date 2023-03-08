@@ -26,14 +26,14 @@ variables (K : Type*) [field K]
 
 localized "notation `𝓤`K := (number_field.ring_of_integers K)ˣ" in number_field.units
 
-namespace number_field.units
+namespace number_field
 
 open number_field units
 
-/-- The `monoid_hom` from the group of units to the field. -/
-def to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
+/-- The `monoid_hom` from the group of units `𝓤 K` to the field `K`. -/
+def units_to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
 
-lemma to_field_injective : function.injective (to_field K) :=
+lemma units_to_field.injective : function.injective (units_to_field K) :=
 begin
   have t1 : function.injective (coe_hom K) := by ext,
   have t2 : function.injective (units.map (algebra_map (𝓞 K) K).to_monoid_hom) :=
@@ -44,44 +44,48 @@ begin
     simp_rw [units.coe_map] at t1,
     exact (no_zero_smul_divisors.algebra_map_injective (𝓞 K) K) t1,
   end,
-  rw [to_field, monoid_hom.coe_comp],
+  rw [units_to_field, monoid_hom.coe_comp],
   exact function.injective.comp t1 t2,
 end
 
-instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨to_field K⟩
+instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨units_to_field K⟩
 
-section coe
+section to_field
 
 variable {K}
 
 @[simp]
-lemma coe_ext {x y : 𝓤 K} : (x : K) = (y : K) ↔ x = y := (to_field_injective K).eq_iff
+lemma units_to_field.ext {x y : 𝓤 K} : (x : K) = (y : K) ↔ x = y :=
+  (units_to_field.injective K).eq_iff
 
 @[simp]
-lemma coe_inv {x : 𝓤 K} : ((x⁻¹ : 𝓤 K) : K) = (x : K)⁻¹ := map_inv (to_field K) x
+lemma units_to_field.map_inv {x : 𝓤 K} : ((x⁻¹ : 𝓤 K) : K) = (x : K)⁻¹ :=
+map_inv (units_to_field K) x
 
 @[simp]
-lemma coe_pow {x : 𝓤 K} {n : ℕ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
-  map_pow (to_field K) x n
+lemma units_to_field.map_pow {x : 𝓤 K} {n : ℕ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
+map_pow (units_to_field K) x n
 
 @[simp]
-lemma coe_zpow {x : 𝓤 K} {n : ℤ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
-  map_zpow (to_field K) x n
+lemma units_to_field.map_zpow {x : 𝓤 K} {n : ℤ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
+map_zpow (units_to_field K) x n
 
 @[simp]
-lemma coe_mul {x y : 𝓤 K} : ((x * y : 𝓤 K) : K) = (x : K) * (y : K) := rfl
+lemma units_to_field.map_mul {x y : 𝓤 K} : ((x * y : 𝓤 K) : K) = (x : K) * (y : K) := rfl
+
+-- @[simp]
+-- lemma coe_coe_eq_to_field {x : 𝓤 K} : ((x : 𝓞 K) : K) = (x : K) := rfl
 
 @[simp]
-lemma coe_coe {x : 𝓤 K} : ((x : 𝓞 K) : K) = (x : K) := rfl
+lemma units_to_field.map_one : ((1 : 𝓤 K) : K) = (1 : K) := rfl
 
 @[simp]
-lemma coe_one : ((1 : 𝓤 K) : K) = (1 : K) := rfl
-
-@[simp]
-lemma coe_ne_zero {x : 𝓤 K} : (x : K) ≠ 0 :=
+lemma units_to_field.ne_zero {x : 𝓤 K} : (x : K) ≠ 0 :=
 subtype.coe_injective.ne_iff.2 (units.ne_zero x)
 
-end coe
+end to_field
+
+namespace units
 
 -- TODO. That should be tautological
 lemma is_unit_iff (x : 𝓞 K) (hx : x ≠ 0):
@@ -90,7 +94,7 @@ begin
   split,
   { rintros ⟨u, rfl⟩,
     convert ring_of_integers.is_integral_coe u.inv,
-    simp only [coe_coe, inv_eq_coe_inv, coe_inv], },
+    simp only [← coe_coe, inv_eq_coe_inv, units_to_field.map_inv], },
   { intro h,
     rw is_unit_iff_exists_inv,
     use ⟨x⁻¹, h⟩,
@@ -140,18 +144,18 @@ begin
   split,
   { rintros ⟨n, ⟨hn1, hn2⟩⟩ φ,
     lift n to ℕ+ using hn1,
-    rw [ ← coe_ext, coe_pow] at hn2,
+    rw [← units_to_field.ext, units_to_field.map_pow] at hn2,
     exact norm_map_one_of_pow_eq_one φ.to_monoid_hom hn2, },
   { intro h,
     obtain ⟨n , ⟨hn, hx⟩⟩ := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
-    exact ⟨n, ⟨hn, by { rwa [← coe_ext, coe_pow], }⟩⟩, },
+    exact ⟨n, ⟨hn, by { rwa [← units_to_field.ext, units_to_field.map_pow], }⟩⟩, },
 end
 
 lemma torsion_finite [number_field K] : finite (torsion K) :=
 begin
   suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (torsion K )}).finite,
   { exact set.finite_coe_iff.mpr (set.finite.of_finite_image this
-      ((to_field_injective K).inj_on _)), },
+      ((units_to_field.injective K).inj_on _)), },
   refine (embeddings.finite_of_norm_le K ℂ 1).subset _,
   rintros a ⟨⟨u, _, _, _⟩, ⟨hu, rfl⟩⟩,
   split,
@@ -200,29 +204,31 @@ end
 
 end torsion
 
-namespace dirichlet
+end units
 
-open number_field.canonical_embedding
+namespace units.dirichlet
+
+open number_field.canonical_embedding number_field
 
 /-- The logarithmic embedding of the units.-/
 @[reducible]
 def log_embedding : (𝓤 K) → (number_field.infinite_place K → ℝ) := λ x w, real.log (w x)
 
-open units number_field number_field.infinite_place number_field.units.dirichlet finite_dimensional
+open number_field number_field.infinite_place finite_dimensional number_field.units
 
 lemma log_embedding.map_one : log_embedding K 1 = 0 :=
-by simpa only [log_embedding, coe_one, map_one, real.log_one]
+by simpa [log_embedding, units_to_field.map_one, map_one, real.log_one]
 
 lemma log_embedding.map_mul (x y : 𝓤 K) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-by simpa only [log_embedding, real.log_mul, coe_mul, map_mul, ne.def, map_eq_zero, coe_ne_zero,
-  not_false_iff]
+by simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
+  map_mul, ne.def, map_eq_zero, not_false_iff]
 
 lemma log_embedding.map_inv (x : 𝓤 K) : log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa only [log_embedding, real.log_inv, coe_inv, map_inv₀]
+by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv]
 
-lemma log_embedding.map_pow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n * log_embedding K x :=
-by simpa only [log_embedding, map_zpow₀, real.log_zpow, coe_zpow]
+lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n * log_embedding K x :=
+by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
 
 lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
@@ -231,7 +237,7 @@ begin
   rw function.funext_iff,
   simp_rw pi.zero_apply,
   split,
-  { exact λ h w, real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr coe_ne_zero) (h w), },
+  { exact λ h w, real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) (h w), },
   { intros h w,
     simp only [h w, real.log_one], },
 end
@@ -262,28 +268,20 @@ begin
     { intros h w,
       specialize h w,
       rwa [← real.log_le_iff_le_exp, ← real.le_log_iff_exp_le],
-      all_goals { exact infinite_place.pos_iff.mpr coe_ne_zero, }},
+      all_goals { exact infinite_place.pos_iff.mpr units_to_field.ne_zero, }},
     { intros h w,
       specialize h w,
       rwa [real.log_le_iff_le_exp, real.le_log_iff_exp_le],
-      all_goals { exact infinite_place.pos_iff.mpr coe_ne_zero, }}}
+      all_goals { exact infinite_place.pos_iff.mpr units_to_field.ne_zero, }}}
 end
 
 /-- The lattice formed by the image of the logarithmic embedding.-/
--- TODO. Should be an add_subgroup
-def unit_lattice : submodule ℤ (number_field.infinite_place K → ℝ) :=
+def unit_lattice : add_subgroup (number_field.infinite_place K → ℝ) :=
 { carrier := set.range (log_embedding K),
   add_mem' :=
-  begin
-    rintros _ _ ⟨u, ⟨hu, rfl⟩⟩ ⟨v, ⟨hv, rfl⟩⟩,
-    exact ⟨u * v, log_embedding.map_mul K u v⟩,
-  end,
+    by { rintros _ _ ⟨u, hu, rfl⟩ ⟨v, hv, rfl⟩, exact ⟨u * v, log_embedding.map_mul K u v⟩, },
   zero_mem' := ⟨1, log_embedding.map_one K⟩,
-  smul_mem' :=
-  begin
-    rintros r w ⟨x, ⟨hx, rfl⟩⟩,
-    refine ⟨x ^ r, by simpa only [zsmul_eq_mul] using log_embedding.map_pow K x r⟩,
-  end }
+  neg_mem' := by { rintros _ ⟨a, rfl⟩, exact ⟨a⁻¹, log_embedding.map_inv K _⟩, }}
 
 variable [number_field K]
 
@@ -301,7 +299,7 @@ begin
   { let A := {x : 𝓤 K  | is_integral ℤ (x : K) ∧ ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp r},
     have t1 : A.finite,
     { suffices : ((coe : (𝓤 K) → K) '' A).finite,
-      { refine this.of_finite_image (set.inj_on_of_injective (to_field_injective K) _), },
+      { refine this.of_finite_image (set.inj_on_of_injective (units_to_field.injective K) _), },
       refine set.finite.subset (embeddings.finite_of_norm_le K ℂ (real.exp r)) _,
       rintros _ ⟨x, ⟨hx, rfl ⟩⟩,
       exact hx, },
@@ -365,9 +363,9 @@ begin
       simp_rw [log_embedding.component, apply_ite real.log, real.log_pow, nat.cast_two], },
     { intros x _,
       split_ifs;
-      simp only [ne.def, map_eq_zero, coe_ne_zero, not_false_iff, pow_eq_zero_iff,
+      simp only [ne.def, map_eq_zero, units_to_field.ne_zero, not_false_iff, pow_eq_zero_iff,
         nat.succ_pos'], }},
-  rw ← coe_coe,
+  rw @coe_coe (𝓤 K) (𝓞 K) K _ _ x,
   rw ← ring_of_integers.norm_apply_coe ℚ (x : 𝓞 K),
   rw ← rat.cast_abs,
   rw unit.abs_norm K x,
@@ -423,8 +421,8 @@ begin
   rwa ← t4 at t5,
 end
 
-lemma unit_lattice_le : unit_lattice K ≤ submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))
-:=
+lemma unit_lattice_le :
+  (unit_lattice K).to_int_submodule ≤ submodule.restrict_scalars ℤ (linear_map.ker (lognorm K)) :=
 begin
   rintros _ ⟨u, rfl⟩,
   rw submodule.restrict_scalars_mem,
@@ -435,12 +433,13 @@ end
 /-- The inclusion map of `unit_lattice` as a submodule of the kernel of `lognorm`.-/
 def unit_lattice_le_map := submodule.of_le (unit_lattice_le K)
 
-/-- The image of `unit_lattice` as a submodule of the kernel of `lognorm`.-/
-def unit_lattice_submodule : submodule ℤ (linear_map.ker (lognorm K)) :=
-(unit_lattice_le_map K).range
+/-- The image of `unit_lattice` as an add_subgroup of the kernel of `lognorm`.-/
+def unit_lattice_image : add_subgroup (linear_map.ker (lognorm K)) :=
+(unit_lattice_le_map K).range.to_add_subgroup
 
 /-- The lineaer equiv beween `unit_lattice` and its image in the kernel of `lognorm`.-/
-def unit_lattice_equiv : unit_lattice K ≃ₗ[ℤ] (unit_lattice_submodule K) :=
+-- TODO. What's the use of this?
+def unit_lattice_equiv : unit_lattice K ≃ₗ[ℤ] (unit_lattice_image K) :=
 begin
   refine linear_equiv.of_bijective (unit_lattice_le_map K).range_restrict _,
   split,
@@ -452,8 +451,8 @@ begin
     use u, refl, },
 end
 
-lemma unit_lattice_submodule_discrete (r : ℝ) :
-  ((unit_lattice_submodule K : set (linear_map.ker (lognorm K))) ∩ (metric.closed_ball 0 r)).finite
+lemma unit_lattice_image_discrete (r : ℝ) :
+  ((unit_lattice_image K : set (linear_map.ker (lognorm K))) ∩ (metric.closed_ball 0 r)).finite
   :=
 begin
   refine set.finite.of_finite_image _ (set.inj_on_of_injective (submodule.injective_subtype _) _),
@@ -479,7 +478,7 @@ variable (K)
 /-- The linear map between the ℝ-module spanned by `unit_lattice` and the subspace with the place
 `w₀` deleted.-/
 def unit_lattice_span_map :
-  submodule.span ℝ (unit_lattice_submodule K : set (linear_map.ker (lognorm K)))
+  submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K)))
     →ₗ[ℝ] ({w : infinite_place K // w ≠ w₀} → ℝ) :=
 { to_fun := λ v w, ite ((w : infinite_place K).is_real)
     ((v : number_field.infinite_place K → ℝ) w) (2 * ((v : number_field.infinite_place K → ℝ) w)),
@@ -488,23 +487,22 @@ def unit_lattice_span_map :
     intros _ _,
     ext,
     split_ifs,
-    { sorry; simp [coe_coe, submodule.coe_add, pi.add_apply, if_pos h, coe_coe, submodule.coe_add,
-        pi.add_apply, add_left_inj, eq_self_iff_true], },
-    { sorry; simp [coe_coe, submodule.coe_add, pi.add_apply, if_neg h, mul_add], },
+    { simp only [if_pos h, _root_.coe_coe, submodule.coe_add, pi.add_apply], },
+    { simp only [submodule.coe_add, pi.add_apply, if_neg h, mul_add, _root_.coe_coe], },
   end,
   map_smul' :=
   begin
     intros s x,
     ext,
     split_ifs,
-    { sorry; simp only [if_pos h, coe_coe, submodule.coe_smul_of_tower, pi.smul_apply,
+    { simp only [if_pos h, coe_coe, submodule.coe_smul_of_tower, pi.smul_apply,
         ring_hom.id_apply], },
     { simp only [if_neg h, coe_coe, submodule.coe_smul_of_tower, pi.smul_apply,
         algebra.id.smul_eq_mul, ring_hom.id_apply],
-      sorry; ring, },
+      ring, },
   end, }
 
-  lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal}
+lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal}
   (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
     ∃ C : nnreal, finset.univ.prod (λ v : infinite_place K, ite (v.is_real) (f.update w C v)
     ((f.update w C v) ^ 2)) = B :=
@@ -763,7 +761,7 @@ begin
     specialize hu z hz,
     refine real.log_neg _ _,
     { rw pos_iff,
-    exact coe_ne_zero, },
+    exact units_to_field.ne_zero, },
     { exact hu, }},
 end
 
@@ -819,11 +817,11 @@ end
 
 lemma unit_lattice.full_lattice :
   ∃ v : {w : infinite_place K // w ≠ w₀} →
-    submodule.span ℝ (unit_lattice_submodule K : set (linear_map.ker (lognorm K))),
+    submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K))),
     linear_independent ℝ (unit_lattice_span_map K ∘ v) :=
 begin
   let z : {w : infinite_place K // w ≠ w₀} →
-    submodule.span ℝ (unit_lattice_submodule K : set (linear_map.ker (lognorm K))) :=
+    submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K))) :=
   begin
     intro w,
     let x := (exists_elem K ↑w).some,
@@ -833,6 +831,7 @@ begin
     refine submodule.subset_span _,
     use x,
     exact p.1,
+    exact rfl,
   end,
   use z,
   let B := pi.basis_fun ℝ {w : infinite_place K // w ≠ w₀},
@@ -881,7 +880,7 @@ begin
 end
 
 lemma unit_lattice.full_lattice' :
-  submodule.span ℝ (unit_lattice_submodule K : set (linear_map.ker (lognorm K))) = ⊤ :=
+  submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K))) = ⊤ :=
 begin
   refine eq_of_le_of_finrank_le (le_top) _,
   rw finrank_top,
@@ -895,33 +894,23 @@ begin
   simpa only [fintype.card_subtype_compl, fintype.card_subtype_eq],
 end
 
-lemma unit_lattice_add_subgroup_discrete (r : ℝ) :
-  (((unit_lattice_submodule K).to_add_subgroup : set (linear_map.ker (lognorm K)))
-    ∩ (metric.closed_ball 0 r)).finite
-  := sorry
-
-
-lemma unit_lattice.module.free : module.free ℤ (unit_lattice_submodule K) :=
+lemma unit_lattice.module.free : module.free ℤ (unit_lattice_image K) :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-
-  exact zlattice.module.free ((unit_lattice_add_subgroup_discrete K)) (unit_lattice.full_lattice' K),
---  let b := zlattice.basis (unit_lattice_submodule_discrete K) (unit_lattice.full_lattice' K),
---  let c := basis.map b.2 (unit_lattice_equiv K).symm,
---  exact ⟨b.1, c⟩,
+  exact zlattice.module.free ((unit_lattice_image_discrete K)) (unit_lattice.full_lattice' K),
 end
 
-lemma unit_lattice.dim : finrank ℤ (unit_lattice_submodule K) = unit_rank K :=
+lemma unit_lattice.dim : finrank ℤ (unit_lattice_image K) = unit_rank K :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
   haveI : module ℚ (linear_map.ker (lognorm K)) := sorry,
-  have := zlattice.rank (unit_lattice_add_subgroup_discrete K) (unit_lattice.full_lattice' K),
+  have := zlattice.rank (unit_lattice_image_discrete K) (unit_lattice.full_lattice' K),
   rw rank_ker K at this,
   exact this,
 end
 
-end dirichlet
+end units.dirichlet
 
-end number_field.units
+end number_field

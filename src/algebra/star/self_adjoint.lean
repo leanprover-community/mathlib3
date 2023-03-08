@@ -200,6 +200,21 @@ by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
 instance : inhabited (self_adjoint R) := ⟨0⟩
 
+/-- The (trivial) star operator on `self_adjoint R` inherited from `R`. -/
+instance : star_add_monoid (self_adjoint R) :=
+{ star := λ x, ⟨star x, is_self_adjoint.star_iff.mpr x.prop⟩,
+  star_involutive := λ x, subtype.ext $ star_star _,
+  star_add := λ x y, subtype.ext $ star_add _ _ }
+
+lemma coe_star (x : self_adjoint R) : ↑(star x) = star (x : R) := rfl
+
+instance : has_trivial_star (self_adjoint R) :=
+{ star_trivial := λ x, subtype.ext $ x.prop }
+
+/-- When the `star` operation is trivial, `self_adjoint R` is just `⊤`. -/
+@[simp] lemma eq_top [has_trivial_star R] : self_adjoint R = ⊤ :=
+(add_subgroup.eq_top_iff' _).mpr is_self_adjoint.all
+
 end add_group
 
 section ring
@@ -336,6 +351,17 @@ instance : inhabited (skew_adjoint R) := ⟨0⟩
 
 lemma bit0_mem {x : R} (hx : x ∈ skew_adjoint R) : bit0 x ∈ skew_adjoint R :=
 by rw [mem_iff, star_bit0, mem_iff.mp hx, bit0, bit0, neg_add]
+
+/-- The star operator on `skew_adjoint R` inherited from `R`. -/
+instance : star_add_monoid (skew_adjoint R) :=
+{ star := λ x, ⟨star x, (star_star _).trans $ eq_neg_of_eq_neg x.prop⟩,
+  star_involutive := λ x, subtype.ext $ star_star _,
+  star_add := λ x y, subtype.ext $ star_add _ _ }
+
+lemma coe_star (x : skew_adjoint R) : ↑(star x) = star (x : R) := rfl
+
+@[simp] lemma star_eq_neg : (star : skew_adjoint R → skew_adjoint R) = has_neg.neg :=
+funext $ λ x, subtype.ext $ x.prop
 
 end add_group
 

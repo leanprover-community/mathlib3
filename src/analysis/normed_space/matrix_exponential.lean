@@ -199,15 +199,30 @@ lemma exp_units_conj' (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
   exp 𝕂 (↑(U⁻¹) ⬝ A ⬝ U : matrix m m 𝔸) = ↑(U⁻¹) ⬝ exp 𝕂 A ⬝ U :=
 exp_units_conj 𝕂 U⁻¹ A
 
+#check is_self_adjoint
 
 lemma is_hermitian.pos_def_exp {R} [is_R_or_C R] [normed_algebra 𝕂 R] {A : matrix m m R}
   (h : A.is_hermitian) : (exp 𝕂 A).pos_def :=
 ⟨h.exp _, λ x hx, begin
-  have : commute ((1 / 2 : R) • A) ((1 / 2 : R) • A) := commute.refl _,
-  rw [←one_smul R A, ← half_add_self (1 : R), add_div, add_smul,
-    exp_add_of_commute 𝕂 _ _ this, ←matrix.mul_vec_mul_vec, dot_product_mul_vec],
-  rw [←h.eq] {occs := occurrences.pos [1]},
-  rw ←conj_transpose_smul (1 / 2 : R),
+  let A' := (2⁻¹ : R) • A,
+  have hA' : A'.is_hermitian, {sorry},
+  have hA_eq : A = (A' + A'ᴴ),
+  { dsimp only [A'],
+    rwa [conj_transpose_smul, h.eq, ←add_smul, star_inv', star_bit0, star_one, ←two_mul,
+      mul_inv_cancel two_ne_zero, one_smul],
+    sorry },
+  rw hA_eq,
+  have : commute A' A'ᴴ := sorry,
+  calc 0 < ‖(exp 𝕂 A')ᴴ.mul_vec x‖^2 : sorry
+    ... = _ : _,
+  rw ←inner_self_eq_norm_sq ((exp 𝕂 A')ᴴ.mul_vec x),
+  rw [exp_add_of_commute 𝕂 _ _ this, ←matrix.mul_vec_mul_vec, dot_product_mul_vec,
+    exp_conj_transpose,
+    ←mul_vec_conj_transpose, matrix.dot_product, map_sum],
+  apply finset.sum_pos',
+   -- star_mul_self_nonneg'],
+  -- rw [←h.eq] {occs := occurrences.pos [1]},
+  -- rw ←conj_transpose_smul (1 / 2 : R),
 end⟩
 
 

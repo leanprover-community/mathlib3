@@ -129,16 +129,10 @@ to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
 lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ 1 < x ∧ 0 < y :=
 begin
-  obtain ⟨x', y', h, hy₀⟩ := exists_of_not_is_square h₀ hd,
-  refine ⟨|x'|, |y'|, by rw [sq_abs, sq_abs, h], _, abs_pos.mpr hy₀⟩,
-  by_contra' hf,
-  cases eq_or_gt_of_le (abs_nonneg x') with H H,
-  { rw [abs_eq_zero.mp H, pow_two, zero_mul, zero_sub, neg_eq_iff_add_eq_zero] at h,
-    exact (by positivity : d * y' ^ 2 + 1 ≠ 0) h, },
-  { change 1 ≤ |x'| at H,
-    rw [← sq_abs, ge_antisymm H hf, one_pow, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', sub_self,
-        zero_eq_mul, pow_eq_zero_iff'] at h,
-    exact hy₀ (h.resolve_left h₀.ne').1, }
+  obtain ⟨x, y, h, hy⟩ := exists_of_not_is_square h₀ hd,
+  refine ⟨|x|, |y|, by rwa [sq_abs, sq_abs], _, abs_pos.mpr hy⟩,
+  rw [← one_lt_sq_iff_one_lt_abs, eq_add_of_sub_eq h, lt_add_iff_pos_right],
+  exact mul_pos h₀ (sq_pos_of_ne_zero y hy),
 end
 
 end existence

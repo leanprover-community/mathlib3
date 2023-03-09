@@ -47,9 +47,9 @@ We also show a converse,
 Both statements are combined to give an equivalence,
 `real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational`.
 
-There are two versions of Legendre's Theorem. One, `real.ex_rat_eq_convergent`, uses
+There are two versions of Legendre's Theorem. One, `real.exists_rat_eq_convergent`, uses
 `real.convergent`, a simple recursive definition of the convergents that is also defined
-in this file, whereas the other, `real.ex_continued_fraction_convergent_eq_rat`, uses
+in this file, whereas the other, `real.exists_continued_fraction_convergent_eq_rat`, uses
 `generalized_continued_fraction.convergents` of `generalized_continued_fraction.of ξ`.
 
 ## Implementation notes
@@ -522,7 +522,7 @@ namespace real
 open contfrac_legendre int
 
 /-- The technical version of *Legendre's Theorem*. -/
-lemma ex_rat_eq_convergent' {ξ : ℝ} {u : ℤ} {v : ℕ} (h : ass ξ u v) :
+lemma exists_rat_eq_convergent' {ξ : ℝ} {u : ℤ} {v : ℕ} (h : ass ξ u v) :
   ∃ n, (u / v : ℚ) = ξ.convergent n :=
 begin
   induction v using nat.strong_induction_on with v ih generalizing ξ u,
@@ -572,7 +572,7 @@ include h
 if `ξ` is a real number and  `q` is a rational number such that `|ξ - q| < 1/(2*q.denom^2)`,
 then `q` is a convergent of the continued fraction expansion of `ξ`.
 This version uses `real.convergent`. -/
-lemma ex_rat_eq_convergent : ∃ n, q = ξ.convergent n :=
+lemma exists_rat_eq_convergent : ∃ n, q = ξ.convergent n :=
 begin
   have hass : ass ξ q.num q.denom,
   { refine ⟨_, λ hd, _, _⟩,
@@ -588,7 +588,7 @@ begin
       rw ← coe_coe at *,
       rw [(by norm_cast : (q.num / q.denom : ℝ) = (q.num / q.denom : ℚ)), rat.num_div_denom],
       exact h.trans (by {rw [sq, one_div_lt_one_div hq₂ hq₁, ← sub_pos], ring_nf, exact hq₀}) } },
-  convert ex_rat_eq_convergent' hass,
+  convert exists_rat_eq_convergent' hass,
   simp only [rat.num_div_denom],
 end
 
@@ -596,10 +596,10 @@ end
 if `ξ` is a real number and  `q` is a rational number such that `|ξ - q| < 1/(2*q.denom^2)`,
 then `q` is a convergent of the continued fraction expansion of `ξ`.
 This is the version using `generalized_contined_fraction.convergents`. -/
-lemma ex_continued_fraction_convergent_eq_rat :
+lemma exists_continued_fraction_convergent_eq_rat :
   ∃ n, (generalized_continued_fraction.of ξ).convergents n = q :=
 begin
-  obtain ⟨n, hn⟩ := ex_rat_eq_convergent h,
+  obtain ⟨n, hn⟩ := exists_rat_eq_convergent h,
   exact ⟨n, (continued_fraction_convergent_eq_convergent ξ n).trans (congr_arg coe hn.symm)⟩,
 end
 

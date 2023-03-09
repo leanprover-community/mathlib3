@@ -47,7 +47,7 @@ We also show a converse,
 Both statements are combined to give an equivalence,
 `real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational`.
 
-There are two versions od Legendre's Theorem. One, `real.ex_rat_eq_convergent`, uses
+There are two versions of Legendre's Theorem. One, `real.ex_rat_eq_convergent`, uses
 `real.convergent`, a simple recursive definition of the convergents that is also defined
 in this file, whereas the other, `real.ex_continued_fraction_convergent_eq_rat`, uses
 `generalized_continued_fraction.convergents` of `generalized_continued_fraction.of ξ`.

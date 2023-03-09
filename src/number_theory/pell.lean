@@ -122,6 +122,23 @@ begin
   simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
 end
 
+/-- If `d` is a positive integer that is not a square, then there exists a solution
+to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
+lemma exists_pos_of_not_is_square {d : ℤ} (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ 1 < x ∧ 0 < y :=
+begin
+  obtain ⟨x', y', h, hy₀⟩ := exists_of_not_is_square h₀ hd,
+  refine ⟨|x'|, |y'|, by rw [sq_abs, sq_abs, h], _, abs_pos.mpr hy₀⟩,
+  by_contra' hf,
+  cases eq_or_gt_of_le (abs_nonneg x') with H H,
+  { rw [abs_eq_zero.mp H, pow_two, zero_mul, zero_sub, neg_eq_iff_add_eq_zero] at h,
+    exact (by positivity : d * y' ^ 2 + 1 ≠ 0) h, },
+  { change 1 ≤ |x'| at H,
+    rw [← sq_abs, ge_antisymm H hf, one_pow, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', sub_self,
+        zero_eq_mul, pow_eq_zero_iff'] at h,
+    exact hy₀ (h.resolve_left h₀.ne').1, }
+end
+
 end existence
 
 end pell

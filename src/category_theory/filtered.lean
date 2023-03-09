@@ -83,7 +83,7 @@ class is_filtered extends is_filtered_or_empty C : Prop :=
 instance is_filtered_or_empty_of_semilattice_sup
   (α : Type u) [semilattice_sup α] : is_filtered_or_empty α :=
 { cocone_objs := λ X Y, ⟨X ⊔ Y, hom_of_le le_sup_left, hom_of_le le_sup_right, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by ext)⟩, }
+  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by { ext?})⟩, }
 
 @[priority 100]
 instance is_filtered_of_semilattice_sup_nonempty
@@ -107,7 +107,7 @@ example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by
 
 instance : is_filtered (discrete punit) :=
 { cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, by { ext?,dec_trivial }⟩,
   nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_filtered
@@ -218,7 +218,10 @@ begin
       by_cases hf : f = f',
       { subst hf,
         apply coeq_condition, },
-      { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
+      { rw @w' _ _ mX mY f',-- (by simpa [hf ∘ eq.symm] using mf')
+        sorry,
+        }, },
+      --{ rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
     { rw @w' _ _ mX' mY' f' _,
       apply finset.mem_of_mem_insert_of_ne mf',
       contrapose! h,
@@ -648,7 +651,7 @@ lemma inf_to_commutes
 (inf_exists O H).some_spec.some_spec mX mY mf
 
 variables {J : Type w} [small_category J] [fin_category J]
-
+#check finset.bUnion
 /--
 If we have `is_cofiltered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
 there exists a cone over `F`.

@@ -43,7 +43,7 @@ def punit_cocone_is_colimit {c : cocone F} : is_colimit c :=
 by tidy
 
 instance : has_limits_of_size.{v' v} (discrete punit) :=
-by tidy
+by tidy?
 
 instance : has_colimits_of_size.{v' v} (discrete punit) :=
 by tidy

@@ -99,7 +99,6 @@ begin
     simp, },
 end
 
-
 -- nedd to fix s_neg (h : k < 0) : s R n k = 0
 
 -- n = k case
@@ -231,21 +230,20 @@ begin
   },
 end
 
-open_locale classical
+-- lemma mv_polynomial.monomial_dvd_iff (σ : Type*)  [fintype σ] (R : Type*) [comm_ring R] (s : σ →₀ ℕ) (a : R) (i : σ):
 
--- (maybe shld be put into mv_polynomial api)
-lemma mv_polynomial.dvd_iff (σ : Type*)  [fintype σ] (R : Type*) [comm_ring R] (p : mv_polynomial σ R) (i : σ): mv_polynomial.eval₂ mv_polynomial.C (λ t, if t = i then 0 else mv_polynomial.X t) p = 0 → mv_polynomial.X i ∣ p :=
+
+lemma mv_polynomial.dvd_iff (σ : Type*)  [fintype σ] (R : Type*) [comm_ring R] (p : mv_polynomial σ R) (i : σ) [decidable_eq σ]: mv_polynomial.eval₂ mv_polynomial.C (λ t, if t = i then 0 else mv_polynomial.X t) p = 0 → mv_polynomial.X i ∣ p :=
 begin
+  --apply mv_polynomial.induction
+
   sorry
 end
 
 lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=
 begin
-  intro i,
-  -- have h0 : mv_polynomial.X i = 0 → f R n k = 0,
-  -- {
-  --   sorry
-  -- },
+
+
 
   sorry,
 
@@ -257,6 +255,57 @@ begin
   sorry
 end
 
+lemma p_symmetric (n k : ℕ) : (p R n k).is_symmetric :=
+begin
+  dunfold p,
+  dunfold mv_polynomial.is_symmetric,
+  intro e,
+
+  sorry
+end
+
+lemma newt_is_symmetric (n k : ℕ) (hkn : k ≤ n) : (f R n k).is_symmetric :=
+begin
+  dunfold f,
+  apply mv_polynomial.is_symmetric.add,
+  {
+    apply mv_polynomial.is_symmetric.mul,
+    { apply mv_polynomial.is_symmetric.sub;
+      rw ← mv_polynomial.C_eq_coe_nat;
+      exact mv_polynomial.is_symmetric.C _, },
+    { rw s_symm,
+      apply mv_polynomial.is_symmetric.mul,
+      { cases neg_one_pow_eq_or _ (n - (n - k)) with h1 h2,
+        { rw h1, exact mv_polynomial.is_symmetric.one, },
+        { rw h2, exact mv_polynomial.is_symmetric.neg (mv_polynomial.is_symmetric.one), }, },
+      exact mv_polynomial.esymm_is_symmetric _ _ _,
+      simp only [tsub_le_self], },
+  },
+  {
+    apply mv_polynomial.is_symmetric.sum,
+    intros a ha,
+    apply mv_polynomial.is_symmetric.mul,
+    {
+      by_cases (n - k + a ≤ n),
+      { rw s_symm,
+        apply mv_polynomial.is_symmetric.mul,
+        {
+          cases neg_one_pow_eq_or _ (n - (n - k + a)) with h1 h2,
+          { rw h1, exact mv_polynomial.is_symmetric.one, },
+          { rw h2, exact mv_polynomial.is_symmetric.neg (mv_polynomial.is_symmetric.one), },
+        },
+        {
+          exact mv_polynomial.esymm_is_symmetric _ _ _,
+        },
+        exact h, },
+      { push_neg at h,
+        rw s_big,
+        exact mv_polynomial.is_symmetric.zero,
+        exact h, },
+    },
+    { exact p_symmetric _ _ _, },
+  },
+end
 
 lemma newt_klen (h : k ≤ n) : f R n k = 0 :=
 --∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
@@ -291,7 +340,7 @@ begin
       clear hdiv',
       cases hdiv with g hg,
       by_contra he,
-      have hn : (s R n 0).total_degree + g.total_degree ≤ (f R n k).total_degree,
+      have hn : (f R n k).total_degree = (s R n 0).total_degree + g.total_degree,
       {
         sorry
       },
@@ -303,8 +352,9 @@ begin
         cases neg_one_pow_eq_or _ n;
         rw [h_2]; simp,
         },
-      have hl := le_trans (le_trans hn (newt_degree _ _ _ h)) hle,
+      have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
       have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
+      simp only [tsub_zero] at hl,
       have H := add_le_add le_rfl gdeg,
       swap, use n,
       have H' := le_trans H hl,
@@ -312,7 +362,7 @@ begin
       norm_num at H',
       rw nat.succ_sub_one at H',
       exact nat.not_succ_le_self n H',
-    },
+      },
   },
 end
 

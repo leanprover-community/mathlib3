@@ -266,9 +266,9 @@ section zlattice
 
 open submodule
 
-variables {K : Type*} [normed_lattice_field K] [floor_ring K]
-variables {E : Type*} [normed_add_comm_group E] [normed_space K E]
-variables [finite_dimensional K E] {L : add_subgroup E}
+variables (K : Type*) [normed_lattice_field K] [floor_ring K]
+variables {E : Type*} [normed_add_comm_group E] [normed_space K E] [finite_dimensional K E]
+variables {L : add_subgroup E}
 variables (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
 variables (hs : span K (L : set E) = ⊤)
 
@@ -321,28 +321,27 @@ lemma zlattice.module.finite : module.finite ℤ L :=
 begin
 rw [module.finite.iff_add_group_fg, add_group.fg_iff_add_monoid.fg],
 exact (add_monoid.fg_iff_add_submonoid_fg _).mpr
-  ((add_subgroup.fg_iff_add_submonoid.fg L).mp (zlattice.fg hd hs)),
+  ((add_subgroup.fg_iff_add_submonoid.fg L).mp (zlattice.fg K hd hs)),
 end
-
-variable [no_zero_smul_divisors ℤ E]
 
 lemma zlattice.module.free : module.free ℤ L :=
 begin
-  haveI : module.finite ℤ L := zlattice.module.finite hd hs,
+  haveI : module.finite ℤ L := zlattice.module.finite K hd hs,
+  haveI : module ℚ E := module.comp_hom E (algebra_map ℚ K),
+  haveI : no_zero_smul_divisors ℤ E := rat_module.no_zero_smul_divisors,
   haveI : no_zero_smul_divisors ℤ L,
   { change no_zero_smul_divisors ℤ L.to_int_submodule,
     exact submodule.no_zero_smul_divisors _, },
   exact module.free_of_finite_type_torsion_free',
 end
 
-variables [module ℚ E]
-
 open finite_dimensional
 
 lemma zlattice.rank : finrank ℤ L = finrank K E :=
 begin
-  haveI : module.finite ℤ L := zlattice.module.finite hd hs,
-  haveI : module.free ℤ L := zlattice.module.free hd hs,
+  haveI : module.finite ℤ L := zlattice.module.finite K hd hs,
+  haveI : module.free ℤ L := zlattice.module.free K hd hs,
+  haveI : module ℚ E := module.comp_hom E (algebra_map ℚ K),
   let b := module.free.choose_basis ℤ L,
   have h_spaneq : span ℤ (set.range ((coe : L → E) ∘ b)) = L.to_int_submodule,
   { convert congr_arg (submodule.map L.to_int_submodule.subtype) b.span_eq,

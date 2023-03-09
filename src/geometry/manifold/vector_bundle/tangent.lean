@@ -30,7 +30,7 @@ This defines a smooth vector bundle `tangent_bundle` with fibers `tangent_space`
 -/
 
 open bundle set smooth_manifold_with_corners local_homeomorph
-open_locale manifold topology
+open_locale manifold topology bundle
 
 noncomputable theory
 
@@ -151,25 +151,75 @@ instance : inhabited (tangent_space I x) := ⟨0⟩
 end
 
 instance : topological_space TM :=
-(tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space
+(tangent_bundle_core I M).to_topological_space
 
 instance : fiber_bundle E (tangent_space I : M → Type*) :=
-(tangent_bundle_core I M).to_fiber_bundle_core.fiber_bundle
+(tangent_bundle_core I M).fiber_bundle
 
 instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).vector_bundle
 
-lemma tangent_space_chart_at (p : TM) :
+namespace tangent_bundle
+
+protected lemma chart_at (p : TM) :
   chart_at (model_prod H E) p =
     ((tangent_bundle_core I M).to_fiber_bundle_core.local_triv (achart H p.1))
       .to_local_homeomorph ≫ₕ (chart_at H p.1).prod (local_homeomorph.refl E) :=
 rfl
 
-lemma tangent_space_chart_at_to_local_equiv (p : TM) :
+lemma chart_at_to_local_equiv (p : TM) :
   (chart_at (model_prod H E) p).to_local_equiv =
     (tangent_bundle_core I M).to_fiber_bundle_core.local_triv_as_local_equiv (achart H p.1) ≫
     (chart_at H p.1).to_local_equiv.prod (local_equiv.refl E) :=
 rfl
+
+lemma trivialization_at_eq_local_triv (x : M) :
+  trivialization_at E (tangent_space I) x =
+  (tangent_bundle_core I M).to_fiber_bundle_core.local_triv (achart H x) :=
+rfl
+
+@[simp, mfld_simps]
+lemma trivialization_at_source (x : M) :
+  (trivialization_at E (tangent_space I) x).source = π _ ⁻¹' (chart_at H x).source :=
+rfl
+
+@[simp, mfld_simps]
+lemma trivialization_at_target (x : M) :
+  (trivialization_at E (tangent_space I) x).target = (chart_at H x).source ×ˢ univ :=
+rfl
+
+@[simp, mfld_simps]
+lemma trivialization_at_base_set (x : M) :
+  (trivialization_at E (tangent_space I) x).base_set = (chart_at H x).source :=
+rfl
+
+lemma trivialization_at_apply (x : M) (z : TM) :
+  trivialization_at E (tangent_space I) x z =
+  (z.1, fderiv_within 𝕜 ((chart_at H x).extend I ∘ ((chart_at H z.1).extend I).symm) (range I)
+    ((chart_at H z.1).extend I z.1) z.2) :=
+rfl
+
+@[simp, mfld_simps]
+lemma trivialization_at_fst (x : M) (z : TM) :
+  (trivialization_at E (tangent_space I) x z).1 = z.1 :=
+rfl
+
+@[simp, mfld_simps] lemma mem_chart_source_iff (p q : TM) :
+  p ∈ (chart_at (model_prod H E) q).source ↔ p.1 ∈ (chart_at H q.1).source :=
+by simp only [fiber_bundle.charted_space_chart_at] with mfld_simps
+
+@[simp, mfld_simps] lemma mem_chart_target_iff (p : H × E) (q : TM) :
+  p ∈ (chart_at (model_prod H E) q).target ↔ p.1 ∈ (chart_at H q.1).target :=
+by simp only [fiber_bundle.charted_space_chart_at, and_iff_left_iff_imp] with mfld_simps
+  {contextual := tt}
+
+@[simp, mfld_simps] lemma coe_chart_at_fst (p q : TM) :
+  ((chart_at (model_prod H E) q) p).1 = chart_at H q.1 p.1 := rfl
+
+@[simp, mfld_simps] lemma coe_chart_at_symm_fst (p : H × E) (q : TM) :
+  ((chart_at (model_prod H E) q).symm p).1 = ((chart_at H q.1).symm : H → M) p.1 := rfl
+
+end tangent_bundle
 
 instance tangent_bundle_core.is_smooth : (tangent_bundle_core I M).is_smooth I :=
 begin

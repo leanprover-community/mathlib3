@@ -1495,7 +1495,7 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  simp only [continuous_linear_map.coe_coe, tangent_space_chart_at, h,
+  simp only [continuous_linear_map.coe_coe, tangent_bundle.chart_at, h,
     tangent_bundle_core, chart_at, sigma.mk.inj_iff] with mfld_simps,
 end
 

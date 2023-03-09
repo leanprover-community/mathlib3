@@ -257,10 +257,10 @@ begin
   /- First step: local reduction on the space, to a set `s'` which is contained in chart domains. -/
   refine cont_mdiff_on_of_locally_cont_mdiff_on (λp hp, _),
   have hf' := cont_mdiff_on_iff.1 hf,
-  simp at hp,
-  let l  := chart_at H p.1,
+  simp only with mfld_simps at hp,
+  let l  := chart_at H p.proj,
   set Dl := chart_at (model_prod H E) p with hDl,
-  let r  := chart_at H' (f p.1),
+  let r  := chart_at H' (f p.proj),
   let Dr := chart_at (model_prod H' E') (tangent_map_within I I' f s p),
   let il := chart_at (model_prod H E) (tangent_map I I l p),
   let ir := chart_at (model_prod H' E') (tangent_map I I' (r ∘ f) p),
@@ -275,7 +275,7 @@ begin
       (is_open.inter o_open l.open_source).preimage (continuous_proj E _) ,
     show p ∈ π (tangent_space I) ⁻¹' (o ∩ l.source),
     { simp,
-      have : p.1 ∈ f ⁻¹' r.source ∩ s, by simp [hp],
+      have : p.proj ∈ f ⁻¹' r.source ∩ s, by simp [hp],
       rw ho at this,
       exact this.1 },
     { have : π (tangent_space I) ⁻¹' s ∩ π (tangent_space I) ⁻¹' (o ∩ l.source) = s'_lift,
@@ -319,7 +319,7 @@ begin
       cont_mdiff_on_chart_symm,
     apply cont_mdiff_on.comp A diff_irrfl_lift (λp hp, _),
     simp only [s'l_lift] with mfld_simps at hp,
-    simp only [ir, @local_equiv.refl_coe (model_prod H' E'), hp] with mfld_simps, sorry },
+    simp only [ir, hp] with mfld_simps },
   -- conclusion of this step: the composition of all the maps above is smooth
   have diff_DrirrflilDl : cont_mdiff_on I.tangent I'.tangent m
     (Dr.symm ∘ (ir ∘ (tangent_map_within I I' (r ∘ f ∘ l.symm) s'l)) ∘
@@ -328,14 +328,14 @@ begin
     have A' : cont_mdiff_on I.tangent I.tangent m Dl s'_lift,
     { apply A.mono (λp hp, _),
       simp only [s'_lift] with mfld_simps at hp,
-      simp only [Dl, hp] with mfld_simps, sorry },
+      simp only [Dl, hp] with mfld_simps },
     have B : cont_mdiff_on I.tangent I.tangent m il.symm il.target :=
       cont_mdiff_on_chart_symm,
     have C : cont_mdiff_on I.tangent I.tangent m (il.symm ∘ Dl) s'_lift :=
       cont_mdiff_on.comp B A' (λp hp, by simp only [il] with mfld_simps),
     apply cont_mdiff_on.comp diff_Drirrfl_lift C (λp hp, _),
     simp only [s'_lift] with mfld_simps at hp,
-    simp only [il, s'l_lift, hp] with mfld_simps, sorry },
+    simp only [il, s'l_lift, hp, total_space.proj] with mfld_simps },
   /- Third step: check that the composition of all the maps indeed coincides with the derivative we
   are looking for -/
   have eq_comp : ∀q ∈ s'_lift, tangent_map_within I I' f s q =
@@ -346,26 +346,26 @@ begin
     have U'q : unique_mdiff_within_at I s' q.1,
       by { apply U', simp only [hq, s'] with mfld_simps },
     have U'lq : unique_mdiff_within_at I s'l (Dl q).1,
-      by { apply U'l, simp only [hq, s'l] with mfld_simps, sorry },
+      by { apply U'l, simp only [hq, s'l] with mfld_simps },
     have A : tangent_map_within I I' ((r ∘ f) ∘ l.symm) s'l (il.symm (Dl q)) =
       tangent_map_within I I' (r ∘ f) s' (tangent_map_within I I l.symm s'l (il.symm (Dl q))),
     { refine tangent_map_within_comp_at (il.symm (Dl q)) _ _ (λp hp, _) U'lq,
       { apply diff_rf.mdifferentiable_on one_le_n,
-        simp only [hq] with mfld_simps, sorry },
+        simp only [hq] with mfld_simps },
       { apply diff_l.mdifferentiable_on one_le_n,
-        simp only [s'l, hq] with mfld_simps, sorry },
+        simp only [s'l, hq] with mfld_simps },
       { simp only with mfld_simps at hp, simp only [hp] with mfld_simps } },
     have B : tangent_map_within I I l.symm s'l (il.symm (Dl q)) = q,
     { have : tangent_map_within I I l.symm s'l (il.symm (Dl q))
         = tangent_map I I l.symm (il.symm (Dl q)),
       { refine tangent_map_within_eq_tangent_map U'lq _,
         refine mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) _,
-        simp only [hq] with mfld_simps, sorry },
+        simp only [hq] with mfld_simps },
       rw [this, tangent_map_chart_symm, hDl],
       { simp only [hq] with mfld_simps,
-        have : q ∈ (chart_at (model_prod H E) p).source, { /-simp only [hq] with mfld_simps,-/ sorry },
+        have : q ∈ (chart_at (model_prod H E) p).source, { simp only [hq] with mfld_simps },
         exact (chart_at (model_prod H E) p).left_inv this },
-      { simp only [hq] with mfld_simps, sorry } },
+      { simp only [hq] with mfld_simps } },
     have C : tangent_map_within I I' (r ∘ f) s' q
       = tangent_map_within I' I' r r.source (tangent_map_within I I' f s' q),
     { refine tangent_map_within_comp_at q _ _ (λr hr, _) U'q,
@@ -383,14 +383,14 @@ begin
         { apply is_open.unique_mdiff_within_at _ r.open_source, simp [hq] },
         { refine mdifferentiable_at_atlas _ (chart_mem_atlas _ _) _,
           simp only [hq] with mfld_simps } },
-      have : f p.1 = (tangent_map_within I I' f s p).1 := rfl,
+      have : f p.proj = (tangent_map_within I I' f s p).1 := rfl,
       rw [A],
       dsimp [r, Dr],
       rw [this, tangent_map_chart],
       { simp only [hq] with mfld_simps,
         have : tangent_map_within I I' f s' q ∈
           (chart_at (model_prod H' E') (tangent_map_within I I' f s p)).source,
-            by { simp only [hq] with mfld_simps, sorry },
+            by { simp only [hq] with mfld_simps },
         exact (chart_at (model_prod H' E') (tangent_map_within I I' f s p)).left_inv this },
       { simp only [hq] with mfld_simps } },
     have E : tangent_map_within I I' f s' q = tangent_map_within I I' f s q,
@@ -458,7 +458,7 @@ begin
     have : ((chart_at H x.1).symm (I.symm a), b) ∈ (trivialization_at F₁ Z x.fst).target,
     { simp only [hab] with mfld_simps },
     simp only [trivialization.proj_symm_apply _ this, hab] with mfld_simps },
-  { simp only with mfld_simps, sorry }
+  { simp only [local_homeomorph.extend] with mfld_simps }
 end
 
 lemma smooth_proj : smooth (I.prod 𝓘(𝕜, F₁)) I (π Z) :=
@@ -526,7 +526,7 @@ may seem.
 
 TODO define splittings of vector bundles; state this result invariantly. -/
 lemma tangent_map_tangent_bundle_pure (p : tangent_bundle I M) :
-  tangent_map I I.tangent (tangent_bundle.zero_section I M) p = ⟨⟨p.1, 0⟩, ⟨p.2, 0⟩⟩ :=
+  tangent_map I I.tangent (tangent_bundle.zero_section I M) p = ⟨⟨p.proj, 0⟩, ⟨p.2, 0⟩⟩ :=
 begin
   rcases p with ⟨x, v⟩,
   have N : I.symm ⁻¹' (chart_at H x).target ∈ 𝓝 (I ((chart_at H x) x)),
@@ -543,18 +543,18 @@ begin
     { exact differentiable_at_const _ },
     { exact model_with_corners.unique_diff_at_image I },
     { exact differentiable_at_id'.prod (differentiable_at_const _) } },
-  simp only [tangent_bundle.zero_section, tangent_map, mfderiv,
-    A, if_pos, chart_at, fiber_bundle.charted_space_chart_at,
+  simp only [tangent_bundle.zero_section, tangent_map, mfderiv, total_space.proj_mk, A,
+    if_pos, chart_at, fiber_bundle.charted_space_chart_at, tangent_bundle.trivialization_at_apply,
     tangent_bundle_core, function.comp, continuous_linear_map.map_zero] with mfld_simps,
   rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,
   rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
   congr' 2,
   apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps, sorry },
+  { simp only [prod.mk.inj_iff] with mfld_simps },
   { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
     simp only with mfld_simps },
   { simp only with mfld_simps at hy,
-    simp only [hy, prod.mk.inj_iff] with mfld_simps, sorry },
+    simp only [hy, prod.mk.inj_iff] with mfld_simps },
 end
 
 end tangent_bundle

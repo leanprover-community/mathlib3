@@ -169,7 +169,7 @@ variables {ι : Type*} {B : Type*} {F : Type*}
 open topological_space filter set bundle
 open_locale topology classical bundle
 
-attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
+attribute [mfld_simps] total_space_mk coe_fst coe_snd coe_snd_map_apply
   coe_snd_map_smul total_space.mk_cast
 
 /-! ### General definition of fiber bundles -/
@@ -236,6 +236,16 @@ lemma quotient_map_proj [nonempty F] : quotient_map (π E) :=
 
 lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
 (total_space_mk_inducing F E x).continuous
+
+@[simp, mfld_simps]
+lemma mem_trivialization_at_proj_source {x : total_space E} :
+  x ∈ (trivialization_at F E x.proj).source :=
+(trivialization.mem_source _).mpr $ mem_base_set_trivialization_at F E x.proj
+
+@[simp, mfld_simps]
+lemma trivialization_at_proj_fst {x : total_space E} :
+  ((trivialization_at F E x.proj) x).1 = x.proj :=
+trivialization.coe_fst' _ $ mem_base_set_trivialization_at F E x.proj
 
 end fiber_bundle
 

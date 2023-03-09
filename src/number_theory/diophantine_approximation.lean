@@ -326,7 +326,7 @@ noncomputable def convergent : ℝ → ℕ → ℚ
 
 /-- The zeroth convergent of `ξ` is `⌊ξ⌋`. -/
 @[simp]
-lemma convergent_zero (ξ : ℝ) : ξ.convergent 0 = ⌊ξ⌋ := convergent.equations._eqn_1 ξ
+lemma convergent_zero (ξ : ℝ) : ξ.convergent 0 = ⌊ξ⌋ := rfl
 
 /-- The `(n+1)`th convergent of `ξ` is the `n`th convergent of `1/(fract ξ)`. -/
 @[simp]

@@ -323,10 +323,18 @@ by rw [←coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re]
 lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
 by rw [←coe_im, coe_T_zpow_smul_eq, add_im, int_cast_im, add_zero, coe_im]
 
-lemma re_T_smul : (T • z).re = z.re + 1 := by simpa using re_T_zpow_smul z 1
-lemma im_T_smul : (T • z).im = z.im := by simpa using im_T_zpow_smul z 1
-lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 := by simpa using re_T_zpow_smul z (-1)
-lemma im_T_inv_smul : (T⁻¹ • z).im = z.im := by simpa using im_T_zpow_smul z (-1)
+lemma re_T_smul : (T • z).re = z.re + 1 := by simp only [modular_T_smul, vadd_re, add_comm]
+lemma im_T_smul : (T • z).im = z.im := by simp only [modular_T_smul, vadd_im]
+lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 :=
+by simpa only [upper_half_plane.denom.equations._eqn_1, int.coe_cast_ring_hom,
+  algebra_map.coe_one, matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
+  matrix.map_apply,zpow_one, zpow_neg, upper_half_plane.num.equations._eqn_1,
+  upper_half_plane.re_smul, int.cast_neg,
+  matrix.special_linear_group.coe_matrix_coe, upper_half_plane.sl_moeb,
+  complex.of_real_int_cast, coe_coe,
+  matrix.special_linear_group.coe_inv] using re_T_zpow_smul z (-1)
+lemma im_T_inv_smul : (T⁻¹ • z).im = z.im :=
+by simpa only [zpow_one, zpow_neg, upper_half_plane.sl_moeb, coe_coe] using im_T_zpow_smul z (-1)
 
 variables {z}
 

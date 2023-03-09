@@ -11,15 +11,14 @@ import geometry.manifold.vector_bundle.basic
 This file defines the tangent bundle as a smooth vector bundle.
 
 Let `M` be a smooth manifold with corners with model `I` on `(E, H)`. We define the tangent bundle
-of `M` using the `vector_bundle_core` construction indexed by the charts of `M`. Given two charts
-`i, j : local_homeomorph M H`, we can consider the corresponding local equivalences to `E`:
-`i.extend I` and `j.extend I` which have type `local_equiv M E`. Then the transition map for the
-tangent space between the charts `i` and `j` at a point `x : M` is the derivative of the composite
+of `M` using the `vector_bundle_core` construction indexed by the charts of `M` with fibers `E`.
+Given two charts `i, j : local_homeomorph M H`, the coordinate change between `i` and `j` at a point
+`x : M` is the derivative of the composite
 ```
-    (i.extend I).symm   j.extend I
-  E ----------------> M ---------> E
+  I.symm   i.symm    j     I
+E -----> H -----> M --> H --> E
 ```
-within the set `range I ⊆ E` at `i.extend I x : E`.
+within the set `range I ⊆ E` at `I (i x) : E`.
 This defines a smooth vector bundle `tangent_bundle` with fibers `tangent_space`.
 
 ## Main definitions
@@ -63,7 +62,16 @@ end
 variables (M)
 open smooth_manifold_with_corners
 
-/-- The `vector_bundle_core` defining the tangent bundle. -/
+/--
+Let `M` be a smooth manifold with corners with model `I` on `(E, H)`.
+Then `vector_bundle_core I M` is the vector bundle core for the tangent bundle over `M`.
+It is indexed by the atlas of `M`, with fiber `E` and its change of coordinates from the chart `i`
+to the chart `j` at point `x : M` is the derivative of the composite
+```
+  I.symm   i.symm    j     I
+E -----> H -----> M --> H --> E
+```
+within the set `range I ⊆ E` at `I (i x) : E`. -/
 @[simps] def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
@@ -154,13 +162,13 @@ instance : fiber_bundle E (tangent_space I : M → Type*) :=
 instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).vector_bundle
 
-lemma tangent_space_chart_at (p : tangent_bundle I M) :
+lemma tangent_space_chart_at (p : TM) :
   chart_at (model_prod H E) p =
     ((tangent_bundle_core I M).to_fiber_bundle_core.local_triv (achart H p.1))
       .to_local_homeomorph ≫ₕ (chart_at H p.1).prod (local_homeomorph.refl E) :=
 rfl
 
-lemma tangent_space_chart_at_to_local_equiv (p : tangent_bundle I M) :
+lemma tangent_space_chart_at_to_local_equiv (p : TM) :
   (chart_at (model_prod H E) p).to_local_equiv =
     (tangent_bundle_core I M).to_fiber_bundle_core.local_triv_as_local_equiv (achart H p.1) ≫
     (chart_at H p.1).to_local_equiv.prod (local_equiv.refl E) :=
@@ -185,7 +193,7 @@ instance tangent_bundle.smooth_vector_bundle :
 
 end tangent_bundle_instances
 
-variable (M)
+/-! ## The tangent bundle to the model space -/
 
 /-- In the tangent bundle to the model space, the charts are just the canonical identification
 between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/

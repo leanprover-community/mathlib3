@@ -898,15 +898,14 @@ lemma unit_lattice.module.free : module.free ℤ (unit_lattice_image K) :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-  exact zlattice.module.free ((unit_lattice_image_discrete K)) (unit_lattice.full_lattice' K),
+  exact zlattice.module.free ℝ ((unit_lattice_image_discrete K)) (unit_lattice.full_lattice' K),
 end
 
 lemma unit_lattice.dim : finrank ℤ (unit_lattice_image K) = unit_rank K :=
 begin
   haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
     (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-  haveI : module ℚ (linear_map.ker (lognorm K)) := sorry,
-  have := zlattice.rank (unit_lattice_image_discrete K) (unit_lattice.full_lattice' K),
+  have := zlattice.rank ℝ (unit_lattice_image_discrete K) (unit_lattice.full_lattice' K),
   rw rank_ker K at this,
   exact this,
 end

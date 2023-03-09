@@ -9,6 +9,7 @@ import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
 import tactic.positivity
+import analysis.special_functions.pow
 
 /-!
 # Schwartz space
@@ -101,6 +102,45 @@ lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_l
 (f.smooth 1).differentiable rfl.le
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
+
+section is_O
+
+variables (f : 𝓢(E, F))
+
+/-- Auxiliary lemma, used in proving the more general result `is_O_cocompact_zpow`. -/
+lemma is_O_cocompact_zpow_neg_nat (k : ℕ) :
+  asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ (-k : ℤ)) :=
+begin
+  obtain ⟨d, hd, hd'⟩ := f.decay k 0,
+  simp_rw norm_iterated_fderiv_zero at hd',
+  simp_rw [asymptotics.is_O, asymptotics.is_O_with],
+  refine ⟨d, filter.eventually.filter_mono filter.cocompact_le_cofinite _⟩,
+  refine (filter.eventually_cofinite_ne 0).mp (filter.eventually_of_forall (λ x hx, _)),
+  rwa [real.norm_of_nonneg (zpow_nonneg (norm_nonneg _) _), zpow_neg, ←div_eq_mul_inv, le_div_iff'],
+  exacts [hd' x, zpow_pos_of_pos (norm_pos_iff.mpr hx) _],
+end
+
+lemma is_O_cocompact_rpow [proper_space E] (s : ℝ) :
+  asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ s) :=
+begin
+  let k := ⌈-s⌉₊,
+  have hk : -(k : ℝ) ≤ s, from neg_le.mp (nat.le_ceil (-s)),
+  refine (is_O_cocompact_zpow_neg_nat f k).trans _,
+  refine (_ : asymptotics.is_O filter.at_top
+    (λ x:ℝ, x ^ (-k : ℤ)) (λ x:ℝ, x ^ s)).comp_tendsto tendsto_norm_cocompact_at_top,
+  simp_rw [asymptotics.is_O, asymptotics.is_O_with],
+  refine ⟨1, filter.eventually_of_mem (filter.eventually_ge_at_top 1) (λ x hx, _)⟩,
+  rw [one_mul, real.norm_of_nonneg (real.rpow_nonneg_of_nonneg (zero_le_one.trans hx) _),
+    real.norm_of_nonneg (zpow_nonneg (zero_le_one.trans hx) _), ←real.rpow_int_cast, int.cast_neg,
+    int.cast_coe_nat],
+  exact real.rpow_le_rpow_of_exponent_le hx hk,
+end
+
+lemma is_O_cocompact_zpow [proper_space E] (k : ℤ) :
+  asymptotics.is_O (filter.cocompact E) f (λ x, ‖x‖ ^ k) :=
+by simpa only [real.rpow_int_cast] using is_O_cocompact_rpow f k
+
+end is_O
 
 section aux
 
@@ -485,13 +525,17 @@ section bounded_continuous_function
 
 open_locale bounded_continuous_function
 
-/-- Schwartz functions as bounded continuous functions-/
+/-- Schwartz functions as bounded continuous functions -/
 def to_bounded_continuous_function (f : 𝓢(E, F)) : E →ᵇ F :=
 bounded_continuous_function.of_normed_add_comm_group f (schwartz_map.continuous f)
   (schwartz_map.seminorm ℝ 0 0 f) (norm_le_seminorm ℝ f)
 
 @[simp] lemma to_bounded_continuous_function_apply (f : 𝓢(E, F)) (x : E) :
   f.to_bounded_continuous_function x = f x := rfl
+
+/-- Schwartz functions as continuous functions -/
+def to_continuous_map (f : 𝓢(E, F)) : C(E, F) :=
+f.to_bounded_continuous_function.to_continuous_map
 
 variables (𝕜 E F)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]

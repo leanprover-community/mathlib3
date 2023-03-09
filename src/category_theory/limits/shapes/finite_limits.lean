@@ -13,6 +13,9 @@ import data.fintype.option
 /-!
 # Categories with finite limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A typeclass for categories with all finite (co)limits.
 -/
 

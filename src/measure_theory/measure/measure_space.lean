@@ -1852,6 +1852,16 @@ end
   sum (λ a, μ {a} • dirac a) = μ :=
 by simpa using (map_eq_sum μ id measurable_id).symm
 
+/-- Given that `α` is a countable, measurable space with all singleton sets measurable,
+write the measure of a set `s` as the sum of the measure of `{x}` for all `x ∈ s`. -/
+lemma tsum_indicator_apply_singleton [countable α] [measurable_singleton_class α]
+  (μ : measure α) (s : set α) (hs : measurable_set s) :
+  ∑' (x : α), s.indicator (λ x, μ {x}) x = μ s :=
+calc ∑' (x : α), s.indicator (λ x, μ {x}) x = measure.sum (λ a, μ {a} • measure.dirac a) s :
+    by simp only [measure.sum_apply _ hs, measure.smul_apply, smul_eq_mul, measure.dirac_apply,
+      set.indicator_apply, mul_ite, pi.one_apply, mul_one, mul_zero]
+  ... = μ s : by rw μ.sum_smul_dirac
+
 omit m0
 end sum
 
@@ -3111,7 +3121,8 @@ lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurab
   set.countable {i : ι | 0 < μ (As i)} :=
 begin
   set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
-  rcases exists_seq_strict_anti_tendsto' ennreal.zero_lt_one with ⟨as, ⟨as_decr, ⟨as_mem, as_lim⟩⟩⟩,
+  rcases exists_seq_strict_anti_tendsto' (zero_lt_one : (0 : ℝ≥0∞) < 1)
+    with ⟨as, as_decr, as_mem, as_lim⟩,
   set fairmeas := λ (n : ℕ) , {i : ι | as n ≤ μ (As i)} with fairmeas_def,
   have countable_union : posmeas = (⋃ n, fairmeas n) ,
   { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),

@@ -114,8 +114,8 @@ begin
 end
 
 section
-local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
 
+open_locale with_zero_topology
 open valued
 
 lemma valued.continuous_valuation [valued K Γ₀] : continuous (v : K → Γ₀) :=
@@ -123,12 +123,12 @@ begin
   rw continuous_iff_continuous_at,
   intro x,
   rcases eq_or_ne x 0 with rfl|h,
-  { rw [continuous_at, map_zero, linear_ordered_comm_group_with_zero.tendsto_zero],
+  { rw [continuous_at, map_zero, with_zero_topology.tendsto_zero],
     intros γ hγ,
     rw [filter.eventually, valued.mem_nhds_zero],
     use [units.mk0 γ hγ, subset.rfl] },
   { have v_ne : (v x : Γ₀) ≠ 0, from (valuation.ne_zero_iff _).mpr h,
-    rw [continuous_at, linear_ordered_comm_group_with_zero.tendsto_of_ne_zero v_ne],
+    rw [continuous_at, with_zero_topology.tendsto_of_ne_zero v_ne],
     apply valued.loc_const v_ne },
 end
 end
@@ -193,7 +193,7 @@ instance completable : completable_top_field K :=
   end,
   ..valued_ring.separated }
 
-local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
+open_locale with_zero_topology
 
 /-- The extension of the valuation of a valued field to the completion of the field. -/
 noncomputable def extension : hat K → Γ₀ :=
@@ -255,7 +255,7 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
     rcases this with ⟨z₀, y₀, y₀_in, hz₀, z₀_ne⟩,
     have vz₀_ne: (v z₀ : Γ₀) ≠ 0 := by rwa valuation.ne_zero_iff,
     refine ⟨v z₀, _⟩,
-    rw [linear_ordered_comm_group_with_zero.tendsto_of_ne_zero vz₀_ne, eventually_comap],
+    rw [with_zero_topology.tendsto_of_ne_zero vz₀_ne, eventually_comap],
     filter_upwards [nhds_right] with x x_in a ha,
     rcases x_in with ⟨y, y_in, rfl⟩,
     have : (v (a * z₀⁻¹) : Γ₀) = 1,
@@ -326,7 +326,7 @@ begin
     { exact this h, }, },
   intros h,
   have hγ₀ : extension ⁻¹' {γ₀} ∈ 𝓝 x := continuous_extension.continuous_at.preimage_mem_nhds
-    (linear_ordered_comm_group_with_zero.singleton_mem_nhds_of_ne_zero h),
+    (with_zero_topology.singleton_mem_nhds_of_ne_zero h),
   rw mem_closure_iff_nhds',
   refine ⟨λ hx, _, λ hx s hs, _⟩,
   { obtain ⟨⟨-, y, hy₁ : v y < (γ : Γ₀), rfl⟩, hy₂⟩ := hx _ hγ₀,
@@ -348,5 +348,8 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
     simp_rw ← closure_coe_completion_v_lt,
     exact (has_basis_nhds_zero K Γ₀).has_basis_of_dense_inducing completion.dense_inducing_coe,
   end }
+
+@[simp, norm_cast] lemma valued_completion_apply (x : K) : valued.v (x : hat K) = v x :=
+extension_extends x
 
 end valued

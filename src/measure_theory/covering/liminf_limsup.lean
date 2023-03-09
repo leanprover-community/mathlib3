@@ -105,7 +105,7 @@ begin
     replace hη' : 1 ≤ η := by simpa only [ennreal.one_le_coe_iff] using
       le_of_tendsto (hd' w (λ j, r₁ (f j)) hr $ eventually_of_forall hw') hη',
     exact (lt_self_iff_false _).mp (lt_of_lt_of_le hη hη'), },
-  refine ⟨1 - C⁻¹, tsub_lt_self zero_lt_one (nnreal.inv_pos.mpr hC), _⟩,
+  refine ⟨1 - C⁻¹, tsub_lt_self zero_lt_one (inv_pos.mpr hC), _⟩,
   replace hC : C ≠ 0 := ne_of_gt hC,
   let b : ℕ → set α := λ j, closed_ball (w j) (M * r₁ (f j)),
   let B : ℕ → set α := λ j, closed_ball (w j) (r₁ (f j)),

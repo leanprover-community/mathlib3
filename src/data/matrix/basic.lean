@@ -1653,8 +1653,12 @@ instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) :=
 { star_add := conj_transpose_add }
 
+instance [has_star α] [has_star β] [has_smul α β] [star_module α β] :
+  star_module α (matrix n n β) :=
+{ star_smul := conj_transpose_smul }
+
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
-instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+instance [fintype n] [non_unital_semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
 

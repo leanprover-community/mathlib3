@@ -12,6 +12,9 @@ import order.sup_indep
 /-!
 # Canonical homomorphism from a finite family of monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the construction of the canonical homomorphism from a family of monoids.
 
 Given a family of morphisms `ϕ i : N i →* M` for each `i : ι` where elements in the

@@ -12,6 +12,9 @@ import topology.algebra.constructions
 /-!
 # Topological groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the following typeclasses:
 
 * `topological_group`, `topological_add_group`: multiplicative and additive topological groups,
@@ -1312,6 +1315,14 @@ instance quotient_group.second_countable_topology [second_countable_topology G] 
 has_continuous_const_smul.second_countable_topology
 
 end quotient
+
+/-- If `G` is a group with topological `⁻¹`, then it is homeomorphic to its units. -/
+@[to_additive " If `G` is an additive group with topological negation, then it is homeomorphic to
+its additive units."]
+def to_units_homeomorph [group G] [topological_space G] [has_continuous_inv G] : G ≃ₜ Gˣ :=
+{ to_equiv := to_units.to_equiv,
+  continuous_to_fun := units.continuous_iff.2 ⟨continuous_id, continuous_inv⟩,
+  continuous_inv_fun := units.continuous_coe }
 
 namespace units
 

@@ -574,22 +574,16 @@ then `q` is a convergent of the continued fraction expansion of `ξ`.
 This version uses `real.convergent`. -/
 lemma exists_rat_eq_convergent : ∃ n, q = ξ.convergent n :=
 begin
-  have hass : ass ξ q.num q.denom,
-  { refine ⟨_, λ hd, _, _⟩,
-    { have H := nat.coprime.is_coprime q.cop,
-      exact (nat_abs_eq q.num).elim (λ h, h.symm ▸ H) (λ h, h.symm ▸ is_coprime.neg_left H), },
-    { norm_cast at hd,
-      rw [← q.denom_eq_one_iff.mp hd, rat.cast_coe_int, rat.coe_int_denom, nat.cast_one,
-          one_pow, mul_one, abs_lt] at h,
-      exact h.1, },
-    { obtain ⟨hq₀, hq₁⟩ := aux₀ (nat.cast_pos.mpr q.pos),
-      replace hq₁ := mul_pos hq₀ hq₁,
-      have hq₂ : (0 : ℝ) < 2 * (q.denom * q.denom) := mul_pos zero_lt_two (mul_pos hq₀ hq₀),
-      rw ← coe_coe at *,
-      rw [(by norm_cast : (q.num / q.denom : ℝ) = (q.num / q.denom : ℚ)), rat.num_div_denom],
-      exact h.trans (by {rw [sq, one_div_lt_one_div hq₂ hq₁, ← sub_pos], ring_nf, exact hq₀}) } },
-  convert exists_rat_eq_convergent' hass,
-  simp only [rat.num_div_denom],
+  refine q.num_div_denom ▸ exists_rat_eq_convergent' ⟨_, λ hd, _, _⟩,
+  { exact coprime_iff_nat_coprime.mpr (nat_abs_of_nat q.denom ▸ q.cop), },
+  { rw ← q.denom_eq_one_iff.mp (nat.cast_eq_one.mp hd) at h,
+    simpa only [rat.coe_int_denom, nat.cast_one, one_pow, mul_one] using (abs_lt.mp h).1 },
+  { obtain ⟨hq₀, hq₁⟩ := aux₀ (nat.cast_pos.mpr q.pos),
+    replace hq₁ := mul_pos hq₀ hq₁,
+    have hq₂ : (0 : ℝ) < 2 * (q.denom * q.denom) := mul_pos zero_lt_two (mul_pos hq₀ hq₀),
+    rw ← coe_coe at *,
+    rw [(by norm_cast : (q.num / q.denom : ℝ) = (q.num / q.denom : ℚ)), rat.num_div_denom],
+    exact h.trans (by {rw [sq, one_div_lt_one_div hq₂ hq₁, ← sub_pos], ring_nf, exact hq₀}) },
 end
 
 /-- The main result, *Legendre's Theorem* on rational approximation:
@@ -600,7 +594,7 @@ lemma exists_continued_fraction_convergent_eq_rat :
   ∃ n, (generalized_continued_fraction.of ξ).convergents n = q :=
 begin
   obtain ⟨n, hn⟩ := exists_rat_eq_convergent h,
-  exact ⟨n, (continued_fraction_convergent_eq_convergent ξ n).trans (congr_arg coe hn.symm)⟩,
+  exact ⟨n, hn.symm ▸ continued_fraction_convergent_eq_convergent ξ n⟩,
 end
 
 end real

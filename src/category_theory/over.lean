@@ -11,6 +11,9 @@ import category_theory.functor.epi_mono
 /-!
 # Over and under categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Over (and under) categories are special cases of comma categories.
 * If `L` is the identity functor and `R` is a constant functor, then `comma L R` is the "slice" or
   "over" category over the object `R` maps to.

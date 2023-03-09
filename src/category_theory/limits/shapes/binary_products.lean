@@ -11,6 +11,9 @@ import category_theory.over
 /-!
 # Binary (co)products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a category `walking_pair`, which is the index category
 for a binary (co)product diagram. A convenience method `pair X Y`
 constructs the functor from the walking pair, hitting the given objects.

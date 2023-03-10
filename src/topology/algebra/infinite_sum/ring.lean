@@ -10,6 +10,9 @@ import topology.algebra.ring.basic
 /-!
 # Infinite sum in a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides lemmas about the interaction between infinite sums and multiplication.
 
 ## Main results

@@ -42,11 +42,13 @@ namespace pell
 
 section existence
 
+variables {d : ℤ}
+
 open set real
 
 /-- If `d` is a positive integer that is not a square, then there is a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1`. -/
-theorem exists_of_not_is_square {d : ℤ} (h₀ : 0 < d) (hd : ¬ is_square d) :
+theorem exists_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ y ≠ 0 :=
 begin
   let ξ : ℝ := sqrt d,
@@ -113,13 +115,24 @@ end
 
 /-- If `d` is a positive integer, then there is a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1` if and only if `d` is not a square. -/
-theorem exists_iff_not_is_square {d : ℤ} (h₀ : 0 < d) :
+theorem exists_iff_not_is_square (h₀ : 0 < d) :
   (∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ y ≠ 0) ↔ ¬ is_square d :=
 begin
   refine ⟨_, exists_of_not_is_square h₀⟩,
   rintros ⟨x, y, hxy, hy⟩ ⟨a, rfl⟩,
   rw [← sq, ← mul_pow, sq_sub_sq] at hxy,
   simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
+end
+
+/-- If `d` is a positive integer that is not a square, then there exists a solution
+to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
+lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ 1 < x ∧ 0 < y :=
+begin
+  obtain ⟨x, y, h, hy⟩ := exists_of_not_is_square h₀ hd,
+  refine ⟨|x|, |y|, by rwa [sq_abs, sq_abs], _, abs_pos.mpr hy⟩,
+  rw [← one_lt_sq_iff_one_lt_abs, eq_add_of_sub_eq h, lt_add_iff_pos_right],
+  exact mul_pos h₀ (sq_pos_of_ne_zero y hy),
 end
 
 end existence

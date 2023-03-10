@@ -9,6 +9,9 @@ import algebra.algebra.tower
 
 # The `restrict_scalars` type alias
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See the documentation attached to the `restrict_scalars` definition for advice on how and when to
 use this type alias. As described there, it is often a better choice to use the `is_scalar_tower`
 typeclass instead.

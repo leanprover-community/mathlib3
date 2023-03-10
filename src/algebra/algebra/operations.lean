@@ -17,6 +17,9 @@ import group_theory.group_action.sub_mul_action.pointwise
 /-!
 # Multiplication and division of submodules of an algebra.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An interface for multiplication and division of sub-R-modules of an R-algebra A is developed.
 
 ## Main definitions

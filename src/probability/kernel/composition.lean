@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 Rémy Degenne. All rights reserved.
+Copyright (c) 2023 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
@@ -30,8 +30,8 @@ Kernels built from other kernels:
 * `comp_prod (κ : kernel α β) (η : kernel (α × β) γ) : kernel α (β × γ)`: composition-product of 2
   s-finite kernels. We define a notation `κ ⊗ₖ η = comp_prod κ η`.
   `∫⁻ bc, f bc ∂((κ ⊗ₖ η) a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η (a, b)) ∂(κ a)`
-* `map (κ : kernel α β) (f : β → γ) (hf : measurable f) : kernel α mγ`
-  `∫⁻ b, g b ∂(map κ f hf a) = ∫⁻ a, g (f a) ∂(κ a)`
+* `map (κ : kernel α β) (f : β → γ) (hf : measurable f) : kernel α γ`
+  `∫⁻ c, g c ∂(map κ f hf a) = ∫⁻ b, g (f b) ∂(κ a)`
 * `comap (κ : kernel α β) (f : γ → α) (hf : measurable f) : kernel γ β`
   `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
 * `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 s-finite kernels.
@@ -222,7 +222,7 @@ lemma comp_prod_apply (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (
   (κ ⊗ₖ η) a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂(κ a) :=
 comp_prod_apply_eq_comp_prod_fun κ η a hs
 
-/-- Integral against the composition-product of two kernels. -/
+/-- Lebesgue integral against the composition-product of two kernels. -/
 theorem lintegral_comp_prod' (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
   [is_s_finite_kernel η] (a : α) {f : β → γ → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
   ∫⁻ bc, f bc.1 bc.2 ∂((κ ⊗ₖ η) a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a) :=
@@ -277,7 +277,7 @@ begin
     rw ← lintegral_add_left ((simple_func.measurable _).comp measurable_prod_mk_left), },
 end
 
-/-- Integral against the composition-product of two kernels. -/
+/-- Lebesgue integral against the composition-product of two kernels. -/
 theorem lintegral_comp_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
   [is_s_finite_kernel η] (a : α) {f : β × γ → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ bc, f bc ∂((κ ⊗ₖ η) a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η (a, b)) ∂(κ a) :=
@@ -321,8 +321,7 @@ end
 instance is_markov_kernel.comp_prod (κ : kernel α β) [is_markov_kernel κ]
   (η : kernel (α × β) γ) [is_markov_kernel η] :
   is_markov_kernel (κ ⊗ₖ η) :=
-⟨λ a, ⟨
-begin
+⟨λ a, ⟨begin
   rw comp_prod_apply κ η a measurable_set.univ,
   simp only [set.mem_univ, set.set_of_true, measure_univ, lintegral_one],
 end⟩⟩

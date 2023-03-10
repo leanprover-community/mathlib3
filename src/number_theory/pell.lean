@@ -160,6 +160,8 @@ structure solution₁ (d : ℤ) := (x : ℤ) (y : ℤ) (rel : x ^ 2 - d * y ^ 2 
 
 namespace solution₁
 
+instance (d : ℤ) : inhabited (solution₁ d) := ⟨{x := 1, y := 0, rel := by simp}⟩
+
 variables {d : ℤ}
 
 /-- An alternative form of the relation, suitable for rewriting `x^2`. -/

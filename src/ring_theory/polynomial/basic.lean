@@ -592,6 +592,9 @@ variables [comm_ring R]
 lemma is_prime_map_C_iff_is_prime (P : ideal R) :
   is_prime (map (C : R →+* R[X]) P : ideal R[X]) ↔ is_prime P :=
 begin
+  -- Porting note: the following proof avoids quotient rings
+  -- It can be golfed substantially by using something like
+  -- `(quotient.is_domain_iff_prime (map C P : ideal R[X]))`
   split,
   { intro H,
     have := @comap_is_prime R R[X] (R →+* R[X]) _ _ _ C (map C P) H,

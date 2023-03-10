@@ -232,21 +232,18 @@ by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv]
 lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n * log_embedding K x :=
 by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
 
-lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
-  log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
-begin
-  dsimp only [log_embedding],
-  rw function.funext_iff,
-  simp_rw pi.zero_apply,
-  split,
-  { exact λ h w, real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) (h w), },
-  { intros h w,
-    simp only [h w, real.log_one], },
-end
-
 @[simp]
 lemma log_embedding.component (w : infinite_place K) (x : 𝓤 K) :
   (log_embedding K x) w = real.log (w x) := rfl
+
+lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
+  log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
+begin
+  rw function.funext_iff,
+  refine ⟨ λ h w, _, λ h w, _⟩,
+  { exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) (h w), },
+  { simp only [log_embedding, h w, pi.zero_apply, real.log_one], },
+end
 
 lemma log_embedding.nnnorm_eq [number_field K] (x : 𝓤 K) :
   ‖log_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ‖real.log (w x)‖₊ ) :=
@@ -255,24 +252,21 @@ by simp only [pi.nnnorm_def, log_embedding]
 lemma log_embedding.le_of_le [number_field K] (x : 𝓤 K) (r : ℝ) :
   ‖log_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, real.exp (- r) ≤ w x ∧ w x ≤ real.exp r :=
 begin
-   obtain hr | hr := lt_or_le r 0,
-  { split,
-    { intro h, exfalso,
+  obtain hr | hr := lt_or_le r 0,
+  { refine ⟨λ h, _, λ h, _⟩,
+    { exfalso,
       exact (not_le.mpr (lt_of_le_of_lt h hr)) (norm_nonneg _), },
-    { intro h, exfalso,
+    { exfalso,
       obtain ⟨w⟩ := infinite_place.nonempty K,
-      have := real.exp_le_exp.mp (le_trans (h w).1 (h w).2),
-      linarith, }},
+      linarith [real.exp_le_exp.mp (le_trans (h w).1 (h w).2)], }},
   { lift r to nnreal using hr,
     simp_rw [← coe_nnnorm, log_embedding.nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff,
       finset.mem_univ, forall_true_left, ← nnreal.coe_le_coe, coe_nnnorm, real.norm_eq_abs, abs_le],
-    split,
-    { intros h w,
-      specialize h w,
+    refine ⟨λ h w, _, λ h w, _⟩,
+    { specialize h w,
       rwa [← real.log_le_iff_le_exp, ← real.le_log_iff_exp_le],
       all_goals { exact infinite_place.pos_iff.mpr units_to_field.ne_zero, }},
-    { intros h w,
-      specialize h w,
+    { specialize h w,
       rwa [real.log_le_iff_le_exp, real.le_log_iff_exp_le],
       all_goals { exact infinite_place.pos_iff.mpr units_to_field.ne_zero, }}}
 end
@@ -318,19 +312,6 @@ begin
         intro w,
         exact (hx2 w).2, }},
     { refl, }},
-end
-
-lemma unit_lattice_countable : countable (unit_lattice K) :=
-begin
-  suffices : (⋃ n : ℕ,
-    ((unit_lattice K : set (number_field.infinite_place K → ℝ)) ∩
-      (metric.closed_ball 0 n))).countable,
-  { refine set.countable.to_subtype (set.countable.mono _ this),
-    rintros _ ⟨x, ⟨hx, rfl⟩⟩,
-    rw set.mem_Union,
-    use nat.ceil (‖log_embedding K x‖),
-    exact ⟨⟨x, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
-  { exact set.countable_Union (λ n, (unit_lattice_discrete K n).countable), },
 end
 
 /-- The application such that `lognorm ∘ log_embedding = log_embedding ∘ norm`. In particuler,

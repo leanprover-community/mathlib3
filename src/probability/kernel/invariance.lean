@@ -40,6 +40,8 @@ include mα mβ
 
 namespace kernel
 
+/-! ### Push-forward of measures along a kernel -/
+
 /-- The push-forward of a measure along a kernel. -/
 noncomputable
 def map_measure (κ : kernel α β) (μ : measure α) :
@@ -124,7 +126,7 @@ end
 
 omit mβ
 
-/-! **Invariant measures of kernels** -/
+/-! ### Invariant measures of kernels -/
 
 /-- A measure `μ` is invariant with respect to the kernel `κ` if the push-forward measure of `μ`
 along `κ` equals `μ`. -/

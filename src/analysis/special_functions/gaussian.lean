@@ -31,9 +31,11 @@ We also prove, more generally, that the Fourier transform of the Gaussian is ano
 * `fourier_transform_gaussian_pi`: a variant with `b` and `t` scaled to give a more symmetric
   statement, and formulated in terms of the Fourier transform operator `𝓕`.
 
-As an application, in `tsum_exp_neg_mul_int_sq` we use Poisson summation to prove the identity
+As an application, in `real.tsum_exp_neg_mul_int_sq` and `complex.tsum_exp_neg_mul_int_sq`, we use
+Poisson summation to prove the identity
 `∑' (n : ℤ), exp (-π * a * n ^ 2) = 1 / a ^ (1 / 2) * ∑' (n : ℤ), exp (-π / a * n ^ 2)`
-for any complex `a` with positive real part.
+for positive real `a`, or complex `a` with positive real part. (See also
+`number_theory.modular_forms.jacobi_theta`.)
 -/
 
 noncomputable theory
@@ -570,7 +572,7 @@ begin
       rpow_neg (abs_nonneg x), div_eq_mul_inv, norm_of_nonneg (exp_pos _).le] },
 end
 
-lemma tsum_exp_neg_mul_int_sq {a : ℂ} (ha : 0 < a.re) :
+lemma complex.tsum_exp_neg_mul_int_sq {a : ℂ} (ha : 0 < a.re) :
   ∑' (n : ℤ), cexp (-π * a * n ^ 2) = 1 / a ^ (1 / 2 : ℂ) * ∑' (n : ℤ), cexp (-π / a * n ^ 2) :=
 begin
   let f := λ x : ℝ, cexp (-π * a * x ^ 2),
@@ -599,5 +601,11 @@ begin
     (complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2)) : continuous f)
     one_lt_two f_bd Ff_bd
 end
+
+lemma real.tsum_exp_neg_mul_int_sq {a : ℝ} (ha : 0 < a) :
+  ∑' (n : ℤ), exp (-π * a * n ^ 2) = 1 / a ^ (1 / 2 : ℝ) * ∑' (n : ℤ), exp (-π / a * n ^ 2) :=
+by simpa only [←of_real_inj, of_real_mul, of_real_tsum, of_real_exp, of_real_div, of_real_pow,
+  of_real_int_cast, of_real_neg, of_real_cpow ha.le, of_real_bit0, of_real_one] using
+  complex.tsum_exp_neg_mul_int_sq (by rwa [of_real_re] : 0 < (a : ℂ).re)
 
 end gaussian_poisson

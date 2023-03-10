@@ -1,4 +1,31 @@
-import probability.kernel.basic
+/-
+Copyright (c) 2023 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
+import probability.kernel.composition
+
+/-!
+# Invariance of measures along a kernel
+
+We define the push-forward of a measure along a kernel which results in another measure. In the
+case that the push-forward measure is the same as the original measure, we say that the measure is
+invariant with respect to the kernel. This notion is useful if we want to talk about invariant
+measures of a Markov kernel.
+
+## Main definitions
+
+* `probability_theory.kernel.map_measure`: the push-forward of a measure along a kernel.
+* `probability_theory.kernel.invariant`: invariance of a given measure with respect to a kernel.
+
+## Useful lemmas
+
+* `probability_theory.kernel.comp_apply_eq_map_measure`,
+  `probability_theory.kernel.const_map_measure_eq_comp_const`, and
+  `probability_theory.kernel.comp_const_apply_eq_map_measure` established the relationship between
+  the push-forward measure and the composition of kernels.
+
+-/
 
 open measure_theory
 
@@ -8,23 +35,6 @@ namespace probability_theory
 
 variables {α β γ : Type*} {mα : measurable_space α} {mβ : measurable_space β}
   {mγ : measurable_space γ}
-
-section move
-
-include mα
-
--- Is this not in mathlib?
-lemma measure_eq_zero_of_is_empty [is_empty α] (μ : measure α) : μ = 0 :=
-begin
-  ext1 s hs,
-  rw [subsingleton.elim s ∅, measure_empty],
-  refl,
-end
-
-lemma measure_eq_of_is_empty [is_empty α] (μ ν :measure α) : μ = ν :=
-by rw [measure_eq_zero_of_is_empty μ, measure_eq_zero_of_is_empty ν]
-
-end move
 
 include mα mβ
 
@@ -108,7 +118,7 @@ begin
     conv_rhs { rw [← this]  },
     rw [← lintegral_comp _ _ _ hf, ← comp_const_apply_eq_map_measure κ μ hα.some] },
   { haveI := not_nonempty_iff.1 hα,
-    rw [measure_eq_zero_of_is_empty μ, map_measure_zero, lintegral_zero_measure,
+    rw [μ.eq_zero_of_is_empty, map_measure_zero, lintegral_zero_measure,
       lintegral_zero_measure] }
 end
 
@@ -136,7 +146,7 @@ begin
   { simp_rw [invariant, ← comp_const_apply_eq_map_measure (κ ∘ₖ η) μ hα.some, comp_assoc,
       hη.comp_const, hκ.comp_const, const_apply] },
   { haveI := not_nonempty_iff.1 hα,
-    exact measure_eq_of_is_empty _ _ },
+    exact measure.eq_of_is_empty _ _ },
 end
 
 end kernel

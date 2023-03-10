@@ -698,6 +698,9 @@ instance [measurable_space α] : has_zero (measure α) :=
 lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
 ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
 
+lemma eq_of_is_empty [is_empty α] {m : measurable_space α} (μ ν : measure α) : μ = ν :=
+μ.eq_zero_of_is_empty.symm ▸ ν.eq_zero_of_is_empty.symm ▸ rfl
+
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 
 instance [measurable_space α] : has_add (measure α) :=

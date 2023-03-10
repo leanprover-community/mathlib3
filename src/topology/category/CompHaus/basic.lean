@@ -235,8 +235,8 @@ lemma mono_iff_injective {X Y : CompHaus.{u}} (f : X ⟶ Y) : mono f ↔ functio
 begin
   split,
   { introsI hf x₁ x₂ h,
-    let g₁ : of punit ⟶ X := ⟨λ _, x₁, continuous_of_discrete_topology⟩,
-    let g₂ : of punit ⟶ X := ⟨λ _, x₂, continuous_of_discrete_topology⟩,
+    let g₁ : of punit ⟶ X := ⟨λ _, x₁, continuous_const⟩,
+    let g₂ : of punit ⟶ X := ⟨λ _, x₂, continuous_const⟩,
     have : g₁ ≫ f = g₂ ≫ f, by { ext, exact h },
     rw cancel_mono at this,
     apply_fun (λ e, e punit.star) at this,

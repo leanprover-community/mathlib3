@@ -14,6 +14,9 @@ import linear_algebra.finsupp
 
 # Ideals over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ideal R`, the type of (left) ideals over a ring `R`.
 Note that over commutative rings, left ideals and two-sided ideals are equivalent.
 
@@ -235,6 +238,13 @@ begin
   apply complete_lattice.coatomic_of_top_compact,
   rw ←span_singleton_one,
   exact submodule.singleton_span_is_compact_element 1,
+end
+
+lemma is_maximal.coprime_of_ne {M M' : ideal α} (hM : M.is_maximal) (hM' : M'.is_maximal)
+  (hne : M ≠ M') : M ⊔ M' = ⊤ :=
+begin
+  contrapose! hne with h,
+  exact hM.eq_of_le hM'.ne_top (le_sup_left.trans_eq (hM'.eq_of_le h le_sup_right).symm)
 end
 
 /-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some
@@ -535,12 +545,12 @@ end ideal
 
 end ring
 
-section division_ring
-variables {K : Type u} [division_ring K] (I : ideal K)
+section division_semiring
+variables {K : Type u} [division_semiring K] (I : ideal K)
 
 namespace ideal
 
-/-- All ideals in a division ring are trivial. -/
+/-- All ideals in a division (semi)ring are trivial. -/
 lemma eq_bot_or_top : I = ⊥ ∨ I = ⊤ :=
 begin
   rw or_iff_not_imp_right,
@@ -553,8 +563,8 @@ begin
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
 
-/-- Ideals of a `division_ring` are a simple order. Thanks to the way abbreviations work, this
-automatically gives a `is_simple_module K` instance. -/
+/-- Ideals of a `division_semiring` are a simple order. Thanks to the way abbreviations work,
+this automatically gives a `is_simple_module K` instance. -/
 instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
@@ -566,7 +576,7 @@ lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
 
 end ideal
 
-end division_ring
+end division_semiring
 
 section comm_ring
 
@@ -583,12 +593,11 @@ end ideal
 
 end comm_ring
 
+-- TODO: consider moving the lemmas below out of the `ring` namespace since they are
+-- about `comm_semiring`s.
 namespace ring
 
-variables {R : Type*} [comm_ring R]
-
-lemma not_is_field_of_subsingleton {R : Type*} [ring R] [subsingleton R] : ¬ is_field R :=
-λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
+variables {R : Type*} [comm_semiring R]
 
 lemma exists_not_is_unit_of_not_is_field [nontrivial R] (hf : ¬ is_field R) :
   ∃ x ≠ (0 : R), ¬ is_unit x :=
@@ -623,6 +632,22 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
   ⟨λ ⟨I, bot_lt, lt_top⟩, let ⟨p, hp, le_p⟩ := I.exists_le_maximal (lt_top_iff_ne_top.mp lt_top) in
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
+
+/-- Also see `ideal.is_simple_order` for the forward direction as an instance when `R` is a
+division (semi)ring. 
+
+This result actually holds for all division semirings, but we lack the predicate to state it. -/
+lemma is_field_iff_is_simple_order_ideal :
+  is_field R ↔ is_simple_order (ideal R) :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { exact ⟨λ h, (not_is_field_of_subsingleton _ h).elim,
+      λ h, by exactI (false_of_nontrivial_of_subsingleton $ ideal R).elim⟩ },
+  rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top, ← not_iff_not],
+  push_neg,
+  simp_rw [lt_top_iff_ne_top, bot_lt_iff_ne_bot, ← or_iff_not_imp_left, not_ne_iff],
+  exact ⟨λ h, ⟨h⟩, λ h, h.2⟩
+end
 
 /-- When a ring is not a field, the maximal ideals are nontrivial. -/
 lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)

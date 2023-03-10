@@ -59,7 +59,7 @@ We also set up the theory for `pseudo_emetric_space` and `pseudo_metric_space`.
 -/
 
 open real set filter is_R_or_C bornology
-open_locale big_operators uniformity topological_space nnreal ennreal
+open_locale big_operators uniformity topology nnreal ennreal
 
 noncomputable theory
 
@@ -368,7 +368,7 @@ begin
 end
 
 lemma aux_uniformity_eq :
-  𝓤 (pi_Lp p β) = @uniformity _ (Pi.uniform_space _) :=
+  𝓤 (pi_Lp p β) = 𝓤[Pi.uniform_space _] :=
 begin
   have A : uniform_inducing (pi_Lp.equiv p β) :=
     (antilipschitz_with_equiv_aux p β).uniform_inducing
@@ -393,6 +393,22 @@ end aux
 instance uniform_space [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
 Pi.uniform_space _
 
+lemma uniform_continuous_equiv [Π i, uniform_space (β i)] :
+  uniform_continuous (pi_Lp.equiv p β) :=
+uniform_continuous_id
+
+lemma uniform_continuous_equiv_symm [Π i, uniform_space (β i)] :
+  uniform_continuous (pi_Lp.equiv p β).symm :=
+uniform_continuous_id
+
+@[continuity]
+lemma continuous_equiv [Π i, uniform_space (β i)] : continuous (pi_Lp.equiv p β) :=
+continuous_id
+
+@[continuity]
+lemma continuous_equiv_symm [Π i, uniform_space (β i)] : continuous (pi_Lp.equiv p β).symm :=
+continuous_id
+
 variable [fintype ι]
 
 instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
@@ -408,7 +424,7 @@ instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β)
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
 instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
-@emetric.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
+@emetric_space.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
@@ -419,7 +435,7 @@ instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
 instance [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
-metric.of_t0_pseudo_metric_space _
+metric_space.of_t0_pseudo_metric_space _
 
 lemma nndist_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, pseudo_metric_space (β i)] (hp : p ≠ ∞) (x y : pi_Lp p β) :
@@ -698,8 +714,7 @@ basis.of_equiv_fun (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜))
 
 @[simp] lemma basis_fun_apply [decidable_eq ι] (i) :
   basis_fun p 𝕜 ι i = (pi_Lp.equiv p _).symm (pi.single i 1) :=
-by { simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single],
-     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+by simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single]
 
 @[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
   (basis_fun p 𝕜 ι).repr x i = x i :=

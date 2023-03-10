@@ -9,6 +9,9 @@ import combinatorics.quiver.symmetric
 /-!
 # Single-object quiver
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Single object quiver with a given arrows type.
 
 ## Main definitions

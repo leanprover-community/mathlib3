@@ -168,6 +168,20 @@ by rw [is_root, eval_map, eval₂_root]
 lemma is_algebraic_root (hf : f ≠ 0) : is_algebraic R (root f) :=
 ⟨f, hf, eval₂_root f⟩
 
+lemma of.injective_of_degree_ne_zero [is_domain R] (hf : f.degree ≠ 0) :
+  function.injective (adjoin_root.of f) :=
+begin
+  rw injective_iff_map_eq_zero,
+  intros p hp,
+  rw [adjoin_root.of, ring_hom.comp_apply, adjoin_root.mk_eq_zero] at hp,
+  by_cases h : f = 0,
+  { exact C_eq_zero.mp (eq_zero_of_zero_dvd (by rwa h at hp)) },
+  { contrapose! hf with h_contra,
+    rw ← degree_C h_contra,
+    apply le_antisymm (degree_le_of_dvd hp (by rwa [ne.def, C_eq_zero])) _,
+    rwa [degree_C h_contra, zero_le_degree_iff] },
+end
+
 variables [comm_ring S]
 
 /-- Lift a ring homomorphism `i : R →+* S` to `adjoin_root f →+* S`. -/
@@ -243,6 +257,23 @@ lemma alg_hom_subsingleton {S : Type*} [comm_ring S] [algebra R S] {r : R} :
   (by rw [← g.commutes, ← g.map_mul, algebra_map_eq, root_is_inv, map_one]))⟩
 
 end adjoin_inv
+
+section prime
+
+variable {f}
+
+theorem is_domain_of_prime (hf : prime f) : is_domain (adjoin_root f) :=
+(ideal.quotient.is_domain_iff_prime (span {f} : ideal R[X])).mpr $
+  (ideal.span_singleton_prime hf.ne_zero).mpr hf
+
+theorem no_zero_smul_divisors_of_prime_of_degree_ne_zero [is_domain R] (hf : prime f)
+  (hf' : f.degree ≠ 0) : no_zero_smul_divisors R (adjoin_root f) :=
+begin
+  haveI := is_domain_of_prime hf,
+  exact no_zero_smul_divisors.iff_algebra_map_injective.mpr (of.injective_of_degree_ne_zero hf')
+end
+
+end prime
 
 end comm_ring
 

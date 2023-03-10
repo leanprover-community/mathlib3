@@ -60,7 +60,7 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter unit_interval
+open_locale classical topology filter unit_interval
 open filter set function unit_interval
 
 variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} {ι : Type*}

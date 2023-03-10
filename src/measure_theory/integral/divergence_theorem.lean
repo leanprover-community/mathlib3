@@ -46,7 +46,7 @@ divergence theorem, Bochner integral
 -/
 
 open set finset topological_space function box_integral measure_theory filter
-open_locale big_operators classical topological_space interval
+open_locale big_operators classical topology interval
 
 universes u
 
@@ -486,31 +486,31 @@ lemma integral2_divergence_prod_of_has_fderiv_within_at_off_countable (f g : ℝ
     (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
       (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :=
 begin
-  wlog h₁ : a₁ ≤ b₁ := le_total a₁ b₁ using [a₁ b₁, b₁ a₁] tactic.skip,
-  wlog h₂ : a₂ ≤ b₂ := le_total a₂ b₂ using [a₂ b₂, b₂ a₂] tactic.skip,
-  { simp only [uIcc_of_le h₁, uIcc_of_le h₂, min_eq_left, max_eq_right, h₁, h₂]
-      at Hcf Hcg Hdf Hdg Hi,
-    calc ∫ x in a₁..b₁, ∫ y in a₂..b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1)
-        = ∫ x in Icc a₁ b₁, ∫ y in Icc a₂ b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1) :
-      by simp only [interval_integral.integral_of_le, h₁, h₂,
-        set_integral_congr_set_ae Ioc_ae_eq_Icc]
-    ... = ∫ x in Icc a₁ b₁ ×ˢ Icc a₂ b₂, f' x (1, 0) + g' x (0, 1) :
-      (set_integral_prod _ Hi).symm
-    ... = (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
-            (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :
-      begin
-        rw Icc_prod_Icc at *,
-        apply integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le f g f' g'
-          (a₁, a₂) (b₁, b₂) ⟨h₁, h₂⟩ s; assumption
-      end },
-  { rw [uIcc_comm b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
-    intros Hcf Hcg Hdf Hdg Hi,
-    simp only [interval_integral.integral_symm b₂ a₂, interval_integral.integral_neg],
-    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel },
-  { rw [uIcc_comm b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
-    intros Hcf Hcg Hdf Hdg Hi,
+  wlog h₁ : a₁ ≤ b₁ generalizing a₁ b₁,
+  { specialize this b₁ a₁,
+    rw [uIcc_comm b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
     simp only [interval_integral.integral_symm b₁ a₁],
-    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel }
+    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi (le_of_not_le h₁))).trans _, abel },
+  wlog h₂ : a₂ ≤ b₂ generalizing a₂ b₂,
+  { specialize this b₂ a₂,
+    rw [uIcc_comm b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
+    simp only [interval_integral.integral_symm b₂ a₂, interval_integral.integral_neg],
+    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi (le_of_not_le h₂))).trans _, abel },
+  simp only [uIcc_of_le h₁, uIcc_of_le h₂, min_eq_left, max_eq_right, h₁, h₂]
+    at Hcf Hcg Hdf Hdg Hi,
+  calc ∫ x in a₁..b₁, ∫ y in a₂..b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1)
+      = ∫ x in Icc a₁ b₁, ∫ y in Icc a₂ b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1) :
+    by simp only [interval_integral.integral_of_le, h₁, h₂,
+      set_integral_congr_set_ae Ioc_ae_eq_Icc]
+  ... = ∫ x in Icc a₁ b₁ ×ˢ Icc a₂ b₂, f' x (1, 0) + g' x (0, 1) :
+    (set_integral_prod _ Hi).symm
+  ... = (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
+          (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :
+    begin
+      rw Icc_prod_Icc at *,
+      apply integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le f g f' g'
+        (a₁, a₂) (b₁, b₂) ⟨h₁, h₂⟩ s; assumption
+    end
 end
 
 end measure_theory

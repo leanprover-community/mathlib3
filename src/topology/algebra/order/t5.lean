@@ -9,12 +9,15 @@ import data.set.intervals.ord_connected_component
 /-!
 # Linear order is a completely normal Hausdorff topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a linear order with order topology is a completely normal Hausdorff
 topological space.
 -/
 
 open filter set function order_dual
-open_locale topological_space filter interval
+open_locale topology filter interval
 
 variables {X : Type*} [linear_order X] [topological_space X] [order_topology X]
   {a b c : X} {s t : set X}

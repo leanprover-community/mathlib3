@@ -15,7 +15,7 @@ lemmas in this file]."
 -/
 
 open filter finset
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 variables {G : Type*} [normed_add_comm_group G] [complete_space G]
 variables {H : Type*} [normed_add_comm_group H]

@@ -10,6 +10,9 @@ import data.fintype.lattice
 /-!
 # Definition of `zmod n` + basic results.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the basic details of `zmod n`, including its commutative ring structure.
 
 ## Implementation details

@@ -10,6 +10,9 @@ import data.list.duplicate
 /-!
 # Equivalence between `fin (length l)` and elements of a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a list `l`,
 
 * if `l` has no duplicates, then `list.nodup.nth_le_equiv` is the equivalence between

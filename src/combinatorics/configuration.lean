@@ -34,6 +34,8 @@ Together, these four statements say that any two of the following properties imp
 
 open_locale big_operators
 
+set_option old_structure_cmd true
+
 namespace configuration
 
 variables (P L : Type*) [has_mem P L]
@@ -70,7 +72,7 @@ class has_lines extends nondegenerate P L :=
 (mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
 (mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
 
-open nondegenerate has_points has_lines
+open nondegenerate has_points (mk_point mk_point_ax) has_lines (mk_line mk_line_ax)
 
 instance [nondegenerate P L] : nondegenerate (dual L) (dual P) :=
 { exists_point := @exists_line P L _ _,
@@ -79,11 +81,13 @@ instance [nondegenerate P L] : nondegenerate (dual L) (dual P) :=
 
 instance [has_points P L] : has_lines (dual L) (dual P) :=
 { mk_line := @mk_point P L _ _,
-  mk_line_ax := λ _ _, mk_point_ax }
+  mk_line_ax := λ _ _, mk_point_ax,
+  .. dual.nondegenerate _ _ }
 
 instance [has_lines P L] : has_points (dual L) (dual P) :=
 { mk_point := @mk_line P L _ _,
-  mk_point_ax := λ _ _, mk_line_ax }
+  mk_point_ax := λ _ _, mk_line_ax,
+  .. dual.nondegenerate _ _ }
 
 lemma has_points.exists_unique_point [has_points P L] (l₁ l₂ : L) (hl : l₁ ≠ l₂) :
   ∃! p, p ∈ l₁ ∧ p ∈ l₂ :=
@@ -292,7 +296,8 @@ let this : ∀ l₁ l₂ : L, l₁ ≠ l₂ → ∃ p : P, p ∈ l₁ ∧ p ∈ 
   exact ⟨q, (congr_arg _ (subtype.ext_iff.mp hq)).mp (mk_line_ax (this q)).2, q.2⟩,
 end in
 { mk_point := λ l₁ l₂ hl, classical.some (this l₁ l₂ hl),
-  mk_point_ax := λ l₁ l₂ hl, classical.some_spec (this l₁ l₂ hl) }
+  mk_point_ax := λ l₁ l₂ hl, classical.some_spec (this l₁ l₂ hl),
+  .. ‹has_lines P L› }
 
 /-- If a nondegenerate configuration has a unique point on any two lines, and if `|P| = |L|`,
   then there is a unique line through any two points. -/
@@ -300,41 +305,29 @@ noncomputable def has_points.has_lines [has_points P L] [fintype P] [fintype L]
   (h : fintype.card P = fintype.card L) : has_lines P L :=
 let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
 { mk_line := λ _ _, this.mk_point,
-  mk_line_ax := λ _ _, this.mk_point_ax }
+  mk_line_ax := λ _ _, this.mk_point_ax,
+  .. ‹has_points P L› }
 
 variables (P L)
 
 /-- A projective plane is a nondegenerate configuration in which every pair of lines has
   an intersection point, every pair of points has a line through them,
   and which has three points in general position. -/
-class projective_plane extends nondegenerate P L :=
-(mk_point : Π {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
-(mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
-(mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
-(mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
+class projective_plane extends has_points P L, has_lines P L :=
 (exists_config : ∃ (p₁ p₂ p₃ : P) (l₁ l₂ l₃ : L), p₁ ∉ l₂ ∧ p₁ ∉ l₃ ∧
   p₂ ∉ l₁ ∧ p₂ ∈ l₂ ∧ p₂ ∈ l₃ ∧ p₃ ∉ l₁ ∧ p₃ ∈ l₂ ∧ p₃ ∉ l₃)
 
 namespace projective_plane
 
-@[priority 100] -- see Note [lower instance priority]
-instance has_points [h : projective_plane P L] : has_points P L := { .. h }
-
-@[priority 100] -- see Note [lower instance priority]
-instance has_lines [h : projective_plane P L] : has_lines P L := { .. h }
-
 variables [projective_plane P L]
 
 instance : projective_plane (dual L) (dual P) :=
-{ mk_line := @mk_point P L _ _,
-  mk_line_ax := λ _ _, mk_point_ax,
-  mk_point := @mk_line P L _ _,
-  mk_point_ax := λ _ _, mk_line_ax,
-  exists_config := by
-  { obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ :=
-    @exists_config P L _ _,
-    exact ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩ },
-  .. dual.nondegenerate P L }
+{ exists_config :=
+    let ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ :=
+      @exists_config P L _ _ in
+    ⟨l₁, l₂, l₃, p₁, p₂, p₃, h₂₁, h₃₁, h₁₂, h₂₂, h₃₂, h₁₃, h₂₃, h₃₃⟩,
+  .. dual.has_points _ _,
+  .. dual.has_lines _ _ }
 
 /-- The order of a projective plane is one less than the number of lines through an arbitrary point.
 Equivalently, it is one less than the number of points on an arbitrary line. -/
@@ -444,7 +437,7 @@ begin
     convert (fintype.card_subtype_compl _).trans (congr_arg _ (fintype.card_subtype_eq p)) },
   have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
   { intro l,
-    rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),
+    rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter (∈ l.val) (≠ p)),
       fintype.card_subtype_compl (λ (x : subtype (∈ l.val)), x.val = p), ←nat.card_eq_fintype_card],
     refine tsub_eq_of_eq_add ((point_count_eq P l.1).trans _),
     rw ← fintype.card_subtype_eq (⟨p, l.2⟩ : {q : P // q ∈ l.1}),

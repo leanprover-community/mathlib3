@@ -5,7 +5,7 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient_operations
 
 /-!
 
@@ -238,15 +238,13 @@ begin
   suffices : ¬v (x + y) < max (v x) (v y),
     from or_iff_not_imp_right.1 (le_iff_eq_or_lt.1 (v.map_add x y)) this,
   intro h',
-  wlog vyx : v y < v x using x y,
-  { apply lt_or_gt_of_ne h.symm },
-  { rw max_eq_left_of_lt vyx at h',
-    apply lt_irrefl (v x),
-    calc v x = v ((x+y) - y)         : by simp
-         ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
-         ... < v x                   : max_lt h' vyx },
-  { apply this h.symm,
-    rwa [add_comm, max_comm] at h' }
+  wlog vyx : v y < v x,
+  { refine this v h.symm _ (h.lt_or_lt.resolve_right vyx), rwa [add_comm, max_comm] },
+  rw max_eq_left_of_lt vyx at h',
+  apply lt_irrefl (v x),
+  calc v x = v ((x+y) - y)         : by simp
+        ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
+        ... < v x                   : max_lt h' vyx
 end
 
 lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=

@@ -105,7 +105,7 @@ instance : is_fraction_ring A K :=
       exact mem_non_zero_divisors_iff_ne_zero.2 (λ c, h (inv_eq_zero.mp (congr_arg coe c))) },
   end,
   eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
-    congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
+    congr_arg coe ((mul_eq_mul_left_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
 /-- The value group of the valuation associated to `A`. Note: it is actually a group with zero. -/
 @[derive linear_ordered_comm_group_with_zero]

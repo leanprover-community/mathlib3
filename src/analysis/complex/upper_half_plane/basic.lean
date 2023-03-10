@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 import data.fintype.parity
-import linear_algebra.special_linear_group
+import linear_algebra.matrix.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
-import linear_algebra.general_linear_group
-
+import linear_algebra.matrix.general_linear_group
+import tactic.linear_combination
 
 /-!
 # The upper half plane and its automorphisms
@@ -30,11 +30,13 @@ open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
-/- Disable this instances as it is not the simp-normal form, and having them disabled ensures
+/- Disable these instances as they are not the simp-normal form, and having them disabled ensures
 we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
+local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
+local notation `↑ₘ[`:1024 R `]` := @coe _ (matrix (fin 2) (fin 2) R) _
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
@@ -83,6 +85,9 @@ lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 by { rw complex.norm_sq_pos, exact z.ne_zero }
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
+
+lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
+by simpa using div_pos z.property (norm_sq_pos z)
 
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def num (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)
@@ -217,6 +222,11 @@ instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
 
 end modular_scalar_towers
 
+lemma special_linear_group_apply {R : Type*} [comm_ring R] [algebra R ℝ] (g : SL(2, R)) (z : ℍ) :
+  g • z = mk ((((↑(↑ₘ[R] g 0 0) : ℝ) : ℂ) * z + ((↑(↑ₘ[R] g 0 1) : ℝ) : ℂ)) /
+              (((↑(↑ₘ[R] g 1 0) : ℝ) : ℂ) * z + ((↑(↑ₘ[R] g 1 1) : ℝ) : ℂ))) (g • z).property :=
+rfl
+
 @[simp] lemma coe_smul (g : GL(2, ℝ)⁺) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 lemma im_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
@@ -298,5 +308,41 @@ variables (x : ℝ) (z : ℍ)
 @[simp] lemma vadd_im : (x +ᵥ z).im = z.im := zero_add _
 
 end real_add_action
+
+@[simp] lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
+by { rw special_linear_group_apply, simp [modular_group.S, neg_div, inv_neg], }
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 = 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  obtain ⟨a, b, ha, rfl⟩ := g.fin_two_exists_eq_mk_of_apply_zero_one_eq_zero hc,
+  refine ⟨⟨_, mul_self_pos.mpr ha⟩, b * a, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : ↑a * z * a + b * a = b * a + a * a * z,
+  { rw special_linear_group_apply, simpa [add_mul], },
+  ring,
+end
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 ≠ 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
+    ((•) g : ℍ → ℍ) = ((+ᵥ) w : ℍ → ℍ) ∘ ((•) modular_group.S : ℍ → ℍ)
+                     ∘ ((+ᵥ) v : ℍ → ℍ) ∘ ((•) u : ℍ → ℍ) :=
+begin
+  have h_denom := denom_ne_zero g,
+  induction g using matrix.special_linear_group.fin_two_induction with a b c d h,
+  replace hc : c ≠ 0, { simpa using hc, },
+  refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : (↑a * z + b) / (↑c * z + d) = a / c - (c * d + ↑c * ↑c * z)⁻¹,
+  { rw special_linear_group_apply, simpa [-neg_add_rev, inv_neg, ← sub_eq_add_neg], },
+  replace hc : (c : ℂ) ≠ 0, { norm_cast, assumption, },
+  replace h_denom : ↑c * z + d ≠ 0, { simpa using h_denom ⟨z, hz⟩, },
+  have h_aux : (c : ℂ) * d + ↑c * ↑c * z ≠ 0,
+  { rw [mul_assoc, ← mul_add, add_comm], exact mul_ne_zero hc h_denom, },
+  replace h : (a * d - b * c : ℂ) = (1 : ℂ), { norm_cast, assumption, },
+  field_simp,
+  linear_combination (-(z * ↑c ^ 2) - ↑c * ↑d) * h,
+end
 
 end upper_half_plane

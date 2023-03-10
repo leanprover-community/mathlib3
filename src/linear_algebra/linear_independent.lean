@@ -12,6 +12,9 @@ import set_theory.cardinal.basic
 
 # Linear independence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines linear independence in a module or vector space.
 
 It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.

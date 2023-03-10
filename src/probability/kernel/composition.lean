@@ -543,7 +543,7 @@ instance is_s_finite_kernel.swap_right (κ : kernel α (β × γ)) [is_s_finite_
   is_s_finite_kernel (swap_right κ) :=
 by { rw swap_right, apply_instance, }
 
-/-- Define a `kernel α β` from a `kernel α (β × γ)` by taking the map of the projection. -/
+/-- Define a `kernel α β` from a `kernel α (β × γ)` by taking the map of the first projection. -/
 noncomputable
 def fst (κ : kernel α (β × γ)) : kernel α β :=
 map κ prod.fst measurable_fst
@@ -571,7 +571,7 @@ instance is_s_finite_kernel.fst (κ : kernel α (β × γ)) [is_s_finite_kernel 
   is_s_finite_kernel (fst κ) :=
 by { rw fst, apply_instance, }
 
-/-- Define a `kernel α γ` from a `kernel α (β × γ)` by taking the map of the projection. -/
+/-- Define a `kernel α γ` from a `kernel α (β × γ)` by taking the map of the second projection. -/
 noncomputable
 def snd (κ : kernel α (β × γ)) : kernel α γ :=
 map κ prod.snd measurable_snd

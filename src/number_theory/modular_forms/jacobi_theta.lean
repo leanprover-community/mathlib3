@@ -79,7 +79,7 @@ begin
     contrapose! ha,
     rw [ha.1, zero_re] },
   have hτ : (τ : ℂ) ≠ 0, from τ.ne_zero,
-  have := tsum_exp_neg_mul_int_sq ha,
+  have := complex.tsum_exp_neg_mul_int_sq ha,
   rw [mul_comm ((1:ℂ) / _) _, mul_one_div, eq_div_iff ha', mul_comm _ (_ ^ _), eq_comm] at this,
   convert this using 3,
   { ext1 n,

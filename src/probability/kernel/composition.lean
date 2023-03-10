@@ -366,7 +366,10 @@ variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → �
 
 include mγ
 
-/-- The pushforward of a kernel along a measurable function. -/
+/-- The pushforward of a kernel along a measurable function. 
+We include measurability in the assumptions instead of using junk values
+to make sure that typeclass inference can infer that the `map` of a Markov kernel
+is again a Markov kernel. -/
 noncomputable
 def map (κ : kernel α β) (f : β → γ) (hf : measurable f) : kernel α γ :=
 { val := λ a, (κ a).map f,
@@ -409,7 +412,10 @@ instance is_s_finite_kernel.map (κ : kernel α β) [is_s_finite_kernel κ] (hf 
   is_s_finite_kernel (map κ f hf) :=
 ⟨⟨λ n, map (seq κ n) f hf, infer_instance, (sum_map_seq κ hf).symm⟩⟩
 
-/-- Pullback of a kernel, such that for each set s `comap κ g hg c s = κ (g c) s`. -/
+/-- Pullback of a kernel, such that for each set s `comap κ g hg c s = κ (g c) s`.
+We include measurability in the assumptions instead of using junk values
+to make sure that typeclass inference can infer that the `comap` of a Markov kernel
+is again a Markov kernel. -/
 def comap (κ : kernel α β) (g : γ → α) (hg : measurable g) : kernel γ β :=
 { val := λ a, κ (g a),
   property := (kernel.measurable κ).comp hg }

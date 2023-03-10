@@ -137,4 +137,117 @@ end
 
 end existence
 
+/-!
+### Group structure of the solution set
+
+We define a structure of a commutative multiplicative group with distributive negation
+on the set of all solutions to the Pell equation `x^2 - d*^2 = 1`.
+
+The type of such solutions is `pell.solution₁ d`. It contains integers `x` and `y` and
+a proof that `(x, y)` is indeed a solution.
+
+The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')`
+(this is obtained by mapping `(x, y)` to `x + y*√d` and multiplying the results).
+-/
+
+-- We use `solution₁ d` to allow for a more general structure `solution d m` that
+-- encodes solutions to `x^2 - d*y^2 = m` to be added later.
+
+/-- `pell.solution₁ d` is the type of solutions to the Pell equation `x^2 - d*y^2 = 1`.
+This is a structure containing two integers `x` and `y` and a proof `rel` that the equation holds.
+-/
+structure solution₁ (d : ℤ) := (x : ℤ) (y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1)
+
+namespace solution₁
+
+variables {d : ℤ}
+
+/-- An alternative form of the relation, suitable for rewriting `x^2`. -/
+lemma rel_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.rel, ring}
+
+/-- An alternative form of the relation, suitable for rewriting `d * y^2`. -/
+lemma rel_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.rel, ring}
+
+/-- Two solutions are equal if their `x` and `y` components are equal. -/
+@[ext]
+lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
+begin
+  cases a,
+  cases b,
+  dsimp at hx hy,
+  simp only [hx, hy, eq_self_iff_true, and_self],
+end
+
+/-- We use `1` to denote the trivial solution `(1, 0)`. -/
+def one : solution₁ d :=
+{ x := 1, y := 0, rel := by simp }
+
+/-- We can multiply two solutions. -/
+def mul (a b : solution₁ d) : solution₁ d :=
+{ x := a.x * b.x + d * (a.y * b.y),
+  y := a.x * b.y + a.y * b.x,
+  rel := by {conv_rhs {rw ← mul_one (1 : ℤ), congr, rw ← a.rel, skip, rw ← b.rel}, ring} }
+
+/-- We obtain the inverse of a solution by changing the sign of `y`. -/
+def inv (a : solution₁ d) : solution₁ d :=
+{ x := a.x, y := -a.y, rel := by simp [a.rel] }
+
+/-- The solutions to the Pell equation `x^2 - d*y^2 = 1` form a commutative group. -/
+instance : comm_group (solution₁ d) :=
+{ mul := mul,
+  mul_assoc := λ a b c, by {simp only [mul], split; ring},
+  one := one,
+  one_mul := λ a, by {simp only [mul, one, mul_zero, one_mul, zero_mul, add_zero], ext; refl},
+  mul_one := λ a, by {simp only [mul, one, mul_zero, add_zero, mul_one, zero_add], ext; refl},
+  mul_comm := λ a b, by {change a.mul b = b.mul a, simp only [mul], split; ring},
+  inv := inv,
+  mul_left_inv := λ a, by
+  { change a.inv.mul a = one,
+    simp only [one, mul, inv, neg_mul, mul_neg, ← a.rel],
+    split; ring },
+  .. }
+
+/-- We define the negative of a solution by negating both `x` and `y`. -/
+def neg (a : solution₁ d) : solution₁ d :=
+{ x := -a.x, y := -a.y, rel := by simp [a.rel] }
+
+/-- The negation of solutions is compatible with the multiplicative structure. -/
+instance : has_distrib_neg (solution₁ d) :=
+{ neg := neg,
+  neg_neg := λ a, by {ext; simp [neg]},
+  neg_mul := λ a b, by
+  { change a.neg.mul b = (a.mul b).neg,
+    simp only [neg, mul, neg_mul, mul_neg, neg_add_rev],
+    split; ring },
+  mul_neg := λ a b, by
+  { change a.mul b.neg = (a.mul b).neg,
+    simp only [neg, mul, mul_neg, neg_add_rev],
+    split; ring } }
+
+@[simp]
+lemma one.x : (1 : solution₁ d).x = 1 := rfl
+
+@[simp]
+lemma one.y : (1 : solution₁ d).y = 0 := rfl
+
+@[simp]
+lemma mul.x (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
+
+@[simp]
+lemma mul.y (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
+
+@[simp]
+lemma inv.x (a : solution₁ d) : a⁻¹.x = a.x := rfl
+
+@[simp]
+lemma inv.y (a : solution₁ d) : a⁻¹.y = -a.y := rfl
+
+@[simp]
+lemma neg.x (a : solution₁ d) : (-a).x = -a.x := rfl
+
+@[simp]
+lemma neg.y (a : solution₁ d) : (-a).y = -a.y := rfl
+
+end solution₁
+
 end pell

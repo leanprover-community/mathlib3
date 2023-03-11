@@ -591,9 +591,13 @@ lemma coe_quot_quot_equiv_quot_supₐ :
 rfl
 
 @[simp]
-lemma quot_quot_equiv_quot_sup_symm_quot_quot_mkₐ (x : A) :
-  (quot_quot_equiv_quot_supₐ R I J).symm ((I ⊔ J)^.quotient.mkₐ R x) =
-    quot_quot_mkₐ R I J x :=
+lemma quot_quot_equiv_quot_supₐ_symm_to_ring_equiv:
+  (quot_quot_equiv_quot_supₐ R I J).symm.to_ring_equiv = (quot_quot_equiv_quot_sup I J).symm :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_equiv_quot_supₐ_symm:
+  ⇑(quot_quot_equiv_quot_supₐ R I J).symm = (quot_quot_equiv_quot_sup I J).symm :=
 rfl
 
 /-- The natural algebra isomorphism `(A / I) / J' → (A / J) / I'`,
@@ -614,14 +618,14 @@ lemma coe_quot_quot_equiv_commₐ :
 rfl
 
 @[simp]
+lemma quot_quot_equiv_comm_symmₐ :
+  (quot_quot_equiv_commₐ R I J).symm = quot_quot_equiv_commₐ R J I :=
+by convert rfl
+
+@[simp]
 lemma quot_quot_equiv_comm_comp_quot_quot_mkₐ :
   alg_hom.comp ↑(quot_quot_equiv_commₐ R I J) (quot_quot_mkₐ R I J) = quot_quot_mkₐ R J I :=
 alg_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
-
--- @[simp]
--- lemma quot_quot_equiv_comm_symmₐ :
---   (quot_quot_equiv_commₐ R I J).symm = quot_quot_equiv_commₐ R J I :=
--- by convert rfl
 
 variables {I J}
 
@@ -642,9 +646,13 @@ lemma coe_quot_quot_equiv_quot_of_leₐ (h : I ≤ J) :
 rfl
 
 @[simp]
-lemma quot_quot_equiv_quot_of_le_symm_mkₐ (x : A) (h : I ≤ J) :
-  (quot_quot_equiv_quot_of_leₐ R h).symm (J^.quotient.mkₐ R x) =
-    (quot_quot_mkₐ R I J x) :=
+lemma quot_quot_equiv_quot_of_leₐ_symm_to_ring_equiv (h : I ≤ J) :
+  (quot_quot_equiv_quot_of_leₐ R h).symm.to_ring_equiv = (quot_quot_equiv_quot_of_le h).symm :=
+rfl
+
+@[simp]
+lemma coe_quot_quot_equiv_quot_of_leₐ_symm (h : I ≤ J) :
+  ⇑(quot_quot_equiv_quot_of_leₐ R h).symm = (quot_quot_equiv_quot_of_le h).symm :=
 rfl
 
 @[simp]

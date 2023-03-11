@@ -164,7 +164,7 @@ by assumption
 
 section reflexive
 
-lemma directed_on.insert (h : reflexive r) (a : α) (s : set α) (hd : directed_on r s)
+lemma directed_on.insert (h : reflexive r) (a : α) {s : set α} (hd : directed_on r s)
 (ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
 begin
   rw directed_on,

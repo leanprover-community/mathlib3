@@ -184,6 +184,8 @@ run_cmd mk_simp_attr `pell_simp
 instance : has_one (solution₁ d) :=
 { one := { x := 1, y := 0, rel := by simp } }
 
+instance (d : ℤ) : inhabited (solution₁ d) := ⟨1⟩
+
 @[simp, pell_simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl
 
@@ -238,8 +240,6 @@ instance : comm_group (solution₁ d) :=
   inv := has_inv.inv,
   mul_left_inv := λ a, by {pell_tac, rw a.rel_x, ring},
   .. }
-
-instance (d : ℤ) : inhabited (solution₁ d) := ⟨1⟩
 
 /-- The negation of solutions is compatible with the multiplicative structure. -/
 instance : has_distrib_neg (solution₁ d) :=

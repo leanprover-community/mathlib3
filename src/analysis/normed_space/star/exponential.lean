@@ -26,15 +26,11 @@ variables {A : Type*}
 
 open complex
 
-lemma is_self_adjoint.I_smul_mem_skew_adjoint {a : A} (ha : is_self_adjoint a) :
-  (I • a) ∈ skew_adjoint A :=
-by rw [skew_adjoint.mem_iff, star_smul, is_R_or_C.star_def, conj_I, ha.star_eq, neg_smul]
-
 /-- The map from the selfadjoint real subspace to the unitary group. This map only makes sense
 over ℂ. -/
 @[simps]
 noncomputable def self_adjoint.exp_unitary (a : self_adjoint A) : unitary A :=
-⟨exp ℂ (I • a), exp_mem_unitary_of_mem_skew_adjoint _ a.prop.I_smul_mem_skew_adjoint⟩
+⟨exp ℂ (I • a), exp_mem_unitary_of_mem_skew_adjoint _ (a.prop.smul_mem_skew_adjoint conj_I)⟩
 
 open self_adjoint
 

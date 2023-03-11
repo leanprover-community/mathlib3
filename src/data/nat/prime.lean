@@ -599,6 +599,13 @@ theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q)
 theorem coprime_or_dvd_of_prime {p} (pp : prime p) (i : ℕ) : coprime p i ∨ p ∣ i :=
 by rw [pp.dvd_iff_not_coprime]; apply em
 
+lemma prime_dvd_of_not_coprime (p : ℕ) [fact p.prime] {n : ℕ} (h : ¬ n.coprime p) : p ∣ n :=
+begin
+  cases @nat.coprime_or_dvd_of_prime p (fact.out _) n,
+  { exfalso, apply h h_1.symm, },
+  { assumption, },
+end
+
 lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
   coprime p n :=
 (coprime_or_dvd_of_prime pp n).resolve_right $ λ h, lt_le_antisymm hlt (le_of_dvd n_pos h)

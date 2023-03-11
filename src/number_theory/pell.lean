@@ -185,10 +185,10 @@ instance : has_one (solution₁ d) :=
 { one := { x := 1, y := 0, rel := by simp } }
 
 @[simp, pell_simp]
-lemma one.x : (1 : solution₁ d).x = 1 := rfl
+lemma x_one : (1 : solution₁ d).x = 1 := rfl
 
 @[simp, pell_simp]
-lemma one.y : (1 : solution₁ d).y = 0 := rfl
+lemma y_one : (1 : solution₁ d).y = 0 := rfl
 
 /-- We can multiply two solutions. -/
 instance : has_mul (solution₁ d) :=
@@ -198,30 +198,30 @@ instance : has_mul (solution₁ d) :=
     rel := by {conv_rhs {rw ← mul_one (1 : ℤ), congr, rw ← a.rel, skip, rw ← b.rel}, ring} } }
 
 @[simp, pell_simp]
-lemma mul.x (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
+lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
 
 @[simp, pell_simp]
-lemma mul.y (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
+lemma y_mul (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
 
 /-- We obtain the inverse of a solution by changing the sign of `y`. -/
 instance : has_inv (solution₁ d) :=
 { inv := λ a, { x := a.x, y := -a.y, rel := by simp [a.rel] } }
 
 @[simp, pell_simp]
-lemma inv.x (a : solution₁ d) : a⁻¹.x = a.x := rfl
+lemma x_inv (a : solution₁ d) : a⁻¹.x = a.x := rfl
 
 @[simp, pell_simp]
-lemma inv.y (a : solution₁ d) : a⁻¹.y = -a.y := rfl
+lemma y_inv (a : solution₁ d) : a⁻¹.y = -a.y := rfl
 
 /-- We define the negative of a solution by negating both `x` and `y`. -/
 instance : has_neg (solution₁ d) :=
 { neg := λ a, { x := -a.x, y := -a.y, rel := by simp [a.rel] } }
 
 @[simp, pell_simp]
-lemma neg.x (a : solution₁ d) : (-a).x = -a.x := rfl
+lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
 
 @[simp, pell_simp]
-lemma neg.y (a : solution₁ d) : (-a).y = -a.y := rfl
+lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
 
 /-- Set up a tactic that discharges the computational goals below. -/
 meta def pell_tac : tactic unit :=

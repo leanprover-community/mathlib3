@@ -177,77 +177,76 @@ begin
   congr; assumption,
 end
 
+-- Define an attribute for a `simp` set to be used in `pell_tac`.
+run_cmd mk_simp_attr `pell_simp
+
 /-- We use `1` to denote the trivial solution `(1, 0)`. -/
-def one : solution₁ d :=
-{ x := 1, y := 0, rel := by simp }
+instance : has_one (solution₁ d) :=
+{ one := { x := 1, y := 0, rel := by simp } }
+
+@[simp, pell_simp]
+lemma one.x : (1 : solution₁ d).x = 1 := rfl
+
+@[simp, pell_simp]
+lemma one.y : (1 : solution₁ d).y = 0 := rfl
 
 /-- We can multiply two solutions. -/
-def mul (a b : solution₁ d) : solution₁ d :=
-{ x := a.x * b.x + d * (a.y * b.y),
-  y := a.x * b.y + a.y * b.x,
-  rel := by {conv_rhs {rw ← mul_one (1 : ℤ), congr, rw ← a.rel, skip, rw ← b.rel}, ring} }
+instance : has_mul (solution₁ d) :=
+{ mul := λ a b,
+  { x := a.x * b.x + d * (a.y * b.y),
+    y := a.x * b.y + a.y * b.x,
+    rel := by {conv_rhs {rw ← mul_one (1 : ℤ), congr, rw ← a.rel, skip, rw ← b.rel}, ring} } }
+
+@[simp, pell_simp]
+lemma mul.x (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
+
+@[simp, pell_simp]
+lemma mul.y (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
 
 /-- We obtain the inverse of a solution by changing the sign of `y`. -/
-def inv (a : solution₁ d) : solution₁ d :=
-{ x := a.x, y := -a.y, rel := by simp [a.rel] }
+instance : has_inv (solution₁ d) :=
+{ inv := λ a, { x := a.x, y := -a.y, rel := by simp [a.rel] } }
+
+@[simp, pell_simp]
+lemma inv.x (a : solution₁ d) : a⁻¹.x = a.x := rfl
+
+@[simp, pell_simp]
+lemma inv.y (a : solution₁ d) : a⁻¹.y = -a.y := rfl
+
+/-- We define the negative of a solution by negating both `x` and `y`. -/
+instance : has_neg (solution₁ d) :=
+{ neg := λ a, { x := -a.x, y := -a.y, rel := by simp [a.rel] } }
+
+@[simp, pell_simp]
+lemma neg.x (a : solution₁ d) : (-a).x = -a.x := rfl
+
+@[simp, pell_simp]
+lemma neg.y (a : solution₁ d) : (-a).y = -a.y := rfl
+
+/-- Set up a tactic that discharges the computational goals below. -/
+meta def pell_tac : tactic unit :=
+`[ intros, ext; simp only with pell_simp; ring_nf ]
 
 /-- The solutions to the Pell equation `x^2 - d*y^2 = 1` form a commutative group. -/
 instance : comm_group (solution₁ d) :=
-{ mul := mul,
-  mul_assoc := λ a b c, by {simp only [mul], split; ring},
-  one := one,
-  one_mul := λ a, by {simp only [mul, one, mul_zero, one_mul, zero_mul, add_zero], ext; refl},
-  mul_one := λ a, by {simp only [mul, one, mul_zero, add_zero, mul_one, zero_add], ext; refl},
-  mul_comm := λ a b, by {change a.mul b = b.mul a, simp only [mul], split; ring},
-  inv := inv,
-  mul_left_inv := λ a, by
-  { change a.inv.mul a = one,
-    simp only [one, mul, inv, neg_mul, mul_neg, ← a.rel],
-    split; ring },
+{ mul := has_mul.mul,
+  mul_assoc := by pell_tac,
+  one := has_one.one,
+  one_mul := by pell_tac,
+  mul_one := by pell_tac,
+  mul_comm := by pell_tac,
+  inv := has_inv.inv,
+  mul_left_inv := λ a, by {pell_tac, rw a.rel_x, ring},
   .. }
 
 instance (d : ℤ) : inhabited (solution₁ d) := ⟨1⟩
 
-/-- We define the negative of a solution by negating both `x` and `y`. -/
-def neg (a : solution₁ d) : solution₁ d :=
-{ x := -a.x, y := -a.y, rel := by simp [a.rel] }
-
 /-- The negation of solutions is compatible with the multiplicative structure. -/
 instance : has_distrib_neg (solution₁ d) :=
-{ neg := neg,
-  neg_neg := λ a, by {ext; simp [neg]},
-  neg_mul := λ a b, by
-  { change a.neg.mul b = (a.mul b).neg,
-    simp only [neg, mul, neg_mul, mul_neg, neg_add_rev],
-    split; ring },
-  mul_neg := λ a b, by
-  { change a.mul b.neg = (a.mul b).neg,
-    simp only [neg, mul, mul_neg, neg_add_rev],
-    split; ring } }
-
-@[simp]
-lemma one.x : (1 : solution₁ d).x = 1 := rfl
-
-@[simp]
-lemma one.y : (1 : solution₁ d).y = 0 := rfl
-
-@[simp]
-lemma mul.x (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
-
-@[simp]
-lemma mul.y (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
-
-@[simp]
-lemma inv.x (a : solution₁ d) : a⁻¹.x = a.x := rfl
-
-@[simp]
-lemma inv.y (a : solution₁ d) : a⁻¹.y = -a.y := rfl
-
-@[simp]
-lemma neg.x (a : solution₁ d) : (-a).x = -a.x := rfl
-
-@[simp]
-lemma neg.y (a : solution₁ d) : (-a).y = -a.y := rfl
+{ neg := has_neg.neg,
+  neg_neg := by pell_tac,
+  neg_mul := by pell_tac,
+  mul_neg := by pell_tac }
 
 end solution₁
 

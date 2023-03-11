@@ -72,6 +72,14 @@ lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
 
 lemma lcm_eq_nat_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
 
+lemma helper_4 {x y : ℕ} (m : ℕ) [fact (0 < m)] : gcd_monoid.lcm (x * y^m) y = x * y^m :=
+begin
+  rw lcm_eq_left_iff _ _ _,
+  apply dvd_mul_of_dvd_right (dvd_pow_self y (nat.ne_zero_of_lt' 0)) x,
+  { apply_instance, },
+  { rw normalize_eq _, },
+end
+
 namespace int
 
 section normalization_monoid

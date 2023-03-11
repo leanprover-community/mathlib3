@@ -107,6 +107,9 @@ lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 λ h1, not_lt_zero' $ show b < 0, from h1 ▸ h
 
+/-- Same as ne_zero_of_lt, except it takes an explicit argument. -/
+lemma ne_zero_of_lt' (b' : α) [fact (b' < a)] : a ≠ 0 := @ne_zero_of_lt _ _ b' _ (fact.out _)
+
 instance : linear_ordered_add_comm_monoid_with_top (additive αᵒᵈ) :=
 { top := (0 : α),
   top_add' := λ a, (zero_mul a : (0 : α) * a = 0),

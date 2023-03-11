@@ -444,6 +444,9 @@ nat.rec_on n (coprime_one_left _) (λn IH, H1.mul IH)
 theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (m ^ n) :=
 (H1.symm.pow_left n).symm
 
+lemma coprime.mul_pow {a b c : ℕ} (n : ℕ) (hc' : c.coprime a) (hc : c.coprime b) :
+  c.coprime (a * b^n) := coprime_mul_iff_right.2 ⟨hc', coprime.pow_right n hc⟩
+
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 

@@ -261,7 +261,7 @@ def preserve_lub_on_directed [preorder β] (f : α → β) : Prop :=
 ∀ (d : set α) (a : α), d.nonempty →
   directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a))
 
-lemma preserve_lub_on_directed_montotone [preorder β] (f : α → β) (h: preserve_lub_on_directed f) :
+lemma preserve_lub_on_directed.monotone [preorder β] {f : α → β} (h: preserve_lub_on_directed f) :
   monotone f :=
 begin
   intros a b hab,

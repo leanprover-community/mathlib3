@@ -160,8 +160,6 @@ structure solution₁ (d : ℤ) := (x : ℤ) (y : ℤ) (rel : x ^ 2 - d * y ^ 2 
 
 namespace solution₁
 
-instance (d : ℤ) : inhabited (solution₁ d) := ⟨{x := 1, y := 0, rel := by simp}⟩
-
 variables {d : ℤ}
 
 /-- An alternative form of the relation, suitable for rewriting `x^2`. -/
@@ -208,6 +206,8 @@ instance : comm_group (solution₁ d) :=
     simp only [one, mul, inv, neg_mul, mul_neg, ← a.rel],
     split; ring },
   .. }
+
+instance (d : ℤ) : inhabited (solution₁ d) := ⟨1⟩
 
 /-- We define the negative of a solution by negating both `x` and `y`. -/
 def neg (a : solution₁ d) : solution₁ d :=

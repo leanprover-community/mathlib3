@@ -192,4 +192,39 @@ alias nondegenerate_iff_det_ne_zero ↔ nondegenerate.det_ne_zero nondegenerate.
 
 end nondegenerate
 
+section linear_order
+
+lemma mat.det_ne_zero_of_neg {n R : Type*} [decidable_eq n] [fintype n]
+  [linear_ordered_comm_ring R] {M : matrix n n R}
+  (h1 : ∀ i j, i ≠ j → M i j < 0) (h2 : ∀ j, 0 < finset.univ.sum (λ i, M i j)) :
+  M.det ≠ 0 :=
+begin
+  by_cases hn : nonempty n,
+  { haveI := hn,
+    contrapose! h2,
+    rsuffices ⟨g, ⟨hg1, hg2⟩⟩ : ∃ g, 0 < finset.sup' finset.univ finset.univ_nonempty g ∧
+      matrix.vec_mul g M = 0,
+    { obtain ⟨a, ha1, ha2⟩ := finset.exists_mem_eq_sup' finset.univ_nonempty g,
+      refine ⟨a, nonpos_of_mul_nonpos_right _ hg1⟩,
+      rw [finset.mul_sum, (_ : 0 = finset.univ.sum (λ i, g i * M i a))],
+      { refine finset.sum_le_sum (λ i _, _),
+        by_cases hi : i = a,
+        { rw [hi, ← ha2], },
+        { simpa only [h1, hi, mul_le_mul_right_of_neg, ne.def, not_false_iff]
+            using finset.le_sup' g (finset.mem_univ i), }},
+      { rw [← matrix.dot_product, ← matrix.vec_mul, hg2, pi.zero_apply], }},
+    { obtain ⟨v, ⟨hv1, hv2⟩⟩ := matrix.exists_vec_mul_eq_zero_iff.mpr h2,
+      obtain hv | hv := lt_or_le 0 (finset.sup' finset.univ finset.univ_nonempty v),
+      { exact ⟨v, hv, hv2⟩, },
+      { refine ⟨-v, _, by rwa [matrix.neg_vec_mul, neg_eq_zero]⟩,
+        { obtain ⟨a, ha⟩ := function.ne_iff.mp hv1,
+          simp_rw [pi.neg_apply, finset.lt_sup'_iff, right.neg_pos_iff],
+          exact ⟨a, finset.mem_univ a,
+            ne.lt_of_le ha (((finset.sup'_le_iff _ _).mp hv) a (finset.mem_univ a))⟩, }}}},
+  { haveI : is_empty n := (is_empty_or_nonempty n).resolve_right hn,
+    simp only [ne.def, one_ne_zero, not_false_iff, matrix.det_is_empty], }
+end
+
+end linear_order
+
 end matrix

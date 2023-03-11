@@ -378,8 +378,8 @@ end skew_adjoint
 
 /-- Scalar multiplication of a self-adjoint element by a skew-adjoint element produces a
 skew-adjoint element. -/
-lemma is_self_adjoint.smul_mem_skew_adjoint
-  [ring R] [add_comm_group A] [module R A] [star_add_monoid R] [star_add_monoid A] [star_module R A] {r : R}
+lemma is_self_adjoint.smul_mem_skew_adjoint [ring R] [add_comm_group A] [module R A]
+  [star_add_monoid R] [star_add_monoid A] [star_module R A] {r : R}
   (hr : r ∈ skew_adjoint R) {a : A} (ha : is_self_adjoint a) :
   r • a ∈ skew_adjoint A :=
 (star_smul _ _).trans $ (congr_arg2 _ hr ha).trans $ neg_smul _ _

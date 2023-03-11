@@ -10,7 +10,7 @@ import analysis.special_functions.exponential
 import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
-In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
+In this file, we establish various properties related to the spectrum of elements in C⋆-algebras.
 -/
 
 local postfix `⋆`:std.prec.max_plus := star

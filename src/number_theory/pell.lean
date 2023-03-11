@@ -184,7 +184,7 @@ run_cmd mk_simp_attr `pell_simp
 instance : has_one (solution₁ d) :=
 { one := { x := 1, y := 0, rel := by simp } }
 
-instance (d : ℤ) : inhabited (solution₁ d) := ⟨1⟩
+instance : inhabited (solution₁ d) := ⟨1⟩
 
 @[simp, pell_simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl

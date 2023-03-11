@@ -174,8 +174,7 @@ lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
 begin
   cases a,
   cases b,
-  dsimp at hx hy,
-  simp only [hx, hy, eq_self_iff_true, and_self],
+  congr; assumption,
 end
 
 /-- We use `1` to denote the trivial solution `(1, 0)`. -/

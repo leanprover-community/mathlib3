@@ -141,7 +141,7 @@ end existence
 ### Group structure of the solution set
 
 We define a structure of a commutative multiplicative group with distributive negation
-on the set of all solutions to the Pell equation `x^2 - d*^2 = 1`.
+on the set of all solutions to the Pell equation `x^2 - d*y^2 = 1`.
 
 The type of such solutions is `pell.solution₁ d`. It contains integers `x` and `y` and
 a proof that `(x, y)` is indeed a solution.

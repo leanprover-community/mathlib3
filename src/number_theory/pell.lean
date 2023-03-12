@@ -168,7 +168,7 @@ The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')
 -- encodes solutions to `x^2 - d*y^2 = m` to be added later.
 
 /-- `pell.solution₁ d` is the type of solutions to the Pell equation `x^2 - d*y^2 = 1`.
-This is a structure containing two integers `x` and `y` and a proof `rel` that the equation holds.
+We define this in terms of elements of `ℤ√d` of norm one.
 -/
 @[derive [comm_group, has_distrib_neg, inhabited]]
 def solution₁ (d : ℤ) : Type := ↥(unitary (zsqrtd d))
@@ -237,8 +237,6 @@ lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
 
 @[simp]
 lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
-
-
 
 end solution₁
 

@@ -50,8 +50,7 @@ it is contained in the submonoid of unitary elements. -/
 lemma norm_eq_one_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
   a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary (zsqrtd d) :=
 begin
-  rw [unitary.mem_iff, ← norm_eq_mul_conj, mul_comm _ a, ← norm_eq_mul_conj, and_self, norm_def,
-      sq, sq, ← mul_assoc],
+  rw [unitary.mem_iff_self_mul_star, ← norm_eq_mul_conj, norm_def, sq, sq, ← mul_assoc],
   norm_cast,
 end
 

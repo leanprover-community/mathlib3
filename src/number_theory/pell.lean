@@ -179,12 +179,15 @@ open zsqrtd
 
 variables {d : ℤ}
 
-instance : has_coe (solution₁ d) (zsqrtd d) := { coe := subtype.val }
+instance : has_coe (solution₁ d) (ℤ√d) := { coe := subtype.val }
 
-def x (a : solution₁ d) : ℤ := (a : zsqrtd d).re
+/-- The `x` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+def x (a : solution₁ d) : ℤ := (a : ℤ√d).re
 
-def y (a : solution₁ d) : ℤ := (a : zsqrtd d).im
+/-- The `y` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+def y (a : solution₁ d) : ℤ := (a : ℤ√d).im
 
+/-- The proof that `a` is a solution to the Pell equation `x^2 - d*y^2 = 1` -/
 lemma rel (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
 norm_eq_one_iff_mem_unitary.mpr a.property
 
@@ -205,7 +208,7 @@ end
 
 def mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
 { val := ⟨x, y⟩,
-  property := zsqrtd.norm_eq_one_iff_mem_unitary.mp rel }
+  property := norm_eq_one_iff_mem_unitary.mp rel }
 
 @[simp]
 lemma x_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).x = x := rfl

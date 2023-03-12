@@ -3,9 +3,11 @@ import analysis.specific_limits.basic
 import trench.prod_le_sum
 import to_mathlib.algebra.big_operators.basic
 import to_mathlib.algebra.big_operators.order
-import to_mathlib.algebra.hom.units
+import to_mathlib.algebra.group_with_zero.units.basic
 import to_mathlib.algebra.order.field.basic
 import to_mathlib.data.finset.image
+import to_mathlib.topology.algebra.constructions
+import to_mathlib.topology.algebra.group_with_zero
 import to_mathlib.topology.algebra.order.monotone_convergence
 import to_mathlib.topology.algebra.infinite_sum
 import to_mathlib.topology.finset
@@ -14,11 +16,13 @@ noncomputable theory
 open finset filter function classical
 open_locale topology classical big_operators nnreal filter
 
-variables {α : Type*} {β : Type*} {γ : Type*} {R K E : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*} {R M₀ G₀ K E : Type*}
 
 section
 variables [comm_monoid α] [topological_space α]
-  [comm_semiring R] [topological_space R] [no_zero_divisors R] [nontrivial R]
+  -- [comm_semiring R] [topological_space R] [no_zero_divisors R] [nontrivial R]
+  [comm_monoid_with_zero M₀] [no_zero_divisors M₀] [topological_space M₀]
+  [comm_group_with_zero G₀] [topological_space G₀]
   [field K] [topological_space K] [has_continuous_mul K] [has_continuous_inv₀ K]
   [conditionally_complete_linear_ordered_field E] [topological_space E] [has_continuous_mul E]
   -- [has_continuous_inv₀ E]
@@ -26,44 +30,76 @@ variables [comm_monoid α] [topological_space α]
 structure has_prod (f : β → α) (a : α) : Prop :=
 (finite_not_unit : {b | ¬ is_unit (f b)}.finite)
 (tendsto_units : ∃ x : αˣ, tendsto
-  (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x))
+  (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 x))
 (prod_eq : a = tendsto_units.some * ∏ b in finite_not_unit.to_finset, f b)
 
-lemma has_prod_of_tendsto_of_finite [t2_space α] {f : β → α} {x : α}
-  (h : tendsto (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x))
-  (hx : is_unit x) (hs : {b | ¬ is_unit (f b)}.finite) :
+lemma has_prod_of_tendsto_of_finite [t2_space α] {f : β → α} {x : αˣ}
+  (h : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 x))
+  (hs : {b | ¬ is_unit (f b)}.finite) :
   has_prod f (x * hs.to_finset.prod f) :=
 begin
-  refine ⟨hs, ⟨hx.unit, h⟩, _⟩,
+  refine ⟨hs, ⟨_, h⟩, _⟩,
   generalize_proofs H,
-  rw tendsto_nhds_unique (Exists.some_spec H) h
+  rw [tendsto_nhds_unique (Exists.some_spec H) h]
 end
 
-lemma has_prod_of_tendsto_of_ne_zero [t2_space K] {f : β → K} {x : K}
+lemma has_prod_of_tendsto_of_ne_zero [has_continuous_inv₀ G₀] [t2_space G₀] {f : β → G₀} {x : G₀}
   (h : tendsto (λ s : finset β, ∏ b in s.filter (λ i, f i ≠ 0), f b) at_top (𝓝 x))
   (hx : x ≠ 0) (hs : {b | f b = 0}.finite) :
   has_prod f (x * hs.to_finset.prod f) :=
 begin
-  simp_rw ←is_unit_iff_ne_zero at h hx,
-  convert has_prod_of_tendsto_of_finite h hx (hs.subset _);
-  simp [is_unit_iff_ne_zero]
+  have hx' : x = units.mk0 _ hx := rfl,
+  rw hx' at h ⊢,
+  suffices : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 (units.mk0 _ hx)),
+  { convert has_prod_of_tendsto_of_finite this (hs.subset _);
+    simp [is_unit_iff_ne_zero] },
+  simp_rw is_unit_iff_ne_zero at h,
+  have : ∀ m : finset β, ∏ b in m.filter (λ i, f i ≠ 0), f b = ∏ b in m, surj_units (f b),
+  { intro,
+    rw prod_filter,
+    refine prod_congr rfl (λ b _, _),
+    split_ifs with hb hb,
+    { simp [surj_units_apply_eq_mk0_apply hb] },
+    { simp only [not_not] at hb,
+      simp [hb], } },
+  simp_rw this at h, clear this,
+  have h' := h.inv₀ hx,
+  rw tendsto_at_top_nhds at h h' ⊢,
+  intros U hU hU',
+  obtain ⟨V, hV, hV'⟩ := hU',
+  rw is_open_prod_iff at hV,
+  specialize hV x (mul_opposite.op x⁻¹) _,
+  { simpa [surj_units_apply_eq_mk0_apply hx, ←hV'] using hU, },
+  obtain ⟨s, t, hs, ht, hxs, hxt, hst⟩ := hV,
+  obtain ⟨N, hN⟩ := h s hxs hs,
+  obtain ⟨M, hM⟩ := h' (mul_opposite.op ⁻¹' t) hxt
+    (mul_opposite.continuous_op.is_open_preimage _ ht),
+  refine ⟨N ∪ M, λ u hu, _⟩,
+  specialize hN u ((finset.subset_union_left _ _).trans hu),
+  specialize hM u ((finset.subset_union_right _ _).trans hu),
+  rw ←hV',
+  refine hst _,
+  simp only [set.mem_preimage, units.embed_product_apply, units.coe_prod, units.coe_inv,
+            mul_opposite.op_inv, set.prod_mk_mem_set_prod_eq],
+  exact ⟨hN, hM⟩
 end
 
-lemma has_prod_of_tendsto_of_forall_is_unit [t2_space α] {f : β → α} {x : α}
-  (h : tendsto (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x))
-  (hx : is_unit x) (hs : ∀ b, is_unit (f b)) :
+lemma has_prod_of_tendsto_of_forall_is_unit [t2_space α] {f : β → α} {x : αˣ}
+  (h : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 x))
+  (hs : ∀ b, is_unit (f b)) :
   has_prod f x :=
 begin
   have : {b | ¬ is_unit (f b)} = ∅ := set.subset_empty_iff.mp (λ x hx, hx (hs _)),
-  convert has_prod_of_tendsto_of_finite h hx (set.finite_empty.subset this.le),
+  convert has_prod_of_tendsto_of_finite h (set.finite_empty.subset this.le),
   simp [this]
 end
 
 lemma has_prod_is_empty [t2_space α] [h : is_empty β] (f : β → α) :
   has_prod f 1 :=
 begin
-  refine has_prod_of_tendsto_of_forall_is_unit _ is_unit_one (λ x, h.elim x),
-  have : ∀ (s : finset β), ∏ i in s, f i = 1,
+  suffices : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 1),
+  { exact has_prod_of_tendsto_of_forall_is_unit this (λ x, h.elim x) },
+  have : ∀ (s : finset β), ∏ i in s, surj_units (f i) = 1,
   { intro s,
     suffices : s = ∅,
     { simp [this] },
@@ -75,41 +111,27 @@ end
 lemma has_prod_unique [t2_space α] [unique β] (f : β → α) :
   has_prod f (f default) :=
 begin
-  by_cases hf : is_unit (f default),
-  { refine has_prod_of_tendsto_of_forall_is_unit _ hf _,
-    { rw order_top.at_top_eq,
-      simp only [prod_filter, tendsto_pure_left, hf, top_eq_univ, fintype.univ_of_subsingleton,
-                 is_unit.unit_spec, prod_singleton, if_true, mem_nhds_iff, exists_prop,
-                 forall_exists_index, and_imp],
-      intros s t hst _ hm,
-      exact hst hm },
-    { intro b,
-      simpa [subsingleton.elim b default] using hf } },
-  { convert has_prod_of_tendsto_of_finite _ is_unit_one
-      (set.finite_univ.subset (set.subset_univ _)),
-    { simp [hf, filter_singleton],},
-    { apply_instance },
-    { have : ∀ (s : finset β), ∏ i in (s.filter (λ i, is_unit (f i))), f i = 1,
-      { intro s,
-        suffices : s.filter (λ i, is_unit (f i)) = ∅,
-        { simp [this] },
-        ext x,
-        simp [hf, subsingleton.elim x default] },
-      simp [this, tendsto_const_nhds] },
-    { apply_instance } }
+  suffices : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top
+    (𝓝 (surj_units (f default))),
+  { convert has_prod_of_tendsto_of_finite this (set.finite_univ.subset (set.subset_univ _)),
+    by_cases hf : is_unit (f default),
+    { simp [hf, filter_singleton, surj_units_apply_is_unit hf] },
+    { simp [hf, filter_singleton, surj_units_apply_not_is_unit hf] } },
+  rw [order_top.at_top_eq, tendsto_pure_left],
+  intros s hs,
+  simpa using mem_of_mem_nhds hs
 end
 
-
-lemma has_prod_ratio {f : β → K} {a : K} (hf : has_prod f a) :
+lemma has_prod_ratio [has_continuous_mul α] {f : β → α} {a : α} (hf : has_prod f a) :
   tendsto (λ sb : finset β × β, (
-      ∏ b in ((insert sb.2 sb.1).filter (λ i, is_unit (f i))), f b) /
-      ∏ b in (sb.1.filter (λ i, is_unit (f i))), f b)
+      ∏ b in (insert sb.2 sb.1), surj_units (f b)) /
+      ∏ b in sb.1, surj_units (f b))
     (at_top.comap prod.fst) (𝓝 1) :=
 begin
   obtain ⟨x, hx⟩ := hf.tendsto_units,
-  rw ←div_self x.ne_zero,
   simp_rw div_eq_mul_inv,
-  refine tendsto.mul _ ((tendsto_inv₀ x.ne_zero).comp _),
+  rw ←mul_inv_self x,
+  refine tendsto.mul _ ((tendsto_inv _).comp _),
   { intros U hU,
     specialize hx hU,
     simp only [filter.mem_map, mem_comap, mem_at_top_sets, ge_iff_le, le_eq_subset,
@@ -132,16 +154,16 @@ begin
     simp }
 end
 
-lemma has_prod_ratio' {f : β → K} {a : K} (hf : has_prod f a) :
+lemma has_prod_ratio' [has_continuous_mul α] {f : β → α} {a : α} (hf : has_prod f a) :
   tendsto (λ sb : finset β × finset β, (
-      ∏ b in ((sb.1 ∪ sb.2).filter (λ i, is_unit (f i))), f b) /
-      ∏ b in (sb.1.filter (λ i, is_unit (f i))), f b)
+      ∏ b in (sb.1 ∪ sb.2), surj_units (f b)) /
+      ∏ b in sb.1, surj_units (f b))
     at_top (𝓝 1) :=
 begin
   obtain ⟨x, hx⟩ := hf.tendsto_units,
-  rw ←div_self x.ne_zero,
+  rw ←mul_inv_self x,
   simp_rw div_eq_mul_inv,
-  refine tendsto.mul _ ((tendsto_inv₀ x.ne_zero).comp _),
+  refine tendsto.mul _ ((tendsto_inv _).comp _),
   { intros U hU,
     specialize hx hU,
     simp only [filter.mem_map, mem_at_top_sets, ge_iff_le, le_eq_subset, set.mem_preimage,
@@ -152,24 +174,22 @@ begin
     exact (hx.comp tendsto_fst) }
 end
 
-lemma has_prod.inv [t2_space K] {f : β → K} {x : K} (hf : has_prod f x) :
+lemma has_prod.inv [has_continuous_mul G₀] [t2_space G₀] {f : β → G₀} {x : G₀} (hf : has_prod f x) :
   has_prod (λ b, (f b)⁻¹) x⁻¹ :=
 begin
   obtain ⟨h, ⟨x, h'⟩, h''⟩ := hf,
-  simp only [←is_unit_inv_iff] at h { single_pass := tt},
+  simp only [←is_unit_inv_iff] at h { single_pass := tt },
   rw [←inv_inj, mul_inv_rev, mul_comm, ←prod_inv_distrib] at h'',
-  convert has_prod_of_tendsto_of_finite _ x.is_unit.inv h,
+  convert has_prod_of_tendsto_of_finite (h'.inv.congr _) h,
   { convert h'',
     { generalize_proofs H,
-      ext,
-      exact tendsto_nhds_unique h' (Exists.some_spec H) },
+      simp [tendsto_nhds_unique h' (Exists.some_spec H)] },
     { simp } },
-  { refine (h'.inv₀ (units.ne_zero _)).congr _,
-    intro,
+  { intro,
     simp }
 end
 
-lemma has_prod_inv_iff [t2_space K] {f : β → K} {x : K} :
+lemma has_prod_inv_iff [has_continuous_mul G₀] [t2_space G₀] {f : β → G₀} {x : G₀}  :
   has_prod f x⁻¹ ↔ has_prod (λ b, (f b)⁻¹) x :=
 begin
   split;
@@ -179,23 +199,74 @@ end
 
 def converges_prod (f : β → α) : Prop := ∃ (a : α), has_prod f a
 
-lemma converges_prod_of_tendsto_of_subset_finite {f : β → α} {x : α} {s : set β}
-  (h : tendsto (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x))
-  (hx : is_unit x) (hs' : s.finite) (hs : {b | ¬ is_unit (f b)} ⊆ s) :
+lemma converges_prod_of_tendsto_of_subset_finite {f : β → α} {x : αˣ} {s : set β}
+  (h : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 x))
+  (hs' : s.finite) (hs : {b | ¬ is_unit (f b)} ⊆ s) :
   converges_prod f :=
-⟨_, hs'.subset hs, ⟨hx.unit, h⟩, rfl⟩
+⟨_, hs'.subset hs, ⟨_, h⟩, rfl⟩
 
-lemma converges_prod_of_tendsto_of_ne_zero_of_subset_finite {f : β → K} {x : K} {s : set β}
+lemma converges_prod_of_tendsto_of_ne_zero_of_subset_finite
+  [has_continuous_mul G₀] [has_continuous_inv₀ G₀] [t2_space G₀] {f : β → G₀} {x : G₀} {s : set β}
   (h : tendsto (λ s : finset β, ∏ b in (s.filter (λ i, f i ≠ 0)), f b) at_top (𝓝 x))
   (hx : x ≠ 0) (hs' : s.finite) (hs : {b | f b = 0} ⊆ s) :
   converges_prod f :=
 begin
-  simp_rw ←is_unit_iff_ne_zero at h hx,
-  refine converges_prod_of_tendsto_of_subset_finite h hx hs' (subset_trans _ hs),
-  simp [is_unit_iff_ne_zero],
+  suffices : tendsto (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 (units.mk0 _ hx)),
+  { refine converges_prod_of_tendsto_of_subset_finite this hs' (subset_trans _ hs),
+    simp [is_unit_iff_ne_zero] },
+  simp_rw is_unit_iff_ne_zero at h hx,
+  have : ∀ m : finset β, ∏ b in m.filter (λ i, f i ≠ 0), f b = ∏ b in m, surj_units (f b),
+  { intro,
+    rw prod_filter,
+    refine prod_congr rfl (λ b _, _),
+    split_ifs with hb hb,
+    { simp [surj_units_apply_eq_mk0_apply hb] },
+    { simp only [not_not] at hb,
+      simp [hb], } },
+  simp_rw this at h, clear this,
+  have h' := h.inv₀ hx,
+  rw tendsto_at_top_nhds at h h' ⊢,
+  intros U hU hU',
+  obtain ⟨V, hV, hV'⟩ := hU',
+  rw is_open_prod_iff at hV,
+  specialize hV x (mul_opposite.op x⁻¹) _,
+  { simpa [surj_units_apply_eq_mk0_apply hx, ←hV'] using hU, },
+  obtain ⟨s, t, hs, ht, hxs, hxt, hst⟩ := hV,
+  obtain ⟨N, hN⟩ := h s hxs hs,
+  obtain ⟨M, hM⟩ := h' (mul_opposite.op ⁻¹' t) hxt
+    (mul_opposite.continuous_op.is_open_preimage _ ht),
+  refine ⟨N ∪ M, λ u hu, _⟩,
+  specialize hN u ((finset.subset_union_left _ _).trans hu),
+  specialize hM u ((finset.subset_union_right _ _).trans hu),
+  rw ←hV',
+  refine hst _,
+  simp only [set.mem_preimage, units.embed_product_apply, units.coe_prod, units.coe_inv,
+            mul_opposite.op_inv, set.prod_mk_mem_set_prod_eq],
+  exact ⟨hN, hM⟩
 end
 
-lemma has_prod_zero_iff_converges_prod_and_exists_zero {f : β → R} :
+lemma converges_prod_fintype [fintype β] (f : β → α) :
+  converges_prod f :=
+begin
+  have : ∃ x : αˣ, tendsto
+    (λ s : finset β, ∏ b in s, surj_units (f b)) at_top (𝓝 x),
+  { refine ⟨∏ b, surj_units (f b), _⟩,
+    simp [order_top.at_top_eq, tendsto_pure_left, mem_of_mem_nhds] { contextual := tt } },
+  exact ⟨_, set.finite_univ.subset (set.subset_univ _), this, rfl⟩
+end
+
+@[simp] lemma converges_prod_subsingleton [subsingleton β] (f : β → α) :
+  converges_prod f :=
+begin
+  casesI is_empty_or_nonempty β,
+  { haveI : fintype β := fintype.of_is_empty,
+    exact converges_prod_fintype _ },
+  { inhabit β,
+    haveI : fintype β := fintype.of_subsingleton default,
+    exact converges_prod_fintype _ }
+end
+
+lemma has_prod_zero_iff_converges_prod_and_exists_zero' [nontrivial M₀] {f : β → M₀} :
   has_prod f 0 ↔ converges_prod f ∧ ∃ i, f i = 0 :=
 begin
   split,
@@ -213,23 +284,36 @@ begin
     simp [h] }
 end
 
+lemma has_prod_zero_iff_converges_prod_and_exists_zero [nonempty β] {f : β → M₀} :
+  has_prod f 0 ↔ converges_prod f ∧ ∃ i, f i = 0 :=
+begin
+  casesI subsingleton_or_nontrivial M₀,
+  { simp only [eq_iff_true_of_subsingleton, exists_const, and_true],
+    split,
+    { intro h,
+      exact ⟨_, h⟩ },
+    { rintro ⟨x, hx⟩,
+      rw subsingleton.elim 0 x,
+      exact hx } },
+  { exact has_prod_zero_iff_converges_prod_and_exists_zero' }
+end
+
 lemma function.injective.converges_prod_iff [t2_space α] {f : β → α} {g : γ → β} (hg : injective g)
   (hf : ∀ x ∉ set.range g, f x = 1) :
   converges_prod (f ∘ g) ↔ converges_prod f :=
 begin
   have :
-    filter.map (λ (s : finset γ), ∏ (i : γ) in s,
-      (set.mul_indicator (set_of {i | is_unit (f i)}) f) (g i)) at_top =
-    filter.map (λ (s : finset β), ∏ (i : β) in s,
-      set.mul_indicator (set_of {i | is_unit (f i)}) f i) at_top,
-  { refine injective.map_at_top_finset_prod_eq hg _,
+    filter.map (λ (s : finset γ), ∏ (i : γ) in s, surj_units (f (g i))) at_top =
+    filter.map (λ (s : finset β), ∏ (i : β) in s, surj_units (f i)) at_top,
+  { convert injective.map_at_top_finset_prod_eq hg _,
+    { funext,
+      refl },
     intros b hb,
     simp [hf _ hb] },
   split,
   { rintro ⟨a, h, ⟨y, h'⟩, h''⟩,
     rw tendsto at h',
-    simp_rw [prod_mul_indicator_eq_prod_filter] at this,
-    refine converges_prod_of_tendsto_of_subset_finite (h'.trans' this.ge) y.is_unit (h.image g) _,
+    refine converges_prod_of_tendsto_of_subset_finite (h'.trans' this.ge) (h.image g) _,
     intros b hb,
     by_cases hbg : b ∈ set.range g,
     { obtain ⟨c, rfl⟩ := hbg,
@@ -238,8 +322,7 @@ begin
     { simpa [hf _ hbg] using hb } },
   { rintro ⟨a, h, ⟨y, h'⟩, h''⟩,
     rw tendsto at h',
-    simp_rw [prod_mul_indicator_eq_prod_filter] at this,
-    refine converges_prod_of_tendsto_of_subset_finite (h'.trans' this.le) y.is_unit
+    refine converges_prod_of_tendsto_of_subset_finite (h'.trans' this.le)
       (h.preimage (hg.inj_on _)) _,
     intro,
     simp }
@@ -257,28 +340,7 @@ begin
   exact converges_prod_subtype_iff_of_mul_support_subset set.mul_support_mul_indicator_subset
 end
 
-lemma converges_prod_fintype [fintype β] (f : β → α) :
-  converges_prod f :=
-begin
-  have : ∃ x : αˣ, tendsto
-    (λ s : finset β, ∏ b in (s.filter (λ i, is_unit (f i))), f b) at_top (𝓝 x),
-  { refine ⟨is_unit.unit (is_unit_prod_filter univ f), _⟩,
-    simp [order_top.at_top_eq, tendsto_pure_left, mem_of_mem_nhds] { contextual := tt } },
-  exact ⟨_, set.finite_univ.subset (set.subset_univ _), this, rfl⟩
-end
-
-@[simp] lemma converges_prod_subsingleton [subsingleton β] (f : β → α) :
-  converges_prod f :=
-begin
-  casesI is_empty_or_nonempty β,
-  { haveI : fintype β := fintype.of_is_empty,
-    exact converges_prod_fintype _ },
-  { inhabit β,
-    haveI : fintype β := fintype.of_subsingleton default,
-    exact converges_prod_fintype _ }
-end
-
-lemma converges_prod_inv_iff [t2_space K] {f : β → K} :
+lemma converges_prod_inv_iff [has_continuous_mul G₀] [t2_space G₀] {f : β → G₀} :
   converges_prod (λ b, (f b)⁻¹) ↔ converges_prod f :=
 begin
   split; rintro ⟨x, h⟩;
@@ -286,12 +348,13 @@ begin
   simpa using h.inv
 end
 
-lemma converges_prod.vanishing {f : β → K} (hf : converges_prod f) ⦃e : set K⦄
-  (he : e ∈ 𝓝 (1 : K)) : ∃ s : finset β, ∀ t, disjoint t s → ∏ k in t, f k ∈ e :=
+lemma converges_prod.vanishing [has_continuous_mul α] {f : β → α} (hf : converges_prod f) ⦃e : set α⦄
+  (he : e ∈ 𝓝 (1 : α)) : ∃ s : finset β, ∀ t, disjoint t s → ∏ k in t, f k ∈ e :=
 begin
   rcases hf with ⟨x, hf⟩,
   have := has_prod_ratio hf,
-  have h := has_prod_ratio' hf he,
+  have he' : e ∈ map (coe : αˣ → α) (𝓝 1) := units.continuous_coe.tendsto _ he,
+  have h := has_prod_ratio' hf he',
   simp only [filter.mem_map, mem_comap, mem_at_top_sets, ge_iff_le, le_eq_subset, exists_prop,
              set.preimage_subset_iff, set.mem_preimage, prod.forall] at h,
   simp only [prod.exists, prod.mk_le_mk, le_eq_subset, and_imp] at h,
@@ -300,22 +363,25 @@ begin
   specialize h (s ∪ (t ∪ hf.finite_not_unit.to_finset)) (t ∪ u)
     (subset_union_left _ _) (subset_union_left _ _),
   simp_rw [union_assoc s, union_left_comm, ←union_assoc t, union_idempotent t, ←union_assoc s] at h,
-  rw [filter_union, prod_union (disjoint_filter_filter hdisj.symm), is_unit.mul_div_cancel_left] at
-    h,
-  { suffices : ∀ b ∈ u, is_unit (f b),
-    { rwa (filter_eq_self _).mpr this at h },
+  rw [prod_union hdisj.symm, mul_div_cancel'''] at h,
+  suffices : ∀ b ∈ u, is_unit (f b),
+  { simp only [units.coe_prod] at h,
+    convert h using 1,
+    refine prod_congr rfl _,
     intros b hb,
-    have : {b} ≤ u := by simp only [hb, le_eq_subset, singleton_subset_iff],
-    specialize hdisj this,
-    simp only [union_assoc, le_eq_subset, singleton_subset_iff, mem_union, set.finite.mem_to_finset,
-               set.mem_set_of_eq, bot_eq_empty, not_mem_empty] at hdisj,
-    contrapose! hdisj,
-    simp [hdisj] },
-  { exact is_unit_prod_filter _ _ },
+    rw [surj_units_apply_is_unit (this _ hb), is_unit.unit_spec] },
+  intros b hb,
+  have : {b} ≤ u := by simp only [hb, le_eq_subset, singleton_subset_iff],
+  specialize hdisj this,
+  simp only [union_assoc, le_eq_subset, singleton_subset_iff, mem_union, set.finite.mem_to_finset,
+              set.mem_set_of_eq, bot_eq_empty, not_mem_empty] at hdisj,
+  contrapose! hdisj,
+  simp [hdisj]
 end
 
 /-- The sequence of the factors in a convergent infinite product always tends to 1. -/
-lemma converges_prod.tendsto_cofinite_one {f : β → K} (hf : converges_prod f) :
+lemma converges_prod.tendsto_cofinite_one [has_continuous_mul α]
+  {f : β → α} (hf : converges_prod f) :
   tendsto f cofinite (𝓝 1) :=
 begin
   intros e he,
@@ -327,11 +393,12 @@ end
 
 /-- The sequence of the factors `aₙ` in a convergent infinite product of
 `1 + aₙ` always tends to 0. -/
-lemma converges_prod.tendsto_cofinite_zero [has_continuous_add K]
-  {f : β → K} (hf : converges_prod (λ b, 1 + f b)) :
+lemma converges_prod.tendsto_cofinite_zero [comm_ring R] [topological_space R]
+  [has_continuous_add R] [has_continuous_mul R]
+  {f : β → R} (hf : converges_prod (λ b, 1 + f b)) :
   tendsto f cofinite (𝓝 0) :=
 begin
-  rw ←neg_add_self (1 : K),
+  rw ←neg_add_self (1 : R),
   refine (hf.tendsto_cofinite_one.const_add (-1)).congr _,
   simp
 end
@@ -359,15 +426,19 @@ begin
       obtain ⟨y, hy⟩ := h.tendsto_units,
       refine is_lub.bdd_above (is_lub_of_tendsto_at_top _ _ : is_lub _ x),
       { exact monotone_prod_of_one_le' (λ x, le_add_of_nonneg_right (hf _)) },
-      { convert hy,
-        { simp [hs] },
+      { convert (units.continuous_coe.tendsto _).comp hy,
+        { ext,
+          simp only [comp_app, units.coe_prod],
+          refine prod_congr rfl (λ i hi, _),
+          rw [eq_comm, coe_surj_units_apply_eq_iff, is_unit_iff_ne_zero],
+          refine (zero_lt_one.trans_le (le_add_of_nonneg_right (hf i))).ne' },
         { rw h.prod_eq,
           have he : h.finite_not_unit.to_finset = ∅,
           { ext x,
             simp [hu] },
-          simp only [he, filter_congr_decidable, prod_empty, mul_one],
-          refine tendsto_nhds_unique _ hy,
+          simp only [he, filter_congr_decidable, prod_empty, mul_one, ←units.ext_iff],
           generalize_proofs H,
+          refine tendsto_nhds_unique _ hy,
           exact Exists.some_spec H } } },
     { have hb := (this.mpr
         (is_lub_of_tendsto_at_top (finset.sum_mono_set_of_nonneg hf) h.some_spec).bdd_above),
@@ -375,11 +446,29 @@ begin
       { rw is_unit_iff_ne_zero,
         refine ne_of_gt (lt_cSup_of_lt hb ⟨∅, _⟩ zero_lt_one),
         simp },
-      refine converges_prod_of_tendsto_of_subset_finite _ hunit set.finite_empty
-        (λ b hb, hb (hu b)),
-      simp_rw [prod_filter, hu, if_true],
-      exact tendsto_at_top_is_lub (monotone_prod_of_one_le' (λ x, le_add_of_nonneg_right (hf _)))
-        (is_lub_csupr hb) } },
+      suffices : tendsto (λ (s : finset β), ∏ (a : β) in s, surj_units (1 + f a)) at_top
+        (𝓝 (surj_units (⨆ (i : finset β), ∏ (a : β) in i, (1 + f a)))),
+      { exact
+        converges_prod_of_tendsto_of_subset_finite this set.finite_empty (λ b hb, hb (hu b)) },
+      have := tendsto_at_top_is_lub (monotone_prod_of_one_le' _) (is_lub_csupr hb),
+      -- TODO: how to better use continuity of `surj_units` on non-zero
+      { have hcs := (@continuous_on_surj_units ℝ _ _ _ _),
+        rw continuous_on_iff' at hcs,
+        rw tendsto_at_top_nhds at this ⊢,
+        intros U hU hU',
+        obtain ⟨V, hV', hV⟩ := hcs U hU',
+        obtain ⟨N, hN⟩ := this V _ hV',
+        { refine ⟨N, λ n hn, _⟩,
+          rw finset.prod_surj_units n (λ i, 1 + f i),
+          { refine (hV.ge.trans (set.inter_subset_left _ _)) _,
+            simp only [hN n hn, set.mem_inter_iff, set.mem_set_of_eq, true_and],
+            refine is_unit_prod _ _ (λ i hi, is_unit_iff_ne_zero.mpr (zero_lt_one.trans_le _).ne'),
+            exact le_add_of_nonneg_right (hf i) },
+          { refine (λ i hi, is_unit_iff_ne_zero.mpr (zero_lt_one.trans_le _).ne'),
+            exact le_add_of_nonneg_right (hf i) } },
+        { refine (hV.le.trans (set.inter_subset_left _ _)) _,
+          simp [hU, hunit] } },
+        { simp [hf] } } },
   split; intro h,
   { simp only [bdd_above_iff_exists_ge (1 : ℝ), set.mem_range, forall_exists_index,
       forall_apply_eq_imp_iff'] at h ⊢,
@@ -430,31 +519,60 @@ begin
   obtain ⟨x, h, ⟨y, h'⟩, h''⟩ := h,
   set t : set β := {b : β | is_unit (f b) ∧ b ∉ s} with ht,
   have htf : t.finite := hs.subset (λ _ h, h.right),
-  refine converges_prod_of_tendsto_of_subset_finite _ (y.is_unit.mul
-    (is_unit_prod htf.to_finset _ _)) (hs.union (h.image coe)) _,
-  { exact f },
+  refine converges_prod_of_tendsto_of_subset_finite _ (hs.union (h.image coe)) _,
+  { exact y * ∏ i in htf.to_finset, surj_units (f i) },
   { simp only [←prod_filter_mul_prod_filter_not _ (∈ s)] { single_pass := tt },
     refine tendsto.mul _ _,
-    { convert tendsto_finset_map_subtype_at_top (∈ s)
-        (λ t : finset β, ∏ b in t.filter (λ i, is_unit (f i)), f b) (𝓝 y) _ using 1,
-      { simp [function.comp, filter_filter, and_comm] },
-      { simpa [finset.filter_map, finset.prod_map] using h' } },
+    { refine tendsto_finset_map_subtype_at_top (∈ s)
+        (λ t : finset β, ∏ b in t, surj_units (f b)) (𝓝 y) _,
+      simpa using h' },
     { simp_rw prod_filter_mul_prod_filter_not,
-      convert tendsto_finset_map_subtype_at_top (∉ s)
-        (λ t : finset β, ∏ b in t.filter (λ i, is_unit (f i)), f b) (𝓝 _) _ using 1,
-      { simp [function.comp, filter_filter, and_comm] },
-      { haveI : fintype (sᶜ : set β) := hs.fintype,
-        suffices : htf.to_finset.prod f =
-          (λ t : finset (sᶜ : set β), ∏ b in (t.map (embedding.subtype (∉ s))).filter
-            (λ i,  is_unit (f i)), f b) ⊤,
-        { rw this,
-          exact order_top.tendsto_at_top_nhds _ },
-        refine prod_congr _ (λ _ _, rfl),
-        ext,
-        simp [and_comm] } } },
-    { simp {contextual := tt} },
+      refine tendsto_finset_map_subtype_at_top (∉ s)
+        (λ t : finset β, ∏ b in t, surj_units (f b)) (𝓝 _) _,
+      haveI : fintype (sᶜ : set β) := hs.fintype,
+      suffices : ∏ (x : β) in htf.to_finset, surj_units (f x) =
+        (λ t : finset (sᶜ : set β), ∏ b in t.map (embedding.subtype (∉ s)), surj_units (f b)) ⊤,
+      { rw this,
+        exact order_top.tendsto_at_top_nhds _ },
+      simp only [top_eq_univ, finset.prod_map, embedding.coe_subtype],
+      rw ←prod_filter_mul_prod_filter_not univ (λ b : (sᶜ : set β), is_unit (f b)),
+      rw ←mul_one (∏ (x : β) in htf.to_finset, surj_units (f x)),
+      congr' 1,
+      { refine prod_bij _ _ _ _ _,
+        { refine λ b hb, ⟨b, _⟩,
+          simp only [set.finite.mem_to_finset, set.mem_set_of_eq] at hb,
+          exact hb.right },
+        { simp { contextual := tt } },
+        { simp },
+        { simp },
+        { simp only [set.finite.mem_to_finset, set.mem_set_of_eq, mem_filter, mem_univ, true_and,
+                     set_coe.forall, subtype.coe_mk, subtype.mk_eq_mk, exists_prop,
+                     exists_eq_right', set.mem_compl_iff],
+          exact λ _ h h', ⟨h', h⟩ } },
+      { rw prod_eq_one,
+        simp [surj_units_apply_not_is_unit] { contextual := tt } } } },
     { intro,
       simp [or.comm, classical.em] { contextual := tt } },
+end
+
+instance : no_max_order ℝˣ :=
+begin
+  constructor,
+  intro x,
+  obtain ⟨y, hy⟩ := exists_gt (max (x : ℝ) 1),
+  refine ⟨units.mk0 _ ((zero_lt_one.trans_le (le_max_right _ _)).trans hy).ne',
+          units.coe_lt_coe.mp (hy.trans_le' (le_max_left _ _))⟩
+end
+
+lemma tendsto_surj_units_of_ne_zero (y : ℝ) (hy : y ≠ 0) :
+  tendsto (λ (i : ℝ), surj_units i) (𝓝 y) (𝓝 (surj_units y)) :=
+begin
+  refine (((continuous_on_surj_units) y (is_unit_iff_ne_zero.mpr hy)).tendsto).comp _,
+  refine tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_id _,
+  rw eventually_nhds_iff,
+  refine ⟨set.univ \ {0}, _, is_open_univ.sdiff is_closed_singleton, _⟩,
+  { simp [is_unit_iff_ne_zero] },
+  { simp [hy] }
 end
 
 lemma converges_prod.converges_prod_subtype_of_one_le {f : β → ℝ} (h : converges_prod f)
@@ -462,56 +580,70 @@ lemma converges_prod.converges_prod_subtype_of_one_le {f : β → ℝ} (h : conv
   converges_prod (λ b : subtype p, f b) :=
 begin
   have hmap :
-  (λ (s : finset (subtype p)), ∏ (b : subtype p) in filter (λ (i : subtype p),
-      is_unit (f i)) s, f b) =
-    λ s : finset (subtype p), ∏ b : β in filter (λ i : β, is_unit (f i))
-      (s.map (embedding.subtype _)), f b,
+  (λ (s : finset (subtype p)), ∏ (b : subtype p) in s, (surj_units (f b) : ℝ)) =
+    λ s : finset (subtype p), ∏ b : β in (s.map (embedding.subtype _)), surj_units (f b),
   { ext,
-    rw [←prod_subtype_map_embedding, filter_map],
-    congr,
+    rw [←prod_subtype_map_embedding],
     exact λ _ _, rfl },
-  have key : monotone (λ s : finset (subtype p), ∏ b in s.filter (λ i, is_unit (f i)), f b),
+  have key : monotone (λ s : finset (subtype p), ∏ b in s, (surj_units (f b) : ℝ)),
   { intros s t hst,
-    refine prod_le_prod_of_subset_of_one_le₀ (monotone_filter_left _ hst) (prod_nonneg _) _,
-    { simp only [mem_filter, and_imp, subtype.forall, subtype.coe_mk],
-      exact λ _ _ _ hb, zero_le_one.trans (hf _ hb) },
-    { simp only [mem_filter, not_and, and_imp, subtype.forall, subtype.coe_mk],
-      exact λ _ _ _ hb _, hf _ hb } },
+    refine prod_le_prod_of_subset_of_one_le₀ hst (prod_nonneg _) _,
+    { rintro ⟨i, hi⟩ _,
+      by_cases hu : is_unit (f i),
+      { simp [surj_units_apply_is_unit hu, zero_le_one.trans (hf _ hu)], },
+      { simp [surj_units_apply_not_is_unit hu] } },
+    { rintro ⟨i, hi⟩ _,
+      by_cases hu : is_unit (f i),
+      { simp [surj_units_apply_is_unit hu, hf _ hu], },
+      { simp [surj_units_apply_not_is_unit hu] } } },
   obtain ⟨x, hx, ⟨x', hx'⟩, hx''⟩ := id h,
+  have hxc := (units.continuous_coe.tendsto _).comp hx',
   rcases tendsto_of_monotone key with (hy|⟨y, hy⟩),
   { rw hmap at hy,
-    have := tendsto_finset_map_subtype_at_top p ((λ s, finset.prod s f) ∘ finset.filter _)
+    have := tendsto_finset_map_subtype_at_top p (λ s, ∏ b : β in s, (surj_units (f b) : ℝ))
       at_top hy,
-    refine absurd (tendsto_at_top_mono _ this) (not_tendsto_at_top_of_tendsto_nhds hx'),
+    refine absurd (tendsto_at_top_mono _ this) (not_tendsto_at_top_of_tendsto_nhds hxc),
     intro s,
-    refine prod_le_prod_of_subset_of_one_le₀ (monotone_filter_left _ (filter_subset _ _))
+    simp only [comp_app, filter_congr_decidable, units.coe_prod],
+    refine prod_le_prod_of_subset_of_one_le₀ (filter_subset p s)
       (prod_nonneg _) _,
-    { simp only [mem_filter, and_imp, subtype.forall, subtype.coe_mk],
-      exact λ _ _ _ hb, zero_le_one.trans (hf _ hb) },
-    { simp only [mem_filter, not_and, and_imp, subtype.forall, subtype.coe_mk],
-      exact λ _ _ hb _, hf _ hb } },
-  { refine converges_prod_of_tendsto_of_subset_finite hy _
-      (hx.preimage (subtype.coe_injective.inj_on _)) _,
-    { rw is_unit_iff_ne_zero,
-      refine (zero_lt_one.trans_le (ge_of_tendsto' hy (λ s, one_le_prod₀ _))).ne',
-      simp only [mem_filter, not_and, and_imp, subtype.forall, subtype.coe_mk],
-      exact λ _ _ _ hb, hf _ hb  },
-    { simp } }
+    { intro i,
+      by_cases hu : is_unit (f i),
+      { simp [surj_units_apply_is_unit hu, zero_le_one.trans (hf _ hu)], },
+      { simp [surj_units_apply_not_is_unit hu] } },
+    { rintro i _,
+      by_cases hu : is_unit (f i),
+      { simp [surj_units_apply_is_unit hu, hf _ hu], },
+      { simp [surj_units_apply_not_is_unit hu] } } },
+  { suffices : tendsto (λ (s : finset (subtype p)), ∏ (b : subtype p) in s, surj_units (f ↑b))
+      at_top (𝓝 (surj_units y)),
+    { refine converges_prod_of_tendsto_of_subset_finite this
+        (hx.preimage (subtype.coe_injective.inj_on _)) _,
+      simp },
+    refine (tendsto.comp _ hy).congr _,
+    { exact λ i, surj_units i },
+    { simp only [comp_app],
+      intro s,
+      rw ←prod_surj_units s (λ b, ((surj_units (f b)) : ℝ)),
+      { simp_rw surj_units_apply_coe_units },
+      { simp } },
+    { rcases eq_or_ne y 0 with rfl|hy',
+      { refine absurd ((is_lub_of_tendsto_at_top key hy).left _) zero_lt_one.not_le,
+        use ∅,
+        simp },
+      exact tendsto_surj_units_of_ne_zero _ hy' } },
 end
 
 lemma converges_prod.converges_prod_subtype_of_bounded_of_antitone {f : β → ℝ}
   (h : converges_prod f) (p : β → Prop) (hp : ∀ b, p b → (1 / 2) < f b)
-  (hf' : antitone (λ s : finset (subtype p), ∏ b in s.filter (λ i, is_unit (f i)), f b)) :
+  (hf' : antitone (λ s : finset (subtype p), ∏ b in s, (surj_units (f b) : ℝ))) :
   converges_prod (λ b : subtype p, f b) :=
 begin
   have hmap :
-  (λ (s : finset (subtype p)), ∏ (b : subtype p) in filter (λ (i : subtype p),
-      is_unit (f i)) s, f b) =
-    λ s : finset (subtype p), ∏ b : β in filter (λ i : β, is_unit (f i))
-      (s.map (embedding.subtype _)), f b,
+  (λ (s : finset (subtype p)), ∏ (b : subtype p) in s, (surj_units (f b) : ℝ)) =
+    λ s : finset (subtype p), ∏ b : β in (s.map (embedding.subtype _)), surj_units (f b),
   { ext,
-    rw [←prod_subtype_map_embedding, filter_map],
-    congr,
+    rw [←prod_subtype_map_embedding],
     exact λ _ _, rfl },
   obtain ⟨x, hx, ⟨x', hx'⟩, hx''⟩ := id h,
   rcases tendsto_of_antitone hf' with (hy|⟨y, hy⟩),
@@ -524,51 +656,79 @@ begin
     simp only [mem_filter, finset.mem_map, embedding.coe_subtype, exists_prop, subtype.exists,
                subtype.coe_mk, exists_and_distrib_right, exists_eq_right, and_imp,
                forall_exists_index],
-    exact λ hb _ _, (hp _ hb).le.trans' (div_nonneg zero_le_one zero_le_two) },
-  refine converges_prod_of_tendsto_of_subset_finite hy _
-    (hx.preimage (subtype.coe_injective.inj_on _)) _,
-  { rw is_unit_iff_ne_zero,
-    rintro rfl,
-    refine x'.is_unit.ne_zero _,
-    refine tendsto_nhds_unique hx' _,
-    rw tendsto_at_top_nhds at hy ⊢,
-    have : set.Ioo (1 / 2 : ℝ) 2 ∈ (𝓝 (1 : ℝ)),
-    { exact Ioo_mem_nhds one_half_lt_one one_lt_two },
-    obtain ⟨s, hs⟩ := h.vanishing this,
-    set ps : ℝ := ∏ b in (s.subtype p).filter (λ i, is_unit (f i)), f b with hps,
-    have pspos : 0 < ps,
-    { refine prod_pos _,
-      simp only [mem_filter, mem_subtype, and_imp, subtype.forall, subtype.coe_mk],
-      exact λ _ hb _ _, (hp _ hb).trans' (div_pos zero_lt_one zero_lt_two) },
-    obtain ⟨t, ht⟩ := hy (metric.ball 0 (ps / 2)) _ metric.is_open_ball,
-    swap,
-    { simp [half_pos pspos] },
-    specialize ht (t ∪ s.subtype p) (subset_union_left _ _),
-    rw [←sdiff_union_self_eq_union, filter_union,
-        prod_union (disjoint_filter_filter sdiff_disjoint), ←hps] at ht,
-    specialize hs (((t \ s.subtype p).map (embedding.subtype _)).filter (λ i, is_unit (f i))) _,
-    { intros u htu hsu x hx,
-      specialize htu hx,
-      simp only [mem_filter, finset.mem_map, mem_sdiff, mem_subtype, embedding.coe_subtype,
-                  exists_prop, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
-                  exists_eq_right] at htu,
-      rcases htu with ⟨⟨_, htu⟩, _⟩,
-      exact absurd (hsu hx) htu },
-    replace hs : (1 / 2 : ℝ) < ∏ b in (t \ s.subtype p).filter (λ i, is_unit (f i)), f b,
-    { simp only [finset.prod_map, embedding.coe_subtype, one_div, set.mem_Ioo] at hs,
-      rw ←inv_eq_one_div,
-      refine hs.left.trans_le (le_of_eq _),
-      rw [←prod_subtype_map_embedding, filter_map],
-      { congr },
-      { exact λ _ _, rfl } },
-    simp only [mem_ball_zero_iff, real.norm_eq_abs, abs_lt] at ht,
-    have : ps / 2 < ps / 2,
-    { calc ps / 2 = (1 / 2) * ps : by rw [div_eq_mul_one_div, mul_comm]
-      ...   < (∏ b in (t \ s.subtype p).filter (λ i, is_unit (f i)), f b) * ps :
-        (mul_lt_mul_right pspos).mpr hs
-      ...   < ps / 2 : ht.right },
-    exact absurd this (lt_irrefl _) },
-  { simp }
+    intros hb,
+    have : 0 < f b := ((hp _ hb).trans' (half_pos zero_lt_one)),
+    rw surj_units_apply_is_unit (is_unit_iff_ne_zero.mpr this.ne'),
+    simp [this.le] },
+  suffices hy' : tendsto (λ (s : finset (subtype p)),
+    ∏ (b : subtype p) in s, surj_units (f b)) at_top (𝓝 (surj_units y)),
+  { refine converges_prod_of_tendsto_of_subset_finite hy'
+      (hx.preimage (subtype.coe_injective.inj_on _)) _,
+    simp },
+  refine ((tendsto_surj_units_of_ne_zero _ _).comp hy).congr _,
+  { simp only [comp_app],
+    intro s,
+    rw ←prod_surj_units s (λ b, ((surj_units (f b)) : ℝ)),
+    { simp_rw surj_units_apply_coe_units },
+    { simp } },
+  rintro rfl,
+  refine x'.is_unit.ne_zero _,
+  refine tendsto_nhds_unique ((units.continuous_coe.tendsto _).comp hx') _,
+  rw tendsto_at_top_nhds at hy ⊢,
+  have : set.Ioo (1 / 2 : ℝ) 2 ∈ (𝓝 (1 : ℝ)),
+  { exact Ioo_mem_nhds one_half_lt_one one_lt_two },
+  obtain ⟨s, hs⟩ := h.vanishing this,
+  set ps : ℝ := ∏ b in (s.subtype p), (surj_units (f b) : ℝ) with hps,
+  have pspos : 0 < ps,
+  { refine prod_pos _,
+    rintro ⟨b, hb⟩,
+    have : 0 < f b := ((hp _ hb).trans' (half_pos zero_lt_one)),
+    simp only [surj_units_apply_is_unit (is_unit_iff_ne_zero.mpr this.ne'), this,
+               subtype.coe_mk, is_unit.unit_spec, implies_true_iff] },
+  obtain ⟨t, ht⟩ := hy (metric.ball 0 (ps / 2)) _ metric.is_open_ball,
+  swap,
+  { simp [half_pos pspos] },
+  specialize ht (t ∪ s.subtype p) (subset_union_left _ _),
+  rw [←sdiff_union_self_eq_union, prod_union, ←hps] at ht, swap,
+  { exact disjoint_sdiff_self_left },
+  specialize hs (((t \ s.subtype p).map (embedding.subtype _))) _,
+  { intros u htu hsu x hx,
+    specialize htu hx,
+    simp only [mem_filter, finset.mem_map, mem_sdiff, mem_subtype, embedding.coe_subtype,
+                exists_prop, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
+                exists_eq_right] at htu,
+    exact absurd (hsu hx) htu.right },
+  replace hs : (1 / 2 : ℝ) < ∏ b in (t \ s.subtype p), surj_units (f b),
+  { simp only [finset.prod_map, embedding.coe_subtype, one_div, set.mem_Ioo] at hs,
+    rw ←inv_eq_one_div,
+    refine hs.left.trans_le (le_of_eq _),
+    refine prod_congr rfl _,
+    rintro ⟨b, hb⟩,
+    have : 0 < f b := ((hp _ hb).trans' (half_pos zero_lt_one)),
+    simp only [surj_units_apply_is_unit (is_unit_iff_ne_zero.mpr this.ne'), subtype.coe_mk,
+               is_unit.unit_spec, eq_self_iff_true, implies_true_iff] },
+  simp only [mem_ball_zero_iff, real.norm_eq_abs, abs_lt] at ht,
+  have : ps / 2 < ps / 2,
+  { calc ps / 2 = (1 / 2) * ps : by rw [div_eq_mul_one_div, mul_comm]
+    ...   < (∏ b in (t \ s.subtype p), surj_units (f b)) * ps :
+      (mul_lt_mul_right pspos).mpr hs
+    ...   < ps / 2 : ht.right },
+  exact absurd this (lt_irrefl _) ,
+end
+
+lemma coe_surj_units_apply_ne_zero {x : ℝ} (hx : x ≠ 0) : (surj_units x : ℝ) = x :=
+by rw [surj_units_apply_is_unit (is_unit_iff_ne_zero.mpr hx), is_unit.unit_spec]
+
+lemma coe_surj_units_nonneg {x : ℝ} (hx : 0 ≤ x) : (0 : ℝ) ≤ surj_units x :=
+begin
+  rcases hx.eq_or_lt with rfl|hx',
+  { simp, },
+  { simp [coe_surj_units_apply_ne_zero hx'.ne', hx] }
+end
+
+lemma coe_surj_units_pos {x : ℝ} (hx : 0 < x) : (0 : ℝ) < surj_units x :=
+begin
+  simp [coe_surj_units_apply_ne_zero hx.ne', hx]
 end
 
 /-- A product `∏ (1 - aₙ)` with positive terms `aₙ` is convergent iff the series `∑ aₙ` converges. -/
@@ -582,25 +742,20 @@ begin
     λ a, add_pos_of_pos_of_nonneg zero_lt_one (hf _),
   have hapos2' : ∀ a : (f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹ : set β), 0 < 1 + 2 * f a :=
     λ a, add_pos_of_pos_of_nonneg zero_lt_one (mul_nonneg zero_le_two (hf _)),
-  have hrearr : ∀ g : β → ℝ, (λ s : finset (f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹ : set β),
-      ∏ b in s.filter (λ i, is_unit (g i)), g b) =
-      ((λ s : finset (f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹ : set β),
-        ∏ b in s, (g b)) ∘ finset.filter (λ i, is_unit (g i))),
-  { intro g,
-    funext,
-    simp only [function.comp] },
   have hmono : monotone (λ s : finset (f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹ : set β),
-    ∏ b in s.filter (λ i, is_unit (1 + f i)), (1 + f b)),
-  { simp_rw hrearr (λ i, 1 + f i),
-    refine monotone.comp (monotone_prod_of_one_le' _) (monotone_filter_left _),
-    simp [hf] },
+    ∏ b in s, (surj_units (1 + f b) : ℝ)),
+  { refine monotone_prod_of_one_le' (λ b, _),
+    have : 1 ≤ 1 + f b,
+    { simp [hf] },
+    rw coe_surj_units_apply_ne_zero (zero_lt_one.trans_le this).ne',
+    exact this },
   have hanti : antitone (λ s : finset (f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹ : set β),
-    ∏ b in s.filter (λ i, is_unit (1 - f i)), (1 - f b)),
-  { simp_rw hrearr (λ i, 1 - f i),
-    refine antitone.comp_monotone (antitone_prod_of_le_one' _ (λ _, (hapos _).le))
-      (monotone_filter_left _),
-    simp [hf] },
-  clear hrearr,
+    ∏ b in s, (surj_units (1 - f b) : ℝ)),
+  { refine antitone_prod_of_le_one' (λ b, _) (λ b, coe_surj_units_nonneg (hapos b).le),
+    rw coe_surj_units_apply_ne_zero,
+    { simp [hf] },
+    { rw [ne.def, sub_eq_zero],
+      exact (b.prop.right.trans h2).ne' } },
   by_cases hlim : tendsto f cofinite (𝓝 0),
   { rw tendsto_nhds at hlim,
     specialize hlim (set.Ioo (-2⁻¹ : ℝ) 2⁻¹) is_open_Ioo _,
@@ -610,28 +765,25 @@ begin
       rw ←converges_prod_one_add_iff_summable hf,
       refine converges_prod_of_converges_prod_cofinite_subset _ hlim _,
       have npos : ∀ t : finset (f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹ : set β),
-        (0 : ℝ) < ∏ b in t.filter (λ i, is_unit (1 - f i)), (1 - f b),
+        (0 : ℝ) < ∏ b in t, surj_units (1 - f b),
       { intro,
-        refine prod_pos _,
-        simp only [set.mem_preimage, set.mem_Ioo, mem_filter, sub_pos, and_imp,
-                    set_coe.forall, subtype.coe_mk],
-        intros _ hb _ _,
-        exact hb.right.trans h2 },
+        exact prod_pos (λ i hi, coe_surj_units_pos (hapos i)) },
       rcases tendsto_of_monotone hmono with (hy|⟨y, hy⟩),
       { obtain ⟨_, -, ⟨x', hx'⟩, -⟩ := hs.converges_prod_subtype_of_bounded_of_antitone
           (∈ f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹) _ hanti,
         { rw tendsto_at_top_at_top_iff_of_monotone hmono at hy,
           obtain ⟨t, ht⟩ := hy (x'⁻¹ + 1),
           refine absurd (lt_add_of_le_of_pos _ zero_lt_one) ht.not_lt,
-          have key : (∏ b in t.filter (λ i, is_unit (1 - f i)), (1 - f b))⁻¹ ≤ x'⁻¹,
+          have key : (∏ b in t, (surj_units (1 - f b) : ℝ))⁻¹ ≤ x'⁻¹,
           { rw inv_le_inv,
-            { exact hanti.le_of_tendsto hx' t },
+            { refine hanti.le_of_tendsto (((units.continuous_coe.tendsto _).comp hx').congr _) t,
+              intro,
+              simpa },
             { exact npos t },
             { refine lt_of_le_of_ne _ x'.is_unit.ne_zero.symm,
-              refine ge_of_tendsto' hx' (λ s, prod_nonneg _),
-              simp only [set.mem_preimage, set.mem_Ioo, filter_congr_decidable, mem_filter,
-                         sub_nonneg, and_imp, subtype.forall, subtype.coe_mk],
-              exact λ _ hb _ _, hb.right.le.trans h2.le } },
+              refine ge_of_tendsto' ((units.continuous_coe.tendsto _).comp hx') _,
+              simp only [comp_app, units.coe_prod],
+              exact λ s, prod_nonneg (λ i hi, coe_surj_units_nonneg (hapos i).le) } },
           refine key.trans' _,
           simp only [is_unit_iff_ne_zero] at npos ⊢,
           clear ht key,
@@ -640,15 +792,28 @@ begin
           { simp only [ha, filter_insert, (hapos a).ne', (hapos' a).ne', cons_eq_insert,
                       if_true, prod_insert, mem_filter, false_and, not_false_iff, mul_inv_rev,
                       ne.def],
-            rw mul_comm,
+            rw [coe_surj_units_apply_ne_zero (hapos' a).ne',
+                coe_surj_units_apply_ne_zero (hapos a).ne', mul_comm],
             exact mul_le_mul IH (one_add_le_inv_one_sub_of_lt_one (a.prop.right.trans h2))
               (hapos' a).le (inv_nonneg_of_nonneg (npos _).le) } },
         { simp only [set.mem_preimage, set.mem_Ioo, one_div, and_imp],
           intros b hb hb',
           rw [lt_sub_comm, inv_eq_one_div, sub_half, ←inv_eq_one_div],
           exact hb' } },
-      simp_rw is_unit_iff_ne_zero at hy hmono,
-      refine converges_prod_of_tendsto_of_ne_zero_of_subset_finite hy _ set.finite_empty _,
+      refine converges_prod_of_tendsto_of_ne_zero_of_subset_finite (hy.congr _) _
+        set.finite_empty _,
+      { intro s,
+        refine prod_bij _ _ _ _ _,
+        { exact λ i _, i },
+        { simp only [mem_filter],
+          intros i hi,
+          exact ⟨hi, (hapos' i).ne'⟩ },
+        { intros i hi,
+          rw [coe_surj_units_apply_ne_zero ((hapos' i).ne')] },
+        { exact λ _ _ _ _ h, h },
+        { simp only [mem_filter],
+          rintro b ⟨hb, hb'⟩,
+          exact ⟨b, hb, rfl⟩ } },
       { rintro rfl,
         have hbdd := (is_lub_of_tendsto_at_top hmono hy),
         refine absurd _ (zero_lt_one : (0 : ℝ) < 1).not_le,
@@ -671,32 +836,47 @@ begin
         obtain ⟨t, ht⟩ := hy (-1 : ℝ),
         simp only at ht,
         refine absurd (neg_one_lt_zero.trans_le _) ht.not_lt,
-        exact prod_nonneg (λ _ _, (hapos _).le) },
-      simp_rw is_unit_iff_ne_zero at hy hmono,
-      refine converges_prod_of_tendsto_of_ne_zero_of_subset_finite hy _ set.finite_empty _,
+        refine prod_nonneg (λ i hi, coe_surj_units_nonneg (hapos i).le) },
+      refine converges_prod_of_tendsto_of_ne_zero_of_subset_finite (hy.congr _)
+        _ set.finite_empty _,
+      { intro s,
+        refine prod_bij _ _ _ _ _,
+        { exact λ i _, i },
+        { simp only [mem_filter],
+          intros i hi,
+          exact ⟨hi, (hapos i).ne'⟩ },
+        { intros i hi,
+          rw [coe_surj_units_apply_ne_zero ((hapos i).ne')] },
+        { exact λ _ _ _ _ h, h },
+        { simp only [mem_filter],
+          rintro b ⟨hb, hb'⟩,
+          exact ⟨b, hb, rfl⟩ } },
       { obtain ⟨_, -, ⟨x', hx'⟩, -⟩ := hs.converges_prod_subtype_of_one_le
             (∈ f ⁻¹' set.Ioo (-2⁻¹) 2⁻¹) _, swap,
         { intros,
           simpa using hf _ },
         have xpos : (0 : ℝ) < x',
-        { refine lt_of_le_of_ne (ge_of_tendsto' hx' (λ t, _)) x'.ne_zero.symm,
-          exact prod_nonneg (λ b _, add_nonneg zero_le_one (mul_nonneg zero_le_two (hf _))) },
+        { refine lt_of_le_of_ne (ge_of_tendsto' ((units.continuous_coe.tendsto _).comp hx')
+            (λ t, _)) x'.ne_zero.symm,
+          simp only [comp_app, units.coe_prod],
+          refine prod_nonneg (λ b hb, coe_surj_units_nonneg (hapos2' b).le) },
         refine ((inv_pos_of_pos xpos).trans_le _).ne',
-        refine le_of_tendsto_of_tendsto' (hx'.inv₀ xpos.ne') hy (λ t, _),
-        simp only [is_unit_iff_ne_zero],
+        refine le_of_tendsto_of_tendsto'
+          (((units.continuous_coe.tendsto _).comp hx').inv₀ xpos.ne') hy (λ t, _),
+        simp only [comp_app, units.coe_prod],
         induction t using finset.cons_induction_on with a t ha IH,
-        { simp only [comp_app, filter_true_of_mem, not_mem_empty, is_empty.forall_iff,
-                     implies_true_iff, prod_empty, inv_one] },
-        { suffices : (∏ x in filter (λ i, (1 + 2 * f (↑i : β)) ≠ 0) t, (1 + 2 * f (x : β)))⁻¹ *
-            (1 + 2 * f a)⁻¹ ≤
-            (1 - f a) * ∏ x in filter (λ i, (1 - f (↑i : β)) ≠ 0) t, (1 - f (x : β)),
-          { simpa [ha, filter_insert, (hapos a).ne', (hapos2' a).ne'] using this },
+        { simp only [comp_app, prod_empty, units.coe_one, inv_one] },
+        { suffices : (∏ x in t, (surj_units (1 + 2 * f (x : β)) : ℝ))⁻¹ * (1 + 2 * f a)⁻¹ ≤
+            (1 - f a) * ∏ x in t, surj_units (1 - f (x : β)),
+          { simpa [ha, surj_units_apply_is_unit (is_unit_iff_ne_zero.mpr (hapos a).ne'),
+                   surj_units_apply_is_unit (is_unit_iff_ne_zero.mpr (hapos2' a).ne')] using this },
           rw mul_comm,
-          refine mul_le_mul _ IH (inv_nonneg_of_nonneg (prod_nonneg (λ _ _, (hapos2' _).le)))
+          refine mul_le_mul _ IH (inv_nonneg_of_nonneg (prod_nonneg _))
             (hapos _).le,
-          refine inv_one_add_two_mul_le_one_sub_of_nonneg_of_le_half (hf _) _,
-          rw ←inv_eq_one_div,
-          exact a.prop.right.le } },
+          { refine inv_one_add_two_mul_le_one_sub_of_nonneg_of_le_half (hf _) _,
+            rw ←inv_eq_one_div,
+            exact a.prop.right.le },
+          { exact λ b hb, coe_surj_units_nonneg (hapos2' b).le } } },
       { rintro ⟨b, hb⟩,
         simp only [set.mem_preimage, set.mem_Ioo] at hb,
         simp only [is_unit_iff_ne_zero, not_not, set.mem_set_of_eq, subtype.coe_mk,

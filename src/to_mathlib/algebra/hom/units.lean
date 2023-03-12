@@ -1,6 +1,12 @@
 import algebra.hom.units
 
-variables {M : Type*} [monoid M]
+variables {M X : Type*} [monoid M]
+
+@[simp] lemma is_unit_one_unit : (is_unit_one : is_unit (1 : M)).unit = 1 :=
+units.ext $ by simp
+
+@[simp] lemma units.unit_spec {x : Mˣ} : x.is_unit.unit = x :=
+by ext; simp
 
 noncomputable
 def surj_units (x : M) [decidable (is_unit x)] : Mˣ := if h : is_unit x then h.unit else 1
@@ -25,10 +31,7 @@ by simp only [surj_units_apply_is_unit x.is_unit, is_unit.unit_of_coe_units]
 
 @[simp] lemma surj_units_apply_one [decidable (is_unit (1 : M))] :
   surj_units (1 : M) = 1 :=
-begin
-  ext,
-  simp only [is_unit.unit_spec, units.coe_one, surj_units_apply_is_unit is_unit_one]
-end
+by simp [surj_units_apply_is_unit is_unit_one]
 
 @[simp] lemma coe_surj_units_apply_eq_iff {x : M} [decidable (is_unit (x : M))] :
   (surj_units x : M) = x ↔ is_unit x :=

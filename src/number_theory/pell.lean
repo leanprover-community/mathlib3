@@ -250,4 +250,3 @@ lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
 end solution₁
 
 end pell
-#lint

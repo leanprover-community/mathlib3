@@ -42,6 +42,11 @@ Pell's equation
 
 namespace zsqrtd
 
+-- Note: We put this here to avoid having to import `algebra.star.unitary`
+--       into `number_theory.zsqrtd.basic` just for this one result.
+
+/-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
+it is contained in the submonoid of unitary elements. -/
 lemma norm_eq_one_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
   a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary (zsqrtd d) :=
 begin

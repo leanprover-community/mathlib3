@@ -202,6 +202,7 @@ lemma rel_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.rel,
 lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
 by {ext, exact ext.mpr ⟨hx, hy⟩}
 
+/-- Construct a solution from `x`, `y` and a proof that the equation is satisfied. -/
 def mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
 { val := ⟨x, y⟩,
   property := norm_eq_one_iff_mem_unitary.mp rel }

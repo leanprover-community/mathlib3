@@ -195,24 +195,11 @@ begin
   split; assumption,
 end
 
-/-- We use `1` to denote the trivial solution `(1, 0)`. -/
-instance : has_one (solution₁ d) :=
-{ one := { x := 1, y := 0, rel := by simp } }
-
-instance : inhabited (solution₁ d) := ⟨1⟩
-
 @[simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl
 
 @[simp]
 lemma y_one : (1 : solution₁ d).y = 0 := rfl
-
-/-- We can multiply two solutions. -/
-instance : has_mul (solution₁ d) :=
-{ mul := λ a b,
-  { x := a.x * b.x + d * (a.y * b.y),
-    y := a.x * b.y + a.y * b.x,
-    rel := by {conv_rhs {rw ← mul_one (1 : ℤ), congr, rw ← a.rel, skip, rw ← b.rel}, ring} } }
 
 @[simp]
 lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
@@ -220,19 +207,11 @@ lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := r
 @[simp]
 lemma y_mul (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
 
-/-- We obtain the inverse of a solution by changing the sign of `y`. -/
-instance : has_inv (solution₁ d) :=
-{ inv := λ a, { x := a.x, y := -a.y, rel := by simp [a.rel] } }
-
 @[simp]
 lemma x_inv (a : solution₁ d) : a⁻¹.x = a.x := rfl
 
 @[simp]
 lemma y_inv (a : solution₁ d) : a⁻¹.y = -a.y := rfl
-
-/-- We define the negative of a solution by negating both `x` and `y`. -/
-instance : has_neg (solution₁ d) :=
-{ neg := λ a, { x := -a.x, y := -a.y, rel := by simp [a.rel] } }
 
 @[simp]
 lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl

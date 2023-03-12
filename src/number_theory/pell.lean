@@ -195,6 +195,16 @@ begin
   split; assumption,
 end
 
+def mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
+{ val := ⟨x, y⟩,
+  property := zsqrtd.norm_eq_one_iff_mem_unitary.mp rel }
+
+@[simp]
+lemma x_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).x = x := rfl
+
+@[simp]
+lemma y_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).y = y := rfl
+
 @[simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl
 

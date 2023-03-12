@@ -10,6 +10,8 @@ import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
 import tactic.positivity
 import analysis.special_functions.pow
+import analysis.inner_product_space.calculus
+import analysis.special_functions.exp_deriv
 
 /-!
 # Schwartz space
@@ -53,6 +55,52 @@ Schwartz space, tempered distributions
 -/
 
 noncomputable theory
+
+lemma glou {E : Type*} [inner_product_space ℝ E] (k n : ℕ) :
+  cont_diff ℝ ⊤ (λ (y : E), real.exp (- ‖y‖^2)) :=
+cont_diff_norm_sq.neg.exp
+
+universe u
+variables {E F G H : Type u}
+  [normed_add_comm_group E] [normed_space ℝ E]
+  [normed_add_comm_group F] [normed_space ℝ F]
+  [normed_add_comm_group G] [normed_space ℝ G]
+  [normed_add_comm_group H] [normed_space ℝ H]
+
+open_locale big_operators
+
+lemma boo (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
+  (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) (x : H) (n : ℕ) :
+  ‖iterated_fderiv ℝ n (λ y, B (f y) (g y)) x‖
+  ≤ ‖B‖ * ∑ i in finset.range (n+1), (nat.choose n i : ℝ)
+      * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n-i) g x‖ :=
+begin
+  unfreezingI { induction n with n IH generalizing E F G},
+  { simp only [finset.range_one, finset.sum_singleton, nat.choose_self, algebra_map.coe_one,
+      one_mul],
+    rw norm_iterated_fderiv_zero,
+
+  }
+end
+
+#exit
+
+
+lemma glou {E : Type*} [inner_product_space ℝ E] (k n : ℕ) :
+  ‖iterated_fderiv ℝ n (λ y, real.exp (- ‖y‖^2)) x‖ ≤ 1 :=
+begin
+  induction n with n IH,
+  sorry,
+  refine ⟨1, λ x, _⟩,
+  rw nat.succ_eq_add_one,
+  simp_rw [iterated_fderiv_succ_eq_comp_right],
+  simp,
+
+end
+
+
+#exit
+
 
 variables {𝕜 𝕜' E F : Type*}
 

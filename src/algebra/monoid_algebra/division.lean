@@ -29,7 +29,9 @@ In order to apply in maximal generality (such as for `laurent_polynomial`s), thi
 ## Implementation notes
 
 `∃ d, g' = g + d` is used as opposed to some other permutation up to commutativity in order to match
-the definition of ` semigroup_has_dvd `.
+the definition of `semigroup_has_dvd`. The results in this file could be duplicated for
+`monoid_algebra` by using `g ∣ g'`, but this can't be done automatically, and in any case is not
+likely to be very useful.
 
 -/
 

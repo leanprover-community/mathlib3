@@ -22,8 +22,8 @@ import data.mv_polynomial.basic
 
 ## Implementation notes
 
-Most of the results in this file should be first proved in the generality of `add_monoid_algebra`,
-and then specialized to `mv_polynomial` for convenience.
+Where possible, the results in this file should be first proved in the generality of
+`add_monoid_algebra`, and then the versions specialized to `mv_polynomial` proved in terms of these.
 
 -/
 

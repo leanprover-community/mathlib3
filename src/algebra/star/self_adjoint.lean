@@ -34,6 +34,7 @@ We also define `is_star_normal R`, a `Prop` that states that an element `x` sati
 
 ## TODO
 
+* Define `is_skew_adjoint` to match `is_self_adjoint`.
 * Define `λ z x, z * x * star z` (i.e. conjugation by `z`) as a monoid action of `R` on `R`
   (similar to the existing `conj_act` for groups), and then state the fact that `self_adjoint R` is
   invariant under it.

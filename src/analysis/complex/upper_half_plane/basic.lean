@@ -325,15 +325,6 @@ end
 lemma modular_T_smul (z : ℍ) : modular_group.T • z = (1 : ℝ) +ᵥ z :=
 by simpa only [algebra_map.coe_one] using modular_T_zpow_smul z 1
 
-@[simp] lemma coe_S_smul (z : ℍ) : ↑(modular_group.S • z) = (-z : ℂ)⁻¹ :=
-by rw [modular_S_smul z, coe_mk]
-
-@[simp] lemma coe_T_zpow_smul (z : ℍ) (n : ℤ) : ↑(modular_group.T ^ n • z) = (z + n : ℂ) :=
-by rw [modular_T_zpow_smul, coe_vadd, add_comm, complex.of_real_int_cast]
-
-@[simp] lemma coe_T_smul (z : ℍ) : ↑(modular_group.T • z) = (z + 1 : ℂ) :=
-by rw [modular_T_smul, coe_vadd, add_comm, complex.of_real_one]
-
 lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 = 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
     ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=

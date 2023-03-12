@@ -165,64 +165,24 @@ by assumption
 section reflexive
 
 lemma directed_on.insert (h : reflexive r) (a : α) {s : set α} (hd : directed_on r s)
-(ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
+  (ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
 begin
-  rw directed_on,
-  intros x hx y hy,
-  rw [set.mem_insert_iff] at hx,
-  rw [set.mem_insert_iff] at hy,
-  simp only [set.mem_insert_iff, exists_prop],
-  cases hx,
-  { cases hy,
-    { use a,
-      rw [eq_self_iff_true, true_or, true_and, hx, hy, and_self],
-      apply h, },
-    { obtain ⟨w, ⟨hws, hwr⟩⟩ := ha y hy,
-      use w,
-      split,
-      { exact or.inr hws },
-      { rw hx, exact hwr, }, }, },
-  { cases hy,
-    { obtain ⟨w, ⟨hws, hwr⟩⟩ := ha x hx,
-      use w,
-      split,
-      { exact or.inr hws },
-      { rw [hy, and_comm], exact hwr, }, },
-    { cases (hd x hx y hy),
-      use w,
-      cases h_1,
-      split,
-      { exact or.inr h_1_w },
-      { exact h_1_h, }, }, }
+  rintros x (rfl | hx) y (rfl | hy),
+  { exact ⟨y, set.mem_insert _ _, h _, h _⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha x hx,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr.symm⟩ },
+  { obtain ⟨w, hws, hwr⟩ := hd x hx y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
 end
 
 lemma directed_on.singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
-begin
-  rw directed_on,
-  intros x hx y hy,
-  use a,
-  simp only [set.mem_singleton, true_and],
-  rw [set.mem_singleton_iff] at hx,
-  rw [set.mem_singleton_iff] at hy,
-  rw [hx, hy, and_self],
-  apply h,
-end
+λ x hx y hy, ⟨x, hx, h _, hx.symm ▸ hy.symm ▸ h _⟩
 
 lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab : a ≼ b) :
   directed_on r ({a, b} : set α) :=
-begin
-  apply directed_on.insert h,
-  exact directed_on.singleton h _,
-  intros b' hb,
-  rw [set.mem_singleton_iff] at hb,
-  use b,
-  split,
-  { rw set.mem_singleton_iff, },
-  { rw hb,
-    split,
-    { exact hab, },
-    { apply h, }, }
-end
+(directed_on.singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
 
 end reflexive
 
@@ -258,21 +218,17 @@ lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_
 A function which preserves lub on directed sets
 -/
 def preserve_lub_on_directed [preorder β] (f : α → β) : Prop :=
-∀ (d : set α) (a : α), d.nonempty →
-  directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a))
+∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f a)
 
 lemma preserve_lub_on_directed.monotone [preorder β] {f : α → β} (h: preserve_lub_on_directed f) :
   monotone f :=
 begin
   intros a b hab,
-  rw preserve_lub_on_directed at h,
   let d := ({a, b} : set α),
-  have e1: is_lub (f '' d) (f b),
+  have e1 : is_lub (f '' d) (f b),
   { apply h,
     { exact set.insert_nonempty a {b} },
-    { apply directed_on_ordered_pair,
-      { rw reflexive, exact le_refl,  },
-      { exact hab, }, },
+    { exact directed_on_ordered_pair le_refl _ _ hab },
     { rw is_lub,
       split,
       { simp only [upper_bounds_insert, upper_bounds_singleton, set.mem_inter_iff, set.mem_Ici,

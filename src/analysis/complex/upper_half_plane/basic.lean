@@ -309,8 +309,30 @@ variables (x : ℝ) (z : ℍ)
 
 end real_add_action
 
-@[simp] lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
+/- these next few lemmas are *not* flagged `@simp` because of the constructors on the RHS;
+instead we use the versions with coercions to `ℂ` as simp lemmas instead. -/
+lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
 by { rw special_linear_group_apply, simp [modular_group.S, neg_div, inv_neg], }
+
+lemma modular_T_zpow_smul (z : ℍ) (n : ℤ) : modular_group.T ^ n • z = (n : ℝ) +ᵥ z :=
+begin
+  rw [←subtype.coe_inj, coe_vadd, add_comm, special_linear_group_apply, coe_mk,
+    modular_group.coe_T_zpow],
+  simp only [of_apply, cons_val_zero, algebra_map.coe_one, complex.of_real_one, one_mul,
+    cons_val_one, head_cons, algebra_map.coe_zero, zero_mul, zero_add, div_one],
+end
+
+lemma modular_T_smul (z : ℍ) : modular_group.T • z = (1 : ℝ) +ᵥ z :=
+by simpa only [algebra_map.coe_one] using modular_T_zpow_smul z 1
+
+@[simp] lemma coe_S_smul (z : ℍ) : ↑(modular_group.S • z) = (-z : ℂ)⁻¹ :=
+by rw [modular_S_smul z, coe_mk]
+
+@[simp] lemma coe_T_zpow_smul (z : ℍ) (n : ℤ) : ↑(modular_group.T ^ n • z) = (z + n : ℂ) :=
+by rw [modular_T_zpow_smul, coe_vadd, add_comm, complex.of_real_int_cast]
+
+@[simp] lemma coe_T_smul (z : ℍ) : ↑(modular_group.T • z) = (z + 1 : ℂ) :=
+by rw [modular_T_smul, coe_vadd, add_comm, complex.of_real_one]
 
 lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 = 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
@@ -335,7 +357,9 @@ begin
   refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
   ext1 ⟨z, hz⟩, ext1,
   suffices : (↑a * z + b) / (↑c * z + d) = a / c - (c * d + ↑c * ↑c * z)⁻¹,
-  { rw special_linear_group_apply, simpa [-neg_add_rev, inv_neg, ← sub_eq_add_neg], },
+  { rw special_linear_group_apply,
+    simpa only [inv_neg, modular_S_smul, subtype.coe_mk, coe_vadd, complex.of_real_mul,
+      coe_pos_real_smul, complex.real_smul, function.comp_app, complex.of_real_div] },
   replace hc : (c : ℂ) ≠ 0, { norm_cast, assumption, },
   replace h_denom : ↑c * z + d ≠ 0, { simpa using h_denom ⟨z, hz⟩, },
   have h_aux : (c : ℂ) * d + ↑c * ↑c * z ≠ 0,

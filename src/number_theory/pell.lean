@@ -163,7 +163,22 @@ def solution₁ (d : ℤ) : Type := ↥(unitary (zsqrtd d))
 
 namespace solution₁
 
+open zsqrtd
+
 variables {d : ℤ}
+
+instance : has_coe (solution₁ d) (zsqrtd d) := { coe := subtype.val }
+
+def x (a : solution₁ d) : ℤ := (a : zsqrtd d).re
+
+def y (a : solution₁ d) : ℤ := (a : zsqrtd d).im
+
+lemma rel (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
+begin
+  have := a.property,
+  rwa [unitary.mem_iff, ← norm_eq_mul_conj, mul_comm, ← norm_eq_mul_conj, and_self, norm_def,
+       ← sq, mul_assoc, ← sq, ← int.cast_one, int.cast_inj] at this,
+end
 
 /-- An alternative form of the relation, suitable for rewriting `x^2`. -/
 lemma rel_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.rel, ring}
@@ -175,9 +190,9 @@ lemma rel_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.rel,
 @[ext]
 lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
 begin
-  cases a,
-  cases b,
-  congr; assumption,
+  ext,
+  refine ext.mpr _,
+  split; assumption,
 end
 
 -- Define an attribute for a `simp` set to be used in `pell_tac`.

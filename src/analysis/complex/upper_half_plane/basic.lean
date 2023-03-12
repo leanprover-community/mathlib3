@@ -312,22 +312,6 @@ end real_add_action
 @[simp] lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
 by { rw special_linear_group_apply, simp [modular_group.S, neg_div, inv_neg], }
 
-@[simp] lemma modular_T_smul (z : ℍ) : modular_group.T • z = (1 : ℝ) +ᵥ z :=
-begin
-  suffices : ((modular_group.T • z : ℍ) : ℂ) = ↑((1 : ℝ) +ᵥ z), by rwa subtype.coe_inj at this,
-  rw [coe_vadd, add_comm, special_linear_group_apply, coe_mk, modular_group.coe_T],
-  simp only [of_apply, cons_val_zero, algebra_map.coe_one, complex.of_real_one, one_mul,
-    cons_val_one, head_cons, algebra_map.coe_zero, zero_mul, zero_add, div_one],
-end
-
-@[simp] lemma modular_T_pow_smul (z : ℍ) (n : ℕ) : modular_group.T ^ n • z = (n : ℝ) +ᵥ z :=
-begin
-  induction n with n IH generalizing z,
-  { rw [pow_zero, one_smul, nat.cast_zero, zero_vadd] },
-  { rw [pow_succ', ←smul_eq_mul, smul_assoc, modular_T_smul, IH, nat.cast_succ, ←vadd_eq_add,
-      vadd_assoc] },
-end
-
 lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 = 0) :
   ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
     ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=

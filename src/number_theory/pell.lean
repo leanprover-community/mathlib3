@@ -7,6 +7,8 @@ Authors: Michael Geißer, Michael Stoll
 import tactic.qify
 import data.zmod.basic
 import number_theory.diophantine_approximation
+import number_theory.zsqrtd.basic
+import algebra.star.unitary
 
 /-!
 # Pell's Equation
@@ -156,7 +158,8 @@ The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')
 /-- `pell.solution₁ d` is the type of solutions to the Pell equation `x^2 - d*y^2 = 1`.
 This is a structure containing two integers `x` and `y` and a proof `rel` that the equation holds.
 -/
-structure solution₁ (d : ℤ) := (x : ℤ) (y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1)
+@[derive [comm_group, has_distrib_neg, inhabited]]
+def solution₁ (d : ℤ) : Type := ↥(unitary (zsqrtd d))
 
 namespace solution₁
 
@@ -179,6 +182,7 @@ end
 
 -- Define an attribute for a `simp` set to be used in `pell_tac`.
 run_cmd mk_simp_attr `pell_simp
+run_cmd tactic.add_doc_string `simp_attr.pell_simp "Simp set to be used in `pell_tac`"
 
 /-- We use `1` to denote the trivial solution `(1, 0)`. -/
 instance : has_one (solution₁ d) :=
@@ -251,3 +255,4 @@ instance : has_distrib_neg (solution₁ d) :=
 end solution₁
 
 end pell
+#lint

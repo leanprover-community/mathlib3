@@ -62,7 +62,16 @@ begin
 end
 
 lemma jacobi_theta_T_sq_smul (τ : ℍ) : jacobi_theta (modular_group.T ^ 2 • τ) = jacobi_theta τ :=
-by simpa only [upper_half_plane.modular_T_pow_smul, nat.cast_two] using jacobi_theta_two_vadd τ
+begin
+  suffices : (2 : ℝ) +ᵥ τ = modular_group.T ^ (2 : ℤ) • τ, from this ▸ (jacobi_theta_two_vadd τ),
+  rw [←subtype.coe_inj, upper_half_plane.coe_vadd, upper_half_plane.special_linear_group_apply,
+    upper_half_plane.coe_mk, modular_group.coe_T_zpow, add_comm],
+  simp only [of_real_bit0, matrix.of_apply, matrix.cons_val_zero, algebra_map.coe_one, one_mul,
+    matrix.cons_val_one, matrix.head_cons, int.cast_bit0, algebra_map.coe_zero, zero_mul, zero_add,
+    div_one],
+end
+
+--by simpa only [upper_half_plane.modular_T_pow_smul, nat.cast_two] using jacobi_theta_two_vadd τ
 
 lemma jacobi_theta_S_smul (τ : ℍ) :
   jacobi_theta (modular_group.S • τ) = (-I * τ) ^ (1 / 2 : ℂ) * jacobi_theta τ :=

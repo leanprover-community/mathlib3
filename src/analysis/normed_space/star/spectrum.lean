@@ -90,6 +90,7 @@ end
 theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
+  have hu := exp_mem_unitary_of_mem_skew_adjoint ℂ (ha.smul_mem_skew_adjoint conj_I),
   let Iu := units.mk0 I I_ne_zero,
   have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
     by simpa only [units.smul_def, units.coe_mk0]
@@ -97,7 +98,7 @@ begin
   exact complex.ext (of_real_re _)
     (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
       real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
-      using spectrum.subset_circle_of_unitary ha.exp_i_smul_unitary this),
+      using spectrum.subset_circle_of_unitary hu this),
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/

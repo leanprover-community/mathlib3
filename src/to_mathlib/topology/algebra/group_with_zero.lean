@@ -25,7 +25,7 @@ end
 
 lemma continuous_on_surj_units {G₀ : Type*} [group_with_zero G₀]
   [topological_space G₀] [has_continuous_inv₀ G₀] [decidable_pred (is_unit : G₀ → Prop)] :
-  continuous_on (λ x : G₀, surj_units x) ({x : G₀ | is_unit x}) :=
+  continuous_on surj_units ({x : G₀ | is_unit x}) :=
 begin
   intros x hx U,
   simp only [filter.mem_map, nhds_induced],
@@ -50,6 +50,31 @@ begin
   refine hst _,
   simp [hxs, hxt]
 end
+
+lemma tendsto_surj_units_of_ne_zero {G₀ : Type*} [group_with_zero G₀] [topological_space G₀]
+  [t1_space G₀] [has_continuous_inv₀ G₀] [decidable_pred (is_unit : G₀ → Prop)]
+  (y : G₀) (hy : y ≠ 0) :
+  tendsto surj_units (𝓝 y) (𝓝 (surj_units y)) :=
+begin
+  refine (((continuous_on_surj_units) y (is_unit_iff_ne_zero.mpr hy)).tendsto).comp _,
+  refine tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_id _,
+  rw eventually_nhds_iff,
+  refine ⟨set.univ \ {0}, _, is_open_univ.sdiff is_closed_singleton, _⟩,
+  { simp [is_unit_iff_ne_zero] },
+  { simp [hy] }
+end
+
+lemma coe_surj_units_nonneg {R : Type*} [linear_ordered_field R]
+  [decidable_pred (is_unit : R → Prop)] {x : R} (hx : 0 ≤ x) : (0 : R) ≤ surj_units x :=
+begin
+  rcases hx.eq_or_lt with rfl|hx',
+  { simp, },
+  { simp [coe_surj_units_apply_ne_zero hx'.ne', hx] }
+end
+
+lemma coe_surj_units_pos {R : Type*} [linear_ordered_field R]
+  [decidable_pred (is_unit : R → Prop)] {x : R} (hx : 0 < x) : (0 : R) < surj_units x :=
+by simp [coe_surj_units_apply_ne_zero hx.ne', hx]
 
 -- lemma tendsto_surj_units {G₀ : Type*} [group_with_zero G₀]
 --   [topological_space G₀] [has_continuous_inv₀ G₀] (x : G₀) [decidable_pred (is_unit : G₀ → Prop)] :

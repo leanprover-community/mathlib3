@@ -157,11 +157,15 @@ end existence
 We define a structure of a commutative multiplicative group with distributive negation
 on the set of all solutions to the Pell equation `x^2 - d*y^2 = 1`.
 
-The type of such solutions is `pell.solution₁ d`. It contains integers `x` and `y` and
-a proof that `(x, y)` is indeed a solution.
+The type of such solutions is `pell.solution₁ d`. It corresponds to a pair of integers `x` and `y`
+and a proof that `(x, y)` is indeed a solution.
 
-The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')`
-(this is obtained by mapping `(x, y)` to `x + y*√d` and multiplying the results).
+The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')`.
+This is obtained by mapping `(x, y)` to `x + y*√d` and multiplying the results.
+In fact, we define `pell.solution₁ d` to be `↥(unitary (ℤ√d))` and transport
+the "commutative group with distributive negation" structure from `↥(unitary (ℤ√d))`.
+
+We then set up an API for `pell.solution₁ d`.
 -/
 
 -- We use `solution₁ d` to allow for a more general structure `solution d m` that
@@ -171,7 +175,7 @@ The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')
 We define this in terms of elements of `ℤ√d` of norm one.
 -/
 @[derive [comm_group, has_distrib_neg, inhabited]]
-def solution₁ (d : ℤ) : Type := ↥(unitary (zsqrtd d))
+def solution₁ (d : ℤ) : Type := ↥(unitary (ℤ√d))
 
 namespace solution₁
 

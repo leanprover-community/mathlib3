@@ -36,6 +36,7 @@ and definitions about `zsqrtd` can easily be used.
 -/
 
 open zsqrtd complex
+open_locale complex_conjugate
 
 /-- The Gaussian integers, defined as `ℤ√(-1)`. -/
 @[reducible] def gaussian_int : Type := zsqrtd (-1)
@@ -75,6 +76,11 @@ by apply complex.ext; simp [to_complex_def]
 @[simp] lemma to_complex_zero : ((0 : ℤ[i]) : ℂ) = 0 := to_complex.map_zero
 @[simp] lemma to_complex_neg (x : ℤ[i]) : ((-x : ℤ[i]) : ℂ) = -x := to_complex.map_neg _
 @[simp] lemma to_complex_sub (x y : ℤ[i]) : ((x - y : ℤ[i]) : ℂ) = x - y := to_complex.map_sub _ _
+@[simp] lemma to_complex_star (x : ℤ[i]) : ((star x : ℤ[i]) : ℂ) = conj (x : ℂ) :=
+begin
+  rw [to_complex_def₂, to_complex_def₂],
+  exact congr_arg2 _ rfl (int.cast_neg _),
+end
 
 @[simp] lemma to_complex_inj {x y : ℤ[i]} : (x : ℂ) = y ↔ x = y :=
 by cases x; cases y; simp [to_complex_def₂]

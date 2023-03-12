@@ -117,11 +117,11 @@ lemma antisymmetrization_fibration :
 by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
 
 lemma acc_antisymmetrization_iff : acc (<) (to_antisymmetrization (≤) a) ↔ acc (<) a :=
-acc_lift₂_iff
+acc_lift_on₂'_iff
 
 lemma well_founded_antisymmetrization_iff :
   well_founded (@has_lt.lt (antisymmetrization α (≤)) _) ↔ well_founded (@has_lt.lt α _) :=
-well_founded_lift₂_iff
+well_founded_lift_on₂'_iff
 
 instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
 ⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩
@@ -142,11 +142,11 @@ instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
 
 @[simp] lemma of_antisymmetrization_le_of_antisymmetrization_iff {a b : antisymmetrization α (≤)} :
   of_antisymmetrization (≤) a ≤ of_antisymmetrization (≤) b ↔ a ≤ b :=
-(quotient.out_rel_embedding _).map_rel_iff
+rel_embedding.map_rel_iff (quotient.out'_rel_embedding _)
 
 @[simp] lemma of_antisymmetrization_lt_of_antisymmetrization_iff {a b : antisymmetrization α (≤)} :
   of_antisymmetrization (≤) a < of_antisymmetrization (≤) b ↔ a < b :=
-(quotient.out_rel_embedding _).map_rel_iff
+(quotient.out'_rel_embedding _).map_rel_iff
 
 @[mono] lemma to_antisymmetrization_mono : monotone (@to_antisymmetrization α (≤) _) := λ a b, id
 
@@ -180,7 +180,7 @@ variables (α)
 /-- `of_antisymmetrization` as an order embedding. -/
 @[simps] noncomputable def order_embedding.of_antisymmetrization : antisymmetrization α (≤) ↪o α :=
 { to_fun := of_antisymmetrization _,
-  ..quotient.out_rel_embedding _ }
+  ..quotient.out'_rel_embedding _ }
 
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :

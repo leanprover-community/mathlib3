@@ -304,12 +304,12 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
 /-- `quotient.mk` as a relation homomorphism between the relation and the lift of a relation. -/
-@[simps] def _root_.quotient.mk_rel_hom {s : setoid α} {r : α → α → Prop} (H) :
+@[simps] def _root_.quotient.mk_rel_hom [setoid α] {r : α → α → Prop} (H) :
   r →r quotient.lift₂ r H :=
 ⟨@quotient.mk α _, λ _ _, id⟩
 
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
-@[simps] noncomputable def _root_.quotient.out_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
+@[simps] noncomputable def _root_.quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
   quotient.lift₂ r H ↪r r :=
 ⟨embedding.quotient_out α, begin
   refine λ x y, quotient.induction_on₂ x y (λ a b, _),
@@ -317,7 +317,13 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
   apply quotient.mk_out
 end⟩
 
-@[simp] theorem _root_.acc_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
+/-- `quotient.out'` as a relation embedding between the lift of a relation and the relation. -/
+@[simps] noncomputable def _root_.quotient.out'_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
+  (λ a b, quotient.lift_on₂' a b r H) ↪r r :=
+{ to_fun := quotient.out',
+  ..quotient.out_rel_embedding _ }
+
+@[simp] theorem _root_.acc_lift₂_iff [setoid α] {r : α → α → Prop} {H} {a} :
   acc (quotient.lift₂ r H) ⟦a⟧ ↔ acc r a :=
 begin
   split,
@@ -329,8 +335,12 @@ begin
     exact IH a' h, },
 end
 
+@[simp] theorem _root_.acc_lift_on₂'_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
+  acc (λ x y, quotient.lift_on₂' x y r H) (quotient.mk' a : quotient s) ↔ acc r a :=
+acc_lift₂_iff
+
 /-- A relation is well founded iff its lift to a quotient is. -/
-@[simp] theorem _root_.well_founded_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} :
+@[simp] theorem _root_.well_founded_lift₂_iff [setoid α] {r : α → α → Prop} {H} :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
 begin
   split,
@@ -342,6 +352,13 @@ end
 
 alias _root_.well_founded_lift₂_iff ↔
   _root_.well_founded.of_quotient_lift₂ _root_.well_founded.quotient_lift₂
+
+@[simp] theorem _root_.well_founded_lift_on₂'_iff {s : setoid α} {r : α → α → Prop} {H} :
+  well_founded (λ x y : quotient s, quotient.lift_on₂' x y r H) ↔ well_founded r :=
+well_founded_lift₂_iff
+
+alias _root_.well_founded_lift_on₂'_iff ↔
+  _root_.well_founded.of_quotient_lift_on₂' _root_.well_founded.quotient_lift_on₂'
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it

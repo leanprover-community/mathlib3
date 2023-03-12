@@ -214,13 +214,11 @@ lemma is_bot_iff_is_min [is_directed α (≥)] : is_bot a ↔ is_min a :=
 
 lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
 
-/--
-A function which preserves lub on directed sets
--/
-def preserve_lub_on_directed [preorder β] (f : α → β) : Prop :=
+/-- The property that a function preserves `is_lub` on directed sets. -/
+def preserves_lub_on_directed [preorder β] (f : α → β) : Prop :=
 ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f a)
 
-lemma preserve_lub_on_directed.monotone [preorder β] {f : α → β} (h: preserve_lub_on_directed f) :
+lemma preserves_lub_on_directed.monotone [preorder β] {f : α → β} (h : preserves_lub_on_directed f) :
   monotone f :=
 begin
   intros a b hab,

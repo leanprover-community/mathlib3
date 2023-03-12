@@ -40,6 +40,18 @@ Pell's equation
 * Connect solutions to the continued fraction expansion of `√d`.
 -/
 
+namespace zsqrtd
+
+lemma norm_eq_one_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
+  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary (zsqrtd d) :=
+begin
+  rw [unitary.mem_iff, ← norm_eq_mul_conj, mul_comm _ a, ← norm_eq_mul_conj, and_self, norm_def,
+      sq, sq, ← mul_assoc],
+  norm_cast,
+end
+
+end zsqrtd
+
 namespace pell
 
 section existence

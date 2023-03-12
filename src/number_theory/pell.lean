@@ -195,20 +195,16 @@ begin
   split; assumption,
 end
 
--- Define an attribute for a `simp` set to be used in `pell_tac`.
-run_cmd mk_simp_attr `pell_simp
-run_cmd tactic.add_doc_string `simp_attr.pell_simp "Simp set to be used in `pell_tac`"
-
 /-- We use `1` to denote the trivial solution `(1, 0)`. -/
 instance : has_one (solution₁ d) :=
 { one := { x := 1, y := 0, rel := by simp } }
 
 instance : inhabited (solution₁ d) := ⟨1⟩
 
-@[simp, pell_simp]
+@[simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl
 
-@[simp, pell_simp]
+@[simp]
 lemma y_one : (1 : solution₁ d).y = 0 := rfl
 
 /-- We can multiply two solutions. -/
@@ -218,54 +214,33 @@ instance : has_mul (solution₁ d) :=
     y := a.x * b.y + a.y * b.x,
     rel := by {conv_rhs {rw ← mul_one (1 : ℤ), congr, rw ← a.rel, skip, rw ← b.rel}, ring} } }
 
-@[simp, pell_simp]
+@[simp]
 lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
 
-@[simp, pell_simp]
+@[simp]
 lemma y_mul (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
 
 /-- We obtain the inverse of a solution by changing the sign of `y`. -/
 instance : has_inv (solution₁ d) :=
 { inv := λ a, { x := a.x, y := -a.y, rel := by simp [a.rel] } }
 
-@[simp, pell_simp]
+@[simp]
 lemma x_inv (a : solution₁ d) : a⁻¹.x = a.x := rfl
 
-@[simp, pell_simp]
+@[simp]
 lemma y_inv (a : solution₁ d) : a⁻¹.y = -a.y := rfl
 
 /-- We define the negative of a solution by negating both `x` and `y`. -/
 instance : has_neg (solution₁ d) :=
 { neg := λ a, { x := -a.x, y := -a.y, rel := by simp [a.rel] } }
 
-@[simp, pell_simp]
+@[simp]
 lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
 
-@[simp, pell_simp]
+@[simp]
 lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
 
-/-- Set up a tactic that discharges the computational goals below. -/
-meta def pell_tac : tactic unit :=
-`[ intros, ext; simp only with pell_simp; ring_nf ]
 
-/-- The solutions to the Pell equation `x^2 - d*y^2 = 1` form a commutative group. -/
-instance : comm_group (solution₁ d) :=
-{ mul := has_mul.mul,
-  mul_assoc := by pell_tac,
-  one := has_one.one,
-  one_mul := by pell_tac,
-  mul_one := by pell_tac,
-  mul_comm := by pell_tac,
-  inv := has_inv.inv,
-  mul_left_inv := λ a, by {pell_tac, rw a.rel_x, ring},
-  .. }
-
-/-- The negation of solutions is compatible with the multiplicative structure. -/
-instance : has_distrib_neg (solution₁ d) :=
-{ neg := has_neg.neg,
-  neg_neg := by pell_tac,
-  neg_mul := by pell_tac,
-  mul_neg := by pell_tac }
 
 end solution₁
 

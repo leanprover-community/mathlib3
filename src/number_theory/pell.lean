@@ -200,11 +200,7 @@ lemma rel_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.rel,
 /-- Two solutions are equal if their `x` and `y` components are equal. -/
 @[ext]
 lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
-begin
-  ext,
-  refine ext.mpr _,
-  split; assumption,
-end
+by {ext, exact ext.mpr ⟨hx, hy⟩}
 
 def mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
 { val := ⟨x, y⟩,

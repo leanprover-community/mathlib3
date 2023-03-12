@@ -121,15 +121,15 @@ theorem is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
 λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1,
   by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
-theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
+theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * star b = 1
 | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring_nf
 
 theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
 is_pell_norm.2 (by simp [mul_comm, mul_left_comm,
-  zsqrtd.conj_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
+  star_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
 
-theorem is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell b.conj | ⟨x, y⟩ :=
-by simp [is_pell, zsqrtd.conj]
+theorem is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell (star b) | ⟨x, y⟩ :=
+by simp [is_pell, zsqrtd.star_mk]
 
 @[simp] theorem pell_zd_succ (n : ℕ) : pell_zd (n+1) = pell_zd n * ⟨a, 1⟩ :=
 by simp [zsqrtd.ext]
@@ -245,7 +245,7 @@ by injection (pell_zd_add _ m n) with _ h;
     repeat {rw ← int.coe_nat_add at h <|> rw ← int.coe_nat_mul at h};
     exact int.coe_nat_inj h
 
-theorem pell_zd_sub {m n} (h : n ≤ m) : pell_zd (m - n) = pell_zd m * (pell_zd n).conj :=
+theorem pell_zd_sub {m n} (h : n ≤ m) : pell_zd (m - n) = pell_zd m * star (pell_zd n) :=
 let t := pell_zd_add n (m - n) in
 by rw [add_tsub_cancel_of_le h] at t;
     rw [t, mul_comm (pell_zd _ n) _, mul_assoc, (is_pell_norm _).1 (is_pell_pell_zd _ _), mul_one]

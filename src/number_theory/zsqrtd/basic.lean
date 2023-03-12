@@ -124,6 +124,7 @@ instance : distrib ℤ√d            := by apply_instance
 /-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
 instance : has_star ℤ√d :=
 { star := λ z, ⟨z.1, -z.2⟩ }
+@[simp] lemma star_mk (x y : ℤ) : star (⟨x, y⟩ : ℤ√d) = ⟨x, -y⟩ := rfl
 @[simp] lemma star_re (z : ℤ√d) : (star z).re = z.re := rfl
 @[simp] lemma star_im (z : ℤ√d) : (star z).im = -z.im := rfl
 

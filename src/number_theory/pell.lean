@@ -186,11 +186,7 @@ def x (a : solution₁ d) : ℤ := (a : zsqrtd d).re
 def y (a : solution₁ d) : ℤ := (a : zsqrtd d).im
 
 lemma rel (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
-begin
-  have := a.property,
-  rwa [unitary.mem_iff, ← norm_eq_mul_conj, mul_comm, ← norm_eq_mul_conj, and_self, norm_def,
-       ← sq, mul_assoc, ← sq, ← int.cast_one, int.cast_inj] at this,
-end
+norm_eq_one_iff_mem_unitary.mpr a.property
 
 /-- An alternative form of the relation, suitable for rewriting `x^2`. -/
 lemma rel_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.rel, ring}

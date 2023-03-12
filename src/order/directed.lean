@@ -224,24 +224,16 @@ lemma preserve_lub_on_directed.monotone [preorder β] {f : α → β} (h: preser
   monotone f :=
 begin
   intros a b hab,
-  let d := ({a, b} : set α),
-  have e1 : is_lub (f '' d) (f b),
+  have e1 : is_lub (f '' {a, b}) (f b),
   { apply h,
-    { exact set.insert_nonempty a {b} },
+    { exact set.insert_nonempty _ _ },
     { exact directed_on_ordered_pair le_refl _ _ hab },
-    { rw is_lub,
-      split,
-      { simp only [upper_bounds_insert, upper_bounds_singleton, set.mem_inter_iff, set.mem_Ici,
-          le_refl, and_true],
-        exact hab, },
-      { simp only [upper_bounds_insert, upper_bounds_singleton],
-        rw (set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)),
-        exact λ {x : α}, set.mem_Ici.mpr, } }, },
-  rw [is_lub, is_least] at e1,
+    { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
+        set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
+      exact is_least_Ici } },
   apply e1.1,
-  rw set.mem_image,
-  use a,
-  simp only [set.mem_insert_iff, eq_self_iff_true, true_or, and_self],
+  rw set.image_pair,
+  exact set.mem_insert _ _,
 end
 
 variables (β) [partial_order β]

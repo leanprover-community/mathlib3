@@ -202,7 +202,8 @@ lemma x_one : (1 : solution₁ d).x = 1 := rfl
 lemma y_one : (1 : solution₁ d).y = 0 := rfl
 
 @[simp]
-lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) := rfl
+lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) :=
+by {rw ← mul_assoc, refl}
 
 @[simp]
 lemma y_mul (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl

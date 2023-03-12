@@ -2648,6 +2648,13 @@ begin
     ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) g s) x h : rfl }
 end
 
+lemma iterated_fderiv_within_add_apply' {f g : E → F}
+  (hf : cont_diff_on 𝕜 i f s) (hg : cont_diff_on 𝕜 i g s) (hu : unique_diff_on 𝕜 s)
+  (hx : x ∈ s) :
+iterated_fderiv_within 𝕜 i (λ x, f x + g x) s x =
+  iterated_fderiv_within 𝕜 i f s x + iterated_fderiv_within 𝕜 i g s x :=
+iterated_fderiv_within_add_apply hf hg hu hx
+
 lemma iterated_fderiv_add_apply {i : ℕ} {f g : E → F} (hf : cont_diff 𝕜 i f)
   (hg : cont_diff 𝕜 i g) :
   iterated_fderiv 𝕜 i (f + g) x = iterated_fderiv 𝕜 i f x + iterated_fderiv 𝕜 i g x :=
@@ -2655,6 +2662,11 @@ begin
   simp_rw [←cont_diff_on_univ, ←iterated_fderiv_within_univ] at hf hg ⊢,
   exact iterated_fderiv_within_add_apply hf hg unique_diff_on_univ (set.mem_univ _),
 end
+
+lemma iterated_fderiv_add_apply' {i : ℕ} {f g : E → F} (hf : cont_diff 𝕜 i f)
+  (hg : cont_diff 𝕜 i g) :
+  iterated_fderiv 𝕜 i (λ x, f x + g x) x = iterated_fderiv 𝕜 i f x + iterated_fderiv 𝕜 i g x :=
+iterated_fderiv_add_apply hf hg
 
 end add
 

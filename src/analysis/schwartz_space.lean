@@ -5,13 +5,13 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
-import analysis.locally_convex.with_seminorms
+/-import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
 import tactic.positivity
 import analysis.special_functions.pow
 import analysis.inner_product_space.calculus
-import analysis.special_functions.exp_deriv
+import analysis.special_functions.exp_deriv-/
 
 /-!
 # Schwartz space
@@ -56,10 +56,6 @@ Schwartz space, tempered distributions
 
 noncomputable theory
 
-lemma glou {E : Type*} [inner_product_space ℝ E] (k n : ℕ) :
-  cont_diff ℝ ⊤ (λ (y : E), real.exp (- ‖y‖^2)) :=
-cont_diff_norm_sq.neg.exp
-
 universe u
 variables {E F G H : Type u}
   [normed_add_comm_group E] [normed_space ℝ E]
@@ -69,21 +65,49 @@ variables {E F G H : Type u}
 
 open_locale big_operators
 
-lemma boo (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
+
+lemma boo (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F) (f' : H →L[ℝ] E) (g' : H →L[ℝ] F) (x: H)
+  (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
+  has_fderiv_at (λ y, B (f y) (g y)) ((B (f x)).comp g' + (B.flip (g x)).comp f') x :=
+(B.is_bounded_bilinear_map.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
+
+lemma glouk (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
+  (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) :
+  fderiv ℝ (λ y, B (f y) (g y)) =
+    λ x, ((B (f x)).comp (fderiv ℝ g x) + (B.flip (g x)).comp (fderiv ℝ f x)) :=
+begin
+  ext1 x,
+  refine (boo B f g (fderiv ℝ f x) (fderiv ℝ g x) x _ _).fderiv,
+  { exact (hf.differentiable le_top).differentiable_at.has_fderiv_at },
+  { exact (hg.differentiable le_top).differentiable_at.has_fderiv_at },
+end
+
+lemma book (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
   (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) (x : H) (n : ℕ) :
   ‖iterated_fderiv ℝ n (λ y, B (f y) (g y)) x‖
   ≤ ‖B‖ * ∑ i in finset.range (n+1), (nat.choose n i : ℝ)
       * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n-i) g x‖ :=
 begin
   unfreezingI { induction n with n IH generalizing E F G},
-  { simp only [finset.range_one, finset.sum_singleton, nat.choose_self, algebra_map.coe_one,
-      one_mul],
-    rw norm_iterated_fderiv_zero,
+  sorry { simp only [norm_iterated_fderiv_zero, finset.range_one, finset.sum_singleton, nat.choose_self,
+      algebra_map.coe_one, one_mul, ← mul_assoc],
+    apply ((B (f x)).le_op_norm (g x)).trans,
+    apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    exact B.le_op_norm (f x) },
+  { rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
+    have A : cont_diff ℝ n (λ y, (B (f y)).comp (fderiv ℝ g y)), sorry,
+    have A' : cont_diff ℝ n (λ y, (B.flip (g y)).comp (fderiv ℝ f y)), sorry,
+    simp_rw [glouk B f g hf hg, iterated_fderiv_add_apply' A A'],
+    apply (norm_add_le _ _).trans,
 
   }
 end
 
 #exit
+
+lemma glou {E : Type*} [inner_product_space ℝ E] (k n : ℕ) :
+  cont_diff ℝ ⊤ (λ (y : E), real.exp (- ‖y‖^2)) :=
+cont_diff_norm_sq.neg.exp
 
 
 lemma glou {E : Type*} [inner_product_space ℝ E] (k n : ℕ) :

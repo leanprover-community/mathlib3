@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+import algebra.star.unitary
 import data.nat.modeq
 import number_theory.zsqrtd.basic
 
@@ -124,11 +125,14 @@ theorem is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
 theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * star b = 1
 | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring_nf
 
+theorem is_pell_iff_mem_unitary : Π {b : ℤ√d}, is_pell b ↔ b ∈ unitary ℤ√d
+| ⟨x, y⟩ := by rw [unitary.mem_iff, is_pell_norm, mul_comm (star _), and_self]
+
 theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
 is_pell_norm.2 (by simp [mul_comm, mul_left_comm,
   star_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
 
-theorem is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell (star b) | ⟨x, y⟩ :=
+theorem is_pell_star : ∀ {b : ℤ√d}, is_pell b ↔ is_pell (star b) | ⟨x, y⟩ :=
 by simp [is_pell, zsqrtd.star_mk]
 
 @[simp] theorem pell_zd_succ (n : ℕ) : pell_zd (n+1) = pell_zd n * ⟨a, 1⟩ :=
@@ -187,7 +191,7 @@ lemma eq_pell_lem : ∀n (b:ℤ√d), 1 ≤ b → is_pell b → b ≤ pell_zd n 
   if ha : (⟨↑a, 1⟩ : ℤ√d) ≤ b then
     let ⟨m, e⟩ := eq_pell_lem n (b * ⟨a, -1⟩)
       (by rw ← a1m; exact mul_le_mul_of_nonneg_right ha am1p)
-      (is_pell_mul hp (is_pell_conj.1 is_pell_one))
+      (is_pell_mul hp (is_pell_star.1 is_pell_one))
       (by have t := mul_le_mul_of_nonneg_right h am1p;
         rwa [pell_zd_succ, mul_assoc, a1m, mul_one] at t) in
     ⟨m+1, by rw [show b = b * ⟨a, -1⟩ * ⟨a, 1⟩, by rw [mul_assoc, eq.trans (mul_comm _ _) a1m];

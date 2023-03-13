@@ -75,7 +75,7 @@ instance (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) [Π i, inhabited (α 
 
 namespace pi_Lp
 
-variables (p : ℝ≥0∞) (𝕜 : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ≥0∞) (R S 𝕜 : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -87,6 +87,83 @@ the use of the type synonym. -/
 
 @[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
 @[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+
+/-! ### Algebraic operations inherited from `Π i, β i` -/
+section algebra
+variables {𝕜 R S p α}
+
+section add_comm_group
+variables [Π i, add_comm_group (β i)] (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
+
+-- there's very little value in providing weaker versions such as `add_comm_monoid` here.
+instance add_comm_group : add_comm_group (pi_Lp p β) :=
+pi.add_comm_group
+
+/- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
+for Pi types will not trigger. -/
+@[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
+@[simp] lemma add_apply : (x + y) i = x i + y i := rfl
+@[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
+@[simp] lemma neg_apply : (-x) i = - (x i) := rfl
+
+@[simp] lemma equiv_zero : pi_Lp.equiv p β 0 = 0 := rfl
+@[simp] lemma equiv_symm_zero : (pi_Lp.equiv p β).symm 0 = 0 := rfl
+
+@[simp] lemma equiv_add :
+  pi_Lp.equiv p β (x + y) = pi_Lp.equiv p β x + pi_Lp.equiv p β y := rfl
+@[simp] lemma equiv_symm_add :
+  (pi_Lp.equiv p β).symm (x' + y') = (pi_Lp.equiv p β).symm x' + (pi_Lp.equiv p β).symm y' := rfl
+
+@[simp] lemma equiv_sub : pi_Lp.equiv p β (x - y) = pi_Lp.equiv p β x - pi_Lp.equiv p β y := rfl
+@[simp] lemma equiv_symm_sub :
+  (pi_Lp.equiv p β).symm (x' - y') = (pi_Lp.equiv p β).symm x' - (pi_Lp.equiv p β).symm y' := rfl
+
+@[simp] lemma equiv_neg : pi_Lp.equiv p β (-x) = -pi_Lp.equiv p β x := rfl
+@[simp] lemma equiv_symm_neg : (pi_Lp.equiv p β).symm (-x') = -(pi_Lp.equiv p β).symm x' := rfl
+
+end add_comm_group
+
+section has_smul
+variables [Π i, has_smul R (β i)] (r : R) (x : pi_Lp p β) (x' : Π i, β i) (i : ι)
+
+instance has_smul : has_smul R (pi_Lp p β) := pi.has_smul
+
+@[simp] lemma smul_apply : (r • x) i = r • x i := rfl
+
+@[simp] lemma equiv_smul : pi_Lp.equiv p β (r • x) = r • pi_Lp.equiv p β x := rfl
+@[simp] lemma equiv_symm_smul :
+  (pi_Lp.equiv p β).symm (r • x') = r • (pi_Lp.equiv p β).symm x' := rfl
+
+end has_smul
+
+instance is_scalar_tower
+  [has_smul R S] [Π i, has_smul R (β i)] [Π i, has_smul S (β i)] [Π i, is_scalar_tower R S (β i)] :
+  is_scalar_tower R S (pi_Lp p β) :=
+pi.is_scalar_tower
+
+instance smul_comm_class [Π i, has_smul R (β i)] [Π i, has_smul S (β i)]
+  [Π i, smul_comm_class R S (β i)] : smul_comm_class R S (pi_Lp p β) :=
+pi.smul_comm_class
+
+instance is_central_scalar [Π i, has_smul R (β i)] [Π i, has_smul Rᵐᵒᵖ (β i)]
+  [Π i, is_central_scalar R (β i)] : is_central_scalar R (pi_Lp p β) :=
+pi.is_central_scalar
+
+instance distrib_mul_action [monoid R] [Π i, seminormed_add_comm_group (β i)]
+  [Π i, distrib_mul_action R (β i)] : distrib_mul_action R (pi_Lp p β) :=
+pi.distrib_mul_action _
+
+instance module [semiring R] [Π i, seminormed_add_comm_group (β i)]
+  [Π i, module R (β i)] : module R (pi_Lp p β) :=
+pi.module _ _ _
+
+
+instance finite_dimensional [division_ring R] [Π i, add_comm_group (β i)]
+  [Π i, module R (β i)] [I : ∀ i, finite_dimensional R (β i)] :
+  finite_dimensional R (pi_Lp p β) :=
+finite_dimensional.finite_dimensional_pi' _ _
+
+end algebra
 
 section dist_norm
 variables [fintype ι]
@@ -526,10 +603,8 @@ lemma edist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)
   edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
 by simp [pi_Lp.edist_eq_sum]
 
-variables [normed_field 𝕜]
-
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [Π i, seminormed_add_comm_group (β i)]
+instance normed_space [normed_field 𝕜] [Π i, seminormed_add_comm_group (β i)]
   [Π i, normed_space 𝕜 (β i)] : normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le := λ c f,
   begin
@@ -543,24 +618,15 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)]
       rw [mul_rpow (rpow_nonneg_of_nonneg (norm_nonneg _) _), ← rpow_mul (norm_nonneg _),
         this, rpow_one],
       exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _) },
-  end,
-  .. (pi.module ι β 𝕜) }
+  end }
 
-instance finite_dimensional [Π i, seminormed_add_comm_group (β i)]
-  [Π i, normed_space 𝕜 (β i)] [I : ∀ i, finite_dimensional 𝕜 (β i)] :
-  finite_dimensional 𝕜 (pi_Lp p β) :=
+instance finite_dimensional [division_ring R] [Π i, add_comm_group (β i)]
+  [Π i, module R (β i)] [I : ∀ i, finite_dimensional R (β i)] :
+  finite_dimensional R (pi_Lp p β) :=
 finite_dimensional.finite_dimensional_pi' _ _
 
-/- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
-for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
-variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
-
-@[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
-@[simp] lemma add_apply : (x + y) i = x i + y i := rfl
-@[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
-@[simp] lemma smul_apply : (c • x) i = c • x i := rfl
-@[simp] lemma neg_apply : (-x) i = - (x i) := rfl
+variables {𝕜 R S p α}
+variables [normed_field 𝕜] [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)]
 
 /-- The canonical map `pi_Lp.equiv` between `pi_Lp ∞ β` and `Π i, β i` as a linear isometric
 equivalence. -/
@@ -619,25 +685,6 @@ begin
   simp [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
     pi.single, function.update, equiv.symm_apply_eq],
 end
-
-@[simp] lemma equiv_zero : pi_Lp.equiv p β 0 = 0 := rfl
-@[simp] lemma equiv_symm_zero : (pi_Lp.equiv p β).symm 0 = 0 := rfl
-
-@[simp] lemma equiv_add :
-  pi_Lp.equiv p β (x + y) = pi_Lp.equiv p β x + pi_Lp.equiv p β y := rfl
-@[simp] lemma equiv_symm_add :
-  (pi_Lp.equiv p β).symm (x' + y') = (pi_Lp.equiv p β).symm x' + (pi_Lp.equiv p β).symm y' := rfl
-
-@[simp] lemma equiv_sub : pi_Lp.equiv p β (x - y) = pi_Lp.equiv p β x - pi_Lp.equiv p β y := rfl
-@[simp] lemma equiv_symm_sub :
-  (pi_Lp.equiv p β).symm (x' - y') = (pi_Lp.equiv p β).symm x' - (pi_Lp.equiv p β).symm y' := rfl
-
-@[simp] lemma equiv_neg : pi_Lp.equiv p β (-x) = -pi_Lp.equiv p β x := rfl
-@[simp] lemma equiv_symm_neg : (pi_Lp.equiv p β).symm (-x') = -(pi_Lp.equiv p β).symm x' := rfl
-
-@[simp] lemma equiv_smul : pi_Lp.equiv p β (c • x) = c • pi_Lp.equiv p β x := rfl
-@[simp] lemma equiv_symm_smul :
-  (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
 
 /-- When `p = ∞`, this lemma does not hold without the additional assumption `nonempty ι` because
 the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
@@ -734,7 +781,7 @@ lemma basis_to_matrix_basis_fun_mul (b : basis ι 𝕜 (pi_Lp p (λ i : ι, 𝕜
   b.to_matrix (pi_Lp.basis_fun _ _ _) ⬝ A =
     matrix.of (λ i j, b.repr ((pi_Lp.equiv _ _).symm (Aᵀ j)) i) :=
 begin
-  have := basis_to_matrix_basis_fun_mul (b.map (pi_Lp.linear_equiv _ 𝕜 _)) A,
+  have := basis_to_matrix_basis_fun_mul (b.map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜))) A,
   simp_rw [←pi_Lp.basis_fun_map p, basis.map_repr, linear_equiv.trans_apply,
     pi_Lp.linear_equiv_symm_apply, basis.to_matrix_map, function.comp, basis.map_apply,
     linear_equiv.symm_apply_apply] at this,
@@ -744,3 +791,4 @@ end
 end basis
 
 end pi_Lp
+#lint

@@ -56,7 +56,7 @@ end
 
 /-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
 it is contained in the submonoid of unitary elements. -/
-lemma norm_eq_one_iff_mem_unitary' {d : ℤ} {a : zsqrtd d} :
+lemma is_pell_solution_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
   a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary (zsqrtd d) :=
 by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]
 
@@ -203,7 +203,7 @@ def y (a : solution₁ d) : ℤ := (a : ℤ√d).im
 
 /-- The proof that `a` is a solution to the Pell equation `x^2 - d*y^2 = 1` -/
 lemma rel (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
-norm_eq_one_iff_mem_unitary'.mpr a.property
+is_pell_solution_iff_mem_unitary.mpr a.property
 
 /-- An alternative form of the relation, suitable for rewriting `x^2`. -/
 lemma rel_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.rel, ring}
@@ -219,7 +219,7 @@ subtype.ext $ ext.mpr ⟨hx, hy⟩
 /-- Construct a solution from `x`, `y` and a proof that the equation is satisfied. -/
 def mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
 { val := ⟨x, y⟩,
-  property := norm_eq_one_iff_mem_unitary'.mp rel }
+  property := is_pell_solution_iff_mem_unitary.mp rel }
 
 @[simp]
 lemma x_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).x = x := rfl

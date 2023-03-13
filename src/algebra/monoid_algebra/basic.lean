@@ -12,6 +12,9 @@ import linear_algebra.finsupp
 /-!
 # Monoid algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When the domain of a `finsupp` has a multiplicative or additive structure, we can define
 a convolution product. To mathematicians this structure is known as the "monoid algebra",
 i.e. the finite formal linear combinations over a given semiring of elements of the monoid.

@@ -6,10 +6,10 @@ Authors: Eric Wieser
 
 import analysis.normed_space.exponential
 import analysis.matrix
-import linear_algebra.matrix.zpow
 import linear_algebra.matrix.hermitian
 import linear_algebra.matrix.pos_def
 import linear_algebra.matrix.symmetric
+import linear_algebra.matrix.zpow
 import topology.uniform_space.matrix
 
 /-!

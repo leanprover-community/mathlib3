@@ -8,6 +8,9 @@ import category_theory.epi_mono
 /-!
 # Balanced categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category is called balanced if any morphism that is both monic and epic is an isomorphism.
 
 Balanced categories arise frequently. For example, categories in which every monomorphism

@@ -9,6 +9,9 @@ import topology.sets.opens
 /-!
 # Local homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between open subsets of topological spaces. An element `e` of
 `local_homeomorph α β` is an extension of `local_equiv α β`, i.e., it is a pair of functions
 `e.to_fun` and `e.inv_fun`, inverse of each other on the sets `e.source` and `e.target`.

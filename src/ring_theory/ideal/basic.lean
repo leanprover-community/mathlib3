@@ -14,6 +14,9 @@ import linear_algebra.finsupp
 
 # Ideals over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ideal R`, the type of (left) ideals over a ring `R`.
 Note that over commutative rings, left ideals and two-sided ideals are equivalent.
 

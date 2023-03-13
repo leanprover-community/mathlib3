@@ -332,11 +332,21 @@ end decidable_eq
 
 -- Those lemmas are purposefully the other way around
 
+/-- `finset.cons` version of `finset.Ico_insert_right`. -/
 lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico :=
 by { classical, rw [cons_eq_insert, Ico_insert_right h] }
 
+/-- `finset.cons` version of `finset.Ioc_insert_left`. -/
 lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc :=
 by { classical, rw [cons_eq_insert, Ioc_insert_left h] }
+
+/-- `finset.cons` version of `finset.Ioo_insert_right`. -/
+lemma Ioc_eq_cons_Ioo (h : a < b) : Ioc a b = (Ioo a b).cons b right_not_mem_Ioo :=
+by { classical, rw [cons_eq_insert, Ioo_insert_right h], }
+
+/-- `finset.cons` version of `finset.Ioo_insert_left`. -/
+lemma Ico_eq_cons_Ioo (h : a < b) : Ico a b = (Ioo a b).cons a left_not_mem_Ioo :=
+by { classical, rw [cons_eq_insert, Ioo_insert_left h] }
 
 lemma Ico_filter_le_left {a b : α} [decidable_pred (≤ a)] (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
@@ -350,7 +360,7 @@ lemma card_Ico_eq_card_Icc_sub_one (a b : α) : (Ico a b).card = (Icc a b).card 
 begin
   classical,
   by_cases h : a ≤ b,
-  { rw [←Ico_insert_right h, card_insert_of_not_mem right_not_mem_Ico],
+  { rw [Icc_eq_cons_Ico h, card_cons],
     exact (nat.add_sub_cancel _ _).symm },
   { rw [Ico_eq_empty (λ h', h h'.le), Icc_eq_empty h, card_empty, zero_tsub] }
 end
@@ -361,12 +371,10 @@ lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card 
 lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
 begin
   classical,
-  by_cases h : a ≤ b,
-  { obtain rfl | h' := h.eq_or_lt,
-    { rw [Ioo_self, Ico_self, card_empty] },
-    rw [←Ioo_insert_left h', card_insert_of_not_mem left_not_mem_Ioo],
+  by_cases h : a < b,
+  { rw [Ico_eq_cons_Ioo h, card_cons],
     exact (nat.add_sub_cancel _ _).symm },
-  { rw [Ioo_eq_empty (λ h', h h'.le), Ico_eq_empty (λ h', h h'.le), card_empty, zero_tsub] }
+  { rw [Ioo_eq_empty h, Ico_eq_empty h, card_empty, zero_tsub] }
 end
 
 lemma card_Ioo_eq_card_Ioc_sub_one (a b : α) : (Ioo a b).card = (Ioc a b).card - 1 :=
@@ -391,6 +399,7 @@ by { ext, simp_rw [finset.mem_insert, mem_Ici, mem_Ioi, le_iff_lt_or_eq, or_comm
 @[simp] lemma not_mem_Ioi_self {b : α} : b ∉ Ioi b := λ h, lt_irrefl _ (mem_Ioi.1 h)
 
 -- Purposefully written the other way around
+/-- `finset.cons` version of `finset.Ioi_insert`. -/
 lemma Ici_eq_cons_Ioi (a : α) : Ici a = (Ioi a).cons a not_mem_Ioi_self :=
 by { classical, rw [cons_eq_insert, Ioi_insert] }
 
@@ -410,6 +419,7 @@ by { ext, simp_rw [finset.mem_insert, mem_Iic, mem_Iio, le_iff_lt_or_eq, or_comm
 @[simp] lemma not_mem_Iio_self {b : α} : b ∉ Iio b := λ h, lt_irrefl _ (mem_Iio.1 h)
 
 -- Purposefully written the other way around
+/-- `finset.cons` version of `finset.Iio_insert`. -/
 lemma Iic_eq_cons_Iio (b : α) : Iic b = (Iio b).cons b not_mem_Iio_self :=
 by { classical, rw [cons_eq_insert, Iio_insert] }
 

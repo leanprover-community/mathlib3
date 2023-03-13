@@ -232,13 +232,16 @@ instance : finite_dimensional ℝ (logspace K) := finite_dimensional.finite_dime
 
 def mult : (infinite_place K) → ℝ := λ w, ite (w.is_real) 1 2
 
+-- TODO. Keep only one of the two
+lemma mult_pos (w : infinite_place K) : 0 < mult K w :=
+by { simp only [mult], split_ifs; norm_num, }
+
 lemma mult_ge_one (w : infinite_place K) : 1 ≤ mult K w :=
 by { simp only [mult], split_ifs; norm_num, }
 
 /-- The logarithmic embedding of the units.-/
 @[reducible]
-def log_embedding : (𝓤 K) → (logspace K) :=
-  λ x w, (mult K w.1) * real.log (w.1 x)
+def log_embedding : (𝓤 K) → (logspace K) := λ x w, (mult K w.1) * real.log (w.1 x)
 
 open number_field number_field.infinite_place finite_dimensional number_field.units
 
@@ -247,13 +250,11 @@ by simpa [log_embedding, units_to_field.map_one, map_one, real.log_one]
 
 lemma log_embedding.map_mul (x y : 𝓤 K) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-by sorry
--- simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
---  map_mul, ne.def, map_eq_zero, not_false_iff]
+by simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
+    map_mul, mul_add, ne.def, map_eq_zero, not_false_iff]
 
 lemma log_embedding.map_inv (x : 𝓤 K) : log_embedding K x⁻¹ = - log_embedding K x :=
-by sorry
--- simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv]
+by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv, mul_neg]
 
 -- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n • log_embedding K x :=
 -- sorry -- by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
@@ -285,40 +286,34 @@ begin
     { simp only [finset.mem_erase, finset.mem_univ, and_true], }},
 end
 
-/- lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
+lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
 begin
   rw function.funext_iff,
   refine ⟨ λ h w, _, λ h w, _⟩,
-  { exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) (h w), },
-  { simp only [log_embedding, h w, pi.zero_apply, real.log_one], },
-end -/
+  { by_cases hw : w = w₀,
+    { suffices : mult K w₀ * real.log (w₀ (x : K)) = 0,
+      { rw hw,
+        have t1 := (mul_eq_zero.mp this).resolve_left _,
+        exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) t1,
+        exact ne_of_gt (mult_pos K _), },
+      { rw ← neg_eq_zero,
+        rw ← neg_mul,
+        rw ← log_embedding.sum_component,
+        exact finset.sum_eq_zero (λ w _, h w), }},
+    { specialize h ⟨w, hw⟩,
+      rw log_embedding.component at h,
+      rw pi.zero_apply at h,
+      have := (mul_eq_zero.mp h).resolve_left _,
+      exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) this,
+      exact ne_of_gt (mult_pos K _), }},
+  { simp only [log_embedding, h w, pi.zero_apply, real.log_one, subtype.val_eq_coe, mul_zero], },
+end
 
 lemma log_embedding.nnnorm_eq [number_field K] (x : 𝓤 K) :
   ‖log_embedding K x‖₊ =
     finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀} , ‖(mult K w.1)* real.log (w.1 x)‖₊ ) :=
 by simp [pi.nnnorm_def, log_embedding]
-
-/- lemma log_embedding.le_of_le [number_field K] {x : 𝓤 K} {r : ℝ} {w : infinite_place K}
-  (hr : ‖log_embedding K x‖ ≤ r) (hw : w ≠ w₀) :
-  w x ≤ real.exp (r / (mult K w)) :=
-begin
-  obtain h | h := lt_or_le r 0,
-  { exfalso,
-    exact (not_le.mpr (lt_of_le_of_lt hr h)) (norm_nonneg _), },
-  { lift r to nnreal using h,
-    rw ← real.log_le_iff_le_exp (infinite_place.pos_iff.mpr units_to_field.ne_zero),
-    rw le_div_iff' (lt_of_lt_of_le one_pos (mult_ge_one K _)),
-    rw ← coe_nnnorm at hr,
-    rw nnreal.coe_le_coe at hr,
-    rw log_embedding.nnnorm_eq at hr,
-    replace hr := finset.sup_le_iff.mp hr ⟨w, hw⟩ (finset.mem_univ _),
-    rw ← nnreal.coe_le_coe at hr,
-    rw coe_nnnorm at hr,
-    rw real.norm_eq_abs at hr,
-    rw abs_le at hr,
-    exact hr.2, },
-end -/
 
 /-- The lattice formed by the image of the logarithmic embedding.-/
 def unit_lattice : add_subgroup (logspace K) :=
@@ -329,8 +324,8 @@ def unit_lattice : add_subgroup (logspace K) :=
   neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }}
 
 lemma log_embedding_ker (x : 𝓤 K) :
-  log_embedding K x = 0 ↔ x ∈ torsion K := sorry
--- by rw [log_embedding.eq_zero_iff, mem_torsion K x]
+  log_embedding K x = 0 ↔ x ∈ torsion K :=
+by rw [log_embedding.eq_zero_iff, mem_torsion K x]
 
 -- TODO. This proof is too complicated
 lemma unit_lattice.inter_ball_finite (r : ℝ) :
@@ -580,7 +575,7 @@ begin
           (⋃ n ∈ set.Icc 1 B, { I : ideal (𝓞 K) | ideal.abs_norm I = n })),
         { refine set.finite.bUnion (set.Icc 1 B).to_finite _,
           intros n hn,
-          exact ideal.abs_norm_eq.finite hn.1, },
+          exact ideal.finite_set_of_abs_norm_eq hn.1, },
         { ext x,
           simp only [set.mem_set_of_eq, set.mem_Icc, set.mem_Union, exists_prop,
             exists_eq_right'], }}},
@@ -667,106 +662,6 @@ lemma unit_lattice.dim : finrank ℤ (unit_lattice K) = unit_rank K :=
 begin
   rw ← rank_logspace K,
   exact zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.full_lattice K),
-end
-
-#exit
-
-
-
-
-lemma unit_lattice.full_lattice :
-  ∃ v : {w : infinite_place K // w ≠ w₀} →
-    submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K))),
-    linear_independent ℝ (unit_lattice_span_map K ∘ v) :=
-begin
-  let z : {w : infinite_place K // w ≠ w₀} →
-    submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K))) :=
-  begin
-    intro w,
-    let x := (exists_elem K ↑w).some,
-    let p := (exists_elem K ↑w).some_spec,
-    let y := (unit_lattice_le_map K) ⟨x, p.1⟩,
-    use y,
-    refine submodule.subset_span _,
-    use x,
-    exact p.1,
-    exact rfl,
-  end,
-  use z,
-  let B := pi.basis_fun ℝ {w : infinite_place K // w ≠ w₀},
-  let M := B.to_matrix ((unit_lattice_span_map K) ∘ z),
-  suffices : M.det ≠ 0,
-  { dsimp only [M] at this,
-    rw ← basis.det_apply at this,
-    exact ((is_basis_iff_det B).mpr (ne.is_unit this)).1, },
-  refine mat.det_ne_zero_of_neg _ _,
-  { intros i j hij,
-    dsimp only [M, B, unit_lattice_span_map, z, unit_lattice_le_map],
-    rw basis.coe_pi_basis_fun.to_matrix_eq_transpose,
-    simp only [ne.def, coe_coe, linear_map.coe_mk, matrix.transpose_apply, function.comp_app,
-      submodule.coe_mk, submodule.coe_of_le],
-    have p := (exists_elem K ↑j).some_spec,
-    have := p.2 ↑i (subtype.ext_iff.not.mp hij),
-    split_ifs,
-    { exact this, },
-    { exact mul_neg_of_pos_of_neg (by norm_num) this, }},
-  { intro i,
-    dsimp only [M, B, unit_lattice_le_map],
-    rw basis.coe_pi_basis_fun.to_matrix_eq_transpose,
-    simp only [ne.def, coe_coe, linear_map.coe_mk, matrix.transpose_apply, submodule.coe_mk,
-      submodule.coe_of_le, function.comp_app],
-    have t1 : finset.univ.sum (λ (w : infinite_place K), ite(w.is_real)
-      ((exists_elem K ↑i).some w) (2*(exists_elem K ↑i).some w)) = 0,
-    { have t10 := (exists_elem K ↑i).some_spec.1,
-      obtain ⟨u, hu⟩ := t10,
-      simp_rw ← hu,
-      exact lognorm_unit K u, },
-    have t2 : (w₀ : infinite_place K) ∈ finset.univ := finset.mem_univ w₀,
-    rw ← finset.sum_erase_add finset.univ _ t2 at t1,
-    dsimp at t1,
-    have t3 : (finset.univ.erase w₀).sum (λ (w : infinite_place K), ite w.is_real
-      ((exists_elem K ↑i).some w) (2 * (exists_elem K ↑i).some w)) =
-      finset.univ.sum (λ (j : {w // w ≠ w₀}), ((unit_lattice_span_map K) (z i)) j),
-    { refine finset.sum_subtype _ _ _,
-      simp only [finset.mem_erase, finset.mem_univ, and_true, iff_self, forall_const], },
-    rw ← t3,
-    rw add_eq_zero_iff_eq_neg.mp t1,
-    have t4 := (exists_elem K ↑i).some_spec.2 w₀ i.prop.symm,
-    simp only [right.neg_pos_iff],
-    split_ifs,
-    { exact t4, },
-    { exact mul_neg_of_pos_of_neg (by norm_num) t4, }}
-end
-
-lemma unit_lattice.full_lattice' :
-  submodule.span ℝ (unit_lattice_image K : set (linear_map.ker (lognorm K))) = ⊤ :=
-begin
-  refine eq_of_le_of_finrank_le (le_top) _,
-  rw finrank_top,
-  rw rank_ker,
-  obtain ⟨v, hv⟩ := unit_lattice.full_lattice K,
-  have t1 := linear_independent.of_comp _ hv,
-  have t2 := finrank_span_eq_card t1,
-  have t3 := submodule.finrank_le (submodule.span ℝ (set.range v)),
-  rw t2 at t3,
-  convert t3,
-  simpa only [fintype.card_subtype_compl, fintype.card_subtype_eq],
-end
-
-lemma unit_lattice.module.free : module.free ℤ (unit_lattice_image K) :=
-begin
-  haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
-    (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-  exact zlattice.module.free ℝ ((unit_lattice_image_discrete K)) (unit_lattice.full_lattice' K),
-end
-
-lemma unit_lattice.dim : finrank ℤ (unit_lattice_image K) = unit_rank K :=
-begin
-  haveI : no_zero_smul_divisors ℤ (linear_map.ker (lognorm K)) := submodule.no_zero_smul_divisors
-    (submodule.restrict_scalars ℤ (linear_map.ker (lognorm K))),
-  have := zlattice.rank ℝ (unit_lattice_image_discrete K) (unit_lattice.full_lattice' K),
-  rw rank_ker K at this,
-  exact this,
 end
 
 end units.dirichlet

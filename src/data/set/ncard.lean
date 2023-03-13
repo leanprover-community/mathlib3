@@ -12,11 +12,12 @@ import data.finite.card
 We define the cardinality `set.ncard s` of a set `s` as a natural number. This function is
 noncomputable (being defined in terms of `nat.card`) and takes the value `0` if `s` is infinite.
 
-This is intended as an alternative to `finset.card` and `fintype.card`, both of which contain data
-in their definition that can cause awkwardness when using `set.to_finset`. Using `set.ncard` allows
-cardinality computations to avoid `finset`/`fintype` completely, staying in `set` and letting
-finiteness be handled either explicitly or via typeclasses. An ideal use case is when working
-with terms in `set α` where a `finite α` instance is present.
+This can be seen as an API for `nat.card α` in the special case where `α` is a subtype arising from
+a set. It is intended as an alternative to `finset.card` and `fintype.card`,  both of which contain
+data in their definition that can cause awkwardness when using `set.to_finset`.  Using `set.ncard`
+allows cardinality computations to avoid `finset`/`fintype` completely, staying in `set` and letting
+finiteness be handled either explicitly or via typeclasses. An ideal use case is when working with
+terms in `set α` where a `finite α` instance is present.
 
 ## Main Definitions
 
@@ -54,12 +55,7 @@ end
 
 lemma ncard_le_of_subset [finite t] (hst : s ⊆ t) :
   s.ncard ≤ t.ncard :=
-begin
-  haveI := ((to_finite t).subset hst).to_subtype,
-  simp_rw ncard_eq_to_finset_card,
-  apply finset.card_mono,
-  simpa,
-end
+finite.card_le_of_embedding $ set.embedding_of_subset _ _ hst
 
 @[simp] lemma ncard_eq_zero [finite s] :
   s.ncard = 0 ↔ s = ∅ :=
@@ -461,7 +457,7 @@ begin
   apply ncard_le_ncard_diff_add_ncard,
 end
 
-lemma ncard_sdiff_add_ncard (s t : set α) [finite s] [finite t] :
+lemma ncard_diff_add_ncard (s t : set α) [finite s] [finite t] :
   (s \ t).ncard + t.ncard = (s ∪ t).ncard :=
 begin
   haveI := finite.set.finite_union s t,
@@ -469,9 +465,42 @@ begin
   apply subset_union_right,
 end
 
+lemma diff_nonempty_of_ncard_lt_ncard [finite s] (h : s.ncard < t.ncard) :
+  (t \ s).nonempty :=
+begin
+  rw [set.nonempty_iff_ne_empty, ne.def, diff_eq_empty],
+  exact λ h', h.not_le (ncard_le_of_subset h'),
+end
+
+lemma exists_mem_not_mem_of_ncard_lt_ncard [finite s] (h : s.ncard < t.ncard) :
+  ∃ e, e ∈ t ∧ e ∉ s :=
+diff_nonempty_of_ncard_lt_ncard h
+
+@[simp] lemma ncard_inter_add_ncard_diff_eq_ncard (s t : set α) [finite s] [finite t] :
+  (s ∩ t).ncard + (s \ t).ncard = s.ncard :=
+begin
+  convert ncard_diff_add_ncard_eq_ncard (diff_subset s t) using 3,
+  rw [sdiff_sdiff_right_self, inf_eq_inter],
+end
+
+lemma ncard_diff_eq_ncard_diff_iff_ncard_eq_ncard [finite s] [finite t] :
+  s.ncard = t.ncard ↔ (s \ t).ncard = (t \ s).ncard :=
+by rw [←ncard_inter_add_ncard_diff_eq_ncard s t, ←ncard_inter_add_ncard_diff_eq_ncard t s,
+    inter_comm, add_right_inj]
+
+lemma ncard_le_ncard_iff_ncard_diff_le_ncard_diff [finite s] [finite t] :
+  s.ncard ≤ t.ncard ↔ (s \ t).ncard ≤ (t \ s).ncard :=
+by rw [←ncard_inter_add_ncard_diff_eq_ncard s t, ←ncard_inter_add_ncard_diff_eq_ncard t s,
+     inter_comm, add_le_add_iff_left]
+
+lemma ncard_lt_ncard_iff_ncard_diff_lt_ncard_diff [finite s] [finite t] :
+  s.ncard < t.ncard ↔ (s \ t).ncard < (t \ s).ncard :=
+by rw [←ncard_inter_add_ncard_diff_eq_ncard s t, ←ncard_inter_add_ncard_diff_eq_ncard t s,
+     inter_comm, add_lt_add_iff_left]
+
 end lattice
 
-/-- Given a set `A` and a set `B` inside it, we can shrink `A` to any appropriate size, and keep `B`
+/-- Given a set `t` and a set `s` inside it, we can shrink `t` to any appropriate size, and keep `s`
     inside it. -/
 lemma exists_intermediate_set_ncard (i : ℕ) (h₁ : i + s.ncard ≤ t.ncard) (h₂ : s ⊆ t) :
   ∃ (r : set α), s ⊆ r ∧ r ⊆ t ∧ r.ncard = i + s.ncard :=
@@ -488,7 +517,7 @@ begin
   exact ⟨t, h₂, rfl.subset, by rw [ht.ncard, h₁'.1, h₁'.2]⟩
 end
 
-/-- We can shrink `A` to any smaller size. -/
+/-- We can shrink `s` to any smaller size. -/
 lemma exists_smaller_set (s : set α) (i : ℕ) (h₁ : i ≤ s.ncard) :
   ∃ (t : set α), t ⊆ s ∧ t.ncard = i :=
 (exists_intermediate_set_ncard i (by simpa) (empty_subset s)).imp

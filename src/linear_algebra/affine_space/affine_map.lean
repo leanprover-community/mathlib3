@@ -222,7 +222,7 @@ instance : has_neg (P1 →ᵃ[k] V2) := { neg := λ f, ⟨-f, -f.linear, λ p v,
 
 /-- The set of affine maps to a vector space is an additive commutative group. -/
 instance : add_comm_group (P1 →ᵃ[k] V2) :=
-fun_like.coe_injective.add_comm_group _
+coe_fn_injective.add_comm_group _
   coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 /-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine maps

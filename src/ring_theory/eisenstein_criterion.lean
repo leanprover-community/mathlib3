@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import data.nat.cast.with_top
 import ring_theory.prime
 import ring_theory.polynomial.content
+import ring_theory.ideal.quotient_operations
 /-!
 # Eisenstein's criterion
 

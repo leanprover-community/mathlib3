@@ -2,7 +2,7 @@
 Copyleft 2020 Johan Commelin. No rights reserved.
 Authors: Johan Commelin
 -/
-import data.finsupp.basic
+import data.finsupp.interval
 import data.fintype.card
 import data.list.nat_antidiagonal
 import ring_theory.mv_polynomial.homogeneous
@@ -11,27 +11,33 @@ import ring_theory.mv_polynomial.symmetric
 open equiv (perm)
 open_locale big_operators
 
--- move this
-noncomputable def equiv.finsupp {α : Type*} {β : Type*} {A : Type*} [add_comm_monoid A] (e : α ≃ β) :
+/-! ### TO MOVE -/
+
+@[simps]
+noncomputable def equiv.finsupp {α β A : Type*} [add_comm_monoid A] (e : α ≃ β) :
   (α →₀ A) ≃ (β →₀ A) :=
 { to_fun := finsupp.emb_domain e.to_embedding,
   inv_fun := finsupp.emb_domain e.symm.to_embedding,
-  left_inv := λ f, by { ext a,
-    erw [← e.symm_apply_apply a, finsupp.emb_domain_apply,
+  left_inv := λ f, by { ext a, erw [← e.symm_apply_apply a, finsupp.emb_domain_apply,
         finsupp.emb_domain_apply, e.symm_apply_apply] },
-  right_inv := λ f, by { ext b,
-    erw [← e.apply_symm_apply b, finsupp.emb_domain_apply,
+  right_inv := λ f, by { ext b, erw [← e.apply_symm_apply b, finsupp.emb_domain_apply,
         finsupp.emb_domain_apply, e.apply_symm_apply] } }
 
--- move this
+namespace fin
+variables {n : ℕ}
+
+lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n := a.cast_succ_lt_last.ne
+
+end fin
+
 namespace list
 variables {α : Type*} [linear_order α]
 
 lemma le_of_forall_nth_le_le : Π {n : ℕ} (l₁ l₂ : list α) (h₁ : l₁.length = n) (h₂ : l₂.length = n)
   (H : ∀ (i : ℕ) (hi₁ : i < l₁.length) (hi₂ : i < l₂.length), l₁.nth_le i hi₁ ≤ l₂.nth_le i hi₂),
   l₁ ≤ l₂
-| 0     []         []         rfl rfl H := le_refl _
-| (n+1) (a₁ :: l₁) (a₂ :: l₂) h₁  h₂  H :=
+| 0       []         []         rfl rfl H := le_rfl
+| (n + 1) (a₁ :: l₁) (a₂ :: l₂) h₁  h₂  H :=
 begin
   contrapose! H,
   cases H with H_h H_h,
@@ -47,9 +53,44 @@ begin
   { exact ⟨0, nat.zero_lt_succ _, nat.zero_lt_succ _, H_h⟩ }
 end
 
+-- are these even true??
+@[simp] lemma nth_le_cons_cast_succ {α : Type*} (a : α) (l : list α) (i : fin l.length) :
+  (a :: l : list α).nth_le i i.cast_succ.2 = l.nth_le i i.2 :=
+sorry
+
+@[simp] lemma nth_le_cons_length' {α : Type*} (a : α) (l : list α) (h) :
+  (a :: l : list α).nth_le l.length h = a :=
+sorry
+
+lemma nth_le_le_sum (L : list ℕ) {i : ℕ} {h : i < L.length} : L.nth_le i h ≤ L.sum :=
+begin
+  revert i, induction L, simp,
+  intros, cases i, simp, transitivity L_tl.sum, apply L_ih, simp
+end
+
 end list
 
+namespace multiset
+variables {σ : Type*}
+
 -- move this
+lemma ugly (l : list σ) :
+  multiset.map (λ (i : fin l.length), l.nth_le i i.2) finset.univ.val = (l : multiset σ) :=
+begin
+  induction l with a l ih,
+  { refl },
+  { have h₁ : (finset.image fin.cast_succ (@finset.univ (fin l.length) _)).1 =
+        (@finset.univ (fin l.length) _).1.map fin.cast_succ,
+      from finset.image_val_of_inj_on (fin.cast_succ.injective.inj_on _),
+    have h₂ : fin.last l.length ∉ finset.image fin.cast_succ finset.univ,
+    { rw [finset.mem_image], simp [fin.cast_succ_ne_last] },
+    rw [fin.univ_cast_succ, finset.insert_val, multiset.ndinsert_of_not_mem h₂,
+      multiset.map_cons, h₁, multiset.map_map],
+    simp [function.comp, list.nth_le_cons_cast_succ, ih] }
+end
+
+end multiset
+
 section wf
 
 variables {α : Type*} (r : α → α → Prop) [is_trans α r] [is_irrefl α r]
@@ -57,22 +98,20 @@ variables {α : Type*} (r : α → α → Prop) [is_trans α r] [is_irrefl α r]
 lemma well_founded_of_finite (h : ∀ a₀, set.finite {a | r a a₀}) :
   well_founded r :=
 ⟨λ a₀, acc.intro _ (λ b hb, begin
-  cases h a₀ with fint,
   refine @well_founded.fix {a | r a a₀} (λ b, acc r b) (λ x y : {a | r a a₀}, r x y)
-    (@finite.well_founded_of_trans_of_irrefl _ fint
+    (@finite.well_founded_of_trans_of_irrefl _ (h a₀).to_subtype
       (λ x y : {a | r a a₀}, r x y) ⟨λ x y z h₁ h₂, trans h₁ h₂⟩
       ⟨λ x, irrefl x⟩) _ ⟨b, hb⟩,
-  rintros ⟨b, hb⟩ ih,
+  rintro ⟨b, hb⟩ ih,
   exact acc.intro _ (λ y hy, ih ⟨y, trans hy hb⟩ hy)
 end)⟩
 
 end wf
 
--- move this
 namespace finsupp
 noncomputable theory
 open_locale classical
-variables {α : Type*} {β : Type*} [has_zero β]
+variables {ι α β : Type*} [has_zero β]
 
 lemma sum_eq_sum_univ {A : Type*} {B : Type*} [fintype α] [has_zero A] [add_comm_monoid B]
   (f : α →₀ A) (g : α → A → B) (h : ∀ a, g a 0 = 0) :
@@ -85,13 +124,15 @@ begin
   { rw not_mem_support_iff at H, rw [H, h] }
 end
 
+variables [has_zero α] [decidable_eq α]
+
+lemma support_indicator (s : finset ι) (f : ι → α) :
+  (indicator s $ λ i _, f i).support = s.filter (λ i, f i ≠ 0) :=
+by { ext, simp }
+
 end finsupp
 
-/-
-##############
-Proper start of the file
-##############
--/
+/-! ### Proper start of the file -/
 
 noncomputable theory
 open_locale classical
@@ -124,55 +165,25 @@ end
 
 lemma elementary_symmetric_eq_sum_monomial (n : ℕ) :
   elementary_symmetric σ R n =
-  ∑ t : {s : finset σ // s.card = n}, monomial (finsupp.indicator ↑t (λ _, 1)) 1 :=
-begin
-  apply finset.sum_congr rfl,
-  rintro ⟨s, hs⟩ hsu,
-  simp only [monomial_eq, C_1, one_mul, finsupp.prod, finsupp.indicator_support, ne.def,
-    finset.filter_true, not_false_iff, one_ne_zero, finset.filter_congr_decidable, subtype.coe_mk],
-  refine finset.prod_congr rfl (λ i hi, _),
-  rw [finsupp.indicator_of_mem _ _ _ hi, pow_one]
-end
+    ∑ t : {s : finset σ // s.card = n}, monomial (finsupp.indicator ↑t (λ _ _, 1)) 1 :=
+by simp [elementary_symmetric, monomial_eq, C_1, finsupp.prod, finsupp.support_indicator]
 
 variables {σ R}
 
-lemma map_elementary_symmetric (n : ℕ) (f : R →+* S) :
+@[simp] lemma map_elementary_symmetric (n : ℕ) (f : R →+* S) :
   map f (elementary_symmetric σ R n) = elementary_symmetric σ S n :=
-begin
-  let F : mv_polynomial σ R →+* mv_polynomial σ S := ring_hom.of (map f),
-  show F (elementary_symmetric σ R n) = elementary_symmetric σ S n,
-  rw [elementary_symmetric, F.map_sum],
-  apply fintype.sum_congr,
-  intros t,
-  calc _ = _ : F.map_prod _ _
-     ... = _ : _,
-  apply finset.prod_congr rfl,
-  simp only [eq_self_iff_true, map_X, ring_hom.coe_of, forall_true_iff],
-end
+by simp [elementary_symmetric, map_sum, map_prod]
 
 lemma rename_elementary_symmetric (n : ℕ) (e : σ ≃ τ) :
   rename e (elementary_symmetric σ R n) = elementary_symmetric τ R n :=
 begin
-  let F : mv_polynomial σ R →+* mv_polynomial τ R := ring_hom.of (rename e),
-  show F (elementary_symmetric σ R n) = elementary_symmetric τ R n,
-  rw [elementary_symmetric, F.map_sum],
-  let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=
-    e.finset_congr.subtype_congr
-      (by { intro, simp only [equiv.finset, equiv.coe_fn_mk, finset.card_map] }),
-  rw ← finset.sum_equiv e'.symm,
-  apply fintype.sum_congr,
-  intro s,
-  show F (∏ i in (e'.symm s : finset σ), X i) = ∏ i in (s : finset τ), X i,
-  calc _ = _ : F.map_prod _ _
-     ... = _ : finset.prod_map (s : finset τ) _ _
-     ... = _ : _,
-  apply finset.prod_congr rfl,
-  intros,
-  simp only [rename_X, equiv.apply_symm_apply, ring_hom.coe_of, equiv.to_embedding_coe_fn],
+  simp only [elementary_symmetric, map_sum],
+  refine fintype.sum_equiv (e.finset_congr.subtype_equiv $ λ s,
+      by simp only [equiv.finset_congr, equiv.coe_fn_mk, finset.card_map]) _ _ _,
+  simp [map_prod],
 end
 
-lemma elementary_symmetric_is_symmetric (n : ℕ) :
-  is_symmetric (elementary_symmetric σ R n) :=
+lemma elementary_symmetric_is_symmetric (n : ℕ) : is_symmetric (elementary_symmetric σ R n) :=
 rename_elementary_symmetric n
 
 lemma elementary_symmetric_is_homogeneous (n : ℕ) :
@@ -196,8 +207,10 @@ begin
   { cases H with H1 H2,
     have H3 : ∀ i ∈ d.support, d i = 1,
     { intros i hi,
-      rw finsupp.mem_support_iff at hi,
-      specialize H2 i, revert H2 hi, generalize : (d i) = k, clear_except, omega },
+      obtain hd | hd := order.le_succ_iff_eq_or_le.1 (H2 i),
+      { exact hd },
+      { rw le_zero_iff at hd,
+        cases finsupp.mem_support_iff.1 hi hd } },
     have hd : d.support.card = n,
     { subst H1,
       have : ∑ i in d.support, d i = ∑ i, d i := d.sum_eq_sum_univ (λ _, id) (λ _, rfl),
@@ -211,14 +224,17 @@ begin
     simp only [finset.mem_singleton, finset.mem_filter, true_and, finset.mem_univ,
       subtype.mk_eq_mk, subtype.coe_mk],
     split; rintro rfl,
-    { simp only [finsupp.indicator_support, finset.filter_true, ne.def, not_false_iff, one_ne_zero] },
+    { simp only [finsupp.support_indicator, finset.filter_true, ne.def, not_false_iff, one_ne_zero,
+        subtype.coe_mk]},
     { ext i,
       by_cases hi : i ∈ d.support,
-      { rw [finsupp.indicator_of_mem _ _ _ hi, H3 i hi] },
-      { rw finsupp.indicator_of_not_mem _ _ _ hi,
-        rw finsupp.not_mem_support_iff at hi,
-        exact hi.symm } } },
-  { suffices : (λ (x : {s : finset σ // s.card = n}), finsupp.indicator ↑x (λ _, 1) = d) = λ _, false,
+      { simp only [H3 i hi, finsupp.indicator_apply, subtype.coe_mk, finsupp.mem_support_iff,
+          ne.def, nat.one_ne_zero, not_false_iff, dite_eq_ite, if_true] },
+      { rw finsupp.not_mem_support_iff at hi,
+        simp only [hi, finsupp.indicator_apply, subtype.coe_mk, finsupp.mem_support_iff, ne.def,
+          eq_self_iff_true, not_true, dite_eq_ite, if_false] } } },
+  { suffices : (λ (x : {s : finset σ // s.card = n}), finsupp.indicator ↑x (λ _ _, 1) = d) =
+      λ _, false,
     { simp only [this, finset.card_empty, nat.cast_zero, finset.filter_false] },
     ext ⟨s, hs⟩,
     simp only [subtype.coe_mk, iff_false],
@@ -241,7 +257,7 @@ section
 variables [fintype σ] [comm_ring R]
 
 lemma aeval_elementary_symmetric_is_symmetric (φ : mv_polynomial ℕ R) :
-  is_symmetric (aeval _ _ (elementary_symmetric σ R) φ) :=
+  is_symmetric (aeval (elementary_symmetric σ R) φ) :=
 begin
   apply mv_polynomial.induction_on φ,
   { intro r, rw aeval_C, apply is_symmetric.C },
@@ -271,7 +287,7 @@ namespace signature
 variables {n : ℕ}
 
 lemma coeffs_injective : function.injective (coeffs : signature n → list ℕ) :=
-by { rintros ⟨l₁, _, _⟩ ⟨l₂, _, _⟩ h, congr, exact h }
+by { rintro ⟨l₁, _, _⟩ ⟨l₂, _, _⟩ h, congr, exact h }
 
 @[ext]
 lemma ext {l₁ l₂ : signature n} (h : l₁.coeffs = l₂.coeffs) : l₁ = l₂ :=
@@ -307,7 +323,7 @@ lemma ext_iff' {l₁ l₂ : signature n} : l₁ = l₂ ↔ l₁.coeffs ~ l₂.co
 --   end }
 
 instance (n : ℕ) : linear_order (signature n) :=
-linear_order.lift signature.coeffs coeffs_injective (by apply_instance)
+linear_order.lift' signature.coeffs coeffs_injective
 
 instance : unique (signature 0) :=
 { default := ⟨[], list.sorted_nil, rfl⟩,
@@ -370,13 +386,6 @@ begin
   rwa l₁.length at hi₁,
 end
 
-lemma list.nth_le_le_sum (L : list ℕ) {i : ℕ} {h : i < L.length}:
-  L.nth_le i h ≤ L.sum :=
-begin
-  revert i, induction L, simp,
-  intros, cases i, simp, transitivity L_tl.sum, apply L_ih, simp
-end
-
 lemma lt_wf (n : ℕ) : well_founded (@has_lt.lt (signature n) _) :=
 begin
   apply well_founded_of_finite,
@@ -387,14 +396,14 @@ begin
   constructor,
   have aux : ∀ (l : {l : signature n // l < l₀}) (i : ℕ) (hi : i < (l : signature n).coeffs.length),
     (l : signature n).coeffs.nth_le i hi < k,
-  { rintros ⟨l,hl⟩ i hi,
+  { rintro ⟨l,hl⟩ i hi,
     have h : l.coeffs.head < k,
     { calc l.coeffs.head ≤ l₀.coeffs.head : _
                      ... < k              : _,
       { rw lt_iff at hl, rw le_iff_eq_or_lt, tauto },
       { rw nat.lt_add_one_iff, apply list.head_le_sum } },
     cases n,
-    { simp only [l.length, nat.nat_zero_eq_zero, subtype.coe_mk] at hi, exact fin.elim0 ⟨i, hi⟩ },
+    { simpa [l.length, nat.nat_zero_eq_zero, subtype.coe_mk] using hi },
     cases i, rw list.nth_le_zero, apply h,
     have H := l.sorted,
     rw [list.sorted, list.pairwise_iff_nth_le] at H,
@@ -402,41 +411,31 @@ begin
     apply nat.succ_pos },
   let f : {l : signature n // l < l₀} → (fin n → fin k) :=
   λ l i, ⟨(l : signature n).coeffs.nth_le i ((l : signature n).length.symm ▸ i.2), aux l _ _⟩,
-  apply fintype.of_injective f,
-  intros l₁ l₂ h,
-  rw [subtype.ext, signature.ext_iff],
-  apply list.ext_le,
-  { rw [l₁.val.length, l₂.val.length] },
-  { intros i hi₁ hi₂,
-    rw [l₁.val.length] at hi₁,
+  refine fintype.of_injective f (λ l₁ l₂ h, subtype.ext $ signature.ext $ list.ext_le _ $
+    λ i hi₁ hi₂, _),
+  { rw [signature.length, signature.length] },
+  { rw signature.length at hi₁,
     rw [function.funext_iff] at h,
     specialize h ⟨i, hi₁⟩,
     rwa [fin.ext_iff] at h }
 end
 
 instance (n : ℕ) : has_zero (signature n) :=
-⟨{ coeffs := list.replicate 0 n, sorted := list.pairwise_replicate _ _ _, length := list.length_replicate _ _ }⟩
+⟨{ coeffs := list.replicate n 0,
+   sorted := list.pairwise_replicate le_rfl _,
+   length := list.length_replicate _ _ }⟩
 
-@[simp] lemma coeffs_zero : (0 : signature n).coeffs = list.replicate 0 n := rfl
+@[simp] lemma coeffs_zero : (0 : signature n).coeffs = list.replicate n 0 := rfl
 
 lemma zero_le (l : signature n) : 0 ≤ l :=
-begin
-  apply le_of_forall_nth_le_le,
-  intros i hi,
-  simp only [coeffs_zero, list.nth_le_replicate, zero_le],
-end
+le_of_forall_nth_le_le $ λ i hi, by simp only [coeffs_zero, list.nth_le_replicate, zero_le]
 
 def single : Π (n k : ℕ), signature n
 | 0     _ := ⟨[], list.sorted_nil, rfl⟩
 | (n+1) k :=
-  { coeffs := (k :: list.replicate 0 n),
-    sorted :=
-    begin
-      rw [list.sorted_cons],
-      split,
-      { intros i hi, rw list.eq_of_mem_replicate hi, exact nat.zero_le _ },
-      { exact list.pairwise_replicate _ _ _ }
-    end,
+  { coeffs := k :: list.replicate n 0,
+    sorted := list.sorted_cons.2 ⟨λ i hi, (list.eq_of_mem_replicate hi).trans_le $ nat.zero_le _,
+      list.pairwise_replicate le_rfl _⟩,
     length := by rw [list.length_cons, list.length_replicate] }
 
 @[simp] lemma single_zero_right : ∀ (n : ℕ), single n 0 = 0
@@ -448,7 +447,7 @@ def single : Π (n k : ℕ), signature n
 begin
   cases n,
   { exfalso, exact lt_irrefl 0 h },
-  { show list.sum (k :: list.replicate 0 n) = k,
+  { show list.sum (k :: list.replicate n 0) = k,
     rw [list.sum_cons, list.sum_replicate, nsmul_zero, add_zero] }
 end
 
@@ -467,17 +466,14 @@ lemma coeffs_to_signature (d : σ →₀ ℕ) :
   (to_signature d).coeffs.sum = ∑ i, d i :=
 by { rw [coeffs_to_signature, ← multiset.coe_sum, multiset.sort_eq], refl }
 
-@[simp] lemma to_signature_zero :
-  to_signature (0 : σ →₀ ℕ) = 0 :=
+@[simp] lemma to_signature_zero : to_signature (0 : σ →₀ ℕ) = 0 :=
 begin
   apply signature.ext',
   rw [coeffs_to_signature, ← multiset.coe_eq_coe, multiset.sort_eq, signature.coeffs_zero],
   apply multiset.eq_replicate.mpr,
-  refine ⟨multiset.card_map _ _, _⟩,
-  intros k hk,
-  rw multiset.mem_map at hk,
-  rcases hk with ⟨i, hi, rfl⟩,
-  refl
+  refine ⟨multiset.card_map _ _, λ k hk, _⟩,
+  obtain ⟨i, hi, rfl⟩ := multiset.mem_map.1 hk,
+  refl,
 end
 
 lemma count_zero_coeffs_to_signature (d : σ →₀ ℕ) :
@@ -529,7 +525,7 @@ begin
 end
 
 lemma count_coeffs_signature_single (n m k : ℕ) :
-  multiset.count n ((signature.single m k).coeffs) =
+  multiset.count n (signature.single m k).coeffs =
   if m = 0 then 0 else
   if k = 0 then
     if n = 0 then m else 0
@@ -540,7 +536,7 @@ begin
   classical,
   split_ifs with hm hk hn hn hnk,
   { subst m, rw [multiset.count_eq_zero],
-    simp only [signature.single, multiset.coe_nil_eq_zero, not_false_iff, multiset.not_mem_zero] },
+    simp only [signature.single, multiset.coe_nil, not_false_iff, multiset.not_mem_zero] },
   { subst hk, subst hn, rw [signature.single_zero_right], apply multiset.count_replicate },
   { subst hk, rw [signature.single_zero_right],
     apply multiset.count_eq_zero_of_not_mem,
@@ -557,7 +553,7 @@ begin
     exact list.eq_of_mem_replicate hn },
   { rw [multiset.count_eq_zero],
     cases m,
-    { simp only [signature.single, multiset.coe_nil_eq_zero, not_false_iff, multiset.not_mem_zero] },
+    { simp only [signature.single, multiset.coe_nil, not_false_iff, multiset.not_mem_zero] },
     simp only [signature.single, list.mem_cons_iff, multiset.mem_coe],
     push_neg,
     refine ⟨hnk, _⟩,
@@ -568,9 +564,7 @@ end
 @[simp] lemma to_signature_single (i : σ) (k : ℕ) :
   to_signature (finsupp.single i k) = signature.single _ k :=
 begin
-  have : ¬ card σ = 0,
-  { apply nat.pos_iff_ne_zero.mp,
-    exact card_pos_iff.mpr ⟨i⟩ },
+  have : card σ ≠ 0 := pos_iff_ne_zero.1 (card_pos_iff.mpr ⟨i⟩),
   apply signature.ext',
   rw [← multiset.coe_eq_coe, multiset.ext],
   intro n,
@@ -580,7 +574,7 @@ end
 @[simp] lemma coeffs_to_signature_map_domain_of_equiv (d : σ →₀ ℕ) (e : σ ≃ τ) :
   (to_signature (d.map_domain e)).coeffs = (to_signature d).coeffs :=
 begin
-  apply list.eq_of_sorted_of_perm _ (signature.sorted _) (signature.sorted _),
+  apply list.eq_of_perm_of_sorted _ (signature.sorted _) (signature.sorted _),
   simp only [coeffs_to_signature, ← multiset.coe_eq_coe, multiset.sort_eq],
   ext1 i,
   simp only [multiset.count, multiset.countp_map],
@@ -590,11 +584,8 @@ begin
   { rw [this, finset.card_map] },
   ext b,
   simp only [true_and, exists_prop, finset.mem_univ, finset.mem_map, finset.mem_filter,
-    equiv.to_embedding_coe_fn],
-  have : b = e (e.symm b) := (e.apply_symm_apply b).symm,
-  rw this,
-  rw [finsupp.map_domain_apply e.injective],
-  rw [equiv.apply_symm_apply],
+    equiv.coe_to_embedding],
+  rw [←e.apply_symm_apply b, finsupp.map_domain_apply e.injective, equiv.apply_symm_apply],
   split,
   { rintro rfl, use e.symm b, simp only [eq_self_iff_true, equiv.apply_symm_apply, and_self] },
   { rintro ⟨a, rfl, rfl⟩, simp only [equiv.symm_apply_apply] }
@@ -610,9 +601,9 @@ noncomputable def monomial_symmetric.support_fintype (l : signature (card σ)) :
   fintype {d // to_signature d = l} :=
 set.finite.fintype $
 begin
-  let f : σ →₀ ℕ := finsupp.equiv_fun_on_fintype.symm (λ _, l.coeffs.sum),
-  apply set.finite_subset (finsupp.finite_le_nat f),
-  intros d hd i,
+  let f : σ →₀ ℕ := finsupp.equiv_fun_on_finite.symm (λ _, l.coeffs.sum),
+  refine (set.finite_Iic f).subset _,
+  rintro d hd i,
   change to_signature d = l at hd,
   show d i ≤ l.coeffs.sum,
   rw [← hd, sum_coeffs_to_signature],
@@ -627,23 +618,25 @@ whose monomials have signature `l`.
 For example, if `l = [2,2,1]`, then `monomial _ ℤ l` is
 `(X^2 * Y^2 * Z) + (X^2 * Y * Z^2) + (X * Y^2 * Z^2)`. -/
 def monomial_symmetric (l : signature (card σ)) : mv_polynomial σ R :=
-∑ d : {d // to_signature d = l}, monomial d 1
+∑ d : {d // to_signature d = l}, monomial ↑d 1
 
 @[simp] lemma monomial_symmetric_zero :
   monomial_symmetric σ R 0 = 1 :=
 begin
   letI : unique {d : σ →₀ ℕ // to_signature d = 0} :=
   { default := ⟨0, to_signature_zero⟩,
-    uniq := by { rintro ⟨d, hd⟩, rw subtype.ext, ext i,
-                 have h := congr_arg ((coe : list ℕ → multiset ℕ) ∘ signature.coeffs) hd,
-                 simp only [coeffs_to_signature, function.comp_app,
-                    signature.coeffs_zero, multiset.sort_eq] at h,
-                 suffices : d i ∈ multiset.map d finset.univ.val,
-                 { rw h at this, apply multiset.eq_of_mem_replicate this },
-                 rw multiset.mem_map,
-                 exact ⟨i, finset.mem_univ i, rfl⟩ } },
-  simp only [monomial_symmetric, univ_unique, finset.sum_singleton],
-  refl
+    uniq := begin
+      rintro ⟨d, hd⟩, ext i,
+      have h := congr_arg ((coe : list ℕ → multiset ℕ) ∘ signature.coeffs) hd,
+      simp only [coeffs_to_signature, function.comp_app, signature.coeffs_zero, multiset.sort_eq]
+        at h,
+      suffices : d i ∈ multiset.map d finset.univ.val,
+      { rw h at this, apply multiset.eq_of_mem_replicate this },
+      rw multiset.mem_map,
+      exact ⟨i, finset.mem_univ i, rfl⟩
+    end },
+  simp only [monomial_symmetric, finset.univ_unique, finset.sum_singleton],
+  refl,
 end
 
 variables {σ τ R}
@@ -666,7 +659,8 @@ begin
   split_ifs with h,
   { let d' : {d // to_signature d = l} := ⟨d, h⟩,
     rw [finset.sum_eq_single d', subtype.coe_mk, if_pos rfl],
-    { rintro ⟨i, hi⟩ H hid, apply if_neg, rwa [ne.def, subtype.ext] at hid },
+    { rintro ⟨i, hi⟩ H hid,
+      exact if_neg (subtype.coe_injective.ne hid) },
     { intro H, exfalso, exact H (finset.mem_univ _) } },
   { rw fintype.sum_eq_zero,
     rintro ⟨i, hi⟩,
@@ -678,58 +672,21 @@ end
 lemma map_monomial_symmetric (l : signature (card σ)) (f : R →+* S) :
   map f (monomial_symmetric σ R l) = monomial_symmetric σ S l :=
 begin
-  let F : mv_polynomial σ R →+* mv_polynomial σ S := ring_hom.of (map f),
-  show F (monomial_symmetric σ R l) = monomial_symmetric σ S l,
-  rw [monomial_symmetric, F.map_sum],
-  simp only [map_monomial, ring_hom.coe_of, ring_hom.map_one, monomial_symmetric],
+  rw [monomial_symmetric, map_sum],
+  simp only [map_monomial, ring_hom.map_one, monomial_symmetric],
 end
 
 lemma rename_monomial_symmetric (l : signature (card σ)) (l' : signature (card τ))
   (h : l.coeffs = l'.coeffs) (e : σ ≃ τ) :
   rename e (monomial_symmetric σ R l) = monomial_symmetric τ R l' :=
 begin
-  let F : mv_polynomial σ R →+* mv_polynomial τ R := ring_hom.of (rename e),
-  show F (monomial_symmetric σ R l) = monomial_symmetric τ R l',
-  rw [monomial_symmetric, F.map_sum],
-  let e' : {d // to_signature d = l} ≃ {d // to_signature d = l'} :=
-  { to_fun := λ d, ⟨finsupp.map_domain e d, _⟩,
-    inv_fun := λ d, ⟨finsupp.map_domain e.symm d, _⟩,
-    left_inv := _,
-    right_inv := _ },
-  { rw ← finset.sum_equiv e'.symm,
-    apply fintype.sum_congr,
+  rw [monomial_symmetric, map_sum],
+  let e' : {d // to_signature d = l} ≃ {d // to_signature d = l'} := e.finsupp.subtype_equiv _,
+  { refine fintype.sum_equiv e' _ _ _,
     rintro ⟨d, hd⟩,
-    simp only [rename_monomial, equiv.coe_fn_symm_mk, ring_hom.coe_of, subtype.coe_mk],
-    congr' 1,
-    ext i,
-    simp only [finsupp.map_domain, finsupp.sum_apply, finsupp.single_apply],
-    rw [finsupp.sum, finset.sum_eq_single (e.symm i)],
-    { simp only [equiv.finsupp, equiv.subtype_congr, if_true, equiv.coe_fn_symm_mk,
-        eq_self_iff_true, equiv.apply_symm_apply, subtype.coe_mk, finsupp.sum_apply],
-      simp only [finsupp.sum_eq_sum_univ, eq_self_iff_true,
-        finsupp.single_zero, finsupp.zero_apply, forall_true_iff],
-      rw finset.sum_eq_single i,
-      { apply finsupp.single_eq_same },
-      { intros j hju hj, apply finsupp.single_eq_of_ne,
-        simp only [hj, equiv.apply_eq_iff_eq, ne.def, not_false_iff] },
-      { intro h, exfalso, exact h (finset.mem_univ _) } },
-    { rintro j h hj, rw if_neg, rintro rfl, simpa using hj },
-    { simp only [finsupp.not_mem_support_iff, imp_self, if_true,
-        eq_self_iff_true, equiv.apply_symm_apply] } },
-  { apply signature.ext, rcases d with ⟨d, rfl⟩,
-    rwa [coeffs_to_signature_map_domain_of_equiv] },
-  { apply signature.ext, rcases d with ⟨d, rfl⟩,
-    rw [coeffs_to_signature_map_domain_of_equiv], exact h.symm },
-  { rintro ⟨d, rfl⟩,
-    rw subtype.ext,
-    show finsupp.map_domain e.symm (finsupp.map_domain e d) = d,
-    rw ← finsupp.map_domain_comp,
-    simp only [finsupp.map_domain_id, equiv.symm_comp_self] },
-  { rintro ⟨d, rfl⟩,
-    rw subtype.ext,
-    show finsupp.map_domain e (finsupp.map_domain e.symm d) = d,
-    rw ← finsupp.map_domain_comp,
-    simp only [finsupp.map_domain_id, equiv.self_comp_symm] }
+    simp only [rename_monomial, subtype.coe_mk, equiv.finsupp_apply, equiv.subtype_equiv_apply,
+      finsupp.emb_domain_eq_map_domain, equiv.coe_to_embedding] },
+  { sorry }
 end
 
 lemma monomial_symmetric_is_symmetric (l : signature (card σ)) :
@@ -748,12 +705,10 @@ noncomputable def complete_homogeneous.support_fintype (n : ℕ) :
   fintype {d : σ →₀ ℕ // ∑ i, d i = n} :=
 set.finite.fintype $
 begin
-  let f : σ →₀ ℕ := finsupp.equiv_fun_on_fintype.symm (λ _, n),
-  apply set.finite_subset (finsupp.finite_le_nat f),
-  intros d hd i,
-  calc d i ≤ ∑ i, d i : finset.single_le_sum (λ _ _, nat.zero_le _) (finset.mem_univ _)
-       ... = n        : hd
-       ... = f i      : rfl
+  let f : σ →₀ ℕ := finsupp.equiv_fun_on_finite.symm (λ _, n),
+  refine (set.finite_Iic f).subset _,
+  rintro d (rfl : _ = n) i,
+  exact finset.single_le_sum (λ _ _, nat.zero_le _) (finset.mem_univ _),
 end
 
 local attribute [instance] complete_homogeneous.support_fintype
@@ -762,17 +717,19 @@ local attribute [instance] complete_homogeneous.support_fintype
 with variables indexed by `σ` and coefficients in `R`.
 It is defined as the sum of all monomials of degree `n`. -/
 noncomputable def complete_homogeneous (n : ℕ) : mv_polynomial σ R :=
-∑ d : {d : σ →₀ ℕ // ∑ i, d i = n}, monomial d 1
+∑ d : {d : σ →₀ ℕ // ∑ i, d i = n}, monomial ↑d 1
 
-@[simp] lemma complete_homogeneous_zero :
-  complete_homogeneous σ R 0 = 1 :=
+@[simp] lemma complete_homogeneous_zero : complete_homogeneous σ R 0 = 1 :=
 begin
   letI : unique {d : σ →₀ ℕ // ∑ i, d i = 0} :=
   { default := ⟨0, by simp only [finsupp.zero_apply, finset.sum_const_zero]⟩,
-    uniq := by { rintro ⟨d, hd⟩, rw subtype.ext, ext i,
-                 rw [finset.sum_eq_zero_iff] at hd,
-                 exact hd _ (finset.mem_univ _) } },
-  simp only [complete_homogeneous, univ_unique, finset.sum_singleton],
+    uniq := begin
+      rintro ⟨d, hd⟩,
+      ext i,
+      rw [finset.sum_eq_zero_iff] at hd,
+      exact hd _ (finset.mem_univ _)
+    end },
+  simp only [complete_homogeneous, finset.univ_unique, finset.sum_singleton],
   refl
 end
 
@@ -797,7 +754,7 @@ begin
     simp only [complete_homogeneous, coeff_sum, coeff_monomial],
     rw [finset.sum_eq_single t],
     { simp only [if_true, eq_self_iff_true, subtype.coe_mk] },
-    { intros t' ht' H, apply if_neg, rwa [ne.def, subtype.ext] at H },
+    { exact λ t' ht' H, if_neg (subtype.coe_injective.ne H) },
   { intro H, exfalso, exact H (finset.mem_univ _) } },
   { apply (complete_homogeneous_is_homogeneous σ R n).coeff_eq_zero,
     contrapose! h,
@@ -807,30 +764,24 @@ end
 lemma map_complete_homogeneous (n : ℕ) (f : R →+* S) :
   map f (complete_homogeneous σ R n) = complete_homogeneous σ S n :=
 begin
-  let F : mv_polynomial σ R →+* mv_polynomial σ S := ring_hom.of (map f),
-  show F (complete_homogeneous σ R n) = complete_homogeneous σ S n,
-  rw [complete_homogeneous, F.map_sum],
+  rw [complete_homogeneous, map_sum],
   apply fintype.sum_congr,
   intro,
-  rw [ring_hom.coe_of, map_monomial, f.map_one],
+  rw [map_monomial, f.map_one],
 end
 
 lemma rename_complete_homogeneous (n : ℕ) (e : σ ≃ τ) :
   rename e (complete_homogeneous σ R n) = complete_homogeneous τ R n :=
 begin
-  let F : mv_polynomial σ R →+* mv_polynomial τ R := ring_hom.of (rename e),
-  show F (complete_homogeneous σ R n) = complete_homogeneous τ R n,
-  rw [complete_homogeneous, F.map_sum],
+  rw [complete_homogeneous, map_sum],
   let e' : {d : σ →₀ ℕ // ∑ i, d i = n} ≃ {d : τ →₀ ℕ // ∑ i, d i = n} :=
-    e.finsupp.subtype_congr
-      (by { intro d,
-            rw ← finset.sum_equiv e,
+    e.finsupp.subtype_equiv
+      (λ d, by { rw ← finset.sum_equiv e,
             show (∑ i, d i = n) ↔ (∑ i, (d.emb_domain e.to_embedding) (e.to_embedding i)) = n,
             simp only [finsupp.emb_domain_apply] }),
   rw ← finset.sum_equiv e'.symm,
   apply fintype.sum_congr,
   intro d,
-  show F (monomial (e'.symm d) 1) = monomial d 1,
   rw [ring_hom.coe_of, rename_monomial],
   congr,
   ext i,
@@ -854,38 +805,13 @@ section
 open monomial_symmetric fintype
 variables [fintype σ] [comm_semiring R]
 
--- are these even true??
-@[simp] lemma list.nth_le_cons_cast_succ {α : Type*} (a : α) (l : list α) (i : fin l.length) :
-  (a :: l : list α).nth_le i.cast_succ i.cast_succ.2 = l.nth_le i i.2 :=
-sorry
-
-@[simp] lemma list.nth_le_cons_length {α : Type*} (a : α) (l : list α) (h):
-  (a :: l : list α).nth_le l.length h = a :=
-sorry
-
--- move this
-lemma ugly {σ : Type*} (l : list σ) :
-  multiset.map (λ (i : fin l.length), l.nth_le i i.2) finset.univ.val = (l : multiset σ) :=
-begin
-  induction l with a l ih,
-  { refl },
-  { have h₁ : (finset.image fin.cast_succ (@finset.univ (fin l.length) _)).1 =
-        (@finset.univ (fin l.length) _).1.map fin.cast_succ,
-      from finset.image_val_of_inj_on (by simp),
-    have h₂ : fin.last l.length ∉ finset.image fin.cast_succ finset.univ,
-    { rw [finset.mem_image], simp [fin.cast_succ_ne_last] },
-    rw [fin.univ_cast_succ, finset.insert_val, multiset.ndinsert_of_not_mem h₂,
-      multiset.map_cons, h₁, multiset.map_map],
-    simp [function.comp, list.nth_le_cons_cast_succ, ih] }
-end
-
 lemma to_signature_surjective : function.surjective (@to_signature σ _) :=
 begin
   intro l,
   obtain ⟨e⟩ := fintype.equiv_fin σ,
   let f : fin (card σ) → fin l.coeffs.length := fin.cast l.length.symm,
   let g : fin l.coeffs.length → ℕ := λ i, l.coeffs.nth_le i i.2,
-  let d : σ →₀ ℕ := finsupp.equiv_fun_on_fintype.symm (g ∘ f ∘ e),
+  let d : σ →₀ ℕ := finsupp.equiv_fun_on_finite.symm (g ∘ f ∘ e),
   use d,
   apply signature.ext',
   rw [coeffs_to_signature, ← multiset.coe_eq_coe, multiset.sort_eq],
@@ -912,7 +838,7 @@ begin
   rw this,
   dsimp [g],
   clear_except,
-  apply ugly
+  apply multiset.ugly
 end
 
 def to_signature_section : signature (card σ) → (σ →₀ ℕ) :=
@@ -958,7 +884,7 @@ begin
   unfold mv_polynomial.is_symmetric at h,
   simp [mv_polynomial.rename_eq] at h,
   cases exists_perm_of_to_signature_eq_to_signature hd with e he, rw he,
-  rw [← finsupp.map_domain_apply (finsupp.injective_map_domain e.injective) φ d₁, @h e]
+  rw [← finsupp.map_domain_apply (finsupp.map_domain_injective e.injective) φ d₁, @h e]
 end
 
 lemma is_symmetric.coeff_to_signature_section
@@ -970,9 +896,7 @@ lemma sum_signature_coefficient_mul_monomial_symmetric (φ : mv_polynomial σ R)
   ∑ l in finset.image (to_signature) φ.support,
     C (signature_coefficient φ l) * monomial_symmetric σ R l = φ :=
 begin
-  -- show ∑ l : {l : signature (card σ) // l ∈ finset.image (to_signature) φ.support}, _ = _,
-  rw φ.as_sum,
-  rw finset.sum_subtype (λ _, iff.rfl),
+  rw [φ.as_sum, finset.sum_subtype _ (λ _, iff.rfl)],
   swap, { apply_instance },
   sorry
   -- have := finset.sum_fiberwise φ.support _ (λ d, monomial d (coeff d φ)),
@@ -980,12 +904,11 @@ end
 
 variables (R)
 
-lemma induction_step (l : signature (card σ)) :
-
+lemma induction_step (l : signature (card σ)) : sorry := sorry
 
 def monomial_symmetric_as_polynomial_elementary_symmetric :
   Π (l : signature (card σ)), mv_polynomial ℕ R
-| l := _
+| l := sorry
 using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, signature.lt_wf (card σ)⟩],
   dec_tac := tactic.assumption }
@@ -997,8 +920,8 @@ open fintype monomial_symmetric
 variables [fintype σ] [comm_ring R]
 
 lemma aeval_monomial_symmetric_as_polynomial_elementary_symmetric (l : signature (card σ)) :
-  aeval _ _ (elementary_symmetric σ R) (monomial_symmetric_as_polynomial_elementary_symmetric R l) =
-  monomial_symmetric σ R l :=
+  aeval (elementary_symmetric σ R) (monomial_symmetric_as_polynomial_elementary_symmetric R l) =
+    monomial_symmetric σ R l :=
 begin
   sorry
 end
@@ -1017,10 +940,10 @@ begin
   rw [coeff_sum, coeff_zero],
   conv_lhs { apply_congr, skip, rw [mul_assoc, ← C_pow, coeff_C_mul, coeff_mul, finset.mul_sum] },
   rw finset.sum_comm,
-  let L := d.nat_antidiagonal.support.filter (λ p : (σ →₀ ℕ) × (σ →₀ ℕ), p.1.sum (λ _, id) % 2 = 0),
-  let R := d.nat_antidiagonal.support.filter (λ p : (σ →₀ ℕ) × (σ →₀ ℕ), p.1.sum (λ _, id) % 2 = 1),
+  let L := d.antidiagonal'.support.filter (λ p : (σ →₀ ℕ) × (σ →₀ ℕ), p.1.sum (λ _, id) % 2 = 0),
+  let R := d.antidiagonal'.support.filter (λ p : (σ →₀ ℕ) × (σ →₀ ℕ), p.1.sum (λ _, id) % 2 = 1),
   classical,
-  have hLR : d.antidiagonal.support = L ∪ R,
+  have hLR : d.antidiagonal'.support = L ∪ R,
   { ext p,
     simp only [finsupp.mem_antidiagonal_support, finset.mem_union, finset.mem_filter],
     have := nat.mod_two_eq_zero_or_one (p.1.sum (λ _, id)),

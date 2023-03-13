@@ -13,16 +13,6 @@ open_locale big_operators
 
 /-! ### TO MOVE -/
 
-@[simps]
-noncomputable def equiv.finsupp {α β A : Type*} [add_comm_monoid A] (e : α ≃ β) :
-  (α →₀ A) ≃ (β →₀ A) :=
-{ to_fun := finsupp.emb_domain e.to_embedding,
-  inv_fun := finsupp.emb_domain e.symm.to_embedding,
-  left_inv := λ f, by { ext a, erw [← e.symm_apply_apply a, finsupp.emb_domain_apply,
-        finsupp.emb_domain_apply, e.symm_apply_apply] },
-  right_inv := λ f, by { ext b, erw [← e.apply_symm_apply b, finsupp.emb_domain_apply,
-        finsupp.emb_domain_apply, e.apply_symm_apply] } }
-
 namespace fin
 variables {n : ℕ}
 
@@ -79,14 +69,15 @@ lemma ugly (l : list σ) :
 begin
   induction l with a l ih,
   { refl },
-  { have h₁ : (finset.image fin.cast_succ (@finset.univ (fin l.length) _)).1 =
-        (@finset.univ (fin l.length) _).1.map fin.cast_succ,
-      from finset.image_val_of_inj_on (fin.cast_succ.injective.inj_on _),
-    have h₂ : fin.last l.length ∉ finset.image fin.cast_succ finset.univ,
-    { rw [finset.mem_image], simp [fin.cast_succ_ne_last] },
-    rw [fin.univ_cast_succ, finset.insert_val, multiset.ndinsert_of_not_mem h₂,
-      multiset.map_cons, h₁, multiset.map_map],
-    simp [function.comp, list.nth_le_cons_cast_succ, ih] }
+  have h₁ : (finset.map fin.cast_succ.to_embedding (@finset.univ (fin l.length) _)).1 =
+      finset.univ.1.map fin.cast_succ,
+    from finset.map_val _ _,
+  have h₂ : fin.last l.length ∉ finset.image fin.cast_succ finset.univ,
+  { rw [finset.mem_image], simp [fin.cast_succ_ne_last] },
+  rw [fin.univ_cast_succ, finset.cons_val, multiset.map_cons, h₁, multiset.map_map],
+  simp [function.comp, list.nth_le_cons_cast_succ, ih],
+  sorry,
+  apply_instance,
 end
 
 end multiset
@@ -544,13 +535,10 @@ begin
   { subst hn,
     cases m, { rw [nat.zero_sub, multiset.count_eq_zero], apply multiset.not_mem_zero },
     { simp only [nat.succ_sub_succ_eq_sub, nat.sub_zero, multiset.coe_count],
-      erw [list.count_cons_of_ne, list.count_replicate], symmetry, exact hk } },
+      erw [list.count_cons_of_ne, list.count_replicate_self], symmetry, exact hk } },
   { subst hnk, cases m, { contradiction },
     simp only [signature.single, list.count_cons_self, multiset.coe_count],
-    congr' 1,
-    rw list.count_eq_zero_of_not_mem,
-    contrapose! hn,
-    exact list.eq_of_mem_replicate hn },
+    rw [list.count_replicate, if_neg hn] },
   { rw [multiset.count_eq_zero],
     cases m,
     { simp only [signature.single, multiset.coe_nil, not_false_iff, multiset.not_mem_zero] },
@@ -681,12 +669,11 @@ lemma rename_monomial_symmetric (l : signature (card σ)) (l' : signature (card 
   rename e (monomial_symmetric σ R l) = monomial_symmetric τ R l' :=
 begin
   rw [monomial_symmetric, map_sum],
-  let e' : {d // to_signature d = l} ≃ {d // to_signature d = l'} := e.finsupp.subtype_equiv _,
-  { refine fintype.sum_equiv e' _ _ _,
-    rintro ⟨d, hd⟩,
-    simp only [rename_monomial, subtype.coe_mk, equiv.finsupp_apply, equiv.subtype_equiv_apply,
-      finsupp.emb_domain_eq_map_domain, equiv.coe_to_embedding] },
-  { sorry }
+  refine fintype.sum_equiv ((finsupp.equiv_congr_left e).subtype_equiv _) _ _ _,
+  { sorry },
+  { rintro ⟨d, hd⟩,
+    simp only [rename_monomial, subtype.coe_mk, finsupp.equiv_congr_left_apply,
+      equiv.subtype_equiv_apply, finsupp.equiv_map_domain_eq_map_domain] }
 end
 
 lemma monomial_symmetric_is_symmetric (l : signature (card σ)) :
@@ -765,8 +752,7 @@ lemma map_complete_homogeneous (n : ℕ) (f : R →+* S) :
   map f (complete_homogeneous σ R n) = complete_homogeneous σ S n :=
 begin
   rw [complete_homogeneous, map_sum],
-  apply fintype.sum_congr,
-  intro,
+  refine fintype.sum_congr _ _ (λ a, _),
   rw [map_monomial, f.map_one],
 end
 
@@ -774,29 +760,13 @@ lemma rename_complete_homogeneous (n : ℕ) (e : σ ≃ τ) :
   rename e (complete_homogeneous σ R n) = complete_homogeneous τ R n :=
 begin
   rw [complete_homogeneous, map_sum],
-  let e' : {d : σ →₀ ℕ // ∑ i, d i = n} ≃ {d : τ →₀ ℕ // ∑ i, d i = n} :=
-    e.finsupp.subtype_equiv
-      (λ d, by { rw ← finset.sum_equiv e,
-            show (∑ i, d i = n) ↔ (∑ i, (d.emb_domain e.to_embedding) (e.to_embedding i)) = n,
-            simp only [finsupp.emb_domain_apply] }),
-  rw ← finset.sum_equiv e'.symm,
-  apply fintype.sum_congr,
-  intro d,
-  rw [ring_hom.coe_of, rename_monomial],
-  congr,
-  ext i,
-  simp only [finsupp.map_domain, finsupp.sum_apply, finsupp.single_apply],
-  rw [finsupp.sum, finset.sum_eq_single (e.symm i)],
-  { simpa only [e', equiv.finsupp, equiv.subtype_congr, if_true, equiv.coe_fn_symm_mk,
-      eq_self_iff_true, equiv.apply_symm_apply, subtype.coe_mk]
-      using finsupp.emb_domain_apply e.symm.to_embedding _ _ },
-  { rintro j h hj, rw if_neg, rintro rfl, simpa using hj },
-  { simp only [finsupp.not_mem_support_iff, imp_self, if_true,
-      eq_self_iff_true, equiv.apply_symm_apply] }
+  refine fintype.sum_equiv ((finsupp.equiv_congr_left e).subtype_equiv $ λ d, _) _ _ (λ a, _),
+  { rw fintype.sum_equiv e,
+    simp },
+  { simp [rename_monomial, finsupp.equiv_map_domain_eq_map_domain] }
 end
 
-lemma complete_homogeneous_is_symmetric (n : ℕ) :
-  is_symmetric (complete_homogeneous σ R n) :=
+lemma complete_homogeneous_is_symmetric (n : ℕ) : is_symmetric (complete_homogeneous σ R n) :=
 rename_complete_homogeneous n
 
 end
@@ -904,8 +874,6 @@ end
 
 variables (R)
 
-lemma induction_step (l : signature (card σ)) : sorry := sorry
-
 def monomial_symmetric_as_polynomial_elementary_symmetric :
   Π (l : signature (card σ)), mv_polynomial ℕ R
 | l := sorry
@@ -959,7 +927,6 @@ end
 end mv_polynomial
 
 #lint
-
 
 #exit
 

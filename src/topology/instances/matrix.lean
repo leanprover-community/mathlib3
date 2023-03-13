@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash, Eric Wieser
 -/
 import topology.algebra.infinite_sum.basic
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.star
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.trace

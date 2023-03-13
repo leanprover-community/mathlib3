@@ -10,6 +10,9 @@ import linear_algebra.prod
 /-!
 # The star operation, bundled as a star-linear equiv
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `star_linear_equiv`, which is the star operation bundled as a star-linear map.
 It is defined on a star algebra `A` over the base ring `R`.
 
@@ -72,7 +75,7 @@ variables (R : Type*) (A : Type*)
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
 def self_adjoint.submodule : submodule R A :=
-{ smul_mem' := is_self_adjoint.smul,
+{ smul_mem' := λ r x, (is_self_adjoint.all _).smul,
   ..self_adjoint A }
 
 /-- The skew-adjoint elements of a star module, as a submodule. -/

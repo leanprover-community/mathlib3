@@ -678,6 +678,7 @@ variables {H₁ : Type*} [topological_space H₁] {H₂ : Type*} [topological_sp
    {G₁ : structure_groupoid H₁} [has_groupoid H₂ G₁] [closed_under_restriction G₁]
    (G₂ : structure_groupoid H₂) [has_groupoid H₃ G₂]
 
+variables (G₂)
 lemma has_groupoid.comp
   (H : ∀ e ∈ G₂, lift_prop_on (is_local_structomorph_within_at G₁) (e : H₂ → H₂) e.source) :
   @has_groupoid H₁ _ H₃ _ (charted_space.comp H₁ H₂ H₃) G₁ :=

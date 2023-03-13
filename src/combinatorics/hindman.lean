@@ -10,6 +10,9 @@ import data.stream.init
 /-!
 # Hindman's theorem on finite sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove Hindman's theorem on finite sums, using idempotent ultrafilters.
 
 Given an infinite sequence `a₀, a₁, a₂, …` of positive integers, the set `FS(a₀, …)` is the set

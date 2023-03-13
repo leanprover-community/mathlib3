@@ -9,6 +9,9 @@ import topology.algebra.group.basic
 /-!
 # Topological facts about upper/lower/order-connected sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The topological closure and interior of an upper/lower/order-connected set is an
 upper/lower/order-connected set (with the notable exception of the closure of an order-connected
 set).

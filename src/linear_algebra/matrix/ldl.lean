@@ -30,8 +30,7 @@ decomposed as `S = LDLᴴ` where `L` is a lower-triangular matrix and `D` is a d
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
 variables {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]
 
-local notation `⟪`x`, `y`⟫` :=
-@inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv _ _).symm y)
+local notation `⟪`x`, `y`⟫ₑ` := @inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv _ _).symm y)
 
 open matrix
 open_locale matrix
@@ -64,7 +63,7 @@ begin
 end
 
 lemma LDL.lower_inv_orthogonal {i j : n} (h₀ : i ≠ j) :
-  ⟪(LDL.lower_inv hS i), Sᵀ.mul_vec (LDL.lower_inv hS j)⟫ = 0 :=
+  ⟪(LDL.lower_inv hS i), Sᵀ.mul_vec (LDL.lower_inv hS j)⟫ₑ = 0 :=
 show @inner 𝕜 (n → 𝕜) (inner_product_space.of_matrix hS.transpose).to_has_inner
     (LDL.lower_inv hS i)
     (LDL.lower_inv hS j) = 0,
@@ -72,7 +71,7 @@ by apply gram_schmidt_orthogonal _ _ h₀
 
 /-- The entries of the diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag_entries : n → 𝕜 :=
-  λ i, ⟪star (LDL.lower_inv hS i), S.mul_vec (star (LDL.lower_inv hS i))⟫
+λ i, ⟪star (LDL.lower_inv hS i), S.mul_vec (star (LDL.lower_inv hS i))⟫ₑ
 
 /-- The diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag : matrix n n 𝕜 := matrix.diagonal (LDL.diag_entries hS)

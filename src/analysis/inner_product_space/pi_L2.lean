@@ -820,14 +820,16 @@ open_locale matrix
 
 variables {n m : ℕ}
 
+local notation `⟪`x`, `y`⟫ₑ` := @inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv 2 _).symm y)
+
 /-- The inner product of a row of `A` and a row of `B` is an entry of `B ⬝ Aᴴ`. -/
 lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
-  ⟪(pi_Lp.equiv 2 _).symm (A i), (pi_Lp.equiv 2 _).symm (B j)⟫ = (B ⬝ Aᴴ) j i :=
+  ⟪A i, B j⟫ₑ = (B ⬝ Aᴴ) j i :=
 by simp_rw [euclidean_space.inner_pi_Lp_equiv_symm, matrix.mul_apply', matrix.dot_product_comm,
   matrix.conj_transpose_apply, pi.star_def]
 
 /-- The inner product of a column of `A` and a column of `B` is an entry of `Aᴴ ⬝ B`. -/
 lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
-  ⟪(pi_Lp.equiv 2 _).symm (Aᵀ i), (pi_Lp.equiv 2 _).symm (Bᵀ j)⟫ = (Aᴴ ⬝ B) i j := rfl
+  ⟪Aᵀ i, Bᵀ j⟫ₑ = (Aᴴ ⬝ B) i j := rfl
 
 end matrix

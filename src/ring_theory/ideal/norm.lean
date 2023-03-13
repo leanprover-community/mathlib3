@@ -428,11 +428,11 @@ lemma abs_norm_mem (I : ideal S) : ↑I.abs_norm ∈ I :=
 by rw [abs_norm_apply, card_quot, ← ideal.quotient.eq_zero_iff_mem, map_nat_cast,
        quotient.index_eq_zero]
 
-lemma span_abs_norm_le (I : ideal S) :
+lemma span_singleton_abs_norm_le (I : ideal S) :
   ideal.span { (ideal.abs_norm I : S) } ≤ I :=
 by simp only [ideal.span_le, set.singleton_subset_iff, set_like.mem_coe, ideal.abs_norm_mem I]
 
-lemma abs_norm_eq.finite [char_zero S] {n : ℕ} (hn : 0 < n) :
+lemma finite_set_of_abs_norm_eq [char_zero S] {n : ℕ} (hn : 0 < n) :
   { I : ideal S | ideal.abs_norm I = n }.finite :=
 begin
   let f := λ I : ideal S, ideal.map (ideal.quotient.mk (@ideal.span S _ {n})) I,
@@ -441,12 +441,12 @@ begin
     { let g := (coe : ideal (S ⧸ @ideal.span S _ {n}) → set (S ⧸ @ideal.span S _ {n})),
       refine @set.finite.of_finite_image _ _ _ g _ (set_like.coe_injective.inj_on _),
       exact set.finite.subset (@set.finite_univ _ (@set.finite' _ this)) ( set.subset_univ _), },
-    rw [← ideal.abs_norm_ne_zero_iff, ideal.abs_norm_span_singleton],
+    rw [← abs_norm_ne_zero_iff, abs_norm_span_singleton],
     simpa only [ne.def, int.nat_abs_eq_zero, algebra.norm_eq_zero_iff, nat.cast_eq_zero]
       using ne_of_gt hn, },
   { intros I hI J hJ h,
-    rw [← ideal.comap_quo_map_quo (ideal.span_abs_norm_le I), ← hI.symm,
-      ← ideal.comap_quo_map_quo (ideal.span_abs_norm_le J), ← hJ.symm],
+    rw [← comap_quot_map_quot (span_singleton_abs_norm_le I), ← hI.symm,
+      ← comap_quot_map_quot (span_singleton_abs_norm_le J), ← hJ.symm],
     exact congr_arg (ideal.comap (ideal.quotient.mk (@ideal.span S _ {n}))) h, },
 end
 

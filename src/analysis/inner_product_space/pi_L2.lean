@@ -138,6 +138,9 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
   ⟪x, y⟫ = matrix.dot_product (star $ pi_Lp.equiv _ _ x) (pi_Lp.equiv _ _ y) := rfl
 
+@[simp] lemma euclidean_space.inner_pi_Lp_equiv_symm (x y : ι → 𝕜) :
+  ⟪(pi_Lp.equiv 2 _).symm x, (pi_Lp.equiv 2 _).symm y⟫ = matrix.dot_product (star x) y := rfl
+
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.is_internal.isometry_L2_of_orthogonal_family

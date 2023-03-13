@@ -204,17 +204,21 @@ exp_units_conj 𝕂 U⁻¹ A
 lemma is_hermitian.pos_def_exp {R} [is_R_or_C R] [normed_algebra 𝕂 R] {A : matrix m m R}
   (h : A.is_hermitian) : (exp 𝕂 A).pos_def :=
 ⟨h.exp _, λ x hx, begin
+  have h2 : _root_.is_self_adjoint (2⁻¹ : R) := (is_self_adjoint_one R).bit0.inv,
   let A' := (2⁻¹ : R) • A,
-  have hA' : A'.is_hermitian, {sorry},
+  have hA' : A'.is_hermitian := h2.smul h,
   have hA_eq : A = (A' + A'ᴴ),
   { dsimp only [A'],
     rwa [conj_transpose_smul, h.eq, ←add_smul, star_inv', star_bit0, star_one, ←two_mul,
-      mul_inv_cancel two_ne_zero, one_smul],
-    sorry },
+      mul_inv_cancel (two_ne_zero : (2 : R) ≠ 0), one_smul] },
   rw hA_eq,
-  have : commute A' A'ᴴ := sorry,
-  calc 0 < ‖(exp 𝕂 A')ᴴ.mul_vec x‖^2 : sorry
+  have : commute A' A'ᴴ,
+  { rw [conj_transpose_smul, h2.star_eq, h.eq] },
+  calc 0 < ‖(pi_Lp.equiv 2 _).symm ((exp 𝕂 A')ᴴ.mul_vec x)‖^2 : sorry
     ... = _ : _,
+  have := @inner_self_eq_norm_sq R _ _ _ ((pi_Lp.equiv 2 (λ _, R)).symm ((exp 𝕂 A')ᴴ.mul_vec x)),
+  rw [←this, euclidean_space.inner_pi_Lp_equiv_symm],
+  convert this.symm using 4,
   rw ←inner_self_eq_norm_sq ((exp 𝕂 A')ᴴ.mul_vec x),
   rw [exp_add_of_commute 𝕂 _ _ this, ←matrix.mul_vec_mul_vec, dot_product_mul_vec,
     exp_conj_transpose,

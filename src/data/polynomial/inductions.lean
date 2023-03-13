@@ -10,6 +10,9 @@ import data.polynomial.induction
 /-!
 # Induction on polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas dealing with different flavours of induction on polynomials.
 -/
 

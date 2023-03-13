@@ -11,6 +11,9 @@ import topology.metric_space.lipschitz
 
 /-!
 # Extended non-negative reals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

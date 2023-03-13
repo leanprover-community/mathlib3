@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Peter Nelson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Peter Nelson.
+Authors: Peter Nelson
 -/
 import data.finite.card
 
@@ -56,6 +56,10 @@ lemma ncard_le_of_subset [finite t] (hst : s ⊆ t) :
   s.ncard ≤ t.ncard :=
 finite.card_le_of_embedding $ set.embedding_of_subset _ _ hst
 
+lemma ncard_mono [finite α] :
+  @monotone (set α) _ _ _ ncard :=
+λ _ _, ncard_le_of_subset
+
 @[simp] lemma ncard_eq_zero [finite s] :
   s.ncard = 0 ↔ s = ∅ :=
 by simp [ncard_def, finite.card_eq_zero_iff]
@@ -74,7 +78,7 @@ by simp only [ncard_eq_zero]
 
 lemma infinite.ncard (hs : s.infinite) :
   s.ncard = 0 :=
-by {haveI := hs.to_subtype, exact s.ncard_eq_zero_of_infinite,}
+by {haveI := hs.to_subtype, exact s.ncard_eq_zero_of_infinite}
 
 lemma ncard_pos [finite s] :
   0 < s.ncard ↔ s.nonempty :=
@@ -280,6 +284,10 @@ begin
   simpa,
 end
 
+lemma ncard_strict_mono [finite α] :
+  @strict_mono (set α) _ _ _ ncard :=
+λ _ _ h, ncard_lt_ncard h
+
 lemma ncard_eq_of_bijective [finite s] {n : ℕ} (f : ∀ i, i < n → α)
   (hf : ∀ a ∈ s, ∃ i, ∃ h : i < n, f i h = a)
   (hf' : ∀ i (h : i < n), f i h ∈ s)
@@ -482,7 +490,7 @@ begin
   rw [sdiff_sdiff_right_self, inf_eq_inter],
 end
 
-lemma ncard_diff_eq_ncard_diff_iff_ncard_eq_ncard [finite s] [finite t] :
+lemma ncard_eq_ncard_iff_ncard_diff_eq_ncard_diff [finite s] [finite t] :
   s.ncard = t.ncard ↔ (s \ t).ncard = (t \ s).ncard :=
 by rw [←ncard_inter_add_ncard_diff_eq_ncard s t, ←ncard_inter_add_ncard_diff_eq_ncard t s,
     inter_comm, add_right_inj]
@@ -521,7 +529,6 @@ lemma exists_smaller_set (s : set α) (i : ℕ) (h₁ : i ≤ s.ncard) :
   ∃ (t : set α), t ⊆ s ∧ t.ncard = i :=
 (exists_intermediate_set_ncard i (by simpa) (empty_subset s)).imp
   (λ t ht, ⟨ht.2.1,by simpa using ht.2.2⟩)
-
 
 lemma exists_subset_or_subset_of_two_mul_lt_ncard {n : ℕ} (hst : 2 * n < (s ∪ t).ncard) :
   ∃ (r : set α), n < r.ncard ∧ (r ⊆ s ∨ r ⊆ t) :=

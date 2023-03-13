@@ -34,6 +34,7 @@ We also define `is_star_normal R`, a `Prop` that states that an element `x` sati
 
 ## TODO
 
+* Define `is_skew_adjoint` to match `is_self_adjoint`.
 * Define `λ z x, z * x * star z` (i.e. conjugation by `z`) as a monoid action of `R` on `R`
   (similar to the existing `conj_act` for groups), and then state the fact that `self_adjoint R` is
   invariant under it.
@@ -398,6 +399,22 @@ function.injective.module R (skew_adjoint A).subtype subtype.coe_injective coe_s
 end has_smul
 
 end skew_adjoint
+
+/-- Scalar multiplication of a self-adjoint element by a skew-adjoint element produces a
+skew-adjoint element. -/
+lemma is_self_adjoint.smul_mem_skew_adjoint [ring R] [add_comm_group A] [module R A]
+  [star_add_monoid R] [star_add_monoid A] [star_module R A] {r : R}
+  (hr : r ∈ skew_adjoint R) {a : A} (ha : is_self_adjoint a) :
+  r • a ∈ skew_adjoint A :=
+(star_smul _ _).trans $ (congr_arg2 _ hr ha).trans $ neg_smul _ _
+
+/-- Scalar multiplication of a skew-adjoint element by a skew-adjoint element produces a
+self-adjoint element. -/
+lemma is_self_adjoint_smul_of_mem_skew_adjoint [ring R] [add_comm_group A] [module R A]
+  [star_add_monoid R] [star_add_monoid A] [star_module R A] {r : R}
+  (hr : r ∈ skew_adjoint R) {a : A} (ha : a ∈ skew_adjoint A) :
+  is_self_adjoint (r • a) :=
+(star_smul _ _).trans $ (congr_arg2 _ hr ha).trans $ neg_smul_neg _ _
 
 instance is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
 ⟨by simp only [star_comm_self, star_zero]⟩

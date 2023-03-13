@@ -9,6 +9,9 @@ import data.real.nnreal
 /-!
 # Group seminorms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines norms and seminorms in a group. A group seminorm is a function to the reals which
 is positive-semidefinite and subadditive. A norm further only maps zero to zero.
 

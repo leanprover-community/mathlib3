@@ -8,6 +8,9 @@ import data.polynomial.eval
 /-!
 # Theory of degrees of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some of the main results include
 - `nat_degree_comp_le` : The degree of the composition is at most the product of degrees
 

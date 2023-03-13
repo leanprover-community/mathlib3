@@ -53,8 +53,7 @@ by { cases f, cases g, congr' }
 
 instance : continuous_map_class (P →A[R] Q) P Q :=
 { coe := λ f, f.to_affine_map,
-  coe_injective' := λ ⟨f, hf⟩ ⟨g, hg⟩ (h : (f : P → Q) = g),
-    to_affine_map_injective $ fun_like.coe_injective h,
+  coe_injective' := λ f g h, to_affine_map_injective $ fun_like.coe_injective h,
   map_continuous := cont }
 
 /-- Helper instance for when there's too many metavariables to apply

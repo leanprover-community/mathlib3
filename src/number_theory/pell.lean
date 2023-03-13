@@ -42,8 +42,8 @@ Pell's equation
 
 namespace zsqrtd
 
--- Note: We put this here to avoid having to import `algebra.star.unitary`
---       into `number_theory.zsqrtd.basic` just for this one result.
+-- Note: We put these here to avoid having to import `algebra.star.unitary`
+--       into `number_theory.zsqrtd.basic` just for these two results.
 
 /-- An element of `ℤ√d` has norm equal to `1` if and only if it is contained in the submonoid
 of unitary elements. -/

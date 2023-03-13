@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
 import group_theory.torsion
+import linear_algebra.matrix.to_linear_equiv
 import number_theory.number_field.norm
 import number_theory.number_field.canonical_embedding
 import ring_theory.ideal.norm
@@ -221,7 +222,7 @@ variable (K)
 
 def logspace := {w : infinite_place K // w ≠ w₀} → ℝ
 
-instance : finite {w : infinite_place K // w ≠ w₀} := subtype.finite
+instance : fintype {w : infinite_place K // w ≠ w₀} := subtype.fintype _
 
 instance : normed_add_comm_group (logspace K) := pi.normed_add_comm_group
 
@@ -229,9 +230,15 @@ instance : normed_space ℝ (logspace K) := pi.normed_space
 
 instance : finite_dimensional ℝ (logspace K) := finite_dimensional.finite_dimensional_pi ℝ
 
+def mult : (infinite_place K) → ℝ := λ w, ite (w.is_real) 1 2
+
+lemma mult_ge_one (w : infinite_place K) : 1 ≤ mult K w :=
+by { simp only [mult], split_ifs; norm_num, }
+
 /-- The logarithmic embedding of the units.-/
 @[reducible]
-def log_embedding : (𝓤 K) → (logspace K) := λ x w, real.log (w.1 x)
+def log_embedding : (𝓤 K) → (logspace K) :=
+  λ x w, (mult K w.1) * real.log (w.1 x)
 
 open number_field number_field.infinite_place finite_dimensional number_field.units
 
@@ -240,18 +247,43 @@ by simpa [log_embedding, units_to_field.map_one, map_one, real.log_one]
 
 lemma log_embedding.map_mul (x y : 𝓤 K) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-by simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
-  map_mul, ne.def, map_eq_zero, not_false_iff]
+by sorry
+-- simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
+--  map_mul, ne.def, map_eq_zero, not_false_iff]
 
 lemma log_embedding.map_inv (x : 𝓤 K) : log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv]
+by sorry
+-- simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv]
 
--- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n * log_embedding K x :=
--- by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
+-- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n • log_embedding K x :=
+-- sorry -- by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
 
 @[simp]
 lemma log_embedding.component {w : infinite_place K} (hw : w ≠ w₀) (x : 𝓤 K) :
-  (log_embedding K x) ⟨w, hw⟩ = real.log (w x) := rfl
+  (log_embedding K x) ⟨w, hw⟩ = (mult K w) * real.log (w x) := rfl
+
+lemma log_embedding.sum_component (x : 𝓤 K) :
+  finset.univ.sum (λ w, (log_embedding K x) w) = - (mult K w₀) * real.log (w₀ (x : K)) :=
+begin
+  rw (_ : finset.univ.sum (λ (w : {w // w ≠ w₀}), _) =
+    (finset.univ.erase w₀).sum (λ (w : infinite_place K), (mult K w) * real.log (w x))),
+  { rw [neg_mul, eq_neg_iff_add_eq_zero, finset.sum_erase_add _ _ (finset.mem_univ _)],
+    convert congr_arg real.log (prod_eq_abs_norm K x),
+    { rw [real.log_prod _ _ (λ w _, _), finset.sum_congr rfl (λ w _, _)],
+      { simp only [mult, apply_ite real.log, real.log_pow, nat.cast_two, ite_mul, one_mul], },
+      { rw ne.def,
+        split_ifs;
+        simp only [map_eq_zero, units_to_field.ne_zero, not_false_iff, pow_eq_zero_iff,
+          nat.succ_pos'], }},
+    { convert (congr_arg real.log (congr_arg (coe : ℚ → ℝ) (unit.abs_norm K x))).symm,
+      { simp only [algebra_map.coe_one, real.log_one], },
+      { simpa only [rat.cast_abs], }}},
+  { rw @finset.sum_subtype _ _ _ (λ w, w ≠ w₀) infer_instance (finset.univ.erase w₀) (λ _, _)
+      (λ w, mult K w * real.log (w x)),
+    { refine finset.sum_congr rfl (λ w _, _),
+      simp only [log_embedding, subtype.val_eq_coe], },
+    { simp only [finset.mem_erase, finset.mem_univ, and_true], }},
+end
 
 /- lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
@@ -262,30 +294,30 @@ begin
   { simp only [log_embedding, h w, pi.zero_apply, real.log_one], },
 end -/
 
-/- lemma log_embedding.nnnorm_eq [number_field K] (x : 𝓤 K) :
-  ‖log_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ‖real.log (w x)‖₊ ) :=
-by simp only [pi.nnnorm_def, log_embedding] -/
+lemma log_embedding.nnnorm_eq [number_field K] (x : 𝓤 K) :
+  ‖log_embedding K x‖₊ =
+    finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀} , ‖(mult K w.1)* real.log (w.1 x)‖₊ ) :=
+by simp [pi.nnnorm_def, log_embedding]
 
-/- lemma log_embedding.le_of_le [number_field K] (x : 𝓤 K) (r : ℝ) :
-  ‖log_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, real.exp (- r) ≤ w x ∧ w x ≤ real.exp r :=
+/- lemma log_embedding.le_of_le [number_field K] {x : 𝓤 K} {r : ℝ} {w : infinite_place K}
+  (hr : ‖log_embedding K x‖ ≤ r) (hw : w ≠ w₀) :
+  w x ≤ real.exp (r / (mult K w)) :=
 begin
-  obtain hr | hr := lt_or_le r 0,
-  { refine ⟨λ h, _, λ h, _⟩,
-    { exfalso,
-      exact (not_le.mpr (lt_of_le_of_lt h hr)) (norm_nonneg _), },
-    { exfalso,
-      obtain ⟨w⟩ := infinite_place.nonempty K,
-      linarith [real.exp_le_exp.mp (le_trans (h w).1 (h w).2)], }},
-  { lift r to nnreal using hr,
-    simp_rw [← coe_nnnorm, log_embedding.nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff,
-      finset.mem_univ, forall_true_left, ← nnreal.coe_le_coe, coe_nnnorm, real.norm_eq_abs, abs_le],
-    refine ⟨λ h w, _, λ h w, _⟩,
-    { specialize h w,
-      rwa [← real.log_le_iff_le_exp, ← real.le_log_iff_exp_le],
-      all_goals { exact infinite_place.pos_iff.mpr units_to_field.ne_zero, }},
-    { specialize h w,
-      rwa [real.log_le_iff_le_exp, real.le_log_iff_exp_le],
-      all_goals { exact infinite_place.pos_iff.mpr units_to_field.ne_zero, }}}
+  obtain h | h := lt_or_le r 0,
+  { exfalso,
+    exact (not_le.mpr (lt_of_le_of_lt hr h)) (norm_nonneg _), },
+  { lift r to nnreal using h,
+    rw ← real.log_le_iff_le_exp (infinite_place.pos_iff.mpr units_to_field.ne_zero),
+    rw le_div_iff' (lt_of_lt_of_le one_pos (mult_ge_one K _)),
+    rw ← coe_nnnorm at hr,
+    rw nnreal.coe_le_coe at hr,
+    rw log_embedding.nnnorm_eq at hr,
+    replace hr := finset.sup_le_iff.mp hr ⟨w, hw⟩ (finset.mem_univ _),
+    rw ← nnreal.coe_le_coe at hr,
+    rw coe_nnnorm at hr,
+    rw real.norm_eq_abs at hr,
+    rw abs_le at hr,
+    exact hr.2, },
 end -/
 
 /-- The lattice formed by the image of the logarithmic embedding.-/
@@ -296,43 +328,91 @@ def unit_lattice : add_subgroup (logspace K) :=
   zero_mem' := ⟨1, log_embedding.map_one K⟩,
   neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }}
 
-lemma unit_lattice_kernel (x : 𝓤 K) :
+lemma log_embedding_ker (x : 𝓤 K) :
   log_embedding K x = 0 ↔ x ∈ torsion K := sorry
 -- by rw [log_embedding.eq_zero_iff, mem_torsion K x]
 
+-- TODO. This proof is too complicated
 lemma unit_lattice.inter_ball_finite (r : ℝ) :
-  ((unit_lattice K : set (logspace K)) ∩ (metric.closed_ball 0 r)).finite := sorry
-/- begin
+  ((unit_lattice K : set (logspace K)) ∩ (metric.closed_ball 0 r)).finite :=
+begin
   obtain hr | hr := lt_or_le r 0,
   { convert set.finite_empty,
     rw metric.closed_ball_eq_empty.mpr hr,
     exact set.inter_empty _, },
-  { let A := {x : 𝓤 K  | is_integral ℤ (x : K) ∧ ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp r},
+  { let A := {x : 𝓤 K | is_integral ℤ (x : K) ∧
+      ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp (fintype.card (infinite_place K) * r) },
     have t1 : A.finite,
     { suffices : ((coe : (𝓤 K) → K) '' A).finite,
       { refine this.of_finite_image (set.inj_on_of_injective (units_to_field.injective K) _), },
-      refine set.finite.subset (embeddings.finite_of_norm_le K ℂ (real.exp r)) _,
+      refine set.finite.subset (embeddings.finite_of_norm_le K ℂ
+        (real.exp (fintype.card (infinite_place K) * r))) _,
       rintros _ ⟨x, ⟨hx, rfl ⟩⟩,
       exact hx, },
     have t2 : ((log_embedding K) '' A).finite := set.finite.image _ t1,
     refine t2.subset _,
-    rintros _ ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,
-    use x,
-    split,
-    { split,
-      { exact ring_of_integers.is_integral_coe x, },
-      { rw ← le_iff_le,
-        rw mem_closed_ball_zero_iff at hx2,
-        rw log_embedding.le_of_le at hx2,
-        intro w,
-        exact (hx2 w).2, }},
-    { refl, }},
-end -/
+    rintros _ ⟨⟨u, rfl⟩, hu⟩,
+    refine ⟨u, ⟨ring_of_integers.is_integral_coe u, _⟩, rfl⟩,
+    rw ← infinite_place.le_iff_le,
+    rw mem_closed_ball_zero_iff at hu,
+    -- TODO. this is not really needed?
+    have bound : ∀ w : infinite_place K, w ≠ w₀ →
+      -r ≤ mult K w * real.log (w u) ∧ mult K w * real.log (w u) ≤ r,
+    { intros w hw,
+      lift r to nnreal using hr,
+      rw [← abs_le, ← real.norm_eq_abs, ← coe_nnnorm, nnreal.coe_le_coe],
+      rw [← coe_nnnorm, log_embedding.nnnorm_eq K u, nnreal.coe_le_coe] at hu,
+      convert finset.sup_le_iff.mp hu ⟨w, hw⟩ (finset.mem_univ _), },
+    intro w,
+    rw ← real.log_le_iff_le_exp (infinite_place.pos_iff.mpr units_to_field.ne_zero),
+    by_cases hw : w = w₀,
+    { rw hw,
+      rw ← mul_le_mul_left (lt_of_lt_of_le one_pos (mult_ge_one K w₀)),
+      rw ← neg_le_neg_iff,
+            have := log_embedding.sum_component K u,
+      rw ← neg_mul,
+      rw ← neg_mul,
+      rw ← this,
+      suffices : - mult K w₀ * ((fintype.card (infinite_place K)) * r) ≤
+        - (fintype.card {w : infinite_place K // w ≠ w₀}) * r,
+      { refine le_trans this _,
+        rw neg_mul_comm,
+        rw fintype.card,
+        rw ← nsmul_eq_mul,
+        rw ← finset.sum_const,
+        refine finset.sum_le_sum (λ w hw, _),
+        lift r to nnreal using hr,
+        rw ← coe_nnnorm at hu,
+        rw pi.nnnorm_def at hu,
+        rw nnreal.coe_le_coe at hu,
+        have := finset.sup_le_iff.mp hu w (finset.mem_univ _),
+        rw ← nnreal.coe_le_coe at this,
+        rw coe_nnnorm at this,
+        rw real.norm_eq_abs at this,
+        rw abs_le at this,
+        exact this.1, },
+      { rw neg_mul,
+        rw neg_mul,
+        rw neg_le_neg_iff,
+        simp only [fintype.card_subtype_compl, fintype.card_subtype_eq],
+        calc
+          _   ≤ ↑(fintype.card (infinite_place K)) * r : mul_le_mul_of_nonneg_right _ hr
+          ... ≤  mult K dirichlet.w₀ * ((fintype.card (infinite_place K)) * r)
+            : le_mul_of_one_le_left (by positivity) (mult_ge_one K w₀),
+        simp only [nat.cast_le, tsub_le_self], }},
+    { obtain hs | hs := lt_or_le (real.log (w u)) 0,
+      { refine le_of_lt (lt_of_lt_of_le hs (by positivity)), },
+      { calc
+          _   ≤ mult K w * real.log (w u) : le_mul_of_one_le_left hs (mult_ge_one K w)
+          ... ≤ r                         : (bound w hw).2
+          ... ≤ (fintype.card (infinite_place K)) * r
+            : le_mul_of_one_le_left hr (nat.one_le_cast.mpr fintype.card_pos), }}}
+end
 
 /-- The unit rank of the number field `K`, that is `card (infinite_place K) - 1`.-/
 def unit_rank : ℕ := fintype.card (infinite_place K) - 1
 
-lemma rank_ker : finrank ℝ (logspace K) = unit_rank K :=
+lemma rank_logspace : finrank ℝ (logspace K) = unit_rank K :=
 begin
   convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
   simp only [unit_rank, fintype.card_subtype_compl, fintype.card_subtype_eq],
@@ -480,93 +560,30 @@ begin
       exact (seq.next K w hB (seq K w hB n).prop).some_spec.2.2, }},
 end
 
-lemma unit_lattice.full_lattice :
-  submodule.span ℝ (unit_lattice K : set (logspace K)) = ⊤ := sorry
-
-lemma unit_lattice.module.free : module.free ℤ (unit_lattice K) :=
-zlattice.module.free ℝ ((unit_lattice.inter_ball_finite K)) (unit_lattice.full_lattice K)
-
-lemma unit_lattice.dim : finrank ℤ (unit_lattice K) = unit_rank K :=
-begin
-  have := zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.full_lattice K),
-  rw rank_ker K at this,
-  exact this,
-end
-
-#exit
-
--- TODO. move to the right place
-lemma _root_.ideal.comap_quo_map_quo {R : Type*} [comm_ring R] {S T : ideal R} (h : S ≤ T) :
-  ideal.comap (ideal.quotient.mk S) (ideal.map (ideal.quotient.mk S) T) = T :=
-begin
-  convert ideal.comap_map_of_surjective _ (ideal.quotient.mk S).is_surjective _,
-  have : ideal.comap (ideal.quotient.mk S) ⊥ = S := ideal.mk_ker,
-  rw this,
-  refine left_eq_sup.mpr h,
-end
-
-lemma ideal.norm_bdd.finite (B : ℕ) :
-  { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B }.finite :=
-begin
-  suffices : ∀ n : ℕ, 1 ≤ n → { I : ideal (𝓞 K) | ideal.abs_norm I = n }.finite,
-  { rw (_ : { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B } =
-      (⋃ n ∈ set.Icc 1 B, { I : ideal (𝓞 K) | ideal.abs_norm I = n })),
-    { refine set.finite.bUnion (set.Icc 1 B).to_finite _,
-      intros n hn,
-      exact this n hn.1, },
-    { ext x,
-      simp only [set.mem_set_of_eq, set.mem_Icc, set.mem_Union, exists_prop, exists_eq_right'], }},
-  intros n hn,
-  let a := (n : (𝓞 K)),
-  let A : ideal (𝓞 K) := ideal.span { a },
-  let Q := (𝓞 K) ⧸ A,
-  have t1 : ∀ I : ideal (𝓞 K), ideal.abs_norm I = n → A ≤ I,
-  { intros I hI,
-    rw ideal.span_le,
-    simp only [a, set.singleton_subset_iff, set_like.mem_coe],
-    convert ideal.abs_norm_mem I,
-    exact hI.symm, },
-  let f : ideal (𝓞 K) → ideal Q := λ I, ideal.map (ideal.quotient.mk A) I,
-  have t2 : set.inj_on f { I : ideal (𝓞 K) | ideal.abs_norm I = n }:=
-  begin
-    intros I hI J hJ h,
-    have := congr_arg (ideal.comap (ideal.quotient.mk A)) h,
-    dsimp [f] at this,
-    rw ideal.comap_map_quo (t1 I hI) at this,
-    rwa ideal.comap_map_quo (t1 J hJ) at this,
-  end,
-  refine set.finite.of_finite_image _ t2,
-  suffices : finite (set Q),
-  { let g := (coe : ideal Q → set Q),
-    have t3 : function.injective g := set_like.coe_injective,
-    refine set.finite.of_finite_image _ (t3.inj_on _),
-    refine set.finite.subset (@set.finite_univ _ this) _,
-    exact set.subset_univ _, },
-  haveI : finite Q,
-  { convert add_subgroup.finite_quotient_of_finite_index _,
-    refine ⟨_⟩,
-    have : ideal.abs_norm A ≠ 0,
-    { rw ideal.abs_norm_span_singleton,
-      simp only [ne.def, int.nat_abs_eq_zero, algebra.norm_eq_zero_iff, nat.cast_eq_zero],
-      exact ne_of_gt hn, },
-    exact this, },
-  exact set.finite',
-end
-
-lemma exists_unit (w : infinite_place K ) : ∃ u : 𝓤 K, (∀ z : infinite_place K, z ≠ w → z u < 1) :=
+lemma exists_unit (w : infinite_place K ) :
+  ∃ u : 𝓤 K, (∀ z : infinite_place K, z ≠ w → real.log (z u) < 0) :=
 begin
   rsuffices ⟨B, hB⟩ : ∃ B: ℕ, minkowski_bound K < (constant_volume K) * B,
   { have : ∃ n m, n < m ∧
       ideal.span { (seq K w hB n : 𝓞 K) } = ideal.span { (seq K w hB m : 𝓞 K) },
     { obtain ⟨n, -, m, -, hnm, h⟩ :=
-        @set.infinite.exists_ne_map_eq_of_maps_to ℕ (ideal (𝓞 K)) _ _
-          (λ n, ideal.span { seq K w hB n}) set.infinite_univ _ (ideal.norm_bdd.finite K B),
+        @set.infinite.exists_ne_map_eq_of_maps_to ℕ (ideal (𝓞 K)) _
+          { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B }
+          (λ n, ideal.span { seq K w hB n}) set.infinite_univ _ _,
       { by_cases hlt : n < m,
         { exact ⟨n, m, ⟨hlt, h⟩⟩, },
         { refine ⟨m, n, ⟨hnm.lt_or_lt.resolve_left hlt, h.symm⟩⟩, }},
       { intros n _,
         have := seq.norm_bdd K w hB n,
-        simp only [this, set.mem_set_of_eq, ideal.abs_norm_span_singleton, and_self], }},
+        simp only [this, set.mem_set_of_eq, ideal.abs_norm_span_singleton, and_self], },
+      { rw (_ : { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B } =
+          (⋃ n ∈ set.Icc 1 B, { I : ideal (𝓞 K) | ideal.abs_norm I = n })),
+        { refine set.finite.bUnion (set.Icc 1 B).to_finite _,
+          intros n hn,
+          exact ideal.abs_norm_eq.finite hn.1, },
+        { ext x,
+          simp only [set.mem_set_of_eq, set.mem_Icc, set.mem_Union, exists_prop,
+            exists_eq_right'], }}},
     obtain ⟨n, m, hnm, hid⟩ := this,
     rw ideal.span_singleton_eq_span_singleton at hid,
     obtain ⟨u, hu⟩ := hid,
@@ -577,8 +594,11 @@ begin
     simp [coe_coe, mul_mem_class.coe_mul, coe_coe, map_mul, coe_coe, mul_mem_class.coe_mul,
       coe_coe, map_mul] at t1 t2,
     rw ← t1 at t2,
-    refine (mul_lt_iff_lt_one_right _).mp t2,
-    exact pos_iff.mpr (seq.ne_zero K w hB n), },
+    refine real.log_neg _ _,
+    { rw pos_iff,
+      exact units_to_field.ne_zero, },
+    { refine (mul_lt_iff_lt_one_right _).mp t2,
+      exact pos_iff.mpr (seq.ne_zero K w hB n), }},
   { have t2 : 0 < (constant_volume K).to_nnreal,
     { refine ennreal.to_nnreal_pos_iff.mpr ⟨_, _⟩,
       exact constant_volume_pos K,
@@ -603,71 +623,56 @@ begin
     simp only [nsmul_eq_mul], },
 end
 
-lemma exists_elem (w : infinite_place K) :
-  ∃ v : (number_field.infinite_place K → ℝ), v ∈ (unit_lattice K) ∧
-    (∀ z : infinite_place K, z ≠ w → v z < 0) :=
+lemma unit_lattice.full_lattice :
+  submodule.span ℝ (unit_lattice K : set (logspace K)) = ⊤ :=
 begin
-  obtain ⟨u, hu⟩ := exists_unit K w,
-  use log_embedding K u,
-  split,
-  { use u, },
-  { intros z hz,
-    specialize hu z hz,
-    refine real.log_neg _ _,
-    { rw pos_iff,
-    exact units_to_field.ne_zero, },
-    { exact hu, }},
+  refine le_antisymm (le_top) _,
+  let B := pi.basis_fun ℝ {w : infinite_place K // w ≠ w₀},
+  let u : (infinite_place K) → (𝓤 K) := λ w, (exists_unit K w).some,
+  let v : { w : infinite_place K // w ≠ w₀ } → (logspace K) := λ w, log_embedding K (u w),
+  suffices : B.det v ≠ 0,
+  { rw ← is_unit_iff_ne_zero at this,
+    rw ← ((is_basis_iff_det B).mpr this).2,
+    refine submodule.span_monotone _,
+    rintros _ ⟨w, rfl⟩,
+    exact ⟨u w, rfl⟩, },
+  rw basis.det_apply,
+  refine matrix.det_ne_zero_of_neg _ _,
+  { intros w z h,
+    rw basis.coe_pi_basis_fun.to_matrix_eq_transpose,
+    rw matrix.transpose_apply,
+    dsimp [v],
+    rw log_embedding.component,
+    refine mul_neg_of_pos_of_neg (mult_pos K _) _,
+    { refine (exists_unit K z.1).some_spec w _,
+      exact subtype.ext_iff_val.not.mp h, },
+    { exact w.prop, }},
+  { intro w,
+    rw basis.coe_pi_basis_fun.to_matrix_eq_transpose,
+    simp_rw  matrix.transpose_apply,
+    rw (_ : finset.univ.sum (λ i, v w i) = finset.univ.sum (λ i, (log_embedding K (u w)) i)),
+    { rw log_embedding.sum_component,
+      refine mul_pos_of_neg_of_neg _ _,
+      { rw neg_lt_zero,
+        exact mult_pos K _, },
+      { refine (exists_unit K w.1).some_spec w₀ _,
+        exact w.prop.symm, }},
+    { simp_rw log_embedding.component, }},
 end
 
--- TODO. move to the right place
-lemma _root_.mat.det_ne_zero_of_neg {ι : Type*} [decidable_eq ι] [fintype ι] {M : matrix ι ι ℝ}
-  (h1 : ∀ i j, i ≠ j → M i j < 0) (h2 : ∀ j, 0 < finset.univ.sum (λ i, M i j)) :
-  M.det ≠ 0 :=
+lemma unit_lattice.module.free : module.free ℤ (unit_lattice K) :=
+zlattice.module.free ℝ ((unit_lattice.inter_ball_finite K)) (unit_lattice.full_lattice K)
+
+lemma unit_lattice.dim : finrank ℤ (unit_lattice K) = unit_rank K :=
 begin
-  by_cases h : nonempty ι,
-  { haveI : nonempty ι := h,
-    contrapose! h2,
-    have : ∃ g : ι → ℝ, 0 < finset.sup' finset.univ finset.univ_nonempty g ∧ matrix.vec_mul g M = 0,
-    { rw ← matrix.exists_vec_mul_eq_zero_iff at h2,
-      obtain ⟨v, ⟨hv1, hv2⟩⟩ := h2,
-      by_cases  h : 0 < finset.sup' finset.univ finset.univ_nonempty v,
-      { use v,
-        exact ⟨h, hv2⟩, },
-      { use -v,
-        split,
-        { rw function.ne_iff at hv1,
-          obtain ⟨i, hi⟩ := hv1,
-          simp only [pi.neg_apply, finset.lt_sup'_iff, finset.mem_univ, right.neg_pos_iff,
-            exists_true_left],
-          use i,
-          push_neg at h,
-          have := finset.le_sup' (λ j, v j) (finset.mem_univ i),
-          have := this.trans h,
-          refine ne.lt_of_le hi this, },
-        { rw matrix.neg_vec_mul,
-          exact neg_eq_zero.mpr hv2, }}},
-    obtain ⟨g, ⟨hg1, hg2⟩⟩ := this,
-    let A := finset.sup' finset.univ finset.univ_nonempty g,
-    obtain ⟨a, ha1, ha2⟩ := finset.exists_mem_eq_sup' finset.univ_nonempty g,
-    have t1 : matrix.vec_mul g M a = 0,
-    { simp only [*, pi.zero_apply], },
-    dsimp [matrix.vec_mul, matrix.dot_product] at t1,
-    have t3 : ∀ i, i ∈ @finset.univ ι _  →  A * M i a ≤ g i * M i a,
-    { intros i _,
-      by_cases h : i = a,
-      { rw h,
-        rw ← ha2, },
-      { simp only [*, mul_le_mul_right_of_neg, ne.def, not_false_iff],
-        rw ← ha2,
-        refine finset.le_sup' _ (finset.mem_univ i),}},
-    have t4 := finset.sum_le_sum t3,
-    use a,
-    rw t1 at t4,
-    rw ← finset.mul_sum at t4,
-    exact nonpos_of_mul_nonpos_right t4 hg1, },
-  { haveI : is_empty ι := (is_empty_or_nonempty ι).resolve_right h,
-    simp only [ne.def, one_ne_zero, not_false_iff, matrix.det_is_empty], },
+  rw ← rank_logspace K,
+  exact zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.full_lattice K),
 end
+
+#exit
+
+
+
 
 lemma unit_lattice.full_lattice :
   ∃ v : {w : infinite_place K // w ≠ w₀} →

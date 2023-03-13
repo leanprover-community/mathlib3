@@ -194,7 +194,7 @@ end nondegenerate
 
 section linear_order
 
-lemma mat.det_ne_zero_of_neg {n R : Type*} [decidable_eq n] [fintype n]
+lemma det_ne_zero_of_neg {n R : Type*} [decidable_eq n] [fintype n]
   [linear_ordered_comm_ring R] {M : matrix n n R}
   (h1 : ∀ i j, i ≠ j → M i j < 0) (h2 : ∀ j, 0 < finset.univ.sum (λ i, M i j)) :
   M.det ≠ 0 :=
@@ -228,3 +228,5 @@ end
 end linear_order
 
 end matrix
+
+#lint

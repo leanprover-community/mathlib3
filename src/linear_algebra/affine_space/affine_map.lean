@@ -65,13 +65,11 @@ instance affine_map.fun_like (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} 
   [add_comm_group V2] [module k V2] [affine_space V2 P2]:
   fun_like (P1 →ᵃ[k] P2) P1 (λ _, P2) :=
 { coe := affine_map.to_fun,
-  coe_injective' := λ f g,
-    match f, g, (add_torsor.nonempty : nonempty P1) with
-    | ⟨f, f_linear, f_add⟩, ⟨g, g_linear, g_add⟩, ⟨p⟩ := λ h : f = g, begin
-      congr' with v,
-      apply vadd_right_cancel (f p),
-      erw [← f_add, h, ← g_add]
-    end
+  coe_injective' := λ ⟨f, f_linear, f_add⟩ ⟨g, g_linear, g_add⟩ (h : f = g), begin
+    cases (add_torsor.nonempty : nonempty P1) with p,
+    congr' with v,
+    apply vadd_right_cancel (f p),
+    erw [← f_add, h, ← g_add]
   end }
 
 instance affine_map.has_coe_to_fun (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)

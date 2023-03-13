@@ -2162,7 +2162,7 @@ end sub
 section bilinear_map
 /-! ### Derivative of a bounded bilinear map -/
 
-variables {b : E × F → G} {u : set (E × F) }
+variables {b : E × F → G} {u : set (E × F)}
 
 open normed_field
 
@@ -2227,6 +2227,35 @@ lemma is_bounded_bilinear_map.differentiable (h : is_bounded_bilinear_map 𝕜 b
 lemma is_bounded_bilinear_map.differentiable_on (h : is_bounded_bilinear_map 𝕜 b) :
   differentiable_on 𝕜 b u :=
 h.differentiable.differentiable_on
+
+variable (B : E →L[𝕜] F →L[𝕜] G)
+
+lemma continuous_linear_map.has_fderiv_within_at_of_bilinear
+  {f : G' → E} {g : G' → F} {f' : G' →L[𝕜] E} {g' : G' →L[𝕜] F} {x : G'} {s : set G'}
+  (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at g g' s x) :
+  has_fderiv_within_at (λ y, B (f y) (g y)) (B.precompR G' (f x) g' + B.precompL G' f' (g x)) s x :=
+(B.is_bounded_bilinear_map.has_fderiv_at (f x, g x)).comp_has_fderiv_within_at x (hf.prod hg)
+
+lemma continuous_linear_map.has_fderiv_at_of_bilinear
+  {f : G' → E} {g : G' → F} {f' : G' →L[𝕜] E} {g' : G' →L[𝕜] F} {x : G'}
+  (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
+  has_fderiv_at (λ y, B (f y) (g y)) (B.precompR G' (f x) g' + B.precompL G' f' (g x)) x :=
+(B.is_bounded_bilinear_map.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
+
+lemma continuous_linear_map.fderiv_within_of_bilinear
+  {f : G' → E} {g : G' → F} {x : G'} {s : set G'}
+  (hf : differentiable_within_at 𝕜 f s x) (hg : differentiable_within_at 𝕜 g s x)
+  (hs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ y, B (f y) (g y)) s x =
+    (B.precompR G' (f x) (fderiv_within 𝕜 g s x) + B.precompL G' (fderiv_within 𝕜 f s x) (g x)) :=
+(B.has_fderiv_within_at_of_bilinear hf.has_fderiv_within_at hg.has_fderiv_within_at).fderiv_within
+  hs
+
+lemma continuous_linear_map.fderiv_of_bilinear {f : G' → E} {g : G' → F} {x : G'}
+  (hf : differentiable_at 𝕜 f x) (hg : differentiable_at 𝕜 g x) :
+  fderiv 𝕜 (λ y, B (f y) (g y)) x =
+    (B.precompR G' (f x) (fderiv 𝕜 g x) + B.precompL G' (fderiv 𝕜 f x) (g x)) :=
+(B.has_fderiv_at_of_bilinear hf.has_fderiv_at hg.has_fderiv_at).fderiv
 
 end bilinear_map
 

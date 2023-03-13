@@ -2453,7 +2453,7 @@ cont_diff_within_at.fderiv_within
   cont_diff_within_at_id hs hmn hx₀s (by rw [preimage_id'])
 
 /-- `x ↦ fderiv 𝕜 (f x) (g x)` is smooth at `x₀`. -/
-lemma cont_diff_at.cont_diff_at_fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
+lemma cont_diff_at.fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
   (hf : cont_diff_at 𝕜 n (function.uncurry f) (x₀, g x₀))
   (hg : cont_diff_at 𝕜 m g x₀)
   (hmn : m + 1 ≤ n) :
@@ -2465,11 +2465,21 @@ begin
   rw [preimage_univ]
 end
 
+/-- `fderiv 𝕜 f` is smooth at `x₀`. -/
+lemma cont_diff_at.fderiv_right (hf : cont_diff_at 𝕜 n f x₀) (hmn : (m + 1 : ℕ∞) ≤ n) :
+  cont_diff_at 𝕜 m (fderiv 𝕜 f) x₀ :=
+cont_diff_at.fderiv (cont_diff_at.comp (x₀, x₀) hf cont_diff_at_snd) cont_diff_at_id hmn
+
 /-- `x ↦ fderiv 𝕜 (f x) (g x)` is smooth. -/
 lemma cont_diff.fderiv {f : E → F → G} {g : E → F} {n m : ℕ∞}
   (hf : cont_diff 𝕜 m $ function.uncurry f) (hg : cont_diff 𝕜 n g) (hnm : n + 1 ≤ m) :
     cont_diff 𝕜 n (λ x, fderiv 𝕜 (f x) (g x)) :=
-cont_diff_iff_cont_diff_at.mpr $ λ x, hf.cont_diff_at.cont_diff_at_fderiv hg.cont_diff_at hnm
+cont_diff_iff_cont_diff_at.mpr $ λ x, hf.cont_diff_at.fderiv hg.cont_diff_at hnm
+
+/-- `fderiv 𝕜 f` is smooth. -/
+lemma cont_diff.fderiv_right (hf : cont_diff 𝕜 n f) (hmn : (m + 1 : ℕ∞) ≤ n) :
+  cont_diff 𝕜 m (fderiv 𝕜 f) :=
+cont_diff_iff_cont_diff_at.mpr $ λ x, hf.cont_diff_at.fderiv_right hmn
 
 /-- `x ↦ fderiv 𝕜 (f x) (g x)` is continuous. -/
 lemma continuous.fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}

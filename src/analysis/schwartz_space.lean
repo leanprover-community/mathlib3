@@ -82,12 +82,7 @@ begin
   { exact (hg.differentiable le_top).differentiable_at.has_fderiv_at },
 end
 
- set_option trace.class_instances true
---set_option profiler true
-
-local attribute [instance, priority 200] normed_add_comm_group.to_seminormed_add_comm_group
-
-lemma book (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
+lemma book (B : E →L[ℝ] F →L[ℝ] G) {f : H → E} {g : H → F}
   (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) (x : H) (n : ℕ) :
   ‖iterated_fderiv ℝ n (λ y, B (f y) (g y)) x‖
   ≤ ‖B‖ * ∑ i in finset.range (n+1), (nat.choose n i : ℝ)
@@ -99,15 +94,19 @@ begin
     apply ((B (f x)).le_op_norm (g x)).trans,
     apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
     exact B.le_op_norm (f x) },
-  { let Z := @IH E (H →L[ℝ] F) (H →L[ℝ] G) _ _ _ _ _ _,
-/-
+  { have I1 : ‖iterated_fderiv ℝ n (λ (y : H), B.precompR H (f y) (fderiv ℝ g y)) x‖ ≤
+      ‖B.precompR H‖ * ∑ (i : ℕ) in finset.range (n + 1),
+        n.choose i * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n - i) (fderiv ℝ g) x‖,
+      from IH _ hf (hg.fderiv_right le_top),
+    have I2 : ‖iterated_fderiv ℝ n (λ (y : H), B.precompL H (fderiv ℝ f y) (g y)) x‖ ≤
+      ‖B.precompL H‖ * ∑ (i : ℕ) in finset.range (n + 1),
+        n.choose i * ‖iterated_fderiv ℝ i (fderiv ℝ f) x‖ * ‖iterated_fderiv ℝ (n - i) g x‖,
+          from IH _ (hf.fderiv_right le_top) hg,
     rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
     have A : cont_diff ℝ n (λ y, B.precompR H (f y) (fderiv ℝ g y)), sorry,
     have A' : cont_diff ℝ n (λ y, B.precompL H (fderiv ℝ f y) (g y)), sorry,
     simp_rw [glouk B f g hf hg, iterated_fderiv_add_apply' A A'],
-    apply (norm_add_le _ _).trans,
-    have Z := @IH E (H →L[ℝ] F) (H →L[ℝ] G) _ _ _ _ _ _ (B.precompR H),
-    -- have Z := IH (B.precompR H) f (fderiv ℝ g) sorry sorry, -/
+    apply (norm_add_le _ _).trans ((add_le_add I1 I2).trans _),
 
   }
 end

@@ -772,7 +772,7 @@ variable {𝕜}
 lemma iterated_fderiv_within_zero_eq_comp :
   iterated_fderiv_within 𝕜 0 f s = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
-lemma norm_iterated_fderiv_within_zero :
+@[simp] lemma norm_iterated_fderiv_within_zero :
   ‖iterated_fderiv_within 𝕜 0 f s x‖ = ‖f x‖ :=
 by rw [iterated_fderiv_within_zero_eq_comp, linear_isometry_equiv.norm_map]
 

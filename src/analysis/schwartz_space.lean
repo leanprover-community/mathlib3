@@ -57,11 +57,11 @@ Schwartz space, tempered distributions
 noncomputable theory
 
 universe u
-variables {E F G H : Type u}
-  [normed_add_comm_group E] [normed_space ℝ E]
-  [normed_add_comm_group F] [normed_space ℝ F]
-  [normed_add_comm_group G] [normed_space ℝ G]
-  [normed_add_comm_group H] [normed_space ℝ H]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] {E F G H : Type u}
+  [normed_add_comm_group E] [normed_space 𝕜 E]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group G] [normed_space 𝕜 G]
+  [normed_add_comm_group H] [normed_space 𝕜 H]
 
 open_locale big_operators
 
@@ -99,11 +99,14 @@ end
 
 end
 
-lemma book (B : E →L[ℝ] F →L[ℝ] G) {f : H → E} {g : H → F}
-  (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) (x : H) (n : ℕ) :
-  ‖iterated_fderiv ℝ n (λ y, B (f y) (g y)) x‖
+lemma continuous_linear_map.norm_iterated_fderiv_within_of_bilinear
+
+
+  (B : E →L[𝕜] F →L[𝕜] G) {f : H → E} {g : H → F} {n : ℕ} {s : set H}
+  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) {x : H} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
   ≤ ‖B‖ * ∑ i in finset.range (n+1), (nat.choose n i : ℝ)
-      * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n-i) g x‖ :=
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
   unfreezingI { induction n with n IH generalizing E F G},
   sorry { simp only [norm_iterated_fderiv_zero, finset.range_one, finset.sum_singleton, nat.choose_self,
@@ -111,15 +114,15 @@ begin
     apply ((B (f x)).le_op_norm (g x)).trans,
     apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
     exact B.le_op_norm (f x) },
-  { have I1 : ‖iterated_fderiv ℝ n (λ (y : H), B.precompR H (f y) (fderiv ℝ g y)) x‖ ≤
+  { have I1 : ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompR H (f y) (fderiv 𝕜 g y)) s x‖ ≤
       ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1),
-        n.choose i * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n + 1 - i) g x‖, sorry, /-from calc
-      ‖iterated_fderiv ℝ n (λ (y : H), B.precompR H (f y) (fderiv ℝ g y)) x‖
+        n.choose i * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n + 1 - i) g s x‖, sorry, /-from calc
+      ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompR H (f y) (fderiv 𝕜 g y)) x‖
           ≤ ‖B.precompR H‖ * ∑ (i : ℕ) in finset.range (n + 1),
-            n.choose i * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n - i) (fderiv ℝ g) x‖ :
+            n.choose i * ‖iterated_fderiv_within 𝕜 i f x‖ * ‖iterated_fderiv_within 𝕜 (n - i) (fderiv 𝕜 g) x‖ :
         IH _ hf (hg.fderiv_right le_top)
       ... ≤ ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1),
-            n.choose i * ‖iterated_fderiv ℝ i f x‖ * ‖iterated_fderiv ℝ (n - i) (fderiv ℝ g) x‖ :
+            n.choose i * ‖iterated_fderiv_within 𝕜 i f x‖ * ‖iterated_fderiv_within 𝕜 (n - i) (fderiv 𝕜 g) x‖ :
         mul_le_mul_of_nonneg_right (B.norm_precompR_le H) (finset.sum_nonneg' (λ i, by positivity))
       ... = _ :
         begin
@@ -128,15 +131,15 @@ begin
           rw [nat.succ_sub (nat.lt_succ_iff.1 (finset.mem_range.1 hi)),
             iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
         end,-/
-    have I2 : ‖iterated_fderiv ℝ n (λ (y : H), B.precompL H (fderiv ℝ f y) (g y)) x‖ ≤
+    have I2 : ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompL H (fderiv 𝕜 f y) (g y)) s x‖ ≤
       ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1),
-        n.choose i * ‖iterated_fderiv ℝ (i + 1) f x‖ * ‖iterated_fderiv ℝ (n - i) g x‖, sorry, /- from calc
-      ‖iterated_fderiv ℝ n (λ (y : H), B.precompL H (fderiv ℝ f y) (g y)) x‖
+        n.choose i * ‖iterated_fderiv_within 𝕜 (i + 1) f s x‖ * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖, sorry, /- from calc
+      ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompL H (fderiv 𝕜 f y) (g y)) x‖
           ≤ ‖B.precompL H‖ * ∑ (i : ℕ) in finset.range (n + 1),
-            n.choose i * ‖iterated_fderiv ℝ i (fderiv ℝ f) x‖ * ‖iterated_fderiv ℝ (n - i) g x‖ :
+            n.choose i * ‖iterated_fderiv_within 𝕜 i (fderiv 𝕜 f) x‖ * ‖iterated_fderiv_within 𝕜 (n - i) g x‖ :
         IH _ (hf.fderiv_right le_top) hg
       ... ≤ ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1),
-            n.choose i * ‖iterated_fderiv ℝ i (fderiv ℝ f) x‖ * ‖iterated_fderiv ℝ (n - i) g x‖ :
+            n.choose i * ‖iterated_fderiv_within 𝕜 i (fderiv 𝕜 f) x‖ * ‖iterated_fderiv_within 𝕜 (n - i) g x‖ :
         mul_le_mul_of_nonneg_right (B.norm_precompL_le H) (finset.sum_nonneg' (λ i, by positivity))
       ... = _ :
         begin
@@ -144,15 +147,21 @@ begin
           apply finset.sum_congr rfl (λ i hi, _ ),
           rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
         end,-/
-    rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
-    have A : cont_diff ℝ n (λ y, B.precompR H (f y) (fderiv ℝ g y)), sorry,
-    have A' : cont_diff ℝ n (λ y, B.precompL H (fderiv ℝ f y) (g y)), sorry,
+    rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map],
+    have : ∀ x ∈ s, fderiv_within 𝕜 (λ (y : H), ⇑(⇑B (f y)) (g y)) s x =
+      B.precompR H (f x) (fderiv 𝕜 g x) + B.precompL H (fderiv 𝕜 f x) (g x),
+    {
+
+    },
+    have A : cont_diff 𝕜 n (λ y, B.precompR H (f y) (fderiv 𝕜 g y)), sorry,
+    have A' : cont_diff 𝕜 n (λ y, B.precompL H (fderiv 𝕜 f y) (g y)), sorry,
+    have Z := B.fderiv_within_of_bilinear,
     simp_rw [glouk B f g hf hg, iterated_fderiv_add_apply' A A'],
     apply (norm_add_le _ _).trans ((add_le_add I1 I2).trans (le_of_eq _)),
     rw ← mul_add,
     congr' 1,
-    exact (sum_choose_succ_mul_mul_sub (λ i, ‖iterated_fderiv ℝ i f x‖)
-      (λ i, ‖iterated_fderiv ℝ i g x‖) n).symm }
+    exact (sum_choose_succ_mul_mul_sub (λ i, ‖iterated_fderiv_within 𝕜 i f x‖)
+      (λ i, ‖iterated_fderiv_within 𝕜 i g x‖) n).symm }
 end
 
 #exit

@@ -68,19 +68,24 @@ open_locale big_operators
 
 lemma boo (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F) (f' : H →L[ℝ] E) (g' : H →L[ℝ] F) (x: H)
   (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
-  has_fderiv_at (λ y, B (f y) (g y)) ((B (f x)).comp g' + (B.flip (g x)).comp f') x :=
+  has_fderiv_at (λ y, B (f y) (g y)) (B.precompR H (f x) g' + B.precompL H f' (g x)) x :=
 (B.is_bounded_bilinear_map.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
 
 lemma glouk (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
   (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) :
   fderiv ℝ (λ y, B (f y) (g y)) =
-    λ x, ((B (f x)).comp (fderiv ℝ g x) + (B.flip (g x)).comp (fderiv ℝ f x)) :=
+    λ x, (B.precompR H (f x) (fderiv ℝ g x) + B.precompL H (fderiv ℝ f x) (g x)) :=
 begin
   ext1 x,
   refine (boo B f g (fderiv ℝ f x) (fderiv ℝ g x) x _ _).fderiv,
   { exact (hf.differentiable le_top).differentiable_at.has_fderiv_at },
   { exact (hg.differentiable le_top).differentiable_at.has_fderiv_at },
 end
+
+ set_option trace.class_instances true
+--set_option profiler true
+
+local attribute [instance, priority 200] normed_add_comm_group.to_seminormed_add_comm_group
 
 lemma book (B : E →L[ℝ] F →L[ℝ] G) (f : H → E) (g : H → F)
   (hf : cont_diff ℝ ⊤ f) (hg : cont_diff ℝ ⊤ g) (x : H) (n : ℕ) :
@@ -94,11 +99,15 @@ begin
     apply ((B (f x)).le_op_norm (g x)).trans,
     apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
     exact B.le_op_norm (f x) },
-  { rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
-    have A : cont_diff ℝ n (λ y, (B (f y)).comp (fderiv ℝ g y)), sorry,
-    have A' : cont_diff ℝ n (λ y, (B.flip (g y)).comp (fderiv ℝ f y)), sorry,
+  { let Z := @IH E (H →L[ℝ] F) (H →L[ℝ] G) _ _ _ _ _ _,
+/-
+    rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map],
+    have A : cont_diff ℝ n (λ y, B.precompR H (f y) (fderiv ℝ g y)), sorry,
+    have A' : cont_diff ℝ n (λ y, B.precompL H (fderiv ℝ f y) (g y)), sorry,
     simp_rw [glouk B f g hf hg, iterated_fderiv_add_apply' A A'],
     apply (norm_add_le _ _).trans,
+    have Z := @IH E (H →L[ℝ] F) (H →L[ℝ] G) _ _ _ _ _ _ (B.precompR H),
+    -- have Z := IH (B.precompR H) f (fderiv ℝ g) sorry sorry, -/
 
   }
 end

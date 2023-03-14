@@ -1884,15 +1884,15 @@ product space structure on each of the submodules is important -- for example, w
 their Hilbert sum (`pi_lp V 2`).  For example, given an orthonormal set of vectors `v : ι → E`,
 we have an associated orthogonal family of one-dimensional subspaces of `E`, which it is convenient
 to be able to discuss using `ι → 𝕜` rather than `Π i : ι, span 𝕜 (v i)`. -/
-def orthogonal_family {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] (V : Π i, G i →ₗᵢ[𝕜] E) :
+def orthogonal_family (G : ι → Type*) [Π i, inner_product_space 𝕜 (G i)] (V : Π i, G i →ₗᵢ[𝕜] E) :
   Prop :=
 ∀ ⦃i j⦄, i ≠ j → ∀ v : G i, ∀ w : G j, ⟪V i v, V j w⟫ = 0
 
 variables {𝕜} {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)] {V : Π i, G i →ₗᵢ[𝕜] E}
-  (hV : orthogonal_family 𝕜 V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
+  (hV : orthogonal_family 𝕜 G V) [dec_V : Π i (x : G i), decidable (x ≠ 0)]
 
 lemma orthonormal.orthogonal_family {v : ι → E} (hv : orthonormal 𝕜 v) :
-  @orthogonal_family 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
+  orthogonal_family 𝕜 (λ i : ι, 𝕜)
     (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=
 λ i j hij a b, by simp [inner_smul_left, inner_smul_right, hv.2 hij]
 
@@ -1956,7 +1956,7 @@ end
 /-- The composition of an orthogonal family of subspaces with an injective function is also an
 orthogonal family. -/
 lemma orthogonal_family.comp {γ : Type*} {f : γ → ι} (hf : function.injective f) :
-  orthogonal_family 𝕜 (λ g : γ, (V (f g) : G (f g) →ₗᵢ[𝕜] E)) :=
+  orthogonal_family 𝕜 (λ g, G (f g)) (λ g, V (f g)) :=
 λ i j hij v w, hV (hf.ne hij) v w
 
 lemma orthogonal_family.orthonormal_sigma_orthonormal {α : ι → Type*} {v_family : Π i, (α i) → G i}
@@ -2055,7 +2055,7 @@ omit hV
 elements each from a different subspace in the family is linearly independent. In particular, the
 pairwise intersections of elements of the family are 0. -/
 lemma orthogonal_family.independent {V : ι → submodule 𝕜 E}
-  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   complete_lattice.independent V :=
 begin
   classical,
@@ -2075,7 +2075,7 @@ end
 
 include dec_ι
 lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
-  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ))
   (hV_sum : direct_sum.is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
@@ -2366,8 +2366,7 @@ begin
 end
 
 lemma submodule.orthogonal_family_self :
-  @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
-  (λ b, (cond b K Kᗮ).subtypeₗᵢ)
+  orthogonal_family 𝕜 (λ b, ↥(cond b K Kᗮ)) (λ b, (cond b K Kᗮ).subtypeₗᵢ)
 | tt tt := absurd rfl
 | tt ff := λ _ x y, submodule.inner_right_of_mem_orthogonal x.prop y.prop
 | ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop

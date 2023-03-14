@@ -284,7 +284,7 @@ lemma is_hilbert_sum.mk [Π i, complete_space $ G i]
 
 /-- This is `orthogonal_family.is_hilbert_sum` in the case of actual inclusions from subspaces. -/
 lemma is_hilbert_sum.mk_internal [Π i, complete_space $ F i]
-  (hFortho : @orthogonal_family 𝕜 E _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ))
+  (hFortho : orthogonal_family 𝕜 (λ i, F i) (λ i, (F i).subtypeₗᵢ))
   (hFtotal : ⊤ ≤ (⨆ i, (F i)).topological_closure) :
   @is_hilbert_sum _ 𝕜 _ E _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
 is_hilbert_sum.mk hFortho (by simpa [subtypeₗᵢ_to_linear_map, range_subtype] using hFtotal)

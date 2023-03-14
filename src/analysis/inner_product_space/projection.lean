@@ -1155,7 +1155,7 @@ variables {ι : Type*}
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
 lemma orthogonal_family.is_internal_iff_of_is_complete [decidable_eq ι]
-  {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ))
   (hc : is_complete (↑(supr V) : set E)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
@@ -1168,7 +1168,7 @@ end
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
 lemma orthogonal_family.is_internal_iff [decidable_eq ι] [finite_dimensional 𝕜 E]
-  {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),

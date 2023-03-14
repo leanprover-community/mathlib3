@@ -158,7 +158,7 @@ end
 
 instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 { norm_sq_eq_inner := norm_sq_eq_inner',
-  conj_sym := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_sym],
+  conj_symm := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_symm],
   add_left := add_left',
   smul_left := smul_left', }
 

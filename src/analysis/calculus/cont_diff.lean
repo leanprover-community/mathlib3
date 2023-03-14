@@ -1775,7 +1775,7 @@ lemma continuous_linear_map.iterated_fderiv_within_comp_left
 (((hf.ftaylor_series_within hs).continuous_linear_map_comp g).eq_ftaylor_series_of_unique_diff_on
   hi hs hx).symm
 
-/-- The iterated derivative within a set of the composition with a linear map on the left is
+/-- The iterated derivative within a set of the composition with a linear equiv on the left is
 obtained by applying the linear map to the iterated derivative. -/
 lemma continuous_linear_map.iterated_fderiv_within_comp_left_of_injective
   {f : E → F} (g : F ≃L[𝕜] G) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (i : ℕ) :
@@ -1784,16 +1784,22 @@ lemma continuous_linear_map.iterated_fderiv_within_comp_left_of_injective
 begin
   induction i with i IH generalizing x,
   { ext1 m,
-    simp  },
+    simp only [iterated_fderiv_within_zero_apply, continuous_linear_equiv.coe_coe,
+      continuous_linear_map.comp_continuous_multilinear_map_coe, embedding_like.apply_eq_iff_eq] },
   { ext1 m,
     rw iterated_fderiv_within_succ_apply_left,
-    have Z : iterated_fderiv_within 𝕜 i (g ∘ f) s =
-      λ y, g.comp_continuous_multilinear_mapL E (iterated_fderiv_within 𝕜 i f s y),
-    sorry,
-    simp_rw Z, clear Z,
-    have T := continuous_linear_equiv.comp_fderiv_within,
+    have Z : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (g ∘ f) s) s x =
+      fderiv_within 𝕜 (λ y, g.comp_continuous_multilinear_mapL (λ (j : fin i), E)
+        (iterated_fderiv_within 𝕜 i f s y)) s x,
+    { apply fderiv_within_congr' (hs x hx) _ hx,
 
-  }
+    },
+    simp_rw Z,
+    rw (g.comp_continuous_multilinear_mapL (λ (j : fin i), E)).comp_fderiv_within (hs x hx),
+    simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
+      continuous_linear_equiv.comp_continuous_multilinear_mapL_apply,
+      continuous_linear_map.comp_continuous_multilinear_map_coe, embedding_like.apply_eq_iff_eq],
+    rw iterated_fderiv_within_succ_apply_left }
 end
 
 #exit

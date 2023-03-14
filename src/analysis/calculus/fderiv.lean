@@ -851,13 +851,18 @@ lemma filter.eventually_eq.fderiv_within_eq_nhds (hs : unique_diff_within_at �
 (show f₁ =ᶠ[𝓝[s] x] f, from nhds_within_le_nhds hL).fderiv_within_eq hs (mem_of_mem_nhds hL : _)
 
 lemma fderiv_within_congr (hs : unique_diff_within_at 𝕜 s x)
-  (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
+  (hL : ∀ y ∈ s, f₁ y = f y) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
 begin
   apply filter.eventually_eq.fderiv_within_eq hs _ hx,
   apply mem_of_superset self_mem_nhds_within,
   exact hL
 end
+
+lemma fderiv_within_congr' (hs : unique_diff_within_at 𝕜 s x)
+  (hL : ∀ y ∈ s, f₁ y = f y) (hx : x ∈ s) :
+  fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
+fderiv_within_congr hs hL (hL x hx)
 
 lemma filter.eventually_eq.fderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
   fderiv 𝕜 f₁ x = fderiv 𝕜 f x :=

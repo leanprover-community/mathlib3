@@ -825,7 +825,7 @@ instance : pred_order (with_top α) :=
 @[simp] lemma pred_top : pred (⊤ : with_top α) = ↑(⊤ : α) := rfl
 @[simp] lemma pred_coe (a : α) : pred (↑a : with_top α) = ↑(pred a) := rfl
 
-@[simp] lemma pred_unbot : ∀ (a : with_top α) (ha : a ≠ ⊤),
+@[simp] lemma pred_untop : ∀ (a : with_top α) (ha : a ≠ ⊤),
   pred (a.untop ha) = (pred a).untop (by induction a using with_top.rec_top_coe; simp)
 | ⊤ ha := (ha rfl).elim
 | (a : α) ha := rfl

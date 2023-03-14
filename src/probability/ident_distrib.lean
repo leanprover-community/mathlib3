@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import probability.variance
+import measure_theory.function.uniform_integrable
 
 /-!
 # Identically distributed random variables
@@ -43,7 +44,7 @@ instance:
 
 We also register several dot notation shortcuts for convenience.
 For instance, if `h : ident_distrib f g μ ν`, then `h.sq` states that `f^2` and `g^2` are
-identically distributed, and `h.norm` states that `∥f∥` and `∥g∥` are identically distributed, and
+identically distributed, and `h.norm` states that `‖f‖` and `‖g‖` are identically distributed, and
 so on.
 -/
 
@@ -51,7 +52,7 @@ open measure_theory filter finset
 
 noncomputable theory
 
-open_locale topological_space big_operators measure_theory ennreal nnreal
+open_locale topology big_operators measure_theory ennreal nnreal
 
 variables {α β γ δ : Type*} [measurable_space α] [measurable_space β]
   [measurable_space γ] [measurable_space δ]
@@ -106,6 +107,12 @@ protected lemma comp_of_ae_measurable {u : γ → δ} (h : ident_distrib f g μ 
 protected lemma comp {u : γ → δ} (h : ident_distrib f g μ ν) (hu : measurable u) :
   ident_distrib (u ∘ f) (u ∘ g) μ ν :=
 h.comp_of_ae_measurable hu.ae_measurable
+
+protected lemma of_ae_eq {g : α → γ} (hf : ae_measurable f μ) (heq : f =ᵐ[μ] g) :
+  ident_distrib f g μ μ :=
+{ ae_measurable_fst := hf,
+  ae_measurable_snd := hf.congr heq,
+  map_eq := measure.map_congr heq }
 
 lemma measure_mem_eq (h : ident_distrib f g μ ν) {s : set γ} (hs : measurable_set s) :
   μ (f ⁻¹' s) = ν (g ⁻¹' s) :=
@@ -234,11 +241,11 @@ lemma integrable_iff [normed_add_comm_group γ] [borel_space γ] (h : ident_dist
 ⟨λ hf, h.integrable_snd hf, λ hg, h.symm.integrable_snd hg⟩
 
 protected lemma norm [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
-  ident_distrib (λ x, ∥f x∥) (λ x, ∥g x∥) μ ν :=
+  ident_distrib (λ x, ‖f x‖) (λ x, ‖g x‖) μ ν :=
 h.comp measurable_norm
 
 protected lemma nnnorm [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
-  ident_distrib (λ x, ∥f x∥₊) (λ x, ∥g x∥₊) μ ν :=
+  ident_distrib (λ x, ‖f x‖₊) (λ x, ‖g x‖₊) μ ν :=
 h.comp measurable_nnnorm
 
 protected lemma pow [has_pow γ ℕ] [has_measurable_pow γ ℕ] (h : ident_distrib f g μ ν) {n : ℕ} :
@@ -273,14 +280,72 @@ lemma const_div [has_div γ] [has_measurable_div γ] (h : ident_distrib f g μ �
   ident_distrib (λ x, c / f x) (λ x, c / g x) μ ν :=
 h.comp (has_measurable_div.measurable_const_div c)
 
-lemma variance_eq {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) :
-  variance f μ = variance g ν :=
+lemma evariance_eq {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) :
+  evariance f μ = evariance g ν :=
 begin
-  convert (h.sub_const (∫ x, f x ∂μ)).sq.integral_eq,
+  convert (h.sub_const (∫ x, f x ∂μ)).nnnorm.coe_nnreal_ennreal.sq.lintegral_eq,
   rw h.integral_eq,
   refl
 end
 
+lemma variance_eq {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) :
+  variance f μ = variance g ν :=
+by { rw [variance, h.evariance_eq], refl, }
+
 end ident_distrib
+
+section uniform_integrable
+
+open topological_space
+
+variables {E : Type*} [measurable_space E] [normed_add_comm_group E] [borel_space E]
+  [second_countable_topology E] {μ : measure α} [is_finite_measure μ]
+
+/-- This lemma is superceded by `mem_ℒp.uniform_integrable_of_ident_distrib` which only require
+`ae_strongly_measurable`. -/
+lemma mem_ℒp.uniform_integrable_of_ident_distrib_aux {ι : Type*} {f : ι → α → E}
+  {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hℒp : mem_ℒp (f j) p μ) (hfmeas : ∀ i, strongly_measurable (f i))
+  (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
+  uniform_integrable f p μ :=
+begin
+  refine uniform_integrable_of' hp hp' hfmeas (λ ε hε, _),
+  by_cases hι : nonempty ι,
+  swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
+  obtain ⟨C, hC₁, hC₂⟩ := hℒp.snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
+  have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ‖f i x‖₊} :=
+    λ i, measurable_set_le measurable_const (hfmeas _).measurable.nnnorm,
+  refine ⟨⟨C, hC₁.le⟩, λ i, le_trans (le_of_eq _) hC₂⟩,
+  have : {x : α | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ‖f i x‖₊}.indicator (f i) =
+    (λ x : E, if (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ‖x‖₊ then x else 0) ∘ (f i),
+  { ext x,
+    simp only [set.indicator, set.mem_set_of_eq] },
+  simp_rw [coe_nnnorm, this],
+  rw [← snorm_map_measure _ (hf i).ae_measurable_fst, (hf i).map_eq,
+    snorm_map_measure _ (hf j).ae_measurable_fst],
+  { refl },
+  all_goals { exact ae_strongly_measurable_id.indicator
+      (measurable_set_le measurable_const measurable_nnnorm) },
+end
+
+/-- A sequence of identically distributed Lᵖ functions is p-uniformly integrable. -/
+lemma mem_ℒp.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
+  {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hℒp : mem_ℒp (f j) p μ) (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
+  uniform_integrable f p μ :=
+begin
+  have hfmeas : ∀ i, ae_strongly_measurable (f i) μ :=
+    λ i, (hf i).ae_strongly_measurable_iff.2 hℒp.1,
+  set g : ι → α → E := λ i, (hfmeas i).some,
+  have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfmeas i).1,
+  have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hfmeas i).2.symm,
+  have hgℒp : mem_ℒp (g j) p μ := hℒp.ae_eq (hgeq j).symm,
+  exact uniform_integrable.ae_eq (mem_ℒp.uniform_integrable_of_ident_distrib_aux hp hp'
+    hgℒp hgmeas $
+    λ i, (ident_distrib.of_ae_eq (hgmeas i).ae_measurable (hgeq i)).trans ((hf i).trans
+      $ ident_distrib.of_ae_eq (hfmeas j).ae_measurable (hgeq j).symm)) hgeq,
+end
+
+end uniform_integrable
 
 end probability_theory

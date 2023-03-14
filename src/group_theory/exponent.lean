@@ -3,9 +3,10 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
+import data.zmod.quotient
+import group_theory.noncomm_pi_coprod
 import group_theory.order_of_element
 import algebra.gcd_monoid.finset
-import algebra.punit_instances
 import data.nat.factorization.basic
 import tactic.by_contra
 
@@ -178,7 +179,7 @@ begin
     { simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
     exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
                 nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (nat.dvd_of_mem_factorization h) hd) },
-  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.pow_factorization_dvd _ _,
+  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.ord_proj_dvd _ _,
   obtain ⟨t, ht⟩ := nat.exists_eq_succ_of_ne_zero (finsupp.mem_support_iff.mp h),
   refine ⟨g ^ k, _⟩,
   rw ht,
@@ -235,8 +236,9 @@ section left_cancel_monoid
 variable [left_cancel_monoid G]
 
 @[to_additive]
-lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
-by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
+lemma exponent_ne_zero_of_finite [finite G] : exponent G ≠ 0 :=
+by { casesI nonempty_fintype G,
+  simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne' }
 
 end left_cancel_monoid
 
@@ -268,7 +270,7 @@ begin
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
     exact this.not_le (le_cSup hfin.bdd_above $ set.mem_range_self _) },
-  have hpk  : p ^ k ∣ order_of t := nat.pow_factorization_dvd _ _,
+  have hpk  : p ^ k ∣ order_of t := nat.ord_proj_dvd _ _,
   have hpk' : order_of (t ^ p ^ k) = order_of t / p ^ k,
   { rw [order_of_pow' t (pow_ne_zero k hp.ne_zero), nat.gcd_eq_right hpk] },
   obtain ⟨a, ha⟩ := nat.exists_eq_add_of_lt hpe,
@@ -312,3 +314,32 @@ end
 end cancel_comm_monoid
 
 end monoid
+
+section comm_group
+
+open subgroup
+open_locale big_operators
+
+variables (G) [comm_group G] [group.fg G]
+
+@[to_additive] lemma card_dvd_exponent_pow_rank : nat.card G ∣ monoid.exponent G ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
+  let f : (Π g : S, zpowers (g : G)) →* G := noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
+  have hf : function.surjective f,
+  { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
+    exact λ g hg, ⟨pi.mul_single ⟨g, hg⟩ ⟨g, mem_zpowers g⟩, noncomm_pi_coprod_mul_single _ _⟩ },
+  replace hf := nat_card_dvd_of_surjective f hf,
+  rw nat.card_pi at hf,
+  refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
+  rw ← order_eq_card_zpowers',
+  exact monoid.order_dvd_exponent (g : G),
+end
+
+@[to_additive] lemma card_dvd_exponent_pow_rank' {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
+  nat.card G ∣ n ^ group.rank G :=
+(card_dvd_exponent_pow_rank G).trans
+    (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
+
+end comm_group

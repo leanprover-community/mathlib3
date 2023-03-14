@@ -156,7 +156,7 @@ universes v u
 we will equip with a category structure where the morphisms are formal `R`-linear combinations
 of the morphisms in `C`.
 -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def Free (R : Type*) (C : Type u) := C
 
 /--
@@ -196,14 +196,14 @@ instance : preadditive (Free R C) :=
 { hom_group := λ X Y, finsupp.add_comm_group,
   add_comp' := λ X Y Z f f' g, begin
     dsimp,
-    rw [finsupp.sum_add_index];
+    rw [finsupp.sum_add_index'];
     { simp [add_mul], }
   end,
   comp_add' := λ X Y Z f g g', begin
     dsimp,
     rw ← finsupp.sum_add,
     congr, ext r h,
-    rw [finsupp.sum_add_index];
+    rw [finsupp.sum_add_index'];
     { simp [mul_add], },
   end, }
 
@@ -257,7 +257,7 @@ def lift (F : C ⥤ D) : Free R C ⥤ D :=
     { simp only [limits.zero_comp, sum_zero_index] },
     { intros f₁ f₂ w₁ w₂,
       rw add_comp,
-      rw [finsupp.sum_add_index, finsupp.sum_add_index],
+      rw [finsupp.sum_add_index', finsupp.sum_add_index'],
       { simp only [w₁, w₂, add_comp] },
       { intros, rw zero_smul },
       { intros, simp only [add_smul], },
@@ -268,7 +268,7 @@ def lift (F : C ⥤ D) : Free R C ⥤ D :=
       { simp only [limits.comp_zero, sum_zero_index] },
       { intros f₁ f₂ w₁ w₂,
         rw comp_add,
-        rw [finsupp.sum_add_index, finsupp.sum_add_index],
+        rw [finsupp.sum_add_index', finsupp.sum_add_index'],
         { simp only [w₁, w₂, comp_add], },
         { intros, rw zero_smul },
         { intros, simp only [add_smul], },
@@ -287,7 +287,7 @@ by simp
 instance lift_additive (F : C ⥤ D) : (lift R F).additive :=
 { map_add' := λ X Y f g, begin
     dsimp,
-    rw finsupp.sum_add_index; simp [add_smul]
+    rw finsupp.sum_add_index'; simp [add_smul]
   end, }
 
 instance lift_linear (F : C ⥤ D) : (lift R F).linear R :=

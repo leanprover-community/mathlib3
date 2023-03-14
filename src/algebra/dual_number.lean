@@ -43,8 +43,8 @@ abbreviation dual_number (R : Type*) : Type* := triv_sq_zero_ext R R
 /-- The unit element $ε$ that squares to zero. -/
 def dual_number.eps [has_zero R] [has_one R] : dual_number R := triv_sq_zero_ext.inr 1
 
-localized "notation `ε` := dual_number.eps" in dual_number
-localized "postfix `[ε]`:1025 := dual_number" in dual_number
+localized "notation (name := dual_number.eps) `ε` := dual_number.eps" in dual_number
+localized "postfix (name := dual_number) `[ε]`:1025 := dual_number" in dual_number
 
 open_locale dual_number
 
@@ -56,7 +56,7 @@ open triv_sq_zero_ext
 @[simp] lemma snd_eps [has_zero R] [has_one R] : snd ε = (1 : R) := snd_inr _ _
 
 /-- A version of `triv_sq_zero_ext.snd_mul` with `*` instead of `•`. -/
-@[simp] lemma snd_mul [semiring R] (x y : R[ε]) : snd (x * y) = fst x * snd y + fst y * snd x :=
+@[simp] lemma snd_mul [semiring R] (x y : R[ε]) : snd (x * y) = fst x * snd y + snd x * fst y :=
 snd_mul _ _
 
 @[simp] lemma eps_mul_eps [semiring R] : (ε * ε : R[ε]) = 0 := inr_mul_inr _ _ _

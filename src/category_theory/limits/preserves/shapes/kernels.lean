@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.kernels
-import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.shapes.zero
 
 /-!
@@ -89,8 +88,8 @@ def preserves_kernel.of_iso_comparison [i : is_iso (kernel_comparison f G)] :
 begin
   apply preserves_limit_of_preserves_limit_cone (kernel_is_kernel f),
   apply (is_limit_map_cone_fork_equiv' G (kernel.condition f)).symm _,
-  apply is_limit.of_point_iso (limit.is_limit (parallel_pair (G.map f) 0)),
-  apply i,
+  apply is_limit.of_point_iso (kernel_is_kernel (G.map f)),
+  exact i,
 end
 
 variables [preserves_limit (parallel_pair f 0) G]
@@ -102,7 +101,7 @@ def preserves_kernel.iso :
   G.obj (kernel f) ≅ kernel (G.map f) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_kernel_of_preserves_limit G f)
-  (limit.is_limit _)
+  (kernel_is_kernel _)
 
 @[simp]
 lemma preserves_kernel.iso_hom :
@@ -113,6 +112,17 @@ instance : is_iso (kernel_comparison f G) :=
 begin
   rw ← preserves_kernel.iso_hom,
   apply_instance
+end
+
+@[reassoc] lemma kernel_map_comp_preserves_kernel_iso_inv {X' Y' : C} (g : X' ⟶ Y') [has_kernel g]
+  [has_kernel (G.map g)] [preserves_limit (parallel_pair g 0) G] (p : X ⟶ X') (q : Y ⟶ Y')
+  (hpq : f ≫ q = p ≫ g) :
+  kernel.map (G.map f) (G.map g) (G.map p) (G.map q)
+    (by rw [←G.map_comp, hpq, G.map_comp]) ≫ (preserves_kernel.iso G _).inv
+  = (preserves_kernel.iso G _).inv ≫ G.map (kernel.map f g p q hpq) :=
+begin
+  rw [iso.comp_inv_eq, category.assoc, preserves_kernel.iso_hom, iso.eq_inv_comp],
+  exact kernel_comparison_comp_kernel_map _ _ _ _ _ _,
 end
 
 end kernels
@@ -181,8 +191,8 @@ def preserves_cokernel.of_iso_comparison [i : is_iso (cokernel_comparison f G)] 
 begin
   apply preserves_colimit_of_preserves_colimit_cocone (cokernel_is_cokernel f),
   apply (is_colimit_map_cocone_cofork_equiv' G (cokernel.condition f)).symm _,
-  apply is_colimit.of_point_iso (colimit.is_colimit (parallel_pair (G.map f) 0)),
-  apply i,
+  apply is_colimit.of_point_iso (cokernel_is_cokernel (G.map f)),
+  exact i,
 end
 
 variables [preserves_colimit (parallel_pair f 0) G]
@@ -194,7 +204,7 @@ def preserves_cokernel.iso :
   G.obj (cokernel f) ≅ cokernel (G.map f) :=
 is_colimit.cocone_point_unique_up_to_iso
   (is_colimit_of_has_cokernel_of_preserves_colimit G f)
-  (colimit.is_colimit _)
+  (cokernel_is_cokernel _)
 
 @[simp]
 lemma preserves_cokernel.iso_inv :
@@ -205,6 +215,17 @@ instance : is_iso (cokernel_comparison f G) :=
 begin
   rw ← preserves_cokernel.iso_inv,
   apply_instance
+end
+
+@[reassoc] lemma preserves_cokernel_iso_comp_cokernel_map {X' Y' : C} (g : X' ⟶ Y')
+  [has_cokernel g] [has_cokernel (G.map g)] [preserves_colimit (parallel_pair g 0) G]
+  (p : X ⟶ X') (q : Y ⟶ Y') (hpq : f ≫ q = p ≫ g) :
+  (preserves_cokernel.iso G _).hom ≫ cokernel.map (G.map f) (G.map g) (G.map p) (G.map q)
+    (by rw [←G.map_comp, hpq, G.map_comp]) =
+  G.map (cokernel.map f g p q hpq) ≫ (preserves_cokernel.iso G _).hom :=
+begin
+  rw [←iso.comp_inv_eq, category.assoc, ←iso.eq_inv_comp],
+  exact cokernel_map_comp_cokernel_comparison _ _ _ _ _ _,
 end
 
 end cokernels

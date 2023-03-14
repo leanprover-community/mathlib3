@@ -3,7 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+
 import tactic.rcases
+
 /-!
 # lift tactic
 
@@ -17,20 +19,18 @@ lift, tactic
 
 /-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
   Used by the tactic `lift`. -/
-class can_lift (α β : Sort*) :=
-(coe : β → α)
-(cond : α → Prop)
+class can_lift (α β : Sort*) (coe : out_param $ β → α) (cond : out_param $ α → Prop) :=
 (prf : ∀(x : α), cond x → ∃(y : β), coe y = x)
 
-instance : can_lift ℤ ℕ :=
-⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
+instance : can_lift ℤ ℕ coe ((≤) 0) :=
+⟨λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
 /-- Enable automatic handling of pi types in `can_lift`. -/
-instance pi.can_lift (ι : Sort*) (α β : ι → Sort*) [Π i : ι, can_lift (α i) (β i)] :
-  can_lift (Π i : ι, α i) (Π i : ι, β i) :=
-{ coe := λ f i, can_lift.coe (f i),
-  cond := λ f, ∀ i, can_lift.cond (β i) (f i),
-  prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
+instance pi.can_lift (ι : Sort*) (α β : ι → Sort*)
+  (coe : Π i, β i → α i) (P : Π i, α i → Prop)
+  [Π i : ι, can_lift (α i) (β i) (coe i) (P i)] :
+  can_lift (Π i : ι, α i) (Π i : ι, β i) (λ f i, coe i (f i)) (λ f, ∀ i, P i (f i)) :=
+{ prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
 
 lemma subtype.exists_pi_extension {ι : Sort*} {α : ι → Sort*} [ne : Π i, nonempty (α i)]
@@ -45,38 +45,17 @@ end
 
 instance pi_subtype.can_lift (ι : Sort*) (α : ι → Sort*) [ne : Π i, nonempty (α i)]
   (p : ι → Prop) :
-  can_lift (Π i : subtype p, α i) (Π i, α i) :=
-{ coe := λ f i, f i,
-  cond := λ _, true,
-  prf := λ f _, subtype.exists_pi_extension f }
+  can_lift (Π i : subtype p, α i) (Π i, α i) (λ f i, f i) (λ _, true) :=
+{ prf := λ f _, subtype.exists_pi_extension f }
 
 instance pi_subtype.can_lift' (ι : Sort*) (α : Sort*) [ne : nonempty α] (p : ι → Prop) :
-  can_lift (subtype p → α) (ι → α) :=
+  can_lift (subtype p → α) (ι → α) (λ f i, f i) (λ _, true) :=
 pi_subtype.can_lift ι (λ _, α) p
 
-instance subtype.can_lift {α : Sort*} (p : α → Prop) : can_lift α {x // p x} :=
-{ coe := coe,
-  cond := p,
-  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+instance subtype.can_lift {α : Sort*} (p : α → Prop) : can_lift α {x // p x} coe p :=
+{ prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
 
 open tactic
-
-/--
-A user attribute used internally by the `lift` tactic.
-This should not be applied by hand.
--/
-@[user_attribute]
-meta def can_lift_attr : user_attribute (list name) :=
-{ name := "_can_lift",
-  descr := "internal attribute used by the lift tactic",
-  parser := failed,
-  cache_cfg :=
-  { mk_cache := λ _,
-      do { ls ← attribute.get_instances `instance,
-          ls.mfilter $ λ l,
-          do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
-          return $ t.is_app_of `can_lift } },
-    dependencies := [`instance] } }
 
 namespace tactic
 
@@ -87,23 +66,24 @@ Construct the proof of `cond x` in the lift tactic.
 *  `s` and `to_unfold` contain the information of the simp set used to simplify.
 
 If the proof was specified, we check whether it has the correct type.
-If it doesn't have the correct type, we display an error message
-(but first call dsimp on the expression in the message).
+If it doesn't have the correct type, we display an error message.
 
 If the proof was not specified, we create assert it as a local constant.
 (The name of this local constant doesn't matter, since `lift` will remove it from the context.)
 -/
-meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
-  (s : simp_lemmas) (to_unfold : list name) : tactic expr := do
-  expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],
-  expected_prf_ty ← s.dsimplify to_unfold expected_prf_ty,
-  if h_some : h.is_some then
-    decorate_error "lift tactic failed." $ i_to_expr ``((%%(option.get h_some) : %%expected_prf_ty))
-  else do
-    prf_nm ← get_unused_name,
-    prf ← assert prf_nm expected_prf_ty,
-    swap,
-    return prf
+meta def get_lift_prf (h : option pexpr) (e P : expr) : tactic (expr × bool) := do
+  let expected_prf_ty := P.app e,
+  expected_prf_ty ← simp_lemmas.mk.dsimplify [] expected_prf_ty {fail_if_unchanged := ff},
+  match h with
+  | some h := do
+      e ← decorate_error "lift tactic failed." (i_to_expr ``((%%h : %%expected_prf_ty))),
+      return (e, tt)
+  | none   := do
+      prf_nm ← get_unused_name,
+      prf ← assert prf_nm expected_prf_ty,
+      swap,
+      return (prf, ff)
+  end
 
 /-- Lift the expression `p` to the type `t`, with proof obligation given by `h`.
   The list `n` is used for the two newly generated names, and to specify whether `h` should
@@ -116,19 +96,21 @@ do
   e ← i_to_expr p,
   old_tp ← infer_type e,
   new_tp ← i_to_expr ``(%%t : Sort*),
-  inst_type ← mk_app ``can_lift [old_tp, new_tp],
+  coe ← i_to_expr (``(%%new_tp → %%old_tp)) >>= mk_meta_var,
+  P ← i_to_expr (``(%%old_tp → Prop)) >>= mk_meta_var,
+  inst_type ← mk_app ``can_lift [old_tp, new_tp, coe, P],
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"
     >>= fail,
-  /- make the simp set to get rid of `can_lift` projections -/
-  can_lift_instances ← can_lift_attr.get_cache >>= λ l, l.mmap resolve_name,
-  (s, to_unfold) ← mk_simp_set tt [] $ can_lift_instances.map simp_arg_type.expr,
-  prf_cond ← get_lift_prf h old_tp new_tp inst e s to_unfold,
+  inst ← instantiate_mvars inst,
+  coe ← instantiate_mvars coe,
+  P ← instantiate_mvars P,
+  (prf_cond, b) ← get_lift_prf h e P,
   let prf_nm := if prf_cond.is_local_constant then some prf_cond.local_pp_name else none,
   /- We use mk_mapp to apply `can_lift.prf` to all but one argument, and then just use expr.app
   for the last argument. For some reason we get an error when applying mk_mapp it to all
   arguments. -/
-  prf_ex0 ← mk_mapp `can_lift.prf [old_tp, new_tp, inst, e],
+  prf_ex0 ← mk_mapp `can_lift.prf [old_tp, new_tp, coe, P, inst, e],
   let prf_ex := prf_ex0 prf_cond,
   /- Find the name of the new variable -/
   new_nm ← if n ≠ [] then return n.head
@@ -138,11 +120,10 @@ do
   eq_nm ← if hn : 1 < n.length then return (n.nth_le 1 hn)
     else if e.is_local_constant then return `rfl
     else get_unused_name `h,
-  /- We add the proof of the existential statement to the context and then apply
-  `dsimp` to it, unfolding all `can_lift` instances. -/
+  /- We add the proof of the existential statement to the context -/
   temp_nm ← get_unused_name,
   temp_e ← note temp_nm none prf_ex,
-  dsimp_hyp temp_e s to_unfold {},
+  dsimp_hyp temp_e none [] { fail_if_unchanged := ff },
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
   rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
   /- If the lifted variable is not a local constant,
@@ -152,7 +133,8 @@ do
   /- If the proof `prf_cond` is a local constant, remove it from the context,
     unless `n` specifies to keep it. -/
   if h_prf_nm : prf_nm.is_some ∧ n.nth 2 ≠ prf_nm then
-    get_local (option.get h_prf_nm.1) >>= clear else skip
+    get_local (option.get h_prf_nm.1) >>= clear else skip,
+  if b then skip else swap
 
 setup_tactic_parser
 
@@ -175,9 +157,10 @@ Lift an expression to another type.
     (here `P` is some term of type `ℤ → Prop`).
 * The argument `using hn` is optional, the tactic `lift n to ℕ` does the same, but also creates a
   new subgoal that `n ≥ 0` (where `n` is the old variable).
+  This subgoal will be placed at the top of the goal list.
   + So for example the tactic `lift n to ℕ` transforms the goal
     `n : ℤ, h : P n ⊢ n = 3` to two goals
-    `n : ℕ, h : P ↑n ⊢ ↑n = 3` and `n : ℤ, h : P n ⊢ n ≥ 0`.
+    `n : ℤ, h : P n ⊢ n ≥ 0` and `n : ℕ, h : P ↑n ⊢ ↑n = 3`.
 * You can also use `lift n to ℕ using e` where `e` is any expression of type `n ≥ 0`.
 * Use `lift n to ℕ with k` to specify the name of the new variable.
 * Use `lift n to ℕ with k hk` to also specify the name of the equality `↑k = n`. In this case, `n`

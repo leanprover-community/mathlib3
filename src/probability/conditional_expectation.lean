@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import probability.notation
 import probability.independence
+import measure_theory.function.conditional_expectation.basic
 
 /-!
 
@@ -27,8 +28,8 @@ namespace measure_theory
 
 open probability_theory
 
-variables {α E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
-  {m₁ m₂ m : measurable_space α} {μ : measure α} {f : α → E}
+variables {Ω E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {m₁ m₂ m : measurable_space Ω} {μ : measure Ω} {f : Ω → E}
 
 /-- If `m₁, m₂` are independent σ-algebras and `f` is `m₁`-measurable, then `𝔼[f | m₂] = 𝔼[f]`
 almost everywhere. -/
@@ -38,7 +39,7 @@ lemma condexp_indep_eq
   μ[f | m₂] =ᵐ[μ] λ x, μ[f] :=
 begin
   by_cases hfint : integrable f μ,
-  swap, { exact (integral_undef hfint).symm ▸ condexp_undef hfint },
+  swap, { rw [condexp_undef hfint, integral_undef hfint], refl, },
   have hfint₁ := hfint.trim hle₁ hf,
   refine (ae_eq_condexp_of_forall_set_integral_eq hle₂ hfint
     (λ s _ hs, integrable_on_const.2 (or.inr hs)) (λ s hms hs, _)

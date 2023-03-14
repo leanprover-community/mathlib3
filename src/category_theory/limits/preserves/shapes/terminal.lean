@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving terminal object
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving terminal objects and reflecting terminal objects
 to concrete objects.
 

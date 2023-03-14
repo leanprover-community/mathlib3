@@ -3,9 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.multilinear.basis
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.reindex
-import ring_theory.algebra_tower
 import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.basis
@@ -89,8 +88,8 @@ begin
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices, which is easy.
   let e := index_equiv_of_inv hMM' hM'M,
-  rw [← det_minor_equiv_self e, ← minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
-    minor_mul_equiv, equiv.coe_refl, minor_id_id]
+  rw [← det_submatrix_equiv_self e, ← submatrix_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+    submatrix_mul_equiv, equiv.coe_refl, submatrix_id_id]
 end
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`.
@@ -130,7 +129,7 @@ there is no good way to generalize over universe parameters, so we can't fully s
 type that it does not depend on the choice of basis. Instead you can use the `det_aux_def'` lemma,
 or avoid mentioning a basis at all using `linear_map.det`.
 -/
-def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
+@[irreducible] def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
     (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
@@ -142,10 +141,7 @@ See also `det_aux_def'` which allows you to vary the basis.
 -/
 lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
   linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
-rfl
-
--- Discourage the elaborator from unfolding `det_aux` and producing a huge term.
-attribute [irreducible] linear_map.det_aux
+by  { rw [det_aux], refl }
 
 lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (tb : trunc $ basis ι A M) (b' : basis ι' A M) (f : M →ₗ[A] M) :
@@ -210,6 +206,10 @@ by simp [← to_matrix_eq_to_matrix']
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
+@[simp] lemma det_to_lin' (f : matrix ι ι R) :
+  linear_map.det (f.to_lin') = f.det :=
+by simp only [← to_lin_eq_to_lin', det_to_lin]
+
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]
 lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)
@@ -238,7 +238,7 @@ linear_map.det.map_one
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
   { haveI : finite_dimensional 𝕜 M,
-    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_fintype_basis hs },
     simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
               fintype.card_fin, det_smul] },
   { classical,
@@ -246,11 +246,10 @@ begin
     simp [coe_det, H, this] }
 end
 
-lemma det_zero' {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
+lemma det_zero' {ι : Type*} [finite ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
-by { haveI := classical.dec_eq ι,
-     rw [← det_to_matrix b, linear_equiv.map_zero, det_zero],
-     assumption }
+by { haveI := classical.dec_eq ι, casesI nonempty_fintype ι,
+     rwa [← det_to_matrix b, linear_equiv.map_zero, det_zero] }
 
 /-- In a finite-dimensional vector space, the zero map has determinant `1` in dimension `0`,
 and `0` otherwise. We give a formula that also works in infinite dimension, where we define
@@ -258,6 +257,26 @@ the determinant to be `1`. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
+
+lemma det_eq_one_of_subsingleton [subsingleton M] (f : M →ₗ[R] M) : (f : M →ₗ[R] M).det = 1 :=
+begin
+  have b : basis (fin 0) R M := basis.empty M,
+  rw ← f.det_to_matrix b,
+  exact matrix.det_is_empty,
+end
+
+lemma det_eq_one_of_finrank_eq_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M]
+  [module 𝕜 M] (h : finite_dimensional.finrank 𝕜 M = 0) (f : M →ₗ[𝕜] M) :
+  (f : M →ₗ[𝕜] M).det = 1 :=
+begin
+  classical,
+  refine @linear_map.det_cases M  _ 𝕜 _ _ _ (λ t, t = 1) f _ rfl,
+  intros s b,
+  haveI : is_empty s,
+  { rw ← fintype.card_eq_zero_iff,
+    exact (finite_dimensional.finrank_eq_card_basis b).symm.trans h },
+  exact matrix.det_is_empty
+end
 
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
@@ -295,7 +314,7 @@ lemma finite_dimensional_of_det_ne_one {𝕜 : Type*} [field 𝕜] [module 𝕜 
   (f : M →ₗ[𝕜] M) (hf : f.det ≠ 1) : finite_dimensional 𝕜 M :=
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
-  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_fintype_basis hs },
   { classical,
     simp [linear_map.coe_det, H] at hf,
     exact hf.elim }
@@ -455,6 +474,12 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
+@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M 1 :=
+begin
+  ext v,
+  exact matrix.det_is_empty,
+end
+
 /-- `basis.det` is not the zero map. -/
 lemma basis.det_ne_zero [nontrivial R] : e.det ≠ 0 :=
 λ h, by simpa [h] using e.det_self
@@ -464,7 +489,7 @@ lemma is_basis_iff_det {v : ι → M} :
 begin
   split,
   { rintro ⟨hli, hspan⟩,
-    set v' := basis.mk hli hspan with v'_eq,
+    set v' := basis.mk hli hspan.ge with v'_eq,
     rw e.det_apply,
     convert linear_equiv.is_unit_det (linear_equiv.refl _ _) v' e using 2,
     ext i j,
@@ -486,16 +511,19 @@ map with respect to that basis, multiplied by the value of that alternating map 
 lemma alternating_map.eq_smul_basis_det (f : alternating_map R M R ι) : f = f e • e.det :=
 begin
   refine basis.ext_alternating e (λ i h, _),
-  let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
+  let σ : equiv.perm ι := equiv.of_bijective i (finite.injective_iff_bijective.1 h),
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
   simp [alternating_map.map_perm, basis.det_self]
 end
 
-@[simp] lemma alternating_map.map_basis_eq_zero_iff (f : alternating_map R M R ι) :
+@[simp] lemma alternating_map.map_basis_eq_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+  (e : basis ι R M) (f : alternating_map R M R ι) :
   f e = 0 ↔ f = 0 :=
-⟨λ h, by simpa [h] using f.eq_smul_basis_det e, λ h, h.symm ▸ alternating_map.zero_apply _⟩
+⟨λ h, by { casesI nonempty_fintype ι, simpa [h] using f.eq_smul_basis_det e },
+  λ h, h.symm ▸ alternating_map.zero_apply _⟩
 
-lemma alternating_map.map_basis_ne_zero_iff (f : alternating_map R M R ι) :
+lemma alternating_map.map_basis_ne_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+  (e : basis ι R M) (f : alternating_map R M R ι) :
   f e ≠ 0 ↔ f ≠ 0 :=
 not_congr $ f.map_basis_eq_zero_iff e
 
@@ -506,6 +534,16 @@ variables {A : Type*} [comm_ring A] [module A M]
 by { rw [basis.det_apply, basis.det_apply, ← f.det_to_matrix e, ← matrix.det_mul,
          e.to_matrix_eq_to_matrix_constr (f ∘ v), e.to_matrix_eq_to_matrix_constr v,
          ← to_matrix_comp, e.constr_comp] }
+
+@[simp] lemma basis.det_comp_basis [module A M']
+  (b : basis ι A M) (b' : basis ι A M') (f : M →ₗ[A] M') :
+  b'.det (f ∘ b) = linear_map.det (f ∘ₗ (b'.equiv b (equiv.refl ι) : M' →ₗ[A] M)) :=
+begin
+  rw [basis.det_apply, ← linear_map.det_to_matrix b', linear_map.to_matrix_comp _ b,
+      matrix.det_mul, linear_map.to_matrix_basis_equiv, matrix.det_one, mul_one],
+  congr' 1, ext i j,
+  rw [basis.to_matrix_apply, linear_map.to_matrix_apply]
+end
 
 lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
@@ -535,7 +573,7 @@ end
 /-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
 coordinates provided by `v` in terms of determinants relative to `e`. -/
 lemma basis.det_smul_mk_coord_eq_det_update {v : ι → M}
-  (hli : linear_independent R v) (hsp : span R (range v) = ⊤) (i : ι) :
+  (hli : linear_independent R v) (hsp : ⊤ ≤ span R (range v)) (i : ι) :
   (e.det v) • (basis.mk hli hsp).coord i = e.det.to_multilinear_map.to_linear_map v i :=
 begin
   apply (basis.mk hli hsp).ext,
@@ -548,11 +586,24 @@ begin
     exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
 end
 
+/-- If a basis is multiplied columnwise by scalars `w : ι → Rˣ`, then the determinant with respect
+to this basis is multiplied by the product of the inverse of these scalars. -/
+lemma basis.det_units_smul (e : basis ι R M) (w : ι → Rˣ) :
+  (e.units_smul w).det = (↑(∏ i, w i)⁻¹ : R) • e.det :=
+begin
+  ext f,
+  change matrix.det (λ i j, (e.units_smul w).repr (f j) i)
+    = (↑(∏ i, w i)⁻¹ : R) • matrix.det (λ i j, e.repr (f j) i),
+  simp only [e.repr_units_smul],
+  convert matrix.det_mul_column (λ i, (↑((w i)⁻¹) : R)) (λ i j, e.repr (f j) i),
+  simp [← finset.prod_inv_distrib]
+end
+
 /-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
-@[simp] lemma basis.det_units_smul (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
+@[simp] lemma basis.det_units_smul_self (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
 by simp [basis.det_apply]
 
 /-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
 @[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :
   e.det (e.is_unit_smul hw) = ∏ i, w i :=
-e.det_units_smul _
+e.det_units_smul_self _

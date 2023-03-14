@@ -223,6 +223,9 @@ begin
 
   We argue from the start by contradiction, as this means that our inductive construction will
   never be stuck, so we won't have to consider this case separately.
+
+  In this proof, we use explicit coercions `↑s` for `s : A` as otherwise the system tries to find
+  a `has_coe_to_fun` instance on `↥A`, which is too costly.
   -/
   by_contra' h,
   -- We will formulate things in terms of the type of countable subsets of `α`, as this is more
@@ -232,37 +235,37 @@ begin
   haveI : nonempty A := ⟨empty⟩,
   -- given a countable set `s`, one can find a set `t` in its complement with measure close to
   -- maximal.
-  have : ∀ (s : A), ∃ (t : A), (∀ (u : A), f (u \ s) ≤ 2 * f (t \ s)),
+  have : ∀ (s : A), ∃ (t : A), (∀ (u : A), f (↑u \ ↑s) ≤ 2 * f (↑t \ ↑s)),
   { assume s,
-    have B : bdd_above (range (λ (u : A), f (u \ s))),
+    have B : bdd_above (range (λ (u : A), f (↑u \ ↑s))),
       { refine ⟨f.C, λ x hx, _⟩,
         rcases hx with ⟨u, hu⟩,
         rw ← hu,
         exact f.le_bound _ },
-    let S := supr (λ (t : A), f (t \ s)),
+    let S := supr (λ (t : A), f (↑t \ ↑s)),
     have S_pos : 0 < S,
     { rcases h s.1 s.2  with ⟨t, t_count, ht⟩,
       apply ht.trans_le,
       let t' : A := ⟨t, t_count⟩,
-      change f (t' \ s) ≤ S,
+      change f (↑t' \ ↑s) ≤ S,
       exact le_csupr B t' },
     rcases exists_lt_of_lt_csupr (half_lt_self S_pos) with ⟨t, ht⟩,
     refine ⟨t, λ u, _⟩,
-    calc f (u \ s) ≤ S : le_csupr B _
+    calc f (↑u \ ↑s) ≤ S : le_csupr B _
       ... = 2 * (S / 2) : by ring
-      ... ≤ 2 * f (t \ s) : mul_le_mul_of_nonneg_left ht.le (by norm_num) },
+      ... ≤ 2 * f (↑t \ ↑s) : mul_le_mul_of_nonneg_left ht.le (by norm_num) },
   choose! F hF using this,
   -- iterate the above construction, by adding at each step a set with measure close to maximal in
   -- the complement of already chosen points. This is the set `s n` at step `n`.
-  let G : A → A := λ u, ⟨u ∪ F u, u.2.union (F u).2⟩,
+  let G : A → A := λ u, ⟨(↑u : set α) ∪ ↑(F u), u.2.union (F u).2⟩,
   let s : ℕ → A := λ n, G^[n] empty,
   -- We will get a contradiction from the fact that there is a countable set `u` with positive
   -- measure in the complement of `⋃ n, s n`.
-  rcases h (⋃ n, s n) (countable_Union (λ n, (s n).2)) with ⟨t, t_count, ht⟩,
-  let u : A := ⟨t \ ⋃ n, s n, t_count.mono (diff_subset _ _)⟩,
-  set ε := f u with hε,
+  rcases h (⋃ n, ↑(s n)) (countable_Union (λ n, (s n).2)) with ⟨t, t_count, ht⟩,
+  let u : A := ⟨t \ ⋃ n, ↑(s n), t_count.mono (diff_subset _ _)⟩,
+  set ε := f (↑u) with hε,
   have ε_pos : 0 < ε := ht,
-  have I1 : ∀ n, ε / 2 ≤ f (s (n+1) \ s n),
+  have I1 : ∀ n, ε / 2 ≤ f (↑(s (n+1)) \ ↑(s n)),
   { assume n,
     rw [div_le_iff' (show (0 : ℝ) < 2, by norm_num), hε],
     convert hF (s n) u using 3,
@@ -271,22 +274,23 @@ begin
       simp only [not_exists, mem_Union, mem_diff],
       tauto },
     { simp only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
-  have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (s n),
+  have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (↑(s n)),
   { assume n,
     induction n with n IH,
     { simp only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
         function.iterate_zero, subtype.coe_mk], },
-    { have : (s (n+1) : set α) = (s (n+1) \ s n) ∪ s n,
+    { have : (↑(s (n+1)) : set α) = (↑(s (n+1)) \ ↑(s n)) ∪ ↑(s n),
         by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
           union_diff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
-      swap, { rw disjoint.comm, apply disjoint_diff },
+      swap, { exact disjoint_sdiff_self_left },
       calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
-      ... ≤ f ((s (n + 1 : ℕ)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
+      ... ≤ f (↑(s (n + 1 : ℕ)) \ ↑(s n)) + f (↑(s n)) :
+        add_le_add (I1 n) IH } },
   rcases exists_nat_gt (f.C / (ε / 2)) with ⟨n, hn⟩,
   have : (n : ℝ) ≤ f.C / (ε / 2),
     by { rw le_div_iff (half_pos ε_pos), exact (I2 n).trans (f.le_bound _) },
-  exact lt_irrefl _ (this.trans_lt hn),
+  exact lt_irrefl _ (this.trans_lt hn)
 end
 
 lemma exists_discrete_support (f : bounded_additive_measure α) :
@@ -335,7 +339,7 @@ begin
   simp only [discrete_part, continuous_part, restrict_apply],
   rw [← f.additive, ← inter_distrib_right],
   { simp only [union_univ, union_diff_self, univ_inter] },
-  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_diff,
+  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_sdiff_self_right,
     exact this.mono (inter_subset_left _ _) (inter_subset_left _ _) }
 end
 
@@ -357,7 +361,7 @@ begin
   conv_rhs { rw ← diff_union_inter t s },
   rw [additive, self_eq_add_right],
   { exact continuous_part_apply_eq_zero_of_countable _ _ (hs.mono (inter_subset_right _ _)) },
-  { exact disjoint.mono_right (inter_subset_right _ _) (disjoint.comm.1 disjoint_diff) },
+  { exact disjoint.mono_right (inter_subset_right _ _) disjoint_sdiff_self_left },
 end
 
 end bounded_additive_measure
@@ -371,7 +375,7 @@ section
 -/
 
 lemma norm_indicator_le_one (s : set α) (x : α) :
-  ∥(indicator s (1 : α → ℝ)) x∥ ≤ 1 :=
+  ‖(indicator s (1 : α → ℝ)) x‖ ≤ 1 :=
 by { simp only [indicator, pi.one_apply], split_ifs; norm_num }
 
 /-- A functional in the dual space of bounded functions gives rise to a bounded additive measure,
@@ -388,8 +392,8 @@ def _root_.continuous_linear_map.to_bounded_additive_measure
         by { ext x, simp [indicator_union_of_disjoint hst], },
       rw [this, f.map_add],
     end,
-  exists_bound := ⟨∥f∥, λ s, begin
-    have I : ∥of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)∥ ≤ 1,
+  exists_bound := ⟨‖f‖, λ s, begin
+    have I : ‖of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)‖ ≤ 1,
       by apply norm_of_normed_add_comm_group_le _ zero_le_one,
     apply le_trans (f.le_op_norm _),
     simpa using mul_le_mul_of_nonneg_left I (norm_nonneg f),
@@ -488,7 +492,7 @@ lemma countable_spf_mem (Hcont : #ℝ = aleph 1) (y : ℝ) : {x | y ∈ spf Hcon
 
 We construct a function `f` from `[0,1]` to a complete Banach space `B`, which is weakly measurable
 (i.e., for any continuous linear form `φ` on `B` the function `φ ∘ f` is measurable), bounded in
-norm (i.e., for all `x`, one has `∥f x∥ ≤ 1`), and still `f` has no Pettis integral.
+norm (i.e., for all `x`, one has `‖f x‖ ≤ 1`), and still `f` has no Pettis integral.
 
 This construction, due to Phillips, requires the continuum hypothesis. We will take for `B` the
 space of all bounded functions on `ℝ`, with the supremum norm (no measure here, we are really
@@ -511,7 +515,7 @@ begin
   have : φ (f Hcont x) = ψ (spf Hcont x) := rfl,
   have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simp only [union_univ, union_diff_self],
   rw [this, eq_add_parts, discrete_part_apply, hx, ψ.empty, zero_add, U,
-    ψ.continuous_part.additive _ _ (disjoint_diff),
+    ψ.continuous_part.additive _ _ disjoint_sdiff_self_right,
     ψ.continuous_part_apply_eq_zero_of_countable _ (countable_compl_spf Hcont x), add_zero],
 end
 
@@ -528,7 +532,7 @@ begin
     ⊆ ⋃ y ∈ φ.to_bounded_additive_measure.discrete_support, {x | y ∈ spf Hcont x},
   { assume x hx,
     dsimp at hx,
-    rw [← ne.def, ne_empty_iff_nonempty] at hx,
+    rw [← ne.def, ←nonempty_iff_ne_empty] at hx,
     simp only [exists_prop, mem_Union, mem_set_of_eq],
     exact hx },
   apply countable.mono (subset.trans A B),
@@ -542,7 +546,7 @@ begin
   apply ae_restrict_of_ae,
   refine measure_mono_null _ ((countable_ne Hcont φ).measure_zero _),
   assume x,
-  simp only [imp_self, mem_set_of_eq, mem_compl_eq],
+  simp only [imp_self, mem_set_of_eq, mem_compl_iff],
 end
 
 lemma integrable_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :
@@ -578,7 +582,7 @@ begin
 end
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` is uniformly bounded by `1` in norm. -/
-lemma norm_bound (Hcont : #ℝ = aleph 1) (x : ℝ) : ∥f Hcont x∥ ≤ 1 :=
+lemma norm_bound (Hcont : #ℝ = aleph 1) (x : ℝ) : ‖f Hcont x‖ ≤ 1 :=
 norm_of_normed_add_comm_group_le _ zero_le_one _
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` has no Pettis integral. -/

@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
+import algebra.euclidean_domain.instances
 import ring_theory.unique_factorization_domain
 
 /-!
@@ -51,7 +52,7 @@ instance top_is_principal : (⊤ : submodule R R).is_principal :=
 variables (R)
 
 /-- A ring is a principal ideal ring if all (left) ideals are principal. -/
-class is_principal_ideal_ring (R : Type u) [ring R] : Prop :=
+@[mk_iff] class is_principal_ideal_ring (R : Type u) [ring R] : Prop :=
 (principal : ∀ (S : ideal R), S.is_principal)
 
 attribute [instance] is_principal_ideal_ring.principal
@@ -104,7 +105,7 @@ lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_p
   prime (generator S) :=
 ⟨λ h, ne_bot ((eq_bot_iff_generator_eq_zero S).2 h),
  λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
- by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
+ λ _ _, by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
 -- Note that the converse may not hold if `ϕ` is not injective.
 lemma generator_map_dvd_of_mem {N : submodule R M}
@@ -307,19 +308,19 @@ begin
     exact (span_singleton_mul_right_unit D.is_unit _) },
   apply associated_of_dvd_dvd,
   { rw dvd_gcd_iff,
-    split; rw [←ideal.mem_span_singleton, ←hd, mem_span_pair],
+    split; rw [←ideal.mem_span_singleton, ←hd, ideal.mem_span_pair],
     { use [1, 0],
       rw [one_mul, zero_mul, add_zero] },
     { use [0, 1],
       rw [one_mul, zero_mul, zero_add] } },
   { obtain ⟨r, s, rfl⟩ : ∃ r s, r * x + s * y = d,
-    { rw [←mem_span_pair, hd, ideal.mem_span_singleton] },
+    { rw [←ideal.mem_span_pair, hd, ideal.mem_span_singleton] },
     apply dvd_add; apply dvd_mul_of_dvd_right,
     exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
 end
 
 theorem gcd_dvd_iff_exists (a b : R) {z} : gcd a b ∣ z ↔ ∃ x y, z = a * x + b * y :=
-by simp_rw [mul_comm a, mul_comm b, @eq_comm _ z, ←mem_span_pair, ←span_gcd,
+by simp_rw [mul_comm a, mul_comm b, @eq_comm _ z, ←ideal.mem_span_pair, ←span_gcd,
   ideal.mem_span_singleton]
 
 /-- **Bézout's lemma** -/
@@ -327,7 +328,7 @@ theorem exists_gcd_eq_mul_add_mul (a b : R) : ∃ x y, gcd a b = a * x + b * y :
 by rw [←gcd_dvd_iff_exists]
 
 theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
-by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
+by rw [is_coprime, ←ideal.mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]
 
 -- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd (x y : R)
@@ -406,3 +407,86 @@ theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
 exists_associated_pow_of_mul_eq_pow ((gcd_is_unit_iff _ _).mpr hab) h
 
 end
+
+section principal_of_prime
+
+open set ideal
+
+variables (R) [comm_ring R]
+
+/-- `non_principals R` is the set of all ideals of `R` that are not principal ideals. -/
+def non_principals := {I : ideal R | ¬ I.is_principal}
+
+lemma non_principals_def {I : ideal R} : I ∈ non_principals R ↔ ¬ I.is_principal :=
+iff.rfl
+
+variables {R}
+lemma non_principals_eq_empty_iff : non_principals R = ∅ ↔ is_principal_ideal_ring R :=
+by simp [set.eq_empty_iff_forall_not_mem, is_principal_ideal_ring_iff, non_principals_def]
+
+/-- Any chain in the set of non-principal ideals has an upper bound which is non-principal.
+(Namely, the union of the chain is such an upper bound.)
+-/
+lemma non_principals_zorn (c : set (ideal R)) (hs : c ⊆ non_principals R) (hchain : is_chain (≤) c)
+  {K : ideal R} (hKmem : K ∈ c) :
+  ∃ I ∈ non_principals R, ∀ J ∈ c, J ≤ I :=
+begin
+  refine ⟨Sup c, _, λ J hJ, le_Sup hJ⟩,
+  rintro ⟨x, hx⟩,
+  have hxmem : x ∈ Sup c := (hx.symm ▸ submodule.mem_span_singleton_self x),
+  obtain ⟨J, hJc, hxJ⟩ := (submodule.mem_Sup_of_directed ⟨K, hKmem⟩ hchain.directed_on).1 hxmem,
+  have hSupJ : Sup c = J := le_antisymm (by simp [hx, ideal.span_le, hxJ]) (le_Sup hJc),
+  specialize hs hJc,
+  rw [← hSupJ, hx, non_principals_def] at hs,
+  exact hs ⟨⟨x, rfl⟩⟩
+end
+
+/-- If all prime ideals in a commutative ring are principal, so are all other ideals. -/
+theorem is_principal_ideal_ring.of_prime (H : ∀ (P : ideal R), P.is_prime → P.is_principal) :
+  is_principal_ideal_ring R :=
+begin
+  -- Suppose the set of `non_principals` is not empty.
+  rw [← non_principals_eq_empty_iff, set.eq_empty_iff_forall_not_mem],
+  intros J hJ,
+  -- We will show a maximal element `I ∈ non_principals R` (which exists by Zorn) is prime.
+  obtain ⟨I, Ibad, -, Imax⟩ := zorn_nonempty_partial_order₀
+    (non_principals R) non_principals_zorn _ hJ,
+  have Imax' : ∀ {J}, I < J → J.is_principal,
+  { intros J hJ,
+    by_contra He,
+    exact hJ.ne (Imax _ ((non_principals_def R).2 He) hJ.le).symm },
+  by_cases hI1 : I = ⊤,
+  { subst hI1,
+    exact Ibad top_is_principal },
+  -- Let `x y : R` with `x * y ∈ I` and suppose WLOG `y ∉ I`.
+  refine Ibad (H I ⟨hI1, λ x y hxy, or_iff_not_imp_right.mpr (λ hy, _)⟩),
+  obtain ⟨a, ha⟩ : (I ⊔ span {y}).is_principal :=
+    Imax' (left_lt_sup.mpr (mt I.span_singleton_le_iff_mem.mp hy)),
+  -- Then `x ∈ I.colon (span {y})`, which is equal to `I` if it's not principal.
+  suffices He : ¬ ((I.colon (span {y})).is_principal),
+  { rw ← Imax _ ((non_principals_def R).2 He)
+        (λ a ha, ideal.mem_colon_singleton.2 (mul_mem_right _ _ ha)),
+    exact ideal.mem_colon_singleton.2 hxy },
+  -- So suppose for the sake of contradiction that both `I ⊔ span {y}` and `I.colon (span {y})`
+  -- are principal.
+  rintros ⟨b, hb⟩,
+  -- We will show `I` is generated by `a * b`.
+  refine (non_principals_def _).1 Ibad ⟨⟨a * b, le_antisymm (λ i hi, _) $
+    (span_singleton_mul_span_singleton a b).ge.trans _⟩⟩,
+  { have hisup : i ∈ I ⊔ span {y} := ideal.mem_sup_left hi,
+    have : y ∈ I ⊔ span {y} := ideal.mem_sup_right (ideal.mem_span_singleton_self y),
+    erw [ha, mem_span_singleton'] at hisup this,
+    obtain ⟨v, rfl⟩ := this,
+    obtain ⟨u, rfl⟩ := hisup,
+    have hucolon : u ∈ I.colon (span {v * a}),
+    { rw [ideal.mem_colon_singleton, mul_comm v, ← mul_assoc],
+      exact mul_mem_right _ _ hi },
+    erw [hb, mem_span_singleton'] at hucolon,
+    obtain ⟨z, rfl⟩ := hucolon,
+    exact mem_span_singleton'.2 ⟨z, by ring⟩ },
+  { rw [← ideal.submodule_span_eq, ← ha, ideal.sup_mul, sup_le_iff,
+        span_singleton_mul_span_singleton, mul_comm y, ideal.span_singleton_le_iff_mem],
+    exact ⟨mul_le_right, ideal.mem_colon_singleton.1 $ hb.symm ▸ ideal.mem_span_singleton_self b⟩ },
+end
+
+end principal_of_prime

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.fin.tuple.basic
-import data.list.basic
 import data.list.join
+import data.list.pairwise
 
 /-!
 # Lists from functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
 of length `n`.
@@ -109,6 +112,20 @@ begin
     simp_rw [fin.cast_succ_fin_succ], }
 end
 
+@[simp] lemma of_fn_eq_nil_iff {n : ℕ} {f : fin n → α} :
+  of_fn f = [] ↔ n = 0 :=
+by cases n; simp only [of_fn_zero, of_fn_succ, eq_self_iff_true, nat.succ_ne_zero]
+
+lemma last_of_fn {n : ℕ} (f : fin n → α) (h : of_fn f ≠ [])
+  (hn : n - 1 < n := nat.pred_lt $ of_fn_eq_nil_iff.not.mp h) :
+  last (of_fn f) h = f ⟨n - 1, hn⟩ :=
+by simp [last_eq_nth_le]
+
+lemma last_of_fn_succ {n : ℕ} (f : fin n.succ → α)
+  (h : of_fn f ≠ [] := mt of_fn_eq_nil_iff.mp (nat.succ_ne_zero _)) :
+  last (of_fn f) h = f (fin.last _) :=
+last_of_fn f h
+
 /-- Note this matches the convention of `list.of_fn_succ'`, putting the `fin m` elements first. -/
 theorem of_fn_add {m n} (f : fin (m + n) → α) :
   list.of_fn f = list.of_fn (λ i, f (fin.cast_add n i)) ++ list.of_fn (λ j, f (fin.nat_add m j)) :=
@@ -117,6 +134,10 @@ begin
   { rw [of_fn_zero, append_nil, fin.cast_add_zero, fin.cast_refl], refl },
   { rw [of_fn_succ', of_fn_succ', IH, append_concat], refl, },
 end
+
+@[simp] theorem of_fn_fin_append {m n} (a : fin m → α) (b : fin n → α) :
+  list.of_fn (fin.append a b) = list.of_fn a ++ list.of_fn b :=
+by simp_rw [of_fn_add, fin.append_left, fin.append_right]
 
 /-- This breaks a list of `m*n` items into `m` groups each containing `n` elements. -/
 theorem of_fn_mul {m n} (f : fin (m * n) → α) :
@@ -156,8 +177,18 @@ end
 by simp only [mem_of_fn, set.forall_range_iff]
 
 @[simp] lemma of_fn_const (n : ℕ) (c : α) :
-  of_fn (λ i : fin n, c) = repeat c n :=
+  of_fn (λ i : fin n, c) = replicate n c :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
+
+@[simp] theorem of_fn_fin_repeat {m} (a : fin m → α) (n : ℕ) :
+  list.of_fn (fin.repeat n a) = (list.replicate n (list.of_fn a)).join :=
+by simp_rw [of_fn_mul, ←of_fn_const, fin.repeat, fin.mod_nat, fin.coe_mk,
+  add_comm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt (fin.is_lt _), fin.eta]
+
+@[simp] lemma pairwise_of_fn {R : α → α → Prop} {n} {f : fin n → α} :
+  (of_fn f).pairwise R ↔ ∀ ⦃i j⦄, i < j → R (f i) (f j) :=
+by { simp only [pairwise_iff_nth_le, fin.forall_iff, length_of_fn, nth_le_of_fn', fin.mk_lt_mk],
+  exact ⟨λ h i hi j hj hij, h _ _ hj hij, λ h i j hj hij, h _ (hij.trans hj) _ hj hij⟩ }
 
 /-- Lists are equivalent to the sigma type of tuples of a given length. -/
 @[simps]

@@ -47,7 +47,7 @@ lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := set.ext $ λ z, mem_circ
 mem_circle_iff_abs.mp z.2
 
 lemma mem_circle_iff_norm_sq {z : ℂ} : z ∈ circle ↔ norm_sq z = 1 :=
-by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
+by simp [complex.abs]
 
 @[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simp [norm_sq_eq_abs]
 
@@ -64,7 +64,11 @@ by rw [coe_inv_circle, inv_def, norm_sq_eq_of_mem_circle, inv_one, of_real_one, 
 circle.subtype.map_div z w
 
 /-- The elements of the circle embed into the units. -/
-@[simps apply] def circle.to_units : circle →* units ℂ := unit_sphere_to_units ℂ
+def circle.to_units : circle →* units ℂ := unit_sphere_to_units ℂ
+
+-- written manually because `@[simps]` was slow and generated the wrong lemma
+@[simp] lemma circle.to_units_apply (z : circle) :
+  circle.to_units z = units.mk0 z (ne_zero_of_mem_circle z) := rfl
 
 instance : compact_space circle := metric.sphere.compact_space _ _
 
@@ -72,7 +76,7 @@ instance : topological_group circle := metric.sphere.topological_group
 
 /-- If `z` is a nonzero complex number, then `conj z / z` belongs to the unit circle. -/
 @[simps] def circle.of_conj_div_self (z : ℂ) (hz : z ≠ 0) : circle :=
-⟨conj z / z, mem_circle_iff_abs.2 $ by rw [complex.abs_div, abs_conj, div_self (abs_ne_zero.2 hz)]⟩
+⟨conj z / z, mem_circle_iff_abs.2 $ by rw [map_div₀, abs_conj, div_self (complex.abs.ne_zero hz)]⟩
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
 def exp_map_circle : C(ℝ, circle) :=

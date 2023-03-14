@@ -30,7 +30,7 @@ space structure on `X ⊕ Y`. The corresponding metric quotient is `optimal_GH_c
 -/
 
 noncomputable theory
-open_locale classical topological_space nnreal
+open_locale classical topology nnreal
 universes u v w
 
 open classical set function topological_space filter metric quotient
@@ -90,14 +90,14 @@ local attribute [instance, priority 10] inhabited_of_nonempty'
 private lemma max_var_bound : dist x y ≤ max_var X Y := calc
   dist x y ≤ diam (univ : set (X ⊕ Y)) :
     dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
-  ... = diam (inl '' (univ : set X) ∪ inr '' (univ : set Y)) :
-    by apply congr_arg; ext x y z; cases x; simp [mem_univ, mem_range_self]
-  ... ≤ diam (inl '' (univ : set X)) + dist (inl default) (inr default) +
-          diam (inr '' (univ : set Y)) :
-    diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
+  ... = diam (range inl ∪ range inr : set (X ⊕ Y)) :
+    by rw [range_inl_union_range_inr]
+  ... ≤ diam (range inl : set (X ⊕ Y)) + dist (inl default) (inr default) +
+          diam (range inr : set (X ⊕ Y)) :
+    diam_union (mem_range_self _) (mem_range_self _)
   ... = diam (univ : set X) + (dist default default + 1 + dist default default) +
           diam (univ : set Y) :
-    by { rw [isometry_inl.diam_image, isometry_inr.diam_image], refl }
+    by { rw [isometry_inl.diam_range, isometry_inr.diam_range], refl }
   ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simp
   ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) :
   begin
@@ -244,7 +244,7 @@ begin
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
+  { ext, simp only [candidates_b, candidates, mem_inter_iff, mem_Inter, mem_set_of_eq] },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
@@ -258,7 +258,7 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows. -/
-private lemma compact_candidates_b : is_compact (candidates_b X Y) :=
+private lemma is_compact_candidates_b : is_compact (candidates_b X Y) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var X Y)) is_compact_Icc (candidates_b X Y)
   closed_candidates_b _ _,
@@ -269,7 +269,7 @@ begin
     { have : tendsto (λ (t : ℝ), 2 * (max_var X Y : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var X Y * 0)) :=
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
-    { assume x y f hf,
+    { rintros x y ⟨f, hf⟩,
       exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 
@@ -428,7 +428,7 @@ variables (X : Type u) (Y : Type v) [metric_space X] [compact_space X] [nonempty
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃ f ∈ candidates_b X Y, ∀ g ∈ candidates_b X Y, HD f ≤ HD g :=
-compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
+is_compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb X Y := classical.some (exists_minimizer X Y)
 
@@ -448,52 +448,33 @@ def premetric_optimal_GH_dist : pseudo_metric_space (X ⊕ Y) :=
   dist_comm := λx y, candidates_symm (optimal_GH_dist_mem_candidates_b X Y),
   dist_triangle := λx y z, candidates_triangle (optimal_GH_dist_mem_candidates_b X Y) }
 
-local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
+local attribute [instance] premetric_optimal_GH_dist
 
 /-- A metric space which realizes the optimal coupling between `X` and `Y` -/
-@[derive metric_space, nolint has_inhabited_instance]
+@[derive metric_space, nolint has_nonempty_instance]
 definition optimal_GH_coupling : Type* :=
-pseudo_metric_quot (X ⊕ Y)
+@uniform_space.separation_quotient (X ⊕ Y) (premetric_optimal_GH_dist X Y).to_uniform_space
 
 /-- Injection of `X` in the optimal coupling between `X` and `Y` -/
-def optimal_GH_injl (x : X) : optimal_GH_coupling X Y := ⟦inl x⟧
+def optimal_GH_injl (x : X) : optimal_GH_coupling X Y := quotient.mk' (inl x)
 
 /-- The injection of `X` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injl : isometry (optimal_GH_injl X Y) :=
-begin
-  refine isometry.of_dist_eq (λx y, _),
-  change dist ⟦inl x⟧ ⟦inl y⟧ = dist x y,
-  exact candidates_dist_inl (optimal_GH_dist_mem_candidates_b X Y) _ _,
-end
+isometry.of_dist_eq $ λ x y, candidates_dist_inl (optimal_GH_dist_mem_candidates_b X Y) _ _
 
 /-- Injection of `Y` in the optimal coupling between `X` and `Y` -/
-def optimal_GH_injr (y : Y) : optimal_GH_coupling X Y := ⟦inr y⟧
+def optimal_GH_injr (y : Y) : optimal_GH_coupling X Y := quotient.mk' (inr y)
 
 /-- The injection of `Y` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injr : isometry (optimal_GH_injr X Y) :=
-begin
-  refine isometry.of_dist_eq (λx y, _),
-  change dist ⟦inr x⟧ ⟦inr y⟧ = dist x y,
-  exact candidates_dist_inr (optimal_GH_dist_mem_candidates_b X Y) _ _,
-end
+isometry.of_dist_eq $ λ x y, candidates_dist_inr (optimal_GH_dist_mem_candidates_b X Y) _ _
 
 /-- The optimal coupling between two compact spaces `X` and `Y` is still a compact space -/
 instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling X Y) :=
 ⟨begin
-  have : (univ : set (optimal_GH_coupling X Y)) =
-           (optimal_GH_injl X Y '' univ) ∪ (optimal_GH_injr X Y '' univ),
-  { refine subset.antisymm (λxc hxc, _) (subset_univ _),
-    rcases quotient.exists_rep xc with ⟨x, hx⟩,
-    cases x; rw ← hx,
-    { have : ⟦inl x⟧ = optimal_GH_injl X Y x := rfl,
-      rw this,
-      exact mem_union_left _ (mem_image_of_mem _ (mem_univ _)) },
-    { have : ⟦inr x⟧ = optimal_GH_injr X Y x := rfl,
-      rw this,
-      exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
-  rw this,
-  exact (compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
-    (compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
+  rw [← range_quotient_mk'],
+  exact is_compact_range (continuous_sum_dom.2 ⟨(isometry_optimal_GH_injl X Y).continuous,
+    (isometry_optimal_GH_injr X Y).continuous⟩)
 end⟩
 
 /-- For any candidate `f`, `HD(f)` is larger than or equal to the Hausdorff distance in the
@@ -503,42 +484,31 @@ we need. -/
 lemma Hausdorff_dist_optimal_le_HD {f} (h : f ∈ candidates_b X Y) :
   Hausdorff_dist (range (optimal_GH_injl X Y)) (range (optimal_GH_injr X Y)) ≤ HD f :=
 begin
-  refine le_trans (le_of_forall_le_of_dense (λr hr, _)) (HD_optimal_GH_dist_le X Y f h),
+  refine le_trans (le_of_forall_le_of_dense (λ r hr, _)) (HD_optimal_GH_dist_le X Y f h),
   have A : ∀ x ∈ range (optimal_GH_injl X Y), ∃ y ∈ range (optimal_GH_injr X Y), dist x y ≤ r,
-  { assume x hx,
-    rcases mem_range.1 hx with ⟨z, hz⟩,
-    rw ← hz,
+  { rintro _ ⟨z, rfl⟩,
     have I1 : (⨆ x, ⨅ y, optimal_GH_dist X Y (inl x, inr y)) < r :=
       lt_of_le_of_lt (le_max_left _ _) hr,
     have I2 : (⨅ y, optimal_GH_dist X Y (inl z, inr y)) ≤
         ⨆ x, ⨅ y, optimal_GH_dist X Y (inl x, inr y) :=
       le_cSup (by simpa using HD_bound_aux1 _ 0) (mem_range_self _),
     have I : (⨅ y, optimal_GH_dist X Y (inl z, inr y)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
-    rcases mem_range.1 r'range with ⟨z', hz'⟩,
-    existsi [optimal_GH_injr X Y z', mem_range_self _],
-    have : (optimal_GH_dist X Y) (inl z, inr z') ≤ r, by { rw hz', exact le_of_lt hr' },
-    exact this },
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', ⟨z', rfl⟩, hr'⟩,
+    exact ⟨optimal_GH_injr X Y z', mem_range_self _, le_of_lt hr'⟩ },
   refine Hausdorff_dist_le_of_mem_dist _ A _,
-  { rcases exists_mem_of_nonempty X with ⟨xX, _⟩,
-    have : optimal_GH_injl X Y xX ∈ range (optimal_GH_injl X Y) := mem_range_self _,
-    rcases A _ this with ⟨y, yrange, hy⟩,
+  { inhabit X,
+    rcases A _ (mem_range_self default) with ⟨y, -, hy⟩,
     exact le_trans dist_nonneg hy },
-  { assume y hy,
-    rcases mem_range.1 hy with ⟨z, hz⟩,
-    rw ← hz,
+  { rintro _ ⟨z, rfl⟩,
     have I1 : (⨆ y, ⨅ x, optimal_GH_dist X Y (inl x, inr y)) < r :=
       lt_of_le_of_lt (le_max_right _ _) hr,
     have I2 : (⨅ x, optimal_GH_dist X Y (inl x, inr z)) ≤
         ⨆ y, ⨅ x, optimal_GH_dist X Y (inl x, inr y) :=
       le_cSup (by simpa using HD_bound_aux2 _ 0) (mem_range_self _),
     have I : (⨅ x, optimal_GH_dist X Y (inl x, inr z)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
-    rcases mem_range.1 r'range with ⟨z', hz'⟩,
-    existsi [optimal_GH_injl X Y z', mem_range_self _],
-    have : (optimal_GH_dist X Y) (inl z', inr z) ≤ r, by { rw hz', exact le_of_lt hr' },
-    rw dist_comm,
-    exact this }
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', ⟨z', rfl⟩, hr'⟩,
+    refine ⟨optimal_GH_injl X Y z', mem_range_self _, le_of_lt _⟩,
+    rwa dist_comm }
 end
 
 end consequences

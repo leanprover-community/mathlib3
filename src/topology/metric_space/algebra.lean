@@ -9,6 +9,9 @@ import topology.metric_space.lipschitz
 /-!
 # Compatibility of algebraic operations with metric space structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define mixin typeclasses `has_lipschitz_mul`, `has_lipschitz_add`,
 `has_bounded_smul` expressing compatibility of multiplication, addition and scalar-multiplication
 operations with an underlying metric space structure.  The intended use case is to abstract certain
@@ -176,3 +179,12 @@ instance has_bounded_smul.op [has_smul αᵐᵒᵖ β] [is_central_scalar α β]
     by simpa only [op_smul_eq_smul] using dist_pair_smul x₁ x₂ y }
 
 end has_bounded_smul
+
+instance [monoid α] [has_lipschitz_mul α] : has_lipschitz_add (additive α) :=
+⟨@has_lipschitz_mul.lipschitz_mul α _ _ _⟩
+
+instance [add_monoid α] [has_lipschitz_add α] : has_lipschitz_mul (multiplicative α) :=
+⟨@has_lipschitz_add.lipschitz_add α _ _ _⟩
+
+@[to_additive] instance [monoid α] [has_lipschitz_mul α] : has_lipschitz_mul αᵒᵈ :=
+‹has_lipschitz_mul α›

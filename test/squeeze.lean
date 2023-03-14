@@ -1,5 +1,5 @@
 import data.nat.basic
-import data.pnat.basic
+import data.pnat.defs
 import tactic.squeeze
 
 namespace tactic

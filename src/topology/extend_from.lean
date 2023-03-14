@@ -8,6 +8,9 @@ import topology.separation
 /-!
 # Extending a function from a subset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition of this file is `extend_from A f` where `f : X → Y`
 and `A : set X`. This defines a new function `g : X → Y` which maps any
 `x₀ : X` to the limit of `f` as `x` tends to `x₀`, if such a limit exists.
@@ -24,7 +27,7 @@ it suffices that `f` converges within `A` at any point of `B`, provided that
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 open filter set
 
 variables {X Y : Type*} [topological_space X] [topological_space Y]
@@ -54,7 +57,7 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
 
 /-- If `f` is a function to a T₃ space `Y` which has a limit within `A` at any
 point of a set `B ⊆ closure A`, then `extend_from A f` is continuous on `B`. -/
-lemma continuous_on_extend_from [t3_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
+lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
   (hf : ∀ x ∈ B, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous_on (extend_from A f) B :=
 begin
   set φ := extend_from A f,
@@ -79,7 +82,7 @@ end
 
 /-- If a function `f` to a T₃ space `Y` has a limit within a
 dense set `A` for any `x`, then `extend_from A f` is continuous. -/
-lemma continuous_extend_from [t3_space Y] {f : X → Y} {A : set X} (hA : dense A)
+lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : dense A)
   (hf : ∀ x, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous (extend_from A f) :=
 begin
   rw continuous_iff_continuous_on_univ,

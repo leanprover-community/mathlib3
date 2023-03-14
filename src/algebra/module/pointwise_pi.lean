@@ -3,11 +3,14 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import data.set.pointwise
+import data.set.pointwise.smul
 import group_theory.group_action.pi
 
 /-!
 # Pointwise actions on sets in Pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas about pointwise actions on sets in Pi types.
 

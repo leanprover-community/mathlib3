@@ -95,6 +95,14 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
+instance pi_Lp.inner_product_space_real {ι : Type*} [fintype ι] (f : ι → Type*)
+  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space ℝ (pi_Lp 2 f) :=
+inner_product_space.is_R_or_C_to_real 𝕜 _
+
+instance pi_Lp.is_scalar_tower {ι : Type*} [fintype ι] (f : ι → Type*)
+  [Π i, inner_product_space 𝕜 (f i)] : is_scalar_tower ℝ 𝕜 (pi_Lp 2 f) :=
+restrict_scalars.is_scalar_tower _ _ _
+
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
 space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
@@ -128,6 +136,14 @@ local attribute [reducible] pi_Lp
 
 instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
+
+instance euclidean_space.inner_product_space_real {ι : Type*} [fintype ι] :
+  inner_product_space ℝ (euclidean_space 𝕜 ι) :=
+pi_Lp.inner_product_space_real 𝕜 _
+
+instance euclidean_space.is_scalar_tower {ι : Type*} [fintype ι] :
+  is_scalar_tower ℝ 𝕜 (euclidean_space 𝕜 ι) :=
+by apply_instance
 
 @[simp] lemma finrank_euclidean_space :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp

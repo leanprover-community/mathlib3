@@ -55,12 +55,16 @@ variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G} {g : G}
 
 @[to_additive]
-instance : set_like (open_subgroup G) G :=
-{ coe := λ U, U.1,
-  coe_injective' := fun ⟨U, _⟩ ⟨V, _⟩ h, by { congr, exact set_like.ext' h } }
+instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_subgroup⟩
 
 @[to_additive]
-instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_subgroup⟩
+lemma coe_subgroup_injective : injective (coe : open_subgroup G → subgroup G)
+| ⟨_, _⟩ ⟨_, _⟩ rfl := rfl
+
+@[to_additive]
+instance : set_like (open_subgroup G) G :=
+{ coe := λ U, U.1,
+  coe_injective' := λ _ _ h, coe_subgroup_injective $ set_like.ext' h }
 
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
@@ -123,24 +127,24 @@ def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
 end
 
 @[to_additive]
+instance : has_inf (open_subgroup G) :=
+⟨λ U V, ⟨U ⊓ V, U.is_open.inter V.is_open⟩⟩
+
+@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+
+@[to_additive]
 instance : semilattice_inf (open_subgroup G) :=
-{ inf := λ U V, { is_open' := is_open.inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
-  inf_le_left := λ U V, set.inter_subset_left _ _,
-  inf_le_right := λ U V, set.inter_subset_right _ _,
-  le_inf := λ U V W hV hW, set.subset_inter hV hW,
-  .. set_like.partial_order }
+{ .. set_like.partial_order,
+  .. set_like.coe_injective.semilattice_inf (coe : open_subgroup G → set G) (λ _ _, rfl) }
 
 @[to_additive]
 instance : order_top (open_subgroup G) :=
 { top := ⊤,
   le_top := λ U, set.subset_univ _ }
 
-@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
-
-@[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
-
 @[simp, norm_cast, to_additive] lemma coe_subgroup_le :
-(U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
+  (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V :=
+iff.rfl
 
 variables {N : Type*} [group N] [topological_space N]
 
@@ -224,20 +228,13 @@ namespace open_subgroup
 variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G]
 
 @[to_additive]
-instance : semilattice_sup (open_subgroup G) :=
-{ sup := λ U V,
-  { is_open' := show is_open (((U : subgroup G) ⊔ V : subgroup G) : set G),
-    from subgroup.is_open_mono le_sup_left U.is_open,
-    .. ((U : subgroup G) ⊔ V) },
-  le_sup_left := λ U V, coe_subgroup_le.1 le_sup_left,
-  le_sup_right := λ U V, coe_subgroup_le.1 le_sup_right,
-  sup_le := λ U V W hU hV, coe_subgroup_le.1 (sup_le hU hV),
-  ..open_subgroup.semilattice_inf }
+instance : has_sup (open_subgroup G) :=
+⟨λ U V, ⟨U ⊔ V, subgroup.is_open_mono (le_sup_left : U.1 ≤ U ⊔ V) U.is_open⟩⟩
 
 @[to_additive]
 instance : lattice (open_subgroup G) :=
-{ ..open_subgroup.semilattice_sup, ..open_subgroup.semilattice_inf }
-
+{ .. open_subgroup.semilattice_inf,
+  .. coe_subgroup_injective.semilattice_sup (coe : open_subgroup G → subgroup G) (λ _ _, rfl) }
 
 end open_subgroup
 

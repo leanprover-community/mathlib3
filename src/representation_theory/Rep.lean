@@ -149,10 +149,7 @@ lemma ihom_map_def {B C : Rep k G} (f : B ⟶ C) :
 
 @[simp] lemma ihom_map_hom {B C : Rep k G} (f : B ⟶ C) :
   ((ihom A).map f).hom = linear_map.llcomp k A B C f.hom :=
-begin
-  rw [ihom_map_def, functor_category_equivalence.inverse_map_hom, functor.closed_ihom_map_app],
-  refl,
-end
+rfl
 
 lemma ihom_coev_app_def :
   (ihom.coev A).app B = functor_category_equivalence.unit_iso.hom.app B ≫
@@ -161,20 +158,20 @@ lemma ihom_coev_app_def :
   (functor_category_equivalence.functor.obj A).closed_ihom.map
   ((functor_category_monoidal_equivalence (Module.{u} k) (Mon.of G)).μ A B)) :=
 rfl
-
+set_option profiler true
 @[simp] lemma ihom_coev_app_hom :
   Action.hom.hom ((ihom.coev A).app B) =
     (tensor_product.mk _ _ _).flip :=
 begin
   refine linear_map.ext (λ x, linear_map.ext (λ y, _)),
-  simp only [ihom_coev_app_def, functor_category_equivalence_unit_iso, iso.app_hom,
+  simpa only [ihom_coev_app_def, functor_category_equivalence_unit_iso, iso.app_hom,
+    functor.map_comp, ihom_coev_app_def, functor_category_equivalence_unit_iso, iso.app_hom,
     functor.map_comp, comp_hom, functor_category_equivalence.unit_iso_hom_app_hom,
     functor_category_equivalence.inverse_map_hom, functor.closed_unit_app_app,
     functor.closed_ihom_map_app, Module.ihom_coev_app, Module.coe_comp,
     function.comp_app, tensor_product.curry_apply, linear_map.flip_apply,
     Module.ihom_map_apply, Module.monoidal_category.braiding_hom_apply,
     functor_category_monoidal_equivalence.μ_app, id_apply, linear_map.id_apply],
-  refl,
 end
 
 variables {A B C}
@@ -182,8 +179,7 @@ variables {A B C}
 @[simp] lemma monoidal_closed_curry_hom (f : A ⊗ B ⟶ C) :
   (monoidal_closed.curry f).hom = (tensor_product.curry f.hom).flip :=
 begin
-  rw [monoidal_closed.curry_eq, comp_hom, ihom_coev_app_hom, ihom_map_hom],
-  refine linear_map.ext (λ x, linear_map.ext (λ y, _)),
+  rw [monoidal_closed.curry_eq, comp_hom, ihom_coev_app_hom],
   refl,
 end
 

@@ -99,7 +99,7 @@ instance pi_Lp.inner_product_space_real {ι : Type*} [fintype ι] (f : ι → Ty
   [Π i, inner_product_space 𝕜 (f i)] : inner_product_space ℝ (pi_Lp 2 f) :=
 inner_product_space.is_R_or_C_to_real 𝕜 _
 
-instance pi_Lp.is_scalar_tower {ι : Type*} [fintype ι] (f : ι → Type*)
+instance pi_Lp.is_scalar_tower_real {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space 𝕜 (f i)] : is_scalar_tower ℝ 𝕜 (pi_Lp 2 f) :=
 restrict_scalars.is_scalar_tower _ _ _
 
@@ -139,9 +139,9 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 
 instance euclidean_space.inner_product_space_real {ι : Type*} [fintype ι] :
   inner_product_space ℝ (euclidean_space 𝕜 ι) :=
-pi_Lp.inner_product_space_real 𝕜 _
+inner_product_space.is_R_or_C_to_real 𝕜 _
 
-instance euclidean_space.is_scalar_tower {ι : Type*} [fintype ι] :
+instance euclidean_space.is_scalar_tower_real {ι : Type*} [fintype ι] :
   is_scalar_tower ℝ 𝕜 (euclidean_space 𝕜 ι) :=
 by apply_instance
 

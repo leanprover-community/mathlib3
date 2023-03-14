@@ -259,26 +259,6 @@ do
   (t, add) ← t.mk_app `has_add.add [],
   pure (t, { add := λ a b, add a b })
 
-/-- Produce a `add_comm_monoid` instance for the type cached by `t`, such that the addition and
-zero match `expr.has_add` and `expr.has_zero`. -/
-meta def add_comm_monoid (t : tactic.instance_cache) :
-  tactic (tactic.instance_cache × add_comm_monoid expr) :=
-do
-  (t, add) ← t.mk_app `has_add.add [],
-  (t, zero) ← t.mk_app `has_zero.zero [],
-  has_smul ← tactic.mk_app `has_smul [`(ℕ), t.α] >>= tactic.mk_instance,
-  nsmul ← tactic.mk_mapp `has_smul.smul [none, some t.α, some has_smul],
-  pure (t,
-    { add := λ a b, add a b,
-      zero := zero,
-      add_assoc := undefined,
-      zero_add := undefined,
-      add_zero := undefined,
-      nsmul := λ n b, nsmul `(n) b,
-      nsmul_zero' := undefined,
-      nsmul_succ' := undefined,
-      add_comm := undefined })
-
 end expr
 
 /-- Like `list.mmap` but for a vector. -/

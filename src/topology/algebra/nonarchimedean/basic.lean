@@ -127,14 +127,13 @@ lemma mul_subset (U : open_add_subgroup R) :
   ∃ V : open_add_subgroup R, (V : set R) * V ⊆ U :=
 let ⟨V, H⟩ := prod_self_subset (is_open.mem_nhds (is_open.preimage continuous_mul U.is_open)
   begin
-    simpa only [set.mem_preimage, open_add_subgroup.mem_coe, prod.snd_zero, mul_zero]
-      using U.zero_mem,
+    simpa only [set.mem_preimage, set_like.mem_coe, prod.snd_zero, mul_zero] using U.zero_mem,
   end) in
 begin
   use V,
   rintros v ⟨a, b, ha, hb, hv⟩,
   have hy := H (set.mk_mem_prod ha hb),
-  simp only [set.mem_preimage, open_add_subgroup.mem_coe] at hy,
+  simp only [set.mem_preimage, set_like.mem_coe] at hy,
   rwa hv at hy
 end
 

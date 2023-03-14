@@ -55,10 +55,9 @@ variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G} {g : G}
 
 @[to_additive]
-instance has_coe_set : has_coe_t (open_subgroup G) (set G) := ⟨λ U, U.1⟩
-
-@[to_additive]
-instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
+instance : set_like (open_subgroup G) G :=
+{ coe := λ U, U.1,
+  coe_injective' := fun ⟨U, _⟩ ⟨V, _⟩ h, by { congr, exact set_like.ext' h } }
 
 @[to_additive]
 instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_subgroup⟩
@@ -66,19 +65,12 @@ instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_su
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
 @[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
 @[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 
-@[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
-by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }
-
 @[ext, to_additive]
-lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := coe_injective $ set.ext h
-
-@[to_additive]
-lemma ext_iff : (U = V) ↔ (∀ x, x ∈ U ↔ x ∈ V) := ⟨λ h x, h ▸ iff.rfl, ext⟩
+lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := set_like.ext h
 
 variable (U)
 @[to_additive]
@@ -110,7 +102,7 @@ begin
   apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
-    simp only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,
+    simp only [set.mem_preimage, set.mem_compl_iff, set_like.mem_coe] at hux hx ⊢,
     refine mt (λ hu, _) hx,
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
@@ -133,7 +125,7 @@ end
 @[to_additive]
 instance : partial_order (open_subgroup G) :=
 { le := λ U V, ∀ ⦃x⦄, x ∈ U → x ∈ V,
-  .. partial_order.lift (coe : open_subgroup G → set G) coe_injective }
+  .. partial_order.lift (coe : open_subgroup G → set G) set_like.coe_injective }
 
 @[to_additive]
 instance : semilattice_inf (open_subgroup G) :=

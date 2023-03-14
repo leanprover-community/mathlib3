@@ -342,7 +342,7 @@ by simp_rw [forall_iff, mulᵣ_eq, eq_self_iff_true, forall_const]
 /-- Prove a statement of the form
 ```
 ∀ α [has_mul α] [add_comm_monoid α] (a₁₁ ... aₗₘ b₁₁ ... bₘₙ : α),
-   !![a₁₁ ⋱ aₗₘ] ⬝ !![b₁₁ ⋱ bₘₙ] = ![⋱]
+   !![a₁₁ ⋱ aₗₘ] ⬝ !![b₁₁ ⋱ bₘₙ] = !![⋱]
 ```
 Returns the type of this statement and its proof. -/
 meta def of_mul_of_fin.prove (l m n : ℕ) : tactic (expr × expr) :=

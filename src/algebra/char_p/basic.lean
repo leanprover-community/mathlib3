@@ -26,18 +26,17 @@ protected lemma add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) 
   (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
     p * ∑ k in Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * ↑((p ^ n).choose k / p) :=
 begin
-  rw [h.add_pow, sum_range_succ_comm, ←nat.sub_add_cancel (pow_pos hp.pos _), sum_range_succ'],
-  simp only [nat.sub_add_cancel (pow_pos hp.pos _), tsub_zero, mul_one, one_mul,
-    nat.choose_zero_right, nat.cast_one, pow_zero, tsub_self, nat.choose_self],
-  rw [add_comm _ (y ^ _), ←add_assoc, mul_sum, sum_bij' (λ n _, n + 1) _ (λ i hi, _) (λ n _, n - 1)
-    (λ i hi, _) (λ _ _, rfl)],
-  { exact λ a ha, tsub_add_cancel_of_le (mem_Ioo.1 ha).1 },
-  { simp [lt_tsub_iff_right] },
-  { rw [nat.cast_comm, mul_assoc, mul_assoc, mul_assoc, ←nat.cast_mul, nat.div_mul_cancel],
-    rw [mem_range, lt_tsub_iff_right] at hi,
-    exact hp.dvd_choose_pow i.succ_ne_zero hi.ne },
-  { rw mem_Ioo at hi,
-    exact mem_range.2 (tsub_lt_tsub_right_of_le hi.1 hi.2) }
+  transitivity
+    x ^ p ^ n + y ^ p ^ n + ∑ k in Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * (p ^ n).choose k,
+  { simp_rw [h.add_pow, ←nat.Ico_zero_eq_range, nat.Ico_succ_right, Icc_eq_cons_Ico (zero_le _),
+      finset.sum_cons, Ico_eq_cons_Ioo (pow_pos hp.pos _), finset.sum_cons, tsub_self, tsub_zero,
+      pow_zero, nat.choose_zero_right, nat.choose_self, nat.cast_one, mul_one, one_mul,
+      ←add_assoc] },
+  { congr' 1,
+    simp_rw [finset.mul_sum, nat.cast_comm, mul_assoc _ _ (p : R), ←nat.cast_mul],
+    refine finset.sum_congr rfl (λ i hi, _),
+    rw mem_Ioo at hi,
+    rw nat.div_mul_cancel (hp.dvd_choose_pow hi.1.ne' hi.2.ne) },
 end
 
 protected lemma add_pow_prime_eq (hp : p.prime) (h : commute x y) :

@@ -67,6 +67,12 @@ instance : set_like (open_subgroup G) G :=
   coe_injective' := λ _ _ h, coe_subgroup_injective $ set_like.ext' h }
 
 @[to_additive]
+instance : subgroup_class (open_subgroup G) G :=
+{ mul_mem := λ U _ _, U.mul_mem',
+  one_mem := λ U, U.one_mem',
+  inv_mem := λ U _, U.inv_mem' }
+
+@[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
 @[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
@@ -79,15 +85,6 @@ lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := set_like.ext h
 variable (U)
 @[to_additive]
 protected lemma is_open : is_open (U : set G) := U.is_open'
-
-@[to_additive]
-protected lemma one_mem : (1 : G) ∈ U := U.one_mem'
-
-@[to_additive]
-protected lemma inv_mem {g : G} (h : g ∈ U) : g⁻¹ ∈ U := U.inv_mem' h
-
-@[to_additive]
-protected lemma mul_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) : g₁ * g₂ ∈ U := U.mul_mem' h₁ h₂
 
 @[to_additive]
 lemma mem_nhds_one : (U : set G) ∈ 𝓝 (1 : G) :=
@@ -111,7 +108,7 @@ begin
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
   { exact U.is_open.preimage (continuous_mul_right _) },
-  { simp [U.one_mem] }
+  { simp [one_mem] }
 end
 
 section

@@ -228,6 +228,10 @@ lemma x_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).x = x := rfl
 lemma y_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).y = y := rfl
 
 @[simp]
+lemma coe_mk  (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (↑(mk x y rel) : ℤ√d) = ⟨x,y⟩ :=
+zsqrtd.ext.mpr ⟨x_mk x y rel, y_mk x y rel⟩
+
+@[simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl
 
 @[simp]

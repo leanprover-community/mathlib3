@@ -363,9 +363,8 @@ rfl
 /-- Given an `S`-algebra `R`, an `R`-module `M` with a compatible `S`-module structure, and a
 type `X`, then the set of functions `X → M` is `S`-linearly equivalent to the `R`-linear maps from
 the free `R`-module on `X` to `M`. -/
-noncomputable def llift (S : Type*) [comm_semiring S]
-  [algebra S R] [module S M] [module R M] [is_scalar_tower S R M] :
-  (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+noncomputable def llift (S : Type*) [comm_semiring S] [algebra S R]
+  [module S M] [is_scalar_tower S R M] : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
 { map_smul' :=
   begin
     intros,

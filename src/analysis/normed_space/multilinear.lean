@@ -1066,6 +1066,11 @@ lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
   ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
 linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
+def comp_continuous_linear_map_equivL (f : Π i, E i ≃L[𝕜] E₁ i) :
+  continuous_multilinear_map 𝕜 E₁ G ≃L[𝕜] continuous_multilinear_map 𝕜 E G :=
+{ to_fun := comp_continuous_linear_mapL f,
+  inv_fun := comp_continuous_linear_mapL (λ i, (f i).symm) }
+
 end continuous_multilinear_map
 
 section smul

@@ -1775,10 +1775,21 @@ lemma continuous_linear_map.iterated_fderiv_within_comp_left
 (((hf.ftaylor_series_within hs).continuous_linear_map_comp g).eq_ftaylor_series_of_unique_diff_on
   hi hs hx).symm
 
-/-- The iterated derivative within a set of the composition with a linear equiv on the left is
+/-- The iterated derivative of the composition with a linear map on the left is
 obtained by applying the linear map to the iterated derivative. -/
-lemma continuous_linear_map.iterated_fderiv_within_comp_left_of_injective
-  {f : E → F} (g : F ≃L[𝕜] G) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (i : ℕ) :
+lemma continuous_linear_map.iterated_fderiv_comp_left
+  {f : E → F} (g : F →L[𝕜] G) (hf : cont_diff 𝕜 n f) (x : E) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  iterated_fderiv 𝕜 i (g ∘ f) x = g.comp_continuous_multilinear_map (iterated_fderiv 𝕜 i f x) :=
+begin
+  simp only [← iterated_fderiv_within_univ],
+  exact g.iterated_fderiv_within_comp_left hf.cont_diff_on unique_diff_on_univ (mem_univ x) hi,
+end
+
+/-- The iterated derivative within a set of the composition with a linear equiv on the left is
+obtained by applying the linear equiv to the iterated derivative. This is true without
+differentiability assumptions. -/
+lemma continuous_linear_equiv.iterated_fderiv_within_comp_left
+  (g : F ≃L[𝕜] G) (f : E → F) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (i : ℕ) :
   iterated_fderiv_within 𝕜 i (g ∘ f) s x =
     (g : F →L[𝕜] G).comp_continuous_multilinear_map (iterated_fderiv_within 𝕜 i f s x) :=
 begin
@@ -1791,28 +1802,13 @@ begin
     have Z : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (g ∘ f) s) s x =
       fderiv_within 𝕜 (λ y, g.comp_continuous_multilinear_mapL (λ (j : fin i), E)
         (iterated_fderiv_within 𝕜 i f s y)) s x,
-    { apply fderiv_within_congr' (hs x hx) _ hx,
-
-    },
+      from fderiv_within_congr' (hs x hx) (λ y hy, IH hy) hx,
     simp_rw Z,
     rw (g.comp_continuous_multilinear_mapL (λ (j : fin i), E)).comp_fderiv_within (hs x hx),
     simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
       continuous_linear_equiv.comp_continuous_multilinear_mapL_apply,
       continuous_linear_map.comp_continuous_multilinear_map_coe, embedding_like.apply_eq_iff_eq],
     rw iterated_fderiv_within_succ_apply_left }
-end
-
-#exit
-
-
-/-- The iterated derivative of the composition with a linear map on the left is
-obtained by applying the linear map to the iterated derivative. -/
-lemma continuous_linear_map.iterated_fderiv_comp_left
-  {f : E → F} (g : F →L[𝕜] G) (hf : cont_diff 𝕜 n f) (x : E) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
-  iterated_fderiv 𝕜 i (g ∘ f) x = g.comp_continuous_multilinear_map (iterated_fderiv 𝕜 i f x) :=
-begin
-  simp only [← iterated_fderiv_within_univ],
-  exact g.iterated_fderiv_within_comp_left hf.cont_diff_on unique_diff_on_univ (mem_univ x) hi,
 end
 
 /-- Composition with a linear isometry on the left preserves the norm of the iterated
@@ -1842,10 +1838,15 @@ end
 /-- Composition with a linear isometry equiv on the left preserves the norm of the iterated
 derivative. -/
 lemma linear_isometry_equiv.norm_iterated_fderiv_within_comp_left
-  {f : E → F} (g : F ≃ₗᵢ[𝕜] G) (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
-  {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  (g : F ≃ₗᵢ[𝕜] G) (f : E → F) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (i : ℕ) :
   ‖iterated_fderiv_within 𝕜 i (g ∘ f) s x‖ = ‖iterated_fderiv_within 𝕜 i f s x‖ :=
-g.to_linear_isometry.norm_iterated_fderiv_within_comp_left hf hs hx hi
+begin
+  have : iterated_fderiv_within 𝕜 i (g ∘ f) s x =
+    (g : F →L[𝕜] G).comp_continuous_multilinear_map (iterated_fderiv_within 𝕜 i f s x),
+    from g.to_continuous_linear_equiv.iterated_fderiv_within_comp_left f hs hx i,
+  rw this,
+  apply linear_isometry.norm_comp_continuous_multilinear_map g.to_linear_isometry,
+end
 
 /-- Composition by continuous linear equivs on the left respects higher differentiability at a
 point in a domain. -/
@@ -1941,6 +1942,31 @@ lemma continuous_linear_map.iterated_fderiv_within_comp_right
     (iterated_fderiv_within 𝕜 i f s (g x)).comp_continuous_linear_map (λ _, g) :=
 (((hf.ftaylor_series_within hs).comp_continuous_linear_map g).eq_ftaylor_series_of_unique_diff_on
   hi h's hx).symm
+
+/-- The iterated derivative within a set of the composition with a linear equiv on the right is
+obtained by composing the iterated derivative with the linear map. -/
+lemma continuous_linear_equiv.iterated_fderiv_within_comp_right
+  (g : G ≃L[𝕜] E) (f : E → F) (hs : unique_diff_on 𝕜 s) {x : G} (hx : g x ∈ s) (i : ℕ) :
+  iterated_fderiv_within 𝕜 i (f ∘ g) (g ⁻¹' s) x =
+    (iterated_fderiv_within 𝕜 i f s (g x)).comp_continuous_linear_map (λ _, g) :=
+begin
+  induction i with i IH generalizing x,
+  { ext1 m,
+    simp only [iterated_fderiv_within_zero_apply,
+      continuous_multilinear_map.comp_continuous_linear_map_apply] },
+  { ext1 m,
+    simp only [continuous_multilinear_map.comp_continuous_linear_map_apply, 
+      continuous_linear_equiv.coe_coe, iterated_fderiv_within_succ_apply_left],
+    have : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f ∘ ⇑g) (⇑g ⁻¹' s)) (⇑g ⁻¹' s) x
+      = fderiv_within 𝕜 (λ y, (iterated_fderiv_within 𝕜 i f s (g y))
+        .comp_continuous_linear_map (λ (_x : fin i), ↑g)) (g ⁻¹' s) x,
+      from fderiv_within_congr' (g.unique_diff_on_preimage_iff.2 hs x hx) (λ y hy, IH hy) hx,
+
+  
+  }
+end
+
+#exit
 
 /-- The iterated derivative within a set of the composition with a linear equiv on the right is
 obtained by composing the iterated derivative with the linear map. -/

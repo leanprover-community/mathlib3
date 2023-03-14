@@ -390,11 +390,11 @@ do
   has_add_α ← tactic.mk_app `has_add [α] >>= (λ t, prod.snd <$> @tactic.solve_aux unit t (do
   { tmp2 ← tactic.pose `_inst_2' none add_comm_monoid_α,
     tactic.reset_instance_cache,
-    `[apply_instance] })),
+    tactic.apply_instance })),
   has_zero_α ← tactic.mk_app `has_zero [α] >>= (λ t, prod.snd <$> @tactic.solve_aux unit t (do
   { tmp2 ← tactic.pose `_inst_2' none add_comm_monoid_α,
     tactic.reset_instance_cache,
-    `[apply_instance] })),
+    tactic.apply_instance })),
   let t := {inst := [
     (`has_mul, has_mul_α),
     (`has_add, has_add_α),

@@ -80,7 +80,7 @@ def «forall» : Π {m} (P : (fin m → α) → Prop), Prop
 | (n + 1) P := ∀ x : α, «forall» (λ v, P (matrix.vec_cons x v))
 
 lemma forall_iff : Π {m} (P : (fin m → α) → Prop), «forall» P ↔ ∀ x, P x
-| 0 P := by simp only [«forall», fin.forall_fin_zero_pi, matrix.vec_empty]
+| 0 P := by { simp only [«forall», fin.forall_fin_zero_pi], refl }
 | (n + 1) P := by simp only [«forall», forall_iff, fin.forall_fin_succ_pi, matrix.vec_cons]
 
 example (P : (fin 2 → α) → Prop) : (∀ f, P f) ↔ (∀ a₀ a₁, P ![a₀, a₁]) := (forall_iff _).symm
@@ -91,7 +91,7 @@ def «exists» : Π {m} (P : (fin m → α) → Prop), Prop
 | (n + 1) P := ∃ x : α, «exists» (λ v, P (matrix.vec_cons x v))
 
 lemma exists_iff : Π {m} (P : (fin m → α) → Prop), «exists» P ↔ ∃ x, P x
-| 0 P := by simp only [«exists», fin.exists_fin_zero_pi, matrix.vec_empty]
+| 0 P := by { simp only [«exists», fin.exists_fin_zero_pi, matrix.vec_empty], refl }
 | (n + 1) P := by simp only [«exists», exists_iff, fin.exists_fin_succ_pi, matrix.vec_cons]
 
 example (P : (fin 2 → α) → Prop) : (∀ f, P f) ↔ (∀ a₀ a₁, P ![a₀, a₁]) := (forall_iff _).symm
@@ -154,7 +154,7 @@ example (P : (matrix (fin 2) (fin 3) α) → Prop) :
 def transposeᵣ : Π {m n}, matrix (fin m) (fin n) α → matrix (fin n) (fin m) α
 | _ 0 A := of ![]
 | m (n + 1) A := of $ vec_cons (fin_vec.map (λ v : fin _ → α, v 0) A)
-                               (transposeᵣ (A.minor id fin.succ))
+                               (transposeᵣ (A.submatrix id fin.succ))
 
 local attribute [instance] matrix.subsingleton_of_empty_left
 
@@ -324,8 +324,8 @@ do
   tactic.exact (pr α A')
 
 theorem fin_eta {α} {m n : ℕ}
-  (A : matrix (fin m) (fin n) α) {«![A 0 0, ...]» : matrix (fin m) (fin n) α}
-  (h : A = «![A 0 0, ...]» . matrix.fin_eta.derive) : A = «![A 0 0, ...]» := h
+  (A : matrix (fin m) (fin n) α) {«!![A 0 0, ...]» : matrix (fin m) (fin n) α}
+  (h : A = «!![A 0 0, ...]» . matrix.fin_eta.derive) : A = «!![A 0 0, ...]» := h
 
 example : true :=
 begin
@@ -437,15 +437,15 @@ do
   --   tactic.unify target (t.instantiate_pis [α, A']),
   --   tactic.exact (pr α A')
 
-/-- This lemma uses an `auto_param` to populate the variables with names of the form `«![a₁₁ ⋱ aₗₘ]»`
-with an expression containing the coefficients in `![]` notation. The generated `abᵢₖ` entries
-contain the appropriate expressions in terms of `+`, `*`, `aᵢⱼ`, and `bⱼₖ`. -/
+/-- This lemma uses an `auto_param` to populate the variables with names of the form
+`«!![a₁₁ ⋱ aₗₘ]»` with an expression containing the coefficients in `!![]` notation. The generated
+`abᵢₖ` entries contain the appropriate expressions in terms of `+`, `*`, `aᵢⱼ`, and `bⱼₖ`. -/
 theorem mul_fin {α} [has_mul α] [add_comm_monoid α] {l m n : ℕ}
-  {«![a₁₁ ⋱ aₗₘ]» : fin l → fin m → α}
-  {«![b₁₁ ⋱ bₘₙ]» : fin m → fin n → α}
-  {«![ab₁₁ ⋱ abₗₙ]» : fin l → fin n → α}
-  (h : of «![a₁₁ ⋱ aₗₘ]» ⬝ of «![b₁₁ ⋱ bₘₙ]» = of «![ab₁₁ ⋱ abₗₙ]» . mul_fin.derive) :
-    of «![a₁₁ ⋱ aₗₘ]» ⬝ of «![b₁₁ ⋱ bₘₙ]» = of «![ab₁₁ ⋱ abₗₙ]» := h
+  {«!![a₁₁ ⋱ aₗₘ]» : fin l → fin m → α}
+  {«!![b₁₁ ⋱ bₘₙ]» : fin m → fin n → α}
+  {«!![ab₁₁ ⋱ abₗₙ]» : fin l → fin n → α}
+  (h : of «!![a₁₁ ⋱ aₗₘ]» ⬝ of «!![b₁₁ ⋱ bₘₙ]» = of «!![ab₁₁ ⋱ abₗₙ]» . mul_fin.derive) :
+    of «!![a₁₁ ⋱ aₗₘ]» ⬝ of «!![b₁₁ ⋱ bₘₙ]» = of «!![ab₁₁ ⋱ abₗₙ]» := h
 
 example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
   !![a₁₁, a₁₂;
@@ -463,7 +463,6 @@ begin
   -- if we really need it, we can get the proof directly like this
   mul_fin.prove 1 2 2 >>= function.uncurry (tactic.assertv `h),
   specialize @h α _ _,
-
   rw mul_fin
 end
 

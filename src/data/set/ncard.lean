@@ -483,7 +483,7 @@ lemma exists_mem_not_mem_of_ncard_lt_ncard [finite s] (h : s.ncard < t.ncard) :
   ∃ e, e ∈ t ∧ e ∉ s :=
 diff_nonempty_of_ncard_lt_ncard h
 
-@[simp] lemma ncard_inter_add_ncard_diff_eq_ncard (s t : set α) [finite s] [finite t] :
+@[simp] lemma ncard_inter_add_ncard_diff_eq_ncard (s t : set α) [finite s] :
   (s ∩ t).ncard + (s \ t).ncard = s.ncard :=
 begin
   convert ncard_diff_add_ncard_eq_ncard (diff_subset s t) using 3,
@@ -509,7 +509,7 @@ end lattice
 
 /-- Given a set `t` and a set `s` inside it, we can shrink `t` to any appropriate size, and keep `s`
     inside it. -/
-lemma exists_intermediate_set_ncard (i : ℕ) (h₁ : i + s.ncard ≤ t.ncard) (h₂ : s ⊆ t) :
+lemma exists_intermediate_set (i : ℕ) (h₁ : i + s.ncard ≤ t.ncard) (h₂ : s ⊆ t) :
   ∃ (r : set α), s ⊆ r ∧ r ⊆ t ∧ r.ncard = i + s.ncard :=
 begin
   cases t.finite_or_infinite with ht ht,
@@ -527,7 +527,7 @@ end
 /-- We can shrink `s` to any smaller size. -/
 lemma exists_smaller_set (s : set α) (i : ℕ) (h₁ : i ≤ s.ncard) :
   ∃ (t : set α), t ⊆ s ∧ t.ncard = i :=
-(exists_intermediate_set_ncard i (by simpa) (empty_subset s)).imp
+(exists_intermediate_set i (by simpa) (empty_subset s)).imp
   (λ t ht, ⟨ht.2.1,by simpa using ht.2.2⟩)
 
 lemma exists_subset_or_subset_of_two_mul_lt_ncard {n : ℕ} (hst : 2 * n < (s ∪ t).ncard) :

@@ -317,9 +317,6 @@ monotone_nat_of_le_succ $ λ n,
 theorem pow_le_pow (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 pow_mono ha h
 
-lemma le_pow (h1 : 1 ≤ a) (h2 : 1 ≤ n) : a ≤ a^n :=
-by { conv { congr, rw ←pow_one a, }, apply pow_le_pow h1 h2, }
-
 theorem le_self_pow (ha : 1 ≤ a) (h : m ≠ 0) : a ≤ a ^ m :=
 (pow_one a).symm.trans_le (pow_le_pow ha $ pos_iff_ne_zero.mpr h)
 
@@ -354,7 +351,7 @@ strict_mono_nat_of_lt_succ $ λ n, by simpa only [one_mul, pow_succ]
 lemma pow_lt_pow (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
 pow_strict_mono_right h h2
 
-lemma lt_pow (h1 : 1 < a) (h2 : 1 < n) : a < a^n :=
+lemma lt_self_pow (h1 : 1 < a) (h2 : 1 < n) : a < a^n :=
 by { conv { congr, rw ←pow_one a, }, apply pow_lt_pow h1 h2, }
 
 lemma pow_lt_pow_iff (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
@@ -376,14 +373,6 @@ lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : 
 lemma pow_lt_self_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) (hn : 1 < n) : a ^ n < a :=
 calc a ^ n < a ^ 1 : pow_lt_pow_of_lt_one h₀ h₁ hn
 ... = a : pow_one _
-
-lemma pow_sub_one_eq_mul_pow_sub_two (n : R) {k : ℕ} (hk : 1 < k) : n^(k - 1) = n * n^(k - 2) :=
-begin
-  conv_rhs { conv { congr, rw ←pow_one n, }, rw [←pow_add, add_comm], },
-  rw [nat.sub_succ k 1, ←nat.succ_eq_add_one,
-    nat.succ_pred_eq_of_pos (lt_tsub_iff_right.2 _)],
-  apply hk,
-end
 
 lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
 

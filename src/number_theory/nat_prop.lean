@@ -15,7 +15,7 @@ Naturals
 -/
 
 namespace nat
-lemma coprime_sub {n m : ℕ} (h : n.coprime m) (hn : m ≤ n) : (n - m).coprime n :=
+lemma coprime.sub {n m : ℕ} (h : n.coprime m) (hn : m ≤ n) : (n - m).coprime n :=
 begin
   by_contradiction h',
   obtain ⟨p, h1, h2, h3⟩ := nat.prime.not_coprime_iff_dvd.1 h',
@@ -44,7 +44,7 @@ begin
     change _ = int.of_nat d at hd, simp [hd], },
 end
 
-lemma add_sub_pred (n : ℕ) : n + (n - 1) = 2 * n - 1 :=
+lemma add_self_pred (n : ℕ) : n + (n - 1) = 2 * n - 1 :=
 begin
   cases n,
   { refl, },
@@ -59,11 +59,11 @@ begin
 end
 
 variables {p : ℕ} [fact p.prime] {d : ℕ}
-lemma one_lt_mul_pow_of_ne_one [fact (0 < d)] {k : ℕ} (h : d * p^k ≠ 1) : 1 < d * p^k :=
+lemma one_lt_mul_pow_of_ne_one [ne_zero d] {k : ℕ} (h : d * p^k ≠ 1) : 1 < d * p^k :=
 nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨nat.mul_ne_zero (ne_zero_of_lt' 0)
   (pow_ne_zero _ (nat.prime.ne_zero (fact.out _))), h⟩
 
-lemma mul_pow_eq_one_of_mul_pow_sq_not_one_lt {p : ℕ} [fact p.prime] {d : ℕ} [fact (0 < d)]
+lemma mul_pow_eq_one_of_mul_pow_sq_not_one_lt {p : ℕ} [fact p.prime] {d : ℕ} [ne_zero d]
   {n : ℕ} (h : ¬ 1 < d * p^(2 * n)) : d * p^n = 1 :=
 begin
   rw [not_lt_iff_eq_or_lt, lt_one_iff, nat.mul_eq_zero] at h,
@@ -77,16 +77,16 @@ begin
     exact h, },
 end
 
-instance [fact (0 < d)] {n : ℕ} : fact (0 < d * p^n) :=
+instance [ne_zero d] {n : ℕ} : fact (0 < d * p^n) :=
 fact_iff.2 (mul_pos (fact.out _) (pow_pos (nat.prime.pos (fact.out _)) _))
 
-lemma mul_prime_pow_pos [fact (0 < d)] (m : ℕ) : 0 < d * p^m := fact_iff.1 infer_instance
+lemma mul_prime_pow_pos [ne_zero d] (m : ℕ) : 0 < d * p^m := fact_iff.1 infer_instance
 
-lemma mul_pow_lt_mul_pow_succ [fact (0 < d)] (m : ℕ) : d * p ^ m < d * p ^ m.succ :=
+lemma mul_pow_lt_mul_pow_succ [ne_zero d] (m : ℕ) : d * p ^ m < d * p ^ m.succ :=
 mul_lt_mul' le_rfl (nat.pow_lt_pow_succ (nat.prime.one_lt (fact_iff.1 infer_instance)) m)
     (nat.zero_le _) (fact_iff.1 infer_instance)
 
-lemma pow_lt_mul_pow_succ_right [fact (0 < d)] (m : ℕ) : p ^ m < d * p ^ m.succ :=
+lemma pow_lt_mul_pow_succ_right [ne_zero d] (m : ℕ) : p ^ m < d * p ^ m.succ :=
 begin
   rw [pow_succ, ←mul_assoc],
   apply lt_mul_of_one_lt_left (pow_pos (nat.prime.pos (fact.out _)) _)

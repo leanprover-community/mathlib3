@@ -750,7 +750,7 @@ eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ (inner_zero_left _).ge
 begin
   suffices : ∀ x : H, x ∈ (univ : set H).inner_dual_cone → x = 0,
   { apply set_like.coe_injective,
-    exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, inner_zero_right.ge, this⟩ },
+    exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, (inner_zero_right _).ge, this⟩ },
   exact λ x hx, by simpa [←real_inner_self_nonpos] using hx (-x) (mem_univ _),
 end
 
@@ -874,7 +874,7 @@ begin
     calc 0 < ⟪b - z, b - z⟫_ℝ : lt_of_not_le ((iff.not real_inner_self_nonpos).2 hbz)
     ... = ⟪b - z, b - z⟫_ℝ + 0 : (add_zero _).symm
     ... ≤ ⟪b - z, b - z⟫_ℝ + ⟪b - z, z⟫_ℝ : add_le_add rfl.ge hinner₀
-    ... = ⟪b - z, b - z + z⟫_ℝ : inner_add_right.symm
+    ... = ⟪b - z, b - z + z⟫_ℝ : (inner_add_right _ _ _).symm
     ... = ⟪b - z, b⟫_ℝ : by rw sub_add_cancel },
 end
 

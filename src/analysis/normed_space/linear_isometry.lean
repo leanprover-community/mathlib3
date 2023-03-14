@@ -514,6 +514,10 @@ variables (R E)
 /-- Identity map as a `linear_isometry_equiv`. -/
 def refl : E ≃ₗᵢ[R] E := ⟨linear_equiv.refl R E, λ x, rfl⟩
 
+def ulift : ulift E ≃ₗᵢ[R] E :=
+{ norm_map' := λ x, rfl,
+  .. continuous_linear_equiv.ulift }
+
 variables {R E}
 
 instance : inhabited (E ≃ₗᵢ[R] E) := ⟨refl R E⟩

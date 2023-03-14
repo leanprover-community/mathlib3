@@ -57,11 +57,11 @@ Schwartz space, tempered distributions
 noncomputable theory
 
 universe u
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] {E F G H : Type u}
-  [normed_add_comm_group E] [normed_space 𝕜 E]
-  [normed_add_comm_group F] [normed_space 𝕜 F]
-  [normed_add_comm_group G] [normed_space 𝕜 G]
-  [normed_add_comm_group H] [normed_space 𝕜 H]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] {Eu Fu Gu Hu : Type u}
+  [normed_add_comm_group Eu] [normed_space 𝕜 Eu]
+  [normed_add_comm_group Fu] [normed_space 𝕜 Fu]
+  [normed_add_comm_group Gu] [normed_space 𝕜 Gu]
+  [normed_add_comm_group Hu] [normed_space 𝕜 Hu]
 
 open_locale big_operators
 
@@ -100,13 +100,13 @@ end
 end
 
 lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_aux
-  (B : E →L[𝕜] F →L[𝕜] G) {f : H → E} {g : H → F} {n : ℕ} {s : set H} {x : H}
+  (B : Eu →L[𝕜] Fu →L[𝕜] Gu) {f : Hu → Eu} {g : Hu → Fu} {n : ℕ} {s : set Hu} {x : Hu}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
   ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
   ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
-  unfreezingI { induction n with n IH generalizing E F G},
+  unfreezingI { induction n with n IH generalizing Eu Fu Gu},
   { simp only [←mul_assoc, norm_iterated_fderiv_within_zero, finset.range_one, finset.sum_singleton,
       nat.choose_self, algebra_map.coe_one, one_mul],
     apply ((B (f x)).le_op_norm (g x)).trans,
@@ -114,18 +114,18 @@ begin
     exact B.le_op_norm (f x) },
   { have In : (n : with_top ℕ) + 1 ≤ n.succ, by simp only [nat.cast_succ, le_refl],
     have I1 :
-      ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompR H (f y) (fderiv_within 𝕜 g s y)) s x‖ ≤
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Hu), B.precompR Hu (f y) (fderiv_within 𝕜 g s y)) s x‖ ≤
       ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i *
         ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n + 1 - i) g s x‖ := calc
-      ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompR H (f y) (fderiv_within 𝕜 g s y)) s x‖
-          ≤ ‖B.precompR H‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Hu), B.precompR Hu (f y) (fderiv_within 𝕜 g s y)) s x‖
+          ≤ ‖B.precompR Hu‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
             * ‖iterated_fderiv_within 𝕜 i f s x‖
             * ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 g s) s x‖ :
         IH _ (hf.of_le (nat.cast_le.2 (nat.le_succ n))) (hg.fderiv_within hs In)
       ... ≤ ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
             * ‖iterated_fderiv_within 𝕜 i f s x‖
             * ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 g s) s x‖ :
-        mul_le_mul_of_nonneg_right (B.norm_precompR_le H) (finset.sum_nonneg' (λ i, by positivity))
+        mul_le_mul_of_nonneg_right (B.norm_precompR_le Hu) (finset.sum_nonneg' (λ i, by positivity))
       ... = _ :
         begin
           congr' 1,
@@ -134,18 +134,18 @@ begin
             iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map],
         end,
     have I2 :
-      ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompL H (fderiv_within 𝕜 f s y) (g y)) s x‖ ≤
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Hu), B.precompL Hu (fderiv_within 𝕜 f s y) (g y)) s x‖ ≤
       ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i *
         ‖iterated_fderiv_within 𝕜 (i + 1) f s x‖ * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖ := calc
-      ‖iterated_fderiv_within 𝕜 n (λ (y : H), B.precompL H (fderiv_within 𝕜 f s y) (g y)) s x‖
-          ≤ ‖B.precompL H‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Hu), B.precompL Hu (fderiv_within 𝕜 f s y) (g y)) s x‖
+          ≤ ‖B.precompL Hu‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
             * ‖iterated_fderiv_within 𝕜 i (fderiv_within 𝕜 f s) s x‖
             * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖ :
         IH _ (hf.fderiv_within hs In) (hg.of_le (nat.cast_le.2 (nat.le_succ n)))
       ... ≤ ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
             * ‖iterated_fderiv_within 𝕜 i (fderiv_within 𝕜 f s) s x‖
             * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖ :
-        mul_le_mul_of_nonneg_right (B.norm_precompL_le H) (finset.sum_nonneg' (λ i, by positivity))
+        mul_le_mul_of_nonneg_right (B.norm_precompL_le Hu) (finset.sum_nonneg' (λ i, by positivity))
       ... = _ :
         begin
           congr' 1,
@@ -153,20 +153,20 @@ begin
           rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map],
         end,
     have J : iterated_fderiv_within 𝕜 n
-      (λ (y : H), fderiv_within 𝕜 (λ (y : H), B (f y) (g y)) s y) s x
-      = iterated_fderiv_within 𝕜 n (λ y, B.precompR H (f y) (fderiv_within 𝕜 g s y)
-        + B.precompL H (fderiv_within 𝕜 f s y) (g y)) s x,
+      (λ (y : Hu), fderiv_within 𝕜 (λ (y : Hu), B (f y) (g y)) s y) s x
+      = iterated_fderiv_within 𝕜 n (λ y, B.precompR Hu (f y) (fderiv_within 𝕜 g s y)
+        + B.precompL Hu (fderiv_within 𝕜 f s y) (g y)) s x,
     { apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
       have L : (1 : with_top ℕ) ≤ n.succ,
         by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
       exact B.fderiv_within_of_bilinear (hf.differentiable_on L y hy)
         (hg.differentiable_on L y hy) (hs y hy) },
     rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map, J],
-    have A : cont_diff_on 𝕜 n (λ y, B.precompR H (f y) (fderiv_within 𝕜 g s y)) s,
-      from (B.precompR H).is_bounded_bilinear_map.cont_diff.comp_cont_diff_on₂
+    have A : cont_diff_on 𝕜 n (λ y, B.precompR Hu (f y) (fderiv_within 𝕜 g s y)) s,
+      from (B.precompR Hu).is_bounded_bilinear_map.cont_diff.comp_cont_diff_on₂
         (hf.of_le (nat.cast_le.2 (nat.le_succ n))) (hg.fderiv_within hs In),
-    have A' : cont_diff_on 𝕜 n (λ y, B.precompL H (fderiv_within 𝕜 f s y) (g y)) s,
-      from (B.precompL H).is_bounded_bilinear_map.cont_diff.comp_cont_diff_on₂
+    have A' : cont_diff_on 𝕜 n (λ y, B.precompL Hu (fderiv_within 𝕜 f s y) (g y)) s,
+      from (B.precompL Hu).is_bounded_bilinear_map.cont_diff.comp_cont_diff_on₂
         (hf.fderiv_within hs In) (hg.of_le (nat.cast_le.2 (nat.le_succ n))),
     rw iterated_fderiv_within_add_apply' A A' hs hx,
     apply (norm_add_le _ _).trans ((add_le_add I1 I2).trans (le_of_eq _)),
@@ -176,7 +176,87 @@ begin
       (λ i, ‖iterated_fderiv_within 𝕜 i g s x‖) n).symm }
 end
 
+universes uE uF uG uH
+variables {E : Type uE}  {F : Type uF} {G : Type uG} {H : Type uH}
+  [normed_add_comm_group E] [normed_space 𝕜 E]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group G] [normed_space 𝕜 G]
+  [normed_add_comm_group H] [normed_space 𝕜 H]
+
+lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear
+  (B : E →L[𝕜] F →L[𝕜] G) {f : H → E} {g : H → F} {n : ℕ} {s : set H} {x : H}
+  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
+  ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
+begin
+  let Eu : Type (max uE uF uG uH) := ulift E,
+  let Fu : Type (max uF uE uF uG) := ulift F,
+  let Gu : Type (max uG uE uF uH) := ulift G,
+  let Hu : Type (max uH uE uF uG) := ulift H,
+  have isoG : Gu ≃ₗᵢ[𝕜] G := by suggest,
+
+end
+
 #exit
+
+  let eG : Type (max uG uE' uF uP) := ulift G,
+  borelize eG,
+  let eE' : Type (max uE' uG uF uP) := ulift E',
+  let eF : Type (max uF uG uE' uP) := ulift F,
+  let eP : Type (max uP uG uE' uF) := ulift P,
+  have isoG : eG ≃L[𝕜] G := continuous_linear_equiv.ulift,
+  have isoE' : eE' ≃L[𝕜] E' := continuous_linear_equiv.ulift,
+  have isoF : eF ≃L[𝕜] F := continuous_linear_equiv.ulift,
+  have isoP : eP ≃L[𝕜] P := continuous_linear_equiv.ulift,
+  let ef := f ∘ isoG,
+  let eμ : measure eG := measure.map isoG.symm μ,
+  let eg : eP → eG → eE' := λ ep ex, isoE'.symm (g (isoP ep) (isoG ex)),
+  let eL := continuous_linear_map.comp
+    ((continuous_linear_equiv.arrow_congr isoE' isoF).symm : (E' →L[𝕜] F) →L[𝕜] eE' →L[𝕜] eF) L,
+  let R := (λ (q : eP × eG), (ef ⋆[eL, eμ] eg q.1) q.2),
+  have R_contdiff : cont_diff_on 𝕜 n R ((isoP ⁻¹' s) ×ˢ univ),
+  { have hek : is_compact (isoG ⁻¹' k),
+      from isoG.to_homeomorph.closed_embedding.is_compact_preimage hk,
+    have hes : is_open (isoP ⁻¹' s), from isoP.continuous.is_open_preimage _ hs,
+    refine cont_diff_on_convolution_right_with_param_aux eL hes hek _ _ _,
+    { assume p x hp hx,
+      simp only [comp_app, continuous_linear_equiv.prod_apply, linear_isometry_equiv.coe_coe,
+        continuous_linear_equiv.map_eq_zero_iff],
+      exact hgs _ _ hp hx },
+    { apply (locally_integrable_map_homeomorph isoG.symm.to_homeomorph).2,
+      convert hf,
+      ext1 x,
+      simp only [ef, continuous_linear_equiv.coe_to_homeomorph, comp_app,
+        continuous_linear_equiv.apply_symm_apply], },
+    { apply isoE'.symm.cont_diff.comp_cont_diff_on,
+      apply hg.comp ((isoP.prod isoG).cont_diff).cont_diff_on,
+      rintros ⟨p, x⟩ ⟨hp, hx⟩,
+      simpa only [mem_preimage, continuous_linear_equiv.prod_apply, prod_mk_mem_set_prod_eq,
+        mem_univ, and_true] using hp } },
+  have A : cont_diff_on 𝕜 n (isoF ∘ R ∘ (isoP.prod isoG).symm) (s ×ˢ univ),
+  { apply isoF.cont_diff.comp_cont_diff_on,
+    apply R_contdiff.comp (continuous_linear_equiv.cont_diff _).cont_diff_on,
+    rintros ⟨p, x⟩ ⟨hp, hx⟩,
+    simpa only [mem_preimage, mem_prod, mem_univ, and_true, continuous_linear_equiv.prod_symm,
+      continuous_linear_equiv.prod_apply, continuous_linear_equiv.apply_symm_apply] using hp },
+  have : isoF ∘ R ∘ (isoP.prod isoG).symm = (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2),
+  { apply funext,
+    rintros ⟨p, x⟩,
+    simp only [R, linear_isometry_equiv.coe_coe, comp_app, continuous_linear_equiv.prod_symm,
+      continuous_linear_equiv.prod_apply],
+    simp only [convolution, eL, coe_comp', continuous_linear_equiv.coe_coe, comp_app, eμ],
+    rw [closed_embedding.integral_map, ← isoF.integral_comp_comm],
+    swap, { exact isoG.symm.to_homeomorph.closed_embedding },
+    congr' 1,
+    ext1 a,
+    simp only [ef, eg, comp_app, continuous_linear_equiv.apply_symm_apply, coe_comp',
+      continuous_linear_equiv.prod_apply, continuous_linear_equiv.map_sub,
+      continuous_linear_equiv.arrow_congr, continuous_linear_equiv.arrow_congrSL_symm_apply,
+      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply] },
+  simp_rw [this] at A,
+  exact A,
+end
 
 lemma glou {E : Type*} [inner_product_space ℝ E] (k n : ℕ) :
   cont_diff ℝ ⊤ (λ (y : E), real.exp (- ‖y‖^2)) :=

@@ -27,7 +27,7 @@ definitionally to the expected expression when evaluated on `![]` and `!![]` not
 ## Main results
 
 * `matrix.fin_eta`
-* `matrix.mul_fin`
+* `matrix.of_mul_of_fin`
 
 -/
 namespace fin_vec
@@ -323,6 +323,7 @@ do
   tactic.unify target (t.instantiate_pis [α, A']),
   tactic.exact (pr α A')
 
+/-- This lemma expands `A` into `!![A 0 0, ...]`. -/
 theorem fin_eta {α} {m n : ℕ}
   (A : matrix (fin m) (fin n) α) {«!![A 0 0, ...]» : matrix (fin m) (fin n) α}
   (h : A = «!![A 0 0, ...]» . matrix.fin_eta.derive) : A = «!![A 0 0, ...]» := h
@@ -337,7 +338,7 @@ end
 
 end fin_eta
 
-section mul_fin
+section of_mul_of_fin
 
 /-- Choose a name suffix for a matrix index -/
 private def name_suffix {m n : ℕ} : fin m → fin n → string :=
@@ -351,8 +352,8 @@ meta def fin_to_pexpr {m n : ℕ} (A : matrix (fin m) (fin n) pexpr) : pexpr :=
 ``(@matrix.of (fin %%`(m)) (fin %%`(n)) _).app $
   pi_fin.to_pexpr (λ i : fin m, pi_fin.to_pexpr (λ j : fin n, A i j))
 
-/-- This statement is defeq to `mul_fin`, but syntactically worse-/
-theorem mul_fin_aux (l m n : ℕ) ⦃α⦄ [has_mul α] [add_comm_monoid α] :
+/-- This statement is defeq to `of_mul_of_fin`, but syntactically worse-/
+theorem of_mul_of_fin_aux (l m n : ℕ) ⦃α⦄ [has_mul α] [add_comm_monoid α] :
   «forall» $ λ A : matrix (fin l) (fin m) α,
     «forall» $ λ B : matrix (fin m) (fin n) α,
       A.mul B = A.mulᵣ B :=
@@ -364,7 +365,7 @@ by simp_rw [forall_iff, mulᵣ_eq, eq_self_iff_true, forall_const]
    !![a₁₁ ⋱ aₗₘ] ⬝ !![b₁₁ ⋱ bₘₙ] = ![⋱]
 ```
 Returns the type of this statement and its proof. -/
-meta def mul_fin.prove (l m n : ℕ) : tactic (expr × expr) :=
+meta def of_mul_of_fin.prove (l m n : ℕ) : tactic (expr × expr) :=
 do
   -- create all the binders, one for each coefficient
   u ← tactic.mk_meta_univ,
@@ -413,7 +414,7 @@ do
   -- State and prove the equality, noting the RHS is defeq to `mulᵣ A B`.
   A_eq ← tactic.to_expr ``(@matrix.mul _ _ _ _ _ %%has_mul_α %%add_comm_monoid_α %%A %%B = %%AB),
   t ← tactic.pis args A_eq,
-  let pr := (expr.const `matrix.mul_fin_aux [u]).mk_app [`(l), `(m), `(n)],
+  let pr := (expr.const `matrix.of_mul_of_fin_aux [u]).mk_app [`(l), `(m), `(n)],
   -- This seems to create a metavariable then assign it, which ensures `pr` carries the right type.
   ((), pr) ← tactic.solve_aux t $ tactic.exact pr,
 
@@ -422,14 +423,14 @@ do
 open_locale matrix
 
 
-/-- Helper tactic used as an `auto_param` for `matrix.mul_fin` -/
-meta def mul_fin.derive : tactic unit :=
+/-- Helper tactic used as an `auto_param` for `matrix.of_mul_of_fin` -/
+meta def of_mul_of_fin.derive : tactic unit :=
 do
   target@`(@matrix.mul (fin %%l) (fin %%m) (fin %%n) %%α %%_ %%i1 %%i2 %%A %%B = %%AB)
     ← tactic.target,
   some (l, m, n) ← pure (prod.mk <$> l.to_nat <*> (prod.mk <$> m.to_nat <*> n.to_nat)) |
     fail!"Dimensions {l}, {m} {n} are not numerals",
-  (t,pr) ← mul_fin.prove l m n,
+  (t,pr) ← of_mul_of_fin.prove l m n,
   tactic.apply (pr α i1 i2) {},
   tactic.done
   -- TODO: should we be extracting the coefficients manually so we can do a full invocation as
@@ -437,15 +438,16 @@ do
   --   tactic.unify target (t.instantiate_pis [α, A']),
   --   tactic.exact (pr α A')
 
-/-- This lemma uses an `auto_param` to populate the variables with names of the form
-`«!![a₁₁ ⋱ aₗₘ]»` with an expression containing the coefficients in `!![]` notation. The generated
-`abᵢₖ` entries contain the appropriate expressions in terms of `+`, `*`, `aᵢⱼ`, and `bⱼₖ`. -/
-theorem mul_fin {α} [has_mul α] [add_comm_monoid α] {l m n : ℕ}
-  {«!![a₁₁ ⋱ aₗₘ]» : fin l → fin m → α}
-  {«!![b₁₁ ⋱ bₘₙ]» : fin m → fin n → α}
-  {«!![ab₁₁ ⋱ abₗₙ]» : fin l → fin n → α}
-  (h : of «!![a₁₁ ⋱ aₗₘ]» ⬝ of «!![b₁₁ ⋱ bₘₙ]» = of «!![ab₁₁ ⋱ abₗₙ]» . mul_fin.derive) :
-    of «!![a₁₁ ⋱ aₗₘ]» ⬝ of «!![b₁₁ ⋱ bₘₙ]» = of «!![ab₁₁ ⋱ abₗₙ]» := h
+/-- This lemma assumes that `a_coeffs` and `b_coeffs` refer to expressions of the form
+`![![x₀₀, x₀₁], ![x₁₀, x₁₁]]`. It then uses an `auto_param` to populate `ab_coeffs` with an
+expression of the same form, containing the appropriate expressions in terms of `+`, `*`, `aᵢⱼ`,
+and `bⱼₖ`. -/
+theorem of_mul_of_fin {α} [has_mul α] [add_comm_monoid α] {l m n : ℕ}
+  {a_coeffs : fin l → fin m → α}
+  {b_coeffs : fin m → fin n → α}
+  {ab_coeffs : fin l → fin n → α}
+  (h : of a_coeffs ⬝ of b_coeffs = of ab_coeffs . of_mul_of_fin.derive) :
+    of a_coeffs ⬝ of b_coeffs = of ab_coeffs := h
 
 example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
   !![a₁₁, a₁₂;
@@ -453,7 +455,7 @@ example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ 
                     b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
                                    a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
 begin
-  rw mul_fin,
+  rw of_mul_of_fin,
 end
 
 example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
@@ -461,11 +463,11 @@ example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ b₁₁ b₁₂ 
                     b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;] :=
 begin
   -- if we really need it, we can get the proof directly like this
-  mul_fin.prove 1 2 2 >>= function.uncurry (tactic.assertv `h),
+  of_mul_of_fin.prove 1 2 2 >>= function.uncurry (tactic.assertv `h),
   specialize @h α _ _,
-  rw mul_fin
+  rw of_mul_of_fin
 end
 
-end mul_fin
+end of_mul_of_fin
 
 end matrix

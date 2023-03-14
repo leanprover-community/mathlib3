@@ -743,7 +743,7 @@ eq_top_iff.mpr $ λ x hy y, false.elim
 
 /-- Dual cone of the convex cone {0} is the total space. -/
 @[simp] lemma inner_dual_cone_zero : (0 : set H).inner_dual_cone = ⊤ :=
-eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ inner_zero_left.ge
+eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ (inner_zero_left _).ge
 
 /-- Dual cone of the total space is the convex cone {0}. -/
 @[simp] lemma inner_dual_cone_univ : (univ : set H).inner_dual_cone = 0 :=

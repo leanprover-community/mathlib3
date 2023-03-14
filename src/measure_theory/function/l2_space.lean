@@ -195,7 +195,7 @@ begin
       from indicator_const_Lp_coe_fn_nmem,
     refine h_indicator.mono (λ x hx hxs, _),
     rw hx hxs,
-    exact inner_zero_left, },
+    exact inner_zero_left _, },
   rw [h_left, h_right, add_zero],
 end
 

@@ -220,16 +220,6 @@ def w₀  : infinite_place K := (infinite_place.nonempty K).some
 
 variable (K)
 
-def logspace := {w : infinite_place K // w ≠ w₀} → ℝ
-
-instance : fintype {w : infinite_place K // w ≠ w₀} := subtype.fintype _
-
-instance : normed_add_comm_group (logspace K) := pi.normed_add_comm_group
-
-instance : normed_space ℝ (logspace K) := pi.normed_space
-
-instance : finite_dimensional ℝ (logspace K) := finite_dimensional.finite_dimensional_pi ℝ
-
 def mult : (infinite_place K) → ℝ := λ w, ite (w.is_real) 1 2
 
 -- TODO. Keep only one of the two
@@ -241,7 +231,8 @@ by { simp only [mult], split_ifs; norm_num, }
 
 /-- The logarithmic embedding of the units.-/
 @[reducible]
-def log_embedding : (𝓤 K) → (logspace K) := λ x w, (mult K w.1) * real.log (w.1 x)
+def log_embedding : (𝓤 K) → ({w : infinite_place K // w ≠ w₀} → ℝ) :=
+λ x w, (mult K w.1) * real.log (w.1 x)
 
 open number_field number_field.infinite_place finite_dimensional number_field.units
 
@@ -317,12 +308,13 @@ lemma log_embedding.nnnorm_eq (x : 𝓤 K) :
 by simp [pi.nnnorm_def, log_embedding]
 
 /-- The lattice formed by the image of the logarithmic embedding.-/
-def unit_lattice : add_subgroup (logspace K) :=
+noncomputable def unit_lattice : add_subgroup ({w : infinite_place K // w ≠ w₀} → ℝ) :=
 { carrier := set.range (log_embedding K),
   add_mem' :=
     by { rintros _ _ ⟨u, hu, rfl⟩ ⟨v, hv, rfl⟩, exact ⟨u * v, log_embedding.map_mul K u v⟩, },
   zero_mem' := ⟨1, log_embedding.map_one K⟩,
-  neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }}
+  neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }
+}
 
 lemma log_embedding_ker (x : 𝓤 K) :
   log_embedding K x = 0 ↔ x ∈ torsion K :=
@@ -330,7 +322,8 @@ by rw [log_embedding.eq_zero_iff, mem_torsion K x]
 
 -- TODO. This proof is too complicated
 lemma unit_lattice.inter_ball_finite (r : ℝ) :
-  ((unit_lattice K : set (logspace K)) ∩ (metric.closed_ball 0 r)).finite :=
+  ((unit_lattice K : set ({w : infinite_place K // w ≠ w₀} → ℝ)) ∩
+    (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
   { convert set.finite_empty,
@@ -408,7 +401,7 @@ end
 /-- The unit rank of the number field `K`, that is `card (infinite_place K) - 1`.-/
 def unit_rank : ℕ := fintype.card (infinite_place K) - 1
 
-lemma rank_logspace : finrank ℝ (logspace K) = unit_rank K :=
+lemma rank_logspace : finrank ℝ ({w : infinite_place K // w ≠ w₀} → ℝ) = unit_rank K :=
 begin
   convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
   simp only [unit_rank, fintype.card_subtype_compl, fintype.card_subtype_eq],
@@ -620,12 +613,13 @@ begin
 end
 
 lemma unit_lattice.full_lattice :
-  submodule.span ℝ (unit_lattice K : set (logspace K)) = ⊤ :=
+  submodule.span ℝ (unit_lattice K : set ({w : infinite_place K // w ≠ w₀} → ℝ)) = ⊤ :=
 begin
   refine le_antisymm (le_top) _,
   let B := pi.basis_fun ℝ {w : infinite_place K // w ≠ w₀},
   let u : (infinite_place K) → (𝓤 K) := λ w, (exists_unit K w).some,
-  let v : { w : infinite_place K // w ≠ w₀ } → (logspace K) := λ w, log_embedding K (u w),
+  let v : { w : infinite_place K // w ≠ w₀ } → ({w : infinite_place K // w ≠ w₀} → ℝ) :=
+    λ w, log_embedding K (u w),
   suffices : B.det v ≠ 0,
   { rw ← is_unit_iff_ne_zero at this,
     rw ← ((is_basis_iff_det B).mpr this).2,

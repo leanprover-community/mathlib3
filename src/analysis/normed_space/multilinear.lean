@@ -899,6 +899,14 @@ multilinear_map.mk_continuous
     (mul_nonneg (norm_nonneg f) (prod_nonneg $ λ i hi, norm_nonneg (m i))) _
 
 end continuous_linear_map
+
+lemma linear_isometry.norm_comp_continuous_multilinear_map
+  (g : G →ₗᵢ[𝕜] G') (f : continuous_multilinear_map 𝕜 E G) :
+  ‖g.to_continuous_linear_map.comp_continuous_multilinear_map f‖ = ‖f‖ :=
+by simp only [continuous_linear_map.comp_continuous_multilinear_map_coe,
+    linear_isometry.coe_to_continuous_linear_map, linear_isometry.norm_map,
+    continuous_multilinear_map.norm_def]
+
 open continuous_multilinear_map
 
 namespace multilinear_map
@@ -978,6 +986,31 @@ calc ‖g (λ i, f i (m i))‖ ≤ ‖g‖ * ∏ i, ‖f i (m i)‖ : g.le_op_no
   mul_le_mul_of_nonneg_left
     (prod_le_prod (λ _ _, norm_nonneg _) (λ i hi, (f i).le_op_norm (m i))) (norm_nonneg g)
 ... = (‖g‖ * ∏ i, ‖f i‖) * ∏ i, ‖m i‖ : by rw [prod_mul_distrib, mul_assoc]
+
+lemma norm_comp_continuous_linear_isometry_le (g : continuous_multilinear_map 𝕜 E₁ G)
+  (f : Π i, E i →ₗᵢ[𝕜] E₁ i) :
+  ‖g.comp_continuous_linear_map (λ i, (f i).to_continuous_linear_map)‖ ≤ ‖g‖ :=
+begin
+  apply op_norm_le_bound _ (norm_nonneg _) (λ m, _),
+  apply (g.le_op_norm _).trans _,
+  simp only [continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe,
+    linear_isometry.coe_to_continuous_linear_map, linear_isometry.norm_map]
+end
+
+lemma norm_comp_continuous_linear_isometry_equiv (g : continuous_multilinear_map 𝕜 E₁ G)
+  (f : Π i, E i ≃ₗᵢ[𝕜] E₁ i) :
+  ‖g.comp_continuous_linear_map (λ i, (f i : E i →L[𝕜] E₁ i))‖ = ‖g‖ :=
+begin
+  apply le_antisymm (g.norm_comp_continuous_linear_isometry_le (λ i, (f i).to_linear_isometry)),
+  have : g = (g.comp_continuous_linear_map (λ i, (f i : E i →L[𝕜] E₁ i)))
+    .comp_continuous_linear_map (λ i, ((f i).symm : E₁ i →L[𝕜] E i)),
+  { ext1 m,
+    simp only [comp_continuous_linear_map_apply, linear_isometry_equiv.coe_coe'',
+      linear_isometry_equiv.apply_symm_apply] },
+  conv_lhs { rw this },
+  apply (g.comp_continuous_linear_map (λ i, (f i : E i →L[𝕜] E₁ i)))
+    .norm_comp_continuous_linear_isometry_le (λ i, (f i).symm.to_linear_isometry),
+end
 
 /-- `continuous_multilinear_map.comp_continuous_linear_map` as a bundled continuous linear map.
 This implementation fixes `f : Π i, E i →L[𝕜] E₁ i`.

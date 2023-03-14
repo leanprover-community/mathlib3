@@ -191,10 +191,36 @@ lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
   let Eu : Type (max uE uF uG uH) := ulift E,
-  let Fu : Type (max uF uE uF uG) := ulift F,
-  let Gu : Type (max uG uE uF uH) := ulift G,
-  let Hu : Type (max uH uE uF uG) := ulift H,
-  have isoG : Gu ≃ₗᵢ[𝕜] G := by suggest,
+  let Fu : Type (max uE uF uG uH) := ulift.{(max uE uG uH) uF} F,
+  let Gu : Type (max uE uF uG uH) := ulift.{(max uE uF uH) uG} G,
+  let Hu : Type (max uE uF uG uH) := ulift.{(max uE uF uG) uH} H,
+  have isoE : Eu ≃ₗᵢ[𝕜] E := linear_isometry_equiv.ulift 𝕜 E,
+  have isoF : Fu ≃ₗᵢ[𝕜] F := linear_isometry_equiv.ulift 𝕜 F,
+  have isoG : Gu ≃ₗᵢ[𝕜] G := linear_isometry_equiv.ulift 𝕜 G,
+  have isoH : Hu ≃ₗᵢ[𝕜] H := linear_isometry_equiv.ulift 𝕜 H,
+  let fu : Hu → Eu := isoE.symm ∘ f ∘ isoH,
+  let gu : Hu → Fu := isoF.symm ∘ g ∘ isoH,
+  let Bu : Eu →L[𝕜] Fu →L[𝕜] Gu, sorry,
+  let su := isoH ⁻¹' s,
+  have hsu : unique_diff_on 𝕜 su,
+    from isoH.to_continuous_linear_equiv.unique_diff_on_preimage_iff.2 hs,
+  let xu := isoH.symm x,
+  have hxu : xu ∈ su,
+    by simpa only [set.mem_preimage, linear_isometry_equiv.apply_symm_apply] using hx,
+  have hfu : cont_diff_on 𝕜 n fu su,
+    from isoE.symm.cont_diff.comp_cont_diff_on (hf.comp_continuous_linear_map (isoH : Hu →L[𝕜] H)),
+  have hgu : cont_diff_on 𝕜 n gu su,
+    from isoF.symm.cont_diff.comp_cont_diff_on (hg.comp_continuous_linear_map (isoH : Hu →L[𝕜] H)),
+  have : ∀ i ≤ n, ‖iterated_fderiv_within 𝕜 i fu su xu‖ = ‖iterated_fderiv_within 𝕜 i f s x‖,
+  { assume i hi,
+    simp [fu],
+
+  },
+
+  have : ‖iterated_fderiv_within 𝕜 n (λ y, Bu (fu y) (gu y)) su xu‖
+    ≤ ‖Bu‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i fu su xu‖ * ‖iterated_fderiv_within 𝕜 (n-i) gu su xu‖,
+    from Bu.norm_iterated_fderiv_within_le_of_bilinear_aux hfu hgu hsu hxu,
 
 end
 

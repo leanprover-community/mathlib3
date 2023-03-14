@@ -158,7 +158,7 @@ lemma ihom_coev_app_def :
   (functor_category_equivalence.functor.obj A).closed_ihom.map
   ((functor_category_monoidal_equivalence (Module.{u} k) (Mon.of G)).μ A B)) :=
 rfl
-set_option profiler true
+
 @[simp] lemma ihom_coev_app_hom :
   Action.hom.hom ((ihom.coev A).app B) =
     (tensor_product.mk _ _ _).flip :=

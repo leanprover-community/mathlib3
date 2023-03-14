@@ -228,5 +228,3 @@ end
 end linear_order
 
 end matrix
-
-#lint

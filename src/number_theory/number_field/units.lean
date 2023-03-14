@@ -170,7 +170,7 @@ end
 instance [number_field K] : fintype (torsion K) :=
 @fintype.of_finite (torsion K) (torsion_finite K)
 
-instance torsion_cyclic [number_field K] : is_cyclic (torsion K) :=
+instance [number_field K] : is_cyclic (torsion K) :=
 subgroup_units_cyclic _
 
 def torsion_order [number_field K] : ℕ+ :=
@@ -216,7 +216,7 @@ open number_field.canonical_embedding number_field finite_dimensional
 variables {K} [number_field K]
 
 /-- A distinguished infinite place.-/
-def w₀ : infinite_place K := (infinite_place.nonempty K).some
+def w₀  : infinite_place K := (infinite_place.nonempty K).some
 
 variable (K)
 
@@ -256,7 +256,8 @@ by simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_fie
 lemma log_embedding.map_inv (x : 𝓤 K) : log_embedding K x⁻¹ = - log_embedding K x :=
 by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv, mul_neg]
 
--- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) : log_embedding K (x ^ n) = n • log_embedding K x :=
+-- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) :
+-- log_embedding K (x ^ n) = n • log_embedding K x :=
 -- sorry -- by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
 
 @[simp]
@@ -310,9 +311,9 @@ begin
   { simp only [log_embedding, h w, pi.zero_apply, real.log_one, subtype.val_eq_coe, mul_zero], },
 end
 
-lemma log_embedding.nnnorm_eq [number_field K] (x : 𝓤 K) :
+lemma log_embedding.nnnorm_eq (x : 𝓤 K) :
   ‖log_embedding K x‖₊ =
-    finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀} , ‖(mult K w.1)* real.log (w.1 x)‖₊ ) :=
+    finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀} , ‖(mult K w.1)* real.log (w.1 x)‖₊) :=
 by simp [pi.nnnorm_def, log_embedding]
 
 /-- The lattice formed by the image of the logarithmic embedding.-/

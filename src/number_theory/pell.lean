@@ -54,6 +54,10 @@ begin
   norm_cast,
 end
 
+/-- The kernel of the norm map on `ℤ√d` equals the submonoid of unitary elements. -/
+lemma mker_norm_eq_unitary {d : ℤ} : (@norm_monoid_hom d).mker = unitary ℤ√d :=
+submonoid.ext (λ x, (monoid_hom.mem_mker _).trans norm_eq_one_iff_mem_unitary)
+
 /-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
 it is contained in the submonoid of unitary elements.
 

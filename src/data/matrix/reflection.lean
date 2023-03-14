@@ -269,15 +269,15 @@ do
   has_smul ← tactic.mk_app `has_smul [`(ℕ), t.α] >>= tactic.mk_instance,
   nsmul ← tactic.mk_mapp `has_smul.smul [none, some t.α, some has_smul],
   pure (t,
-  { add := λ a b, add a b,
-    zero := zero,
-    add_assoc := false.elim (unchecked_cast trivial),
-    zero_add := false.elim (unchecked_cast trivial),
-    add_zero := false.elim (unchecked_cast trivial),
-    nsmul := λ n b, nsmul `(n) b,
-    nsmul_zero' := false.elim (unchecked_cast trivial),
-    nsmul_succ' := false.elim (unchecked_cast trivial),
-    add_comm := false.elim (unchecked_cast trivial) })
+    { add := λ a b, add a b,
+      zero := zero,
+      add_assoc := undefined,
+      zero_add := undefined,
+      add_zero := undefined,
+      nsmul := λ n b, nsmul `(n) b,
+      nsmul_zero' := undefined,
+      nsmul_succ' := undefined,
+      add_comm := undefined })
 
 end expr
 

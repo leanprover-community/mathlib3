@@ -55,7 +55,9 @@ begin
 end
 
 /-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
-it is contained in the submonoid of unitary elements. -/
+it is contained in the submonoid of unitary elements.
+
+TODO: merge this result with `pell.is_pell_iff_mem_unitary`. -/
 lemma is_pell_solution_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
   a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary (zsqrtd d) :=
 by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]

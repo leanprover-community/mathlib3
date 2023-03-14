@@ -62,14 +62,14 @@ end real
 
 lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
-by rw [hT x y, inner_conj_sym]
+by rw [hT x y, inner_conj_symm]
 
 @[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
   (x y : E) : ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
 lemma is_symmetric_zero : (0 : E →ₗ[𝕜] E).is_symmetric :=
-λ x y, (inner_zero_right : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left : ⟪0, y⟫ = 0)
+λ x y, (inner_zero_right x : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left y : ⟪0, y⟫ = 0)
 
 lemma is_symmetric_id : (linear_map.id : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, rfl
@@ -94,7 +94,7 @@ begin
   by { intro k, rw [←T.map_sub, hT] },
   refine tendsto_nhds_unique ((hTu.sub_const _).inner tendsto_const_nhds) _,
   simp_rw hlhs,
-  rw ←@inner_zero_left 𝕜 E _ _ (T (y - T x)),
+  rw ←inner_zero_left (T (y - T x)),
   refine filter.tendsto.inner _ tendsto_const_nhds,
   rw ←sub_self x,
   exact hu.sub_const _,
@@ -139,7 +139,7 @@ begin
   { intros hT v,
     apply is_symmetric.conj_inner_sym hT },
   { intros h x y,
-    nth_rewrite 1 ← inner_conj_sym,
+    nth_rewrite 1 ← inner_conj_symm,
     nth_rewrite 1 inner_map_polarization,
     simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
     simp only [← star_ring_end_apply],

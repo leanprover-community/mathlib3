@@ -44,7 +44,7 @@ lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
 noncomputable instance : inner_product_space ℝ ℍ :=
 inner_product_space.of_core
 { inner := has_inner.inner,
-  conj_sym := λ x y, by simp [inner_def, mul_comm],
+  conj_symm := λ x y, by simp [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],

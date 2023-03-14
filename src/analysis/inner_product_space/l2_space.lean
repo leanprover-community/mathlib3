@@ -117,10 +117,10 @@ instance : inner_product_space 𝕜 (lp G 2) :=
     { norm_num },
     { exact summable_inner f f },
   end,
-  conj_sym := λ f g, begin
+  conj_symm := λ f g, begin
     calc conj _ = conj ∑' i, ⟪g i, f i⟫ : by congr
     ... = ∑' i, conj ⟪g i, f i⟫ : is_R_or_C.conj_cle.map_tsum
-    ... = ∑' i, ⟪f i, g i⟫ : by simp only [inner_conj_sym]
+    ... = ∑' i, ⟪f i, g i⟫ : by simp only [inner_conj_symm]
     ... = _ : by congr,
   end,
   add_left := λ f₁ f₂ g, begin
@@ -160,7 +160,7 @@ begin
 end
 
 lemma inner_single_right (i : ι) (a : G i) (f : lp G 2) : ⟪f, lp.single 2 i a⟫ = ⟪f i, a⟫ :=
-by simpa [inner_conj_sym] using congr_arg conj (inner_single_left i a f)
+by simpa [inner_conj_symm] using congr_arg conj (inner_single_left i a f)
 
 end lp
 

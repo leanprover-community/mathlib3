@@ -3,11 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
-
-import algebra.hom.iterate
 import data.int.modeq
-import data.nat.choose.dvd
-import data.nat.choose.sum
+import data.nat.multiplicity
 import group_theory.order_of_element
 import ring_theory.nilpotent
 
@@ -17,7 +14,70 @@ import ring_theory.nilpotent
 
 universes u v
 
-variables (R : Type u)
+open finset
+open_locale big_operators
+
+variables {R : Type*}
+
+namespace commute
+variables [semiring R] {p : ℕ} {x y : R}
+
+protected lemma add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
+  (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
+    p * ∑ k in Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * ↑((p ^ n).choose k / p) :=
+begin
+  transitivity
+    x ^ p ^ n + y ^ p ^ n + ∑ k in Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * (p ^ n).choose k,
+  { simp_rw [h.add_pow, ←nat.Ico_zero_eq_range, nat.Ico_succ_right, Icc_eq_cons_Ico (zero_le _),
+      finset.sum_cons, Ico_eq_cons_Ioo (pow_pos hp.pos _), finset.sum_cons, tsub_self, tsub_zero,
+      pow_zero, nat.choose_zero_right, nat.choose_self, nat.cast_one, mul_one, one_mul,
+      ←add_assoc] },
+  { congr' 1,
+    simp_rw [finset.mul_sum, nat.cast_comm, mul_assoc _ _ (p : R), ←nat.cast_mul],
+    refine finset.sum_congr rfl (λ i hi, _),
+    rw mem_Ioo at hi,
+    rw nat.div_mul_cancel (hp.dvd_choose_pow hi.1.ne' hi.2.ne) },
+end
+
+protected lemma add_pow_prime_eq (hp : p.prime) (h : commute x y) :
+  (x + y) ^ p = x ^ p + y ^ p +
+    p * ∑ k in finset.Ioo 0 p, x ^ k * y ^ (p - k) * ↑(p.choose k / p) :=
+by simpa using h.add_pow_prime_pow_eq hp 1
+
+protected lemma exists_add_pow_prime_pow_eq (hp : p.prime) (h : commute x y) (n : ℕ) :
+  ∃ r, (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n + p * r :=
+⟨_, h.add_pow_prime_pow_eq hp n⟩
+
+protected lemma exists_add_pow_prime_eq (hp : p.prime) (h : commute x y) :
+  ∃ r, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+⟨_, h.add_pow_prime_eq hp⟩
+
+end commute
+
+section comm_semiring
+variables [comm_semiring R] {p : ℕ} {x y : R}
+
+lemma add_pow_prime_pow_eq (hp : p.prime) (x y : R) (n : ℕ) :
+  (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n +
+    p * ∑ k in finset.Ioo 0 (p ^ n), x ^ k * y ^ (p ^ n - k) * ↑((p ^ n).choose k / p) :=
+(commute.all x y).add_pow_prime_pow_eq hp n
+
+lemma add_pow_prime_eq (hp : p.prime) (x y : R) :
+  (x + y) ^ p = x ^ p + y ^ p +
+    p * ∑ k in finset.Ioo 0 p, x ^ k * y ^ (p - k) * ↑(p.choose k / p) :=
+(commute.all x y).add_pow_prime_eq hp
+
+lemma exists_add_pow_prime_pow_eq (hp : p.prime) (x y : R) (n : ℕ) :
+  ∃ r, (x + y) ^ p ^ n = x ^ p ^ n + y ^ p ^ n + p * r :=
+(commute.all x y).exists_add_pow_prime_pow_eq hp n
+
+lemma exists_add_pow_prime_eq (hp : p.prime) (x y : R) :
+  ∃ r, (x + y) ^ p = x ^ p + y ^ p + p * r :=
+(commute.all x y).exists_add_pow_prime_eq hp
+
+end comm_semiring
+
+variables (R)
 
 /-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R.
 
@@ -33,6 +93,7 @@ This example is formalized in `counterexamples/char_p_zero_ne_char_zero`.
 class char_p [add_monoid_with_one R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 
+@[simp]
 theorem char_p.cast_eq_zero [add_monoid_with_one R] (p : ℕ) [char_p R p] :
   (p:R) = 0 :=
 (char_p.cast_eq_zero_iff R p p).2 (dvd_refl p)
@@ -133,32 +194,15 @@ by rw ring_char.spec
 
 end ring_char
 
-theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]
+theorem add_pow_char_of_commute [semiring R] {p : ℕ} [hp : fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
-begin
-  rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one], congr' 1,
-  convert finset.sum_eq_single 0 _ _,
-  { simp only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
-  { intros b h1 h2,
-    suffices : (p.choose b : R) = 0, { rw this, simp },
-    rw char_p.cast_eq_zero_iff R p,
-    exact nat.prime.dvd_choose_self (fact.out _) h2 (finset.mem_range.1 h1) },
-  { intro h1,
-    contrapose! h1,
-    rw finset.mem_range,
-    exact nat.prime.pos (fact.out _) }
-end
+let ⟨r, hr⟩ := h.exists_add_pow_prime_eq hp.out in by simp [hr]
 
-theorem add_pow_char_pow_of_commute [semiring R] {p : ℕ} [fact p.prime]
-  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+theorem add_pow_char_pow_of_commute [semiring R] {p n : ℕ} [hp : fact p.prime] [char_p R p]
+  (x y : R) (h : commute x y) :
   (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
-begin
-  induction n, { simp, },
-  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
-  apply add_pow_char_of_commute, apply commute.pow_pow h,
-end
+let ⟨r, hr⟩ := h.exists_add_pow_prime_pow_eq hp.out n in by simp [hr]
 
 theorem sub_pow_char_of_commute [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :

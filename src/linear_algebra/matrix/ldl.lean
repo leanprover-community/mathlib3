@@ -92,7 +92,7 @@ begin
   { simp only [LDL.diag, hij, diagonal_apply_ne, ne.def, not_false_iff, mul_mul_apply],
     rw [conj_transpose, transpose_map, transpose_transpose, dot_product_mul_vec,
       (LDL.lower_inv_orthogonal hS (λ h : j = i, hij h.symm)).symm,
-      ← inner_conj_sym, mul_vec_transpose, euclidean_space.inner_pi_Lp_equiv_symm,
+      ← inner_conj_symm, mul_vec_transpose, euclidean_space.inner_pi_Lp_equiv_symm,
       ← is_R_or_C.star_def, ← star_dot_product_star, dot_product_comm, star_star],
     refl }
 end

@@ -74,14 +74,14 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner := λ x,
     by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
-  conj_sym :=
+  conj_symm :=
   begin
     intros x y,
     unfold inner,
     rw ring_hom.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
-    apply inner_conj_sym,
+    apply inner_conj_symm,
   end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),

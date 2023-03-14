@@ -102,7 +102,7 @@ To construct a norm from an inner product, see `inner_product_space.of_core`.
 class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
   extends normed_add_comm_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
 (norm_sq_eq_inner : ∀ (x : E), ‖x‖^2 = re (inner x x))
-(conj_sym  : ∀ x y, conj (inner y x) = inner x y)
+(conj_symm : ∀ x y, conj (inner y x) = inner x y)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
 
@@ -134,7 +134,7 @@ structure inner_product_space.core
   (𝕜 : Type*) (F : Type*)
   [is_R_or_C 𝕜] [add_comm_group F] [module 𝕜 F] :=
 (inner     : F → F → 𝕜)
-(conj_sym  : ∀ x y, conj (inner y x) = inner x y)
+(conj_symm : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
@@ -166,12 +166,12 @@ def norm_sq (x : F) := reK ⟪x, x⟫
 
 local notation `norm_sqF` := @norm_sq 𝕜 F _ _ _ _
 
-lemma inner_conj_sym (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_sym x y
+lemma inner_conj_symm (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_symm x y
 
 lemma inner_self_nonneg {x : F} : 0 ≤ re ⟪x, x⟫ := c.nonneg_re _
 
 lemma inner_self_nonneg_im (x : F) : im ⟪x, x⟫ = 0 :=
-by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp [inner_conj_sym]
+by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp [inner_conj_symm]
 
 lemma inner_self_im_zero (x : F) : im ⟪x, x⟫ = 0 :=
 inner_self_nonneg_im _
@@ -180,7 +180,7 @@ lemma inner_add_left (x y z : F) : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 c.add_left _ _ _
 
 lemma inner_add_right (x y z : F) : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-by rw [←inner_conj_sym, inner_add_left, ring_hom.map_add]; simp only [inner_conj_sym]
+by rw [←inner_conj_symm, inner_add_left, ring_hom.map_add]; simp only [inner_conj_symm]
 
 lemma inner_norm_sq_eq_inner_self (x : F) : (norm_sqF x : 𝕜) = ⟪x, x⟫ :=
 begin
@@ -189,22 +189,22 @@ begin
 end
 
 lemma inner_re_symm (x y : F) : re ⟪x, y⟫ = re ⟪y, x⟫ :=
-by rw [←inner_conj_sym, conj_re]
+by rw [←inner_conj_symm, conj_re]
 
 lemma inner_im_symm (x y : F) : im ⟪x, y⟫ = -im ⟪y, x⟫ :=
-by rw [←inner_conj_sym, conj_im]
+by rw [←inner_conj_symm, conj_im]
 
 lemma inner_smul_left (x y : F) {r : 𝕜} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
 c.smul_left _ _ _
 
 lemma inner_smul_right (x y : F) {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_smul_left]; simp only [conj_conj, inner_conj_sym, ring_hom.map_mul]
+by rw [←inner_conj_symm, inner_smul_left]; simp only [conj_conj, inner_conj_symm, ring_hom.map_mul]
 
 lemma inner_zero_left (x : F) : ⟪0, x⟫ = 0 :=
 by rw [←zero_smul 𝕜 (0 : F), inner_smul_left]; simp only [zero_mul, ring_hom.map_zero]
 
 lemma inner_zero_right (x : F) : ⟪x, 0⟫ = 0 :=
-by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero]
+by rw [←inner_conj_symm, inner_zero_left]; simp only [ring_hom.map_zero]
 
 lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left _ })
@@ -212,14 +212,14 @@ iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left _ })
 lemma inner_self_re_to_K (x : F) : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
 
-lemma inner_abs_conj_sym (x y : F) : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
-by rw [←inner_conj_sym, abs_conj]
+lemma inner_abs_conj_symm (x y : F) : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
+by rw [←inner_conj_symm, abs_conj]
 
 lemma inner_neg_left (x y : F) : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 lemma inner_neg_right (x y : F) : ⟪x, -y⟫ = -⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
+by rw [←inner_conj_symm, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_symm]
 
 lemma inner_sub_left (x y z : F) : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_left, inner_neg_left] }
@@ -228,7 +228,7 @@ lemma inner_sub_right (x y z : F) : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right, inner_neg_right] }
 
 lemma inner_mul_conj_re_abs (x y : F) : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
-by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
+by { rw [←inner_conj_symm, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `inner (x + y) (x + y)` -/
 lemma inner_add_add_self (x y : F) : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
@@ -276,7 +276,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, inner_conj_sym, hT, map_div₀, h₁, h₃]
+                  : by field_simp [-mul_re, inner_conj_symm, hT, map_div₀, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -316,7 +316,7 @@ begin
   rw H,
   conv
   begin
-    to_lhs, congr, rw [inner_abs_conj_sym],
+    to_lhs, congr, rw [inner_abs_conj_symm],
   end,
   exact inner_mul_inner_self_le y x,
 end
@@ -331,7 +331,7 @@ add_group_norm.to_normed_add_comm_group
     have h₁ : abs ⟪x, y⟫ ≤ ‖x‖ * ‖y‖ := abs_inner_le_norm _ _,
     have h₂ : re ⟪x, y⟫ ≤ abs ⟪x, y⟫ := re_le_abs _,
     have h₃ : re ⟪x, y⟫ ≤ ‖x‖ * ‖y‖ := by linarith,
-    have h₄ : re ⟪y, x⟫ ≤ ‖x‖ * ‖y‖ := by rwa [←inner_conj_sym, conj_re],
+    have h₄ : re ⟪y, x⟫ ≤ ‖x‖ * ‖y‖ := by rwa [←inner_conj_symm, conj_re],
     have : ‖x + y‖ * ‖x + y‖ ≤ (‖x‖ + ‖y‖) * (‖x‖ + ‖y‖),
     { simp only [←inner_self_eq_norm_mul_norm, inner_add_add_self, mul_add, mul_comm, map_add],
       linarith },
@@ -389,11 +389,11 @@ export inner_product_space (norm_sq_eq_inner)
 
 section basic_properties
 
-@[simp] lemma inner_conj_sym (x y : E) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
-lemma real_inner_comm (x y : F) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := @inner_conj_sym ℝ _ _ _ x y
+@[simp] lemma inner_conj_symm (x y : E) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_symm _ _
+lemma real_inner_comm (x y : F) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := @inner_conj_symm ℝ _ _ _ x y
 
-lemma inner_eq_zero_sym {x y : E} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
-⟨λ h, by simp [←inner_conj_sym, h], λ h, by simp [←inner_conj_sym, h]⟩
+lemma inner_eq_zero_symm {x y : E} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
+⟨λ h, by simp [←inner_conj_symm, h], λ h, by simp [←inner_conj_symm, h]⟩
 
 @[simp] lemma inner_self_nonneg_im (x : E) : im ⟪x, x⟫ = 0 :=
 by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp
@@ -404,13 +404,13 @@ lemma inner_add_left (x y z : E) : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
 
 lemma inner_add_right (x y z : E) : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-by { rw [←inner_conj_sym, inner_add_left, ring_hom.map_add], simp only [inner_conj_sym] }
+by { rw [←inner_conj_symm, inner_add_left, ring_hom.map_add], simp only [inner_conj_symm] }
 
 lemma inner_re_symm (x y : E) : re ⟪x, y⟫ = re ⟪y, x⟫ :=
-by rw [←inner_conj_sym, conj_re]
+by rw [←inner_conj_symm, conj_re]
 
 lemma inner_im_symm (x y : E) : im ⟪x, y⟫ = -im ⟪y, x⟫ :=
-by rw [←inner_conj_sym, conj_im]
+by rw [←inner_conj_symm, conj_im]
 
 lemma inner_smul_left (x y : E) (r : 𝕜) : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
 inner_product_space.smul_left _ _ _
@@ -420,7 +420,7 @@ lemma inner_smul_real_left (x y : E) (r : ℝ) : ⟪(r : 𝕜) • x, y⟫ = r �
 by { rw [inner_smul_left, conj_of_real, algebra.smul_def], refl }
 
 lemma inner_smul_right (x y : E) (r : 𝕜) : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_conj_sym]
+by rw [←inner_conj_symm, inner_smul_left, ring_hom.map_mul, conj_conj, inner_conj_symm]
 lemma real_inner_smul_right (x y : F) (r : ℝ) : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ :=
 inner_smul_right _ _ _
 
@@ -488,7 +488,7 @@ lemma inner_re_zero_left (x : E) : re ⟪0, x⟫ = 0 :=
 by simp only [inner_zero_left, add_monoid_hom.map_zero]
 
 @[simp] lemma inner_zero_right (x : E) : ⟪x, 0⟫ = 0 :=
-by rw [←inner_conj_sym, inner_zero_left, ring_hom.map_zero]
+by rw [←inner_conj_symm, inner_zero_left, ring_hom.map_zero]
 
 lemma inner_re_zero_right (x : E) : re ⟪x, 0⟫ = 0 :=
 by simp only [inner_zero_right, add_monoid_hom.map_zero]
@@ -549,14 +549,14 @@ by { rw [←inner_self_re_abs], exact inner_self_re_to_K _ }
 lemma real_inner_self_abs (x : F) : absR ⟪x, x⟫_ℝ = ⟪x, x⟫_ℝ :=
 by { have h := @inner_self_abs_to_K ℝ F _ _ x, simpa using h }
 
-lemma inner_abs_conj_sym (x y : E) : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
-by rw [←inner_conj_sym, abs_conj]
+lemma inner_abs_conj_symm (x y : E) : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
+by rw [←inner_conj_symm, abs_conj]
 
 @[simp] lemma inner_neg_left (x y : E) : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 @[simp] lemma inner_neg_right (x y : E) : ⟪x, -y⟫ = -⟪x, y⟫ :=
-by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
+by rw [←inner_conj_symm, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_symm]
 
 lemma inner_neg_neg (x y : E) : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 
@@ -570,7 +570,7 @@ lemma inner_sub_right (x y z : E) : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
 
 lemma inner_mul_conj_re_abs (x y : E) : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
-by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
+by { rw [←inner_conj_symm, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `⟪x + y, x + y⟫` -/
 lemma inner_add_add_self (x y : E) : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
@@ -579,7 +579,7 @@ by simp only [inner_add_left, inner_add_right]; ring
 /-- Expand `⟪x + y, x + y⟫_ℝ` -/
 lemma real_inner_add_add_self (x y : F) : ⟪x + y, x + y⟫_ℝ = ⟪x, x⟫_ℝ + 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
-  have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
+  have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_symm]; refl,
   simp only [inner_add_add_self, this, add_left_inj],
   ring,
 end
@@ -591,7 +591,7 @@ by simp only [inner_sub_left, inner_sub_right]; ring
 /-- Expand `⟪x - y, x - y⟫_ℝ` -/
 lemma real_inner_sub_sub_self (x y : F) : ⟪x - y, x - y⟫_ℝ = ⟪x, x⟫_ℝ - 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
-  have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
+  have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_symm]; refl,
   simp only [inner_sub_sub_self, this, add_left_inj],
   ring,
 end
@@ -646,7 +646,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by simp only [map_div₀, h₃, inner_conj_sym, sub_add_cancel]
+                  : by simp only [map_div₀, h₃, inner_conj_symm, sub_add_cancel]
                     with field_simps {discharger := tactic.field_simp.ne_zero}
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
@@ -666,7 +666,7 @@ end
 /-- Cauchy–Schwarz inequality for real inner products. -/
 lemma real_inner_mul_inner_self_le (x y : F) : ⟪x, y⟫_ℝ * ⟪x, y⟫_ℝ ≤ ⟪x, x⟫_ℝ * ⟪y, y⟫_ℝ :=
 begin
-  have h₁ : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
+  have h₁ : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_symm]; refl,
   have h₂ := @inner_mul_inner_self_le ℝ F _ _ x y,
   dsimp at h₂,
   have h₃ := abs_mul_abs_self ⟪x, y⟫_ℝ,
@@ -772,7 +772,7 @@ hv.inner_right_sum l (finset.mem_univ _)
 vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_left_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪finsupp.total ι E 𝕜 v l, v i⟫ = conj (l i) :=
-by rw [← inner_conj_sym, hv.inner_right_finsupp]
+by rw [← inner_conj_symm, hv.inner_right_finsupp]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
@@ -979,7 +979,7 @@ begin
   repeat {rw [sq, ←inner_self_eq_norm_mul_norm]},
   rw [inner_add_add_self, two_mul],
   simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
-  rw [←inner_conj_sym, conj_re],
+  rw [←inner_conj_symm, conj_re],
 end
 
 alias norm_add_sq ← norm_add_pow_two
@@ -1007,7 +1007,7 @@ begin
     re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
         = re ⟪x, x⟫ - re ⟪x, y⟫ - re ⟪y, x⟫ + re ⟪y, y⟫  : by simp only [map_add, map_sub]
     ... = -re ⟪y, x⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫  : by ring
-    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [inner_conj_sym]
+    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [inner_conj_symm]
     ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw [conj_re]
     ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
 end
@@ -1035,7 +1035,7 @@ begin
   have : ‖x‖ * ‖y‖ * (‖x‖ * ‖y‖) = (re ⟪x, x⟫) * (re ⟪y, y⟫),
     simp only [inner_self_eq_norm_mul_norm], ring,
   rw this,
-  conv_lhs { congr, skip, rw [inner_abs_conj_sym] },
+  conv_lhs { congr, skip, rw [inner_abs_conj_symm] },
   exact inner_mul_inner_self_le _ _
 end
 
@@ -1531,7 +1531,7 @@ begin
       exact h2' },
     conv at h2 in ⟪r • x, t⟫ { rw [inner_smul_left, ht0, mul_zero] },
     symmetry' at h2,
-    have h₁ : ⟪t, r • x⟫ = 0 := by { rw [inner_smul_right, ←inner_conj_sym, ht0], simp },
+    have h₁ : ⟪t, r • x⟫ = 0 := by { rw [inner_smul_right, ←inner_conj_symm, ht0], simp },
     rw [add_zero, h₁, add_left_eq_self, add_zero, inner_self_eq_zero] at h2,
     rw h2 at ht,
     exact eq_of_sub_eq_zero ht.symm },
@@ -1801,8 +1801,8 @@ begin
     simp only [norm_nonneg, pow_nonneg], },
   rw [norm_sub_sq, sub_add],
   simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
-  simp only [sum_inner, two_mul, inner_smul_right, inner_conj_sym, ←mul_assoc, h₂, ←h₃,
-  inner_conj_sym, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
+  simp only [sum_inner, two_mul, inner_smul_right, inner_conj_symm, ←mul_assoc, h₂, ←h₃,
+  inner_conj_symm, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
   add_sub_cancel'],
 end
 
@@ -1835,7 +1835,7 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   inner := λ x y, conj x * y,
   norm_sq_eq_inner := λ x,
     by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
-  conj_sym := λ x y, by simp only [mul_comm, map_mul, star_ring_end_self_apply],
+  conj_symm := λ x y, by simp only [mul_comm, map_mul, star_ring_end_self_apply],
   add_left := λ x y z, by simp only [add_mul, map_add],
   smul_left := λ x y z, by simp only [mul_assoc, smul_eq_mul, map_mul] }
 
@@ -1847,7 +1847,7 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
 { to_normed_add_comm_group := submodule.normed_add_comm_group _,
   inner             := λ x y, ⟪(x:E), (y:E)⟫,
-  conj_sym          := λ _ _, inner_conj_sym _ _ ,
+  conj_symm         := λ _ _, inner_conj_symm _ _ ,
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
   add_left          := λ _ _ _, inner_add_left _ _ _,
   smul_left         := λ _ _ _, inner_smul_left _ _ _,
@@ -2103,7 +2103,7 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { to_normed_add_comm_group := inner_product_space.to_normed_add_comm_group 𝕜,
   norm_sq_eq_inner := norm_sq_eq_inner,
-  conj_sym := λ x y, inner_re_symm _ _,
+  conj_symm := λ x y, inner_re_symm _ _,
   add_left := λ x y z, by
   { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp only [inner_add_left, map_add] },
@@ -2221,7 +2221,7 @@ lemma submodule.mem_orthogonal (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪u, v⟫ 
 /-- When a vector is in `Kᗮ`, with the inner product the
 other way round. -/
 lemma submodule.mem_orthogonal' (v : E) : v ∈ Kᗮ ↔ ∀ u ∈ K, ⟪v, u⟫ = 0 :=
-by simp_rw [submodule.mem_orthogonal, inner_eq_zero_sym]
+by simp_rw [submodule.mem_orthogonal, inner_eq_zero_symm]
 
 variables {K}
 
@@ -2231,7 +2231,7 @@ lemma submodule.inner_right_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v �
 
 /-- A vector in `Kᗮ` is orthogonal to one in `K`. -/
 lemma submodule.inner_left_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v ∈ Kᗮ) : ⟪v, u⟫ = 0 :=
-by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
+by rw [inner_eq_zero_symm]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
 /-- A vector is in `(𝕜 ∙ u)ᗮ` iff it is orthogonal to `u`. -/
 lemma submodule.mem_orthogonal_singleton_iff_inner_right {u v : E} : v ∈ (𝕜 ∙ u)ᗮ ↔ ⟪u, v⟫ = 0 :=
@@ -2245,7 +2245,7 @@ end
 
 /-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
 lemma submodule.mem_orthogonal_singleton_iff_inner_left {u v : E} : v ∈ (𝕜 ∙ u)ᗮ ↔ ⟪v, u⟫ = 0 :=
-by rw [submodule.mem_orthogonal_singleton_iff_inner_right, inner_eq_zero_sym]
+by rw [submodule.mem_orthogonal_singleton_iff_inner_right, inner_eq_zero_symm]
 
 lemma submodule.sub_mem_orthogonal_of_inner_left {x y : E}
   (h : ∀ (v : K), ⟪x, v⟫ = ⟪y, v⟫) : x - y ∈ Kᗮ :=
@@ -2414,11 +2414,11 @@ instance : inner_product_space 𝕜 (completion E) :=
       (continuous_norm.pow 2)
       (continuous_re.comp (continuous.inner continuous_id' continuous_id')))
     (λ a, by simp only [norm_coe, inner_coe, inner_self_eq_norm_sq]),
-  conj_sym := λ x y, completion.induction_on₂ x y
+  conj_symm := λ x y, completion.induction_on₂ x y
     (is_closed_eq
       (continuous_conj.comp (continuous.inner continuous_snd continuous_fst))
       (continuous.inner continuous_fst continuous_snd))
-    (λ a b, by simp only [inner_coe, inner_conj_sym]),
+    (λ a b, by simp only [inner_coe, inner_conj_symm]),
   add_left := λ x y z, completion.induction_on₃ x y z
     (is_closed_eq
       (continuous.inner (continuous_fst.add (continuous_fst.comp continuous_snd))

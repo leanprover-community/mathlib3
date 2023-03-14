@@ -62,7 +62,7 @@ end real
 
 lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
-by rw [hT x y, inner_conj_sym]
+by rw [hT x y, inner_conj_symm]
 
 @[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
   (x y : E) : ⟪T x, y⟫ = ⟪x, T y⟫ :=
@@ -139,7 +139,7 @@ begin
   { intros hT v,
     apply is_symmetric.conj_inner_sym hT },
   { intros h x y,
-    nth_rewrite 1 ← inner_conj_sym,
+    nth_rewrite 1 ← inner_conj_symm,
     nth_rewrite 1 inner_map_polarization,
     simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
     simp only [← star_ring_end_apply],

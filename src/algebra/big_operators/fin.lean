@@ -226,13 +226,14 @@ equiv.of_right_inverse_of_card_le
     rw [←one_add_mul, add_comm, pow_succ],
   end⟩)
   (λ a b, ⟨a / m ^ (b : ℕ) % m, begin
-      cases n,
-      { exact b.elim0 },
-      cases m,
-      { rw zero_pow n.succ_pos at a,
-        exact a.elim0 },
-      { exact nat.mod_lt _ m.succ_pos }
-    end⟩) $ λ a, begin
+    cases n,
+    { exact b.elim0 },
+    cases m,
+    { rw zero_pow n.succ_pos at a,
+      exact a.elim0 },
+    { exact nat.mod_lt _ m.succ_pos }
+  end⟩)
+  (λ a, begin
     dsimp,
     induction n with n ih generalizing a,
     { haveI : subsingleton (fin (m ^ 0)) := (fin.cast $ pow_zero _).to_equiv.subsingleton,
@@ -242,15 +243,15 @@ equiv.of_right_inverse_of_card_le
     simp_rw [fin.coe_mk, fin.sum_univ_succ, fin.coe_zero, fin.coe_succ, pow_zero, nat.div_one,
       mul_one, pow_succ, ←nat.div_div_eq_div_mul, mul_left_comm _ m, ←mul_sum],
     rw [ih _ (nat.div_lt_of_lt_mul a.is_lt), nat.mod_add_div],
-  end
+  end)
 
-lemma coe_fin_function_fin_equiv_apply {m n : ℕ} (f : fin n → fin m):
+lemma fin_function_fin_equiv_apply {m n : ℕ} (f : fin n → fin m):
   (fin_function_fin_equiv f : ℕ) = ∑ (i : fin n), ↑(f i) * m ^ (i : ℕ) := rfl
 
 lemma fin_function_fin_equiv_single {m n : ℕ} [ne_zero m] (i : fin n) (j : fin m) :
   (fin_function_fin_equiv (pi.single i j) : ℕ) = j * m ^ (i : ℕ) :=
 begin
-  rw [coe_fin_function_fin_equiv_apply, fintype.sum_eq_single i, pi.single_eq_same],
+  rw [fin_function_fin_equiv_apply, fintype.sum_eq_single i, pi.single_eq_same],
   rintro x hx,
   rw [pi.single_eq_of_ne hx, fin.coe_zero, zero_mul],
 end

@@ -35,6 +35,9 @@ instance (c : ring_con A) : algebra S c.quotient :=
   commutes' := λ r, quotient.ind' $ by exact λ a, congr_arg quotient.mk' $ algebra.commutes _ _,
   smul_def' := λ r, quotient.ind' $ by exact λ a, congr_arg quotient.mk' $ algebra.smul_def _ _ }
 
+@[simp, norm_cast] lemma coe_algebra_map (c : ring_con A) (s : S) :
+  (↑(algebra_map S A s) : c.quotient) = algebra_map S _ s := rfl
+
 end ring_con
 
 namespace ring_quot

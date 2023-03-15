@@ -14,6 +14,13 @@ import data.fin.tuple.reflection
 This file contains alternative definitions of common operators on matrices that expand
 definitionally to the expected expression when evaluated on `!![]` notation.
 
+This allows "proof by reflection", where we prove `A = !![A 0 0, A 0 1;  A 1 0, A 1 1]` by defining
+`matrix.eta_expand A` to be equal to the RHS definitionally, and then prove that
+`A = eta_expand A`.
+
+The definitions in this file should normally not be used directly; the intent is for the
+corresponding `*_eq` lemmas to be used in a place where they are definitionally unfolded.
+
 ## Main definitionss
 
 * `matrix.transposeᵣ`
@@ -102,7 +109,7 @@ example (a b c d : α) : transpose !![a, b; c, d] = !![a, c; b, d] := (transpose
 
 /-- `matrix.dot_product` with better defeq for `fin` -/
 def dot_productᵣ [has_mul α] [has_add α] [has_zero α] {m} (a b : fin m → α) : α :=
-fin_vec.sum $ fin_vec.map₂ (*) a b
+fin_vec.sum $ fin_vec.seq (fin_vec.map (*) a) b
 
 /-- This can be used to prove
 ```lean
@@ -114,7 +121,7 @@ example (a b c d : α) [has_mul α] [add_comm_monoid α] :
 @[simp]
 lemma dot_productᵣ_eq [has_mul α] [add_comm_monoid α] {m} (a b : fin m → α) :
   dot_productᵣ a b = dot_product a b :=
-by simp_rw [dot_productᵣ, dot_product, fin_vec.sum_eq, fin_vec.map₂, fin_vec.seq_eq, fin_vec.map_eq]
+by simp_rw [dot_productᵣ, dot_product, fin_vec.sum_eq, fin_vec.seq_eq, fin_vec.map_eq]
 
 example (a b c d : α) [has_mul α] [add_comm_monoid α] :
   dot_product ![a, b] ![c, d] = a * c + b * d :=

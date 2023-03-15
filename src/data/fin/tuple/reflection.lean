@@ -9,14 +9,20 @@ import algebra.big_operators.fin
 /-!
 # Lemmas for tuples `fin m → α`
 
-This file contains alternative definitions of common operators on vectors
+This file contains alternative definitions of common operators on vectors which expand
 definitionally to the expected expression when evaluated on `![]` notation.
 
-## Main definitionss
+This allows "proof by reflection", where we prove `f = ![f 0, f 1]` by defining
+`fin_vec.eta_expand f` to be equal to the RHS definitionally, and then prove that
+`f = eta_expand f`.
+
+The definitions in this file should normally not be used directly; the intent is for the
+corresponding `*_eq` lemmas to be used in a place where they are definitionally unfolded.
+
+## Main definitions
 
 * `fin_vec.seq`
 * `fin_vec.map`
-* `fin_vec.map₂`
 * `fin_vec.sum`
 * `fin_vec.eta_expand`
 -/
@@ -58,10 +64,6 @@ seq_eq _ _
 
 example {f : α → β} (a₁ a₂ : α) : f ∘ ![a₁, a₂] = ![f a₁, f a₂] :=
 (map_eq _ _).symm
-
-/-- `map₂ f v w = ![f (v 0) (w 0), f (v 1) (w 1), ...]` -/
-def map₂ (f : α → β → γ) (a : fin m → α) (b : fin m → β) : fin m → γ :=
-seq (map f a) b
 
 /-- Expand `v` to `![v 0, v 1, ...]` -/
 def eta_expand {m} (v : fin m → α) : fin m → α := map id v
@@ -122,7 +124,8 @@ open_locale big_operators
 
 /-- This can be used to prove
 ```lean
-example [has_add α] [has_zero α] (a : fin 3 → α) : sum a = a 0 + a 1 + a 2 := rfl
+example [add_comm_monoid α] (a : fin 3 → α) : ∑ i, a i = a 0 + a 1 + a 2 :=
+(sum_eq _).symm
 ```
 -/
 @[simp]
@@ -132,6 +135,7 @@ lemma sum_eq [add_comm_monoid α] : Π {m} (a : fin m → α),
 | 1 a := (fintype.sum_unique a).symm
 | (n + 2) a := by rw [fin.sum_univ_cast_succ, sum, sum_eq]
 
-example [has_add α] [has_zero α] (a : fin 3 → α) : sum a = a 0 + a 1 + a 2 := rfl
+example [add_comm_monoid α] (a : fin 3 → α) : ∑ i, a i = a 0 + a 1 + a 2 :=
+(sum_eq _).symm
 
 end fin_vec

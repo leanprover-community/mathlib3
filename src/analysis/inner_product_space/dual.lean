@@ -74,8 +74,8 @@ begin
   refine (function.injective.eq_iff continuous_linear_map.coe_injective).mp (basis.ext b _),
   intro i,
   simp only [to_dual_map_apply, continuous_linear_map.coe_coe],
-  rw [←inner_conj_sym],
-  nth_rewrite_rhs 0 [←inner_conj_sym],
+  rw [←inner_conj_symm],
+  nth_rewrite_rhs 0 [←inner_conj_symm],
   exact congr_arg conj (h i)
 end
 
@@ -83,8 +83,8 @@ lemma ext_inner_right_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
   (h : ∀ i : ι, ⟪x, b i⟫ = ⟪y, b i⟫) : x = y :=
 begin
   refine ext_inner_left_basis b (λ i, _),
-  rw [←inner_conj_sym],
-  nth_rewrite_rhs 0 [←inner_conj_sym],
+  rw [←inner_conj_symm],
+  nth_rewrite_rhs 0 [←inner_conj_symm],
   exact congr_arg conj (h i)
 end
 

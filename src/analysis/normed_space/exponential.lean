@@ -125,6 +125,11 @@ by simp_rw [exp_eq_tsum, ←star_pow, ←star_inv_nat_cast_smul, ←tsum_star]
 
 variables (𝕂)
 
+lemma is_self_adjoint.exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] {x : 𝔸}
+  (h : is_self_adjoint x) :
+  is_self_adjoint (exp 𝕂 x) :=
+(star_exp x).trans $ h.symm ▸ rfl
+
 lemma commute.exp_right [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute x (exp 𝕂 y) :=
 begin
   rw exp_eq_tsum,
@@ -446,6 +451,13 @@ begin
   letI := invertible_exp 𝕂 x,
   exact ring.inverse_invertible _,
 end
+
+lemma exp_mem_unitary_of_mem_skew_adjoint [star_ring 𝔸] [has_continuous_star 𝔸] {x : 𝔸}
+  (h : x ∈ skew_adjoint 𝔸) :
+  exp 𝕂 x ∈ unitary 𝔸 :=
+by rw [unitary.mem_iff, star_exp, skew_adjoint.mem_iff.mp h,
+  ←exp_add_of_commute (commute.refl x).neg_left, ←exp_add_of_commute (commute.refl x).neg_right,
+  add_left_neg, add_right_neg, exp_zero, and_self]
 
 end
 

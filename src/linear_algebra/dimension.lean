@@ -390,7 +390,7 @@ begin
     -- by expressing the `v i` in the basis `b`, and using that the `v i` have no `b b'` term.
     have l₀ : l none = 0,
     { rw ←eq_neg_iff_add_eq_zero at z,
-      replace z := eq_neg_of_eq_neg z,
+      replace z := neg_eq_iff_eq_neg.mpr z,
       apply_fun (λ x, b.repr x b') at z,
       simp only [repr_self, linear_equiv.map_smul, mul_one, finsupp.single_eq_same, pi.neg_apply,
         finsupp.smul_single', linear_equiv.map_neg, finsupp.coe_neg] at z,

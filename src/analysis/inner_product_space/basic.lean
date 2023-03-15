@@ -209,6 +209,9 @@ by rw [←inner_conj_symm, inner_zero_left]; simp only [ring_hom.map_zero]
 lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left _ })
 
+lemma inner_self_ne_zero {x : F} : ⟪x, x⟫ ≠ 0 ↔ x ≠ 0 :=
+inner_self_eq_zero.not
+
 lemma inner_self_re_to_K (x : F) : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
 
@@ -248,7 +251,7 @@ begin
   by_cases hy : y = 0,
   { rw [hy], simp only [is_R_or_C.abs_zero, inner_zero_left, mul_zero, add_monoid_hom.map_zero] },
   { change y ≠ 0 at hy,
-    have hy' : ⟪y, y⟫ ≠ 0 := λ h, by rw [inner_self_eq_zero] at h; exact hy h,
+    have hy' : ⟪y, y⟫ ≠ 0 := inner_self_ne_zero.mpr hy,
     set T := ⟪y, x⟫ / ⟪y, y⟫ with hT,
     have h₁ : re ⟪y, x⟫ = re ⟪x, y⟫ := inner_re_symm _ _,
     have h₂ : im ⟪y, x⟫ = -im ⟪x, y⟫ := inner_im_symm _ _,
@@ -509,6 +512,9 @@ begin
   { rintro rfl,
     exact inner_zero_left _ }
 end
+
+lemma inner_self_ne_zero {x : E} : ⟪x, x⟫ ≠ 0 ↔ x ≠ 0 :=
+inner_self_eq_zero.not
 
 @[simp] lemma inner_self_nonpos {x : E} : re ⟪x, x⟫ ≤ 0 ↔ x = 0 :=
 begin

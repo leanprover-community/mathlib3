@@ -75,8 +75,8 @@ instance : subgroup_class (open_subgroup G) G :=
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_coe_subgroup : ((U : subgroup G) : set G) = U := rfl
 @[simp, norm_cast, to_additive] lemma coe_coe_opens : ((U : opens G) : set G) = U := rfl
+@[simp, norm_cast, to_additive] lemma coe_coe_subgroup : ((U : subgroup G) : set G) = U := rfl
 @[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
 @[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl

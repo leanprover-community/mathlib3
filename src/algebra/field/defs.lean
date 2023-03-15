@@ -96,10 +96,10 @@ class division_semiring (α : Type u) extends semiring α, group_with_zero α, h
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements.
 
-An instance of `division_ring K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
-If the division ring has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
+An instance of `division_ring K` includes maps `rat_cast : ℚ → K` and `qsmul : ℚ → K → K`.
+If the division ring has positive characteristic p, we define `rat_cast (1 / p) = 1 / 0 = 0`
 for consistency with our division by zero convention.
-The fields `of_rat` and `qsmul` are needed to implement the
+The fields `rat_cast` and `qsmul` are needed to implement the
 `algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
 definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].
@@ -128,10 +128,10 @@ class semifield (α : Type*) extends comm_semiring α, division_semiring α, com
 
 /-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements.
 
-An instance of `field K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
-If the field has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
+An instance of `field K` includes maps `rat_cast : ℚ → K` and `qsmul : ℚ → K → K`.
+If the field has positive characteristic p, we define `rat_cast (1 / p) = 1 / 0 = 0`
 for consistency with our division by zero convention.
-The fields `of_rat` and `qsmul are needed to implement the
+The fields `rat_cast` and `qsmul are needed to implement the
 `algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
 definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].

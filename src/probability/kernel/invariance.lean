@@ -10,8 +10,7 @@ import probability.kernel.composition
 
 We define the push-forward of a measure along a kernel which results in another measure. In the
 case that the push-forward measure is the same as the original measure, we say that the measure is
-invariant with respect to the kernel. This notion is useful if we want to talk about invariant
-measures of a Markov kernel.
+invariant with respect to the kernel.
 
 ## Main definitions
 
@@ -29,7 +28,7 @@ measures of a Markov kernel.
 
 open measure_theory
 
-open_locale measure_theory ennreal big_operators probability_theory
+open_locale measure_theory ennreal probability_theory
 
 namespace probability_theory
 
@@ -109,7 +108,7 @@ lemma comp_const_apply_eq_map_measure (κ : kernel α β) [is_s_finite_kernel κ
   (κ ∘ₖ const α μ) a = map_measure κ μ :=
 by rw [← const_apply (map_measure κ μ) a, const_map_measure_eq_comp_const κ μ]
 
-lemma lintegral_map_measure_eq
+lemma lintegral_map_measure
   (κ : kernel α β) [is_s_finite_kernel κ] (μ : measure α) [is_finite_measure μ]
   {f : β → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ b, f b ∂(map_measure κ μ) = ∫⁻ a, ∫⁻ b, f b ∂(κ a) ∂μ :=
@@ -148,7 +147,7 @@ begin
   { simp_rw [invariant, ← comp_const_apply_eq_map_measure (κ ∘ₖ η) μ hα.some, comp_assoc,
       hη.comp_const, hκ.comp_const, const_apply] },
   { haveI := not_nonempty_iff.1 hα,
-    exact measure.eq_of_is_empty _ _ },
+    exact subsingleton.elim _ _ },
 end
 
 end kernel

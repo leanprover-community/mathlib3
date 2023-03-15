@@ -876,6 +876,8 @@ linear_map.mk_continuous₂
 
 variables {𝕜 G G'}
 
+/-- `continuous_linear_map.comp_continuous_multilinear_map` as a bundled
+continuous linear equiv. -/
 def _root_.continuous_linear_equiv.comp_continuous_multilinear_mapL (g : G ≃L[𝕜] G') :
   continuous_multilinear_map 𝕜 E G ≃L[𝕜] continuous_multilinear_map 𝕜 E G' :=
 { inv_fun := comp_continuous_multilinear_mapL 𝕜 _ _ _ g.symm.to_continuous_linear_map,
@@ -1057,8 +1059,8 @@ linear_map.mk_continuous
     map_smul' := λ c g, rfl }
   (∏ i, ‖f i‖) $ λ g, (norm_comp_continuous_linear_le _ _).trans_eq (mul_comm _ _)
 
-@[simp] lemma comp_continuous_linear_mapL_apply (g : continuous_multilinear_map 𝕜 E₁ G)
-  (f : Π i, E i →L[𝕜] E₁ i) :
+@[simp] lemma comp_continuous_linear_mapL_apply
+  (g : continuous_multilinear_map 𝕜 E₁ G) (f : Π i, E i →L[𝕜] E₁ i)  :
   comp_continuous_linear_mapL f g = g.comp_continuous_linear_map f :=
 rfl
 
@@ -1066,12 +1068,39 @@ lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
   ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
 linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
+/-- `continuous_multilinear_map.comp_continuous_linear_map` as a bundled continuous linear equiv,
+given `f : Π i, E i ≃L[𝕜] E₁ i`. -/
 def comp_continuous_linear_map_equivL (f : Π i, E i ≃L[𝕜] E₁ i) :
   continuous_multilinear_map 𝕜 E₁ G ≃L[𝕜] continuous_multilinear_map 𝕜 E G :=
-{ to_fun := comp_continuous_linear_mapL f,
-  inv_fun := comp_continuous_linear_mapL (λ i, (f i).symm) }
+{ inv_fun := comp_continuous_linear_mapL (λ i, ((f i).symm : E₁ i →L[𝕜] E i)),
+  continuous_to_fun := (comp_continuous_linear_mapL (λ i, (f i : E i →L[𝕜] E₁ i))).continuous,
+  continuous_inv_fun :=
+    (comp_continuous_linear_mapL (λ i, ((f i).symm : E₁ i →L[𝕜] E i))).continuous,
+  left_inv := begin
+    assume g,
+    ext1 m,
+    simp only [continuous_linear_map.to_linear_map_eq_coe, linear_map.to_fun_eq_coe,
+      continuous_linear_map.coe_coe, comp_continuous_linear_mapL_apply,
+      comp_continuous_linear_map_apply, continuous_linear_equiv.coe_coe,
+      continuous_linear_equiv.apply_symm_apply],
+  end,
+  right_inv := begin
+    assume g,
+    ext1 m,
+    simp only [continuous_linear_map.to_linear_map_eq_coe, comp_continuous_linear_mapL_apply,
+      linear_map.to_fun_eq_coe, continuous_linear_map.coe_coe, comp_continuous_linear_map_apply,
+      continuous_linear_equiv.coe_coe, continuous_linear_equiv.symm_apply_apply],
+  end,
+  .. comp_continuous_linear_mapL (λ i, (f i : E i →L[𝕜] E₁ i)) }
+
+@[simp] lemma comp_continuous_linear_map_equivL_apply
+  (g : continuous_multilinear_map 𝕜 E₁ G) (f : Π i, E i ≃L[𝕜] E₁ i) :
+  comp_continuous_linear_map_equivL f g
+    = g.comp_continuous_linear_map (λ i, (f i : E i →L[𝕜] E₁ i)) := rfl
 
 end continuous_multilinear_map
+
+#lint
 
 section smul
 

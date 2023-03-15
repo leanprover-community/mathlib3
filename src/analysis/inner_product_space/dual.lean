@@ -131,7 +131,7 @@ begin
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
             : by rw [h₂]
                             ... = ℓ x
-            : by field_simp [inner_self_eq_zero.2 z_ne_0],
+            : by field_simp [inner_self_ne_zero.2 z_ne_0],
     exact h₄ }
 end
 

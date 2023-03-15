@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 import data.matrix.basic
 import linear_algebra.matrix.determinant
-import linear_algebra.matrix.adjugate
+import linear_algebra.matrix.adjugate.basic
 
 /-!
 # Matrices associated with non-degenerate bilinear forms

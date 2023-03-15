@@ -15,6 +15,9 @@ import tactic.linear_combination
 /-!
 # Catalan numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Catalan numbers (http://oeis.org/A000108) are probably the most ubiquitous sequence of integers
 in mathematics. They enumerate several important objects like binary trees, Dyck paths, and
 triangulations of convex polygons.

@@ -75,6 +75,8 @@ instance : subgroup_class (open_subgroup G) G :=
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
+@[simp, norm_cast, to_additive] lemma coe_coe_subgroup : ((U : subgroup G) : set G) = U := rfl
+@[simp, norm_cast, to_additive] lemma coe_coe_opens : ((U : opens G) : set G) = U := rfl
 @[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
 @[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
@@ -94,6 +96,15 @@ variable {U}
 @[to_additive]
 instance : has_top (open_subgroup G) := ⟨{ is_open' := is_open_univ, .. (⊤ : subgroup G) }⟩
 
+@[simp, to_additive] lemma mem_top (x : G) : x ∈ (⊤ : open_subgroup G) := trivial
+@[simp, norm_cast, to_additive] lemma coe_top : ((⊤ : open_subgroup G) : set G) = set.univ := rfl
+
+@[simp, norm_cast, to_additive]
+lemma coe_subgroup_top : ((⊤ : open_subgroup G) : subgroup G) = ⊤ := rfl
+
+@[simp, norm_cast, to_additive]
+lemma coe_opens_top : ((⊤ : open_subgroup G) : opens G) = ⊤ := rfl
+
 @[to_additive]
 instance : inhabited (open_subgroup G) := ⟨⊤⟩
 
@@ -102,14 +113,17 @@ lemma is_closed [has_continuous_mul G] (U : open_subgroup G) : is_closed (U : se
 begin
   apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
-  { intros u hux,
-    simp only [set.mem_preimage, set.mem_compl_iff, set_like.mem_coe] at hux hx ⊢,
-    refine mt (λ hu, _) hx,
+  { refine λ u hux hu, hx _,
+    simp only [set.mem_preimage, set_like.mem_coe] at hux hu ⊢,
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
   { exact U.is_open.preimage (continuous_mul_right _) },
   { simp [one_mem] }
 end
+
+@[to_additive]
+lemma is_clopen [has_continuous_mul G] (U : open_subgroup G) : is_clopen (U : set G) :=
+⟨U.is_open, U.is_closed⟩
 
 section
 variables {H : Type*} [group H] [topological_space H]
@@ -117,9 +131,17 @@ variables {H : Type*} [group H] [topological_space H]
 /-- The product of two open subgroups as an open subgroup of the product group. -/
 @[to_additive "The product of two open subgroups as an open subgroup of the product group."]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
-{ carrier := U ×ˢ V,
-  is_open' := U.is_open.prod V.is_open,
+{ is_open' := U.is_open.prod V.is_open,
   .. (U : subgroup G).prod (V : subgroup H) }
+
+@[simp, norm_cast, to_additive] lemma coe_prod (U : open_subgroup G) (V : open_subgroup H) :
+  (U.prod V : set (G × H)) = U ×ˢ V :=
+rfl
+
+@[simp, norm_cast, to_additive]
+lemma coe_subgroup_prod (U : open_subgroup G) (V : open_subgroup H) :
+  (U.prod V : subgroup (G × H)) = (U : subgroup G).prod V :=
+rfl
 
 end
 
@@ -128,6 +150,9 @@ instance : has_inf (open_subgroup G) :=
 ⟨λ U V, ⟨U ⊓ V, U.is_open.inter V.is_open⟩⟩
 
 @[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+@[simp, norm_cast, to_additive] lemma coe_subgroup_inf : (↑(U ⊓ V) : subgroup G) = ↑U ⊓ ↑V := rfl
+@[simp, norm_cast, to_additive] lemma coe_opens_inf : (↑(U ⊓ V) : opens G) = ↑U ⊓ ↑V := rfl
+@[simp, to_additive] lemma mem_inf {x} : x ∈ U ⊓ V ↔ x ∈ U ∧ x ∈ V := iff.rfl
 
 @[to_additive]
 instance : semilattice_inf (open_subgroup G) :=
@@ -149,14 +174,17 @@ variables {N : Type*} [group N] [topological_space N]
   is an `open_subgroup`. -/
 @[to_additive "The preimage of an `open_add_subgroup` along a continuous `add_monoid` homomorphism
 is an `open_add_subgroup`."]
-def comap (f : G →* N)
-  (hf : continuous f) (H : open_subgroup N) : open_subgroup G :=
+def comap (f : G →* N) (hf : continuous f) (H : open_subgroup N) : open_subgroup G :=
 { is_open' := H.is_open.preimage hf,
   .. (H : subgroup N).comap f }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
   (H.comap f hf : set G) = f ⁻¹' H := rfl
+
+@[simp, norm_cast, to_additive]
+lemma coe_subgroup_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
+  (H.comap f hf : subgroup G) = (H : subgroup N).comap f := rfl
 
 @[simp, to_additive]
 lemma mem_comap {H : open_subgroup N} {f : G →* N} {hf : continuous f} {x : G} :
@@ -178,45 +206,30 @@ variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G] (H 
 lemma is_open_of_mem_nhds {g : G} (hg : (H : set G) ∈ 𝓝 g) :
   is_open (H : set G) :=
 begin
-  simp only [is_open_iff_mem_nhds, set_like.mem_coe] at hg ⊢,
-  intros x hx,
-  have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 $ x * (x⁻¹ * g)) :=
-    (continuous_id.mul continuous_const).tendsto _,
-  rw [mul_inv_cancel_left] at this,
-  have := filter.mem_map'.1 (this hg),
-  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_mem_nhds hg),
-  simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
-  exact this
-end
-
-@[to_additive]
-lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
-  is_open (H : set G) :=
-H.is_open_of_mem_nhds (filter.mem_of_superset U.mem_nhds_one h)
-
-/-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
-@[to_additive "If a subgroup of an additive topological group has `0` in its interior, then it is
-open."]
-lemma is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
-  [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
-  is_open (H : set G) :=
-begin
-  have h : 𝓝 1 ≤ filter.principal (H : set G) :=
-    nhds_le_of_le h_1_int (is_open_interior) (filter.principal_mono.2 interior_subset),
-  rw is_open_iff_nhds,
-  intros g hg,
-  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simp),
-  convert filter.map_mono h,
-  simp only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
-  filter.principal_eq_iff_eq],
-  ext,
-  simp [H.mul_mem_cancel_left (H.inv_mem hg)],
+  refine is_open_iff_mem_nhds.2 (λ x hx, _),
+  have hg' : g ∈ H := set_like.mem_coe.1 (mem_of_mem_nhds hg),
+  have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 g) :=
+    (continuous_id.mul continuous_const).tendsto' _ _ (mul_inv_cancel_left _ _),
+  simpa only [set_like.mem_coe, filter.mem_map',
+    H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg')] using this hg,
 end
 
 @[to_additive]
 lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁ : set G)) :
   is_open (H₂ : set G) :=
-@is_open_of_open_subgroup _ _ _ _ H₂ { is_open' := h₁, .. H₁ } h
+is_open_of_mem_nhds _ $ filter.mem_of_superset (h₁.mem_nhds $ one_mem H₁) h
+
+@[to_additive]
+lemma is_open_of_open_subgroup {U : open_subgroup G} (h : ↑U ≤ H) :
+  is_open (H : set G) :=
+is_open_mono h U.is_open
+
+/-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
+@[to_additive "If a subgroup of an additive topological group has `0` in its interior, then it is
+open."]
+lemma is_open_of_one_mem_interior (h_1_int : (1 : G) ∈ interior (H : set G)) :
+  is_open (H : set G) :=
+is_open_of_mem_nhds H $ mem_interior_iff_mem_nhds.1 h_1_int
 
 end subgroup
 
@@ -227,6 +240,9 @@ variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G]
 @[to_additive]
 instance : has_sup (open_subgroup G) :=
 ⟨λ U V, ⟨U ⊔ V, subgroup.is_open_mono (le_sup_left : U.1 ≤ U ⊔ V) U.is_open⟩⟩
+
+@[simp, norm_cast, to_additive]
+lemma coe_subgroup_sup (U V : open_subgroup G) : (↑(U ⊔ V) : subgroup G) = ↑U ⊔ ↑V := rfl
 
 @[to_additive]
 instance : lattice (open_subgroup G) :=

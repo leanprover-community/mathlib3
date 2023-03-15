@@ -50,7 +50,7 @@ namespace set
 noncomputable def ncard (s : set α) := nat.card s
 
 /-- A tactic that finds a `t.finite` term for a set `t` in a `finite` type. -/
-meta def to_finite_tac : tactic unit := `[try {apply set.to_finite}]
+meta def to_finite_tac : tactic unit := `[exact set.to_finite _]
 
 lemma ncard_def (s : set α) : s.ncard = nat.card s := rfl
 
@@ -198,6 +198,21 @@ begin
   convert nat.zero_le _,
   rw hs.ncard,
 end
+
+lemma ncard_exchange (ha : a ∉ s) (hb : b ∈ s) :
+  (insert a (s \ {b})).ncard = s.ncard :=
+begin
+  cases s.finite_or_infinite with h h,
+  { haveI := h.to_subtype,
+    rw [ncard_insert_of_not_mem, ncard_diff_singleton_add_one hb],
+    simpa only [mem_diff, not_and] using ha},
+  rw [((h.diff (set.to_finite {b})).mono (subset_insert _ _)).ncard, h.ncard],
+end
+
+lemma ncard_exchange' (ha : a ∉ s) (hb : b ∈ s) :
+  ((insert a s) \ {b}).ncard = s.ncard :=
+by rw [←ncard_exchange ha hb, ←singleton_union, ←singleton_union, union_diff_distrib,
+    @diff_singleton_eq_self _ b {a} (λ h, ha (by rwa ← mem_singleton_iff.mp h) )]
 
 end insert_erase
 

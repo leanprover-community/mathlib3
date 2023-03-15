@@ -9,6 +9,9 @@ import algebra.ring.pi
 
 /-!
 # Characteristic of semirings of functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v

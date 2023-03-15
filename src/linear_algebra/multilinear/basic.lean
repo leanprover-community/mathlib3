@@ -7,8 +7,8 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
-import data.fin.tuple
-import data.fintype.card
+import data.list.fin_range
+import data.fintype.big_operators
 import data.fintype.sort
 
 /-!
@@ -213,7 +213,7 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
   map_smul' := λ m i r x, by
   { rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
 
-variables {M₂}
+variables (M₁) {M₂}
 
 /-- The constant map is multilinear when `ι` is empty. -/
 @[simps {fully_applied := ff}]
@@ -777,7 +777,7 @@ def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι
 /-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=
-{ to_fun    := multilinear_map.const_of_is_empty R,
+{ to_fun    := multilinear_map.const_of_is_empty R _,
   map_add'  := λ x y, rfl,
   map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,
@@ -877,6 +877,23 @@ begin
   conv_rhs { rw [this, f.map_smul_univ] },
   refl
 end
+
+lemma mk_pi_ring_eq_iff [fintype ι] {z₁ z₂ : M₂} :
+  multilinear_map.mk_pi_ring R ι z₁ = multilinear_map.mk_pi_ring R ι z₂ ↔ z₁ = z₂ :=
+begin
+  simp_rw [multilinear_map.ext_iff, mk_pi_ring_apply],
+  split; intro h,
+  { simpa using h (λ _, 1) },
+  { intro x, simp [h] }
+end
+
+lemma mk_pi_ring_zero [fintype ι] :
+  multilinear_map.mk_pi_ring R ι (0 : M₂) = 0 :=
+by ext; rw [mk_pi_ring_apply, smul_zero, multilinear_map.zero_apply]
+
+lemma mk_pi_ring_eq_zero_iff [fintype ι] (z : M₂) :
+  multilinear_map.mk_pi_ring R ι z = 0 ↔ z = 0 :=
+by rw [← mk_pi_ring_zero, mk_pi_ring_eq_iff]
 
 end comm_semiring
 

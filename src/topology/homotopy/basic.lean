@@ -12,6 +12,9 @@ import topology.unit_interval
 /-!
 # Homotopy between functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define
 `continuous_map.homotopy` between the two functions, with no restrictions on the intermediate
 maps. Then, as in the formalisation in HOL-Analysis, we define
@@ -74,6 +77,9 @@ structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 (map_zero_left' : ∀ x, to_fun (0, x) = f₀ x)
 (map_one_left' : ∀ x, to_fun (1, x) = f₁ x)
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_map.homotopy_like F f₀ f₁` states that `F` is a type of homotopies between `f₀` and
 `f₁`.
 
@@ -82,6 +88,8 @@ class homotopy_like (F : Type*) (f₀ f₁ : out_param $ C(X, Y))
   extends continuous_map_class F (I × X) Y :=
 (map_zero_left (f : F) : ∀ x, f (0, x) = f₀ x)
 (map_one_left (f : F) : ∀ x, f (1, x) = f₁ x)
+
+end
 
 -- `f₀` and `f₁` are `out_param` so this is not dangerous
 attribute [nolint dangerous_instance] homotopy_like.to_continuous_map_class

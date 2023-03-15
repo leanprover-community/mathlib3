@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving terminal object
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving terminal objects and reflecting terminal objects
 to concrete objects.
 
@@ -16,7 +19,7 @@ In particular, we show that `terminal_comparison G` is an isomorphism iff `G` pr
 objects.
 -/
 
-universes v v₁ v₂ u u₁ u₂
+universes w v v₁ v₂ u u₁ u₂
 
 noncomputable theory
 
@@ -36,7 +39,7 @@ section terminal
 The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
-  is_limit (G.map_cone (as_empty_cone.{v₁} X)) ≃ is_terminal (G.obj X) :=
+  is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
 is_limit_empty_cone_equiv D _ _ (eq_to_iso rfl)
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
@@ -48,6 +51,12 @@ is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
 def is_terminal.is_terminal_of_obj [reflects_limit (functor.empty.{0} C) G]
   (l : is_terminal (G.obj X)) : is_terminal X :=
 reflects_limit.reflects ((is_limit_map_cone_empty_cone_equiv G X).symm l)
+
+/-- Preserving the terminal object implies preserving all limits of the empty diagram. -/
+def preserves_limits_of_shape_pempty_of_preserves_terminal
+  [preserves_limit (functor.empty.{0} C) G] : preserves_limits_of_shape (discrete pempty) G :=
+{ preserves_limit := λ K,
+    preserves_limit_of_iso_diagram G (functor.empty_ext (functor.empty.{0} C) _) }
 
 variables [has_terminal C]
 /--
@@ -137,6 +146,12 @@ is_colimit_map_cocone_empty_cocone_equiv G X (preserves_colimit.preserves l)
 def is_initial.is_initial_of_obj [reflects_colimit (functor.empty.{0} C) G]
   (l : is_initial (G.obj X)) : is_initial X :=
 reflects_colimit.reflects ((is_colimit_map_cocone_empty_cocone_equiv G X).symm l)
+
+/-- Preserving the initial object implies preserving all colimits of the empty diagram. -/
+def preserves_colimits_of_shape_pempty_of_preserves_initial
+  [preserves_colimit (functor.empty.{0} C) G] : preserves_colimits_of_shape (discrete pempty) G :=
+{ preserves_colimit := λ K,
+    preserves_colimit_of_iso_diagram G (functor.empty_ext (functor.empty.{0} C) _) }
 
 variables [has_initial C]
 /--

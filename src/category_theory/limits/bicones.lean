@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.limits.cones
-import category_theory.structured_arrow
 import category_theory.fin_category
 
 /-!
 # Bicones
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a category `J`, a walking `bicone J` is a category whose objects are the objects of `J` and
 two extra vertices `bicone.left` and `bicone.right`. The morphisms are the morphisms of `J` and

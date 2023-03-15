@@ -3,10 +3,14 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import data.int.interval
 import topology.metric_space.basic
 import order.filter.archimedean
 /-!
 # Topology on the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The structure of a metric space on `ℤ` is introduced in this file, induced from `ℝ`.
 -/

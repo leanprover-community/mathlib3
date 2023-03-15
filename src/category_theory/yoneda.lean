@@ -10,6 +10,9 @@ import category_theory.products.basic
 /-!
 # The Yoneda embedding
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
 along with an instance that it is `fully_faithful`.
 
@@ -124,6 +127,10 @@ def punit_iso : coyoneda.obj (opposite.op punit) ≅ 𝟭 (Type v₁) :=
 nat_iso.of_components
   (λ X, { hom := λ f, f ⟨⟩, inv := λ x _, x })
   (by tidy)
+
+/-- Taking the `unop` of morphisms is a natural isomorphism. -/
+@[simps] def obj_op_op (X : C) : coyoneda.obj (op (op X)) ≅ yoneda.obj X :=
+nat_iso.of_components (λ Y, (op_equiv _ _).to_iso) (λ X Y f, rfl)
 
 end coyoneda
 

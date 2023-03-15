@@ -7,10 +7,13 @@ Authors: Kenny Lau
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
-import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
+import algebra.module.basic
 
 /-!
 # Free abelian groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The free abelian group on a type `α`, defined as the abelianisation of
 the free group on `α`.

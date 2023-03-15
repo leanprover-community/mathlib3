@@ -49,7 +49,7 @@ you will not typically need to use this bundled object, and will instead use
   `injective_resolution Z` (all the components are equipped with `mono` instances,
   and when the category is `abelian` we will show `ι` is a quasi-iso).
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure InjectiveResolution (Z : C) :=
 (cocomplex : cochain_complex C ℕ)
 (ι: ((cochain_complex.single₀ C).obj Z) ⟶ cocomplex)

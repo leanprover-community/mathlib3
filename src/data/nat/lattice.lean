@@ -3,16 +3,17 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
-import data.nat.enat
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.finset
 
 /-!
 # Conditionally complete linear order structure on `ℕ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;
-* define a `complete_linear_order` structure on `enat`;
 * prove a few lemmas about `supr`/`infi`/`set.Union`/`set.Inter` and natural numbers.
 -/
 
@@ -42,9 +43,8 @@ dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks
 begin
   cases eq_empty_or_nonempty s,
   { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
-      mem_empty_eq, exists_false, dif_neg, not_false_iff] },
-  { have := ne_empty_iff_nonempty.mpr h,
-    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
+      mem_empty_iff_false, exists_false, dif_neg, not_false_iff] },
+  { simp only [h.ne_empty, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
@@ -106,7 +106,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+    simp only [Sup_def, set.mem_empty_iff_false, forall_const, forall_prop_of_false, not_false_iff,
       exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
@@ -184,19 +184,3 @@ lemma bInter_lt_succ' (u : ℕ → set α) (n : ℕ) : (⋂ k < n + 1, u k) = u 
 nat.infi_lt_succ' u n
 
 end set
-
-namespace enat
-open_locale classical
-
-noncomputable instance : complete_linear_order enat :=
-{ inf := (⊓),
-  sup := (⊔),
-  top := ⊤,
-  bot := ⊥,
-  le := (≤),
-  lt := (<),
-  .. enat.lattice,
-  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
-  .. enat.linear_order, }
-
-end enat

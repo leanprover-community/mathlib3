@@ -10,6 +10,9 @@ import category_theory.limits.functor_category
 /-!
 # The morphism comparing a colimit of limits with the corresponding limit of colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For `F : J × K ⥤ C` there is always a morphism $\colim_k \lim_j F(j,k) → \lim_j \colim_k F(j, k)$.
 While it is not usually an isomorphism, with additional hypotheses on `J` and `K` it may be,
 in which case we say that "colimits commute with limits".
@@ -65,7 +68,7 @@ limit.lift ((curry.obj F) ⋙ colim)
         begin
           dsimp,
           intros k k' f,
-          simp only [functor.comp_map, curry.obj_map_app, limits.lim_map_π_assoc, swap_map,
+          simp only [functor.comp_map, curry_obj_map_app, limits.lim_map_π_assoc, swap_map,
             category.comp_id, map_id_left_eq_curry_map, colimit.w],
         end }, },
     naturality' :=
@@ -73,7 +76,7 @@ limit.lift ((curry.obj F) ⋙ colim)
       dsimp,
       intros j j' f,
       ext k,
-      simp only [limits.colimit.ι_map, curry.obj_map_app, limits.colimit.ι_desc_assoc,
+      simp only [limits.colimit.ι_map, curry_obj_map_app, limits.colimit.ι_desc_assoc,
         limits.colimit.ι_desc, category.id_comp, category.assoc, map_id_right_eq_curry_swap_map,
         limit.w_assoc],
     end } }

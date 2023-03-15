@@ -100,8 +100,8 @@ def pi_tensor_product : Type* :=
 variables {R}
 
 /- This enables the notation `⨂[R] i : ι, s i` for the pi tensor product, given `s : ι → Type*`. -/
-localized "notation `⨂[`:100 R `] ` binders `, ` r:(scoped:67 f, pi_tensor_product R f) := r"
-  in tensor_product
+localized "notation (name := pi_tensor_product)
+  `⨂[`:100 R `] ` binders `, ` r:(scoped:67 f, pi_tensor_product R f) := r" in tensor_product
 
 open_locale tensor_product
 
@@ -444,7 +444,7 @@ variables (ι)
 /-- The tensor product over an empty index type `ι` is isomorphic to the base ring. -/
 @[simps symm_apply]
 def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
-{ to_fun := lift (const_of_is_empty R 1),
+{ to_fun := lift (const_of_is_empty R _ 1),
   inv_fun := λ r, r • tprod R (@is_empty_elim _ _ _),
   left_inv := λ x, by
   { apply x.induction_on,

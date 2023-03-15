@@ -340,7 +340,7 @@ end
 acc_lift₂_iff
 
 /-- A relation is well founded iff its lift to a quotient is. -/
-@[simp] theorem _root_.well_founded_lift₂_iff [setoid α] {r : α → α → Prop} {H} :
+theorem _root_.well_founded_lift₂_iff [setoid α] {r : α → α → Prop} {H} :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
 begin
   split,

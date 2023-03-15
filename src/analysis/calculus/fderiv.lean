@@ -2806,6 +2806,88 @@ begin
   exact iso.comp_fderiv_within unique_diff_within_at_univ,
 end
 
+lemma comp_right_differentiable_within_at_iff {f : F → G} {s : set F} {x : E} :
+  differentiable_within_at 𝕜 (f ∘ iso) (iso ⁻¹' s) x ↔ differentiable_within_at 𝕜 f s (iso x) :=
+begin
+  refine ⟨λ H, _, λ H, H.comp x iso.differentiable_within_at (maps_to_preimage _ s)⟩,
+  have : differentiable_within_at 𝕜 ((f ∘ iso) ∘ iso.symm) s (iso x),
+  { rw ← iso.symm_apply_apply x at H,
+    apply H.comp (iso x) iso.symm.differentiable_within_at,
+    assume y hy,
+    simpa only [mem_preimage, apply_symm_apply] using hy },
+  rwa [function.comp.assoc, iso.self_comp_symm] at this,
+end
+
+lemma comp_right_differentiable_at_iff {f : F → G} {x : E} :
+  differentiable_at 𝕜 (f ∘ iso) x ↔ differentiable_at 𝕜 f (iso x) :=
+by simp only [← differentiable_within_at_univ, ← iso.comp_right_differentiable_within_at_iff,
+  preimage_univ]
+
+lemma comp_right_differentiable_on_iff {f : F → G} {s : set F} :
+  differentiable_on 𝕜 (f ∘ iso) (iso ⁻¹' s) ↔ differentiable_on 𝕜 f s :=
+begin
+  refine ⟨λ H y hy, _, λ H y hy, iso.comp_right_differentiable_within_at_iff.2 (H _ hy)⟩,
+  rw [← iso.apply_symm_apply y, ← comp_right_differentiable_within_at_iff],
+  apply H,
+  simpa only [mem_preimage, apply_symm_apply] using hy,
+end
+
+lemma comp_right_differentiable_iff {f : F → G} :
+  differentiable 𝕜 (f ∘ iso) ↔ differentiable 𝕜 f :=
+by simp only [← differentiable_on_univ, ← iso.comp_right_differentiable_on_iff, preimage_univ]
+
+lemma comp_right_has_fderiv_within_at_iff
+  {f : F → G} {s : set F} {x : E} {f' : F →L[𝕜] G} :
+  has_fderiv_within_at (f ∘ iso) (f'.comp (iso : E →L[𝕜] F)) (iso ⁻¹' s) x ↔
+    has_fderiv_within_at f f' s (iso x) :=
+begin
+  refine ⟨λ H, _, λ H, H.comp x iso.has_fderiv_within_at (maps_to_preimage _ s)⟩,
+  rw [← iso.symm_apply_apply x] at H,
+  have A : f = (f ∘ iso) ∘ iso.symm, by { rw [function.comp.assoc, iso.self_comp_symm], refl },
+  have B : f' =  (f'.comp (iso : E →L[𝕜] F)).comp (iso.symm : F →L[𝕜] E),
+    by rw [continuous_linear_map.comp_assoc, iso.coe_comp_coe_symm,
+             continuous_linear_map.comp_id],
+  rw [A, B],
+  apply H.comp (iso x) iso.symm.has_fderiv_within_at,
+  assume y hy,
+  simpa only [mem_preimage, apply_symm_apply] using hy
+end
+
+lemma comp_right_has_fderiv_at_iff {f : F → G} {x : E} {f' : F →L[𝕜] G} :
+  has_fderiv_at (f ∘ iso) (f'.comp (iso : E →L[𝕜] F)) x ↔ has_fderiv_at f f' (iso x) :=
+by simp only [← has_fderiv_within_at_univ, ← comp_right_has_fderiv_within_at_iff, preimage_univ]
+
+lemma comp_right_has_fderiv_within_at_iff'
+  {f : F → G} {s : set F} {x : E} {f' : E →L[𝕜] G} :
+  has_fderiv_within_at (f ∘ iso) f' (iso ⁻¹' s) x ↔
+  has_fderiv_within_at f (f'.comp (iso.symm : F →L[𝕜] E)) s (iso x) :=
+by rw [← iso.comp_right_has_fderiv_within_at_iff, continuous_linear_map.comp_assoc,
+    iso.coe_symm_comp_coe, continuous_linear_map.comp_id]
+
+lemma comp_right_has_fderiv_at_iff' {f : F → G} {x : E} {f' : E →L[𝕜] G} :
+  has_fderiv_at (f ∘ iso) f' x ↔ has_fderiv_at f (f'.comp (iso.symm : F →L[𝕜] E)) (iso x) :=
+by simp only [← has_fderiv_within_at_univ, ← iso.comp_right_has_fderiv_within_at_iff',
+  preimage_univ]
+
+lemma comp_right_fderiv_within {f : F → G} {s : set F} {x : E}
+  (hxs : unique_diff_within_at 𝕜 (iso ⁻¹' s) x) :
+  fderiv_within 𝕜 (f ∘ iso) (iso ⁻¹'s) x = (fderiv_within 𝕜 f s (iso x)).comp (iso : E →L[𝕜] F) :=
+begin
+  by_cases h : differentiable_within_at 𝕜 f s (iso x),
+  { exact (iso.comp_right_has_fderiv_within_at_iff.2 (h.has_fderiv_within_at)).fderiv_within hxs },
+  { have : ¬ differentiable_within_at 𝕜 (f ∘ iso) (iso ⁻¹' s) x,
+    { assume h', exact h (iso.comp_right_differentiable_within_at_iff.1 h') },
+    rw [fderiv_within_zero_of_not_differentiable_within_at h,
+        fderiv_within_zero_of_not_differentiable_within_at this, continuous_linear_map.zero_comp] }
+end
+
+lemma comp_right_fderiv {f : F → G} {x : E} :
+  fderiv 𝕜 (f ∘ iso) x = (fderiv 𝕜 f (iso x)).comp (iso : E →L[𝕜] F) :=
+begin
+  rw [← fderiv_within_univ, ← fderiv_within_univ, ← iso.comp_right_fderiv_within, preimage_univ],
+  exact unique_diff_within_at_univ,
+end
+
 end continuous_linear_equiv
 
 namespace linear_isometry_equiv

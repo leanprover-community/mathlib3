@@ -1955,14 +1955,19 @@ begin
     simp only [iterated_fderiv_within_zero_apply,
       continuous_multilinear_map.comp_continuous_linear_map_apply] },
   { ext1 m,
-    simp only [continuous_multilinear_map.comp_continuous_linear_map_apply, 
+    simp only [continuous_multilinear_map.comp_continuous_linear_map_apply,
       continuous_linear_equiv.coe_coe, iterated_fderiv_within_succ_apply_left],
     have : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f ∘ ⇑g) (⇑g ⁻¹' s)) (⇑g ⁻¹' s) x
-      = fderiv_within 𝕜 (λ y, (iterated_fderiv_within 𝕜 i f s (g y))
-        .comp_continuous_linear_map (λ (_x : fin i), ↑g)) (g ⁻¹' s) x,
+      = fderiv_within 𝕜 (λ y, continuous_multilinear_map.comp_continuous_linear_map_equivL
+        (λ (_x : fin i), g) (iterated_fderiv_within 𝕜 i f s (g y))) (g ⁻¹' s) x,
       from fderiv_within_congr' (g.unique_diff_on_preimage_iff.2 hs x hx) (λ y hy, IH hy) hx,
+    rw [this],
+    rw continuous_linear_equiv.comp_fderiv_within _ (g.unique_diff_on_preimage_iff.2 hs x hx),
+    simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
+      continuous_multilinear_map.comp_continuous_linear_map_equivL_apply,
+      continuous_multilinear_map.comp_continuous_linear_map_apply],
+    rw continuous_linear_equiv.fderiv_within_comp,
 
-  
   }
 end
 

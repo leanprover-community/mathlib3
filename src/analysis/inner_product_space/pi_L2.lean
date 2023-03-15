@@ -818,18 +818,34 @@ section matrix
 
 open_locale matrix
 
-variables {n m : ℕ}
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+
+namespace matrix
+
+/-- `matrix.to_lin'` adapted for `euclidean_space 𝕜 _`. -/
+def to_euclidean_lin : matrix m n 𝕜 ≃ₗ[𝕜] (euclidean_space 𝕜 n →ₗ[𝕜] euclidean_space 𝕜 m) :=
+matrix.to_lin (pi_Lp.basis_fun _ _ _) (pi_Lp.basis_fun _ _ _)
+
+@[simp]
+lemma to_euclidean_lin_pi_Lp_equiv_symm (A : matrix m n 𝕜) (x : n → 𝕜) :
+  A.to_euclidean_lin ((pi_Lp.equiv _ _).symm x) = (pi_Lp.equiv _ _).symm (A.to_lin' x) := rfl
+
+@[simp]
+lemma pi_Lp_equiv_to_euclidean_lin (A : matrix m n 𝕜) (x : euclidean_space 𝕜 n) :
+  pi_Lp.equiv _ _ (A.to_euclidean_lin x) = A.to_lin' (pi_Lp.equiv _ _ x) := rfl
+
+end matrix
 
 local notation `⟪`x`, `y`⟫ₑ` := @inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv 2 _).symm y)
 
 /-- The inner product of a row of `A` and a row of `B` is an entry of `B ⬝ Aᴴ`. -/
-lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
+lemma inner_matrix_row_row (A B : matrix m n 𝕜) (i j : m) :
   ⟪A i, B j⟫ₑ = (B ⬝ Aᴴ) j i :=
 by simp_rw [euclidean_space.inner_pi_Lp_equiv_symm, matrix.mul_apply', matrix.dot_product_comm,
   matrix.conj_transpose_apply, pi.star_def]
 
 /-- The inner product of a column of `A` and a column of `B` is an entry of `Aᴴ ⬝ B`. -/
-lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
+lemma inner_matrix_col_col (A B : matrix m n 𝕜) (i j : n) :
   ⟪Aᵀ i, Bᵀ j⟫ₑ = (Aᴴ ⬝ B) i j := rfl
 
 end matrix

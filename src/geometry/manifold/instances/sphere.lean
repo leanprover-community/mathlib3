@@ -398,8 +398,15 @@ begin
   have H₂ := (cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ (v:E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff,
   convert H₁.comp' (H₂.cont_diff_on : cont_diff_on ℝ ⊤ _ set.univ) using 1,
-  ext,
-  simp [sphere_ext_iff, stereographic'_symm_apply, real_inner_comm]
+  -- squeezed from `ext, simp [sphere_ext_iff, stereographic'_symm_apply, real_inner_comm]`
+  simp only [local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv,
+    local_equiv.trans_source, local_equiv.symm_source, stereographic'_target,
+    stereographic'_source],
+  simp only [model_with_corners_self_coe, model_with_corners_self_coe_symm, set.preimage_id,
+    set.range_id, set.inter_univ, set.univ_inter, set.compl_singleton_eq, set.preimage_set_of_eq],
+  simp only [id.def, comp_apply, submodule.subtypeL_apply, local_homeomorph.coe_coe_symm,
+    innerSL_apply, ne.def, sphere_ext_iff, real_inner_comm (v' : E)],
+  refl,
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/

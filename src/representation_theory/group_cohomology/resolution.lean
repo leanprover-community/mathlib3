@@ -244,7 +244,7 @@ noncomputable def diagonal_hom_equiv :
 linear.arrow_congr k ((equiv_tensor k G n).trans
   ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
   ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
-  ≪≫ₗ (finsupp.llift A k (fin n → G) k).symm
+  ≪≫ₗ (finsupp.llift A k k (fin n → G)).symm
 
 variables {n A}
 

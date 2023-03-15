@@ -3,7 +3,6 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import algebra.algebra.basic
 import data.finsupp.defs
 import linear_algebra.pi
 import linear_algebra.span
@@ -342,7 +341,7 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
 end lsum
 
 section
-variables (M) (R) (X : Type*)
+variables (M) (R) (X : Type*) (S) [module S M] [smul_comm_class R S M]
 
 /--
 A slight rearrangement from `lsum` gives us
@@ -360,11 +359,10 @@ lemma lift_apply (f) (g) :
   ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
-/-- Given an `S`-algebra `R`, an `R`-module `M` with a compatible `S`-module structure, and a
-type `X`, then the set of functions `X → M` is `S`-linearly equivalent to the `R`-linear maps from
-the free `R`-module on `X` to `M`. -/
-noncomputable def llift (S : Type*) [comm_semiring S] [algebra S R]
-  [module S M] [is_scalar_tower S R M] : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+/-- Given compatible `S` and `R`-module structures on `M` and a type `X`, the set of functions
+`X → M` is `S`-linearly equivalent to the `R`-linear maps from the free `R`-module
+on `X` to `M`. -/
+noncomputable def llift : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
 { map_smul' :=
   begin
     intros,
@@ -374,13 +372,11 @@ noncomputable def llift (S : Type*) [comm_semiring S] [algebra S R]
       sum_single_index, zero_smul, one_smul, linear_map.smul_apply],
   end, ..lift M R X }
 
-@[simp] lemma llift_apply {S : Type*} [comm_semiring S] [algebra S R] [module S M]
-  [is_scalar_tower S R M] (f : X → M) (x : X →₀ R) :
-  llift M R X S f x = lift M R X f x := rfl
+@[simp] lemma llift_apply (f : X → M) (x : X →₀ R) :
+  llift M R S X f x = lift M R X f x := rfl
 
-@[simp] lemma llift_symm_apply {S : Type*} [comm_semiring S] [algebra S R] [module S M]
-  [is_scalar_tower S R M] (f : (X →₀ R) →ₗ[R] M) (x : X) :
-  (llift M R X S).symm f x = f (single x 1) := rfl
+@[simp] lemma llift_symm_apply (f : (X →₀ R) →ₗ[R] M) (x : X) :
+  (llift M R S X).symm f x = f (single x 1) := rfl
 
 end
 

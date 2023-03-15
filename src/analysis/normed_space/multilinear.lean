@@ -1060,7 +1060,7 @@ linear_map.mk_continuous
   (∏ i, ‖f i‖) $ λ g, (norm_comp_continuous_linear_le _ _).trans_eq (mul_comm _ _)
 
 @[simp] lemma comp_continuous_linear_mapL_apply
-  (g : continuous_multilinear_map 𝕜 E₁ G) (f : Π i, E i →L[𝕜] E₁ i)  :
+  (g : continuous_multilinear_map 𝕜 E₁ G) (f : Π i, E i →L[𝕜] E₁ i) :
   comp_continuous_linear_mapL f g = g.comp_continuous_linear_map f :=
 rfl
 
@@ -1099,8 +1099,6 @@ def comp_continuous_linear_map_equivL (f : Π i, E i ≃L[𝕜] E₁ i) :
     = g.comp_continuous_linear_map (λ i, (f i : E i →L[𝕜] E₁ i)) := rfl
 
 end continuous_multilinear_map
-
-#lint
 
 section smul
 

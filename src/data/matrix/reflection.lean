@@ -184,7 +184,3 @@ example (A : matrix (fin 2) (fin 2) α) :
 (eta_expand_eq _).symm
 
 end matrix
-
-/-- Like `list.mmap` but for a vector. -/
-def fin.mmap {α} {n : ℕ} {m : Type* → Type*} [monad m] (f : fin n → m α) : m (fin n → α) :=
-vector.nth <$> vector.mmap f ⟨list.fin_range n, list.length_fin_range _⟩

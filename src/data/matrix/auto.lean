@@ -27,6 +27,10 @@ end
 
 -/
 
+/-- Like `list.mmap` but for a vector. -/
+def fin.mmap {α} {n : ℕ} {m : Type* → Type*} [monad m] (f : fin n → m α) : m (fin n → α) :=
+vector.nth <$> vector.mmap f ⟨list.fin_range n, list.length_fin_range _⟩
+
 namespace matrix
 
 section fin_eta
@@ -185,25 +189,6 @@ theorem of_mul_of_fin {α} [has_mul α] [add_comm_monoid α] {l m n : ℕ}
   {ab_coeffs : fin l → fin n → α}
   (h : of a_coeffs ⬝ of b_coeffs = of ab_coeffs . of_mul_of_fin.derive) :
     of a_coeffs ⬝ of b_coeffs = of ab_coeffs := h
-
-example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
-  !![a₁₁, a₁₂;
-     a₂₁, a₂₂] ⬝ !![b₁₁, b₁₂;
-                    b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
-                                   a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
-begin
-  rw of_mul_of_fin,
-end
-
-example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
-  !![a₁₁, a₁₂] ⬝ !![b₁₁, b₁₂;
-                    b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;] :=
-begin
-  -- if we really need it, we can get the proof directly like this
-  of_mul_of_fin.prove 1 2 2 >>= function.uncurry (tactic.assertv `h),
-  specialize @h α _ _,
-  rw of_mul_of_fin
-end
 
 end of_mul_of_fin
 

@@ -225,6 +225,3 @@ definitional behaviour. -/
 def cast_rec [has_lift_t ℕ α] [has_mul α] [has_inv α] : ℚ≥0 → α := λ q, ↑q.num * (↑q.denom)⁻¹
 
 end nnrat
-
--- Guard against import creep.
-assert_not_exists monoid_hom

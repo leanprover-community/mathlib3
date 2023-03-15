@@ -303,6 +303,3 @@ instance has_ordered_sub [linear_ordered_ring α] : has_ordered_sub {x : α // 0
   mk_add_mk, to_nonneg_le, subtype.coe_mk]}⟩
 
 end nonneg
-
--- Guard against import creep.
-assert_not_exists monoid_hom

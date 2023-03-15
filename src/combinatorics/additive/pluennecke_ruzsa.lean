@@ -5,7 +5,7 @@ Authors: Yaël Dillies, George Shakan
 -/
 import combinatorics.double_counting
 import data.finset.pointwise
-import data.rat.field
+import data.rat.basic
 
 /-!
 # The Plünnecke-Ruzsa inequality

@@ -227,8 +227,8 @@ begin
     with n nh npos',
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Two easy inequalities we'll need later:
-  have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
-  have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ (zpow_neg_bit0_nonneg _ _),
+  have w₁ : 0 ≤ 2 * ‖f‖ := mul_nonneg (by norm_num) (norm_nonneg f),
+  have w₂ : 0 ≤ 2 * ‖f‖ * δ^(-2 : ℤ) := mul_nonneg w₁ (zpow_neg_bit0_nonneg _ _),
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   rw (continuous_map.norm_lt_iff _ h),
   intro x,

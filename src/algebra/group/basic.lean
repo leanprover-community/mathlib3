@@ -256,7 +256,7 @@ div_one _
 end div_inv_one_monoid
 
 section division_monoid
-variables [division_monoid α] {a b c d : α}
+variables [division_monoid α] {a b c : α}
 
 local attribute [simp] mul_assoc div_eq_mul_inv
 

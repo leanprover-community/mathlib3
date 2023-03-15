@@ -20,7 +20,7 @@ functions such as `abs` that depend on this order.
 
 ## Notes
 
-The `linear_ordered_field` instance is to be found in `data.rat.field` because putting it here would
+The `linear_ordered_field` instance is to be found in `data.rat.basic` because putting it here would
 result in import cycles.
 
 ## Notations

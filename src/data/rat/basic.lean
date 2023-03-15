@@ -26,7 +26,7 @@ was defined in `data.rat.defs`.
 We have to define the field structure in a separate file to avoid cyclic imports:
 the `field` class contains a map from `ℚ` (see `field`'s docstring for the rationale),
 so we have a dependency `rat.field → field → rat` that is reflected in the import
-hierarchy `data.rat.field → algebra.order.field → algebra.field.basic → data.rat.nnrat →
+hierarchy `data.rat.basic → algebra.order.field → algebra.field.basic → data.rat.nnrat →
 data.rat.order → data.rat.basic`.
 
 ## Tags

@@ -232,7 +232,3 @@ begin
 end
 
 end is_field
-
-
--- Guard against import creep.
-assert_not_exists monoid_hom

@@ -103,7 +103,7 @@ lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_aux
   (B : Eu →L[𝕜] Fu →L[𝕜] Gu) {f : Hu → Eu} {g : Hu → Fu} {n : ℕ} {s : set Hu} {x : Hu}
   (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
   ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
-  ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+    ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
   unfreezingI { induction n with n IH generalizing Eu Fu Gu},
@@ -184,10 +184,11 @@ variables {E : Type uE}  {F : Type uF} {G : Type uG} {H : Type uH}
   [normed_add_comm_group H] [normed_space 𝕜 H]
 
 lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear
-  (B : E →L[𝕜] F →L[𝕜] G) {f : H → E} {g : H → F} {n : ℕ} {s : set H} {x : H}
-  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  (B : E →L[𝕜] F →L[𝕜] G) {f : H → E} {g : H → F} {N : with_top ℕ} {s : set H} {x : H}
+  (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
+  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
   ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
-  ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+    ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
   let Eu : Type (max uE uF uG uH) := ulift E,
@@ -200,28 +201,60 @@ begin
   have isoH : Hu ≃ₗᵢ[𝕜] H := linear_isometry_equiv.ulift 𝕜 H,
   let fu : Hu → Eu := isoE.symm ∘ f ∘ isoH,
   let gu : Hu → Fu := isoF.symm ∘ g ∘ isoH,
-  let Bu : Eu →L[𝕜] Fu →L[𝕜] Gu, sorry,
+  let Bu₀ : Eu →L[𝕜] Fu →L[𝕜] G :=
+    ((B.comp (isoE : Eu →L[𝕜] E)).flip.comp (isoF : Fu →L[𝕜] F)).flip,
+  let Bu : Eu →L[𝕜] Fu →L[𝕜] Gu, from continuous_linear_map.compL 𝕜 Eu (Fu →L[𝕜] G) (Fu →L[𝕜] Gu)
+    (continuous_linear_map.compL 𝕜 Fu G Gu (isoG.symm : G →L[𝕜] Gu)) Bu₀,
+  have Bu_eq : (λ y, Bu (fu y) (gu y)) = isoG.symm ∘ (λ y, B (f y) (g y)) ∘ isoH,
+  { ext1 y,
+    simp only [Bu, continuous_linear_map.compL_apply, function.comp_app,
+      continuous_linear_map.coe_comp', linear_isometry_equiv.coe_coe'',
+      continuous_linear_map.flip_apply, linear_isometry_equiv.apply_symm_apply] },
+  have Bu_le : ‖Bu‖ ≤ ‖B‖,
+  { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ y, _),
+    refine continuous_linear_map.op_norm_le_bound _ (by positivity) (λ x, _ ),
+    simp only [Bu, continuous_linear_map.compL_apply, continuous_linear_map.coe_comp',
+      function.comp_app, linear_isometry_equiv.coe_coe'', continuous_linear_map.flip_apply,
+      linear_isometry_equiv.norm_map],
+    calc ‖B (isoE y) (isoF x)‖
+        ≤ ‖B (isoE y)‖ * ‖isoF x‖ : continuous_linear_map.le_op_norm _ _
+    ... ≤ ‖B‖ * ‖isoE y‖ * ‖isoF x‖ :
+      mul_le_mul_of_nonneg_right (continuous_linear_map.le_op_norm _ _) (norm_nonneg _)
+    ... = ‖B‖ * ‖y‖ * ‖x‖ : by simp only [linear_isometry_equiv.norm_map] },
   let su := isoH ⁻¹' s,
   have hsu : unique_diff_on 𝕜 su,
     from isoH.to_continuous_linear_equiv.unique_diff_on_preimage_iff.2 hs,
   let xu := isoH.symm x,
   have hxu : xu ∈ su,
     by simpa only [set.mem_preimage, linear_isometry_equiv.apply_symm_apply] using hx,
-  have hfu : cont_diff_on 𝕜 n fu su,
-    from isoE.symm.cont_diff.comp_cont_diff_on (hf.comp_continuous_linear_map (isoH : Hu →L[𝕜] H)),
-  have hgu : cont_diff_on 𝕜 n gu su,
-    from isoF.symm.cont_diff.comp_cont_diff_on (hg.comp_continuous_linear_map (isoH : Hu →L[𝕜] H)),
-  have : ∀ i ≤ n, ‖iterated_fderiv_within 𝕜 i fu su xu‖ = ‖iterated_fderiv_within 𝕜 i f s x‖,
-  { assume i hi,
-    simp [fu],
-
-  },
-
+  have xu_x : isoH xu = x, by simp only [linear_isometry_equiv.apply_symm_apply],
+  have hfu : cont_diff_on 𝕜 n fu su, from isoE.symm.cont_diff.comp_cont_diff_on
+    ((hf.of_le hn).comp_continuous_linear_map (isoH : Hu →L[𝕜] H)),
+  have hgu : cont_diff_on 𝕜 n gu su, from isoF.symm.cont_diff.comp_cont_diff_on
+    ((hg.of_le hn).comp_continuous_linear_map (isoH : Hu →L[𝕜] H)),
+  have Nfu : ∀ i, ‖iterated_fderiv_within 𝕜 i fu su xu‖ = ‖iterated_fderiv_within 𝕜 i f s x‖,
+  { assume i,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hsu hxu,
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ hs, xu_x],
+    rwa ← xu_x at hx },
+  have Ngu : ∀ i, ‖iterated_fderiv_within 𝕜 i gu su xu‖ = ‖iterated_fderiv_within 𝕜 i g s x‖,
+  { assume i,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hsu hxu,
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ hs, xu_x],
+    rwa ← xu_x at hx },
+  have NBu : ‖iterated_fderiv_within 𝕜 n (λ y, Bu (fu y) (gu y)) su xu‖ =
+    ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖,
+  { rw Bu_eq,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hsu hxu,
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ hs, xu_x],
+    rwa ← xu_x at hx },
   have : ‖iterated_fderiv_within 𝕜 n (λ y, Bu (fu y) (gu y)) su xu‖
     ≤ ‖Bu‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i fu su xu‖ * ‖iterated_fderiv_within 𝕜 (n-i) gu su xu‖,
     from Bu.norm_iterated_fderiv_within_le_of_bilinear_aux hfu hgu hsu hxu,
-
+  simp only [Nfu, Ngu, NBu] at this,
+  apply this.trans (mul_le_mul_of_nonneg_right Bu_le _),
+  exact finset.sum_nonneg' (λ i, by positivity),
 end
 
 #exit

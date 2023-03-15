@@ -75,8 +75,6 @@ by simp [ncard_def, @finite.card_eq_zero_iff _ hs.to_subtype]
   (s : set α).ncard = s.card :=
 by rw [ncard_eq_to_finset_card, finset.finite_to_set_to_finset]
 
--- by rw [ncard_eq_to_finset_card, finset.to_finset_coe]
-
 @[simp] lemma ncard_empty (α : Type*) :
   (∅ : set α).ncard = 0 :=
 by simp only [ncard_eq_zero]

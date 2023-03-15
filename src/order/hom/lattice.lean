@@ -10,6 +10,9 @@ import order.symm_diff
 /-!
 # Lattice homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (bounded) lattice homomorphisms.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -305,6 +308,9 @@ protected def copy (f : sup_hom α β) (f' : α → β) (h : f' = f) : sup_hom �
 { to_fun := f',
   map_sup' := h.symm ▸ f.map_sup' }
 
+@[simp] lemma coe_copy (f : sup_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : sup_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `sup_hom`. -/
@@ -404,6 +410,9 @@ equalities. -/
 protected def copy (f : inf_hom α β) (f' : α → β) (h : f' = f) : inf_hom α β :=
 { to_fun := f',
   map_inf' := h.symm ▸ f.map_inf' }
+
+@[simp] lemma coe_copy (f : inf_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : inf_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 
@@ -508,6 +517,9 @@ equalities. -/
 protected def copy (f : sup_bot_hom α β) (f' : α → β) (h : f' = f) : sup_bot_hom α β :=
 { to_sup_hom := f.to_sup_hom.copy f' h, ..f.to_bot_hom.copy f' h }
 
+@[simp] lemma coe_copy (f : sup_bot_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : sup_bot_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `sup_bot_hom`. -/
@@ -592,6 +604,9 @@ equalities. -/
 protected def copy (f : inf_top_hom α β) (f' : α → β) (h : f' = f) : inf_top_hom α β :=
 { to_inf_hom := f.to_inf_hom.copy f' h, ..f.to_top_hom.copy f' h }
 
+@[simp] lemma coe_copy (f : inf_top_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : inf_top_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as an `inf_top_hom`. -/
@@ -672,6 +687,9 @@ instance : has_coe_to_fun (lattice_hom α β) (λ _, α → β) := ⟨λ f, f.to
 equalities. -/
 protected def copy (f : lattice_hom α β) (f' : α → β) (h : f' = f) : lattice_hom α β :=
 { .. f.to_sup_hom.copy f' h, .. f.to_inf_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : lattice_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : lattice_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 
@@ -782,6 +800,13 @@ definitional equalities. -/
 protected def copy (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f) :
   bounded_lattice_hom α β :=
 { .. f.to_lattice_hom.copy f' h, .. f.to_bounded_order_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 

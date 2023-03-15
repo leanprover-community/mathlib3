@@ -5,7 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.basic
 import topology.algebra.group_completion
-import topology.algebra.ring
+import topology.algebra.ring.ideal
 
 /-!
 # Completion of topological rings:
@@ -122,7 +122,7 @@ def extension_hom [complete_space β] [separated_space β] :
 have hf' : continuous (f : α →+ β), from hf, -- helping the elaborator
 have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf',
 { to_fun := completion.extension f,
-  map_zero' := by rw [← completion.coe_zero, extension_coe hf, f.map_zero],
+  map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       (continuous_extension.comp continuous_add)
@@ -226,3 +226,40 @@ begin
 end
 
 end uniform_space
+
+section uniform_extension
+
+variables {α : Type*} [uniform_space α] [semiring α]
+variables {β : Type*} [uniform_space β] [semiring β] [topological_semiring β]
+variables {γ : Type*} [uniform_space γ] [semiring γ] [topological_semiring γ]
+variables [t2_space γ] [complete_space γ]
+
+/-- The dense inducing extension as a ring homomorphism. -/
+noncomputable def dense_inducing.extend_ring_hom {i : α →+* β} {f : α →+* γ}
+  (ue : uniform_inducing i) (dr : dense_range i) (hf : uniform_continuous f):
+  β →+* γ :=
+  { to_fun := (ue.dense_inducing dr).extend f,
+    map_one' := by { convert dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous 1,
+      exacts [i.map_one.symm, f.map_one.symm], },
+    map_zero' := by { convert dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous 0,
+      exacts [i.map_zero.symm, f.map_zero.symm], },
+    map_add' :=
+    begin
+      have h := (uniform_continuous_uniformly_extend ue dr hf).continuous,
+      refine λ x y, dense_range.induction_on₂ dr _ (λ a b, _) x y,
+      { exact is_closed_eq (continuous.comp h continuous_add)
+        ((h.comp continuous_fst).add (h.comp continuous_snd)), },
+      { simp_rw [← i.map_add, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
+          ← f.map_add], },
+    end,
+    map_mul' :=
+    begin
+      have h := (uniform_continuous_uniformly_extend ue dr hf).continuous,
+      refine λ x y, dense_range.induction_on₂ dr _ (λ a b, _) x y,
+      { exact is_closed_eq (continuous.comp h continuous_mul)
+        ((h.comp continuous_fst).mul (h.comp continuous_snd)), },
+      { simp_rw [← i.map_mul, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
+          ← f.map_mul], },
+    end, }
+
+end uniform_extension

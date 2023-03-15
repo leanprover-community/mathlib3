@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
 import algebra.char_p.basic
-import algebra.char_zero
 import data.nat.prime
 
 /-!

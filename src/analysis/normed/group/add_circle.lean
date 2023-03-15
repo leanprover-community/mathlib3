@@ -10,7 +10,7 @@ import topology.instances.add_circle
 # The additive circle as a normed group
 
 We define the normed group structure on `add_circle p`, for `p : ℝ`. For example if `p = 1` then:
-`∥(x : add_circle 1)∥ = |x - round x|` for any `x : ℝ` (see `unit_add_circle.norm_eq`).
+`‖(x : add_circle 1)‖ = |x - round x|` for any `x : ℝ` (see `unit_add_circle.norm_eq`).
 
 ## Main definitions:
 
@@ -18,7 +18,7 @@ We define the normed group structure on `add_circle p`, for `p : ℝ`. For examp
 
 ## TODO
 
- * The fact `inner_product_geometry.angle (real.cos θ) (real.sin θ) = ∥(θ : real.angle)∥`
+ * The fact `inner_product_geometry.angle (real.cos θ) (real.sin θ) = ‖(θ : real.angle)‖`
 
 -/
 
@@ -33,7 +33,7 @@ variables (p : ℝ)
 instance : normed_add_comm_group (add_circle p) := add_subgroup.normed_add_comm_group_quotient _
 
 @[simp] lemma norm_coe_mul (x : ℝ) (t : ℝ) :
-  ∥(↑(t * x) : add_circle (t * p))∥ = |t| * ∥(x : add_circle p)∥ :=
+  ‖(↑(t * x) : add_circle (t * p))‖ = |t| * ‖(x : add_circle p)‖ :=
 begin
   have aux : ∀ {a b c : ℝ}, a ∈ zmultiples b → c * a ∈ zmultiples (c * b) := λ a b c h, by
   { simp only [mem_zmultiples_iff] at ⊢ h,
@@ -60,14 +60,14 @@ begin
 end
 
 lemma norm_neg_period (x : ℝ) :
-  ∥(x : add_circle (-p))∥ = ∥(x : add_circle p)∥ :=
+  ‖(x : add_circle (-p))‖ = ‖(x : add_circle p)‖ :=
 begin
-  suffices : ∥(↑(-1 * x) : add_circle (-1 * p))∥ = ∥(x : add_circle p)∥,
+  suffices : ‖(↑(-1 * x) : add_circle (-1 * p))‖ = ‖(x : add_circle p)‖,
   { rw [← this, neg_one_mul], simp, },
   simp only [norm_coe_mul, abs_neg, abs_one, one_mul],
 end
 
-@[simp] lemma norm_eq_of_zero {x : ℝ} : ∥(x : add_circle (0 : ℝ))∥ = |x| :=
+@[simp] lemma norm_eq_of_zero {x : ℝ} : ‖(x : add_circle (0 : ℝ))‖ = |x| :=
 begin
   suffices : {y : ℝ | (y : add_circle (0 : ℝ)) = (x : add_circle (0 : ℝ)) } = { x },
   { rw [quotient_norm_eq, this, image_singleton, real.norm_eq_abs, cInf_singleton], },
@@ -75,9 +75,9 @@ begin
   simp [quotient_add_group.eq_iff_sub_mem, mem_zmultiples_iff, sub_eq_zero],
 end
 
-lemma norm_eq {x : ℝ} : ∥(x : add_circle p)∥ = |x - round (p⁻¹ * x) * p| :=
+lemma norm_eq {x : ℝ} : ‖(x : add_circle p)‖ = |x - round (p⁻¹ * x) * p| :=
 begin
-  suffices : ∀ (x : ℝ), ∥(x : add_circle (1 : ℝ))∥ = |x - round x|,
+  suffices : ∀ (x : ℝ), ‖(x : add_circle (1 : ℝ))‖ = |x - round x|,
   { rcases eq_or_ne p 0 with rfl | hp, { simp, },
     intros,
     have hx := norm_coe_mul p x p⁻¹,
@@ -109,26 +109,33 @@ begin
     simp, },
 end
 
-lemma norm_le_half_period {x : add_circle p} (hp : p ≠ 0) : ∥x∥ ≤ |p|/2 :=
+lemma norm_eq' (hp : 0 < p) {x : ℝ} :
+  ‖(x : add_circle p)‖ = p * |(p⁻¹ * x) - round (p⁻¹ * x)| :=
+begin
+  conv_rhs { congr, rw ← abs_eq_self.mpr hp.le, },
+  rw [← abs_mul, mul_sub, mul_inv_cancel_left₀ hp.ne.symm, norm_eq, mul_comm p],
+end
+
+lemma norm_le_half_period {x : add_circle p} (hp : p ≠ 0) : ‖x‖ ≤ |p|/2 :=
 begin
   obtain ⟨x⟩ := x,
-  change ∥(x : add_circle p)∥ ≤ |p|/2,
+  change ‖(x : add_circle p)‖ ≤ |p|/2,
   rw [norm_eq, ← mul_le_mul_left (abs_pos.mpr (inv_ne_zero hp)), ← abs_mul, mul_sub, mul_left_comm,
     ← mul_div_assoc, ← abs_mul, inv_mul_cancel hp, mul_one, abs_one],
   exact abs_sub_round (p⁻¹ * x),
 end
 
-@[simp] lemma norm_half_period_eq : ∥(↑(p/2) : add_circle p)∥ = |p|/2 :=
+@[simp] lemma norm_half_period_eq : ‖(↑(p/2) : add_circle p)‖ = |p|/2 :=
 begin
   rcases eq_or_ne p 0 with rfl | hp, { simp, },
   rw [norm_eq, ← mul_div_assoc, inv_mul_cancel hp, one_div, round_two_inv, algebra_map.coe_one,
     one_mul, (by linarith : p / 2 - p = -(p / 2)), abs_neg, abs_div, abs_two],
 end
 
-lemma norm_coe_eq_abs_iff {x : ℝ} (hp : p ≠ 0) : ∥(x : add_circle p)∥ = |x| ↔ |x| ≤ |p|/2 :=
+lemma norm_coe_eq_abs_iff {x : ℝ} (hp : p ≠ 0) : ‖(x : add_circle p)‖ = |x| ↔ |x| ≤ |p|/2 :=
 begin
   refine ⟨λ hx, hx ▸ norm_le_half_period p hp, λ hx, _⟩,
-  suffices : ∀ (p : ℝ), 0 < p → |x| ≤ p/2 → ∥(x : add_circle p)∥ = |x|,
+  suffices : ∀ (p : ℝ), 0 < p → |x| ≤ p/2 → ‖(x : add_circle p)‖ = |x|,
   { rcases lt_trichotomy 0 p with hp | rfl | hp,
     { rw abs_eq_self.mpr hp.le at hx,
       exact this p hp hx, },
@@ -197,18 +204,61 @@ begin
     rintros y ⟨⟨hy₁, hy₂⟩, hy₀⟩,
     obtain ⟨hy₃, hy₄⟩ := hs hy₀,
     rcases lt_trichotomy 0 p with hp | rfl | hp,
-    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz';
-      nlinarith [hz', abs_eq_self.mpr hp.le], },
+    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz',
+      { have : ↑z * p ≤ - p, nlinarith,
+        linarith [abs_eq_self.mpr hp.le] },
+      { have : p ≤ ↑z * p, nlinarith,
+        linarith [abs_eq_self.mpr hp.le] } },
     { simp only [mul_zero, add_zero, abs_zero, zero_div] at hy₁ hy₂ hε,
-      linarith, },
-    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz';
-      nlinarith [hz', abs_eq_neg_self.mpr hp.le], }, },
+      linarith },
+    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz',
+      { have : - p ≤ ↑z * p, nlinarith,
+        linarith [abs_eq_neg_self.mpr hp.le] },
+      { have : ↑z * p ≤ p, nlinarith,
+        linarith [abs_eq_neg_self.mpr hp.le] } } },
 end
+
+section finite_order_points
+
+variables {p} [hp : fact (0 < p)]
+include hp
+
+lemma norm_div_nat_cast {m n : ℕ} :
+  ‖(↑((↑m / ↑n) * p) : add_circle p)‖ = p * (↑(min (m % n) (n - m % n)) / n) :=
+begin
+  have : p⁻¹ * (↑m / ↑n * p) = ↑m / ↑n, { rw [mul_comm _ p, inv_mul_cancel_left₀ hp.out.ne.symm], },
+  rw [norm_eq' p hp.out, this, abs_sub_round_div_nat_cast_eq],
+end
+
+lemma exists_norm_eq_of_fin_add_order {u : add_circle p} (hu : is_of_fin_add_order u) :
+  ∃ (k : ℕ), ‖u‖ = p * (k / add_order_of u) :=
+begin
+  let n := add_order_of u,
+  change ∃ (k : ℕ), ‖u‖ = p * (k / n),
+  obtain ⟨m, -, -, hm⟩ := exists_gcd_eq_one_of_is_of_fin_add_order hu,
+  refine ⟨min (m % n) (n - m % n), _⟩,
+  rw [← hm, norm_div_nat_cast],
+end
+
+lemma le_add_order_smul_norm_of_is_of_fin_add_order
+  {u : add_circle p} (hu : is_of_fin_add_order u) (hu' : u ≠ 0) :
+  p ≤ add_order_of u • ‖u‖ :=
+begin
+  obtain ⟨n, hn⟩ := exists_norm_eq_of_fin_add_order hu,
+  replace hu : (add_order_of u : ℝ) ≠ 0, { norm_cast, exact (add_order_of_pos_iff.mpr hu).ne.symm },
+  conv_lhs { rw ← mul_one p, },
+  rw [hn, nsmul_eq_mul, ← mul_assoc, mul_comm _ p, mul_assoc, mul_div_cancel' _ hu,
+    mul_le_mul_left hp.out, nat.one_le_cast, nat.one_le_iff_ne_zero],
+  contrapose! hu',
+  simpa only [hu', algebra_map.coe_zero, zero_div, mul_zero, norm_eq_zero] using hn,
+end
+
+end finite_order_points
 
 end add_circle
 
 namespace unit_add_circle
 
-lemma norm_eq {x : ℝ} : ∥(x : unit_add_circle)∥ = |x - round x| := by simp [add_circle.norm_eq]
+lemma norm_eq {x : ℝ} : ‖(x : unit_add_circle)‖ = |x - round x| := by simp [add_circle.norm_eq]
 
 end unit_add_circle

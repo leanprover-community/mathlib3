@@ -8,6 +8,9 @@ import data.fin.interval
 /-!
 # The structure of `fintype (fin n)`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some basic results about the `fintype` instance for `fin`,
 especially properties of `finset.univ : finset (fin n)`.
 -/
@@ -50,7 +53,7 @@ end
 lemma card_filter_univ_succ' (p : fin (n + 1) → Prop) [decidable_pred p] :
   (univ.filter p).card = (ite (p 0) 1 0) + (univ.filter (p ∘ fin.succ)).card :=
 begin
-  rw [fin.univ_succ, filter_cons, card_disj_union, map_filter, card_map],
+  rw [fin.univ_succ, filter_cons, card_disj_union, filter_map, card_map],
   split_ifs; simp,
 end
 

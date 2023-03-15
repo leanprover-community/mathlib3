@@ -7,10 +7,14 @@ Authors: Rémy Degenne
 import order.locally_finite
 import order.succ_pred.basic
 import order.hom.basic
-import data.set.countable
+import data.countable.basic
+import logic.encodable.basic
 
 /-!
 # Linear locally finite orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove that a `linear_order` which is a `locally_finite_order` also verifies
 * `succ_order`

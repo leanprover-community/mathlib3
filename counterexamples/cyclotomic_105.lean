@@ -14,13 +14,12 @@ theorem `not_forall_coeff_cyclotomic_neg_one_zero_one`. We prove this with the c
 `coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2`.
 -/
 
+open nat (proper_divisors) finset
+
 section computation
 
-lemma prime_3 : nat.prime 3 := by norm_num
-
-lemma prime_5 : nat.prime 5 := by norm_num
-
-lemma prime_7 : nat.prime 7 := by norm_num
+instance nat.fact_prime_five : fact (nat.prime 5) := ⟨by norm_num⟩
+instance nat.fact_prime_seven : fact (nat.prime 7) := ⟨by norm_num⟩
 
 lemma proper_divisors_15 : nat.proper_divisors 15 = {1, 3, 5} := rfl
 
@@ -35,32 +34,17 @@ end computation
 open polynomial
 
 lemma cyclotomic_3 : cyclotomic 3 ℤ = 1 + X + X ^ 2 :=
-begin
-  refine ((eq_cyclotomic_iff (show 0 < 3, by norm_num) _).2 _).symm,
-  rw nat.prime.proper_divisors prime_3,
-  simp only [finset.prod_singleton, cyclotomic_one],
-  ring
-end
+by simp only [cyclotomic_prime, sum_range_succ, range_one, sum_singleton, pow_zero, pow_one]
 
 lemma cyclotomic_5 : cyclotomic 5 ℤ = 1 + X + X ^ 2 + X ^ 3 + X ^ 4 :=
-begin
-  refine ((eq_cyclotomic_iff (nat.prime.pos prime_5) _).2 _).symm,
-  rw nat.prime.proper_divisors prime_5,
-  simp only [finset.prod_singleton, cyclotomic_one],
-  ring
-end
+by simp only [cyclotomic_prime, sum_range_succ, range_one, sum_singleton, pow_zero, pow_one]
 
 lemma cyclotomic_7 : cyclotomic 7 ℤ = 1 + X + X ^ 2 + X ^ 3 + X ^ 4 + X ^ 5 + X ^ 6 :=
-begin
-  refine ((eq_cyclotomic_iff (nat.prime.pos prime_7) _).2 _).symm,
-  rw nat.prime.proper_divisors prime_7,
-  simp only [finset.prod_singleton, cyclotomic_one],
-  ring
-end
+by simp only [cyclotomic_prime, sum_range_succ, range_one, sum_singleton, pow_zero, pow_one]
 
 lemma cyclotomic_15 : cyclotomic 15 ℤ = 1 - X + X ^ 3 - X ^ 4 + X ^ 5 - X ^ 7 + X ^ 8 :=
 begin
-  refine ((eq_cyclotomic_iff (show 0 < 15, by norm_num) _).2 _).symm,
+  refine ((eq_cyclotomic_iff (by norm_num) _).2 _).symm,
   rw [proper_divisors_15, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
     cyclotomic_one, cyclotomic_3, cyclotomic_5],
   ring,
@@ -70,7 +54,7 @@ end
 lemma cyclotomic_21 : cyclotomic 21 ℤ =
   1 - X + X ^ 3 - X ^ 4 + X ^ 6 - X ^ 8 + X ^ 9 - X ^ 11 + X ^ 12 :=
 begin
-  refine ((eq_cyclotomic_iff (show 0 < 21, by norm_num) _).2 _).symm,
+  refine ((eq_cyclotomic_iff (by norm_num) _).2 _).symm,
   rw [proper_divisors_21, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
     cyclotomic_one, cyclotomic_3, cyclotomic_7],
   ring,
@@ -81,7 +65,7 @@ lemma cyclotomic_35 : cyclotomic 35 ℤ =
   1 - X + X ^ 5 - X ^ 6 + X ^ 7 - X ^ 8 + X ^ 10 - X ^ 11 + X ^ 12 - X ^ 13 + X ^ 14 - X ^ 16 +
   X ^ 17 - X ^ 18 + X ^ 19 - X ^ 23 + X ^ 24 :=
 begin
-  refine ((eq_cyclotomic_iff (show 0 < 35, by norm_num) _).2 _).symm,
+  refine ((eq_cyclotomic_iff (by norm_num) _).2 _).symm,
   rw [proper_divisors_35, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
     cyclotomic_one, cyclotomic_5, cyclotomic_7],
   ring,
@@ -94,7 +78,7 @@ lemma cyclotomic_105 : cyclotomic 105 ℤ =
   X ^ 34 + X ^ 35 + X ^ 36 - X ^ 39 - X ^ 40 - 2 * X ^ 41 - X ^ 42 - X ^ 43 + X ^ 46 + X ^ 47 +
   X ^ 48 :=
 begin
-  refine ((eq_cyclotomic_iff (show 0 < 105, by norm_num) _).2 _).symm,
+  refine ((eq_cyclotomic_iff (by norm_num) _).2 _).symm,
   rw proper_divisors_105,
   repeat {rw finset.prod_insert _},
   rw [finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_5, cyclotomic_7,
@@ -112,7 +96,7 @@ lemma not_forall_coeff_cyclotomic_neg_one_zero_one :
   ¬∀ n i, coeff (cyclotomic n ℤ) i ∈ ({-1, 0, 1} : set ℤ) :=
 begin
   intro h,
-  replace h := h 105 7,
+  specialize h 105 7,
   rw coeff_cyclotomic_105 at h,
   norm_num at h
 end

@@ -9,6 +9,9 @@ import data.set_like.basic
 /-!
 # Chains and flags
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines chains for an arbitrary relation and flags for an order and proves Hausdorff's
 Maximality Principle.
 

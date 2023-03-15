@@ -3,11 +3,14 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.algebra.mul_action
 import group_theory.group_action.basic
+import topology.algebra.const_mul_action
 
 /-!
 # Minimal action of a group
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define an action of a monoid `M` on a topological space `α` to be *minimal* if the
 `M`-orbit of every point `x : α` is dense. We also provide an additive version of this definition

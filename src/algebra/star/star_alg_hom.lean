@@ -6,9 +6,13 @@ Authors: Jireh Loreaux
 
 import algebra.hom.non_unital_alg
 import algebra.star.prod
+import algebra.algebra.prod
 
 /-!
 # Morphisms of star algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between `R`-algebras (unital or non-unital) `A` and `B` where both
 `A` and `B` are equipped with a `star` operation. These morphisms, namely `star_alg_hom` and
@@ -127,6 +131,9 @@ protected def copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : A →
   map_add' := h.symm ▸ map_add f,
   map_mul' := h.symm ▸ map_mul f,
   map_star' := h.symm ▸ map_star f }
+
+@[simp] lemma coe_copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →⋆ₙₐ[R] B) : A → B) = f :=
@@ -275,7 +282,7 @@ instance : star_alg_hom_class (A →⋆ₐ[R] B) R A B :=
 directly. -/
 instance : has_coe_to_fun (A →⋆ₐ[R] B) (λ _, A → B) := fun_like.has_coe_to_fun
 
-@[simp, protected] lemma coe_coe {F : Type} [star_alg_hom_class F R A B] (f : F) :
+@[simp, protected] lemma coe_coe {F : Type*} [star_alg_hom_class F R A B] (f : F) :
   ⇑(f : A →⋆ₐ[R] B) = f := rfl
 
 initialize_simps_projections star_alg_hom (to_fun → apply)
@@ -295,6 +302,9 @@ protected def copy (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : A →⋆
   map_add' := h.symm ▸ map_add f,
   commutes' := h.symm ▸ alg_hom_class.commutes f,
   map_star' := h.symm ▸ map_star f }
+
+@[simp] lemma coe_copy (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅ h₆) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅, h₆⟩ : A →⋆ₐ[R] B) : A → B) = f :=

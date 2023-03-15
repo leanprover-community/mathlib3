@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.bounded
-import analysis.normed_space.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # Continuity and Von Neumann boundedness
@@ -25,7 +25,7 @@ continuous linear maps will require importing `analysis/locally_convex/bounded` 
 -/
 
 open topological_space bornology filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 variables {𝕜 𝕜' E F : Type*}
 variables [add_comm_group E] [uniform_space E] [uniform_add_group E]
@@ -148,9 +148,9 @@ begin
   rcases hf _ h_bounded hV with ⟨r, hr, h'⟩,
   cases exists_nat_gt r with n hn,
   -- We now find a contradiction between `f (u n) ∉ V` and the absorbing property
-  have h1 : r ≤ ∥(n : 𝕜')∥ :=
+  have h1 : r ≤ ‖(n : 𝕜')‖ :=
   by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat], exact hn.le },
-  have hn' : 0 < ∥(n : 𝕜')∥ := lt_of_lt_of_le hr h1,
+  have hn' : 0 < ‖(n : 𝕜')‖ := lt_of_lt_of_le hr h1,
   rw [norm_pos_iff, ne.def, nat.cast_eq_zero] at hn',
   have h'' : f (u n) ∈ V :=
   begin

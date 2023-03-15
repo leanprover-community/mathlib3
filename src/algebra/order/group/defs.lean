@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import order.hom.basic
-import algebra.hom.equiv.units.basic
 import algebra.order.sub.defs
+import algebra.order.monoid.cancel.defs
 
 /-!
 # Ordered groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered groups.
 
@@ -43,8 +46,26 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance ordered_comm_group.to_ordered_cancel_comm_monoid [ordered_comm_group α] :
+  ordered_cancel_comm_monoid α :=
+{ le_of_mul_le_mul_left := λ a b c, le_of_mul_le_mul_left',
+  ..‹ordered_comm_group α› }
+
 example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap (+)) (<) :=
 add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
+
+/-- A choice-free shortcut instance. -/
+@[to_additive "A choice-free shortcut instance."]
+instance ordered_comm_group.to_contravariant_class_left_le (α : Type u) [ordered_comm_group α] :
+  contravariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, by simpa using mul_le_mul_left' bc a⁻¹, }
+
+/-- A choice-free shortcut instance. -/
+@[to_additive "A choice-free shortcut instance."]
+instance ordered_comm_group.to_contravariant_class_right_le (α : Type u) [ordered_comm_group α] :
+  contravariant_class α α (swap (*)) (≤) :=
+{ elim := λ a b c bc, by simpa using mul_le_mul_right' bc a⁻¹, }
 
 section group
 variables [group α]
@@ -231,29 +252,6 @@ by { rw [← mul_le_mul_iff_left a, ← mul_le_mul_iff_right b], simp }
 
 alias neg_le_neg_iff ↔ le_of_neg_le_neg _
 
-section
-
-variable (α)
-
-/-- `x ↦ x⁻¹` as an order-reversing equivalence. -/
-@[to_additive "`x ↦ -x` as an order-reversing equivalence.", simps]
-def order_iso.inv : α ≃o αᵒᵈ :=
-{ to_equiv := (equiv.inv α).trans order_dual.to_dual,
-  map_rel_iff' := λ a b, @inv_le_inv_iff α _ _ _ _ _ _ }
-
-end
-
-@[to_additive neg_le]
-lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-(order_iso.inv α).symm_apply_le
-
-alias inv_le' ↔ inv_le_of_inv_le' _
-attribute [to_additive neg_le_of_neg_le] inv_le_of_inv_le'
-
-@[to_additive le_neg]
-lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-(order_iso.inv α).le_symm_apply
-
 @[to_additive]
 lemma mul_inv_le_inv_mul_iff : a * b⁻¹ ≤ d⁻¹ * c ↔ d * a ≤ c * b :=
 by rw [← mul_le_mul_iff_left d, ← mul_le_mul_iff_right b, mul_inv_cancel_left, mul_assoc,
@@ -405,9 +403,6 @@ end has_lt
 
 end comm_group
 
-alias le_inv' ↔ le_inv_of_le_inv _
-attribute [to_additive] le_inv_of_le_inv
-
 alias left.inv_le_one_iff ↔ one_le_of_inv_le_one _
 attribute [to_additive] one_le_of_inv_le_one
 
@@ -519,30 +514,10 @@ instance add_group.to_has_ordered_sub {α : Type*} [add_group α] [has_le α]
   [covariant_class α α (swap (+)) (≤)] : has_ordered_sub α :=
 ⟨λ a b c, sub_le_iff_le_add⟩
 
-/-- `equiv.mul_right` as an `order_iso`. See also `order_embedding.mul_right`. -/
-@[to_additive "`equiv.add_right` as an `order_iso`. See also `order_embedding.add_right`.",
-  simps to_equiv apply {simp_rhs := tt}]
-def order_iso.mul_right (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_right a, to_equiv := equiv.mul_right a }
-
-@[simp, to_additive] lemma order_iso.mul_right_symm (a : α) :
-  (order_iso.mul_right a).symm = order_iso.mul_right a⁻¹ :=
-by { ext x, refl }
-
 end right
 
 section left
 variables [covariant_class α α (*) (≤)]
-
-/-- `equiv.mul_left` as an `order_iso`. See also `order_embedding.mul_left`. -/
-@[to_additive "`equiv.add_left` as an `order_iso`. See also `order_embedding.add_left`.",
-  simps to_equiv apply  {simp_rhs := tt}]
-def order_iso.mul_left (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, to_equiv := equiv.mul_left a }
-
-@[simp, to_additive] lemma order_iso.mul_left_symm (a : α) :
-  (order_iso.mul_left a).symm = order_iso.mul_left a⁻¹ :=
-by { ext x, refl }
 
 variables [covariant_class α α (swap (*)) (≤)] {a b c : α}
 
@@ -836,6 +811,11 @@ instance linear_ordered_comm_group.to_no_min_order [nontrivial α] : no_min_orde
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
   end ⟩
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
+  linear_ordered_cancel_comm_monoid α :=
+{ ..‹linear_ordered_comm_group α›, ..ordered_comm_group.to_ordered_cancel_comm_monoid }
 
 end linear_ordered_comm_group
 

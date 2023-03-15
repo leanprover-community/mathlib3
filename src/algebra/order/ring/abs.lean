@@ -10,6 +10,9 @@ import algebra.order.group.abs
 
 /-!
 # Absolute values in linear ordered rings.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # `at_top` filter and archimedean (semi)rings/fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that for a linear ordered archimedean semiring `R` and a function `f : α → ℕ`,
 the function `coe ∘ f : α → R` tends to `at_top` along a filter `l` if and only if so does `f`.
 We also prove that `coe : ℕ → R` tends to `at_top` along `at_top`, as well as version of these

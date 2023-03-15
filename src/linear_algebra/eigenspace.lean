@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import linear_algebra.charpoly.basic
-import linear_algebra.finsupp
-import linear_algebra.matrix.to_lin
 import algebra.algebra.spectrum
 import order.hom.basic
+import linear_algebra.free_module.finite.basic
+import linear_algebra.general_linear_group
 
 /-!
 # Eigenvectors and eigenvalues

@@ -3,9 +3,9 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Eric Wieser
 -/
-import analysis.specific_limits.basic
 import analysis.analytic.basic
 import analysis.complex.basic
+import analysis.normed.field.infinite_sum
 import data.nat.choose.cast
 import data.finset.noncomm_prod
 import topology.algebra.algebra
@@ -62,7 +62,7 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 -/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
-open_locale nat topological_space big_operators ennreal
+open_locale nat topology big_operators ennreal
 
 section topological_algebra
 
@@ -125,6 +125,11 @@ by simp_rw [exp_eq_tsum, ←star_pow, ←star_inv_nat_cast_smul, ←tsum_star]
 
 variables (𝕂)
 
+lemma is_self_adjoint.exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] {x : 𝔸}
+  (h : is_self_adjoint x) :
+  is_self_adjoint (exp 𝕂 x) :=
+(star_exp x).trans $ h.symm ▸ rfl
+
 lemma commute.exp_right [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute x (exp 𝕂 y) :=
 begin
   rw exp_eq_tsum,
@@ -167,12 +172,12 @@ variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [norm
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+  summable (λ n, ‖exp_series 𝕂 𝔸 n (λ _, x)‖) :=
 (exp_series 𝕂 𝔸).summable_norm_apply hx
 
 lemma norm_exp_series_summable_of_mem_ball' (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
+  summable (λ n, ‖(n!⁻¹ : 𝕂) • x^n‖) :=
 begin
   change summable (norm ∘ _),
   rw ← exp_series_apply_eq',
@@ -302,7 +307,7 @@ variables (𝕂)
 
 lemma norm_exp_series_div_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥x^n / n!∥) :=
+  summable (λ n, ‖x^n / n!‖) :=
 begin
   change summable (norm ∘ _),
   rw ← exp_series_apply_eq_div' x,
@@ -364,7 +369,7 @@ begin
   filter_upwards [eventually_cofinite_ne 0] with n hn,
   rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
       nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
-  have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=
+  have : ‖continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸‖ ≤ 1 :=
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
 end
@@ -377,10 +382,10 @@ end
 
 variables {𝕂 𝔸 𝔹}
 
-lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ‖exp_series 𝕂 𝔸 n (λ _, x)‖) :=
 norm_exp_series_summable_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
+lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ‖(n!⁻¹ : 𝕂) • x^n‖) :=
 norm_exp_series_summable_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 section complete_algebra
@@ -446,6 +451,13 @@ begin
   letI := invertible_exp 𝕂 x,
   exact ring.inverse_invertible _,
 end
+
+lemma exp_mem_unitary_of_mem_skew_adjoint [star_ring 𝔸] [has_continuous_star 𝔸] {x : 𝔸}
+  (h : x ∈ skew_adjoint 𝔸) :
+  exp 𝕂 x ∈ unitary 𝔸 :=
+by rw [unitary.mem_iff, star_exp, skew_adjoint.mem_iff.mp h,
+  ←exp_add_of_commute (commute.refl x).neg_left, ←exp_add_of_commute (commute.refl x).neg_right,
+  add_left_neg, add_right_neg, exp_zero, and_self]
 
 end
 
@@ -540,7 +552,7 @@ variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_division_ring 𝔸] [norm
 
 variables (𝕂)
 
-lemma norm_exp_series_div_summable (x : 𝔸) : summable (λ n, ∥x^n / n!∥) :=
+lemma norm_exp_series_div_summable (x : 𝔸) : summable (λ n, ‖x^n / n!‖) :=
 norm_exp_series_div_summable_of_mem_ball 𝕂 x
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
@@ -622,5 +634,11 @@ end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : (exp ℝ : ℂ → ℂ) = exp ℂ :=
 exp_eq_exp ℝ ℂ ℂ
+
+/-- A version of `complex.of_real_exp` for `exp` instead of `complex.exp` -/
+@[simp, norm_cast]
+lemma of_real_exp_ℝ_ℝ (r : ℝ) : ↑(exp ℝ r) = exp ℂ (r : ℂ) :=
+(map_exp ℝ (algebra_map ℝ ℂ) (continuous_algebra_map _ _) r).trans
+  (congr_fun exp_ℝ_ℂ_eq_exp_ℂ_ℂ _)
 
 end scalar_tower

@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # Numbers are frequently modeq to fixed numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `m ≡ d [MOD n]` frequently as `m → ∞`.
 -/
 

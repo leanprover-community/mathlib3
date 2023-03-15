@@ -16,7 +16,7 @@ multiplication of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {𝕜 E : Type*} [normed_field 𝕜]
 
@@ -24,39 +24,39 @@ section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • ball x r = ball (c • x) (∥c∥ * r) :=
+  c • ball x r = ball (c • x) (‖c‖ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul₀],
 end
 
-lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (∥c∥) :=
+lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (‖c‖) :=
 by rw [smul_ball hc, smul_zero, mul_one]
 
 theorem smul_sphere' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+  c • sphere x r = sphere (c • x) (‖c‖ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
+  simp only [mem_sphere, dist_smul₀, norm_inv, ← div_eq_inv_mul,
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
 theorem smul_closed_ball' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+  c • closed_ball x r = closed_ball (c • x) (‖c‖ * r) :=
 by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
 
 lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
 begin
-  obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
-  refine bounded_iff_forall_norm_le.2 ⟨∥c∥ * R, λ z hz, _⟩,
+  obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le,
+  refine bounded_iff_forall_norm_le.2 ⟨‖c‖ * R, λ z hz, _⟩,
   obtain ⟨y, ys, rfl⟩ : ∃ (y : E), y ∈ s ∧ c • y = z := mem_smul_set.1 hz,
-  calc ∥c • y∥ = ∥c∥ * ∥y∥ : norm_smul _ _
-  ... ≤ ∥c∥ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
+  calc ‖c • y‖ = ‖c‖ * ‖y‖ : norm_smul _ _
+  ... ≤ ‖c‖ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
 end
 
 /-- If `s` is a bounded set, then for small enough `r`, the set `{x} + r • s` is contained in any
@@ -74,8 +74,8 @@ begin
   simp only [image_add_left, singleton_add],
   assume y hy,
   obtain ⟨z, zs, hz⟩ : ∃ (z : E), z ∈ s ∧ r • z = -x + y, by simpa [mem_smul_set] using hy,
-  have I : ∥r • z∥ ≤ ε := calc
-    ∥r • z∥ = ∥r∥ * ∥z∥ : norm_smul _ _
+  have I : ‖r • z‖ ≤ ε := calc
+    ‖r • z‖ = ‖r‖ * ‖z‖ : norm_smul _ _
     ... ≤ (ε / R) * R :
       mul_le_mul (mem_closed_ball_zero_iff.1 hr)
         (mem_closed_ball_zero_iff.1 (hR zs)) (norm_nonneg _) (div_pos εpos Rpos).le
@@ -275,7 +275,7 @@ by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
 
 lemma ball_add_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+by rw [ball_add, thickening_ball hε hδ b, metric.vadd_ball, vadd_eq_add]
 
 lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε - ball b δ = ball (a - b) (ε + δ) :=
@@ -283,7 +283,7 @@ by simp_rw [sub_eq_add_neg, neg_ball, ball_add_ball hε hδ]
 
 lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε + closed_ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+by rw [ball_add, thickening_closed_ball hε hδ b, metric.vadd_ball, vadd_eq_add]
 
 lemma ball_sub_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε - closed_ball b δ = ball (a - b) (ε + δ) :=
@@ -291,7 +291,7 @@ by simp_rw [sub_eq_add_neg, neg_closed_ball, ball_add_closed_ball hε hδ]
 
 lemma closed_ball_add_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [add_comm, ball_add_closed_ball hδ hε, add_comm, add_comm δ]; apply_instance
+by rw [add_comm, ball_add_closed_ball hδ hε b, add_comm, add_comm δ]
 
 lemma closed_ball_sub_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε - ball b δ = ball (a - b) (ε + δ) :=
@@ -299,8 +299,8 @@ by simp_rw [sub_eq_add_neg, neg_ball, closed_ball_add_ball hε hδ]
 
 lemma closed_ball_add_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) :=
-by rw [(is_compact_closed_ball _ _).add_closed_ball hδ, cthickening_closed_ball hδ hε,
-  vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]; apply_instance
+by rw [(is_compact_closed_ball _ _).add_closed_ball hδ b, cthickening_closed_ball hδ hε a,
+  metric.vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]
 
 lemma closed_ball_sub_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε - closed_ball b δ = closed_ball (a - b) (ε + δ) :=
@@ -312,14 +312,14 @@ section normed_add_comm_group
 variables [normed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_closed_ball (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+  c • closed_ball x r = closed_ball (c • x) (‖c‖ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
   { exact smul_closed_ball' hc x r }
 end
 
-lemma smul_closed_unit_ball (c : 𝕜) : c • closed_ball (0 : E) (1 : ℝ) = closed_ball (0 : E) (∥c∥) :=
+lemma smul_closed_unit_ball (c : 𝕜) : c • closed_ball (0 : E) (1 : ℝ) = closed_ball (0 : E) (‖c‖) :=
 by rw [smul_closed_ball _ _ zero_le_one, smul_zero, mul_one]
 
 variables [normed_space ℝ E]
@@ -337,13 +337,13 @@ nonnegative. -/
 begin
   obtain ⟨y, hy⟩ := exists_ne x,
   refine ⟨λ h, nonempty_closed_ball.1 (h.mono sphere_subset_closed_ball), λ hr,
-    ⟨r • ∥y - x∥⁻¹ • (y - x) + x, _⟩⟩,
-  have : ∥y - x∥ ≠ 0, by simpa [sub_eq_zero],
+    ⟨r • ‖y - x‖⁻¹ • (y - x) + x, _⟩⟩,
+  have : ‖y - x‖ ≠ 0, by simpa [sub_eq_zero],
   simp [norm_smul, this, real.norm_of_nonneg hr],
 end
 
 lemma smul_sphere [nontrivial E] (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+  c • sphere x r = sphere (c • x) (‖c‖ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [zero_smul_set, set.singleton_zero, hr] },

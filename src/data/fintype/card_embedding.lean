@@ -3,12 +3,14 @@ Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import data.fintype.card
-import logic.equiv.fin
+import data.fintype.big_operators
 import logic.equiv.embedding
 
 /-!
 # Number of embeddings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/

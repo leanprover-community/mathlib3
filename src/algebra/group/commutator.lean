@@ -9,6 +9,9 @@ import data.bracket
 
 /-!
 # The bracket on a group given by commutator.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 /-- The commutator of two elements `g₁` and `g₂`. -/

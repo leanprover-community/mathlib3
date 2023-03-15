@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Local equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files defines equivalences between subsets of given types.
 An element `e` of `local_equiv α β` is made of two maps `e.to_fun` and `e.inv_fun` respectively
 from α to β and from  β to α (just like equivs), which are inverse to each other on the subsets
@@ -220,7 +223,7 @@ def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α)
   left_inv' := λ x, hs ▸ hf ▸ hg ▸ e.left_inv,
   right_inv' := λ x, ht ▸ hf ▸ hg ▸ e.right_inv }
 
-lemma copy_eq_self (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
+lemma copy_eq (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
   (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
   e.copy f hf g hg s hs t ht = e :=
 by { substs f g s t, cases e, refl }
@@ -552,7 +555,7 @@ We modify the source and target to have better definitional behavior. -/
   (univ_inter _)
 
 lemma trans_equiv_eq_trans (e' : β ≃ γ) : e.trans_equiv e' = e.trans e'.to_local_equiv :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 /-- Precompose a local equivalence with an equivalence.
 We modify the source and target to have better definitional behavior. -/
@@ -562,7 +565,7 @@ We modify the source and target to have better definitional behavior. -/
 
 lemma _root_.equiv.trans_local_equiv_eq_trans (e : α ≃ β) :
   e.trans_local_equiv e' = e.to_local_equiv.trans e' :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. Then `e`
 and `e'` should really be considered the same local equiv. -/
@@ -742,7 +745,7 @@ lemma disjoint_union_eq_piecewise (e e' : local_equiv α β) (hs : disjoint e.so
   [∀ y, decidable (y ∈ e.target)] :
   e.disjoint_union e' hs ht = e.piecewise e' e.source e.target e.is_image_source_target
     (e'.is_image_source_target_of_disjoint _ hs.symm ht.symm) :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 section pi
 

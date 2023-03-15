@@ -5,6 +5,7 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 
 import measure_theory.function.conditional_expectation.indicator
+import measure_theory.function.uniform_integrable
 import measure_theory.decomposition.radon_nikodym
 
 /-!
@@ -26,7 +27,7 @@ This file proves some results regarding the conditional expectation of real-valu
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 
@@ -195,7 +196,7 @@ lemma integrable.uniform_integrable_condexp {ι : Type*} [is_finite_measure μ]
   {g : α → ℝ} (hint : integrable g μ) {ℱ : ι → measurable_space α} (hℱ : ∀ i, ℱ i ≤ m0) :
   uniform_integrable (λ i, μ[g | ℱ i]) 1 μ :=
 begin
-  have hmeas : ∀ n, ∀ C, measurable_set {x | C ≤ ∥μ[g | ℱ n] x∥₊} :=
+  have hmeas : ∀ n, ∀ C, measurable_set {x | C ≤ ‖μ[g | ℱ n] x‖₊} :=
     λ n C, measurable_set_le measurable_const
       (strongly_measurable_condexp.mono (hℱ n)).measurable.nnnorm,
   have hg : mem_ℒp g 1 μ := mem_ℒp_one_iff_integrable.2 hint,
@@ -211,8 +212,8 @@ begin
   obtain ⟨δ, hδ, h⟩ := hg.snorm_indicator_le μ le_rfl ennreal.one_ne_top hε,
   set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (snorm g 1 μ).to_nnreal with hC,
   have hCpos : 0 < C :=
-    mul_pos (nnreal.inv_pos.2 hδ) (ennreal.to_nnreal_pos hne hg.snorm_lt_top.ne),
-  have : ∀ n, μ {x : α | C ≤ ∥μ[g | ℱ n] x∥₊} ≤ ennreal.of_real δ,
+    mul_pos (inv_pos.2 hδ) (ennreal.to_nnreal_pos hne hg.snorm_lt_top.ne),
+  have : ∀ n, μ {x : α | C ≤ ‖μ[g | ℱ n] x‖₊} ≤ ennreal.of_real δ,
   { intro n,
     have := mul_meas_ge_le_pow_snorm' μ one_ne_zero ennreal.one_ne_top
       ((@strongly_measurable_condexp _ _ _ _ _ (ℱ n) _ μ g).mono
@@ -227,8 +228,8 @@ begin
       ennreal.coe_to_nnreal hg.snorm_lt_top.ne, ← mul_assoc, ← ennreal.of_real_eq_coe_nnreal,
       ← ennreal.of_real_mul hδ.le, mul_inv_cancel hδ.ne.symm, ennreal.of_real_one, one_mul],
     exact snorm_one_condexp_le_snorm _ },
-  refine ⟨C, λ n, le_trans _ (h {x : α | C ≤ ∥μ[g | ℱ n] x∥₊} (hmeas n C) (this n))⟩,
-  have hmeasℱ : measurable_set[ℱ n] {x : α | C ≤ ∥μ[g | ℱ n] x∥₊} :=
+  refine ⟨C, λ n, le_trans _ (h {x : α | C ≤ ‖μ[g | ℱ n] x‖₊} (hmeas n C) (this n))⟩,
+  have hmeasℱ : measurable_set[ℱ n] {x : α | C ≤ ‖μ[g | ℱ n] x‖₊} :=
     @measurable_set_le _ _ _ _ _ (ℱ n) _ _ _ _ _ measurable_const
       (@measurable.nnnorm _ _ _ _ _ (ℱ n) _ strongly_measurable_condexp.measurable),
   rw ← snorm_congr_ae (condexp_indicator hint hmeasℱ),
@@ -268,7 +269,7 @@ end
 
 lemma condexp_strongly_measurable_mul_of_bound (hm : m ≤ m0) [is_finite_measure μ]
   {f g : α → ℝ} (hf : strongly_measurable[m] f) (hg : integrable g μ) (c : ℝ)
-  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
   μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
 begin
   let fs := hf.approx_bounded c,
@@ -278,9 +279,9 @@ begin
   { simp only [hμ, ae_zero], },
   haveI : μ.ae.ne_bot, by simp only [hμ, ae_ne_bot, ne.def, not_false_iff],
   have hc : 0 ≤ c,
-  { have h_exists : ∃ x, ∥f x∥ ≤ c := eventually.exists hf_bound,
+  { have h_exists : ∃ x, ‖f x‖ ≤ c := eventually.exists hf_bound,
     exact (norm_nonneg _).trans h_exists.some_spec, },
-  have hfs_bound : ∀ n x, ∥fs n x∥ ≤ c := hf.norm_approx_bounded_le hc,
+  have hfs_bound : ∀ n x, ‖fs n x‖ ≤ c := hf.norm_approx_bounded_le hc,
   have hn_eq : ∀ n, μ[fs n * g | m] =ᵐ[μ] fs n * μ[g | m],
     from λ n, condexp_strongly_measurable_simple_func_mul hm _ hg,
   have : μ[f * μ[g|m]|m] = f * μ[g|m],
@@ -288,7 +289,7 @@ begin
     exact integrable_condexp.bdd_mul' ((hf.mono hm).ae_strongly_measurable) hf_bound, },
   rw ← this,
   refine tendsto_condexp_unique (λ n x, fs n x * g x) (λ n x, fs n x * μ[g|m] x) (f * g)
-    (f * μ[g|m]) _ _ _ _ (λ x, c * ∥g x∥) _ (λ x, c * ∥μ[g|m] x∥) _ _ _ _,
+    (f * μ[g|m]) _ _ _ _ (λ x, c * ‖g x‖) _ (λ x, c * ‖μ[g|m] x‖) _ _ _ _,
   { exact λ n, hg.bdd_mul'
       ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
       (eventually_of_forall (hfs_bound n)), },
@@ -321,7 +322,7 @@ end
 
 lemma condexp_strongly_measurable_mul_of_bound₀ (hm : m ≤ m0) [is_finite_measure μ]
   {f g : α → ℝ} (hf : ae_strongly_measurable' m f μ) (hg : integrable g μ) (c : ℝ)
-  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
   μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
 begin
   have : μ[f * g | m] =ᵐ[μ] μ[hf.mk f * g | m],

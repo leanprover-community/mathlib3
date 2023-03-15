@@ -3,6 +3,7 @@ Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Yaël Dillies
 -/
+import algebra.order.group.type_tags
 import analysis.normed_space.basic
 
 /-!
@@ -13,7 +14,7 @@ These are mostly useful to avoid diamonds during type class inference.
 -/
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*}
 
@@ -22,21 +23,21 @@ variables {α : Type*}
 carrying their own group structure. -/
 class normed_ordered_add_group (α : Type*)
   extends ordered_add_comm_group α, has_norm α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)
+(dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A `normed_ordered_group` is a group that is both a `normed_comm_group` and an
 `ordered_comm_group`. This class is necessary to avoid diamonds caused by both classes
 carrying their own group structure. -/
 @[to_additive]
 class normed_ordered_group (α : Type*) extends ordered_comm_group α, has_norm α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = ∥x / y∥ . obviously)
+(dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 /-- A `normed_linear_ordered_add_group` is an additive group that is both a `normed_add_comm_group`
 and a `linear_ordered_add_comm_group`. This class is necessary to avoid diamonds caused by both
 classes carrying their own group structure. -/
 class normed_linear_ordered_add_group (α : Type*)
   extends linear_ordered_add_comm_group α, has_norm α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)
+(dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
 
 /-- A `normed_linear_ordered_group` is a group that is both a `normed_comm_group` and a
 `linear_ordered_comm_group`. This class is necessary to avoid diamonds caused by both classes
@@ -44,14 +45,14 @@ carrying their own group structure. -/
 @[to_additive]
 class normed_linear_ordered_group (α : Type*)
   extends linear_ordered_comm_group α, has_norm α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = ∥x / y∥ . obviously)
+(dist_eq : ∀ x y, dist x y = ‖x / y‖ . obviously)
 
 /-- A `normed_linear_ordered_field` is a field that is both a `normed_field` and a
     `linear_ordered_field`. This class is necessary to avoid diamonds. -/
 class normed_linear_ordered_field (α : Type*)
 extends linear_ordered_field α, has_norm α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)
-(norm_mul' : ∀ x y : α, ∥x * y∥ = ∥x∥ * ∥y∥)
+(dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
+(norm_mul' : ∀ x y : α, ‖x * y‖ = ‖x‖ * ‖y‖)
 
 @[to_additive, priority 100]
 instance normed_ordered_group.to_normed_comm_group [normed_ordered_group α] : normed_comm_group α :=

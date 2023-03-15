@@ -3,7 +3,6 @@ Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
-
 import computability.primrec
 import tactic.linarith
 
@@ -223,7 +222,7 @@ begin
       { apply add_le_add hk,
         norm_num,
         apply succ_le_of_lt,
-        rw [pow_succ, mul_lt_mul_left (@zero_lt_two ℕ _ _)],
+        rw [pow_succ, mul_lt_mul_left (zero_lt_two' ℕ)],
         apply lt_two_pow },
       { rw [pow_succ, pow_succ],
         linarith [one_le_pow k 2 zero_lt_two] } } }

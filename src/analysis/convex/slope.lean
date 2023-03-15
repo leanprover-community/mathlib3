@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudriashov, Malo Jaffré
 -/
 import analysis.convex.function
+import tactic.field_simp
+import tactic.linarith
 
 /-!
 # Slopes of convex functions
@@ -211,3 +213,24 @@ lemma strict_concave_on_iff_slope_strict_anti_adjacent :
       (f z - f y) / (z - y) < (f y - f x) / (y - x) :=
 ⟨λ h, ⟨h.1, λ x y z, h.slope_anti_adjacent⟩,
   λ h, strict_concave_on_of_slope_strict_anti_adjacent h.1 h.2⟩
+
+/-- If `f` is convex on a set `s` in a linearly ordered field, and `f x < f y` for two points
+`x < y` in `s`, then `f` is strictly monotone on `s ∩ [y, ∞)`. -/
+lemma convex_on.strict_mono_of_lt (hf : convex_on 𝕜 s f)
+  {x y : 𝕜} (hx : x ∈ s) (hxy : x < y) (hxy' : f x < f y) :
+  strict_mono_on f (s ∩ set.Ici y) :=
+begin
+  intros u hu v hv huv,
+  have step1 : ∀ {z : 𝕜}, z ∈ s ∩ set.Ioi y → f y < f z,
+  { refine λ z hz, hf.lt_right_of_left_lt hx hz.1 _ hxy',
+    rw open_segment_eq_Ioo (hxy.trans hz.2),
+    exact ⟨hxy, hz.2⟩ },
+  rcases eq_or_lt_of_le hu.2 with rfl | hu2,
+  { exact step1 ⟨hv.1, huv⟩ },
+  { refine hf.lt_right_of_left_lt _ hv.1 _ (step1 ⟨hu.1, hu2⟩),
+    { apply hf.1.segment_subset hx hu.1,
+      rw segment_eq_Icc (hxy.le.trans hu.2),
+      exact ⟨hxy.le, hu.2⟩ },
+    { rw open_segment_eq_Ioo (hu2.trans huv),
+      exact ⟨hu2, huv⟩ } },
+end

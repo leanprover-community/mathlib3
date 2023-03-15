@@ -3,12 +3,14 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import algebra.order.module
 import linear_algebra.affine_space.affine_map
 import tactic.field_simp
 
 /-!
 # Slope of a function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the slope of a function `f : k → PE` taking values in an affine space over
 `k` and prove some basic theorems about `slope`. The `slope` function naturally appears in the Mean

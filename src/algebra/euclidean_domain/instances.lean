@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
 import algebra.euclidean_domain.defs
+import algebra.field.defs
 import algebra.group_with_zero.units.lemmas
 import data.nat.order.basic
 import data.int.order.basic
 
 /-!
 # Instances for Euclidean domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 * `int.euclidean_domain`: shows that `ℤ` is a Euclidean domain.
 * `field.to_euclidean_domain`: shows that any field is a Euclidean domain.
@@ -29,7 +33,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   r := λ a b, a.nat_abs < b.nat_abs,
   r_well_founded := measure_wf (λ a, int.nat_abs a),
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $
-    by { rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs],
+    by { rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), int.coe_nat_abs],
       exact int.mod_lt _ b0 },
   mul_left_not_lt := λ a b b0, not_lt_of_ge $
     by {rw [← mul_one a.nat_abs, int.nat_abs_mul],

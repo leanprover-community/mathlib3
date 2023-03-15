@@ -7,9 +7,13 @@ import data.set.function
 import data.int.order.lemmas
 import data.int.bitwise
 import data.nat.cast.basic
+import data.nat.order.lemmas
 
 /-!
 # Miscellaneous lemmas about the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas about integers, which require further imports than
 `data.int.basic` or `data.int.order`.

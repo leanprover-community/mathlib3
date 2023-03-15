@@ -8,6 +8,9 @@ import data.finset.card
 /-!
 # Finsets in `fin n`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A few constructions for finsets in `fin n`.
 
 ## Main declarations

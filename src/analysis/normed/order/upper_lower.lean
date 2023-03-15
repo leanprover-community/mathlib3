@@ -96,7 +96,7 @@ end
 
 end
 
-open function  metric set
+open function metric set
 open_locale pointwise
 
 variables {α ι : Type*}
@@ -181,7 +181,7 @@ begin
   obtain ⟨z, hz, hxz⟩ := metric.mem_closure_iff.1 hx _ hε,
   rw dist_pi_lt_iff hε at hxz,
   have hyz : ∀ i, y i < z i,
-  { refine λ i, (lt_sub_iff_add_lt.2 $ hxy _).trans_le (_root_.sub_le.1 $ (le_abs_self _).trans _),
+  { refine λ i, (lt_sub_iff_add_lt.2 $ hxy _).trans_le (sub_le_comm.1 $ (le_abs_self _).trans _),
     rw [←real.norm_eq_abs, ←dist_eq_norm],
     exact (hxz _).le },
   obtain ⟨δ, hδ, hyz⟩ := pi.exists_forall_pos_add_lt hyz,

@@ -3,12 +3,14 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import data.set.lattice
 import order.zorn
 import tactic.by_contra
 
 /-!
 # Extend a partial order to a linear order
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file constructs a linear order which is an extension of the given partial order, using Zorn's
 lemma.

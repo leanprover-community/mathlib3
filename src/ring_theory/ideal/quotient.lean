@@ -4,11 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
 import algebra.ring.fin
+import algebra.ring.prod
 import linear_algebra.quotient
+import ring_theory.congruence
 import ring_theory.ideal.basic
 import tactic.fin_cases
 /-!
 # Ideal quotients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines ideal quotients as a special case of submodule quotients and proves some basic
 results about these quotients.
@@ -51,36 +56,21 @@ variables {I} {x y : R}
 
 instance has_one (I : ideal R) : has_one (R ⧸ I) := ⟨submodule.quotient.mk 1⟩
 
-instance has_mul (I : ideal R) : has_mul (R ⧸ I) :=
-⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
- λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
-  rw submodule.quotient_rel_r_def at h₁ h₂ ⊢,
-  have F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
-  have : a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁,
-  { rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁] },
-  rw ← this at F,
-  change _ ∈ _, convert F,
-end⟩
+/-- On `ideal`s, `submodule.quotient_rel` is a ring congruence. -/
+protected def ring_con (I : ideal R) : ring_con R :=
+{ mul' := λ a₁ b₁ a₂ b₂ h₁ h₂, begin
+    rw submodule.quotient_rel_r_def at h₁ h₂ ⊢,
+    have F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
+    have : a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁,
+    { rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁] },
+    rw ← this at F,
+    change _ ∈ _, convert F,
+  end,
+  .. quotient_add_group.con I.to_add_subgroup }
 
 instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
-{ mul := (*),
-  one := 1,
-  nat_cast := λ n, submodule.quotient.mk n,
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := by simp [nat.cast]; refl,
-  mul_assoc := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
-  mul_comm := λ a b, quotient.induction_on₂' a b $
-    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
-  one_mul := λ a, quotient.induction_on' a $
-    λ a, congr_arg submodule.quotient.mk (one_mul a),
-  mul_one := λ a, quotient.induction_on' a $
-    λ a, congr_arg submodule.quotient.mk (mul_one a),
-  left_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (left_distrib a b c),
-  right_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (right_distrib a b c),
-  ..submodule.quotient.add_comm_group I }
+{ ..submodule.quotient.add_comm_group I,  -- to help with unification
+  ..(quotient.ring_con I)^.quotient.comm_ring }
 
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=
@@ -137,18 +127,25 @@ begin
            ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
 end
 
-instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+instance no_zero_divisors (I : ideal R) [hI : I.is_prime] : no_zero_divisors (R ⧸ I) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
-        (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.nontrivial hI.1 }
+        (or.inr ∘ eq_zero_iff_mem.2) }
+
+instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+let _ := quotient.nontrivial hI.1 in by exactI no_zero_divisors.to_is_domain _
 
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
-⟨ λ ⟨h1, h2⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h2⟩, λ x y h,
-    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩,
-  λ h, by { resetI, apply_instance }⟩
+begin
+  refine ⟨λ H, ⟨zero_ne_one_iff.1 _, λ x y h, _⟩, λ h, by { resetI, apply_instance }⟩,
+  { haveI : nontrivial (R ⧸ I) := ⟨H.3⟩,
+    exact zero_ne_one },
+  { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h,
+    haveI := @is_domain.to_no_zero_divisors (R ⧸ I) _ H,
+    exact eq_zero_or_eq_zero_of_mul_eq_zero h }
+end
 
 lemma exists_inv {I : ideal R} [hI : I.is_maximal] :
   ∀ {a : (R ⧸ I)}, a ≠ 0 → ∃ b : (R ⧸ I), a * b = 1 :=
@@ -237,7 +234,7 @@ end quotient
 
 /-- Quotienting by equal ideals gives equivalent rings.
 
-See also `submodule.quot_equiv_of_eq`.
+See also `submodule.quot_equiv_of_eq` and `ideal.quotient_equiv_alg_of_eq`.
 -/
 def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
   (R ⧸ I) ≃+* R ⧸ J :=

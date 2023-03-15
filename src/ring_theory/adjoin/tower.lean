@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.adjoin.fg
-import ring_theory.algebra_tower
 
 /-!
 # Adjoining elements and being finitely generated in an algebra tower

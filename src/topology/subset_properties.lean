@@ -7,12 +7,15 @@ import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
-import tactic.tfae
+import data.set.bool_indicator
 import topology.bornology.basic
 import order.minimal
 
 /-!
 # Properties of subsets of topological spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various properties of subsets of a topological space, and some classes on
 topological spaces.
@@ -49,7 +52,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set filter classical topological_space
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 universes u v
 variables {α : Type u} {β : Type v}  {ι : Type*} {π : ι → Type*}
@@ -258,7 +261,7 @@ lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compac
   (Z : ι → set α) (hZc : ∀ i, is_closed (Z i)) (hsZ : ∀ t : finset ι, (s ∩ ⋂ i ∈ t, Z i).nonempty) :
   (s ∩ ⋂ i, Z i).nonempty :=
 begin
-  simp only [← ne_empty_iff_nonempty] at hsZ ⊢,
+  simp only [nonempty_iff_ne_empty] at hsZ ⊢,
   apply mt (hs.elim_finite_subfamily_closed Z hZc), push_neg, exact hsZ
 end
 
@@ -274,7 +277,7 @@ begin
   let Z' := λ i, Z i ∩ Z i₀,
   suffices : (⋂ i, Z' i).nonempty,
   { exact this.mono (Inter_mono $ λ i, inter_subset_left (Z i) (Z i₀)) },
-  rw ← ne_empty_iff_nonempty,
+  rw nonempty_iff_ne_empty,
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
     from (hZc i₀).elim_finite_subfamily_closed Z'
@@ -286,7 +289,7 @@ begin
     intros j hj,
     exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
   suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
-  { rw ← ne_empty_iff_nonempty at this, contradiction },
+  { rw nonempty_iff_ne_empty at this, contradiction },
   exact (hZn i₁).mono (subset_inter hi₁.left $ subset_Inter₂ hi₁.right),
 end
 
@@ -571,7 +574,7 @@ lemma tendsto.is_compact_insert_range_of_cofinite {f : ι → α} {a}
   (hf : tendsto f cofinite (𝓝 a)) :
   is_compact (insert a (range f)) :=
 begin
-  letI : topological_space ι := ⊥, haveI : discrete_topology ι := ⟨rfl⟩,
+  letI : topological_space ι := ⊥, haveI := discrete_topology_bot ι,
   rw ← cocompact_eq_cofinite at hf,
   exact hf.is_compact_insert_range_of_cocompact continuous_of_discrete_topology
 end
@@ -1494,6 +1497,10 @@ lemma is_clopen_bInter_finset {β : Type*} {s : finset β} {f : β → set α}
   (h : ∀ i ∈ s, is_clopen (f i)) :
   is_clopen (⋂ i ∈ s, f i) :=
 is_clopen_bInter s.finite_to_set h
+
+lemma is_clopen.preimage {s : set β} (h : is_clopen s) {f : α → β} (hf : continuous f) :
+  is_clopen (f ⁻¹' s) :=
+⟨h.1.preimage hf, h.2.preimage hf⟩
 
 lemma continuous_on.preimage_clopen_of_clopen
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)

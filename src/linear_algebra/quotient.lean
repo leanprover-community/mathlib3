@@ -9,6 +9,9 @@ import linear_algebra.span
 /-!
 # Quotients by submodules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * If `p` is a submodule of `M`, `M ⧸ p` is the quotient of `M` with respect to `p`:
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 
@@ -62,7 +65,7 @@ instance : inhabited (M ⧸ p) := ⟨0⟩
 by simpa using (quotient.eq p : mk x = 0 ↔ _)
 
 instance add_comm_group : add_comm_group (M ⧸ p) :=
-quotient_add_group.add_comm_group p.to_add_subgroup
+quotient_add_group.quotient.add_comm_group p.to_add_subgroup
 
 @[simp] theorem mk_add : (mk (x + y) : M ⧸ p) = mk x + mk y := rfl
 

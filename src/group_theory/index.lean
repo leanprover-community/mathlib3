@@ -11,6 +11,9 @@ import group_theory.group_action.quotient
 /-!
 # Index of a Subgroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the index of a subgroup, and prove several divisibility properties.
 Several theorems proved in this file are known as Lagrange's theorem.
 
@@ -105,10 +108,7 @@ begin
 end
 
 @[to_additive] lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
-begin
-  rw [←subgroup_of_map_subtype, relindex, relindex, subgroup_of, comap_map_eq_self_of_injective],
-  exact subtype.coe_injective,
-end
+by rw [relindex, relindex, inf_subgroup_of_right]
 
 @[to_additive] lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
 by rw [inf_comm, inf_relindex_right]
@@ -118,24 +118,21 @@ lemma relindex_inf_mul_relindex : H.relindex (K ⊓ L) * K.relindex L = (H ⊓ K
 by rw [←inf_relindex_right H (K ⊓ L), ←inf_relindex_right K L, ←inf_relindex_right (H ⊓ K) L,
   inf_assoc, relindex_mul_relindex (H ⊓ (K ⊓ L)) (K ⊓ L) L inf_le_right inf_le_right]
 
-@[to_additive]
-lemma inf_relindex_eq_relindex_sup [K.normal] : (H ⊓ K).relindex H = K.relindex (H ⊔ K) :=
-cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
+@[simp, to_additive]
+lemma relindex_sup_right [K.normal] : K.relindex (H ⊔ K) = K.relindex H  :=
+nat.card_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv.symm
 
-@[to_additive] lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
-by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
+@[simp, to_additive]
+lemma relindex_sup_left [K.normal] : K.relindex (K ⊔ H) = K.relindex H  :=
+by rw [sup_comm, relindex_sup_right]
 
 @[to_additive] lemma relindex_dvd_index_of_normal [H.normal] : H.relindex K ∣ H.index :=
-(relindex_eq_relindex_sup K H).symm ▸ relindex_dvd_index_of_le le_sup_right
+relindex_sup_right K H ▸ relindex_dvd_index_of_le le_sup_right
 
 variables {H K}
 
 @[to_additive] lemma relindex_dvd_of_le_left (hHK : H ≤ K) : K.relindex L ∣ H.relindex L :=
-begin
-  apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
-  rw [←inf_relindex_right H L, ←inf_relindex_right K L],
-  exact relindex_mul_relindex (H ⊓ L) (K ⊓ L) L (inf_le_inf_right L hHK) inf_le_right,
-end
+inf_of_le_left hHK ▸ dvd_of_mul_left_eq _ (relindex_inf_mul_relindex _ _ _)
 
 /-- A subgroup has index two if and only if there exists `a` such that for all `b`, exactly one
 of `b * a` and `b` belong to `H`. -/
@@ -219,6 +216,9 @@ begin
   rw nat.card_congr (monoid_hom.of_injective hf).to_equiv,
   exact dvd.intro f.range.index f.range.card_mul_index,
 end
+
+@[to_additive] lemma nat_card_dvd_of_le (hHK : H ≤ K) : nat.card H ∣ nat.card K :=
+nat_card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
 
 @[to_additive] lemma nat_card_dvd_of_surjective {G H : Type*} [group G] [group H] (f : G →* H)
   (hf : function.surjective f) : nat.card H ∣ nat.card G :=
@@ -348,6 +348,12 @@ by simp_rw [←relindex_top_right, relindex_infi_le]
 @[simp, to_additive index_eq_one] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
+
+@[simp, to_additive relindex_eq_one] lemma relindex_eq_one : H.relindex K = 1 ↔ K ≤ H :=
+index_eq_one.trans subgroup_of_eq_top
+
+@[simp, to_additive card_eq_one] lemma card_eq_one : nat.card H = 1 ↔ H = ⊥ :=
+H.relindex_bot_left ▸ (relindex_eq_one.trans le_bot_iff)
 
 @[to_additive] lemma index_ne_zero_of_finite [hH : finite (G ⧸ H)] : H.index ≠ 0 :=
 by { casesI nonempty_fintype (G ⧸ H), rw index_eq_card, exact fintype.card_ne_zero }

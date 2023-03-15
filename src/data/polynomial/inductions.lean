@@ -5,9 +5,13 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Damiano Testa, Jens Wage
 -/
 import data.nat.interval
 import data.polynomial.degree.definitions
+import data.polynomial.induction
 
 /-!
 # Induction on polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas dealing with different flavours of induction on polynomials.
 -/

@@ -9,6 +9,9 @@ import linear_algebra.basis
 /-!
 # Properties of the module `Π₀ i, M i`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an indexed collection of `R`-modules `M i`, the `R`-module structure on `Π₀ i, M i`
 is defined in `data.dfinsupp`.
 
@@ -153,7 +156,7 @@ lemma map_range_smul (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
   map_range f hf (r • g) = r • map_range f hf g :=
 begin
   ext,
-  simp only [map_range_apply f, dfinsupp.coe_smul, pi.smul_apply, hf']
+  simp only [map_range_apply f, coe_smul, pi.smul_apply, hf']
 end
 
 /-- `dfinsupp.map_range` as an `linear_map`. -/

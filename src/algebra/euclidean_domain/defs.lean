@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
 import logic.nontrivial
-import algebra.opposites
-import algebra.field.defs
-import algebra.hom.group
 import algebra.divisibility.basic
 import algebra.group.basic
-import algebra.order.monoid.lemmas
+import algebra.ring.defs
 
 /-!
 # Euclidean domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces Euclidean domains and provides the extended Euclidean algorithm. To be precise,
 a slightly more general version is provided which is sometimes called a transfinite Euclidean domain

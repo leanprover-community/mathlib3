@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import algebra.order.with_zero
-import topology.algebra.order.basic
+import topology.algebra.order.field
 
 /-!
 # The topology on linearly ordered commutative groups with zero
@@ -25,17 +25,15 @@ absolute value (resp. `p`-adic absolute value) on `ℚ` is extended to `ℝ` (re
 
 ## Implementation notes
 
-This topology is not defined as an instance since it may not be the desired topology on
-a linearly ordered commutative group with zero. You can locally activate this topology using
-`local attribute [instance] linear_ordered_comm_group_with_zero.topological_space`
-All other instances will (`ordered_topology`, `t3_space`, `has_continuous_mul`) then follow.
-
+This topology is not defined as a global instance since it may not be the desired topology on a
+linearly ordered commutative group with zero. You can locally activate this topology using
+`open_locale with_zero_topology`.
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set function
 
-namespace linear_ordered_comm_group_with_zero
+namespace with_zero_topology
 
 variables {α Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] {γ γ₁ γ₂ : Γ₀} {l : filter α}
   {f : α → Γ₀}
@@ -45,7 +43,7 @@ A subset U is open if 0 ∉ U or if there is an invertible element γ₀ such th
 protected def topological_space : topological_space Γ₀ :=
 topological_space.mk_of_nhds $ update pure 0 $ ⨅ γ ≠ 0, 𝓟 (Iio γ)
 
-local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
+localized "attribute [instance] with_zero_topology.topological_space" in with_zero_topology
 
 lemma nhds_eq_update : (𝓝 : Γ₀ → filter Γ₀) = update pure 0 (⨅ γ ≠ 0, 𝓟 (Iio γ)) :=
 funext $ nhds_mk_of_nhds_single $ le_infi₂ $ λ γ h₀, le_principal_iff.2 $ zero_lt_iff.2 h₀
@@ -134,8 +132,7 @@ is_open_iff.mpr $ imp_iff_not_or.mp $ λ ha, ⟨a, ne_of_gt ha, subset.rfl⟩
 
 /-- The topology on a linearly ordered group with zero element adjoined is compatible with the order
 structure: the set `{p : Γ₀ × Γ₀ | p.1 ≤ p.2}` is closed. -/
-@[priority 100]
-instance order_closed_topology : order_closed_topology Γ₀ :=
+protected lemma order_closed_topology : order_closed_topology Γ₀ :=
 { is_closed_le' :=
   begin
     simp only [← is_open_compl_iff, compl_set_of, not_le, is_open_iff_mem_nhds],
@@ -144,9 +141,10 @@ instance order_closed_topology : order_closed_topology Γ₀ :=
     exact Iio_mem_nhds hab
   end }
 
+localized "attribute [instance] with_zero_topology.order_closed_topology" in with_zero_topology
+
 /-- The topology on a linearly ordered group with zero element adjoined is T₃. -/
-@[priority 100]
-instance t3_space : t3_space Γ₀ :=
+lemma t3_space : t3_space Γ₀ :=
 { to_regular_space := regular_space.of_lift'_closure $ λ γ,
     begin
       rcases ne_or_eq γ 0 with h₀|rfl,
@@ -156,16 +154,17 @@ instance t3_space : t3_space Γ₀ :=
         (λ x hx, is_closed_iff.2 $ or.inl $ zero_lt_iff.2 hx) },
     end }
 
+localized "attribute [instance] with_zero_topology.t3_space" in with_zero_topology
+
 /-- The topology on a linearly ordered group with zero element adjoined makes it a topological
 monoid. -/
-@[priority 100]
-instance : has_continuous_mul Γ₀ :=
+protected lemma has_continuous_mul : has_continuous_mul Γ₀ :=
 ⟨begin
   rw continuous_iff_continuous_at,
   rintros ⟨x, y⟩,
-  wlog hle : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
-  { simpa only [mul_comm, (∘), prod.swap]
-      using tendsto.comp this (continuous_swap.tendsto (x, y)) },
+  wlog hle : x ≤ y generalizing x y,
+  { have := tendsto.comp (this y x (le_of_not_le hle)) (continuous_swap.tendsto (x,y)),
+    simpa only [mul_comm, function.comp, prod.swap], },
   rcases eq_or_ne x 0 with rfl|hx; [rcases eq_or_ne y 0 with rfl|hy, skip],
   { rw [continuous_at, zero_mul],
     refine ((has_basis_nhds_zero.prod_nhds has_basis_nhds_zero).tendsto_iff has_basis_nhds_zero).2
@@ -182,8 +181,11 @@ instance : has_continuous_mul Γ₀ :=
     exact pure_le_nhds (x * y) }
 end⟩
 
-@[priority 100]
-instance : has_continuous_inv₀ Γ₀ :=
+localized "attribute [instance] with_zero_topology.has_continuous_mul" in with_zero_topology
+
+protected lemma has_continuous_inv₀ : has_continuous_inv₀ Γ₀ :=
 ⟨λ γ h, by { rw [continuous_at, nhds_of_ne_zero h], exact pure_le_nhds γ⁻¹ }⟩
 
-end linear_ordered_comm_group_with_zero
+localized "attribute [instance] with_zero_topology.has_continuous_inv₀" in with_zero_topology
+
+end with_zero_topology

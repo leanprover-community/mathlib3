@@ -9,6 +9,9 @@ import linear_algebra.prod
 /-!
 # Partially defined linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `linear_pmap R E F` or `E →ₗ.[R] F` is a linear map from a submodule of `E` to `F`.
 We define a `semilattice_inf` with `order_bot` instance on this this, and define three operations:
 
@@ -170,6 +173,14 @@ instance : has_neg (E →ₗ.[R] F) :=
 
 instance : has_le (E →ₗ.[R] F) :=
 ⟨λ f g, f.domain ≤ g.domain ∧ ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y⟩
+
+lemma apply_comp_of_le {T S : E →ₗ.[R] F} (h : T ≤ S) (x : T.domain) :
+  T x = S (submodule.of_le h.1 x) :=
+h.2 rfl
+
+lemma exists_of_le {T S : E →ₗ.[R] F} (h : T ≤ S) (x : T.domain) :
+  ∃ (y : S.domain), (x : E) = y ∧ T x = S y :=
+⟨⟨x.1, h.1 x.2⟩, ⟨rfl, h.2 rfl⟩⟩
 
 lemma eq_of_le_of_domain_eq {f g : E →ₗ.[R] F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=

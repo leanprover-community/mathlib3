@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import representation_theory.Rep
-import algebra.category.FinVect.limits
+import algebra.category.fgModule.limits
 import category_theory.preadditive.schur
 import representation_theory.basic
 
@@ -18,16 +18,17 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
-We verify that `fdRep k G` is a `k`-linear monoidal category, and right rigid when `G` is a group.
+We verify that `fdRep k G` is a `k`-linear monoidal category, and rigid when `G` is a group.
 
 `fdRep k G` has all finite limits.
 
 ## TODO
 * `fdRep k G ≌ full_subcategory (finite_dimensional k)`
-* Upgrade the right rigid structure to a rigid structure (this just needs to be done for `FinVect`).
+* Upgrade the right rigid structure to a rigid structure
+  (this just needs to be done for `fgModule`).
 * `fdRep k G` has all finite colimits.
 * `fdRep k G` is abelian.
-* `fdRep k G ≌ FinVect (monoid_algebra k G)` (this will require generalising `FinVect` first).
+* `fdRep k G ≌ fgModule (monoid_algebra k G)`.
 
 -/
 
@@ -39,7 +40,7 @@ open category_theory.limits
 /-- The category of finite dimensional `k`-linear representations of a monoid `G`. -/
 @[derive [large_category, concrete_category, preadditive, has_finite_limits]]
 abbreviation fdRep (k G : Type u) [field k] [monoid G] :=
-Action (FinVect.{u} k) (Mon.of G)
+Action (fgModule.{u} k) (Mon.of G)
 
 namespace fdRep
 
@@ -50,31 +51,31 @@ instance : linear k (fdRep k G) := by apply_instance
 instance : has_coe_to_sort (fdRep k G) (Type u) := concrete_category.has_coe_to_sort _
 
 instance (V : fdRep k G) : add_comm_group V :=
-by { change add_comm_group ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
+by { change add_comm_group ((forget₂ (fdRep k G) (fgModule k)).obj V).obj, apply_instance, }
 
 instance (V : fdRep k G) : module k V :=
-by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
+by { change module k ((forget₂ (fdRep k G) (fgModule k)).obj V).obj, apply_instance, }
 
 instance (V : fdRep k G) : finite_dimensional k V :=
-by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
+by { change finite_dimensional k ((forget₂ (fdRep k G) (fgModule k)).obj V).obj, apply_instance, }
 
 /-- All hom spaces are finite dimensional. -/
 instance (V W : fdRep k G) : finite_dimensional k (V ⟶ W) :=
 finite_dimensional.of_injective
-  ((forget₂ (fdRep k G) (FinVect k)).map_linear_map k) (functor.map_injective _)
+  ((forget₂ (fdRep k G) (fgModule k)).map_linear_map k) (functor.map_injective _)
 
 /-- The monoid homomorphism corresponding to the action of `G` onto `V : fdRep k G`. -/
 def ρ (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 
 /-- The underlying `linear_equiv` of an isomorphism of representations. -/
 def iso_to_linear_equiv {V W : fdRep k G} (i : V ≅ W) : V ≃ₗ[k] W :=
-  FinVect.iso_to_linear_equiv ((Action.forget (FinVect k) (Mon.of G)).map_iso i)
+  fgModule.iso_to_linear_equiv ((Action.forget (fgModule k) (Mon.of G)).map_iso i)
 
 lemma iso.conj_ρ {V W : fdRep k G} (i : V ≅ W) (g : G) :
    W.ρ g = (fdRep.iso_to_linear_equiv i).conj (V.ρ g) :=
 begin
-  rw [fdRep.iso_to_linear_equiv, ←FinVect.iso.conj_eq_conj, iso.conj_apply],
-  rw [iso.eq_inv_comp ((Action.forget (FinVect k) (Mon.of G)).map_iso i)],
+  rw [fdRep.iso_to_linear_equiv, ←fgModule.iso.conj_eq_conj, iso.conj_apply],
+  rw [iso.eq_inv_comp ((Action.forget (fgModule k) (Mon.of G)).map_iso i)],
   exact (i.hom.comm g).symm,
 end
 
@@ -82,10 +83,10 @@ end
 @[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
   (ρ : representation k G V) : fdRep k G :=
-⟨FinVect.of k V, ρ⟩
+⟨fgModule.of k V, ρ⟩
 
 instance : has_forget₂ (fdRep k G) (Rep k G) :=
-{ forget₂ := (forget₂ (FinVect k) (Module k)).map_Action (Mon.of G), }
+{ forget₂ := (forget₂ (fgModule k) (Module k)).map_Action (Mon.of G), }
 
 lemma forget₂_ρ (V : fdRep k G) : ((forget₂ (fdRep k G) (Rep k G)).obj V).ρ = V.ρ :=
 by { ext g v, refl }
@@ -114,7 +115,7 @@ def forget₂_hom_linear_equiv (X Y : fdRep k G) :
 { to_fun := λ f, ⟨f.hom, f.comm⟩,
   map_add' := λ _ _, rfl,
   map_smul' := λ _ _, rfl,
-  inv_fun := λ f, ⟨(forget₂ (FinVect k) (Module k)).map f.hom, f.comm⟩,
+  inv_fun := λ f, ⟨(forget₂ (fgModule k) (Module k)).map f.hom, f.comm⟩,
   left_inv := λ _, by { ext, refl },
   right_inv := λ _, by { ext, refl } }
 
@@ -123,9 +124,9 @@ end fdRep
 namespace fdRep
 variables {k G : Type u} [field k] [group G]
 
--- Verify that the rigid structure is available when the monoid is a group.
+-- Verify that the right rigid structure is available when the monoid is a group.
 noncomputable instance : right_rigid_category (fdRep k G) :=
-by { change right_rigid_category (Action (FinVect k) (Group.of G)), apply_instance, }
+by { change right_rigid_category (Action (fgModule k) (Group.of G)), apply_instance, }
 
 end fdRep
 
@@ -147,7 +148,7 @@ variables (ρV : representation k G V) (W : fdRep k G)
 /-- Auxiliary definition for `fdRep.dual_tensor_iso_lin_hom`. -/
 noncomputable def dual_tensor_iso_lin_hom_aux :
   ((fdRep.of ρV.dual) ⊗ W).V ≅ (fdRep.of (lin_hom ρV W.ρ)).V :=
-(dual_tensor_hom_equiv k V W).to_FinVect_iso
+(dual_tensor_hom_equiv k V W).to_fgModule_iso
 
 /-- When `V` and `W` are finite dimensional representations of a group `G`, the isomorphism
 `dual_tensor_hom_equiv k V W` of vector spaces induces an isomorphism of representations. -/

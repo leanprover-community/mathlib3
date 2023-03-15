@@ -162,6 +162,12 @@ protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : qua
   to_fun_smul := h.symm ▸ Q.to_fun_smul,
   exists_companion' := h.symm ▸ Q.exists_companion' }
 
+@[simp]
+lemma coe_copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : ⇑(Q.copy Q' h) = Q' := rfl
+
+lemma copy_eq (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : Q.copy Q' h = Q :=
+fun_like.ext' h
+
 end fun_like
 
 section semiring
@@ -569,6 +575,10 @@ map_multiset_sum (to_quadratic_form_add_monoid_hom R M) B
 @[simp] lemma to_quadratic_form_sum {ι : Type*} (s : finset ι) (B : ι → bilin_form R M) :
   (∑ i in s, B i).to_quadratic_form = ∑ i in s, (B i).to_quadratic_form :=
 map_sum (to_quadratic_form_add_monoid_hom R M) B s
+
+@[simp] lemma to_quadratic_form_eq_zero {B : bilin_form R M} :
+  B.to_quadratic_form = 0 ↔ B.is_alt :=
+quadratic_form.ext_iff
 
 end semiring
 

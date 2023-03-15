@@ -6,7 +6,6 @@ Authors: Aaron Anderson
 import order.well_founded_set
 import algebra.big_operators.finprod
 import ring_theory.valuation.basic
-import algebra.module.pi
 import ring_theory.power_series.basic
 import data.finsupp.pwo
 import data.finset.mul_antidiagonal
@@ -394,6 +393,10 @@ lemma sub_coeff' {x y : hahn_series Γ R} :
 
 lemma sub_coeff {x y : hahn_series Γ R} {a : Γ} :
   (x - y).coeff a = x.coeff a - y.coeff a := by simp
+
+@[simp] lemma order_neg [has_zero Γ] {f : hahn_series Γ R} : (- f).order = f.order :=
+by { by_cases hf : f = 0, { simp only [hf, neg_zero] },
+    simp only [order, support_neg, neg_eq_zero] }
 
 end add_group
 
@@ -784,9 +787,7 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_s
 
 instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
   is_domain (hahn_series Γ R) :=
-{ .. hahn_series.no_zero_divisors,
-  .. hahn_series.nontrivial,
-  .. hahn_series.ring }
+no_zero_divisors.to_is_domain _
 
 @[simp]
 lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_semiring R]

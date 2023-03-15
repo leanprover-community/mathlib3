@@ -5,9 +5,13 @@ Authors: Jeremy Avigad
 -/
 import data.int.basic
 import data.nat.pow
+import data.nat.size
 
 /-!
 # Bitwise operations on integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 
 ## Recursors

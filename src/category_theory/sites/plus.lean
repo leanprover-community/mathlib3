@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.sites.sheaf
-import category_theory.preadditive.additive_functor
 
 /-!
 

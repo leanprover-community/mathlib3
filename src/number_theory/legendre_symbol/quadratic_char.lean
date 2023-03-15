@@ -3,6 +3,7 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
+import data.fintype.parity
 import number_theory.legendre_symbol.zmod_char
 import field_theory.finite.basic
 import number_theory.legendre_symbol.gauss_sum
@@ -310,7 +311,7 @@ begin
     exact (λ hf, one_ne_zero  $ (nat.odd_of_mod_four_eq_three hf).symm.trans
                               $ finite_field.even_card_of_char_two hF) },
   { have h₁ := finite_field.odd_card_of_char_ne_two hF,
-    rw [← quadratic_char_one_iff_is_square (neg_ne_zero.mpr (@one_ne_zero F _ _)),
+    rw [← quadratic_char_one_iff_is_square (neg_ne_zero.mpr (one_ne_zero' F)),
         quadratic_char_neg_one hF, χ₄_nat_eq_if_mod_four, h₁],
     simp only [nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def, (dec_trivial : (-1 : ℤ) ≠ 1),
                imp_false, not_not],

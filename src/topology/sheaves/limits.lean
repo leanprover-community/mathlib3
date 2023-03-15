@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf
 import category_theory.sites.limits
-import category_theory.adjunction
 import category_theory.limits.functor_category
 
 /-!

@@ -9,6 +9,9 @@ import data.rat.floor
 /-!
 # Archimedean groups and fields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the archimedean property for ordered groups and proves several results connected
 to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
 number `n` such that `x ≤ n • y`.
@@ -68,18 +71,29 @@ lemma exists_unique_zsmul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
 by simpa only [sub_nonneg, add_zsmul, one_zsmul, sub_lt_iff_lt_add']
   using exists_unique_zsmul_near_of_pos ha g
 
+lemma exists_unique_sub_zsmul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b - m • a ∈ set.Ico c (c + a) :=
+by simpa only [mem_Ico, le_sub_iff_add_le, zero_add, add_comm c, sub_lt_iff_lt_add', add_assoc]
+  using exists_unique_zsmul_near_of_pos' ha (b - c)
+
 lemma exists_unique_add_zsmul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
   ∃! m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
 (equiv.neg ℤ).bijective.exists_unique_iff.2 $
-  by simpa only [equiv.neg_apply, mem_Ico, neg_zsmul, ← sub_eq_add_neg, le_sub_iff_add_le, zero_add,
-    add_comm c, sub_lt_iff_lt_add', add_assoc] using exists_unique_zsmul_near_of_pos' ha (b - c)
+  by simpa only [equiv.neg_apply, neg_zsmul, ← sub_eq_add_neg]
+    using exists_unique_sub_zsmul_mem_Ico ha b c
 
 lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
   ∃! m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
 (equiv.add_right (1 : ℤ)).bijective.exists_unique_iff.2 $
-  by simpa only [add_zsmul, sub_lt_iff_lt_add', le_sub_iff_add_le', ← add_assoc, and.comm, mem_Ioc,
-    equiv.coe_add_right, one_zsmul, add_le_add_iff_right]
+  by simpa only [add_one_zsmul, sub_lt_iff_lt_add', le_sub_iff_add_le', ← add_assoc, and.comm,
+    mem_Ioc, equiv.coe_add_right, add_le_add_iff_right]
     using exists_unique_zsmul_near_of_pos ha (c - b)
+
+lemma exists_unique_sub_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b - m • a ∈ set.Ioc c (c + a) :=
+(equiv.neg ℤ).bijective.exists_unique_iff.2 $
+  by simpa only [equiv.neg_apply, neg_zsmul, sub_neg_eq_add]
+    using exists_unique_add_zsmul_mem_Ioc ha b c
 
 end linear_ordered_add_comm_group
 

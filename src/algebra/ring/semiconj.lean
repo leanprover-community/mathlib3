@@ -3,11 +3,14 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
-import algebra.ring.basic
 import algebra.group.semiconj
+import algebra.ring.defs
 
 /-!
 # Semirings and rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file gives lemmas about semirings, rings and domains.
 This is analogous to `algebra.group.basic`,

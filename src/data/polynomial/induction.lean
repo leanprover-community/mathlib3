@@ -3,11 +3,14 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.coeff
 import ring_theory.ideal.basic
+import data.polynomial.basic
 
 /-!
 # Induction on polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas dealing with different flavours of induction on polynomials.
 See also `data/polynomial/inductions.lean` (with an `s`!).
@@ -43,7 +46,7 @@ begin
   { apply finset.induction,
     { convert h_C 0, exact C_0.symm },
     { assume n s ns ih, rw sum_insert ns, exact h_add _ _ A ih, } },
-  rw [← sum_C_mul_X_eq p, polynomial.sum],
+  rw [← sum_C_mul_X_pow_eq p, polynomial.sum],
   exact B _
 end
 
@@ -57,8 +60,7 @@ and it holds for monomials.
   (h_monomial : ∀(n : ℕ) (a : R), M (monomial n a)) :
   M p :=
 polynomial.induction_on p (h_monomial 0) h_add
-(λ n a h, by { rw ← monomial_eq_C_mul_X at ⊢, exact h_monomial _ _ })
-
+(λ n a h, by { rw C_mul_X_pow_eq_monomial at ⊢, exact h_monomial _ _ })
 
 open submodule polynomial set
 variables {f : R[X]} {I : ideal R[X]}
@@ -75,14 +77,14 @@ end
 lemma mem_span_C_coeff : f ∈ ideal.span {g : R[X] | ∃ i : ℕ, g = C (coeff f i)} :=
 begin
   let p := ideal.span {g : R[X] | ∃ i : ℕ, g = C (coeff f i)},
-  nth_rewrite 0 (sum_C_mul_X_eq f).symm,
+  nth_rewrite 0 (sum_C_mul_X_pow_eq f).symm,
   refine submodule.sum_mem _ (λ n hn, _),
   dsimp,
   have : C (coeff f n) ∈ p, by { apply subset_span, simp },
   have : (monomial n (1 : R)) • C (coeff f n) ∈ p := p.smul_mem _ this,
   convert this using 1,
   simp only [monomial_mul_C, one_mul, smul_eq_mul],
-  rw monomial_eq_C_mul_X,
+  rw ← C_mul_X_pow_eq_monomial,
 end
 
 lemma exists_C_coeff_not_mem : f ∉ I → ∃ i : ℕ, C (coeff f i) ∉ I :=

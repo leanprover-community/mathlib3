@@ -3,11 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
 import analysis.calculus.affine_map
 import analysis.convex.combination
-import linear_algebra.affine_space.basis
 import linear_algebra.affine_space.finite_dimensional
 
 /-!
@@ -35,7 +33,7 @@ include E
 lemma is_open_map_barycentric_coord [nontrivial ι] (b : affine_basis ι 𝕜 P) (i : ι) :
   is_open_map (b.coord i) :=
 affine_map.is_open_map_linear_iff.mp $ (b.coord i).linear.is_open_map_of_finite_dimensional $
-  (b.coord i).surjective_iff_linear_surjective.mpr (b.surjective_coord i)
+  (b.coord i).linear_surjective_iff.mpr (b.surjective_coord i)
 
 variables [finite_dimensional 𝕜 E] (b : affine_basis ι 𝕜 P)
 
@@ -58,17 +56,17 @@ TODO Restate this result for affine spaces (instead of vector spaces) once the d
 convexity is generalised to this setting. -/
 lemma affine_basis.interior_convex_hull {ι E : Type*} [finite ι] [normed_add_comm_group E]
   [normed_space ℝ E] (b : affine_basis ι ℝ E) :
-  interior (convex_hull ℝ (range b.points)) = {x | ∀ i, 0 < b.coord i x} :=
+  interior (convex_hull ℝ (range b)) = {x | ∀ i, 0 < b.coord i x} :=
 begin
   casesI subsingleton_or_nontrivial ι,
   { -- The zero-dimensional case.
-    have : range (b.points) = univ,
+    have : range b = univ,
       from affine_subspace.eq_univ_of_subsingleton_span_eq_top (subsingleton_range _) b.tot,
     simp [this] },
   { -- The positive-dimensional case.
     haveI : finite_dimensional ℝ E := b.finite_dimensional,
-    have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
-    { rw [convex_hull_affine_basis_eq_nonneg_barycentric b, set_of_forall], refl },
+    have : convex_hull ℝ (range b) = ⋂ i, (b.coord i)⁻¹' Ici 0,
+    { rw [b.convex_hull_eq_nonneg_coord, set_of_forall], refl },
     ext,
     simp only [this, interior_Inter, ← is_open_map.preimage_interior_eq_interior_preimage
       (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
@@ -134,7 +132,7 @@ top_unique $ is_open_interior.affine_span_eq_top hs ▸
   (affine_span_mono _ interior_subset).trans_eq (affine_span_convex_hull _)
 
 lemma affine_basis.centroid_mem_interior_convex_hull {ι} [fintype ι] (b : affine_basis ι ℝ V) :
-  finset.univ.centroid ℝ b.points ∈ interior (convex_hull ℝ (range b.points)) :=
+  finset.univ.centroid ℝ b ∈ interior (convex_hull ℝ (range b)) :=
 begin
   haveI := b.nonempty,
   simp only [b.interior_convex_hull, mem_set_of_eq, b.coord_apply_centroid (finset.mem_univ _),
@@ -146,7 +144,7 @@ lemma interior_convex_hull_nonempty_iff_affine_span_eq_top [finite_dimensional �
 begin
   refine ⟨affine_span_eq_top_of_nonempty_interior, λ h, _⟩,
   obtain ⟨t, hts, b, hb⟩ := affine_basis.exists_affine_subbasis h,
-  suffices : (interior (convex_hull ℝ (range b.points))).nonempty,
+  suffices : (interior (convex_hull ℝ (range b))).nonempty,
   { rw [hb, subtype.range_coe_subtype, set_of_mem_eq] at this,
     refine this.mono _,
     mono* },

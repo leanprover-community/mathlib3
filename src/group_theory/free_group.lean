@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.fintype.basic
+import data.list.sublists
 import group_theory.subgroup.basic
 
 /-!
 # Free groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines free groups over a type. Furthermore, it is shown that the free group construction
 is an instance of a monad. For the result that `free_group` is the left adjoint to the forgetful
@@ -425,7 +429,7 @@ instance : has_mul (free_group α) :=
     (λ L₁ L₂ H, quot.induction_on y $ λ L₃, quot.sound $ red.step.append_right H)⟩
 @[simp, to_additive] lemma mul_mk : mk L₁ * mk L₂ = mk (L₁ ++ L₂) := rfl
 
-/-- Transform a word representing a free group element into a word representing its inverse. --/
+/-- Transform a word representing a free group element into a word representing its inverse. -/
 @[to_additive "Transform a word representing a free group element into a word representing its
 negative."]
 def inv_rev (w : list (α × bool)) : list (α × bool) :=
@@ -1073,7 +1077,7 @@ section metric
 
 variable [decidable_eq α]
 
-/-- The length of reduced words provides a norm on a free group. --/
+/-- The length of reduced words provides a norm on a free group. -/
 @[to_additive "The length of reduced words provides a norm on an additive free group."]
 def norm (x : free_group α) : ℕ := x.to_word.length
 

@@ -8,6 +8,9 @@ import data.nat.cast.defs
 /-!
 # Cast of integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the *canonical* homomorphism from the integers into an
 additive group with a one (typically a `ring`).  In additive groups with a one
 element, there exists a unique such homomorphism and we store it in the

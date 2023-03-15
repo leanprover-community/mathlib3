@@ -7,10 +7,13 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.normal_mono.equalizers
 import category_theory.abelian.images
-import category_theory.preadditive
+import category_theory.preadditive.basic
 
 /-!
 # Every non_preadditive_abelian category is preadditive
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In mathlib, we define an abelian category as a preadditive category with a zero object,
 kernels and cokernels, products and coproducts and in which every monomorphism and epimorphis is

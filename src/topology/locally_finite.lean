@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.basic
+import order.filter.small_sets
 
 /-!
 ### Locally finite families of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a family of sets in a topological space is *locally finite* if at every point `x : X`,
 there is a neighborhood of `x` which meets only finitely many sets in the family.
@@ -17,7 +21,7 @@ In this file we give the definition and prove basic properties of locally finite
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 
 open set function filter
-open_locale topological_space filter
+open_locale topology filter
 
 universe u
 variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]
@@ -159,7 +163,7 @@ end locally_finite
   locally_finite (f ∘ e) ↔ locally_finite f :=
 ⟨λ h, by simpa only [(∘), e.apply_symm_apply] using h.comp_injective e.symm.injective,
   λ h, h.comp_injective e.injective⟩
-  
+
 lemma locally_finite_sum {f : ι ⊕ ι' → set X} :
   locally_finite f ↔ locally_finite (f ∘ sum.inl) ∧ locally_finite (f ∘ sum.inr) :=
 by simp only [locally_finite_iff_small_sets, ← forall_and_distrib, ← finite_preimage_inl_and_inr,

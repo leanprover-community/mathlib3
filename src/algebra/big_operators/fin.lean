@@ -247,8 +247,8 @@ equiv.of_right_inverse_of_card_le
 lemma coe_fin_function_fin_equiv_apply {m n : ℕ} (f : fin n → fin m):
   (fin_function_fin_equiv f : ℕ) = ∑ (i : fin n), ↑(f i) * m ^ (i : ℕ) := rfl
 
-lemma fin_function_fin_equiv_single {m n : ℕ} (i : fin n) (j : fin (m + 1)) :
-  (fin_function_fin_equiv (pi.single i j) : ℕ) = j * (m + 1) ^ (i : ℕ) :=
+lemma fin_function_fin_equiv_single {m n : ℕ} [ne_zero m] (i : fin n) (j : fin m) :
+  (fin_function_fin_equiv (pi.single i j) : ℕ) = j * m ^ (i : ℕ) :=
 begin
   rw [coe_fin_function_fin_equiv_apply, fintype.sum_eq_single i, pi.single_eq_same],
   rintro x hx,

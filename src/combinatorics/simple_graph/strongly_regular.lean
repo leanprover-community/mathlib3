@@ -8,6 +8,9 @@ import data.set.finite
 /-!
 # Strongly regular graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `G.is_SRG_with n k ℓ μ` (see `simple_graph.is_SRG_with`) is a structure for

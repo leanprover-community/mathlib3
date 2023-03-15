@@ -114,7 +114,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal filter asymptotics ennreal
+open_locale topology classical nnreal filter asymptotics ennreal
 
 noncomputable theory
 
@@ -1169,6 +1169,14 @@ lemma fderiv_within.comp {g : F → G} {t : set F}
   (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t (f x)).comp (fderiv_within 𝕜 f s x) :=
 (hg.has_fderiv_within_at.comp x (hf.has_fderiv_within_at) h).fderiv_within hxs
+
+/-- A version of `fderiv_within.comp` that is useful to rewrite the composition of two derivatives
+  into a single derivative. This version always applies, but creates a new side-goal `f x = y`. -/
+lemma fderiv_within_fderiv_within {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
+  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
+  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) (v : E) :
+  fderiv_within 𝕜 g t y (fderiv_within 𝕜 f s x v) = fderiv_within 𝕜 (g ∘ f) s x v :=
+by { subst y, rw [fderiv_within.comp x hg hf h hxs], refl }
 
 /-- Ternary version of `fderiv_within.comp`, with equality assumptions of basepoints added, in
   order to apply more easily as a rewrite from right-to-left. -/

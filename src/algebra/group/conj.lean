@@ -11,6 +11,9 @@ import algebra.hom.group
 /-!
 # Conjugacy of group elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See also `mul_aut.conj` and `quandle.conj`.
 -/
 

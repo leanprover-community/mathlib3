@@ -32,7 +32,7 @@ stopping time, stochastic process
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 

@@ -5,6 +5,7 @@ Authors: Joseph Myers
 -/
 import data.finset.sort
 import data.fin.vec_notation
+import data.sign
 import linear_algebra.affine_space.combination
 import linear_algebra.affine_space.affine_equiv
 import linear_algebra.basis
@@ -364,7 +365,7 @@ begin
   rw affine_independent_iff_linear_independent_vsub k p i at hai,
   simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
     ← f.linear_map_vsub],
-  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.injective_iff_linear_injective], },
+  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.linear_injective_iff], },
   exact linear_independent.map' hai f.linear hf',
 end
 
@@ -470,6 +471,55 @@ lemma affine_independent_iff {ι} {p : ι → V} :
   affine_independent k p ↔
   ∀ (s : finset ι) (w : ι → k), s.sum w = 0 → ∑ e in s, w e • p e = 0 → ∀ (e ∈ s), w e = 0 :=
 forall₃_congr (λ s w hw, by simp [s.weighted_vsub_eq_linear_combination hw])
+
+/-- Given an affinely independent family of points, a weighted subtraction lies in the
+`vector_span` of two points given as affine combinations if and only if it is a weighted
+subtraction with weights a multiple of the difference between the weights of the two points. -/
+lemma weighted_vsub_mem_vector_span_pair {p : ι → P} (h : affine_independent k p)
+  {w w₁ w₂ : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 0) (hw₁ : ∑ i in s, w₁ i = 1)
+  (hw₂ : ∑ i in s, w₂ i = 1) :
+  s.weighted_vsub p w ∈
+    vector_span k ({s.affine_combination p w₁, s.affine_combination p w₂} : set P) ↔
+    ∃ r : k, ∀ i ∈ s, w i = r * (w₁ i - w₂ i) :=
+begin
+  rw mem_vector_span_pair,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with ⟨r, hr⟩,
+    refine ⟨r, λ i hi, _⟩,
+    rw [s.affine_combination_vsub, ←s.weighted_vsub_const_smul, ←sub_eq_zero, ←map_sub] at hr,
+    have hw' : ∑ j in s, (r • (w₁ - w₂) - w) j = 0,
+    { simp_rw [pi.sub_apply, pi.smul_apply, pi.sub_apply, smul_sub, finset.sum_sub_distrib,
+               ←finset.smul_sum, hw, hw₁, hw₂, sub_self] },
+    have hr' := h s _ hw' hr i hi,
+    rw [eq_comm, ←sub_eq_zero, ←smul_eq_mul],
+    exact hr' },
+  { rcases h with ⟨r, hr⟩,
+    refine ⟨r, _⟩,
+    let w' := λ i, r * (w₁ i - w₂ i),
+    change ∀ i ∈ s, w i = w' i at hr,
+    rw [s.weighted_vsub_congr hr (λ _ _, rfl), s.affine_combination_vsub,
+        ←s.weighted_vsub_const_smul],
+    congr }
+end
+
+/-- Given an affinely independent family of points, an affine combination lies in the
+span of two points given as affine combinations if and only if it is an affine combination
+with weights those of one point plus a multiple of the difference between the weights of the
+two points. -/
+lemma affine_combination_mem_affine_span_pair {p : ι → P} (h : affine_independent k p)
+  {w w₁ w₂ : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
+  (hw₂ : ∑ i in s, w₂ i = 1) :
+  s.affine_combination p w ∈
+    line[k, s.affine_combination p w₁, s.affine_combination p w₂] ↔
+    ∃ r : k, ∀ i ∈ s, w i = r * (w₂ i - w₁ i) + w₁ i :=
+begin
+  rw [←vsub_vadd (s.affine_combination p w) (s.affine_combination p w₁),
+      affine_subspace.vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _),
+      direction_affine_span, s.affine_combination_vsub, set.pair_comm,
+      weighted_vsub_mem_vector_span_pair h _ hw₂ hw₁],
+  { simp only [pi.sub_apply, sub_eq_iff_eq_add] },
+  { simp_rw [pi.sub_apply, finset.sum_sub_distrib, hw, hw₁, sub_self] }
+end
 
 end affine_independent
 
@@ -652,6 +702,58 @@ begin
 end
 
 end division_ring
+
+section ordered
+
+variables {k : Type*} {V : Type*} {P : Type*} [linear_ordered_ring k] [add_comm_group V]
+variables [module k V] [affine_space V P] {ι : Type*}
+include V
+
+local attribute [instance] linear_ordered_ring.decidable_lt
+
+/-- Given an affinely independent family of points, suppose that an affine combination lies in
+the span of two points given as affine combinations, and suppose that, for two indices, the
+coefficients in the first point in the span are zero and those in the second point in the span
+have the same sign. Then the coefficients in the combination lying in the span have the same
+sign. -/
+lemma sign_eq_of_affine_combination_mem_affine_span_pair {p : ι → P} (h : affine_independent k p)
+  {w w₁ w₂ : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
+  (hw₂ : ∑ i in s, w₂ i = 1)
+  (hs : s.affine_combination p w ∈ line[k, s.affine_combination p w₁, s.affine_combination p w₂])
+  {i j : ι} (hi : i ∈ s) (hj : j ∈ s) (hi0 : w₁ i = 0) (hj0 : w₁ j = 0)
+  (hij : sign (w₂ i) = sign (w₂ j)) : sign (w i) = sign (w j) :=
+begin
+  rw affine_combination_mem_affine_span_pair h hw hw₁ hw₂ at hs,
+  rcases hs with ⟨r, hr⟩,
+  dsimp only at hr,
+  rw [hr i hi, hr j hj, hi0, hj0, add_zero, add_zero, sub_zero, sub_zero, sign_mul, sign_mul, hij]
+end
+
+/-- Given an affinely independent family of points, suppose that an affine combination lies in
+the span of one point of that family and a combination of another two points of that family given
+by `line_map` with coefficient between 0 and 1. Then the coefficients of those two points in the
+combination lying in the span have the same sign. -/
+lemma sign_eq_of_affine_combination_mem_affine_span_single_line_map {p : ι → P}
+  (h : affine_independent k p) {w : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 1)
+  {i₁ i₂ i₃ : ι} (h₁ : i₁ ∈ s) (h₂ : i₂ ∈ s) (h₃ : i₃ ∈ s) (h₁₂ : i₁ ≠ i₂) (h₁₃ : i₁ ≠ i₃)
+  (h₂₃ : i₂ ≠ i₃) {c : k} (hc0 : 0 < c) (hc1 : c < 1)
+  (hs : s.affine_combination p w ∈ line[k, p i₁, affine_map.line_map (p i₂) (p i₃) c]) :
+  sign (w i₂) = sign (w i₃) :=
+begin
+  classical,
+  rw [←s.affine_combination_affine_combination_single_weights k p h₁,
+      ←s.affine_combination_affine_combination_line_map_weights p h₂ h₃ c] at hs,
+  refine sign_eq_of_affine_combination_mem_affine_span_pair h hw
+    (s.sum_affine_combination_single_weights k h₁)
+    (s.sum_affine_combination_line_map_weights h₂ h₃ c) hs h₂ h₃
+    (finset.affine_combination_single_weights_apply_of_ne k h₁₂.symm)
+    (finset.affine_combination_single_weights_apply_of_ne k h₁₃.symm) _,
+  rw [finset.affine_combination_line_map_weights_apply_left h₂₃,
+      finset.affine_combination_line_map_weights_apply_right h₂₃],
+  simp [hc0, sub_pos.2 hc1]
+end
+
+end ordered
 
 namespace affine
 

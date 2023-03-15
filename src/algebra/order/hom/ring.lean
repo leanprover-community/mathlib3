@@ -7,10 +7,14 @@ import algebra.order.archimedean
 import algebra.order.hom.monoid
 import algebra.order.ring.defs
 import algebra.ring.equiv
+import tactic.by_contra
 import tactic.wlog
 
 /-!
 # Ordered ring homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Homomorphisms between ordered (semi)rings that respect the ordering.
 
@@ -324,9 +328,9 @@ instance order_ring_hom.subsingleton [linear_ordered_field α] [linear_ordered_f
   subsingleton (α →+*o β) :=
 ⟨λ f g, begin
   ext x,
-  by_contra' h,
-  wlog h : f x < g x using [f g, g f],
-  { exact ne.lt_or_lt h },
+  by_contra' h' : f x ≠ g x,
+  wlog h : f x < g x,
+  { exact this g f x (ne.symm h') (h'.lt_or_lt.resolve_left h), },
   obtain ⟨q, hf, hg⟩ := exists_rat_btwn h,
   rw ←map_rat_cast f at hf,
   rw ←map_rat_cast g at hg,

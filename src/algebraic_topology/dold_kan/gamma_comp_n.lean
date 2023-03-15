@@ -5,21 +5,21 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.dold_kan.functor_gamma
-import algebraic_topology.dold_kan.split_simplicial_object
+import category_theory.idempotents.homological_complex
 
-/-! The counit isomorphism of the Dold-Kan equivlence
+/-! The counit isomorphism of the Dold-Kan equivalence
 
 The purpose of this file is to construct natural isomorphisms
 `N₁Γ₀ : Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ)`
-and `N₂Γ₂ : Γ₂ ⋙ N₂ ≅ 𝟭 (karoubi (chain_complex C ℕ))` (TODO).
+and `N₂Γ₂ : Γ₂ ⋙ N₂ ≅ 𝟭 (karoubi (chain_complex C ℕ))`.
 
- -/
+-/
 
 noncomputable theory
 
 open category_theory category_theory.category category_theory.limits category_theory.idempotents
-  simplex_category opposite simplicial_object
-open_locale simplicial dold_kan
+  opposite simplicial_object
+open_locale simplicial
 
 namespace algebraic_topology
 
@@ -112,6 +112,34 @@ are functors `chain_complex C ℕ ⥤ karoubi (chain_complex C ℕ)`. -/
 @[simps]
 def N₂Γ₂_to_karoubi_iso : to_karoubi (chain_complex C ℕ) ⋙ Γ₂ ⋙ N₂ ≅ Γ₀ ⋙ N₁ :=
 eq_to_iso (N₂Γ₂_to_karoubi)
+
+/-- The counit isomorphism of the Dold-Kan equivalence for additive categories. -/
+def N₂Γ₂ : Γ₂ ⋙ N₂ ≅ 𝟭 (karoubi (chain_complex C ℕ)) :=
+((whiskering_left _ _ _).obj (to_karoubi (chain_complex C ℕ))).preimage_iso
+  (N₂Γ₂_to_karoubi_iso ≪≫ N₁Γ₀)
+
+lemma N₂Γ₂_compatible_with_N₁Γ₀ (K : chain_complex C ℕ) :
+  N₂Γ₂.hom.app ((to_karoubi _).obj K) = N₂Γ₂_to_karoubi_iso.hom.app K ≫ N₁Γ₀.hom.app K :=
+congr_app (((whiskering_left _ _ (karoubi (chain_complex C ℕ ))).obj
+  (to_karoubi (chain_complex C ℕ))).image_preimage
+  (N₂Γ₂_to_karoubi_iso.hom ≫ N₁Γ₀.hom : _ ⟶ to_karoubi _ ⋙ 𝟭 _)) K
+
+@[simp]
+lemma N₂Γ₂_inv_app_f_f (X : karoubi (chain_complex C ℕ)) (n : ℕ) :
+  (N₂Γ₂.inv.app X).f.f n =
+    X.p.f n ≫ (Γ₀.splitting X.X).ι_summand (splitting.index_set.id (op [n])) :=
+begin
+  dsimp only [N₂Γ₂, functor.preimage_iso, iso.trans],
+  simp only [whiskering_left_obj_preimage_app, N₂Γ₂_to_karoubi_iso_inv, functor.id_map,
+    nat_trans.comp_app, eq_to_hom_app, functor.comp_map, assoc, karoubi.comp_f,
+    karoubi.eq_to_hom_f, eq_to_hom_refl, comp_id, karoubi.comp_p_assoc, N₂_map_f_f,
+    homological_complex.comp_f, N₁Γ₀_inv_app_f_f, P_infty_on_Γ₀_splitting_summand_eq_self_assoc,
+    splitting.to_karoubi_nondeg_complex_iso_N₁_hom_f_f, Γ₂_map_f_app, karoubi.decomp_id_p_f],
+  dsimp [to_karoubi],
+  rw [splitting.ι_desc],
+  dsimp [splitting.index_set.id],
+  rw karoubi.homological_complex.p_idem_assoc,
+end
 
 end dold_kan
 

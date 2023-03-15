@@ -8,6 +8,9 @@ import combinatorics.quiver.basic
 
 # Pushing a quiver structure along a map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a map `σ : V → W` and a `quiver` instance on `V`, this files defines a `quiver` instance
 on `W` by associating to each arrow `v ⟶ v'` in `V` an arrow `σ v ⟶ σ v'` in `W`.
 
@@ -16,6 +19,8 @@ on `W` by associating to each arrow `v ⟶ v'` in `V` an arrow `σ v ⟶ σ v'` 
 universes v v₁ v₂ u u₁ u₂
 
 variables {V : Type*} [quiver V] {W : Type*} (σ : V → W)
+
+namespace quiver
 
 /-- The `quiver` instance obtained by pushing arrows of `V` along the map `σ : V → W` -/
 @[nolint unused_arguments]
@@ -76,3 +81,5 @@ begin
 end
 
 end push
+
+end quiver

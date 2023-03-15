@@ -12,6 +12,9 @@ import data.finset.noncomm_prod
 /-!
 # Submonoids: membership criteria
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove various facts about membership in a submonoid:
 
 * `list_prod_mem`, `multiset_prod_mem`, `prod_mem`: if each element of a collection belongs
@@ -291,8 +294,8 @@ by rw [free_monoid.mrange_lift, subtype.range_coe]
 @[to_additive] lemma closure_eq_image_prod (s : set M) :
   (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=
 begin
-  rw [closure_eq_mrange, coe_mrange, ← list.range_map_coe, ← set.range_comp],
-  refl
+  rw [closure_eq_mrange, coe_mrange, ← list.range_map_coe, ← set.range_comp, function.comp],
+  exact congr_arg _ (funext $ free_monoid.lift_apply _),
 end
 
 @[to_additive]

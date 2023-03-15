@@ -11,6 +11,9 @@ import data.set.lattice
 /-!
 # Theory of conditionally complete lattices.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A conditionally complete lattice is a lattice in which every non-empty bounded subset `s`
 has a least upper bound and a greatest lower bound, denoted below by `Sup s` and `Inf s`.
 Typical examples are `ℝ`, `ℕ`, and `ℤ` with their usual orders.

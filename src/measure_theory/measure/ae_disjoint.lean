@@ -110,7 +110,8 @@ set `u`. -/
 lemma exists_disjoint_diff (h : ae_disjoint μ s t) :
   ∃ u, measurable_set u ∧ μ u = 0 ∧ disjoint (s \ u) t :=
 ⟨to_measurable μ (s ∩ t), measurable_set_to_measurable _ _, (measure_to_measurable _).trans h,
-  disjoint_diff.symm.mono_left (λ x hx, ⟨hx.1, λ hxt, hx.2 $ subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩)⟩
+  disjoint_sdiff_self_left.mono_left $ λ x hx, ⟨hx.1, λ hxt, hx.2 $
+    subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩⟩
 
 lemma of_null_right (h : μ t = 0) : ae_disjoint μ s t :=
 measure_mono_null (inter_subset_right _ _) h

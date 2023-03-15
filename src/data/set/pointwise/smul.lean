@@ -6,9 +6,13 @@ Authors: Johan Commelin, Floris van Doorn
 import algebra.module.basic
 import data.set.pairwise
 import data.set.pointwise.basic
+import tactic.by_contra
 
 /-!
 # Pointwise operations of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines pointwise algebraic operations on sets.
 
@@ -193,24 +197,6 @@ variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 @[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
   (⋃ a ∈ t, mul_opposite.op a • s) = s * t :=
 Union_image_right _
-
-@[to_additive]
-lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
-  a • (s ∩ t) = a • s ∩ a • t :=
-(image_inter $ mul_action.injective a).symm
-
-lemma smul_set_inter₀ [group_with_zero α] [mul_action α β] {s t : set β} (ha : a ≠ 0) :
-  a • (s ∩ t) = a • s ∩ a • t :=
-show units.mk0 a ha • _ = _, from smul_set_inter
-
-@[simp, to_additive]
-lemma smul_set_univ [group α] [mul_action α β] {a : α} : a • (univ : set β) = univ :=
-eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul _ _⟩
-
-@[simp, to_additive]
-lemma smul_univ [group α] [mul_action α β] {s : set α} (hs : s.nonempty) :
-  s • (univ : set β) = univ :=
-let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
 
 @[to_additive]
 theorem range_smul_range {ι κ : Type*} [has_smul α β] (b : ι → α) (c : κ → β) :
@@ -490,6 +476,21 @@ lemma subset_set_smul_iff : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
   image_equiv_eq_preimage_symm _ $ mul_action.to_perm _
 
+@[to_additive] lemma smul_set_inter : a • (s ∩ t) = a • s ∩ a • t :=
+image_inter $ mul_action.injective a
+
+@[to_additive] lemma smul_set_sdiff : a • (s \ t) = a • s \ a • t :=
+image_diff (mul_action.injective a) _ _
+
+@[to_additive] lemma smul_set_symm_diff : a • (s ∆ t) = (a • s) ∆ (a • t) :=
+image_symm_diff (mul_action.injective a) _ _
+
+@[simp, to_additive] lemma smul_set_univ : a • (univ : set β) = univ :=
+image_univ_of_surjective $ mul_action.surjective a
+
+@[simp, to_additive] lemma smul_univ {s : set α} (hs : s.nonempty) : s • (univ : set β) = univ :=
+let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
+
 @[to_additive]
 lemma smul_inter_ne_empty_iff {s t : set α} {x : α} :
   x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ t ∧ b ∈ s) ∧ a * b⁻¹ = x :=
@@ -534,7 +535,7 @@ by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
 end group
 
 section group_with_zero
-variables [group_with_zero α] [mul_action α β] {s : set α} {a : α}
+variables [group_with_zero α] [mul_action α β] {s t : set β} {a : α}
 
 @[simp] lemma smul_mem_smul_set_iff₀ (ha : a ≠ 0) (A : set β)
   (x : β) : a • x ∈ a • A ↔ x ∈ A :=
@@ -564,12 +565,24 @@ show units.mk0 a ha • _ ⊆ _ ↔ _, from set_smul_subset_iff
 lemma subset_set_smul_iff₀ (ha : a ≠ 0) {A B : set β} : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 show _ ⊆ units.mk0 a ha • _ ↔ _, from subset_set_smul_iff
 
-lemma smul_univ₀ (hs : ¬ s ⊆ 0) : s • (univ : set β) = univ :=
+lemma smul_set_inter₀ (ha : a ≠ 0) : a • (s ∩ t) = a • s ∩ a • t :=
+show units.mk0 a ha • _ = _, from smul_set_inter
+
+lemma smul_set_sdiff₀ (ha : a ≠ 0) : a • (s \ t) = a • s \ a • t :=
+image_diff (mul_action.injective₀ ha) _ _
+
+lemma smul_set_symm_diff₀ (ha : a ≠ 0) : a • (s ∆ t) = (a • s) ∆ (a • t) :=
+image_symm_diff (mul_action.injective₀ ha) _ _
+
+lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
+image_univ_of_surjective $ mul_action.surjective₀ ha
+
+lemma smul_univ₀ {s : set α} (hs : ¬ s ⊆ 0) : s • (univ : set β) = univ :=
 let ⟨a, ha, ha₀⟩ := not_subset.1 hs in eq_univ_of_forall $ λ b,
   ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul₀ ha₀ _⟩
 
-lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
-eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
+lemma smul_univ₀' {s : set α} (hs : s.nontrivial) : s • (univ : set β) = univ :=
+smul_univ₀ hs.not_subset_singleton
 
 end group_with_zero
 

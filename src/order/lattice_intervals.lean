@@ -9,6 +9,9 @@ import order.bounds.basic
 /-!
 # Intervals in Lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we provide instances of lattice structures on intervals within lattices.
 Some of them depend on the order of the endpoints of the interval, and thus are not made
 global instances. These are probably not all of the lattice instances that could be placed on these

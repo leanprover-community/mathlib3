@@ -257,6 +257,18 @@ is_equivalence.cancel_comp_right _ ((whiskering_right C _ _).obj (to_karoubi D) 
       ((to_karoubi D).as_equivalence.trans (to_karoubi D).as_equivalence.symm)))
   (by { change is_equivalence (karoubi_universal C D).inverse, apply_instance, })
 
+variables {C D}
+
+lemma whiskering_left_obj_preimage_app {F G : karoubi C ⥤ D}
+  (τ : to_karoubi _ ⋙ F ⟶ to_karoubi _ ⋙ G) (P : karoubi C) :
+  (((whiskering_left _ _ _).obj (to_karoubi _)).preimage τ).app P =
+    F.map P.decomp_id_i ≫ τ.app P.X ≫ G.map P.decomp_id_p :=
+begin
+  rw nat_trans_eq,
+  congr' 2,
+  exact congr_app (((whiskering_left _ _ _).obj (to_karoubi _)).image_preimage τ) P.X,
+end
+
 end is_idempotent_complete
 
 end idempotents

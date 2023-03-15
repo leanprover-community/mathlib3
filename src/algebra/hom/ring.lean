@@ -8,10 +8,13 @@ import algebra.ring.basic
 import algebra.divisibility.basic
 import data.pi.algebra
 import algebra.hom.units
-import data.set.basic
+import data.set.image
 
 /-!
 # Homomorphisms of semirings and rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines bundled homomorphisms of (non-unital) semirings and rings. As with monoid and
 groups, we use the same structure `ring_hom a β`, a.k.a. `α →+* β`, for both types of homomorphisms.

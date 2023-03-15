@@ -83,7 +83,7 @@ begin
   suffices : ∀ a b : ι, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
   { cases h₀.lt_or_lt with ha hb,
     { exact this _ _ ha, },
-    { rw inner_eq_zero_sym,
+    { rw inner_eq_zero_symm,
       exact this _ _ hb, }, },
   clear h₀ a b,
   intros a b h₀,
@@ -101,7 +101,7 @@ begin
   simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
   right,
   cases hia.lt_or_lt with hia₁ hia₂,
-  { rw inner_eq_zero_sym,
+  { rw inner_eq_zero_symm,
     exact ih a h₀ i hia₁ },
   { exact ih i (mem_Iio.1 hi) a hia₂ }
 end

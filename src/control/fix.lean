@@ -11,6 +11,9 @@ import data.stream.defs
 /-!
 # Fixed point
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines a generic `fix` operator for defining recursive
 computations that are not necessarily well-founded or productive.
 An instance is defined for `part`.

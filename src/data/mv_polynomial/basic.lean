@@ -419,6 +419,10 @@ by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
+lemma support_smul [distrib_mul_action R S₁] {a : R} {f : mv_polynomial σ S₁} :
+  (a • f).support ⊆ f.support :=
+finsupp.support_smul
+
 lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
   (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
@@ -667,6 +671,9 @@ variables (R)
 @[simp] lemma constant_coeff_X (i : σ) : constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
 variables {R}
+
+@[simp] lemma constant_coeff_smul [distrib_mul_action R S₁] (a : R) (f : mv_polynomial σ S₁) :
+  constant_coeff (a • f) = a • constant_coeff f := rfl
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=

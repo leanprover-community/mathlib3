@@ -17,7 +17,7 @@ Other searches through the environment can be done using `tactic.find_all_exprs`
 
 
 namespace tactic
-/-- Auxilliary data type for `tactic.find_all_exprs` -/
+/-- Auxiliary data type for `tactic.find_all_exprs` -/
 meta structure find_all_expr_data :=
 (matching_subexpr : bool) -- this declaration contains a subexpression on which the test passes
 (test_passed : bool) -- the search has found a matching subexpression somewhere
@@ -26,7 +26,7 @@ meta structure find_all_expr_data :=
 (name_map : name_map bool) -- all data
 (direct_descendants : name_set) -- direct descendants of a declaration
 
-/-- Auxilliary declaration for `tactic.find_all_exprs`.
+/-- Auxiliary declaration for `tactic.find_all_exprs`.
 
 Traverse all declarations occurring in the declaration with the given name,
 excluding declarations `n` such that `g n` is true (and all their descendants),

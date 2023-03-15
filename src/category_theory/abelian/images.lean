@@ -8,6 +8,9 @@ import category_theory.limits.shapes.kernels
 /-!
 # The abelian image and coimage.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In an abelian category we usually want the image of a morphism `f` to be defined as
 `kernel (cokernel.π f)`, and the coimage to be defined as `cokernel (kernel.ι f)`.
 

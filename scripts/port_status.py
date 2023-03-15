@@ -8,18 +8,20 @@ from urllib.request import urlopen
 from mathlibtools.lib import PortStatus, LeanProject, FileStatus
 from sys import argv
 from pathlib import Path
+import shlex
 
 import_re = re.compile(r"^import ([^ ]*)")
 synchronized_re = re.compile(r".*SYNCHRONIZED WITH MATHLIB4.*")
 hash_re = re.compile(r"[0-9a-f]*")
 
-# not using re.compile as this is passed to git
-comment_git_re = '^' + '|'.join(re.escape(line) for line in [
-    "> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.",
-    "> https://github.com/leanprover-community/mathlib4/pull/.*",
-    "> Any changes to this file require a corresponding PR to mathlib4.",
-    ""
-]) + '$'
+# Not using re.compile as this is passed to git which uses a different regex dialect:
+# https://www.sjoerdlangkemper.nl/2021/08/13/how-does-git-diff-ignore-matching-lines-work/
+comment_git_re = r'\`(' + r'|'.join([
+    re.escape("> THIS FILE IS SYNCHRONIZED WITH MATHLIB4."),
+    re.escape("> https://github.com/leanprover-community/mathlib4/pull/") + r"[0-9]*",
+    re.escape("> Any changes to this file require a corresponding PR to mathlib4."),
+    r"",
+]) + r")" + "\n"
 
 proj = LeanProject.from_path(Path(__file__).parent.parent)
 
@@ -69,12 +71,17 @@ touched = dict()
 for node in graph.nodes:
     if data[node].mathlib3_hash:
         verified[node] = data[node].mathlib3_hash
-        git_command = ['git', 'diff', '--name-only',
+        find_blobs_command = ['git', 'cat-file', '-t', data[node].mathlib3_hash]
+        hash_type = subprocess.check_output(find_blobs_command)
+        # the hash_type should be commits mostly, we are not interested in blobs
+        if b'blob\n' == hash_type:
+            break
+        git_command = ['git', 'diff', '--quiet',
             f'--ignore-matching-lines={comment_git_re}',
-            data[node].mathlib3_hash + "..HEAD", "src" + os.sep + node.replace('.', os.sep) + ".lean"]
-        result = subprocess.run(git_command, stdout=subprocess.PIPE)
-        if result.stdout != b'':
-            del(git_command[2:4])
+            data[node].mathlib3_hash + "..HEAD", "--", "src" + os.sep + node.replace('.', os.sep) + ".lean"]
+        result = subprocess.run(git_command)
+        if result.returncode == 1:
+            git_command.remove('--quiet')
             touched[node] = git_command
     elif data[node].ported:
         print("Bad status for " + node)
@@ -120,4 +127,4 @@ if len(touched) > 0:
     print()
     print('# The following files have been modified since the commit at which they were verified.')
     for v in touched.values():
-        print(' '.join(v))
+        print(' '.join(shlex.quote(vi) for vi in v))

@@ -8,6 +8,9 @@ import data.nat.parity
 /-!
 # Parity of integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems about the `even` and `odd` predicates on the integers.
 
 ## Tags

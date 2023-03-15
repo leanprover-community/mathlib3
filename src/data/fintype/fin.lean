@@ -8,6 +8,9 @@ import data.fin.interval
 /-!
 # The structure of `fintype (fin n)`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some basic results about the `fintype` instance for `fin`,
 especially properties of `finset.univ : finset (fin n)`.
 -/

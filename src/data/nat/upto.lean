@@ -8,6 +8,9 @@ import data.nat.order.basic
 /-!
 # `nat.upto`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `nat.upto p`, with `p` a predicate on `ℕ`, is a subtype of elements `n : ℕ` such that no value
 (strictly) below `n` satisfies `p`.
 

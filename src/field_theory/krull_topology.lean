@@ -199,7 +199,7 @@ group_filter_basis.is_topological_group (gal_group_basis K L)
 
 section krull_t2
 
-open_locale topological_space filter
+open_locale topology filter
 
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/

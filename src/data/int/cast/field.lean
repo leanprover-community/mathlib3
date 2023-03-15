@@ -10,6 +10,9 @@ import algebra.group_with_zero.units.lemmas
 /-!
 # Cast of integers into fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file concerns the canonical homomorphism `ℤ → F`, where `F` is a field.
 
 ## Main results

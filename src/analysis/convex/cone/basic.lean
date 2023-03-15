@@ -394,6 +394,49 @@ instance : add_comm_semigroup (convex_cone 𝕜 E) :=
 end module
 end ordered_semiring
 
+end convex_cone
+
+namespace submodule
+
+/-! ### Submodules are cones -/
+
+section ordered_semiring
+variables [ordered_semiring 𝕜]
+
+section add_comm_monoid
+variables [add_comm_monoid E] [module 𝕜 E]
+
+/-- Every submodule is trivially a convex cone. -/
+def to_convex_cone (S : submodule 𝕜 E) : convex_cone 𝕜 E :=
+{ carrier := S,
+  smul_mem' := λ c hc x hx, S.smul_mem c hx,
+  add_mem' := λ x hx y hy, S.add_mem hx hy }
+
+@[simp] lemma coe_to_convex_cone (S : submodule 𝕜 E) : ↑S.to_convex_cone = (S : set E) := rfl
+
+@[simp] lemma mem_to_convex_cone {x : E} {S : submodule 𝕜 E} : x ∈ S.to_convex_cone ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma to_convex_cone_le_iff {S T : submodule 𝕜 E} :
+  S.to_convex_cone ≤ T.to_convex_cone ↔ S ≤ T :=
+iff.rfl
+
+@[simp] lemma to_convex_cone_bot : (⊥ : submodule 𝕜 E).to_convex_cone = 0 := rfl
+@[simp] lemma to_convex_cone_top : (⊤ : submodule 𝕜 E).to_convex_cone = ⊤ := rfl
+
+@[simp] lemma to_convex_cone_inf (S T : submodule 𝕜 E) :
+  (S ⊓ T).to_convex_cone = S.to_convex_cone ⊓ T.to_convex_cone :=
+rfl
+
+@[simp] lemma pointed_to_convex_cone (S : submodule 𝕜 E) : S.to_convex_cone.pointed := S.zero_mem
+
+end add_comm_monoid
+end ordered_semiring
+
+end submodule
+
+namespace convex_cone
+
 /-! ### Positive cone of an ordered module -/
 
 section positive_cone
@@ -700,14 +743,14 @@ eq_top_iff.mpr $ λ x hy y, false.elim
 
 /-- Dual cone of the convex cone {0} is the total space. -/
 @[simp] lemma inner_dual_cone_zero : (0 : set H).inner_dual_cone = ⊤ :=
-eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ inner_zero_left.ge
+eq_top_iff.mpr $ λ x hy y (hy : y = 0), hy.symm ▸ (inner_zero_left _).ge
 
 /-- Dual cone of the total space is the convex cone {0}. -/
 @[simp] lemma inner_dual_cone_univ : (univ : set H).inner_dual_cone = 0 :=
 begin
   suffices : ∀ x : H, x ∈ (univ : set H).inner_dual_cone → x = 0,
   { apply set_like.coe_injective,
-    exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, inner_zero_right.ge, this⟩ },
+    exact eq_singleton_iff_unique_mem.mpr ⟨λ x hx, (inner_zero_right _).ge, this⟩ },
   exact λ x hx, by simpa [←real_inner_self_nonpos] using hx (-x) (mem_univ _),
 end
 
@@ -831,7 +874,7 @@ begin
     calc 0 < ⟪b - z, b - z⟫_ℝ : lt_of_not_le ((iff.not real_inner_self_nonpos).2 hbz)
     ... = ⟪b - z, b - z⟫_ℝ + 0 : (add_zero _).symm
     ... ≤ ⟪b - z, b - z⟫_ℝ + ⟪b - z, z⟫_ℝ : add_le_add rfl.ge hinner₀
-    ... = ⟪b - z, b - z + z⟫_ℝ : inner_add_right.symm
+    ... = ⟪b - z, b - z + z⟫_ℝ : (inner_add_right _ _ _).symm
     ... = ⟪b - z, b⟫_ℝ : by rw sub_add_cancel },
 end
 

@@ -407,14 +407,14 @@ end
 @[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
-  refine ⟨to_Ico_div ψ two_pi_pos θ, _⟩,
+  refine ⟨-to_Ico_div ψ two_pi_pos θ, _⟩,
   rw [to_Ico_mod_sub_self, zsmul_eq_mul, mul_comm]
 end
 
 @[simp] lemma coe_to_Ioc_mod (θ ψ : ℝ) : ↑(to_Ioc_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
-  refine ⟨to_Ioc_div ψ two_pi_pos θ, _⟩,
+  refine ⟨-to_Ioc_div ψ two_pi_pos θ, _⟩,
   rw [to_Ioc_mod_sub_self, zsmul_eq_mul, mul_comm]
 end
 
@@ -810,8 +810,8 @@ begin
   rcases hr with (hr|hr),
   { exact to_real_injective hr },
   { by_cases h : θ = π,
-    { rw [h, to_real_pi, eq_neg_iff_eq_neg] at hr,
-      exact false.elim ((neg_pi_lt_to_real ψ).ne hr.symm) },
+    { rw [h, to_real_pi, ← neg_eq_iff_eq_neg] at hr,
+      exact false.elim ((neg_pi_lt_to_real ψ).ne hr) },
     { by_cases h' : ψ = π,
       { rw [h', to_real_pi] at hr,
         exact false.elim ((neg_pi_lt_to_real θ).ne hr.symm) },

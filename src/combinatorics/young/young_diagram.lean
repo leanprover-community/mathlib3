@@ -3,11 +3,14 @@ Copyright (c) 2022 Jake Levinson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jake Levinson
 -/
-import order.upper_lower
+import order.upper_lower.basic
 import data.finset.preimage
 
 /-!
 # Young diagrams
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A Young diagram is a finite set of up-left justified boxes:
 

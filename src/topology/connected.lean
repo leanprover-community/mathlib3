@@ -3,12 +3,16 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import data.set.bool_indicator
 import order.succ_pred.relation
 import topology.subset_properties
 import tactic.congrm
 
 /-!
 # Connected subsets of topological spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define connected subsets of a topological spaces and various other properties and
 classes related to connectivity.
@@ -39,7 +43,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set function topological_space relation
-open_locale classical topological_space
+open_locale classical topology
 
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*} {π : ι → Type*} [topological_space α]
@@ -90,7 +94,9 @@ theorem is_preconnected_of_forall {s : set α} (x : α)
 begin
   rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
-  wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
+  wlog xu : x ∈ u,
+  { rw inter_comm u v, rw union_comm at hs,
+    exact this x H v u hv hu hs y ys yv z zs zu xs ((hs xs).resolve_right xu), },
   rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
   have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
   exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
@@ -672,6 +678,10 @@ eq_of_subset_of_subset
     (set.mem_of_mem_of_subset mem_connected_component
       (is_connected_connected_component.subset_connected_component h)))
 
+theorem connected_component_eq_iff_mem {x y : α} :
+  connected_component x = connected_component y ↔ x ∈ connected_component y :=
+⟨λ h, h ▸ mem_connected_component, λ h, (connected_component_eq h).symm⟩
+
 lemma connected_component_in_eq {x y : α} {F : set α} (h : y ∈ connected_component_in F x) :
   connected_component_in F x = connected_component_in F y :=
 begin
@@ -1162,6 +1172,14 @@ begin
                 λ ⟨V, ⟨hV, hxV, _⟩, hVU⟩, mem_nhds_iff.mpr ⟨V, hVU, hV, hxV⟩⟩⟩ }
 end
 
+/-- A space with discrete topology is a locally connected space. -/
+@[priority 100]
+instance discrete_topology.to_locally_connected_space (α) [topological_space α]
+  [discrete_topology α] : locally_connected_space α :=
+locally_connected_space_iff_open_connected_subsets.2 $ λ x _U hU,
+  ⟨{x}, singleton_subset_iff.2 $ mem_of_mem_nhds hU, is_open_discrete _, mem_singleton _,
+    is_connected_singleton⟩
+
 lemma connected_component_in_mem_nhds [locally_connected_space α] {F : set α} {x : α}
   (h : F ∈ 𝓝 x) :
   connected_component_in F x ∈ 𝓝 x :=
@@ -1347,6 +1365,10 @@ begin
   exact mem_connected_component
 end
 
+@[simp] theorem connected_component_eq_singleton [totally_disconnected_space α] (x : α) :
+  connected_component x = {x} :=
+totally_disconnected_space_iff_connected_component_singleton.1 ‹_› x
+
 /-- The image of a connected component in a totally disconnected space is a singleton. -/
 @[simp] lemma continuous.image_connected_component_eq_singleton {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) (a : α) :
@@ -1457,7 +1479,7 @@ not_congr coe_eq_coe
 
 lemma coe_eq_coe' {x y : α} :
   (x : connected_components α) = y ↔ x ∈ connected_component y :=
-coe_eq_coe.trans ⟨λ h, h ▸ mem_connected_component, λ h, (connected_component_eq h).symm⟩
+coe_eq_coe.trans connected_component_eq_iff_mem
 
 instance [inhabited α] : inhabited (connected_components α) := ⟨↑(default : α)⟩
 
@@ -1582,3 +1604,17 @@ lemma preconnected_space_of_forall_constant (hs : ∀ f : α → bool, continuou
   preconnected_space α :=
 ⟨is_preconnected_of_forall_constant
   (λ f hf x hx y hy, hs f (continuous_iff_continuous_on_univ.mpr hf) x y)⟩
+
+/-- Refinement of `is_preconnected.constant` only assuming the map factors through a
+discrete subset of the target. -/
+lemma is_preconnected.constant_of_maps_to [topological_space β]
+  {S : set α} (hS : is_preconnected S) {T : set β} [discrete_topology T] {f : α → β}
+  (hc : continuous_on f S) (hTm : maps_to f S T)
+  {x y : α} (hx : x ∈ S) (hy : y ∈ S) : f x = f y :=
+begin
+  let F : S → T := (λ x:S, ⟨f x.val, hTm x.property⟩),
+  suffices : F ⟨x, hx⟩ = F ⟨y, hy⟩,
+  { rw ←subtype.coe_inj at this, exact this },
+  exact (is_preconnected_iff_preconnected_space.mp hS).constant
+    (continuous_induced_rng.mpr $ continuous_on_iff_continuous_restrict.mp hc)
+end

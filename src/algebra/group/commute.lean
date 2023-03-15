@@ -9,7 +9,6 @@ import algebra.group.semiconj
 # Commuting pairs of elements in monoids
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/750
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We define the predicate `commute a b := a * b = b * a` and provide some operations on terms `(h :

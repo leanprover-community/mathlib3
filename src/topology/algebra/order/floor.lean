@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import algebra.order.floor
-import topology.algebra.order.basic
+import topology.algebra.order.group
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves statements about limits and continuity of functions involving `floor`, `ceil` and
 `fract`.
@@ -24,7 +27,7 @@ This file proves statements about limits and continuity of functions involving `
 -/
 
 open filter function int set
-open_locale topological_space
+open_locale topology
 
 variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
 
@@ -156,7 +159,7 @@ tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
 
 local notation `I` := (Icc 0 1 : set α)
 
-variables [order_topology α] [topological_add_group α] [topological_space β] [topological_space γ]
+variables [order_topology α] [topological_space β] [topological_space γ]
 
 /-- Do not use this, use `continuous_on.comp_fract` instead. -/
 lemma continuous_on.comp_fract' {f : β → α → γ}

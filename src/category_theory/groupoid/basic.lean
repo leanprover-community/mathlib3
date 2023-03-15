@@ -7,6 +7,9 @@ import category_theory.groupoid
 import combinatorics.quiver.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few basic properties of groupoids.
 -/
 

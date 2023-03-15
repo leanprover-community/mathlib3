@@ -13,6 +13,9 @@ import tactic.positivity
 /-!
 # Ordered scalar product
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `ordered_smul R M` : an ordered additive commutative monoid `M` is an `ordered_smul`

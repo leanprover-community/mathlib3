@@ -8,6 +8,9 @@ import data.nat.order.basic
 /-!
 # Lists as Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definitions for using lists as finite representations of finitely-supported functions with domain
 ℕ.
 

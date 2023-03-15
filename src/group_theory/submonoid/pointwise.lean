@@ -9,6 +9,9 @@ import order.well_founded_set
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides:
 
 * `submonoid.has_inv`
@@ -29,7 +32,7 @@ Additionally, it provides various degrees of monoid structure:
 * `add_submonoid.mul_one_class`
 * `add_submonoid.semigroup`
 * `add_submonoid.monoid`
-which is available globally to match the monoid structure implied by `submodule.semiring`.
+which is available globally to match the monoid structure implied by `submodule.idem_semiring`.
 
 ## Implementation notes
 
@@ -441,7 +444,7 @@ begin
     work_on_goal 1 { intros, apply closure_induction hb,
       work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
-        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
+        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc];
       solve_by_elim [add_mem _ _, zero_mem _]
         { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,

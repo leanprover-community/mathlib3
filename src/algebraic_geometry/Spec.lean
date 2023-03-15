@@ -225,7 +225,8 @@ section Spec_Γ
 open algebraic_geometry.LocallyRingedSpace
 
 /-- The counit morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
-@[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
+@[simps {rhs_md := tactic.transparency.semireducible}]
+def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
 structure_sheaf.to_open R ⊤
 
 instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
@@ -301,13 +302,13 @@ def to_pushforward_stalk_alg_hom :
   S →ₐ[R] (Spec.Top_map (algebra_map R S) _* (structure_sheaf S).1).stalk p :=
 { commutes' := λ _, rfl, ..(structure_sheaf.to_pushforward_stalk (algebra_map R S) p) }
 
-.
 lemma is_localized_module_to_pushforward_stalk_alg_hom_aux (y) :
   ∃ (x : S × p.as_ideal.prime_compl), x.2 • y = to_pushforward_stalk_alg_hom R S p x.1 :=
 begin
   obtain ⟨U, hp, s, e⟩ := Top.presheaf.germ_exist _ _ y,
-  obtain ⟨_, ⟨r, rfl⟩, hpr, hrU⟩ := prime_spectrum.is_topological_basis_basic_opens
-    .exists_subset_of_mem_open (show p ∈ U.1, from hp) U.2,
+  obtain ⟨_, ⟨r, rfl⟩, hpr : p ∈ prime_spectrum.basic_open r,
+    hrU : prime_spectrum.basic_open r ≤ U⟩ := prime_spectrum.is_topological_basis_basic_opens
+      .exists_subset_of_mem_open (show p ∈ ↑U, from hp) U.2,
   change prime_spectrum.basic_open r ≤ U at hrU,
   replace e := ((Spec.Top_map (algebra_map R S) _* (structure_sheaf S).1)
     .germ_res_apply (hom_of_le hrU) ⟨p, hpr⟩ _).trans e,
@@ -352,7 +353,7 @@ begin
       _ _ _ (structure_sheaf.is_localization.to_basic_open S $ algebra_map R S r) x).trans this,
     obtain ⟨⟨_, n, rfl⟩, e⟩ := (is_localization.mk'_eq_zero_iff _ _).mp this,
     refine ⟨⟨r, hpr⟩ ^ n, _⟩,
-    rw [submonoid.smul_def, algebra.smul_def, submonoid.coe_pow, subtype.coe_mk, mul_comm, map_pow],
+    rw [submonoid.smul_def, algebra.smul_def, submonoid.coe_pow, subtype.coe_mk, map_pow],
     exact e },
 end
 

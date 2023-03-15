@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 
-import group_theory.congruence
-import algebra.ring.inj_surj
+import algebra.group_ring_action.basic
 import algebra.hom.ring
+import algebra.ring.inj_surj
+import group_theory.congruence
 
 /-!
 # Congruence relations on rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines congruence relations on rings, which extend `con` and `add_con` on monoids and
 additive monoids.
@@ -25,12 +29,16 @@ Most of the time you likely want to use the `ideal.quotient` API that is built o
 ## TODO
 
 * Use this for `ring_quot` too.
-* Copy across more API from `con` and `add_con` in `group_theory/congruence.lean`.
-
+* Copy across more API from `con` and `add_con` in `group_theory/congruence.lean`, such as:
+  * The `complete_lattice` structure.
+  * The `con_gen_eq` lemma, stating that
+    `ring_con_gen r = Inf {s : ring_con M | ∀ x y, r x y → s x y}`.
 -/
 
 /-- A congruence relation on a type with an addition and multiplication is an equivalence relation
 which preserves both. -/
+/- Note: we can't extend both `add_con R` and `mul_con R` in Lean 3 due to interactions between old-
+and new-style structures. We can revisit this in Lean 4. (After and not during the port!) -/
 structure ring_con (R : Type*) [has_add R] [has_mul R] extends setoid R :=
 (add' : ∀ {w x y z}, r w x → r y z → r (w + y) (x + z))
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
@@ -88,7 +96,7 @@ section quotient
 section basic
 variables [has_add R] [has_mul R] (c : ring_con R)
 /-- Defining the quotient by a congruence relation of a type with addition and multiplication. -/
-protected def quotient := quotient $ c.to_setoid
+protected def quotient := quotient c.to_setoid
 
 /-- Coercion from a type with addition and multiplication to its quotient by a congruence relation.
 
@@ -246,6 +254,13 @@ instance [monoid α] [non_assoc_semiring R] [distrib_mul_action α R] [is_scalar
   smul_zero := λ r, congr_arg quotient.mk' $ smul_zero _,
   smul_add := λ r, quotient.ind₂' $ by exact λ m₁ m₂, congr_arg quotient.mk' $ smul_add _ _ _,
   .. c.to_con.mul_action }
+
+instance [monoid α] [semiring R] [mul_semiring_action α R] [is_scalar_tower α R R]
+  (c : ring_con R) :
+  mul_semiring_action α c.quotient :=
+{ smul := (•),
+  .. c^.quotient.distrib_mul_action,
+  .. c.to_con.mul_distrib_mul_action }
 
 end algebraic
 

@@ -8,6 +8,9 @@ import data.list.nodup
 /-!
 # Finite products of types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the product of types over a list. For `l : list ι` and `α : ι → Type*` we define
 `list.tprod α l = l.foldr (λ i β, α i × β) punit`.
 This type should not be used if `Π i, α i` or `Π i ∈ l, α i` can be used instead

@@ -9,6 +9,9 @@ import data.int.succ_pred
 /-!
 # Graded orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines graded orders, also known as ranked orders.
 
 A `𝕆`-graded order is an order `α` equipped with a distinguished "grade" function `α → 𝕆` which

@@ -695,8 +695,11 @@ instance [measurable_space α] : has_zero (measure α) :=
 
 @[simp, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
 
+instance [is_empty α] {m : measurable_space α} : subsingleton (measure α) :=
+⟨λ μ ν, by{ ext1 s hs, simp only [eq_empty_of_is_empty s, measure_empty] }⟩
+
 lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
-ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
+subsingleton.elim μ 0
 
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 

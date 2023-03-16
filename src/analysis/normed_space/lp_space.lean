@@ -1154,7 +1154,7 @@ begin
     exact λ b, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ }
 end
 
-/-- Precomposition by an injective funcion as a continuous linear map between `lp` spaces. -/
+/-- Precomposition by an injective function as a continuous linear map between `lp` spaces. -/
 def comap_lp [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
   lp E p →L[𝕜] lp (λ i, E (φ i)) p :=
 linear_map.mk_continuous

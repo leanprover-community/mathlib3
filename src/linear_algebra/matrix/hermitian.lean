@@ -38,7 +38,7 @@ def is_hermitian (A : matrix n n α) : Prop := Aᴴ = A
 
 lemma is_hermitian.eq {A : matrix n n α} (h : A.is_hermitian) : Aᴴ = A := h
 
-lemma is_hermitian.is_self_adjoint {A : matrix n n α} (h : A.is_hermitian) : is_self_adjoint A := h
+protected lemma is_hermitian.is_self_adjoint {A : matrix n n α} (h : A.is_hermitian) : is_self_adjoint A := h
 
 @[ext]
 lemma is_hermitian.ext {A : matrix n n α} : (∀ i j, star (A j i) = A i j) → A.is_hermitian :=

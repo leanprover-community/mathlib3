@@ -50,6 +50,30 @@ begin
   { rintro ⟨i, hi, rfl⟩, simpa },
 end
 
+lemma Iio_cast_succ (i : fin n):
+  Iio (cast_succ i) = (Iio i).map fin.cast_succ.to_embedding :=
+begin
+  apply finset.map_injective fin.coe_embedding,
+  rw [finset.map_map, fin.map_subtype_embedding_Iio],
+  exact (fin.map_subtype_embedding_Iio i).symm,
+end
+
+lemma map_subtype_embedding_univ :
+  (finset.univ : finset (fin n)).map fin.coe_embedding = Iio n :=
+begin
+  ext,
+  simp_rw [finset.mem_map, order_iso_subtype.symm.surjective.exists, finset.mem_univ,
+    exists_true_left, coe_embedding_apply, order_iso.symm, order_iso_subtype_symm_apply,
+    subtype.exists, fin.coe_mk, subtype.coe_mk, mem_Iio, exists_prop, exists_eq_right],
+end
+
+lemma Iio_last : Iio (fin.last n) = finset.univ.map fin.cast_succ.to_embedding :=
+begin
+  apply finset.map_injective fin.coe_embedding,
+  rw [finset.map_map, fin.map_subtype_embedding_Iio, fin.coe_last],
+  exact map_subtype_embedding_univ.symm
+end
+
 lemma card_filter_univ_succ' (p : fin (n + 1) → Prop) [decidable_pred p] :
   (univ.filter p).card = (ite (p 0) 1 0) + (univ.filter (p ∘ fin.succ)).card :=
 begin

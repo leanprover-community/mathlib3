@@ -261,18 +261,22 @@ def fin_pi_fin_equiv {m : ℕ} {n : fin m → ℕ} :
   (Π i : fin m, fin (n i)) ≃ fin (∏ i : fin m, n i) :=
 equiv.of_right_inverse_of_card_le
   (le_of_eq $ by simp_rw [fintype.card_pi, fintype.card_fin])
-  (λ f, ⟨∑ i, f i * ∏ j, n (fin.cast_le i.is_lt.le j), begin
+  (λ f, ⟨∑ i, f i * ∏ j in finset.Iio i, n j, begin
     induction m with m ih generalizing f,
     { simp },
     rw [fin.prod_univ_cast_succ, fin.sum_univ_cast_succ],
     suffices : ∀ (n : fin m → ℕ) (nn : ℕ) (f : Π i : fin m, fin (n i)) (fn : fin nn),
-      ∑ i : fin m, ↑(f i) * ∏ j : fin i, n (fin.cast_le i.prop.le j) + ↑fn * ∏ j, n j
+      ∑ i : fin m, ↑(f i) * ∏ j in finset.Iio i, n j + ↑fn * ∏ j, n j
           < (∏ i : fin m, n i) * nn,
     { replace this := this (fin.init n) (n (fin.last _)) (fin.init f) (f (fin.last _)),
       rw ←fin.snoc_init_self f,
       simp only [←fin.snoc_init_self n] { single_pass := tt },
       simp_rw [fin.snoc_cast_succ, fin.init_snoc, fin.snoc_last, fin.snoc_init_self n],
-      exact this },
+      dsimp only at this,
+      refine eq.trans_lt _ this,
+      rw [fin.Iio_last, finset.prod_map],
+      simp_rw [fin.Iio_cast_succ, finset.prod_map],
+      congr' 2 },
     intros n nn f fn,
     cases nn,
     { exact is_empty_elim fn },
@@ -304,7 +308,7 @@ equiv.of_right_inverse_of_card_le
         (λ j, rfl),
       simp_rw [this], clear this,
       dsimp only [fin.coe_zero],
-      simp_rw [fintype.prod_empty, nat.div_one, mul_one, fin.cons_zero, fin.prod_univ_succ],
+      simp_rw [Iio_bot, finset.prod_map, fintype.prod_empty, nat.div_one, mul_one, fin.cons_zero, fin.prod_univ_succ],
       change _ + ∑ y : _, ((_ / (x * _)) % _) * (x * _) = _,
       simp_rw [←nat.div_div_eq_div_mul, mul_left_comm (_ % _ : ℕ), ←mul_sum],
       convert nat.mod_add_div _ _,

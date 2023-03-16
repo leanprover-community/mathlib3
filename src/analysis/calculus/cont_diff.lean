@@ -1968,7 +1968,7 @@ begin
     simp only [continuous_multilinear_map.comp_continuous_linear_map_apply,
       continuous_linear_equiv.coe_coe, iterated_fderiv_within_succ_apply_left],
     have : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f ∘ ⇑g) (⇑g ⁻¹' s)) (⇑g ⁻¹' s) x
-      = fderiv_within 𝕜 (λ y, continuous_multilinear_map.comp_continuous_linear_map_equivL
+      = fderiv_within 𝕜 (λ y, continuous_multilinear_map.comp_continuous_linear_map_equivL _
         (λ (_x : fin i), g) (iterated_fderiv_within 𝕜 i f s (g y))) (g ⁻¹' s) x,
       from fderiv_within_congr' (g.unique_diff_on_preimage_iff.2 hs x hx) (λ y hy, IH hy) hx,
     rw [this],

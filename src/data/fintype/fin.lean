@@ -27,9 +27,7 @@ lemma map_subtype_embedding_univ :
   (finset.univ : finset (fin n)).map fin.coe_embedding = Iio n :=
 begin
   ext,
-  simp_rw [finset.mem_map, order_iso_subtype.symm.surjective.exists, finset.mem_univ,
-    exists_true_left, coe_embedding_apply, order_iso.symm, order_iso_subtype_symm_apply,
-    subtype.exists, fin.coe_mk, subtype.coe_mk, mem_Iio, exists_prop, exists_eq_right],
+  simp [order_iso_subtype.symm.surjective.exists, order_iso.symm],
 end
 
 @[simp] lemma Ioi_zero_eq_map :

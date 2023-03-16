@@ -35,7 +35,7 @@ def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
 by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
 
 @[simp, norm_cast]
-theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
+theorem cast_div_char_zero {k : Type*} [division_ring k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,

@@ -145,7 +145,7 @@ protected lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set
 mem_ℓp_infty_iff.1 hf
 
 protected lemma bdd_above_nnnorm {f : Π i, E i} (hf : mem_ℓp f ∞) :
-  bdd_above (set.range (λ i, ∥f i∥₊)) :=
+  bdd_above (set.range (λ i, ‖f i‖₊)) :=
 by simpa only [← nnreal.bdd_above_coe, ← set.range_comp]
 
 lemma summable (hp : 0 < p.to_real) {f : Π i, E i} (hf : mem_ℓp f p) :
@@ -513,7 +513,7 @@ add_group_norm.to_normed_add_comm_group
   end,
   eq_zero_of_map_eq_zero' := λ f, norm_eq_zero_iff.1 }
 
-lemma nnnorm_eq_csupr (f : lp E ∞) : ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
+lemma nnnorm_eq_csupr (f : lp E ∞) : ‖f‖₊ = ⨆ i, ‖f i‖₊ :=
 by { ext, simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr] }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
@@ -1138,14 +1138,14 @@ private def comap_lpₗ [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ) :
   map_smul' := λ c f, by ext; refl }
 
 private lemma norm_comap_lpₗ_apply_le [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
-  (f : lp E p) : ∥comap_lpₗ E p 𝕜 hφ f∥ ≤ ∥f∥ :=
+  (f : lp E p) : ‖comap_lpₗ E p 𝕜 hφ f‖ ≤ ‖f‖ :=
 begin
   unfreezingI { rcases p.dichotomy with rfl | h },
-  { suffices : ∥_∥₊ ≤ ∥f∥₊,
+  { suffices : ‖_‖₊ ≤ ‖f‖₊,
     { rw [← coe_nnnorm, ← coe_nnnorm],
       exact nnreal.coe_mono this },
     rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr],
-    exact csupr_comp_le (λ x : α, ∥f x∥₊) φ f.2.bdd_above_nnnorm },
+    exact csupr_comp_le (λ x : α, ‖f x‖₊) φ f.2.bdd_above_nnnorm },
   { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le h),
         lp.norm_eq_tsum_rpow (zero_lt_one.trans_le h)],
     refine real.rpow_le_rpow (tsum_nonneg _)
@@ -1180,7 +1180,7 @@ lemma comap_lp_comp [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
 by ext; refl
 
 lemma norm_comap_lp_apply_le [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
-  (f : lp E p) : ∥hφ.comap_lp E p 𝕜 f∥ ≤ ∥f∥ :=
+  (f : lp E p) : ‖hφ.comap_lp E p 𝕜 f‖ ≤ ‖f‖ :=
 norm_comap_lpₗ_apply_le E p 𝕜 hφ f
 
 @[simp] lemma comap_lp_single [decidable_eq α] [fact (1 ≤ p)] [decidable_eq β]

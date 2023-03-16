@@ -71,7 +71,7 @@ end std_simplex
 
 section topological_space
 variables [linear_ordered_ring 𝕜] [densely_ordered 𝕜] [topological_space 𝕜] [order_topology 𝕜]
-  [add_comm_group E] [topological_space E] [t2_space E] [has_continuous_add E] [module 𝕜 E]
+  [add_comm_group E] [topological_space E] [has_continuous_add E] [module 𝕜 E]
   [has_continuous_smul 𝕜 E] {x y : E}
 
 lemma segment_subset_closure_open_segment : [x -[𝕜] y] ⊆ closure (open_segment 𝕜 x y) :=

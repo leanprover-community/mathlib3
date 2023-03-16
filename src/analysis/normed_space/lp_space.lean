@@ -65,7 +65,7 @@ noncomputable theory
 open function
 open_locale nnreal ennreal big_operators
 
-variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_comm_group (E i)]
+variables {α β γ : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_comm_group (E i)]
 
 /-!
 ### `mem_ℓp` predicate
@@ -1131,13 +1131,13 @@ namespace function.injective
 
 variables (E) (𝕜 : Type*) [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (p)
 
-private def comap_lpₗ [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
+private def comap_lpₗ [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ) :
   lp E p →ₗ[𝕜] lp (λ i, E (φ i)) p :=
 { to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
-private lemma norm_comap_lpₗ_apply_le [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+private lemma norm_comap_lpₗ_apply_le [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
   (f : lp E p) : ∥comap_lpₗ E p 𝕜 hφ f∥ ≤ ∥f∥ :=
 begin
   unfreezingI { rcases p.dichotomy with rfl | h },
@@ -1155,35 +1155,35 @@ begin
 end
 
 /-- Precomposition by an injective function as a continuous linear map between `lp` spaces. -/
-def comap_lp [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
+def comap_lp [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ) :
   lp E p →L[𝕜] lp (λ i, E (φ i)) p :=
 linear_map.mk_continuous
-{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
-  map_add' := λ f g, by ext; refl,
-  map_smul' := λ c f, by ext; refl } 1
-begin
-  intros f,
-  rw one_mul,
-  exact norm_comap_lpₗ_apply_le E p 𝕜 hφ f
-end
+  { to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
+    map_add' := λ f g, by ext; refl,
+    map_smul' := λ c f, by ext; refl } 1
+  begin
+    intros f,
+    rw one_mul,
+    exact norm_comap_lpₗ_apply_le E p 𝕜 hφ f
+  end
 
-@[simp] lemma comap_lp_apply [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+@[simp] lemma comap_lp_apply [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
   {f : lp E p} {x : β} : hφ.comap_lp E p 𝕜 f x = f (φ x) := rfl
 
 lemma comap_lp_id [fact (1 ≤ p)] :
   injective_id.comap_lp E p 𝕜 = continuous_linear_map.id 𝕜 (lp E p) :=
 by ext; refl
 
-lemma comap_lp_comp [fact (1 ≤ p)] {β γ : Type*} {φ : β → α} (hφ : injective φ)
+lemma comap_lp_comp [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
   {ψ : γ → β} (hψ : injective ψ) :
   (hφ.comp hψ).comap_lp E p 𝕜 = hψ.comap_lp (λ i, E (φ i)) p 𝕜 ∘L hφ.comap_lp E p 𝕜 :=
 by ext; refl
 
-lemma norm_comap_lp_apply_le [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+lemma norm_comap_lp_apply_le [fact (1 ≤ p)] {φ : β → α} (hφ : injective φ)
   (f : lp E p) : ∥hφ.comap_lp E p 𝕜 f∥ ≤ ∥f∥ :=
 norm_comap_lpₗ_apply_le E p 𝕜 hφ f
 
-@[simp] lemma comap_lp_single [decidable_eq α] [fact (1 ≤ p)] {β : Type*} [decidable_eq β]
+@[simp] lemma comap_lp_single [decidable_eq α] [fact (1 ≤ p)] [decidable_eq β]
   {φ : β → α} (hφ : injective φ) (i : β) (x : E (φ i)) :
   hφ.comap_lp E p 𝕜 (lp.single p (φ i) x) = lp.single p i x :=
 begin

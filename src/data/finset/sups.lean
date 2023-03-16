@@ -13,16 +13,14 @@ This file defines a few binary operations on `finset α` for use in set family c
 
 ## Main declarations
 
-* `finset.sups s t`: Finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`.
-* `finset.infs s t`: Finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`.
+* `s ⊻ t`: Finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`.
+* `s ⊼ t`: Finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`.
 * `finset.disj_sups s t`: Finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t` and `a`
   and `b` are disjoint.
 
 ## Notation
 
 We define the following notation in locale `finset_family`:
-* `s ⊻ t` for `finset.sups s t`
-* `s ⊼ t` for `finset.infs s t`
 * `s ○ t` for `finset.disj_sups s t`
 
 ## References
@@ -38,18 +36,16 @@ namespace finset
 section sups
 variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : finset α)
 
-/-- The finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
-def sups (s t : finset α) : finset α := image₂ (⊔) s t
-
-localized "infix (name := finset.sups) ` ⊻ `:74 := finset.sups" in finset_family
+/-- `s ⊻ t` is the finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
+instance : has_sups (finset α) := ⟨image₂ (⊔)⟩
 
 variables {s t} {a b c : α}
 
-@[simp] lemma mem_sups : c ∈ s ⊻ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊔ b = c := by simp [sups]
+@[simp] lemma mem_sups : c ∈ s ⊻ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊔ b = c := by simp [(⊻)]
 
 variables (s t)
 
-@[simp, norm_cast] lemma coe_sups : (s ⊻ t : set α) = set.sups s t := coe_image₂ _ _ _
+@[simp, norm_cast] lemma coe_sups : (↑(s ⊻ t) : set α) = s ⊻ t := coe_image₂ _ _ _
 
 lemma card_sups_le : (s ⊻ t).card ≤ s.card * t.card := card_image₂_le _ _ _
 
@@ -64,8 +60,8 @@ lemma sups_subset : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ ⊻ t₁ ⊆ s₂ �
 lemma sups_subset_left : t₁ ⊆ t₂ → s ⊻ t₁ ⊆ s ⊻ t₂ := image₂_subset_left
 lemma sups_subset_right : s₁ ⊆ s₂ → s₁ ⊻ t ⊆ s₂ ⊻ t := image₂_subset_right
 
-lemma image_subset_sups_left : b ∈ t → (λ a, a ⊔ b) '' s ⊆ s ⊻ t := image_subset_image₂_left
-lemma image_subset_sups_right : a ∈ s → (⊔) a '' t ⊆ s ⊻ t := image_subset_image₂_right
+lemma image_subset_sups_left : b ∈ t → s.image (λ a, a ⊔ b) ⊆ s ⊻ t := image_subset_image₂_left
+lemma image_subset_sups_right : a ∈ s → t.image ((⊔) a) ⊆ s ⊻ t := image_subset_image₂_right
 
 lemma forall_sups_iff {p : α → Prop} : (∀ c ∈ s ⊻ t, p c) ↔ ∀ (a ∈ s) (b ∈ t), p (a ⊔ b) :=
 forall_image₂_iff
@@ -95,7 +91,7 @@ lemma sups_inter_subset_left : (s₁ ∩ s₂) ⊻ t ⊆ s₁ ⊻ t ∩ s₂ ⊻
 lemma sups_inter_subset_right : s ⊻ (t₁ ∩ t₂) ⊆ s ⊻ t₁ ∩ s ⊻ t₂ := image₂_inter_subset_right
 
 lemma subset_sups {s t : set α} :
-  ↑u ⊆ set.sups s t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊻ t' :=
+  ↑u ⊆ s ⊻ t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊻ t' :=
 subset_image₂
 
 variables (s t u)
@@ -116,18 +112,16 @@ end sups
 section infs
 variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : finset α)
 
-/-- The finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
-def infs (s t : finset α) : finset α := image₂ (⊓) s t
-
-localized "infix (name := finset.infs) ` ⊼ `:74 := finset.infs" in finset_family
+/-- `s ⊼ t` is the finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
+instance : has_infs (finset α) := ⟨image₂ (⊓)⟩
 
 variables {s t} {a b c : α}
 
-@[simp] lemma mem_infs : c ∈ s ⊼ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊓ b = c := by simp [infs]
+@[simp] lemma mem_infs : c ∈ s ⊼ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊓ b = c := by simp [(⊼)]
 
 variables (s t)
 
-@[simp, norm_cast] lemma coe_infs : (s ⊼ t : set α) = set.infs s t := coe_image₂ _ _ _
+@[simp, norm_cast] lemma coe_infs : (↑(s ⊼ t) : set α) = s ⊼ t := coe_image₂ _ _ _
 
 lemma card_infs_le : (s ⊼ t).card ≤ s.card * t.card := card_image₂_le _ _ _
 
@@ -142,8 +136,8 @@ lemma infs_subset : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ ⊼ t₁ ⊆ s₂ �
 lemma infs_subset_left : t₁ ⊆ t₂ → s ⊼ t₁ ⊆ s ⊼ t₂ := image₂_subset_left
 lemma infs_subset_right : s₁ ⊆ s₂ → s₁ ⊼ t ⊆ s₂ ⊼ t := image₂_subset_right
 
-lemma image_subset_infs_left : b ∈ t → (λ a, a ⊓ b) '' s ⊆ s ⊼ t := image_subset_image₂_left
-lemma image_subset_infs_right : a ∈ s → (⊓) a '' t ⊆ s ⊼ t := image_subset_image₂_right
+lemma image_subset_infs_left : b ∈ t → s.image (λ a, a ⊓ b) ⊆ s ⊼ t := image_subset_image₂_left
+lemma image_subset_infs_right : a ∈ s → t.image ((⊓) a) ⊆ s ⊼ t := image_subset_image₂_right
 
 lemma forall_infs_iff {p : α → Prop} : (∀ c ∈ s ⊼ t, p c) ↔ ∀ (a ∈ s) (b ∈ t), p (a ⊓ b) :=
 forall_image₂_iff
@@ -173,7 +167,7 @@ lemma infs_inter_subset_left : (s₁ ∩ s₂) ⊼ t ⊆ s₁ ⊼ t ∩ s₂ ⊼
 lemma infs_inter_subset_right : s ⊼ (t₁ ∩ t₂) ⊆ s ⊼ t₁ ∩ s ⊼ t₂ := image₂_inter_subset_right
 
 lemma subset_infs {s t : set α} :
-  ↑u ⊆ s.infs t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊼ t' :=
+  ↑u ⊆ s ⊼ t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊼ t' :=
 subset_image₂
 
 variables (s t u)
@@ -190,8 +184,6 @@ lemma infs_left_comm : s ⊼ (t ⊼ u) = t ⊼ (s ⊼ u) := image₂_left_comm i
 lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image₂_right_comm inf_right_comm
 
 end infs
-
-open_locale finset_family
 
 section disj_sups
 variables [semilattice_sup α] [order_bot α] [@decidable_rel α disjoint]

@@ -13,14 +13,8 @@ This file defines a few binary operations on `set α` for use in set family comb
 
 ## Main declarations
 
-* `set.sups s t`: set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`.
-* `set.infs s t`: set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`.
-
-## Notation
-
-We define the following notation in locale `set_family`:
-* `s ⊻ t` for `set.sups s t`
-* `s ⊼ t` for `set.infs s t`
+* `s ⊻ t`: Set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`.
+* `s ⊼ t`: Set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`.
 
 ## References
 
@@ -31,18 +25,27 @@ open function
 
 variables {α : Type*}
 
+/-- Notation typeclass for pointwise supremum `⊻`. -/
+class has_sups (α : Type*) :=
+(sups : α → α → α)
+
+/-- Notation typeclass for pointwise infimum `⊼`. -/
+class has_infs (α : Type*) :=
+(infs : α → α → α)
+
+infix ` ⊻ `:74 := has_sups.sups
+infix ` ⊼ `:74 := has_infs.infs
+
 namespace set
 section sups
 variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : set α)
 
-/-- The set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
-def sups (s t : set α) : set α := image2 (⊔) s t
-
-localized "infix (name := set.sups) ` ⊻ `:74 := set.sups" in set_family
+/-- `s ⊻ t` is the set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
+instance : has_sups (set α) := ⟨image2 (⊔)⟩
 
 variables {s s₁ s₂ t t₁ t₂ u} {a b c : α}
 
-@[simp] lemma mem_sups : c ∈ s ⊻ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊔ b = c := by simp [sups]
+@[simp] lemma mem_sups : c ∈ s ⊻ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊔ b = c := by simp [(⊻)]
 
 lemma sup_mem_sups : a ∈ s → b ∈ t → a ⊔ b ∈ s ⊻ t := mem_image2_of_mem
 lemma sups_subset : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ ⊻ t₁ ⊆ s₂ ⊻ t₂ := image2_subset
@@ -96,14 +99,12 @@ end sups
 section infs
 variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : set α)
 
-/-- The set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
-def infs (s t : set α) : set α := image2 (⊓) s t
-
-localized "infix (name := set.infs) ` ⊼ `:74 := set.infs" in set_family
+/-- `s ⊼ t` is the set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
+instance : has_infs (set α) := ⟨image2 (⊓)⟩
 
 variables {s s₁ s₂ t t₁ t₂ u} {a b c : α}
 
-@[simp] lemma mem_infs : c ∈ s ⊼ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊓ b = c := by simp [infs]
+@[simp] lemma mem_infs : c ∈ s ⊼ t ↔ ∃ (a ∈ s) (b ∈ t), a ⊓ b = c := by simp [(⊼)]
 
 lemma inf_mem_infs : a ∈ s → b ∈ t → a ⊓ b ∈ s ⊼ t := mem_image2_of_mem
 lemma infs_subset : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ ⊼ t₁ ⊆ s₂ ⊼ t₂ := image2_subset
@@ -153,8 +154,6 @@ lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image2_right_comm i
 
 end infs
 end set
-
-open_locale set_family
 
 @[simp] lemma upper_closure_sups [semilattice_sup α] (s t : set α) :
   upper_closure (s ⊻ t) = upper_closure s ⊔ upper_closure t :=

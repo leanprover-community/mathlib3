@@ -255,7 +255,7 @@ begin
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
-lemma comp_inj {β : Type*} (φ : β → α) (hφ : function.injective φ) {f : Π i, E i} {p : ℝ≥0∞}
+lemma comp_inj (φ : β → α) (hφ : function.injective φ) {f : Π i, E i} {p : ℝ≥0∞}
   (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
 begin
   rw mem_ℓp at *,
@@ -1198,8 +1198,8 @@ end function.injective
 
 namespace linear_isometry
 
-variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] {𝕜₁ 𝕜₂ : Type*}
-  [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+variables (E) (F : α → Type*) (G : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)]
+  {𝕜₁ 𝕜₂ 𝕜₃ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] [normed_field 𝕜₃] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
   [Π i, normed_space 𝕜₁ (E i)] [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i →ₛₗᵢ[σ₁₂] F i)
 
 /-- Postcomposition by a linear isometry as a linear isometry between `lp` spaces. -/
@@ -1229,8 +1229,8 @@ lemma map_lp_id [fact $ 1 ≤ p'] :
   map_lp E E p' (λ i, (linear_isometry.id : E i →ₗᵢ[𝕜₁] E i)) = linear_isometry.id :=
 by ext; refl
 
-lemma map_lp_comp [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
-  {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
+lemma map_lp_comp [fact $ 1 ≤ p'] [Π i, normed_add_comm_group (G i)]
+  {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [Π i, normed_space 𝕜₃ (G i)] (Ψ : Π i, F i →ₛₗᵢ[σ₂₃] G i) :
   map_lp E G p' (λ i, (Ψ i).comp (Φ i)) =
   (map_lp F G p' Ψ).comp (map_lp E F p' Φ) :=
@@ -1253,8 +1253,9 @@ open linear_isometry
 
 namespace lp
 
-variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] {𝕜₁ 𝕜₂ : Type*}
-  [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜₁}
+variables (E) (F : α → Type*) (G : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)]
+  {𝕜₁ 𝕜₂ 𝕜₃ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] [normed_field 𝕜₃]
+  {σ₁₂ : 𝕜₁ →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜₁}
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [Π i, normed_space 𝕜₁ (E i)]
   [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i ≃ₛₗᵢ[σ₁₂] F i)
 
@@ -1282,9 +1283,9 @@ lemma congr_right_symm [fact $ 1 ≤ p'] :
   (congr_right E F p' Φ).symm = congr_right F E p' (λ i, (Φ i).symm) :=
 rfl
 
-lemma congr_right_trans [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
-  {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₃₂ : 𝕜₃ →+* 𝕜₂} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
-  {σ₃₁ : 𝕜₃ →+* 𝕜₁} [ring_hom_inv_pair σ₂₃ σ₃₂] [ring_hom_inv_pair σ₃₂ σ₂₃]
+lemma congr_right_trans [fact $ 1 ≤ p'] [Π i, normed_add_comm_group (G i)]
+  {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₃₂ : 𝕜₃ →+* 𝕜₂} {σ₁₃ : 𝕜₁ →+* 𝕜₃} {σ₃₁ : 𝕜₃ →+* 𝕜₁}
+  [ring_hom_inv_pair σ₂₃ σ₃₂] [ring_hom_inv_pair σ₃₂ σ₂₃]
   [ring_hom_inv_pair σ₁₃ σ₃₁] [ring_hom_inv_pair σ₃₁ σ₁₃] [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
   [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁] [Π i, normed_space 𝕜₃ (G i)] (Ψ : Π i, F i ≃ₛₗᵢ[σ₂₃] G i) :
   congr_right E G p' (λ i, (Φ i).trans (Ψ i)) =

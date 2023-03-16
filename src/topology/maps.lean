@@ -9,6 +9,9 @@ import topology.nhds_set
 /-!
 # Specific classes of maps between topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the following properties of a map `f : X → Y` between topological spaces:
 
 * `is_open_map f` means the image of an open set under `f` is open.

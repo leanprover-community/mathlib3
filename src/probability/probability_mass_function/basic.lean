@@ -20,6 +20,9 @@ by assigning each set the sum of the probabilities of each of its elements.
 Under this outer measure, every set is Carathéodory-measurable,
 so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
 `pmf.to_measure.is_probability_measure` shows this associated measure is a probability measure.
+Conversely, given a probability measure `μ` on a measurable space `α` with all singleton sets
+measurable, `μ.to_pmf` constructs a `pmf` on `α`, setting the probability mass of a point `x`
+to be the measure of the singleton set `{x}`.
 
 ## Tags
 
@@ -27,7 +30,7 @@ probability mass function, discrete probability measure
 -/
 noncomputable theory
 variables {α β γ : Type*}
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0∞` such
   that the values have (infinite) sum `1`. -/
@@ -35,10 +38,13 @@ def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0∞ // has_sum f 1 }
 
 namespace pmf
 
-instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0∞) := ⟨λ p a, p.1 a⟩
+instance fun_like : fun_like (pmf α) α (λ p, ℝ≥0∞) :=
+{ coe := λ p a, p.1 a,
+  coe_injective' := λ p q h, subtype.eq h }
 
-@[ext] protected lemma ext : ∀ {p q : pmf α}, (∀ a, p a = q a) → p = q
-| ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
+@[ext] protected lemma ext {p q : pmf α} (h : ∀ x, p x = q x) : p = q := fun_like.ext p q h
+
+lemma ext_iff {p q : pmf α} : p = q ↔ ∀ x, p x = q x := fun_like.ext_iff
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
@@ -50,10 +56,17 @@ lemma tsum_coe_indicator_ne_top (p : pmf α) (s : set α) : ∑' a, s.indicator 
 ne_of_lt (lt_of_le_of_lt (tsum_le_tsum (λ a, set.indicator_apply_le (λ _, le_rfl))
   ennreal.summable ennreal.summable) (lt_of_le_of_ne le_top p.tsum_coe_ne_top))
 
+@[simp] lemma coe_ne_zero (p : pmf α) : ⇑p ≠ 0 :=
+λ hp, zero_ne_one ((tsum_zero.symm.trans (tsum_congr $
+  λ x, symm (congr_fun hp x))).trans p.tsum_coe)
+
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
 
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) : a ∈ p.support ↔ p a ≠ 0 := iff.rfl
+
+@[simp] lemma support_nonempty (p : pmf α) : p.support.nonempty :=
+function.support_nonempty_iff.2 p.coe_ne_zero
 
 lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]
@@ -103,6 +116,13 @@ variables (p : pmf α) (s t : set α)
 lemma to_outer_measure_apply : p.to_outer_measure s = ∑' x, s.indicator p x :=
 tsum_congr (λ x, smul_dirac_apply (p x) x s)
 
+@[simp] lemma to_outer_measure_caratheodory : p.to_outer_measure.caratheodory = ⊤ :=
+begin
+  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
+  exact let ⟨y, hy⟩ := hx in ((le_of_eq (dirac_caratheodory y).symm).trans
+    (le_smul_caratheodory _ _)).trans (le_of_eq hy),
+end
+
 @[simp]
 lemma to_outer_measure_apply_finset (s : finset α) : p.to_outer_measure s = ∑ x in s, p x :=
 begin
@@ -117,6 +137,13 @@ begin
   { exact ite_eq_right_iff.2 (λ hb', false.elim $ hb hb') },
   { exact ite_eq_left_iff.2 (λ ha', false.elim $ ha' rfl) }
 end
+
+lemma to_outer_measure_injective : (to_outer_measure : pmf α → outer_measure α).injective :=
+λ p q h, pmf.ext (λ x, (p.to_outer_measure_apply_singleton x).symm.trans
+  ((congr_fun (congr_arg _ h) _).trans $ q.to_outer_measure_apply_singleton x))
+
+@[simp] lemma to_outer_measure_inj {p q : pmf α} :
+  p.to_outer_measure = q.to_outer_measure ↔ p = q := to_outer_measure_injective.eq_iff
 
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
@@ -138,8 +165,7 @@ begin
     exact λ a ha, (p.apply_eq_zero_iff a).2 $ set.not_mem_subset h ha }
 end
 
-@[simp]
-lemma to_outer_measure_apply_inter_support :
+@[simp] lemma to_outer_measure_apply_inter_support :
   p.to_outer_measure (s ∩ p.support) = p.to_outer_measure s :=
 by simp only [to_outer_measure_apply, pmf.support, set.indicator_inter_support]
 
@@ -156,15 +182,6 @@ le_antisymm (p.to_outer_measure_mono (h.symm ▸ (set.inter_subset_left t p.supp
 @[simp]
 lemma to_outer_measure_apply_fintype [fintype α] : p.to_outer_measure s = ∑ x, s.indicator p x :=
 (p.to_outer_measure_apply s).trans (tsum_eq_sum (λ x h, absurd (finset.mem_univ x) h))
-
-@[simp]
-lemma to_outer_measure_caratheodory (p : pmf α) : (to_outer_measure p).caratheodory = ⊤ :=
-begin
-  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
-  obtain ⟨y, hy⟩ := hx,
-  exact ((le_of_eq (dirac_caratheodory y).symm).trans
-    (le_smul_caratheodory _ _)).trans (le_of_eq hy),
-end
 
 end outer_measure
 
@@ -191,8 +208,7 @@ lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indi
 
 lemma to_measure_apply_singleton (a : α) (h : measurable_set ({a} : set α)) :
   p.to_measure {a} = p a :=
-by simp [to_measure_apply_eq_to_outer_measure_apply p {a} h,
-  to_outer_measure_apply_singleton]
+by simp [to_measure_apply_eq_to_outer_measure_apply _ _ h, to_outer_measure_apply_singleton]
 
 lemma to_measure_apply_eq_zero_iff (hs : measurable_set s) :
   p.to_measure s = 0 ↔ disjoint p.support s :=
@@ -223,6 +239,14 @@ section measurable_singleton_class
 
 variables [measurable_singleton_class α]
 
+lemma to_measure_injective : (to_measure : pmf α → measure α).injective :=
+λ p q h, pmf.ext (λ x, (p.to_measure_apply_singleton x $ measurable_set_singleton x).symm.trans
+  ((congr_fun (congr_arg _ h) _).trans $ q.to_measure_apply_singleton x $
+    measurable_set_singleton x))
+
+@[simp] lemma to_measure_inj {p q : pmf α} : p.to_measure = q.to_measure ↔ p = q :=
+to_measure_injective.eq_iff
+
 @[simp]
 lemma to_measure_apply_finset (s : finset α) : p.to_measure s = ∑ x in s, p x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s s.measurable_set).trans
@@ -239,11 +263,61 @@ lemma to_measure_apply_fintype [fintype α] : p.to_measure s = ∑ x, s.indicato
 
 end measurable_singleton_class
 
+end measure
+
+end pmf
+
+namespace measure_theory
+
+open pmf
+
+namespace measure
+
+/-- Given that `α` is a countable, measurable space with all singleton sets measurable,
+we can convert any probability measure into a `pmf`, where the mass of a point
+is the measure of the singleton set under the original measure. -/
+def to_pmf [countable α] [measurable_space α] [measurable_singleton_class α]
+  (μ : measure α) [h : is_probability_measure μ] : pmf α :=
+⟨λ x, μ ({x} : set α), ennreal.summable.has_sum_iff.2 (trans (symm $
+(tsum_indicator_apply_singleton μ set.univ measurable_set.univ).symm.trans
+  (tsum_congr (λ x, congr_fun (set.indicator_univ _) x))) (h.measure_univ))⟩
+
+variables [countable α] [measurable_space α] [measurable_singleton_class α]
+  (μ : measure α) [is_probability_measure μ]
+
+lemma to_pmf_apply (x : α) : μ.to_pmf x = μ {x} := rfl
+
+@[simp] lemma to_pmf_to_measure : μ.to_pmf.to_measure = μ :=
+measure.ext (λ s hs, by simpa only [μ.to_pmf.to_measure_apply s hs,
+  ← μ.tsum_indicator_apply_singleton s hs])
+
+end measure
+
+end measure_theory
+
+namespace pmf
+
+open measure_theory
+
 /-- The measure associated to a `pmf` by `to_measure` is a probability measure -/
-instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure (p.to_measure) :=
+instance to_measure.is_probability_measure [measurable_space α] (p : pmf α) :
+  is_probability_measure (p.to_measure) :=
 ⟨by simpa only [measurable_set.univ, to_measure_apply_eq_to_outer_measure_apply,
   set.indicator_univ, to_outer_measure_apply, ennreal.coe_eq_one] using tsum_coe p⟩
 
-end measure
+variables [countable α] [measurable_space α] [measurable_singleton_class α]
+  (p : pmf α) (μ : measure α) [is_probability_measure μ]
+
+@[simp] lemma to_measure_to_pmf : p.to_measure.to_pmf = p :=
+pmf.ext (λ x, by rw [← p.to_measure_apply_singleton x (measurable_set_singleton x),
+  p.to_measure.to_pmf_apply])
+
+lemma to_measure_eq_iff_eq_to_pmf (μ : measure α) [is_probability_measure μ] :
+  p.to_measure = μ ↔ p = μ.to_pmf :=
+by rw [← to_measure_inj, measure.to_pmf_to_measure]
+
+lemma to_pmf_eq_iff_to_measure_eq (μ : measure α) [is_probability_measure μ] :
+  μ.to_pmf = p ↔ μ = p.to_measure :=
+by rw [← to_measure_inj, measure.to_pmf_to_measure]
 
 end pmf

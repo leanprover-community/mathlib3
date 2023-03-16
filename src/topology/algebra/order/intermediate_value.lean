@@ -9,6 +9,9 @@ import topology.order.basic
 /-!
 # Intermediate Value Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the Intermediate Value Theorem: if `f : α → β` is a function defined on a
 connected set `s` that takes both values `≤ a` and values `≥ a` on `s`, then it is equal to `a` at
 some point of `s`. We also prove that intervals in a dense conditionally complete order are

@@ -48,11 +48,14 @@ lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) 
   interval_integrable (λ x, x ^ n) μ a b :=
 (continuous_on_id.zpow₀ n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
+/-- See `interval_integrable_rpow'` for a version with a weaker hypothesis on `r`, but assuming the
+measure is volume. -/
 lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) :
   interval_integrable (λ x, x ^ r) μ a b :=
 (continuous_on_id.rpow_const $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
-/-- Alternative version with a weaker hypothesis on `r`, but assuming the measure is volume. -/
+/-- See `interval_integrable_rpow` for a version applying to any locally finite measure, but with a
+stronger hypothesis on `r`. -/
 lemma interval_integrable_rpow' {r : ℝ} (h : -1 < r) :
   interval_integrable (λ x, x ^ r) volume a b :=
 begin
@@ -66,7 +69,7 @@ begin
       field_simp [(by linarith : r + 1 ≠ 0)], ring, },
     apply integrable_on_deriv_of_nonneg hc _ hderiv,
     { intros x hx, apply rpow_nonneg_of_nonneg hx.1.le, },
-    { refine (continuous_on_id.rpow_const _).div_const, intros x hx, right, linarith } },
+    { refine (continuous_on_id.rpow_const _).div_const _, intros x hx, right, linarith } },
   intro c, rcases le_total 0 c with hc|hc,
   { exact this c hc },
   { rw [interval_integrable.iff_comp_neg, neg_zero],
@@ -78,13 +81,92 @@ begin
       rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0)], }
 end
 
-lemma interval_integrable_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) :
-  interval_integrable (λ x : ℝ, (x : ℂ) ^ r) volume a b :=
+/-- See `interval_integrable_cpow'` for a version with a weaker hypothesis on `r`, but assuming the
+measure is volume. -/
+lemma interval_integrable_cpow {r : ℂ} (h : 0 ≤ r.re ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x : ℝ, (x : ℂ) ^ r) μ a b :=
 begin
-  refine (complex.continuous_of_real.continuous_on.cpow_const _).interval_integrable,
-  intros c hc,
-  left,
-  exact_mod_cast lt_of_lt_of_le (lt_min ha hb) hc.left,
+  by_cases h2 : (0:ℝ) ∉ [a,b],
+  { -- Easy case #1: 0 ∉ [a, b] -- use continuity.
+    refine (continuous_at.continuous_on (λ x hx, _)).interval_integrable,
+    exact complex.continuous_at_of_real_cpow_const _ _ (or.inr $ ne_of_mem_of_not_mem hx h2) },
+  rw [eq_false_intro h2, or_false] at h,
+  rcases lt_or_eq_of_le h with h'|h',
+  { -- Easy case #2: 0 < re r -- again use continuity
+    exact (complex.continuous_of_real_cpow_const h').interval_integrable _ _ },
+  -- Now the hard case: re r = 0 and 0 is in the interval.
+  refine (interval_integrable.interval_integrable_norm_iff _).mp _,
+  { refine (measurable_of_continuous_on_compl_singleton (0:ℝ) _).ae_strongly_measurable,
+    exact continuous_at.continuous_on
+      (λ x hx, complex.continuous_at_of_real_cpow_const x r (or.inr hx)) },
+  -- reduce to case of integral over `[0, c]`
+  suffices : ∀ (c : ℝ), interval_integrable (λ x : ℝ, ‖↑x ^ r‖) μ 0 c,
+    from (this a).symm.trans (this b),
+  intro c,
+  rcases le_or_lt 0 c with hc | hc,
+  { -- case `0 ≤ c`: integrand is identically 1
+    have : interval_integrable (λ x, 1 : ℝ → ℝ) μ 0 c,
+      from interval_integrable_const,
+    rw interval_integrable_iff_integrable_Ioc_of_le hc at this ⊢,
+    refine integrable_on.congr_fun this (λ x hx, _) measurable_set_Ioc,
+    dsimp only,
+    rw [complex.norm_eq_abs, complex.abs_cpow_eq_rpow_re_of_pos hx.1, ←h', rpow_zero], },
+  { -- case `c < 0`: integrand is identically constant, *except* at `x = 0` if `r ≠ 0`.
+    apply interval_integrable.symm,
+    rw [interval_integrable_iff_integrable_Ioc_of_le hc.le],
+    have : Ioc c 0 = Ioo c 0 ∪ {(0:ℝ)},
+    { rw [←Ioo_union_Icc_eq_Ioc hc (le_refl 0), ←Icc_def],
+      simp_rw [←le_antisymm_iff, set_of_eq_eq_singleton'] },
+    rw [this, integrable_on_union, and.comm], split,
+    { refine integrable_on_singleton_iff.mpr (or.inr _),
+      exact is_finite_measure_on_compacts_of_is_locally_finite_measure.lt_top_of_is_compact
+        is_compact_singleton },
+    { have : ∀ (x : ℝ), x ∈ Ioo c 0 → ‖complex.exp (↑π * complex.I * r)‖ = ‖(x:ℂ) ^ r‖,
+      { intros x hx,
+        rw [complex.of_real_cpow_of_nonpos hx.2.le, norm_mul, ←complex.of_real_neg,
+          complex.norm_eq_abs (_ ^ _), complex.abs_cpow_eq_rpow_re_of_pos (neg_pos.mpr hx.2),
+          ←h', rpow_zero, one_mul] },
+      refine integrable_on.congr_fun _ this measurable_set_Ioo,
+      rw integrable_on_const,
+      refine or.inr ((measure_mono set.Ioo_subset_Icc_self).trans_lt _),
+      exact is_finite_measure_on_compacts_of_is_locally_finite_measure.lt_top_of_is_compact
+        is_compact_Icc } },
+end
+
+/-- See `interval_integrable_cpow` for a version applying to any locally finite measure, but with a
+stronger hypothesis on `r`. -/
+lemma interval_integrable_cpow' {r : ℂ} (h : -1 < r.re) :
+  interval_integrable (λ x:ℝ, (x:ℂ) ^ r) volume a b :=
+begin
+  suffices : ∀ (c : ℝ), interval_integrable (λ x, (x : ℂ) ^ r) volume 0 c,
+  { exact interval_integrable.trans (this a).symm (this b) },
+  have : ∀ (c : ℝ), (0 ≤ c) → interval_integrable (λ x, (x : ℂ) ^ r) volume 0 c,
+  { intros c hc,
+    rw ←interval_integrable.interval_integrable_norm_iff,
+    { rw interval_integrable_iff,
+      apply integrable_on.congr_fun,
+      { rw ←interval_integrable_iff, exact (interval_integral.interval_integrable_rpow' h) },
+      { intros x hx,
+        rw uIoc_of_le hc at hx,
+        dsimp only,
+        rw [complex.norm_eq_abs, complex.abs_cpow_eq_rpow_re_of_pos hx.1] },
+      { exact measurable_set_uIoc } },
+    { refine continuous_on.ae_strongly_measurable _ measurable_set_uIoc,
+      refine continuous_at.continuous_on (λ x hx, _),
+      rw uIoc_of_le hc at hx,
+      refine (continuous_at_cpow_const (or.inl _)).comp complex.continuous_of_real.continuous_at,
+      rw complex.of_real_re,
+      exact hx.1 } },
+  intro c, rcases le_total 0 c with hc | hc,
+  { exact this c hc },
+  { rw [interval_integrable.iff_comp_neg, neg_zero],
+    have m := (this (-c) (by linarith)).const_mul (complex.exp (π * complex.I * r)),
+    rw [interval_integrable_iff, uIoc_of_le (by linarith : 0 ≤ -c)] at m ⊢,
+    refine m.congr_fun (λ x hx, _) measurable_set_Ioc,
+    dsimp only,
+    have : -x ≤ 0, by linarith [hx.1],
+    rw [complex.of_real_cpow_of_nonpos this, mul_comm],
+    simp }
 end
 
 @[simp]
@@ -192,55 +274,57 @@ open interval_integral
 
 /-! ### Integrals of simple functions -/
 
-lemma integral_rpow {r : ℝ} (h : -1 < r ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
-  ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
-begin
-  rw sub_div,
-  have hderiv : ∀ (x : ℝ), x ≠ 0 → has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
-  { intros x hx,
-    convert (real.has_deriv_at_rpow_const (or.inl hx)).div_const (r + 1),
-    rw [add_sub_cancel, mul_div_cancel_left],
-    contrapose! h, rw ←eq_neg_iff_add_eq_zero at h, rw h, tauto, },
-  cases h,
-  { suffices : ∀ (c : ℝ), ∫ x in 0..c, x ^ r = c ^ (r + 1) / (r + 1),
-    { rw [←integral_add_adjacent_intervals
-        (interval_integrable_rpow' h) (interval_integrable_rpow' h), this b],
-      have t := this a, rw integral_symm at t, apply_fun (λ x, -x) at t, rw neg_neg at t,
-      rw t, ring },
-    intro c, rcases le_total 0 c with hc|hc,
-    { convert integral_eq_sub_of_has_deriv_at_of_le hc _ (λ x hx, hderiv x hx.1.ne') _,
-      { rw zero_rpow, ring, linarith,},
-      { apply continuous_at.continuous_on, intros x hx,
-        refine (continuous_at_id.rpow_const _).div_const, right, linarith,},
-      apply interval_integrable_rpow' h },
-    { rw integral_symm, symmetry, rw eq_neg_iff_eq_neg,
-      convert integral_eq_sub_of_has_deriv_at_of_le hc _ (λ x hx, hderiv x hx.2.ne) _,
-      { rw zero_rpow, ring, linarith },
-      { apply continuous_at.continuous_on, intros x hx,
-        refine (continuous_at_id.rpow_const _).div_const, right, linarith },
-      apply interval_integrable_rpow' h, } },
-  { have hderiv' : ∀ (x : ℝ), x ∈ [a, b] → has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
-    { intros x hx, apply hderiv x, exact ne_of_mem_of_not_mem hx h.2 },
-    exact integral_eq_sub_of_has_deriv_at hderiv' (interval_integrable_rpow (or.inr h.2)) },
-end
-
-lemma integral_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1) :
+lemma integral_cpow {r : ℂ} (h : -1 < r.re ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
   ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
   rw sub_div,
-  suffices : ∀ x ∈ set.uIcc a b, has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
-  { exact integral_eq_sub_of_has_deriv_at
-      (λ x hx, (this x hx).comp_of_real) (interval_integrable_cpow ha hb) },
-  intros x hx,
-  have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
-  { left,
-    norm_cast,
-    calc 0 < min a b : lt_min ha hb ... ≤ x : hx.left, },
-  convert ((has_deriv_at_id (x:ℂ)).cpow_const hx').div_const (r + 1),
-  simp only [id.def, add_sub_cancel, mul_one], rw [mul_comm, mul_div_cancel],
-  contrapose! hr, rwa add_eq_zero_iff_eq_neg at hr,
+  have hr : r + 1 ≠ 0,
+  { cases h,
+    { apply_fun complex.re,
+      rw [complex.add_re, complex.one_re, complex.zero_re, ne.def, add_eq_zero_iff_eq_neg],
+      exact h.ne' },
+    { rw [ne.def, ←add_eq_zero_iff_eq_neg] at h, exact h.1 } },
+  by_cases hab : (0:ℝ) ∉ [a, b],
+  { refine integral_eq_sub_of_has_deriv_at (λ x hx, _) (interval_integrable_cpow $ or.inr hab),
+    refine has_deriv_at_of_real_cpow (ne_of_mem_of_not_mem hx hab) _,
+    contrapose! hr, rwa add_eq_zero_iff_eq_neg },
+  replace h : -1 < r.re, by tauto,
+  suffices : ∀ (c : ℝ), ∫ (x : ℝ) in 0..c, (x : ℂ) ^ r =
+    c ^ (r + 1) / (r + 1) - 0 ^ (r + 1) / (r + 1),
+  { rw [←integral_add_adjacent_intervals (@interval_integrable_cpow' a 0 r h)
+      (@interval_integrable_cpow' 0 b r h), integral_symm, this a, this b, complex.zero_cpow hr],
+    ring },
+  intro c,
+  apply integral_eq_sub_of_has_deriv_right,
+  { refine ((complex.continuous_of_real_cpow_const _).div_const _).continuous_on,
+    rwa [complex.add_re, complex.one_re, ←neg_lt_iff_pos_add] },
+  { refine λ x hx, (has_deriv_at_of_real_cpow _ _).has_deriv_within_at,
+    { rcases le_total c 0 with hc | hc,
+      { rw max_eq_left hc at hx, exact hx.2.ne }, { rw min_eq_left hc at hx, exact hx.1.ne' } },
+    { contrapose! hr, rw hr, ring } },
+  { exact interval_integrable_cpow' h }
 end
 
+lemma integral_rpow {r : ℝ} (h : -1 < r ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
+  ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+begin
+  have h' : -1 < (r:ℂ).re ∨ (r:ℂ) ≠ -1 ∧ (0:ℝ) ∉ [a, b],
+  { cases h,
+    { left, rwa complex.of_real_re },
+    { right, rwa [←complex.of_real_one, ←complex.of_real_neg, ne.def, complex.of_real_inj] } },
+  have : ∫ x in a..b, (x:ℂ) ^ (r :ℂ) = ((b:ℂ) ^ (r + 1 : ℂ) - (a:ℂ) ^ (r + 1 : ℂ)) / (r + 1),
+    from integral_cpow h',
+  apply_fun complex.re at this, convert this,
+  { simp_rw [interval_integral_eq_integral_uIoc, complex.real_smul, complex.of_real_mul_re],
+    { change complex.re with is_R_or_C.re,
+      rw ←integral_re, refl,
+      refine interval_integrable_iff.mp _,
+      cases h',
+      { exact interval_integrable_cpow' h' }, { exact interval_integrable_cpow (or.inr h'.2) } } },
+  { rw (by push_cast : ((r:ℂ) + 1) = ((r + 1 : ℝ) : ℂ)),
+    simp_rw [div_eq_inv_mul, ←complex.of_real_inv, complex.of_real_mul_re, complex.sub_re],
+    refl }
+end
 
 lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
   ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=

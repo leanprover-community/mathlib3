@@ -9,6 +9,9 @@ import order.well_founded_set
 /-!
 # Partial well ordering on finsupps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the fact that finitely supported functions from a fintype are
 partially well ordered when the codomain is a linear order that is well ordered.
 It is in a separate file for now so as to not add imports to the file `order.well_founded_set`.

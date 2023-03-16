@@ -9,6 +9,9 @@ import data.finset.lattice
 /-!
 # The back and forth method and countable dense linear orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Results
 
 Suppose `α β` are linear orders, with `α` countable and `β` dense, nontrivial. Then there is an

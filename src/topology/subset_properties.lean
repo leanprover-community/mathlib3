@@ -14,6 +14,9 @@ import order.minimal
 /-!
 # Properties of subsets of topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define various properties of subsets of a topological space, and some classes on
 topological spaces.
 

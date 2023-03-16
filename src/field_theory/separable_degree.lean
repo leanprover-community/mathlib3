@@ -109,7 +109,8 @@ theorem contraction_degree_eq_or_insep
   (hg : g.separable) (hg' : g'.separable) :
   g.nat_degree = g'.nat_degree :=
 begin
-  wlog hm : m ≤ m' := le_total m m' using [m m' g g', m' m g' g],
+  wlog hm : m ≤ m',
+  { exact (this g' g m' m h_expand.symm hg' hg (le_of_not_le hm)).symm },
   obtain ⟨s, rfl⟩ := exists_add_of_le hm,
   rw [pow_add, expand_mul, expand_inj (pow_pos (ne_zero.pos q) m)] at h_expand,
   subst h_expand,

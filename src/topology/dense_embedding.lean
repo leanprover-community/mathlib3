@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Dense embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines three properties of functions:
 
 * `dense_range f`      means `f` has dense image;

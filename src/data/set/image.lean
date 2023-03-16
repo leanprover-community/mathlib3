@@ -29,13 +29,13 @@ import data.set.basic
 set, sets, image, preimage, pre-image, range
 
 -/
-universes u v
 
-open function
+open function set
+
+universes u v
+variables {α β γ : Type*} {ι ι' : Sort*}
 
 namespace set
-
-variables {α β γ : Type*} {ι : Sort*}
 
 /-! ### Inverse image -/
 
@@ -470,6 +470,29 @@ begin
 end
 
 end image
+
+/-! ### Lemmas about the powerset and image. -/
+
+/-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
+theorem powerset_insert (s : set α) (a : α) :
+  𝒫 (insert a s) = 𝒫 s ∪ (insert a '' 𝒫 s) :=
+begin
+  ext t,
+  simp_rw [mem_union, mem_image, mem_powerset_iff],
+  split,
+  { intro h,
+    by_cases hs : a ∈ t,
+    { right,
+      refine ⟨t \ {a}, _, _⟩,
+      { rw [diff_singleton_subset_iff],
+        assumption },
+      { rw [insert_diff_singleton, insert_eq_of_mem hs] }},
+    { left,
+      exact (subset_insert_iff_of_not_mem hs).mp h}},
+  { rintros (h | ⟨s', h₁, rfl⟩),
+    { exact subset_trans h (subset_insert a s) },
+    { exact insert_subset_insert h₁ }}
+end
 
 /-! ### Lemmas about range of a function. -/
 section range
@@ -914,8 +937,7 @@ end subsingleton
 end set
 
 namespace function
-
-variables {ι : Sort*} {α : Type*} {β : Type*} {f : α → β}
+variables {f : α → β}
 
 open set
 
@@ -949,7 +971,7 @@ lemma surjective.preimage_subset_preimage_iff {s t : set β} (hf : surjective f)
   f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
 by { apply preimage_subset_preimage_iff, rw [hf.range_eq], apply subset_univ }
 
-lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
+lemma surjective.range_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=
 ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
@@ -981,12 +1003,19 @@ by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 
 end function
 
+namespace equiv_like
+variables {E : Type*} [equiv_like E ι ι']
+include ι
+
+@[simp] lemma range_comp (f : ι' → α) (e : E) : set.range (f ∘ e) = set.range f :=
+(equiv_like.surjective _).range_comp _
+
+end equiv_like
+
 /-! ### Image and preimage on subtypes -/
 
 namespace subtype
 open set
-
-variable {α : Type*}
 
 lemma coe_image {p : α → Prop} {s : set (subtype p)} :
   coe '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
@@ -1109,9 +1138,9 @@ open function
 /-! ### Injectivity and surjectivity lemmas for image and preimage -/
 
 section image_preimage
-variables {α : Type u} {β : Type v} {f : α → β}
-@[simp]
-lemma preimage_injective : injective (preimage f) ↔ surjective f :=
+variables {f : α → β}
+
+@[simp] lemma preimage_injective : injective (preimage f) ↔ surjective f :=
 begin
   refine ⟨λ h y, _, surjective.preimage_injective⟩,
   obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
@@ -1156,7 +1185,7 @@ end set
 /-! ### Disjoint lemmas for image and preimage -/
 
 section disjoint
-variables {α β γ : Type*} {f : α → β} {s t : set α}
+variables {f : α → β} {s t : set α}
 
 lemma disjoint.preimage (f : α → β) {s t : set β} (h : disjoint s t) :
   disjoint (f ⁻¹' s) (f ⁻¹' t) :=

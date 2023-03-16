@@ -4,12 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.big_operators.intervals
+import algebra.big_operators.order
+import algebra.indicator_function
 import order.liminf_limsup
 import order.filter.archimedean
 import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter

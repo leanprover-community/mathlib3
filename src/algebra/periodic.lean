@@ -15,6 +15,9 @@ import group_theory.submonoid.membership
 /-!
 # Periodicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define and then prove facts about periodic and antiperiodic functions.
 
 ## Main definitions
@@ -335,7 +338,7 @@ funext h
 
 protected lemma antiperiodic.funext' [has_add α] [has_involutive_neg β] (h : antiperiodic f c) :
   (λ x, -f (x + c)) = f :=
-(eq_neg_iff_eq_neg.mp h.funext).symm
+neg_eq_iff_eq_neg.mpr h.funext
 
 /-- If a function is `antiperiodic` with antiperiod `c`, then it is also `periodic` with period
   `2 * c`. -/
@@ -370,7 +373,7 @@ lemma antiperiodic.int_odd_mul_antiperiodic [ring α] [has_involutive_neg β]
 lemma antiperiodic.sub_eq [add_group α] [has_involutive_neg β]
   (h : antiperiodic f c) (x : α) :
   f (x - c) = -f x :=
-by simp only [eq_neg_iff_eq_neg.mp (h (x - c)), sub_add_cancel]
+by rw [← neg_eq_iff_eq_neg, ← h (x - c), sub_add_cancel]
 
 lemma antiperiodic.sub_eq' [add_comm_group α] [has_neg β] (h : antiperiodic f c) :
   f (c - x) = -f (-x) :=

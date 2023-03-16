@@ -9,6 +9,9 @@ import order.well_founded_set
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides:
 
 * `submonoid.has_inv`
@@ -29,7 +32,7 @@ Additionally, it provides various degrees of monoid structure:
 * `add_submonoid.mul_one_class`
 * `add_submonoid.semigroup`
 * `add_submonoid.monoid`
-which is available globally to match the monoid structure implied by `submodule.semiring`.
+which is available globally to match the monoid structure implied by `submodule.idem_semiring`.
 
 ## Implementation notes
 

@@ -231,7 +231,7 @@ hf.integrable_on_Ioc
 /-- A continuous function with compact support is integrable on the whole space. -/
 lemma continuous.integrable_of_has_compact_support
   (hf : continuous f) (hcf : has_compact_support f) : integrable f μ :=
-(integrable_on_iff_integrable_of_support_subset (subset_tsupport f) measurable_set_closure).mp $
+(integrable_on_iff_integrable_of_support_subset (subset_tsupport f)).mp $
   hf.continuous_on.integrable_on_compact hcf
 
 end borel

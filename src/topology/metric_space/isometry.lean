@@ -9,6 +9,9 @@ import topology.metric_space.antilipschitz
 /-!
 # Isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define isometries, i.e., maps between emetric spaces that preserve
 the edistance (on metric spaces, these are exactly the maps that preserve distances),
 and prove their basic properties. We also introduce isometric bijections.
@@ -76,7 +79,16 @@ lemma antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 /-- The identity is an isometry -/
 lemma _root_.isometry_id : isometry (id : α → α) := λ x y, rfl
 
-/-- The composition of isometries is an isometry -/
+lemma prod_map {δ} [pseudo_emetric_space δ] {f : α → β} {g : γ → δ} (hf : isometry f)
+  (hg : isometry g) : isometry (prod.map f g) :=
+λ x y, by simp only [prod.edist_eq, hf.edist_eq, hg.edist_eq, prod_map]
+
+lemma _root_.isometry_dcomp {ι} [fintype ι] {α β : ι → Type*} [Π i, pseudo_emetric_space (α i)]
+  [Π i, pseudo_emetric_space (β i)] (f : Π i, α i → β i) (hf : ∀ i, isometry (f i)) :
+  isometry (dcomp f) :=
+λ x y, by simp only [edist_pi_def, (hf _).edist_eq]
+
+/-- The composition of isometries is an isometry. -/
 theorem comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
 λ x y, (hg _ _).trans (hf _ _)
 

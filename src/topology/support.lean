@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # The topological support of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the topological support of a function `f`, `tsupport f`,
 as the closure of the support of `f`.
 

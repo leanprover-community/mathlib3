@@ -11,6 +11,9 @@ import category_theory.types
 /-!
 # The core of a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The core of a category `C` is the (non-full) subcategory of `C` consisting of all objects,
 and all isomorphisms. We construct it as a `groupoid`.
 

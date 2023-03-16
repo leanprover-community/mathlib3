@@ -80,18 +80,18 @@ lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
 by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
   div_self_le_one]
 
-lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
+lemma dist_smul₀ [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ = ‖s‖₊ * ‖x‖₊ :=
 nnreal.eq $ norm_smul s x
 
-lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
+lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
-nnreal.eq $ dist_smul s x y
+nnreal.eq $ dist_smul₀ s x y
 
 lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
-lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul, coe_nnnorm]
+lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
 
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
@@ -248,6 +248,11 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
       ‖a‖₊ * ↑(finset.sup finset.univ (λ (b : ι), ‖f b‖₊)),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
+instance mul_opposite.normed_space : normed_space α Eᵐᵒᵖ :=
+{ norm_smul_le := λ s x, (norm_smul s x.unop).le,
+  ..mul_opposite.normed_add_comm_group,
+  ..mul_opposite.module _ }
+
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
   {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] [module R E]
@@ -258,29 +263,36 @@ instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field
 /-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
 moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of
 the rescaling element that shows up in applications. -/
-lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
-  (hx : ‖x‖ ≠ 0) : ∃d:α, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+lemma rescale_to_shell_semi_normed_zpow {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : ‖x‖ ≠ 0) :
+  ∃ n : ℤ, c ^ n ≠ 0 ∧ ‖c ^ n • x‖ < ε ∧ (ε / ‖c‖ ≤ ‖c ^ n • x‖) ∧ (‖c ^ n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
 begin
   have xεpos : 0 < ‖x‖/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
   rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ‖c‖ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ‖c^(n+1)‖ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
-  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
-  show (c ^ (n + 1))⁻¹  ≠ 0,
-    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show ‖(c ^ (n + 1))⁻¹ • x‖ < ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
+  refine ⟨-(n+1), _, _, _, _⟩,
+  show c ^ (-(n + 1)) ≠ 0, from zpow_ne_zero _ (norm_pos_iff.1 cpos),
+  show ‖c ^ (-(n + 1)) • x‖ < ε,
+  { rw [norm_smul, zpow_neg, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
     exact (div_lt_iff εpos).1 (hn.2) },
-  show ε / ‖c‖ ≤ ‖(c ^ (n + 1))⁻¹ • x‖,
-  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
+  show ε / ‖c‖ ≤ ‖c ^ (-(n + 1)) • x‖,
+  { rw [zpow_neg, div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
         zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
-  show ‖(c ^ (n + 1))⁻¹‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖,
-  { have : ε⁻¹ * ‖c‖ * ‖x‖ = ε⁻¹ * ‖x‖ * ‖c‖, by ring,
-    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+  show ‖c ^ (-(n + 1))‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖,
+  { rw [zpow_neg, norm_inv, inv_inv, norm_zpow, zpow_add₀ cpos.ne', zpow_one, mul_right_comm,
+      ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
+
+/-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
+moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
+lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : ‖x‖ ≠ 0) : ∃d:α, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+let ⟨n, hn⟩ := rescale_to_shell_semi_normed_zpow hc εpos hx in ⟨_, hn⟩
 
 end seminormed_add_comm_group
 
@@ -364,12 +376,16 @@ by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_dif
 
 variables {α}
 
+lemma rescale_to_shell_zpow {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
+  ∃ n : ℤ, c ^ n ≠ 0 ∧ ‖c ^ n • x‖ < ε ∧ (ε / ‖c‖ ≤ ‖c ^ n • x‖) ∧ (‖c ^ n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+rescale_to_shell_semi_normed_zpow hc εpos (mt norm_eq_zero.1 hx)
+
 /-- If there is a scalar `c` with `‖c‖>1`, then any element can be moved by scalar multiplication to
 any shell of width `‖c‖`. Also recap information on the norm of the rescaling element that shows
 up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
-rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
+rescale_to_shell_semi_normed hc εpos (mt norm_eq_zero.1 hx)
 
 end normed_add_comm_group
 
@@ -518,6 +534,10 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   normed_algebra 𝕜 (Π i, E i) :=
 { .. pi.normed_space,
   .. pi.algebra _ E }
+
+instance mul_opposite.normed_algebra {E : Type*} [semi_normed_ring E] [normed_algebra 𝕜 E] :
+  normed_algebra 𝕜 Eᵐᵒᵖ :=
+{ ..mul_opposite.normed_space }
 
 end normed_algebra
 

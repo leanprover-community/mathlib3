@@ -14,6 +14,9 @@ import linear_algebra.finsupp
 
 # Ideals over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ideal R`, the type of (left) ideals over a ring `R`.
 Note that over commutative rings, left ideals and two-sided ideals are equivalent.
 
@@ -235,6 +238,13 @@ begin
   apply complete_lattice.coatomic_of_top_compact,
   rw ←span_singleton_one,
   exact submodule.singleton_span_is_compact_element 1,
+end
+
+lemma is_maximal.coprime_of_ne {M M' : ideal α} (hM : M.is_maximal) (hM' : M'.is_maximal)
+  (hne : M ≠ M') : M ⊔ M' = ⊤ :=
+begin
+  contrapose! hne with h,
+  exact hM.eq_of_le hM'.ne_top (le_sup_left.trans_eq (hM'.eq_of_le h le_sup_right).symm)
 end
 
 /-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some

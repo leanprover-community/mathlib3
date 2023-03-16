@@ -203,40 +203,6 @@ lemma rename_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → υ
   rename g (bind₁ f φ) = bind₁ (λ i, rename g $ f i) φ :=
 alg_hom.congr_fun (rename_comp_bind₁ f g) φ
 
-lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
-  (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=
-begin
-  calc (bind₁ f φ).vars
-      = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars :
-        by { rw [← alg_hom.map_sum, ← φ.as_sum], }
-  ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) :
-        vars_sum_subset _ _
-  ... = φ.support.bUnion (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) :
-        by simp only [bind₁_monomial]
-  ... ≤ φ.support.bUnion (λ (d : σ →₀ ℕ), d.support.bUnion (λ i, (f i).vars)) : _ -- proof below
-  ... ≤ φ.vars.bUnion (λ (i : σ), (f i).vars) : _, -- proof below
-  { apply finset.bUnion_mono,
-    intros d hd,
-    calc (C (coeff d φ) * ∏ (i : σ) in d.support, f i ^ d i).vars
-        ≤ (C (coeff d φ)).vars ∪ (∏ (i : σ) in d.support, f i ^ d i).vars : vars_mul _ _
-    ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars :
-      by simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl]
-    ... ≤ d.support.bUnion (λ (i : σ), (f i ^ d i).vars) : vars_prod _
-    ... ≤ d.support.bUnion (λ (i : σ), (f i).vars) : _,
-    apply finset.bUnion_mono,
-    intros i hi,
-    apply vars_pow, },
-  { intro j,
-    simp_rw finset.mem_bUnion,
-    rintro ⟨d, hd, ⟨i, hi, hj⟩⟩,
-    exact ⟨i, (mem_vars _).mpr ⟨d, hd, hi⟩, hj⟩ }
-end
-
-lemma mem_vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
-  (h : j ∈ (bind₁ f φ).vars) :
-  ∃ (i : σ), i ∈ φ.vars ∧ j ∈ (f i).vars :=
-by simpa only [exists_prop, finset.mem_bUnion, mem_support_iff, ne.def] using vars_bind₁ f φ h
-
 lemma map_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* T) (φ : mv_polynomial σ R) :
   map g (bind₂ f φ) = bind₂ ((map g).comp f) φ :=
 begin
@@ -317,6 +283,44 @@ by simp only [monomial_eq, ring_hom.map_mul, bind₂_C_right, finsupp.prod,
 lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) :
   bind₂ f (monomial d 1) = monomial d 1 :=
 by rw [bind₂_monomial, f.map_one, one_mul]
+
+section
+open_locale classical
+
+lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=
+begin
+  calc (bind₁ f φ).vars
+      = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars :
+        by { rw [← alg_hom.map_sum, ← φ.as_sum], }
+  ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) :
+        vars_sum_subset _ _
+  ... = φ.support.bUnion (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) :
+        by simp only [bind₁_monomial]
+  ... ≤ φ.support.bUnion (λ (d : σ →₀ ℕ), d.support.bUnion (λ i, (f i).vars)) : _ -- proof below
+  ... ≤ φ.vars.bUnion (λ (i : σ), (f i).vars) : _, -- proof below
+  { apply finset.bUnion_mono,
+    intros d hd,
+    calc (C (coeff d φ) * ∏ (i : σ) in d.support, f i ^ d i).vars
+        ≤ (C (coeff d φ)).vars ∪ (∏ (i : σ) in d.support, f i ^ d i).vars : vars_mul _ _
+    ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars :
+      by simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl]
+    ... ≤ d.support.bUnion (λ (i : σ), (f i ^ d i).vars) : vars_prod _
+    ... ≤ d.support.bUnion (λ (i : σ), (f i).vars) : _,
+    apply finset.bUnion_mono,
+    intros i hi,
+    apply vars_pow, },
+  { intro j,
+    simp_rw finset.mem_bUnion,
+    rintro ⟨d, hd, ⟨i, hi, hj⟩⟩,
+    exact ⟨i, (mem_vars _).mpr ⟨d, hd, hi⟩, hj⟩ }
+end
+end
+
+lemma mem_vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
+  (h : j ∈ (bind₁ f φ).vars) :
+  ∃ (i : σ), i ∈ φ.vars ∧ j ∈ (f i).vars :=
+by simpa only [exists_prop, finset.mem_bUnion, mem_support_iff, ne.def] using vars_bind₁ f φ h
 
 instance monad : monad (λ σ, mv_polynomial σ R) :=
 { map := λ α β f p, rename f p,

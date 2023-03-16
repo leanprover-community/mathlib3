@@ -23,6 +23,15 @@ namespace fin
 
 variables {α β : Type*} {n : ℕ}
 
+lemma map_subtype_embedding_univ :
+  (finset.univ : finset (fin n)).map fin.coe_embedding = Iio n :=
+begin
+  ext,
+  simp_rw [finset.mem_map, order_iso_subtype.symm.surjective.exists, finset.mem_univ,
+    exists_true_left, coe_embedding_apply, order_iso.symm, order_iso_subtype_symm_apply,
+    subtype.exists, fin.coe_mk, subtype.coe_mk, mem_Iio, exists_prop, exists_eq_right],
+end
+
 @[simp] lemma Ioi_zero_eq_map :
   Ioi (0 : fin n.succ) = univ.map (fin.succ_embedding _).to_embedding :=
 begin
@@ -34,6 +43,14 @@ begin
     { intros j _, exact ⟨j, rfl⟩ } },
   { rintro ⟨i, _, rfl⟩,
     exact succ_pos _ },
+end
+
+@[simp] lemma Iio_last_eq_map :
+  Iio (fin.last n) = finset.univ.map fin.cast_succ.to_embedding :=
+begin
+  apply finset.map_injective fin.coe_embedding,
+  rw [finset.map_map, fin.map_subtype_embedding_Iio, fin.coe_last],
+  exact map_subtype_embedding_univ.symm
 end
 
 @[simp] lemma Ioi_succ (i : fin n) :
@@ -48,6 +65,14 @@ begin
     { intros i hi,
       refine ⟨i, succ_lt_succ_iff.mp hi, rfl⟩ } },
   { rintro ⟨i, hi, rfl⟩, simpa },
+end
+
+@[simp] lemma Iio_cast_succ (i : fin n) :
+  Iio (cast_succ i) = (Iio i).map fin.cast_succ.to_embedding :=
+begin
+  apply finset.map_injective fin.coe_embedding,
+  rw [finset.map_map, fin.map_subtype_embedding_Iio],
+  exact (fin.map_subtype_embedding_Iio i).symm,
 end
 
 lemma card_filter_univ_succ' (p : fin (n + 1) → Prop) [decidable_pred p] :

@@ -148,7 +148,7 @@ lemma exists_unit_of_abs (a : ℤ) : ∃ (u : ℤ) (h : is_unit u), (int.nat_abs
 begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
-  { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
+  { use [-1, is_unit_one.neg], rw [← neg_eq_iff_eq_neg.mpr h],
     simp only [neg_mul, one_mul] }
 end
 

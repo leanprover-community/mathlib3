@@ -38,7 +38,7 @@ Henstock-Kurzweil integral.
 Henstock-Kurzweil integral, integral, Stokes theorem, divergence theorem
 -/
 
-open_locale classical big_operators nnreal ennreal topological_space box_integral
+open_locale classical big_operators nnreal ennreal topology box_integral
 open continuous_linear_map (lsmul) filter set finset metric
   box_integral.integration_params (GP GP_le)
 noncomputable theory

@@ -9,6 +9,9 @@ import category_theory.limits.creates
 /-!
 # Adjunctions and limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A left adjoint preserves colimits (`category_theory.adjunction.left_adjoint_preserves_colimits`),
 and a right adjoint preserves limits (`category_theory.adjunction.right_adjoint_preserves_limits`).
 

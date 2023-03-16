@@ -14,6 +14,9 @@ import data.sigma.basic
 /-!
 # Additively-graded multiplicative structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides a set of heterogeneous typeclasses for defining a multiplicative structure
 over the sigma type `graded_monoid A` such that `(*) : A i → A j → A (i + j)`; that is to say, `A`
 forms an additively-graded monoid. The typeclasses are:

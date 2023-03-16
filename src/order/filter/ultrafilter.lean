@@ -9,6 +9,9 @@ import order.zorn_atoms
 /-!
 # Ultrafilters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An ultrafilter is a minimal (maximal in the set order) proper filter.
 In this file we define
 

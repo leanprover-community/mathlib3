@@ -76,7 +76,7 @@ noncomputable theory
 
 open set metric asymptotics filter continuous_linear_map
 open topological_space (second_countable_topology) measure_theory
-open_locale topological_space
+open_locale topology
 
 namespace continuous_linear_map
 

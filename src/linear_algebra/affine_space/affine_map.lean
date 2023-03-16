@@ -12,6 +12,9 @@ import linear_algebra.prod
 /-!
 # Affine maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines affine maps.
 
 ## Main definitions
@@ -56,11 +59,24 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
 
 notation P1 ` →ᵃ[`:25 k:25 `] `:0 P2:0 := affine_map k P1 P2
 
-instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
-    [ring k]
-    [add_comm_group V1] [module k V1] [affine_space V1 P1]
-    [add_comm_group V2] [module k V2] [affine_space V2 P2]:
-    has_coe_to_fun (P1 →ᵃ[k] P2) (λ _, P1 → P2) := ⟨affine_map.to_fun⟩
+instance affine_map.fun_like (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
+  [ring k]
+  [add_comm_group V1] [module k V1] [affine_space V1 P1]
+  [add_comm_group V2] [module k V2] [affine_space V2 P2]:
+  fun_like (P1 →ᵃ[k] P2) P1 (λ _, P2) :=
+{ coe := affine_map.to_fun,
+  coe_injective' := λ ⟨f, f_linear, f_add⟩ ⟨g, g_linear, g_add⟩ (h : f = g), begin
+    cases (add_torsor.nonempty : nonempty P1) with p,
+    congr' with v,
+    apply vadd_right_cancel (f p),
+    erw [← f_add, h, ← g_add]
+  end }
+
+instance affine_map.has_coe_to_fun (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
+  [ring k]
+  [add_comm_group V1] [module k V1] [affine_space V1 P1]
+  [add_comm_group V2] [module k V2] [affine_space V2 P2] :
+  has_coe_to_fun (P1 →ᵃ[k] P2) (λ _, P1 → P2) := fun_like.has_coe_to_fun
 
 namespace linear_map
 
@@ -112,20 +128,12 @@ by conv_rhs { rw [←vsub_vadd p1 p2, map_vadd, vadd_vsub] }
 
 /-- Two affine maps are equal if they coerce to the same function. -/
 @[ext] lemma ext {f g : P1 →ᵃ[k] P2} (h : ∀ p, f p = g p) : f = g :=
-begin
-  rcases f with ⟨f, f_linear, f_add⟩,
-  rcases g with ⟨g, g_linear, g_add⟩,
-  obtain rfl : f = g := funext h,
-  congr' with v,
-  cases (add_torsor.nonempty : nonempty P1) with p,
-  apply vadd_right_cancel (f p),
-  erw [← f_add, ← g_add]
-end
+fun_like.ext _ _ h
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
 lemma coe_fn_injective : @function.injective (P1 →ᵃ[k] P2) (P1 → P2) coe_fn :=
-λ f g H, ext $ congr_fun H
+fun_like.coe_injective
 
 protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
 congr_arg _ h

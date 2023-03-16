@@ -9,6 +9,9 @@ import algebra.ring.equiv
 
 /-!
 # Results about mapping big operators across ring equivalences
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace ring_equiv

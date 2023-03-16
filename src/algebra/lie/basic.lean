@@ -11,6 +11,9 @@ import tactic.noncomm_ring
 /-!
 # Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Lie rings and Lie algebras over a commutative ring together with their
 modules, morphisms and equivalences, as well as various lemmas to make these definitions usable.
 

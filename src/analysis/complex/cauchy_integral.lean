@@ -143,7 +143,7 @@ Cauchy-Goursat theorem, Cauchy integral formula
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
-open_locale interval real nnreal ennreal topological_space big_operators
+open_locale interval real nnreal ennreal topology big_operators
 
 noncomputable theory
 
@@ -169,14 +169,17 @@ lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
     ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im, I • f' (x + y * I) 1 - f' (x + y * I) I :=
 begin
-  set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prodₗ.symm,
+  set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prod_clm.symm,
   have he : ∀ x y : ℝ, ↑x + ↑y * I = e (x, y), from λ x y, (mk_eq_add_mul_I x y).symm,
   have he₁ : e (1, 0) = 1 := rfl, have he₂ : e (0, 1) = I := rfl,
   simp only [he] at *,
   set F : (ℝ × ℝ) → E := f ∘ e,
   set F' : (ℝ × ℝ) → (ℝ × ℝ) →L[ℝ] E := λ p, (f' (e p)).comp (e : (ℝ × ℝ) →L[ℝ] ℂ),
   have hF' : ∀ p : ℝ × ℝ, (-(I • F' p)) (1, 0) + F' p (0, 1) = -(I • f' (e p) 1 - f' (e p) I),
-  { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add], },
+  { rintro ⟨x, y⟩,
+    simp only [continuous_linear_map.neg_apply, continuous_linear_map.smul_apply, F',
+      continuous_linear_map.comp_apply, continuous_linear_equiv.coe_coe, he₁, he₂,
+      neg_add_eq_sub, neg_sub], },
   set R : set (ℝ × ℝ) := [z.re, w.re] ×ˢ [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
   rw [uIcc_comm z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,

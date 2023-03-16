@@ -6,10 +6,12 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.algebra.subalgebra.basic
 import analysis.normed.group.basic
 import topology.instances.ennreal
-import topology.instances.rat
 
 /-!
 # Normed fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define (semi)normed rings and fields. We also prove some theorems about these
 definitions.
@@ -18,7 +20,7 @@ definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 /-- A non-unital seminormed ring is a not-necessarily-unital ring
 endowed with a seminorm which satisfies the inequality `‖x y‖ ≤ ‖x‖ ‖y‖`. -/
@@ -141,6 +143,10 @@ instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [finty
   norm_one_class (Π i, α i) :=
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
+instance mul_opposite.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+  norm_one_class αᵐᵒᵖ :=
+⟨@norm_one α _ _ _⟩
+
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 
@@ -211,6 +217,11 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
     ... ≤ finset.univ.sup (λ i, ‖x i‖₊) * finset.univ.sup (λ i, ‖y i‖₊) :
             finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
   ..pi.seminormed_add_comm_group }
+
+instance mul_opposite.non_unital_semi_normed_ring : non_unital_semi_normed_ring αᵐᵒᵖ :=
+{ norm_mul := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y,
+    (norm_mul_le y x).trans_eq (mul_comm _ _),
+  ..mul_opposite.seminormed_add_comm_group }
 
 end non_unital_semi_normed_ring
 
@@ -327,6 +338,10 @@ instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
 
+instance mul_opposite.semi_normed_ring : semi_normed_ring αᵐᵒᵖ :=
+{ ..mul_opposite.non_unital_semi_normed_ring,
+  ..mul_opposite.seminormed_add_comm_group }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -349,6 +364,10 @@ instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_u
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.non_unital_normed_ring : non_unital_normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end non_unital_normed_ring
 
@@ -376,6 +395,10 @@ instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π 
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.normed_ring : normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end normed_ring
 
@@ -454,6 +477,15 @@ nnreal.eq $ by simp
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ‖a ^ n‖₊ = ‖a‖₊ ^ n :=
 map_zpow₀ (nnnorm_hom : α →*₀ ℝ≥0)
 
+lemma dist_inv_inv₀ {z w : α} (hz : z ≠ 0) (hw : w ≠ 0) :
+  dist z⁻¹ w⁻¹ = (dist z w) / (‖z‖ * ‖w‖) :=
+by rw [dist_eq_norm, inv_sub_inv' hz hw, norm_mul, norm_mul, norm_inv, norm_inv, mul_comm ‖z‖⁻¹,
+  mul_assoc, dist_eq_norm', div_eq_mul_inv, mul_inv]
+
+lemma nndist_inv_inv₀ {z w : α} (hz : z ≠ 0) (hw : w ≠ 0) :
+  nndist z⁻¹ w⁻¹ = (nndist z w) / (‖z‖₊ * ‖w‖₊) :=
+by { rw ← nnreal.coe_eq, simp [-nnreal.coe_eq, dist_inv_inv₀ hz hw], }
+
 /-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
 infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
 lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :
@@ -484,9 +516,14 @@ begin
     ... ≤ ‖r - e‖ / ‖r‖ / ε :
       div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  refine (((continuous_const.sub continuous_id).norm.div_const _).div_const _).tendsto' _ _ _,
   simp,
 end
+
+/-- A normed division ring is a topological division ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_topological_division_ring : topological_division_ring α :=
+{ }
 
 lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :
@@ -676,61 +713,20 @@ lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
 instance : normed_comm_ring ℤ :=
-{ norm := λ n, ‖(n : ℝ)‖,
-  norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
-  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
-  mul_comm := mul_comm }
-
-@[norm_cast] lemma int.norm_cast_real (m : ℤ) : ‖(m : ℝ)‖ = ‖m‖ := rfl
-
-lemma int.norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
-
-@[simp] lemma int.norm_coe_nat (n : ℕ) : ‖(n : ℤ)‖ = n := by simp [int.norm_eq_abs]
-
-lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
-nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
-               = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
-           ... = |n|           : by simp only [int.coe_nat_abs, int.cast_abs]
-           ... = ‖n‖              : rfl
-
-lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ‖z‖₊ ≤ c :=
-begin
-  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
-  congr',
-  exact nnreal.coe_nat_abs z,
-end
+{ norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
+  mul_comm := mul_comm,
+  .. int.normed_add_comm_group }
 
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 
 instance : normed_field ℚ :=
-{ norm := λ r, ‖(r : ℝ)‖,
-  norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
-  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+{ norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
+  .. rat.normed_add_comm_group }
 
 instance : densely_normed_field ℚ :=
 { lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
     ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
-
-@[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ‖(r : ℝ)‖ = ‖r‖ := rfl
-
-@[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ‖(m : ℚ)‖ = ‖m‖ :=
-by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
-
--- Now that we've installed the norm on `ℤ`,
--- we can state some lemmas about `zsmul`.
-section
-variables [seminormed_comm_group α]
-
-@[to_additive norm_zsmul_le]
-lemma norm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖ ≤ ‖n‖ * ‖a‖ :=
-by rcases n.eq_coe_or_neg with ⟨n, rfl | rfl⟩; simpa using norm_pow_le_mul_norm n a
-
-@[to_additive nnnorm_zsmul_le]
-lemma nnnorm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
-by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul] using norm_zpow_le_mul_norm n a
-
-end
 
 section ring_hom_isometric
 

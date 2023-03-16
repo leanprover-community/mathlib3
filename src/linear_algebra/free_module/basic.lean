@@ -68,7 +68,7 @@ variables [add_comm_monoid N] [module R N]
 
 /-- If `module.free R M` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
-@[nolint has_nonempty_instance] def choose_basis_index := (exists_basis R M).some.1
+def choose_basis_index := (exists_basis R M).some.1
 
 /-- If `module.free R M` then `choose_basis : ι → M` is the basis.
 Here `ι = choose_basis_index R M`. -/
@@ -91,6 +91,9 @@ noncomputable def constr {S : Type z} [semiring S] [module S N] [smul_comm_class
 @[priority 100]
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
 let ⟨⟨_, b⟩⟩ := exists_basis R M in b.no_zero_smul_divisors
+
+instance [nontrivial M] : nonempty (module.free.choose_basis_index R M) :=
+(module.free.choose_basis R M).index_nonempty
 
 variables {R M N}
 

@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import algebra.order.invertible
 import algebra.order.module
-import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.midpoint_zero
 import linear_algebra.affine_space.slope
 import tactic.field_simp
 

@@ -47,7 +47,7 @@ seminorm, locally convex
 -/
 
 open normed_field set seminorm topological_space
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {𝕜 𝕜₂ 𝕝 𝕝₂ E F G ι ι' : Type*}
 

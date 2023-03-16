@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.mul_action
 import topology.algebra.uniform_group
 import topology.continuous_function.basic
@@ -28,7 +28,7 @@ The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M�
 -/
 
 open filter linear_map (ker range)
-open_locale topological_space big_operators filter
+open_locale topology big_operators filter
 
 universes u v w u'
 
@@ -261,6 +261,27 @@ begin
 end
 
 end closure
+
+section pi
+
+lemma linear_map.continuous_on_pi {ι : Type*} {R : Type*} {M : Type*} [finite ι] [semiring R]
+  [topological_space R] [add_comm_monoid M] [module R M] [topological_space M]
+  [has_continuous_add M] [has_continuous_smul R M] (f : (ι → R) →ₗ[R] M) :
+  continuous f :=
+begin
+  casesI nonempty_fintype ι,
+  classical,
+  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
+  -- function.
+  have : (f : (ι → R) → M) =
+         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
+    by { ext x, exact f.pi_apply_eq_sum_univ x },
+  rw this,
+  refine continuous_finset_sum _ (λi hi, _),
+  exact (continuous_apply i).smul continuous_const
+end
+
+end pi
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications `M` and `M₂` will be topological modules over the topological

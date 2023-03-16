@@ -46,7 +46,7 @@ analytic sets.
 -/
 
 open set function polish_space pi_nat topological_space metric filter
-open_locale topological_space measure_theory filter
+open_locale topology measure_theory filter
 
 variables {α : Type*} [topological_space α] {ι : Type*}
 
@@ -231,8 +231,8 @@ begin
   topology `t'`. It is analytic for this topology. As the identity from `t'` to `t` is continuous
   and the image of an analytic set is analytic, it follows that `s` is also analytic for `t`. -/
   obtain ⟨t', t't, t'_polish, s_closed, s_open⟩ :
-    ∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t' ∧ @is_closed α t' s ∧
-      @is_open α t' s := hs.is_clopenable,
+    ∃ t' : topological_space α, t' ≤ t ∧ @polish_space α t' ∧ is_closed[t'] s ∧ is_open[t'] s :=
+    hs.is_clopenable,
   have A := @is_closed.analytic_set α t' t'_polish s s_closed,
   convert @analytic_set.image_of_continuous α t' α t s A id (continuous_id_of_le t't),
   simp only [id.def, image_id'],
@@ -593,8 +593,8 @@ theorem _root_.measurable_set.image_of_continuous_on_inj_on
   measurable_set (f '' s) :=
 begin
   obtain ⟨t', t't, t'_polish, s_closed, s_open⟩ :
-    ∃ (t' : topological_space γ), t' ≤ tγ ∧ @polish_space γ t' ∧ @is_closed γ t' s ∧
-      @is_open γ t' s := hs.is_clopenable,
+    ∃ (t' : topological_space γ), t' ≤ tγ ∧ @polish_space γ t' ∧ is_closed[t'] s ∧
+      is_open[t'] s := hs.is_clopenable,
   exact @is_closed.measurable_set_image_of_continuous_on_inj_on γ t' t'_polish β _ _ _ _ s
     s_closed f (f_cont.mono_dom t't) f_inj,
 end
@@ -665,8 +665,8 @@ begin
   refine ⟨λ hs, _, λ hs, hs.is_clopenable⟩,
   -- consider a finer topology `t'` in which `s` is open and closed.
   obtain ⟨t', t't, t'_polish, s_closed, s_open⟩ :
-    ∃ (t' : topological_space γ), t' ≤ tγ ∧ @polish_space γ t' ∧ @is_closed γ t' s ∧
-      @is_open γ t' s := hs,
+    ∃ (t' : topological_space γ), t' ≤ tγ ∧ @polish_space γ t' ∧ is_closed[t'] s ∧
+      is_open[t'] s := hs,
   -- the identity is continuous from `t'` to `tγ`.
   have C : @continuous γ γ t' tγ id := continuous_id_of_le t't,
   -- therefore, it is also a measurable embedding, by the Lusin-Souslin theorem

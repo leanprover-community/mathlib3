@@ -198,6 +198,19 @@ begin
   exact (prod_equiv_of_is_compl _ _ hpq).apply_symm_apply x,
 end
 
+lemma linear_proj_of_is_compl_eq_self_sub_linear_proj (hpq : is_compl p q) (x : E) :
+  (q.linear_proj_of_is_compl p hpq.symm x : E) = x - (p.linear_proj_of_is_compl q hpq x : E) :=
+by rw [eq_sub_iff_add_eq, add_comm, submodule.linear_proj_add_linear_proj_of_is_compl_eq_self]
+
+/-- projection to `p` along `q` of `x` equals `x` if and only if `x ∈ p` -/
+lemma linear_proj_of_is_compl_eq_self_iff (hpq : is_compl p q) (x : E) :
+  (p.linear_proj_of_is_compl q hpq x : E) = x ↔ x ∈ p :=
+begin
+  split; intro H,
+  { rw ← H, exact submodule.coe_mem _ },
+  { exact congr_arg _ (submodule.linear_proj_of_is_compl_apply_left hpq ⟨x, H⟩) }
+end
+
 end submodule
 
 namespace linear_map

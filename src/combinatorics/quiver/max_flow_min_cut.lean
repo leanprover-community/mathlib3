@@ -11,7 +11,7 @@ import data.finset
 import tactic.induction
 
 /-!
-# Max flow min cut theorem
+# Max flow Min cut theorem
 
 In this file we will prove the max-flow min-cut theorem, stating that if a maximum flow exists in a flow network,
 then its value is equal to the capacity of a minimum cut in the same network.

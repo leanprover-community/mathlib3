@@ -245,7 +245,6 @@ equiv.of_right_inverse_of_card_le
     rw [ih _ (nat.div_lt_of_lt_mul a.is_lt), nat.mod_add_div],
   end)
 
-
 lemma fin_function_fin_equiv_apply {m n : ℕ} (f : fin n → fin m):
   (fin_function_fin_equiv f : ℕ) = ∑ (i : fin n), ↑(f i) * m ^ (i : ℕ) := rfl
 
@@ -293,7 +292,8 @@ equiv.of_right_inverse_of_card_le
     intro a, revert a, dsimp only [fin.coe_mk],
     refine fin.cons_induction _ _ n,
     { intro a,
-      haveI : subsingleton (fin (∏ i : fin 0, i.elim0)) := (fin.cast $ prod_empty).to_equiv.subsingleton,
+      haveI : subsingleton (fin (∏ i : fin 0, i.elim0)) :=
+        (fin.cast $ prod_empty).to_equiv.subsingleton,
       exact subsingleton.elim _ _ },
     { intros n x xs ih a,
       simp_rw [fin.forall_iff, fin.ext_iff, fin.coe_mk] at ih,

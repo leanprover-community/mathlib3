@@ -84,7 +84,7 @@ begin
       ring } },
 end
 
-/-- The closed for for the quaternion exponential on imaginary quaternions. -/
+/-- The closed form for the quaternion exponential on imaginary quaternions. -/
 lemma exp_of_re_eq_zero (q : quaternion ℝ) (hq : q.re = 0) :
   exp ℝ q = ↑(real.cos ‖q‖) + (real.sin ‖q‖ / ‖q‖) • q :=
 begin

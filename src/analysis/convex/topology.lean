@@ -69,9 +69,9 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
-section linear_ordered_ring
+section topological_space
 variables [linear_ordered_ring 𝕜] [densely_ordered 𝕜] [topological_space 𝕜] [order_topology 𝕜]
-  [linear_ordered_add_comm_group E] [topological_space E] [order_topology E] [module 𝕜 E]
+  [add_comm_group E] [topological_space E] [t2_space E] [has_continuous_add E] [module 𝕜 E]
   [has_continuous_smul 𝕜 E] {x y : E}
 
 lemma segment_subset_closure_open_segment : [x -[𝕜] y] ⊆ closure (open_segment 𝕜 x y) :=
@@ -80,21 +80,21 @@ begin
   exact image_closure_subset_closure_image (by continuity),
 end
 
-end linear_ordered_ring
+end topological_space
 
-section linear_ordered_ring
+section pseudo_metric_space
 variables [linear_ordered_ring 𝕜] [densely_ordered 𝕜] [pseudo_metric_space 𝕜] [order_topology 𝕜]
-  [proper_space 𝕜] [compact_Icc_space 𝕜] [linear_ordered_add_comm_group E] [topological_space E]
-  [order_topology E] [module 𝕜 E] [has_continuous_smul 𝕜 E]
+  [proper_space 𝕜] [compact_Icc_space 𝕜] [add_comm_group E] [topological_space E] [t2_space E]
+  [has_continuous_add E] [module 𝕜 E] [has_continuous_smul 𝕜 E]
 
-lemma closure_open_segment (x y : E) : closure (open_segment 𝕜 x y) = [x -[𝕜] y] :=
+@[simp] lemma closure_open_segment (x y : E) : closure (open_segment 𝕜 x y) = [x -[𝕜] y] :=
 begin
   rw [segment_eq_image, open_segment_eq_image, ←closure_Ioo (zero_ne_one' 𝕜)],
   exact (image_closure_of_is_compact (bounded_Ioo _ _).is_compact_closure $
     continuous.continuous_on $ by continuity).symm,
 end
 
-end linear_ordered_ring
+end pseudo_metric_space
 
 section has_continuous_const_smul
 

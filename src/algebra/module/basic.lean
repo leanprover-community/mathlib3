@@ -381,27 +381,32 @@ lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] {F : Type*}
   f ((x : R) • a) = (x : S) • f a :=
 by simp only [←nsmul_eq_smul_cast, map_nsmul]
 
-lemma map_inv_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
+lemma map_inv_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
-  (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
-  (n : ℤ) (x : M) :
+  (R S : Type*) [division_semiring R] [division_semiring S] [module R M] [module S M₂]
+  (n : ℕ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
 begin
   by_cases hR : (n : R) = 0; by_cases hS : (n : S) = 0,
   { simp [hR, hS] },
   { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
-    rw [← inv_smul_smul₀ hS (f x), ← map_int_cast_smul f R S], simp [hR] },
+    rw [← inv_smul_smul₀ hS (f x), ← map_nat_cast_smul f R S], simp [hR] },
   { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
-    rw [← smul_inv_smul₀ hR x, map_int_cast_smul f R S, hS, zero_smul] },
-  { rw [← inv_smul_smul₀ hS (f _), ← map_int_cast_smul f R S, smul_inv_smul₀ hR] }
+    rw [← smul_inv_smul₀ hR x, map_nat_cast_smul f R S, hS, zero_smul] },
+  { rw [← inv_smul_smul₀ hS (f _), ← map_nat_cast_smul f R S, smul_inv_smul₀ hR] }
 end
 
-lemma map_inv_nat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
+lemma map_inv_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
   (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
-  (n : ℕ) (x : M) :
-  f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-by exact_mod_cast map_inv_int_cast_smul f R S n x
+  (z : ℤ) (x : M) :
+  f ((z⁻¹ : R) • x) = (z⁻¹ : S) • f x :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw [int.cast_coe_nat, int.cast_coe_nat, map_inv_nat_cast_smul _ R S] },
+  { simp_rw [int.cast_neg, int.cast_coe_nat, inv_neg, neg_smul, map_neg,
+      map_inv_nat_cast_smul _ R S] },
+end
 
 lemma map_rat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)

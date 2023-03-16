@@ -1,8 +1,9 @@
 /-
-Copyright (c) 2023 Aleksandar Milchev. All rights reserved.
+Copyright (c) 2023 'Aleksandar Milchev'. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aleksandar Milchev
+Author: 'Aleksandar Milchev'
 -/
+
 
 import data.real.basic
 import data.set
@@ -13,7 +14,8 @@ import tactic.induction
 /-!
 # Max flow Min cut theorem
 
-In this file we will prove the max-flow min-cut theorem, stating that if a maximum flow exists in a flow network,
+In this file we will prove the max-flow min-cut theorem,
+stating that if a maximum flow exists in a flow network,
 then its value is equal to the capacity of a minimum cut in the same network.
 
 ## Main results
@@ -237,8 +239,10 @@ begin
     have h: S ⊆ V' := by {exact finset.subset_univ S},
     have hyp: ∑ (y : V) in V' \ S, ∑ (x : V) in S, afn.f x y + ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u = ∑ u in V', ∑ v in S, afn.f v u :=
     by {exact finset.sum_sdiff h},
-    have obvs: ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u = ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v := by {exact finset.sum_comm},
-    have fin: ∑ u in V', ∑ v in S, afn.f v u = ∑ u in S, ∑ v in V', afn.f u v := by {exact finset.sum_comm},
+    have obvs: ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u = ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v :=
+    by {exact finset.sum_comm},
+    have fin: ∑ u in V', ∑ v in S, afn.f v u = ∑ u in S, ∑ v in V', afn.f u v :=
+    by {exact finset.sum_comm},
     rw obvs at hyp,
     rw hyp,
     exact fin,
@@ -307,7 +311,8 @@ end
 lemma flow_value_global_ver {V : Type*}  [inst' : fintype V]
   (afn : active_flow_network V) (ct : cut V)
   (same_net : afn.network = ct.network) :
-  mk_out afn.f {afn.network.source} - mk_in afn.f {afn.network.source} = mk_out afn.f ct.S - mk_in afn.f ct.S :=
+  mk_out afn.f {afn.network.source} - mk_in afn.f {afn.network.source} =
+  mk_out afn.f ct.S - mk_in afn.f ct.S :=
 begin
   set S := ct.S,
   set T := ct.T,
@@ -330,13 +335,15 @@ begin
     have same_sink: t = ct.network.sink := by {exact (same_source_and_sink afn ct same_net).2},
     have tInT: t ∈ T := by {rw same_sink, exact ct.tint},
     have Tcomp : T = univ \ S := by {exact ct.Tcomp},
-    have foo: S = univ \ (univ \ S) := by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
+    have foo: S = univ \ (univ \ S) :=
+    by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
     have Scomp : S = univ \ T := by {rw ← Tcomp at foo, exact foo},
     rw Scomp at *,
     -- exact set.not_mem_diff_of_mem tInT,
     sorry,
   end,
-  have expand: mk_out afn.f {s} + (mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s})) - mk_in afn.f {s} = mk_out afn.f {s} - mk_in afn.f {s} :=
+  have expand: mk_out afn.f {s} + (mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s})) - mk_in afn.f {s} =
+  mk_out afn.f {s} - mk_in afn.f {s} :=
   begin
     have h3: s ∉ (S \ {s}) := by sorry, -- {set.not_mem_diff_of_mem singleton},
     have eq: mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s}) = 0 :=
@@ -405,7 +412,8 @@ begin
     have same_sink: t = ct.network.sink := by {exact (same_source_and_sink afn ct same_net).2},
     have tInT: t ∈ T := by {rw same_sink, exact ct.tint},
     have Tcomp : T = univ \ S := by {exact ct.Tcomp},
-    have foo: S = univ \ (univ \ S) := by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
+    have foo: S = univ \ (univ \ S) :=
+    by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
     have Scomp : S = univ \ T := by {rw ← Tcomp at foo, exact foo},
     rw Scomp at *,
     -- exact set.not_mem_diff_of_mem tInT,
@@ -421,7 +429,8 @@ begin
     have no_overflow: mk_out afn.f S ≤ mk_out afn.network.to_capacity.c S :=
     begin
       unfold mk_out,
-      have flowLEcut: ∀ (x y : V), (afn.f x y ≤ afn.network.to_capacity.c x y) := by {exact afn.no_overflow},
+      have flowLEcut: ∀ (x y : V), (afn.f x y ≤ afn.network.to_capacity.c x y) :=
+      by {exact afn.no_overflow},
       -- exact finset.sum_le_sum flowLEcut,
       sorry,
     end,
@@ -437,7 +446,8 @@ begin
     rw obs,
     simp,
     unfold mk_in,
-    have nonneg_flow: ∀ v ∈ V', ∀ u ∈ S, afn.f u v ≥ 0 := by {intros v vInV' u uInS, exact afn.non_neg_flow u v}, -- meta errors again?
+    have nonneg_flow: ∀ v ∈ V', ∀ u ∈ S, afn.f u v ≥ 0 :=
+    by {intros v vInV' u uInS, exact afn.non_neg_flow u v}, -- meta errors again?
     exact finset.sum_nonneg nonneg_flow,
   end,
   apply le_trans lemma3 lemma2,
@@ -446,7 +456,8 @@ end
 lemma zero_left_move {a b c d : ℝ} : (0 = a + b - c - d) -> (d - b = a - c) := by {intro h, linarith}
 
 def is_max_flow_network  {V : Type*}  [inst' : fintype V]
-  (fn: active_flow_network V) : Prop := ∀ fn' : active_flow_network V, fn.network = fn'.network → F_value fn' ≤ F_value fn
+  (fn: active_flow_network V) : Prop :=
+  ∀ fn' : active_flow_network V, fn.network = fn'.network → F_value fn' ≤ F_value fn
 
 def is_min_cut {V : Type*}  [inst' : fintype V]
   (fn: cut V) : Prop := ∀ fn' : cut V, fn.network = fn'.network → cut_cap fn ≤ cut_cap fn'
@@ -464,7 +475,8 @@ begin
 end
 
 lemma min_cut_criterion  {V : Type*}  [inst' : fintype V]
-  (afn : active_flow_network V) (ct : cut V) (same_net: afn.network = ct.network) : cut_cap ct = F_value afn -> is_min_cut ct :=
+  (afn : active_flow_network V) (ct : cut V) (same_net: afn.network = ct.network) :
+  cut_cap ct = F_value afn -> is_min_cut ct :=
 begin
   intro eq,
   intros cut eq_net,
@@ -496,7 +508,8 @@ structure residual_network  (V : Type*)  [inst' : fintype V] :=
 
 noncomputable
 def mk_rsn {V : Type*} [fintype V] -- stays for residual network
-  (afn : active_flow_network V) : residual_network V := ⟨afn, mk_rsf afn, rfl, λ u v, mk_rsf afn u v > 0 , rfl ⟩
+  (afn : active_flow_network V) : residual_network V :=
+  ⟨afn, mk_rsf afn, rfl, λ u v, mk_rsf afn u v > 0 , rfl ⟩
 
 universe u
 
@@ -509,7 +522,8 @@ inductive path {V : Type u } (is_edge : V -> V -> Prop) (a : V) : V → Type (u 
 | cons : Π {b c : V}, path b → (is_edge b c) → path c
 
 def no_augumenting_path {V : Type*} [inst' : fintype V]
-  (rsn : residual_network V) : Prop := ∀ t : V, ∀ p : path rsn.is_edge rsn.afn.network.source t, ¬ (t = rsn.afn.network.sink)
+  (rsn : residual_network V) : Prop :=
+  ∀ t : V, ∀ p : path rsn.is_edge rsn.afn.network.source t, ¬ (t = rsn.afn.network.sink)
 
 def path.in {V : Type u }
   {is_edge : V -> V -> Prop}
@@ -565,7 +579,7 @@ begin
   set better_flow: active_flow_network V :=
   ⟨rsn.afn.network,
   (λ u v : V, if exists_path.in u v then rsn.afn.f u v + d
-                                    else if exists_path.in v u then rsn.afn.f u v - d else rsn.afn.f u v),
+              else if exists_path.in v u then rsn.afn.f u v - d else rsn.afn.f u v),
   begin -- source ≠ sink
     exact rsn.afn.sourceNotSink,
   end,
@@ -603,11 +617,13 @@ begin
     {
       by_cases h': exists_path.in v u,
         {
-          have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v := by {exact rsn.afn.no_overflow u v},
+          have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v :=
+          by {exact rsn.afn.no_overflow u v},
           linarith,
         },
         {
-          have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v := by {exact rsn.afn.no_overflow u v},
+          have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v :=
+          by {exact rsn.afn.no_overflow u v},
           linarith,
         },
     },
@@ -637,7 +653,8 @@ begin
   have flow_value: F_value better_flow = F_value rsn.afn + d :=
   begin
     unfold F_value,
-    have h1: mk_out better_flow.f {better_flow.network.source} = mk_out rsn.afn.f {rsn.afn.network.source} + d := by sorry,
+    have h1: mk_out better_flow.f {better_flow.network.source} = mk_out rsn.afn.f {rsn.afn.network.source} + d :=
+    by sorry,
     -- take the edge with the added flow
     have h2: mk_in better_flow.f {better_flow.network.source} = mk_in rsn.afn.f {rsn.afn.network.source} := by {linarith},
     rw [h1,h2],
@@ -866,7 +883,8 @@ begin
   have h1: S = mk_cut_set rsn := by refl,
   let min_cut := mk_cut_from_S (rsn) (hno_augumenting_path) (S) (h1),
   have eq_net : rsn.afn.network = min_cut.network := by refl,
-  have subtract: ∀ x y : ℝ, (x=y) ↔ y-x=0 := by {intros x y, split, intro heq, linarith, intro heq, linarith},
+  have subtract: ∀ x y : ℝ, (x=y) ↔ y-x=0 :=
+  by {intros x y, split, intro heq, linarith, intro heq, linarith},
   have cf_vanishes_on_pipes: ∀u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S, rsn.f' u v = 0 :=
   begin
     intros u uInS v vInNS,
@@ -886,11 +904,12 @@ begin
     have notEdge: ¬ rsn.is_edge u v := by {exact s_t_not_connected rsn S h1 u uInS v vInNS},
     contradiction
   end,
-  have cf_vanishes_on_pipes_spec: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S, (rsn.afn.network.is_edge u v) →
-    (rsn.afn.network.c u v - rsn.afn.f u v = 0) :=
+  have cf_vanishes_on_pipes_spec: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S,
+    (rsn.afn.network.is_edge u v) → (rsn.afn.network.c u v - rsn.afn.f u v = 0) :=
   begin
     intros u u_in_S v v_in_T is_edge,
-    have t: mk_rsf rsn.afn u v = rsn.afn.network.c u v - rsn.afn.f u v := by {unfold mk_rsf, simp only [is_edge, if_true]},
+    have t: mk_rsf rsn.afn u v = rsn.afn.network.c u v - rsn.afn.f u v :=
+    by {unfold mk_rsf, simp only [is_edge, if_true]},
     rw ← t,
     have r: mk_rsf rsn.afn u v = rsn.f' u v := by {rw rsn.f_def},
     rw r,
@@ -967,8 +986,10 @@ theorem max_flow_min_cut {V : Type*} [inst' : fintype V]
 begin
   rintros ⟨max_flow, min_cut⟩ ,
   have noAugPath: no_augumenting_path rsn := by {exact no_augm_path rsn max_flow},
-  have existsCut: ∃cut:cut V, rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn := by {exact existence_of_a_cut rsn noAugPath},
-  have max_flow_min_cut: ∀ cut:cut V, (rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn) → (F_value rsn.afn = cut_cap c) :=
+  have existsCut: ∃cut:cut V, rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn :=
+  by {exact existence_of_a_cut rsn noAugPath},
+  have max_flow_min_cut: ∀ cut:cut V,
+  (rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn) → (F_value rsn.afn = cut_cap c) :=
   begin
     rintros cut ⟨same_net, eq⟩ ,
     have h1: is_min_cut cut := by {exact min_cut_criterion rsn.afn cut same_net eq},

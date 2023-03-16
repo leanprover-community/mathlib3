@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import linear_algebra.quotient
 import linear_algebra.prod
+import algebra.module.submodule.pointwise
 
 /-!
 # Projection to a subspace
@@ -196,6 +197,19 @@ begin
   dunfold linear_proj_of_is_compl,
   rw ←prod_comm_trans_prod_equiv_of_is_compl _ _ hpq,
   exact (prod_equiv_of_is_compl _ _ hpq).apply_symm_apply x,
+end
+
+lemma linear_proj_of_is_compl_eq_self_sub_linear_proj (hpq : is_compl p q) (x : E) :
+  (q.linear_proj_of_is_compl p hpq.symm x : E) = x - (p.linear_proj_of_is_compl q hpq x : E) :=
+by rw [eq_sub_iff_add_eq, add_comm, submodule.linear_proj_add_linear_proj_of_is_compl_eq_self]
+
+/-- projection to `p` along `q` of `x` equals `x` if and only if `x ∈ p` -/
+lemma linear_proj_of_is_compl_eq_self_iff (hpq : is_compl p q) (x : E) :
+  (p.linear_proj_of_is_compl q hpq x : E) = x ↔ x ∈ p :=
+begin
+  split; intro H,
+  { rw ← H, exact submodule.coe_mem _ },
+  { exact congr_arg _ (submodule.linear_proj_of_is_compl_apply_left hpq ⟨x, H⟩) }
 end
 
 end submodule
@@ -419,6 +433,38 @@ lemma is_proj.eq_conj_prod_map {f : E →ₗ[R] E} (h : is_proj p f) :
   f = (p.prod_equiv_of_is_compl f.ker h.is_compl).conj (prod_map id 0) :=
 by {rw linear_equiv.conj_apply, exact h.eq_conj_prod_map'}
 
+/-- if a linear map `T` is idempotent, then `is_compl T.ker T.range`,
+in other words, there exists unique `v ∈ T.ker` and `w ∈ T.range` such that `x = v + w` -/
+lemma is_proj.is_compl_range_ker {V R : Type*} [ring R] [add_comm_group V]
+  [module R V] (U : submodule R V) (T : V →ₗ[R] V)  (h : is_proj U T) :
+  is_compl T.ker T.range :=
+begin
+  have H' : T.comp T = T,
+  { rw ← is_proj_iff_idempotent, use U, exact h, },
+  split,
+  { rw disjoint_iff,
+    ext,
+    simp_rw [submodule.mem_bot, submodule.mem_inf, mem_ker, mem_range],
+    split,
+    { intro h',
+      cases h'.2 with y hy,
+      rw [← hy, ← H', comp_apply, hy],
+      exact h'.1, },
+    { intro h',
+      simp_rw [h', map_zero, eq_self_iff_true, true_and],
+      use x,
+      simp_rw [h', map_zero], }, },
+  { suffices : ∀ x : V, ∃ v : T.ker, ∃ w : T.range, x = v + w,
+    { rw [codisjoint_iff, ← submodule.add_eq_sup],
+      ext,
+      rcases this x with ⟨v,w,hvw⟩,
+      simp only [submodule.mem_top, iff_true, hvw],
+      apply submodule.add_mem_sup (set_like.coe_mem v) (set_like.coe_mem w), },
+    intro x,
+    use (x - (T x)), rw [mem_ker, map_sub, ← comp_apply, H', sub_self],
+    use (T x),
+    simp_rw [linear_map.mem_range, exists_apply_eq_apply, submodule.coe_mk, sub_add_cancel], }
+end
 end linear_map
 
 end comm_ring

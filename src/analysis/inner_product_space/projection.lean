@@ -7,6 +7,7 @@ import analysis.convex.basic
 import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 import data.is_R_or_C.lemmas
+import linear_algebra.invariant_submodule
 
 /-!
 # The orthogonal projection
@@ -445,6 +446,15 @@ lemma orthogonal_projection_fn_eq (v : E) :
   orthogonal_projection_fn K v = (orthogonal_projection K v : E) :=
 rfl
 
+/-- The orthogonal projection on a submodule `U` of an inner product space `V`,
+as a continuous linear map from `V` to `V`. See also `orthogonal_projection` for the version as
+a continuous linear map from `V` to `U`. -/
+noncomputable def orthogonal_projection' (U : submodule 𝕜 E) [complete_space U] :
+  E →L[𝕜] E := U.subtypeL.comp (orthogonal_projection U)
+
+lemma orthogonal_projection'_apply (U : submodule 𝕜 E) [complete_space U] (x : E) :
+  orthogonal_projection' U x = ↑(orthogonal_projection U x) := rfl
+
 /-- The characterization of the orthogonal projection.  -/
 @[simp]
 lemma orthogonal_projection_inner_eq_zero (v : E) :
@@ -772,6 +782,38 @@ lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
   orthogonal_projection K v = 0 :=
 by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
+
+lemma orthogonal_projection_eq_linear_proj [complete_space K] :
+  (orthogonal_projection K : E →ₗ[𝕜] K) =
+  submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space :=
+begin
+  have : is_compl K Kᗮ := submodule.is_compl_orthogonal_of_complete_space,
+  ext x : 1,
+  nth_rewrite 0 [← submodule.linear_proj_add_linear_proj_of_is_compl_eq_self this x],
+  rw [continuous_linear_map.coe_coe, map_add, orthogonal_projection_mem_subspace_eq_self,
+      orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (submodule.coe_mem _),
+      add_zero]
+end
+
+lemma orthogonal_projection_eq_linear_proj' [complete_space K] (x : E) :
+  orthogonal_projection K x =
+  submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space x :=
+by rw [← orthogonal_projection_eq_linear_proj]; refl
+
+lemma orthogonal_projection'_eq_linear_proj (K : submodule 𝕜 E) [complete_space K] :
+  (orthogonal_projection' K : E →ₗ[𝕜] E) = K.subtype.comp
+  (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) :=
+begin
+  ext x,
+  simp_rw [continuous_linear_map.coe_coe, orthogonal_projection'_apply,
+           orthogonal_projection_eq_linear_proj'],
+  refl,
+end
+
+lemma orthogonal_projection'_eq_linear_proj' (K : submodule 𝕜 E) [complete_space K] (x : E) :
+  (orthogonal_projection' K : E →ₗ[𝕜] E) x = K.subtype.comp
+    (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) x :=
+by rw [← orthogonal_projection'_eq_linear_proj]
 
 /-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_complement_eq_neg
@@ -1270,3 +1312,109 @@ begin
 end
 
 end orthonormal_basis
+
+section invariant_submodules
+
+variables {V : Type*} [inner_product_space 𝕜 V]
+
+local notation `P` := orthogonal_projection
+local notation `↥P` := orthogonal_projection'
+
+-- the extended orthogonal projection is an invariant subspace
+lemma submodule.invariant_orthogonal_projection' (U : submodule 𝕜 V) [complete_space U] :
+  U.invariant_under (↥P U) := λ x hx, set_like.coe_mem (P U x : U)
+
+/-- if `U` is `T` invariant, then `(P U).comp T.comp (P U) = T.comp (P U)`
+where `P U` is `orthogonal_projection U` -/
+lemma submodule.invariant_under_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V)
+  (h : U.invariant_under T) (x : V) : ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
+by rw [orthogonal_projection_eq_linear_proj' x,
+       ← U.proj_comp_self_comp_proj_eq_of_invariant_under _ _ _ h _,
+       orthogonal_projection_mem_subspace_eq_self]
+
+/-- if `(P U).comp T.comp (P U) = T.comp (P U)`, then `U` is `T` invariant,
+where `P U` is `orthogonal_projection U` -/
+lemma submodule.ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj_imp_invariant
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V)
+  (h : ∀ x : V, ↑(P U (T ↑(P U x))) = T ↑(P U x)) : U.invariant_under T :=
+by { simp_rw [orthogonal_projection_eq_linear_proj'] at h,
+     exact submodule.invariant_under_of_proj_comp_self_comp_proj_eq _ _ _ T h, }
+
+lemma submodule.invariant_under_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V) :
+  U.invariant_under T ↔ ∀ x : V, ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
+⟨λ h, submodule.invariant_under_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj _ _ h,
+ λ h, submodule.ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj_imp_invariant _ _ h⟩
+
+/-- `U,Uᗮ` are `T` invariant if and only if `commute (P U) T`,
+where `P U` is `orthogonal_projection U` -/
+lemma submodule.invariant_under_and_ortho_invariant_iff_ortho_proj_and_T_commute
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V) :
+  (U.invariant_under T ∧ Uᗮ.invariant_under T) ↔ commute ↑(↥P U) T :=
+by rw [orthogonal_projection'_eq_linear_proj,
+       U.compl_invariant_under_iff_linear_proj_and_T_commute]
+
+noncomputable instance linear_map.is_invertible_of_invertible_continuous_linear_map
+  (T : V →L[𝕜] V) [invertible T] : invertible (T : V →ₗ[𝕜] V) :=
+begin
+  have : ∀ S T : V →L[𝕜] V, ↑S * (T : V →ₗ[𝕜] V) = ↑(S*T) := λ S T, rfl,
+  use T.inverse,
+  rw [this, continuous_linear_map.inv_mul_self], refl,
+  rw [this, continuous_linear_map.mul_inv_self], refl,
+end
+
+lemma linear_map.is_inv_of_eq_inverse_continuous_linear_map (T : V →L[𝕜] V) [invertible T] :
+  ⅟(T : V →ₗ[𝕜] V) = T.inverse := rfl
+
+/-- `commute (P U) T` if and only if `T⁻¹.comp (P U).comp T = P U`,
+where `P U` is `orthogonal_projection U` -/
+lemma ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj
+  (U : submodule 𝕜 V) [complete_space U] (T : V →L[𝕜] V) [invertible T] :
+  commute (↥P U) T ↔ T.inverse.comp ((↥P U).comp T) = ↥P U :=
+begin
+  simp_rw [commute, semiconj_by, continuous_linear_map.ext_iff,
+           continuous_linear_map.mul_apply, continuous_linear_map.comp_apply,
+           ← continuous_linear_map.coe_coe,
+           orthogonal_projection'_eq_linear_proj,
+           ← linear_map.mul_apply, ← linear_map.ext_iff],
+  rw [← semiconj_by, ← commute,
+      submodule.commutes_with_linear_proj_iff_linear_proj_eq U Uᗮ _ _],
+  refl,
+end
+
+/-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ`,
+where `P U` is `orthogonal_projection U` -/
+lemma inv_of_self_ortho_proj_self_eq_ortho_proj_iff
+   (U : submodule 𝕜 V) [complete_space U] (T : V →L[𝕜] V) [invertible T] :
+  T.inverse.comp ((↥P U).comp T) = ↥P U ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
+by simp_rw [continuous_linear_map.ext_iff, continuous_linear_map.comp_apply,
+            ← continuous_linear_map.coe_coe _, orthogonal_projection'_eq_linear_proj',
+            ← linear_map.comp_apply, ← linear_map.ext_iff,
+            ← linear_map.is_inv_of_eq_inverse_continuous_linear_map,
+            submodule.inv_linear_proj_comp_map_eq_linear_proj_iff_images_eq]
+
+/-- `U` and `W` are mutually orthogonal if and only if `(P U).comp (P W) = 0`,
+where `P U` is `orthogonal_projection U` -/
+lemma ortho_spaces_iff_ortho_proj_comp_ortho_proj_eq_0 (U W : submodule 𝕜 V)
+  [complete_space U] [complete_space W] :
+  (∀ x y, x ∈ U ∧ y ∈ W → @inner 𝕜 _ _ x y = 0) ↔ (↥P U).comp (↥P W) = 0 :=
+begin
+  split,
+  { intros h,
+    ext v,
+    rw [continuous_linear_map.comp_apply, continuous_linear_map.zero_apply,
+        ← inner_self_eq_zero, orthogonal_projection'_apply, orthogonal_projection'_apply,
+        ← inner_orthogonal_projection_left_eq_right,
+        orthogonal_projection_mem_subspace_eq_self],
+    apply h, simp only [submodule.coe_mem, and_self], },
+  { intros h x y hxy,
+    rw [← orthogonal_projection_eq_self_iff.mpr hxy.1,
+        ← orthogonal_projection_eq_self_iff.mpr hxy.2,
+        inner_orthogonal_projection_left_eq_right,
+        ← orthogonal_projection'_apply, ← orthogonal_projection'_apply,
+        ← continuous_linear_map.comp_apply, h,
+        continuous_linear_map.zero_apply, inner_zero_right], }
+end
+
+end invariant_submodules

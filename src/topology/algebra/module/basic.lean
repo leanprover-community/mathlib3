@@ -2038,6 +2038,18 @@ end
 
 end
 
+variables [ring R] [add_comm_group M] [topological_add_group M] [module R M]
+
+/-- Given an invertible operator, multiplying it by its inverse gives the identity. -/
+lemma inv_mul_self  (T : M →L[R] M) [invertible T] : T.inverse * T = 1 :=
+by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,
+               ring.inverse_mul_cancel, ring.mul_inverse_cancel,
+               is_unit_of_invertible T, and_self ]
+lemma mul_inv_self (T : M →L[R] M) [invertible T] : T * T.inverse = 1 :=
+by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,
+               ring.inverse_mul_cancel, ring.mul_inverse_cancel,
+               is_unit_of_invertible T, and_self ]
+
 end continuous_linear_map
 
 namespace submodule

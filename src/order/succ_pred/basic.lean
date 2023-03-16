@@ -825,6 +825,11 @@ instance : pred_order (with_top α) :=
 @[simp] lemma pred_top : pred (⊤ : with_top α) = ↑(⊤ : α) := rfl
 @[simp] lemma pred_coe (a : α) : pred (↑a : with_top α) = ↑(pred a) := rfl
 
+@[simp] lemma pred_untop : ∀ (a : with_top α) (ha : a ≠ ⊤),
+  pred (a.untop ha) = (pred a).untop (by induction a using with_top.rec_top_coe; simp)
+| ⊤ ha := (ha rfl).elim
+| (a : α) ha := rfl
+
 end pred
 
 /-! #### Adding a `⊤` to a `no_max_order` -/
@@ -921,6 +926,11 @@ instance : succ_order (with_bot α) :=
 
 @[simp] lemma succ_bot : succ (⊥ : with_bot α) = ↑(⊥ : α) := rfl
 @[simp] lemma succ_coe (a : α) : succ (↑a : with_bot α) = ↑(succ a) := rfl
+
+@[simp] lemma succ_unbot : ∀ (a : with_bot α) (ha : a ≠ ⊥),
+  succ (a.unbot ha) = (succ a).unbot (by induction a using with_bot.rec_bot_coe; simp)
+| ⊥ ha := (ha rfl).elim
+| (a : α) ha := rfl
 
 end succ
 

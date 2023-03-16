@@ -144,7 +144,7 @@ noncomputable def inner_product_space.of_matrix
   {M : matrix n n 𝕜} (hM : M.pos_def) : inner_product_space 𝕜 (n → 𝕜) :=
 inner_product_space.of_core
 { inner := λ x y, dot_product (star x) (M.mul_vec y),
-  conj_sym := λ x y, by
+  conj_symm := λ x y, by
     rw [star_dot_product, star_ring_end_apply, star_star, star_mul_vec,
       dot_product_mul_vec, hM.is_hermitian.eq],
   nonneg_re := λ x,

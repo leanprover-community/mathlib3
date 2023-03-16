@@ -10,6 +10,9 @@ import data.rat.order
 /-!
 # Nonnegative rationals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the nonnegative rationals as a subtype of `rat` and provides its algebraic order
 structure.
 

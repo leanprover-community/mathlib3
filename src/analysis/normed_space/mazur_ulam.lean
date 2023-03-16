@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import topology.instances.real_vector_space
 import analysis.normed_space.affine_isometry
-import linear_algebra.affine_space.midpoint
 
 /-!
 # Mazur-Ulam Theorem

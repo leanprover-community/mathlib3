@@ -177,9 +177,9 @@ begin
   split,
   { intros h,
     rcases lt_trichotomy x 0 with x_lt_zero | rfl | x_gt_zero,
-    { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
+    { refine or.inr (or.inr (neg_eq_iff_eq_neg.mp _)),
       rw [←log_neg_eq_log x] at h,
-      exact (eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h).symm, },
+      exact eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h, },
     { exact or.inl rfl },
     { exact or.inr (or.inl (eq_one_of_pos_of_log_eq_zero x_gt_zero h)), }, },
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }

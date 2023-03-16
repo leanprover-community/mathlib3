@@ -114,12 +114,19 @@ end has_involutive_star
 section add_monoid
 variables [add_monoid α] [star_add_monoid α] [add_monoid β] [star_add_monoid β]
 
-/-- A diagonal matrix `diagonal v` is hermitian if the entries have the trivial `star` operation
-(such as on the reals). -/
-@[simp] lemma is_hermitian_diagonal [has_trivial_star α] [decidable_eq n] (v : n → α) :
+/-- A diagonal matrix is hermitian if the entries are self-adjoint -/
+lemma is_hermitian_diagonal_of_self_adjoint [decidable_eq n]
+  (v : n → α) (h : is_self_adjoint v) :
   (diagonal v).is_hermitian :=
 -- TODO: add a `pi.has_trivial_star` instance and remove the `funext`
-(diagonal_conj_transpose v).trans $ congr_arg _ $ funext $ λ i, star_trivial _
+(diagonal_conj_transpose v).trans $ congr_arg _ h
+
+/-- A diagonal matrix is hermitian if the entries have the trivial `star` operation
+(such as on the reals). -/
+@[simp] lemma is_hermitian_diagonal [has_trivial_star α] [decidable_eq n] (v : n → α)
+  (h : is_self_adjoint v) :
+  (diagonal v).is_hermitian :=
+is_hermitian_diagonal_of_self_adjoint _ (is_self_adjoint.all _)
 
 @[simp] lemma is_hermitian_zero :
   (0 : matrix n n α).is_hermitian :=
@@ -160,13 +167,15 @@ end add_group
 section non_unital_semiring
 variables [non_unital_semiring α] [star_ring α] [non_unital_semiring β] [star_ring β]
 
-lemma is_hermitian_mul_conj_transpose_self [fintype n] (A : matrix n n α) :
+/-- Note this is more general than `is_self_adjoint.mul_star_self` as `B` can be rectangular. -/
+lemma is_hermitian_mul_conj_transpose_self [fintype n] (A : matrix m n α) :
   (A ⬝ Aᴴ).is_hermitian :=
-is_self_adjoint.mul_star_self A
+by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
 
-lemma is_hermitian_transpose_mul_self [fintype n] (A : matrix n n α) :
+/-- Note this is more general than `is_self_adjoint.star_mul_self` as `B` can be rectangular. -/
+lemma is_hermitian_transpose_mul_self [fintype m] (A : matrix m n α) :
   (Aᴴ ⬝ A).is_hermitian :=
-is_self_adjoint.star_mul_self A
+by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
 
 /-- Note this is more general than `is_self_adjoint.conjugate'` as `B` can be rectangular. -/
 lemma is_hermitian_conj_transpose_mul_mul [fintype m] {A : matrix m m α} (B : matrix m n α)

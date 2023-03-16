@@ -426,7 +426,7 @@ instance subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (
 ⟨λ P Q, module.ext' P Q $ λ r x,
   @map_rat_smul _ _ _ _ P Q _ _ (add_monoid_hom.id E) r x⟩
 
-/-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
+/-- If `E` is a vector space over two division semirings `R` and `S`, then scalar multiplications
 agree on inverses of natural numbers in `R` and `S`. -/
 lemma inv_nat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_monoid E] [division_semiring R]
   [division_semiring S] [module R E] [module S E] (n : ℕ) (x : E) :
@@ -440,14 +440,14 @@ lemma inv_int_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [divisio
   (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
 map_inv_int_cast_smul (add_monoid_hom.id E) R S n x
 
-/-- If `E` is a vector space over a division rings `R` and has a monoid action by `α`, then that
+/-- If `E` is a vector space over a division ring `R` and has a monoid action by `α`, then that
 action commutes by scalar multiplication of inverses of natural numbers in `R`. -/
 lemma inv_nat_cast_smul_comm {α E : Type*} (R : Type*) [add_comm_monoid E] [division_semiring R]
   [monoid α] [module R E] [distrib_mul_action α E] (n : ℕ) (s : α) (x : E) :
   (n⁻¹ : R) • s • x = s • (n⁻¹ : R) • x :=
 (map_inv_nat_cast_smul (distrib_mul_action.to_add_monoid_hom E s) R R n x).symm
 
-/-- If `E` is a vector space over a division rings `R` and has a monoid action by `α`, then that
+/-- If `E` is a vector space over a division ring `R` and has a monoid action by `α`, then that
 action commutes by scalar multiplication of inverses of integers in `R` -/
 lemma inv_int_cast_smul_comm {α E : Type*} (R : Type*) [add_comm_group E] [division_ring R]
   [monoid α] [module R E] [distrib_mul_action α E] (n : ℤ) (s : α) (x : E) :

@@ -542,8 +542,8 @@ end
 
 end trunc
 
-section comm_semiring
-variable [comm_semiring R]
+section semiring
+variable [semiring R]
 
 lemma X_pow_dvd_iff {s : σ} {n : ℕ} {φ : mv_power_series σ R} :
   (X s : mv_power_series σ R)^n ∣ φ ↔ ∀ m : σ →₀ ℕ, m s < n → coeff R m φ = 0 :=
@@ -585,7 +585,8 @@ begin
   { exact h m (hm.symm ▸ zero_lt_one) },
   { exact h m (nat.eq_zero_of_le_zero $ nat.le_of_succ_le_succ hm) }
 end
-end comm_semiring
+
+end semiring
 
 section ring
 variables [ring R]
@@ -886,6 +887,7 @@ section algebra
 
 variables (A : Type*) [comm_semiring A] [algebra R A]
 
+-- TODO: move
 lemma algebra_map_apply (r : R) : algebra_map R (mv_polynomial σ A) r = C (algebra_map R A r) := rfl
 
 /--
@@ -1244,7 +1246,7 @@ end map
 end semiring
 
 section comm_semiring
-variables [comm_semiring R]
+variables [semiring R]
 
 lemma X_pow_dvd_iff {n : ℕ} {φ : power_series R} :
   (X : power_series R)^n ∣ φ ↔ ∀ m, m < n → coeff R m φ = 0 :=
@@ -1265,56 +1267,6 @@ begin
 end
 
 open finset nat
-
-/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
-noncomputable def rescale (a : R) : power_series R →+* power_series R :=
-{ to_fun :=  λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
-  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
-  map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
-                split_ifs, { rw [h, pow_zero], }, refl, },
-  map_add' := by { intros, ext, exact mul_add _ _ _, },
-  map_mul' := λ f g, by
-  { ext,
-    rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.mul_sum],
-    apply sum_congr rfl,
-    simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
-    intros b c H,
-    rw [←H, pow_add, mul_mul_mul_comm] }, }
-
-@[simp] lemma coeff_rescale (f : power_series R) (a : R) (n : ℕ) :
-  coeff R n (rescale a f) = a^n * coeff R n f := coeff_mk n _
-
-@[simp] lemma rescale_zero : rescale 0 = (C R).comp (constant_coeff R) :=
-begin
-  ext,
-  simp only [function.comp_app, ring_hom.coe_comp, rescale, ring_hom.coe_mk,
-    power_series.coeff_mk _ _, coeff_C],
-  split_ifs,
-  { simp only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
-  { rw [zero_pow' n h, zero_mul], },
-end
-
-lemma rescale_zero_apply : rescale 0 X = C R (constant_coeff R X) :=
-by simp
-
-@[simp] lemma rescale_one : rescale 1 = ring_hom.id (power_series R) :=
-by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
-  ring_hom.coe_mk], }
-
-lemma rescale_mk (f : ℕ → R) (a : R) :
-  rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
-by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
-
-lemma rescale_rescale (f : power_series R) (a b : R) :
-  rescale b (rescale a f) = rescale (a * b) f :=
-begin
-  ext,
-  repeat { rw coeff_rescale, },
-  rw [mul_pow, mul_comm _ (b^n), mul_assoc],
-end
-
-lemma rescale_mul (a b : R) : rescale (a * b) = (rescale b).comp (rescale a) :=
-by { ext, simp [← rescale_rescale], }
 
 section trunc
 
@@ -1431,29 +1383,6 @@ sub_eq_iff_eq_add.mpr (eq_X_mul_shift_add_const φ)
 
 end ring
 
-section comm_ring
-variables {A : Type*} [comm_ring A]
-
-@[simp] lemma rescale_X (a : A) : rescale a X = C A a * X :=
-begin
-  ext,
-  simp only [coeff_rescale, coeff_C_mul, coeff_X],
-  split_ifs with h;
-  simp [h],
-end
-
-lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
-by rw [rescale_X, map_neg, map_one, neg_one_mul]
-
-/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
-noncomputable def eval_neg_hom : power_series A →+* power_series A :=
-rescale (-1 : A)
-
-@[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
-rescale_neg_one_X
-
-end comm_ring
-
 section domain
 variables [ring R]
 
@@ -1495,8 +1424,7 @@ no_zero_divisors.to_is_domain _
 end domain
 
 section is_domain
-
-variables [comm_ring R] [is_domain R]
+variables [ring R] [is_domain R]
 
 /-- The ideal spanned by the variable in the power series ring
  over an integral domain is a prime ideal.-/
@@ -1505,8 +1433,16 @@ begin
   suffices : ideal.span ({X} : set (power_series R)) = (constant_coeff R).ker,
   { rw this, exact ring_hom.ker_is_prime _ },
   apply ideal.ext, intro φ,
-  rw [ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
+  rw [ring_hom.mem_ker, ideal.mem_span_singleton', ←X_dvd_iff],
+  refine exists_congr (λ a, eq_comm.trans _),
+  congr' 2,
+  exact commute_X _,
 end
+
+end is_domain
+
+section is_domain
+variables [comm_ring R] [is_domain R]
 
 /-- The variable of the power series ring over an integral domain is prime.-/
 lemma X_prime : prime (X : power_series R) :=
@@ -1514,18 +1450,6 @@ begin
   rw ← ideal.span_singleton_prime,
   { exact span_X_is_prime },
   { intro h, simpa using congr_arg (coeff R 1) h }
-end
-
-lemma rescale_injective {a : R} (ha : a ≠ 0) : function.injective (rescale a) :=
-begin
-  intros p q h,
-  rw power_series.ext_iff at *,
-  intros n,
-  specialize h n,
-  rw [coeff_rescale, coeff_rescale, mul_eq_mul_left_iff] at h,
-  apply h.resolve_right,
-  intro h',
-  exact ha (pow_eq_zero h'),
 end
 
 end is_domain
@@ -1556,7 +1480,110 @@ mv_power_series.algebra_map_apply
 instance [nontrivial R] : nontrivial (subalgebra R (power_series R)) :=
 mv_power_series.subalgebra.nontrivial
 
+section rescale
+open finset nat
+
+/-- The algebra homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def rescale
+  (a : R) : power_series A →ₐ[R] power_series A :=
+{ to_fun :=  λ f, power_series.mk $ λ n, a^n • (power_series.coeff A n f),
+  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, smul_zero], },
+  map_one' := begin
+    ext1,
+    simp only [smul_ite, power_series.coeff_mk, power_series.coeff_one, smul_zero],
+    split_ifs,
+    { rw [h, pow_zero, one_smul], },
+    refl,
+  end,
+  map_add' := by { intros, ext, exact smul_add _ _ _, },
+  map_mul' := λ f g, by
+  { ext,
+    rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.smul_sum],
+    apply sum_congr rfl,
+    simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
+    intros b c H,
+    rw [←H, pow_add, smul_mul_smul] },
+  commutes' := λ a, begin
+    ext,
+    simp only [power_series.coeff_mk _ _, algebra_map_apply, coeff_C],
+    split_ifs,
+    { simp only [h, one_smul, coeff_zero_eq_constant_coeff, pow_zero], },
+    { rw [smul_zero], },
+  end }
+
+@[simp] lemma coeff_rescale (f : power_series A) (a : R) (n : ℕ) :
+  coeff A n (rescale a f) = a^n • coeff A n f := coeff_mk n _
+
+@[simp] lemma rescale_zero_apply (x : power_series A) :
+  rescale (0 : R) x = C A (constant_coeff A x) :=
+begin
+  ext,
+  simp only [function.comp_app, ring_hom.coe_comp, rescale, alg_hom.coe_mk,
+    alg_hom.to_ring_hom_eq_coe, power_series.coeff_mk _ _, coeff_C],
+  split_ifs,
+  { simp only [h, one_smul, coeff_zero_eq_constant_coeff, pow_zero], },
+  { rw [zero_pow' n h, zero_smul], },
+end
+
+@[simp] lemma coe_rescale_zero :
+  ↑(rescale 0 : power_series A →ₐ[R] power_series A) = (C A).comp (constant_coeff A) :=
+ring_hom.ext $ λ x, (rescale_zero_apply x : _)
+
+@[simp] lemma rescale_one : rescale (1 : R) = alg_hom.id R (power_series A) :=
+by { ext, simp only [alg_hom.id_apply, coeff_rescale, one_pow, coeff_mk, one_smul], }
+
+lemma rescale_mk (f : ℕ → A) (a : R) :
+  rescale a (mk f) = mk (λ n : ℕ, a^n • (f n)) :=
+by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
+
+lemma rescale_rescale (f : power_series A) (a b : R) :
+  rescale b (rescale a f) = rescale (a * b) f :=
+begin
+  ext,
+  repeat { rw coeff_rescale, },
+  rw [mul_pow, mul_comm _ (b^n), mul_smul],
+end
+
+lemma rescale_mul (a b : R) :
+  (rescale (a * b) : power_series A →ₐ[R] power_series A) = (rescale b).comp (rescale a) :=
+alg_hom.ext $ λ f, (rescale_rescale f a b).symm
+
+@[simp] lemma rescale_X (a : R) : rescale a (X : power_series A) = a • X :=
+begin
+  ext,
+  simp only [coeff_rescale, coeff_X, coeff_smul],
+  split_ifs with h;
+  simp [h],
+end
+
+end rescale
+
 end algebra
+
+lemma rescale_injective {A} [comm_semiring R] [ring A] [algebra R A]
+  [no_zero_divisors R] [no_zero_smul_divisors R A]
+  {r : R} (hr : r ≠ 0) :
+  function.injective ⇑(rescale r : power_series A →ₐ[R] power_series A) :=
+begin
+  intros p q h,
+  rw power_series.ext_iff at *,
+  intros n,
+  specialize h n,
+  rw [coeff_rescale, coeff_rescale] at h,
+  exact smul_right_injective _ (pow_ne_zero n hr) h,
+end
+
+section ring
+variables [ring R]
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
+noncomputable def eval_neg_hom : power_series R →+* power_series R :=
+alg_hom.to_ring_hom $ rescale (-1 : ℤ)
+
+@[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series R) = -X :=
+(rescale_X _).trans (neg_one_smul _ _)
+
+end ring
 
 section field
 variables {k : Type*} [field k]

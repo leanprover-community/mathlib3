@@ -97,15 +97,8 @@ by rw [cos, coeff_mk, if_neg n.not_even_bit1]
 
 @[simp] lemma map_cos : map f (cos A) = cos A' := by { ext, simp [cos, apply_ite f] }
 
-end field
-
-open ring_hom
-open finset nat
-
-variables {A : Type*} [comm_ring A]
-
 /-- Shows that $e^{aX} * e^{bX} = e^{(a + b)X}$ -/
-theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
+theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) (hab : commute a b) :
   rescale a (exp A) * rescale b (exp A) = rescale (a + b) (exp A) :=
 begin
   ext,
@@ -129,6 +122,14 @@ begin
   { apply mem_range_succ_iff.1 hx, },
   { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
 end
+
+end field
+
+open ring_hom
+open finset nat
+
+variables {A : Type*} [comm_ring A]
+
 
 /-- Shows that $e^{x} * e^{-x} = 1$ -/
 theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom (exp A) = 1 :=

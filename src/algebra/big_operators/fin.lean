@@ -266,9 +266,8 @@ equiv.of_right_inverse_of_card_le
     { simp },
     rw [fin.prod_univ_cast_succ, fin.sum_univ_cast_succ],
     suffices : ∀ (n : fin m → ℕ) (nn : ℕ) (f : Π i : fin m, fin (n i)) (fn : fin nn),
-      ∑ (i : fin m), ↑(f i) *
-        ∏ (j : fin i), n (fin.cast_le i.prop.le j) + ↑fn * ∏ j, n j
-          < (∏ (i : fin m), n i) * nn,
+      ∑ i : fin m, ↑(f i) * ∏ j : fin i, n (fin.cast_le i.prop.le j) + ↑fn * ∏ j, n j
+          < (∏ i : fin m, n i) * nn,
     { replace this := this (fin.init n) (n (fin.last _)) (fin.init f) (f (fin.last _)),
       rw ←fin.snoc_init_self f,
       simp only [←fin.snoc_init_self n] { single_pass := tt },
@@ -299,17 +298,15 @@ equiv.of_right_inverse_of_card_le
       simp_rw [fin.forall_iff, fin.ext_iff, fin.coe_mk] at ih,
       ext,
       simp_rw [fin.coe_mk, fin.sum_univ_succ, fin.cons_succ],
-      have := λ i : fin n, fintype.prod_equiv (fin.cast $fin.coe_succ i).to_equiv
-        (λ j, (fin.cons x xs : (Π i, ℕ)) (fin.cast_le (fin.is_lt _).le j))
-        (λ j, (fin.cons x xs : (Π i, ℕ)) (fin.cast_le (nat.succ_le_succ (fin.is_lt _).le) j))
+      have := λ i : fin n, fintype.prod_equiv (fin.cast $ fin.coe_succ i).to_equiv
+        (λ j, (fin.cons x xs : _ → ℕ) (fin.cast_le (fin.is_lt _).le j))
+        (λ j, (fin.cons x xs : _ → ℕ) (fin.cast_le (nat.succ_le_succ (fin.is_lt _).le) j))
         (λ j, rfl),
       simp_rw [this], clear this,
       dsimp only [fin.coe_zero],
-      simp_rw [fintype.prod_empty, nat.div_one, mul_one, fin.cons_zero],
-      simp_rw [fin.prod_univ_succ],
+      simp_rw [fintype.prod_empty, nat.div_one, mul_one, fin.cons_zero, fin.prod_univ_succ],
       change _ + ∑ y : _, ((_ / (x * _)) % _) * (x * _) = _,
-      simp_rw [←nat.div_div_eq_div_mul, mul_left_comm (_ % _ : ℕ)],
-      simp_rw [←mul_sum],
+      simp_rw [←nat.div_div_eq_div_mul, mul_left_comm (_ % _ : ℕ), ←mul_sum],
       convert nat.mod_add_div _ _,
       refine eq.trans _ (ih (a / x) (nat.div_lt_of_lt_mul $ a.is_lt.trans_eq _)),
       swap,

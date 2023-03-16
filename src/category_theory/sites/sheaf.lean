@@ -7,6 +7,7 @@ Authors: Kevin Buzzard, Bhavik Mehta
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.yoneda
+import category_theory.preadditive.functor_category
 import category_theory.sites.sheaf_of_types
 
 /-!
@@ -212,6 +213,10 @@ forall_congr $ λ a, ⟨presieve.is_sheaf_iso J (iso_whisker_right e _),
 
 variable (J)
 
+lemma is_sheaf_of_is_terminal {X : A} (hX : is_terminal X) :
+ presheaf.is_sheaf J ((category_theory.functor.const _).obj X) :=
+λ _ _ _ _ _ _, ⟨hX.from _, λ _ _ _, hX.hom_ext _ _, λ _ _, hX.hom_ext _ _⟩
+
 end presheaf
 
 variables {C : Type u₁} [category.{v₁} C]
@@ -256,6 +261,14 @@ def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 
 instance : full (Sheaf_to_presheaf J A) := { preimage := λ X Y f, ⟨f⟩ }
 instance : faithful (Sheaf_to_presheaf J A) := {}
+
+/--This is stated as a lemma to prevent class search from forming a loop since a sheaf morphism is
+monic if and only if it is monic as a presheaf morphism (under suitable assumption).-/
+lemma Sheaf.hom.mono_of_presheaf_mono {F G : Sheaf J A} (f : F ⟶ G) [h : mono f.1] : mono f :=
+(Sheaf_to_presheaf J A).mono_of_mono_map h
+
+instance Sheaf.hom.epi_of_presheaf_epi {F G : Sheaf J A} (f : F ⟶ G) [h : epi f.1] : epi f :=
+(Sheaf_to_presheaf J A).epi_of_epi_map h
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
@@ -311,6 +324,60 @@ begin
   choose t h using F.2 Y _ H (by tidy) (by tidy),
   exact ⟨⟨t⟩, λ a, h.2 a (by tidy)⟩
 end
+
+section preadditive
+
+open preadditive
+
+variables [preadditive A] {P Q : Sheaf J A}
+
+instance Sheaf_hom_has_zsmul  : has_smul ℤ (P ⟶ Q) :=
+{ smul := λ n f, Sheaf.hom.mk
+  { app := λ U, n • f.1.app U,
+    naturality' := λ U V i, begin
+      induction n using int.induction_on with n ih n ih,
+      { simp only [zero_smul, comp_zero, zero_comp], },
+      { simpa only [add_zsmul, one_zsmul, comp_add, nat_trans.naturality, add_comp, add_left_inj] },
+      { simpa only [sub_smul, one_zsmul, comp_sub, nat_trans.naturality, sub_comp, sub_left_inj]
+          using ih, }
+    end } }
+
+instance : has_sub (P ⟶ Q) :=
+{ sub := λ f g, Sheaf.hom.mk $ f.1 - g.1 }
+
+instance : has_neg (P ⟶ Q) :=
+{ neg := λ f, Sheaf.hom.mk $ -f.1 }
+
+instance Sheaf_hom_has_nsmul : has_smul ℕ (P ⟶ Q) :=
+{ smul := λ n f, Sheaf.hom.mk
+  { app := λ U, n • f.1.app U,
+    naturality' := λ U V i, begin
+      induction n with n ih,
+      { simp only [zero_smul, comp_zero, zero_comp], },
+      { simp only [nat.succ_eq_add_one, add_smul, ih, one_nsmul, comp_add, nat_trans.naturality,
+          add_comp], },
+    end } }
+
+instance : has_zero (P ⟶ Q) :=
+{ zero := Sheaf.hom.mk 0 }
+
+instance : has_add (P ⟶ Q) :=
+{ add := λ f g, Sheaf.hom.mk $ f.1 + g.1 }
+
+@[simp] lemma Sheaf.hom.add_app (f g : P ⟶ Q) (U) :
+  (f + g).1.app U = f.1.app U + g.1.app U := rfl
+
+instance : add_comm_group (P ⟶ Q) :=
+function.injective.add_comm_group (λ (f : Sheaf.hom P Q), f.1)
+  (λ _ _ h, Sheaf.hom.ext _ _ h) rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, by { dsimp at *, ext, simpa [*] }) (λ _ _, by { dsimp at *, ext, simpa [*] })
+
+instance : preadditive (Sheaf J A) :=
+{ hom_group := λ P Q, infer_instance,
+  add_comp' := λ P Q R f f' g, by { ext, simp, },
+  comp_add' := λ P Q R f g g', by { ext, simp, } }
+
+end preadditive
 
 end category_theory
 

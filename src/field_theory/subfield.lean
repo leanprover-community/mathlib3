@@ -5,9 +5,13 @@ Authors: Anne Baanen
 -/
 
 import algebra.algebra.basic
+import algebra.order.field.inj_surj
 
 /-!
 # Subfields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `K` be a field. This file defines the "bundled" subfield type `subfield K`, a type
 whose terms correspond to subfields of `K`. This is the preferred way to talk
@@ -64,8 +68,8 @@ universes u v w
 variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
 /-- `subfield_class S K` states `S` is a type of subsets `s ⊆ K` closed under field operations. -/
-class subfield_class (S : Type*) (K : out_param $ Type*) [field K] [set_like S K]
-  extends subring_class S K, inv_mem_class S K.
+class subfield_class (S K : Type*) [field K] [set_like S K]
+  extends subring_class S K, inv_mem_class S K : Prop
 
 namespace subfield_class
 
@@ -313,13 +317,17 @@ instance : inhabited (subfield K) := ⟨⊤⟩
 
 @[simp] lemma coe_top : ((⊤ : subfield K) : set K) = set.univ := rfl
 
+/-- The ring equiv between the top element of `subfield K` and `K`. -/
+@[simps]
+def top_equiv : (⊤ : subfield K) ≃+* K := subsemiring.top_equiv
+
 /-! # comap -/
 
 variables (f : K →+* L)
 
 /-- The preimage of a subfield along a ring homomorphism is a subfield. -/
 def comap (s : subfield L) : subfield K :=
-{ inv_mem' := λ x hx, show f (x⁻¹) ∈ s, by { rw f.map_inv, exact s.inv_mem hx },
+{ inv_mem' := λ x hx, show f (x⁻¹) ∈ s, by { rw map_inv₀ f, exact s.inv_mem hx },
   .. s.to_subring.comap f }
 
 @[simp] lemma coe_comap (s : subfield L) : (s.comap f : set K) = f ⁻¹' s := rfl
@@ -335,7 +343,7 @@ rfl
 
 /-- The image of a subfield along a ring homomorphism is a subfield. -/
 def map (s : subfield K) : subfield L :=
-{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, s.inv_mem hx, f.map_inv x⟩ },
+{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, s.inv_mem hx, map_inv₀ f x⟩ },
   .. s.to_subring.map f }
 
 @[simp] lemma coe_map : (s.map f : set L) = f '' s := rfl
@@ -632,7 +640,7 @@ f.srange_restrict
 /-- The subfield of elements `x : R` such that `f x = g x`, i.e.,
 the equalizer of f and g as a subfield of R -/
 def eq_locus_field (f g : K →+* L) : subfield K :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [map_inv₀ f, map_inv₀ g, hx],
   carrier := {x | f x = g x}, .. (f : K →+* L).eq_locus g }
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subfield closure. -/

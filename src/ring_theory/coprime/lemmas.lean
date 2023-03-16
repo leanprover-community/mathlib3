@@ -11,6 +11,9 @@ import ring_theory.coprime.basic
 /-!
 # Additional lemmas about elements of a ring satisfying `is_coprime`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These lemmas are in a separate file to the definition of `is_coprime` as they require more imports.
 
 Notably, this includes lemmas about `finset.prod` as this requires importing big_operators, and
@@ -32,6 +35,8 @@ theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.
     (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_right m n) _) },
 λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
     ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
+
+alias nat.is_coprime_iff_coprime ↔ is_coprime.nat_coprime nat.coprime.is_coprime
 
 theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
 finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
@@ -136,7 +141,7 @@ begin
   refine ⟨λ hp i hi, is_coprime.prod_right_iff.mpr (λ j hj, _), λ hp, _⟩,
   { rw [finset.mem_sdiff, finset.mem_singleton] at hj,
     obtain ⟨hj, ji⟩ := hj,
-    exact hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
+    exact @hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
   { rintro ⟨i, hi⟩ ⟨j, hj⟩ h,
     apply is_coprime.prod_right_iff.mp (hp i hi),
     exact finset.mem_sdiff.mpr ⟨hj, λ f, h $ subtype.ext (finset.mem_singleton.mp f).symm⟩ }

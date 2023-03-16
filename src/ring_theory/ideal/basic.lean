@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
 import linear_algebra.basic
-import order.zorn
 import order.atoms
 import order.compactly_generated
 import tactic.abel
@@ -14,6 +13,9 @@ import linear_algebra.finsupp
 /-!
 
 # Ideals over a ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `ideal R`, the type of (left) ideals over a ring `R`.
 Note that over commutative rings, left ideals and two-sided ideals are equivalent.
@@ -119,6 +121,16 @@ lemma mem_span_insert {s : set α} {x y} :
 lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
+lemma span_singleton_le_iff_mem {x : α} : span {x} ≤ I ↔ x ∈ I :=
+submodule.span_singleton_le_iff_mem _ _
+
+lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({a * x} : set α) = span {x} := 
+begin
+  apply le_antisymm; rw [span_singleton_le_iff_mem, mem_span_singleton'],
+  exacts [⟨a, rfl⟩, ⟨_, h2.unit.inv_mul_cancel_left x⟩],
+end
+
 lemma span_insert (x) (s : set α) : span (insert x s) = span ({x} : set α) ⊔ span s :=
 submodule.span_insert x s
 
@@ -126,6 +138,11 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=
 submodule.span_singleton_eq_bot
+
+lemma span_singleton_ne_top {α : Type*} [comm_semiring α] {x : α} (hx : ¬ is_unit x) :
+  ideal.span ({x} : set α) ≠ ⊤ :=
+(ideal.ne_top_iff_one _).mpr $ λ h1, let ⟨y, hy⟩ := ideal.mem_span_singleton'.mp h1 in
+  hx ⟨⟨x, y, mul_comm y x ▸ hy, hy⟩, rfl⟩
 
 @[simp] lemma span_zero : span (0 : set α) = ⊥ := by rw [←set.singleton_zero, span_singleton_eq_bot]
 
@@ -136,6 +153,18 @@ lemma span_eq_top_iff_finite (s : set α) :
 begin
   simp_rw eq_top_iff_one,
   exact ⟨submodule.mem_span_finite_of_mem_span, λ ⟨s', h₁, h₂⟩, span_mono h₁ h₂⟩
+end
+
+lemma mem_span_singleton_sup {S : Type*} [comm_semiring S] {x y : S} {I : ideal S} :
+  x ∈ ideal.span {y} ⊔ I ↔ ∃ (a : S) (b ∈ I), a * y + b = x :=
+begin
+  rw submodule.mem_sup,
+  split,
+  { rintro ⟨ya, hya, b, hb, rfl⟩,
+    obtain ⟨a, rfl⟩ := mem_span_singleton'.mp hya,
+    exact ⟨a, b, hb, rfl⟩ },
+  { rintro ⟨a, b, hb, rfl⟩,
+    exact ⟨a * y, ideal.mem_span_singleton'.mpr ⟨a, rfl⟩, b, hb, rfl⟩ }
 end
 
 /--
@@ -151,12 +180,12 @@ class is_prime (I : ideal α) : Prop :=
 
 theorem is_prime_iff {I : ideal α} :
   is_prime I ↔ I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+⟨λ h, ⟨h.1, λ _ _, h.2⟩, λ h, ⟨h.1, λ _ _, h.2⟩⟩
 
 theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 
-theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
-  ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
+theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) {x y : α} :
+  x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
@@ -211,6 +240,13 @@ begin
   exact submodule.singleton_span_is_compact_element 1,
 end
 
+lemma is_maximal.coprime_of_ne {M M' : ideal α} (hM : M.is_maximal) (hM' : M'.is_maximal)
+  (hne : M ≠ M') : M ⊔ M' = ⊤ :=
+begin
+  contrapose! hne with h,
+  exact hM.eq_of_le hM'.ne_top (le_sup_left.trans_eq (hM'.eq_of_le h le_sup_right).symm)
+end
+
 /-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some
     maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
@@ -241,9 +277,25 @@ begin
   exact hmax M (lt_of_lt_of_le hPJ hM2) hM1,
 end
 
+lemma span_pair_comm {x y : α} : (span {x, y} : ideal α) = span {y, x} :=
+by simp only [span_insert, sup_comm]
+
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
-by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
+submodule.mem_span_pair
+
+@[simp] lemma span_pair_add_mul_left {R : Type u} [comm_ring R] {x y : R} (z : R) :
+  (span {x + y * z, y} : ideal R) = span {x, y} :=
+begin
+  ext,
+  rw [mem_span_pair, mem_span_pair],
+  exact ⟨λ ⟨a, b, h⟩, ⟨a, b + a * z, by { rw [← h], ring1 }⟩,
+         λ ⟨a, b, h⟩, ⟨a, b - a * z, by { rw [← h], ring1 }⟩⟩
+end
+
+@[simp] lemma span_pair_add_mul_right {R : Type u} [comm_ring R] {x y : R} (z : R) :
+  (span {x, y + x * z} : ideal R) = span {x, y} :=
+by rw [span_pair_comm, span_pair_add_mul_left, span_pair_comm]
 
 theorem is_maximal.exists_inv {I : ideal α}
   (hI : I.is_maximal) {x} (hx : x ∉ I) : ∃ y, ∃ i ∈ I, y * x + i = 1 :=
@@ -301,6 +353,20 @@ lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
 end pi
 
+lemma Inf_is_prime_of_is_chain {s : set (ideal α)} (hs : s.nonempty) (hs' : is_chain (≤) s)
+  (H : ∀ p ∈ s, ideal.is_prime p) :
+  (Inf s).is_prime :=
+⟨λ e, let ⟨x, hx⟩ := hs in (H x hx).ne_top (eq_top_iff.mpr (e.symm.trans_le (Inf_le hx))),
+  λ x y e, or_iff_not_imp_left.mpr $ λ hx, begin
+    rw ideal.mem_Inf at hx ⊢ e,
+    push_neg at hx,
+    obtain ⟨I, hI, hI'⟩ := hx,
+    intros J hJ,
+    cases hs'.total hI hJ,
+    { exact h (((H I hI).mem_or_mem (e hI)).resolve_left hI') },
+    { exact ((H J hJ).mem_or_mem (e hJ)).resolve_left (λ x, hI' $ h x) },
+  end⟩
+
 end ideal
 
 end semiring
@@ -318,9 +384,10 @@ variables [comm_semiring α] (I : ideal α)
 theorem mul_unit_mem_iff_mem {x y : α} (hy : is_unit y) : x * y ∈ I ↔ x ∈ I :=
 mul_comm y x ▸ unit_mul_mem_iff_mem I hy
 
-lemma mem_span_singleton {x y : α} :
-  x ∈ span ({y} : set α) ↔ y ∣ x :=
+lemma mem_span_singleton {x y : α} : x ∈ span ({y} : set α) ↔ y ∣ x :=
 mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]
+
+lemma mem_span_singleton_self (x : α) : x ∈ span ({x} : set α) := mem_span_singleton.mpr dvd_rfl
 
 lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
@@ -335,15 +402,7 @@ begin
 end
 
 lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({x * a} : set α) = span {x} :=
-begin
-  apply le_antisymm,
-  { rw span_singleton_le_span_singleton, use a},
-  { rw span_singleton_le_span_singleton, rw is_unit.mul_right_dvd h2}
-end
-
-lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
+  span ({x * a} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_left_unit h2]
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one,
@@ -478,16 +537,20 @@ protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
 
+@[simp] lemma span_singleton_neg (x : α) : (span {-x} : ideal α) = span {x} :=
+by { ext, simp only [mem_span_singleton'],
+     exact ⟨λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_comm y x⟩, λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_neg y x⟩⟩ }
+
 end ideal
 
 end ring
 
-section division_ring
-variables {K : Type u} [division_ring K] (I : ideal K)
+section division_semiring
+variables {K : Type u} [division_semiring K] (I : ideal K)
 
 namespace ideal
 
-/-- All ideals in a division ring are trivial. -/
+/-- All ideals in a division (semi)ring are trivial. -/
 lemma eq_bot_or_top : I = ⊥ ∨ I = ⊤ :=
 begin
   rw or_iff_not_imp_right,
@@ -500,6 +563,10 @@ begin
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
 
+/-- Ideals of a `division_semiring` are a simple order. Thanks to the way abbreviations work,
+this automatically gives a `is_simple_module K` instance. -/
+instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
+
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
@@ -509,7 +576,7 @@ lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
 
 end ideal
 
-end division_ring
+end division_semiring
 
 section comm_ring
 
@@ -526,12 +593,11 @@ end ideal
 
 end comm_ring
 
+-- TODO: consider moving the lemmas below out of the `ring` namespace since they are
+-- about `comm_semiring`s.
 namespace ring
 
-variables {R : Type*} [comm_ring R]
-
-lemma not_is_field_of_subsingleton {R : Type*} [ring R] [subsingleton R] : ¬ is_field R :=
-λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
+variables {R : Type*} [comm_semiring R]
 
 lemma exists_not_is_unit_of_not_is_field [nontrivial R] (hf : ¬ is_field R) :
   ∃ x ≠ (0 : R), ¬ is_unit x :=
@@ -566,6 +632,22 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
   ⟨λ ⟨I, bot_lt, lt_top⟩, let ⟨p, hp, le_p⟩ := I.exists_le_maximal (lt_top_iff_ne_top.mp lt_top) in
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
+
+/-- Also see `ideal.is_simple_order` for the forward direction as an instance when `R` is a
+division (semi)ring. 
+
+This result actually holds for all division semirings, but we lack the predicate to state it. -/
+lemma is_field_iff_is_simple_order_ideal :
+  is_field R ↔ is_simple_order (ideal R) :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { exact ⟨λ h, (not_is_field_of_subsingleton _ h).elim,
+      λ h, by exactI (false_of_nontrivial_of_subsingleton $ ideal R).elim⟩ },
+  rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top, ← not_iff_not],
+  push_neg,
+  simp_rw [lt_top_iff_ne_top, bot_lt_iff_ne_bot, ← or_iff_not_imp_left, not_ne_iff],
+  exact ⟨λ h, ⟨h⟩, λ h, h.2⟩
+end
 
 /-- When a ring is not a field, the maximal ideals are nontrivial. -/
 lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)

@@ -3,8 +3,8 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.linear
-import category_theory.limits.shapes.biproducts
+import category_theory.linear.basic
+import category_theory.preadditive.biproducts
 import linear_algebra.matrix.invariant_basis_number
 
 /-!

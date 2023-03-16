@@ -9,6 +9,9 @@ import logic.relation
 /-!
 # Shapes of homological complexes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a structure `complex_shape ι` for describing the shapes of homological complexes
 indexed by a type `ι`.
 This is intended to capture chain complexes and cochain complexes, indexed by either `ℕ` or `ℤ`,
@@ -55,7 +58,7 @@ This means that the shape consists of some union of lines, rays, intervals, and 
 
 Below we define `c.next` and `c.prev` which provide these related elements.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure complex_shape (ι : Type*) :=
 (rel : ι → ι → Prop)
 (next_eq : ∀ {i j j'}, rel i j → rel i j' → j = j')

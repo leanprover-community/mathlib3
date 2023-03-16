@@ -8,8 +8,7 @@ import category_theory.concrete_category.basic
 import category_theory.full_subcategory
 import category_theory.skeletal
 import category_theory.elementwise
-import data.fin.basic
-import data.fintype.basic
+import data.fintype.card
 
 /-!
 # The category of finite types.

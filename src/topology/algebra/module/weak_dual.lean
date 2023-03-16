@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä, Moritz Doll
 -/
 import topology.algebra.module.basic
+import linear_algebra.bilinear_map
 
 /-!
 # Weak dual topology
@@ -60,7 +61,7 @@ weak-star, weak dual, duality
 
 noncomputable theory
 open filter
-open_locale topological_space
+open_locale topology
 
 variables {α 𝕜 𝕝 R E F M : Type*}
 
@@ -68,7 +69,7 @@ section weak_topology
 
 /-- The space `E` equipped with the weak topology induced by the bilinear form `B`. -/
 @[derive [add_comm_monoid, module 𝕜],
-nolint has_inhabited_instance unused_arguments]
+nolint has_nonempty_instance unused_arguments]
 def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F]
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
 
@@ -96,6 +97,7 @@ variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 instance : topological_space (weak_bilin B) :=
 topological_space.induced (λ x y, B x y) Pi.topological_space
 
+/-- The coercion `(λ x y, B x y) : E → (F → 𝕜)` is continuous. -/
 lemma coe_fn_continuous : continuous (λ (x : weak_bilin B) y, B x y) :=
 continuous_induced_dom
 
@@ -237,15 +239,35 @@ lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_dual
   (h : ∀ y, continuous (λ a, (g a) y)) : continuous g :=
 continuous_induced_rng.2 (continuous_pi_iff.mpr h)
 
+instance [t2_space 𝕜] : t2_space (weak_dual 𝕜 E) :=
+embedding.t2_space $ weak_bilin.embedding $
+  show function.injective (top_dual_pairing 𝕜 E), from continuous_linear_map.coe_injective
+
 end weak_dual
 
 /-- The weak topology is the topology coarsest topology on `E` such that all
 functionals `λ x, top_dual_pairing 𝕜 E v x` are continuous. -/
 @[derive [add_comm_monoid, module 𝕜, topological_space, has_continuous_add],
-nolint has_inhabited_instance]
+nolint has_nonempty_instance]
 def weak_space (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E).flip
+
+namespace weak_space
+
+variables {𝕜 E F} [add_comm_monoid F] [module 𝕜 F] [topological_space F]
+
+/-- A continuous linear map from `E` to `F` is still continuous when `E` and `F` are equipped with
+their weak topologies. -/
+def map (f : E →L[𝕜] F) :
+  weak_space 𝕜 E →L[𝕜] weak_space 𝕜 F :=
+{ cont := weak_bilin.continuous_of_continuous_eval _ (λ l, weak_bilin.eval_continuous _ (l ∘L f)),
+  ..f }
+
+lemma map_apply (f : E →L[𝕜] F) (x : E) : weak_space.map f x = f x := rfl
+@[simp] lemma coe_map (f : E →L[𝕜] F) : (weak_space.map f : E → F) = f := rfl
+
+end weak_space
 
 theorem tendsto_iff_forall_eval_tendsto_top_dual_pairing
   {l : filter α} {f : α → weak_dual 𝕜 E} {x : weak_dual 𝕜 E} :

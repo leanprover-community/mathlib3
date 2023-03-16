@@ -113,7 +113,7 @@ end
 A homotopy `h` between chain maps `f` and `g` consists of components `h i j : C.X i ⟶ D.X j`
 which are zero unless `c.rel j i`, satisfying the homotopy condition.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure homotopy (f g : C ⟶ D) :=
 (hom : Π i j, C.X i ⟶ D.X j)
 (zero' : ∀ i j, ¬ c.rel j i → hom i j = 0 . obviously)
@@ -720,6 +720,12 @@ instance : inhabited (homotopy_equiv C C) := ⟨refl C⟩
     ((g.homotopy_hom_inv_id.comp_right_id f.inv).comp_left f.hom).trans f.homotopy_hom_inv_id,
   homotopy_inv_hom_id := by simpa using
     ((f.homotopy_inv_hom_id.comp_right_id g.hom).comp_left g.inv).trans g.homotopy_inv_hom_id, }
+
+/-- An isomorphism of complexes induces a homotopy equivalence. -/
+def of_iso {ι : Type*} {V : Type u} [category.{v} V] [preadditive V]
+  {c : complex_shape ι} {C D : homological_complex V c} (f : C ≅ D) :
+  homotopy_equiv C D :=
+⟨f.hom, f.inv, homotopy.of_eq f.3, homotopy.of_eq f.4⟩
 
 end homotopy_equiv
 

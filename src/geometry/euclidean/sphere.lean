@@ -3,6 +3,7 @@ Copyright (c) 2021 Manuel Candales. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales, Benjamin Davidson
 -/
+import geometry.euclidean.basic
 import geometry.euclidean.triangle
 
 /-!
@@ -53,8 +54,8 @@ which are used to deduce corresponding results for Euclidean affine spaces.
 -/
 
 lemma mul_norm_eq_abs_sub_sq_norm {x y z : V}
-  (h₁ : ∃ k : ℝ, k ≠ 1 ∧ x + y = k • (x - y)) (h₂ : ∥z - y∥ = ∥z + y∥) :
-  ∥x - y∥ * ∥x + y∥ = |∥z + y∥ ^ 2 - ∥z - x∥ ^ 2| :=
+  (h₁ : ∃ k : ℝ, k ≠ 1 ∧ x + y = k • (x - y)) (h₂ : ‖z - y‖ = ‖z + y‖) :
+  ‖x - y‖ * ‖x + y‖ = |‖z + y‖ ^ 2 - ‖z - x‖ ^ 2| :=
 begin
   obtain ⟨k, hk_ne_one, hk⟩ := h₁,
   let r := (k - 1)⁻¹ * (k + 1),
@@ -73,14 +74,14 @@ begin
 
   have hzx : ⟪z, x⟫ = 0 := by rw [hxy, inner_smul_right, hzy, mul_zero],
 
-  calc  ∥x - y∥ * ∥x + y∥
-      = ∥(r - 1) • y∥ * ∥(r + 1) • y∥      : by simp [sub_smul, add_smul, hxy]
-  ... = ∥r - 1∥ * ∥y∥ * (∥r + 1∥ * ∥y∥)      : by simp_rw [norm_smul]
-  ... = ∥r - 1∥ * ∥r + 1∥ * ∥y∥ ^ 2         : by ring
-  ... = |(r - 1) * (r + 1) * ∥y∥ ^ 2| : by simp [abs_mul]
-  ... = |r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2|    : by ring_nf
-  ... = |∥x∥ ^ 2 - ∥y∥ ^ 2|            : by simp [hxy, norm_smul, mul_pow, sq_abs]
-  ... = |∥z + y∥ ^ 2 - ∥z - x∥ ^ 2|    : by simp [norm_add_sq_real, norm_sub_sq_real,
+  calc  ‖x - y‖ * ‖x + y‖
+      = ‖(r - 1) • y‖ * ‖(r + 1) • y‖      : by simp [sub_smul, add_smul, hxy]
+  ... = ‖r - 1‖ * ‖y‖ * (‖r + 1‖ * ‖y‖)      : by simp_rw [norm_smul]
+  ... = ‖r - 1‖ * ‖r + 1‖ * ‖y‖ ^ 2         : by ring
+  ... = |(r - 1) * (r + 1) * ‖y‖ ^ 2| : by simp [abs_mul]
+  ... = |r ^ 2 * ‖y‖ ^ 2 - ‖y‖ ^ 2|    : by ring_nf
+  ... = |‖x‖ ^ 2 - ‖y‖ ^ 2|            : by simp [hxy, norm_smul, mul_pow, sq_abs]
+  ... = |‖z + y‖ ^ 2 - ‖z - x‖ ^ 2|    : by simp [norm_add_sq_real, norm_sub_sq_real,
                                                     hzy, hzx, abs_sub_comm],
 end
 

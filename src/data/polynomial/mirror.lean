@@ -43,8 +43,8 @@ begin
   by_cases ha : a = 0,
   { rw [ha, monomial_zero_right, mirror_zero] },
   { rw [mirror, reverse, nat_degree_monomial n a, if_neg ha, nat_trailing_degree_monomial ha,
-        ←C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n),
-        tsub_self, pow_zero, mul_one] },
+        ← C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n), tsub_self, pow_zero,
+        mul_one] },
 end
 
 lemma mirror_C (a : R) : (C a).mirror = C a :=
@@ -225,9 +225,9 @@ begin
     have hk := h2 k key,
     rcases hk with hk | hk | hk | hk,
     { exact or.inr (h3 h h_dvd_f (by rwa ← hk)) },
-    { exact or.inr (h3 h h_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, mirror_neg, dvd_neg])) },
+    { exact or.inr (h3 h h_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, mirror_neg, dvd_neg])) },
     { exact or.inl (h3 g g_dvd_f (by rwa ← hk)) },
-    { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
+    { exact or.inl (h3 g g_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, dvd_neg])) } },
 end
 
 end comm_ring

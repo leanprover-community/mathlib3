@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import data.polynomial.degree.definitions
 import tactic.compute_degree
+import data.polynomial.degree.lemmas
 /-!
 # Cancel the leading terms of two polynomials
 

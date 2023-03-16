@@ -9,6 +9,9 @@ import order.hom.lattice
 /-!
 # Complete lattice homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines frame homorphisms and complete lattice homomorphisms.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -31,6 +34,10 @@ be satisfied by itself and all stricter types.
 ## Concrete homs
 
 * `complete_lattice.set_preimage`: `set.preimage` as a complete lattice homomorphism.
+
+## TODO
+
+Frame homs are Heyting homs.
 -/
 
 open function order_dual set
@@ -57,6 +64,9 @@ structure frame_hom (α β : Type*) [complete_lattice α] [complete_lattice β]
 structure complete_lattice_hom (α β : Type*) [complete_lattice α] [complete_lattice β]
   extends Inf_hom α β :=
 (map_Sup' (s : set α) : to_fun (Sup s) = Sup (to_fun '' s))
+
+section
+set_option old_structure_cmd true
 
 /-- `Sup_hom_class F α β` states that `F` is a type of `⨆`-preserving morphisms.
 
@@ -86,6 +96,8 @@ class complete_lattice_hom_class (F : Type*) (α β : out_param $ Type*) [comple
   [complete_lattice β] extends Inf_hom_class F α β :=
 (map_Sup (f : F) (s : set α) : f (Sup s) = Sup (f '' s))
 
+end
+
 export Sup_hom_class (map_Sup)
 export Inf_hom_class (map_Inf)
 
@@ -112,14 +124,16 @@ instance Sup_hom_class.to_sup_bot_hom_class [complete_lattice α] [complete_latt
   [Sup_hom_class F α β] :
   sup_bot_hom_class F α β :=
 { map_sup := λ f a b, by rw [←Sup_pair, map_Sup, set.image_pair, Sup_pair],
-  map_bot := λ f, by rw [←Sup_empty, map_Sup, set.image_empty, Sup_empty] }
+  map_bot := λ f, by rw [←Sup_empty, map_Sup, set.image_empty, Sup_empty],
+  ..‹Sup_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
 instance Inf_hom_class.to_inf_top_hom_class [complete_lattice α] [complete_lattice β]
   [Inf_hom_class F α β] :
   inf_top_hom_class F α β :=
 { map_inf := λ f a b, by rw [←Inf_pair, map_Inf, set.image_pair, Inf_pair],
-  map_top := λ f, by rw [←Inf_empty, map_Inf, set.image_empty, Inf_empty] }
+  map_top := λ f, by rw [←Inf_empty, map_Inf, set.image_empty, Inf_empty],
+  ..‹Inf_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
 instance frame_hom_class.to_Sup_hom_class [complete_lattice α] [complete_lattice β]
@@ -149,19 +163,25 @@ instance complete_lattice_hom_class.to_bounded_lattice_hom_class [complete_latti
 instance order_iso_class.to_Sup_hom_class [complete_lattice α] [complete_lattice β]
   [order_iso_class F α β] :
   Sup_hom_class F α β :=
-⟨λ f s, eq_of_forall_ge_iff $ λ c, by simp only [←le_map_inv_iff, Sup_le_iff, set.ball_image_iff]⟩
+{ map_Sup := λ f s, eq_of_forall_ge_iff $
+                λ c, by simp only [←le_map_inv_iff, Sup_le_iff, set.ball_image_iff],
+  .. show order_hom_class F α β, from infer_instance }
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_Inf_hom_class [complete_lattice α] [complete_lattice β]
   [order_iso_class F α β] :
   Inf_hom_class F α β :=
-⟨λ f s, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_Inf_iff, set.ball_image_iff]⟩
+{ map_Inf := λ f s, eq_of_forall_le_iff $
+                λ c, by simp only [←map_inv_le_iff, le_Inf_iff, set.ball_image_iff],
+  .. show order_hom_class F α β, from infer_instance }
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_complete_lattice_hom_class [complete_lattice α] [complete_lattice β]
   [order_iso_class F α β] :
   complete_lattice_hom_class F α β :=
-{ ..order_iso_class.to_Sup_hom_class, ..order_iso_class.to_lattice_hom_class }
+{ ..order_iso_class.to_Sup_hom_class,
+  ..order_iso_class.to_lattice_hom_class,
+  .. show Inf_hom_class F α β, from infer_instance }
 
 instance [has_Sup α] [has_Sup β] [Sup_hom_class F α β] : has_coe_t F (Sup_hom α β) :=
 ⟨λ f, ⟨f, map_Sup f⟩⟩
@@ -203,6 +223,9 @@ equalities. -/
 protected def copy (f : Sup_hom α β) (f' : α → β) (h : f' = f) : Sup_hom α β :=
 { to_fun := f',
   map_Sup' := h.symm ▸ f.map_Sup' }
+
+@[simp] lemma coe_copy (f : Sup_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : Sup_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 
@@ -284,6 +307,9 @@ equalities. -/
 protected def copy (f : Inf_hom α β) (f' : α → β) (h : f' = f) : Inf_hom α β :=
 { to_fun := f',
   map_Inf' := h.symm ▸ f.map_Inf' }
+
+@[simp] lemma coe_copy (f : Inf_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : Inf_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 
@@ -368,6 +394,9 @@ equalities. -/
 protected def copy (f : frame_hom α β) (f' : α → β) (h : f' = f) : frame_hom α β :=
 { to_inf_top_hom := f.to_inf_top_hom.copy f' h, ..(f : Sup_hom α β).copy f' h }
 
+@[simp] lemma coe_copy (f : frame_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : frame_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `frame_hom`. -/
@@ -436,6 +465,14 @@ definitional equalities. -/
 protected def copy (f : complete_lattice_hom α β) (f' : α → β) (h : f' = f) :
   complete_lattice_hom α β :=
 { to_Inf_hom := f.to_Inf_hom.copy f' h, .. f.to_Sup_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : complete_lattice_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : complete_lattice_hom α β) (f' : α → β) (h : f' = f) :
+  f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 
@@ -549,7 +586,9 @@ end complete_lattice_hom
 
 namespace complete_lattice_hom
 
-/-- `set.preimage` as a complete lattice homomorphism. -/
+/-- `set.preimage` as a complete lattice homomorphism.
+
+See also `Sup_hom.set_image`. -/
 def set_preimage (f : α → β) : complete_lattice_hom (set β) (set α) :=
 { to_fun := preimage f,
   map_Sup' := λ s, preimage_sUnion.trans $ by simp only [set.Sup_eq_sUnion, set.sUnion_image],
@@ -563,3 +602,45 @@ lemma set_preimage_comp (g : β → γ) (f : α → β) :
   set_preimage (g ∘ f) = (set_preimage f).comp (set_preimage g) := rfl
 
 end complete_lattice_hom
+
+lemma set.image_Sup {f : α → β} (s : set (set α)) :
+  f '' Sup s = Sup (image f '' s) :=
+begin
+  ext b,
+  simp only [Sup_eq_sUnion, mem_image, mem_sUnion, exists_prop, sUnion_image, mem_Union],
+  split,
+  { rintros ⟨a, ⟨t, ht₁, ht₂⟩, rfl⟩, exact ⟨t, ht₁, a, ht₂, rfl⟩, },
+  { rintros ⟨t, ht₁, a, ht₂, rfl⟩, exact ⟨a, ⟨t, ht₁, ht₂⟩, rfl⟩, },
+end
+
+/-- Using `set.image`, a function between types yields a `Sup_hom` between their lattices of
+subsets.
+
+See also `complete_lattice_hom.set_preimage`. -/
+@[simps] def Sup_hom.set_image (f : α → β) : Sup_hom (set α) (set β) :=
+{ to_fun := image f,
+  map_Sup' := set.image_Sup }
+
+/-- An equivalence of types yields an order isomorphism between their lattices of subsets. -/
+@[simps] def equiv.to_order_iso_set (e : α ≃ β) : set α ≃o set β :=
+{ to_fun  := image e,
+  inv_fun := image e.symm,
+  left_inv  := λ s, by simp only [← image_comp, equiv.symm_comp_self, id.def, image_id'],
+  right_inv := λ s, by simp only [← image_comp, equiv.self_comp_symm, id.def, image_id'],
+  map_rel_iff' :=
+    λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
+
+variables [complete_lattice α] (x : α × α)
+
+/-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
+def sup_Sup_hom : Sup_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊔ x.2,
+  map_Sup' := λ s, by simp_rw [prod.fst_Sup, prod.snd_Sup, Sup_image, supr_sup_eq] }
+
+/-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
+def inf_Inf_hom : Inf_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊓ x.2,
+  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq] }
+
+@[simp, norm_cast] lemma sup_Sup_hom_apply : sup_Sup_hom x = x.1 ⊔ x.2 := rfl
+@[simp, norm_cast] lemma inf_Inf_hom_apply : inf_Inf_hom x = x.1 ⊓ x.2 := rfl

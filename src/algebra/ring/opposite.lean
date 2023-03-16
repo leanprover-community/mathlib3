@@ -123,7 +123,8 @@ instance [non_unital_semiring α] : non_unital_semiring αᵃᵒᵖ :=
 { .. add_opposite.semigroup_with_zero α, .. add_opposite.non_unital_non_assoc_semiring α }
 
 instance [non_assoc_semiring α] : non_assoc_semiring αᵃᵒᵖ :=
-{ .. add_opposite.mul_zero_one_class α, .. add_opposite.non_unital_non_assoc_semiring α }
+{ ..add_opposite.mul_zero_one_class α, ..add_opposite.non_unital_non_assoc_semiring α,
+  ..add_opposite.add_comm_monoid_with_one _ }
 
 instance [semiring α] : semiring αᵃᵒᵖ :=
 { .. add_opposite.non_unital_semiring α, .. add_opposite.non_assoc_semiring α,

@@ -1046,7 +1046,7 @@ by rw [←neg_one_smul ℝ v, s.second_inter_smul p v (by norm_num : (-1 : ℝ) 
   s.second_inter (s.second_inter p v) v = p :=
 begin
   by_cases hv : v = 0, { simp [hv] },
-  have hv' : ⟪v, v⟫ ≠ 0 := inner_self_eq_zero.not.2 hv,
+  have hv' : ⟪v, v⟫ ≠ 0 := inner_self_ne_zero.2 hv,
   simp only [sphere.second_inter, vadd_vsub_assoc, vadd_vadd, inner_add_right, inner_smul_right,
              div_mul_cancel _ hv'],
   rw [←@vsub_eq_zero_iff_eq V, vadd_vsub, ←add_smul, ←add_div],

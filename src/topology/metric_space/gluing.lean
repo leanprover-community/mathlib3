@@ -8,6 +8,9 @@ import topology.metric_space.isometry
 /-!
 # Metric space gluing
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Gluing two metric spaces along a common subset. Formally, we are given
 
 ```
@@ -464,7 +467,7 @@ their respective basepoints, plus the distance 1 between the basepoints.
 Since there is an arbitrary choice in this construction, it is not an instance by default. -/
 protected def metric_space : metric_space (Σ i, E i) :=
 begin
-  refine metric_space.of_metrizable sigma.dist _ _ sigma.dist_triangle
+  refine metric_space.of_dist_topology sigma.dist _ _ sigma.dist_triangle
     sigma.is_open_iff _,
   { rintros ⟨i, x⟩, simp [sigma.dist] },
   { rintros ⟨i, x⟩ ⟨j, y⟩,

@@ -10,6 +10,9 @@ import data.polynomial.algebra_map
 /-!
 # Algebra towers for polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some basic results about the algebra tower structure for the type `R[X]`.
 
 This structure itself is provided elsewhere as `polynomial.is_scalar_tower`

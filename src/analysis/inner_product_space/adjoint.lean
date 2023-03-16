@@ -70,7 +70,7 @@ by { simp only [adjoint_aux_apply, to_dual_symm_apply, to_sesq_form_apply_coe, c
                 innerSL_apply_coe]}
 
 lemma adjoint_aux_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, adjoint_aux A y⟫ = ⟪A x, y⟫ :=
-by rw [←inner_conj_sym, adjoint_aux_inner_left, inner_conj_sym]
+by rw [←inner_conj_symm, adjoint_aux_inner_left, inner_conj_symm]
 
 variables [complete_space F]
 

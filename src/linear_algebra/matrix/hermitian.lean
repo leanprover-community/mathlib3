@@ -195,7 +195,8 @@ section semiring
 
 variables [semiring α] [star_ring α] [semiring β] [star_ring β]
 
-/-- Note this is more generally than `is_self_adjoint_one` as it does not require `fintype n`. -/
+/-- Note this is more general for matrices than `is_self_adjoint_one` as it does not
+require `fintype n`, which is necessary for `monoid (matrix n n R)`. -/
 @[simp] lemma is_hermitian_one [decidable_eq n] :
   (1 : matrix n n α).is_hermitian :=
 conj_transpose_one

@@ -123,8 +123,7 @@ lemma is_hermitian_diagonal_of_self_adjoint [decidable_eq n]
 
 /-- A diagonal matrix is hermitian if the entries have the trivial `star` operation
 (such as on the reals). -/
-@[simp] lemma is_hermitian_diagonal [has_trivial_star α] [decidable_eq n] (v : n → α)
-  (h : is_self_adjoint v) :
+@[simp] lemma is_hermitian_diagonal [has_trivial_star α] [decidable_eq n] (v : n → α) :
   (diagonal v).is_hermitian :=
 is_hermitian_diagonal_of_self_adjoint _ (is_self_adjoint.all _)
 

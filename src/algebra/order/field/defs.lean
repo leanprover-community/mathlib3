@@ -45,6 +45,3 @@ class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, fie
 instance linear_ordered_field.to_linear_ordered_semifield [linear_ordered_field α] :
   linear_ordered_semifield α :=
 { ..linear_ordered_ring.to_linear_ordered_semiring, ..‹linear_ordered_field α› }
-
--- Guard against import creep.
-assert_not_exists monoid_hom

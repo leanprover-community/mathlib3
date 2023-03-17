@@ -143,9 +143,8 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bInter_insert; exact
     is_open.inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_open_Inter [finite β] {s : β → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
-suffices is_open (⋂ (i : β) (hi : i ∈ @univ β), s i), by simpa,
-is_open_bInter finite_univ (λ i _, h i)
+lemma is_open_Inter [finite ι] {s : ι → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
+is_open_sInter (finite_range _) (forall_range_iff.2 h)
 
 lemma is_open_Inter_prop {p : Prop} {s : p → set α}
   (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=

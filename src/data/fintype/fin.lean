@@ -23,6 +23,7 @@ namespace fin
 
 variables {α β : Type*} {n : ℕ}
 
+-- TODO: replace `subtype` with `coe` in the name of this lemma and `fin.map_subtype_embedding_Iio` 
 lemma map_subtype_embedding_univ :
   (finset.univ : finset (fin n)).map fin.coe_embedding = Iio n :=
 begin

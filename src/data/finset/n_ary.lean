@@ -31,7 +31,7 @@ variables {α α' β β' γ γ' δ δ' ε ε' ζ ζ' ν : Type*}
   [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
   [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε']
   {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
-  {v : finset δ} {a a' : α} {b b' : β} {c : γ}
+  {a a' : α} {b b' : β} {c : γ}
 
 /-- The image of a binary function `f : α → β → γ` as a function `finset α → finset β → finset γ`.
 Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
@@ -252,10 +252,11 @@ lemma image₂_right_comm {γ : Type*} {u : finset γ} {f : δ → γ → ε} {g
   image₂ f (image₂ g s t) u = image₂ g' (image₂ f' s u) t :=
 coe_injective $ by { push_cast, exact image2_right_comm h_right_comm }
 
-lemma image₂_image₂_image₂_comm {f : ε → ζ → ν} {g : α → β → ε} {h : γ → δ → ζ} {f' : ε' → ζ' → ν}
-  {g' : α → γ → ε'} {h' : β → δ → ζ'}
+lemma image₂_image₂_image₂_comm {γ δ : Type*} {u : finset γ} {v : finset δ} [decidable_eq ζ]
+  [decidable_eq ζ'] [decidable_eq ν] {f : ε → ζ → ν} {g : α → β → ε} {h : γ → δ → ζ}
+  {f' : ε' → ζ' → ν} {g' : α → γ → ε'} {h' : β → δ → ζ'}
   (h_comm : ∀ a b c d, f (g a b) (h c d) = f' (g' a c) (h' b d)) :
-  image₂ f (image₂ g s t) (image h u v) = image₂ f' (image₂ g' s u) (image₂ h' t v) :=
+  image₂ f (image₂ g s t) (image₂ h u v) = image₂ f' (image₂ g' s u) (image₂ h' t v) :=
 coe_injective $ by { push_cast, exact image2_image2_image2_comm h_comm }
 
 lemma image_image₂_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α → α'} {g₂ : β → β'}

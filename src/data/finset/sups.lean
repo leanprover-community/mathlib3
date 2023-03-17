@@ -21,6 +21,8 @@ This file defines a few binary operations on `finset α` for use in set family c
 ## Notation
 
 We define the following notation in locale `finset_family`:
+* `s ⊻ t`
+* `s ⊼ t`
 * `s ○ t` for `finset.disj_sups s t`
 
 ## References

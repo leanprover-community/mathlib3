@@ -16,6 +16,12 @@ This file defines a few binary operations on `set α` for use in set family comb
 * `s ⊻ t`: Set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`.
 * `s ⊼ t`: Set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`.
 
+## Notation
+
+We define the following notation in locale `set_family`:
+* `s ⊻ t`
+* `s ⊼ t`
+
 ## References
 
 [B. Bollobás, *Combinatorics*][bollobas1986]

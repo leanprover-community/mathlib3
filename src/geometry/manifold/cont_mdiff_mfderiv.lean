@@ -436,8 +436,6 @@ end
 
 end tangent_map
 
-/-! ### Smoothness of the tangent bundle projection -/
-
 namespace tangent_bundle
 
 include Is

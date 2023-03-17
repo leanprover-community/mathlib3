@@ -60,9 +60,9 @@ of `f` in these charts.
 Due to the fact that we are working in a model with corners, with an additional embedding `I` of the
 model space `H` in the model vector space `E`, the charts taking values in `E` are not the original
 charts of the manifold, but those ones composed with `I`, called extended charts. We define
-`written_in_ext_chart I I' x f` for the function `f` written in the preferred extended charts.  Then
-the manifold derivative of `f`, at `x`, is just the usual derivative of `written_in_ext_chart I I' x
-f`, at the point `(ext_chart_at I x) x`.
+`written_in_ext_chart I I' x f` for the function `f` written in the preferred extended charts. Then
+the manifold derivative of `f`, at `x`, is just the usual derivative of
+`written_in_ext_chart I I' x f`, at the point `(ext_chart_at I x) x`.
 
 There is a subtelty with respect to continuity: if the function is not continuous, then the image
 of a small open set around `x` will not be contained in the source of the preferred chart around
@@ -1765,7 +1765,7 @@ variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
   [∀ b, add_comm_monoid (Z b)] [∀ b, module 𝕜 (Z b)]
   [fiber_bundle F Z] [vector_bundle 𝕜 F Z] [smooth_vector_bundle F Z I]
 
-/-- In a smooth fiber bundle constructed from core, the preimage under the projection of a set with
+/-- In a smooth fiber bundle, the preimage under the projection of a set with
 unique differential in the basis also has unique differential. -/
 lemma unique_mdiff_on.smooth_bundle_preimage (hs : unique_mdiff_on I s) :
   unique_mdiff_on (I.prod (𝓘(𝕜, F))) (π Z ⁻¹' s) :=
@@ -1779,7 +1779,7 @@ begin
   let e := chart_at (model_prod H F) p,
   -- It suffices to prove unique differentiability in a chart
   suffices h : unique_mdiff_on (I.prod (𝓘(𝕜, F)))
-    (e.target ∩ e.symm⁻¹' (π Z ⁻¹' s)),
+    (e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s)),
   { have A : unique_mdiff_on (I.prod (𝓘(𝕜, F))) (e.symm.target ∩
       e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π Z ⁻¹' s))),
     { apply h.unique_mdiff_on_preimage,
@@ -1792,16 +1792,21 @@ begin
     assume q hq,
     simp only [e, local_homeomorph.left_inv _ hq.1] with mfld_simps at hq,
     simp only [hq] with mfld_simps },
-  -- rewrite the relevant set in the chart as a direct product
-  have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
-         (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (sigma.fst ⁻¹' s)) ∩
-         (range I ×ˢ univ)
-        = (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ univ,
-    sorry, --by mfld_set_tac,
   assume q hq,
   replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,
-    sorry, --by simpa only with mfld_simps using hq,
-  simp only [unique_mdiff_within_at, model_with_corners.prod, preimage_inter, this] with mfld_simps,
+  { have := fiber_bundle.charted_space_chart_at_symm_fst p q hq.1,
+    simp only [e, this] with mfld_simps at hq,
+    simp only [fiber_bundle.charted_space_chart_at, trivialization.mem_target,
+      bundle.total_space.proj] with mfld_simps at hq,
+    simp only [hq] with mfld_simps },
+  simp only [unique_mdiff_within_at, model_with_corners.prod, preimage_inter] with mfld_simps,
+  have : 𝓝[(I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ univ] (I q.1, q.2) ≤
+    𝓝[
+    (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
+         (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (sigma.fst ⁻¹' s)) ∩
+         (range I ×ˢ univ)] (I q.1, q.2),
+    sorry, --by mfld_set_tac,
+  refine unique_diff_within_at.mono_nhds _ this,
   -- apply unique differentiability of products to conclude
   apply unique_diff_on.prod _ unique_diff_on_univ,
   { simp only [hq] with mfld_simps },

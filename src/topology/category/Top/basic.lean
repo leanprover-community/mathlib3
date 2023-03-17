@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
 import category_theory.concrete_category.bundled_hom
+import category_theory.elementwise
 import topology.continuous_function.basic
 
 /-!
@@ -26,7 +27,7 @@ def Top : Type (u+1) := bundled topological_space
 namespace Top
 
 instance bundled_hom : bundled_hom @continuous_map :=
-⟨@continuous_map.to_fun, @continuous_map.id, @continuous_map.comp, @continuous_map.coe_inj⟩
+⟨@continuous_map.to_fun, @continuous_map.id, @continuous_map.comp, @continuous_map.coe_injective⟩
 
 attribute [derive [large_category, concrete_category]] Top
 
@@ -53,6 +54,8 @@ instance : inhabited Top := ⟨Top.of empty⟩
 def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, { to_fun := f, continuous_to_fun := continuous_bot } }
+
+instance {X : Type u} : discrete_topology (discrete.obj X) := ⟨rfl⟩
 
 /-- The trivial topology on any type. -/
 def trivial : Type u ⥤ Top.{u} :=
@@ -82,7 +85,7 @@ by { ext, refl }
 @[simp]
 lemma open_embedding_iff_comp_is_iso {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] :
   open_embedding (f ≫ g) ↔ open_embedding f :=
-open_embedding_iff_open_embedding_compose f (Top.homeo_of_iso (as_iso g)).open_embedding
+(Top.homeo_of_iso (as_iso g)).open_embedding.of_comp_iff f
 
 @[simp]
 lemma open_embedding_iff_is_iso_comp {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] :

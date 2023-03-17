@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro, Andrew Yang
 -/
 import topology.category.Top.epi_mono
-import category_theory.limits.preserves.limits
 import category_theory.category.ulift
-import category_theory.limits.shapes.types
 import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of topological spaces has all limits and colimits
@@ -27,7 +26,7 @@ noncomputable theory
 
 namespace Top
 
-variables {J : Type u} [small_category J]
+variables {J : Type v} [small_category J]
 
 local notation `forget` := forget Top
 
@@ -36,7 +35,7 @@ A choice of limit cone for a functor `F : J ⥤ Top`.
 Generally you should just use `limit.cone F`, unless you need the actual definition
 (which is in terms of `types.limit_cone`).
 -/
-def limit_cone (F : J ⥤ Top.{u}) : cone F :=
+def limit_cone (F : J ⥤ Top.{max v u}) : cone F :=
 { X := Top.of {u : Π j : J, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j},
   π :=
   { app := λ j,
@@ -50,21 +49,21 @@ infimum of topologies infimum.
 Generally you should just use `limit.cone F`, unless you need the actual definition
 (which is in terms of `types.limit_cone`).
 -/
-def limit_cone_infi (F : J ⥤ Top.{u}) : cone F :=
+def limit_cone_infi (F : J ⥤ Top.{max v u}) : cone F :=
 { X := ⟨(types.limit_cone (F ⋙ forget)).X, ⨅j,
         (F.obj j).str.induced ((types.limit_cone (F ⋙ forget)).π.app j)⟩,
   π :=
   { app := λ j, ⟨(types.limit_cone (F ⋙ forget)).π.app j,
                  continuous_iff_le_induced.mpr (infi_le _ _)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
+    naturality' := λ j j' f, continuous_map.coe_injective
+      ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
 
 /--
 The chosen cone `Top.limit_cone F` for a functor `F : J ⥤ Top` is a limit cone.
 Generally you should just use `limit.is_limit F`, unless you need the actual definition
 (which is in terms of `types.limit_cone_is_limit`).
 -/
-def limit_cone_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone F) :=
+def limit_cone_is_limit (F : J ⥤ Top.{max v u}) : is_limit (limit_cone F) :=
 { lift := λ S, { to_fun := λ x, ⟨λ j, S.π.app _ x, λ i j f, by { dsimp, erw ← S.w f, refl }⟩ },
   uniq' := λ S m h, by { ext : 3, simpa [← h] } }
 
@@ -73,92 +72,105 @@ The chosen cone `Top.limit_cone_infi F` for a functor `F : J ⥤ Top` is a limit
 Generally you should just use `limit.is_limit F`, unless you need the actual definition
 (which is in terms of `types.limit_cone_is_limit`).
 -/
-def limit_cone_infi_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone_infi F) :=
+def limit_cone_infi_is_limit (F : J ⥤ Top.{max v u}) : is_limit (limit_cone_infi F) :=
 by { refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨_, _⟩) (λ s, rfl),
      exact continuous_iff_coinduced_le.mpr (le_infi $ λ j,
        coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.π.app j).continuous :
          _) ) }
 
-instance Top_has_limits : has_limits.{u} Top.{u} :=
+instance Top_has_limits_of_size : has_limits_of_size.{v} Top.{max v u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.mk { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
 
-instance forget_preserves_limits : preserves_limits (forget : Top.{u} ⥤ Type u) :=
+instance Top_has_limits : has_limits Top.{u} := Top.Top_has_limits_of_size.{u u}
+
+instance forget_preserves_limits_of_size :
+  preserves_limits_of_size.{v v} (forget : Top.{max v u} ⥤ Type (max v u)) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
       (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget)) } }
+
+instance forget_preserves_limits : preserves_limits (forget : Top.{u} ⥤ Type u) :=
+Top.forget_preserves_limits_of_size.{u u}
 
 /--
 A choice of colimit cocone for a functor `F : J ⥤ Top`.
 Generally you should just use `colimit.coone F`, unless you need the actual definition
 (which is in terms of `types.colimit_cocone`).
 -/
-def colimit_cocone (F : J ⥤ Top.{u}) : cocone F :=
+def colimit_cocone (F : J ⥤ Top.{max v u}) : cocone F :=
 { X := ⟨(types.colimit_cocone (F ⋙ forget)).X, ⨆ j,
         (F.obj j).str.coinduced ((types.colimit_cocone (F ⋙ forget)).ι.app j)⟩,
   ι :=
   { app := λ j, ⟨(types.colimit_cocone (F ⋙ forget)).ι.app j,
                  continuous_iff_coinduced_le.mpr (le_supr _ j)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.colimit_cocone (F ⋙ forget)).ι.naturality f) } }
+    naturality' := λ j j' f, continuous_map.coe_injective
+      ((types.colimit_cocone (F ⋙ forget)).ι.naturality f) } }
 
 /--
 The chosen cocone `Top.colimit_cocone F` for a functor `F : J ⥤ Top` is a colimit cocone.
 Generally you should just use `colimit.is_colimit F`, unless you need the actual definition
 (which is in terms of `types.colimit_cocone_is_colimit`).
 -/
-def colimit_cocone_is_colimit (F : J ⥤ Top.{u}) : is_colimit (colimit_cocone F) :=
+def colimit_cocone_is_colimit (F : J ⥤ Top.{max v u}) : is_colimit (colimit_cocone F) :=
 by { refine is_colimit.of_faithful forget (types.colimit_cocone_is_colimit _) (λ s, ⟨_, _⟩)
        (λ s, rfl),
      exact continuous_iff_le_induced.mpr (supr_le $ λ j,
        coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.ι.app j).continuous :
          _) ) }
 
-instance Top_has_colimits : has_colimits.{u} Top.{u} :=
+instance Top_has_colimits_of_size : has_colimits_of_size.{v} Top.{max v u} :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk { cocone := colimit_cocone F, is_colimit :=
     colimit_cocone_is_colimit F } } }
 
-instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
+instance Top_has_colimits : has_colimits Top.{u} := Top.Top_has_colimits_of_size.{u u}
+
+instance forget_preserves_colimits_of_size :
+  preserves_colimits_of_size.{v v} (forget : Top.{max v u} ⥤ Type (max v u)) :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
 
+instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
+Top.forget_preserves_colimits_of_size.{u u}
+
 /-- The projection from the product as a bundled continous map. -/
-abbreviation pi_π {ι : Type u} (α : ι → Top.{u}) (i : ι) : Top.of (Π i, α i) ⟶ α i :=
+abbreviation pi_π {ι : Type v} (α : ι → Top.{max v u}) (i : ι) : Top.of (Π i, α i) ⟶ α i :=
 ⟨λ f, f i, continuous_apply i⟩
 
 /-- The explicit fan of a family of topological spaces given by the pi type. -/
 @[simps X π_app]
-def pi_fan {ι : Type u} (α : ι → Top.{u}) : fan α :=
+def pi_fan {ι : Type v} (α : ι → Top.{max v u}) : fan α :=
 fan.mk (Top.of (Π i, α i)) (pi_π α)
 
 /-- The constructed fan is indeed a limit -/
-def pi_fan_is_limit {ι : Type u} (α : ι → Top.{u}) : is_limit (pi_fan α) :=
-{ lift := λ S, { to_fun := λ s i, S.π.app i s },
-  uniq' := by { intros S m h, ext x i, simp [← h i] } }
+def pi_fan_is_limit {ι : Type v} (α : ι → Top.{max v u}) : is_limit (pi_fan α) :=
+{ lift := λ S, { to_fun := λ s i, S.π.app ⟨i⟩ s },
+  uniq' := by { intros S m h, ext x i, simp [← h ⟨i⟩] },
+  fac' := λ s j, by { cases j, tidy, }, }
 
 /--
 The product is homeomorphic to the product of the underlying spaces,
 equipped with the product topology.
 -/
-def pi_iso_pi {ι : Type u} (α : ι → Top.{u}) : ∏ α ≅ Top.of (Π i, α i) :=
+def pi_iso_pi {ι : Type v} (α : ι → Top.{max v u}) : ∏ α ≅ Top.of (Π i, α i) :=
 (limit.is_limit _).cone_point_unique_up_to_iso (pi_fan_is_limit α)
 
 @[simp, reassoc]
-lemma pi_iso_pi_inv_π {ι : Type u} (α : ι → Top) (i : ι) :
+lemma pi_iso_pi_inv_π {ι : Type v} (α : ι → Top.{max v u}) (i : ι) :
   (pi_iso_pi α).inv ≫ pi.π α i = pi_π α i :=
 by simp [pi_iso_pi]
 
 @[simp]
-lemma pi_iso_pi_inv_π_apply {ι : Type u} (α : ι → Top.{u}) (i : ι) (x : Π i, α i) :
+lemma pi_iso_pi_inv_π_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : Π i, α i) :
   (pi.π α i : _) ((pi_iso_pi α).inv x) = x i :=
 concrete_category.congr_hom (pi_iso_pi_inv_π α i) x
 
 @[simp]
-lemma pi_iso_pi_hom_apply {ι : Type u} (α : ι → Top.{u}) (i : ι) (x : ∏ α) :
+lemma pi_iso_pi_hom_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : ∏ α) :
   (pi_iso_pi α).hom x i = (pi.π α i : _) x :=
 begin
   have := pi_iso_pi_inv_π α i,
@@ -167,42 +179,43 @@ begin
 end
 
 /-- The inclusion to the coproduct as a bundled continous map. -/
-abbreviation sigma_ι {ι : Type u} (α : ι → Top.{u}) (i : ι) : α i ⟶ Top.of (Σ i, α i) :=
+abbreviation sigma_ι {ι : Type v} (α : ι → Top.{max v u}) (i : ι) : α i ⟶ Top.of (Σ i, α i) :=
 ⟨sigma.mk i⟩
 
 /-- The explicit cofan of a family of topological spaces given by the sigma type. -/
 @[simps X ι_app]
-def sigma_cofan {ι : Type u} (α : ι → Top.{u}) : cofan α :=
+def sigma_cofan {ι : Type v} (α : ι → Top.{max v u}) : cofan α :=
 cofan.mk (Top.of (Σ i, α i)) (sigma_ι α)
 
 /-- The constructed cofan is indeed a colimit -/
-def sigma_cofan_is_colimit {ι : Type u} (α : ι → Top.{u}) : is_colimit (sigma_cofan α) :=
-{ desc := λ S, { to_fun := λ s, S.ι.app s.1 s.2,
-    continuous_to_fun := by { continuity, dsimp only, continuity } },
-  uniq' := by { intros S m h,  ext ⟨i, x⟩, simp [← h i] } }
+def sigma_cofan_is_colimit {ι : Type v} (α : ι → Top.{max v u}) : is_colimit (sigma_cofan α) :=
+{ desc := λ S, { to_fun := λ s, S.ι.app ⟨s.1⟩ s.2,
+    continuous_to_fun := continuous_sigma $ λ i, map_continuous (S.ι.app ⟨i⟩) },
+  uniq' := by { intros S m h,  ext ⟨i, x⟩, simp [← h ⟨i⟩] },
+  fac' := λ s j, by { cases j, tidy, }, }
 
 /--
 The coproduct is homeomorphic to the disjoint union of the topological spaces.
 -/
-def sigma_iso_sigma {ι : Type u} (α : ι → Top.{u}) : ∐ α ≅ Top.of (Σ i, α i) :=
+def sigma_iso_sigma {ι : Type v} (α : ι → Top.{max v u}) : ∐ α ≅ Top.of (Σ i, α i) :=
 (colimit.is_colimit _).cocone_point_unique_up_to_iso (sigma_cofan_is_colimit α)
 
 @[simp, reassoc]
-lemma sigma_iso_sigma_hom_ι {ι : Type u} (α : ι → Top) (i : ι) :
+lemma sigma_iso_sigma_hom_ι {ι : Type v} (α : ι → Top.{max v u}) (i : ι) :
   sigma.ι α i ≫ (sigma_iso_sigma α).hom = sigma_ι α i :=
 by simp [sigma_iso_sigma]
 
 @[simp]
-lemma sigma_iso_sigma_hom_ι_apply {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
+lemma sigma_iso_sigma_hom_ι_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : α i) :
   (sigma_iso_sigma α).hom ((sigma.ι α i : _) x) = sigma.mk i x :=
 concrete_category.congr_hom (sigma_iso_sigma_hom_ι α i) x
 
 @[simp]
-lemma sigma_iso_sigma_inv_apply {ι : Type u} (α : ι → Top) (i : ι) (x : α i) :
+lemma sigma_iso_sigma_inv_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : α i) :
   (sigma_iso_sigma α).inv ⟨i, x⟩ = (sigma.ι α i : _) x :=
 by { rw [← sigma_iso_sigma_hom_ι_apply, ← comp_app], simp, }
 
-lemma induced_of_is_limit {F : J ⥤ Top.{u}} (C : cone F) (hC : is_limit C) :
+lemma induced_of_is_limit {F : J ⥤ Top.{max v u}} (C : cone F) (hC : is_limit C) :
   C.X.topological_space = ⨅ j, (F.obj j).topological_space.induced (C.π.app j) :=
 begin
   let homeo := homeo_of_iso (hC.cone_point_unique_up_to_iso (limit_cone_infi_is_limit F)),
@@ -211,7 +224,7 @@ begin
   simpa [induced_infi, induced_compose],
 end
 
-lemma limit_topology (F : J ⥤ Top.{u}) :
+lemma limit_topology (F : J ⥤ Top.{max v u}) :
   (limit F).topological_space = ⨅ j, (F.obj j).topological_space.induced (limit.π F j) :=
 induced_of_is_limit _ (limit.is_limit F)
 
@@ -237,10 +250,10 @@ def prod_binary_fan_is_limit (X Y : Top.{u}) : is_limit (prod_binary_fan X Y) :=
   uniq' := begin
     intros S m h,
     ext x,
-    { specialize h walking_pair.left,
+    { specialize h ⟨walking_pair.left⟩,
       apply_fun (λ e, (e x)) at h,
       exact h },
-     { specialize h walking_pair.right,
+     { specialize h ⟨walking_pair.right⟩,
       apply_fun (λ e, (e x)) at h,
       exact h },
   end }
@@ -296,13 +309,13 @@ begin
   ext,
   split,
   { rintros ⟨y, rfl⟩,
-    simp only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
+    simp only [set.mem_preimage, set.mem_range, set.mem_inter_iff, ←comp_apply],
     simp only [limits.prod.map_fst, limits.prod.map_snd,
       exists_apply_eq_apply, comp_apply, and_self] },
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
     use (prod_iso_prod W X).inv (x₁, x₂),
     apply concrete.limit_ext,
-    rintro ⟨⟩,
+    rintro ⟨⟨⟩⟩,
     { simp only [← comp_apply, category.assoc], erw limits.prod.map_fst, simp [hx₁] },
     { simp only [← comp_apply, category.assoc], erw limits.prod.map_snd, simp [hx₂] } }
 end
@@ -426,7 +439,7 @@ begin
   { intro h,
     use (pullback_iso_prod_subtype f g).inv ⟨⟨_, _⟩, h⟩,
     apply concrete.limit_ext,
-    rintro ⟨⟩; simp }
+    rintro ⟨⟨⟩⟩; simp, }
 end
 
 lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -638,11 +651,139 @@ begin
   refl
 end
 
+lemma pullback_snd_image_fst_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set X) :
+  (pullback.snd : pullback f g ⟶ _) '' ((pullback.fst : pullback f g ⟶ _) ⁻¹' U) =
+    g ⁻¹' (f '' U) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    exact ⟨(pullback.fst : pullback f g ⟶ _) y, hy,
+    concrete_category.congr_hom pullback.condition y⟩ },
+  { rintros ⟨y, hy, eq⟩,
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩, eq⟩, by simpa, by simp⟩ },
+end
+
+lemma pullback_fst_image_snd_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set Y) :
+  (pullback.fst : pullback f g ⟶ _) '' ((pullback.snd : pullback f g ⟶ _) ⁻¹' U) =
+    f ⁻¹' (g '' U) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    exact ⟨(pullback.snd : pullback f g ⟶ _) y, hy,
+    (concrete_category.congr_hom pullback.condition y).symm⟩ },
+  { rintros ⟨y, hy, eq⟩,
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq.symm⟩, by simpa, by simp⟩ },
+end
+
 end pullback
 
---TODO: Add analogous constructions for `coprod` and `pushout`.
+/-- The terminal object of `Top` is `punit`. -/
+def is_terminal_punit : is_terminal (Top.of punit.{u+1}) :=
+begin
+  haveI : ∀ X, unique (X ⟶ Top.of punit.{u+1}) :=
+    λ X, ⟨⟨⟨λ x, punit.star, by continuity⟩⟩, λ f, by ext⟩,
+  exact limits.is_terminal.of_unique _,
+end
 
-lemma coinduced_of_is_colimit {F : J ⥤ Top.{u}} (c : cocone F) (hc : is_colimit c) :
+/-- The terminal object of `Top` is `punit`. -/
+def terminal_iso_punit : ⊤_ Top.{u} ≅ Top.of punit :=
+terminal_is_terminal.unique_up_to_iso is_terminal_punit
+
+/-- The initial object of `Top` is `pempty`. -/
+def is_initial_pempty : is_initial (Top.of pempty.{u+1}) :=
+begin
+  haveI : ∀ X, unique (Top.of pempty.{u+1} ⟶ X) :=
+    λ X, ⟨⟨⟨λ x, x.elim, by continuity⟩⟩, λ f, by ext ⟨⟩⟩,
+  exact limits.is_initial.of_unique _,
+end
+
+/-- The initial object of `Top` is `pempty`. -/
+def initial_iso_pempty : ⊥_ Top.{u} ≅ Top.of pempty :=
+initial_is_initial.unique_up_to_iso is_initial_pempty
+
+/-- The binary coproduct cofan in `Top`. -/
+protected
+def binary_cofan (X Y : Top.{u}) : binary_cofan X Y :=
+binary_cofan.mk (⟨sum.inl⟩ : X ⟶ Top.of (X ⊕ Y)) ⟨sum.inr⟩
+
+/-- The constructed binary coproduct cofan in `Top` is the coproduct. -/
+def binary_cofan_is_colimit (X Y : Top.{u}) : is_colimit (Top.binary_cofan X Y) :=
+begin
+  refine limits.binary_cofan.is_colimit_mk (λ s, ⟨sum.elim s.inl s.inr⟩) _ _ _,
+  { intro s, ext, refl },
+  { intro s, ext, refl },
+  { intros s m h₁ h₂, ext (x|x),
+    exacts [(concrete_category.congr_hom h₁ x : _), (concrete_category.congr_hom h₂ x : _)] },
+end
+
+lemma binary_cofan_is_colimit_iff {X Y : Top} (c : binary_cofan X Y) :
+  nonempty (is_colimit c) ↔
+    open_embedding c.inl ∧ open_embedding c.inr ∧ is_compl (set.range c.inl) (set.range c.inr) :=
+begin
+  classical,
+  split,
+  { rintro ⟨h⟩,
+    rw [← show _ = c.inl, from h.comp_cocone_point_unique_up_to_iso_inv
+      (binary_cofan_is_colimit X Y) ⟨walking_pair.left⟩,
+      ← show _ = c.inr, from h.comp_cocone_point_unique_up_to_iso_inv
+      (binary_cofan_is_colimit X Y) ⟨walking_pair.right⟩],
+    dsimp,
+    refine
+    ⟨(homeo_of_iso $ h.cocone_point_unique_up_to_iso (binary_cofan_is_colimit X Y)).symm
+      .open_embedding.comp open_embedding_inl, (homeo_of_iso $ h.cocone_point_unique_up_to_iso
+        (binary_cofan_is_colimit X Y)).symm.open_embedding.comp open_embedding_inr, _⟩,
+    erw [set.range_comp, ← eq_compl_iff_is_compl, set.range_comp _ sum.inr, ← set.image_compl_eq
+      (homeo_of_iso $ h.cocone_point_unique_up_to_iso (binary_cofan_is_colimit X Y))
+      .symm.bijective],
+    congr' 1,
+    exact set.compl_range_inr.symm },
+  { rintros ⟨h₁, h₂, h₃⟩,
+    have : ∀ x, x ∈ set.range c.inl ∨ x ∈ set.range c.inr,
+    { rw [eq_compl_iff_is_compl.mpr h₃.symm], exact λ _, or_not },
+    refine ⟨binary_cofan.is_colimit.mk _ _ _ _ _⟩,
+    { intros T f g,
+      refine continuous_map.mk _ _,
+      { exact λ x, if h : x ∈ set.range c.inl
+        then f ((equiv.of_injective _ h₁.inj).symm ⟨x, h⟩)
+        else g ((equiv.of_injective _ h₂.inj).symm ⟨x, (this x).resolve_left h⟩) },
+      rw continuous_iff_continuous_at,
+      intro x,
+      by_cases x ∈ set.range c.inl,
+      { revert h x,
+      apply (is_open.continuous_on_iff _).mp,
+      { rw continuous_on_iff_continuous_restrict,
+        convert_to continuous (f ∘ (homeomorph.of_embedding _ h₁.to_embedding).symm),
+        { ext ⟨x, hx⟩, exact dif_pos hx },
+        continuity },
+      { exact h₁.open_range } },
+    { revert h x,
+      apply (is_open.continuous_on_iff _).mp,
+      { rw continuous_on_iff_continuous_restrict,
+        have : ∀ a, a ∉ set.range c.inl → a ∈ set.range c.inr,
+        { rintros a (h : a ∈ (set.range c.inl)ᶜ), rwa eq_compl_iff_is_compl.mpr h₃.symm },
+        convert_to continuous
+          (g ∘ (homeomorph.of_embedding _ h₂.to_embedding).symm ∘ subtype.map _ this),
+        { ext ⟨x, hx⟩, exact dif_neg hx },
+        continuity,
+        rw embedding_subtype_coe.to_inducing.continuous_iff,
+        exact continuous_subtype_coe },
+      { change is_open (set.range c.inl)ᶜ, rw ← eq_compl_iff_is_compl.mpr h₃.symm,
+        exact h₂.open_range } } },
+    { intros T f g, ext x, refine (dif_pos _).trans _, { exact ⟨x, rfl⟩ },
+        { rw equiv.of_injective_symm_apply } },
+    { intros T f g, ext x, refine (dif_neg _).trans _,
+      { rintro ⟨y, e⟩, have : c.inr x ∈ set.range c.inl ⊓ set.range c.inr := ⟨⟨_, e⟩, ⟨_, rfl⟩⟩,
+        rwa disjoint_iff.mp h₃.1 at this },
+      { exact congr_arg g (equiv.of_injective_symm_apply _ _) } },
+    { rintro T _ _ m rfl rfl, ext x, change m x = dite _ _ _,
+      split_ifs; exact congr_arg _ (equiv.apply_of_injective_symm _ ⟨_, _⟩).symm } }
+end
+
+--TODO: Add analogous constructions for `pushout`.
+
+lemma coinduced_of_is_colimit {F : J ⥤ Top.{max v u}} (c : cocone F) (hc : is_colimit c) :
   c.X.topological_space = ⨆ j, (F.obj j).topological_space.coinduced (c.ι.app j) :=
 begin
   let homeo := homeo_of_iso (hc.cocone_point_unique_up_to_iso (colimit_cocone_is_colimit F)),
@@ -651,22 +792,22 @@ begin
   exact is_open_supr_iff
 end
 
-lemma colimit_topology (F : J ⥤ Top.{u}) :
+lemma colimit_topology (F : J ⥤ Top.{max v u}) :
   (colimit F).topological_space = ⨆ j, (F.obj j).topological_space.coinduced (colimit.ι F j) :=
 coinduced_of_is_colimit _ (colimit.is_colimit F)
 
-lemma colimit_is_open_iff (F : J ⥤ Top.{u}) (U : set ((colimit F : _) : Type u)) :
+lemma colimit_is_open_iff (F : J ⥤ Top.{max v u}) (U : set ((colimit F : _) : Type (max v u))) :
   is_open U ↔ ∀ j, is_open (colimit.ι F j ⁻¹' U) :=
 begin
   conv_lhs { rw colimit_topology F },
   exact is_open_supr_iff
 end
 
-lemma coequalizer_is_open_iff (F : walking_parallel_pair.{u} ⥤ Top.{u})
+lemma coequalizer_is_open_iff (F : walking_parallel_pair ⥤ Top.{u})
   (U : set ((colimit F : _) : Type u)) :
   is_open U ↔ is_open (colimit.ι F walking_parallel_pair.one ⁻¹' U) :=
 begin
-  rw colimit_is_open_iff,
+  rw colimit_is_open_iff.{u},
   split,
   { intro H, exact H _ },
   { intros H j,
@@ -682,7 +823,7 @@ namespace Top
 
 section cofiltered_limit
 
-variables {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Top.{u})
+variables {J : Type v} [small_category J] [is_cofiltered J] (F : J ⥤ Top.{max v u})
   (C : cone F) (hC : is_limit C)
 
 include hC
@@ -790,13 +931,14 @@ We give this in a more general form, which is that cofiltered limits
 of nonempty compact Hausdorff spaces are nonempty
 (`nonempty_limit_cone_of_compact_t2_cofiltered_system`).
 
-This also applies to inverse limits, where `{J : Type u} [directed_order J]` and `F : Jᵒᵖ ⥤ Top`.
+This also applies to inverse limits, where `{J : Type u} [preorder J] [is_directed J (≤)]` and
+`F : Jᵒᵖ ⥤ Top`.
 
 The theorem is specialized to nonempty finite types (which are compact Hausdorff with the
-discrete topology) in `nonempty_sections_of_fintype_cofiltered_system` and
-`nonempty_sections_of_fintype_inverse_system`.
+discrete topology) in lemmas `nonempty_sections_of_finite_cofiltered_system` and
+`nonempty_sections_of_finite_inverse_system` in the file `category_theory.cofiltered_system`.
 
-(See https://stacks.math.columbia.edu/tag/086J for the Set version.)
+(See <https://stacks.math.columbia.edu/tag/086J> for the Set version.)
 -/
 
 variables {J : Type u} [small_category J]
@@ -815,11 +957,14 @@ def partial_sections {J : Type u} [small_category J] (F : J ⥤ Top.{u})
   {G : finset J} (H : finset (finite_diagram_arrow G)) : set (Π j, F.obj j) :=
 { u | ∀ {f : finite_diagram_arrow G} (hf : f ∈ H), F.map f.2.2.2.2 (u f.1) = u f.2.1 }
 
-lemma partial_sections.nonempty [is_cofiltered J] [h : Π (j : J), nonempty (F.obj j)]
+lemma partial_sections.nonempty [is_cofiltered_or_empty J] [h : Π (j : J), nonempty (F.obj j)]
   {G : finset J} (H : finset (finite_diagram_arrow G)) :
   (partial_sections F H).nonempty :=
 begin
   classical,
+  casesI is_empty_or_nonempty J,
+  { exact ⟨is_empty_elim, λ j, is_empty.elim' infer_instance j.1⟩ },
+  haveI : is_cofiltered J := ⟨⟩,
   use λ (j : J), if hj : j ∈ G
                  then F.map (is_cofiltered.inf_to G H hj) (h (is_cofiltered.inf G H)).some
                  else (h _).some,
@@ -873,13 +1018,13 @@ end
 
 /--
 Cofiltered limits of nonempty compact Hausdorff spaces are nonempty topological spaces.
---/
+-/
 lemma nonempty_limit_cone_of_compact_t2_cofiltered_system
-  [is_cofiltered J]
+  [is_cofiltered_or_empty J]
   [Π (j : J), nonempty (F.obj j)]
   [Π (j : J), compact_space (F.obj j)]
   [Π (j : J), t2_space (F.obj j)] :
-  nonempty (Top.limit_cone F).X :=
+  nonempty (Top.limit_cone.{u} F).X :=
 begin
   classical,
   obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
@@ -902,69 +1047,3 @@ end
 end topological_konig
 
 end Top
-
-section fintype_konig
-
-/-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
-the `F` functor is between categories of the same universe, and it is an easy
-corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
-lemma nonempty_sections_of_fintype_cofiltered_system.init
-  {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Type u)
-  [hf : Π (j : J), fintype (F.obj j)] [hne : Π (j : J), nonempty (F.obj j)] :
-  F.sections.nonempty :=
-begin
-  let F' : J ⥤ Top := F ⋙ Top.discrete,
-  haveI : Π (j : J), fintype (F'.obj j) := hf,
-  haveI : Π (j : J), nonempty (F'.obj j) := hne,
-  obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system F',
-  exact ⟨u, λ _ _ f, hu f⟩,
-end
-
-/-- The cofiltered limit of nonempty finite types is nonempty.
-
-See `nonempty_sections_of_fintype_inverse_system` for a specialization to inverse limits. -/
-theorem nonempty_sections_of_fintype_cofiltered_system
-  {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
-  [Π (j : J), fintype (F.obj j)] [Π (j : J), nonempty (F.obj j)] :
-  F.sections.nonempty :=
-begin
-  -- Step 1: lift everything to the `max u v w` universe.
-  let J' : Type (max w v u) := as_small.{max w v} J,
-  let down : J' ⥤ J := as_small.down,
-  let F' : J' ⥤ Type (max u v w) := down ⋙ F ⋙ ulift_functor.{(max u w) v},
-  haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
-  haveI : ∀ i, fintype (F'.obj i) := λ i, fintype.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
-  -- Step 2: apply the bootstrap theorem
-  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_cofiltered_system.init F',
-  -- Step 3: interpret the results
-  use λ j, (u ⟨j⟩).down,
-  intros j j' f,
-  have h := @hu (⟨j⟩ : J') (⟨j'⟩ : J') (ulift.up f),
-  simp only [as_small.down, functor.comp_map, ulift_functor_map, functor.op_map] at h,
-  simp_rw [←h],
-  refl,
-end
-
-/-- The inverse limit of nonempty finite types is nonempty.
-
-See `nonempty_sections_of_fintype_cofiltered_system` for a generalization to cofiltered limits.
-That version applies in almost all cases, and the only difference is that this version
-allows `J` to be empty.
-
-This may be regarded as a generalization of Kőnig's lemma.
-To specialize: given a locally finite connected graph, take `Jᵒᵖ` to be `ℕ` and
-`F j` to be length-`j` paths that start from an arbitrary fixed vertex.
-Elements of `F.sections` can be read off as infinite rays in the graph. -/
-theorem nonempty_sections_of_fintype_inverse_system
-  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type v)
-  [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
-  F.sections.nonempty :=
-begin
-  tactic.unfreeze_local_instances,
-  by_cases h : nonempty J,
-  { apply nonempty_sections_of_fintype_cofiltered_system, },
-  { rw not_nonempty_iff_imp_false at h,
-    exact ⟨λ j, false.elim (h j.unop), λ j, false.elim (h j.unop)⟩, },
-end
-
-end fintype_konig

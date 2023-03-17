@@ -3,10 +3,10 @@ Copyright (c) 2021 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import analysis.normed_space.ordered
 import analysis.asymptotics.asymptotics
-import topology.algebra.ordered.liminf_limsup
+import analysis.normed.order.basic
 import data.polynomial.eval
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Super-Polynomial Function Decay
@@ -26,7 +26,7 @@ These further equivalences are not proven in mathlib but would be good future pr
 
 The definition of superpolynomial decay for `f : α → β` is relative to a parameter `k : α → β`.
 Super-polynomial decay then means `f x` decays faster than `(k x) ^ c` for all integers `c`.
-Equivalently `f x` decays faster than `p.eval (k x)` for all polynomials `p : polynomial β`.
+Equivalently `f x` decays faster than `p.eval (k x)` for all polynomials `p : β[X]`.
 The definition is also relative to a filter `l : filter α` where the decay rate is compared.
 
 When the map `k` is given by `n ↦ ↑n : ℕ → ℝ` this defines negligible functions:
@@ -46,7 +46,7 @@ https://ncatlab.org/nlab/show/rapidly+decreasing+function
 
 namespace asymptotics
 
-open_locale topological_space
+open_locale topology polynomial
 open filter
 
 /-- `f` has superpolynomial decay in parameter `k` along filter `l` if
@@ -112,13 +112,13 @@ lemma superpolynomial_decay.mul_param_pow (hf : superpolynomial_decay l k f)
 (hf.param_pow_mul n).congr (λ _, mul_comm _ _)
 
 lemma superpolynomial_decay.polynomial_mul [has_continuous_add β] [has_continuous_mul β]
-  (hf : superpolynomial_decay l k f) (p : polynomial β) :
+  (hf : superpolynomial_decay l k f) (p : β[X]) :
   superpolynomial_decay l k (λ x, (p.eval $ k x) * f x) :=
 polynomial.induction_on' p (λ p q hp hq, by simpa [add_mul] using hp.add hq)
   (λ n c, by simpa [mul_assoc] using (hf.param_pow_mul n).const_mul c)
 
 lemma superpolynomial_decay.mul_polynomial [has_continuous_add β] [has_continuous_mul β]
-  (hf : superpolynomial_decay l k f) (p : polynomial β) :
+  (hf : superpolynomial_decay l k f) (p : β[X]) :
   superpolynomial_decay l k (λ x, f x * (p.eval $ k x)) :=
 (hf.polynomial_mul p).congr (λ _, mul_comm _ _)
 
@@ -150,7 +150,8 @@ lemma superpolynomial_decay_iff_abs_tendsto_zero :
 
 lemma superpolynomial_decay_iff_superpolynomial_decay_abs :
   superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, |k a|) (λ a, |f a|) :=
-(superpolynomial_decay_iff_abs_tendsto_zero l k f).trans (by simp [superpolynomial_decay, abs_mul])
+(superpolynomial_decay_iff_abs_tendsto_zero l k f).trans
+  (by simp_rw [superpolynomial_decay, abs_mul, abs_pow])
 
 variables {l k f}
 
@@ -204,8 +205,8 @@ begin
     ((tendsto_zero_iff_abs_tendsto_zero _).1 hk.inv_tendsto_at_top),
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' h1 h2
     (eventually_of_forall (λ x, abs_nonneg _)) ((eventually_map.1 hm).mp _),
-  refine ((eventually_ne_of_tendsto_at_top hk 0).mono $ λ x hk0 hx, _),
-  refine le_trans (le_of_eq _) (mul_le_mul_of_nonneg_left hx $ abs_nonneg (k x)⁻¹),
+  refine ((hk.eventually_ne_at_top 0).mono $ λ x hk0 hx, _),
+  refine eq.trans_le _ (mul_le_mul_of_nonneg_left hx $ abs_nonneg (k x)⁻¹),
   rw [← abs_mul, ← mul_assoc, pow_succ, ← mul_assoc, inv_mul_cancel hk0, one_mul],
 end
 
@@ -228,7 +229,7 @@ lemma superpolynomial_decay.param_zpow_mul (hk : tendsto k l at_top)
   (hf : superpolynomial_decay l k f) (z : ℤ) : superpolynomial_decay l k (λ a, k a ^ z * f a) :=
 begin
   rw superpolynomial_decay_iff_zpow_tendsto_zero _ hk at hf ⊢,
-  refine λ z', (hf $ z' + z).congr' ((eventually_ne_of_tendsto_at_top hk 0).mono (λ x hx, _)),
+  refine λ z', (hf $ z' + z).congr' ((hk.eventually_ne_at_top 0).mono (λ x hx, _)),
   simp [zpow_add₀ hx, mul_assoc, pi.mul_apply],
 end
 
@@ -248,7 +249,7 @@ variable (f)
 
 lemma superpolynomial_decay_param_mul_iff (hk : tendsto k l at_top) :
   superpolynomial_decay l k (k * f) ↔ superpolynomial_decay l k f :=
-⟨λ h, (h.inv_param_mul hk).congr' ((eventually_ne_of_tendsto_at_top hk 0).mono
+⟨λ h, (h.inv_param_mul hk).congr' ((hk.eventually_ne_at_top 0).mono
   (λ x hx, by simp [← mul_assoc, inv_mul_cancel hx])), λ h, h.param_mul⟩
 
 lemma superpolynomial_decay_mul_param_iff (hk : tendsto k l at_top) :
@@ -279,12 +280,12 @@ variable [normed_linear_ordered_field β]
 variables (l k f)
 
 lemma superpolynomial_decay_iff_norm_tendsto_zero :
-  superpolynomial_decay l k f ↔ ∀ (n : ℕ), tendsto (λ (a : α), ∥(k a) ^ n * f a∥) l (𝓝 0) :=
+  superpolynomial_decay l k f ↔ ∀ (n : ℕ), tendsto (λ (a : α), ‖(k a) ^ n * f a‖) l (𝓝 0) :=
 ⟨λ h z, tendsto_zero_iff_norm_tendsto_zero.1 (h z),
   λ h z, tendsto_zero_iff_norm_tendsto_zero.2 (h z)⟩
 
 lemma superpolynomial_decay_iff_superpolynomial_decay_norm :
-  superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, ∥k a∥) (λ a, ∥f a∥) :=
+  superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, ‖k a‖) (λ a, ‖f a‖) :=
 (superpolynomial_decay_iff_norm_tendsto_zero l k f).trans (by simp [superpolynomial_decay])
 
 variables {l k}
@@ -292,37 +293,35 @@ variables {l k}
 variable [order_topology β]
 
 lemma superpolynomial_decay_iff_is_O (hk : tendsto k l at_top) :
-  superpolynomial_decay l k f ↔ ∀ (z : ℤ), is_O f (λ (a : α), (k a) ^ z) l :=
+  superpolynomial_decay l k f ↔ ∀ (z : ℤ), f =O[l] (λ (a : α), (k a) ^ z) :=
 begin
   refine (superpolynomial_decay_iff_zpow_tendsto_zero f hk).trans _,
-  have hk0 : ∀ᶠ x in l, k x ≠ 0 := eventually_ne_of_tendsto_at_top hk 0,
+  have hk0 : ∀ᶠ x in l, k x ≠ 0 := hk.eventually_ne_at_top 0,
   refine ⟨λ h z, _, λ h z, _⟩,
   { refine is_O_of_div_tendsto_nhds (hk0.mono (λ x hx hxz, absurd (zpow_eq_zero hxz) hx)) 0 _,
     have : (λ (a : α), k a ^ z)⁻¹ = (λ (a : α), k a ^ (- z)) := funext (λ x, by simp),
     rw [div_eq_mul_inv, mul_comm f, this],
     exact h (-z) },
-  { suffices : is_O (λ (a : α), k a ^ z * f a) (λ (a : α), (k a)⁻¹) l,
-    from is_O.trans_tendsto this hk.inv_tendsto_at_top,
+  { suffices : (λ (a : α), k a ^ z * f a) =O[l] (λ (a : α), (k a)⁻¹),
+      from is_O.trans_tendsto this hk.inv_tendsto_at_top,
     refine ((is_O_refl (λ a, (k a) ^ z) l).mul (h (- (z + 1)))).trans
       (is_O.of_bound 1 $ hk0.mono (λ a ha0, _)),
-    simp only [one_mul, neg_add z 1, zpow_add₀ ha0, ← mul_assoc, zpow_neg₀,
+    simp only [one_mul, neg_add z 1, zpow_add₀ ha0, ← mul_assoc, zpow_neg,
       mul_inv_cancel (zpow_ne_zero z ha0), zpow_one] }
 end
 
 lemma superpolynomial_decay_iff_is_o (hk : tendsto k l at_top) :
-  superpolynomial_decay l k f ↔ ∀ (z : ℤ), is_o f (λ (a : α), (k a) ^ z) l :=
+  superpolynomial_decay l k f ↔ ∀ (z : ℤ), f =o[l] (λ (a : α), (k a) ^ z) :=
 begin
   refine ⟨λ h z, _, λ h, (superpolynomial_decay_iff_is_O f hk).2 (λ z, (h z).is_O)⟩,
-  have hk0 : ∀ᶠ x in l, k x ≠ 0 := eventually_ne_of_tendsto_at_top hk 0,
-  have : is_o (λ (x : α), (1 : β)) k l := is_o_of_tendsto'
+  have hk0 : ∀ᶠ x in l, k x ≠ 0 := hk.eventually_ne_at_top 0,
+  have : (λ (x : α), (1 : β)) =o[l] k := is_o_of_tendsto'
     (hk0.mono (λ x hkx hkx', absurd hkx' hkx)) (by simpa using hk.inv_tendsto_at_top),
-  have : is_o f (λ (x : α), k x * k x ^ (z - 1)) l,
-  by simpa using this.mul_is_O (((superpolynomial_decay_iff_is_O f hk).1 h) $ z - 1),
+  have : f =o[l] (λ (x : α), k x * k x ^ (z - 1)),
+    by simpa using this.mul_is_O (((superpolynomial_decay_iff_is_O f hk).1 h) $ z - 1),
   refine this.trans_is_O (is_O.of_bound 1 (hk0.mono $ λ x hkx, le_of_eq _)),
   rw [one_mul, zpow_sub_one₀ hkx, mul_comm (k x), mul_assoc, inv_mul_cancel hkx, mul_one],
 end
-
-variable {f}
 
 end normed_linear_ordered_field
 

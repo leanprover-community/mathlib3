@@ -12,7 +12,7 @@ import category_theory.sites.sheaf
 This file contains the construction of `P⁺`, for a presheaf `P : Cᵒᵖ ⥤ D`
 where `C` is endowed with a grothendieck topology `J`.
 
-See https://stacks.math.columbia.edu/tag/00W1 for details.
+See <https://stacks.math.columbia.edu/tag/00W1> for details.
 
 -/
 
@@ -75,9 +75,24 @@ begin
 end
 
 @[simp]
+lemma diagram_nat_trans_zero [preadditive D] (X : C) (P Q : Cᵒᵖ ⥤ D) :
+  J.diagram_nat_trans (0 : P ⟶ Q) X = 0 :=
+by { ext j x, dsimp, rw [zero_comp, multiequalizer.lift_ι, comp_zero] }
+
+@[simp]
 lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (X : C) :
   J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
 by { ext, dsimp, simp }
+
+variable (D)
+/-- `J.diagram P`, as a functor in `P`. -/
+@[simps]
+def diagram_functor (X : C) : (Cᵒᵖ ⥤ D) ⥤ (J.cover X)ᵒᵖ ⥤ D :=
+{ obj := λ P, J.diagram P X,
+  map := λ P Q η, J.diagram_nat_trans η X,
+  map_id' := λ P, J.diagram_nat_trans_id _ _,
+  map_comp' := λ P Q R η γ, J.diagram_nat_trans_comp _ _ _ }
+variable {D}
 
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 
@@ -149,6 +164,10 @@ begin
   dsimp,
   simp,
 end
+
+@[simp]
+lemma plus_map_zero [preadditive D] (P Q : Cᵒᵖ ⥤ D) : J.plus_map (0 : P ⟶ Q) = 0 :=
+by { ext, erw [comp_zero, colimit.ι_map, J.diagram_nat_trans_zero, zero_comp] }
 
 @[simp]
 lemma plus_map_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) :
@@ -254,14 +273,13 @@ end
 lemma is_iso_to_plus_of_is_sheaf (hP : presheaf.is_sheaf J P) : is_iso (J.to_plus P) :=
 begin
   rw presheaf.is_sheaf_iff_multiequalizer at hP,
-  resetI,
-  suffices : ∀ X, is_iso ((J.to_plus P).app X),
-  { resetI, apply nat_iso.is_iso_of_is_iso_app },
+  rsufficesI : ∀ X, is_iso ((J.to_plus P).app X),
+  { apply nat_iso.is_iso_of_is_iso_app },
   intros X, dsimp,
-  suffices : is_iso (colimit.ι (J.diagram P X.unop) (op ⊤)),
-  { resetI, apply is_iso.comp_is_iso },
-  suffices : ∀ (S T : (J.cover X.unop)ᵒᵖ) (f : S ⟶ T), is_iso ((J.diagram P X.unop).map f),
-  { resetI, apply is_iso_ι_of_is_initial (initial_op_of_terminal is_terminal_top) },
+  rsufficesI : is_iso (colimit.ι (J.diagram P X.unop) (op ⊤)),
+  { apply is_iso.comp_is_iso },
+  rsufficesI : ∀ (S T : (J.cover X.unop)ᵒᵖ) (f : S ⟶ T), is_iso ((J.diagram P X.unop).map f),
+  { apply is_iso_ι_of_is_initial (initial_op_of_terminal is_terminal_top) },
   intros S T e,
   have : S.unop.to_multiequalizer P ≫ (J.diagram P (X.unop)).map e =
     T.unop.to_multiequalizer P, by { ext, dsimp, simpa },
@@ -327,5 +345,9 @@ begin
   apply J.plus_lift_unique,
   rw [← category.assoc, ← J.to_plus_naturality, category.assoc, J.to_plus_plus_lift],
 end
+
+instance plus_functor_preserves_zero_morphisms [preadditive D] :
+  (plus_functor J D).preserves_zero_morphisms :=
+{ map_zero' := λ F G, by { ext, dsimp, rw [J.plus_map_zero, nat_trans.app_zero] } }
 
 end category_theory.grothendieck_topology

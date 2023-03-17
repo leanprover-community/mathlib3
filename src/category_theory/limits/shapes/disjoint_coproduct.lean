@@ -9,6 +9,9 @@ import category_theory.limits.shapes.pullbacks
 /-!
 # Disjoint coproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines disjoint coproducts: coproducts where the intersection is initial and the coprojections
 are monic.
 Shows that a category with disjoint coproducts is `initial_mono_class`.
@@ -125,8 +128,9 @@ lemma initial_mono_class_of_disjoint_coproducts [coproducts_disjoint C] : initia
 { is_initial_mono_from := λ I X hI,
     coproduct_disjoint.mono_inl _ _ (𝟙 X)
       { desc := λ (s : binary_cofan _ _), s.inr,
-        fac' := λ s j, walking_pair.cases_on j (hI.hom_ext _ _) (id_comp _),
-        uniq' := λ (s : binary_cofan _ _) m w, (id_comp _).symm.trans (w walking_pair.right) } }
+        fac' := λ s j, discrete.cases_on j
+          (λ j, walking_pair.cases_on j (hI.hom_ext _ _) (id_comp _)),
+        uniq' := λ (s : binary_cofan _ _) m w, (id_comp _).symm.trans (w ⟨walking_pair.right⟩) } }
 
 end limits
 end category_theory

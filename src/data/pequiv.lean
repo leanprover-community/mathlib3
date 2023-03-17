@@ -9,6 +9,9 @@ import data.set.basic
 
 # Partial Equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`
 and a subset of `β`. Notationally, a `pequiv` is denoted by "`≃.`" (note that the full stop is part
 of the notation). The way we store these internally is with two functions `f : α → option β` and
@@ -53,30 +56,22 @@ namespace pequiv
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 open function option
 
-instance : has_coe_to_fun (α ≃. β) (λ _, α → option β) := ⟨to_fun⟩
+instance fun_like : fun_like (α ≃. β) α (λ _, option β) :=
+{ coe := to_fun,
+  coe_injective' :=
+    begin
+      rintro ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ (rfl : f₁ = g₁),
+      congr' with y x,
+      simp only [hf, hg]
+    end }
 
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl
 
-@[ext] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
-| ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ h :=
-have h : f₁ = g₁, from funext h,
-have ∀ b, f₂ b = g₂ b,
-  begin
-    subst h,
-    assume b,
-    have hf := λ a, hf a b,
-    have hg := λ a, hg a b,
-    cases h : g₂ b with a,
-    { simp only [h, option.not_mem_none, false_iff] at hg,
-      simp only [hg, iff_false] at hf,
-      rwa [option.eq_none_iff_forall_not_mem] },
-    { rw [← option.mem_def, hf, ← hg, h, option.mem_def] }
-  end,
-by simp [*, funext_iff]
+@[ext] lemma ext {f g : α ≃. β} (h : ∀ x, f x = g x) : f = g :=
+fun_like.ext f g h
 
-lemma ext_iff {f g : α ≃. β} : f = g ↔ ∀ x, f x = g x :=
-⟨congr_fun ∘ congr_arg _, ext⟩
+lemma ext_iff {f g : α ≃. β} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
 /-- The identity map as a partial equivalence. -/
 @[refl] protected def refl (α : Type*) : α ≃. α :=
@@ -144,7 +139,7 @@ has_left_inverse.injective
       classical,
       cases hfx : f x,
       { have : x = a₂, from not_imp_comm.1 (h x) (hfx.symm ▸ by simp), simp [this] },
-      { simp only [hfx], rw [(eq_some_iff f).2 hfx], refl }
+      { dsimp only, rw [(eq_some_iff f).2 hfx], refl }
     end⟩
 
 /-- If the domain of a `pequiv` is all of `α`, its forward direction is injective. -/
@@ -177,10 +172,10 @@ lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} :
 begin
   dsimp [of_set],
   split_ifs,
-  { simp only [iff_self_and, option.mem_def, eq_comm],
+  { simp only [iff_self_and, eq_comm],
     rintro rfl,
     exact h, },
-  { simp only [false_iff, not_and, option.not_mem_none],
+  { simp only [false_iff, not_and],
     rintro rfl,
     exact h, }
 end
@@ -202,7 +197,7 @@ end
   intro,
   rw [← mem_of_set_self_iff, h],
   exact rfl
-end, λ h, by simp only [of_set_univ.symm, h]; congr⟩
+end, λ h, by simp only [← of_set_univ, h]⟩
 
 end of_set
 
@@ -338,17 +333,28 @@ instance [decidable_eq α] [decidable_eq β] : semilattice_inf (α ≃. β) :=
   { to_fun := λ a, if f a = g a then f a else none,
     inv_fun := λ b, if f.symm b = g.symm b then f.symm b else none,
     inv := λ a b, begin
-      have := @mem_iff_mem _ _ f a b,
-      have := @mem_iff_mem _ _ g a b,
-      split_ifs; finish
+      have hf := @mem_iff_mem _ _ f a b,
+      have hg := @mem_iff_mem _ _ g a b, -- `split_ifs; finish` closes this goal from here
+      split_ifs with h1 h2 h2; try { simp [hf] },
+      { contrapose! h2,
+        rw h2,
+        rw [←h1,hf,h2] at hg,
+        simp only [mem_def, true_iff, eq_self_iff_true] at hg,
+        rw [hg] },
+      { contrapose! h1,
+        rw h1 at *,
+        rw ←h2 at hg,
+        simp only [mem_def, eq_self_iff_true, iff_true] at hf hg,
+        rw [hf,hg] },
     end },
   inf_le_left := λ _ _ _ _, by simp; split_ifs; cc,
   inf_le_right := λ _ _ _ _, by simp; split_ifs; cc,
   le_inf := λ f g h fg gh a b, begin
-    have := fg a b,
-    have := gh a b,
-    simp [le_def],
-    split_ifs; finish
+    intro H,
+    have hf := fg a b H,
+    have hg := gh a b H,
+    simp only [option.mem_def, pequiv.coe_mk_apply],
+    split_ifs with h1, { exact hf }, { exact h1 (hf.trans hg.symm) },
   end,
   ..pequiv.partial_order }
 

@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import linear_algebra.free_module.finite.rank
+import linear_algebra.matrix.to_lin
 
 /-!
 # Rank of matrices
@@ -44,7 +45,7 @@ by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
 
 lemma rank_le_card_width : A.rank ≤ fintype.card n :=
 begin
-  convert nat.le_of_add_le_left (A.to_lin'.finrank_range_add_finrank_ker).le,
+  convert le_of_add_le_left (A.to_lin'.finrank_range_add_finrank_ker).le,
   exact (module.free.finrank_pi K).symm,
 end
 
@@ -58,7 +59,7 @@ begin
   exact linear_map.range_comp_le_range _ _,
 end
 
-lemma rank_unit (A : units (matrix n n K)) :
+lemma rank_unit (A : (matrix n n K)ˣ) :
   (A : matrix n n K).rank = fintype.card n :=
 begin
   refine le_antisymm (rank_le_card_width A) _,

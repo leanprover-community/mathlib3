@@ -3,16 +3,17 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
-import data.nat.enat
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.finset
 
 /-!
 # Conditionally complete linear order structure on `ℕ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;
-* define a `complete_linear_order` structure on `enat`;
 * prove a few lemmas about `supr`/`infi`/`set.Union`/`set.Inter` and natural numbers.
 -/
 
@@ -42,13 +43,15 @@ dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks
 begin
   cases eq_empty_or_nonempty s,
   { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
-      mem_empty_eq, exists_false, dif_neg, not_false_iff] },
-  { have := ne_empty_iff_nonempty.mpr h,
-    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
+      mem_empty_iff_false, exists_false, dif_neg, not_false_iff] },
+  { simp only [h.ne_empty, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
 by { rw Inf_eq_zero, right, refl }
+
+@[simp] lemma infi_of_empty {ι : Sort*} [is_empty ι] (f : ι → ℕ) : infi f = 0 :=
+by rw [infi_of_empty', Inf_empty]
 
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
@@ -84,7 +87,7 @@ begin
   split,
   { intro H,
     rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
-    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+    exact ⟨le_rfl, k.not_succ_le_self⟩, },
   { rintro ⟨H, H'⟩,
     rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
     exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
@@ -92,7 +95,7 @@ end
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_linear_order
+instance : lattice ℕ := linear_order.to_lattice
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
@@ -103,13 +106,16 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+    simp only [Sup_def, set.mem_empty_iff_false, forall_const, forall_prop_of_false, not_false_iff,
       exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
+  .. (infer_instance : order_bot ℕ), .. (linear_order.to_lattice : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
+
+lemma Sup_mem {s : set ℕ} (h₁ : s.nonempty) (h₂ : bdd_above s) : Sup s ∈ s :=
+let ⟨k, hk⟩ := h₂ in h₁.cSup_mem ((finite_le_nat k).subset hk)
 
 lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
   Inf {m | p (m + n)} + n = Inf {m | p m} :=
@@ -152,10 +158,10 @@ lemma supr_lt_succ' (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = u 0 ⊔ 
 by { rw ← sup_supr_nat_succ, simp }
 
 lemma infi_lt_succ (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = (⨅ k < n, u k) ⊓ u n :=
-@supr_lt_succ (order_dual α) _ _ _
+@supr_lt_succ αᵒᵈ _ _ _
 
 lemma infi_lt_succ' (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = u 0 ⊓ (⨅ k < n, u (k + 1)) :=
-@supr_lt_succ' (order_dual α) _ _ _
+@supr_lt_succ' αᵒᵈ _ _ _
 
 end
 
@@ -178,12 +184,3 @@ lemma bInter_lt_succ' (u : ℕ → set α) (n : ℕ) : (⋂ k < n + 1, u k) = u 
 nat.infi_lt_succ' u n
 
 end set
-
-namespace enat
-open_locale classical
-
-noncomputable instance : complete_linear_order enat :=
-{ .. enat.linear_order,
-  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice }
-
-end enat

@@ -167,7 +167,7 @@ end
 @[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
 begin
   rw ←filter_lt_of_succ_bot hnm,
-  exact filter_congr (λ _ _, lt_succ_iff.symm),
+  exact filter_congr' (λ _ _, lt_succ_iff.symm),
 end
 
 /--

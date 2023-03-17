@@ -3,11 +3,13 @@ Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-import field_theory.abel_ruffini
 import analysis.calculus.local_extr
+import data.nat.prime_norm_num
+import field_theory.abel_ruffini
 import ring_theory.eisenstein_criterion
+
 /-!
-Construction of an algebraic number that is not solvable by radicals.
+# Construction of an algebraic number that is not solvable by radicals.
 
 The main ingredients are:
  * `solvable_by_rad.is_solvable'` in `field_theory/abel_ruffini` :
@@ -24,13 +26,14 @@ Then all that remains is the construction of a specific polynomial satisfying th
 namespace abel_ruffini
 
 open function polynomial polynomial.gal ideal
+open_locale polynomial
 
 local attribute [instance] splits_ℚ_ℂ
 
 variables (R : Type*) [comm_ring R] (a b : ℕ)
 
 /-- A quintic polynomial that we will show is irreducible -/
-noncomputable def Φ : polynomial R := X ^ 5 - C ↑a * X + C ↑b
+noncomputable def Φ : R[X] := X ^ 5 - C ↑a * X + C ↑b
 
 variables {R}
 
@@ -41,7 +44,7 @@ by simp [Φ]
 by simp [Φ, coeff_X_pow]
 
 @[simp] lemma coeff_five_Phi : (Φ R a b).coeff 5 = 1 :=
-by simp [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -ring_hom.map_nat_cast]
+by simp [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -map_nat_cast]
 
 variables [nontrivial R]
 
@@ -77,11 +80,11 @@ begin
     interval_cases n with hn;
     simp only [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, if_true, coeff_C_mul, if_false,
       nat.zero_ne_bit1, eq_self_iff_true, coeff_X_zero, hpa, coeff_add, zero_add, mul_zero,
-      int.nat_cast_eq_coe_nat, coeff_sub, sub_self, nat.one_ne_zero, add_zero, coeff_X_one, mul_one,
+      coeff_sub, sub_self, nat.one_ne_zero, add_zero, coeff_X_one, mul_one,
       zero_sub, dvd_neg, nat.one_eq_bit1, bit0_eq_zero, neg_zero, nat.bit0_ne_bit1,
       dvd_mul_of_dvd_left, nat.bit1_eq_bit1, nat.one_ne_bit0, nat.bit1_ne_zero], },
   { simp only [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe, nat.succ_pos'] },
-  { rw [coeff_zero_Phi, span_singleton_pow, mem_span_singleton, int.nat_cast_eq_coe_nat],
+  { rw [coeff_zero_Phi, span_singleton_pow, mem_span_singleton],
     exact mt int.coe_nat_dvd.mp hp2b },
   all_goals { exact monic.is_primitive (monic_Phi a b) },
 end
@@ -130,7 +133,7 @@ begin
   have q_ne_zero : Φ ℚ a b ≠ 0 := (monic_Phi a b).ne_zero,
   obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab,
   have key : ↑({x, y} : finset ℝ) ⊆ (Φ ℚ a b).root_set ℝ,
-  { simp [set.insert_subset, mem_root_set q_ne_zero, hx, hy] },
+  { simp [set.insert_subset, mem_root_set_of_ne q_ne_zero, hx, hy] },
   convert fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
   simp only [finset.coe_sort_coe, fintype.card_coe, finset.card_singleton,
              finset.card_insert_of_not_mem (mt finset.mem_singleton.mp hxy)]

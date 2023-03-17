@@ -3,11 +3,14 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.algebra.mul_action
 import group_theory.group_action.basic
+import topology.algebra.const_mul_action
 
 /-!
 # Minimal action of a group
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define an action of a monoid `M` on a topological space `α` to be *minimal* if the
 `M`-orbit of every point `x : α` is dense. We also provide an additive version of this definition
@@ -67,8 +70,8 @@ Union_eq_univ_iff.2 $ λ x, let ⟨g, hg⟩ := hUo.exists_smul_mem G x hne
 in ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
 
 @[to_additive]
-lemma is_compact.exists_finite_cover_smul [topological_space G] [is_minimal G α]
-  [has_continuous_smul G α] {K U : set α} (hK : is_compact K) (hUo : is_open U)
+lemma is_compact.exists_finite_cover_smul [is_minimal G α]
+  [has_continuous_const_smul G α] {K U : set α} (hK : is_compact K) (hUo : is_open U)
   (hne : U.nonempty) :
   ∃ I : finset G, K ⊆ ⋃ g ∈ I, g • U :=
 hK.elim_finite_subcover (λ g : G, g • U) (λ g, hUo.smul _) $
@@ -87,8 +90,7 @@ lemma eq_empty_or_univ_of_smul_invariant_closed [is_minimal M α] {s : set α} (
 s.eq_empty_or_nonempty.imp_right $ λ hne, hs.closure_eq ▸
   (dense_of_nonempty_smul_invariant M hne hsmul).closure_eq
 
-@[to_additive] lemma is_minimal_iff_closed_smul_invariant [topological_space M]
-  [has_continuous_smul M α] :
+@[to_additive] lemma is_minimal_iff_closed_smul_invariant [has_continuous_const_smul M α] :
   is_minimal M α ↔ ∀ s : set α, is_closed s → (∀ c : M, c • s ⊆ s) → s = ∅ ∨ s = univ :=
 begin
   split, { introsI h s, exact eq_empty_or_univ_of_smul_invariant_closed M },

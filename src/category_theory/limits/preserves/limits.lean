@@ -8,6 +8,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Isomorphisms about functors which preserve (co)limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `G` preserves limits, and `C` and `D` have limits, then for any diagram `F : J ⥤ C` we have a
 canonical isomorphism `preserves_limit_iso : G.obj (limit F) ≅ limit (F ⋙ G)`.
 We also show that we can commute `is_limit.lift` of a preserved limit with `functor.map_cone`:
@@ -17,7 +20,7 @@ The duals of these are also given. For functors which preserve (co)limits of spe
 `preserves/shapes.lean`.
 -/
 
-universes v u₁ u₂
+universes w' w v₁ v₂ u₁ u₂
 
 noncomputable theory
 
@@ -25,10 +28,10 @@ namespace category_theory
 
 open category limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
-variables {J : Type v} [small_category J]
+variables {J : Type w} [category.{w'} J]
 variables (F : J ⥤ C)
 
 section

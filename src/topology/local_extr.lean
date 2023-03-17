@@ -9,6 +9,9 @@ import topology.continuous_on
 /-!
 # Local extrema of functions on topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 This file defines special versions of `is_*_filter f a l`, `*=min/max/extr`,
@@ -36,7 +39,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} [topological_space α]
 
 open set filter
-open_locale topological_space filter
+open_locale topology filter
 
 section preorder
 
@@ -113,11 +116,11 @@ hf.filter_mono $ inf_le_right
 
 lemma is_local_min_on.is_local_min (hf : is_local_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
 have 𝓝 a ≤ 𝓟 s, from le_principal_iff.2 hs,
-hf.filter_mono $ le_inf (le_refl _) this
+hf.filter_mono $ le_inf le_rfl this
 
 lemma is_local_max_on.is_local_max (hf : is_local_max_on f s a) (hs : s ∈ 𝓝 a) : is_local_max f a :=
 have 𝓝 a ≤ 𝓟 s, from le_principal_iff.2 hs,
-hf.filter_mono $ le_inf (le_refl _) this
+hf.filter_mono $ le_inf le_rfl this
 
 lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ 𝓝 a) :
   is_local_extr f a :=
@@ -143,7 +146,7 @@ let ⟨y, hy⟩ := (this.and self_mem_nhds_within).exists in hy.1.not_lt hy.2
 lemma is_local_max_on.not_nhds_le_map [topological_space β]
   (hf : is_local_max_on f s a) [ne_bot (𝓝[>] (f a))] :
   ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
-@is_local_min_on.not_nhds_le_map α (order_dual β) _ _ _ _ _ ‹_› hf ‹_›
+@is_local_min_on.not_nhds_le_map α βᵒᵈ _ _ _ _ _ ‹_› hf ‹_›
 
 lemma is_local_extr_on.not_nhds_le_map [topological_space β]
   (hf : is_local_extr_on f s a) [ne_bot (𝓝[<] (f a))] [ne_bot (𝓝[>] (f a))] :

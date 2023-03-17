@@ -9,6 +9,9 @@ import order.galois_connection
 /-!
 # Equivalence relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the complete lattice of equivalence relations on a type, results about the
 inductively defined equivalence closure of a binary relation, and the analogues of some isomorphism
 theorems for quotients of arbitrary types.
@@ -36,6 +39,8 @@ variables {α : Type*} {β : Type*}
 
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
+
+instance setoid.decidable_rel (r : setoid α) [h : decidable_rel r.r] : decidable_rel r.rel := h
 
 /-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
 lemma quotient.eq_rel {r : setoid α} {x y} :
@@ -316,7 +321,10 @@ lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
 by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 
 /-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
-    relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
+relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def comap (f : α → β) (r : setoid β) : setoid α :=
 ⟨r.rel on f, r.iseqv.comap _⟩
 

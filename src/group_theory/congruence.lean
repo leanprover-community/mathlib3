@@ -3,13 +3,16 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import group_theory.submonoid.operations
-import data.equiv.mul_add
-import data.setoid.basic
 import algebra.group.prod
+import algebra.hom.equiv.basic
+import data.setoid.basic
+import group_theory.submonoid.operations
 
 /-!
 # Congruence relations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines congruence relations: equivalence relations that preserve a binary operation,
 which in this case is multiplication or addition. The principal definition is a `structure`
@@ -274,8 +277,7 @@ quotient.eq'
 @[to_additive "The addition induced on the quotient by an additive congruence relation on a type
 with an addition."]
 instance has_mul : has_mul c.quotient :=
-⟨λ x y, quotient.lift_on₂' x y (λ w z, ((w * z : M) : c.quotient))
-     $ λ _ _ _ _ h1 h2, c.eq.2 $ c.mul h1 h2⟩
+⟨quotient.map₂' (*) $ λ _ _ h1 _ _ h2, c.mul h1 h2⟩
 
 /-- The kernel of the quotient map induced by a congruence relation `c` equals `c`. -/
 @[simp, to_additive "The kernel of the quotient map induced by an additive congruence relation
@@ -476,7 +478,7 @@ variables (M)
     binary relations on `M`. -/
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
-protected noncomputable def gi :
+protected def gi :
   @galois_insertion (M → M → Prop) (con M) _ _ con_gen coe_fn :=
 { choice := λ r h, con_gen r,
   gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
@@ -572,8 +574,8 @@ an `add_monoid`."]
 instance mul_one_class : mul_one_class c.quotient :=
 { one := ((1 : M) : c.quotient),
   mul := (*),
-  mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
-  one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
+  mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg (coe : M → c.quotient) $ mul_one _,
+  one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg (coe : M → c.quotient) $ one_mul _ }
 
 variables {c}
 
@@ -661,6 +663,9 @@ lemma mk'_surjective : surjective c.mk' :=
 quotient.surjective_quotient_mk'
 
 @[simp, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
+
+@[simp, to_additive] lemma mrange_mk' : c.mk'.mrange = ⊤ :=
+monoid_hom.mrange_top_iff_surjective.2 mk'_surjective
 
 /-- The elements related to `x ∈ M`, `M` a monoid, by the kernel of a monoid homomorphism are
     those in the preimage of `f(x)` under `f`. -/
@@ -881,15 +886,18 @@ protected lemma pow {M : Type*} [monoid M] (c : con M) :
 instance {M : Type*} [mul_one_class M] (c : con M) : has_one c.quotient :=
 { one := ((1 : M) : c.quotient) }
 
+@[to_additive]
+lemma smul {α M : Type*} [mul_one_class M] [has_smul α M] [is_scalar_tower α M M] (c : con M)
+  (a : α) {w x : M} (h : c w x) : c (a • w) (a • x) :=
+by simpa only [smul_one_mul] using c.mul (c.refl' (a • 1 : M)) h
+
 instance _root_.add_con.quotient.has_nsmul
-  {M : Type*} [add_monoid M] (c : add_con M) : has_scalar ℕ c.quotient :=
-{ smul := λ n x, quotient.lift_on' x (λ w, ((n • w : M) : c.quotient))
-     $ λ x y h, c.eq.2 $ c.nsmul n h}
+  {M : Type*} [add_monoid M] (c : add_con M) : has_smul ℕ c.quotient :=
+{ smul := λ n, quotient.map' ((•) n) $ λ x y, c.nsmul n }
 
 @[to_additive add_con.quotient.has_nsmul]
 instance {M : Type*} [monoid M] (c : con M) : has_pow c.quotient ℕ :=
-{ pow := λ x n, quotient.lift_on' x (λ w, ((w ^ n : M) : c.quotient))
-     $ λ x y h, c.eq.2 $ c.pow n h}
+{ pow := λ x n, quotient.map' (λ x, x ^ n) (λ x y, c.pow n) x }
 
 /-- The quotient of a semigroup by a congruence relation is a semigroup. -/
 @[to_additive "The quotient of an `add_semigroup` by an additive congruence relation is
@@ -907,14 +915,14 @@ function.surjective.comm_semigroup _ quotient.surjective_quotient_mk' (λ _ _, r
 @[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
 instance monoid {M : Type*} [monoid M] (c : con M) : monoid c.quotient :=
-function.surjective.monoid_pow _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
+function.surjective.monoid _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
 @[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
 relation is an `add_comm_monoid`."]
 instance comm_monoid {M : Type*} [comm_monoid M] (c : con M) :
   comm_monoid c.quotient :=
-{ ..c.comm_semigroup, ..c.monoid}
+function.surjective.comm_monoid _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
 
 end monoids
 
@@ -943,36 +951,32 @@ protected lemma zpow : ∀ (n : ℤ) {w x}, c w x → c (w ^ n) (x ^ n)
 @[to_additive "The negation induced on the quotient by an additive congruence relation on a type
 with an negation."]
 instance has_inv : has_inv c.quotient :=
-⟨λ x, quotient.lift_on' x (λ w, ((w⁻¹ : M) : c.quotient))
-     $ λ x y h, c.eq.2 $ c.inv h⟩
+⟨quotient.map' has_inv.inv $ λ a b, c.inv⟩
 
 /-- The division induced on the quotient by a congruence relation on a type with a
     division. -/
 @[to_additive "The subtraction induced on the quotient by an additive congruence relation on a type
 with a subtraction."]
 instance has_div : has_div c.quotient :=
-⟨λ x y, quotient.lift_on₂' x y (λ w z, ((w / z : M) : c.quotient))
-     $ λ _ _ _ _ h1 h2, c.eq.2 $ c.div h1 h2⟩
+⟨quotient.map₂' (/) $ λ _ _ h₁ _ _ h₂, c.div h₁ h₂⟩
 
 /-- The integer scaling induced on the quotient by a congruence relation on a type with a
     subtraction. -/
 instance _root_.add_con.quotient.has_zsmul
-  {M : Type*} [add_group M] (c : add_con M) : has_scalar ℤ c.quotient :=
-⟨λ z x, quotient.lift_on' x (λ w, ((z • w : M) : c.quotient))
-     $ λ x y h, c.eq.2 $ c.zsmul z h⟩
+  {M : Type*} [add_group M] (c : add_con M) : has_smul ℤ c.quotient :=
+⟨λ z, quotient.map' ((•) z) $ λ x y, c.zsmul z⟩
 
 /-- The integer power induced on the quotient by a congruence relation on a type with a
     division. -/
 @[to_additive add_con.quotient.has_zsmul]
 instance has_zpow : has_pow c.quotient ℤ :=
-⟨λ x z, quotient.lift_on' x (λ w, ((w ^ z : M) : c.quotient))
-     $ λ x y h, c.eq.2 $ c.zpow z h⟩
+⟨λ x z, quotient.map' (λ x, x ^ z) (λ x y h, c.zpow z h) x⟩
 
 /-- The quotient of a group by a congruence relation is a group. -/
 @[to_additive "The quotient of an `add_group` by an additive congruence relation is
 an `add_group`."]
 instance group : group c.quotient :=
-function.surjective.group_pow _ quotient.surjective_quotient_mk' rfl
+function.surjective.group _ quotient.surjective_quotient_mk' rfl
   (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end groups
@@ -981,11 +985,11 @@ section units
 
 variables {α : Type*} [monoid M] {c : con M}
 
-/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+/-- In order to define a function `(con.quotient c)ˣ → α` on the units of `con.quotient c`,
 where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
 that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
-@[to_additive lift_on_add_units] def lift_on_units (u : units c.quotient)
+@[to_additive] def lift_on_units (u : units c.quotient)
   (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx') :
   α :=
@@ -1001,7 +1005,7 @@ begin
   exact heq_of_eq (Hf _ _ _ _ _ _ _ _ hx hy)
 end
 
-/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+/-- In order to define a function `(con.quotient c)ˣ → α` on the units of `con.quotient c`,
 where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
 that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
@@ -1014,7 +1018,7 @@ lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   lift_on_units ⟨(x : c.quotient), y, hxy, hyx⟩ f Hf = f x y (c.eq.1 hxy) (c.eq.1 hyx) :=
 rfl
 
-@[elab_as_eliminator, to_additive induction_on_add_units]
+@[elab_as_eliminator, to_additive]
 lemma induction_on_units {p : units c.quotient → Prop} (u : units c.quotient)
   (H : ∀ (x y : M) (hxy : c (x * y) 1) (hyx : c (y * x) 1), p ⟨x, y, c.eq.2 hxy, c.eq.2 hyx⟩) :
   p u :=
@@ -1024,5 +1028,35 @@ begin
 end
 
 end units
+
+section actions
+
+@[to_additive]
+instance has_smul {α M : Type*} [mul_one_class M] [has_smul α M] [is_scalar_tower α M M]
+  (c : con M) :
+  has_smul α c.quotient :=
+{ smul := λ a, quotient.map' ((•) a) $ λ x y, c.smul a }
+
+@[to_additive]
+lemma coe_smul {α M : Type*} [mul_one_class M] [has_smul α M] [is_scalar_tower α M M] (c : con M)
+  (a : α) (x : M) : (↑(a • x) : c.quotient) = a • ↑x := rfl
+
+@[to_additive]
+instance mul_action {α M : Type*} [monoid α] [mul_one_class M] [mul_action α M]
+  [is_scalar_tower α M M] (c : con M) :
+  mul_action α c.quotient :=
+{ smul := (•),
+  one_smul := quotient.ind' $ by exact λ x, congr_arg quotient.mk' $ one_smul _ _,
+  mul_smul := λ a₁ a₂, quotient.ind' $ by exact λ x, congr_arg quotient.mk' $ mul_smul _ _ _ }
+
+instance mul_distrib_mul_action {α M : Type*} [monoid α] [monoid M] [mul_distrib_mul_action α M]
+  [is_scalar_tower α M M] (c : con M) :
+  mul_distrib_mul_action α c.quotient :=
+{ smul := (•),
+  smul_one := λ r, congr_arg quotient.mk' $ smul_one _,
+  smul_mul := λ r, quotient.ind₂' $ by exact λ m₁ m₂, congr_arg quotient.mk' $ smul_mul' _ _ _,
+  .. c.mul_action }
+
+end actions
 
 end con

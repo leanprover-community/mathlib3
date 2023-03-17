@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.affine_map
 import topology.continuous_function.basic
-import topology.algebra.module
+import topology.algebra.module.basic
 
 /-!
 # Continuous affine maps.
@@ -45,30 +45,34 @@ variables [add_comm_group W] [module R W] [topological_space Q] [add_torsor W Q]
 
 include V W
 
-/-- see Note [function coercion] -/
-instance : has_coe_to_fun (P →A[R] Q) (λ _, P → Q) := ⟨λ f, f.to_affine_map.to_fun⟩
+instance : has_coe (P →A[R] Q) (P →ᵃ[R] Q) :=
+⟨to_affine_map⟩
+
+lemma to_affine_map_injective {f g : P →A[R] Q} (h : (f : P →ᵃ[R] Q) = (g : P →ᵃ[R] Q)) : f = g :=
+by { cases f, cases g, congr' }
+
+instance : continuous_map_class (P →A[R] Q) P Q :=
+{ coe := λ f, f.to_affine_map,
+  coe_injective' := λ f g h, to_affine_map_injective $ fun_like.coe_injective h,
+  map_continuous := cont }
+
+/-- Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
+instance : has_coe_to_fun (P →A[R] Q) (λ _, P → Q) := fun_like.has_coe_to_fun
 
 lemma to_fun_eq_coe (f : P →A[R] Q) : f.to_fun = ⇑f := rfl
 
-lemma coe_injective :
-  @function.injective (P →A[R] Q) (P → Q) coe_fn :=
-begin
-  rintros ⟨⟨f, ⟨f', hf₁, hf₂⟩, hf₀⟩, hf₁⟩ ⟨⟨g, ⟨g', hg₁, hg₂⟩, hg₀⟩, hg₁⟩ h,
-  have : f = g ∧ f' = g', { simpa only using affine_map.coe_fn_injective h, },
-  congr,
-  exacts [this.1, this.2],
-end
+lemma coe_injective : @function.injective (P →A[R] Q) (P → Q) coe_fn :=
+fun_like.coe_injective
 
 @[ext] lemma ext {f g : P →A[R] Q} (h : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext h
+fun_like.ext _ _ h
 
 lemma ext_iff {f g : P →A[R] Q} : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl, }, ext⟩
+fun_like.ext_iff
 
-lemma congr_fun {f g : P →A[R] Q} (h : f = g) (x : P) : f x = g x := h ▸ rfl
-
-instance : has_coe (P →A[R] Q) (P →ᵃ[R] Q) :=
-⟨to_affine_map⟩
+lemma congr_fun {f g : P →A[R] Q} (h : f = g) (x : P) : f x = g x :=
+fun_like.congr_fun h _
 
 /-- Forgetting its algebraic properties, a continuous affine map is a continuous map. -/
 def to_continuous_map (f : P →A[R] Q) : C(P, Q) :=
@@ -91,10 +95,6 @@ rfl
 @[simp, norm_cast] lemma coe_to_continuous_map (f : P →A[R] Q) :
   ((f : C(P, Q)) : P → Q) = f :=
 rfl
-
-lemma to_affine_map_injective {f g : P →A[R] Q}
-  (h : (f : P →ᵃ[R] Q) = (g : P →ᵃ[R] Q)) : f = g :=
-by { ext a, exact affine_map.congr_fun h a, }
 
 lemma to_continuous_map_injective {f g : P →A[R] Q}
   (h : (f : C(P, Q)) = (g : C(P, Q))) : f = g :=
@@ -154,8 +154,8 @@ omit W₂
 
 section module_valued_maps
 
-variables {S : Type*} [comm_ring S] [module S V] [module S W]
-variables [topological_space W] [topological_space S] [has_continuous_smul S W]
+variables {S : Type*}
+variables [topological_space W]
 
 instance : has_zero (P →A[R] W) := ⟨continuous_affine_map.const R P 0⟩
 
@@ -163,12 +163,24 @@ instance : has_zero (P →A[R] W) := ⟨continuous_affine_map.const R P 0⟩
 
 lemma zero_apply (x : P) : (0 : P →A[R] W) x = 0 := rfl
 
-instance : has_scalar S (P →A[S] W) :=
-{ smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[S] W)) } }
+section mul_action
+variables [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
+variables [has_continuous_const_smul S W]
 
-@[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[S] W) : ⇑(t • f) = t • f := rfl
+instance : has_smul S (P →A[R] W) :=
+{ smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[R] W)) } }
 
-lemma smul_apply (t : S) (f : P →A[S] W) (x : P) : (t • f) x = t • (f x) := rfl
+@[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[R] W) : ⇑(t • f) = t • f := rfl
+
+lemma smul_apply (t : S) (f : P →A[R] W) (x : P) : (t • f) x = t • (f x) := rfl
+
+instance [distrib_mul_action Sᵐᵒᵖ W] [is_central_scalar S W] : is_central_scalar S (P →A[R] W) :=
+{ op_smul_eq_smul := λ t f, ext $ λ _, op_smul_eq_smul _ _ }
+
+instance : mul_action S (P →A[R] W) :=
+function.injective.mul_action _ coe_injective coe_smul
+
+end mul_action
 
 variables [topological_add_group W]
 
@@ -194,14 +206,17 @@ instance : has_neg (P →A[R] W) :=
 lemma neg_apply (f : P →A[R] W) (x : P) : (-f) x = -(f x) := rfl
 
 instance : add_comm_group (P →A[R] W) :=
-{ add := (+),
-  zero := 0,
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  .. (coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub :
-    add_comm_group (P →A[R] W)) }
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+  (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
-instance : module S (P →A[S] W) :=
+instance [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
+  [has_continuous_const_smul S W] :
+  distrib_mul_action S (P →A[R] W) :=
+function.injective.distrib_mul_action ⟨λ f, f.to_affine_map.to_fun, rfl, coe_add⟩
+  coe_injective coe_smul
+
+instance [semiring S] [module S W] [smul_comm_class R S W] [has_continuous_const_smul S W] :
+  module S (P →A[R] W) :=
 function.injective.module S ⟨λ f, f.to_affine_map.to_fun, rfl, coe_add⟩ coe_injective coe_smul
 
 end module_valued_maps

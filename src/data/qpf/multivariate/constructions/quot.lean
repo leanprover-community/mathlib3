@@ -9,6 +9,9 @@ import data.qpf.multivariate.basic
 /-!
 # The quotient of QPF is itself a QPF
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The quotients are here defined using a surjective function and
 its right inverse. They are very similar to the `abs` and `repr`
 functions found in the definition of `mvqpf`
@@ -53,7 +56,7 @@ def quot1 (α : typevec n) :=
 quot (@R α)
 
 instance quot1.inhabited {α : typevec n} [inhabited $ F α] : inhabited (quot1 R α) :=
-⟨ quot.mk _ (default _) ⟩
+⟨ quot.mk _ default ⟩
 
 variables [mvfunctor F] [q : mvqpf F]
 variables (Hfunc : ∀ ⦃α β⦄ (a b : F α) (f : α ⟹ β), R a b → R (f <$$> a) (f <$$> b))

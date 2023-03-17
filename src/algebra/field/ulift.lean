@@ -31,7 +31,7 @@ rfl
 @[simp, norm_cast] lemma down_rat_cast [has_rat_cast α] (q : ℚ) : down (q : ulift α) = q := rfl
 
 instance division_semiring [division_semiring α] : division_semiring (ulift α) :=
-by refine down_injective.division_semiring down _ _ _ _ _ _ _ _ _ _; intros; refl
+by refine down_injective.division_semiring down _ _ _ _ _ _ _ _ _ _ _ _; intros; refl
 
 instance semifield [semifield α] : semifield (ulift α) :=
 { ..ulift.division_semiring, ..ulift.comm_group_with_zero }

@@ -81,6 +81,9 @@ lemma is_atom.lt_iff (h : is_atom a) : x < a ↔ x = ⊥ := ⟨h.2 x, λ hx, hx.
 lemma is_atom.le_iff (h : is_atom a) : x ≤ a ↔ x = ⊥ ∨ x = a :=
 by rw [le_iff_lt_or_eq, h.lt_iff]
 
+lemma is_atom.le_iff_eq (ha : is_atom a) (hb : b ≠ ⊥) : b ≤ a ↔ b = a :=
+ha.le_iff.trans $ or_iff_right hb
+
 lemma is_atom.Iic_eq (h : is_atom a) : set.Iic a = {⊥, a} := set.ext $ λ x, h.le_iff
 
 @[simp] lemma bot_covby_iff : ⊥ ⋖ a ↔ is_atom a :=
@@ -113,9 +116,6 @@ alias is_atom_dual_iff_is_coatom ↔ _ is_coatom.dual
 
 variables [order_top α] {a x : α}
 
-lemma is_coatom.le_iff_eq (ha : is_coatom a) (hb : b ≠ ⊤) : a ≤ b ↔ b = a :=
-⟨λ h, (ha.eq_top_or_eq h).resolve_left hb, ge_of_eq⟩
-
 lemma is_coatom.Ici (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
 ha.dual.Iic hax
 
@@ -131,6 +131,7 @@ variables [partial_order α] [order_top α] {a b x : α}
 
 lemma is_coatom.lt_iff (h : is_coatom a) : a < x ↔ x = ⊤ := h.dual.lt_iff
 lemma is_coatom.le_iff (h : is_coatom a) : a ≤ x ↔ x = ⊤ ∨ x = a := h.dual.le_iff
+lemma is_coatom.le_iff_eq (ha : is_coatom a) (hb : b ≠ ⊤) : a ≤ b ↔ b = a := ha.dual.le_iff_eq hb
 lemma is_coatom.Ici_eq (h : is_coatom a) : set.Ici a = {⊤, a} := h.dual.Iic_eq
 
 @[simp] lemma covby_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
@@ -744,19 +745,15 @@ end boolean_algebra
 namespace set
 variables {s : set α}
 
-lemma singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := (singleton_nonempty _).ne_empty
-
-lemma nonempty_of_ne_empty (hs : s ≠ ∅) : s.nonempty := ne_empty_iff_nonempty.1 hs
-
 lemma is_atom_singleton (a : α) : is_atom ({a} : set α) :=
 ⟨singleton_ne_empty _, λ s, eq_empty_of_ssubset_singleton⟩
 
-lemma is_coatom_compl_singleton (a : α) : is_coatom ({a}ᶜ : set α) := (is_atom_singleton a).compl
+lemma is_coatom_singleton_compl (a : α) : is_coatom ({a}ᶜ : set α) := (is_atom_singleton a).compl
 
 lemma is_atom_iff : is_atom s ↔ ∃ a, s = {a} :=
 begin
-  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_unique_mem.2 ⟨nonempty_of_ne_empty hs.1,
-    λ a b ha hb, _⟩, _⟩,
+  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨nonempty_iff_ne_empty.2 hs.1,
+    λ a ha b hb, _⟩, _⟩,
   { rw [←singleton_subset_iff] at ha hb,
     rw [←singleton_eq_singleton_iff, (hs.le_iff_eq $ singleton_ne_empty _).1 ha,
       (hs.le_iff_eq $ singleton_ne_empty _).1 hb] },
@@ -771,12 +768,22 @@ begin
   rw [compl_eq_iff_is_compl, eq_compl_iff_is_compl],
 end
 
+instance : is_atomistic (set α) :=
+{ eq_Sup_atoms := λ s, ⟨(λ x, {x}) '' s,
+    by rw [Sup_eq_sUnion, sUnion_image, bUnion_of_singleton],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_atom_singleton x }⟩ }
+
+instance : is_coatomistic (set α) :=
+{ eq_Inf_coatoms := λ s, ⟨(λ x, {x}ᶜ) '' sᶜ,
+    by rw [Inf_eq_sInter, sInter_image, ←compl_Union₂, bUnion_of_singleton, compl_compl],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_singleton_compl x }⟩ }
+
 end set
 
 namespace finset
 variables {s : finset α}
 
-lemma exists_eq_singleton_iff_nonempty_unique_mem :
+lemma exists_eq_singleton_iff_nonempty_subsingleton :
   (∃ a : α, s = {a}) ↔ s.nonempty ∧ ∀ a b ∈ s, a = b :=
 begin
   refine ⟨_, λ h, _⟩,
@@ -796,7 +803,7 @@ lemma is_coatom_compl_singleton [fintype α] [decidable_eq α] (a : α) :
 
 lemma is_atom_iff : is_atom s ↔ ∃ a, s = {a} :=
 begin
-  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_unique_mem.2 ⟨nonempty_of_ne_empty hs.1,
+  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨nonempty_of_ne_empty hs.1,
     λ a b ha hb, _⟩, _⟩,
   { rw [←singleton_subset_iff] at ha hb,
     exact singleton_injective (((hs.le_iff_eq $ singleton_ne_empty _).1 ha).trans $
@@ -833,7 +840,7 @@ begin
   refine ne_comm.1 (ne_empty_iff_nonempty.2 (singleton_nonempty _)),
 end
 
-lemma eq_empty_of_ssubset_singleton {s : finset α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
+lemma eq_zero_of_ssubset_singleton {s : multiset α} {x : α} (hs : s ⊂ {x}) : s = 0 :=
 ssubset_singleton_iff.1 hs
 
 lemma is_atom_singleton (a : α) : is_atom ({a} : multiset α) :=
@@ -841,7 +848,7 @@ lemma is_atom_singleton (a : α) : is_atom ({a} : multiset α) :=
 
 lemma is_atom_iff : is_atom m ↔ ∃ a, m = {a} :=
 begin
-  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_unique_mem.2 ⟨nonempty_of_ne_empty hs.1,
+  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨nonempty_of_ne_empty hs.1,
     λ a b ha hb, _⟩, _⟩,
   { rw [←singleton_subset_iff] at ha hb,
     exact singleton_injective (((hs.le_iff_eq $ singleton_ne_empty _).1 ha).trans $
@@ -850,4 +857,4 @@ begin
     exact is_atom_singleton _ }
 end
 
-end finset
+end multiset

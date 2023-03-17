@@ -1,16 +1,12 @@
-import data.finset.locally_finite
+/-
+Copyright (c) 2023 Yaël Dillies. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies
+-/
+import order.locally_finite
 import order.well_founded_set
 
-namespace set
-variables {α : Type*} {s : set α}
-
-lemma finite.not_infinite : s.finite → ¬ s.infinite := not_not_intro
-
-alias infinite_image_iff ↔ _ infinite.image
-
-attribute [protected] infinite.image
-
-end set
+/-! # Thoughts on where to put this? -/
 
 variables {α : Type*} {s : set α} [preorder α] [locally_finite_order α]
 

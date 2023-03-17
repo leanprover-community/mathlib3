@@ -115,6 +115,8 @@ instance : can_lift (set α) (finset α) coe set.finite :=
 This is protected so that it does not conflict with global `infinite`. -/
 protected def infinite (s : set α) : Prop := ¬ s.finite
 
+lemma finite.not_infinite {s : set α} : s.finite → ¬ s.infinite := not_not_intro
+
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite := not_not
 
 /-- See also `finite_or_infinite`, `fintype_or_infinite`. -/
@@ -970,6 +972,10 @@ mt (finite.image f) hs
 theorem infinite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   (f '' s).infinite ↔ s.infinite :=
 not_congr $ finite_image_iff hi
+
+alias infinite_image_iff ↔ _ infinite.image
+
+attribute [protected] infinite.image
 
 theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
   (hi : inj_on f s) (hm : maps_to f s t) (hs : s.infinite) : t.infinite :=

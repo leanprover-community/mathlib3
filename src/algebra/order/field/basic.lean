@@ -3,9 +3,10 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
+import order.bounds.order_iso
 import algebra.field.basic
 import algebra.order.field.defs
-import order.bounds.order_iso
+import algebra.group_power.order
 
 /-!
 # Lemmas about linear ordered (semi)fields
@@ -561,6 +562,7 @@ div_neg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a / b < 0 :=
 div_neg_iff.2 $ or.inl ⟨ha, hb⟩
+
 
 /-! ### Relating one division with another term -/
 

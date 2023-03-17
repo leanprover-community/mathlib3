@@ -103,17 +103,6 @@ begin
   exact (trivialization_at F E x.proj).proj_symm_apply hy.2,
 end
 
-lemma fiber_bundle.charted_at_target (x : total_space E) :
-  (chart_at (model_prod HB F) x).target =
-  (trivialization_at F E x.proj).to_local_homeomorph ≫ₕ
-  (chart_at HB x.proj).prod (local_homeomorph.refl F) :=
-begin
-  dsimp only [fiber_bundle.charted_space', charted_space.comp, fiber_bundle.charted_space,
-    prod_charted_space, charted_space_self],
-  rw [trivialization.coe_coe,
-    trivialization.coe_fst' _ (mem_base_set_trivialization_at F E x.proj)]
-end
-
 end
 
 section

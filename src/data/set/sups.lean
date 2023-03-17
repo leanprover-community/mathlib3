@@ -41,7 +41,9 @@ section sups
 variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : set α)
 
 /-- `s ⊻ t` is the set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
-instance : has_sups (set α) := ⟨image2 (⊔)⟩
+def has_sups : has_sups (set α) := ⟨image2 (⊔)⟩
+
+localized "attribute [instance] set.has_sups" in set_family
 
 variables {s s₁ s₂ t t₁ t₂ u} {a b c : α}
 
@@ -100,7 +102,9 @@ section infs
 variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : set α)
 
 /-- `s ⊼ t` is the set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
-instance : has_infs (set α) := ⟨image2 (⊓)⟩
+def has_infs : has_infs (set α) := ⟨image2 (⊓)⟩
+
+localized "attribute [instance] set.has_infs" in set_family
 
 variables {s s₁ s₂ t t₁ t₂ u} {a b c : α}
 
@@ -154,6 +158,8 @@ lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image2_right_comm i
 
 end infs
 end set
+
+open_locale set_family
 
 @[simp] lemma upper_closure_sups [semilattice_sup α] (s t : set α) :
   upper_closure (s ⊻ t) = upper_closure s ⊔ upper_closure t :=

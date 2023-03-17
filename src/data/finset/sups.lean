@@ -29,6 +29,7 @@ We define the following notation in locale `finset_family`:
 -/
 
 open function
+open_locale set_family
 
 variables {α : Type*} [decidable_eq α]
 
@@ -37,7 +38,9 @@ section sups
 variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : finset α)
 
 /-- `s ⊻ t` is the finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
-instance : has_sups (finset α) := ⟨image₂ (⊔)⟩
+def has_sups : has_sups (finset α) := ⟨image₂ (⊔)⟩
+
+localized "attribute [instance] finset.has_sups" in finset_family
 
 variables {s t} {a b c : α}
 
@@ -113,7 +116,9 @@ section infs
 variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : finset α)
 
 /-- `s ⊼ t` is the finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
-instance : has_infs (finset α) := ⟨image₂ (⊓)⟩
+def has_infs : has_infs (finset α) := ⟨image₂ (⊓)⟩
+
+localized "attribute [instance] finset.has_infs" in finset_family
 
 variables {s t} {a b c : α}
 
@@ -184,6 +189,8 @@ lemma infs_left_comm : s ⊼ (t ⊼ u) = t ⊼ (s ⊼ u) := image₂_left_comm i
 lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image₂_right_comm inf_right_comm
 
 end infs
+
+open_locale finset_family
 
 section disj_sups
 variables [semilattice_sup α] [order_bot α] [@decidable_rel α disjoint]

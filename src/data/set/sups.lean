@@ -47,7 +47,7 @@ section sups
 variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : set α)
 
 /-- `s ⊻ t` is the set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
-def has_sups : has_sups (set α) := ⟨image2 (⊔)⟩
+protected def has_sups : has_sups (set α) := ⟨image2 (⊔)⟩
 
 localized "attribute [instance] set.has_sups" in set_family
 
@@ -108,7 +108,7 @@ section infs
 variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : set α)
 
 /-- `s ⊼ t` is the set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
-def has_infs : has_infs (set α) := ⟨image2 (⊓)⟩
+protected def has_infs : has_infs (set α) := ⟨image2 (⊓)⟩
 
 localized "attribute [instance] set.has_infs" in set_family
 

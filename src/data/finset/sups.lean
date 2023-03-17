@@ -40,7 +40,7 @@ section sups
 variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : finset α)
 
 /-- `s ⊻ t` is the finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
-def has_sups : has_sups (finset α) := ⟨image₂ (⊔)⟩
+protected def has_sups : has_sups (finset α) := ⟨image₂ (⊔)⟩
 
 localized "attribute [instance] finset.has_sups" in finset_family
 
@@ -118,7 +118,7 @@ section infs
 variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : finset α)
 
 /-- `s ⊼ t` is the finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
-def has_infs : has_infs (finset α) := ⟨image₂ (⊓)⟩
+protected def has_infs : has_infs (finset α) := ⟨image₂ (⊓)⟩
 
 localized "attribute [instance] finset.has_infs" in finset_family
 

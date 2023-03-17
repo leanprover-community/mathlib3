@@ -535,6 +535,11 @@ lemma ncard_lt_ncard_iff_ncard_diff_lt_ncard_diff (hs : s.finite . to_finite_tac
 by rw [←ncard_inter_add_ncard_diff_eq_ncard s t hs, ←ncard_inter_add_ncard_diff_eq_ncard t s ht,
      inter_comm, add_lt_add_iff_left]
 
+lemma ncard_add_ncard_compl (s : set α) (hs : s.finite . to_finite_tac)
+(hsc : sᶜ.finite . to_finite_tac) :
+  s.ncard + sᶜ.ncard = nat.card α :=
+by rw [←ncard_univ, ←ncard_union_eq (@disjoint_compl_right _ _ s) hs hsc, union_compl_self]
+
 end lattice
 
 /-- Given a set `t` and a set `s` inside it, we can shrink `t` to any appropriate size, and keep `s`

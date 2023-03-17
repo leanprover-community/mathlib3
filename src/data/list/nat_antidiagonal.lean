@@ -74,9 +74,7 @@ lemma nodup_antidiagonal : ∀ (n : with_bot ℕ), nodup (antidiagonal n)
 | (n : ℕ) := begin
   simp only [antidiagonal, range_succ_eq_map, map_cons, true_and, add_zero,
     id.def, eq_self_iff_true, tsub_zero, map_map, prod.map_mk, with_bot.succ_coe,
-    with_bot.unbot_coe, nat.succ_eq_succ, nat.succ_sub_one],
-  apply congr (congr rfl _) rfl,
-  ext; simp,
+    with_bot.unbot_coe, nat.succ_eq_succ, nat.succ_sub_one, function.comp, succ_sub_succ],
 end
 
 lemma antidiagonal_succ' : ∀ {n : with_bot ℕ},
@@ -86,10 +84,10 @@ lemma antidiagonal_succ' : ∀ {n : with_bot ℕ},
 | (n : ℕ) := begin
   simp only [antidiagonal, range_succ, add_tsub_cancel_left, map_append,
     append_assoc, tsub_self, singleton_append, map_map, map, with_bot.succ_coe,
-    with_bot.unbot_coe, nat.succ_eq_succ, nat.succ_sub],
+    with_bot.unbot_coe, nat.succ_eq_succ, nat.succ_sub, function.comp, prod.map_mk, id.def],
   congr' 1,
-  apply map_congr,
-  simp [le_of_lt, nat.succ_eq_add_one, nat.sub_add_comm] { contextual := tt },
+  refine map_congr (λ x hx, _),
+  rw [←nat.succ_sub (le_of_lt $ mem_range.mp hx)],
 end
 
 lemma antidiagonal_succ_succ' {n : with_bot ℕ} :
@@ -98,7 +96,8 @@ lemma antidiagonal_succ_succ' {n : with_bot ℕ} :
     ++ [((order.succ (order.succ n)).unbot (order.succ_ne_bot _), 0)] :=
 begin
   rw [antidiagonal_succ', antidiagonal_succ, map_cons, prod.map, id.def, map_map],
-  { cases n; refl },
+  dsimp only [function.comp, prod.map_comp_map, id.def],
+  rw [←nat.succ_eq_succ, with_bot.succ_unbot],
 end
 
 lemma map_swap_antidiagonal : ∀ {n : with_bot ℕ},

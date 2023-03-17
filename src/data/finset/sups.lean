@@ -196,6 +196,23 @@ end infs
 
 open_locale finset_family
 
+section distrib_lattice
+variables [distrib_lattice α] (s t u : finset α)
+
+lemma sups_infs_subset_left : s ⊻ (t ⊼ u) ⊆ (s ⊻ t) ⊼ (s ⊻ u) :=
+image₂_distrib_subset_left $ λ _ _ _, sup_inf_left
+
+lemma sups_infs_subset_right : (t ⊼ u) ⊻ s ⊆ (t ⊻ s) ⊼ (u ⊻ s) :=
+image₂_distrib_subset_right $ λ _ _ _, sup_inf_right
+
+lemma infs_sups_subset_left : s ⊼ (t ⊻ u) ⊆ (s ⊼ t) ⊻ (s ⊼ u) :=
+image₂_distrib_subset_left $ λ _ _ _, inf_sup_left
+
+lemma infs_sups_subset_right : (t ⊻ u) ⊼ s ⊆ (t ⊼ s) ⊻ (u ⊼ s) :=
+image₂_distrib_subset_right $ λ _ _ _, inf_sup_right
+
+end distrib_lattice
+
 section disj_sups
 variables [semilattice_sup α] [order_bot α] [@decidable_rel α disjoint]
   (s s₁ s₂ t t₁ t₂ u : finset α)
@@ -292,8 +309,8 @@ by simp_rw [←disj_sups_assoc, disj_sups_comm s]
 lemma disj_sups_right_comm : (s ○ t) ○ u = (s ○ u) ○ t :=
 by simp_rw [disj_sups_assoc, disj_sups_comm]
 
-lemma disj_sups_disj_sups_disj_sups_comm : (s ○ t) ⊼ (u ○ v) = (s ○ u) ○ (t ○ v) :=
-by simp_rw [←disj_sups_assoc]
+lemma disj_sups_disj_sups_disj_sups_comm : (s ○ t) ○ (u ○ v) = (s ○ u) ○ (t ○ v) :=
+by simp_rw [←disj_sups_assoc, disj_sups_right_comm]
 
 end distrib_lattice
 end finset

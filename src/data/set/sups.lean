@@ -42,7 +42,7 @@ class has_infs (α : Type*) :=
 -- This notation is meant to have higher precedence than `⊔` and `⊓`, but still within the realm of
 -- other binary operations
 infix ` ⊻ `:74 := has_sups.sups
-infix ` ⊼ `:74 := has_infs.infs
+infix ` ⊼ `:75 := has_infs.infs
 
 namespace set
 section sups
@@ -169,6 +169,26 @@ lemma infs_infs_infs_comm : (s ⊼ t) ⊼ (u ⊼ v) = (s ⊼ u) ⊼ (t ⊼ v) :=
 image2_image2_image2_comm inf_inf_inf_comm
 
 end infs
+
+open_locale set_family
+
+section distrib_lattice
+variables [distrib_lattice α] (s t u : set α)
+
+lemma sups_infs_subset_left : s ⊻ (t ⊼ u) ⊆ (s ⊻ t) ⊼ (s ⊻ u) :=
+image2_distrib_subset_left $ λ _ _ _, sup_inf_left
+
+lemma sups_infs_subset_right : (t ⊼ u) ⊻ s ⊆ (t ⊻ s) ⊼ (u ⊻ s) :=
+image2_distrib_subset_right $ λ _ _ _, sup_inf_right
+
+lemma infs_sups_subset_left : s ⊼ (t ⊻ u) ⊆ (s ⊼ t) ⊻ (s ⊼ u) :=
+image2_distrib_subset_left $ λ _ _ _, inf_sup_left
+
+lemma infs_sups_subset_right : (t ⊻ u) ⊼ s ⊆ (t ⊼ s) ⊻ (u ⊼ s) :=
+image2_distrib_subset_right $ λ _ _ _, inf_sup_right
+
+end distrib_lattice
+
 end set
 
 open_locale set_family

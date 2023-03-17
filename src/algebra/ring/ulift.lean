@@ -24,14 +24,6 @@ variables {α : Type u} {x y : ulift.{v} α}
 
 namespace ulift
 
-instance [has_nat_cast α] : has_nat_cast (ulift α) := ⟨λ n, up n⟩
-instance [has_int_cast α] : has_int_cast (ulift α) := ⟨λ n, up n⟩
-
-@[simp, norm_cast] lemma up_nat_cast [has_nat_cast α] (n : ℕ) : up (n : α) = n := rfl
-@[simp, norm_cast] lemma up_int_cast [has_int_cast α] (n : ℤ) : up (n : α) = n := rfl
-@[simp, norm_cast] lemma down_nat_cast [has_nat_cast α] (n : ℕ) : down (n : ulift α) = n := rfl
-@[simp, norm_cast] lemma down_int_cast [has_int_cast α] (n : ℤ) : down (n : ulift α) = n := rfl
-
 instance mul_zero_class [mul_zero_class α] : mul_zero_class (ulift α) :=
 by refine_struct { zero := (0 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
 

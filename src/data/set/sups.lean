@@ -44,7 +44,7 @@ infix ` ⊼ `:74 := has_infs.infs
 
 namespace set
 section sups
-variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : set α)
+variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u v : set α)
 
 /-- `s ⊻ t` is the set of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
 protected def has_sups : has_sups (set α) := ⟨image2 (⊔)⟩
@@ -89,7 +89,7 @@ lemma sups_union_right : s ⊻ (t₁ ∪ t₂) = s ⊻ t₁ ∪ s ⊻ t₂ := im
 lemma sups_inter_subset_left : (s₁ ∩ s₂) ⊻ t ⊆ s₁ ⊻ t ∩ s₂ ⊻ t := image2_inter_subset_left
 lemma sups_inter_subset_right : s ⊻ (t₁ ∩ t₂) ⊆ s ⊻ t₁ ∩ s ⊻ t₂ := image2_inter_subset_right
 
-variables (s t u)
+variables (s t u v)
 
 lemma Union_image_sup_left : (⋃ a ∈ s, (⊔) a '' t) = s ⊻ t := Union_image_left _
 lemma Union_image_sup_right : (⋃ b ∈ t, (⊔ b) '' s) = s ⊻ t := Union_image_right _
@@ -101,11 +101,13 @@ lemma sups_assoc : (s ⊻ t) ⊻ u = s ⊻ (t ⊻ u) := image2_assoc $ λ _ _ _,
 lemma sups_comm : s ⊻ t = t ⊻ s := image2_comm $ λ _ _, sup_comm
 lemma sups_left_comm : s ⊻ (t ⊻ u) = t ⊻ (s ⊻ u) := image2_left_comm sup_left_comm
 lemma sups_right_comm : (s ⊻ t) ⊻ u = (s ⊻ u) ⊻ t := image2_right_comm sup_right_comm
+lemma sups_sups_sups_comm : (s ⊻ t) ⊻ (u ⊻ v) = (s ⊻ u) ⊻ (t ⊻ v) :=
+image2_image2_image2_comm sup_sup_sup_comm
 
 end sups
 
 section infs
-variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : set α)
+variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u v : set α)
 
 /-- `s ⊼ t` is the set of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
 protected def has_infs : has_infs (set α) := ⟨image2 (⊓)⟩
@@ -149,7 +151,7 @@ lemma infs_union_right : s ⊼ (t₁ ∪ t₂) = s ⊼ t₁ ∪ s ⊼ t₂ := im
 lemma infs_inter_subset_left : (s₁ ∩ s₂) ⊼ t ⊆ s₁ ⊼ t ∩ s₂ ⊼ t := image2_inter_subset_left
 lemma infs_inter_subset_right : s ⊼ (t₁ ∩ t₂) ⊆ s ⊼ t₁ ∩ s ⊼ t₂ := image2_inter_subset_right
 
-variables (s t u)
+variables (s t u v)
 
 lemma Union_image_inf_left : (⋃ a ∈ s, (⊓) a '' t) = s ⊼ t := Union_image_left _
 lemma Union_image_inf_right : (⋃ b ∈ t, (⊓ b) '' s) = s ⊼ t := Union_image_right _
@@ -161,6 +163,8 @@ lemma infs_assoc : (s ⊼ t) ⊼ u = s ⊼ (t ⊼ u) := image2_assoc $ λ _ _ _,
 lemma infs_comm : s ⊼ t = t ⊼ s := image2_comm $ λ _ _, inf_comm
 lemma infs_left_comm : s ⊼ (t ⊼ u) = t ⊼ (s ⊼ u) := image2_left_comm inf_left_comm
 lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image2_right_comm inf_right_comm
+lemma infs_infs_infs_comm : (s ⊼ t) ⊼ (u ⊼ v) = (s ⊼ u) ⊼ (t ⊼ v) :=
+image2_image2_image2_comm inf_inf_inf_comm
 
 end infs
 end set

@@ -37,7 +37,7 @@ variables {α : Type*} [decidable_eq α]
 
 namespace finset
 section sups
-variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u : finset α)
+variables [semilattice_sup α] (s s₁ s₂ t t₁ t₂ u v : finset α)
 
 /-- `s ⊻ t` is the finset of elements of the form `a ⊔ b` where `a ∈ s`, `b ∈ t`. -/
 protected def has_sups : has_sups (finset α) := ⟨image₂ (⊔)⟩
@@ -83,9 +83,8 @@ lemma nonempty.of_sups_right : (s ⊻ t).nonempty → t.nonempty := nonempty.of_
 @[simp] lemma sups_empty : s ⊻ ∅ = ∅ := image₂_empty_right
 @[simp] lemma sups_eq_empty : s ⊻ t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
 
-@[simp] lemma singleton_sups_left : {a} ⊻ t = t.image (λ b, a ⊔ b) := image₂_singleton_left
+@[simp] lemma singleton_sups : {a} ⊻ t = t.image (λ b, a ⊔ b) := image₂_singleton_left
 @[simp] lemma sups_singleton : s ⊻ {b} = s.image (λ a, a ⊔ b) := image₂_singleton_right
-lemma sups_singleton_left' : {a} ⊻ t = t.image ((⊔) a) := image₂_singleton_left'
 
 lemma singleton_sups_singleton : ({a} ⊻ {b} : finset α) = {a ⊔ b} := image₂_singleton
 
@@ -99,7 +98,7 @@ lemma subset_sups {s t : set α} :
   ↑u ⊆ s ⊻ t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊻ t' :=
 subset_image₂
 
-variables (s t u)
+variables (s t u v)
 
 lemma bUnion_image_sup_left : s.bUnion (λ a, t.image $ (⊔) a) = s ⊻ t := bUnion_image_left
 lemma bUnion_image_sup_right : t.bUnion (λ b, s.image $ λ a, a ⊔ b) = s ⊻ t := bUnion_image_right
@@ -111,11 +110,13 @@ lemma sups_assoc : (s ⊻ t) ⊻ u = s ⊻ (t ⊻ u) := image₂_assoc $ λ _ _ 
 lemma sups_comm : s ⊻ t = t ⊻ s := image₂_comm $ λ _ _, sup_comm
 lemma sups_left_comm : s ⊻ (t ⊻ u) = t ⊻ (s ⊻ u) := image₂_left_comm sup_left_comm
 lemma sups_right_comm : (s ⊻ t) ⊻ u = (s ⊻ u) ⊻ t := image₂_right_comm sup_right_comm
+lemma sups_sups_sups_comm : (s ⊻ t) ⊻ (u ⊻ v) = (s ⊻ u) ⊻ (t ⊻ v) :=
+image₂_image₂_image₂_comm sup_sup_sup_comm
 
 end sups
 
 section infs
-variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u : finset α)
+variables [semilattice_inf α] (s s₁ s₂ t t₁ t₂ u v : finset α)
 
 /-- `s ⊼ t` is the finset of elements of the form `a ⊓ b` where `a ∈ s`, `b ∈ t`. -/
 protected def has_infs : has_infs (finset α) := ⟨image₂ (⊓)⟩
@@ -163,7 +164,6 @@ lemma nonempty.of_infs_right : (s ⊼ t).nonempty → t.nonempty := nonempty.of_
 
 @[simp] lemma singleton_infs : {a} ⊼ t = t.image (λ b, a ⊓ b) := image₂_singleton_left
 @[simp] lemma infs_singleton : s ⊼ {b} = s.image (λ a, a ⊓ b) := image₂_singleton_right
-lemma infs_singleton_left' : {a} ⊼ t = t.image ((⊓) a) := image₂_singleton_left'
 
 lemma singleton_infs_singleton : ({a} ⊼ {b} : finset α) = {a ⊓ b} := image₂_singleton
 
@@ -177,7 +177,7 @@ lemma subset_infs {s t : set α} :
   ↑u ⊆ s ⊼ t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊼ t' :=
 subset_image₂
 
-variables (s t u)
+variables (s t u v)
 
 lemma bUnion_image_inf_left : s.bUnion (λ a, t.image $ (⊓) a) = s ⊼ t := bUnion_image_left
 lemma bUnion_image_inf_right : t.bUnion (λ b, s.image $ λ a, a ⊓ b) = s ⊼ t := bUnion_image_right
@@ -189,6 +189,8 @@ lemma infs_assoc : (s ⊼ t) ⊼ u = s ⊼ (t ⊼ u) := image₂_assoc $ λ _ _ 
 lemma infs_comm : s ⊼ t = t ⊼ s := image₂_comm $ λ _ _, inf_comm
 lemma infs_left_comm : s ⊼ (t ⊼ u) = t ⊼ (s ⊼ u) := image₂_left_comm inf_left_comm
 lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image₂_right_comm inf_right_comm
+lemma infs_infs_infs_comm : (s ⊼ t) ⊼ (u ⊼ v) = (s ⊼ u) ⊼ (t ⊼ v) :=
+image₂_image₂_image₂_comm inf_inf_inf_comm
 
 end infs
 
@@ -273,7 +275,7 @@ end disj_sups
 open_locale finset_family
 
 section distrib_lattice
-variables [distrib_lattice α] [order_bot α] [@decidable_rel α disjoint] (s t u : finset α)
+variables [distrib_lattice α] [order_bot α] [@decidable_rel α disjoint] (s t u v : finset α)
 
 lemma disj_sups_assoc : ∀ s t u : finset α, (s ○ t) ○ u = s ○ (t ○ u) :=
 begin
@@ -289,6 +291,9 @@ by simp_rw [←disj_sups_assoc, disj_sups_comm s]
 
 lemma disj_sups_right_comm : (s ○ t) ○ u = (s ○ u) ○ t :=
 by simp_rw [disj_sups_assoc, disj_sups_comm]
+
+lemma disj_sups_disj_sups_disj_sups_comm : (s ○ t) ⊼ (u ○ v) = (s ○ u) ○ (t ○ v) :=
+by simp_rw [←disj_sups_assoc]
 
 end distrib_lattice
 end finset

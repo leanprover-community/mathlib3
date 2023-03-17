@@ -153,13 +153,12 @@ variables [normed_add_comm_group V] [normed_space ℝ V] [metric_space P] [norme
 include V
 
 /-- Two points are cospherical. -/
-lemma cospherical_pair  (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
-begin
-  refine ⟨midpoint ℝ p₁ p₂, ‖(2 : ℝ)‖⁻¹ * dist p₁ p₂, λ p, _⟩,
-  rintros (rfl | rfl | _),
+lemma cospherical_pair (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+⟨midpoint ℝ p₁ p₂, ‖(2 : ℝ)‖⁻¹ * dist p₁ p₂, begin
+  rintros p (rfl | rfl | _),
   { rw [dist_comm, dist_midpoint_left] },
   { rw [dist_comm, dist_midpoint_right] }
-end
+end⟩
 
 /-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated
 directly in terms of `cospherical` instead of using `concyclic`.) -/

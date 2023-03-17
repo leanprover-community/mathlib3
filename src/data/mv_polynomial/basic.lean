@@ -1099,6 +1099,9 @@ section aeval
 variables [algebra R S₁] [comm_semiring S₂]
 variables (f : σ → S₁)
 
+lemma algebra_map_apply (r : R) :
+  algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl
+
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/
 def aeval : mv_polynomial σ R →ₐ[R] S₁ :=

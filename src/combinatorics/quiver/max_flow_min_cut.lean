@@ -1,14 +1,14 @@
 /-
-Copyright (c) 2023 'Aleksandar Milchev'. All rights reserved.
+Copyright (c) 2023 Aleksandar Milchev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: 'Aleksandar Milchev'
+Author: Aleksandar Milchev
 -/
 
 
 import data.real.basic
 import data.set
 import tactic
-import data.finset
+import data.finset.basic
 import tactic.induction
 
 /-!
@@ -21,6 +21,7 @@ then its value is equal to the capacity of a minimum cut in the same network.
 ## Main results
 
 - `weak_duality`         : the value of every flow is less than or equal to the capacity of every cut.
+
   direct consequences    :
   - the value of a max flow is always less than or equal to the capacity of a min cut.
   - `max_flow_criterion` : if a flow value is equal to a cut capacity in the same flow network, then the flow is maximum.
@@ -106,7 +107,8 @@ def cut_cap {V : Type*}  [inst' : fintype V] -- stays for capacity of the cut
     (c : cut V) : ℝ := mk_out c.network.c c.S
 
 lemma f_vanishes_outside_edge {V : Type*} [fintype V]
-  (afn : active_flow_network V) (u : V) (v : V) (not_edge: ¬afn.network.is_edge u v): afn.f u v = 0 :=
+  (afn : active_flow_network V) (u : V) (v : V) (not_edge: ¬afn.network.is_edge u v) :
+  afn.f u v = 0 :=
   begin
     have cap_is_zero: afn.network.c u v = 0 :=
       begin
@@ -155,7 +157,8 @@ begin
   have foo : (λ (x : V), afn.f x p) p = afn.f p p := rfl,
   simp only [congr_fun],
   rw f_zero_zero afn p,
-  have bar : ∑ (x : V) in univ \ {p}, afn.f x p + 0 = (λp', ∑ (x : V) in univ \ {p'}, afn.f x p' ) p := by simp only [add_zero],
+  have bar : ∑ (x : V) in univ \ {p}, afn.f x p + 0 =
+  (λ p', ∑ (x : V) in univ \ {p'}, afn.f x p') p := by simp only [add_zero],
   rw bar, clear bar,
   rw ← @finset.sum_singleton _ _ p (λp', ∑ (x : V) in univ \ {p'}, afn.f x p' ) _,
   simp only [mk_in, sum_singleton],
@@ -173,7 +176,8 @@ begin
   have foo : (λ (x : V), afn.f p x) p = afn.f p p := rfl,
   simp only [congr_fun],
   rw f_zero_zero afn p,
-  have bar : ∑ (x : V) in univ \ {p}, afn.f p x + 0 = (λp', ∑ (x : V) in univ \ {p'}, afn.f p' x) p := by simp only [add_zero],
+  have bar : ∑ (x : V) in univ \ {p}, afn.f p x + 0 =
+  (λ p', ∑ (x : V) in univ \ {p'}, afn.f p' x) p := by simp only [add_zero],
   rw bar, clear bar,
   rw ← @finset.sum_singleton _ _ p (λp', ∑ (x : V) in univ \ {p'}, afn.f p' x) _,
   simp only [mk_out, sum_singleton],
@@ -226,9 +230,12 @@ begin
   begin
     unfold mk_in,
     have h: S ⊆ V' := by {exact finset.subset_univ S},
-    have hyp: ∑ (x : V) in V' \ S, ∑ (y : V) in S, afn.f x y + ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v = ∑ u in V', ∑ v in S, afn.f u v :=
+    have hyp:
+    ∑ (x : V) in V' \ S, ∑ (y : V) in S, afn.f x y + ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v
+    = ∑ u in V', ∑ v in S, afn.f u v :=
     by {exact finset.sum_sdiff h},
-    have fin: ∑ u in V', ∑ v in S, afn.f u v = ∑ u in S, ∑ v in V', afn.f v u := by {exact finset.sum_comm},
+    have fin: ∑ u in V', ∑ v in S, afn.f u v = ∑ u in S, ∑ v in V', afn.f v u :=
+    by {exact finset.sum_comm},
     rw hyp,
     exact fin,
   end,
@@ -237,9 +244,12 @@ begin
     unfold mk_out,
     rw finset.sum_comm,
     have h: S ⊆ V' := by {exact finset.subset_univ S},
-    have hyp: ∑ (y : V) in V' \ S, ∑ (x : V) in S, afn.f x y + ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u = ∑ u in V', ∑ v in S, afn.f v u :=
+    have hyp:
+    ∑ (y : V) in V' \ S, ∑ (x : V) in S, afn.f x y + ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u =
+    ∑ u in V', ∑ v in S, afn.f v u :=
     by {exact finset.sum_sdiff h},
-    have obvs: ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u = ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v :=
+    have obvs: ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u =
+    ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v :=
     by {exact finset.sum_comm},
     have fin: ∑ u in V', ∑ v in S, afn.f v u = ∑ u in S, ∑ v in V', afn.f u v :=
     by {exact finset.sum_comm},
@@ -306,7 +316,8 @@ begin
 end
 
 /-
-  This lemma has issues, I am confused how finsets are handled. The complains mention "meta variables".
+  This lemma has issues, I am confused how finsets are handled.
+  The complains mention "meta variables".
 -/
 lemma flow_value_global_ver {V : Type*}  [inst' : fintype V]
   (afn : active_flow_network V) (ct : cut V)
@@ -342,8 +353,8 @@ begin
     -- exact set.not_mem_diff_of_mem tInT,
     sorry,
   end,
-  have expand: mk_out afn.f {s} + (mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s})) - mk_in afn.f {s} =
-  mk_out afn.f {s} - mk_in afn.f {s} :=
+  have expand: mk_out afn.f {s} + (mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s})) - mk_in afn.f {s}
+  =  mk_out afn.f {s} - mk_in afn.f {s} :=
   begin
     have h3: s ∉ (S \ {s}) := by sorry, -- {set.not_mem_diff_of_mem singleton},
     have eq: mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s}) = 0 :=
@@ -377,17 +388,19 @@ begin
     exact add_zero_middle (mk_out afn.f {s}) (mk_in afn.f {s}) (mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s})) eq,
   end,
   /- The next two equalities use sum over two elements, so I am not sure how to resolve them. -/
-  have sum1: mk_out afn.f {s} + mk_out afn.f (S \ {s})  = mk_out afn.f S := by sorry, -- {unfold mk_out, rw finset.sum_sdiff hS},
-  have sum2: mk_in afn.f (S \ {s}) + mk_in afn.f {s} = mk_in afn.f S := by sorry, -- {unfold mk_in, rw finset.sum_sdiff hS},
+  have sum1: mk_out afn.f {s} + mk_out afn.f (S \ {s})  = mk_out afn.f S :=
+  by sorry, -- {unfold mk_out, rw finset.sum_sdiff hS},
+  have sum2: mk_in afn.f (S \ {s}) + mk_in afn.f {s} = mk_in afn.f S :=
+  by sorry, -- {unfold mk_in, rw finset.sum_sdiff hS},
   rw ← expand,
   rw add_sub,
-  rw group_minus (mk_out afn.f {s}) (mk_out afn.f (S \ {s}))  (mk_in afn.f (S \ {s}))  (mk_in afn.f {s}),
+  rw group_minus (mk_out afn.f {s}) (mk_out afn.f (S \ {s})) (mk_in afn.f (S \ {s})) (mk_in afn.f {s}),
   rw sum1, rw sum2,
 end
 
 /-!
   Here is our first big lemma, weak duality.
-  It states that the value of every flow is less than or equal to the capacity of every cut in the same network.
+  Every flow is less than or equal to the capacity of every cut in the same network.
 -/
 
 lemma weak_duality {V: Type*} [inst' : fintype V]
@@ -453,7 +466,8 @@ begin
   apply le_trans lemma3 lemma2,
 end
 
-lemma zero_left_move {a b c d : ℝ} : (0 = a + b - c - d) -> (d - b = a - c) := by {intro h, linarith}
+lemma zero_left_move {a b c d : ℝ} : (0 = a + b - c - d) -> (d - b = a - c) :=
+by {intro h, linarith}
 
 def is_max_flow_network  {V : Type*}  [inst' : fintype V]
   (fn: active_flow_network V) : Prop :=
@@ -514,7 +528,8 @@ def mk_rsn {V : Type*} [fintype V] -- stays for residual network
 universe u
 
 /-
-  We define a path structure indicating if there is a path between two vertices given the edges in the graph.
+  We define a path structure indicating if there is a path between two vertices,
+  given the edges in the graph.
 -/
 
 inductive path {V : Type u } (is_edge : V -> V -> Prop) (a : V) : V → Type (u + 1)
@@ -561,7 +576,8 @@ begin
 end
 
 /-!
-  Here is our second big lemma, if the active flow is maximum, then no augmenting path exists in the residual network.
+  Here is our second big lemma, if the active flow is maximum,
+  then no augmenting path exists in the residual network.
 -/
 
 lemma no_augm_path {V : Type*} [inst' : fintype V]
@@ -571,7 +587,7 @@ begin
   by_contradiction is_sink,
   set s := rsn.afn.network.source,
   set t := rsn.afn.network.sink,
-  set vertices := {s} ∪ { x | (∃ y: V, exists_path.in x y) }, -- the set of all vertices in the augmenting path
+  set vertices := {s} ∪ { x | (∃ y: V, exists_path.in x y) }, --all vertices in the augmenting path
   set d := 0,
   -- set flows := { rsn.f' x y | exists_path.in x y }, -- set of reals, why it doesn't work?
   -- set d := flows.min, -- the minimum flow in the augmenting path
@@ -588,13 +604,27 @@ begin
     by_cases h: exists_path.in u v,
     {
       have h1: rsn.afn.f u v ≥ 0 := by {exact rsn.afn.non_neg_flow u v},
-      have h2: d ≥ 0 := by {linarith}, -- needs to be changed, we can use the definition of rsn and split into cases
+      have h2: d ≥ 0 := -- needs to be changed, we can use the definition of rsn and split into cases
+      begin
+        by_contradiction h',
+        have h3: d < 0 := by {exact lt_of_not_ge h'},
+        have h4: ¬ d < 0 := by {exact not_lt_of_gt pos},
+        exact absurd h3 h4,
+      end,
       linarith,
     },
     {
       by_cases h': exists_path.in v u,
         {
-          have h1: rsn.afn.f u v ≥ d := by sorry, -- d is the minimum flow in the residual network, so use the definition of rsn and split into cases
+          have h1: rsn.f' v u = rsn.afn.f u v :=
+          begin
+            rw rsn.f_def,
+            have edge: rsn.afn.network.is_edge v u := by sorry,-- use h' and definition of path.in
+            unfold mk_rsf,
+            sorry, -- just use edge to get the wanted result
+          end,
+          have h2: rsn.f' v u ≥ d := by sorry, -- minimality of d
+          have h3: rsn.afn.f u v ≥ d := by {rw ←h1, exact h2},
           linarith,
         },
         {
@@ -607,11 +637,13 @@ begin
     intros u v,
     by_cases h: exists_path.in u v,
     {
-      have h1: rsn.afn.f u v + d ≤ rsn.afn.network.to_capacity.c u v := by sorry, -- again, use def of rsn and split into cases
-      -- have h2: rsn.afn.f u v + rsn.f' u v ≤ rsn.afn.network.to_capacity.c u v := by def of rsn
-      -- have h3: d ≤ rsn.f' u v := by minimality of d
-      -- have h4: rsn.afn.f u v + d ≤ rsn.afn.f u v + rsn.f' u v := by {linarith},
-      -- exact le_trans h4 h2
+      have h1: rsn.afn.f u v + d ≤ rsn.afn.network.to_capacity.c u v := by sorry,
+      -- begin
+      --   have h2: rsn.afn.f u v + rsn.f' u v ≤ rsn.afn.network.to_capacity.c u v := by def of rsn
+      --   have h3: d ≤ rsn.f' u v := by minimality of d
+      --   have h4: rsn.afn.f u v + d ≤ rsn.afn.f u v + rsn.f' u v := by {linarith},
+      --   exact le_trans h4 h2
+      -- end,
       linarith,
     },
     {
@@ -619,7 +651,7 @@ begin
         {
           have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v :=
           by {exact rsn.afn.no_overflow u v},
-          linarith,
+          linarith, -- maybe pos will have to be used when d is properly defined
         },
         {
           have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v :=
@@ -638,6 +670,16 @@ begin
     intros v vNotSinkSource,
     by_cases h: v ∈ vertices,
     {
+      -- Issues: How are we proving the cardinality of predecessor and ancestor is 1?
+      -- How exactly do we use that within the code to prove h2 and h3?
+      set predecessor := {u | exists_path.in u v},
+      set ancestor := {w | exists_path.in v w},
+      have h1: mk_out rsn.afn.f {v} = mk_in rsn.afn.f {v} :=
+      by {exact rsn.afn.conservation v vNotSinkSource},
+      -- have h2: mk_in f {v} = rsn.afn.mk_in {v} + d := by sorry, -- use the predecessor
+      -- have h3: mk_out f {v} = rsn.afn.mk_out {v} + d := by sorry, -- use the ancestor
+      -- rw [h2,h3,h1],
+      -- rfl,
       sorry,
     },
     {
@@ -645,18 +687,33 @@ begin
       -- have h1: ∀ u : V, ¬exists_path.in u v :=
       -- begin
       --   by_contradiction h',
-      --   have contr: ∃u:
+      --   have ancestor: ∃w: exists_path.in v w := by v ≠ t,
+      --   have contr: v ∈ vertives := by def of vertices and ancestor,
+      --   contradiction -- with ¬v ∈ vertices,
       -- end,
+      -- have h2: ∀ w : V, ¬exists_path.in u w :=
+      -- begin
+      --   by_contradiction h',
+      --   have contr: v ∈ vertives := by def of vertices,
+      --   contradiction -- with ¬v ∈ vertices
+      -- end,
+      -- have h3: ∀ u : V, better_flow.f u v = rsn.afn.f u v := by h1 and h2
+      -- have h4: ∀ w : V, better_flow.f v w = rsn.afn.f v w := by h1 and h2
+      -- rw [h3,h4],
+      -- exact rsn.afn.conservation v vNotSinkSource,
     },
   end
   ⟩,
   have flow_value: F_value better_flow = F_value rsn.afn + d :=
   begin
     unfold F_value,
-    have h1: mk_out better_flow.f {better_flow.network.source} = mk_out rsn.afn.f {rsn.afn.network.source} + d :=
+    have h1: mk_out better_flow.f {better_flow.network.source} =
+    mk_out rsn.afn.f {rsn.afn.network.source} + d :=
     by sorry,
     -- take the edge with the added flow
-    have h2: mk_in better_flow.f {better_flow.network.source} = mk_in rsn.afn.f {rsn.afn.network.source} := by {linarith},
+    -- Issue: How do we prove that there is exactly one edge? How do we use it to prove h1?
+    have h2: mk_in better_flow.f {better_flow.network.source} =
+    mk_in rsn.afn.f {rsn.afn.network.source} := by {linarith},
     rw [h1,h2],
     linarith
   end,
@@ -826,7 +883,8 @@ begin
   dsimp [mk_in],
   simp_rw [← ct.Tcomp],
   simp only [sub_eq_self],
-  have sum_eq_sum_zero : ∑ (x : V) in ct.T, ∑ y in ct.S, (afn.f x y) = ∑ x in ct.T, ∑ y in ct.S, 0 :=
+  have sum_eq_sum_zero : ∑ (x : V) in ct.T, ∑ y in ct.S, (afn.f x y) =
+  ∑ x in ct.T, ∑ y in ct.S, 0 :=
   begin
     apply finset.sum_congr rfl,
     intros x x_in_T,

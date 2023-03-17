@@ -1777,6 +1777,16 @@ begin
   replace hp : p.fst ∈ s, by simpa only with mfld_simps using hp,
   let e₀ := chart_at H p.1,
   let e := chart_at (model_prod H F) p,
+  have h2s : ∀ x, x ∈ e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s) ↔
+    (x.1 ∈ e₀.target ∧ (e₀.symm) x.1 ∈ (trivialization_at F Z p.1).base_set) ∧ (e₀.symm) x.1 ∈ s,
+  { intro x,
+    have A : x ∈ e.target ↔ x.1 ∈ e₀.target ∧
+      (e₀.symm) x.1 ∈ (trivialization_at F Z p.1).base_set,
+    { simp only [e, fiber_bundle.charted_space_chart_at, trivialization.mem_target,
+        bundle.total_space.proj] with mfld_simps },
+    rw [← A, mem_inter_iff, and.congr_right_iff],
+    intro hx,
+    simp only [fiber_bundle.charted_space_chart_at_symm_fst p x hx] with mfld_simps },
   -- It suffices to prove unique differentiability in a chart
   suffices h : unique_mdiff_on (I.prod (𝓘(𝕜, F)))
     (e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s)),
@@ -1785,28 +1795,30 @@ begin
     { apply h.unique_mdiff_on_preimage,
       exact (mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)).symm,
       apply_instance },
-    have : p ∈ e.symm.target ∩
-      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π Z ⁻¹' s)),
-        by simp only [e, hp] with mfld_simps,
+    have : p ∈ e.symm.target ∩ e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π Z ⁻¹' s)),
+    { simp only [e, hp] with mfld_simps },
     apply (A _ this).mono,
     assume q hq,
     simp only [e, local_homeomorph.left_inv _ hq.1] with mfld_simps at hq,
     simp only [hq] with mfld_simps },
   assume q hq,
-  replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,
-  { have := fiber_bundle.charted_space_chart_at_symm_fst p q hq.1,
-    simp only [e, this] with mfld_simps at hq,
-    simp only [fiber_bundle.charted_space_chart_at, trivialization.mem_target,
-      bundle.total_space.proj] with mfld_simps at hq,
-    simp only [hq] with mfld_simps },
-  simp only [unique_mdiff_within_at, model_with_corners.prod, preimage_inter] with mfld_simps,
+  simp only [unique_mdiff_within_at, model_with_corners.prod, -preimage_inter] with mfld_simps,
   have : 𝓝[(I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ univ] (I q.1, q.2) ≤
-    𝓝[
-    (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
-         (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (sigma.fst ⁻¹' s)) ∩
-         (range I ×ˢ univ)] (I q.1, q.2),
-    sorry, --by mfld_set_tac,
+    𝓝[(λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s)) ∩
+      (range I ×ˢ univ)] (I q.1, q.2),
+  { rw [nhds_within_le_iff, mem_nhds_within],
+    refine ⟨(λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target, _, _, _⟩,
+    { exact e.open_target.preimage (I.continuous_symm.prod_map continuous_id) },
+    { simp only [prod.mk.eta] with mfld_simps at hq,
+      simp only [prod.mk.eta, hq] with mfld_simps },
+    rintro x hx,
+    simp only with mfld_simps at hx,
+    have h2x := hx,
+    simp only [e, fiber_bundle.charted_space_chart_at, trivialization.mem_target]
+      with mfld_simps at h2x,
+    simp only [h2s, hx, h2x, -preimage_inter] with mfld_simps },
   refine unique_diff_within_at.mono_nhds _ this,
+  rw [h2s] at hq,
   -- apply unique differentiability of products to conclude
   apply unique_diff_on.prod _ unique_diff_on_univ,
   { simp only [hq] with mfld_simps },

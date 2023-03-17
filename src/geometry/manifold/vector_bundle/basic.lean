@@ -100,7 +100,7 @@ lemma fiber_bundle.charted_space_chart_at_symm_fst (x : total_space E) (y : mode
   ((chart_at (model_prod HB F) x).symm y).proj = (chart_at HB x.proj).symm y.1 :=
 begin
   simp only [fiber_bundle.charted_space_chart_at] with mfld_simps at hy ⊢,
-  exact proj_symm_apply hy.2,
+  exact (trivialization_at F E x.proj).proj_symm_apply hy.2,
 end
 
 lemma fiber_bundle.charted_at_target (x : total_space E) :

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+import algebra.star.unitary
 import data.nat.modeq
 import number_theory.zsqrtd.basic
 
@@ -50,6 +51,27 @@ Pell's equation, Matiyasevic's theorem, Hilbert's tenth problem
 
 namespace pell
 open nat
+
+section
+variables {d : ℤ}
+
+/-- The property of being a solution to the Pell equation, expressed
+  as a property of elements of `ℤ√d`. -/
+def is_pell : ℤ√d → Prop | ⟨x, y⟩ := x*x - d*y*y = 1
+
+theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * star b = 1
+| ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring_nf
+
+theorem is_pell_iff_mem_unitary : Π {b : ℤ√d}, is_pell b ↔ b ∈ unitary ℤ√d
+| ⟨x, y⟩ := by rw [unitary.mem_iff, is_pell_norm, mul_comm (star _), and_self]
+
+theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
+is_pell_norm.2 (by simp [mul_comm, mul_left_comm, star_mul, is_pell_norm.1 hb, is_pell_norm.1 hc])
+
+theorem is_pell_star : ∀ {b : ℤ√d}, is_pell b ↔ is_pell (star b) | ⟨x, y⟩ :=
+by simp [is_pell, zsqrtd.star_mk]
+
+end
 
 section
 parameters {a : ℕ} (a1 : 1 < a)
@@ -111,30 +133,16 @@ def pell_zd (n : ℕ) : ℤ√d := ⟨xn n, yn n⟩
 @[simp] theorem pell_zd_re (n : ℕ) : (pell_zd n).re = xn n := rfl
 @[simp] theorem pell_zd_im (n : ℕ) : (pell_zd n).im = yn n := rfl
 
-/-- The property of being a solution to the Pell equation, expressed
-  as a property of elements of `ℤ√d`. -/
-def is_pell : ℤ√d → Prop | ⟨x, y⟩ := x*x - d*y*y = 1
-
-theorem is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
+theorem is_pell_nat {x y : ℕ} : is_pell (⟨x, y⟩ : ℤ√d) ↔ x*x - d*y*y = 1 :=
 ⟨λh, int.coe_nat_inj
   (by rw int.coe_nat_sub (int.le_of_coe_nat_le_coe_nat $ int.le.intro_sub h); exact h),
 λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1,
   by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
-theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
-| ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring_nf
-
-theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
-is_pell_norm.2 (by simp [mul_comm, mul_left_comm,
-  zsqrtd.conj_mul, pell.is_pell_norm.1 hb, pell.is_pell_norm.1 hc])
-
-theorem is_pell_conj : ∀ {b : ℤ√d}, is_pell b ↔ is_pell b.conj | ⟨x, y⟩ :=
-by simp [is_pell, zsqrtd.conj]
-
 @[simp] theorem pell_zd_succ (n : ℕ) : pell_zd (n+1) = pell_zd n * ⟨a, 1⟩ :=
 by simp [zsqrtd.ext]
 
-theorem is_pell_one : is_pell ⟨a, 1⟩ :=
+theorem is_pell_one : is_pell (⟨a, 1⟩ : ℤ√d) :=
 show az*az-d*1*1=1, by simp [dz_val]; ring
 
 theorem is_pell_pell_zd : ∀ (n : ℕ), is_pell (pell_zd n)
@@ -187,7 +195,7 @@ lemma eq_pell_lem : ∀n (b:ℤ√d), 1 ≤ b → is_pell b → b ≤ pell_zd n 
   if ha : (⟨↑a, 1⟩ : ℤ√d) ≤ b then
     let ⟨m, e⟩ := eq_pell_lem n (b * ⟨a, -1⟩)
       (by rw ← a1m; exact mul_le_mul_of_nonneg_right ha am1p)
-      (is_pell_mul hp (is_pell_conj.1 is_pell_one))
+      (is_pell_mul hp (is_pell_star.1 is_pell_one))
       (by have t := mul_le_mul_of_nonneg_right h am1p;
         rwa [pell_zd_succ, mul_assoc, a1m, mul_one] at t) in
     ⟨m+1, by rw [show b = b * ⟨a, -1⟩ * ⟨a, 1⟩, by rw [mul_assoc, eq.trans (mul_comm _ _) a1m];
@@ -245,10 +253,10 @@ by injection (pell_zd_add _ m n) with _ h;
     repeat {rw ← int.coe_nat_add at h <|> rw ← int.coe_nat_mul at h};
     exact int.coe_nat_inj h
 
-theorem pell_zd_sub {m n} (h : n ≤ m) : pell_zd (m - n) = pell_zd m * (pell_zd n).conj :=
+theorem pell_zd_sub {m n} (h : n ≤ m) : pell_zd (m - n) = pell_zd m * star (pell_zd n) :=
 let t := pell_zd_add n (m - n) in
 by rw [add_tsub_cancel_of_le h] at t;
-    rw [t, mul_comm (pell_zd _ n) _, mul_assoc, (is_pell_norm _).1 (is_pell_pell_zd _ _), mul_one]
+    rw [t, mul_comm (pell_zd _ n) _, mul_assoc, is_pell_norm.1 (is_pell_pell_zd _ _), mul_one]
 
 theorem xz_sub {m n} (h : n ≤ m) : xz (m - n) = xz m * xz n - d * yz m * yz n :=
 by { rw [sub_eq_add_neg, ←mul_neg], exact congr_arg zsqrtd.re (pell_zd_sub a1 h) }

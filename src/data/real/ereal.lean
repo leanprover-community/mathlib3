@@ -554,13 +554,13 @@ instance : has_involutive_neg ereal :=
 | (x : ℝ) := rfl
 
 @[simp] lemma neg_eq_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
-by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+neg_eq_iff_eq_neg
 
 @[simp] lemma neg_eq_bot_iff {x : ereal} : - x = ⊥ ↔ x = ⊤ :=
-by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+neg_eq_iff_eq_neg
 
 @[simp] lemma neg_eq_zero_iff {x : ereal} : - x = 0 ↔ x = 0 :=
-by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+by rw [neg_eq_iff_eq_neg, neg_zero]
 
 /-- if `-a ≤ b` then `-b ≤ a` on `ereal`. -/
 protected theorem neg_le_of_neg_le {a b : ereal} (h : -a ≤ b) : -b ≤ a :=

@@ -9,6 +9,9 @@ import topology.metric_space.antilipschitz
 /-!
 # Isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define isometries, i.e., maps between emetric spaces that preserve
 the edistance (on metric spaces, these are exactly the maps that preserve distances),
 and prove their basic properties. We also introduce isometric bijections.

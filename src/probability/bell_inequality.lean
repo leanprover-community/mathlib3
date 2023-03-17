@@ -25,13 +25,10 @@ The violation of Bell's inequality has also been verified experimentally in many
 We first prove Bell's original statement of the inequality, which was published in 1964, and will
 thus be called `bell_inequality_1964` in this file.
 
-Consider two observers, $$A$$ and $$B$$, performing measurements that take values in $${-1, 1}$$.
-
-Let `ℙ` be a probability measure, and let `A i` and `B i` for $$i ∈ {0, 1, 2}$$ be random
-variables taking values in $${-1, 1}$$. For convenience, we identify $${-1, 1}$$ with `ℤˣ`. `A i`
-represent the outcomes of measurements done by $$A$$, and `B i` those done by $$B$$. We assume
-perfect anticorrelation between the outcomes of $$A$$ and $$B$$: 𝔼[(A i) (B i)] = -1. Bell's
-inequality states that `𝔼[(A 1) (B 2)] - 𝔼[(A 1) (B 2)] ≤ 1 + 𝔼[(A 2) (B 0)]`.
+Consider two observers, $$A$$ and $$B$$, performing three measurements that take values in
+$${-1, 1}$$. Assuming perfect anticorrelation of their measurements, we can represent the outcomes
+by $$a, b, c$$ (for $$A$$) and $$-a, -b, -c$$ (for $$B$$). Bell's inequality states that
+$$|𝔼[a * -b] - 𝔼[a * -c]| ≤ 1 + 𝔼[b * -c]$$.
 
 ## TODO
 
@@ -53,44 +50,53 @@ theorem.
 
 open filter measure_theory
 
+namespace bell_inequality
 variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω} [is_probability_measure ℙ] {f g : Ω → ℤˣ}
-  {A B : fin 3 → Ω → ℤˣ}
+  {a b c : Ω → ℤˣ}
 
 private lemma norm_aux (a : ℤˣ) : ‖(a : ℝ)‖ ≤ 1 :=
 by obtain rfl | rfl := int.units_eq_one_or a; simp
 
 /-- The precise version of the CHSH inequality we need. -/
-private lemma CHSH_aux (A₁ A₂ B₀ B₂ : ℤˣ) :
-  (A₁ : ℝ) * B₂ - A₁ * B₀ - A₂ * B₂ ≤ 1 + A₂ * B₀ + 1 :=
-by obtain rfl | rfl := int.units_eq_one_or A₁; obtain rfl | rfl := int.units_eq_one_or A₂;
-  obtain rfl | rfl := int.units_eq_one_or B₀; obtain rfl | rfl := int.units_eq_one_or B₂; norm_num
+private lemma CHSH_aux (a b c : ℤˣ) : (a : ℝ) * -b - a * -c ≤ 1 + b * -c :=
+by obtain rfl | rfl := int.units_eq_one_or a; obtain rfl | rfl := int.units_eq_one_or b;
+  obtain rfl | rfl := int.units_eq_one_or c; norm_num
 
-private lemma ae_strongly_measurable_aux (hf : measurable f) :
+private lemma ae_strongly_measurable_aux (hf : ae_measurable f ℙ) :
   ae_strongly_measurable (λ ω, (f ω : ℝ)) ℙ :=
 begin
-  refine (measurable.comp (λ s hs, _) hf).ae_strongly_measurable,
+  refine (measurable.comp_ae_measurable (λ s hs, _) hf).ae_strongly_measurable,
   exact ⟨coe ⁻¹' s, trivial, rfl⟩,
 end
 
-private lemma integrable_aux (hf : measurable f) : integrable (λ ω, (f ω : ℝ)) ℙ :=
+private lemma integrable_aux (hf : ae_measurable f ℙ) : integrable (λ ω, (f ω : ℝ)) ℙ :=
 ⟨ae_strongly_measurable_aux hf, has_finite_integral_of_bounded $ eventually_of_forall $ λ _,
   norm_aux _⟩
 
-private lemma integrable_mul_aux (hf : measurable f) (hg : measurable g) :
+private lemma integrable_mul_aux (hf : ae_measurable f ℙ) (hg : ae_measurable g ℙ) :
   integrable (λ ω, (f ω * g ω : ℝ)) ℙ :=
 (integrable_aux hg).bdd_mul (ae_strongly_measurable_aux hf) ⟨1, λ _, norm_aux _⟩
 
-/-- **Bell's inequality (1964 version)** Given six random variables `A B : fin 3 → Ω → ℤˣ` taking
-values in `±1`, and assuming perfect anticorrelation on the diagonal (that is, `𝔼[(A i) (B i)] = -1`
-for all `i`), we have that `𝔼[(A 1) (B 2)] - 𝔼[(A 1) (B 0)] ≤ 1 + 𝔼[(A 2) (B 0)]`. -/
-theorem bell_inequality_1964 (ha : ∀ i, measurable (A i)) (hb : ∀ i, measurable (B i))
-  (anticorrelation : (∫ ω, A 2 ω * B 2 ω ∂ℙ : ℝ) = -1) :
-  (∫ ω, A 1 ω * B 2 ω ∂ℙ : ℝ) - ∫ ω, A 1 ω * B 0 ω ∂ℙ ≤ 1 + ∫ ω, A 2 ω * B 0 ω ∂ℙ :=
+/-- Given three random variables `a b c` taking values in `±1`, we have that
+`𝔼[a * -b] - 𝔼[a * -c] ≤ 1 + 𝔼[b * -c]`. -/
+private lemma bell_aux (ha : ae_measurable a ℙ) (hb : ae_measurable b ℙ) (hc : ae_measurable c ℙ) :
+  (∫ ω, a ω * -b ω ∂ℙ : ℝ) - ∫ ω, a ω * -c ω ∂ℙ ≤ 1 + ∫ ω, b ω * -c ω ∂ℙ :=
 begin
-  rw [←sub_le_sub_iff_right (∫ ω, A 2 ω * B 2 ω ∂ℙ : ℝ), ←integral_sub, ←integral_sub,
-    anticorrelation, sub_neg_eq_add, (by simp : (1 : ℝ) = ∫ ω, 1 ∂ℙ), ←integral_add, ←integral_add],
-  refine integral_mono _ _ (λ _, CHSH_aux _ _ _ _),
+  have integral_one : ∫ ω, (1 : ℝ) ∂ℙ = 1, by simp,
+  have anticorrelation : (∫ ω, c ω * c ω ∂ℙ : ℝ) = 1, by simp [←units.coe_mul, ←int.cast_mul],
+  rw [←integral_one, ←integral_sub, ←integral_add],
+  refine integral_mono _ _ (λ _, CHSH_aux _ _ _),
   all_goals -- discharge all the integrability hypotheses
   { try { simp only [coe_coe, ←int.cast_neg, ←units.coe_neg] },
-    apply_rules [integrable.add, integrable.neg, integrable_mul_aux, ha, hb, integrable_const] },
+    apply_rules [integrable.add, integrable.neg, integrable_mul_aux, integrable_const,
+      ae_measurable.neg, ha, hb, hc] },
 end
+
+/-- **Bell's inequality (1964 version)**. Given three random variables `a b c` taking values in
+`±1`, we have that `|𝔼[a * -b] - 𝔼[a * -c]| ≤ 1 + 𝔼[b * -c]`. -/
+theorem bell_inequality_1964 (ha : ae_measurable a ℙ) (hb : ae_measurable b ℙ)
+  (hc : ae_measurable c ℙ) :
+  |(∫ ω, a ω * -b ω ∂ℙ - ∫ ω, a ω * -c ω ∂ℙ : ℝ)| ≤ 1 + ∫ ω, b ω * -c ω ∂ℙ :=
+abs_sub_le_iff.2 ⟨bell_aux ha hb hc, (bell_aux ha hc hb).trans_eq $ by simp_rw [mul_neg, mul_comm]⟩
+
+end bell_inequality

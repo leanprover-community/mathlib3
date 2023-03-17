@@ -39,6 +39,8 @@ class has_sups (α : Type*) :=
 class has_infs (α : Type*) :=
 (infs : α → α → α)
 
+-- This notation is meant to have higher precedence than `⊔` and `⊓`, but still within the realm of
+-- other binary operations
 infix ` ⊻ `:74 := has_sups.sups
 infix ` ⊼ `:74 := has_infs.infs
 

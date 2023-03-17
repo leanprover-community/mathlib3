@@ -1,16 +1,13 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2023 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Yaël Dillies
 -/
 import algebra.field.basic
 import algebra.ring.ulift
 
 /-!
 # Field instances for `ulift`
-
-> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines instances for field, semifield and related structures on `ulift` types.
 
@@ -34,15 +31,15 @@ rfl
 @[simp, norm_cast] lemma down_rat_cast [has_rat_cast α] (q : ℚ) : down (q : ulift α) = q := rfl
 
 instance division_semiring [division_semiring α] : division_semiring (ulift α) :=
-by apply down_injective.division_semiring _; intros; refl
+by refine down_injective.division_semiring down _ _ _ _ _ _ _ _ _ _; intros; refl
 
 instance semifield [semifield α] : semifield (ulift α) :=
-by apply down_injective.semifield _; intros; refl
+{ ..ulift.division_semiring, ..ulift.comm_group_with_zero }
 
 instance division_ring [division_ring α] : division_ring (ulift α) :=
-by apply down_injective.division_ring; intros; refl
+{ ..ulift.division_semiring, ..ulift.add_group }
 
 instance field [field α] : field (ulift α) :=
-by apply down_injective.field; intros; refl
+{ ..ulift.semifield, ..ulift.division_ring }
 
 end ulift

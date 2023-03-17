@@ -139,10 +139,20 @@ See also Note [forgetful inheritance].
 @[protect_proj, ancestor comm_ring div_inv_monoid nontrivial]
 class field (K : Type u) extends comm_ring K, division_ring K
 
-section division_ring
-variables [division_ring K] {a b : K}
+namespace nnrat
+variables [division_semiring α] {a : α}
+
+lemma cast_def : ∀ q : ℚ≥0, (q : α) = q.num / q.denom := division_semiring.nnrat_cast_eq
+
+@[priority 100]
+instance division_semiring.to_has_nnqsmul : has_smul ℚ≥0 α := ⟨division_semiring.nnqsmul⟩
+
+lemma smul_def : ∀ (q : ℚ≥0) (a : α), q • a = ↑q * a := division_semiring.nnqsmul_eq_mul
+
+end nnrat
 
 namespace rat
+variables [division_ring K] {a b : K}
 
 theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
 division_ring.rat_cast_mk _ _ _ _
@@ -151,14 +161,12 @@ theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
 | ⟨a, b, h1, h2⟩ := (cast_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
 
 @[priority 100]
-instance smul_division_ring : has_smul ℚ K :=
+instance division_ring.to_has_qsmul : has_smul ℚ K :=
 ⟨division_ring.qsmul⟩
 
 lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
 
 end rat
-
-end division_ring
 
 section field
 

@@ -6,8 +6,7 @@ Authors: Yury Kudryashov
 import data.nat.succ_pred
 import algebra.char_zero.lemmas
 import algebra.order.sub.with_top
-import data.nat.lattice
-import data.nat.succ_pred
+import algebra.order.ring.with_top
 
 /-!
 # Definition and basic properties of extended natural numbers

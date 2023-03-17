@@ -96,12 +96,6 @@ lemma bdd_above_coe {s : set ℚ≥0} : bdd_above (coe '' s : set ℚ) ↔ bdd_a
 
 lemma bdd_below_coe (s : set ℚ≥0) : bdd_below ((coe : ℚ≥0 → ℚ) '' s) := ⟨0, λ r ⟨q, _, h⟩, h ▸ q.2⟩
 
--- @[simp, norm_cast] lemma coe_max (x y : ℚ≥0) : ((max x y : ℚ≥0) : ℚ) = max (x : ℚ) (y : ℚ) :=
--- coe_mono.map_max
-
--- @[simp, norm_cast] lemma coe_min (x y : ℚ≥0) : ((min x y : ℚ≥0) : ℚ) = min (x : ℚ) (y : ℚ) :=
--- coe_mono.map_min
-
 lemma sub_def (p q : ℚ≥0) : p - q = to_nnrat (p - q) := rfl
 
 @[simp] lemma abs_coe (q : ℚ≥0) : |(q : ℚ)| = q := abs_of_nonneg q.2

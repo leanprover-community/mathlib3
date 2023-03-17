@@ -27,17 +27,6 @@ variables {α β K : Type*}
 section division_semiring
 variables [division_semiring α] {a b c d : α}
 
-namespace nnrat
-
-lemma cast_def : ∀ q : ℚ≥0, (q : α) = q.num / q.denom := division_semiring.nnrat_cast_eq
-
-@[priority 100]
-instance division_semiring.to_has_nnqsmul : has_smul ℚ≥0 α := ⟨division_semiring.nnqsmul⟩
-
-lemma smul_def : ∀ (q : ℚ≥0) (a : α), q • a = ↑q * a := division_semiring.nnqsmul_eq_mul
-
-end nnrat
-
 lemma add_div (a b c : α) : (a + b) / c = a / c + b / c := by simp_rw [div_eq_mul_inv, add_mul]
 
 @[field_simps] lemma div_add_div_same (a b c : α) : a / c + b / c = (a + b) / c :=
@@ -227,9 +216,9 @@ protected def function.injective.division_semiring [division_semiring β] [has_z
   (f : α → β) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (nnqsmul : ∀ x (q : ℚ≥0), f (q • x) = q • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (nnrat_cast : ∀ q : ℚ≥0, f q = q) :
   division_semiring α :=
 { nnrat_cast := coe,
   nnrat_cast_eq := λ q, hf $ by erw [nnrat_cast, nnrat.cast_def, div, nat_cast, nat_cast],
@@ -250,10 +239,10 @@ protected def function.injective.division_ring [division_ring K] {K'}
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x) (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
+  (nnqsmul : ∀ x (q : ℚ≥0), f (q • x) = q • f x) (qsmul : ∀ x (q : ℚ), f (q • x) = q • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n)
-  (rat_cast : ∀ n : ℚ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (nnrat_cast : ∀ q : ℚ≥0, f q = q)
+  (rat_cast : ∀ q : ℚ, f q = q) :
   division_ring K' :=
 { rat_cast := coe,
   rat_cast_mk := λ a b h1 h2, hf (by erw [rat_cast, mul, inv, int_cast, nat_cast];
@@ -271,9 +260,9 @@ protected def function.injective.semifield [semifield β] [has_zero α] [has_mul
   (f : α → β) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (nnqsmul : ∀ x (q : ℚ≥0), f (q • x) = q • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (nnrat_cast : ∀ q : ℚ≥0, f q = q) :
   semifield α :=
 { .. hf.division_semiring f zero one add mul inv div nsmul nnqsmul npow zpow nat_cast nnrat_cast,
   .. hf.comm_semiring f zero one add mul nsmul npow nat_cast }
@@ -290,10 +279,10 @@ protected def function.injective.field [field K] {K'}
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x) (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
+  (nnqsmul : ∀ x (q : ℚ≥0), f (q • x) = q • f x) (qsmul : ∀ x (q : ℚ), f (q • x) = q • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n)
-  (rat_cast : ∀ n : ℚ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (nnrat_cast : ∀ q : ℚ≥0, f q = q)
+  (rat_cast : ∀ q : ℚ, f q = q) :
   field K' :=
 { rat_cast := coe,
   rat_cast_mk := λ a b h1 h2, hf (by erw [rat_cast, mul, inv, int_cast, nat_cast];
@@ -305,22 +294,28 @@ protected def function.injective.field [field K] {K'}
 
 /-! ### Order dual -/
 
+instance [h : has_nnrat_cast α] : has_nnrat_cast αᵒᵈ := h
 instance [h : has_rat_cast α] : has_rat_cast αᵒᵈ := h
 instance [h : division_semiring α] : division_semiring αᵒᵈ := h
 instance [h : division_ring α] : division_ring αᵒᵈ := h
 instance [h : semifield α] : semifield αᵒᵈ := h
 instance [h : field α] : field αᵒᵈ := h
 
-@[simp] lemma to_dual_rat_cast [has_rat_cast α] (n : ℚ) : to_dual (n : α) = n := rfl
-@[simp] lemma of_dual_rat_cast [has_rat_cast α] (n : ℚ) : (of_dual n : α) = n := rfl
+@[simp] lemma to_dual_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : to_dual (q : α) = q := rfl
+@[simp] lemma of_dual_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : (of_dual ↑q : α) = q := rfl
+@[simp] lemma to_dual_rat_cast [has_rat_cast α] (q : ℚ) : to_dual (q : α) = q := rfl
+@[simp] lemma of_dual_rat_cast [has_rat_cast α] (q : ℚ) : (of_dual q : α) = q := rfl
 
 /-! ### Lexicographic order -/
 
+instance [h : has_nnrat_cast α] : has_nnrat_cast (lex α) := h
 instance [h : has_rat_cast α] : has_rat_cast (lex α) := h
 instance [h : division_semiring α] : division_semiring (lex α) := h
 instance [h : division_ring α] : division_ring (lex α) := h
 instance [h : semifield α] : semifield (lex α) := h
 instance [h : field α] : field (lex α) := h
 
-@[simp] lemma to_lex_rat_cast [has_rat_cast α] (n : ℚ) : to_lex (n : α) = n := rfl
-@[simp] lemma of_lex_rat_cast [has_rat_cast α] (n : ℚ) : (of_lex n : α) = n := rfl
+@[simp] lemma to_lex_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : to_lex (q : α) = q := rfl
+@[simp] lemma of_lex_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : (of_lex ↑q : α) = q := rfl
+@[simp] lemma to_lex_rat_cast [has_rat_cast α] (q : ℚ) : to_lex (q : α) = q := rfl
+@[simp] lemma of_lex_rat_cast [has_rat_cast α] (q : ℚ) : (of_lex q : α) = q := rfl

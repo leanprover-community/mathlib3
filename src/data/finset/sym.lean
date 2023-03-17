@@ -60,6 +60,10 @@ by rw [finset.sym2, image_eq_empty, product_eq_empty, or_self]
 @[simp] lemma sym2_nonempty : s.sym2.nonempty ↔ s.nonempty :=
 by rw [finset.sym2, nonempty.image_iff, nonempty_product, and_self]
 
+alias sym2_nonempty ↔ _ nonempty.sym2
+
+attribute [protected] nonempty.sym2
+
 @[simp] lemma sym2_univ [fintype α] : (univ : finset α).sym2 = univ := rfl
 
 @[simp] lemma sym2_singleton (a : α) : ({a} : finset α).sym2 = {sym2.diag a} :=

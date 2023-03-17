@@ -429,7 +429,7 @@ variables (R)
 
 lemma apply_eq_prod_continuous_linear_equiv_at (e : trivialization F (π E)) [e.is_linear R] (b : B)
   (hb : b ∈ e.base_set) (z : E b) :
-  e.to_local_homeomorph ⟨b, z⟩ = (b, e.continuous_linear_equiv_at R b hb z) :=
+  e ⟨b, z⟩ = (b, e.continuous_linear_equiv_at R b hb z) :=
 begin
   ext,
   { refine e.coe_fst _,
@@ -450,8 +450,8 @@ begin
     exact ⟨hb, mem_univ _⟩ },
   apply e.to_local_homeomorph.inj_on (e.to_local_homeomorph.map_target h),
   { simp only [e.source_eq, hb, mem_preimage]},
-  simp_rw [e.apply_eq_prod_continuous_linear_equiv_at R b hb, e.to_local_homeomorph.right_inv h,
-    continuous_linear_equiv.apply_symm_apply],
+  simp_rw [coe_coe, e.apply_eq_prod_continuous_linear_equiv_at R b hb, ← e.coe_coe,
+    e.to_local_homeomorph.right_inv h, continuous_linear_equiv.apply_symm_apply],
 end
 
 lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (π E))

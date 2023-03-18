@@ -69,9 +69,9 @@ begin
     tensor_product.map_tmul, basis.tensor_product_repr_tmul_apply],
 end
 
-lemma matrix.to_lin_kronecker (f : matrix ι' ι R) (g : matrix κ' κ R) :
-  matrix.to_lin (bM.tensor_product bN) (bM'.tensor_product bN') (f ⊗ₖ g) =
-    tensor_product.map (matrix.to_lin bM bM' f) (matrix.to_lin bN bN' g) :=
+lemma matrix.to_lin_kronecker (A : matrix ι' ι R) (B : matrix κ' κ R) :
+  matrix.to_lin (bM.tensor_product bN) (bM'.tensor_product bN') (A ⊗ₖ B) =
+    tensor_product.map (matrix.to_lin bM bM' A) (matrix.to_lin bN bN' B) :=
 by rw [←linear_equiv.eq_symm_apply, matrix.to_lin_symm, tensor_product.to_matrix_map,
   to_matrix_to_lin, to_matrix_to_lin]
 

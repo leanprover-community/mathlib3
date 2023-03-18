@@ -430,8 +430,7 @@ kronecker_map_diagonal_left _ (zero_tmul _) _ _
     (((A ⊗ₖₜ[R] B) ⊗ₖₜ[R] C).map (tensor_product.assoc _ _ _ _)) = A ⊗ₖₜ[R] (B ⊗ₖₜ[R] C) :=
 ext $ λ i j, assoc_tmul _ _ _
 
-lemma trace_kronecker_tmul [fintype m] [fintype n] [semiring α]
-  (A : matrix m m α) (B : matrix n n β) :
+lemma trace_kronecker_tmul [fintype m] [fintype n] (A : matrix m m α) (B : matrix n n β) :
   trace (A ⊗ₖₜ[R] B) = trace A ⊗ₜ[R] trace B :=
 trace_kronecker_map_bilinear (tensor_product.mk R α β) _ _
 
@@ -443,7 +442,6 @@ open algebra.tensor_product
 
 section semiring
 variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra R β]
-
 
 @[simp] lemma one_kronecker_tmul_one [decidable_eq m] [decidable_eq n] :
   (1 : matrix m m α) ⊗ₖₜ[R] (1 : matrix n n α) = 1 :=
@@ -467,7 +465,8 @@ begin
     (det_kronecker_map_bilinear (tensor_product.mk R α β) tmul_mul_tmul _ _).trans _,
   simp only [mk_apply, ←include_left_apply, ←include_right_apply] {eta := ff},
   simp only [←alg_hom.map_matrix_apply, ←alg_hom.map_det],
-  simp only [include_left_apply, include_right_apply, tmul_pow, tmul_mul_tmul],
+  simp only [include_left_apply, include_right_apply, tmul_pow, tmul_mul_tmul,
+    one_pow, _root_.mul_one, _root_.one_mul],
 end
 
 end comm_ring

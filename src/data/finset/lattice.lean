@@ -69,7 +69,7 @@ end
 theorem sup_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀ a ∈ s₂, f a = g a) : s₁.sup f = s₂.sup g :=
 by subst hs; exact finset.fold_congr hfg
 
-@[simp] lemma map_finset_sup [semilattice_sup β] [order_bot β] [sup_bot_hom_class F α β]
+@[simp] lemma _root_.map_finset_sup [semilattice_sup β] [order_bot β] [sup_bot_hom_class F α β]
   (f : F) (s : finset ι) (g : ι → α) : f (s.sup g) = s.sup (f ∘ g) :=
 finset.cons_induction_on s (map_bot f) $ λ i s _ h, by rw [sup_cons, sup_cons, map_sup, h]
 
@@ -294,7 +294,7 @@ lemma inf_inf : s.inf (f ⊓ g) = s.inf f ⊓ s.inf g :=
 theorem inf_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀ a ∈ s₂, f a = g a) : s₁.inf f = s₂.inf g :=
 by subst hs; exact finset.fold_congr hfg
 
-@[simp] lemma map_finset_inf [semilattice_inf β] [order_top β] [inf_top_hom_class F α β]
+@[simp] lemma _root_.map_finset_inf [semilattice_inf β] [order_top β] [inf_top_hom_class F α β]
   (f : F) (s : finset ι) (g : ι → α) : f (s.inf g) = s.inf (f ∘ g) :=
 finset.cons_induction_on s (map_top f) $ λ i s _ h, by rw [inf_cons, inf_cons, map_inf, h]
 

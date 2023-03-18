@@ -42,28 +42,29 @@ Pell's equation
 
 namespace zsqrtd
 
+variables {d : ℤ}
+
 -- Note: We put these here to avoid having to import `algebra.star.unitary`
---       into `number_theory.zsqrtd.basic` just for these two results.
+--       into `number_theory.zsqrtd.basic` just for these three results.
 
 /-- An element of `ℤ√d` has norm equal to `1` if and only if it is contained in the submonoid
 of unitary elements. -/
-lemma norm_eq_one_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
-  a.norm = 1 ↔ a ∈ unitary (zsqrtd d) :=
+lemma norm_eq_one_iff_mem_unitary {a : ℤ√d} : a.norm = 1 ↔ a ∈ unitary ℤ√d :=
 begin
   rw [unitary.mem_iff_self_mul_star, ← norm_eq_mul_conj],
   norm_cast,
 end
 
 /-- The kernel of the norm map on `ℤ√d` equals the submonoid of unitary elements. -/
-lemma mker_norm_eq_unitary {d : ℤ} : (@norm_monoid_hom d).mker = unitary ℤ√d :=
+lemma mker_norm_eq_unitary : (@norm_monoid_hom d).mker = unitary ℤ√d :=
 submonoid.ext (λ x, (monoid_hom.mem_mker _).trans norm_eq_one_iff_mem_unitary)
 
 /-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
 it is contained in the submonoid of unitary elements.
 
 TODO: merge this result with `pell.is_pell_iff_mem_unitary`. -/
-lemma is_pell_solution_iff_mem_unitary {d : ℤ} {a : zsqrtd d} :
-  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary (zsqrtd d) :=
+lemma is_pell_solution_iff_mem_unitary {a : ℤ√d} :
+  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary ℤ√d :=
 by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]
 
 end zsqrtd
@@ -191,7 +192,7 @@ We then set up an API for `pell.solution₁ d`.
 We define this in terms of elements of `ℤ√d` of norm one.
 -/
 @[derive [comm_group, has_distrib_neg, inhabited]]
-def solution₁ (d : ℤ) : Type := ↥(unitary (ℤ√d))
+def solution₁ (d : ℤ) : Type := ↥(unitary ℤ√d)
 
 namespace solution₁
 
@@ -199,23 +200,23 @@ open zsqrtd
 
 variables {d : ℤ}
 
-instance : has_coe (solution₁ d) (ℤ√d) := { coe := subtype.val }
+instance : has_coe (solution₁ d) ℤ√d := { coe := subtype.val }
 
 /-- The `x` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
-def x (a : solution₁ d) : ℤ := (a : ℤ√d).re
+protected def x (a : solution₁ d) : ℤ := (a : ℤ√d).re
 
 /-- The `y` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
-def y (a : solution₁ d) : ℤ := (a : ℤ√d).im
+protected def y (a : solution₁ d) : ℤ := (a : ℤ√d).im
 
 /-- The proof that `a` is a solution to the Pell equation `x^2 - d*y^2 = 1` -/
-lemma rel (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
+lemma prop (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
 is_pell_solution_iff_mem_unitary.mpr a.property
 
-/-- An alternative form of the relation, suitable for rewriting `x^2`. -/
-lemma rel_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.rel, ring}
+/-- An alternative form of the equation, suitable for rewriting `x^2`. -/
+lemma prop_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.prop, ring}
 
-/-- An alternative form of the relation, suitable for rewriting `d * y^2`. -/
-lemma rel_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.rel, ring}
+/-- An alternative form of the equation, suitable for rewriting `d * y^2`. -/
+lemma prop_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.prop, ring}
 
 /-- Two solutions are equal if their `x` and `y` components are equal. -/
 @[ext]
@@ -223,19 +224,19 @@ lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
 subtype.ext $ ext.mpr ⟨hx, hy⟩
 
 /-- Construct a solution from `x`, `y` and a proof that the equation is satisfied. -/
-def mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
+def mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
 { val := ⟨x, y⟩,
-  property := is_pell_solution_iff_mem_unitary.mp rel }
+  property := is_pell_solution_iff_mem_unitary.mp prop }
 
 @[simp]
-lemma x_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).x = x := rfl
+lemma x_mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (mk x y prop).x = x := rfl
 
 @[simp]
-lemma y_mk (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (mk x y rel).y = y := rfl
+lemma y_mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (mk x y prop).y = y := rfl
 
 @[simp]
-lemma coe_mk  (x y : ℤ) (rel : x ^ 2 - d * y ^ 2 = 1) : (↑(mk x y rel) : ℤ√d) = ⟨x,y⟩ :=
-zsqrtd.ext.mpr ⟨x_mk x y rel, y_mk x y rel⟩
+lemma coe_mk  (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (↑(mk x y prop) : ℤ√d) = ⟨x,y⟩ :=
+zsqrtd.ext.mpr ⟨x_mk x y prop, y_mk x y prop⟩
 
 @[simp]
 lemma x_one : (1 : solution₁ d).x = 1 := rfl

@@ -7,6 +7,7 @@ Authors: Filippo A. E. Nuccio, Eric Wieser
 import data.matrix.basic
 import data.matrix.block
 import linear_algebra.matrix.determinant
+import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.tensor_product
 import ring_theory.tensor_product
 
@@ -346,6 +347,33 @@ begin
   congr' 3,
   { ext i j, exact mul_one _},
   { ext i j, exact one_mul _},
+end
+
+lemma inv_kronecker [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (A : matrix m m R) (B : matrix n n R) :
+  (A ⊗ₖ B)⁻¹ = (A⁻¹ ⊗ₖ B⁻¹) :=
+begin
+  -- handle the special cases where either matrix is not invertible
+  by_cases hA : is_unit A.det, swap,
+  { casesI is_empty_or_nonempty n,
+    { exact subsingleton.elim _ _ },
+    have hAB : ¬is_unit (A ⊗ₖ B).det,
+    { refine mt (λ hAB, _) hA,
+      rw det_kronecker at hAB,
+      exact (is_unit_pow_iff fintype.card_ne_zero).mp (is_unit_of_mul_is_unit_left hAB) },
+    rw [nonsing_inv_apply_not_is_unit _ hA, zero_kronecker, nonsing_inv_apply_not_is_unit _ hAB] },
+  by_cases hB : is_unit B.det, swap,
+  { casesI is_empty_or_nonempty m,
+    { exact subsingleton.elim _ _ },
+    have hAB : ¬is_unit (A ⊗ₖ B).det,
+    { refine mt (λ hAB, _) hB,
+      rw det_kronecker at hAB,
+      exact (is_unit_pow_iff fintype.card_ne_zero).mp (is_unit_of_mul_is_unit_right hAB) },
+    rw [nonsing_inv_apply_not_is_unit _ hB, kronecker_zero,
+      nonsing_inv_apply_not_is_unit _ hAB] },
+  -- otherwise follows trivially from `mul_kronecker_mul`
+  { apply inv_eq_right_inv,
+    rw [←mul_kronecker_mul, ←one_kronecker_one, mul_nonsing_inv _ hA, mul_nonsing_inv _ hB] },
 end
 
 end kronecker

@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Kyle Miller
 import data.finset.basic
 import data.set.functor
 import data.finite.basic
-import tactic.linarith
 
 /-!
 # Finite sets

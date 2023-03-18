@@ -56,10 +56,12 @@ open_locale kronecker
 
 section matrix
 variables
-  [decidable_eq ι] [decidable_eq κ] [decidable_eq ι'] [decidable_eq κ']
+  [decidable_eq ι] [decidable_eq κ]
   [fintype ι] [fintype κ] [fintype ι'] [fintype κ']
   (bM : basis ι R M) (bN : basis κ R N) (bM' : basis ι' R M') (bN' : basis κ' R N')
 
+/-- The linear map built from `tensor_product.map` corresponds to the matrix built from
+`matrix.kronecker`. -/
 lemma tensor_product.to_matrix_map (f : M →ₗ[R] M') (g : N →ₗ[R] N') :
   linear_map.to_matrix (bM.tensor_product bN) (bM'.tensor_product bN') (tensor_product.map f g)
     = linear_map.to_matrix bM bM' f ⊗ₖ linear_map.to_matrix bN bN' g :=
@@ -69,6 +71,8 @@ begin
     tensor_product.map_tmul, basis.tensor_product_repr_tmul_apply],
 end
 
+/-- The matrix built from `matrix.kronecker` corresponds to the linear map built from
+`tensor_product.map`. -/
 lemma matrix.to_lin_kronecker (A : matrix ι' ι R) (B : matrix κ' κ R) :
   matrix.to_lin (bM.tensor_product bN) (bM'.tensor_product bN') (A ⊗ₖ B) =
     tensor_product.map (matrix.to_lin bM bM' A) (matrix.to_lin bN bN' B) :=

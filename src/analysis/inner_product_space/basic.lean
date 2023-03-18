@@ -1719,7 +1719,7 @@ linear_map.mk_continuous₂ (innerₛₗ 𝕜) 1
 
 /-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
 `inner_product_space.dual` as `to_dual_map`.  -/
-@[simp] lemma innerSL_apply_norm {x : E} : ‖innerSL 𝕜 x‖ = ‖x‖ :=
+@[simp] lemma innerSL_apply_norm (x : E) : ‖innerSL 𝕜 x‖ = ‖x‖ :=
 begin
   refine le_antisymm ((innerSL 𝕜 x).op_norm_le_bound (norm_nonneg _)
     (λ y, norm_inner_le_norm _ _)) _,

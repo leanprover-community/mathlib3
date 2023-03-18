@@ -54,14 +54,14 @@ If `E` is complete, this operation is surjective, hence a conjugate-linear isome
 see `to_dual`.
 -/
 def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
-{ norm_map' := λ _, innerSL_apply_norm,
+{ norm_map' := innerSL_apply_norm _,
  ..innerSL 𝕜 }
 
 variables {E}
 
 @[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
 
-lemma innerSL_norm [nontrivial E] : ‖(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)‖ = 1 :=
+lemma innerSL_norm [nontrivial E] : ‖innerSL 𝕜‖ = 1 :=
 show ‖(to_dual_map 𝕜 E).to_continuous_linear_map‖ = 1,
   from linear_isometry.norm_to_continuous_linear_map _
 

@@ -301,7 +301,7 @@ lemma diagonal_kronecker_diagonal [mul_zero_class α]
 kronecker_map_diagonal_diagonal _ zero_mul mul_zero _ _
 
 lemma kronecker_diagonal [mul_zero_class α] [decidable_eq n] (A : matrix l m α) (b : n → α):
-  A ⊗ₖ (diagonal b) = block_diagonal (λ i, mul_opposite.op (b i) • A) :=
+  A ⊗ₖ diagonal b = block_diagonal (λ i, mul_opposite.op (b i) • A) :=
 kronecker_map_diagonal_right _ mul_zero _ _
 
 lemma diagonal_kronecker [mul_zero_class α] [decidable_eq l](a : l → α) (B : matrix m n α) :
@@ -351,7 +351,7 @@ end
 
 lemma inv_kronecker [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring R]
   (A : matrix m m R) (B : matrix n n R) :
-  (A ⊗ₖ B)⁻¹ = (A⁻¹ ⊗ₖ B⁻¹) :=
+  (A ⊗ₖ B)⁻¹ = A⁻¹ ⊗ₖ B⁻¹ :=
 begin
   -- handle the special cases where either matrix is not invertible
   by_cases hA : is_unit A.det, swap,

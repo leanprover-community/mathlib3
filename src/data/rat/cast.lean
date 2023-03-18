@@ -36,33 +36,6 @@ open_locale big_operators nnrat rat
 
 variables {F ι α β : Type*}
 
-section
-variables [monoid α] {a b c d : α}
-
-@[to_additive]
-protected lemma commute.mul_left_comm (hab : commute a b) : a * (b * c) = b * (a * c) :=
-by simp_rw [←mul_assoc, hab.eq]
-
-@[to_additive]
-protected lemma commute.mul_mul_mul_comm (hbc : commute b c) :
-  (a * b) * (c * d) = (a * c) * (b * d) :=
-by simp only [hbc.mul_left_comm, mul_assoc]
-
-end
-
-section
-variables [division_monoid α] {a b c d : α}
-
-@[to_additive] lemma commute.div_mul_div_comm (hbd : commute b d) (hbc : commute b⁻¹ c) :
-  a / b * (c / d) = a * c / (b * d) :=
-by simp_rw [div_eq_mul_inv, mul_inv_rev, hbd.inv_inv.symm.eq, hbc.mul_mul_mul_comm]
-
-@[to_additive] lemma commute.mul_div_mul_comm (hcd : commute c d) (hbc : commute b c⁻¹) :
-  a * b / (c * d) = a / c * (b / d) :=
-(hcd.div_mul_div_comm hbc.symm).symm
-
-end
-
 namespace nnrat
 section division_semiring
 variables [division_semiring α] {p q : ℚ≥0}

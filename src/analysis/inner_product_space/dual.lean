@@ -61,7 +61,7 @@ variables {E}
 
 @[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
 
-lemma innerSL_norm [nontrivial E] : ‖innerSL 𝕜‖ = 1 :=
+lemma innerSL_norm [nontrivial E] : ‖(innerSL 𝕜 : E →L⋆[𝕜] E →L[𝕜] 𝕜)‖ = 1 :=
 show ‖(to_dual_map 𝕜 E).to_continuous_linear_map‖ = 1,
   from linear_isometry.norm_to_continuous_linear_map _
 

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kyle Miller
 import data.finset.basic
 import data.set.functor
 import data.finite.basic
+import tactic.linarith
 
 /-!
 # Finite sets
@@ -993,6 +994,33 @@ by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono h
 
 lemma infinite.exists_nat_lt {s : set ℕ} (hs : s.infinite) (n : ℕ) : ∃ m ∈ s, n < m :=
 let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
+
+lemma arb_large_infinite {S : set ℕ} : S.infinite → ∀ (n : ℕ ), ∃ (m : ℕ), (m ∈ S ∧ m > n) :=
+begin
+  intros h n,
+  apply bex_def.mp,
+  apply set.infinite.exists_nat_lt h,
+end
+
+lemma infinite_exists_nat_lt {S : set ℕ} : (∀ (n : ℕ ), ∃ (m : ℕ), (m ∈ S ∧ m > n)) → S.infinite :=
+begin
+  contrapose!,
+    intro h,
+    rw set.not_infinite at h,
+    let S2 : finset ℕ := set.finite.to_finset h,
+    have h2 : ∃ B, ∀n ∈ S2, n ≤ B,
+    { use finset.sup S2 id,
+      intros,
+      apply finset.le_sup H },
+    cases h2 with N hN,
+    use N,
+    intros n hn,
+    apply hN,
+    exact (set.finite.mem_to_finset h).symm.mp hn,
+end
+
+lemma infinite_iff_arb_large {S : set ℕ } : S.infinite ↔ (∀ (n : ℕ ), ∃ (m : ℕ), (m ∈ S ∧ m > n))
+  := iff.intro arb_large_infinite infinite_exists_nat_lt
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=

@@ -33,6 +33,20 @@ We define the following notation in locale `finset_family`:
 open function
 open_locale set_family
 
+-- TODO: Is there a better spot for those two instances?
+namespace finset
+variables {α : Type*} [preorder α] {s t : set α} {a : α}
+
+instance decidable_pred_mem_upper_closure (s : finset α) [@decidable_rel α (≤)] :
+  decidable_pred (∈ upper_closure (s : set α)) :=
+λ _, finset.decidable_dexists_finset
+
+instance decidable_pred_mem_lower_closure (s : finset α) [@decidable_rel α (≤)] :
+  decidable_pred (∈ lower_closure (s : set α)) :=
+λ _, finset.decidable_dexists_finset
+
+end finset
+
 variables {α : Type*} [decidable_eq α]
 
 namespace finset
@@ -113,6 +127,21 @@ lemma sups_right_comm : (s ⊻ t) ⊻ u = (s ⊻ u) ⊻ t := image₂_right_comm
 lemma sups_sups_sups_comm : (s ⊻ t) ⊻ (u ⊻ v) = (s ⊻ u) ⊻ (t ⊻ v) :=
 image₂_image₂_image₂_comm sup_sup_sup_comm
 
+variables [@decidable_rel α (≤)]
+
+lemma filter_sups_le (s t : finset α) (a : α) :
+  (s ⊻ t).filter (λ b, b ≤ a) = s.filter (λ b, b ≤ a) ⊻ t.filter (λ b, b ≤ a) :=
+begin
+  ext b,
+  simp only [mem_filter, mem_sups],
+  split,
+  { rintro ⟨⟨b, hb, c, hc, rfl⟩, ha⟩,
+    rw sup_le_iff at ha,
+    exact ⟨_, ⟨hb, ha.1⟩, _, ⟨hc, ha.2⟩, rfl⟩ },
+  { rintro ⟨b, hb, c, hc, _, rfl⟩,
+    exact ⟨⟨_, hb.1, _, hc.1, rfl⟩, sup_le hb.2 hc.2⟩ }
+end
+
 end sups
 
 section infs
@@ -191,6 +220,21 @@ lemma infs_left_comm : s ⊼ (t ⊼ u) = t ⊼ (s ⊼ u) := image₂_left_comm i
 lemma infs_right_comm : (s ⊼ t) ⊼ u = (s ⊼ u) ⊼ t := image₂_right_comm inf_right_comm
 lemma infs_infs_infs_comm : (s ⊼ t) ⊼ (u ⊼ v) = (s ⊼ u) ⊼ (t ⊼ v) :=
 image₂_image₂_image₂_comm inf_inf_inf_comm
+
+variables [@decidable_rel α (≤)]
+
+lemma filter_infs_ge (s t : finset α) (a : α) :
+  (s ⊼ t).filter (λ b, a ≤ b) = s.filter (λ b, a ≤ b) ⊼ t.filter (λ b, a ≤ b) :=
+begin
+  ext b,
+  simp only [mem_filter, mem_infs],
+  split,
+  { rintro ⟨⟨b, hb, c, hc, rfl⟩, ha⟩,
+    rw le_inf_iff at ha,
+    exact ⟨_, ⟨hb, ha.1⟩, _, ⟨hc, ha.2⟩, rfl⟩ },
+  { rintro ⟨b, hb, c, hc, _, rfl⟩,
+    exact ⟨⟨_, hb.1, _, hc.1, rfl⟩, le_inf hb.2 hc.2⟩ }
+end
 
 end infs
 

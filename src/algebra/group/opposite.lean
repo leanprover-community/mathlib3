@@ -24,6 +24,9 @@ namespace mul_opposite
 ### Additive structures on `αᵐᵒᵖ`
 -/
 
+@[to_additive] instance [has_nat_cast α] : has_nat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
+@[to_additive] instance [has_int_cast α] : has_int_cast αᵐᵒᵖ := ⟨λ n, op n⟩
+
 instance [add_semigroup α] : add_semigroup (αᵐᵒᵖ) :=
 unop_injective.add_semigroup _ (λ x y, rfl)
 
@@ -44,9 +47,6 @@ unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid αᵐᵒᵖ :=
 unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
-
-@[to_additive] instance [has_nat_cast α] : has_nat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
-@[to_additive] instance [has_int_cast α] : has_int_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 
 instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
 { nat_cast_zero := show op ((0 : ℕ) : α) = 0, by rw [nat.cast_zero, op_zero],

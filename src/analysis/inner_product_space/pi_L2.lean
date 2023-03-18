@@ -138,6 +138,9 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
   ⟪x, y⟫ = matrix.dot_product (star $ pi_Lp.equiv _ _ x) (pi_Lp.equiv _ _ y) := rfl
 
+lemma euclidean_space.inner_pi_Lp_equiv_symm (x y : ι → 𝕜) :
+  ⟪(pi_Lp.equiv 2 _).symm x, (pi_Lp.equiv 2 _).symm y⟫ = matrix.dot_product (star x) y := rfl
+
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.is_internal.isometry_L2_of_orthogonal_family
@@ -815,18 +818,41 @@ section matrix
 
 open_locale matrix
 
-variables {n m : ℕ}
+variables {m n : Type*}
 
-local notation `⟪`x`, `y`⟫ₘ` := @inner 𝕜 (euclidean_space 𝕜 (fin m)) _ x y
-local notation `⟪`x`, `y`⟫ₙ` := @inner 𝕜 (euclidean_space 𝕜 (fin n)) _ x y
+namespace matrix
+variables [fintype m] [fintype n] [decidable_eq n]
 
-/-- The inner product of a row of A and a row of B is an entry of B ⬝ Aᴴ. -/
-lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
-  ⟪A i, B j⟫ₘ = (B ⬝ Aᴴ) j i := by {simp only [inner, matrix.mul_apply, star_ring_end_apply,
-    matrix.conj_transpose_apply,mul_comm]}
+/-- `matrix.to_lin'` adapted for `euclidean_space 𝕜 _`. -/
+def to_euclidean_lin : matrix m n 𝕜 ≃ₗ[𝕜] (euclidean_space 𝕜 n →ₗ[𝕜] euclidean_space 𝕜 m) :=
+matrix.to_lin' ≪≫ₗ linear_equiv.arrow_congr
+  (pi_Lp.linear_equiv _ 𝕜 (λ _ : n, 𝕜)).symm (pi_Lp.linear_equiv _ 𝕜 (λ _ : m, 𝕜)).symm
 
-/-- The inner product of a column of A and a column of B is an entry of Aᴴ ⬝ B -/
-lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
-  ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
+@[simp]
+lemma to_euclidean_lin_pi_Lp_equiv_symm (A : matrix m n 𝕜) (x : n → 𝕜) :
+  A.to_euclidean_lin ((pi_Lp.equiv _ _).symm x) = (pi_Lp.equiv _ _).symm (A.to_lin' x) := rfl
+
+@[simp]
+lemma pi_Lp_equiv_to_euclidean_lin (A : matrix m n 𝕜) (x : euclidean_space 𝕜 n) :
+  pi_Lp.equiv _ _ (A.to_euclidean_lin x) = A.to_lin' (pi_Lp.equiv _ _ x) := rfl
+
+/- `matrix.to_euclidean_lin` is the same as `matrix.to_lin` applied to `pi_Lp.basis_fun`, -/
+lemma to_euclidean_lin_eq_to_lin :
+  (to_euclidean_lin : matrix m n 𝕜 ≃ₗ[𝕜] _) =
+    matrix.to_lin (pi_Lp.basis_fun _ _ _) (pi_Lp.basis_fun _ _ _) := rfl
+
+end matrix
+
+local notation `⟪`x`, `y`⟫ₑ` := @inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv 2 _).symm y)
+
+/-- The inner product of a row of `A` and a row of `B` is an entry of `B ⬝ Aᴴ`. -/
+lemma inner_matrix_row_row [fintype n] (A B : matrix m n 𝕜) (i j : m) :
+  ⟪A i, B j⟫ₑ = (B ⬝ Aᴴ) j i :=
+by simp_rw [euclidean_space.inner_pi_Lp_equiv_symm, matrix.mul_apply', matrix.dot_product_comm,
+  matrix.conj_transpose_apply, pi.star_def]
+
+/-- The inner product of a column of `A` and a column of `B` is an entry of `Aᴴ ⬝ B`. -/
+lemma inner_matrix_col_col [fintype m] (A B : matrix m n 𝕜) (i j : n) :
+  ⟪Aᵀ i, Bᵀ j⟫ₑ = (Aᴴ ⬝ B) i j := rfl
 
 end matrix

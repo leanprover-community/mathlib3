@@ -166,14 +166,19 @@ star_int_cast _
 
 end ring
 
-section division_ring
-variables [division_ring R] [star_ring R]
+section division_semiring
+variables [division_semiring R] [star_ring R]
 
 lemma inv {x : R} (hx : is_self_adjoint x) : is_self_adjoint x⁻¹ :=
 by simp only [is_self_adjoint_iff, star_inv', hx.star_eq]
 
 lemma zpow {x : R} (hx : is_self_adjoint x) (n : ℤ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
+
+end division_semiring
+
+section division_ring
+variables [division_ring R] [star_ring R]
 
 lemma _root_.is_self_adjoint_rat_cast (x : ℚ) : is_self_adjoint (x : R) :=
 star_rat_cast _

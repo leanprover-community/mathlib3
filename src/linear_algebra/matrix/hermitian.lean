@@ -25,7 +25,7 @@ variables {α β : Type*} {m n : Type*} {A : matrix n n α}
 
 open_locale matrix
 
-local notation `⟪`x`, `y`⟫` := @inner α (pi_Lp 2 (λ (_ : n), α)) _ x y
+local notation `⟪`x`, `y`⟫` := @inner α _ _ x y
 
 section non_unital_semiring
 
@@ -200,14 +200,11 @@ funext h.coe_re_apply_self
 
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_symmetric [fintype n] [decidable_eq n] {A : matrix n n α} :
-  is_hermitian A ↔ linear_map.is_symmetric
-    ((pi_Lp.linear_equiv 2 α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
+  is_hermitian A ↔ A.to_euclidean_lin.is_symmetric :=
 begin
   rw [linear_map.is_symmetric, (pi_Lp.equiv 2 (λ _ : n, α)).symm.surjective.forall₂],
-  simp only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,
-    pi_Lp.linear_equiv_apply, pi_Lp.linear_equiv_symm_apply, linear_equiv.symm_symm],
-  simp_rw [euclidean_space.inner_eq_star_dot_product, equiv.apply_symm_apply, to_lin'_apply,
-    star_mul_vec, dot_product_mul_vec],
+  simp only [to_euclidean_lin_pi_Lp_equiv_symm, euclidean_space.inner_pi_Lp_equiv_symm,
+    to_lin'_apply, star_mul_vec, dot_product_mul_vec],
   split,
   { rintro (h : Aᴴ = A) x y,
     rw h },

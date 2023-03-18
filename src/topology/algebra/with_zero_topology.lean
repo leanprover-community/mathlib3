@@ -9,6 +9,9 @@ import topology.algebra.order.field
 /-!
 # The topology on linearly ordered commutative groups with zero
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `Γ₀` be a linearly ordered commutative group to which we have adjoined a zero element.
 Then `Γ₀` may naturally be endowed with a topology that turns `Γ₀` into a topological monoid.
 Neighborhoods of zero are sets containing `{γ | γ < γ₀}` for some invertible element `γ₀`

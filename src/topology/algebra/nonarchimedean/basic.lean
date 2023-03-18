@@ -10,6 +10,9 @@ import topology.algebra.ring.basic
 /-!
 # Nonarchimedean Topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we set up the theory of nonarchimedean topological groups and rings.
 
 A nonarchimedean group is a topological group whose topology admits a basis of

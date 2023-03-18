@@ -994,6 +994,25 @@ by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono h
 lemma infinite.exists_nat_lt {s : set ℕ} (hs : s.infinite) (n : ℕ) : ∃ m ∈ s, n < m :=
 let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
 
+lemma infinite_of_forall_exists_nat_lt {S : set ℕ} (h : ∀ (n : ℕ), ∃ m ∈ S, n < m) : S.infinite :=
+begin
+    intro hS,
+    let S2 : finset ℕ := set.finite.to_finset hS,
+    have h2 : ∃ B, ∀n ∈ S2, n ≤ B,
+    { use finset.sup S2 id,
+      intros,
+      apply finset.le_sup H },
+    cases h2 with N hN,
+    cases h N with n hn,
+    cases hn with hnS hnN,
+    have h3 := (set.finite.mem_to_finset hS).mpr hnS,
+    have h4 := hN n,
+    exact nat.le_lt_antisymm (h4 h3) hnN,
+end
+
+lemma infinite_iff_arb_large  {S : set ℕ } : S.infinite ↔ ∀ (n : ℕ), ∃ m ∈ S, n < m :=
+  ⟨infinite.exists_nat_lt, infinite_of_forall_exists_nat_lt⟩
+
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
 let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty

@@ -13,6 +13,9 @@ import ring_theory.adjoin.basic
 /-!
 # Multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines polynomial rings over a base ring (or even semiring),
 with variables from a general type `σ` (which could be infinite).
 

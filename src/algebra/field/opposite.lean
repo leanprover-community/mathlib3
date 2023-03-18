@@ -16,30 +16,20 @@ import data.int.cast.lemmas
 
 open_locale nnrat
 
-variables {α : Type*}
+variables (α : Type*)
 
 namespace mul_opposite
 
 @[to_additive] instance [has_nnrat_cast α] : has_nnrat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 @[to_additive] instance [has_rat_cast α] : has_rat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 
+variables {α}
+
 @[simp, norm_cast, to_additive]
 lemma op_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : op (q : α) = q := rfl
 
 @[simp, norm_cast, to_additive]
 lemma unop_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : unop (q : αᵐᵒᵖ) = q := rfl
-
-@[simp, norm_cast, to_additive]
-lemma op_rat_cast [has_rat_cast α] (q : ℚ) : op (q : α) = q := rfl
-
-@[simp, norm_cast, to_additive]
-lemma unop_rat_cast [has_rat_cast α] (q : ℚ) : unop (q : αᵐᵒᵖ) = q := rfl
-
-namespace mul_opposite
-
-@[to_additive] instance [has_rat_cast α] : has_rat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
-
-variables {α}
 
 @[simp, norm_cast, to_additive]
 lemma op_rat_cast [has_rat_cast α] (q : ℚ) : op (q : α) = q := rfl
@@ -62,14 +52,10 @@ instance [division_ring α] : division_ring αᵐᵒᵖ :=
   ..mul_opposite.division_semiring α, ..mul_opposite.ring α }
 
 instance [semifield α] : semifield αᵐᵒᵖ :=
-{ ..mul_opposite.division_semiring, ..mul_opposite.comm_semiring α }
+{ .. mul_opposite.division_semiring α, .. mul_opposite.comm_semiring α }
 
 instance [field α] : field αᵐᵒᵖ :=
-{ ..mul_opposite.division_ring, ..mul_opposite.comm_ring α }
-
-end mul_opposite
-
-namespace add_opposite
+{ .. mul_opposite.division_ring α, .. mul_opposite.comm_ring α }
 
 end mul_opposite
 
@@ -78,7 +64,7 @@ namespace add_opposite
 instance [division_semiring α] : division_semiring αᵃᵒᵖ :=
 { nnrat_cast := λ q, op q,
   nnrat_cast_eq := λ q, by { rw [nnrat.cast_def, op_div, op_nat_cast, op_nat_cast] },
-  ..add_opposite.group_with_zero α, ..add_opposite.semiring α, ..add_opposite.has_nnrat_cast }
+  ..add_opposite.group_with_zero α, ..add_opposite.semiring α, ..add_opposite.has_nnrat_cast α }
 
 instance [division_ring α] : division_ring αᵃᵒᵖ :=
 { nnrat_cast := coe,
@@ -88,7 +74,7 @@ instance [division_ring α] : division_ring αᵃᵒᵖ :=
   ..add_opposite.group_with_zero α, ..add_opposite.ring α }
 
 instance [semifield α] : semifield αᵃᵒᵖ :=
-{ ..add_opposite.division_semiring, ..add_opposite.comm_semiring α }
+{ ..add_opposite.division_semiring α, ..add_opposite.comm_semiring α }
 
 instance [field α] : field αᵃᵒᵖ :=
 { ..add_opposite.division_ring α, ..add_opposite.comm_ring α }

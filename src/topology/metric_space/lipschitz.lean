@@ -12,6 +12,9 @@ import topology.bornology.hom
 /-!
 # Lipschitz continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A map `f : α → β` between two (extended) metric spaces is called *Lipschitz continuous*
 with constant `K ≥ 0` if for all `x, y` we have `edist (f x) (f y) ≤ K * edist x y`.
 For a metric space, the latter inequality is equivalent to `dist (f x) (f y) ≤ K * dist x y`.
@@ -40,7 +43,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 

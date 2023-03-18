@@ -7,6 +7,7 @@ import analysis.normed_space.linear_isometry
 import analysis.normed.group.add_torsor
 import analysis.normed_space.basic
 import linear_algebra.affine_space.restrict
+import linear_algebra.affine_space.midpoint_zero
 
 /-!
 # Affine isometries
@@ -317,18 +318,18 @@ variables (e : P ≃ᵃⁱ[𝕜] P₂)
 
 protected lemma isometry : isometry e := e.to_affine_isometry.isometry
 
-/-- Reinterpret a `affine_isometry_equiv` as an `isometric`. -/
-def to_isometric : P ≃ᵢ P₂ := ⟨e.to_affine_equiv.to_equiv, e.isometry⟩
+/-- Reinterpret a `affine_isometry_equiv` as an `isometry_equiv`. -/
+def to_isometry_equiv : P ≃ᵢ P₂ := ⟨e.to_affine_equiv.to_equiv, e.isometry⟩
 
-@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+@[simp] lemma coe_to_isometry_equiv : ⇑e.to_isometry_equiv = e := rfl
 
 include V V₂
 lemma range_eq_univ (e : P ≃ᵃⁱ[𝕜] P₂) : set.range e = set.univ :=
-by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+by { rw ← coe_to_isometry_equiv, exact isometry_equiv.range_eq_univ _, }
 omit V V₂
 
 /-- Reinterpret a `affine_isometry_equiv` as an `homeomorph`. -/
-def to_homeomorph : P ≃ₜ P₂ := e.to_isometric.to_homeomorph
+def to_homeomorph : P ≃ₜ P₂ := e.to_isometry_equiv.to_homeomorph
 
 @[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
 
@@ -351,7 +352,7 @@ instance : inhabited (P ≃ᵃⁱ[𝕜] P) := ⟨refl 𝕜 P⟩
 
 @[simp] lemma coe_refl : ⇑(refl 𝕜 P) = id := rfl
 @[simp] lemma to_affine_equiv_refl : (refl 𝕜 P).to_affine_equiv = affine_equiv.refl 𝕜 P := rfl
-@[simp] lemma to_isometric_refl : (refl 𝕜 P).to_isometric = isometric.refl P := rfl
+@[simp] lemma to_isometry_equiv_refl : (refl 𝕜 P).to_isometry_equiv = isometry_equiv.refl P := rfl
 @[simp] lemma to_homeomorph_refl : (refl 𝕜 P).to_homeomorph = homeomorph.refl P := rfl
 omit V
 
@@ -365,7 +366,7 @@ def symm : P₂ ≃ᵃⁱ[𝕜] P :=
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
 @[simp] lemma to_affine_equiv_symm : e.to_affine_equiv.symm = e.symm.to_affine_equiv := rfl
-@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_isometry_equiv_symm : e.to_isometry_equiv.symm = e.symm.to_isometry_equiv := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 include V₃

@@ -17,7 +17,7 @@ We show that the following properties of continuous maps are local at the target
 -/
 
 open topological_space set filter
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
 variables {s : set β} {ι : Type*} {U : ι → opens β} (hU : supr U = ⊤)

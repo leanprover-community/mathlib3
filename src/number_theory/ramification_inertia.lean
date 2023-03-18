@@ -142,7 +142,7 @@ begin
   refine ramification_idx_spec (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
     rw [dvd_iff_normalized_factors_le_normalized_factors (pow_ne_zero _ hP0) hp0,
         normalized_factors_pow, normalized_factors_irreducible hPirr, normalize_eq,
-        multiset.nsmul_singleton, ← multiset.le_count_iff_repeat_le],
+        multiset.nsmul_singleton, ← multiset.le_count_iff_replicate_le],
   { exact (nat.lt_succ_self _).not_le },
 end
 
@@ -417,8 +417,8 @@ begin
     have mem_span_b :
       ((submodule.mkq (map (algebra_map R S) p)) x :
         S ⧸ map (algebra_map R S) p) ∈ submodule.span (R ⧸ p) (set.range b) := b.mem_span _,
-    rw [← @submodule.restrict_scalars_mem R, algebra.span_restrict_scalars_eq_span_of_surjective
-        (show function.surjective (algebra_map R (R ⧸ p)), from ideal.quotient.mk_surjective) _,
+    rw [← @submodule.restrict_scalars_mem R,
+        submodule.restrict_scalars_span R (R ⧸ p) ideal.quotient.mk_surjective,
         b_eq_b', set.range_comp, ← submodule.map_span]
       at mem_span_b,
     obtain ⟨y, y_mem, y_eq⟩ := submodule.mem_map.mp mem_span_b,
@@ -581,7 +581,7 @@ begin
   letI := classical.dec_eq (ideal S),
   rw [sup_eq_prod_inf_factors _ (pow_ne_zero _ hP0), normalized_factors_pow,
       normalized_factors_irreducible ((ideal.prime_iff_is_prime hP0).mpr hP).irreducible,
-      normalize_eq, multiset.nsmul_singleton, multiset.inter_repeat, multiset.prod_repeat],
+      normalize_eq, multiset.nsmul_singleton, multiset.inter_replicate, multiset.prod_replicate],
   rw [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq] at a_mem a_not_mem,
   rwa [ideal.count_normalized_factors_eq a_mem a_not_mem, min_eq_left i.le_succ],
   { intro ha,

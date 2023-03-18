@@ -55,8 +55,7 @@ linear_map.to_span_singleton A _ (aeval (polynomial.X : A[X])).to_linear_map
 lemma to_fun_bilinear_apply_eq_sum (a : A) (p : R[X]) :
   to_fun_bilinear R A a p = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
 begin
-  dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
-  rw finset.smul_sum,
+  simp only [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum, finset.smul_sum],
   congr' with i : 1,
   rw [← algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
       ← algebra.smul_def, smul_monomial],

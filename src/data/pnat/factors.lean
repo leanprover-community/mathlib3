@@ -12,6 +12,9 @@ import data.multiset.sort
 /-!
 # Prime factors of nonzero naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the factorization of a nonzero natural number `n` as a multiset of primes,
 the multiplicity of `p` in this factors multiset being the p-adic valuation of `n`.
 
@@ -345,14 +348,14 @@ theorem count_factor_multiset (m : ℕ+) (p : nat.primes) (k : ℕ) :
  (p : ℕ+) ^ k ∣ m ↔ k ≤ m.factor_multiset.count p :=
 begin
   intros,
-  rw [multiset.le_count_iff_repeat_le],
+  rw [multiset.le_count_iff_replicate_le],
   rw [← factor_multiset_le_iff, factor_multiset_pow, factor_multiset_of_prime],
   congr' 2,
-  apply multiset.eq_repeat.mpr,
+  apply multiset.eq_replicate.mpr,
   split,
   { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
   { intros q h, rw [prime_multiset.of_prime, multiset.nsmul_singleton _ k] at h,
-    exact multiset.eq_of_mem_repeat h }
+    exact multiset.eq_of_mem_replicate h }
 end
 
 end pnat

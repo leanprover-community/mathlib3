@@ -295,6 +295,9 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
+theorem maps_to_prod_map_diagonal : maps_to (prod.map f f) (diagonal α) (diagonal β) :=
+diagonal_subset_iff.2 $ λ x, rfl
+
 lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
   s ⊆ f ⁻¹' t := hf
 

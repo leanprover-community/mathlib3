@@ -11,6 +11,9 @@ import data.real.cau_seq_completion
 /-!
 # Real numbers from Cauchy sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ℝ` as the type of equivalence classes of Cauchy sequences of rational numbers.
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.

@@ -74,7 +74,8 @@ lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).r
 Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
 bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
 @[simps] def curry (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
-{ map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
+{ to_fun := curry (f.restrict_scalars R),
+  map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
   .. curry (f.restrict_scalars R) }
 
 lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :

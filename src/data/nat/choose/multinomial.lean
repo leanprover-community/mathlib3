@@ -220,9 +220,9 @@ begin
   refine (fintype.sum_equiv (sym_insert_equiv ha) _ _ $ λ m, _).symm,
   rw [m.1.1.multinomial_filter_ne a],
   conv in (m.1.1.map _) { rw [← m.1.1.filter_add_not ((=) a), multiset.map_add] },
-  simp_rw [multiset.noncomm_prod_add, m.1.1.filter_eq, multiset.map_repeat, m.1.2],
-  rw [multiset.noncomm_prod_eq_pow_card _ _ _ (λ _, multiset.eq_of_mem_repeat)],
-  rw [multiset.card_repeat, nat.cast_mul, mul_assoc, nat.cast_comm],
+  simp_rw [multiset.noncomm_prod_add, m.1.1.filter_eq, multiset.map_replicate, m.1.2],
+  rw [multiset.noncomm_prod_eq_pow_card _ _ _ (λ _, multiset.eq_of_mem_replicate)],
+  rw [multiset.card_replicate, nat.cast_mul, mul_assoc, nat.cast_comm],
   congr' 1, simp_rw [← mul_assoc, nat.cast_comm], refl,
 end
 

@@ -8,6 +8,9 @@ import data.real.cau_seq
 /-!
 # Cauchy completion
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file generalizes the Cauchy completion of `(ℚ, abs)` to the completion of a ring
 with absolute value.
 -/

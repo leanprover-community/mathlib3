@@ -10,6 +10,9 @@ import group_theory.finiteness
 /-!
 # The abelianization of a group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the commutator and the abelianization of a group. It furthermore prepares for the
 result that the abelianization is left adjoint to the forgetful functor from abelian groups to
 groups, which can be found in `algebra/category/Group/adjunctions`.

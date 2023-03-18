@@ -50,7 +50,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 noncomputable theory
 
 open set function add_subgroup topological_space
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 B : Type*}
 
@@ -69,12 +69,12 @@ begin
   let d := to_Ico_div a hp x • p,
   have hd := to_Ico_mod_mem_Ico a hp x,
   simp_rw [subset_def, mem_inter_iff],
-  refine ⟨_, ⟨l - d, min (a + p) u - d, _, λ x, id⟩, λ y, _⟩;
-    simp_rw [← add_mem_Ioo_iff_left, mem_Ioo, lt_min_iff],
+  refine ⟨_, ⟨l + d, min (a + p) u + d, _, λ x, id⟩, λ y, _⟩;
+    simp_rw [← sub_mem_Ioo_iff_left, mem_Ioo, lt_min_iff],
   { exact ⟨hxI.1, hd.2, hxI.2⟩ },
   { rintro ⟨h, h'⟩, apply hIs,
-    rw [← to_Ico_mod_add_zsmul, (to_Ico_mod_eq_self _).2],
-    exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (add_le_add_right h' _), h.2.1⟩] },
+    rw [← to_Ico_mod_sub_zsmul, (to_Ico_mod_eq_self _).2],
+    exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (sub_le_sub_right h' _), h.2.1⟩] },
 end
 
 lemma continuous_left_to_Ioc_mod : continuous_within_at (to_Ioc_mod a hp) (Iic x) x :=
@@ -89,7 +89,7 @@ variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
 lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[𝓝 x] to_Ioc_mod a hp :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
-  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_eq_mod_zmultiples hp).2 hx)
+  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_ne_mod_zmultiples hp).2 hx)
 
 lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod a hp) x :=
 let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $

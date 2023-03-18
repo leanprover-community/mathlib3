@@ -16,7 +16,7 @@ The main definition is a `valued` type class which equips a ring with a valuatio
 values in a group with zero. Other instances are then deduced from this.
 -/
 
-open_locale classical topological_space uniformity
+open_locale classical topology uniformity
 open set valuation
 noncomputable theory
 

@@ -11,6 +11,9 @@ import order.complete_lattice
 
 /-!
 # Lattice operations on finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β γ ι : Type*}
@@ -420,10 +423,10 @@ lemma sup_inf_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.sup f ⊓ a = s.sup (λ i, f i ⊓ a) :=
 by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
 
-lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
+protected lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
 by simp only [disjoint_iff, sup_inf_distrib_left, sup_eq_bot_iff]
 
-lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
+protected lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
 by simp only [disjoint_iff, sup_inf_distrib_right, sup_eq_bot_iff]
 
 end order_bot

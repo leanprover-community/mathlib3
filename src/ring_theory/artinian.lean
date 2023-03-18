@@ -456,8 +456,8 @@ begin
   rw [smul_eq_mul, smul_eq_mul, pow_succ', mul_assoc] at hr,
   apply_fun algebra_map R L at hr,
   simp only [map_mul, ←submonoid.coe_pow] at hr,
-  rw [←is_localization.mk'_one L, is_localization.mk'_eq_iff_eq, one_mul, submonoid.coe_one,
-      ←(is_localization.map_units L (s ^ n)).mul_left_cancel hr, map_mul, mul_comm],
+  rw [←is_localization.mk'_one L, is_localization.mk'_eq_iff_eq, mul_one, submonoid.coe_one,
+      ←(is_localization.map_units L (s ^ n)).mul_left_cancel hr, map_mul],
 end
 
 lemma localization_artinian : is_artinian_ring L :=

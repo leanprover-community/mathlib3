@@ -166,7 +166,7 @@ noncomputable theory
 open topological_space (second_countable_topology)
 open measure_theory set classical filter function
 
-open_locale classical topological_space filter ennreal big_operators interval nnreal
+open_locale classical topology filter ennreal big_operators interval nnreal
 
 variables {ι 𝕜 E F A : Type*} [normed_add_comm_group E]
 
@@ -399,13 +399,21 @@ begin
   exact hf.continuous_on_mul_of_subset hg is_compact_uIcc measurable_set_Ioc Ioc_subset_Icc_self
 end
 
+@[simp]
 lemma const_mul {f : ℝ → A}
   (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, c * f x) μ a b :=
 hf.continuous_on_mul continuous_on_const
 
+@[simp]
 lemma mul_const {f : ℝ → A}
   (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, f x * c) μ a b :=
 hf.mul_continuous_on continuous_on_const
+
+@[simp]
+lemma div_const {𝕜 : Type*} {f : ℝ → 𝕜} [normed_field 𝕜]
+  (h : interval_integrable f μ a b) (c : 𝕜) :
+  interval_integrable (λ x, f x / c) μ a b :=
+by simpa only [div_eq_mul_inv] using mul_const h c⁻¹
 
 lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
   interval_integrable (λ x, f (c * x)) volume (a / c) (b / c) :=
@@ -422,11 +430,42 @@ begin
   { rw preimage_mul_const_uIcc (inv_ne_zero hc), field_simp [hc] },
 end
 
+lemma comp_mul_right (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (x * c)) volume (a / c) (b / c) :=
+by simpa only [mul_comm] using comp_mul_left hf c
+
+lemma comp_add_right (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (x + c)) volume (a - c) (b - c) :=
+begin
+  wlog h : a ≤ b,
+  { exact interval_integrable.symm (this hf.symm _ (le_of_not_le h)) },
+  rw interval_integrable_iff' at hf ⊢,
+  have A : measurable_embedding (λ x, x + c) :=
+    (homeomorph.add_right c).closed_embedding.measurable_embedding,
+  have Am : measure.map (λ x, x + c) volume = volume,
+  { exact is_add_left_invariant.is_add_right_invariant.map_add_right_eq_self _ },
+  rw ←Am at hf,
+  convert (measurable_embedding.integrable_on_map_iff A).mp hf,
+  rw preimage_add_const_uIcc,
+end
+
+lemma comp_add_left (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (c + x)) volume (a - c) (b - c) :=
+by simpa only [add_comm] using interval_integrable.comp_add_right hf c
+
+lemma comp_sub_right (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (x - c)) volume (a + c) (b + c) :=
+by simpa only [sub_neg_eq_add] using interval_integrable.comp_add_right hf (-c)
+
 lemma iff_comp_neg  :
   interval_integrable f volume a b ↔ interval_integrable (λ x, f (-x)) volume (-a) (-b) :=
 begin
   split, all_goals { intro hf, convert comp_mul_left hf (-1), simp, field_simp, field_simp },
 end
+
+lemma comp_sub_left (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (c - x)) volume (c - a) (c - b) :=
+by simpa only [neg_sub, ←sub_eq_add_neg] using iff_comp_neg.mp (hf.comp_add_left c)
 
 end interval_integrable
 
@@ -943,12 +982,11 @@ by { rw [integral_interval_sub_interval_comm hab hcd hac, integral_symm b d, int
 lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on f (Iic b) μ) :
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
 begin
-  wlog hab : a ≤ b using [a b] tactic.skip,
-  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
-      Iic_union_Ioc_eq_Iic hab],
-    exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
-  { intros ha hb,
-    rw [integral_symm, ← this hb ha, neg_sub] }
+  wlog hab : a ≤ b generalizing a b,
+  { rw [integral_symm, ← this hb ha (le_of_not_le hab), neg_sub] },
+  rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
+    Iic_union_Ioc_eq_Iic hab],
+  exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)]
 end
 
 /-- If `μ` is a finite measure then `∫ x in a..b, c ∂μ = (μ (Iic b) - μ (Iic a)) • c`. -/
@@ -1023,10 +1061,34 @@ begin
   simp only [interval_integrable_iff, interval_integral_eq_integral_uIoc,
     ← ae_restrict_iff' measurable_set_uIoc] at *,
   exact (has_sum_integral_of_dominated_convergence bound hF_meas h_bound bound_summable
-    bound_integrable h_lim).const_smul
+    bound_integrable h_lim).const_smul _,
 end
 
 open topological_space
+
+/-- Interval integrals commute with countable sums, when the supremum norms are summable (a
+special case of the dominated convergence theorem). -/
+lemma has_sum_interval_integral_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  has_sum (λ i : ι, ∫ x in a..b, f i x) (∫ x in a..b, (∑' i : ι, f i x)) :=
+begin
+  refine has_sum_integral_of_dominated_convergence
+    (λ i (x : ℝ), ‖(f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)
+    (λ i, (map_continuous $ f i).ae_strongly_measurable)
+    (λ i, ae_of_all _ (λ x hx, ((f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ :
+      compacts ℝ)).norm_coe_le_norm ⟨x, ⟨hx.1.le, hx.2⟩⟩))
+    (ae_of_all _ (λ x hx, hf_sum))
+    interval_integrable_const
+    (ae_of_all _ (λ x hx, summable.has_sum _)),
+  -- next line is slow, & doesn't work with "exact" in place of "apply" -- ?
+  apply continuous_map.summable_apply (summable_of_summable_norm hf_sum) ⟨x, ⟨hx.1.le, hx.2⟩⟩,
+end
+
+lemma tsum_interval_integral_eq_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  ∑' (i : ι), ∫ x in a..b, f i x = ∫ x in a..b, (∑' i : ι, f i x) :=
+(has_sum_interval_integral_of_summable_norm hf_sum).tsum_eq
+
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
 /-- Continuity of interval integral with respect to a parameter, at a point within a set.
@@ -1260,17 +1322,29 @@ lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interva
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
-/-- If `f : ℝ → ℝ` is strictly positive and integrable on `(a, b]` for real numbers `a < b`, then
-its integral over `a..b` is strictly positive. -/
-lemma interval_integral_pos_of_pos {f : ℝ → ℝ} {a b : ℝ}
-  (hfi : interval_integrable f measure_space.volume a b) (h : ∀ x, 0 < f x) (hab : a < b) :
-  0 < ∫ x in a..b, f x :=
+/-- If `f : ℝ → ℝ` is integrable on `(a, b]` for real numbers `a < b`, and positive on the interior
+of the interval, then its integral over `a..b` is strictly positive. -/
+lemma interval_integral_pos_of_pos_on {f : ℝ → ℝ} {a b : ℝ}
+  (hfi : interval_integrable f volume a b) (hpos : ∀ (x : ℝ), x ∈ Ioo a b → 0 < f x) (hab : a < b) :
+  0 < ∫ (x : ℝ) in a..b, f x :=
 begin
-  have hsupp : support f = univ := eq_univ_iff_forall.mpr (λ t, (h t).ne.symm),
-  replace h₀ : 0 ≤ᵐ[volume] f := eventually_of_forall (λ x, (h x).le),
-  rw integral_pos_iff_support_of_nonneg_ae h₀ hfi,
-  exact ⟨hab, by simp [hsupp, hab]⟩,
+  have hsupp : Ioo a b ⊆ support f ∩ Ioc a b :=
+    λ x hx, ⟨mem_support.mpr (hpos x hx).ne', Ioo_subset_Ioc_self hx⟩,
+  have h₀ : 0 ≤ᵐ[volume.restrict (uIoc a b)] f,
+  { rw [eventually_le, uIoc_of_le hab.le],
+    refine ae_restrict_of_ae_eq_of_ae_restrict Ioo_ae_eq_Ioc _,
+    exact (ae_restrict_iff' measurable_set_Ioo).mpr (ae_of_all _ (λ x hx, (hpos x hx).le)) },
+  rw integral_pos_iff_support_of_nonneg_ae' h₀ hfi,
+  exact ⟨hab, ((measure.measure_Ioo_pos _).mpr hab).trans_le (measure_mono hsupp)⟩,
 end
+
+/-- If `f : ℝ → ℝ` is strictly positive everywhere, and integrable on `(a, b]` for real numbers
+`a < b`, then its integral over `a..b` is strictly positive. (See `interval_integral_pos_of_pos_on`
+for a version only assuming positivity of `f` on `(a, b)` rather than everywhere.) -/
+lemma interval_integral_pos_of_pos {f : ℝ → ℝ} {a b : ℝ}
+  (hfi : interval_integrable f measure_space.volume a b) (hpos : ∀ x, 0 < f x) (hab : a < b) :
+  0 < ∫ x in a..b, f x :=
+interval_integral_pos_of_pos_on hfi (λ x hx, hpos x) hab
 
 /-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
 `f x ≤ g x` for a.e. `x ∈ set.Ioc a b`, and `f x < g x` on a subset of `set.Ioc a b`
@@ -1375,6 +1449,28 @@ end mono
 
 end
 
+section has_sum
+variables {μ : measure ℝ} {f : ℝ → E}
+
+lemma _root_.measure_theory.integrable.has_sum_interval_integral (hfi : integrable f μ) (y : ℝ) :
+  has_sum (λ (n : ℤ), ∫ x in (y + n)..(y + n + 1), f x ∂μ) (∫ x, f x ∂μ) :=
+begin
+  simp_rw integral_of_le (le_add_of_nonneg_right zero_le_one),
+  rw [←integral_univ, ←Union_Ioc_add_int_cast y],
+  exact has_sum_integral_Union (λ i, measurable_set_Ioc) (pairwise_disjoint_Ioc_add_int_cast y)
+    hfi.integrable_on,
+end
+
+lemma _root_.measure_theory.integrable.has_sum_interval_integral_comp_add_int
+  (hfi : integrable f) :
+  has_sum (λ (n : ℤ), ∫ x in 0..1, f (x + n)) (∫ x, f x) :=
+begin
+  convert hfi.has_sum_interval_integral 0 using 2,
+  ext1 n,
+  rw [integral_comp_add_right, zero_add, add_comm],
+end
+
+end has_sum
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 

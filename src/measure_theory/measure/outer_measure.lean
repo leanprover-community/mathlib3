@@ -7,7 +7,6 @@ import analysis.specific_limits.basic
 import measure_theory.pi_system
 import data.countable.basic
 import data.fin.vec_notation
-import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
@@ -54,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set function filter topological_space (second_countable_topology)
-open_locale classical big_operators nnreal topological_space ennreal measure_theory
+open_locale classical big_operators nnreal topology ennreal measure_theory
 
 namespace measure_theory
 

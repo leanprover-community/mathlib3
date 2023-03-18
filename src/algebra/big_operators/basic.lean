@@ -18,6 +18,9 @@ import data.set.pairwise
 /-!
 # Big operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by finite sets (specifically, `finset`).
 
 ## Notation
@@ -245,7 +248,7 @@ by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
 @[simp, priority 1100, to_additive]
 lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
-by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
+by simp only [finset.prod, multiset.map_const, multiset.prod_replicate, one_pow]
 
 @[simp, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
@@ -1126,7 +1129,11 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_repeat b s.card
+(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate s.card b
+
+@[to_additive sum_eq_card_nsmul] lemma prod_eq_pow_card {b : β} (hf : ∀ a ∈ s, f a = b) :
+  ∏ a in s, f a = b ^ s.card :=
+(prod_congr rfl hf).trans $ prod_const _
 
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
@@ -1382,7 +1389,7 @@ begin
   classical,
   apply finset.induction_on' S, { simp },
   intros a T haS _ haT IH,
-  repeat {rw finset.prod_insert haT},
+  repeat { rw finset.prod_insert haT },
   exact mul_dvd_mul (h a haS) IH,
 end
 
@@ -1566,6 +1573,22 @@ lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
   (s : finset α) (f : α → β) (h : s.nonempty) :
   (∏ x in s, f x) = f default :=
 by rw [h.eq_singleton_default, finset.prod_singleton]
+
+lemma sum_nat_mod (s : finset α) (n : ℕ) (f : α → ℕ) :
+  (∑ i in s, f i) % n = (∑ i in s, f i % n) % n :=
+(multiset.sum_nat_mod _ _).trans $ by rw [finset.sum, multiset.map_map]
+
+lemma prod_nat_mod (s : finset α) (n : ℕ) (f : α → ℕ) :
+  (∏ i in s, f i) % n = (∏ i in s, f i % n) % n :=
+(multiset.prod_nat_mod _ _).trans $ by rw [finset.prod, multiset.map_map]
+
+lemma sum_int_mod (s : finset α) (n : ℤ) (f : α → ℤ) :
+  (∑ i in s, f i) % n = (∑ i in s, f i % n) % n :=
+(multiset.sum_int_mod _ _).trans $ by rw [finset.sum, multiset.map_map]
+
+lemma prod_int_mod (s : finset α) (n : ℤ) (f : α → ℤ) :
+  (∏ i in s, f i) % n = (∏ i in s, f i % n) % n :=
+(multiset.prod_int_mod _ _).trans $ by rw [finset.prod, multiset.map_map]
 
 end finset
 

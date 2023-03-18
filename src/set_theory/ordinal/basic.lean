@@ -957,17 +957,6 @@ theorem ord_card_le (o : ordinal) : o.card.ord ≤ o := gc_ord_card.l_u_le _
 
 lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord := lt_ord.2 $ lt_succ _
 
-/--
-A variation on `cardinal.lt_ord` using `≤`: If `i` is no greater than the
-initial ordinal of cardinality `κ`, then the cardinal of any of its realizations
-is no greater than `κ`.
-
-The converse, however, is false (for instance, `i = ω+1` and `κ = ℵ₀`).
--/
-lemma card_le_of_le_ord {κ : cardinal} {i : ordinal} (hi : i ≤ κ.ord) :
-  i.card ≤ κ :=
-by { rw ← card_ord κ, exact ordinal.card_le_card hi }
-
 @[mono] theorem ord_strict_mono : strict_mono ord := gci_ord_card.strict_mono_l
 @[mono] theorem ord_mono : monotone ord := gc_ord_card.monotone_l
 

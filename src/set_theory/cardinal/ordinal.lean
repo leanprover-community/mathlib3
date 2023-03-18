@@ -23,8 +23,9 @@ using ordinals.
   It is an order isomorphism between ordinals and cardinals.
 * The function `cardinal.aleph` gives the infinite cardinals listed by their
   ordinal index. `aleph 0 = ℵ₀`, `aleph 1 = succ ℵ₀` is the first
-  uncountable cardinal, and so on. The first uncountable ordinal `ordinal.omega_1`
-  (notation: `ω₁`) is defined in terms of `aleph 1`.
+  uncountable cardinal, and so on. The related function `ordinal.initial`
+  (notation: `ω_`) gives the first ordinal of a given infinite cardinality.
+  Thus `ω_ 0 = ω` and `ω_ 1` is the first uncountable ordinal.
 
 * The function `cardinal.beth` enumerates the Beth cardinals. `beth 0 = ℵ₀`,
   `beth (succ o) = 2 ^ beth o`, and for a limit ordinal `o`, `beth o` is the supremum of `beth a`
@@ -1186,7 +1187,7 @@ end bit
 
 end cardinal
 
-section omega_1
+section initial
 
 namespace ordinal
 
@@ -1194,14 +1195,26 @@ open cardinal
 open_locale ordinal cardinal
 
 /--
-The first uncountable ordinal in type universe `u`.
-You can use the notation `ω₁`.
+`initial i` (notation: `ω_ i`) gives the first ordinal of cardinality
+`aleph i`. Thus `ω_ 0 = ω` and `ω_ 1` is the first uncountable ordinal.
+You can also write `ω_ 1` as `ω₁`.
 -/
-noncomputable def omega_1 : ordinal.{u} := (aleph 1).ord
+noncomputable def initial (x : ordinal.{u}) : ordinal.{u} := (aleph x).ord
 
-localized "notation (name := ordinal.omega_1) `ω₁` := ordinal.omega_1" in ordinal
+localized "notation (name := ordinal.initial) `ω_` := ordinal.initial" in ordinal
+localized "notation (name := ordinal.omega_1) `ω₁` := ordinal.initial 1" in ordinal
 
-@[simp] theorem card_omega_1 : card ω₁ = aleph 1 := card_ord _
+@[simp] theorem card_initial (i : ordinal): card (initial i) = aleph i := card_ord _
+
+/--
+The first (infinite) initial ordinal is `ω`.
+-/
+@[simp] lemma initial_0 : ω_ 0 = ω := by { unfold initial, simp }
+
+/--
+An initial ordinal is a limit ordinal.
+-/
+lemma is_limit_initial (i : ordinal): (initial i).is_limit := ord_is_limit (aleph_0_le_aleph i)
 
 lemma omega_lt_omega_1 : ω < ω₁ :=
 begin
@@ -1210,11 +1223,9 @@ begin
   exact this
 end
 
-lemma is_limit_omega_1 : omega_1.is_limit := ord_is_limit (aleph_0_le_aleph 1)
-
 end ordinal
 
-end omega_1
+end initial
 
 section ordinal_indices
 /-!
@@ -1224,6 +1235,17 @@ Results on cardinality of ordinal-indexed families of sets.
 -/
 namespace cardinal
 open_locale cardinal
+
+/--
+A variation on `cardinal.lt_ord` using `≤`: If `i` is no greater than the
+initial ordinal of cardinality `κ`, then the cardinal of any of its realizations
+is no greater than `κ`.
+
+The converse, however, is false (for instance, `i = ω+1` and `κ = ℵ₀`).
+-/
+lemma card_le_of_le_ord {κ : cardinal} {i : ordinal} (hi : i ≤ κ.ord) :
+  i.card ≤ κ :=
+by { rw ← card_ord κ, exact ordinal.card_le_card hi }
 
 /--
 Bounding the cardinal of an ordinal-indexed union of sets.

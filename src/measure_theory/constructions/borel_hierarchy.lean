@@ -334,7 +334,8 @@ begin
     choose o ho using g,
     use order.succ(sup o),
     split,
-    { exact is_limit.succ_lt is_limit_omega_1 (sup_sequence_lt_omega_1 o (λ n, (ho n).left)) },
+    { exact is_limit.succ_lt (is_limit_initial 1)
+      (sup_sequence_lt_omega_1 o (λ n, (ho n).left)) },
     rw sigma0_eq_Union_pi0,
     rw mem_range,
     have typf : ∀ n, ↑(f n) ∈ ⋃ (j < order.succ (sup o)), pi0 s j,
@@ -404,7 +405,7 @@ theorem generate_measurable_eq_gen_measurable :
 begin
   ext t, refine ⟨λ ht, _, λ ht, _⟩,
   { have om1_nonz : ω₁ ≠ 0,
-    { unfold omega_1, exact ne_zero_of_out_nonempty _ },
+    { unfold initial, exact ne_zero_of_out_nonempty _ },
     induction ht with u hu u hu IH f hf IH,
     exacts
       [self_subset_sigma0 s ω₁ om1_nonz hu,

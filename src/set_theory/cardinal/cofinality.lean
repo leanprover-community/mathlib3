@@ -1085,32 +1085,12 @@ namespace ordinal
 open cardinal
 open_locale ordinal cardinal
 
-lemma sup_sequence_lt_omega_1 (o : ℕ → ordinal.{u}) (ho : ∀ n, o n < ω₁) :
+lemma sup_sequence_lt_omega_1 {α} [countable α] (o : α → ordinal) (ho : ∀ n, o n < ω₁) :
   sup o < ω₁ :=
 begin
   apply sup_lt_ord_lift _ ho,
-  simp only [mk_denumerable, lift_aleph_0],
-  unfold omega_1,
-  rw [cardinal.is_regular_aleph_one.cof_eq],
-  exact aleph_0_lt_aleph_one,
-end
-
-/--
-Denumerably many elements chosen from a nondecreasing `ω₁`-sequence of sets,
-all lie in one of the sets.
--/
-lemma bound_omega_1_of_increasing_of_sequence {β : Type*} {A : ordinal → set β}
-  {hA : ∀ j k (hjk : j ≤ k), A j ⊆ A k} {f : ℕ → β} (hf : ∀ n, ∃ i, i < ω₁ ∧ f n ∈ A i) :
-  ∃ i (hi : i < ω₁), ∀ n, f n ∈ A i :=
-begin
-  choose o ho using hf,
-  use sup o,
-  split,
-  { finish [sup_sequence_lt_omega_1] },
-  intro n,
-  specialize ho n,
-  specialize hA (o n) (sup o) (le_sup o n),
-  tauto
+  rw [initial, cardinal.is_regular_aleph_one.cof_eq],
+  exact lt_of_le_of_lt mk_le_aleph_0 aleph_0_lt_aleph_one
 end
 
 end ordinal

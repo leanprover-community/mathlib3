@@ -320,6 +320,15 @@ end topological_vector_space
 
 section
 
+/-- The zero section of a vector bundle -/
+def zero_section [∀ x, has_zero (E x)] : B → total_space E :=
+λ x, total_space_mk x 0
+
+@[simp, mfld_simps]
+lemma zero_section_proj [∀ x, has_zero (E x)] (x : B) : (zero_section E x).proj = x := rfl
+@[simp, mfld_simps]
+lemma zero_section_snd [∀ x, has_zero (E x)] (x : B) : (zero_section E x).2 = 0 := rfl
+
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_add_comm_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)] [fiber_bundle F E]
@@ -459,6 +468,11 @@ lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (
   (e.continuous_linear_equiv_at R b hb.1).symm.trans (e'.continuous_linear_equiv_at R b hb.2)
   = coord_changeL R e e' b :=
 by { ext v, rw [coord_changeL_apply e e' hb], refl }
+
+protected lemma zero_section (e : trivialization F (π E)) [e.is_linear R]
+  {x : B} (hx : x ∈ e.base_set) : e (zero_section E x) = (x, 0) :=
+by simp_rw [zero_section, total_space_mk, e.apply_eq_prod_continuous_linear_equiv_at R x hx 0,
+  map_zero]
 
 end trivialization
 

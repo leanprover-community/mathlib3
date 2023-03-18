@@ -112,13 +112,13 @@ variables [nontrivially_normed_field 𝕜]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
-  [topological_space B] [charted_space HB B]
-  [fiber_bundle F E]
   (E' : B → Type*) [Π x, has_zero (E' x)]
   {EM : Type*} [normed_add_comm_group EM] [normed_space 𝕜 EM]
   {HM : Type*} [topological_space HM] {IM : model_with_corners 𝕜 EM HM}
   [topological_space M] [charted_space HM M] [Is : smooth_manifold_with_corners IM M]
   {n : ℕ∞}
+
+variables [topological_space B] [charted_space HB B] [fiber_bundle F E]
 
 protected lemma fiber_bundle.ext_chart_at (x : total_space E) :
   ext_chart_at (IB.prod 𝓘(𝕜, F)) x =
@@ -216,23 +216,7 @@ lemma smooth_within_at_proj
   smooth_within_at (IB.prod 𝓘(𝕜, F)) IB (π E) s p :=
 bundle.cont_mdiff_within_at_proj E
 
-/-- The zero section of a vector bundle -/
-def zero_section : B → total_space E' :=
-λ x, total_space_mk x 0
-
-@[simp, mfld_simps]
-lemma zero_section_proj (x : B) : (zero_section E' x).proj = x := rfl
-@[simp, mfld_simps]
-lemma zero_section_snd (x : B) : (zero_section E' x).2 = 0 := rfl
-
-variables (𝕜) {E} [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
-
-protected lemma _root_.trivialization.zero_section (e : trivialization F (π E)) [e.is_linear 𝕜]
-  {x : B} (hx : x ∈ e.base_set) : e (zero_section E x) = (x, 0) :=
-by simp_rw [zero_section, total_space_mk, e.apply_eq_prod_continuous_linear_equiv_at 𝕜 x hx 0,
-  map_zero]
-
-variables (E) [vector_bundle 𝕜 F E]
+variables (𝕜 E) [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)] [vector_bundle 𝕜 F E]
 
 lemma smooth_zero_section : smooth IB (IB.prod 𝓘(𝕜, F)) (zero_section E) :=
 begin

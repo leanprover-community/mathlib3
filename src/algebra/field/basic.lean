@@ -24,7 +24,7 @@ universe u
 variables {α β K : Type*}
 
 section division_semiring
-variables [division_semiring α] {a b c : α}
+variables [division_semiring α] {a b c d : α}
 
 lemma add_div (a b c : α) : (a + b) / c = a / c + b / c := by simp_rw [div_eq_mul_inv, add_mul]
 
@@ -49,6 +49,18 @@ by rw [add_div, mul_div_cancel _ hc]
 
 @[field_simps] lemma div_add' (a b c : α) (hc : c ≠ 0) : a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
+
+protected lemma commute.div_add_div (hbc : commute b c) (hbd : commute b d) (hb : b ≠ 0)
+  (hd : d ≠ 0) : a / b + c / d = (a * d + b * c) / (b * d) :=
+by rw [add_div, mul_div_mul_right _ b hd, hbc.eq, hbd.eq, mul_div_mul_right c d hb]
+
+protected lemma commute.one_div_add_one_div (hab : commute a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+  1 / a + 1 / b = (a + b) / (a * b) :=
+by rw [(commute.one_right a).div_add_div hab ha hb, one_mul, mul_one, add_comm]
+
+protected lemma commute.inv_add_inv (hab : commute a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
+by rw [inv_eq_one_div, inv_eq_one_div, hab.one_div_add_one_div ha hb]
 
 end division_semiring
 
@@ -138,13 +150,13 @@ variables [semifield α] {a b c d : α}
 
 lemma div_add_div (a : α) (c : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) + (c / d) = ((a * d) + (b * c)) / (b * d) :=
-by rw [← mul_div_mul_right _ b hd, ← mul_div_mul_left c d hb, div_add_div_same]
+(commute.all b _).div_add_div (commute.all _ _) hb hd
 
 lemma one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) : 1 / a + 1 / b = (a + b) / (a * b) :=
-by rw [div_add_div _ _ ha hb, one_mul, mul_one, add_comm]
+(commute.all a _).one_div_add_one_div ha hb
 
 lemma inv_add_inv (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
-by rw [inv_eq_one_div, inv_eq_one_div, one_div_add_one_div ha hb]
+(commute.all a _).inv_add_inv ha hb
 
 end semifield
 

@@ -55,7 +55,7 @@ see `to_dual`.
 -/
 def to_dual_map : E →ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
 { norm_map' := λ _, innerSL_apply_norm,
- ..innerSL }
+ ..innerSL 𝕜 }
 
 variables {E}
 

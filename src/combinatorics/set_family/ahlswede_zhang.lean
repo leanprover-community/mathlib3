@@ -6,7 +6,8 @@ Authors: Yaël Dillies, Vladimir Ivanov
 import algebra.big_operators.ring
 import data.finset.sups
 import data.fintype.powerset
-import order.upper_lower
+import order.hom.lattice
+import order.upper_lower.basic
 import tactic.field_simp
 import tactic.ring
 
@@ -20,50 +21,6 @@ This file proves the Ahlswede-Zhang identity, which is a nontrivial relation bet
 * `finset.truncated_sup`
 * `finset.truncated_inf`
 -/
-
-section set_family
-
-localized "infix (name := set.sups) ` ⊻ `:74 := set.image2 (⊔)" in set_family
-localized "infix (name := set.infs) ` ⊼ `:74 := set.image2 (⊓)" in set_family
-
-section
-variables {α :  Type*} [semilattice_sup α] {s t : set α} {a b : α}
-
-@[simp] lemma upper_closure_sups : upper_closure (s ⊻ t) = upper_closure s ⊔ upper_closure t :=
-begin
-  ext a,
-  simp only [set_like.mem_coe, mem_upper_closure, set.mem_image2, exists_and_distrib_left,
-    exists_prop, upper_set.coe_sup, set.mem_inter_iff],
-  split,
-  { rintro ⟨_, ⟨b, hb, c, hc, rfl⟩, ha⟩,
-    exact ⟨⟨b, hb, le_sup_left.trans ha⟩, c, hc, le_sup_right.trans ha⟩ },
-  { rintro ⟨⟨b, hb, hab⟩, c, hc, hac⟩,
-    exact ⟨b ⊔ c, ⟨b, hb, c, hc, rfl⟩, _root_.sup_le hab hac⟩ }
-end
-
-end
-
-section
-variables {α :  Type*} [semilattice_inf α] {s t : set α} {a : α}
-
-@[simp] lemma lower_closure_infs : lower_closure (s ⊼ t) = lower_closure s ⊓ lower_closure t :=
-begin
-  ext a,
-  simp only [set_like.mem_coe, mem_lower_closure, set.mem_image2, exists_and_distrib_left,
-    exists_prop, lower_set.coe_sup, set.mem_inter_iff],
-  split,
-  { rintro ⟨_, ⟨b, hb, c, hc, rfl⟩, ha⟩,
-    exact ⟨⟨b, hb, ha.trans inf_le_left⟩, c, hc, ha.trans inf_le_right⟩ },
-  { rintro ⟨⟨b, hb, hab⟩, c, hc, hac⟩,
-    exact ⟨b ⊓ c, ⟨b, hb, c, hc, rfl⟩, _root_.le_inf hab hac⟩ }
-end
-
-end
-end set_family
-
-section finset_family
-
-end finset_family
 
 namespace finset
 variables {ι ι' α β γ δ : Type*}
@@ -264,8 +221,7 @@ lemma truncated_inf_of_mem (h : a ∈ upper_closure (s : set α)) :
   truncated_inf s a = (s.filter $ λ b, b ≤ a).inf id :=
 if_pos h
 
-lemma truncated_inf_of_not_mem (h : a ∉ upper_closure (s : set α)) :
-  truncated_inf s a = ⊥ :=
+lemma truncated_inf_of_not_mem (h : a ∉ upper_closure (s : set α)) : truncated_inf s a = ⊥ :=
 if_neg h
 
 lemma truncated_inf_le (s : finset α) (a : α) : truncated_inf s a ≤ a :=
@@ -325,14 +281,9 @@ begin
   rw [truncated_sup_of_mem hs, truncated_sup_of_mem ht,
     truncated_sup_of_mem, sup_inf_sup, filter_infs_ge, ←image_inf_product, sup_image],
   refl,
-  { rw [infs, coe_image₂, lower_closure_infs],
+  { rw [coe_infs, lower_closure_infs],
     exact ⟨hs, ht⟩ }
 end
-
-lemma truncated_sup_infs_of_not_mem
-  (ha : a ∉ lower_closure (s : set α) ⊓ lower_closure (t : set α)) :
-  truncated_sup (s ⊼ t) a = ⊤ :=
-truncated_sup_of_not_mem $ by rwa [infs, coe_image₂, lower_closure_infs]
 
 lemma truncated_inf_sups (hs : a ∈ upper_closure (s : set α)) (ht : a ∈ upper_closure (t : set α)) :
   truncated_inf (s ⊻ t) a = truncated_inf s a ⊔ truncated_inf t a :=
@@ -340,14 +291,17 @@ begin
   rw [truncated_inf_of_mem hs, truncated_inf_of_mem ht,
     truncated_inf_of_mem, inf_sup_inf, filter_sups_le, ←image_sup_product, inf_image],
   refl,
-  { rw [sups, coe_image₂, upper_closure_sups],
+  { rw [coe_sups, upper_closure_sups],
     exact ⟨hs, ht⟩ }
 end
 
-lemma truncated_inf_sups_of_not_mem
-  (ha : a ∉ upper_closure (s : set α) ⊔ upper_closure (t : set α)) :
+lemma truncated_sup_infs_of_not_mem (ha : a ∉ lower_closure (s : set α) ⊓ lower_closure t) :
+  truncated_sup (s ⊼ t) a = ⊤ :=
+truncated_sup_of_not_mem $ by rwa [coe_infs, lower_closure_infs]
+
+lemma truncated_inf_sups_of_not_mem (ha : a ∉ upper_closure (s : set α) ⊔ upper_closure t) :
   truncated_inf (s ⊻ t) a = ⊥ :=
-truncated_inf_of_not_mem $ by rwa [sups, coe_image₂, upper_closure_sups]
+truncated_inf_of_not_mem $ by rwa [coe_sups, upper_closure_sups]
 
 end distrib_lattice
 
@@ -546,7 +500,7 @@ begin
   { cases h𝒜₁.card_pos.ne hm },
   obtain ⟨s, 𝒜, hs, rfl, rfl⟩ := card_eq_succ.1 hm.symm,
   have h𝒜 : 𝒜.nonempty := nonempty_iff_ne_empty.2 (by { rintro rfl, simpa using h𝒜₃ }),
-  rw [insert_eq, sum_truncated_inf_div_card_mul_choose_union_eq, infs_singleton_left, ih, ih, ih],
+  rw [insert_eq, sum_truncated_inf_div_card_mul_choose_union_eq, singleton_infs, ih, ih, ih],
   simp,
   { exact card_image_le.trans_lt (lt_add_one _) },
   { exact h𝒜.image _ },

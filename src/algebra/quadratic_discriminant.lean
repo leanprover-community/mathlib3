@@ -68,13 +68,9 @@ begin
 end
 
 /-- A quadratic has no root if its discriminant has no square root. -/
-lemma quadratic_ne_zero_of_discrim_ne_sq (h : ∀ s : R, discrim a b c ≠ s * s) (x : R) :
+lemma quadratic_ne_zero_of_discrim_ne_sq (h : ∀ s : R, discrim a b c ≠ s^2) (x : R) :
   a * x * x + b * x + c ≠ 0 :=
-begin
-  refine mt discrim_eq_sq_of_quadratic_eq_zero _,
-  rw [sq],
-  apply h
-end
+mt discrim_eq_sq_of_quadratic_eq_zero $ h _
 
 end ring
 

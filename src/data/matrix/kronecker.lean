@@ -223,11 +223,12 @@ lemma det_kronecker_map_bilinear [comm_semiring R]
   (f : α →ₗ[R] β →ₗ[R] γ) (h_comm : ∀ a b a' b', f (a * b) (a' * b') = f a a' * f b b')
   (A : matrix m m α) (B : matrix n n β) :
   det (kronecker_map_bilinear f A B) =
-    (A.map (λ a, f a 1)).det ^ fintype.card n * (B.map (λ b, f 1 b)).det ^ fintype.card m :=
+    det (A.map (λ a, f a 1)) ^ fintype.card n * det (B.map (λ b, f 1 b)) ^ fintype.card m :=
 calc det (kronecker_map_bilinear f A B)
-      = det ((kronecker_map_bilinear f A 1) ⬝ (kronecker_map_bilinear f 1 B))
+      = det (kronecker_map_bilinear f A 1 ⬝ kronecker_map_bilinear f 1 B)
     : by rw [←kronecker_map_bilinear_mul_mul f h_comm, matrix.mul_one, matrix.one_mul]
-... = det (block_diagonal (λ _ : n, A.map (λ a, f a 1))) * det (block_diagonal (λ _ : m, B.map (λ b, f 1 b)))
+... = det (block_diagonal (λ _, A.map (λ a, f a 1)))
+    * det (block_diagonal (λ _, B.map (λ b, f 1 b)))
     : begin
         rw [det_mul, ←diagonal_one, ←diagonal_one,
           kronecker_map_bilinear_apply_apply, kronecker_map_diagonal_right _ (λ _, _),

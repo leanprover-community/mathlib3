@@ -3,12 +3,12 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.order
-import data.rat.lemmas
-import data.int.char_zero
-import algebra.group_with_zero.power
 import algebra.field.opposite
+import algebra.group_with_zero.power
 import algebra.order.field.basic
+import data.int.char_zero
+import data.rat.basic
+import data.rat.lemmas
 
 /-!
 # Casts for Rational Numbers

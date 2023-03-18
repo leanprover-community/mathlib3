@@ -3,9 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.order.field.defs
-import data.rat.basic
 import data.int.cast.lemmas
+import data.rat.defs
 import tactic.assert_exists
 
 /-!
@@ -14,10 +13,13 @@ import tactic.assert_exists
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
 > Any changes to this file require a corresponding PR to mathlib4.
 
-## Summary
+We define the order on `ℚ`, prove that `ℚ` is a discrete, linearly ordered ring, and define
+functions such as `abs` that depend on this order.
 
-We define the order on `ℚ`, prove that `ℚ` is a discrete, linearly ordered field, and define
-functions such as `abs` and `sqrt` that depend on this order.
+## Notes
+
+The `linear_ordered_field` instance is to be found in `data.rat.basic` because putting it here would
+result in import cycles.
 
 ## Notations
 
@@ -25,7 +27,7 @@ functions such as `abs` and `sqrt` that depend on this order.
 
 ## Tags
 
-rat, rationals, field, ℚ, numerator, denominator, num, denom, order, ordering, sqrt, abs
+rat, rationals, field, ℚ, numerator, denominator, num, denom, order, ordering, abs
 -/
 
 namespace rat
@@ -163,18 +165,16 @@ by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
-instance : linear_ordered_field ℚ :=
+instance : linear_ordered_comm_ring ℚ :=
 { zero_le_one     := dec_trivial,
+  exists_pair_ne  := ⟨0, 1, dec_trivial⟩,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.field,
-  ..rat.linear_order,
-  ..rat.semiring }
+  ..rat.comm_ring, ..rat.linear_order }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_comm_ring ℚ       := by apply_instance
 instance : linear_ordered_ring ℚ            := by apply_instance
 instance : ordered_ring ℚ                   := by apply_instance
 instance : linear_ordered_semiring ℚ        := by apply_instance

@@ -7,7 +7,6 @@ import algebra.big_operators.ring
 import data.finset.sups
 import data.fintype.powerset
 import order.hom.lattice
-import order.upper_lower.basic
 import tactic.field_simp
 import tactic.ring
 
@@ -26,7 +25,7 @@ namespace finset
 variables {ι ι' α β γ δ : Type*}
 
 -- TODO: Rename `finset.image_filter` → `finset.filter_image`
--- TODO: Dedup `finset.sup_image`, `finset.finset.sup_finset_image`
+-- TODO: Dedup `finset.sup_image`, `finset.sup_finset_image`
 
 open function
 

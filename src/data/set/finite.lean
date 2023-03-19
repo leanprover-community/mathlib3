@@ -1010,8 +1010,8 @@ begin
     exact nat.le_lt_antisymm (h4 h3) hnN,
 end
 
-lemma infinite_iff_arb_large  {S : set ℕ } : S.infinite ↔ ∀ (n : ℕ), ∃ m ∈ S, n < m :=
-  ⟨infinite.exists_nat_lt, infinite_of_forall_exists_nat_lt⟩
+lemma infinite_iff_exists_nat_lt {S : set ℕ} : S.infinite ↔ ∀ (n : ℕ), ∃ m ∈ S, n < m :=
+⟨infinite.exists_nat_lt, infinite_of_forall_exists_nat_lt⟩
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=

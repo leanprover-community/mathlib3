@@ -8,7 +8,6 @@ import tactic.qify
 import data.zmod.basic
 import number_theory.diophantine_approximation
 import number_theory.zsqrtd.basic
-import algebra.star.unitary
 
 /-!
 # Pell's Equation
@@ -39,27 +38,6 @@ Pell's equation
   and furthermore also for `x ^ 2 - d * y ^ 2 = -1` and further generalizations.
 * Connect solutions to the continued fraction expansion of `√d`.
 -/
-
-namespace zsqrtd
-
-variables {d : ℤ}
-
--- Note: We put these here to avoid having to import `algebra.star.unitary`
---       into `number_theory.zsqrtd.basic` just for these three results.
-
-/-- An element of `ℤ√d` has norm equal to `1` if and only if it is contained in the submonoid
-of unitary elements. -/
-lemma norm_eq_one_iff_mem_unitary {a : ℤ√d} : a.norm = 1 ↔ a ∈ unitary ℤ√d :=
-begin
-  rw [unitary.mem_iff_self_mul_star, ← norm_eq_mul_conj],
-  norm_cast,
-end
-
-/-- The kernel of the norm map on `ℤ√d` equals the submonoid of unitary elements. -/
-lemma mker_norm_eq_unitary : (@norm_monoid_hom d).mker = unitary ℤ√d :=
-submonoid.ext (λ x, norm_eq_one_iff_mem_unitary)
-
-end zsqrtd
 
 namespace pell
 

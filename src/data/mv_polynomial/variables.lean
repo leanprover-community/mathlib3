@@ -9,6 +9,9 @@ import data.mv_polynomial.rename
 /-!
 # Degrees and variables of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes many results about the degree and variable sets of a multivariate polynomial.
 
 The *variable set* of a polynomial $P \in R[X]$ is a `finset` containing each $x \in X$

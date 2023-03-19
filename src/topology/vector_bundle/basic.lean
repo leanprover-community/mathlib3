@@ -320,6 +320,8 @@ end topological_vector_space
 
 section
 
+namespace bundle
+
 /-- The zero section of a vector bundle -/
 def zero_section [∀ x, has_zero (E x)] : B → total_space E :=
 λ x, total_space_mk x 0
@@ -328,6 +330,9 @@ def zero_section [∀ x, has_zero (E x)] : B → total_space E :=
 lemma zero_section_proj [∀ x, has_zero (E x)] (x : B) : (zero_section E x).proj = x := rfl
 @[simp, mfld_simps]
 lemma zero_section_snd [∀ x, has_zero (E x)] (x : B) : (zero_section E x).2 = 0 := rfl
+
+end bundle
+open bundle
 
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_add_comm_group F] [normed_space R F] [topological_space B]

@@ -57,15 +57,7 @@ end
 
 /-- The kernel of the norm map on `ℤ√d` equals the submonoid of unitary elements. -/
 lemma mker_norm_eq_unitary : (@norm_monoid_hom d).mker = unitary ℤ√d :=
-submonoid.ext (λ x, (monoid_hom.mem_mker _).trans norm_eq_one_iff_mem_unitary)
-
-/-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
-it is contained in the submonoid of unitary elements.
-
-TODO: merge this result with `pell.is_pell_iff_mem_unitary`. -/
-lemma is_pell_solution_iff_mem_unitary {a : ℤ√d} :
-  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary ℤ√d :=
-by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]
+submonoid.ext (λ x, norm_eq_one_iff_mem_unitary)
 
 end zsqrtd
 
@@ -185,6 +177,16 @@ the "commutative group with distributive negation" structure from `↥(unitary (
 We then set up an API for `pell.solution₁ d`.
 -/
 
+open zsqrtd
+
+/-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
+it is contained in the submonoid of unitary elements.
+
+TODO: merge this result with `pell.is_pell_iff_mem_unitary`. -/
+lemma is_pell_solution_iff_mem_unitary {d : ℤ} {a : ℤ√d} :
+  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary ℤ√d :=
+by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]
+
 -- We use `solution₁ d` to allow for a more general structure `solution d m` that
 -- encodes solutions to `x^2 - d*y^2 = m` to be added later.
 
@@ -195,8 +197,6 @@ We define this in terms of elements of `ℤ√d` of norm one.
 def solution₁ (d : ℤ) : Type := ↥(unitary ℤ√d)
 
 namespace solution₁
-
-open zsqrtd
 
 variables {d : ℤ}
 

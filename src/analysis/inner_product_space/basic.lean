@@ -1695,31 +1695,33 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
+variables (𝕜)
+
 /-- The inner product as a sesquilinear map. -/
 def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
 linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) inner_add_left (λ _ _ _, inner_smul_left _ _ _)
   inner_add_right (λ _ _ _, inner_smul_right _ _ _)
 
-@[simp] lemma innerₛₗ_apply_coe (v : E) : (innerₛₗ v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply_coe (v : E) : ⇑(innerₛₗ 𝕜 v) = λ w, ⟪v, w⟫ := rfl
 
-@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ v w = ⟪v, w⟫ := rfl
+@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ 𝕜 v w = ⟪v, w⟫ := rfl
 
 /-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
 in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear
 isometric equivalence). -/
 def innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜 :=
-linear_map.mk_continuous₂ innerₛₗ 1
+linear_map.mk_continuous₂ (innerₛₗ 𝕜) 1
 (λ x y, by simp only [norm_inner_le_norm, one_mul, innerₛₗ_apply])
 
-@[simp] lemma innerSL_apply_coe (v : E) : (innerSL v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+@[simp] lemma innerSL_apply_coe (v : E) : ⇑(innerSL 𝕜 v) = λ w, ⟪v, w⟫ := rfl
 
-@[simp] lemma innerSL_apply (v w : E) : innerSL v w = ⟪v, w⟫ := rfl
+@[simp] lemma innerSL_apply (v w : E) : innerSL 𝕜 v w = ⟪v, w⟫ := rfl
 
 /-- `innerSL` is an isometry. Note that the associated `linear_isometry` is defined in
 `inner_product_space.dual` as `to_dual_map`.  -/
-@[simp] lemma innerSL_apply_norm {x : E} : ‖(innerSL x : E →L[𝕜] 𝕜)‖ = ‖x‖ :=
+@[simp] lemma innerSL_apply_norm (x : E) : ‖innerSL 𝕜 x‖ = ‖x‖ :=
 begin
-  refine le_antisymm ((innerSL x : E →L[𝕜] 𝕜).op_norm_le_bound (norm_nonneg _)
+  refine le_antisymm ((innerSL 𝕜 x).op_norm_le_bound (norm_nonneg _)
     (λ y, norm_inner_le_norm _ _)) _,
   cases eq_or_lt_of_le (norm_nonneg x) with h h,
   { have : x = 0 := norm_eq_zero.mp (eq.symm h),
@@ -1728,16 +1730,18 @@ begin
     calc ‖x‖ * ‖x‖ = ‖x‖ ^ 2 : by ring
     ... = re ⟪x, x⟫ : norm_sq_eq_inner _
     ... ≤ abs ⟪x, x⟫ : re_le_abs _
-    ... = ‖innerSL x x‖ : by { rw [←is_R_or_C.norm_eq_abs], refl }
-    ... ≤ ‖innerSL x‖ * ‖x‖ : (innerSL x : E →L[𝕜] 𝕜).le_op_norm _ }
+    ... = ‖⟪x, x⟫‖ : by rw [←is_R_or_C.norm_eq_abs]
+    ... ≤ ‖innerSL 𝕜 x‖ * ‖x‖ : (innerSL 𝕜 x).le_op_norm _ }
 end
 
 /-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
 def innerSL_flip : E →L[𝕜] E →L⋆[𝕜] 𝕜 :=
 @continuous_linear_map.flipₗᵢ' 𝕜 𝕜 𝕜 E E 𝕜 _ _ _ _ _ _ _ _ _ (ring_hom.id 𝕜) (star_ring_end 𝕜) _ _
-  innerSL
+  (innerSL 𝕜)
 
-@[simp] lemma innerSL_flip_apply (x y : E) : innerSL_flip x y = ⟪y, x⟫ := rfl
+@[simp] lemma innerSL_flip_apply (x y : E) : innerSL_flip 𝕜 x y = ⟪y, x⟫ := rfl
+
+variables {𝕜}
 
 namespace continuous_linear_map
 
@@ -1748,10 +1752,10 @@ as a continuous linear map. -/
 def to_sesq_form : (E →L[𝕜] E') →L[𝕜] E' →L⋆[𝕜] E →L[𝕜] 𝕜 :=
 ↑((continuous_linear_map.flipₗᵢ' E E' 𝕜
   (star_ring_end 𝕜) (ring_hom.id 𝕜)).to_continuous_linear_equiv) ∘L
-(continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) innerSL_flip)
+(continuous_linear_map.compSL E E' (E' →L⋆[𝕜] 𝕜) (ring_hom.id 𝕜) (ring_hom.id 𝕜) (innerSL_flip 𝕜))
 
 @[simp] lemma to_sesq_form_apply_coe (f : E →L[𝕜] E') (x : E') :
-  to_sesq_form f x = (innerSL x).comp f := rfl
+  to_sesq_form f x = (innerSL 𝕜 x).comp f := rfl
 
 lemma to_sesq_form_apply_norm_le {f : E →L[𝕜] E'} {v : E'} : ‖to_sesq_form f v‖ ≤ ‖f‖ * ‖v‖ :=
 begin
@@ -2287,7 +2291,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, linear_map.ker (innerSL (v:E) : E →L[𝕜] 𝕜) :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, linear_map.ker (innerSL 𝕜 (v : E)) :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -2302,7 +2306,7 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  have := λ v : K, continuous_linear_map.is_closed_ker (innerSL (v:E) : E →L[𝕜] 𝕜),
+  have := λ v : K, continuous_linear_map.is_closed_ker (innerSL 𝕜 (v : E)),
   convert is_closed_Inter this,
   simp only [submodule.infi_coe],
 end
@@ -2397,7 +2401,7 @@ protected lemma continuous_inner :
   continuous (uncurry inner : completion E × completion E → 𝕜) :=
 begin
   let inner' : E →+ E →+ 𝕜 :=
-  { to_fun := λ x, (innerₛₗ x).to_add_monoid_hom,
+  { to_fun := λ x, (innerₛₗ 𝕜 x).to_add_monoid_hom,
     map_zero' := by ext x; exact inner_zero_left _,
     map_add' := λ x y, by ext z; exact inner_add_left _ _ _ },
   have : continuous (λ p : E × E, inner' p.1 p.2) := continuous_inner,

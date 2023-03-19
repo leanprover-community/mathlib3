@@ -29,17 +29,20 @@ open_locale real_inner_product_space
 
 namespace euclidean_geometry
 
-variables {V : Type*} (P : Type*) [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+variables {V : Type*} (P : Type*)
 
 open finite_dimensional
 
 /-- A `sphere P` bundles a `center` and `radius`. This definition does not require the radius to
 be positive; that should be given as a hypothesis to lemmas that require it. -/
-@[ext] structure sphere :=
+@[ext] structure sphere [metric_space P] :=
 (center : P)
 (radius : ℝ)
 
 variables {P}
+
+section metric_space
+variables [metric_space P]
 
 instance [nonempty P] : nonempty (sphere P) := ⟨⟨classical.arbitrary P, 0⟩⟩
 
@@ -132,16 +135,9 @@ begin
   exact ⟨c, r, λ p hp, hcr p (hs hp)⟩
 end
 
-include V
-
 /-- The empty set is cospherical. -/
-lemma cospherical_empty : cospherical (∅ : set P) :=
-begin
-  use add_torsor.nonempty.some,
-  simp,
-end
-
-omit V
+lemma cospherical_empty [nonempty P] : cospherical (∅ : set P) :=
+let ⟨p⟩ := ‹nonempty P› in ⟨p, 0, λ p, false.elim⟩
 
 /-- A single point is cospherical. -/
 lemma cospherical_singleton (p : P) : cospherical ({p} : set P) :=
@@ -150,23 +146,47 @@ begin
   simp
 end
 
+end metric_space
+
+section normed_space
+variables [normed_add_comm_group V] [normed_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- Two points are cospherical. -/
 lemma cospherical_pair (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
-begin
-  use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
-  intro p,
-  rw [set.mem_insert_iff, set.mem_singleton_iff],
-  rintro ⟨_|_⟩,
-  { rw [dist_eq_norm_vsub V p₁, vsub_vadd_eq_vsub_sub, vsub_self, zero_sub, norm_neg, norm_smul,
-        dist_eq_norm_vsub V p₂],
-    simp },
-  { rw [H, dist_eq_norm_vsub V p₂, vsub_vadd_eq_vsub_sub, dist_eq_norm_vsub V p₂],
-    conv_lhs { congr, congr, rw ←one_smul ℝ (p₂ -ᵥ p₁ : V) },
-    rw [←sub_smul, norm_smul],
-    norm_num }
-end
+⟨midpoint ℝ p₁ p₂, ‖(2 : ℝ)‖⁻¹ * dist p₁ p₂, begin
+  rintros p (rfl | rfl | _),
+  { rw [dist_comm, dist_midpoint_left] },
+  { rw [dist_comm, dist_midpoint_right] }
+end⟩
+
+/-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated
+directly in terms of `cospherical` instead of using `concyclic`.) -/
+structure concyclic (ps : set P) : Prop :=
+(cospherical : cospherical ps)
+(coplanar : coplanar ℝ ps)
+
+/-- A subset of a concyclic set is concyclic. -/
+lemma concyclic.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (h : concyclic ps₂) : concyclic ps₁ :=
+⟨h.1.subset hs, h.2.subset hs⟩
+
+/-- The empty set is concyclic. -/
+lemma concyclic_empty : concyclic (∅ : set P) :=
+⟨cospherical_empty, coplanar_empty ℝ P⟩
+
+/-- A single point is concyclic. -/
+lemma concyclic_singleton (p : P) : concyclic ({p} : set P) :=
+⟨cospherical_singleton p, coplanar_singleton ℝ p⟩
+
+/-- Two points are concyclic. -/
+lemma concyclic_pair (p₁ p₂ : P) : concyclic ({p₁, p₂} : set P) :=
+⟨cospherical_pair p₁ p₂, coplanar_pair ℝ p₁ p₂⟩
+
+end normed_space
+
+section euclidean_space
+variables [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+include V
 
 /-- Any three points in a cospherical set are affinely independent. -/
 lemma cospherical.affine_independent {s : set P} (hs : cospherical s) {p : fin 3 → P}
@@ -324,26 +344,6 @@ lemma sbtw_of_collinear_of_dist_center_lt_radius {s : sphere P} {p₁ p₂ p₃ 
   (hp₃ : p₃ ∈ s) (hp₁p₃ : p₁ ≠ p₃) : sbtw ℝ p₁ p₂ p₃ :=
 h.sbtw_of_dist_eq_of_dist_lt hp₁ hp₂ hp₃ hp₁p₃
 
-/-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated
-directly in terms of `cospherical` instead of using `concyclic`.) -/
-structure concyclic (ps : set P) : Prop :=
-(cospherical : cospherical ps)
-(coplanar : coplanar ℝ ps)
-
-/-- A subset of a concyclic set is concyclic. -/
-lemma concyclic.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (h : concyclic ps₂) : concyclic ps₁ :=
-⟨h.1.subset hs, h.2.subset hs⟩
-
-/-- The empty set is concyclic. -/
-lemma concyclic_empty : concyclic (∅ : set P) :=
-⟨cospherical_empty, coplanar_empty ℝ P⟩
-
-/-- A single point is concyclic. -/
-lemma concyclic_singleton (p : P) : concyclic ({p} : set P) :=
-⟨cospherical_singleton p, coplanar_singleton ℝ p⟩
-
-/-- Two points are concyclic. -/
-lemma concyclic_pair (p₁ p₂ : P) : concyclic ({p₁, p₂} : set P) :=
-⟨cospherical_pair p₁ p₂, coplanar_pair ℝ p₁ p₂⟩
+end euclidean_space
 
 end euclidean_geometry

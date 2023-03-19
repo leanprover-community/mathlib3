@@ -6,7 +6,7 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 import algebra.field.defs
 import algebra.group_with_zero.units.lemmas
 import algebra.hom.ring
-import algebra.ring.inj_surj
+import algebra.ring.commute
 
 /-!
 # Lemmas about division (semi)rings and (semi)fields
@@ -51,9 +51,17 @@ by rw [add_div, mul_div_cancel _ hc]
 @[field_simps] lemma div_add' (a b c : α) (hc : c ≠ 0) : a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
 
-lemma commute.div_add_div (hbc : commute b c) (hbd : commute b d) (hb : b ≠ 0) (hd : d ≠ 0) :
-  a / b + c / d = (a * d + b * c) / (b * d) :=
+protected lemma commute.div_add_div (hbc : commute b c) (hbd : commute b d) (hb : b ≠ 0)
+  (hd : d ≠ 0) : a / b + c / d = (a * d + b * c) / (b * d) :=
 by rw [add_div, mul_div_mul_right _ b hd, hbc.eq, hbd.eq, mul_div_mul_right c d hb]
+
+protected lemma commute.one_div_add_one_div (hab : commute a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+  1 / a + 1 / b = (a + b) / (a * b) :=
+by rw [(commute.one_right a).div_add_div hab ha hb, one_mul, mul_one, add_comm]
+
+protected lemma commute.inv_add_inv (hab : commute a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
+by rw [inv_eq_one_div, inv_eq_one_div, hab.one_div_add_one_div ha hb]
 
 end division_semiring
 
@@ -99,7 +107,7 @@ by rw neg_inv
 end division_monoid
 
 section division_ring
-variables [division_ring K] {a b : K}
+variables [division_ring K] {a b c d : K}
 
 @[simp] lemma div_neg_self {a : K} (h : a ≠ 0) : a / -a = -1 :=
 by rw [div_neg_eq_neg_div, div_self h]
@@ -136,6 +144,14 @@ by rw [(mul_sub_left_distrib (1 / a)), (one_div_mul_cancel ha), mul_sub_right_di
 instance division_ring.is_domain : is_domain K :=
 no_zero_divisors.to_is_domain _
 
+protected lemma commute.div_sub_div (hbc : commute b c) (hbd : commute b d) (hb : b ≠ 0)
+  (hd : d ≠ 0) : a / b - c / d = (a * d - b * c) / (b * d) :=
+by simpa only [mul_neg, neg_div, ←sub_eq_add_neg] using hbc.neg_right.div_add_div hbd hb hd
+
+protected lemma commute.inv_sub_inv (hab : commute a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
+by simp only [inv_eq_one_div, (commute.one_right a).div_sub_div hab ha hb, one_mul, mul_one]
+
 end division_ring
 
 section semifield
@@ -146,10 +162,10 @@ lemma div_add_div (a : α) (c : α) (hb : b ≠ 0) (hd : d ≠ 0) :
 (commute.all b _).div_add_div (commute.all _ _) hb hd
 
 lemma one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) : 1 / a + 1 / b = (a + b) / (a * b) :=
-by rw [div_add_div _ _ ha hb, one_mul, mul_one, add_comm]
+(commute.all a _).one_div_add_one_div ha hb
 
 lemma inv_add_inv (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
-by rw [inv_eq_one_div, inv_eq_one_div, one_div_add_one_div ha hb]
+(commute.all a _).inv_add_inv ha hb
 
 end semifield
 
@@ -161,14 +177,10 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 @[field_simps] lemma div_sub_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) - (c / d) = ((a * d) - (b * c)) / (b * d) :=
-begin
-  simp [sub_eq_add_neg],
-  rw [neg_eq_neg_one_mul, ← mul_div_assoc, div_add_div _ _ hb hd,
-      ← mul_assoc, mul_comm b, mul_assoc, ← neg_eq_neg_one_mul]
-end
+(commute.all b _).div_sub_div (commute.all _ _) hb hd
 
 lemma inv_sub_inv {a b : K} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_sub_div _ _ ha hb, one_mul, mul_one]
+(commute.all a _).inv_sub_inv ha hb
 
 @[field_simps] lemma sub_div' (a b c : K) (hc : c ≠ 0) : b - a / c = (b * c - a) / c :=
 by simpa using div_sub_div b a one_ne_zero hc

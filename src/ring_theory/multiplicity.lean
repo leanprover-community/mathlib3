@@ -10,6 +10,9 @@ import ring_theory.valuation.basic
 /-!
 # Multiplicity of a divisor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
 several basic results on it.
 

@@ -329,7 +329,7 @@ by { simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
 protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
   ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
 begin
-  have := congr_arg (@innerSL 𝕜 _ _ _ x) (b.sum_repr y),
+  have := congr_arg (innerSL 𝕜 x) (b.sum_repr y),
   rw map_sum at this,
   convert this,
   ext i,

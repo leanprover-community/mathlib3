@@ -447,6 +447,11 @@ begin
   { simp only [coe_coe, continuous_linear_equiv_at_apply] }
 end
 
+protected lemma zero_section (e : trivialization F (π E)) [e.is_linear R]
+  {x : B} (hx : x ∈ e.base_set) : e (zero_section E x) = (x, 0) :=
+by simp_rw [zero_section, total_space_mk, e.apply_eq_prod_continuous_linear_equiv_at R x hx 0,
+  map_zero]
+
 variables {R}
 
 lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization F (π E)) [e.is_linear R]
@@ -468,11 +473,6 @@ lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (
   (e.continuous_linear_equiv_at R b hb.1).symm.trans (e'.continuous_linear_equiv_at R b hb.2)
   = coord_changeL R e e' b :=
 by { ext v, rw [coord_changeL_apply e e' hb], refl }
-
-protected lemma zero_section (e : trivialization F (π E)) [e.is_linear R]
-  {x : B} (hx : x ∈ e.base_set) : e (zero_section E x) = (x, 0) :=
-by simp_rw [zero_section, total_space_mk, e.apply_eq_prod_continuous_linear_equiv_at R x hx 0,
-  map_zero]
 
 end trivialization
 

@@ -362,7 +362,7 @@ set_like.ext h
 
 @[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
   (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
-⟨λ h, coe_injective h, by tidy⟩
+set_like.ext'_iff.symm
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/

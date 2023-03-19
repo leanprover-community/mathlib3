@@ -178,9 +178,9 @@ variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
--- TODO Refactor to use `instance : set_like (affine_subspace k P) P :=` instead
-instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
-instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
+instance : set_like (affine_subspace k P) P :=
+{ coe := carrier,
+  coe_injective' := λ p q _, by cases p; cases q; congr' }
 
 /-- A point is in an affine subspace coerced to a set if and only if
 it is in that affine subspace. -/
@@ -354,13 +354,11 @@ begin
 end
 
 /-- Two affine subspaces are equal if they have the same points. -/
-@[ext] lemma coe_injective : function.injective (coe : affine_subspace k P → set P) :=
-λ s1 s2 h, begin
-  cases s1,
-  cases s2,
-  congr,
-  exact h
-end
+lemma coe_injective : function.injective (coe : affine_subspace k P → set P) :=
+set_like.coe_injective
+
+@[ext] theorem ext {p q : affine_subspace k P} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q :=
+set_like.ext h
 
 @[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
   (s₁ : set P) = s₂ ↔ s₁ = s₂ :=

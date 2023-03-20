@@ -97,7 +97,7 @@ lemma cast_tprod {i j} (h : i = j) (a : fin i → M) :
   cast R M h (tprod R a) = tprod R (a ∘ fin.cast h.symm) :=
 reindex_tprod _ _
 
-@[simp] lemma cast_refl {i} (h : i = i) : (cast R M h) = linear_equiv.refl _ _ :=
+@[simp] lemma cast_refl {i} (h : i = i) : cast R M h = linear_equiv.refl _ _ :=
 begin
   refine eq.trans _ (reindex_refl),
   rw cast,
@@ -135,7 +135,7 @@ end
 variables (R)
 include R
 lemma tprod_mul_tprod {na nb} (a : fin na → M) (b : fin nb → M) :
-  tprod R a ₜ* tprod R b = (tprod R $ fin.append a b) :=
+  tprod R a ₜ* tprod R b = tprod R (fin.append a b) :=
 begin
   dsimp [ghas_mul_def, mul_equiv],
   rw [tmul_equiv_apply R M a b],

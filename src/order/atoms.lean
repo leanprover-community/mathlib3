@@ -729,14 +729,14 @@ end is_modular_lattice
 section boolean_algebra
 variables [boolean_algebra α] {a b : α}
 
-@[simp] lemma is_atom_compl_iff : is_atom aᶜ ↔ is_coatom a :=
-is_compl_compl.is_coatom_iff_is_atom.symm
+@[simp] lemma is_atom_compl : is_atom aᶜ ↔ is_coatom a :=
+is_compl_compl.symm.is_atom_iff_is_coatom
 
-@[simp] lemma is_coatom_compl_iff : is_coatom aᶜ ↔ is_atom a :=
-is_compl_compl.is_atom_iff_is_coatom.symm
+@[simp] lemma is_coatom_compl : is_coatom aᶜ ↔ is_atom a :=
+is_compl_compl.symm.is_coatom_iff_is_atom
 
-protected alias is_atom_compl_iff ↔ _ is_coatom.compl
-alias is_coatom_compl_iff ↔ _ is_atom.compl
+protected alias is_atom_compl ↔ _ is_coatom.compl
+alias is_coatom_compl ↔ _ is_atom.compl
 
 attribute [protected] is_atom.compl is_coatom.compl
 
@@ -763,7 +763,7 @@ end
 
 lemma is_coatom_iff : is_coatom s ↔ ∃ a, s = {a}ᶜ :=
 begin
-  convert is_atom_compl_iff.symm.trans is_atom_iff,
+  convert is_atom_compl.symm.trans is_atom_iff,
   ext a,
   rw [compl_eq_iff_is_compl, eq_compl_iff_is_compl],
 end
@@ -779,82 +779,3 @@ instance : is_coatomistic (set α) :=
     by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_singleton_compl x }⟩ }
 
 end set
-
-namespace finset
-variables {s : finset α}
-
-lemma exists_eq_singleton_iff_nonempty_subsingleton :
-  (∃ a : α, s = {a}) ↔ s.nonempty ∧ ∀ a b ∈ s, a = b :=
-begin
-  refine ⟨_, λ h, _⟩,
-  { rintro ⟨a, rfl⟩,
-    exact ⟨singleton_nonempty a, λ b c hb hc,
-      (eq_of_mem_singleton hb).trans (eq_of_mem_singleton hc).symm⟩ },
-  { obtain ⟨a, ha⟩ := h.1,
-    refine ⟨a, eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 _ _ hb ha)⟩⟩ }
-end
-
-lemma is_atom_singleton (a : α) : is_atom ({a} : finset α) :=
-⟨singleton_ne_empty a, λ s, eq_empty_of_ssubset_singleton⟩
-
-lemma is_coatom_compl_singleton [fintype α] [decidable_eq α] (a : α) :
-  is_coatom ({a}ᶜ : finset α) :=
-(is_atom_singleton a).compl
-
-lemma is_atom_iff : is_atom s ↔ ∃ a, s = {a} :=
-begin
-  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨nonempty_of_ne_empty hs.1,
-    λ a b ha hb, _⟩, _⟩,
-  { rw [←singleton_subset_iff] at ha hb,
-    exact singleton_injective (((hs.le_iff_eq $ singleton_ne_empty _).1 ha).trans $
-      ((hs.le_iff_eq $ singleton_ne_empty _).1 hb).symm) },
-  { rintro ⟨a, rfl⟩,
-    exact is_atom_singleton _ }
-end
-
-lemma is_coatom_iff [fintype α] [decidable_eq α] : is_coatom s ↔ ∃ a, s = {a}ᶜ :=
-begin
-  rw ←is_atom_compl_iff,
-  convert is_atom_iff,
-  ext a,
-  rw [compl_eq_iff_is_compl, eq_compl_iff_is_compl],
-end
-
-end finset
-
-namespace multiset
-variables {m : multiset α}
-
-lemma le_singleton_iff_eq {m : multiset α} {x : α} : m ≤ {x} ↔ m = 0 ∨ m = {x} :=
-begin
-  obtain rfl | hm := eq_or_ne m 0,
-  use ⟨λ _, or.inl rfl, λ _, zero_le _⟩,
-  simp [eq_singleton_iff_nonempty_unique_mem, hs, ne_empty_iff_nonempty.2 hs],
-end
-
-@[simp] lemma lt_singleton_iff {m : multiset α} {a : α} :  m < {a} ↔ m = 0 :=
-begin
-  rw [lt_iff_le_and_ne, le_singleton_iff_eq, or_and_distrib_right, and_not_self, or_false,
-    and_iff_left_iff_imp],
-  rintro rfl,
-  refine ne_comm.1 (ne_empty_iff_nonempty.2 (singleton_nonempty _)),
-end
-
-lemma eq_zero_of_ssubset_singleton {s : multiset α} {x : α} (hs : s ⊂ {x}) : s = 0 :=
-ssubset_singleton_iff.1 hs
-
-lemma is_atom_singleton (a : α) : is_atom ({a} : multiset α) :=
-⟨singleton_ne_zero a, λ s, eq_zero_of_lt_singleton⟩
-
-lemma is_atom_iff : is_atom m ↔ ∃ a, m = {a} :=
-begin
-  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨nonempty_of_ne_empty hs.1,
-    λ a b ha hb, _⟩, _⟩,
-  { rw [←singleton_subset_iff] at ha hb,
-    exact singleton_injective (((hs.le_iff_eq $ singleton_ne_empty _).1 ha).trans $
-      ((hs.le_iff_eq $ singleton_ne_empty _).1 hb).symm) },
-  { rintro ⟨a, rfl⟩,
-    exact is_atom_singleton _ }
-end
-
-end multiset

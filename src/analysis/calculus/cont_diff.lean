@@ -2783,6 +2783,9 @@ lemma cont_diff_on.add {s : set E} {f g : E → F}
 
 variables {i : ℕ}
 
+/-- The iterated derivative of the sum of two functions is the sum of the iterated derivative.
+See also `iterated_fderiv_within_add_apply'`, which uses the spelling `(λ x, f x + g x)`
+instead of `f + g`. -/
 lemma iterated_fderiv_within_add_apply {f g : E → F}
   (hf : cont_diff_on 𝕜 i f s) (hg : cont_diff_on 𝕜 i g s) (hu : unique_diff_on 𝕜 s)
   (hx : x ∈ s) :
@@ -2815,6 +2818,10 @@ begin
     ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) g s) x h : rfl }
 end
 
+/-- The iterated derivative of the sum of two functions is the sum of the iterated derivative.
+This is the same as `iterated_fderiv_within_add_apply`, but using the spelling `(λ x, f x + g x)`
+instead of `f + g`, which can be handy for some rewrites.
+TODO: use one form consistently. -/
 lemma iterated_fderiv_within_add_apply' {f g : E → F}
   (hf : cont_diff_on 𝕜 i f s) (hg : cont_diff_on 𝕜 i g s) (hu : unique_diff_on 𝕜 s)
   (hx : x ∈ s) :

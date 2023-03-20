@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Bhavik Mehta
+Authors: Chris Hughes, Bhavik Mehta, Stuart Presnell
 -/
 import data.nat.factorial.basic
 
 /-!
 # Binomial coefficients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines binomial coefficients and proves simple lemmas (i.e. those not
 requiring more imports).
@@ -21,7 +24,17 @@ requiring more imports).
 * `nat.desc_factorial_eq_factorial_mul_choose`: Relates binomial coefficients to the descending
   factorial. This is used to prove `nat.choose_le_pow` and variants. We provide similar statements
   for the ascending factorial.
+* `nat.multichoose`: whereas `choose` counts combinations, `multichoose` counts multicombinations.
+The fact that this is indeed the correct counting function for multisets is proved in
+`sym.card_sym_eq_multichoose` in `data/sym/card`.
+* `nat.multichoose_eq` : a proof that `multichoose n k = (n + k - 1).choose k`.
+This is central to the "stars and bars" technique in informal mathematics, where we switch between
+counting multisets of size `k` over an alphabet of size `n` to counting strings of `k` elements
+("stars") separated by `n-1` dividers ("bars").  See `data/sym/card` for more detail.
 
+## Tags
+
+binomial coefficient, combination, multicombination, stars and bars
 -/
 
 open_locale nat
@@ -79,6 +92,9 @@ lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
 
+lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
+⟨λ h, lt_of_not_ge (mt nat.choose_pos h.symm.not_lt), nat.choose_eq_zero_of_lt⟩
+
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
 | 0             0 := dec_trivial
 | 0       (k + 1) := by simp [choose]
@@ -111,9 +127,8 @@ end
 lemma choose_mul {n k s : ℕ} (hkn : k ≤ n) (hsk : s ≤ k) :
   n.choose k * k.choose s = n.choose s * (n - s).choose (k - s) :=
 begin
-  have h : 0 < (n - k)! * (k - s)! * s! :=
-    mul_pos (mul_pos (factorial_pos _) (factorial_pos _)) (factorial_pos _),
-  refine eq_of_mul_eq_mul_right h _,
+  have h : (n - k)! * (k - s)! * s! ≠ 0, by apply_rules [mul_ne_zero, factorial_ne_zero],
+  refine mul_right_cancel₀ h _,
   calc
     n.choose k * k.choose s * ((n - k)! * (k - s)! * s!)
         = n.choose k * (k.choose s * s! * (k - s)!) * (n - k)!
@@ -247,7 +262,7 @@ private lemma choose_le_middle_of_le_half_left {n r : ℕ} (hr : r ≤ n/2) :
 decreasing_induction
   (λ _ k a,
       (eq_or_lt_of_le a).elim
-        (λ t, t.symm ▸ le_refl _)
+        (λ t, t.symm ▸ le_rfl)
         (λ h, (choose_le_succ_of_lt_half_left h).trans (k h)))
   hr (λ _, le_rfl) hr
 
@@ -266,5 +281,83 @@ begin
   { rw choose_eq_zero_of_lt b,
     apply zero_le }
 end
+
+/-! #### Inequalities about increasing the first argument -/
+
+lemma choose_le_succ (a c : ℕ) : choose a c ≤ choose a.succ c :=
+by cases c; simp [nat.choose_succ_succ]
+
+lemma choose_le_add (a b c : ℕ) : choose a c ≤ choose (a + b) c :=
+begin
+  induction b with b_n b_ih,
+  { simp, },
+  exact le_trans b_ih (choose_le_succ (a + b_n) c),
+end
+
+lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=
+(add_tsub_cancel_of_le h) ▸ choose_le_add a (b - a) c
+
+lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
+
+/-! #### Multichoose
+
+Whereas `choose n k` is the number of subsets of cardinality `k` from a type of cardinality `n`,
+`multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`.
+
+Alternatively, whereas `choose n k` counts the number of combinations,
+i.e. ways to select `k` items (up to permutation) from `n` items without replacement,
+`multichoose n k` counts the number of multicombinations,
+i.e. ways to select `k` items (up to permutation) from `n` items with replacement.
+
+Note that `multichoose` is *not* the multinomial coefficient, although it can be computed
+in terms of multinomial coefficients. For details see https://mathworld.wolfram.com/Multichoose.html
+
+TODO: Prove that `choose (-n) k = (-1)^k * multichoose n k`,
+where `choose` is the generalized binomial coefficient.
+<https://github.com/leanprover-community/mathlib/pull/15072#issuecomment-1171415738>
+
+-/
+
+/--
+`multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`. -/
+def multichoose : ℕ → ℕ → ℕ
+| _             0 := 1
+| 0       (k + 1) := 0
+| (n + 1) (k + 1) := multichoose n (k + 1) + multichoose (n + 1) k
+
+@[simp] lemma multichoose_zero_right (n : ℕ) : multichoose n 0 = 1 :=
+by { cases n; simp [multichoose] }
+
+@[simp] lemma multichoose_zero_succ (k : ℕ) : multichoose 0 (k + 1) = 0 := by simp [multichoose]
+
+lemma multichoose_succ_succ (n k : ℕ) :
+  multichoose (n + 1) (k + 1) = multichoose n (k + 1) + multichoose (n + 1) k :=
+by simp [multichoose]
+
+@[simp] lemma multichoose_one (k : ℕ) : multichoose 1 k = 1 :=
+begin
+  induction k with k IH, { simp },
+  simp [multichoose_succ_succ 0 k, IH],
+end
+
+@[simp] lemma multichoose_two (k : ℕ) : multichoose 2 k = k + 1 :=
+begin
+  induction k with k IH, { simp },
+  simp [multichoose_succ_succ 1 k, IH],
+  rw add_comm,
+end
+
+@[simp] lemma multichoose_one_right (n : ℕ) : multichoose n 1 = n :=
+begin
+  induction n with n IH, { simp },
+  simp [multichoose_succ_succ n 0, IH],
+end
+
+lemma multichoose_eq : ∀ (n k : ℕ), multichoose n k = (n + k - 1).choose k
+| _      0    := by simp
+| 0     (k+1) := by simp
+| (n+1) (k+1) := by
+  { rw [multichoose_succ_succ, add_comm, nat.succ_add_sub_one, ←add_assoc, nat.choose_succ_succ],
+    simp [multichoose_eq] }
 
 end nat

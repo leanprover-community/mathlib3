@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.over
-import category_theory.limits.preserves.basic
-import category_theory.limits.creates
-import category_theory.limits.shapes.binary_products
 import category_theory.monad.algebra
+import category_theory.limits.shapes.binary_products
 
 /-!
 # Algebras for the coproduct monad

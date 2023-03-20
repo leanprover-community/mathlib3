@@ -5,10 +5,13 @@ Authors: Scott Morrison
 -/
 
 import algebra.algebra.basic
-import algebra.order.module
+import algebra.order.smul
 
 /-!
 # Ordered algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An ordered algebra is an ordered semiring, which is an algebra over an ordered commutative semiring,
 for which scalar multiplication is "compatible" with the two orders.
@@ -45,13 +48,3 @@ begin
 end
 
 end ordered_algebra
-
-section instances
-
-variables {R : Type*} [linear_ordered_comm_ring R]
-
-instance linear_ordered_comm_ring.to_ordered_smul : ordered_smul R R :=
-{ smul_lt_smul_of_pos       := ordered_semiring.mul_lt_mul_of_pos_left,
-  lt_of_smul_lt_smul_of_pos := λ a b c w₁ w₂, (mul_lt_mul_left w₂).mp w₁ }
-
-end instances

@@ -3,9 +3,8 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
-import category_theory.additive.basic
+import data.int.basic
 import category_theory.shift
-import category_theory.preadditive.additive_functor
 
 /-!
 # Triangles
@@ -19,23 +18,22 @@ TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.
 noncomputable theory
 
 open category_theory
-open category_theory.preadditive
 open category_theory.limits
 
 universes v v₀ v₁ v₂ u u₀ u₁ u₂
 
-namespace category_theory.triangulated
+namespace category_theory.pretriangulated
 open category_theory.category
 
 /-
 We work in a category `C` equipped with a shift.
 -/
-variables (C : Type u) [category.{v} C] [has_shift C]
+variables (C : Type u) [category.{v} C] [has_shift C ℤ]
 
 /--
 A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,
 and `f : X ⟶ Y`, `g : Y ⟶ Z`, `h : Z ⟶ X⟦1⟧` are morphisms in `C`.
-See https://stacks.math.columbia.edu/tag/0144.
+See <https://stacks.math.columbia.edu/tag/0144>.
 -/
 structure triangle := mk' ::
 (obj₁ : C)
@@ -43,14 +41,16 @@ structure triangle := mk' ::
 (obj₃ : C)
 (mor₁ : obj₁ ⟶ obj₂)
 (mor₂ : obj₂ ⟶ obj₃)
-(mor₃ : obj₃ ⟶ obj₁⟦1⟧)
+(mor₃ : obj₃ ⟶ obj₁⟦(1:ℤ)⟧)
+
+variable {C}
 
 /--
 A triangle `(X,Y,Z,f,g,h)` in `C` is defined by the morphisms `f : X ⟶ Y`, `g : Y ⟶ Z`
 and `h : Z ⟶ X⟦1⟧`.
 -/
 @[simps]
-def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧) : triangle C :=
+def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦(1:ℤ)⟧) : triangle C :=
 { obj₁ := X,
   obj₂ := Y,
   obj₃ := Z,
@@ -69,11 +69,9 @@ instance : inhabited (triangle C) :=
 For each object in `C`, there is a triangle of the form `(X,X,0,𝟙 X,0,0)`
 -/
 @[simps]
-def contractible_triangle (X : C) : triangle C := triangle.mk C (𝟙 X) (0 : X ⟶ 0) 0
+def contractible_triangle (X : C) : triangle C := triangle.mk (𝟙 X) (0 : X ⟶ 0) 0
 
 end
-
-variable {C}
 
 /--
 A morphism of triangles `(X,Y,Z,f,g,h) ⟶ (X',Y',Z',f',g',h')` in `C` is a triple of morphisms
@@ -89,7 +87,7 @@ In other words, we have a commutative diagram:
   X' ───> Y' ───> Z' ───> X'⟦1⟧
      f'     g'     h'
 ```
-See https://stacks.math.columbia.edu/tag/0144.
+See <https://stacks.math.columbia.edu/tag/0144>.
 -/
 @[ext]
 structure triangle_morphism (T₁ : triangle C) (T₂ : triangle C) :=
@@ -137,4 +135,4 @@ instance triangle_category : category (triangle C) :=
   id    := λ A, triangle_morphism_id A,
   comp  := λ A B C f g, f.comp g }
 
-end category_theory.triangulated
+end category_theory.pretriangulated

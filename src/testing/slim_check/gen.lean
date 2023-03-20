@@ -3,10 +3,10 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-
+import control.random
 import control.uliftable
-import system.random
-import system.random.basic
+import data.list.big_operators.lemmas
+import data.list.perm
 
 /-!
 # `gen` Monad
@@ -68,7 +68,7 @@ def choose [bounded_random α] (x y : α) (p : x ≤ y) : gen (x .. y) :=
 
 end rand
 
-open nat (hiding choose)
+open nat
 
 /-- Generate a `nat` example between `x` and `y`. -/
 def choose_nat (x y : ℕ) (p : x ≤ y) : gen (x .. y) :=

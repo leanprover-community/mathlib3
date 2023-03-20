@@ -1,20 +1,25 @@
 import tactic.transport
-import order.bounded_lattice
+import order.bounded_order
 import algebra.lie.basic
 
 -- We verify that `transport` can move a `semiring` across an equivalence.
 -- Note that we've never even mentioned the idea of addition or multiplication to `transport`.
 def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semiring β :=
-by transport using e
+begin
+  transport using e,
+  -- TODO
+  { simp *, refl }, -- nat_cast_zero
+  { intros, simp *, show _ = e _, simp, refl, }, -- nat_cast_succ
+end
 
--- Indeed, it can equally well move a `semilattice_sup_top`.
-def sup_top.map {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) : semilattice_sup_top β :=
+-- Indeed, it can equally well move a `semilattice_sup`.
+def sup.map {α : Type} [semilattice_sup α] {β : Type} (e : α ≃ β) : semilattice_sup β :=
 by transport using e
 
 -- Verify definitional equality of the new structure data.
-example {α : Type} [semilattice_sup_top α] {β : Type} (e : α ≃ β) (x y : β) :
+example {α : Type} [semilattice_sup α] {β : Type} (e : α ≃ β) (x y : β) :
 begin
-  haveI := sup_top.map e,
+  haveI := sup.map e,
   exact (x ≤ y) = (e.symm x ≤ e.symm y),
 end :=
 rfl

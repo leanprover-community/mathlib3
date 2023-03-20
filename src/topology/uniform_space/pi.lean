@@ -8,11 +8,14 @@ import topology.uniform_space.separation
 
 /-!
 # Indexed product of uniform spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory
 
-open_locale uniformity topological_space
+open_locale uniformity topology
 
 section
 open filter uniform_space
@@ -51,8 +54,7 @@ instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i
     exact cauchy_iff_exists_le_nhds.1 key },
   choose x hx using this,
   use x,
-  rw [nhds_pi, le_infi_iff],
-  exact λ i, map_le_iff_le_comap.mp (hx i),
+  rwa [nhds_pi, le_pi],
 end⟩
 
 instance Pi.separated [∀ i, separated_space (α i)] : separated_space (Π i, α i) :=

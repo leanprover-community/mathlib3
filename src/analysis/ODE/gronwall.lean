@@ -9,8 +9,8 @@ import analysis.special_functions.exp_deriv
 # Grönwall's inequality
 
 The main technical result of this file is the Grönwall-like inequality
-`norm_le_gronwall_bound_of_norm_deriv_right_le`. It states that if `f : ℝ → E` satisfies `∥f a∥ ≤ δ`
-and `∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then for all `x ∈ [a, b]` we have `∥f x∥ ≤ δ * exp (K *
+`norm_le_gronwall_bound_of_norm_deriv_right_le`. It states that if `f : ℝ → E` satisfies `‖f a‖ ≤ δ`
+and `∀ x ∈ [a, b), ‖f' x‖ ≤ K * ‖f x‖ + ε`, then for all `x ∈ [a, b]` we have `‖f x‖ ≤ δ * exp (K *
 x) + (ε / K) * (exp (K * x) - 1)`.
 
 Then we use this inequality to prove some estimates on the possible rate of growth of the distance
@@ -22,16 +22,16 @@ Sec. 4.5][HubbardWest-ode], where `norm_le_gronwall_bound_of_norm_deriv_right_le
 
 ## TODO
 
-- Once we have FTC, prove an inequality for a function satisfying `∥f' x∥ ≤ K x * ∥f x∥ + ε`,
+- Once we have FTC, prove an inequality for a function satisfying `‖f' x‖ ≤ K x * ‖f x‖ + ε`,
   or more generally `liminf_{y→x+0} (f y - f x)/(y - x) ≤ K x * f x + ε` with any sign
   of `K x` and `f x`.
 -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-          {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open metric set asymptotics filter real
-open_locale classical topological_space nnreal
+open_locale classical topology nnreal
 
 /-! ### Technical lemmas about `gronwall_bound` -/
 
@@ -101,12 +101,12 @@ the inequalities `f a ≤ δ` and
 `∀ x ∈ [a, b), liminf_{z→x+0} (f z - f x)/(z - x) ≤ K * (f x) + ε`, then `f x`
 is bounded by `gronwall_bound δ K ε (x - a)` on `[a, b]`.
 
-See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding `∥f x∥`,
+See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding `‖f x‖`,
 `f : ℝ → E`. -/
 theorem le_gronwall_bound_of_liminf_deriv_right_le {f f' : ℝ → ℝ} {δ K ε : ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
   (ha : f a ≤ δ) (bound : ∀ x ∈ Ico a b, f' x ≤ K * f x + ε) :
   ∀ x ∈ Icc a b, f x ≤ gronwall_bound δ K ε (x - a) :=
 begin
@@ -128,13 +128,13 @@ begin
 end
 
 /-- A Grönwall-like inequality: if `f : ℝ → E` is continuous on `[a, b]`, has right derivative
-`f' x` at every point `x ∈ [a, b)`, and satisfies the inequalities `∥f a∥ ≤ δ`,
-`∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then `∥f x∥` is bounded by `gronwall_bound δ K ε (x - a)`
+`f' x` at every point `x ∈ [a, b)`, and satisfies the inequalities `‖f a‖ ≤ δ`,
+`∀ x ∈ [a, b), ‖f' x‖ ≤ K * ‖f x‖ + ε`, then `‖f x‖` is bounded by `gronwall_bound δ K ε (x - a)`
 on `[a, b]`. -/
 theorem norm_le_gronwall_bound_of_norm_deriv_right_le {f f' : ℝ → E} {δ K ε : ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
-  (ha : ∥f a∥ ≤ δ) (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ K * ∥f x∥ + ε) :
-  ∀ x ∈ Icc a b, ∥f x∥ ≤ gronwall_bound δ K ε (x - a) :=
+  (ha : ‖f a‖ ≤ δ) (bound : ∀ x ∈ Ico a b, ‖f' x‖ ≤ K * ‖f x‖ + ε) :
+  ∀ x ∈ Icc a b, ‖f x‖ ≤ gronwall_bound δ K ε (x - a) :=
 le_gronwall_bound_of_liminf_deriv_right_le (continuous_norm.comp_continuous_on hf)
   (λ x hx r hr, (hf' x hx).liminf_right_slope_norm_le hr) ha bound
 
@@ -165,9 +165,8 @@ begin
   assume t ht,
   have := dist_triangle4_right (f' t) (g' t) (v t (f t)) (v t (g t)),
   rw [dist_eq_norm] at this,
-  apply le_trans this,
-  apply le_trans (add_le_add (add_le_add (f_bound t ht) (g_bound t ht))
-    (hv t (f t) (g t) (hfs t ht) (hgs t ht))),
+  refine this.trans ((add_le_add (add_le_add (f_bound t ht) (g_bound t ht))
+    (hv t (f t) (hfs t ht) (g t) (hgs t ht))).trans _),
   rw [dist_eq_norm, add_comm]
 end
 
@@ -188,7 +187,7 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
 
 /-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
@@ -234,7 +233,7 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+dist_le_of_trajectories_ODE_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
@@ -270,5 +269,5 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+ODE_solution_unique_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

@@ -9,6 +9,9 @@ import group_theory.subgroup.basic
 /-!
 # Archimedean groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves a few facts about ordered groups which satisfy the `archimedean` property, that is:
 `class archimedean (α) [ordered_add_comm_monoid α] : Prop :=`
 `(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)`
@@ -40,8 +43,8 @@ begin
   obtain ⟨⟨a_in, a_pos⟩, a_min⟩ := ha,
   refine le_antisymm _ (H.closure_le.mpr $ by simp [a_in]),
   intros g g_in,
-  obtain ⟨k, nonneg, lt⟩ : ∃ k, 0 ≤ g - k • a ∧ g - k • a < a :=
-    exists_int_smul_near_of_pos' a_pos g,
+  obtain ⟨k, ⟨nonneg, lt⟩, _⟩ : ∃! k, 0 ≤ g - k • a ∧ g - k • a < a :=
+    exists_unique_zsmul_near_of_pos' a_pos g,
   have h_zero : g - k • a = 0,
   { by_contra h,
     have h : a ≤ g - k • a,

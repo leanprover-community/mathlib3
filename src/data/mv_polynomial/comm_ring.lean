@@ -9,6 +9,9 @@ import data.mv_polynomial.variables
 /-!
 # Multivariate polynomials over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many results about polynomials hold when the coefficient ring is a commutative semiring.
 Some stronger results can be derived when we assume this semiring is a ring.
 
@@ -65,7 +68,10 @@ variables (σ a a')
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply _ _ _
 
 @[simp] lemma support_neg : (- p).support = p.support :=
-finsupp.support_neg
+finsupp.support_neg p
+
+lemma support_sub (p q : mv_polynomial σ R) : (p - q).support ⊆ p.support ∪ q.support :=
+finsupp.support_sub
 
 variables {σ} (p)
 
@@ -113,7 +119,7 @@ variables (f : R →+* S) (g : σ → S)
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := (eval₂_hom f g).map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ →+* S) (n : ℤ) : f (C n) = (n : S) :=
-(f.comp C).eq_int_cast n
+eq_int_cast (f.comp C) n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -121,7 +127,7 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial R ℤ →+* S) (x : mv_polynomial R ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C], exact c.eq_int_cast n })
+(λ n, by { rw [hom_C f, eval₂_C], exact eq_int_cast c n })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (f.map_add _ _).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (f.map_mul _ _).symm })
 
@@ -134,6 +140,26 @@ def hom_equiv : (mv_polynomial σ ℤ →+* S) ≃ (σ → S) :=
   right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
+
+section degree_of
+
+lemma degree_of_sub_lt {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
+  (hf : ∀ (m : σ →₀ ℕ), m ∈ f.support → (k ≤ m x) → coeff m f = coeff m g)
+  (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
+  degree_of x (f - g) < k :=
+begin
+  rw degree_of_lt_iff h,
+  intros m hm,
+  by_contra hc,
+  simp only [not_lt] at hc,
+  have h := support_sub σ f g hm,
+  simp only [mem_support_iff, ne.def, coeff_sub, sub_eq_zero] at hm,
+  cases (finset.mem_union).1 h with cf cg,
+  { exact hm (hf m cf hc), },
+  { exact hm (hg m cg hc), },
+end
+
+end degree_of
 
 section total_degree
 

@@ -3,10 +3,14 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import data.int.basic
+import data.int.order.basic
+import data.nat.size
 
 /-!
 # Square root of natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines an efficient binary implementation of the square root function that returns the
 unique `r` such that `r * r ≤ n < (r + 1) * (r + 1)`. It takes advantage of the binary
@@ -16,7 +20,7 @@ representation by replacing the multiplication by 2 appearing in
 ## Reference
 
 See [Wikipedia, *Methods of computing square roots*]
-[https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)].
+(https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)).
 -/
 namespace nat
 
@@ -79,16 +83,15 @@ private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
     is_sqrt n (sqrt_aux m' ((r + 2^m) * 2^m) (n - (r + 2^m) * (r + 2^m)))) :
   is_sqrt n (sqrt_aux (2^m * 2^m) ((2*r)*2^m) (n - r*r)) :=
 begin
-  have b0 :=
-    have b0:_, from ne_of_gt (pow_pos (show 0 < 2, from dec_trivial) m),
-    nat.mul_ne_zero b0 b0,
+  have b0 : 2 ^ m * 2 ^ m ≠ 0,
+    from mul_self_ne_zero.2 (pow_ne_zero m two_ne_zero),
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
-            n < (r+2^m)*(r+2^m), {
-    rw [tsub_lt_iff_right h₁],
+            n < (r+2^m)*(r+2^m),
+  { rw [tsub_lt_iff_right h₁],
     simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
       add_comm, add_assoc, add_left_comm] },
-  have re : div2 (2 * r * 2^m) = r * 2^m, {
-    rw [div2_val, mul_assoc,
+  have re : div2 (2 * r * 2^m) = r * 2^m,
+  { rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
   cases lt_or_ge n ((r+2^m)*(r+2^m)) with hl hl,
   { rw [sqrt_aux_2 b0 (lb.2 hl), hm, re], apply H1 hl },
@@ -126,8 +129,8 @@ begin
   generalize e : size n = s, cases s with s; simp [e, sqrt],
   { rw [size_eq_zero.1 e, is_sqrt], exact dec_trivial },
   { have := sqrt_aux_is_sqrt n (div2 s) 0 (zero_le _),
-    simp [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by {
-      generalize: div2 s = x,
+    simp [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by
+    { generalize: div2 s = x,
       change bit0 x with x+x,
       rw [one_shiftl, pow_add] }] at this,
     apply this,
@@ -211,6 +214,9 @@ sqrt_add_eq n (zero_le _)
 
 theorem sqrt_eq' (n : ℕ) : sqrt (n ^ 2) = n :=
 sqrt_add_eq' n (zero_le _)
+
+@[simp] lemma sqrt_one : sqrt 1 = 1 :=
+sqrt_eq 1
 
 theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
 le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $

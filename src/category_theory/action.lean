@@ -6,7 +6,7 @@ Authors: David Wärn
 import category_theory.elements
 import category_theory.is_connected
 import category_theory.single_obj
-import group_theory.group_action.basic
+import group_theory.group_action.quotient
 import group_theory.semidirect_product
 
 /-!
@@ -80,8 +80,7 @@ def obj_equiv : X ≃ action_category M X :=
 lemma hom_as_subtype (p q : action_category M X) :
   (p ⟶ q) = { m : M // m • p.back = q.back } := rfl
 
-instance [inhabited X] : inhabited (action_category M X) :=
-{ default := ↑(default X) }
+instance [inhabited X] : inhabited (action_category M X) := ⟨show X, from default⟩
 
 instance [nonempty X] : nonempty (action_category M X) :=
 nonempty.map (obj_equiv M X) infer_instance
@@ -120,9 +119,9 @@ category_theory.groupoid_of_elements _
 
 /-- Any subgroup of `G` is a vertex group in its action groupoid. -/
 def End_mul_equiv_subgroup (H : subgroup G) :
-  End (obj_equiv G (quotient_group.quotient H) ↑(1 : G)) ≃* H :=
+  End (obj_equiv G (G ⧸ H) ↑(1 : G)) ≃* H :=
 mul_equiv.trans
-  (stabilizer_iso_End G ((1 : G) : quotient_group.quotient H)).symm
+  (stabilizer_iso_End G ((1 : G) : G ⧸ H)).symm
   (mul_equiv.subgroup_congr $ stabilizer_quotient H)
 
 /-- A target vertex `t` and a scalar `g` determine a morphism in the action groupoid. -/

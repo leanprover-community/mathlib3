@@ -8,6 +8,9 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Split coequalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define what it means for a triple of morphisms `f g : X ⟶ Y`, `π : Y ⟶ Z` to be a split
 coequalizer: there is a section `s` of `π` and a section `t` of `g`, which additionally satisfy
 `t ≫ f = π ≫ s`.
@@ -32,7 +35,7 @@ namespace category_theory
 universes v v₂ u u₂
 
 variables {C : Type u} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 variables {X Y : C} (f g : X ⟶ Y)
 
@@ -87,10 +90,13 @@ section
 open limits
 
 /-- A split coequalizer clearly induces a cofork. -/
-@[simps]
+@[simps X]
 def is_split_coequalizer.as_cofork {Z : C} {h : Y ⟶ Z} (t : is_split_coequalizer f g h) :
   cofork f g :=
 cofork.of_π h t.condition
+
+@[simp] lemma is_split_coequalizer.as_cofork_π  {Z : C} {h : Y ⟶ Z}
+  (t : is_split_coequalizer f g h) : t.as_cofork.π = h := rfl
 
 /--
 The cofork induced by a split coequalizer is a coequalizer, justifying the name. In some cases it

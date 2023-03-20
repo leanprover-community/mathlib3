@@ -3,14 +3,15 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.continuous_on
 import algebra.indicator_function
-import topology.algebra.group
-import topology.algebra.ordered.liminf_limsup
+import topology.continuous_on
 import topology.instances.ennreal
 
 /-!
 # Semicontinuous maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A function `f` from a topological space `α` to an ordered space `β` is lower semicontinuous at a
 point `x` if, for any `y < f x`, for any `x'` close enough to `x`, one has `f x' > y`. In other
@@ -53,8 +54,8 @@ ones for lower semicontinuous functions using `order_dual`.
 
 -/
 
-open_locale topological_space big_operators ennreal
-open set
+open_locale topology big_operators ennreal
+open set function filter
 
 variables {α : Type*} [topological_space α] {β : Type*} [preorder β]
 {f g : α → β} {x : α} {s t : set α} {y z : β}
@@ -227,16 +228,30 @@ end
 
 /-! #### Relationship with continuity -/
 
-theorem lower_semicontinuous_iff_is_open :
+theorem lower_semicontinuous_iff_is_open_preimage :
   lower_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Ioi y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
 lemma lower_semicontinuous.is_open_preimage (hf : lower_semicontinuous f) (y : β) :
   is_open (f ⁻¹' (Ioi y)) :=
-lower_semicontinuous_iff_is_open.1 hf y
+lower_semicontinuous_iff_is_open_preimage.1 hf y
 
 section
-variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {γ : Type*} [linear_order γ]
+
+theorem lower_semicontinuous_iff_is_closed_preimage {f : α → γ} :
+  lower_semicontinuous f ↔ ∀ y, is_closed (f ⁻¹' (Iic y)) :=
+begin
+  rw lower_semicontinuous_iff_is_open_preimage,
+  congrm (∀ y, (_ : Prop)),
+  rw [← is_open_compl_iff, ← preimage_compl, compl_Iic]
+end
+
+lemma lower_semicontinuous.is_closed_preimage {f : α → γ} (hf : lower_semicontinuous f) (y : γ) :
+  is_closed (f ⁻¹' (Iic y)) :=
+lower_semicontinuous_iff_is_closed_preimage.1 hf y
+
+variables [topological_space γ] [order_topology γ]
 
 lemma continuous_within_at.lower_semicontinuous_within_at {f : α → γ}
   (h : continuous_within_at f s x) : lower_semicontinuous_within_at f s x :=
@@ -270,8 +285,7 @@ begin
   by_cases h : ∃ l, l < f x,
   { obtain ⟨z, zlt, hz⟩ : ∃ z < f x, Ioc z (f x) ⊆ g ⁻¹' (Ioi y) :=
       exists_Ioc_subset_of_mem_nhds (hg (Ioi_mem_nhds hy)) h,
-    filter_upwards [hf z zlt],
-    assume a ha,
+    filter_upwards [hf z zlt] with a ha,
     calc y < g (min (f x) (f a)) : hz (by simp [zlt, ha, le_refl])
     ... ≤ g (f a) : gmon (min_le_right _ _) },
   { simp only [not_exists, not_lt] at h,
@@ -299,13 +313,12 @@ lemma continuous.comp_lower_semicontinuous
 lemma continuous_at.comp_lower_semicontinuous_within_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_within_at f s x)
   (gmon : antitone g) : upper_semicontinuous_within_at (g ∘ f) s x :=
-@continuous_at.comp_lower_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
-  g f hg hf gmon
+@continuous_at.comp_lower_semicontinuous_within_at α _ x s γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous_at.comp_lower_semicontinuous_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_at f x)
   (gmon : antitone g) : upper_semicontinuous_at (g ∘ f) x :=
-@continuous_at.comp_lower_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
+@continuous_at.comp_lower_semicontinuous_at α _ x γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous.comp_lower_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous_on f s)
@@ -335,7 +348,7 @@ lemma lower_semicontinuous_within_at.add' {f g : α → γ}
 begin
   assume y hy,
   obtain ⟨u, v, u_open, xu, v_open, xv, h⟩ : ∃ (u v : set γ), is_open u ∧ f x ∈ u ∧ is_open v ∧
-    g x ∈ v ∧ u.prod v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
+    g x ∈ v ∧ u ×ˢ v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
   mem_nhds_prod_iff'.1 (hcont (is_open_Ioi.mem_nhds hy)),
   by_cases hx₁ : ∃ l, l < f x,
   { obtain ⟨z₁, z₁lt, h₁⟩ : ∃ z₁ < f x, Ioc z₁ (f x) ⊆ u :=
@@ -343,46 +356,43 @@ begin
     by_cases hx₂ : ∃ l, l < g x,
     { obtain ⟨z₂, z₂lt, h₂⟩ : ∃ z₂ < g x, Ioc z₂ (g x) ⊆ v :=
         exists_Ioc_subset_of_mem_nhds (v_open.mem_nhds xv) hx₂,
-      filter_upwards [hf z₁ z₁lt, hg z₂ z₂lt],
-      assume z h₁z h₂z,
+      filter_upwards [hf z₁ z₁lt, hg z₂ z₂lt] with z h₁z h₂z,
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
+        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
-      have : (min (f z) (f x), min (g z) (g x)) ∈ u.prod v := ⟨A1, A2⟩,
+        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
+      have : (min (f z) (f x), min (g z) (g x)) ∈ u ×ˢ v := ⟨A1, A2⟩,
       calc y < min (f z) (f x) + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (min_le_left _ _) },
     { simp only [not_exists, not_lt] at hx₂,
-      filter_upwards [hf z₁ z₁lt],
-      assume z h₁z,
+      filter_upwards [hf z₁ z₁lt] with z h₁z,
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
-      have : (min (f z) (f x), g x) ∈ u.prod v := ⟨A1, xv⟩,
+        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
+      have : (min (f z) (f x), g x) ∈ u ×ˢ v := ⟨A1, xv⟩,
       calc y < min (f z) (f x) + g x : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (hx₂ (g z)) } },
   { simp only [not_exists, not_lt] at hx₁,
     by_cases hx₂ : ∃ l, l < g x,
     { obtain ⟨z₂, z₂lt, h₂⟩ : ∃ z₂ < g x, Ioc z₂ (g x) ⊆ v :=
         exists_Ioc_subset_of_mem_nhds (v_open.mem_nhds xv) hx₂,
-      filter_upwards [hg z₂ z₂lt],
-      assume z h₂z,
+      filter_upwards [hg z₂ z₂lt] with z h₂z,
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
-      have : (f x, min (g z) (g x)) ∈ u.prod v := ⟨xu, A2⟩,
+        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
+      have : (f x, min (g z) (g x)) ∈ u ×ˢ v := ⟨xu, A2⟩,
       calc y < f x + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (min_le_left _ _) },
     { simp only [not_exists, not_lt] at hx₁ hx₂,
       apply filter.eventually_of_forall,
       assume z,
-      have : (f x, g x) ∈ u.prod v := ⟨xu, xv⟩,
+      have : (f x, g x) ∈ u ×ˢ v := ⟨xu, xv⟩,
       calc y < f x + g x : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (hx₂ (g z)) } },
 end
@@ -483,51 +493,78 @@ end
 /-! #### Supremum -/
 
 section
-variables {ι : Sort*} {δ : Type*} [complete_linear_order δ]
+variables {ι : Sort*} {δ δ' : Type*} [complete_linear_order δ]
+  [conditionally_complete_linear_order δ']
+
+lemma lower_semicontinuous_within_at_csupr {f : ι → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝[s] x, bdd_above (range $ λ i, f i y))
+  (h : ∀ i, lower_semicontinuous_within_at (f i) s x) :
+  lower_semicontinuous_within_at (λ x', ⨆ i, f i x') s x :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { simpa only [supr_of_empty'] using lower_semicontinuous_within_at_const },
+  { assume y hy,
+    rcases exists_lt_of_lt_csupr hy with ⟨i, hi⟩,
+    filter_upwards [h i y hi, bdd] with y hy hy' using hy.trans_le (le_csupr hy' i) }
+end
 
 lemma lower_semicontinuous_within_at_supr {f : ι → α → δ}
   (h : ∀ i, lower_semicontinuous_within_at (f i) s x) :
   lower_semicontinuous_within_at (λ x', ⨆ i, f i x') s x :=
-begin
-  assume y hy,
-  rcases lt_supr_iff.1 hy with ⟨i, hi⟩,
-  filter_upwards [h i y hi],
-  assume x' hx',
-  exact lt_supr_iff.2 ⟨i, hx'⟩,
-end
+lower_semicontinuous_within_at_csupr (by simp) h
 
 lemma lower_semicontinuous_within_at_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous_within_at (f i hi) s x) :
   lower_semicontinuous_within_at (λ x', ⨆ i hi, f i hi x') s x :=
 lower_semicontinuous_within_at_supr $ λ i, lower_semicontinuous_within_at_supr $ λ hi, h i hi
 
-lemma lower_semicontinuous_at_supr {f : ι → α → δ}
+lemma lower_semicontinuous_at_csupr {f : ι → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝 x, bdd_above (range $ λ i, f i y))
   (h : ∀ i, lower_semicontinuous_at (f i) x) :
   lower_semicontinuous_at (λ x', ⨆ i, f i x') x :=
 begin
   simp_rw [← lower_semicontinuous_within_at_univ_iff] at *,
-  exact lower_semicontinuous_within_at_supr h
+  rw ← nhds_within_univ at bdd,
+  exact lower_semicontinuous_within_at_csupr bdd h
 end
+
+lemma lower_semicontinuous_at_supr {f : ι → α → δ}
+  (h : ∀ i, lower_semicontinuous_at (f i) x) :
+  lower_semicontinuous_at (λ x', ⨆ i, f i x') x :=
+lower_semicontinuous_at_csupr (by simp) h
 
 lemma lower_semicontinuous_at_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous_at (f i hi) x) :
   lower_semicontinuous_at (λ x', ⨆ i hi, f i hi x') x :=
 lower_semicontinuous_at_supr $ λ i, lower_semicontinuous_at_supr $ λ hi, h i hi
 
+lemma lower_semicontinuous_on_csupr {f : ι → α → δ'}
+  (bdd : ∀ x ∈ s, bdd_above (range $ λ i, f i x))
+  (h : ∀ i, lower_semicontinuous_on (f i) s) :
+  lower_semicontinuous_on (λ x', ⨆ i, f i x') s :=
+λ x hx, lower_semicontinuous_within_at_csupr (eventually_nhds_within_of_forall bdd)
+  (λ i, h i x hx)
+
 lemma lower_semicontinuous_on_supr {f : ι → α → δ}
   (h : ∀ i, lower_semicontinuous_on (f i) s) :
   lower_semicontinuous_on (λ x', ⨆ i, f i x') s :=
-λ x hx, lower_semicontinuous_within_at_supr (λ i, h i x hx)
+lower_semicontinuous_on_csupr (by simp) h
 
 lemma lower_semicontinuous_on_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous_on (f i hi) s) :
   lower_semicontinuous_on (λ x', ⨆ i hi, f i hi x') s :=
 lower_semicontinuous_on_supr $ λ i, lower_semicontinuous_on_supr $ λ hi, h i hi
 
+lemma lower_semicontinuous_csupr {f : ι → α → δ'}
+  (bdd : ∀ x, bdd_above (range $ λ i, f i x))
+  (h : ∀ i, lower_semicontinuous (f i)) :
+  lower_semicontinuous (λ x', ⨆ i, f i x') :=
+λ x, lower_semicontinuous_at_csupr (eventually_of_forall bdd) (λ i, h i x)
+
 lemma lower_semicontinuous_supr {f : ι → α → δ}
   (h : ∀ i, lower_semicontinuous (f i)) :
   lower_semicontinuous (λ x', ⨆ i, f i x') :=
-λ x, lower_semicontinuous_at_supr (λ i, h i x)
+lower_semicontinuous_csupr (by simp) h
 
 lemma lower_semicontinuous_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous (f i hi)) :
@@ -639,7 +676,7 @@ variables [has_zero β]
 
 lemma is_open.upper_semicontinuous_indicator (hs : is_open s) (hy : y ≤ 0) :
   upper_semicontinuous (indicator s (λ x, y)) :=
-@is_open.lower_semicontinuous_indicator α _ (order_dual β) _ s y _ hs hy
+@is_open.lower_semicontinuous_indicator α _ βᵒᵈ _ s y _ hs hy
 
 lemma is_open.upper_semicontinuous_on_indicator (hs : is_open s) (hy : y ≤ 0) :
   upper_semicontinuous_on (indicator s (λ x, y)) t :=
@@ -655,7 +692,7 @@ lemma is_open.upper_semicontinuous_within_at_indicator (hs : is_open s) (hy : y 
 
 lemma is_closed.upper_semicontinuous_indicator (hs : is_closed s) (hy : 0 ≤ y) :
   upper_semicontinuous (indicator s (λ x, y)) :=
-@is_closed.lower_semicontinuous_indicator α _ (order_dual β) _ s y _ hs hy
+@is_closed.lower_semicontinuous_indicator α _ βᵒᵈ _ s y _ hs hy
 
 lemma is_closed.upper_semicontinuous_on_indicator (hs : is_closed s) (hy : 0 ≤ y) :
   upper_semicontinuous_on (indicator s (λ x, y)) t :=
@@ -673,16 +710,30 @@ end
 
 /-! #### Relationship with continuity -/
 
-theorem upper_semicontinuous_iff_is_open :
+theorem upper_semicontinuous_iff_is_open_preimage :
   upper_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Iio y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
 lemma upper_semicontinuous.is_open_preimage (hf : upper_semicontinuous f) (y : β) :
   is_open (f ⁻¹' (Iio y)) :=
-upper_semicontinuous_iff_is_open.1 hf y
+upper_semicontinuous_iff_is_open_preimage.1 hf y
 
 section
-variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {γ : Type*} [linear_order γ]
+
+theorem upper_semicontinuous_iff_is_closed_preimage {f : α → γ} :
+  upper_semicontinuous f ↔ ∀ y, is_closed (f ⁻¹' (Ici y)) :=
+begin
+  rw upper_semicontinuous_iff_is_open_preimage,
+  congrm (∀ y, (_ : Prop)),
+  rw [← is_open_compl_iff, ← preimage_compl, compl_Ici]
+end
+
+lemma upper_semicontinuous.is_closed_preimage {f : α → γ} (hf : upper_semicontinuous f) (y : γ) :
+  is_closed (f ⁻¹' (Ici y)) :=
+upper_semicontinuous_iff_is_closed_preimage.1 hf y
+
+variables [topological_space γ] [order_topology γ]
 
 lemma continuous_within_at.upper_semicontinuous_within_at {f : α → γ}
   (h : continuous_within_at f s x) : upper_semicontinuous_within_at f s x :=
@@ -711,14 +762,12 @@ variables {δ : Type*} [linear_order δ] [topological_space δ] [order_topology 
 lemma continuous_at.comp_upper_semicontinuous_within_at
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
   (gmon : monotone g) : upper_semicontinuous_within_at (g ∘ f) s x :=
-@continuous_at.comp_lower_semicontinuous_within_at α _ x s (order_dual γ) _ _ _
-  (order_dual δ) _ _ _ g f hg hf (λ x y hxy, gmon hxy)
+@continuous_at.comp_lower_semicontinuous_within_at α _ x s γᵒᵈ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon.dual
 
 lemma continuous_at.comp_upper_semicontinuous_at
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
   (gmon : monotone g) : upper_semicontinuous_at (g ∘ f) x :=
-@continuous_at.comp_lower_semicontinuous_at α _ x (order_dual γ) _ _ _
-  (order_dual δ) _ _ _ g f hg hf (λ x y hxy, gmon hxy)
+@continuous_at.comp_lower_semicontinuous_at α _ x γᵒᵈ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon.dual
 
 lemma continuous.comp_upper_semicontinuous_on
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
@@ -733,13 +782,12 @@ lemma continuous.comp_upper_semicontinuous
 lemma continuous_at.comp_upper_semicontinuous_within_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
   (gmon : antitone g) : lower_semicontinuous_within_at (g ∘ f) s x :=
-@continuous_at.comp_upper_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
-  g f hg hf gmon
+@continuous_at.comp_upper_semicontinuous_within_at α _ x s γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous_at.comp_upper_semicontinuous_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
   (gmon : antitone g) : lower_semicontinuous_at (g ∘ f) x :=
-@continuous_at.comp_upper_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
+@continuous_at.comp_upper_semicontinuous_at α _ x γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous.comp_upper_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
@@ -766,7 +814,7 @@ lemma upper_semicontinuous_within_at.add' {f g : α → γ}
   (hf : upper_semicontinuous_within_at f s x) (hg : upper_semicontinuous_within_at g s x)
   (hcont : continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
   upper_semicontinuous_within_at (λ z, f z + g z) s x :=
-@lower_semicontinuous_within_at.add' α _ x s (order_dual γ) _ _ _ _ _ hf hg hcont
+@lower_semicontinuous_within_at.add' α _ x s γᵒᵈ _ _ _ _ _ hf hg hcont
 
 /-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
 explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
@@ -832,7 +880,7 @@ hf.add' hg (λ x, continuous_add.continuous_at)
 lemma upper_semicontinuous_within_at_sum {f : ι → α → γ} {a : finset ι}
   (ha : ∀ i ∈ a, upper_semicontinuous_within_at (f i) s x) :
   upper_semicontinuous_within_at (λ z, (∑ i in a, f i z)) s x :=
-@lower_semicontinuous_within_at_sum α _ x s ι (order_dual γ) _ _ _ _ f a ha
+@lower_semicontinuous_within_at_sum α _ x s ι γᵒᵈ _ _ _ _ f a ha
 
 lemma upper_semicontinuous_at_sum {f : ι → α → γ} {a : finset ι}
   (ha : ∀ i ∈ a, upper_semicontinuous_at (f i) x) :
@@ -857,27 +905,46 @@ end
 /-! #### Infimum -/
 
 section
-variables {ι : Sort*} {δ : Type*} [complete_linear_order δ]
+variables {ι : Sort*} {δ δ' : Type*} [complete_linear_order δ]
+  [conditionally_complete_linear_order δ']
+
+lemma upper_semicontinuous_within_at_cinfi {f : ι → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝[s] x, bdd_below (range $ λ i, f i y))
+  (h : ∀ i, upper_semicontinuous_within_at (f i) s x) :
+  upper_semicontinuous_within_at (λ x', ⨅ i, f i x') s x :=
+@lower_semicontinuous_within_at_csupr α _ x s ι δ'ᵒᵈ _ f bdd h
 
 lemma upper_semicontinuous_within_at_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_within_at (f i) s x) :
   upper_semicontinuous_within_at (λ x', ⨅ i, f i x') s x :=
-@lower_semicontinuous_within_at_supr α _ x s ι (order_dual δ) _ f h
+@lower_semicontinuous_within_at_supr α _ x s ι δᵒᵈ _ f h
 
 lemma upper_semicontinuous_within_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_within_at (f i hi) s x) :
   upper_semicontinuous_within_at (λ x', ⨅ i hi, f i hi x') s x :=
 upper_semicontinuous_within_at_infi $ λ i, upper_semicontinuous_within_at_infi $ λ hi, h i hi
 
+lemma upper_semicontinuous_at_cinfi {f : ι → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝 x, bdd_below (range $ λ i, f i y))
+  (h : ∀ i, upper_semicontinuous_at (f i) x) :
+  upper_semicontinuous_at (λ x', ⨅ i, f i x') x :=
+@lower_semicontinuous_at_csupr α _ x ι δ'ᵒᵈ _ f bdd h
+
 lemma upper_semicontinuous_at_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_at (f i) x) :
   upper_semicontinuous_at (λ x', ⨅ i, f i x') x :=
-@lower_semicontinuous_at_supr α _ x ι (order_dual δ) _ f h
+@lower_semicontinuous_at_supr α _ x ι δᵒᵈ _ f h
 
 lemma upper_semicontinuous_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_at (f i hi) x) :
   upper_semicontinuous_at (λ x', ⨅ i hi, f i hi x') x :=
 upper_semicontinuous_at_infi $ λ i, upper_semicontinuous_at_infi $ λ hi, h i hi
+
+lemma upper_semicontinuous_on_cinfi {f : ι → α → δ'}
+  (bdd : ∀ x ∈ s, bdd_below (range $ λ i, f i x))
+  (h : ∀ i, upper_semicontinuous_on (f i) s) :
+  upper_semicontinuous_on (λ x', ⨅ i, f i x') s :=
+λ x hx, upper_semicontinuous_within_at_cinfi (eventually_nhds_within_of_forall bdd) (λ i, h i x hx)
 
 lemma upper_semicontinuous_on_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_on (f i) s) :
@@ -888,6 +955,12 @@ lemma upper_semicontinuous_on_binfi {p : ι → Prop} {f : Π i (h : p i), α �
   (h : ∀ i hi, upper_semicontinuous_on (f i hi) s) :
   upper_semicontinuous_on (λ x', ⨅ i hi, f i hi x') s :=
 upper_semicontinuous_on_infi $ λ i, upper_semicontinuous_on_infi $ λ hi, h i hi
+
+lemma upper_semicontinuous_cinfi {f : ι → α → δ'}
+  (bdd : ∀ x, bdd_below (range $ λ i, f i x))
+  (h : ∀ i, upper_semicontinuous (f i)) :
+  upper_semicontinuous (λ x', ⨅ i, f i x') :=
+λ x, upper_semicontinuous_at_cinfi (eventually_of_forall bdd) (λ i, h i x)
 
 lemma upper_semicontinuous_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous (f i)) :
@@ -916,20 +989,16 @@ begin
   { rcases exists_Ioc_subset_of_mem_nhds hv Hl with ⟨l, lfx, hl⟩,
     by_cases Hu : ∃ u, f x < u,
     { rcases exists_Ico_subset_of_mem_nhds hv Hu with ⟨u, fxu, hu⟩,
-      filter_upwards [h₁ l lfx, h₂ u fxu],
-      assume a lfa fau,
+      filter_upwards [h₁ l lfx, h₂ u fxu] with a lfa fau,
       cases le_or_gt (f a) (f x) with h h,
       { exact hl ⟨lfa, h⟩ },
       { exact hu ⟨le_of_lt h, fau⟩ } },
     { simp only [not_exists, not_lt] at Hu,
-      filter_upwards [h₁ l lfx],
-      assume a lfa,
-      exact hl ⟨lfa, Hu (f a)⟩ } },
+      filter_upwards [h₁ l lfx] with a lfa using hl ⟨lfa, Hu (f a)⟩, }, },
   { simp only [not_exists, not_lt] at Hl,
     by_cases Hu : ∃ u, f x < u,
     { rcases exists_Ico_subset_of_mem_nhds hv Hu with ⟨u, fxu, hu⟩,
-      filter_upwards [h₂ u fxu],
-      assume a lfa,
+      filter_upwards [h₂ u fxu] with a lfa,
       apply hu,
       exact ⟨Hl (f a), lfa⟩ },
     { simp only [not_exists, not_lt] at Hu,

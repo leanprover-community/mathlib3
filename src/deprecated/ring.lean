@@ -8,10 +8,16 @@ import deprecated.group
 /-!
 # Unbundled semiring and ring homomorphisms (deprecated)
 
-This file defines structures for unbundled semiring and ring homomorphisms. Though bundled
-morphisms are now preferred, the unbundled structures are still occasionally used in mathlib,
-and probably will not go away before Lean 4 because Lean 3 often fails to coerce a bundled
-homomorphism to a function.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines predicates for unbundled semiring and ring homomorphisms. Instead of using
+this file, please use `ring_hom`, defined in `algebra.hom.ring`, with notation `→+*`, for
+morphisms between semirings or rings. For example use `φ : A →+* B` to represent a
+ring homomorphism.
 
 ## Main Definitions
 
@@ -104,7 +110,8 @@ lemma comp (hf : is_ring_hom f) {γ} [ring γ] {g : β → γ} (hg : is_ring_hom
 lemma to_is_semiring_hom (hf : is_ring_hom f) : is_semiring_hom f :=
 { map_zero := map_zero hf, ..‹is_ring_hom f› }
 
-lemma to_is_add_group_hom (hf : is_ring_hom f) : is_add_group_hom f := { map_add := hf.map_add }
+lemma to_is_add_group_hom (hf : is_ring_hom f) : is_add_group_hom f :=
+{ map_add := λ _ _, hf.map_add }
 
 end is_ring_hom
 

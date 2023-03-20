@@ -1,6 +1,7 @@
 import tactic.ring_exp
 import tactic.zify
 import algebra.group_with_zero.power
+import algebra.ring.pi
 import tactic.field_simp
 
 universes u
@@ -75,6 +76,9 @@ example (a b : ℚ) : (a * b) ^ 1000000 = (b * a) ^ 1000000 := by ring_exp
 example (n : ℕ) : 2 ^ (n + 1 + 1)  = 2 * 2 ^ (n + 1) :=
 by ring_exp_eq
 
+-- power does not have to be a syntactic match to `monoid.has_pow`
+example {α} [comm_ring α] (x : ℕ → α) : (x ^ 2 * x) = x ^ 3 := by ring_exp
+
 end exponentiation
 
 section power_of_sum
@@ -145,6 +149,21 @@ example (d : ℕ) : 2 * (2 ^ d - 1) + 1 = 2 ^ d.succ - 1 :=
 begin
   zify [nat.one_le_pow'],
   ring_exp,
+end
+
+-- Simplified instance of a bug reported by Patrick Massot:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/ring_exp.20bug
+example (l : ℤ) : l - l = 0 :=
+begin
+  tactic.replace_at (tactic.ring_exp.normalize tactic.transparency.reducible) [] tt >> pure (),
+  refl
+end
+
+-- Normalizing also works on more complicated expressions:
+example (a b : ℤ) : (a^2 - b - b) + (2 * id b - a^2) = 0 :=
+begin
+  tactic.replace_at (tactic.ring_exp.normalize tactic.transparency.semireducible) [] tt >> pure (),
+  refl
 end
 
 section conv

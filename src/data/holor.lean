@@ -9,6 +9,9 @@ import algebra.big_operators.basic
 /-!
 # Basic properties of holors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Holors are indexed collections of tensor coefficients. Confusingly,
 they are often called tensors in physics and in the neural network
 community.
@@ -38,7 +41,7 @@ open_locale big_operators
 
 /-- `holor_index ds` is the type of valid index tuples used to identify an entry of a holor
 of dimensions `ds`. -/
-def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
+def holor_index (ds : list ℕ) : Type := {is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
 variables {ds₁ ds₂ ds₃ : list ℕ}
@@ -80,13 +83,13 @@ lemma drop_drop :
 end holor_index
 
 /-- Holor (indexed collections of tensor coefficients) -/
-def holor (α : Type u) (ds:list ℕ) := holor_index ds → α
+def holor (α : Type u) (ds : list ℕ) := holor_index ds → α
 
 namespace holor
 
 variables {α : Type} {d : ℕ} {ds : list ℕ} {ds₁ : list ℕ} {ds₂ : list ℕ} {ds₃ : list ℕ}
 
-instance [inhabited α] : inhabited (holor α ds) := ⟨λ t, default α⟩
+instance [inhabited α] : inhabited (holor α ds) := ⟨λ t, default⟩
 instance [has_zero α] : has_zero (holor α ds) := ⟨λ t, 0⟩
 instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, x t + y t⟩
 instance [has_neg α] : has_neg (holor α ds) :=  ⟨λ a t, - a t⟩
@@ -98,26 +101,26 @@ instance [add_comm_semigroup α] : add_comm_semigroup (holor α ds) :=
 by refine_struct { add := (+), .. }; tactic.pi_instance_derive_field
 
 instance [add_monoid α] : add_monoid (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, n • (x i) };
 tactic.pi_instance_derive_field
 
 instance [add_comm_monoid α] : add_comm_monoid (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := add_monoid.nsmul };
 tactic.pi_instance_derive_field
 
 instance [add_group α] : add_group (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
-  zsmul := λ n x i, zsmul n (x i) };
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := add_monoid.nsmul,
+  zsmul := λ n x i, n • (x i) };
 tactic.pi_instance_derive_field
 
 instance [add_comm_group α] : add_comm_group (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
-  zsmul := λ n x i, zsmul n (x i) };
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := add_monoid.nsmul,
+  zsmul := sub_neg_monoid.zsmul };
 tactic.pi_instance_derive_field
 
 /- scalar product -/
 
-instance [has_mul α] : has_scalar α (holor α ds) :=
+instance [has_mul α] : has_smul α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
 instance [semiring α] : module α (holor α ds) := pi.module _ _ _
@@ -175,7 +178,7 @@ funext (λ t, mul_zero (x (holor_index.take t)))
 
 lemma mul_scalar_mul [monoid α] (x : holor α []) (y : holor α ds) :
   x ⊗ y = x ⟨[], forall₂.nil⟩ • y :=
-by simp [mul, has_scalar.smul, holor_index.take, holor_index.drop]
+by simp [mul, has_smul.smul, holor_index.take, holor_index.drop]
 
 /- holor slices -/
 
@@ -308,7 +311,7 @@ exact finset.induction_on s
   (by simp [cprank_max.zero])
   (begin
     assume x s (h_x_notin_s : x ∉ s) ih h_cprank,
-    simp only [finset.sum_insert h_x_notin_s,finset.card_insert_of_not_mem h_x_notin_s],
+    simp only [finset.sum_insert h_x_notin_s, finset.card_insert_of_not_mem h_x_notin_s],
     rw nat.right_distrib,
     simp only [nat.one_mul, nat.add_comm],
     have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),

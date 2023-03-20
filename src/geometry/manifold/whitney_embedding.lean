@@ -3,6 +3,8 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import geometry.manifold.diffeomorph
+import geometry.manifold.instances.real
 import geometry.manifold.partition_of_unity
 
 /-!
@@ -25,12 +27,12 @@ partition of unity, smooth bump function, whitney theorem
 
 universes uι uE uH uM
 variables {ι : Type uι}
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 open function filter finite_dimensional set
-open_locale topological_space manifold classical filter big_operators
+open_locale topology manifold classical filter big_operators
 
 noncomputable theory
 
@@ -43,13 +45,14 @@ In this section we prove a version of the Whitney embedding theorem: for any com
 `M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 -/
 
-variables [t2_space M] [fintype ι] {s : set M} (f : smooth_bump_covering ι I M s)
+variables [t2_space M] [hi : fintype ι] {s : set M} (f : smooth_bump_covering ι I M s)
+include hi
 
 /-- Smooth embedding of `M` into `(E × ℝ) ^ ι`. -/
 def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, ι → (E × ℝ)), ι → (E × ℝ)⟯ :=
 { to_fun := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
-  times_cont_mdiff_to_fun := times_cont_mdiff_pi_space.2 $ λ i,
-    ((f i).smooth_smul times_cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
+  cont_mdiff_to_fun := cont_mdiff_pi_space.2 $ λ i,
+    ((f i).smooth_smul cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
 
 local attribute [simp] lemma embedding_pi_tangent_coe :
   ⇑f.embedding_pi_tangent = λ x i, (f i x • ext_chart_at I (f.c i) x, f i x) :=
@@ -89,7 +92,7 @@ begin
 end
 
 lemma embedding_pi_tangent_ker_mfderiv (x : M) (hx : x ∈ s) :
-  (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x).ker = ⊥ :=
+  linear_map.ker (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x) = ⊥ :=
 begin
   apply bot_unique,
   rw [← (mdifferentiable_chart I (f.c (f.ind x hx))).ker_mfderiv_eq_bot
@@ -101,13 +104,16 @@ lemma embedding_pi_tangent_injective_mfderiv (x : M) (hx : x ∈ s) :
   injective (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x) :=
 linear_map.ker_eq_bot.1 (f.embedding_pi_tangent_ker_mfderiv x hx)
 
-/-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
+omit hi
+
+/-- Baby version of the **Whitney weak embedding theorem**: if `M` admits a finite covering by
 supports of bump functions, then for some `n` it can be immersed into the `n`-dimensional
 Euclidean space. -/
-lemma exists_immersion_euclidean (f : smooth_bump_covering ι I M) :
+lemma exists_immersion_euclidean [finite ι] (f : smooth_bump_covering ι I M) :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
+  casesI nonempty_fintype ι,
   set F := euclidean_space ℝ (fin $ finrank ℝ (ι → (E × ℝ))),
   letI : is_noetherian ℝ (E × ℝ) := is_noetherian.iff_fg.2 infer_instance,
   letI : finite_dimensional ℝ (ι → E × ℝ) := is_noetherian.iff_fg.1 infer_instance,

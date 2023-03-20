@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.natural_isomorphism
-import category_theory.equivalence
 import category_theory.eq_to_hom
 
 /-!
 # Quotient category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Constructs the quotient of a category by an arbitrary family of relations on its hom-sets,
 by introducing a type synonym for the objects, and identifying homs as necessary.
@@ -41,7 +43,7 @@ attribute [instance] congruence.is_equiv
 @[ext]
 structure quotient := (as : C)
 
-instance [inhabited C] : inhabited (quotient r) := ⟨ { as := default C } ⟩
+instance [inhabited C] : inhabited (quotient r) := ⟨ { as := default } ⟩
 
 namespace quotient
 
@@ -49,6 +51,9 @@ namespace quotient
 inductive comp_closure ⦃s t : C⦄ : (s ⟶ t) → (s ⟶ t) → Prop
 | intro {a b} (f : s ⟶ a) (m₁ m₂ : a ⟶ b) (g : b ⟶ t) (h : r m₁ m₂) :
   comp_closure (f ≫ m₁ ≫ g) (f ≫ m₂ ≫ g)
+
+lemma comp_closure.of {a b} (m₁ m₂ : a ⟶ b) (h : r m₁ m₂) : comp_closure r m₁ m₂ :=
+by simpa using comp_closure.intro (𝟙 _) m₁ m₂ (𝟙 _) h
 
 lemma comp_left {a b c : C} (f : a ⟶ b) : Π (g₁ g₂ : b ⟶ c) (h : comp_closure r g₁ g₂),
   comp_closure r (f ≫ g₁) (f ≫ g₂)
@@ -123,9 +128,29 @@ include H
 def lift : quotient r ⥤ D :=
 { obj := λ a, F.obj a.as,
   map := λ a b hf, quot.lift_on hf (λ f, F.map f)
-    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simp [H _ _ _ _ h], }),
+    (by { rintro _ _ ⟨_, _, _, _, h⟩, simp [H _ _ _ _ h], }),
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
+
+lemma lift_spec : (functor r) ⋙ lift r F H = F :=
+begin
+  apply functor.ext, rotate,
+  { rintro X, refl, },
+  { rintro X Y f, simp, },
+end
+
+lemma lift_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
+begin
+  subst_vars,
+  apply functor.hext,
+  { rintro X, dsimp [lift, functor], congr, ext, refl, },
+  { rintro X Y f,
+    dsimp [lift, functor],
+    apply quot.induction_on f,
+    rintro ff,
+    simp only [quot.lift_on_mk, functor.comp_map],
+    congr; ext; refl, },
+end
 
 /-- The original functor factors through the induced functor. -/
 def lift.is_lift : (functor r) ⋙ lift r F H ≅ F :=

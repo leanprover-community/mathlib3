@@ -30,14 +30,14 @@ section isomorphism_laws
 
 /-- The first isomorphism law for modules. The quotient of `M` by the kernel of `f` is linearly
 equivalent to the range of `f`. -/
-noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
-(linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
+noncomputable def quot_ker_equiv_range : (M ⧸ f.ker) ≃ₗ[R] f.range :=
+(linear_equiv.of_injective (f.ker.liftq f $ le_rfl) $
   ker_eq_bot.mp $ submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
 
 /-- The first isomorphism theorem for surjective linear maps. -/
 noncomputable def quot_ker_equiv_of_surjective
-  (f : M →ₗ[R] M₂) (hf : function.surjective f) : f.ker.quotient ≃ₗ[R] M₂ :=
+  (f : M →ₗ[R] M₂) (hf : function.surjective f) : (M ⧸ f.ker) ≃ₗ[R] M₂ :=
 f.quot_ker_equiv_range.trans
   (linear_equiv.of_top f.range (linear_map.range_eq_top.2 hf))
 
@@ -54,7 +54,7 @@ Canonical linear map from the quotient `p/(p ∩ p')` to `(p+p')/p'`, mapping `x
 to `x + p'`, where `p` and `p'` are submodules of an ambient module.
 -/
 def quotient_inf_to_sup_quotient (p p' : submodule R M) :
-  (comap p.subtype (p ⊓ p')).quotient →ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
+  p ⧸ (comap p.subtype (p ⊓ p')) →ₗ[R] _ ⧸ (comap (p ⊔ p').subtype p') := by exact
 (comap p.subtype (p ⊓ p')).liftq
   ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
@@ -64,20 +64,20 @@ exact comap_mono (inf_le_inf_right _ le_sup_left) end
 Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as a linear isomorphism.
 -/
 noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
-  (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
+  (p ⧸ (comap p.subtype (p ⊓ p'))) ≃ₗ[R] _ ⧸ (comap (p ⊔ p').subtype p') := by exact
 linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
-  begin
+  ⟨begin
     rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
     rw [ker_comp, ker_mkq],
     exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
-  end
+  end,
   begin
     rw [← range_eq_top, quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
     use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',
     rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
-  end
+  end⟩
 
 @[simp] lemma coe_quotient_inf_to_sup_quotient (p p' : submodule R M) :
   ⇑(quotient_inf_to_sup_quotient p p') = quotient_inf_equiv_sup_quotient p p' := rfl
@@ -113,13 +113,13 @@ namespace submodule
 variables (S T : submodule R M) (h : S ≤ T)
 
 /-- The map from the third isomorphism theorem for modules: `(M / S) / (T / S) → M / T`. -/
-def quotient_quotient_equiv_quotient_aux :
-  quotient (T.map S.mkq) →ₗ[R] quotient T :=
+def quotient_quotient_equiv_quotient_aux (h : S ≤ T) :
+  (M ⧸ S) ⧸ (T.map S.mkq) →ₗ[R] M ⧸ T := by exact
 liftq _ (mapq S T linear_map.id h)
   (by { rintro _ ⟨x, hx, rfl⟩, rw [linear_map.mem_ker, mkq_apply, mapq_apply],
         exact (quotient.mk_eq_zero _).mpr hx })
 
-@[simp] lemma quotient_quotient_equiv_quotient_aux_mk (x : S.quotient) :
+@[simp] lemma quotient_quotient_equiv_quotient_aux_mk (x : M ⧸ S) :
   quotient_quotient_equiv_quotient_aux S T h (quotient.mk x) = mapq S T linear_map.id h x :=
 liftq_apply _ _ _
 
@@ -129,11 +129,18 @@ by rw [quotient_quotient_equiv_quotient_aux_mk, mapq_apply, linear_map.id_apply]
 
 /-- **Noether's third isomorphism theorem** for modules: `(M / S) / (T / S) ≃ M / T`. -/
 def quotient_quotient_equiv_quotient :
-  quotient (T.map S.mkq) ≃ₗ[R] quotient T :=
+  ((M ⧸ S) ⧸ (T.map S.mkq)) ≃ₗ[R] M ⧸ T :=
 { to_fun := quotient_quotient_equiv_quotient_aux S T h,
   inv_fun := mapq _ _ (mkq S) (le_comap_map _ _),
   left_inv := λ x, quotient.induction_on' x $ λ x, quotient.induction_on' x $ λ x, by simp,
   right_inv := λ x, quotient.induction_on' x $ λ x, by simp,
   .. quotient_quotient_equiv_quotient_aux S T h }
+
+/-- Corollary of the third isomorphism theorem: `[S : T] [M : S] = [M : T]` -/
+lemma card_quotient_mul_card_quotient (S T : submodule R M) (hST : T ≤ S)
+  [decidable_pred (λ x, x ∈ S.map T.mkq)] [fintype (M ⧸ S)] [fintype (M ⧸ T)] :
+  fintype.card (S.map T.mkq) * fintype.card (M ⧸ S) = fintype.card (M ⧸ T) :=
+by rw [submodule.card_eq_card_quotient_mul_card (map T.mkq S),
+       fintype.card_eq.mpr ⟨(quotient_quotient_equiv_quotient T S hST).to_equiv⟩]
 
 end submodule

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.trigonometric.basic
+import topology.algebra.order.proj_Icc
+
 
 /-!
 # Inverse trigonometric functions.
@@ -11,11 +13,11 @@ import analysis.special_functions.trigonometric.basic
 See also `analysis.special_functions.trigonometric.arctan` for the inverse tan function.
 (This is delayed as it is easier to set up after developing complex trigonometric functions.)
 
-Basic inequalities and derivatives.
+Basic inequalities on trigonometric functions.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 open_locale real
@@ -37,7 +39,7 @@ lemma arcsin_le_pi_div_two (x : ℝ) : arcsin x ≤ π / 2 := (arcsin_mem_Icc x)
 lemma neg_pi_div_two_le_arcsin (x : ℝ) : -(π / 2) ≤ arcsin x := (arcsin_mem_Icc x).1
 
 lemma arcsin_proj_Icc (x : ℝ) :
-  arcsin (proj_Icc (-1) 1 (neg_le_self $ @zero_le_one ℝ _) x) = arcsin x :=
+  arcsin (proj_Icc (-1) 1 (neg_le_self zero_le_one) x) = arcsin x :=
 by rw [arcsin, function.comp_app, Icc_extend_coe, function.comp_app, Icc_extend]
 
 lemma sin_arcsin' {x : ℝ} (hx : x ∈ Icc (-1 : ℝ) 1) : sin (arcsin x) = x :=
@@ -68,7 +70,7 @@ inj_on_arcsin.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 
 @[continuity]
 lemma continuous_arcsin : continuous arcsin :=
-continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend
+continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend'
 
 lemma continuous_at_arcsin {x : ℝ} : continuous_at arcsin x :=
 continuous_arcsin.continuous_at
@@ -197,6 +199,9 @@ eq_comm.trans arcsin_eq_neg_pi_div_two
 @[simp] lemma arcsin_le_neg_pi_div_two {x} : arcsin x ≤ -(π / 2) ↔ x ≤ -1 :=
 (neg_pi_div_two_le_arcsin x).le_iff_eq.trans arcsin_eq_neg_pi_div_two
 
+@[simp] lemma pi_div_four_le_arcsin {x} : π / 4 ≤ arcsin x ↔ sqrt 2 / 2 ≤ x :=
+by { rw [← sin_pi_div_four, le_arcsin_iff_sin_le'], have := pi_pos, split; linarith }
+
 lemma maps_to_sin_Ioo : maps_to sin (Ioo (-(π / 2)) (π / 2)) (Ioo (-1) 1) :=
 λ x h, by rwa [mem_Ioo, ← arcsin_lt_pi_div_two, ← neg_pi_div_two_lt_arcsin,
   arcsin_sin h.1.le h.2.le]
@@ -219,122 +224,36 @@ lemma maps_to_sin_Ioo : maps_to sin (Ioo (-(π / 2)) (π / 2)) (Ioo (-1) 1) :=
 lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
 cos_nonneg_of_mem_Icc ⟨neg_pi_div_two_le_arcsin _, arcsin_le_pi_div_two _⟩
 
-lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
-have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
+-- The junk values for `arcsin` and `sqrt` make this true even outside `[-1, 1]`.
+lemma cos_arcsin (x : ℝ) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
 begin
+  by_cases hx₁ : -1 ≤ x, swap,
+  { rw not_le at hx₁,
+    rw [arcsin_of_le_neg_one hx₁.le, cos_neg, cos_pi_div_two, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  by_cases hx₂ : x ≤ 1, swap,
+  { rw not_le at hx₂,
+    rw [arcsin_of_one_le hx₂.le, cos_pi_div_two, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  have : sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
   rw [← eq_sub_iff_add_eq', ← sqrt_inj (sq_nonneg _) (sub_nonneg.2 (sin_sq_le_one (arcsin x))),
     sq, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
   rw [this, sin_arcsin hx₁ hx₂],
 end
 
-lemma deriv_arcsin_aux {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
-  has_strict_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x ∧ times_cont_diff_at ℝ ⊤ arcsin x :=
+-- The junk values for `arcsin` and `sqrt` make this true even outside `[-1, 1]`.
+lemma tan_arcsin (x : ℝ) : tan (arcsin x) = x / sqrt (1 - x ^ 2) :=
 begin
-  cases h₁.lt_or_lt with h₁ h₁,
-  { have : 1 - x ^ 2 < 0, by nlinarith [h₁],
-    rw [sqrt_eq_zero'.2 this.le, div_zero],
-    have : arcsin =ᶠ[𝓝 x] λ _, -(π / 2) :=
-      (gt_mem_nhds h₁).mono (λ y hy, arcsin_of_le_neg_one hy.le),
-    exact ⟨(has_strict_deriv_at_const _ _).congr_of_eventually_eq this.symm,
-      times_cont_diff_at_const.congr_of_eventually_eq this⟩ },
-  cases h₂.lt_or_lt with h₂ h₂,
-  { have : 0 < sqrt (1 - x ^ 2) := sqrt_pos.2 (by nlinarith [h₁, h₂]),
-    simp only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
-    exact ⟨sin_local_homeomorph.has_strict_deriv_at_symm ⟨h₁, h₂⟩ this.ne'
-      (has_strict_deriv_at_sin _),
-      sin_local_homeomorph.times_cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩
-        (has_deriv_at_sin _) times_cont_diff_sin.times_cont_diff_at⟩ },
-  { have : 1 - x ^ 2 < 0, by nlinarith [h₂],
-    rw [sqrt_eq_zero'.2 this.le, div_zero],
-    have : arcsin =ᶠ[𝓝 x] λ _, π / 2 := (lt_mem_nhds h₂).mono (λ y hy, arcsin_of_one_le hy.le),
-    exact ⟨(has_strict_deriv_at_const _ _).congr_of_eventually_eq this.symm,
-      times_cont_diff_at_const.congr_of_eventually_eq this⟩ }
+  rw [tan_eq_sin_div_cos, cos_arcsin],
+  by_cases hx₁ : -1 ≤ x, swap,
+  { have h : sqrt (1 - x ^ 2) = 0, { exact sqrt_eq_zero_of_nonpos (by nlinarith) }, rw h, simp },
+  by_cases hx₂ : x ≤ 1, swap,
+  { have h : sqrt (1 - x ^ 2) = 0, { exact sqrt_eq_zero_of_nonpos (by nlinarith) }, rw h, simp },
+  rw sin_arcsin hx₁ hx₂
 end
-
-lemma has_strict_deriv_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
-  has_strict_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x :=
-(deriv_arcsin_aux h₁ h₂).1
-
-lemma has_deriv_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
-  has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x :=
-(has_strict_deriv_at_arcsin h₁ h₂).has_deriv_at
-
-lemma times_cont_diff_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) {n : with_top ℕ} :
-  times_cont_diff_at ℝ n arcsin x :=
-(deriv_arcsin_aux h₁ h₂).2.of_le le_top
-
-lemma has_deriv_within_at_arcsin_Ici {x : ℝ} (h : x ≠ -1) :
-  has_deriv_within_at arcsin (1 / sqrt (1 - x ^ 2)) (Ici x) x :=
-begin
-  rcases em (x = 1) with (rfl|h'),
-  { convert (has_deriv_within_at_const _ _ (π / 2)).congr _ _;
-      simp [arcsin_of_one_le] { contextual := tt } },
-  { exact (has_deriv_at_arcsin h h').has_deriv_within_at }
-end
-
-lemma has_deriv_within_at_arcsin_Iic {x : ℝ} (h : x ≠ 1) :
-  has_deriv_within_at arcsin (1 / sqrt (1 - x ^ 2)) (Iic x) x :=
-begin
-  rcases em (x = -1) with (rfl|h'),
-  { convert (has_deriv_within_at_const _ _ (-(π / 2))).congr _ _;
-      simp [arcsin_of_le_neg_one] { contextual := tt } },
-  { exact (has_deriv_at_arcsin h' h).has_deriv_within_at }
-end
-
-lemma differentiable_within_at_arcsin_Ici {x : ℝ} :
-  differentiable_within_at ℝ arcsin (Ici x) x ↔ x ≠ -1 :=
-begin
-  refine ⟨_, λ h, (has_deriv_within_at_arcsin_Ici h).differentiable_within_at⟩,
-  rintro h rfl,
-  have : sin ∘ arcsin =ᶠ[𝓝[Ici (-1:ℝ)] (-1)] id,
-  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩],
-    exact λ x, sin_arcsin' },
-  have := h.has_deriv_within_at.sin.congr_of_eventually_eq this.symm (by simp),
-  simpa using (unique_diff_on_Ici _ _ left_mem_Ici).eq_deriv _ this (has_deriv_within_at_id _ _)
-end
-
-lemma differentiable_within_at_arcsin_Iic {x : ℝ} :
-  differentiable_within_at ℝ arcsin (Iic x) x ↔ x ≠ 1 :=
-begin
-  refine ⟨λ h, _, λ h, (has_deriv_within_at_arcsin_Iic h).differentiable_within_at⟩,
-  rw [← neg_neg x, ← image_neg_Ici] at h,
-  have := (h.comp (-x) differentiable_within_at_id.neg (maps_to_image _ _)).neg,
-  simpa [(∘), differentiable_within_at_arcsin_Ici] using this
-end
-
-lemma differentiable_at_arcsin {x : ℝ} :
-  differentiable_at ℝ arcsin x ↔ x ≠ -1 ∧ x ≠ 1 :=
-⟨λ h, ⟨differentiable_within_at_arcsin_Ici.1 h.differentiable_within_at,
-  differentiable_within_at_arcsin_Iic.1 h.differentiable_within_at⟩,
-  λ h, (has_deriv_at_arcsin h.1 h.2).differentiable_at⟩
-
-@[simp] lemma deriv_arcsin : deriv arcsin = λ x, 1 / sqrt (1 - x ^ 2) :=
-begin
-  funext x,
-  by_cases h : x ≠ -1 ∧ x ≠ 1,
-  { exact (has_deriv_at_arcsin h.1 h.2).deriv },
-  { rw [deriv_zero_of_not_differentiable_at (mt differentiable_at_arcsin.1 h)],
-    simp only [not_and_distrib, ne.def, not_not] at h,
-    rcases h with (rfl|rfl); simp }
-end
-
-lemma differentiable_on_arcsin : differentiable_on ℝ arcsin {-1, 1}ᶜ :=
-λ x hx, (differentiable_at_arcsin.2
-  ⟨λ h, hx (or.inl h), λ h, hx (or.inr h)⟩).differentiable_within_at
-
-lemma times_cont_diff_on_arcsin {n : with_top ℕ} :
-  times_cont_diff_on ℝ n arcsin {-1, 1}ᶜ :=
-λ x hx, (times_cont_diff_at_arcsin (mt or.inl hx) (mt or.inr hx)).times_cont_diff_within_at
-
-lemma times_cont_diff_at_arcsin_iff {x : ℝ} {n : with_top ℕ} :
-  times_cont_diff_at ℝ n arcsin x ↔ n = 0 ∨ (x ≠ -1 ∧ x ≠ 1) :=
-⟨λ h, or_iff_not_imp_left.2 $ λ hn, differentiable_at_arcsin.1 $ h.differentiable_at $
-  with_top.one_le_iff_pos.2 (pos_iff_ne_zero.2 hn),
-  λ h, h.elim (λ hn, hn.symm ▸ (times_cont_diff_zero.2 continuous_arcsin).times_cont_diff_at) $
-    λ hx, times_cont_diff_at_arcsin hx.1 hx.2⟩
 
 /-- Inverse of the `cos` function, returns values in the range `0 ≤ arccos x` and `arccos x ≤ π`.
-  If the argument is not between `-1` and `1` it defaults to `π / 2` -/
+  It defaults to `π` on `(-∞, -1)` and to `0` to `(1, ∞)`. -/
 @[pp_nodot] noncomputable def arccos (x : ℝ) : ℝ :=
 π / 2 - arcsin x
 
@@ -348,6 +267,9 @@ by unfold arccos; linarith [neg_pi_div_two_le_arcsin x]
 
 lemma arccos_nonneg (x : ℝ) : 0 ≤ arccos x :=
 by unfold arccos; linarith [arcsin_le_pi_div_two x]
+
+@[simp] lemma arccos_pos {x : ℝ} : 0 < arccos x ↔ x < 1 :=
+by simp [arccos]
 
 lemma cos_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arccos x) = x :=
 by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
@@ -374,7 +296,7 @@ arccos_inj_on.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 by simp [arccos, sub_eq_zero]
 
 @[simp] lemma arccos_eq_pi_div_two {x} : arccos x = π / 2 ↔ x = 0 :=
-by simp [arccos, sub_eq_iff_eq_add]
+by simp [arccos]
 
 @[simp] lemma arccos_eq_pi {x} : arccos x = π ↔ x ≤ -1 :=
 by rw [arccos, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', div_two_sub_self, neg_pi_div_two_eq_arcsin]
@@ -382,57 +304,54 @@ by rw [arccos, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', div_two_sub_self, neg_
 lemma arccos_neg (x : ℝ) : arccos (-x) = π - arccos x :=
 by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_self, sub_neg_eq_add]
 
-lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
-by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
+lemma arccos_of_one_le {x : ℝ} (hx : 1 ≤ x) : arccos x = 0 :=
+by rw [arccos, arcsin_of_one_le hx, sub_self]
+
+lemma arccos_of_le_neg_one {x : ℝ} (hx : x ≤ -1) : arccos x = π :=
+by rw [arccos, arcsin_of_le_neg_one hx, sub_neg_eq_add, add_halves']
+
+-- The junk values for `arccos` and `sqrt` make this true even outside `[-1, 1]`.
+lemma sin_arccos (x : ℝ) : sin (arccos x) = sqrt (1 - x ^ 2) :=
+begin
+  by_cases hx₁ : -1 ≤ x, swap,
+  { rw not_le at hx₁,
+    rw [arccos_of_le_neg_one hx₁.le, sin_pi, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  by_cases hx₂ : x ≤ 1, swap,
+  { rw not_le at hx₂,
+    rw [arccos_of_one_le hx₂.le, sin_zero, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin]
+end
+
+@[simp] lemma arccos_le_pi_div_two {x} : arccos x ≤ π / 2 ↔ 0 ≤ x := by simp [arccos]
+
+@[simp] lemma arccos_lt_pi_div_two {x : ℝ} : arccos x < π / 2 ↔ 0 < x := by simp [arccos]
+
+@[simp] lemma arccos_le_pi_div_four {x} : arccos x ≤ π / 4 ↔ sqrt 2 / 2 ≤ x :=
+by { rw [arccos, ← pi_div_four_le_arcsin], split; { intro, linarith } }
 
 @[continuity]
 lemma continuous_arccos : continuous arccos := continuous_const.sub continuous_arcsin
 
-lemma has_strict_deriv_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
-  has_strict_deriv_at arccos (-(1 / sqrt (1 - x ^ 2))) x :=
-(has_strict_deriv_at_arcsin h₁ h₂).const_sub (π / 2)
+-- The junk values for `arccos` and `sqrt` make this true even outside `[-1, 1]`.
+lemma tan_arccos (x : ℝ) : tan (arccos x) = sqrt (1 - x ^ 2) / x :=
+by rw [arccos, tan_pi_div_two_sub, tan_arcsin, inv_div]
 
-lemma has_deriv_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
-  has_deriv_at arccos (-(1 / sqrt (1 - x ^ 2))) x :=
-(has_deriv_at_arcsin h₁ h₂).const_sub (π / 2)
+-- The junk values for `arccos` and `sqrt` make this true even for `1 < x`.
+lemma arccos_eq_arcsin {x : ℝ} (h : 0 ≤ x) :
+  arccos x = arcsin (sqrt (1 - x ^ 2)) :=
+(arcsin_eq_of_sin_eq (sin_arccos _)
+  ⟨(left.neg_nonpos_iff.2 (div_nonneg pi_pos.le (by norm_num))).trans (arccos_nonneg _),
+   arccos_le_pi_div_two.2 h⟩).symm
 
-lemma times_cont_diff_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) {n : with_top ℕ} :
-  times_cont_diff_at ℝ n arccos x :=
-times_cont_diff_at_const.sub (times_cont_diff_at_arcsin h₁ h₂)
-
-lemma has_deriv_within_at_arccos_Ici {x : ℝ} (h : x ≠ -1) :
-  has_deriv_within_at arccos (-(1 / sqrt (1 - x ^ 2))) (Ici x) x :=
-(has_deriv_within_at_arcsin_Ici h).const_sub _
-
-lemma has_deriv_within_at_arccos_Iic {x : ℝ} (h : x ≠ 1) :
-  has_deriv_within_at arccos (-(1 / sqrt (1 - x ^ 2))) (Iic x) x :=
-(has_deriv_within_at_arcsin_Iic h).const_sub _
-
-lemma differentiable_within_at_arccos_Ici {x : ℝ} :
-  differentiable_within_at ℝ arccos (Ici x) x ↔ x ≠ -1 :=
-(differentiable_within_at_const_sub_iff _).trans differentiable_within_at_arcsin_Ici
-
-lemma differentiable_within_at_arccos_Iic {x : ℝ} :
-  differentiable_within_at ℝ arccos (Iic x) x ↔ x ≠ 1 :=
-(differentiable_within_at_const_sub_iff _).trans differentiable_within_at_arcsin_Iic
-
-lemma differentiable_at_arccos {x : ℝ} :
-  differentiable_at ℝ arccos x ↔ x ≠ -1 ∧ x ≠ 1 :=
-(differentiable_at_const_sub_iff _).trans differentiable_at_arcsin
-
-@[simp] lemma deriv_arccos : deriv arccos = λ x, -(1 / sqrt (1 - x ^ 2)) :=
-funext $ λ x, (deriv_const_sub _).trans $ by simp only [deriv_arcsin]
-
-lemma differentiable_on_arccos : differentiable_on ℝ arccos {-1, 1}ᶜ :=
-differentiable_on_arcsin.const_sub _
-
-lemma times_cont_diff_on_arccos {n : with_top ℕ} :
-  times_cont_diff_on ℝ n arccos {-1, 1}ᶜ :=
-times_cont_diff_on_const.sub times_cont_diff_on_arcsin
-
-lemma times_cont_diff_at_arccos_iff {x : ℝ} {n : with_top ℕ} :
-  times_cont_diff_at ℝ n arccos x ↔ n = 0 ∨ (x ≠ -1 ∧ x ≠ 1) :=
-by refine iff.trans ⟨λ h, _, λ h, _⟩ times_cont_diff_at_arcsin_iff;
-  simpa [arccos] using (@times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (π / 2)).sub h
+-- The junk values for `arcsin` and `sqrt` make this true even for `1 < x`.
+lemma arcsin_eq_arccos {x : ℝ} (h : 0 ≤ x) :
+  arcsin x = arccos (sqrt (1 - x ^ 2)) :=
+begin
+  rw [eq_comm, ← cos_arcsin],
+  exact arccos_cos (arcsin_nonneg.2 h)
+    ((arcsin_le_pi_div_two _).trans (div_le_self pi_pos.le one_le_two))
+end
 
 end real

@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.basic
-import category_theory.limits.constructions.weakly_initial
-import category_theory.limits.preserves.basic
-import category_theory.limits.creates
-import category_theory.limits.comma
 import category_theory.punit
+import category_theory.structured_arrow
 
 /-!
 # Properties of comma categories relating to adjunctions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows that for a functor `G : D ⥤ C` the data of an initial object in each
 `structured_arrow` category on `G` is equivalent to a left adjoint to `G`, as well as the dual.
@@ -22,14 +22,14 @@ provided a left adjoint.
 
 The duals are also shown.
 -/
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 noncomputable theory
 
 namespace category_theory
 open limits
 
-variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D] (G : D ⥤ C)
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] (G : D ⥤ C)
 
 section of_initials
 variables [∀ A, has_initial (structured_arrow A G)]
@@ -49,14 +49,14 @@ def left_adjoint_of_structured_arrow_initials_aux (A : C) (B : D) :
       structured_arrow.mk ((⊥_ (structured_arrow A G)).hom ≫ G.map g),
     let g' : ⊥_ (structured_arrow A G) ⟶ B' := structured_arrow.hom_mk g rfl,
     have : initial.to _ = g',
-    { apply colimit.hom_ext, rintro ⟨⟩ },
+    { apply colimit.hom_ext, rintro ⟨⟨⟩⟩ },
     change comma_morphism.right (initial.to B') = _,
     rw this,
     refl
   end,
   right_inv := λ f,
   begin
-    let B' : structured_arrow A G := { right := B, hom := f },
+    let B' : structured_arrow A G := structured_arrow.mk f,
     apply (comma_morphism.w (initial.to B')).symm.trans (category.id_comp _),
   end }
 
@@ -100,7 +100,7 @@ def right_adjoint_of_costructured_arrow_terminals_aux (B : D) (A : C) :
       costructured_arrow.mk (G.map g ≫ (⊤_ (costructured_arrow G A)).hom),
     let g' : B' ⟶ ⊤_ (costructured_arrow G A) := costructured_arrow.hom_mk g rfl,
     have : terminal.from _ = g',
-    { apply limit.hom_ext, rintro ⟨⟩ },
+    { apply limit.hom_ext, rintro ⟨⟨⟩⟩ },
     change comma_morphism.left (terminal.from B') = _,
     rw this,
     refl
@@ -123,7 +123,7 @@ def adjunction_of_costructured_arrow_terminals :
 adjunction.adjunction_of_equiv_right _ _
 
 /-- If each costructured arrow category on `G` has an terminal object, `G` is a left adjoint. -/
-def is_right_adjoint_of_costructured_arrow_terminals : is_left_adjoint G :=
+def is_left_adjoint_of_costructured_arrow_terminals : is_left_adjoint G :=
 { right := right_adjoint_of_costructured_arrow_terminals G,
   adj := adjunction.adjunction_of_equiv_right _ _ }
 
@@ -131,6 +131,8 @@ end of_terminals
 
 section
 variables {F : C ⥤ D}
+
+local attribute [tidy] tactic.discrete_cases
 
 /-- Given a left adjoint to `G`, we can construct an initial object in each structured arrow
 category on `G`. -/
@@ -159,5 +161,15 @@ def mk_terminal_of_right_adjoint (h : F ⊣ G) (A : D) :
   end }
 
 end
+
+lemma nonempty_is_right_adjoint_iff_has_initial_structured_arrow {G : D ⥤ C} :
+  nonempty (is_right_adjoint G) ↔ ∀ A, has_initial (structured_arrow A G) :=
+⟨λ ⟨h⟩ A, by exactI (mk_initial_of_left_adjoint _ h.adj A).has_initial,
+ λ h, by exactI ⟨is_right_adjoint_of_structured_arrow_initials _⟩⟩
+
+lemma nonempty_is_left_adjoint_iff_has_terminal_costructured_arrow {F : C ⥤ D} :
+  nonempty (is_left_adjoint F) ↔ ∀ A, has_terminal (costructured_arrow F A) :=
+⟨λ ⟨h⟩ A, by exactI (mk_terminal_of_right_adjoint _ h.adj A).has_terminal,
+ λ h, by exactI ⟨is_left_adjoint_of_costructured_arrow_terminals _⟩⟩
 
 end category_theory

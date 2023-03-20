@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import algebra.char_zero.lemmas
 import data.rat.cast
 
 /-!
@@ -21,7 +22,7 @@ Mathlib is based on type theory, so saying that a rational is a natural doesn't 
 we ask that there exists `b : ℕ` whose cast to `α` is the sum we want.
 
 In mathlib, `ℕ` starts at `0`. To make the indexing cleaner, we use `a₀, ..., aₙ₋₁` instead of
-`a₁, ..., aₙ`. Similarly, it's nicer to not use substraction of naturals, so we replace
+`a₁, ..., aₙ`. Similarly, it's nicer to not use subtraction of naturals, so we replace
 `aᵢ ∣ aᵢ₋₁ + aᵢ₊₁` by `aᵢ₊₁ ∣ aᵢ + aᵢ₊₂`.
 
 We don't actually have to work in `ℚ` or `ℝ`. We can be even more general by stating the result for
@@ -82,10 +83,10 @@ begin
   { exact ⟨0, by rw [nat.cast_zero, finset.sum_range_zero]⟩ }, -- `⟨Claim it, Prove it⟩`
   /- Case `n ≥ 1`. We replace `n` by `n + 1` everywhere to make this inequality explicit
   Set up the stronger induction hypothesis -/
-  suffices h : ∃ b : ℕ, (b : α) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1))/(a i * a (i + 1))
-           ∧ a (n + 1) ∣ a n * b - a 0,
-  { obtain ⟨b, hb, -⟩ := h,
-    exact ⟨b, hb⟩ },
+  rsuffices ⟨b, hb, -⟩ :
+    ∃ b : ℕ, (b : α) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1)) / (a i * a (i + 1))
+    ∧ a (n + 1) ∣ a n * b - a 0,
+  { exact ⟨b, hb⟩ },
   simp_rw ←@nat.cast_pos α at a_pos,
   /- Declare the induction
   `ih` will be the induction hypothesis -/
@@ -105,7 +106,7 @@ begin
   obtain ⟨b, hb, han⟩ := ih (λ i hi, ha i $ nat.le_succ_of_le hi)
     (λ i hi, a_pos i $ nat.le_succ_of_le hi),
   specialize ha n le_rfl,
-  have ha₀ : a 0 ≤ a n * b, -- Needing this is an artifact of `ℕ`-substraction.
+  have ha₀ : a 0 ≤ a n * b, -- Needing this is an artifact of `ℕ`-subtraction.
   { rw [←@nat.cast_le α, nat.cast_mul, hb, ←div_le_iff' (a_pos _ $ n.le_succ.trans $ nat.le_succ _),
       ←mul_div_mul_right _ _ (a_pos _ $ nat.le_succ _).ne'],
     suffices h : ∀ i, i ∈ finset.range (n + 1) → 0 ≤ (a 0 : α) * a (n + 1) / (a i * a (i + 1)),

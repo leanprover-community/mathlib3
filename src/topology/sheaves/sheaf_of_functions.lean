@@ -5,8 +5,6 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import topology.sheaves.presheaf_of_functions
 import topology.sheaves.sheaf_condition.unique_gluing
-import category_theory.limits.shapes.types
-import topology.local_homeomorph
 
 /-!
 # Sheaf conditions for presheaves of (continuous) functions.

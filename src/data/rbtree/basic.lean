@@ -3,8 +3,9 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import tactic.interactive
 import data.rbtree.init
+import logic.is_empty
+import tactic.interactive
 
 universe u
 
@@ -55,13 +56,12 @@ lemma lo_lt_hi {t : rbnode α} {lt} [is_trans α lt] :
 begin
   induction t; intros lo hi hs,
   case leaf { cases hs, assumption },
-  all_goals {
-    cases hs,
+  all_goals
+  { cases hs,
     have h₁ := t_ih_lchild hs_hs₁,
     have h₂ := t_ih_rchild hs_hs₂,
     cases lo; cases hi; simp [lift] at *,
-    apply trans_of lt h₁ h₂,
-  }
+    apply trans_of lt h₁ h₂, }
 end
 
 lemma is_searchable_of_is_searchable_of_incomp [is_strict_weak_order α lt] {t} :
@@ -130,28 +130,25 @@ begin
     have val_hi : lift lt (some t_val) hi, { apply lo_lt_hi, assumption },
     have lo_val : lift lt lo (some t_val), { apply lo_lt_hi, assumption },
     blast_disjs,
-    {
-      have h₃ : lift lt lo (some x) ∧ lift lt (some x) (some t_val),
+
+    { have h₃ : lift lt lo (some x) ∧ lift lt (some x) (some t_val),
       { apply t_ih_lchild, assumption, assumption },
       cases h₃ with lo_x x_val,
       split,
       show lift lt lo (some x), { assumption },
-      show lift lt (some x ) hi, {
-        cases hi with hi; simp [lift] at *,
-        apply trans_of lt x_val val_hi
-      }
-    },
-    {
-      cases h₂,
+      show lift lt (some x ) hi,
+      { cases hi with hi; simp [lift] at *,
+        apply trans_of lt x_val val_hi } },
+
+    { cases h₂,
       cases lo with lo; cases hi with hi; simp [lift] at *,
       { apply lt_of_incomp_of_lt _ val_hi, simp [*] },
       { apply lt_of_lt_of_incomp lo_val, simp [*] },
       split,
       { apply lt_of_lt_of_incomp lo_val, simp [*] },
-      { apply lt_of_incomp_of_lt _ val_hi, simp [*] }
-    },
-    {
-      have h₃ : lift lt (some t_val) (some x) ∧ lift lt (some x) hi,
+      { apply lt_of_incomp_of_lt _ val_hi, simp [*] } },
+
+    { have h₃ : lift lt (some t_val) (some x) ∧ lift lt (some x) hi,
       { apply t_ih_rchild, assumption, assumption },
       cases h₃ with val_x x_hi,
       cases lo with lo; cases hi with hi; simp [lift] at *,
@@ -159,9 +156,7 @@ begin
       { apply trans_of lt lo_val val_x },
       split,
       { apply trans_of lt lo_val val_x, },
-      { assumption }
-    }
-  }
+      { assumption } } }
 end
 
 lemma lt_of_mem_left [is_strict_weak_order α lt] {y : α} {t l r : rbnode α} :
@@ -183,11 +178,10 @@ lemma lt_of_mem_left_right [is_strict_weak_order α lt] {y : α} {t l r : rbnode
     ∀ {x z}, mem lt x l → mem lt z r → lt x z :=
 begin
  intros _ _ hs hn x z hm₁ hm₂, cases hn; cases hs,
- all_goals {
-   have h₁ := range hs_hs₁ hm₁,
+ all_goals
+ { have h₁ := range hs_hs₁ hm₁,
    have h₂ := range hs_hs₂ hm₂,
-   exact trans_of lt h₁.2 h₂.1,
- }
+   exact trans_of lt h₁.2 h₂.1, }
 end
 
 end is_searchable_lemmas
@@ -205,7 +199,7 @@ lemma depth_min : ∀ {c n} {t : rbnode α}, is_red_black t c n → n ≤ depth 
 begin
   intros c n' t h,
   induction h,
-  case leaf_rb {apply le_refl},
+  case leaf_rb {exact le_refl _},
   case red_rb { simp [depth],
     have : min (depth min h_l) (depth min h_r) ≥ h_n,
     { apply le_min; assumption },
@@ -220,7 +214,7 @@ private def upper : color → nat → nat
 | black n := 2*n
 
 private lemma upper_le : ∀ c n, upper c n ≤ 2 * n + 1
-| red n   := by apply le_refl
+| red n   := by exact le_refl _
 | black n := by apply le_succ
 
 lemma depth_max' : ∀ {c n} {t : rbnode α}, is_red_black t c n → depth max t ≤ upper c n :=
@@ -228,18 +222,17 @@ begin
   intros c n' t h,
   induction h,
   case leaf_rb { simp [max, depth, upper, nat.mul_zero] },
-  case red_rb {
-    suffices : succ (max (depth max h_l) (depth max h_r)) ≤ 2 * h_n + 1,
+  case red_rb
+  { suffices : succ (max (depth max h_l) (depth max h_r)) ≤ 2 * h_n + 1,
     { simp [depth, upper, *] at * },
     apply succ_le_succ,
     apply max_le; assumption },
-  case black_rb {
-    have : depth max h_l ≤ 2*h_n + 1, from le_trans h_ih_rb_l (upper_le _ _),
+  case black_rb
+  { have : depth max h_l ≤ 2*h_n + 1, from le_trans h_ih_rb_l (upper_le _ _),
     have : depth max h_r ≤ 2*h_n + 1, from le_trans h_ih_rb_r (upper_le _ _),
     suffices new : max (depth max h_l) (depth max h_r) + 1 ≤ 2 * h_n + 2*1,
     { simp [depth, upper, succ_eq_add_one, nat.left_distrib, *] at * },
-    apply succ_le_succ, apply max_le; assumption
-  }
+    apply succ_le_succ, apply max_le; assumption }
 end
 
 lemma depth_max {c n} {t : rbnode α} (h : is_red_black t c n) : depth max t ≤ 2 * n + 1:=
@@ -247,9 +240,9 @@ le_trans (depth_max' h) (upper_le _ _)
 
 lemma balanced {c n} {t : rbnode α} (h : is_red_black t c n) : depth max t ≤ 2 * depth min t + 1 :=
 begin
- have : 2 * depth min t + 1 ≥ 2 * n + 1,
- { apply succ_le_succ, apply nat.mul_le_mul_left, apply depth_min h},
- apply le_trans, apply depth_max h, apply this
+  have : 2 * depth min t + 1 ≥ 2 * n + 1,
+  { apply succ_le_succ, apply nat.mul_le_mul_left, apply depth_min h },
+  apply le_trans, apply depth_max h, apply this
 end
 
 end rbnode

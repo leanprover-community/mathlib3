@@ -26,7 +26,7 @@ and `set.image2` already fulfills this task.
 
 open function set
 
-variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
+variables {α α' β β' γ γ' δ δ' ε ε' ζ ζ' ν : Type*}
 
 namespace finset
 variables [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
@@ -72,11 +72,11 @@ lemma image₂_subset_left (ht : t ⊆ t') : image₂ f s t ⊆ image₂ f s t' 
 lemma image₂_subset_right (hs : s ⊆ s') : image₂ f s t ⊆ image₂ f s' t :=
 image₂_subset hs subset.rfl
 
-lemma image_subset_image₂_left (hb : b ∈ t) : (λ a, f a b) '' s ⊆ image₂ f s t :=
-ball_image_of_ball $ λ a ha, mem_image₂_of_mem ha hb
+lemma image_subset_image₂_left (hb : b ∈ t) : s.image (λ a, f a b) ⊆ image₂ f s t :=
+image_subset_iff.2 $ λ a ha, mem_image₂_of_mem ha hb
 
-lemma image_subset_image₂_right (ha : a ∈ s) : f a '' t ⊆ image₂ f s t :=
-ball_image_of_ball $ λ b, mem_image₂_of_mem ha
+lemma image_subset_image₂_right (ha : a ∈ s) : t.image (f a) ⊆ image₂ f s t :=
+image_subset_iff.2 $ λ b, mem_image₂_of_mem ha
 
 lemma forall_image₂_iff {p : γ → Prop} : (∀ z ∈ image₂ f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=
 by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]
@@ -252,6 +252,13 @@ lemma image₂_right_comm {γ : Type*} {u : finset γ} {f : δ → γ → ε} {g
   {g' : δ' → β → ε} (h_right_comm : ∀ a b c, f (g a b) c = g' (f' a c) b) :
   image₂ f (image₂ g s t) u = image₂ g' (image₂ f' s u) t :=
 coe_injective $ by { push_cast, exact image2_right_comm h_right_comm }
+
+lemma image₂_image₂_image₂_comm {γ δ : Type*} {u : finset γ} {v : finset δ} [decidable_eq ζ]
+  [decidable_eq ζ'] [decidable_eq ν] {f : ε → ζ → ν} {g : α → β → ε} {h : γ → δ → ζ}
+  {f' : ε' → ζ' → ν} {g' : α → γ → ε'} {h' : β → δ → ζ'}
+  (h_comm : ∀ a b c d, f (g a b) (h c d) = f' (g' a c) (h' b d)) :
+  image₂ f (image₂ g s t) (image₂ h u v) = image₂ f' (image₂ g' s u) (image₂ h' t v) :=
+coe_injective $ by { push_cast, exact image2_image2_image2_comm h_comm }
 
 lemma image_image₂_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α → α'} {g₂ : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' (g₁ a) (g₂ b)) :

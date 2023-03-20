@@ -8,6 +8,9 @@ import category_theory.monoidal.functor
 /-!
 # Endofunctors as a monoidal category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give the monoidal category structure on `C ⥤ C`,
 and show that when `C` itself is monoidal, it embeds via a monoidal functor into `C ⥤ C`.
 

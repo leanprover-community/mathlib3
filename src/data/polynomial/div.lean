@@ -27,9 +27,24 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section comm_semiring
 variables [comm_semiring R]
 
-theorem X_dvd_iff {α : Type u} [comm_semiring α] {f : α[X]} : X ∣ f ↔ f.coeff 0 = 0 :=
+theorem X_dvd_iff {f : R[X]} : X ∣ f ↔ f.coeff 0 = 0 :=
 ⟨λ ⟨g, hfg⟩, by rw [hfg, mul_comm, coeff_mul_X_zero],
 λ hf, ⟨f.div_X, by rw [mul_comm, ← add_zero (f.div_X * X), ← C_0, ← hf, div_X_mul_X_add]⟩⟩
+
+theorem X_pow_dvd_iff {f : R[X]} {n : ℕ} :
+  X^n ∣ f ↔ ∀ d < n, f.coeff d = 0 :=
+⟨λ ⟨g, hgf⟩ d hd, by simp only [hgf, coeff_X_pow_mul', ite_eq_right_iff, not_le_of_lt hd,
+    is_empty.forall_iff], λ hd,
+begin
+  induction n with n hn,
+  { simp only [pow_zero, one_dvd] },
+  { obtain ⟨g, hgf⟩ := hn (λ d : ℕ, λ H : d < n, hd _ (nat.lt_succ_of_lt H)),
+    have := coeff_X_pow_mul g n 0,
+    rw [zero_add, ← hgf, hd n (nat.lt_succ_self n)] at this,
+    obtain ⟨k, hgk⟩ := polynomial.X_dvd_iff.mpr this.symm,
+    use k,
+    rwa [pow_succ, mul_comm X _, mul_assoc, ← hgk]},
+end⟩
 
 end comm_semiring
 
@@ -433,22 +448,6 @@ variable {R}
 
 lemma ker_eval_ring_hom (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
 by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
-
-/-- For a commutative ring $R$, evaluating a polynomial at an element $x \in R$ induces an
-isomorphism of $R$-algebras $R[X] / \langle X - x \rangle \cong R$. -/
-noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
-  (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
-(alg_equiv.restrict_scalars R $ ideal.quotient_equiv_alg_of_eq R
-  (by exact ker_eval_ring_hom x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $
-  ideal.quotient_ker_alg_equiv_of_right_inverse $ λ _, eval_C
-
-@[simp] lemma quotient_span_X_sub_C_alg_equiv_mk (x : R) (p : R[X]) :
-  quotient_span_X_sub_C_alg_equiv x (ideal.quotient.mk _ p) = p.eval x :=
-rfl
-
-@[simp] lemma quotient_span_X_sub_C_alg_equiv_symm_apply (x : R) (y : R) :
-  (quotient_span_X_sub_C_alg_equiv x).symm y = algebra_map R _ y :=
-rfl
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

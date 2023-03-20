@@ -331,7 +331,7 @@ let e : cont_diff_bump_base E :=
       exact cont_diff_at_const.congr_of_eventually_eq this },
     { refine real.smooth_transition.cont_diff_at.comp _ _,
       refine cont_diff_at.div _ _ (sub_pos.2 hR).ne',
-      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm hx) },
+      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm _ hx) },
       { exact cont_diff_at_fst.sub cont_diff_at_const } }
   end,
   eq_one := λ R hR x hx, real.smooth_transition.one_of_one_le $

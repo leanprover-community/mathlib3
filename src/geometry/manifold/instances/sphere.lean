@@ -162,7 +162,7 @@ end
 
 lemma cont_diff_stereo_inv_fun_aux : cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
 begin
-  have h₀ : cont_diff ℝ ⊤ (λ w : E, ‖w‖ ^ 2) := cont_diff_norm_sq,
+  have h₀ : cont_diff ℝ ⊤ (λ w : E, ‖w‖ ^ 2) := cont_diff_norm_sq _,
   have h₁ : cont_diff ℝ ⊤ (λ w : E, (‖w‖ ^ 2 + 4)⁻¹),
   { refine (h₀.add cont_diff_const).inv _,
     intros x,

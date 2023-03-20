@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen, Antoine Labe
 import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.trace
 import linear_algebra.contraction
-import linear_algebra.tensor_product_basis
+import linear_algebra.tensor_product.basis
 import linear_algebra.free_module.strong_rank_condition
 import linear_algebra.free_module.finite.rank
 import linear_algebra.projection

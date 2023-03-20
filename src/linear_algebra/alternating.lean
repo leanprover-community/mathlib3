@@ -120,7 +120,8 @@ lemma coe_multilinear_map_injective :
 @[simp] lemma to_multilinear_map_eq_coe : f.to_multilinear_map = f := rfl
 
 @[simp] lemma coe_multilinear_map_mk (f : (ι → M) → N) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = ⟨f, @h₁, @h₂⟩ :=
+  ((⟨f, h₁, h₂, h₃⟩ : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N)
+    = ⟨f, @h₁, @h₂⟩ :=
 rfl
 
 end coercions

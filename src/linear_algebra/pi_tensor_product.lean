@@ -60,7 +60,7 @@ open function
 
 section semiring
 
-variables {ι ι₂ ι₃ : Type*} [decidable_eq ι] [decidable_eq ι₂] [decidable_eq ι₃]
+variables {ι ι₂ ι₃ : Type*}
 variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, module R (s i)]
@@ -77,13 +77,13 @@ the tensor product. -/
 inductive eqv : free_add_monoid (R × Π i, s i) → free_add_monoid (R × Π i, s i) → Prop
 | of_zero : ∀ (r : R) (f : Π i, s i) (i : ι) (hf : f i = 0), eqv (free_add_monoid.of (r, f)) 0
 | of_zero_scalar : ∀ (f : Π i, s i), eqv (free_add_monoid.of (0, f)) 0
-| of_add : ∀ (r : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i), eqv
+| of_add : ∀ (inst : decidable_eq ι) (r : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i), eqv
     (free_add_monoid.of (r, update f i m₁) + free_add_monoid.of (r, update f i m₂))
     (free_add_monoid.of (r, update f i (m₁ + m₂)))
 | of_add_scalar : ∀ (r r' : R) (f : Π i, s i), eqv
     (free_add_monoid.of (r, f) + free_add_monoid.of (r', f))
     (free_add_monoid.of (r + r', f))
-| of_smul : ∀ (r : R) (f : Π i, s i) (i : ι) (r' : R), eqv
+| of_smul : ∀ (inst : decidable_eq ι) (r : R) (f : Π i, s i) (i : ι) (r' : R), eqv
     (free_add_monoid.of (r, update f i (r' • (f i))))
     (free_add_monoid.of (r' * r, f))
 | add_comm : ∀ x y, eqv (x + y) (y + x)
@@ -131,20 +131,20 @@ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero_scalar _
 lemma zero_tprod_coeff' (z : R) (f : Π i, s i) (i : ι) (hf: f i = 0) : tprod_coeff R z f = 0 :=
 quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_zero _ _ i hf
 
-lemma add_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
+lemma add_tprod_coeff [decidable_eq ι] (z : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i) :
   tprod_coeff R z (update f i m₁) + tprod_coeff R z (update f i m₂) =
     tprod_coeff R z (update f i (m₁ + m₂)) :=
-quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add z f i m₁ m₂)
+quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add _ z f i m₁ m₂)
 
 lemma add_tprod_coeff' (z₁ z₂ : R) (f : Π i, s i) :
   tprod_coeff R z₁ f + tprod_coeff R z₂ f = tprod_coeff R (z₁ + z₂) f :=
 quotient.sound' $ add_con_gen.rel.of _ _ (eqv.of_add_scalar z₁ z₂ f)
 
-lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
+lemma smul_tprod_coeff_aux [decidable_eq ι] (z : R) (f : Π i, s i) (i : ι) (r : R) :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r * z) f :=
- quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
+ quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _ _
 
-lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R')
+lemma smul_tprod_coeff [decidable_eq ι] (z : R) (f : Π i, s i) (i : ι) (r : R')
   [module R' (s i)] [is_scalar_tower R' R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
@@ -159,11 +159,11 @@ end
 def lift_add_hom (φ : (R × Π i, s i) → F)
   (C0 : ∀ (r : R) (f : Π i, s i) (i : ι) (hf : f i = 0), φ (r, f) = 0)
   (C0' : ∀ (f : Π i, s i), φ (0, f) = 0)
-  (C_add : ∀ (r : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i),
+  (C_add : ∀ [decidable_eq ι] (r : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i), by exactI
     φ (r, update f i m₁) + φ (r, update f i m₂) = φ (r, update f i (m₁ + m₂)))
   (C_add_scalar : ∀ (r r' : R) (f : Π i, s i),
     φ (r , f) + φ (r', f) = φ (r + r', f))
-  (C_smul : ∀ (r : R) (f : Π i, s i) (i : ι) (r' : R),
+  (C_smul : ∀ [decidable_eq ι] (r : R) (f : Π i, s i) (i : ι) (r' : R), by exactI
     φ (r, update f i (r' • (f i))) = φ (r' * r, f))
 : (⨂[R] i, s i) →+ F :=
 (add_con_gen (pi_tensor_product.eqv R s)).lift (free_add_monoid.lift φ) $ add_con.add_con_gen_le $
@@ -172,12 +172,12 @@ def lift_add_hom (φ : (R × Π i, s i) → F)
     by simp [free_add_monoid.lift_eval_of, C0 r' f i hf]
 | _, _, (eqv.of_zero_scalar f)        := (add_con.ker_rel _).2 $
     by simp [free_add_monoid.lift_eval_of, C0']
-| _, _, (eqv.of_add z f i m₁ m₂)      := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C_add]
+| _, _, (eqv.of_add inst z f i m₁ m₂)      := (add_con.ker_rel _).2 $
+    by simp [free_add_monoid.lift_eval_of, @C_add inst]
 | _, _, (eqv.of_add_scalar z₁ z₂ f)      := (add_con.ker_rel _).2 $
     by simp [free_add_monoid.lift_eval_of, C_add_scalar]
-| _, _, (eqv.of_smul z f i r')     := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C_smul]
+| _, _, (eqv.of_smul inst z f i r')     := (add_con.ker_rel _).2 $
+    by simp [free_add_monoid.lift_eval_of, @C_smul inst]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
@@ -261,9 +261,9 @@ variables (R)
 /-- The canonical `multilinear_map R s (⨂[R] i, s i)`. -/
 def tprod : multilinear_map R s (⨂[R] i, s i) :=
 { to_fun := tprod_coeff R 1,
-  map_add' := λ f i x y, (add_tprod_coeff (1 : R) f i x y).symm,
-  map_smul' := λ f i r x,
-    by simp_rw [smul_tprod_coeff', ←smul_tprod_coeff (1 : R) _ i, update_idem, update_same] }
+  map_add' := λ _ f i x y, by exactI (add_tprod_coeff (1 : R) f i x y).symm,
+  map_smul' := λ _ f i r x, by
+    resetI; simp_rw [smul_tprod_coeff', ←smul_tprod_coeff (1 : R) _ i, update_idem, update_same] }
 
 variables {R}
 
@@ -315,9 +315,9 @@ def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
   lift_add_hom (λ (p : R × Π i, s i), p.1 • (φ p.2))
     (λ z f i hf, by rw [map_coord_zero φ i hf, smul_zero])
     (λ f, by rw [zero_smul])
-    (λ z f i m₁ m₂, by rw [←smul_add, φ.map_add])
+    (λ _ z f i m₁ m₂, by { resetI, rw [←smul_add, φ.map_add] })
     (λ z₁ z₂ f, by rw [←add_smul])
-    (λ z f i r, by simp [φ.map_smul, smul_smul, mul_comm])
+    (λ _ z f i r, by { resetI, simp [φ.map_smul, smul_smul, mul_comm] })
 
 lemma lift_aux_tprod (φ : multilinear_map R s E) (f : Π i, s i) : lift_aux φ (tprod R f) = φ f :=
 by simp only [lift_aux, lift_add_hom, tprod, multilinear_map.coe_mk, tprod_coeff,
@@ -429,7 +429,7 @@ end
 
 /-- The tensor product over an empty set of indices is isomorphic to the base ring -/
 def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
-{ to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
+{ to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ _ v, pempty.elim, λ _ v, pempty.elim⟩,
   inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
   left_inv := λ x, by {
     apply x.induction_on,
@@ -510,7 +510,7 @@ namespace pi_tensor_product
 open pi_tensor_product
 open_locale tensor_product
 
-variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_ring R]
+variables {ι : Type*} {R : Type*} [comm_ring R]
 variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i)]
 
 /- Unlike for the binary tensor product, we require `R` to be a `comm_ring` here, otherwise

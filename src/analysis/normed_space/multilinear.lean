@@ -54,7 +54,7 @@ approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
-open_locale classical big_operators nnreal
+open_locale big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
@@ -80,7 +80,7 @@ universes u v v' wE wE₁ wE' wEi wG wG'
 variables {𝕜 : Type u} {ι : Type v} {ι' : Type v'} {n : ℕ}
   {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
   {G : Type wG} {G' : Type wG'}
-  [decidable_eq ι] [fintype ι] [decidable_eq ι'] [fintype ι'] [nondiscrete_normed_field 𝕜]
+  [fintype ι] [fintype ι'] [nondiscrete_normed_field 𝕜]
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
   [Π i, normed_group (E₁ i)] [Π i, normed_space 𝕜 (E₁ i)]
   [Π i, normed_group (E' i)] [Π i, normed_space 𝕜 (E' i)]
@@ -140,7 +140,7 @@ using the multilinearity. Here, we give a precise but hard to use version. See
 `∥f m - f m'∥ ≤
   C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`. -/
-lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
+lemma norm_image_sub_le_of_bound' [decidable_eq ι] {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E i) :
   ∥f m₁ - f m₂∥ ≤
   C * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
@@ -185,6 +185,7 @@ lemma norm_image_sub_le_of_bound {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E i) :
   ∥f m₁ - f m₂∥ ≤ C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 begin
+  letI := classical.dec_eq ι,
   have A : ∀ (i : ι), ∏ j, (if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
     ≤ ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1),
   { assume i,
@@ -490,7 +491,7 @@ For a less precise but more usable version, see `norm_image_sub_le`. The bound r
 `∥f m - f m'∥ ≤
   ∥f∥ * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`.-/
-lemma norm_image_sub_le' (m₁ m₂ : Πi, E i) :
+lemma norm_image_sub_le' [decidable_eq ι] (m₁ m₂ : Πi, E i) :
   ∥f m₁ - f m₂∥ ≤
   ∥f∥ * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound' (norm_nonneg _) f.le_op_norm _ _
@@ -582,13 +583,15 @@ begin
   -- Next, we show that this `F` is multilinear,
   let Fmult : multilinear_map 𝕜 E G :=
   { to_fun := F,
-    map_add' := λ v i x y, begin
+    map_add' := λ _ v i x y, begin
+      resetI,
       have A := hF (function.update v i (x + y)),
       have B := (hF (function.update v i x)).add (hF (function.update v i y)),
       simp at A B,
       exact tendsto_nhds_unique A B
     end,
-    map_smul' := λ v i c x, begin
+    map_smul' := λ _ v i c x, begin
+      resetI,
       have A := hF (function.update v i (c • x)),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hF (function.update v i x)),
       simp at A B,

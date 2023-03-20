@@ -129,9 +129,11 @@ begin
   simp only [local_equiv.trans_assoc] with mfld_simps,
 end
 
-/-! ### Smoothness of maps in/out vector bundles
+/-! ### Smoothness of maps in/out fiber bundles
 
-For these results we don't actually need that the vector bundles are smooth themselves. -/
+Note: For these results we don't need that the bundle is a smooth vector bundle, or even a vector
+bundle at all, just that it is a fiber bundle over a charted base space.
+-/
 
 namespace bundle
 variables {F E IB}

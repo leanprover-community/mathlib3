@@ -377,7 +377,7 @@ def continuous_linear_map_at (e : trivialization F (π E)) [e.is_linear R] (b : 
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
-    exact continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
+    exact continuous_snd.comp (e.continuous_on.comp_continuous
       (fiber_bundle.total_space_mk_inducing F E b).continuous
       (λ x, e.mem_source.mpr hb))
   end,
@@ -417,7 +417,7 @@ def continuous_linear_equiv_at (e : trivialization F (π E)) [e.is_linear R] (b 
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
   inv_fun := e.symm b, -- given explicitly to help `simps`
-  continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
+  continuous_to_fun := continuous_snd.comp (e.continuous_on.comp_continuous
     (fiber_bundle.total_space_mk_inducing F E b).continuous
     (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL R b).continuous,
@@ -464,13 +464,13 @@ lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization F (π
   e.to_local_homeomorph.symm ⟨b, z⟩
   = total_space_mk b ((e.continuous_linear_equiv_at R b hb).symm z) :=
 begin
-  have h : (b, z) ∈ e.to_local_homeomorph.target,
+  have h : (b, z) ∈ e.target,
   { rw e.target_eq,
     exact ⟨hb, mem_univ _⟩ },
-  apply e.to_local_homeomorph.inj_on (e.to_local_homeomorph.map_target h),
-  { simp only [e.source_eq, hb, mem_preimage]},
-  simp_rw [coe_coe, e.apply_eq_prod_continuous_linear_equiv_at R b hb, ← e.coe_coe,
-    e.to_local_homeomorph.right_inv h, continuous_linear_equiv.apply_symm_apply],
+  apply e.inj_on (e.map_target h),
+  { simp only [e.source_eq, hb, mem_preimage] },
+  simp_rw [e.right_inv h, coe_coe, e.apply_eq_prod_continuous_linear_equiv_at R b hb,
+    continuous_linear_equiv.apply_symm_apply],
 end
 
 lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (π E))

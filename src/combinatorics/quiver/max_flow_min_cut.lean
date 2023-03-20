@@ -6,7 +6,7 @@ Authors: Aleksandar Milchev, Leo Okawa Ericson, Viggo Laakshoharju
 
 
 import data.real.basic
-import data.set
+import data.set.basic
 import tactic
 import data.finset.basic
 import tactic.induction

@@ -135,6 +135,10 @@ begin
   simp only [this, linear_map.zero_apply, map_zero, pi.zero_apply],
 end)
 
+@[simp] lemma inhomogeneous_cochains.d_def (n : ℕ) :
+  (inhomogeneous_cochains A).d n (n + 1) = inhomogeneous_cochains.d n A :=
+cochain_complex.of_d _ _ _ _
+
 /-- Given a `k`-linear `G`-representation `A`, the complex of inhomogeneous cochains is isomorphic
 to `Hom(P, A)`, where `P` is the standard resolution of `k` as a trivial `G`-representation. -/
 def inhomogeneous_cochains_iso :

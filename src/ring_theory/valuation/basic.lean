@@ -11,6 +11,9 @@ import ring_theory.ideal.operations
 
 # The basics of valuation theory.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic theory of valuations (non-archimedean norms) on a commutative ring,
 following T. Wedhorn's unpublished notes “Adic Spaces” ([wedhorn_adic]).
 
@@ -420,14 +423,14 @@ begin
       by_contra h_1,
       cases ne_iff_lt_or_gt.1 h_1,
       { simpa [hh, lt_self_iff_false] using h.2 h_2 },
-      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv₀] at hh,
-        exact hh.le.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
+      { rw [← inv_one, ← inv_eq_iff_eq_inv, ← map_inv₀] at hh,
+        exact hh.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
     { intro hh,
       by_contra h_1,
       cases ne_iff_lt_or_gt.1 h_1,
       { simpa [hh, lt_self_iff_false] using h.1 h_2 },
-      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv₀] at hh,
-        exact hh.le.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
+      { rw [← inv_one, ← inv_eq_iff_eq_inv, ← map_inv₀] at hh,
+        exact hh.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
 end
 
 lemma is_equiv_iff_val_sub_one_lt_one

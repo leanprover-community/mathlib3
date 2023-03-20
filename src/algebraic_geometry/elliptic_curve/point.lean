@@ -512,7 +512,7 @@ namespace point
 begin
   rcases ⟨P, Q⟩ with ⟨_ | @⟨x₁, y₁, _⟩, _ | @⟨x₂, y₂, _⟩⟩,
   any_goals { refl },
-  { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
+  { rw [zero_def, zero_add, ← neg_eq_iff_eq_neg, neg_zero, eq_comm], },
   { simp only [neg_some],
     split,
     { intro h,

@@ -11,6 +11,9 @@ import topology.instances.ennreal
 /-!
 # Topological structure on `ereal`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We endow `ereal` with the order topology, and prove basic properties of this topology.
 
 ## Main results

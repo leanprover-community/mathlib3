@@ -201,14 +201,14 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
     apply induction_on f,
     { rintro ⟨r⟩,
       rw [coe_eval₂_hom, eval₂_C],
-      simp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk,
-        ideal.quotient.mk_eq_mk, bind₂_C_right, ring_hom.coe_comp] },
+      simp only [submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk,
+        mv_polynomial.eval₂_hom_C, function.comp_app, ideal.quotient.mk_eq_mk, mv_polynomial.C_inj,
+        ring_hom.coe_comp], },
     { simp_intros p q hp hq only [ring_hom.map_add, mv_polynomial.coe_eval₂_hom, coe_eval₂_hom,
-        mv_polynomial.eval₂_add, mv_polynomial.eval₂_hom_eq_bind₂, eval₂_hom_eq_bind₂],
+        mv_polynomial.eval₂_add],
       rw [hp, hq] },
-    { simp_intros p i hp only [eval₂_hom_eq_bind₂, coe_eval₂_hom],
-      simp only [hp, eval₂_hom_eq_bind₂, coe_eval₂_hom, ideal.quotient.lift_mk, bind₂_X_right,
-        eval₂_mul, ring_hom.map_mul, eval₂_X] }
+    { simp_intros p i hp only [coe_eval₂_hom],
+      simp only [hp, coe_eval₂_hom, ideal.quotient.lift_mk, eval₂_mul, ring_hom.map_mul, eval₂_X] }
   end,
   right_inv := begin
     rintro ⟨f⟩,
@@ -216,12 +216,11 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
     { intros r,
       simp only [submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk,
         ring_hom.coe_comp, eval₂_hom_C] },
-    { simp_intros p q hp hq only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, eval₂_add,
+    { simp_intros p q hp hq only [submodule.quotient.quot_mk_eq_mk, eval₂_add,
         ring_hom.map_add, coe_eval₂_hom, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk],
       rw [hp, hq] },
-    { simp_intros p i hp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, coe_eval₂_hom,
-        ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk, bind₂_X_right, eval₂_mul, ring_hom.map_mul,
-        eval₂_X],
+    { simp_intros p i hp only [submodule.quotient.quot_mk_eq_mk, coe_eval₂_hom,
+        ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk, eval₂_mul, ring_hom.map_mul, eval₂_X],
       simp only [hp] }
   end,
   commutes' := λ r, eval₂_hom_C _ _ (ideal.quotient.mk I r) }

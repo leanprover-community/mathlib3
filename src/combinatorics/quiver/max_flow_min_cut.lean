@@ -460,7 +460,12 @@ begin
     simp,
     unfold mk_in,
     have nonneg_flow: ∀ v ∈ V', ∀ u ∈ S, afn.f u v ≥ 0 :=
-    by {intros v vInV' u uInS, exact afn.non_neg_flow u v}, -- meta errors again?
+    begin
+      intros v vInV' u uInS,
+      have h1: v ∈ V' := by {exact vInV'},
+      have h2: u ∈ S := by {exact uInS},
+      exact afn.non_neg_flow u v,
+    end,
     exact finset.sum_nonneg nonneg_flow,
   end,
   apply le_trans lemma3 lemma2,

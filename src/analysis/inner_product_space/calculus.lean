@@ -31,7 +31,8 @@ open_locale big_operators classical topology
 section deriv_inner
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
-variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
+variables [normed_add_comm_group E] [inner_product_space 𝕜 E]
+variables [normed_add_comm_group F] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 variables (𝕜) [normed_space ℝ E]
@@ -128,7 +129,7 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
 
 lemma cont_diff_norm_sq : cont_diff ℝ n (λ x : E, ‖x‖ ^ 2) :=
 begin
-  simp only [sq, ← inner_self_eq_norm_mul_norm],
+  simp only [sq, ← @inner_self_eq_norm_mul_norm 𝕜],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).cont_diff.comp (cont_diff_id.inner 𝕜 cont_diff_id)
 end
 
@@ -338,7 +339,7 @@ section diffeomorph_unit_ball
 
 open metric (hiding mem_nhds_iff)
 
-variables {n : ℕ∞} {E : Type*} [inner_product_space ℝ E]
+variables {n : ℕ∞} {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 lemma cont_diff_homeomorph_unit_ball :
   cont_diff ℝ n $ λ (x : E), (homeomorph_unit_ball x : E) :=

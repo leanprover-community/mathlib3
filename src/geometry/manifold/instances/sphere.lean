@@ -55,7 +55,7 @@ naive expression `euclidean_space ℝ (fin (finrank ℝ E - 1))` for the model s
 `euclidean_space ℝ (fin 1)`.
 -/
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 noncomputable theory
 
@@ -95,7 +95,7 @@ end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
   continuous_on (stereo_to_fun v) {x : E | innerSL _ v x ≠ (1:ℝ)} :=
-(@cont_diff_on_stereo_to_fun E _ v _).continuous_on
+(@cont_diff_on_stereo_to_fun E _ _ v _).continuous_on
 
 variables (v)
 
@@ -162,7 +162,7 @@ end
 
 lemma cont_diff_stereo_inv_fun_aux : cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
 begin
-  have h₀ : cont_diff ℝ ⊤ (λ w : E, ‖w‖ ^ 2) := cont_diff_norm_sq _,
+  have h₀ : cont_diff ℝ ⊤ (λ w : E, ‖w‖ ^ 2) := cont_diff_norm_sq ℝ,
   have h₁ : cont_diff ℝ ⊤ (λ w : E, (‖w‖ ^ 2 + 4)⁻¹),
   { refine (h₀.add cont_diff_const).inv _,
     intros x,
@@ -417,7 +417,7 @@ begin
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U := -- Again, removing type ascription...
+    let U : _ ≃ₗᵢ[ℝ] _ := -- Again, partially removing type ascription...
       (orthonormal_basis.from_orthogonal_span_singleton n
         (ne_zero_of_mem_unit_sphere (-v))).repr,
     exact ((cont_diff_stereo_inv_fun_aux.comp
@@ -438,7 +438,7 @@ begin
   rw cont_mdiff_iff_target,
   refine ⟨continuous_induced_rng.2 hf.continuous, _⟩,
   intros v,
-  let U := -- Again, removing type ascription... Weird that this helps!
+  let U : _ ≃ₗᵢ[ℝ] _ := -- Again, partially removing type ascription... Weird that this helps!
     (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
   have h : cont_diff_on ℝ ⊤ _ set.univ :=
     U.cont_diff.cont_diff_on,

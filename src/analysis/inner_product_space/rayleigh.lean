@@ -35,7 +35,7 @@ A slightly more elaborate corollary is that if `E` is complete and `T` is a comp
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
-variables {E : Type*} [inner_product_space 𝕜 E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 open_locale nnreal
@@ -89,7 +89,7 @@ end continuous_linear_map
 namespace is_self_adjoint
 
 section real
-variables {F : Type*} [inner_product_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 
 lemma _root_.linear_map.is_symmetric.has_strict_fderiv_at_re_apply_inner_self
   {T : F →L[ℝ] F} (hT : (T : F →ₗ[ℝ] F).is_symmetric) (x₀ : F) :

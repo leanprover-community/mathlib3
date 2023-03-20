@@ -725,7 +725,7 @@ variables {𝕜 ι} {A : Type*} [normed_comm_ring A] [normed_algebra 𝕜 A]
 lemma norm_mk_pi_algebra_le [nonempty ι] :
   ‖continuous_multilinear_map.mk_pi_algebra 𝕜 ι A‖ ≤ 1 :=
 begin
-  have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ _ f _ zero_le_one,
+  have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ f _ zero_le_one,
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_apply, one_mul],
@@ -736,7 +736,7 @@ lemma norm_mk_pi_algebra_of_empty [is_empty ι] :
   ‖continuous_multilinear_map.mk_pi_algebra 𝕜 ι A‖ = ‖(1 : A)‖ :=
 begin
   apply le_antisymm,
-  { have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ _ f _ (norm_nonneg (1 : A)),
+  { have := λ f, @op_norm_le_bound 𝕜 ι (λ i, A) A _ _ _ _ _ _ f _ (norm_nonneg (1 : A)),
     refine this _ _,
     simp, },
   { convert ratio_le_op_norm _ (λ _, (1 : A)),
@@ -762,7 +762,7 @@ variables {𝕜 n} {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
 lemma norm_mk_pi_algebra_fin_succ_le :
   ‖continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n.succ A‖ ≤ 1 :=
 begin
-  have := λ f, @op_norm_le_bound 𝕜 (fin n.succ) (λ i, A) A _ _ _ _ _ _ _ f _ zero_le_one,
+  have := λ f, @op_norm_le_bound 𝕜 (fin n.succ) (λ i, A) A _ _ _ _ _ _ f _ zero_le_one,
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_fin_apply, one_mul, list.of_fn_eq_map,
@@ -784,7 +784,7 @@ lemma norm_mk_pi_algebra_fin_zero :
   ‖continuous_multilinear_map.mk_pi_algebra_fin 𝕜 0 A‖ = ‖(1 : A)‖ :=
 begin
   refine le_antisymm _ _,
-  { have := λ f, @op_norm_le_bound 𝕜 (fin 0) (λ i, A) A _ _ _ _ _ _ _ f _ (norm_nonneg (1 : A)),
+  { have := λ f, @op_norm_le_bound 𝕜 (fin 0) (λ i, A) A _ _ _ _ _ _ f _ (norm_nonneg (1 : A)),
     refine this _ _,
     simp, },
   { convert ratio_le_op_norm _ (λ _, (1 : A)),
@@ -891,10 +891,10 @@ multilinear_map.mk_continuous
                                           ring_hom.id_apply] }
       (‖f‖ * ∏ i, ‖m i‖) $ λ x,
       by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
-    map_add' := λ m i x y,
+    map_add' := λ _ m i x y,
       by { ext1, simp only [add_apply, continuous_multilinear_map.map_add, linear_map.coe_mk,
                             linear_map.mk_continuous_apply]},
-    map_smul' := λ m i c x,
+    map_smul' := λ _ m i c x,
       by { ext1, simp only [coe_smul', continuous_multilinear_map.map_smul, linear_map.coe_mk,
                             linear_map.mk_continuous_apply, pi.smul_apply]} }
   ‖f‖ $ λ m,
@@ -945,8 +945,8 @@ def mk_continuous_multilinear (f : multilinear_map 𝕜 E (multilinear_map 𝕜 
   continuous_multilinear_map 𝕜 E (continuous_multilinear_map 𝕜 E' G) :=
 mk_continuous
   { to_fun := λ m, mk_continuous (f m) (C * ∏ i, ‖m i‖) $ H m,
-    map_add' := λ m i x y, by { ext1, simp },
-    map_smul' := λ m i c x, by { ext1, simp } }
+    map_add' := λ _ m i x y, by { ext1, simp },
+    map_smul' := λ _ m i c x, by { ext1, simp } }
   (max C 0) $ λ m, ((f m).mk_continuous_norm_le' _).trans_eq $
     by { rw [max_mul_of_nonneg, zero_mul], exact prod_nonneg (λ _ _, norm_nonneg _) }
 
@@ -1001,7 +1001,7 @@ linear_map.mk_continuous
 rfl
 
 lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
-  ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
+  ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
 linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
 end continuous_multilinear_map
@@ -1169,8 +1169,8 @@ def continuous_multilinear_map.uncurry_right
   continuous_multilinear_map 𝕜 Ei G :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), Ei i.cast_succ) (Ei (last n) →ₗ[𝕜] G) :=
 { to_fun    := λ m, (f m).to_linear_map,
-  map_add'  := λ m i x y, by simp,
-  map_smul' := λ m i c x, by simp } in
+  map_add'  := λ _ m i x y, by simp,
+  map_smul' := λ _ m i c x, by simp } in
 (@multilinear_map.uncurry_right 𝕜 n Ei G _ _ _ _ _ f').mk_continuous
   (‖f‖) (λm, f.norm_map_init_le m)
 
@@ -1188,8 +1188,8 @@ def continuous_multilinear_map.curry_right
 let f' : multilinear_map 𝕜 (λ(i : fin n), Ei i.cast_succ) (Ei (last n) →L[𝕜] G) :=
 { to_fun    := λm, (f.to_multilinear_map.curry_right m).mk_continuous
     (‖f‖ * ∏ i, ‖m i‖) $ λx, f.norm_map_snoc_le m x,
-  map_add'  := λ m i x y, by { simp, refl },
-  map_smul' := λ m i c x, by { simp, refl } } in
+  map_add'  := λ _ m i x y, by { simp, refl },
+  map_smul' := λ _ m i c x, by { simp, refl } } in
 f'.mk_continuous (‖f‖) (λm, linear_map.mk_continuous_norm_le _
   (mul_nonneg (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 

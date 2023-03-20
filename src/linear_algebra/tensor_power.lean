@@ -98,13 +98,7 @@ lemma cast_tprod {i j} (h : i = j) (a : fin i → M) :
 reindex_tprod _ _
 
 @[simp] lemma cast_refl {i} (h : i = i) : cast R M h = linear_equiv.refl _ _ :=
-begin
-  refine eq.trans _ (reindex_refl),
-  rw cast,
-  refine congr_arg (reindex R M) _,
-  rw fin.cast_refl,
-  refl,
-end
+(congr_arg (λ f, reindex R M (rel_iso.to_equiv f)) $ fin.cast_refl h).trans reindex_refl
 
 @[simp] lemma cast_symm {i j} (h : i = j) : (cast R M h).symm = cast R M h.symm := reindex_symm _
 
@@ -125,6 +119,7 @@ begin
   rw [←fin.cast_to_equiv, ← h2],
 end
 
+-- named to match `fin.cast_eq_cast`
 lemma cast_eq_cast {i j} (h : i = j) : ⇑(cast R M h) = _root_.cast (congr_arg _ h) :=
 begin
   subst h,

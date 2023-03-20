@@ -278,13 +278,13 @@ then `g (f₁ m₁, ..., fₙ mₙ)` is again a multilinear map, that we call
 def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i) :
   multilinear_map R M₁ M₂ :=
 { to_fun := λ m, g $ λ i, f i (m i),
-  map_add' := λ _ m i x y, by {
-    resetI,
+  map_add' := λ _ m i x y, by
+  { resetI,
     have : ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
       λ j z, function.apply_update (λ k, f k) _ _ _ _,
     by simp [this] },
-  map_smul' := λ _ m i c x, by {
-    resetI,
+  map_smul' := λ _ m i c x, by
+  { resetI,
     have : ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
       λ j z, function.apply_update (λ k, f k) _ _ _ _,
     by simp [this] } }
@@ -584,11 +584,11 @@ domain of the domain. -/
 def dom_dom_congr (σ : ι₁ ≃ ι₂) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
   multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := λ v, m (λ i, v (σ i)),
-  map_add' := λ _ v i a b, by {
-    resetI, letI := σ.injective.decidable_eq,
+  map_add' := λ _ v i a b, by
+  { resetI, letI := σ.injective.decidable_eq,
     simp_rw function.update_apply_equiv_apply v, rw m.map_add, },
-  map_smul' := λ _ v i a b, by {
-    resetI, letI := σ.injective.decidable_eq,
+  map_smul' := λ _ v i a b, by
+  { resetI, letI := σ.injective.decidable_eq,
     simp_rw function.update_apply_equiv_apply v, rw m.map_smul, }, }
 
 lemma dom_dom_congr_trans (σ₁ : ι₁ ≃ ι₂) (σ₂ : ι₂ ≃ ι₃) (m : multilinear_map R (λ i : ι₁, M₂) M₃) :
@@ -1212,17 +1212,17 @@ def curry_sum (f : multilinear_map R (λ x : ι ⊕ ι', M') M₂) :
   multilinear_map R (λ x : ι, M') (multilinear_map R (λ x : ι', M') M₂) :=
 { to_fun := λ u,
   { to_fun := λ v, f (sum.elim u v),
-    map_add' := λ _ v i x y, by {
-      resetI, letI := classical.dec_eq ι,
+    map_add' := λ _ v i x y, by
+    { resetI, letI := classical.dec_eq ι,
       simp only [← sum.update_elim_inr, f.map_add] },
-    map_smul' := λ _ v i c x, by {
-      resetI, letI := classical.dec_eq ι,
+    map_smul' := λ _ v i c x, by
+    { resetI, letI := classical.dec_eq ι,
       simp only [← sum.update_elim_inr, f.map_smul] } },
-  map_add' := λ _ u i x y, ext $ λ v, by {
-    resetI, letI := classical.dec_eq ι',
+  map_add' := λ _ u i x y, ext $ λ v, by
+  { resetI, letI := classical.dec_eq ι',
     simp only [multilinear_map.coe_mk, add_apply, ← sum.update_elim_inl, f.map_add] },
-  map_smul' := λ _ u i c x, ext $ λ v, by {
-    resetI, letI := classical.dec_eq ι',
+  map_smul' := λ _ u i c x, ext $ λ v, by
+  { resetI, letI := classical.dec_eq ι',
     simp only [multilinear_map.coe_mk, smul_apply, ← sum.update_elim_inl, f.map_smul] } }
 
 @[simp] lemma curry_sum_apply (f : multilinear_map R (λ x : ι ⊕ ι', M') M₂)
@@ -1235,15 +1235,15 @@ on `Π i : ι', M'` defines a multilinear map on `Π i : ι ⊕ ι', M'`. -/
 def uncurry_sum (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x : ι', M') M₂)) :
   multilinear_map R (λ x : ι ⊕ ι', M') M₂ :=
 { to_fun := λ u, f (u ∘ sum.inl) (u ∘ sum.inr),
-  map_add' := λ _ u i x y, by {
-    resetI,
+  map_add' := λ _ u i x y, by
+  { resetI,
     letI := (@sum.inl_injective ι ι').decidable_eq,
     letI := (@sum.inr_injective ι ι').decidable_eq,
     cases i;
     simp only [multilinear_map.map_add, add_apply, sum.update_inl_comp_inl,
       sum.update_inl_comp_inr, sum.update_inr_comp_inl, sum.update_inr_comp_inr] },
-  map_smul' := λ _ u i c x, by {
-    resetI,
+  map_smul' := λ _ u i c x, by
+  { resetI,
     letI := (@sum.inl_injective ι ι').decidable_eq,
     letI := (@sum.inr_injective ι ι').decidable_eq,
     cases i;

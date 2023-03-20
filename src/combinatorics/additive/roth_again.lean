@@ -9,6 +9,7 @@ import data.zmod.quotient
 import analysis.inner_product_space.pi_L2
 import combinatorics.pigeonhole
 import order.partition.finpartition
+import data.complex.exponential_bounds
 
 noncomputable theory
 
@@ -100,6 +101,17 @@ end
 lemma expect_indicate_eq' [field 𝕜] [char_zero 𝕜] [fintype α] [nonempty α] [decidable_eq α]
   (f : α → 𝕜) (x : α) : 𝔼 i, ite (i = x) (card α : 𝕜) 0 * f i = f x :=
 by simp_rw [@eq_comm _ _ x, expect_indicate_eq]
+
+lemma expect_sub [field 𝕜] {s : finset α} (f g : α → 𝕜) :
+  𝔼 i in s, (f i - g i) = (𝔼 i in s, f i) - (𝔼 i in s, g i) :=
+by rw [expect, expect, expect, sum_sub_distrib, sub_div]
+
+lemma expect_const [fintype α] [nonempty α] (b : ℂ) : 𝔼 i : α, b = b :=
+begin
+  rw [expect, sum_const, nsmul_eq_mul, mul_div_cancel_left],
+  rw [ne.def, nat.cast_eq_zero],
+  apply fintype.card_ne_zero
+end
 
 lemma expect_congr [field 𝕜] {s : finset α} (f g : α → 𝕜) (p : α → Prop) [decidable_pred p]
   (h : ∀ x ∈ s, p x → f x = g x) :
@@ -849,6 +861,20 @@ begin
   exact inner_sum_indicate _,
 end
 
+def balance [field 𝕜] (f : G → 𝕜) (x : G) : 𝕜 := f x - 𝔼 y, f y
+
+lemma expect_balance (f : G → ℂ) : 𝔼 x, balance f x = 0 :=
+by simp only [balance, expect_sub, expect_const, sub_self]
+
+lemma transform_balance (f : G → ℂ) (χ : character G) (hχ : χ ≠ 1) :
+  transform (balance f) χ = transform f χ :=
+begin
+  rw character_nontrivial_iff at hχ,
+  obtain ⟨u, hu⟩ := hχ,
+  simp only [transform, inner_prod_expect, balance, coe_coe_eq, mul_sub, expect_sub],
+  rw [←expect_mul, ←conj_expect, expect_eq_zero_of_nontrivial hu, map_zero, zero_mul, sub_zero]
+end
+
 def additive_monoid_hom {α β : Type*} [add_comm_monoid α] [comm_monoid β] :
   additive (multiplicative α →* β) ≃+ (α →+ additive β) :=
 add_equiv.mk' (additive.to_mul.trans monoid_hom.to_additive'') $ λ x y, by { ext, refl }
@@ -1082,6 +1108,23 @@ begin
     rwa [ne.def, ←equiv.eq_symm_apply, to_add_symm_eq, of_add_zero,
       mul_equiv_class.map_eq_one_iff] },
   exact last_bit (one_five_fourth_bound hN hα hβ hγ rfl rfl hf'),
+end
+
+lemma one_five' {N : ℕ} {A B C : finset (zmod N)} {α β γ : ℝ} (hN : odd N) [ne_zero N]
+  (hα : α ≤ (A.card : ℝ) / N) (hβ : β ≤ (B.card : ℝ) / N) (hγ : γ ≤ (C.card : ℝ) / N)
+  (hβ' : 0 ≤ β) (hγ' : 0 ≤ γ)
+  (hf : ∀ r : zmod N, r ≠ 0 → (transform (𝟙 (A.image of_add)) (to_character N (of_add r))).abs
+    ≤ α * (β * γ).sqrt / 2)
+  (hd : (1 : ℝ) / N < α * β * γ / 2) :
+  ∃ x d : zmod N, d ≠ 0 ∧ x ∈ A ∧ x + d ∈ B ∧ x + 2 * d ∈ C :=
+begin
+  refine one_five hN rfl rfl rfl _ _,
+  { intros r hr,
+    refine (hf r hr).trans (div_le_div_of_le_of_nonneg _ (by norm_num)),
+    refine mul_le_mul hα (real.sqrt_le_sqrt _) (real.sqrt_nonneg _) (by positivity),
+    exact mul_le_mul hβ hγ hγ' (by positivity) },
+  refine hd.trans_le (div_le_div_of_le_of_nonneg _ (by norm_num)),
+  exact mul_le_mul (mul_le_mul hα hβ hβ' (by positivity)) hγ hγ' (by positivity),
 end
 
 -- lemma one_five_explicit {N : ℕ} {A B C : finset (zmod N)} {α β γ : ℝ} (hN : odd N) [ne_zero N]
@@ -1536,6 +1579,13 @@ end
 -- sqrt(4 π N / ε) ≤ r
 -- 1 / r ≤ sqrt(ε / 4 π N)
 -- t ≤ sqrt (N ε / 4 π)
+-- t = ⌈sqrt (N ε / 16 π)⌉
+-- ⌈x / 2⌉ ≤ x
+-- x ≥ 1
+-- N ε / 16 π ≥ 1
+-- N ε ≥ 16 π
+-- N ≥ 16 π ε⁻¹
+
 lemma partitions_two (θ : ℝ) (N t r : ℕ) (hr : r ≠ 0) (hrN : r ≤ N) (ht : t ≤ N / r) (ht' : t ≠ 0) :
   ∃ d ≠ 0, ∃ P : finpartition (range N), ∀ p : finset ℕ, p ∈ P.parts →
     t ≤ p.card ∧ (∃ i n, p = (range n).image (λ x, i + d * x)) ∧
@@ -1560,9 +1610,703 @@ begin
   exact div_nonneg real.two_pi_pos.le (nat.cast_nonneg _),
 end
 
+lemma ceil_thing {x : ℝ} (hx : 1 ≤ x) : (⌈x / 2⌉₊ : ℝ) ≤ x :=
+begin
+  cases lt_or_le x 2,
+  { refine hx.trans' _,
+    simp only [nat.cast_le_one, nat.ceil_le, nat.cast_one],
+    linarith },
+  exact (nat.ceil_lt_add_one (by linarith)).le.trans (by linarith),
+end
+
+lemma floor_thing {x : ℝ} (hx : 1 ≤ x) : x / 2 ≤ ⌊x⌋₊ :=
+begin
+  cases lt_or_le x 2 with hx' hx',
+  { rw [nat.floor_eq_on_Ico' 1 x ⟨by simpa using hx, by simpa using hx'⟩, nat.cast_one],
+    linarith },
+  exact (nat.sub_one_lt_floor _).le.trans' (by linarith),
+end
+
+lemma sqrt_div_two {x : ℝ} (hx : 0 ≤ x) : real.sqrt x / 2 = real.sqrt (x / 4) :=
+begin
+  have : (4 : ℝ) = 2 ^ 2, norm_num,
+  rw [this, real.sqrt_div hx, real.sqrt_sq],
+  norm_num
+end
+
+-- some upper bound on ε is needed but can be really weak (i think 24 works)
+-- we also need a lower bound on Nε
+lemma partitions_three (θ ε : ℝ) (N : ℕ) (hN : 8 * π / ε ≤ N) (hε : 0 < ε) (hε' : ε ≤ 1) :
+  ∃ d ≠ 0, ∃ P : finpartition (range N), ∀ p : finset ℕ, p ∈ P.parts →
+    real.sqrt ((N * ε) / (32 * π)) ≤ p.card ∧ (∃ i n, p = (range n).image (λ x, i + d * x)) ∧
+    ∀ x y : ℕ, x ∈ p → y ∈ p → (e (θ * x) - e (θ * y)).abs ≤ ε :=
+begin
+  let t := ⌊real.sqrt ((N * ε) / (8 * π))⌋₊,
+  let r := ⌈real.sqrt ((2 * π * N) / ε)⌉₊,
+  have := real.pi_pos,
+  have hN' : N ≠ 0 := (nat.cast_pos.1 (hN.trans_lt' (by positivity))).ne',
+  have ht'' : 1 ≤ real.sqrt ((N * ε) / (8 * π)),
+  { rwa [real.le_sqrt', one_pow, le_div_iff, one_mul, ←div_le_iff],
+    { exact hε },
+    { positivity },
+    { norm_num } },
+  have ht' : t ≠ 0, { rwa [ne.def, nat.floor_eq_zero, not_lt] },
+  have : (r : ℝ) ≤ real.sqrt (N * (8 * π) / ε),
+  { refine (ceil_thing _).trans_eq' _,
+    { rw [real.le_sqrt', one_pow, one_le_div hε],
+      { refine hε'.trans (one_le_mul_of_one_le_of_one_le _ _),
+        { rw nat.one_le_cast,
+          exact hN'.bot_lt },
+        linarith [real.pi_gt_three] },
+      { norm_num } },
+    change (nat.ceil _ : ℝ) = _,
+    rw [sqrt_div_two, mul_rotate, mul_comm 8 π, ←mul_assoc, div_div, ←div_mul_div_comm,
+      mul_div_right_comm, mul_comm π],
+    { norm_num1, refl },
+    { positivity } },
+  have hr : r ≠ 0,
+  { simp only [ne.def, nat.ceil_eq_zero, not_le, real.sqrt_pos],
+    positivity },
+  have ht : t ≤ N / r,
+  { rw [nat.le_div_iff_mul_le hr.bot_lt, ←@nat.cast_le ℝ, nat.cast_mul],
+    refine (mul_le_mul (nat.floor_le (real.sqrt_nonneg _)) this (nat.cast_nonneg _)
+      (real.sqrt_nonneg _)).trans_eq _,
+    rw [←real.sqrt_mul, div_mul_div_comm, ←mul_assoc, mul_comm (8 * π), mul_div_mul_right,
+      mul_right_comm, mul_div_cancel _ hε.ne', real.sqrt_mul_self (nat.cast_nonneg N)],
+    { positivity },
+    { positivity } },
+  have hr' : r ≤ N,
+  { rw [nat.le_div_iff_mul_le hr.bot_lt] at ht,
+    exact ht.trans' (nat.le_mul_of_pos_left ht'.bot_lt) },
+  obtain ⟨d, hd, P, hP⟩ := partitions_two θ N t r hr hr' ht ht',
+  refine ⟨d, hd, P, λ p hp, _⟩,
+  refine ⟨(nat.cast_le.2 (hP p hp).1).trans' _, (hP p hp).2.1,
+    λ x y hx hy, ((hP p hp).2.2 x y hx hy).trans _⟩,
+  { refine (floor_thing ht'').trans_eq' _,
+    rw [sqrt_div_two, div_div, mul_right_comm],
+    { norm_num1, refl },
+    { positivity } },
+  refine (div_le_div _ (mul_le_mul_of_nonneg_left (nat.floor_le (real.sqrt_nonneg _))
+    _) _ (nat.le_ceil _)).trans_eq _,
+  { positivity },
+  { positivity },
+  { positivity },
+  rw [mul_div_assoc, ←real.sqrt_div, mul_comm, ←eq_div_iff, real.sqrt_eq_iff_mul_self_eq_of_pos,
+    div_mul_div_comm, mul_mul_mul_comm _ π, div_div_div_eq, ←mul_assoc (8 * π), mul_rotate _ ε,
+    mul_div_mul_right, mul_mul_mul_comm _ π],
+  { ring_nf },
+  { exact_mod_cast hN' },
+  { positivity },
+  { positivity },
+  { positivity },
+end
+
 end one_six
 
-#exit
+section one_six_next
+
+variables (A : finset ℕ) {N : ℕ} [ne_zero N] (α : ℝ) {η : ℝ} (r : zmod N)
+
+open multiplicative
+
+lemma transform_character (f : multiplicative (zmod N) → ℂ) :
+  transform f (to_character N (of_add r)) =
+    (∑ x : zmod N, e (-(r * x / N)) * f (of_add x)) / N :=
+begin
+  rw [transform, inner_prod_expect, expect_multiplicative],
+  simp only [coe_coe_eq, to_character_apply_of_add_apply_of_add, subtype.coe_mk, conj_e,
+    expect_true_univ, zmod.card, to_add_of_add],
+end
+
+lemma map_zmod (f : ℕ → ℂ) : ∑ (i : zmod N), f i.val = ∑ i in range N, f i :=
+sum_nbij (λ i, i.val) (λ x hx, mem_range.2 (zmod.val_lt _)) (by simp)
+  (λ i j hi hj h, zmod.val_injective _ h)
+  (λ b hb, ⟨b, by simp, by { rw [zmod.val_nat_cast, nat.mod_eq_of_lt], rwa ←mem_range }⟩)
+
+lemma find_subprogression_first (hA : A ⊆ range N) (hr : r ≠ 0) :
+  transform (𝟙 (A.image (λ i, of_add (i : zmod N)))) (to_character N (of_add r)) =
+    (∑ x in range N, e (-(r * x / N)) * (ite (x ∈ A) 1 0 - A.card / N)) / N :=
+begin
+  have : A.image (λ i, of_add (i : zmod N)) = (A.image (λ i : ℕ, (i : zmod N))).image of_add,
+  { rw [image_image] },
+  have h1 : to_character N (of_add r) ≠ 1,
+  { rw [←zmod_characters_apply (ne_zero.ne N), ne.def, mul_equiv_class.map_eq_one_iff],
+    simpa only using hr },
+  rw [this, ←transform_balance _ _ h1, transform_character],
+  congr' 1,
+  refine sum_nbij (λ i, i.val) (λ x _, mem_range.2 (zmod.val_lt _)) _
+    (λ i j hi hj h, zmod.val_injective _ h)
+    (λ b hb, ⟨b, by simp, by { rw [zmod.val_nat_cast, nat.mod_eq_of_lt], rwa ←mem_range }⟩),
+  intros x hx,
+  rw [balance, expect_indicate, card_multiplicative, zmod.card, indicate_of_add,
+    card_image_of_injective _ of_add.injective, card_image_of_inj_on, indicate, zmod.nat_cast_val],
+  { congr' 3,
+    simp only [mem_image, exists_prop, eq_iff_iff],
+    split,
+    { rintro ⟨y, hy, rfl⟩,
+      rwa [zmod.val_nat_cast, nat.mod_eq_of_lt (mem_range.1 (hA hy))] },
+    intro hx',
+    exact ⟨_, hx', by simp⟩ },
+  rintro i hi j hj h,
+  rw mem_coe at hi hj,
+  rwa [zmod.nat_coe_eq_nat_coe_iff', nat.mod_eq_of_lt (mem_range.1 (hA hi)),
+    nat.mod_eq_of_lt (mem_range.1 (hA hj))] at h,
+end
+
+lemma balance_abs {x : ℕ} {A : finset ℕ} (hA : A ⊆ range N) :
+  (ite (x ∈ A) 1 0 - A.card / N : ℂ).abs ≤ 1 :=
+begin
+  suffices : |(ite (x ∈ A) 1 0 - A.card / N : ℝ)| ≤ 1,
+  { simpa only [←complex.abs_of_real, complex.of_real_sub, complex.of_real_one, complex.of_real_div,
+      apply_ite (coe : ℝ → ℂ), complex.of_real_zero, complex.of_real_nat_cast] using this },
+  have : (A.card : ℝ) / N ≤ 1,
+  { rw [div_le_one, nat.cast_le],
+    { simpa using card_le_of_subset hA },
+    rw [nat.cast_pos],
+    exact (ne_zero.ne N).bot_lt },
+  split_ifs,
+  { rw [abs_of_nonneg, sub_le_self_iff],
+    { positivity },
+    rwa sub_nonneg },
+  rwa [zero_sub, abs_neg, abs_div, nat.abs_cast, nat.abs_cast],
+end
+
+lemma find_subprogression_second_inter (hA : A ⊆ range N) (hη : 0 < η) (p : finset ℕ)
+  (hP : ∀ x y, x ∈ p → y ∈ p → complex.abs (e (-r / N * x) - e (-r / N * y)) ≤ η / 2) :
+  (∑ x in p, e (-(r * x / N)) * (ite (x ∈ A) 1 0 - A.card / N)).abs ≤
+    |∑ x in p, (ite (x ∈ A) 1 0 - A.card / N)| + p.card * (η / 2) :=
+begin
+  rcases p.eq_empty_or_nonempty with rfl | ⟨xi, hxi⟩,
+  { simp only [sum_empty, map_zero, abs_zero, card_empty, nat.cast_zero, zero_mul, zero_div,
+      add_zero] },
+  have : ∑ x in p, e (-(r * x / N)) * (ite (x ∈ A) 1 0 - A.card / N) =
+    (∑ x in p, e (-(r * xi / N)) * (ite (x ∈ A) 1 0 - A.card / N)) +
+      (∑ x in p, (e (-(r * x / N)) - e (-(r * xi / N))) * (ite (x ∈ A) 1 0 - A.card / N)),
+  { rw [←sum_add_distrib],
+    congr' 1 with x : 1,
+    ring },
+  rw [this, ←mul_sum],
+  refine (complex.abs.add_le _ _).trans _,
+  rw [map_mul, abs_e, one_mul],
+  refine add_le_add (le_of_eq _) _,
+  { simp only [←complex.abs_of_real, complex.of_real_zero, complex.of_real_sub, complex.of_real_one,
+      apply_ite (coe : ℝ → ℂ), complex.of_real_div, complex.of_real_nat_cast,
+      complex.of_real_sum] },
+  refine (abv_sum_le_sum_abv _ _).trans _,
+  rw [←nsmul_eq_mul, ←sum_const],
+  refine sum_le_sum _,
+  intros x hx,
+  rw [mul_div_right_comm, mul_div_right_comm, ←neg_mul, ←neg_mul, ←neg_div, map_mul],
+  refine (mul_le_mul (hP _ _ hx hxi) (balance_abs hA) _ (by positivity)).trans_eq (mul_one _),
+  positivity
+end
+
+lemma find_subprogression_second (P : finpartition (range N)) (hA : A ⊆ range N) (hr : r ≠ 0)
+  (hη : 0 < η)
+  (hr' : η ≤ (transform (𝟙 (A.image (λ i, of_add (i : zmod N)))) (to_character N (of_add r))).abs)
+  (hP : ∀ p ∈ P.parts, ∀ x y, x ∈ p → y ∈ p → complex.abs (e (-r / N * x) - e (-r / N * y)) ≤ η / 2) :
+  η ≤ (∑ p in P.parts, |∑ x in p, (ite (x ∈ A) 1 0 - A.card / N)|) / N + η / 2 :=
+begin
+  rw [find_subprogression_first _ _ hA hr, ←P.sup_parts, sup_eq_bUnion,
+    sum_bUnion P.disjoint, map_div₀, complex.abs_cast_nat] at hr',
+  refine hr'.trans _,
+  rw [div_le_iff, add_mul, div_mul_cancel, mul_comm (η / 2)],
+  rotate,
+  { rw nat.cast_ne_zero,
+    exact ne_zero.ne N },
+  { rw nat.cast_pos,
+    exact (ne_zero.ne N).bot_lt },
+  refine (abv_sum_le_sum_abv _ _).trans _,
+  have : (N : ℝ) * (η / 2) = ∑ p in P.parts, p.card * (η / 2),
+  { rw [←sum_mul, ←nat.cast_sum, P.sum_card_parts, card_range] },
+  rw [this, ←sum_add_distrib],
+  exact sum_le_sum (λ p hp, find_subprogression_second_inter A r hA hη _ (hP _ hp)),
+end
+
+lemma find_subprogression_third (P : finpartition (range N)) (hA : A ⊆ range N) (hr : r ≠ 0)
+  (hη : 0 < η)
+  (hr' : η ≤ (transform (𝟙 (A.image (λ i, of_add (i : zmod N)))) (to_character N (of_add r))).abs)
+  (hP : ∀ p ∈ P.parts, ∀ x y, x ∈ p → y ∈ p → complex.abs (e (-r / N * x) - e (-r / N * y)) ≤ η / 2) :
+  ∃ p ∈ P.parts, (p.card : ℝ) * (η / 2) ≤
+    |∑ x in p, (ite (x ∈ A) 1 0 - A.card / N)| + ∑ x in p, (ite (x ∈ A) 1 0 - A.card / N) :=
+begin
+  refine exists_le_of_sum_le (P.parts_nonempty _) _,
+  { simpa using ne_zero.ne N },
+  have h₁ : (N : ℝ) * (η / 2) = ∑ p in P.parts, p.card * (η / 2),
+  { rw [←sum_mul, ←nat.cast_sum, P.sum_card_parts, card_range] },
+  have h₂ : ∑ p in P.parts, ∑ x in p, (ite (x ∈ A) 1 0 - A.card / N : ℝ) = 0,
+  { refine (sum_bUnion P.disjoint).symm.trans _,
+    rw [←sup_eq_bUnion, P.sup_parts, sum_sub_distrib, sum_ite_mem, sum_const, sum_const, card_range,
+      (inter_eq_right_iff_subset _ _).2 hA, nat.smul_one_eq_coe, nsmul_eq_mul, mul_div_cancel',
+      sub_self],
+    rw nat.cast_ne_zero,
+    exact ne_zero.ne N },
+  rw [sum_add_distrib, h₂, add_zero, ←h₁],
+  have := find_subprogression_second A r P hA hr hη hr' hP,
+  rwa [←sub_le_iff_le_add, sub_half, le_div_iff'] at this,
+  rw [nat.cast_pos, pos_iff_ne_zero],
+  exact ne_zero.ne N,
+end
+
+lemma ge_of_abs_add_ge {x y : ℝ} (hy : 0 < y) (h : y ≤ |x| + x) :
+  y / 2 ≤ x :=
+begin
+  rcases abs_cases x with (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩);
+  linarith,
+end
+
+-- upper bound of η ≤ 48 should work?
+lemma find_subprogression (hr : r ≠ 0) (hNη : 16 * π / η ≤ N) (hA : A ⊆ range N)
+  (hα : α = A.card / N) (hη : 0 < η) (hη' : η ≤ 1)
+  (hr' : η ≤ (transform (𝟙 (A.image (λ i, of_add (i : zmod N)))) (to_character N (of_add r))).abs) :
+∃ (p : finset ℕ) (i n d : ℕ),
+  d ≠ 0 ∧
+  (η * N / (64 * π)).sqrt ≤ p.card ∧
+  p = (range n).image (λ x, i + d * x) ∧
+  (α + η / 4) * (p.card : ℝ) ≤ (A ∩ p).card :=
+begin
+  have : 8 * π / (η / 2) ≤ N,
+  { refine hNη.trans_eq' _,
+    rw [div_div_eq_mul_div, mul_right_comm],
+    norm_num },
+  obtain ⟨d, hd, P, hP⟩ := partitions_three (-r / N) (η / 2) N this (by linarith) (by linarith),
+  obtain ⟨p, hp, hp'⟩ := find_subprogression_third A r P hA hr hη hr' (λ p hp, (hP p hp).2.2),
+  have h₁ : (N : ℝ) * (η / 2) / (32 * π) = η * N / (64 * π),
+  { rw [mul_div_assoc', div_div, ←mul_assoc, mul_comm],
+    norm_num },
+  have h₂ : 0 < (p.card : ℝ),
+  { rw [nat.cast_pos, card_pos, nonempty_iff_ne_empty],
+    exact P.ne_bot hp },
+  have h₃ : 0 < (p.card : ℝ) * (η / 2),
+  { positivity },
+  rw ←h₁,
+  obtain ⟨hp₁, ⟨i, n, hp₂⟩, -⟩ := hP p hp,
+  refine ⟨p, i, n, d, hd, hp₁, hp₂, _⟩,
+  have := ge_of_abs_add_ge h₃ hp',
+  rwa [sum_sub_distrib, sum_const, mul_div_assoc, div_div, ←bit0_eq_two_mul, nsmul_eq_mul, ←hα,
+    le_sub_iff_add_le', ←mul_add, mul_comm, sum_ite_mem, inter_comm, sum_const, nsmul_one] at this
+end
+
+-- lemma transform_image [ne_zero N] (χ : character (multiplicative (zmod N))) :
+--   transform (𝟙 (A.image (λ i : ℕ, multiplicative.of_add (i : zmod N)))) χ = sorry :=
+-- begin
+
+-- end
+
+end one_six_next
+
+section single_step
+
+structure config :=
+(N : ℕ)
+(A : finset ℕ)
+(hN : N ≠ 0)
+(hAN : A ⊆ range N)
+(hA : add_salem_spencer (A : set ℕ))
+
+def config.α (C : config) : ℝ := C.A.card / C.N
+
+lemma config.α_def (C : config) : C.α = C.A.card / C.N := rfl
+
+lemma config.cast_N_pos (C : config) : 0 < (C.N : ℝ) :=
+by { rw [nat.cast_pos, pos_iff_ne_zero], exact C.hN }
+
+lemma config.α_eq (C : config) : C.α * C.N = C.A.card :=
+by { rw [config.α, div_mul_cancel], exact C.cast_N_pos.ne' }
+
+lemma config.α_nonneg (C : config) : 0 ≤ C.α := div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)
+lemma config.α_le_one (C : config) : C.α ≤ 1 :=
+div_le_one_of_le (nat.cast_le.2 ((card_le_of_subset C.hAN).trans_eq (by simp))) (nat.cast_nonneg _)
+
+lemma config.α_pow_le_one (C : config) (n : ℕ) : C.α ^ n ≤ 1 := pow_le_one n C.α_nonneg C.α_le_one
+
+def config_of_subset_Ico {n m k : ℕ} {A : finset ℕ} (hAnm : A ⊆ Ico n m) (h : k ≠ 0)
+  (hk : n + k = m) (hA' : add_salem_spencer (A : set ℕ)) : config :=
+{ N := k,
+  A := A.image (λ i, i - n),
+  hN := by simpa,
+  hAN := (image_subset_image hAnm).trans_eq $
+    by rw [nat.image_sub_const_Ico le_rfl, nat.sub_self, range_eq_Ico, ←hk, add_tsub_cancel_left],
+  hA :=
+  begin
+    rwa [←add_salem_spencer_add_right_iff, ←coe_image, finset.image_image, image_congr, image_id],
+    intros x hx,
+    dsimp,
+    rw nat.sub_add_cancel,
+    exact (finset.mem_Ico.1 (hAnm hx)).1,
+  end }
+
+lemma card_config_of_subset_Ico {n m k : ℕ} {A} (hAnm : A ⊆ Ico n m) (h) (hk : n + k = m) (hA') :
+  (config_of_subset_Ico hAnm h hk hA').A.card = A.card :=
+begin
+  rw [config_of_subset_Ico, card_image_of_inj_on],
+  intros i hi j hj h,
+  exact tsub_inj_left (mem_Ico.1 (hAnm hi)).1 (mem_Ico.1 (hAnm hj)).1 h,
+end
+
+lemma α_config_of_subset_Ico {n m k : ℕ} {A} (hAnm : A ⊆ Ico n m) (h) (hk : n + k = m) (hA') :
+  (config_of_subset_Ico hAnm h hk hA').α = A.card / k :=
+by { rw [config.α_def, card_config_of_subset_Ico], refl }
+
+lemma exists_odds {n : ℕ} (hn : even n) (hn' : n ≠ 0) :
+  ∃ m₁ m₂ : ℕ, m₁ + m₂ = n ∧ odd m₁ ∧ odd m₂ ∧ n ≤ 4 * m₁ ∧ n ≤ 4 * m₂ :=
+begin
+  rw even_iff_exists_two_mul at hn,
+  obtain ⟨n, rfl⟩ := hn,
+  cases n,
+  { simpa using hn' },
+  simp only [nat.succ_eq_add_one],
+  rcases nat.even_or_odd' n with ⟨n, (rfl | rfl)⟩,
+  { refine ⟨2 * n + 1, 2 * n + 1, (two_mul _).symm, _, _, by linarith, by linarith⟩;
+    simp with parity_simps },
+  { refine ⟨2 * n + 1, 2 * n + 3, by ring_nf, _, _, by linarith, by linarith⟩;
+    simp with parity_simps },
+end
+
+-- make the size odd without decreasing density and decreasing size by no more than a quarter
+lemma make_odd (C : config) :
+  ∃ C' : config, odd C'.N ∧ (C.N : ℝ) / 4 ≤ C'.N ∧ C.α ≤ C'.α :=
+begin
+  cases (nat.even_or_odd C.N).symm,
+  { refine ⟨C, h, _, le_rfl⟩,
+    have : 0 ≤ (C.N : ℝ) := nat.cast_nonneg C.N,
+    linarith },
+  obtain ⟨m₁, m₂, hm, hm₁, hm₂, hm₁', hm₂'⟩ := exists_odds h C.hN,
+  have : disjoint (range m₁) (Ico m₁ C.N),
+  { rw range_eq_Ico,
+    exact Ico_disjoint_Ico_consecutive 0 m₁ C.N },
+  have cs : (C.A ∩ range m₁).card + (C.A ∩ Ico m₁ C.N).card = C.A.card,
+  { rw [←card_disjoint_union, ←inter_distrib_left, range_eq_Ico,
+      Ico_union_Ico_eq_Ico (nat.zero_le _), ←range_eq_Ico, (inter_eq_left_iff_subset _ _).2],
+    { exact C.hAN },
+    { rw ←hm,
+      exact le_self_add },
+    exact disjoint_of_subset_left (inter_subset_right _ _)
+      (disjoint_of_subset_right (inter_subset_right _ _) this) },
+  rw [←@nat.cast_le ℝ, nat.cast_mul, nat.cast_bit0, nat.cast_bit0, nat.cast_one,
+    ←div_le_iff' (show (0 : ℝ) < 4, by positivity)] at hm₁' hm₂',
+  have : C.α * m₁ ≤ (C.A ∩ range m₁).card ∨ C.α * m₂ ≤ (C.A ∩ Ico m₁ C.N).card,
+  { by_contra',
+    have := add_lt_add this.1 this.2,
+    rwa [←mul_add, ←nat.cast_add, ←nat.cast_add, cs, hm, config.α_eq, lt_self_iff_false] at this },
+  cases this with h h,
+  { refine ⟨⟨m₁, C.A ∩ range m₁, hm₁.pos.ne', inter_subset_right _ _, _⟩, hm₁, hm₁', _⟩,
+    { exact C.hA.mono (by simp only [coe_inter, set.inter_subset_left]) },
+    rwa [config.α_def (config.mk _ _ _ _ _), le_div_iff (config.cast_N_pos _)] },
+  { refine ⟨config_of_subset_Ico (inter_subset_right _ _) hm₂.pos.ne' hm
+      (C.hA.mono (inter_subset_left _ _)), hm₂, hm₂', _⟩,
+    rwa [config.α_def (config_of_subset_Ico _ _ _ _), le_div_iff (config.cast_N_pos _),
+      card_config_of_subset_Ico] },
+end
+
+lemma floor_third {N : ℕ} (hN : 12 ≤ N) : (N : ℝ) / 4 ≤ ((N / 3 : ℕ) : ℝ) :=
+begin
+  rw [←@nat.floor_div_eq_div ℝ, nat.cast_bit1, nat.cast_one],
+  refine (nat.sub_one_lt_floor _).le.trans' _,
+  have : (12 : ℝ) ≤ N, by exact_mod_cast hN,
+  linarith
+end
+
+-- 22 works instead of 24 here
+lemma ceil_third {N : ℕ} (hN : 24 ≤ N) : ((N / 3 : ℕ) : ℝ) + 1 ≤ (3 * N : ℝ) / 8 :=
+begin
+  rw [←@nat.floor_div_eq_div ℝ, ←le_sub_iff_add_le, nat.cast_bit1, nat.cast_one],
+  refine (nat.floor_le _).trans _,
+  { positivity },
+  have : (24 : ℝ) ≤ N, by exact_mod_cast hN,
+  linarith,
+end
+
+lemma difference (a c d : ℕ) : c / d ≤ (a + c) / d - a / d ∧ (a + c) / d - a / d ≤ c / d + 1 :=
+begin
+  rcases nat.eq_zero_or_pos d with rfl | hd,
+  { simp },
+  simp only [nat.add_div hd, add_assoc],
+  split_ifs;
+  norm_num
+end
+
+lemma diff_thirds (n N : ℕ) :
+  N / 3 ≤ (n + 1) * N / 3 - n * N / 3 ∧ (n + 1) * N / 3 - n * N / 3 ≤ N / 3 + 1 :=
+by { rw add_one_mul, exact difference _ _ _ }
+
+lemma empty_middle (C : config) (hC : 24 ≤ C.N)
+  (h3 : ↑(C.A ∩ Ico (C.N / 3) (2 * C.N / 3)).card < C.α * C.N / 5) :
+  ∃ C' : config, (C.N : ℝ) / 4 ≤ C'.N ∧ (16 / 15) * C.α ≤ C'.α :=
+begin
+  have h₀ : C.N ≠ 0 := C.hN,
+  have h₁ : C.N / 3 ≤ 2 * C.N / 3 := nat.div_le_div_right (nat.le_mul_of_pos_left (nat.le_succ _)),
+  have h₂ : 2 * C.N / 3 ≤ C.N :=
+    nat.div_le_of_le_mul (nat.mul_le_mul_of_nonneg_right (nat.le_succ _)),
+  have h₃ : range (C.N / 3) ∪ Ico (C.N / 3) (2 * C.N / 3) ∪ Ico (2 * C.N / 3) C.N = range C.N,
+  { rw [range_eq_Ico, Ico_union_Ico_eq_Ico (nat.zero_le _) h₁,
+      Ico_union_Ico_eq_Ico (nat.zero_le _) h₂] },
+  have h₆ : 0 < C.N / 3 := (nat.div_pos (hC.trans' (show 3 ≤ 24, by norm_num)) (by norm_num)),
+  have h₇ : C.N / 3 ≤ C.N - 2 * C.N / 3,
+  { rw le_tsub_iff_left h₂,
+    refine (nat.add_div_le_add_div _ _ _).trans _,
+    rw [←add_one_mul, ←bit1, nat.mul_div_cancel_left],
+    norm_num },
+  have h₇' : ((C.N / 3 : ℕ) : ℝ) ≤ ((C.N - 2 * C.N / 3 : ℕ) : ℝ),
+  { rwa nat.cast_le },
+  have h₈ : ((C.N - 2 * C.N / 3 : ℕ) : ℝ) ≤ 3 * C.N / 8,
+  { refine (ceil_third hC).trans' _,
+    rw [←nat.cast_add_one, nat.cast_le],
+    refine (diff_thirds 2 _).2.trans_eq' _,
+    simp },
+  have : 2 * C.α * C.N / 5 ≤ (C.A ∩ range (C.N / 3)).card ∨
+         2 * C.α * C.N / 5 ≤ (C.A ∩ Ico (2 * C.N / 3) C.N).card,
+  { by_contra',
+    refine not_le_of_lt (add_lt_add_of_le_of_lt (add_le_add this.1.le h3.le) this.2) _,
+    rw [←add_div, ←add_div, mul_assoc, ←add_one_mul, ←add_mul, ←nat.cast_add, ←nat.cast_add,
+      range_eq_Ico, ←card_disjoint_union, ←inter_distrib_left, ←card_disjoint_union,
+      ←inter_distrib_left, ←range_eq_Ico, h₃, config.α_eq, ←bit1, ←bit1_add', ←bit0,
+      mul_div_cancel_left, (inter_eq_left_iff_subset _ _).2 C.hAN],
+    { norm_num },
+    { refine disjoint.inf_left' _ (disjoint.inf_right' _ _),
+      rw [Ico_union_Ico_eq_Ico (nat.zero_le _) h₁],
+      exact Ico_disjoint_Ico_consecutive _ _ _ },
+    { refine disjoint.inf_left' _ (disjoint.inf_right' _ _),
+      exact Ico_disjoint_Ico_consecutive _ _ _ } },
+  cases this with h₄ h₄,
+  { refine ⟨⟨C.N / 3, C.A ∩ range (C.N / 3), h₆.ne', inter_subset_right _ _, _⟩, _, _⟩,
+    { exact C.hA.mono (by simp only [coe_inter, set.inter_subset_left]) },
+    { exact floor_third (hC.trans' (by norm_num)) },
+    { rw [config.α_def (config.mk _ _ _ _ _), le_div_iff (config.cast_N_pos _)],
+      refine h₄.trans' _,
+      refine (mul_le_mul_of_nonneg_left (h₇'.trans h₈) (mul_nonneg (by norm_num)
+        (config.α_nonneg _))).trans _,
+      linarith only } },
+  { have h₅ : 2 * C.N / 3 + (C.N - 2 * C.N / 3) = C.N,
+    { rw [add_tsub_cancel_of_le h₂] },
+    have h₉ : C.N - 2 * C.N / 3 ≠ 0 := (h₇.trans_lt' h₆).ne',
+    refine ⟨config_of_subset_Ico (inter_subset_right C.A (Ico (2 * C.N / 3) C.N)) h₉ h₅
+      (C.hA.mono (inter_subset_left _ _)), _, _⟩,
+    { exact (floor_third (hC.trans' (by norm_num))).trans h₇' },
+    rw [config.α_def (config_of_subset_Ico _ _ _ _), le_div_iff (config.cast_N_pos _),
+      card_config_of_subset_Ico],
+    refine h₄.trans' _,
+    refine (mul_le_mul_of_nonneg_left h₈ (mul_nonneg (by norm_num)
+      (config.α_nonneg _))).trans _,
+    linarith only },
+end
+
+lemma middle_AP {N : ℕ} (hN : odd N) {A : finset ℕ} (hA : A ⊆ range N) {x d : zmod N} (hd : d ≠ 0)
+  (hx : x ∈ A.image (coe : ℕ → zmod N))
+  (hy : x + d ∈ (A ∩ Ico (N / 3) (2 * N / 3)).image (coe : ℕ → zmod N))
+  (hz : x + 2 * d ∈ (A ∩ Ico (N / 3) (2 * N / 3)).image (coe : ℕ → zmod N)) :
+  ¬ add_salem_spencer (A : set ℕ) :=
+begin
+  simp only [mem_image, exists_prop, mem_inter, mem_Ico] at hx hy hz,
+  have : 2 * (x + d) - (x + 2 * d) = x,
+  { ring },
+  obtain ⟨x', hx', hx'''⟩ := hx,
+  obtain ⟨y', ⟨hy', hy''⟩, hy'''⟩ := hy,
+  obtain ⟨z', ⟨hz', hz''⟩, hz'''⟩ := hz,
+  have : (x' : zmod N) + z' = y' + y',
+  { rw [hx''', hy''', hz'''],
+    ring },
+  have : (x' : zmod N) = y' + y' - z',
+  { rw [hx''', hy''', hz'''],
+    ring },
+  have xl : z' ≤ y' + y',
+  { rw ←two_mul,
+    refine (nat.mul_le_mul_left _ hy''.1).trans' _,
+    rw ←nat.lt_add_one_iff,
+    refine hz''.2.trans_le _,
+    rw [two_mul, nat.add_div, ←two_mul, add_le_add_iff_left],
+    { split_ifs;
+      simp },
+    norm_num },
+  have xu : y' + y' - z' < N,
+  { rw [tsub_lt_iff_left xl, ←two_mul],
+    refine (nat.mul_lt_mul_of_pos_left hy''.2 (by norm_num1)).trans_le
+      ((nat.mul_div_le_mul_div_assoc _ _ _).trans ((add_le_add_right hz''.1 _).trans_eq' _)),
+    rw [←nat.add_mul_div_left, ←mul_assoc, ←one_add_mul];
+    norm_num },
+  rw [←nat.cast_add, ←nat.cast_sub xl, zmod.nat_coe_eq_nat_coe_iff', nat.mod_eq_of_lt xu,
+    nat.mod_eq_of_lt (mem_range.1 (hA hx'))] at this,
+  rw [add_salem_spencer_iff_eq_right],
+  simp only [not_forall, mem_coe, exists_prop, exists_and_distrib_left],
+  refine ⟨x', z', y', _, hy', hz', hx', _⟩,
+  { rw [this, nat.sub_add_cancel xl] },
+  rintro rfl,
+  apply hd,
+  simpa [hx'''] using hy''',
+end
+
+open multiplicative
+
+lemma full_middle (C : config) [ne_zero C.N] (hC : odd C.N) (hN : 50 / C.α ^ 3 < C.N)
+  (hα : 0 < C.α) (h3 : C.α * C.N / 5 ≤ (C.A ∩ Ico (C.N / 3) (2 * C.N / 3)).card) :
+  ∃ r : zmod C.N, r ≠ 0 ∧
+    C.α ^ 2 / 10 <
+      (transform (𝟙 (C.A.image (λ i, of_add (i : zmod C.N)))) (to_character C.N (of_add r))).abs :=
+begin
+  haveI : ne_zero C.N := ⟨C.hN⟩,
+  let A : finset (zmod C.N) := C.A.image coe,
+  let B : finset (zmod C.N) := (C.A ∩ Ico (C.N / 3) (2 * C.N / 3)).image coe,
+  have hA : set.inj_on (coe : ℕ → zmod C.N) C.A,
+  { intros i hi j hj h,
+    rwa [zmod.nat_coe_eq_nat_coe_iff', nat.mod_eq_of_lt, nat.mod_eq_of_lt] at h,
+    { exact mem_range.1 (C.hAN hj) },
+    { exact mem_range.1 (C.hAN hi) } },
+  have hα : C.α ≤ A.card / C.N,
+  { rw [card_image_of_inj_on hA],
+    refl },
+  have hβ : C.α / 5 ≤ B.card / C.N,
+  { rwa [card_image_of_inj_on (hA.mono (inter_subset_left _ _)), le_div_iff (config.cast_N_pos _),
+      div_mul_eq_mul_div] },
+  have hβ' : 0 ≤ C.α / 5,
+  { have := C.α_nonneg,
+    positivity },
+  by_contra',
+  have bound : 1 / (C.N : ℝ) < C.α * (C.α / 5) * (C.α / 5) / 2,
+  { rw [mul_div_assoc', mul_div_assoc', div_mul_eq_mul_div, div_div, div_div,
+      one_div_lt (config.cast_N_pos _), one_div_div],
+    { refine hN.trans_eq' _,
+      rw [pow_succ, sq, mul_assoc],
+      norm_num },
+    positivity },
+  have h : ∀ (r : zmod C.N), r ≠ 0 →
+    (transform (𝟙 (image of_add A)) (to_character C.N (of_add r))).abs ≤
+      C.α * real.sqrt (C.α / 5 * (C.α / 5)) / 2,
+  { intros r hr,
+    rw [image_image],
+    refine (this r hr).trans_eq _,
+    rw [real.sqrt_mul_self hβ', sq, mul_div_assoc', div_div],
+    norm_num },
+  obtain ⟨x, d, hd, hA, hB, hB'⟩ := one_five' hC hα hβ hβ hβ' hβ' h bound,
+  exact middle_AP hC C.hAN hd hA hB hB' C.hA,
+end
+
+def density_change (k δ : ℝ) : ℝ := δ * (1 + δ / k)
+
+lemma density_change_gt {k δ : ℝ} (hk : 0 < k) (hδ : 0 < δ) : δ < density_change k δ :=
+begin
+  refine lt_mul_right hδ _,
+  rw lt_add_iff_pos_right,
+  positivity,
+end
+
+lemma density_change_mono {k δ₁ δ₂ : ℝ} (hk : 0 ≤ k) (hδ₁ : 0 ≤ δ₁) (hδ₂ : δ₁ ≤ δ₂) :
+  density_change k δ₁ ≤ density_change k δ₂ :=
+mul_le_mul hδ₂ (add_le_add_left (div_le_div_of_le_of_nonneg hδ₂ hk) _)
+  (add_nonneg zero_le_one (div_nonneg hδ₁ hk)) (by linarith)
+
+open real
+
+-- 16 ≤ (C₁.α ^ 6 * C₁.N) / (640 * π) ^ 3
+-- 16 * (640 * π) ^ 3 ≤ C₁.α ^ 6 * C₁.N
+-- 16 * (640 * π) ^ 3 / C₁.α ^ 6 ≤ C₁.N
+
+lemma one_step (C : config) (hC : (90 / C.α) ^ 6 ≤ C.N) (hC' : 0 < C.α) :
+  ∃ C' : config, (C.N : ℝ) ^ (1 / 3 : ℝ) ≤ C'.N ∧ density_change 40 C.α ≤ C'.α :=
+begin
+  obtain ⟨C₁, hC₁, hC₁', hC₁''⟩ := make_odd C,
+  have : C₁.N ≠ 0 := (odd.pos hC₁).ne',
+  have h' := hC'.trans_le hC₁'',
+  haveI : ne_zero C₁.N := ⟨this⟩,
+  have h₃ : (90 / C₁.α) ^ 6 / 4 ≤ C₁.N,
+  { refine (div_le_div_of_le (by norm_num) (hC.trans' _)).trans hC₁',
+    exact pow_le_pow_of_le_left (by positivity)
+      (div_le_div_of_le_left (by norm_num1) hC' hC₁'') _ },
+  have h₄ : 132860250000 / C₁.α ^ 6 ≤ C₁.N,
+  { refine h₃.trans' _,
+    rw [div_pow, div_div, mul_comm, ←div_div],
+    norm_num },
+  rw [div_le_iff' (show (0 : ℝ) < 4, by norm_num)] at hC₁',
+  cases lt_or_le ((C₁.A ∩ Ico (C₁.N / 3) (2 * C₁.N / 3)).card : ℝ) (C₁.α * C₁.N / 5),
+  { have : 24 ≤ C₁.N,
+    { rw [←@nat.cast_le ℝ],
+      refine h₄.trans' ((div_le_div_of_le_left _ (pow_pos h' _) (C₁.α_pow_le_one _)).trans' _);
+      norm_num },
+    obtain ⟨C₂, hC₂, hC₂'⟩ := empty_middle C₁ this h,
+    refine ⟨C₂, _, (density_change_mono (by positivity) C.α_nonneg hC₁'').trans (hC₂'.trans' _)⟩,
+    { refine hC₂.trans' ((rpow_le_rpow (nat.cast_nonneg _) hC₁' (by norm_num)).trans _),
+      rw [←rpow_le_rpow_iff, ←rpow_mul, div_mul_cancel _ (show (3 : ℝ) ≠ 0, by norm_num), rpow_one,
+        (show (3 : ℝ) = (3 : ℕ), by norm_cast), rpow_nat_cast, div_pow, le_div_iff', ←mul_assoc,
+        ←pow_succ', pow_succ' _ 2],
+      refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+      { norm_cast,
+        refine (pow_le_pow_of_le_left _ this 2).trans' _;
+        norm_num },
+      all_goals { positivity } },
+    rw [density_change, mul_comm],
+    nlinarith [C₁.α_le_one, C₁.α_nonneg] },
+  have h₅ : C₁.α ^ 2 / 10 ≤ 1,
+  { refine div_le_one_of_le _ (by norm_num),
+    refine (pow_le_pow_of_le_left h'.le C₁.α_le_one _).trans _,
+    norm_num },
+  have := pi_pos,
+  have h₆ : 16 * π / (C₁.α ^ 2 / 10) ≤ C₁.N,
+  { refine h₄.trans' _,
+    rw [div_div_eq_mul_div, le_div_iff (pow_pos h' _), div_mul_comm, div_eq_mul_inv,
+      ←pow_sub_of_lt _ (show 2 < 6, by norm_num), mul_assoc _ π, mul_left_comm _ π],
+    refine (mul_le_of_le_one_left (by positivity) (C₁.α_pow_le_one _)).trans _,
+    refine (mul_le_mul_of_nonneg_right pi_lt_315.le (by norm_num)).trans _,
+    norm_num },
+  have h₇ : 50 / C₁.α ^ 3 < C₁.N,
+  { refine h₄.trans_lt' _,
+    rw [lt_div_iff (pow_pos h' _), div_mul_comm, div_eq_mul_inv,
+      ←pow_sub_of_lt _ (show 3 < 6, by norm_num)],
+    refine (mul_le_of_le_one_left (by positivity) (C₁.α_pow_le_one _)).trans_lt _,
+    norm_num },
+  obtain ⟨r, hr, hr'⟩ := full_middle C₁ hC₁ h₇ h' h,
+  obtain ⟨p, i, n, d, hd, size_lower_bound, hp, density_lower_bound⟩ :=
+    find_subprogression _ C₁.α _ hr h₆ C₁.hAN rfl (by positivity) h₅ hr'.le,
+  have hp' : p.card = n,
+  { rw [hp, card_image_of_injective _ (injective_affine hd), card_range] },
+  have : n ≠ 0,
+  { have h : 0 < sqrt (C₁.α ^ 2 / 10 * C₁.N / (64 * π)),
+    { positivity },
+    replace h := h.trans_le size_lower_bound,
+    rwa [hp', nat.cast_pos, pos_iff_ne_zero] at h },
+  let A := (range n).filter (λ x, i + d * x ∈ C₁.A),
+  have A' : A.image (λ x, i + d * x) = C₁.A ∩ p,
+  { rw [inter_comm, ←filter_mem_eq_inter, hp, image_filter] },
+  have A'' : A.card = (C₁.A ∩ p).card,
+  { rw [←A', card_image_of_injective _ (injective_affine hd)] },
+  refine ⟨⟨n, A, this, filter_subset _ _, _⟩, _, _⟩,
+  { intros x y z,
+    simp only [A, finset.mem_coe, and_imp, mem_filter, mem_range],
+    intros hx hx' hy hy' hz hz' e,
+    refine injective_affine hd (C₁.hA hx' hy' hz' _),
+    rw [add_assoc, add_assoc, add_right_inj, add_left_comm, add_left_comm (d * z), add_right_inj,
+      ←mul_add, e, mul_add] },
+  { dsimp,
+    have h : 0 < C₁.α ^ 2 * C₁.N / (10 * (64 * π)),
+    { positivity },
+    rw ←hp',
+    refine size_lower_bound.trans' _,
+    rw [←real.rpow_le_rpow_iff (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _) (real.sqrt_nonneg _)
+      (show (0 : ℝ) < 3, by norm_num), div_mul_eq_mul_div, div_div, ←rpow_mul (nat.cast_nonneg _),
+      div_mul_cancel _ (show (3 : ℝ) ≠ 0, by norm_num), rpow_one, sqrt_eq_rpow, ←rpow_mul h.le,
+      mul_comm (1 / 2 : ℝ), rpow_mul h.le, ←sqrt_eq_rpow],
+    refine hC₁'.trans _,
+    rw [le_sqrt (mul_nonneg (show (0 : ℝ) ≤ 4, by norm_num) (nat.cast_nonneg _))
+      (rpow_pos_of_pos h _).le, (show (3 : ℝ) = (3 : ℕ), by norm_cast), rpow_nat_cast,
+      ←div_mul_eq_mul_div, mul_pow, mul_pow, pow_succ (C₁.N : ℝ) 2, ←mul_assoc],
+    refine mul_le_mul_of_nonneg_right _ (by positivity),
+    rw [←div_le_iff', div_pow, div_div_eq_mul_div, ←pow_mul, ←bit0_eq_two_mul, mul_pow, mul_pow,
+      ←mul_assoc, ←mul_assoc],
+    swap,
+    { positivity },
+    refine h₄.trans' (div_le_div_of_le (by positivity) _),
+    refine (mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left pi_pos.le pi_lt_315.le _)
+      (by positivity)).trans _,
+    norm_num
+     },
+  rw [config.α_def (config.mk _ _ _ _ _), le_div_iff (config.cast_N_pos _)],
+  rw [div_div, sq, mul_div_assoc, ←mul_one_add] at density_lower_bound,
+  norm_num1 at density_lower_bound,
+  dsimp,
+  rw [←hp', A''],
+  refine (mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _)).trans density_lower_bound,
+  exact density_change_mono (by norm_num) C.α_nonneg hC₁'',
+end
+
+end single_step
 
 section final
 
@@ -1645,14 +2389,6 @@ begin
   exact (second_order_bernoulli_lt hx hy).le,
 end
 
-def density_change (k δ : ℝ) : ℝ := δ * (1 + δ / k)
-
-lemma density_change_gt {k δ : ℝ} (hk : 0 < k) (hδ : 0 < δ) : δ < density_change k δ :=
-begin
-  refine lt_mul_right hδ _,
-  rw lt_add_iff_pos_right,
-  positivity,
-end
 
 lemma density_change_iterate_gt {k δ : ℝ} {m : ℕ} (hk : 0 < k) (hδ : 0 < δ) :
   δ ≤ (density_change k^[m] δ) :=
@@ -1678,11 +2414,6 @@ hδ.trans (density_change_gt hk hδ)
 lemma density_change_iterate_pos {k δ : ℝ} {m : ℕ} (hk : 0 < k) (hδ : 0 < δ) :
   0 < (density_change k^[m] δ) :=
 hδ.trans_le (density_change_iterate_gt hk hδ)
-
-lemma density_change_mono {k δ₁ δ₂ : ℝ} (hk : 0 ≤ k) (hδ₁ : 0 ≤ δ₁) (hδ₂ : δ₁ ≤ δ₂) :
-  density_change k δ₁ ≤ density_change k δ₂ :=
-mul_le_mul hδ₂ (add_le_add_left (div_le_div_of_le_of_nonneg hδ₂ hk) _)
-  (add_nonneg zero_le_one (div_nonneg hδ₁ hk)) (by linarith)
 
 lemma density_change_iterate_mono {k δ₁ δ₂ : ℝ} {m : ℕ} (hk : 0 < k) (hδ₁ : 0 < δ₁)
   (hδ₂ : δ₁ ≤ δ₂) :
@@ -1845,6 +2576,148 @@ lemma density_change_overall' {δ : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ 1) :
 begin
   obtain ⟨m, hm, hm'⟩ := density_change_overall hδ hδ',
   exact hm'.trans_le (density_change_iterate_le (by norm_num) hδ hm),
+end
+
+open real
+
+theorem almost_there {C : config} (h : 0 < C.α) :
+  (C.N : ℝ) ^ (((1 / 3) : ℝ) ^ (⌊80 / C.α⌋₊)) ≤ (90 / C.α) ^ 6 :=
+begin
+  have : ∀ i, ∃ Ci : config, 0 < Ci.α ∧
+    ((C.N : ℝ) ^ ((1 / 3 : ℝ) ^ i) ≤ Ci.N ∧ (density_change 40^[i] C.α ≤ Ci.α) ∨
+      (C.N : ℝ) ^ ((1 / 3 : ℝ) ^ i) ≤ (90 / C.α) ^ 6),
+  { intro i,
+    induction i with i ih,
+    { exact ⟨C, h, by simp⟩ },
+    obtain ⟨C', hC'₁, hC'⟩ := ih,
+    rw [or_iff_not_imp_right, not_le] at hC',
+    rw [pow_succ', real.rpow_mul (nat.cast_nonneg _)],
+    cases lt_or_le ((90 / C.α) ^ 6) ((C.N : ℝ) ^ (1 / 3 : ℝ) ^ i) with h' h',
+    { obtain ⟨hC'₂, hC'₃⟩ := hC' h',
+      have : (90 / C'.α) ^ 6 ≤ (90 / C.α) ^ 6,
+      { refine pow_le_pow_of_le_left (by positivity) (div_le_div_of_le_left (by norm_num) h _) _,
+        exact hC'₃.trans' (density_change_iterate_gt (by norm_num) h) },
+      obtain ⟨C'', hC''₁, hC''₂⟩ := one_step C' (hC'₂.trans' (h'.le.trans' this)) hC'₁,
+      refine ⟨C'', hC''₂.trans_lt' (density_change_pos (by norm_num) hC'₁), or.inl ⟨_, _⟩⟩,
+      { exact hC''₁.trans' (real.rpow_le_rpow (by positivity) hC'₂ (by positivity)) },
+      rw function.iterate_succ_apply',
+      exact hC''₂.trans' (density_change_mono (by positivity)
+        (density_change_iterate_pos (by positivity) h).le hC'₃) },
+    refine ⟨C', hC'₁, or.inr (h'.trans' _)⟩,
+    refine (real.rpow_le_rpow_of_exponent_le _ (show (1 / 3 : ℝ) ≤ 1, by norm_num)).trans_eq
+      (real.rpow_one _),
+    refine real.one_le_rpow _ (by positivity),
+    rw [nat.one_le_cast, nat.succ_le_iff, pos_iff_ne_zero],
+    exact C.hN },
+  obtain ⟨C', hC'₁, hC'⟩ := this ⌊80 / C.α⌋₊,
+  refine hC'.resolve_left (λ h', _),
+  exact not_lt_of_le C'.α_le_one (h'.2.trans_lt' (density_change_overall' h C.α_le_one)),
+end
+
+
+lemma bit_more_precise {C : config} (h : 0 < C.α) (h' : 1 < C.N) :
+  log (log C.N) ≤ (80 * log 3) / C.α + log (log (90 / C.α)) + log 6 :=
+begin
+  have := C.cast_N_pos,
+  have : 0 < log (90 / C.α),
+  { exact log_pos ((one_lt_div h).2 (C.α_le_one.trans_lt (by norm_num))) },
+  have : 0 < log C.N,
+  { refine log_pos _,
+    rwa nat.one_lt_cast },
+  have := almost_there h,
+  rw [←log_le_log, log_rpow, log_pow, ←log_le_log, log_mul, log_pow, log_mul, one_div, log_inv,
+    mul_neg, neg_add_le_iff_le_add, ←add_assoc, add_right_comm, nat.cast_bit0, nat.cast_bit1,
+    nat.cast_one] at this,
+  { refine this.trans (add_le_add_right (add_le_add_right _ _) _),
+    rw ←div_mul_eq_mul_div,
+    exact mul_le_mul_of_nonneg_right (nat.floor_le (by positivity)) (log_nonneg (by norm_num)) },
+  { positivity },
+  { positivity },
+  { positivity },
+  { positivity },
+  { positivity },
+  { positivity },
+  { positivity },
+  { positivity },
+  { positivity },
+end
+
+lemma bound_one {x : ℝ} (hx : 1 ≤ x) :
+  log (90 * x) ≤ 5 * x :=
+begin
+  rw [log_mul (by positivity : (90 : ℝ) ≠ 0) (by positivity : x ≠ 0), ←le_sub_iff_add_le'],
+  refine (log_le_sub_one_of_pos (by positivity)).trans _,
+  suffices : log 90 ≤ 5,
+  { linarith },
+  rw [log_le_iff_le_exp (show (0 : ℝ) < 90, by norm_num), ←exp_one_rpow],
+  norm_cast,
+  have : 2.7 ≤ exp 1 := exp_one_gt_d9.le.trans' (by norm_num),
+  refine (pow_le_pow_of_le_left _ this _).trans' _;
+  norm_num
+end
+
+lemma bound_two {x : ℝ} (hx : 1 ≤ x) :
+  log (5 * x) + log 6 ≤ 4 * x :=
+begin
+  rw [log_mul (by positivity : (5 : ℝ) ≠ 0) (by positivity : x ≠ 0), add_right_comm,
+    ←le_sub_iff_add_le', ←log_mul (show (5 : ℝ) ≠ 0, by norm_num) (show (6 : ℝ) ≠ 0, by norm_num)],
+  refine (log_le_sub_one_of_pos (by positivity)).trans _,
+  suffices : log 30 ≤ 4,
+  { norm_num1,
+    linarith },
+  rw [log_le_iff_le_exp (show (0 : ℝ) < 30, by norm_num), ←exp_one_rpow],
+  norm_cast,
+  have : 2.7 ≤ exp 1 := exp_one_gt_d9.le.trans' (by norm_num),
+  refine (pow_le_pow_of_le_left _ this _).trans' _;
+  norm_num
+end
+
+lemma bound_three {x : ℝ} (hx : 1 ≤ x) :
+  log (log (90 * x)) + log 6 ≤ 4 * x :=
+begin
+  refine (bound_two hx).trans' (add_le_add_right ((log_le_log (log_pos (by linarith)) _).2 _) _),
+  { positivity },
+  exact bound_one hx
+end
+
+lemma second_last {C : config} (h : 0 < C.α) (h' : 1 < C.N) :
+  log (log C.N) ≤ 100 / C.α :=
+begin
+  refine (bit_more_precise h h').trans _,
+  rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, add_assoc, ←le_sub_iff_add_le', ←sub_mul],
+  refine (bound_three (one_le_inv h C.α_le_one)).trans (mul_le_mul_of_nonneg_right _ _),
+  swap,
+  { positivity },
+  suffices : ((10 : ℕ) : ℝ) * log 3 ≤ ((11 : ℕ) : ℝ), { norm_cast at this, linarith },
+  rw [←log_pow, log_le_iff_le_exp (pow_pos _ _), ←exp_one_rpow, rpow_nat_cast],
+  have : 2.715 ≤ exp 1 := exp_one_gt_d9.le.trans' (by norm_num),
+  refine (pow_le_pow_of_le_left _ this _).trans' _,
+  all_goals {norm_num},
+end
+
+-- for N = 0 it's trivial, for N = 1, 2 it's false
+theorem roth {N : ℕ} (hN : 3 ≤ N) : (roth_number_nat N : ℝ) ≤ 100 * N / log (log N) :=
+begin
+  obtain ⟨A, hA, hA', hA''⟩ := roth_number_nat_spec N,
+  rw ←hA',
+  have llpos : 0 < log (log N),
+  { refine log_pos _,
+    have : (3 : ℝ) ≤ N, by exact_mod_cast hN,
+    rw lt_log_iff_exp_lt,
+    refine (exp_one_lt_d9.trans_le (by linarith)),
+    linarith },
+  cases nat.eq_zero_or_pos A.card,
+  { rw [h, nat.cast_zero],
+    exact div_nonneg (by positivity) llpos.le },
+  let C : config := ⟨N, A, by linarith, hA, hA''⟩,
+  have hN' : 1 < N := by linarith,
+  have : 0 < C.α,
+  { refine div_pos _ C.cast_N_pos,
+    rwa nat.cast_pos },
+  have ineq : _ ≤ _ / (_ / _) := second_last this hN',
+  dsimp at ineq,
+  rwa [div_div_eq_mul_div, le_div_iff, ←le_div_iff' llpos] at ineq,
+  rwa nat.cast_pos
 end
 
 end final

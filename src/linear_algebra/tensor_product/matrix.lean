@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 
 import data.matrix.kronecker
+import linear_algebra.matrix.to_lin
 import linear_algebra.tensor_product.basis
 
 /-!

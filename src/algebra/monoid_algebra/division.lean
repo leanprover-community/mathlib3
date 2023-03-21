@@ -107,36 +107,6 @@ mod_of_apply_of_exists_add _ ⟨_, add_comm _ _⟩
   mod_of g x (g + d) = 0 :=
 mod_of_apply_of_exists_add _ ⟨_, rfl⟩
 
-lemma single_mul_apply_of_not_exists_add (r : k) {g g' : G} (x : add_monoid_algebra k G)
-  (h : ¬∃ d, g' = g + d):
-  (finsupp.single g r * x : add_monoid_algebra k G) g' = 0 :=
-begin
-  classical,
-  rw [mul_apply, finsupp.sum_single_index],
-  swap,
-  { simp_rw [finsupp.sum, zero_mul, if_t_t, finset.sum_const_zero] },
-  { apply finset.sum_eq_zero,
-    simp_rw ite_eq_right_iff,
-    rintros g'' hg'' rfl,
-    exfalso,
-    exact h ⟨_, rfl⟩ },
-end
-
-lemma mul_single_apply_of_not_exists_add (r : k) {g g' : G} (x : add_monoid_algebra k G)
-  (h : ¬∃ d, g' = g + d):
-  (x * finsupp.single g r : add_monoid_algebra k G) g' = 0 :=
-begin
-  classical,
-  rw [mul_apply, finsupp.sum_comm, finsupp.sum_single_index],
-  swap,
-  { simp_rw [finsupp.sum, mul_zero, if_t_t, finset.sum_const_zero] },
-  { apply finset.sum_eq_zero,
-    simp_rw ite_eq_right_iff,
-    rintros g'' hg'' rfl,
-    exfalso,
-    exact h ⟨_, add_comm _ _⟩ }
-end
-
 lemma mod_of_of'_mul (g : G) (x : add_monoid_algebra k G) :
   mod_of g (of' k G g * x) = 0 :=
 begin
@@ -154,7 +124,8 @@ begin
   rw finsupp.zero_apply,
   obtain ⟨d, rfl⟩ | h := em (∃ d, g' = g + d),
   { rw mod_of_apply_add' },
-  { rw [mod_of_apply_of_not_exists_add _ h, of'_apply, mul_single_apply_of_not_exists_add _ _ h] },
+  { rw [mod_of_apply_of_not_exists_add _ h, of'_apply, mul_single_apply_of_not_exists_add],
+    simpa only [add_comm] using h },
 end
 
 lemma mod_of_of' (g : G) : mod_of g (of' k G g) = 0 :=

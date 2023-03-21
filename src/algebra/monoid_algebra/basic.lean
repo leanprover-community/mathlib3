@@ -430,6 +430,21 @@ lemma mul_single_one_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x
   (f * single 1 r) x = f x * r :=
 f.mul_single_apply_aux $ λ a, by rw [mul_one]
 
+lemma mul_single_apply_of_not_exists_mul [has_mul G] (r : k) {g g' : G} (x : monoid_algebra k G)
+  (h : ¬∃ d, g' = d * g):
+  (x * finsupp.single g r : monoid_algebra k G) g' = 0 :=
+begin
+  classical,
+  rw [mul_apply, finsupp.sum_comm, finsupp.sum_single_index],
+  swap,
+  { simp_rw [finsupp.sum, mul_zero, if_t_t, finset.sum_const_zero] },
+  { apply finset.sum_eq_zero,
+    simp_rw ite_eq_right_iff,
+    rintros g'' hg'' rfl,
+    exfalso,
+    exact h ⟨_, rfl⟩ }
+end
+
 lemma single_mul_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k} {x y z : G}
   (H : ∀ a, x * a = y ↔ a = z) :
   (single x r * f) y = r * f z :=
@@ -444,6 +459,21 @@ calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
 lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
+
+lemma single_mul_apply_of_not_exists_mul [has_mul G] (r : k) {g g' : G} (x : monoid_algebra k G)
+  (h : ¬∃ d, g' = g * d):
+  (finsupp.single g r * x : monoid_algebra k G) g' = 0 :=
+begin
+  classical,
+  rw [mul_apply, finsupp.sum_single_index],
+  swap,
+  { simp_rw [finsupp.sum, zero_mul, if_t_t, finset.sum_const_zero] },
+  { apply finset.sum_eq_zero,
+    simp_rw ite_eq_right_iff,
+    rintros g'' hg'' rfl,
+    exfalso,
+    exact h ⟨_, rfl⟩ },
+end
 
 lemma lift_nc_smul [mul_one_class G] {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
   (φ : monoid_algebra k G) :
@@ -1221,6 +1251,11 @@ lemma mul_single_zero_apply [add_zero_class G] (f : add_monoid_algebra k G) (r :
   (f * single 0 r) x = f x * r :=
 f.mul_single_apply_aux r _ _ _ $ λ a, by rw [add_zero]
 
+lemma mul_single_apply_of_not_exists_add [has_add G] (r : k) {g g' : G} (x : add_monoid_algebra k G)
+  (h : ¬∃ d, g' = d + g):
+  (x * finsupp.single g r : add_monoid_algebra k G) g' = 0 :=
+@monoid_algebra.mul_single_apply_of_not_exists_mul k (multiplicative G) _ _ _ _ _ _ h
+
 lemma single_mul_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k) (x y z : G)
   (H : ∀ a, x + a = y ↔ a = z) :
   (single x r * f : add_monoid_algebra k G) y = r * f z :=
@@ -1229,6 +1264,11 @@ lemma single_mul_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k) (x y
 lemma single_zero_mul_apply [add_zero_class G] (f : add_monoid_algebra k G) (r : k) (x : G) :
   (single 0 r * f : add_monoid_algebra k G) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
+
+lemma single_mul_apply_of_not_exists_add [has_add G] (r : k) {g g' : G} (x : add_monoid_algebra k G)
+  (h : ¬∃ d, g' = g + d):
+  (finsupp.single g r * x : add_monoid_algebra k G) g' = 0 :=
+@monoid_algebra.single_mul_apply_of_not_exists_mul k (multiplicative G) _ _ _ _ _ _ h
 
 lemma mul_single_apply [add_group G] (f : add_monoid_algebra k G) (r : k) (x y : G) :
   (f * single x r) y = f (y - x) * r :=

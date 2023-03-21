@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.set.intervals.basic
 import data.set.n_ary
+import order.directed
 
 /-!
 
@@ -284,30 +285,25 @@ lemma bdd_below.inter_of_right (h : bdd_below t) : bdd_below (s ∩ t) :=
 h.mono $ inter_subset_right s t
 
 /-- If `s` and `t` are bounded above sets in a `semilattice_sup`, then so is `s ∪ t`. -/
-lemma bdd_above.union [semilattice_sup γ] {s t : set γ} :
-  bdd_above s → bdd_above t → bdd_above (s ∪ t) :=
+lemma bdd_above.union [is_directed α (≤)] : bdd_above s → bdd_above t → bdd_above (s ∪ t) :=
 begin
-  rintros ⟨bs, hs⟩ ⟨bt, ht⟩,
-  use bs ⊔ bt,
-  rw upper_bounds_union,
-  exact ⟨upper_bounds_mono_mem le_sup_left hs,
-    upper_bounds_mono_mem le_sup_right ht⟩
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
+  obtain ⟨c, hca, hcb⟩ := exists_ge_ge a b,
+  rw [bdd_above, upper_bounds_union],
+  exact ⟨c, upper_bounds_mono_mem hca ha, upper_bounds_mono_mem hcb hb⟩,
 end
 
 /-- The union of two sets is bounded above if and only if each of the sets is. -/
-lemma bdd_above_union [semilattice_sup γ] {s t : set γ} :
-  bdd_above (s ∪ t) ↔ bdd_above s ∧ bdd_above t :=
+lemma bdd_above_union [is_directed α (≤)] : bdd_above (s ∪ t) ↔ bdd_above s ∧ bdd_above t :=
 ⟨λ h, ⟨h.mono $ subset_union_left s t, h.mono $ subset_union_right s t⟩,
   λ h, h.1.union h.2⟩
 
-lemma bdd_below.union [semilattice_inf γ] {s t : set γ} :
-  bdd_below s → bdd_below t → bdd_below (s ∪ t) :=
-@bdd_above.union γᵒᵈ _ s t
+lemma bdd_below.union [is_directed α (≥)] : bdd_below s → bdd_below t → bdd_below (s ∪ t) :=
+@bdd_above.union αᵒᵈ _ _ _ _
 
 /--The union of two sets is bounded above if and only if each of the sets is.-/
-lemma bdd_below_union [semilattice_inf γ] {s t : set γ} :
-  bdd_below (s ∪ t) ↔ bdd_below s ∧ bdd_below t :=
-@bdd_above_union γᵒᵈ _ s t
+lemma bdd_below_union [is_directed α (≥)] : bdd_below (s ∪ t) ↔ bdd_below s ∧ bdd_below t :=
+@bdd_above_union αᵒᵈ _ _ _ _
 
 /-- If `a` is the least upper bound of `s` and `b` is the least upper bound of `t`,
 then `a ⊔ b` is the least upper bound of `s ∪ t`. -/

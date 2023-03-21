@@ -15,106 +15,138 @@ import topology.order.basic
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
 > Any changes to this file require a corresponding PR to mathlib4.
+
+## Main declarations
+
+* `bounded_le_nhds_class`: Typeclass stating that neighborhoods are eventually bounded above.
+* `bounded_ge_nhds_class`: Typeclass stating that neighborhoods are eventually bounded below.
+
+## Implementation notes
+
+The same lemmas are true in `ℝ`, `ℝ × ℝ`, `ι → ℝ`, `euclidean_space ι ℝ`. To avoid code
+duplication, we provide `has_upper_lower_closure`, an ad hoc axiomatisation of the properties we
+need.
 -/
 
 open filter
 open_locale topology classical
 
 universes u v
-variables {α : Type u} {β : Type v}
+variables {ι α β R S : Type*} {π : ι → Type*}
 
-section liminf_limsup
+/-- Ad hoc typeclass stating that neighborhoods are eventually bounded above. -/
+class bounded_le_nhds_class (α : Type*) [preorder α] [topological_space α] : Prop :=
+(is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤))
 
-section order_closed_topology
-variables [semilattice_sup α] [topological_space α] [order_topology α]
+/-- Ad hoc typeclass stating that neighborhoods are eventually bounded below. -/
+class bounded_ge_nhds_class (α : Type*) [preorder α] [topological_space α] : Prop :=
+(is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥))
+
+section preorder
+variables [preorder α] [preorder β] [topological_space α] [topological_space β]
+
+section bounded_le_nhds_class
+variables [bounded_le_nhds_class α] [bounded_le_nhds_class β] {f : filter ι} {u : ι → α} {a : α}
 
 lemma is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤) :=
-(is_top_or_exists_gt a).elim (λ h, ⟨a, eventually_of_forall h⟩) (λ ⟨b, hb⟩, ⟨b, ge_mem_nhds hb⟩)
+bounded_le_nhds_class.is_bounded_le_nhds _
 
-lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α}
-  (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
+lemma filter.tendsto.is_bounded_under_le (h : tendsto u f (𝓝 a)) :
+  f.is_bounded_under (≤) u :=
 (is_bounded_le_nhds a).mono h
 
-lemma filter.tendsto.bdd_above_range_of_cofinite {u : β → α} {a : α}
+lemma filter.tendsto.bdd_above_range_of_cofinite [is_directed α (≤)]
   (h : tendsto u cofinite (𝓝 a)) : bdd_above (set.range u) :=
 h.is_bounded_under_le.bdd_above_range_of_cofinite
 
-lemma filter.tendsto.bdd_above_range {u : ℕ → α} {a : α}
-  (h : tendsto u at_top (𝓝 a)) : bdd_above (set.range u) :=
+lemma filter.tendsto.bdd_above_range [is_directed α (≤)] {u : ℕ → α} (h : tendsto u at_top (𝓝 a)) :
+  bdd_above (set.range u) :=
 h.is_bounded_under_le.bdd_above_range
 
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
 (is_bounded_le_nhds a).is_cobounded_flip
 
-lemma filter.tendsto.is_cobounded_under_ge {f : filter β} {u : β → α} {a : α}
-  [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
+lemma filter.tendsto.is_cobounded_under_ge [ne_bot f] (h : tendsto u f (𝓝 a)) :
+  f.is_cobounded_under (≥) u :=
 h.is_bounded_under_le.is_cobounded_flip
 
-lemma is_bounded_le_at_bot (α : Type*) [hα : nonempty α] [preorder α] :
-  (at_bot : filter α).is_bounded (≤) :=
-is_bounded_iff.2 ⟨set.Iic hα.some, mem_at_bot _, hα.some, λ x hx, hx⟩
+instance : bounded_ge_nhds_class αᵒᵈ := ⟨@is_bounded_le_nhds α _ _ _⟩
 
-lemma filter.tendsto.is_bounded_under_le_at_bot {α : Type*} [nonempty α] [preorder α]
-  {f : filter β} {u : β → α} (h : tendsto u f at_bot) :
-  f.is_bounded_under (≤) u :=
-(is_bounded_le_at_bot α).mono h
+instance : bounded_le_nhds_class (α × β) :=
+begin
+  refine ⟨λ x, _⟩,
+  obtain ⟨a, ha⟩ := is_bounded_le_nhds x.1,
+  obtain ⟨b, hb⟩ := is_bounded_le_nhds x.2,
+  rw [←@prod.mk.eta _ _ x, nhds_prod_eq],
+  exact ⟨(a, b), ha.prod_mk hb⟩,
+end
 
-lemma bdd_above_range_of_tendsto_at_top_at_bot {α : Type*} [nonempty α] [semilattice_sup α]
-  {u : ℕ → α} (hx : tendsto u at_top at_bot) : bdd_above (set.range u) :=
-(filter.tendsto.is_bounded_under_le_at_bot hx).bdd_above_range
+end bounded_le_nhds_class
 
-end order_closed_topology
+section bounded_ge_nhds_class
+variables [bounded_ge_nhds_class α] [bounded_ge_nhds_class β] {f : filter ι} {u : ι → α} {a : α}
 
-section order_closed_topology
-variables [semilattice_inf α] [topological_space α] [order_topology α]
+lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
+bounded_ge_nhds_class.is_bounded_ge_nhds _
 
-lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) := @is_bounded_le_nhds αᵒᵈ _ _ _ a
-
-lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
-  (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
+lemma filter.tendsto.is_bounded_under_ge (h : tendsto u f (𝓝 a)) :
+  f.is_bounded_under (≥) u :=
 (is_bounded_ge_nhds a).mono h
 
-lemma filter.tendsto.bdd_below_range_of_cofinite {u : β → α} {a : α}
+lemma filter.tendsto.bdd_below_range_of_cofinite [is_directed α (≥)]
   (h : tendsto u cofinite (𝓝 a)) : bdd_below (set.range u) :=
 h.is_bounded_under_ge.bdd_below_range_of_cofinite
 
-lemma filter.tendsto.bdd_below_range {u : ℕ → α} {a : α}
-  (h : tendsto u at_top (𝓝 a)) : bdd_below (set.range u) :=
+lemma filter.tendsto.bdd_below_range [is_directed α (≥)] {u : ℕ → α} (h : tendsto u at_top (𝓝 a)) :
+  bdd_below (set.range u) :=
 h.is_bounded_under_ge.bdd_below_range
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
 (is_bounded_ge_nhds a).is_cobounded_flip
 
-lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : α}
-  [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
+lemma filter.tendsto.is_cobounded_under_le [ne_bot f] (h : tendsto u f (𝓝 a)) :
+  f.is_cobounded_under (≤) u :=
 h.is_bounded_under_ge.is_cobounded_flip
 
-lemma is_bounded_ge_at_top (α : Type*) [hα : nonempty α] [preorder α] :
-  (at_top : filter α).is_bounded (≥) :=
-is_bounded_le_at_bot αᵒᵈ
+instance : bounded_le_nhds_class αᵒᵈ := ⟨@is_bounded_ge_nhds α _ _ _⟩
 
-lemma filter.tendsto.is_bounded_under_ge_at_top {α : Type*} [nonempty α] [preorder α]
-  {f : filter β} {u : β → α} (h : tendsto u f at_top) :
-  f.is_bounded_under (≥) u :=
-(is_bounded_ge_at_top α).mono h
+instance : bounded_ge_nhds_class (α × β) :=
+begin
+  refine ⟨λ x, _⟩,
+  obtain ⟨a, ha⟩ := is_bounded_ge_nhds x.1,
+  obtain ⟨b, hb⟩ := is_bounded_ge_nhds x.2,
+  rw [←@prod.mk.eta _ _ x, nhds_prod_eq],
+  exact ⟨(a, b), ha.prod_mk hb⟩,
+end
 
-lemma bdd_below_range_of_tendsto_at_top_at_top {α : Type*} [nonempty α] [semilattice_inf α]
-  {u : ℕ → α} (hx : tendsto u at_top at_top) : bdd_below (set.range u) :=
-(filter.tendsto.is_bounded_under_ge_at_top hx).bdd_below_range
+end bounded_ge_nhds_class
 
-end order_closed_topology
+@[priority 100] -- See note [lower instance priority]
+instance order_top.to_bounded_le_nhds_class [order_top α] : bounded_le_nhds_class α :=
+⟨λ a, is_bounded_le_of_top⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance order_bot.to_bounded_le_nhds_class [order_bot α] : bounded_ge_nhds_class α :=
+⟨λ a, is_bounded_ge_of_bot⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance order_topology.to_bounded_le_nhds_class [is_directed α (≤)] [order_topology α] :
+  bounded_le_nhds_class α :=
+⟨λ a, (is_top_or_exists_gt a).elim (λ h, ⟨a, eventually_of_forall h⟩) $ Exists.imp $ λ b,
+  ge_mem_nhds⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance order_topology.to_bounded_ge_nhds_class [is_directed α (≥)] [order_topology α] :
+  bounded_ge_nhds_class α :=
+⟨λ a, (is_bot_or_exists_lt a).elim (λ h, ⟨a, eventually_of_forall h⟩) $ Exists.imp $ λ b,
+  le_mem_nhds⟩
+
+end preorder
+
+section liminf_limsup
 
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α]
-
-theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
-  ∀ᶠ a in f, a < b :=
-let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
-mem_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
-
-theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
-  ∀ᶠ a in f, b < a :=
-@lt_mem_sets_of_Limsup_lt αᵒᵈ _
 
 variables [topological_space α] [order_topology α]
 
@@ -221,7 +253,7 @@ end liminf_limsup
 
 section monotone
 
-variables {ι R S : Type*} {F : filter ι} [ne_bot F]
+variables {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
   [complete_linear_order S] [topological_space S] [order_topology S]
 
@@ -331,7 +363,7 @@ open_locale topology
 
 open filter set
 
-variables {ι : Type*} {R : Type*} [complete_linear_order R] [topological_space R] [order_topology R]
+variables [complete_linear_order R] [topological_space R] [order_topology R]
 
 lemma infi_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
   (x_le : ∀ i, x ≤ as i) {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
@@ -346,7 +378,7 @@ lemma supr_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
   (⨆ i, as i) = x :=
 @infi_eq_of_forall_le_of_tendsto ι (order_dual R) _ _ _ x as le_x F _ as_lim
 
-lemma Union_Ici_eq_Ioi_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (x_lt : ∀ i, x < as i)
+lemma Union_Ici_eq_Ioi_of_lt_of_tendsto (x : R) {as : ι → R} (x_lt : ∀ i, x < as i)
   {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
   (⋃ (i : ι), Ici (as i)) = Ioi x :=
 begin
@@ -358,10 +390,10 @@ begin
   exact Union_Ici_eq_Ioi_infi obs,
 end
 
-lemma Union_Iic_eq_Iio_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (lt_x : ∀ i, as i < x)
+lemma Union_Iic_eq_Iio_of_lt_of_tendsto (x : R) {as : ι → R} (lt_x : ∀ i, as i < x)
   {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
   (⋃ (i : ι), Iic (as i)) = Iio x :=
-@Union_Ici_eq_Ioi_of_lt_of_tendsto (order_dual R) _ _ _ ι x as lt_x F _ as_lim
+@Union_Ici_eq_Ioi_of_lt_of_tendsto ι Rᵒᵈ _ _ _ _ _ lt_x F _ as_lim
 
 end infi_and_supr
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.cont_diff_def
+import analysis.calculus.mean_value
+import analysis.normed_space.finite_dimension
 
 /-!
 # Higher differentiability of usual operations

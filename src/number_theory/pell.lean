@@ -260,7 +260,7 @@ begin
 end
 
 /-- The set of solutions with `x > 0` is closed under multiplication. -/
-lemma pos_x_mul_pos_x (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
+lemma x_mul_pos_of_x_pos (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
   0 < (a * b).x :=
 begin
   simp only [x_mul],
@@ -272,7 +272,7 @@ begin
 end
 
 /-- The set of solutions with `x` and `y` positive is closed under multiplication. -/
-lemma pos_x_pos_y_mul_pos_x_pos_y (h₀ : 0 < d) {a b : solution₁ d} (hax : 0 < a.x)
+lemma x_mul_pos_and_y_mul_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a b : solution₁ d} (hax : 0 < a.x)
   (hay : 0 < a.y) (hbx : 0 < b.x) (hby : 0 < b.y) :
   0 < (a * b).x ∧ 0 < (a * b).y :=
 begin
@@ -282,7 +282,7 @@ end
 
 /-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it have positive `x`,
 and the sign of `y` agrees with that of the exponent. -/
-lemma pos_x_pos_y_pow (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℤ) :
+lemma x_pow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℤ) :
   0 < (a ^ n).x ∧
   (if 0 < n then 0 < (a ^ n).y else if n < 0 then (a ^ n).y < 0 else (a ^ n).y = 0) :=
 begin
@@ -290,7 +290,7 @@ begin
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hax, hay, zpow_one, and_self]) (λ m hm ih, _) m,
     rw zpow_add_one,
-    exact pos_x_pos_y_mul_pos_x_pos_y h₀ ih.1 ih.2 hax hay, },
+    exact x_mul_pos_and_y_mul_pos_of_x_pos_of_y_pos h₀ ih.1 ih.2 hax hay, },
   split_ifs with hn₁ hn₂,
   -- three cases: `0 < n`, `n < 0`, `n = 0`
   { exact H n hn₁, },

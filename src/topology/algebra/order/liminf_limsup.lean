@@ -50,19 +50,6 @@ lemma filter.tendsto.is_cobounded_under_ge {f : filter β} {u : β → α} {a : 
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
 h.is_bounded_under_le.is_cobounded_flip
 
-lemma is_bounded_le_at_bot (α : Type*) [hα : nonempty α] [preorder α] :
-  (at_bot : filter α).is_bounded (≤) :=
-is_bounded_iff.2 ⟨set.Iic hα.some, mem_at_bot _, hα.some, λ x hx, hx⟩
-
-lemma filter.tendsto.is_bounded_under_le_at_bot {α : Type*} [nonempty α] [preorder α]
-  {f : filter β} {u : β → α} (h : tendsto u f at_bot) :
-  f.is_bounded_under (≤) u :=
-(is_bounded_le_at_bot α).mono h
-
-lemma bdd_above_range_of_tendsto_at_top_at_bot {α : Type*} [nonempty α] [semilattice_sup α]
-  {u : ℕ → α} (hx : tendsto u at_top at_bot) : bdd_above (set.range u) :=
-(filter.tendsto.is_bounded_under_le_at_bot hx).bdd_above_range
-
 end order_closed_topology
 
 section order_closed_topology
@@ -89,32 +76,10 @@ lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : 
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
 h.is_bounded_under_ge.is_cobounded_flip
 
-lemma is_bounded_ge_at_top (α : Type*) [hα : nonempty α] [preorder α] :
-  (at_top : filter α).is_bounded (≥) :=
-is_bounded_le_at_bot αᵒᵈ
-
-lemma filter.tendsto.is_bounded_under_ge_at_top {α : Type*} [nonempty α] [preorder α]
-  {f : filter β} {u : β → α} (h : tendsto u f at_top) :
-  f.is_bounded_under (≥) u :=
-(is_bounded_ge_at_top α).mono h
-
-lemma bdd_below_range_of_tendsto_at_top_at_top {α : Type*} [nonempty α] [semilattice_inf α]
-  {u : ℕ → α} (hx : tendsto u at_top at_top) : bdd_below (set.range u) :=
-(filter.tendsto.is_bounded_under_ge_at_top hx).bdd_below_range
-
 end order_closed_topology
 
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α]
-
-theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
-  ∀ᶠ a in f, a < b :=
-let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
-mem_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
-
-theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
-  ∀ᶠ a in f, b < a :=
-@lt_mem_sets_of_Limsup_lt αᵒᵈ _
 
 variables [topological_space α] [order_topology α]
 

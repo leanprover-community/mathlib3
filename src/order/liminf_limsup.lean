@@ -1066,12 +1066,3 @@ lemma order_iso.liminf_apply {γ} [conditionally_complete_lattice β]
 @order_iso.limsup_apply α βᵒᵈ γᵒᵈ _ _ f u g.dual hu hu_co hgu hgu_co
 
 end order
-
-
-lemma is_bounded_le_at_bot (α : Type*) [nonempty α] [preorder α] :
-  (at_bot : filter α).is_bounded (≤) :=
-‹nonempty α›.elim $ λ a, ⟨a, eventually_le_at_bot _⟩
-
-lemma is_bounded_ge_at_top (α : Type*) [nonempty α] [preorder α] :
-  (at_top : filter α).is_bounded (≥) :=
-‹nonempty α›.elim $ λ a, ⟨a, eventually_ge_at_top _⟩

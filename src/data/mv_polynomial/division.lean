@@ -33,6 +33,8 @@ variables {σ R : Type*} [comm_semiring R]
 namespace mv_polynomial
 
 section copied_declarations
+/-! Please ensure the declarations in this section are direct translations of `add_monoid_algebra`
+results. -/
 
 /-- Divide by `monomial 1 s`, discarding terms not divisible by this. -/
 noncomputable def div_monomial (s : σ →₀ ℕ) : mv_polynomial σ R →+ mv_polynomial σ R :=

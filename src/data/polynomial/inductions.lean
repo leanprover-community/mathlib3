@@ -29,7 +29,7 @@ variables [semiring R] {p q : R[X]}
 /-- `div_X p` returns a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : R[X]) : R[X] :=
-⟨add_monoid_algebra.div_of 1 p.to_finsupp⟩
+⟨add_monoid_algebra.div_of p.to_finsupp 1⟩
 
 @[simp] lemma coeff_div_X : (div_X p).coeff n = p.coeff (n+1) :=
 by { rw [add_comm], cases p, refl }

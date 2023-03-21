@@ -126,7 +126,7 @@ instance order_top.to_bounded_le_nhds_class [order_top α] : bounded_le_nhds_cla
 ⟨λ a, is_bounded_le_of_top⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_bot.to_bounded_le_nhds_class [order_bot α] : bounded_ge_nhds_class α :=
+instance order_bot.to_bounded_ge_nhds_class [order_bot α] : bounded_ge_nhds_class α :=
 ⟨λ a, is_bounded_ge_of_bot⟩
 
 @[priority 100] -- See note [lower instance priority]

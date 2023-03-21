@@ -1176,7 +1176,7 @@ end
 
 section
 
-variables [semilattice_sup α] [nonempty α] {s : set α}
+variables [preorder α] [is_directed α (≤)] [nonempty α] {s : set α}
 
 /--A finite set is bounded above.-/
 protected lemma finite.bdd_above (hs : s.finite) : bdd_above s :=
@@ -1184,7 +1184,7 @@ finite.induction_on hs bdd_above_empty $ λ a s _ _ h, h.insert a
 
 /--A finite union of sets which are all bounded above is still bounded above.-/
 lemma finite.bdd_above_bUnion {I : set β} {S : β → set α} (H : I.finite) :
-  (bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
+  bdd_above (⋃ i ∈ I, S i) ↔ ∀ i ∈ I, bdd_above (S i) :=
 finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
@@ -1195,22 +1195,17 @@ end
 
 section
 
-variables [semilattice_inf α] [nonempty α] {s : set α}
+variables [preorder α] [is_directed α (≥)] [nonempty α] {s : set α}
 
 /--A finite set is bounded below.-/
-protected lemma finite.bdd_below (hs : s.finite) : bdd_below s := @finite.bdd_above αᵒᵈ _ _ _ hs
+protected lemma finite.bdd_below (hs : s.finite) : bdd_below s := @finite.bdd_above αᵒᵈ _ _ _ _ hs
 
 /--A finite union of sets which are all bounded below is still bounded below.-/
 lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : I.finite) :
   bdd_below (⋃ i ∈ I, S i) ↔ ∀ i ∈ I, bdd_below (S i) :=
-@finite.bdd_above_bUnion αᵒᵈ _ _ _ _ _ H
+@finite.bdd_above_bUnion αᵒᵈ _ _ _ _ _ _ H
 
-lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite :=
-begin
-  contrapose!,
-  rw not_infinite,
-  apply finite.bdd_below,
-end
+lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite := mt finite.bdd_below
 
 end
 

@@ -11,8 +11,8 @@ import data.mv_polynomial.basic
 
 ## Main definitions
 
-* `mv_polynomial.div_monomial s x`: divides `x` by the monomial `mv_polynomial.monomial 1 s`
-* `mv_polynomial.mod_monomial s x`: the remainder upon dividing `x` by the monomial
+* `mv_polynomial.div_monomial x s`: divides `x` by the monomial `mv_polynomial.monomial 1 s`
+* `mv_polynomial.mod_monomial x s`: the remainder upon dividing `x` by the monomial
   `mv_polynomial.monomial 1 s`.
 
 ## Main results
@@ -37,103 +37,117 @@ section copied_declarations
 results. -/
 
 /-- Divide by `monomial 1 s`, discarding terms not divisible by this. -/
-noncomputable def div_monomial (s : σ →₀ ℕ) : mv_polynomial σ R →+ mv_polynomial σ R :=
-add_monoid_algebra.div_of s
+noncomputable def div_monomial (p : mv_polynomial σ R) (s : σ →₀ ℕ) : mv_polynomial σ R :=
+add_monoid_algebra.div_of p s
+
+local infix ` /ᵐᵒⁿᵒᵐⁱᵃˡ `:70 := div_monomial
 
 @[simp] lemma coeff_div_monomial (s : σ →₀ ℕ) (x : mv_polynomial σ R) (s' : σ →₀ ℕ) :
-  coeff s' (div_monomial s x) = coeff (s + s') x := rfl
+  coeff s' (x /ᵐᵒⁿᵒᵐⁱᵃˡ s) = coeff (s + s') x := rfl
 
 @[simp] lemma support_div_monomial (s : σ →₀ ℕ) (x : mv_polynomial σ R)  :
-  (div_monomial s x).support = x.support.preimage _ ((add_right_injective s).inj_on _) := rfl
+  (x /ᵐᵒⁿᵒᵐⁱᵃˡ s).support = x.support.preimage _ ((add_right_injective s).inj_on _) := rfl
 
-lemma div_monomial_zero (x : mv_polynomial σ R) : div_monomial 0 x = x :=
+@[simp] lemma zero_div_monomial (s : σ →₀ ℕ) : (0 : mv_polynomial σ R) /ᵐᵒⁿᵒᵐⁱᵃˡ s = 0 :=
+add_monoid_algebra.zero_div_of _
+
+lemma div_monomial_zero (x : mv_polynomial σ R) : x /ᵐᵒⁿᵒᵐⁱᵃˡ 0 = x :=
 x.div_of_zero
 
+lemma add_div_monomial (x y : mv_polynomial σ R) (s : σ →₀ ℕ) :
+  (x + y) /ᵐᵒⁿᵒᵐⁱᵃˡ s = x /ᵐᵒⁿᵒᵐⁱᵃˡ s + y /ᵐᵒⁿᵒᵐⁱᵃˡ s :=
+map_add _ _ _
+
 lemma div_monomial_add (a b : σ →₀ ℕ) (x : mv_polynomial σ R)  :
-  div_monomial (a + b) x = div_monomial b (div_monomial a x) :=
+  x /ᵐᵒⁿᵒᵐⁱᵃˡ (a + b) = (x /ᵐᵒⁿᵒᵐⁱᵃˡ a) /ᵐᵒⁿᵒᵐⁱᵃˡ b :=
 x.div_of_add _ _
 
 @[simp] lemma div_monomial_monomial_mul (a : σ →₀ ℕ) (x : mv_polynomial σ R) :
-  div_monomial a (monomial a 1 * x) = x :=
-x.div_of_of'_mul _
+  (monomial a 1 * x) /ᵐᵒⁿᵒᵐⁱᵃˡ a = x :=
+x.of'_mul_div_of _
 
 @[simp] lemma div_monomial_mul_monomial (a : σ →₀ ℕ) (x : mv_polynomial σ R) :
-  div_monomial a (x * monomial a 1) = x :=
-x.div_of_mul_of' _
+  (x * monomial a 1) /ᵐᵒⁿᵒᵐⁱᵃˡ a = x :=
+x.mul_of'_div_of _
 
 @[simp] lemma div_monomial_monomial (a : σ →₀ ℕ) :
-  div_monomial a (monomial a 1) = (1 : mv_polynomial σ R) :=
-add_monoid_algebra.div_of_of' _
+  (monomial a 1) /ᵐᵒⁿᵒᵐⁱᵃˡ a = (1 : mv_polynomial σ R) :=
+add_monoid_algebra.of'_div_of _
 
 /-- The remainder upon division by `monomial 1 s`. -/
-noncomputable def mod_monomial (s : σ →₀ ℕ) (x : mv_polynomial σ R) : mv_polynomial σ R :=
+noncomputable def mod_monomial (x : mv_polynomial σ R) (s : σ →₀ ℕ) : mv_polynomial σ R :=
 x.mod_of s
 
+local infix ` %ᵐᵒⁿᵒᵐⁱᵃˡ `:70 := mod_monomial
+
 @[simp] lemma coeff_mod_monomial_of_not_le {s' s : σ →₀ ℕ} (x : mv_polynomial σ R) (h : ¬s ≤ s') :
-  coeff s' (mod_monomial s x) = coeff s' x :=
-x.mod_of_apply_of_not_exists_add $ begin
+  coeff s' (x %ᵐᵒⁿᵒᵐⁱᵃˡ s) = coeff s' x :=
+x.mod_of_apply_of_not_exists_add s s' begin
   rintro ⟨d, rfl⟩,
-  exact h le_self_add
+  exact h le_self_add,
 end
 
 @[simp] lemma coeff_mod_monomial_of_le {s' s : σ →₀ ℕ} (x : mv_polynomial σ R) (h : s ≤ s') :
-  coeff s' (mod_monomial s x) = 0 :=
-x.mod_of_apply_of_exists_add $ exists_add_of_le h
+  coeff s' (x %ᵐᵒⁿᵒᵐⁱᵃˡ s) = 0 :=
+x.mod_of_apply_of_exists_add _ _ $ exists_add_of_le h
 
-@[simp] lemma mod_monomial_monomial_mul (s : σ →₀ ℕ) (x : mv_polynomial σ R) :
-  mod_monomial s (monomial s 1 * x) = 0 :=
-x.mod_of_of'_mul _
+@[simp] lemma monomial_mul_mod_monomial (s : σ →₀ ℕ) (x : mv_polynomial σ R) :
+  (monomial s 1 * x) %ᵐᵒⁿᵒᵐⁱᵃˡ s = 0 :=
+x.of'_mul_mod_of _
 
-@[simp] lemma mod_monomial_mul_monomial (s : σ →₀ ℕ) (x : mv_polynomial σ R):
-  mod_monomial s (x * monomial s 1) = 0 :=
-x.mod_of_mul_of' _
+@[simp] lemma mul_monomial_mod_monomial (s : σ →₀ ℕ) (x : mv_polynomial σ R):
+  (x * monomial s 1) %ᵐᵒⁿᵒᵐⁱᵃˡ s = 0 :=
+x.mul_of'_mod_of _
 
-@[simp] lemma mod_monomial_monomial (s : σ →₀ ℕ) : mod_monomial s (monomial s 1) = 0 :=
-add_monoid_algebra.mod_of_of' _
+@[simp] lemma monomial_mod_monomial (s : σ →₀ ℕ) : (monomial s (1 : R)) %ᵐᵒⁿᵒᵐⁱᵃˡ s = 0 :=
+add_monoid_algebra.of'_mod_of _
 
 lemma div_monomial_add_mod_monomial (x : mv_polynomial σ R) (s : σ →₀ ℕ) :
-  monomial s 1 * div_monomial s x + mod_monomial s x = x :=
-x.div_of_add_mod_of _
+  monomial s 1 * (x /ᵐᵒⁿᵒᵐⁱᵃˡ s) + x %ᵐᵒⁿᵒᵐⁱᵃˡ s = x :=
+add_monoid_algebra.div_of_add_mod_of x s
 
 lemma mod_monomial_add_div_monomial (x : mv_polynomial σ R) (s : σ →₀ ℕ) :
-  mod_monomial s x + monomial s 1 * div_monomial s x = x :=
-x.mod_of_add_div_of _
+  x %ᵐᵒⁿᵒᵐⁱᵃˡ s + monomial s 1 * (x /ᵐᵒⁿᵒᵐⁱᵃˡ s) = x :=
+add_monoid_algebra.mod_of_add_div_of x s
 
 end copied_declarations
 
 section X_lemmas
 
-@[simp] lemma div_monomial_X_mul (i : σ) (x : mv_polynomial σ R) :
-  div_monomial (finsupp.single i 1) (X i * x) = x :=
+local infix ` /ᵐᵒⁿᵒᵐⁱᵃˡ `:70 := div_monomial
+local infix ` %ᵐᵒⁿᵒᵐⁱᵃˡ `:70 := mod_monomial
+
+@[simp] lemma X_mul_div_monomial (i : σ) (x : mv_polynomial σ R) :
+   (X i * x) /ᵐᵒⁿᵒᵐⁱᵃˡ (finsupp.single i 1) = x :=
 div_monomial_monomial_mul _ _
 
-@[simp] lemma div_monomial_X (i : σ) :
-  div_monomial (finsupp.single i 1) (X i : mv_polynomial σ R) = 1 :=
+@[simp] lemma X_div_monomial (i : σ) :
+  (X i : mv_polynomial σ R) /ᵐᵒⁿᵒᵐⁱᵃˡ (finsupp.single i 1)  = 1 :=
 (div_monomial_monomial (finsupp.single i 1))
 
-@[simp] lemma div_monomial_mul_X (i : σ) (x : mv_polynomial σ R) :
-  div_monomial (finsupp.single i 1) (x * X i) = x :=
+@[simp] lemma mul_X_div_monomial (x : mv_polynomial σ R) (i : σ) :
+  (x * X i) /ᵐᵒⁿᵒᵐⁱᵃˡ (finsupp.single i 1) = x :=
 div_monomial_mul_monomial _ _
 
-@[simp] lemma mod_monomial_X_mul (i : σ) (x : mv_polynomial σ R) :
-  mod_monomial (finsupp.single i 1) (X i * x) = 0 :=
-x.mod_of_of'_mul _
+@[simp] lemma X_mul_mod_monomial (i : σ) (x : mv_polynomial σ R) :
+  (X i * x) %ᵐᵒⁿᵒᵐⁱᵃˡ (finsupp.single i 1)  = 0 :=
+monomial_mul_mod_monomial _ _
 
-@[simp] lemma mod_monomial_mul_X (i : σ) (x : mv_polynomial σ R):
-  mod_monomial (finsupp.single i 1) (x * X i) = 0 :=
-x.mod_of_mul_of' _
+@[simp] lemma mul_X_mod_monomial (x : mv_polynomial σ R) (i : σ) :
+  (x * X i) %ᵐᵒⁿᵒᵐⁱᵃˡ (finsupp.single i 1)  = 0 :=
+mul_monomial_mod_monomial _ _
 
 @[simp] lemma mod_monomial_X (i : σ) :
-  mod_monomial (finsupp.single i 1) (X i : mv_polynomial σ R) = 0 :=
-add_monoid_algebra.mod_of_of' _
+  (X i : mv_polynomial σ R) %ᵐᵒⁿᵒᵐⁱᵃˡ (finsupp.single i 1) = 0 :=
+monomial_mod_monomial _
 
 lemma div_monomial_add_mod_monomial_single (x : mv_polynomial σ R) (i : σ) :
-  X i * div_monomial (finsupp.single i 1) x + mod_monomial (finsupp.single i 1) x = x :=
-x.div_of_add_mod_of _
+  X i * (x /ᵐᵒⁿᵒᵐⁱᵃˡ finsupp.single i 1) + x %ᵐᵒⁿᵒᵐⁱᵃˡ finsupp.single i 1 = x :=
+div_monomial_add_mod_monomial _ _
 
 lemma mod_monomial_add_div_monomial_single (x : mv_polynomial σ R) (i : σ) :
-  mod_monomial (finsupp.single i 1) x + X i * div_monomial (finsupp.single i 1) x = x :=
-x.mod_of_add_div_of _
+  x %ᵐᵒⁿᵒᵐⁱᵃˡ finsupp.single i 1 + X i * (x /ᵐᵒⁿᵒᵐⁱᵃˡ finsupp.single i 1) = x :=
+mod_monomial_add_div_monomial _ _
 
 end X_lemmas
 

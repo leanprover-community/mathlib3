@@ -241,6 +241,82 @@ lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
 @[simp]
 lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
 
+/-- A solution has `x ≠ 0`. -/
+lemma x_ne_zero (h₀ : 0 < d) (a : solution₁ d) : a.x ≠ 0 :=
+begin
+  intro hx,
+  have h : 0 ≤ d * a.y ^ 2 := mul_nonneg h₀.le (sq_nonneg _),
+  rw [a.prop_y, hx, sq, zero_mul, zero_sub] at h,
+  exact not_le.mpr (neg_one_lt_zero : (-1 : ℤ) < 0) h,
+end
+
+example (a b : ℤ) : ¬ a ≤ b ↔ b < a := not_le
+/-- A solution with `x > 1` must have `y ≠ 0`. -/
+lemma y_ne_zero_of_one_lt_x {a : solution₁ d} (ha : 1 < a.x) : a.y ≠ 0 :=
+begin
+  intro hy,
+  have prop := a.prop,
+  rw [hy, sq (0 : ℤ), zero_mul, mul_zero, sub_zero] at prop,
+  exact lt_irrefl _ (((one_lt_sq_iff $ zero_le_one.trans ha.le).mpr ha).trans_eq prop),
+end
+
+/-- The set of solutions with `x > 0` is closed under multiplication. -/
+lemma pos_x_mul_pos_x (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
+  0 < (a * b).x :=
+begin
+  simp only [x_mul],
+  refine neg_lt_iff_pos_add'.mp (abs_lt.mp _).1,
+  rw [← abs_of_pos ha, ← abs_of_pos hb, ← abs_mul, ← sq_lt_sq, mul_pow a.x, a.prop_x, b.prop_x,
+      ← sub_pos],
+  ring_nf,
+  positivity,
+end
+
+/-- The set of solutions with `x` and `y` positive is closed under multiplication. -/
+lemma pos_x_pos_y_mul_pos_x_pos_y (h₀ : 0 < d) {a b : solution₁ d} (hax : 0 < a.x)
+  (hay : 0 < a.y) (hbx : 0 < b.x) (hby : 0 < b.y) :
+  0 < (a * b).x ∧ 0 < (a * b).y :=
+begin
+  simp only [x_mul, y_mul],
+  split; positivity,
+end
+
+/-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it have positive `x`,
+and the sign of `y` agrees with that of the exponent. -/
+lemma pos_x_pos_y_pow (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℤ) :
+  0 < (a ^ n).x ∧
+  (if 0 < n then 0 < (a ^ n).y else if n < 0 then (a ^ n).y < 0 else (a ^ n).y = 0) :=
+begin
+  have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).x ∧ 0 < (a ^ m).y,
+  { change ∀ m : ℤ, 1 ≤ m → _,
+    refine λ m, int.le_induction (by simp only [hax, hay, zpow_one, and_self]) (λ m hm ih, _) m,
+    rw zpow_add_one,
+    exact pos_x_pos_y_mul_pos_x_pos_y h₀ ih.1 ih.2 hax hay, },
+  split_ifs with hn₁ hn₂,
+  -- three cases: `0 < n`, `n < 0`, `n = 0`
+  { exact H n hn₁, },
+  { rw [← neg_neg n, zpow_neg, x_inv, y_inv, neg_lt, neg_zero],
+    exact H (-n) (lt_neg.mp hn₂), },
+  { rw [le_antisymm (not_lt.mp hn₁) (not_lt.mp hn₂), zpow_zero],
+    simp only [x_one, zero_lt_one, y_one, eq_self_iff_true, and_self], }
+end
+
+/-- If `a` is any solution, then one of `a`, `a⁻¹`, `-a`, `-a⁻¹` has
+positive `x` and nonnegative `y`. -/
+lemma exists_pos_variant (h₀ : 0 < d) (a : solution₁ d) :
+  ∃ b : solution₁ d, 0 < b.x ∧ 0 ≤ b.y ∧ (a = b ∨ a = b⁻¹ ∨ a = -b ∨ a = -b⁻¹) :=
+begin
+  refine ⟨mk (|a.x|) (|a.y|) (by simp [a.prop]), abs_pos.mpr (a.x_ne_zero h₀), abs_nonneg a.y, _⟩,
+  cases le_or_lt 0 a.x with hax hax; cases le_or_lt 0 a.y with hay hay,
+  { exact or.inl (solution₁.ext (abs_of_nonneg hax).symm (abs_of_nonneg hay).symm), },
+  { exact or.inr (or.inl $ solution₁.ext (by simp [abs_of_nonneg hax])
+                                         (by simp [abs_of_neg hay])), },
+  { exact or.inr (or.inr $ or.inr $ solution₁.ext (by simp [abs_of_neg hax])
+                                                  (by simp [abs_of_nonneg hay])), },
+  { exact or.inr (or.inr $ or.inl $ solution₁.ext (by simp [abs_of_neg hax])
+                                                  (by simp [abs_of_neg hay])),}
+end
+
 end solution₁
 
 end pell

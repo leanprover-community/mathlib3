@@ -282,7 +282,8 @@ end
 
 /-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it have positive `x`,
 and the sign of `y` agrees with that of the exponent. -/
-lemma x_pow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℤ) :
+lemma x_pow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
+  (n : ℤ) :
   0 < (a ^ n).x ∧
   (if 0 < n then 0 < (a ^ n).y else if n < 0 then (a ^ n).y < 0 else (a ^ n).y = 0) :=
 begin

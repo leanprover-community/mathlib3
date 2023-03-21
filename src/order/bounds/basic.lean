@@ -638,22 +638,20 @@ lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonem
 -/
 
 /-- Adding a point to a set preserves its boundedness above. -/
-@[simp] lemma bdd_above_insert [semilattice_sup γ] (a : γ) {s : set γ} :
-  bdd_above (insert a s) ↔ bdd_above s :=
+@[simp] lemma bdd_above_insert [is_directed α (≤)] : bdd_above (insert a s) ↔ bdd_above s :=
 by simp only [insert_eq, bdd_above_union, bdd_above_singleton, true_and]
 
-lemma bdd_above.insert [semilattice_sup γ] (a : γ) {s : set γ} (hs : bdd_above s) :
-  bdd_above (insert a s) :=
-(bdd_above_insert a).2 hs
+protected lemma bdd_above.insert [is_directed α (≤)] (a : α) :
+  bdd_above s → bdd_above (insert a s) :=
+bdd_above_insert.2
 
 /--Adding a point to a set preserves its boundedness below.-/
-@[simp] lemma bdd_below_insert [semilattice_inf γ] (a : γ) {s : set γ} :
-  bdd_below (insert a s) ↔ bdd_below s :=
+@[simp] lemma bdd_below_insert [is_directed α (≥)] : bdd_below (insert a s) ↔ bdd_below s :=
 by simp only [insert_eq, bdd_below_union, bdd_below_singleton, true_and]
 
-lemma bdd_below.insert [semilattice_inf γ] (a : γ) {s : set γ} (hs : bdd_below s) :
-  bdd_below (insert a s) :=
-(bdd_below_insert a).2 hs
+lemma bdd_below.insert [is_directed α (≥)] (a : α) :
+  bdd_below s → bdd_below (insert a s) :=
+bdd_below_insert.2
 
 lemma is_lub.insert [semilattice_sup γ] (a) {b} {s : set γ} (hs : is_lub s b) :
   is_lub (insert a s) (a ⊔ b) :=

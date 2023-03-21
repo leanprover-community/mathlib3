@@ -250,7 +250,6 @@ begin
   exact not_le.mpr (neg_one_lt_zero : (-1 : ℤ) < 0) h,
 end
 
-example (a b : ℤ) : ¬ a ≤ b ↔ b < a := not_le
 /-- A solution with `x > 1` must have `y ≠ 0`. -/
 lemma y_ne_zero_of_one_lt_x {a : solution₁ d} (ha : 1 < a.x) : a.y ≠ 0 :=
 begin

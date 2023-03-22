@@ -3,8 +3,7 @@ Copyright (c) 2023 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-import analysis.complex.upper_half_plane.topology
-import analysis.complex.upper_half_plane.functions_bounded_at_infty
+import number_theory.modular_forms.basic
 import analysis.special_functions.gaussian
 import analysis.calculus.series
 
@@ -21,7 +20,7 @@ show that `θ` is differentiable on `ℍ`, and `θ(τ) - 1` has exponential deca
 
 open complex real asymptotics
 
-open_locale real big_operators upper_half_plane
+open_locale real big_operators upper_half_plane manifold
 
 /-- Jacobi's theta function `∑' (n : ℤ), exp (π * I * n ^ 2 * τ)`. -/
 noncomputable def jacobi_theta (τ : ℍ) : ℂ := ∑' (n : ℤ), cexp (π * I * n ^ 2 * τ)
@@ -234,3 +233,7 @@ begin
   refine (le_of_eq _).trans (h_le_bd n w hw),
   rw [continuous_linear_map.norm_smul_right_apply, norm_one, one_mul],
 end
+
+lemma jacobi_theta_mdifferentiable : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) jacobi_theta :=
+λ τ, (jacobi_theta_differentiable_at τ).mdifferentiable_at.comp τ
+  (upper_half_plane.mdifferentiable_coe τ)

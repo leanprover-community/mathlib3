@@ -51,19 +51,23 @@ open_locale big_operators
 
 /-- `matrix m n R` is the type of matrices with entries in `R`, whose rows are indexed by `m`
 and whose columns are indexed by `n`. -/
-def matrix (m : Type u) (n : Type u') (α : Type v) : Type (max u u' v) :=
-m → n → α
+structure matrix (m : Type u) (n : Type u') (α : Type v) : Type (max u u' v) :=
+of :: (elems : m → n → α)
 
 variables {l m n o : Type*} {m' : o → Type*} {n' : o → Type*}
 variables {R : Type*} {S : Type*} {α : Type v} {β : Type w} {γ : Type*}
 
 namespace matrix
 
+instance fun_like : fun_like (matrix m n α) m (λ _, n → α) :=
+{ coe := matrix.elems,
+  coe_injective' := λ ⟨A⟩ ⟨B⟩ h, by congr' }
+
 section ext
 variables {M N : matrix m n α}
 
 theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
-⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
+⟨λ h, fun_like.ext _ _ $ λ i, funext $ h i, λ h, by simp [h]⟩
 
 @[ext] theorem ext : (∀ i j, M i j = N i j) → M = N :=
 ext_iff.mp
@@ -81,9 +85,7 @@ matching in a definition as `| i j := _` (which can only be unfolded when fully-
 purpose of this approach is to ensure that terms of the form `(λ i j, _) * (λ i j, _)` do not
 appear, as the type of `*` can be misleading.
 -/
-def of : (m → n → α) ≃ matrix m n α := equiv.refl _
 @[simp] lemma of_apply (f : m → n → α) (i j) : of f i j = f i j := rfl
-@[simp] lemma of_symm_apply (f : matrix m n α) (i j) : of.symm f i j = f i j := rfl
 
 /-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`.
 
@@ -118,8 +120,7 @@ lemma map_injective {f : α → β} (hf : function.injective f) :
 λ M N h, ext $ λ i j, hf $ ext_iff.mpr h i j
 
 /-- The transpose of a matrix. -/
-def transpose (M : matrix m n α) : matrix n m α
-| x y := M y x
+def transpose (M : matrix m n α) : matrix n m α := of (λ x y, M y x)
 
 localized "postfix (name := matrix.transpose) `ᵀ`:1500 := matrix.transpose" in matrix
 
@@ -130,12 +131,12 @@ M.transpose.map star
 localized "postfix (name := matrix.conj_transpose) `ᴴ`:1500 := matrix.conj_transpose" in matrix
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
-def col (w : m → α) : matrix m unit α
-| x y := w x
+def col (w : m → α) : matrix m unit α :=
+of (λ x y, w x)
 
 /-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
-def row (v : n → α) : matrix unit n α
-| x y := v y
+def row (v : n → α) : matrix unit n α :=
+of (λ x y, v y)
 
 instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
 instance [has_add α] : has_add (matrix m n α) := pi.has_add

@@ -231,13 +231,11 @@ lemma exists_pos_variant (h₀ : 0 < d) (a : solution₁ d) :
 begin
   refine ⟨mk (|a.x|) (|a.y|) (by simp [a.prop]), abs_pos.mpr (a.x_ne_zero h₀), abs_nonneg a.y, _⟩,
   cases le_or_lt 0 a.x with hax hax; cases le_or_lt 0 a.y with hay hay,
-  { exact or.inl (solution₁.ext (abs_of_nonneg hax).symm (abs_of_nonneg hay).symm), },
-  { exact or.inr (or.inl $ solution₁.ext (by simp [abs_of_nonneg hax])
-                                         (by simp [abs_of_neg hay])), },
-  { exact or.inr (or.inr $ or.inr $ solution₁.ext (by simp [abs_of_neg hax])
-                                                  (by simp [abs_of_nonneg hay])), },
-  { exact or.inr (or.inr $ or.inl $ solution₁.ext (by simp [abs_of_neg hax])
-                                                  (by simp [abs_of_neg hay])),}
+  { exact or.inl (ext (abs_of_nonneg hax).symm (abs_of_nonneg hay).symm), },
+  { exact or.inr (or.inl $ ext (by simp [abs_of_nonneg hax]) (by simp [abs_of_neg hay])), },
+  { exact or.inr (or.inr $ or.inr $ ext (by simp [abs_of_neg hax])
+                                        (by simp [abs_of_nonneg hay])), },
+  { exact or.inr (or.inr $ or.inl $ ext (by simp [abs_of_neg hax]) (by simp [abs_of_neg hay])),}
 end
 
 end solution₁
@@ -330,30 +328,34 @@ begin
   simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
 end
 
+namespace solution₁
+
 /-- If `d` is a positive integer that is not a square, then there exists a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1`. -/
-theorem solution₁.exists_nontrivial_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+theorem exists_nontrivial_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ a : solution₁ d, a ≠ 1 ∧ a ≠ -1 :=
 begin
   obtain ⟨x, y, prop, hy⟩ := exists_of_not_is_square h₀ hd,
-  refine ⟨solution₁.mk x y prop, λ H, _, λ H, _⟩; apply_fun solution₁.y at H; simpa [hy] using H,
+  refine ⟨mk x y prop, λ H, _, λ H, _⟩; apply_fun solution₁.y at H; simpa [hy] using H,
 end
 
 /-- If `d` is a positive integer that is not a square, then there exists a solution
 to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
-lemma solution₁.exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ a : solution₁ d, 1 < a.x ∧ 0 < a.y :=
 begin
-  obtain ⟨a, ha₁, ha₂⟩ := solution₁.exists_nontrivial_of_not_is_square h₀ hd,
-  obtain ⟨b, hb₁, hb₂, hb₃⟩ := solution₁.exists_pos_variant h₀ a,
+  obtain ⟨a, ha₁, ha₂⟩ := exists_nontrivial_of_not_is_square h₀ hd,
+  obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_pos_variant h₀ a,
   refine ⟨b, lt_iff_le_and_ne.mpr ⟨hb₁, λ hf, _⟩, lt_iff_le_and_ne.mpr ⟨hb₂, λ hf, _⟩⟩,
-  { have := solution₁.eq_one_of_x_eq_one h₀ hf.symm,
-    rw [solution₁.eq_one_of_x_eq_one h₀ hf.symm, inv_one] at hb₃,
+  { have := eq_one_of_x_eq_one h₀ hf.symm,
+    rw [eq_one_of_x_eq_one h₀ hf.symm, inv_one] at hb₃,
     simpa only [ha₁, ha₂, or_self] using hb₃, },
-  { cases solution₁.eq_one_or_neg_one_iff_y_eq_zero.mpr hf.symm with h h; rw h at hb₃,
+  { cases eq_one_or_neg_one_iff_y_eq_zero.mpr hf.symm with h h; rw h at hb₃,
     { simpa only [ha₁, ha₂, inv_one, or_self] using hb₃, },
     { simpa only [ha₁, ha₂, inv_neg', inv_one, neg_neg, or_self] using hb₃, } }
 end
+
+end solution₁
 
 end existence
 

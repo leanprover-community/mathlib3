@@ -285,7 +285,8 @@ lemma bdd_below.inter_of_right (h : bdd_below t) : bdd_below (s ∩ t) :=
 h.mono $ inter_subset_right s t
 
 /-- In a directed order, the union of bounded above sets is bounded above. -/
-lemma bdd_above.union [is_directed α (≤)] : bdd_above s → bdd_above t → bdd_above (s ∪ t) :=
+lemma bdd_above.union [is_directed α (≤)] {s t : set α} :
+  bdd_above s → bdd_above t → bdd_above (s ∪ t) :=
 begin
   rintro ⟨a, ha⟩ ⟨b, hb⟩,
   obtain ⟨c, hca, hcb⟩ := exists_ge_ge a b,
@@ -294,15 +295,18 @@ begin
 end
 
 /-- In a directed order, the union of two sets is bounded above if and only if both sets are. -/
-lemma bdd_above_union [is_directed α (≤)] : bdd_above (s ∪ t) ↔ bdd_above s ∧ bdd_above t :=
+lemma bdd_above_union [is_directed α (≤)] {s t : set α} :
+  bdd_above (s ∪ t) ↔ bdd_above s ∧ bdd_above t :=
 ⟨λ h, ⟨h.mono $ subset_union_left _ _, h.mono $ subset_union_right _ _⟩, λ h, h.1.union h.2⟩
 
 /-- In a codirected order, the union of bounded below sets is bounded below. -/
-lemma bdd_below.union [is_directed α (≥)] : bdd_below s → bdd_below t → bdd_below (s ∪ t) :=
+lemma bdd_below.union [is_directed α (≥)] {s t : set α} :
+  bdd_below s → bdd_below t → bdd_below (s ∪ t) :=
 @bdd_above.union αᵒᵈ _ _ _ _
 
 /-- In a codirected order, the union of two sets is bounded below if and only if both sets are. -/
-lemma bdd_below_union [is_directed α (≥)] : bdd_below (s ∪ t) ↔ bdd_below s ∧ bdd_below t :=
+lemma bdd_below_union [is_directed α (≥)] {s t : set α} :
+  bdd_below (s ∪ t) ↔ bdd_below s ∧ bdd_below t :=
 @bdd_above_union αᵒᵈ _ _ _ _
 
 /-- If `a` is the least upper bound of `s` and `b` is the least upper bound of `t`,
@@ -638,18 +642,20 @@ lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonem
 -/
 
 /-- Adding a point to a set preserves its boundedness above. -/
-@[simp] lemma bdd_above_insert [is_directed α (≤)] : bdd_above (insert a s) ↔ bdd_above s :=
+@[simp] lemma bdd_above_insert [is_directed α (≤)] {s : set α} :
+  bdd_above (insert a s) ↔ bdd_above s :=
 by simp only [insert_eq, bdd_above_union, bdd_above_singleton, true_and]
 
-protected lemma bdd_above.insert [is_directed α (≤)] (a : α) :
+protected lemma bdd_above.insert [is_directed α (≤)] {s : set α} (a : α) :
   bdd_above s → bdd_above (insert a s) :=
 bdd_above_insert.2
 
 /--Adding a point to a set preserves its boundedness below.-/
-@[simp] lemma bdd_below_insert [is_directed α (≥)] : bdd_below (insert a s) ↔ bdd_below s :=
+@[simp] lemma bdd_below_insert [is_directed α (≥)] {s : set α} :
+  bdd_below (insert a s) ↔ bdd_below s :=
 by simp only [insert_eq, bdd_below_union, bdd_below_singleton, true_and]
 
-lemma bdd_below.insert [is_directed α (≥)] (a : α) :
+lemma bdd_below.insert [is_directed α (≥)] {s : set α} (a : α) :
   bdd_below s → bdd_below (insert a s) :=
 bdd_below_insert.2
 

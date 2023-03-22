@@ -20,6 +20,8 @@ isomorphisms.
 
 * `rel_hom`: Relation homomorphism. A `rel_hom r s` is a function `f : α → β` such that
   `r a b → s (f a) (f b)`.
+* `rel_covering`: Relation covering. A `rel_covering r s` is a surjective function `f : α → β` such
+  that `r a b ↔ s (f a) (f b)`.
 * `rel_embedding`: Relation embedding. A `rel_embedding r s` is an embedding `f : α ↪ β` such that
   `r a b ↔ s (f a) (f b)`.
 * `rel_iso`: Relation isomorphism. A `rel_iso r s` is an equivalence `f : α ≃ β` such that
@@ -137,6 +139,49 @@ protected def swap (f : r →r s) : swap r →r swap s :=
 def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := ⟨f, λ a b, id⟩
 
 end rel_hom
+
+-- TODO: Do we need bundled surjective function?
+/-- A relation covering with respect to a given pair of relations `r` and `s`
+is a surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
+@[nolint has_nonempty_instance]
+structure rel_covering {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
+(to_fun : α → β)
+(surj'   : surjective to_fun)
+(map_rel_iff' : ∀ {a b}, s (to_fun a) (to_fun b) ↔ r a b)
+
+infix ` ↠r `:25 := rel_covering
+
+namespace rel_covering
+
+/-- A relation covering is also a relation homomorphism -/
+def to_rel_hom (f : r ↠r s) : (r →r s) :=
+{ to_fun := f.to_fun,
+  map_rel' := λ x y, (map_rel_iff' f).2 }
+
+instance : has_coe (r ↠r s) (r →r s) := ⟨to_rel_hom⟩
+
+-- see Note [function coercion]
+instance : has_coe_to_fun (r ↠r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
+
+instance : rel_hom_class (r ↠r s) r s :=
+{ coe := coe_fn,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_rel := λ f a b, (map_rel_iff' f).2 }
+
+initialize_simps_projections rel_covering (to_fun → apply)
+
+@[simp] lemma to_rel_hom_eq_coe (f : r ↠r s) : f.to_rel_hom = f := rfl
+
+@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r →r s) : α → β) = f := rfl
+
+theorem surjective (f : r ↠r s) : surjective f := f.surj'
+
+protected theorem map_rel_iff (f : r ↠r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
+
+@[simp] theorem coe_fn_mk (f : α → β) (h) (o) :
+  (@rel_covering.mk _ _ r s f h o : α → β) = f := rfl
+
+end rel_covering
 
 /-- An increasing function is injective -/
 lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
@@ -303,6 +348,11 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
+/-- `quotient.mk` as a relation covering between the relation and the lift of a relation. -/
+@[simps] def _root_.quotient.mk_rel_covering {s : setoid α} {r : α → α → Prop} (H) :
+  r ↠r quotient.lift₂ r H :=
+⟨@quotient.mk α _, surjective_quotient_mk α, λ _ _, iff.rfl⟩
+
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
 @[simps] noncomputable def _root_.quotient.out_rel_embedding [s : setoid α] {r : α → α → Prop} (H) :
   quotient.lift₂ r H ↪r r :=
@@ -433,10 +483,17 @@ in the target type. -/
 def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 ⟨f.to_equiv.to_embedding, λ _ _, f.map_rel_iff'⟩
 
+/-- Convert an `rel_iso` to an `rel_covering`. This function is also available as a coercion
+but often it is easier to write `f.to_rel_covering` than to write explicitly `r` and `s`
+in the target type. -/
+def to_rel_covering (f : r ≃r s) : r ↠r s :=
+⟨f.to_fun, f.surjective, λ _ _, f.map_rel_iff'⟩
+
 theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
+instance : has_coe (r ≃r s) (r ↠r s) := ⟨to_rel_covering⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 

@@ -165,12 +165,9 @@ end
 /-- A solution with `x = 1` is trivial. -/
 lemma eq_one_of_x_eq_one (h₀ : 0 < d) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
 begin
-  have hy : a.y = 0,
-  { have prop := a.prop.symm,
-    rw [ha, ← sub_eq_zero] at prop,
-    ring_nf at prop,
-    nlinarith, },
-  ext; simp [ha, hy],
+  have prop := a.prop_y,
+  rw [ha, one_pow, sub_self, mul_eq_zero, or_iff_right h₀.ne', sq_eq_zero_iff] at prop,
+  exact ext ha prop,
 end
 
 /-- A solution is `1` or `-1` if and only if `y = 0`. -/
@@ -179,7 +176,7 @@ begin
   refine ⟨λ H, H.elim (λ h, by simp [h]) (λ h, by simp [h]), λ H, _⟩,
   have prop := a.prop,
   rw [H, sq (0 : ℤ), mul_zero, mul_zero, sub_zero, sq_eq_one_iff] at prop,
-  refine prop.elim (λ h, or.inl $ by ext; simp [h, H]) (λ h, or.inr $ by ext; simp [h, H]),
+  exact prop.imp (λ h, ext h H) (λ h, ext h H),
 end
 
 /-- The set of solutions with `x > 0` is closed under multiplication. -/
@@ -207,21 +204,21 @@ end
 and the sign of `y` agrees with that of the exponent. -/
 lemma x_pow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
   (n : ℤ) :
-  0 < (a ^ n).x ∧
-  (if 0 < n then 0 < (a ^ n).y else if n < 0 then (a ^ n).y < 0 else (a ^ n).y = 0) :=
+  0 < (a ^ n).x ∧ (a ^ n).y.sign = n.sign :=
 begin
   have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).x ∧ 0 < (a ^ m).y,
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hax, hay, zpow_one, and_self]) (λ m hm ih, _) m,
     rw zpow_add_one,
     exact x_mul_pos_and_y_mul_pos_of_x_pos_of_y_pos h₀ ih.1 ih.2 hax hay, },
-  split_ifs with hn₁ hn₂,
-  -- three cases: `0 < n`, `n < 0`, `n = 0`
-  { exact H n hn₁, },
-  { rw [← neg_neg n, zpow_neg, x_inv, y_inv, neg_lt, neg_zero],
-    exact H (-n) (lt_neg.mp hn₂), },
-  { rw [le_antisymm (not_lt.mp hn₁) (not_lt.mp hn₂), zpow_zero],
-    simp only [x_one, zero_lt_one, y_one, eq_self_iff_true, and_self], }
+  rcases lt_trichotomy 0 n with hpos | rfl | hneg,
+  { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
+    exact H n hpos, },
+  { rw [int.sign_zero, int.sign_eq_zero_iff_zero, zpow_zero],
+    simp only [x_one, zero_lt_one, y_one, eq_self_iff_true, and_self], },
+  { rw [(int.sign_eq_neg_one_iff_neg n).mpr hneg, int.sign_eq_neg_one_iff_neg, ← neg_neg n,
+        zpow_neg, x_inv, y_inv, neg_lt, neg_zero],
+    exact H (-n) (lt_neg.mp hneg), }
 end
 
 /-- If `a` is any solution, then one of `a`, `a⁻¹`, `-a`, `-a⁻¹` has

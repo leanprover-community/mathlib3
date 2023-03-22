@@ -67,7 +67,7 @@ structure multilinear_map (R : Type u) {ι : Type u'} (M₁ : ι → Type v) (M�
 (to_fun : (Πi, M₁ i) → M₂)
 (map_add' : ∀ [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (x y : M₁ i), by exactI
   to_fun (update m i (x + y)) = to_fun (update m i x) + to_fun (update m i y))
-(map_smul' : ∀ [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) , by exactI
+(map_smul' : ∀ [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i), by exactI
   to_fun (update m i (c • x)) = c • to_fun (update m i x))
 
 namespace multilinear_map

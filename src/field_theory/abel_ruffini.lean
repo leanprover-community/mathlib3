@@ -98,19 +98,15 @@ begin
   { rw [hn, pow_zero, sub_self],
     exact gal_zero_is_solvable },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - 1 : F[X]) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn'' : (X ^ n - 1 : F[X]) ≠ 0 := X_pow_sub_C_ne_zero hn' 1,
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
+  simp only [mem_root_set_of_ne hn'', map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    obtain ⟨m, hm⟩ := map_root_of_unity_eq_pow_self σ.to_alg_hom
-      ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
-      by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
-    use m,
-    convert hm },
+    lift n to ℕ+ using hn',
+    exact map_root_of_unity_eq_pow_self σ.to_alg_hom (roots_of_unity.mk_of_pow_eq a ha) },
   obtain ⟨c, hc⟩ := key σ,
   obtain ⟨d, hd⟩ := key τ,
   rw [σ.mul_apply, τ.mul_apply, hc, τ.map_pow, hd, σ.map_pow, hc, ←pow_mul, pow_mul'],
@@ -128,18 +124,16 @@ begin
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : X ^ n - C a ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_C hn').symm.trans (congr_arg leading_coeff h)),
-  have hn''' : (X ^ n - 1 : F[X]) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn'' : X ^ n - C a ≠ 0 := X_pow_sub_C_ne_zero hn' a,
+  have hn''' : (X ^ n - 1 : F[X]) ≠ 0 := X_pow_sub_C_ne_zero hn' 1,
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
-    λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (or.resolve_left h hn'''
+    λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (h.def.resolve_left hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c
       (by rwa [map_id, alg_hom.map_sub, sub_eq_zero, aeval_X_pow, aeval_one])))),
   apply is_solvable_of_comm,
   intros σ τ,
   ext b hb,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero] at hb,
+  simp only [mem_root_set_of_ne hn'', map_sub, aeval_X_pow, aeval_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,
@@ -190,7 +184,7 @@ begin
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),
     rw [sub_comp, X_comp, C_comp, mul_sub, ←C_mul, mul_div_cancel' c hb'] },
   rw [key1, hs, multiset_prod_comp, multiset.map_map, key2, multiset.prod_map_mul,
-    multiset.map_const, multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
+    multiset.map_const, multiset.prod_replicate, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
   all_goals { exact field.to_nontrivial F },
 end
 
@@ -311,7 +305,7 @@ begin
       (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval]))⟩ },
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
-    { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
+    { obtain ⟨s, hs⟩ := (splits_iff_exists_multiset _).1 (splitting_field.splits p),
       rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
       rw multiset_prod_comp,
@@ -346,7 +340,7 @@ begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
       apply (algebra_map F⟮α, β⟯ (solvable_by_rad F E)).injective,
-      rw [ring_hom.map_zero, is_scalar_tower.algebra_map_aeval],
+      rw [ring_hom.map_zero, ← aeval_algebra_map_apply],
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],

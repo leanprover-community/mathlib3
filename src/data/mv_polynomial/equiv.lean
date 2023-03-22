@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import data.mv_polynomial.rename
 import data.polynomial.algebra_map
-import data.polynomial.lifts
 import data.mv_polynomial.variables
 import data.finsupp.fin
 import logic.equiv.fin
@@ -459,8 +458,8 @@ lemma degree_fin_succ_equiv {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
 begin
   have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
   { rw [degree_of_eq_sup, fin_succ_equiv_support f, finset.sup_image] },
-  rw [polynomial.degree, ← h', finset.coe_sup_of_nonempty (support_fin_succ_equiv_nonempty h)],
-  congr,
+  rw [polynomial.degree, ← h', finset.coe_sup_of_nonempty (support_fin_succ_equiv_nonempty h),
+    finset.max_eq_sup_coe],
 end
 
 lemma nat_degree_fin_succ_equiv (f : mv_polynomial (fin (n + 1)) R) :

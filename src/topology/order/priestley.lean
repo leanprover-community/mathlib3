@@ -3,11 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.upper_lower
+import order.upper_lower.basic
 import topology.separation
 
 /-!
 # Priestley spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines Priestley spaces. A Priestley space is an ordered compact topological space such
 that any two distinct points can be separated by a clopen upper set.
@@ -68,6 +71,6 @@ end
 @[priority 100] -- See note [lower instance priority]
 instance priestley_space.to_t2_space : t2_space α :=
 ⟨λ x y h, let ⟨U, hU, _, hx, hy⟩ := exists_clopen_upper_or_lower_of_ne h in
-   ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hx, hy, inter_compl_self _⟩⟩
+   ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hx, hy, disjoint_compl_right⟩⟩
 
 end partial_order

@@ -39,8 +39,8 @@ specifying the changes in the fiber when one goes from one coordinate chart to a
   bundle with fiber `F` over `M`.
 
 Let `Z` be a basic smooth bundle core over `M` with fiber `F`. We define
-`Z.to_topological_vector_bundle_core`, the (topological) vector bundle core associated to `Z`. From
-it, we get a space `Z.to_topological_vector_bundle_core.total_space` (which as a Type is just
+`Z.to_vector_bundle_core`, the (topological) vector bundle core associated to `Z`. From
+it, we get a space `Z.to_vector_bundle_core.total_space` (which as a Type is just
 `Σ (x : M), F`), with the fiber bundle topology. It inherits a manifold structure (where the
 charts are in bijection with the charts of the basis). We show that this manifold is smooth.
 
@@ -76,18 +76,18 @@ noncomputable theory
 universe u
 
 open topological_space set
-open_locale manifold topological_space
+open_locale manifold topology
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
 corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains
 of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
 base. We require the change of coordinates of the fibers to be linear, so that the resulting bundle
 is a vector bundle. -/
-structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(F : Type*) [normed_group F] [normed_space 𝕜 F] :=
+(F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] :=
 (coord_change      : atlas H M → atlas H M → H → (F →L[𝕜] F))
 (coord_change_self : ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
 (coord_change_comp : ∀ i j k : atlas H M,
@@ -98,11 +98,11 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
-def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(F : Type*) [normed_group F] [normed_space 𝕜 F] : basic_smooth_vector_bundle_core I M F :=
+(F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] : basic_smooth_vector_bundle_core I M F :=
 { coord_change := λ i j x, continuous_linear_map.id 𝕜 F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
@@ -110,15 +110,48 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 
 namespace basic_smooth_vector_bundle_core
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_vector_bundle_core I M F)
 
 instance : inhabited (basic_smooth_vector_bundle_core I M F) :=
 ⟨trivial_basic_smooth_vector_bundle_core I M F⟩
+
+/-- A reformulation of `coord_change_comp`, formulated in terms of a point in `M`.
+The conditions on this point a significantly simpler than in `coord_change_comp`. -/
+lemma coord_change_comp' {i j k : atlas H M} {x : M}
+  (hi : x ∈ i.1.source) (hj : x ∈ j.1.source) (hk : x ∈ k.1.source) (v : F) :
+  Z.coord_change j k (j x) (Z.coord_change i j (i x) v) = Z.coord_change i k (i x) v :=
+begin
+  rw [show j x = _, by rw [← i.1.left_inv hi]],
+  apply Z.coord_change_comp,
+  simp only [hi, hj, hk] with mfld_simps
+end
+
+/-- A reformulation of `coord_change_self`, formulated in terms of a point in `M`. -/
+lemma coord_change_self' {i : atlas H M} {x : M} (hi : x ∈ i.1.source) (v : F) :
+  Z.coord_change i i (i x) v = v :=
+Z.coord_change_self i (i x) (i.1.maps_to hi) v
+
+/-- `Z.coord_change j i` is a partial inverse of `Z.coord_change i j`. -/
+lemma coord_change_comp_eq_self (i j : atlas H M) {x : H}
+  (hx : x ∈ (i.1.symm.trans j.1).source) (v : F) :
+  Z.coord_change j i (i.1.symm.trans j.1 x) (Z.coord_change i j x v) = v :=
+begin
+  rw [Z.coord_change_comp i j i x _ v, Z.coord_change_self _ _ hx.1],
+  simp only with mfld_simps at hx,
+  simp only [hx.1, hx.2] with mfld_simps
+end
+
+/-- `Z.coord_change j i` is a partial inverse of `Z.coord_change i j`,
+formulated in terms of a point in `M`. -/
+lemma coord_change_comp_eq_self' {i j : atlas H M} {x : M}
+  (hi : x ∈ i.1.source) (hj : x ∈ j.1.source) (v : F) :
+  Z.coord_change j i (j x) (Z.coord_change i j (i x) v) = v :=
+by rw [Z.coord_change_comp' hi hj hi v, Z.coord_change_self' hi]
 
 lemma coord_change_continuous (i j : atlas H M) :
   continuous_on (Z.coord_change i j) (i.1.symm.trans j.1).source :=
@@ -134,13 +167,13 @@ end
 
 lemma coord_change_smooth (i j : atlas H M) :
   cont_diff_on 𝕜 ∞ (λ p : E × F, Z.coord_change i j (I.symm p.1) p.2)
-    ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)) :=
+    ((I '' (i.1.symm.trans j.1).source) ×ˢ univ) :=
 begin
   have A : cont_diff 𝕜 ∞ (λ p : (F →L[𝕜] F) × F, p.1 p.2),
   { apply is_bounded_bilinear_map.cont_diff,
     exact is_bounded_bilinear_map_apply },
   have B : cont_diff_on 𝕜 ∞ (λ (p : E × F), (Z.coord_change i j (I.symm p.1), p.snd))
-    ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)),
+    ((I '' (i.1.symm.trans j.1).source) ×ˢ univ),
   { apply cont_diff_on.prod _ _,
     { exact (Z.coord_change_smooth_clm i j).comp cont_diff_fst.cont_diff_on
        (prod_subset_preimage_fst _ _) },
@@ -149,10 +182,11 @@ begin
 end
 
 /-- Vector bundle core associated to a basic smooth bundle core -/
-def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
+@[simps coord_change index_at]
+def to_vector_bundle_core : vector_bundle_core 𝕜 M F (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
-  index_at := λ x, ⟨chart_at H x, chart_mem_atlas H x⟩,
+  index_at := achart H,
   mem_base_set_at := λ x, mem_chart_source H x,
   coord_change := λ i j x, Z.coord_change i j (i.1 x),
   coord_change_self := λ i x hx v, Z.coord_change_self i (i.1 x) (i.1.map_source hx) v,
@@ -162,7 +196,7 @@ def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F 
     { simp only [hx1] with mfld_simps },
     { simp only [hx1, hx2, hx3] with mfld_simps }
   end,
-  coord_change_continuous := λ i j, begin
+  continuous_on_coord_change := λ i j, begin
     refine ((Z.coord_change_continuous i j).comp' i.1.continuous_on).mono _,
     rintros p ⟨hp₁, hp₂⟩,
     refine ⟨hp₁, i.1.maps_to hp₁, _⟩,
@@ -170,29 +204,35 @@ def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F 
   end }
 
 @[simp, mfld_simps] lemma base_set (i : atlas H M) :
-  (Z.to_topological_vector_bundle_core.local_triv i).base_set = i.1.source := rfl
+  (Z.to_vector_bundle_core.local_triv i).base_set = i.1.source := rfl
 
 @[simp, mfld_simps] lemma target (i : atlas H M) :
-  (Z.to_topological_vector_bundle_core.local_triv i).target = i.1.source ×ˢ (univ : set F) := rfl
+  (Z.to_vector_bundle_core.local_triv i).target = i.1.source ×ˢ univ := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
 def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
-  local_homeomorph (Z.to_topological_vector_bundle_core.total_space) (model_prod H F) :=
-(Z.to_topological_vector_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
+  local_homeomorph (Z.to_vector_bundle_core.total_space) (model_prod H F) :=
+(Z.to_vector_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
 
+lemma chart_apply {x : M} (z : Z.to_vector_bundle_core.total_space) :
+  Z.chart (chart_mem_atlas H x) z = (chart_at H x z.proj,
+    Z.coord_change (achart H z.proj) (achart H x) (achart H z.proj z.proj) z.2) :=
+rfl
+
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
-  (Z.chart he).source = Z.to_topological_vector_bundle_core.proj ⁻¹' e.source :=
+  (Z.chart he).source = Z.to_vector_bundle_core.proj ⁻¹' e.source :=
 by { simp only [chart, mem_prod], mfld_set_tac }
 
 @[simp, mfld_simps] lemma chart_target (e : local_homeomorph M H) (he : e ∈ atlas H M) :
-  (Z.chart he).target = e.target ×ˢ (univ : set F) :=
+  (Z.chart he).target = e.target ×ˢ univ :=
 by { simp only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
+@[simps chart_at (lemmas_only)]
 instance to_charted_space :
-  charted_space (model_prod H F) Z.to_topological_vector_bundle_core.total_space :=
+  charted_space (model_prod H F) Z.to_vector_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart he},
   chart_at := λ p, Z.chart (chart_mem_atlas H p.1),
   mem_chart_source := λ p, by simp [mem_chart_source],
@@ -202,31 +242,31 @@ instance to_charted_space :
   end }
 
 lemma mem_atlas_iff
-  (f : local_homeomorph Z.to_topological_vector_bundle_core.total_space (model_prod H F)) :
-  f ∈ atlas (model_prod H F) Z.to_topological_vector_bundle_core.total_space ↔
+  (f : local_homeomorph Z.to_vector_bundle_core.total_space (model_prod H F)) :
+  f ∈ atlas (model_prod H F) Z.to_vector_bundle_core.total_space ↔
   ∃(e : local_homeomorph M H) (he : e ∈ atlas H M), f = Z.chart he :=
 by simp only [atlas, mem_Union, mem_singleton_iff]
 
 @[simp, mfld_simps] lemma mem_chart_source_iff
-  (p q : Z.to_topological_vector_bundle_core.total_space) :
+  (p q : Z.to_vector_bundle_core.total_space) :
   p ∈ (chart_at (model_prod H F) q).source ↔ p.1 ∈ (chart_at H q.1).source :=
 by simp only [chart_at] with mfld_simps
 
 @[simp, mfld_simps] lemma mem_chart_target_iff
-  (p : H × F) (q : Z.to_topological_vector_bundle_core.total_space) :
+  (p : H × F) (q : Z.to_vector_bundle_core.total_space) :
   p ∈ (chart_at (model_prod H F) q).target ↔ p.1 ∈ (chart_at H q.1).target :=
 by simp only [chart_at] with mfld_simps
 
-@[simp, mfld_simps] lemma coe_chart_at_fst (p q : Z.to_topological_vector_bundle_core.total_space) :
+@[simp, mfld_simps] lemma coe_chart_at_fst (p q : Z.to_vector_bundle_core.total_space) :
   ((chart_at (model_prod H F) q) p).1 = chart_at H q.1 p.1 := rfl
 
 @[simp, mfld_simps] lemma coe_chart_at_symm_fst
-  (p : H × F) (q : Z.to_topological_vector_bundle_core.total_space) :
+  (p : H × F) (q : Z.to_vector_bundle_core.total_space) :
   ((chart_at (model_prod H F) q).symm p).1 = ((chart_at H q.1).symm : H → M) p.1 := rfl
 
 /-- Smooth manifold structure on the total space of a basic smooth bundle -/
 instance to_smooth_manifold :
-  smooth_manifold_with_corners (I.prod (𝓘(𝕜, F))) Z.to_topological_vector_bundle_core.total_space :=
+  smooth_manifold_with_corners (I.prod (𝓘(𝕜, F))) Z.to_vector_bundle_core.total_space :=
 begin
   /- We have to check that the charts belong to the smooth groupoid, i.e., they are smooth on their
   source, and their inverses are smooth on the target. Since both objects are of the same kind, it
@@ -238,20 +278,20 @@ begin
     (J.symm ⁻¹' ((Z.chart he).symm.trans (Z.chart he')).source ∩ range J),
   { assume e e' he he',
     have : J.symm ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J =
-      (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F),
+      (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ univ,
       by { simp only [J, chart, model_with_corners.prod], mfld_set_tac },
     rw this,
     -- check separately that the two components of the coordinate change are smooth
     apply cont_diff_on.prod,
     show cont_diff_on 𝕜 ∞ (λ (p : E × F), (I ∘ e' ∘ e.symm ∘ I.symm) p.1)
-         ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F)),
+         ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ univ),
     { -- the coordinate change on the base is just a coordinate change for `M`, smooth since
       -- `M` is smooth
       have A : cont_diff_on 𝕜 ∞ (I ∘ (e.symm.trans e') ∘ I.symm)
         (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) :=
       (has_groupoid.compatible (cont_diff_groupoid ∞ I) he he').1,
       have B : cont_diff_on 𝕜 ∞ (λ p : E × F, p.1)
-        ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F)) :=
+        ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ univ) :=
       cont_diff_fst.cont_diff_on,
       exact cont_diff_on.comp A B (prod_subset_preimage_fst _ _) },
     show cont_diff_on 𝕜 ∞ (λ (p : E × F),
@@ -259,7 +299,7 @@ begin
          ((chart_at H (e.symm (I.symm p.1)) : M → H) (e.symm (I.symm p.1)))
       (Z.coord_change ⟨e, he⟩ ⟨chart_at H (e.symm (I.symm p.1)), _⟩
         (e (e.symm (I.symm p.1))) p.2))
-      ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F)),
+      ((I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ univ),
     { /- The coordinate change in the fiber is more complicated as its definition involves the
       reference chart chosen at each point. However, it appears with its inverse, so using the
       cocycle property one can get rid of it, and then conclude using the smoothness of the
@@ -287,15 +327,15 @@ end basic_smooth_vector_bundle_core
 
 section tangent_bundle
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
 model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordinate change in the
 fiber corresponds to the derivative of the coordinate change in `M`. -/
-def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
+@[simps] def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
 { coord_change := λ i j x, (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x)),
   coord_change_smooth_clm := λ i j,
   begin
@@ -309,7 +349,7 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
     have C : cont_diff_on 𝕜 ∞
       (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
-      ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) ×ˢ (univ : set E)) :=
+      ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) ×ˢ univ) :=
       cont_diff_on_fderiv_within_apply A B le_top,
     have D : ∀ x ∈ (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I),
       fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
@@ -460,7 +500,7 @@ variable {M}
 include I
 
 /-- The tangent space at a point of the manifold `M`. It is just `E`. We could use instead
-`(tangent_bundle_core I M).to_topological_vector_bundle_core.fiber x`, but we use `E` to help the
+`(tangent_bundle_core I M).to_vector_bundle_core.fiber x`, but we use `E` to help the
 kernel.
 -/
 @[nolint unused_arguments]
@@ -471,7 +511,7 @@ variable (M)
 
 /-- The tangent bundle to a smooth manifold, as a Sigma type. Defined in terms of
 `bundle.total_space` to be able to put a suitable topology on it. -/
-@[nolint has_inhabited_instance, reducible] -- is empty if the base manifold is empty
+@[nolint has_nonempty_instance, reducible] -- is empty if the base manifold is empty
 def tangent_bundle := bundle.total_space (tangent_space I : M → Type*)
 
 local notation `TM` := tangent_bundle I M
@@ -510,7 +550,7 @@ end
 variable (M)
 
 instance : topological_space TM :=
-(tangent_bundle_core I M).to_topological_vector_bundle_core.to_topological_space (atlas H M)
+(tangent_bundle_core I M).to_vector_bundle_core.to_topological_space
 
 instance : charted_space (model_prod H E) TM :=
 (tangent_bundle_core I M).to_charted_space
@@ -518,9 +558,11 @@ instance : charted_space (model_prod H E) TM :=
 instance : smooth_manifold_with_corners I.tangent TM :=
 (tangent_bundle_core I M).to_smooth_manifold
 
-instance : topological_vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
-topological_vector_bundle_core.fiber.topological_vector_bundle
-  (tangent_bundle_core I M).to_topological_vector_bundle_core
+instance : fiber_bundle E (tangent_space I : M → Type*) :=
+(tangent_bundle_core I M).to_vector_bundle_core.fiber_bundle
+
+instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
+(tangent_bundle_core I M).to_vector_bundle_core.vector_bundle
 
 end tangent_bundle_instances
 
@@ -528,11 +570,11 @@ variable (M)
 
 /-- The tangent bundle projection on the basis is a continuous map. -/
 lemma tangent_bundle_proj_continuous : continuous (tangent_bundle.proj I M) :=
-((tangent_bundle_core I M).to_topological_vector_bundle_core).continuous_proj
+((tangent_bundle_core I M).to_vector_bundle_core).continuous_proj
 
 /-- The tangent bundle projection on the basis is an open map. -/
 lemma tangent_bundle_proj_open : is_open_map (tangent_bundle.proj I M) :=
-((tangent_bundle_core I M).to_topological_vector_bundle_core).is_open_map_proj
+((tangent_bundle_core I M).to_vector_bundle_core).is_open_map_proj
 
 /-- In the tangent bundle to the model space, the charts are just the canonical identification
 between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/
@@ -551,13 +593,12 @@ begin
     (equiv.sigma_equiv_prod H E) x,
   { cases x,
     simp only [chart_at, basic_smooth_vector_bundle_core.chart, tangent_bundle_core,
-      basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, A, prod.mk.inj_iff,
-      continuous_linear_map.coe_id'] with mfld_simps,
-      exact (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd, },
+      basic_smooth_vector_bundle_core.to_vector_bundle_core, A, prod.mk.inj_iff,
+      continuous_linear_map.coe_id'] with mfld_simps },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,
-    simp only [basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
+    simp only [basic_smooth_vector_bundle_core.to_vector_bundle_core,
       tangent_bundle_core, A, continuous_linear_map.coe_id', basic_smooth_vector_bundle_core.chart,
       chart_at, continuous_linear_map.coe_coe, sigma.mk.inj_iff] with mfld_simps, },
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,

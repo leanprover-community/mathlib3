@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.special_functions.exp
+import data.nat.factorization.basic
 
 /-!
 # Real logarithm
@@ -20,7 +21,7 @@ logarithm, continuity
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real
@@ -48,6 +49,12 @@ by { rw exp_log_eq_abs hx.ne', exact abs_of_pos hx }
 lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
 by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
 
+lemma le_exp_log (x : ℝ) : x ≤ exp (log x) :=
+begin
+  by_cases h_zero : x = 0,
+  { rw [h_zero, log, dif_pos rfl, exp_zero], exact zero_le_one, },
+  { rw exp_log_eq_abs h_zero, exact le_abs_self _, },
+end
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
 
@@ -74,6 +81,12 @@ end
 
 @[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
 by rw [← log_abs x, ← log_abs (-x), abs_neg]
+
+lemma sinh_log {x : ℝ} (hx : 0 < x) : sinh (log x) = (x - x⁻¹) / 2 :=
+by rw [sinh_eq, exp_neg, exp_log hx]
+
+lemma cosh_log {x : ℝ} (hx : 0 < x) : cosh (log x) = (x + x⁻¹) / 2 :=
+by rw [cosh_eq, exp_neg, exp_log hx]
 
 lemma surj_on_log' : surj_on log (Iio 0) univ :=
 λ x _, ⟨-exp x, neg_lt_zero.2 $ exp_pos x, by rw [log_neg_eq_log, log_exp]⟩
@@ -164,9 +177,9 @@ begin
   split,
   { intros h,
     rcases lt_trichotomy x 0 with x_lt_zero | rfl | x_gt_zero,
-    { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
+    { refine or.inr (or.inr (neg_eq_iff_eq_neg.mp _)),
       rw [←log_neg_eq_log x] at h,
-      exact (eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h).symm, },
+      exact eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h, },
     { exact or.inl rfl },
     { exact or.inr (or.inl (eq_one_of_pos_of_log_eq_zero x_gt_zero h)), }, },
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
@@ -227,7 +240,7 @@ lemma continuous_on_log : continuous_on log {0}ᶜ :=
 begin
   rw [continuous_on_iff_continuous_restrict, restrict],
   conv in (log _) { rw [log_of_ne_zero (show (x : ℝ) ≠ 0, from x.2)] },
-  exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
+  exact exp_order_iso.symm.continuous.comp (continuous_subtype_coe.norm.subtype_mk _)
 end
 
 @[continuity] lemma continuous_log : continuous (λ x : {x : ℝ // x ≠ 0}, log x) :=
@@ -252,11 +265,21 @@ open_locale big_operators
 lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
   log (∏ i in s, f i) = ∑ i in s, log (f i) :=
 begin
-  classical,
-  induction s using finset.induction_on with a s ha ih,
+  induction s using finset.cons_induction_on with a s ha ih,
   { simp },
-  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
-  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+  { rw [finset.forall_mem_cons] at hf,
+    simp [ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)] }
+end
+
+lemma log_nat_eq_sum_factorization (n : ℕ) : log n = n.factorization.sum (λ p t, t * log p) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
+  rw [finsupp.prod, nat.cast_prod, log_prod _ _ (λ p hp, _), finsupp.sum],
+  { simp_rw [nat.cast_pow, log_pow] },
+  { norm_cast,
+    exact pow_ne_zero _ (nat.prime_of_mem_factorization hp).ne_zero },
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
@@ -302,3 +325,30 @@ lemma continuous_on.log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0)
 λ x hx, (hf x hx).log (h₀ x hx)
 
 end continuity
+
+
+section tendsto_comp_add_sub
+
+open filter
+namespace real
+
+lemma tendsto_log_comp_add_sub_log (y : ℝ) :
+  tendsto (λ x:ℝ, log (x + y) - log x) at_top (𝓝 0) :=
+begin
+  refine tendsto.congr' (_ :  ∀ᶠ (x : ℝ) in at_top, log (1 + y / x) = _) _,
+  { refine eventually.mp ((eventually_ne_at_top 0).and (eventually_gt_at_top (-y)))
+    (eventually_of_forall (λ x hx, _)),
+    rw ← log_div _ hx.1,
+    { congr' 1,
+      field_simp [hx.1] },
+    { linarith [hx.2] } },
+  { suffices : tendsto (λ (x : ℝ), log (1 + y / x)) at_top (𝓝 (log (1 + 0))), by simpa,
+    refine tendsto.log _ (by simp),
+    exact tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_id) },
+end
+
+lemma tendsto_log_nat_add_one_sub_log : tendsto (λ (k : ℕ), log (k + 1) - log k) at_top (𝓝 0) :=
+(tendsto_log_comp_add_sub_log 1).comp tendsto_coe_nat_at_top_at_top
+
+end real
+end tendsto_comp_add_sub

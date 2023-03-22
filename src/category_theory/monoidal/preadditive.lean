@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.preadditive.additive_functor
-import category_theory.monoidal.category
+import category_theory.monoidal.functor
 
 /-!
 # Preadditive monoidal categories
@@ -29,7 +29,7 @@ A category is `monoidal_preadditive` if tensoring is additive in both factors.
 Note we don't `extend preadditive C` here, as `abelian C` already extends it,
 and we'll need to have both typeclasses sometimes.
 -/
-class monoidal_preadditive :=
+class monoidal_preadditive : Prop :=
 (tensor_zero' : ∀ {W X Y Z : C} (f : W ⟶ X), f ⊗ (0 : Y ⟶ Z) = 0 . obviously)
 (zero_tensor' : ∀ {W X Y Z : C} (f : Y ⟶ Z), (0 : W ⟶ X) ⊗ f = 0 . obviously)
 (tensor_add' : ∀ {W X Y Z : C} (f : W ⟶ X) (g h : Y ⟶ Z), f ⊗ (g + h) = f ⊗ g + f ⊗ h . obviously)
@@ -41,7 +41,7 @@ restate_axiom monoidal_preadditive.tensor_add'
 restate_axiom monoidal_preadditive.add_tensor'
 attribute [simp] monoidal_preadditive.tensor_zero monoidal_preadditive.zero_tensor
 
-variables [monoidal_preadditive C]
+variables {C} [monoidal_preadditive C]
 
 local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
@@ -49,6 +49,26 @@ instance tensor_left_additive (X : C) : (tensor_left X).additive := {}
 instance tensor_right_additive (X : C) : (tensor_right X).additive := {}
 instance tensoring_left_additive (X : C) : ((tensoring_left C).obj X).additive := {}
 instance tensoring_right_additive (X : C) : ((tensoring_right C).obj X).additive := {}
+
+/-- A faithful additive monoidal functor to a monoidal preadditive category
+ensures that the domain is monoidal preadditive. -/
+lemma monoidal_preadditive_of_faithful {D} [category D] [preadditive D] [monoidal_category D]
+  (F : monoidal_functor D C) [faithful F.to_functor] [F.to_functor.additive] :
+  monoidal_preadditive D :=
+{ tensor_zero' := by { intros, apply F.to_functor.map_injective, simp [F.map_tensor], },
+  zero_tensor' := by { intros, apply F.to_functor.map_injective, simp [F.map_tensor], },
+  tensor_add' := begin
+    intros,
+    apply F.to_functor.map_injective,
+    simp only [F.map_tensor, F.to_functor.map_add, preadditive.comp_add, preadditive.add_comp,
+      monoidal_preadditive.tensor_add],
+  end,
+  add_tensor' := begin
+    intros,
+    apply F.to_functor.map_injective,
+    simp only [F.map_tensor, F.to_functor.map_add, preadditive.comp_add, preadditive.add_comp,
+      monoidal_preadditive.add_tensor],
+  end, }
 
 open_locale big_operators
 
@@ -98,12 +118,12 @@ instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
 variables [has_finite_biproducts C]
 
 /-- The isomorphism showing how tensor product on the left distributes over direct sums. -/
-def left_distributor {J : Type*} [fintype J] (X : C) (f : J → C) :
+def left_distributor {J : Type} [fintype J] (X : C) (f : J → C) :
   X ⊗ (⨁ f) ≅ ⨁ (λ j, X ⊗ f j) :=
 (tensor_left X).map_biproduct f
 
 @[simp]
-lemma left_distributor_hom {J : Type*} [fintype J] (X : C) (f : J → C) :
+lemma left_distributor_hom {J : Type} [fintype J] (X : C) (f : J → C) :
   (left_distributor X f).hom = ∑ j : J, (𝟙 X ⊗ biproduct.π f j) ≫ biproduct.ι _ j :=
 begin
   ext, dsimp [tensor_left, left_distributor],
@@ -111,14 +131,14 @@ begin
 end
 
 @[simp]
-lemma left_distributor_inv {J : Type*} [fintype J] (X : C) (f : J → C) :
+lemma left_distributor_inv {J : Type} [fintype J] (X : C) (f : J → C) :
   (left_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (𝟙 X ⊗ biproduct.ι f j) :=
 begin
   ext, dsimp [tensor_left, left_distributor],
   simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
-lemma left_distributor_assoc {J : Type*} [fintype J] (X Y : C) (f : J → C) :
+lemma left_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
    (as_iso (𝟙 X) ⊗ left_distributor Y f) ≪≫ left_distributor X _ =
      (α_ X Y (⨁ f)).symm ≪≫ left_distributor (X ⊗ Y) f ≪≫ biproduct.map_iso (λ j, α_ X Y _) :=
 begin
@@ -137,12 +157,12 @@ begin
 end
 
 /-- The isomorphism showing how tensor product on the right distributes over direct sums. -/
-def right_distributor {J : Type*} [fintype J] (X : C) (f : J → C) :
+def right_distributor {J : Type} [fintype J] (X : C) (f : J → C) :
   (⨁ f) ⊗ X ≅ ⨁ (λ j, f j ⊗ X)  :=
 (tensor_right X).map_biproduct f
 
 @[simp]
-lemma right_distributor_hom {J : Type*} [fintype J] (X : C) (f : J → C) :
+lemma right_distributor_hom {J : Type} [fintype J] (X : C) (f : J → C) :
   (right_distributor X f).hom = ∑ j : J, (biproduct.π f j ⊗ 𝟙 X) ≫ biproduct.ι _ j :=
 begin
   ext, dsimp [tensor_right, right_distributor],
@@ -150,14 +170,14 @@ begin
 end
 
 @[simp]
-lemma right_distributor_inv {J : Type*} [fintype J] (X : C) (f : J → C) :
+lemma right_distributor_inv {J : Type} [fintype J] (X : C) (f : J → C) :
   (right_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (biproduct.ι f j ⊗ 𝟙 X) :=
 begin
   ext, dsimp [tensor_right, right_distributor],
   simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
-lemma right_distributor_assoc {J : Type*} [fintype J] (X Y : C) (f : J → C) :
+lemma right_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
    (right_distributor X f ⊗ as_iso (𝟙 Y)) ≪≫ right_distributor Y _ =
      α_ (⨁ f) X Y ≪≫ right_distributor (X ⊗ Y) f ≪≫ biproduct.map_iso (λ j, (α_ _ X Y).symm) :=
 begin

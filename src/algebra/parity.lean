@@ -3,14 +3,12 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-
-import algebra.ring.basic
-import algebra.algebra.basic
-import algebra.group_power.basic
-import algebra.field_power
-import algebra.opposites
+import algebra.group_power.lemmas
 
 /-!  # Squares, even and odd elements
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves some general facts about squares, even and odd elements of semirings.
 
@@ -40,7 +38,7 @@ variables {F α β R : Type*}
 section has_mul
 variables [has_mul α]
 
-/--  An element `a` of a type `α` with multiplication satisfies `square a` if `a = r * r`,
+/--  An element `a` of a type `α` with multiplication satisfies `is_square a` if `a = r * r`,
 for some `r : α`. -/
 @[to_additive
 "An element `a` of a type `α` with addition satisfies `even a` if `a = r + r`,
@@ -51,10 +49,6 @@ def is_square (a : α) : Prop := ∃ r, a = r * r
 
 @[to_additive] lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 ⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simp [hc]⟩
-
-/-- Create a decidability instance for `is_square` on `fintype`s. -/
-instance is_square_decidable [fintype α] [decidable_eq α] : decidable_pred (is_square : α → Prop) :=
-λ a, fintype.decidable_exists_fintype
 
 end has_mul
 
@@ -67,7 +61,7 @@ lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α
 by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
 
 section monoid
-variables [monoid α]
+variables [monoid α] {n : ℕ} {a : α}
 
 @[to_additive even_iff_exists_two_nsmul]
 lemma is_square_iff_exists_sq (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
@@ -81,10 +75,17 @@ attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
 attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
 `even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
+@[to_additive even.nsmul] lemma is_square.pow (n : ℕ) : is_square a → is_square (a ^ n) :=
+by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, (commute.refl _).mul_pow _⟩ }
+
+@[simp, to_additive even.nsmul']
+lemma even.is_square_pow : even n → ∀ a : α, is_square (a ^ n) :=
+by { rintro ⟨n, rfl⟩ a, exact ⟨a ^ n, pow_add _ _ _⟩ }
+
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
 
-variables [has_distrib_neg α] {n : ℕ}
+variables [has_distrib_neg α]
 
 lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
@@ -93,13 +94,15 @@ lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one
 
 end monoid
 
-/-- `0` is always a square (in a monoid with zero). -/
-lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
-by { use 0, simp only [mul_zero] }
-
 @[to_additive] lemma is_square.mul [comm_semigroup α] {a b : α} :
   is_square a → is_square b → is_square (a * b) :=
 by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨a * b, mul_mul_mul_comm _ _ _ _⟩ }
+
+variables (α)
+
+@[simp] lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
+
+variables {α}
 
 section division_monoid
 variables [division_monoid α] {a : α}
@@ -115,6 +118,9 @@ end
 alias is_square_inv ↔ _ is_square.inv
 
 attribute [to_additive] is_square.inv
+
+@[to_additive even.zsmul] lemma is_square.zpow (n : ℤ) : is_square a → is_square (a ^ n) :=
+by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, (commute.refl _).mul_zpow _⟩ }
 
 variables [has_distrib_neg α] {n : ℤ}
 
@@ -132,6 +138,10 @@ by cases abs_choice a; simp only [h, even_neg]
 lemma is_square.div [division_comm_monoid α] {a b : α} (ha : is_square a) (hb : is_square b) :
   is_square (a / b) :=
 by { rw div_eq_mul_inv, exact ha.mul hb.inv }
+
+@[simp, to_additive even.zsmul']
+lemma even.is_square_zpow [group α] {n : ℤ} : even n → ∀ a : α, is_square (a ^ n) :=
+by { rintro ⟨n, rfl⟩ a, exact ⟨a ^ n, zpow_add _ _ _⟩ }
 
 -- `odd.tsub` requires `canonically_linear_ordered_semiring`, which we don't have
 lemma even.tsub [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
@@ -156,6 +166,14 @@ lemma even_iff_exists_two_mul (m : α) : even m ↔ ∃ c, m = 2 * c :=
 by simp [even_iff_exists_two_nsmul]
 
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := by simp [even, has_dvd.dvd, two_mul]
+
+alias even_iff_two_dvd ↔ even.two_dvd _
+
+theorem even.trans_dvd (hm : even m) (hn : m ∣ n) : even n :=
+even_iff_two_dvd.2 $ hm.two_dvd.trans hn
+
+theorem has_dvd.dvd.even (hn : m ∣ n) (hm : even m) : even n :=
+hm.trans_dvd hn
 
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x) = {a | even a} :=
@@ -204,9 +222,8 @@ lemma odd.add_odd : odd m → odd n → even (m + n) :=
 begin
   rintro ⟨m, rfl⟩ ⟨n, rfl⟩,
   refine ⟨n + m + 1, _⟩,
-  rw [← two_mul, ←add_assoc, add_comm _ (2 * n), ←add_assoc, ←mul_add, add_assoc, mul_add _ (n + m),
-    mul_one],
-  refl
+  rw [two_mul, two_mul],
+  ac_refl
 end
 
 @[simp] lemma odd_one : odd (1 : α) :=
@@ -240,6 +257,21 @@ by { rintro ⟨c, rfl⟩ a, simp_rw [pow_add, pow_mul, neg_sq, pow_one, mul_neg]
 lemma odd.neg_one_pow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_pow, one_pow]
 
 end monoid
+
+section canonically_ordered_comm_semiring
+
+variables [canonically_ordered_comm_semiring α]
+
+-- this holds more generally in a `canonically_ordered_add_monoid` if we refactor `odd` to use
+-- either `2 • t` or `t + t` instead of `2 * t`.
+lemma odd.pos [nontrivial α] {n : α} (hn : odd n) : 0 < n :=
+begin
+  obtain ⟨k, rfl⟩ := hn,
+  rw [pos_iff_ne_zero, ne.def, add_eq_zero_iff, not_and'],
+  exact λ h, (one_ne_zero h).elim
+end
+
+end canonically_ordered_comm_semiring
 
 section ring
 variables [ring α] {a b : α} {n : ℕ}
@@ -314,66 +346,3 @@ lemma odd.strict_mono_pow (hn : odd n) : strict_mono (λ a : R, a ^ n) :=
 by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 end powers
-
-/-- The cardinality of `fin (bit0 k)` is even, `fact` version.
-This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
-lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
-⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
-
-section field_power
-variable {K : Type*}
-
-section division_ring
-variables [division_ring K] {n : ℤ}
-
-lemma odd.neg_zpow (h : odd n) (a : K) : (-a) ^ n = - a ^ n :=
-by { obtain ⟨k, rfl⟩ := h.exists_bit1, exact zpow_bit1_neg _ _ }
-
-lemma odd.neg_one_zpow (h : odd n) : (-1 : K) ^ n = -1 := by rw [h.neg_zpow, one_zpow]
-
-end division_ring
-
-variables [linear_ordered_field K] {n : ℤ} {a : K}
-
-protected lemma even.zpow_nonneg (hn : even n) (a : K) : 0 ≤ a ^ n :=
-begin
-  cases le_or_lt 0 a with h h,
-  { exact zpow_nonneg h _ },
-  { exact (hn.neg_zpow a).subst (zpow_nonneg (neg_nonneg_of_nonpos h.le) _) }
-end
-
-theorem even.zpow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit0_pos ha k
-
-protected lemma odd.zpow_nonneg (hn : odd n) (ha : 0 ≤ a) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff.mpr ha
-
-theorem odd.zpow_pos (hn : odd n) (ha : 0 < a) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff.mpr ha
-
-theorem odd.zpow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff.mpr ha
-
-theorem odd.zpow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff.mpr ha
-
-lemma even.zpow_abs {p : ℤ} (hp : even p) (a : K) : |a| ^ p = a ^ p :=
-begin
-  cases abs_choice a with h h;
-  simp only [h, hp.neg_zpow _],
-end
-
-@[simp] lemma zpow_bit0_abs (a : K) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p :=
-(even_bit0 _).zpow_abs _
-
-lemma even.abs_zpow {p : ℤ} (hp : even p) (a : K) : |a ^ p| = a ^ p :=
-begin
-  rw [abs_eq_self],
-  exact hp.zpow_nonneg _
-end
-
-@[simp] lemma abs_zpow_bit0 (a : K) (p : ℤ) :
-  |a ^ bit0 p| = a ^ bit0 p :=
-(even_bit0 _).abs_zpow _
-
-end field_power

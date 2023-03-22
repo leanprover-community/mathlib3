@@ -3,11 +3,15 @@ Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
+import data.fintype.option
 import topology.separation
 import topology.sets.opens
 
 /-!
 # The Alexandroff Compactification
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the Alexandroff compactification (the one-point compactification) of an arbitrary
 topological space `X` and prove some properties inherited from `X`.
@@ -33,7 +37,7 @@ one-point compactification, compactness
 -/
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 /-!
 ### Definition and basic properties
@@ -55,7 +59,7 @@ namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none
-localized "notation `∞` := alexandroff.infty" in alexandroff
+localized "notation (name := alexandroff.infty) `∞` := alexandroff.infty" in alexandroff
 
 instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 
@@ -102,10 +106,8 @@ lemma ne_infty_iff_exists {x : alexandroff X} :
   x ≠ ∞ ↔ ∃ (y : X), (y : alexandroff X) = x :=
 by induction x using alexandroff.rec; simp
 
-instance : can_lift (alexandroff X) X :=
-{ coe := coe,
-  cond := λ x, x ≠ ∞,
-  prf := λ x, ne_infty_iff_exists.1 }
+instance can_lift : can_lift (alexandroff X) X coe (λ x, x ≠ ∞) :=
+with_top.can_lift
 
 lemma not_mem_range_coe_iff {x : alexandroff X} :
   x ∉ range (coe : X → alexandroff X) ↔ x = ∞ :=
@@ -151,7 +153,7 @@ instance : topological_space (alexandroff X) :=
     suffices : is_open (coe ⁻¹' ⋃₀ S : set X),
     { refine ⟨_, this⟩,
       rintro ⟨s, hsS : s ∈ S, hs : ∞ ∈ s⟩,
-      refine compact_of_is_closed_subset ((ho s hsS).1 hs) this.is_closed_compl _,
+      refine is_compact_of_is_closed_subset ((ho s hsS).1 hs) this.is_closed_compl _,
       exact compl_subset_compl.mpr (preimage_mono $ subset_sUnion_of_mem hsS) },
     rw [preimage_sUnion],
     exact is_open_bUnion (λ s hs, (ho s hs).2)
@@ -325,12 +327,32 @@ lemma dense_embedding_coe [noncompact_space X] :
   dense_embedding (coe : X → alexandroff X) :=
 { dense := dense_range_coe, .. open_embedding_coe }
 
+@[simp] lemma specializes_coe {x y : X} : (x : alexandroff X) ⤳ y ↔ x ⤳ y :=
+open_embedding_coe.to_inducing.specializes_iff
+
+@[simp] lemma inseparable_coe {x y : X} : inseparable (x : alexandroff X) y ↔ inseparable x y :=
+open_embedding_coe.to_inducing.inseparable_iff
+
+lemma not_specializes_infty_coe {x : X} : ¬specializes ∞ (x : alexandroff X) :=
+is_closed_infty.not_specializes rfl (coe_ne_infty x)
+
+lemma not_inseparable_infty_coe {x : X} : ¬inseparable ∞ (x : alexandroff X) :=
+λ h, not_specializes_infty_coe h.specializes
+
+lemma not_inseparable_coe_infty {x : X} : ¬inseparable (x : alexandroff X) ∞ :=
+λ h, not_specializes_infty_coe h.specializes'
+
+lemma inseparable_iff {x y : alexandroff X} :
+  inseparable x y ↔ x = ∞ ∧ y = ∞ ∨ ∃ x' : X, x = x' ∧ ∃ y' : X, y = y' ∧ inseparable x' y' :=
+by induction x using alexandroff.rec; induction y using alexandroff.rec;
+  simp [not_inseparable_infty_coe, not_inseparable_coe_infty, coe_eq_coe]
+
 /-!
 ### Compactness and separation properties
 
 In this section we prove that `alexandroff X` is a compact space; it is a T₀ (resp., T₁) space if
 the original space satisfies the same separation axiom. If the original space is a locally compact
-Hausdorff space, then `alexandroff X` is a normal (hence, regular and Hausdorff) space.
+Hausdorff space, then `alexandroff X` is a normal (hence, T₃ and Hausdorff) space.
 
 Finally, if the original space `X` is *not* compact and is a preconnected space, then
 `alexandroff X` is a connected space.
@@ -338,7 +360,7 @@ Finally, if the original space `X` is *not* compact and is a preconnected space,
 
 /-- For any topological space `X`, its one point compactification is a compact space. -/
 instance : compact_space (alexandroff X) :=
-{ compact_univ :=
+{ is_compact_univ :=
   begin
     have : tendsto (coe : X → alexandroff X) (cocompact X) (𝓝 ∞),
     { rw [nhds_infty_eq],
@@ -351,13 +373,8 @@ instance : compact_space (alexandroff X) :=
 instance [t0_space X] : t0_space (alexandroff X) :=
 begin
   refine ⟨λ x y hxy, _⟩,
-  induction x using alexandroff.rec; induction y using alexandroff.rec,
-  { exact (hxy rfl).elim },
-  { use {∞}ᶜ, simp [is_closed_infty] },
-  { use {∞}ᶜ, simp [is_closed_infty] },
-  { rcases t0_space.t0 x y (mt coe_eq_coe.mpr hxy) with ⟨U, hUo, hU⟩,
-    refine ⟨coe '' U, is_open_image_coe.2 hUo, _⟩,
-    simpa [coe_eq_coe] }
+  rcases inseparable_iff.1 hxy with ⟨rfl, rfl⟩|⟨x, rfl, y, rfl, h⟩,
+  exacts [rfl, congr_arg coe h.eq]
 end
 
 /-- The one point compactification of a `t1_space` space is a `t1_space`. -/
@@ -366,7 +383,7 @@ instance [t1_space X] : t1_space (alexandroff X) :=
   begin
     induction z using alexandroff.rec,
     { exact is_closed_infty },
-    { simp only [← image_singleton, is_closed_image_coe],
+    { rw [← image_singleton, is_closed_image_coe],
       exact ⟨is_closed_singleton, is_compact_singleton⟩ }
   end }
 
@@ -375,19 +392,17 @@ Hausdorff and regular) topological space. -/
 instance [locally_compact_space X] [t2_space X] : normal_space (alexandroff X) :=
 begin
   have key : ∀ z : X,
-    ∃ u v : set (alexandroff X), is_open u ∧ is_open v ∧ ↑z ∈ u ∧ ∞ ∈ v ∧ u ∩ v = ∅,
+    ∃ u v : set (alexandroff X), is_open u ∧ is_open v ∧ ↑z ∈ u ∧ ∞ ∈ v ∧ disjoint u v,
   { intro z,
     rcases exists_open_with_compact_closure z with ⟨u, hu, huy', Hu⟩,
-    refine ⟨coe '' u, (coe '' closure u)ᶜ, is_open_image_coe.2 hu,
+    exact ⟨coe '' u, (coe '' closure u)ᶜ, is_open_image_coe.2 hu,
       is_open_compl_image_coe.2 ⟨is_closed_closure, Hu⟩, mem_image_of_mem _ huy',
-      mem_compl infty_not_mem_image_coe, _⟩,
-    rw [← subset_compl_iff_disjoint, compl_compl],
-    exact image_subset _ subset_closure },
+      mem_compl infty_not_mem_image_coe, (image_subset _ subset_closure).disjoint_compl_right⟩ },
   refine @normal_of_compact_t2 _ _ _ ⟨λ x y hxy, _⟩,
   induction x using alexandroff.rec; induction y using alexandroff.rec,
   { exact (hxy rfl).elim },
   { rcases key y with ⟨u, v, hu, hv, hxu, hyv, huv⟩,
-    exact ⟨v, u, hv, hu, hyv, hxu, (inter_comm u v) ▸ huv⟩ },
+    exact ⟨v, u, hv, hu, hyv, hxu, huv.symm⟩ },
   { exact key x },
   { exact separated_by_open_embedding open_embedding_coe (mt coe_eq_coe.mpr hxy) }
 end

@@ -10,6 +10,9 @@ import topology.instances.real
 /-!
 # The completion of a metric space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Completion of uniform spaces are already defined in `topology.uniform_space.completion`. We show
 here that the uniform space completion of a metric space inherits a metric space structure,
 by extending the distance to the completion and checking that it is indeed a distance, and that
@@ -17,7 +20,7 @@ it defines the same uniformity as the already defined uniform structure on the c
 -/
 
 open set filter uniform_space metric
-open_locale filter topological_space uniformity
+open_locale filter topology uniformity
 noncomputable theory
 
 universes u v
@@ -167,12 +170,13 @@ instance : metric_space (completion α) :=
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,
   dist_comm          := completion.dist_comm,
   dist_triangle      := completion.dist_triangle,
+  dist               := dist,
   to_uniform_space   := by apply_instance,
   uniformity_dist    := completion.uniformity_dist }
 
 /-- The embedding of a metric space in its completion is an isometry. -/
 lemma coe_isometry : isometry (coe : α → completion α) :=
-isometry_emetric_iff_metric.2 completion.dist_eq
+isometry.of_dist_eq completion.dist_eq
 
 @[simp] protected lemma edist_eq (x y : α) : edist (x : completion α) y = edist x y :=
 coe_isometry x y

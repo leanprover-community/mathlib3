@@ -8,7 +8,7 @@ section is_equivalent
 
 open_locale asymptotics
 
-example {l : filter α} {u v w : α → β} [normed_group β]
+example {l : filter α} {u v w : α → β} [normed_add_comm_group β]
   (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
 calc u ~[l] v : huv
    ... ~[l] w : hvw

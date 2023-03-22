@@ -15,11 +15,12 @@ This file contains basics about the separable degree of a polynomial.
 
 ## Main results
 
-- `is_separable_contraction`: is the condition that `g(x^(q^m)) = f(x)` for some `m : ℕ`
+- `is_separable_contraction`: is the condition that, for `g` a separable polynomial, we have that
+   `g(x^(q^m)) = f(x)` for some `m : ℕ`.
 - `has_separable_contraction`: the condition of having a separable contraction
 - `has_separable_contraction.degree`: the separable degree, defined as the degree of some
   separable contraction
-- `irreducible_has_separable_contraction`: any irreducible polynomial can be contracted
+- `irreducible.has_separable_contraction`: any irreducible polynomial can be contracted
   to a separable polynomial
 - `has_separable_contraction.dvd_degree'`: the degree of a separable contraction divides the degree,
   in function of the exponential characteristic of the field
@@ -90,8 +91,8 @@ variables (q : ℕ) {f : F[X]} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
 https://stacks.math.columbia.edu/tag/09H0 -/
-lemma irreducible_has_separable_contraction (q : ℕ) [hF : exp_char F q]
-  (f : F[X]) [irred : irreducible f] : has_separable_contraction q f :=
+lemma _root_.irreducible.has_separable_contraction (q : ℕ) [hF : exp_char F q]
+  (f : F[X]) (irred : irreducible f) : has_separable_contraction q f :=
 begin
   casesI hF,
   { exact ⟨f, irred.separable, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },
@@ -99,45 +100,23 @@ begin
     exact ⟨g, hgs, n, hge⟩, }
 end
 
-/-- A helper lemma: if two expansions (along the positive characteristic) of two polynomials `g` and
-`g'` agree, and the one with the larger degree is separable, then their degrees are the same. -/
-lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
-  (g g' : F[X]) (m m' : ℕ)
-  (h_expand : expand F (q^m) g = expand F (q^m') g')
-  (h : m < m') (hg : g.separable):
-  g.nat_degree =  g'.nat_degree :=
-begin
-  obtain ⟨s, rfl⟩ := nat.exists_eq_add_of_lt h,
-  rw [add_assoc, pow_add, expand_mul] at h_expand,
-  let aux := expand_injective (pow_pos hq.1.pos m) h_expand,
-  rw aux at hg,
-  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hq.out.pos hg).resolve_right
-    s.succ_ne_zero,
-  rw [aux, nat_degree_expand,
-    nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit this),
-    zero_mul]
-end
-
-/-- If two expansions (along the positive characteristic) of two separable polynomials
-`g` and `g'` agree, then they have the same degree. -/
+/-- If two expansions (along the positive characteristic) of two separable polynomials `g` and `g'`
+agree, then they have the same degree. -/
 theorem contraction_degree_eq_or_insep
-  [hq : fact q.prime] [char_p F q]
+  [hq : ne_zero q] [char_p F q]
   (g g' : F[X]) (m m' : ℕ)
   (h_expand : expand F (q^m) g = expand F (q^m') g')
   (hg : g.separable) (hg' : g'.separable) :
   g.nat_degree = g'.nat_degree :=
 begin
-  by_cases h : m = m',
-  { -- if `m = m'` then we show `g.nat_degree = g'.nat_degree` by unfolding the definitions
-    rw h at h_expand,
-    have expand_deg : ((expand F (q ^ m')) g).nat_degree =
-      (expand F (q ^ m') g').nat_degree, by rw h_expand,
-    rw [nat_degree_expand (q^m') g, nat_degree_expand (q^m') g'] at expand_deg,
-    apply nat.eq_of_mul_eq_mul_left (pow_pos hq.1.pos m'),
-    rw [mul_comm] at expand_deg, rw expand_deg, rw [mul_comm] },
-  { cases ne.lt_or_lt h,
-    { exact contraction_degree_eq_aux q g g' m m' h_expand h_1 hg },
-    { exact (contraction_degree_eq_aux q g' g m' m h_expand.symm h_1 hg').symm, } }
+  wlog hm : m ≤ m',
+  { exact (this g' g m' m h_expand.symm hg' hg (le_of_not_le hm)).symm },
+  obtain ⟨s, rfl⟩ := exists_add_of_le hm,
+  rw [pow_add, expand_mul, expand_inj (pow_pos (ne_zero.pos q) m)] at h_expand,
+  subst h_expand,
+  rcases is_unit_or_eq_zero_of_separable_expand q s (ne_zero.pos q) hg with h | rfl,
+  { rw [nat_degree_expand, nat_degree_eq_zero_of_is_unit h, zero_mul] },
+  { rw [nat_degree_expand, pow_zero, mul_one] },
 end
 
 /-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/

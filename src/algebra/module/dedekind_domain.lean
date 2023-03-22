@@ -48,7 +48,7 @@ begin
     { suffices : (normalized_factors _).count p = 0,
       { rw [this, zero_min, pow_zero, ideal.one_eq_top] },
       { rw [multiset.count_eq_zero, normalized_factors_of_irreducible_pow
-          (prime_of_mem q hq).irreducible, multiset.mem_repeat],
+          (prime_of_mem q hq).irreducible, multiset.mem_replicate],
         exact λ H, pq $ H.2.trans $ normalize_eq q } },
     { rw ← ideal.zero_eq_bot, apply pow_ne_zero, exact (prime_of_mem q hq).ne_zero },
     { exact (prime_of_mem p hp).irreducible } }
@@ -64,7 +64,7 @@ begin
   have hM' := module.is_torsion_by_set_torsion_ideal R M,
   have hI := module.torsion_ideal_inter_non_zero_divisors hM,
   refine is_internal_prime_power_torsion_of_is_torsion_by_ideal _ hM',
-  rw set.ne_empty_iff_nonempty at hI, rw submodule.ne_bot_iff,
+  rw ←set.nonempty_iff_ne_empty at hI, rw submodule.ne_bot_iff,
   obtain ⟨x, H, hx⟩ := hI, exact ⟨x, H, non_zero_divisors.ne_zero hx⟩
 end
 

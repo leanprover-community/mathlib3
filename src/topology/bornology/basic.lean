@@ -8,6 +8,9 @@ import order.filter.cofinite
 /-!
 # Basic theory of bornology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We develop the basic theory of bornologies. Instead of axiomatizing bounded sets and defining
 bornologies in terms of those, we recognize that the cobounded sets form a filter and define a
 bornology as a filter of cobounded sets which contains the cofinite filter.  This allows us to make
@@ -104,8 +107,8 @@ by rw [is_bounded_def, is_cobounded_def, compl_compl]
 
 @[simp] lemma is_cobounded_compl_iff : is_cobounded sᶜ ↔ is_bounded s := iff.rfl
 
-alias is_bounded_compl_iff ↔ bornology.is_bounded.of_compl bornology.is_cobounded.compl
-alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bounded.compl
+alias is_bounded_compl_iff ↔ is_bounded.of_compl is_cobounded.compl
+alias is_cobounded_compl_iff ↔ is_cobounded.of_compl is_bounded.compl
 
 @[simp] lemma is_bounded_empty : is_bounded (∅ : set α) :=
 by { rw [is_bounded_def, compl_empty], exact univ_mem}
@@ -176,7 +179,7 @@ bInter_mem hs
   is_cobounded (⋂ i ∈ s, f i) ↔ ∀ i ∈ s, is_cobounded (f i) :=
 bInter_finset_mem s
 
-@[simp] lemma is_cobounded_Inter [fintype ι] {f : ι → set α} :
+@[simp] lemma is_cobounded_Inter [finite ι] {f : ι → set α} :
   is_cobounded (⋂ i, f i) ↔ ∀ i, is_cobounded (f i) :=
 Inter_mem
 
@@ -196,7 +199,7 @@ lemma is_bounded_sUnion {S : set (set α)} (hs : S.finite) :
   is_bounded (⋃₀ S) ↔ (∀ s ∈ S, is_bounded s) :=
 by rw [sUnion_eq_bUnion, is_bounded_bUnion hs]
 
-@[simp] lemma is_bounded_Union [fintype ι] {s : ι → set α} :
+@[simp] lemma is_bounded_Union [finite ι] {s : ι → set α} :
   is_bounded (⋃ i, s i) ↔ ∀ i, is_bounded (s i) :=
 by rw [← sUnion_range, is_bounded_sUnion (finite_range s), forall_range_iff]
 

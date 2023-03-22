@@ -515,7 +515,7 @@ attribute from the list `attrs`, as well as the `assumption` tactic on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
 `n` is optional, equal to 50 by default.
 You can pass an `apply_cfg` option argument as `apply_rules hs n opt`.
-(A typical usage would be with `apply_rules hs n { md := reducible })`,
+(A typical usage would be with `apply_rules hs n { md := reducible }`,
 which asks `apply_rules` to not unfold `semireducible` definitions (i.e. most)
 when checking if a lemma matches the goal.)
 

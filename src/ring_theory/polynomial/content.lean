@@ -58,6 +58,9 @@ begin
   exact (hp 0 (dvd_zero (C 0))).ne_zero rfl,
 end
 
+lemma is_primitive_of_dvd {p q : R[X]} (hp : is_primitive p) (hq : q ∣ p) : is_primitive q :=
+λ a ha, is_primitive_iff_is_unit_of_C_dvd.mp hp a (dvd_trans ha hq)
+
 end primitive
 
 variables {R : Type*} [comm_ring R] [is_domain R]
@@ -136,7 +139,7 @@ begin
 end
 
 @[simp] lemma content_monomial {r : R} {k : ℕ} : content (monomial k r) = normalize r :=
-by { rw [monomial_eq_C_mul_X, content_C_mul, content_X_pow, mul_one] }
+by rw [← C_mul_X_pow_eq_monomial, content_C_mul, content_X_pow, mul_one]
 
 lemma content_eq_zero_iff {p : R[X]} : content p = 0 ↔ p = 0 :=
 begin
@@ -275,6 +278,28 @@ end
 lemma prim_part_dvd (p : R[X]) : p.prim_part ∣ p :=
 dvd.intro_left (C p.content) p.eq_C_content_mul_prim_part.symm
 
+lemma aeval_prim_part_eq_zero {S : Type*} [ring S] [is_domain S] [algebra R S]
+  [no_zero_smul_divisors R S] {p : R[X]} {s : S} (hpzero : p ≠ 0) (hp : aeval s p = 0) :
+  aeval s p.prim_part = 0 :=
+begin
+  rw [eq_C_content_mul_prim_part p, map_mul, aeval_C] at hp,
+  have hcont : p.content ≠ 0 := λ h, hpzero (content_eq_zero_iff.1 h),
+  replace hcont := function.injective.ne (no_zero_smul_divisors.algebra_map_injective R S) hcont,
+  rw [map_zero] at hcont,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero hcont hp
+end
+
+lemma eval₂_prim_part_eq_zero {S : Type*} [comm_ring S] [is_domain S] {f : R →+* S}
+  (hinj : function.injective f) {p : R[X]} {s : S} (hpzero : p ≠ 0)
+  (hp : eval₂ f s p = 0) : eval₂ f s p.prim_part = 0 :=
+begin
+  rw [eq_C_content_mul_prim_part p, eval₂_mul, eval₂_C] at hp,
+  have hcont : p.content ≠ 0 := λ h, hpzero (content_eq_zero_iff.1 h),
+  replace hcont := function.injective.ne hinj hcont,
+  rw [map_zero] at hcont,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero hcont hp
+end
+
 end prim_part
 
 lemma gcd_content_eq_of_dvd_sub {a : R} {p q : R[X]} (h : C a ∣ p - q) :
@@ -358,15 +383,6 @@ begin
     p.eq_C_content_mul_prim_part, q.eq_C_content_mul_prim_part] },
   rw [content_mul, ring_hom.map_mul],
   ring,
-end
-
-lemma is_primitive.is_primitive_of_dvd {p q : R[X]} (hp : p.is_primitive) (hdvd : q ∣ p) :
-  q.is_primitive :=
-begin
-  rcases hdvd with ⟨r, rfl⟩,
-  rw [is_primitive_iff_content_eq_one, ← normalize_content, normalize_eq_one, is_unit_iff_dvd_one],
-  apply dvd.intro r.content,
-  rwa [is_primitive_iff_content_eq_one, content_mul] at hp,
 end
 
 lemma is_primitive.dvd_prim_part_iff_dvd {p q : R[X]}

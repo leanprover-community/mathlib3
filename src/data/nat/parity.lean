@@ -9,6 +9,9 @@ import algebra.parity
 /-!
 # Parity of natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems about the `even` and `odd` predicates on the natural numbers.
 
 ## Tags
@@ -72,14 +75,21 @@ begin
               one_ne_zero, and_self] },
 end
 
-lemma odd_gt_zero (h : odd n) : 0 < n :=
-by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
-
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 
 instance : decidable_pred (even : ℕ → Prop) := λ n, decidable_of_iff _ even_iff.symm
 instance : decidable_pred (odd : ℕ → Prop) := λ n, decidable_of_iff _ odd_iff_not_even.symm
+
+theorem mod_two_add_add_odd_mod_two (m : ℕ) {n : ℕ} (hn : odd n) : m % 2 + (m + n) % 2 = 1 :=
+(even_or_odd m).elim (λ hm, by rw [even_iff.1 hm, odd_iff.1 (hm.add_odd hn)]) $
+  λ hm, by rw [odd_iff.1 hm, even_iff.1 (hm.add_odd hn)]
+
+@[simp] theorem mod_two_add_succ_mod_two (m : ℕ) : m % 2 + (m + 1) % 2 = 1 :=
+mod_two_add_add_odd_mod_two m odd_one
+
+@[simp] theorem succ_mod_two_add_mod_two (m : ℕ) : (m + 1) % 2 + m % 2 = 1 :=
+by rw [add_comm, mod_two_add_succ_mod_two]
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
@@ -94,6 +104,9 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
 
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
+
+@[parity_simps] theorem even_add_one : even (n + 1) ↔ ¬ even n :=
+by simp [even_add]
 
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
@@ -117,9 +130,6 @@ theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
   (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
-
-@[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
-by rw [succ_eq_add_one, even_add]; simp [not_even_one]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
@@ -183,13 +193,10 @@ begin
     apply even_mul_succ_self }
 end
 
-lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
-odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
-
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
  λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
-lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := --nat.div_mul_cancel
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n :=
 λ h, nat.div_mul_cancel (even_iff_two_dvd.mp h)
 
 lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
@@ -200,6 +207,31 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma bit0_div_two : bit0 n / 2 = n :=
+by rw [←nat.bit0_eq_bit0, bit0_eq_two_mul, two_mul_div_two_of_even (even_bit0 n)]
+
+lemma bit1_div_two : bit1 n / 2 = n :=
+by rw [←nat.bit1_eq_bit1, bit1, bit0_eq_two_mul, nat.two_mul_div_two_add_one_of_odd (odd_bit1 n)]
+
+@[simp] lemma bit0_div_bit0 : bit0 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
+
+@[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
+
+@[simp] lemma bit0_mod_bit0 : bit0 n % bit0 m = bit0 (n % m) :=
+by rw [bit0_eq_two_mul n, bit0_eq_two_mul m, bit0_eq_two_mul (n % m), nat.mul_mod_mul_left]
+
+@[simp] lemma bit1_mod_bit0 : bit1 n % bit0 m = bit1 (n % m) :=
+begin
+  have h₁ := congr_arg bit1 (nat.div_add_mod n m),
+  -- `∀ m n : ℕ, bit0 m * n = bit0 (m * n)` seems to be missing...
+  rw [bit1_add, bit0_eq_two_mul, ← mul_assoc, ← bit0_eq_two_mul] at h₁,
+  have h₂ := nat.div_add_mod (bit1 n) (bit0 m),
+  rw [bit1_div_bit0] at h₂,
+  exact add_left_cancel (h₂.trans h₁.symm),
+end
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
@@ -213,8 +245,62 @@ end nat
 
 open nat
 
+namespace function
+namespace involutive
+
+variables {α : Type*} {f : α → α} {n : ℕ}
+
+theorem iterate_bit0 (hf : involutive f) (n : ℕ) : f^[bit0 n] = id :=
+by rw [bit0, ← two_mul, iterate_mul, involutive_iff_iter_2_eq_id.1 hf, iterate_id]
+
+theorem iterate_bit1 (hf : involutive f) (n : ℕ) : f^[bit1 n] = f :=
+by rw [bit1, iterate_succ, hf.iterate_bit0, comp.left_id]
+
+theorem iterate_even (hf : involutive f) (hn : even n) : f^[n] = id :=
+let ⟨m, hm⟩ := hn in hm.symm ▸ hf.iterate_bit0 m
+
+theorem iterate_odd (hf : involutive f) (hn : odd n) : f^[n] = f :=
+let ⟨m, hm⟩ := odd_iff_exists_bit1.mp hn in hm.symm ▸ hf.iterate_bit1 m
+
+theorem iterate_eq_self (hf : involutive f) (hne : f ≠ id) : f^[n] = f ↔ odd n :=
+⟨λ H, odd_iff_not_even.2 $ λ hn, hne $ by rwa [hf.iterate_even hn, eq_comm] at H, hf.iterate_odd⟩
+
+theorem iterate_eq_id (hf : involutive f) (hne : f ≠ id) : f^[n] = id ↔ even n :=
+⟨λ H, even_iff_not_odd.2 $ λ hn, hne $ by rwa [hf.iterate_odd hn] at H, hf.iterate_even⟩
+
+end involutive
+end function
+
 variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 
 lemma neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
 ⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
   even.neg_one_pow⟩
+
+/-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
+lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd (n % a) ↔ odd n :=
+((even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
+/-- If `a` is even, then `n` is even iff `n % a` is even. -/
+lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even (n % a) ↔ even n :=
+((even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
+/-- If `n` is odd and `a` is even, then `n % a` is odd. -/
+lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
+(odd.mod_even_iff ha).mpr hn
+
+/-- If `n` is even and `a` is even, then `n % a` is even. -/
+lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
+(even.mod_even_iff ha).mpr hn
+
+theorem odd.of_dvd_nat {m n : ℕ} (hn : odd n) (hm : m ∣ n) : odd m :=
+odd_iff_not_even.2 $ mt hm.even (odd_iff_not_even.1 hn)
+
+/-- `2` is not a factor of an odd natural number. -/
+theorem odd.ne_two_of_dvd_nat {m n : ℕ} (hn : odd n) (hm : m ∣ n) : m ≠ 2 :=
+begin
+  rintro rfl,
+  exact absurd (hn.of_dvd_nat hm) dec_trivial
+end

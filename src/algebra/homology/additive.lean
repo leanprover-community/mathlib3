@@ -35,10 +35,10 @@ instance : has_zero (C ⟶ D) := ⟨{ f := λ i, 0 }⟩
 instance : has_add (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i + g.f i, }⟩
 instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
-instance has_nat_scalar : has_scalar ℕ (C ⟶ D) := ⟨λ n f,
+instance has_nat_scalar : has_smul ℕ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
-instance has_int_scalar : has_scalar ℤ (C ⟶ D) := ⟨λ n f,
+instance has_int_scalar : has_smul ℤ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
@@ -66,8 +66,6 @@ end homological_complex
 namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
-
-variables [has_zero_object V]
 
 instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
@@ -111,6 +109,17 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
 
 instance functor.map_homogical_complex_additive
   (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}
+
+instance functor.map_homological_complex_reflects_iso
+  (F : V ⥤ W) [F.additive] [reflects_isomorphisms F] (c : complex_shape ι) :
+  reflects_isomorphisms (F.map_homological_complex c) :=
+⟨λ X Y f, begin
+  introI,
+  haveI : ∀ (n : ι), is_iso (F.map (f.f n)) := λ n, is_iso.of_iso
+    ((homological_complex.eval W c n).map_iso (as_iso ((F.map_homological_complex c).map f))),
+  haveI := λ n, is_iso_of_reflects_iso (f.f n) F,
+  exact homological_complex.hom.is_iso_of_components f,
+end⟩
 
 /--
 A natural transformation between functors induces a natural transformation

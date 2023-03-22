@@ -9,6 +9,9 @@ import data.pnat.prime
 /-!
 # Euclidean algorithm for ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up a version of the Euclidean algorithm that only works with natural numbers.
 Given `0 < a, b`, it computes the unique `(w, x, y, z, d)` such that the following identities hold:
 * `a = (w + x) d`
@@ -108,8 +111,7 @@ end
 def is_reduced : Prop := u.ap = u.bp
 def is_reduced' : Prop := u.a = u.b
 
-theorem is_reduced_iff : u.is_reduced ↔ u.is_reduced' :=
-⟨ congr_arg succ_pnat, succ_pnat_inj ⟩
+theorem is_reduced_iff : u.is_reduced ↔ u.is_reduced' := succ_pnat_inj.symm
 
 def flip : xgcd_type :=
 { wp := u.zp, x := u.y, y := u.x, zp := u.wp, ap := u.bp, bp := u.ap }

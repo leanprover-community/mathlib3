@@ -6,7 +6,6 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product
 
 /-!
 # Bilinear form
@@ -154,7 +153,7 @@ multiplication.
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
 instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
-  has_scalar α (bilin_form R M) :=
+  has_smul α (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z, by { rw [add_left, smul_add] },
@@ -674,6 +673,8 @@ end
 
 end basis
 
+/-! ### Reflexivity, symmetry, and alternativity -/
+
 /-- The proposition that a bilinear form is reflexive -/
 def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 0
 
@@ -686,7 +687,25 @@ lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
+protected lemma neg {B : bilin_form R₁ M₁} (hB : B.is_refl) : (-B).is_refl :=
+λ x y, neg_eq_zero.mpr ∘ hB x y ∘ neg_eq_zero.mp
+
+protected lemma smul {α} [semiring α] [module α R] [smul_comm_class α R R]
+  [no_zero_smul_divisors α R] (a : α) {B : bilin_form R M} (hB : B.is_refl) : (a • B).is_refl :=
+λ x y h, (smul_eq_zero.mp h).elim
+  (λ ha, smul_eq_zero_of_left ha _)
+  (λ hBz, smul_eq_zero_of_right _ (hB _ _ hBz))
+
+protected lemma group_smul {α} [group α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) {B : bilin_form R M} (hB : B.is_refl) : (a • B).is_refl :=
+λ x y, (smul_eq_zero_iff_eq _).mpr ∘ hB x y ∘ (smul_eq_zero_iff_eq _).mp
+
 end is_refl
+
+@[simp] lemma is_refl_zero : (0 : bilin_form R M).is_refl := λ _ _ _, rfl
+
+@[simp] lemma is_refl_neg {B : bilin_form R₁ M₁} : (-B).is_refl ↔ B.is_refl :=
+⟨λ h, neg_neg B ▸ h.neg, is_refl.neg⟩
 
 /-- The proposition that a bilinear form is symmetric -/
 def is_symm (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
@@ -702,7 +721,29 @@ lemma is_refl : B.is_refl := λ x y H1, H x y ▸ H1
 lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
+protected lemma add {B₁ B₂ : bilin_form R M} (hB₁ : B₁.is_symm) (hB₂ : B₂.is_symm) :
+  (B₁ + B₂).is_symm :=
+λ x y, (congr_arg2 (+) (hB₁ x y) (hB₂ x y) : _)
+
+protected lemma sub {B₁ B₂ : bilin_form R₁ M₁} (hB₁ : B₁.is_symm) (hB₂ : B₂.is_symm) :
+  (B₁ - B₂).is_symm :=
+λ x y, (congr_arg2 has_sub.sub (hB₁ x y) (hB₂ x y) : _)
+
+protected lemma neg {B : bilin_form R₁ M₁} (hB : B.is_symm) :
+  (-B).is_symm :=
+λ x y, congr_arg has_neg.neg (hB x y)
+
+protected lemma smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) {B : bilin_form R M} (hB : B.is_symm) :
+  (a • B).is_symm :=
+λ x y, congr_arg ((•) a) (hB x y)
+
 end is_symm
+
+@[simp] lemma is_symm_zero : (0 : bilin_form R M).is_symm := λ _ _, rfl
+
+@[simp] lemma is_symm_neg {B : bilin_form R₁ M₁} : (-B).is_symm ↔ B.is_symm :=
+⟨λ h, neg_neg B ▸ h.neg, is_symm.neg⟩
 
 lemma is_symm_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
@@ -722,7 +763,7 @@ namespace is_alt
 
 lemma self_eq_zero (H : B.is_alt) (x : M) : B x x = 0 := H x
 
-lemma neg (H : B₁.is_alt) (x y : M₁) :
+lemma neg_eq (H : B₁.is_alt) (x y : M₁) :
   - B₁ x y = B₁ y x :=
 begin
   have H1 : B₁ (x + y) (x + y) = 0,
@@ -736,13 +777,37 @@ end
 lemma is_refl (H : B₁.is_alt) : B₁.is_refl :=
 begin
   intros x y h,
-  rw [←neg H, h, neg_zero],
+  rw [←neg_eq H, h, neg_zero],
 end
 
 lemma ortho_comm (H : B₁.is_alt) {x y : M₁} :
   is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_comm
 
+protected lemma add {B₁ B₂ : bilin_form R M} (hB₁ : B₁.is_alt) (hB₂ : B₂.is_alt) :
+  (B₁ + B₂).is_alt :=
+λ x, (congr_arg2 (+) (hB₁ x) (hB₂ x) : _).trans $ add_zero _
+
+protected lemma sub {B₁ B₂ : bilin_form R₁ M₁} (hB₁ : B₁.is_alt) (hB₂ : B₂.is_alt) :
+  (B₁ - B₂).is_alt :=
+λ x, (congr_arg2 has_sub.sub (hB₁ x) (hB₂ x)).trans $ sub_zero _
+
+protected lemma neg {B : bilin_form R₁ M₁} (hB : B.is_alt) :
+  (-B).is_alt :=
+λ x, neg_eq_zero.mpr $ hB x
+
+protected lemma smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) {B : bilin_form R M} (hB : B.is_alt) :
+  (a • B).is_alt :=
+λ x, (congr_arg ((•) a) (hB x)).trans $ smul_zero _
+
 end is_alt
+
+@[simp] lemma is_alt_zero : (0 : bilin_form R M).is_alt := λ _, rfl
+
+@[simp] lemma is_alt_neg {B : bilin_form R₁ M₁} : (-B).is_alt ↔ B.is_alt :=
+⟨λ h, neg_neg B ▸ h.neg, is_alt.neg⟩
+
+/-! ### Linear adjoints -/
 
 section linear_adjoints
 
@@ -945,8 +1010,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := disjoint_iff.2 $ span_singleton_inf_orthogonal_eq_bot hx,
+  codisjoint := codisjoint_iff.2 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -1024,7 +1089,7 @@ lemma nondegenerate_restrict_of_disjoint_orthogonal
 begin
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
-  refine hW ⟨hx, λ y hy, _⟩,
+  refine hW.le_bot ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
   rw [restrict_apply, submodule.coe_mk, submodule.coe_mk] at b₁,
   exact is_ortho_def.mpr (b x y b₁),
@@ -1047,7 +1112,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h i j hij },
+  { exact h hij },
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
@@ -1065,7 +1130,7 @@ begin
   simp_rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, sum_left, smul_left] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (ho i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 
@@ -1091,15 +1156,15 @@ begin
     exact hx.2 _ submodule.mem_top }
 end
 
-lemma to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal
+lemma to_lin_restrict_range_dual_coannihilator_eq_orthogonal
   (B : bilin_form K V) (W : subspace K V) :
-  (B.to_lin.dom_restrict W).range.dual_annihilator_comap = B.orthogonal W :=
+  (B.to_lin.dom_restrict W).range.dual_coannihilator = B.orthogonal W :=
 begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
   { intros y hy,
-    rw submodule.mem_dual_annihilator_comap_iff at hx,
+    rw submodule.mem_dual_coannihilator at hx,
     refine hx (B.to_lin.dom_restrict W ⟨y, hy⟩) ⟨⟨y, hy⟩, rfl⟩ },
-  { rw submodule.mem_dual_annihilator_comap_iff,
+  { rw submodule.mem_dual_coannihilator,
     rintro _ ⟨⟨w, hw⟩, rfl⟩,
     exact hx w hw }
 end
@@ -1114,9 +1179,9 @@ lemma finrank_add_finrank_orthogonal
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ b₁,
-      ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
+      ← to_lin_restrict_range_dual_coannihilator_eq_orthogonal _ _,
       finrank_map_subtype_eq],
-  conv_rhs { rw [← @subspace.finrank_add_finrank_dual_annihilator_comap_eq K V _ _ _ _
+  conv_rhs { rw [← @subspace.finrank_add_finrank_dual_coannihilator_eq K V _ _ _ _
                   (B.to_lin.dom_restrict W).range,
                  add_comm, ← add_assoc, add_comm (finrank K ↥((B.to_lin.dom_restrict W).ker)),
                  linear_map.finrank_range_add_finrank_ker] },
@@ -1137,14 +1202,11 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_rfl, _⟩,
-  { rw top_le_iff,
-    refine eq_top_of_finrank_eq _,
-    refine le_antisymm (submodule.finrank_le _) _,
-    conv_rhs { rw ← add_zero (finrank K _) },
-    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        finrank_add_finrank_orthogonal b₁],
-    exact nat.le.intro rfl }
+  refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
+  conv_rhs { rw ← add_zero (finrank K _) },
+  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+      finrank_add_finrank_orthogonal b₁],
+  exact le_self_add,
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some reflexive bilinear

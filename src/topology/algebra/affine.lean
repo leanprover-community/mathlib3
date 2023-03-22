@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 import linear_algebra.affine_space.affine_map
-import topology.algebra.group
+import topology.algebra.group.basic
 import topology.algebra.mul_action
 
 /-!
 # Topological properties of affine spaces and maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For now, this contains only a few facts regarding the continuity of affine maps in the special
 case when the point space and vector space are the same.

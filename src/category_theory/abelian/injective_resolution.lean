@@ -3,8 +3,9 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Scott Morrison
 -/
+import algebra.homology.quasi_iso
 import category_theory.preadditive.injective_resolution
-import category_theory.abelian.exact
+import category_theory.abelian.homology
 import algebra.homology.homotopy_category
 
 /-!
@@ -276,5 +277,22 @@ instance : has_injective_resolutions C :=
 { out := λ _, infer_instance }
 
 end InjectiveResolution
-
 end category_theory
+namespace homological_complex.hom
+
+variables {C : Type u} [category.{v} C] [abelian C]
+
+/-- If `X` is a cochain complex of injective objects and we have a quasi-isomorphism
+`f : Y[0] ⟶ X`, then `X` is an injective resolution of `Y.` -/
+def homological_complex.hom.from_single₀_InjectiveResolution (X : cochain_complex C ℕ) (Y : C)
+  (f : (cochain_complex.single₀ C).obj Y ⟶ X) [quasi_iso f]
+  (H : ∀ n, injective (X.X n)) :
+  InjectiveResolution Y :=
+{ cocomplex := X,
+  ι := f,
+  injective := H,
+  exact₀ := f.from_single₀_exact_f_d_at_zero,
+  exact := f.from_single₀_exact_at_succ,
+  mono := f.from_single₀_mono_at_zero }
+
+end homological_complex.hom

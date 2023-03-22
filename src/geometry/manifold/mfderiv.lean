@@ -242,41 +242,6 @@ def mdifferentiable (f : M → M') :=
 def local_homeomorph.mdifferentiable (f : local_homeomorph M M') :=
 (mdifferentiable_on I I' f f.source) ∧ (mdifferentiable_on I' I f.symm f.target)
 
-section open_emb
-
-/-- An open embedding is differentiable (for the charted-space structure induced by itself) -/
-lemma mdifferentiable_open_embedding {U : Type*} [topological_space U] [nonempty U]
-  {f : U → H} (h : open_embedding f) :
-  @mdifferentiable 𝕜 _ E _ _ H _ I U _ h.singleton_charted_space E _ _ H _ I H _ _ f :=
-begin
-  refine λ m, ⟨h.continuous.continuous_at, _⟩,
-  simp only [written_in_ext_chart_at, ext_chart_at, local_homeomorph.extend, function.comp_app,
-    local_homeomorph.singleton_charted_space_chart_at_eq, open_embedding.to_local_homeomorph_apply,
-    local_equiv.refl_source, local_equiv.refl_trans, model_with_corners.to_local_equiv_coe,
-    local_equiv.coe_trans_symm, local_homeomorph.coe_coe_symm, local_equiv.coe_trans,
-    model_with_corners.to_local_equiv_coe_symm, local_homeomorph.refl_local_equiv,
-    local_homeomorph.coe_coe],
-  suffices : eq_on (⇑I ∘ f ∘ ⇑((open_embedding.to_local_homeomorph f h).symm) ∘ ⇑(I.symm))
-    id (range (I ∘ f)),
-  { refine differentiable_within_at_id.congr_of_eventually_eq
-      (filter.eventually_of_mem _ this) (this $ mem_range_self _),
-    rw range_comp,
-    exact model_with_corners.image_mem_nhds_within I (h.is_open_map.range_mem_nhds _) },
-  intros m hm,
-  obtain ⟨i, rfl⟩ := mem_range.mpr hm,
-  have : I.symm (I (f i)) = f i,
-  { rw [model_with_corners.symm, eq_comm, local_equiv.eq_symm_apply,
-      model_with_corners.to_local_equiv_coe],
-    { simp only [model_with_corners.source_eq] },
-    { simp only [model_with_corners.target_eq, mem_range_self] } },
-  simp_rw [function.comp_app, id.def, this],
-  refine congr_arg I ((open_embedding.to_local_homeomorph f h).right_inv _),
-  rw [open_embedding.to_local_homeomorph_target, set.mem_range],
-  use i,
-end
-
-end open_emb
-
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
 
 /-- `has_mfderiv_within_at I I' f s x f'` indicates that the function `f` between manifolds
@@ -1678,6 +1643,40 @@ lemma mdifferentiable_on_ext_chart_at :
 λ y hy, (has_mfderiv_within_at_ext_chart_at I hy).mdifferentiable_within_at
 
 end ext_chart_at
+
+/-! ### Differentiability of open embeddings -/
+section open_emb
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+{U : Type*} [topological_space U] [nonempty U]
+
+/-- An open embedding is differentiable (for the charted-space structure induced by itself) -/
+lemma mdifferentiable_open_embedding {f : U → H} (h : open_embedding f) :
+  @mdifferentiable 𝕜 _ E _ _ H _ I U _ h.singleton_charted_space E _ _ H _ I H _ _ f :=
+begin
+  refine λ m, ⟨h.continuous.continuous_at, _⟩,
+  simp only [written_in_ext_chart_at, ext_chart_at, local_homeomorph.extend, function.comp_app,
+    local_homeomorph.singleton_charted_space_chart_at_eq, open_embedding.to_local_homeomorph_apply,
+    local_equiv.refl_source, local_equiv.refl_trans, model_with_corners.to_local_equiv_coe,
+    local_equiv.coe_trans_symm, local_homeomorph.coe_coe_symm, local_equiv.coe_trans,
+    model_with_corners.to_local_equiv_coe_symm, local_homeomorph.refl_local_equiv,
+    local_homeomorph.coe_coe],
+  suffices : eq_on (⇑I ∘ f ∘ ⇑((open_embedding.to_local_homeomorph f h).symm) ∘ ⇑(I.symm))
+    id (range (I ∘ f)),
+  { refine differentiable_within_at_id.congr_of_eventually_eq
+      (filter.eventually_of_mem _ this) (this $ mem_range_self _),
+    rw range_comp,
+    exact model_with_corners.image_mem_nhds_within I (h.is_open_map.range_mem_nhds _) },
+  intros m hm,
+  obtain ⟨i, rfl⟩ := mem_range.mpr hm,
+  simp_rw [function.comp_app, model_with_corners.left_inv],
+  refine congr_arg I ((open_embedding.to_local_homeomorph f h).right_inv _),
+  rw [open_embedding.to_local_homeomorph_target, set.mem_range],
+  use i,
+end
+
+end open_emb
 
 /-! ### Unique derivative sets in manifolds -/
 section unique_mdiff

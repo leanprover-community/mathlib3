@@ -162,6 +162,26 @@ begin
   exact lt_irrefl _ (((one_lt_sq_iff $ zero_le_one.trans ha.le).mpr ha).trans_eq prop),
 end
 
+/-- A solution with `x = 1` is trivial. -/
+lemma eq_one_of_x_eq_one (h₀ : 0 < d) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
+begin
+  have hy : a.y = 0,
+  { have prop := a.prop.symm,
+    rw [ha, ← sub_eq_zero] at prop,
+    ring_nf at prop,
+    nlinarith, },
+  ext; simp [ha, hy],
+end
+
+/-- A solution is `1` or `-1` if and only if `y = 0`. -/
+lemma eq_one_or_neg_one_iff_y_eq_zero {a : solution₁ d} : a = 1 ∨ a = -1 ↔ a.y = 0 :=
+begin
+  refine ⟨λ H, H.elim (λ h, by simp [h]) (λ h, by simp [h]), λ H, _⟩,
+  have prop := a.prop,
+  rw [H, sq (0 : ℤ), mul_zero, mul_zero, sub_zero, sq_eq_one_iff] at prop,
+  refine prop.elim (λ h, or.inl $ by ext; simp [h, H]) (λ h, or.inr $ by ext; simp [h, H]),
+end
+
 /-- The set of solutions with `x > 0` is closed under multiplication. -/
 lemma x_mul_pos_of_x_pos (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
   0 < (a * b).x :=
@@ -321,13 +341,18 @@ end
 
 /-- If `d` is a positive integer that is not a square, then there exists a solution
 to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
-lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
-  ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ 1 < x ∧ 0 < y :=
+lemma solution₁.exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃ a : solution₁ d, 1 < a.x ∧ 0 < a.y :=
 begin
-  obtain ⟨x, y, h, hy⟩ := exists_of_not_is_square h₀ hd,
-  refine ⟨|x|, |y|, by rwa [sq_abs, sq_abs], _, abs_pos.mpr hy⟩,
-  rw [← one_lt_sq_iff_one_lt_abs, eq_add_of_sub_eq h, lt_add_iff_pos_right],
-  exact mul_pos h₀ (sq_pos_of_ne_zero y hy),
+  obtain ⟨a, ha₁, ha₂⟩ := solution₁.exists_nontrivial_of_not_is_square h₀ hd,
+  obtain ⟨b, hb₁, hb₂, hb₃⟩ := solution₁.exists_pos_variant h₀ a,
+  refine ⟨b, lt_iff_le_and_ne.mpr ⟨hb₁, λ hf, _⟩, lt_iff_le_and_ne.mpr ⟨hb₂, λ hf, _⟩⟩,
+  { have := solution₁.eq_one_of_x_eq_one h₀ hf.symm,
+    rw [solution₁.eq_one_of_x_eq_one h₀ hf.symm, inv_one] at hb₃,
+    simpa only [ha₁, ha₂, or_self] using hb₃, },
+  { cases solution₁.eq_one_or_neg_one_iff_y_eq_zero.mpr hf.symm with h h; rw h at hb₃,
+    { simpa only [ha₁, ha₂, inv_one, or_self] using hb₃, },
+    { simpa only [ha₁, ha₂, inv_neg', inv_one, neg_neg, or_self] using hb₃, } }
 end
 
 end existence

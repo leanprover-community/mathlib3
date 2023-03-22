@@ -642,7 +642,7 @@ lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonem
 -/
 
 /-- Adding a point to a set preserves its boundedness above. -/
-@[simp] lemma bdd_above_insert [is_directed α (≤)] {s : set α} :
+@[simp] lemma bdd_above_insert [is_directed α (≤)] {s : set α} {a : α} :
   bdd_above (insert a s) ↔ bdd_above s :=
 by simp only [insert_eq, bdd_above_union, bdd_above_singleton, true_and]
 
@@ -651,7 +651,7 @@ protected lemma bdd_above.insert [is_directed α (≤)] {s : set α} (a : α) :
 bdd_above_insert.2
 
 /--Adding a point to a set preserves its boundedness below.-/
-@[simp] lemma bdd_below_insert [is_directed α (≥)] {s : set α} :
+@[simp] lemma bdd_below_insert [is_directed α (≥)] {s : set α} {a : α} :
   bdd_below (insert a s) ↔ bdd_below s :=
 by simp only [insert_eq, bdd_below_union, bdd_below_singleton, true_and]
 

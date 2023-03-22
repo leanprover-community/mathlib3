@@ -30,7 +30,7 @@ open_locale classical big_operators nnreal
 
 local notation `∞` := (⊤ : ℕ∞)
 
-universes u v w uE uF uG
+universes u v w uD uE uF uG
 
 local attribute [instance, priority 1001]
 normed_add_comm_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
@@ -39,6 +39,7 @@ open set fin filter function
 open_locale topology
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{D : Type uD} [normed_add_comm_group D] [normed_space 𝕜 D]
 {E : Type uE} [normed_add_comm_group E] [normed_space 𝕜 E]
 {F : Type uF} [normed_add_comm_group F] [normed_space 𝕜 F]
 {G : Type uG} [normed_add_comm_group G] [normed_space 𝕜 G]
@@ -2264,3 +2265,233 @@ lemma cont_diff.restrict_scalars (h : cont_diff 𝕜' n f) :
 cont_diff_iff_cont_diff_at.2 $ λ x, h.cont_diff_at.restrict_scalars _
 
 end restrict_scalars
+
+/-!## Quantitative bounds -/
+
+
+section
+
+open finset
+
+/- TODO porting note: move to the file `data.nat.choose.sum` -/
+/-- The sum of `(n+1).choose i * a i * b (n+1-i)` can be split into two sums at rank `n`,
+respectively of `n.choose i * a i * b (n+1-i)` and `n.choose i * a (i+1) * b (n-i)`. -/
+lemma sum_choose_succ_mul_mul_sub {R : Type*} [comm_semiring R] (a b : ℕ → R) (n : ℕ) :
+  ∑ i in range (n+2), ((n+1).choose i : R) * a i * b (n + 1 - i) =
+    ∑ i in range (n+1), (n.choose i : R) * a i * b (n + 1 - i)
+      + ∑ i in range (n+1), (n.choose i : R) * a (i + 1) * b (n - i) :=
+begin
+  have A : ∑ i in range (n + 1), (n.choose (i+1) : R) * a (i + 1) * b (n - i) + a 0 * b (n + 1)
+  = ∑ i in range (n+1), n.choose i * a i * b (n + 1 - i),
+  { rw [finset.sum_range_succ, finset.sum_range_succ'],
+    simp only [nat.choose_succ_self, algebra_map.coe_zero, zero_mul, add_zero,
+      nat.succ_sub_succ_eq_sub, nat.choose_zero_right, algebra_map.coe_one, one_mul, tsub_zero] },
+  calc
+  ∑ i in finset.range (n+2), ((n+1).choose i : R) * a i * b (n + 1 - i)
+  = ∑ i in finset.range (n+1), ((n+1).choose (i+1) : R) * a (i+1) * b (n + 1 - (i+1))
+      + a 0 * b (n + 1 - 0) :
+    begin
+      rw finset.sum_range_succ',
+      simp only [nat.choose_zero_right, algebra_map.coe_one, one_mul],
+    end
+  ... = ∑ i in finset.range (n+1), (n.choose i : R) * a i * b (n + 1 - i)
+  + ∑ i in finset.range (n+1), n.choose i * a (i + 1) * b (n - i) :
+    begin
+      simp only [nat.choose_succ_succ, nat.cast_add, nat.succ_sub_succ_eq_sub, tsub_zero, add_mul],
+      rw [finset.sum_add_distrib, ← A],
+      abel,
+    end
+end
+
+end
+
+/-- Bounding the norm of the iterated derivative of `B (f x) (g x)` within a set in terms of the
+iterated derivatives of `f` and `g` when `B` is bilinear. This lemma is an auxiliary version
+assuming all spaces live in the same universe, to enable an induction. Use instead
+`continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear` that removes this assumption. -/
+lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_aux
+  {Du Eu Fu Gu : Type u}
+  [normed_add_comm_group Du] [normed_space 𝕜 Du]
+  [normed_add_comm_group Eu] [normed_space 𝕜 Eu]
+  [normed_add_comm_group Fu] [normed_space 𝕜 Fu]
+  [normed_add_comm_group Gu] [normed_space 𝕜 Gu]
+  (B : Eu →L[𝕜] Fu →L[𝕜] Gu) {f : Du → Eu} {g : Du → Fu} {n : ℕ} {s : set Du} {x : Du}
+  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
+    ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
+begin
+  /- We argue by induction on `n`. The bound is trivial for `n = 0`. For `n + 1`, we write
+  the `(n+1)`-th derivative as the derivative of the `n`-th derivative `B f g' + B f' g`, and apply
+  the inductive assumption to each of those two terms. This requires applying the inductive
+  assumption to other spaces (of linear maps), which should be in the same universe for the
+  induction to make sense. -/
+  unfreezingI { induction n with n IH generalizing Eu Fu Gu},
+  { simp only [←mul_assoc, norm_iterated_fderiv_within_zero, finset.range_one, finset.sum_singleton,
+      nat.choose_self, algebra_map.coe_one, one_mul],
+    apply ((B (f x)).le_op_norm (g x)).trans,
+    apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    exact B.le_op_norm (f x) },
+  { have In : (n : with_top ℕ) + 1 ≤ n.succ, by simp only [nat.cast_succ, le_refl],
+    have I1 :
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Du), B.precompR Du (f y) (fderiv_within 𝕜 g s y)) s x‖ ≤
+      ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i *
+        ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n + 1 - i) g s x‖ := calc
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Du), B.precompR Du (f y) (fderiv_within 𝕜 g s y)) s x‖
+          ≤ ‖B.precompR Du‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
+            * ‖iterated_fderiv_within 𝕜 i f s x‖
+            * ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 g s) s x‖ :
+        IH _ (hf.of_le (nat.cast_le.2 (nat.le_succ n))) (hg.fderiv_within hs In)
+      ... ≤ ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
+            * ‖iterated_fderiv_within 𝕜 i f s x‖
+            * ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 g s) s x‖ :
+        mul_le_mul_of_nonneg_right (B.norm_precompR_le Du) (finset.sum_nonneg' (λ i, by positivity))
+      ... = _ :
+        begin
+          congr' 1,
+          apply finset.sum_congr rfl (λ i hi, _ ),
+          rw [nat.succ_sub (nat.lt_succ_iff.1 (finset.mem_range.1 hi)),
+            iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map],
+        end,
+    have I2 :
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Du), B.precompL Du (fderiv_within 𝕜 f s y) (g y)) s x‖ ≤
+      ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i *
+        ‖iterated_fderiv_within 𝕜 (i + 1) f s x‖ * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖ := calc
+      ‖iterated_fderiv_within 𝕜 n (λ (y : Du), B.precompL Du (fderiv_within 𝕜 f s y) (g y)) s x‖
+          ≤ ‖B.precompL Du‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
+            * ‖iterated_fderiv_within 𝕜 i (fderiv_within 𝕜 f s) s x‖
+            * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖ :
+        IH _ (hf.fderiv_within hs In) (hg.of_le (nat.cast_le.2 (nat.le_succ n)))
+      ... ≤ ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i
+            * ‖iterated_fderiv_within 𝕜 i (fderiv_within 𝕜 f s) s x‖
+            * ‖iterated_fderiv_within 𝕜 (n - i) g s x‖ :
+        mul_le_mul_of_nonneg_right (B.norm_precompL_le Du) (finset.sum_nonneg' (λ i, by positivity))
+      ... = _ :
+        begin
+          congr' 1,
+          apply finset.sum_congr rfl (λ i hi, _ ),
+          rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map],
+        end,
+    have J : iterated_fderiv_within 𝕜 n
+      (λ (y : Du), fderiv_within 𝕜 (λ (y : Du), B (f y) (g y)) s y) s x
+      = iterated_fderiv_within 𝕜 n (λ y, B.precompR Du (f y) (fderiv_within 𝕜 g s y)
+        + B.precompL Du (fderiv_within 𝕜 f s y) (g y)) s x,
+    { apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
+      have L : (1 : with_top ℕ) ≤ n.succ,
+        by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
+      exact B.fderiv_within_of_bilinear (hf.differentiable_on L y hy)
+        (hg.differentiable_on L y hy) (hs y hy) },
+    rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map, J],
+    have A : cont_diff_on 𝕜 n (λ y, B.precompR Du (f y) (fderiv_within 𝕜 g s y)) s,
+      from (B.precompR Du).is_bounded_bilinear_map.cont_diff.comp_cont_diff_on₂
+        (hf.of_le (nat.cast_le.2 (nat.le_succ n))) (hg.fderiv_within hs In),
+    have A' : cont_diff_on 𝕜 n (λ y, B.precompL Du (fderiv_within 𝕜 f s y) (g y)) s,
+      from (B.precompL Du).is_bounded_bilinear_map.cont_diff.comp_cont_diff_on₂
+        (hf.fderiv_within hs In) (hg.of_le (nat.cast_le.2 (nat.le_succ n))),
+    rw iterated_fderiv_within_add_apply' A A' hs hx,
+    apply (norm_add_le _ _).trans ((add_le_add I1 I2).trans (le_of_eq _)),
+    rw ← mul_add,
+    congr' 1,
+    exact (sum_choose_succ_mul_mul_sub (λ i, ‖iterated_fderiv_within 𝕜 i f s x‖)
+      (λ i, ‖iterated_fderiv_within 𝕜 i g s x‖) n).symm }
+end
+
+/-- Bounding the norm of the iterated derivative of `B (f x) (g x)` within a set in terms of the
+iterated derivatives of `f` and `g` when `B` is bilinear:
+`‖D^n (x ↦ B (f x) (g x))‖ ≤ ‖B‖ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
+lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} {s : set D} {x : D}
+  (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
+  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
+    ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
+begin
+  /- We reduce the bound to the case where all spaces live in the same universe (in which we
+  already have proved the result), by using linear isometries between the spaces and their `ulift`
+  to a common universe. These linear isometries preserve the norm of the iterated derivative. -/
+  let Du : Type (max uD uE uF uG) := ulift D,
+  let Eu : Type (max uD uE uF uG) := ulift.{(max uD uF uG) uE} E,
+  let Fu : Type (max uD uE uF uG) := ulift.{(max uD uE uG) uF} F,
+  let Gu : Type (max uD uE uF uG) := ulift.{(max uD uE uF) uG} G,
+  have isoD : Du ≃ₗᵢ[𝕜] D := linear_isometry_equiv.ulift 𝕜 D,
+  have isoE : Eu ≃ₗᵢ[𝕜] E := linear_isometry_equiv.ulift 𝕜 E,
+  have isoF : Fu ≃ₗᵢ[𝕜] F := linear_isometry_equiv.ulift 𝕜 F,
+  have isoG : Gu ≃ₗᵢ[𝕜] G := linear_isometry_equiv.ulift 𝕜 G,
+  -- lift `f` and `g` to versions `fu` and `gu` on the lifted spaces.
+  let fu : Du → Eu := isoE.symm ∘ f ∘ isoD,
+  let gu : Du → Fu := isoF.symm ∘ g ∘ isoD,
+  -- lift the bilinear map `B` to a bilinear map `Bu` on the lifted spaces.
+  let Bu₀ : Eu →L[𝕜] Fu →L[𝕜] G :=
+    ((B.comp (isoE : Eu →L[𝕜] E)).flip.comp (isoF : Fu →L[𝕜] F)).flip,
+  let Bu : Eu →L[𝕜] Fu →L[𝕜] Gu, from continuous_linear_map.compL 𝕜 Eu (Fu →L[𝕜] G) (Fu →L[𝕜] Gu)
+    (continuous_linear_map.compL 𝕜 Fu G Gu (isoG.symm : G →L[𝕜] Gu)) Bu₀,
+  have Bu_eq : (λ y, Bu (fu y) (gu y)) = isoG.symm ∘ (λ y, B (f y) (g y)) ∘ isoD,
+  { ext1 y,
+    simp only [Bu, continuous_linear_map.compL_apply, function.comp_app,
+      continuous_linear_map.coe_comp', linear_isometry_equiv.coe_coe'',
+      continuous_linear_map.flip_apply, linear_isometry_equiv.apply_symm_apply] },
+  -- All norms are preserved by the lifting process.
+  have Bu_le : ‖Bu‖ ≤ ‖B‖,
+  { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ y, _),
+    refine continuous_linear_map.op_norm_le_bound _ (by positivity) (λ x, _ ),
+    simp only [Bu, continuous_linear_map.compL_apply, continuous_linear_map.coe_comp',
+      function.comp_app, linear_isometry_equiv.coe_coe'', continuous_linear_map.flip_apply,
+      linear_isometry_equiv.norm_map],
+    calc ‖B (isoE y) (isoF x)‖
+        ≤ ‖B (isoE y)‖ * ‖isoF x‖ : continuous_linear_map.le_op_norm _ _
+    ... ≤ ‖B‖ * ‖isoE y‖ * ‖isoF x‖ :
+      mul_le_mul_of_nonneg_right (continuous_linear_map.le_op_norm _ _) (norm_nonneg _)
+    ... = ‖B‖ * ‖y‖ * ‖x‖ : by simp only [linear_isometry_equiv.norm_map] },
+  let su := isoD ⁻¹' s,
+  have hsu : unique_diff_on 𝕜 su,
+    from isoD.to_continuous_linear_equiv.unique_diff_on_preimage_iff.2 hs,
+  let xu := isoD.symm x,
+  have hxu : xu ∈ su,
+    by simpa only [set.mem_preimage, linear_isometry_equiv.apply_symm_apply] using hx,
+  have xu_x : isoD xu = x, by simp only [linear_isometry_equiv.apply_symm_apply],
+  have hfu : cont_diff_on 𝕜 n fu su, from isoE.symm.cont_diff.comp_cont_diff_on
+    ((hf.of_le hn).comp_continuous_linear_map (isoD : Du →L[𝕜] D)),
+  have hgu : cont_diff_on 𝕜 n gu su, from isoF.symm.cont_diff.comp_cont_diff_on
+    ((hg.of_le hn).comp_continuous_linear_map (isoD : Du →L[𝕜] D)),
+  have Nfu : ∀ i, ‖iterated_fderiv_within 𝕜 i fu su xu‖ = ‖iterated_fderiv_within 𝕜 i f s x‖,
+  { assume i,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hsu hxu,
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ hs, xu_x],
+    rwa ← xu_x at hx },
+  have Ngu : ∀ i, ‖iterated_fderiv_within 𝕜 i gu su xu‖ = ‖iterated_fderiv_within 𝕜 i g s x‖,
+  { assume i,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hsu hxu,
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ hs, xu_x],
+    rwa ← xu_x at hx },
+  have NBu : ‖iterated_fderiv_within 𝕜 n (λ y, Bu (fu y) (gu y)) su xu‖ =
+    ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖,
+  { rw Bu_eq,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hsu hxu,
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ hs, xu_x],
+    rwa ← xu_x at hx },
+  -- state the bound for the lifted objects, and deduce the original bound from it.
+  have : ‖iterated_fderiv_within 𝕜 n (λ y, Bu (fu y) (gu y)) su xu‖
+    ≤ ‖Bu‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i fu su xu‖ * ‖iterated_fderiv_within 𝕜 (n-i) gu su xu‖,
+    from Bu.norm_iterated_fderiv_within_le_of_bilinear_aux hfu hgu hsu hxu,
+  simp only [Nfu, Ngu, NBu] at this,
+  apply this.trans (mul_le_mul_of_nonneg_right Bu_le _),
+  exact finset.sum_nonneg' (λ i, by positivity),
+end
+
+/-- Bounding the norm of the iterated derivative of `B (f x) (g x)` in terms of the
+iterated derivatives of `f` and `g` when `B` is bilinear:
+`‖D^n (x ↦ B (f x) (g x))‖ ≤ ‖B‖ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
+lemma continuous_linear_map.norm_iterated_fderiv_le_of_bilinear
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} (x : D)
+  (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  ‖iterated_fderiv 𝕜 n (λ y, B (f y) (g y)) x‖
+    ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
+begin
+  simp_rw [← iterated_fderiv_within_univ],
+  exact B.norm_iterated_fderiv_within_le_of_bilinear hf.cont_diff_on hg.cont_diff_on
+    unique_diff_on_univ (mem_univ x) hn,
+end

@@ -53,19 +53,12 @@ variables [comm_monoid_with_zero α]
 open associates nat
 
 theorem of_wf_dvd_monoid_associates (h : wf_dvd_monoid (associates α)): wf_dvd_monoid α :=
-⟨begin
-  haveI := h,
-  refine (surjective.well_founded_iff mk_surjective _).2 well_founded_dvd_not_unit,
-  intros, rw mk_dvd_not_unit_mk_iff
-end⟩
+⟨mk_rel_covering_dvd_not_unit.well_founded.mpr h.well_founded_dvd_not_unit⟩
 
 variables [wf_dvd_monoid α]
 
 instance wf_dvd_monoid_associates : wf_dvd_monoid (associates α) :=
-⟨begin
-  refine (surjective.well_founded_iff mk_surjective _).1 well_founded_dvd_not_unit,
-  intros, rw mk_dvd_not_unit_mk_iff
-end⟩
+⟨mk_rel_covering_dvd_not_unit.well_founded.mp well_founded_dvd_not_unit⟩
 
 theorem well_founded_associates : well_founded ((<) : associates α → associates α → Prop) :=
 subrelation.wf (λ x y, dvd_not_unit_of_lt) well_founded_dvd_not_unit

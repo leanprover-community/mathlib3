@@ -119,7 +119,7 @@ end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
 ⟨λ a, @subsingleton.elim _ (unique_of_trichotomous_of_irrefl
-  (@rel_embedding.well_founded _ _ r s a is_well_founded.wf)) a⟩
+  (a.to_rel_embedding.well_founded is_well_founded.wf)) a⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g

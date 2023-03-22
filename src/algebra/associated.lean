@@ -751,6 +751,13 @@ iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 theorem mk_dvd_mk {a b : α} : associates.mk a ∣ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 
+/-- `associates.mk` as a `rel_covering` between divisibilities. -/
+def mk_rel_covering_dvd :
+  ((∣) : α → α → Prop) ↠r ((∣) : associates α → associates α → Prop) :=
+{ to_fun := associates.mk,
+  surj' := mk_surjective,
+  map_rel_iff' := λ a b, mk_dvd_mk, }
+
 end comm_monoid
 
 instance [has_zero α] [monoid α] : has_zero (associates α) := ⟨⟦ 0 ⟧⟩
@@ -854,6 +861,13 @@ begin
     use associates.mk x,
     simp [is_unit_mk, mk_mul_mk, hx], }
 end
+
+/-- `associates.mk` as a `rel_covering` between `dvd_not_unit`s. -/
+def mk_rel_covering_dvd_not_unit :
+  (dvd_not_unit : α → α → Prop) ↠r (dvd_not_unit : associates α → associates α → Prop) :=
+{ to_fun := associates.mk,
+  surj' := mk_surjective,
+  map_rel_iff' := λ a b, mk_dvd_not_unit_mk_iff, }
 
 theorem dvd_not_unit_of_lt {a b : associates α} (hlt : a < b) :
   dvd_not_unit a b :=

@@ -138,6 +138,137 @@ def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := �
 
 end rel_hom
 
+-- TODO: Do we need bundled surjective function?
+/-- A relation covering with respect to a given pair of relations `r` and `s`
+is an surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
+@[nolint has_nonempty_instance]
+structure rel_covering {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
+(to_fun : α → β)
+(surj'   : surjective to_fun)
+(map_rel_iff' : ∀ {a b}, s (to_fun a) (to_fun b) ↔ r a b)
+
+infix ` ↠r `:25 := rel_covering
+
+namespace rel_covering
+
+/-- A relation covering is also a relation homomorphism -/
+def to_rel_hom (f : r ↠r s) : (r →r s) :=
+{ to_fun := f.to_fun,
+  map_rel' := λ x y, (map_rel_iff' f).2 }
+
+instance : has_coe (r ↠r s) (r →r s) := ⟨to_rel_hom⟩
+
+-- see Note [function coercion]
+instance : has_coe_to_fun (r ↠r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
+
+instance : rel_hom_class (r ↠r s) r s :=
+{ coe := coe_fn,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_rel := λ f a b, (map_rel_iff' f).2 }
+
+initialize_simps_projections rel_covering (to_fun → apply)
+
+@[simp] lemma to_rel_hom_eq_coe (f : r ↠r s) : f.to_rel_hom = f := rfl
+
+@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r →r s) : α → β) = f := rfl
+
+theorem surjective (f : r ↠r s) : surjective f := f.surj'
+
+protected theorem map_rel_iff (f : r ↠r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
+
+@[simp] theorem coe_fn_mk (f : α → β) (h) (o) :
+  (@rel_covering.mk _ _ r s f h o : α → β) = f := rfl
+
+protected theorem is_irrefl (f : r ↠r s) :
+  is_irrefl α r ↔ is_irrefl β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_refl (f : r ↠r s) :
+  is_refl α r ↔ is_refl β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_symm (f : r ↠r s) :
+  is_symm α r ↔ is_symm β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₂, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_asymm (f : r ↠r s) :
+  is_asymm α r ↔ is_asymm β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₂, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_trans (f : r ↠r s) :
+  is_trans α r ↔ is_trans β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₃, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_total (f : r ↠r s) :
+  is_total α r ↔ is_total β s :=
+begin
+  split; rintros ⟨h⟩; refine ⟨_⟩;
+  simp_rw [f.surjective.forall₂, f.map_rel_iff] at ⊢ h; exact h
+end
+
+protected theorem is_preorder (f : r ↠r s) :
+  is_preorder α r ↔ is_preorder β s :=
+begin
+  split; intros h; cases h with h₁ h₂,
+  exactI {..f.is_refl.mp h₁, ..f.is_trans.mp h₂},
+  exactI {..f.is_refl.mpr h₁, ..f.is_trans.mpr h₂},
+end
+
+protected theorem is_equiv (f : r ↠r s) :
+  is_equiv α r ↔ is_equiv β s :=
+begin
+  split; intros h; cases h with h₁ h₂,
+  exactI {..f.is_preorder.mp h₁, ..f.is_symm.mp h₂},
+  exactI {..f.is_preorder.mpr h₁, ..f.is_symm.mpr h₂},
+end
+
+protected theorem is_strict_order (f : r ↠r s) :
+  is_strict_order α r ↔ is_strict_order β s :=
+begin
+  split; intros h; cases h with h₁ h₂,
+  exactI {..f.is_irrefl.mp h₁, ..f.is_trans.mp h₂},
+  exactI {..f.is_irrefl.mpr h₁, ..f.is_trans.mpr h₂},
+end
+
+protected theorem acc (f : r ↠r s) (a : α) :
+  acc r a ↔ acc s (f a) :=
+begin
+  split,
+  { intro ac,
+    induction ac with _ H IH, dsimp at IH,
+    refine ⟨_, λ a' h, _⟩,
+    obtain ⟨a', rfl⟩ := f.surjective a',
+    exact IH a' (f.map_rel_iff.mp h), },
+  { exact rel_hom_class.acc f a, },
+end
+
+protected theorem well_founded (f : r ↠r s) :
+  well_founded r ↔ well_founded s :=
+begin
+  split,
+  { refine λ wf, ⟨λ a, _⟩,
+    obtain ⟨a, rfl⟩ := f.surjective a,
+    exact (f.acc a).1 (wf.apply a), },
+  { exact rel_hom_class.well_founded f, },
+end
+
+end rel_covering
+
 /-- An increasing function is injective -/
 lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
   [is_irrefl β s] (f : α → β) (hf : ∀ {x y}, r x y → s (f x) (f y)) : injective f :=
@@ -153,16 +284,6 @@ end
 lemma rel_hom.injective_of_increasing [is_trichotomous α r]
   [is_irrefl β s] (f : r →r s) : injective f :=
 injective_of_increasing r s f (λ x y, f.map_rel)
-
--- TODO: define a `rel_iff_class` so we don't have to do all the `convert` trickery?
-theorem surjective.well_founded_iff {f : α → β} (hf : surjective f)
-  (o : ∀ {a b}, r a b ↔ s (f a) (f b)) : well_founded r ↔ well_founded s :=
-iff.intro (begin
-  refine rel_hom_class.well_founded (rel_hom.mk _ _ : s →r r),
-  { exact classical.some hf.has_right_inverse },
-  intros a b h, apply o.2, convert h,
-  iterate 2 { apply classical.some_spec hf.has_right_inverse },
-end) (rel_hom_class.well_founded (⟨f, λ _ _, o.1⟩ : r →r s))
 
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
@@ -211,7 +332,7 @@ theorem injective (f : r ↪r s) : injective f := f.inj'
 
 @[simp] theorem inj (f : r ↪r s) {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
-theorem map_rel_iff (f : r ↪r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
+protected theorem map_rel_iff (f : r ↪r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ↪ β) (o) :
   (@rel_embedding.mk _ _ r s f o : α → β) = f := rfl
@@ -291,20 +412,21 @@ protected theorem is_strict_total_order :
 | f H := by exactI {..f.is_trichotomous, ..f.is_strict_order}
 
 protected theorem acc (f : r ↪r s) (a : α) : acc s (f a) → acc r a :=
-begin
-  generalize h : f a = b, intro ac,
-  induction ac with _ H IH generalizing a, subst h,
-  exact ⟨_, λ a' h, IH (f a') (f.map_rel_iff.2 h) _ rfl⟩
-end
+rel_hom_class.acc f a
 
-protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_founded r
-| f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
+protected theorem well_founded (f : r ↪r s) : well_founded s → well_founded r :=
+rel_hom_class.well_founded f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
+/-- `quotient.mk` as a relation covering between the relation and the lift of a relation. -/
+@[simps] def _root_.quotient.mk_rel_covering {s : setoid α} {r : α → α → Prop} (H) :
+  r ↠r quotient.lift₂ r H :=
+⟨@quotient.mk α _, surjective_quotient_mk α, λ _ _, iff.rfl⟩
+
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
-@[simps] noncomputable def _root_.quotient.out_rel_embedding [s : setoid α] {r : α → α → Prop} (H) :
+@[simps] noncomputable def _root_.quotient.out_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
   quotient.lift₂ r H ↪r r :=
 ⟨embedding.quotient_out α, begin
   refine λ x y, quotient.induction_on₂ x y (λ a b, _),
@@ -312,16 +434,14 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
   apply quotient.mk_out
 end⟩
 
+@[simp] theorem _root_.acc_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
+  acc (quotient.lift₂ r H) ⟦a⟧ ↔ acc r a :=
+((quotient.mk_rel_covering H).acc a).symm
+
 /-- A relation is well founded iff its lift to a quotient is. -/
-@[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop} {H} :
+@[simp] theorem _root_.well_founded_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
-⟨λ hr, begin
-  suffices : ∀ {x : quotient s} {a : α}, ⟦a⟧ = x → acc r a,
-  { exact ⟨λ a, this rfl⟩ },
-  { refine λ x, hr.induction x _,
-    rintros x IH a rfl,
-    exact ⟨_, λ b hb, IH ⟦b⟧ hb rfl⟩ }
-end, (quotient.out_rel_embedding H).well_founded⟩
+(quotient.mk_rel_covering H).well_founded.symm
 
 alias _root_.well_founded_lift₂_iff ↔
   _root_.well_founded.of_quotient_lift₂ _root_.well_founded.quotient_lift₂
@@ -433,10 +553,17 @@ in the target type. -/
 def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 ⟨f.to_equiv.to_embedding, λ _ _, f.map_rel_iff'⟩
 
+/-- Convert an `rel_iso` to an `rel_covering`. This function is also available as a coercion
+but often it is easier to write `f.to_rel_covering` than to write explicitly `r` and `s`
+in the target type. -/
+def to_rel_covering (f : r ≃r s) : r ↠r s :=
+⟨f.to_fun, f.surjective, λ _ _, f.map_rel_iff'⟩
+
 theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
+instance : has_coe (r ≃r s) (r ↠r s) := ⟨to_rel_covering⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 
@@ -585,5 +712,21 @@ def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
   [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
 ⟨equiv.equiv_of_unique α β,
   λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
+
+protected theorem is_irrefl (f : r ≃r s) :
+  is_irrefl α r ↔ is_irrefl β s :=
+f.to_rel_covering.is_irrefl
+
+protected theorem is_asymm (f : r ≃r s) :
+  is_asymm α r ↔ is_asymm β s :=
+f.to_rel_covering.is_asymm
+
+protected theorem acc (f : r ≃r s) (a : α) :
+  acc r a ↔ acc s (f a) :=
+f.to_rel_covering.acc a
+
+protected theorem well_founded (f : r ≃r s) :
+  well_founded r ↔ well_founded s :=
+f.to_rel_covering.well_founded
 
 end rel_iso

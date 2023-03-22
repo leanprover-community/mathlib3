@@ -310,6 +310,15 @@ begin
   simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
 end
 
+/-- If `d` is a positive integer that is not a square, then there exists a nontrivial solution
+to the Pell equation `x^2 - d*y^2 = 1`. -/
+theorem solution₁.exists_nontrivial_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃ a : solution₁ d, a ≠ 1 ∧ a ≠ -1 :=
+begin
+  obtain ⟨x, y, prop, hy⟩ := exists_of_not_is_square h₀ hd,
+  refine ⟨solution₁.mk x y prop, λ H, _, λ H, _⟩; apply_fun solution₁.y at H; simpa [hy] using H,
+end
+
 /-- If `d` is a positive integer that is not a square, then there exists a solution
 to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
 lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :

@@ -2483,8 +2483,8 @@ end
 iterated derivatives of `f` and `g` when `B` is bilinear:
 `‖D^n (x ↦ B (f x) (g x))‖ ≤ ‖B‖ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
 lemma continuous_linear_map.norm_iterated_fderiv_le_of_bilinear
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} (x : D)
-  (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ}
+  (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : D)
   {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
   ‖iterated_fderiv 𝕜 n (λ y, B (f y) (g y)) x‖
     ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
@@ -2493,4 +2493,79 @@ begin
   simp_rw [← iterated_fderiv_within_univ],
   exact B.norm_iterated_fderiv_within_le_of_bilinear hf.cont_diff_on hg.cont_diff_on
     unique_diff_on_univ (mem_univ x) hn,
+end
+
+/-- Bounding the norm of the iterated derivative of `B (f x) (g x)` within a set in terms of the
+iterated derivatives of `f` and `g` when `B` is bilinear of norm at most `1`:
+`‖D^n (x ↦ B (f x) (g x))‖ ≤ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
+lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_of_le_one
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} {s : set D} {x : D}
+  (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
+  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) (hB : ‖B‖ ≤ 1) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
+    ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
+begin
+  apply (B.norm_iterated_fderiv_within_le_of_bilinear hf hg hs hx hn).trans,
+  apply mul_le_of_le_one_left (finset.sum_nonneg' (λ i, _)) hB,
+  positivity
+end
+
+/-- Bounding the norm of the iterated derivative of `B (f x) (g x)` in terms of the
+iterated derivatives of `f` and `g` when `B` is bilinear of norm at most `1`:
+`‖D^n (x ↦ B (f x) (g x))‖ ≤ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
+lemma continuous_linear_map.norm_iterated_fderiv_le_of_bilinear_of_le_one
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ}
+  (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : D)
+  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) (hB : ‖B‖ ≤ 1) :
+  ‖iterated_fderiv 𝕜 n (λ y, B (f y) (g y)) x‖
+    ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
+begin
+  simp_rw [← iterated_fderiv_within_univ],
+  exact B.norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf.cont_diff_on hg.cont_diff_on
+    unique_diff_on_univ (mem_univ x) hn hB,
+end
+
+section
+
+variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'] [normed_space 𝕜' F]
+  [is_scalar_tower 𝕜 𝕜' F]
+
+lemma norm_iterated_fderiv_within_smul_le
+  {f : E → 𝕜'} {g : E → F} {N : with_top ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
+  (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, f y • g y) s x‖
+    ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
+(continuous_linear_map.lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F)
+  .norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn
+  continuous_linear_map.op_norm_lsmul_le
+
+lemma norm_iterated_fderiv_smul_le
+  {f : E → 𝕜'} {g : E → F} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  (x : E) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  ‖iterated_fderiv 𝕜 n (λ y, f y • g y) x‖
+    ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
+(continuous_linear_map.lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F)
+  .norm_iterated_fderiv_le_of_bilinear_of_le_one hf hg x hn
+  continuous_linear_map.op_norm_lsmul_le
+
+lemma norm_iterated_fderiv_within_mul_le
+  {f : E → 𝕜'} {g : E → 𝕜'} {N : with_top ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
+  (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  ‖iterated_fderiv_within 𝕜 n (λ y, f y * g y) s x‖
+    ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
+(norm_iterated_fderiv_within_smul_le hf hg hs hx hn : _)
+
+lemma norm_iterated_fderiv_mul_le
+  {f : E → 𝕜'} {g : E → 𝕜'} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  (x : E) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  ‖iterated_fderiv 𝕜 n (λ y, f y * g y) x‖
+    ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
+      * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
+(norm_iterated_fderiv_smul_le hf hg x hn : _)
+
 end

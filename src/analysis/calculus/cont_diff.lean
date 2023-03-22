@@ -2321,7 +2321,7 @@ lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_aux
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
   /- We argue by induction on `n`. The bound is trivial for `n = 0`. For `n + 1`, we write
-  the `(n+1)`-th derivative as the derivative of the `n`-th derivative `B f g' + B f' g`, and apply
+  the `(n+1)`-th derivative as the `n`-th derivative of derivative `B f g' + B f' g`, and apply
   the inductive assumption to each of those two terms. This requires applying the inductive
   assumption to other spaces (of linear maps), which should be in the same universe for the
   induction to make sense. -/

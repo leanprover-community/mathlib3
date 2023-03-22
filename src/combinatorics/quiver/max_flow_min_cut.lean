@@ -350,8 +350,8 @@ begin
     by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
     have Scomp : S = univ \ T := by {rw ← Tcomp at foo, exact foo},
     rw Scomp at *,
-    -- exact set.not_mem_diff_of_mem tInT,
     sorry,
+    -- exact set.not_mem_diff_of_mem tInT,
   end,
   have expand: mk_out afn.f {s} + (mk_out afn.f (S \ {s}) - mk_in afn.f (S \ {s})) - mk_in afn.f {s}
   =  mk_out afn.f {s} - mk_in afn.f {s} :=
@@ -429,8 +429,8 @@ begin
     by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
     have Scomp : S = univ \ T := by {rw ← Tcomp at foo, exact foo},
     rw Scomp at *,
-    -- exact set.not_mem_diff_of_mem tInT,
     sorry,
+    -- exact set.not_mem_diff_of_mem tInT,
   end,
   have lemma1: F_value afn = mk_out afn.f S - mk_in afn.f S :=
   begin
@@ -444,8 +444,8 @@ begin
       unfold mk_out,
       have flowLEcut: ∀ (x y : V), (afn.f x y ≤ afn.network.to_capacity.c x y) :=
       by {exact afn.no_overflow},
-      -- exact finset.sum_le_sum flowLEcut,
       sorry,
+      -- exact finset.sum_le_sum flowLEcut,
     end,
     unfold mk_out,
     unfold mk_out at no_overflow,

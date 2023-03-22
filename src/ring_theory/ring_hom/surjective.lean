@@ -69,10 +69,10 @@ begin
     obtain ⟨z, ⟨_, n, rfl⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers (r : R)) y,
     erw [is_localization.map_mk', is_localization.eq] at hy,
     obtain ⟨⟨_, m, rfl⟩, hm⟩ := hy,
-    dsimp at hm,
-    simp_rw [_root_.mul_assoc, _root_.one_mul, ← map_pow, ← f.map_mul, ← pow_add, mul_comm x] at hm,
-    rw map_pow at hm,
-    refine ⟨n + m, _, hm⟩ }
+    refine ⟨m + n, _⟩,
+    dsimp at hm ⊢,
+    simp_rw [_root_.one_mul, ← _root_.mul_assoc, ← map_pow, ← f.map_mul, ← pow_add, map_pow] at hm,
+    exact ⟨_, hm⟩ }
 end
 
 end ring_hom

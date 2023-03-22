@@ -10,6 +10,9 @@ import category_theory.limits.is_limit
 /-!
 # The category of "pairwise intersections".
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `ι : Type v`, we build the diagram category `pairwise ι`
 with objects `single i` and `pair i j`, for `i j : ι`,
 whose only non-identity morphisms are

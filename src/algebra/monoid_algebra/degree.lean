@@ -8,6 +8,9 @@ import algebra.monoid_algebra.support
 /-!
 # Lemmas about the `sup` and `inf` of the support of `add_monoid_algebra`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## TODO
 The current plan is to state and prove lemmas about `finset.sup (finsupp.support f) D` with a
 "generic" degree/weight function `D` from the grading Type `A` to a somewhat ordered Type `B`.

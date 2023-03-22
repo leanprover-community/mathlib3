@@ -57,7 +57,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
     rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    apply mul_right_cancel₀ _ h,
+    apply mul_left_cancel₀ _ h,
     rwa mem_non_zero_divisors_iff_ne_zero at hc,
   end }
 
@@ -165,7 +165,7 @@ is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
   {y : non_zero_divisors R} : mk' K x y = 0 ↔ x = 0 :=
 begin
   refine ⟨λ hxy, _, λ h, by rw [h, mk'_zero]⟩,
-  { simp_rw [mk'_eq_zero_iff, mul_right_coe_non_zero_divisors_eq_zero_iff] at hxy,
+  { simp_rw [mk'_eq_zero_iff, mul_left_coe_non_zero_divisors_eq_zero_iff] at hxy,
     exact (exists_const _).mp hxy },
 end
 

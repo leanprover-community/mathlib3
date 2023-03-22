@@ -3,12 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kyle Miller
 -/
-import data.finset.sort
+import data.finset.basic
 import data.set.functor
 import data.finite.basic
 
 /-!
 # Finite sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines predicates for finite and infinite sets and provides
 `fintype` instances for many set constructions. It also proves basic facts
@@ -1226,27 +1229,27 @@ s.finite_to_set.bdd_below
 
 end finset
 
-/--
-If a set `s` does not contain any elements between any pair of elements `x, z ∈ s` with `x ≤ z`
-(i.e if given `x, y, z ∈ s` such that `x ≤ y ≤ z`, then `y` is either `x` or `z`), then `s` is
-finite.
--/
-lemma set.finite_of_forall_between_eq_endpoints {α : Type*} [linear_order α] (s : set α)
-  (h : ∀ (x ∈ s) (y ∈ s) (z ∈ s), x ≤ y → y ≤ z → x = y ∨ y = z) :
-  set.finite s :=
+variables [linear_order α]
+
+/-- If a linear order does not contain any triple of elements `x < y < z`, then this type
+is finite. -/
+lemma finite.of_forall_not_lt_lt (h : ∀ ⦃x y z : α⦄, x < y → y < z → false) :
+  finite α :=
 begin
-  by_contra hinf,
-  change s.infinite at hinf,
-  rcases hinf.exists_subset_card_eq 3 with ⟨t, hts, ht⟩,
-  let f := t.order_iso_of_fin ht,
-  let x := f 0,
-  let y := f 1,
-  let z := f 2,
-  have := h x (hts x.2) y (hts y.2) z (hts z.2)
-    (f.monotone $ by dec_trivial) (f.monotone $ by dec_trivial),
-  have key₁ : (0 : fin 3) ≠ 1 := by dec_trivial,
-  have key₂ : (1 : fin 3) ≠ 2 := by dec_trivial,
-  cases this,
-  { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
-  { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
+  nontriviality α,
+  rcases exists_pair_ne α with ⟨x, y, hne⟩,
+  refine @finite.of_fintype α ⟨{x, y}, λ z , _⟩,
+  simpa [hne] using eq_or_eq_or_eq_of_forall_not_lt_lt h z x y
 end
+
+/-- If a set `s` does not contain any triple of elements `x < y < z`, then `s` is finite. -/
+lemma set.finite_of_forall_not_lt_lt {s : set α} (h : ∀ (x y z ∈ s), x < y → y < z → false) :
+  set.finite s :=
+@set.to_finite _ s $ finite.of_forall_not_lt_lt $ by simpa only [set_coe.forall'] using h
+
+lemma set.finite_diff_Union_Ioo (s : set α) : (s \ ⋃ (x ∈ s) (y ∈ s), Ioo x y).finite :=
+set.finite_of_forall_not_lt_lt $ λ x hx y hy z hz hxy hyz, hy.2 $ mem_Union₂_of_mem hx.1 $
+  mem_Union₂_of_mem hz.1 ⟨hxy, hyz⟩
+
+lemma set.finite_diff_Union_Ioo' (s : set α) : (s \ ⋃ x : s × s, Ioo x.1 x.2).finite :=
+by simpa only [Union, supr_prod, supr_subtype] using s.finite_diff_Union_Ioo

@@ -11,6 +11,9 @@ import linear_algebra.basis
 /-!
 # Towers of algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We set up the basic theory of algebra towers.
 An algebra tower A/S/R is expressed by having instances of `algebra A S`,
 `algebra R S`, `algebra R A` and `is_scalar_tower R S A`, the later asserting the

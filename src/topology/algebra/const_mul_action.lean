@@ -12,6 +12,9 @@ import topology.support
 /-!
 # Monoid actions continuous in the second variable
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define class `has_continuous_const_smul`. We say `has_continuous_const_smul Γ T` if
 `Γ` acts on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs from
 `has_continuous_smul`, which requires simultaneous continuity in both variables.)
@@ -37,7 +40,7 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 -/
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 open filter set topological_space
 

@@ -6,7 +6,8 @@ Authors: Floris van Doorn
 import measure_theory.group.integration
 import measure_theory.group.prod
 import measure_theory.function.locally_integrable
-import analysis.calculus.specific_functions
+import analysis.calculus.bump_function_inner
+import measure_theory.integral.interval_integral
 import analysis.calculus.parametric_integral
 
 /-!
@@ -65,7 +66,7 @@ Versions of these statements for functions depending on a parameter are also giv
 
 * `convolution_tendsto_right`: Given a sequence of nonnegative normalized functions whose support
   tends to a small neighborhood around `0`, the convolution tends to the right argument.
-  This is specialized to bump functions in `cont_diff_bump_of_inner.convolution_tendsto_right`.
+  This is specialized to bump functions in `cont_diff_bump.convolution_tendsto_right`.
 
 # Notation
 The following notations are localized in the locale `convolution`:
@@ -88,7 +89,7 @@ The following notations are localized in the locale `convolution`:
 
 open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
-open_locale pointwise topological_space nnreal filter
+open_locale pointwise topology nnreal filter
 
 universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 
@@ -210,7 +211,7 @@ lemma bdd_above.convolution_exists_at' {x₀ : G}
   (hf : integrable_on f s μ) (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) (μ.restrict s)) :
   convolution_exists_at f g x₀ L μ :=
 begin
-  rw [convolution_exists_at, ← integrable_on_iff_integrable_of_support_subset h2s hs],
+  rw [convolution_exists_at, ← integrable_on_iff_integrable_of_support_subset h2s],
   set s' := (λ t, - t + x₀) ⁻¹' s,
   have : ∀ᵐ (t : G) ∂(μ.restrict s),
     ‖L (f t) (g (x₀ - t))‖ ≤ s.indicator (λ t, ‖L‖ * ‖f t‖ * ⨆ i : s', ‖g i‖) t,
@@ -481,6 +482,30 @@ by simp only [convolution_def, L.map_add₂, pi.add_apply, integral_add hfg hfg'
 lemma convolution_exists.add_distrib (hfg : convolution_exists f g L μ)
   (hfg' : convolution_exists f' g L μ) : (f + f') ⋆[L, μ] g = f ⋆[L, μ] g + f' ⋆[L, μ] g :=
 by { ext, exact (hfg x).add_distrib (hfg' x) }
+
+lemma convolution_mono_right {f g g' : G → ℝ}
+  (hfg : convolution_exists_at f g x (lsmul ℝ ℝ) μ)
+  (hfg' : convolution_exists_at f g' x (lsmul ℝ ℝ) μ)
+  (hf : ∀ x, 0 ≤ f x) (hg : ∀ x, g x ≤ g' x) :
+  (f ⋆[lsmul ℝ ℝ, μ] g) x ≤ (f ⋆[lsmul ℝ ℝ, μ] g') x :=
+begin
+  apply integral_mono hfg hfg',
+  simp only [lsmul_apply, algebra.id.smul_eq_mul],
+  assume t,
+  apply mul_le_mul_of_nonneg_left (hg _) (hf _),
+end
+
+lemma convolution_mono_right_of_nonneg {f g g' : G → ℝ}
+  (hfg' : convolution_exists_at f g' x (lsmul ℝ ℝ) μ)
+  (hf : ∀ x, 0 ≤ f x) (hg : ∀ x, g x ≤ g' x) (hg' : ∀ x, 0 ≤ g' x) :
+  (f ⋆[lsmul ℝ ℝ, μ] g) x ≤ (f ⋆[lsmul ℝ ℝ, μ] g') x :=
+begin
+  by_cases H : convolution_exists_at f g x (lsmul ℝ ℝ) μ,
+  { exact convolution_mono_right H hfg' hf hg },
+  have : (f ⋆[lsmul ℝ ℝ, μ] g) x = 0 := integral_undef H,
+  rw this,
+  exact integral_nonneg (λ y, mul_nonneg (hf y) (hg' (x - y))),
+end
 
 variables (L)
 
@@ -877,7 +902,7 @@ end
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
 * `k i` tends to `x₀`.
 
-See also `cont_diff_bump_of_inner.convolution_tendsto_right`.
+See also `cont_diff_bump.convolution_tendsto_right`.
 -/
 lemma convolution_tendsto_right
   {ι} {g : ι → G → E'} {l : filter ι} {x₀ : G} {z₀ : E'}
@@ -912,13 +937,13 @@ end
 
 end normed_add_comm_group
 
-namespace cont_diff_bump_of_inner
+namespace cont_diff_bump
 
 variables {n : ℕ∞}
 variables [normed_space ℝ E']
-variables [inner_product_space ℝ G]
+variables [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
 variables [complete_space E']
-variables {a : G} {φ : cont_diff_bump_of_inner (0 : G)}
+variables {a : G} {φ : cont_diff_bump (0 : G)}
 
 /-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma convolution_eq_right {x₀ : G}
@@ -951,7 +976,7 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
 * `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
 * `k i` tends to `x₀`. -/
-lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump (0 : G)}
   {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hig : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
@@ -962,16 +987,16 @@ convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
   (eventually_of_forall $ λ i, (φ i).integral_normed)
   (tendsto_support_normed_small_sets hφ) hig hcg hk
 
-/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous,
+/-- Special case of `cont_diff_bump.convolution_tendsto_right` where `g` is continuous,
   and the limit is taken only in the first function. -/
-lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
 convolution_tendsto_right hφ (eventually_of_forall $ λ _, hg.ae_strongly_measurable)
   ((hg.tendsto x₀).comp tendsto_snd) tendsto_const_nhds
 
-end cont_diff_bump_of_inner
+end cont_diff_bump
 
 end measurability
 
@@ -1538,3 +1563,75 @@ lemma has_compact_support.cont_diff_convolution_left [μ.is_add_left_invariant] 
 by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
 
 end with_param
+
+section nonneg
+
+variables [normed_space ℝ E] [normed_space ℝ E'] [normed_space ℝ F] [complete_space F]
+
+/-- The forward convolution of two functions `f` and `g` on `ℝ`, with respect to a continuous
+bilinear map `L` and measure `ν`. It is defined to be the function mapping `x` to
+`∫ t in 0..x, L (f t) (g (x - t)) ∂ν` if `0 < x`, and 0 otherwise. -/
+noncomputable def pos_convolution
+  (f : ℝ → E) (g : ℝ → E') (L : E →L[ℝ] E' →L[ℝ] F) (ν : measure ℝ . volume_tac) : ℝ → F :=
+indicator (Ioi (0:ℝ)) (λ x, ∫ t in 0..x, L (f t) (g (x - t)) ∂ν)
+
+lemma pos_convolution_eq_convolution_indicator
+  (f : ℝ → E) (g : ℝ → E') (L : E →L[ℝ] E' →L[ℝ] F) (ν : measure ℝ . volume_tac) [has_no_atoms ν] :
+  pos_convolution f g L ν = convolution (indicator (Ioi 0) f) (indicator (Ioi 0) g) L ν :=
+begin
+  ext1 x,
+  rw [convolution, pos_convolution, indicator],
+  split_ifs,
+  { rw [interval_integral.integral_of_le (le_of_lt h),
+      integral_Ioc_eq_integral_Ioo,
+      ←integral_indicator (measurable_set_Ioo : measurable_set (Ioo 0 x))],
+    congr' 1 with t : 1,
+    have : (t ≤ 0) ∨ (t ∈ Ioo 0 x) ∨ (x ≤ t),
+    { rcases le_or_lt t 0 with h | h,
+      { exact or.inl h },
+      { rcases lt_or_le t x with h' | h',
+        exacts [or.inr (or.inl ⟨h, h'⟩), or.inr (or.inr h')] } },
+    rcases this with ht|ht|ht,
+    { rw [indicator_of_not_mem (not_mem_Ioo_of_le ht), indicator_of_not_mem (not_mem_Ioi.mpr ht),
+        continuous_linear_map.map_zero, continuous_linear_map.zero_apply] },
+    { rw [indicator_of_mem ht, indicator_of_mem (mem_Ioi.mpr ht.1),
+        indicator_of_mem (mem_Ioi.mpr $ sub_pos.mpr ht.2)] },
+    { rw [indicator_of_not_mem (not_mem_Ioo_of_ge ht),
+        indicator_of_not_mem (not_mem_Ioi.mpr (sub_nonpos_of_le ht)),
+        continuous_linear_map.map_zero] } },
+  { convert (integral_zero ℝ F).symm,
+    ext1 t,
+    by_cases ht : 0 < t,
+    { rw [indicator_of_not_mem (_ : x - t ∉ Ioi 0), continuous_linear_map.map_zero],
+      rw not_mem_Ioi at h ⊢,
+      exact sub_nonpos.mpr (h.trans ht.le) },
+    { rw [indicator_of_not_mem (mem_Ioi.not.mpr ht), continuous_linear_map.map_zero,
+        continuous_linear_map.zero_apply] } }
+end
+
+lemma integrable_pos_convolution {f : ℝ → E} {g : ℝ → E'} {μ ν : measure ℝ}
+  [sigma_finite μ] [sigma_finite ν] [is_add_right_invariant μ] [has_no_atoms ν]
+  (hf : integrable_on f (Ioi 0) ν) (hg : integrable_on g (Ioi 0) μ) (L : E →L[ℝ] E' →L[ℝ] F) :
+  integrable (pos_convolution f g L ν) μ :=
+begin
+  rw ←integrable_indicator_iff (measurable_set_Ioi : measurable_set (Ioi (0:ℝ))) at hf hg,
+  rw pos_convolution_eq_convolution_indicator f g L ν,
+  exact (hf.convolution_integrand L hg).integral_prod_left,
+end
+
+/-- The integral over `Ioi 0` of a forward convolution of two functions is equal to the product
+of their integrals over this set. (Compare `integral_convolution` for the two-sided convolution.) -/
+lemma integral_pos_convolution [complete_space E] [complete_space E'] {μ ν : measure ℝ}
+  [sigma_finite μ] [sigma_finite ν] [is_add_right_invariant μ] [has_no_atoms ν]
+  {f : ℝ → E} {g : ℝ → E'} (hf : integrable_on f (Ioi 0) ν)
+  (hg : integrable_on g (Ioi 0) μ) (L : E →L[ℝ] E' →L[ℝ] F)  :
+  ∫ x:ℝ in Ioi 0, (∫ t:ℝ in 0..x, L (f t) (g (x - t)) ∂ν) ∂μ =
+    L (∫ x:ℝ in Ioi 0, f x ∂ν) (∫ x:ℝ in Ioi 0, g x ∂μ) :=
+begin
+  rw ←integrable_indicator_iff (measurable_set_Ioi : measurable_set (Ioi (0:ℝ))) at hf hg,
+  simp_rw ←integral_indicator measurable_set_Ioi,
+  convert integral_convolution L hf hg using 2,
+  apply pos_convolution_eq_convolution_indicator,
+end
+
+end nonneg

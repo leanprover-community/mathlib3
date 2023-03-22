@@ -12,6 +12,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Connected limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A connected limit is a limit whose shape is a connected category.
 
 We give examples of connected categories, and prove that the functor given

@@ -10,6 +10,9 @@ import data.int.order.basic
 
 /-! # Image and map operations on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Thie file provides the finite analog of `set.image`, along with some other similar functions.
 
 Note there are two ways to take the image over a finset; via `finset.image` which applies the

@@ -24,7 +24,7 @@ you should restate it here. You can also use
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal bounded_continuous_function big_operators
+open_locale topology classical nnreal bounded_continuous_function big_operators
 
 open set filter metric
 
@@ -205,6 +205,11 @@ le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
 lemma norm_eq_supr_norm : ‖f‖ = ⨆ x : α, ‖f x‖ :=
 (mk_of_compact f).norm_eq_supr_norm
+
+lemma norm_restrict_mono_set {X : Type*} [topological_space X]
+  (f : C(X, E)) {K L : topological_space.compacts X} (hKL : K ≤ L) :
+  ‖f.restrict K‖ ≤ ‖f.restrict L‖ :=
+(norm_le _ (norm_nonneg _)).mpr (λ x, norm_coe_le_norm (f.restrict L) $ set.inclusion hKL x)
 
 end
 
@@ -409,7 +414,12 @@ map_continuous (comp_right_continuous_map A f)
 
 end comp_right
 
-section weierstrass
+section local_normal_convergence
+/-! ### Local normal convergence
+
+A sum of continuous functions (on a locally compact space) is "locally normally convergent" if the
+sum of its sup-norms on any compact subset is summable. This implies convergence in the topology
+of `C(X, E)` (i.e. locally uniform convergence). -/
 
 open topological_space
 
@@ -427,8 +437,7 @@ begin
   simpa only [has_sum, A] using summable_of_summable_norm (hF K)
 end
 
-end weierstrass
-
+end local_normal_convergence
 
 /-!
 ### Star structures

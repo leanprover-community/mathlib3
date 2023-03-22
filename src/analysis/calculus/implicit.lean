@@ -45,7 +45,7 @@ implicit function, inverse function
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 open filter
 open continuous_linear_map (fst snd smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)

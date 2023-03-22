@@ -8,6 +8,9 @@ import topology.constructions
 /-!
 # Neighborhoods and continuity relative to a subset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines relative versions
 
 * `nhds_within`           of `nhds`
@@ -27,7 +30,7 @@ equipped with the subspace topology.
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
@@ -614,10 +617,6 @@ ctsf.tendsto_nhds_within_image.le_comap
 @[simp] lemma comap_nhds_within_range {α} (f : α → β) (y : β) :
   comap f (𝓝[range f] y) = comap f (𝓝 y) :=
 comap_inf_principal_range
-
-theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
-  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
-tendsto_iff_ptendsto _ _ _ _
 
 lemma continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
 by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_within_at,

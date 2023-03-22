@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import data.nat.totient
 import group_theory.order_of_element
+import group_theory.subgroup.simple
 import tactic.group
 import group_theory.exponent
 

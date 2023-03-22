@@ -26,7 +26,7 @@ The last part of the file should be generalized to `pi_Lp`.
 noncomputable theory
 
 open is_R_or_C real filter
-open_locale big_operators classical topological_space
+open_locale big_operators classical topology
 
 section deriv_inner
 
@@ -191,7 +191,7 @@ cont_diff_iff_cont_diff_at.2 $
 
 omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
-  has_strict_fderiv_at (λ x, ‖x‖ ^ 2) (bit0 (innerSL x : F →L[ℝ] ℝ)) x :=
+  has_strict_fderiv_at (λ x, ‖x‖ ^ 2) (bit0 (innerSL ℝ x)) x :=
 begin
   simp only [sq, ← inner_self_eq_norm_mul_norm],
   convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),

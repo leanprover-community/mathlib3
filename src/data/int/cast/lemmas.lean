@@ -290,15 +290,6 @@ by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
 
-namespace mul_opposite
-variables [add_group_with_one α]
-
-@[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
-
-@[simp, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
-
-end mul_opposite
-
 /-! ### Order dual -/
 
 open order_dual

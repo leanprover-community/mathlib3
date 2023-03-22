@@ -346,6 +346,7 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
+/-- See also `int.div_mod_equiv` for a similar statement as an `equiv`. -/
 protected theorem div_mod_unique {a b r q : ℤ} (h : 0 < b) :
   a / b = q ∧ a % b = r ↔ r + b * q = a ∧ 0 ≤ r ∧ r < b :=
 begin

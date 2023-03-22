@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import algebra.module.basic
 import algebra.order.archimedean
 import algebra.periodic
+import data.int.succ_pred
 import group_theory.quotient_group
 
 /-!
@@ -319,7 +320,7 @@ lemma to_Ico_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
 begin
   suffices : to_Ico_div a hb (-x) = -(to_Ioc_div (-(a + b)) hb x),
   { rwa [neg_add, ←sub_eq_add_neg, ←to_Ioc_div_add_right', to_Ioc_div_add_right] at this },
-  rw [eq_neg_iff_eq_neg, eq_comm],
+  rw [← neg_eq_iff_eq_neg],
   apply eq_to_Ioc_div_of_sub_zsmul_mem_Ioc,
   obtain ⟨hc, ho⟩ := sub_to_Ico_div_zsmul_mem_Ico a hb (-x),
   rw [←neg_lt_neg_iff, neg_sub' (-x), neg_neg, ←neg_smul] at ho,
@@ -454,6 +455,8 @@ begin
     rw [hz, to_Ioc_mod_zsmul_add] }
 end
 
+/-! ### Links between the `Ico` and `Ioc` variants applied to the same element -/
+
 section Ico_Ioc
 
 variables (a : α) {b : α} (hb : 0 < b) (x : α)
@@ -496,6 +499,14 @@ lemma mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod :
   mem_Ioo_mod a b x ↔ to_Ico_mod a hb x + b ≠ to_Ioc_mod a hb x := (tfae_mem_Ioo_mod a hb x).out 0 2
 lemma mem_Ioo_mod_iff_to_Ico_mod_ne_left :
   mem_Ioo_mod a b x ↔ to_Ico_mod a hb x ≠ a := (tfae_mem_Ioo_mod a hb x).out 0 3
+
+lemma not_mem_Ioo_mod_iff_to_Ico_mod_add_period_eq_to_Ioc_mod :
+  ¬mem_Ioo_mod a b x ↔ to_Ico_mod a hb x + b = to_Ioc_mod a hb x :=
+(mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hb).not_left
+
+lemma not_mem_Ioo_mod_iff_to_Ico_mod_eq_left : ¬mem_Ioo_mod a b x ↔ to_Ico_mod a hb x = a :=
+(mem_Ioo_mod_iff_to_Ico_mod_ne_left hb).not_left
+
 lemma mem_Ioo_mod_iff_to_Ioc_mod_ne_right : mem_Ioo_mod a b x ↔ to_Ioc_mod a hb x ≠ a + b :=
 begin
   rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod, to_Ico_mod_eq_iff hb],
@@ -504,20 +515,27 @@ begin
     (to_Ioc_mod_add_to_Ioc_div_zsmul _ _ _).symm⟩⟩,
 end
 
+lemma not_mem_Ioo_mod_iff_to_Ioc_eq_right : ¬mem_Ioo_mod a b x ↔ to_Ioc_mod a hb x = a + b :=
+(mem_Ioo_mod_iff_to_Ioc_mod_ne_right hb).not_left
+
 lemma mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div :
   mem_Ioo_mod a b x ↔ to_Ico_div a hb x = to_Ioc_div a hb x :=
 by rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb,
        to_Ico_mod, to_Ioc_mod, sub_right_inj, (zsmul_strict_mono_left hb).injective.eq_iff]
 
-lemma mem_Ioo_mod_iff_to_Ico_div_add_one_ne_to_Ioc_div :
+lemma mem_Ioo_mod_iff_to_Ico_div_ne_to_Ioc_div_add_one :
   mem_Ioo_mod a b x ↔ to_Ico_div a hb x ≠ to_Ioc_div a hb x + 1 :=
 by rw [mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hb, ne, ne, to_Ico_mod, to_Ioc_mod,
        ← eq_sub_iff_add_eq, sub_sub, sub_right_inj, ← add_one_zsmul,
        (zsmul_strict_mono_left hb).injective.eq_iff]
 
+lemma not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one :
+  ¬mem_Ioo_mod a b x ↔ to_Ico_div a hb x = to_Ioc_div a hb x + 1 :=
+(mem_Ioo_mod_iff_to_Ico_div_ne_to_Ioc_div_add_one hb).not_left
+
 include hb
 
-lemma mem_Ioo_mod_iff_sub_ne_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, x ≠ a + z • b :=
+lemma mem_Ioo_mod_iff_ne_add_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, x ≠ a + z • b :=
 begin
   rw [mem_Ioo_mod_iff_to_Ico_mod_ne_left hb, ← not_iff_not],
   push_neg, split; intro h,
@@ -527,16 +545,48 @@ begin
     exact ⟨lt_add_of_pos_right a hb, h⟩, },
 end
 
-lemma mem_Ioo_mod_iff_eq_mod_zmultiples :
+lemma not_mem_Ioo_mod_iff_eq_add_zsmul : ¬mem_Ioo_mod a b x ↔ ∃ z : ℤ, x = a + z • b :=
+by simpa only [not_forall, not_ne_iff] using (mem_Ioo_mod_iff_ne_add_zsmul hb).not
+
+lemma not_mem_Ioo_mod_iff_eq_mod_zmultiples :
+  ¬mem_Ioo_mod a b x ↔ (x : α ⧸ add_subgroup.zmultiples b) = a :=
+by simp_rw [not_mem_Ioo_mod_iff_eq_add_zsmul hb, quotient_add_group.eq_iff_sub_mem,
+    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
+
+lemma mem_Ioo_mod_iff_ne_mod_zmultiples :
   mem_Ioo_mod a b x ↔ (x : α ⧸ add_subgroup.zmultiples b) ≠ a :=
-by simp_rw [mem_Ioo_mod_iff_sub_ne_zsmul hb, ne, quotient_add_group.eq_iff_sub_mem,
-    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm, not_exists]
+(not_mem_Ioo_mod_iff_eq_mod_zmultiples hb).not_right
 
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {x | to_Ico_mod a hb x = to_Ioc_mod a hb x} = ⋃ z : ℤ, set.Ioo (a + z • b) (a + b + z • b) :=
 begin
   ext1, simp_rw [set.mem_set_of, set.mem_Union, ← set.sub_mem_Ioo_iff_left],
   exact (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb).symm,
+end
+
+lemma to_Ioc_div_wcovby_to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_div a hb x ⩿ to_Ico_div a hb x :=
+begin
+  suffices : to_Ioc_div a hb x = to_Ico_div a hb x ∨ to_Ioc_div a hb x + 1 = to_Ico_div a hb x,
+  { rwa [wcovby_iff_eq_or_covby, ←order.succ_eq_iff_covby] },
+  rw [eq_comm, ←mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div,
+    eq_comm, ←not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one],
+  exact em _,
+end
+
+lemma to_Ico_mod_le_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_mod a hb x ≤ to_Ioc_mod a hb x :=
+begin
+  rw [to_Ico_mod, to_Ioc_mod, sub_le_sub_iff_left],
+  exact zsmul_mono_left hb.le (to_Ioc_div_wcovby_to_Ico_div _ _ _).le
+end
+
+lemma to_Ioc_mod_le_to_Ico_mod_add (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_mod a hb x ≤ to_Ico_mod a hb x + b :=
+begin
+  rw [to_Ico_mod, to_Ioc_mod, sub_add, sub_le_sub_iff_left, sub_le_iff_le_add, ←add_one_zsmul,
+    (zsmul_strict_mono_left hb).le_iff_le],
+  apply (to_Ioc_div_wcovby_to_Ico_div _ _ _).le_succ,
 end
 
 end Ico_Ioc
@@ -683,3 +733,77 @@ lemma to_Ico_mod_zero_one (x : α) : to_Ico_mod (0 : α) zero_lt_one x = int.fra
 by simp [to_Ico_mod_eq_add_fract_mul]
 
 end linear_ordered_field
+
+/-! ### Lemmas about unions of translates of intervals -/
+section union
+
+open set int
+
+section linear_ordered_add_comm_group
+
+variables {α : Type*} [linear_ordered_add_comm_group α] [archimedean α] (a : α) {b : α} (hb : 0 < b)
+include hb
+
+lemma Union_Ioc_add_zsmul : (⋃ (n : ℤ), Ioc (a + n • b) (a + (n + 1) • b)) = univ :=
+begin
+  refine eq_univ_iff_forall.mpr (λ x, mem_Union.mpr _),
+  rcases sub_to_Ioc_div_zsmul_mem_Ioc a hb x with ⟨hl, hr⟩,
+  refine ⟨to_Ioc_div a hb x, ⟨lt_sub_iff_add_lt.mp hl, _⟩⟩,
+  rw [add_smul, one_smul, ←add_assoc],
+  convert sub_le_iff_le_add.mp hr using 1, abel,
+end
+
+lemma Union_Ico_add_zsmul : (⋃ (n : ℤ), Ico (a + n • b) (a + (n + 1) • b)) = univ :=
+begin
+  refine eq_univ_iff_forall.mpr (λ x, mem_Union.mpr _),
+  rcases sub_to_Ico_div_zsmul_mem_Ico a hb x with ⟨hl, hr⟩,
+  refine ⟨to_Ico_div a hb x, ⟨le_sub_iff_add_le.mp hl, _⟩⟩,
+  rw [add_smul, one_smul, ←add_assoc],
+  convert sub_lt_iff_lt_add.mp hr using 1, abel,
+end
+
+lemma Union_Icc_add_zsmul : (⋃ (n : ℤ), Icc (a + n • b) (a + (n + 1) • b)) = univ :=
+by simpa only [Union_Ioc_add_zsmul a hb, univ_subset_iff] using
+  Union_mono (λ n : ℤ, (Ioc_subset_Icc_self : Ioc (a + n • b) (a + (n + 1) • b) ⊆ Icc _ _))
+
+lemma Union_Ioc_zsmul : (⋃ (n : ℤ), Ioc (n • b) ((n + 1) • b)) = univ :=
+by simpa only [zero_add] using Union_Ioc_add_zsmul 0 hb
+
+lemma Union_Ico_zsmul : (⋃ (n : ℤ), Ico (n • b) ((n + 1) • b)) = univ :=
+by simpa only [zero_add] using Union_Ico_add_zsmul 0 hb
+
+lemma Union_Icc_zsmul : (⋃ (n : ℤ), Icc (n • b) ((n + 1) • b)) = univ :=
+by simpa only [zero_add] using Union_Icc_add_zsmul 0 hb
+
+end linear_ordered_add_comm_group
+
+section linear_ordered_ring
+
+variables {α : Type*} [linear_ordered_ring α] [archimedean α] (a : α)
+
+lemma Union_Ioc_add_int_cast : (⋃ (n : ℤ), Ioc (a + n) (a + n + 1)) = set.univ :=
+by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
+  using Union_Ioc_add_zsmul a zero_lt_one
+
+lemma Union_Ico_add_int_cast : (⋃ (n : ℤ), Ico (a + n) (a + n + 1)) = set.univ :=
+by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
+  using Union_Ico_add_zsmul a zero_lt_one
+
+lemma Union_Icc_add_int_cast : (⋃ (n : ℤ), Icc (a + n) (a + n + 1)) = set.univ :=
+by simpa only [zsmul_one, int.cast_add, int.cast_one, ←add_assoc]
+  using Union_Icc_add_zsmul a (zero_lt_one' α)
+
+variables (α)
+
+lemma Union_Ioc_int_cast : (⋃ (n : ℤ), Ioc (n : α) (n + 1)) = set.univ :=
+by simpa only [zero_add] using Union_Ioc_add_int_cast (0 : α)
+
+lemma Union_Ico_int_cast : (⋃ (n : ℤ), Ico (n : α) (n + 1)) = set.univ :=
+by simpa only [zero_add] using Union_Ico_add_int_cast (0 : α)
+
+lemma Union_Icc_int_cast : (⋃ (n : ℤ), Icc (n : α) (n + 1)) = set.univ :=
+by simpa only [zero_add] using Union_Icc_add_int_cast (0 : α)
+
+end linear_ordered_ring
+
+end union

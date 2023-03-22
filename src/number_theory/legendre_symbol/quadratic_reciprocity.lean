@@ -235,7 +235,7 @@ end
 
 lemma mod_four_ne_three_of_sq_eq_neg_sq {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
   p % 4 ≠ 3 :=
-mod_four_ne_three_of_sq_eq_neg_sq' hx (eq_neg_iff_eq_neg.1 hxy)
+mod_four_ne_three_of_sq_eq_neg_sq' hx (neg_eq_iff_eq_neg.mpr hxy).symm
 
 end zmod
 

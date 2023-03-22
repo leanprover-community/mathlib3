@@ -10,13 +10,16 @@ import topology.sets.compacts
 /-!
 # Additional results on topological groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two results on topological groups that have been separated out as they require more substantial
 imports developing either positive compacts or the compact open topology.
 
 -/
 
 open classical set filter topological_space function
-open_locale classical topological_space filter pointwise
+open_locale classical topology filter pointwise
 
 universes u v w x
 variables {α : Type u} {β : Type v} {G : Type w} {H : Type x}

@@ -8,6 +8,9 @@ import data.finset.basic
 /-!
 # Constructions involving sets of sets.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Finite Intersections
 
 We define a structure `has_finite_inter` which asserts that a set `S` of subsets of `α` is

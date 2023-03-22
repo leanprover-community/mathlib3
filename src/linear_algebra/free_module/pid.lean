@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.dimension
+import linear_algebra.free_module.basic
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
 
@@ -348,8 +349,8 @@ submodule.basis_of_pid_of_le le (basis.span hb)
 
 variable {M}
 
-/-- A finite type torsion free module over a PID is free. -/
-noncomputable def module.free_of_finite_type_torsion_free [fintype ι] {s : ι → M}
+/-- A finite type torsion free module over a PID admits a basis. -/
+noncomputable def module.basis_of_finite_type_torsion_free [fintype ι] {s : ι → M}
   (hs : span R (range s) = ⊤) [no_zero_smul_divisors R M] :
   Σ (n : ℕ), basis (fin n) R M :=
 begin
@@ -396,11 +397,28 @@ begin
   exact ⟨n, b.map ψ.symm⟩
 end
 
-/-- A finite type torsion free module over a PID is free. -/
-noncomputable def module.free_of_finite_type_torsion_free' [module.finite R M]
+lemma module.free_of_finite_type_torsion_free [finite ι] {s : ι → M}
+  (hs : span R (range s) = ⊤) [no_zero_smul_divisors R M] :
+  module.free R M :=
+begin
+  casesI nonempty_fintype ι,
+  obtain ⟨n, b⟩ : Σ n, basis (fin n) R M := module.basis_of_finite_type_torsion_free hs,
+  exact module.free.of_basis b,
+end
+
+/-- A finite type torsion free module over a PID admits a basis. -/
+noncomputable def module.basis_of_finite_type_torsion_free' [module.finite R M]
   [no_zero_smul_divisors R M] :
   Σ (n : ℕ), basis (fin n) R M :=
-module.free_of_finite_type_torsion_free module.finite.exists_fin.some_spec.some_spec
+module.basis_of_finite_type_torsion_free module.finite.exists_fin.some_spec.some_spec
+
+lemma module.free_of_finite_type_torsion_free' [module.finite R M]
+  [no_zero_smul_divisors R M] :
+  module.free R M :=
+begin
+  obtain ⟨n, b⟩ : Σ n, basis (fin n) R M := module.basis_of_finite_type_torsion_free',
+  exact module.free.of_basis b,
+end
 
 section smith_normal
 

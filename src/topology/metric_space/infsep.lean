@@ -8,6 +8,9 @@ import topology.metric_space.basic
 /-!
 # Infimum separation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the extended infimum separation of a set. This is approximately dual to the
 diameter of a set, but where the extended diameter of a set is the supremum of the extended distance
 between elements of the set, the extended infimum separation is the infimum of the (extended)

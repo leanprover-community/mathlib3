@@ -7,6 +7,9 @@ import data.rat.cast
 import algebra.big_operators.basic
 
 /-! # Casting lemmas for rational numbers involving sums and products
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open_locale big_operators

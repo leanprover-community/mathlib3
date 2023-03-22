@@ -758,13 +758,12 @@ h.cast_nat_mul_left n
   commute (m * a : R) (n * b : R) :=
 h.cast_nat_mul_cast_nat_mul m n
 
-@[simp] theorem self_cast_nat_mul (n : ℕ) : commute a (n * a : R) :=
-(commute.refl a).cast_nat_mul_right n
+variables (a) (m n : ℕ)
 
-@[simp] theorem cast_nat_mul_self (n : ℕ) : commute ((n : R) * a) a :=
-(commute.refl a).cast_nat_mul_left n
+@[simp] lemma self_cast_nat_mul : commute a (n * a : R) := (commute.refl a).cast_nat_mul_right n
+@[simp] lemma cast_nat_mul_self : commute ((n : R) * a) a := (commute.refl a).cast_nat_mul_left n
 
-@[simp] theorem self_cast_nat_mul_cast_nat_mul (m n : ℕ) : commute (m * a : R) (n * a : R) :=
+@[simp] theorem self_cast_nat_mul_cast_nat_mul : commute (m * a : R) (n * a : R) :=
 (commute.refl a).cast_nat_mul_cast_nat_mul m n
 
 end
@@ -792,11 +791,8 @@ h.cast_int_mul_cast_int_mul m n
 
 variables (a) (m n : ℤ)
 
-@[simp] lemma cast_int_left : commute (m : R) a :=
-by { rw [← mul_one (m : R)], exact (one_left a).cast_int_mul_left m }
-
-@[simp] lemma cast_int_right : commute a m :=
-by { rw [← mul_one (m : R)], exact (one_right a).cast_int_mul_right m }
+@[simp] lemma cast_int_left : commute (m : R) a := int.cast_commute _ _
+@[simp] lemma cast_int_right : commute a m := int.commute_cast _ _
 
 @[simp] theorem self_cast_int_mul : commute a (n * a : R) := (commute.refl a).cast_int_mul_right n
 

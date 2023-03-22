@@ -6,9 +6,14 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 import algebra.module.linear_map
 import algebra.module.equiv
 import group_theory.group_action.sub_mul_action
+import group_theory.submonoid.membership
+
 /-!
 
 # Submodules of a module
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -30,8 +35,11 @@ variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
-/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`. -/
-class submodule_class (S : Type*) (R M : out_param $ Type*) [add_zero_class M]
+/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`.
+
+Note that only `R` is marked as `out_param` since `M` is already supplied by the `set_like` class.
+-/
+class submodule_class (S : Type*) (R : out_param $ Type*) (M : Type*) [add_zero_class M]
   [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
 
 /-- A submodule of a module is one which is closed under vector operations.

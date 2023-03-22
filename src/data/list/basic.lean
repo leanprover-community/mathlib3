@@ -3708,6 +3708,26 @@ lemma map_fst_add_enum_eq_enum_from (l : list α) (n : ℕ) :
   map (prod.map (+ n) id) (enum l) = enum_from n l :=
 map_fst_add_enum_from_eq_enum_from l _ _
 
+lemma enum_from_cons' (n : ℕ) (x : α) (xs : list α) :
+  enum_from n (x :: xs) = (n, x) :: (enum_from n xs).map (prod.map nat.succ id) :=
+by rw [enum_from_cons, add_comm, ←map_fst_add_enum_from_eq_enum_from]
+
+lemma enum_cons' (x : α) (xs : list α) :
+  enum (x :: xs) = (0, x) :: (enum xs).map (prod.map nat.succ id) :=
+enum_from_cons' _ _ _
+
+lemma enum_from_map (n : ℕ) (l : list α) (f : α → β) :
+  enum_from n (l.map f) = (enum_from n l).map (prod.map id f) :=
+begin
+  induction l with hd tl IH,
+  { refl },
+  { rw [map_cons, enum_from_cons', enum_from_cons', map_cons, map_map, IH, map_map],
+    refl, },
+end
+
+lemma enum_map (l : list α) (f : α → β) : (l.map f).enum = l.enum.map (prod.map id f) :=
+enum_from_map _ _ _
+
 lemma nth_le_enum_from (l : list α) (n i : ℕ)
   (hi' : i < (l.enum_from n).length)
   (hi : i < l.length := by simpa [length_enum_from] using hi') :

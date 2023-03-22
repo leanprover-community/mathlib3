@@ -21,7 +21,7 @@ and related notions.
 -/
 
 open set function filter charted_space smooth_manifold_with_corners
-open_locale topological_space manifold
+open_locale topology manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 
@@ -206,7 +206,7 @@ begin
   { apply cont_diff_on.prod B _,
     apply C.congr (λp hp, _),
     simp only with mfld_simps at hp,
-    simp only [mfderiv_within, hf.mdifferentiable_on one_le_n _ hp.2, hp.1, dif_pos]
+    simp only [mfderiv_within, hf.mdifferentiable_on one_le_n _ hp.2, hp.1, if_pos]
       with mfld_simps },
   have D : cont_diff_on 𝕜 m (λ x,
     (fderiv_within 𝕜 (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) x))
@@ -633,7 +633,7 @@ begin
     { exact model_with_corners.unique_diff_at_image I },
     { exact differentiable_at_id'.prod (differentiable_at_const _) } },
   simp only [tangent_bundle.zero_section, tangent_map, mfderiv,
-    A, dif_pos, chart_at, basic_smooth_vector_bundle_core.chart,
+    A, if_pos, chart_at, basic_smooth_vector_bundle_core.chart,
     basic_smooth_vector_bundle_core.to_vector_bundle_core, tangent_bundle_core,
     function.comp, continuous_linear_map.map_zero] with mfld_simps,
   rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,

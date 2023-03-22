@@ -9,6 +9,9 @@ import tactic.linear_combination
 /-!
 # Chebyshev polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
 with integral coefficients.
 

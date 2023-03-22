@@ -9,6 +9,9 @@ import data.pfun
 /-!
 # `tendsto` for relations and partial functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file generalizes `filter` definitions from functions to partial functions and relations.
 
 ## Considering functions and partial functions as relations

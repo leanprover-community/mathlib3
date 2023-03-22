@@ -170,8 +170,7 @@ end
 instance [number_field K] : fintype (torsion K) :=
 @fintype.of_finite (torsion K) (torsion_finite K)
 
-instance [number_field K] : is_cyclic (torsion K) :=
-subgroup_units_cyclic _
+lemma torsion_cyclic [number_field K] : is_cyclic (torsion K) := subgroup_units_cyclic _
 
 def torsion_order [number_field K] : ℕ+ :=
 begin
@@ -213,26 +212,24 @@ namespace units.dirichlet
 
 open number_field.canonical_embedding number_field finite_dimensional
 
+/-- The multiplicity of an infinite place: it is equal to `1` if the place is real and `2` if
+the place is complex. -/
+def mult : (infinite_place K) → ℝ := λ w, ite (w.is_real) 1 2
+
+lemma mult_pos (w : infinite_place K) : 0 < mult K w :=
+by { simp only [mult], split_ifs; norm_num, }
+
 variables {K} [number_field K]
 
-/-- A distinguished infinite place.-/
+/-- A distinguished infinite place. -/
 def w₀  : infinite_place K := (infinite_place.nonempty K).some
 
 variable (K)
 
-def mult : (infinite_place K) → ℝ := λ w, ite (w.is_real) 1 2
-
--- TODO. Keep only one of the two
-lemma mult_pos (w : infinite_place K) : 0 < mult K w :=
-by { simp only [mult], split_ifs; norm_num, }
-
-lemma mult_ge_one (w : infinite_place K) : 1 ≤ mult K w :=
-by { simp only [mult], split_ifs; norm_num, }
-
-/-- The logarithmic embedding of the units.-/
+/-- The logarithmic embedding of the units. -/
 @[reducible]
 def log_embedding : (𝓤 K) → ({w : infinite_place K // w ≠ w₀} → ℝ) :=
-λ x w, (mult K w.1) * real.log (w.1 x)
+λ x w, mult K w.1 * real.log (w.1 x)
 
 open number_field number_field.infinite_place finite_dimensional number_field.units
 
@@ -253,17 +250,17 @@ by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv, 
 
 @[simp]
 lemma log_embedding.component {w : infinite_place K} (hw : w ≠ w₀) (x : 𝓤 K) :
-  (log_embedding K x) ⟨w, hw⟩ = (mult K w) * real.log (w x) := rfl
+  (log_embedding K x) ⟨w, hw⟩ = mult K w * real.log (w x) := rfl
 
 lemma log_embedding.sum_component (x : 𝓤 K) :
-  finset.univ.sum (λ w, (log_embedding K x) w) = - (mult K w₀) * real.log (w₀ (x : K)) :=
+  finset.univ.sum (λ w, (log_embedding K x) w) = - mult K w₀ * real.log (w₀ (x : K)) :=
 begin
   rw (_ : finset.univ.sum (λ (w : {w // w ≠ w₀}), _) =
-    (finset.univ.erase w₀).sum (λ (w : infinite_place K), (mult K w) * real.log (w x))),
+    (finset.univ.erase w₀).sum (λ (w : infinite_place K), mult K w * real.log (w x))),
   { rw [neg_mul, eq_neg_iff_add_eq_zero, finset.sum_erase_add _ _ (finset.mem_univ _)],
     convert congr_arg real.log (prod_eq_abs_norm K x),
     { rw [real.log_prod _ _ (λ w _, _), finset.sum_congr rfl (λ w _, _)],
-      { simp only [mult, apply_ite real.log, real.log_pow, nat.cast_two, ite_mul, one_mul], },
+      { simp [mult, apply_ite real.log, real.log_pow, nat.cast_two, ite_mul, one_mul], },
       { rw ne.def,
         split_ifs;
         simp only [map_eq_zero, units_to_field.ne_zero, not_false_iff, pow_eq_zero_iff,
@@ -282,45 +279,39 @@ lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
 begin
   rw function.funext_iff,
-  refine ⟨ λ h w, _, λ h w, _⟩,
+  refine ⟨λ h w, _, λ h w, _⟩,
   { by_cases hw : w = w₀,
     { suffices : mult K w₀ * real.log (w₀ (x : K)) = 0,
       { rw hw,
-        have t1 := (mul_eq_zero.mp this).resolve_left _,
-        exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) t1,
-        exact ne_of_gt (mult_pos K _), },
-      { rw ← neg_eq_zero,
-        rw ← neg_mul,
-        rw ← log_embedding.sum_component,
+        exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero)
+          ((mul_eq_zero.mp this).resolve_left (ne_of_gt (mult_pos K _))), },
+      { rw [← neg_eq_zero, ← neg_mul, ← log_embedding.sum_component],
         exact finset.sum_eq_zero (λ w _, h w), }},
     { specialize h ⟨w, hw⟩,
-      rw log_embedding.component at h,
-      rw pi.zero_apply at h,
-      have := (mul_eq_zero.mp h).resolve_left _,
-      exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero) this,
-      exact ne_of_gt (mult_pos K _), }},
+      rw [log_embedding.component, pi.zero_apply] at h,
+      exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero)
+        ((mul_eq_zero.mp h).resolve_left (ne_of_gt (mult_pos K _))), }},
   { simp only [log_embedding, h w, pi.zero_apply, real.log_one, subtype.val_eq_coe, mul_zero], },
 end
 
 lemma log_embedding.nnnorm_eq (x : 𝓤 K) :
   ‖log_embedding K x‖₊ =
-    finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀} , ‖(mult K w.1)* real.log (w.1 x)‖₊) :=
+    finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀}, ‖mult K w.1 * real.log (w.1 x)‖₊) :=
 by simp [pi.nnnorm_def, log_embedding]
 
-/-- The lattice formed by the image of the logarithmic embedding.-/
+/-- The lattice formed by the image of the logarithmic embedding. -/
 noncomputable def unit_lattice : add_subgroup ({w : infinite_place K // w ≠ w₀} → ℝ) :=
 { carrier := set.range (log_embedding K),
   add_mem' :=
     by { rintros _ _ ⟨u, hu, rfl⟩ ⟨v, hv, rfl⟩, exact ⟨u * v, log_embedding.map_mul K u v⟩, },
   zero_mem' := ⟨1, log_embedding.map_one K⟩,
-  neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }
-}
+  neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }}
 
 lemma log_embedding_ker (x : 𝓤 K) :
   log_embedding K x = 0 ↔ x ∈ torsion K :=
 by rw [log_embedding.eq_zero_iff, mem_torsion K x]
 
--- TODO. This proof is too complicated
+-- Break this proof?
 lemma unit_lattice.inter_ball_finite (r : ℝ) :
   ((unit_lattice K : set ({w : infinite_place K // w ≠ w₀} → ℝ)) ∩
     (metric.closed_ball 0 r)).finite :=
@@ -329,90 +320,63 @@ begin
   { convert set.finite_empty,
     rw metric.closed_ball_eq_empty.mpr hr,
     exact set.inter_empty _, },
-  { let A := {x : 𝓤 K | is_integral ℤ (x : K) ∧
-      ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp (fintype.card (infinite_place K) * r) },
-    have t1 : A.finite,
-    { suffices : ((coe : (𝓤 K) → K) '' A).finite,
-      { refine this.of_finite_image (set.inj_on_of_injective (units_to_field.injective K) _), },
-      refine set.finite.subset (embeddings.finite_of_norm_le K ℂ
-        (real.exp (fintype.card (infinite_place K) * r))) _,
-      rintros _ ⟨x, ⟨hx, rfl ⟩⟩,
-      exact hx, },
-    have t2 : ((log_embedding K) '' A).finite := set.finite.image _ t1,
-    refine t2.subset _,
-    rintros _ ⟨⟨u, rfl⟩, hu⟩,
-    refine ⟨u, ⟨ring_of_integers.is_integral_coe u, _⟩, rfl⟩,
-    rw ← infinite_place.le_iff_le,
-    rw mem_closed_ball_zero_iff at hu,
-    -- TODO. this is not really needed?
-    have bound : ∀ w : infinite_place K, w ≠ w₀ →
-      -r ≤ mult K w * real.log (w u) ∧ mult K w * real.log (w u) ≤ r,
-    { intros w hw,
+  { suffices : {x : 𝓤 K | is_integral ℤ (x : K) ∧
+      ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp (fintype.card (infinite_place K) * r)}.finite,
+    { refine (set.finite.image (log_embedding K) this).subset _,
+      rintros _ ⟨⟨u, rfl⟩, hu⟩,
+      refine ⟨u, ⟨ring_of_integers.is_integral_coe u, (infinite_place.le_iff_le _ _).mp _⟩, rfl⟩,
       lift r to nnreal using hr,
-      rw [← abs_le, ← real.norm_eq_abs, ← coe_nnnorm, nnreal.coe_le_coe],
-      rw [← coe_nnnorm, log_embedding.nnnorm_eq K u, nnreal.coe_le_coe] at hu,
-      convert finset.sup_le_iff.mp hu ⟨w, hw⟩ (finset.mem_univ _), },
-    intro w,
-    rw ← real.log_le_iff_le_exp (infinite_place.pos_iff.mpr units_to_field.ne_zero),
-    by_cases hw : w = w₀,
-    { rw hw,
-      rw ← mul_le_mul_left (lt_of_lt_of_le one_pos (mult_ge_one K w₀)),
-      rw ← neg_le_neg_iff,
-            have := log_embedding.sum_component K u,
-      rw ← neg_mul,
-      rw ← neg_mul,
-      rw ← this,
-      suffices : - mult K w₀ * ((fintype.card (infinite_place K)) * r) ≤
-        - (fintype.card {w : infinite_place K // w ≠ w₀}) * r,
-      { refine le_trans this _,
-        rw neg_mul_comm,
-        rw fintype.card,
-        rw ← nsmul_eq_mul,
-        rw ← finset.sum_const,
-        refine finset.sum_le_sum (λ w hw, _),
-        lift r to nnreal using hr,
-        rw ← coe_nnnorm at hu,
-        rw pi.nnnorm_def at hu,
-        rw nnreal.coe_le_coe at hu,
-        have := finset.sup_le_iff.mp hu w (finset.mem_univ _),
-        rw ← nnreal.coe_le_coe at this,
-        rw coe_nnnorm at this,
-        rw real.norm_eq_abs at this,
-        rw abs_le at this,
-        exact this.1, },
-      { rw neg_mul,
-        rw neg_mul,
-        rw neg_le_neg_iff,
-        simp only [fintype.card_subtype_compl, fintype.card_subtype_eq],
-        calc
-          _   ≤ ↑(fintype.card (infinite_place K)) * r : mul_le_mul_of_nonneg_right _ hr
-          ... ≤  mult K dirichlet.w₀ * ((fintype.card (infinite_place K)) * r)
-            : le_mul_of_one_le_left (by positivity) (mult_ge_one K w₀),
-        simp only [nat.cast_le, tsub_le_self], }},
-    { obtain hs | hs := lt_or_le (real.log (w u)) 0,
-      { refine le_of_lt (lt_of_lt_of_le hs (by positivity)), },
-      { calc
-          _   ≤ mult K w * real.log (w u) : le_mul_of_one_le_left hs (mult_ge_one K w)
-          ... ≤ r                         : (bound w hw).2
-          ... ≤ (fintype.card (infinite_place K)) * r
-            : le_mul_of_one_le_left hr (nat.one_le_cast.mpr fintype.card_pos), }}}
+      rw [mem_closed_ball_zero_iff, ← coe_nnnorm, nnreal.coe_le_coe,
+        log_embedding.nnnorm_eq K u] at hu,
+      have w_bound : ∀ w : infinite_place K, w ≠ w₀ →
+        -(r : ℝ) ≤ mult K w * real.log (w u) ∧ mult K w * real.log (w u) ≤ r,
+      { intros w hw,
+        rw [← abs_le, ← real.norm_eq_abs, ← coe_nnnorm, nnreal.coe_le_coe],
+        convert finset.sup_le_iff.mp hu ⟨w, hw⟩ (finset.mem_univ _), },
+      have one_le_mult : ∀ w : infinite_place K, 1 ≤ mult K w,
+      { intro w, simp only [mult], split_ifs; norm_num, },
+      intro w,
+      rw ← (real.log_le_iff_le_exp (infinite_place.pos_iff.mpr units_to_field.ne_zero)),
+      by_cases hw : w = w₀,
+      { rw [hw, ← mul_le_mul_left (lt_of_lt_of_le one_pos (one_le_mult w₀)), ← neg_le_neg_iff,
+          ← neg_mul, ← neg_mul, ← log_embedding.sum_component K u],
+        refine le_trans _ (@finset.sum_le_sum _ _ _ ( λ _, -(r : ℝ)) _ _ (λ w hw, _)),
+        { rw [finset.sum_neg_distrib, finset.sum_const, nsmul_eq_mul, neg_mul, neg_le_neg_iff],
+          calc
+            _   ≤ (fintype.card (infinite_place K) : ℝ) * r : mul_le_mul_of_nonneg_right
+              (by { rw [← fintype.card, fintype.card_subtype_compl, fintype.card_subtype_eq],
+                norm_num, }) (nnreal.coe_nonneg r)
+            ... ≤ dirichlet.mult K dirichlet.w₀ * ((fintype.card (infinite_place K)) * r) :
+              le_mul_of_one_le_left _ (one_le_mult w₀),
+          exact mul_nonneg (fintype.card (infinite_place K)).cast_nonneg (nnreal.coe_nonneg r), },
+        { erw log_embedding.component K w.prop u,
+          exact (w_bound w.val w.prop).1, }},
+      { rw ← mul_le_mul_left (mult_pos K w),
+        refine le_trans (w_bound w hw).2 _,
+        rw ← mul_assoc,
+        refine le_mul_of_one_le_left (nnreal.coe_nonneg r) _,
+        exact one_le_mul_of_one_le_of_one_le (one_le_mult w)
+          (nat.one_le_cast.mpr fintype.card_pos), }},
+    { refine set.finite.of_finite_image _ (set.inj_on_of_injective (units_to_field.injective K) _),
+      refine (embeddings.finite_of_norm_le K ℂ
+        (real.exp (fintype.card (infinite_place K) * r))).subset _,
+      rintros _ ⟨u, hu, rfl⟩,
+      exact ⟨ring_of_integers.is_integral_coe u.val, hu.2⟩, }},
 end
 
-/-- The unit rank of the number field `K`, that is `card (infinite_place K) - 1`.-/
+/-- The unit rank of the number field `K`, that is `card (infinite_place K) - 1`. -/
 def unit_rank : ℕ := fintype.card (infinite_place K) - 1
 
-lemma rank_logspace : finrank ℝ ({w : infinite_place K // w ≠ w₀} → ℝ) = unit_rank K :=
-begin
-  convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
-  simp only [unit_rank, fintype.card_subtype_compl, fintype.card_subtype_eq],
-end
+lemma rank_space : finrank ℝ ({w : infinite_place K // w ≠ w₀} → ℝ) = unit_rank K :=
+by { convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
+    simp only [unit_rank, fintype.card_subtype_compl, fintype.card_subtype_eq] }
 
 -- Construction of suitable units
 
 lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal}
   (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
     ∃ C : nnreal, finset.univ.prod (λ v : infinite_place K, ite (v.is_real) (f.update w C v)
-    ((f.update w C v) ^ 2)) = B :=
+      ((f.update w C v) ^ 2)) = B :=
 begin
   let S := (finset.univ.erase w).prod (λ v : infinite_place K, ite (v.is_real) (f v) (f v ^ 2)),
   have hS : S ≠ 0,
@@ -446,11 +410,7 @@ lemma seq.volume (w : infinite_place K) {f : infinite_place K → nnreal} (hf : 
   (B : ℕ) :
   (unit_measure K) (convex_body K (λ v : infinite_place K,
     (f.update w (seq.exists K w hf B).some v))) = (constant_volume K) * B :=
-begin
-  rw convex_body.volume,
-  rw_mod_cast (seq.exists K w hf B).some_spec,
-  refl,
-end
+by { rw_mod_cast [convex_body.volume, (seq.exists K w hf B).some_spec], refl, }
 
 lemma seq.next {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
   {x : 𝓞 K} (hx : x ≠ 0) :
@@ -493,16 +453,11 @@ begin
 end
 
 /-- An infinite sequence of non-zero algebraic integers of `K` satisfying the following properties:
-TBC.-/
+TBC. -/
 def seq {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B) (n : ℕ) :
   { x : 𝓞 K // x ≠ 0 } :=
-begin
-  refine nat.rec_on n _ _,
-  use ⟨(1 : 𝓞 K), (by norm_num)⟩,
-  intros _ a,
-  use (seq.next K w hB a.prop).some,
-  exact (seq.next K w hB a.prop).some_spec.1,
-end
+nat.rec_on n ⟨(1 : 𝓞 K), (by norm_num)⟩
+  (λ _ a, ⟨(seq.next K w hB a.prop).some, (seq.next K w hB a.prop).some_spec.1⟩)
 
 lemma seq.ne_zero {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
   (n : ℕ) : (seq K w hB n : K) ≠ 0 :=
@@ -654,10 +609,8 @@ lemma unit_lattice.module.free : module.free ℤ (unit_lattice K) :=
 zlattice.module.free ℝ ((unit_lattice.inter_ball_finite K)) (unit_lattice.full_lattice K)
 
 lemma unit_lattice.dim : finrank ℤ (unit_lattice K) = unit_rank K :=
-begin
-  rw ← rank_logspace K,
-  exact zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.full_lattice K),
-end
+by { rw ← rank_space K,
+  exact zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.full_lattice K), }
 
 end units.dirichlet
 

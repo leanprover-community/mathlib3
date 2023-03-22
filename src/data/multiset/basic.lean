@@ -16,7 +16,7 @@ These are implemented as the quotient of a list by permutations.
 We define the global infix notation `::ₘ` for `multiset.cons`.
 -/
 
-open list subtype nat
+open function list nat subtype
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -1560,6 +1560,11 @@ theorem map_filter (f : β → α) (s : multiset β) :
   filter p (map f s) = map f (filter (p ∘ f) s) :=
 quot.induction_on s (λ l, by simp [map_filter])
 
+lemma map_filter' {f : α → β} (hf : injective f) (s : multiset α)
+  [decidable_pred (λ b, ∃ a, p a ∧ f a = b)] :
+  (s.filter p).map f = (s.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
+by simp [(∘), map_filter, hf.eq_iff]
+
 /-! ### Simultaneously filter and map elements of a multiset -/
 
 /-- `filter_map f s` is a combination filter/map operation on `s`.
@@ -1715,9 +1720,10 @@ quotient.induction_on s $ λ l, begin
   exact list.countp_attach _ _,
 end
 
-@[simp] lemma card_filter_attach (s : multiset α) :
-   (filter (λ a, p ↑a) s.attach).card = (filter p s).card :=
-by simp_rw [←countp_eq_card_filter, countp_attach]
+@[simp] lemma filter_attach (m : multiset α) (p : α → Prop) [decidable_pred p] :
+  (m.attach.filter (λ x, p ↑x)) =
+    (m.filter p).attach.map (subtype.map id $ λ _, multiset.mem_of_mem_filter) :=
+quotient.induction_on m $ λ l, congr_arg coe (list.filter_attach l p)
 
 variable {p}
 
@@ -2184,6 +2190,19 @@ by { rw [← rel_eq, ← rel_eq, rel_map], simp only [hf.eq_iff] }
 theorem map_injective {f : α → β} (hf : function.injective f) :
   function.injective (multiset.map f) :=
 assume x y, (map_eq_map hf).1
+
+lemma filter_attach' (s : multiset α) (p : {a // a ∈ s} → Prop) [decidable_eq α]
+  [decidable_pred p] :
+  s.attach.filter p =
+    (s.filter $ λ x, ∃ h, p ⟨x, h⟩).attach.map (subtype.map id $ λ x hx,
+      let ⟨h, _⟩ := of_mem_filter hx in h) :=
+begin
+  classical,
+  refine multiset.map_injective subtype.coe_injective _,
+  simp only [function.comp, map_filter' _ subtype.coe_injective, subtype.exists, coe_mk,
+    exists_and_distrib_right, exists_eq_right, attach_map_coe, map_map, map_coe, id.def],
+  rw attach_map_coe,
+end
 
 end map
 

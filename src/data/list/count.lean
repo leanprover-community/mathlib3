@@ -87,10 +87,6 @@ by simp only [countp_eq_length_filter, filter_filter]
 @[simp] lemma countp_attach (l : list α) : l.attach.countp (λ a, p ↑a) = l.countp p :=
 by rw [←countp_map, attach_map_coe]
 
-@[simp] lemma length_filter_attach (s : list α) :
-  (filter (λ a, p ↑a) s.attach).length = (filter p s).length :=
-by simp_rw [←countp_eq_length_filter, countp_attach]
-
 variables {p q}
 
 lemma countp_mono_left (h : ∀ x ∈ l, p x → q x) : countp p l ≤ countp q l :=

@@ -127,6 +127,22 @@ lemma filter_map {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
 
+lemma map_filter' (p : α → Prop) [decidable_pred p] {f : α → β} (hf : injective f) (s : multiset α)
+  [decidable_pred (λ b, ∃ a, p a ∧ f a = b)] :
+  (s.filter p).map f = (s.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
+by simp [(∘), map_filter, hf.eq_iff]
+
+lemma filter_attach' [decidable_eq α] (s : finset α) (p : {a // a ∈ s} → Prop) [decidable_pred p] :
+  s.attach.filter p =
+    (s.filter $ λ x, ∃ h, p ⟨x, h⟩).attach.map ⟨subtype.map id $ filter_subset _ _,
+      subtype.map_injective _ injective_id⟩ :=
+eq_of_veq $ multiset.filter_attach' _ _
+
+@[simp] lemma filter_attach (p : α → Prop) [decidable_pred p]  (s : finset α) :
+  (s.attach.filter (λ x, p ↑x)) =
+    (s.filter p).attach.map ((embedding.refl _).subtype_map mem_of_mem_filter) :=
+eq_of_veq $ multiset.filter_attach _ _
+
 lemma map_filter {f : α ≃ β} {p : α → Prop} [decidable_pred p] :
   (s.filter p).map f.to_embedding = (s.map f.to_embedding).filter (p ∘ f.symm) :=
 by simp only [filter_map, function.comp, equiv.to_embedding_apply, equiv.symm_apply_apply]

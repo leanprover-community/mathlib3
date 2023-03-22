@@ -2716,6 +2716,8 @@ end split_at_on
   with the same elements but in the type `{x // x ∈ l}`. -/
 def attach (l : list α) : list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
 
+@[simp] lemma attach_nil : ([] : list α).attach = [] := rfl
+
 theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {l : list α} (hx : x ∈ l) :
   sizeof x < sizeof l :=
 begin
@@ -3249,6 +3251,25 @@ end
 theorem map_filter (f : β → α) (l : list β) :
   filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
+
+lemma map_filter' {f : α → β} (hf : injective f) (l : list α)
+  [decidable_pred (λ b, ∃ a, p a ∧ f a = b)] :
+  (l.filter p).map f = (l.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
+by simp [(∘), map_filter, hf.eq_iff]
+
+lemma filter_attach' (l : list α) (p : {a // a ∈ l} → Prop) [decidable_eq α] [decidable_pred p] :
+  l.attach.filter p = (l.filter $ λ x, ∃ h, p ⟨x, h⟩).attach.map
+    (subtype.map id $ λ x hx, let ⟨h, _⟩ := of_mem_filter hx in h) :=
+begin
+  classical,
+  refine map_injective_iff.2 subtype.coe_injective _,
+  simp [(∘), map_filter' _ subtype.coe_injective],
+end
+
+@[simp] lemma filter_attach (l : list α) (p : α → Prop) [decidable_pred p] :
+  l.attach.filter (λ x, p ↑x) = (l.filter p).attach.map (subtype.map id $ λ _, mem_of_mem_filter) :=
+map_injective_iff.2 subtype.coe_injective $ by
+  simp_rw [map_map, (∘), subtype.map, subtype.coe_mk, id.def, ←map_filter, attach_map_coe]
 
 @[simp] theorem filter_filter (q) [decidable_pred q] : ∀ l,
   filter p (filter q l) = filter (λ a, p a ∧ q a) l

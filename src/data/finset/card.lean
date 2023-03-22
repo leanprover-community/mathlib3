@@ -181,10 +181,6 @@ by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
   (s.subtype p).card = (s.filter p).card :=
 by simp [finset.subtype]
 
-@[simp] lemma card_filter_attach (p) [decidable_pred p] (s : finset α) :
-   (filter (λ a, p ↑a) s.attach).card = (filter p s).card :=
-multiset.card_filter_attach _ _
-
 lemma card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   (s.filter p).card ≤ s.card :=
 card_le_of_subset $ filter_subset _ _

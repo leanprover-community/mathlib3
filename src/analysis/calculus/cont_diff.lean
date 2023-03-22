@@ -2321,10 +2321,11 @@ lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_aux
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 begin
   /- We argue by induction on `n`. The bound is trivial for `n = 0`. For `n + 1`, we write
-  the `(n+1)`-th derivative as the `n`-th derivative of derivative `B f g' + B f' g`, and apply
-  the inductive assumption to each of those two terms. This requires applying the inductive
-  assumption to other spaces (of linear maps), which should be in the same universe for the
-  induction to make sense. -/
+  the `(n+1)`-th derivative as the `n`-th derivative of the derivative `B f g' + B f' g`, and apply
+  the inductive assumption to each of those two terms. For this induction to make sense,
+  the spaces of linear maps that appear in the induction should be in the same universe as the
+  original spaces, which explains why we assume in the lemma that all spaces live in the same
+  universe. -/
   unfreezingI { induction n with n IH generalizing Eu Fu Gu},
   { simp only [←mul_assoc, norm_iterated_fderiv_within_zero, finset.range_one, finset.sum_singleton,
       nat.choose_self, algebra_map.coe_one, one_mul],

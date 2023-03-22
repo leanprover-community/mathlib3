@@ -393,7 +393,7 @@ begin
     (λ (k : ℕ), (fintype.pi_finset (λ (i : fin k), Ico 1 n) : finset (fin k → ℕ)))
     (λ n e, ∏ (j : fin n), r * (a ^ e j * p (e j)))],
   apply sum_congr rfl (λ j hj, _),
-  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ _ ℝ],
+  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ ℝ],
   simp only [← multilinear_map.map_sum_finset (multilinear_map.mk_pi_algebra ℝ (fin j) ℝ)
     (λ k (m : ℕ), r * (a ^ m * p m))],
   simp only [multilinear_map.mk_pi_algebra_apply],

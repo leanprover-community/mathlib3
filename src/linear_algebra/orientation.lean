@@ -40,7 +40,7 @@ section ordered_comm_semiring
 variables (R : Type*) [strict_ordered_comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
-variables (ι : Type*) [decidable_eq ι]
+variables (ι : Type*)
 
 /-- An orientation of a module, intended to be used when `ι` is a `fintype` with the same
 cardinality as a basis. -/

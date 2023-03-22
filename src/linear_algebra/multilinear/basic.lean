@@ -655,7 +655,7 @@ lemma comp_multilinear_map_cod_restrict (g : M₂ →ₗ[R] M₃) (f : multiline
     (g.comp_multilinear_map f).cod_restrict p (λ v, h (f v)):=
 multilinear_map.ext $ λ v, rfl
 
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+variables {ι₁ ι₂ : Type*}
 
 @[simp] lemma comp_multilinear_map_dom_dom_congr (σ : ι₁ ≃ ι₂) (g : M₂ →ₗ[R] M₃)
   (f : multilinear_map R (λ i : ι₁, M') M₂) :

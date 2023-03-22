@@ -1411,8 +1411,6 @@ variables {𝕜 G G'}
 
 section
 
-variable [decidable_eq (ι ⊕ ι')]
-
 /-- A continuous multilinear map with variables indexed by `ι ⊕ ι'` defines a continuous multilinear
 map with variables indexed by `ι` taking values in the space of continuous multilinear maps with
 variables indexed by `ι'`. -/

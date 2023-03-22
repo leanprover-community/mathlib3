@@ -2268,7 +2268,6 @@ end restrict_scalars
 
 /-!## Quantitative bounds -/
 
-
 section
 
 open finset
@@ -2410,7 +2409,7 @@ begin
   /- We reduce the bound to the case where all spaces live in the same universe (in which we
   already have proved the result), by using linear isometries between the spaces and their `ulift`
   to a common universe. These linear isometries preserve the norm of the iterated derivative. -/
-  let Du : Type (max uD uE uF uG) := ulift D,
+  let Du : Type (max uD uE uF uG) := ulift.{(max uE uF uG) uD} D,
   let Eu : Type (max uD uE uF uG) := ulift.{(max uD uF uG) uE} E,
   let Fu : Type (max uD uE uF uG) := ulift.{(max uD uE uG) uF} F,
   let Gu : Type (max uD uE uF uG) := ulift.{(max uD uE uF) uG} G,
@@ -2422,8 +2421,8 @@ begin
   let fu : Du → Eu := isoE.symm ∘ f ∘ isoD,
   let gu : Du → Fu := isoF.symm ∘ g ∘ isoD,
   -- lift the bilinear map `B` to a bilinear map `Bu` on the lifted spaces.
-  let Bu₀ : Eu →L[𝕜] Fu →L[𝕜] G :=
-    ((B.comp (isoE : Eu →L[𝕜] E)).flip.comp (isoF : Fu →L[𝕜] F)).flip,
+  let Bu₀ : Eu →L[𝕜] Fu →L[𝕜] G,
+    from ((B.comp (isoE : Eu →L[𝕜] E)).flip.comp (isoF : Fu →L[𝕜] F)).flip,
   let Bu : Eu →L[𝕜] Fu →L[𝕜] Gu, from continuous_linear_map.compL 𝕜 Eu (Fu →L[𝕜] G) (Fu →L[𝕜] Gu)
     (continuous_linear_map.compL 𝕜 Fu G Gu (isoG.symm : G →L[𝕜] Gu)) Bu₀,
   have Bu_eq : (λ y, Bu (fu y) (gu y)) = isoG.symm ∘ (λ y, B (f y) (g y)) ∘ isoD,

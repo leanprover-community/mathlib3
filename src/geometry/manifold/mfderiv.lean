@@ -242,10 +242,12 @@ def mdifferentiable (f : M → M') :=
 def local_homeomorph.mdifferentiable (f : local_homeomorph M M') :=
 (mdifferentiable_on I I' f f.source) ∧ (mdifferentiable_on I' I f.symm f.target)
 
+section open_emb
+
 /-- An open embedding is differentiable (for the charted-space structure induced by itself) -/
-lemma mdifferentiable_open_embedding [nonempty M] {f : M → H} (h : open_embedding f) :
-  @mdifferentiable 𝕜 _ E _ _ H _ I M _
-    (@open_embedding.singleton_charted_space H _ M _ _ f h) E _ _ H _ I H _ _ f :=
+lemma mdifferentiable_open_embedding {U : Type*} [topological_space U] [nonempty U]
+  {f : U → H} (h : open_embedding f) :
+  @mdifferentiable 𝕜 _ E _ _ H _ I U _ h.singleton_charted_space E _ _ H _ I H _ _ f :=
 begin
   refine λ m, ⟨h.continuous.continuous_at, _⟩,
   simp only [written_in_ext_chart_at, ext_chart_at, local_homeomorph.extend, function.comp_app,
@@ -272,6 +274,8 @@ begin
   rw [open_embedding.to_local_homeomorph_target, set.mem_range],
   use i,
 end
+
+end open_emb
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
 

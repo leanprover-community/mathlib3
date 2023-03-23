@@ -259,7 +259,8 @@ instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 /-- The less or equal relation on pre-games.
 
 If `0 ≤ x`, then Left can win `x` as the second player. -/
-instance : has_le pgame := ⟨sym2.game_add.fix wf_is_option $ λ x y le,
+instance : has_le pgame :=
+⟨sym2.game_add.fix wf_is_option $ λ x y le,
   (∀ i, ¬ le y (x.move_left i) (sym2.game_add.snd_fst $ is_option.move_left i)) ∧
   (∀ j, ¬ le (y.move_right j) x (sym2.game_add.fst_snd $ is_option.move_right j))⟩
 
@@ -275,7 +276,11 @@ localized "infix (name := pgame.lf) ` ⧏ `:50 := pgame.lf" in pgame
 theorem _root_.has_le.le.not_gf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
 theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := id
 
-/-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
+/-- Definition of `x ≤ y` on pre-games, in terms of `⧏`.
+
+The ordering here is chosen so that `and.left` refer to moves by Left, and `and.right` refer to
+moves by Right. -/
+
 theorem le_iff_forall_lf {x y : pgame} :
   x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
 by { unfold has_le.le, rw sym2.game_add.fix_eq, refl }
@@ -290,7 +295,10 @@ theorem le_of_forall_lf {x y : pgame} (h₁ : ∀ i, x.move_left i ⧏ y) (h₂ 
   x ≤ y :=
 le_iff_forall_lf.2 ⟨h₁, h₂⟩
 
-/-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
+/-- Definition of `x ⧏ y` on pre-games, in terms of `≤`.
+
+The ordering here is chosen so that `or.inl` refer to moves by Left, and `or.inr` refer to
+moves by Right. -/
 theorem lf_iff_exists_le {x y : pgame} :
   x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
 by { rw [lf, le_iff_forall_lf, not_and_distrib], simp }

@@ -201,7 +201,7 @@ lemma ihom_obj_ρ_def :
   (functor_category_equivalence.functor.obj B))).ρ := rfl
 
 /-- Given `k`-linear `G`-representations `(A, ρ₁), (B, ρ₂)`, the 'internal Hom' is the
-representation on `Homₖ(A, B)` sending `g : G` and `f : A →ₗ[k] B` to `(ρ₂ g) ∘ₗ f ∘ₗ (ρ₁ g⁻¹)`.  -/
+representation on `Homₖ(A, B)` sending `g : G` and `f : A →ₗ[k] B` to `(ρ₂ g) ∘ₗ f ∘ₗ (ρ₁ g⁻¹)`. -/
 @[simp] lemma ihom_obj_ρ :
   ((ihom A).obj B).ρ = A.ρ.lin_hom B.ρ :=
 begin
@@ -267,8 +267,8 @@ end
 
 /-- Describes the counit in the adjunction `A ⊗ - ⊣ iHom(A, -)`; given another `k`-linear
 `G`-representation `B,` the `k`-linear map underlying the resulting morphism `A ⊗ iHom(A, B) ⟶ B`
-is given by uncurrying the map `A →ₗ[k] (A →ₗ[k] B) →ₗ[k] B` defined by flipping the arguments in the
-identity map on `Homₖ(A, B).` -/
+is given by uncurrying the map `A →ₗ[k] (A →ₗ[k] B) →ₗ[k] B` defined by flipping the arguments in
+the identity map on `Homₖ(A, B).` -/
 @[simp] lemma ihom_ev_app_hom : Action.hom.hom ((ihom.ev A).app B) =
   tensor_product.uncurry _ _ _ _ linear_map.id.flip :=
 monoidal_closed_uncurry_hom _

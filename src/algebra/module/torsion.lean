@@ -499,14 +499,14 @@ open_locale big_operators
 variables (R M)
 
 lemma _root_.module.is_torsion_by_set_annihilator_top :
-  module.is_torsion_by_set R M (annihilator (⊤ : submodule R M)) :=
+  module.is_torsion_by_set R M (⊤ : submodule R M).annihilator :=
 λ x ha, mem_annihilator.mp ha.prop x mem_top
 
 variables {R M}
 
 lemma _root_.submodule.annihilator_top_inter_non_zero_divisors [module.finite R M]
   (hM : module.is_torsion R M) :
-  (annihilator (⊤ : submodule R M) : set R) ∩ R⁰ ≠ ∅:=
+  ((⊤ : submodule R M).annihilator : set R) ∩ R⁰ ≠ ∅:=
 begin
   obtain ⟨S, hS⟩ := ‹module.finite R M›.out,
   refine set.nonempty.ne_empty ⟨_, _, (∏ x in S, (@hM x).some : R⁰).prop⟩,

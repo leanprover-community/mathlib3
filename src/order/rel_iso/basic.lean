@@ -309,7 +309,8 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
 ⟨@quotient.mk α _, λ _ _, id⟩
 
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
-@[simps] noncomputable def _root_.quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
+@[simps]
+noncomputable def _root_.quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
   quotient.lift₂ r H ↪r r :=
 ⟨embedding.quotient_out α, begin
   refine λ x y, quotient.induction_on₂ x y (λ a b, _),
@@ -318,7 +319,8 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
 end⟩
 
 /-- `quotient.out'` as a relation embedding between the lift of a relation and the relation. -/
-@[simps] noncomputable def _root_.quotient.out'_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
+@[simps]
+noncomputable def _root_.quotient.out'_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
   (λ a b, quotient.lift_on₂' a b r H) ↪r r :=
 { to_fun := quotient.out',
   ..quotient.out_rel_embedding _ }

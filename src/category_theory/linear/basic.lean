@@ -129,7 +129,7 @@ end⟩
 
 /-- Given isomorphic objects `X ≅ Y, W ≅ Z` in a `k`-linear category, we have a `k`-linear
 isomorphism between `Hom(X, W)` and `Hom(Y, Z).` -/
-def arrow_congr (k : Type*) {C : Type*} [category C] [semiring k]
+def hom_congr (k : Type*) {C : Type*} [category C] [semiring k]
   [preadditive C] [linear k C] {X Y W Z : C} (f₁ : X ≅ Y) (f₂ : W ≅ Z) :
   (X ⟶ W) ≃ₗ[k] (Y ⟶ Z) :=
 { inv_fun := (left_comp k W f₁.hom).comp (right_comp k Y f₂.symm.hom),
@@ -141,13 +141,13 @@ def arrow_congr (k : Type*) {C : Type*} [category C] [semiring k]
     category.assoc, iso.inv_hom_id, category.comp_id],
   ..(right_comp k Y f₂.hom).comp (left_comp k W f₁.symm.hom) }
 
-lemma arrow_congr_apply (k : Type*) {C : Type*} [category C] [semiring k]
+lemma hom_congr_apply (k : Type*) {C : Type*} [category C] [semiring k]
   [preadditive C] [linear k C] {X Y W Z : C} (f₁ : X ≅ Y) (f₂ : W ≅ Z) (f : X ⟶ W) :
-  arrow_congr k f₁ f₂ f = (f₁.inv ≫ f) ≫ f₂.hom := rfl
+  hom_congr k f₁ f₂ f = (f₁.inv ≫ f) ≫ f₂.hom := rfl
 
-lemma arrow_congr_symm_apply (k : Type*) {C : Type*} [category C] [semiring k]
+lemma hom_congr_symm_apply (k : Type*) {C : Type*} [category C] [semiring k]
   [preadditive C] [linear k C] {X Y W Z : C} (f₁ : X ≅ Y) (f₂ : W ≅ Z) (f : Y ⟶ Z) :
-  (arrow_congr k f₁ f₂).symm f = f₁.hom ≫ f ≫ f₂.inv := rfl
+  (hom_congr k f₁ f₂).symm f = f₁.hom ≫ f ≫ f₂.inv := rfl
 
 end
 

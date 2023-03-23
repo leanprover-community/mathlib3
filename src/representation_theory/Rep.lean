@@ -286,7 +286,7 @@ noncomputable def monoidal_closed.linear_hom_equiv :
 and `Hom(A, Homₖ(B, C))`. -/
 noncomputable def monoidal_closed.linear_hom_equiv_comm :
   (A ⊗ B ⟶ C) ≃ₗ[k] (A ⟶ (B ⟶[Rep k G] C)) :=
-(linear.arrow_congr k (β_ A B) (iso.refl _)) ≪≫ₗ
+(linear.hom_congr k (β_ A B) (iso.refl _)) ≪≫ₗ
   monoidal_closed.linear_hom_equiv _ _ _
 
 variables {A B C}
@@ -303,7 +303,7 @@ begin
   dunfold monoidal_closed.linear_hom_equiv_comm,
   refine linear_map.ext (λ x, linear_map.ext (λ y, _)),
   simp only [linear_equiv.trans_apply, monoidal_closed.linear_hom_equiv_hom,
-    linear.arrow_congr_apply, iso.refl_hom, iso.symm_hom, linear_map.to_fun_eq_coe,
+    linear.hom_congr_apply, iso.refl_hom, iso.symm_hom, linear_map.to_fun_eq_coe,
     linear_map.coe_comp, function.comp_app, linear.left_comp_apply, linear.right_comp_apply,
     category.comp_id, Action.comp_hom, linear_map.flip_apply, tensor_product.curry_apply,
     Module.coe_comp, function.comp_app, monoidal_category.braiding_inv_apply],
@@ -321,7 +321,7 @@ begin
   dunfold monoidal_closed.linear_hom_equiv_comm,
   refine tensor_product.algebra_tensor_module.curry_injective
     (linear_map.ext (λ x, linear_map.ext (λ y, _))),
-  simp only [linear_equiv.trans_symm, linear_equiv.trans_apply, linear.arrow_congr_symm_apply,
+  simp only [linear_equiv.trans_symm, linear_equiv.trans_apply, linear.hom_congr_symm_apply,
     iso.refl_inv, linear_map.coe_comp, function.comp_app, category.comp_id, Action.comp_hom,
     monoidal_closed.linear_hom_equiv_symm_hom, tensor_product.algebra_tensor_module.curry_apply,
     linear_map.coe_restrict_scalars, linear_map.to_fun_eq_coe, linear_map.flip_apply,

@@ -157,4 +157,29 @@ begin
   exact (complete_space_congr this).1 (by apply_instance)
 end
 
+section infinite_sum
+variables {α : Type*}
+
+@[simp, norm_cast] lemma has_sum_coe {f : α → ℝ} {r : ℝ} :
+  has_sum (λ a, (f a : ℍ)) (↑r : ℍ) ↔ has_sum f r :=
+⟨λ h, by simpa only using
+  h.map (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _) continuous_re,
+  λ h, by simpa only using h.map (algebra_map ℝ ℍ) (continuous_algebra_map _ _)⟩
+
+@[simp, norm_cast]
+lemma summable_coe {f : α → ℝ} : summable (λ a, (f a : ℍ)) ↔ summable f :=
+by simpa only using summable.map_iff_of_left_inverse (algebra_map ℝ ℍ)
+  (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _)
+  (continuous_algebra_map _ _) continuous_re coe_re
+
+@[norm_cast] lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ) = ↑(∑' a, f a) :=
+begin
+  by_cases hf : summable f,
+  { exact (has_sum_coe.mpr hf.has_sum).tsum_eq, },
+  { simp [tsum_eq_zero_of_not_summable hf,
+      tsum_eq_zero_of_not_summable (summable_coe.not.mpr hf)] },
+end
+
+end infinite_sum
+
 end quaternion

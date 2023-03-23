@@ -9,6 +9,9 @@ import data.finsupp.lex
 /-!
 # Well-foundedness of the lexicographic and product orders on `finsupp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `finsupp.lex.well_founded` and the two variants that follow it essentially say that if
 `(>)` is a well order on `α`, `(<)` is well-founded on `N`, and `0` is a bottom element in `N`,
 then the lexicographic `(<)` is well-founded on `α →₀ N`.

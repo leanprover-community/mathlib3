@@ -454,7 +454,7 @@ end
 protected lemma has_sum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   has_sum (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) ⟪x, y⟫ :=
 begin
-  convert (b.has_sum_repr y).mapL (innerSL x),
+  convert (b.has_sum_repr y).mapL (innerSL _ x),
   ext i,
   rw [innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
 end

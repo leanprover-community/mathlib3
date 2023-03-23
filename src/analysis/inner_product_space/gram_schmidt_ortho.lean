@@ -96,7 +96,7 @@ begin
   { by_cases h : gram_schmidt 𝕜 f a = 0,
     { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
-      rwa [ne.def, inner_self_eq_zero], }, },
+      rwa [inner_self_ne_zero], }, },
   simp_intros i hi hia only [finset.mem_range],
   simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
   right,

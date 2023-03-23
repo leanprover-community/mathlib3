@@ -210,9 +210,7 @@ begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
    ⟨E.fixing_subgroup, ⟨E, ‹_›, rfl⟩, rfl⟩,
   have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
-  rw mem_nhds_iff at h_nhd,
-  rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
-  exact subgroup.is_open_of_one_mem_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
+  exact subgroup.is_open_of_mem_nhds _ h_nhd
 end
 
 /-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is

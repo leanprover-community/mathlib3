@@ -10,6 +10,9 @@ import category_theory.functor.reflects_isomorphisms
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the bundled categories:
 * `Mon`
 * `AddMon`

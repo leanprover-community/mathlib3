@@ -2272,34 +2272,57 @@ section
 
 open finset
 
-/- TODO porting note: move to the file `data.nat.choose.sum` -/
-/-- The sum of `(n+1).choose i * a i * b (n+1-i)` can be split into two sums at rank `n`,
-respectively of `n.choose i * a i * b (n+1-i)` and `n.choose i * a (i+1) * b (n-i)`. -/
-lemma sum_choose_succ_mul_mul_sub {R : Type*} [comm_semiring R] (a b : ℕ → R) (n : ℕ) :
-  ∑ i in range (n+2), ((n+1).choose i : R) * a i * b (n + 1 - i) =
-    ∑ i in range (n+1), (n.choose i : R) * a i * b (n + 1 - i)
-      + ∑ i in range (n+1), (n.choose i : R) * a (i + 1) * b (n - i) :=
+/- TODO porting note: move the next two lemmas to the file `data.nat.choose.sum` -/
+/-- The sum of `(n+1).choose i * f i (n+1-i)` can be split into two sums at rank `n`,
+respectively of `n.choose i * f i (n+1-i)` and `n.choose i * f (i+1) (n-i)`. -/
+lemma sum_choose_succ_mul {R : Type*} [semiring R] (f : ℕ → ℕ → R) (n : ℕ) :
+  ∑ i in range (n+2), ((n+1).choose i : R) * f i (n + 1 - i) =
+    ∑ i in range (n+1), (n.choose i : R) * f i (n + 1 - i)
+      + ∑ i in range (n+1), (n.choose i : R) * f (i + 1) (n - i) :=
 begin
-  have A : ∑ i in range (n + 1), (n.choose (i+1) : R) * a (i + 1) * b (n - i) + a 0 * b (n + 1)
-  = ∑ i in range (n+1), n.choose i * a i * b (n + 1 - i),
+  have A : ∑ i in range (n + 1), (n.choose (i+1) : R) * f (i + 1) (n - i) + f 0 (n + 1)
+  = ∑ i in range (n+1), n.choose i * f i (n + 1 - i),
   { rw [finset.sum_range_succ, finset.sum_range_succ'],
     simp only [nat.choose_succ_self, algebra_map.coe_zero, zero_mul, add_zero,
       nat.succ_sub_succ_eq_sub, nat.choose_zero_right, algebra_map.coe_one, one_mul, tsub_zero] },
   calc
-  ∑ i in finset.range (n+2), ((n+1).choose i : R) * a i * b (n + 1 - i)
-  = ∑ i in finset.range (n+1), ((n+1).choose (i+1) : R) * a (i+1) * b (n + 1 - (i+1))
-      + a 0 * b (n + 1 - 0) :
+  ∑ i in finset.range (n+2), ((n+1).choose i : R) * f i (n + 1 - i)
+  = ∑ i in finset.range (n+1), ((n+1).choose (i+1) : R) * f (i+1) (n + 1 - (i+1))
+      + f 0 (n + 1 - 0) :
     begin
       rw finset.sum_range_succ',
       simp only [nat.choose_zero_right, algebra_map.coe_one, one_mul],
     end
-  ... = ∑ i in finset.range (n+1), (n.choose i : R) * a i * b (n + 1 - i)
-  + ∑ i in finset.range (n+1), n.choose i * a (i + 1) * b (n - i) :
+  ... = ∑ i in finset.range (n+1), (n.choose i : R) * f i (n + 1 - i)
+  + ∑ i in finset.range (n+1), n.choose i * f (i + 1) (n - i) :
     begin
       simp only [nat.choose_succ_succ, nat.cast_add, nat.succ_sub_succ_eq_sub, tsub_zero, add_mul],
       rw [finset.sum_add_distrib, ← A],
       abel,
     end
+end
+
+/-- The sum along the antidiagonal of `(n+1).choose i * f i j` can be split into two sums along the
+antidiagonal at rank `n`, respectively of `n.choose i * f i (j+1)` and `n.choose j * f (i+1) j`. -/
+lemma sum_antidiagonal_choose_succ_mul {R : Type*} [semiring R] (f : ℕ → ℕ → R) (n : ℕ) :
+  ∑ ij in nat.antidiagonal (n + 1), ((n + 1).choose ij.1 : R) * f ij.1 ij.2 =
+    ∑ ij in nat.antidiagonal n, (n.choose ij.1 : R) * f ij.1 (ij.2 + 1)
+      + ∑ ij in nat.antidiagonal n, (n.choose ij.2 : R) * f (ij.1 + 1) ij.2 :=
+begin
+  convert sum_choose_succ_mul f n using 1,
+  { exact nat.sum_antidiagonal_eq_sum_range_succ (λ i j, ((n+1).choose i : R) * f i j) (n+1) },
+  congr' 1,
+  { rw nat.sum_antidiagonal_eq_sum_range_succ (λ i j, (n.choose i : R) * f i (j + 1)) n,
+    apply finset.sum_congr rfl (λ i hi, _),
+    have : n + 1 - i = n - i + 1, from nat.sub_add_comm (nat.lt_succ_iff.1 (finset.mem_range.1 hi)),
+    simp only [this] },
+  { suffices H : ∑ ij in nat.antidiagonal n, (n.choose ij.2 : R) * f (ij.1 + 1) ij.2
+      = ∑ ij in nat.antidiagonal n, (n.choose ij.1 : R) * f (ij.1 + 1) ij.2,
+    by rw [H, nat.sum_antidiagonal_eq_sum_range_succ (λ i j, (n.choose i : R) * f (i + 1) j) n],
+    apply finset.sum_congr rfl (λ i hi, _),
+    congr' 2,
+    apply nat.choose_symm_of_eq_add,
+    rw [← nat.mem_antidiagonal.1 hi, add_comm] }
 end
 
 end
@@ -2390,10 +2413,10 @@ begin
         (hf.fderiv_within hs In) (hg.of_le (nat.cast_le.2 (nat.le_succ n))),
     rw iterated_fderiv_within_add_apply' A A' hs hx,
     apply (norm_add_le _ _).trans ((add_le_add I1 I2).trans (le_of_eq _)),
-    rw ← mul_add,
+    simp_rw [← mul_add, mul_assoc],
     congr' 1,
-    exact (sum_choose_succ_mul_mul_sub (λ i, ‖iterated_fderiv_within 𝕜 i f s x‖)
-      (λ i, ‖iterated_fderiv_within 𝕜 i g s x‖) n).symm }
+    exact (sum_choose_succ_mul (λ i j, ‖iterated_fderiv_within 𝕜 i f s x‖ *
+      ‖iterated_fderiv_within 𝕜 j g s x‖) n).symm }
 end
 
 /-- Bounding the norm of the iterated derivative of `B (f x) (g x)` within a set in terms of the
@@ -2562,7 +2585,8 @@ lemma norm_iterated_fderiv_within_mul_le
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
 (continuous_linear_map.mul 𝕜 A : A →L[𝕜] A →L[𝕜] A)
-  .norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn (op_norm_mul_le _ _)
+  .norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn
+  (continuous_linear_map.op_norm_mul_le _ _)
 
 lemma norm_iterated_fderiv_mul_le
   {f : E → A} {g : E → A} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)

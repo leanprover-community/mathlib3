@@ -106,7 +106,8 @@ lemma mul (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ * �
 lemma smul (r : R) (hφ : is_symmetric φ) : is_symmetric (r • φ) :=
 (symmetric_subalgebra σ R).smul_mem hφ r
 
-lemma sum {α : Type*} [decidable_eq α] {s : finset α} {f : α → mv_polynomial σ R} : (∀ a ∈ s, (f a).is_symmetric) → (∑ a in s, f a).is_symmetric :=
+lemma sum {α : Type*} [decidable_eq α] {s : finset α} {f : α → mv_polynomial σ R} :
+  (∀ a ∈ s, (f a).is_symmetric) → (∑ a in s, f a).is_symmetric :=
 begin
   apply s.induction_on,
   { intros a s, simp only [finset.sum_empty, map_zero], },
@@ -229,6 +230,31 @@ begin
     simp only [union_val, sup_eq_union],
     congr },
   { refl }
+end
+
+lemma total_degree_esymm [nontrivial R] [decidable_eq σ]
+  (n : ℕ) (hpos : 0 < n) (hn : fintype.card σ = n) :
+  (esymm σ R n).total_degree = n :=
+begin
+  have h1 : (esymm σ R n).total_degree ≤ n,
+  {
+    apply le_trans (mv_polynomial.total_degree_le_degrees_card _),
+    rw degrees_esymm,
+    apply le_of_eq,
+    rw ← hn,
+    refl,
+    exact hpos,
+    exact le_of_eq hn.symm,
+  },
+  have h2 : n ≤ (esymm σ R n).total_degree ,
+  {
+    rw mv_polynomial.esymm_eq_sum_monomial,
+    -- something like mv_polynomial.total_degree_finset_sum but the other way inequality
+    -- mv_polynomial.total_degree_monomial,
+
+    sorry
+  },
+  linarith,
 end
 
 end elementary_symmetric

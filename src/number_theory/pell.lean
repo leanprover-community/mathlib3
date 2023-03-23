@@ -192,17 +192,17 @@ begin
 end
 
 /-- The set of solutions with `x` and `y` positive is closed under multiplication. -/
-lemma x_mul_pos_and_y_mul_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a b : solution₁ d} (hax : 0 < a.x)
+lemma y_mul_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a b : solution₁ d} (hax : 0 < a.x)
   (hay : 0 < a.y) (hbx : 0 < b.x) (hby : 0 < b.y) :
-  0 < (a * b).x ∧ 0 < (a * b).y :=
+  0 < (a * b).y :=
 begin
-  simp only [x_mul, y_mul],
-  split; positivity,
+  simp only [y_mul],
+  positivity,
 end
 
 /-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it have positive `x`,
 and the sign of `y` agrees with that of the exponent. -/
-lemma x_pow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
+lemma x_zpow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
   (n : ℤ) :
   0 < (a ^ n).x ∧ (a ^ n).y.sign = n.sign :=
 begin
@@ -210,7 +210,7 @@ begin
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hax, hay, zpow_one, and_self]) (λ m hm ih, _) m,
     rw zpow_add_one,
-    exact x_mul_pos_and_y_mul_pos_of_x_pos_of_y_pos h₀ ih.1 ih.2 hax hay, },
+    exact ⟨x_mul_pos_of_x_pos h₀ ih.1 hax, y_mul_pos_of_x_pos_of_y_pos h₀ ih.1 ih.2 hax hay⟩, },
   rcases lt_trichotomy 0 n with hpos | rfl | hneg,
   { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
     exact H n hpos, },
@@ -221,10 +221,22 @@ begin
     exact H (-n) (lt_neg.mp hneg), }
 end
 
+/-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it with positive
+natural exponents have positive `x` and `y`. -/
+lemma x_npow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
+  (n : ℕ) :
+  0 < (a ^ n.succ).x ∧ 0 < (a ^ n.succ).y :=
+begin
+  induction n with n ih,
+  { simp only [hax, hay, pow_one, and_self], },
+  { rw [pow_succ],
+    exact ⟨x_mul_pos_of_x_pos h₀ hax ih.1, y_mul_pos_of_x_pos_of_y_pos h₀ hax hay ih.1 ih.2⟩, }
+end
+
 /-- If `a` is any solution, then one of `a`, `a⁻¹`, `-a`, `-a⁻¹` has
 positive `x` and nonnegative `y`. -/
 lemma exists_pos_variant (h₀ : 0 < d) (a : solution₁ d) :
-  ∃ b : solution₁ d, 0 < b.x ∧ 0 ≤ b.y ∧ (a = b ∨ a = b⁻¹ ∨ a = -b ∨ a = -b⁻¹) :=
+  ∃ b : solution₁ d, 0 < b.x ∧ 0 ≤ b.y ∧ a ∈ ({b, b⁻¹, -b, -b⁻¹} : set (solution₁ d)) :=
 begin
   refine ⟨mk (|a.x|) (|a.y|) (by simp [a.prop]), abs_pos.mpr (a.x_ne_zero h₀), abs_nonneg a.y, _⟩,
   cases le_or_lt 0 a.x with hax hax; cases le_or_lt 0 a.y with hay hay,

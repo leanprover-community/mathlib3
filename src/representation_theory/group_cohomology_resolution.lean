@@ -233,35 +233,6 @@ module.free.of_basis (of_mul_action_basis k G n)
 
 end basis
 end group_cohomology.resolution
-namespace finsupp
--- I am not sure where to put these
-/-- Given an `S`-algebra `R`, an `R`-module `M` with a compatible `S`-module structure, and a
-type `X`, then the set of functions `X → M` is `S`-linearly equivalent to the `R`-linear maps from
-the free `R`-module on `X` to `M`. -/
-noncomputable def llift (S M R : Type*) [comm_semiring S] [semiring R]
-  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] (X : Type*) :
-  (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
-{ map_smul' :=
-  begin
-    intros,
-    dsimp,
-    ext,
-    simp only [linear_map.coe_comp, function.comp_app, finsupp.lsingle_apply,
-      finsupp.lift_apply, pi.smul_apply, finsupp.sum_single_index, zero_smul, one_smul,
-      linear_map.smul_apply],
-  end, ..finsupp.lift M R X }
-
-@[simp] lemma llift_apply {S M R : Type*} [comm_semiring S] [semiring R]
-  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] {X : Type*}
-  (f : X → M) (x : X →₀ R) :
-  finsupp.llift S M R X f x = finsupp.lift M R X f x := rfl
-
-@[simp] lemma llift_symm_apply {S M R : Type*} [comm_semiring S] [semiring R]
-  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] {X : Type*}
-  (f : (X →₀ R) →ₗ[R] M) (x : X) :
-  (finsupp.llift S M R X).symm f x = f (finsupp.single x 1) := rfl
-
-end finsupp
 namespace Rep
 variables (n) [group G]
 open group_cohomology.resolution
@@ -273,7 +244,7 @@ noncomputable def diagonal_hom_equiv (A : Rep k G) :
 linear.hom_congr k ((equiv_tensor k G n).trans
   ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
   ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
-  ≪≫ₗ (finsupp.llift k A k (fin n → G)).symm
+  ≪≫ₗ (finsupp.llift A k k (fin n → G)).symm
 
 variables {n}
 

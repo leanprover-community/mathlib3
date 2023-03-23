@@ -413,7 +413,7 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 theorem lt_wf : @well_founded ordinal (<) :=
-well_founded_iff_principal_seg.mpr $ λ a, induction_on a $ λ α r wo, by exactI
+well_founded_iff_well_founded_subrel.mpr $ λ a, induction_on a $ λ α r wo, by exactI
   rel_hom_class.well_founded (typein.principal_seg r).iso_subrel.symm wo.wf
 
 instance : has_well_founded ordinal := ⟨(<), lt_wf⟩

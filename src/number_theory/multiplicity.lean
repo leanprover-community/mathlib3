@@ -7,6 +7,7 @@ import algebra.geom_sum
 import data.int.parity
 import data.zmod.basic
 import number_theory.padics.padic_val
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Multiplicity in Number Theory

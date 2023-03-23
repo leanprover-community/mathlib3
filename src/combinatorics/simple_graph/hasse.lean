@@ -10,6 +10,9 @@ import order.succ_pred.relation
 /-!
 # The Hasse diagram as a graph
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Hasse diagram of an order (graph of `covby`, the covering relation) and the
 path graph on `n` vertices.
 

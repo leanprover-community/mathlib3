@@ -9,6 +9,9 @@ import category_theory.fin_category
 /-!
 # Bicones
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a category `J`, a walking `bicone J` is a category whose objects are the objects of `J` and
 two extra vertices `bicone.left` and `bicone.right`. The morphisms are the morphisms of `J` and
 `left ⟶ j`, `right ⟶ j` for each `j : J` such that `⬝ ⟶ j` and `⬝ ⟶ k` commutes with each

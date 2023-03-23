@@ -763,6 +763,26 @@ theorem image.mk :
   (image f x).to_set = f '' x.to_set :=
 by { ext, simp }
 
+/-- The range of an indexed family of sets. The universes allow for a more general index type
+  without manual use of `ulift`. -/
+noncomputable def range {α : Type u} (f : α → Set.{max u v}) : Set.{max u v} :=
+⟦⟨ulift α, quotient.out ∘ f ∘ ulift.down⟩⟧
+
+@[simp] theorem mem_range {α : Type u} {f : α → Set.{max u v}} {x : Set.{max u v}} :
+  x ∈ range f ↔ x ∈ set.range f :=
+quotient.induction_on x (λ y, begin
+  split,
+  { rintro ⟨z, hz⟩,
+    exact ⟨z.down, quotient.eq_mk_iff_out.2 hz.symm⟩ },
+  { rintro ⟨z, hz⟩,
+    use z,
+    simpa [hz] using pSet.equiv.symm (quotient.mk_out y) }
+end)
+
+@[simp] theorem to_set_range {α : Type u} (f : α → Set.{max u v}) :
+  (range f).to_set = set.range f :=
+by { ext, simp }
+
 /-- Kuratowski ordered pair -/
 def pair (x y : Set.{u}) : Set.{u} := {{x}, {x, y}}
 

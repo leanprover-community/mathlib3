@@ -112,8 +112,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_mul_norm, div_self (λ h, hx (inner_self_eq_zero.1 h)),
-      real.arccos_one]
+  rw [←real_inner_self_eq_norm_mul_norm, div_self (inner_self_ne_zero.2 hx), real.arccos_one]
 end
 
 /-- The angle between a nonzero vector and its negation. -/

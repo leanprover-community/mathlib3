@@ -8,6 +8,9 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Split coequalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define what it means for a triple of morphisms `f g : X ⟶ Y`, `π : Y ⟶ Z` to be a split
 coequalizer: there is a section `s` of `π` and a section `t` of `g`, which additionally satisfy
 `t ≫ f = π ≫ s`.

@@ -10,6 +10,9 @@ import topology.shrinking_lemma
 /-!
 # Shrinking lemma in a proper metric space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few versions of the shrinking lemma for coverings by balls in a proper
 (pseudo) metric space.
 

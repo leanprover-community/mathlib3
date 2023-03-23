@@ -789,9 +789,12 @@ linear_map.mk_continuous₂
                                    function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 σ₁₂ σ₂₃ E F G}
-
 include σ₁₃
+
+lemma norm_compSL_le : ‖compSL E F G σ₁₂ σ₂₃‖ ≤ 1 :=
+linear_map.mk_continuous₂_norm_le _ zero_le_one _
+
+variables {𝕜 σ₁₂ σ₂₃ E F G}
 
 @[simp] lemma compSL_apply (f : F →SL[σ₂₃] G) (g : E →SL[σ₁₂] F) :
   compSL E F G σ₁₂ σ₂₃ f g = f.comp g := rfl
@@ -811,7 +814,10 @@ variables (𝕜 σ₁₂ σ₂₃ E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
-  compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
+compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
+
+lemma norm_compL_le : ‖compL 𝕜 E Fₗ Gₗ‖ ≤ 1 :=
+norm_compSL_le _ _ _ _ _
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
@@ -824,6 +830,14 @@ def precompR (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : E →L[𝕜] (Eₗ →L[�
 /-- Apply `L(-,y)` pointwise to bilinear maps, as a continuous bilinear map -/
 def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[𝕜] Fₗ →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
 (precompR Eₗ (flip L)).flip
+
+lemma norm_precompR_le (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : ‖precompR Eₗ L‖ ≤ ‖L‖ := calc
+‖precompR Eₗ L‖ ≤ ‖compL 𝕜 Eₗ Fₗ Gₗ‖ * ‖L‖ : op_norm_comp_le _ _
+...            ≤ 1 * ‖L‖ : mul_le_mul_of_nonneg_right (norm_compL_le _ _ _ _) (norm_nonneg _)
+...            = ‖L‖ : by rw one_mul
+
+lemma norm_precompL_le (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : ‖precompL Eₗ L‖ ≤ ‖L‖ :=
+by { rw [precompL, op_norm_flip, ← op_norm_flip L], exact norm_precompR_le _ L.flip }
 
 section prod
 
@@ -1137,9 +1151,10 @@ variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
   (f g : E →SL[σ₁₂] F) (x y z : E)
 
-lemma linear_map.bound_of_shell [ring_hom_isometric σ₁₂] (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ}
-  (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ‖c‖)
-  (hf : ∀ x, ε / ‖c‖ ≤ ‖x‖ → ‖x‖ < ε → ‖f x‖ ≤ C * ‖x‖) (x : E) :
+namespace linear_map
+
+lemma bound_of_shell [ring_hom_isometric σ₁₂] (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
+  (hc : 1 < ‖c‖) (hf : ∀ x, ε / ‖c‖ ≤ ‖x‖ → ‖x‖ < ε → ‖f x‖ ≤ C * ‖x‖) (x : E) :
   ‖f x‖ ≤ C * ‖x‖ :=
 begin
   by_cases hx : x = 0, { simp [hx] },
@@ -1151,14 +1166,14 @@ end
 `linear_map.bound_of_ball_bound'` is a version of this lemma over a field satisfying `is_R_or_C`
 that produces a concrete bound.
 -/
-lemma linear_map.bound_of_ball_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] Fₗ)
+lemma bound_of_ball_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] Fₗ)
   (h : ∀ z ∈ metric.ball (0 : E) r, ‖f z‖ ≤ c) :
   ∃ C, ∀ (z : E), ‖f z‖ ≤ C * ‖z‖ :=
 begin
   cases @nontrivially_normed_field.non_trivial 𝕜 _ with k hk,
   use c * (‖k‖ / r),
   intro z,
-  refine linear_map.bound_of_shell _ r_pos hk (λ x hko hxo, _) _,
+  refine bound_of_shell _ r_pos hk (λ x hko hxo, _) _,
   calc ‖f x‖ ≤ c : h _ (mem_ball_zero_iff.mpr hxo)
          ... ≤ c * ((‖x‖ * ‖k‖) / r) : le_mul_of_one_le_right _ _
          ... = _ : by ring,
@@ -1166,6 +1181,33 @@ begin
   { rw [div_le_iff (zero_lt_one.trans hk)] at hko,
     exact (one_le_div r_pos).mpr hko }
 end
+
+lemma antilipschitz_of_comap_nhds_le [h : ring_hom_isometric σ₁₂] (f : E →ₛₗ[σ₁₂] F)
+  (hf : (𝓝 0).comap f ≤ 𝓝 0) : ∃ K, antilipschitz_with K f :=
+begin
+  rcases ((nhds_basis_ball.comap _).le_basis_iff nhds_basis_ball).1 hf 1 one_pos
+    with ⟨ε, ε0, hε⟩,
+  simp only [set.subset_def, set.mem_preimage, mem_ball_zero_iff] at hε,
+  lift ε to ℝ≥0 using ε0.le,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  refine ⟨ε⁻¹ * ‖c‖₊, add_monoid_hom_class.antilipschitz_of_bound f $ λ x, _⟩,
+  by_cases hx : f x = 0,
+  { rw [← hx] at hf,
+    obtain rfl : x = 0 := specializes.eq (specializes_iff_pure.2 $
+      ((filter.tendsto_pure_pure _ _).mono_right (pure_le_nhds _)).le_comap.trans hf),
+    exact norm_zero.trans_le (mul_nonneg (nnreal.coe_nonneg _) (norm_nonneg _)) },
+  have hc₀ : c ≠ 0 := norm_pos_iff.1 (one_pos.trans hc),
+  rw [← h.1] at hc,
+  rcases rescale_to_shell_zpow hc ε0 hx with ⟨n, -, hlt, -, hle⟩,
+  simp only [← map_zpow₀, h.1, ← map_smulₛₗ] at hlt hle,
+  calc ‖x‖ = ‖c ^ n‖⁻¹ * ‖c ^ n • x‖ :
+    by rwa [← norm_inv, ← norm_smul, inv_smul_smul₀ (zpow_ne_zero _ _)]
+  ... ≤ ‖c ^ n‖⁻¹ * 1 :
+    mul_le_mul_of_nonneg_left (hε _ hlt).le (inv_nonneg.2 (norm_nonneg _))
+  ... ≤ ε⁻¹ * ‖c‖ * ‖f x‖ : by rwa [mul_one]
+end
+
+end linear_map
 
 namespace continuous_linear_map
 
@@ -1214,39 +1256,11 @@ end
 
 variable (f)
 
-/-- If a continuous linear map is a uniform embedding, then it is expands the distances
+/-- If a continuous linear map is a topology embedding, then it is expands the distances
 by a positive factor.-/
-theorem antilipschitz_of_uniform_embedding (f : E →L[𝕜] Fₗ) (hf : uniform_embedding f) :
+theorem antilipschitz_of_embedding (f : E →L[𝕜] Fₗ) (hf : embedding f) :
   ∃ K, antilipschitz_with K f :=
-begin
-  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1,
-    from (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
-  let δ := ε/2,
-  have δ_pos : δ > 0 := half_pos εpos,
-  have H : ∀{x}, ‖f x‖ ≤ δ → ‖x‖ ≤ 1,
-  { assume x hx,
-    have : dist x 0 ≤ 1,
-    { refine (hε _).le,
-      rw [f.map_zero, dist_zero_right],
-      exact hx.trans_lt (half_lt_self εpos) },
-    simpa using this },
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨⟨δ⁻¹, _⟩ * ‖c‖₊, add_monoid_hom_class.antilipschitz_of_bound f $ λx, _⟩,
-  exact inv_nonneg.2 (le_of_lt δ_pos),
-  by_cases hx : f x = 0,
-  { have : f x = f 0, by { simp [hx] },
-    have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
-    simp [this] },
-  { rcases rescale_to_shell hc δ_pos hx with ⟨d, hd, dxlt, ledx, dinv⟩,
-    rw [← f.map_smul d] at dxlt,
-    have : ‖d • x‖ ≤ 1 := H dxlt.le,
-    calc ‖x‖ = ‖d‖⁻¹ * ‖d • x‖ :
-      by rwa [← norm_inv, ← norm_smul, ← mul_smul, inv_mul_cancel, one_smul]
-    ... ≤ ‖d‖⁻¹ * 1 :
-      mul_le_mul_of_nonneg_left this (inv_nonneg.2 (norm_nonneg _))
-    ... ≤ δ⁻¹ * ‖c‖ * ‖f x‖ :
-      by rwa [mul_one] }
-end
+f.to_linear_map.antilipschitz_of_comap_nhds_le $ map_zero f ▸ (hf.nhds_eq_comap 0).ge
 
 section completeness
 

@@ -369,7 +369,7 @@ coe_basis_of_linear_independent_of_card_eq_finrank _ _
 /-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ‖a‖ ^ 2 * ⟪x, y⟫`. (See
 `orientation.inner_mul_inner_add_area_form_mul_area_form` for the "applied" form.)-/
 lemma inner_mul_inner_add_area_form_mul_area_form' (a x : E) :
-  ⟪a, x⟫ • @innerₛₗ ℝ _ _ _ a + ω a x • ω a = ‖a‖ ^ 2 • @innerₛₗ ℝ _ _ _ x :=
+  ⟪a, x⟫ • innerₛₗ ℝ a + ω a x • ω a = ‖a‖ ^ 2 • innerₛₗ ℝ x :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
@@ -399,7 +399,7 @@ by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_
 /-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ‖a‖ ^ 2 * ω x y`. (See
 `orientation.inner_mul_area_form_sub` for the "applied" form.) -/
 lemma inner_mul_area_form_sub' (a x : E) :
-  ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ‖a‖ ^ 2 • ω x :=
+  ⟪a, x⟫ • ω a - ω a x • innerₛₗ ℝ a = ‖a‖ ^ 2 • ω x :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
@@ -430,16 +430,14 @@ begin
   { let a : ℝ := (o.basis_right_angle_rotation x hx).repr y 0,
     let b : ℝ := (o.basis_right_angle_rotation x hx).repr y 1,
     suffices : 0 ≤ a * ‖x‖ ^ 2 ∧ b * ‖x‖ ^ 2 = 0 → same_ray ℝ x (a • x + b • J x),
-    { -- TODO trace the `dsimp` lemmas in this block to make a single `simp only`
-      rw ← (o.basis_right_angle_rotation x hx).sum_repr y,
-      simp only [fin.sum_univ_succ, coe_basis_right_angle_rotation],
-      dsimp,
-      simp only [o.area_form_apply_self, map_smul, map_add, map_zero, inner_smul_left,
-        inner_smul_right, inner_add_left, inner_add_right, inner_zero_right, linear_map.add_apply,
-        matrix.cons_val_one],
-      dsimp,
-      simp only [o.area_form_right_angle_rotation_right, mul_zero, add_zero, zero_add, neg_zero,
-        o.inner_right_angle_rotation_right, o.area_form_apply_self, real_inner_self_eq_norm_sq],
+    { rw ← (o.basis_right_angle_rotation x hx).sum_repr y,
+      simp only [fin.sum_univ_succ, coe_basis_right_angle_rotation, matrix.cons_val_zero,
+        fin.succ_zero_eq_one', fintype.univ_of_is_empty, finset.sum_empty, o.area_form_apply_self,
+        map_smul, map_add, map_zero, inner_smul_left, inner_smul_right, inner_add_left,
+        inner_add_right, inner_zero_right, linear_map.add_apply, matrix.cons_val_one,
+        matrix.head_cons, algebra.id.smul_eq_mul, o.area_form_right_angle_rotation_right, mul_zero,
+        add_zero, zero_add, neg_zero, o.inner_right_angle_rotation_right, o.area_form_apply_self,
+        real_inner_self_eq_norm_sq],
       exact this },
     rintros ⟨ha, hb⟩,
     have hx' : 0 < ‖x‖ := by simpa using hx,
@@ -458,7 +456,7 @@ real part is the inner product and its imaginary part is `orientation.area_form`
 
 On `ℂ` with the standard orientation, `kahler w z = conj w * z`; see `complex.kahler`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
-(linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
+(linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ innerₛₗ ℝ
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω
 
 lemma kahler_apply_apply (x y : E) : o.kahler x y = ⟪x, y⟫ + ω x y • complex.I := rfl

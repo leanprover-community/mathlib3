@@ -69,12 +69,18 @@ by { rw expect, convert fintype.sum_empty (λ i, w i • X i) }
 def prob {α : Type*} (X : Ω → α) (A : set α) [decidable_pred (∈ A)] : ℝ :=
 ∑ ω in univ.filter (λ ω, X ω ∈ A), w ω
 
--- def cond_prob {α : Type*} (X : Ω → α) (A : set α) (B : set Ω)
---   [decidable_pred (∈ A)] [decidable_pred (∈ B)] : ℝ :=
--- prob (X ×ᶠ id) (A ×ˢ B) / prob id B
+def cond_prob {α : Type*} (X : Ω → α) (A : set α) (B : set Ω)
+  [decidable_pred (∈ A)] [decidable_pred (∈ B)] : ℝ :=
+prob (X ×ᶠ id) (A ×ˢ B) / prob id B
 
 local notation `ℙ[` X ` in ` A `]` := prob X A
--- local notation `ℙ[` X ` in ` A ` | ` B `]` := cond_prob X A B
+local notation `ℙ[` X ` in ` A ` | ` B `]` := cond_prob X A B
+
+lemma cond_prob_univ (A : set α) [decidable_pred (∈ A)] : ℙ[X in A] = ℙ[X in A | set.univ] :=
+begin
+  simp only [cond_prob, prob, set.prod_mk_mem_set_prod_eq, set.mem_univ, and_true, forall_const,
+    filter_true_of_mem, mem_univ, whole_space, div_one],
+end
 
 lemma prob_eq_exp (A : set α) [decidable_pred (∈ A)] : ℙ[X in A] = 𝔼 i, ite (X i ∈ A) 1 0 :=
 begin
@@ -229,6 +235,9 @@ begin
   simpa using hx'
 end
 
+def cond_event_entropy (X : Ω → α) (A : set Ω) [decidable_pred (∈ A)] : ℝ :=
+  ∑ i in univ.image X, ent 2 ℙ[X in {i} | A]
+
 lemma entropy_const (h : ∀ i j, X i = X j) : ℍ ω, X ω = 0 :=
 begin
   inhabit Ω,
@@ -240,8 +249,6 @@ begin
   simp only [p, prob, set.mem_singleton_iff, h _ default, filter_true_of_mem, mem_univ,
     forall_const, whole_space, ent_one],
 end
-
-lemma entropy_empty [is_empty α] : ℍ ω, X ω = 0 := entropy_const (by simp)
 
 lemma entropy_injective {f : α → β} (hf : function.injective f) :
   ℍ ω, f (X ω) = ℍ ω, X ω :=
@@ -650,3 +657,23 @@ end
 lemma markov' {X : Ω → ℝ} (hX : ∀ ω, 0 ≤ X ω) {x : ℝ} (hx : 0 < x) :
   ℙ[X in set.Ioi x] ≤ (𝔼 i, X i) / x :=
 (prob_le_prob_of_subset set.Ioi_subset_Ici_self).trans (markov hX hx)
+
+-- tt is 1
+
+lemma lemma1 {S : finset α} (p : α → ℝ) {C C' : Ω → α} (hC : ∀ ω, C ω ∈ S) (hC' : ∀ ω, C' ω ∈ S)
+  (hCC : indep C C')
+  (X X' : Ω → Prop)
+  (hX : ∀ c ∈ S, ℙ[X in {true} | {ω | C ω = c}] = p c)
+  (hX' : ∀ c ∈ S, ℙ[X' in {true} | {ω | C' ω = c}] = p c)
+  (hXX : indep X X') (hCX' : indep C X') (hC'X : indep C' X) :
+  1.26 * ℍ ω, X ω | C ω ≤ ℍ ω, (X ω ∨ X' ω) | (C ×ᶠ C') :=
+sorry
+
+def component {n : ℕ} (A : finset (fin n)) (i : ℕ) : Prop := i ∈ A.image (λ j : fin n, (j : ℕ))
+
+lemma theorem1 {n : ℕ} {A B : Ω → finset (fin n)} (hAB : indep A B)
+  (h : ∀ i < n, p (λ ω, component (A ω) i) true ≤ 0.01) :
+  ℍ ω, A ω ≤ ℍ ω, (A ω ∪ B ω) :=
+begin
+
+end

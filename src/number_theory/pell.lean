@@ -246,6 +246,4 @@ begin
 end
 
 end existence
-
-
 end pell

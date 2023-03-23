@@ -41,7 +41,9 @@ acyclic graphs, trees
 universes u v
 
 namespace simple_graph
-variables {V : Type u} (G : simple_graph V)
+variables {V : Type u} (G : simple_graph V) {v w : V}
+
+open walk
 
 /-- A graph is *acyclic* (or a *forest*) if it has no cycles. -/
 def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
@@ -139,6 +141,56 @@ begin
       exact p.reachable, },
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only [unique_of_exists_unique (h v w) hp hq] } },
+end
+
+lemma is_tree.exists_unique_path (hG : G.is_tree) : ∀ v w, ∃! p : G.walk v w, p.is_path :=
+(is_tree_iff_exists_unique_path.1 hG).2
+
+lemma is_tree.card_edge_finset [fintype V] [fintype G.edge_set] (hG : G.is_tree) :
+  finset.card G.edge_finset + 1 = fintype.card V :=
+begin
+  haveI := hG.is_connected.nonempty,
+  inhabit V,
+  classical,
+  have : finset.card ({default} : finset V)ᶜ + 1 = fintype.card V,
+  { rwa [finset.card_compl, finset.card_singleton, nat.sub_add_cancel fintype.card_pos] },
+  rw [←this, add_left_inj],
+  choose f hf hf' using λ v, hG.exists_unique_path v default,
+  refine (finset.card_congr (λ w hw, ((f w).head _).edge) (λ a ha, _) _ _).symm,
+  { simpa using hw },
+  { simp only [mem_edge_finset, dart.edge_mem] },
+  { simp only [finset.mem_compl, finset.mem_singleton],
+    intros a b ha hb h,
+    wlog h' : (f a).length ≤ (f b).length generalizing a b,
+    { exact (this _ _ _ _ h.symm $ le_of_not_le h').symm },
+    rw dart_edge_eq_iff at h,
+    cases h,
+    { simpa only [head_fst] using congr_arg (λ d : G.dart, d.to_prod.fst) h },
+    have h1 : ((f a).head ha).snd = b,
+    { rw [h, dart.symm_to_prod, prod.snd_swap, head_fst] },
+    have h3 := congr_arg length (hf' _ (((f _).tail _).copy h1 rfl) _),
+    rw [length_copy, ←add_left_inj 1, length_tail_add_one] at h3,
+    { exfalso,
+      linarith },
+    { rw is_path_copy,
+      exact (hf _).tail _ } },
+  simp only [sym2.forall, finset.mem_compl, finset.mem_singleton, mem_edge_finset, mem_edge_set],
+  intros x y h,
+  wlog h' : (f x).length ≤ (f y).length generalizing x y,
+  { rw sym2.eq_swap,
+    exact this y x h.symm (le_of_not_le h') },
+  refine ⟨y, _, dart_edge_eq_mk_iff'.2 $ or.inr ⟨head_fst _ _, _⟩⟩,
+  { rintro rfl,
+    rw [←hf' _ nil is_path.nil, length_nil, ←hf' _ (nil.cons h) (is_path.nil.cons $
+      by simpa using h.ne), length_cons, length_nil] at h',
+    simpa only [le_zero_iff, nat.one_ne_zero] using h' },
+  rw [←hf' _ ((f x).cons h.symm) ((cons_is_path_iff _ _).2 ⟨hf _, λ hy, _⟩), head],
+  suffices : (f x).take_until y hy = nil.cons h,
+  { rw ←take_spec _ hy at h',
+    simpa [this, hf' _ _ ((hf _).drop_until _ hy)] using h' },
+  refine (hG.exists_unique_path _ _).unique ((hf _).take_until _) _,
+  simp only [cons_is_path_iff, is_path_iff_eq_nil, support_nil, list.mem_singleton, true_and],
+  exact h.ne,
 end
 
 end simple_graph

@@ -652,7 +652,38 @@ begin
     exact ⟨λ h', h.1 (fst_mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
+/-- The first dart of a path. -/
+@[simp]
+def head : Π {x y : V}, G.walk x y → x ≠ y → G.dart
+| x _ nil         h := (h rfl).elim
+| x z (cons hxz p) h := ⟨⟨x, _⟩, hxz⟩
+
+/-- The path obtained by removing the first dart of a path. -/
+@[simp]
+def tail : Π {x y : V} (p : G.walk x y) (hxy : x ≠ y), G.walk (p.head hxy).snd y
+| x _ nil         h := (h rfl).elim
+| x z (cons hxz p) h := p
+
+@[simp] lemma head_fst : ∀ {x y : V} (p : G.walk x y) (hxy : x ≠ y), (p.head hxy).fst = x
+| _ _ nil h := (h rfl).elim
+| _ _ (cons hxz w) _ := rfl
+
+@[simp] lemma cons_support_tail : ∀ {x y : V} (p : G.walk x y) (hxy : x ≠ y),
+  x :: (p.tail hxy).support = p.support
+| _ _ nil h := (h rfl).elim
+| x z (cons hxz w) h := rfl
+
+@[simp]lemma length_support_tail_add_one {x y : V} {p : G.walk x y} (hxy : x ≠ y) :
+  (p.tail hxy).support.length + 1 = p.support.length :=
+by rw [←cons_support_tail _ hxy, list.length_cons]
+
+lemma length_tail_add_one {x y : V} {p : G.walk x y} (hxy : x ≠ y) :
+  (p.tail hxy).length + 1 = p.length :=
+by rw [←add_left_inj 1, ←length_support, ←length_support, length_support_tail_add_one]
+
 /-! ### Trails, paths, circuits, cycles -/
+
+variables {u v w x y : V} {p : G.walk v w}
 
 /-- A *trail* is a walk with no repeating edges. -/
 structure is_trail {u v : V} (p : G.walk u v) : Prop :=
@@ -747,6 +778,10 @@ by simp [is_path_def]
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
 
+protected lemma is_path.cons (hp : p.is_path) (hu : u ∉ p.support) {h : G.adj u v} :
+  (cons h p).is_path :=
+(cons_is_path_iff _ _).2 ⟨hp, hu⟩
+
 @[simp] lemma is_path_iff_eq_nil {u : V} (p : G.walk u u) : p.is_path ↔ p = nil :=
 by { cases p; simp [is_path.nil] }
 
@@ -779,6 +814,9 @@ begin
   have : p.support.nodup → p.edges.nodup := edges_nodup_of_support_nodup,
   tauto,
 end
+
+lemma is_path.tail (hvw : v ≠ w) (hp : p.is_path) : (p.tail hvw).is_path :=
+by { rw walk.is_path_def at ⊢ hp, rw [←cons_support_tail _ hvw, list.nodup_cons] at hp, exact hp.2 }
 
 /-! ### About paths -/
 

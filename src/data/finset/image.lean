@@ -127,10 +127,10 @@ lemma filter_map {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
 
-lemma map_filter' (p : α → Prop) [decidable_pred p] {f : α → β} (hf : injective f) (s : multiset α)
+lemma map_filter' (p : α → Prop) [decidable_pred p] (f : α ↪ β) (s : finset α)
   [decidable_pred (λ b, ∃ a, p a ∧ f a = b)] :
   (s.filter p).map f = (s.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
-by simp [(∘), map_filter, hf.eq_iff]
+by simp [(∘), filter_map, f.injective.eq_iff]
 
 lemma filter_attach' [decidable_eq α] (s : finset α) (p : {a // a ∈ s} → Prop) [decidable_pred p] :
   s.attach.filter p =

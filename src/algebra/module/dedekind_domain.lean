@@ -55,10 +55,10 @@ begin
 end
 
 /--A finitely generated torsion module over a Dedekind domain is an internal direct sum of its
-`p i ^ e i`-torsion submodules where `p i` are factors of `module.torsion_ideal` and `e i` are
-their multiplicities. -/
+`p i ^ e i`-torsion submodules where `p i` are factors of `annihilator (⊤ : submodule R M)` and
+`e i` are their multiplicities. -/
 theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  direct_sum.is_internal (λ p : (factors $  annihilator (⊤ : submodule R M)).to_finset,
+  direct_sum.is_internal (λ p : (factors $ annihilator (⊤ : submodule R M)).to_finset,
     torsion_by_set R M (p ^ (factors $ annihilator (⊤ : submodule R M)).count p : ideal R)) :=
 begin
   have hM' := module.is_torsion_by_set_annihilator_top R M,

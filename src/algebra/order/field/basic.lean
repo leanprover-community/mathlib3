@@ -428,6 +428,12 @@ lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mu
 
 lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
 
+@[simp] lemma half_lt_self_iff : a / 2 < a ↔ 0 < a :=
+by rw [div_lt_iff (zero_lt_two' α), mul_two, lt_add_iff_pos_left]
+
+@[simp] lemma half_le_self_iff : a / 2 ≤ a ↔ 0 ≤ a :=
+by rw [div_le_iff (zero_lt_two' α), mul_two, le_add_iff_nonneg_left]
+
 /-!
 ### Miscellaneous lemmas
 -/

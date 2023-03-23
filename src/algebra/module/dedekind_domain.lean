@@ -58,11 +58,11 @@ end
 `p i ^ e i`-torsion submodules where `p i` are factors of `module.torsion_ideal` and `e i` are
 their multiplicities. -/
 theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  direct_sum.is_internal (λ p : (factors $ module.torsion_ideal R M).to_finset,
-    torsion_by_set R M (p ^ (factors $ module.torsion_ideal R M).count p : ideal R)) :=
+  direct_sum.is_internal (λ p : (factors $  annihilator (⊤ : submodule R M)).to_finset,
+    torsion_by_set R M (p ^ (factors $ annihilator (⊤ : submodule R M)).count p : ideal R)) :=
 begin
-  have hM' := module.is_torsion_by_set_torsion_ideal R M,
-  have hI := module.torsion_ideal_inter_non_zero_divisors hM,
+  have hM' := module.is_torsion_by_set_annihilator_top R M,
+  have hI := submodule.annihilator_top_inter_non_zero_divisors hM,
   refine is_internal_prime_power_torsion_of_is_torsion_by_ideal _ hM',
   rw ←set.nonempty_iff_ne_empty at hI, rw submodule.ne_bot_iff,
   obtain ⟨x, H, hx⟩ := hI, exact ⟨x, H, non_zero_divisors.ne_zero hx⟩

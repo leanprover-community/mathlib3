@@ -62,9 +62,10 @@ open unique_factorization_monoid
 `p i ^ e i`-torsion submodules for some primes `p i` and numbers `e i`.-/
 theorem submodule.is_internal_prime_power_torsion_of_pid
   [module.finite R M] (hM : module.is_torsion R M) :
-  direct_sum.is_internal (λ p : (factors $ module.torsion_ideal R M).to_finset,
+  direct_sum.is_internal (λ p : (factors $ annihilator (⊤ : submodule R M)).to_finset,
     torsion_by R M
-      (is_principal.generator (p : ideal R) ^ (factors $ module.torsion_ideal R M).count p)) :=
+      (is_principal.generator (p : ideal R)
+        ^ (factors $ annihilator (⊤ : submodule R M)).count p)) :=
 begin
   convert is_internal_prime_power_torsion hM,
   ext p : 1,

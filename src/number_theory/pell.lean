@@ -200,28 +200,7 @@ begin
   positivity,
 end
 
-/-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it have positive `x`,
-and the sign of `y` agrees with that of the exponent. -/
-lemma x_zpow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
-  (n : ℤ) :
-  0 < (a ^ n).x ∧ (a ^ n).y.sign = n.sign :=
-begin
-  have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).x ∧ 0 < (a ^ m).y,
-  { change ∀ m : ℤ, 1 ≤ m → _,
-    refine λ m, int.le_induction (by simp only [hax, hay, zpow_one, and_self]) (λ m hm ih, _) m,
-    rw zpow_add_one,
-    exact ⟨x_mul_pos_of_x_pos h₀ ih.1 hax, y_mul_pos_of_x_pos_of_y_pos h₀ ih.1 ih.2 hax hay⟩, },
-  rcases lt_trichotomy 0 n with hpos | rfl | hneg,
-  { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
-    exact H n hpos, },
-  { rw [int.sign_zero, int.sign_eq_zero_iff_zero, zpow_zero],
-    simp only [x_one, zero_lt_one, y_one, eq_self_iff_true, and_self], },
-  { rw [(int.sign_eq_neg_one_iff_neg n).mpr hneg, int.sign_eq_neg_one_iff_neg, ← neg_neg n,
-        zpow_neg, x_inv, y_inv, neg_lt, neg_zero],
-    exact H (-n) (lt_neg.mp hneg), }
-end
-
-/-- If `(x, y)` is a solution with `x` and `y` positive, then all powers of it with positive
+/-- If `(x, y)` is a solution with `x` and `y` positive, then all its powers with positive
 natural exponents have positive `x` and `y`. -/
 lemma x_npow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
   (n : ℕ) :
@@ -231,6 +210,43 @@ begin
   { simp only [hax, hay, pow_one, and_self], },
   { rw [pow_succ],
     exact ⟨x_mul_pos_of_x_pos h₀ hax ih.1, y_mul_pos_of_x_pos_of_y_pos h₀ hax hay ih.1 ih.2⟩, }
+end
+
+/-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
+lemma x_zpow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x)
+  (n : ℤ) :
+  0 < (a ^ n).x :=
+begin
+  have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).x,
+  { change ∀ m : ℤ, 1 ≤ m → _,
+    refine λ m, int.le_induction (by simp only [hax, zpow_one]) (λ m hm ih, _) m,
+    rw zpow_add_one,
+    exact x_mul_pos_of_x_pos h₀ ih hax, },
+  rcases lt_trichotomy 0 n with hpos | rfl | hneg,
+  { exact H n hpos, },
+  { simp only [zpow_zero, x_one, zero_lt_one], },
+  { rw [← neg_neg n, zpow_neg, x_inv],
+    exact H (-n) (lt_neg.mp hneg), }
+end
+
+/-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of its powers
+have the same sign as the exponent. -/
+lemma sign_y_zpow_eq_sign_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x)
+  (hay : 0 < a.y) (n : ℤ) :
+  (a ^ n).y.sign = n.sign :=
+begin
+  have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).y,
+  { change ∀ m : ℤ, 1 ≤ m → _,
+    refine λ m, int.le_induction (by simp only [hay, zpow_one]) (λ m hm ih, _) m,
+    rw zpow_add_one,
+    exact y_mul_pos_of_x_pos_of_y_pos h₀ (x_zpow_pos_of_x_pos_of_y_pos h₀ hax m) ih hax hay, },
+  rcases lt_trichotomy 0 n with hpos | rfl | hneg,
+  { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
+    exact H n hpos, },
+  { rw [int.sign_zero, int.sign_eq_zero_iff_zero, zpow_zero, y_one], },
+  { rw [(int.sign_eq_neg_one_iff_neg n).mpr hneg, int.sign_eq_neg_one_iff_neg, ← neg_neg n,
+        zpow_neg, y_inv, neg_lt, neg_zero],
+    exact H (-n) (lt_neg.mp hneg), }
 end
 
 /-- If `a` is any solution, then one of `a`, `a⁻¹`, `-a`, `-a⁻¹` has

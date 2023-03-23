@@ -2553,20 +2553,27 @@ lemma norm_iterated_fderiv_smul_le
   .norm_iterated_fderiv_le_of_bilinear_of_le_one hf hg x hn
   continuous_linear_map.op_norm_lsmul_le
 
+variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
+
 lemma norm_iterated_fderiv_within_mul_le
-  {f : E → 𝕜'} {g : E → 𝕜'} {N : with_top ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
+  {f : E → A} {g : E → A} {N : with_top ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
   (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
   ‖iterated_fderiv_within 𝕜 n (λ y, f y * g y) s x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
-(norm_iterated_fderiv_within_smul_le hf hg hs hx hn : _)
+(continuous_linear_map.mul 𝕜 A : A →L[𝕜] A →L[𝕜] A)
+  .norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn (op_norm_mul_le _ _)
 
 lemma norm_iterated_fderiv_mul_le
-  {f : E → 𝕜'} {g : E → 𝕜'} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  {f : E → A} {g : E → A} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
   (x : E) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
   ‖iterated_fderiv 𝕜 n (λ y, f y * g y) x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
-(norm_iterated_fderiv_smul_le hf hg x hn : _)
+begin
+  simp_rw [← iterated_fderiv_within_univ],
+  exact norm_iterated_fderiv_within_mul_le hf.cont_diff_on
+    hg.cont_diff_on unique_diff_on_univ (mem_univ x) hn,
+end
 
 end

@@ -358,10 +358,11 @@ begin
   refine ⟨b, lt_iff_le_and_ne.mpr ⟨hb₁, λ hf, _⟩, lt_iff_le_and_ne.mpr ⟨hb₂, λ hf, _⟩⟩,
   { have := eq_one_of_x_eq_one h₀ hf.symm,
     rw [eq_one_of_x_eq_one h₀ hf.symm, inv_one] at hb₃,
-    simpa only [ha₁, ha₂, or_self] using hb₃, },
+    simpa only [ha₁, ha₂, or_self, mem_insert_iff, mem_singleton_iff] using hb₃, },
   { cases eq_one_or_neg_one_iff_y_eq_zero.mpr hf.symm with h h; rw h at hb₃,
-    { simpa only [ha₁, ha₂, inv_one, or_self] using hb₃, },
-    { simpa only [ha₁, ha₂, inv_neg', inv_one, neg_neg, or_self] using hb₃, } }
+    { simpa only [ha₁, ha₂, inv_one, or_self, mem_insert_iff, mem_singleton_iff] using hb₃, },
+    { simpa only [ha₁, ha₂, inv_neg', inv_one, neg_neg, or_self, mem_insert_iff, mem_singleton_iff]
+        using hb₃, } }
 end
 
 end solution₁

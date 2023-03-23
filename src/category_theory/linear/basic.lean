@@ -11,6 +11,9 @@ import algebra.algebra.basic
 /-!
 # Linear categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An `R`-linear category is a category in which `X ⟶ Y` is an `R`-module in such a way that
 composition of morphisms is `R`-linear in both variables.
 

@@ -463,10 +463,8 @@ by { change is_equivalence (Action.functor_category_equivalence _ _).functor, ap
   ((functor_category_monoidal_equivalence V G).μ A B).app punit.star = 𝟙 _ :=
 begin
   dunfold functor_category_monoidal_equivalence,
-  simp only [monoidal.from_transported_to_lax_monoidal_functor_μ, equivalence.symm_unit_iso,
-    functor_category_equivalence_counit_iso, iso.symm_hom, equivalence.equivalence_mk'_counit,
-    equivalence.symm_counit_iso, functor_category_equivalence_unit_iso, nat_trans.comp_app],
-  dsimp,
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_μ],
+  show (𝟙 A.V ⊗ 𝟙 B.V) ≫ 𝟙 (A.V ⊗ B.V) ≫ (𝟙 A.V ⊗ 𝟙 B.V) = 𝟙 (A.V ⊗ B.V),
   simp only [monoidal_category.tensor_id, category.comp_id],
 end
 
@@ -483,10 +481,9 @@ end
   (functor_category_monoidal_equivalence V G).ε.app punit.star = 𝟙 _ :=
 begin
   dunfold functor_category_monoidal_equivalence,
-  simp only [monoidal.from_transported_to_lax_monoidal_functor_ε, equivalence.equivalence_mk'_unit,
-    equivalence.symm_unit_iso, Action.functor_category_equivalence_counit_iso, iso.symm_hom,
-    nat_trans.comp_app, functor_category_equivalence.counit_iso_inv_app_app, iso.refl_inv,
-    nat_iso.is_iso_inv_app, category.id_comp, equivalence.symm_inverse],
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_ε],
+  show 𝟙 (monoidal_category.tensor_unit V) ≫ _ = 𝟙 (monoidal_category.tensor_unit V),
+  rw [nat_iso.is_iso_inv_app, category.id_comp],
   exact is_iso.inv_id,
 end
 

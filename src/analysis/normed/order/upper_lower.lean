@@ -31,30 +31,11 @@ section
 open set
 variables {α : Type*} [partial_order α] {s : set α}
 
-lemma is_antichain_iff_forall_not_lt : is_antichain (≤) s ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → ¬ a < b :=
-⟨λ hs a ha b, hs.not_lt ha, λ hs a ha b hb h h', hs ha hb $ h'.lt_of_ne h⟩
-
 protected lemma is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
 ⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
   rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
 
 end
-
-section left_cancel_monoid
-variables {M : Type*} [left_cancel_monoid M] {a b : M}
-
-@[to_additive] lemma mul_right_ne_self : a * b ≠ a ↔ b ≠ 1 := mul_right_eq_self.not
-@[to_additive] lemma self_ne_mul_right : a ≠ a * b ↔ b ≠ 1 := self_eq_mul_right.not
-
-end left_cancel_monoid
-
-section right_cancel_monoid
-variables {M : Type*} [right_cancel_monoid M] {a b : M}
-
-@[to_additive] lemma mul_left_ne_self : a * b ≠ b ↔ a ≠ 1 := mul_left_eq_self.not
-@[to_additive] lemma self_ne_mul_left : b ≠ a * b ↔ a ≠ 1 := self_eq_mul_left.not
-
-end right_cancel_monoid
 
 section
 variables {α : Type*} [linear_ordered_semifield α] {a : α}
@@ -106,17 +87,6 @@ open function metric set
 open_locale pointwise
 
 variables {α ι : Type*}
-
-section
-variables [topological_space α] [preorder α] [order_closed_topology α] {s : set α}
-
-protected lemma bdd_below.closure : bdd_below s → bdd_below (closure s) :=
-by { simp_rw bdd_below_iff_subset_Ici, rintro ⟨a, ha⟩, exact ⟨a, closure_minimal ha is_closed_Ici⟩ }
-
-protected lemma bdd_above.closure : bdd_above s → bdd_above (closure s) :=
-by { simp_rw bdd_above_iff_subset_Iic, rintro ⟨a, ha⟩, exact ⟨a, closure_minimal ha is_closed_Iic⟩ }
-
-end
 
 section normed_ordered_group
 variables [normed_ordered_group α] {s : set α}
@@ -296,14 +266,24 @@ begin
   refine is_seq_closed.is_closed (λ f x hf hx, _),
   choose g hg hgf using hf,
   obtain ⟨a, ha⟩ := hx.bdd_above_range,
-  have : bounded (s ∩ Iic (x + 1)) := hs'.bounded_inter bdd_above_Iic,
-  have := tendsto_subseq_of_bounded this,
-  rintro x hx,
+  obtain ⟨b, hb, φ, hφ, hbf⟩ := tendsto_subseq_of_bounded (hs'.bounded_inter
+    bdd_above_Iic) (λ n, ⟨hg n, (hgf _).trans $  ha $ mem_range_self _⟩),
+  exact ⟨b, closure_minimal (inter_subset_left _ _) hs hb,
+    le_of_tendsto_of_tendsto' hbf (hx.comp hφ.tendsto_at_top) $ λ _, hgf _⟩,
 end
 
 protected lemma is_closed.lower_closure (hs : is_closed s) (hs' : bdd_above s) :
   is_closed (lower_closure s : set (ι → ℝ)) :=
-sorry
+begin
+  refine is_seq_closed.is_closed (λ f x hf hx, _),
+  choose g hg hfg using hf,
+  haveI : bounded_ge_nhds_class ℝ := by apply_instance,
+  obtain ⟨a, ha⟩ := hx.bdd_below_range,
+  obtain ⟨b, hb, φ, hφ, hbf⟩ := tendsto_subseq_of_bounded (hs'.bounded_inter
+    bdd_below_Ici) (λ n, ⟨hg n, (ha $ mem_range_self _).trans $ hfg _⟩),
+  exact ⟨b, closure_minimal (inter_subset_left _ _) hs hb,
+    le_of_tendsto_of_tendsto' (hx.comp hφ.tendsto_at_top) hbf $ λ _, hfg _⟩,
+end
 
 protected lemma is_clopen.upper_closure (hs : is_clopen s) (hs' : bdd_below s) :
   is_clopen (upper_closure s : set (ι → ℝ)) :=

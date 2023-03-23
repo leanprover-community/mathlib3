@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import algebra.order.upper_lower
 import topology.algebra.group.basic
+import topology.order.basic
 
 /-!
 # Topological facts about upper/lower/order-connected sets
@@ -21,6 +22,16 @@ set).
 The same lemmas are true in the additive/multiplicative worlds. To avoid code duplication, we
 provide `has_upper_lower_closure`, an ad hoc axiomatisation of the properties we need.
 -/
+
+section
+variables {α : Type*} [preorder α] {s : set α} {a : α}
+
+open set
+
+lemma mem_upper_bounds_iff_subset_Iic : a ∈ upper_bounds s ↔ s ⊆ Iic a := iff.rfl
+lemma mem_lower_bounds_iff_subset_Ici : a ∈ lower_bounds s ↔ s ⊆ Ici a := iff.rfl
+
+end
 
 open function set
 open_locale pointwise
@@ -46,7 +57,33 @@ instance ordered_comm_group.to_has_upper_lower_closure [ordered_comm_group α]
   is_open_upper_closure := λ s hs, by { rw [←mul_one s, ←mul_upper_closure], exact hs.mul_right },
   is_open_lower_closure := λ s hs, by { rw [←mul_one s, ←mul_lower_closure], exact hs.mul_right } }
 
-variables [preorder α] [has_upper_lower_closure α] {s : set α}
+variables [preorder α]
+
+section order_closed_topology
+variables [order_closed_topology α] {s : set α}
+
+@[simp] lemma upper_bounds_closure (s : set α) :
+  upper_bounds (closure s : set α) = upper_bounds s :=
+ext $ λ a, by simp_rw [mem_upper_bounds_iff_subset_Iic, is_closed_Iic.closure_subset_iff]
+
+@[simp] lemma lower_bounds_closure (s : set α) :
+  lower_bounds (closure s : set α) = lower_bounds s :=
+ext $ λ a, by simp_rw [mem_lower_bounds_iff_subset_Ici, is_closed_Ici.closure_subset_iff]
+
+@[simp] lemma bdd_above_closure : bdd_above (closure s) ↔ bdd_above s :=
+by simp_rw [bdd_above, upper_bounds_closure]
+
+@[simp] lemma bdd_below_closure : bdd_below (closure s) ↔ bdd_below s :=
+by simp_rw [bdd_below, lower_bounds_closure]
+
+alias bdd_above_closure ↔ bdd_above.of_closure bdd_above.closure
+alias bdd_below_closure ↔ bdd_below.of_closure bdd_below.closure
+
+attribute [protected] bdd_above.closure bdd_below.closure
+
+end order_closed_topology
+
+variables [has_upper_lower_closure α] {s : set α}
 
 protected lemma is_upper_set.closure : is_upper_set s → is_upper_set (closure s) :=
 has_upper_lower_closure.is_upper_set_closure _

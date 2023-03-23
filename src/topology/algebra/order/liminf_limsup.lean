@@ -81,6 +81,15 @@ begin
   exact ⟨(a, b), ha.prod_mk hb⟩,
 end
 
+instance [finite ι] [Π i, preorder (π i)] [Π i, topological_space (π i)]
+  [Π i, bounded_le_nhds_class (π i)] : bounded_le_nhds_class (Π i, π i) :=
+begin
+  refine ⟨λ x, _⟩,
+  rw nhds_pi,
+  choose f hf using λ i, is_bounded_le_nhds (x i),
+  exact ⟨f, eventually_pi hf⟩,
+end
+
 end bounded_le_nhds_class
 
 section bounded_ge_nhds_class
@@ -117,6 +126,15 @@ begin
   obtain ⟨b, hb⟩ := is_bounded_ge_nhds x.2,
   rw [←@prod.mk.eta _ _ x, nhds_prod_eq],
   exact ⟨(a, b), ha.prod_mk hb⟩,
+end
+
+instance  [finite ι] [Π i, preorder (π i)] [Π i, topological_space (π i)]
+  [Π i, bounded_ge_nhds_class (π i)] : bounded_ge_nhds_class (Π i, π i) :=
+begin
+  refine ⟨λ x, _⟩,
+  rw nhds_pi,
+  choose f hf using λ i, is_bounded_ge_nhds (x i),
+  exact ⟨f, eventually_pi hf⟩,
 end
 
 end bounded_ge_nhds_class

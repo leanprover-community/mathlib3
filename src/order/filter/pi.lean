@@ -28,6 +28,7 @@ open_locale classical filter
 namespace filter
 
 variables {ι : Type*} {α : ι → Type*} {f f₁ f₂ : Π i, filter (α i)} {s : Π i, set (α i)}
+  {p : Π i, α i → Prop}
 
 section pi
 
@@ -92,6 +93,14 @@ end
 @[simp] lemma pi_mem_pi_iff [∀ i, ne_bot (f i)] {I : set ι} (hI : I.finite) :
   I.pi s ∈ pi f ↔ ∀ i ∈ I, s i ∈ f i :=
 ⟨λ h i hi, mem_of_pi_mem_pi h hi, pi_mem_pi hI⟩
+
+lemma eventually.eval_pi {i : ι} (hf : ∀ᶠ (x : α i) in f i, p i x) :
+  ∀ᶠ (x : Π (i : ι), α i) in pi f, p i (x i) :=
+(tendsto_eval_pi _ _).eventually hf
+
+lemma eventually_pi [finite ι] (hf : ∀ i, ∀ᶠ x in f i, p i x) :
+  ∀ᶠ (x : Π i, α i) in pi f, ∀ i, p i (x i) :=
+eventually_all.2 $ λ i, (hf _).eval_pi
 
 lemma has_basis_pi {ι' : ι → Type} {s : Π i, ι' i → set (α i)} {p : Π i, ι' i → Prop}
   (h : ∀ i, (f i).has_basis (p i) (s i)) :

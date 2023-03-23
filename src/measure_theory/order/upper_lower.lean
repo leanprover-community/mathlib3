@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Kexing Ying
 -/
 import analysis.normed.order.upper_lower
+import logic.lemmas
 import measure_theory.covering.besicovitch_vector_space
 
 /-!
@@ -31,7 +32,7 @@ Generalize so that it also applies to `ℝ × ℝ`, for example.
 -/
 
 open filter measure_theory metric set
-open_locale topological_space
+open_locale topology
 
 variables {ι : Type*} [fintype ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
 
@@ -52,7 +53,7 @@ begin
   dsimp,
   have := hε' n,
   rw [real.volume_pi_closed_ball, real.volume_pi_closed_ball, ←ennreal.of_real_div_of_pos, ←div_pow,
-    mul_div_mul_left _ _ (@two_ne_zero ℝ _ _), div_right_comm, div_self, one_div],
+    mul_div_mul_left _ _ (two_ne_zero' ℝ), div_right_comm, div_self, one_div],
   all_goals { positivity },
 end
 
@@ -81,7 +82,7 @@ begin
   rw [measure_diff (hf₀ _ _) _ ((real.volume_pi_closed_ball _ _).trans_ne ennreal.of_real_ne_top),
     real.volume_pi_closed_ball, real.volume_pi_closed_ball,  ennreal.sub_div (λ _ _, _),
     ennreal.div_self _ ennreal.of_real_ne_top, ←ennreal.of_real_div_of_pos, ←div_pow,
-    mul_div_mul_left _ _ (@two_ne_zero ℝ _ _), div_right_comm, div_self, one_div],
+    mul_div_mul_left _ _ (two_ne_zero' ℝ), div_right_comm, div_self, one_div],
   all_goals { positivity <|> measurability },
 end
 

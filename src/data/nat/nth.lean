@@ -43,18 +43,27 @@ natural number satisfying `p`), or `0` if there is no such number. See also
 noncomputable def nth (p : ℕ → Prop) (n : ℕ) : ℕ :=
 by classical; exact
 if h : set.finite {n | p n}
-then (h.to_finset.sort (≤)).nthd n 0
+then if hn : n < h.to_finset.card then h.to_finset.order_emb_of_fin rfl ⟨n, hn⟩ else 0
 else @nat.subtype.order_iso_of_nat (set_of p) (set.infinite.to_subtype h) n
 
-theorem nth_of_finite (h : (set_of p).finite) (n : ℕ) :
-  nth p n = (h.to_finset.sort (≤)).nthd n 0 :=
-by classical; rw [nth, dif_pos h]
+variable {p}
 
-theorem nth_mem_list {l : list ℕ} (hl : l.sorted (<)) (n : ℕ) :
-  nth (λ k, k ∈ l) n = l.nthd n 0 :=
+theorem nth_of_lt_card (hf : (set_of p).finite) {n : ℕ} (hn : n < hf.to_finset.card) :
+  nth p n = hf.to_finset.order_emb_of_fin rfl ⟨n, hn⟩ :=
+by rw [nth, dif_pos hf, dif_pos hn]
+
+theorem nth_of_card_le (hf : (set_of p).finite) {n : ℕ} (hn : hf.to_finset.card ≤ n) :
+  nth p n = 0 :=
+by rw [nth, dif_pos hf, dif_neg hn.not_lt]
+
+theorem nth_eq_nthd_sort (h : (set_of p).finite) (n : ℕ) :
+  nth p n = (h.to_finset.sort (≤)).nthd n 0 :=
 begin
-  rw [nth_of_finite _ l.finite_to_set],
-  
+  cases lt_or_le n h.to_finset.card with hn hn,
+  { rw [nth_of_lt_card h hn, order_emb_of_fin_apply, list.nthd_eq_nth_le],
+    refl },
+  { rw [nth_of_card_le h hn, list.nthd_eq_default],
+    rwa [finset.length_sort] }
 end
 
 /-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/

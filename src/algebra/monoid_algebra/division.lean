@@ -175,6 +175,17 @@ lemma mod_of_add_div_of (x : add_monoid_algebra k G) (g : G) :
   x %ᵒᶠ g + of' k G g * (x /ᵒᶠ g) = x :=
 by rw [add_comm, div_of_add_mod_of]
 
+lemma of'_dvd_iff_mod_of_eq_zero {x : add_monoid_algebra k G} {g : G} :
+  of' k G g ∣ x ↔ x %ᵒᶠ g = 0 :=
+begin
+  split,
+  { rintro ⟨x, rfl⟩,
+    rw of'_mul_mod_of },
+  { intro h,
+    rw [←div_of_add_mod_of x g, h, add_zero],
+    exact dvd_mul_right _ _ },
+end
+
 end
 
 end add_monoid_algebra

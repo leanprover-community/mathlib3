@@ -104,7 +104,7 @@ begin
     refine le_mul_of_one_le_of_le _ le_rfl,
     apply ennreal.one_le_coe_iff.2 (le_max_right _ _) },
   { apply (hR ⟨rpos, hr⟩ x t ht.2).trans _,
-    exact ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl }
+    exact mul_le_mul_right' (ennreal.coe_le_coe.2 (le_max_left _ _)) _ }
 end
 
 lemma eventually_measure_le_scaling_constant_mul (K : ℝ) :
@@ -113,7 +113,7 @@ lemma eventually_measure_le_scaling_constant_mul (K : ℝ) :
 begin
   filter_upwards [classical.some_spec (exists_eventually_forall_measure_closed_ball_le_mul μ K)]
     with r hr x,
-  exact (hr x K le_rfl).trans (ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl)
+  exact (hr x K le_rfl).trans (mul_le_mul_right' (ennreal.coe_le_coe.2 (le_max_left _ _)) _)
 end
 
 lemma eventually_measure_le_scaling_constant_mul' (K : ℝ) (hK : 0 < K) :

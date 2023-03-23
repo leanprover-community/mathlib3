@@ -192,34 +192,30 @@ variables [group G] (A B C : Rep k G)
 noncomputable instance : monoidal_closed (Rep k G) :=
 monoidal_closed.of_equiv (functor_category_monoidal_equivalence _ _)
 
+/-- Explicit description of the 'internal Hom' `iHom(A, B)` of two representations `A, B`:
+this is `F⁻¹(iHom(F(A), F(B)))`, where `F` is an equivalence
+`Rep k G ≌ (single_obj G ⥤ Module k)`. Just used to prove `Rep.ihom_obj_ρ`. -/
 lemma ihom_obj_ρ_def :
   ((ihom A).obj B).ρ = (functor_category_equivalence.inverse.obj
   ((functor_category_equivalence.functor.obj A).closed_ihom.obj
   (functor_category_equivalence.functor.obj B))).ρ := rfl
 
+/-- Given `k`-linear `G`-representations `(A, ρ₁), (B, ρ₂)`, the 'internal Hom' is the
+representation on `Homₖ(A, B)` sending `g : G` and `f : A →ₗ[k] B` to `(ρ₂ g) ∘ₗ f ∘ₗ (ρ₁ g⁻¹)`. -/
 @[simp] lemma ihom_obj_ρ :
   ((ihom A).obj B).ρ = A.ρ.lin_hom B.ρ :=
 begin
   refine monoid_hom.ext (λ g, _),
-  rw [ihom_obj_ρ_def, functor_category_equivalence.inverse_obj_ρ_apply,
-    functor.closed_ihom_obj_map, ←functor.map_inv],
-  dsimp only [functor_category_equivalence.functor_obj_obj,
-    functor_category_equivalence.functor_obj_map, functor.closed_ihom_obj_map],
-  simpa only [Module.monoidal_closed_pre_app, single_obj.inv_as_inv],
+  simpa only [ihom_obj_ρ_def, functor_category_equivalence.inverse_obj_ρ_apply,
+    functor.closed_ihom_obj_map, ←functor.map_inv, single_obj.inv_as_inv],
 end
-
-lemma ihom_map_def {B C : Rep k G} (f : B ⟶ C) :
-  ((ihom A).map f) = (functor_category_equivalence.inverse.map
-  ((functor_category_equivalence.functor.obj A).closed_ihom.map
-  (functor_category_equivalence.functor.map f))) := rfl
 
 @[simp] lemma ihom_map_hom {B C : Rep k G} (f : B ⟶ C) :
   ((ihom A).map f).hom = linear_map.llcomp k A B C f.hom :=
-begin
-  rw [ihom_map_def, functor_category_equivalence.inverse_map_hom, functor.closed_ihom_map_app],
-  refl,
-end
+rfl
 
+/-- Unfolds the unit in the adjunction `A ⊗ - ⊣ iHom(A, -)`; just used to prove
+`Rep.ihom_coev_app_hom`. -/
 lemma ihom_coev_app_def :
   (ihom.coev A).app B = functor_category_equivalence.unit_iso.hom.app B ≫
   functor_category_equivalence.inverse.map
@@ -228,47 +224,51 @@ lemma ihom_coev_app_def :
   ((functor_category_monoidal_equivalence (Module.{u} k) (Mon.of G)).μ A B)) :=
 rfl
 
+/-- Describes the unit in the adjunction `A ⊗ - ⊣ iHom(A, -)`; given another `k`-linear
+`G`-representation `B,` the `k`-linear map underlying the resulting map `B ⟶ iHom(A, A ⊗ B)` is
+given by flipping the arguments in the natural `k`-bilinear map `A →ₗ[k] B →ₗ[k] A ⊗ B`. -/
 @[simp] lemma ihom_coev_app_hom :
   Action.hom.hom ((ihom.coev A).app B) = (tensor_product.mk _ _ _).flip :=
 begin
   refine linear_map.ext (λ x, linear_map.ext (λ y, _)),
-  simpa only [ihom_coev_app_def, functor_category_equivalence_unit_iso, iso.app_hom,
-    functor.map_comp, comp_hom, functor_category_equivalence.unit_iso_hom_app_hom,
-    functor_category_equivalence.inverse_map_hom, functor.closed_unit_app_app,
-    functor.closed_ihom_map_app, Module.ihom_coev_app, Module.coe_comp,
-    function.comp_app, tensor_product.curry_apply, linear_map.flip_apply,
-    Module.ihom_map_apply, Module.monoidal_category.braiding_hom_apply,
-    functor_category_monoidal_equivalence.μ_app, id_apply, linear_map.id_apply],
+  simpa only [ihom_coev_app_def, functor.map_comp, comp_hom,
+    functor_category_equivalence.inverse_map_hom, functor.closed_ihom_map_app,
+    functor_category_monoidal_equivalence.μ_app],
 end
 
 variables {A B C}
 
+/-- Given a `k`-linear `G`-representation `A`, the adjunction `A ⊗ - ⊣ iHom(A, -)` defines a
+bijection `Hom(A ⊗ B, C) ≃ Hom(B, iHom(A, C))` for all `B, C`. Given `f : A ⊗ B ⟶ C`, this lemma
+describes the `k`-linear map underlying `f`'s image under the bijection. It is given by currying the
+`k`-linear map underlying `f`, giving a map `A →ₗ[k] B →ₗ[k] C`, then flipping the arguments. -/
 @[simp] lemma monoidal_closed_curry_hom (f : A ⊗ B ⟶ C) :
   (monoidal_closed.curry f).hom = (tensor_product.curry f.hom).flip :=
 begin
-  rw [monoidal_closed.curry_eq, comp_hom, ihom_coev_app_hom, ihom_map_hom],
-  ext,
+  rw [monoidal_closed.curry_eq, comp_hom, ihom_coev_app_hom],
   refl,
 end
 
+/-- Given a `k`-linear `G`-representation `A`, the adjunction `A ⊗ - ⊣ iHom(A, -)` defines a
+bijection `Hom(A ⊗ B, C) ≃ Hom(B, iHom(A, C))` for all `B, C`. Given `f : B ⟶ iHom(A, C)`, this
+lemma describes the `k`-linear map underlying `f`'s image under the bijection. It is given by
+flipping the arguments of the `k`-linear map underlying `f`, giving a map `A →ₗ[k] B →ₗ[k] C`, then
+uncurrying. -/
 @[simp] lemma monoidal_closed_uncurry_hom (f : B ⟶ (ihom A).obj C) :
   (monoidal_closed.uncurry f).hom = tensor_product.uncurry _ _ _ _ f.hom.flip :=
 begin
   simp only [monoidal_closed.of_equiv_uncurry_def, comp_inv_iso_inv_app,
-    monoidal_functor.comm_tensor_left_inv_app, adjunction.hom_equiv_counit,
-    category.assoc, comp_hom, functor_category_monoidal_equivalence.inv_counit_app_hom,
-    functor_category_monoidal_equivalence.counit_app],
-  simp only [monoidal_closed.uncurry_eq, category_theory.functor.ihom_ev_app, functor.map_comp,
-    Action.comp_hom, category.assoc, functor_category_monoidal_equivalence.inverse_map,
-    functor_category_monoidal_equivalence.functor_map, functor_category_equivalence.inverse_map_hom,
-    functor_category_equivalence.functor_map_app, monoidal_category.id_tensor_comp,
-    nat_trans.comp_app, monoidal.tensor_hom_app, nat_trans.id_app, functor.closed_counit_app_app,
-    Module.ihom_ev_app, functor_category_monoidal_equivalence.μ_iso_inv_app,
-    functor_category_monoidal_equivalence.counit_app],
+    monoidal_functor.comm_tensor_left_inv_app, comp_hom,
+    functor_category_monoidal_equivalence.inverse_map, functor_category_equivalence.inverse_map_hom,
+    functor_category_monoidal_equivalence.μ_iso_inv_app],
   ext,
   refl,
 end
 
+/-- Describes the counit in the adjunction `A ⊗ - ⊣ iHom(A, -)`; given another `k`-linear
+`G`-representation `B,` the `k`-linear map underlying the resulting morphism `A ⊗ iHom(A, B) ⟶ B`
+is given by uncurrying the map `A →ₗ[k] (A →ₗ[k] B) →ₗ[k] B` defined by flipping the arguments in
+the identity map on `Homₖ(A, B).` -/
 @[simp] lemma ihom_ev_app_hom : Action.hom.hom ((ihom.ev A).app B) =
   tensor_product.uncurry _ _ _ _ linear_map.id.flip :=
 monoidal_closed_uncurry_hom _
@@ -286,7 +286,7 @@ noncomputable def monoidal_closed.linear_hom_equiv :
 and `Hom(A, Homₖ(B, C))`. -/
 noncomputable def monoidal_closed.linear_hom_equiv_comm :
   (A ⊗ B ⟶ C) ≃ₗ[k] (A ⟶ (B ⟶[Rep k G] C)) :=
-(linear.arrow_congr k (β_ A B) (iso.refl _)) ≪≫ₗ
+(linear.hom_congr k (β_ A B) (iso.refl _)) ≪≫ₗ
   monoidal_closed.linear_hom_equiv _ _ _
 
 variables {A B C}
@@ -303,7 +303,7 @@ begin
   dunfold monoidal_closed.linear_hom_equiv_comm,
   refine linear_map.ext (λ x, linear_map.ext (λ y, _)),
   simp only [linear_equiv.trans_apply, monoidal_closed.linear_hom_equiv_hom,
-    linear.arrow_congr_apply, iso.refl_hom, iso.symm_hom, linear_map.to_fun_eq_coe,
+    linear.hom_congr_apply, iso.refl_hom, iso.symm_hom, linear_map.to_fun_eq_coe,
     linear_map.coe_comp, function.comp_app, linear.left_comp_apply, linear.right_comp_apply,
     category.comp_id, Action.comp_hom, linear_map.flip_apply, tensor_product.curry_apply,
     Module.coe_comp, function.comp_app, monoidal_category.braiding_inv_apply],
@@ -321,7 +321,7 @@ begin
   dunfold monoidal_closed.linear_hom_equiv_comm,
   refine tensor_product.algebra_tensor_module.curry_injective
     (linear_map.ext (λ x, linear_map.ext (λ y, _))),
-  simp only [linear_equiv.trans_symm, linear_equiv.trans_apply, linear.arrow_congr_symm_apply,
+  simp only [linear_equiv.trans_symm, linear_equiv.trans_apply, linear.hom_congr_symm_apply,
     iso.refl_inv, linear_map.coe_comp, function.comp_app, category.comp_id, Action.comp_hom,
     monoidal_closed.linear_hom_equiv_symm_hom, tensor_product.algebra_tensor_module.curry_apply,
     linear_map.coe_restrict_scalars, linear_map.to_fun_eq_coe, linear_map.flip_apply,

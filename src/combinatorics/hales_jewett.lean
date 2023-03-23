@@ -11,6 +11,9 @@ import algebra.big_operators.basic
 /-!
 # The Hales-Jewett theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove the Hales-Jewett theorem and deduce Van der Waerden's theorem as a corollary.
 
 The Hales-Jewett theorem is a result in Ramsey theory dealing with *combinatorial lines*. Given

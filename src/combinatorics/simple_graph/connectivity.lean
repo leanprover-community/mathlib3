@@ -10,6 +10,9 @@ import data.list.rotate
 
 # Graph connectivity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a simple graph,
 
 * A *walk* is a finite sequence of adjacent vertices, and can be
@@ -1573,77 +1576,73 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-@[simps] instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
+variables {V' G G' G''}
+
+namespace connected_component
+
+@[simps] instance inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_mk default⟩
 
-section connected_component
-variables {G}
-
 @[elab_as_eliminator]
-protected lemma connected_component.ind {β : G.connected_component → Prop}
+protected lemma ind {β : G.connected_component → Prop}
   (h : ∀ (v : V), β (G.connected_component_mk v)) (c : G.connected_component) : β c :=
 quot.ind h c
 
 @[elab_as_eliminator]
-protected lemma connected_component.ind₂ {β : G.connected_component → G.connected_component → Prop}
+protected lemma ind₂ {β : G.connected_component → G.connected_component → Prop}
   (h : ∀ (v w : V), β (G.connected_component_mk v) (G.connected_component_mk w))
   (c d : G.connected_component) : β c d :=
 quot.induction_on₂ c d h
 
-protected lemma connected_component.sound {v w : V} :
+protected lemma sound {v w : V} :
   G.reachable v w → G.connected_component_mk v = G.connected_component_mk w := quot.sound
 
-protected lemma connected_component.exact {v w : V} :
+protected lemma exact {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w → G.reachable v w :=
 @quotient.exact _ G.reachable_setoid _ _
 
-@[simp] protected lemma connected_component.eq {v w : V} :
+@[simp] protected lemma eq {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
 @quotient.eq _ G.reachable_setoid _ _
 
 /-- The `connected_component` specialization of `quot.lift`. Provides the stronger
 assumption that the vertices are connected by a path. -/
-protected def connected_component.lift {β : Sort*} (f : V → β)
+protected def lift {β : Sort*} (f : V → β)
   (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
-@[simp] protected lemma connected_component.lift_mk {β : Sort*} {f : V → β}
+@[simp] protected lemma lift_mk {β : Sort*} {f : V → β}
   {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
   connected_component.lift f h (G.connected_component_mk v) = f v := rfl
 
-protected lemma connected_component.«exists» {p : G.connected_component → Prop} :
+protected lemma «exists» {p : G.connected_component → Prop} :
   (∃ (c : G.connected_component), p c) ↔ ∃ v, p (G.connected_component_mk v) :=
 (surjective_quot_mk G.reachable).exists
 
-protected lemma connected_component.«forall» {p : G.connected_component → Prop} :
+protected lemma «forall» {p : G.connected_component → Prop} :
   (∀ (c : G.connected_component), p c) ↔ ∀ v, p (G.connected_component_mk v) :=
 (surjective_quot_mk G.reachable).forall
 
-lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
+lemma _root_.simple_graph.preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
 /-- The map on connected components induced by a graph homomorphism. -/
-def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
-  (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
+def map (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
 C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
   connected_component.eq.mpr (p.map φ).reachable
 
-@[simp] lemma connected_component.map_mk
-  {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'} (φ : G →g G') (v : V) :
+@[simp] lemma map_mk (φ : G →g G') (v : V) :
   (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
 
-@[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
+@[simp] lemma map_id (C : connected_component G) : C.map hom.id = C :=
 by { refine C.ind _, exact (λ _, rfl) }
 
-@[simp] lemma connected_component.map_comp
-  {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
-  (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
+@[simp] lemma map_comp (C : G.connected_component)
+  (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
-
-variables {G}
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected

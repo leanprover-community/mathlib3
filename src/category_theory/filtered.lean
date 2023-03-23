@@ -12,6 +12,9 @@ import category_theory.category.ulift
 /-!
 # Filtered categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category is filtered if every finite diagram admits a cocone.
 We give a simple characterisation of this condition as
 1. for every pair of objects there exists another object "to the right",
@@ -107,7 +110,7 @@ example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by
 
 instance : is_filtered (discrete punit) :=
 { cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, by dec_trivial⟩,
   nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_filtered

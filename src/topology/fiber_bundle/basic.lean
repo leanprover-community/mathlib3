@@ -80,24 +80,24 @@ typeclass containing data)?
 In their initial mathlib implementations, both fiber and vector bundles were defined
 propositionally. For vector bundles, this turns out to be mathematically wrong: in infinite
 dimension, the transition function between two trivializations is not automatically continuous as a
-map from the base `B` to the endomorphisms `F →L[R] F` of the fibre (considered with the
+map from the base `B` to the endomorphisms `F →L[R] F` of the fiber (considered with the
 operator-norm topology), and so the definition needs to be modified by restricting consideration to
 a family of trivializations (constituting the data) which are all mutually-compatible in this sense.
 The PRs #13052 and #13175 implemented this change.
 
 There is still the choice about whether to hold this data at the level of fiber bundles or of vector
 bundles. As of PR #17505, the data is all held in `fiber_bundle`, with `vector_bundle` a
-(propositional) mixin stating fibrewise-linearity.
+(propositional) mixin stating fiberwise-linearity.
 
 This allows bundles to carry instances of typeclasses in which the scalar field, `R`, does not
-appear as a parameter. Notably, we would like a vector bundle over `R` with fibre `F` over base `B`
+appear as a parameter. Notably, we would like a vector bundle over `R` with fiber `F` over base `B`
 to be a `charted_space (B × F)`, with the trivializations providing the charts. This would be a
 dangerous instance for typeclass inference, because `R` does not appear as a parameter in
 `charted_space (B × F)`. But if the data of the trivializations is held in `fiber_bundle`, then a
-fibre bundle with fibre `F` over base `B` can be a `charted_space (B × F)`, and this is safe for
+fiber bundle with fiber `F` over base `B` can be a `charted_space (B × F)`, and this is safe for
 typeclass inference.
 
-We expect that this choice of definition will also streamline constructions of fibre bundles with
+We expect that this choice of definition will also streamline constructions of fiber bundles with
 similar underlying structure (e.g., the same bundle being both a real and complex vector bundle).
 
 ### Core construction
@@ -196,7 +196,7 @@ variables {F E}
 /-- Given a type `E` equipped with a fiber bundle structure, this is a `Prop` typeclass
 for trivializations of `E`, expressing that a trivialization is in the designated atlas for the
 bundle.  This is needed because lemmas about the linearity of trivializations or the continuity (as
-functions to `F →L[R] F`, where `F` is the model fibre) of the transition functions are only
+functions to `F →L[R] F`, where `F` is the model fiber) of the transition functions are only
 expected to hold for trivializations in the designated atlas. -/
 @[mk_iff]
 class mem_trivialization_atlas [fiber_bundle F E] (e : trivialization F (π E)) : Prop :=

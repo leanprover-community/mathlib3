@@ -383,6 +383,4 @@ end
 
 end solution₁
 
-end existence
-
 end pell

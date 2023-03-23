@@ -16,6 +16,9 @@ import ring_theory.nilpotent
 /-!
 # Noetherian rings and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The following are equivalent for a module M over a ring R:
 1. Every increasing chain of submodules M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
 2. Every submodule is finitely generated.

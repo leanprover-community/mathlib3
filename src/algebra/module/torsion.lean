@@ -497,10 +497,14 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 open_locale big_operators
 
 variables (R M)
+
 /-- An ideal satisfying `module.is_torsion_by_set R M I`. -/
 noncomputable def _root_.module.torsion_ideal [module.finite R M] : ideal R :=
 ∏ x in ‹module.finite R M›.out.some, ideal.torsion_of R M x
 
+lemma _root_.module.is_torsion_by_set_annihilator_top :
+  module.is_torsion_by_set R M (annihilator (⊤ : submodule R M)) :=
+λ x ha, mem_annihilator.mp ha.prop x mem_top
 
 lemma _root_.module.is_torsion_by_set_torsion_ideal [module.finite R M] :
   module.is_torsion_by_set R M (module.torsion_ideal R M) :=

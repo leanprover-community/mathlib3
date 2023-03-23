@@ -14,14 +14,14 @@ and provides lemmas that deal with this function and its connection to `nat.coun
 
 ## Main definitions
 
-* `nth p n`: The `n`-th natural `k` (zero-indexed) such that `p k`. If there is no
-  such natural (that is, `p` is true for at most `n` naturals), then `nth p n = 0`.
+* `nat.nth p n`: The `n`-th natural `k` (zero-indexed) such that `p k`. If there is no
+  such natural (that is, `p` is true for at most `n` naturals), then `nat.nth p n = 0`.
 
 ## Main results
 
 * `nat.nth_set_card`: For a fintely-often true `p`, gives the cardinality of the set of numbers
   satisfying `p` above particular values of `nth p`
-* `nat.count_nth_gc`: Establishes a Galois connection between `nth p` and `count p`.
+* `nat.count_nth_gc`: Establishes a Galois connection between `nat.nth p` and `nat.count p`.
 * `nat.nth_eq_order_iso_of_nat`: For an infinitely-ofter true predicate, `nth` agrees with the
   order-isomorphism of the subtype to the natural numbers.
 
@@ -40,8 +40,35 @@ variable (p : ℕ → Prop)
 /-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
 natural number satisfying `p`), or `0` if there is no such number. See also
 `subtype.order_iso_of_nat` for the order isomorphism with ℕ when `p` is infinitely often true. -/
-noncomputable def nth : ℕ → ℕ
-| n := Inf { i : ℕ | p i ∧ ∀ k < n, nth k < i }
+noncomputable def nth (p : ℕ → Prop) (n : ℕ) : ℕ :=
+by classical; exact
+if h : set.finite {n | p n}
+then (h.to_finset.sort (≤)).nthd n 0
+else @nat.subtype.order_iso_of_nat (set_of p) (set.infinite.to_subtype h) n
+
+theorem nth_of_finite (h : (set_of p).finite) (n : ℕ) :
+  nth p n = (h.to_finset.sort (≤)).nthd n 0 :=
+by classical; rw [nth, dif_pos h]
+
+theorem nth_mem_list {l : list ℕ} (hl : l.sorted (<)) (n : ℕ) :
+  nth (λ k, k ∈ l) n = l.nthd n 0 :=
+begin
+  rw [nth_of_finite _ l.finite_to_set],
+  
+end
+
+/-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
+theorem nth_eq_order_iso_of_nat (i : set.infinite (set_of p)) (n : ℕ) :
+  nth p n = @nat.subtype.order_iso_of_nat (set_of p) i.to_subtype n :=
+by classical; rw [nth, dif_neg i]
+
+theorem is_least_nth (n : ℕ) (h : ∀ hf : (set_of p).finite, n < hf.to_finset.card) :
+  is_least { i : ℕ | p i ∧ ∀ k < n, nth p k < i } (nth p n) :=
+begin
+  rw [nth],
+  split_ifs with hf,
+  {  }
+end
 
 lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simp }
 

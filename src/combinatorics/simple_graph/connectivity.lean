@@ -668,18 +668,21 @@ def tail : Π {x y : V} (p : G.walk x y) (hxy : x ≠ y), G.walk (p.head hxy).sn
 | _ _ nil h := (h rfl).elim
 | _ _ (cons hxz w) _ := rfl
 
-@[simp] lemma cons_support_tail : ∀ {x y : V} (p : G.walk x y) (hxy : x ≠ y),
-  x :: (p.tail hxy).support = p.support
+private lemma adj_head_snd {x y : V} (p : G.walk x y) (hxy : x ≠ y) : G.adj x (p.head hxy).snd :=
+by { convert  (p.head hxy).is_adj, rw head_fst }
+
+@[simp] lemma head_cons_tail : ∀ {x y : V} (p : G.walk x y) (hxy : x ≠ y),
+  cons (adj_head_snd p hxy) (p.tail hxy) = p
 | _ _ nil h := (h rfl).elim
 | x z (cons hxz w) h := rfl
 
-@[simp]lemma length_support_tail_add_one {x y : V} {p : G.walk x y} (hxy : x ≠ y) :
-  (p.tail hxy).support.length + 1 = p.support.length :=
-by rw [←cons_support_tail _ hxy, list.length_cons]
+@[simp] lemma cons_support_tail {x y : V} (p : G.walk x y) (hxy : x ≠ y) :
+  x :: (p.tail hxy).support = p.support :=
+by rw [←support_cons, head_cons_tail]
 
-lemma length_tail_add_one {x y : V} {p : G.walk x y} (hxy : x ≠ y) :
+@[simp] lemma length_tail_add_one {x y : V} {p : G.walk x y} (hxy : x ≠ y) :
   (p.tail hxy).length + 1 = p.length :=
-by rw [←add_left_inj 1, ←length_support, ←length_support, length_support_tail_add_one]
+by rw [←length_cons, head_cons_tail]
 
 /-! ### Trails, paths, circuits, cycles -/
 

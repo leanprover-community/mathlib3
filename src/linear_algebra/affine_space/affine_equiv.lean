@@ -10,6 +10,9 @@ import algebra.invertible
 /-!
 # Affine equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `affine_equiv k P₁ P₂` (notation: `P₁ ≃ᵃ[k] P₂`) to be the type of affine
 equivalences between `P₁` and `P₂, i.e., equivalences such that both forward and inverse maps are
 affine maps.

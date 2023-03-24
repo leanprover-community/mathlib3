@@ -7,6 +7,9 @@ import data.set.lattice
 import order.directed
 /-!
 # Union lift
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines `set.Union_lift` to glue together functions defined on each of a collection of
 sets to make a function on the Union of those sets.
 

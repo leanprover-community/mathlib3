@@ -3,11 +3,8 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.ideal.operations
-import ring_theory.nilpotent
-import ring_theory.tensor_product
-import linear_algebra.isomorphisms
-import ring_theory.ideal.cotangent
+import ring_theory.quotient_nilpotent
+import ring_theory.derivation
 
 /-!
 
@@ -105,6 +102,27 @@ lemma formally_unramified.ext [formally_unramified R A] (hI : is_nilpotent I)
   {g₁ g₂ : A →ₐ[R] B} (H : ∀ x, ideal.quotient.mk I (g₁ x) = ideal.quotient.mk I (g₂ x)) :
   g₁ = g₂ :=
 formally_unramified.lift_unique I hI g₁ g₂ (alg_hom.ext H)
+
+lemma formally_unramified.lift_unique_of_ring_hom [formally_unramified R A]
+  {C : Type u} [comm_ring C] (f : B →+* C) (hf : is_nilpotent f.ker)
+  (g₁ g₂ : A →ₐ[R] B) (h : f.comp ↑g₁ = f.comp (g₂ : A →+* B)) : g₁ = g₂ :=
+formally_unramified.lift_unique _ hf _ _
+begin
+  ext x,
+  have := ring_hom.congr_fun h x,
+  simpa only [ideal.quotient.eq, function.comp_app, alg_hom.coe_comp, ideal.quotient.mkₐ_eq_mk,
+    ring_hom.mem_ker, map_sub, sub_eq_zero],
+end
+
+lemma formally_unramified.ext' [formally_unramified R A]
+  {C : Type u} [comm_ring C] (f : B →+* C) (hf : is_nilpotent f.ker)
+  (g₁ g₂ : A →ₐ[R] B) (h : ∀ x, f (g₁ x) = f (g₂ x)) : g₁ = g₂ :=
+formally_unramified.lift_unique_of_ring_hom f hf g₁ g₂ (ring_hom.ext h)
+
+lemma formally_unramified.lift_unique' [formally_unramified R A]
+  {C : Type u} [comm_ring C] [algebra R C] (f : B →ₐ[R] C) (hf : is_nilpotent (f : B →+* C).ker)
+  (g₁ g₂ : A →ₐ[R] B) (h : f.comp g₁ = f.comp g₂) : g₁ = g₂ :=
+formally_unramified.ext' _ hf g₁ g₂ (alg_hom.congr_fun h)
 
 lemma formally_smooth.exists_lift {B : Type u} [comm_ring B] [_RB : algebra R B]
   [formally_smooth R A] (I : ideal B)
@@ -214,6 +232,7 @@ end of_equiv
 
 section polynomial
 
+open_locale polynomial
 variables (R : Type u) [comm_semiring R]
 
 instance formally_smooth.mv_polynomial (σ : Type u) : formally_smooth R (mv_polynomial σ R) :=
@@ -229,7 +248,7 @@ begin
   refl,
 end
 
-instance formally_smooth.polynomial : formally_smooth R (polynomial R) :=
+instance formally_smooth.polynomial : formally_smooth R R[X] :=
 @@formally_smooth.of_equiv _ _ _ _ _
   (formally_smooth.mv_polynomial R punit) (mv_polynomial.punit_alg_equiv R)
 
@@ -354,6 +373,42 @@ begin
 end
 
 end of_surjective
+
+section unramified_derivation
+
+open_locale tensor_product
+
+variables {R S : Type u} [comm_ring R] [comm_ring S] [algebra R S]
+
+instance formally_unramified.subsingleton_kaehler_differential [formally_unramified R S] :
+  subsingleton Ω[S⁄R] :=
+begin
+  rw ← not_nontrivial_iff_subsingleton,
+  introsI h,
+  obtain ⟨f₁, f₂, e⟩ := (kaehler_differential.End_equiv R S).injective.nontrivial,
+  apply e,
+  ext1,
+  apply formally_unramified.lift_unique' _ _ _ _ (f₁.2.trans f₂.2.symm),
+  rw [← alg_hom.to_ring_hom_eq_coe, alg_hom.ker_ker_sqare_lift],
+  exact ⟨_, ideal.cotangent_ideal_square _⟩,
+end
+
+lemma formally_unramified.iff_subsingleton_kaehler_differential :
+  formally_unramified R S ↔ subsingleton Ω[S⁄R] :=
+begin
+  split,
+  { introsI, apply_instance },
+  { introI H,
+    constructor,
+    introsI B _ _ I hI f₁ f₂ e,
+    letI := f₁.to_ring_hom.to_algebra,
+    haveI := is_scalar_tower.of_algebra_map_eq' (f₁.comp_algebra_map).symm,
+    have := ((kaehler_differential.linear_map_equiv_derivation R S).to_equiv.trans
+      (derivation_to_square_zero_equiv_lift I hI)).surjective.subsingleton,
+    exact subtype.ext_iff.mp (@@subsingleton.elim this ⟨f₁, rfl⟩ ⟨f₂, e.symm⟩) }
+end
+
+end unramified_derivation
 
 section base_change
 

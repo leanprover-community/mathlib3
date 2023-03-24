@@ -9,6 +9,9 @@ import category_theory.category.ulift
 /-!
 # Existence of limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `category_theory.limits.is_limit` we defined `is_limit c`,
 the data showing that a cone `c` is a limit cone.
 
@@ -505,6 +508,14 @@ def const_lim_adj : (const J : C ⥤ (J ⥤ C)) ⊣ lim :=
 instance : is_right_adjoint (lim : (J ⥤ C) ⥤ C) := ⟨_, const_lim_adj⟩
 
 end lim_functor
+
+instance lim_map_mono' {F G : J ⥤ C} [has_limits_of_shape J C] (α : F ⟶ G)
+  [mono α] : mono (lim_map α) :=
+(lim : (J ⥤ C) ⥤ C).map_mono α
+
+instance lim_map_mono {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G)
+  [∀ j, mono (α.app j)] : mono (lim_map α) :=
+⟨λ Z u v h, limit.hom_ext $ λ j, (cancel_mono (α.app j)).1 $ by simpa using h =≫ limit.π _ j⟩
 
 /--
 We can transport limits of shape `J` along an equivalence `J ≌ J'`.
@@ -1005,6 +1016,13 @@ def colim_const_adj : (colim : (J ⥤ C) ⥤ C) ⊣ const J :=
 instance : is_left_adjoint (colim : (J ⥤ C) ⥤ C) := ⟨_, colim_const_adj⟩
 
 end colim_functor
+
+instance colim_map_epi' {F G : J ⥤ C} [has_colimits_of_shape J C] (α : F ⟶ G) [epi α] :
+  epi (colim_map α) := (colim : (J ⥤ C) ⥤ C).map_epi α
+
+instance colim_map_epi {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G)
+  [∀ j, epi (α.app j)] : epi (colim_map α) :=
+⟨λ Z u v h, colimit.hom_ext $ λ j, (cancel_epi (α.app j)).1 $ by simpa using colimit.ι _ j ≫= h⟩
 
 /--
 We can transport colimits of shape `J` along an equivalence `J ≌ J'`.

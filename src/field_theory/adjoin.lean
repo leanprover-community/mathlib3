@@ -6,6 +6,7 @@ Authors: Thomas Browning, Patrick Lutz
 
 import field_theory.intermediate_field
 import field_theory.separable
+import field_theory.splitting_field
 import ring_theory.tensor_product
 
 /-!
@@ -499,7 +500,7 @@ lemma exists_finset_of_mem_supr'' {ι : Type*} {f : ι → intermediate_field F 
 begin
   refine exists_finset_of_mem_supr (set_like.le_def.mp (supr_le (λ i x hx, set_like.le_def.mp
     (le_supr_of_le ⟨i, x, hx⟩ le_rfl) (subset_adjoin F _ _))) hx),
-  rw [intermediate_field.minpoly_eq, subtype.coe_mk, polynomial.mem_root_set, minpoly.aeval],
+  rw [intermediate_field.minpoly_eq, subtype.coe_mk, mem_root_set_of_ne, minpoly.aeval],
   exact minpoly.ne_zero (is_integral_iff.mp (is_algebraic_iff_is_integral.mp (h i ⟨x, hx⟩)))
 end
 
@@ -619,7 +620,7 @@ begin
   ext,
   convert minpoly.aeval F α,
   conv in (aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
-  exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
+  exact (aeval_algebra_map_apply E (adjoin_simple.gen F α) _).symm
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
@@ -677,6 +678,14 @@ begin
   rw power_basis.finrank (adjoin.power_basis hx : _),
   refl
 end
+
+lemma _root_.minpoly.nat_degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
+  (minpoly K x).nat_degree ≤ finrank K L :=
+le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm K⟮x⟯.to_submodule.finrank_le
+
+lemma _root_.minpoly.degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
+  (minpoly K x).degree ≤ finrank K L :=
+degree_le_of_nat_degree_le (minpoly.nat_degree_le hx)
 
 end power_basis
 
@@ -878,7 +887,7 @@ end⟩
 /-- Extend a lift `x : lifts F E K` to an element `s : E` whose conjugates are all in `K` -/
 noncomputable def lifts.lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
   (h2 : (minpoly F s).splits (algebra_map F K)) : lifts F E K :=
-let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower s h1 in
+let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower h1 in
 let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
   splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero h1))
   ((splits_map_iff _ _).mpr (by {convert h2, exact ring_hom.ext (λ y, x.2.commutes y)}))

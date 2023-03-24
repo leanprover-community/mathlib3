@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.multilinear.basic
-import linear_algebra.free_module.finite.basic
+import linear_algebra.free_module.finite.matrix
 
 /-! # Multilinear maps over finite dimensional spaces
 

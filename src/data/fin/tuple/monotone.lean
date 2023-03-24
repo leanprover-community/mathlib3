@@ -8,6 +8,9 @@ import data.fin.vec_notation
 /-!
 # Monotone finite sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove `simp` lemmas that allow to simplify propositions like `monotone ![a, b, c]`.
 -/
 

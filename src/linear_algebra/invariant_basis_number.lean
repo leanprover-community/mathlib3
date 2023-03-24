@@ -9,6 +9,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Invariant basis number property
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a ring `R` satisfies the invariant basis number property if there is a well-defined
 notion of the rank of a finitely generated free (left) `R`-module. Since a finitely generated free
 module with a basis consisting of `n` elements is linearly equivalent to `fin n → R`, it is
@@ -106,8 +109,8 @@ end
 lemma card_le_of_injective' [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
 begin
-  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
-  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  let P := (finsupp.linear_equiv_fun_on_finite R R β),
+  let Q := (finsupp.linear_equiv_fun_on_finite R R α).symm,
   exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.injective.comp i).comp Q.injective)
 end
@@ -133,8 +136,8 @@ end
 lemma card_le_of_surjective' [rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
 begin
-  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
-  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  let P := (finsupp.linear_equiv_fun_on_finite R R β),
+  let Q := (finsupp.linear_equiv_fun_on_finite R R α).symm,
   exact card_le_of_surjective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.surjective.comp i).comp Q.surjective)
 end

@@ -5,7 +5,7 @@ Authors: Stuart Presnell
 -/
 import algebra.big_operators.finsupp
 import data.finsupp.multiset
-import data.nat.prime
+import data.nat.prime_fin
 import number_theory.padics.padic_val
 import data.nat.interval
 import tactic.interval_cases
@@ -291,8 +291,8 @@ the $p$-adic order/valuation of a number, and `proj` and `compl` are for the pro
 complementary projection. The term `n.factorization p` is the $p$-adic order itself.
 For example, `ord_proj[2] n` is the even part of `n` and `ord_compl[2] n` is the odd part. -/
 
-notation `ord_proj[` p `]` n:max := p ^ (nat.factorization n p)
-notation `ord_compl[` p `]` n:max := n / ord_proj[p] n
+notation `ord_proj[` p `] ` n:max := p ^ (nat.factorization n p)
+notation `ord_compl[` p `] ` n:max := n / ord_proj[p] n
 
 @[simp] lemma ord_proj_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_proj[p] n = 1 :=
 by simp [factorization_eq_zero_of_non_prime n hp]
@@ -307,7 +307,7 @@ begin
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
-  simp [list.eq_of_mem_repeat hq],
+  simp [list.eq_of_mem_replicate hq],
 end
 
 lemma ord_compl_dvd (n p : ℕ) : ord_compl[p] n ∣ n :=
@@ -385,6 +385,14 @@ begin
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index' pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
+lemma factorization_prime_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+  (∀ p : ℕ, p.prime → d.factorization p ≤ n.factorization p) ↔ d ∣ n :=
+begin
+  rw ← factorization_le_iff_dvd hd hn,
+  refine ⟨λ h p, (em p.prime).elim (h p) (λ hp, _), λ h p _, h p⟩,
+  simp_rw factorization_eq_zero_of_non_prime _ hp,
 end
 
 lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
@@ -558,13 +566,11 @@ begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
   rcases eq_or_ne d 0 with rfl | hd,
   { simp only [zero_dvd_iff, hn, false_iff, not_forall],
-    refine ⟨2, n, prime_two, ⟨dvd_zero _, _⟩⟩,
-    apply mt (le_of_dvd hn.bot_lt) (not_le.mpr (lt_two_pow n)) },
+    exact ⟨2, n, prime_two, dvd_zero _, mt (le_of_dvd hn.bot_lt) (lt_two_pow n).not_le⟩ },
   refine ⟨λ h p k _ hpkd, dvd_trans hpkd h, _⟩,
-  rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
-  intros h p,
-  by_cases pp : prime p, swap, { simp [factorization_eq_zero_of_non_prime d pp] },
-  rw ←pp.pow_dvd_iff_le_factorization hn,
+  rw [←factorization_prime_le_iff_dvd hd hn],
+  intros h p pp,
+  simp_rw ←pp.pow_dvd_iff_le_factorization hn,
   exact h p _ pp (ord_proj_dvd _ _)
 end
 
@@ -595,6 +601,15 @@ begin
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
+end
+
+lemma factorization_lcm {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+  (a.lcm b).factorization = a.factorization ⊔ b.factorization :=
+begin
+  rw [← add_right_inj (a.gcd b).factorization,
+    ← factorization_mul (mt gcd_eq_zero_iff.1 $ λ h, ha h.1) (lcm_ne_zero ha hb),
+    gcd_mul_lcm, factorization_gcd ha hb, factorization_mul ha hb],
+  ext1, exact (min_add_max _ _).symm,
 end
 
 @[to_additive sum_factors_gcd_add_sum_factors_mul]
@@ -728,8 +743,7 @@ begin
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
     exact hp p n hp' hn },
-  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le hn.ne'))
-    _ _ (hp _ _ hp' hn) hPa,
+  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow hn.ne' _)) _ _ (hp _ _ hp' hn) hPa,
   { contrapose! hpa,
     simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],

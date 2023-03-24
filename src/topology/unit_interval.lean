@@ -11,6 +11,9 @@ import data.set.intervals.instances
 /-!
 # The unit interval, as a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
 
 We provide basic instances, as well as a custom tactic for discharging
@@ -19,7 +22,7 @@ We provide basic instances, as well as a custom tactic for discharging
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set int set.Icc
 
 /-! ### The unit interval -/
@@ -101,6 +104,8 @@ lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
 lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
 lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
 lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+lemma add_pos {t : I} {x : ℝ} (hx : 0 < x) : 0 < (x + t : ℝ) :=
+add_pos_of_pos_of_nonneg hx $ nonneg _
 
 /-- like `unit_interval.nonneg`, but with the inequality in `I`. -/
 lemma nonneg' {t : I} : 0 ≤ t := t.2.1

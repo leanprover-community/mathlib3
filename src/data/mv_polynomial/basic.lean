@@ -4,13 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import ring_theory.adjoin.basic
-import data.finsupp.antidiagonal
+import algebra.algebra.tower
 import algebra.monoid_algebra.support
+import data.finsupp.antidiagonal
 import order.symm_diff
+import ring_theory.adjoin.basic
 
 /-!
 # Multivariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines polynomial rings over a base ring (or even semiring),
 with variables from a general type `σ` (which could be infinite).
@@ -201,7 +205,7 @@ instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semir
   [nontrivial R] :
   infinite (mv_polynomial σ R) :=
 infinite.of_injective ((λ s : σ →₀ ℕ, monomial s 1) ∘ single (classical.arbitrary σ)) $
-  (monomial_left_injective $ @one_ne_zero R _ _).comp (finsupp.single_injective _)
+  (monomial_left_injective one_ne_zero).comp (finsupp.single_injective _)
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ R) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
@@ -215,7 +219,7 @@ lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
 
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
-(monomial_left_injective $ @one_ne_zero R _ _).comp (finsupp.single_left_injective one_ne_zero)
+(monomial_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
 
 @[simp] lemma X_inj [nontrivial R] (m n : σ) : X m = (X n : mv_polynomial σ R) ↔ m = n :=
 X_injective.eq_iff
@@ -238,8 +242,7 @@ variables {σ R}
 @[simp] lemma monomial_one_hom_apply :
   monomial_one_hom R σ s = (monomial s 1 : mv_polynomial σ R) := rfl
 
-lemma X_pow_eq_monomial : X n ^ e = monomial (single n e) (1 : R) :=
-by simp [X, monomial_pow]
+lemma X_pow_eq_monomial : X n ^ e = monomial (single n e) (1 : R) := by simp [X, monomial_pow]
 
 lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
 by rw [X_pow_eq_monomial, monomial_mul, mul_one]
@@ -247,12 +250,13 @@ by rw [X_pow_eq_monomial, monomial_mul, mul_one]
 lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_monomial, monomial_mul, one_mul]
 
-lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
-  monomial (single s n) a = C a * (X s)^n :=
+lemma C_mul_X_pow_eq_monomial {s : σ} {a : R} {n : ℕ} : C a * X s ^ n = monomial (single s n) a :=
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
-@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
-single_zero _
+lemma C_mul_X_eq_monomial {s : σ} {a : R} : C a * X s = monomial (single s 1) a :=
+by rw [← C_mul_X_pow_eq_monomial, pow_one]
+
+@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 := single_zero _
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
 
@@ -414,9 +418,13 @@ by rw [X, support_monomial, if_neg]; exact one_ne_zero
 
 lemma support_X_pow [nontrivial R] (s : σ) (n : ℕ) :
   (X s ^ n : mv_polynomial σ R).support = {finsupp.single s n} :=
-by rw [X_pow_eq_monomial, support_monomial, if_neg (@one_ne_zero R _ _)]
+by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
+
+lemma support_smul [distrib_mul_action R S₁] {a : R} {f : mv_polynomial σ S₁} :
+  (a • f).support ⊆ f.support :=
+finsupp.support_smul
 
 lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
   (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
@@ -657,15 +665,18 @@ def constant_coeff : mv_polynomial σ R →+* R :=
 
 lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
 
-@[simp]
-lemma constant_coeff_C (r : R) :
-  constant_coeff (C r : mv_polynomial σ R) = r :=
+variables (σ)
+@[simp] lemma constant_coeff_C (r : R) : constant_coeff (C r : mv_polynomial σ R) = r :=
 by simp [constant_coeff_eq]
+variables {σ}
 
-@[simp]
-lemma constant_coeff_X (i : σ) :
-  constant_coeff (X i : mv_polynomial σ R) = 0 :=
+variables (R)
+@[simp] lemma constant_coeff_X (i : σ) : constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
+variables {R}
+
+@[simp] lemma constant_coeff_smul [distrib_mul_action R S₁] (a : R) (f : mv_polynomial σ S₁) :
+  constant_coeff (a • f) = a • constant_coeff f := rfl
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
@@ -675,7 +686,7 @@ variables (σ R)
 
 @[simp] lemma constant_coeff_comp_C :
   constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
-by { ext, apply constant_coeff_C }
+by { ext x, exact constant_coeff_C σ x }
 
 @[simp] lemma constant_coeff_comp_algebra_map :
   constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
@@ -1091,6 +1102,9 @@ section aeval
 variables [algebra R S₁] [comm_semiring S₂]
 variables (f : σ → S₁)
 
+lemma algebra_map_apply (r : R) :
+  algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl
+
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/
 def aeval : mv_polynomial σ R →ₐ[R] S₁ :=
@@ -1109,6 +1123,12 @@ lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
 theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 by { ext i, simp }
+
+lemma aeval_X_left : aeval X = alg_hom.id R (mv_polynomial σ R) :=
+(aeval_unique (alg_hom.id R _)).symm
+
+lemma aeval_X_left_apply (p : mv_polynomial σ R) : aeval X p = p :=
+alg_hom.congr_fun aeval_X_left p
 
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
   (φ : S₁ →ₐ[R] B) :

@@ -8,6 +8,9 @@ import data.set.pairwise
 /-!
 # Antichains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines antichains. An antichain is a set where any two distinct elements are not related.
 If the relation is `(≤)`, this corresponds to incomparability and usual order antichains. If the
 relation is `G.adj` for `G : simple_graph α`, this corresponds to independent sets of `G`.
@@ -22,7 +25,8 @@ relation is `G.adj` for `G : simple_graph α`, this corresponds to independent s
 
 open function set
 
-variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β → Prop} {s t : set α} {a : α}
+section general
+variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β → Prop} {s t : set α} {a b : α}
 
 protected lemma symmetric.compl (h : symmetric r) : symmetric rᶜ := λ x y hr hr', hr $ h hr'
 
@@ -172,6 +176,9 @@ hs.pairwise _
 section preorder
 variables [preorder α]
 
+lemma is_antichain.not_lt (hs : is_antichain (≤) s) (ha : a ∈ s) (hb : b ∈ s) : ¬ a < b :=
+λ h, hs ha hb h.ne h.le
+
 lemma is_antichain_and_least_iff : is_antichain (≤) s ∧ is_least s a ↔ s = {a} :=
 ⟨λ h, eq_singleton_iff_unique_mem.2 ⟨h.2.1, λ b hb, h.1.eq' hb h.2.1 (h.2.2 hb)⟩,
   by { rintro rfl, exact ⟨is_antichain_singleton _ _, is_least_singleton⟩ }⟩
@@ -200,9 +207,17 @@ is_greatest_top_iff.symm.trans hs.greatest_iff
 
 end preorder
 
+section partial_order
+variables [partial_order α]
+
+lemma is_antichain_iff_forall_not_lt : is_antichain (≤) s ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → ¬ a < b :=
+⟨λ hs a ha b, hs.not_lt ha, λ hs a ha b hb h h', hs ha hb $ h'.lt_of_ne h⟩
+
+end partial_order
+
 /-! ### Strong antichains -/
 
-/-- An strong (upward) antichain is a set such that no two distinct elements are related to a common
+/-- A strong (upward) antichain is a set such that no two distinct elements are related to a common
 element. -/
 def is_strong_antichain (r : α → α → Prop) (s : set α) : Prop :=
 s.pairwise $ λ a b, ∀ c, ¬ r a c ∨ ¬ r b c
@@ -261,3 +276,40 @@ end is_strong_antichain
 lemma set.subsingleton.is_strong_antichain (hs : s.subsingleton) (r : α → α → Prop) :
   is_strong_antichain r s :=
 hs.pairwise _
+
+end general
+
+/-! ### Weak antichains -/
+
+section pi
+variables {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] {s t : set (Π i, α i)}
+  {a b c : Π i, α i}
+
+local infix ` ≺ `:50 := strong_lt
+
+/-- A weak antichain in `Π i, α i` is a set such that no two distinct elements are strongly less
+than each other. -/
+def is_weak_antichain (s : set (Π i, α i)) : Prop := is_antichain (≺) s
+
+namespace is_weak_antichain
+
+protected lemma subset (hs : is_weak_antichain s) : t ⊆ s → is_weak_antichain t := hs.subset
+protected lemma eq (hs : is_weak_antichain s) : a ∈ s → b ∈ s → a ≺ b → a = b := hs.eq
+
+protected lemma insert (hs : is_weak_antichain s) : (∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ b ≺ a) →
+  (∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ a ≺ b) → is_weak_antichain (insert a s) :=
+hs.insert
+
+end is_weak_antichain
+
+lemma is_weak_antichain_insert :
+  is_weak_antichain (insert a s) ↔ is_weak_antichain s ∧ ∀ ⦃b⦄, b ∈ s → a ≠ b → ¬ a ≺ b ∧ ¬ b ≺ a :=
+is_antichain_insert
+
+protected lemma is_antichain.is_weak_antichain (hs : is_antichain (≤) s) : is_weak_antichain s :=
+hs.mono $ λ a b, le_of_strong_lt
+
+lemma set.subsingleton.is_weak_antichain (hs : s.subsingleton) : is_weak_antichain s :=
+hs.is_antichain _
+
+end pi

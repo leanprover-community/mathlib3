@@ -12,6 +12,9 @@ import tactic.apply_fun
 /-!
 # Symmetric powers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines symmetric powers of a type.  The nth symmetric power
 consists of homogeneous n-tuples modulo permutations by the symmetric
 group.
@@ -53,7 +56,7 @@ local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α β : Type*} {n : ℕ} {s : sym α n} {a b : α}
+variables {α β : Type*} {n n' m : ℕ} {s : sym α n} {a b : α}
 
 lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
 
@@ -117,10 +120,12 @@ s.1.decidable_mem _
 @[simp]
 lemma mem_mk (a : α) (s : multiset α) (h : s.card = n) : a ∈ mk s h ↔ a ∈ s := iff.rfl
 
-@[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b ::ₛ s ↔ a = b ∨ a ∈ s :=
+@[simp] lemma mem_cons : a ∈ b ::ₛ s ↔ a = b ∨ a ∈ s :=
 multiset.mem_cons
 
-lemma mem_cons_of_mem {a b : α} {s : sym α n} (h : a ∈ s) : a ∈ b ::ₛ s :=
+@[simp] lemma mem_coe : a ∈ (s : multiset α) ↔ a ∈ s := iff.rfl
+
+lemma mem_cons_of_mem (h : a ∈ s) : a ∈ b ::ₛ s :=
 multiset.mem_cons_of_mem h
 
 @[simp] lemma mem_cons_self (a : α) (s : sym α n) : a ∈ a ::ₛ s :=
@@ -183,20 +188,19 @@ subtype.ext $ multiset.card_eq_zero.1 s.2
 instance unique_zero : unique (sym α 0) :=
 ⟨⟨nil⟩, eq_nil_of_card_zero⟩
 
-/-- `repeat a n` is the sym containing only `a` with multiplicity `n`. -/
-def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
+/-- `replicate n a` is the sym containing only `a` with multiplicity `n`. -/
+def replicate (n : ℕ) (a : α) : sym α n := ⟨multiset.replicate n a, multiset.card_replicate _ _⟩
 
-lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a ::ₛ repeat a n := rfl
+lemma replicate_succ {a : α} {n : ℕ} : replicate n.succ a = a ::ₛ replicate n a := rfl
 
-lemma coe_repeat : (repeat a n : multiset α) = multiset.repeat a n := rfl
+lemma coe_replicate : (replicate n a : multiset α) = multiset.replicate n a := rfl
 
-@[simp] lemma mem_repeat : b ∈ repeat a n ↔ n ≠ 0 ∧ b = a := multiset.mem_repeat
+@[simp] lemma mem_replicate : b ∈ replicate n a ↔ n ≠ 0 ∧ b = a := multiset.mem_replicate
 
-lemma eq_repeat_iff : s = repeat a n ↔ ∀ b ∈ s, b = a :=
+lemma eq_replicate_iff : s = replicate n a ↔ ∀ b ∈ s, b = a :=
 begin
-  rw [subtype.ext_iff, coe_repeat],
-  convert multiset.eq_repeat',
-  exact s.2.symm,
+  rw [subtype.ext_iff, coe_replicate, multiset.eq_replicate],
+  exact and_iff_right s.2
 end
 
 lemma exists_mem (s : sym α n.succ) : ∃ a, a ∈ s :=
@@ -209,11 +213,12 @@ begin
   exact ⟨a, s.erase a ha, (cons_erase ha).symm⟩,
 end
 
-lemma eq_repeat {a : α} {n : ℕ} {s : sym α n} : s = repeat a n ↔ ∀ b ∈ s, b = a :=
-subtype.ext_iff.trans $ multiset.eq_repeat.trans $ and_iff_right s.prop
+lemma eq_replicate {a : α} {n : ℕ} {s : sym α n} : s = replicate n a ↔ ∀ b ∈ s, b = a :=
+subtype.ext_iff.trans $ multiset.eq_replicate.trans $ and_iff_right s.prop
 
-lemma eq_repeat_of_subsingleton [subsingleton α] (a : α) {n : ℕ} (s : sym α n) : s = repeat a n :=
-eq_repeat.2 $ λ b hb, subsingleton.elim _ _
+lemma eq_replicate_of_subsingleton [subsingleton α] (a : α) {n : ℕ} (s : sym α n) :
+  s = replicate n a :=
+eq_replicate.2 $ λ b hb, subsingleton.elim _ _
 
 instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
 ⟨begin
@@ -221,28 +226,29 @@ instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
   { simp, },
   { intros s s',
     obtain ⟨b, -⟩ := exists_mem s,
-    rw [eq_repeat_of_subsingleton b s', eq_repeat_of_subsingleton b s], },
+    rw [eq_replicate_of_subsingleton b s', eq_replicate_of_subsingleton b s], },
 end⟩
 
 instance inhabited_sym [inhabited α] (n : ℕ) : inhabited (sym α n) :=
-⟨repeat default n⟩
+⟨replicate n default⟩
 
 instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
-⟨quotient.mk' (vector.repeat default n)⟩
+⟨quotient.mk' (vector.replicate n default)⟩
 
 instance (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
 ⟨λ s, by { obtain ⟨a, -⟩ := exists_mem s, exact is_empty_elim a }⟩
 
 instance (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
 
-lemma repeat_left_inj {a b : α} {n : ℕ} (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
-subtype.ext_iff.trans (multiset.repeat_left_inj h)
+lemma replicate_right_inj {a b : α} {n : ℕ} (h : n ≠ 0) : replicate n a = replicate n b ↔ a = b :=
+subtype.ext_iff.trans (multiset.replicate_right_inj h)
 
-lemma repeat_left_injective {n : ℕ} (h : n ≠ 0) : function.injective (λ x : α, repeat x n) :=
-λ a b, (repeat_left_inj h).1
+lemma replicate_right_injective {n : ℕ} (h : n ≠ 0) :
+  function.injective (replicate n : α → sym α n) :=
+λ a b, (replicate_right_inj h).1
 
 instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
-(repeat_left_injective n.succ_ne_zero).nontrivial
+(replicate_right_injective n.succ_ne_zero).nontrivial
 
 /-- A function `α → β` induces a function `sym α n → sym β n` by applying it to every element of
 the underlying `n`-tuple. -/
@@ -313,6 +319,92 @@ multiset.mem_attach _ _
   (cons x s).attach = cons ⟨x, mem_cons_self _ _⟩ (s.attach.map (λ x, ⟨x, mem_cons_of_mem x.prop⟩))
   :=
 coe_injective $ multiset.attach_cons _ _
+
+/-- Change the length of a `sym` using an equality.
+The simp-normal form is for the `cast` to be pushed outward. -/
+protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
+{ to_fun := λ s, ⟨s.val, s.2.trans h⟩,
+  inv_fun := λ s, ⟨s.val, s.2.trans h.symm⟩,
+  left_inv := λ s, subtype.ext rfl,
+  right_inv := λ s, subtype.ext rfl }
+
+@[simp] lemma cast_rfl : sym.cast rfl s = s := subtype.ext rfl
+
+@[simp] lemma cast_cast {n'' : ℕ} (h : n = n') (h' : n' = n'') :
+  sym.cast h' (sym.cast h s) = sym.cast (h.trans h') s := rfl
+
+@[simp] lemma coe_cast (h : n = m) : (sym.cast h s : multiset α) = s := rfl
+
+@[simp] lemma mem_cast (h : n = m) : a ∈ sym.cast h s ↔ a ∈ s := iff.rfl
+
+/-- Append a pair of `sym` terms. -/
+def append (s : sym α n) (s' : sym α n') : sym α (n + n') :=
+⟨s.1 + s'.1, by simp_rw [← s.2, ← s'.2, map_add]⟩
+
+@[simp] lemma append_inj_right (s : sym α n) {t t' : sym α n'} :
+  s.append t = s.append t' ↔ t = t' :=
+subtype.ext_iff.trans $ (add_right_inj _).trans subtype.ext_iff.symm
+
+@[simp] lemma append_inj_left {s s' : sym α n} (t : sym α n') :
+  s.append t = s'.append t ↔ s = s' :=
+subtype.ext_iff.trans $ (add_left_inj _).trans subtype.ext_iff.symm
+
+lemma append_comm (s : sym α n') (s' : sym α n') :
+  s.append s' = sym.cast (add_comm _ _) (s'.append s) :=
+by { ext, simp [append, add_comm], }
+
+@[simp, norm_cast] lemma coe_append (s : sym α n) (s' : sym α n') :
+  (s.append s' : multiset α) = s + s' := rfl
+
+lemma mem_append_iff {s' : sym α m} : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
+
+/-- Fill a term `m : sym α (n - i)` with `i` copies of `a` to obtain a term of `sym α n`.
+This is a convenience wrapper for `m.append (replicate i a)` that adjusts the term using
+`sym.cast`. -/
+def fill (a : α) (i : fin (n + 1)) (m : sym α (n - i)) : sym α n :=
+sym.cast (nat.sub_add_cancel i.is_le) (m.append (replicate i a))
+
+lemma coe_fill {a : α} {i : fin (n + 1)} {m : sym α (n - i)} :
+  (fill a i m : multiset α) = m + replicate i a := rfl
+
+lemma mem_fill_iff {a b : α} {i : fin (n + 1)} {s : sym α (n - i)} :
+  a ∈ sym.fill b i s ↔ ((i : ℕ) ≠ 0 ∧ a = b) ∨ a ∈ s :=
+by rw [fill, mem_cast, mem_append_iff, or_comm, mem_replicate]
+
+open multiset
+
+/-- Remove every `a` from a given `sym α n`.
+Yields the number of copies `i` and a term of `sym α (n - i)`. -/
+def filter_ne [decidable_eq α] (a : α) (m : sym α n) : Σ i : fin (n + 1), sym α (n - i) :=
+⟨⟨m.1.count a, (count_le_card _ _).trans_lt $ by rw [m.2, nat.lt_succ_iff]⟩,
+  m.1.filter ((≠) a), eq_tsub_of_add_eq $ eq.trans begin
+    rw [← countp_eq_card_filter, add_comm],
+    exact (card_eq_countp_add_countp _ _).symm,
+  end m.2⟩
+
+lemma sigma_sub_ext {m₁ m₂ : Σ i : fin (n + 1), sym α (n - i)}
+  (h : (m₁.2 : multiset α) = m₂.2) : m₁ = m₂ :=
+sigma.subtype_ext (fin.ext $ by rw [← nat.sub_sub_self m₁.1.is_le, ← nat.sub_sub_self m₂.1.is_le,
+  ← m₁.2.2, ← m₂.2.2, subtype.val_eq_coe, subtype.val_eq_coe, h]) h
+
+lemma fill_filter_ne [decidable_eq α] (a : α) (m : sym α n) :
+  (m.filter_ne a).2.fill a (m.filter_ne a).1 = m :=
+subtype.ext begin
+  dsimp only [coe_fill, filter_ne, subtype.coe_mk, fin.coe_mk],
+  ext b, rw [count_add, count_filter, sym.coe_replicate, count_replicate],
+  obtain rfl | h := eq_or_ne a b,
+  { rw [if_pos rfl, if_neg (not_not.2 rfl), zero_add], refl },
+  { rw [if_pos h, if_neg h.symm, add_zero], refl },
+end
+
+lemma filter_ne_fill [decidable_eq α] (a : α) (m : Σ i : fin (n + 1), sym α (n - i)) (h : a ∉ m.2) :
+  (m.2.fill a m.1).filter_ne a = m :=
+sigma_sub_ext begin
+  dsimp only [filter_ne, subtype.coe_mk, subtype.val_eq_coe, coe_fill],
+  rw [filter_add, filter_eq_self.2, add_right_eq_self, eq_zero_iff_forall_not_mem],
+  { intros b hb, rw [mem_filter, sym.mem_coe, mem_replicate] at hb, exact hb.2 hb.1.2.symm },
+  { exact λ b hb, (hb.ne_of_not_mem h).symm },
+end
 
 end sym
 

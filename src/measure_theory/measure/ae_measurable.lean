@@ -77,7 +77,7 @@ begin
     refine ⟨⋃ i, ((h i).mk f ⁻¹' t) ∩ (s i)ᶜ, measurable_set.Union $
       λ i, (measurable_mk _ ht).inter (measurable_set_to_measurable _ _).compl, _⟩,
     ext ⟨x, hx⟩,
-    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_eq,
+    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_iff,
       mem_compl_iff] at hx ⊢,
     split,
     { rintro ⟨i, hxt, hxs⟩, rwa hs _ _ hxs },
@@ -129,9 +129,9 @@ lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
-  (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
@@ -171,7 +171,7 @@ begin
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
-      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+      simp only [hx, mem_compl_iff, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
         {contextual := tt} } },
   { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
     { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
@@ -181,7 +181,7 @@ begin
     simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
     contrapose! hx,
     apply subset_to_measurable,
-    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+    simp only [hx, mem_compl_iff, mem_set_of_eq, false_and, not_false_iff] }
 end
 
 lemma exists_measurable_nonneg {β} [preorder β] [has_zero β] {mβ : measurable_space β} {f : α → β}
@@ -208,10 +208,19 @@ let ⟨g, hgm, hg⟩ := h in hgm.null_measurable.congr hg.symm
 
 end ae_measurable
 
-lemma ae_measurable_interval_oc_iff [linear_order α] {f : α → β} {a b : α} :
+lemma ae_measurable_const' (h : ∀ᵐ x y ∂μ, f x = f y) : ae_measurable f μ :=
+begin
+  rcases eq_or_ne μ 0 with rfl | hμ,
+  { exact ae_measurable_zero_measure },
+  { haveI := ae_ne_bot.2 hμ,
+    rcases h.exists with ⟨x, hx⟩,
+    exact ⟨const α (f x), measurable_const, eventually_eq.symm hx⟩ }
+end
+
+lemma ae_measurable_uIoc_iff [linear_order α] {f : α → β} {a b : α} :
   (ae_measurable f $ μ.restrict $ Ι a b) ↔
     (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_measurable_union_iff]
+by rw [uIoc_eq_union, ae_measurable_union_iff]
 
 lemma ae_measurable_iff_measurable [μ.is_complete] :
   ae_measurable f μ ↔ measurable f :=
@@ -274,18 +283,15 @@ lemma ae_measurable_Ioi_of_forall_Ioc {β} {mβ : measurable_space β}
   ae_measurable g (μ.restrict (Ioi x)) :=
 begin
   haveI : nonempty α := ⟨x⟩,
-  haveI : (at_top : filter α).ne_bot := at_top_ne_bot,
   obtain ⟨u, hu_tendsto⟩ := exists_seq_tendsto (at_top : filter α),
   have Ioi_eq_Union : Ioi x = ⋃ n : ℕ, Ioc x (u n),
   { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
-    rw tendsto_at_top_at_top at hu_tendsto,
-    exact λ y _, ⟨(hu_tendsto y).some, (hu_tendsto y).some_spec (hu_tendsto y).some le_rfl⟩, },
+    exact λ y _, (hu_tendsto.eventually (eventually_ge_at_top y)).exists },
   rw [Ioi_eq_Union, ae_measurable_Union_iff],
   intros n,
   cases lt_or_le x (u n),
   { exact g_meas (u n) h, },
-  { rw Ioc_eq_empty (not_lt.mpr h),
-    simp only [measure.restrict_empty],
+  { rw [Ioc_eq_empty (not_lt.mpr h), measure.restrict_empty],
     exact ae_measurable_zero_measure, },
 end
 

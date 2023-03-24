@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import logic.equiv.fintype
 import model_theory.semantics
 
 /-!
@@ -100,7 +99,7 @@ begin
   rcases hg with ⟨θ, hθ⟩,
   refine ⟨φ ⊔ θ, _⟩,
   ext,
-  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union_eq, mem_set_of_eq,
+  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union, mem_set_of_eq,
     mem_set_of_eq],
 end
 
@@ -233,7 +232,7 @@ begin
     refine (congr rfl (ext _)).mp (definable_finset_bInter h' finset.univ),
     simp },
   refine (congr rfl (ext (λ x, _))).mp (h.inter h'),
-  simp only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
+  simp only [equiv.coe_trans, mem_inter_iff, mem_preimage, mem_image,
     exists_exists_and_eq_and, mem_set_of_eq],
   split,
   { rintro ⟨⟨y, ys, hy⟩, hx⟩,

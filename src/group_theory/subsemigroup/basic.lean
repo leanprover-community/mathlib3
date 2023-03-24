@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov, Yakov Pechersky
 -/
+import algebra.hom.group  -- Only needed for notation
 import data.set.lattice
 import data.set_like.basic
 
 /-!
 # Subsemigroups: definition and `complete_lattice` structure
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines bundled multiplicative and additive subsemigroups. We also define
 a `complete_lattice` structure on `subsemigroup`s,
@@ -53,13 +57,13 @@ variables [has_mul M] {s : set M}
 variables [has_add A] {t : set A}
 
 /-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/
-class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] :=
+class mul_mem_class (S M : Type*) [has_mul M] [set_like S M] : Prop :=
 (mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
 
 export mul_mem_class (mul_mem)
 
 /-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
-class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] :=
+class add_mem_class (S M : Type*) [has_add M] [set_like S M] : Prop :=
 (add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
 
 export add_mem_class (add_mem)

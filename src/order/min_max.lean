@@ -8,6 +8,9 @@ import order.lattice
 /-!
 # `max` and `min`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic properties about maxima and minima on a `linear_order`.
 
 ## Tags

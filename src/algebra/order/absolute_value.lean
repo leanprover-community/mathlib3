@@ -3,10 +3,18 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Anne Baanen
 -/
-import algebra.order.field
+import algebra.group_with_zero.units.lemmas
+import algebra.order.field.defs
+import algebra.order.hom.basic
+import algebra.order.ring.abs
+import algebra.ring.commute
+import algebra.ring.regular
 
 /-!
 # Absolute values
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a bundled type of absolute values `absolute_value R S`.
 
@@ -31,20 +39,41 @@ namespace absolute_value
 
 attribute [nolint doc_blame] absolute_value.to_mul_hom
 
-initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
-
 section ordered_semiring
 
 section semiring
 
 variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
 
-instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
+instance zero_hom_class : zero_hom_class (absolute_value R S) R S :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
-  map_mul := λ f, f.map_mul' }
+  map_zero := λ f, (f.eq_zero' _).2 rfl }
 
-instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
+instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
+{ map_mul := λ f, f.map_mul'
+  ..absolute_value.zero_hom_class }
+
+instance nonneg_hom_class : nonneg_hom_class (absolute_value R S) R S :=
+{ map_nonneg := λ f, f.nonneg',
+  ..absolute_value.zero_hom_class }
+
+instance subadditive_hom_class : subadditive_hom_class (absolute_value R S) R S :=
+{ map_add_le_add := λ f, f.add_le',
+  ..absolute_value.zero_hom_class }
+
+@[simp] lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
+
+@[ext] lemma ext ⦃f g : absolute_value R S⦄ : (∀ x, f x = g x) → f = g := fun_like.ext _ _
+
+/-- See Note [custom simps projection]. -/
+def simps.apply (f : absolute_value R S) : R → S := f
+
+initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := fun_like.has_coe_to_fun
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
 
@@ -52,6 +81,8 @@ protected theorem nonneg (x : R) : 0 ≤ abv x := abv.nonneg' x
 @[simp] protected theorem eq_zero {x : R} : abv x = 0 ↔ x = 0 := abv.eq_zero' x
 protected theorem add_le (x y : R) : abv (x + y) ≤ abv x + abv y := abv.add_le' x y
 @[simp] protected theorem map_mul (x y : R) : abv (x * y) = abv x * abv y := abv.map_mul' x y
+
+protected theorem ne_zero_iff {x : R} : abv x ≠ 0 ↔ x ≠ 0 := abv.eq_zero.not
 
 protected theorem pos {x : R} (hx : x ≠ 0) : 0 < abv x :=
 lt_of_le_of_ne (abv.nonneg x) (ne.symm $ mt abv.eq_zero.mp hx)
@@ -146,6 +177,12 @@ protected theorem map_sub (a b : R) : abv (a - b) = abv (b - a) :=
 by rw [← neg_sub, abv.map_neg]
 
 end ordered_comm_ring
+
+instance {R S : Type*} [ring R] [ordered_comm_ring S] [nontrivial R] [is_domain S] :
+  mul_ring_norm_class (absolute_value R S) R S :=
+{ map_neg_eq_map := λ f, f.map_neg,
+  eq_zero_of_map_eq_zero := λ f a, f.eq_zero.1,
+  ..absolute_value.subadditive_hom_class, ..absolute_value.monoid_with_zero_hom_class }
 
 section linear_ordered_ring
 

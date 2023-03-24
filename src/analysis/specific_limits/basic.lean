@@ -7,6 +7,7 @@ import algebra.geom_sum
 import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
+import topology.algebra.algebra
 
 /-!
 # A collection of specific limit computations
@@ -19,7 +20,7 @@ instances of these such as `ℝ`, `ℝ≥0` and `ℝ≥0∞`.
 noncomputable theory
 open classical set function filter finset metric
 
-open_locale classical topological_space nat big_operators uniformity nnreal ennreal
+open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -40,6 +41,34 @@ lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 (tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
+
+/-- The limit of `n / (n + x)` is 1, for any constant `x` (valid in `ℝ` or any topological division
+algebra over `ℝ`, e.g., `ℂ`).
+
+TODO: introduce a typeclass saying that `1 / n` tends to 0 at top, making it possible to get this
+statement simultaneously on `ℚ`, `ℝ` and `ℂ`. -/
+lemma tendsto_coe_nat_div_add_at_top
+  {𝕜 : Type*} [division_ring 𝕜] [topological_space 𝕜] [char_zero 𝕜] [algebra ℝ 𝕜]
+  [has_continuous_smul ℝ 𝕜] [topological_division_ring 𝕜]
+  (x : 𝕜) :
+  tendsto (λ n:ℕ, (n:𝕜) / (n + x)) at_top (𝓝 1) :=
+begin
+  refine tendsto.congr' ((eventually_ne_at_top 0).mp (eventually_of_forall (λ n hn, _))) _,
+  { exact λ n:ℕ, 1 / (1 + x / n) },
+  { field_simp [nat.cast_ne_zero.mpr hn] },
+  { have : 𝓝 (1:𝕜) = 𝓝 (1 / (1 + x * ↑(0:ℝ))),
+    by rw [algebra_map.coe_zero, mul_zero, add_zero, div_one],
+    rw this,
+    refine tendsto_const_nhds.div (tendsto_const_nhds.add _) (by simp),
+    simp_rw div_eq_mul_inv,
+    refine (tendsto_const_nhds.mul _),
+    have : (λ n : ℕ, (n : 𝕜)⁻¹) = (λ n : ℕ, ↑((n : ℝ)⁻¹)),
+    { ext1 n,
+      rw [←(map_nat_cast (algebra_map ℝ 𝕜) n), ←map_inv₀ (algebra_map ℝ 𝕜)],
+      refl, },
+    rw this,
+    exact ((continuous_algebra_map ℝ 𝕜).tendsto _).comp tendsto_inverse_at_top_nhds_0_nat }
+end
 
 /-! ### Powers -/
 
@@ -309,7 +338,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two
@@ -474,10 +503,10 @@ begin
   lift w to ι → ℝ≥0 using hw,
   rcases exists_pos_sum_of_countable hε ι with ⟨δ', Hpos, Hsum⟩,
   have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
-  refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
+  refine ⟨λ i, δ' i / max 1 (w i), λ i, div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
   rw [coe_div (this i).ne'],
-  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  refine mul_le_of_le_div' (mul_le_mul_left' (ennreal.inv_le_inv.2 _) _),
   exact coe_le_coe.2 (le_max_right _ _)
 end
 

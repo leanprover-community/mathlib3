@@ -33,7 +33,7 @@ and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V
 * When `V` is preadditive, linear, or abelian so is `Action V G`.
 -/
 
-universes u
+universes u v
 
 open category_theory
 open category_theory.limits
@@ -73,6 +73,8 @@ def ρ_Aut {G : Group.{u}} (A : Action V (Mon.of G)) : G ⟶ Group.of (Aut A.V) 
 variable (G : Mon.{u})
 
 section
+
+instance inhabited' : inhabited (Action (Type u) G) := ⟨⟨punit, 1⟩⟩
 
 /-- The trivial representation of a group. -/
 def trivial : Action AddCommGroup G :=
@@ -204,9 +206,19 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 
 attribute [simps] functor_category_equivalence
 
+lemma functor_category_equivalence.functor_def :
+  (functor_category_equivalence V G).functor = functor_category_equivalence.functor := rfl
+
+lemma functor_category_equivalence.inverse_def :
+  (functor_category_equivalence V G).inverse = functor_category_equivalence.inverse := rfl
+
 instance [has_finite_products V] : has_finite_products (Action V G) :=
-{ out := λ J _, by exactI
-  adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
+{ out := λ n, adjunction.has_limits_of_shape_of_equivalence
+    (Action.functor_category_equivalence _ _).functor }
+
+instance [has_finite_limits V] : has_finite_limits (Action V G) :=
+{ out := λ J _ _, by exactI adjunction.has_limits_of_shape_of_equivalence
+    (Action.functor_category_equivalence _ _).functor }
 
 instance [has_limits V] : has_limits (Action V G) :=
 adjunction.has_limits_of_equivalence (Action.functor_category_equivalence _ _).functor
@@ -265,9 +277,15 @@ section has_zero_morphisms
 variables [has_zero_morphisms V]
 
 instance : has_zero_morphisms (Action V G) :=
-{ has_zero := λ X Y, ⟨⟨0, by tidy⟩⟩, }
+{ has_zero := λ X Y, ⟨⟨0, by { intro g, simp }⟩⟩,
+  comp_zero' := λ P Q f R, by { ext1, simp },
+  zero_comp' := λ P Q R f, by { ext1, simp }, }
 
-instance : functor.preserves_zero_morphisms (functor_category_equivalence V G).functor := {}
+instance forget_preserves_zero_morphisms : functor.preserves_zero_morphisms (forget V G) := {}
+instance forget₂_preserves_zero_morphisms [concrete_category V] :
+  functor.preserves_zero_morphisms (forget₂ (Action V G) V) := {}
+instance functor_category_equivalence_preserves_zero_morphisms :
+  functor.preserves_zero_morphisms (functor_category_equivalence V G).functor := {}
 
 end has_zero_morphisms
 
@@ -287,11 +305,18 @@ instance : preadditive (Action V G) :=
   add_comp' := by { intros, ext, exact preadditive.add_comp _ _ _ _ _ _, },
   comp_add' := by { intros, ext, exact preadditive.comp_add _ _ _ _ _ _, }, }
 
-instance : functor.additive (functor_category_equivalence V G).functor := {}
+instance forget_additive :
+  functor.additive (forget V G) := {}
+instance forget₂_additive [concrete_category V] :
+  functor.additive (forget₂ (Action V G) V) := {}
+instance functor_category_equivalence_additive :
+  functor.additive (functor_category_equivalence V G).functor := {}
 
 @[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
 @[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
 @[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+@[simp] lemma sum_hom {X Y : Action V G} {ι : Type*} (f : ι → (X ⟶ Y)) (s : finset ι) :
+  (s.sum f).hom = s.sum (λ i, (f i).hom) := (forget V G).map_sum f s
 
 end preadditive
 
@@ -310,7 +335,12 @@ instance : linear R (Action V G) :=
   smul_comp' := by { intros, ext, exact linear.smul_comp _ _ _ _ _ _, },
   comp_smul' := by { intros, ext, exact linear.comp_smul _ _ _ _ _ _, }, }
 
-instance : functor.linear R (functor_category_equivalence V G).functor := {}
+instance forget_linear :
+  functor.linear R (forget V G) := {}
+instance forget₂_linear [concrete_category V] :
+  functor.linear R (forget₂ (Action V G) V) := {}
+instance functor_category_equivalence_linear :
+  functor.linear R (functor_category_equivalence V G).functor := {}
 
 @[simp] lemma smul_hom {X Y : Action V G} (r : R) (f : X ⟶ Y) : (r • f).hom = r • f.hom := rfl
 
@@ -407,9 +437,9 @@ instance [symmetric_category V] : symmetric_category (Action V G) :=
 symmetric_category_of_faithful (forget_braided V G)
 
 section
-local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
-
 variables [preadditive V] [monoidal_preadditive V]
+
+local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
 instance : monoidal_preadditive (Action V G) := {}
 
@@ -428,6 +458,59 @@ monoidal.from_transported (Action.functor_category_equivalence _ _).symm
 
 instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
 by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
+
+@[simp] lemma functor_category_monoidal_equivalence.μ_app (A B : Action V G) :
+  ((functor_category_monoidal_equivalence V G).μ A B).app punit.star = 𝟙 _ :=
+begin
+  dunfold functor_category_monoidal_equivalence,
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_μ],
+  show (𝟙 A.V ⊗ 𝟙 B.V) ≫ 𝟙 (A.V ⊗ B.V) ≫ (𝟙 A.V ⊗ 𝟙 B.V) = 𝟙 (A.V ⊗ B.V),
+  simp only [monoidal_category.tensor_id, category.comp_id],
+end
+
+@[simp] lemma functor_category_monoidal_equivalence.μ_iso_inv_app (A B : Action V G) :
+  ((functor_category_monoidal_equivalence V G).μ_iso A B).inv.app punit.star = 𝟙 _ :=
+begin
+  rw [←nat_iso.app_inv, ←is_iso.iso.inv_hom],
+  refine is_iso.inv_eq_of_hom_inv_id _,
+  rw [category.comp_id, nat_iso.app_hom, monoidal_functor.μ_iso_hom,
+    functor_category_monoidal_equivalence.μ_app],
+end
+
+@[simp] lemma functor_category_monoidal_equivalence.ε_app :
+  (functor_category_monoidal_equivalence V G).ε.app punit.star = 𝟙 _ :=
+begin
+  dunfold functor_category_monoidal_equivalence,
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_ε],
+  show 𝟙 (monoidal_category.tensor_unit V) ≫ _ = 𝟙 (monoidal_category.tensor_unit V),
+  rw [nat_iso.is_iso_inv_app, category.id_comp],
+  exact is_iso.inv_id,
+end
+
+@[simp] lemma functor_category_monoidal_equivalence.inv_counit_app_hom (A : Action V G) :
+  ((functor_category_monoidal_equivalence _ _).inv.adjunction.counit.app A).hom = 𝟙 _ :=
+rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.counit_app (A : single_obj G ⥤ V) :
+  ((functor_category_monoidal_equivalence _ _).adjunction.counit.app A).app punit.star = 𝟙 _ := rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.inv_unit_app_app
+  (A : single_obj G ⥤ V) :
+  ((functor_category_monoidal_equivalence _ _).inv.adjunction.unit.app A).app
+  punit.star = 𝟙 _ := rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.unit_app_hom (A : Action V G) :
+  ((functor_category_monoidal_equivalence _ _).adjunction.unit.app A).hom = 𝟙 _ :=
+rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.functor_map {A B : Action V G} (f : A ⟶ B) :
+  (functor_category_monoidal_equivalence _ _).1.1.map f
+    = functor_category_equivalence.functor.map f := rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.inverse_map
+  {A B : single_obj G ⥤ V} (f : A ⟶ B) :
+  (functor_category_monoidal_equivalence _ _).1.inv.map f
+    = functor_category_equivalence.inverse.map f := rfl
 
 variables (H : Group.{u})
 
@@ -520,6 +603,55 @@ instance res_additive [preadditive V] : (res V f).additive := {}
 variables {R : Type*} [semiring R]
 
 instance res_linear [preadditive V] [linear R V] : (res V f).linear R := {}
+
+/-- Bundles a type `H` with a multiplicative action of `G` as an `Action`. -/
+def of_mul_action (G H : Type u) [monoid G] [mul_action G H] : Action (Type u) (Mon.of G) :=
+{ V := H,
+  ρ := @mul_action.to_End_hom _ _ _ (by assumption) }
+
+@[simp] lemma of_mul_action_apply {G H : Type u} [monoid G] [mul_action G H] (g : G) (x : H) :
+  (of_mul_action G H).ρ g x = (g • x : H) :=
+rfl
+
+/-- Given a family `F` of types with `G`-actions, this is the limit cone demonstrating that the
+product of `F` as types is a product in the category of `G`-sets. -/
+def of_mul_action_limit_cone {ι : Type v} (G : Type (max v u)) [monoid G]
+  (F : ι → Type (max v u)) [Π i : ι, mul_action G (F i)] :
+  limit_cone (discrete.functor (λ i : ι, Action.of_mul_action G (F i))) :=
+{ cone :=
+  { X := Action.of_mul_action G (Π i : ι, F i),
+    π :=
+    { app := λ i, ⟨λ x, x i.as, λ g, by ext; refl⟩,
+      naturality' := λ i j x,
+      begin
+        ext,
+        discrete_cases,
+        cases x,
+        congr
+      end } },
+  is_limit :=
+  { lift := λ s,
+    { hom := λ x i, (s.π.app ⟨i⟩).hom x,
+      comm' := λ g,
+      begin
+        ext x j,
+        dsimp,
+        exact congr_fun ((s.π.app ⟨j⟩).comm g) x,
+      end },
+    fac' := λ s j,
+    begin
+      ext,
+      dsimp,
+      congr,
+      rw discrete.mk_as,
+    end,
+    uniq' := λ s f h,
+    begin
+      ext x j,
+      dsimp at *,
+      rw ←h ⟨j⟩,
+      congr,
+    end } }
 
 end Action
 

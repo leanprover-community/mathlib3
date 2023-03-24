@@ -8,6 +8,7 @@ Authors: Seul Baek
 Definition of linear constrain clauses.
 -/
 
+import data.list.basic
 import tactic.omega.term
 
 namespace omega

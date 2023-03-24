@@ -283,10 +283,10 @@ variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
 
 open polynomial
 
-lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (algebra.trace L F x) :=
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : is_integral R x) :
+  is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : is_integral L x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,

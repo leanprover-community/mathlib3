@@ -20,24 +20,6 @@ are measurable.
 -/
 
 section
-variables {α : Type*} [preorder α] {s : set α} {a b : α}
-
-lemma is_antichain.not_lt (hs : is_antichain (≤) s) (ha : a ∈ s) (hb : b ∈ s) : ¬ a < b :=
-λ h, hs ha hb h.ne h.le
-
-end
-
-section
-open set
-variables {α : Type*} [partial_order α] {s : set α}
-
-protected lemma is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
-⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
-  rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
-
-end
-
-section
 variables {α : Type*} [linear_ordered_semifield α] {a : α}
 
 @[simp] lemma half_lt_self_iff : a / 2 < a ↔ 0 < a :=

@@ -5,6 +5,9 @@ Authors: Filippo A. E. Nuccio, Eric Wieser
 -/
 
 import data.matrix.basic
+import data.matrix.block
+import linear_algebra.matrix.determinant
+import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.tensor_product
 import ring_theory.tensor_product
 
@@ -114,6 +117,24 @@ begin
   simp [diagonal, apply_ite f, ite_and, ite_apply, apply_ite (f (a i₁)), hf₁, hf₂],
 end
 
+lemma kronecker_map_diagonal_right [has_zero β] [has_zero γ] [decidable_eq n]
+  (f : α → β → γ) (hf : ∀ a, f a 0 = 0) (A : matrix l m α) (b : n → β):
+  kronecker_map f A (diagonal b) = block_diagonal (λ i, A.map (λ a, f a (b i))) :=
+begin
+  ext ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
+  simp [diagonal, block_diagonal, apply_ite (f (A i₁ j₁)), hf],
+end
+
+lemma kronecker_map_diagonal_left [has_zero α] [has_zero γ] [decidable_eq l]
+  (f : α → β → γ) (hf : ∀ b, f 0 b = 0) (a : l → α) (B : matrix m n β) :
+  kronecker_map f (diagonal a) B =
+    matrix.reindex (equiv.prod_comm _ _) (equiv.prod_comm _ _)
+      (block_diagonal (λ i, B.map (λ b, f (a i) b))) :=
+begin
+  ext ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
+  simp [diagonal, block_diagonal, apply_ite f, ite_apply, hf],
+end
+
 @[simp] lemma kronecker_map_one_one [has_zero α] [has_zero β] [has_zero γ]
   [has_one α] [has_one β] [has_one γ] [decidable_eq m] [decidable_eq n]
   (f : α → β → γ) (hf₁ : ∀ b, f 0 b = 0) (hf₂ : ∀ a, f a 0 = 0) (hf₃ : f 1 1 = 1) :
@@ -182,6 +203,43 @@ begin
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
 
+/-- `trace` distributes over `matrix.kronecker_map_bilinear`.
+
+This is primarily used with `R = ℕ` to prove `matrix.trace_kronecker`. -/
+lemma trace_kronecker_map_bilinear [comm_semiring R]
+  [fintype m] [fintype n] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+  [module R α] [module R β] [module R γ]
+  (f : α →ₗ[R] β →ₗ[R] γ) (A : matrix m m α) (B : matrix n n β) :
+  trace (kronecker_map_bilinear f A B) = f (trace A) (trace B) :=
+by simp_rw [matrix.trace, matrix.diag, kronecker_map_bilinear_apply_apply,
+  linear_map.map_sum₂, map_sum, ←finset.univ_product_univ, finset.sum_product, kronecker_map]
+
+/-- `determinant` of `matrix.kronecker_map_bilinear`.
+
+This is primarily used with `R = ℕ` to prove `matrix.det_kronecker`. -/
+lemma det_kronecker_map_bilinear [comm_semiring R]
+  [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring α]
+  [comm_ring β] [comm_ring γ]
+  [module R α] [module R β] [module R γ]
+  (f : α →ₗ[R] β →ₗ[R] γ) (h_comm : ∀ a b a' b', f (a * b) (a' * b') = f a a' * f b b')
+  (A : matrix m m α) (B : matrix n n β) :
+  det (kronecker_map_bilinear f A B) =
+    det (A.map (λ a, f a 1)) ^ fintype.card n * det (B.map (λ b, f 1 b)) ^ fintype.card m :=
+calc det (kronecker_map_bilinear f A B)
+      = det (kronecker_map_bilinear f A 1 ⬝ kronecker_map_bilinear f 1 B)
+    : by rw [←kronecker_map_bilinear_mul_mul f h_comm, matrix.mul_one, matrix.one_mul]
+... = det (block_diagonal (λ _, A.map (λ a, f a 1)))
+    * det (block_diagonal (λ _, B.map (λ b, f 1 b)))
+    : begin
+        rw [det_mul, ←diagonal_one, ←diagonal_one,
+          kronecker_map_bilinear_apply_apply, kronecker_map_diagonal_right _ (λ _, _),
+          kronecker_map_bilinear_apply_apply, kronecker_map_diagonal_left  _ (λ _, _),
+          det_reindex_self],
+        { exact linear_map.map_zero₂ _ _ },
+        { exact map_zero _ },
+      end
+... = _ : by simp_rw [det_block_diagonal, finset.prod_const, finset.card_univ]
+
 end kronecker_map
 
 /-! ### Specialization to `matrix.kronecker_map (*)` -/
@@ -242,9 +300,28 @@ lemma diagonal_kronecker_diagonal [mul_zero_class α]
   (diagonal a) ⊗ₖ (diagonal b) = diagonal (λ mn, (a mn.1) * (b mn.2)) :=
 kronecker_map_diagonal_diagonal _ zero_mul mul_zero _ _
 
+lemma kronecker_diagonal [mul_zero_class α] [decidable_eq n] (A : matrix l m α) (b : n → α):
+  A ⊗ₖ diagonal b = block_diagonal (λ i, mul_opposite.op (b i) • A) :=
+kronecker_map_diagonal_right _ mul_zero _ _
+
+lemma diagonal_kronecker [mul_zero_class α] [decidable_eq l](a : l → α) (B : matrix m n α) :
+  diagonal a ⊗ₖ B =
+    matrix.reindex (equiv.prod_comm _ _) (equiv.prod_comm _ _) (block_diagonal (λ i, a i • B)) :=
+kronecker_map_diagonal_left _ zero_mul _ _
+
 @[simp] lemma one_kronecker_one [mul_zero_one_class α] [decidable_eq m] [decidable_eq n] :
   (1 : matrix m m α) ⊗ₖ (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ zero_mul mul_zero (one_mul _)
+
+lemma kronecker_one [mul_zero_one_class α] [decidable_eq n] (A : matrix l m α) :
+  A ⊗ₖ (1 : matrix n n α) = block_diagonal (λ i, A) :=
+(kronecker_diagonal _ _).trans $ congr_arg _ $ funext $ λ _, matrix.ext $ λ _ _, mul_one _
+
+lemma one_kronecker [mul_zero_one_class α] [decidable_eq l] (B : matrix m n α) :
+  (1 : matrix l l α) ⊗ₖ B =
+    matrix.reindex (equiv.prod_comm _ _) (equiv.prod_comm _ _) (block_diagonal (λ i, B)) :=
+(diagonal_kronecker _ _).trans $
+  congr_arg _ $ congr_arg _ $ funext $ λ _, matrix.ext $ λ _ _, one_mul _
 
 lemma mul_kronecker_mul [fintype m] [fintype m'] [comm_semiring α]
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' α) (B' : matrix m' n' α) :
@@ -255,6 +332,49 @@ kronecker_map_bilinear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_c
   (C : matrix q r α) : reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r) ((A ⊗ₖ B) ⊗ₖ C) =
   A ⊗ₖ (B ⊗ₖ C) :=
 kronecker_map_assoc₁ _ _ _ _ A B C mul_assoc
+
+lemma trace_kronecker [fintype m] [fintype n] [semiring α]
+  (A : matrix m m α) (B : matrix n n α) :
+  trace (A ⊗ₖ B) = trace A * trace B :=
+trace_kronecker_map_bilinear (algebra.lmul ℕ α).to_linear_map _ _
+
+lemma det_kronecker [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (A : matrix m m R) (B : matrix n n R) :
+  det (A ⊗ₖ B) = det A ^ fintype.card n * det B ^ fintype.card m :=
+begin
+  refine
+    (det_kronecker_map_bilinear (algebra.lmul ℕ R).to_linear_map mul_mul_mul_comm _ _).trans _,
+  congr' 3,
+  { ext i j, exact mul_one _},
+  { ext i j, exact one_mul _},
+end
+
+lemma inv_kronecker [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (A : matrix m m R) (B : matrix n n R) :
+  (A ⊗ₖ B)⁻¹ = A⁻¹ ⊗ₖ B⁻¹ :=
+begin
+  -- handle the special cases where either matrix is not invertible
+  by_cases hA : is_unit A.det, swap,
+  { casesI is_empty_or_nonempty n,
+    { exact subsingleton.elim _ _ },
+    have hAB : ¬is_unit (A ⊗ₖ B).det,
+    { refine mt (λ hAB, _) hA,
+      rw det_kronecker at hAB,
+      exact (is_unit_pow_iff fintype.card_ne_zero).mp (is_unit_of_mul_is_unit_left hAB) },
+    rw [nonsing_inv_apply_not_is_unit _ hA, zero_kronecker, nonsing_inv_apply_not_is_unit _ hAB] },
+  by_cases hB : is_unit B.det, swap,
+  { casesI is_empty_or_nonempty m,
+    { exact subsingleton.elim _ _ },
+    have hAB : ¬is_unit (A ⊗ₖ B).det,
+    { refine mt (λ hAB, _) hB,
+      rw det_kronecker at hAB,
+      exact (is_unit_pow_iff fintype.card_ne_zero).mp (is_unit_of_mul_is_unit_right hAB) },
+    rw [nonsing_inv_apply_not_is_unit _ hB, kronecker_zero,
+      nonsing_inv_apply_not_is_unit _ hAB] },
+  -- otherwise follows trivially from `mul_kronecker_mul`
+  { apply inv_eq_right_inv,
+    rw [←mul_kronecker_mul, ←one_kronecker_one, mul_nonsing_inv _ hA, mul_nonsing_inv _ hB] },
+end
 
 end kronecker
 
@@ -324,18 +444,33 @@ lemma diagonal_kronecker_tmul_diagonal
   (diagonal a) ⊗ₖₜ[R] (diagonal b) = diagonal (λ mn, a mn.1 ⊗ₜ b mn.2) :=
 kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
 
+lemma kronecker_tmul_diagonal [decidable_eq n] (A : matrix l m α) (b : n → α):
+  A ⊗ₖₜ[R] (diagonal b) = block_diagonal (λ i, A.map (λ a, a ⊗ₜ[R] b i)) :=
+kronecker_map_diagonal_right _ (tmul_zero _) _ _
+
+lemma diagonal_kronecker_tmul [decidable_eq l](a : l → α) (B : matrix m n α) :
+  diagonal a ⊗ₖₜ[R] B =
+    matrix.reindex (equiv.prod_comm _ _) (equiv.prod_comm _ _)
+      (block_diagonal (λ i, B.map (λ b, a i ⊗ₜ[R] b))) :=
+kronecker_map_diagonal_left _ (zero_tmul _) _ _
+
 @[simp] lemma kronecker_tmul_assoc (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
   reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
     (((A ⊗ₖₜ[R] B) ⊗ₖₜ[R] C).map (tensor_product.assoc _ _ _ _)) = A ⊗ₖₜ[R] (B ⊗ₖₜ[R] C) :=
 ext $ λ i j, assoc_tmul _ _ _
 
+lemma trace_kronecker_tmul [fintype m] [fintype n] (A : matrix m m α) (B : matrix n n β) :
+  trace (A ⊗ₖₜ[R] B) = trace A ⊗ₜ[R] trace B :=
+trace_kronecker_map_bilinear (tensor_product.mk R α β) _ _
+
 end module
 
 section algebra
-variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra R β]
-
 open_locale kronecker
 open algebra.tensor_product
+
+section semiring
+variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra R β]
 
 @[simp] lemma one_kronecker_tmul_one [decidable_eq m] [decidable_eq n] :
   (1 : matrix m m α) ⊗ₖₜ[R] (1 : matrix n n α) = 1 :=
@@ -345,6 +480,25 @@ lemma mul_kronecker_tmul_mul [fintype m] [fintype m']
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
   (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
 kronecker_map_bilinear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'
+
+end semiring
+
+section comm_ring
+variables [comm_ring R] [comm_ring α] [comm_ring β] [algebra R α] [algebra R β]
+
+lemma det_kronecker_tmul [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+  (A : matrix m m α) (B : matrix n n β) :
+  det (A ⊗ₖₜ[R] B) = (det A ^ fintype.card n) ⊗ₜ[R] (det B ^ fintype.card m) :=
+begin
+  refine
+    (det_kronecker_map_bilinear (tensor_product.mk R α β) tmul_mul_tmul _ _).trans _,
+  simp only [mk_apply, ←include_left_apply, ←include_right_apply] {eta := ff},
+  simp only [←alg_hom.map_matrix_apply, ←alg_hom.map_det],
+  simp only [include_left_apply, include_right_apply, tmul_pow, tmul_mul_tmul,
+    one_pow, _root_.mul_one, _root_.one_mul],
+end
+
+end comm_ring
 
 end algebra
 

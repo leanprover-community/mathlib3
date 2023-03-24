@@ -7,6 +7,7 @@ Authors: Michael Geißer, Michael Stoll
 import tactic.qify
 import data.zmod.basic
 import number_theory.diophantine_approximation
+import number_theory.zsqrtd.basic
 
 /-!
 # Pell's Equation
@@ -40,7 +41,116 @@ Pell's equation
 
 namespace pell
 
+/-!
+### Group structure of the solution set
+
+We define a structure of a commutative multiplicative group with distributive negation
+on the set of all solutions to the Pell equation `x^2 - d*y^2 = 1`.
+
+The type of such solutions is `pell.solution₁ d`. It corresponds to a pair of integers `x` and `y`
+and a proof that `(x, y)` is indeed a solution.
+
+The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')`.
+This is obtained by mapping `(x, y)` to `x + y*√d` and multiplying the results.
+In fact, we define `pell.solution₁ d` to be `↥(unitary (ℤ√d))` and transport
+the "commutative group with distributive negation" structure from `↥(unitary (ℤ√d))`.
+
+We then set up an API for `pell.solution₁ d`.
+-/
+
+open zsqrtd
+
+/-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
+it is contained in the submonoid of unitary elements.
+
+TODO: merge this result with `pell.is_pell_iff_mem_unitary`. -/
+lemma is_pell_solution_iff_mem_unitary {d : ℤ} {a : ℤ√d} :
+  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary ℤ√d :=
+by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]
+
+-- We use `solution₁ d` to allow for a more general structure `solution d m` that
+-- encodes solutions to `x^2 - d*y^2 = m` to be added later.
+
+/-- `pell.solution₁ d` is the type of solutions to the Pell equation `x^2 - d*y^2 = 1`.
+We define this in terms of elements of `ℤ√d` of norm one.
+-/
+@[derive [comm_group, has_distrib_neg, inhabited]]
+def solution₁ (d : ℤ) : Type := ↥(unitary ℤ√d)
+
+namespace solution₁
+
+variables {d : ℤ}
+
+instance : has_coe (solution₁ d) ℤ√d := { coe := subtype.val }
+
+/-- The `x` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+protected def x (a : solution₁ d) : ℤ := (a : ℤ√d).re
+
+/-- The `y` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+protected def y (a : solution₁ d) : ℤ := (a : ℤ√d).im
+
+/-- The proof that `a` is a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+lemma prop (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
+is_pell_solution_iff_mem_unitary.mpr a.property
+
+/-- An alternative form of the equation, suitable for rewriting `x^2`. -/
+lemma prop_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.prop, ring}
+
+/-- An alternative form of the equation, suitable for rewriting `d * y^2`. -/
+lemma prop_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.prop, ring}
+
+/-- Two solutions are equal if their `x` and `y` components are equal. -/
+@[ext]
+lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
+subtype.ext $ ext.mpr ⟨hx, hy⟩
+
+/-- Construct a solution from `x`, `y` and a proof that the equation is satisfied. -/
+def mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
+{ val := ⟨x, y⟩,
+  property := is_pell_solution_iff_mem_unitary.mp prop }
+
+@[simp]
+lemma x_mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (mk x y prop).x = x := rfl
+
+@[simp]
+lemma y_mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (mk x y prop).y = y := rfl
+
+@[simp]
+lemma coe_mk  (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (↑(mk x y prop) : ℤ√d) = ⟨x,y⟩ :=
+zsqrtd.ext.mpr ⟨x_mk x y prop, y_mk x y prop⟩
+
+@[simp]
+lemma x_one : (1 : solution₁ d).x = 1 := rfl
+
+@[simp]
+lemma y_one : (1 : solution₁ d).y = 0 := rfl
+
+@[simp]
+lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) :=
+by {rw ← mul_assoc, refl}
+
+@[simp]
+lemma y_mul (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
+
+@[simp]
+lemma x_inv (a : solution₁ d) : a⁻¹.x = a.x := rfl
+
+@[simp]
+lemma y_inv (a : solution₁ d) : a⁻¹.y = -a.y := rfl
+
+@[simp]
+lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
+
+@[simp]
+lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
+
+end solution₁
+
 section existence
+
+/-!
+### Existence of nontrivial solutions
+-/
 
 variables {d : ℤ}
 
@@ -136,5 +246,4 @@ begin
 end
 
 end existence
-
 end pell

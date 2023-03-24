@@ -789,9 +789,12 @@ linear_map.mk_continuous₂
                                    function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 σ₁₂ σ₂₃ E F G}
-
 include σ₁₃
+
+lemma norm_compSL_le : ‖compSL E F G σ₁₂ σ₂₃‖ ≤ 1 :=
+linear_map.mk_continuous₂_norm_le _ zero_le_one _
+
+variables {𝕜 σ₁₂ σ₂₃ E F G}
 
 @[simp] lemma compSL_apply (f : F →SL[σ₂₃] G) (g : E →SL[σ₁₂] F) :
   compSL E F G σ₁₂ σ₂₃ f g = f.comp g := rfl
@@ -811,7 +814,10 @@ variables (𝕜 σ₁₂ σ₂₃ E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
-  compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
+compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
+
+lemma norm_compL_le : ‖compL 𝕜 E Fₗ Gₗ‖ ≤ 1 :=
+norm_compSL_le _ _ _ _ _
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
@@ -824,6 +830,14 @@ def precompR (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : E →L[𝕜] (Eₗ →L[�
 /-- Apply `L(-,y)` pointwise to bilinear maps, as a continuous bilinear map -/
 def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[𝕜] Fₗ →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
 (precompR Eₗ (flip L)).flip
+
+lemma norm_precompR_le (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : ‖precompR Eₗ L‖ ≤ ‖L‖ := calc
+‖precompR Eₗ L‖ ≤ ‖compL 𝕜 Eₗ Fₗ Gₗ‖ * ‖L‖ : op_norm_comp_le _ _
+...            ≤ 1 * ‖L‖ : mul_le_mul_of_nonneg_right (norm_compL_le _ _ _ _) (norm_nonneg _)
+...            = ‖L‖ : by rw one_mul
+
+lemma norm_precompL_le (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : ‖precompL Eₗ L‖ ≤ ‖L‖ :=
+by { rw [precompL, op_norm_flip, ← op_norm_flip L], exact norm_precompR_le _ L.flip }
 
 section prod
 

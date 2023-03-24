@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import data.set.intervals.unordered_interval
 import data.set.lattice
+import order.antichain
 
 /-!
 # Order-connected sets
@@ -172,6 +173,15 @@ end
 dual_ord_connected_iff.2 ‹_›
 
 end preorder
+
+section partial_order
+variables {α : Type*} [partial_order α] {s : set α}
+
+protected lemma is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
+⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
+  rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
+
+end partial_order
 
 section linear_order
 variables {α : Type*} [linear_order α] {s : set α} {x : α}

@@ -141,10 +141,6 @@ end
 @[simp] lemma sym_nonempty : (s.sym n).nonempty ↔ n = 0 ∨ s.nonempty :=
 by simp_rw [nonempty_iff_ne_empty, ne.def, sym_eq_empty, not_and_distrib, not_ne_iff]
 
-alias sym_nonempty ↔ _ nonempty.sym
-
-attribute [protected] nonempty.sym
-
 @[simp] lemma sym_univ [fintype α] (n : ℕ) : (univ : finset α).sym n = univ :=
 eq_univ_iff_forall.2 $ λ s, mem_sym_iff.2 $ λ a _, mem_univ _
 

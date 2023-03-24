@@ -1537,7 +1537,7 @@ matrix.ext $ by simp
   [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_inv_nat_cast_smul [division_ring R] [add_comm_group α]
+@[simp] lemma conj_transpose_inv_nat_cast_smul [division_semiring R] [add_comm_monoid α]
   [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
 matrix.ext $ by simp
 

@@ -38,7 +38,7 @@ theorem cast_ne_zero [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α)
 not_congr cast_eq_zero
 
 @[simp, norm_cast]
-theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℤ}
+theorem cast_div_char_zero {k : Type*} [division_ring k] [char_zero k] {m n : ℤ}
   (n_dvd : n ∣ m) : ((m / n : ℤ) : k) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,

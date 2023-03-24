@@ -11,6 +11,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Divisibility over ℕ and ℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file collects results for the integers and natural numbers that use abstract algebra in
 their proofs or cases of ℕ and ℤ being examples of structures in abstract algebra.
 

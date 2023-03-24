@@ -367,7 +367,7 @@ setup_tactic_parser
   configuration is set to false, then the tactic will simply set the user up to
   prove their target using the linear combination instead of normalizing the subtraction.
 
-Users may provide an optional `with exponent n`. This will raise the goal to the power `n`
+Users may provide an optional `with { exponent := n }`. This will raise the goal to the power `n`
   before subtracting the linear combination.
 
 Note: The left and right sides of all the equalities should have the same
@@ -423,7 +423,7 @@ begin
 end
 
 example (x y z : ℚ) (h : x = y) (h2 : x * y = 0) : x + y*z = 0 :=
-by linear_combination (-y * z ^ 2 + x) * h + (z ^ 2 + 2 * z + 1) * h2 with exponent 2
+by linear_combination (-y * z ^ 2 + x) * h + (z ^ 2 + 2 * z + 1) * h2 with { exponent := 2 }
 
 constants (qc : ℚ) (hqc : qc = 2*qc)
 
@@ -435,7 +435,7 @@ meta def _root_.tactic.interactive.linear_combination
   (input : parse (as_linear_combo ff [] <$> texpr)?)
   (_ : parse (tk "with")?)
   (config : linear_combination_config := {})
-  : tactic unit := do
+  : tactic unit :=
 let (h_eqs_names, coeffs) := list.unzip (input.get_or_else []) in
 linear_combination h_eqs_names coeffs config
 

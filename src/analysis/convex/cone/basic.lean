@@ -717,7 +717,7 @@ end
 /-! ### The dual cone -/
 
 section dual
-variables {H : Type*} [inner_product_space ℝ H] (s t : set H)
+variables {H : Type*} [normed_add_comm_group H] [inner_product_space ℝ H] (s t : set H)
 open_locale real_inner_product_space
 
 /-- The dual cone is the cone consisting of all points `y` such that for

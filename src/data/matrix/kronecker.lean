@@ -246,8 +246,6 @@ end kronecker_map
 
 section kronecker
 
-variables (R)
-
 open_locale matrix
 
 /-- The Kronecker product. This is just a shorthand for `kronecker_map (*)`. Prefer the notation

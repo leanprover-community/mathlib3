@@ -61,7 +61,7 @@ begin
       refine (measure_Union_le _).trans _,
       apply ennreal.tsum_le_tsum (λ p, _),
       apply measure_Union_le _,
-      exact (s_count.mono (inter_subset_left _ _)).to_encodable,
+      exact (s_count.mono (inter_subset_left _ _)).to_subtype,
     end
     ... ≤ ∑' (p : s) (q : s ∩ Ioi p), μ (u p q ∩ v p q) : begin
       apply ennreal.tsum_le_tsum (λ p, _),

@@ -51,7 +51,7 @@ local attribute [semireducible] simplex_category
 /-- Interpet a natural number as an object of the simplex category. -/
 def mk (n : ℕ) : simplex_category := n
 
-localized "notation `[`n`]` := simplex_category.mk n" in simplicial
+localized "notation (name := simplex_category.mk) `[`n`]` := simplex_category.mk n" in simplicial
 
 -- TODO: Make `len` irreducible.
 /-- The length of an object of `simplex_category`. -/
@@ -60,6 +60,10 @@ def len (n : simplex_category) : ℕ := n
 @[ext] lemma ext (a b : simplex_category) : a.len = b.len → a = b := id
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
 @[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
+
+/-- A recursor for `simplex_category`. Use it as `induction Δ using simplex_category.rec`. -/
+protected def rec {F : Π (Δ : simplex_category), Sort*} (h : ∀ (n : ℕ), F [n]) :
+  Π X, F X := λ n, h n.len
 
 /-- Morphisms in the simplex_category. -/
 @[irreducible, nolint has_nonempty_instance]
@@ -189,7 +193,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
+  simp only [fin.mk_le_mk, fin.cast_succ_mk] at H,
   dsimp,
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
@@ -237,7 +241,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
+  simp only [fin.mk_lt_mk, fin.cast_succ_mk] at H,
   suffices : ite (_ < ite (k < i + 1) _ _) _ _ =
     ite _ (ite (j < k) (k - 1) k) (ite (j < k) (k - 1) k + 1),
   { simpa [apply_dite fin.cast_succ, fin.pred_above] with push_cast, },
@@ -245,20 +249,20 @@ begin
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with three of them by hand.
   swap 2,
-  { simp only [subtype.mk_lt_mk] at h_1,
+  { simp only [fin.mk_lt_mk] at h_1,
     simp only [not_lt] at h_2,
     simp only [self_eq_add_right, one_ne_zero],
     exact lt_irrefl (k - 1) (lt_of_lt_of_le
       (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
       (le_trans (nat.le_of_lt_succ h) h_2)) },
   swap 4,
-  { simp only [subtype.mk_lt_mk] at h_1,
+  { simp only [fin.mk_lt_mk] at h_1,
     simp only [not_lt] at h,
     simp only [nat.add_succ_sub_one, add_zero],
     exfalso,
     exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
   swap 4,
-  { simp only [subtype.mk_lt_mk] at h_1,
+  { simp only [fin.mk_lt_mk] at h_1,
     simp only [not_lt] at h_3,
     simp only [nat.add_succ_sub_one, add_zero],
     exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
@@ -277,7 +281,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk] at H,
+  simp only [fin.mk_le_mk] at H,
   -- At this point `simp with push_cast` makes good progress, but neither `simp?` nor `squeeze_simp`
   -- return usable sets of lemmas.
   -- To avoid using a non-terminal simp, we make a `suffices` statement indicating the shape

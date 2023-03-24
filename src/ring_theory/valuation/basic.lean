@@ -172,11 +172,11 @@ def to_preorder : preorder R := preorder.lift v
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
 @[simp] lemma zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x = 0 ↔ x = 0 :=
-v.to_monoid_with_zero_hom.map_eq_zero
+map_eq_zero v
 
 lemma ne_zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x ≠ 0 ↔ x ≠ 0 :=
-v.to_monoid_with_zero_hom.map_ne_zero
+map_ne_zero v
 
 theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
@@ -694,9 +694,6 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
   v x⁻¹ = - (v x) :=
 map_inv₀ v.valuation x
 
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-map_units_inv v.valuation x
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x
 
@@ -813,7 +810,9 @@ end add_valuation
 
 section valuation_notation
 
-localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
-localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+localized "notation (name := nat.multiplicative_zero)
+  `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation (name := int.multiplicative_zero)
+  `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
 
 end valuation_notation

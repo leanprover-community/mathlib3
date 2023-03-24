@@ -126,6 +126,11 @@ meta def eval_list : expr → tactic (list expr × expr)
   (ys, ys_eq) ← eval_list_map ef xs,
   eq ← i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
+| e@`(@list.fin_range %%en) := do
+  n ← expr.to_nat en,
+  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
+  eq ← mk_eq_refl e,
+  pure (eis, eq)
 | e := fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
 
 lemma multiset.cons_congr {α : Type*} (x : α) {xs : multiset α} {xs' : list α}
@@ -166,12 +171,20 @@ meta def eval_multiset : expr → tactic (list expr × expr)
   eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
   eq ← mk_eq_refl e,
   pure (eis, eq)
+| `(@@coe (@@coe_to_lift (@@coe_base (multiset.has_coe))) %%exs) := do
+  (xs, xs_eq) ← eval_list exs,
+  eq ← i_to_expr ``(congr_arg coe %%xs_eq),
+  pure (xs, eq)
 | `(@multiset.map %%α %%β %%ef %%exs) := do
   (xs, xs_eq) ← eval_multiset exs,
   (ys, ys_eq) ← eval_list_map ef xs,
   eq ← i_to_expr ``(multiset.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
 | e := fail (to_fmt "Unknown multiset expression" ++ format.line ++ to_fmt e)
+
+lemma finset.mk_congr {α : Type*} {xs xs' : multiset α} (h : xs = xs') (nd nd') :
+  finset.mk xs nd = finset.mk xs' nd' :=
+by congr; assumption
 
 lemma finset.insert_eq_coe_list_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
   {xs' : list α} (h : x ∈ xs') (nd_xs : xs'.nodup)
@@ -200,6 +213,10 @@ elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`
 -/
 meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   expr → tactic (list expr × expr × expr)
+| e@`(finset.mk %%val %%nd) := do
+  (val', eq) ← eval_multiset val,
+  eq' ← i_to_expr ``(finset.mk_congr %%eq _ _),
+  pure (val', eq', nd)
 | e@`(has_emptyc.emptyc) := do
   eq ← mk_eq_refl e,
   nd ← i_to_expr ``(list.nodup_nil),
@@ -230,12 +247,6 @@ meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
   eq ← mk_eq_refl e,
   nd ← i_to_expr ``(list.nodup_range %%en),
-  pure (eis, eq, nd)
-| e@`(finset.fin_range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_fin_range %%en),
   pure (eis, eq, nd)
 | e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
 

@@ -281,7 +281,7 @@ def powerset (x : pSet) : pSet := ⟨set x.type, λ p, ⟨{a // p a}, λ y, x.fu
 /-- The pre-set union operator -/
 def sUnion (a : pSet) : pSet := ⟨Σ x, (a.func x).type, λ ⟨x, y⟩, (a.func x).func y⟩
 
-prefix `⋃₀ `:110 := pSet.sUnion
+prefix (name := pSet.sUnion) `⋃₀ `:110 := pSet.sUnion
 
 @[simp] theorem mem_sUnion : Π {x y : pSet.{u}}, y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z
 | ⟨α, A⟩ y :=
@@ -621,7 +621,7 @@ resp.eval 1 ⟨pSet.sUnion, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨sUnion_lem A B αβ, λ a, exists.elim (sUnion_lem B A (λ b,
     exists.elim (βα b) (λ c hc, ⟨c, pSet.equiv.symm hc⟩)) a) (λ b hb, ⟨b, pSet.equiv.symm hb⟩)⟩⟩
 
-prefix `⋃₀ `:110 := Set.sUnion
+prefix (name := Set.sUnion) `⋃₀ `:110 := Set.sUnion
 
 @[simp] theorem mem_sUnion {x y : Set.{u}} : y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z :=
 quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
@@ -873,7 +873,7 @@ def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
 /-- The union of a class is the class of all members of ZFC sets in the class -/
 def sUnion (x : Class) : Class := ⋃₀ (Class_to_Cong x)
 
-prefix `⋃₀ `:110 := Class.sUnion
+prefix (name := Class.sUnion) `⋃₀ `:110 := Class.sUnion
 
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }

@@ -151,7 +151,7 @@ variables (a : α) (b : β) (s : multiset α) (t : multiset β)
 def product (s : multiset α) (t : multiset β) : multiset (α × β) := s.bind $ λ a, t.map $ prod.mk a
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := multiset.product
+infixr (name := multiset.product) ` ×ˢ `:82 := multiset.product
 
 @[simp] lemma coe_product (l₁ : list α) (l₂ : list β) : @product α β l₁ l₂ = l₁.product l₂ :=
 by { rw [product, list.product, ←coe_bind], simp }

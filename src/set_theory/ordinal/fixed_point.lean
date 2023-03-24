@@ -495,7 +495,7 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 @[simp] theorem nfp_mul_one {a : ordinal} (ha : 0 < a) : nfp ((*) a) 1 = a ^ omega :=
 begin
   rw [←sup_iterate_eq_nfp, ←sup_opow_nat],

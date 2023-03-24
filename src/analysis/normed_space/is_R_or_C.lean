@@ -60,7 +60,7 @@ begin
   { apply h,
     rw mem_sphere_zero_iff_norm,
     exact norm_smul_inv_norm' r_pos.le z_zero },
-  have r_ne_zero : (r : 𝕜) ≠ 0 := (algebra_map ℝ 𝕜).map_ne_zero.mpr r_pos.ne.symm,
+  have r_ne_zero : (r : 𝕜) ≠ 0 := is_R_or_C.of_real_ne_zero.mpr r_pos.ne',
   have eq : f z = ∥z∥ / r * (f z₁),
   { rw [hz₁, linear_map.map_smul, smul_eq_mul],
     rw [← mul_assoc, ← mul_assoc, div_mul_cancel _ r_ne_zero, mul_inv_cancel, one_mul],

@@ -409,7 +409,6 @@ instance (α : Type*) [h : nonempty α] : nonempty αᵒᵈ := h
 instance (α : Type*) [h : subsingleton α] : subsingleton αᵒᵈ := h
 instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
@@ -534,6 +533,18 @@ lemma min_rec (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
 lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @min_rec αᵒᵈ _ _ _ _ hx hy
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
+
+lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+begin
+  rw [min_comm, min_def, ← ite_not],
+  simp only [not_le],
+end
+
+lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+begin
+  rw [max_comm, max_def, ← ite_not],
+  simp only [not_le],
+end
 
 end min_max_rec
 

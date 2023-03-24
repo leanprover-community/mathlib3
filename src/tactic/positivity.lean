@@ -297,18 +297,45 @@ private lemma div_nonneg_of_nonneg_of_pos [linear_ordered_field R] {a b : R} (ha
   0 ≤ a / b :=
 div_nonneg ha hb.le
 
+private lemma int_div_self_pos {a : ℤ} (ha : 0 < a) : 0 < a / a :=
+by { rw int.div_self ha.ne', exact zero_lt_one }
+
+private lemma int_div_nonneg_of_pos_of_nonneg {a b : ℤ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a / b :=
+int.div_nonneg ha.le hb
+
+private lemma int_div_nonneg_of_nonneg_of_pos {a b : ℤ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a / b :=
+int.div_nonneg ha hb.le
+
+private lemma int_div_nonneg_of_pos_of_pos {a b : ℤ} (ha : 0 < a) (hb : 0 < b) : 0 ≤ a / b :=
+int.div_nonneg ha.le hb.le
+
 /-- Extension for the `positivity` tactic: division is nonnegative if both numerator and denominator
 are nonnegative, and strictly positive if both numerator and denominator are. -/
 @[positivity]
 meta def positivity_div : expr → tactic strictness
-| `(%%a / %%b) := do -- TODO handle eg `int.div_nonneg`
+| `(@has_div.div int _ %%a %%b) := do
   strictness_a ← core a,
   strictness_b ← core b,
   match strictness_a, strictness_b with
-  | (positive pa), (positive pb) := positive <$> mk_app ``div_pos [pa, pb]
-  | (positive pa), (nonnegative pb) := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
-  | (nonnegative pa), (positive pb) := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]
-  | (nonnegative pa), (nonnegative pb) := nonnegative <$> mk_app ``div_nonneg [pa, pb]
+  | positive pa, positive pb :=
+      if a = b then -- Only attempts to prove `0 < a / a`, otherwise falls back to `0 ≤ a / b`
+        positive <$> mk_app ``int_div_self_pos [pa]
+      else
+       nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_pos [pa, pb]
+  | positive pa, nonnegative pb :=
+    nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb :=
+    nonnegative <$> mk_app ``int_div_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``int.div_nonneg [pa, pb]
+  end
+| `(%%a / %%b) := do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``div_pos [pa, pb]
+  | positive pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg [pa, pb]
   end
 | _ := failed
 

@@ -61,10 +61,15 @@ the axioms of your new type of isomorphisms.
 Continuing the example above:
 
 ```
+section
+set_option old_structure_cmd true
+
 /-- `my_iso_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.
 You should extend this class when you extend `my_iso`. -/
 class my_iso_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class B]
   extends equiv_like F A (λ _, B), my_hom_class F A B.
+
+end
 
 -- You can replace `my_iso.equiv_like` with the below instance:
 instance : my_iso_class (my_iso A B) A B :=
@@ -86,9 +91,14 @@ structure cooler_iso (A B : Type*) [cool_class A] [cool_class B]
   extends my_iso A B :=
 (map_cool' : to_fun cool_class.cool = cool_class.cool)
 
+section
+set_option old_structure_cmd true
+
 class cooler_iso_class (F : Type*) (A B : out_param $ Type*) [cool_class A] [cool_class B]
   extends my_iso_class F A B :=
 (map_cool : ∀ (f : F), f cool_class.cool = cool_class.cool)
+
+end
 
 @[simp] lemma map_cool {F A B : Type*} [cool_class A] [cool_class B] [cooler_iso_class F A B]
   (f : F) : f cool_class.cool = cool_class.cool :=

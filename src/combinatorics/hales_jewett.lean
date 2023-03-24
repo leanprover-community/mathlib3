@@ -172,10 +172,10 @@ by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
 /-- The Hales-Jewett theorem. This version has a restriction on universe levels which is necessary
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
 private theorem exists_mono_in_high_dimension' :
-  ∀ (α : Type u) [fintype α] (κ : Type (max v u)) [finite κ],
+  ∀ (α : Type u) [finite α] (κ : Type (max v u)) [finite κ],
   ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
-fintype.induction_empty_option
+finite.induction_empty_option
 -- We have to show that the theorem is invariant under `α ≃ α'` for the induction to work.
 (λ α α' e, forall_imp $ λ κ, forall_imp $ λ _, Exists.imp $ λ ι, Exists.imp $ λ _ h C,
   let ⟨l, c, lc⟩ := h (λ v, C (e ∘ v)) in
@@ -268,7 +268,7 @@ end
 
 /-- The Hales-Jewett theorem: for any finite types `α` and `κ`, there exists a finite type `ι` such
 that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromatic combinatorial line. -/
-theorem exists_mono_in_high_dimension (α : Type u) [fintype α] (κ : Type v) [finite κ] :
+theorem exists_mono_in_high_dimension (α : Type u) [finite α] (κ : Type v) [finite κ] :
   ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 let ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension' α (ulift κ)
 in ⟨ι, ιfin, λ C, let ⟨l, c, hc⟩ := hι (ulift.up ∘ C) in ⟨l, c.down, λ x, by rw ←hc⟩ ⟩

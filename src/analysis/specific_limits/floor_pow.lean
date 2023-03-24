@@ -55,7 +55,7 @@ begin
         by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff] with field_simps
       ... ≤ ε * c n :
         begin
-          apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+          refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
           simp only [mul_one, real.norm_eq_abs, abs_one] at hn,
           exact le_trans (le_abs_self _) hn,
         end },
@@ -120,7 +120,7 @@ begin
         by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff, neg_sub] with field_simps
       ... ≤ ε * c n :
         begin
-          apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+          refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
           simp only [mul_one, real.norm_eq_abs, abs_one] at hn,
           exact le_trans (neg_le_abs_self _) hn,
         end },

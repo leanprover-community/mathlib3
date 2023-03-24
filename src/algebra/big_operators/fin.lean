@@ -45,7 +45,7 @@ namespace fin
 @[to_additive]
 theorem prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
   ∏ i, f i = ((list.fin_range n).map f).prod :=
-by simp [univ_def, finset.fin_range]
+by simp [univ_def]
 
 @[to_additive]
 theorem prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
@@ -58,27 +58,24 @@ theorem prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := r
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f x`, for some `x : fin (n + 1)` times the remaining product -/
-@[to_additive
-/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/]
+@[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of `f x`,
+for some `x : fin (n + 1)` plus the remaining product"]
 theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
 by rw [univ_succ_above, prod_cons, finset.prod_map, rel_embedding.coe_fn_to_embedding]
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f 0` plus the remaining product -/
-@[to_additive
-/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f 0` plus the remaining product -/]
+@[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of `f 0`
+plus the remaining product"]
 theorem prod_univ_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = f 0 * ∏ i : fin n, f i.succ :=
 prod_univ_succ_above f 0
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f (fin.last n)` plus the remaining product -/
-@[to_additive
-/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f (fin.last n)` plus the remaining sum -/]
+@[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of
+`f (fin.last n)` plus the remaining sum"]
 theorem prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (last n) :=
 by simpa [mul_comm] using prod_univ_succ_above f (last n)
@@ -225,7 +222,7 @@ begin
     rw prod_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
       = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {(⟨i, h⟩ : fin n)},
-        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
+        by { ext ⟨_, _⟩, simp [nat.lt_succ_iff_lt_or_eq] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
       (singleton (⟨i, h⟩ : fin n)), by simp,
     rw [A, finset.prod_union B, IH],

@@ -53,7 +53,7 @@ lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) 
 is_bounded_bilinear_map_inner.differentiable_at
 
 variables {G : Type*} [normed_add_comm_group G] [normed_space ℝ G]
-  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
+  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : ℕ∞}
 
 include 𝕜
 
@@ -304,28 +304,28 @@ begin
   refl
 end
 
-lemma cont_diff_within_at_euclidean {n : with_top ℕ} :
+lemma cont_diff_within_at_euclidean {n : ℕ∞} :
   cont_diff_within_at 𝕜 n f t y ↔ ∀ i, cont_diff_within_at 𝕜 n (λ x, f x i) t y :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_within_at_iff, cont_diff_within_at_pi],
   refl
 end
 
-lemma cont_diff_at_euclidean {n : with_top ℕ} :
+lemma cont_diff_at_euclidean {n : ℕ∞} :
   cont_diff_at 𝕜 n f y ↔ ∀ i, cont_diff_at 𝕜 n (λ x, f x i) y :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_at_iff, cont_diff_at_pi],
   refl
 end
 
-lemma cont_diff_on_euclidean {n : with_top ℕ} :
+lemma cont_diff_on_euclidean {n : ℕ∞} :
   cont_diff_on 𝕜 n f t ↔ ∀ i, cont_diff_on 𝕜 n (λ x, f x i) t :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_on_iff, cont_diff_on_pi],
   refl
 end
 
-lemma cont_diff_euclidean {n : with_top ℕ} :
+lemma cont_diff_euclidean {n : ℕ∞} :
   cont_diff 𝕜 n f ↔ ∀ i, cont_diff 𝕜 n (λ x, f x i) :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_iff, cont_diff_pi],
@@ -338,7 +338,7 @@ section diffeomorph_unit_ball
 
 open metric (hiding mem_nhds_iff)
 
-variables {n : with_top ℕ} {E : Type*} [inner_product_space ℝ E]
+variables {n : ℕ∞} {E : Type*} [inner_product_space ℝ E]
 
 lemma cont_diff_homeomorph_unit_ball :
   cont_diff ℝ n $ λ (x : E), (homeomorph_unit_ball x : E) :=

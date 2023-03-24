@@ -377,6 +377,8 @@ begin
           (λ i, hr i (set.mem_univ _))).symm
 end
 
+local attribute [instance] affine_subspace.to_add_torsor
+
 /-- The orthogonal projection of a point `p` onto the hyperplane spanned by the simplex's points. -/
 def orthogonal_projection_span {n : ℕ} (s : simplex ℝ P n) :
   P →ᵃ[ℝ] affine_span ℝ (set.range s.points) :=

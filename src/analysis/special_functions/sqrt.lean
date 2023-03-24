@@ -57,7 +57,7 @@ lemma has_strict_deriv_at_sqrt {x : ℝ} (hx : x ≠ 0) :
   has_strict_deriv_at sqrt (1 / (2 * sqrt x)) x :=
 (deriv_sqrt_aux hx).1
 
-lemma cont_diff_at_sqrt {x : ℝ} {n : with_top ℕ} (hx : x ≠ 0) :
+lemma cont_diff_at_sqrt {x : ℝ} {n : ℕ∞} (hx : x ≠ 0) :
   cont_diff_at ℝ n sqrt x :=
 (deriv_sqrt_aux hx).2 n
 
@@ -98,7 +98,7 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {n : with_top ℕ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {n : ℕ∞}
   {s : set E} {x : E} {f' : E →L[ℝ] ℝ}
 
 lemma has_fderiv_at.sqrt (hf : has_fderiv_at f f' x) (hx : f x ≠ 0) :

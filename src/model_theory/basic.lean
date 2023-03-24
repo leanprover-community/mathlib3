@@ -267,7 +267,8 @@ structure hom :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x) . obviously)
 
-localized "notation A ` →[`:25 L `] ` B := first_order.language.hom L A B" in first_order
+localized "notation (name := language.hom) A ` →[`:25 L `] ` B :=
+  first_order.language.hom L A B" in first_order
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
@@ -275,7 +276,8 @@ localized "notation A ` →[`:25 L `] ` B := first_order.language.hom L A B" in 
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ↪[`:25 L `] ` B := first_order.language.embedding L A B" in first_order
+localized "notation (name := language.embedding) A ` ↪[`:25 L `] ` B :=
+  first_order.language.embedding L A B" in first_order
 
 /-- An equivalence of first-order structures is an equivalence that commutes with the
   interpretations of functions and relations. -/
@@ -283,7 +285,8 @@ structure equiv extends M ≃ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ≃[`:25 L `] ` B := first_order.language.equiv L A B" in first_order
+localized "notation (name := language.equiv) A ` ≃[`:25 L `] ` B :=
+  first_order.language.equiv L A B" in first_order
 
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 

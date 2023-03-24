@@ -20,7 +20,7 @@ src/data/rbtree/main.lean : line 11 : ERR_MOD : Module docstring missing, or too
 src/data/rbtree/min_max.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
+src/data/seq/seq.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late

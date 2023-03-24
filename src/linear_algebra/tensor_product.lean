@@ -78,8 +78,10 @@ def tensor_product : Type* :=
 
 variables {R}
 
-localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
-localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
+localized "infix (name := tensor_product.infer)
+  ` ⊗ `:100 := tensor_product hole!" in tensor_product
+localized "notation (name := tensor_product)
+  M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 

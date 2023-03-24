@@ -211,7 +211,7 @@ lemma _root_.polynomial.monic.is_eisenstein_at_of_mem_of_not_mem (hf : f.monic) 
 
 include hf
 
-lemma is_weakly_eisenstein_at : is_weakly_eisenstein_at f 𝓟 := ⟨hf.mem⟩
+lemma is_weakly_eisenstein_at : is_weakly_eisenstein_at f 𝓟 := ⟨λ _, hf.mem⟩
 
 lemma coeff_mem {n : ℕ} (hn : n ≠ f.nat_degree) : f.coeff n ∈ 𝓟 :=
 begin

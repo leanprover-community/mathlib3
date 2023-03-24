@@ -114,8 +114,8 @@ end push_neg
 open interactive (parse loc.ns loc.wildcard)
 open interactive.types (location texpr)
 open lean.parser (tk ident many) interactive.loc
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.optional) `?`:9001 := optional
+local postfix (name := parser.many) *:9001 := many
 open push_neg
 
 /--

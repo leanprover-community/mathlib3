@@ -447,9 +447,8 @@ lemma multiple_mem_span_of_mem_localization_span [algebra R' S] [algebra R S]
 begin
   classical,
   obtain ⟨s', hss', hs'⟩ := submodule.mem_span_finite_of_mem_span hx,
-  suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
-  { obtain ⟨t, ht⟩ := this,
-    exact ⟨t, submodule.span_mono hss' ht⟩ },
+  rsuffices ⟨t, ht⟩ : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
+  { exact ⟨t, submodule.span_mono hss' ht⟩ },
   clear hx hss' s,
   revert x,
   apply s'.induction_on,

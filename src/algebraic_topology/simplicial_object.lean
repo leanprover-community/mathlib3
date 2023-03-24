@@ -36,9 +36,8 @@ def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object
 
-localized
-  "notation X `_[`:1000 n `]` :=
-    (X : category_theory.simplicial_object _).obj (opposite.op (simplex_category.mk n))"
+localized "notation (name := simplicial_object.at) X `_[`:1000 n `]` :=
+  (X : category_theory.simplicial_object hole!).obj (opposite.op (simplex_category.mk n))"
   in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
@@ -237,7 +236,7 @@ end augmented
 
 open_locale simplicial
 
-/-- Aaugment a simplicial object with an object. -/
+/-- Augment a simplicial object with an object. -/
 @[simps]
 def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
   (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),
@@ -266,10 +265,8 @@ def cosimplicial_object := simplex_category ⥤ C
 
 namespace cosimplicial_object
 
-localized
-  "notation X `_[`:1000 n `]` :=
-    (X : category_theory.cosimplicial_object _).obj (simplex_category.mk n)"
-  in simplicial
+localized "notation (name := cosimplicial_object.at) X `_[`:1000 n `]` :=
+  (X : category_theory.cosimplicial_object hole!).obj (simplex_category.mk n)" in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
   has_limits_of_shape J (cosimplicial_object C) := by {dsimp [cosimplicial_object], apply_instance}

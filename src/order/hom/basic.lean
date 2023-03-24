@@ -499,7 +499,7 @@ instance : order_iso_class (α ≃o β) α β :=
   left_inv := λ f, f.left_inv,
   right_inv := λ f, f.right_inv,
   coe_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
-  map_le_map_iff := λ f, f.map_rel_iff' }
+  map_le_map_iff := λ f _ _, f.map_rel_iff' }
 
 @[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl
 
@@ -807,7 +807,8 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o �
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
-  simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
+  apply f.symm.le_iff_le.1,
+  simpa using f.symm.to_order_embedding.map_inf_le (f x) (f y),
 end
 
 lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
@@ -925,17 +926,17 @@ theorem order_iso.is_compl_iff {x y : α} :
   is_compl x y ↔ is_compl (f x) (f y) :=
 ⟨f.is_compl, λ h, f.symm_apply_apply x ▸ f.symm_apply_apply y ▸ f.symm.is_compl h⟩
 
-lemma order_iso.is_complemented
-  [is_complemented α] : is_complemented β :=
+lemma order_iso.complemented_lattice
+  [complemented_lattice α] : complemented_lattice β :=
 ⟨λ x, begin
   obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
   rw ← f.symm_apply_apply y at hy,
   refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
 end⟩
 
-theorem order_iso.is_complemented_iff :
-  is_complemented α ↔ is_complemented β :=
-⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
+theorem order_iso.complemented_lattice_iff :
+  complemented_lattice α ↔ complemented_lattice β :=
+⟨by { introI, exact f.complemented_lattice }, by { introI, exact f.symm.complemented_lattice }⟩
 
 end bounded_order
 end lattice_isos

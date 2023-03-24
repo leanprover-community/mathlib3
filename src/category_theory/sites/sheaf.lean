@@ -212,6 +212,10 @@ forall_congr $ λ a, ⟨presieve.is_sheaf_iso J (iso_whisker_right e _),
 
 variable (J)
 
+lemma is_sheaf_of_is_terminal {X : A} (hX : is_terminal X) :
+ presheaf.is_sheaf J ((category_theory.functor.const _).obj X) :=
+λ _ _ _ _ _ _, ⟨hX.from _, λ _ _ _, hX.hom_ext _ _, λ _ _, hX.hom_ext _ _⟩
+
 end presheaf
 
 variables {C : Type u₁} [category.{v₁} C]

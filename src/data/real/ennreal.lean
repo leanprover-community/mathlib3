@@ -81,8 +81,8 @@ variables {α : Type*} {β : Type*}
   linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
-localized "notation `ℝ≥0∞` := ennreal" in ennreal
-localized "notation `∞` := (⊤ : ennreal)" in ennreal
+localized "notation (name := ennreal) `ℝ≥0∞` := ennreal" in ennreal
+localized "notation (name := ennreal.top) `∞` := (⊤ : ennreal)" in ennreal
 
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}

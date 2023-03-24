@@ -168,7 +168,7 @@ theorem ext {S T : submonoid M}
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier := s,
   one_mem' := hs.symm ▸ S.one_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem' }
 
 variable {S : submonoid M}
 
@@ -449,7 +449,8 @@ def eq_mlocus (f g : M →* N) : submonoid M :=
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
-@[to_additive]
+@[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its submonoid
+closure."]
 lemma eq_on_mclosure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_mlocus g, from closure_le.2 h

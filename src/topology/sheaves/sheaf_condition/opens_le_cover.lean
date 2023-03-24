@@ -25,7 +25,7 @@ or equivalently whether we're looking at the first or second object in an equali
 * This is the definition Lurie uses in [Spectral Algebraic Geometry][LurieSAG].
 -/
 
-universes v u
+universes w v u
 
 noncomputable theory
 
@@ -38,7 +38,7 @@ open topological_space.opens
 namespace Top
 
 variables {C : Type u} [category.{v} C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
 namespace presheaf
 
@@ -48,7 +48,7 @@ namespace sheaf_condition
 The category of open sets contained in some element of the cover.
 -/
 @[derive category]
-def opens_le_cover : Type v := full_subcategory (λ (V : opens X), ∃ i, V ≤ U i)
+def opens_le_cover : Type w := full_subcategory (λ (V : opens X), ∃ i, V ≤ U i)
 
 instance [inhabited ι] : inhabited (opens_le_cover U) :=
 ⟨⟨⊥, default, bot_le⟩⟩
@@ -93,7 +93,7 @@ A presheaf is a sheaf if `F` sends the cone `(opens_le_cover_cocone U).op` to a 
 mapping down to any `V` which is contained in some `U i`.)
 -/
 def is_sheaf_opens_le_cover : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (opens_le_cover_cocone U).op))
+∀ ⦃ι : Type w⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (opens_le_cover_cocone U).op))
 
 namespace sheaf_condition
 
@@ -215,7 +215,7 @@ in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`
 is equivalent to the reformulation
 in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
-lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
+lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections {X : Top.{v}} (F : presheaf C X) :
   F.is_sheaf_opens_le_cover ↔ F.is_sheaf_pairwise_intersections :=
 forall₂_congr $ λ ι U, equiv.nonempty_congr $
   calc is_limit (F.map_cone (opens_le_cover_cocone U).op)

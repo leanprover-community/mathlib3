@@ -202,8 +202,7 @@ begin
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
-lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
-  measurable f :=
+lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
 end typeclass_measurable_space
@@ -287,13 +286,13 @@ instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
 
-lemma measurable_to_encodable [measurable_space α] [encodable α] [measurable_space β] {f : β → α}
+lemma measurable_to_countable [measurable_space α] [countable α] [measurable_space β] {f : β → α}
   (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
 begin
   assume s hs,
   rw [← bUnion_preimage_singleton],
-  refine measurable_set.Union (λ y, measurable_set.Union_Prop $ λ hy, _),
+  refine measurable_set.Union (λ y, measurable_set.Union $ λ hy, _),
   by_cases hyf : y ∈ range f,
   { rcases hyf with ⟨y, rfl⟩,
     apply h },
@@ -310,7 +309,7 @@ variables [measurable_space α]
 measurable_from_top
 
 lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y})) → measurable f :=
-measurable_to_encodable
+measurable_to_countable
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
   {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
@@ -324,7 +323,7 @@ begin
   refine measurable_find_greatest' (λ k hk, _),
   simp only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
   repeat { apply_rules [measurable_set.inter, measurable_set.const, measurable_set.Inter,
-    measurable_set.Inter_Prop, measurable_set.compl, hN]; try { intros } }
+    measurable_set.compl, hN]; try { intros } }
 end
 
 lemma measurable_find {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
@@ -459,7 +458,7 @@ lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
 begin
   letI : fintype s := finite.fintype hs,
   exact measurable_of_restrict_of_restrict_compl hs.measurable_set
-    (measurable_of_fintype _) hf
+    (measurable_of_finite _) hf
 end
 
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
@@ -574,7 +573,7 @@ lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
-lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+lemma measurable_from_prod_countable [countable β] [measurable_singleton_class β]
   {mγ : measurable_space γ} {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
   measurable f :=
 begin
@@ -593,7 +592,7 @@ lemma measurable.find {m : measurable_space α}
   (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
   measurable (λ x, f (nat.find (h x)) x) :=
 begin
-  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_encodable (λ n, hf n),
+  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_countable (λ n, hf n),
   exact this.comp (measurable.prod_mk measurable_id (measurable_find h hp)),
 end
 
@@ -677,7 +676,7 @@ lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : s.countab
   measurable_set (s.pi t) :=
 by { rw [pi_def], exact measurable_set.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi)) }
 
-lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
+lemma measurable_set.univ_pi [countable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi (to_countable _) (λ i _, ht i)
 
@@ -698,7 +697,6 @@ begin
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
-section
 variable (π)
 
 @[measurability]
@@ -727,21 +725,6 @@ begin
     simp only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
 end
 
-end
-
-section fintype
-
-local attribute [instance] fintype.to_encodable
-
-lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
-  (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
-measurable_set.pi (to_countable _) ht
-
-lemma measurable_set.univ_pi_fintype [fintype δ] {t : Π i, set (π i)}
-  (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi_fintype (λ i _, ht i)
-
-end fintype
 end pi
 
 instance tprod.measurable_space (π : δ → Type*) [∀ x, measurable_space (π x)] :

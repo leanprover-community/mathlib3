@@ -147,6 +147,10 @@ lemma is_open_Inter_prop {p : Prop} {s : p → set α}
   (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
 by by_cases p; simp *
 
+lemma is_open_bInter_finset {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_open (f i)) :
+  is_open (⋂ i ∈ s, f i) :=
+is_open_bInter (to_finite _) h
+
 lemma is_open_const {p : Prop} : is_open {a : α | p} :=
 by_cases
   (assume : p, begin simp only [this]; exact is_open_univ end)
@@ -637,18 +641,24 @@ neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here def
 infimum over the principal filters of all open sets containing `a`. -/
 @[irreducible] def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
-localized "notation `𝓝` := nhds" in topological_space
+localized "notation (name := nhds) `𝓝` := nhds" in topological_space
 
 /-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
-localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
-localized "notation `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
-localized "notation `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
-localized "notation `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
-localized "notation `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
-localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
+localized "notation (name := nhds_within)
+  `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+localized "notation (name := nhds_within.ne)
+  `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
+localized "notation (name := nhds_within.ge)
+  `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
+localized "notation (name := nhds_within.le)
+  `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
+localized "notation (name := nhds_within.gt)
+  `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
+localized "notation (name := nhds_within.lt)
+  `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 

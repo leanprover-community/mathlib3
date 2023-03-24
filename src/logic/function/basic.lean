@@ -647,7 +647,7 @@ class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := 
 for bundled maps.-/
 add_decl_doc has_uncurry.uncurry
 
-notation `↿`:max x:max := has_uncurry.uncurry x
+notation (name := uncurry) `↿`:max x:max := has_uncurry.uncurry x
 
 instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
 

@@ -26,9 +26,9 @@ variables {μ} {s t u v : set α}
 
 /-- If `s : ι → set α` is a countable family of pairwise a.e. disjoint sets, then there exists a
 family of measurable null sets `t i` such that `s i \ t i` are pairwise disjoint. -/
-lemma exists_null_pairwise_disjoint_diff [encodable ι] {s : ι → set α}
+lemma exists_null_pairwise_disjoint_diff [countable ι] {s : ι → set α}
   (hd : pairwise (ae_disjoint μ on s)) :
-  ∃ t : ι → set α, (∀ i, measurable_set (t i)) ∧ (∀ i, μ (t i) = 0) ∧ 
+  ∃ t : ι → set α, (∀ i, measurable_set (t i)) ∧ (∀ i, μ (t i) = 0) ∧
     pairwise (disjoint on (λ i, s i \ t i)) :=
 begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
@@ -71,11 +71,11 @@ measure_mono_null_ae (hu.inter hv) h
 lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
 h.mono_ae hu.eventually_le hv.eventually_le
 
-@[simp] lemma Union_left_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma Union_left_iff [countable ι] {s : ι → set α} :
   ae_disjoint μ (⋃ i, s i) t ↔ ∀ i, ae_disjoint μ (s i) t :=
 by simp only [ae_disjoint, Union_inter, measure_Union_null_iff]
 
-@[simp] lemma Union_right_iff [encodable ι] {t : ι → set α} :
+@[simp] lemma Union_right_iff [countable ι] {t : ι → set α} :
   ae_disjoint μ s (⋃ i, t i) ↔ ∀ i, ae_disjoint μ s (t i) :=
 by simp only [ae_disjoint, inter_Union, measure_Union_null_iff]
 
@@ -115,7 +115,7 @@ lemma of_null_left (h : μ s = 0) : ae_disjoint μ s t := (of_null_right h).symm
 
 end ae_disjoint
 
-lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ s _).ae_disjoint
-lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ s _).ae_disjoint
+lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ _ s).ae_disjoint
+lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ _ s).ae_disjoint
 
 end measure_theory

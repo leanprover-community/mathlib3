@@ -348,7 +348,7 @@ begin
   rcases F.exists_extension_forall_mem_of_closed_embedding hFt (hne.image _) he
     with ⟨G, hG, hGF⟩,
   set g : C(Y, ℝ) := ⟨h.symm ∘ cod_restrict G _ (λ y, ht_sub (hG y)), h.symm.continuous.comp $
-    continuous_subtype_mk _ G.continuous⟩,
+    G.continuous.subtype_mk _⟩,
   have hgG : ∀ {y a}, g y = a ↔ G y = h a,
     from λ y a, h.to_equiv.symm_apply_eq.trans subtype.ext_iff,
   refine ⟨g, λ y, _, _⟩,

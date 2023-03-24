@@ -509,13 +509,14 @@ end
 
 /-- To bound the Hausdorff measure (or, more generally, for a measure defined using
 `measure_theory.measure.mk_metric`) of a set, one may use coverings with maximum diameter tending to
-`0`, indexed by any sequence of encodable types. -/
-lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, encodable (ι n)] (s : set X)
+`0`, indexed by any sequence of countable types. -/
+lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, countable (ι n)] (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
   (m : ℝ≥0∞ → ℝ≥0∞) :
   mk_metric m s ≤ liminf l (λ n, ∑' i, m (diam (t n i))) :=
 begin
+  haveI : Π n, encodable (ι n) := λ n, encodable.of_countable _,
   simp only [mk_metric_apply],
   refine supr₂_le (λ ε hε, _),
   refine le_of_forall_le_of_dense (λ c hc, _),
@@ -541,10 +542,7 @@ lemma mk_metric_le_liminf_sum {β : Type*} {ι : β → Type*} [hι : ∀ n, fin
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
   (m : ℝ≥0∞ → ℝ≥0∞) :
   mk_metric m s ≤ liminf l (λ n, ∑ i, m (diam (t n i))) :=
-begin
-  haveI : ∀ n, encodable (ι n), from λ n, fintype.to_encodable _,
-  simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m,
-end
+by simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m
 
 /-!
 ### Hausdorff measure and Hausdorff dimension
@@ -553,7 +551,8 @@ end
 /-- Hausdorff measure on an (e)metric space. -/
 def hausdorff_measure (d : ℝ) : measure X := mk_metric (λ r, r ^ d)
 
-localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
+localized "notation (name := hausdorff_measure)
+  `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
 
 lemma le_hausdorff_measure (d : ℝ) (μ : measure X) (ε : ℝ≥0∞) (h₀ : 0 < ε)
   (h : ∀ s : set X, diam s ≤ ε → μ s ≤ diam s ^ d) :
@@ -567,8 +566,8 @@ lemma hausdorff_measure_apply (d : ℝ) (s : set X) :
 mk_metric_apply _ _
 
 /-- To bound the Hausdorff measure of a set, one may use coverings with maximum diameter tending
-to `0`, indexed by any sequence of encodable types. -/
-lemma hausdorff_measure_le_liminf_tsum {β : Type*}  {ι : β → Type*} [hι : ∀ n, encodable (ι n)]
+to `0`, indexed by any sequence of countable types. -/
+lemma hausdorff_measure_le_liminf_tsum {β : Type*}  {ι : β → Type*} [hι : ∀ n, countable (ι n)]
   (d : ℝ) (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i) :
@@ -883,7 +882,7 @@ begin
     { simp only [hs, measure_empty, zero_le], },
     have : f ⁻¹' s = {x},
     { haveI : subsingleton X := hf.subsingleton,
-      have : (f ⁻¹' s).subsingleton, from subsingleton_univ.mono (subset_univ _),
+      have : (f ⁻¹' s).subsingleton, from subsingleton_univ.anti (subset_univ _),
       exact (subsingleton_iff_singleton hx).1 this },
     rw this,
     rcases eq_or_lt_of_le hd with rfl|h'd,

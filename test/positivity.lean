@@ -1,3 +1,4 @@
+import algebra.order.smul
 import analysis.normed.group.basic
 import data.real.sqrt
 import tactic.positivity
@@ -45,9 +46,9 @@ example {a : ℤ} (ha : 3 < a) : 0 < a + a := by positivity
 
 example {a b : ℚ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
 
--- TODO: this fails because `div_nonneg` doesn't apply directly to `ℤ` -- it requires a linearly
--- ordered field
--- example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
+example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
+
+example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 
 example {a : ℕ} : 0 < a ^ 0 := by positivity
 
@@ -91,6 +92,9 @@ example {b : ℤ} : 0 ≤ max (b ^ 2) 0 := by positivity
 example : 0 ≤ max (0:ℤ) (-3) := by positivity
 
 example : 0 ≤ max (-3 : ℤ) 5 := by positivity
+
+example {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
+  [ordered_smul α β] {a : α} (ha : 0 < a) {b : β} (hb : 0 < b) : 0 ≤ a • b := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 

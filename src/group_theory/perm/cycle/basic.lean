@@ -101,14 +101,14 @@ let ⟨a, ha⟩ := hg.2 x hx in
 let ⟨b, hb⟩ := hg.2 y hy in
 ⟨b - a, by rw [← ha, ← mul_apply, ← zpow_add, sub_add_cancel, hb]⟩
 
-lemma is_cycle.exists_pow_eq [fintype β] {f : perm β} (hf : is_cycle f) {x y : β}
+lemma is_cycle.exists_pow_eq [finite β] {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℕ, (f ^ i) x = y :=
 let ⟨n, hn⟩ := hf.exists_zpow_eq hx hy in
 by classical; exact ⟨(n % order_of f).to_nat, by
 { have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
   rwa [← zpow_coe_nat, int.to_nat_of_nonneg this, ← zpow_eq_mod_order_of] }⟩
 
-lemma is_cycle.exists_pow_eq_one [fintype β] {f : perm β} (hf : is_cycle f) :
+lemma is_cycle.exists_pow_eq_one [finite β] {f : perm β} (hf : is_cycle f) :
   ∃ (k : ℕ) (hk : 1 < k), f ^ k = 1 :=
 begin
   classical,
@@ -339,7 +339,7 @@ lemma is_cycle.same_cycle {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : same_cycle f x y :=
 hf.exists_zpow_eq hx hy
 
-lemma same_cycle.nat' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :
+lemma same_cycle.nat' [finite β] {f : perm β} {x y : β} (h : same_cycle f x y) :
   ∃ (i : ℕ) (h : i < order_of f), (f ^ i) x = y :=
 begin
   classical,
@@ -353,7 +353,7 @@ begin
   exact int.mod_lt_of_pos _ h₀,
 end
 
-lemma same_cycle.nat'' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :
+lemma same_cycle.nat'' [finite β] {f : perm β} {x y : β} (h : same_cycle f x y) :
   ∃ (i : ℕ) (hpos : 0 < i) (h : i ≤ order_of f), (f ^ i) x = y :=
 begin
   classical,
@@ -369,13 +369,12 @@ instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
   (int.coe_nat_lt.1 $
     by { rw int.nat_abs_of_nonneg (int.mod_nonneg _
         (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
-      { apply lt_of_lt_of_le (int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
-        { simp [order_of_le_card_univ] },
-        exact fintype_perm },
-      exact fintype_perm, }),
+      { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
+        simp [order_of_le_card_univ] },
+      apply_instance }),
   by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
       (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← zpow_eq_mod_order_of, hi],
-    exact fintype_perm }⟩⟩
+    apply_instance }⟩⟩
 
 lemma same_cycle_apply {f : perm β} {x y : β} : same_cycle f x (f y) ↔ same_cycle f x y :=
 ⟨λ ⟨i, hi⟩, ⟨-1 + i, by rw [zpow_add, mul_apply, hi, zpow_neg_one, inv_apply_self]⟩,
@@ -474,10 +473,11 @@ begin
       simpa using H } }
 end
 
-lemma is_cycle.pow_iff [fintype β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
+lemma is_cycle.pow_iff [finite β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
   is_cycle (f ^ n) ↔ n.coprime (order_of f) :=
 begin
   classical,
+  casesI nonempty_fintype β,
   split,
   { intro h,
     have hr : support (f ^ n) = support f,
@@ -500,10 +500,11 @@ begin
     exact support_pow_le _ n hx }
 end
 
-lemma is_cycle.pow_eq_one_iff [fintype β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
+lemma is_cycle.pow_eq_one_iff [finite β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
   f ^ n = 1 ↔ ∃ x, f x ≠ x ∧ (f ^ n) x = x :=
 begin
   classical,
+  casesI nonempty_fintype β,
   split,
   { intro h,
     obtain ⟨x, hx, -⟩ := id hf,
@@ -517,10 +518,11 @@ begin
       rw [pow_mul, pow_order_of_eq_one, one_pow] } }
 end
 
-lemma is_cycle.pow_eq_pow_iff [fintype β] {f : perm β} (hf : is_cycle f) {a b : ℕ} :
+lemma is_cycle.pow_eq_pow_iff [finite β] {f : perm β} (hf : is_cycle f) {a b : ℕ} :
   f ^ a = f ^ b ↔ ∃ x, f x ≠ x ∧ (f ^ a) x = (f ^ b) x :=
 begin
   classical,
+  casesI nonempty_fintype β,
   split,
   { intro h,
     obtain ⟨x, hx, -⟩ := id hf,
@@ -550,10 +552,11 @@ begin
   rw this
 end
 
-lemma is_cycle.is_cycle_pow_pos_of_lt_prime_order [fintype β] {f : perm β} (hf : is_cycle f)
+lemma is_cycle.is_cycle_pow_pos_of_lt_prime_order [finite β] {f : perm β} (hf : is_cycle f)
   (hf' : (order_of f).prime) (n : ℕ) (hn : 0 < n) (hn' : n < order_of f) : is_cycle (f ^ n) :=
 begin
   classical,
+  casesI nonempty_fintype β,
   have : n.coprime (order_of f),
   { refine nat.coprime.symm _,
     rw nat.prime.coprime_iff_not_dvd hf',
@@ -817,7 +820,7 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
                 inv_apply_self, inv_eq_iff_eq, eq_comm] }),
         hm₃⟩⟩
 
-lemma mem_list_cycles_iff {α : Type*} [fintype α] {l : list (perm α)}
+lemma mem_list_cycles_iff {α : Type*} [finite α] {l : list (perm α)}
   (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
   (h2 : l.pairwise disjoint) {σ : perm α} :
   σ ∈ l ↔ σ.is_cycle ∧ ∀ (a : α) (h4 : σ a ≠ a), σ a = l.prod a :=
@@ -826,6 +829,7 @@ begin
   { exact ⟨λ hσ, ⟨h1 σ hσ, (this (h1 σ hσ)).mp hσ⟩, λ hσ, (this hσ.1).mpr hσ.2⟩ },
   intro h3,
   classical,
+  casesI nonempty_fintype α,
   split,
   { intros h a ha,
     exact eq_on_support_mem_disjoint h h2 _ (mem_support.mpr ha) },
@@ -846,7 +850,7 @@ begin
     exact key a (mem_inter_of_mem ha hτa) }
 end
 
-lemma list_cycles_perm_list_cycles {α : Type*} [fintype α] {l₁ l₂ : list (perm α)}
+lemma list_cycles_perm_list_cycles {α : Type*} [finite α] {l₁ l₂ : list (perm α)}
   (h₀ : l₁.prod = l₂.prod)
   (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
   (h₂l₁ : l₁.pairwise disjoint) (h₂l₂ : l₂.pairwise disjoint) :
@@ -1090,11 +1094,12 @@ end
 
 end cycle_factors_finset
 
-@[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
+@[elab_as_eliminator] lemma cycle_induction_on [finite β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
   (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → is_cycle σ → P σ → P τ → P (σ * τ)) :
   P σ :=
 begin
+  casesI nonempty_fintype β,
   suffices :
     ∀ l : list (perm β), (∀ τ : perm β, τ ∈ l → τ.is_cycle) → l.pairwise disjoint → P l.prod,
   { classical,
@@ -1224,15 +1229,18 @@ end
 
 section generation
 
-variables [fintype α] [fintype β]
+variables [finite β]
 
 open subgroup
 
 lemma closure_is_cycle : closure {σ : perm β | is_cycle σ} = ⊤ :=
 begin
   classical,
+  casesI nonempty_fintype β,
   exact top_le_iff.mp (le_trans (ge_of_eq closure_is_swap) (closure_mono (λ _, is_swap.is_cycle))),
 end
+
+variables [fintype α]
 
 lemma closure_cycle_adjacent_swap {σ : perm α} (h1 : is_cycle σ) (h2 : σ.support = ⊤) (x : α) :
   closure ({σ, swap x (σ x)} : set (perm α)) = ⊤ :=
@@ -1377,12 +1385,13 @@ by simp
 
 end
 
-theorem disjoint.is_conj_mul {α : Type*} [fintype α] {σ τ π ρ : perm α}
+theorem disjoint.is_conj_mul {α : Type*} [finite α] {σ τ π ρ : perm α}
   (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
   (hd1 : disjoint σ τ) (hd2 : disjoint π ρ) :
   is_conj (σ * τ) (π * ρ) :=
 begin
   classical,
+  casesI nonempty_fintype α,
   obtain ⟨f, rfl⟩ := is_conj_iff.1 hc1,
   obtain ⟨g, rfl⟩ := is_conj_iff.1 hc2,
   have hd1' := coe_inj.2 hd1.support_mul,

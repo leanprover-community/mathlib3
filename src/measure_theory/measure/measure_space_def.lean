@@ -174,7 +174,7 @@ by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_measurable_
 
 /-- For every set `s` and a countable collection of measures `μ i` there exists a measurable
 superset `t ⊇ s` such that each measure `μ i` takes the same value on `s` and `t`. -/
-lemma exists_measurable_superset_forall_eq {ι} [encodable ι] (μ : ι → measure α) (s : set α) :
+lemma exists_measurable_superset_forall_eq {ι} [countable ι] (μ : ι → measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = μ i s :=
 by simpa only [← measure_eq_trim]
   using outer_measure.exists_measurable_superset_forall_eq_trim (λ i, (μ i).to_outer_measure) s
@@ -192,16 +192,12 @@ lemma exists_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0) ↔ μ s = 0 :=
 ⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_measurable_superset_of_null⟩
 
-theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
+theorem measure_Union_le [countable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
 μ.to_outer_measure.Union _
 
 lemma measure_bUnion_le {s : set β} (hs : s.countable) (f : β → set α) :
   μ (⋃ b ∈ s, f b) ≤ ∑' p : s, μ (f p) :=
-begin
-  haveI := hs.to_encodable,
-  rw [bUnion_eq_Union],
-  apply measure_Union_le
-end
+by { haveI := hs.to_subtype, rw bUnion_eq_Union, apply measure_Union_le }
 
 lemma measure_bUnion_finset_le (s : finset β) (f : β → set α) :
   μ (⋃ b ∈ s, f b) ≤ ∑ p in s, μ (f p) :=
@@ -222,11 +218,10 @@ begin
   apply ennreal.sum_lt_top, simpa only [finite.mem_to_finset]
 end
 
-lemma measure_Union_null [encodable β] {s : β → set α} :
-  (∀ i, μ (s i) = 0) → μ (⋃ i, s i) = 0 :=
+lemma measure_Union_null [countable β] {s : β → set α} : (∀ i, μ (s i) = 0) → μ (⋃ i, s i) = 0 :=
 μ.to_outer_measure.Union_null
 
-@[simp] lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma measure_Union_null_iff [countable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff
 
@@ -265,7 +260,7 @@ lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t
 not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
   measure_union_lt_top_iff]
 
-lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
+lemma exists_measure_pos_of_not_measure_Union_null [countable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
   contrapose! hs,
@@ -328,11 +323,8 @@ instance : countable_Inter_filter μ.ae :=
   exact (measure_bUnion_null_iff hSc).2 hS
 end⟩
 
-lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
-filter.eventually_imp_distrib_left
-
-lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
-  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
+lemma ae_all_iff {ι : Sort*} [countable ι] {p : α → ι → Prop} :
+  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ ∀ i, ∀ᵐ a ∂ μ, p a i :=
 eventually_countable_forall
 
 lemma ae_ball_iff {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :

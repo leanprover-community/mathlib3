@@ -1962,8 +1962,8 @@ open _root_.lean
 open _root_.lean.parser
 open _root_.interactive _root_.interactive.types
 
-local postfix `?`:9001 := optional
-local postfix *:9001 := many .
+local postfix (name := parser.optional) `?`:9001 := optional
+local postfix (name := parser.many) *:9001 := many .
 "
 
 /-- `finally tac finalizer` runs `tac` first, then runs `finalizer` even if

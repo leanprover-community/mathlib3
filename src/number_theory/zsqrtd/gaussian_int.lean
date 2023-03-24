@@ -205,7 +205,7 @@ hp.1.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff p).2 $
+    let ⟨k, hk⟩ := zmod.exists_sq_eq_neg_one_iff.2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,

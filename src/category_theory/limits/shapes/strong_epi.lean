@@ -119,6 +119,32 @@ lemma strong_mono_of_strong_mono [strong_mono (f ≫ g)] : strong_mono f :=
 { mono := by apply_instance,
   rlp := λ X Y z hz, has_lifting_property.of_right_iso _ _, }
 
+lemma strong_epi.of_arrow_iso {A B A' B' : C} {f : A ⟶ B} {g : A' ⟶ B'}
+  (e : arrow.mk f ≅ arrow.mk g) [h : strong_epi f] : strong_epi g :=
+{ epi := begin
+    rw arrow.iso_w' e,
+    haveI := epi_comp f e.hom.right,
+    apply epi_comp,
+  end,
+  llp := λ X Y z, by { introI, apply has_lifting_property.of_arrow_iso_left e z, }, }
+
+lemma strong_mono.of_arrow_iso {A B A' B' : C} {f : A ⟶ B} {g : A' ⟶ B'}
+  (e : arrow.mk f ≅ arrow.mk g) [h : strong_mono f] : strong_mono g :=
+{ mono := begin
+    rw arrow.iso_w' e,
+    haveI := mono_comp f e.hom.right,
+    apply mono_comp,
+  end,
+  rlp := λ X Y z, by { introI, apply has_lifting_property.of_arrow_iso_right z e, }, }
+
+lemma strong_epi.iff_of_arrow_iso {A B A' B' : C} {f : A ⟶ B} {g : A' ⟶ B'}
+  (e : arrow.mk f ≅ arrow.mk g) : strong_epi f ↔ strong_epi g :=
+by { split; introI, exacts [strong_epi.of_arrow_iso e, strong_epi.of_arrow_iso e.symm], }
+
+lemma strong_mono.iff_of_arrow_iso {A B A' B' : C} {f : A ⟶ B} {g : A' ⟶ B'}
+  (e : arrow.mk f ≅ arrow.mk g) : strong_mono f ↔ strong_mono g :=
+by { split; introI, exacts [strong_mono.of_arrow_iso e, strong_mono.of_arrow_iso e.symm], }
+
 end
 
 /-- A strong epimorphism that is a monomorphism is an isomorphism. -/

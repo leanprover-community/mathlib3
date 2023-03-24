@@ -531,19 +531,19 @@ lemma sum.is_connected_iff [topological_space β] {s : set (α ⊕ β)} :
     (∃ t, is_connected t ∧ s = sum.inl '' t) ∨ ∃ t, is_connected t ∧ s = sum.inr '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
-  { let u : set (α ⊕ β):= range sum.inl,
+  { let u : set (α ⊕ β) := range sum.inl,
     let v : set (α ⊕ β) := range sum.inr,
     have hu : is_open u, exact is_open_range_inl,
     obtain ⟨x | x, hx⟩ := hs.nonempty,
-    { have h := is_preconnected.subset_left_of_subset_union
+    { have h : s ⊆ range sum.inl := is_preconnected.subset_left_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
       refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } },
-    { have h := is_preconnected.subset_right_of_subset_union
+    { have h : s ⊆ range sum.inr := is_preconnected.subset_right_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
       refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } } },
@@ -1246,7 +1246,7 @@ theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :
 λ _ ht _ _ x_in _ _, (ht x_in).elim
 
 theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : set α) :=
-λ _ ht _, subsingleton.mono subsingleton_singleton ht
+λ _ ht _, subsingleton_singleton.anti ht
 
 /-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
@@ -1322,7 +1322,7 @@ begin
   intros s s_sub hs,
   rcases eq_empty_or_nonempty s with rfl | ⟨x, x_in⟩,
   { exact subsingleton_empty },
-  { exact (h x).mono (hs.subset_connected_component x_in) }
+  { exact (h x).anti (hs.subset_connected_component x_in) }
 end
 
 /-- A space is totally disconnected iff its connected components are singletons. -/

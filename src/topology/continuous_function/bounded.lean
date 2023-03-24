@@ -37,7 +37,8 @@ structure bounded_continuous_function (α : Type u) (β : Type v)
   Type (max u v) :=
 (map_bounded' : ∃ C, ∀ x y, dist (to_fun x) (to_fun y) ≤ C)
 
-localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
+localized "infixr (name := bounded_continuous_function)
+  ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
 /-- `bounded_continuous_map_class F α β` states that `F` is a type of bounded continuous maps.
 
@@ -336,7 +337,7 @@ lemma continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
-⟨⟨s.cod_restrict f H, continuous_subtype_mk _ f.continuous⟩, f.bounded⟩
+⟨⟨s.cod_restrict f H, f.continuous.subtype_mk _⟩, f.bounded⟩
 
 section extend
 

@@ -102,12 +102,24 @@ lemma algebra_map_eq' [comm_semiring S] [algebra S R] :
 
 variables {S}
 
+lemma finite_type : algebra.finite_type R (adjoin_root f) :=
+(algebra.finite_type.polynomial R).of_surjective _ (ideal.quotient.mkₐ_surjective R _)
+
+lemma finite_presentation : algebra.finite_presentation R (adjoin_root f) :=
+(algebra.finite_presentation.polynomial R).quotient (submodule.fg_span_singleton f)
+
 /-- The adjoined root. -/
 def root : adjoin_root f := mk f X
 
 variables {f}
 
 instance has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
+
+/-- Two `R`-`alg_hom` from `adjoin_root f` to the same `R`-algebra are the same iff
+    they agree on `root f`. -/
+@[ext] lemma alg_hom_ext [semiring S] [algebra R S] {g₁ g₂ : adjoin_root f →ₐ[R] S}
+  (h : g₁ (root f) = g₂ (root f)) : g₁ = g₂ :=
+ideal.quotient.alg_hom_ext R $ polynomial.alg_hom_ext h
 
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton
@@ -199,6 +211,20 @@ lift_root hfx
 
 @[simp] lemma lift_hom_of {x : R} : lift_hom f a hfx (of f x) = algebra_map _ _ x :=
 lift_of hfx
+
+section adjoin_inv
+
+@[simp] lemma root_is_inv (r : R) : of _ r * root (C r * X - 1) = 1 :=
+by convert sub_eq_zero.1 ((eval₂_sub _).symm.trans $ eval₂_root $ C r * X - 1);
+  simp only [eval₂_mul, eval₂_C, eval₂_X, eval₂_one]
+
+lemma alg_hom_subsingleton {S : Type*} [comm_ring S] [algebra R S] {r : R} :
+  subsingleton (adjoin_root (C r * X - 1) →ₐ[R] S) :=
+⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) _ _
+  (by rw [← f.commutes, ← f.map_mul, algebra_map_eq, root_is_inv, map_one])
+  (by rw [← g.commutes, ← g.map_mul, algebra_map_eq, root_is_inv, map_one]))⟩
+
+end adjoin_inv
 
 end comm_ring
 

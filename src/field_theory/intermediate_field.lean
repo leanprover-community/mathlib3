@@ -39,7 +39,7 @@ intermediate field, field extension
 open finite_dimensional polynomial
 open_locale big_operators polynomial
 
-variables (K L : Type*) [field K] [field L] [algebra K L]
+variables (K L L' : Type*) [field K] [field L] [field L'] [algebra K L] [algebra K L']
 
 /-- `S : intermediate_field K L` is a subset of `L` such that there is a field
 tower `L / S / K`. -/
@@ -50,7 +50,7 @@ structure intermediate_field extends subalgebra K L :=
 /-- Reinterpret an `intermediate_field` as a `subalgebra`. -/
 add_decl_doc intermediate_field.to_subalgebra
 
-variables {K L} (S : intermediate_field K L)
+variables {K L L'} (S : intermediate_field K L)
 
 namespace intermediate_field
 
@@ -61,10 +61,10 @@ instance : set_like (intermediate_field K L) L :=
 ⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
 
 instance : subfield_class (intermediate_field K L) L :=
-{ add_mem := λ s, s.add_mem',
+{ add_mem := λ s _ _, s.add_mem',
   zero_mem := λ s, s.zero_mem',
   neg_mem := neg_mem',
-  mul_mem := λ s, s.mul_mem',
+  mul_mem := λ s _ _, s.mul_mem',
   one_mem := λ s, s.one_mem',
   inv_mem := inv_mem' }
 
@@ -283,8 +283,6 @@ is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
 instance is_scalar_tower_mid' : is_scalar_tower K S L :=
 S.is_scalar_tower_mid
 
-variables {L' : Type*} [field L'] [algebra K L']
-
 /-- If `f : L →+* L'` fixes `K`, `S.map f` is the intermediate field between `L'` and `K`
 such that `x ∈ S ↔ f x ∈ S.map f`. -/
 def map (f : L →ₐ[K] L') (S : intermediate_field K L) : intermediate_field K L' :=
@@ -314,6 +312,31 @@ e.subalgebra_map E.to_subalgebra
 
 @[simp] lemma intermediate_field_map_symm_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
   (a : E.map e.to_alg_hom) : ↑((intermediate_field_map e E).symm a) = e.symm a := rfl
+
+end intermediate_field
+
+namespace alg_hom
+
+variables (f : L →ₐ[K] L')
+
+/-- The range of an algebra homomorphism, as an intermediate field. -/
+@[simps to_subalgebra]
+def field_range : intermediate_field K L' :=
+{ .. f.range,
+  .. (f : L →+* L').field_range }
+
+@[simp] lemma coe_field_range : ↑f.field_range = set.range f := rfl
+
+@[simp] lemma field_range_to_subfield :
+  f.field_range.to_subfield = (f : L →+* L').field_range := rfl
+
+variables {f}
+
+@[simp] lemma mem_field_range {y : L'} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl
+
+end alg_hom
+
+namespace intermediate_field
 
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=
@@ -347,7 +370,7 @@ begin
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, _⟩,
-    rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
+    rw [← aeval_def, aeval_coe, aeval_def, hProot, zero_mem_class.coe_zero] },
 end
 
 /-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.

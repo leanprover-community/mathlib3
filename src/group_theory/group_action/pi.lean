@@ -74,7 +74,8 @@ instance {α : Type*} [Π i, has_smul α $ f i] [Π i, has_smul αᵐᵒᵖ $ f 
 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
 not an instance as `i` cannot be inferred. -/
-@[to_additive pi.has_faithful_vadd_at]
+@[to_additive pi.has_faithful_vadd_at "If `f i` has a faithful additive action for a given `i`, then
+so does `Π i, f i`. This is not an instance as `i` cannot be inferred"]
 lemma has_faithful_smul_at {α : Type*}
   [Π i, has_smul α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_smul α (f i)] :
   has_faithful_smul α (Π i, f i) :=
@@ -153,14 +154,16 @@ namespace function
 
 /-- Non-dependent version of `pi.has_smul`. Lean gets confused by the dependent instance if this
 is not present. -/
-@[to_additive]
+@[to_additive "Non-dependent version of `pi.has_vadd`. Lean gets confused by the dependent instance
+if this is not present."]
 instance has_smul {ι R M : Type*} [has_smul R M] :
   has_smul R (ι → M) :=
 pi.has_smul
 
 /-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if
 this is not present. -/
-@[to_additive]
+@[to_additive "Non-dependent version of `pi.vadd_comm_class`. Lean gets confused by the dependent
+instance if this is not present."]
 instance smul_comm_class {ι α β M : Type*}
   [has_smul α M] [has_smul β M] [smul_comm_class α β M] :
   smul_comm_class α β (ι → M) :=

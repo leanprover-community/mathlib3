@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -502,11 +502,23 @@ lemma linear_isometry.map_orthogonal_projection {E E' : Type*} [inner_product_sp
   (x : E) :
   f (orthogonal_projection p x) = orthogonal_projection (p.map f.to_linear_map) (f x) :=
 begin
-  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero (submodule.apply_coe_mem_map _ _) $
+  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero _ $
     λ y hy, _).symm,
+  refine submodule.apply_coe_mem_map _ _,
   rcases hy with ⟨x', hx', rfl : f x' = y⟩,
-  rw [f.coe_to_linear_map, ← f.map_sub, f.inner_map_map,
-    orthogonal_projection_inner_eq_zero x x' hx']
+  rw [← f.map_sub, f.inner_map_map, orthogonal_projection_inner_eq_zero x x' hx']
+end
+
+lemma linear_isometry.map_orthogonal_projection' {E E' : Type*} [inner_product_space 𝕜 E]
+  [inner_product_space 𝕜 E'] (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
+  (x : E) :
+  f (orthogonal_projection p x) = orthogonal_projection (p.map f) (f x) :=
+begin
+  refine (eq_orthogonal_projection_of_mem_of_inner_eq_zero _ $
+    λ y hy, _).symm,
+  refine submodule.apply_coe_mem_map _ _,
+  rcases hy with ⟨x', hx', rfl : f x' = y⟩,
+  rw [← f.map_sub, f.inner_map_map, orthogonal_projection_inner_eq_zero x x' hx']
 end
 
 /-- Orthogonal projection onto the `submodule.map` of a subspace. -/
@@ -934,6 +946,12 @@ begin
       (submodule.coe_mem (orthogonal_projection Kᗮ u))],
 end
 
+/-- The orthogonal projection is symmetric. -/
+lemma orthogonal_projection_is_symmetric [complete_space E]
+  [complete_space K] :
+  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
+inner_orthogonal_projection_left_eq_right K
+
 open finite_dimensional
 
 /-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
@@ -1001,7 +1019,7 @@ begin
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
     have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
-    { rwa [nat.le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
+    { rwa [le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,

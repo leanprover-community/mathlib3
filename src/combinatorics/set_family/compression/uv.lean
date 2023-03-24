@@ -85,7 +85,7 @@ reduce the cardinality, so we keep all elements whose compression is already pre
 def compression (u v : α) (s : finset α) :=
 s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
 
-localized "notation `𝓒 ` := uv.compression" in finset_family
+localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
 
 /-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
 def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s

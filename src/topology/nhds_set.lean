@@ -33,7 +33,7 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 def nhds_set (s : set α) : filter α :=
 Sup (nhds '' s)
 
-localized "notation `𝓝ˢ` := nhds_set" in topological_space
+localized "notation (name := nhds_set) `𝓝ˢ` := nhds_set" in topological_space
 
 lemma mem_nhds_set_iff_forall : s ∈ 𝓝ˢ t ↔ ∀ (x : α), x ∈ t → s ∈ 𝓝 x :=
 by simp_rw [nhds_set, filter.mem_Sup, ball_image_iff]

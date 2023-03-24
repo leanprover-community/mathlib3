@@ -73,6 +73,11 @@ lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
   monotone f → directed (≤) f :=
 directed_of_sup
 
+/-- A set stable by supremum is `≤`-directed. -/
+lemma directed_on_of_sup_mem [semilattice_sup α] {S : set α}
+  (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊔ j ∈ S) : directed_on (≤) S :=
+λ a ha b hb, ⟨a ⊔ b, H ha hb, le_sup_left, le_sup_right⟩
+
 lemma directed.extend_bot [preorder α] [order_bot α] {e : ι → β} {f : ι → α}
   (hf : directed (≤) f) (he : function.injective e) :
   directed (≤) (function.extend e f ⊥) :=
@@ -91,6 +96,11 @@ end
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+
+/-- A set stable by infimum is `≥`-directed. -/
+lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}
+  (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊓ j ∈ S) : directed_on (≥) S :=
+λ a ha b hb, ⟨a ⊓ b, H ha hb, inf_le_left, inf_le_right⟩
 
 /-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
 `r a c` and `r b c`. -/

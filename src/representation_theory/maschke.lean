@@ -184,7 +184,7 @@ let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective p.subtype p.k
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
 /-- This also implies an instance `is_semisimple_module (monoid_algebra k G) V`. -/
-instance is_complemented : is_complemented (submodule (monoid_algebra k G) V) :=
+instance complemented_lattice : complemented_lattice (submodule (monoid_algebra k G) V) :=
 ⟨exists_is_compl⟩
 
 end submodule

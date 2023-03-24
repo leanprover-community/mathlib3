@@ -47,7 +47,7 @@ instance has_fintype_products [has_finite_products C] (ι : Type w) [fintype ι]
   has_limits_of_shape (discrete ι) C :=
 has_limits_of_shape_of_equivalence
   (discrete.equivalence
-    ((show ulift.{0} (fin (fintype.card ι)) ≃ fin (fintype.card ι), by tidy).trans
+    (equiv.ulift.{0}.trans
       (fintype.equiv_fin ι).symm))
 
 /-- We can now write this for powers. -/
@@ -83,7 +83,7 @@ instance has_fintype_coproducts [has_finite_coproducts C] (ι : Type w) [fintype
   has_colimits_of_shape (discrete ι) C :=
 has_colimits_of_shape_of_equivalence
   (discrete.equivalence
-    ((show ulift.{0} (fin (fintype.card ι)) ≃ fin (fintype.card ι), by tidy).trans
+    (equiv.ulift.{0}.trans
       (fintype.equiv_fin ι).symm))
 
 /--

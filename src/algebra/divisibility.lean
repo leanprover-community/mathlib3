@@ -259,8 +259,7 @@ section comm_monoid
 variables [comm_monoid α]
 
 theorem is_unit_iff_dvd_one {x : α} : is_unit x ↔ x ∣ 1 :=
-⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
- λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
+⟨is_unit.dvd, λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
 
 theorem is_unit_iff_forall_dvd {x : α} :
   is_unit x ↔ ∀ y, x ∣ y :=

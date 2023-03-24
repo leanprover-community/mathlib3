@@ -553,6 +553,23 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 ⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
  submartingale_of_expected_stopped_value_mono hadp hint⟩
 
+/-- The stopped process of a submartingale with respect to a stopping time is a submartingale. -/
+@[protected]
+lemma submartingale.stopped_process [is_finite_measure μ]
+  {f : ℕ → Ω → ℝ} (h : submartingale f 𝒢 μ) {τ : Ω → ℕ} (hτ : is_stopping_time 𝒢 τ) :
+  submartingale (stopped_process f τ) 𝒢 μ :=
+begin
+  rw submartingale_iff_expected_stopped_value_mono,
+  { intros σ π hσ hπ hσ_le_π hπ_bdd,
+    simp_rw stopped_value_stopped_process,
+    obtain ⟨n, hπ_le_n⟩ := hπ_bdd,
+    exact h.expected_stopped_value_mono (hσ.min hτ) (hπ.min hτ)
+      (λ ω, min_le_min (hσ_le_π ω) le_rfl) (λ ω, (min_le_left _ _).trans (hπ_le_n ω)), },
+  { exact adapted.stopped_process_of_nat h.adapted hτ, },
+  { exact λ i, integrable_stopped_value ((is_stopping_time_const _ i).min hτ) (h.integrable)
+    (λ ω, min_le_left _ _), },
+end
+
 section maximal
 
 open finset

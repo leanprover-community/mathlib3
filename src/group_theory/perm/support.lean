@@ -539,7 +539,7 @@ begin
 end
 
 @[simp] lemma card_support_le_one {f : perm α} : f.support.card ≤ 1 ↔ f = 1 :=
-by rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+by rw [le_iff_lt_or_eq, nat.lt_succ_iff, le_zero_iff, card_support_eq_zero,
   or_iff_not_imp_right, imp_iff_right f.card_support_ne_one]
 
 lemma two_le_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :

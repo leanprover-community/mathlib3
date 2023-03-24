@@ -192,6 +192,19 @@ begin
   exact and_iff_right_of_imp (λ h, hac.trans h.1),
 end
 
+lemma Icc_filter_lt_of_lt_right {a b c : α} [decidable_pred (< c)] (h : b < c) :
+  (Icc a b).filter (< c) = Icc a b :=
+(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Icc.1 hx).2 h)
+
+lemma Ioc_filter_lt_of_lt_right {a b c : α} [decidable_pred (< c)] (h : b < c) :
+  (Ioc a b).filter (< c) = Ioc a b :=
+(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Ioc.1 hx).2 h)
+
+lemma Iic_filter_lt_of_lt_right {α} [preorder α] [locally_finite_order_bot α]
+    {a c : α} [decidable_pred (< c)] (h : a < c) :
+  (Iic a).filter (< c) = Iic a :=
+(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Iic.1 hx) h)
+
 variables (a b) [fintype α]
 
 lemma filter_lt_lt_eq_Ioo [decidable_pred (λ j, a < j ∧ j < b)] :
@@ -435,6 +448,13 @@ begin
   { rw [Ico_filter_le_of_left_le h, max_eq_right h] },
   { rw [Ico_filter_le_of_le_left h, max_eq_left h] }
 end
+
+@[simp] lemma Ioo_filter_lt (a b c : α) : (Ioo a b).filter (< c) = Ioo a (min b c) :=
+by { ext, simp [and_assoc] }
+
+@[simp] lemma Iio_filter_lt {α} [linear_order α] [locally_finite_order_bot α] (a b : α) :
+  (Iio a).filter (< b) = Iio (min a b) :=
+by { ext, simp [and_assoc] }
 
 @[simp] lemma Ico_diff_Ico_left (a b c : α) : (Ico a b) \ (Ico a c) = Ico (max a c) b :=
 begin

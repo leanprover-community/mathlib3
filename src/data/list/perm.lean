@@ -38,7 +38,7 @@ inductive perm : list α → list α → Prop
 
 open perm (swap)
 
-infix ` ~ `:50 := perm
+infix (name := list.perm) ` ~ `:50 := perm
 
 @[refl] protected theorem perm.refl : ∀ (l : list α), l ~ l
 | []      := perm.nil
@@ -457,8 +457,8 @@ end
 
 section
 variables {op : α → α → α} [is_associative α op] [is_commutative α op]
-local notation a * b := op a b
-local notation l <*> a := foldl op a l
+local notation (name := op) a * b := op a b
+local notation (name := foldl) l <*> a := foldl op a l
 
 lemma perm.fold_op_eq {l₁ l₂ : list α} {a : α} (h : l₁ ~ l₂) : l₁ <*> a = l₂ <*> a :=
 h.foldl_eq (right_comm _ is_commutative.comm is_associative.assoc) _

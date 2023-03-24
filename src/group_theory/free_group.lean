@@ -271,9 +271,12 @@ theorem step.sublist (H : red.step L₁ L₂) : L₂ <+ L₁ :=
 by cases H; simp; constructor; constructor; refl
 
 /-- If `w₁ w₂` are words such that `w₁` reduces to `w₂`, then `w₂` is a sublist of `w₁`. -/
-theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
+protected theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
 refl_trans_gen_of_transitive_reflexive
   (λl, list.sublist.refl l) (λa b c hab hbc, list.sublist.trans hbc hab) (λa b, red.step.sublist)
+
+theorem length_le (h : red L₁ L₂) : L₂.length ≤ L₁.length :=
+list.length_le_of_sublist h.sublist
 
 theorem sizeof_of_step : ∀ {L₁ L₂ : list (α × bool)}, step L₁ L₂ → L₂.sizeof < L₁.sizeof
 | _ _ (@step.bnot _ L1 L2 x b) :=
@@ -300,15 +303,8 @@ begin
     simp [mul_add, eq, (step.length h₂₃).symm, add_assoc] }
 end
 
-theorem antisymm (h₁₂ : red L₁ L₂) : red L₂ L₁ → L₁ = L₂ :=
-match L₁, h₁₂.cases_head with
-| _,  or.inl rfl            := assume h, rfl
-| L₁, or.inr ⟨L₃, h₁₃, h₃₂⟩ := assume h₂₁,
-  let ⟨n, eq⟩ := length (h₃₂.trans h₂₁) in
-  have list.length L₃ + 0 = list.length L₃ + (2 * n + 2),
-    by simpa [(step.length h₁₃).symm, add_comm, add_assoc] using eq,
-  (nat.no_confusion $ nat.add_left_cancel this)
-end
+theorem antisymm (h₁₂ : red L₁ L₂) (h₂₁ : red L₂ L₁) : L₁ = L₂ :=
+h₂₁.sublist.antisymm h₁₂.sublist
 
 end red
 
@@ -369,10 +365,40 @@ instance : has_mul (free_group α) :=
     (λ L₁ L₂ H, quot.induction_on y $ λ L₃, quot.sound $ red.step.append_right H)⟩
 @[simp] lemma mul_mk : mk L₁ * mk L₂ = mk (L₁ ++ L₂) := rfl
 
+/-- Transform a word representing a free group element into a word representing its inverse. --/
+def inv_rev (w : list (α × bool)) : list (α × bool) :=
+(list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse
+
+@[simp] lemma inv_rev_length : (inv_rev L₁).length = L₁.length := by simp [inv_rev]
+@[simp] lemma inv_rev_inv_rev : (inv_rev (inv_rev L₁) = L₁) := by simp [inv_rev, (∘)]
+@[simp] lemma inv_rev_empty : inv_rev ([] : list (α × bool)) = [] := rfl
+
+lemma inv_rev_involutive : function.involutive (@inv_rev α) := λ _, inv_rev_inv_rev
+lemma inv_rev_injective : function.injective (@inv_rev α) := inv_rev_involutive.injective
+lemma inv_rev_surjective : function.surjective (@inv_rev α) := inv_rev_involutive.surjective
+lemma inv_rev_bijective : function.bijective (@inv_rev α) := inv_rev_involutive.bijective
+
 instance : has_inv (free_group α) :=
-⟨λx, quot.lift_on x (λ L, mk (L.map $ λ x : α × bool, (x.1, bnot x.2)).reverse)
-  (assume a b h, quot.sound $ by cases h; simp)⟩
-@[simp] lemma inv_mk : (mk L)⁻¹ = mk (L.map $ λ x : α × bool, (x.1, bnot x.2)).reverse := rfl
+⟨quot.map inv_rev (by { intros a b h, cases h, simp [inv_rev], })⟩
+
+@[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
+
+lemma red.step.inv_rev {L₁ L₂ : list (α × bool)} (h : red.step L₁ L₂) :
+  red.step (inv_rev L₁) (inv_rev L₂) :=
+begin
+  cases h with a b x y,
+  simp [inv_rev],
+end
+
+lemma red.inv_rev {L₁ L₂ : list (α × bool)} (h : red L₁ L₂) :
+  red (inv_rev L₁) (inv_rev L₂) :=
+relation.refl_trans_gen.lift _ (λ a b, red.step.inv_rev) h
+
+@[simp] lemma red.step_inv_rev_iff : red.step (inv_rev L₁) (inv_rev L₂) ↔ red.step L₁ L₂ :=
+⟨λ h, by simpa only [inv_rev_inv_rev] using h.inv_rev, λ h, h.inv_rev⟩
+
+@[simp] lemma red_inv_rev_iff : red (inv_rev L₁) (inv_rev L₂) ↔ red L₁ L₂ :=
+⟨λ h, by simpa only [inv_rev_inv_rev] using h.inv_rev, λ h, h.inv_rev⟩
 
 instance : group (free_group α) :=
 { mul := (*),
@@ -382,7 +408,7 @@ instance : group (free_group α) :=
   one_mul := by rintros ⟨L⟩; refl,
   mul_one := by rintros ⟨L⟩; simp [one_eq_mk],
   mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
-    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
+    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [inv_rev, one_eq_mk]) ih) }
 
 /-- `of` is the canonical injection from the type to the free group over that type by sending each
 element to the equivalence class of the letter that is the element. -/
@@ -772,7 +798,7 @@ end
 /-- `reduce` is idempotent, i.e. the maximal reduction
 of the maximal reduction of a word is the maximal
 reduction of the word. -/
-theorem reduce.idem : reduce (reduce L) = reduce L :=
+@[simp] theorem reduce.idem : reduce (reduce L) = reduce L :=
 eq.symm $ reduce.min reduce.red
 
 theorem reduce.step.eq (H : red.step L₁ L₂) : reduce L₁ = reduce L₂ :=
@@ -784,6 +810,14 @@ a common maximal reduction. -/
 theorem reduce.eq_of_red (H : red L₁ L₂) : reduce L₁ = reduce L₂ :=
 let ⟨L₃, HR13, HR23⟩ := red.church_rosser reduce.red (red.trans H reduce.red) in
 (reduce.min HR13).trans (reduce.min HR23).symm
+
+alias reduce.eq_of_red ← red.reduce_eq
+
+lemma red.reduce_right (h : red L₁ L₂) : red L₁ (reduce L₂) :=
+reduce.eq_of_red h ▸ reduce.red
+
+lemma red.reduce_left (h : red L₁ L₂) : red L₂ (reduce L₁) :=
+(reduce.eq_of_red h).symm ▸ reduce.red
 
 /-- If two words correspond to the same element in
 the free group, then they have a common maximal
@@ -814,11 +848,39 @@ group to its maximal reduction. -/
 def to_word : free_group α → list (α × bool) :=
 quot.lift reduce $ λ L₁ L₂ H, reduce.step.eq H
 
-lemma to_word.mk : ∀{x : free_group α}, mk (to_word x) = x :=
+lemma mk_to_word : ∀{x : free_group α}, mk (to_word x) = x :=
 by rintros ⟨L⟩; exact reduce.self
 
-lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
+lemma to_word_injective : function.injective (to_word : free_group α → list (α × bool)) :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
+
+@[simp] lemma to_word_inj {x y : free_group α} : to_word x = to_word y ↔ x = y :=
+to_word_injective.eq_iff
+
+@[simp] lemma to_word_mk : (mk L₁).to_word = reduce L₁ := rfl
+
+@[simp] lemma reduce_to_word : ∀ (x : free_group α), reduce (to_word x) = to_word x :=
+by { rintro ⟨L⟩, exact reduce.idem }
+
+@[simp] lemma to_word_one : (1 : free_group α).to_word = [] := rfl
+
+@[simp] lemma to_word_eq_nil_iff {x : free_group α} : (x.to_word = []) ↔ (x = 1) :=
+to_word_injective.eq_iff' to_word_one
+
+lemma reduce_inv_rev {w : list (α × bool)} : reduce (inv_rev w) = inv_rev (reduce w) :=
+begin
+  apply reduce.min,
+  rw [← red_inv_rev_iff, inv_rev_inv_rev],
+  apply red.reduce_left,
+  have : red (inv_rev (inv_rev w)) (inv_rev (reduce (inv_rev w))) := reduce.red.inv_rev,
+  rwa inv_rev_inv_rev at this
+end
+
+lemma to_word_inv {x : free_group α} : (x⁻¹).to_word = inv_rev x.to_word :=
+begin
+  rcases x with ⟨L⟩,
+  rw [quot_mk_eq_mk, inv_mk, to_word_mk, to_word_mk, reduce_inv_rev]
+end
 
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :
@@ -826,7 +888,7 @@ def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :
 ⟨reduce L₁, reduce.rev H12, reduce.rev H13⟩
 
 instance : decidable_eq (free_group α) :=
-function.injective.decidable_eq to_word.inj
+to_word_injective.decidable_eq
 
 instance red.decidable_rel : decidable_rel (@red α)
 | [] []          := is_true red.refl
@@ -862,5 +924,29 @@ fintype.subtype (list.to_finset $ red.enum L₁) $
   λ H, list.mem_to_finset.2 $ red.enum.complete H⟩
 
 end reduce
+
+section metric
+
+variable [decidable_eq α]
+
+/-- The length of reduced words provides a norm on a free group. --/
+def norm (x : free_group α) : ℕ := x.to_word.length
+
+@[simp] lemma norm_inv_eq {x : free_group α} : norm x⁻¹ = norm x :=
+by simp only [norm, to_word_inv, inv_rev_length]
+
+@[simp] lemma norm_eq_zero {x : free_group α} : norm x = 0 ↔ x = 1 :=
+by simp only [norm, list.length_eq_zero, to_word_eq_nil_iff]
+
+@[simp] lemma norm_one : norm (1 : free_group α) = 0 := rfl
+
+theorem norm_mk_le : norm (mk L₁) ≤ L₁.length := reduce.red.length_le
+
+lemma norm_mul_le (x y : free_group α) : norm (x * y) ≤ norm x + norm y :=
+calc norm (x * y) = norm (mk (x.to_word ++ y.to_word)) : by rw [← mul_mk, mk_to_word, mk_to_word]
+              ... ≤ (x.to_word ++ y.to_word).length    : norm_mk_le
+              ... = norm x + norm y                    : list.length_append _ _
+
+end metric
 
 end free_group

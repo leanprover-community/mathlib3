@@ -260,7 +260,8 @@ variable (T)
 def models_bounded_formula (φ : L.bounded_formula α n) : Prop :=
   ∀ (M : Model.{u v (max u v)} T) (v : α → M) (xs : fin n → M), φ.realize v xs
 
-infix ` ⊨ `:51 := models_bounded_formula -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := models_bounded_formula) ` ⊨ `:51 := models_bounded_formula
 
 variable {T}
 

@@ -127,7 +127,7 @@ nnreal.tendsto_coe.2 $ tendsto_to_nnreal ha
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
 def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ ℝ≥0 :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
+  continuous_inv_fun := continuous_coe.subtype_mk _,
   .. ne_top_equiv_nnreal }
 
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
@@ -1127,17 +1127,14 @@ end nnreal
 
 namespace ennreal
 
-lemma tsum_to_real_eq
-  {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+lemma tsum_to_nnreal_eq {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+  (∑' a, f a).to_nnreal = ∑' a, (f a).to_nnreal :=
+(congr_arg ennreal.to_nnreal (tsum_congr $ λ x, (coe_to_nnreal (hf x)).symm)).trans
+  nnreal.tsum_eq_to_nnreal_tsum.symm
+
+lemma tsum_to_real_eq {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
   (∑' a, f a).to_real = ∑' a, (f a).to_real :=
-begin
-  lift f to α → ℝ≥0 using hf,
-  have : (∑' (a : α), (f a : ℝ≥0∞)).to_real =
-    ((∑' (a : α), (f a : ℝ≥0∞)).to_nnreal : ℝ≥0∞).to_real,
-  { rw [ennreal.coe_to_real], refl },
-  rw [this, ← nnreal.tsum_eq_to_nnreal_tsum, ennreal.coe_to_real],
-  exact nnreal.coe_tsum
-end
+by simp only [ennreal.to_real, tsum_to_nnreal_eq hf, nnreal.coe_tsum]
 
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=

@@ -29,7 +29,7 @@ noncomputable theory
 open complex
 open_locale complex_conjugate
 
-local notation `|` x `|` := complex.abs x
+local notation (name := complex.abs) `|` x `|` := complex.abs x
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/

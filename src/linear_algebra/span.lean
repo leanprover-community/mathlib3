@@ -739,18 +739,21 @@ section add_comm_group
 variables [semiring R] [semiring R₂]
 variables [add_comm_group M] [module R M] [add_comm_group M₂] [module R₂ M₂]
 variables {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂]
+variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
 
-lemma comap_map_eq (f : M →ₛₗ[τ₁₂] M₂) (p : submodule R M) :
-  comap f (map f p) = p ⊔ f.ker :=
+include sc
+lemma comap_map_eq (f : F) (p : submodule R M) :
+  comap f (map f p) = p ⊔ (linear_map.ker f) :=
 begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
   rintro x ⟨y, hy, e⟩,
   exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : M →ₛₗ[τ₁₂] M₂} {p : submodule R M} (h : f.ker ≤ p) :
+lemma comap_map_eq_self {f : F} {p : submodule R M} (h : linear_map.ker f ≤ p) :
   comap f (map f p) = p :=
 by rw [submodule.comap_map_eq, sup_of_le_left h]
+omit sc
 
 end add_comm_group
 
@@ -766,20 +769,22 @@ variables [semiring R] [semiring R₂]
 variables [add_comm_group M] [add_comm_group M₂]
 variables [module R M] [module R₂ M₂]
 variables {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂]
+variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
 include R
 
-protected lemma map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
+include sc
+protected lemma map_le_map_iff (f : F) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
 by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
-theorem map_le_map_iff' {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) {p p'} :
+theorem map_le_map_iff' {f : F} (hf : ker f = ⊥) {p p'} :
   map f p ≤ map f p' ↔ p ≤ p' :=
 by rw [linear_map.map_le_map_iff, hf, sup_bot_eq]
 
-theorem map_injective {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) : injective (map f) :=
+theorem map_injective {f : F} (hf : ker f = ⊥) : injective (map f) :=
 λ p p' h, le_antisymm ((map_le_map_iff' hf).1 (le_of_eq h)) ((map_le_map_iff' hf).1 (ge_of_eq h))
 
-theorem map_eq_top_iff {f : M →ₛₗ[τ₁₂] M₂} (hf : range f = ⊤) {p : submodule R M} :
-  p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
+theorem map_eq_top_iff {f : F} (hf : range f = ⊤) {p : submodule R M} :
+  p.map f = ⊤ ↔ p ⊔ linear_map.ker f = ⊤ :=
 by simp_rw [← top_le_iff, ← hf, range_eq_map, linear_map.map_le_map_iff]
 
 end add_comm_group

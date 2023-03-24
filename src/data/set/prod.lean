@@ -32,7 +32,7 @@ variables {α β γ δ : Type*} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a
 def prod (s : set α) (t : set β) : set (α × β) := {p | p.1 ∈ s ∧ p.2 ∈ t}
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := set.prod
+infixr (name := set.prod) ` ×ˢ `:82 := set.prod
 
 lemma prod_eq (s : set α) (t : set β) : s ×ˢ t = prod.fst ⁻¹' s ∩ prod.snd ⁻¹' t := rfl
 
@@ -43,6 +43,10 @@ lemma mem_prod_eq {p : α × β} : p ∈ s ×ˢ t = (p.1 ∈ s ∧ p.2 ∈ t) :=
 @[simp] lemma prod_mk_mem_set_prod_eq : (a, b) ∈ s ×ˢ t = (a ∈ s ∧ b ∈ t) := rfl
 
 lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, hb⟩
+
+instance decidable_mem_prod [hs : decidable_pred (∈ s)] [ht : decidable_pred (∈ t)] :
+  decidable_pred (∈ (s ×ˢ t)) :=
+λ _, and.decidable
 
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩

@@ -135,9 +135,9 @@ exponent_exists_iff_ne_zero.mpr $
   (exponent_ne_zero_iff_range_order_of_finite (λ g, order_of_pos' (tG g))).mpr bounded
 
 /-- Finite groups are torsion groups. -/
-@[to_additive is_add_torsion_of_fintype "Finite additive groups are additive torsion groups."]
-lemma is_torsion_of_fintype [fintype G] : is_torsion G :=
-exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_fintype
+@[to_additive is_add_torsion_of_finite "Finite additive groups are additive torsion groups."]
+lemma is_torsion_of_finite [finite G] : is_torsion G :=
+exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_finite
 
 end group
 
@@ -156,8 +156,8 @@ is_torsion M := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
 end
 
 /-- A module with a finite ring of scalars is additively torsion. -/
-lemma is_torsion.module_of_fintype [ring R] [fintype R] [module R M] : is_torsion M :=
-(is_add_torsion_of_fintype : is_torsion R).module_of_torsion _ _
+lemma is_torsion.module_of_finite [ring R] [finite R] [module R M] : is_torsion M :=
+(is_add_torsion_of_finite : is_torsion R).module_of_torsion _ _
 
 end add_monoid
 

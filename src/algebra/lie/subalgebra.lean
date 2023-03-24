@@ -57,7 +57,7 @@ instance : set_like (lie_subalgebra R L) L :=
   coe_injective' := λ L' L'' h, by { rcases L' with ⟨⟨⟩⟩, rcases L'' with ⟨⟨⟩⟩, congr' } }
 
 instance : add_subgroup_class (lie_subalgebra R L) L :=
-{ add_mem := λ L', L'.add_mem',
+{ add_mem := λ L' _ _, L'.add_mem',
   zero_mem := λ L', L'.zero_mem',
   neg_mem := λ L' x hx, show -x ∈ (L' : submodule R L), from neg_mem hx }
 
@@ -258,7 +258,7 @@ lemma submodule.exists_lie_subalgebra_coe_eq_iff (p : submodule R L) :
   (∃ (K : lie_subalgebra R L), ↑K = p) ↔ ∀ (x y : L), x ∈ p → y ∈ p → ⁅x, y⁆ ∈ p :=
 begin
   split,
-  { rintros ⟨K, rfl⟩, exact K.lie_mem', },
+  { rintros ⟨K, rfl⟩ _ _, exact K.lie_mem', },
   { intros h, use { lie_mem' := h, ..p }, exact lie_subalgebra.coe_to_submodule_mk p _, },
 end
 

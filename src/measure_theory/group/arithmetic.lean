@@ -174,7 +174,7 @@ export has_measurable_pow (measurable_pow)
 /-- `monoid.has_pow` is measurable. -/
 instance monoid.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
-⟨measurable_from_prod_encodable $ λ n, begin
+⟨measurable_from_prod_countable $ λ n, begin
   induction n with n ih,
   { simp only [pow_zero, ←pi.one_def, measurable_one] },
   { simp only [pow_succ], exact measurable_id.mul ih }
@@ -336,8 +336,8 @@ begin
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end
 
-lemma measurable_set_eq_fun_of_encodable {m : measurable_space α} {E} [measurable_space E]
-  [measurable_singleton_class E] [encodable E] {f g : α → E}
+lemma measurable_set_eq_fun_of_countable {m : measurable_space α} {E} [measurable_space E]
+  [measurable_singleton_class E] [countable E] {f g : α → E}
   (hf : measurable f) (hg : measurable g) :
   measurable_set {x | f x = g x} :=
 begin
@@ -433,7 +433,7 @@ end inv
 instance div_inv_monoid.has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
-⟨measurable_from_prod_encodable $ λ n, begin
+⟨measurable_from_prod_countable $ λ n, begin
   cases n with n n,
   { simp_rw zpow_of_nat, exact measurable_id.pow_const _ },
   { simp_rw zpow_neg_succ_of_nat, exact (measurable_id.pow_const (n + 1)).inv }
@@ -575,7 +575,7 @@ instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measu
 ⟨begin
   suffices : measurable (λ p : M × ℕ, p.2 • p.1),
   { apply this.comp measurable_swap, },
-  refine measurable_from_prod_encodable (λ n, _),
+  refine measurable_from_prod_countable (λ n, _),
   induction n with n ih,
   { simp only [zero_smul, ←pi.zero_def, measurable_zero] },
   { simp only [succ_nsmul], exact measurable_id.add ih }
@@ -587,7 +587,7 @@ instance sub_neg_monoid.has_measurable_smul_int₂ (M : Type*) [sub_neg_monoid M
 ⟨begin
   suffices : measurable (λ p : M × ℤ, p.2 • p.1),
   { apply this.comp measurable_swap, },
-  refine measurable_from_prod_encodable (λ n, _),
+  refine measurable_from_prod_countable (λ n, _),
   induction n with n n ih,
   { simp only [of_nat_zsmul], exact measurable_const_smul _, },
   { simp only [zsmul_neg_succ_of_nat], exact (measurable_const_smul _).neg }

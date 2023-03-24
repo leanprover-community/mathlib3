@@ -98,10 +98,10 @@ lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
-by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+by { rw ←_root_.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
-lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
-  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [algebra R A] (n : ℚ) :
+  is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A] [algebra R A]
@@ -132,6 +132,19 @@ lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map 
   is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
 ⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
   is_algebraic_algebra_map_of_is_algebraic⟩
+
+lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
+  is_algebraic R r :=
+begin
+  obtain ⟨p, p_nonzero, hp⟩ := ht,
+  refine ⟨polynomial.expand _ n p, _, _⟩,
+  { rwa polynomial.expand_ne_zero hn },
+  { rwa polynomial.expand_aeval n p r },
+end
+
+lemma transcendental.pow {r : A} (ht : transcendental R r) {n : ℕ} (hn : 0 < n) :
+  transcendental R (r ^ n) :=
+λ ht', ht $ is_algebraic_of_pow hn ht'
 
 end zero_ne_one
 
@@ -216,7 +229,7 @@ begin
   obtain ⟨p, hp, he⟩ := ha b,
   let f' : p.root_set L → p.root_set L :=
     set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
-  have : function.surjective f' := fintype.injective_iff_surjective.1
+  have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
   obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,

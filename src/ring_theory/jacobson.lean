@@ -583,9 +583,10 @@ lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R
   `Inf {P maximal | P ≥ I} = Inf {P prime | P ≥ I} = I.radical`. Fields are always Jacobson,
   and in that special case this is (most of) the classical Nullstellensatz,
   since `I(V(I))` is the intersection of maximal ideals containing `I`, which is then `I.radical` -/
-instance {R : Type*} [comm_ring R] {ι : Type*} [fintype ι] [is_jacobson R] :
+instance is_jacobson {R : Type*} [comm_ring R] {ι : Type*} [finite ι] [is_jacobson R] :
   is_jacobson (mv_polynomial ι R) :=
 begin
+  casesI nonempty_fintype ι,
   haveI := classical.dec_eq ι,
   let e := fintype.equiv_fin ι,
   rw is_jacobson_iso (rename_equiv R e).to_ring_equiv,
@@ -628,9 +629,10 @@ end
 
 lemma comp_C_integral_of_surjective_of_jacobson
   {R : Type*} [comm_ring R] [is_jacobson R]
-  {σ : Type*} [fintype σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
+  {σ : Type*} [finite σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
   (hf : function.surjective f) : (f.comp C).is_integral :=
 begin
+  casesI nonempty_fintype σ,
   have e := (fintype.equiv_fin σ).symm,
   let f' : mv_polynomial (fin _) R →+* S :=
     f.comp (rename_equiv R e).to_ring_equiv.to_ring_hom,

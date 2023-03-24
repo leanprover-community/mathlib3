@@ -53,7 +53,7 @@ instance : has_zero (multiset α)   := ⟨multiset.zero⟩
 instance : has_emptyc (multiset α) := ⟨0⟩
 instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 
-@[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
+@[simp] theorem coe_nil : (@nil α : multiset α) = 0 := rfl
 @[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
 
 @[simp] theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
@@ -76,8 +76,6 @@ instance : has_insert α (multiset α) := ⟨cons⟩
 
 @[simp] theorem cons_coe (a : α) (l : list α) :
   (a ::ₘ l : multiset α) = (a::l : list α) := rfl
-
-theorem singleton_coe (a : α) : (a ::ₘ 0 : multiset α) = ([a] : list α) := rfl
 
 @[simp] theorem cons_inj_left {a b : α} (s : multiset α) :
   a ::ₘ s = b ::ₘ s ↔ a = b :=
@@ -224,16 +222,21 @@ instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 
 instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
 
-theorem singleton_eq_cons (a : α) : singleton a = a ::ₘ 0 := rfl
+@[simp] theorem cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
+
+@[simp] theorem coe_singleton (a : α) : ([a] : multiset α) = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
-by simp only [singleton_eq_cons, mem_cons, iff_self, or_false, not_mem_zero]
+by simp only [←cons_zero, mem_cons, iff_self, or_false, not_mem_zero]
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : multiset α) :=
-by { rw singleton_eq_cons, exact mem_cons_self _ _ }
+by { rw ←cons_zero, exact mem_cons_self _ _ }
 
-theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
-by { simp_rw [singleton_eq_cons], exact cons_inj_left _ }
+@[simp] theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
+by { simp_rw [←cons_zero], exact cons_inj_left _ }
+
+@[simp] lemma singleton_eq_cons_iff {a b : α} (m : multiset α) : {a} = b ::ₘ m ↔ a = b ∧ m = 0 :=
+by { rw [←cons_zero, cons_eq_cons], simp [eq_comm] }
 
 theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
 
@@ -401,7 +404,7 @@ instance : has_add (multiset α) := ⟨multiset.add⟩
 
 @[simp] theorem coe_add (s t : list α) : (s + t : multiset α) = (s ++ t : list α) := rfl
 
-theorem singleton_add (a : α) (s : multiset α) : {a} + s = a ::ₘ s := rfl
+@[simp] theorem singleton_add (a : α) (s : multiset α) : {a} + s = a ::ₘ s := rfl
 
 private theorem add_le_add_iff_left' {s t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
 quotient.induction_on₃ s t u $ λ l₁ l₂ l₃, subperm_append_left _
@@ -483,6 +486,9 @@ def card : multiset α →+ ℕ :=
 
 @[simp] theorem coe_card (l : list α) : card (l : multiset α) = length l := rfl
 
+@[simp] theorem length_to_list (s : multiset α) : s.to_list.length = s.card :=
+by rw [← coe_card, coe_to_list]
+
 @[simp] theorem card_zero : @card α 0 = 0 := rfl
 
 theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
@@ -496,7 +502,7 @@ by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
 quot.induction_on s $ λ l, rfl
 
 @[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
-by simp only [singleton_eq_cons, card_zero, eq_self_iff_true, zero_add, card_cons]
+by simp only [←cons_zero, card_zero, eq_self_iff_true, zero_add, card_cons]
 
 lemma card_pair (a b : α) : ({a, b} : multiset α).card = 2 :=
 by rw [insert_eq_cons, card_cons, card_singleton]
@@ -604,7 +610,7 @@ def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 @[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a ::ₘ repeat a n := by simp [repeat]
 
 @[simp] lemma repeat_one (a : α) : repeat a 1 = {a} :=
-by simp only [repeat_succ, singleton_eq_cons, eq_self_iff_true, repeat_zero, cons_inj_right]
+by simp only [repeat_succ, ←cons_zero, eq_self_iff_true, repeat_zero, cons_inj_right]
 
 @[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
 
@@ -1059,9 +1065,9 @@ theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
 quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map p f l H
 
 theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
-  (s : multiset α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
-  pmap f s H₁ = pmap g s H₂ :=
-quot.induction_on s (λ l H₁ H₂, congr_arg coe $ pmap_congr l h) H₁ H₂
+  (s : multiset α) {H₁ H₂} :
+  (∀ (a ∈ s) h₁ h₂, f a h₁ = g a h₂) → pmap f s H₁ = pmap g s H₂ :=
+quot.induction_on s (λ l H₁ H₂ h, congr_arg coe $ pmap_congr l h) H₁ H₂
 
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (s) : ∀ H, map g (pmap f s H) = pmap (λ a h, g (f a h)) s H :=
@@ -1092,7 +1098,7 @@ quot.induction_on s (λ l H, length_pmap) H
 lemma attach_cons (a : α) (m : multiset α) :
   (a ::ₘ m).attach = ⟨a, mem_cons_self a m⟩ ::ₘ (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
-  by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
+  by rw [list.map_pmap]; exact list.pmap_congr _ (λ _ _ _ _, subtype.eq rfl)
 
 section decidable_pi_exists
 variables {m : multiset α}
@@ -1692,11 +1698,11 @@ theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
 countp_cons _ _ _
 
-@[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
-by simp only [count_cons_self, singleton_eq_cons, eq_self_iff_true, count_zero]
+theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
+count_eq_one_of_mem (nodup_singleton a) $ mem_singleton_self a
 
 theorem count_singleton (a b : α) : count a ({b} : multiset α) = if a = b then 1 else 0 :=
-by simp only [count_cons, singleton_eq_cons, count_zero, zero_add]
+by simp only [count_cons, ←cons_zero, count_zero, zero_add]
 
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add _

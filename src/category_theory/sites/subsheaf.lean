@@ -324,7 +324,7 @@ begin
   rw is_iso_iff_bijective,
   split,
   { intros x y e,
-    have := (nat_trans.mono_iff_app_mono _ _).mp hf X,
+    have := (nat_trans.mono_iff_mono_app _ _).mp hf X,
     rw mono_iff_injective at this,
     exact this (congr_arg subtype.val e : _) },
   { rintro ⟨_, ⟨x, rfl⟩⟩, exact ⟨x, rfl⟩ }

@@ -82,15 +82,15 @@ In practice, this means that parentheses should be placed as follows:
 -/
 library_note "operator precedence of big operators"
 
-localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r"
-  in big_operators
-localized "notation `∏` binders `, ` r:(scoped:67 f, finset.prod finset.univ f) := r"
-  in big_operators
+localized "notation (name := finset.sum_univ)
+  `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
+localized "notation (name := finset.prod_univ)
+  `∏` binders `, ` r:(scoped:67 f, finset.prod finset.univ f) := r" in big_operators
 
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r"
-  in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped:67 f, finset.prod s f) := r"
-  in big_operators
+localized "notation (name := finset.sum)
+  `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
+localized "notation (name := finset.prod)
+  `∏` binders ` in ` s `, ` r:(scoped:67 f, finset.prod s f) := r" in big_operators
 
 open_locale big_operators
 
@@ -949,7 +949,7 @@ begin
   induction m with m hm,
   { simp },
   erw [prod_range_succ, hm],
-  simp [hu]
+  simp [hu, @zero_le' ℕ],
 end
 
 @[to_additive]

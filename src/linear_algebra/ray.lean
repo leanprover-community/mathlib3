@@ -126,10 +126,16 @@ lemma map (f : M →ₗ[R] N) (h : same_ray R x y) : same_ray R (f x) (f y) :=
 h.imp (λ hx, by rw [hx, map_zero]) $ or.imp (λ hy, by rw [hy, map_zero]) $
   λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rw [←f.map_smul, ←f.map_smul, h]⟩
 
+/-- The images of two vectors under an injective linear map are on the same ray if and only if the
+original vectors are on the same ray. -/
+lemma _root_.function.injective.same_ray_map_iff {F : Type*} [linear_map_class F R M N] {f : F}
+  (hf : function.injective f) : same_ray R (f x) (f y) ↔ same_ray R x y :=
+by simp only [same_ray, map_zero, ← hf.eq_iff, map_smul]
+
 /-- The images of two vectors under a linear equivalence are on the same ray if and only if the
 original vectors are on the same ray. -/
 @[simp] lemma _root_.same_ray_map_iff (e : M ≃ₗ[R] N) : same_ray R (e x) (e y) ↔ same_ray R x y :=
-⟨λ h, by simpa using same_ray.map e.symm.to_linear_map h, same_ray.map e.to_linear_map⟩
+function.injective.same_ray_map_iff (equiv_like.injective e)
 
 /-- If two vectors are on the same ray then both scaled by the same action are also on the same
 ray. -/

@@ -830,12 +830,16 @@ lemma is_closed.closed_embedding_subtype_coe {s : set α} (hs : is_closed s) :
   inj := subtype.coe_injective,
   closed_range := (subtype.range_coe : range coe = s).symm ▸ hs }
 
-@[continuity] lemma continuous_subtype_mk {f : β → α}
-  (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
+@[continuity] lemma continuous.subtype_mk {f : β → α} (h : continuous f)
+  (hp : ∀x, p (f x)) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng.2 h
 
+lemma continuous.subtype_map {f : α → β} (h : continuous f) {q : β → Prop}
+  (hpq : ∀ x, p x → q (f x)) : continuous (subtype.map f hpq) :=
+(h.comp continuous_subtype_coe).subtype_mk _
+
 lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
-continuous_subtype_mk _ continuous_subtype_coe
+continuous_id.subtype_map h
 
 lemma continuous_at_subtype_coe {p : α → Prop} {a : subtype p} :
   continuous_at (coe : subtype p → α) a :=
@@ -912,7 +916,7 @@ lemma continuous_at.restrict_preimage {f : α → β} {s : set β} {x : f ⁻¹'
 h.restrict _
 
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
-  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
+  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := hf.subtype_mk hs
 
 lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
   inducing (cod_restrict e s hs) :=

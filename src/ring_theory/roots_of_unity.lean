@@ -562,8 +562,8 @@ begin
   obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
   by_cases hp : p ∣ n,
   { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero (multiplicity.pos_of_dvd hfin hp).ne',
-    haveI hpri : fact p.prime :=
-      @char_p.char_is_prime_of_pos R _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
+    haveI : ne_zero p := ne_zero.of_pos (nat.pos_of_dvd_of_pos hp n.pos),
+    haveI hpri : fact p.prime := char_p.char_is_prime_of_pos R p,
     have := hζ.pow_eq_one,
     rw [hm.1, hk, pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at this,
     exfalso,
@@ -663,7 +663,6 @@ lemma zpowers_eq {k : ℕ+} {ζ : Rˣ} (h : is_primitive_root ζ k) :
   subgroup.zpowers ζ = roots_of_unity k R :=
 begin
   apply set_like.coe_injective,
-  haveI : fact (0 < (k : ℕ)) := ⟨k.pos⟩,
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_zpowers).to_equiv,
   refine @set.eq_of_subset_of_card_le Rˣ (subgroup.zpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
@@ -728,7 +727,6 @@ end
 lemma card_roots_of_unity' {n : ℕ+} (h : is_primitive_root ζ n) :
   fintype.card (roots_of_unity n R) = n :=
 begin
-  haveI : fact (0 < ↑n) := ⟨n.pos⟩,
   let e := h.zmod_equiv_zpowers,
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ e.to_equiv,
   calc fintype.card (roots_of_unity n R)
@@ -907,7 +905,7 @@ begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp },
   apply minpoly.gcd_domain_dvd (is_integral h hpos) (monic_X_pow_sub_C 1 hpos.ne').ne_zero,
-  simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
+  simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
 
@@ -1019,7 +1017,7 @@ begin
   { replace hunit := degree_eq_zero_of_is_unit hunit,
     rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
     { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },
-    simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
+    simp only [Pmonic, eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
       not_false_iff, one_ne_zero] }
 end
 
@@ -1092,7 +1090,7 @@ variables {S} [comm_ring S] [is_domain S] {μ : S} {n : ℕ+} (hμ : is_primitiv
           (R) [comm_ring R] [algebra R S]
 
 /-- The `monoid_hom` that takes an automorphism to the power of μ that μ gets mapped to under it. -/
-@[simps {attrs := []}] noncomputable def aut_to_pow : (S ≃ₐ[R] S) →* (zmod n)ˣ :=
+noncomputable def aut_to_pow : (S ≃ₐ[R] S) →* (zmod n)ˣ :=
 let μ' := hμ.to_roots_of_unity in
 have ho : order_of μ' = n :=
   by rw [hμ.eq_order_of, ←hμ.coe_to_roots_of_unity_coe, order_of_units, order_of_subgroup],
@@ -1123,6 +1121,10 @@ monoid_hom.to_hom_units
                                            (by simpa only [roots_of_unity.coe_pow] using hxy),
     rw [←nat.cast_mul, zmod.nat_coe_eq_nat_coe_iff, ←ho, ←pow_eq_pow_iff_modeq μ', hxy]
   end }
+
+-- We are not using @[simps] in aut_to_pow to avoid a timeout.
+lemma coe_aut_to_pow_apply (f : S ≃ₐ[R] S) : (aut_to_pow R hμ f : zmod n) =
+  ((map_root_of_unity_eq_pow_self f hμ.to_roots_of_unity).some : zmod n) := rfl
 
 @[simp] lemma aut_to_pow_spec (f : S ≃ₐ[R] S) :
   μ ^ (hμ.aut_to_pow R f : zmod n).val = f μ :=

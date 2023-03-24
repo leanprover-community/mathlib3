@@ -26,7 +26,7 @@ The following notation is available with `open_locale quaternion`:
 quaternion, normed ring, normed space, normed algebra
 -/
 
-localized "notation `ℍ` := quaternion ℝ" in quaternion
+localized "notation (name := quaternion.real) `ℍ` := quaternion ℝ" in quaternion
 open_locale real_inner_product_space
 
 noncomputable theory

@@ -141,6 +141,8 @@ by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 theorem of_real_eq_zero {z : ℝ} : (z : K) = 0 ↔ z = 0 :=
 by rw [←of_real_zero]; exact of_real_inj
 
+theorem of_real_ne_zero {z : ℝ} : (z : K) ≠ 0 ↔ z ≠ 0 := of_real_eq_zero.not
+
 @[simp, is_R_or_C_simps, norm_cast, priority 900]
 lemma of_real_add ⦃r s : ℝ⦄ : ((r + s : ℝ) : K) = r + s :=
 by { apply (@is_R_or_C.ext_iff K _ ((r + s : ℝ) : K) (r + s)).mpr, simp }
@@ -435,9 +437,8 @@ by rw [← of_real_nat_cast, of_real_re]
 @[simp, is_R_or_C_simps, norm_cast] lemma nat_cast_im (n : ℕ) : im (n : K) = 0 :=
 by rw [← of_real_nat_cast, of_real_im]
 
-@[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_int_cast (n : ℤ) :
-  ((n : ℝ) : K) = n :=
-of_real_hom.map_int_cast n
+@[simp, is_R_or_C_simps, norm_cast, priority 900]
+lemma of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n := map_int_cast (@of_real_hom K _) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma int_cast_re (n : ℤ) : re (n : K) = n :=
 by rw [← of_real_int_cast, of_real_re]

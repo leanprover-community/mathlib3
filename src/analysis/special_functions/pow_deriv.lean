@@ -225,7 +225,7 @@ begin
 end
 
 /-- The function `λ (x, y), x ^ y` is infinitely smooth at `(x, y)` unless `x = 0`. -/
-lemma cont_diff_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) {n : with_top ℕ} :
+lemma cont_diff_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) {n : ℕ∞} :
   cont_diff_at ℝ n (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
 begin
   cases hp.lt_or_lt with hneg hpos,
@@ -302,7 +302,7 @@ lemma deriv_rpow_const' {p : ℝ} (h : 1 ≤ p) :
   deriv (λ x : ℝ, x ^ p) = λ x, p * x ^ (p - 1) :=
 funext $ λ x, deriv_rpow_const (or.inr h)
 
-lemma cont_diff_at_rpow_const_of_ne {x p : ℝ} {n : with_top ℕ} (h : x ≠ 0) :
+lemma cont_diff_at_rpow_const_of_ne {x p : ℝ} {n : ℕ∞} (h : x ≠ 0) :
   cont_diff_at ℝ n (λ x, x ^ p) x :=
 (cont_diff_at_rpow_of_ne (x, p) h).comp x
   (cont_diff_at_id.prod cont_diff_at_const)
@@ -340,7 +340,7 @@ open real
 section fderiv
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
-  {x : E} {s : set E} {c p : ℝ} {n : with_top ℕ}
+  {x : E} {s : set E} {c p : ℝ} {n : ℕ∞}
 
 lemma has_fderiv_within_at.rpow (hf : has_fderiv_within_at f f' s x)
   (hg : has_fderiv_within_at g g' s x) (h : 0 < f x) :

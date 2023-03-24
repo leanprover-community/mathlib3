@@ -130,8 +130,8 @@ begin
       linear_map.add_apply, lie_module_hom.map_sub, linear_map.sub_apply, linear_map.ltensor_tmul,
       algebra_tensor_module.curry_apply, curry_apply, linear_map.to_fun_eq_coe,
       linear_map.coe_restrict_scalars_eq_coe], abel, },
-  suffices : ∃ k, ((f₁ + f₂)^k) (m₁ ⊗ₜ m₂) = 0,
-  { obtain ⟨k, hk⟩ := this, use k,
+  rsuffices ⟨k, hk⟩ : ∃ k, ((f₁ + f₂)^k) (m₁ ⊗ₜ m₂) = 0,
+  { use k,
     rw [← linear_map.comp_apply, linear_map.commute_pow_left_of_commute h_comm_square,
       linear_map.comp_apply, hk, linear_map.map_zero], },
 

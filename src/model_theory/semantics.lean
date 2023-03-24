@@ -652,7 +652,8 @@ variable (M)
 def sentence.realize (φ : L.sentence) : Prop :=
 φ.realize (default : _ → M)
 
-infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := sentence.realize) ` ⊨ `:51 := sentence.realize
 
 @[simp] lemma sentence.realize_not {φ : L.sentence} :
   M ⊨ φ.not ↔ ¬ M ⊨ φ :=
@@ -673,8 +674,8 @@ variable (N)
 /-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
 def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
 
-localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementarily_equivalent L A B"
-  in first_order
+localized "notation (name := elementarily_equivalent) A ` ≅[`:25 L `] ` B:50 :=
+  first_order.language.elementarily_equivalent L A B" in first_order
 
 variables {L} {M} {N}
 
@@ -689,7 +690,8 @@ variables (M)
 class Theory.model (T : L.Theory) : Prop :=
 (realize_of_mem : ∀ φ ∈ T, M ⊨ φ)
 
-infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := Theory.model) ` ⊨ `:51 := Theory.model
 
 variables {M} (T : L.Theory)
 

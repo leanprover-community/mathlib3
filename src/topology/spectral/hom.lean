@@ -72,7 +72,8 @@ attribute [simp] map_spectral
 instance spectral_map_class.to_continuous_map_class [topological_space α] [topological_space β]
   [spectral_map_class F α β] :
   continuous_map_class F α β :=
-⟨λ f, (map_spectral f).continuous⟩
+{ map_continuous := λ f, (map_spectral f).continuous,
+  ..‹spectral_map_class F α β› }
 
 instance [topological_space α] [topological_space β] [spectral_map_class F α β] :
   has_coe_t F (spectral_map α β) :=

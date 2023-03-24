@@ -122,6 +122,7 @@ lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
 /-! ### Basic properties of `set.finite.to_finset` -/
 
 section finite_to_finset
+variables {s t : set α}
 
 @[simp] lemma finite.coe_to_finset {s : set α} (h : s.finite) : (h.to_finset : set α) = s :=
 @set.coe_to_finset _ s h.fintype
@@ -152,11 +153,11 @@ by rw [← finset.coe_subset, ht.coe_to_finset]
   h.to_finset = ∅ ↔ s = ∅ :=
 by simp only [←finset.coe_inj, finite.coe_to_finset, finset.coe_empty]
 
-@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_subset {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
 by simp only [← finset.coe_subset, finite.coe_to_finset]
 
-@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_ssubset {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 by simp only [← finset.coe_ssubset, finite.coe_to_finset]
 
@@ -934,11 +935,11 @@ theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t :
 let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
 in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
 
-lemma finite.exists_lt_map_eq_of_range_subset [linear_order α] [infinite α] {t : set β}
-  {f : α → β} (hf : range f ⊆ t) (ht : t.finite) :
+lemma finite.exists_lt_map_eq_of_forall_mem [linear_order α] [infinite α] {t : set β}
+  {f : α → β} (hf : ∀ a, f a ∈ t) (ht : t.finite) :
   ∃ a b, a < b ∧ f a = f b :=
 begin
-  rw [range_subset_iff, ←maps_univ_to] at hf,
+  rw ←maps_univ_to at hf,
   obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
   exact ⟨a, b, h⟩,
 end

@@ -126,10 +126,10 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (inv_fun     : β → α)
 (source      : set α)
 (target      : set β)
-(map_source' : ∀{x}, x ∈ source → to_fun x ∈ target)
-(map_target' : ∀{x}, x ∈ target → inv_fun x ∈ source)
-(left_inv'   : ∀{x}, x ∈ source → inv_fun (to_fun x) = x)
-(right_inv'  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
+(map_source' : ∀ {{x}}, x ∈ source → to_fun x ∈ target)
+(map_target' : ∀ {{x}}, x ∈ target → inv_fun x ∈ source)
+(left_inv'   : ∀ {{x}}, x ∈ source → inv_fun (to_fun x) = x)
+(right_inv'  : ∀ {{x}}, x ∈ target → to_fun (inv_fun x) = x)
 
 namespace local_equiv
 

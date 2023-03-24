@@ -985,16 +985,24 @@ end
 
 end continuity
 
+/-- The homeomorphism obtained by restricting a `local_homeomorph` to a subset of the source. -/
+@[simps] def homeomorph_of_image_subset_source
+  {s : set α} {t : set β} (hs : s ⊆ e.source) (ht : e '' s = t) : s ≃ₜ t :=
+{ to_fun := λ a, ⟨e a, (congr_arg ((∈) (e a)) ht).mp ⟨a, a.2, rfl⟩⟩,
+  inv_fun := λ b, ⟨e.symm b, let ⟨a, ha1, ha2⟩ := (congr_arg ((∈) ↑b) ht).mpr b.2 in
+    ha2 ▸ (e.left_inv (hs ha1)).symm ▸ ha1⟩,
+  left_inv := λ a, subtype.ext (e.left_inv (hs a.2)),
+  right_inv := λ b, let ⟨a, ha1, ha2⟩ := (congr_arg ((∈) ↑b) ht).mpr b.2 in
+    subtype.ext (e.right_inv (ha2 ▸ e.map_source (hs ha1))),
+  continuous_to_fun := (continuous_on_iff_continuous_restrict.mp
+    (e.continuous_on.mono hs)).subtype_mk _,
+  continuous_inv_fun := (continuous_on_iff_continuous_restrict.mp
+    (e.continuous_on_symm.mono (λ b hb, let ⟨a, ha1, ha2⟩ := show b ∈ e '' s, from ht.symm ▸ hb in
+      ha2 ▸ e.map_source (hs ha1)))).subtype_mk _ }
+
 /-- A local homeomrphism defines a homeomorphism between its source and target. -/
 def to_homeomorph_source_target : e.source ≃ₜ e.target :=
-{ to_fun := e.maps_to.restrict _ _ _,
-  inv_fun := e.symm_maps_to.restrict _ _ _,
-  left_inv := λ x, subtype.eq $ e.left_inv x.2,
-  right_inv := λ x, subtype.eq $ e.right_inv x.2,
-  continuous_to_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.continuous_on,
-  continuous_inv_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.symm.continuous_on }
+e.homeomorph_of_image_subset_source subset_rfl e.image_source_eq_target
 
 lemma second_countable_topology_source [second_countable_topology β]
   (e : local_homeomorph α β) :

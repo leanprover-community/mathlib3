@@ -260,9 +260,9 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
 
 @[simp, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
   star (z : R) = z :=
-(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_int_cast z)).trans (unop_int_cast _)
+(congr_arg unop $ map_int_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) z).trans (unop_int_cast _)
 
-@[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
+@[simp, norm_cast] lemma star_rat_cast [division_ring R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
 (congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
 
@@ -284,7 +284,7 @@ case for `(↑star_ring_aut : R →* R)`. -/
 def star_ring_end [comm_semiring R] [star_ring R] : R →+* R := @star_ring_aut R _ _
 variables {R}
 
-localized "notation `conj` := star_ring_end _" in complex_conjugate
+localized "notation (name := star_ring_end) `conj` := star_ring_end hole!" in complex_conjugate
 
 /-- This is not a simp lemma, since we usually want simp to keep `star_ring_end` bundled.
  For example, for complex conjugation, we don't want simp to turn `conj x`
@@ -388,6 +388,18 @@ instance [comm_semiring R] [star_ring R] :
 ⟨ring_hom.ext star_star, ring_hom.ext star_star⟩
 
 end ring_hom_inv_pair
+
+section
+set_option old_structure_cmd true
+
+/-- `star_hom_class F R S` states that `F` is a type of `star`-preserving maps from `R` to `S`. -/
+class star_hom_class (F : Type*) (R S : out_param Type*) [has_star R] [has_star S]
+  extends fun_like F R (λ _, S) :=
+(map_star : ∀ (f : F) (r : R), f (star r) = star (f r))
+
+export star_hom_class (map_star)
+
+end
 
 /-! ### Instances -/
 

@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.star
+import analysis.convex.basic
 import analysis.normed_space.pointwise
 import analysis.seminorm
 import data.complex.is_R_or_C

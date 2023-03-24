@@ -151,12 +151,12 @@ class is_prime (I : ideal α) : Prop :=
 
 theorem is_prime_iff {I : ideal α} :
   is_prime I ↔ I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+⟨λ h, ⟨h.1, λ _ _, h.2⟩, λ h, ⟨h.1, λ _ _, h.2⟩⟩
 
 theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 
-theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
-  ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
+theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) {x y : α} :
+  x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=

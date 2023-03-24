@@ -161,6 +161,16 @@ instance [order_monoid_with_zero_hom_class F α β] : has_coe_t F (α →*₀o �
 
 end monoid_with_zero
 
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid α] [ordered_add_comm_monoid β] [order_add_monoid_hom_class F α β]
+  (f : F) {a : α}
+include β
+
+lemma map_nonneg (ha : 0 ≤ a) : 0 ≤ f a := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
+lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
+
+end ordered_add_comm_monoid
+
 namespace order_monoid_hom
 section preorder
 variables [preorder α] [preorder β] [preorder γ] [preorder δ] [mul_one_class α]

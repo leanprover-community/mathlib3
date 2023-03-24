@@ -24,7 +24,7 @@ instances for `Prop` and `fun`.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
-* `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
+* `complemented_lattice α`: Typeclass stating that any element of a lattice has a complement.
 
 ## Common lattices
 
@@ -1724,18 +1724,18 @@ end
 
 /-- A complemented bounded lattice is one where every element has a (not necessarily unique)
 complement. -/
-class is_complemented (α) [lattice α] [bounded_order α] : Prop :=
+class complemented_lattice (α) [lattice α] [bounded_order α] : Prop :=
 (exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
 
-export is_complemented (exists_is_compl)
+export complemented_lattice (exists_is_compl)
 
-namespace is_complemented
-variables [lattice α] [bounded_order α] [is_complemented α]
+namespace complemented_lattice
+variables [lattice α] [bounded_order α] [complemented_lattice α]
 
-instance : is_complemented αᵒᵈ :=
+instance : complemented_lattice αᵒᵈ :=
 ⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.dual⟩⟩
 
-end is_complemented
+end complemented_lattice
 
 end is_compl
 

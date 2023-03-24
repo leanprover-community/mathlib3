@@ -22,7 +22,7 @@ coinductive computation (α : Type u) : Type u
   An element of `computation α` is an infinite sequence of `option α` such
   that if `f n = some a` for some `n` then it is constantly `some a` after that. -/
 def computation (α : Type u) : Type u :=
-{f : stream (option α) // ∀ {n a}, f n = some a → f (n + 1) = some a}
+{f : stream (option α) // ∀ {{n a}}, f n = some a → f (n + 1) = some a}
 
 namespace computation
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -53,7 +53,7 @@ def head (c : computation α) : option α := c.1.head
 /-- `tail c` is the remainder of computation, either `c` if `c = return a`
   or `c'` if `c = think c'`. -/
 def tail (c : computation α) : computation α :=
-⟨c.1.tail, λ n a, let t := c.2 in t⟩
+⟨c.1.tail, λ n a h, c.2 h⟩
 
 /-- `empty α` is the computation that never returns, an infinite sequence of
   `think`s. -/

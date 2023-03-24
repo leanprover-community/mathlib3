@@ -205,6 +205,11 @@ supr_congr_Prop pq f
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Inter f₁ = Inter f₂ :=
 infi_congr_Prop pq f
 
+lemma Union_plift_up (f : plift ι → set α) : (⋃ i, f (plift.up i)) = ⋃ i, f i := supr_plift_up _
+lemma Union_plift_down (f : ι → set α) : (⋃ i, f (plift.down i)) = ⋃ i, f i := supr_plift_down _
+lemma Inter_plift_up (f : plift ι → set α) : (⋂ i, f (plift.up i)) = ⋂ i, f i := infi_plift_up _
+lemma Inter_plift_down (f : ι → set α) : (⋂ i, f (plift.down i)) = ⋂ i, f i := infi_plift_down _
+
 lemma Union_eq_if {p : Prop} [decidable p] (s : set α) :
   (⋃ h : p, s) = if p then s else ∅ :=
 supr_eq_if _

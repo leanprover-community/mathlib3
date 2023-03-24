@@ -160,6 +160,36 @@ begin
   rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
 end
 
+variables [char_zero R]
+
+@[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+  @polynomial.degree_C R _ _ two_ne_zero', zero_add]
+
+@[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
+nat_degree_eq_of_degree_eq $ degree_bit0_eq p
+
+@[simp]
+lemma nat_degree_bit1_eq (p : R[X]) : nat_degree (bit1 p) = nat_degree p :=
+begin
+  rw bit1,
+  apply le_antisymm,
+  convert nat_degree_add_le _ _,
+  { simp, },
+  by_cases h : p.nat_degree = 0,
+  { simp [h], },
+  apply le_nat_degree_of_ne_zero,
+  intro hh,
+  apply h,
+  simp [*, coeff_one, if_neg (ne.symm h)] at *,
+end
+
+lemma degree_bit1_eq {p : R[X]} (hp : 0 < degree p) : degree (bit1 p) = degree p :=
+begin
+  rw [bit1, degree_add_eq_left_of_degree_lt, degree_bit0_eq],
+  rwa [degree_one, degree_bit0_eq]
+end
+
 end no_zero_divisors
 
 section no_zero_divisors
@@ -433,7 +463,7 @@ begin
   rw [count_roots, root_multiplicity_X_sub_C],
   split_ifs with h,
   { rw [h, count_singleton_self] },
-  { rw [singleton_eq_cons, count_cons_of_ne h, count_zero] }
+  { rw [←cons_zero, count_cons_of_ne h, count_zero] }
 end
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=

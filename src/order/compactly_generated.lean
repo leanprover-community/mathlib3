@@ -437,7 +437,7 @@ section
 variables [is_modular_lattice α] [is_compactly_generated α]
 
 @[priority 100]
-instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
+instance is_atomic_of_complemented_lattice [complemented_lattice α] : is_atomic α :=
 ⟨λ b, begin
   by_cases h : {c : α | complete_lattice.is_compact_element c ∧ c ≤ b} ⊆ {⊥},
   { left,
@@ -459,7 +459,7 @@ end⟩
 
 /-- See Lemma 5.1, Călugăreanu -/
 @[priority 100]
-instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α :=
+instance is_atomistic_of_complemented_lattice [complemented_lattice α] : is_atomistic α :=
 ⟨λ b, ⟨{a | is_atom a ∧ a ≤ b}, begin
   symmetry,
   have hle : Sup {a : α | is_atom a ∧ a ≤ b} ≤ b := (Sup_le $ λ _, and.right),
@@ -475,7 +475,8 @@ instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α 
 end, λ _, and.left⟩⟩
 
 /-- See Theorem 6.6, Călugăreanu -/
-theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
+theorem complemented_lattice_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
+  complemented_lattice α :=
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
@@ -525,14 +526,14 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
 end⟩
 
 /-- See Theorem 6.6, Călugăreanu -/
-theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
-is_complemented_of_Sup_atoms_eq_top Sup_atoms_eq_top
+theorem complemented_lattice_of_is_atomistic [is_atomistic α] : complemented_lattice α :=
+complemented_lattice_of_Sup_atoms_eq_top Sup_atoms_eq_top
 
-theorem is_complemented_iff_is_atomistic : is_complemented α ↔ is_atomistic α :=
+theorem complemented_lattice_iff_is_atomistic : complemented_lattice α ↔ is_atomistic α :=
 begin
   split; introsI,
-  { exact is_atomistic_of_is_complemented },
-  { exact is_complemented_of_is_atomistic }
+  { exact is_atomistic_of_complemented_lattice },
+  { exact complemented_lattice_of_is_atomistic }
 end
 
 end

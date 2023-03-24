@@ -298,6 +298,9 @@ if ha : a then by simp only [ha, true_and, true_implies_iff]
 @[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
 decidable.and_or_imp
 
+/-- Provide modus tollens (`mt`) as dot notation for implications. -/
+protected lemma function.mt : (a → b) → ¬ b → ¬ a := mt
+
 /-! ### Declarations about `not` -/
 
 /-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with
@@ -580,6 +583,9 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+
+/-- Provide the reverse of modus tollens (`mt`) as dot notation for implications. -/
+protected theorem function.mtr : (¬ a → ¬ b) → (b → a) := not_imp_not.mp
 
 -- See Note [decidable namespace]
 protected lemma decidable.or_congr_left [decidable c] (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=

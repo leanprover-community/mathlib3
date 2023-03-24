@@ -708,7 +708,7 @@ open conv interactive
 open tactic tactic.interactive (ring.mode ring1)
 open tactic.ring (normalize normalize_mode.horner)
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.

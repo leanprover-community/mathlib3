@@ -356,11 +356,13 @@ noncomputable def convolution [has_sub G] (f : G → E) (g : G → E') (L : E �
   (μ : measure G . volume_tac) : G → F :=
 λ x, ∫ t, L (f t) (g (x - t)) ∂μ
 
-localized "notation f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 := convolution f g L μ" in convolution
-localized "notation f ` ⋆[`:67 L:67 `]`:0 g:66 := convolution f g L
-  measure_theory.measure_space.volume" in convolution
-localized "notation f ` ⋆ `:67 g:66 := convolution f g (continuous_linear_map.lsmul ℝ ℝ)
-  measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution) f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 :=
+  convolution f g L μ" in convolution
+localized "notation (name := convolution.volume) f ` ⋆[`:67 L:67 `]`:0 g:66 :=
+  convolution f g L measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution.lsmul) f ` ⋆ `:67 g:66 :=
+  convolution f g (continuous_linear_map.lsmul ℝ ℝ) measure_theory.measure_space.volume"
+  in convolution
 
 lemma convolution_def [has_sub G] : (f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ := rfl
 
@@ -684,7 +686,7 @@ end normed_add_comm_group
 
 namespace cont_diff_bump_of_inner
 
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [normed_space ℝ E']
 variables [inner_product_space ℝ G]
 variables [complete_space E']
@@ -758,7 +760,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space 𝕜 E'']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [complete_space F]
 variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
@@ -854,7 +856,7 @@ lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
-  induction n using with_top.nat_induction with n ih ih generalizing g,
+  induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },
   { have h : ∀ x, has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x) x :=
@@ -888,7 +890,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
 variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 variables [complete_space F]
 variables {μ : measure 𝕜}

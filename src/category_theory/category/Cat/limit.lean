@@ -68,7 +68,9 @@ instance (F : J ⥤ Cat.{v v}) : category (limit (F ⋙ Cat.objects)) :=
       rw [←congr_fun (limit.w (hom_diagram X Y) h) f, ←congr_fun (limit.w (hom_diagram Y Z) h) g],
       dsimp,
       simp,
-    end), }
+    end),
+  id_comp' := λ _ _ _, by { ext, simp only [category.id_comp, types.limit.π_mk'] },
+  comp_id' := λ _ _ _, by { ext, simp only [types.limit.π_mk', category.comp_id] } }
 
 /-- Auxiliary definition: the limit category. -/
 @[simps]
@@ -110,7 +112,9 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit_cone_X F 
       conv at this { congr, skip, dsimp, simp, },
       erw [functor.congr_hom this f],
       dsimp, simp, },
-  end, }
+  end,
+  map_id' := λ X, by simp,
+  map_comp' := λ X Y Z f g, by simp }
 
 @[simp]
 lemma limit_π_hom_diagram_eq_to_hom {F : J ⥤ Cat.{v v}}

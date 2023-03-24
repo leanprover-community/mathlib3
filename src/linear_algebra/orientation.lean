@@ -77,7 +77,22 @@ variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [modu
 
 namespace basis
 
-variables {ι : Type*} [fintype ι] [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι]
+
+/-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
+of `f.det`. -/
+lemma map_orientation_eq_det_inv_smul [finite ι] (e : basis ι R M)
+  (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
+begin
+  casesI nonempty_fintype ι,
+  induction x using module.ray.ind with g hg,
+  rw [orientation.map_apply, smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
+      (g.comp_linear_map ↑f.symm).eq_smul_basis_det e, g.eq_smul_basis_det e,
+      alternating_map.comp_linear_map_apply, alternating_map.smul_apply, basis.det_comp,
+      basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
+end
+
+variables [fintype ι]
 
 /-- The orientation given by a basis. -/
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
@@ -86,18 +101,6 @@ ray_of_ne_zero R _ e.det_ne_zero
 lemma orientation_map [nontrivial R] (e : basis ι R M)
   (f : M ≃ₗ[R] N) : (e.map f).orientation = orientation.map ι f e.orientation :=
 by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
-
-/-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
-of `f.det`. -/
-lemma map_orientation_eq_det_inv_smul (e : basis ι R M)
-  (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
-begin
-  induction x using module.ray.ind with g hg,
-  rw [orientation.map_apply, smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
-      (g.comp_linear_map ↑f.symm).eq_smul_basis_det e, g.eq_smul_basis_det e,
-      alternating_map.comp_linear_map_apply, alternating_map.smul_apply, basis.det_comp,
-      basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
-end
 
 /-- The orientation given by a basis derived using `units_smul`, in terms of the product of those
 units. -/

@@ -65,6 +65,10 @@ begin
       by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
+lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) :
+  ∥n • x∥ = ∥(n : α)∥ * ∥x∥ :=
+by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
+
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
@@ -158,6 +162,22 @@ theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
+instance {E : Type*} [normed_add_comm_group E] [normed_space ℚ E] (e : E) :
+  discrete_topology $ add_subgroup.zmultiples e :=
+begin
+  rcases eq_or_ne e 0 with rfl | he,
+  { rw [add_subgroup.zmultiples_zero_eq_bot], apply_instance, },
+  { rw [discrete_topology_iff_open_singleton_zero, is_open_induced_iff],
+    refine ⟨metric.ball 0 (∥e∥), metric.is_open_ball, _⟩,
+    ext ⟨x, hx⟩,
+    obtain ⟨k, rfl⟩ := add_subgroup.mem_zmultiples_iff.mp hx,
+    rw [mem_preimage, mem_ball_zero_iff, add_subgroup.coe_mk, mem_singleton_iff,
+      subtype.ext_iff, add_subgroup.coe_mk, add_subgroup.coe_zero, norm_zsmul ℚ k e,
+      int.norm_cast_rat, int.norm_eq_abs, ← int.cast_abs, zero_lt.mul_lt_iff_lt_one_left
+      (norm_pos_iff.mpr he), ← @int.cast_one ℝ _, int.cast_lt, int.abs_lt_one_iff, smul_eq_zero,
+      or_iff_left he], },
+end
+
 /-- A (semi) normed real vector space is homeomorphic to the unit ball in the same space.
 This homeomorphism sends `x : E` to `(1 + ∥x∥²)^(- ½) • x`.
 
@@ -188,9 +208,9 @@ def homeomorph_unit_ball [normed_space ℝ E] :
       by nlinarith [norm_nonneg (y : E), (mem_ball_zero_iff.1 y.2 : ∥(y : E)∥ < 1)],
     field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
   end,
-  continuous_to_fun := continuous_subtype_mk _ $
+  continuous_to_fun :=
   begin
-    suffices : continuous (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul continuous_id, },
+    suffices : continuous (λ x, (1 + ∥x∥^2).sqrt⁻¹), from (this.smul continuous_id).subtype_mk _,
     refine continuous.inv₀ _ (λ x, real.sqrt_ne_zero'.mpr (by positivity)),
     continuity,
   end,

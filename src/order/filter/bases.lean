@@ -965,7 +965,7 @@ filter.sup.is_countably_generated _ _
 
 end is_countably_generated
 
-lemma is_countably_generated_seq [encodable β] (x : β → set α) :
+lemma is_countably_generated_seq [countable β] (x : β → set α) :
   is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
   use [range x, countable_range x],
@@ -1009,7 +1009,6 @@ begin
   rw [← plift.down_surjective.infi_comp],
   refine has_countable_basis.is_countably_generated
     ⟨has_basis_infi (λ n, (hs _).to_has_basis), _⟩,
-  haveI := encodable.of_countable (plift ι),
   refine (countable_range $ sigma.map (coe : finset (plift ι) → set (plift ι)) (λ _, id)).mono _,
   rintro ⟨I, f⟩ ⟨hI, -⟩,
   lift I to finset (plift ι) using hI,

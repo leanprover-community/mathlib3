@@ -359,7 +359,8 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
   μ_is_iso := by { dsimp, apply_instance },
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
-infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
+-- We overload notation; potentially dangerous, but it seems to work.
+infixr (name := monoidal_functor.comp) ` ⊗⋙ `:80 := comp
 
 end monoidal_functor
 

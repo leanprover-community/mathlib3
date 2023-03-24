@@ -37,4 +37,4 @@ Some key definitions are not yet present.
   coordinates, with appropriate proofs of existence when `k` is a field.
  -/
 
-localized "notation `affine_space` := add_torsor" in affine
+localized "notation (name := add_torsor) `affine_space` := add_torsor" in affine

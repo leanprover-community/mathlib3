@@ -444,27 +444,18 @@ lemma arg_div_coe_angle {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
   (arg (x / y) : real.angle) = arg x - arg y :=
 by rw [div_eq_mul_inv, arg_mul_coe_angle hx (inv_ne_zero hy), arg_inv_coe_angle, sub_eq_add_neg]
 
-@[simp] lemma arg_coe_angle_eq_iff {x y : ℂ} : (arg x : real.angle) = arg y ↔ arg x = arg y :=
+@[simp] lemma arg_coe_angle_to_real_eq_arg (z : ℂ) : (arg z : real.angle).to_real = arg z :=
 begin
-  split,
-  { intro h,
-    rw real.angle.angle_eq_iff_two_pi_dvd_sub at h,
-    rcases h with ⟨k, hk⟩,
-    rw ←sub_eq_zero,
-    have ha : -(2 * π) < arg x - arg y,
-    { linarith only [neg_pi_lt_arg x, arg_le_pi y] },
-    have hb : arg x - arg y < 2 * π,
-    { linarith only [arg_le_pi x, neg_pi_lt_arg y] },
-    rw [hk, neg_lt, neg_mul_eq_mul_neg, mul_lt_iff_lt_one_right real.two_pi_pos, neg_lt,
-        ←int.cast_one, ←int.cast_neg, int.cast_lt] at ha,
-    rw [hk, mul_lt_iff_lt_one_right real.two_pi_pos, ←int.cast_one, int.cast_lt] at hb,
-    have hk' : k = 0,
-    { linarith only [ha, hb] },
-    rw hk' at hk,
-    simpa using hk },
-  { intro h,
-    rw h }
+  rw real.angle.to_real_coe_eq_self_iff_mem_Ioc,
+  exact arg_mem_Ioc _
 end
+
+lemma arg_coe_angle_eq_iff_eq_to_real {z : ℂ} {θ : real.angle} :
+  (arg z : real.angle) = θ ↔ arg z = θ.to_real :=
+by rw [←real.angle.to_real_inj, arg_coe_angle_to_real_eq_arg]
+
+@[simp] lemma arg_coe_angle_eq_iff {x y : ℂ} : (arg x : real.angle) = arg y ↔ arg x = arg y :=
+by simp_rw [←real.angle.to_real_inj, arg_coe_angle_to_real_eq_arg]
 
 section continuity
 

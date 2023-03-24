@@ -85,21 +85,23 @@ variables (G) {H}
 protected def box_prod_right (a : α) : H.walk b₁ b₂ → (G □ H).walk (a, b₁) (a, b₂) :=
 walk.map (G.box_prod_right H a).to_hom
 
-variables {G} [decidable_eq α] [decidable_eq β] [decidable_rel G.adj] [decidable_rel H.adj]
+variables {G}
 
 /-- Project a walk on `G □ H` to a walk on `G` by discarding the moves in the direction of `H`. -/
-def of_box_prod_left : Π {x y : α × β}, (G □ H).walk x y → G.walk x.1 y.1
+def of_box_prod_left [decidable_eq β] [decidable_rel G.adj] :
+  Π {x y : α × β}, (G □ H).walk x y → G.walk x.1 y.1
 | _ _ nil := nil
 | x z (cons h w) := or.by_cases h (λ hG, w.of_box_prod_left.cons hG.1)
     (λ hH, show G.walk x.1 z.1, by rw hH.2; exact w.of_box_prod_left)
 
 /-- Project a walk on `G □ H` to a walk on `H` by discarding the moves in the direction of `G`. -/
-def of_box_prod_right : Π {x y : α × β}, (G □ H).walk x y → H.walk x.2 y.2
+def of_box_prod_right [decidable_eq α] [decidable_rel H.adj] :
+  Π {x y : α × β}, (G □ H).walk x y → H.walk x.2 y.2
 | _ _ nil := nil
 | x z (cons h w) := (or.symm h).by_cases (λ hH, w.of_box_prod_right.cons hH.1)
   (λ hG, show H.walk x.2 z.2, by rw hG.2; exact w.of_box_prod_right)
 
-@[simp] lemma of_box_prod_left_box_prod_left :
+@[simp] lemma of_box_prod_left_box_prod_left [decidable_eq β] [decidable_rel G.adj] :
   ∀ {a₁ a₂ : α} (w : G.walk a₁ a₂), (w.box_prod_left H b).of_box_prod_left = w
 | _ _ nil := rfl
 | _ _ (cons' x y z h w) := begin
@@ -108,7 +110,7 @@ def of_box_prod_right : Π {x y : α × β}, (G □ H).walk x y → H.walk x.2 y
   exacts [rfl, ⟨h, rfl⟩],
 end
 
-@[simp] lemma of_box_prod_left_box_prod_right :
+@[simp] lemma of_box_prod_left_box_prod_right [decidable_eq α] [decidable_rel G.adj] :
   ∀ {b₁ b₂ : α} (w : G.walk b₁ b₂), (w.box_prod_right G a).of_box_prod_right = w
 | _ _ nil := rfl
 | _ _ (cons' x y z h w) := begin

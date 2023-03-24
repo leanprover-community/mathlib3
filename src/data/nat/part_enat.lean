@@ -5,14 +5,14 @@ Authors: Chris Hughes
 -/
 import algebra.hom.equiv
 import data.part
-import data.nat.lattice
+import data.nat.enat
 import tactic.norm_num
 
 /-!
 # Natural numbers with infinity
 
 The natural numbers and an extra `top` element `⊤`. This implementation uses `part ℕ` as an
-implementation. Use `with_top ℕ` instead unless you care about computability.
+implementation. Use `ℕ∞` instead unless you care about computability.
 
 ## Main definitions
 
@@ -20,15 +20,16 @@ The following instances are defined:
 
 * `ordered_add_comm_monoid part_enat`
 * `canonically_ordered_add_monoid part_enat`
+* `complete_linear_order part_enat`
 
 There is no additive analogue of `monoid_with_zero`; if there were then `part_enat` could
 be an `add_monoid_with_top`.
 
-* `to_with_top` : the map from `part_enat` to `with_top ℕ`, with theorems that it plays well
+* `to_with_top` : the map from `part_enat` to `ℕ∞`, with theorems that it plays well
 with `+` and `≤`.
 
-* `with_top_add_equiv : part_enat ≃+ with_top ℕ`
-* `with_top_order_iso : part_enat ≃o with_top ℕ`
+* `with_top_add_equiv : part_enat ≃+ ℕ∞`
+* `with_top_order_iso : part_enat ≃o ℕ∞`
 
 ## Implementation details
 
@@ -45,7 +46,7 @@ followed by `@[simp] lemma to_with_top_zero'` whose proof uses `convert`.
 
 ## Tags
 
-part_enat, with_top ℕ
+part_enat, ℕ∞
 -/
 open part (hiding some)
 
@@ -86,7 +87,7 @@ instance : add_monoid_with_one part_enat :=
 
 lemma some_eq_coe (n : ℕ) : some n = n := rfl
 
-@[simp] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
+@[simp, norm_cast] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
 
 @[simp] lemma dom_coe (x : ℕ) : (x : part_enat).dom := trivial
 
@@ -392,8 +393,8 @@ by rw [add_comm a, add_comm a, part_enat.add_right_cancel_iff ha]
 
 section with_top
 
-/-- Computably converts an `part_enat` to a `with_top ℕ`. -/
-def to_with_top (x : part_enat) [decidable x.dom] : with_top ℕ := x.to_option
+/-- Computably converts an `part_enat` to a `ℕ∞`. -/
+def to_with_top (x : part_enat) [decidable x.dom] : ℕ∞ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
 
@@ -430,11 +431,11 @@ open_locale classical
 
 @[simp] lemma to_with_top_add {x y : part_enat} :
   to_with_top (x + y) = to_with_top x + to_with_top y :=
-by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← with_top.coe_add]
+by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← enat.coe_add]
 
-/-- `equiv` between `part_enat` and `with_top ℕ` (for the order isomorphism see
+/-- `equiv` between `part_enat` and `ℕ∞` (for the order isomorphism see
 `with_top_order_iso`). -/
-noncomputable def with_top_equiv : part_enat ≃ with_top ℕ :=
+noncomputable def with_top_equiv : part_enat ≃ ℕ∞ :=
 { to_fun := λ x, to_with_top x,
   inv_fun := λ x, match x with (option.some n) := coe n | none := ⊤ end,
   left_inv := λ x, by apply part_enat.cases_on x; intros; simp; refl,
@@ -455,8 +456,8 @@ to_with_top_le
 @[simp] lemma with_top_equiv_lt {x y : part_enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
 to_with_top_lt
 
-/-- `to_with_top` induces an order isomorphism between `part_enat` and `with_top ℕ`. -/
-noncomputable def with_top_order_iso : part_enat ≃o with_top ℕ :=
+/-- `to_with_top` induces an order isomorphism between `part_enat` and `ℕ∞`. -/
+noncomputable def with_top_order_iso : part_enat ≃o ℕ∞ :=
 { map_rel_iff' := λ _ _, with_top_equiv_le,
   .. with_top_equiv}
 
@@ -469,16 +470,16 @@ rfl
 @[simp] lemma with_top_equiv_symm_zero : with_top_equiv.symm 0 = 0 :=
 rfl
 
-@[simp] lemma with_top_equiv_symm_le {x y : with_top ℕ} :
+@[simp] lemma with_top_equiv_symm_le {x y : ℕ∞} :
   with_top_equiv.symm x ≤ with_top_equiv.symm y ↔ x ≤ y :=
 by rw ← with_top_equiv_le; simp
 
-@[simp] lemma with_top_equiv_symm_lt {x y : with_top ℕ} :
+@[simp] lemma with_top_equiv_symm_lt {x y : ℕ∞} :
   with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
 by rw ← with_top_equiv_lt; simp
 
-/-- `to_with_top` induces an additive monoid isomorphism between `part_enat` and `with_top ℕ`. -/
-noncomputable def with_top_add_equiv : part_enat ≃+ with_top ℕ :=
+/-- `to_with_top` induces an additive monoid isomorphism between `part_enat` and `ℕ∞`. -/
+noncomputable def with_top_add_equiv : part_enat ≃+ ℕ∞ :=
 { map_add' := λ x y, by simp only [with_top_equiv]; convert to_with_top_add,
   ..with_top_equiv}
 
@@ -492,7 +493,8 @@ begin
   exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
 end
 
-instance : is_well_order part_enat (<) := ⟨lt_wf⟩
+instance : well_founded_lt part_enat := ⟨lt_wf⟩
+instance : is_well_order part_enat (<) := { }
 instance : has_well_founded part_enat := ⟨(<), lt_wf⟩
 
 section find

@@ -56,8 +56,9 @@ The embedding from `R` is called `C`. -/
 structure polynomial (R : Type*) [semiring R] := of_finsupp ::
 (to_finsupp : add_monoid_algebra R ℕ)
 
-localized "notation R`[X]`:9000 := polynomial R" in polynomial
-open finsupp add_monoid_algebra
+localized "notation (name := polynomial) R`[X]`:9000 := polynomial R" in polynomial
+
+open add_monoid_algebra finsupp function
 open_locale big_operators polynomial
 
 namespace polynomial
@@ -427,6 +428,11 @@ by rw [X_pow_mul, monomial_mul_X_pow]
 /-- `coeff p n` (often denoted `p.coeff n`) is the coefficient of `X^n` in `p`. -/
 @[simp] def coeff : R[X] → ℕ → R
 | ⟨p⟩ := p
+
+lemma coeff_injective : injective (coeff : R[X] → ℕ → R) :=
+by { rintro ⟨p⟩ ⟨q⟩, simp only [coeff, fun_like.coe_fn_eq, imp_self] }
+
+@[simp] lemma coeff_inj : p.coeff = q.coeff ↔ p = q := coeff_injective.eq_iff
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [←of_finsupp_single, coeff, linear_map.coe_mk], rw finsupp.single_apply }
@@ -807,9 +813,7 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, rw [←of_finsupp_neg, support, support, finsupp.support_neg] }
 
-@[simp]
-lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
-(C : R →+* _).map_int_cast n
+@[simp] lemma C_eq_int_cast (n : ℤ) : C (n : R) = n := map_int_cast C n
 
 end ring
 

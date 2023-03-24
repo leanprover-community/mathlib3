@@ -23,8 +23,8 @@ following locations:
 
 * `data.finset.basic` has `finset.exists_ne_map_eq_of_card_lt_of_maps_to`
 * `data.fintype.basic` has `fintype.exists_ne_map_eq_of_card_lt`
-* `data.fintype.basic` has `fintype.exists_ne_map_eq_of_infinite`
-* `data.fintype.basic` has `fintype.exists_infinite_fiber`
+* `data.fintype.basic` has `finite.exists_ne_map_eq_of_infinite`
+* `data.fintype.basic` has `finite.exists_infinite_fiber`
 * `data.set.finite` has `set.infinite.exists_ne_map_eq_of_maps_to`
 
 This module gives access to these pigeonhole principles along with 20 more.

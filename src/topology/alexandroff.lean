@@ -55,7 +55,7 @@ namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none
-localized "notation `∞` := alexandroff.infty" in alexandroff
+localized "notation (name := alexandroff.infty) `∞` := alexandroff.infty" in alexandroff
 
 instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 

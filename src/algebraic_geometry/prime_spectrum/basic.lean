@@ -298,7 +298,7 @@ lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
 
 lemma zero_locus_inf (I J : ideal R) :
   zero_locus ((I ⊓ J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
-set.ext $ λ x, by simpa using x.2.inf_le
+set.ext $ λ x, x.2.inf_le
 
 lemma union_zero_locus (s s' : set R) :
   zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s') : ideal R) :=
@@ -306,7 +306,7 @@ by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul (I J : ideal R) :
   zero_locus ((I * J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
-set.ext $ λ x, by simpa using x.2.mul_le
+set.ext $ λ x, x.2.mul_le
 
 lemma zero_locus_singleton_mul (f g : R) :
   zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=

@@ -393,7 +393,7 @@ begin
     rw set.mem_to_finset,
     exact (dual_pair_e_ε _).mem_of_mem_span y_mem_H p p_in },
   obtain ⟨q, H_max⟩ : ∃ q : Q (m+1), ∀ q' : Q (m+1), |(ε q' : _) y| ≤ |ε q y|,
-    from fintype.exists_max _,
+    from finite.exists_max _,
   have H_q_pos : 0 < |ε q y|,
   { contrapose! y_ne,
     exact epsilon_total (λ p, abs_nonpos_iff.mp (le_trans (H_max p) y_ne)) },

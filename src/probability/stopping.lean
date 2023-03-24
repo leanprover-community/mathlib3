@@ -521,7 +521,7 @@ begin
     exact @measurable_set.empty _ (f i), },
 end
 
-protected lemma measurable_set_eq_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_eq_of_encodable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω = i} :=
 hτ.measurable_set_eq_of_countable (set.to_countable _) i
 
@@ -535,7 +535,7 @@ begin
   exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable h_countable i),
 end
 
-protected lemma measurable_set_lt_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_lt_of_encodable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω < i} :=
 hτ.measurable_set_lt_of_countable (set.to_countable _) i
 
@@ -550,7 +550,7 @@ begin
 end
 
 protected lemma measurable_set_ge_of_encodable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
-  [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | i ≤ τ ω} :=
 hτ.measurable_set_ge_of_countable (set.to_countable _) i
 
@@ -648,9 +648,9 @@ end topological_space
 
 end linear_order
 
-section encodable
+section countable
 
-lemma is_stopping_time_of_measurable_set_eq [preorder ι] [encodable ι]
+lemma is_stopping_time_of_measurable_set_eq [preorder ι] [countable ι]
   {f : filtration ι m} {τ : Ω → ι} (hτ : ∀ i, measurable_set[f i] {ω | τ ω = i}) :
   is_stopping_time f τ :=
 begin
@@ -660,7 +660,7 @@ begin
   exact f.mono hk _ (hτ k),
 end
 
-end encodable
+end countable
 
 end measurable_set
 
@@ -720,14 +720,14 @@ begin
     linarith },
 end
 
--- generalize to certain encodable type?
+-- generalize to certain countable type?
 lemma add
   {f : filtration ℕ m} {τ π : Ω → ℕ} (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (τ + π) :=
 begin
   intro i,
   rw (_ : {ω | (τ + π) ω ≤ i} = ⋃ k ≤ i, {ω | π ω = k} ∩ {ω | τ ω + k ≤ i}),
-  { exact measurable_set.Union (λ k, measurable_set.Union_Prop
+  { exact measurable_set.Union (λ k, measurable_set.Union
       (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
   ext ω,
   simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
@@ -780,7 +780,7 @@ begin
     exact le_trans (hle _) hle' },
 end
 
-lemma measurable_space_le_of_encodable [encodable ι] (hτ : is_stopping_time f τ) :
+lemma measurable_space_le_of_encodable [countable ι] (hτ : is_stopping_time f τ) :
   hτ.measurable_space ≤ m :=
 begin
   intros s hs,
@@ -956,7 +956,7 @@ begin
   exact hτ.measurable_set_eq_of_countable h_countable i,
 end
 
-protected lemma measurable_set_eq_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_eq_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω = i} :=
 hτ.measurable_set_eq_of_countable' (set.to_countable _) i
 
@@ -972,7 +972,7 @@ begin
   exact (hτ.measurable_set_eq_of_countable' h_countable i).union (hτ.measurable_set_gt' i),
 end
 
-protected lemma measurable_set_ge_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_ge_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
 hτ.measurable_set_ge_of_countable' (set.to_countable _) i
 
@@ -987,7 +987,7 @@ begin
   exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq_of_countable' h_countable i),
 end
 
-protected lemma measurable_set_lt_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_lt_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω < i} :=
 hτ.measurable_set_lt_of_countable' (set.to_countable _) i
 
@@ -1161,7 +1161,7 @@ begin
   { exact (hπ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
 end
 
-lemma measurable_set_eq_stopping_time_of_encodable [encodable ι]
+lemma measurable_set_eq_stopping_time_of_countable [countable ι]
   [topological_space ι] [measurable_space ι] [borel_space ι] [order_topology ι]
   [measurable_singleton_class ι] [second_countable_topology ι]
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
@@ -1182,7 +1182,7 @@ begin
   rw this,
   refine measurable_set.inter (measurable_set.inter _ (hτ.measurable_set_le j))
     (hπ.measurable_set_le j),
-  apply measurable_set_eq_fun_of_encodable,
+  apply measurable_set_eq_fun_of_countable,
   { exact (hτ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
   { exact (hπ.min_const j).measurable_of_le (λ _, min_le_right _ _), },
 end
@@ -1211,6 +1211,12 @@ variable [linear_order ι]
 Intuitively, the stopped process stops evolving once the stopping time has occured. -/
 def stopped_process (u : ι → Ω → β) (τ : Ω → ι) : ι → Ω → β :=
 λ i ω, u (min i (τ ω)) ω
+
+lemma stopped_process_eq_stopped_value {u : ι → Ω → β} {τ : Ω → ι} :
+  stopped_process u τ = λ i, stopped_value u (λ ω, min i (τ ω)) := rfl
+
+lemma stopped_value_stopped_process {u : ι → Ω → β} {τ σ : Ω → ι} :
+  stopped_value (stopped_process u τ) σ = stopped_value u (λ ω, min (σ ω) (τ ω)) := rfl
 
 lemma stopped_process_eq_of_le {u : ι → Ω → β} {τ : Ω → ι}
   {i : ι} {ω : Ω} (h : i ≤ τ ω) : stopped_process u τ i ω = u i ω :=
@@ -1418,6 +1424,22 @@ begin
     { intros b hb hneq,
       rw set.indicator_of_not_mem,
       exact hneq.symm } },
+end
+
+lemma stopped_process_eq' (n : ℕ) :
+  stopped_process u τ n =
+  set.indicator {a | n + 1 ≤ τ a} (u n) +
+    ∑ i in finset.range (n + 1), set.indicator {a | τ a = i} (u i) :=
+begin
+  have : {a | n ≤ τ a}.indicator (u n) =
+    {a | n + 1 ≤ τ a}.indicator (u n) + {a | τ a = n}.indicator (u n),
+  { ext x,
+    rw [add_comm, pi.add_apply, ← set.indicator_union_of_not_mem_inter],
+    { simp_rw [@eq_comm _ _ n, @le_iff_eq_or_lt _ _ n, nat.succ_le_iff],
+      refl },
+    { rintro ⟨h₁, h₂⟩,
+      exact (nat.succ_le_iff.1 h₂).ne h₁.symm } },
+  rw [stopped_process_eq, this, finset.sum_range_succ_comm, ← add_assoc],
 end
 
 end add_comm_monoid

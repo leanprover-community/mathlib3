@@ -200,7 +200,8 @@ begin
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional K V] : #V < ℵ₀ :=
+lemma cardinal_lt_aleph_0_of_finite_dimensional [_root_.finite K] [finite_dimensional K V] :
+  #V < ℵ₀ :=
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,

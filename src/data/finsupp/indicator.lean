@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 
 /-!
 # Building finitely supported functions off finsets

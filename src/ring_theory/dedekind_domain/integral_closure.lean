@@ -64,9 +64,8 @@ begin
   simp only [linear_map.coe_restrict_scalars_eq_coe, algebra.linear_map_apply],
   have hx : is_integral A (algebra_map C L x) :=
     (is_integral_closure.is_integral A L x).algebra_map,
-  suffices : ∃ (c : ι → A), algebra_map C L x = ∑ i, c i • db i,
-  { obtain ⟨c, x_eq⟩ := this,
-    rw x_eq,
+  rsuffices ⟨c, x_eq⟩ : ∃ (c : ι → A), algebra_map C L x = ∑ i, c i • db i,
+  { rw x_eq,
     refine submodule.sum_mem _ (λ i _, submodule.smul_mem _ _ (submodule.subset_span _)),
     rw set.mem_range,
     exact ⟨i, rfl⟩ },

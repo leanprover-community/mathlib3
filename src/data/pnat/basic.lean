@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import data.nat.basic
+import algebra.order.positive.ring
 
 /-!
 # The positive natural numbers
@@ -14,7 +15,8 @@ This file defines the type `ℕ+` or `pnat`, the subtype of natural numbers that
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof
   is not stored. -/
-@[derive linear_order]
+@[derive [decidable_eq, add_left_cancel_semigroup, add_right_cancel_semigroup, add_comm_semigroup,
+  linear_ordered_cancel_comm_monoid, linear_order, has_add, has_mul, has_one, distrib]]
 def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat
 
@@ -100,8 +102,6 @@ open nat
  subtraction, division and powers.
 -/
 
-instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
-
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
 
@@ -114,9 +114,6 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
--- see note [fact non_instances]
-lemma fact_pos (n : ℕ+) : fact (0 < ↑n) := ⟨n.pos⟩
-
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
 @[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
@@ -125,10 +122,6 @@ lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_inj
 
 @[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
-instance : has_add ℕ+ := ⟨λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩⟩
-
-instance : add_comm_semigroup ℕ+ := coe_injective.add_comm_semigroup coe (λ _ _, rfl)
-
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 
 /-- `pnat.coe` promoted to an `add_hom`, that is, a morphism which preserves addition. -/
@@ -136,11 +129,10 @@ def coe_add_hom : add_hom ℕ+ ℕ :=
 { to_fun := coe,
   map_add' := add_coe }
 
-instance : add_left_cancel_semigroup ℕ+ :=
-coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
-
-instance : add_right_cancel_semigroup ℕ+ :=
-coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
+instance : covariant_class ℕ+ ℕ+ (+) (≤) := positive.covariant_class_add_le
+instance : covariant_class ℕ+ ℕ+ (+) (<) := positive.covariant_class_add_lt
+instance : contravariant_class ℕ+ ℕ+ (+) (≤) := positive.contravariant_class_add_le
+instance : contravariant_class ℕ+ ℕ+ (+) (<) := positive.contravariant_class_add_lt
 
 /-- An equivalence between `ℕ+` and `ℕ` given by `pnat.nat_pred` and `nat.succ_pnat`. -/
 @[simps { fully_applied := ff }] def _root_.equiv.pnat_equiv_nat : ℕ+ ≃ ℕ :=
@@ -157,21 +149,11 @@ coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 @[simp] lemma _root_.order_iso.pnat_iso_nat_symm_apply :
   ⇑order_iso.pnat_iso_nat.symm = nat.succ_pnat := rfl
 
-@[priority 10]
-instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
-⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩
-
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
-
-instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
-instance : has_one ℕ+ := ⟨succ_pnat 0⟩
-instance : has_pow ℕ+ ℕ := ⟨λ x n, ⟨x ^ n, pow_pos x.2 n⟩⟩
-
-instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
@@ -223,8 +205,7 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
 
 @[simp] lemma coe_coe_monoid_hom : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
 
-@[simp]
-lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 := by rw [← one_coe, coe_inj]
+@[simp] lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 := subtype.coe_injective.eq_iff' one_coe
 
 @[simp] lemma le_one_iff {n : ℕ+} : n ≤ 1 ↔ n = 1 := le_bot_iff
 
@@ -237,17 +218,6 @@ lemma lt_add_right (n m : ℕ+) : n < n + m := (lt_add_left n m).trans_eq (add_c
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 rfl
-
-instance : ordered_cancel_comm_monoid ℕ+ :=
-{ mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },
-  le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
-  mul_left_cancel := λ a b c h, by
- { replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj a.pos).mp h)},
-  .. pnat.comm_monoid,
-  .. pnat.linear_order }
-
-instance : distrib ℕ+ := coe_injective.distrib coe (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.

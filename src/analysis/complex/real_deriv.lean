@@ -64,7 +64,7 @@ begin
   simpa using (C.comp z (B.comp z A)).has_deriv_at
 end
 
-theorem cont_diff_at.real_of_complex {n : with_top ℕ} (h : cont_diff_at ℂ n e z) :
+theorem cont_diff_at.real_of_complex {n : ℕ∞} (h : cont_diff_at ℂ n e z) :
   cont_diff_at ℝ n (λ x : ℝ, (e x).re) z :=
 begin
   have A : cont_diff_at ℝ n (coe : ℝ → ℂ) z,
@@ -74,7 +74,7 @@ begin
   exact C.comp z (B.comp z A)
 end
 
-theorem cont_diff.real_of_complex {n : with_top ℕ} (h : cont_diff ℂ n e) :
+theorem cont_diff.real_of_complex {n : ℕ∞} (h : cont_diff ℂ n e) :
   cont_diff ℝ n (λ x : ℝ, (e x).re) :=
 cont_diff_iff_cont_diff_at.2 $ λ x,
   h.cont_diff_at.real_of_complex

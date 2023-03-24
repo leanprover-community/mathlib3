@@ -758,6 +758,31 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
+section left
+variables [covariant_class α α (*) (≤)] {a b : α}
+
+@[to_additive eq_zero_of_add_nonneg_left]
+lemma eq_one_of_one_le_mul_left (ha : a ≤ 1) (hb : b ≤ 1) (hab : 1 ≤ a * b) : a = 1 :=
+ha.eq_of_not_lt $ λ h, hab.not_lt $ mul_lt_one_of_lt_of_le h hb
+
+@[to_additive]
+lemma eq_one_of_mul_le_one_left (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b ≤ 1) : a = 1 :=
+ha.eq_of_not_gt $ λ h, hab.not_lt $ one_lt_mul_of_lt_of_le' h hb
+
+end left
+
+section right
+variables [covariant_class α α (swap (*)) (≤)] {a b : α}
+
+@[to_additive eq_zero_of_add_nonneg_right]
+lemma eq_one_of_one_le_mul_right (ha : a ≤ 1) (hb : b ≤ 1) (hab : 1 ≤ a * b) : b = 1 :=
+hb.eq_of_not_lt $ λ h, hab.not_lt $ right.mul_lt_one_of_le_of_lt ha h
+
+@[to_additive]
+lemma eq_one_of_mul_le_one_right (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b ≤ 1) : b = 1 :=
+hb.eq_of_not_gt $ λ h, hab.not_lt $ right.one_lt_mul_of_le_of_lt ha h
+
+end right
 end partial_order
 
 section linear_order
@@ -1046,6 +1071,16 @@ lemma strict_anti.mul_antitone' (hf : strict_anti f) (hg : antitone g) :
 lemma strict_anti_on.mul_antitone' (hf : strict_anti_on f s) (hg : antitone_on g s) :
   strict_anti_on (λ x, f x * g x) s :=
 λ x hx y hy h, mul_lt_mul_of_lt_of_le (hf hx hy h) (hg hx hy h.le)
+
+@[simp, to_additive cmp_add_left]
+lemma cmp_mul_left' {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (*) (<)]
+  (a b c : α) : cmp (a * b) (a * c) = cmp b c :=
+(strict_mono_id.const_mul' a).cmp_map_eq b c
+
+@[simp, to_additive cmp_add_right]
+lemma cmp_mul_right' {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (swap (*)) (<)]
+  (a b c : α) : cmp (a * c) (b * c) = cmp a b :=
+(strict_mono_id.mul_const' c).cmp_map_eq a b
 
 end mono
 

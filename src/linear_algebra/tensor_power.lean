@@ -43,8 +43,8 @@ open_locale tensor_product
 
 variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 
-localized "notation `⨂[`:100 R `]^`:80 n:max := tensor_power R n"
-  in tensor_product
+localized "notation (name := tensor_power)
+  `⨂[`:100 R `]^`:80 n:max := tensor_power R n" in tensor_product
 
 namespace tensor_power
 open_locale tensor_product direct_sum

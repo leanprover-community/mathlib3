@@ -54,10 +54,10 @@ def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
 and a subset `s : set α`"]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
 
-localized "infix ` *l `:70 := left_coset" in coset
-localized "infix ` +l `:70 := left_add_coset" in coset
-localized "infix ` *r `:70 := right_coset" in coset
-localized "infix ` +r `:70 := right_add_coset" in coset
+localized "infix (name := left_coset) ` *l `:70 := left_coset" in coset
+localized "infix (name := left_add_coset) ` +l `:70 := left_add_coset" in coset
+localized "infix (name := right_coset) ` *r `:70 := right_coset" in coset
+localized "infix (name := right_add_coset) ` +r `:70 := right_add_coset" in coset
 
 section coset_mul
 variable [has_mul α]
@@ -169,6 +169,16 @@ set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_left (s.inv_mem ha)]
 @[to_additive right_add_coset_mem_right_add_coset]
 lemma right_coset_mem_right_coset {a : α} (ha : a ∈ s) : (s : set α) *r a = s :=
 set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_right (s.inv_mem ha)]
+
+@[to_additive] lemma orbit_subgroup_eq_right_coset (a : α) : mul_action.orbit s a = s *r a :=
+set.ext (λ b, ⟨λ ⟨c, d⟩, ⟨c, c.2, d⟩, λ ⟨c, d, e⟩, ⟨⟨c, d⟩, e⟩⟩)
+
+@[to_additive] lemma orbit_subgroup_eq_self_of_mem {a : α} (ha : a ∈ s) :
+  mul_action.orbit s a = s :=
+(orbit_subgroup_eq_right_coset s a).trans (right_coset_mem_right_coset s ha)
+
+@[to_additive] lemma orbit_subgroup_one_eq_self : mul_action.orbit s (1 : α) = s :=
+orbit_subgroup_eq_self_of_mem s s.one_mem
 
 @[to_additive eq_add_cosets_of_normal]
 theorem eq_cosets_of_normal (N : s.normal) (g : α) : g *l s = s *r g :=

@@ -71,6 +71,8 @@ The unique element in `sym α 0`.
 -/
 @[pattern] def nil : sym α 0 := ⟨0, multiset.card_zero⟩
 
+@[simp] lemma coe_nil : (coe (@sym.nil α)) = (0 : multiset α) := rfl
+
 /--
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/
@@ -160,7 +162,7 @@ This is `cons` but for the alternative `sym'` definition.
 def cons' {α : Type*} {n : ℕ} : α → sym' α n → sym' α (nat.succ n) :=
 λ a, quotient.map (vector.cons a) (λ ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ h, list.perm.cons _ h)
 
-notation a :: b := cons' a b
+notation (name := sym.cons') a :: b := cons' a b
 
 /--
 Multisets of cardinality n are equivalent to length-n vectors up to permutations.

@@ -240,7 +240,7 @@ begin
       exact ennreal.mul_le_of_le_div ha.le } },
   have B : ∀ᵐ x ∂μ, ∀ (c ∈ w) (d ∈ w), (c < d) →
     ¬((∃ᶠ a in v.filter_at x, ρ a / μ a < c) ∧ (∃ᶠ a in v.filter_at x, d < ρ a / μ a)),
-    by simpa only [ae_ball_iff w_count, ae_imp_iff],
+    by simpa only [ae_ball_iff w_count, ae_all_iff],
   filter_upwards [B],
   assume x hx,
   exact tendsto_of_no_upcrossings w_dense hx,

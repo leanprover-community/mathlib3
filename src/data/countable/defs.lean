@@ -67,7 +67,8 @@ instance subsingleton.to_countable [subsingleton α] : countable α :=
 @[priority 500]
 instance [countable α] {p : α → Prop} : countable {x // p x} := subtype.val_injective.countable
 
-instance {n : ℕ} : countable (fin n) := subtype.countable
+instance {n : ℕ} : countable (fin n) :=
+function.injective.countable (@fin.eq_of_veq n)
 
 @[priority 100]
 instance finite.to_countable [finite α] : countable α :=

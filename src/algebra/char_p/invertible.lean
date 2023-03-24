@@ -40,9 +40,10 @@ def invertible_of_char_p_not_dvd {p : ℕ} [char_p K p]
   {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
 
-instance invertible_of_pos [char_zero K] (n : ℕ) [h : fact (0 < n)] :
-  invertible (n : K) :=
-invertible_of_nonzero $ by simpa [pos_iff_ne_zero] using h.out
+-- warning: this could potentially loop with `ne_zero.invertible` - if there is weird type-class
+-- loops, watch out for that.
+instance invertible_of_pos [char_zero K] (n : ℕ) [ne_zero n] : invertible (n : K) :=
+invertible_of_nonzero $ ne_zero.out
 
 end field
 

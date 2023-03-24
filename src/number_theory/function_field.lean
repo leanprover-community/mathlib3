@@ -133,6 +133,9 @@ integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
 instance : is_integrally_closed (ring_of_integers Fq F) :=
 integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
 
+instance [is_separable (ratfunc Fq) F] : is_noetherian Fq[X] (ring_of_integers Fq F) :=
+is_integral_closure.is_noetherian _ (ratfunc Fq) F _
+
 instance [is_separable (ratfunc Fq) F] :
   is_dedekind_domain (ring_of_integers Fq F) :=
 is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _
@@ -210,7 +213,7 @@ def infty_valuation  : valuation (ratfunc Fq) ℤₘ₀ :=
 @[simp] lemma infty_valuation.C {k : Fq} (hk : k ≠ 0) :
   infty_valuation_def Fq (ratfunc.C k) = (multiplicative.of_add (0 : ℤ)) :=
 begin
-  have hCk : ratfunc.C k ≠ 0 := (ring_hom.map_ne_zero _).mpr hk,
+  have hCk : ratfunc.C k ≠ 0 := (map_ne_zero _).mpr hk,
   rw [infty_valuation_def, if_neg hCk, ratfunc.int_degree_C],
 end
 

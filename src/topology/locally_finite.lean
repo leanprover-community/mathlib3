@@ -96,7 +96,7 @@ begin
 end
 
 lemma continuous_on_Union {g : X → Y} (hf : locally_finite f) (h_cl : ∀ i, is_closed (f i))
-  (h_cont  : ∀ i, continuous_on g (f i)) :
+  (h_cont : ∀ i, continuous_on g (f i)) :
   continuous_on g (⋃ i, f i) :=
 hf.continuous_on_Union' $ λ i x hx, h_cont i x $ (h_cl i).closure_subset hx
 

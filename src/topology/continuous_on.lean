@@ -616,7 +616,7 @@ lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : s
 λ ⟨x, y⟩ ⟨hx, hy⟩, continuous_within_at.prod_map (hf x hx) (hg y hy)
 
 lemma continuous_of_cover_nhds {ι : Sort*} {f : α → β} {s : ι → set α}
-  (hs : ∀ x : α, ∃ i, s i ∈ 𝓝 x) (hf  : ∀ i, continuous_on f (s i)) :
+  (hs : ∀ x : α, ∃ i, s i ∈ 𝓝 x) (hf : ∀ i, continuous_on f (s i)) :
   continuous f :=
 continuous_iff_continuous_at.mpr $ λ x, let ⟨i, hi⟩ := hs x in
   by { rw [continuous_at, ← nhds_within_eq_nhds.2 hi], exact hf _ _ (mem_of_mem_nhds hi) }

@@ -45,7 +45,7 @@ it possible to use the complete linear order structure of `ℝ≥0∞`. The proo
 more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would always need to check
 that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
-open_locale big_operators nnreal ennreal topological_space uniform_convergence
+open_locale big_operators nnreal ennreal topology uniform_convergence
 open set measure_theory filter
 
 variables {α β : Type*} [linear_order α] [linear_order β]
@@ -181,10 +181,9 @@ lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α �
 lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=
 begin
-  wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
-  { assume hx hy,
-    rw edist_comm,
-    exact this hy hx },
+  wlog hxy : x ≤ y,
+  { rw edist_comm,
+    exact this f hy hx (le_of_not_le hxy) },
   let u : ℕ → α := λ n, if n = 0 then x else y,
   have hu : monotone u,
   { assume m n hmn,
@@ -798,15 +797,14 @@ lemma edist_zero_of_eq_zero
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : variation_on_from_to f s a b = 0) :
   edist (f a) (f b) = 0 :=
 begin
-  wlog h' : a ≤ b := le_total a b using [b a, a b] tactic.skip,
+  wlog h' : a ≤ b,
+  { rw edist_comm,
+    apply this hf hb ha _ (le_of_not_le h'),
+    rw [eq_neg_swap, h, neg_zero] },
   { apply le_antisymm _ (zero_le _),
     rw [←ennreal.of_real_zero, ←h, eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
     apply evariation_on.edist_le,
     exacts [⟨ha, ⟨le_rfl, h'⟩⟩, ⟨hb, ⟨h', le_rfl⟩⟩] },
-  { assume ha hb hab,
-    rw edist_comm,
-    apply this hb ha,
-    rw [eq_neg_swap, hab, neg_zero] }
 end
 
 @[protected]
@@ -935,12 +933,7 @@ lemma lipschitz_on_with.comp_has_bounded_variation_on {f : E → F} {C : ℝ≥0
   (hf : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t)
   (h : has_bounded_variation_on g s) :
   has_bounded_variation_on (f ∘ g) s :=
-begin
-  dsimp [has_bounded_variation_on] at h,
-  apply ne_of_lt,
-  apply (hf.comp_evariation_on_le hg).trans_lt,
-  simp [lt_top_iff_ne_top, h],
-end
+ne_top_of_le_ne_top (ennreal.mul_ne_top ennreal.coe_ne_top h) (hf.comp_evariation_on_le hg)
 
 lemma lipschitz_on_with.comp_has_locally_bounded_variation_on {f : E → F} {C : ℝ≥0} {t : set E}
   (hf : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t)

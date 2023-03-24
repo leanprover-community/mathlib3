@@ -12,6 +12,9 @@ import tactic.fin_cases
 /-!
 # Integers mod `n`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition of the integers mod n, and the field structure on the integers mod p.
 
 
@@ -778,7 +781,7 @@ begin
   { refl }
 end
 
-@[simp] lemma coe_val_min_abs : ∀ {n : ℕ} (x : zmod n), (x.val_min_abs : zmod n) = x
+@[simp, norm_cast] lemma coe_val_min_abs : ∀ {n : ℕ} (x : zmod n), (x.val_min_abs : zmod n) = x
 | 0       x := int.cast_id x
 | k@(n+1) x :=
 begin

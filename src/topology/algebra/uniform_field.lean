@@ -34,7 +34,7 @@ type class and the main results are the instances `uniform_space.completion.fiel
 
 noncomputable theory
 
-open_locale classical uniformity topological_space
+open_locale classical uniformity topology
 
 open set uniform_space uniform_space.completion filter
 

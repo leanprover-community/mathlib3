@@ -19,7 +19,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate real topological_space
+open_locale complex_conjugate real topology
 open filter set
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,

@@ -14,6 +14,9 @@ import ring_theory.multiplicity
 /-!
 # Natural number multiplicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about the multiplicity function (the maximum prime power dividing a
 number) when applied to naturals, in particular calculating it for factorials and binomial
 coefficients.
@@ -203,8 +206,10 @@ begin
   exact dvd_mul_right _ _
 end
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+variables {p n k : ℕ}
+
+lemma multiplicity_choose_prime_pow_add_multiplicity (hp : p.prime) (hkn : k ≤ p ^ n)
+  (hk0 : k ≠ 0) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
   (have hdisj : disjoint
@@ -214,7 +219,7 @@ le_antisymm
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
-      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
+      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0.bot_lt
         (lt_succ_of_le (log_mono_right hkn)),
       ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
@@ -223,6 +228,24 @@ le_antisymm
   end)
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)
+
+lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  multiplicity p (choose (p ^ n) k) =
+    ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0.bot_lt⟩)) :=
+part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
+
+lemma dvd_choose_pow (hp : prime p) (hk : k ≠ 0) (hkp : k ≠ p ^ n) : p ∣ (p ^ n).choose k :=
+begin
+  obtain hkp | hkp := hkp.symm.lt_or_lt,
+  { simp [choose_eq_zero_of_lt hkp] },
+  refine multiplicity_ne_zero.1 (λ h, hkp.not_le $ nat.le_of_dvd hk.bot_lt _),
+  have H := hp.multiplicity_choose_prime_pow_add_multiplicity hkp.le hk,
+  rw [h, zero_add, eq_coe_iff] at H,
+  exact H.1,
+end
+
+lemma dvd_choose_pow_iff (hp : prime p) : p ∣ (p ^ n).choose k ↔ k ≠ 0 ∧ k ≠ p ^ n :=
+by refine ⟨λ h, ⟨_, _⟩, λ h, dvd_choose_pow hp h.1 h.2⟩; rintro rfl; simpa [hp.ne_one] using h
 
 end prime
 

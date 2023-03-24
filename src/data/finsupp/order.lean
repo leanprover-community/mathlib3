@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # Pointwise order on finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lifts order structures on `α` to `ι →₀ α`.
 
 ## Main declarations

@@ -11,6 +11,9 @@ import category_theory.preadditive.functor_category
 /-!
 # Additive Functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A functor between two preadditive categories is called *additive*
 provided that the induced map on hom types is a morphism of abelian
 groups.

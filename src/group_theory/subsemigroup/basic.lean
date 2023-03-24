@@ -57,13 +57,13 @@ variables [has_mul M] {s : set M}
 variables [has_add A] {t : set A}
 
 /-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/
-class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] : Prop :=
+class mul_mem_class (S M : Type*) [has_mul M] [set_like S M] : Prop :=
 (mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
 
 export mul_mem_class (mul_mem)
 
 /-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
-class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] : Prop :=
+class add_mem_class (S M : Type*) [has_add M] [set_like S M] : Prop :=
 (add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
 
 export add_mem_class (add_mem)

@@ -442,7 +442,17 @@ begin
 end
 
 section is_R_or_C
-variables [is_R_or_C α]
+
+class inner_product_algebra (𝕜 A : Type*) [is_R_or_C 𝕜] [normed_ring A] [star_ring A]
+  extends inner_product_space 𝕜 A, 𝕜 →+* A :=
+(commutes' : ∀ r x, to_fun r * x = x * to_fun r)
+(smul_def' : ∀ r x, r • x = to_fun r * x)
+
+instance (𝕜 A : Type*) [is_R_or_C 𝕜] [normed_ring A] [star_ring A] [inner_product_algebra 𝕜 A] :
+  normed_algebra 𝕜 A :=
+{ ..‹inner_product_algebra 𝕜 A› }
+
+variables [normed_ring α] [star_ring α] [inner_product_algebra ℝ α] [norm_one_class α]
 
 lemma frobenius_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ‖A ⬝ B‖₊ ≤ ‖A‖₊ * ‖B‖₊ :=
 begin
@@ -453,13 +463,30 @@ begin
   rw [← nnreal.rpow_le_rpow_iff one_half_pos, ← nnreal.rpow_mul,
     mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow],
   dsimp only,
-  have := @nnnorm_inner_le_nnnorm α _ _ _ _
+  refine (nnnorm_sum_le _ _).trans _,
+  refine nonneg_le_nonneg_of_sq_le_sq _ _,
+  { exact zero_le _ },
+  rw [mul_mul_mul_comm],
+  simp_rw [←sq, ←nnreal.rpow_two, ←nnreal.rpow_mul],
+  rw [div_mul_cancel _ (two_ne_zero : 2 ≠ (0 : ℝ))],
+  simp_rw [nnreal.rpow_two, sq],
+  rw [nnreal.rpow_one, nnreal.rpow_one, finset.sum_mul_sum, finset.sum_mul_sum],
+  refine finset.sum_le_sum _,
+  rintros ⟨i', j'⟩ -,
+  dsimp only,
+  rw mul_mul_mul_comm,
+  refine mul_le_mul _ _ (zero_le _) (zero_le _),
+  have := @nnnorm_inner_le_nnnorm ℝ _ _ _ _
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ j, star (A i j)))
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ k, B k j)),
+  rw ←nnnorm_algebra_map' α at this, swap, apply_instance,
+  simp only [pi_Lp.equiv_symm_apply] at this,
   simpa only [pi_Lp.equiv_symm_apply, pi_Lp.inner_apply,
-      is_R_or_C.inner_apply, star_ring_end_apply, pi.nnnorm_def, pi_Lp.nnnorm_eq_of_L2,
+      norm_star, pi.nnnorm_def, pi_Lp.nnnorm_eq_of_L2,
       star_star, nnnorm_star, nnreal.sqrt_eq_rpow, nnreal.rpow_two] using this,
 end
+
+#check norm_star_mul_self
 
 lemma frobenius_norm_mul (A : matrix l m α) (B : matrix m n α) : ‖A ⬝ B‖ ≤ ‖A‖ * ‖B‖ :=
 frobenius_nnnorm_mul A B

@@ -2612,6 +2612,12 @@ end
 
 end
 
+/-- If the derivatives within a set of `g` at `f x` are bounded by `C`, and the `i`-th derivative
+within a set of `f` at `x` is bounded by `D^i` for all `1 ≤ i ≤ n`, then the `n`-th derivative
+of `g ∘ f` is bounded by `n! * C * D^n`.
+This lemma proves this estimate assuming additionally that two of the spaces live in the same
+universe, to make an induction possible. Use instead `norm_iterated_fderiv_within_comp_le` that
+removes this assumption. -/
 lemma norm_iterated_fderiv_within_comp_le_aux
   {Fu Gu : Type u} [normed_add_comm_group Fu] [normed_space 𝕜 Fu]
   [normed_add_comm_group Gu] [normed_space 𝕜 Gu]
@@ -2623,16 +2629,21 @@ lemma norm_iterated_fderiv_within_comp_le_aux
   (hD : ∀ i, 1 ≤ i → i ≤ n → ‖iterated_fderiv_within 𝕜 i f s x‖ ≤ D^i) :
   ‖iterated_fderiv_within 𝕜 n (g ∘ f) s x‖ ≤ n! * C * D^n :=
 begin
+  /- We argue by induction on `n`, using that `D^(n+1) (g ∘ f) = D^n (g ' ∘ f ⬝ f')`. The successive
+  derivatives of `g' ∘ f` are controlled thanks to the inductive assumption, and those of `f'` are
+  controlled by assumption.
+  As composition of linear maps is a bilinear map, one may use
+  `continuous_linear_map.norm_iterated_fderiv_le_of_bilinear_of_le_one` to get from these a bound
+  on `D^n (g ' ∘ f ⬝ f')`. -/
   unfreezingI { induction n using nat.case_strong_induction_on with n IH generalizing Gu },
   { simpa only [norm_iterated_fderiv_within_zero, nat.factorial_zero, algebra_map.coe_one,
       one_mul, pow_zero, mul_one] using hC 0 le_rfl },
-  have L : (1 : ℕ∞) ≤ n.succ,
-    by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
   have M : (n : ℕ∞) < n.succ := nat.cast_lt.2 (nat.lt_succ_self n),
   have Cnonneg : 0 ≤ C := (norm_nonneg _).trans (hC 0 bot_le),
   have Dnonneg : 0 ≤ D,
   { have : 1 ≤ n+1, by simp only [le_add_iff_nonneg_left, zero_le'],
     simpa only [pow_one] using (norm_nonneg _).trans (hD 1 le_rfl this) },
+  -- use the inductive assumption to bound the derivatives of `g' ∘ f`.
   have I : ∀ i ∈ finset.range (n+1),
     ‖iterated_fderiv_within 𝕜 i ((fderiv_within 𝕜 g t) ∘ f) s x‖ ≤ i! * C * D^i,
   { assume i hi,
@@ -2650,6 +2661,7 @@ begin
       by rw [iterated_fderiv_within_succ_eq_comp_right ht (hst hx), linear_isometry_equiv.norm_map],
       rw this,
       exact hC (j+1) (add_le_add (hj.trans hi) le_rfl) } },
+  -- reformulate `hD` as a bound for the derivatives of `f'`.
   have J : ∀ i, ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 f s) s x‖ ≤ D ^ (n - i + 1),
   { assume i,
     have : ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 f s) s x‖
@@ -2659,6 +2671,7 @@ begin
     apply hD,
     { simp only [le_add_iff_nonneg_left, zero_le'] },
     { apply nat.succ_le_succ tsub_le_self } },
+  -- Now put these together: first, notice that we have to bound `D^n (g' ∘ f ⬝ f')`.
   calc
   ‖iterated_fderiv_within 𝕜 (n+1) (g ∘ f) s x‖ =
         ‖iterated_fderiv_within 𝕜 n (λ (y : E), fderiv_within 𝕜 (g ∘ f) s y) s x‖ :
@@ -2666,12 +2679,16 @@ begin
   ... = ‖iterated_fderiv_within 𝕜 n (λ (y : E), continuous_linear_map.compL 𝕜 E Fu Gu
         (fderiv_within 𝕜 g t (f y)) (fderiv_within 𝕜 f s y)) s x‖ :
   begin
+    have L : (1 : ℕ∞) ≤ n.succ,
+      by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
     congr' 1,
     apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
     apply fderiv_within.comp _ _ _ hst (hs y hy),
     { exact hg.differentiable_on L _ (hst hy) },
     { exact hf.differentiable_on L _ hy }
   end
+  -- bound it using the fact that the composition of linear maps is a bilinear operation,
+  -- for which we have bounds for the`n`-th derivative.
   ... ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ) *
           ‖iterated_fderiv_within 𝕜 i ((fderiv_within 𝕜 g t) ∘ f) s x‖
             * ‖iterated_fderiv_within 𝕜 (n-i) (fderiv_within 𝕜 f s) s x‖ :
@@ -2687,6 +2704,8 @@ begin
       .norm_iterated_fderiv_within_le_of_bilinear_of_le_one A B hs hx
         le_rfl (continuous_linear_map.norm_compL_le 𝕜 E Fu Gu),
   end
+  -- bound each of the terms using the estimates on previous derivatives (that use the inductive
+  -- assumption for `g' ∘ f`).
   ... ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ) * (i! * C * D^i) * (D^(n-i+1)) :
   begin
     apply finset.sum_le_sum (λ i hi, _),
@@ -2695,13 +2714,15 @@ begin
     apply mul_le_mul (I i hi) (J i) (norm_nonneg _),
     positivity,
   end
-  ... = ∑ i in finset.range (n+1), (n! : ℝ) * ((i!)⁻¹ * i!) * C * (D^i * D^(n-i+1)) * ((n-i)!)⁻¹ :
+  -- We are left with trivial algebraic manipulations to see that this is smaller than
+  -- the claimed bound.
+  ... = ∑ i in finset.range (n+1), (n! : ℝ) * (i!⁻¹ * i!) * C * (D^i * D^(n-i+1)) * (n-i)!⁻¹ :
   begin
     apply finset.sum_congr rfl (λ i hi, _),
     simp only [nat.cast_choose ℝ (finset.mem_range_succ_iff.1 hi), div_eq_inv_mul, mul_inv],
     ring,
   end
-  ... = ∑ i in finset.range (n+1), (n! : ℝ) * 1 * C * D^(n+1) * ((n-i)!)⁻¹ :
+  ... = ∑ i in finset.range (n+1), (n! : ℝ) * 1 * C * D^(n+1) * (n-i)!⁻¹ :
   begin
     apply finset.sum_congr rfl (λ i hi, _),
     congr' 2,
@@ -2725,8 +2746,9 @@ begin
       nat.factorial_succ, nat.cast_mul],
 end
 
-.
-
+/-- If the derivatives within a set of `g` at `f x` are bounded by `C`, and the `i`-th derivative
+within a set of `f` at `x` is bounded by `D^i` for all `1 ≤ i ≤ n`, then the `n`-th derivative
+of `g ∘ f` is bounded by `n! * C * D^n`. -/
 lemma norm_iterated_fderiv_within_comp_le
   {g : F → G} {f : E → F} {n : ℕ} {s : set E} {t : set F} {x : E} {N : ℕ∞}
   (hg : cont_diff_on 𝕜 N g t) (hf : cont_diff_on 𝕜 N f s) (hn : (n : ℕ∞) ≤ N)
@@ -2780,6 +2802,9 @@ begin
   exact norm_iterated_fderiv_within_comp_le_aux hgu hfu htu hs hstu hx hC hD,
 end
 
+/-- If the derivatives of `g` at `f x` are bounded by `C`, and the `i`-th derivative
+of `f` at `x` is bounded by `D^i` for all `1 ≤ i ≤ n`, then the `n`-th derivative
+of `g ∘ f` is bounded by `n! * C * D^n`. -/
 lemma norm_iterated_fderiv_comp_le
   {g : F → G} {f : E → F} {n : ℕ} {N : ℕ∞}
   (hg : cont_diff 𝕜 N g) (hf : cont_diff 𝕜 N f) (hn : (n : ℕ∞) ≤ N) (x : E)

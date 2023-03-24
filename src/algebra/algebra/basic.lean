@@ -431,6 +431,16 @@ lemma _root_.ulift.algebra_map_eq (r : R) :
 @[simp] lemma _root_.ulift.down_algebra_map (r : R) :
   (algebra_map R (ulift A) r).down = algebra_map R A r := rfl
 
+instance _root_.ulift.algebra' : algebra (ulift R) A :=
+{ to_fun := λ r, algebra_map R A r.down,
+  commutes' := λ r x, algebra.commutes r.down x,
+  smul_def' := λ r x, algebra.smul_def' r.down x,
+  .. ulift.module,
+  .. (algebra_map R A).comp (ulift.ring_equiv : ulift R ≃+* R).to_ring_hom  }
+
+lemma _root_.ulift.algebra_map_eq' (r : ulift R) :
+  algebra_map (ulift R) A r = algebra_map R A r.down := rfl
+
 end ulift
 
 /-- Algebra over a subsemiring. This builds upon `subsemiring.module`. -/

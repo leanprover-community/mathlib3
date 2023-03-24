@@ -151,7 +151,7 @@ le_antisymm
 
 end cardinal
 
-variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
+variables {K L : Type u} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/
@@ -159,11 +159,11 @@ if they have the same cardinality. -/
   (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
-  cases exists_is_transcendence_basis ℤ
-    (show function.injective (algebra_map ℤ K),
+  cases exists_is_transcendence_basis (ulift.{u} ℤ)
+    (show function.injective (algebra_map (ulift.{u} ℤ) K),
       from int.cast_injective) with s hs,
-  cases exists_is_transcendence_basis ℤ
-    (show function.injective (algebra_map ℤ L),
+  cases exists_is_transcendence_basis (ulift.{u} ℤ)
+    (show function.injective (algebra_map (ulift.{u} ℤ) L),
       from int.cast_injective) with t ht,
   have : #s = #t,
   { rw [← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ hs (le_of_eq mk_int) hK,
@@ -178,16 +178,16 @@ private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
 begin
   apply classical.choice,
   cases exists_is_transcendence_basis (zmod p)
-    (show function.injective (algebra_map (zmod p) K),
+    (show function.injective (algebra_map (ulift.{u} $ zmod p) K),
       from ring_hom.injective _) with s hs,
   cases exists_is_transcendence_basis (zmod p)
-    (show function.injective (algebra_map (zmod p) L),
+    (show function.injective (algebra_map (ulift.{u} $ zmod p) L),
       from ring_hom.injective _) with t ht,
   have : #s = #t,
   { rw [← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ hs
-      (lt_aleph_0_of_finite (zmod p)).le hK,
+      (lt_aleph_0_of_finite (ulift.{u} $ zmod p)).le hK,
         ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht
-      (lt_aleph_0_of_finite (zmod p)).le, hKL],
+      (lt_aleph_0_of_finite (ulift.{u} $ zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩

@@ -652,41 +652,48 @@ begin
     exact ⟨λ h', h.1 (fst_mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
+variables {u v w x y : V} {p : G.walk v w}
+
+/-- Returns whether a walk is the empty walk. Useful because `p = simple_graph.walk.nil` does not
+typecheck. -/
+inductive is_nil : ∀ {x y : V}, G.walk x y → Prop
+| nil {x : V} : is_nil (nil : G.walk x x)
+
+protected lemma is_nil.eq (hp : p.is_nil) : v = w := by cases hp; refl
+
+@[simp] lemma not_is_nil_of_ne : v ≠ w → ¬ p.is_nil := mt is_nil.eq
+
 /-- The first dart of a path. -/
-@[simp]
-def head : Π {x y : V}, G.walk x y → x ≠ y → G.dart
-| x _ nil         h := (h rfl).elim
-| x z (cons hxz p) h := ⟨⟨x, _⟩, hxz⟩
+def head (p : G.walk x y) (hp : ¬ p.is_nil) : G.dart :=
+{ fst := x,
+  snd := by { cases p, cases hp is_nil.nil, exact p_v },
+  is_adj := by { obtain _ | ⟨h, _⟩ := p, cases hp is_nil.nil, exact h } }
 
 /-- The path obtained by removing the first dart of a path. -/
 @[simp]
-def tail : Π {x y : V} (p : G.walk x y) (hxy : x ≠ y), G.walk (p.head hxy).snd y
-| x _ nil         h := (h rfl).elim
+def tail : Π {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil), G.walk (p.head hp).snd y
+| x _ nil         h := (h is_nil.nil).elim
 | x z (cons hxz p) h := p
 
-@[simp] lemma head_fst : ∀ {x y : V} (p : G.walk x y) (hxy : x ≠ y), (p.head hxy).fst = x
-| _ _ nil h := (h rfl).elim
-| _ _ (cons hxz w) _ := rfl
+@[simp] lemma head_fst {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil) : (p.head hp).fst = x := rfl
 
-private lemma adj_head_snd {x y : V} (p : G.walk x y) (hxy : x ≠ y) : G.adj x (p.head hxy).snd :=
-by { convert  (p.head hxy).is_adj, rw head_fst }
+private lemma adj_head_snd {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil) : G.adj x (p.head hp).snd :=
+(p.head hp).is_adj
 
-@[simp] lemma head_cons_tail : ∀ {x y : V} (p : G.walk x y) (hxy : x ≠ y),
-  cons (adj_head_snd p hxy) (p.tail hxy) = p
-| _ _ nil h := (h rfl).elim
+@[simp] lemma head_cons_tail : ∀ {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil),
+  cons (adj_head_snd p hp) (p.tail hp) = p
+| _ _ nil h := (h is_nil.nil).elim
 | x z (cons hxz w) h := rfl
 
-@[simp] lemma cons_support_tail {x y : V} (p : G.walk x y) (hxy : x ≠ y) :
-  x :: (p.tail hxy).support = p.support :=
+@[simp] lemma cons_support_tail {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil) :
+  x :: (p.tail hp).support = p.support :=
 by rw [←support_cons, head_cons_tail]
 
-@[simp] lemma length_tail_add_one {x y : V} {p : G.walk x y} (hxy : x ≠ y) :
-  (p.tail hxy).length + 1 = p.length :=
+@[simp] lemma length_tail_add_one {x y : V} {p : G.walk x y} (hp : ¬ p.is_nil) :
+  (p.tail hp).length + 1 = p.length :=
 by rw [←length_cons, head_cons_tail]
 
 /-! ### Trails, paths, circuits, cycles -/
-
-variables {u v w x y : V} {p : G.walk v w}
 
 /-- A *trail* is a walk with no repeating edges. -/
 structure is_trail {u v : V} (p : G.walk u v) : Prop :=
@@ -818,8 +825,8 @@ begin
   tauto,
 end
 
-lemma is_path.tail (hvw : v ≠ w) (hp : p.is_path) : (p.tail hvw).is_path :=
-by { rw walk.is_path_def at ⊢ hp, rw [←cons_support_tail _ hvw, list.nodup_cons] at hp, exact hp.2 }
+lemma is_path.tail (hp' : ¬ p.is_nil) (hp : p.is_path) : (p.tail hp').is_path :=
+by { rw walk.is_path_def at ⊢ hp, rw [←cons_support_tail _ hp', list.nodup_cons] at hp, exact hp.2 }
 
 /-! ### About paths -/
 

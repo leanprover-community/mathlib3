@@ -151,7 +151,7 @@ le_antisymm
 
 end cardinal
 
-variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
+variables {K L : Type*} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/

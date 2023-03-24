@@ -54,7 +54,7 @@ in analysis.
 -/
 
 open measure_theory filter set topological_space
-open_locale ennreal nnreal topological_space
+open_locale ennreal nnreal topology
 
 namespace measure_theory
 
@@ -684,12 +684,12 @@ begin
     have i1 : Ioo (min a b) (max a b) ⊆ Ioi a,
     { rw min_eq_left hb.le, exact Ioo_subset_Ioi_self },
     have i2 : [a, b] ⊆ Ici a,
-    { rw interval_of_le hb.le, exact Icc_subset_Ici_self },
+    { rw uIcc_of_le hb.le, exact Icc_subset_Ici_self },
     refine interval_integral.integral_comp_smul_deriv''' (hf.mono i2)
       (λ x hx, hff' x $ mem_of_mem_of_subset hx i1) (hg_cont.mono $ image_subset _ _)
       (hg1.mono_set $ image_subset _ _) (hg2.mono_set i2),
     { rw min_eq_left hb.le, exact Ioo_subset_Ioi_self },
-    { rw interval_of_le hb.le, exact Icc_subset_Ici_self } },
+    { rw uIcc_of_le hb.le, exact Icc_subset_Ici_self } },
   rw integrable_on_Ici_iff_integrable_on_Ioi at hg2,
   have t2 := interval_integral_tendsto_integral_Ioi _ hg2 tendsto_id,
   have : Ioi (f a) ⊆ f '' Ici a := (Ioi_subset_Ici_self.trans $

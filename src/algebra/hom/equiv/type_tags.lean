@@ -10,7 +10,6 @@ import algebra.group.type_tags
 # Additive and multiplicative equivalences associated to `multiplicative` and `additive`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/943
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

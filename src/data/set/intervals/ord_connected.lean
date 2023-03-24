@@ -5,9 +5,13 @@ Authors: Yury G. Kudryashov
 -/
 import data.set.intervals.unordered_interval
 import data.set.lattice
+import order.antichain
 
 /-!
 # Order-connected sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
 interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
@@ -170,38 +174,47 @@ dual_ord_connected_iff.2 ‹_›
 
 end preorder
 
+section partial_order
+variables {α : Type*} [partial_order α] {s : set α}
+
+protected lemma is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
+⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
+  rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
+
+end partial_order
+
 section linear_order
 variables {α : Type*} [linear_order α] {s : set α} {x : α}
 
-@[instance] lemma ord_connected_interval {a b : α} : ord_connected [a, b] := ord_connected_Icc
-@[instance] lemma ord_connected_interval_oc {a b : α} : ord_connected (Ι a b) := ord_connected_Ioc
+@[instance] lemma ord_connected_uIcc {a b : α} : ord_connected [a, b] := ord_connected_Icc
+@[instance] lemma ord_connected_uIoc {a b : α} : ord_connected (Ι a b) := ord_connected_Ioc
 
-lemma ord_connected.interval_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+lemma ord_connected.uIcc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
   [x, y] ⊆ s :=
 hs.out (min_rec' (∈ s) hx hy) (max_rec' (∈ s) hx hy)
 
-lemma ord_connected.interval_oc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+lemma ord_connected.uIoc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
   Ι x y ⊆ s :=
-Ioc_subset_Icc_self.trans $ hs.interval_subset hx hy
+Ioc_subset_Icc_self.trans $ hs.uIcc_subset hx hy
 
-lemma ord_connected_iff_interval_subset :
+lemma ord_connected_iff_uIcc_subset :
   ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), [x, y] ⊆ s :=
-⟨λ h, h.interval_subset, λ H, ⟨λ x hx y hy, Icc_subset_interval.trans $ H hx hy⟩⟩
+⟨λ h, h.uIcc_subset, λ H, ⟨λ x hx y hy, Icc_subset_uIcc.trans $ H hx hy⟩⟩
 
-lemma ord_connected_of_interval_subset_left (h : ∀ y ∈ s, [x, y] ⊆ s) :
+lemma ord_connected_of_uIcc_subset_left (h : ∀ y ∈ s, [x, y] ⊆ s) :
   ord_connected s :=
-ord_connected_iff_interval_subset.2 $ λ y hy z hz,
-calc [y, z] ⊆ [y, x] ∪ [x, z] : interval_subset_interval_union_interval
-... = [x, y] ∪ [x, z] : by rw [interval_swap]
+ord_connected_iff_uIcc_subset.2 $ λ y hy z hz,
+calc [y, z] ⊆ [y, x] ∪ [x, z] : uIcc_subset_uIcc_union_uIcc
+... = [x, y] ∪ [x, z] : by rw [uIcc_comm]
 ... ⊆ s : union_subset (h y hy) (h z hz)
 
-lemma ord_connected_iff_interval_subset_left (hx : x ∈ s) :
+lemma ord_connected_iff_uIcc_subset_left (hx : x ∈ s) :
   ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [x, y] ⊆ s :=
-⟨λ hs, hs.interval_subset hx, ord_connected_of_interval_subset_left⟩
+⟨λ hs, hs.uIcc_subset hx, ord_connected_of_uIcc_subset_left⟩
 
-lemma ord_connected_iff_interval_subset_right (hx : x ∈ s) :
+lemma ord_connected_iff_uIcc_subset_right (hx : x ∈ s) :
   ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [y, x] ⊆ s :=
-by simp_rw [ord_connected_iff_interval_subset_left hx, interval_swap]
+by simp_rw [ord_connected_iff_uIcc_subset_left hx, uIcc_comm]
 
 end linear_order
 end set

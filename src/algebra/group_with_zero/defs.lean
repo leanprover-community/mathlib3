@@ -11,7 +11,6 @@ import algebra.ne_zero
 # Typeclasses for groups with an adjoined zero element
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/563
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides just the typeclass definitions, and the projection lemmas that expose their

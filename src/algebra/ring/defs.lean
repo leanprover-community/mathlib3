@@ -11,7 +11,6 @@ import data.int.cast.defs
 # Semirings and rings
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/655
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and

@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
 import algebra.ring.fin
+import algebra.ring.prod
 import linear_algebra.quotient
 import ring_theory.congruence
 import ring_theory.ideal.basic
 import tactic.fin_cases
 /-!
 # Ideal quotients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines ideal quotients as a special case of submodule quotients and proves some basic
 results about these quotients.
@@ -230,7 +234,7 @@ end quotient
 
 /-- Quotienting by equal ideals gives equivalent rings.
 
-See also `submodule.quot_equiv_of_eq`.
+See also `submodule.quot_equiv_of_eq` and `ideal.quotient_equiv_alg_of_eq`.
 -/
 def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
   (R ⧸ I) ≃+* R ⧸ J :=

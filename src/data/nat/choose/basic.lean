@@ -8,6 +8,9 @@ import data.nat.factorial.basic
 /-!
 # Binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines binomial coefficients and proves simple lemmas (i.e. those not
 requiring more imports).
 

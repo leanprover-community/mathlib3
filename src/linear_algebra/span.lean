@@ -11,6 +11,9 @@ import order.omega_complete_partial_order
 /-!
 # The span of a set of vectors, as a submodule
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * `submodule.span s` is defined to be the smallest submodule containing the set `s`.
 
 ## Notations
@@ -425,6 +428,9 @@ begin
   rw [exists_comm],
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
+
+lemma mem_span_pair {x y z : M} : z ∈ span R ({x, y} : set M) ↔ ∃ a b : R, a • x + b • y = z :=
+by simp_rw [mem_span_insert, mem_span_singleton, exists_prop, exists_exists_eq_and, eq_comm]
 
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]

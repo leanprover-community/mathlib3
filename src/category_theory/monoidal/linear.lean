@@ -25,7 +25,7 @@ variables [monoidal_category C] [monoidal_preadditive C]
 /--
 A category is `monoidal_linear R` if tensoring is `R`-linear in both factors.
 -/
-class monoidal_linear :=
+class monoidal_linear : Prop :=
 (tensor_smul' : ∀ {W X Y Z : C} (f : W ⟶ X) (r : R) (g : Y ⟶ Z),
   f ⊗ (r • g) = r • (f ⊗ g) . obviously)
 (smul_tensor' : ∀ {W X Y Z : C} (r : R) (f : W ⟶ X) (g : Y ⟶ Z),
@@ -44,7 +44,7 @@ instance tensoring_right_linear (X : C) : ((tensoring_right C).obj X).linear R :
 
 /-- A faithful linear monoidal functor to a linear monoidal category
 ensures that the domain is linear monoidal. -/
-def monoidal_linear_of_faithful
+lemma monoidal_linear_of_faithful
   {D : Type*} [category D] [preadditive D] [linear R D]
   [monoidal_category D] [monoidal_preadditive D]
   (F : monoidal_functor D C) [faithful F.to_functor]

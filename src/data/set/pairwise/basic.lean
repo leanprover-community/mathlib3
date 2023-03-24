@@ -10,6 +10,9 @@ import logic.pairwise
 /-!
 # Relations holding pairwise
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops pairwise relations and defines pairwise disjoint indexed sets.
 
 We also prove many basic facts about `pairwise`. It is possible that an intermediate file,

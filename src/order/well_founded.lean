@@ -10,7 +10,6 @@ import data.set.image
 # Well-founded relations
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/970
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A relation is well-founded if it can be used for induction: for each `x`, `(∀ y, r y x → P y) → P x`

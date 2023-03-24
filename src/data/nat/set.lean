@@ -10,7 +10,6 @@ import data.set.image
 ### Recursion on the natural numbers and `set.range`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/961
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

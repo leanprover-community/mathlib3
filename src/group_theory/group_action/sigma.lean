@@ -9,7 +9,6 @@ import group_theory.group_action.defs
 # Sigma instances for additive and multiplicative actions
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/885
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines instances for arbitrary sum of additive and multiplicative actions.

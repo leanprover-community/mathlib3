@@ -16,10 +16,10 @@ Given a measurable space `α`, a measure on `α` is a function that sends measur
 extended nonnegative reals that satisfies the following conditions:
 1. `μ ∅ = 0`;
 2. `μ` is countably additive. This means that the measure of a countable union of pairwise disjoint
-   sets is equal to the measure of the individual sets.
+   sets is equal to the sum of the measures of the individual sets.
 
 Every measure can be canonically extended to an outer measure, so that it assigns values to
-all subsets, not just the measurable subsets. On the other hand, a measure that is countably
+all subsets, not just the measurable subsets. On the other hand, an outer measure that is countably
 additive on measurable sets can be restricted to measurable sets to obtain a measure.
 In this file a measure is defined to be an outer measure that is countably additive on
 measurable sets, with the additional assumption that the outer measure is the canonical
@@ -54,7 +54,7 @@ measure, almost everywhere, measure space
 noncomputable theory
 
 open classical set filter (hiding map) function measurable_space
-open_locale classical topological_space big_operators filter ennreal nnreal
+open_locale classical topology big_operators filter ennreal nnreal
 
 variables {α β γ δ ι : Type*}
 

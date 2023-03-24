@@ -10,6 +10,9 @@ import analysis.normed.group.basic
 /-!
 # M-structure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A projection P on a normed space X is said to be an L-projection (`is_Lprojection`) if, for all `x`
 in `X`,
 $\|x\| = \|P x\| + \|(1 - P) x\|$.

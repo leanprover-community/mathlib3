@@ -10,7 +10,6 @@ import logic.is_empty
 # Types with a unique term
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/512
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define a typeclass `unique`,

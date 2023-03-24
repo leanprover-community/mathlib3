@@ -208,6 +208,26 @@ lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   pi f m j = f j m :=
 rfl
 
+section
+variables (R M₂)
+
+/-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
+-/
+@[simps to_multilinear_map apply]
+def of_subsingleton [subsingleton ι] (i' : ι) : continuous_multilinear_map R (λ _ : ι, M₂) M₂ :=
+{ to_multilinear_map := multilinear_map.of_subsingleton R _ i',
+  cont := continuous_apply _ }
+
+variables (M₁) {M₂}
+
+/-- The constant map is multilinear when `ι` is empty. -/
+@[simps to_multilinear_map apply]
+def const_of_is_empty [is_empty ι] (m : M₂) : continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := multilinear_map.const_of_is_empty R _ m,
+  cont := continuous_const }
+
+end
+
 /-- If `g` is continuous multilinear and `f` is a collection of continuous linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous multilinear map, that we call
 `g.comp_continuous_linear_map f`. -/
@@ -235,7 +255,6 @@ def _root_.continuous_linear_map.comp_continuous_multilinear_map
   ((g.comp_continuous_multilinear_map f) : (Πi, M₁ i) → M₃) =
   (g : M₂ → M₃) ∘ (f : (Πi, M₁ i) → M₂) :=
 by { ext m, refl }
-
 
 /-- `continuous_multilinear_map.pi` as an `equiv`. -/
 @[simps]

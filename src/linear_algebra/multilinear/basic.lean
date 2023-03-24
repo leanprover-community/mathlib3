@@ -213,7 +213,7 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
   map_smul' := λ m i r x, by
   { rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
 
-variables {M₂}
+variables (M₁) {M₂}
 
 /-- The constant map is multilinear when `ι` is empty. -/
 @[simps {fully_applied := ff}]
@@ -777,7 +777,7 @@ def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι
 /-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=
-{ to_fun    := multilinear_map.const_of_is_empty R,
+{ to_fun    := multilinear_map.const_of_is_empty R _,
   map_add'  := λ x y, rfl,
   map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,

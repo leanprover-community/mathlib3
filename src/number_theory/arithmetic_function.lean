@@ -732,7 +732,7 @@ end
 card_factors_eq_one_iff_prime.2 hp
 
 @[simp] lemma card_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) : Ω (p ^ k) = k :=
-by rw [card_factors_apply, hp.factors_pow, list.length_repeat]
+by rw [card_factors_apply, hp.factors_pow, list.length_replicate]
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
@@ -761,7 +761,7 @@ end
 
 @[simp] lemma card_distinct_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) :
   ω (p ^ k) = 1 :=
-by rw [card_distinct_factors_apply, hp.factors_pow, list.repeat_dedup hk, list.length_singleton]
+by rw [card_distinct_factors_apply, hp.factors_pow, list.replicate_dedup hk, list.length_singleton]
 
 @[simp] lemma card_distinct_factors_apply_prime {p : ℕ} (hp : p.prime) : ω p = 1 :=
 by rw [←pow_one p, card_distinct_factors_apply_prime_pow hp one_ne_zero]

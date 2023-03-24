@@ -10,7 +10,6 @@ import data.nat.cast.basic
 # Basic lemmas about the divisibility relation in `ℤ`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/996
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -28,10 +27,10 @@ namespace int
  λ ⟨k, e⟩, dvd.intro k $ by rw [e, int.coe_nat_mul]⟩
 
 theorem coe_nat_dvd_left {n : ℕ} {z : ℤ} : (↑n : ℤ) ∣ z ↔ n ∣ z.nat_abs :=
-by rcases nat_abs_eq z with eq | eq; rw eq; simp [coe_nat_dvd]
+by rcases nat_abs_eq z with eq | eq; rw eq; simp [←coe_nat_dvd]
 
 theorem coe_nat_dvd_right {n : ℕ} {z : ℤ} : z ∣ (↑n : ℤ) ↔ z.nat_abs ∣ n :=
-by rcases nat_abs_eq z with eq | eq; rw eq; simp [coe_nat_dvd]
+by rcases nat_abs_eq z with eq | eq; rw eq; simp [←coe_nat_dvd]
 
 theorem le_of_dvd {a b : ℤ} (bpos : 0 < b) (H : a ∣ b) : a ≤ b :=
 match a, b, eq_succ_of_zero_lt bpos, H with

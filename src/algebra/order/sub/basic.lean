@@ -12,7 +12,6 @@ import algebra.order.sub.defs
 # Additional results about ordered Subtraction
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/936
 > Any changes to this file require a corresponding PR to mathlib4.
 
 -/

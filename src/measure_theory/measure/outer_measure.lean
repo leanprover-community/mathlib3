@@ -7,7 +7,6 @@ import analysis.specific_limits.basic
 import measure_theory.pi_system
 import data.countable.basic
 import data.fin.vec_notation
-import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
@@ -54,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set function filter topological_space (second_countable_topology)
-open_locale classical big_operators nnreal topological_space ennreal measure_theory
+open_locale classical big_operators nnreal topology ennreal measure_theory
 
 namespace measure_theory
 
@@ -1254,7 +1253,7 @@ lemma extend_mono {s₁ s₂ : set α} (h₁ : measurable_set s₁) (hs : s₁ �
   extend m s₁ ≤ extend m s₂ :=
 begin
   refine le_infi _, intro h₂,
-  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff
+  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_sdiff_self_right
     h₁ (h₂.diff h₁),
   rw union_diff_cancel hs at this,
   rw ← extend_eq m,

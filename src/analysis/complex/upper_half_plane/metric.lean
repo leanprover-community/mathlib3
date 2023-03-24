@@ -24,7 +24,7 @@ ball/sphere with another center and radius.
 
 noncomputable theory
 
-open_locale upper_half_plane complex_conjugate nnreal topological_space
+open_locale upper_half_plane complex_conjugate nnreal topology matrix_groups
 open set metric filter real
 
 variables {z w : ℍ} {r R : ℝ}
@@ -344,9 +344,31 @@ lemma isometry_pos_mul (a : {x : ℝ // 0 < x}) : isometry ((•) a : ℍ → �
 begin
   refine isometry.of_dist_eq (λ y₁ y₂, _),
   simp only [dist_eq, coe_pos_real_smul, pos_real_im], congr' 2,
-  rw [dist_smul, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
+  rw [dist_smul₀, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
     real.norm_eq_abs, mul_left_comm],
   exact mul_div_mul_left _ _ (mt _root_.abs_eq_zero.1 a.2.ne')
 end
+
+/-- `SL(2, ℝ)` acts on the upper half plane as an isometry.-/
+instance : has_isometric_smul SL(2, ℝ) ℍ :=
+⟨λ g,
+begin
+  have h₀ : isometry (λ z, modular_group.S • z : ℍ → ℍ) := isometry.of_dist_eq (λ y₁ y₂, by
+  { have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
+    have h₂ : complex.abs (y₁ * y₂) ≠ 0, { simp [y₁.ne_zero, y₂.ne_zero], },
+    simp only [dist_eq, modular_S_smul, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im, div_one,
+      complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
+      real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
+      dist_inv_inv₀ y₁.ne_zero y₂.ne_zero, ← absolute_value.map_mul,
+      ← complex.norm_sq_mul, real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ),
+      div_div_div_comm, div_self h₂, complex.norm_eq_abs], }),
+  by_cases hc : g 1 0 = 0,
+  { obtain ⟨u, v, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_eq_zero g hc,
+    rw h,
+    exact (isometry_real_vadd v).comp (isometry_pos_mul u), },
+  { obtain ⟨u, v, w, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_ne_zero g hc,
+    rw h,
+    exact (isometry_real_vadd w).comp (h₀.comp $ (isometry_real_vadd v).comp $ isometry_pos_mul u) }
+end⟩
 
 end upper_half_plane

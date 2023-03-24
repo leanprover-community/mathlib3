@@ -210,7 +210,7 @@ begin
 end
 
 /-- Given a basis of a division ring over itself indexed by a type `ι`, then `ι` is `unique`. -/
-noncomputable def basis.unique {ι : Type*} (b : basis ι K K) : unique ι :=
+noncomputable def _root_.basis.unique {ι : Type*} (b : basis ι K K) : unique ι :=
 begin
   have A : cardinal.mk ι = ↑(finite_dimensional.finrank K K) :=
     (finite_dimensional.finrank_eq_card_basis' b).symm,

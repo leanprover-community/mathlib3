@@ -365,7 +365,7 @@ begin
   rw affine_independent_iff_linear_independent_vsub k p i at hai,
   simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
     ← f.linear_map_vsub],
-  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.injective_iff_linear_injective], },
+  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.linear_injective_iff], },
   exact linear_independent.map' hai f.linear hf',
 end
 

@@ -10,7 +10,6 @@ import data.nat.basic
 # Lemma about the coercion `ℕ → with_bot ℕ`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1019
 > Any changes to this file require a corresponding PR to mathlib4.
 
 An orphaned lemma about casting from `ℕ` to `with_bot ℕ`,

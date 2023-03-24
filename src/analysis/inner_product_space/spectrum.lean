@@ -76,7 +76,7 @@ end
 
 /-- The eigenspaces of a self-adjoint operator are mutually orthogonal. -/
 lemma orthogonal_family_eigenspaces :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
+  orthogonal_family 𝕜 (λ μ, eigenspace T μ) (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 begin
   rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
@@ -88,8 +88,7 @@ begin
 end
 
 lemma orthogonal_family_eigenspaces' :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
-    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
+  orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
@@ -160,13 +159,11 @@ lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -is_symmetric.diagonalization_symm_apply]
+  { simpa only [linear_isometry_equiv.symm_apply_apply, linear_isometry_equiv.apply_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
-  have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
-  { intros μ,
-    simpa [mem_eigenspace_iff] using (w μ).prop },
-  simp [hwT],
+  have hwT : ∀ μ, T (w μ) = (μ : 𝕜) • w μ := λ μ, mem_eigenspace_iff.1 (w μ).2,
+  simp only [hwT, diagonalization_symm_apply, map_sum, submodule.coe_smul_of_tower],
 end
 
 end version1
@@ -179,7 +176,7 @@ finite-dimensional inner product space `E`.
 
 TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
 eigenvalue. -/
-noncomputable def eigenvector_basis : orthonormal_basis (fin n) 𝕜 E :=
+@[irreducible] noncomputable def eigenvector_basis : orthonormal_basis (fin n) 𝕜 E :=
 hT.direct_sum_is_internal.subordinate_orthonormal_basis hn
   hT.orthogonal_family_eigenspaces'
 
@@ -187,7 +184,7 @@ hT.direct_sum_is_internal.subordinate_orthonormal_basis hn
 for a self-adjoint operator `T` on `E`.
 
 TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
-noncomputable def eigenvalues (i : fin n) : ℝ :=
+@[irreducible] noncomputable def eigenvalues (i : fin n) : ℝ :=
 @is_R_or_C.re 𝕜 _ $
   hT.direct_sum_is_internal.subordinate_orthonormal_basis_index hn i
     hT.orthogonal_family_eigenspaces'
@@ -198,11 +195,13 @@ begin
   let v : E := hT.eigenvector_basis hn i,
   let μ : 𝕜 := hT.direct_sum_is_internal.subordinate_orthonormal_basis_index
     hn i hT.orthogonal_family_eigenspaces',
+  simp_rw [eigenvalues],
   change has_eigenvector T (is_R_or_C.re μ) v,
   have key : has_eigenvector T μ v,
   { have H₁ : v ∈ eigenspace T μ,
-    { exact hT.direct_sum_is_internal.subordinate_orthonormal_basis_subordinate
-      hn i hT.orthogonal_family_eigenspaces' },
+    { simp_rw [v, eigenvector_basis],
+      exact hT.direct_sum_is_internal.subordinate_orthonormal_basis_subordinate
+        hn i hT.orthogonal_family_eigenspaces' },
     have H₂ : v ≠ 0 := by simpa using (hT.eigenvector_basis hn).to_basis.ne_zero i,
     exact ⟨H₁, H₂⟩ },
   have re_μ : ↑(is_R_or_C.re μ) = μ,
@@ -212,9 +211,7 @@ begin
 end
 
 lemma has_eigenvalue_eigenvalues (i : fin n) : has_eigenvalue T (hT.eigenvalues hn i) :=
-    module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
-
-attribute [irreducible] eigenvector_basis eigenvalues
+module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
 
 @[simp] lemma apply_eigenvector_basis (i : fin n) :
   T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • hT.eigenvector_basis hn i :=

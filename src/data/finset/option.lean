@@ -8,6 +8,9 @@ import data.finset.card
 /-!
 # Finite sets in `option α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `option.to_finset`: construct an empty or singleton `finset α` from an `option α`;

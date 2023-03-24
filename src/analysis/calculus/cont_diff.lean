@@ -2576,6 +2576,9 @@ lemma norm_iterated_fderiv_smul_le
   .norm_iterated_fderiv_le_of_bilinear_of_le_one hf hg x hn
   continuous_linear_map.op_norm_lsmul_le
 
+end
+
+section
 variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
 
 lemma norm_iterated_fderiv_within_mul_le

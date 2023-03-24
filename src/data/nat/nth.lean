@@ -35,48 +35,96 @@ Future work should address how lemmas that use these should be written.
 open finset
 
 namespace nat
-variable (p : ℕ → Prop)
+variable (s : set ℕ)
 
 /-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
 natural number satisfying `p`), or `0` if there is no such number. See also
 `subtype.order_iso_of_nat` for the order isomorphism with ℕ when `p` is infinitely often true. -/
-noncomputable def nth (p : ℕ → Prop) (n : ℕ) : ℕ :=
+noncomputable def nth (s : set ℕ) (n : ℕ) : ℕ :=
 by classical; exact
-if h : set.finite {n | p n}
-then if hn : n < h.to_finset.card then h.to_finset.order_emb_of_fin rfl ⟨n, hn⟩ else 0
-else @nat.subtype.order_iso_of_nat (set_of p) (set.infinite.to_subtype h) n
+  if h : set.finite s then (h.to_finset.sort (≤)).nthd n 0
+  else @nat.subtype.order_iso_of_nat s (set.infinite.to_subtype h) n
 
-variable {p}
+variable {s}
 
-theorem nth_of_lt_card (hf : (set_of p).finite) {n : ℕ} (hn : n < hf.to_finset.card) :
-  nth p n = hf.to_finset.order_emb_of_fin rfl ⟨n, hn⟩ :=
-by rw [nth, dif_pos hf, dif_pos hn]
+/-!
+### Lemmas about `nat.nth` on a finite set
+-/
 
-theorem nth_of_card_le (hf : (set_of p).finite) {n : ℕ} (hn : hf.to_finset.card ≤ n) :
-  nth p n = 0 :=
-by rw [nth, dif_pos hf, dif_neg hn.not_lt]
+theorem nth_eq_zero (hf : s.finite) {n : ℕ} (hn : hf.to_finset.card ≤ n) :
+  nth s n = 0 :=
+by { rw [nth, dif_pos hf, list.nthd_eq_default], rwa [finset.length_sort] }
 
-theorem nth_eq_nthd_sort (h : (set_of p).finite) (n : ℕ) :
-  nth p n = (h.to_finset.sort (≤)).nthd n 0 :=
+theorem nth_eq_nthd_sort (h : s.finite) (n : ℕ) :
+  nth s n = (h.to_finset.sort (≤)).nthd n 0 :=
+dif_pos h
+
+theorem nth_eq_order_emb_of_fin (hf : s.finite) {n : ℕ} (hn : n < hf.to_finset.card) :
+  nth s n = hf.to_finset.order_emb_of_fin rfl ⟨n, hn⟩ :=
+by { rw [nth_eq_nthd_sort hf, finset.order_emb_of_fin_apply, list.nthd_eq_nth_le], refl }
+
+theorem nth_strict_mono_on (hf : s.finite) : strict_mono_on (nth s) (set.Iio hf.to_finset.card) :=
 begin
-  cases lt_or_le n h.to_finset.card with hn hn,
-  { rw [nth_of_lt_card h hn, order_emb_of_fin_apply, list.nthd_eq_nth_le],
-    refl },
-  { rw [nth_of_card_le h hn, list.nthd_eq_default],
-    rwa [finset.length_sort] }
+  rintro m (hm : m < _) n (hn : n < _) h,
+  simp only [nth_eq_order_emb_of_fin, *],
+  exact order_embedding.strict_mono _ h
 end
 
-/-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
-theorem nth_eq_order_iso_of_nat (i : set.infinite (set_of p)) (n : ℕ) :
-  nth p n = @nat.subtype.order_iso_of_nat (set_of p) i.to_subtype n :=
-by classical; rw [nth, dif_neg i]
+theorem nth_lt_nth_of_lt_card (hf : s.finite) {m n : ℕ} (h : m < n) (hn : n < hf.to_finset.card) :
+  nth s m < nth s n :=
+nth_strict_mono_on hf (h.trans hn) hn h
 
-theorem is_least_nth (n : ℕ) (h : ∀ hf : (set_of p).finite, n < hf.to_finset.card) :
-  is_least { i : ℕ | p i ∧ ∀ k < n, nth p k < i } (nth p n) :=
+theorem nth_le_nth_of_lt_card (hf : s.finite) {m n : ℕ} (h : m ≤ n) (hn : n < hf.to_finset.card) :
+  nth s m ≤ nth s n :=
+(nth_strict_mono_on hf).monotone_on (h.trans_lt hn) hn h
+
+theorem nth_inj_on (hf : s.finite) : (set.Iio hf.to_finset.card).inj_on (nth s) :=
+(nth_strict_mono_on hf).inj_on
+
+theorem range_nth_of_finite (hf : s.finite) : set.range (nth s) = insert 0 s :=
 begin
-  rw [nth],
-  split_ifs with hf,
-  {  }
+  refine (set.range_subset_iff.2 $ λ n, _).antisymm (set.insert_subset.2 ⟨_, _⟩),
+  { cases lt_or_le n hf.to_finset.card with hn hn,
+    { rw [nth_of_finite] },
+}
+end
+  
+
+/-!
+### Lemmas about `nat.nth` on a finite set
+-/
+
+/-- When `s` is an infinite set, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
+theorem nth_apply_eq_order_iso_of_nat (hf : s.infinite) (n : ℕ) :
+  nth s n = @nat.subtype.order_iso_of_nat s hf.to_subtype n :=
+by rw [nth, dif_neg hf]
+
+/-- When `s` is an infinite set, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
+theorem nth_eq_order_iso_of_nat (hf : s.infinite) :
+  nth s = coe ∘ @nat.subtype.order_iso_of_nat s hf.to_subtype :=
+funext $ nth_apply_eq_order_iso_of_nat hf
+
+lemma nth_strict_mono (hf : s.infinite) : strict_mono (nth s) :=
+begin
+  rw [nth_eq_order_iso_of_nat hf],
+  exact (subtype.strict_mono_coe _).comp (order_iso.strict_mono _)
+end
+
+lemma range_nth_of_infinite (hf : s.infinite) : set.range (nth s) = s :=
+begin
+  rw [nth_eq_order_iso_of_nat hf],
+  haveI := hf.to_subtype,
+  exact nat.subtype.coe_comp_of_nat_range
+end
+
+/-!
+### Lemmas that work for finite and infinite sets
+-/
+
+theorem is_least_nth (n : ℕ) (h : ∀ hf : s.finite, n < hf.to_finset.card) :
+  is_least { i ∈ s | ∀ k < n, nth s k < i } (nth s n) :=
+begin
+  
 end
 
 lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simp }

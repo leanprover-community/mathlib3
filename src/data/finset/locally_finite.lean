@@ -252,12 +252,14 @@ end locally_finite_order_bot
 end locally_finite_order
 
 section locally_finite_order_top
-variables [locally_finite_order_top α] {a : α}
+variables [locally_finite_order_top α] {s : set α} {a : α}
 
 lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := by simpa [←coe_subset] using set.Ioi_subset_Ici_self
 
-lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
+lemma _root_.bdd_below.finite (hs : bdd_below s) : s.finite :=
 let ⟨a, ha⟩ := hs in (Ici a).finite_to_set.subset $ λ x hx, mem_Ici.2 $ ha hx
+
+lemma _root_.set.infinite.not_bdd_below : s.infinite → ¬ bdd_below s := mt bdd_below.finite
 
 variables [fintype α]
 
@@ -267,11 +269,13 @@ lemma filter_le_eq_Ici [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici 
 end locally_finite_order_top
 
 section locally_finite_order_bot
-variables [locally_finite_order_bot α] {a : α}
+variables [locally_finite_order_bot α] {s : set α} {a : α}
 
 lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := by simpa [←coe_subset] using set.Iio_subset_Iic_self
 
-lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
+lemma _root_.bdd_above.finite (hs : bdd_above s) : s.finite := hs.dual.finite
+
+lemma _root_.set.infinite.not_bdd_above : s.infinite → ¬ bdd_above s := mt bdd_above.finite
 
 variables [fintype α]
 
@@ -503,6 +507,28 @@ begin
 end
 
 end locally_finite_order
+
+section locally_finite_order_bot
+variables [locally_finite_order_bot α] {s : set α}
+
+lemma _root_.set.infinite.exists_gt (hs : s.infinite) : ∀ a, ∃ b ∈ s, a < b :=
+not_bdd_above_iff.1 hs.not_bdd_above
+
+lemma _root_.set.infinite_iff_exists_gt [nonempty α] : s.infinite ↔ ∀ a, ∃ b ∈ s, a < b :=
+⟨set.infinite.exists_gt, set.infinite_of_forall_exists_gt⟩
+
+end locally_finite_order_bot
+
+section locally_finite_order_top
+variables [locally_finite_order_top α] {s : set α}
+
+lemma _root_.set.infinite.exists_lt (hs : s.infinite) : ∀ a, ∃ b ∈ s, b < a :=
+not_bdd_below_iff.1 hs.not_bdd_below
+
+lemma _root_.set.infinite_iff_exists_lt [nonempty α] : s.infinite ↔ ∀ a, ∃ b ∈ s, b < a :=
+⟨set.infinite.exists_lt, set.infinite_of_forall_exists_lt⟩
+
+end locally_finite_order_top
 
 variables [fintype α] [locally_finite_order_top α] [locally_finite_order_bot α]
 

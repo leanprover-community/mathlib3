@@ -991,21 +991,6 @@ theorem infinite_of_injective_forall_mem [infinite α] {s : set β} {f : α → 
   (hi : injective f) (hf : ∀ x : α, f x ∈ s) : s.infinite :=
 by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono hf }
 
-lemma infinite.exists_nat_lt {s : set ℕ} (hs : s.infinite) (n : ℕ) : ∃ m ∈ s, n < m :=
-let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
-
-lemma infinite_of_forall_exists_nat_lt {S : set ℕ} (h : ∀ (n : ℕ), ∃ m ∈ S, n < m) : S.infinite :=
-begin
-    intro hS,
-    let S2 := set.finite.to_finset hS,
-    obtain ⟨n, hnS, hn⟩ := h (finset.sup S2 id),
-    have hnS2 := (set.finite.mem_to_finset hS).mpr hnS,
-    exact nat.le_lt_antisymm (finset.le_sup hnS2) hn,
-end
-
-lemma infinite_iff_exists_nat_lt {S : set ℕ} : S.infinite ↔ ∀ (n : ℕ), ∃ m ∈ S, n < m :=
-  ⟨infinite.exists_nat_lt, infinite_of_forall_exists_nat_lt⟩
-
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
 let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty
@@ -1024,6 +1009,23 @@ begin
 end
 
 /-! ### Order properties -/
+
+section preorder
+variables [preorder α] [nonempty α] {s : set α}
+
+lemma infinite_of_forall_exists_gt (h : ∀ a, ∃ b ∈ s, a < b) : s.infinite :=
+begin
+  inhabit α,
+  set f : ℕ → α := λ n, nat.rec_on n (h default).some (λ n a, (h a).some),
+  have hf : ∀ n, f n ∈ s := by rintro (_ | _); exact (h _).some_spec.some,
+  refine infinite_of_injective_forall_mem (strict_mono_nat_of_lt_succ $ λ n, _).injective hf,
+  exact (h _).some_spec.some_spec,
+end
+
+lemma infinite_of_forall_exists_lt (h : ∀ a, ∃ b ∈ s, b < a) : s.infinite :=
+@infinite_of_forall_exists_gt αᵒᵈ _ _ _ h
+
+end preorder
 
 lemma finite_is_top (α : Type*) [partial_order α] : {x : α | is_top x}.finite :=
 (subsingleton_is_top α).finite

@@ -378,7 +378,6 @@ lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := 
 Given `k`-modules `V, W`, there is an isomorphism `φ : V^* ⊗ W → Hom_k(V, W)`.
 Given representations of `G` on `V` and `W`,there are representations of `G` on `V^* ⊗ W` and on
 `Hom_k(V, W)`.
-
 This lemma says that `φ` is `G`-linear.
 -/
 lemma dual_tensor_hom_comm (g : G) :

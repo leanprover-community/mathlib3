@@ -38,7 +38,7 @@ decay faster than any power of `‖x‖`.
 
 * `schwartz_map.uniform_add_group` and `schwartz_map.locally_convex`: The Schwartz space is a
 locally convex topological vector space.
-* `schwartz_map.one_add_le_seminorm_sup_apply`: For a Schwartz function `f` there is a uniform bound
+* `schwartz_map.one_add_le_sup_seminorm_apply`: For a Schwartz function `f` there is a uniform bound
 on `(1 + ‖x‖) ^ k * ‖iterated_fderiv ℝ n f x‖`.
 
 ## Implementation details
@@ -405,33 +405,30 @@ begin
   rwa [pow_zero, one_mul] at this,
 end
 
-/-- The supremum of all seminorms `schwartz_map.seminorm 𝕜 k' n'` with `k' ≤ k` and `n' ≤ n`. -/
-@[protected]
-def seminorm_sup (k n : ℕ) : seminorm 𝕜 𝓢(E, F) :=
-((finset.range (k + 1)) ×ˢ (finset.range (n + 1))).sup (λ n, seminorm 𝕜 n.1 n.2)
-
-lemma le_seminorm_sup {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
-  (seminorm 𝕜 k' n' : seminorm 𝕜 𝓢(E, F)) ≤ seminorm_sup 𝕜 k n :=
+lemma le_sup_seminorm {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
+  (seminorm 𝕜 k' n' : seminorm 𝕜 𝓢(E, F)) ≤ (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) :=
 begin
-  have : (k', n') ∈ (finset.range (k + 1)).product (finset.range (n + 1)) :=
+  have : (k', n') ∈ finset.Iic (k, n) :=
   begin
-    simp only [finset.mem_range, finset.mem_product],
-    exact ⟨nat.lt_succ_of_le hk, nat.lt_succ_of_le hn⟩,
+    simp only [prod.mk_le_mk, finset.mem_Iic],
+    exact ⟨hk, hn⟩,
   end,
   exact @finset.le_sup _ _ _ _ _ (λ (n : ℕ × ℕ), seminorm 𝕜 n.1 n.2) _ this,
 end
 
-/-- The seminorm `seminorm_sup 𝕜 k n` can bound all powers and derivatives of lower order. -/
-lemma le_seminorm_sup_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) (f : 𝓢(E, F)) (x : E) :
-  ‖x‖ ^ k' * ‖iterated_fderiv ℝ n' f x‖ ≤ seminorm_sup 𝕜 k n f :=
-le_trans (le_seminorm 𝕜 k' n' f x) (le_seminorm_sup 𝕜 hk hn f)
+/-- The seminorm `(finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2)` can bound all powers and
+derivatives of lower order. -/
+lemma le_sup_seminorm_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) (f : 𝓢(E, F)) (x : E) :
+  ‖x‖ ^ k' * ‖iterated_fderiv ℝ n' f x‖ ≤ (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) f :=
+le_trans (le_seminorm 𝕜 k' n' f x) (le_sup_seminorm 𝕜 hk hn f)
 
-/-- A more convenient version of `le_seminorm_sup_apply`.
+/-- A more convenient version of `le_sup_seminorm_apply`.
 
 Note that the constant is far from optimal. -/
-lemma one_add_le_seminorm_sup_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n)
+lemma one_add_le_sup_seminorm_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n)
   (f : 𝓢(E, F)) (x : E) :
-  (1 + ‖x‖) ^ k' * ‖iterated_fderiv ℝ n' f x‖ ≤ 2^k * seminorm_sup 𝕜 k n f :=
+  (1 + ‖x‖) ^ k' * ‖iterated_fderiv ℝ n' f x‖
+    ≤ 2^k * (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) f :=
 begin
   rw [add_comm, add_pow],
   simp only [one_pow, mul_one, finset.sum_congr],
@@ -448,7 +445,7 @@ begin
   refine mul_le_mul _ _ (by positivity) (by positivity),
   { norm_cast,
     exact i.choose_le_choose hk },
-  { apply le_seminorm_sup_apply 𝕜 (finset.mem_range_succ_iff.mp hi) hn },
+  { apply le_sup_seminorm_apply 𝕜 (finset.mem_range_succ_iff.mp hi) hn },
 end
 
 end seminorms

@@ -16,7 +16,7 @@ universes u
 open category_theory opposite order topological_space
 
 /-- The category of locales. -/
-@[derive large_category] def Locale := Frameᵒᵖ
+@[derive large_category] def Locale := Frmᵒᵖ
 
 namespace Locale
 

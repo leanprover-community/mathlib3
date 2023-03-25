@@ -30,6 +30,8 @@ This is a ring hom if the ring has characteristic dividing `n`
 
 -/
 
+open function
+
 namespace zmod
 
 instance : char_zero (zmod 0) := (by apply_instance : char_zero ℤ)
@@ -897,6 +899,8 @@ lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
+variables {n a : ℕ}
+
 lemma val_min_abs_nat_abs_eq_min {n : ℕ} [hpos : ne_zero n] (a : zmod n) :
   a.val_min_abs.nat_abs = min a.val (n - a.val) :=
 begin
@@ -913,34 +917,28 @@ begin
     apply nat.lt_succ_self }
 end
 
-lemma val_min_abs_injective (n : ℕ) : function.injective (zmod.val_min_abs : zmod n → ℤ) :=
+lemma val_min_abs_nat_cast_of_le_half (ha : a ≤ n / 2) : (a : zmod n).val_min_abs = a :=
 begin
-  intros x y e,
-  cases n, { simpa [e] },
-  simp only [val_min_abs_def_pos] at e,
-  split_ifs at e,
-  { apply val_injective, rwa nat.cast_inj at e },
-  { exfalso,
-    apply lt_irrefl (0 : ℤ) (lt_of_le_of_lt (nat.cast_nonneg x.val) _),
-    simp only [e, sub_lt_zero, nat.cast_lt, val_lt] },
-  { exfalso,
-    apply lt_irrefl (0 : ℤ) (lt_of_le_of_lt (nat.cast_nonneg y.val) _),
-    simp only [←e, sub_lt_zero, nat.cast_lt, val_lt] },
-  { apply val_injective, rwa [sub_left_inj, nat.cast_inj] at e }
+  cases n,
+  { simp },
+  { simp [val_min_abs_def_pos, val_nat_cast,
+      nat.mod_eq_of_lt (ha.trans_lt $ nat.div_lt_self' _ 0), ha] }
 end
 
-lemma val_min_abs_of_nat_le_half {n a : ℕ} (ha : a ≤ n / 2) : (a : zmod n).val_min_abs = a :=
-begin
-  cases n, { simp },
-  simp [val_min_abs_def_pos, val_nat_cast,
-    nat.mod_eq_of_lt (lt_of_le_of_lt ha (nat.div_lt_self' n 0)), ha]
-end
-
-lemma val_min_abs_of_nat_half_lt {n a : ℕ} (ha : n / 2 < a) (ha' : a < n) :
+lemma val_min_abs_nat_cast_of_half_lt (ha : n / 2 < a) (ha' : a < n) :
   (a : zmod n).val_min_abs = a - n :=
 begin
-  cases n, { rw [nat.zero_div] at ha, have := not_lt_of_gt ha, contradiction },
-  simp [val_min_abs_def_pos, val_nat_cast, nat.mod_eq_of_lt ha', not_le_of_lt ha]
+  cases n,
+  { cases not_lt_bot ha' },
+  { simp [val_min_abs_def_pos, val_nat_cast, nat.mod_eq_of_lt ha', ha.not_le] }
+end
+
+@[simp] lemma val_min_nat_abs_nat_cast_eq_self [ne_zero n] :
+  (a : zmod n).val_min_abs = a ↔ a ≤ n / 2 :=
+begin
+  refine ⟨λ ha, _, val_min_abs_nat_cast_of_le_half⟩,
+  rw [←int.nat_abs_of_nat a, ←ha],
+  exact nat_abs_val_min_abs_le a,
 end
 
 lemma nat_abs_min_of_le_div_two (n : ℕ) (x y : ℤ)

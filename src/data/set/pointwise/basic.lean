@@ -398,7 +398,7 @@ protected def comm_semigroup : comm_semigroup (set α) :=
 { mul_comm := λ s t, image2_comm mul_comm
   ..set.semigroup }
 
-@[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
+@[to_additive] lemma inter_mul_union_subset : (s ∩ t) * (s ∪ t) ⊆ s * t :=
 image2_inter_union_subset mul_comm
 
 @[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=

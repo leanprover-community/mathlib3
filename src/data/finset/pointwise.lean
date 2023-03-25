@@ -973,7 +973,7 @@ open_locale pointwise
 
 @[to_additive] lemma smul_image [decidable_eq β] [decidable_eq γ] [has_smul α β] [has_smul α γ]
   (f : β → γ) (s : finset β) (a : α) :
-  (∀ b, a • f b = f (a • b)) → a • s.image f = (a • s).image f :=
+  (∀ b, f (a • b) = a • f b) → (a • s).image f = a • s.image f :=
 image_comm
 
 @[to_additive]

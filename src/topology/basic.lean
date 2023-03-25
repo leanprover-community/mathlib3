@@ -146,10 +146,6 @@ finite.induction_on hs
 lemma is_open_Inter [finite ι] {s : ι → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
 is_open_sInter (finite_range _) (forall_range_iff.2 h)
 
-lemma is_open_Inter_prop {p : Prop} {s : p → set α}
-  (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
-by by_cases p; simp *
-
 lemma is_open_bInter_finset {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_open (f i)) :
   is_open (⋂ i ∈ s, f i) :=
 is_open_bInter (to_finite _) h

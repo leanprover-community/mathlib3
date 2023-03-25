@@ -33,21 +33,21 @@ This file also provides some lemmas that need `algebra.module.basic` imported to
 section smul_lemmas
 variables {R M : Type*}
 
-@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [star_add_monoid M]
-  (n : ℤ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
-map_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
-
 @[simp] lemma star_nat_cast_smul [semiring R] [add_comm_monoid M] [module R M] [star_add_monoid M]
   (n : ℕ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
 map_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
 
+@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [star_add_monoid M]
+  (n : ℤ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
+map_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
+@[simp] lemma star_inv_nat_cast_smul [division_semiring R] [add_comm_monoid M] [module R M]
+  [star_add_monoid M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
+map_inv_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
 @[simp] lemma star_inv_int_cast_smul [division_ring R] [add_comm_group M] [module R M]
   [star_add_monoid M] (n : ℤ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
 map_inv_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
-
-@[simp] lemma star_inv_nat_cast_smul [division_ring R] [add_comm_group M] [module R M]
-  [star_add_monoid M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
-map_inv_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
 
 @[simp] lemma star_rat_cast_smul [division_ring R] [add_comm_group M] [module R M]
   [star_add_monoid M] (n : ℚ) (x : M) : star ((n : R) • x) = (n : R) • star x :=

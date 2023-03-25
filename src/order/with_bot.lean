@@ -48,6 +48,8 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
+instance [nonempty α] : nontrivial (with_bot α) := option.nontrivial
+
 open function
 
 lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
@@ -419,6 +421,8 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 | (a : α) := `(coe : α → with_top α).subst `(a)
 
 instance : inhabited (with_top α) := ⟨⊤⟩
+
+instance [nonempty α] : nontrivial (with_top α) := option.nontrivial
 
 protected lemma «forall» {p : with_top α → Prop} : (∀ x, p x) ↔ p ⊤ ∧ ∀ x : α, p x := option.forall
 protected lemma «exists» {p : with_top α → Prop} : (∃ x, p x) ↔ p ⊤ ∨ ∃ x : α, p x := option.exists

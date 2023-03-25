@@ -139,12 +139,13 @@ namespace matrix
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
 
-/-- A positive definite matrix `M` induces an inner product `⟪x, y⟫ = xᴴMy`. -/
-noncomputable def inner_product_space.of_matrix
-  {M : matrix n n 𝕜} (hM : M.pos_def) : inner_product_space 𝕜 (n → 𝕜) :=
-inner_product_space.of_core
+/-- A positive definite matrix `M` induces a norm `‖x‖ = sqrt (re xᴴMx)`. -/
+@[reducible]
+noncomputable def normed_add_comm_group.of_matrix {M : matrix n n 𝕜} (hM : M.pos_def) :
+  normed_add_comm_group (n → 𝕜) :=
+@inner_product_space.of_core.to_normed_add_comm_group _ _ _ _ _
 { inner := λ x y, dot_product (star x) (M.mul_vec y),
-  conj_sym := λ x y, by
+  conj_symm := λ x y, by
     rw [star_dot_product, star_ring_end_apply, star_star, star_mul_vec,
       dot_product_mul_vec, hM.is_hermitian.eq],
   nonneg_re := λ x,
@@ -160,5 +161,10 @@ inner_product_space.of_core
     end,
   add_left := by simp only [star_add, add_dot_product, eq_self_iff_true, forall_const],
   smul_left := λ x y r, by rw [← smul_eq_mul, ←smul_dot_product, star_ring_end_apply, ← star_smul] }
+
+/-- A positive definite matrix `M` induces an inner product `⟪x, y⟫ = xᴴMy`. -/
+def inner_product_space.of_matrix {M : matrix n n 𝕜} (hM : M.pos_def) :
+  @inner_product_space 𝕜 (n → 𝕜) _ (normed_add_comm_group.of_matrix hM) :=
+inner_product_space.of_core _
 
 end matrix

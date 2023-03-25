@@ -257,7 +257,10 @@ instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵃᵒᵖ :=
   ..add_opposite.add_comm_monoid α, ..add_opposite.has_one, ..add_opposite.has_nat_cast _ }
 
 instance [add_comm_group_with_one α] : add_comm_group_with_one αᵃᵒᵖ :=
-{ ..add_opposite.add_comm_monoid_with_one _, ..add_opposite.add_comm_group α }
+{ int_cast_of_nat := λ n, congr_arg op $ int.cast_of_nat n,
+  int_cast_neg_succ_of_nat := λ _, congr_arg op $ int.cast_neg_succ_of_nat _,
+  ..add_opposite.add_comm_monoid_with_one _, ..add_opposite.add_comm_group α,
+  ..add_opposite.has_int_cast α }
 
 variable {α}
 

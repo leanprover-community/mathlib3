@@ -53,7 +53,8 @@ instance [division_semiring α] : division_semiring αᵃᵒᵖ :=
 { ..add_opposite.group_with_zero α, ..add_opposite.semiring α }
 
 instance [division_ring α] : division_ring αᵃᵒᵖ :=
-{ ..add_opposite.group_with_zero α, ..add_opposite.ring α }
+{ rat_cast_mk := λ a b hb h, by rw ←div_eq_mul_inv; exact congr_arg op (rat.cast_def _),
+  ..add_opposite.ring α, ..add_opposite.group_with_zero α, ..add_opposite.has_rat_cast α }
 
 instance [semifield α] : semifield αᵃᵒᵖ :=
 { ..add_opposite.division_semiring α, ..add_opposite.comm_semiring α }

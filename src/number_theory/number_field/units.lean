@@ -172,6 +172,7 @@ instance [number_field K] : fintype (torsion K) :=
 
 lemma torsion_cyclic [number_field K] : is_cyclic (torsion K) := subgroup_units_cyclic _
 
+/-- The order of the torsion group of the units of `K`. -/
 def torsion_order [number_field K] : ℕ+ :=
 begin
   haveI : fintype (torsion K) := fintype.of_finite (torsion K),
@@ -373,199 +374,148 @@ by { convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀
 
 -- Construction of suitable units
 
-lemma seq.exists (w : infinite_place K) {f : infinite_place K → nnreal}
-  (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
-    ∃ C : nnreal, finset.univ.prod (λ v : infinite_place K, ite (v.is_real) (f.update w C v)
-      ((f.update w C v) ^ 2)) = B :=
+section seq
+
+variable {K}
+
+variables (w : infinite_place K)
+
+-- TODO. This is only used in the next lemma so remove that?
+@[reducible]
+def seq.update (f : infinite_place K → nnreal) (C : nnreal) : infinite_place K → nnreal :=
+λ v, ite (v.is_real) (f.update w C v) ((f.update w C v) ^ 2)
+
+variable {f : infinite_place K → nnreal}
+
+lemma seq.exists_bound (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
+    ∃ C : nnreal, finset.univ.prod (seq.update w f C) = B :=
 begin
   let S := (finset.univ.erase w).prod (λ v : infinite_place K, ite (v.is_real) (f v) (f v ^ 2)),
-  have hS : S ≠ 0,
-  { refine finset.prod_ne_zero_iff.mpr _,
-    intros z hz,
+  have S_nonzero : S ≠ 0,
+  { refine finset.prod_ne_zero_iff.mpr (λ z hz, _),
     split_ifs,
     exacts [hf z (finset.mem_erase.mp hz).1, pow_ne_zero 2 (hf z (finset.mem_erase.mp hz).1)], },
-  have Hsub : ∀ C : nnreal, ∀ x : infinite_place K, x ∈ finset.univ.erase w →
-    ite x.is_real (ite (x = w) C (f x)) (ite (x = w) C (f x) ^ 2) = ite x.is_real (f x) (f x ^ 2),
-  { intros _ x hx,
-    simp_rw if_neg (finset.mem_erase.mp hx).1, },
+  have C_subst : ∀ C, ∀ v : infinite_place K, v ∈ finset.univ.erase w →
+    ite v.is_real (ite (v = w) C (f v)) (ite (v = w) C (f v) ^ 2) = ite v.is_real (f v) (f v ^ 2),
+  { intros _ v hv,
+    simp_rw if_neg (finset.mem_erase.mp hv).1, },
+  simp_rw [← finset.mul_prod_erase finset.univ _ (finset.mem_univ w), function.update_same,
+    function.update_apply],
   by_cases hw : w.is_real,
   { use B * S⁻¹,
-    rw ← finset.mul_prod_erase finset.univ _ (finset.mem_univ w),
-    rw if_pos hw,
-    rw function.update_same,
-    simp_rw function.update_apply,
-    rw finset.prod_congr rfl (Hsub _),
-    exact inv_mul_cancel_right₀ hS _, },
+    simp_rw [if_pos hw, finset.prod_congr rfl (C_subst _)],
+    exact inv_mul_cancel_right₀ S_nonzero _, },
   { use nnreal.sqrt (B * S⁻¹),
-    rw ← finset.mul_prod_erase finset.univ _ (finset.mem_univ w),
-    rw if_neg hw,
-    rw function.update_same,
-    rw nnreal.sq_sqrt,
-    simp_rw function.update_apply,
-    rw finset.prod_congr rfl (Hsub _),
-    exact inv_mul_cancel_right₀ hS _, },
+    simp_rw [if_neg hw, nnreal.sq_sqrt, finset.prod_congr rfl (C_subst _)],
+    exact inv_mul_cancel_right₀ S_nonzero _, },
 end
 
-lemma seq.volume (w : infinite_place K) {f : infinite_place K → nnreal} (hf : ∀ z, z ≠ w → f z ≠ 0)
-  (B : ℕ) :
-  (unit_measure K) (convex_body K (λ v : infinite_place K,
-    (f.update w (seq.exists K w hf B).some v))) = (constant_volume K) * B :=
-by { rw_mod_cast [convex_body.volume, (seq.exists K w hf B).some_spec], refl, }
+lemma seq.volume (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
+  (unit_measure K) (convex_body K (f.update w (seq.exists_bound w hf B).some)) =
+    (constant_volume K) * B :=
+by { rw convex_body.volume, rw_mod_cast (seq.exists_bound w hf B).some_spec, refl, }
 
-lemma seq.next {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
-  {x : 𝓞 K} (hx : x ≠ 0) :
+variables {B : ℕ} (hB : minkowski_bound K < (constant_volume K) * B)
+
+include hB
+
+lemma seq.next {x : 𝓞 K} (hx : x ≠ 0) :
   ∃ a : (𝓞 K), a ≠ 0 ∧ (∀ z, z ≠ w → z a < (z x) / 2) ∧ abs (algebra.norm ℚ (a : K)) ≤ B :=
 begin
   let f : infinite_place K → nnreal := λ v, ⟨(v x) / 2, div_nonneg (map_nonneg _ _) (by norm_num)⟩,
   have hf : ∀ z, z ≠ w → f z ≠ 0,
+  { simp only [hx, ne.def, nonneg.mk_eq_zero, div_eq_zero_iff, map_eq_zero, or_self, not_false_iff,
+      zero_mem_class.coe_eq_zero, bit0_eq_zero, one_ne_zero, implies_true_iff], },
+  rw ← (seq.volume w hf B) at hB,
+  have exists_sol := exists_ne_zero_mem_ring_of_integers_le K hB,
+  refine ⟨exists_sol.some, exists_sol.some_spec.1, _, _⟩,
   { intros z hz,
-    apply (nonneg.mk_eq_zero _).not.mpr,
-    simp only [hx, div_eq_zero_iff, map_eq_zero, zero_mem_class.coe_eq_zero, bit0_eq_zero,
-      one_ne_zero, or_self, not_false_iff, coe_coe], },
-  rw ← (seq.volume K w hf B) at hB,
-  have t2 := exists_ne_zero_mem_ring_of_integers_le K hB,
-  use t2.some,
-  split,
-  { exact t2.some_spec.1, },
-  { split,
-    { intros z hz,
-      simp only [*, coe_coe, ne.def, subtype.coe_mk],
-      convert t2.some_spec.2 z,
-      simp [function.update_apply f _ _ _, hz, if_false, subtype.coe_mk], },
-    { rw ← @rat.cast_le ℝ _ _ _,
-      rw rat.cast_abs,
-      have := prod_eq_abs_norm K (t2.some : K),
-      rw ← prod_eq_abs_norm K (t2.some : K),
-      have t5 := congr_arg nnreal.to_real_hom (seq.exists K w hf B).some_spec,
-      rw map_prod nnreal.to_real_hom _ _ at t5,
-      simp_rw apply_ite nnreal.to_real_hom _ _ _ at t5,
-      simp_rw map_pow at t5,
-      rw nnreal.coe_to_real_hom at t5,
-      rw nnreal.coe_nat_cast at t5,
-      rw rat.cast_coe_nat,
-      refine le_of_le_of_eq (finset.prod_le_prod _ _) t5,
-      { intros _ _,
-        split_ifs; simp only [pow_nonneg, map_nonneg], },
-      { intros z _,
-        split_ifs,
-        { exact le_of_lt (t2.some_spec.2 z), },
-        { refine pow_le_pow_of_le_left (map_nonneg _ _) (le_of_lt (t2.some_spec.2 z)) _, }}}},
+    convert exists_sol.some_spec.2 z,
+    simp_rw [function.update_apply f, apply_ite (coe : _ → ℝ), if_neg hz, f, subtype.coe_mk], },
+  { rw [← @rat.cast_le ℝ, rat.cast_abs, ← prod_eq_abs_norm K (exists_sol.some : K)],
+    refine le_of_le_of_eq (finset.prod_le_prod (λ _ _, _) (λ z _, _)) _,
+    { exact (coe : _ → ℝ) ∘ (seq.update w f (seq.exists_bound w hf B).some), },
+    { split_ifs; positivity, },
+    { rw [seq.update, function.comp_apply],
+      split_ifs,
+      exact le_of_lt (exists_sol.some_spec.2 z),
+      exact pow_le_pow_of_le_left (map_nonneg _ _) (le_of_lt (exists_sol.some_spec.2 z)) _, },
+    { convert congr_arg (coe : _ → ℝ) (seq.exists_bound w hf B).some_spec,
+      rw [← nnreal.coe_to_real_hom, map_prod nnreal.to_real_hom], }}
 end
 
 /-- An infinite sequence of non-zero algebraic integers of `K` satisfying the following properties:
 TBC. -/
-def seq {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B) (n : ℕ) :
-  { x : 𝓞 K // x ≠ 0 } :=
+def seq (n : ℕ) : { x : 𝓞 K // x ≠ 0 } :=
 nat.rec_on n ⟨(1 : 𝓞 K), (by norm_num)⟩
-  (λ _ a, ⟨(seq.next K w hB a.prop).some, (seq.next K w hB a.prop).some_spec.1⟩)
+  (λ _ a, ⟨(seq.next w hB a.prop).some, (seq.next w hB a.prop).some_spec.1⟩)
 
-lemma seq.ne_zero {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
-  (n : ℕ) : (seq K w hB n : K) ≠ 0 :=
-(map_ne_zero_iff (algebra_map (𝓞 K) K) subtype.val_injective).mpr (seq K w hB n).prop
+lemma seq.ne_zero (n : ℕ) : (seq w hB n : K) ≠ 0 :=
+(map_ne_zero_iff (algebra_map (𝓞 K) K) subtype.val_injective).mpr (seq w hB n).prop
 
-lemma seq.antitone {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
-  (n m : ℕ) (h : n < m) :
-  ∀ v : infinite_place K, v ≠ w → v (seq K w hB m) < v (seq K w hB n) :=
+lemma seq.antitone (n m : ℕ) (h : n < m) :
+  ∀ v : infinite_place K, v ≠ w → v (seq w hB m) < v (seq w hB n) :=
 begin
   induction m with m hm,
-  { exfalso,
-    exact nat.not_lt_zero _ h, },
+  { exfalso, exact nat.not_lt_zero _ h, },
   { intros v hv,
-    have hs : v (seq K w hB m.succ) < v (seq K w hB m),
-    { have t1 := (seq.next K w hB (seq K w hB m).prop).some_spec.2.1 v hv,
-      have t2 : v (seq K w hB m) / 2 < v (seq K w hB m),
-      { exact half_lt_self (pos_iff.mpr (seq.ne_zero K w hB m)), },
-      exact t1.trans t2, },
-    cases nat.eq_or_lt_of_le (nat.le_of_succ_le_succ h) with h1 h2,
-    { rwa h1, },
-    { exact hs.trans (hm h2 v hv), }},
+    suffices : v (seq w hB m.succ) < v (seq w hB m),
+    { cases nat.eq_or_lt_of_le (nat.le_of_succ_le_succ h) with h1 h2,
+      { rwa h1, },
+      { exact this.trans (hm h2 v hv), }},
+    { refine lt_trans ((seq.next w hB (seq w hB m).prop).some_spec.2.1 v hv) _,
+      exact half_lt_self (pos_iff.mpr (seq.ne_zero w hB m)), }},
 end
 
-lemma seq.norm_bdd {B : ℕ} (w : infinite_place K) (hB : minkowski_bound K < (constant_volume K) * B)
-  (n : ℕ) :
-   1 ≤ (algebra.norm ℤ (seq K w hB n : 𝓞 K)).nat_abs ∧
-    (algebra.norm ℤ (seq K w hB n : 𝓞 K)).nat_abs ≤ B :=
+lemma seq.norm_bdd (n : ℕ) :
+   1 ≤ (algebra.norm ℤ (seq w hB n : 𝓞 K)).nat_abs ∧
+    (algebra.norm ℤ (seq w hB n : 𝓞 K)).nat_abs ≤ B :=
 begin
   cases n,
-  { have : algebra.norm ℤ (1 : 𝓞 K) = 1 := map_one (algebra.norm ℤ),
-    simp only [seq, this, subtype.coe_mk, int.nat_abs_one, le_refl, true_and],
+  { erw [map_one (algebra.norm ℤ), int.nat_abs_one],
+    refine ⟨le_rfl, _⟩,
     contrapose! hB,
     simp only [nat.lt_one_iff.mp hB, algebra_map.coe_zero, mul_zero, zero_le'], },
-  { split,
-    { refine nat.succ_le_iff.mpr _,
-      refine int.nat_abs_pos_of_ne_zero _,
-      rw algebra.norm_ne_zero_iff,
-      exact (seq K w hB _).prop, },
-    { rw ← @nat.cast_le ℚ _ _ _ _,
-      rw int.cast_nat_abs,
-      change |algebra_map ℤ ℚ ((algebra.norm ℤ) (seq K w hB n.succ : 𝓞 K))| ≤ B,
-      rw ← @algebra.norm_localization ℤ (𝓞 K) _ _ _ ℚ K _ _ _ _ (non_zero_divisors ℤ) _ _ _
-        _ _ _ _ _ (seq K w hB n.succ : 𝓞 K),
-      exact (seq.next K w hB (seq K w hB n).prop).some_spec.2.2, }},
+  { refine ⟨nat.succ_le_iff.mpr (int.nat_abs_pos_of_ne_zero _), _⟩,
+    { exact (algebra.norm_ne_zero_iff.mpr (seq w hB _).prop), },
+    { rw [← @nat.cast_le ℚ, int.cast_nat_abs],
+      change |algebra_map ℤ ℚ ((algebra.norm ℤ) (seq w hB n.succ : 𝓞 K))| ≤ B,
+      rw ← @algebra.norm_localization ℤ (𝓞 K) _ _ _ ℚ K _ _ _ _ (non_zero_divisors ℤ),
+      exact (seq.next w hB (seq w hB n).prop).some_spec.2.2, }},
 end
+
+end seq
 
 lemma exists_unit (w : infinite_place K ) :
   ∃ u : 𝓤 K, (∀ z : infinite_place K, z ≠ w → real.log (z u) < 0) :=
 begin
-  rsuffices ⟨B, hB⟩ : ∃ B: ℕ, minkowski_bound K < (constant_volume K) * B,
-  { have : ∃ n m, n < m ∧
-      ideal.span { (seq K w hB n : 𝓞 K) } = ideal.span { (seq K w hB m : 𝓞 K) },
-    { obtain ⟨n, -, m, -, hnm, h⟩ :=
-        @set.infinite.exists_ne_map_eq_of_maps_to ℕ (ideal (𝓞 K)) _
-          { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B }
-          (λ n, ideal.span { seq K w hB n}) set.infinite_univ _ _,
-      { by_cases hlt : n < m,
-        { exact ⟨n, m, ⟨hlt, h⟩⟩, },
-        { refine ⟨m, n, ⟨hnm.lt_or_lt.resolve_left hlt, h.symm⟩⟩, }},
-      { intros n _,
-        have := seq.norm_bdd K w hB n,
-        simp only [this, set.mem_set_of_eq, ideal.abs_norm_span_singleton, and_self], },
-      { rw (_ : { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B } =
+  obtain ⟨B, hB⟩ : ∃ B : ℕ, minkowski_bound K < (constant_volume K) * B,
+  { conv { congr, funext, rw mul_comm, },
+    exact ennreal.exists_nat_mul_gt (pos_iff_ne_zero.mp (constant_volume_pos K))
+      (ne_of_lt (minkowski_bound_lt_top K)), },
+  rsuffices ⟨n, m, hnm, h⟩ : ∃ n m : ℕ, n < m ∧
+    ideal.span ({ seq w hB n } : set (𝓞 K)) = ideal.span { seq w hB m },
+  { obtain ⟨u, hu⟩ := ideal.span_singleton_eq_span_singleton.mp h,
+    refine ⟨u, λ z hz, real.log_neg _ _⟩,
+    { exact pos_iff.mpr units_to_field.ne_zero, },
+    { refine (mul_lt_iff_lt_one_right ((@pos_iff _ _ z _).mpr (seq.ne_zero w hB n))).mp _,
+      convert seq.antitone w hB n m hnm z hz,
+      rw ← map_mul,
+      congr,
+      exact (congr_arg (coe : _ → K) hu), }},
+  { refine set.finite.exists_lt_map_eq_of_forall_mem (λ n, _) _,
+    { exact { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B }, },
+    { simpa only [ideal.abs_norm_span_singleton, set.mem_set_of_eq] using seq.norm_bdd w hB n, },
+    { rw (_ : { I : ideal (𝓞 K) | 1 ≤ ideal.abs_norm I ∧ ideal.abs_norm I ≤ B } =
           (⋃ n ∈ set.Icc 1 B, { I : ideal (𝓞 K) | ideal.abs_norm I = n })),
-        { refine set.finite.bUnion (set.Icc 1 B).to_finite _,
-          intros n hn,
-          exact ideal.finite_set_of_abs_norm_eq hn.1, },
-        { ext x,
-          simp only [set.mem_set_of_eq, set.mem_Icc, set.mem_Union, exists_prop,
-            exists_eq_right'], }}},
-    obtain ⟨n, m, hnm, hid⟩ := this,
-    rw ideal.span_singleton_eq_span_singleton at hid,
-    obtain ⟨u, hu⟩ := hid,
-    use u,
-    intros z hz,
-    have t1 := congr_arg z (congr_arg (coe : (𝓞 K) → K) hu),
-    have t2 := seq.antitone K w hB n m hnm z hz,
-    simp [coe_coe, mul_mem_class.coe_mul, coe_coe, map_mul, coe_coe, mul_mem_class.coe_mul,
-      coe_coe, map_mul] at t1 t2,
-    rw ← t1 at t2,
-    refine real.log_neg _ _,
-    { rw pos_iff,
-      exact units_to_field.ne_zero, },
-    { refine (mul_lt_iff_lt_one_right _).mp t2,
-      exact pos_iff.mpr (seq.ne_zero K w hB n), }},
-  { have t2 : 0 < (constant_volume K).to_nnreal,
-    { refine ennreal.to_nnreal_pos_iff.mpr ⟨_, _⟩,
-      exact constant_volume_pos K,
-      exact constant_volume_lt_top K, },
-    have A := nnreal.archimedean.arch (minkowski_bound K).to_nnreal t2,
-    use A.some + 1,
-    suffices : minkowski_bound K ≤ constant_volume K * A.some,
-    { refine lt_of_le_of_lt this _,
-      simp only [nsmul_eq_mul, nat.cast_add, algebra_map.coe_one, mul_add, mul_one],
-      refine ennreal.lt_add_right _ _,
-      { refine ennreal.mul_ne_top _ _,
-        exact ne_of_lt (constant_volume_lt_top K),
-        exact ennreal.nat_ne_top _, },
-      { exact (ne_of_lt (constant_volume_pos K)).symm, }},
-    have h := A.some_spec,
-    simp only [nsmul_eq_mul] at h,
-    rw mul_comm,
-    rw ← ennreal.coe_le_coe at h,
-    simp [ne_of_lt (minkowski_bound_lt_top K), ne_of_lt (constant_volume_lt_top K)] at h,
-    convert h,
-    ext,
-    simp only [nsmul_eq_mul], },
+      { refine set.finite.bUnion (set.Icc 1 B).to_finite (λ n hn, _),
+        exact ideal.finite_set_of_abs_norm_eq hn.1, },
+      { ext I,
+        simp only [set.mem_set_of_eq, set.mem_Icc, set.mem_Union, exists_prop,
+          exists_eq_right'], }}},
 end
+
+#exit
 
 lemma unit_lattice.full_lattice :
   submodule.span ℝ (unit_lattice K : set ({w : infinite_place K // w ≠ w₀} → ℝ)) = ⊤ :=

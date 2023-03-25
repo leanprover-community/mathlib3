@@ -476,7 +476,7 @@ def mk_lm (A : (D → E) → (F → G))
   (hadd : ∀ (f g : 𝓢(D, E)) x, A (f + g) x = A f x + A g x)
   (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = a • A f x)
   (hsmooth : ∀ (f : 𝓢(D, E)), cont_diff ℝ ⊤ (A f))
-  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
+  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 ≤ C), ∀ (f : 𝓢(D, E)) (x : F),
   ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * s.sup (schwartz_seminorm_family 𝕜 D E) f) :
   𝓢(D, E) →ₗ[𝕜] 𝓢(F, G) :=
 { to_fun := λ f,
@@ -498,7 +498,7 @@ def mk_clm (A : (D → E) → (F → G))
   (hadd : ∀ (f g : 𝓢(D, E)) x, A (f + g) x = A f x + A g x)
   (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = a • A f x)
   (hsmooth : ∀ (f : 𝓢(D, E)), cont_diff ℝ ⊤ (A f))
-  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
+  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 ≤ C), ∀ (f : 𝓢(D, E)) (x : F),
   ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * s.sup (schwartz_seminorm_family 𝕜 D E) f) :
   𝓢(D, E) →L[𝕜] 𝓢(F, G) :=
 { cont :=
@@ -508,7 +508,7 @@ def mk_clm (A : (D → E) → (F → G))
       (schwartz_with_seminorms 𝕜 F G) _ _,
     intro n,
     rcases hbound n with ⟨s, C, hC, h⟩,
-    refine ⟨s, ⟨C, hC.le⟩, by simp only [nonneg.mk_eq_zero, ne.def, not_false_iff, hC.ne.symm], _⟩,
+    refine ⟨s, ⟨C, hC⟩, _⟩,
     intros f,
     simp only [seminorm.comp_apply, seminorm.smul_apply],
     refine (mk_lm 𝕜 A hadd hsmul hsmooth hbound f).seminorm_le_bound 𝕜 n.1 n.2 _ _,
@@ -519,8 +519,7 @@ def mk_clm (A : (D → E) → (F → G))
     simp only [algebra.id.smul_eq_mul, subtype.coe_mk],
     exact h f x,
   end,
-  to_linear_map := mk_lm 𝕜 A hadd hsmul hsmooth hbound,
-}
+  to_linear_map := mk_lm 𝕜 A hadd hsmul hsmooth hbound }
 
 end clm
 
@@ -539,10 +538,10 @@ mk_clm 𝕜 (fderiv ℝ)
   (λ f, (cont_diff_top_iff_fderiv.mp f.smooth').2)
   (begin
     rintros ⟨k, n⟩,
-    use [{⟨k, n+1⟩}, 1, zero_lt_one],
+    use [{⟨k, n+1⟩}, 1, zero_le_one],
     intros f x,
-    simp only [one_mul, schwartz_map.schwartz_seminorm_family_apply, finset.sup_singleton],
-    rw [norm_iterated_fderiv_fderiv],
+    simp only [one_mul, schwartz_map.schwartz_seminorm_family_apply, finset.sup_singleton,
+      norm_iterated_fderiv_fderiv],
     exact f.le_seminorm 𝕜 k (n+1) x,
   end)
 
@@ -588,7 +587,7 @@ def to_bounded_continuous_function_clm : 𝓢(E, F) →L[𝕜] E →ᵇ F :=
   begin
     change continuous (to_bounded_continuous_function_lm 𝕜 E F),
     refine seminorm.continuous_from_bounded (schwartz_with_seminorms 𝕜 E F)
-      (norm_with_seminorms 𝕜 (E →ᵇ F)) _ (λ i, ⟨{0}, 1, one_ne_zero, λ f, _⟩),
+      (norm_with_seminorms 𝕜 (E →ᵇ F)) _ (λ i, ⟨{0}, 1, λ f, _⟩),
     rw [finset.sup_singleton, one_smul , seminorm.comp_apply, coe_norm_seminorm,
         schwartz_seminorm_family_apply_zero, bounded_continuous_function.norm_le (map_nonneg _ _)],
     intros x,

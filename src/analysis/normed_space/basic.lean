@@ -262,10 +262,10 @@ instance prod.normed_space : normed_space α (E × F) :=
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_comm_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
-{ norm_smul_le := λ a f, le_of_eq $
-    show (↑(finset.sup finset.univ (λ (b : ι), ‖a • f b‖₊)) : ℝ) =
-      ‖a‖₊ * ↑(finset.sup finset.univ (λ (b : ι), ‖f b‖₊)),
-    by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
+{ norm_smul_le := λ a f, begin
+    simp_rw [←coe_nnnorm, ←nnreal.coe_mul, nnreal.coe_le_coe, pi.nnnorm_def, nnreal.mul_finset_sup],
+    exact finset.sup_mono_fun (λ _ _, norm_smul_le _ _),
+  end }
 
 instance mul_opposite.normed_space : normed_space α Eᵐᵒᵖ :=
 { norm_smul_le := λ s x, norm_smul_le s x.unop,

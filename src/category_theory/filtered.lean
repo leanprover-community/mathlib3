@@ -110,7 +110,7 @@ example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by
 
 instance : is_filtered (discrete punit) :=
 { cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, by dec_trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
   nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_filtered

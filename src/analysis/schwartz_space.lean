@@ -477,10 +477,10 @@ def mk_lm (A : (D → E) → (F → G))
   (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = a • A f x)
   (hsmooth : ∀ (f : 𝓢(D, E)), cont_diff ℝ ⊤ (A f))
   (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
-  ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * (s.sup (schwartz_seminorm_family 𝕜 D E)) f)
-  : 𝓢(D, E) →ₗ[𝕜] 𝓢(F, G) :=
-{ to_fun := λ f, {
-    to_fun := A f,
+  ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * s.sup (schwartz_seminorm_family 𝕜 D E) f) :
+  𝓢(D, E) →ₗ[𝕜] 𝓢(F, G) :=
+{ to_fun := λ f,
+  { to_fun := A f,
     smooth' := hsmooth f,
     decay' := begin
       intros k n,
@@ -499,8 +499,8 @@ def mk_clm (A : (D → E) → (F → G))
   (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = a • A f x)
   (hsmooth : ∀ (f : 𝓢(D, E)), cont_diff ℝ ⊤ (A f))
   (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
-  ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * (s.sup (schwartz_seminorm_family 𝕜 D E)) f)
-  : 𝓢(D, E) →L[𝕜] 𝓢(F, G) :=
+  ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * s.sup (schwartz_seminorm_family 𝕜 D E) f) :
+  𝓢(D, E) →L[𝕜] 𝓢(F, G) :=
 { cont :=
   begin
     change continuous (mk_lm 𝕜 A hadd hsmul hsmooth hbound : 𝓢(D, E) →ₗ[𝕜] 𝓢(F, G)),
@@ -546,8 +546,7 @@ mk_clm 𝕜 (fderiv ℝ)
     exact f.le_seminorm 𝕜 k (n+1) x,
   end)
 
-@[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) (x : E) :
-  fderiv_clm 𝕜 f x = fderiv ℝ f x :=
+@[simp] lemma fderiv_clm_apply (f : 𝓢(E, F)) (x : E) : fderiv_clm 𝕜 f x = fderiv ℝ f x :=
 rfl
 
 end fderiv

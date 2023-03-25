@@ -506,7 +506,7 @@ begin
   refine ⟨λ i, δ' i / max 1 (w i), λ i, div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
   rw [coe_div (this i).ne'],
-  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  refine mul_le_of_le_div' (mul_le_mul_left' (ennreal.inv_le_inv.2 _) _),
   exact coe_le_coe.2 (le_max_right _ _)
 end
 

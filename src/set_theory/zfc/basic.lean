@@ -720,14 +720,13 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+theorem mem_wf : @well_founded Set (∈) :=
+well_founded_lift₂_iff.mpr pSet.mem_wf
+
 /-- Induction on the `∈` relation. -/
 @[elab_as_eliminator]
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
-quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
-show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
-quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ ha), exact IH a })
-
-theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
+mem_wf.induction x h
 
 instance : has_well_founded Set := ⟨_, mem_wf⟩
 
@@ -762,6 +761,26 @@ theorem image.mk :
 
 @[simp] theorem to_set_image (f : Set → Set) [H : definable 1 f] (x : Set) :
   (image f x).to_set = f '' x.to_set :=
+by { ext, simp }
+
+/-- The range of an indexed family of sets. The universes allow for a more general index type
+  without manual use of `ulift`. -/
+noncomputable def range {α : Type u} (f : α → Set.{max u v}) : Set.{max u v} :=
+⟦⟨ulift α, quotient.out ∘ f ∘ ulift.down⟩⟧
+
+@[simp] theorem mem_range {α : Type u} {f : α → Set.{max u v}} {x : Set.{max u v}} :
+  x ∈ range f ↔ x ∈ set.range f :=
+quotient.induction_on x (λ y, begin
+  split,
+  { rintro ⟨z, hz⟩,
+    exact ⟨z.down, quotient.eq_mk_iff_out.2 hz.symm⟩ },
+  { rintro ⟨z, hz⟩,
+    use z,
+    simpa [hz] using pSet.equiv.symm (quotient.mk_out y) }
+end)
+
+@[simp] theorem to_set_range {α : Type u} (f : α → Set.{max u v}) :
+  (range f).to_set = set.range f :=
 by { ext, simp }
 
 /-- Kuratowski ordered pair -/
@@ -927,6 +946,9 @@ exists_congr $ λ x, and_true _
 
 @[simp] theorem mem_univ_hom (x : Set.{u}) : univ.{u} x := trivial
 
+theorem eq_univ_iff_forall {A : Class.{u}} : A = univ ↔ ∀ x : Set, A x := set.eq_univ_iff_forall
+theorem eq_univ_of_forall {A : Class.{u}} : (∀ x : Set, A x) → A = univ := set.eq_univ_of_forall
+
 theorem mem_wf : @well_founded Class.{u} (∈) :=
 ⟨begin
   have H : ∀ x : Set.{u}, @acc Class.{u} (∈) ↑x,
@@ -1033,6 +1055,15 @@ end
 
 @[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=
 by { ext, simp }
+
+/-- An induction principle for sets. If every subset of a class is a member, then the class is
+  universal. -/
+theorem eq_univ_of_powerset_subset {A : Class} (hA : powerset A ⊆ A) : A = univ :=
+eq_univ_of_forall begin
+  by_contra' hnA,
+  exact well_founded.min_mem Set.mem_wf _ hnA (hA $ λ x hx, not_not.1 $
+    λ hB, well_founded.not_lt_min Set.mem_wf _ hnA hB $ (mem_hom_right _ _).1 hx)
+end
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}

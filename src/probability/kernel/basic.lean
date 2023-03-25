@@ -357,6 +357,10 @@ def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_spac
 
 include mα mβ
 
+lemma const_apply (μβ : measure β) (a : α) :
+  const α μβ a = μβ :=
+rfl
+
 instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
   is_finite_kernel (const α μβ) :=
 ⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
@@ -663,7 +667,7 @@ begin
               ≤ ∫⁻ b in set.univ, B ∂(κ a) : lintegral_mono (hf_B a)
           ... = B * κ a set.univ : by simp only [measure.restrict_univ, lintegral_const]
           ... ≤ B * is_finite_kernel.bound κ :
-            ennreal.mul_le_mul le_rfl (measure_le_bound κ a set.univ),
+            mul_le_mul_left' (measure_le_bound κ a set.univ) _,
         end⟩⟩, },
   { rw with_density_of_not_measurable _ hf,
     apply_instance, },

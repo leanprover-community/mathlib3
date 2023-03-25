@@ -5,6 +5,7 @@ Authors: Jean Lo, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
+import analysis.normed_space.real
 
 /-!
 # Applications of the Hausdorff distance in normed spaces

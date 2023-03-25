@@ -15,7 +15,10 @@ In this file we prove resuls about real normed vector spaces
 open filter metric function set
 open_locale topology big_operators nnreal ennreal uniformity pointwise
 
-variables {E : Type*} [seminormed_add_comm_group E]
+variables {E : Type*}
+
+section seminormed
+variables [seminormed_add_comm_group E]
 
 lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ E] (x : E) :
   ‖x‖⁻¹ • x ∈ closed_ball (0 : E) 1 :=
@@ -121,9 +124,13 @@ noncomputable def homeomorph_unit_ball [normed_space ℝ E] :
   (homeomorph_unit_ball (0 : E) : E) = 0 :=
 by simp [homeomorph_unit_ball]
 
-section surj
+end seminormed
 
-variables (E) [normed_space ℝ E] [nontrivial E]
+section normed
+variables [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E]
+
+section surj
+variables (E)
 
 lemma exists_norm_eq {c : ℝ} (hc : 0 ≤ c) : ∃ x : E, ‖x‖ = c :=
 begin
@@ -144,7 +151,7 @@ lemma nnnorm_surjective : surjective (nnnorm : E → ℝ≥0) :=
 
 end surj
 
-theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+theorem interior_closed_ball' (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
 begin
   rcases eq_or_ne r 0 with rfl|hr,
@@ -152,6 +159,8 @@ begin
   { exact interior_closed_ball x hr }
 end
 
-theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+theorem frontier_closed_ball' (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
+
+end normed

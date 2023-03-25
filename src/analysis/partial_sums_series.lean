@@ -43,18 +43,6 @@ def series_converges {R : Type u} [add_comm_monoid R] [topological_space R] (f :
 def series_converges_absolutely {R : Type u} [add_comm_monoid R] [topological_space R] [has_abs R] (f : ℕ → R) :=
 series_converges (λ x, |f x|)
 
-
-section
-
-variables {R : Type u} [ring R] [topological_space R] [topological_ring R]
-lemma zeros_sum_to_zero : series_sums_to (λ _ : ℕ, 0) 0 :=
-begin
-  unfold series_sums_to,
-  sorry
-end
-
-end
-
 def partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, partial_sum a n ≤ partial_sum b n :=
 begin
   intro n,

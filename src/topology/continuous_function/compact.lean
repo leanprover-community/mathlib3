@@ -227,7 +227,7 @@ section
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
 instance : normed_space 𝕜 C(α,E) :=
-{ norm_smul_le := λ c f, norm_smul_le c (mk_of_compact f) }
+{ norm_smul_le := λ c f, (norm_smul_le c (mk_of_compact f) : _) }
 
 section
 variables (α 𝕜 E)

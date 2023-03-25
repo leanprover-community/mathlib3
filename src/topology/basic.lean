@@ -208,15 +208,9 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_closed_Union [finite β] {s : β → set α} (h : ∀ i, is_closed (s i)) :
+lemma is_closed_Union [finite ι] {s : ι → set α} (h : ∀ i, is_closed (s i)) :
   is_closed (⋃ i, s i) :=
-suffices is_closed (⋃ (i : β) (hi : i ∈ @univ β), s i),
-  by convert this; simp [set.ext_iff],
-is_closed_bUnion finite_univ (λ i _, h i)
-
-lemma is_closed_Union_prop {p : Prop} {s : p → set α}
-  (h : ∀ h : p, is_closed (s h)) : is_closed (Union s) :=
-by by_cases p; simp *
+by { simp only [← is_open_compl_iff, compl_Union] at *, exact is_open_Inter h }
 
 lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
   (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=

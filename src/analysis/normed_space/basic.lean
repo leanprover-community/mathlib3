@@ -35,66 +35,81 @@ equality `‖c • x‖ = ‖c‖ ‖x‖`. We require only `‖c • x‖ ≤ �
 Note that since this requires `seminormed_add_comm_group` and not `normed_add_comm_group`, this
 typeclass can be used for "semi normed spaces" too, just as `module` can be used for
 "semi modules". -/
-class normed_space (α : Type*) (β : Type*) [normed_field α] [seminormed_add_comm_group β]
+class normed_space (α : Type*) (β : Type*) [normed_ring α] [seminormed_add_comm_group β]
   extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ‖a • b‖ ≤ ‖a‖ * ‖b‖)
 end prio
 
-variables [normed_field α] [seminormed_add_comm_group β]
+section normed_ring
+
+variables [normed_ring α] [seminormed_add_comm_group β]
+
+lemma norm_smul_le [normed_space α β] (r : α) (x : β) : (‖r • x‖) ≤ (‖r‖) * (‖x‖) :=
+normed_space.norm_smul_le _ _
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul α β :=
 { dist_smul_pair' := λ x y₁ y₂,
-    by simpa [dist_eq_norm, smul_sub] using normed_space.norm_smul_le x (y₁ - y₂),
+    by simpa [dist_eq_norm, smul_sub] using norm_smul_le x (y₁ - y₂),
   dist_pair_smul' := λ x₁ x₂ y,
-    by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
+    by simpa [dist_eq_norm, sub_smul] using norm_smul_le (x₁ - x₂) y }
 
 -- Shortcut instance, as otherwise this will be found by `normed_space.to_module` and be
 -- noncomputable.
 instance : module ℝ ℝ := by apply_instance
 
 instance normed_field.to_normed_space : normed_space α α :=
-{ norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
+{ norm_smul_le := λ a b, norm_mul_le a b }
 
-lemma norm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖ = ‖s‖ * ‖x‖ :=
-begin
-  by_cases h : s = 0,
-  { simp [h] },
-  { refine le_antisymm (normed_space.norm_smul_le s x) _,
-    calc ‖s‖ * ‖x‖ = ‖s‖ * ‖s⁻¹ • s • x‖     : by rw [inv_smul_smul₀ h]
-               ... ≤ ‖s‖ * (‖s⁻¹‖ * ‖s • x‖) :
-      mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
-               ... = ‖s • x‖                 :
-      by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
-end
+-- lemma norm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖ = ‖s‖ * ‖x‖ :=
+-- begin
+--   by_cases h : s = 0,
+--   { simp [h] },
+--   { refine le_antisymm (normed_space.norm_smul_le s x) _,
+--     calc ‖s‖ * ‖x‖ = ‖s‖ * ‖s⁻¹ • s • x‖     : by rw [inv_smul_smul₀ h]
+--                ... ≤ ‖s‖ * (‖s⁻¹‖ * ‖s • x‖) :
+--       mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
+--                ... = ‖s • x‖                 :
+--       by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
+-- end
 
-lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) :
-  ‖n • x‖ = ‖(n : α)‖ * ‖x‖ :=
-by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
+-- lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) :
+--   ‖n • x‖ = ‖(n : α)‖ * ‖x‖ :=
+-- by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
 
 @[simp] lemma abs_norm_eq_norm (z : β) : |‖z‖| = ‖z‖ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
-lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
-  ‖x‖⁻¹ • x ∈ closed_ball (0 : β) 1 :=
-by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
-  div_self_le_one]
+-- lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
+--   ‖x‖⁻¹ • x ∈ closed_ball (0 : β) 1 :=
+-- by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
+--   div_self_le_one]
 
-lemma dist_smul₀ [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
-by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
+lemma dist_smul_le [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) ≤ ‖s‖ * dist x y :=
+by simpa only [dist_eq_norm, ←smul_sub] using norm_smul_le _ _
 
-lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ = ‖s‖₊ * ‖x‖₊ :=
-nnreal.eq $ norm_smul s x
+-- lemma dist_smul₀ [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
+-- by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
-lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
-  nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
-nnreal.eq $ dist_smul₀ s x y
+lemma nnnorm_smul_le [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ ≤ ‖s‖₊ * ‖x‖₊ :=
+norm_smul_le s x
+
+-- lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ = ‖s‖₊ * ‖x‖₊ :=
+-- nnreal.eq $ norm_smul s x
+
+lemma nndist_smul_le [normed_space α β] (s : α) (x y : β) :
+  nndist (s • x) (s • y) ≤ ‖s‖₊ * nndist x y :=
+dist_smul_le s x y
+
+-- lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
+--   nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
+-- nnreal.eq $ dist_smul₀ s x y
 
 lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
-lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
+lipschitz_with_iff_dist_le_mul.2 $ λ x y, (dist_smul_le _ _ _).trans $ by rw coe_nnnorm
 
-lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
-  ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
+-- lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
+--   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 
 variables {E : Type*} [seminormed_add_comm_group E] [normed_space α E]
 variables {F : Type*} [seminormed_add_comm_group F] [normed_space α F]
@@ -108,7 +123,7 @@ this.eventually (gt_mem_nhds h)
 lemma filter.tendsto.zero_smul_is_bounded_under_le {f : ι → α} {g : ι → E} {l : filter ι}
   (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
   tendsto (λ x, f x • g x) l (𝓝 0) :=
-hf.op_zero_is_bounded_under_le hg (•) (λ x y, (norm_smul x y).le)
+hf.op_zero_is_bounded_under_le hg (•) norm_smul_le
 
 lemma filter.is_bounded_under.smul_tendsto_zero {f : ι → α} {g : ι → E} {l : filter ι}
   (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :

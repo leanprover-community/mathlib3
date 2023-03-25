@@ -971,14 +971,13 @@ end
 
 open_locale pointwise
 
-@[to_additive] lemma smul_image [decidable_eq β] [decidable_eq γ] [has_smul α β] [has_smul α γ]
+@[to_additive] lemma image_smul_comm [decidable_eq β] [decidable_eq γ] [has_smul α β] [has_smul α γ]
   (f : β → γ) (s : finset β) (a : α) :
   (∀ b, f (a • b) = a • f b) → (a • s).image f = a • s.image f :=
 image_comm
 
-@[to_additive]
-lemma image_smul' [decidable_eq α] [decidable_eq β] [monoid α] [monoid β] [monoid_hom_class F α β]
-  (f : F) (s : finset α) (a : α) :
+@[to_additive] lemma image_smul_distrib [decidable_eq α] [decidable_eq β] [monoid α] [monoid β]
+  [monoid_hom_class F α β] (f : F) (s : finset α) (a : α) :
   (a • s).image f = f a • s.image f :=
 image_comm $ map_mul _ _
 

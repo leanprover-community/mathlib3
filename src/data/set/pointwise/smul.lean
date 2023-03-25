@@ -378,12 +378,12 @@ end vsub
 
 open_locale pointwise
 
-@[to_additive] lemma smul_image [has_smul α β] [has_smul α γ] (f : β → γ) (s : set β) (a : α) :
-  (∀ b, a • f b = f (a • b)) → a • f '' s = f '' (a • s) :=
+@[to_additive] lemma image_smul_comm [has_smul α β] [has_smul α γ] (f : β → γ) (s : set β) (a : α) :
+  (∀ b, f (a • b) = a • f b) → f '' (a • s) = a • f '' s :=
 image_comm
 
-@[to_additive]
-lemma image_smul' [monoid α] [monoid β] [monoid_hom_class F α β] (f : F) (s : set α) (a : α) :
+@[to_additive] lemma image_smul_distrib [monoid α] [monoid β] [monoid_hom_class F α β] (f : F)
+  (s : set α) (a : α) :
   f '' (a • s) = f a • f '' s :=
 image_comm $ map_mul _ _
 

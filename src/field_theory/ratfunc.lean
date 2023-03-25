@@ -1024,10 +1024,8 @@ lemma is_coprime_num_denom (x : ratfunc K) : is_coprime x.num x.denom :=
 begin
   induction x using ratfunc.induction_on with p q hq,
   rw [num_div, denom_div _ hq],
-  refine (is_coprime_mul_unit_left _ (p / gcd p q) (q / gcd p q)).2 (is_coprime_div_gcd_div_gcd hq),
-  refine (ne.is_unit _).inv.map polynomial.C,
-  rw polynomial.leading_coeff_eq_zero,
-  exact right_div_gcd_ne_zero hq,
+  exact (is_coprime_mul_unit_left ((leading_coeff_ne_zero.2 $ right_div_gcd_ne_zero
+    hq).is_unit.inv.map C) _ _).2 (is_coprime_div_gcd_div_gcd hq),
 end
 
 @[simp] lemma num_eq_zero_iff {x : ratfunc K} : num x = 0 ↔ x = 0 :=

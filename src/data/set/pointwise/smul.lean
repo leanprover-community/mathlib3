@@ -382,8 +382,8 @@ open_locale pointwise
   (∀ b, f (a • b) = a • f b) → f '' (a • s) = a • f '' s :=
 image_comm
 
-@[to_additive] lemma image_smul_distrib [monoid α] [monoid β] [monoid_hom_class F α β] (f : F)
-  (s : set α) (a : α) :
+@[to_additive] lemma image_smul_distrib [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β]
+  (f : F) (s : set α) (a : α) :
   f '' (a • s) = f a • f '' s :=
 image_comm $ map_mul _ _
 

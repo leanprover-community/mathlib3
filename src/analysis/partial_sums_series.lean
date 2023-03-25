@@ -55,6 +55,24 @@ end
 
 end
 
+def partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, partial_sum a n ≤ partial_sum b n :=
+begin
+  intro n,
+  induction n with n hi,
+  { unfold partial_sum,
+    simp },
+  calc partial_sum a (n + 1) = a n + partial_sum a n : partial_sum_next n
+    ... ≤ b n + partial_sum b n : add_le_add (h n) (hi)
+    ... = partial_sum b (n + 1) : (partial_sum_next n).symm
+end
+
+def cau_seq_of_le (a b : ℕ → ℝ) (h : ∀ n, 0 < a n ∧ a n < b n) (hb : series_converges b) : is_cau_seq abs a :=
+begin
+  cases hb with T hT,
+  intros ε hε,
+  sorry
+end
+
 theorem summable_of_series_absolute_convergence_real {f : ℕ → ℝ}
   (h : series_converges_absolutely f) : summable f :=
 summable_of_absolute_convergence_real h

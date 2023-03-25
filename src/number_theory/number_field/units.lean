@@ -19,22 +19,18 @@ of a number field `K`.
 number field, units
  -/
 
--- TODO. Need to backport changes to xfr-unit
-
 open_locale classical number_field
 
 noncomputable theory
 
 variables (K : Type*) [field K]
 
-localized "notation `𝓤`K := (number_field.ring_of_integers K)ˣ" in number_field.units
-
 namespace number_field
 
 open number_field units
 
-/-- The `monoid_hom` from the group of units `𝓤 K` to the field `K`. -/
-def units_to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
+/-- The `monoid_hom` from the group of units `(𝓞 K)ˣ` to the field `K`. -/
+def units_to_field : (𝓞 K)ˣ →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
 
 lemma units_to_field.injective : function.injective (units_to_field K) :=
 begin
@@ -51,39 +47,39 @@ begin
   exact function.injective.comp t1 t2,
 end
 
-instance ring_of_integers.units.has_coe : has_coe (𝓤 K) K := ⟨units_to_field K⟩
+instance ring_of_integers.units.has_coe : has_coe (𝓞 K)ˣ K := ⟨units_to_field K⟩
 
 section to_field
 
 variable {K}
 
 @[simp]
-lemma units_to_field.ext {x y : 𝓤 K} : (x : K) = (y : K) ↔ x = y :=
+lemma units_to_field.ext {x y : (𝓞 K)ˣ} : (x : K) = (y : K) ↔ x = y :=
   (units_to_field.injective K).eq_iff
 
 @[simp]
-lemma units_to_field.map_inv {x : 𝓤 K} : ((x⁻¹ : 𝓤 K) : K) = (x : K)⁻¹ :=
+lemma units_to_field.map_inv {x : (𝓞 K)ˣ} : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
 map_inv (units_to_field K) x
 
 @[simp]
-lemma units_to_field.map_pow {x : 𝓤 K} {n : ℕ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
+lemma units_to_field.map_pow {x : (𝓞 K)ˣ} {n : ℕ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
 map_pow (units_to_field K) x n
 
 @[simp]
-lemma units_to_field.map_zpow {x : 𝓤 K} {n : ℤ} : ((x ^ n : 𝓤 K) : K) = (x : K) ^ n :=
+lemma units_to_field.map_zpow {x : (𝓞 K)ˣ} {n : ℤ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
 map_zpow (units_to_field K) x n
 
 @[simp]
-lemma units_to_field.map_mul {x y : 𝓤 K} : ((x * y : 𝓤 K) : K) = (x : K) * (y : K) := rfl
+lemma units_to_field.map_mul {x y : (𝓞 K)ˣ} : ((x * y : (𝓞 K)ˣ) : K) = (x : K) * (y : K) := rfl
 
 -- @[simp]
 -- lemma coe_coe_eq_to_field {x : 𝓤 K} : ((x : 𝓞 K) : K) = (x : K) := rfl
 
 @[simp]
-lemma units_to_field.map_one : ((1 : 𝓤 K) : K) = (1 : K) := rfl
+lemma units_to_field.map_one : ((1 : (𝓞 K)ˣ) : K) = (1 : K) := rfl
 
 @[simp]
-lemma units_to_field.ne_zero {x : 𝓤 K} : (x : K) ≠ 0 :=
+lemma units_to_field.ne_zero {x : (𝓞 K)ˣ} : (x : K) ≠ 0 :=
 subtype.coe_injective.ne_iff.2 (units.ne_zero x)
 
 end to_field
@@ -108,7 +104,7 @@ begin
 end
 
 -- TODO. Make that an iff and simplify the proof
-lemma unit.abs_norm [number_field K] (u : 𝓤 K) :
+lemma unit.abs_norm [number_field K] (u : (𝓞 K)ˣ) :
   abs (ring_of_integers.norm ℚ (u : 𝓞 K) : ℚ) = 1 :=
 begin
   have t1 := congr_arg (λ x, (ring_of_integers.norm ℚ) x) u.val_inv,
@@ -137,9 +133,9 @@ section torsion
 open number_field number_field.infinite_place
 
 /-- The torsion subgroup of the group of units. -/
-def torsion : subgroup 𝓤 K := comm_group.torsion (𝓤 K)
+def torsion : subgroup (𝓞 K)ˣ := comm_group.torsion (𝓞 K)ˣ
 
-lemma mem_torsion (x : (𝓤 K)) [number_field K] :
+lemma mem_torsion (x : (𝓞 K)ˣ) [number_field K] :
   x ∈ torsion K ↔ ∀ w : infinite_place K, w x = 1 :=
 begin
   rw (eq_iff_eq x 1 : (∀ w : infinite_place K, w x = 1) ↔ ∀ (φ : K →+* ℂ), ‖φ (x : K)‖ = 1),
@@ -156,7 +152,7 @@ end
 
 lemma torsion_finite [number_field K] : finite (torsion K) :=
 begin
-  suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (torsion K )}).finite,
+  suffices : ((coe : (𝓞 K)ˣ → K) '' { x : (𝓞 K)ˣ | x ∈ (torsion K )}).finite,
   { exact set.finite_coe_iff.mpr (set.finite.of_finite_image this
       ((units_to_field.injective K).inj_on _)), },
   refine (embeddings.finite_of_norm_le K ℂ 1).subset _,
@@ -190,7 +186,7 @@ begin
   { intro hx,
     have := @pow_card_eq_one (torsion K) ⟨x, hx⟩ _ _,
     simp only [submonoid_class.mk_pow, subgroup.mk_eq_one_iff] at this,
-    have := congr_arg (coe : (𝓤 K) → (𝓞 K)) this,
+    have := congr_arg (coe : (𝓞 K)ˣ → (𝓞 K)) this,
     rw units.coe_pow at this,
     convert this, },
   { intro hx,
@@ -225,13 +221,13 @@ section log_embedding
 variables {K} [number_field K]
 
 /-- A distinguished infinite place. -/
-def w₀  : infinite_place K := (infinite_place.nonempty K).some
+def w₀ : infinite_place K := (infinite_place.nonempty K).some
 
 variable (K)
 
 /-- The logarithmic embedding of the units. -/
 @[reducible]
-def log_embedding : (𝓤 K) → ({w : infinite_place K // w ≠ w₀} → ℝ) :=
+def log_embedding : (𝓞 K)ˣ → ({w : infinite_place K // w ≠ w₀} → ℝ) :=
 λ x w, mult K w.1 * real.log (w.1 x)
 
 open number_field number_field.infinite_place finite_dimensional number_field.units
@@ -239,12 +235,12 @@ open number_field number_field.infinite_place finite_dimensional number_field.un
 lemma log_embedding.map_one : log_embedding K 1 = 0 :=
 by simpa [log_embedding, units_to_field.map_one, map_one, real.log_one]
 
-lemma log_embedding.map_mul (x y : 𝓤 K) :
+lemma log_embedding.map_mul (x y : (𝓞 K)ˣ) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
 by simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
     map_mul, mul_add, ne.def, map_eq_zero, not_false_iff]
 
-lemma log_embedding.map_inv (x : 𝓤 K) : log_embedding K x⁻¹ = - log_embedding K x :=
+lemma log_embedding.map_inv (x : (𝓞 K)ˣ) : log_embedding K x⁻¹ = - log_embedding K x :=
 by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv, mul_neg]
 
 -- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) :
@@ -252,10 +248,10 @@ by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv, 
 -- sorry -- by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
 
 @[simp]
-lemma log_embedding.component {w : infinite_place K} (hw : w ≠ w₀) (x : 𝓤 K) :
+lemma log_embedding.component {w : infinite_place K} (hw : w ≠ w₀) (x : (𝓞 K)ˣ) :
   (log_embedding K x) ⟨w, hw⟩ = mult K w * real.log (w x) := rfl
 
-lemma log_embedding.sum_component (x : 𝓤 K) :
+lemma log_embedding.sum_component (x : (𝓞 K)ˣ) :
   finset.univ.sum (λ w, (log_embedding K x) w) = - mult K w₀ * real.log (w₀ (x : K)) :=
 begin
   rw (_ : finset.univ.sum (λ (w : {w // w ≠ w₀}), _) =
@@ -278,7 +274,7 @@ begin
     { simp only [finset.mem_erase, finset.mem_univ, and_true], }},
 end
 
-lemma log_embedding.eq_zero_iff (x : 𝓤 K) :
+lemma log_embedding.eq_zero_iff (x : (𝓞 K)ˣ) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
 begin
   rw function.funext_iff,
@@ -297,7 +293,7 @@ begin
   { simp only [log_embedding, h w, pi.zero_apply, real.log_one, subtype.val_eq_coe, mul_zero], },
 end
 
-lemma log_embedding.nnnorm_eq (x : 𝓤 K) :
+lemma log_embedding.nnnorm_eq (x : (𝓞 K)ˣ) :
   ‖log_embedding K x‖₊ =
     finset.univ.sup (λ w : { w : infinite_place K // w ≠ w₀}, ‖mult K w.1 * real.log (w.1 x)‖₊) :=
 by simp [pi.nnnorm_def, log_embedding]
@@ -310,7 +306,7 @@ noncomputable def unit_lattice : add_subgroup ({w : infinite_place K // w ≠ w�
   zero_mem' := ⟨1, log_embedding.map_one K⟩,
   neg_mem' := by { rintros _ ⟨u, rfl⟩, exact ⟨u⁻¹, log_embedding.map_inv K _⟩, }}
 
-lemma log_embedding_ker (x : 𝓤 K) :
+lemma log_embedding_ker (x : (𝓞 K)ˣ) :
   log_embedding K x = 0 ↔ x ∈ torsion K :=
 by rw [log_embedding.eq_zero_iff, mem_torsion K x]
 
@@ -323,7 +319,7 @@ begin
   { convert set.finite_empty,
     rw metric.closed_ball_eq_empty.mpr hr,
     exact set.inter_empty _, },
-  { suffices : {x : 𝓤 K | is_integral ℤ (x : K) ∧
+  { suffices : {x : (𝓞 K)ˣ | is_integral ℤ (x : K) ∧
       ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp (fintype.card (infinite_place K) * r)}.finite,
     { refine (set.finite.image (log_embedding K) this).subset _,
       rintros _ ⟨⟨u, rfl⟩, hu⟩,
@@ -387,7 +383,7 @@ variable {K}
 variables (w : infinite_place K) {f : infinite_place K → nnreal}
 
 /-- The function  `g : infinite_place K → nnreal` obtained from `f : infinite_place K → nnreal`
-by setting `g v = f v` if `v` is real and `g v = (f v) ^ 2` otherwise and by replacing the
+by setting `g v = f v` if `v` is real and `g v = (f v) ^ 2` otherwise, and by replacing the
 value `f w` by `C`. -/
 @[reducible]
 def seq.update (f : infinite_place K → nnreal) (C : nnreal) : infinite_place K → nnreal :=
@@ -501,7 +497,7 @@ variable [number_field K]
 -- open number_field.canonical_embedding
 
 lemma exists_unit (w : infinite_place K ) :
-  ∃ u : 𝓤 K, (∀ z : infinite_place K, z ≠ w → real.log (z u) < 0) :=
+  ∃ u : (𝓞 K)ˣ, (∀ z : infinite_place K, z ≠ w → real.log (z u) < 0) :=
 begin
   obtain ⟨B, hB⟩ : ∃ B : ℕ, minkowski_bound K < (constant_volume K) * B,
   { conv { congr, funext, rw mul_comm, },

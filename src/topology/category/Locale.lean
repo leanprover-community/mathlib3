@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.category.Frame
+import order.category.Frm
 
 /-!
 # The category of locales
@@ -24,7 +24,7 @@ instance : has_coe_to_sort Locale Type* := ⟨λ X, X.unop⟩
 instance (X : Locale) : frame X := X.unop.str
 
 /-- Construct a bundled `Locale` from a `frame`. -/
-def of (α : Type*) [frame α] : Locale := op $ Frame.of α
+def of (α : Type*) [frame α] : Locale := op $ Frm.of α
 
 @[simp] lemma coe_of (α : Type*) [frame α] : ↥(of α) = α := rfl
 

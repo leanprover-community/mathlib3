@@ -21,7 +21,7 @@ be satisfied by itself and all stricter types.
 
 * `Sup_hom`: Maps which preserve `⨆`.
 * `Inf_hom`: Maps which preserve `⨅`.
-* `frame_hom`: Frame homomorphisms. Maps which preserve `⨆`, `⊓` and `⊤`.
+* `frame_hom`: Frm homomorphisms. Maps which preserve `⨆`, `⊓` and `⊤`.
 * `complete_lattice_hom`: Complete lattice homomorphisms. Maps which preserve `⨆` and `⨅`.
 
 ## Typeclasses
@@ -37,7 +37,7 @@ be satisfied by itself and all stricter types.
 
 ## TODO
 
-Frame homs are Heyting homs.
+Frm homs are Heyting homs.
 -/
 
 open function order_dual set
@@ -365,7 +365,7 @@ instance : order_top (Inf_hom α β) := ⟨⊤, λ f a, le_top⟩
 
 end Inf_hom
 
-/-! ### Frame homomorphisms -/
+/-! ### Frm homomorphisms -/
 
 namespace frame_hom
 variables [complete_lattice α] [complete_lattice β] [complete_lattice γ] [complete_lattice δ]

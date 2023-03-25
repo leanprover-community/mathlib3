@@ -25,7 +25,7 @@ universe u
 
 namespace euclidean_domain
 variable {R : Type u}
-variables [euclidean_domain R]
+variables [euclidean_domain R] {a b : R}
 
 local infix ` ≺ `:50 := euclidean_domain.r
 
@@ -83,6 +83,9 @@ begin
   rcases h with ⟨p, rfl⟩,
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
+
+protected lemma mul_div_cancel' (hb : b ≠ 0) (hab : b ∣ a) : b * (a / b) = a :=
+by rw [←mul_div_assoc _ hab, mul_div_cancel_left _ hb]
 
 @[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
 lemma div_one (p : R) : p / 1 = p :=

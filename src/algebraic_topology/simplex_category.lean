@@ -811,8 +811,8 @@ end epi_mono
 to the category attached to the ordered set `{0, 1, ..., n}` -/
 @[simps obj map]
 def to_Cat : simplex_category ⥤ Cat.{0} :=
-simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder ⋙
-  forget₂ LinearOrder Lattice ⋙ forget₂ Lattice PartialOrder ⋙
+simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinOrd ⋙
+  forget₂ LinOrd Lattice ⋙ forget₂ Lattice PartialOrder ⋙
   forget₂ PartialOrder Preorder ⋙ Preorder_to_Cat
 
 end simplex_category

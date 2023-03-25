@@ -220,6 +220,8 @@ def mult : (infinite_place K) → ℝ := λ w, ite (w.is_real) 1 2
 lemma mult_pos (w : infinite_place K) : 0 < mult K w :=
 by { simp only [mult], split_ifs; norm_num, }
 
+section log_embedding
+
 variables {K} [number_field K]
 
 /-- A distinguished infinite place. -/
@@ -372,20 +374,26 @@ lemma rank_space : finrank ℝ ({w : infinite_place K // w ≠ w₀} → ℝ) = 
 by { convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
     simp only [unit_rank, fintype.card_subtype_compl, fintype.card_subtype_eq] }
 
+end log_embedding
+
+open number_field.infinite_place
+
 -- Construction of suitable units
 
 section seq
 
 variable {K}
 
-variables (w : infinite_place K)
+variables (w : infinite_place K) {f : infinite_place K → nnreal}
 
--- TODO. This is only used in the next lemma so remove that?
+/-- The function  `g : infinite_place K → nnreal` obtained from `f : infinite_place K → nnreal`
+by setting `g v = f v` if `v` is real and `g v = (f v) ^ 2` otherwise and by replacing the
+value `f w` by `C`. -/
 @[reducible]
 def seq.update (f : infinite_place K → nnreal) (C : nnreal) : infinite_place K → nnreal :=
 λ v, ite (v.is_real) (f.update w C v) ((f.update w C v) ^ 2)
 
-variable {f : infinite_place K → nnreal}
+variable [number_field K]
 
 lemma seq.exists_bound (hf : ∀ z, z ≠ w → f z ≠ 0) (B : ℕ) :
     ∃ C : nnreal, finset.univ.prod (seq.update w f C) = B :=
@@ -445,7 +453,9 @@ begin
 end
 
 /-- An infinite sequence of non-zero algebraic integers of `K` satisfying the following properties:
-TBC. -/
+1) `seq n` is non-zero;
+2) for `v : infinite_place K`, `v ≠ w → v (seq n+1) < v (seq n) /2 `;
+3) `∣norm (seq n)∣ ≤ B`. -/
 def seq (n : ℕ) : { x : 𝓞 K // x ≠ 0 } :=
 nat.rec_on n ⟨(1 : 𝓞 K), (by norm_num)⟩
   (λ _ a, ⟨(seq.next w hB a.prop).some, (seq.next w hB a.prop).some_spec.1⟩)
@@ -486,6 +496,10 @@ end
 
 end seq
 
+variable [number_field K]
+
+-- open number_field.canonical_embedding
+
 lemma exists_unit (w : infinite_place K ) :
   ∃ u : 𝓤 K, (∀ z : infinite_place K, z ≠ w → real.log (z u) < 0) :=
 begin
@@ -515,52 +529,34 @@ begin
           exists_eq_right'], }}},
 end
 
-#exit
-
-lemma unit_lattice.full_lattice :
+lemma unit_lattice.span_eq_top :
   submodule.span ℝ (unit_lattice K : set ({w : infinite_place K // w ≠ w₀} → ℝ)) = ⊤ :=
 begin
-  refine le_antisymm (le_top) _,
   let B := pi.basis_fun ℝ {w : infinite_place K // w ≠ w₀},
-  let u : (infinite_place K) → (𝓤 K) := λ w, (exists_unit K w).some,
-  let v : { w : infinite_place K // w ≠ w₀ } → ({w : infinite_place K // w ≠ w₀} → ℝ) :=
-    λ w, log_embedding K (u w),
+  set v := λ w : { w : infinite_place K // w ≠ w₀ }, log_embedding K ((exists_unit K w).some)
+    with v_def,
+  refine le_antisymm (le_top) _,
   suffices : B.det v ≠ 0,
-  { rw ← is_unit_iff_ne_zero at this,
-    rw ← ((is_basis_iff_det B).mpr this).2,
-    refine submodule.span_monotone _,
-    rintros _ ⟨w, rfl⟩,
-    exact ⟨u w, rfl⟩, },
+  { rw ← ((is_basis_iff_det B).mpr (is_unit_iff_ne_zero.mpr this)).2,
+    exact submodule.span_monotone (by { rintros _ ⟨w, rfl⟩, exact ⟨(exists_unit K w).some, rfl⟩ })},
   rw basis.det_apply,
-  refine matrix.det_ne_zero_of_neg _ _,
-  { intros w z h,
-    rw basis.coe_pi_basis_fun.to_matrix_eq_transpose,
-    rw matrix.transpose_apply,
-    dsimp [v],
-    rw log_embedding.component,
+  refine matrix.det_ne_zero_of_neg (λ w z h, _) (λ w, _),
+  { rw [basis.coe_pi_basis_fun.to_matrix_eq_transpose, matrix.transpose_apply, v_def],
+    simp_rw log_embedding.component,
     refine mul_neg_of_pos_of_neg (mult_pos K _) _,
-    { refine (exists_unit K z.1).some_spec w _,
-      exact subtype.ext_iff_val.not.mp h, },
-    { exact w.prop, }},
-  { intro w,
-    rw basis.coe_pi_basis_fun.to_matrix_eq_transpose,
-    simp_rw  matrix.transpose_apply,
-    rw (_ : finset.univ.sum (λ i, v w i) = finset.univ.sum (λ i, (log_embedding K (u w)) i)),
-    { rw log_embedding.sum_component,
-      refine mul_pos_of_neg_of_neg _ _,
-      { rw neg_lt_zero,
-        exact mult_pos K _, },
-      { refine (exists_unit K w.1).some_spec w₀ _,
-        exact w.prop.symm, }},
-    { simp_rw log_embedding.component, }},
+    exact (exists_unit K z.1).some_spec w (subtype.ext_iff_val.not.mp h), },
+  { simp_rw [basis.coe_pi_basis_fun.to_matrix_eq_transpose, matrix.transpose_apply, v_def,
+      log_embedding.sum_component],
+    exact mul_pos_of_neg_of_neg (neg_lt_zero.mpr (mult_pos K _))
+      ((exists_unit K w.1).some_spec w₀ w.prop.symm), },
 end
 
 lemma unit_lattice.module.free : module.free ℤ (unit_lattice K) :=
-zlattice.module.free ℝ ((unit_lattice.inter_ball_finite K)) (unit_lattice.full_lattice K)
+zlattice.module.free ℝ ((unit_lattice.inter_ball_finite K)) (unit_lattice.span_eq_top K)
 
-lemma unit_lattice.dim : finrank ℤ (unit_lattice K) = unit_rank K :=
+lemma unit_lattice.rank : finrank ℤ (unit_lattice K) = unit_rank K :=
 by { rw ← rank_space K,
-  exact zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.full_lattice K), }
+  exact zlattice.rank ℝ (unit_lattice.inter_ball_finite K) (unit_lattice.span_eq_top K), }
 
 end units.dirichlet
 

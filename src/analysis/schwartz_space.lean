@@ -408,7 +408,7 @@ end
 /-- The supremum of all seminorms `schwartz_map.seminorm 𝕜 k' n'` with `k' ≤ k` and `n' ≤ n`. -/
 @[protected]
 def seminorm_sup (k n : ℕ) : seminorm 𝕜 𝓢(E, F) :=
-  ((finset.range (k + 1)) ×ˢ (finset.range (n + 1))).sup (λ n, seminorm 𝕜 n.1 n.2)
+((finset.range (k + 1)) ×ˢ (finset.range (n + 1))).sup (λ n, seminorm 𝕜 n.1 n.2)
 
 lemma le_seminorm_sup {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
   (seminorm 𝕜 k' n' : seminorm 𝕜 𝓢(E, F)) ≤ seminorm_sup 𝕜 k n :=

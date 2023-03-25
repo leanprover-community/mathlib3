@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Yaël Dillies
 -/
 import linear_algebra.ray
-import analysis.normed_space.basic
+import analysis.normed_space.real
 
 /-!
 # Rays in a real normed vector space

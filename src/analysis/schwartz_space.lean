@@ -407,14 +407,8 @@ end
 
 lemma le_sup_seminorm {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
   (seminorm 𝕜 k' n' : seminorm 𝕜 𝓢(E, F)) ≤ (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) :=
-begin
-  have : (k', n') ∈ finset.Iic (k, n) :=
-  begin
-    simp only [prod.mk_le_mk, finset.mem_Iic],
-    exact ⟨hk, hn⟩,
-  end,
-  exact @finset.le_sup _ _ _ _ _ (λ (n : ℕ × ℕ), seminorm 𝕜 n.1 n.2) _ this,
-end
+@finset.le_sup _ _ _ _ _ (λ n : ℕ × ℕ, seminorm 𝕜 n.1 n.2) _ $ finset.mem_Iic.2 $
+  prod.mk_le_mk.2 ⟨hk, hn⟩
 
 /-- The seminorm `(finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2)` can bound all powers and
 derivatives of lower order. -/

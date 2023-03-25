@@ -1,6 +1,6 @@
 import analysis.schwartz_space
 
-open_locale big_operators schwartz_space
+open_locale big_operators schwartz_space nnreal
 
 universes uD uE uF uG
 
@@ -37,6 +37,8 @@ end
 end mul_lemma
 
 noncomputable theory
+
+open schwartz_map
 
 variables {𝕜 𝕜' D E F G : Type*}
 
@@ -110,7 +112,7 @@ end
 def mul (B : E →L[ℝ] F →L[ℝ] G) (f : 𝓢(D, E)) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
   (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) : 𝓢(D, G) :=
 { to_fun := λ x, B (f x) (g x),
-  smooth' := B.is_bounded_bilinear_map.cont_diff.comp (cont_diff.prod f.smooth' hg_smooth),
+  smooth' := B.is_bounded_bilinear_map.cont_diff.comp (f.smooth'.prod hg_smooth),
   decay' :=
   begin
     intros k n,
@@ -145,4 +147,83 @@ def mul (B : E →L[ℝ] F →L[ℝ] G) (f : 𝓢(D, E)) {g : D → F} (hg_smoot
       refine pow_le_pow_of_le_left (norm_nonneg _) _ _,
       simp only [zero_le_one, le_add_iff_nonneg_left], },
   end,
+}
+
+@[simp]
+lemma mul_apply (B : E →L[ℝ] F →L[ℝ] G) (f : 𝓢(D, E)) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k)
+  (x : D) : mul B f hg_smooth hg_growth x = B (f x) (g x) := rfl
+
+.
+
+def mul_lm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
+   𝓢(D, E) →ₗ[ℝ] 𝓢(D, G) :=
+{ to_fun := λ f, mul B f hg_smooth hg_growth,
+  map_add' := λ f f', by ext; simp,
+  map_smul' := λ a f, by ext; simp }
+
+def mul' (f : 𝓢(E, ℝ)) {g : E → F} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
+  𝓢(E, F) := mul (continuous_linear_map.lsmul ℝ ℝ : ℝ →L[ℝ] F →L[ℝ] F) f hg_smooth hg_growth
+
+lemma mul'_apply (f : 𝓢(E, ℝ)) {g : E → F} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) (x : E) :
+  mul' f hg_smooth hg_growth x = f x • g x := rfl
+
+def mul'' (f : 𝓢(E, F)) {g : E → ℝ} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
+  𝓢(E, F) := mul (continuous_linear_map.lsmul ℝ ℝ : ℝ →L[ℝ] F →L[ℝ] F).flip f hg_smooth hg_growth
+
+lemma mul''_apply (f : 𝓢(E, F)) {g : E → ℝ} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) (x : E) :
+  mul'' f hg_smooth hg_growth x = g x • f x := rfl
+
+/-- Create a linear map between Schwartz spaces.
+
+Note: This is a helper definition for `mk_clm`. -/
+def mk_lm (A : (D → E) → (F → G))
+  (hadd : ∀ f g x, A (f + g) x = A f x + A g x)
+  (hsmul : ∀ (a : ℝ) f x, A (a • f) x = a • A f x)
+  (hsmooth : ∀ (f : D → E) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (A f))
+  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
+  ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * (s.sup (schwartz_seminorm_family ℝ D E)) f)
+  : 𝓢(D, E) →ₗ[ℝ] 𝓢(F, G) :=
+{ to_fun := λ f, {
+    to_fun := A f,
+    smooth' := hsmooth f f.smooth',
+    decay' := begin
+      intros k n,
+      rcases hbound ⟨k, n⟩ with ⟨s, C, hC, h⟩,
+      exact ⟨C * (s.sup (schwartz_seminorm_family ℝ D E)) f, h f⟩,
+    end, },
+  map_add' := λ f g, ext (hadd f g),
+  map_smul' := λ a f, ext (hsmul a f), }
+
+def mk_clm (A : (D → E) → (F → G))
+  (hadd : ∀ f g x, A (f + g) x = A f x + A g x)
+  (hsmul : ∀ (a : ℝ) f x, A (a • f) x = a • A f x)
+  (hsmooth : ∀ (f : D → E) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (A f))
+  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
+  ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * (s.sup (schwartz_seminorm_family ℝ D E)) f)
+  : 𝓢(D, E) →L[ℝ] 𝓢(F, G) :=
+{ cont :=
+  begin
+    change continuous (mk_lm A hadd hsmul hsmooth hbound : 𝓢(D, E) →ₗ[ℝ] 𝓢(F, G)),
+    refine seminorm.continuous_from_bounded (schwartz_with_seminorms ℝ D E)
+      (schwartz_with_seminorms ℝ F G) _ _,
+    intro n,
+    rcases hbound n with ⟨s, C, hC, h⟩,
+    refine ⟨s, ⟨C, hC.le⟩, by simp only [nonneg.mk_eq_zero, ne.def, not_false_iff, hC.ne.symm], _⟩,
+    intros f,
+    simp only [seminorm.comp_apply, seminorm.smul_apply],
+    refine (mk_lm A hadd hsmul hsmooth hbound f).seminorm_le_bound ℝ n.1 n.2 _ _,
+    { rw nnreal.smul_def,
+      positivity },
+    intros x,
+    rw nnreal.smul_def,
+    simp only [algebra.id.smul_eq_mul, subtype.coe_mk],
+    exact h f x,
+  end,
+  to_linear_map := mk_lm A hadd hsmul hsmooth hbound,
 }

@@ -77,7 +77,7 @@ noncomputable instance : normed_division_ring ℍ :=
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 instance : normed_algebra ℝ ℍ :=
-{ norm_smul_le := λ a x, (norm_smul a x).le,
+{ norm_smul_le := λ a x, norm_smul_le a x,
   to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
 
 instance : cstar_ring ℍ :=

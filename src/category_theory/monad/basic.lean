@@ -10,6 +10,9 @@ import category_theory.functor.reflects_isomorphisms
 /-!
 # Monads
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the categories of monads and comonads, and their forgetful functors to endofunctors.
 
 (Note that these are the category theorist's monads, not the programmers monads.

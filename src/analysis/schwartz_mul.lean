@@ -49,17 +49,12 @@ variables [normed_add_comm_group F] [normed_space ℝ F] [normed_space 𝕜 F]
 variables [normed_add_comm_group G] [normed_space ℝ G] [normed_space 𝕜 G]
 
 def schwartz_seminorm_sup (k n : ℕ) : seminorm ℝ 𝓢(E, F) :=
-  ((finset.range (k + 1)) ×ˢ (finset.range (n + 1))).sup (schwartz_seminorm_family ℝ E F)
+  (finset.Iic (k,n)).sup (schwartz_seminorm_family ℝ E F)
 
 lemma le_schwartz_seminorm_sup {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
   (schwartz_map.seminorm ℝ k' n' : seminorm ℝ 𝓢(E, F)) ≤ schwartz_seminorm_sup k n :=
 begin
-  have : (k', n') ∈ (finset.range (k + 1)).product (finset.range (n + 1)) :=
-  begin
-    simp only [finset.mem_range, finset.mem_product],
-    exact ⟨nat.lt_succ_of_le hk, nat.lt_succ_of_le hn⟩,
-  end,
-  exact @finset.le_sup _ _ _ _ _ (schwartz_seminorm_family ℝ E F) _ this,
+  sorry,
 end
 
 lemma le_schwartz_seminorm_sup_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) (f : 𝓢(E, F)) (x : E) :
@@ -185,45 +180,74 @@ Note: This is a helper definition for `mk_clm`. -/
 def mk_lm (A : (D → E) → (F → G))
   (hadd : ∀ f g x, A (f + g) x = A f x + A g x)
   (hsmul : ∀ (a : ℝ) f x, A (a • f) x = a • A f x)
-  (hsmooth : ∀ (f : D → E) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (A f))
-  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
+  (hsmooth : ∀ (f : 𝓢(D, E)) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (A f))
+  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 ≤ C), ∀ (f : 𝓢(D, E)) (x : F),
   ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * (s.sup (schwartz_seminorm_family ℝ D E)) f)
   : 𝓢(D, E) →ₗ[ℝ] 𝓢(F, G) :=
 { to_fun := λ f, {
     to_fun := A f,
     smooth' := hsmooth f f.smooth',
-    decay' := begin
-      intros k n,
-      rcases hbound ⟨k, n⟩ with ⟨s, C, hC, h⟩,
-      exact ⟨C * (s.sup (schwartz_seminorm_family ℝ D E)) f, h f⟩,
-    end, },
+    decay' := sorry, },
   map_add' := λ f g, ext (hadd f g),
   map_smul' := λ a f, ext (hsmul a f), }
 
 def mk_clm (A : (D → E) → (F → G))
   (hadd : ∀ f g x, A (f + g) x = A f x + A g x)
   (hsmul : ∀ (a : ℝ) f x, A (a • f) x = a • A f x)
-  (hsmooth : ∀ (f : D → E) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (A f))
-  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 < C), ∀ (f : 𝓢(D, E)) (x : F),
+  (hsmooth : ∀ (f : 𝓢(D, E)) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (A f))
+  (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 ≤ C), ∀ (f : 𝓢(D, E)) (x : F),
   ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * (s.sup (schwartz_seminorm_family ℝ D E)) f)
   : 𝓢(D, E) →L[ℝ] 𝓢(F, G) :=
 { cont :=
   begin
-    change continuous (mk_lm A hadd hsmul hsmooth hbound : 𝓢(D, E) →ₗ[ℝ] 𝓢(F, G)),
-    refine seminorm.continuous_from_bounded (schwartz_with_seminorms ℝ D E)
-      (schwartz_with_seminorms ℝ F G) _ _,
-    intro n,
-    rcases hbound n with ⟨s, C, hC, h⟩,
-    refine ⟨s, ⟨C, hC.le⟩, by simp only [nonneg.mk_eq_zero, ne.def, not_false_iff, hC.ne.symm], _⟩,
-    intros f,
-    simp only [seminorm.comp_apply, seminorm.smul_apply],
-    refine (mk_lm A hadd hsmul hsmooth hbound f).seminorm_le_bound ℝ n.1 n.2 _ _,
-    { rw nnreal.smul_def,
-      positivity },
-    intros x,
-    rw nnreal.smul_def,
-    simp only [algebra.id.smul_eq_mul, subtype.coe_mk],
-    exact h f x,
+    sorry,
   end,
   to_linear_map := mk_lm A hadd hsmul hsmooth hbound,
 }
+
+def mul_clm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
+  𝓢(D, E) →L[ℝ] 𝓢(D, G) :=
+mk_clm (λ f x, B (f x) (g x))
+  (λ f f' x, by simp only [map_add, add_left_inj, pi.add_apply, eq_self_iff_true,
+    continuous_linear_map.add_apply])
+  (λ a f x, by simp only [eq_self_iff_true, pi.smul_apply, continuous_linear_map.coe_smul',
+    continuous_linear_map.map_smul])
+  (λ f hf, B.is_bounded_bilinear_map.cont_diff.comp (f.smooth'.prod hg_smooth))
+  (begin
+    rintro ⟨k, n⟩,
+    rcases growth_max hg_growth n with ⟨l, C, hC, hgrowth'⟩,
+    use [finset.Iic (l+k,n), ‖B‖ * (n + 1) * n.choose (n / 2) * (C * 2^(l + k)), by positivity],
+    intros f x,
+    have hxk : 0 ≤ ‖x‖^k := by positivity,
+    have hnorm_mul :=
+    continuous_linear_map.norm_iterated_fderiv_le_of_bilinear B f.smooth' hg_smooth x le_top,
+    refine le_trans (mul_le_mul_of_nonneg_left hnorm_mul hxk) _,
+    rw [← mul_assoc (‖x‖^k), mul_comm (‖x‖^k)],
+    simp_rw [mul_assoc (‖B‖)],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    rw [finset.mul_sum],
+    have : ∑ (x_1 : ℕ) in finset.range (n + 1), (1 : ℝ) = n + 1 := by simp,
+    repeat { rw [mul_assoc ((n : ℝ) + 1)] },
+    rw [← this, finset.sum_mul],
+    refine finset.sum_le_sum (λ i hi, _),
+    simp only [one_mul],
+    rw [← mul_assoc, mul_comm (‖x‖^k), mul_assoc, mul_assoc, mul_assoc],
+    refine mul_le_mul _ _ (by positivity) (by positivity),
+    { norm_cast,
+      exact i.choose_le_middle n },
+    specialize hgrowth' (n - i) (by simp only [tsub_le_self]) x,
+    rw [← mul_assoc],
+    refine le_trans (mul_le_mul_of_nonneg_left hgrowth' (by positivity)) _,
+    rw [mul_comm _ (C * _), mul_assoc, mul_assoc C],
+    refine mul_le_mul_of_nonneg_left _ hC,
+    nth_rewrite 1 mul_comm,
+    rw [← mul_assoc],
+    rw finset.mem_range_succ_iff at hi,
+    refine le_trans _ (one_add_le_schwartz_seminorm_sup_apply rfl.le hi f x ),
+    refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    rw [pow_add],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    refine pow_le_pow_of_le_left (norm_nonneg _) _ _,
+    simp only [zero_le_one, le_add_iff_nonneg_left],
+  end)

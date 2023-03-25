@@ -1020,7 +1020,7 @@ x.induction_on (λ p q hq, begin
     exact inv_ne_zero (polynomial.leading_coeff_ne_zero.mpr q_div_ne_zero) },
 end)
 
-lemma is_coprime_num_denom (x : ratfunc k) : is_coprime x.num x.denom :=
+lemma is_coprime_num_denom (x : ratfunc K) : is_coprime x.num x.denom :=
 begin
   induction x using ratfunc.induction_on with p q hq,
   rw [num_div, denom_div _ hq],

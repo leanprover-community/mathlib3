@@ -25,7 +25,7 @@ universe u
 
 namespace euclidean_domain
 variable {R : Type u}
-variables [euclidean_domain R] {a b : R}
+variables [euclidean_domain R]
 
 local infix ` ≺ `:50 := euclidean_domain.r
 
@@ -84,7 +84,7 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
-protected lemma mul_div_cancel' (hb : b ≠ 0) (hab : b ∣ a) : b * (a / b) = a :=
+protected lemma mul_div_cancel' {a b : R} (hb : b ≠ 0) (hab : b ∣ a) : b * (a / b) = a :=
 by rw [←mul_div_assoc _ hab, mul_div_cancel_left _ hb]
 
 @[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]

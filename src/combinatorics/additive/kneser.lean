@@ -73,7 +73,7 @@ begin
   have hxy : x * y ∈ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab) := mul_mem_mul hx hy,
   rw this at hsub,
   rw this at hab,
-  obtain ⟨z, hz, hzst⟩ := (not_subset _ _).mp hab,
+  obtain ⟨z, hz, hzst⟩ := not_subset.1 hab,
   obtain ⟨w, hw, hwz⟩ := mem_smul_finset.mp hz,
   refine (finset.ssubset_iff_of_subset hsubset).mpr ⟨w, hw, _⟩,
   rw mem_mul_stab' ⟨x * y, hxy⟩,
@@ -348,7 +348,7 @@ begin
   simp only [mul_smul_comm, smul_mul_assoc, mul_stab_smul, card_smul_finset] at *,
   have hst : (s ∩ t).nonempty := ⟨_, mem_inter.2 ⟨ha, hc⟩⟩,
   have hsts : s ∩ t ⊂ s :=
-    ⟨inter_subset_left _ _, (not_subset _ _).2 ⟨_, hb, λ h, hbac $ inter_subset_right _ _ h⟩⟩,
+    ⟨inter_subset_left _ _, not_subset.2 ⟨_, hb, λ h, hbac $ inter_subset_right _ _ h⟩⟩,
   clear_dependent a b,
   set convergent : set (finset α) :=
     {C | C ⊆ s * t ∧ (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card},

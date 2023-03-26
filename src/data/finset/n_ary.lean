@@ -24,14 +24,6 @@ We do not define `finset.image₃` as its only purpose would be to prove propert
 and `set.image2` already fulfills this task.
 -/
 
-namespace finset
-variables {α β : Type*} [decidable_eq β] {f : α → β} {s : finset α}
-
-lemma forall_image_iff {p : β → Prop} : (∀ b ∈ image f s, p b) ↔ ∀ a ∈ s, p (f a) :=
-by simp_rw [←mem_coe, coe_image, set.ball_image_iff]
-
-end finset
-
 open function set
 
 variables {α α' β β' γ γ' δ δ' ε ε' ζ ζ' ν : Type*}

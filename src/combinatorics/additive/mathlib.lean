@@ -152,6 +152,21 @@ lemma cinfi_le_of_le' (c : ι) : f c ≤ a → infi f ≤ a := cinfi_le_of_le (o
 
 end
 
+namespace nat
+variables {ι : Sort*}
+
+@[simp] lemma infi_empty [is_empty ι] (f : ι → ℕ) : (⨅ i : ι, f i) = 0 :=
+by rw [infi, set.range_eq_empty, Inf_empty]
+
+@[simp] lemma infi_const_zero : (⨅ i : ι, 0 : ℕ) = 0 :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { exact infi_empty _ },
+  { exact cinfi_const }
+end
+
+end nat
+
 section canonically_ordered_monoid
 variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
 
@@ -159,6 +174,25 @@ variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
 @[to_additive] lemma le_mul_of_le_right : a ≤ c → a ≤ b * c := le_mul_self.trans'
 
 end canonically_ordered_monoid
+
+alias set.not_infinite ↔ _ set.finite.not_infinite
+
+namespace finset
+variables {α : Type*} [infinite α]
+
+lemma exists_not_mem (s : finset α) : ∃ a, a ∉ s :=
+by { by_contra' h, exact set.infinite_univ (s.finite_to_set.subset $ λ a _, h _) }
+
+lemma exists_card : ∀ n : ℕ, ∃ s : finset α, s.card = n
+| 0 := ⟨∅, card_empty⟩
+| (n + 1) := begin
+  classical,
+  obtain ⟨s, rfl⟩ := exists_card n,
+  obtain ⟨a, ha⟩ := s.exists_not_mem,
+  exact ⟨insert a s, card_insert_of_not_mem ha⟩,
+end
+
+end finset
 
 namespace nat
 variables {α : Type*} {s t : set α}
@@ -171,7 +205,6 @@ to_nat_le_of_le_of_lt_aleph_0 ht.lt_aleph_0 $ mk_le_mk_of_subset h
 end nat
 
 attribute [to_additive] finset.bUnion_smul_finset
-attribute [simp] finset.singleton_inj
 attribute [protected] subgroup.subtype
 attribute [protected] add_subgroup.subtype
 
@@ -205,17 +238,6 @@ end finset
 
 namespace set
 variables {α β γ : Type*} {f : α → β → γ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {u : set γ}
-
-@[simp]
-lemma to_finset_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β) [fintype s]
-  [fintype t] [fintype (image2 f s t)] :
-  (image2 f s t).to_finset = finset.image₂ f s.to_finset t.to_finset :=
-finset.coe_injective $ by simp
-
-lemma finite.to_finset_image2 [decidable_eq γ] (f : α → β → γ) (hs : s.finite) (ht : t.finite)
-  (hf := hs.image2 f ht) :
-  hf.to_finset = finset.image₂ f hs.to_finset ht.to_finset :=
-finset.coe_injective $ by simp
 
 lemma image2_subset_iff_left : image2 f s t ⊆ u ↔ ∀ a ∈ s, f a '' t ⊆ u :=
 by simp_rw [image2_subset_iff, image_subset_iff, subset_def, mem_preimage]
@@ -291,35 +313,6 @@ coe_subset.1 $ by { push_cast, exact set.image2_union_inter_subset_union }
 
 end finset
 
-namespace set
-variables {α β : Type*} {f : α → α → β} {s t : set α}
-
-lemma image2_inter_union_subset (hf : ∀ a b, f a b = f b a) :
-  image2 f (s ∩ t) (s ∪ t) ⊆ image2 f s t :=
-by { rw inter_comm,
-  exact image2_inter_union_subset_union.trans (union_subset (image2_comm hf).subset subset.rfl) }
-
-lemma image2_union_inter_subset (hf : ∀ a b, f a b = f b a) :
-  image2 f (s ∪ t) (s ∩ t) ⊆ image2 f s t :=
-by { rw image2_comm hf, exact image2_inter_union_subset hf }
-
-end set
-
-namespace finset
-variables {α β : Type*} [decidable_eq α] [decidable_eq β] {f : α → α → β} {s t : finset α}
-
-lemma image₂_inter_union_subset (hf : ∀ a b, f a b = f b a) :
-  image₂ f (s ∩ t) (s ∪ t) ⊆ image₂ f s t :=
-coe_subset.1 $ by { push_cast, exact set.image2_inter_union_subset hf }
-
-lemma image₂_union_inter_subset (hf : ∀ a b, f a b = f b a) :
-  image₂ f (s ∪ t) (s ∩ t) ⊆ image₂ f s t :=
-coe_subset.1 $ by { push_cast, exact set.image2_union_inter_subset hf }
-
-end finset
-
-attribute [simp] finset.singleton_inj
-
 open_locale pointwise
 
 attribute [to_additive] finset.nonempty.inv finset.nonempty.of_inv
@@ -346,21 +339,6 @@ image₂_subset_iff_right
 
 end finset
 
-namespace finset
-variables {α : Type*} [has_one α]
-
-@[simp, to_additive] lemma card_one : (1 : finset α).card = 1 := card_singleton _
-
-end finset
-
-namespace finset
-variables {α β : Type*} [group α] [mul_action α β] [decidable_eq β]
-
-@[simp, to_additive] lemma card_smul_finset (a : α) (s : finset β) : (a • s).card = s.card :=
-card_image_of_injective _ $ mul_action.injective _
-
-end finset
-
 namespace set
 variables {α : Type*} [has_mul α] {s s₁ s₂ t t₁ t₂ : set α}
 
@@ -369,17 +347,6 @@ image2_inter_union_subset_union
 
 @[to_additive] lemma union_mul_inter_subset_union : (s₁ ∪ s₂) * (t₁ ∩ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
 image2_union_inter_subset_union
-
-end set
-
-namespace set
-variables {α : Type*} [comm_semigroup α] {s t : set α}
-
-@[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
-image2_inter_union_subset mul_comm
-
-@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
-image2_union_inter_subset mul_comm
 
 end set
 
@@ -393,77 +360,6 @@ image₂_inter_union_subset_union
 image₂_union_inter_subset_union
 
 end finset
-
-namespace finset
-variables {α : Type*} [decidable_eq α] [comm_semigroup α] {s s₁ s₂ t t₁ t₂ : finset α}
-
-@[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
-image₂_inter_union_subset mul_comm
-
-@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
-image₂_union_inter_subset mul_comm
-
-end finset
-
-namespace set
-variables {α β : Type*}
-
-section has_one
-variables [has_one α]
-
-@[simp, to_additive] lemma finite_one : (1 : set α).finite := finite_singleton _
-
-@[simp, to_additive] lemma to_finset_one : (1 : set α).to_finset = 1 := rfl
-
-@[simp, to_additive]
-lemma finite.to_finset_one (h : (1 : set α).finite := finite_one) : h.to_finset = 1 :=
-finite.to_finset_singleton _
-
-end has_one
-
-section has_mul
-variables [has_mul α] [decidable_eq α] {s t : set α}
-
-@[simp, to_additive] lemma to_finset_mul (s t : set α) [fintype s] [fintype t] [fintype ↥(s * t)] :
-  (s * t).to_finset = s.to_finset * t.to_finset :=
-to_finset_image2 _ _ _
-
-@[simp, to_additive] lemma finite.to_finset_mul (hs : s.finite) (ht : t.finite) (hf := hs.mul ht) :
-  hf.to_finset = hs.to_finset * ht.to_finset :=
-finite.to_finset_image2 _ _ _
-
-end has_mul
-
-section has_smul
-variables [has_smul α β] [decidable_eq β] {a : α} {s : set α} {t : set β}
-
-@[simp, to_additive]
-lemma to_finset_smul (s : set α) (t : set β) [fintype s] [fintype t] [fintype ↥(s • t)] :
-  (s • t).to_finset = s.to_finset • t.to_finset :=
-to_finset_image2 _ _ _
-
-@[simp, to_additive]
-lemma finite.to_finset_smul (hs : s.finite) (ht : t.finite) (hf := hs.smul ht) :
-  hf.to_finset = hs.to_finset • ht.to_finset :=
-finite.to_finset_image2 _ _ _
-
-end has_smul
-
-section has_smul
-variables [has_smul α β] [decidable_eq β] {a : α} {s : set β}
-
-@[simp, to_additive]
-lemma to_finset_smul_set (a : α) (s : set β) [fintype s] [fintype ↥(a • s)] :
-  (a • s).to_finset = a • s.to_finset :=
-to_finset_image _ _
-
-@[simp, to_additive]
-lemma finite.to_finset_smul_set (hs : s.finite) (hf : (a • s).finite := hs.smul_set) :
-  hf.to_finset = a • hs.to_finset :=
-finite.to_finset_image _ _ _
-
-end has_smul
-end set
 
 namespace set
 variables {α β : Type*} {f : α → β} {s : set α}
@@ -546,15 +442,6 @@ card_dvd_card_image₂_right mul_action.injective
 
 end finset
 
-namespace finset
-variables {α : Type*} [group α] [decidable_eq α] {s t : finset α}
-
-@[to_additive] lemma card_dvd_card_mul_left :
-  ((λ b, s.image $ λ a, a * b) '' (t : set α)).pairwise_disjoint id → s.card ∣ (s * t).card :=
-card_dvd_card_image₂_left mul_left_injective
-
-end finset
-
 namespace set
 variables {α : Type*} [has_mul α]
 
@@ -607,25 +494,6 @@ by rw [←mul_singleton', ←singleton_smul, mul_smul]
 op_smul_finset_smul_eq_smul_smul_finset _ _ _
 
 end finset
-
-namespace set
-variables {α β γ : Type*}
-
-section
-variables [has_smul α β] [has_smul α γ]
-
-@[to_additive] lemma smul_image (f : β → γ) (s : set β) (a : α) :
-  (∀ b, a • f b = f (a • b)) → a • f '' s = f '' (a • s) :=
-image_comm
-
-end
-
-variables [monoid α] [monoid β]
-
-@[to_additive] lemma image_smul' (f : α →* β) (s : set α) (a : α) : f '' (a • s) = f a • f '' s :=
-image_comm $ map_mul _ _
-
-end set
 
 namespace subgroup
 variables {α : Type*} [group α] {H : subgroup α} [subgroup.normal H] {s t : set α}
@@ -753,7 +621,7 @@ begin
   rintro a,
   simp only [subgroup.mem_map, mem_stabilizer_iff, exists_prop, forall_exists_index, and_imp],
   rintro a ha rfl,
-  rw [←image_smul', ha],
+  rw [←image_smul_distrib, ha],
 end
 
 @[simp, to_additive] lemma stabilizer_mul (s : set α) : (stabilizer α s : set α) * s = s :=
@@ -861,7 +729,7 @@ begin
   induction a using quotient_group.induction_on',
   simp only [mem_stabilizer_iff, subgroup.mem_bot, quotient_group.eq_one_iff],
   have : ↑a • (coe : α → α ⧸ stabilizer α s) '' s = coe '' (a • s) :=
-    (image_smul' (quotient_group.mk' _) _ _).symm,
+    (image_smul_distrib (quotient_group.mk' $ stabilizer α s) _ _).symm,
   rw this,
   refine ⟨λ h, _, λ h, by rw h⟩,
   rwa [subgroup.image_coe_inj, mul_smul_comm, stabilizer_mul] at h,

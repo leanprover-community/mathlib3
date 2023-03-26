@@ -12,40 +12,6 @@ import data.nat.lattice
 
 -/
 
-namespace nat
-variables {ι : Sort*}
-
-@[simp] lemma infi_empty [is_empty ι] (f : ι → ℕ) : (⨅ i : ι, f i) = 0 :=
-by rw [infi, set.range_eq_empty, Inf_empty]
-
-@[simp] lemma infi_const_zero : (⨅ i : ι, 0 : ℕ) = 0 :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { exact infi_empty _ },
-  { exact cinfi_const }
-end
-
-end nat
-
-alias set.not_infinite ↔ _ set.finite.not_infinite
-
-namespace finset
-variables {α : Type*} [infinite α]
-
-lemma exists_not_mem (s : finset α) : ∃ a, a ∉ s :=
-by { by_contra' h, exact set.infinite_univ (s.finite_to_set.subset $ λ a _, h _) }
-
-lemma exists_card : ∀ n : ℕ, ∃ s : finset α, s.card = n
-| 0 := ⟨∅, card_empty⟩
-| (n + 1) := begin
-  classical,
-  obtain ⟨s, rfl⟩ := exists_card n,
-  obtain ⟨a, ha⟩ := s.exists_not_mem,
-  exact ⟨insert a s, card_insert_of_not_mem ha⟩,
-end
-
-end finset
-
 open function
 open_locale pointwise
 

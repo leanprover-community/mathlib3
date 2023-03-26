@@ -177,8 +177,8 @@ begin
     { refine coe_zpowers_subset ⟨_, ha, inv_mul_self _⟩ (λ c hc, _) (λ c hc, _),
       { rw [←hsg, coe_smul_finset, smul_comm],
        exact set.smul_mem_smul_set hc },
-      { rwa [←op_smul_eq_mul, op_inv, ←set.mem_smul_set_iff_inv_smul_mem, smul_comm, ←coe_smul_finset,
-          hsg] } },
+      { rwa [←op_smul_eq_mul, op_inv, ←set.mem_smul_set_iff_inv_smul_mem, smul_comm,
+          ←coe_smul_finset, hsg] } },
     exact or.inl ((nontrivial_size_le_nat_card (zpowers_ne_bot.2 hg) $
       s.finite_to_set.smul_set.subset hS).trans $
       ((nat.card_mono s.finite_to_set.smul_set hS).trans_eq $ by simp).trans $

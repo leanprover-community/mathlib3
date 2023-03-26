@@ -389,12 +389,8 @@ lemma with_seminorms.tendsto_nhds (hp : with_seminorms p) (u : F → E) {f : fil
   filter.tendsto u f (𝓝 y₀) ↔ ∀ (i : ι) (ε : ℝ) (hε : 0 < ε), ∀ᶠ x in f, p i (u x - y₀) < ε :=
 begin
   rw hp.tendsto_nhds' u y₀,
-  split,
-  { intros h i,
-    have := h {i},
-    rwa finset.sup_singleton at this },
-  intros h s ε hε,
-  exact (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ x hx, finset_sup_apply_lt hε hx),
+  exact ⟨λ h i, by simpa only [finset.sup_singleton] using h {i},
+    λ h s ε hε, (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ x hx, finset_sup_apply_lt hε hx)⟩,
 end
 
 variables [semilattice_sup F] [nonempty F]

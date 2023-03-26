@@ -44,25 +44,6 @@ variables (C : Type u) (A : Type*) [category.{v} C]
 
 local attribute [instance] endofunctor_monoidal_category
 
---section eq_to_hom
---
---variables {A C}
---
---variables [add_monoid A] (F : monoidal_functor (discrete A) (C ⥤ C))
---
--- @[simp, reassoc] lemma eq_to_hom_μ_app {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
---   eq_to_hom (by rw [h₁, h₂] : (F.obj ⟨i⟩ ⊗ F.obj ⟨j⟩).obj X =
---       (F.obj ⟨i'⟩ ⊗ F.obj ⟨j'⟩).obj X) ≫ (F.μ ⟨i'⟩ ⟨j'⟩).app X =
---     (F.μ ⟨i⟩ ⟨j⟩).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
--- by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
---
--- @[simp, reassoc] lemma μ_inv_app_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
---   inv ((F.μ ⟨i⟩ ⟨j⟩).app X) ≫ eq_to_hom (by rw [h₁, h₂]) =
---     eq_to_hom (by rw [h₁, h₂]) ≫ inv ((F.μ ⟨i'⟩ ⟨j'⟩).app X) :=
--- by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
---
---end eq_to_hom
-
 section defs
 
 variables (A C) [add_monoid A]
@@ -126,7 +107,6 @@ local attribute [simp] eq_to_hom_map
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
 
 /-- Constructs a `has_shift C A` instance from `shift_mk_core`. -/
---@[simps]
 def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
 ⟨ { ε := h.zero.inv,
     μ := λ m n, (h.add m.as n.as).inv,
@@ -401,32 +381,6 @@ rfl
 /-- Shifting by `i + j` is the same as shifting by `i` and then shifting by `j`. -/
 abbreviation shift_add (i j : A) : X⟦i + j⟧ ≅ X⟦i⟧⟦j⟧ := (shift_functor_add C i j).app _
 
---@[reassoc] lemma shift_add_hom_comp_eq_to_hom₁ (i i' j : A) (h : i = i') :
---  (shift_add X i j).hom ≫ eq_to_hom (by rw h) = eq_to_hom (by rw h) ≫ (shift_add X i' j).hom :=
---by { cases h, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
---
---@[reassoc] lemma shift_add_hom_comp_eq_to_hom₂ (i j j' : A) (h : j = j') :
---  (shift_add X i j).hom ≫ eq_to_hom (by rw h) = eq_to_hom (by rw h) ≫ (shift_add X i j').hom :=
---by { cases h, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
---
---@[reassoc] lemma shift_add_hom_comp_eq_to_hom₁₂ (i j i' j' : A) (h₁ : i = i') (h₂ : j = j') :
---  (shift_add X i j).hom ≫ eq_to_hom (by rw [h₁, h₂]) =
---    eq_to_hom (by rw [h₁, h₂]) ≫ (shift_add X i' j').hom :=
---by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
---
---@[reassoc] lemma eq_to_hom_comp_shift_add_inv₁ (i i' j : A) (h : i = i') :
---  eq_to_hom (by rw h) ≫ (shift_add X i' j).inv = (shift_add X i j).inv ≫ eq_to_hom (by rw h) :=
---by rw [iso.comp_inv_eq, category.assoc, iso.eq_inv_comp, shift_add_hom_comp_eq_to_hom₁]
---
---@[reassoc] lemma eq_to_hom_comp_shift_add_inv₂ (i j j' : A) (h : j = j') :
---  eq_to_hom (by rw h) ≫ (shift_add X i j').inv = (shift_add X i j).inv ≫ eq_to_hom (by rw h) :=
---by rw [iso.comp_inv_eq, category.assoc, iso.eq_inv_comp, shift_add_hom_comp_eq_to_hom₂]
---
---@[reassoc] lemma eq_to_hom_comp_shift_add_inv₁₂ (i j i' j' : A) (h₁ : i = i') (h₂ : j = j') :
---  eq_to_hom (by rw [h₁, h₂]) ≫ (shift_add X i' j').inv =
---    (shift_add X i j).inv ≫ eq_to_hom (by rw [h₁, h₂]) :=
---by rw [iso.comp_inv_eq, category.assoc, iso.eq_inv_comp, shift_add_hom_comp_eq_to_hom₁₂]
-
 lemma shift_shift' (i j : A) :
   f⟦i⟧'⟦j⟧' = (shift_add X i j).inv ≫ f⟦i + j⟧' ≫ (shift_add Y i j).hom :=
 by { symmetry, apply nat_iso.naturality_1 }
@@ -655,6 +609,43 @@ begin
     iso.inv_hom_id_app],
   dsimp,
   rw [functor.map_id],
+end
+
+@[reassoc]
+lemma shift_functor_comm_hom_app_comp_shift_shift_functor_add_hom_app (m₁ m₂ m₃ : A) (X : C) :
+  (shift_functor_comm C m₁ (m₂ + m₃)).hom.app X ≫
+    ((shift_functor_add C m₂ m₃).hom.app X)⟦m₁⟧' =
+  (shift_functor_add C m₂ m₃).hom.app (X⟦m₁⟧) ≫
+    ((shift_functor_comm C m₁ m₂).hom.app X)⟦m₃⟧' ≫
+    (shift_functor_comm C m₁ m₃).hom.app (X⟦m₂⟧) :=
+begin
+  /- this proof should be tidied... -/
+  rw [shift_functor_comm_eq C m₁ (m₂ + m₃) _ rfl,
+    shift_functor_comm_eq C m₁ m₃ (m₁ + m₃) rfl,
+    shift_functor_comm_eq C m₁ m₂ (m₁ + m₂) rfl],
+  dsimp,
+  simp only [category.assoc],
+  have eq := shift_functor_add'_assoc_hom_app m₂ m₃ m₁ (m₂ + m₃) (m₁ + m₃) (m₁ + (m₂ + m₃)) rfl
+    (add_comm m₃ m₁) (add_comm _ m₁) X,
+  rw [shift_functor_add'_eq_shift_functor_add C m₂ m₃] at eq,
+  rw [eq],
+  simp only [← category.assoc],
+  congr' 1,
+  simp only [functor.map_comp, category.assoc],
+  rw [← cancel_mono ((shift_functor_add' C m₁ m₃ (m₁ + m₃) rfl).hom.app ((shift_functor C m₂).obj X))],
+  simp only [category.assoc, iso.inv_hom_id_app],
+  dsimp,
+  rw [category.comp_id],
+  rw [← shift_functor_add'_assoc_hom_app m₂ m₁ m₃
+    (m₁ + m₂) (m₁ + m₃) (m₁ + (m₂ + m₃)) (add_comm _ _) rfl (by rw [add_comm m₂ m₁, add_assoc]) X],
+  simp only [← category.assoc],
+  congr' 1,
+  rw [← cancel_mono ((shift_functor C m₃).map ((shift_functor_add' C m₁ m₂ (m₁ + m₂) rfl).hom.app X))],
+  simp only [category.assoc, ← functor.map_comp, iso.inv_hom_id_app],
+  dsimp,
+  rw [functor.map_id, category.comp_id, shift_functor_add'_assoc_hom_app m₁ m₂ m₃
+    (m₁ + m₂) (m₂ + m₃) (m₁ + (m₂ + m₃)) rfl rfl (add_assoc _ _ _),
+    iso.inv_hom_id_app_assoc, shift_functor_add'_eq_shift_functor_add],
 end
 
 end add_comm_monoid

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
-import data.set.pairwise
+import data.set.pairwise.lattice
 import data.set.pointwise.basic
 import tactic.by_contra
 

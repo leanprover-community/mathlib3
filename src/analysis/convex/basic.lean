@@ -188,7 +188,7 @@ lemma convex.add {t : set E} (hs : convex 𝕜 s) (ht : convex 𝕜 t) : convex 
 by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
 
 lemma convex.vadd (hs : convex 𝕜 s) (z : E) : convex 𝕜 (z +ᵥ s) :=
-by { simp_rw [←image_vadd, vadd_eq_add, ←singleton_add], exact (convex_singleton _).add hs }
+by { rw ←singleton_add, exact (convex_singleton _).add hs }
 
 lemma convex.translate (hs : convex 𝕜 s) (z : E) : convex 𝕜 ((λ x, z + x) '' s) := hs.vadd _
 

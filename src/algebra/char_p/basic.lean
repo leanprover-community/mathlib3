@@ -129,7 +129,7 @@ lemma char_p.nat_cast_eq_nat_cast [add_group_with_one R] (p : ℕ) [char_p R p] 
   (a : R) = b ↔ a ≡ b [MOD p] :=
 begin
   rw [←int.cast_coe_nat, ←int.cast_coe_nat b],
-  exact (int_cast_eq_int_cast _ _).trans int.coe_nat_modeq_iff,
+  exact (char_p.int_cast_eq_int_cast _ _).trans int.coe_nat_modeq_iff,
 end
 
 theorem char_p.eq [add_monoid_with_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :

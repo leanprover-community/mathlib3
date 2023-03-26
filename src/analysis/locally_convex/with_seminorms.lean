@@ -410,7 +410,7 @@ variables [semilattice_sup F] [nonempty F]
 /-- Limit `→ ∞` for `with_seminorms`. -/
 lemma with_seminorms.tendsto_nhds_at_top (hp : with_seminorms p) (u : F → E) (y₀ : E) :
   filter.tendsto u filter.at_top (𝓝 y₀) ↔
-  ∀ (i : ι) (ε : ℝ) (hε : 0 < ε), ∃ x₀ : F, ∀ x : F, x ≥ x₀ → p i (u x - y₀) < ε :=
+  ∀ (i : ι) (ε : ℝ) (hε : 0 < ε), ∃ x₀ : F, ∀ x : F, x₀ ≤ x → p i (u x - y₀) < ε :=
 begin
   rw hp.tendsto_nhds u y₀,
   exact forall₃_congr (λ _ _ _, filter.eventually_at_top),

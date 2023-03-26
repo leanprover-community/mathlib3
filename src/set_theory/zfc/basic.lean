@@ -959,7 +959,7 @@ set.ext $ λ y, Set.mem_sep
 set.ext $ λ y, (iff_false _).2 $ Set.not_mem_empty y
 
 @[simp, norm_cast] theorem coe_insert (x y : Set.{u}) :
-  ↑(insert x y) = (@insert Set.{u} Class.{u} _ x y) :=
+  ↑(insert x y) = @insert Set.{u} Class.{u} _ x y :=
 set.ext $ λ z, Set.mem_insert_iff
 
 @[simp, norm_cast] theorem coe_union (x y : Set.{u}) : ↑(x ∪ y) = (x : Class.{u}) ∪ y :=

@@ -1070,7 +1070,7 @@ theorem eq_univ_of_powerset_subset {A : Class} (hA : powerset A ⊆ A) : A = uni
 eq_univ_of_forall begin
   by_contra' hnA,
   exact well_founded.min_mem Set.mem_wf _ hnA (hA $ λ x hx, not_not.1 $
-    λ hB, well_founded.not_lt_min Set.mem_wf _ hnA hB $ (mem_hom_right _ _).1 hx)
+    λ hB, well_founded.not_lt_min Set.mem_wf _ hnA hB $ coe_apply.1 hx)
 end
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/

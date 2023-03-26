@@ -121,15 +121,15 @@ begin
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
 
-lemma char_p.int_coe_eq_int_coe_iff [add_group_with_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
-  (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
-by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
+lemma char_p.int_cast_eq_int_cast [add_group_with_one R] (p : ℕ) [char_p R p] {a b : ℤ} :
+  (a : R) = b ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub, char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
-lemma char_p.nat_cast_eq_nat_cast : (a : R) = b ↔ a ≡ b [MOD p] :=
+lemma char_p.nat_cast_eq_nat_cast [add_group_with_one R] (p : ℕ) [char_p R p] {a b : ℕ} :
+  (a : R) = b ↔ a ≡ b [MOD p] :=
 begin
   rw [←int.cast_coe_nat, ←int.cast_coe_nat b],
-  exact (int_coe_eq_int_coe_iff _ _ _ _).trans int.coe_nat_modeq_iff,
+  exact (int_cast_eq_int_cast _ _).trans int.coe_nat_modeq_iff,
 end
 
 theorem char_p.eq [add_monoid_with_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
@@ -247,11 +247,6 @@ theorem sub_pow_char_pow [comm_ring R] {p : ℕ} [fact p.prime]
   [char_p R p] {n : ℕ} (x y : R) :
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
-
-lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
-  (a : R) = b ↔ a ≡ b [ZMOD p] :=
-by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 lemma char_p.neg_one_ne_one [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
   (-1 : R) ≠ (1 : R) :=

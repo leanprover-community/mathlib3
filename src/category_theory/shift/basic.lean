@@ -161,7 +161,7 @@ def shift_functor_add (i j : A) :
 /-- When `k = i + j`, shifting by `k` is the same as shifting by `i` and then shifting by `j`. -/
 def shift_functor_add' (i j k : A) (h : i + j = k) :
   shift_functor C k ≅ shift_functor C i ⋙ shift_functor C j :=
-  eq_to_iso (by rw [h]) ≪≫ shift_functor_add C i j
+eq_to_iso (by rw [h]) ≪≫ shift_functor_add C i j
 
 lemma shift_functor_add'_eq_shift_functor_add (i j : A) :
   shift_functor_add' C i j (i+j) rfl = shift_functor_add C i j :=
@@ -193,7 +193,7 @@ begin
 end
 
 lemma shift_mk_core.shift_functor_add_eq (h : shift_mk_core C A) (a b : A) :
-    @shift_functor_add _ _ _ _ (has_shift_mk C A h) a b = h.add a b := by
+  @shift_functor_add _ _ _ _ (has_shift_mk C A h) a b = h.add a b :=
 begin
   letI := has_shift_mk C A h,
   ext1,
@@ -225,7 +225,7 @@ end
 
 lemma shift_functor_add'_add_zero (a : A) :
   shift_functor_add' C a 0 a (add_zero a) = (functor.right_unitor _).symm ≪≫
-    iso_whisker_left (shift_functor C a) (shift_functor_zero C A).symm := by
+    iso_whisker_left (shift_functor C a) (shift_functor_zero C A).symm :=
 begin
   ext X,
   dsimp [shift_functor_add'],
@@ -235,11 +235,11 @@ end
 
 
 lemma shift_functor_add'_assoc (a₁ a₂ a₃ a₁₂ a₂₃ a₁₂₃ : A)
-    (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) :
-    shift_functor_add' C a₁₂ a₃ a₁₂₃ (by rw [← h₁₂, h₁₂₃]) ≪≫
-      iso_whisker_right (shift_functor_add' C a₁ a₂ a₁₂ h₁₂) _ ≪≫ functor.associator _ _ _  =
-    shift_functor_add' C a₁ a₂₃ a₁₂₃ (by rw [← h₂₃, ← add_assoc, h₁₂₃]) ≪≫
-      iso_whisker_left _ (shift_functor_add' C a₂ a₃ a₂₃ h₂₃) :=
+  (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) :
+  shift_functor_add' C a₁₂ a₃ a₁₂₃ (by rw [← h₁₂, h₁₂₃]) ≪≫
+    iso_whisker_right (shift_functor_add' C a₁ a₂ a₁₂ h₁₂) _ ≪≫ functor.associator _ _ _  =
+  shift_functor_add' C a₁ a₂₃ a₁₂₃ (by rw [← h₂₃, ← add_assoc, h₁₂₃]) ≪≫
+    iso_whisker_left _ (shift_functor_add' C a₂ a₃ a₂₃ h₂₃) :=
 begin
   substs h₁₂ h₂₃ h₁₂₃,
   ext X,
@@ -250,10 +250,10 @@ begin
 end
 
 lemma shift_functor_add_assoc (a₁ a₂ a₃ : A) :
-    shift_functor_add C (a₁ + a₂) a₃ ≪≫
-      iso_whisker_right (shift_functor_add C a₁ a₂) _ ≪≫ functor.associator _ _ _  =
-    shift_functor_add' C a₁ (a₂ + a₃) _ (add_assoc a₁ a₂ a₃).symm ≪≫
-      iso_whisker_left _ (shift_functor_add C a₂ a₃) := by
+  shift_functor_add C (a₁ + a₂) a₃ ≪≫
+    iso_whisker_right (shift_functor_add C a₁ a₂) _ ≪≫ functor.associator _ _ _  =
+  shift_functor_add' C a₁ (a₂ + a₃) _ (add_assoc a₁ a₂ a₃).symm ≪≫
+    iso_whisker_left _ (shift_functor_add C a₂ a₃) :=
 begin
   ext X,
   simpa [shift_functor_add'_eq_shift_functor_add]
@@ -265,8 +265,8 @@ variable {C}
 
 lemma shift_functor_add'_zero_add_hom_app (a : A) (X : C) :
   (shift_functor_add' C 0 a a (zero_add a)).hom.app X =
-    ((shift_functor_zero C A).inv.app X)⟦a⟧' := by
-  simpa using nat_trans.congr_app (congr_arg iso.hom (shift_functor_add'_zero_add C a)) X
+    ((shift_functor_zero C A).inv.app X)⟦a⟧' :=
+by simpa using nat_trans.congr_app (congr_arg iso.hom (shift_functor_add'_zero_add C a)) X
 
 lemma shift_functor_add_zero_add_hom_app (a : A) (X : C) :
   (shift_functor_add C 0 a).hom.app X =
@@ -290,7 +290,7 @@ end
 
 lemma shift_functor_add_zero_add_inv_app (a : A) (X : C) :
   (shift_functor_add C 0 a).inv.app X =
-    ((shift_functor_zero C A).hom.app X)⟦a⟧' ≫ eq_to_hom (by dsimp; rw [zero_add]) := by
+    ((shift_functor_zero C A).hom.app X)⟦a⟧' ≫ eq_to_hom (by dsimp; rw [zero_add]) :=
 begin
   erw [← shift_functor_add'_zero_add_inv_app],
   dsimp [shift_functor_add'],
@@ -299,12 +299,12 @@ end
 
 lemma shift_functor_add'_add_zero_hom_app (a : A) (X : C):
   (shift_functor_add' C a 0 a (add_zero a)).hom.app X =
-    (shift_functor_zero C A).inv.app (X⟦a⟧) := by
-  simpa using nat_trans.congr_app (congr_arg iso.hom (shift_functor_add'_add_zero C a)) X
+    (shift_functor_zero C A).inv.app (X⟦a⟧) :=
+by simpa using nat_trans.congr_app (congr_arg iso.hom (shift_functor_add'_add_zero C a)) X
 
 lemma shift_functor_add_add_zero_hom_app (a : A) (X : C):
   (shift_functor_add C a 0).hom.app X =
-    eq_to_hom (by dsimp; rw [add_zero]) ≫ (shift_functor_zero C A).inv.app (X⟦a⟧) := by
+    eq_to_hom (by dsimp; rw [add_zero]) ≫ (shift_functor_zero C A).inv.app (X⟦a⟧) :=
 begin
   rw [← shift_functor_add'_add_zero_hom_app],
   dsimp [shift_functor_add'],
@@ -333,39 +333,39 @@ end
 
 @[reassoc]
 lemma shift_functor_add'_assoc_hom_app (a₁ a₂ a₃ a₁₂ a₂₃ a₁₂₃ : A)
-    (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) (X : C) :
-    (shift_functor_add' C a₁₂ a₃ a₁₂₃ (by rw [← h₁₂, h₁₂₃])).hom.app X ≫
-      ((shift_functor_add' C a₁ a₂ a₁₂ h₁₂).hom.app X)⟦a₃⟧' =
-    (shift_functor_add' C a₁ a₂₃ a₁₂₃ (by rw [← h₂₃, ← add_assoc, h₁₂₃])).hom.app X ≫
-      (shift_functor_add' C a₂ a₃ a₂₃ h₂₃).hom.app (X⟦a₁⟧) :=
+  (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) (X : C) :
+  (shift_functor_add' C a₁₂ a₃ a₁₂₃ (by rw [← h₁₂, h₁₂₃])).hom.app X ≫
+    ((shift_functor_add' C a₁ a₂ a₁₂ h₁₂).hom.app X)⟦a₃⟧' =
+  (shift_functor_add' C a₁ a₂₃ a₁₂₃ (by rw [← h₂₃, ← add_assoc, h₁₂₃])).hom.app X ≫
+    (shift_functor_add' C a₂ a₃ a₂₃ h₂₃).hom.app (X⟦a₁⟧) :=
 by simpa using nat_trans.congr_app (congr_arg iso.hom
   (shift_functor_add'_assoc C _ _ _ _ _ _ h₁₂ h₂₃ h₁₂₃)) X
 
 @[reassoc]
 lemma shift_functor_add'_assoc_inv_app (a₁ a₂ a₃ a₁₂ a₂₃ a₁₂₃ : A)
-    (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) (X : C) :
-    ((shift_functor_add' C a₁ a₂ a₁₂ h₁₂).inv.app X)⟦a₃⟧' ≫
-      (shift_functor_add' C a₁₂ a₃ a₁₂₃ (by rw [← h₁₂, h₁₂₃])).inv.app X =
-    (shift_functor_add' C a₂ a₃ a₂₃ h₂₃).inv.app (X⟦a₁⟧) ≫
-      (shift_functor_add' C a₁ a₂₃ a₁₂₃ (by rw [← h₂₃, ← add_assoc, h₁₂₃])).inv.app X :=
+  (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) (X : C) :
+  ((shift_functor_add' C a₁ a₂ a₁₂ h₁₂).inv.app X)⟦a₃⟧' ≫
+    (shift_functor_add' C a₁₂ a₃ a₁₂₃ (by rw [← h₁₂, h₁₂₃])).inv.app X =
+  (shift_functor_add' C a₂ a₃ a₂₃ h₂₃).inv.app (X⟦a₁⟧) ≫
+    (shift_functor_add' C a₁ a₂₃ a₁₂₃ (by rw [← h₂₃, ← add_assoc, h₁₂₃])).inv.app X :=
 by simpa using nat_trans.congr_app (congr_arg iso.inv
   (shift_functor_add'_assoc C _ _ _ _ _ _ h₁₂ h₂₃ h₁₂₃)) X
 
 @[reassoc]
 lemma shift_functor_add_assoc_hom_app (a₁ a₂ a₃ : A) (X : C) :
-    (shift_functor_add C (a₁ + a₂) a₃).hom.app X ≫
-      ((shift_functor_add C a₁ a₂).hom.app X)⟦a₃⟧' =
-    (shift_functor_add' C a₁ (a₂ + a₃) (a₁ + a₂ + a₃) (add_assoc _ _ _).symm).hom.app X ≫
-      (shift_functor_add C a₂ a₃).hom.app (X⟦a₁⟧) :=
+  (shift_functor_add C (a₁ + a₂) a₃).hom.app X ≫
+    ((shift_functor_add C a₁ a₂).hom.app X)⟦a₃⟧' =
+  (shift_functor_add' C a₁ (a₂ + a₃) (a₁ + a₂ + a₃) (add_assoc _ _ _).symm).hom.app X ≫
+    (shift_functor_add C a₂ a₃).hom.app (X⟦a₁⟧) :=
 by simpa using nat_trans.congr_app (congr_arg iso.hom
   (shift_functor_add_assoc C a₁ a₂ a₃)) X
 
 @[reassoc]
 lemma shift_functor_add_assoc_inv_app (a₁ a₂ a₃ : A) (X : C) :
-    ((shift_functor_add C a₁ a₂).inv.app X)⟦a₃⟧' ≫
-      (shift_functor_add C (a₁ + a₂) a₃).inv.app X =
-    (shift_functor_add C a₂ a₃).inv.app (X⟦a₁⟧) ≫
-      (shift_functor_add' C a₁ (a₂ + a₃) (a₁ + a₂ + a₃) (add_assoc _ _ _).symm).inv.app X :=
+  ((shift_functor_add C a₁ a₂).inv.app X)⟦a₃⟧' ≫
+    (shift_functor_add C (a₁ + a₂) a₃).inv.app X =
+  (shift_functor_add C a₂ a₃).inv.app (X⟦a₁⟧) ≫
+    (shift_functor_add' C a₁ (a₂ + a₃) (a₁ + a₂ + a₃) (add_assoc _ _ _).symm).inv.app X :=
 by simpa using nat_trans.congr_app (congr_arg iso.inv
   (shift_functor_add_assoc C a₁ a₂ a₃)) X
 
@@ -399,8 +399,8 @@ variables (C) {A}
 
 /-- When `i + j = 0`, shifting by `i` and by `j` gives the identity functor -/
 def shift_functor_comp_iso_id (i j : A) (h : i + j = 0) :
-    shift_functor C i ⋙ shift_functor C j ≅ 𝟭 C :=
-  (shift_functor_add' C i j 0 h).symm ≪≫ shift_functor_zero C A
+  shift_functor C i ⋙ shift_functor C j ≅ 𝟭 C :=
+(shift_functor_add' C i j 0 h).symm ≪≫ shift_functor_zero C A
 
 end add_monoid
 
@@ -464,18 +464,18 @@ abbreviation shift_neg_shift (i : A) : X⟦-i⟧⟦i⟧ ≅ X :=
 variables {X Y}
 
 lemma shift_shift_neg' (i : A) :
-    f⟦i⟧'⟦-i⟧' = (shift_functor_comp_iso_id C i (-i) (add_neg_self i)).hom.app X ≫
-      f ≫ (shift_functor_comp_iso_id C i (-i) (add_neg_self i)).inv.app Y :=
-  (nat_iso.naturality_2 (shift_functor_comp_iso_id C i (-i) (add_neg_self i)) f).symm
+  f⟦i⟧'⟦-i⟧' = (shift_functor_comp_iso_id C i (-i) (add_neg_self i)).hom.app X ≫
+    f ≫ (shift_functor_comp_iso_id C i (-i) (add_neg_self i)).inv.app Y :=
+(nat_iso.naturality_2 (shift_functor_comp_iso_id C i (-i) (add_neg_self i)) f).symm
 
 lemma shift_neg_shift' (i : A) :
-    f⟦-i⟧'⟦i⟧' = (shift_functor_comp_iso_id C (-i) i (neg_add_self i)).hom.app X ≫ f ≫
-      (shift_functor_comp_iso_id C (-i) i (neg_add_self i)).inv.app Y :=
-  (nat_iso.naturality_2 (shift_functor_comp_iso_id C (-i) i (neg_add_self i)) f).symm
+  f⟦-i⟧'⟦i⟧' = (shift_functor_comp_iso_id C (-i) i (neg_add_self i)).hom.app X ≫ f ≫
+    (shift_functor_comp_iso_id C (-i) i (neg_add_self i)).inv.app Y :=
+(nat_iso.naturality_2 (shift_functor_comp_iso_id C (-i) i (neg_add_self i)) f).symm
 
 lemma shift_equiv_triangle (n : A) (X : C) :
-    (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
-  (shift_equiv C n).functor_unit_iso_comp X
+  (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
+(shift_equiv C n).functor_unit_iso_comp X
 
 section
 
@@ -505,22 +505,22 @@ end
 lemma shift_shift_functor_comp_iso_id_add_neg_self_hom_app (n : A) (X : C) :
   ((shift_functor_comp_iso_id C n (-n) (add_neg_self n)).hom.app X)⟦n⟧' =
     (shift_functor_comp_iso_id C (-n) n (neg_add_self n)).hom.app (X⟦n⟧) :=
-  by apply shift_shift_functor_comp_iso_id_hom_app
+by apply shift_shift_functor_comp_iso_id_hom_app
 
 lemma shift_shift_functor_comp_iso_id_add_neg_self_inv_app (n : A) (X : C) :
   ((shift_functor_comp_iso_id C n (-n) (add_neg_self n)).inv.app X)⟦n⟧' =
     (shift_functor_comp_iso_id C (-n) n (neg_add_self n)).inv.app (X⟦n⟧) :=
-  by apply shift_shift_functor_comp_iso_id_inv_app
+by apply shift_shift_functor_comp_iso_id_inv_app
 
 lemma shift_shift_functor_comp_iso_id_neg_add_self_hom_app (n : A) (X : C) :
   ((shift_functor_comp_iso_id C (-n) n (neg_add_self n)).hom.app X)⟦-n⟧' =
     (shift_functor_comp_iso_id C n (-n) (add_neg_self n)).hom.app (X⟦-n⟧) :=
-  by apply shift_shift_functor_comp_iso_id_hom_app
+by apply shift_shift_functor_comp_iso_id_hom_app
 
 lemma shift_shift_functor_comp_iso_id_neg_add_self_inv_app (n : A) (X : C) :
   ((shift_functor_comp_iso_id C (-n) n (neg_add_self n)).inv.app X)⟦-n⟧' =
     (shift_functor_comp_iso_id C n (-n) (add_neg_self n)).inv.app (X⟦-n⟧) :=
-  by apply shift_shift_functor_comp_iso_id_inv_app
+by apply shift_shift_functor_comp_iso_id_inv_app
 
 
 end
@@ -542,13 +542,13 @@ variables (C) {A} [add_comm_monoid A] [has_shift C A]
 
 /-- When shifts are indexed by an additive commutative monoid, then shifts commute. -/
 def shift_functor_comm (i j : A) :
-    shift_functor C i ⋙ shift_functor C j ≅
-      shift_functor C j ⋙ shift_functor C i :=
-  (shift_functor_add C i j).symm ≪≫ shift_functor_add' C j i (i + j) (add_comm j i)
+  shift_functor C i ⋙ shift_functor C j ≅
+    shift_functor C j ⋙ shift_functor C i :=
+(shift_functor_add C i j).symm ≪≫ shift_functor_add' C j i (i + j) (add_comm j i)
 
 lemma shift_functor_comm_eq (i j k : A) (h : i + j = k):
-    shift_functor_comm C i j = (shift_functor_add' C i j k h).symm ≪≫
-      shift_functor_add' C j i k (by rw [add_comm j i, h]) :=
+  shift_functor_comm C i j = (shift_functor_add' C i j k h).symm ≪≫
+    shift_functor_add' C j i k (by rw [add_comm j i, h]) :=
 begin
   subst h,
   rw [shift_functor_add'_eq_shift_functor_add],
@@ -619,33 +619,23 @@ lemma shift_functor_comm_hom_app_comp_shift_shift_functor_add_hom_app (m₁ m₂
     ((shift_functor_comm C m₁ m₂).hom.app X)⟦m₃⟧' ≫
     (shift_functor_comm C m₁ m₃).hom.app (X⟦m₂⟧) :=
 begin
-  /- this proof should be tidied... -/
-  rw [shift_functor_comm_eq C m₁ (m₂ + m₃) _ rfl,
-    shift_functor_comm_eq C m₁ m₃ (m₁ + m₃) rfl,
-    shift_functor_comm_eq C m₁ m₂ (m₁ + m₂) rfl],
+  simp only [← cancel_mono ((shift_functor_comm C m₁ m₃).inv.app (X⟦m₂⟧)),
+    ← cancel_mono (((shift_functor_comm C m₁ m₂).inv.app X)⟦m₃⟧'),
+    category.assoc, iso.hom_inv_id_app],
   dsimp,
-  simp only [category.assoc],
-  have eq := shift_functor_add'_assoc_hom_app m₂ m₃ m₁ (m₂ + m₃) (m₁ + m₃) (m₁ + (m₂ + m₃)) rfl
-    (add_comm m₃ m₁) (add_comm _ m₁) X,
-  rw [shift_functor_add'_eq_shift_functor_add C m₂ m₃] at eq,
-  rw [eq],
-  simp only [← category.assoc],
-  congr' 1,
-  simp only [functor.map_comp, category.assoc],
-  rw [← cancel_mono ((shift_functor_add' C m₁ m₃ (m₁ + m₃) rfl).hom.app ((shift_functor C m₂).obj X))],
-  simp only [category.assoc, iso.inv_hom_id_app],
+  simp only [category.id_comp, ← functor.map_comp, iso.hom_inv_id_app],
   dsimp,
-  rw [category.comp_id],
-  rw [← shift_functor_add'_assoc_hom_app m₂ m₁ m₃
-    (m₁ + m₂) (m₁ + m₃) (m₁ + (m₂ + m₃)) (add_comm _ _) rfl (by rw [add_comm m₂ m₁, add_assoc]) X],
-  simp only [← category.assoc],
-  congr' 1,
-  rw [← cancel_mono ((shift_functor C m₃).map ((shift_functor_add' C m₁ m₂ (m₁ + m₂) rfl).hom.app X))],
-  simp only [category.assoc, ← functor.map_comp, iso.inv_hom_id_app],
+  simp only [functor.map_id, category.comp_id,
+    shift_functor_comm_eq C _ _ _ rfl, ← shift_functor_add'_eq_shift_functor_add],
   dsimp,
-  rw [functor.map_id, category.comp_id, shift_functor_add'_assoc_hom_app m₁ m₂ m₃
-    (m₁ + m₂) (m₂ + m₃) (m₁ + (m₂ + m₃)) rfl rfl (add_assoc _ _ _),
-    iso.inv_hom_id_app_assoc, shift_functor_add'_eq_shift_functor_add],
+  simp only [category.assoc, iso.hom_inv_id_app_assoc, iso.inv_hom_id_app_assoc,
+    ← functor.map_comp,
+    shift_functor_add'_assoc_hom_app_assoc m₂ m₃ m₁ (m₂ + m₃) (m₁ + m₃) (m₁ + (m₂ + m₃)) rfl
+      (add_comm m₃ m₁) (add_comm _ m₁) X,
+    ← shift_functor_add'_assoc_hom_app_assoc m₂ m₁ m₃ (m₁ + m₂) (m₁ + m₃)
+      (m₁ + (m₂ + m₃)) (add_comm _ _) rfl (by rw [add_comm m₂ m₁, add_assoc]) X,
+    shift_functor_add'_assoc_hom_app m₁ m₂ m₃
+      (m₁ + m₂) (m₂ + m₃) (m₁ + (m₂ + m₃)) rfl rfl (add_assoc _ _ _) X],
 end
 
 end add_comm_monoid
@@ -661,54 +651,42 @@ include F s i
 
 /-- auxiliary definition for `has_shift_of_fully_faithful` -/
 def has_shift_of_fully_faithful_zero : s 0 ≅ 𝟭 C :=
-  nat_iso_of_comp_fully_faithful F ((i 0) ≪≫ iso_whisker_left F (shift_functor_zero D A) ≪≫
-    functor.right_unitor _ ≪≫ (functor.left_unitor _).symm)
+nat_iso_of_comp_fully_faithful F ((i 0) ≪≫ iso_whisker_left F (shift_functor_zero D A) ≪≫
+  functor.right_unitor _ ≪≫ (functor.left_unitor _).symm)
 
 @[simp]
 lemma map_has_shift_of_fully_faithful_zero_hom_app (X : C) :
-    F.map ((has_shift_of_fully_faithful_zero F s i).hom.app X) =
-      (i 0).hom.app X ≫ (shift_functor_zero D A).hom.app (F.obj X) :=
-begin
-  dsimp [has_shift_of_fully_faithful_zero],
-  simp,
-end
+  F.map ((has_shift_of_fully_faithful_zero F s i).hom.app X) =
+    (i 0).hom.app X ≫ (shift_functor_zero D A).hom.app (F.obj X) :=
+by { dsimp [has_shift_of_fully_faithful_zero], simp, }
 
 @[simp]
 lemma map_has_shift_of_fully_faithful_zero_inv_app (X : C) :
-    F.map ((has_shift_of_fully_faithful_zero F s i).inv.app X) =
-      (shift_functor_zero D A).inv.app (F.obj X) ≫ (i 0).inv.app X :=
-begin
-  dsimp [has_shift_of_fully_faithful_zero],
-  simp,
-end
+F.map ((has_shift_of_fully_faithful_zero F s i).inv.app X) =
+  (shift_functor_zero D A).inv.app (F.obj X) ≫ (i 0).inv.app X :=
+by { dsimp [has_shift_of_fully_faithful_zero], simp, }
 
 /-- auxiliary definition for `has_shift_of_fully_faithful` -/
 def has_shift_of_fully_faithful_add (a b : A) : s (a + b) ≅ s a ⋙ s b :=
-  nat_iso_of_comp_fully_faithful F (i (a + b) ≪≫
-    iso_whisker_left _ (shift_functor_add D a b) ≪≫
-    (functor.associator _ _ _).symm ≪≫ (iso_whisker_right (i a).symm _) ≪≫
-    functor.associator _ _ _ ≪≫ (iso_whisker_left _ (i b).symm) ≪≫
-    (functor.associator _ _ _).symm)
+nat_iso_of_comp_fully_faithful F (i (a + b) ≪≫
+  iso_whisker_left _ (shift_functor_add D a b) ≪≫
+  (functor.associator _ _ _).symm ≪≫ (iso_whisker_right (i a).symm _) ≪≫
+  functor.associator _ _ _ ≪≫ (iso_whisker_left _ (i b).symm) ≪≫
+  (functor.associator _ _ _).symm)
 
 @[simp]
 lemma map_has_shift_of_fully_faithful_add_hom_app (a b : A) (X : C) :
   F.map ((has_shift_of_fully_faithful_add F s i a b).hom.app X) =
     (i (a + b)).hom.app X ≫ (shift_functor_add D a b).hom.app (F.obj X) ≫
       ((i a).inv.app X)⟦b⟧' ≫ (i b).inv.app ((s a).obj X) :=
-begin
-  dsimp [has_shift_of_fully_faithful_add],
-  simp,
-end
+by { dsimp [has_shift_of_fully_faithful_add], simp, }
 
 @[simp]
 lemma map_has_shift_of_fully_faithful_add_inv_app (a b : A) (X : C) :
   F.map ((has_shift_of_fully_faithful_add F s i a b).inv.app X) =
     (i b).hom.app ((s a).obj X) ≫ ((i a).hom.app X)⟦b⟧' ≫
-      (shift_functor_add D a b).inv.app (F.obj X) ≫ (i (a + b)).inv.app X  := by
-begin
-  dsimp [has_shift_of_fully_faithful_add],
-  simp,
-end
+      (shift_functor_add D a b).inv.app (F.obj X) ≫ (i (a + b)).inv.app X :=
+by { dsimp [has_shift_of_fully_faithful_add], simp, }
 
 /-- Given a family of endomorphisms of `C` which are interwined by a fully faithful `F : C ⥤ D`
 with shift functors on `D`, we can promote that family to shift functors on `C`. -/
@@ -745,10 +723,10 @@ def has_shift_of_fully_faithful : has_shift C A := has_shift_mk C A
       simp,
     end,
     add_zero_hom_app := λ n X, F.map_injective begin
-        have := dcongr_arg (λ a, (i a).hom.app X) (add_zero n),
-        dsimp at this,
-        simpa [this, ← nat_trans.naturality_assoc, eq_to_hom_map,
-          shift_functor_add_add_zero_hom_app],
+      have := dcongr_arg (λ a, (i a).hom.app X) (add_zero n),
+      dsimp at this,
+      simpa [this, ← nat_trans.naturality_assoc, eq_to_hom_map,
+        shift_functor_add_add_zero_hom_app],
     end, }
 
 end

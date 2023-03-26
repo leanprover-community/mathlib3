@@ -397,12 +397,7 @@ begin
     have := h {i},
     rwa finset.sup_singleton at this },
   intros h s ε hε,
-  have h' : ∀ᶠ x in f, ∀ i (hi : i ∈ s), (p i) (u x - y₀) < ε :=
-  begin
-    rw s.eventually_all,
-    exact λ i _, h i ε hε,
-  end,
-  exact h'.mono (λ x hx, finset_sup_apply_lt hε hx),
+  exact (s.eventually_all,2 $ λ i _, h i ε hε).mono (λ x hx, finset_sup_apply_lt hε hx),
 end
 
 variables [semilattice_sup F] [nonempty F]
@@ -410,7 +405,7 @@ variables [semilattice_sup F] [nonempty F]
 /-- Limit `→ ∞` for `with_seminorms`. -/
 lemma with_seminorms.tendsto_nhds_at_top (hp : with_seminorms p) (u : F → E) (y₀ : E) :
   filter.tendsto u filter.at_top (𝓝 y₀) ↔
-  ∀ (i : ι) (ε : ℝ) (hε : 0 < ε), ∃ x₀ : F, ∀ x : F, x₀ ≤ x → p i (u x - y₀) < ε :=
+    ∀ i (ε : ℝ) (hε : 0 < ε), ∃ x₀ : F, ∀ x : F, x₀ ≤ x → p i (u x - y₀) < ε :=
 begin
   rw hp.tendsto_nhds u y₀,
   exact forall₃_congr (λ _ _ _, filter.eventually_at_top),

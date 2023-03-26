@@ -109,9 +109,9 @@ has_shift_mk _ _
   zero := comap_eq C (by { ext, simp }) ≪≫ comap_id β (λ _, C),
   add := λ m n,  comap_eq C (by { ext, simp [add_zsmul, add_comm], }) ≪≫
     (comap_comp _ _ _).symm,
-  assoc_hom_app := by tidy,
-  zero_add_hom_app := by tidy,
-  add_zero_hom_app := by tidy, }
+  assoc_hom_app := λ m₁ m₂ m₃ X, by { ext, dsimp, simp, },
+  zero_add_hom_app := λ n X, by { ext, dsimp, simpa, },
+  add_zero_hom_app := λ n X, by { ext, dsimp, simpa, }, }
 
 @[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
   (s : β) (X : β → C) (t : β) (n : ℤ) :

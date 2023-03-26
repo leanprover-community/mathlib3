@@ -677,7 +677,8 @@ def tail : Π {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil), G.walk (p.head hp).
 
 @[simp] lemma head_fst {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil) : (p.head hp).fst = x := rfl
 
-private lemma adj_head_snd {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil) : G.adj x (p.head hp).snd :=
+ 
+lemma adj_head_snd {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil) : G.adj x (p.head hp).snd :=
 (p.head hp).is_adj
 
 @[simp] lemma head_cons_tail : ∀ {x y : V} (p : G.walk x y) (hp : ¬ p.is_nil),

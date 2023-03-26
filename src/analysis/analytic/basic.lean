@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.formal_multilinear_series
 import analysis.specific_limits.normed
 import logic.equiv.fin
-import topology.algebra.module.infinite_sum
+import topology.algebra.infinite_sum.module
 
 /-!
 # Analytic functions

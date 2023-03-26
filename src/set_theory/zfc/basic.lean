@@ -44,6 +44,8 @@ Then the rest is usual set theory.
   function `x → y`. That is, each member of `x` is related by the ZFC set to exactly one member of
   `y`.
 * `Set.funs`: ZFC set of ZFC functions `x → y`.
+* `Set.hereditarily p x`: Predicate that every set in the transitive closure of `x` has property
+  `p`.
 * `Class.iota`: Definite description operator.
 
 ## Notes
@@ -718,14 +720,13 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+theorem mem_wf : @well_founded Set (∈) :=
+well_founded_lift₂_iff.mpr pSet.mem_wf
+
 /-- Induction on the `∈` relation. -/
 @[elab_as_eliminator]
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
-quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
-show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
-quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ ha), exact IH a })
-
-theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
+mem_wf.induction x h
 
 instance : has_well_founded Set := ⟨_, mem_wf⟩
 
@@ -760,6 +761,26 @@ theorem image.mk :
 
 @[simp] theorem to_set_image (f : Set → Set) [H : definable 1 f] (x : Set) :
   (image f x).to_set = f '' x.to_set :=
+by { ext, simp }
+
+/-- The range of an indexed family of sets. The universes allow for a more general index type
+  without manual use of `ulift`. -/
+noncomputable def range {α : Type u} (f : α → Set.{max u v}) : Set.{max u v} :=
+⟦⟨ulift α, quotient.out ∘ f ∘ ulift.down⟩⟧
+
+@[simp] theorem mem_range {α : Type u} {f : α → Set.{max u v}} {x : Set.{max u v}} :
+  x ∈ range f ↔ x ∈ set.range f :=
+quotient.induction_on x (λ y, begin
+  split,
+  { rintro ⟨z, hz⟩,
+    exact ⟨z.down, quotient.eq_mk_iff_out.2 hz.symm⟩ },
+  { rintro ⟨z, hz⟩,
+    use z,
+    simpa [hz] using pSet.equiv.symm (quotient.mk_out y) }
+end)
+
+@[simp] theorem to_set_range {α : Type u} (f : α → Set.{max u v}) :
+  (range f).to_set = set.range f :=
 by { ext, simp }
 
 /-- Kuratowski ordered pair -/
@@ -857,6 +878,36 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
 
+/-- Given a predicate `p` on ZFC sets. `hereditarily p x` means that `x` has property `p` and the
+members of `x` are all `hereditarily p`. -/
+def hereditarily (p : Set → Prop) : Set → Prop
+| x := p x ∧ ∀ y ∈ x, hereditarily y
+using_well_founded { dec_tac := `[assumption] }
+
+section hereditarily
+
+variables {p : Set.{u} → Prop} {x y : Set.{u}}
+
+lemma hereditarily_iff :
+  hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
+by rw [← hereditarily]
+
+alias hereditarily_iff ↔ hereditarily.def _
+
+lemma hereditarily.self (h : x.hereditarily p) : p x := h.def.1
+lemma hereditarily.mem (h : x.hereditarily p) (hy : y ∈ x) : y.hereditarily p := h.def.2 _ hy
+
+lemma hereditarily.empty : hereditarily p x → p ∅ :=
+begin
+  apply x.induction_on,
+  intros y IH h,
+  rcases Set.eq_empty_or_nonempty y with (rfl|⟨a, ha⟩),
+  { exact h.self },
+  { exact IH a ha (h.mem ha) }
+end
+
+end hereditarily
+
 end Set
 
 /-- The collection of all classes.
@@ -894,6 +945,9 @@ theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.r
 exists_congr $ λ x, and_true _
 
 @[simp] theorem mem_univ_hom (x : Set.{u}) : univ.{u} x := trivial
+
+theorem eq_univ_iff_forall {A : Class.{u}} : A = univ ↔ ∀ x : Set, A x := set.eq_univ_iff_forall
+theorem eq_univ_of_forall {A : Class.{u}} : (∀ x : Set, A x) → A = univ := set.eq_univ_of_forall
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=
 ⟨begin
@@ -1009,6 +1063,15 @@ end
 
 @[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=
 by { ext, simp }
+
+/-- An induction principle for sets. If every subset of a class is a member, then the class is
+  universal. -/
+theorem eq_univ_of_powerset_subset {A : Class} (hA : powerset A ⊆ A) : A = univ :=
+eq_univ_of_forall begin
+  by_contra' hnA,
+  exact well_founded.min_mem Set.mem_wf _ hnA (hA $ λ x hx, not_not.1 $
+    λ hB, well_founded.not_lt_min Set.mem_wf _ hnA hB $ (mem_hom_right _ _).1 hx)
+end
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}

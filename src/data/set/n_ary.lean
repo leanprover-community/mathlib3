@@ -26,8 +26,9 @@ and `set.image2` already fulfills this task.
 open function
 
 namespace set
-variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
-variables {s s' : set α} {t t' : set β} {u u' : set γ} {a a' : α} {b b' : β} {c c' : γ} {d d' : δ}
+variables {α α' β β' γ γ' δ δ' ε ε' ζ ζ' ν : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
+variables {s s' : set α} {t t' : set β} {u u' : set γ} {v : set δ} {a a' : α} {b b' : β} {c c' : γ}
+  {d d' : δ}
 
 
 /-- The image of a binary function `f : α → β → γ` as a function `set α → set β → set γ`.
@@ -235,6 +236,19 @@ lemma image2_right_comm {f : δ → γ → ε} {g : α → β → δ} {f' : α �
   image2 f (image2 g s t) u = image2 g' (image2 f' s u) t :=
 by { rw [image2_swap g, image2_swap g'], exact image2_assoc (λ _ _ _, h_right_comm _ _ _) }
 
+lemma image2_image2_image2_comm {f : ε → ζ → ν} {g : α → β → ε} {h : γ → δ → ζ} {f' : ε' → ζ' → ν}
+  {g' : α → γ → ε'} {h' : β → δ → ζ'}
+  (h_comm : ∀ a b c d, f (g a b) (h c d) = f' (g' a c) (h' b d)) :
+  image2 f (image2 g s t) (image2 h u v) = image2 f' (image2 g' s u) (image2 h' t v) :=
+begin
+  ext,
+  split,
+  { rintro ⟨_, _, ⟨a, b, ha, hb, rfl⟩, ⟨c, d, hc, hd, rfl⟩, rfl⟩,
+    exact ⟨_, _, ⟨a, c, ha, hc, rfl⟩, ⟨b, d, hb, hd, rfl⟩, (h_comm _ _ _ _).symm⟩ },
+  { rintro ⟨_, _, ⟨a, c, ha, hc, rfl⟩, ⟨b, d, hb, hd, rfl⟩, rfl⟩,
+    exact ⟨_, _, ⟨a, b, ha, hb, rfl⟩, ⟨c, d, hc, hd, rfl⟩, h_comm _ _ _ _⟩ }
+end
+
 lemma image_image2_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α → α'} {g₂ : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' (g₁ a) (g₂ b)) :
   (image2 f s t).image g = image2 f' (s.image g₁) (t.image g₂) :=
@@ -324,5 +338,18 @@ by rw [image2_singleton_left, show f a = id, from funext h, image_id]
 lemma image2_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (s : set α) :
   image2 f s {b} = s :=
 by rw [image2_singleton_right, funext h, image_id']
+
+lemma image2_inter_union_subset {f : α → α → β} {s t : set α} (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∩ t) (s ∪ t) ⊆ image2 f s t :=
+begin
+  rintro _ ⟨a, b, ha, hb | hb, rfl⟩,
+  { rw hf,
+    exact mem_image2_of_mem hb ha.2 },
+  { exact mem_image2_of_mem ha.1 hb }
+end
+
+lemma image2_union_inter_subset {f : α → α → β} {s t : set α} (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∪ t) (s ∩ t) ⊆ image2 f s t :=
+by { rw image2_comm hf, exact image2_inter_union_subset hf }
 
 end set

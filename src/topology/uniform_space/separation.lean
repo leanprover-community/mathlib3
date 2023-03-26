@@ -11,6 +11,9 @@ import topology.separation
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file studies uniform spaces whose underlying topological spaces are separated
 (also known as Hausdorff or T₂).
 This turns out to be equivalent to asking that the intersection of all entourages
@@ -110,6 +113,13 @@ lemma filter.has_basis.mem_separation_rel {ι : Sort*} {p : ι → Prop} {s : ι
   a ∈ 𝓢 α ↔ ∀ i, p i → a ∈ s i :=
 h.forall_mem_mem
 
+theorem separation_rel_iff_specializes {a b : α} : (a, b) ∈ 𝓢 α ↔ a ⤳ b :=
+by simp only [(𝓤 α).basis_sets.mem_separation_rel, id, mem_set_of_eq,
+  (nhds_basis_uniformity (𝓤 α).basis_sets).specializes_iff]
+
+theorem separation_rel_iff_inseparable {a b : α} : (a, b) ∈ 𝓢 α ↔ inseparable a b :=
+  separation_rel_iff_specializes.trans specializes_iff_inseparable
+
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
 class separated_space (α : Type u) [uniform_space α] : Prop := (out : 𝓢 α = id_rel)
@@ -158,8 +168,9 @@ lemma separation_rel_comap  {f : α → β}
   (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
+  unfreezingI { subst h },
   dsimp [separation_rel],
-  simp_rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
+  simp_rw [uniformity_comap, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
       ← preimage_Inter, sInter_eq_bInter],
   refl,
 end
@@ -276,7 +287,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
         u.uniformity.sets_of_superset ht $ assume ⟨a₁, a₂⟩ h₁ h₂, hts (ht' $ setoid.symm h₂) h₁,
         assume h, u.uniformity.sets_of_superset h $ by simp {contextual := tt}⟩,
     begin
-      simp [topological_space.coinduced, u.is_open_uniformity, uniformity, forall_quotient_iff],
+      simp only [is_open_coinduced, is_open_uniformity, uniformity, forall_quotient_iff,
+        mem_preimage, mem_map, preimage_set_of_eq, quotient.eq],
       exact ⟨λh a ha, (this a ha).mp $ h a ha, λh a ha, (this a ha).mpr $ h a ha⟩
     end }
 
@@ -356,6 +368,9 @@ instance : uniform_space (separation_quotient α) := separation_setoid.uniform_s
 instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
 quotient.inhabited (separation_setoid α)
+
+lemma mk_eq_mk {x y : α} : (⟦x⟧ : separation_quotient α) = ⟦y⟧ ↔ inseparable x y :=
+quotient.eq'.trans separation_rel_iff_inseparable
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=

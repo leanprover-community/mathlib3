@@ -72,27 +72,24 @@ lemma is_compact_open_iff_eq_finset_affine_union {X : Scheme} (U : set X.carrier
   is_compact U ∧ is_open U ↔
     ∃ (s : set X.affine_opens), s.finite ∧ U = ⋃ (i : X.affine_opens) (h : i ∈ s), i :=
 begin
-  apply opens.is_compact_open_iff_eq_finite_Union_of_is_basis
+  apply opens.is_basis.is_compact_open_iff_eq_finite_Union
     (coe : X.affine_opens → opens X.carrier),
   { rw subtype.range_coe, exact is_basis_affine_open X },
-  { intro i, exact i.2.is_compact }
+  { exact λ i, i.2.is_compact }
 end
 
 lemma is_compact_open_iff_eq_basic_open_union {X : Scheme} [is_affine X] (U : set X.carrier) :
   is_compact U ∧ is_open U ↔
     ∃ (s : set (X.presheaf.obj (op ⊤))), s.finite ∧
       U = ⋃ (i : X.presheaf.obj (op ⊤)) (h : i ∈ s), X.basic_open i :=
-begin
-  apply opens.is_compact_open_iff_eq_finite_Union_of_is_basis,
-  { exact is_basis_basic_open X },
-  { intro i, exact ((top_is_affine_open _).basic_open_is_affine _).is_compact }
-end
+(is_basis_basic_open X).is_compact_open_iff_eq_finite_Union _
+  (λ i, ((top_is_affine_open _).basic_open_is_affine _).is_compact) _
 
 lemma quasi_compact_iff_forall_affine : quasi_compact f ↔
   ∀ U : opens Y.carrier, is_affine_open U → is_compact (f.1.base ⁻¹' (U : set Y.carrier)) :=
 begin
   rw quasi_compact_iff,
-  refine ⟨λ H U hU, H U U.prop hU.is_compact, _⟩,
+  refine ⟨λ H U hU, H U U.is_open hU.is_compact, _⟩,
   intros H U hU hU',
   obtain ⟨S, hS, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
   simp only [set.preimage_Union, subtype.val_eq_coe],
@@ -123,7 +120,7 @@ lemma is_compact_basic_open (X : Scheme) {U : opens X.carrier} (hU : is_compact 
 begin
   classical,
   refine ((is_compact_open_iff_eq_finset_affine_union _).mpr _).1,
-  obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union _).mp ⟨hU, U.prop⟩,
+  obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union _).mp ⟨hU, U.is_open⟩,
   let g : s → X.affine_opens,
   { intro V,
     use V.1 ⊓ X.basic_open f,
@@ -135,7 +132,8 @@ begin
     exact is_affine_open.basic_open_is_affine V.1.prop _ },
   haveI : finite s := hs.to_subtype,
   refine ⟨set.range g, set.finite_range g, _⟩,
-  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_le _ _)).symm.trans _,
+  refine (set.inter_eq_right_iff_subset.mpr (set_like.coe_subset_coe.2 $
+    RingedSpace.basic_open_le _ _)).symm.trans _,
   rw [e, set.Union₂_inter],
   apply le_antisymm; apply set.Union₂_subset,
   { intros i hi,

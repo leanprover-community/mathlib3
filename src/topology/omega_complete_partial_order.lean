@@ -9,6 +9,9 @@ import order.omega_complete_partial_order
 /-!
 # Scott Topological Spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A type of topological spaces whose notion
 of continuity is equivalent to continuity in ωCPOs.
 

@@ -16,6 +16,9 @@ import group_theory.submonoid.membership
 /-!
 # Bundled subsemirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define bundled subsemirings and some standard constructions: `complete_lattice` structure,
 `subtype` and `inclusion` ring homomorphisms, subsemiring `map`, `comap` and range (`srange`) of
 a `ring_hom` etc.

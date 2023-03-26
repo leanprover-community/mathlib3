@@ -12,6 +12,9 @@ import topology.maps
 /-!
 # The compact-open topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the compact-open topology on the set of continuous maps between two
 topological spaces.
 
@@ -182,7 +185,7 @@ lemma compact_open_le_induced (s : set α) :
   ≤ topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
 begin
   simp only [induced_generate_from_eq, continuous_map.compact_open],
-  apply generate_from_mono,
+  apply topological_space.generate_from_anti,
   rintros b ⟨a, ⟨c, hc, u, hu, rfl⟩, rfl⟩,
   refine ⟨coe '' c, hc.image continuous_subtype_coe, u, hu, _⟩,
   ext f,
@@ -202,7 +205,7 @@ begin
   { refine le_infi₂ _,
     exact λ s hs, compact_open_le_induced s },
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
-  apply generate_from_mono,
+  apply topological_space.generate_from_anti,
   rintros _ ⟨s, hs, u, hu, rfl⟩,
   rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,

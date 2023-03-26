@@ -67,7 +67,7 @@ begin
     rw [lintegral_supr h_measM_f h_mono_f, lintegral_supr, ennreal.supr_mul],
     { simp_rw [← h_ind_f] },
     { exact λ n, h_mul_indicator _ (h_measM_f n) },
-    { exact λ m n h_le a, ennreal.mul_le_mul (h_mono_f h_le a) le_rfl, }, },
+    { exact λ m n h_le a, mul_le_mul_right' (h_mono_f h_le a) _, }, },
 end
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
@@ -101,7 +101,7 @@ begin
     rw [lintegral_supr, lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr],
     { simp_rw [← h_ind_f'], },
     { exact λ n, h_measM_f.mul (h_measM_f' n), },
-    { exact λ n m (h_le : n ≤ m) a, ennreal.mul_le_mul le_rfl (h_mono_f' h_le a), }, }
+    { exact λ n m (h_le : n ≤ m) a, mul_le_mul_left' (h_mono_f' h_le a) _, }, }
 end
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,

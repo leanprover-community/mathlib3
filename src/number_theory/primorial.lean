@@ -12,6 +12,9 @@ import data.nat.prime
 /-!
 # Primorial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the primorial function (the product of primes less than or equal to some bound),
 and proves that `primorial n ≤ 4 ^ n`.
 

@@ -62,13 +62,11 @@ universes u v w
 -/
 
 /-- A topology on `α`. -/
-@[protect_proj] structure topological_space (α : Type u) :=
+@[protect_proj] class topological_space (α : Type u) :=
 (is_open        : set α → Prop)
 (is_open_univ   : is_open univ)
 (is_open_inter  : ∀s t, is_open s → is_open t → is_open (s ∩ t))
 (is_open_sUnion : ∀s, (∀t∈s, is_open t) → is_open (⋃₀ s))
-
-attribute [class] topological_space
 
 /-- A constructor for topologies by specifying the closed sets,
 and showing that they satisfy the appropriate conditions. -/
@@ -86,32 +84,36 @@ section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ t : set α} {p p₁ p₂ : α → Prop}
 
+/-- `is_open s` means that `s` is open in the ambient topological space on `α` -/
+def is_open [topological_space α] (s : set α) : Prop := @topological_space.is_open _ ‹_› s
+
+localized "notation (name := is_open_of) `is_open[` t `]` := @is_open hole! t" in topology
+
+lemma is_open_mk {p h₁ h₂ h₃} {s : set α} : is_open[⟨p, h₁, h₂, h₃⟩] s ↔ p s := iff.rfl
+
 @[ext]
-lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_open → f = g
-| ⟨a, _, _, _⟩ ⟨b, _, _, _⟩ rfl := rfl
+lemma topological_space_eq {f g : topological_space α} (h : is_open[f] = is_open[g]) : f = g :=
+by unfreezingI { cases f, cases g, congr, exact h }
 
 section
 variables [topological_space α]
 
-/-- `is_open s` means that `s` is open in the ambient topological space on `α` -/
-def is_open (s : set α) : Prop := topological_space.is_open ‹_› s
-
 @[simp]
-lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ _
+lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ
 
 lemma is_open.inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
-topological_space.is_open_inter _ s₁ s₂ h₁ h₂
+topological_space.is_open_inter s₁ s₂ h₁ h₂
 
 lemma is_open_sUnion {s : set (set α)} (h : ∀t ∈ s, is_open t) : is_open (⋃₀ s) :=
-topological_space.is_open_sUnion _ s h
+topological_space.is_open_sUnion s h
 
 end
 
 lemma topological_space_eq_iff {t t' : topological_space α} :
-  t = t' ↔ ∀ s, @is_open α t s ↔ @is_open α t' s :=
+  t = t' ↔ ∀ s, is_open[t] s ↔ is_open[t'] s :=
 ⟨λ h s, h ▸ iff.rfl, λ h, by { ext, exact h _ }⟩
 
-lemma is_open_fold {s : set α} {t : topological_space α} : t.is_open s = @is_open α t s :=
+lemma is_open_fold {s : set α} {t : topological_space α} : t.is_open s = is_open[t] s :=
 rfl
 
 variables [topological_space α]
@@ -141,13 +143,8 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bInter_insert; exact
     is_open.inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_open_Inter [finite β] {s : β → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
-suffices is_open (⋂ (i : β) (hi : i ∈ @univ β), s i), by simpa,
-is_open_bInter finite_univ (λ i _, h i)
-
-lemma is_open_Inter_prop {p : Prop} {s : p → set α}
-  (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
-by by_cases p; simp *
+lemma is_open_Inter [finite ι] {s : ι → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
+is_open_sInter (finite_range _) (forall_range_iff.2 h)
 
 lemma is_open_bInter_finset {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_open (f i)) :
   is_open (⋂ i ∈ s, f i) :=
@@ -164,6 +161,8 @@ is_open.inter
 /-- A set is closed if its complement is open -/
 class is_closed (s : set α) : Prop :=
 (is_open_compl : is_open sᶜ)
+
+localized "notation (name := is_closed_of) `is_closed[` t `]` := @is_closed hole! t" in topology
 
 @[simp] lemma is_open_compl_iff {s : set α} : is_open sᶜ ↔ is_closed s :=
 ⟨λ h, ⟨h⟩, λ h, h.is_open_compl⟩
@@ -209,15 +208,9 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_closed_Union [finite β] {s : β → set α} (h : ∀ i, is_closed (s i)) :
+lemma is_closed_Union [finite ι] {s : ι → set α} (h : ∀ i, is_closed (s i)) :
   is_closed (⋃ i, s i) :=
-suffices is_closed (⋃ (i : β) (hi : i ∈ @univ β), s i),
-  by convert this; simp [set.ext_iff],
-is_closed_bUnion finite_univ (λ i _, h i)
-
-lemma is_closed_Union_prop {p : Prop} {s : p → set α}
-  (h : ∀ h : p, is_closed (s h)) : is_closed (Union s) :=
-by by_cases p; simp *
+by { simp only [← is_open_compl_iff, compl_Union] at *, exact is_open_Inter h }
 
 lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
   (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=

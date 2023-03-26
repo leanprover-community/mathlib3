@@ -5,11 +5,15 @@ Authors: Benjamin Davidson, Devon Tuma, Eric Rodriguez, Oliver Nash
 -/
 
 import tactic.positivity
-import topology.order.basic
+import tactic.linarith
+import topology.algebra.order.group
 import topology.algebra.field
 
 /-!
 # Topologies on linear ordered fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 

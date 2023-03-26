@@ -13,6 +13,9 @@ import tactic.fin_cases
 /-!
 # Locally constant functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up the theory of locally constant function from a topological space to a type.
 
 ## Main definitions and constructions
@@ -97,10 +100,6 @@ lemma iff_continuous {_ : topological_space Y} [discrete_topology Y] (f : X → 
   is_locally_constant f ↔ continuous f :=
 ⟨is_locally_constant.continuous, λ h s, h.is_open_preimage s (is_open_discrete _)⟩
 
-lemma iff_continuous_bot (f : X → Y) :
-  is_locally_constant f ↔ @continuous X Y _ ⊥ f :=
-iff_continuous f
-
 lemma of_constant (f : X → Y) (h : ∀ x y, f x = f y) :
   is_locally_constant f :=
 (iff_eventually_eq f).2 $ λ x, eventually_of_forall $ λ x', h _ _
@@ -165,8 +164,7 @@ lemma iff_is_const [preconnected_space X] {f : X → Y} :
 lemma range_finite [compact_space X] {f : X → Y} (hf : is_locally_constant f) :
   (set.range f).finite :=
 begin
-  letI : topological_space Y := ⊥,
-  haveI : discrete_topology Y := ⟨rfl⟩,
+  letI : topological_space Y := ⊥, haveI := discrete_topology_bot Y,
   rw @iff_continuous X Y ‹_› ‹_› at hf,
   exact (is_compact_range hf).finite_of_discrete
 end
@@ -219,6 +217,7 @@ of_constant_on_connected_components (λ x, h (connected_component x)
 end is_locally_constant
 
 /-- A (bundled) locally constant function from a topological space `X` to a type `Y`. -/
+@[protect_proj]
 structure locally_constant (X Y : Type*) [topological_space X] :=
 (to_fun : X → Y)
 (is_locally_constant : is_locally_constant to_fun)

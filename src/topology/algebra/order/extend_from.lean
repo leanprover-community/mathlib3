@@ -8,6 +8,9 @@ import topology.extend_from
 
 /-!
 # Lemmas about `extend_from` in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter set topological_space

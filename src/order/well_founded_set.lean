@@ -11,6 +11,9 @@ import tactic.tfae
 /-!
 # Well-founded sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A well-founded subset of an ordered type is one on which the relation `<` is well-founded.
 
 ## Main Definitions

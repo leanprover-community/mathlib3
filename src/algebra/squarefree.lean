@@ -7,6 +7,9 @@ import ring_theory.unique_factorization_domain
 
 /-!
 # Squarefree elements of monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 An element of a monoid is squarefree when it is not divisible by any squares
 except the squares of units.
 

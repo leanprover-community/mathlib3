@@ -58,29 +58,15 @@ lemma map_prod_eq_map₂ (m : α → β → γ) (f : filter α) (g : filter β) 
   filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
 begin
   ext s,
-  split,
-  { intro hmem,
-    rw filter.mem_map_iff_exists_image at hmem,
-    obtain ⟨s', hs', hsub⟩ := hmem,
-    rw filter.mem_prod_iff at hs',
-    obtain ⟨t, ht, t', ht', hsub'⟩ := hs',
-    refine ⟨t, t', ht, ht', _⟩,
-    rw ← set.image_prod,
-    exact subset_trans (set.image_subset (λ (p : α × β), m p.fst p.snd) hsub') hsub },
-  { intro hmem,
-    rw mem_map₂_iff at hmem,
-    obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
-    rw ← set.image_prod at hsub,
-    rw filter.mem_map_iff_exists_image,
-    exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩ },
+  simp [mem_prod_iff, prod_subset_iff]
 end
 
 lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
   filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
-by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
+(congr_arg2 _ (uncurry_curry m).symm rfl).trans (map_prod_eq_map₂ _ _ _)
 
 @[simp] lemma map₂_mk_eq_prod (f : filter α) (g : filter β) : map₂ prod.mk f g = f ×ᶠ g :=
-by ext; simp [mem_prod_iff]
+by simp only [← map_prod_eq_map₂, prod.mk.eta, map_id']
 
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
@@ -230,19 +216,13 @@ begin
 end
 
 lemma map_map₂ (m : α → β → γ) (n : γ → δ) : (map₂ m f g).map n = map₂ (λ a b, n (m a b)) f g :=
-filter.ext $ λ u, exists₂_congr $ λ s t, by rw [←image_subset_iff, image_image2]
+by rw [← map_prod_eq_map₂, ← map_prod_eq_map₂, map_map]
 
 lemma map₂_map_left (m : γ → β → δ) (n : α → γ) :
   map₂ m (f.map n) g = map₂ (λ a b, m (n a) b) f g :=
 begin
-  ext u,
-  split,
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    refine ⟨_, t, hs, ht, _⟩,
-    rw ←image2_image_left,
-    exact (image2_subset_right $ image_preimage_subset _ _).trans hu },
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    exact ⟨_, t, image_mem_map hs, ht, by rwa image2_image_left⟩ }
+  rw [← map_prod_eq_map₂, ← map_prod_eq_map₂, ← @map_id _ g, prod_map_map_eq, map_map, map_id],
+  refl
 end
 
 lemma map₂_map_right (m : α → γ → δ) (n : β → γ) :
@@ -251,10 +231,11 @@ by rw [map₂_swap, map₂_map_left, map₂_swap]
 
 @[simp] lemma map₂_curry (m : α × β → γ) (f : filter α) (g : filter β) :
   map₂ (curry m) f g = (f ×ᶠ g).map m :=
-by { classical, rw [←map₂_mk_eq_prod, map_map₂, curry] }
+(map_prod_eq_map₂' _  _ _).symm
 
 @[simp] lemma map_uncurry_prod (m : α → β → γ) (f : filter α) (g : filter β) :
-  (f ×ᶠ g).map (uncurry m) = map₂ m f g := by rw [←map₂_curry, curry_uncurry]
+  (f ×ᶠ g).map (uncurry m) = map₂ m f g :=
+by rw [←map₂_curry, curry_uncurry]
 
 /-!
 ### Algebraic replacement rules

@@ -10,6 +10,9 @@ import algebra.group.pi
 /-!
 # Divisible Group and rootable group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define a divisible add monoid and a rootable monoid with some basic properties.
 
 ## Main definition

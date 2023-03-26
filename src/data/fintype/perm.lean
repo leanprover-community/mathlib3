@@ -9,6 +9,9 @@ import group_theory.perm.basic
 /-!
 # fintype instances for `equiv` and `perm`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Main declarations:
 * `perms_of_finset s`: The finset of permutations of the finset `s`.
 

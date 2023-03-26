@@ -39,5 +39,5 @@ begin
   simp,
 end
 
-lemma algebra.norm_complex_eq (z : ℂ) : algebra.norm ℝ = norm_sq.to_monoid_hom :=
+lemma algebra.norm_complex_eq : algebra.norm ℝ = norm_sq.to_monoid_hom :=
 monoid_hom.ext algebra.norm_complex_apply

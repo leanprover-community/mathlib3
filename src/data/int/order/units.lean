@@ -10,6 +10,9 @@ import algebra.group_power.order
 
 /-!
 # Lemmas about units in `ℤ`, which interact with the order structure.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace int

@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # The filter of small sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the filter of small sets w.r.t. a filter `f`, which is the largest filter
 containing all powersets of members of `f`.
 

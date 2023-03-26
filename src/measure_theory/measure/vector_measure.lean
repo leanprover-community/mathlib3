@@ -174,7 +174,7 @@ end
 lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
-  rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h],
+  rw [← of_union disjoint_sdiff_right hA (hB.diff hA), union_diff_cancel h],
   apply_instance,
 end
 
@@ -196,12 +196,12 @@ begin
        ... = v (A \ B) + v (A ∩ B) :
   by { rw of_union,
        { rw disjoint.comm,
-         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) disjoint_sdiff_self_right },
        { exact hA.diff hB },
        { exact hA.inter hB } }
        ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
   by { rw [of_union, h', add_zero],
-       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) disjoint_sdiff_self_right },
        { exact hA.inter hB },
        { exact hB.diff hA } }
        ... = v (A \ B) + v B :
@@ -256,11 +256,11 @@ def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 { measure_of' := r • v,
   empty' := by rw [pi.smul_apply, empty, smul_zero],
   not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
-  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
+  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul _ (v.m_Union hf₁ hf₂) }
 
 instance : has_smul R (vector_measure α M) := ⟨smul⟩
 
-@[simp] protected lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
+@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
 lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
   (r • v) i = r • v i := rfl
 
@@ -277,7 +277,7 @@ instance : has_zero (vector_measure α M) :=
 
 instance : inhabited (vector_measure α M) := ⟨0⟩
 
-@[simp] protected lemma coe_zero : ⇑(0 : vector_measure α M) = 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : vector_measure α M) = 0 := rfl
 lemma zero_apply (i : set α) : (0 : vector_measure α M) i = 0 := rfl
 
 variables [has_continuous_add M]
@@ -293,17 +293,16 @@ def add (v w : vector_measure α M) : vector_measure α M :=
 
 instance : has_add (vector_measure α M) := ⟨add⟩
 
-@[simp] protected lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
+@[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
 lemma add_apply (v w : vector_measure α M) (i : set α) : (v + w) i = v i + w i := rfl
 
 instance : add_comm_monoid (vector_measure α M) :=
-function.injective.add_comm_monoid _ coe_injective vector_measure.coe_zero vector_measure.coe_add
-  (λ _ _, vector_measure.coe_smul _ _)
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- `coe_fn` is an `add_monoid_hom`. -/
 @[simps]
 def coe_fn_add_monoid_hom : vector_measure α M →+ (set α → M) :=
-{ to_fun := coe_fn, map_zero' := vector_measure.coe_zero, map_add' := vector_measure.coe_add }
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
 end add_comm_monoid
 
@@ -322,7 +321,7 @@ def neg (v : vector_measure α M) : vector_measure α M :=
 
 instance : has_neg (vector_measure α M) := ⟨neg⟩
 
-@[simp] protected lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
+@[simp] lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
 lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
 
 /-- The difference of two vector measure is a vector measure. -/
@@ -341,9 +340,8 @@ instance : has_sub (vector_measure α M) := ⟨sub⟩
 lemma sub_apply (v w : vector_measure α M) (i : set α) : (v - w) i = v i - w i := rfl
 
 instance : add_comm_group (vector_measure α M) :=
-function.injective.add_comm_group _ coe_injective vector_measure.coe_zero vector_measure.coe_add
-  vector_measure.coe_neg vector_measure.coe_sub (λ _ _, vector_measure.coe_smul _ _)
-  (λ _ _, vector_measure.coe_smul _ _)
+function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+  (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 end add_comm_group
 
@@ -354,7 +352,7 @@ variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_cons
 include m
 
 instance [has_continuous_add M] : distrib_mul_action R (vector_measure α M) :=
-function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective vector_measure.coe_smul
+function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
 
 end distrib_mul_action
 
@@ -366,7 +364,7 @@ variables {R : Type*} [semiring R] [module R M] [has_continuous_const_smul R M]
 include m
 
 instance [has_continuous_add M] : module R (vector_measure α M) :=
-function.injective.module R coe_fn_add_monoid_hom coe_injective vector_measure.coe_smul
+function.injective.module R coe_fn_add_monoid_hom coe_injective coe_smul
 
 end module
 
@@ -1105,7 +1103,7 @@ def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop
 ∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
 
 localized "infix (name := vector_measure.mutually_singular)
-  ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+  ` ⟂ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 
@@ -1113,7 +1111,7 @@ variables {v v₁ v₂ : vector_measure α M} {w w₁ w₂ : vector_measure α N
 
 lemma mk (s : set α) (hs : measurable_set s)
   (h₁ : ∀ t ⊆ s, measurable_set t → v t = 0)
-  (h₂ : ∀ t ⊆ sᶜ, measurable_set t → w t = 0) : v ⊥ᵥ w :=
+  (h₂ : ∀ t ⊆ sᶜ, measurable_set t → w t = 0) : v ⟂ᵥ w :=
 begin
   refine ⟨s, hs, λ t hst, _, λ t hst, _⟩;
   by_cases ht : measurable_set t,
@@ -1123,17 +1121,17 @@ begin
   { exact not_measurable w ht }
 end
 
-lemma symm (h : v ⊥ᵥ w) : w ⊥ᵥ v :=
+lemma symm (h : v ⟂ᵥ w) : w ⟂ᵥ v :=
 let ⟨s, hmeas, hs₁, hs₂⟩ := h in
   ⟨sᶜ, hmeas.compl, hs₂, λ t ht, hs₁ _ (compl_compl s ▸ ht : t ⊆ s)⟩
 
-lemma zero_right : v ⊥ᵥ (0 : vector_measure α N) :=
+lemma zero_right : v ⟂ᵥ (0 : vector_measure α N) :=
 ⟨∅, measurable_set.empty, λ t ht, (subset_empty_iff.1 ht).symm ▸ v.empty, λ _ _, zero_apply _⟩
 
-lemma zero_left : (0 : vector_measure α M) ⊥ᵥ w :=
+lemma zero_left : (0 : vector_measure α M) ⟂ᵥ w :=
 zero_right.symm
 
-lemma add_left [t2_space N] [has_continuous_add M] (h₁ : v₁ ⊥ᵥ w) (h₂ : v₂ ⊥ᵥ w) : v₁ + v₂ ⊥ᵥ w :=
+lemma add_left [t2_space N] [has_continuous_add M] (h₁ : v₁ ⟂ᵥ w) (h₂ : v₂ ⟂ᵥ w) : v₁ + v₂ ⟂ᵥ w :=
 begin
   obtain ⟨u, hmu, hu₁, hu₂⟩ := h₁,
   obtain ⟨v, hmv, hv₁, hv₂⟩ := h₂,
@@ -1146,7 +1144,7 @@ begin
     { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
     { exact inter_subset_left _ _ },
     { apply_instance },
-    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_diff },
+    { exact disjoint_sdiff_self_right.mono (inter_subset_left _ _) (inter_subset_left _ _) },
     { apply subset.antisymm;
       intros x hx,
       { by_cases hxu' : x ∈ uᶜ,
@@ -1156,21 +1154,20 @@ begin
       { rcases hx; exact hx.2 } } },
 end
 
-lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⊥ᵥ w₁) (h₂ : v ⊥ᵥ w₂) : v ⊥ᵥ w₁ + w₂ :=
+lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⟂ᵥ w₁) (h₂ : v ⟂ᵥ w₂) : v ⟂ᵥ w₁ + w₂ :=
 (add_left h₁.symm h₂.symm).symm
 
 lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [has_continuous_const_smul R N]
-  (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
+  (r : R) (h : v ⟂ᵥ w) : v ⟂ᵥ r • w :=
 let ⟨s, hmeas, hs₁, hs₂⟩ := h in
-  ⟨s, hmeas, hs₁,
-   λ t ht, by simp only [vector_measure.coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
+  ⟨s, hmeas, hs₁, λ t ht, by simp only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
 
 lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
-  (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
+  (r : R) (h : v ⟂ᵥ w) : r • v ⟂ᵥ w :=
 (smul_right r h.symm).symm
 
 lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
-  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : -v ⊥ᵥ w :=
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⟂ᵥ w) : -v ⟂ᵥ w :=
 begin
   obtain ⟨u, hmu, hu₁, hu₂⟩ := h,
   refine ⟨u, hmu, λ s hs, _, hu₂⟩,
@@ -1179,19 +1176,19 @@ begin
 end
 
 lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
-  {v : vector_measure α M} {w : vector_measure α N} (h : v ⊥ᵥ w) : v ⊥ᵥ -w :=
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⟂ᵥ w) : v ⟂ᵥ -w :=
 h.symm.neg_left.symm
 
 @[simp]
 lemma neg_left_iff {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
   {v : vector_measure α M} {w : vector_measure α N} :
-  -v ⊥ᵥ w ↔ v ⊥ᵥ w :=
+  -v ⟂ᵥ w ↔ v ⟂ᵥ w :=
 ⟨λ h, neg_neg v ▸ h.neg_left, neg_left⟩
 
 @[simp]
 lemma neg_right_iff {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
   {v : vector_measure α M} {w : vector_measure α N} :
-  v ⊥ᵥ -w ↔ v ⊥ᵥ w :=
+  v ⟂ᵥ -w ↔ v ⟂ᵥ w :=
 ⟨λ h, neg_neg w ▸ h.neg_right, neg_right⟩
 
 end mutually_singular

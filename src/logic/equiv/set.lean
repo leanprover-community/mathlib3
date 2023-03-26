@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Equivalences and sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide lemmas linking equivalences to sets.
 
 Some notable definitions are:
@@ -99,13 +102,6 @@ preimage_eq_iff_eq_image e.bijective
 
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
 eq_preimage_iff_image_eq e.bijective
-
-@[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β ⁻¹' t ×ˢ s = s ×ˢ t :=
-preimage_swap_prod _ _
-
-lemma prod_comm_image {α β} {s : set α} {t : set β} : equiv.prod_comm α β '' s ×ˢ t = t ×ˢ s :=
-image_swap_prod _ _
 
 @[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :

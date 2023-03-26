@@ -11,6 +11,9 @@ import category_theory.functor.inv_isos
 /-!
 # Closed monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define (right) closed objects and (right) closed monoidal categories.
 
 ## TODO
@@ -260,6 +263,32 @@ def of_equiv (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoi
       have i := comp_inv_iso (monoidal_functor.comm_tensor_left F X),
       exact adjunction.left_adjoint_of_nat_iso i,
     end } }
+
+/-- Suppose we have a monoidal equivalence `F : C ≌ D`, with `D` monoidal closed. We can pull the
+monoidal closed instance back along the equivalence. For `X, Y, Z : C`, this lemma describes the
+resulting currying map `Hom(X ⊗ Y, Z) → Hom(Y, (X ⟶[C] Z))`. (`X ⟶[C] Z` is defined to be
+`F⁻¹(F(X) ⟶[D] F(Z))`, so currying in `C` is given by essentially conjugating currying in
+`D` by `F.`) -/
+lemma of_equiv_curry_def (F : monoidal_functor C D) [is_equivalence F.to_functor]
+  [h : monoidal_closed D] {X Y Z : C} (f : X ⊗ Y ⟶ Z) :
+  @monoidal_closed.curry _ _ _ _ _ _ ((monoidal_closed.of_equiv F).1 _) f =
+  (F.1.1.adjunction.hom_equiv Y ((ihom _).obj _)) (monoidal_closed.curry
+  (F.1.1.inv.adjunction.hom_equiv (F.1.1.obj X ⊗ F.1.1.obj Y) Z
+  ((comp_inv_iso (F.comm_tensor_left X)).hom.app Y ≫ f))) := rfl
+
+/-- Suppose we have a monoidal equivalence `F : C ≌ D`, with `D` monoidal closed. We can pull the
+monoidal closed instance back along the equivalence. For `X, Y, Z : C`, this lemma describes the
+resulting uncurrying map `Hom(Y, (X ⟶[C] Z)) → Hom(X ⊗ Y ⟶ Z)`. (`X ⟶[C] Z` is
+defined to be `F⁻¹(F(X) ⟶[D] F(Z))`, so uncurrying in `C` is given by essentially conjugating
+uncurrying in `D` by `F.`) -/
+lemma of_equiv_uncurry_def
+  (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoidal_closed D] {X Y Z : C}
+  (f : Y ⟶ (@ihom _ _ _ X $ (monoidal_closed.of_equiv F).1 X).obj Z) :
+  @monoidal_closed.uncurry _ _ _ _ _ _ ((monoidal_closed.of_equiv F).1 _) f =
+  (comp_inv_iso (F.comm_tensor_left X)).inv.app Y ≫ (F.1.1.inv.adjunction.hom_equiv
+  (F.1.1.obj X ⊗ F.1.1.obj Y) Z).symm (monoidal_closed.uncurry
+  ((F.1.1.adjunction.hom_equiv Y ((ihom (F.1.1.obj X)).obj (F.1.1.obj Z))).symm f)) :=
+rfl
 
 end of_equiv
 

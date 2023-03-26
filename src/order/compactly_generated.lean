@@ -3,18 +3,21 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import tactic.tfae
 import order.atoms
 import order.order_iso_nat
 import order.rel_iso.set
 import order.sup_indep
 import order.zorn
 import data.finset.order
-import data.finite.default
 import data.set.intervals.order_iso
+import data.finite.set
+import tactic.tfae
 
 /-!
 # Compactness properties for complete lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For complete lattices, there are numerous equivalent ways to express the fact that the relation `>`
 is well-founded. In this file we define three especially-useful characterisations and provide

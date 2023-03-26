@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
-import category_theory.full_subcategory
-import category_theory.limits.unit
 import category_theory.sites.sheaf
 import category_theory.sites.spaces
 

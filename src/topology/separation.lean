@@ -11,6 +11,9 @@ import topology.inseparable
 /-!
 # Separation properties of topological spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the predicate `separated_nhds`, and common separation axioms
 (under the Kolmogorov classification).
 
@@ -85,7 +88,7 @@ https://en.wikipedia.org/wiki/Separation_axiom
 -/
 
 open function set filter topological_space
-open_locale topological_space filter classical
+open_locale topology filter classical
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -165,6 +168,18 @@ by simp only [t0_space_iff_inseparable, ne.def, not_imp_not]
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 t0_space.t0 h
 
+protected lemma inducing.injective [topological_space β] [t0_space α] {f : α → β}
+  (hf : inducing f) : injective f :=
+λ x y h, inseparable.eq $ hf.inseparable_iff.1 $ h ▸ inseparable.refl _
+
+protected lemma inducing.embedding [topological_space β] [t0_space α] {f : α → β}
+  (hf : inducing f) : embedding f :=
+⟨hf, hf.injective⟩
+
+lemma embedding_iff_inducing [topological_space β] [t0_space α] {f : α → β} :
+  embedding f ↔ inducing f :=
+⟨embedding.to_inducing, inducing.embedding⟩
+
 lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
   t0_space α ↔ injective (𝓝 : α → filter α) :=
 t0_space_iff_inseparable α
@@ -205,7 +220,9 @@ theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is
 begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
-  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  wlog h : x ∈ U ∧ y ∉ U,
+  { exact this hmin y hy x hx (ne.symm hxy) U hUo hU.symm (hU.resolve_left h), },
+  cases h with hxU hyU,
   have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
   exact (this.symm.subset hx).2 hxU
 end
@@ -232,7 +249,9 @@ theorem minimal_nonempty_open_subsingleton [t0_space α] {s : set α} (hs : is_o
 begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
-  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  wlog h : x ∈ U ∧ y ∉ U,
+  { exact this hs hmin y hy x hx (ne.symm hxy) U hUo hU.symm (hU.resolve_left h), },
+  cases h with hxU hyU,
   have : s ∩ U = s := hmin (s ∩ U) (inter_subset_left _ _) ⟨x, hx, hxU⟩ (hs.inter hUo),
   exact hyU (this.symm.subset hy).2
 end
@@ -659,21 +678,29 @@ lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
-lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+@[simp] lemma tendsto_const_nhds_iff [t1_space α] {l : filter β} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
+
+/-- A point with a finite neighborhood has to be isolated. -/
+lemma is_open_singleton_of_finite_mem_nhds {α : Type*} [topological_space α] [t1_space α]
+  (x : α) {s : set α} (hs : s ∈ 𝓝 x) (hsf : s.finite) : is_open ({x} : set α) :=
+begin
+  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
+  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
+  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
+  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
+  rwa [← mem_interior_iff_mem_nhds, ← singleton_subset_iff, subset_interior_iff_is_open] at D
+end
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[≠] x)]
   {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
 begin
-  intro hsf,
-  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
-  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
-  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
-  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
-  rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
+  refine λ hsf, hx.1 _,
+  rw [← is_open_singleton_iff_punctured_nhds],
+  exact is_open_singleton_of_finite_mem_nhds x hs hsf
 end
 
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [finite X] :
@@ -760,34 +787,6 @@ begin
   change tX.induced ((coe : s → X) ∘ (set.inclusion ts)) =
     topological_space.induced (set.inclusion ts) (tX.induced _),
   rw ← induced_compose,
-end
-
-/-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
-discrete topology.
-This version does not assume the choice of a topology on either the source `X`
-nor the target `Y` of the inclusion `f`. -/
-lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
-  topological_space.induced f ⊥ = ⊥ :=
-eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
-
-/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
-is the discrete topology on `X`. -/
-lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
-  {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
-
-lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
-  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
-⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
-
-/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
-by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
-lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
-  (ds : discrete_topology s) (ts : t ⊆ s) :
-  discrete_topology t :=
-begin
-  rw [topological_space.subset_trans ts, ds.eq_bot],
-  exact {eq_bot := induced_bot (set.inclusion_injective ts)}
 end
 
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
@@ -1451,7 +1450,7 @@ begin
   letI := Inf T,
   have : ∀ a, (𝓝 a).has_basis
     (λ If : Σ I : set T, I → set X,
-      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ @is_closed X i (If.2 i))
+      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ is_closed[↑i] (If.2 i))
     (λ If, ⋂ i : If.1, If.snd i),
   { intro a,
     rw [nhds_Inf, ← infi_subtype''],
@@ -1491,11 +1490,11 @@ instance t3_space.t2_5_space [t3_space α] : t2_5_space α :=
 begin
   refine ⟨λ x y hne, _⟩,
   rw [lift'_nhds_closure, lift'_nhds_closure],
-  have : x ∉ closure {y} ∨ y ∉ closure {x},
+  have aux : x ∉ closure {y} ∨ y ∉ closure {x},
     from (t0_space_iff_or_not_mem_closure α).mp infer_instance x y hne,
-  wlog H : x ∉ closure {y} := this using [x y, y x] tactic.skip,
+  wlog H : x ∉ closure ({y} : set α),
+  { refine (this y x hne.symm aux.symm (aux.resolve_left H)).symm },
   { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H },
-  { exact λ h, (this h.symm).symm }
 end
 
 protected lemma embedding.t3_space [topological_space β] [t3_space β] {f : α → β}
@@ -1714,7 +1713,7 @@ begin
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing.
   -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
-  have hs : @is_closed α _ (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
+  have hs : is_closed (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z : set α) :=
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_disj,

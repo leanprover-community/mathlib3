@@ -6,13 +6,15 @@ Authors: Scott Morrison, Joël Riou
 import category_theory.comm_sq
 import category_theory.limits.opposites
 import category_theory.limits.shapes.biproducts
-import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
 import category_theory.limits.constructions.zero_objects
 
 /-!
 # Pullback and pushout squares, and bicartesian squares
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide another API for pullbacks and pushouts.
 

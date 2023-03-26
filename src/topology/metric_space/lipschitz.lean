@@ -5,11 +5,15 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import logic.function.iterate
 import data.set.intervals.proj_Icc
+import topology.algebra.order.field
 import topology.metric_space.basic
 import topology.bornology.hom
 
 /-!
 # Lipschitz continuous functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A map `f : α → β` between two (extended) metric spaces is called *Lipschitz continuous*
 with constant `K ≥ 0` if for all `x, y` we have `edist (f x) (f y) ≤ K * edist x y`.
@@ -39,7 +43,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
@@ -239,7 +243,7 @@ end
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by rw [pow_succ']; exact (iterate n).comp hf
 
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
@@ -264,7 +268,7 @@ protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
 
 protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric

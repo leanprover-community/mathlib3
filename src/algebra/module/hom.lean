@@ -8,6 +8,9 @@ import algebra.module.pi
 /-!
 # Bundled hom instances for module and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for module, mul_action and related structures on bundled `_hom` types.
 
 These are analogous to the instances in `algebra.module.pi`, but for bundled instead of unbundled

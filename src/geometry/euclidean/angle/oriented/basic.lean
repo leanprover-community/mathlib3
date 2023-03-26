@@ -3,7 +3,6 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Heather Macbeth
 -/
-import analysis.complex.arg
 import analysis.inner_product_space.two_dim
 import analysis.special_functions.complex.circle
 import geometry.euclidean.angle.unoriented.basic
@@ -16,8 +15,6 @@ This file defines oriented angles in real inner product spaces.
 ## Main definitions
 
 * `orientation.oangle` is the oriented angle between two vectors with respect to an orientation.
-
-* `orientation.rotation` is the rotation by an oriented angle with respect to an orientation.
 
 ## Implementation notes
 
@@ -42,11 +39,12 @@ namespace orientation
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 local attribute [instance] complex.finrank_real_complex_fact
 
-variables {V V' : Type*} [inner_product_space ℝ V] [inner_product_space ℝ V']
+variables {V V' : Type*}
+variables [normed_add_comm_group V] [normed_add_comm_group V']
+variables [inner_product_space ℝ V] [inner_product_space ℝ V']
 variables [fact (finrank ℝ V = 2)] [fact (finrank ℝ V' = 2)] (o : orientation ℝ V (fin 2))
 
 local notation `ω` := o.area_form
-local notation `J` := o.right_angle_rotation
 
 /-- The oriented angle from `x` to `y`, modulo `2 * π`. If either vector is 0, this is 0.
 See `inner_product_geometry.angle` for the corresponding unoriented angle definition. -/
@@ -79,6 +77,93 @@ begin
   apply arg_of_real_of_nonneg,
   positivity,
 end
+
+/-- If the angle between two vectors is nonzero, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_ne_zero {x y : V} (h : o.oangle x y ≠ 0) : x ≠ 0 :=
+by { rintro rfl, simpa using h }
+
+/-- If the angle between two vectors is nonzero, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_ne_zero {x y : V} (h : o.oangle x y ≠ 0) : y ≠ 0 :=
+by { rintro rfl, simpa using h }
+
+/-- If the angle between two vectors is nonzero, the vectors are not equal. -/
+lemma ne_of_oangle_ne_zero {x y : V} (h : o.oangle x y ≠ 0) : x ≠ y :=
+by { rintro rfl, simpa using h }
+
+/-- If the angle between two vectors is `π`, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_eq_pi {x y : V} (h : o.oangle x y = π) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π`, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_eq_pi {x y : V} (h : o.oangle x y = π) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π`, the vectors are not equal. -/
+lemma ne_of_oangle_eq_pi {x y : V} (h : o.oangle x y = π) : x ≠ y :=
+o.ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π / 2`, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π / 2`, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π / 2`, the vectors are not equal. -/
+lemma ne_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) : x ≠ y :=
+o.ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `-π / 2`, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `-π / 2`, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `-π / 2`, the vectors are not equal. -/
+lemma ne_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  x ≠ y :=
+o.ne_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the sign of the angle between two vectors is nonzero, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_sign_ne_zero {x y : V} (h : (o.oangle x y).sign ≠ 0) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between two vectors is nonzero, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_sign_ne_zero {x y : V} (h : (o.oangle x y).sign ≠ 0) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between two vectors is nonzero, the vectors are not equal. -/
+lemma ne_of_oangle_sign_ne_zero {x y : V} (h : (o.oangle x y).sign ≠ 0) : x ≠ y :=
+o.ne_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between two vectors is positive, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is positive, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is positive, the vectors are not equal. -/
+lemma ne_of_oangle_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) : x ≠ y :=
+o.ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is negative, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is negative, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is negative, the vectors are not equal. -/
+lemma ne_of_oangle_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) : x ≠ y :=
+o.ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
 
 /-- Swapping the two vectors passed to `oangle` negates the angle. -/
 lemma oangle_rev (x y : V) : o.oangle y x = -o.oangle x y :=
@@ -263,6 +348,32 @@ begin
     simp [h]
 end
 
+/-- If the spans of two vectors are equal, twice angles with those vectors on the left are
+equal. -/
+lemma two_zsmul_oangle_left_of_span_eq {x y : V} (z : V) (h : (ℝ ∙ x) = ℝ ∙ y) :
+  (2 : ℤ) • o.oangle x z = (2 : ℤ) • o.oangle y z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_left_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two vectors are equal, twice angles with those vectors on the right are
+equal. -/
+lemma two_zsmul_oangle_right_of_span_eq (x : V) {y z : V} (h : (ℝ ∙ y) = ℝ ∙ z) :
+  (2 : ℤ) • o.oangle x y = (2 : ℤ) • o.oangle x z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_right_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two pairs of vectors are equal, twice angles between those vectors are
+equal. -/
+lemma two_zsmul_oangle_of_span_eq_of_span_eq {w x y z : V} (hwx : (ℝ ∙ w) = ℝ ∙ x)
+  (hyz : (ℝ ∙ y) = ℝ ∙ z) : (2 : ℤ) • o.oangle w y = (2 : ℤ) • o.oangle x z :=
+by rw [(o).two_zsmul_oangle_left_of_span_eq y hwx, (o).two_zsmul_oangle_right_of_span_eq x hyz]
+
 /-- The oriented angle between two vectors is zero if and only if the angle with the vectors
 swapped is zero. -/
 lemma oangle_eq_zero_iff_oangle_rev_eq_zero {x y : V} : o.oangle x y = 0 ↔ o.oangle y x = 0 :=
@@ -279,7 +390,7 @@ end
 /-- The oriented angle between two vectors is `π` if and only if the angle with the vectors
 swapped is `π`. -/
 lemma oangle_eq_pi_iff_oangle_rev_eq_pi {x y : V} : o.oangle x y = π ↔ o.oangle y x = π :=
-by rw [oangle_rev, neg_eq_iff_neg_eq, eq_comm, real.angle.neg_coe_pi]
+by rw [oangle_rev, neg_eq_iff_eq_neg, real.angle.neg_coe_pi]
 
 /-- The oriented angle between two vectors is `π` if and only they are nonzero and the first is
 on the same ray as the negation of the second. -/
@@ -336,7 +447,7 @@ lemma oangle_ne_zero_and_ne_pi_iff_linear_independent {x y : V} :
 by rw [←not_or_distrib, ←not_iff_not, not_not, oangle_eq_zero_or_eq_pi_iff_not_linear_independent]
 
 /-- Two vectors are equal if and only if they have equal norms and zero angle between them. -/
-lemma eq_iff_norm_eq_and_oangle_eq_zero (x y : V) : x = y ↔ ∥x∥ = ∥y∥ ∧ o.oangle x y = 0 :=
+lemma eq_iff_norm_eq_and_oangle_eq_zero (x y : V) : x = y ↔ ‖x‖ = ‖y‖ ∧ o.oangle x y = 0 :=
 begin
   rw oangle_eq_zero_iff_same_ray,
   split,
@@ -346,7 +457,7 @@ begin
     { simp },
     rintros ⟨h₁, h₂⟩,
     obtain ⟨r, hr, rfl⟩ := h₂.exists_nonneg_right hy,
-    have : ∥y∥ ≠ 0 := by simpa using hy,
+    have : ‖y‖ ≠ 0 := by simpa using hy,
     obtain rfl : r = 1,
     { apply mul_right_cancel₀ this,
       simpa [norm_smul, _root_.abs_of_nonneg hr] using h₁ },
@@ -354,12 +465,12 @@ begin
 end
 
 /-- Two vectors with equal norms are equal if and only if they have zero angle between them. -/
-lemma eq_iff_oangle_eq_zero_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) : x = y ↔ o.oangle x y = 0 :=
+lemma eq_iff_oangle_eq_zero_of_norm_eq {x y : V} (h : ‖x‖ = ‖y‖) : x = y ↔ o.oangle x y = 0 :=
 ⟨λ he, ((o.eq_iff_norm_eq_and_oangle_eq_zero x y).1 he).2,
  λ ha, (o.eq_iff_norm_eq_and_oangle_eq_zero x y).2 ⟨h, ha⟩⟩
 
 /-- Two vectors with zero angle between them are equal if and only if they have equal norms. -/
-lemma eq_iff_norm_eq_of_oangle_eq_zero {x y : V} (h : o.oangle x y = 0) : x = y ↔ ∥x∥ = ∥y∥ :=
+lemma eq_iff_norm_eq_of_oangle_eq_zero {x y : V} (h : o.oangle x y = 0) : x = y ↔ ‖x‖ = ‖y‖ :=
 ⟨λ he, ((o.eq_iff_norm_eq_and_oangle_eq_zero x y).1 he).1,
  λ hn, (o.eq_iff_norm_eq_and_oangle_eq_zero x y).2 ⟨hn, h⟩⟩
 
@@ -371,9 +482,9 @@ begin
   simp_rw [oangle],
   rw [←complex.arg_mul_coe_angle, o.kahler_mul y x z],
   congr' 1,
-  convert complex.arg_real_mul _ (_ : 0 < ∥y∥ ^ 2) using 2,
+  convert complex.arg_real_mul _ (_ : 0 < ‖y‖ ^ 2) using 2,
   { norm_cast },
-  { have : 0 < ∥y∥ := by simpa using hy,
+  { have : 0 < ‖y‖ := by simpa using hy,
     positivity },
   { exact o.kahler_ne_zero hx hy, },
   { exact o.kahler_ne_zero hy hz }
@@ -420,13 +531,13 @@ sum of the angles of a triangle. -/
 by simp_rw [←oangle_neg_left_eq_neg_right, o.oangle_add_cyc3_neg_left hx hy hz]
 
 /-- Pons asinorum, oriented vector angle form. -/
-lemma oangle_sub_eq_oangle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
+lemma oangle_sub_eq_oangle_sub_rev_of_norm_eq {x y : V} (h : ‖x‖ = ‖y‖) :
   o.oangle x (x - y) = o.oangle (y - x) y :=
 by simp [oangle, h]
 
 /-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
 vector angle form. -/
-lemma oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq {x y : V} (hn : x ≠ y) (h : ∥x∥ = ∥y∥) :
+lemma oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq {x y : V} (hn : x ≠ y) (h : ‖x‖ = ‖y‖) :
   o.oangle y x = π - (2 : ℤ) • o.oangle (y - x) y :=
 begin
   rw two_zsmul,
@@ -439,340 +550,6 @@ begin
   have hx : x ≠ 0 := norm_ne_zero_iff.1 (h.symm ▸ norm_ne_zero_iff.2 hy),
   convert o.oangle_add_cyc3_neg_right (neg_ne_zero.2 hy) hx (sub_ne_zero_of_ne hn.symm);
     simp
-end
-
-/-- Auxiliary construction to build a rotation by the oriented angle `θ`. -/
-def rotation_aux (θ : real.angle) : V →ₗᵢ[ℝ] V :=
-linear_map.isometry_of_inner
-  (real.angle.cos θ • linear_map.id
-        + real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
-  begin
-    intros x y,
-    simp only [is_R_or_C.conj_to_real, id.def, linear_map.smul_apply, linear_map.add_apply,
-      linear_map.id_coe, linear_equiv.coe_coe, linear_isometry_equiv.coe_to_linear_equiv,
-      orientation.area_form_right_angle_rotation_left,
-      orientation.inner_right_angle_rotation_left,
-      orientation.inner_right_angle_rotation_right,
-      inner_add_left, inner_smul_left, inner_add_right, inner_smul_right],
-    linear_combination inner x y * θ.cos_sq_add_sin_sq,
-  end
-
-@[simp] lemma rotation_aux_apply (θ : real.angle) (x : V) :
-  o.rotation_aux θ x = real.angle.cos θ • x + real.angle.sin θ • J x :=
-rfl
-
-/-- A rotation by the oriented angle `θ`. -/
-def rotation (θ : real.angle) : V ≃ₗᵢ[ℝ] V :=
-linear_isometry_equiv.of_linear_isometry
-  (o.rotation_aux θ)
-  (real.angle.cos θ • linear_map.id - real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
-  begin
-    ext x,
-    convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply,
-        function.comp_app, id.def, linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
-        linear_isometry_equiv.coe_to_linear_equiv, map_smul, map_sub, linear_map.coe_comp,
-        linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, ← mul_smul, add_smul,
-        smul_add, smul_neg, smul_sub, mul_comm, sq],
-      abel },
-    { simp },
-  end
-  begin
-    ext x,
-    convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply,
-        function.comp_app, id.def, linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
-        linear_isometry_equiv.coe_to_linear_equiv, map_add, map_smul, linear_map.coe_comp,
-        linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, add_smul, ← mul_smul,
-        mul_comm, smul_add, smul_neg, sq],
-      abel },
-    { simp },
-  end
-
-lemma rotation_apply (θ : real.angle) (x : V) :
-  o.rotation θ x = real.angle.cos θ • x + real.angle.sin θ • J x :=
-rfl
-
-lemma rotation_symm_apply (θ : real.angle) (x : V) :
-  (o.rotation θ).symm x = real.angle.cos θ • x - real.angle.sin θ • J x :=
-rfl
-
-attribute [irreducible] rotation
-
-lemma rotation_eq_matrix_to_lin (θ : real.angle) {x : V} (hx : x ≠ 0) :
-  (o.rotation θ).to_linear_map
-  = matrix.to_lin
-      (o.basis_right_angle_rotation x hx) (o.basis_right_angle_rotation x hx)
-      !![θ.cos, -θ.sin; θ.sin, θ.cos] :=
-begin
-  apply (o.basis_right_angle_rotation x hx).ext,
-  intros i,
-  fin_cases i,
-  { rw matrix.to_lin_self,
-    simp [rotation_apply, fin.sum_univ_succ] },
-  { rw matrix.to_lin_self,
-    simp [rotation_apply, fin.sum_univ_succ, add_comm] },
-end
-
-/-- The determinant of `rotation` (as a linear map) is equal to `1`. -/
-@[simp] lemma det_rotation (θ : real.angle) :
-  (o.rotation θ).to_linear_map.det = 1 :=
-begin
-  haveI : nontrivial V :=
-    finite_dimensional.nontrivial_of_finrank_eq_succ (fact.out (finrank ℝ V = 2)),
-  obtain ⟨x, hx⟩ : ∃ x, x ≠ (0:V) := exists_ne (0:V),
-  rw o.rotation_eq_matrix_to_lin θ hx,
-  simpa [sq] using θ.cos_sq_add_sin_sq,
-end
-
-/-- The determinant of `rotation` (as a linear equiv) is equal to `1`. -/
-@[simp] lemma linear_equiv_det_rotation (θ : real.angle) :
-  (o.rotation θ).to_linear_equiv.det = 1 :=
-units.ext $ o.det_rotation θ
-
-/-- The inverse of `rotation` is rotation by the negation of the angle. -/
-@[simp] lemma rotation_symm (θ : real.angle) : (o.rotation θ).symm = o.rotation (-θ) :=
-by ext; simp [o.rotation_apply, o.rotation_symm_apply, sub_eq_add_neg]
-
-/-- Rotation by 0 is the identity. -/
-@[simp] lemma rotation_zero : o.rotation 0 = linear_isometry_equiv.refl ℝ V :=
-by ext; simp [rotation]
-
-/-- Rotation by π is negation. -/
-@[simp] lemma rotation_pi : o.rotation π = linear_isometry_equiv.neg ℝ :=
-begin
-  ext x,
-  simp [rotation]
-end
-
-/-- Rotation by π / 2 is the "right-angle-rotation" map `J`. -/
-lemma rotation_pi_div_two : o.rotation (π / 2 : ℝ) = J :=
-begin
-  ext x,
-  simp [rotation],
-end
-
-/-- Rotating twice is equivalent to rotating by the sum of the angles. -/
-@[simp] lemma rotation_rotation (θ₁ θ₂ : real.angle) (x : V) :
-  o.rotation θ₁ (o.rotation θ₂ x) = o.rotation (θ₁ + θ₂) x :=
-begin
-  simp only [o.rotation_apply, ←mul_smul, real.angle.cos_add, real.angle.sin_add, add_smul,
-    sub_smul, linear_isometry_equiv.trans_apply, smul_add, linear_isometry_equiv.map_add,
-    linear_isometry_equiv.map_smul, right_angle_rotation_right_angle_rotation, smul_neg],
-  ring_nf,
-  abel,
-end
-
-/-- Rotating twice is equivalent to rotating by the sum of the angles. -/
-@[simp] lemma rotation_trans (θ₁ θ₂ : real.angle) :
-  (o.rotation θ₁).trans (o.rotation θ₂) = o.rotation (θ₂ + θ₁) :=
-linear_isometry_equiv.ext $ λ _, by rw [←rotation_rotation, linear_isometry_equiv.trans_apply]
-
-/-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos θ - sin θ * I`. -/
-@[simp] lemma kahler_rotation_left (x y : V) (θ : real.angle) :
-  o.kahler (o.rotation θ x) y = conj (θ.exp_map_circle : ℂ) * o.kahler x y :=
-begin
-  simp only [o.rotation_apply, map_add, map_mul, linear_map.map_smulₛₗ, ring_hom.id_apply,
-    linear_map.add_apply, linear_map.smul_apply, real_smul, kahler_right_angle_rotation_left,
-    real.angle.coe_exp_map_circle, is_R_or_C.conj_of_real, conj_I],
-  ring,
-end
-
-/-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos (-θ) + sin (-θ) * I`.
--/
-lemma kahler_rotation_left' (x y : V) (θ : real.angle) :
-  o.kahler (o.rotation θ x) y = (-θ).exp_map_circle * o.kahler x y :=
-by simpa [coe_inv_circle_eq_conj, -kahler_rotation_left] using o.kahler_rotation_left x y θ
-
-/-- Rotating the second of two vectors by `θ` scales their Kahler form by `cos θ + sin θ * I`. -/
-@[simp] lemma kahler_rotation_right (x y : V) (θ : real.angle) :
-  o.kahler x (o.rotation θ y) = θ.exp_map_circle * o.kahler x y :=
-begin
-  simp only [o.rotation_apply, map_add, linear_map.map_smulₛₗ, ring_hom.id_apply, real_smul,
-    kahler_right_angle_rotation_right, real.angle.coe_exp_map_circle],
-  ring,
-end
-
-/-- Rotating the first vector by `θ` subtracts `θ` from the angle between two vectors. -/
-@[simp] lemma oangle_rotation_left {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) (θ : real.angle) :
-  o.oangle (o.rotation θ x) y = o.oangle x y - θ :=
-begin
-  simp only [oangle, o.kahler_rotation_left'],
-  rw [complex.arg_mul_coe_angle, real.angle.arg_exp_map_circle],
-  { abel },
-  { exact ne_zero_of_mem_circle _ },
-  { exact o.kahler_ne_zero hx hy },
-end
-
-/-- Rotating the second vector by `θ` adds `θ` to the angle between two vectors. -/
-@[simp] lemma oangle_rotation_right {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) (θ : real.angle) :
-  o.oangle x (o.rotation θ y) = o.oangle x y + θ :=
-begin
-  simp only [oangle, o.kahler_rotation_right],
-  rw [complex.arg_mul_coe_angle, real.angle.arg_exp_map_circle],
-  { abel },
-  { exact ne_zero_of_mem_circle _ },
-  { exact o.kahler_ne_zero hx hy },
-end
-
-/-- The rotation of a vector by `θ` has an angle of `-θ` from that vector. -/
-@[simp] lemma oangle_rotation_self_left {x : V} (hx : x ≠ 0) (θ : real.angle) :
-  o.oangle (o.rotation θ x) x = -θ :=
-by simp [hx]
-
-/-- A vector has an angle of `θ` from the rotation of that vector by `θ`. -/
-@[simp] lemma oangle_rotation_self_right {x : V} (hx : x ≠ 0) (θ : real.angle) :
-  o.oangle x (o.rotation θ x) = θ :=
-by simp [hx]
-
-/-- Rotating the first vector by the angle between the two vectors results an an angle of 0. -/
-@[simp] lemma oangle_rotation_oangle_left (x y : V) :
-  o.oangle (o.rotation (o.oangle x y) x) y = 0 :=
-begin
-  by_cases hx : x = 0,
-  { simp [hx] },
-  { by_cases hy : y = 0,
-    { simp [hy] },
-    { simp [hx, hy] } }
-end
-
-/-- Rotating the first vector by the angle between the two vectors and swapping the vectors
-results an an angle of 0. -/
-@[simp] lemma oangle_rotation_oangle_right (x y : V) :
-  o.oangle y (o.rotation (o.oangle x y) x) = 0 :=
-begin
-  rw [oangle_rev],
-  simp
-end
-
-/-- Rotating both vectors by the same angle does not change the angle between those vectors. -/
-@[simp] lemma oangle_rotation (x y : V) (θ : real.angle) :
-  o.oangle (o.rotation θ x) (o.rotation θ y) = o.oangle x y :=
-begin
-  by_cases hx : x = 0; by_cases hy : y = 0;
-    simp [hx, hy]
-end
-
-/-- A rotation of a nonzero vector equals that vector if and only if the angle is zero. -/
-@[simp] lemma rotation_eq_self_iff_angle_eq_zero {x : V} (hx : x ≠ 0) (θ : real.angle) :
-  o.rotation θ x = x ↔ θ = 0 :=
-begin
-  split,
-  { intro h,
-    rw eq_comm,
-    simpa [hx, h] using o.oangle_rotation_right hx hx θ },
-  { intro h,
-    simp [h] }
-end
-
-/-- A nonzero vector equals a rotation of that vector if and only if the angle is zero. -/
-@[simp] lemma eq_rotation_self_iff_angle_eq_zero {x : V} (hx : x ≠ 0) (θ : real.angle) :
-  x = o.rotation θ x ↔ θ = 0 :=
-by rw [←o.rotation_eq_self_iff_angle_eq_zero hx, eq_comm]
-
-/-- A rotation of a vector equals that vector if and only if the vector or the angle is zero. -/
-lemma rotation_eq_self_iff (x : V) (θ : real.angle) :
-  o.rotation θ x = x ↔ x = 0 ∨ θ = 0 :=
-begin
-  by_cases h : x = 0;
-    simp [h]
-end
-
-/-- A vector equals a rotation of that vector if and only if the vector or the angle is zero. -/
-lemma eq_rotation_self_iff (x : V) (θ : real.angle) :
-  x = o.rotation θ x ↔ x = 0 ∨ θ = 0 :=
-by rw [←rotation_eq_self_iff, eq_comm]
-
-/-- Rotating a vector by the angle to another vector gives the second vector if and only if the
-norms are equal. -/
-@[simp] lemma rotation_oangle_eq_iff_norm_eq (x y : V) :
-  o.rotation (o.oangle x y) x = y ↔ ∥x∥ = ∥y∥ :=
-begin
-  split,
-  { intro h,
-    rw [←h, linear_isometry_equiv.norm_map] },
-  { intro h,
-    rw o.eq_iff_oangle_eq_zero_of_norm_eq;
-      simp [h] }
-end
-
-/-- The angle between two nonzero vectors is `θ` if and only if the second vector is the first
-rotated by `θ` and scaled by the ratio of the norms. -/
-lemma oangle_eq_iff_eq_norm_div_norm_smul_rotation_of_ne_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0)
-  (θ : real.angle) : o.oangle x y = θ ↔ y = (∥y∥ / ∥x∥) • o.rotation θ x :=
-begin
-  have hp := div_pos (norm_pos_iff.2 hy) (norm_pos_iff.2 hx),
-  split,
-  { rintro rfl,
-    rw [←linear_isometry_equiv.map_smul, ←o.oangle_smul_left_of_pos x y hp,
-        eq_comm, rotation_oangle_eq_iff_norm_eq, norm_smul, real.norm_of_nonneg hp.le,
-        div_mul_cancel _ (norm_ne_zero_iff.2 hx)] },
-  { intro hye,
-    rw [hye, o.oangle_smul_right_of_pos _ _ hp, o.oangle_rotation_self_right hx] }
-end
-
-/-- The angle between two nonzero vectors is `θ` if and only if the second vector is the first
-rotated by `θ` and scaled by a positive real. -/
-lemma oangle_eq_iff_eq_pos_smul_rotation_of_ne_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0)
-  (θ : real.angle) : o.oangle x y = θ ↔ ∃ r : ℝ, 0 < r ∧ y = r • o.rotation θ x :=
-begin
-  split,
-  { intro h,
-    rw o.oangle_eq_iff_eq_norm_div_norm_smul_rotation_of_ne_zero hx hy at h,
-    exact ⟨∥y∥ / ∥x∥, div_pos (norm_pos_iff.2 hy) (norm_pos_iff.2 hx), h⟩ },
-  { rintro ⟨r, hr, rfl⟩,
-    rw [o.oangle_smul_right_of_pos _ _ hr, o.oangle_rotation_self_right hx] }
-end
-
-/-- The angle between two vectors is `θ` if and only if they are nonzero and the second vector
-is the first rotated by `θ` and scaled by the ratio of the norms, or `θ` and at least one of the
-vectors are zero. -/
-lemma oangle_eq_iff_eq_norm_div_norm_smul_rotation_or_eq_zero {x y : V} (θ : real.angle) :
-  o.oangle x y = θ ↔
-    (x ≠ 0 ∧ y ≠ 0 ∧ y = (∥y∥ / ∥x∥) • o.rotation θ x) ∨ (θ = 0 ∧ (x = 0 ∨ y = 0)) :=
-begin
-  by_cases hx : x = 0,
-  { simp [hx, eq_comm] },
-  { by_cases hy : y = 0,
-    { simp [hy, eq_comm] },
-    { rw o.oangle_eq_iff_eq_norm_div_norm_smul_rotation_of_ne_zero hx hy,
-      simp [hx, hy] } }
-end
-
-/-- The angle between two vectors is `θ` if and only if they are nonzero and the second vector
-is the first rotated by `θ` and scaled by a positive real, or `θ` and at least one of the
-vectors are zero. -/
-lemma oangle_eq_iff_eq_pos_smul_rotation_or_eq_zero {x y : V} (θ : real.angle) :
-  o.oangle x y = θ ↔
-    (x ≠ 0 ∧ y ≠ 0 ∧ ∃ r : ℝ, 0 < r ∧ y = r • o.rotation θ x) ∨ (θ = 0 ∧ (x = 0 ∨ y = 0)) :=
-begin
-  by_cases hx : x = 0,
-  { simp [hx, eq_comm] },
-  { by_cases hy : y = 0,
-    { simp [hy, eq_comm] },
-    { rw o.oangle_eq_iff_eq_pos_smul_rotation_of_ne_zero hx hy,
-      simp [hx, hy] } }
-end
-
-/-- Any linear isometric equivalence in `V` with positive determinant is `rotation`. -/
-lemma exists_linear_isometry_equiv_eq_of_det_pos {f : V ≃ₗᵢ[ℝ] V}
-  (hd : 0 < (f.to_linear_equiv : V →ₗ[ℝ] V).det) : ∃ θ : real.angle, f = o.rotation θ :=
-begin
-  haveI : nontrivial V :=
-    finite_dimensional.nontrivial_of_finrank_eq_succ (fact.out (finrank ℝ V = 2)),
-  obtain ⟨x, hx⟩ : ∃ x, x ≠ (0:V) := exists_ne (0:V),
-  use o.oangle x (f x),
-  apply linear_isometry_equiv.to_linear_equiv_injective,
-  apply linear_equiv.to_linear_map_injective,
-  apply (o.basis_right_angle_rotation x hx).ext,
-  intros i,
-  symmetry,
-  fin_cases i,
-  { simp },
-  have : o.oangle (J x) (f (J x)) = o.oangle x (f x),
-  { simp only [oangle, o.linear_isometry_equiv_comp_right_angle_rotation f hd,
-      o.kahler_comp_right_angle_rotation] },
-  simp [← this],
 end
 
 /-- The angle between two vectors, with respect to an orientation given by `orientation.map`
@@ -800,43 +577,15 @@ end
 lemma oangle_neg_orientation_eq_neg (x y : V) : (-o).oangle x y = -(o.oangle x y) :=
 by simp [oangle]
 
-lemma rotation_map (θ : real.angle) (f : V ≃ₗᵢ[ℝ] V') (x : V') :
-  (orientation.map (fin 2) f.to_linear_equiv o).rotation θ x
-  = f (o.rotation θ (f.symm x)) :=
-by simp [rotation_apply, o.right_angle_rotation_map]
-
-@[simp] protected lemma _root_.complex.rotation (θ : real.angle) (z : ℂ) :
-  complex.orientation.rotation θ z = θ.exp_map_circle * z :=
-begin
-  simp only [rotation_apply, complex.right_angle_rotation, real.angle.coe_exp_map_circle,
-    real_smul],
-  ring
-end
-
-/-- Rotation in an oriented real inner product space of dimension 2 can be evaluated in terms of a
-complex-number representation of the space. -/
-lemma rotation_map_complex (θ : real.angle) (f : V ≃ₗᵢ[ℝ] ℂ)
-  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x : V) :
-  f (o.rotation θ x) = θ.exp_map_circle * f x :=
-begin
-  rw [← complex.rotation, ← hf, o.rotation_map],
-  simp,
-end
-
-/-- Negating the orientation negates the angle in `rotation`. -/
-lemma rotation_neg_orientation_eq_neg (θ : real.angle) :
-  (-o).rotation θ = o.rotation (-θ) :=
-linear_isometry_equiv.ext $ by simp [rotation_apply]
-
 /-- The inner product of two vectors is the product of the norms and the cosine of the oriented
 angle between the vectors. -/
 lemma inner_eq_norm_mul_norm_mul_cos_oangle (x y : V) :
-  ⟪x, y⟫ = ∥x∥ * ∥y∥ * real.angle.cos (o.oangle x y) :=
+  ⟪x, y⟫ = ‖x‖ * ‖y‖ * real.angle.cos (o.oangle x y) :=
 begin
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
-  have : ∥x∥ ≠ 0 := by simpa using hx,
-  have : ∥y∥ ≠ 0 := by simpa using hy,
+  have : ‖x‖ ≠ 0 := by simpa using hx,
+  have : ‖y‖ ≠ 0 := by simpa using hy,
   rw [oangle, real.angle.cos_coe, complex.cos_arg, o.abs_kahler],
   { simp only [kahler_apply_apply, real_smul, add_re, of_real_re, mul_re, I_re, of_real_im],
     field_simp,
@@ -847,7 +596,7 @@ end
 /-- The cosine of the oriented angle between two nonzero vectors is the inner product divided by
 the product of the norms. -/
 lemma cos_oangle_eq_inner_div_norm_mul_norm {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  real.angle.cos (o.oangle x y) = ⟪x, y⟫ / (∥x∥ * ∥y∥) :=
+  real.angle.cos (o.oangle x y) = ⟪x, y⟫ / (‖x‖ * ‖y‖) :=
 begin
   rw o.inner_eq_norm_mul_norm_mul_cos_oangle,
   field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
@@ -953,7 +702,7 @@ begin
   by_cases hy : y = 0, { exfalso, simpa [hy] using h },
   refine (o.oangle_eq_angle_or_eq_neg_angle hx hy).resolve_right _,
   intro hxy,
-  rw [hxy, real.angle.sign_neg, neg_eq_iff_neg_eq, eq_comm, ←sign_type.neg_iff, ←not_le] at h,
+  rw [hxy, real.angle.sign_neg, neg_eq_iff_eq_neg, ←sign_type.neg_iff, ←not_le] at h,
   exact h (real.angle.sign_coe_nonneg_of_nonneg_of_le_pi (inner_product_geometry.angle_nonneg _ _)
                                                          (inner_product_geometry.angle_le_pi _ _))
 end
@@ -1252,5 +1001,34 @@ begin
         add_mul, mul_assoc, mul_comm r₂ r₁, ←mul_assoc, div_mul_cancel _ hr₁, add_comm,
         neg_mul, ←sub_eq_add_neg, mul_comm r₄, mul_comm r₃] }
 end
+
+/-- A base angle of an isosceles triangle is acute, oriented vector angle form. -/
+lemma abs_oangle_sub_left_to_real_lt_pi_div_two {x y : V} (h : ‖x‖ = ‖y‖) :
+  |(o.oangle (y - x) y).to_real| < π / 2 :=
+begin
+  by_cases hn : x = y, { simp [hn, div_pos, real.pi_pos] },
+  have hs : ((2 : ℤ) • (o.oangle (y - x) y)).sign = (o.oangle (y - x) y).sign,
+  { conv_rhs { rw oangle_sign_sub_left_swap },
+    rw [o.oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq hn h, real.angle.sign_pi_sub] },
+  rw real.angle.sign_two_zsmul_eq_sign_iff at hs,
+  rcases hs with hs | hs,
+  { rw [oangle_eq_pi_iff_oangle_rev_eq_pi, oangle_eq_pi_iff_same_ray_neg, neg_sub] at hs,
+    rcases hs with ⟨hy, -, hr⟩,
+    rw ←exists_nonneg_left_iff_same_ray hy at hr,
+    rcases hr with ⟨r, hr0, hr⟩,
+    rw [eq_sub_iff_add_eq] at hr,
+    nth_rewrite 1 ←one_smul ℝ y at hr,
+    rw ←add_smul at hr,
+    rw [←hr, norm_smul, real.norm_eq_abs, abs_of_pos (left.add_pos_of_nonneg_of_pos hr0 one_pos),
+        mul_left_eq_self₀, or_iff_left (norm_ne_zero_iff.2 hy), add_left_eq_self] at h,
+    rw [h, zero_add, one_smul] at hr,
+    exact false.elim (hn hr.symm) },
+  { exact hs }
+end
+
+/-- A base angle of an isosceles triangle is acute, oriented vector angle form. -/
+lemma abs_oangle_sub_right_to_real_lt_pi_div_two {x y : V} (h : ‖x‖ = ‖y‖) :
+  |(o.oangle x (x - y)).to_real| < π / 2 :=
+(o.oangle_sub_eq_oangle_sub_rev_of_norm_eq h).symm ▸ o.abs_oangle_sub_left_to_real_lt_pi_div_two h
 
 end orientation

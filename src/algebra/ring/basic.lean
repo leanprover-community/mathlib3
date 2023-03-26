@@ -6,10 +6,12 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Ne
 import algebra.ring.defs
 import algebra.hom.group
 import algebra.opposites
-import algebra.ring.inj_surj
 
 /-!
 # Semirings and rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file gives lemmas about semirings, rings and domains.
 This is analogous to `algebra.group.basic`,
@@ -76,12 +78,6 @@ section has_distrib_neg
 section has_mul
 variables [has_mul α] [has_distrib_neg α]
 
-namespace add_opposite
-
-instance : has_distrib_neg αᵃᵒᵖ := unop_injective.has_distrib_neg _ unop_neg unop_mul
-
-end add_opposite
-
 open mul_opposite
 
 instance : has_distrib_neg αᵐᵒᵖ :=
@@ -125,3 +121,55 @@ lemma succ_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 
 lemma pred_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
+
+section no_zero_divisors
+
+variable (α)
+
+lemma is_left_cancel_mul_zero.to_no_zero_divisors [ring α] [is_left_cancel_mul_zero α] :
+  no_zero_divisors α :=
+begin
+  refine ⟨λ x y h, _⟩,
+  by_cases hx : x = 0,
+  { left, exact hx },
+  { right,
+    rw [← sub_zero (x * y), ← mul_zero x, ← mul_sub] at h,
+    convert (is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero) hx h,
+    rw [sub_zero] }
+end
+
+lemma is_right_cancel_mul_zero.to_no_zero_divisors [ring α] [is_right_cancel_mul_zero α] :
+  no_zero_divisors α :=
+begin
+  refine ⟨λ x y h, _⟩,
+  by_cases hy : y = 0,
+  { right, exact hy },
+  { left,
+    rw [← sub_zero (x * y), ← zero_mul y, ← sub_mul] at h,
+    convert (is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero) hy h,
+    rw [sub_zero] }
+end
+
+@[priority 100]
+instance no_zero_divisors.to_is_cancel_mul_zero [ring α] [no_zero_divisors α] :
+  is_cancel_mul_zero α :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha h,
+  begin
+    rw [← sub_eq_zero, ← mul_sub] at h,
+    exact sub_eq_zero.1 ((eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left ha)
+  end,
+  mul_right_cancel_of_ne_zero := λ a b c hb h,
+  begin
+    rw [← sub_eq_zero, ← sub_mul] at h,
+    exact sub_eq_zero.1 ((eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hb)
+  end }
+
+lemma no_zero_divisors.to_is_domain [ring α] [h : nontrivial α] [no_zero_divisors α] :
+  is_domain α :=
+{ .. no_zero_divisors.to_is_cancel_mul_zero α, .. h }
+
+@[priority 100]
+instance is_domain.to_no_zero_divisors [ring α] [is_domain α] : no_zero_divisors α :=
+is_right_cancel_mul_zero.to_no_zero_divisors α
+
+end no_zero_divisors

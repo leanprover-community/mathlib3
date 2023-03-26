@@ -11,6 +11,9 @@ import group_theory.group_action.basic
 
 # Sets invariant to a `mul_action`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `sub_mul_action R M`; a subset of a `mul_action R M` which is closed with
 respect to scalar multiplication.
 
@@ -36,13 +39,23 @@ variables {S : Type u'} {T : Type u''} {R : Type u} {M : Type v}
 set_option old_structure_cmd true
 
 /-- `smul_mem_class S R M` says `S` is a type of subsets `s ≤ M` that are closed under the
-scalar action of `R` on `M`. -/
-class smul_mem_class (S : Type*) (R M : out_param $ Type*) [has_smul R M] [set_like S M] :=
+scalar action of `R` on `M`.
+
+Note that only `R` is marked as an `out_param` here, since `M` is supplied by the `set_like`
+class instead.
+-/
+class smul_mem_class (S : Type*) (R : out_param $ Type*) (M : Type*) [has_smul R M]
+  [set_like S M] :=
 (smul_mem : ∀ {s : S} (r : R) {m : M}, m ∈ s → r • m ∈ s)
 
 /-- `vadd_mem_class S R M` says `S` is a type of subsets `s ≤ M` that are closed under the
-additive action of `R` on `M`. -/
-class vadd_mem_class (S : Type*) (R M : out_param $ Type*) [has_vadd R M] [set_like S M] :=
+additive action of `R` on `M`.
+
+Note that only `R` is marked as an `out_param` here, since `M` is supplied by the `set_like`
+class instead.
+-/
+class vadd_mem_class (S : Type*) (R : out_param $ Type*) (M : Type*) [has_vadd R M]
+  [set_like S M] :=
 (vadd_mem : ∀ {s : S} (r : R) {m : M}, m ∈ s → r +ᵥ m ∈ s)
 
 attribute [to_additive] smul_mem_class
@@ -69,6 +82,13 @@ lemma mk_smul_mk (r : R) (x : M) (hx : x ∈ s) :
   r • (⟨x, hx⟩ : s) = ⟨r • x, smul_mem r hx⟩ := rfl
 
 @[to_additive] lemma smul_def (r : R) (x : s) : r • x = ⟨r • x, smul_mem r x.2⟩ := rfl
+
+omit hS
+
+@[simp] lemma forall_smul_mem_iff {R M S : Type*} [monoid R] [mul_action R M]
+  [set_like S M] [smul_mem_class S R M] {N : S} {x : M} :
+  (∀ (a : R), a • x ∈ N) ↔ x ∈ N :=
+⟨λ h, by simpa using h 1, λ h a, smul_mem_class.smul_mem a h⟩
 
 end set_like
 

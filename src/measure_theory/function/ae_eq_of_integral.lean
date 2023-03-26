@@ -52,7 +52,8 @@ section ae_eq_of_forall
 
 variables {α E 𝕜 : Type*} {m : measurable_space α} {μ : measure α} [is_R_or_C 𝕜]
 
-lemma ae_eq_zero_of_forall_inner [inner_product_space 𝕜 E] [second_countable_topology E]
+lemma ae_eq_zero_of_forall_inner
+  [normed_add_comm_group E] [inner_product_space 𝕜 E] [second_countable_topology E]
   {f : α → E} (hf : ∀ c : E, (λ x, (inner c (f x) : 𝕜)) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 begin
@@ -60,7 +61,7 @@ begin
   have hs : dense_range s := dense_range_dense_seq E,
   have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, inner (s n) (f x) = (0 : 𝕜), from ae_all_iff.mpr (λ n, hf (s n)),
   refine hf'.mono (λ x hx, _),
-  rw [pi.zero_apply, ← inner_self_eq_zero],
+  rw [pi.zero_apply, ← @inner_self_eq_zero 𝕜],
   have h_closed : is_closed {c : E | inner c (f x) = (0 : 𝕜)},
     from is_closed_eq (continuous_id.inner continuous_const) continuous_const,
   exact @is_closed_property ℕ E _ s (λ c, inner c (f x) = (0 : 𝕜)) hs h_closed (λ n, hx n) _,
@@ -77,28 +78,28 @@ lemma ae_eq_zero_of_forall_dual_of_is_separable [normed_add_comm_group E] [norme
 begin
   rcases ht with ⟨d, d_count, hd⟩,
   haveI : encodable d := d_count.to_encodable,
-  have : ∀ (x : d), ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = ∥(x : E)∥ := λ x, exists_dual_vector'' 𝕜 x,
+  have : ∀ (x : d), ∃ g : E →L[𝕜] 𝕜, ‖g‖ ≤ 1 ∧ g x = ‖(x : E)‖ := λ x, exists_dual_vector'' 𝕜 x,
   choose s hs using this,
   have A : ∀ (a : E), a ∈ t → (∀ x, ⟪a, s x⟫ = (0 : 𝕜)) → a = 0,
   { assume a hat ha,
     contrapose! ha,
-    have a_pos : 0 < ∥a∥, by simp only [ha, norm_pos_iff, ne.def, not_false_iff],
+    have a_pos : 0 < ‖a‖, by simp only [ha, norm_pos_iff, ne.def, not_false_iff],
     have a_mem : a ∈ closure d := hd hat,
-    obtain ⟨x, hx⟩ : ∃ (x : d), dist a x < ∥a∥ / 2,
-    { rcases metric.mem_closure_iff.1 a_mem (∥a∥/2) (half_pos a_pos) with ⟨x, h'x, hx⟩,
+    obtain ⟨x, hx⟩ : ∃ (x : d), dist a x < ‖a‖ / 2,
+    { rcases metric.mem_closure_iff.1 a_mem (‖a‖/2) (half_pos a_pos) with ⟨x, h'x, hx⟩,
       exact ⟨⟨x, h'x⟩, hx⟩ },
     use x,
-    have I : ∥a∥/2 < ∥(x : E)∥,
-    { have : ∥a∥ ≤ ∥(x : E)∥ + ∥a - x∥ := norm_le_insert' _ _,
-      have : ∥a - x∥ < ∥a∥/2, by rwa dist_eq_norm at hx,
+    have I : ‖a‖/2 < ‖(x : E)‖,
+    { have : ‖a‖ ≤ ‖(x : E)‖ + ‖a - x‖ := norm_le_insert' _ _,
+      have : ‖a - x‖ < ‖a‖/2, by rwa dist_eq_norm at hx,
       linarith },
     assume h,
-    apply lt_irrefl (∥s x x∥),
-    calc ∥s x x∥ = ∥s x (x - a)∥ : by simp only [h, sub_zero, continuous_linear_map.map_sub]
-    ... ≤ 1 * ∥(x : E) - a∥ : continuous_linear_map.le_of_op_norm_le _ (hs x).1 _
-    ... < ∥a∥ / 2 : by { rw [one_mul], rwa dist_eq_norm' at hx }
-    ... < ∥(x : E)∥ : I
-    ... = ∥s x x∥ : by rw [(hs x).2, is_R_or_C.norm_coe_norm] },
+    apply lt_irrefl (‖s x x‖),
+    calc ‖s x x‖ = ‖s x (x - a)‖ : by simp only [h, sub_zero, continuous_linear_map.map_sub]
+    ... ≤ 1 * ‖(x : E) - a‖ : continuous_linear_map.le_of_op_norm_le _ (hs x).1 _
+    ... < ‖a‖ / 2 : by { rw [one_mul], rwa dist_eq_norm' at hx }
+    ... < ‖(x : E)‖ : I
+    ... = ‖s x x‖ : by rw [(hs x).2, is_R_or_C.norm_coe_norm] },
   have hfs : ∀ (y : d), ∀ᵐ x ∂μ, ⟪f x, s y⟫ = (0 : 𝕜), from λ y, hf (s y),
   have hf' : ∀ᵐ x ∂μ, ∀ (y : d), ⟪f x, s y⟫ = (0 : 𝕜), by rwa ae_all_iff,
   filter_upwards [hf', h't] with x hx h'x,
@@ -162,7 +163,7 @@ end
 
 section ennreal
 
-open_locale topological_space
+open_locale topology
 
 lemma ae_le_of_forall_set_lintegral_le_of_sigma_finite [sigma_finite μ]
   {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g)
@@ -252,7 +253,7 @@ begin
   have mus : μ s < ∞,
   { let c : ℝ≥0 := ⟨|b|, abs_nonneg _⟩,
     have c_pos : (c : ℝ≥0∞) ≠ 0, by simpa using hb_neg.ne,
-    calc μ s ≤ μ {x | (c : ℝ≥0∞) ≤ ∥f x∥₊} :
+    calc μ s ≤ μ {x | (c : ℝ≥0∞) ≤ ‖f x‖₊} :
     begin
       apply measure_mono,
       assume x hx,
@@ -260,7 +261,7 @@ begin
       simpa only [nnnorm, abs_of_neg hb_neg, abs_of_neg (hx.trans_lt hb_neg), real.norm_eq_abs,
         subtype.mk_le_mk, neg_le_neg_iff, set.mem_set_of_eq, ennreal.coe_le_coe] using hx,
     end
-    ... ≤ (∫⁻ x, ∥f x∥₊ ∂μ) / c :
+    ... ≤ (∫⁻ x, ‖f x‖₊ ∂μ) / c :
       meas_ge_le_lintegral_div hfm.ae_measurable.ennnorm c_pos ennreal.coe_ne_top
     ... < ∞ : ennreal.div_lt_top (ne_of_lt hf.2) c_pos },
   have h_int_gt : ∫ x in s, f x ∂μ ≤ b * (μ s).to_real,

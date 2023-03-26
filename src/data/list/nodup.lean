@@ -6,9 +6,13 @@ Authors: Mario Carneiro, Kenny Lau
 import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
+import data.set.pairwise.basic
 
 /-!
 # Lists with no duplicates
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `list.nodup` is defined in `data/list/defs`. In this file we prove various properties of this
 predicate.
@@ -121,14 +125,14 @@ index_of_nth_le $ index_of_lt_length.2 $ nth_le_mem _ _ _
 
 theorem nodup_iff_count_le_one [decidable_eq α] {l : list α} : nodup l ↔ ∀ a, count a l ≤ 1 :=
 nodup_iff_sublist.trans $ forall_congr $ λ a,
-have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2).symm,
+have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_replicate_sublist _ _ a l 2).symm,
 (not_congr this).trans not_lt
 
-theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
+theorem nodup_replicate (a : α) : ∀ {n : ℕ}, nodup (replicate n a) ↔ n ≤ 1
 | 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
-  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (nat.le_add_left 2 n)))
+  (λ H, nodup_iff_sublist.1 H a ((replicate_sublist_replicate _).2 (nat.le_add_left 2 n)))
   (not_le_of_lt $ nat.le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
@@ -287,22 +291,6 @@ begin
 end
 
 lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l₁ ∩ l₂) := nodup.filter _
-
-@[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
-⟨λ h, (h.sublist (map_ret_sublist_sublists _)).of_map _,
- λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 h.to_ne)⟩
-
-@[simp] theorem nodup_sublists' {l : list α} : nodup (sublists' l) ↔ nodup l :=
-by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
-       nodup_sublists, nodup_reverse]
-
-alias nodup_sublists ↔ nodup.of_sublists nodup.sublists
-alias nodup_sublists' ↔ nodup.of_sublists' nodup.sublists'
-
-attribute [protected] nodup.sublists nodup.sublists'
-
-lemma nodup_sublists_len (n : ℕ) (h : nodup l) : (sublists_len n l).nodup :=
-h.sublists'.sublist $ sublists_len_sublist_sublists' _ _
 
 lemma nodup.diff_eq_filter [decidable_eq α] :
   ∀ {l₁ l₂ : list α} (hl₁ : l₁.nodup), l₁.diff l₂ = l₁.filter (∉ l₂)

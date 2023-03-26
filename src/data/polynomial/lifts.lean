@@ -9,6 +9,9 @@ import data.polynomial.monic
 /-!
 # Polynomials that lift
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we define a subsemiring `lifts` of
 `S[X]` by the image of `ring_hom.of (map f)`.
 Then, we prove that a polynomial that lifts can always be lifted to a polynomial of the same degree
@@ -140,7 +143,7 @@ begin
   { intro habs,
     simp only [habs, ring_hom.map_zero] at hcoeff,
     exact hzero hcoeff.symm },
-  repeat {rw monomial_eq_C_mul_X},
+  repeat {rw ← C_mul_X_pow_eq_monomial},
   simp only [hzero, hqzero, ne.def, not_false_iff, degree_C_mul_X_pow],
 end
 
@@ -167,7 +170,7 @@ begin
   obtain ⟨lead, hlead⟩ := monomial_mem_lifts_and_degree_eq (monomial_mem_lifts p.nat_degree
     ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)),
   have deg_lead : lead.degree = p.nat_degree,
-  { rw [hlead.2, monomial_eq_C_mul_X, degree_C_mul_X_pow p.nat_degree lead_zero] },
+  { rw [hlead.2, ← C_mul_X_pow_eq_monomial, degree_C_mul_X_pow p.nat_degree lead_zero] },
   rw hdeg at deg_erase,
   obtain ⟨erase, herase⟩ := hn p.erase_lead.nat_degree deg_erase
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),

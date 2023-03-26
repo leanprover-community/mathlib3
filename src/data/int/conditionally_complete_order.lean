@@ -3,11 +3,14 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import data.int.least_greatest
 
 /-!
 ## `ℤ` forms a conditionally complete linear order
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The integers form a conditionally complete linear order.
 -/

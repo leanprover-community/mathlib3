@@ -9,6 +9,9 @@ import order.filter.germ
 /-!
 # Ultraproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `φ` is an ultrafilter, then the space of germs of functions `f : α → β` at `φ` is called
 the *ultraproduct*. In this file we prove properties of ultraproducts that rely on `φ` being an
 ultrafilter. Definitions and properties that work for any filter should go to `order.filter.germ`.
@@ -47,8 +50,9 @@ by simp only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventual
 
 lemma coe_pos [preorder β] [has_zero β] {f : α → β} : 0 < (f : β*) ↔ ∀* x, 0 < f x := coe_lt
 
-lemma const_lt [preorder β] {x y : β} : x ≤ y → (↑x : β*) ≤ ↑y := lift_rel_const
+lemma const_lt [preorder β] {x y : β} : x < y → (↑x : β*) < ↑y := coe_lt.mpr ∘ lift_rel_const
 
+@[simp, norm_cast]
 lemma const_lt_iff [preorder β] {x y : β} : (↑x : β*) < ↑y ↔ x < y :=
 coe_lt.trans lift_rel_const_iff
 
@@ -138,7 +142,7 @@ instance [strict_ordered_semiring β] : strict_ordered_semiring β* :=
    (coe_lt.1 hh).mp $ (coe_lt.1 hfg).mono $ λ a, mul_lt_mul_of_pos_left,
   mul_lt_mul_of_pos_right := λ x y z, induction_on₃ x y z $ λ f g h hfg hh, coe_lt.2 $
    (coe_lt.1 hh).mp $ (coe_lt.1 hfg).mono $ λ a, mul_lt_mul_of_pos_right,
-  .. germ.ordered_semiring, ..germ.ordered_cancel_add_comm_monoid }
+  ..germ.ordered_semiring, ..germ.ordered_cancel_add_comm_monoid, ..germ.nontrivial }
 
 instance [strict_ordered_comm_semiring β] : strict_ordered_comm_semiring β* :=
 { .. germ.strict_ordered_semiring, ..germ.ordered_comm_semiring }
@@ -147,13 +151,13 @@ instance [strict_ordered_ring β] : strict_ordered_ring β* :=
 { zero_le_one := const_le zero_le_one,
   mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, coe_pos.2 $
     (coe_pos.1 hg).mp $ (coe_pos.1 hf).mono $ λ x, mul_pos,
-  .. germ.ring, .. germ.ordered_add_comm_group, .. germ.nontrivial }
+  ..germ.ring, ..germ.strict_ordered_semiring }
 
 instance [strict_ordered_comm_ring β] : strict_ordered_comm_ring β* :=
 { .. germ.strict_ordered_ring, ..germ.ordered_comm_ring }
 
 noncomputable instance [linear_ordered_ring β] : linear_ordered_ring β* :=
-{ ..germ.strict_ordered_ring, ..germ.linear_order, ..germ.nontrivial }
+{ ..germ.strict_ordered_ring, ..germ.linear_order }
 
 noncomputable instance [linear_ordered_field β] : linear_ordered_field β* :=
 { .. germ.linear_ordered_ring, .. germ.field }

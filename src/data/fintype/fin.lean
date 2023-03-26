@@ -8,6 +8,9 @@ import data.fin.interval
 /-!
 # The structure of `fintype (fin n)`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some basic results about the `fintype` instance for `fin`,
 especially properties of `finset.univ : finset (fin n)`.
 -/
@@ -20,6 +23,14 @@ namespace fin
 
 variables {α β : Type*} {n : ℕ}
 
+-- TODO: replace `subtype` with `coe` in the name of this lemma and `fin.map_subtype_embedding_Iio` 
+lemma map_subtype_embedding_univ :
+  (finset.univ : finset (fin n)).map fin.coe_embedding = Iio n :=
+begin
+  ext,
+  simp [order_iso_subtype.symm.surjective.exists, order_iso.symm],
+end
+
 @[simp] lemma Ioi_zero_eq_map :
   Ioi (0 : fin n.succ) = univ.map (fin.succ_embedding _).to_embedding :=
 begin
@@ -31,6 +42,14 @@ begin
     { intros j _, exact ⟨j, rfl⟩ } },
   { rintro ⟨i, _, rfl⟩,
     exact succ_pos _ },
+end
+
+@[simp] lemma Iio_last_eq_map :
+  Iio (fin.last n) = finset.univ.map fin.cast_succ.to_embedding :=
+begin
+  apply finset.map_injective fin.coe_embedding,
+  rw [finset.map_map, fin.map_subtype_embedding_Iio, fin.coe_last],
+  exact map_subtype_embedding_univ.symm
 end
 
 @[simp] lemma Ioi_succ (i : fin n) :
@@ -47,10 +66,18 @@ begin
   { rintro ⟨i, hi, rfl⟩, simpa },
 end
 
+@[simp] lemma Iio_cast_succ (i : fin n) :
+  Iio (cast_succ i) = (Iio i).map fin.cast_succ.to_embedding :=
+begin
+  apply finset.map_injective fin.coe_embedding,
+  rw [finset.map_map, fin.map_subtype_embedding_Iio],
+  exact (fin.map_subtype_embedding_Iio i).symm,
+end
+
 lemma card_filter_univ_succ' (p : fin (n + 1) → Prop) [decidable_pred p] :
   (univ.filter p).card = (ite (p 0) 1 0) + (univ.filter (p ∘ fin.succ)).card :=
 begin
-  rw [fin.univ_succ, filter_cons, card_disj_union, map_filter, card_map],
+  rw [fin.univ_succ, filter_cons, card_disj_union, filter_map, card_map],
   split_ifs; simp,
 end
 

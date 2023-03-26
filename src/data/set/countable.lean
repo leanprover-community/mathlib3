@@ -9,6 +9,9 @@ import logic.equiv.list
 
 /-!
 # Countable sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 noncomputable theory
 

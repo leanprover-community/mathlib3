@@ -5,7 +5,6 @@ Authors: Antoine Labelle
 -/
 import category_theory.monoidal.braided
 import category_theory.monoidal.linear
-import category_theory.concrete_category.basic
 import category_theory.preadditive.additive_functor
 import category_theory.linear.linear_functor
 import category_theory.closed.monoidal

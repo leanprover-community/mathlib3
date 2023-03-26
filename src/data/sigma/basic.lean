@@ -6,13 +6,13 @@ Authors: Johannes Hölzl
 import meta.univs
 import tactic.lint
 import tactic.ext
+import logic.function.basic
 
 /-!
-THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-https://github.com/leanprover-community/mathlib4/pull/449
-Any changes to this file require a corresponding PR to mathlib4.
-
 # Sigma types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic results about sigma types.
 

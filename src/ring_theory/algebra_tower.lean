@@ -3,13 +3,16 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
+import algebra.module.big_operators
 import linear_algebra.basis
 
 /-!
 # Towers of algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We set up the basic theory of algebra towers.
 An algebra tower A/S/R is expressed by having instances of `algebra A S`,
@@ -61,27 +64,6 @@ variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 end comm_semiring
 
 end is_scalar_tower
-
-namespace algebra
-
-lemma adjoin_restrict_scalars (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
-  [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
-(algebra.adjoin D S).restrict_scalars C =
-  (algebra.adjoin
-    ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S).restrict_scalars C :=
-begin
-  suffices : set.range (algebra_map D E) =
-    set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
-  { ext x, change x ∈ subsemiring.closure (_ ∪ S) ↔ x ∈ subsemiring.closure (_ ∪ S), rw this },
-  ext x,
-  split,
-  { rintros ⟨y, hy⟩,
-    exact ⟨⟨algebra_map D E y, ⟨y, ⟨algebra.mem_top, rfl⟩⟩⟩, hy⟩ },
-  { rintros ⟨⟨y, ⟨z, ⟨h0, h1⟩⟩⟩, h2⟩,
-    exact ⟨z, eq.trans h1 h2⟩ },
-end
-
-end algebra
 
 section algebra_map_coeffs
 

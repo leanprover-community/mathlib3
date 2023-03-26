@@ -3,13 +3,15 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang, Johan Commelin
 -/
-import data.fintype.card
 import data.mv_polynomial.rename
 import data.mv_polynomial.comm_ring
 import algebra.algebra.subalgebra.basic
 
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines symmetric `mv_polynomial`s and elementary symmetric `mv_polynomial`s.
 We also prove some basic facts about them.

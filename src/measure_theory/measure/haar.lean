@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.measure.content
 import measure_theory.group.prod
 import group_theory.divisible
+import topology.algebra.group.compact
 
 /-!
 # Haar measure
@@ -61,7 +62,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical ennreal pointwise topological_space
+open_locale nnreal classical ennreal pointwise topology
 
 namespace measure_theory
 namespace measure
@@ -321,10 +322,10 @@ begin
   have : is_compact (haar_product (K₀ : set G)),
   { apply is_compact_univ_pi, intro K, apply is_compact_Icc },
   refine this.inter_Inter_nonempty (cl_prehaar K₀) (λ s, is_closed_closure) (λ t, _),
-  let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
+  let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).carrier,
   have h1V₀ : is_open V₀,
-  { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨V, hV⟩ h2V, exact hV.1 },
-  have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
+  { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨⟨V, hV₁⟩, hV₂⟩ h2V, exact hV₁ },
+  have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨⟨V, hV₁⟩, hV₂⟩ h2V, exact hV₂ },
   refine ⟨prehaar K₀ V₀, _⟩,
   split,
   { apply prehaar_mem_haar_product K₀, use 1, rwa h1V₀.interior_eq },
@@ -367,7 +368,7 @@ begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f ⊥,
   have : continuous eval := continuous_apply ⊥,
   show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
-  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
+  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⊤),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, apply prehaar_empty },
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
@@ -379,7 +380,7 @@ begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₀.to_compacts,
   have : continuous eval := continuous_apply _,
   show chaar K₀ ∈ eval ⁻¹' {(1 : ℝ)},
-  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
+  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⊤),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, apply prehaar_self,
     rw h2U.interior_eq, exact ⟨1, h3U⟩ },
@@ -393,7 +394,7 @@ begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₂ - f K₁,
   have : continuous eval := (continuous_apply K₂).sub (continuous_apply K₁),
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
-  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
+  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⊤),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simp only [mem_preimage, mem_Ici, eval, sub_nonneg],
     apply prehaar_mono _ h, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
@@ -409,7 +410,7 @@ begin
     ((@continuous_add ℝ _ _ _).comp ((continuous_apply K₁).prod_mk (continuous_apply K₂))).sub
       (continuous_apply (K₁ ⊔ K₂)),
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
-  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
+  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⊤),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simp only [mem_preimage, mem_Ici, eval, sub_nonneg],
     apply prehaar_sup_le, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
@@ -434,7 +435,7 @@ begin
   rw [eq_comm, ← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
-    ⟨V⁻¹, (is_open.inter h2V₁ h2V₂).preimage continuous_inv,
+    ⟨⟨V⁻¹, (h2V₁.inter h2V₂).preimage continuous_inv⟩,
     by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_iff, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
@@ -456,7 +457,7 @@ begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f (K.map _ $ continuous_mul_left g) - f K,
   have : continuous eval := (continuous_apply (K.map _ _)).sub (continuous_apply K),
   rw [← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
-  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
+  apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⊤),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_singleton_iff, mem_preimage, eval, sub_eq_zero],
@@ -497,7 +498,7 @@ by simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq, haar_content_apply]
 lemma haar_content_outer_measure_self_pos {K₀ : positive_compacts G} :
   0 < (haar_content K₀).outer_measure K₀ :=
 begin
-  apply ennreal.zero_lt_one.trans_le,
+  refine zero_lt_one.trans_le _,
   rw [content.outer_measure_eq_infi],
   refine le_infi₂ (λ U hU, le_infi $ λ hK₀, le_trans _ $ le_supr₂ K₀.to_compacts hK₀),
   exact haar_content_self.ge,

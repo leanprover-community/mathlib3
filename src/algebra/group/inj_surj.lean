@@ -10,6 +10,9 @@ import data.int.cast.basic
 /-!
 # Lifting algebraic data classes along injective/surjective maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides definitions that are meant to deal with
 situations such as the following:
 
@@ -176,6 +179,17 @@ protected def comm_monoid [comm_monoid M₂] (f : M₁ → M₂) (hf : injective
   comm_monoid M₁ :=
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul npow }
 
+/-- A type endowed with `0`, `1` and `+` is an additive commutative monoid with one, if it admits an
+injective map that preserves `0`, `1` and `+` to an additive commutative monoid with one.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def add_comm_monoid_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁] [has_smul ℕ M₁]
+  [has_nat_cast M₁] [add_comm_monoid_with_one M₂] (f : M₁ → M₂) (hf : injective f) (zero : f 0 = 0)
+  (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) :
+  add_comm_monoid_with_one M₁ :=
+{ ..hf.add_monoid_with_one f zero one add nsmul nat_cast, ..hf.add_comm_monoid f zero add nsmul }
+
 /-- A type endowed with `1` and `*` is a cancel commutative monoid,
 if it admits an injective map that preserves `1` and `*` to a cancel commutative monoid.
 See note [reducible non-instances]. -/
@@ -223,7 +237,7 @@ protected def div_inv_monoid [div_inv_monoid M₂]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`. -/
-@[reducible, to_additive subtraction_monoid
+@[reducible, to_additive
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `subtraction_monoid`.
@@ -299,6 +313,21 @@ protected def comm_group [comm_group M₂] (f : M₁ → M₂) (hf : injective f
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   comm_group M₁ :=
 { .. hf.comm_monoid f one mul npow, .. hf.group f one mul inv div npow zpow }
+
+/-- A type endowed with `0`, `1` and `+` is an additive commutative group with one, if it admits an
+injective map that preserves `0`, `1` and `+` to an additive commutative group with one.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def add_comm_group_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁] [has_smul ℕ M₁]
+  [has_neg M₁] [has_sub M₁] [has_smul ℤ M₁] [has_nat_cast M₁] [has_int_cast M₁]
+  [add_comm_group_with_one M₂] (f : M₁ → M₂) (hf : injective f)
+  (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
+  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  add_comm_group_with_one M₁ :=
+{ ..hf.add_group_with_one f zero one add neg sub nsmul zsmul nat_cast int_cast,
+  ..hf.add_comm_monoid f zero add nsmul }
 
 end injective
 
@@ -392,6 +421,19 @@ protected def comm_monoid [comm_monoid M₁] (f : M₁ → M₂) (hf : surjectiv
   comm_monoid M₂ :=
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul npow }
 
+/-- A type endowed with `0`, `1` and `+` is an additive monoid with one,
+if it admits a surjective map that preserves `0`, `1` and `*` from an additive monoid with one.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def add_comm_monoid_with_one
+  {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_smul ℕ M₂] [has_nat_cast M₂]
+  [add_comm_monoid_with_one M₁] (f : M₁ → M₂) (hf : surjective f)
+  (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) :
+  add_comm_monoid_with_one M₂ :=
+{ ..hf.add_monoid_with_one f zero one add nsmul nat_cast, ..hf.add_comm_monoid _ zero _ nsmul }
+
 /-- A type has an involutive inversion if it admits a surjective map that preserves `⁻¹` to a type
 which has an involutive inversion. -/
 @[reducible, to_additive "A type has an involutive negation if it admits a surjective map that
@@ -443,6 +485,7 @@ protected def group [group M₁] (f : M₁ → M₂) (hf : surjective f)
 /-- A type endowed with `0`, `1`, `+` is an additive group with one,
 if it admits a surjective map that preserves `0`, `1`, and `+` to an additive group with one.
 See note [reducible non-instances]. -/
+@[reducible]
 protected def add_group_with_one
   {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_neg M₂] [has_sub M₂]
   [has_smul ℕ M₂] [has_smul ℤ M₂] [has_nat_cast M₂] [has_int_cast M₂]
@@ -471,6 +514,22 @@ protected def comm_group [comm_group M₁] (f : M₁ → M₂) (hf : surjective 
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   comm_group M₂ :=
 { .. hf.comm_monoid f one mul npow, .. hf.group f one mul inv div npow zpow }
+
+/-- A type endowed with `0`, `1`, `+` is an additive commutative group with one, if it admits a
+surjective map that preserves `0`, `1`, and `+` to an additive commutative group with one.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def add_comm_group_with_one
+  {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_neg M₂] [has_sub M₂]
+  [has_smul ℕ M₂] [has_smul ℤ M₂] [has_nat_cast M₂] [has_int_cast M₂]
+  [add_comm_group_with_one M₁] (f : M₁ → M₂) (hf : surjective f)
+  (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
+  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  add_comm_group_with_one M₂ :=
+{ ..hf.add_group_with_one f zero one add neg sub nsmul zsmul nat_cast int_cast,
+  ..hf.add_comm_monoid _ zero add nsmul }
 
 end surjective
 

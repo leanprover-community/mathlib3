@@ -4,15 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import logic.is_empty
+import control.traversable.basic
 import tactic.basic
-import logic.relator
 
 /-!
-THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-https://github.com/leanprover-community/mathlib4/pull/493
-Any changes to this file require a corresponding PR to mathlib4.
-
 # Option of a type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basic theory of option types.
 

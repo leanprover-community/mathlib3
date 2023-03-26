@@ -4,15 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.mul_action
 import topology.algebra.uniform_group
+import topology.continuous_function.basic
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
-import linear_algebra.determinant
-import ring_theory.simple_module
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -28,7 +27,7 @@ The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M�
 -/
 
 open filter linear_map (ker range)
-open_locale topological_space big_operators filter
+open_locale topology big_operators filter
 
 universes u v w u'
 
@@ -168,13 +167,10 @@ S.to_add_subgroup.topological_add_group
 end submodule
 
 section closure
-variables {R R' : Type u} {M M' : Type v}
+variables {R : Type u} {M : Type v}
 [semiring R] [topological_space R]
-[ring R'] [topological_space R']
 [topological_space M] [add_comm_monoid M]
-[topological_space M'] [add_comm_group M']
 [module R M] [has_continuous_smul R M]
-[module R' M'] [has_continuous_smul R' M']
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
   (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
@@ -209,7 +205,7 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-lemma submodule.submodule_topological_closure (s : submodule R M) :
+lemma submodule.le_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -224,13 +220,13 @@ closure_minimal h ht
 
 lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
   s.topological_closure ≤ t.topological_closure :=
-s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+s.topological_closure_minimal (h.trans t.le_topological_closure)
   t.is_closed_topological_closure
 
 /-- The topological closure of a closed submodule `s` is equal to `s`. -/
 lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
   s.topological_closure = s :=
-le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.le_topological_closure
 
 /-- A subspace is dense iff its topological closure is the entire space. -/
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
@@ -246,21 +242,31 @@ is_closed_closure.complete_space_coe
 is either closed or dense. -/
 lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
   is_closed (s : set M) ∨ dense (s : set M) :=
-(hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
+(hs.le_iff.mp s.le_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
   submodule.dense_iff_topological_closure_eq_top.mpr
 
-lemma linear_map.is_closed_or_dense_ker [has_continuous_add M'] [is_simple_module R' R']
-  (l : M' →ₗ[R'] R') :
-  is_closed (l.ker : set M') ∨ dense (l.ker : set M') :=
+end closure
+
+section pi
+
+lemma linear_map.continuous_on_pi {ι : Type*} {R : Type*} {M : Type*} [finite ι] [semiring R]
+  [topological_space R] [add_comm_monoid M] [module R M] [topological_space M]
+  [has_continuous_add M] [has_continuous_smul R M] (f : (ι → R) →ₗ[R] M) :
+  continuous f :=
 begin
-  rcases l.surjective_or_eq_zero with (hl|rfl),
-  { refine l.ker.is_closed_or_dense_of_is_coatom (linear_map.is_coatom_ker_of_surjective hl) },
-  { rw linear_map.ker_zero,
-    left,
-    exact is_closed_univ },
+  casesI nonempty_fintype ι,
+  classical,
+  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
+  -- function.
+  have : (f : (ι → R) → M) =
+         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
+    by { ext x, exact f.pi_apply_eq_sum_univ x },
+  rw this,
+  refine continuous_finset_sum _ (λi hi, _),
+  exact (continuous_apply i).smul continuous_const
 end
 
-end closure
+end pi
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications `M` and `M₂` will be topological modules over the topological
@@ -495,6 +501,11 @@ definitional equalities. -/
 protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
 { to_linear_map := f.to_linear_map.copy f' h,
   cont := show continuous f', from h.symm ▸ f.continuous }
+
+@[simp]
+lemma coe_copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : f.copy f' h = f := fun_like.ext' h
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f
@@ -1319,12 +1330,6 @@ end smul_rightₗ
 
 section comm_ring
 
-/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
-write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
-@[reducible] noncomputable def det {R : Type*} [comm_ring R]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
-linear_map.det (A : M →ₗ[R] M)
-
 variables
 {R : Type*} [comm_ring R]
 {M : Type*} [topological_space M] [add_comm_group M]
@@ -1937,11 +1942,6 @@ def fin_two_arrow : (fin 2 → M) ≃L[R] M × M :=
 { to_linear_equiv := linear_equiv.fin_two_arrow R M, .. pi_fin_two R (λ _, M) }
 
 end
-
-@[simp] lemma det_coe_symm {R : Type*} [field R]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
-  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
-linear_equiv.det_coe_symm A.to_linear_equiv
 
 end continuous_linear_equiv
 

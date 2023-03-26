@@ -3,14 +3,19 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.order.basic
-import algebra.order.group.abs
-import algebra.group.prod
+import algebra.char_zero.defs
+import algebra.group_with_zero.commute
 import algebra.hom.ring
+import algebra.order.group.abs
 import algebra.ring.commute
+import data.nat.order.basic
+import algebra.group.opposite
 
 /-!
 # Cast of natural numbers (additional theorems)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves additional properties about the *canonical* homomorphism from
 the natural numbers into an additive monoid with a one (`nat.cast`).
@@ -25,16 +30,11 @@ variables {α β : Type*}
 
 namespace nat
 
-instance (α : Type*) [add_monoid_with_one α] : coe_is_one_hom ℕ α :=
-{ coe_one := cast_one }
-
-instance (α : Type*) [add_monoid_with_one α] : coe_is_add_monoid_hom ℕ α :=
-{ coe_add := cast_add,
-  coe_zero := cast_zero }
-
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
-add_monoid_hom.coe ℕ α
+{ to_fun := coe,
+  map_add' := cast_add,
+  map_zero' := cast_zero }
 
 @[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
@@ -43,14 +43,12 @@ add_monoid_hom.coe ℕ α
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
-instance (α : Type*) [non_assoc_semiring α] : coe_is_ring_hom ℕ α :=
-{ coe_mul := cast_mul,
-  coe_one := cast_one,
-  .. nat.coe_is_add_monoid_hom α }
-
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
-ring_hom.coe ℕ α
+{ to_fun := coe,
+  map_one' := cast_one,
+  map_mul' := cast_mul,
+  .. cast_add_monoid_hom α }
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 
@@ -73,12 +71,35 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 @[simp] theorem cast_nonneg (n : ℕ) : 0 ≤ (n : α) :=
 @nat.cast_zero α _ ▸ mono_cast (nat.zero_le n)
 
+section nontrivial
 variable [nontrivial α]
 
 lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
 zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
 
 @[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
+
+end nontrivial
+
+variables [char_zero α] {m n : ℕ}
+
+lemma strict_mono_cast : strict_mono (coe : ℕ → α) :=
+mono_cast.strict_mono_of_injective cast_injective
+
+/-- `coe : ℕ → α` as an `order_embedding` -/
+@[simps { fully_applied := ff }] def cast_order_embedding : ℕ ↪o α :=
+order_embedding.of_strict_mono coe nat.strict_mono_cast
+
+@[simp, norm_cast] lemma cast_le : (m : α) ≤ n ↔ m ≤ n := strict_mono_cast.le_iff_le
+@[simp, norm_cast, mono] lemma cast_lt : (m : α) < n ↔ m < n := strict_mono_cast.lt_iff_lt
+
+@[simp, norm_cast] lemma one_lt_cast : 1 < (n : α) ↔ 1 < n := by rw [←cast_one, cast_lt]
+@[simp, norm_cast] lemma one_le_cast : 1 ≤ (n : α) ↔ 1 ≤ n := by rw [←cast_one, cast_le]
+
+@[simp, norm_cast] lemma cast_lt_one : (n : α) < 1 ↔ n = 0 :=
+by rw [←cast_one, cast_lt, lt_succ_iff, ←bot_eq_zero, le_bot_iff]
+
+@[simp, norm_cast] lemma cast_le_one : (n : α) ≤ 1 ↔ n ≤ 1 := by rw [←cast_one, cast_le]
 
 end ordered_semiring
 
@@ -94,30 +115,6 @@ begin
   { rcases le_iff_exists_add'.mp h with ⟨m, rfl⟩,
     rw [add_tsub_cancel_right, cast_add, add_tsub_cancel_right] }
 end
-
-section strict_ordered_semiring
-variables [strict_ordered_semiring α] [nontrivial α]
-
-@[simp, norm_cast] theorem cast_le {m n : ℕ} :
-  (m : α) ≤ n ↔ m ≤ n :=
-strict_mono_cast.le_iff_le
-
-@[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
-strict_mono_cast.lt_iff_lt
-
-@[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
-by rw [← cast_one, cast_lt]
-
-@[simp, norm_cast] theorem one_le_cast {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
-by rw [← cast_one, cast_le]
-
-@[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
-by rw [← cast_one, cast_lt, lt_succ_iff]; exact le_bot_iff
-
-@[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
-by rw [← cast_one, cast_le]
-
-end strict_ordered_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -137,23 +134,6 @@ map_dvd (nat.cast_ring_hom α) h
 alias coe_nat_dvd ← _root_.has_dvd.dvd.nat_cast
 
 end nat
-
-namespace prod
-variables [add_monoid_with_one α] [add_monoid_with_one β]
-
-instance : add_monoid_with_one (α × β) :=
-{ nat_cast := λ n, (n, n),
-  nat_cast_zero := congr_arg2 prod.mk nat.cast_zero nat.cast_zero,
-  nat_cast_succ := λ n, congr_arg2 prod.mk (nat.cast_succ _) (nat.cast_succ _),
-  .. prod.add_monoid, .. prod.has_one }
-
-@[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
-by induction n; simp *
-
-@[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
-by induction n; simp *
-
-end prod
 
 section add_monoid_hom_class
 
@@ -218,7 +198,7 @@ ext_nat' f g $ by simp only [map_one]
 
 lemma ne_zero.nat_of_injective {n : ℕ} [h : ne_zero (n : R)]
   [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
-⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
+⟨λ h, (ne_zero.nat_cast_ne n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
 
 lemma ne_zero.nat_of_ne_zero {R S} [semiring R] [semiring S] {F} [ring_hom_class F R S] (f : F)
   {n : ℕ} [hn : ne_zero (n : S)] : ne_zero (n : R) :=
@@ -242,15 +222,6 @@ rfl
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
 instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=
 { default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
-
-namespace mul_opposite
-variables [add_monoid_with_one α]
-
-@[simp, norm_cast] lemma op_nat_cast (n : ℕ) : op (n : α) = n := rfl
-
-@[simp, norm_cast] lemma unop_nat_cast (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
-
-end mul_opposite
 
 namespace pi
 variables {π : α → Type*} [Π a, has_nat_cast (π a)]

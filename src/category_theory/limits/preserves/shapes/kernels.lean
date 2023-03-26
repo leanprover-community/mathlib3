@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.kernels
-import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.shapes.zero
 
 /-!
 # Preserving (co)kernels
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Constructions to relate the notions of preserving (co)kernels and reflecting (co)kernels
 to concrete (co)forks.
@@ -115,6 +117,17 @@ begin
   apply_instance
 end
 
+@[reassoc] lemma kernel_map_comp_preserves_kernel_iso_inv {X' Y' : C} (g : X' ⟶ Y') [has_kernel g]
+  [has_kernel (G.map g)] [preserves_limit (parallel_pair g 0) G] (p : X ⟶ X') (q : Y ⟶ Y')
+  (hpq : f ≫ q = p ≫ g) :
+  kernel.map (G.map f) (G.map g) (G.map p) (G.map q)
+    (by rw [←G.map_comp, hpq, G.map_comp]) ≫ (preserves_kernel.iso G _).inv
+  = (preserves_kernel.iso G _).inv ≫ G.map (kernel.map f g p q hpq) :=
+begin
+  rw [iso.comp_inv_eq, category.assoc, preserves_kernel.iso_hom, iso.eq_inv_comp],
+  exact kernel_comparison_comp_kernel_map _ _ _ _ _ _,
+end
+
 end kernels
 
 section cokernels
@@ -205,6 +218,17 @@ instance : is_iso (cokernel_comparison f G) :=
 begin
   rw ← preserves_cokernel.iso_inv,
   apply_instance
+end
+
+@[reassoc] lemma preserves_cokernel_iso_comp_cokernel_map {X' Y' : C} (g : X' ⟶ Y')
+  [has_cokernel g] [has_cokernel (G.map g)] [preserves_colimit (parallel_pair g 0) G]
+  (p : X ⟶ X') (q : Y ⟶ Y') (hpq : f ≫ q = p ≫ g) :
+  (preserves_cokernel.iso G _).hom ≫ cokernel.map (G.map f) (G.map g) (G.map p) (G.map q)
+    (by rw [←G.map_comp, hpq, G.map_comp]) =
+  G.map (cokernel.map f g p q hpq) ≫ (preserves_cokernel.iso G _).hom :=
+begin
+  rw [←iso.comp_inv_eq, category.assoc, ←iso.eq_inv_comp],
+  exact cokernel_map_comp_cokernel_comparison _ _ _ _ _ _,
 end
 
 end cokernels

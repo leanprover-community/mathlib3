@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import measure_theory.tactic
 import measure_theory.function.special_functions.inner
+import measure_theory.function.special_functions.basic
 
 open_locale big_operators ennreal
 

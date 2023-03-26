@@ -9,6 +9,7 @@ import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
+import algebra.algebra.subalgebra.tower
 
 /-!
 # Linear maps and matrices
@@ -269,9 +270,9 @@ lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
 by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
 
 lemma matrix.range_to_lin' (M : matrix m n R) : M.to_lin'.range = span R (range Mᵀ) :=
-by simp_rw [range_eq_map, ←supr_range_std_basis, map_supr, range_eq_map, ←ideal.span_singleton_one,
-  ideal.span, submodule.map_span, image_image, image_singleton, matrix.to_lin'_apply,
-  M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
+by simp_rw [range_eq_map, ←supr_range_std_basis, submodule.map_supr, range_eq_map,
+  ←ideal.span_singleton_one, ideal.span, submodule.map_span, image_image, image_singleton,
+  matrix.to_lin'_apply, M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
 
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
@@ -487,6 +488,14 @@ by { ext i,
      congr,
      exact v₁.equiv_fun.symm_apply_apply x }
 
+@[simp] lemma linear_map.to_matrix_basis_equiv [fintype l] [decidable_eq l]
+  (b : basis l R M₁) (b' : basis l R M₂) :
+  linear_map.to_matrix b' b (b'.equiv b (equiv.refl l) : M₂ →ₗ[R] M₁) = 1 :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single_apply, eq_comm],
+end
+
 lemma matrix.to_lin_mul [fintype l] [decidable_eq m] (A : matrix l m R) (B : matrix m n R) :
   matrix.to_lin v₁ v₃ (A ⬝ B) =
   (matrix.to_lin v₂ v₃ A).comp (matrix.to_lin v₁ v₂ B) :=
@@ -628,12 +637,8 @@ namespace algebra
 
 section lmul
 
-variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
-variables {m n : Type*} [fintype m] [decidable_eq m] [decidable_eq n]
-variables (b : basis m R S) (c : basis n S T)
-
-open algebra
+variables {R S : Type*} [comm_ring R] [ring S] [algebra R S]
+variables {m : Type*} [fintype m] [decidable_eq m] (b : basis m R S)
 
 lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix b b (lmul R S x) i j = b.repr (x * b j) i :=
@@ -681,7 +686,14 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
              ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix b b).injective h
              ... = x' : mul_one x'
 
-variable [fintype n]
+end lmul
+
+section lmul_tower
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables {m n : Type*} [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+variables (b : basis m R S) (c : basis n S T)
 
 lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =
@@ -706,7 +718,7 @@ lemma smul_left_mul_matrix_algebra_map_ne (x : S) (i j) {k k'}
   (h : k ≠ k') : left_mul_matrix (b.smul c) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
 by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_ne _ _ _ h]
 
-end lmul
+end lmul_tower
 
 end algebra
 

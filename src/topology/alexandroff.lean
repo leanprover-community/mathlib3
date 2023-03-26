@@ -3,11 +3,15 @@ Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
+import data.fintype.option
 import topology.separation
 import topology.sets.opens
 
 /-!
 # The Alexandroff Compactification
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the Alexandroff compactification (the one-point compactification) of an arbitrary
 topological space `X` and prove some properties inherited from `X`.
@@ -33,7 +37,7 @@ one-point compactification, compactness
 -/
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 /-!
 ### Definition and basic properties

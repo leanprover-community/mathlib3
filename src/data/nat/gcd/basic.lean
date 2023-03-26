@@ -10,6 +10,9 @@ import data.nat.order.lemmas
 /-!
 # Definitions and properties of `nat.gcd`, `nat.lcm`, and `nat.coprime`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Generalizations of these are provided in a later file as `gcd_monoid.gcd` and
 `gcd_monoid.lcm`.
 
@@ -100,9 +103,9 @@ end
 
 theorem gcd_div {m n k : ℕ} (H1 : k ∣ m) (H2 : k ∣ n) :
   gcd (m / k) (n / k) = gcd m n / k :=
-or.elim (nat.eq_zero_or_pos k)
+(decidable.eq_or_ne k 0).elim
   (λk0, by rw [k0, nat.div_zero, nat.div_zero, nat.div_zero, gcd_zero_right])
-  (λH3, nat.eq_of_mul_eq_mul_right H3 $ by rw [
+  (λH3, mul_right_cancel₀ H3 $ by rw [
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
 

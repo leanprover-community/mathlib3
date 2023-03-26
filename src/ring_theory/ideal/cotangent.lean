@@ -8,7 +8,6 @@ import algebra.module.torsion
 import algebra.ring.idempotents
 import linear_algebra.finite_dimensional
 import ring_theory.ideal.local_ring
-import ring_theory.nakayama
 
 /-!
 # The module `I ⧸ I ^ 2`

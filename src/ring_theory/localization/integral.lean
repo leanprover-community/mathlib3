@@ -3,16 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.ring.equiv
+import data.polynomial.lifts
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
 import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
 import tactic.ring_exp
 
 /-!
@@ -311,7 +309,7 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
           (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
      by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
-    congr_arg (algebra_map _ L) (mul_right_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
+    congr_arg (algebra_map _ L) (mul_left_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
 
 variables (K L)
 
@@ -422,7 +420,7 @@ begin
   have mk_yz_eq : is_localization.mk' L y' z' = is_localization.mk' L y ⟨_, hz0'⟩,
   { rw [algebra.smul_def, mul_comm _ y, mul_comm _ y', ← set_like.coe_mk (algebra_map R S z) hz0']
         at yz_eq,
-    exact is_localization.mk'_eq_of_eq yz_eq.symm },
+    exact is_localization.mk'_eq_of_eq (by rw [mul_comm _ y, mul_comm _ y', yz_eq]), },
   suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
   { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
         ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,

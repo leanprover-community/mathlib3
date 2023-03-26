@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.complex.basic
-import topology.fiber_bundle.basic
+import topology.fiber_bundle.is_homeomorphic_trivial_bundle
 
 /-!
 # Closure, interior, and frontier of preimages under `re` and `im`
@@ -16,7 +16,7 @@ topological properties of `complex.re` and `complex.im`.
 
 Each statement about `complex.re` listed below has a counterpart about `complex.im`.
 
-* `complex.is_trivial_topological_fiber_bundle_re`: `complex.re` turns `ℂ` into a trivial
+* `complex.is_homeomorphic_trivial_fiber_bundle_re`: `complex.re` turns `ℂ` into a trivial
   topological fiber bundle over `ℝ`;
 * `complex.is_open_map_re`, `complex.quotient_map_re`: in particular, `complex.re` is an open map
   and is a quotient map;
@@ -37,24 +37,18 @@ noncomputable theory
 namespace complex
 
 /-- `complex.re` turns `ℂ` into a trivial topological fiber bundle over `ℝ`. -/
-lemma is_trivial_topological_fiber_bundle_re : is_trivial_topological_fiber_bundle ℝ re :=
-⟨equiv_real_prodₗ.to_homeomorph, λ z, rfl⟩
+lemma is_homeomorphic_trivial_fiber_bundle_re : is_homeomorphic_trivial_fiber_bundle ℝ re :=
+⟨equiv_real_prod_clm.to_homeomorph, λ z, rfl⟩
 
 /-- `complex.im` turns `ℂ` into a trivial topological fiber bundle over `ℝ`. -/
-lemma is_trivial_topological_fiber_bundle_im : is_trivial_topological_fiber_bundle ℝ im :=
-⟨equiv_real_prodₗ.to_homeomorph.trans (homeomorph.prod_comm ℝ ℝ), λ z, rfl⟩
+lemma is_homeomorphic_trivial_fiber_bundle_im : is_homeomorphic_trivial_fiber_bundle ℝ im :=
+⟨equiv_real_prod_clm.to_homeomorph.trans (homeomorph.prod_comm ℝ ℝ), λ z, rfl⟩
 
-lemma is_topological_fiber_bundle_re : is_topological_fiber_bundle ℝ re :=
-is_trivial_topological_fiber_bundle_re.is_topological_fiber_bundle
+lemma is_open_map_re : is_open_map re := is_homeomorphic_trivial_fiber_bundle_re.is_open_map_proj
+lemma is_open_map_im : is_open_map im := is_homeomorphic_trivial_fiber_bundle_im.is_open_map_proj
 
-lemma is_topological_fiber_bundle_im : is_topological_fiber_bundle ℝ im :=
-is_trivial_topological_fiber_bundle_im.is_topological_fiber_bundle
-
-lemma is_open_map_re : is_open_map re := is_topological_fiber_bundle_re.is_open_map_proj
-lemma is_open_map_im : is_open_map im := is_topological_fiber_bundle_im.is_open_map_proj
-
-lemma quotient_map_re : quotient_map re := is_topological_fiber_bundle_re.quotient_map_proj
-lemma quotient_map_im : quotient_map im := is_topological_fiber_bundle_im.quotient_map_proj
+lemma quotient_map_re : quotient_map re := is_homeomorphic_trivial_fiber_bundle_re.quotient_map_proj
+lemma quotient_map_im : quotient_map im := is_homeomorphic_trivial_fiber_bundle_im.quotient_map_proj
 
 lemma interior_preimage_re (s : set ℝ) : interior (re ⁻¹' s) = re ⁻¹' (interior s) :=
 (is_open_map_re.preimage_interior_eq_interior_preimage continuous_re _).symm
@@ -123,8 +117,8 @@ by simpa only [frontier_Ioi] using frontier_preimage_re (Ioi a)
 by simpa only [frontier_Ioi] using frontier_preimage_im (Ioi a)
 
 lemma closure_re_prod_im (s t : set ℝ) : closure (s ×ℂ t) = closure s ×ℂ closure t :=
-by simpa only [← preimage_eq_preimage equiv_real_prodₗ.symm.to_homeomorph.surjective,
-  equiv_real_prodₗ.symm.to_homeomorph.preimage_closure]
+by simpa only [← preimage_eq_preimage equiv_real_prod_clm.symm.to_homeomorph.surjective,
+  equiv_real_prod_clm.symm.to_homeomorph.preimage_closure]
   using @closure_prod_eq _ _ _ _ s t
 
 lemma interior_re_prod_im (s t : set ℝ) : interior (s ×ℂ t) = interior s ×ℂ interior t :=
@@ -132,8 +126,8 @@ by rw [re_prod_im, re_prod_im, interior_inter, interior_preimage_re, interior_pr
 
 lemma frontier_re_prod_im (s t : set ℝ) :
   frontier (s ×ℂ t) = (closure s ×ℂ frontier t) ∪ (frontier s ×ℂ closure t) :=
-by simpa only [← preimage_eq_preimage equiv_real_prodₗ.symm.to_homeomorph.surjective,
-  equiv_real_prodₗ.symm.to_homeomorph.preimage_frontier]
+by simpa only [← preimage_eq_preimage equiv_real_prod_clm.symm.to_homeomorph.surjective,
+  equiv_real_prod_clm.symm.to_homeomorph.preimage_frontier]
   using frontier_prod_eq s t
 
 lemma frontier_set_of_le_re_and_le_im (a b : ℝ) :
@@ -158,4 +152,4 @@ lemma is_closed.re_prod_im (hs : is_closed s) (ht : is_closed t) : is_closed (s 
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)
 
 lemma metric.bounded.re_prod_im (hs : bounded s) (ht : bounded t) : bounded (s ×ℂ t) :=
-equiv_real_prodₗ.antilipschitz.bounded_preimage (hs.prod ht)
+antilipschitz_equiv_real_prod.bounded_preimage (hs.prod ht)

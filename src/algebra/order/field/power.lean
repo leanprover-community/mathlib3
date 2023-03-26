@@ -3,12 +3,16 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.char_zero
+import algebra.parity
+import algebra.char_zero.lemmas
 import algebra.group_with_zero.power
 import algebra.order.field.basic
 
 /-!
 # Lemmas about powers in ordered fields.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}
@@ -94,6 +98,7 @@ lemma zpow_bit0_nonneg (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n :=
 (mul_self_nonneg _).trans_eq $ (zpow_bit0 _ _).symm
 
 lemma zpow_two_nonneg (a : α) : 0 ≤ a ^ (2 : ℤ) := zpow_bit0_nonneg _ _
+lemma zpow_neg_two_nonneg (a : α) : 0 ≤ a ^ (-2 : ℤ) := zpow_bit0_nonneg _ (-1)
 
 lemma zpow_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 (zpow_bit0_nonneg a n).lt_of_ne (zpow_ne_zero _ h).symm

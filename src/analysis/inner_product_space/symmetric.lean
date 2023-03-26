@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.inner_product_space.basic
+import analysis.normed_space.banach
+import linear_algebra.sesquilinear_form
 
 /-!
 # Symmetric linear maps in an inner product space
@@ -33,8 +35,10 @@ open is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E E' F G : Type*} [is_R_or_C 𝕜]
-variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
-variables [inner_product_space ℝ E']
+variables [normed_add_comm_group E] [inner_product_space 𝕜 E]
+variables [normed_add_comm_group F] [inner_product_space 𝕜 F]
+variables [normed_add_comm_group G] [inner_product_space 𝕜 G]
+variables [normed_add_comm_group E'] [inner_product_space ℝ E']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace linear_map
@@ -60,14 +64,14 @@ end real
 
 lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
-by rw [hT x y, inner_conj_sym]
+by rw [hT x y, inner_conj_symm]
 
 @[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
   (x y : E) : ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
 lemma is_symmetric_zero : (0 : E →ₗ[𝕜] E).is_symmetric :=
-λ x y, (inner_zero_right : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left : ⟪0, y⟫ = 0)
+λ x y, (inner_zero_right x : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left y : ⟪0, y⟫ = 0)
 
 lemma is_symmetric_id : (linear_map.id : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, rfl
@@ -87,12 +91,12 @@ lemma is_symmetric.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is
 begin
   -- We prove it by using the closed graph theorem
   refine T.continuous_of_seq_closed_graph (λ u x y hu hTu, _),
-  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  rw [←sub_eq_zero, ←@inner_self_eq_zero 𝕜],
   have hlhs : ∀ k : ℕ, ⟪T (u k) - T x, y - T x⟫ = ⟪u k - x, T (y - T x)⟫ :=
   by { intro k, rw [←T.map_sub, hT] },
   refine tendsto_nhds_unique ((hTu.sub_const _).inner tendsto_const_nhds) _,
   simp_rw hlhs,
-  rw ←@inner_zero_left 𝕜 E _ _ (T (y - T x)),
+  rw ←inner_zero_left (T (y - T x)),
   refine filter.tendsto.inner _ tendsto_const_nhds,
   rw ←sub_self x,
   exact hu.sub_const _,
@@ -117,7 +121,7 @@ lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric 
 λ v w, hT v w
 
 lemma is_symmetric.restrict_scalars {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
-  @linear_map.is_symmetric ℝ E _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
+  @linear_map.is_symmetric ℝ E _ _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
   (@linear_map.restrict_scalars ℝ 𝕜 _ _ _ _ _ _
     (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module
     (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module _ _ _ T) :=
@@ -126,7 +130,7 @@ lemma is_symmetric.restrict_scalars {T : E →ₗ[𝕜] E} (hT : T.is_symmetric)
 section complex
 
 variables {V : Type*}
-  [inner_product_space ℂ V]
+  [normed_add_comm_group V] [inner_product_space ℂ V]
 
 /-- A linear operator on a complex inner product space is symmetric precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/
@@ -137,7 +141,7 @@ begin
   { intros hT v,
     apply is_symmetric.conj_inner_sym hT },
   { intros h x y,
-    nth_rewrite 1 ← inner_conj_sym,
+    nth_rewrite 1 ← inner_conj_symm,
     nth_rewrite 1 inner_map_polarization,
     simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
     simp only [← star_ring_end_apply],

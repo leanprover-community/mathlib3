@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 import algebra.direct_sum.finsupp
 import linear_algebra.finsupp
 import linear_algebra.direct_sum.tensor_product
-import data.finsupp.to_dfinsupp
 
 /-!
 # Results on finitely supported functions.
@@ -33,7 +32,7 @@ def finsupp_tensor_finsupp (R M N ι κ : Sort*) [comm_ring R]
   [add_comm_group M] [module R M] [add_comm_group N] [module R N] :
   (ι →₀ M) ⊗[R] (κ →₀ N) ≃ₗ[R] (ι × κ) →₀ (M ⊗[R] N) :=
 (tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ))
-  ≪≫ₗ ((tensor_product.direct_sum R ι κ (λ _, M) (λ _, N))
+  ≪≫ₗ ((tensor_product.direct_sum R (λ _ : ι, M) (λ _ : κ, N))
   ≪≫ₗ (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm)
 
 @[simp] theorem finsupp_tensor_finsupp_single (R M N ι κ : Sort*) [comm_ring R]

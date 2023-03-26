@@ -3,9 +3,9 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.monoidal
 import algebra.algebra.restrict_scalars
-import category_theory.linear
+import category_theory.linear.basic
+import algebra.category.Module.basic
 
 /-!
 # Additional typeclass for modules over an algebra
@@ -29,13 +29,13 @@ that carries these typeclasses, this seems hard to achieve.
 requiring users to write `Module' ℤ A` when `A` is merely a ring.)
 -/
 
-universes v u
+universes v u w
 open category_theory
 
 namespace Module
 
 variables {k : Type u} [field k]
-variables {A : Type u} [ring A] [algebra k A]
+variables {A : Type w} [ring A] [algebra k A]
 
 /--
 Type synonym for considering a module over a `k`-algebra as a `k`-module.

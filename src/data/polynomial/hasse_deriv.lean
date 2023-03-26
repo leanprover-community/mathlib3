@@ -7,11 +7,13 @@ Authors: Johan Commelin
 import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
-import data.polynomial.degree.lemmas
 import data.polynomial.derivative
 
 /-!
 # Hasse derivative of polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The `k`th Hasse derivative of a polynomial `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.
 It is a variant of the usual derivative, and satisfies `k! * (hasse_deriv k f) = derivative^[k] f`.
@@ -87,7 +89,7 @@ begin
 end
 
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
-by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
+by simp only [hasse_deriv_apply, derivative_apply, ← C_mul_X_pow_eq_monomial, nat.choose_one_right,
     (nat.cast_commute _ _).eq]
 
 @[simp] lemma hasse_deriv_one : @hasse_deriv R _ 1 = derivative :=
@@ -220,8 +222,8 @@ begin
   congr' 2, clear f g,
   ext m r n s : 4,
   simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
-    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply,
-    add_monoid_hom.coe_mul, monomial_mul_monomial],
+    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
+    monomial_mul_monomial],
   have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →
     monomial (m - x.1 + (n - x.2)) (↑(m.choose x.1) * r * (↑(n.choose x.2) * s)) =
     monomial (m + n - k) (↑(m.choose x.1) * ↑(n.choose x.2) * (r * s)),

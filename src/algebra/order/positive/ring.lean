@@ -3,10 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.order.ring.inj_surj
+import algebra.order.ring.defs
+import algebra.ring.inj_surj
 
 /-!
 # Algebraic structures on the set of positive numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various instances (`add_semigroup`, `ordered_comm_monoid` etc) on the
 type `{x : R // 0 < x}`. In each case we try to require the weakest possible typeclass

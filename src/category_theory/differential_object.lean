@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.int.basic
-import category_theory.shift
+import category_theory.shift.basic
 import category_theory.concrete_category.basic
 
 /-!
@@ -220,8 +220,9 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
         ←functor.map_comp_assoc, X.d_squared, functor.map_zero, zero_comp] },
   map := λ X Y f,
   { f := f.f⟦n⟧',
-    comm' := by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,
-      f.comm, functor.map_comp_assoc], }, },
+    comm' := sorry, },
+   -- by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,
+   --   f.comm, functor.map_comp_assoc], }, },
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
@@ -234,12 +235,14 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
+    sorry,
     -- This is just `simp, simp [eq_to_hom_map]`.
-    simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
-      category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
-      μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
-    simp only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
-      eq_to_iso.inv], },
+    --simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
+    --  category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
+    --  μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
+    --simp only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
+    --  eq_to_iso.inv], },
+  },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 
@@ -250,11 +253,11 @@ local attribute [instance] endofunctor_monoidal_category
 
 /-- The shift by zero is naturally isomorphic to the identity. -/
 @[simps]
-def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
+def shift_zero : shift_functor C 0 ≅ 𝟭 (differential_object C) :=
 begin
-  refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
-  { dsimp, simp, dsimp, simp },
-  { introv, ext, dsimp, simp }
+  refine nat_iso.of_components (λ X, mk_iso ((shift_functor_zero C ℤ).app X.X) _) _,
+  { sorry, },
+  { tidy, },
 end
 
 end
@@ -264,8 +267,11 @@ local attribute [simp] eq_to_hom_map
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _
 { F := shift_functor C,
-  ε := shift_ε C,
-  μ := λ m n, (shift_functor_add C m n).symm }
+  zero := shift_zero C,
+  add := shift_functor_add C,
+  assoc_hom_app := by sorry,
+  zero_add_hom_app := by sorry,
+  add_zero_hom_app := by sorry, }
 
 end differential_object
 

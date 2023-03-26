@@ -45,7 +45,7 @@ Prove that `s` is partial well ordered iff it has no infinite descending chain o
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
-variables {ι α β : Type*}
+variables {ι α β γ : Type*}
 
 namespace set
 
@@ -61,7 +61,7 @@ section well_founded_on
 variables {r r' : α → α → Prop}
 
 section any_rel
-variables {s t : set α} {x y : α}
+variables {f : β → α} {s t : set α} {x y : α}
 
 lemma well_founded_on_iff :
   s.well_founded_on r ↔ well_founded (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
@@ -78,6 +78,26 @@ begin
   { rcases ht with ⟨m, mt⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ }
 end
+
+@[simp] lemma well_founded_on_univ : (univ : set α).well_founded_on r ↔ well_founded r :=
+by simp [well_founded_on_iff]
+
+lemma _root_.well_founded.well_founded_on  : well_founded r → s.well_founded_on r := inv_image.wf _
+
+@[simp] lemma well_founded_on_range : (range f).well_founded_on r ↔ well_founded (r on f) :=
+begin
+  let f' : β → range f := λ c, ⟨f c, c, rfl⟩,
+  refine ⟨λ h, (inv_image.wf f' h).mono $ λ c c', id, λ h, ⟨_⟩⟩,
+  rintro ⟨_, c, rfl⟩,
+  refine acc.of_downward_closed f' _ _ (_),
+  { rintro _ ⟨_, c', rfl⟩ -,
+    exact ⟨c', rfl⟩ },
+  { exact h.apply _ }
+end
+
+@[simp] lemma well_founded_on_image {s : set β} :
+  (f '' s).well_founded_on r ↔ s.well_founded_on (r on f) :=
+by { rw image_eq_range, exact well_founded_on_range }
 
 namespace well_founded_on
 
@@ -97,6 +117,9 @@ begin
   refine subrelation.wf (λ x y xy, _) h,
   exact ⟨hle _ _ xy.1, hst xy.2.1, hst xy.2.2⟩
 end
+
+lemma mono' (h : ∀ a b ∈ s, r' a b → r a b) : s.well_founded_on r → s.well_founded_on r' :=
+subrelation.wf $ λ a b, h _ a.2 _ b.2
 
 lemma subset (h : t.well_founded_on r) (hst : s ⊆ t) : s.well_founded_on r := h.mono le_rfl hst
 
@@ -707,3 +730,30 @@ begin
     refine ⟨g'.trans g, λ a b hab, (finset.forall_mem_cons _ _).2 _⟩,
     exact ⟨hg (order_hom_class.mono g' hab), hg' hab⟩ }
 end
+
+section prod_lex
+variables {rα : α → α → Prop} {rβ : β → β → Prop} {f : γ → α} {g : γ → β} {s : set γ}
+
+lemma well_founded.prod_lex (hα : well_founded (rα on f))
+  (hβ : ∀ a, (f ⁻¹' {a}).well_founded_on (rβ on g)) :
+  well_founded (prod.lex rα rβ on λ c, (f c, g c)) :=
+begin
+  refine ((psigma.lex_wf (well_founded_on_range.2 hα) $ λ a, hβ a).on_fun).mono (λ c c' h, _),
+  exact λ c, ⟨⟨_, c, rfl⟩, c, rfl⟩,
+  obtain h' | h' := prod.lex_iff.1 h,
+  { exact psigma.lex.left _ _ h' },
+  { dsimp only [inv_image, (on)] at h' ⊢,
+    convert psigma.lex.right (⟨_, c', rfl⟩ : range f) _ using 1, swap,
+    exacts [⟨c, h'.1⟩, psigma.subtype_ext (subtype.ext h'.1) rfl, h'.2] }
+end
+
+lemma set.well_founded_on.prod_lex (hα : s.well_founded_on (rα on f))
+  (hβ : ∀ a, (s ∩ f ⁻¹' {a}).well_founded_on (rβ on g)) :
+  s.well_founded_on (prod.lex rα rβ on λ c, (f c, g c)) :=
+begin
+  refine well_founded.prod_lex hα (λ a, subrelation.wf (λ b c h, _) (hβ a).on_fun),
+  exact λ x, ⟨x, x.1.2, x.2⟩,
+  assumption,
+end
+
+end prod_lex

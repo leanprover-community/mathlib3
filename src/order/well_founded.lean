@@ -21,21 +21,24 @@ and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `
 and an induction principle `well_founded.induction_bot`.
 -/
 
-variables {α : Type*}
+variables {α β γ : Type*}
 
 namespace well_founded
+variables {r r' : α → α → Prop}
 
-protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
-⟨h.asymmetric⟩
+protected theorem is_asymm (h : well_founded r) : is_asymm α r := ⟨h.asymmetric⟩
 
-instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
-has_well_founded.wf.is_asymm
-
-protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
+protected theorem is_irrefl (h : well_founded r) : is_irrefl α r :=
 (@is_asymm.is_irrefl α r h.is_asymm)
 
-instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
-is_asymm.is_irrefl
+instance [has_well_founded α] : is_asymm α has_well_founded.r := has_well_founded.wf.is_asymm
+instance [has_well_founded α] : is_irrefl α has_well_founded.r := is_asymm.is_irrefl
+
+lemma mono (hr : well_founded r) (h : ∀ a b, r' a b → r a b) : well_founded r' :=
+subrelation.wf h hr
+
+lemma on_fun {α β : Sort*} {r : β → β → Prop} {f : α → β} :
+  well_founded r → well_founded (r on f) := inv_image.wf _
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
@@ -130,8 +133,7 @@ end
 
 section linear_order
 
-variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
-  {γ : Type*} [partial_order γ]
+variables [linear_order β] (h : well_founded ((<) : β → β → Prop)) [partial_order γ]
 
 theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
   h.min s hne ≤ x :=
@@ -169,8 +171,7 @@ end linear_order
 end well_founded
 
 namespace function
-
-variables {β : Type*} (f : α → β)
+variables (f : α → β)
 
 section has_lt
 

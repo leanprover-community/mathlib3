@@ -390,7 +390,7 @@ lemma with_seminorms.tendsto_nhds (hp : with_seminorms p) (u : F → E) {f : fil
 begin
   rw hp.tendsto_nhds' u y₀,
   exact ⟨λ h i, by simpa only [finset.sup_singleton] using h {i},
-    λ h s ε hε, (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ x hx, finset_sup_apply_lt hε hx)⟩,
+    λ h s ε hε, (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ _, finset_sup_apply_lt hε)⟩,
 end
 
 variables [semilattice_sup F] [nonempty F]

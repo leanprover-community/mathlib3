@@ -397,7 +397,7 @@ begin
     have := h {i},
     rwa finset.sup_singleton at this },
   intros h s ε hε,
-  exact (s.eventually_all,2 $ λ i _, h i ε hε).mono (λ x hx, finset_sup_apply_lt hε hx),
+  exact (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ x hx, finset_sup_apply_lt hε hx),
 end
 
 variables [semilattice_sup F] [nonempty F]

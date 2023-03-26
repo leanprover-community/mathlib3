@@ -10,6 +10,9 @@ import linear_algebra.prod
 /-!
 # Trivial Square-Zero Extension
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a ring `R` together with an `(R, R)`-bimodule `M`, the trivial square-zero extension of `M`
 over `R` is defined to be the `R`-algebra `R ⊕ M` with multiplication given by
 `(r₁ + m₁) * (r₂ + m₂) = r₁ r₂ + r₁ m₂ + m₁ r₂`.
@@ -494,11 +497,35 @@ instance [monoid R] [add_monoid M]
   end,
   .. triv_sq_zero_ext.mul_one_class }
 
+lemma fst_list_prod [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
+  (l : list (tsze R M)) :
+  l.prod.fst = (l.map fst).prod :=
+map_list_prod (⟨fst, fst_one, fst_mul⟩ : tsze R M →* R) _
+
 instance [semiring R] [add_comm_monoid M]
   [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M] :
   semiring (tsze R M) :=
 { .. triv_sq_zero_ext.monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
+
+/-- The second element of a product $\prod_{i=0}^n (r_i + m_i)$ is a sum of terms of the form
+$r_0\cdots r_{i-1}m_ir_{i+1}\cdots r_n$. -/
+lemma snd_list_prod [semiring R] [add_comm_monoid M]
+  [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
+  (l : list (tsze R M)) :
+  l.prod.snd =
+    (l.enum.map (λ x : ℕ × tsze R M,
+      ((l.map fst).take x.1).prod • op ((l.map fst).drop x.1.succ).prod • x.snd.snd)).sum :=
+begin
+  induction l with x xs ih,
+  { simp },
+  { rw [list.enum_cons, ←list.map_fst_add_enum_eq_enum_from],
+    simp_rw [list.map_cons, list.map_map, function.comp, prod.map_snd, prod.map_fst, id,
+      list.take_zero, list.take_cons, list.prod_nil, list.prod_cons, snd_mul, one_smul,
+      list.drop, mul_smul, list.sum_cons, fst_list_prod, ih, list.smul_sum, list.map_map],
+    exact add_comm _ _, }
+end
 
 instance [ring R] [add_comm_group M]
   [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M] :

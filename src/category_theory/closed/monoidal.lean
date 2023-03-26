@@ -11,6 +11,9 @@ import category_theory.functor.inv_isos
 /-!
 # Closed monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define (right) closed objects and (right) closed monoidal categories.
 
 ## TODO

@@ -8,6 +8,7 @@ import linear_algebra.direct_sum.finsupp
 import logic.small.basic
 import linear_algebra.std_basis
 import linear_algebra.finsupp_vector_space
+import linear_algebra.tensor_product_basis
 
 /-!
 
@@ -158,8 +159,7 @@ variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
 variables [add_comm_group N] [module R N] [module.free R N]
 
 instance tensor : module.free R (M ⊗[R] N) :=
-of_equiv' (of_equiv' (free.finsupp _ R _) (finsupp_tensor_finsupp' R _ _).symm)
-  (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
+let ⟨bM⟩ := exists_basis R M, ⟨bN⟩ := exists_basis R N in of_basis (bM.2.tensor_product bN.2)
 
 end comm_ring
 

@@ -12,6 +12,9 @@ import tactic.fin_cases
 /-!
 # Integers mod `n`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition of the integers mod n, and the field structure on the integers mod p.
 
 

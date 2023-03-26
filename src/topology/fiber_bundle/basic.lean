@@ -8,6 +8,9 @@ import topology.fiber_bundle.trivialization
 /-!
 # Fiber bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Mathematically, a (topological) fiber bundle with fiber `F` over a base `B` is a space projecting on
 `B` for which the fibers are all homeomorphic to `F`, such that the local situation around each
 point is a direct product.

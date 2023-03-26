@@ -10,6 +10,9 @@ import topology.algebra.ring.basic
 /-!
 # Nonarchimedean Topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we set up the theory of nonarchimedean topological groups and rings.
 
 A nonarchimedean group is a topological group whose topology admits a basis of
@@ -127,14 +130,13 @@ lemma mul_subset (U : open_add_subgroup R) :
   ∃ V : open_add_subgroup R, (V : set R) * V ⊆ U :=
 let ⟨V, H⟩ := prod_self_subset (is_open.mem_nhds (is_open.preimage continuous_mul U.is_open)
   begin
-    simpa only [set.mem_preimage, open_add_subgroup.mem_coe, prod.snd_zero, mul_zero]
-      using U.zero_mem,
+    simpa only [set.mem_preimage, set_like.mem_coe, prod.snd_zero, mul_zero] using U.zero_mem,
   end) in
 begin
   use V,
   rintros v ⟨a, b, ha, hb, hv⟩,
   have hy := H (set.mk_mem_prod ha hb),
-  simp only [set.mem_preimage, open_add_subgroup.mem_coe] at hy,
+  simp only [set.mem_preimage, set_like.mem_coe] at hy,
   rwa hv at hy
 end
 

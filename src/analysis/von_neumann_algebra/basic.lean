@@ -65,7 +65,8 @@ Thus we can't say that the bounded operators `H →L[ℂ] H` form a `von_neumann
 and instead will use `⊤ : von_neumann_algebra H`.
 -/
 @[nolint has_nonempty_instance]
-structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
+structure von_neumann_algebra (H : Type u)
+  [normed_add_comm_group H] [inner_product_space ℂ H] [complete_space H] extends
   star_subalgebra ℂ (H →L[ℂ] H) :=
 (centralizer_centralizer' :
   set.centralizer (set.centralizer carrier) = carrier)
@@ -78,7 +79,7 @@ or equivalently that it is closed in the weak and strong operator topologies.)
 add_decl_doc von_neumann_algebra.to_star_subalgebra
 
 namespace von_neumann_algebra
-variables {H : Type u} [inner_product_space ℂ H] [complete_space H]
+variables {H : Type u} [normed_add_comm_group H] [inner_product_space ℂ H] [complete_space H]
 
 instance : set_like (von_neumann_algebra H) (H →L[ℂ] H) :=
 ⟨von_neumann_algebra.carrier, λ S T h, by cases S; cases T; congr'⟩

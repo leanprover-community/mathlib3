@@ -504,12 +504,12 @@ rfl
 rfl
 
 @[simp] lemma functor_category_monoidal_equivalence.functor_map {A B : Action V G} (f : A ⟶ B) :
-  (functor_category_monoidal_equivalence _ _).1.1.map f
+  (functor_category_monoidal_equivalence _ _).map f
     = functor_category_equivalence.functor.map f := rfl
 
 @[simp] lemma functor_category_monoidal_equivalence.inverse_map
   {A B : single_obj G ⥤ V} (f : A ⟶ B) :
-  (functor_category_monoidal_equivalence _ _).1.inv.map f
+  (functor_category_monoidal_equivalence _ _).inv.map f
     = functor_category_equivalence.inverse.map f := rfl
 
 variables (H : Group.{u})

@@ -68,6 +68,14 @@ lemma coe_of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ
 @[simp] lemma of_ρ {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) :
   (of ρ).ρ = ρ := rfl
 
+@[simp] lemma Action_ρ_eq_ρ {A : Rep k G} : Action.ρ A = A.ρ := rfl
+
+/-- Allows us to apply lemmas about the underlying `ρ`, which would take an element `g : G` rather
+than `g : Mon.of G` as an argument. -/
+lemma of_ρ_apply {V : Type u} [add_comm_group V] [module k V]
+  (ρ : representation k G V) (g : Mon.of G) :
+  (Rep.of ρ).ρ g = ρ (g : G) := rfl
+
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
@@ -132,24 +140,17 @@ variables {k G}
 { hom := finsupp.lift _ _ _ (λ g, A.ρ g x),
   comm' := λ g,
   begin
-    refine finsupp.lhom_ext' (λ x, linear_map.ext_ring _),
-    simp only [linear_map.comp_apply, Module.comp_def, finsupp.lsingle_apply,
-      finsupp.lift_apply],
-    show finsupp.sum (finsupp.map_domain _ _) _ = _,
-    rw [finsupp.map_domain_single,  finsupp.sum_single_index, one_smul, finsupp.sum_single_index,
-      one_smul, smul_eq_mul, A.ρ.map_mul, linear_map.mul_apply],
-    { refl },
-    { rw zero_smul },
-    { rw zero_smul },
+    refine finsupp.lhom_ext' (λ y, linear_map.ext_ring _),
+    simpa only [linear_map.comp_apply, Module.comp_def, finsupp.lsingle_apply,
+      finsupp.lift_apply, Action_ρ_eq_ρ, of_ρ_apply, representation.of_mul_action_single,
+      finsupp.sum_single_index, zero_smul, one_smul, smul_eq_mul, A.ρ.map_mul],
   end }
 
 lemma left_regular_hom_apply {A : Rep k G} (x : A) :
   (left_regular_hom A x).hom (finsupp.single 1 1) = x :=
 begin
-  dsimp only [left_regular_hom_hom, finsupp.lift_apply],
-  rw [finsupp.sum_single_index, one_smul, A.ρ.map_one],
-  { refl },
-  { rw zero_smul },
+  simpa only [left_regular_hom_hom, finsupp.lift_apply, finsupp.sum_single_index, one_smul,
+    A.ρ.map_one, zero_smul],
 end
 
 /-- Given a `k`-linear `G`-representation `A`, there is a `k`-linear isomorphism between
@@ -163,16 +164,13 @@ representation morphisms `Hom(k[G], A)` and `A`. -/
   left_inv := λ f,
   begin
     refine Action.hom.ext _ _ (finsupp.lhom_ext' (λ (x : G), linear_map.ext_ring _)),
+    have : f.hom (((of_mul_action k G G).ρ) x (finsupp.single (1 : G) (1 : k)))
+      = A.ρ x (f.hom (finsupp.single (1 : G) (1 : k))) :=
+      linear_map.ext_iff.1 (f.comm x) (finsupp.single 1 1),
     simp only [linear_map.comp_apply, finsupp.lsingle_apply,
-      left_regular_hom_hom, finsupp.lift_apply],
-    rw [finsupp.sum_single_index, one_smul],
-    have := linear_map.ext_iff.1 (f.comm x) (finsupp.single 1 1),
-    simp only [Module.coe_comp, function.comp_apply, linear_map.to_fun_eq_coe,
-      linear_map.comp_apply, Rep.of_ρ] at this,
-    erw ←this,
-    show f.hom (finsupp.map_domain _ _) = _,
-    rw [finsupp.map_domain_single, smul_eq_mul, mul_one],
-    { rw zero_smul },
+      left_regular_hom_hom, finsupp.lift_apply, finsupp.sum_single_index, one_smul, ←this,
+      zero_smul, of_ρ_apply, representation.of_mul_action_single x (1 : G) (1 : k), smul_eq_mul,
+      mul_one],
   end,
   right_inv := λ x, left_regular_hom_apply x }
 

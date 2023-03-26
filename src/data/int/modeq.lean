@@ -45,6 +45,8 @@ instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
 
 @[trans] protected theorem trans : a ≡ b [ZMOD n] → b ≡ c [ZMOD n] → a ≡ c [ZMOD n] := eq.trans
 
+protected lemma eq : a ≡ b [ZMOD n] → a % n = b % n := id
+
 end modeq
 
 lemma coe_nat_modeq_iff {a b n : ℕ} : a ≡ b [ZMOD n] ↔ a ≡ b [MOD n] :=
@@ -70,19 +72,27 @@ alias modeq_iff_dvd ↔ modeq.dvd modeq_of_dvd
 
 theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := mod_mod _ _
 
+@[simp] lemma neg_modeq_neg : -a ≡ -b [ZMOD n] ↔ a ≡ b [ZMOD n] :=
+by simp [modeq_iff_dvd, dvd_sub_comm]
+
+@[simp] lemma modeq_neg : a ≡ b [ZMOD -n] ↔ a ≡ b [ZMOD n] := by simp [modeq_iff_dvd]
+
 namespace modeq
 
 protected lemma of_dvd (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
 modeq_of_dvd $ d.trans h.dvd
 
-protected theorem mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
-or.cases_on hc.lt_or_eq (λ hc,
-  by unfold modeq;
-  simp [mul_mod_mul_of_pos hc, (show _ = _, from h)] )
-(λ hc, by simp [hc.symm])
+protected theorem mul_left' (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
+begin
+  obtain hc | rfl | hc := lt_trichotomy c 0,
+  { rw [←neg_modeq_neg, ←modeq_neg, ←neg_mul, ←neg_mul, ←neg_mul],
+    simp only [modeq, mul_mod_mul_of_pos (neg_pos.2 hc), h.eq] },
+  { simp },
+  { simp only [modeq, mul_mod_mul_of_pos hc, h.eq] }
+end
 
-protected theorem mul_right' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD (n * c)] :=
-by rw [mul_comm a, mul_comm b, mul_comm n]; exact h.mul_left' hc
+protected theorem mul_right' (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD (n * c)] :=
+by rw [mul_comm a, mul_comm b, mul_comm n]; exact h.mul_left'
 
 protected theorem add (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a + c ≡ b + d [ZMOD n] :=
 modeq_iff_dvd.2 $ by { convert dvd_add h₁.dvd h₂.dvd, ring }
@@ -122,13 +132,10 @@ protected theorem sub_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a - c ≡ b - c [
 h.sub modeq.rfl
 
 protected theorem mul_left (c : ℤ) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD n] :=
-or.cases_on (le_total 0 c)
-(λ hc, (h.mul_left' hc).of_dvd (dvd_mul_left _ _) )
-(λ hc, by rw [← neg_neg c, neg_mul, neg_mul _ b];
-    exact ((h.mul_left' $ neg_nonneg.2 hc).of_dvd (dvd_mul_left _ _)).neg)
+h.mul_left'.of_dvd $ dvd_mul_left _ _
 
 protected theorem mul_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD n] :=
-by { rw [mul_comm a, mul_comm b], exact h.mul_left c }
+h.mul_right'.of_dvd $ dvd_mul_right _ _
 
 protected theorem mul (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a * c ≡ b * d [ZMOD n] :=
 (h₂.mul_left _).trans (h₁.mul_right _)
@@ -145,6 +152,28 @@ by rw [modeq_iff_dvd] at *; exact (dvd_mul_left n m).trans h
 
 theorem of_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
 mul_comm m n ▸ of_mul_left _
+
+/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c`. -/
+lemma cancel_left_div_gcd (hm : 0 < m) (h : c * a ≡ c * b [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
+begin
+  let d := gcd m c,
+  have hmd := gcd_dvd_left m c,
+  have hcd := gcd_dvd_right m c,
+  rw modeq_iff_dvd at ⊢ h,
+  refine int.dvd_of_dvd_mul_right_of_gcd_one _ _,
+  show m / d ∣ c / d * (b - a),
+  { rw [mul_comm, ←int.mul_div_assoc (b - a) hcd, mul_comm],
+    apply int.div_dvd_div hmd,
+    rwa mul_sub },
+  { rw [gcd_div hmd hcd, nat_abs_of_nat, nat.div_self (gcd_pos_of_ne_zero_left c hm.ne')] }
+end
+
+lemma cancel_right_div_gcd (hm : 0 < m) (h : a * c ≡ b * c [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
+by { apply cancel_left_div_gcd hm, simpa [mul_comm] using h }
+
+lemma of_div (h : a / c ≡ b / c [ZMOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
+  a ≡ b [ZMOD m] :=
+by convert h.mul_left'; rwa int.mul_div_cancel'
 
 end modeq
 

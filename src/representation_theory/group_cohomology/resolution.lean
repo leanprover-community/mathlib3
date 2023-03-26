@@ -282,6 +282,9 @@ begin
   { rw zero_smul }
 end
 
+/-- Auxiliary lemma for defining group cohomology, used to show that the isomorphism
+`diagonal_hom_equiv` commutes with the differentials in two complexes which compute
+group cohomology. -/
 lemma diagonal_hom_equiv_symm_partial_prod_succ
   (f : (fin n → G) → A) (g : fin (n + 1) → G) (a : fin (n + 1)) :
   ((diagonal_hom_equiv n A).symm f).hom (finsupp.single (fin.partial_prod g ∘ a.succ.succ_above) 1)

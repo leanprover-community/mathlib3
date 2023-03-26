@@ -205,8 +205,6 @@ image2_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-@[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
-@[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
 @[simp, to_additive] lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} :=
 image2_singleton
 
@@ -223,6 +221,10 @@ attribute [mono] add_subset_add
 image2_inter_subset_left
 @[to_additive] lemma mul_inter_subset : s * (t₁ ∩ t₂) ⊆ s * t₁ ∩ (s * t₂) :=
 image2_inter_subset_right
+@[to_additive] lemma inter_mul_union_subset_union : s₁ ∩ s₂ * (t₁ ∪ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_mul_inter_subset_union : (s₁ ∪ s₂) * (t₁ ∩ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_mul_left_image : (⋃ a ∈ s, ((*) a) '' t) = s * t := Union_image_left _
 @[to_additive] lemma Union_mul_right_image : (⋃ a ∈ t, (* a) '' s) = s * t := Union_image_right _
@@ -324,6 +326,10 @@ attribute [mono] sub_subset_sub
 image2_inter_subset_left
 @[to_additive] lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) :=
 image2_inter_subset_right
+@[to_additive] lemma inter_div_union_subset_union : s₁ ∩ s₂ / (t₁ ∪ t₂) ⊆ (s₁ / t₁) ∪ (s₂ / t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_div_inter_subset_union : (s₁ ∪ s₂) / (t₁ ∩ t₂) ⊆ (s₁ / t₁) ∪ (s₂ / t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_div_left_image : (⋃ a ∈ s, ((/) a) '' t) = s / t := Union_image_left _
 @[to_additive] lemma Union_div_right_image : (⋃ a ∈ t, (/ a) '' s) = s / t := Union_image_right _
@@ -412,8 +418,8 @@ variables [mul_one_class α]
 /-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_zero_class` under pointwise operations if `α` is."]
 protected def mul_one_class : mul_one_class (set α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+{ mul_one := image2_right_identity mul_one,
+  one_mul := image2_left_identity one_mul,
   ..set.has_one, ..set.has_mul }
 
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup

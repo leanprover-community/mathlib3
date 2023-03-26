@@ -382,10 +382,7 @@ Variant with `finset.sup`. -/
 lemma with_seminorms.tendsto_nhds' (hp : with_seminorms p) (u : F → E) {f : filter F} (y₀ : E) :
   filter.tendsto u f (𝓝 y₀) ↔
   ∀ (s : finset ι) (ε : ℝ) (hε : 0 < ε), ∀ᶠ x in f, s.sup p (u x - y₀) < ε :=
-begin
-  rw hp.has_basis_ball.tendsto_right_iff,
-  simp,
-end
+by simp [hp.has_basis_ball.tendsto_right_iff]
 
 /-- Convergence along filters for `with_seminorms`. -/
 lemma with_seminorms.tendsto_nhds (hp : with_seminorms p) (u : F → E) {f : filter F} (y₀ : E) :

@@ -50,7 +50,7 @@ def to_finsupp : ℕ →₀ M :=
   end }
 
 @[norm_cast] lemma coe_to_finsupp : (l.to_finsupp : ℕ → M) = λ i, l.nthd i 0 := rfl
-@[simp, norm_cast] lemma coe_to_finsupp_apply (i : ℕ) :
+@[simp, norm_cast] lemma to_finsupp_apply (i : ℕ) :
   (l.to_finsupp : ℕ → M) i = l.nthd i 0 := rfl
 
 lemma to_finsupp_support :

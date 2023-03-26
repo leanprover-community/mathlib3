@@ -220,14 +220,17 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
         ←functor.map_comp_assoc, X.d_squared, functor.map_zero, zero_comp] },
   map := λ X Y f,
   { f := f.f⟦n⟧',
-    comm' := sorry, },
-   -- by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,
-   --   f.comm, functor.map_comp_assoc], }, },
+    comm' := begin
+      dsimp,
+      erw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc, f.comm,
+        functor.map_comp_assoc],
+      refl,
+    end, },
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
 local attribute [simp] eq_to_hom_map
-local attribute [reducible] discrete.add_monoidal shift_comm
+--local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
 @[simps] def shift_functor_add (m n : ℤ) :
@@ -235,14 +238,8 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    sorry,
-    -- This is just `simp, simp [eq_to_hom_map]`.
-    --simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
-    --  category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
-    --  μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
-    --simp only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
-    --  eq_to_iso.inv], },
-  },
+    -- this is a general statement which should be in shift/basic.lean
+    sorry, },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 
@@ -256,7 +253,9 @@ local attribute [instance] endofunctor_monoidal_category
 def shift_zero : shift_functor C 0 ≅ 𝟭 (differential_object C) :=
 begin
   refine nat_iso.of_components (λ X, mk_iso ((shift_functor_zero C ℤ).app X.X) _) _,
-  { sorry, },
+  { erw [← nat_trans.naturality],
+    dsimp,
+    simp only [shift_functor_zero_hom_app_shift, category.assoc], },
   { tidy, },
 end
 
@@ -269,9 +268,22 @@ has_shift_mk _ _
 { F := shift_functor C,
   zero := shift_zero C,
   add := shift_functor_add C,
-  assoc_hom_app := by sorry,
-  zero_add_hom_app := by sorry,
-  add_zero_hom_app := by sorry, }
+  assoc_hom_app := λ m₁ m₂ m₃ X, begin
+    ext1,
+    convert shift_functor_add_assoc_hom_app m₁ m₂ m₃ X.X,
+    dsimp [shift_functor_add'],
+    simpa,
+  end,
+  zero_add_hom_app := λ n X, begin
+    ext1,
+    convert shift_functor_add_zero_add_hom_app n X.X,
+    simpa,
+  end,
+  add_zero_hom_app := λ n X, begin
+    ext1,
+    convert shift_functor_add_add_zero_hom_app n X.X,
+    simpa,
+  end, }
 
 end differential_object
 

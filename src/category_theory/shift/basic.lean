@@ -637,6 +637,26 @@ end
   (shift_comm X i j).hom ≫ f⟦j⟧'⟦i⟧' = f⟦i⟧'⟦j⟧' ≫ (shift_comm Y i j).hom :=
 by rw [shift_comm', ← shift_comm_symm, iso.symm_hom, iso.inv_hom_id_assoc]
 
+lemma shift_functor_zero_hom_app_shift (n : A) :
+  (shift_functor_zero C A).hom.app (X⟦n⟧) =
+    (shift_functor_comm C n 0).hom.app X ≫ ((shift_functor_zero C A).hom.app X)⟦n⟧' :=
+begin
+  rw [← shift_functor_add'_zero_add_inv_app n X, shift_functor_comm_eq C n 0 n (add_zero n)],
+  dsimp,
+  rw [category.assoc, iso.hom_inv_id_app, category.comp_id, shift_functor_add'_add_zero_inv_app],
+end
+
+lemma shift_functor_zero_inv_app_shift (n : A) :
+  (shift_functor_zero C A).inv.app (X⟦n⟧) =
+  ((shift_functor_zero C A).inv.app X)⟦n⟧' ≫ (shift_functor_comm C n 0).inv.app X :=
+begin
+  rw [← cancel_mono ((shift_functor_zero C A).hom.app (X⟦n⟧)), category.assoc, iso.inv_hom_id_app,
+    shift_functor_zero_hom_app_shift, iso.inv_hom_id_app_assoc, ← functor.map_comp,
+    iso.inv_hom_id_app],
+  dsimp,
+  rw [functor.map_id],
+end
+
 end add_comm_monoid
 
 variables {C A} {D : Type*} [category D] [add_monoid A] [has_shift D A]

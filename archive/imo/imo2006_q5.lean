@@ -43,14 +43,14 @@ open function polynomial
 
 /-- If every entry in a cyclic list of integers divides the next, then they all have the same
 absolute value. -/
-theorem nat_abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣))
+theorem int.nat_abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣))
   (hx : x ∈ l) (hy : y ∈ l) : x.nat_abs = y.nat_abs :=
 begin
   rw cycle.chain_iff_pairwise at hl,
   exact int.nat_abs_eq_of_dvd_dvd (hl x hx y hy) (hl y hy x hx)
 end
 
-theorem add_eq_add_of_nat_abs_eq_of_nat_abs_eq {a b c d : ℤ} (hne : a ≠ b)
+theorem int.add_eq_add_of_nat_abs_eq_of_nat_abs_eq {a b c d : ℤ} (hne : a ≠ b)
   (h₁ : (c - a).nat_abs = (d - b).nat_abs) (h₂ : (c - b).nat_abs = (d - a).nat_abs) :
   a + b = c + d :=
 begin
@@ -62,7 +62,7 @@ begin
 end
 
 /-- The main lemma in the proof: if $P^k(t)=t$, then $P(P(t))=t$. -/
-theorem periodic_lemma {P : polynomial ℤ} {t : ℤ}
+theorem polynomial.is_periodic_pt_eval_two {P : polynomial ℤ} {t : ℤ}
   (ht : t ∈ periodic_pts (λ x, P.eval x)) : is_periodic_pt (λ x, P.eval x) 2 t :=
 begin
   -- The cycle [P(t) - t, P(P(t)) - P(t), ...]
@@ -82,7 +82,7 @@ begin
   -- Any two entries in C have the same absolute value.
   have Habs : ∀ m n : ℕ, ((λ x, P.eval x)^[m + 1] t - ((λ x, P.eval x)^[m] t)).nat_abs =
     ((λ x, P.eval x)^[n + 1] t - ((λ x, P.eval x)^[n] t)).nat_abs :=
-  λ m n, nat_abs_eq_of_chain_dvd Hdvd HC HC,
+  λ m n, int.nat_abs_eq_of_chain_dvd Hdvd HC HC,
 
   -- We case on whether the elements on C are pairwise equal.
   by_cases HC' : C.chain (=),
@@ -126,8 +126,8 @@ begin
       exact @is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate _ _ t 2 n ht hn'.symm } }
 end
 
-theorem iterate_comp_ne_X {P : polynomial ℤ} (hP : 1 < P.nat_degree) {k : ℕ} (hk : 0 < k) :
-  P.comp^[k] X - X ≠ 0 :=
+theorem polynomial.iterate_comp_sub_X_ne {P : polynomial ℤ} (hP : 1 < P.nat_degree) {k : ℕ}
+  (hk : 0 < k) : P.comp^[k] X - X ≠ 0 :=
 by { rw sub_ne_zero, apply_fun nat_degree, simpa using (one_lt_pow hP hk.ne').ne' }
 
 /-- We solve the problem for the specific case k = 2 first. -/
@@ -189,7 +189,7 @@ begin
       -- An auxiliary lemma proved earlier implies we only need to show |t - a| = |u - b| and
       -- |t - b| = |u - a|. We prove this by establishing that each side of either equation divides
       -- the other.
-      apply (add_eq_add_of_nat_abs_eq_of_nat_abs_eq hab _ _).symm;
+      apply (int.add_eq_add_of_nat_abs_eq_of_nat_abs_eq hab _ _).symm;
       apply int.nat_abs_eq_of_dvd_dvd;
       set u := P.eval t,
       { rw [←ha, ←ht], apply sub_dvd_eval_sub },
@@ -203,8 +203,8 @@ theorem imo2006_q5 {P : polynomial ℤ} (hP : 1 < P.nat_degree) {k : ℕ} (hk : 
   (P.comp^[k] X - X).roots.to_finset.card ≤ P.nat_degree :=
 begin
   apply (finset.card_le_of_subset $ λ t ht, _).trans (imo2006_q5' hP),
-  have hP' : P.comp P - X ≠ 0 := by simpa using iterate_comp_ne_X hP zero_lt_two,
+  have hP' : P.comp P - X ≠ 0 := by simpa using polynomial.iterate_comp_sub_X_ne hP zero_lt_two,
   replace ht := is_root_of_mem_roots (multiset.mem_to_finset.1 ht),
   simp only [sub_eq_zero, is_root.def, eval_sub, iterate_comp_eval, eval_X] at ht,
-  simpa [mem_roots hP', sub_eq_zero] using periodic_lemma ⟨k, hk, ht⟩
+  simpa [mem_roots hP', sub_eq_zero] using polynomial.is_periodic_pt_eval_two ⟨k, hk, ht⟩
 end

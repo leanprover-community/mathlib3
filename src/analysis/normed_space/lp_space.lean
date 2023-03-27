@@ -793,7 +793,8 @@ instance [nonempty I] : norm_one_class (lp B ∞) :=
 { norm_one := by simp_rw [lp.norm_eq_csupr, infty_coe_fn_one, pi.one_apply, norm_one, csupr_const]}
 
 instance infty_normed_ring : normed_ring (lp B ∞) :=
-{ .. lp.infty_ring, .. lp.non_unital_normed_ring }
+{ norm_one := norm_le_of_forall_le zero_le_one (λ _, norm_one_le),
+  .. lp.infty_ring, .. lp.non_unital_normed_ring }
 
 end normed_ring
 

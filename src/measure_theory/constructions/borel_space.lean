@@ -480,6 +480,11 @@ lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : m
   (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
 
+lemma null_measurable_set_lt [second_countable_topology α] {μ : measure δ} {f g : δ → α}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  null_measurable_set {a | f a < g a} μ :=
+(hf.prod_mk hg).null_measurable measurable_set_lt'
+
 lemma set.ord_connected.measurable_set (h : ord_connected s) : measurable_set s :=
 begin
   let u := ⋃ (x ∈ s) (y ∈ s), Ioo x y,
@@ -1758,6 +1763,16 @@ lemma ae_measurable.ennreal_tsum {ι} [countable ι] {f : ι → α → ℝ≥0�
   ae_measurable (λ x, ∑' i, f i x) μ :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
+
+@[measurability]
+lemma ae_measurable.nnreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
+  [countable ι] {f : ι → α → nnreal} {μ : measure_theory.measure α}
+  (h : ∀ (i : ι), ae_measurable (f i) μ) :
+  ae_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
+begin
+  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
+  exact (ae_measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
+end
 
 @[measurability]
 lemma measurable_coe_real_ereal : measurable (coe : ℝ → ereal) :=

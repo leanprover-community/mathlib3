@@ -9,6 +9,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Invariant basis number property
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a ring `R` satisfies the invariant basis number property if there is a well-defined
 notion of the rank of a finitely generated free (left) `R`-module. Since a finitely generated free
 module with a basis consisting of `n` elements is linearly equivalent to `fin n → R`, it is

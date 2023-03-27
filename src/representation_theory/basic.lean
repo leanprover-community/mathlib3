@@ -245,6 +245,10 @@ variables {k G H}
 
 lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
 
+lemma of_mul_action_single (g : G) (x : H) (r : k) :
+  of_mul_action k G H g (finsupp.single x r) = finsupp.single (g • x) r :=
+finsupp.map_domain_single
+
 end mul_action
 section group
 

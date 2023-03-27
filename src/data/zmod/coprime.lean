@@ -9,6 +9,9 @@ import ring_theory.int.basic
 /-!
 # Coprimality and vanishing
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that for prime `p`, the image of an integer `a` in `zmod p` vanishes if and only if
 `a` and `p` are not coprime.
 -/

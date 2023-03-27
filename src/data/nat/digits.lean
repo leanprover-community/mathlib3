@@ -15,6 +15,9 @@ import tactic.linarith
 /-!
 # Digits of a natural number
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This provides a basic API for extracting the digits of a natural number in a given base,
 and reconstructing numbers from their digits.
 

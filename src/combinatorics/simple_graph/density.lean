@@ -10,6 +10,9 @@ import tactic.positivity
 /-!
 # Edge density
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the number and density of edges of a relation/graph.
 
 ## Main declarations

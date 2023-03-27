@@ -14,6 +14,9 @@ import topology.sequences
 /-!
 # Normed (semi)groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define 10 classes:
 
 * `has_norm`, `has_nnnorm`: auxiliary classes endowing a type `α` with a function `norm : α → ℝ`
@@ -837,7 +840,7 @@ by simp [metric.mem_closure_iff, dist_eq_norm_div]
 @[to_additive norm_le_zero_iff'] lemma norm_le_zero_iff''' [t0_space E] {a : E} : ‖a‖ ≤ 0 ↔ a = 1 :=
 begin
   letI : normed_group E :=
-    { to_metric_space := metric.of_t0_pseudo_metric_space E, ..‹seminormed_group E› },
+    { to_metric_space := metric_space.of_t0_pseudo_metric_space E, ..‹seminormed_group E› },
   rw [←dist_one_right, dist_le_zero],
 end
 
@@ -1387,6 +1390,23 @@ by simpa [bdd_above_def] using hf.norm.bdd_above_range_of_has_compact_support h.
 
 end normed_add_group
 
+section normed_add_group_source
+
+variables [normed_add_group α] {f : α → E}
+
+@[to_additive]
+lemma has_compact_mul_support.exists_pos_le_norm [has_one E] (hf : has_compact_mul_support f) :
+  ∃ (R : ℝ), (0 < R) ∧ (∀ (x : α), (R ≤ ‖x‖) → (f x = 1)) :=
+begin
+  obtain ⟨K, ⟨hK1, hK2⟩⟩ := exists_compact_iff_has_compact_mul_support.mpr hf,
+  obtain ⟨S, hS, hS'⟩ := hK1.bounded.exists_pos_norm_le,
+  refine ⟨S + 1, by positivity, λ x hx, hK2 x ((mt $ hS' x) _)⟩,
+  contrapose! hx,
+  exact lt_add_of_le_of_pos hx zero_lt_one
+end
+
+end normed_add_group_source
+
 /-! ### `ulift` -/
 
 namespace ulift
@@ -1671,6 +1691,40 @@ instance pi.normed_comm_group [Π i, normed_comm_group (π i)] : normed_comm_gro
 { ..pi.seminormed_group }
 
 end pi
+
+/-! ### Multiplicative opposite -/
+
+namespace mul_opposite
+
+/-- The (additive) norm on the multiplicative opposite is the same as the norm on the original type.
+
+Note that we do not provide this more generally as `has_norm Eᵐᵒᵖ`, as this is not always a good
+choice of norm in the multiplicative `seminormed_group E` case.
+
+We could repeat this instance to provide a `[seminormed_group E] : seminormed_group Eᵃᵒᵖ` instance,
+but that case would likely never be used.
+-/
+instance [seminormed_add_group E] : seminormed_add_group Eᵐᵒᵖ :=
+{ norm := λ x, ‖x.unop‖,
+  dist_eq := λ _ _, dist_eq_norm _ _,
+  to_pseudo_metric_space := mul_opposite.pseudo_metric_space }
+
+lemma norm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖ = ‖a‖ := rfl
+lemma norm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖ = ‖a‖ := rfl
+
+lemma nnnorm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖₊ = ‖a‖₊ := rfl
+lemma nnnorm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖₊ = ‖a‖₊ := rfl
+
+instance [normed_add_group E] : normed_add_group Eᵐᵒᵖ :=
+{ .. mul_opposite.seminormed_add_group }
+
+instance [seminormed_add_comm_group E] : seminormed_add_comm_group Eᵐᵒᵖ :=
+{ dist_eq := λ _ _, dist_eq_norm _ _ }
+
+instance [normed_add_comm_group E] : normed_add_comm_group Eᵐᵒᵖ :=
+{ .. mul_opposite.seminormed_add_comm_group }
+
+end mul_opposite
 
 /-! ### Subgroups of normed groups -/
 

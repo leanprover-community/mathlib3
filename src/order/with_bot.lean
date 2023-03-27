@@ -48,6 +48,8 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
+instance [nonempty α] : nontrivial (with_bot α) := option.nontrivial
+
 open function
 
 lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
@@ -81,6 +83,17 @@ def unbot' (d : α) (x : with_bot α) : α := rec_bot_coe d id x
 @[simp] lemma unbot'_coe {α} (d x : α) : unbot' d x = x := rfl
 
 @[norm_cast] lemma coe_eq_coe : (a : with_bot α) = b ↔ a = b := option.some_inj
+
+lemma unbot'_eq_iff {d y : α} {x : with_bot α} : unbot' d x = y ↔ x = y ∨ x = ⊥ ∧ y = d :=
+by induction x using with_bot.rec_bot_coe; simp [@eq_comm _ d, coe_eq_coe]
+
+@[simp]
+theorem unbot'_eq_self_iff {d : α} {x : with_bot α} : unbot' d x = d ↔ x = d ∨ x = ⊥ :=
+by simp [unbot'_eq_iff]
+
+theorem unbot'_eq_unbot'_iff {d : α} {x y : with_bot α} :
+  unbot' d x = unbot' d y ↔ x = y ∨ x = d ∧ y = ⊥ ∨ x = ⊥ ∧ y = d :=
+by induction y using with_bot.rec_bot_coe; simp [unbot'_eq_iff, or_comm, coe_eq_coe]
 
 /-- Lift a map `f : α → β` to `with_bot α → with_bot β`. Implemented using `option.map`. -/
 def map (f : α → β) : with_bot α → with_bot β := option.map f
@@ -171,6 +184,12 @@ lemma lt_iff_exists_coe : ∀ {a b : with_bot α}, a < b ↔ ∃ p : α, b = p �
 lemma lt_coe_iff : ∀ {x : with_bot α}, x < b ↔ ∀ a, x = ↑a → a < b
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
 | none     := by simp [none_eq_bot, bot_lt_coe]
+
+/-- A version of `bot_lt_iff_ne_bot` for `with_bot` that only requires `has_lt α`, not
+`partial_order α`. -/
+protected theorem bot_lt_iff_ne_bot : ∀ {x : with_bot α}, ⊥ < x ↔ x ≠ ⊥
+| ⊥ := iff_of_false (with_bot.not_lt_none _) (λ h, h rfl)
+| (x : α) := by simp [bot_lt_coe]
 
 end has_lt
 
@@ -403,6 +422,8 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 
 instance : inhabited (with_top α) := ⟨⊤⟩
 
+instance [nonempty α] : nontrivial (with_top α) := option.nontrivial
+
 protected lemma «forall» {p : with_top α → Prop} : (∀ x, p x) ↔ p ⊤ ∧ ∀ x : α, p x := option.forall
 protected lemma «exists» {p : with_top α → Prop} : (∃ x, p x) ↔ p ⊤ ∨ ∃ x : α, p x := option.exists
 
@@ -461,6 +482,16 @@ def untop' (d : α) (x : with_top α) : α := rec_top_coe d id x
 @[simp] lemma untop'_coe {α} (d x : α) : untop' d x = x := rfl
 
 @[norm_cast] lemma coe_eq_coe : (a : with_top α) = b ↔ a = b := option.some_inj
+
+lemma untop'_eq_iff {d y : α} {x : with_top α} : untop' d x = y ↔ x = y ∨ x = ⊤ ∧ y = d :=
+with_bot.unbot'_eq_iff
+
+@[simp] theorem untop'_eq_self_iff {d : α} {x : with_top α} : untop' d x = d ↔ x = d ∨ x = ⊤ :=
+with_bot.unbot'_eq_self_iff
+
+theorem untop'_eq_untop'_iff {d : α} {x y : with_top α} :
+  untop' d x = untop' d y ↔ x = y ∨ x = d ∧ y = ⊤ ∨ x = ⊤ ∧ y = d :=
+with_bot.unbot'_eq_unbot'_iff
 
 /-- Lift a map `f : α → β` to `with_top α → with_top β`. Implemented using `option.map`. -/
 def map (f : α → β) : with_top α → with_top β := option.map f
@@ -678,6 +709,11 @@ begin
               to_dual_lt_to_dual],
   exact forall₂_congr (λ _ _, iff.rfl)
 end
+
+/-- A version of `lt_top_iff_ne_top` for `with_top` that only requires `has_lt α`, not
+`partial_order α`. -/
+protected theorem lt_top_iff_ne_top {x : with_top α} : x < ⊤ ↔ x ≠ ⊤ :=
+@with_bot.bot_lt_iff_ne_bot αᵒᵈ _ x
 
 end has_lt
 

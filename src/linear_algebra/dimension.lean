@@ -390,7 +390,7 @@ begin
     -- by expressing the `v i` in the basis `b`, and using that the `v i` have no `b b'` term.
     have l₀ : l none = 0,
     { rw ←eq_neg_iff_add_eq_zero at z,
-      replace z := eq_neg_of_eq_neg z,
+      replace z := neg_eq_iff_eq_neg.mpr z,
       apply_fun (λ x, b.repr x b') at z,
       simp only [repr_self, linear_equiv.map_smul, mul_one, finsupp.single_eq_same, pi.neg_apply,
         finsupp.smul_single', linear_equiv.map_neg, finsupp.coe_neg] at z,
@@ -1063,7 +1063,7 @@ begin
       exact linear_map.ext_iff.1 eq c } },
   { rw [← ker_eq_bot, ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
   { rw [← range_eq_top, eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap,
-      map_top, range_subtype],
+      submodule.map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
     simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, set_like.mem_coe,
@@ -1079,7 +1079,7 @@ lemma dim_sup_add_dim_inf_eq (s t : submodule K V) :
     module.rank K s + module.rank K t :=
 dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
-    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
+    rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), submodule.map_sup, submodule.map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
     exact le_rfl

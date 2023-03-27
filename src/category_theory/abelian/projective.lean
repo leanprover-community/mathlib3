@@ -6,6 +6,7 @@ Authors: Markus Himmel, Scott Morrison, Jakob von Raumer
 import algebra.homology.quasi_iso
 import category_theory.abelian.homology
 import category_theory.preadditive.projective_resolution
+import category_theory.preadditive.yoneda.limits
 
 /-!
 # Abelian categories with enough projectives have projective resolutions

@@ -9,6 +9,9 @@ import category_theory.limits.shapes.finite_products
 /-!
 # Normal mono categories with finite products and kernels have all equalizers.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This, and the dual result, are used in the development of abelian categories.
 -/
 

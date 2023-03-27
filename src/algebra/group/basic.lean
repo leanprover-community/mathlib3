@@ -191,16 +191,8 @@ inv_involutive.injective
 @[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
 @[to_additive]
-lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
-by simp [h]
-
-@[to_additive]
-theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
-⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
-
-@[to_additive]
-theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
-eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
+theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
+⟨λ h, h ▸ (inv_inv a).symm, λ h, h.symm ▸ inv_inv b⟩
 
 variables (G)
 
@@ -399,7 +391,7 @@ theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
-by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
+by rw [mul_eq_one_iff_eq_inv, inv_eq_iff_eq_inv]
 
 @[to_additive]
 theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=

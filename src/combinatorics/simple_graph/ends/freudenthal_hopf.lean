@@ -155,7 +155,7 @@ begin
     haveI := Gpc.out.subsingleton_connected_component,
     exact nat.not_succ_le_zero _ (nat.le_of_succ_le_succ (fin.embedding_subsingleton hK)), },
 
-  obtain ⟨L,KL,Lc,inf⟩ := exists_saturated_connected_extension Kn,
+  obtain ⟨L,KL,Lc,inf⟩ := exists_saturated_connected_extension G Kn,
   obtain ⟨φ,φh⟩ := auts L,
   let φL := L.image φ,
   have φLc : (G.induce (φL : set V)).connected, by
@@ -171,10 +171,10 @@ begin
   have φinf : ∀ C : G.component_compl φL, C.supp.infinite, by
   { simp_rw ←set.infinite_coe_iff at inf ⊢,
     rintro C,
-    rw [←(connected_component.iso lol).right_inv C, equiv.infinite_iff],
-    exact inf ((connected_component.iso lol).symm C),
+    rw [←lol.connected_component_equiv.right_inv C, equiv.infinite_iff],
+    exact inf (lol.connected_component_equiv.symm C),
     exact (component_compl.supp_equiv _).trans
-      ((connected_component.iso_equiv_supp lol _).symm.trans
+      ((connected_component.iso_equiv_supp lol.connected_component_equiv _).symm.trans
         (component_compl.supp_equiv _).symm), },
 
   apply @hom_not_injective_of_nicely_arranged V G Gpc _ (op φL) (op L) ((Kn.mono KL).image φ) ⟨_, _⟩ ⟨_, _⟩

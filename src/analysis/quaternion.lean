@@ -41,14 +41,17 @@ lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 
 lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
 
-noncomputable instance : inner_product_space ℝ ℍ :=
-inner_product_space.of_core
+noncomputable instance : normed_add_comm_group ℍ :=
+@inner_product_space.of_core.to_normed_add_comm_group ℝ ℍ _ _ _
 { inner := has_inner.inner,
   conj_symm := λ x y, by simp [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
+
+noncomputable instance : inner_product_space ℝ ℍ :=
+inner_product_space.of_core _
 
 lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ‖a‖ * ‖a‖ :=
 by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
@@ -74,7 +77,7 @@ noncomputable instance : normed_division_ring ℍ :=
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 instance : normed_algebra ℝ ℍ :=
-{ norm_smul_le := λ a x, (norm_smul a x).le,
+{ norm_smul_le := norm_smul_le,
   to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
 
 instance : cstar_ring ℍ :=

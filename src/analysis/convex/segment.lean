@@ -12,6 +12,9 @@ import tactic.positivity
 /-!
 # Segments in vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a 𝕜-vector space, we define the following objects and properties.
 * `segment 𝕜 x y`: Closed segment joining `x` and `y`.
 * `open_segment 𝕜 x y`: Open segment joining `x` and `y`.

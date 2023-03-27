@@ -688,7 +688,6 @@ begin
 end
 
 @[simp] theorem sUnion_empty : ⋃₀ (∅ : Set) = ∅ := by { ext, simp }
-
 @[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ := dif_neg $ by simp
 
 theorem mem_of_mem_sInter {x y z : Set} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
@@ -1025,7 +1024,7 @@ def sUnion (x : Class) : Class := ⋃₀ (Class_to_Cong x)
 prefix (name := Class.sUnion) `⋃₀ `:110 := Class.sUnion
 
 /-- The intersection of a class is the class of all members of ZFC sets in the class -/
-def sInter (x : Class) : Class := ⋂₀ (Class_to_Cong x)
+def sInter (x : Class) : Class := ⋂₀ Class_to_Cong x
 
 prefix (name := Class.sInter) `⋂₀ `:110 := Class.sInter
 
@@ -1122,8 +1121,7 @@ begin
   simpa only [coe_mem, coe_apply] using H w (coe_mem.2 hxw),
 end
 
-@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) := by { ext, simp }
-
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = ∅ := by { ext, simp }
 @[simp] theorem sInter_empty : ⋂₀ (∅ : Class.{u}) = univ := by { ext, simp [sInter, ←univ] }
 
 /-- An induction principle for sets. If every subset of a class is a member, then the class is

@@ -209,6 +209,12 @@ begin
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
+lemma measurable_nat_cast [has_nat_cast α] (n : ℕ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
+lemma measurable_int_cast [has_int_cast α] (n : ℤ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 

@@ -485,11 +485,18 @@ See `normed_space.to_module'` for a similar situation. -/
 instance normed_algebra.to_normed_space' {𝕜'} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
   normed_space 𝕜 𝕜' := by apply_instance
 
-lemma norm_algebra_map (x : 𝕜) : ‖algebra_map 𝕜 𝕜' x‖ = ‖x‖ * ‖(1 : 𝕜')‖ :=
+lemma norm_algebra_map_le (x : 𝕜) : ‖algebra_map 𝕜 𝕜' x‖ ≤ ‖x‖ :=
 begin
   rw algebra.algebra_map_eq_smul_one,
-  exact norm_smul _ _,
+  refine (norm_smul_le _ _).trans _,
+  exact mul_le_of_le_one_right (norm_nonneg _) norm_one_le,
 end
+
+lemma nnnorm_algebra_map_le (x : 𝕜) : ‖algebra_map 𝕜 𝕜' x‖₊ ≤ ‖x‖₊ :=
+norm_algebra_map_le _ _
+
+lemma norm_algebra_map (x : 𝕜) : ‖algebra_map 𝕜 𝕜' x‖ = ‖x‖ * ‖(1 : 𝕜')‖ :=
+by rw [algebra.algebra_map_eq_smul_one, norm_smul]
 
 lemma nnnorm_algebra_map (x : 𝕜) : ‖algebra_map 𝕜 𝕜' x‖₊ = ‖x‖₊ * ‖(1 : 𝕜')‖₊ :=
 subtype.ext $ norm_algebra_map 𝕜' x
@@ -588,8 +595,8 @@ instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_add_comm_group E
 /-- If `E` is a normed space over `𝕜'` and `𝕜` is a normed algebra over `𝕜'`, then
 `restrict_scalars.module` is additionally a `normed_space`. -/
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
-{ norm_smul_le := λ c x, (norm_smul_le (algebra_map 𝕜 𝕜' c) (_ : E)).trans_eq $
-    by rw norm_algebra_map',
+{ norm_smul_le := λ c x, (norm_smul_le (algebra_map 𝕜 𝕜' c) (_ : E)).trans $
+    mul_le_mul_of_nonneg_right (norm_algebra_map_le 𝕜' c) (norm_nonneg _),
   ..restrict_scalars.module 𝕜 𝕜' E }
 
 /--

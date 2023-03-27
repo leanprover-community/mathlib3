@@ -1089,12 +1089,14 @@ fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
   coe_int_cast
 
 instance : semi_normed_ring (α →ᵇ R) :=
-{ ..bounded_continuous_function.non_unital_semi_normed_ring }
+{ norm_one := norm_of_normed_add_comm_group_le _ zero_le_one $ λ _, norm_one_le,
+  ..bounded_continuous_function.non_unital_semi_normed_ring }
 
 end semi_normed
 
 instance [normed_ring R] : normed_ring (α →ᵇ R) :=
-{ ..bounded_continuous_function.non_unital_normed_ring }
+{ ..bounded_continuous_function.semi_normed_ring,
+  ..bounded_continuous_function.non_unital_normed_ring }
 
 end normed_ring
 

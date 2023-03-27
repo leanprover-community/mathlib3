@@ -45,37 +45,6 @@ end
 
 --TODO: Fix implicitness `subgroup.closure_eq_bot_iff`
 
-section partial_order
-variables {α : Type*} [partial_order α] {a b : α}
-
-lemma gt_or_eq_of_le (hab : a ≤ b) : a < b ∨ b = a := (eq_or_gt_of_le hab).symm
-
-alias gt_or_eq_of_le  ← has_le.le.gt_or_eq
-
-end partial_order
-
-section linear_order
-variables {α : Type*} [linear_order α] [has_mul α]
-
-open function
-
-@[to_additive] lemma le_or_lt_of_mul_le_mul [covariant_class α α (*) (≤)]
-  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} :
-  a₁ * b₁ ≤ a₂ * b₂ → a₁ ≤ a₂ ∨ b₁ < b₂ :=
-by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_le h.1 h.2 }
-
-@[to_additive] lemma lt_or_le_of_mul_le_mul [covariant_class α α (*) (<)]
-  [covariant_class α α (swap (*)) (≤)] {a₁ a₂ b₁ b₂ : α} :
-  a₁ * b₁ ≤ a₂ * b₂ → a₁ < a₂ ∨ b₁ ≤ b₂ :=
-by { contrapose!, exact λ h, mul_lt_mul_of_le_of_lt h.1 h.2 }
-
-@[to_additive] lemma le_or_le_of_mul_le_mul [covariant_class α α (*) (<)]
-  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} :
-  a₁ * b₁ ≤ a₂ * b₂ → a₁ ≤ a₂ ∨ b₁ ≤ b₂ :=
-by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_lt h.1 h.2 }
-
-end linear_order
-
 section
 variables {α β : Type*} {r r' : α → α → Prop} {f : β → α}
 

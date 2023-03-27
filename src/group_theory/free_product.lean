@@ -13,6 +13,9 @@ import data.set.pointwise.smul
 /-!
 # The free product of groups or monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `ι`-indexed family `M` of monoids, we define their free product (categorical coproduct)
 `free_product M`. When `ι` and all `M i` have decidable equality, the free product bijects with the
 type `word M` of reduced words. This bijection is constructed by defining an action of

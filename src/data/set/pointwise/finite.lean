@@ -16,6 +16,12 @@ open_locale pointwise
 variables {F α β γ : Type*}
 
 namespace set
+section has_one
+variables [has_one α]
+
+@[simp, to_additive] lemma finite_one : (1 : set α).finite := finite_singleton _
+
+end has_one
 
 section has_involutive_inv
 variables [has_involutive_inv α] {s : set α}

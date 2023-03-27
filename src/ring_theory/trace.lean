@@ -161,6 +161,24 @@ lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
   (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
 
+@[simp]
+lemma trace_prod_apply
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T]
+  (x : S × T) : trace R (S × T) x = trace R S x.fst + trace R T x.snd :=
+begin
+  nontriviality R,
+  let f := (lmul R S).to_linear_map.prod_map (lmul R T).to_linear_map,
+  have : (lmul R (S × T)).to_linear_map = (prod_map_linear R S T S T R).comp f :=
+    linear_map.ext₂ prod.mul_def,
+  simp_rw [trace, this],
+  exact trace_prod_map' _ _,
+end
+
+lemma trace_prod
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T] :
+  trace R (S × T) = (trace R S).coprod (trace R T) :=
+linear_map.ext $ λ p, by rw [coprod_apply, trace_prod_apply]
+
 section trace_form
 
 variables (R S)

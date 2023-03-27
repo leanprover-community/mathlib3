@@ -720,14 +720,13 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+theorem mem_wf : @well_founded Set (∈) :=
+well_founded_lift₂_iff.mpr pSet.mem_wf
+
 /-- Induction on the `∈` relation. -/
 @[elab_as_eliminator]
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
-quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
-show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
-quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ ha), exact IH a })
-
-theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
+mem_wf.induction x h
 
 instance : has_well_founded Set := ⟨_, mem_wf⟩
 
@@ -1018,7 +1017,7 @@ set.ext $ λ y, Set.mem_sep
 set.ext $ λ y, (iff_false _).2 $ Set.not_mem_empty y
 
 @[simp, norm_cast] theorem coe_insert (x y : Set.{u}) :
-  ↑(insert x y) = (@insert Set.{u} Class.{u} _ x y) :=
+  ↑(insert x y) = @insert Set.{u} Class.{u} _ x y :=
 set.ext $ λ z, Set.mem_insert_iff
 
 @[simp, norm_cast] theorem coe_union (x y : Set.{u}) : ↑(x ∪ y) = (x : Class.{u}) ∪ y :=
@@ -1044,7 +1043,7 @@ begin
 end
 
 @[simp, norm_cast] theorem coe_sUnion (x : Set.{u}) : ↑(⋃₀ x) = ⋃₀ (x : Class.{u}) :=
-set.ext $ λ y, Set.mem_sUnion.trans (sUnion_apply.trans $ by simp_rw [coe_apply, exists_prop]).symm
+ext $ λ y, Set.mem_sUnion.trans (sUnion_apply.trans $ by simp_rw [coe_apply, exists_prop]).symm
 
 @[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
 begin

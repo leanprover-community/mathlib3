@@ -3,11 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import algebra.big_operators.nat_antidiagonal
 import topology.algebra.infinite_sum.basic
-import topology.algebra.ring
+import topology.algebra.ring.basic
 
 /-!
 # Infinite sum in a ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides lemmas about the interaction between infinite sums and multiplication.
 

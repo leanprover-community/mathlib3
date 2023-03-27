@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import order.atoms
-import order.locally_finite
+import order.atoms.finite
 import order.sup_indep
 
 /-!
 # Finite partitions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define finite partitions. A finpartition of `a : α` is a finite set of pairwise
 disjoint parts `parts : finset α` which does not contain `⊥` and whose supremum is `a`.
@@ -229,7 +231,7 @@ section inf
 variables [decidable_eq α] {a b c : α}
 
 instance : has_inf (finpartition a) :=
-⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
+⟨λ P Q, of_erase ((P.parts ×ˢ Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
   begin
     rw sup_indep_iff_disjoint_erase,
     simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
@@ -250,7 +252,7 @@ instance : has_inf (finpartition a) :=
   end⟩
 
 @[simp] lemma parts_inf (P Q : finpartition a) :
-  (P ⊓ Q).parts = ((P.parts.product Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
+  (P ⊓ Q).parts = ((P.parts ×ˢ Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
 
 instance : semilattice_inf (finpartition a) :=
 { inf_le_left := λ P Q b hb, begin
@@ -342,12 +344,12 @@ lemma card_bind (Q : Π i ∈ P.parts, finpartition i) :
   (P.bind Q).parts.card = ∑ A in P.parts.attach, (Q _ A.2).parts.card :=
 begin
   apply card_bUnion,
-  rintro ⟨b, hb⟩ - ⟨c, hc⟩ - hbc d,
-  rw [inf_eq_inter, mem_inter],
-  rintro ⟨hdb, hdc⟩,
+  rintro ⟨b, hb⟩ - ⟨c, hc⟩ - hbc,
+  rw finset.disjoint_left,
+  rintro d hdb hdc,
   rw [ne.def, subtype.mk_eq_mk] at hbc,
   exact (Q b hb).ne_bot hdb (eq_bot_iff.2 $
-    (le_inf ((Q b hb).le hdb) $ (Q c hc).le hdc).trans $ P.disjoint hb hc hbc),
+    (le_inf ((Q b hb).le hdb) $ (Q c hc).le hdc).trans $ (P.disjoint hb hc hbc).le_bot),
 end
 
 end bind
@@ -448,18 +450,18 @@ in the same finsets of `F`. -/
 def atomise (s : finset α) (F : finset (finset α)) : finpartition s :=
 of_erase
   (F.powerset.image $ λ Q, s.filter (λ i, ∀ t ∈ F, t ∈ Q ↔ i ∈ t))
-  (set.pairwise_disjoint.sup_indep $ λ x hx y hy h z hz, h begin
+  (set.pairwise_disjoint.sup_indep $ λ x hx y hy h, disjoint_left.mpr $ λ z hz1 hz2, h begin
     rw [mem_coe, mem_image] at hx hy,
     obtain ⟨Q, hQ, rfl⟩ := hx,
     obtain ⟨R, hR, rfl⟩ := hy,
     suffices h : Q = R,
     { subst h },
-    rw [id, id, inf_eq_inter, mem_inter, mem_filter, mem_filter] at hz,
+    rw [id, mem_filter] at hz1 hz2,
     rw mem_powerset at hQ hR,
     ext i,
     refine ⟨λ hi, _, λ hi, _⟩,
-    { rwa [hz.2.2 _ (hQ hi), ←hz.1.2 _ (hQ hi)] },
-    { rwa [hz.1.2 _ (hR hi), ←hz.2.2 _ (hR hi)] }
+    { rwa [hz2.2 _ (hQ hi), ←hz1.2 _ (hQ hi)] },
+    { rwa [hz1.2 _ (hR hi), ←hz2.2 _ (hR hi)] }
   end)
   (begin
     refine (finset.sup_le $ λ t ht, _).antisymm (λ a ha, _),

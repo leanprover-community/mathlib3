@@ -6,7 +6,6 @@ Authors: Adam Topaz
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.cone_category
-import category_theory.adjunction
 
 /-!
 

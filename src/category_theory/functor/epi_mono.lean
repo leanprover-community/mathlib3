@@ -4,9 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.epi_mono
+import category_theory.limits.shapes.strong_epi
+import category_theory.lifting_properties.adjunction
 
 /-!
 # Preservation and reflection of monomorphisms and epimorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide typeclasses that state that a functor preserves or reflects monomorphisms or
 epimorphisms.
@@ -69,6 +74,22 @@ instance reflects_monomorphisms_comp (F : C ⥤ D) (G : D ⥤ E) [reflects_monom
 instance reflects_epimorphisms_comp (F : C ⥤ D) (G : D ⥤ E) [reflects_epimorphisms F]
   [reflects_epimorphisms G] : reflects_epimorphisms (F ⋙ G) :=
 { reflects := λ X Y f h, (F.epi_of_epi_map (G.epi_of_epi_map h)) }
+
+lemma preserves_epimorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_epimorphisms (F ⋙ G)] [reflects_epimorphisms G] : preserves_epimorphisms F :=
+⟨λ X Y f hf, G.epi_of_epi_map $ show epi ((F ⋙ G).map f), by exactI infer_instance⟩
+
+lemma preserves_monomorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_monomorphisms (F ⋙ G)] [reflects_monomorphisms G] : preserves_monomorphisms F :=
+⟨λ X Y f hf, G.mono_of_mono_map $ show mono ((F ⋙ G).map f), by exactI infer_instance⟩
+
+lemma reflects_epimorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_epimorphisms G] [reflects_epimorphisms (F ⋙ G)] : reflects_epimorphisms F :=
+⟨λ X Y f hf, (F ⋙ G).epi_of_epi_map $ show epi (G.map (F.map f)), by exactI infer_instance⟩
+
+lemma reflects_monomorphisms_of_preserves_of_reflects (F : C ⥤ D) (G : D ⥤ E)
+  [preserves_monomorphisms G] [reflects_monomorphisms (F ⋙ G)] : reflects_monomorphisms F :=
+⟨λ X Y f hf, (F ⋙ G).mono_of_mono_map $ show mono (G.map (F.map f)), by exactI infer_instance⟩
 
 lemma preserves_monomorphisms.of_iso {F G : C ⥤ D} [preserves_monomorphisms F] (α : F ≅ G) :
   preserves_monomorphisms G :=
@@ -171,19 +192,9 @@ section
 
 variables (F : C ⥤ D) {X Y : C} (f : X ⟶ Y)
 
-/-- Split epimorphisms are preserved by the application of any functor. -/
-@[simps]
-def map_split_epi (s : split_epi f) : split_epi (F.map f) :=
-⟨F.map s.section_, by { rw [← F.map_comp, ← F.map_id], congr' 1, apply split_epi.id, }⟩
-
-/-- Split monomorphisms are preserved by the application of any functor. -/
-@[simps]
-def map_split_mono (s : split_mono f) : split_mono (F.map f) :=
-⟨F.map s.retraction, by { rw [← F.map_comp, ← F.map_id], congr' 1, apply split_mono.id, }⟩
-
 /-- If `F` is a fully faithful functor, split epimorphisms are preserved and reflected by `F`. -/
 def split_epi_equiv [full F] [faithful F] : split_epi f ≃ split_epi (F.map f) :=
-{ to_fun := F.map_split_epi f,
+{ to_fun := λ f, f.map F,
   inv_fun := λ s, begin
     refine ⟨F.preimage s.section_, _⟩,
     apply F.map_injective,
@@ -193,9 +204,17 @@ def split_epi_equiv [full F] [faithful F] : split_epi f ≃ split_epi (F.map f) 
   left_inv := by tidy,
   right_inv := by tidy, }
 
+@[simp]
+lemma is_split_epi_iff [full F] [faithful F] : is_split_epi (F.map f) ↔ is_split_epi f :=
+begin
+  split,
+  { intro h, exact is_split_epi.mk' ((split_epi_equiv F f).inv_fun h.exists_split_epi.some), },
+  { intro h, exact is_split_epi.mk' ((split_epi_equiv F f).to_fun h.exists_split_epi.some), },
+end
+
 /-- If `F` is a fully faithful functor, split monomorphisms are preserved and reflected by `F`. -/
 def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map f) :=
-{ to_fun := F.map_split_mono f,
+{ to_fun := λ f, f.map F,
   inv_fun := λ s, begin
     refine ⟨F.preimage s.retraction, _⟩,
     apply F.map_injective,
@@ -204,6 +223,14 @@ def split_mono_equiv [full F] [faithful F] : split_mono f ≃ split_mono (F.map 
   end,
   left_inv := by tidy,
   right_inv := by tidy, }
+
+@[simp]
+lemma is_split_mono_iff [full F] [faithful F] : is_split_mono (F.map f) ↔ is_split_mono f :=
+begin
+  split,
+  { intro h, exact is_split_mono.mk' ((split_mono_equiv F f).inv_fun h.exists_split_mono.some), },
+  { intro h, exact is_split_mono.mk' ((split_mono_equiv F f).to_fun h.exists_split_mono.some), },
+end
 
 @[simp]
 lemma epi_map_iff_epi [hF₁ : preserves_epimorphisms F] [hF₂ : reflects_epimorphisms F] :
@@ -225,6 +252,51 @@ begin
     exact F.map_mono f, },
 end
 
+/-- If `F : C ⥤ D` is an equivalence of categories and `C` is a `split_epi_category`,
+then `D` also is. -/
+def split_epi_category_imp_of_is_equivalence [is_equivalence F] [split_epi_category C] :
+  split_epi_category D :=
+⟨λ X Y f, begin
+  introI,
+  rw ← F.inv.is_split_epi_iff f,
+  apply is_split_epi_of_epi,
+end⟩
+
+end
+
+end category_theory.functor
+
+namespace category_theory.adjunction
+
+variables {C D : Type*} [category C] [category D] {F : C ⥤ D} {F' : D ⥤ C} {A B : C}
+
+lemma strong_epi_map_of_strong_epi (adj : F ⊣ F') (f : A ⟶ B)
+  [h₁ : F'.preserves_monomorphisms] [h₂ : F.preserves_epimorphisms] [strong_epi f] :
+  strong_epi (F.map f) :=
+⟨infer_instance, λ X Y Z, by { introI, rw adj.has_lifting_property_iff, apply_instance, }⟩
+
+instance strong_epi_map_of_is_equivalence [is_equivalence F] (f : A ⟶ B) [h : strong_epi f] :
+  strong_epi (F.map f) :=
+F.as_equivalence.to_adjunction.strong_epi_map_of_strong_epi f
+
+end category_theory.adjunction
+
+namespace category_theory.functor
+
+variables {C D : Type*} [category C] [category D] {F : C ⥤ D} {A B : C} (f : A ⟶ B)
+
+@[simp]
+lemma strong_epi_map_iff_strong_epi_of_is_equivalence [is_equivalence F] :
+  strong_epi (F.map f) ↔ strong_epi f  :=
+begin
+  split,
+  { introI,
+    have e : arrow.mk f ≅ arrow.mk (F.inv.map (F.map f)) :=
+      arrow.iso_of_nat_iso F.as_equivalence.unit_iso (arrow.mk f),
+    rw strong_epi.iff_of_arrow_iso e,
+    apply_instance, },
+  { introI,
+    apply_instance, },
 end
 
 end category_theory.functor

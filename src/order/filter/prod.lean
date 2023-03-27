@@ -8,6 +8,9 @@ import order.filter.basic
 /-!
 # Product and coproduct filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `filter.prod f g` (notation: `f ×ᶠ g`) and `filter.coprod f g`. The product
 of two filters is the largest filter `l` such that `filter.tendsto prod.fst l f` and
 `filter.tendsto prod.snd l g`.
@@ -49,7 +52,7 @@ of elements of the component filters. -/
 protected def prod (f : filter α) (g : filter β) : filter (α × β) :=
 f.comap prod.fst ⊓ g.comap prod.snd
 
-localized "infix ` ×ᶠ `:60 := filter.prod" in filter
+localized "infix (name := filter.prod) ` ×ᶠ `:60 := filter.prod" in filter
 
 lemma prod_mem_prod {s : set α} {t : set β} {f : filter α} {g : filter β}
   (hs : s ∈ f) (ht : t ∈ g) : s ×ˢ t ∈ f ×ᶠ g :=
@@ -93,6 +96,10 @@ begin
   rw [← principal_univ, mem_prod_principal],
   simp only [mem_univ, forall_true_left]
 end
+
+lemma eventually_prod_principal_iff {p : α × β → Prop} {s : set β} :
+  (∀ᶠ (x : α × β) in (f ×ᶠ (𝓟 s)), p x) ↔ ∀ᶠ (x : α) in f, ∀ (y : β), y ∈ s → p (x, y) :=
+by { rw [eventually_iff, eventually_iff, mem_prod_principal], simp only [mem_set_of_eq], }
 
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
@@ -166,6 +173,26 @@ begin
   apply (ht.and hs).mono (λ x hx, hst hx.1 hx.2),
 end
 
+lemma eventually.diag_of_prod_left {f : filter α} {g : filter γ}
+  {p : (α × α) × γ → Prop} :
+  (∀ᶠ x in (f ×ᶠ f ×ᶠ g), p x) →
+  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p ((x.1, x.1), x.2)) :=
+begin
+  intros h,
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  refine (ht.diag_of_prod.prod_mk hs).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
+end
+
+lemma eventually.diag_of_prod_right {f : filter α} {g : filter γ}
+  {p : α × γ × γ → Prop} :
+  (∀ᶠ x in (f ×ᶠ (g ×ᶠ g)), p x) →
+  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p (x.1, x.2, x.2)) :=
+begin
+  intros h,
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  refine (ht.prod_mk hs.diag_of_prod).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
+end
+
 lemma tendsto_diag : tendsto (λ i, (i, i)) f (f ×ᶠ f) :=
 tendsto_iff_eventually.mpr (λ _ hpr, hpr.diag_of_prod)
 
@@ -181,6 +208,14 @@ by { rw [filter.prod, comap_infi, inf_infi], simp only [filter.prod, eq_self_iff
   f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ :=
 inf_le_inf (comap_mono hf) (comap_mono hg)
 
+lemma prod_mono_left (g : filter β) {f₁ f₂ : filter α} (hf : f₁ ≤ f₂) :
+  f₁ ×ᶠ g ≤ f₂ ×ᶠ g :=
+filter.prod_mono hf rfl.le
+
+lemma prod_mono_right (f : filter α) {g₁ g₂ : filter β} (hf : g₁ ≤ g₂) :
+  f ×ᶠ g₁ ≤ f ×ᶠ g₂ :=
+filter.prod_mono rfl.le hf
+
 lemma {u v w x} prod_comap_comap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :
   (comap m₁ f₁) ×ᶠ (comap m₂ f₂) = comap (λ p : β₁×β₂, (m₁ p.1, m₂ p.2)) (f₁ ×ᶠ f₂) :=
@@ -192,6 +227,36 @@ by simp only [filter.prod, comap_comap, (∘), inf_comm, prod.fst_swap,
 
 lemma prod_comm : f ×ᶠ g = map (λ p : β×α, (p.2, p.1)) (g ×ᶠ f) :=
 by { rw [prod_comm', ← map_swap_eq_comap_swap], refl }
+
+@[simp] lemma map_fst_prod (f : filter α) (g : filter β) [ne_bot g] : map prod.fst (f ×ᶠ g) = f :=
+begin
+  refine le_antisymm tendsto_fst (λ s hs, _),
+  rw [mem_map, mem_prod_iff] at hs,
+  rcases hs with ⟨t₁, h₁, t₂, h₂, hs⟩,
+  rw [← image_subset_iff, fst_image_prod] at hs,
+  exacts [mem_of_superset h₁ hs, nonempty_of_mem h₂]
+end
+
+@[simp] lemma map_snd_prod (f : filter α) (g : filter β) [ne_bot f] : map prod.snd (f ×ᶠ g) = g :=
+by rw [prod_comm, map_map, (∘), map_fst_prod]
+
+@[simp] lemma prod_le_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} [ne_bot f₁] [ne_bot g₁] :
+  f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ ↔ f₁ ≤ f₂ ∧ g₁ ≤ g₂ :=
+⟨λ h, ⟨map_fst_prod f₁ g₁ ▸ tendsto_fst.mono_left h, map_snd_prod f₁ g₁ ▸ tendsto_snd.mono_left h⟩,
+  λ h, prod_mono h.1 h.2⟩
+
+@[simp] lemma prod_inj {f₁ f₂ : filter α} {g₁ g₂ : filter β} [ne_bot f₁] [ne_bot g₁] :
+  f₁ ×ᶠ g₁ = f₂ ×ᶠ g₂ ↔ f₁ = f₂ ∧ g₁ = g₂ :=
+begin
+  refine ⟨λ h, _, λ h, h.1 ▸ h.2 ▸ rfl⟩,
+  have hle : f₁ ≤ f₂ ∧ g₁ ≤ g₂ := prod_le_prod.1 h.le,
+  haveI := ne_bot_of_le hle.1, haveI := ne_bot_of_le hle.2,
+  exact ⟨hle.1.antisymm $ (prod_le_prod.1 h.ge).1, hle.2.antisymm $ (prod_le_prod.1 h.ge).2⟩
+end
+
+lemma eventually_swap_iff {p : (α × β) → Prop} : (∀ᶠ (x : α × β) in (f ×ᶠ g), p x) ↔
+  ∀ᶠ (y : β × α) in (g ×ᶠ f), p y.swap :=
+by { rw [prod_comm, eventually_map], simpa, }
 
 lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
   map (equiv.prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
@@ -386,7 +451,7 @@ Together with the next lemma, `map_prod_map_const_id_principal_coprod_principal`
 example showing that the inequality in the lemma `map_prod_map_coprod_le` can be strict. -/
 lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
-  = 𝓟 (({b} : set β) ×ˢ (univ : set ι) ∪ (univ : set β) ×ˢ ({i} : set ι)) :=
+  = 𝓟 (({b} : set β) ×ˢ univ ∪ univ ×ˢ ({i} : set ι)) :=
 by simp only [map_principal, filter.coprod, comap_principal, sup_principal, image_singleton,
   image_id, prod_univ, univ_prod]
 

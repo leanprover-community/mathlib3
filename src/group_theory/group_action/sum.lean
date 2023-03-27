@@ -8,6 +8,9 @@ import group_theory.group_action.defs
 /-!
 # Sum instances for additive and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for additive and multiplicative actions on the binary `sum` type.
 
 ## See also
@@ -43,6 +46,7 @@ instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
 ⟨λ a b x,
   by { cases x, exacts [congr_arg inl (smul_comm _ _ _), congr_arg inr (smul_comm _ _ _)] }⟩
 
+@[to_additive]
 instance [has_smul Mᵐᵒᵖ α] [has_smul Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
   is_central_scalar M (α ⊕ β) :=
 ⟨λ a x,

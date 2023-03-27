@@ -13,6 +13,9 @@ import data.set.lattice
 /-!
 # Theory of sieves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 - For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X`
   which is closed under left-composition.
 - The complete lattice structure on sieves is given, as well as the Galois insertion
@@ -357,7 +360,7 @@ lemma id_mem_iff_eq_top : S (𝟙 X) ↔ S = ⊤ :=
  λ h, h.symm ▸ trivial⟩
 
 /-- If an arrow set contains a split epi, it generates the maximal sieve. -/
-lemma generate_of_contains_split_epi {R : presieve X} (f : Y ⟶ X) [split_epi f]
+lemma generate_of_contains_is_split_epi {R : presieve X} (f : Y ⟶ X) [is_split_epi f]
   (hf : R f) : generate R = ⊤ :=
 begin
   rw ← id_mem_iff_eq_top,
@@ -365,13 +368,13 @@ begin
 end
 
 @[simp]
-lemma generate_of_singleton_split_epi (f : Y ⟶ X) [split_epi f] :
+lemma generate_of_singleton_is_split_epi (f : Y ⟶ X) [is_split_epi f] :
   generate (presieve.singleton f) = ⊤ :=
-generate_of_contains_split_epi f (presieve.singleton_self _)
+generate_of_contains_is_split_epi f (presieve.singleton_self _)
 
 @[simp]
 lemma generate_top : generate (⊤ : presieve X) = ⊤ :=
-generate_of_contains_split_epi (𝟙 _) ⟨⟩
+generate_of_contains_is_split_epi (𝟙 _) ⟨⟩
 
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
     as the inverse image of S with `_ ≫ h`.
@@ -470,7 +473,7 @@ begin
 end
 
 /-- If `f` is a split epi, the pushforward-pullback adjunction on sieves is reflective. -/
-def galois_insertion_of_split_epi (f : Y ⟶ X) [split_epi f] :
+def galois_insertion_of_is_split_epi (f : Y ⟶ X) [is_split_epi f] :
   galois_insertion (sieve.pushforward f) (sieve.pullback f) :=
 begin
   apply (galois_connection f).to_galois_insertion,
@@ -599,7 +602,7 @@ lemma functor_pullback_inter (S R : sieve (F.obj X)) :
   (⊤ : sieve X).functor_pushforward F = ⊤ :=
   begin
     refine (generate_sieve _).symm.trans _,
-    apply generate_of_contains_split_epi (𝟙 (F.obj X)),
+    apply generate_of_contains_is_split_epi (𝟙 (F.obj X)),
     refine ⟨X, 𝟙 _, 𝟙 _, trivial, by simp⟩
   end
 

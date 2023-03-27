@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import algebra.associated
 import ring_theory.int.basic
 import tactic.ring
+import algebra.star.unitary
 
 /-! # ℤ[√d]
 
@@ -122,33 +123,16 @@ instance : ring ℤ√d               := by apply_instance
 instance : distrib ℤ√d            := by apply_instance
 
 /-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
-def conj (z : ℤ√d) : ℤ√d := ⟨z.1, -z.2⟩
-@[simp] lemma conj_re (z : ℤ√d) : (conj z).re = z.re := rfl
-@[simp] lemma conj_im (z : ℤ√d) : (conj z).im = -z.im := rfl
+instance : has_star ℤ√d :=
+{ star := λ z, ⟨z.1, -z.2⟩ }
+@[simp] lemma star_mk (x y : ℤ) : star (⟨x, y⟩ : ℤ√d) = ⟨x, -y⟩ := rfl
+@[simp] lemma star_re (z : ℤ√d) : (star z).re = z.re := rfl
+@[simp] lemma star_im (z : ℤ√d) : (star z).im = -z.im := rfl
 
-/-- `conj` as an `add_monoid_hom`. -/
-def conj_hom : ℤ√d →+ ℤ√d :=
-{ to_fun := conj,
-  map_add' := λ ⟨a, ai⟩ ⟨b, bi⟩, ext.mpr ⟨rfl, neg_add _ _⟩,
-  map_zero' := ext.mpr ⟨rfl, neg_zero⟩ }
-
-@[simp] lemma conj_zero : conj (0 : ℤ√d) = 0 :=
-conj_hom.map_zero
-
-@[simp] lemma conj_one : conj (1 : ℤ√d) = 1 :=
-by simp only [zsqrtd.ext, zsqrtd.conj_re, zsqrtd.conj_im, zsqrtd.one_im, neg_zero, eq_self_iff_true,
-  and_self]
-
-@[simp] lemma conj_neg (x : ℤ√d) : (-x).conj = -x.conj := rfl
-
-@[simp] lemma conj_add (x y : ℤ√d) : (x + y).conj = x.conj + y.conj :=
-conj_hom.map_add x y
-
-@[simp] lemma conj_sub (x y : ℤ√d) : (x - y).conj = x.conj - y.conj :=
-conj_hom.map_sub x y
-
-@[simp] lemma conj_conj {d : ℤ} (x : ℤ√d) : x.conj.conj = x :=
-by simp only [ext, true_and, conj_re, eq_self_iff_true, neg_neg, conj_im]
+instance : star_ring ℤ√d :=
+{ star_involutive := λ x, ext.mpr ⟨rfl, neg_neg _⟩,
+  star_mul := λ a b, ext.mpr ⟨by simp; ring, by simp; ring⟩,
+  star_add := λ a b, ext.mpr ⟨rfl, neg_add _ _⟩ }
 
 instance : nontrivial ℤ√d :=
 ⟨⟨0, 1, dec_trivial⟩⟩
@@ -188,11 +172,8 @@ by simp [ext]
 theorem decompose {x y : ℤ} : (⟨x, y⟩ : ℤ√d) = x + sqrtd * y :=
 by simp [ext]
 
-theorem mul_conj {x y : ℤ} : (⟨x, y⟩ * conj ⟨x, y⟩ : ℤ√d) = x * x - d * y * y :=
+theorem mul_star {x y : ℤ} : (⟨x, y⟩ * star ⟨x, y⟩ : ℤ√d) = x * x - d * y * y :=
 by simp [ext, sub_eq_add_neg, mul_comm]
-
-theorem conj_mul {a b : ℤ√d} : conj (a * b) = conj a * conj b :=
-by { simp [ext], ring }
 
 protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n :=
 (int.cast_ring_hom _).map_add _ _
@@ -231,8 +212,7 @@ protected lemma eq_of_smul_eq_smul_left {a : ℤ} {b c : ℤ√d}
 begin
   rw ext at h ⊢,
   apply and.imp _ _ h;
-  { simp only [smul_re, smul_im],
-    exact int.eq_of_mul_eq_mul_left ha },
+  { simpa only [smul_re, smul_im] using mul_left_cancel₀ ha },
 end
 
 section gcd
@@ -377,15 +357,15 @@ def norm_monoid_hom : ℤ√d →* ℤ :=
   map_mul' := norm_mul,
   map_one' := norm_one }
 
-lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
-by cases n; simp [norm, conj, zsqrtd.ext, mul_comm, sub_eq_add_neg]
+lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * star n :=
+by cases n; simp [norm, star, zsqrtd.ext, mul_comm, sub_eq_add_neg]
 
 @[simp] lemma norm_neg (x : ℤ√d) : (-x).norm = x.norm :=
-coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul,
+coe_int_inj $ by simp only [norm_eq_mul_conj, star_neg, neg_mul,
   mul_neg, neg_neg]
 
-@[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
-coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
+@[simp] lemma norm_conj (x : ℤ√d) : (star x).norm = x.norm :=
+coe_int_inj $ by simp only [norm_eq_mul_conj, star_star, mul_comm]
 
 lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=
 add_nonneg (mul_self_nonneg _)
@@ -395,10 +375,10 @@ add_nonneg (mul_self_nonneg _)
 lemma norm_eq_one_iff {x : ℤ√d} : x.norm.nat_abs = 1 ↔ is_unit x :=
 ⟨λ h, is_unit_iff_dvd_one.2 $
   (le_total 0 (norm x)).cases_on
-    (λ hx, show x ∣ 1, from ⟨x.conj,
+    (λ hx, show x ∣ 1, from ⟨star x,
       by rwa [← int.coe_nat_inj', int.nat_abs_of_nonneg hx,
         ← @int.cast_inj (ℤ√d) _ _, norm_eq_mul_conj, eq_comm] at h⟩)
-    (λ hx, show x ∣ 1, from ⟨- x.conj,
+    (λ hx, show x ∣ 1, from ⟨- star x,
       by rwa [← int.coe_nat_inj', int.of_nat_nat_abs_of_nonpos hx,
         ← @int.cast_inj (ℤ√d) _ _, int.cast_neg, norm_eq_mul_conj, neg_mul_eq_mul_neg,
         eq_comm] at h⟩),
@@ -641,7 +621,7 @@ let g := x.gcd y in or.elim g.eq_zero_or_pos
     let ⟨m, n, co, (hx : x = m * g), (hy : y = n * g)⟩ := nat.exists_coprime gpos in
     begin
       rw [hx, hy] at h,
-      have : m * m = d * (n * n) := nat.eq_of_mul_eq_mul_left (mul_pos gpos gpos)
+      have : m * m = d * (n * n) := mul_left_cancel₀ (mul_pos gpos gpos).ne'
         (by simpa [mul_comm, mul_left_comm] using h),
       have co2 := let co1 := co.mul_right co in co1.mul co1,
       exact nonsquare.ns d m (nat.dvd_antisymm (by rw this; apply dvd_mul_right) $
@@ -696,9 +676,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
+instance : no_zero_divisors ℤ√d :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero }
+
 instance : is_domain ℤ√d :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
+by exact no_zero_divisors.to_is_domain _
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
@@ -761,7 +743,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
-  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, map_int_cast]⟩,
   left_inv := λ r, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 
@@ -777,5 +759,17 @@ begin
     rwa [← int.cast_zero, h_inj.eq_iff, norm_eq_zero hd] at this },
   rw [norm_eq_mul_conj, ring_hom.map_mul, ha, zero_mul]
 end
+
+/-- An element of `ℤ√d` has norm equal to `1` if and only if it is contained in the submonoid
+of unitary elements. -/
+lemma norm_eq_one_iff_mem_unitary {d : ℤ} {a : ℤ√d} : a.norm = 1 ↔ a ∈ unitary ℤ√d :=
+begin
+  rw [unitary.mem_iff_self_mul_star, ← norm_eq_mul_conj],
+  norm_cast,
+end
+
+/-- The kernel of the norm map on `ℤ√d` equals the submonoid of unitary elements. -/
+lemma mker_norm_eq_unitary {d : ℤ} : (@norm_monoid_hom d).mker = unitary ℤ√d :=
+submonoid.ext (λ x, norm_eq_one_iff_mem_unitary)
 
 end zsqrtd

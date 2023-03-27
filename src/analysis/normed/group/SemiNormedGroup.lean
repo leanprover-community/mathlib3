@@ -72,8 +72,8 @@ begin
   apply add_monoid_hom_class.isometry_of_norm,
   intro v,
   apply le_antisymm (h1 v),
-  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
-  ... ≤ ∥i.hom v∥ : h2 _,
+  calc ‖v‖ = ‖i.inv (i.hom v)‖ : by rw [iso.hom_inv_id_apply]
+  ... ≤ ‖i.hom v‖ : h2 _,
 end
 
 end SemiNormedGroup
@@ -171,8 +171,8 @@ begin
   refine add_monoid_hom_class.isometry_of_norm i.hom _,
   intro v,
   apply le_antisymm (i.hom.2 v),
-  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
-      ... ≤ ∥i.hom v∥ : i.inv.2 _,
+  calc ‖v‖ = ‖i.inv (i.hom v)‖ : by rw [iso.hom_inv_id_apply]
+      ... ≤ ‖i.hom v‖ : i.inv.2 _,
 end
 
 end SemiNormedGroup₁

@@ -5,7 +5,7 @@ Authors: Yaël Dillies
 -/
 import order.category.Lattice
 import order.hom.complete_lattice
-import topology.category.CompHaus
+import topology.category.CompHaus.basic
 import topology.sets.opens
 
 /-!

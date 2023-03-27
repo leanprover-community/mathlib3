@@ -130,7 +130,7 @@ theorem eq_of_cmp_eq : ∀ {o₁ o₂}, cmp o₁ o₂ = ordering.eq → o₁ = o
   simp
 end
 
-theorem zero_lt_one : (0 : onote) < 1 :=
+protected theorem zero_lt_one : (0 : onote) < 1 :=
 by rw [lt_def, repr, repr_one]; exact zero_lt_one
 
 /-- `NF_below o b` says that `o` is a normal form ordinal notation
@@ -221,7 +221,7 @@ theorem NF.below_of_lt' : ∀ {o b}, repr o < ω ^ b → NF o → NF_below o b
 
 theorem NF_below_of_nat : ∀ n, NF_below (of_nat n) 1
 | 0            := NF_below.zero
-| (nat.succ n) := NF_below.oadd NF.zero NF_below.zero ordinal.zero_lt_one
+| (nat.succ n) := NF_below.oadd NF.zero NF_below.zero zero_lt_one
 
 instance NF_of_nat (n) : NF (of_nat n) := ⟨⟨_, NF_below_of_nat n⟩⟩
 
@@ -695,7 +695,7 @@ begin
 end
 
 section
-local infixr ^ := @pow ordinal.{0} ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal.{0} ordinal ordinal.has_pow
 
 theorem repr_opow_aux₂ {a0 a'} [N0 : NF a0] [Na' : NF a'] (m : ℕ)
   (d : ω ∣ repr a')
@@ -828,12 +828,12 @@ begin
   exact ⟨i, h'.trans_le (le_add_right _ _)⟩
 end
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 private theorem exists_lt_omega_opow' {α} {o b : ordinal}
   (hb : 1 < b) (ho : o.is_limit) {f : α → ordinal}
   (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) ⦃a⦄ (h : a < b ^ o) : ∃ i, a < b ^ f i :=
 begin
-  obtain ⟨d, hd, h'⟩ := (lt_opow_of_limit (ordinal.zero_lt_one.trans hb).ne' ho).1 h,
+  obtain ⟨d, hd, h'⟩ := (lt_opow_of_limit (zero_lt_one.trans hb).ne' ho).1 h,
   exact (H hd).imp (λ i hi, h'.trans $ (opow_lt_opow_iff_right hb).2 hi)
 end
 
@@ -951,7 +951,7 @@ begin
 end
 
 section
-local infixr ^ := pow
+local infixr (name := pow) ^ := pow
 @[simp] theorem fast_growing_two : fast_growing 2 = (λ n, 2 ^ n * n) :=
 begin
   rw [@fast_growing_succ 2 1 rfl], funext i, rw [fast_growing_one],
@@ -1020,6 +1020,7 @@ instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
 instance : inhabited nonote := ⟨0⟩
 
 theorem lt_wf : @well_founded nonote (<) := inv_image.wf repr ordinal.lt_wf
+instance : well_founded_lt nonote := ⟨lt_wf⟩
 instance : has_well_founded nonote := ⟨(<), lt_wf⟩
 
 /-- Convert a natural number to an ordinal notation -/
@@ -1038,7 +1039,7 @@ theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
 end
 
 instance : linear_order nonote := linear_order_of_compares cmp cmp_compares
-instance : is_well_order nonote (<) := ⟨lt_wf⟩
+instance : is_well_order nonote (<) := { }
 
 /-- Asserts that `repr a < ω ^ repr b`. Used in `nonote.rec_on` -/
 def below (a b : nonote) : Prop := NF_below a.1 (repr b)

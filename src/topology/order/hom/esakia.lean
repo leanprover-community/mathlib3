@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.bounded
-import order.hom.order
 import topology.order.hom.basic
 
 /-!
@@ -44,6 +43,9 @@ structure esakia_hom (α β : Type*) [topological_space α] [preorder α] [topol
   [preorder β] extends α →Co β :=
 (exists_map_eq_of_map_le' ⦃a : α⦄ ⦃b : β⦄ : to_fun a ≤ b → ∃ c, a ≤ c ∧ to_fun c = b)
 
+section
+set_option old_structure_cmd true
+
 /-- `pseudo_epimorphism_class F α β` states that `F` is a type of `⊔`-preserving morphisms.
 
 You should extend this class when you extend `pseudo_epimorphism`. -/
@@ -59,18 +61,23 @@ class esakia_hom_class (F : Type*) (α β : out_param $ Type*) [topological_spac
   extends continuous_order_hom_class F α β :=
 (exists_map_eq_of_map_le (f : F) ⦃a : α⦄ ⦃b : β⦄ : f a ≤ b → ∃ c, a ≤ c ∧ f c = b)
 
+end
+
 export pseudo_epimorphism_class (exists_map_eq_of_map_le)
 
 @[priority 100] -- See note [lower instance priority]
 instance pseudo_epimorphism_class.to_top_hom_class [partial_order α] [order_top α] [preorder β]
   [order_top β] [pseudo_epimorphism_class F α β] : top_hom_class F α β :=
-⟨λ f, let ⟨b, h⟩ := exists_map_eq_of_map_le f (@le_top _ _ _ $ f ⊤) in
-  by rw [←top_le_iff.1 h.1, h.2]⟩
+{ map_top := λ f, let ⟨b, h⟩ := exists_map_eq_of_map_le f (@le_top _ _ _ $ f ⊤) in
+                  by rw [←top_le_iff.1 h.1, h.2]
+  .. ‹pseudo_epimorphism_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_pseudo_epimorphism_class [preorder α] [preorder β]
   [order_iso_class F α β] : pseudo_epimorphism_class F α β :=
-⟨λ f a b h, ⟨equiv_like.inv f b, (le_map_inv_iff f).2 h, equiv_like.right_inv _ _⟩⟩
+{ exists_map_eq_of_map_le :=
+      λ f a b h, ⟨equiv_like.inv f b, (le_map_inv_iff f).2 h, equiv_like.right_inv _ _⟩,
+  .. order_iso_class.to_order_hom_class }
 
 @[priority 100] -- See note [lower instance priority]
 instance esakia_hom_class.to_pseudo_epimorphism_class [topological_space α] [preorder α]
@@ -109,6 +116,14 @@ definitional equalities. -/
 protected def copy (f : pseudo_epimorphism α β) (f' : α → β) (h : f' = f) :
   pseudo_epimorphism α β :=
 ⟨f.to_order_hom.copy f' h, by simpa only [h.symm, to_fun_eq_coe] using f.exists_map_eq_of_map_le'⟩
+
+@[simp] lemma coe_copy (f : pseudo_epimorphism α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : pseudo_epimorphism α β) (f' : α → β) (h : f' = f) :
+  f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 
@@ -187,6 +202,9 @@ equalities. -/
 protected def copy (f : esakia_hom α β) (f' : α → β) (h : f' = f) : esakia_hom α β :=
 ⟨f.to_continuous_order_hom.copy f' h,
   by simpa only [h.symm, to_fun_eq_coe] using f.exists_map_eq_of_map_le'⟩
+
+@[simp] lemma coe_copy (f : esakia_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : esakia_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

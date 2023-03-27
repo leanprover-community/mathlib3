@@ -3,8 +3,8 @@ Copyright (c) 2022 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.abelian.opposite
 import category_theory.subobject.limits
+import category_theory.abelian.basic
 
 /-!
 # Equivalence between subobjects and quotients in an abelian category
@@ -55,5 +55,10 @@ begin
         auto_param_eq] },
     { simp only [mono_lift_comp] } }
 end
+
+/-- A well-powered abelian category is also well-copowered. -/
+instance well_powered_opposite [abelian C] [well_powered C] : well_powered Cᵒᵖ :=
+{ subobject_small := λ X,
+    (small_congr (subobject_iso_subobject_op (unop X)).to_equiv).1 infer_instance }
 
 end category_theory.abelian

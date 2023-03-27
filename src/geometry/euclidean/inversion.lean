@@ -3,7 +3,7 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import geometry.euclidean.basic
+import analysis.inner_product_space.basic
 
 /-!
 # Inversion in an affine space
@@ -49,7 +49,7 @@ begin
     rwa [dist_ne_zero] }
 end
 
-lemma inversion_of_mem_sphere (h : x ∈ sphere c R) : inversion c R x = x :=
+lemma inversion_of_mem_sphere (h : x ∈ metric.sphere c R) : inversion c R x = x :=
 h.out ▸ inversion_dist_center c x
 
 /-- Distance from the image of a point under inversion to the center. This formula accidentally

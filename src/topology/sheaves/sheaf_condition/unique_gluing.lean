@@ -97,7 +97,7 @@ For presheaves of types, terms of `pi_opens F U` are just families of sections.
 def pi_opens_iso_sections_family : pi_opens F U ≅ Π i : ι, F.obj (op (U i)) :=
 limits.is_limit.cone_point_unique_up_to_iso
   (limit.is_limit (discrete.functor (λ i : ι, F.obj (op (U i)))))
-  ((types.product_limit_cone (λ i : ι, F.obj (op (U i)))).is_limit)
+  ((types.product_limit_cone.{v v} (λ i : ι, F.obj (op (U i)))).is_limit)
 
 /--
 Under the isomorphism `pi_opens_iso_sections_family`, compatibility of sections is the same
@@ -299,6 +299,21 @@ begin
   intro i,
   rw [← comp_apply, ← comp_apply, ← F.1.map_comp],
   convert h i,
+end
+
+lemma eq_of_locally_eq₂ {U₁ U₂ V : opens X}
+  (i₁ : U₁ ⟶ V) (i₂ : U₂ ⟶ V) (hcover : V ≤ U₁ ⊔ U₂)
+  (s t : F.1.obj (op V))
+  (h₁ : F.1.map i₁.op s = F.1.map i₁.op t)
+  (h₂ : F.1.map i₂.op s = F.1.map i₂.op t) : s = t :=
+begin
+  classical,
+  fapply F.eq_of_locally_eq' (λ t : ulift bool, if t.1 then U₁ else U₂),
+  { exact λ i, if h : i.1 then (eq_to_hom (if_pos h)) ≫ i₁ else (eq_to_hom (if_neg h)) ≫ i₂ },
+  { refine le_trans hcover _, rw sup_le_iff, split,
+    { convert le_supr (λ t : ulift bool, if t.1 then U₁ else U₂) (ulift.up true) },
+    { convert le_supr (λ t : ulift bool, if t.1 then U₁ else U₂) (ulift.up false) } },
+  { rintro ⟨_|_⟩; simp [h₁, h₂] }
 end
 
 end

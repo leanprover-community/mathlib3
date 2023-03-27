@@ -16,7 +16,7 @@ The main definition is a `valued` type class which equips a ring with a valuatio
 values in a group with zero. Other instances are then deduced from this.
 -/
 
-open_locale classical topological_space uniformity
+open_locale classical topology uniformity
 open set valuation
 noncomputable theory
 
@@ -102,7 +102,7 @@ structure. -/
 def mk' (v : valuation R Γ₀) : valued R Γ₀ :=
 { v := v,
   to_uniform_space := @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _,
-  to_uniform_add_group := @topological_add_group_is_uniform _ _ v.subgroups_basis.topology _,
+  to_uniform_add_group := @topological_add_comm_group_is_uniform _ _ v.subgroups_basis.topology _,
   is_topological_valuation :=
   begin
     letI := @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _,

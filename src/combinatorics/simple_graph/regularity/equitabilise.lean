@@ -8,6 +8,9 @@ import order.partition.equipartition
 /-!
 # Equitabilising a partition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to blow partitions up into parts of controlled size. Given a partition `P` and
 `a b m : ℕ`, we want to find a partition `Q` with `a` parts of size `m` and `b` parts of size
 `m + 1` such that all parts of `P` are "as close as possible" to unions of parts of `Q`. By
@@ -158,9 +161,10 @@ begin
   nth_rewrite 1 hunion,
   rw [sum_union, sum_const_nat (λ x hx, (mem_filter.1 hx).2),
     sum_const_nat (λ x hx, (mem_filter.1 hx).2), P.card_filter_equitabilise_big],
-  refine λ x hx, succ_ne_self m _,
-  rw [inf_eq_inter, mem_inter, mem_filter, mem_filter] at hx,
-  rw [succ_eq_add_one, ←hx.2.2, hx.1.2],
+  refine disjoint_filter_filter' _ _ _,
+  intros x ha hb i h,
+  apply succ_ne_self m _,
+  exact (hb i h).symm.trans (ha i h),
 end
 
 lemma card_parts_equitabilise (hm : m ≠ 0) : (P.equitabilise h).parts.card = a + b :=

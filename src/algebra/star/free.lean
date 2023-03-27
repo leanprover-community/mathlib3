@@ -42,9 +42,13 @@ instance : star_ring (free_algebra R X) :=
   star_involutive := λ x, by
   { unfold has_star.star,
     simp only [function.comp_apply],
-    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
-  star_mul := λ a b, by simp,
-  star_add := λ a b, by simp }
+    refine free_algebra.induction R X _ _ _ _ x,
+    { intros, simp only [alg_hom.commutes, mul_opposite.algebra_map_apply, mul_opposite.unop_op] },
+    { intros, simp only [lift_ι_apply, mul_opposite.unop_op] },
+    { intros, simp only [*, map_mul, mul_opposite.unop_mul] },
+    { intros, simp only [*, map_add, mul_opposite.unop_add] } },
+  star_mul := λ a b, by simp only [function.comp_app, map_mul, mul_opposite.unop_mul],
+  star_add := λ a b, by simp only [function.comp_app, map_add, mul_opposite.unop_add]}
 
 @[simp]
 lemma star_ι (x : X) : star (ι R x) = (ι R x) :=

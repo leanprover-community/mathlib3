@@ -3,12 +3,16 @@ Copyright (c) 2020 Yury Kudryashov, Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Anne Baanen
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.fintype.fin
+import data.list.fin_range
 import logic.equiv.fin
 
 /-!
 # Big operators and `fin`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Some results about products and sums over the type `fin`.
 
@@ -45,7 +49,7 @@ namespace fin
 @[to_additive]
 theorem prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
   ∏ i, f i = ((list.fin_range n).map f).prod :=
-by simp [univ_def, finset.fin_range]
+by simp [univ_def]
 
 @[to_additive]
 theorem prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
@@ -58,27 +62,24 @@ theorem prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := r
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f x`, for some `x : fin (n + 1)` times the remaining product -/
-@[to_additive
-/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/]
+@[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of `f x`,
+for some `x : fin (n + 1)` plus the remaining product"]
 theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
 by rw [univ_succ_above, prod_cons, finset.prod_map, rel_embedding.coe_fn_to_embedding]
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f 0` plus the remaining product -/
-@[to_additive
-/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f 0` plus the remaining product -/]
+@[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of `f 0`
+plus the remaining product"]
 theorem prod_univ_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = f 0 * ∏ i : fin n, f i.succ :=
 prod_univ_succ_above f 0
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f (fin.last n)` plus the remaining product -/
-@[to_additive
-/- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of `f (fin.last n)` plus the remaining sum -/]
+@[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of
+`f (fin.last n)` plus the remaining sum"]
 theorem prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (last n) :=
 by simpa [mul_comm] using prod_univ_succ_above f (last n)
@@ -149,7 +150,7 @@ begin
   rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
   { intro x,
     simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
-  apply prod_on_sum,
+  apply fintype.prod_sum_type,
 end
 
 @[to_additive]
@@ -181,6 +182,29 @@ by simp [partial_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←o
   partial_prod f j.succ = f 0 * partial_prod (fin.tail f) j :=
 by simpa [partial_prod]
 
+@[to_additive] lemma partial_prod_left_inv {G : Type*} [group G] (f : fin (n + 1) → G) :
+  f 0 • partial_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
+funext $ λ x, fin.induction_on x (by simp) (λ x hx,
+begin
+  simp only [coe_eq_cast_succ, pi.smul_apply, smul_eq_mul] at hx ⊢,
+  rw [partial_prod_succ, ←mul_assoc, hx, mul_inv_cancel_left],
+end)
+
+@[to_additive] lemma partial_prod_right_inv {G : Type*} [group G]
+  (g : G) (f : fin n → G) (i : fin n) :
+  ((g • partial_prod f) i)⁻¹ * (g • partial_prod f) i.succ = f i :=
+begin
+  cases i with i hn,
+  induction i with i hi generalizing hn,
+  { simp [←fin.succ_mk, partial_prod_succ] },
+  { specialize hi (lt_trans (nat.lt_succ_self i) hn),
+    simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
+      smul_eq_mul, pi.smul_apply] at hi ⊢,
+    rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk],
+    simp only [partial_prod_succ, mul_inv_rev, fin.cast_succ_mk],
+    assoc_rw [hi, inv_mul_cancel_left] }
+end
+
 end partial_prod
 
 end fin
@@ -202,7 +226,7 @@ begin
     rw prod_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
       = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {(⟨i, h⟩ : fin n)},
-        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
+        by { ext ⟨_, _⟩, simp [nat.lt_succ_iff_lt_or_eq] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
       (singleton (⟨i, h⟩ : fin n)), by simp,
     rw [A, finset.prod_union B, IH],

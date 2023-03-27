@@ -103,6 +103,7 @@ by rw [← cancel_epi ((h.add n 0).hom.app X), iso.hom_inv_id_app, h.add_zero_ho
 end shift_mk_core
 
 section
+
 local attribute [simp] eq_to_hom_map
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
 
@@ -232,7 +233,6 @@ begin
   erw [ε_app_obj],
   simpa [eq_to_hom_map],
 end
-
 
 lemma shift_functor_add'_assoc (a₁ a₂ a₃ a₁₂ a₂₃ a₁₂₃ : A)
   (h₁₂ : a₁ + a₂ = a₁₂) (h₂₃ : a₂ + a₃ = a₂₃) (h₁₂₃ : a₁ + a₂ + a₃ = a₁₂₃) :
@@ -521,7 +521,6 @@ lemma shift_shift_functor_comp_iso_id_neg_add_self_inv_app (n : A) (X : C) :
   ((shift_functor_comp_iso_id C (-n) n (neg_add_self n)).inv.app X)⟦-n⟧' =
     (shift_functor_comp_iso_id C n (-n) (add_neg_self n)).inv.app (X⟦-n⟧) :=
 by apply shift_shift_functor_comp_iso_id_inv_app
-
 
 end
 

@@ -50,7 +50,6 @@ applying `rotate` gives a triangle of the form:
 def triangle.rotate (T : triangle C) : triangle C := triangle.mk T.mor₂ T.mor₃ (-T.mor₁⟦1⟧')
 
 section
---local attribute [semireducible] shift_shift_neg shift_neg_shift
 
 /--
 Given a triangle of the form:

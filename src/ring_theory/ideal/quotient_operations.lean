@@ -620,7 +620,8 @@ rfl
 @[simp]
 lemma quot_quot_equiv_comm_symmₐ :
   (quot_quot_equiv_commₐ R I J).symm = quot_quot_equiv_commₐ R J I :=
-by convert rfl
+-- TODO: should be `rfl` but times out
+alg_equiv.ext $ λ x, (fun_like.congr_fun (quot_quot_equiv_comm_symm I J) x : _)
 
 @[simp]
 lemma quot_quot_equiv_comm_comp_quot_quot_mkₐ :

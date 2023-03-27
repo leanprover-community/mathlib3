@@ -1667,33 +1667,30 @@ by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
 
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
+namespace iso
 
-lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
-begin
-  split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
-  subst_vars
-end
+/-- An isomorphism of graphs induces a bijection of connected components. -/
+@[simps]
+def connected_component_equiv (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+{ to_fun := connected_component.map φ.to_hom,
+  inv_fun := connected_component.map φ.symm.to_hom,
+  left_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
+  right_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
 
-@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).connected :=
-begin
-  split,
-  rintro ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
-  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
-    refl <|> { apply adj.reachable, simp },
-end
+@[simp] lemma connected_component_equiv_refl :
+  (iso.refl : G ≃g G).connected_component_equiv = equiv.refl _ :=
+by { ext ⟨v⟩, refl, }
 
-lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
-  (set.univ : set (G.walk u v)).nonempty :=
-by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
+@[simp] lemma connected_component_equiv_symm (φ : G ≃g G') :
+  φ.symm.connected_component_equiv = φ.connected_component_equiv.symm := by { ext ⟨_⟩, refl, }
 
-lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
-  (set.univ : set (G.walk u v)).nonempty := hconn.preconnected.set_univ_walk_nonempty u v
+@[simp] lemma connected_component_equiv_trans (φ : G ≃g G') (φ' : G' ≃g G'') :
+  connected_component_equiv (φ.trans φ') =
+  φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
+
+end iso
 
 /-! ### Walks as subgraphs -/
 

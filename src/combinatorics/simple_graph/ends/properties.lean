@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
 import combinatorics.simple_graph.ends.defs
-import category_theory.mittag_leffler
+import category_theory.cofiltered_system
 
 /-!
 # Properties of the ends of graphs
@@ -42,19 +42,15 @@ instance compononent_compl_functor_nonempty_of_infinite  [Vi : infinite V] (K : 
 instance component_compl_functor_finite [Glf : locally_finite G] [fact $ preconnected G]
   (K : (finset V)ᵒᵖ) : finite (G.component_compl_functor.obj K) := G.component_compl_finite K.unop
 
-lemma component_compl_functor_is_mittag_leffler [Glf : locally_finite G] (Gpc : preconnected G) :
+lemma component_compl_functor_is_mittag_leffler [locally_finite G] [fact G.preconnected] :
   G.component_compl_functor.is_mittag_leffler :=
-begin
-  classical,
-  refine category_theory.functor.is_mittag_leffler_of_exists_finite_range _ (λ j, _),
-  haveI : finite (G.component_compl_functor.obj j) := component_compl_finite Gpc j.unop,
-  exact ⟨j, 𝟙 j, set.to_finite _⟩,
-end
+by classical; exact category_theory.functor.is_mittag_leffler_of_exists_finite_range _
+                (λ K, ⟨K, 𝟙 K, set.to_finite _⟩)
 
 @[instance]
 noncomputable def component_compl_functor_to_eventual_ranges_fintype
   [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
-  {G : simple_graph V} [locally_finite G] (Gpc : G.preconnected) (K : (finset V)ᵒᵖ) :
+  {G : simple_graph V} [locally_finite G] [fact G.preconnected] (K : (finset V)ᵒᵖ) :
   fintype (G.component_compl_functor.to_eventual_ranges.obj K) :=
 begin
   haveI : Π (j : (finset V)ᵒᵖ), fintype (G.component_compl_functor.obj j) :=

@@ -216,6 +216,25 @@ begin
       refine ⟨hw, induce_walk_support_connected _ _ _⟩, }, }
 end
 
+protected lemma connected_component.connected :
+  ∀ (C : G.connected_component), (G.induce {v : V | G.connected_component_mk v = C}).connected :=
+begin
+  refine connected_component.ind (λ v, _),
+  refine (connected_iff _).mpr ⟨_, ⟨⟨v, rfl⟩⟩⟩,
+  let Gr := G.reachable,
+  rw set.ext (λ (v' : V), @connected_component.eq V G v' v),
+  let GCr := (G.induce {t : V | Gr t v}).reachable,
+  have : ∀ {u w} (p : G.walk u w) (hu : Gr u v) (hw : Gr w v), GCr ⟨u,hu⟩ ⟨w,hw⟩, by
+  { rintro u w p,
+    induction p with _ _ _ _ a q ih,
+    { exact λ _ _, reachable.refl _, },
+    { refine λ hu hw, reachable.trans (adj.reachable _) (ih (a.reachable.symm.trans hu) hw),
+      exact a, }, },
+  rintro ⟨u,hu⟩ ⟨w,hw⟩,
+  simp only [connected_component.eq, set.mem_set_of_eq] at hu hw,
+  exact this (reachable.trans hu $ reachable.symm hw).some hu hw,
+end
+
 end induced_subgraphs
 
 end simple_graph

@@ -10,9 +10,6 @@ import data.list.rotate
 
 # Graph connectivity
 
-> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.
-
 In a simple graph,
 
 * A *walk* is a finite sequence of adjacent vertices, and can be
@@ -869,7 +866,7 @@ begin
       { rw [edges_cons, list.count_cons],
         split_ifs with h'',
         { rw sym2.eq_iff at h'',
-          obtain (⟨rfl,rfl⟩|⟨rfl,rfl⟩) := h'',
+          obtain (⟨rfl, rfl⟩|⟨rfl, rfl⟩) := h'',
           { exact (h' rfl).elim },
           { cases p'; simp! } },
         { apply ih, } } } },
@@ -1526,6 +1523,10 @@ protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
   (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
 h.elim (λ p, ⟨p.map f⟩)
 
+@[mono]
+protected lemma reachable.mono  {G G' : simple_graph V} (h : G ≤ G') {u v : V}
+  (Guv : G.reachable u v) : G'.reachable u v := Guv.map (simple_graph.hom.map_spanning_subgraphs h)
+
 variables (G)
 
 lemma reachable_is_equivalence : equivalence G.reachable :=
@@ -1540,6 +1541,13 @@ def preconnected : Prop := ∀ (u v : V), G.reachable u v
 lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.preconnected) : H.preconnected :=
 hf.forall₂.2 $ λ a b, nonempty.map (walk.map _) $ hG _ _
+
+@[mono]
+protected lemma preconnected.mono  {G G' : simple_graph V} (h : G ≤ G')
+  (hG : G.preconnected) : G'.preconnected := λ u v, (hG u v).mono h
+
+lemma top_preconnected : (⊤ : simple_graph V).preconnected :=
+by classical; exact λ x y, if h : x = y then by { rw h, } else adj.reachable h
 
 lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.preconnected ↔ H.preconnected :=
@@ -1557,12 +1565,27 @@ structure connected : Prop :=
 (preconnected : G.preconnected)
 [nonempty : nonempty V]
 
+lemma connected_iff_exists_forall_reachable : G.connected ↔ ∃ v, ∀ w, G.reachable v w :=
+begin
+  rw connected_iff,
+  exact ⟨λ ⟨h, ⟨v⟩⟩, ⟨v, λ w, h v w⟩, λ ⟨v, h⟩, ⟨λ u w, (h u).symm.trans $ h w, ⟨v⟩⟩⟩,
+end
+
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
 
 lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.connected) : H.connected :=
 by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+
+@[mono]
+protected lemma connected.mono {G G' : simple_graph V} (h : G ≤ G')
+ (hG : G.connected) : G'.connected :=
+{ preconnected := hG.preconnected.mono h,
+  nonempty := hG.nonempty }
+
+lemma top_connected [nonempty V] : (⊤ : simple_graph V).connected :=
+⟨top_preconnected⟩
 
 lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.connected ↔ H.connected :=
@@ -1644,31 +1667,6 @@ by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
 
-namespace iso
-
-/-- An isomorphism of graphs induces a bijection of connected components. -/
-@[simps]
-def connected_component_equiv (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
-{ to_fun := connected_component.map φ.to_hom,
-  inv_fun := connected_component.map φ.symm.to_hom,
-  left_inv := λ C, connected_component.ind
-    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
-  right_inv := λ C, connected_component.ind
-    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
-
-@[simp] lemma connected_component_equiv_refl :
-  (iso.refl : G ≃g G).connected_component_equiv = equiv.refl _ :=
-by { ext ⟨v⟩, refl, }
-
-@[simp] lemma connected_component_equiv_symm (φ : G ≃g G') :
-  φ.symm.connected_component_equiv = φ.connected_component_equiv.symm := by { ext ⟨_⟩, refl, }
-
-@[simp] lemma connected_component_equiv_trans (φ : G ≃g G') (φ' : G' ≃g G'') :
-  connected_component_equiv (φ.trans φ') =
-  φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
-
-end iso
-
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
 
@@ -1724,6 +1722,12 @@ end
 @[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
 set.ext (λ _, p.mem_verts_to_subgraph)
 
+lemma start_mem_verts_to_subgraph (p : G.walk u v) : u ∈ p.to_subgraph.verts :=
+by simp [mem_verts_to_subgraph]
+
+lemma end_mem_verts_to_subgraph (p : G.walk u v) : v ∈ p.to_subgraph.verts :=
+by simp [mem_verts_to_subgraph]
+
 lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
   e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
 by induction p; simp [*]
@@ -1765,6 +1769,12 @@ begin
     refine set.finite.subset _ (neighbor_set_subgraph_of_adj_subset p_h),
     apply set.to_finite, },
 end
+
+lemma to_subgraph_le_induce_support (p : G.walk u v) :
+  p.to_subgraph ≤ (⊤ : G.subgraph).induce {v | v ∈ p.support} :=
+calc p.to_subgraph = p.to_subgraph.induce {v | v ∈ p.support} :
+                        by rw [← walk.verts_to_subgraph, subgraph.induce_self_verts]
+               ... ≤ (⊤ : G.subgraph).induce {v | v ∈ p.support} : subgraph.induce_mono_left le_top
 
 end walk
 

@@ -1011,26 +1011,26 @@ to_Set_of_Set _ _
 
 @[simp, norm_cast] theorem coe_sep (p : Class.{u}) (x : Set.{u}) :
   (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
-set.ext $ λ y, Set.mem_sep
+ext $ λ y, Set.mem_sep
 
 @[simp, norm_cast] theorem coe_empty : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 $ Set.not_mem_empty y
+ext $ λ y, (iff_false _).2 $ Set.not_mem_empty y
 
 @[simp, norm_cast] theorem coe_insert (x y : Set.{u}) :
   ↑(insert x y) = @insert Set.{u} Class.{u} _ x y :=
-set.ext $ λ z, Set.mem_insert_iff
+ext $ λ z, Set.mem_insert_iff
 
 @[simp, norm_cast] theorem coe_union (x y : Set.{u}) : ↑(x ∪ y) = (x : Class.{u}) ∪ y :=
-set.ext $ λ z, Set.mem_union
+ext $ λ z, Set.mem_union
 
 @[simp, norm_cast] theorem coe_inter (x y : Set.{u}) : ↑(x ∩ y) = (x : Class.{u}) ∩ y :=
-set.ext $ λ z, Set.mem_inter
+ext $ λ z, Set.mem_inter
 
 @[simp, norm_cast] theorem coe_diff (x y : Set.{u}) : ↑(x \ y) = (x : Class.{u}) \ y :=
-set.ext $ λ z, Set.mem_diff
+ext $ λ z, Set.mem_diff
 
 @[simp, norm_cast] theorem coe_powerset (x : Set.{u}) : ↑x.powerset = powerset.{u} x :=
-set.ext $ λ z, Set.mem_powerset
+ext $ λ z, Set.mem_powerset
 
 @[simp] theorem powerset_apply {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
 

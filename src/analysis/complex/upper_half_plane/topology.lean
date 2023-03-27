@@ -10,6 +10,7 @@ import analysis.convex.complex
 import analysis.complex.re_im_topology
 import topology.homotopy.contractible
 import geometry.manifold.mfderiv
+import geometry.manifold.cont_mdiff_mfderiv
 
 /-!
 # Topology on the upper half plane
@@ -64,7 +65,12 @@ upper_half_plane.open_embedding_coe.singleton_charted_space
 instance upper_half_plane.smooth_manifold_with_corners : smooth_manifold_with_corners 𝓘(ℂ) ℍ :=
 upper_half_plane.open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(ℂ)
 
+/-- The inclusion map `ℍ → ℂ` is a smooth map of manifolds. -/
+lemma smooth_coe : smooth 𝓘(ℂ) 𝓘(ℂ) (coe : ℍ → ℂ) :=
+λ x, cont_mdiff_at_ext_chart_at
+
+/-- The inclusion map `ℍ → ℂ` is a differentiable map of manifolds. -/
 lemma mdifferentiable_coe : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (coe : ℍ → ℂ) :=
-mdifferentiable_open_embedding 𝓘(ℂ) upper_half_plane.open_embedding_coe
+smooth_coe.mdifferentiable
 
 end upper_half_plane

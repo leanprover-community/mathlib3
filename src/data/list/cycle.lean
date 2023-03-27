@@ -850,7 +850,7 @@ theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ 
   { exact trans (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
 end, cycle.chain_of_pairwise⟩
 
-theorem not_chain_of_trans_of_irrefl [is_trans α r] [is_irrefl α r] (h : chain r s) : s = nil :=
+theorem chain.eq_nil_of_irrefl [is_trans α r] [is_irrefl α r] (h : chain r s) : s = nil :=
 begin
   induction s using cycle.induction_on with a l _ h,
   { refl },
@@ -858,8 +858,8 @@ begin
       (chain_iff_pairwise.1 h) a (mem_cons_self a _) a (mem_cons_self a _)).elim }
 end
 
-theorem not_chain_of_well_founded [i : is_well_founded α r] (h : chain r s) : s = nil :=
-not_chain_of_trans_of_irrefl $ h.imp $ λ _ _, relation.trans_gen.single
+theorem chain.eq_nil_of_well_founded [is_well_founded α r] (h : chain r s) : s = nil :=
+chain.eq_nil_of_irrefl $ h.imp $ λ _ _, relation.trans_gen.single
 
 theorem forall_eq_of_chain [is_trans α r] [is_antisymm α r]
   (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=

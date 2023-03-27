@@ -854,8 +854,8 @@ theorem chain.eq_nil_of_irrefl [is_trans α r] [is_irrefl α r] (h : chain r s) 
 begin
   induction s using cycle.induction_on with a l _ h,
   { refl },
-  { exact (irrefl_of r a $
-      (chain_iff_pairwise.1 h) a (mem_cons_self a _) a (mem_cons_self a _)).elim }
+  { have ha := mem_cons_self a _,
+    exact (irrefl_of r a $ chain_iff_pairwise.1 h a ha a ha).elim }
 end
 
 theorem chain.eq_nil_of_well_founded [is_well_founded α r] (h : chain r s) : s = nil :=

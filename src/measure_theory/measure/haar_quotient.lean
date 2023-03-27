@@ -92,6 +92,7 @@ end
 
 ------------------------------------
 
+-- to `ae_strongly_measurable` file
 @[to_additive ae_strongly_measurable_of_absolutely_continuous_add]
 lemma ae_strongly_measurable_of_absolutely_continuous {α β : Type*} [measurable_space α]
   [topological_space β] {μ ν : measure α} (h : ν ≪ μ) (g : α → β)
@@ -232,14 +233,16 @@ lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
 
-
+/-- The `ess_sup` of a function `g` on the quotient space `G ⧸ Γ` with respect to the pushforward
+  of the restriction, `μ_𝓕`, of a right-invariant measure `μ` to a fundamental domain `𝓕`, is the
+  same as the `ess_sup` of `g`'s lift to the universal cover `G` with respect to `μ`. -/
 @[to_additive]
-lemma mul_ess_sup_of_g [μ.is_mul_right_invariant] {g : G ⧸ Γ → ℝ≥0∞}
-  (g_measurable : ae_measurable g μ_𝓕) :
+lemma ess_sup_comp_quotient_group_mk [μ.is_mul_right_invariant] {g : G ⧸ Γ → ℝ≥0∞}
+  (g_ae_measurable : ae_measurable g μ_𝓕) :
   ess_sup g μ_𝓕 = ess_sup (λ (x : G), g x) μ :=
 begin
   have hπ : measurable (quotient_group.mk : G → G ⧸ Γ) := continuous_quotient_mk.measurable,
-  rw ess_sup_map_measure g_measurable hπ.ae_measurable,
+  rw ess_sup_map_measure g_ae_measurable hπ.ae_measurable,
   refine h𝓕.ess_sup_measure_restrict _,
   rintros ⟨γ, hγ⟩ x,
   dsimp,
@@ -247,7 +250,11 @@ begin
   exact quotient_group.mk_mul_of_mem x hγ,
 end
 
-
+/-- Given a quotient space `G ⧸ Γ` where `Γ` is `countable`, and the restriction,
+  `μ_𝓕`, of a right-invariant measure `μ` on `G` to a fundamental domain `𝓕`, a set
+  in the quotient which has `μ_𝓕`-measure zero, also has measure zero under the
+  folding of `μ` under the quotient. Note that, if `Γ` is infinite, then the folded map
+  will take the value `∞` on any open set in the quotient! -/
 @[to_additive]
 lemma _root_.measure_theory.is_fundamental_domain.absolutely_continuous_map
   [μ.is_mul_right_invariant] :
@@ -287,8 +294,8 @@ begin
   simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
 end
 
-
-
+--- move to `topology.algebra.infinite_sum.basic` if possible?
+/-- Automorphization distributes. -/
 lemma mul_action.automorphize_smul_left {α : Type*} {β : Type*} [group α] [mul_action α β]
   {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : β → γ)
   {R : Type*} [division_ring R] [module R γ] [has_continuous_const_smul R γ]
@@ -313,38 +320,39 @@ begin
 end
 
 
-
+--- move to `topology.algebra.infinite_sum.basic` if possible?
+/-- Given a subgroup `Γ` of a group `G`, and a function `f : G → M`, we "automorphize" `f` to a
+  function `G ⧸ Γ → M` by summing over `Γ` orbits, `g ↦ ∑' (γ : Γ), f(γ • g)`. -/
 @[to_additive]
-def quotient_group.automorphize {G : Type*} [group G] {Γ : subgroup G} {γ : Type*}
-  [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : G → γ) :
-  G ⧸ Γ → γ :=
+def quotient_group.automorphize {G : Type*} [group G] {Γ : subgroup G} {M : Type*}
+  [topological_space M] [add_comm_monoid M] [t2_space M] (f : G → M) :
+  G ⧸ Γ → M :=
 mul_action.automorphize f
 
---@[to_additive]
+--- move to `topology.algebra.infinite_sum.basic` if possible?
+/-- Automorphization distributes. This could be additivized if only `distrib_mul_action_with_zero` existed, and in that case, the multiplicative version would have `R` be a `group_with_zero` instead of `division_ring`; in the additive version, we would have `R` be a `add_group_with_minus_infinity`, which doesn't exist. -/
 lemma quotient_group.automorphize_smul_left {G : Type*} [group G] {Γ : subgroup G}
-  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : G → γ)
-  {R : Type*} [division_ring R] [module R γ] [has_continuous_const_smul R γ]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [t2_space M] (f : G → M)
+  {R : Type*} [division_ring R] [module R M] [has_continuous_const_smul R M]
   (g : G ⧸ Γ → R) :
   quotient_group.automorphize ((g ∘ quotient.mk') • f)
-  = g • (quotient_group.automorphize f : G ⧸ Γ → γ) :=
+  = g • (quotient_group.automorphize f : G ⧸ Γ → M) :=
 mul_action.automorphize_smul_left f g
 
+/- Move to commit message in PR: question: how to deduce `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
 
-/- question: how to deduce `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
 include h𝓕
 
-/-- This is the "unfolding" trick
-PROOF:
-∫_G f = ∑_γ ∫_𝓕 f(γ⁻¹ • x ) : h𝓕.integral_eq_tsum'
-... = ∫_𝓕  ∑_γ  f(γ⁻¹ • x ) : integral_tsum (to be PRed)
-... = ∫_𝓕  F ∘ π  : def of F
-... = ∫_(G/Γ) F
- -/
+open quotient_group
+
+/-- This is a simple version of the **Unfolding Trick**: Given a subgroup `Γ` of a group `G`, the
+  integral of a function `f` on `G` with respect to a right-invariant measure `μ` is equal to the
+  integral over the quotient `G ⧸ Γ` of the automorphization of `f`. -/
 @[to_additive]
-lemma mul_unfolding_trick' {E : Type*} [normed_add_comm_group E] [complete_space E]
-  [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E} (hf₁ : integrable f μ)
-  (hf₂ : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
-  ∫ x : G, f x ∂μ = ∫ x : G ⧸ Γ, quotient_group.automorphize f x ∂μ_𝓕 :=
+lemma quotient_group.integral_eq_integral_automorphize {E : Type*} [normed_add_comm_group E]
+  [complete_space E] [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E}
+  (hf₁ : integrable f μ) (hf₂ : ae_strongly_measurable (automorphize f) μ_𝓕) :
+  ∫ x : G, f x ∂μ = ∫ x : G ⧸ Γ, automorphize f x ∂μ_𝓕 :=
 calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) ∂μ : h𝓕.integral_eq_tsum'' f hf₁
 ... = ∫ x in 𝓕, ∑' γ : Γ.opposite, f (γ • x) ∂μ :
   begin
@@ -354,16 +362,17 @@ calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) 
     { rw ← h𝓕.lintegral_eq_tsum'' (λ x, ‖f x‖₊),
       exact ne_of_lt hf₁.2, },
   end
-... = ∫ x : G ⧸ Γ, quotient_group.automorphize f x ∂μ_𝓕 :
+... = ∫ x : G ⧸ Γ, automorphize f x ∂μ_𝓕 :
   (integral_map continuous_quotient_mk.ae_measurable hf₂).symm
 
-
-
-/-- This is the "unfolding" trick -/
---@[to_additive]
-lemma mul_unfolding_trick {E : Type*} [normed_field E] [complete_space E]
-  [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E} (f_ℒ_1 : integrable f μ)
-  {g : G ⧸ Γ → E} (hg : ae_strongly_measurable g μ_𝓕)
+/-- This is the **Unfolding Trick**: Given a subgroup `Γ` of a group `G`, the integral of a
+  function `f` on `G` times the lift to `G` of a function `g` on the quotient `G ⧸ Γ` with respect
+  to a right-invariant measure `μ` on `G`, is equal to the integral over the quotient of the
+  automorphization of `f` times `g`. -/
+--- To Do : `[@to_additive]`
+lemma quotient_group.integral_mul_eq_integral_automorphize_mul {E : Type*} [normed_field E]
+  [complete_space E] [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E}
+  (f_ℒ_1 : integrable f μ) {g : G ⧸ Γ → E} (hg : ae_strongly_measurable g μ_𝓕)
   (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)
   (F_ae_measurable : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
   ∫ x : G, g (x : G ⧸ Γ) * (f x) ∂μ = ∫ x : G ⧸ Γ, g x * (quotient_group.automorphize f x) ∂μ_𝓕 :=
@@ -382,10 +391,10 @@ begin
     refine integrable.ess_sup_smul f_ℒ_1 this _,
     { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
-      rw [← mul_ess_sup_of_g h𝓕 hg'.ae_measurable],
+      rw [← ess_sup_comp_quotient_group_mk h𝓕 hg'.ae_measurable],
       exact g_ℒ_infinity } },
   have H₂ : ae_strongly_measurable (quotient_group.automorphize ((g ∘ π) * f)) μ_𝓕,
   { simp_rw [H₀],
     exact hg.mul F_ae_measurable },
-  apply mul_unfolding_trick' h𝓕 H₁ H₂,
+  apply quotient_group.integral_eq_integral_automorphize h𝓕 H₁ H₂,
 end

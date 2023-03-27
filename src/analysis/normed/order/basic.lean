@@ -52,6 +52,7 @@ class normed_linear_ordered_group (α : Type*)
 class normed_linear_ordered_field (α : Type*)
 extends linear_ordered_field α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ‖x - y‖ . obviously)
+(norm_one' : ‖(1 : α)‖ = 1)
 (norm_mul' : ∀ x y : α, ‖x * y‖ = ‖x‖ * ‖y‖)
 
 @[to_additive, priority 100]
@@ -66,14 +67,15 @@ instance normed_linear_ordered_group.to_normed_ordered_group [normed_linear_orde
 @[priority 100] instance normed_linear_ordered_field.to_normed_field (α : Type*)
   [normed_linear_ordered_field α] : normed_field α :=
 { dist_eq := normed_linear_ordered_field.dist_eq,
+  norm_one' := normed_linear_ordered_field.norm_one',
   norm_mul' := normed_linear_ordered_field.norm_mul' }
 
 instance : normed_linear_ordered_field ℚ :=
-⟨dist_eq_norm, norm_mul⟩
+⟨dist_eq_norm, norm_one, norm_mul⟩
 
 noncomputable
 instance : normed_linear_ordered_field ℝ :=
-⟨dist_eq_norm, norm_mul⟩
+⟨dist_eq_norm, norm_one, norm_mul⟩
 
 @[to_additive] instance [normed_ordered_group α] : normed_ordered_group αᵒᵈ :=
 { ..normed_ordered_group.to_normed_comm_group, ..order_dual.ordered_comm_group }

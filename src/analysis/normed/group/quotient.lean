@@ -612,6 +612,7 @@ quotient_norm_mk_le I.to_add_subgroup r
 
 instance ideal.quotient.semi_normed_comm_ring : semi_normed_comm_ring (R ⧸ I) :=
 { mul_comm := mul_comm,
+  norm_one := (ideal.quotient.norm_mk_le _ (1 : R)).trans norm_one_le,
   norm_mul := λ x y, le_of_forall_pos_le_add $ λ ε hε,
   begin
     have := ((nhds_basis_ball.prod_nhds nhds_basis_ball).tendsto_iff nhds_basis_ball).mp

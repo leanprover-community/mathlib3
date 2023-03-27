@@ -1576,7 +1576,11 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
+<<<<<<< HEAD
 variables {V' G G' G''}
+=======
+variables {G} {V'} {G'} {G''}
+>>>>>>> bottine/simple_graph.ends/infinite
 
 namespace connected_component
 
@@ -1643,6 +1647,34 @@ by { refine C.ind _, exact (λ _, rfl) }
 by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
+<<<<<<< HEAD
+=======
+
+namespace iso
+
+/-- An isomorphism of graphs induces a bijection of connected components. -/
+@[simps]
+def connected_component_equiv (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+{ to_fun := connected_component.map φ.to_hom,
+  inv_fun := connected_component.map φ.symm.to_hom,
+  left_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
+  right_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
+
+@[simp] lemma connected_component_equiv_refl :
+  (iso.refl : G ≃g G).connected_component_equiv = equiv.refl _ :=
+by { ext ⟨v⟩, refl, }
+
+@[simp] lemma connected_component_equiv_symm (φ : G ≃g G') :
+  φ.symm.connected_component_equiv = φ.connected_component_equiv.symm := by { ext ⟨_⟩, refl, }
+
+@[simp] lemma connected_component_equiv_trans (φ : G ≃g G') (φ' : G' ≃g G'') :
+  connected_component_equiv (φ.trans φ') =
+  φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
+
+end iso
+>>>>>>> bottine/simple_graph.ends/infinite
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected

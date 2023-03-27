@@ -37,16 +37,11 @@ begin
   exact ⟨e.val (opposite.op L), (e.prop (category_theory.op_hom_of_le h))⟩,
 end
 
-@[instance]
-noncomputable def component_compl_functor_fintype
-  {G : simple_graph V} [G.locally_finite] (Gpc : G.preconnected)
-  (K : (finset V)ᵒᵖ) : fintype (G.component_compl_functor.obj K) :=
-  @fintype.of_finite _ (component_compl_finite Gpc K.unop)
+instance compononent_compl_functor_nonempty_of_infinite  [Vi : infinite V] (K : (finset V)ᵒᵖ) :
+  nonempty (G.component_compl_functor.obj K) := G.component_compl_nonempty_of_infinite K.unop
 
-lemma component_compl_functor_nonempty_of_infinite
-  (G : simple_graph V) [infinite V] (K : (finset V)ᵒᵖ) :
-    nonempty (G.component_compl_functor.obj K) :=
-  component_compl_nonempty_of_infinite G K.unop
+instance component_compl_functor_finite [Glf : locally_finite G] [fact $ preconnected G]
+  (K : (finset V)ᵒᵖ) : finite (G.component_compl_functor.obj K) := G.component_compl_finite K.unop
 
 lemma component_compl_functor_is_mittag_leffler [Glf : locally_finite G] (Gpc : preconnected G) :
   G.component_compl_functor.is_mittag_leffler :=
@@ -84,13 +79,8 @@ end
 /--
 A locally finite preconnected infinite graph has at least one end.
 -/
-lemma nonempty_ends_of_infinite [Glf : locally_finite G] (Gpc : preconnected G) [Vi : infinite V] :
+lemma nonempty_ends_of_infinite [Glf : locally_finite G] [fact $ preconnected G] [Vi : infinite V] :
   G.end.nonempty :=
-begin
-  classical,
-  exact @nonempty_sections_of_fintype_inverse_system _ _ _ G.component_compl_functor
-    (λ K, @fintype.of_finite _ $ component_compl_finite Gpc K.unop)
-    (λ K, G.component_compl_nonempty_of_infinite K.unop)
-end
+by classical; apply nonempty_sections_of_finite_inverse_system G.component_compl_functor
 
 end simple_graph

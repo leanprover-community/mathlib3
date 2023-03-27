@@ -123,14 +123,14 @@ begin
 end
 
 @[simp] lemma linearization_ε_hom :
-  (linearization k G).ε.hom = finsupp.lsingle (default : punit) :=
+  (linearization k G).ε.hom = finsupp.lsingle punit.star :=
 rfl
 
 @[simp] lemma linearization_ε_inv_hom_apply (r : k) :
-  (inv (linearization k G).ε).hom (finsupp.single (default : punit) r) = r :=
+  (inv (linearization k G).ε).hom (finsupp.single punit.star r) = r :=
 begin
   simp_rw [←Action.forget_map, functor.map_inv, Action.forget_map],
-  rw [←finsupp.lsingle_apply (default : punit) r],
+  rw [←finsupp.lsingle_apply punit.star r],
   apply is_iso.hom_inv_id_apply _ _,
 end
 

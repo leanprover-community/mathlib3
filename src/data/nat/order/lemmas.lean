@@ -21,7 +21,7 @@ mathlib4. After `data.rat.order` has been ported, please feel free to reorganize
 
 universes u v
 
-variables {m n k : ℕ}
+variables {a b m n k : ℕ}
 namespace nat
 
 /-! ### Sets -/
@@ -183,7 +183,7 @@ lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
 nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
-lemma le_of_lt_add_of_dvd {a b b : ℕ} (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
+lemma le_of_lt_add_of_dvd (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
 begin
   rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
   rw ←mul_add_one at h,

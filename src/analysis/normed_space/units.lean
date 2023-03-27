@@ -168,6 +168,8 @@ end
 
 lemma inverse_one_sub_norm : (λ t : R, inverse (1 - t)) =O[𝓝 0] (λ t, 1 : R → ℝ) :=
 begin
+  casesI subsingleton_or_nontrivial R,
+  { simp_rw [subsingleton.elim (inverse _) (0 : R), is_O_zero] },
   simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨‖(1:R)‖ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
   intros t ht,
@@ -175,9 +177,10 @@ begin
   have ht' : ‖t‖ < 1,
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
-  simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
+  simp only [inverse_one_sub t ht', norm_one_class.norm_one, mul_one, set.mem_set_of_eq],
   change ‖∑' n : ℕ, t ^ n‖ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
+  rw norm_one_class.norm_one at this,
   have : (1 - ‖t‖)⁻¹ ≤ 2,
   { rw ← inv_inv (2:ℝ),
     refine inv_le_inv_of_le (by norm_num) _,
@@ -189,7 +192,9 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : Rˣ) : (λ t : R, inverse (↑x + t)) =O[𝓝 0] (λ t, (1:ℝ)) :=
 begin
-  simp only [is_O_iff, norm_one, mul_one],
+  casesI subsingleton_or_nontrivial R,
+  { simp_rw [subsingleton.elim (inverse _) (0 : R), is_O_zero] },
+  simp only [is_O_iff, norm_one_class.norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
   use C * ‖((x⁻¹:Rˣ):R)‖,
   have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),

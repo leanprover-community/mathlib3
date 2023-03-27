@@ -661,6 +661,7 @@ instance : has_norm ℚ_[p] := ⟨λ x, padic_norm_e x⟩
 
 instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
+  norm_one' := by simp [has_norm.norm, map_one],
   norm_mul' := by simp [has_norm.norm, map_mul],
   norm := norm, .. padic.field, .. padic.metric_space p }
 

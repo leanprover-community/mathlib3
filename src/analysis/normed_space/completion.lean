@@ -72,6 +72,7 @@ instance [semi_normed_ring A] : normed_ring (completion A) :=
     { intros x y,
       rw [← completion.coe_sub, norm_coe, completion.dist_eq, dist_eq_norm] }
   end,
+  norm_one := by simpa only [←coe_one, norm_coe] using norm_one_le,
   norm_mul := λ x y,
   begin
     apply completion.induction_on₂ x y; clear x y,

@@ -162,30 +162,6 @@ zpowers_eq_bot.not
    subgroup.zpowers (1 : G) = ⊥ :=
 subgroup.zpowers_eq_bot.mpr rfl
 
-@[to_additive coe_zmultiplies_subset] lemma coe_zpowers_subset (h_one : (1 : G) ∈ s)
-  (h_mul : ∀ a ∈ s, a * g ∈ s) (h_inv : ∀ a ∈ s, a * g⁻¹ ∈ s) : ↑(zpowers g) ⊆ s :=
-begin
-  rintro _ ⟨n, rfl⟩,
-  induction n using int.induction_on with n ih n ih,
-  { rwa zpow_zero },
-  { rw zpow_add_one,
-    exact h_mul _ ih },
-  { rw zpow_sub_one,
-    exact h_inv _ ih }
-end
-
-@[to_additive coe_zmultiplies_subset'] lemma coe_zpowers_subset' (h_one : (1 : G) ∈ s)
-  (h_mul : ∀ a ∈ s, g * a ∈ s) (h_inv : ∀ a ∈ s, g⁻¹ * a ∈ s) : ↑(zpowers g) ⊆ s :=
-begin
-  rintro _ ⟨n, rfl⟩,
-  induction n using int.induction_on with n ih n ih,
-  { rwa zpow_zero },
-  { rw [add_comm, zpow_add, zpow_one],
-    exact h_mul _ ih },
-  { rw [sub_eq_add_neg, add_comm, zpow_add, zpow_neg_one],
-    exact h_inv _ ih }
-end
-
 @[to_additive] lemma centralizer_closure (S : set G) :
   (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
 le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)

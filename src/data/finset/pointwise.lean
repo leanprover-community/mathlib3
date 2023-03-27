@@ -194,8 +194,6 @@ image₂_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image₂_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image₂_right
-@[to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
-@[to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) := image₂_singleton_left
 @[simp, to_additive] lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
 image₂_singleton
 
@@ -934,6 +932,17 @@ instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_smul α �
 coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
+
+section has_mul
+variables [has_mul α] [decidable_eq α] {s t u : finset α} {a : α}
+
+@[simp, to_additive] lemma singleton_mul (a : α) (s : finset α) : {a} * s = a • s :=
+image₂_singleton_left
+
+@[simp, to_additive] lemma mul_singleton (s : finset α) (a : α) : s * {a} = op a • s :=
+image₂_singleton_right
+
+end has_mul
 
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)

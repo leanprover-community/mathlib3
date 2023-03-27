@@ -205,8 +205,6 @@ image2_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-@[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
-@[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
 @[simp, to_additive] lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} :=
 image2_singleton
 
@@ -412,8 +410,8 @@ variables [mul_one_class α]
 /-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_zero_class` under pointwise operations if `α` is."]
 protected def mul_one_class : mul_one_class (set α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+{ mul_one := image2_right_identity mul_one,
+  one_mul := image2_left_identity one_mul,
   ..set.has_one, ..set.has_mul }
 
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup

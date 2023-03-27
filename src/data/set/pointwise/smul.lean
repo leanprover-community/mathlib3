@@ -38,7 +38,7 @@ Appropriate definitions and results are also transported to the additive theory 
 
 -/
 
-open function
+open function mul_opposite
 
 variables {F α β γ : Type*}
 
@@ -192,11 +192,20 @@ image_Inter₂_subset _ _
 
 end has_smul_set
 
-variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
+section has_mul
+variables [has_mul α] {s t u : set α} {a : α}
 
-@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
-  (⋃ a ∈ t, mul_opposite.op a • s) = s * t :=
+@[simp, to_additive] lemma singleton_mul (a : α) (s : set α) : {a} * s = a • s :=
+image2_singleton_left
+@[simp, to_additive] lemma mul_singleton (s : set α) (a : α) : s * {a} = op a • s :=
+image2_singleton_right
+
+@[simp, to_additive] lemma bUnion_op_smul_set (s t : set α) : (⋃ a ∈ t, op a • s) = s * t :=
 Union_image_right _
+
+end has_mul
+
+variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
 @[to_additive]
 theorem range_smul_range {ι κ : Type*} [has_smul α β] (b : ι → α) (c : κ → β) :

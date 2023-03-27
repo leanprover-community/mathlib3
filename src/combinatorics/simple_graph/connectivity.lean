@@ -1576,11 +1576,7 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-<<<<<<< HEAD
 variables {V' G G' G''}
-=======
-variables {G} {V'} {G'} {G''}
->>>>>>> bottine/simple_graph.ends/infinite
 
 namespace connected_component
 
@@ -1647,8 +1643,6 @@ by { refine C.ind _, exact (λ _, rfl) }
 by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
-<<<<<<< HEAD
-=======
 
 namespace iso
 
@@ -1674,7 +1668,6 @@ by { ext ⟨v⟩, refl, }
   φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
 
 end iso
->>>>>>> bottine/simple_graph.ends/infinite
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected

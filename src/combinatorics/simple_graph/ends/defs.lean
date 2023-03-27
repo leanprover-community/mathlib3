@@ -6,7 +6,6 @@ Authors: Anand Rao, Rémi Bottinelli
 import category_theory.cofiltered_system
 import combinatorics.simple_graph.connectivity
 import data.finite.set
-import .for_mathlib.connected
 
 /-!
 # Ends

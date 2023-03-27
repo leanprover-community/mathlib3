@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
 import combinatorics.simple_graph.ends.defs
-import topology.category.Top
 import category_theory.mittag_leffler
 
 /-!

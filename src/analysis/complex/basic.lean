@@ -57,6 +57,7 @@ add_group_norm.to_normed_add_comm_group
 instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
+  norm_one' := map_one abs,
   norm_mul' := map_mul abs,
   .. complex.field, .. complex.normed_add_comm_group }
 

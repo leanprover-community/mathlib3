@@ -58,7 +58,7 @@ end
 namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [inner_product_space 𝕜 E] [normed_add_comm_group F]
+  [normed_add_comm_group E] [inner_product_space 𝕜 E] [normed_add_comm_group F]
 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y

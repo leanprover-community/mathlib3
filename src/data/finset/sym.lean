@@ -11,6 +11,9 @@ import data.sym.sym2
 /-!
 # Symmetric powers of a finset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the symmetric powers of a finset as `finset (sym α n)` and `finset (sym2 α)`.
 
 ## Main declarations

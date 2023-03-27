@@ -174,7 +174,7 @@ begin
     rw [←lol.connected_component_equiv.right_inv C, equiv.infinite_iff],
     exact inf (lol.connected_component_equiv.symm C),
     exact (component_compl.supp_equiv _).trans
-      ((connected_component.iso_equiv_supp lol.connected_component_equiv _).symm.trans
+      ((connected_component.iso_equiv_supp lol _).symm.trans
         (component_compl.supp_equiv _).symm), },
 
   apply @hom_not_injective_of_nicely_arranged V G Gpc _ (op φL) (op L) ((Kn.mono KL).image φ) ⟨_, _⟩ ⟨_, _⟩
@@ -186,13 +186,13 @@ begin
   have eL: G.component_compl_functor.to_eventual_ranges.obj (op L) ≃
          G.component_compl_functor.to_eventual_ranges.obj (op φL), by
   { simp_rw component_compl_functor_to_eventual_ranges_obj_eq,
-    refine ((equiv.subtype_univ_equiv inf).trans (connected_component.iso lol)).trans (equiv.subtype_univ_equiv φinf).symm, },
+    refine ((equiv.subtype_univ_equiv inf).trans lol.connected_component_equiv).trans (equiv.subtype_univ_equiv φinf).symm, },
   have iK: G.component_compl_functor.to_eventual_ranges.obj K ↪
          G.component_compl_functor.to_eventual_ranges.obj (op L), by
   { refine function.embedding.of_surjective
       (G.component_compl_functor.to_eventual_ranges.map $ op_hom_of_le KL) _,
     apply G.component_compl_functor.surjective_to_eventual_ranges,
-    exact G.component_compl_functor_is_mittag_leffler Gpc, },
+    exact G.component_compl_functor_is_mittag_leffler, },
   exact (hK.trans iK).trans eL.to_embedding,
 end
 

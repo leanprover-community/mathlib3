@@ -15,7 +15,7 @@ about these measures.
 
 -/
 
-open_locale topological_space ennreal measure_theory
+open_locale topology ennreal measure_theory
 open set function filter
 
 namespace measure_theory

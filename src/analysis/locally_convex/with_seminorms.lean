@@ -47,7 +47,7 @@ seminorm, locally convex
 -/
 
 open normed_field set seminorm topological_space
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {𝕜 𝕜₂ 𝕝 𝕝₂ E F G ι ι' : Type*}
 
@@ -370,6 +370,39 @@ begin
 end
 
 end topology
+
+section tendsto
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι] [topological_space E]
+variables {p : seminorm_family 𝕜 E ι}
+
+/-- Convergence along filters for `with_seminorms`.
+
+Variant with `finset.sup`. -/
+lemma with_seminorms.tendsto_nhds' (hp : with_seminorms p) (u : F → E) {f : filter F} (y₀ : E) :
+  filter.tendsto u f (𝓝 y₀) ↔ ∀ (s : finset ι) ε, 0 < ε → ∀ᶠ x in f, s.sup p (u x - y₀) < ε :=
+by simp [hp.has_basis_ball.tendsto_right_iff]
+
+/-- Convergence along filters for `with_seminorms`. -/
+lemma with_seminorms.tendsto_nhds (hp : with_seminorms p) (u : F → E) {f : filter F} (y₀ : E) :
+  filter.tendsto u f (𝓝 y₀) ↔ ∀ i ε, 0 < ε → ∀ᶠ x in f, p i (u x - y₀) < ε :=
+begin
+  rw hp.tendsto_nhds' u y₀,
+  exact ⟨λ h i, by simpa only [finset.sup_singleton] using h {i},
+    λ h s ε hε, (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ _, finset_sup_apply_lt hε)⟩,
+end
+
+variables [semilattice_sup F] [nonempty F]
+
+/-- Limit `→ ∞` for `with_seminorms`. -/
+lemma with_seminorms.tendsto_nhds_at_top (hp : with_seminorms p) (u : F → E) (y₀ : E) :
+  filter.tendsto u filter.at_top (𝓝 y₀) ↔ ∀ i ε, 0 < ε → ∃ x₀, ∀ x, x₀ ≤ x → p i (u x - y₀) < ε :=
+begin
+  rw hp.tendsto_nhds u y₀,
+  exact forall₃_congr (λ _ _ _, filter.eventually_at_top),
+end
+
+end tendsto
 
 section topological_add_group
 

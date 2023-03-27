@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.fintype.basic
+import data.list.sublists
 import group_theory.subgroup.basic
 
 /-!
 # Free groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines free groups over a type. Furthermore, it is shown that the free group construction
 is an instance of a monad. For the result that `free_group` is the left adjoint to the forgetful

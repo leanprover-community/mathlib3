@@ -9,6 +9,9 @@ import data.polynomial.induction
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main defs here are `eval₂`, `eval`, and `map`.
 We give several lemmas about their interaction with each other and with module operations.
 -/
@@ -398,6 +401,8 @@ lemma is_root.dvd {R : Type*} [comm_semiring R] {p q : R[X]} {x : R}
 by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
 
 lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a := by simpa using hr
+
+lemma eval_surjective (x : R) : function.surjective $ eval x := λ y, ⟨C y, eval_C⟩
 
 end eval
 

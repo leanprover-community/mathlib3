@@ -33,7 +33,7 @@ members of the approximating sequence are nonnegative bounded continuous functio
 
 -/
 noncomputable theory
-open_locale classical nnreal ennreal topological_space bounded_continuous_function
+open_locale classical nnreal ennreal topology bounded_continuous_function
 
 open nnreal ennreal set metric emetric filter
 

@@ -10,6 +10,9 @@ import data.list.rotate
 /-!
 # Cycles of a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lists have an equivalence relation of whether they are rotational permutations of one another.
 This relation is defined as `is_rotated`.
 

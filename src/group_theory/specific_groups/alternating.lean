@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 
 import algebra.group.conj_finite
 import group_theory.perm.fin
+import group_theory.subgroup.simple
 import tactic.interval_cases
 
 /-!

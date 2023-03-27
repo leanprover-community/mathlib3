@@ -566,7 +566,7 @@ end normed_algebra
 See note [reducible non-instances] -/
 @[reducible]
 def normed_algebra.induced {F : Type*} (α β γ : Type*) [normed_field α] [ring β]
-  [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [non_unital_alg_hom_class F α β γ]
+  [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [alg_hom_class F α β γ]
   (f : F) : @normed_algebra α β _ (semi_normed_ring.induced β γ f) :=
 { norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ norm_smul_le a (f b) } }
 

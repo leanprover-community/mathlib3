@@ -1251,9 +1251,7 @@ begin
       simpa only [mul_one] using Lint },
     simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] },
   have VL : closure V ⊆ L, from calc
-    closure V = {(1 : G)} * closure V : by simp only [singleton_mul, one_mul, image_id']
-    ... ⊆ interior V * closure V : mul_subset_mul_right
-      (by simpa only [singleton_subset_iff] using mem_interior_iff_mem_nhds.2 Vnhds)
+    closure V ⊆ interior V * closure V : subset_mul_right (mem_interior_iff_mem_nhds.2 Vnhds)
     ... = interior V * V : is_open_interior.mul_closure _
     ... ⊆ V * V : mul_subset_mul_right interior_subset
     ... ⊆ L : by { rintros x ⟨y, z, yv, zv, rfl⟩, exact hV _ yv _ zv },

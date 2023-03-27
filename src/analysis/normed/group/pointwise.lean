@@ -69,7 +69,7 @@ by { simp_rw [ball, ←dist_inv], refl }
 by { simp_rw [closed_ball, ←dist_inv], refl }
 
 @[to_additive] lemma singleton_mul_ball : {x} * ball y δ = ball (x * y) δ :=
-by simp only [preimage_mul_ball, image_mul_left, singleton_mul, div_inv_eq_mul, mul_comm y x]
+by rw [singleton_mul, smul_ball'', smul_eq_mul]
 
 @[to_additive] lemma singleton_div_ball : {x} / ball y δ = ball (x / y) δ :=
 by simp_rw [div_eq_mul_inv, inv_ball, singleton_mul_ball]
@@ -96,7 +96,7 @@ by { ext, simp [mem_smul_set_iff_inv_smul_mem, inv_mul_eq_div, dist_eq_norm_div]
 
 @[simp, to_additive]
 lemma singleton_mul_closed_ball : {x} * closed_ball y δ = closed_ball (x * y) δ :=
-by simp only [mul_comm y x, preimage_mul_closed_ball, image_mul_left, singleton_mul, div_inv_eq_mul]
+by rw [singleton_mul, smul_closed_ball'', smul_eq_mul]
 
 @[simp, to_additive]
 lemma singleton_div_closed_ball : {x} / closed_ball y δ = closed_ball (x / y) δ :=

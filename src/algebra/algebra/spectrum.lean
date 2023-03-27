@@ -270,14 +270,14 @@ lemma subset_star_subalgebra [star_ring R] [star_ring A] [star_module R A] {S : 
 compl_subset_compl.2 (λ _, is_unit.map S.subtype)
 
 lemma singleton_add_eq (a : A) (r : R) : {r} + (σ a) = σ (↑ₐr + a) :=
-ext $ λ x,
-  by rw [singleton_add, image_add_left, mem_preimage, add_comm, add_mem_iff, map_neg, neg_neg]
+ext $ λ x, by simp_rw [singleton_add, mem_vadd_set_iff_neg_vadd_mem, vadd_eq_add, add_comm,
+  add_mem_iff, map_neg, neg_neg, add_comm]
 
 lemma add_singleton_eq (a : A) (r : R) : (σ a) + {r} = σ (a + ↑ₐr) :=
 add_comm {r} (σ a) ▸ add_comm (algebra_map R A r) a ▸ singleton_add_eq a r
 
 lemma vadd_eq (a : A) (r : R) : r +ᵥ (σ a) = σ (↑ₐr + a) :=
-(singleton_add).symm.trans $ singleton_add_eq a r
+(singleton_add _ _).symm.trans $ singleton_add_eq a r
 
 lemma neg_eq (a : A) : -(σ a) = σ (-a) :=
 set.ext $ λ x, by simp only [mem_neg, mem_iff, map_neg, ←neg_add', is_unit.neg_iff, sub_neg_eq_add]

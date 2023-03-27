@@ -71,7 +71,7 @@ begin
   have : metric.closed_ball (0 : 𝕜) (ε / R) ∈ 𝓝 (0 : 𝕜) :=
     closed_ball_mem_nhds _ (div_pos εpos Rpos),
   filter_upwards [this] with r hr,
-  simp only [image_add_left, singleton_add],
+  simp only [image_add_left, singleton_add, ←image_vadd, vadd_eq_add],
   assume y hy,
   obtain ⟨z, zs, hz⟩ : ∃ (z : E), z ∈ s ∧ r • z = -x + y, by simpa [mem_smul_set] using hy,
   have I : ‖r • z‖ ≤ ε := calc

@@ -98,19 +98,16 @@ lemma add_haar_eq_zero_of_disjoint_translates_aux
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {s : set E} (u : ℕ → E) (sb : bounded s) (hu : bounded (range u))
-  (hs : pairwise (disjoint on (λ n, {u n} + s))) (h's : measurable_set s) :
+  (hs : pairwise (disjoint on (λ n, u n +ᵥ s))) (h's : measurable_set s) :
   μ s = 0 :=
 begin
   by_contra h,
   apply lt_irrefl ∞,
   calc
   ∞ = ∑' (n : ℕ), μ s : (ennreal.tsum_const_eq_top_of_ne_zero h).symm
-  ... = ∑' (n : ℕ), μ ({u n} + s) :
-    by { congr' 1, ext1 n, simp only [image_add_left, measure_preimage_add, singleton_add] }
-  ... = μ (⋃ n, {u n} + s) :
-    by rw measure_Union hs
-      (λ n, by simpa only [image_add_left, singleton_add] using measurable_id.const_add _ h's)
-  ... = μ (range u + s) : by rw [← Union_add, Union_singleton_eq_range]
+  ... = ∑' n, μ (u n +ᵥ s) : by simp_rw [measure_vadd]
+  ... = μ (⋃ n, u n +ᵥ s) : by rw measure_Union hs (λ n, h's.const_vadd _)
+  ... = μ (range u + s) : by simp_rw [←singleton_add, ←Union_add, Union_singleton_eq_range]
   ... < ∞ : bounded.measure_lt_top (hu.add sb)
 end
 
@@ -120,7 +117,7 @@ lemma add_haar_eq_zero_of_disjoint_translates
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {s : set E} (u : ℕ → E) (hu : bounded (range u))
-  (hs : pairwise (disjoint on (λ n, {u n} + s))) (h's : measurable_set s) :
+  (hs : pairwise (disjoint on (λ n, u n +ᵥ s))) (h's : measurable_set s) :
   μ s = 0 :=
 begin
   suffices H : ∀ R, μ (s ∩ closed_ball 0 R) = 0,
@@ -133,7 +130,7 @@ begin
     (bounded.mono (inter_subset_right _ _) bounded_closed_ball) hu _
     (h's.inter (measurable_set_closed_ball)),
   apply pairwise_disjoint.mono hs (λ n, _),
-  exact add_subset_add (subset.refl _) (inter_subset_left _ _)
+  exact vadd_set_mono (inter_subset_left _ _)
 end
 
 /-- A strict vector subspace has measure zero. -/
@@ -152,12 +149,11 @@ begin
   apply add_haar_eq_zero_of_disjoint_translates μ _ A _
     (submodule.closed_of_finite_dimensional s).measurable_set,
   assume m n hmn,
-  simp only [function.on_fun, image_add_left, singleton_add, disjoint_left, mem_preimage,
-             set_like.mem_coe],
+  simp only [function.on_fun, mem_vadd_set_iff_neg_vadd_mem, disjoint_left, set_like.mem_coe],
   assume y hym hyn,
   have A : (c ^ n - c ^ m) • x ∈ s,
   { convert s.sub_mem hym hyn,
-    simp only [sub_smul, neg_sub_neg, add_sub_add_right_eq_sub] },
+    simp only [vadd_eq_add, sub_smul, neg_sub_neg, add_sub_add_right_eq_sub] },
   have H : c ^ n - c ^ m ≠ 0,
     by simpa only [sub_eq_zero, ne.def] using (strict_anti_pow cpos cone).injective.ne hmn.symm,
   have : x ∈ s,
@@ -526,8 +522,7 @@ lemma add_haar_singleton_add_smul_div_singleton_add_smul
 calc
 μ ({x} + r • s) / μ ({y} + r • t)
     = ennreal.of_real (|r| ^ finrank ℝ E) * μ s * (ennreal.of_real (|r| ^ finrank ℝ E) * μ t)⁻¹ :
-  by simp only [div_eq_mul_inv, add_haar_smul, image_add_left, measure_preimage_add, abs_pow,
-    singleton_add]
+  by simp only [div_eq_mul_inv, add_haar_smul, measure_vadd, abs_pow, singleton_add]
 ... = ennreal.of_real (|r| ^ finrank ℝ E) * (ennreal.of_real (|r| ^ finrank ℝ E))⁻¹ *
         (μ s * (μ t)⁻¹) :
   begin
@@ -641,7 +636,7 @@ begin
     assume y hy,
     have : y - x ∈ r • closed_ball (0 : E) 1,
     { apply smul_set_mono t_bound,
-      simpa [neg_add_eq_sub] using hy },
+      simpa [neg_add_eq_sub, mem_vadd_set_iff_neg_vadd_mem] using hy },
     simpa only [smul_closed_ball _ _ zero_le_one, real.norm_of_nonneg rpos.le,
       mem_closed_ball_iff_norm, mul_one, sub_zero, smul_zero] },
   have B : tendsto (λ (r : ℝ), μ (closed_ball x r) / μ ({x} + r • u)) (𝓝[>] 0)
@@ -653,14 +648,13 @@ begin
       by simp only [_root_.smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero,
         mul_one, singleton_add_closed_ball, smul_zero],
     simp only [this, add_haar_singleton_add_smul_div_singleton_add_smul μ rpos.ne'],
-    simp only [add_haar_closed_ball_center, image_add_left, measure_preimage_add, singleton_add] },
+    simp only [add_haar_closed_ball_center, measure_vadd, singleton_add] },
   have C : tendsto (λ (r : ℝ),
     (μ (s ∩ ({x} + r • t)) / μ (closed_ball x r)) * (μ (closed_ball x r) / μ ({x} + r • u)))
     (𝓝[>] 0) (𝓝 (0 * (μ (closed_ball x 1) / μ ({x} + u)))),
   { apply ennreal.tendsto.mul A _ B (or.inr ennreal.zero_ne_top),
-    simp only [ennreal.div_eq_top, h'u, measure_closed_ball_lt_top.ne, false_or, image_add_left,
-      eq_self_iff_true, not_true, ne.def, not_false_iff, measure_preimage_add, singleton_add,
-      and_false, false_and] },
+    simp only [ennreal.div_eq_top, h'u, measure_closed_ball_lt_top.ne, false_or, eq_self_iff_true,
+      not_true, ne.def, not_false_iff, measure_vadd, singleton_add, and_false, false_and] },
   simp only [zero_mul] at C,
   apply C.congr' _,
   filter_upwards [self_mem_nhds_within],
@@ -725,8 +719,7 @@ begin
       by { rw H, simpa only [ennreal.zero_div] using εpos },
     apply le_antisymm _ (zero_le _),
     calc μ (s ∩ ({x} + r • t)) ≤ μ ({x} + r • t) : measure_mono (inter_subset_right _ _)
-    ... = 0 : by simp only [h't, add_haar_smul, image_add_left, measure_preimage_add,
-      singleton_add, mul_zero] },
+    ... = 0 : by simp only [h't, add_haar_smul, measure_vadd, singleton_add, mul_zero] },
   obtain ⟨n, npos, hn⟩ : ∃ (n : ℕ), 0 < n ∧ μ (t \ closed_ball 0 n) < (ε / 2) * μ t,
   { have A : tendsto (λ (n : ℕ), μ (t \ closed_ball 0 n)) at_top
       (𝓝 (μ (⋂ (n : ℕ), t \ closed_ball 0 n))),
@@ -814,11 +807,10 @@ begin
   filter_upwards [self_mem_nhds_within],
   rintros r (rpos : 0 < r),
   refine I ({x} + r • t) s _ _ hs,
-  { simp only [h't, abs_of_nonneg rpos.le, pow_pos rpos, add_haar_smul, image_add_left,
-      ennreal.of_real_eq_zero, not_le, or_false, ne.def, measure_preimage_add, abs_pow,
-      singleton_add, mul_eq_zero] },
+  { simp only [h't, abs_of_nonneg rpos.le, pow_pos rpos, add_haar_smul, ennreal.of_real_eq_zero,
+      not_le, or_false, ne.def, measure_vadd, abs_pow, singleton_add, mul_eq_zero] },
   { simp only [h''t, ennreal.of_real_ne_top, add_haar_smul, image_add_left, with_top.mul_eq_top_iff,
-      ne.def, not_false_iff, measure_preimage_add, singleton_add, and_false, false_and, or_self] }
+      ne.def, not_false_iff, measure_vadd, singleton_add, and_false, false_and, or_self] }
 end
 
 /-- Consider a point `x` at which a set `s` has density one, with respect to closed balls (i.e.,
@@ -847,7 +839,7 @@ begin
   congr' 1,
   apply measure_to_measurable_inter_of_sigma_finite,
   simp only [image_add_left, singleton_add],
-  apply (continuous_add_left (-x)).measurable (ht.const_smul₀ r)
+  exact(ht.const_smul₀ r).const_vadd _,
 end
 
 /-- Consider a point `x` at which a set `s` has density one, with respect to closed balls (i.e.,

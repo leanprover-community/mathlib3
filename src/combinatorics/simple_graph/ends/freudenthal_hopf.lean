@@ -11,7 +11,7 @@ local attribute [instance] prop_decidable
 namespace simple_graph
 namespace component_compl
 
-variables {V : Type u} {G : simple_graph V} (Gpc : G.preconnected)
+variables {V : Type u} {G : simple_graph V} [Gpc : fact G.preconnected]
 
 include Gpc
 
@@ -32,12 +32,12 @@ begin
       subset_of_connected_disjoint_right _ _,
       Einf'.mono (subset_of_connected_disjoint_right _ _)⟩,
   have : F' = F, by
-  { obtain ⟨⟨v, h⟩, vE', hH, a⟩:= exists_adj_boundary_pair Gpc Hnempty E',
+  { obtain ⟨⟨v, h⟩, vE', hH, a⟩:= exists_adj_boundary_pair Gpc.out Hnempty E',
     exact eq_of_adj v h (sub vE') (H_F hH) a, },
   exact this ▸ sub,
 end
 
-variable [locally_finite G]
+variables [locally_finite G]
 
 lemma hom_not_injective
   {H K : (finset V)ᵒᵖ}
@@ -50,10 +50,10 @@ lemma hom_not_injective
       (op_hom_of_le $ finset.subset_union_left H.unop K.unop : op (H.unop ∪ K.unop) ⟶ H)) :=
 begin
   obtain ⟨E, hE⟩ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
+    functor.surjective_to_eventual_ranges _ G.component_compl_functor_is_mittag_leffler
       (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D,
   obtain ⟨E', hE'⟩ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc)
+    functor.surjective_to_eventual_ranges _ G.component_compl_functor_is_mittag_leffler
       (op_hom_of_le $ finset.subset_union_right H.unop K.unop : op (H.unop ∪ K.unop) ⟶ K) D',
   subst_vars,
   refine λ inj, (by { rintro rfl, exact Ddist rfl, } : E ≠ E') (inj _),
@@ -108,12 +108,12 @@ lemma hom_not_injective_of_nicely_arranged
       (op_hom_of_le $ finset.subset_union_left K.unop H.unop : op (K.unop ∪ H.unop) ⟶ K)) :=
 begin
   obtain ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩ := (fin.fin3_embedding_iff' E).mp ⟨hK⟩,
-  apply hom_not_injective Gpc F E₁ E₂ h₁₂ _ _,
-  { apply subset_of_nicely_arranged Gpc _ _ Hnempty E.val E₁.val,
+  apply hom_not_injective F E₁ E₂ h₁₂ _ _,
+  { apply subset_of_nicely_arranged _ _ Hnempty E.val E₁.val,
     any_goals
     { rw infinite_iff_in_eventual_range },
     exacts [E₁.prop, λ h, h₀₁ (subtype.eq h), H_F, K_E], },
-  { apply subset_of_nicely_arranged Gpc _ _ Hnempty E.val E₂.val,
+  { apply subset_of_nicely_arranged _ _ Hnempty E.val E₂.val,
     any_goals
     { rw infinite_iff_in_eventual_range },
     exacts [E₂.prop, λ h, h₀₂ (subtype.eq h), H_F, K_E], },
@@ -151,11 +151,11 @@ begin
     dsimp [functor.eventual_range, component_compl] at hK,
     replace hK := hK.trans ⟨_, subtype.coe_injective⟩,
     rw [set.compl_empty] at hK,
-    replace hK := hK.trans (connected_component.iso (induce_univ_iso G)).to_embedding,
-    haveI := Gpc.subsingleton_connected_component,
+    replace hK := hK.trans (induce_univ_iso G).connected_component_equiv.to_embedding,
+    haveI := Gpc.out.subsingleton_connected_component,
     exact nat.not_succ_le_zero _ (nat.le_of_succ_le_succ (fin.embedding_subsingleton hK)), },
 
-  obtain ⟨L,KL,Lc,inf⟩ := exists_saturated_connected_extension Gpc Kn,
+  obtain ⟨L,KL,Lc,inf⟩ := exists_saturated_connected_extension Kn,
   obtain ⟨φ,φh⟩ := auts L,
   let φL := L.image φ,
   have φLc : (G.induce (φL : set V)).connected, by
@@ -205,7 +205,7 @@ begin
   -- Gccf has nonempty sections and nonempty sets at each K
   haveI := finite_ends.fintype,
   haveI := fintype.of_equiv G.end (Gccf.to_eventual_ranges_sections_equiv).symm,
-  haveI := component_compl_functor_to_eventual_ranges_fintype Gpc,
+  haveI := G.component_compl_functor_to_eventual_ranges_finite,
   haveI := λ j, component_compl_functor_to_eventual_ranges_nonempty_of_infinite G Gpc j,
   -- Gccf is a "surjective" system
   have surj : ∀ ⦃i j⦄ (f : i ⟶ j), function.surjective _ :=

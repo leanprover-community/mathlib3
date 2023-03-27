@@ -15,6 +15,9 @@ import measure_theory.tactic
 /-!
 # Measurable spaces and measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides properties of measurable spaces and the functions and isomorphisms
 between them. The definition of a measurable space is in `measure_theory.measurable_space_def`.
 

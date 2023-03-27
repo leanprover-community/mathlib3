@@ -46,7 +46,7 @@ Vitali relations there)
 -/
 
 open measure_theory metric set filter topological_space measure_theory.measure
-open_locale filter measure_theory topological_space
+open_locale filter measure_theory topology
 
 variables {α : Type*} [metric_space α]
 

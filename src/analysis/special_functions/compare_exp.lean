@@ -27,7 +27,7 @@ stronger assumptions (e.g., `im z` is bounded from below and from above) are not
 -/
 
 open asymptotics filter function
-open_locale topological_space
+open_locale topology
 
 namespace complex
 

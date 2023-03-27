@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.fin.tuple.basic
-import data.list.basic
 import data.list.join
+import data.list.pairwise
 
 /-!
 # Lists from functions
@@ -184,6 +184,11 @@ nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
   list.of_fn (fin.repeat n a) = (list.replicate n (list.of_fn a)).join :=
 by simp_rw [of_fn_mul, ←of_fn_const, fin.repeat, fin.mod_nat, fin.coe_mk,
   add_comm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt (fin.is_lt _), fin.eta]
+
+@[simp] lemma pairwise_of_fn {R : α → α → Prop} {n} {f : fin n → α} :
+  (of_fn f).pairwise R ↔ ∀ ⦃i j⦄, i < j → R (f i) (f j) :=
+by { simp only [pairwise_iff_nth_le, fin.forall_iff, length_of_fn, nth_le_of_fn', fin.mk_lt_mk],
+  exact ⟨λ h i hi j hj hij, h _ _ hj hij, λ h i j hj hij, h _ (hij.trans hj) _ hj hij⟩ }
 
 /-- Lists are equivalent to the sigma type of tuples of a given length. -/
 @[simps]

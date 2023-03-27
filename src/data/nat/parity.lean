@@ -9,6 +9,9 @@ import algebra.parity
 /-!
 # Parity of natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems about the `even` and `odd` predicates on the natural numbers.
 
 ## Tags

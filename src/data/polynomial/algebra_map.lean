@@ -10,6 +10,9 @@ import data.polynomial.eval
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that `A[X]` is an R-algebra when `A` is an R-algebra.
 We promote `eval₂` to an algebra hom in `aeval`.
 -/
@@ -232,8 +235,11 @@ lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 
-@[simp] lemma coe_aeval_eq_eval (r : R) :
-  (aeval r : R[X] → R) = eval r := rfl
+@[simp] lemma coe_aeval_eq_eval (r : R) : (aeval r : R[X] → R) = eval r := rfl
+
+@[simp] lemma coe_aeval_eq_eval_ring_hom (x : R) :
+  ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R) = eval_ring_hom x :=
+rfl
 
 @[simp] lemma aeval_fn_apply {X : Type*} (g : R[X]) (f : X → R) (x : X) :
   ((aeval f) g) x = aeval (f x) g :=

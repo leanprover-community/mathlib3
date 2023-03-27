@@ -9,6 +9,9 @@ import algebra.regular.smul
 /-!
 # Theory of monic polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give several tools for proving that polynomials are monic, e.g.
 `monic.mul`, `monic.map`, `monic.pow`.
 -/

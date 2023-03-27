@@ -9,6 +9,9 @@ import algebra.module.linear_map
 /-!
 # (Semi)linear equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. Here, `σ` is a `ring_hom`
@@ -237,7 +240,8 @@ variables (e₁₂ : M₁ ≃ₛₗ[σ₁₂] M₂) (e₂₃ : M₂ ≃ₛₗ[σ
 
 include σ₃₁
 /-- Linear equivalences are transitive. -/
--- Note: The linter thinks the `ring_hom_comp_triple` argument is doubled -- it is not.
+-- Note: the `ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁` is unused, but is convenient to carry around
+-- implicitly for lemmas like `linear_equiv.self_trans_symm`.
 @[trans, nolint unused_arguments]
 def trans : M₁ ≃ₛₗ[σ₁₃] M₃ :=
 { .. e₂₃.to_linear_map.comp e₁₂.to_linear_map,

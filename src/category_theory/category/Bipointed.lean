@@ -8,6 +8,9 @@ import category_theory.category.Pointed
 /-!
 # The category of bipointed types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Bipointed`, the category of bipointed types.
 
 ## TODO

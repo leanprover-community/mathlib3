@@ -187,6 +187,7 @@ variables (p)
 
 instance : normed_comm_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
+  norm_one := by simp [norm_def],
   norm_mul := by simp [norm_def],
   norm := norm, .. padic_int.comm_ring, .. padic_int.metric_space p }
 

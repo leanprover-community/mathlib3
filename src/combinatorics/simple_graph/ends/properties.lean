@@ -47,28 +47,20 @@ lemma component_compl_functor_is_mittag_leffler [locally_finite G] [fact G.preco
 by classical; exact category_theory.functor.is_mittag_leffler_of_exists_finite_range _
                 (λ K, ⟨K, 𝟙 K, set.to_finite _⟩)
 
-@[instance]
-noncomputable def component_compl_functor_to_eventual_ranges_fintype
+instance component_compl_functor_to_eventual_ranges_fintype
   [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
   {G : simple_graph V} [locally_finite G] [fact G.preconnected] (K : (finset V)ᵒᵖ) :
-  fintype (G.component_compl_functor.to_eventual_ranges.obj K) :=
-begin
-  haveI : Π (j : (finset V)ᵒᵖ), fintype (G.component_compl_functor.obj j) :=
-    component_compl_functor_fintype Gpc,
-  apply category_theory.functor.to_eventual_ranges_fintype,
-end
+  finite (G.component_compl_functor.to_eventual_ranges.obj K) :=
+category_theory.functor.to_eventual_ranges_finite _ _
 
-lemma component_compl_functor_to_eventual_ranges_nonempty_of_infinite
+instance component_compl_functor_to_eventual_ranges_nonempty_of_infinite
   [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
-  (G : simple_graph V) [G.locally_finite] (Gpc : G.preconnected)
+  (G : simple_graph V) [G.locally_finite] [fact G.preconnected]
   [infinite V] (K : (finset V)ᵒᵖ) :
   nonempty (G.component_compl_functor.to_eventual_ranges.obj K) :=
 begin
-  haveI : ∀ (j : (finset V)ᵒᵖ), nonempty (G.component_compl_functor.obj j) :=
-    component_compl_functor_nonempty_of_infinite G,
   apply category_theory.functor.to_eventual_ranges_nonempty,
   apply component_compl_functor_is_mittag_leffler,
-  assumption,
 end
 
 /--

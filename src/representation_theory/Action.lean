@@ -629,8 +629,7 @@ The isomorphism is given by `(g, x) ↦ (g, g⁻¹ • x)`. -/
   inv :=
   { hom := λ g, ⟨g.1, X.ρ g.1 g.2⟩,
     comm' := λ g, funext $ λ x, prod.ext rfl $
-      by simp only [tensor_rho, monoid_hom.one_apply, End.one_def, types_comp_apply, tensor_apply,
-        left_regular_ρ_apply, types_id_apply, map_mul, End.mul_def] },
+      by simpa only [tensor_rho, types_comp_apply, tensor_apply, left_regular_ρ_apply, map_mul] },
   hom_inv_id' := hom.ext _ _ (funext $ λ x, prod.ext rfl $
     show (X.ρ x.1 * X.ρ (x.1⁻¹ : G)) x.2 = _,
       by simpa only [←X.ρ.map_mul, mul_inv_self, X.ρ.map_one]),
@@ -642,7 +641,7 @@ The isomorphism is given by `(g, x) ↦ (g, g⁻¹ • x)`. -/
 each factor. -/
 @[simps] def diagonal_succ (G : Type u) [monoid G] (n : ℕ) :
   diagonal G (n + 1) ≅ left_regular G ⊗ diagonal G n :=
-mk_iso (equiv.pi_fin_succ_above_equiv _ 0).to_iso (λ g, by tidy)
+mk_iso (equiv.pi_fin_succ_above_equiv _ 0).to_iso (λ g, rfl)
 
 end Action
 
@@ -701,16 +700,16 @@ the categories of `G`-actions within those categories. -/
   right_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
   ..F.to_functor.map_Action G, }
 
-@[simp] lemma map_Action_to_lax_monoidal_functor_ε_inv_hom :
-  (inv (F.map_Action G).1.ε).hom = inv F.1.ε :=
+@[simp] lemma map_Action_ε_inv_hom :
+  (inv (F.map_Action G).ε).hom = inv F.ε :=
 begin
   ext,
   simp only [←F.map_Action_to_lax_monoidal_functor_ε_hom G, ←Action.comp_hom,
     is_iso.hom_inv_id, id_hom],
 end
 
-@[simp] lemma map_Action_to_lax_monoidal_functor_μ_inv_hom (X Y : Action V G) :
-  (inv ((F.map_Action G).1.μ X Y)).hom = inv (F.1.μ X.V Y.V) :=
+@[simp] lemma map_Action_μ_inv_hom (X Y : Action V G) :
+  (inv ((F.map_Action G).μ X Y)).hom = inv (F.μ X.V Y.V) :=
 begin
   ext,
   simpa only [←F.map_Action_to_lax_monoidal_functor_μ_hom G, ←Action.comp_hom,

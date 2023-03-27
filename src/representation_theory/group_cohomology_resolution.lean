@@ -58,7 +58,6 @@ over `k`.
 -/
 
 noncomputable theory
-open_locale classical
 universes u v w
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
@@ -85,8 +84,7 @@ def Action_diagonal_succ (G : Type u) [group G] : Π (n : ℕ),
   diagonal G (n + 1) ≅ left_regular G ⊗ Action.mk (fin n → G) 1
 | 0 := diagonal_one_iso_left_regular G ≪≫ (ρ_ _).symm ≪≫ tensor_iso (iso.refl _)
   (tensor_unit_iso (equiv.equiv_of_unique punit _).to_iso)
-| 1 := diagonal_succ _ _  ≪≫ left_regular_tensor_iso _ _
-| (n+2) := diagonal_succ _ _ ≪≫ tensor_iso (iso.refl _) (Action_diagonal_succ (n + 1))
+| (n+1) := diagonal_succ _ _ ≪≫ tensor_iso (iso.refl _) (Action_diagonal_succ n)
   ≪≫ left_regular_tensor_iso _ _ ≪≫ tensor_iso (iso.refl _) (mk_iso
   (equiv.pi_fin_succ_above_equiv (λ j, G) 0).symm.to_iso (λ g, rfl))
 
@@ -94,35 +92,17 @@ lemma Action_diagonal_succ_hom_apply {G : Type u} [group G] {n : ℕ} (f : fin (
   (Action_diagonal_succ G n).hom.hom f = (f 0, λ i, (f i)⁻¹ * f i.succ) :=
 begin
   induction n with n hn,
-  { dunfold Action_diagonal_succ diagonal_one_iso_left_regular,
-    simp only [iso.trans_hom, iso.symm_hom, tensor_iso_hom, iso.refl_hom, comp_hom, mk_iso_hom_hom,
-      equiv.to_iso_hom, equiv.fun_unique_apply, right_unitor_inv_hom, tensor_hom, id_hom,
-      types_comp_apply, function.eval_apply, fin.default_eq_zero, right_unitor_inv_apply,
-      tensor_apply, types_id_apply, prod.mk.inj_iff, eq_self_iff_true,
-      eq_iff_true_of_subsingleton, and_self] },
-  { induction n with n hn,
-    { dunfold Action_diagonal_succ diagonal,
+  { exact prod.ext rfl (funext $ λ x, fin.elim0 x) },
+  { ext,
+    { refl },
+    { dunfold Action_diagonal_succ,
       simp only [iso.trans_hom, comp_hom, types_comp_apply, diagonal_succ_hom_hom,
-        left_regular_tensor_iso_hom_hom, of_mul_action_apply, fin.coe_eq_cast_succ,
-        prod.mk.inj_iff, eq_self_iff_true, true_and],
-      ext,
-      simp only [subsingleton.elim x 0, of_mul_action_apply, pi.smul_apply, smul_eq_mul,
-        fin.cast_succ_zero] },
-    { ext,
-      { refl },
-      { dunfold Action_diagonal_succ,
-        simp only [iso.trans_hom, comp_hom, types_comp_apply, diagonal_succ_hom_hom,
-          left_regular_tensor_iso_hom_hom, of_mul_action_apply, fin.coe_eq_cast_succ,
-          tensor_iso_hom, iso.refl_hom, mk_iso_hom_hom, equiv.to_iso_hom, tensor_hom,
-          hn (λ (j : fin (n + 2)), f j.succ), id_hom, equiv.pi_fin_succ_above_equiv_symm_apply,
-          fin.insert_nth_zero', tensor_apply, types_id_apply, tensor_rho, monoid_hom.one_apply,
-          End.one_def, left_regular_ρ_apply],
-        refine fin.cases (fin.cons_zero _ _) _ x,
-        { intro,
-          simp only [fin.cons_succ, mul_left_inj, inv_inj],
-          congr,
-          ext,
-          simp only [fin.coe_succ, fin.coe_cast_succ] }}}}
+        left_regular_tensor_iso_hom_hom, tensor_iso_hom, mk_iso_hom_hom, equiv.to_iso_hom,
+        tensor_hom, equiv.pi_fin_succ_above_equiv_symm_apply, tensor_apply, types_id_apply,
+        tensor_rho, monoid_hom.one_apply, End.one_def, hn (λ (j : fin (n + 1)), f j.succ),
+        fin.coe_eq_cast_succ, fin.insert_nth_zero'],
+      refine fin.cases (fin.cons_zero _ _) (λ i, _) x,
+      { simp only [fin.cons_succ, mul_left_inj, inv_inj, fin.cast_succ_fin_succ], }}}
 end
 
 lemma Action_diagonal_succ_inv_apply {G : Type u} [group G] {n : ℕ} (g : G) (f : fin n → G) :
@@ -131,36 +111,20 @@ begin
   revert g,
   induction n with n hn,
   { intros g,
-    dunfold Action_diagonal_succ diagonal_one_iso_left_regular,
     ext,
-    simp only [subsingleton.elim x 0, iso.trans_inv, tensor_iso_inv, iso.refl_inv, iso.symm_inv,
-      comp_hom, tensor_hom, id_hom, right_unitor_hom_hom, mk_iso_inv_hom, equiv.to_iso_inv,
-      types_comp_apply, tensor_apply, types_id_apply, right_unitor_hom_apply, pi.smul_apply,
-      fin.partial_prod_zero, smul_eq_mul, mul_one, equiv.fun_unique_symm_apply (fin 1) G] },
+    simpa only [subsingleton.elim x 0, pi.smul_apply, fin.partial_prod_zero,
+      smul_eq_mul, mul_one] },
   { intro g,
-    induction n with n hn,
-    { dunfold Action_diagonal_succ diagonal,
-      ext,
-      simp only [iso.trans_inv, comp_hom, types_comp_apply,
-        left_regular_tensor_iso_inv_hom, of_mul_action_apply, diagonal_succ_inv_hom,
-        pi.smul_apply, smul_eq_mul],
-      exact fin.cases (by simp only [fin.cons_zero, fin.partial_prod_zero, mul_one]) (λ i,
-        by simp only [subsingleton.elim i 0, fin.cons_succ, pi.smul_apply, smul_eq_mul,
-          mul_right_inj, fin.partial_prod_succ, fin.cast_succ_zero,
-          fin.partial_prod_zero, one_mul]) x },
-    { ext,
-      dunfold Action_diagonal_succ,
-      simp only [iso.trans_inv, comp_hom, hn, diagonal_succ_inv_hom,
-        types_comp_apply, tensor_iso_inv, iso.refl_inv, tensor_hom, id_hom, mk_iso_inv_hom,
-        equiv.to_iso_inv, equiv.symm_symm, equiv.pi_fin_succ_above_equiv_apply,
-        fin.zero_succ_above, tensor_apply, types_id_apply,
-        left_regular_tensor_iso_inv_hom, tensor_rho, monoid_hom.one_apply, End.one_def,
-        left_regular_ρ_apply, pi.smul_apply, smul_eq_mul],
-      refine fin.cases _ _ x,
-      { simp only [fin.cons_zero, fin.partial_prod_zero, mul_one], },
-      { intro i,
-        simpa only [fin.cons_succ, pi.smul_apply, smul_eq_mul,
-          fin.partial_prod_succ', mul_assoc], }}}
+    ext,
+    dunfold Action_diagonal_succ,
+    simp only [iso.trans_inv, comp_hom, hn, diagonal_succ_inv_hom, types_comp_apply,
+      tensor_iso_inv, iso.refl_inv, tensor_hom, id_hom, tensor_apply, types_id_apply,
+      left_regular_tensor_iso_inv_hom, tensor_rho, left_regular_ρ_apply, pi.smul_apply,
+      smul_eq_mul],
+    refine fin.cases _ _ x,
+    { simp only [fin.cons_zero, fin.partial_prod_zero, mul_one], },
+    { intro i,
+      simpa only [fin.cons_succ, pi.smul_apply, smul_eq_mul, fin.partial_prod_succ', mul_assoc], }}
 end
 
 end Action
@@ -169,10 +133,11 @@ open Rep
 
 /-- An isomorphism of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on
 which `G` acts by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
-`g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
+`g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. The inverse sends `g₀ ⊗ (g₁, ..., gₙ)` to
+`(g₀, g₀g₁, ..., g₀g₁...gₙ)`. -/
 def diagonal_succ (n : ℕ) :
   diagonal k G (n + 1) ≅ left_regular k G ⊗ trivial k G ((fin n → G) →₀ k) :=
-(linearization k G).1.1.map_iso (Action_diagonal_succ G n)
+(linearization k G).map_iso (Action_diagonal_succ G n)
   ≪≫ (as_iso ((linearization k G).μ (Action.left_regular G) _)).symm
   ≪≫ tensor_iso (iso.refl _) (linearization_trivial_iso k G (fin n → G))
 
@@ -183,20 +148,12 @@ lemma diagonal_succ_hom_single (f : Gⁿ⁺¹) (a : k) :
   single (f 0) 1 ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) a :=
 begin
   dunfold diagonal_succ,
-  simp only [iso.trans_hom, iso.symm_hom, iso.refl_hom, tensor_iso_hom, Action.tensor_hom,
-    Action.comp_hom, Module.comp_def, linear_map.comp_apply, functor.map_iso_hom,
-    functor.map_comp],
-  rw linearization_map_hom, -- why does it time out when I `simp only` this?
-  dunfold linearization_trivial_iso linearization Module.monoidal_free,
-  simp only [Action_diagonal_succ_hom_apply, Action.id_hom, Action.mk_iso_hom_hom, iso.refl_hom,
-    monoidal_category.tensor_id, as_iso_inv, lmap_domain_apply, map_domain_single,
-    monoidal_functor.map_Action_to_lax_monoidal_functor_μ_inv_hom, fin.coe_eq_cast_succ,
-    Module.id_apply, Module.free.μ, lax_monoidal_functor.of_μ,
-    Module.free.obj.category_theory.lax_monoidal_μ, is_iso.iso.inv_hom,
-    linear_equiv.to_Module_iso_inv, finsupp_tensor_finsupp', linear_equiv.trans_symm, lcongr_symm,
-    equiv.refl_symm, linear_equiv.coe_coe, linear_equiv.trans_apply, lcongr_single, equiv.coe_refl,
-    id.def, tensor_product.lid_symm_apply, finsupp_tensor_finsupp_symm_single,
-    Module.monoidal_category.hom_apply, Module.id_apply],
+  simpa only [iso.trans_hom, iso.symm_hom, Action.comp_hom, Module.comp_def, linear_map.comp_apply,
+    functor.map_iso_hom, linearization_map_hom_single (Action_diagonal_succ G n).hom f a,
+    as_iso_inv, linearization_μ_inv_hom, Action_diagonal_succ_hom_apply, finsupp_tensor_finsupp',
+    linear_equiv.trans_symm, lcongr_symm, linear_equiv.trans_apply, lcongr_single,
+    tensor_product.lid_symm_apply, finsupp_tensor_finsupp_symm_single,
+    linear_equiv.coe_to_linear_map],
 end
 
 lemma diagonal_succ_inv_single_single (g : G) (f : Gⁿ) (a b : k) :
@@ -204,17 +161,13 @@ lemma diagonal_succ_inv_single_single (g : G) (f : Gⁿ) (a b : k) :
   single (g • partial_prod f) (a * b) :=
 begin
   dunfold diagonal_succ,
-  simp only [iso.trans_inv, iso.symm_inv, iso.refl_inv, tensor_iso_inv,
-    Action.tensor_hom, Action.comp_hom, Module.comp_def, linear_map.comp_apply,
-    functor.map_comp, as_iso_hom, functor.map_iso_inv, Module.monoidal_category.hom_apply,
-    linearization_trivial_iso_inv_hom_apply],
-  erw [linearization_map_hom, Action.id_hom],
-  dunfold linearization Module.monoidal_free,
-  simp only [Module.free.μ, monoidal_functor.map_Action_to_lax_monoidal_functor_μ_hom,
-    lax_monoidal_functor.of_μ, Module.free.obj.category_theory.lax_monoidal_μ,
-    linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, lift_apply, smul_single',
-    Action_diagonal_succ_inv_apply, Module.id_apply, finsupp_tensor_finsupp'_single_tmul_single,
-    mul_one, lmap_domain_apply, map_domain_single],
+  simp only [iso.trans_inv, iso.symm_inv, iso.refl_inv, tensor_iso_inv, Action.tensor_hom,
+    Action.comp_hom, Module.comp_def, linear_map.comp_apply, as_iso_hom, functor.map_iso_inv,
+    Module.monoidal_category.hom_apply, linearization_trivial_iso_inv_hom_apply,
+    linearization_μ_hom, Action.id_hom ((linearization k G).obj _), Action_diagonal_succ_inv_apply,
+    Module.id_apply, linear_equiv.coe_to_linear_map,
+    finsupp_tensor_finsupp'_single_tmul_single k (Action.left_regular G).V,
+    linearization_map_hom_single (Action_diagonal_succ G n).inv (g, f) (a * b)],
 end
 
 lemma diagonal_succ_inv_single_left (g : G) (f : Gⁿ →₀ k) (r : k) :
@@ -225,9 +178,8 @@ begin
   { simp only [tensor_product.tmul_zero, map_zero] },
   { intros a b x ha hb hx,
     simp only [lift_apply, smul_single', mul_one, tensor_product.tmul_add, map_add,
-      diagonal_succ_inv_single_single, hx],
-    rw [finsupp.sum_single_index, mul_comm b],
-    { simp only [zero_mul, single_zero] }},
+      diagonal_succ_inv_single_single, hx, finsupp.sum_single_index,
+      mul_comm b, zero_mul, single_zero] },
 end
 
 lemma diagonal_succ_inv_single_right (g : G →₀ k) (f : Gⁿ) (r : k) :
@@ -237,11 +189,10 @@ begin
   refine g.induction _ _,
   { simp only [tensor_product.zero_tmul, map_zero], },
   { intros a b x ha hb hx,
-    simp only [lift_apply, smul_single', map_add, hx,
-      diagonal_succ_inv_single_single, tensor_product.add_tmul],
-    rw finsupp.sum_single_index,
-    { simp only [zero_mul, single_zero] }}
+    simp only [lift_apply, smul_single', map_add, hx, diagonal_succ_inv_single_single,
+      tensor_product.add_tmul, finsupp.sum_single_index, zero_mul, single_zero] }
 end
+
 end Rep
 variables (k G n)
 open_locale tensor_product

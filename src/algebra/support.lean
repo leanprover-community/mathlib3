@@ -201,6 +201,14 @@ mul_support_binop_subset (/) one_div_one f g
 
 end division_monoid
 
+section zero_one
+variables [has_zero R] [has_one R] [ne_zero (1 : R)]
+
+@[simp] lemma support_one : support (1 : α → R) = univ := support_const one_ne_zero
+@[simp] lemma mul_support_zero : mul_support (0 : α → R) = univ := mul_support_const zero_ne_one
+
+end zero_one
+
 lemma support_smul [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M]
   (f : α → R) (g : α → M) :
   support (f • g) = support f ∩ support g :=

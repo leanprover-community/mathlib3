@@ -35,6 +35,63 @@ noncomputable theory
 open set measure_theory topological_space measure_theory.measure
 open_locale pointwise measure_theory topology big_operators nnreal ennreal
 
+
+-- move to `group_theory.group_action.group`
+def distrib_mul_action.to_add_equiv₀ {α : Type*} (β : Type*) [group_with_zero α] [add_monoid β]
+  [distrib_mul_action α β] (x : α) (hx : x ≠ 0) : β ≃+ β :=
+{ inv_fun := λ b, x⁻¹ • b,
+  left_inv := inv_smul_smul₀ hx,
+  right_inv := smul_inv_smul₀ hx,
+  .. distrib_mul_action.to_add_monoid_hom β x, }
+
+-----------------------
+
+
+-- move to `topology.algebra.infinite_sum.basic`
+
+theorem tsum_const_smul' {α : Type*} {β : Type*} {γ : Type*} [group γ] [topological_space α]
+  [add_comm_monoid α] [distrib_mul_action γ α] [has_continuous_const_smul γ α] {f : β → α}
+  [t2_space α] (g : γ) : ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
+begin
+  by_cases hf : summable f,
+  { exact tsum_const_smul _ hf, },
+  rw tsum_eq_zero_of_not_summable hf,
+  simp only [smul_zero],
+  let mul_g := distrib_mul_action.to_add_equiv α g,
+  rw ← @summable.map_iff_of_equiv α β α _ _ f _ _ _ _ mul_g (continuous_const_smul _)
+    (continuous_const_smul _) at hf,
+  apply tsum_eq_zero_of_not_summable hf,
+end
+
+------------------------------------
+
+
+-- move to `topology.algebra.infinite_sum.basic`
+-- this would work for a `[group_with_zero γ]` if there was such a thing as
+--  `distrib_mul_action_with_zero`...
+/-
+theorem tsum_const_smul' {α : Type*} {β : Type*} {γ : Type*} [group γ] [topological_space α]
+  [add_comm_monoid α] [distrib_mul_action γ α] [has_continuous_const_smul γ α] {f : β → α}
+  [t2_space α] (g : γ) : ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
+-/
+theorem tsum_const_smul'' {α : Type*} {β : Type*} {γ : Type*} [division_ring γ] [topological_space α]
+  [add_comm_monoid α] [module γ α] [has_continuous_const_smul γ α] {f : β → α} [t2_space α] (g : γ) :
+  ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
+begin
+  by_cases hf : summable f,
+  { exact tsum_const_smul _ hf, },
+  rw tsum_eq_zero_of_not_summable hf,
+  simp only [smul_zero],
+  by_cases hg : g = 0,
+  { simp [hg], },
+  let mul_g := distrib_mul_action.to_add_equiv₀ α g hg,
+  rw ← @summable.map_iff_of_equiv α β α _ _ f _ _ _ _ mul_g (continuous_const_smul _)
+    (continuous_const_smul _) at hf,
+  apply tsum_eq_zero_of_not_summable hf,
+end
+
+------------------------------------
+
 @[to_additive ae_strongly_measurable_of_absolutely_continuous_add]
 lemma ae_strongly_measurable_of_absolutely_continuous {α β : Type*} [measurable_space α]
   [topological_space β] {μ ν : measure α} (h : ν ≪ μ) (g : α → β)
@@ -217,7 +274,7 @@ end
 omit h𝓕
 local attribute [-instance] quotient.measurable_space
 
---- 2/27/23 move to `topology.algebra.infinite_sum.basic` if possible?
+--- move to `topology.algebra.infinite_sum.basic` if possible?
 /-- Given a group `α` acting on a type `β`, and a function `f : β → γ`, we "automorphize" `f` to a
   function `β ⧸ α → γ` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
 @[to_additive]
@@ -230,10 +287,11 @@ begin
   simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
 end
 
--- do we need a summability hypothesis here? tbd
+
+
 lemma mul_action.automorphize_smul_left {α : Type*} {β : Type*} [group α] [mul_action α β]
   {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : β → γ)
-  {R : Type*} [monoid R] [distrib_mul_action R γ] [has_continuous_const_smul R γ]
+  {R : Type*} [division_ring R] [module R γ] [has_continuous_const_smul R γ]
   (g : quotient (mul_action.orbit_rel α β) → R) :
   mul_action.automorphize ((g ∘ quotient.mk') • f)
   = g • (mul_action.automorphize f : quotient (mul_action.orbit_rel α β) → γ) :=
@@ -241,25 +299,20 @@ begin
   ext x,
   apply quotient.induction_on' x,
   intro b,
-  simp [mul_action.automorphize],
+  simp only [mul_action.automorphize, pi.smul_apply', function.comp_app],
   set π : β → quotient (mul_action.orbit_rel α β) := quotient.mk',
-  have H₁ : ∀ a : α, π (a • b) = π b := sorry,
+  have H₁ : ∀ a : α, π (a • b) = π b, --- make this a lemma in `group_theory.group_action.basic`
+  { intro a,
+    rw quotient.eq_rel,
+    fconstructor,
+    exact a,
+    simp, },
   change ∑' a : α, g (π (a • b)) • f (a • b) = g (π b) • ∑' a : α, f (a • b),
   simp_rw [H₁],
-  rw tsum_const_smul,
-  sorry,
+  exact tsum_const_smul'' _,
 end
 
--- do we need a summability hypothesis here? tbd
-lemma mul_action.automorphize_smul_right {α : Type*} {β : Type*} [group α] [mul_action α β]
-  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ]
-  (f : quotient (mul_action.orbit_rel α β) → γ)
-  {R : Type*} [topological_space R] [t2_space R] [semiring R]
-  [distrib_mul_action R γ] [has_continuous_const_smul R γ]
-  (g : β → R) :
-  (mul_action.automorphize (g • (f ∘ quotient.mk')) : quotient (mul_action.orbit_rel α β) → γ)
-  = (mul_action.automorphize g : quotient (mul_action.orbit_rel α β) → R) • f :=
-sorry
+
 
 @[to_additive]
 def quotient_group.automorphize {G : Type*} [group G] {Γ : subgroup G} {γ : Type*}
@@ -267,24 +320,15 @@ def quotient_group.automorphize {G : Type*} [group G] {Γ : subgroup G} {γ : Ty
   G ⧸ Γ → γ :=
 mul_action.automorphize f
 
+--@[to_additive]
 lemma quotient_group.automorphize_smul_left {G : Type*} [group G] {Γ : subgroup G}
   {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : G → γ)
-  {R : Type*} [monoid R] [distrib_mul_action R γ] [has_continuous_const_smul R γ]
+  {R : Type*} [division_ring R] [module R γ] [has_continuous_const_smul R γ]
   (g : G ⧸ Γ → R) :
   quotient_group.automorphize ((g ∘ quotient.mk') • f)
   = g • (quotient_group.automorphize f : G ⧸ Γ → γ) :=
 mul_action.automorphize_smul_left f g
 
--- do we need a summability hypothesis here? tbd
-lemma quotient_group.automorphize_smul_right {G : Type*} [group G] {Γ : subgroup G}
-  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ]
-  (f : G ⧸ Γ → γ)
-  {R : Type*} [topological_space R] [t2_space R] [semiring R]
-  [distrib_mul_action R γ] [has_continuous_const_smul R γ]
-  (g : G → R) :
-  (mul_action.automorphize (g • (f ∘ quotient.mk')) : G ⧸ Γ → γ)
-  = (mul_action.automorphize g : G ⧸ Γ → R) • f :=
-sorry
 
 /- question: how to deduce `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
 include h𝓕
@@ -297,7 +341,8 @@ PROOF:
 ... = ∫_(G/Γ) F
  -/
 @[to_additive]
-lemma mul_unfolding_trick' [μ.is_mul_right_invariant] {f : G → ℂ} (hf₁ : integrable f μ)
+lemma mul_unfolding_trick' {E : Type*} [normed_add_comm_group E] [complete_space E]
+  [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E} (hf₁ : integrable f μ)
   (hf₂ : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
   ∫ x : G, f x ∂μ = ∫ x : G ⧸ Γ, quotient_group.automorphize f x ∂μ_𝓕 :=
 calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) ∂μ : h𝓕.integral_eq_tsum'' f hf₁
@@ -312,45 +357,35 @@ calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) 
 ... = ∫ x : G ⧸ Γ, quotient_group.automorphize f x ∂μ_𝓕 :
   (integral_map continuous_quotient_mk.ae_measurable hf₂).symm
 
---- STOPPED 2/06/23.
+
 
 /-- This is the "unfolding" trick -/
-@[to_additive]
-lemma mul_unfolding_trick [μ.is_mul_right_invariant]
-  {f : G → ℂ}
-  (f_ℒ_1 : integrable f μ)
-  {g : G ⧸ Γ → ℂ}
-  (hg : ae_strongly_measurable g μ_𝓕)
+--@[to_additive]
+lemma mul_unfolding_trick {E : Type*} [normed_field E] [complete_space E]
+  [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E} (f_ℒ_1 : integrable f μ)
+  {g : G ⧸ Γ → E} (hg : ae_strongly_measurable g μ_𝓕)
   (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)
   (F_ae_measurable : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
-  ∫ x : G, f x * g (x : G ⧸ Γ) ∂μ = ∫ x : G ⧸ Γ, quotient_group.automorphize f x * g x ∂μ_𝓕 :=
+  ∫ x : G, g (x : G ⧸ Γ) * (f x) ∂μ = ∫ x : G ⧸ Γ, g x * (quotient_group.automorphize f x) ∂μ_𝓕 :=
 begin
   let π : G → G ⧸ Γ := quotient_group.mk,
+  have H₀ : quotient_group.automorphize ((g ∘ π) * f) = g * (quotient_group.automorphize f) :=
+    quotient_group.automorphize_smul_left f g,
+  calc ∫ (x : G), g (π x) * f x ∂μ =
+       ∫ (x : G ⧸ Γ), quotient_group.automorphize ((g ∘ π) * f) x ∂μ_𝓕 : _
+  ... = ∫ (x : G ⧸ Γ), g x * (quotient_group.automorphize f x) ∂μ_𝓕 : by simp [H₀],
   have meas_π : measurable π := continuous_quotient_mk.measurable,
-  set F : G ⧸ Γ → ℂ := quotient_group.automorphize f,
-  have H₀ : quotient_group.automorphize (f * (g ∘ π)) = quotient_group.automorphize f * g :=
-    quotient_group.automorphize_smul_right g f,
-  calc
-    ∫ (x : G), f x * g (π x) ∂μ =
-      ∫ (x : G ⧸ Γ), quotient_group.automorphize (f * (g ∘ π)) x ∂μ_𝓕 :
-    begin
-      have H₁ : integrable (f * (g ∘ π)) μ,
-      { have : ae_strongly_measurable (λ x : G, g (x : G ⧸ Γ)) μ,
-        { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,
-          exact h𝓕.absolutely_continuous_map },
-        refine integrable.smul_ess_sup f_ℒ_1 this _,
-        { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
-            (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
-          rw [← mul_ess_sup_of_g h𝓕 hg'.ae_measurable],
-          exact g_ℒ_infinity } },
-      have H₂ : ae_strongly_measurable (quotient_group.automorphize (f * (g ∘ π))) μ_𝓕,
-      { simp_rw [H₀],
-        exact F_ae_measurable.mul hg },
-      apply mul_unfolding_trick' h𝓕 H₁ H₂,
-    end
-    ... = ∫ (x : G ⧸ Γ), quotient_group.automorphize f x * g x ∂μ_𝓕 :
-      begin
-        simp_rw [H₀],
-        refl,
-      end,
+  have H₁ : integrable ((g ∘ π) * f) μ,
+  { have : ae_strongly_measurable (λ x : G, g (x : G ⧸ Γ)) μ,
+    { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,
+      exact h𝓕.absolutely_continuous_map },
+    refine integrable.ess_sup_smul f_ℒ_1 this _,
+    { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
+        (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
+      rw [← mul_ess_sup_of_g h𝓕 hg'.ae_measurable],
+      exact g_ℒ_infinity } },
+  have H₂ : ae_strongly_measurable (quotient_group.automorphize ((g ∘ π) * f)) μ_𝓕,
+  { simp_rw [H₀],
+    exact hg.mul F_ae_measurable },
+  apply mul_unfolding_trick' h𝓕 H₁ H₂,
 end

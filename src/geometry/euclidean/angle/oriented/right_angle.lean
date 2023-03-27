@@ -24,7 +24,7 @@ namespace orientation
 
 open finite_dimensional
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 variables [hd2 : fact (finrank ℝ V = 2)] (o : orientation ℝ V (fin 2))
 include hd2 o
 
@@ -625,8 +625,9 @@ namespace euclidean_geometry
 
 open finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-variables [normed_add_torsor V P] [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+  [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
 include hd2
 
 /-- An angle in a right-angled triangle expressed using `arccos`. -/

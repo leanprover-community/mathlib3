@@ -41,11 +41,13 @@ applying Gram-Schmidt-Orthogonalization w.r.t. the inner product induced by `S�
 basis vectors `pi.basis_fun`. -/
 noncomputable def LDL.lower_inv : matrix n n 𝕜 :=
 @gram_schmidt
-  𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)
+  𝕜 (n → 𝕜) _
+  (_ : _)
+  (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)
 
 lemma LDL.lower_inv_eq_gram_schmidt_basis :
   LDL.lower_inv hS = ((pi.basis_fun 𝕜 n).to_matrix
-    (@gram_schmidt_basis 𝕜 (n → 𝕜) _
+    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (_ : _)
     (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)))ᵀ :=
 begin
   ext i j,
@@ -57,17 +59,14 @@ noncomputable instance LDL.invertible_lower_inv : invertible (LDL.lower_inv hS) 
 begin
   rw [LDL.lower_inv_eq_gram_schmidt_basis],
   haveI := basis.invertible_to_matrix (pi.basis_fun 𝕜 n)
-    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose)
+    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (_ : _) (inner_product_space.of_matrix hS.transpose)
       n _ _ _ (pi.basis_fun 𝕜 n)),
   apply_instance
 end
 
 lemma LDL.lower_inv_orthogonal {i j : n} (h₀ : i ≠ j) :
   ⟪(LDL.lower_inv hS i), Sᵀ.mul_vec (LDL.lower_inv hS j)⟫ₑ = 0 :=
-show @inner 𝕜 (n → 𝕜) (inner_product_space.of_matrix hS.transpose).to_has_inner
-    (LDL.lower_inv hS i)
-    (LDL.lower_inv hS j) = 0,
-by apply gram_schmidt_orthogonal _ _ h₀
+@gram_schmidt_orthogonal 𝕜 _ _ (_ : _) (inner_product_space.of_matrix hS.transpose) _ _ _ _ _ _ _ h₀
 
 /-- The entries of the diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag_entries : n → 𝕜 :=
@@ -78,7 +77,8 @@ noncomputable def LDL.diag : matrix n n 𝕜 := matrix.diagonal (LDL.diag_entrie
 
 lemma LDL.lower_inv_triangular {i j : n} (hij : i < j) :
   LDL.lower_inv hS i j = 0 :=
-by rw [← @gram_schmidt_triangular 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _
+by rw [← @gram_schmidt_triangular
+    𝕜 (n → 𝕜) _ (_ : _) (inner_product_space.of_matrix hS.transpose) n _ _ _
     i j hij (pi.basis_fun 𝕜 n), pi.basis_fun_repr, LDL.lower_inv]
 
 /-- Inverse statement of **LDL decomposition**: we can conjugate a positive definite matrix

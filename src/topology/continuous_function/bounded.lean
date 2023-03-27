@@ -1165,7 +1165,7 @@ functions from `α` to `𝕜`. -/
 instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_add_comm_group (λ x, (f x) • (g x))
 (f.continuous.smul g.continuous) (‖f‖ * ‖g‖) (λ x, calc
-  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : normed_space.norm_smul_le _ _
+  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : norm_smul_le _ _
   ... ≤ ‖f‖ * ‖g‖ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩
 

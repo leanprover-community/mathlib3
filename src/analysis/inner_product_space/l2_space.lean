@@ -85,8 +85,9 @@ open_locale big_operators nnreal ennreal classical complex_conjugate topology
 noncomputable theory
 
 variables {ι : Type*}
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E] [cplt : complete_space E]
-variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*}
+variables [normed_add_comm_group E] [inner_product_space 𝕜 E] [cplt : complete_space E]
+variables {G : ι → Type*} [Π i, normed_add_comm_group (G i)] [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 notation `ℓ²(`ι`, `𝕜`)` := lp (λ i : ι, 𝕜) 2
@@ -111,7 +112,7 @@ instance : inner_product_space 𝕜 (lp G 2) :=
     calc ‖f‖ ^ 2 = ‖f‖ ^ (2:ℝ≥0∞).to_real : by norm_cast
     ... = ∑' i, ‖f i‖ ^ (2:ℝ≥0∞).to_real : lp.norm_rpow_eq_tsum _ f
     ... = ∑' i, ‖f i‖ ^ 2 : by norm_cast
-    ... = ∑' i, re ⟪f i, f i⟫ : by simp only [norm_sq_eq_inner]
+    ... = ∑' i, re ⟪f i, f i⟫ : by simp only [@norm_sq_eq_inner 𝕜]
     ... = re (∑' i, ⟪f i, f i⟫) : (is_R_or_C.re_clm.map_tsum _).symm
     ... = _ : by congr,
     { norm_num },
@@ -160,7 +161,7 @@ begin
 end
 
 lemma inner_single_right (i : ι) (a : G i) (f : lp G 2) : ⟪f, lp.single 2 i a⟫ = ⟪f i, a⟫ :=
-by simpa [inner_conj_symm] using congr_arg conj (inner_single_left i a f)
+by simpa [inner_conj_symm] using congr_arg conj (@inner_single_left _ 𝕜 _ _ _ _ i a f)
 
 end lp
 
@@ -425,6 +426,7 @@ begin
     exact (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this },
   ext i,
   apply b.repr.injective,
+  letI : normed_space 𝕜 ↥(lp (λ i : ι, 𝕜) 2) := by apply_instance,
   have : lp.single 2 i (f i * 1) = f i • lp.single 2 i 1 := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
   rw [linear_isometry_equiv.map_smul, b.repr_self, ← this,

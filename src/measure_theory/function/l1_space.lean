@@ -1014,7 +1014,8 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 end is_R_or_C
 
 section inner_product
-variables {𝕜 E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] {f : α → E}
+variables {𝕜 E : Type*}
+variables [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E] {f : α → E}
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 

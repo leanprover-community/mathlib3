@@ -306,7 +306,7 @@ nonempty.some hb.out
 
 /-- Any inner product space has smooth bump functions. -/
 @[priority 100] instance has_cont_diff_bump_of_inner_product_space
-  (E : Type*) [inner_product_space ℝ E] : has_cont_diff_bump E :=
+  (E : Type*) [normed_add_comm_group E] [inner_product_space ℝ E] : has_cont_diff_bump E :=
 let e : cont_diff_bump_base E :=
 { to_fun := λ R x, real.smooth_transition ((R - ‖x‖) / (R - 1)),
   mem_Icc := λ R x, ⟨real.smooth_transition.nonneg _, real.smooth_transition.le_one _⟩,
@@ -331,7 +331,7 @@ let e : cont_diff_bump_base E :=
       exact cont_diff_at_const.congr_of_eventually_eq this },
     { refine real.smooth_transition.cont_diff_at.comp _ _,
       refine cont_diff_at.div _ _ (sub_pos.2 hR).ne',
-      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm hx) },
+      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm ℝ hx) },
       { exact cont_diff_at_fst.sub cont_diff_at_const } }
   end,
   eq_one := λ R hR x hx, real.smooth_transition.one_of_one_le $

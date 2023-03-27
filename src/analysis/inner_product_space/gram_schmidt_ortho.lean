@@ -38,7 +38,7 @@ and outputs a set of orthogonal vectors which have the same span.
 open_locale big_operators
 open finset submodule finite_dimensional
 
-variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
 variables {ι : Type*} [linear_order ι] [locally_finite_order_bot ι] [is_well_order ι (<)]
 
 local attribute [instance] is_well_order.to_has_well_founded

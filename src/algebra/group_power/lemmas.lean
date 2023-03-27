@@ -187,7 +187,9 @@ by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
 /-- To show a property of all powers of `g` it suffices to show it is closed under multiplication
 by `g` and `g⁻¹` on the left. -/
-@[to_additive] lemma zpow_induction_left {g : G} {P : G → Prop} (h_one : P (1 : G))
+@[to_additive "To show a property of all multiples of `g` it suffices to show it is closed under
+addition by `g` and `-g` on the left."]
+lemma zpow_induction_left {g : G} {P : G → Prop} (h_one : P (1 : G))
   (h_mul : ∀ a, P a → P (g * a)) (h_inv : ∀ a, P a → P (g⁻¹ * a)) (n : ℤ) : P (g ^ n) :=
 begin
   induction n using int.induction_on with n ih n ih,
@@ -200,7 +202,9 @@ end
 
 /-- To show a property of all powers of `g` it suffices to show it is closed under multiplication
 by `g` and `g⁻¹` on the right.  -/
-@[to_additive] lemma zpow_induction_right {g : G} {P : G → Prop} (h_one : P (1 : G))
+@[to_additive "To show a property of all multiples of `g` it suffices to show it is closed under
+addition by `g` and `-g` on the right."]
+lemma zpow_induction_right {g : G} {P : G → Prop} (h_one : P (1 : G))
   (h_mul : ∀ a, P a → P (a * g)) (h_inv : ∀ a, P a → P (a * g⁻¹)) (n : ℤ) : P (g ^ n) :=
 begin
   induction n using int.induction_on with n ih n ih,

@@ -24,6 +24,8 @@ results.
 - Show that a dicotic pre-game is small.
 - Define the pre-game `↑` (in set_theory/game/pgame) and show that it's dicotic.
 - Show that infinitesimal and small games are closed under addition (and multiplication?)
+- Define all small games, show that a dicotic is all small, and that any all small game is
+  equivalent to a dicotic game.
 -/
 
 namespace pgame

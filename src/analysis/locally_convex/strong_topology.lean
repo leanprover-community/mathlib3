@@ -37,7 +37,7 @@ variables [add_comm_group E] [topological_space E]
 section general
 
 variables [normed_field 𝕜₁] [normed_field 𝕜₂] [module 𝕜₁ E] [module 𝕜₂ F] {σ : 𝕜₁ →+* 𝕜₂}
-variables [module ℝ E] [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+variables [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
   [smul_comm_class 𝕜₂ ℝ F]
 
 lemma strong_topology.locally_convex_space (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty)
@@ -58,7 +58,7 @@ end general
 section bounded_sets
 
 variables [normed_field 𝕜₁] [normed_field 𝕜₂] [module 𝕜₁ E] [module 𝕜₂ F] {σ : 𝕜₁ →+* 𝕜₂}
-variables [module ℝ E] [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+variables [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
   [smul_comm_class 𝕜₂ ℝ F]
 
 instance : locally_convex_space ℝ (E →SL[σ] F) :=

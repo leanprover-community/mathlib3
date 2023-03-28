@@ -9,6 +9,9 @@ import category_theory.full_subcategory
 /-!
 # Essential image of a functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The essential image `ess_image` of a functor consists of the objects in the target category which
 are isomorphic to an object in the image of the object function.
 This, for instance, allows us to talk about objects belonging to a subcategory expressed as a

@@ -8,6 +8,9 @@ import data.finset.card
 /-!
 # UV-compressions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines UV-compression. It is an operation on a set family that reduces its shadow.
 
 UV-compressing `a : α` along `u v : α` means replacing `a` by `(a ⊔ u) \ v` if `a` and `u` are

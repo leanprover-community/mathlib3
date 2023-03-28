@@ -15,6 +15,9 @@ import algebra.big_operators.fin
 /-!
 # Equivalences between polynomial rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes a number of equivalences between polynomial rings,
 based on equivalences between the underlying types.
 

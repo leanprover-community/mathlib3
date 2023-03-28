@@ -3,11 +3,14 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.subgroup.basic
+import group_theory.subgroup.mul_opposite
 import group_theory.submonoid.pointwise
 import group_theory.group_action.conj_act
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides the actions
 
@@ -27,11 +30,14 @@ Where possible, try to keep them in sync.
 open set
 open_locale pointwise
 
-variables {α G A S : Type*} [group G] [add_group A] {s : set G}
+variables {α G A S : Type*}
 
 @[simp, to_additive]
-lemma inv_coe_set [set_like S G] [subgroup_class S G] {H : S} : (H : set G)⁻¹ = H :=
-by { ext, simp }
+lemma inv_coe_set [has_involutive_inv G] [set_like S G] [inv_mem_class S G] {H : S} :
+  (H : set G)⁻¹ = H :=
+set.ext $ λ _, inv_mem_iff
+
+variables [group G] [add_group A] {s : set G}
 
 namespace subgroup
 
@@ -244,8 +250,11 @@ lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
   m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
 
-@[simp] lemma smul_bot (a : α) : a • (⊥ : subgroup G) = ⊥ :=
-by simp [set_like.ext_iff, mem_smul_pointwise_iff_exists, eq_comm]
+@[simp] lemma smul_bot (a : α) : a • (⊥ : subgroup G) = ⊥ := map_bot _
+lemma smul_sup (a : α) (S T : subgroup G) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+
+lemma smul_closure (a : α) (s : set G) : a • closure s = closure (a • s) :=
+monoid_hom.map_closure _ _
 
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
   is_central_scalar α (subgroup G) :=

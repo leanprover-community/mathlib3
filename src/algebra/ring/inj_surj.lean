@@ -10,6 +10,8 @@ import algebra.group_with_zero.inj_surj
 /-!
 # Pulling back rings along injective maps, and pushing them forward along surjective maps.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}

@@ -15,6 +15,9 @@ import data.prod.basic
 /-!
 # Instances and theorems on pi types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic definitions and notation instances for Pi types.
 
 Instances of more sophisticated classes are defined in `pi.lean` files elsewhere.

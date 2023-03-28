@@ -8,6 +8,9 @@ import group_theory.group_action.defs
 /-!
 # Option instances for additive and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for additive and multiplicative actions on `option` type. Scalar
 multiplication is defined by `a • some b = some (a • b)` and `a • none = none`.
 

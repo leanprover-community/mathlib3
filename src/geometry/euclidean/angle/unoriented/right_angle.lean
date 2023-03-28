@@ -32,7 +32,7 @@ open_locale real_inner_product_space
 
 namespace inner_product_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
 lemma norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
@@ -387,8 +387,8 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- **Pythagorean theorem**, if-and-only-if angle-at-point form. -/
@@ -497,7 +497,7 @@ end
 
 /-- The cosine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 adjacent side. -/
-lemma cos_angle_mul_norm_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
+lemma cos_angle_mul_dist_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
   real.cos (∠ p₂ p₃ p₁) * dist p₁ p₃ = dist p₃ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -508,7 +508,7 @@ end
 
 /-- The sine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 opposite side. -/
-lemma sin_angle_mul_norm_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
+lemma sin_angle_mul_dist_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
   real.sin (∠ p₂ p₃ p₁) * dist p₁ p₃ = dist p₁ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -519,7 +519,7 @@ end
 
 /-- The tangent of an angle in a right-angled triangle multiplied by the adjacent side equals
 the opposite side. -/
-lemma tan_angle_mul_norm_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma tan_angle_mul_dist_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ = p₂ ∨ p₃ ≠ p₂) : real.tan (∠ p₂ p₃ p₁) * dist p₃ p₂ = dist p₁ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -531,7 +531,7 @@ end
 
 /-- A side of a right-angled triangle divided by the cosine of the adjacent angle equals the
 hypotenuse. -/
-lemma norm_div_cos_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma dist_div_cos_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ = p₂ ∨ p₃ ≠ p₂) : dist p₃ p₂ / real.cos (∠ p₂ p₃ p₁) = dist p₁ p₃ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -543,7 +543,7 @@ end
 
 /-- A side of a right-angled triangle divided by the sine of the opposite angle equals the
 hypotenuse. -/
-lemma norm_div_sin_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma dist_div_sin_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ ≠ p₂ ∨ p₃ = p₂) : dist p₁ p₂ / real.sin (∠ p₂ p₃ p₁) = dist p₁ p₃ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -555,7 +555,7 @@ end
 
 /-- A side of a right-angled triangle divided by the tangent of the opposite angle equals the
 adjacent side. -/
-lemma norm_div_tan_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma dist_div_tan_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ ≠ p₂ ∨ p₃ = p₂) : dist p₁ p₂ / real.tan (∠ p₂ p₃ p₁) = dist p₃ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,

@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Properties of the module `α →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
@@ -85,6 +88,15 @@ lhom_ext $ λ a, linear_map.congr_fun (h a)
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
 { map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
+
+/-- Forget that a function is finitely supported.
+
+This is the linear version of `finsupp.to_fun`. -/
+@[simps]
+def lcoe_fun : (α →₀ M) →ₗ[R] α → M :=
+{ to_fun := coe_fn,
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ x y, by { ext, simp } }
 
 section lsubtype_domain
 variables (s : set α)
@@ -332,7 +344,7 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
 end lsum
 
 section
-variables (M) (R) (X : Type*)
+variables (M) (R) (X : Type*) (S) [module S M] [smul_comm_class R S M]
 
 /--
 A slight rearrangement from `lsum` gives us
@@ -350,6 +362,24 @@ lemma lift_apply (f) (g) :
   ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
+/-- Given compatible `S` and `R`-module structures on `M` and a type `X`, the set of functions
+`X → M` is `S`-linearly equivalent to the `R`-linear maps from the free `R`-module
+on `X` to `M`. -/
+noncomputable def llift : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+{ map_smul' :=
+  begin
+    intros,
+    dsimp,
+    ext,
+    simp only [coe_comp, function.comp_app, lsingle_apply, lift_apply, pi.smul_apply,
+      sum_single_index, zero_smul, one_smul, linear_map.smul_apply],
+  end, ..lift M R X }
+
+@[simp] lemma llift_apply (f : X → M) (x : X →₀ R) :
+  llift M R S X f x = lift M R X f x := rfl
+
+@[simp] lemma llift_symm_apply (f : (X →₀ R) →ₗ[R] M) (x : X) :
+  (llift M R S X).symm f x = f (single x 1) := rfl
 end
 
 section lmap_domain
@@ -412,6 +442,23 @@ begin
 end
 
 end lmap_domain
+
+section lcomap_domain
+
+variables {β : Type*} {R M}
+
+/-- Given `f : α → β` and a proof `hf` that `f` is injective, `lcomap_domain f hf` is the linear map
+sending  `l : β →₀ M` to the finitely supported function from `α` to `M` given by composing
+`l` with `f`.
+
+This is the linear version of `finsupp.comap_domain`. -/
+def lcomap_domain (f : α → β) (hf : function.injective f) :
+  (β →₀ M) →ₗ[R] α →₀ M:=
+{ to_fun := λ l, finsupp.comap_domain f l (hf.inj_on _),
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ c x, by { ext, simp } }
+
+end lcomap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
@@ -927,14 +974,16 @@ variables (R)
 Pick some representation of `x : span R w` as a linear combination in `w`,
 using the axiom of choice.
 -/
-def span.repr (w : set M) (x : span R w) : w →₀ R :=
+@[irreducible] def span.repr (w : set M) (x : span R w) : w →₀ R :=
 ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
 
 @[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
   finsupp.total w M R coe (span.repr R w x) = x :=
-((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+begin
+  rw span.repr,
+  exact ((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+end
 
-attribute [irreducible] span.repr
 
 end
 

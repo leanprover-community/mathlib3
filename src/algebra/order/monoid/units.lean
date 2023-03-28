@@ -9,6 +9,9 @@ import algebra.group.units
 
 /-!
 # Units in ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

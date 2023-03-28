@@ -8,6 +8,9 @@ import number_theory.padics.padic_val
 /-!
 # p-adic norm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `p`-adic norm on `ℚ`.
 
 The `p`-adic valuation on `ℚ` is the difference of the multiplicities of `p` in the numerator and
@@ -192,7 +195,8 @@ and the norm of `q`. -/
 protected theorem nonarchimedean {q r : ℚ} :
   padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) :=
 begin
-  wlog hle := le_total (padic_val_rat p q) (padic_val_rat p r) using [q r],
+  wlog hle : (padic_val_rat p q) ≤ (padic_val_rat p r) generalizing q r,
+  { rw [add_comm, max_comm], exact this (le_of_not_le hle) },
   exact nonarchimedean_aux hle
 end
 
@@ -213,8 +217,8 @@ of the norms of `q` and `r`. -/
 lemma add_eq_max_of_ne {q r : ℚ} (hne : padic_norm p q ≠ padic_norm p r) :
   padic_norm p (q + r) = max (padic_norm p q) (padic_norm p r) :=
 begin
-  wlog hle := le_total (padic_norm p r) (padic_norm p q) using [q r],
-  have hlt : padic_norm p r < padic_norm p q, from lt_of_le_of_ne hle hne.symm,
+  wlog hlt : (padic_norm p r) < (padic_norm p q),
+  { rw [add_comm, max_comm], exact this hne.symm (hne.lt_or_lt.resolve_right hlt) },
   have : padic_norm p q ≤ max (padic_norm p (q + r)) (padic_norm p r), from calc
    padic_norm p q = padic_norm p (q + r - r) : by congr; ring
                ... ≤ max (padic_norm p (q + r)) (padic_norm p (-r)) : padic_norm.nonarchimedean

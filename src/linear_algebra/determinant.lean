@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
@@ -128,7 +129,7 @@ there is no good way to generalize over universe parameters, so we can't fully s
 type that it does not depend on the choice of basis. Instead you can use the `det_aux_def'` lemma,
 or avoid mentioning a basis at all using `linear_map.det`.
 -/
-def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
+@[irreducible] def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
     (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
@@ -140,10 +141,7 @@ See also `det_aux_def'` which allows you to vary the basis.
 -/
 lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
   linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
-rfl
-
--- Discourage the elaborator from unfolding `det_aux` and producing a huge term.
-attribute [irreducible] linear_map.det_aux
+by  { rw [det_aux], refl }
 
 lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (tb : trunc $ basis ι A M) (b' : basis ι' A M) (f : M →ₗ[A] M) :
@@ -207,6 +205,10 @@ by simp [← to_matrix_eq_to_matrix']
 @[simp] lemma det_to_lin (b : basis ι R M) (f : matrix ι ι R) :
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
+
+@[simp] lemma det_to_lin' (f : matrix ι ι R) :
+  linear_map.det (f.to_lin') = f.det :=
+by simp only [← to_lin_eq_to_lin', det_to_lin]
 
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]

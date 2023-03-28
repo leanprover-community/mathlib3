@@ -344,9 +344,12 @@ begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
   fin_cases i; fin_cases j;
-  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
-    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
+  simp only [one_mul, fin.one_eq_zero_iff, pi.single_eq_same, mul_zero, sub_zero,
+    pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self, update_row_ne, cons_val_zero,
+    of_apply, nat.succ_succ_ne_one, pi.single_eq_of_ne, update_row_self, pi.single_eq_of_ne, ne.def,
+    fin.zero_eq_one_iff, nat.succ_succ_ne_one, not_false_iff, update_row_ne, fin.one_eq_zero_iff,
+    zero_mul, pi.single_eq_same, one_mul, zero_sub, of_apply, cons_val', cons_val_fin_one,
+    cons_val_one, head_fin_const, neg_inj, eq_self_iff_true, cons_val_zero, head_cons, mul_one]
 end
 
 @[simp] lemma adjugate_fin_two_of (a b c d : α) :

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
+import algebra.category.Module.projective
 import algebraic_topology.extra_degeneracy
-import category_theory.abelian.homology
+import category_theory.abelian.ext
 import representation_theory.Rep
 
 /-!
@@ -31,6 +32,9 @@ We then use this isomorphism to deduce that as a complex of `k`-modules, the sta
 of `k` as a trivial `G`-representation is homotopy equivalent to the complex with `k` at 0 and 0
 elsewhere.
 
+Putting this material together allows us to define `group_cohomology.ProjectiveResolution`, the
+standard projective resolution of `k` as a trivial `k`-linear `G`-representation.
+
 ## Main definitions
 
  * `group_cohomology.resolution.to_tensor`
@@ -39,13 +43,8 @@ elsewhere.
  * `group_cohomology.resolution.equiv_tensor`
  * `group_cohomology.resolution.of_mul_action_basis`
  * `classifying_space_universal_cover`
- * `group_cohomology.resolution`
  * `group_cohomology.resolution.forget₂_to_Module_homotopy_equiv`
-
-## TODO
-
- * Put these results together and apply the category equivalence `Rep k G ≅ Module k[G]` to define
-   the standard resolution of `k` as a projective resolution.
+ * `group_cohomology.ProjectiveResolution`
 
 ## Implementation notes
 
@@ -170,12 +169,12 @@ variables {k G n}
 
 @[simp] lemma to_tensor_single (f : Gⁿ⁺¹) (m : k) :
   (to_tensor k G n).hom (single f m) = single (f 0) m ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) 1 :=
-to_tensor_aux_single _ _
+by apply to_tensor_aux_single f m
 
 @[simp] lemma of_tensor_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   (of_tensor k G n).hom ((single g m) ⊗ₜ x) =
   finsupp.lift (Rep.of_mul_action k G Gⁿ⁺¹) k Gⁿ (λ f, single (g • partial_prod f) m) x :=
-of_tensor_aux_single _ _ _
+by apply of_tensor_aux_single g m x
 
 lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (m : k) :
   (of_tensor k G n).hom (g ⊗ₜ single x m) =
@@ -234,6 +233,58 @@ module.free.of_basis (of_mul_action_basis k G n)
 
 end basis
 end group_cohomology.resolution
+namespace Rep
+variables (n) [group G]
+open group_cohomology.resolution
+
+/-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
+`Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
+noncomputable def diagonal_hom_equiv (A : Rep k G) :
+  (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
+linear.hom_congr k ((equiv_tensor k G n).trans
+  ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
+  ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
+  ≪≫ₗ (finsupp.llift A k k (fin n → G)).symm
+
+variables {n}
+
+/-- Given a `k`-linear `G`-representation `A`, `diagonal_hom_equiv` is a `k`-linear isomorphism of
+the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. This lemma says that this
+sends a morphism of representations `f : k[Gⁿ⁺¹] ⟶ A` to the function
+`(g₁, ..., gₙ) ↦ f(1, g₁, g₁g₂, ..., g₁g₂...gₙ).` -/
+lemma diagonal_hom_equiv_apply {A : Rep k G} (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
+  (x : fin n → G) : diagonal_hom_equiv n A f x = f.hom (finsupp.single (fin.partial_prod x) 1) :=
+begin
+  unfold diagonal_hom_equiv,
+  simpa only [linear_equiv.trans_apply, Rep.left_regular_hom_equiv_apply,
+    monoidal_closed.linear_hom_equiv_comm_hom, finsupp.llift_symm_apply, tensor_product.curry_apply,
+    linear.hom_congr_apply, iso.refl_hom, iso.trans_inv, Action.comp_hom, Module.comp_def,
+    linear_map.comp_apply, equiv_tensor_inv_def, representation.Rep_of_tprod_iso_inv_apply,
+    of_tensor_single (1 : G) (1 : k) (finsupp.single x (1 : k)), finsupp.lift_apply,
+    finsupp.sum_single_index, one_smul, zero_smul],
+end
+
+/-- Given a `k`-linear `G`-representation `A`, `diagonal_hom_equiv` is a `k`-linear isomorphism of
+the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. This lemma says that the
+inverse map sends a function `f : Gⁿ → A` to the representation morphism sending
+`(g₀, ... gₙ) ↦ ρ(g₀)(f(g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ))`, where `ρ` is the representation attached
+to `A`. -/
+lemma diagonal_hom_equiv_symm_apply {A : Rep k G} (f : (fin n → G) → A) (x : fin (n + 1) → G) :
+  ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
+    = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
+begin
+  unfold diagonal_hom_equiv,
+  simp only [linear_equiv.trans_symm, linear_equiv.symm_symm, linear_equiv.trans_apply,
+    Rep.left_regular_hom_equiv_symm_apply, linear.hom_congr_symm_apply, Action.comp_hom,
+    iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
+    iso.trans_hom, Module.comp_def, linear_map.comp_apply, representation.Rep_of_tprod_iso_apply,
+    equiv_tensor_def, to_tensor_single x (1 : k), tensor_product.uncurry_apply,
+    Rep.left_regular_hom_hom, finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply,
+    finsupp.sum_single_index, zero_smul, one_smul, Rep.of_ρ,
+    monoid_hom.one_apply, linear_map.one_apply, finsupp.llift_apply A k k],
+end
+
+end Rep
 variables (G)
 
 /-- The simplicial `G`-set sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/
@@ -313,17 +364,18 @@ extra_degeneracy.map (extra_degeneracy_comp_forget_augmented G) (Module.free k)
 
 end classifying_space_universal_cover
 
-variables (k) [monoid G]
+variables (k)
 
 /-- The standard resolution of `k` as a trivial representation, defined as the alternating
 face map complex of a simplicial `k`-linear `G`-representation. -/
-def group_cohomology.resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
+def group_cohomology.resolution [monoid G] :=
+(algebraic_topology.alternating_face_map_complex (Rep k G)).obj
   (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
 
 namespace group_cohomology.resolution
 open classifying_space_universal_cover algebraic_topology category_theory category_theory.limits
 
-variables (k G)
+variables (k G) [monoid G]
 
 /-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
 `k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
@@ -344,6 +396,12 @@ variables (k G)
 equipped with the representation induced by the diagonal action of `G`. -/
 def X_iso (n : ℕ) :
   (group_cohomology.resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
+
+lemma X_projective (G : Type u) [group G] (n : ℕ) :
+  projective ((group_cohomology.resolution k G).X n) :=
+Rep.equivalence_Module_monoid_algebra.to_adjunction.projective_of_map_projective _ $
+  @Module.projective_of_free.{u} _ _ (Module.of (monoid_algebra k G)
+  (representation.of_mul_action k G (fin (n + 1) → G)).as_module) _ (of_mul_action_basis k G n)
 
 /-- Simpler expression for the differential in the standard resolution of `k` as a
 `G`-representation. It sends `(g₀, ..., gₙ₊₁) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ₊₁)`. -/
@@ -432,42 +490,55 @@ begin
   exact linear_map.ext_iff.1 this _,
 end
 
-theorem forget₂_to_Module_exact_succ (n : ℕ) :
-  exact ((group_cohomology.resolution.forget₂_to_Module k G).d (n + 2) (n + 1))
-    ((group_cohomology.resolution.forget₂_to_Module k G).d (n + 1) n) :=
-(preadditive.exact_iff_homology_zero _ _).2
-  ⟨(group_cohomology.resolution.forget₂_to_Module k G).d_comp_d _ _ _,
-  ⟨(chain_complex.homology_succ_iso _ _).symm.trans ((homology_obj_iso_of_homotopy_equiv
-  (forget₂_to_Module_homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
+/-- The chain map from the standard resolution of `k` to `k[0]` given by `∑ nᵢgᵢ ↦ ∑ nᵢ` in
+degree zero. -/
+def ε_to_single₀ : group_cohomology.resolution k G ⟶ (chain_complex.single₀ _).obj
+  (Rep.of representation.trivial) :=
+((group_cohomology.resolution k G).to_single₀_equiv _).symm ⟨ε k G, d_comp_ε k G⟩
 
-theorem exact_at_succ (n : ℕ) :
-  exact ((group_cohomology.resolution k G).d (n + 2) (n + 1))
-    ((group_cohomology.resolution k G).d (n + 1) n) :=
-(forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
-  (forget₂_to_Module_exact_succ _ _ _)
-
-lemma forget_to_Module_exact₀ :
-  exact ((group_cohomology.resolution.forget₂_to_Module k G).d 1 0)
-  ((forget₂_to_Module_homotopy_equiv k G).1.f 0) :=
+lemma ε_to_single₀_comp_eq : ((forget₂ _ (Module.{u} k)).map_homological_complex _).map
+  (ε_to_single₀ k G) ≫ ((chain_complex.single₀_map_homological_complex _).hom.app _) =
+  (forget₂_to_Module_homotopy_equiv k G).hom :=
 begin
-  rw preadditive.exact_iff_homology_zero,
-  have h : (forget₂_to_Module k G).d 1 0 ≫ (forget₂_to_Module_homotopy_equiv k G).hom.f 0 = 0,
-  { rw ← (forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl,
-    simp only [chain_complex.single₀_obj_X_d, comp_zero], },
-  refine ⟨h, nonempty.intro (homology_iso_kernel_desc _ _ _ ≪≫ _)⟩,
-  { suffices : is_split_mono (cokernel.desc _ _ h),
-    { haveI := this, apply kernel.of_mono, },
-      refine is_split_mono.mk' ⟨(forget₂_to_Module_homotopy_equiv k G).2.f 0 ≫
-        cokernel.π ((forget₂_to_Module k G).d 1 0), coequalizer.hom_ext _⟩,
-      rw [cokernel.π_desc_assoc, ← category.assoc, ← homological_complex.comp_f,
-        (forget₂_to_Module_homotopy_equiv k G).homotopy_hom_inv_id.comm 0],
-      simp, },
+  refine chain_complex.to_single₀_ext _ _ _,
+  dsimp,
+  rw category.comp_id,
+  exact (forget₂_to_Module_homotopy_equiv_f_0_eq k G).symm,
 end
 
-lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (ε k G) :=
-(forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
-  (by rw ←forget₂_to_Module_homotopy_equiv_f_0_eq; exact forget_to_Module_exact₀ _ _)
+lemma quasi_iso_of_forget₂_ε_to_single₀ :
+  quasi_iso (((forget₂ _ (Module.{u} k)).map_homological_complex _).map (ε_to_single₀ k G)) :=
+begin
+  have h : quasi_iso (forget₂_to_Module_homotopy_equiv k G).hom := homotopy_equiv.to_quasi_iso _,
+  rw ← ε_to_single₀_comp_eq k G at h,
+  haveI := h,
+  exact quasi_iso_of_comp_right _ (((chain_complex.single₀_map_homological_complex _).hom.app _)),
+end
+
+instance : quasi_iso (ε_to_single₀ k G) :=
+(forget₂ _ (Module.{u} k)).quasi_iso_of_map_quasi_iso _ (quasi_iso_of_forget₂_ε_to_single₀ k G)
 
 end exactness
-
 end group_cohomology.resolution
+open group_cohomology.resolution
+
+variables [group G]
+
+/-- The standard projective resolution of `k` as a trivial `k`-linear `G`-representation. -/
+def group_cohomology.ProjectiveResolution :
+  ProjectiveResolution (Rep.of (@representation.trivial k G _ _)) :=
+(ε_to_single₀ k G).to_single₀_ProjectiveResolution (X_projective k G)
+
+instance : enough_projectives (Rep k G) :=
+Rep.equivalence_Module_monoid_algebra.enough_projectives_iff.2
+  (Module.Module_enough_projectives.{u})
+
+/-- Given a `k`-linear `G`-representation `V`, `Extⁿ(k, V)` (where `k` is a trivial `k`-linear
+`G`-representation) is isomorphic to the `n`th cohomology group of `Hom(P, V)`, where `P` is the
+standard resolution of `k` called `group_cohomology.resolution k G`. -/
+def group_cohomology.Ext_iso (V : Rep k G) (n : ℕ) :
+  ((Ext k (Rep k G) n).obj (opposite.op $ Rep.of representation.trivial)).obj V ≅
+    (((((linear_yoneda k (Rep k G)).obj V).right_op.map_homological_complex _).obj
+      (group_cohomology.resolution k G)).homology n).unop :=
+by let := (((linear_yoneda k (Rep k G)).obj V).right_op.left_derived_obj_iso
+  n (group_cohomology.ProjectiveResolution k G)).unop.symm; exact this

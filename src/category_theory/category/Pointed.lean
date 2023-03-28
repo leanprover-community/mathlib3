@@ -8,6 +8,9 @@ import category_theory.concrete_category.basic
 /-!
 # The category of pointed types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Pointed`, the category of pointed types.
 
 ## TODO

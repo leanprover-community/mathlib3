@@ -6,6 +6,7 @@ Authors: Jean Lo, Yaël Dillies, Moritz Doll
 import data.real.pointwise
 import analysis.convex.function
 import analysis.locally_convex.basic
+import analysis.normed.group.add_torsor
 
 /-!
 # Seminorms
@@ -35,7 +36,7 @@ seminorm, locally convex, LCTVS
 set_option old_structure_cmd true
 
 open normed_field set filter
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {R R' 𝕜 𝕜₂ 𝕜₃ 𝕝 E E₂ E₃ F G ι : Type*}
 
@@ -51,7 +52,7 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
 You should extend this class when you extend `seminorm`. -/
 class seminorm_class (F : Type*) (𝕜 E : out_param $ Type*) [semi_normed_ring 𝕜] [add_group E]
-  [has_smul 𝕜 E] extends add_group_seminorm_class F E :=
+  [has_smul 𝕜 E] extends add_group_seminorm_class F E ℝ :=
 (map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ‖a‖ * f x)
 
 export seminorm_class (map_smul_eq_mul)
@@ -638,6 +639,26 @@ begin
   exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
 end
 
+lemma sub_mem_ball (p : seminorm 𝕜 E) (x₁ x₂ y : E) (r : ℝ) :
+  x₁ - x₂ ∈ p.ball y r ↔ x₁ ∈ p.ball (x₂ + y) r :=
+by simp_rw [mem_ball, sub_sub]
+
+/-- The image of a ball under addition with a singleton is another ball. -/
+lemma vadd_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.ball y r = p.ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact metric.vadd_ball x y r,
+end
+
+/-- The image of a closed ball under addition with a singleton is another closed ball. -/
+lemma vadd_closed_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.closed_ball y r = p.closed_ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact metric.vadd_closed_ball x y r,
+end
+
 end has_smul
 
 section module
@@ -803,14 +824,12 @@ begin
     rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self hk, one_smul] }
 end
 
-lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : k ≠ 0) :
   k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
-  refine subset_antisymm _ ball_norm_mul_subset,
-  rintros x ⟨y, hy, h⟩,
-  rw [seminorm.mem_ball_zero, ←h, map_smul_eq_mul],
-  rw seminorm.mem_ball_zero at hy,
-  exact (mul_lt_mul_left hk).mpr hy
+  ext,
+  rw [mem_smul_set_iff_inv_smul_mem₀ hk, p.mem_ball_zero, p.mem_ball_zero, map_smul_eq_mul,
+    norm_inv, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hk), mul_comm]
 end
 
 lemma smul_closed_ball_subset {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} :
@@ -837,31 +856,17 @@ end
 lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
   absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
 begin
-  by_cases hr₂ : r₂ ≤ 0,
-  { rw ball_eq_emptyset p hr₂, exact absorbs_empty },
-  rw [not_le] at hr₂,
-  rcases exists_between hr₁ with ⟨r, hr, hr'⟩,
-  refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
-  simp_rw set.subset_def,
-  intros a ha x hx,
-  have ha' : 0 < ‖a‖ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
-  rw [smul_ball_zero ha', p.mem_ball_zero],
+  rcases exists_pos_lt_mul hr₁ r₂ with ⟨r, hr₀, hr⟩,
+  refine ⟨r, hr₀, λ a ha x hx, _⟩,
+  rw [smul_ball_zero (norm_pos_iff.1 $ hr₀.trans_le ha), p.mem_ball_zero],
   rw p.mem_ball_zero at hx,
-  rw div_le_iff hr at ha,
-  exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
+  exact hx.trans (hr.trans_le $ mul_le_mul_of_nonneg_right ha hr₁.le)
 end
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
-begin
-  rw absorbent_iff_nonneg_lt,
-  rintro x,
-  have hxr : 0 ≤ p x / r := by positivity,
-  refine ⟨p x/r, hxr, λ a ha, _⟩,
-  have ha₀ : 0 < ‖a‖ := hxr.trans_lt ha,
-  refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
-  rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
-end
+absorbent_iff_forall_absorbs_singleton.2 $ λ x, (p.ball_zero_absorbs_ball_zero hr).mono_right $
+  singleton_subset_iff.2 $ p.mem_ball_zero.2 $ lt_add_one _
 
 /-- Closed seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_closed_ball_zero (hr : 0 < r) : absorbent 𝕜 (closed_ball p (0 : E) r) :=

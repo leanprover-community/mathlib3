@@ -76,7 +76,7 @@ noncomputable theory
 universe u
 
 open topological_space set
-open_locale manifold topological_space
+open_locale manifold topology
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
 corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains

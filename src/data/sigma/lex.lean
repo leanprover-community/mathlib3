@@ -10,7 +10,6 @@ import order.rel_classes
 # Lexicographic order on a sigma type
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/646
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This defines the lexicographical order of two arbitrary relations on a sigma type and proves some

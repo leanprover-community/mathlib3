@@ -10,6 +10,9 @@ import algebra.algebra.subalgebra.basic
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines symmetric `mv_polynomial`s and elementary symmetric `mv_polynomial`s.
 We also prove some basic facts about them.
 

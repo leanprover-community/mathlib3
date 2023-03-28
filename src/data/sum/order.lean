@@ -8,6 +8,9 @@ import order.hom.basic
 /-!
 # Orders on a sum type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the disjoint sum and the linear (aka lexicographic) sum of two orders and provides
 relation instances for `sum.lift_rel` and `sum.lex`.
 

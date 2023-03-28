@@ -716,9 +716,7 @@ begin
   have p₁ : p ≠ 1 := hp.1.ne_one,
   rw ← @rat.cast_coe_nat ℝ _ p,
   rw ← @rat.cast_coe_nat (ℚ_[p]) _ p,
-  -- Rewrite `padic_norm_e` before rewriting `(↑(p : ℕ) : ℚ)`
-  simp only [norm, padic_norm_e.eq_padic_norm'],
-  simp [p₀, p₁, padic_val_int, zpow_neg]
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, padic_val_int, zpow_neg, -rat.cast_coe_nat],
 end
 
 lemma norm_p_lt_one : ‖(p : ℚ_[p])‖ < 1 :=
@@ -728,8 +726,11 @@ begin
   exact_mod_cast hp.1.one_lt
 end
 
-@[simp] lemma norm_p_pow (n : ℤ) : ‖(p ^ n : ℚ_[p])‖ = p ^ -n :=
-by rw [norm_zpow, norm_p]; field_simp
+@[simp] lemma norm_p_zpow (n : ℤ) : ‖(p ^ n : ℚ_[p])‖ = p ^ -n :=
+by rw [norm_zpow, norm_p, zpow_neg, inv_zpow]
+
+@[simp] lemma norm_p_pow (n : ℕ) : ‖(p ^ n : ℚ_[p])‖ = p ^ (-n : ℤ) :=
+by rw [←norm_p_zpow, zpow_coe_nat]
 
 instance : nontrivially_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin

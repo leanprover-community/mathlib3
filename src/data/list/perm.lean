@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.dedup
-import data.list.lattice
 import data.list.permutation
-import data.list.zip
 import data.list.range
 import data.nat.factorial.basic
-import logic.relation
 
 /-!
 # List Permutations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces the `list.perm` relation, which is true if two lists are permutations of one
 another.
@@ -82,6 +82,12 @@ theorem perm.subset {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=
 theorem perm.mem_iff {a : α} {l₁ l₂ : list α} (h : l₁ ~ l₂) : a ∈ l₁ ↔ a ∈ l₂ :=
 iff.intro (λ m, h.subset m) (λ m, h.symm.subset m)
 
+lemma perm.subset_congr_left {l₁ l₂ l₃ : list α} (h : l₁ ~ l₂) : l₁ ⊆ l₃ ↔ l₂ ⊆ l₃ :=
+⟨h.symm.subset.trans, h.subset.trans⟩
+
+lemma perm.subset_congr_right {l₁ l₂ l₃ : list α} (h : l₁ ~ l₂) : l₃ ⊆ l₁ ↔ l₃ ⊆ l₂ :=
+⟨λ h', h'.trans h.subset, λ h', h'.trans h.symm.subset⟩
+
 theorem perm.append_right {l₁ l₂ : list α} (t₁ : list α) (p : l₁ ~ l₂) : l₁++t₁ ~ l₂++t₁ :=
 perm.rec_on p
   (perm.refl ([] ++ t₁))
@@ -147,26 +153,24 @@ theorem perm_cons_append_cons {l l₁ l₂ : list α} (a : α) (p : l ~ l₁++l�
   a::l ~ l₁++(a::l₂) :=
 (p.cons a).trans perm_middle.symm
 
-@[simp] theorem perm_repeat {a : α} {n : ℕ} {l : list α} : l ~ repeat a n ↔ l = repeat a n :=
-⟨λ p, (eq_repeat.2
-  ⟨p.length_eq.trans $ length_repeat _ _,
-   λ b m, eq_of_mem_repeat $ p.subset m⟩),
- λ h, h ▸ perm.refl _⟩
+@[simp] theorem perm_replicate {n : ℕ} {a : α} {l : list α} :
+  l ~ replicate n a ↔ l = replicate n a :=
+⟨λ p, eq_replicate.2
+  ⟨p.length_eq.trans $ length_replicate _ _, λ b m, eq_of_mem_replicate $ p.subset m⟩,
+  λ h, h ▸ perm.refl _⟩
 
-@[simp] theorem repeat_perm {a : α} {n : ℕ} {l : list α} : repeat a n ~ l ↔ repeat a n = l :=
-(perm_comm.trans perm_repeat).trans eq_comm
+@[simp] theorem replicate_perm {n : ℕ} {a : α} {l : list α} :
+  replicate n a ~ l ↔ replicate n a = l :=
+(perm_comm.trans perm_replicate).trans eq_comm
 
 @[simp] theorem perm_singleton {a : α} {l : list α} : l ~ [a] ↔ l = [a] :=
-@perm_repeat α a 1 l
+@perm_replicate α 1 a l
 
 @[simp] theorem singleton_perm {a : α} {l : list α} : [a] ~ l ↔ [a] = l :=
-@repeat_perm α a 1 l
+@replicate_perm α 1 a l
 
-theorem perm.eq_singleton {a : α} {l : list α} (p : l ~ [a]) : l = [a] :=
-perm_singleton.1 p
-
-theorem perm.singleton_eq {a : α} {l : list α} (p : [a] ~ l) : [a] = l :=
-p.symm.eq_singleton.symm
+alias perm_singleton ↔ perm.eq_singleton _
+alias singleton_perm ↔ perm.singleton_eq _
 
 theorem singleton_perm_singleton {a b : α} : [a] ~ [b] ↔ a = b :=
 by simp
@@ -732,6 +736,16 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     rw (perm_cons_erase this).count_eq at H,
     by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
+
+theorem perm_replicate_append_replicate {l : list α} {a b : α} {m n : ℕ} (h : a ≠ b) :
+  l ~ replicate m a ++ replicate n b ↔ count a l = m ∧ count b l = n ∧ l ⊆ [a, b] :=
+begin
+  rw [perm_iff_count, ← decidable.and_forall_ne a, ← decidable.and_forall_ne b],
+  suffices : l ⊆ [a, b] ↔ ∀ c, c ≠ b → c ≠ a → c ∉ l,
+  { simp [count_replicate, h, h.symm, this] { contextual := tt } },
+  simp_rw [ne.def, ← and_imp, ← not_or_distrib, decidable.not_imp_not, subset_def, mem_cons_iff,
+    not_mem_nil, or_false, or_comm],
+end
 
 lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm
@@ -1343,21 +1357,3 @@ end
 end permutations
 
 end list
-
-open list
-
-lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
-  map σ (fin_range n) ~ fin_range n :=
-begin
-  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
-  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
-end
-
-/-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
-the list obtained from `f`. -/
-lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
-  of_fn (f ∘ σ) ~ of_fn f :=
-begin
-  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
-  exact σ.map_fin_range_perm.map f,
-end

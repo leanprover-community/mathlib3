@@ -5,7 +5,9 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import analysis.complex.upper_half_plane.basic
+import analysis.normed_space.finite_dimension
 import linear_algebra.general_linear_group
+import linear_algebra.matrix.general_linear_group
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -312,38 +314,6 @@ begin
     exact hg ⟨g1, this⟩ },
 end
 
-/-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T : SL(2,ℤ) := ⟨!![1, 1; 0, 1], by norm_num [matrix.det_fin_two_of]⟩
-
-/-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
-def S : SL(2,ℤ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
-
-lemma coe_S : ↑ₘS = !![0, -1; 1, 0] := rfl
-
-lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
-
-lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
-
-lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
-begin
-  induction n using int.induction_on with n h n h,
-  { rw [zpow_zero, coe_one, matrix.one_fin_two] },
-  { simp_rw [zpow_add, zpow_one, special_linear_group.coe_mul, h, coe_T, matrix.mul_fin_two],
-    congrm !![_, _; _, _],
-    rw [mul_one, mul_one, add_comm] },
-  { simp_rw [zpow_sub, zpow_one, special_linear_group.coe_mul, h, coe_T_inv, matrix.mul_fin_two],
-    congrm !![_, _; _, _]; ring },
-end
-
-@[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
-by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
-
-@[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
-by simpa using T_pow_mul_apply_one 1 g
-
-@[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
-by simpa using T_pow_mul_apply_one (-1) g
-
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
@@ -386,7 +356,7 @@ begin
   refine subtype.ext _,
   conv_lhs { rw matrix.eta_fin_two ↑ₘg },
   rw [hc, hg],
-  simp only [special_linear_group.coe_mul, coe_T_zpow, coe_S, mul_fin_two],
+  simp only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
   congrm !![_, _; _, _]; ring
 end
 
@@ -420,7 +390,7 @@ localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" 
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
   exact h.2,
 end
 
@@ -535,7 +505,7 @@ begin
     linarith, },
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
-    replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
+    replace hc : ↑ₘ(-g) 1 0 = 1, { simp [← neg_eq_iff_eq_neg.mpr hc], },
     replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,

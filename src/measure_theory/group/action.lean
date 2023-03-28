@@ -17,12 +17,12 @@ typeclass for measures invariant under action of an (additive or multiplicative)
 some basic properties of such measures.
 -/
 
-open_locale ennreal nnreal pointwise topological_space
+open_locale ennreal nnreal pointwise topology
 open measure_theory measure_theory.measure set function
 
 namespace measure_theory
 
-variables {G M α : Type*}
+variables {G M α : Type*} {s : set α}
 
 /-- A measure `μ : measure α` is invariant under an additive action of `M` on `α` if for any
 measurable set `s : set α` and `c : M`, the measure of its preimage under `λ x, c +ᵥ x` is equal to
@@ -138,7 +138,7 @@ variables {G} [smul_invariant_measure G α μ]
 @[simp, to_additive] lemma measure_preimage_smul (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 3).mp ‹_› c s
 
-@[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
+@[simp, to_additive] lemma measure_smul (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
 variable {μ}
@@ -147,6 +147,8 @@ variable {μ}
   null_measurable_set (c • s) μ :=
 by simpa only [← preimage_smul_inv]
   using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
+
+lemma measure_smul_null {s} (h : μ s = 0) (c : G) : μ (c • s) = 0 := by rwa measure_smul
 
 section is_minimal
 
@@ -160,7 +162,7 @@ positive on any nonempty open set. In case of a regular measure, one can assume 
   (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
 let ⟨t, ht⟩ := hK.exists_finite_cover_smul G hU hne
 in pos_iff_ne_zero.2 $ λ hμU, hμK $ measure_mono_null ht $
-  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul_set
+  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul
 
 /-- If measure `μ` is invariant under an additive group action and is nonzero on a compact set `K`,
 then it is positive on any nonempty open set. In case of a regular measure, one can assume `μ ≠ 0`
@@ -189,8 +191,39 @@ include G
 @[to_additive] lemma measure_eq_zero_iff_eq_empty_of_smul_invariant (hμ : μ ≠ 0) (hU : is_open U) :
   μ U = 0 ↔ U = ∅ :=
 by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
-  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
+  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, nonempty_iff_ne_empty]
 
 end is_minimal
+
+lemma smul_ae_eq_self_of_mem_zpowers
+  {x y : G} (hs : (x • s : set α) =ᵐ[μ] s) (hy : y ∈ subgroup.zpowers x) :
+  (y • s : set α) =ᵐ[μ] s :=
+begin
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hy,
+  let e : α ≃ α := mul_action.to_perm_hom G α x,
+  have he : quasi_measure_preserving e μ μ :=
+    (measure_preserving_smul x μ).quasi_measure_preserving,
+  have he' : quasi_measure_preserving e.symm μ μ :=
+    (measure_preserving_smul x⁻¹ μ).quasi_measure_preserving,
+  simpa only [mul_action.to_perm_hom_apply, mul_action.to_perm_apply, image_smul,
+    ← monoid_hom.map_zpow] using he.image_zpow_ae_eq he' k hs,
+end
+
+lemma vadd_ae_eq_self_of_mem_zmultiples {G : Type*} [measurable_space G]
+  [add_group G] [add_action G α] [vadd_invariant_measure G α μ] [has_measurable_vadd G α]
+  {x y : G} (hs : (x +ᵥ s : set α) =ᵐ[μ] s) (hy : y ∈ add_subgroup.zmultiples x) :
+  (y +ᵥ s : set α) =ᵐ[μ] s :=
+begin
+  letI : measurable_space (multiplicative G) := (by apply_instance : measurable_space G),
+  letI : smul_invariant_measure (multiplicative G) α μ :=
+    ⟨λ g, vadd_invariant_measure.measure_preimage_vadd μ (multiplicative.to_add g)⟩,
+  letI : has_measurable_smul (multiplicative G) α :=
+  { measurable_const_smul := λ g, measurable_const_vadd (multiplicative.to_add g),
+    measurable_smul_const := λ a, @measurable_vadd_const (multiplicative G) α
+      (by apply_instance : has_vadd G α) _ _ (by apply_instance : has_measurable_vadd G α) a },
+  exact @smul_ae_eq_self_of_mem_zpowers (multiplicative G) α _ _ _ _ _ _ _ _ _ _ hs hy,
+end
+
+attribute [to_additive vadd_ae_eq_self_of_mem_zmultiples] smul_ae_eq_self_of_mem_zpowers
 
 end measure_theory

@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # Minimum and maximum of lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 The main definitions are `argmax`, `argmin`, `minimum` and `maximum` for lists.

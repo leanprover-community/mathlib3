@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
+import algebra.group.conj_finite
 import group_theory.perm.fin
+import group_theory.subgroup.simple
 import tactic.interval_cases
 
 /-!
@@ -102,7 +104,7 @@ begin
   cases int.units_eq_one_or (sign π) with h h,
   { rw is_conj_iff,
     refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
-    simpa only [subtype.val_eq_coe, subgroup.coe_mul, subgroup.coe_inv, coe_mk] using hπ },
+    simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
     { rw [finset.card_compl, le_tsub_iff_left σ.support.card_le_univ],
       exact hσ },
@@ -114,7 +116,7 @@ begin
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
-      rw [mul_assoc π _ σ, hd.commute.eq, subgroup.coe_inv, coe_mk],
+      rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
       simp [mul_assoc] } }
 end
 
@@ -259,10 +261,9 @@ lemma is_conj_swap_mul_swap_of_cycle_type_two {g : perm (fin 5)}
   is_conj (swap 0 4 * swap 1 3) g :=
 begin
   have h := g.support.card_le_univ,
-  rw [← sum_cycle_type, multiset.eq_repeat_of_mem h2, multiset.sum_repeat, smul_eq_mul] at h,
-  rw [← multiset.eq_repeat'] at h2,
-  have h56 : 5 ≤ 3 * 2 := nat.le_succ 5,
-  have h := le_of_mul_le_mul_right (le_trans h h56) dec_trivial,
+  rw [← multiset.eq_replicate_card] at h2,
+  rw [← sum_cycle_type, h2, multiset.sum_replicate, smul_eq_mul] at h,
+  have h : g.cycle_type.card ≤ 3 := le_of_mul_le_mul_right (le_trans h dec_trivial) dec_trivial,
   rw [mem_alternating_group, sign_of_cycle_type, h2] at ha,
   norm_num at ha,
   rw [pow_add, pow_mul, int.units_pow_two,one_mul,

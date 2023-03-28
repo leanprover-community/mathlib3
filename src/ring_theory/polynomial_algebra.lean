@@ -55,11 +55,10 @@ linear_map.to_span_singleton A _ (aeval (polynomial.X : A[X])).to_linear_map
 lemma to_fun_bilinear_apply_eq_sum (a : A) (p : R[X]) :
   to_fun_bilinear R A a p = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
 begin
-  dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
-  rw finset.smul_sum,
+  simp only [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum, finset.smul_sum],
   congr' with i : 1,
-  rw [←algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
-    ←algebra.smul_def, smul_monomial],
+  rw [← algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
+      ← algebra.smul_def, smul_monomial],
 end
 
 /--
@@ -72,7 +71,7 @@ tensor_product.lift (to_fun_bilinear R A)
 
 @[simp]
 lemma to_fun_linear_tmul_apply (a : A) (p : R[X]) :
-  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := lift.tmul _ _
+  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := rfl
 
 -- We apparently need to provide the decidable instance here
 -- in order to successfully rewrite by this lemma.
@@ -125,10 +124,7 @@ alg_hom_of_linear_map_tensor_product
 
 @[simp] lemma to_fun_alg_hom_apply_tmul (a : A) (p : R[X]) :
   to_fun_alg_hom R A (a ⊗ₜ[R] p) = p.sum (λ n r, monomial n (a * (algebra_map R A) r)) :=
-begin
-  dsimp [to_fun_alg_hom],
-  rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
-end
+to_fun_bilinear_apply_eq_sum R A _ _
 
 /--
 (Implementation detail.)
@@ -159,7 +155,7 @@ begin
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def, smul_tmul, sum_def, ←tmul_sum],
-    conv_rhs { rw [←sum_C_mul_X_eq p], },
+    conv_rhs { rw [←sum_C_mul_X_pow_eq p], },
     simp only [algebra.smul_def],
     refl, },
   { intros p q hp hq,
@@ -245,7 +241,7 @@ begin
   convert eval₂_monomial _ _,
   simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
-  rw [monomial_eq_smul_X, ← tensor_product.smul_tmul],
+  rw [← smul_X_eq_monomial, ← tensor_product.smul_tmul],
   congr' with i' j'; simp
 end
 

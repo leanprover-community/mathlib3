@@ -8,6 +8,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of Polynomial Ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The reuslt in this file is that the cardinality of `R[X]` is at most the maximum
 of `#R` and `ℵ₀`.
 -/

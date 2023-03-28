@@ -8,6 +8,9 @@ import topology.separation
 /-!
 # Extending a function from a subset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition of this file is `extend_from A f` where `f : X → Y`
 and `A : set X`. This defines a new function `g : X → Y` which maps any
 `x₀ : X` to the limit of `f` as `x` tends to `x₀`, if such a limit exists.
@@ -24,7 +27,7 @@ it suffices that `f` converges within `A` at any point of `B`, provided that
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 open filter set
 
 variables {X Y : Type*} [topological_space X] [topological_space Y]

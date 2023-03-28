@@ -20,7 +20,7 @@ To have a vector bundle structure on `bundle.total_space E`, one should addition
 following properties:
 
 * The bundle trivializations in the trivialization atlas should be continuous linear equivs in the
-fibres;
+fibers;
 * For any two trivializations `e`, `e'` in the atlas the transition function considered as a map
 from `B` into `F →L[R] F` is continuous on `e.base_set ∩ e'.base_set` with respect to the operator
 norm topology on `F →L[R] F`.
@@ -49,8 +49,8 @@ section topological_vector_space
 variables {B F E} [semiring R]
   [topological_space F]  [topological_space B]
 
-/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fibrewise linear with
-respect to given module structures on its fibres and the model fibre. -/
+/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fiberwise linear with
+respect to given module structures on its fibers and the model fiber. -/
 protected class pretrivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : pretrivialization F (π E)) :
   Prop :=
@@ -138,8 +138,8 @@ end pretrivialization
 
 variables (R) [topological_space (total_space E)]
 
-/-- A mixin class for `trivialization`, stating that a trivialization is fibrewise linear with
-respect to given module structures on its fibres and the model fibre. -/
+/-- A mixin class for `trivialization`, stating that a trivialization is fiberwise linear with
+respect to given module structures on its fibers and the model fiber. -/
 protected class trivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : trivialization F (π E)) : Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
@@ -266,6 +266,21 @@ lemma coe_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_
   = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
 congr_arg linear_equiv.to_fun (dif_pos hb)
 
+lemma coe_coord_changeL' (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set) :
+  (coord_changeL R e e' b).to_linear_equiv
+  = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
+linear_equiv.coe_injective (coe_coord_changeL _ _ _)
+
+lemma symm_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+  (hb : b ∈ e'.base_set ∩ e.base_set) :
+  (e.coord_changeL R e' b).symm = e'.coord_changeL R e b :=
+begin
+  apply continuous_linear_equiv.to_linear_equiv_injective,
+  rw [coe_coord_changeL' e' e hb, (coord_changeL R e e' b).symm_to_linear_equiv,
+    coe_coord_changeL' e e' hb.symm, linear_equiv.trans_symm, linear_equiv.symm_symm],
+end
+
 lemma coord_changeL_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
   coord_changeL R e e' b y = (e' (total_space_mk b (e.symm b y))).2 :=
@@ -280,6 +295,11 @@ begin
     rw [e.proj_symm_apply' hb.1], exact hb.2 },
   { exact e.coord_changeL_apply e' hb y }
 end
+
+lemma apply_symm_apply_eq_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R]
+  [e'.is_linear R] {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  e' (e.to_local_homeomorph.symm (b, v)) = (b, e.coord_changeL R e' b v) :=
+by rw [e.mk_coord_changeL e' hb, e.mk_symm hb.1]
 
 /-- A version of `coord_change_apply` that fully unfolds `coord_change`. The right-hand side is
 ugly, but has good definitional properties for specifically defined trivializations. -/

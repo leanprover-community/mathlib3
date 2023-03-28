@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.sublists
-import data.multiset.basic
-import data.multiset.range
-import data.multiset.bind
+import data.multiset.nodup
 
 /-!
 # The powerset of a multiset
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -256,9 +257,9 @@ begin
   { cases n; simp [ih, map_comp_cons], },
 end
 
-lemma disjoint_powerset_len (s : multiset α) {i j : ℕ} (h : i ≠ j) :
-  multiset.disjoint (s.powerset_len i) (s.powerset_len j) :=
-λ x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
+lemma pairwise_disjoint_powerset_len (s : multiset α) :
+  _root_.pairwise (λ i j, multiset.disjoint (s.powerset_len i) (s.powerset_len j)) :=
+λ i j h x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
   (multiset.mem_powerset_len.mp hj).right)
 
 lemma bind_powerset_len {α : Type*} (S : multiset α) :
@@ -269,5 +270,19 @@ begin
     coe_card],
   exact coe_eq_coe.mpr ((list.range_bind_sublists_len_perm S).map _),
 end
+
+@[simp] theorem nodup_powerset {s : multiset α} : nodup (powerset s) ↔ nodup s :=
+⟨λ h, (nodup_of_le (map_single_le_powerset _) h).of_map _,
+  quotient.induction_on s $ λ l h,
+  by simp; refine (nodup_sublists'.2 h).map_on _ ; exact
+  λ x sx y sy e,
+    (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
+      (quotient.exact e)⟩
+
+alias nodup_powerset ↔ nodup.of_powerset nodup.powerset
+
+protected lemma nodup.powerset_len {n : ℕ} {s : multiset α} (h : nodup s) :
+  nodup (powerset_len n s) :=
+nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)
 
 end multiset

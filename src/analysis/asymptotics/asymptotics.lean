@@ -3,6 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
+import analysis.normed.group.infinite_sum
 import analysis.normed_space.basic
 import topology.algebra.order.liminf_limsup
 import topology.local_homeomorph
@@ -44,7 +45,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical filter nnreal
+open_locale topology big_operators classical filter nnreal
 
 namespace asymptotics
 

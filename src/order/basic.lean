@@ -10,7 +10,6 @@ import data.subtype
 # Basic definitions about `≤` and `<`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/556
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic results about orders, provides extensive dot notation, defines useful order
@@ -156,10 +155,18 @@ namespace has_le.le
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
 
-lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
+section partial_order
+variables [partial_order α] {a b : α}
 
-lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
-⟨λ h', h'.antisymm h, eq.le⟩
+lemma lt_iff_ne (h : a ≤ b) : a < b ↔ a ≠ b := ⟨λ h, h.ne, h.lt_of_ne⟩
+lemma gt_iff_ne (h : a ≤ b) : a < b ↔ b ≠ a := ⟨λ h, h.ne.symm, h.lt_of_ne'⟩
+lemma not_lt_iff_eq (h : a ≤ b) : ¬ a < b ↔ a = b := h.lt_iff_ne.not_left
+lemma not_gt_iff_eq (h : a ≤ b) : ¬ a < b ↔ b = a := h.gt_iff_ne.not_left
+
+lemma le_iff_eq (h : a ≤ b) : b ≤ a ↔ b = a := ⟨λ h', h'.antisymm h, eq.le⟩
+lemma ge_iff_eq (h : a ≤ b) : b ≤ a ↔ a = b := ⟨h.antisymm, eq.ge⟩
+
+end partial_order
 
 lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_ge a c).imp id $ λ hc, le_trans hc h
@@ -232,10 +239,13 @@ by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
 lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
 h.lt_or_eq.symm.imp eq.symm id
+lemma gt_or_eq_of_le [partial_order α] {a b : α} (hab : a ≤ b) : a < b ∨ b = a :=
+(eq_or_gt_of_le hab).symm
 
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 alias eq_or_gt_of_le ← has_le.le.eq_or_gt
+alias gt_or_eq_of_le ← has_le.le.gt_or_eq
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 
@@ -369,6 +379,23 @@ lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_s
 lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (hca : c ≤ a) (hbd : b ≤ d) :
   a ≤ b → c ≤ d :=
 λ hab, (hca.trans hab).trans hbd
+
+section partial_order
+variables [partial_order α]
+
+/-- To prove commutativity of a binary operation `○`, we only to check `a ○ b ≤ b ○ a` for all `a`,
+`b`. -/
+lemma commutative_of_le {f : β → β → α} (comm : ∀ a b, f a b ≤ f b a) : ∀ a b, f a b = f b a :=
+λ a b, (comm _ _).antisymm $ comm _ _
+
+/-- To prove associativity of a commutative binary operation `○`, we only to check
+`(a ○ b) ○ c ≤ a ○ (b ○ c)` for all `a`, `b`, `c`. -/
+lemma associative_of_commutative_of_le {f : α → α → α} (comm : commutative f)
+  (assoc : ∀ a b c, f (f a b) c ≤ f a (f b c)) :
+  associative f :=
+λ a b c, le_antisymm (assoc _ _ _) $ by { rw [comm, comm b, comm _ c, comm a], exact assoc _ _ _ }
+
+end partial_order
 
 @[ext]
 lemma preorder.to_has_le_injective {α : Type*} :
@@ -851,6 +878,16 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
+/-- If a linear order has no elements `x < y < z`, then it has at most two elements. -/
+lemma eq_or_eq_or_eq_of_forall_not_lt_lt {α : Type*} [linear_order α]
+  (h : ∀ ⦃x y z : α⦄, x < y → y < z → false) (x y z : α) : x = y ∨ y = z ∨ x = z :=
+begin
+  by_contra hne, push_neg at hne,
+  cases hne.1.lt_or_lt with h₁ h₁; cases hne.2.1.lt_or_lt with h₂ h₂;
+    cases hne.2.2.lt_or_lt with h₃ h₃,
+  exacts [h h₁ h₂, h h₂ h₃, h h₃ h₂, h h₃ h₁, h h₁ h₃, h h₂ h₃, h h₁ h₃, h h₂ h₁]
+end
 
 namespace punit
 variables (a b : punit.{u+1})

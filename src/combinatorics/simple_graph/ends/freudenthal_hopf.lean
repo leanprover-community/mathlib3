@@ -128,6 +128,7 @@ begin
   by_contra' h,
   simpa using e.inj' (subsingleton.elim (e ⟨0,zero_lt_one.trans h⟩) (e ⟨1,h⟩)),
 end
+
 include Gpc
 
 /-
@@ -203,13 +204,11 @@ begin
   intros finite_ends,
   let Gccf := G.component_compl_functor,
   -- Gccf has nonempty sections and nonempty sets at each K
-  haveI := finite_ends.fintype,
-  haveI := fintype.of_equiv G.end (Gccf.to_eventual_ranges_sections_equiv).symm,
-  haveI := G.component_compl_functor_to_eventual_ranges_finite,
-  haveI := λ j, component_compl_functor_to_eventual_ranges_nonempty_of_infinite G Gpc j,
+  haveI := set.finite_coe_iff.mpr finite_ends,
+  haveI := finite.of_equiv G.end (Gccf.to_eventual_ranges_sections_equiv).symm,
   -- Gccf is a "surjective" system
   have surj : ∀ ⦃i j⦄ (f : i ⟶ j), function.surjective _ :=
-    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler Gpc),
+    functor.surjective_to_eventual_ranges _ (G.component_compl_functor_is_mittag_leffler),
   -- All the maps of Gccf to `K` are injective, and `Gccf K` has at least 3 components.
   obtain ⟨K,top⟩ := Gccf.to_eventual_ranges.eventually_injective surj,
   let inj' := Gccf.to_eventual_ranges.eval_section_injective_of_eventually_injective top,
@@ -218,7 +217,7 @@ begin
   -- But there is a point above `K` from which the `Gccf` is not injective.
   -- Derive a contradiction
   obtain ⟨L,M,KL,LM,LM_not_inj⟩ :=
-    hom_not_injective_of_enough_automorphisms_of_many_components Gpc auts K inj'',
+    hom_not_injective_of_enough_automorphisms_of_many_components auts K inj'',
   refine LM_not_inj (@injective.of_comp _ _ _ (Gccf.to_eventual_ranges.map KL) _ _),
   rw [←types_comp,←functor.map_comp],
   apply top,

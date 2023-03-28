@@ -47,9 +47,9 @@ lemma component_compl_functor_is_mittag_leffler [locally_finite G] [fact G.preco
 by classical; exact category_theory.functor.is_mittag_leffler_of_exists_finite_range _
                 (λ K, ⟨K, 𝟙 K, set.to_finite _⟩)
 
-instance component_compl_functor_to_eventual_ranges_fintype
+instance component_compl_functor_to_eventual_ranges_finite
   [category_theory.is_cofiltered_or_empty (finset V)ᵒᵖ]
-  {G : simple_graph V} [locally_finite G] [fact G.preconnected] (K : (finset V)ᵒᵖ) :
+  (G : simple_graph V) [locally_finite G] [fact G.preconnected] (K : (finset V)ᵒᵖ) :
   finite (G.component_compl_functor.to_eventual_ranges.obj K) :=
 category_theory.functor.to_eventual_ranges_finite _ _
 

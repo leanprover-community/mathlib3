@@ -27,7 +27,7 @@ locally convex, bounded convergence
 
 open_locale topology uniform_convergence
 
-variables {𝕜 𝕜₂ E F : Type*}
+variables {𝕜₁ 𝕜₂ E F : Type*}
 
 namespace continuous_linear_map
 
@@ -36,16 +36,16 @@ variables [add_comm_group E] [topological_space E]
 
 section general
 
-variables [normed_field 𝕜] [normed_field 𝕜₂] [module 𝕜 E] [module 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
+variables [normed_field 𝕜₁] [normed_field 𝕜₂] [module 𝕜₁ E] [module 𝕜₂ F] {σ : 𝕜₁ →+* 𝕜₂}
 variables [module ℝ E] [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
   [smul_comm_class 𝕜₂ ℝ F]
 
 lemma strong_topology.locally_convex_space (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty)
   (h𝔖₂ : directed_on (⊆) 𝔖) :
-  @locally_convex_space ℝ (E →SL[σ₁₂] F) _ _ _ (strong_topology σ₁₂ F 𝔖) :=
+  @locally_convex_space ℝ (E →SL[σ] F) _ _ _ (strong_topology σ F 𝔖) :=
 begin
-  letI : topological_space (E →SL[σ₁₂] F) := strong_topology σ₁₂ F 𝔖,
-  haveI : topological_add_group (E →SL[σ₁₂] F) := strong_topology.topological_add_group _ _ _,
+  letI : topological_space (E →SL[σ] F) := strong_topology σ F 𝔖,
+  haveI : topological_add_group (E →SL[σ] F) := strong_topology.topological_add_group _ _ _,
   refine locally_convex_space.of_basis_zero _ _ _ _
     (strong_topology.has_basis_nhds_zero_of_basis _ _ _ h𝔖₁ h𝔖₂
       (locally_convex_space.convex_basis_zero ℝ F)) _,
@@ -57,12 +57,12 @@ end general
 
 section bounded_sets
 
-variables [normed_field 𝕜] [normed_field 𝕜₂] [module 𝕜 E] [module 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
+variables [normed_field 𝕜₁] [normed_field 𝕜₂] [module 𝕜₁ E] [module 𝕜₂ F] {σ : 𝕜₁ →+* 𝕜₂}
 variables [module ℝ E] [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
   [smul_comm_class 𝕜₂ ℝ F]
 
-instance : locally_convex_space ℝ (E →SL[σ₁₂] F) :=
-strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty 𝕜 E⟩
+instance : locally_convex_space ℝ (E →SL[σ] F) :=
+strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
   (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
 
 end bounded_sets

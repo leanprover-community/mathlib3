@@ -1238,7 +1238,7 @@ sdiff_inf_self_right _ _
 @[simp] theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
 sdiff_eq_self_iff_disjoint.2 $ by simp [h]
 
-lemma diff_singleton_ssubset {s : set α} {a : α} : s \ {a} ⊂ s ↔ a ∈ s :=
+@[simp] lemma diff_singleton_ssubset {s : set α} {a : α} : s \ {a} ⊂ s ↔ a ∈ s :=
 sdiff_le.lt_iff_ne.trans $ sdiff_eq_left.not.trans $ by simp
 
 @[simp] theorem insert_diff_singleton {a : α} {s : set α} :

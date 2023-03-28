@@ -538,10 +538,12 @@ mk_clm 𝕜 (fderiv ℝ)
   (λ f, (cont_diff_top_iff_fderiv.mp f.smooth').2)
   (begin
     rintros ⟨k, n⟩,
-    use [{⟨k, n+1⟩}, 1, zero_le_one],
-    intros f x,
-    simp only [one_mul, schwartz_map.schwartz_seminorm_family_apply, finset.sup_singleton,
-      norm_iterated_fderiv_fderiv],
+    use [{⟨k, n+1⟩}, 1],
+    intros f,
+    simp only [schwartz_seminorm_family_apply, seminorm.comp_apply, finset.sup_singleton, one_smul],
+    refine (fderiv_lm 𝕜 f).seminorm_le_bound 𝕜 k n (by positivity) _,
+    intros x,
+    rw [fderiv_lm_apply, coe_fderiv, norm_iterated_fderiv_fderiv],
     exact f.le_seminorm 𝕜 k (n+1) x,
   end)
 

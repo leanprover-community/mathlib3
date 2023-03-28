@@ -8,6 +8,9 @@ import ring_theory.localization.basic
 /-!
 # Integer elements of a localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_localization.is_integer` is a predicate stating that `x : S` is in the image of `R`

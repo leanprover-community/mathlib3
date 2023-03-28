@@ -75,7 +75,7 @@ instance (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) [Π i, inhabited (α 
 
 namespace pi_Lp
 
-variables (p : ℝ≥0∞) (𝕜 : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ≥0∞) (𝕜 𝕜' : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -526,7 +526,7 @@ lemma edist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)
   edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
 by simp [pi_Lp.edist_eq_sum]
 
-variables [normed_field 𝕜]
+variables [normed_field 𝕜] [normed_field 𝕜']
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [Π i, seminormed_add_comm_group (β i)]
@@ -546,6 +546,16 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)]
   end,
   .. (pi.module ι β 𝕜) }
 
+instance is_scalar_tower [Π i, seminormed_add_comm_group (β i)]
+  [has_smul 𝕜 𝕜'] [Π i, normed_space 𝕜 (β i)] [Π i, normed_space 𝕜' (β i)]
+  [Π i, is_scalar_tower 𝕜 𝕜' (β i)] : is_scalar_tower 𝕜 𝕜' (pi_Lp p β) :=
+pi.is_scalar_tower
+
+instance smul_comm_class [Π i, seminormed_add_comm_group (β i)]
+  [Π i, normed_space 𝕜 (β i)] [Π i, normed_space 𝕜' (β i)]
+  [Π i, smul_comm_class 𝕜 𝕜' (β i)] : smul_comm_class 𝕜 𝕜' (pi_Lp p β) :=
+pi.smul_comm_class
+
 instance finite_dimensional [Π i, seminormed_add_comm_group (β i)]
   [Π i, normed_space 𝕜 (β i)] [I : ∀ i, finite_dimensional 𝕜 (β i)] :
   finite_dimensional 𝕜 (pi_Lp p β) :=
@@ -553,7 +563,7 @@ finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 𝕜' p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl

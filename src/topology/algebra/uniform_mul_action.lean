@@ -9,6 +9,9 @@ import topology.uniform_space.completion
 /-!
 # Multiplicative action on the completion of a uniform space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define typeclasses `has_uniform_continuous_const_vadd` and
 `has_uniform_continuous_const_smul` and prove that a multiplicative action on `X` with uniformly
 continuous `(•) c` can be extended to a multiplicative action on `uniform_space.completion X`.

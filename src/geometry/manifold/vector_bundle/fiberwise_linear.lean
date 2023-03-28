@@ -5,12 +5,10 @@ Authors: Floris van Doorn, Heather Macbeth
 -/
 import geometry.manifold.cont_mdiff
 
-/-! # Smooth vector bundles
+/-! # The groupoid of smooth, fiberwise-linear maps
 
-This file will eventually contain the definition of a smooth vector bundle. For now, it contains
-preliminaries regarding an associated `structure_groupoid`, the groupoid of
-`smooth_fiberwise_linear` functions. When a (topological) vector bundle is smooth, then the
-composition of charts associated to the vector bundle belong to this groupoid.
+This file contains preliminaries for the definition of a smooth vector bundle: an associated
+`structure_groupoid`, the groupoid of `smooth_fiberwise_linear` functions.
 -/
 
 noncomputable theory
@@ -102,7 +100,6 @@ variables {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
 /-- Let `e` be a local homeomorphism of `B × F`.  Suppose that at every point `p` in the source of
 `e`, there is some neighbourhood `s` of `p` on which `e` is equal to a bi-smooth fiberwise linear
 local homeomorphism.
-
 Then the source of `e` is of the form `U ×ˢ univ`, for some set `U` in `B`, and, at any point `x` in
 `U`, admits a neighbourhood `u` of `x` such that `e` is equal on `u ×ˢ univ` to some bi-smooth
 fiberwise linear local homeomorphism. -/
@@ -280,3 +277,11 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     rintros e e' ⟨φ, U, hU, hφ, h2φ, heφ⟩ hee',
     exact ⟨φ, U, hU, hφ, h2φ, setoid.trans hee' heφ⟩,
   end }
+
+@[simp] lemma mem_smooth_fiberwise_linear_iff (e : local_homeomorph (B × F) (B × F)) :
+  e ∈ smooth_fiberwise_linear B F IB ↔
+  ∃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
+  (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
+  e.eq_on_source (fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on) :=
+show e ∈ set.Union _ ↔ _, by { simp only [mem_Union], refl }

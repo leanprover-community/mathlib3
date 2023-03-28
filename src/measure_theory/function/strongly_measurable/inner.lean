@@ -18,7 +18,8 @@ namespace measure_theory
 
 namespace strongly_measurable
 
-protected lemma inner {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+protected lemma inner {𝕜 : Type*} {E : Type*}
+  [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
   {m : measurable_space α} {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ t, @inner 𝕜 _ _(f t) (g t)) :=
 continuous.comp_strongly_measurable continuous_inner (hf.prod_mk hg)
@@ -28,7 +29,7 @@ end strongly_measurable
 namespace ae_strongly_measurable
 
 variables {m : measurable_space α} {μ : measure α} {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜]
-  [inner_product_space 𝕜 E]
+  [normed_add_comm_group E] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 protected lemma re {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :

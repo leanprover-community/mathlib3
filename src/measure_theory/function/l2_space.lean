@@ -58,7 +58,7 @@ end
 namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [inner_product_space 𝕜 E] [normed_add_comm_group F]
+  [normed_add_comm_group E] [inner_product_space 𝕜 E] [normed_add_comm_group F]
 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
@@ -158,7 +158,7 @@ end
 
 instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 { norm_sq_eq_inner := norm_sq_eq_inner',
-  conj_sym := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_sym],
+  conj_symm := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_symm],
   add_left := add_left',
   smul_left := smul_left', }
 
@@ -195,7 +195,7 @@ begin
       from indicator_const_Lp_coe_fn_nmem,
     refine h_indicator.mono (λ x hx hxs, _),
     rw hx hxs,
-    exact inner_zero_left, },
+    exact inner_zero_left _, },
   rw [h_left, h_right, add_zero],
 end
 

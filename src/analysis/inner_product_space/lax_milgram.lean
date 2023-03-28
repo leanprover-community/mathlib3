@@ -40,10 +40,10 @@ open_locale real_inner_product_space nnreal
 universe u
 
 namespace is_coercive
-variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
+variables {V : Type u} [normed_add_comm_group V] [inner_product_space ℝ V] [complete_space V]
 variables {B : V →L[ℝ] V →L[ℝ] ℝ}
 
-local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _
+local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _ _
 
 lemma bounded_below (coercive : is_coercive B) :
   ∃ C, 0 < C ∧ ∀ v, C * ‖v‖ ≤ ‖B♯ v‖ :=
@@ -101,7 +101,7 @@ begin
       ... = ⟪B♯ w, w⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B w w).symm
       ... = 0 : mem_w_orthogonal _ ⟨w, rfl⟩ },
     { exact mul_nonneg (mul_nonneg C_pos.le (norm_nonneg w)) (norm_nonneg w) } },
-  exact inner_zero_left,
+  exact inner_zero_left _,
 end
 
 /--

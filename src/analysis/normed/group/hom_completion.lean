@@ -9,6 +9,9 @@ import analysis.normed.group.completion
 /-!
 # Completion of normed group homs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given two (semi) normed groups `G` and `H` and a normed group hom `f : normed_add_group_hom G H`,
 we build and study a normed group hom
 `f.completion  : normed_add_group_hom (completion G) (completion H)` such that the diagram

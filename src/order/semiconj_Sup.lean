@@ -13,6 +13,9 @@ import algebra.hom.equiv.units.basic
 /-!
 # Semiconjugate by `Sup`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove two facts about semiconjugate (families of) functions.
 
 First, if an order isomorphism `fa : α → α` is semiconjugate to an order embedding `fb : β → β` by

@@ -9,7 +9,6 @@ import data.nat.cast.defs
 # Cast of integers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/641
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the *canonical* homomorphism from the integers into an
@@ -53,8 +52,9 @@ class add_group_with_one (R : Type u)
 (int_cast_neg_succ_of_nat : ∀ n : ℕ, int_cast (-(n+1 : ℕ)) = -((n+1 : ℕ) : R) . control_laws_tac)
 
 /-- An `add_comm_group_with_one` is an `add_group_with_one` satisfying `a + b = b + a`. -/
-@[protect_proj, ancestor add_comm_group add_group_with_one]
-class add_comm_group_with_one (R : Type u) extends add_comm_group R, add_group_with_one R
+@[protect_proj, ancestor add_comm_group add_group_with_one add_comm_monoid_with_one]
+class add_comm_group_with_one (R : Type u)
+  extends add_comm_group R, add_group_with_one R, add_comm_monoid_with_one R
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `R` -/
 protected def int.cast {R : Type u} [has_int_cast R] (i : ℤ) : R := has_int_cast.int_cast i

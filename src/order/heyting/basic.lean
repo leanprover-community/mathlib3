@@ -8,6 +8,9 @@ import order.prop_instances
 /-!
 # Heyting algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Heyting, co-Heyting and bi-Heyting algebras.
 
 An Heyting algebra is a bounded distributive lattice with an implication operation `⇨` such that

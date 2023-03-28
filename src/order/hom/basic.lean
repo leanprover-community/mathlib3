@@ -12,6 +12,9 @@ import order.disjoint
 /-!
 # Order homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines order homomorphisms, which are bundled monotone functions. A preorder
 homomorphism `f : α →o β` is a function `α → β` along with a proof that `∀ x y, x ≤ y → f x ≤ f y`.
 

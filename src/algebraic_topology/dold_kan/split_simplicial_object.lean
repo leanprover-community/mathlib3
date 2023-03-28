@@ -224,13 +224,13 @@ def to_karoubi_nondeg_complex_iso_N₁ : (to_karoubi _).obj s.nondeg_complex ≅
     comm := by { ext n, dsimp, simp only [comp_id, P_infty_comp_π_summand_id], }, },
   hom_inv_id' := begin
     ext n,
-    simpa only [assoc, P_infty_comp_π_summand_id, karoubi.comp, homological_complex.comp_f,
-      ι_π_summand_eq_id],
+    simpa only [assoc, P_infty_comp_π_summand_id, karoubi.comp_f,
+      homological_complex.comp_f, ι_π_summand_eq_id],
   end,
   inv_hom_id' := begin
     ext n,
-    simp only [karoubi.comp, homological_complex.comp_f,
-      π_summand_comp_ι_summand_comp_P_infty_eq_P_infty, karoubi.id_eq, N₁_obj_p],
+    simp only [π_summand_comp_ι_summand_comp_P_infty_eq_P_infty, karoubi.comp_f,
+      homological_complex.comp_f, N₁_obj_p, karoubi.id_eq],
   end, }
 
 end splitting
@@ -275,9 +275,9 @@ nat_iso.of_components (λ S, S.s.to_karoubi_nondeg_complex_iso_N₁)
   (λ S₁ S₂ Φ, begin
     ext n,
     dsimp,
-    simp only [to_karoubi_map_f, karoubi.comp, homological_complex.comp_f,
-      splitting.to_karoubi_nondeg_complex_iso_N₁_hom_f_f, N₁_map_f, nondeg_complex_functor_map_f,
-      alternating_face_map_complex.map_f, assoc, P_infty_f_idem_assoc],
+    simp only [karoubi.comp_f, to_karoubi_map_f, homological_complex.comp_f,
+      nondeg_complex_functor_map_f, splitting.to_karoubi_nondeg_complex_iso_N₁_hom_f_f,
+      N₁_map_f, alternating_face_map_complex.map_f, assoc, P_infty_f_idem_assoc],
     erw ← split.ι_summand_naturality_symm_assoc Φ (splitting.index_set.id (op [n])),
     rw P_infty_f_naturality,
   end)

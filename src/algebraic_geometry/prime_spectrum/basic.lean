@@ -260,9 +260,8 @@ begin
   split,
   { contrapose!,
     intro h,
-    apply set.ne_empty_iff_nonempty.mpr,
     rcases ideal.exists_le_maximal I h with ⟨M, hM, hIM⟩,
-    exact ⟨⟨M, hM.is_prime⟩, hIM⟩ },
+    exact set.nonempty.ne_empty ⟨⟨M, hM.is_prime⟩, hIM⟩ },
   { rintro rfl, apply zero_locus_empty_of_one_mem, trivial }
 end
 
@@ -447,7 +446,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
+    { letI := h.to_field, exact hx.symm ▸ ideal.bot_is_maximal },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -458,7 +457,7 @@ lemma is_irreducible_zero_locus_iff_of_radical (I : ideal R) (hI : I.is_radical)
 begin
   rw [ideal.is_prime_iff, is_irreducible],
   apply and_congr,
-  { rw [← set.ne_empty_iff_nonempty, ne.def, zero_locus_empty_iff_eq_top] },
+  { rw [set.nonempty_iff_ne_empty, ne.def, zero_locus_empty_iff_eq_top] },
   { transitivity ∀ (x y : ideal R), Z(I) ⊆ Z(x) ∪ Z(y) → Z(I) ⊆ Z(x) ∨ Z(I) ⊆ Z(y),
     { simp_rw [is_preirreducible_iff_closed_union_closed, is_closed_iff_zero_locus_ideal],
       split,
@@ -673,14 +672,14 @@ section basic_open
 
 /-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
 def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
-{ val := { x | r ∉ x.as_ideal },
-  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+{ carrier := { x | r ∉ x.as_ideal },
+  is_open' := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
 @[simp] lemma mem_basic_open (f : R) (x : prime_spectrum R) :
   x ∈ basic_open f ↔ f ∉ x.as_ideal := iff.rfl
 
 lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
-(basic_open a).property
+(basic_open a).is_open
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
@@ -694,8 +693,8 @@ topological_space.opens.ext $ by simp
 
 lemma basic_open_le_basic_open_iff (f g : R) :
   basic_open f ≤ basic_open g ↔ f ∈ (ideal.span ({g} : set R)).radical :=
-by rw [topological_space.opens.le_def, basic_open_eq_zero_locus_compl,
-    basic_open_eq_zero_locus_compl, set.le_eq_subset, set.compl_subset_compl,
+by rw [← set_like.coe_subset_coe, basic_open_eq_zero_locus_compl,
+    basic_open_eq_zero_locus_compl, set.compl_subset_compl,
     zero_locus_subset_zero_locus_singleton_iff]
 
 lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
@@ -759,7 +758,7 @@ end
 lemma basic_open_eq_bot_iff (f : R) :
   basic_open f = ⊥ ↔ is_nilpotent f :=
 begin
-  rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
+  rw [← topological_space.opens.coe_inj, basic_open_eq_zero_locus_compl],
   simp only [set.eq_univ_iff_forall, set.singleton_subset_iff,
     topological_space.opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus,
     set_like.mem_coe],
@@ -823,6 +822,14 @@ order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
 
 instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
+instance [is_domain R] : order_bot (prime_spectrum R) :=
+{ bot := ⟨⊥, ideal.bot_prime⟩,
+  bot_le := λ I, @bot_le _ _ _ I.as_ideal }
+
+instance {R : Type*} [field R] : unique (prime_spectrum R) :=
+{ default := ⊥,
+  uniq := λ x, ext _ _ ((is_simple_order.eq_bot_or_eq_top _).resolve_right x.2.ne_top) }
+
 end order
 
 /-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to the
@@ -856,5 +863,25 @@ by { rw [(local_hom_tfae f).out 0 4, prime_spectrum.ext_iff], refl }
 @[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
   [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
 (is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
+
+lemma specializes_closed_point (x : prime_spectrum R) :
+  x ⤳ closed_point R :=
+(prime_spectrum.le_iff_specializes _ _).mp (local_ring.le_maximal_ideal x.2.1)
+
+lemma closed_point_mem_iff (U : topological_space.opens $ prime_spectrum R) :
+  closed_point R ∈ U ↔ U = ⊤ :=
+begin
+  split,
+  { rw eq_top_iff, exact λ h x _, (specializes_closed_point x).mem_open U.2 h },
+  { rintro rfl, trivial }
+end
+
+@[simp] lemma _root_.prime_spectrum.comap_residue (x : prime_spectrum (residue_field R)) :
+  prime_spectrum.comap (residue R) x = closed_point R :=
+begin
+  rw subsingleton.elim x ⊥,
+  ext1,
+  exact ideal.mk_ker,
+end
 
 end local_ring

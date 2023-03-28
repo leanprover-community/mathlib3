@@ -59,7 +59,7 @@ begin
     intro f,
     exact f.2.1.le, },
   intros x hxU,
-  rw [opens.mem_coe, opens.mem_supr],
+  rw [opens.mem_supr],
   obtain ⟨V, iVU, ⟨W, iVW, iWU, hiWU, -⟩, hxV⟩ := hR x hxU,
   exact ⟨⟨W, ⟨iWU, hiWU⟩⟩, iVW.le hxV⟩,
 end
@@ -183,11 +183,11 @@ variables {X : Top.{w}} {ι : Type*} {B : ι → opens X}
 variables (F : X.presheaf C) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
 /-- The empty component of a sheaf is terminal -/
-def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
-F.is_terminal_of_bot_cover ∅ (by tidy)
+def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ⊥)) :=
+F.is_terminal_of_bot_cover ⊥ (by tidy)
 
 /-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
-def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ⊥) :
   limits.is_terminal (F.val.obj (op U)) :=
 by convert F.is_terminal_of_empty
 

@@ -3,11 +3,17 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.order.group.order_iso
+import algebra.order.monoid.order_dual
 import data.set.pointwise.basic
+import order.bounds.order_iso
 import order.conditionally_complete_lattice.basic
 
 /-!
 # Upper/lower bounds in ordered monoids and groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove a few facts like “`-s` is bounded above iff `s` is bounded below”
 (`bdd_above_neg`).

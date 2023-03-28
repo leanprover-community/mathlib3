@@ -29,7 +29,7 @@ In this file, we provide the proofs of various local properties.
 The following properties are covered:
 
 * The triviality of an ideal or an element:
-  `ideal_eq_zero_of_localization`, `eq_zero_of_localization`
+  `ideal_eq_bot_of_localization`, `eq_zero_of_localization`
 * `is_reduced` : `localization_is_reduced`, `is_reduced_of_localization_maximal`.
 * `finite`: `localization_finite`, `finite_of_localization_span`
 * `finite_type`: `localization_finite_type`, `finite_type_of_localization_span`
@@ -221,43 +221,66 @@ end properties
 
 section ideal
 
--- This proof should work for all modules, but we do not know how to localize a module yet.
-/-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
-lemma ideal_eq_zero_of_localization (I : ideal R)
-   (h : ∀ (J : ideal R) (hJ : J.is_maximal),
-      by exactI is_localization.coe_submodule (localization.at_prime J) I = 0) : I = 0 :=
+open_locale non_zero_divisors
+
+/-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is included in
+the localization of `J` at `P`, then `I ≤ J`. -/
+lemma ideal.le_of_localization_maximal {I J : ideal R}
+  (h : ∀ (P : ideal R) (hP : P.is_maximal),
+    ideal.map (algebra_map R (by exactI localization.at_prime P)) I ≤
+      ideal.map (algebra_map R (by exactI localization.at_prime P)) J) :
+  I ≤ J :=
 begin
-  by_contradiction hI, change I ≠ ⊥ at hI,
-  obtain ⟨x, hx, hx'⟩ := set_like.exists_of_lt hI.bot_lt,
-  rw [submodule.mem_bot] at hx',
-  have H : (ideal.span ({x} : set R)).annihilator ≠ ⊤,
-  { rw [ne.def, submodule.annihilator_eq_top_iff],
-    by_contra,
-    apply hx',
-    rw [← set.mem_singleton_iff, ← @submodule.bot_coe R, ← h],
-    exact ideal.subset_span (set.mem_singleton x) },
-  obtain ⟨p, hp₁, hp₂⟩ := ideal.exists_le_maximal _ H,
-  resetI,
-  specialize h p hp₁,
-  have : algebra_map R (localization.at_prime p) x = 0,
-  { rw ← set.mem_singleton_iff,
-    change algebra_map R (localization.at_prime p) x ∈ (0 : submodule R (localization.at_prime p)),
-    rw ← h,
-    exact submodule.mem_map_of_mem hx },
-  rw is_localization.map_eq_zero_iff p.prime_compl at this,
-  obtain ⟨m, hm⟩ := this,
-  apply m.prop,
-  refine hp₂ _,
-  erw submodule.mem_annihilator_span_singleton,
-  rwa mul_comm at hm,
+  intros x hx,
+  suffices : J.colon (ideal.span {x}) = ⊤,
+  { simpa using submodule.mem_colon.mp
+      (show (1 : R) ∈ J.colon (ideal.span {x}), from this.symm ▸ submodule.mem_top)
+      x (ideal.mem_span_singleton_self x) },
+  refine not.imp_symm (J.colon (ideal.span {x})).exists_le_maximal _,
+  push_neg,
+  introsI P hP le,
+  obtain ⟨⟨⟨a, ha⟩, ⟨s, hs⟩⟩, eq⟩ := (is_localization.mem_map_algebra_map_iff P.prime_compl _).mp
+    (h P hP (ideal.mem_map_of_mem _ hx)),
+  rw [← _root_.map_mul, ← sub_eq_zero, ← map_sub] at eq,
+  obtain ⟨⟨m, hm⟩, eq⟩ := (is_localization.map_eq_zero_iff P.prime_compl _ _).mp eq,
+  refine hs ((hP.is_prime.mem_or_mem (le (ideal.mem_colon_singleton.mpr _))).resolve_right hm),
+  simp only [subtype.coe_mk, mul_sub, sub_eq_zero, mul_comm x s, mul_left_comm] at eq,
+  simpa only [mul_assoc, eq] using J.mul_mem_left m ha
 end
+
+/-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is equal to
+the localization of `J` at `P`, then `I = J`. -/
+theorem ideal.eq_of_localization_maximal {I J : ideal R}
+  (h : ∀ (P : ideal R) (hP : P.is_maximal),
+    ideal.map (algebra_map R (by exactI localization.at_prime P)) I =
+      ideal.map (algebra_map R (by exactI localization.at_prime P)) J) :
+  I = J :=
+le_antisymm
+  (ideal.le_of_localization_maximal (λ P hP, (h P hP).le))
+  (ideal.le_of_localization_maximal (λ P hP, (h P hP).ge))
+
+/-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
+lemma ideal_eq_bot_of_localization' (I : ideal R)
+   (h : ∀ (J : ideal R) (hJ : J.is_maximal),
+      ideal.map (algebra_map R (by exactI (localization.at_prime J))) I = ⊥) : I = ⊥ :=
+ideal.eq_of_localization_maximal (λ P hP, (by simpa using h P hP))
+
+-- TODO: This proof should work for all modules, once we have enough material on submodules of
+-- localized modules.
+/-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
+lemma ideal_eq_bot_of_localization (I : ideal R)
+   (h : ∀ (J : ideal R) (hJ : J.is_maximal),
+      by exactI is_localization.coe_submodule (localization.at_prime J) I = ⊥) : I = ⊥ :=
+ideal_eq_bot_of_localization' _ (λ P hP, (ideal.map_eq_bot_iff_le_ker _).mpr (λ x hx,
+  by { rw [ring_hom.mem_ker, ← submodule.mem_bot R, ← h P hP, is_localization.mem_coe_submodule],
+       exact ⟨x, hx, rfl⟩ }))
 
 lemma eq_zero_of_localization (r : R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       by exactI algebra_map R (localization.at_prime J) r = 0) : r = 0 :=
 begin
   rw ← ideal.span_singleton_eq_bot,
-  apply ideal_eq_zero_of_localization,
+  apply ideal_eq_bot_of_localization,
   intros J hJ,
   delta is_localization.coe_submodule,
   erw [submodule.map_span, submodule.span_eq_bot],
@@ -284,8 +307,8 @@ begin
   rw [← (algebra_map R S).map_zero] at hx',
   obtain ⟨m', hm'⟩ := (is_localization.eq_iff_exists M S).mp hx',
   apply_fun (*m'^n) at hm',
-  simp only [mul_assoc, zero_mul] at hm',
-  rw [mul_comm, ← pow_succ, ← mul_pow] at hm',
+  simp only [mul_assoc, zero_mul, mul_zero] at hm',
+  rw [← mul_left_comm, ← pow_succ, ← mul_pow] at hm',
   replace hm' := is_nilpotent.eq_zero ⟨_, hm'.symm⟩,
   rw [← (is_localization.map_units S m).mul_left_inj, hx, zero_mul,
     is_localization.map_eq_zero_iff M],
@@ -338,8 +361,8 @@ begin
   erw is_localization.map_mk' at e',
   rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, subtype.coe_mk, subtype.coe_mk, ← map_mul] at e',
   obtain ⟨⟨_, n', rfl⟩, e''⟩ := (is_localization.eq_iff_exists (submonoid.powers (f r)) _).mp e',
-  rw [subtype.coe_mk, mul_assoc, ← map_pow, ← map_mul, ← map_mul, ← pow_add, mul_comm] at e'',
-  exact ⟨n + n', _, e''.symm⟩
+  rw [subtype.coe_mk, mul_comm x, ←mul_assoc, ← map_pow, ← map_mul, ← map_mul, ← pow_add] at e'',
+  exact ⟨n' + n, _, e''.symm⟩
 end
 
 end surjective
@@ -417,7 +440,7 @@ begin
     by simp_rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul],
   rw [← e, this] at hx₁,
   replace hx₁ := congr_arg (submodule.span R) hx₁,
-  rw submodule.span_smul_eq at hx₁,
+  rw submodule.span_smul at hx₁,
   replace hx : _ ∈ y' • submodule.span R (s : set S') := set.smul_mem_smul_set hx,
   rw hx₁ at hx,
   erw [← g.map_smul, ← submodule.map_span (g : S →ₗ[R] S')] at hx,
@@ -431,9 +454,9 @@ begin
   convert (submodule.span R (is_localization.finset_integer_multiple
     (submonoid.map (algebra_map R S) M) s : set S)).smul_mem a hx' using 1,
   convert ha₂.symm,
-  { rw [mul_comm (y' • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul],
+  { rw [subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul],
     exact algebra.smul_def _ _ },
-  { rw mul_comm, exact algebra.smul_def _ _ }
+  { exact algebra.smul_def _ _ }
 end
 
 /-- If `S` is an `R' = M⁻¹R` algebra, and `x ∈ span R' s`,
@@ -590,10 +613,9 @@ begin
   rw [algebra.smul_def, ← _root_.map_mul] at hx'',
   obtain ⟨a, ha₂⟩ := (is_localization.eq_iff_exists M S').mp hx'',
   use a * y ^ n,
-  convert A.mul_mem hx' (hA₂ a.2),
-  convert ha₂.symm,
-  simp only [submonoid.smul_def, submonoid.coe_pow, smul_eq_mul, submonoid.coe_mul],
-  ring,
+  convert A.mul_mem hx' (hA₂ a.prop),
+  rw [submonoid.smul_def, smul_eq_mul, submonoid.coe_mul, submonoid.coe_pow, mul_assoc, ←ha₂,
+    mul_comm],
 end
 
 /--

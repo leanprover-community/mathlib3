@@ -21,6 +21,9 @@ noncomputable theory
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
+-- like `↑ₘ`, but allows the user to specify the ring `R`. Useful to help Lean elaborate.
+local notation `↑ₘ[` R `]` := @coe _ (matrix (fin 2) (fin 2) R) _
+
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
@@ -87,7 +90,7 @@ instance slash_invariant_form_class.coe_to_fun [slash_invariant_form_class F Γ 
    slash_action.map ℂ k γ ⇑f = ⇑f := slash_invariant_form_class.slash_action_eq f γ
 
 lemma slash_action_eqn' (k : ℤ) (Γ : subgroup SL(2, ℤ)) [slash_invariant_form_class F Γ k] (f : F)
-  (γ : Γ) (z : ℍ) : f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
+  (γ : Γ) (z : ℍ) : f (γ • z) = ((↑ₘ[ℤ]γ 1 0 : ℂ) * z +(↑ₘ[ℤ]γ 1 1 : ℂ))^k * f z :=
 begin
   rw ←modular_form.slash_action_eq'_iff,
   simp,
@@ -109,7 +112,7 @@ instance has_add : has_add (slash_invariant_form Γ k) :=
 
 instance has_zero : has_zero (slash_invariant_form Γ k) :=
 ⟨ { to_fun := 0,
-    slash_action_eq' := slash_action.mul_zero _} ⟩
+    slash_action_eq' := slash_action.zero_slash _} ⟩
 
 @[simp] lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 
@@ -160,6 +163,8 @@ coe_hom_injective.module ℂ coe_hom (λ _ _, rfl)
 instance : has_one (slash_invariant_form Γ 0) :=
 ⟨ { to_fun := 1,
     slash_action_eq' := λ A, modular_form.is_invariant_one A } ⟩
+
+@[simp] lemma one_coe_eq_one : ((1 : slash_invariant_form Γ 0) : ℍ → ℂ) = 1 := rfl
 
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 

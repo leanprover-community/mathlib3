@@ -9,6 +9,9 @@ import data.polynomial.induction
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main defs here are `eval₂`, `eval`, and `map`.
 We give several lemmas about their interaction with each other and with module operations.
 -/
@@ -31,10 +34,11 @@ variables (f : R →+* S) (x : S)
 
 /-- Evaluate a polynomial `p` given a ring hom `f` from the scalar ring
   to the target and a value `x` for the variable in the target -/
-def eval₂ (p : R[X]) : S :=
+@[irreducible] def eval₂ (p : R[X]) : S :=
 p.sum (λ e a, f a * x ^ e)
 
-lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
+lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) :=
+by rw eval₂
 
 lemma eval₂_congr {R S : Type*} [semiring R] [semiring S]
   {f g : R →+* S} {s t : S} {φ ψ : R[X]} :
@@ -66,7 +70,7 @@ begin
 end
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
-by { apply sum_add_index; simp [add_mul] }
+by { simp only [eval₂_eq_sum], apply sum_add_index; simp [add_mul] }
 
 @[simp] lemma eval₂_one : (1 : R[X]).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, f.map_one]
@@ -256,7 +260,7 @@ variables {x : R}
 def eval : R → R[X] → R := eval₂ (ring_hom.id _)
 
 lemma eval_eq_sum : p.eval x = p.sum (λ e a, a * x ^ e) :=
-rfl
+by { rw [eval, eval₂_eq_sum], refl }
 
 lemma eval_eq_sum_range {p : R[X]} (x : R) :
   p.eval x = ∑ i in finset.range (p.nat_degree + 1), p.coeff i * x ^ i :=
@@ -382,8 +386,12 @@ lemma is_root.eq_zero (h : is_root p x) : eval x p = 0 := h
 
 lemma coeff_zero_eq_eval_zero (p : R[X]) : coeff p 0 = p.eval 0 :=
 calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
-... = p.eval 0 : eq.symm $
-  finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
+... = p.eval 0 :
+  begin
+    symmetry,
+    rw [eval_eq_sum],
+    exact finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
+  end
 
 lemma zero_is_root_of_coeff_zero_eq_zero {p : R[X]} (hp : p.coeff 0 = 0) : is_root p 0 :=
 by rwa coeff_zero_eq_eval_zero at hp
@@ -394,6 +402,8 @@ by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
 
 lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a := by simpa using hr
 
+lemma eval_surjective (x : R) : function.surjective $ eval x := λ y, ⟨C y, eval_C⟩
+
 end eval
 
 section comp
@@ -401,7 +411,8 @@ section comp
 /-- The composition of polynomials as a polynomial. -/
 def comp (p q : R[X]) : R[X] := p.eval₂ C q
 
-lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) := rfl
+lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) :=
+by rw [comp, eval₂_eq_sum]
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
@@ -735,12 +746,10 @@ end
 end map
 
 /-!
-After having set up the basic theory of `eval₂`, `eval`, `comp`, and `map`,
-we make `eval₂` irreducible.
+we have made `eval₂` irreducible from the start.
 
-Perhaps we can make the others irreducible too?
+Perhaps we can make also `eval`, `comp`, and `map` irreducible too?
 -/
-attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
 
@@ -774,6 +783,15 @@ lemma eval₂_comp {x : S} :
   eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
 by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
+@[simp]
+lemma iterate_comp_eval₂ (k : ℕ) (t : S) :
+  eval₂ f t (p.comp^[k] q) = ((λ x, eval₂ f x p)^[k] (eval₂ f t q)) :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [function.iterate_succ_apply', function.iterate_succ_apply', eval₂_comp, IH] }
+end
+
 end
 
 section
@@ -786,6 +804,9 @@ def eval_ring_hom : R → R[X] →+* R := eval₂_ring_hom (ring_hom.id _)
 
 @[simp] lemma coe_eval_ring_hom (r : R) : ((eval_ring_hom r) : R[X] → R) = eval r := rfl
 
+lemma eval_ring_hom_zero : eval_ring_hom 0 = constant_coeff :=
+fun_like.ext _ _ $ λ p, p.coeff_zero_eq_eval_zero.symm
+
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
 @[simp]
@@ -795,6 +816,11 @@ begin
   { intros r s hr hs, simp [add_comp, hr, hs], },
   { intros n a, simp, }
 end
+
+@[simp]
+lemma iterate_comp_eval : ∀ (k : ℕ) (t : R),
+  (p.comp^[k] q).eval t = ((λ x, p.eval x)^[k] (q.eval t)) :=
+iterate_comp_eval₂ _
 
 /-- `comp p`, regarded as a ring homomorphism from `R[X]` to itself. -/
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=

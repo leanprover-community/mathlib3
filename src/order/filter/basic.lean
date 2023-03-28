@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Theory of filters on sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `filter` : filters on a set;
@@ -244,9 +247,6 @@ def principal (s : set α) : filter α :=
 
 localized "notation (name := filter.principal) `𝓟` := filter.principal" in filter
 
-instance : inhabited (filter α) :=
-⟨𝓟 ∅⟩
-
 @[simp] lemma mem_principal {s t : set α} : s ∈ 𝓟 t ↔ t ⊆ s := iff.rfl
 
 lemma mem_principal_self (s : set α) : s ∈ 𝓟 s := subset.rfl
@@ -428,6 +428,8 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
   /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact mem_Inter₂.symm.trans
     (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
+
+instance : inhabited (filter α) := ⟨⊥⟩
 
 end complete_lattice
 
@@ -660,7 +662,7 @@ end
 
 /-- There is exactly one filter on an empty type. -/
 instance unique [is_empty α] : unique (filter α) :=
-{ default := ⊥, uniq := filter_eq_bot_of_is_empty }
+{ to_inhabited := filter.inhabited, uniq := filter_eq_bot_of_is_empty }
 
 /-- There are only two filters on a `subsingleton`: `⊥` and `⊤`. If the type is empty, then they are
 equal. -/
@@ -883,7 +885,9 @@ filter.ext $ λ x, by simp only [mem_supr, mem_principal, Union_subset_iff]
 empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 
 @[simp] lemma principal_ne_bot_iff {s : set α} : ne_bot (𝓟 s) ↔ s.nonempty :=
-ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
+ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans nonempty_iff_ne_empty.symm
+
+alias principal_ne_bot_iff ↔ _ _root_.set.nonempty.principal_ne_bot
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $
@@ -1231,6 +1235,18 @@ by simp [filter.frequently, -not_eventually, not_forall]
 lemma frequently_supr {p : α → Prop} {fs : β → filter α} :
   (∃ᶠ x in (⨆ b, fs b), p x) ↔ (∃ b, ∃ᶠ x in fs b, p x) :=
 by simp [filter.frequently, -not_eventually, not_forall]
+
+lemma eventually.choice {r : α → β → Prop} {l : filter α}
+  [l.ne_bot] (h : ∀ᶠ x in l, ∃ y, r x y) : ∃ f : α → β, ∀ᶠ x in l, r x (f x) :=
+begin
+  classical,
+  use (λ x, if hx : ∃ y, r x y then classical.some hx
+            else classical.some (classical.some_spec h.exists)),
+  filter_upwards [h],
+  intros x hx,
+  rw dif_pos hx,
+  exact classical.some_spec hx
+end
 
 /-!
 ### Relation “eventually equal”
@@ -1608,6 +1624,11 @@ lemma mem_comap' : s ∈ comap f l ↔ {y | ∀ ⦃x⦄, f x = y → x ∈ s} �
 ⟨λ ⟨t, ht, hts⟩, mem_of_superset ht $ λ y hy x hx, hts $ mem_preimage.2 $ by rwa hx,
   λ h, ⟨_, h, λ x hx, hx rfl⟩⟩
 
+/-- RHS form is used, e.g., in the definition of `uniform_space`. -/
+lemma mem_comap_prod_mk {x : α} {s : set β} {F : filter (α × β)} :
+  s ∈ comap (prod.mk x) F ↔ {p : α × β | p.fst = x → p.snd ∈ s} ∈ F :=
+by simp_rw [mem_comap', prod.ext_iff, and_imp, @forall_swap β (_ = _), forall_eq, eq_comm]
+
 @[simp] lemma eventually_comap : (∀ᶠ a in comap f l, p a) ↔ ∀ᶠ b in l, ∀ a, f a = b → p a :=
 mem_comap'
 
@@ -1714,6 +1735,8 @@ preimage_mem_comap hf
 lemma comap_id : comap id f = f :=
 le_antisymm (λ s, preimage_mem_comap) (λ s ⟨t, ht, hst⟩, mem_of_superset ht hst)
 
+lemma comap_id' : comap (λ x, x) f = f := comap_id
+
 lemma comap_const_of_not_mem {x : β} (ht : t ∈ g) (hx : x ∉ t) :
   comap (λ y : α, x) g = ⊥ :=
 empty_mem_iff_bot.1 $ mem_comap'.2 $ mem_of_superset ht $ λ x' hx' y h, hx $ h.symm ▸ hx'
@@ -1753,7 +1776,7 @@ lemma _root_.function.semiconj.filter_map {f : α → β} {ga : α → α} {gb :
   (h : function.semiconj f ga gb) : function.semiconj (map f) (map ga) (map gb) :=
 map_comm h.comp_eq
 
-lemma _root_.commute.filter_map {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.filter_map {f g : α → α} (h : function.commute f g) :
   function.commute (map f) (map g) :=
 h.filter_map
 
@@ -1761,7 +1784,7 @@ lemma _root_.function.semiconj.filter_comap {f : α → β} {ga : α → α} {gb
   (h : function.semiconj f ga gb) : function.semiconj (comap f) (comap gb) (comap ga) :=
 comap_comm h.comp_eq.symm
 
-lemma _root_.commute.filter_comap {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.filter_comap {f g : α → α} (h : function.commute f g) :
   function.commute (comap f) (comap g) :=
 h.filter_comap
 
@@ -1867,11 +1890,6 @@ lemma _root_.function.surjective.filter_map_top {f : α → β} (hf : surjective
 lemma subtype_coe_map_comap (s : set α) (f : filter α) :
   map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=
 by rw [map_comap, subtype.range_coe]
-
-lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
-  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s ×ˢ s) :=
-have (coe : s × s → α × α) = (λ x, (x.1, x.2)), by ext ⟨x, y⟩; refl,
-by simp [this, map_comap, ← prod_range_range_eq]
 
 lemma image_mem_of_mem_comap {f : filter α} {c : β → α} (h : range c ∈ f) {W : set β}
   (W_in : W ∈ comap c f) : c '' W ∈ f :=
@@ -2080,7 +2098,7 @@ begin
   refine map_inf_le.antisymm _,
   rintro t ⟨s₁, hs₁, s₂, hs₂, ht : m ⁻¹' t = s₁ ∩ s₂⟩,
   refine mem_inf_of_inter (image_mem_map hs₁) (image_mem_map hs₂) _,
-  rw [image_inter h, image_subset_iff, ht]
+  rw [←image_inter h, image_subset_iff, ht]
 end
 
 lemma map_inf' {f g : filter α} {m : α → β} {t : set α} (htf : t ∈ f) (htg : t ∈ g)
@@ -2354,7 +2372,7 @@ end list_traverse
 /-- `tendsto` is the generic "limit of a function" predicate.
   `tendsto f l₁ l₂` asserts that for every `l₂` neighborhood `a`,
   the `f`-preimage of `a` is an `l₁` neighborhood. -/
-def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f ≤ l₂
+@[pp_nodot] def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f ≤ l₂
 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f ⁻¹' s ∈ l₁ := iff.rfl
@@ -2513,6 +2531,10 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (⨅ i, x i) y :=
 hi.mono_left $ infi_le _ _
 
+theorem tendsto_infi_infi {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (infi x) (infi y) :=
+tendsto_infi.2 $ λ i, tendsto_infi' i (h i)
+
 @[simp] lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=
 by simp only [tendsto, map_sup, sup_le_iff]
@@ -2524,6 +2546,10 @@ lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
 @[simp] lemma tendsto_supr {f : α → β} {x : ι → filter α} {y : filter β} :
   tendsto f (⨆ i, x i) y ↔ ∀ i, tendsto f (x i) y :=
 by simp only [tendsto, map_supr, supr_le_iff]
+
+theorem tendsto_supr_supr {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (supr x) (supr y) :=
+tendsto_supr.2 $ λ i, (h i).mono_right $ le_supr _ _
 
 @[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=
@@ -2562,8 +2588,9 @@ lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β
   ¬ tendsto f a b₂ :=
 λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot.ne hb.eq_bot
 
-lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop} [∀ x, decidable (p x)]
-  (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
+protected lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop}
+  [∀ x, decidable (p x)] (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂)
+  (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
   tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
 begin
   simp only [tendsto_def, mem_inf_principal] at *,
@@ -2575,7 +2602,16 @@ begin
   exacts [hp₀ h, hp₁ h],
 end
 
-lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
+protected lemma tendsto.if' {α β : Type*} {l₁ : filter α} {l₂ : filter β} {f g : α → β}
+  {p : α → Prop} [decidable_pred p] (hf : tendsto f l₁ l₂) (hg : tendsto g l₁ l₂) :
+  tendsto (λ a, if p a then f a else g a) l₁ l₂ :=
+begin
+  replace hf : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂ := tendsto_inf_left hf,
+  replace hg : tendsto g (l₁ ⊓ 𝓟 {x | ¬ p x}) l₂ := tendsto_inf_left hg,
+  exact hf.if hg,
+end
+
+protected lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
   {s : set α} [∀ x, decidable (x ∈ s)]
   (h₀ : tendsto f (l₁ ⊓ 𝓟 s) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 sᶜ) l₂) :
   tendsto (piecewise s f g) l₁ l₂ :=

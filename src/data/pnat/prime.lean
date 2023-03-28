@@ -9,6 +9,9 @@ import data.pnat.basic
 /-!
 # Primality and GCD on pnat
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file extends the theory of `ℕ+` with `gcd`, `lcm` and `prime` functions, analogous to those on
 `nat`.
 -/

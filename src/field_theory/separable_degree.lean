@@ -41,7 +41,7 @@ open_locale classical polynomial
 
 section comm_semiring
 
-variables {F : Type} [comm_semiring F] (q : ℕ)
+variables {F : Type*} [comm_semiring F] (q : ℕ)
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
@@ -86,7 +86,7 @@ end comm_semiring
 
 section field
 
-variables {F : Type} [field F]
+variables {F : Type*} [field F]
 variables (q : ℕ) {f : F[X]} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
@@ -100,45 +100,23 @@ begin
     exact ⟨g, hgs, n, hge⟩, }
 end
 
-/-- A helper lemma: if two expansions (along the positive characteristic) of two polynomials `g` and
-`g'` agree, and the one with the larger degree is separable, then their degrees are the same. -/
-lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
-  (g g' : F[X]) (m m' : ℕ)
-  (h_expand : expand F (q^m) g = expand F (q^m') g')
-  (h : m < m') (hg : g.separable):
-  g.nat_degree =  g'.nat_degree :=
-begin
-  obtain ⟨s, rfl⟩ := nat.exists_eq_add_of_lt h,
-  rw [add_assoc, pow_add, expand_mul] at h_expand,
-  let aux := expand_injective (pow_pos hq.1.pos m) h_expand,
-  rw aux at hg,
-  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hq.out.pos hg).resolve_right
-    s.succ_ne_zero,
-  rw [aux, nat_degree_expand,
-    nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit this),
-    zero_mul]
-end
-
-/-- If two expansions (along the positive characteristic) of two separable polynomials
-`g` and `g'` agree, then they have the same degree. -/
+/-- If two expansions (along the positive characteristic) of two separable polynomials `g` and `g'`
+agree, then they have the same degree. -/
 theorem contraction_degree_eq_or_insep
-  [hq : fact q.prime] [char_p F q]
+  [hq : ne_zero q] [char_p F q]
   (g g' : F[X]) (m m' : ℕ)
   (h_expand : expand F (q^m) g = expand F (q^m') g')
   (hg : g.separable) (hg' : g'.separable) :
   g.nat_degree = g'.nat_degree :=
 begin
-  by_cases h : m = m',
-  { -- if `m = m'` then we show `g.nat_degree = g'.nat_degree` by unfolding the definitions
-    rw h at h_expand,
-    have expand_deg : ((expand F (q ^ m')) g).nat_degree =
-      (expand F (q ^ m') g').nat_degree, by rw h_expand,
-    rw [nat_degree_expand (q^m') g, nat_degree_expand (q^m') g'] at expand_deg,
-    apply nat.eq_of_mul_eq_mul_left (pow_pos hq.1.pos m'),
-    rw [mul_comm] at expand_deg, rw expand_deg, rw [mul_comm] },
-  { cases ne.lt_or_lt h,
-    { exact contraction_degree_eq_aux q g g' m m' h_expand h_1 hg },
-    { exact (contraction_degree_eq_aux q g' g m' m h_expand.symm h_1 hg').symm, } }
+  wlog hm : m ≤ m',
+  { exact (this g' g m' m h_expand.symm hg' hg (le_of_not_le hm)).symm },
+  obtain ⟨s, rfl⟩ := exists_add_of_le hm,
+  rw [pow_add, expand_mul, expand_inj (pow_pos (ne_zero.pos q) m)] at h_expand,
+  subst h_expand,
+  rcases is_unit_or_eq_zero_of_separable_expand q s (ne_zero.pos q) hg with h | rfl,
+  { rw [nat_degree_expand, nat_degree_eq_zero_of_is_unit h, zero_mul] },
+  { rw [nat_degree_expand, pow_zero, mul_one] },
 end
 
 /-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/

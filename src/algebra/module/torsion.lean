@@ -501,8 +501,7 @@ lemma is_torsion_by_ideal_of_finite_of_is_torsion [module.finite R M] (hM : modu
 begin
   cases (module.finite_def.mp infer_instance : (⊤ : submodule R M).fg) with S h,
   refine ⟨∏ x in S, ideal.torsion_of R M x, _, _⟩,
-  { rw set.ne_empty_iff_nonempty,
-    refine ⟨_, _, (∏ x in S, (@hM x).some : R⁰).2⟩,
+  { refine set.nonempty.ne_empty ⟨_, _, (∏ x in S, (@hM x).some : R⁰).2⟩,
     rw [subtype.val_eq_coe, submonoid.coe_finset_prod],
     apply ideal.prod_mem_prod,
     exact λ x _, (@hM x).some_spec },

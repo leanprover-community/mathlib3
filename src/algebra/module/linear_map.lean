@@ -7,11 +7,14 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 import algebra.hom.group_action
 import algebra.module.pi
 import algebra.star.basic
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -52,8 +55,10 @@ To ensure that composition works smoothly for semilinear maps, we use the typecl
 linear map
 -/
 
+assert_not_exists submonoid
+assert_not_exists finset
+
 open function
-open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -363,10 +368,6 @@ lemma restrict_scalars_inj (fₗ gₗ : M →ₗ[S] M₂) :
 end restrict_scalars
 
 variable {R}
-
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
-f.to_add_monoid_hom.map_sum _ _
 
 theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=
@@ -707,7 +708,7 @@ include σ₁₃
 ext $ λ _, g.map_neg _
 omit σ₁₃
 
-/-- The negation of a linear map is linear. -/
+/-- The subtraction of two linear maps is linear. -/
 instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],

@@ -8,6 +8,7 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
 import topology.continuous_function.algebra
+import topology.metric_space.equicontinuity
 
 /-!
 # Bounded continuous functions
@@ -18,7 +19,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal
+open_locale topology classical nnreal uniformity uniform_convergence
 
 open set filter metric function
 
@@ -226,6 +227,20 @@ iff.intro
     λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
     λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
 
+/-- The topology on `α →ᵇ β` is exactly the topology induced by the natural map to `α →ᵤ β`. -/
+lemma inducing_coe_fn : inducing (uniform_fun.of_fun ∘ coe_fn : (α →ᵇ β) → (α →ᵤ β)) :=
+begin
+  rw inducing_iff_nhds,
+  refine λ f, eq_of_forall_le_iff (λ l, _),
+  rw [← tendsto_iff_comap, ← tendsto_id', tendsto_iff_tendsto_uniformly,
+      uniform_fun.tendsto_iff_tendsto_uniformly],
+  refl
+end
+
+-- TODO: upgrade to a `uniform_embedding`
+lemma embedding_coe_fn : embedding (uniform_fun.of_fun ∘ coe_fn : (α →ᵇ β) → (α →ᵤ β)) :=
+⟨inducing_coe_fn, λ f g h, ext $ λ x, congr_fun h x⟩
+
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
@@ -293,10 +308,16 @@ begin
 end
 
 /-- Composition of a bounded continuous function and a continuous function. -/
-@[simps { fully_applied := ff }]
 def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
 { to_continuous_map := f.1.comp g,
   map_bounded' := f.map_bounded'.imp (λ C hC x y, hC _ _) }
+
+@[simp] lemma coe_comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) :
+  coe_fn (f.comp_continuous g) = f ∘ g := rfl
+
+@[simp] lemma comp_continuous_apply {δ : Type*} [topological_space δ]
+  (f : α →ᵇ β) (g : C(δ, α)) (x : δ) : f.comp_continuous g x = f (g x) :=
+rfl
 
 lemma lipschitz_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, α)) :
   lipschitz_with 1 (λ f : α →ᵇ β, f.comp_continuous g) :=
@@ -307,9 +328,12 @@ lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, 
 (lipschitz_comp_continuous g).continuous
 
 /-- Restrict a bounded continuous function to a set. -/
-@[simps apply { fully_applied := ff }]
 def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β :=
 f.comp_continuous $ (continuous_map.id _).restrict s
+
+@[simp] lemma coe_restrict (f : α →ᵇ β) (s : set α) : coe_fn (f.restrict s) = f ∘ coe := rfl
+
+@[simp] lemma restrict_apply (f : α →ᵇ β) (s : set α) (x : s) : f.restrict s x = f x := rfl
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
@@ -417,10 +441,10 @@ and several useful variations around it. -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))
   (closed : is_closed A)
-  (H : ∀ (x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 begin
+  simp_rw [equicontinuous, metric.equicontinuous_at_iff_pair] at H,
   refine is_compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
@@ -437,7 +461,7 @@ begin
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
           ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
-      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) f hf⟩,
+      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) ⟨f, hf⟩⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
@@ -481,8 +505,7 @@ theorem arzela_ascoli₂
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
@@ -492,10 +515,9 @@ begin
   refine is_compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
-    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
-      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
-    calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
-                        ... < ε : hU y hy z hz (F f) hf },
+    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed) _,
+    rw uniform_embedding_subtype_coe.to_uniform_inducing.equicontinuous_iff,
+    exact H.comp (A.restrict_preimage F) },
   { let g := cod_restrict s f (λx, in_s f x hf),
     rw [show f = F g, by ext; refl] at hf ⊢,
     exact ⟨g, hf, rfl⟩ }
@@ -507,8 +529,7 @@ theorem arzela_ascoli [t2_space β]
   (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
 addition to being closed, still satisfies the properties of compact range and equicontinuity -/
@@ -516,42 +537,7 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' hs.is_closed).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
-  (λ x ε ε0, show ∃ U ∈ 𝓝 x,
-      ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
-    begin
-      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
-      rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
-      replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
-      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
-        dist_triangle4_right _ _ _ _
-          ... < ε/2/2 + ε/2/2 + ε/2 :
-            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
-          ... = ε : by rw [add_halves, add_halves]
-    end)
-
-/- To apply the previous theorems, one needs to check the equicontinuity. An important
-instance is when the source space is a metric space, and there is a fixed modulus of continuity
-for all the functions in the set A -/
-
-lemma equicontinuous_of_continuity_modulus {α : Type u} [pseudo_metric_space α]
-  (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
-  (A : set (α →ᵇ β))
-  (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : 0 < ε) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε :=
-begin
-  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f hf, _⟩,
-  have : dist y z < δ := calc
-    dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
-    ... < δ/2 + δ/2 : add_lt_add hy hz
-    ... = δ : add_halves _,
-  calc
-    dist (f y) (f z) ≤ b (dist y z) : H y z f hf
-    ... ≤ |b (dist y z)| : le_abs_self _
-    ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
-    ... < ε : hδ (by simpa [real.dist_eq] using this),
-end
+  (H.closure' continuous_coe)
 
 end arzela_ascoli
 
@@ -1179,7 +1165,7 @@ functions from `α` to `𝕜`. -/
 instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_add_comm_group (λ x, (f x) • (g x))
 (f.continuous.smul g.continuous) (‖f‖ * ‖g‖) (λ x, calc
-  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : normed_space.norm_smul_le _ _
+  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : norm_smul_le _ _
   ... ≤ ‖f‖ * ‖g‖ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩
 

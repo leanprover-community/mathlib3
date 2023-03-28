@@ -8,10 +8,13 @@ import group_theory.congruence
 import group_theory.is_free_group
 import data.list.chain
 import set_theory.cardinal.ordinal
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 
 /-!
 # The free product of groups or monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given an `ι`-indexed family `M` of monoids, we define their free product (categorical coproduct)
 `free_product M`. When `ι` and all `M i` have decidable equality, the free product bijects with the

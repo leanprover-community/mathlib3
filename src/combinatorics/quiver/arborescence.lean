@@ -11,6 +11,9 @@ import combinatorics.quiver.path
 /-!
 # Arborescences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A quiver `V` is an arborescence (or directed rooted tree) when we have a root vertex `root : V` such
 that for every `b : V` there is a unique path from `root` to `b`.
 

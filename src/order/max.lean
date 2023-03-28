@@ -9,7 +9,6 @@ import order.synonym
 # Minimal/maximal and bottom/top elements
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/567
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines predicates for elements to be minimal/maximal or bottom/top and typeclasses
@@ -96,6 +95,7 @@ end⟩
 
 instance [nonempty ι] [Π i, preorder (π i)] [Π i, no_min_order (π i)] : no_min_order (Π i, π i) :=
 ⟨λ a, begin
+  classical,
   obtain ⟨b, hb⟩ := exists_lt (a $ classical.arbitrary _),
   exact ⟨_, update_lt_self_iff.2 hb⟩,
 end⟩

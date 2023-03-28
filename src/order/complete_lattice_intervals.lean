@@ -8,6 +8,9 @@ import data.set.intervals.ord_connected
 
 /-! # Subtypes of conditionally complete linear orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we give conditions on a subset of a conditionally complete linear order, to ensure that
 the subtype is itself conditionally complete.
 

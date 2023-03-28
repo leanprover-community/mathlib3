@@ -10,6 +10,9 @@ import algebra.big_operators.fin
 /-!
 # Compositions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A composition of a natural number `n` is a decomposition `n = i₀ + ... + i_{k-1}` of `n` into a sum
 of positive integers. Combinatorially, it corresponds to a decomposition of `{0, ..., n-1}` into
 non-empty blocks of consecutive integers, where the `iⱼ` are the lengths of the blocks.
@@ -341,14 +344,12 @@ lemma disjoint_range {i₁ i₂ : fin c.length} (h : i₁ ≠ i₂) :
   disjoint (set.range (c.embedding i₁)) (set.range (c.embedding i₂)) :=
 begin
   classical,
-  wlog h' : i₁ ≤ i₂ using i₁ i₂,
-  swap, exact (this h.symm).symm,
+  wlog h' : i₁ < i₂, { exact (this c h.symm (h.lt_or_lt.resolve_left h')).symm },
   by_contradiction d,
   obtain ⟨x, hx₁, hx₂⟩ :
     ∃ x : fin n, (x ∈ set.range (c.embedding i₁) ∧ x ∈ set.range (c.embedding i₂)) :=
   set.not_disjoint_iff.1 d,
-  have : i₁ < i₂ := lt_of_le_of_ne h' h,
-  have A : (i₁ : ℕ).succ ≤ i₂ := nat.succ_le_of_lt this,
+  have A : (i₁ : ℕ).succ ≤ i₂ := nat.succ_le_of_lt h',
   apply lt_irrefl (x : ℕ),
   calc (x : ℕ) < c.size_up_to (i₁ : ℕ).succ : (c.mem_range_embedding_iff.1 hx₁).2
   ... ≤ c.size_up_to (i₂ : ℕ) : monotone_sum_take _ A
@@ -427,22 +428,22 @@ end
 
 /-- The composition made of blocks all of size `1`. -/
 def ones (n : ℕ) : composition n :=
-⟨repeat (1 : ℕ) n, λ i hi, by simp [list.eq_of_mem_repeat hi], by simp⟩
+⟨replicate n (1 : ℕ), λ i hi, by simp [list.eq_of_mem_replicate hi], by simp⟩
 
 instance {n : ℕ} : inhabited (composition n) :=
 ⟨composition.ones n⟩
 
 @[simp] lemma ones_length (n : ℕ) : (ones n).length = n :=
-list.length_repeat 1 n
+list.length_replicate n 1
 
-@[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = repeat (1 : ℕ) n := rfl
+@[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = replicate n (1 : ℕ) := rfl
 
 @[simp] lemma ones_blocks_fun (n : ℕ) (i : fin (ones n).length) :
   (ones n).blocks_fun i = 1 :=
 by simp [blocks_fun, ones, blocks, i.2]
 
 @[simp] lemma ones_size_up_to (n : ℕ) (i : ℕ) : (ones n).size_up_to i = min i n :=
-by simp [size_up_to, ones_blocks, take_repeat]
+by simp [size_up_to, ones_blocks, take_replicate]
 
 @[simp] lemma ones_embedding (i : fin (ones n).length) (h : 0 < (ones n).blocks_fun i) :
   (ones n).embedding i ⟨0, h⟩ = ⟨i, lt_of_lt_of_le i.2 (ones n).length_le⟩ :=
@@ -453,10 +454,10 @@ lemma eq_ones_iff {c : composition n} :
 begin
   split,
   { rintro rfl,
-    exact λ i, eq_of_mem_repeat },
+    exact λ i, eq_of_mem_replicate },
   { assume H,
     ext1,
-    have A : c.blocks = repeat 1 c.blocks.length := eq_repeat_of_mem H,
+    have A : c.blocks = replicate c.blocks.length 1 := eq_replicate_of_mem H,
     have : c.blocks.length = n, by { conv_rhs { rw [← c.blocks_sum, A] }, simp },
     rw [A, this, ones_blocks] },
 end

@@ -320,7 +320,7 @@ end one_sub_smul
 section gelfand_formula
 
 open filter ennreal continuous_multilinear_map
-open_locale topological_space
+open_locale topology
 
 variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]
@@ -375,7 +375,7 @@ protected theorem nonempty : (spectrum ℂ a).nonempty :=
 begin
   /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
   is differentiable on `ℂ`. -/
-  rw ←set.ne_empty_iff_nonempty,
+  rw set.nonempty_iff_ne_empty,
   by_contra h,
   have H₀ : resolvent_set ℂ a = set.univ, by rwa [spectrum, set.compl_empty_iff] at h,
   have H₁ : differentiable ℂ (λ z : ℂ, resolvent a z), from λ z,

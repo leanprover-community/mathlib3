@@ -172,7 +172,7 @@ lemma is_basis_affine_open (X : Scheme) :
 begin
   rw opens.is_basis_iff_nbhd,
   rintros U x (hU : x ∈ (U : set X.carrier)),
-  obtain ⟨S, hS, hxS, hSU⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open hU U.prop,
+  obtain ⟨S, hS, hxS, hSU⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open hU U.is_open,
   refine ⟨⟨S, X.affine_basis_cover_is_basis.is_open hS⟩, _, hxS, hSU⟩,
   rcases hS with ⟨i, rfl⟩,
   exact range_is_affine_open_of_open_immersion _,
@@ -226,8 +226,7 @@ begin
   haveI : is_affine _ := hU,
   convert range_is_affine_open_of_open_immersion (X.of_restrict U.open_embedding ≫ f),
   ext1,
-  change f.1.base '' U.1 = set.range (f.1.base ∘ coe),
-  rw [set.range_comp, subtype.range_coe],
+  exact set.image_eq_range _ _
 end
 
 lemma is_affine_open_iff_of_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
@@ -258,7 +257,7 @@ end
 
 lemma Scheme.Spec_map_presheaf_map_eq_to_hom {X : Scheme} {U V : opens X.carrier} (h : U = V) (W) :
   (Scheme.Spec.map (X.presheaf.map (eq_to_hom h).op).op).val.c.app W =
-    eq_to_hom (by { cases h, dsimp, induction W using opposite.rec, congr, ext1, simpa }) :=
+    eq_to_hom (by { cases h, induction W using opposite.rec, dsimp, simp, refl }) :=
 begin
   have : Scheme.Spec.map (X.presheaf.map (𝟙 (op U))).op = 𝟙 _,
   { rw [X.presheaf.map_id, op_id, Scheme.Spec.map_id]  },
@@ -345,7 +344,7 @@ begin
     (X.of_restrict (X.basic_open r).open_embedding) _).mp,
   delta PresheafedSpace.is_open_immersion.open_functor,
   dsimp,
-  rw [opens.functor_obj_map_obj, opens.open_embedding_obj_top, inf_comm,
+  erw [opens.functor_obj_map_obj, opens.open_embedding_obj_top, inf_comm,
     ← Scheme.basic_open_res _ _ (hom_of_le le_top).op],
   exact hU.basic_open_is_affine _,
 end
@@ -379,10 +378,10 @@ begin
   split,
   { rintro ⟨_, ⟨x, rfl⟩, rfl⟩,
     refine ⟨_, ⟨_, ⟨x, rfl⟩, rfl⟩, _⟩,
-    exact congr_arg subtype.val (X.map_prime_spectrum_basic_open_of_affine x) },
+    exact congr_arg opens.carrier (X.map_prime_spectrum_basic_open_of_affine x) },
   { rintro ⟨_, ⟨_, ⟨x, rfl⟩, rfl⟩, rfl⟩,
     refine ⟨_, ⟨x, rfl⟩, _⟩,
-    exact congr_arg subtype.val (X.map_prime_spectrum_basic_open_of_affine x).symm }
+    exact congr_arg opens.carrier (X.map_prime_spectrum_basic_open_of_affine x).symm }
 end
 
 lemma is_affine_open.exists_basic_open_le {X : Scheme} {U : opens X.carrier}
@@ -391,7 +390,7 @@ lemma is_affine_open.exists_basic_open_le {X : Scheme} {U : opens X.carrier}
 begin
   haveI : is_affine _ := hU,
   obtain ⟨_, ⟨_, ⟨r, rfl⟩, rfl⟩, h₁, h₂⟩ := (is_basis_basic_open (X.restrict U.open_embedding))
-    .exists_subset_of_mem_open _ ((opens.map U.inclusion).obj V).prop,
+    .exists_subset_of_mem_open _ ((opens.map U.inclusion).obj V).is_open,
   swap, exact ⟨x, h⟩,
   have : U.open_embedding.is_open_map.functor.obj ((X.restrict U.open_embedding).basic_open r)
     = X.basic_open (X.presheaf.map (eq_to_hom U.open_embedding_obj_top.symm).op r),
@@ -445,7 +444,7 @@ begin
     exact RingedSpace.basic_open_le _ _ },
   apply_instance
 end
-.
+
 lemma is_localization_basic_open {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U)
   (f : X.presheaf.obj (op U)) :
   is_localization.away f (X.presheaf.obj (op $ X.basic_open f)) :=
@@ -500,7 +499,7 @@ begin
 end
 
 lemma exists_basic_open_le_affine_inter {X : Scheme} {U V : opens X.carrier}
-  (hU : is_affine_open U) (hV : is_affine_open V) (x : X.carrier) (hx : x ∈ U ∩ V) :
+  (hU : is_affine_open U) (hV : is_affine_open V) (x : X.carrier) (hx : x ∈ U ⊓ V) :
   ∃ (f : X.presheaf.obj $ op U) (g : X.presheaf.obj $ op V),
     X.basic_open f = X.basic_open g ∧ x ∈ X.basic_open f :=
 begin
@@ -641,23 +640,22 @@ begin
     apply_fun set.image hU.from_Spec.1.base at h,
     rw [set.image_preimage_eq_inter_range, set.image_preimage_eq_inter_range,
       hU.from_Spec_range] at h,
-    simp only [set.inter_self, subtype.val_eq_coe, set.inter_eq_right_iff_subset]
+    simp only [set.inter_self, opens.carrier_eq_coe, set.inter_eq_right_iff_subset]
       at h,
     ext1,
-    refine le_antisymm _ h,
-    simp only [set.Union_subset_iff, set_coe.forall, opens.supr_def, set.le_eq_subset,
-      subtype.coe_mk],
+    refine set.subset.antisymm _ h,
+    simp only [set.Union_subset_iff, set_coe.forall, opens.coe_supr],
     intros x hx,
     exact X.basic_open_le x },
   { simp only [opens.supr_def, subtype.coe_mk, set.preimage_Union, subtype.val_eq_coe],
     congr' 3,
     { ext1 x,
-      exact congr_arg subtype.val (hU.from_Spec_map_basic_open _) },
-    { exact congr_arg subtype.val hU.from_Spec_base_preimage } },
-  { simp only [subtype.val_eq_coe, prime_spectrum.basic_open_eq_zero_locus_compl],
+      exact congr_arg opens.carrier (hU.from_Spec_map_basic_open _) },
+    { exact congr_arg opens.carrier hU.from_Spec_base_preimage } },
+  { simp only [opens.carrier_eq_coe, prime_spectrum.basic_open_eq_zero_locus_compl],
     rw [← set.compl_Inter, set.compl_univ_iff, ← prime_spectrum.zero_locus_Union,
       ← prime_spectrum.zero_locus_empty_iff_eq_top, prime_spectrum.zero_locus_span],
-    simp only [set.Union_singleton_eq_range, subtype.range_coe_subtype, set.set_of_mem_eq] }
+    simp only [set.Union_singleton_eq_range, subtype.range_val_subtype, set.set_of_mem_eq] }
 end
 
 lemma is_affine_open.self_le_basic_open_union_iff {X : Scheme} {U : opens X.carrier}
@@ -712,9 +710,8 @@ begin
     exact hf₂ x },
   rw ← V.prop.self_le_basic_open_union_iff,
   intros x hx,
-  simp only [exists_prop, set.mem_Union, set.mem_range, set_coe.exists, opens.supr_def,
-    exists_exists_eq_and, opens.mem_coe, subtype.coe_mk],
-  refine ⟨_, hf₁ ⟨x, hx⟩⟩,
+  rw [supr_range', opens.mem_supr],
+  exact ⟨_, hf₁ ⟨x, hx⟩⟩
 end
 
 end algebraic_geometry

@@ -5,11 +5,13 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.countable
 import logic.encodable.lattice
-import order.conditionally_complete_lattice.basic
 import order.disjointed
 
 /-!
 # Measurable spaces and measurable functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines measurable spaces and measurable functions.
 

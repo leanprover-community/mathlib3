@@ -5,10 +5,13 @@ Authors: Johan Commelin
 -/
 import order.hom.basic
 import logic.equiv.set
-import data.set.basic
+import data.set.image
 
 /-!
 # Order homomorphisms and sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open order_dual

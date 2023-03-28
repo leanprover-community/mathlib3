@@ -10,6 +10,9 @@ import tactic.equiv_rw
 /-!
 # Limits in the category of types.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that the category of types has all (co)limits, by providing the usual concrete models.
 
 We also give a characterisation of filtered colimits in `Type`, via

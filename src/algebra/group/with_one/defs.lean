@@ -9,6 +9,9 @@ import algebra.ring.defs
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains different results about adjoining an element to an algebraic structure which then
 behaves like a zero or a one. An example is adjoining a one to a semigroup to obtain a monoid. That
 this provides an example of an adjunction is proved in `algebra.category.Mon.adjunctions`.
@@ -16,6 +19,12 @@ this provides an example of an adjunction is proved in `algebra.category.Mon.adj
 Another result says that adjoining to a group an element `zero` gives a `group_with_zero`. For more
 information about these structures (which are not that standard in informal mathematics, see
 `algebra.group_with_zero.basic`)
+
+## Implementation notes
+
+At various points in this file, `id $` is used in at the start of a proof field in a structure. This
+ensures that the generated `_proof_1` lemmas are stated in terms of the algebraic operations and
+not `option.map`, as the latter does not typecheck once `with_zero`/`with_one` is irreducible.
 -/
 
 universes u v w
@@ -46,7 +55,7 @@ instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 @[to_additive] instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_one α) :=
-{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+{ inv_inv := id $ λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_one.has_inv }
 
 @[to_additive] instance [has_inv α] : inv_one_class (with_one α) :=
@@ -109,15 +118,12 @@ protected lemma cases_on {P : with_one α → Prop} :
   ∀ (x : with_one α), P 1 → (∀ a : α, P a) → P x :=
 option.cases_on
 
--- the `show` statements in the proofs are important, because otherwise the generated lemmas
--- `with_one.mul_one_class._proof_{1,2}` have an ill-typed statement after `with_one` is made
--- irreducible.
 @[to_additive]
 instance [has_mul α] : mul_one_class (with_one α) :=
 { mul := (*),
   one := (1),
-  one_mul   := show ∀ x : with_one α, 1 * x = x, from (option.lift_or_get_is_left_id _).1,
-  mul_one   := show ∀ x : with_one α, x * 1 = x, from (option.lift_or_get_is_right_id _).1 }
+  one_mul := id $ (option.lift_or_get_is_left_id _).1,
+  mul_one := id $ (option.lift_or_get_is_right_id _).1 }
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
@@ -150,49 +156,28 @@ instance [one : has_one α] : has_one (with_zero α) :=
 @[simp, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
-{ mul       := λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a * b) o₂),
-  zero_mul  := λ a, rfl,
-  mul_zero  := λ a, by cases a; refl,
+{ mul       := option.map₂ (*),
+  zero_mul  := id $ option.map₂_none_left (*),
+  mul_zero  := id $ option.map₂_none_right (*),
   ..with_zero.has_zero }
 
 @[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
   {a b : α} : ((a * b : α) : with_zero α) = a * b := rfl
 
-@[simp] lemma zero_mul {α : Type u} [has_mul α]
-  (a : with_zero α) : 0 * a = 0 := rfl
-
-@[simp] lemma mul_zero {α : Type u} [has_mul α]
-  (a : with_zero α) : a * 0 = 0 := by cases a; refl
-
 instance [has_mul α] : no_zero_divisors (with_zero α) :=
-⟨by { rintro (a|a) (b|b) h, exacts [or.inl rfl, or.inl rfl, or.inr rfl, option.no_confusion h] }⟩
+⟨λ a b, id $ option.map₂_eq_none_iff.1⟩
 
 instance [semigroup α] : semigroup_with_zero (with_zero α) :=
-{ mul_assoc := λ a b c, match a, b, c with
-    | none,   _,      _      := rfl
-    | some a, none,   _      := rfl
-    | some a, some b, none   := rfl
-    | some a, some b, some c := congr_arg some (mul_assoc _ _ _)
-    end,
+{ mul_assoc := id $ λ _ _ _, option.map₂_assoc mul_assoc,
   ..with_zero.mul_zero_class }
 
 instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
-{ mul_comm := λ a b, match a, b with
-    | none,   _      := (mul_zero _).symm
-    | some a, none   := rfl
-    | some a, some b := congr_arg some (mul_comm _ _)
-    end,
+{ mul_comm := id $ λ _ _, option.map₂_comm mul_comm,
   ..with_zero.semigroup_with_zero }
 
 instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
-{ one_mul := λ a, match a with
-    | none   := rfl
-    | some a := congr_arg some $ one_mul _
-    end,
-  mul_one := λ a, match a with
-    | none   := rfl
-    | some a := congr_arg some $ mul_one _
-    end,
+{ one_mul := id $ option.map₂_left_identity one_mul,
+  mul_one := id $ option.map₂_right_identity mul_one,
   ..with_zero.mul_zero_class,
   ..with_zero.has_one }
 
@@ -231,7 +216,7 @@ instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.in
 @[simp] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
 
 instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
-{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+{ inv_inv := id $ λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_zero.has_inv }
 
 instance [inv_one_class α] : inv_one_class (with_zero α) :=
@@ -239,8 +224,7 @@ instance [inv_one_class α] : inv_one_class (with_zero α) :=
   ..with_zero.has_one,
   ..with_zero.has_inv }
 
-instance [has_div α] : has_div (with_zero α) :=
-⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
+instance [has_div α] : has_div (with_zero α) := ⟨option.map₂ (/)⟩
 
 @[norm_cast] lemma coe_div [has_div α] (a b : α) : ↑(a / b : α) = (a / b : with_zero α) := rfl
 

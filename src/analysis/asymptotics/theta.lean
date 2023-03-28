@@ -13,7 +13,7 @@ In this file we define `asymptotics.is_Theta l f g` (notation: `f =Θ[l] g`) as
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 namespace asymptotics
 

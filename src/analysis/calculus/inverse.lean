@@ -57,7 +57,7 @@ derivative, strictly differentiable, continuously differentiable, smooth, invers
 -/
 
 open function set filter metric
-open_locale topological_space classical nnreal
+open_locale topology classical nnreal
 
 noncomputable theory
 
@@ -561,7 +561,7 @@ begin
   let f'symm := f'.nonlinear_right_inverse_of_surjective h,
   set c : ℝ≥0 := f'symm.nnnorm⁻¹ / 2 with hc,
   have f'symm_pos : 0 < f'symm.nnnorm := f'.nonlinear_right_inverse_of_surjective_nnnorm_pos h,
-  have cpos : 0 < c, by simp [hc, nnreal.half_pos, nnreal.inv_pos, f'symm_pos],
+  have cpos : 0 < c, by simp [hc, half_pos, inv_pos, f'symm_pos],
   obtain ⟨s, s_nhds, hs⟩ : ∃ s ∈ 𝓝 a, approximates_linear_on f f' s c :=
     hf.approximates_deriv_on_nhds (or.inr cpos),
   apply hs.map_nhds_eq f'symm s_nhds (or.inr (nnreal.half_lt_self _)),
@@ -577,7 +577,7 @@ begin
   refine ((nhds_basis_opens a).exists_iff _).1 _,
   exact (λ s t, approximates_linear_on.mono_set),
   exact (hf.approximates_deriv_on_nhds $ f'.subsingleton_or_nnnorm_symm_pos.imp id $
-    λ hf', nnreal.half_pos $ nnreal.inv_pos.2 $ hf')
+    λ hf', half_pos $ inv_pos.2 hf')
 end
 
 include cs
@@ -593,7 +593,7 @@ approximates_linear_on.to_local_homeomorph f
   (classical.some hf.approximates_deriv_on_open_nhds)
   (classical.some_spec hf.approximates_deriv_on_open_nhds).snd
   (f'.subsingleton_or_nnnorm_symm_pos.imp id $ λ hf', nnreal.half_lt_self $ ne_of_gt $
-    nnreal.inv_pos.2 $ hf')
+    inv_pos.2 hf')
   (classical.some_spec hf.approximates_deriv_on_open_nhds).fst.2
 
 variable {f}

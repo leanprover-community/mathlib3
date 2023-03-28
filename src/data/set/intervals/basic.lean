@@ -9,6 +9,9 @@ import data.set.prod
 /-!
 # Intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
 closed) using the following naming conventions:
 - `i`: infinite
@@ -1219,7 +1222,7 @@ end both
 end lattice
 
 section linear_order
-variables [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {a a₁ a₂ b b₁ b₂ c d : α}
 
 @[simp] lemma Ioi_inter_Ioi : Ioi a ∩ Ioi b = Ioi (a ⊔ b) := ext $ λ _, sup_lt_iff.symm
 @[simp] lemma Iio_inter_Iio : Iio a ∩ Iio b = Iio (a ⊓ b) := ext $ λ _, lt_inf_iff.symm

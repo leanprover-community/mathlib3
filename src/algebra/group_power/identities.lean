@@ -9,7 +9,6 @@ import tactic.ring
 # Identities
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/531
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some "named" commutative ring identities.

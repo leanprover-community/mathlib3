@@ -16,6 +16,9 @@ import ring_theory.nilpotent
 /-!
 # Noetherian rings and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The following are equivalent for a module M over a ring R:
 1. Every increasing chain of submodules M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
 2. Every submodule is finitely generated.
@@ -352,7 +355,7 @@ theorem is_noetherian.exists_endomorphism_iterate_ker_inf_range_eq_bot
 begin
   obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I
     (f.iterate_ker.comp ⟨λ n, n+1, λ n m w, by linarith⟩),
-  specialize w (2 * n + 1) (by linarith),
+  specialize w (2 * n + 1) (by linarith only),
   dsimp at w,
   refine ⟨n+1, nat.succ_ne_zero _, _⟩,
   rw eq_bot_iff,
@@ -362,7 +365,7 @@ begin
   change ((f ^ (n + 1)) * (f ^ (n + 1))) y = 0 at h,
   rw ←pow_add at h,
   convert h using 3,
-  linarith,
+  ring
 end
 
 /-- Any surjective endomorphism of a Noetherian module is injective. -/
@@ -469,10 +472,6 @@ begin
   rw is_noetherian_iff_well_founded at h ⊢,
   refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
 end
-
-instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
-  (I : ideal R) : is_noetherian_ring (R ⧸ I) :=
-is_noetherian_ring_iff.mpr $ is_noetherian_of_tower R $ submodule.quotient.is_noetherian _
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) [is_noetherian_ring R] (hN : N.fg) : is_noetherian R N :=

@@ -8,6 +8,9 @@ import data.pfunctor.multivariate.basic
 /-!
 # The W construction as a multivariate polynomial functor.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 W types are well-founded tree-like structures. They are defined
 as the least fixpoint of a polynomial functor.
 

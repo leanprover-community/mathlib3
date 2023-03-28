@@ -11,6 +11,9 @@ import data.polynomial.coeff
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definitions include
 `degree`, `monic`, `leading_coeff`
 
@@ -168,6 +171,13 @@ alias nat_degree_le_iff_degree_le ↔ ..
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=
 with_bot.gi_unbot'_bot.gc.monotone_l hpq
+
+lemma nat_degree_lt_nat_degree {p q : R[X]} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
+  p.nat_degree < q.nat_degree :=
+begin
+  by_cases hq : q = 0, { exact (not_lt_bot $ hq.subst hpq).elim },
+  rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_lt_coe] at hpq
+end
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 by rw [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
@@ -347,11 +357,14 @@ ext (λ n, nat.cases_on n (by simp)
 lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
   p = C (p.leading_coeff) * X + C (p.coeff 0) :=
 (eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_rfl)).trans
-  (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
+  (by simp only [leading_coeff, nat_degree_eq_of_degree_eq_some h])
 
 lemma eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
   p = C (p.coeff 1) * X + C (p.coeff 0) :=
 eq_X_add_C_of_degree_le_one $ degree_le_of_nat_degree_le h
+
+lemma monic.eq_X_add_C (hm : p.monic) (hnd : p.nat_degree = 1) : p = X + C (p.coeff 0) :=
+by rw [←one_mul X, ←C_1, ←hm.coeff_nat_degree, hnd, ←eq_X_add_C_of_nat_degree_le_one hnd.le]
 
 lemma exists_eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
   ∃ a b, p = C a * X + C b :=
@@ -1028,7 +1041,10 @@ section ring
 variables [ring R] {p q : R[X]}
 
 lemma degree_sub_le (p q : R[X]) : degree (p - q) ≤ max (degree p) (degree q) :=
-by simpa only [sub_eq_add_neg, degree_neg q] using degree_add_le p (-q)
+by simpa only [degree_neg q] using degree_add_le p (-q)
+
+lemma nat_degree_sub_le (p q : R[X]) : nat_degree (p - q) ≤ max (nat_degree p) (nat_degree q) :=
+by simpa only [← nat_degree_neg q] using nat_degree_add_le p (-q)
 
 lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :
@@ -1115,6 +1131,12 @@ begin
   { rw [hn, pow_zero, ←C_1, ←ring_hom.map_add, nat_degree_C] },
   { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
 end
+
+lemma X_pow_add_C_ne_one {n : ℕ} (hn : 0 < n) (a : R) : (X : R[X]) ^ n + C a ≠ 1 :=
+λ h, hn.ne' $ by simpa only [nat_degree_X_pow_add_C, nat_degree_one] using congr_arg nat_degree h
+
+theorem X_add_C_ne_one (r : R) : X + C r ≠ 1 :=
+pow_one (X : R[X]) ▸ X_pow_add_C_ne_one zero_lt_one r
 
 end semiring
 end nonzero_ring

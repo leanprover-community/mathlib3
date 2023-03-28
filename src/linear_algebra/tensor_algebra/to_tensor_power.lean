@@ -106,21 +106,6 @@ eq.symm (pi_tensor_product.graded_monoid_eq_of_reindex_cast h rfl)
     graded_monoid.mk n x :=
 by rw [fin.cast_to_equiv, mk_reindex_cast h]
 
--- TODO(eric-wieser): move after the port
-/-- Appending a one-tuple to the left is the same as cons. -/
-lemma _root_.fin.append_left_eq_cons {α} {n} (x₀ : fin 1 → α) (x : fin n → α):
-  fin.append x₀ x = fin.cons (x₀ 0) x ∘ fin.cast (add_comm _ _) :=
-begin
-  ext i,
-  refine fin.add_cases _ _ i; clear i,
-  { intro i,
-    rw [subsingleton.elim i 0, fin.append_left, function.comp_apply, eq_comm],
-    exact fin.cons_zero _ _, },
-  { intro i,
-    rw [fin.append_right, function.comp_apply, fin.cast_nat_add, eq_comm, fin.add_nat_one],
-    exact fin.cons_succ _ _ _ },
-end
-
 /-- The product of tensor products made of a single vector is the same as a single product of
 all the vectors. -/
 lemma _root_.tensor_power.list_prod_graded_monoid_mk_single (n : ℕ) (x : fin n → M) :

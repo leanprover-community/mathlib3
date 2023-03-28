@@ -9,6 +9,9 @@ import linear_algebra.linear_independent
 /-!
 # Rays in modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines rays in modules.
 
 ## Main definitions

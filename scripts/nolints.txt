@@ -342,9 +342,6 @@ apply_nolint stream.is_bisimulation doc_blame
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
 
--- linear_algebra/affine_space/basis.lean
-apply_nolint affine_basis.ext_elem fintype_finite
-
 -- linear_algebra/affine_space/matrix.lean
 apply_nolint affine_basis.affine_independent_of_to_matrix_right_inv fintype_finite
 apply_nolint affine_basis.affine_span_eq_top_of_to_matrix_left_inv fintype_finite
@@ -874,6 +871,3 @@ apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
-
--- tactic/wlog.lean
-apply_nolint tactic.wlog doc_blame

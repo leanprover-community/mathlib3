@@ -69,7 +69,7 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
           {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
-open_locale classical topological_space nnreal
+open_locale classical topology nnreal
 
 /-! ### One-dimensional fencing inequalities -/
 

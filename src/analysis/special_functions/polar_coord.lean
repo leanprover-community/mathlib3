@@ -19,7 +19,7 @@ It satisfies the following change of variables formula (see `integral_comp_polar
 noncomputable theory
 
 open real set measure_theory
-open_locale real topological_space
+open_locale real topology
 
 /-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r cos θ, r sin θ)` to `(r, θ)`.
 It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. -/

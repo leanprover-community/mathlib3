@@ -41,7 +41,7 @@ von Neumann-bounded sets.
 variables {𝕜 𝕜' E E' F ι : Type*}
 
 open set filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 namespace bornology
 

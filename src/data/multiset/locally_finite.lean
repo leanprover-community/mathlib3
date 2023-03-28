@@ -8,6 +8,9 @@ import data.finset.locally_finite
 /-!
 # Intervals as multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about all the `multiset.Ixx`, which are defined in
 `order.locally_finite`.
 

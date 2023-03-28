@@ -462,7 +462,7 @@ begin
   refine le_antisymm _ (le_zero_root_subalgebra R L H),
   suffices : root_space H 0 ≤ H.to_lie_submodule, { exact λ x hx, this hx, },
   obtain ⟨k, hk⟩ := (root_space H 0).is_nilpotent_iff_exists_self_le_ucs.mp (by apply_instance),
-  exact hk.trans (lie_submodule.ucs_le_of_centralizer_eq_self (by simp) k),
+  exact hk.trans (lie_submodule.ucs_le_of_normalizer_eq_self (by simp) k),
 end
 
 lemma zero_root_subalgebra_eq_iff_is_cartan [is_noetherian R L] :

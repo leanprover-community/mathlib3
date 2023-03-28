@@ -11,6 +11,9 @@ import group_theory.submonoid.membership
 /-!
 # Subgroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides some result on multiplicative and additive subgroups in the finite context.
 
 ## Tags

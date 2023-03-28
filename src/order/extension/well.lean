@@ -9,6 +9,9 @@ import set_theory.ordinal.arithmetic
 /-!
 # Extend a well-founded order to a well-order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs a well-order (linear well-founded order) which is an extension of a given
 well-founded order.
 

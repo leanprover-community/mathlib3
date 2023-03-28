@@ -10,7 +10,6 @@ import data.subtype
 # Basic definitions about `≤` and `<`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/556
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic results about orders, provides extensive dot notation, defines useful order
@@ -240,10 +239,13 @@ by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
 lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
 h.lt_or_eq.symm.imp eq.symm id
+lemma gt_or_eq_of_le [partial_order α] {a b : α} (hab : a ≤ b) : a < b ∨ b = a :=
+(eq_or_gt_of_le hab).symm
 
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 alias eq_or_gt_of_le ← has_le.le.eq_or_gt
+alias gt_or_eq_of_le ← has_le.le.gt_or_eq
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 
@@ -876,6 +878,16 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
+/-- If a linear order has no elements `x < y < z`, then it has at most two elements. -/
+lemma eq_or_eq_or_eq_of_forall_not_lt_lt {α : Type*} [linear_order α]
+  (h : ∀ ⦃x y z : α⦄, x < y → y < z → false) (x y z : α) : x = y ∨ y = z ∨ x = z :=
+begin
+  by_contra hne, push_neg at hne,
+  cases hne.1.lt_or_lt with h₁ h₁; cases hne.2.1.lt_or_lt with h₂ h₂;
+    cases hne.2.2.lt_or_lt with h₃ h₃,
+  exacts [h h₁ h₂, h h₂ h₃, h h₃ h₂, h h₃ h₁, h h₁ h₃, h h₂ h₃, h h₁ h₃, h h₂ h₁]
+end
 
 namespace punit
 variables (a b : punit.{u+1})

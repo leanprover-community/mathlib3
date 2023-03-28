@@ -12,7 +12,6 @@ import tactic.assert_exists
 # Lemmas about units in a `monoid_with_zero` or a `group_with_zero`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/735
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We also define `ring.inverse`, a globally defined function on any ring

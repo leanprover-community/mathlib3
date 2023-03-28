@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import geometry.euclidean.basic
+import geometry.euclidean.sphere.basic
 import linear_algebra.affine_space.finite_dimensional
 import tactic.derive_fintype
 
@@ -34,8 +34,8 @@ open_locale real_inner_product_space
 
 namespace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 open affine_subspace
@@ -188,10 +188,11 @@ end
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points
 in the affine subspace they span. -/
-lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonempty ι] [fintype ι]
+lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonempty ι] [finite ι]
     {p : ι → P} (ha : affine_independent ℝ p) :
   ∃! cs : sphere P, cs.center ∈ affine_span ℝ (set.range p) ∧ set.range p ⊆ (cs : set P) :=
 begin
+  casesI nonempty_fintype ι,
   unfreezingI { induction hn : fintype.card ι with m hm generalizing ι },
   { exfalso,
     have h := fintype.card_pos_iff.2 hne,
@@ -225,7 +226,7 @@ begin
         { simp } },
       haveI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
       have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) := ha.subtype _,
-      replace hm := hm ha2 hc,
+      replace hm := hm ha2 _ hc,
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
         rw [←set.image_eq_range, ←set.image_univ, ←set.image_insert_eq],
@@ -251,8 +252,8 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The circumsphere of a simplex. -/
@@ -734,8 +735,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- Given a nonempty affine subspace, whose direction is complete,

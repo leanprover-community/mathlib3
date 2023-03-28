@@ -3,11 +3,17 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
+import algebra.group_power.basic
+import algebra.hom.equiv.basic
+import algebra.hom.units
 import data.set.lattice
-import data.list.of_fn
+import data.nat.order.basic
 
 /-!
 # Pointwise operations of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines pointwise algebraic operations on sets.
 
@@ -383,11 +389,22 @@ protected def semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
+section comm_semigroup
+variables [comm_semigroup α] {s t : set α}
+
 /-- `set α` is a `comm_semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_comm_semigroup` under pointwise operations if `α` is."]
-protected def comm_semigroup [comm_semigroup α] : comm_semigroup (set α) :=
+protected def comm_semigroup : comm_semigroup (set α) :=
 { mul_comm := λ s t, image2_comm mul_comm
   ..set.semigroup }
+
+@[to_additive] lemma inter_mul_union_subset : (s ∩ t) * (s ∪ t) ⊆ s * t :=
+image2_inter_union_subset mul_comm
+
+@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
+image2_union_inter_subset mul_comm
+
+end comm_semigroup
 
 section mul_one_class
 variables [mul_one_class α]
@@ -442,32 +459,6 @@ begin
   { rw pow_succ,
     exact ih.trans (subset_mul_right _ hs) }
 end
-
-@[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
-  a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
-begin
-  induction n with n ih generalizing a,
-  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi, eq_comm, set.mem_one] },
-  { simp_rw [list.of_fn_succ, list.prod_cons, fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ,
-      mem_mul, @ih, exists_and_distrib_left, exists_exists_eq_and, set_coe.exists, subtype.coe_mk,
-      exists_prop] }
-end
-
-@[to_additive] lemma mem_list_prod {l : list (set α)} {a : α} :
-  a ∈ l.prod ↔ ∃ l' : list (Σ s : set α, ↥s),
-    list.prod (l'.map (λ x, (sigma.snd x : α))) = a ∧ l'.map sigma.fst = l :=
-begin
-  induction l using list.of_fn_rec with n f,
-  simp_rw [list.exists_iff_exists_tuple, list.map_of_fn, list.of_fn_inj', and.left_comm,
-    exists_and_distrib_left, exists_eq_left, heq_iff_eq, function.comp, mem_prod_list_of_fn],
-  split,
-  { rintros ⟨fi, rfl⟩,  exact ⟨λ i, ⟨_, fi i⟩, rfl, rfl⟩, },
-  { rintros ⟨fi, rfl, rfl⟩, exact ⟨λ i, _, rfl⟩, },
-end
-
-@[to_additive] lemma mem_pow {a : α} {n : ℕ} :
-  a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, (f i : α))).prod = a :=
-by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_repeat]
 
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]

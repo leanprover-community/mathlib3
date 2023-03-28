@@ -9,6 +9,9 @@ import algebra.indicator_function
 /-!
 # Indicator function and norm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a few simple lemmas about `set.indicator` and `norm`.
 
 ## Tags

@@ -8,6 +8,9 @@ import algebra.big_operators.order
 /-!
 # Double countings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers a few double counting arguments.
 
 ## Bipartite graphs

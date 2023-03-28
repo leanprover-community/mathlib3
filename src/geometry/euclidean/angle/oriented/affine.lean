@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.side
-import geometry.euclidean.angle.oriented.basic
+import geometry.euclidean.angle.oriented.rotation
 import geometry.euclidean.angle.unoriented.affine
 
 /-!
@@ -26,8 +26,9 @@ open_locale affine euclidean_geometry real real_inner_product_space complex_conj
 
 namespace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-variables [normed_add_torsor V P] [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+  [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
 include hd2
 
 local notation `o` := module.oriented.positive_orientation
@@ -596,10 +597,10 @@ begin
     { rw [@dist_eq_norm_vsub' V, @dist_eq_norm_vsub' V,
           ←mul_self_inj (norm_nonneg _) (norm_nonneg _), ←real_inner_self_eq_norm_mul_norm,
           ←real_inner_self_eq_norm_mul_norm] at hd,
-      simp_rw [vsub_midpoint, ←vsub_sub_vsub_cancel_left p₂ p₁ p, inner_sub_left, 
+      simp_rw [vsub_midpoint, ←vsub_sub_vsub_cancel_left p₂ p₁ p, inner_sub_left,
                inner_add_right, inner_smul_right, hd, real_inner_comm (p -ᵥ p₁)],
       abel },
-    rw [@orientation.inner_eq_zero_iff_eq_zero_or_eq_smul_rotation_pi_div_two V _ _ o,
+    rw [@orientation.inner_eq_zero_iff_eq_zero_or_eq_smul_rotation_pi_div_two V _ _ _ o,
         or_iff_right (vsub_ne_zero.2 h.symm)] at hi,
     rcases hi with ⟨r, hr⟩,
     rw [eq_comm, ←eq_vadd_iff_vsub_eq] at hr,

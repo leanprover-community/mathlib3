@@ -7,10 +7,14 @@ This file is to a certain extent based on `quotient_module.lean` by Johannes Hö
 -/
 import group_theory.congruence
 import group_theory.coset
+import group_theory.subgroup.finite
 import group_theory.subgroup.pointwise
 
 /-!
 # Quotients of groups by normal subgroups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This files develops the basic theory of quotients of groups by normal subgroups. In particular it
 proves Noether's first and second isomorphism theorems.
@@ -38,6 +42,7 @@ proves Noether's first and second isomorphism theorems.
 isomorphism theorems, quotient groups
 -/
 
+open function
 universes u v
 
 namespace quotient_group
@@ -69,7 +74,7 @@ lemma coe_mk' : (mk' N : G → G ⧸ N) = coe := rfl
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
 @[to_additive]
-lemma mk'_surjective : function.surjective $ mk' N := @mk_surjective _ _ N
+lemma mk'_surjective : surjective $ mk' N := @mk_surjective _ _ N
 
 @[to_additive]
 lemma mk'_eq_mk' {x y : G} : mk' N x = mk' N y ↔ ∃ z ∈ N, x * z = y :=
@@ -163,19 +168,16 @@ end
 @[simp, to_additive] lemma map_coe (M : subgroup H) [M.normal] (f : G →* H) (h : N ≤ M.comap f)
   (x : G) :
   map N M f h ↑x = ↑(f x) :=
-lift_mk' _ _ x
+rfl
 
 @[to_additive] lemma map_mk' (M : subgroup H) [M.normal] (f : G →* H) (h : N ≤ M.comap f) (x : G) :
   map N M f h (mk' _ x) = ↑(f x) :=
-quotient_group.lift_mk' _ _ x
+rfl
 
 @[to_additive]
 lemma map_id_apply (h : N ≤ subgroup.comap (monoid_hom.id _) N := (subgroup.comap_id N).le) (x) :
   map N N (monoid_hom.id _) h x = x :=
-begin
-  refine induction_on' x (λ x, _),
-  simp only [map_coe, monoid_hom.id_apply]
-end
+induction_on' x $ λ x, rfl
 
 @[simp, to_additive]
 lemma map_id (h : N ≤ subgroup.comap (monoid_hom.id _) N := (subgroup.comap_id N).le) :
@@ -226,19 +228,19 @@ def congr (e : G ≃* H) (he : G'.map ↑e = H') : G ⧸ G' ≃* H ⧸ H' :=
 
 @[simp] lemma congr_mk (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk x) = e x :=
-map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+rfl
 
 lemma congr_mk' (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk' G' x) = mk' H' (e x) :=
-map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+rfl
 
 @[simp] lemma congr_apply (e : G ≃* H) (he : G'.map ↑e = H')
   (x : G) : congr G' H' e he x = mk' H' (e x) :=
-map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+rfl
 
 @[simp] lemma congr_refl (he : G'.map (mul_equiv.refl G : G →* G) = G' := subgroup.map_id G') :
   congr G' G' (mul_equiv.refl G) he = mul_equiv.refl (G ⧸ G') :=
-by ext x; refine induction_on' x (λ x', _); simp
+by { ext ⟨x⟩, refl }
 
 @[simp] lemma congr_symm (e : G ≃* H) (he : G'.map ↑e = H') :
   (congr G' H' e he).symm = congr H' G' e.symm ((subgroup.map_symm_eq_iff_map_eq _).mpr he) :=
@@ -248,7 +250,7 @@ end congr
 
 variables (φ : G →* H)
 
-open function monoid_hom
+open monoid_hom
 
 /-- The induced map from the quotient by the kernel to the codomain. -/
 @[to_additive "The induced map from the quotient by the kernel to the codomain."]
@@ -301,11 +303,11 @@ mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range
 with a right inverse `ψ : H → G`. -/
 @[to_additive "The canonical isomorphism `G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H`
 with a right inverse `ψ : H → G`.", simps]
-def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inverse ψ φ) :
+def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : right_inverse ψ φ) :
   G ⧸ ker φ ≃* H :=
 { to_fun := ker_lift φ,
   inv_fun := mk ∘ ψ,
-  left_inv := λ x, ker_lift_injective φ (by rw [function.comp_app, ker_lift_mk', hφ]),
+  left_inv := λ x, ker_lift_injective φ (by rw [comp_app, ker_lift_mk', hφ]),
   right_inv := hφ,
   .. ker_lift φ }
 
@@ -321,7 +323,7 @@ For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inve
 @[to_additive "The canonical isomorphism `G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`.
 
 For a `computable` version, see `quotient_add_group.quotient_ker_equiv_of_right_inverse`."]
-noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
+noncomputable def quotient_ker_equiv_of_surjective (hφ : surjective φ) :
   G ⧸ (ker φ) ≃* H :=
 quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 
@@ -445,7 +447,7 @@ noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.
 /- φ is the natural homomorphism H →* (HN)/N. -/
 let φ : H →* _ ⧸ (N.subgroup_of (H ⊔ N)) :=
   (mk' $ N.subgroup_of (H ⊔ N)).comp (inclusion le_sup_left) in
-have φ_surjective : function.surjective φ := λ x, x.induction_on' $
+have φ_surjective : surjective φ := λ x, x.induction_on' $
   begin
     rintro ⟨y, (hy : y ∈ ↑(H ⊔ N))⟩, rw mul_normal H N at hy,
     rcases hy with ⟨h, n, hh, hn, rfl⟩,

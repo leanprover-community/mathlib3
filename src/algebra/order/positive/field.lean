@@ -9,6 +9,9 @@ import algebra.order.positive.ring
 /-!
 # Algebraic structures on the set of positive numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the set of positive elements of a linear ordered field is a linear
 ordered commutative group.
 -/

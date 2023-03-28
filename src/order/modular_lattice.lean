@@ -9,6 +9,9 @@ import order.lattice_intervals
 /-!
 # Modular Lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (semi)modular lattices, a kind of lattice useful in algebra.
 For examples, look to the subobject lattices of abelian groups, submodules, and ideals, or consider
 any distributive lattice.

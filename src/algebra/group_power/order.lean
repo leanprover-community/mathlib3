@@ -11,6 +11,9 @@ import data.set.intervals.basic
 /-!
 # Lemmas about the interaction of power operations with order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Note that some lemmas are in `algebra/group_power/lemmas.lean` as they import files which
 depend on this file.
 -/

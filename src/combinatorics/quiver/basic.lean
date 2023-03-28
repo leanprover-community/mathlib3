@@ -9,7 +9,6 @@ import data.opposite
 # Quivers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/749
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines quivers. A quiver on a type `V` of vertices assigns to every
@@ -104,7 +103,7 @@ lemma comp_assoc
 
 infix ` ⥤q `:50 := prefunctor
 
-infix ` ⋙q `:50 := prefunctor.comp
+infix ` ⋙q `:60 := prefunctor.comp
 
 notation `𝟭q` := id
 

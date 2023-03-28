@@ -9,6 +9,9 @@ import data.polynomial.eval
 /-!
 # The derivative map on polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
  * `polynomial.derivative`: The formal derivative of polynomials, expressed as a linear map.
 
@@ -107,6 +110,9 @@ by simp [bit1]
 
 @[simp] lemma derivative_add {f g : R[X]} : derivative (f + g) = derivative f + derivative g :=
 derivative.map_add f g
+
+@[simp] lemma derivative_X_add_C (c : R) : (X + C c).derivative = 1 :=
+by rw [derivative_add, derivative_X, derivative_C, add_zero]
 
 @[simp] lemma iterate_derivative_add {f g : R[X]} {k : ℕ} :
   derivative^[k] (f + g) = (derivative^[k] f) + (derivative^[k] g) :=
@@ -391,22 +397,25 @@ section comm_semiring
 variables [comm_semiring R]
 
 theorem derivative_pow_succ (p : R[X]) (n : ℕ) :
-  (p ^ (n + 1)).derivative = (n + 1) * (p ^ n) * p.derivative :=
-nat.rec_on n (by rw [pow_one, nat.cast_zero, zero_add, one_mul, pow_zero, one_mul]) $ λ n ih,
-by rw [pow_succ', derivative_mul, ih, mul_right_comm, ← add_mul,
-    add_mul (n.succ : R[X]), one_mul, pow_succ', mul_assoc, n.cast_succ]
+  (p ^ (n + 1)).derivative = C ↑(n + 1) * (p ^ n) * p.derivative :=
+nat.rec_on n (by rw [pow_one, nat.cast_one, C_1, one_mul, pow_zero, one_mul]) $ λ n ih,
+by rw [pow_succ', derivative_mul, ih, nat.add_one, mul_right_comm, nat.cast_add n.succ, C_add,
+       add_mul, add_mul, pow_succ', ← mul_assoc, nat.cast_one, C_1, one_mul]
 
 theorem derivative_pow (p : R[X]) (n : ℕ) :
-  (p ^ n).derivative = n * (p ^ (n - 1)) * p.derivative :=
-nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
+  (p ^ n).derivative = C ↑n * (p ^ (n - 1)) * p.derivative :=
+nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, C_0, zero_mul, zero_mul]) $ λ n,
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
+
+theorem derivative_sq (p : R[X]) : (p ^ 2).derivative = C 2 * p * p.derivative :=
+by rw [derivative_pow_succ, nat.cast_two, pow_one]
 
 theorem dvd_iterate_derivative_pow (f : R[X]) (n : ℕ) {m : ℕ} (c : R) (hm : m ≠ 0) :
   (n : R) ∣ eval c (derivative^[m] (f ^ n)) :=
 begin
   obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
-  rw [function.iterate_succ_apply, derivative_pow, mul_assoc, iterate_derivative_nat_cast_mul,
-    eval_mul, eval_nat_cast],
+  rw [function.iterate_succ_apply, derivative_pow, mul_assoc, C_eq_nat_cast,
+      iterate_derivative_nat_cast_mul, eval_mul, eval_nat_cast],
   exact dvd_mul_right _ _,
 end
 
@@ -428,11 +437,14 @@ lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
   (derivative^[k] (X ^ n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
 
-lemma derivative_X_add_pow (c : R) (m : ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
-by rw [derivative_pow, derivative_add, derivative_X, derivative_C, add_zero, mul_one]
+lemma derivative_X_add_C_pow (c : R) (m : ℕ) :
+  ((X + C c) ^ m).derivative = C ↑m * (X + C c) ^ (m - 1) :=
+by rw [derivative_pow, derivative_X_add_C, mul_one]
 
-lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) :
-  (derivative^[k] ((X + C c) ^ n)) =
+lemma derivative_X_add_C_sq (c : R) : ((X + C c) ^ 2).derivative = C 2 * (X + C c) :=
+by rw [derivative_sq, derivative_X_add_C, mul_one]
+
+lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) : derivative^[k] ((X + C c) ^ n) =
   ↑(∏ i in finset.range k, (n - i)) * (X + C c) ^ (n - k) :=
 begin
   induction k with k IH,
@@ -440,11 +452,10 @@ begin
       tsub_zero] },
   { simp only [function.iterate_succ_apply', IH, derivative_mul, zero_mul, derivative_nat_cast,
       zero_add, finset.prod_range_succ, C_eq_nat_cast, nat.sub_sub, ←mul_assoc,
-      derivative_X_add_pow, nat.succ_eq_add_one, nat.cast_mul] },
+      derivative_X_add_C_pow, nat.succ_eq_add_one, nat.cast_mul] },
 end
 
-lemma derivative_comp (p q : R[X]) :
-  (p.comp q).derivative = q.derivative * p.derivative.comp q :=
+lemma derivative_comp (p q : R[X]) : (p.comp q).derivative = q.derivative * p.derivative.comp q :=
 begin
   apply polynomial.induction_on' p,
   { intros p₁ p₂ h₁ h₂, simp [h₁, h₂, mul_add], },
@@ -497,9 +508,11 @@ linear_map.map_neg derivative f
   derivative^[k] (-f) = - (derivative^[k] f) :=
 (@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
 
-@[simp] lemma derivative_sub {f g : R[X]} :
-  derivative (f - g) = derivative f - derivative g :=
+@[simp] lemma derivative_sub {f g : R[X]} : derivative (f - g) = derivative f - derivative g :=
 linear_map.map_sub derivative f g
+
+@[simp] lemma derivative_X_sub_C (c : R) : (X - C c).derivative = 1 :=
+by rw [derivative_sub, derivative_X, derivative_C, sub_zero]
 
 @[simp] lemma iterate_derivative_sub {k : ℕ} {f g : R[X]} :
   derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
@@ -525,12 +538,12 @@ section comm_ring
 variables [comm_ring R]
 
 lemma derivative_comp_one_sub_X (p : R[X]) :
-  (p.comp (1-X)).derivative = -p.derivative.comp (1-X) :=
+  (p.comp (1 - X)).derivative = -p.derivative.comp (1 - X) :=
 by simp [derivative_comp]
 
 @[simp]
 lemma iterate_derivative_comp_one_sub_X (p : R[X]) (k : ℕ) :
-  derivative^[k] (p.comp (1-X)) = (-1)^k * (derivative^[k] p).comp (1-X) :=
+  derivative^[k] (p.comp (1 - X)) = (-1) ^ k * (derivative^[k] p).comp (1 - X) :=
 begin
   induction k with k ih generalizing p,
   { simp, },
@@ -545,16 +558,19 @@ begin
   simpa using (eval_ring_hom r).map_multiset_prod (multiset.map (λ a, X - C a) (S.erase r)),
 end
 
-lemma derivative_X_sub_pow (c : R) (m : ℕ) :
-  ((X - C c) ^ m).derivative = m * (X - C c) ^ (m - 1) :=
-by rw [derivative_pow, derivative_sub, derivative_X, derivative_C, sub_zero, mul_one]
+lemma derivative_X_sub_C_pow (c : R) (m : ℕ) :
+  ((X - C c) ^ m).derivative = C ↑m * (X - C c) ^ (m - 1) :=
+by rw [derivative_pow, derivative_X_sub_C, mul_one]
+
+lemma derivative_X_sub_C_sq (c : R) : ((X - C c) ^ 2).derivative = C 2 * (X - C c) :=
+by rw [derivative_sq, derivative_X_sub_C, mul_one]
 
 lemma iterate_derivative_X_sub_pow (n k : ℕ) (c : R) :
-  (derivative^[k] ((X - C c) ^ n)) =
-  (↑(∏ i in finset.range k, (n - i))) * (X - C c) ^ (n - k) :=
+  (derivative^[k] ((X - C c) ^ n)) = (↑(∏ i in finset.range k, (n - i))) * (X - C c) ^ (n - k) :=
 by simp_rw [sub_eq_add_neg, ←C_neg, iterate_derivative_X_add_pow]
 
 end comm_ring
 
 end derivative
+
 end polynomial

@@ -15,7 +15,6 @@ import algebra.order.monoid.type_tags
 # Linearly ordered commutative groups and monoids with a zero element adjoined
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/903
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up a special class of linearly ordered commutative monoids

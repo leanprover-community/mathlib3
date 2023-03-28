@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
-import data.set.pairwise
+import data.set.pairwise.lattice
 import data.set.pointwise.basic
+import tactic.by_contra
 
 /-!
 # Pointwise operations of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines pointwise algebraic operations on sets.
 
@@ -373,6 +377,15 @@ image2_Inter₂_subset_right _ _ _
 end vsub
 
 open_locale pointwise
+
+@[to_additive] lemma image_smul_comm [has_smul α β] [has_smul α γ] (f : β → γ) (a : α) (s : set β) :
+  (∀ b, f (a • b) = a • f b) → f '' (a • s) = a • f '' s :=
+image_comm
+
+@[to_additive] lemma image_smul_distrib [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β]
+  (f : F) (a : α) (s : set α) :
+  f '' (a • s) = f a • f '' s :=
+image_comm $ map_mul _ _
 
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}

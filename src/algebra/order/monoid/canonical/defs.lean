@@ -12,7 +12,6 @@ import algebra.order.monoid.defs
 # Canonically ordered monoids
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/778
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -124,6 +123,8 @@ variables [canonically_ordered_monoid α] {a b c d : α}
 
 @[to_additive] lemma le_of_mul_le_left : a * b ≤ c → a ≤ c := le_self_mul.trans
 @[to_additive] lemma le_of_mul_le_right : a * b ≤ c → b ≤ c := le_mul_self.trans
+@[to_additive] lemma le_mul_of_le_left : a ≤ b → a ≤ b * c := le_self_mul.trans'
+@[to_additive] lemma le_mul_of_le_right : a ≤ c → a ≤ b * c := le_mul_self.trans'
 
 @[to_additive]
 lemma le_iff_exists_mul : a ≤ b ↔ ∃ c, b = a * c :=

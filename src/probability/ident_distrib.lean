@@ -52,7 +52,7 @@ open measure_theory filter finset
 
 noncomputable theory
 
-open_locale topological_space big_operators measure_theory ennreal nnreal
+open_locale topology big_operators measure_theory ennreal nnreal
 
 variables {α β γ δ : Type*} [measurable_space α] [measurable_space β]
   [measurable_space γ] [measurable_space δ]

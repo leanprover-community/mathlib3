@@ -110,7 +110,7 @@ begin
   { contradiction },
   obtain ⟨i, rfl⟩ := h₂.1 (dvd_trans hp' hr),
   refine congr_arg c (eq_of_ge_of_not_gt _ $ λ hi, _),
-  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero,
+  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero (n.succ + 1),
         ← fin.lt_iff_coe_lt_coe, fin.pos_iff_ne_zero],
     rintro rfl,
     exact hp.not_unit (first_of_chain_is_unit h₁ @h₂) },
@@ -119,7 +119,7 @@ begin
   refine not_irreducible_of_not_unit_dvd_not_unit
     (dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
     (h₁ (show (0 : fin (n + 2)) < j, from _)) )) _ hp.irreducible,
-  { simpa [← fin.succ_zero_eq_one, fin.succ_lt_succ_iff] using hi },
+  { simpa [fin.succ_lt_succ_iff, fin.lt_iff_coe_lt_coe] using hi },
   { refine associates.dvd_not_unit_iff_lt.2 (h₁ _),
     simpa only [fin.coe_eq_cast_succ] using fin.lt_succ }
 end
@@ -146,14 +146,14 @@ lemma element_of_chain_eq_pow_second_of_chain {q r : associates M} {n : ℕ} (hn
 begin
   classical,
   let i := (normalized_factors r).card,
-  have hi : normalized_factors r = multiset.repeat (c 1) i,
-  { apply multiset.eq_repeat_of_mem,
+  have hi : normalized_factors r = multiset.replicate i (c 1),
+  { apply multiset.eq_replicate_of_mem,
     intros b hb,
     refine eq_second_of_chain_of_prime_dvd hn h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
       (dvd_of_mem_normalized_factors hb) },
   have H : r = (c 1)^i,
   { have := unique_factorization_monoid.normalized_factors_prod (ne_zero_of_dvd_ne_zero hq hr),
-    rw [associated_iff_eq, hi, multiset.prod_repeat] at this,
+    rw [associated_iff_eq, hi, multiset.prod_replicate] at this,
     rw this },
 
   refine ⟨⟨i, _⟩, H⟩,

@@ -11,7 +11,6 @@ import algebra.hom.group
 # Divisibility
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/833
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the basics of the divisibility relation in the context of `(comm_)` `monoid`s.

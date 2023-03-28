@@ -8,6 +8,9 @@ import set_theory.ordinal.basic
 /-!
 # Monovariance of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two functions *vary together* if a strict change in the first implies a change in the second.
 
 This is in some sense a way to say that two functions `f : ι → α`, `g : ι → β` are "monotone

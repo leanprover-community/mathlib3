@@ -10,6 +10,9 @@ import topology.homeomorph
 /-!
 # Continuous bundled maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the type `continuous_map` of continuous bundled maps.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -31,6 +34,8 @@ structure continuous_map (α β : Type*) [topological_space α] [topological_spa
 
 notation `C(` α `, ` β `)` := continuous_map α β
 
+section
+set_option old_structure_cmd true
 /-- `continuous_map_class F α β` states that `F` is a type of continuous maps.
 
 You should extend this class when you extend `continuous_map`. -/
@@ -38,6 +43,8 @@ class continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_
   [topological_space β]
   extends fun_like F α (λ _, β) :=
 (map_continuous (f : F) : continuous f)
+
+end
 
 export continuous_map_class (map_continuous)
 
@@ -73,6 +80,12 @@ instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_f
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
+-- this must come after the coe_to_fun definition
+initialize_simps_projections continuous_map (to_fun → apply)
+
+@[protected, simp, norm_cast]
+lemma coe_coe {F : Type*} [continuous_map_class F α β] (f : F) : ⇑(f : C(α, β)) = f := rfl
+
 @[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 
 /-- Copy of a `continuous_map` with a new `to_fun` equal to the old one. Useful to fix definitional
@@ -80,6 +93,9 @@ equalities. -/
 protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
 { to_fun := f',
   continuous_to_fun := h.symm ▸ f.continuous_to_fun }
+
+@[simp] lemma coe_copy (f : C(α, β)) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : C(α, β)) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables {α β} {f g : C(α, β)}
 
@@ -175,7 +191,7 @@ def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
   continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
 /-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
-def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+@[simps] def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
   C(α₁ × β₁, α₂ × β₂) :=
 { to_fun := prod.map f g,
   continuous_to_fun := continuous.prod_map f.continuous g.continuous }
@@ -208,6 +224,17 @@ def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
 
 @[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
 
+@[simp] lemma restrict_apply (f : C(α, β)) (s : set α) (x : s) : f.restrict s x = f x := rfl
+
+@[simp] lemma restrict_apply_mk (f : C(α, β)) (s : set α) (x : α) (hx : x ∈ s) :
+  f.restrict s ⟨x, hx⟩ = f x :=
+rfl
+
+/-- The restriction of a continuous map to the preimage of a set. -/
+@[simps]
+def restrict_preimage (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
+⟨s.restrict_preimage f, continuous_iff_continuous_at.mpr $ λ x, f.2.continuous_at.restrict_preimage⟩
+
 end restrict
 
 section gluing
@@ -231,11 +258,9 @@ begin
     rw set.mem_Union,
     obtain ⟨i, hi⟩ := hS x,
     exact ⟨i, mem_of_mem_nhds hi⟩ },
-  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_subtype_nhds_cover hS _⟩,
-  intros i,
-  convert (φ i).continuous,
-  ext x,
-  exact set.lift_cover_coe x,
+  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_of_cover_nhds hS $ λ i, _⟩,
+  rw [continuous_on_iff_continuous_restrict],
+  simpa only [set.restrict, set.lift_cover_coe] using (φ i).continuous
 end
 
 variables {S φ hφ hS}
@@ -283,9 +308,31 @@ end gluing
 
 end continuous_map
 
-/--
-The forward direction of a homeomorphism, as a bundled continuous map.
--/
+namespace homeomorph
+variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
+variables (f : α ≃ₜ β) (g : β ≃ₜ γ)
+
+/-- The forward direction of a homeomorphism, as a bundled continuous map. -/
 @[simps]
-def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
+def to_continuous_map (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
+
+/--`homeomorph.to_continuous_map` as a coercion. -/
+instance : has_coe (α ≃ₜ β) C(α, β) := ⟨homeomorph.to_continuous_map⟩
+
+lemma to_continuous_map_as_coe : f.to_continuous_map = f := rfl
+
+@[simp] lemma coe_refl : (homeomorph.refl α : C(α, α)) = continuous_map.id α := rfl
+
+@[simp] lemma coe_trans : (f.trans g : C(α, γ)) = (g : C(β, γ)).comp f := rfl
+
+/-- Left inverse to a continuous map from a homeomorphism, mirroring `equiv.symm_comp_self`. -/
+@[simp] lemma symm_comp_to_continuous_map :
+  (f.symm : C(β, α)).comp (f : C(α, β)) = continuous_map.id α :=
+by rw [← coe_trans, self_trans_symm, coe_refl]
+
+/-- Right inverse to a continuous map from a homeomorphism, mirroring `equiv.self_comp_symm`. -/
+@[simp] lemma to_continuous_map_comp_symm :
+  (f : C(α, β)).comp (f.symm : C(β, α)) = continuous_map.id β :=
+by rw [← coe_trans, symm_trans_self, coe_refl]
+
+end homeomorph

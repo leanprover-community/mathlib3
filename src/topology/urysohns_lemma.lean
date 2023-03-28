@@ -71,7 +71,7 @@ Urysohn's lemma, normal topological space
 variables {X : Type*} [topological_space X]
 
 open set filter topological_space
-open_locale topological_space filter
+open_locale topology filter
 
 namespace urysohns
 
@@ -268,7 +268,7 @@ begin
       refine (div_le_div_of_le_of_nonneg
         (add_le_add (div_le_div_of_le_of_nonneg hydl zero_le_two) hydr) zero_le_two).trans_eq _,
       generalize : (3 / 4 : ℝ) ^ n = r,
-      field_simp [(@zero_lt_two ℝ _ _).ne'], ring } }
+      field_simp [(two_ne_zero' ℝ)], ring } }
 end
 
 end CU
@@ -289,7 +289,7 @@ lemma exists_continuous_zero_one_of_closed {s t : set X} (hs : is_closed s) (ht 
   ∃ f : C(X, ℝ), eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
 begin
   -- The actual proof is in the code above. Here we just repack it into the expected format.
-  set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, λ _, disjoint_left.1 hd⟩,
+  set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, disjoint_left.1 hd⟩,
   exact ⟨⟨c.lim, c.continuous_lim⟩, c.lim_of_mem_C,
     λ x hx, c.lim_of_nmem_U _ (λ h, h hx), c.lim_mem_Icc⟩
 end

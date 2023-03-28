@@ -4,20 +4,27 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
+import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
+import algebra.order.kleene
 import data.finset.pointwise
 import data.set.semiring
+import data.set.pointwise.big_operators
+import group_theory.group_action.sub_mul_action.pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An interface for multiplication and division of sub-R-modules of an R-algebra A is developed.
 
 ## Main definitions
 
-Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
+Let `R` be a commutative ring (or semiring) and let `A` be an `R`-algebra.
 
 * `1 : submodule R A`       : the R-submodule R of the R-algebra A
 * `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
@@ -26,6 +33,9 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
                               that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
+
+Additionally, in the `pointwise` locale we promote `submodule.pointwise_distrib_mul_action` to a
+`mul_semiring_action` as `submodule.pointwise_mul_semiring_action`.
 
 ## Tags
 
@@ -37,6 +47,17 @@ universes uι u v
 open algebra set mul_opposite
 open_locale big_operators
 open_locale pointwise
+
+namespace sub_mul_action
+variables {R : Type u}  {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+
+lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : sub_mul_action R A) :=
+⟨r, (algebra_map_eq_smul_one r).symm⟩
+
+lemma mem_one' {x : A} : x ∈ (1 : sub_mul_action R A) ↔ ∃ y, algebra_map R A y = x :=
+exists_congr $ λ r, by rw algebra_map_eq_smul_one
+
+end sub_mul_action
 
 namespace submodule
 
@@ -55,11 +76,21 @@ instance : has_one (submodule R A) :=
 theorem one_eq_range :
   (1 : submodule R A) = (algebra.linear_map R A).range := rfl
 
+lemma le_one_to_add_submonoid :
+  1 ≤ (1 : submodule R A).to_add_submonoid :=
+begin
+  rintros x ⟨n, rfl⟩,
+  exact ⟨n, map_nat_cast (algebra_map R A) n⟩,
+end
+
 lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : submodule R A) :=
 linear_map.mem_range_self _ _
 
 @[simp] lemma mem_one {x : A} : x ∈ (1 : submodule R A) ↔ ∃ y, algebra_map R A y = x :=
-by simp only [one_eq_range, linear_map.mem_range, algebra.linear_map_apply]
+iff.rfl
+
+@[simp] lemma to_sub_mul_action_one : (1 : submodule R A).to_sub_mul_action = 1 :=
+set_like.ext $ λ x, mem_one.trans sub_mul_action.mem_one'.symm
 
 theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin
@@ -67,6 +98,8 @@ begin
   intro a,
   simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
+
+theorem one_eq_span_one_set : (1 : submodule R A) = span R 1 := one_eq_span
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
@@ -94,16 +127,18 @@ by rw [←map_equiv_eq_comap_symm, map_op_one]
 
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
-instance : has_mul (submodule R A) := ⟨submodule.map₂ (algebra.lmul R A).to_linear_map⟩
+instance : has_mul (submodule R A) := ⟨submodule.map₂ $ linear_map.mul R A⟩
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N := apply_mem_map₂ _ hm hn
 
 theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P := map₂_le
 
-lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
+lemma mul_to_add_submonoid (M N : submodule R A) :
+  (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
 begin
   dsimp [has_mul.mul],
-  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid, map₂],
+  simp_rw [←linear_map.mul_left_to_add_monoid_hom R, linear_map.mul_left, ←map_to_add_submonoid _ N,
+    map₂],
   rw supr_to_add_submonoid,
   refl,
 end
@@ -132,17 +167,7 @@ variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) := map₂_span_span _ _ _ _
 variables {R}
 
-
 variables (M N P Q)
-protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
-le_antisymm (mul_le.2 $ λ mn hmn p hp,
-  suffices M * N ≤ (M * (N * P)).comap (algebra.lmul_right R p), from this hmn,
-  mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
-  (mul_assoc m n p).symm ▸ mul_mem_mul hm (mul_mem_mul hn hp))
-(mul_le.2 $ λ m hm np hnp,
-  suffices N * P ≤ (M * N * P).comap (algebra.lmul_left R m), from this hnp,
-  mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
-  mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
 
 @[simp] theorem mul_bot : M * ⊥ = ⊥ := map₂_bot_right _ _
 
@@ -173,7 +198,7 @@ image2_subset_map₂ (algebra.lmul R A).to_linear_map M N
 protected lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)
-    = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
+    = ⨆ (i : M), (N.map (linear_map.mul R A i)).map f.to_linear_map : map_supr _ _
 ... = map f.to_linear_map M * map f.to_linear_map N  :
   begin
     apply congr_arg Sup,
@@ -237,24 +262,7 @@ open_locale pointwise
 This is available as an instance in the `pointwise` locale. -/
 protected def has_distrib_pointwise_neg {A} [ring A] [algebra R A] :
   has_distrib_neg (submodule R A) :=
-{ neg := has_neg.neg,
-  neg_mul := λ x y, begin
-    refine le_antisymm
-      (mul_le.2 $ λ m hm n hn, _)
-      ((submodule.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
-    simp only [submodule.mem_neg, ←neg_mul] at *,
-    { exact mul_mem_mul hm hn,},
-    { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
-  end,
-  mul_neg := λ x y, begin
-    refine le_antisymm
-      (mul_le.2 $ λ m hm n hn, _)
-      ((submodule.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
-    simp only [submodule.mem_neg, ←mul_neg] at *,
-    { exact mul_mem_mul hm hn,},
-    { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
-  end,
-  ..submodule.has_involutive_pointwise_neg }
+to_add_submonoid_injective.has_distrib_neg _ neg_to_add_submonoid mul_to_add_submonoid
 
 localized "attribute [instance] submodule.has_distrib_pointwise_neg" in pointwise
 
@@ -295,30 +303,59 @@ submodule.mem_span_mul_finite_of_mem_span_mul
 
 variables {M N P}
 
-/-- Sub-R-modules of an R-algebra form a semiring. -/
-instance : semiring (submodule R A) :=
+lemma mem_span_singleton_mul {x y : A} : x ∈ span R {y} * P ↔ ∃ z ∈ P, y * z = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map, exists_prop], refl }
+
+lemma mem_mul_span_singleton {x y : A} : x ∈ P * span R {y} ↔ ∃ z ∈ P, z * y = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map_flip, exists_prop], refl }
+
+/-- Sub-R-modules of an R-algebra form an idempotent semiring. -/
+instance : idem_semiring (submodule R A) :=
 { one_mul       := submodule.one_mul,
   mul_one       := submodule.mul_one,
-  mul_assoc     := submodule.mul_assoc,
   zero_mul      := bot_mul,
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
+  ..to_add_submonoid_injective.semigroup _ (λ m n : submodule R A, mul_to_add_submonoid m n),
+  ..add_monoid_with_one.unary,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
-  ..submodule.has_mul }
+  ..submodule.has_mul,
+  ..(by apply_instance : order_bot (submodule R A)),
+  ..(by apply_instance : lattice (submodule R A)) }
 
 variables (M)
 
+lemma span_pow (s : set A) : ∀ n : ℕ, span R s ^ n = span R (s ^ n)
+| 0 := by rw [pow_zero, pow_zero, one_eq_span_one_set]
+| (n + 1) := by rw [pow_succ, pow_succ, span_pow, span_mul_span]
+
+lemma pow_eq_span_pow_set (n : ℕ) : M ^ n = span R ((M : set A) ^ n) := by rw [←span_pow, span_eq]
+
 lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
+(pow_eq_span_pow_set M n).symm ▸ subset_span
+
+lemma pow_mem_pow {x : A} (hx : x ∈ M) (n : ℕ) : x ^ n ∈ M ^ n :=
+pow_subset_pow _ $ set.pow_mem_pow hx _
+
+lemma pow_to_add_submonoid {n : ℕ} (h : n ≠ 0) :
+  (M ^ n).to_add_submonoid = M.to_add_submonoid ^ n :=
 begin
   induction n with n ih,
-  { erw [pow_zero, pow_zero, set.singleton_subset_iff],
-    rw [set_like.mem_coe, ← one_le],
-    exact le_rfl },
-  { rw [pow_succ, pow_succ],
-    refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
-    apply mul_subset_mul }
+  { exact (h rfl).elim },
+  { rw [pow_succ, pow_succ, mul_to_add_submonoid],
+    cases n,
+    { rw [pow_zero, pow_zero, mul_one, ←mul_to_add_submonoid, mul_one] },
+    { rw ih n.succ_ne_zero } },
+end
+
+lemma le_pow_to_add_submonoid {n : ℕ} :
+  M.to_add_submonoid ^ n ≤ (M ^ n).to_add_submonoid :=
+begin
+  obtain rfl | hn := decidable.eq_or_ne n 0,
+  { rw [pow_zero, pow_zero], exact le_one_to_add_submonoid },
+  { exact (pow_to_add_submonoid M hn).ge }
 end
 
 /-- Dependent version of `submodule.pow_induction_on_left`. -/
@@ -427,12 +464,30 @@ by rw [←comap_equiv_eq_map_symm, ←comap_equiv_eq_map_symm, comap_op_pow]
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/
+@[simps]
 def span.ring_hom : set_semiring A →+* submodule R A :=
-{ to_fun := submodule.span R,
+{ to_fun := λ s, submodule.span R s.down,
   map_zero' := span_empty,
   map_one' := one_eq_span.symm,
   map_add' := span_union,
-  map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
+  map_mul' := λ s t, by rw [set_semiring.down_mul, span_mul_span, ← image_mul_prod] }
+
+section
+variables {α : Type*} [monoid α] [mul_semiring_action α A] [smul_comm_class α R A]
+
+/-- The action on a submodule corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `submodule.pointwise_distrib_mul_action`. -/
+protected def pointwise_mul_semiring_action : mul_semiring_action α (submodule R A) :=
+{ smul_mul := λ r x y, submodule.map_mul x y $ mul_semiring_action.to_alg_hom R A r,
+  smul_one := λ r, submodule.map_one $ mul_semiring_action.to_alg_hom R A r,
+  ..submodule.pointwise_distrib_mul_action }
+
+localized "attribute [instance] submodule.pointwise_mul_semiring_action" in pointwise
+
+end
 
 end ring
 
@@ -450,9 +505,9 @@ le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 (mul_le.2 $ λ r hrn s hsm, mul_mem_mul_rev hsm hrn)
 
 /-- Sub-R-modules of an R-algebra A form a semiring. -/
-instance : comm_semiring (submodule R A) :=
+instance : idem_comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
-  .. submodule.semiring }
+  .. submodule.idem_semiring }
 
 lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
   (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=
@@ -472,27 +527,28 @@ variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
 instance module_set : module (set_semiring A) (submodule R A) :=
-{ smul := λ s P, span R s * P,
+{ smul := λ s P, span R s.down * P,
   smul_add := λ _ _ _, mul_add _ _ _,
-  add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
-  mul_smul := λ s t P, show _ = _ * (_ * _),
-    by { rw [← mul_assoc, span_mul_span, ← image_mul_prod] },
-  one_smul := λ P, show span R {(1 : A)} * P = _,
-    by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
-  zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
+  add_smul := λ s t P,
+    by simp_rw [has_smul.smul, set_semiring.down_add, span_union, sup_mul, add_eq_sup],
+  mul_smul := λ s t P,
+    by simp_rw [has_smul.smul, set_semiring.down_mul, ← mul_assoc, span_mul_span],
+  one_smul := λ P,
+    by simp_rw [has_smul.smul, set_semiring.down_one, ←one_eq_span_one_set, one_mul],
+  zero_smul := λ P,
+    by simp_rw [has_smul.smul, set_semiring.down_zero, span_empty, bot_mul, bot_eq_zero],
   smul_zero := λ _, mul_bot _ }
-
 
 variables {R A}
 
-lemma smul_def {s : set_semiring A} {P : submodule R A} : s • P = span R s * P := rfl
+lemma smul_def (s : set_semiring A) (P : submodule R A) : s • P = span R s.down * P := rfl
 
-lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ≤ t.down)
+lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ⊆ t.down)
   (h₂ : M ≤ N) : s • M ≤ t • N :=
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A).up • M = M.map (lmul_left _ a) :=
+  ({a} : set A).up • M = M.map (linear_map.mul_left R a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,

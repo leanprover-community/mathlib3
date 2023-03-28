@@ -8,6 +8,9 @@ import algebra.char_p.basic
 /-!
 # Lemmas about rings of characteristic two
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about `char_p R 2`, in the `char_two` namespace.
 
 The lemmas in this file with a `_sq` suffix are just special cases of the `_pow_char` lemmas

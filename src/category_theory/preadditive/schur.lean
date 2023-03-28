@@ -5,7 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.group.ext
 import category_theory.simple
-import category_theory.linear
+import category_theory.linear.basic
 import category_theory.endomorphism
 import algebra.algebra.spectrum
 
@@ -217,6 +217,17 @@ begin
   interval_cases finrank 𝕜 (X ⟶ Y) with h',
   { exact h', },
   { exact false.elim (h h'), },
+end
+
+open_locale classical
+
+lemma finrank_hom_simple_simple
+  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
+  finrank 𝕜 (X ⟶ Y) = if nonempty (X ≅ Y) then 1 else 0 :=
+begin
+  split_ifs,
+  exact (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y).2 h,
+  exact (finrank_hom_simple_simple_eq_zero_iff 𝕜 X Y).2 (not_nonempty_iff.mp h),
 end
 
 end category_theory

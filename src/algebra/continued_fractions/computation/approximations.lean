@@ -275,19 +275,10 @@ lemma le_of_succ_succ_nth_continuants_aux_b {b : K}
   (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
   b * ((of v).continuants_aux $ n + 1).b ≤ ((of v).continuants_aux $ n + 2).b :=
 begin
-  set g := of v with g_eq,
-  obtain ⟨gp_n, nth_s_eq, gpnb_eq_b⟩ : ∃ gp_n, g.s.nth n = some gp_n ∧ gp_n.b = b, from
-    exists_s_b_of_part_denom nth_part_denom_eq,
-  subst gpnb_eq_b,
-  let conts := g.continuants_aux (n + 2),
-  set pconts := g.continuants_aux (n + 1) with pconts_eq,
-  set ppconts := g.continuants_aux n with ppconts_eq,
-  have h1 : 0 ≤ ppconts.b, from zero_le_of_continuants_aux_b,
-  have h2 : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b,
-  { solve_by_elim [le_add_of_nonneg_of_le, le_refl] },
-  -- use the recurrence of continuants_aux and the fact that gp_n.a = 1
-  simp [h1, h2, of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
-     generalized_continued_fraction.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq],
+  obtain ⟨gp_n, nth_s_eq, rfl⟩ : ∃ gp_n, (of v).s.nth n = some gp_n ∧ gp_n.b = b,
+    from exists_s_b_of_part_denom nth_part_denom_eq,
+  simp [of_part_num_eq_one (part_num_eq_s_a nth_s_eq), zero_le_of_continuants_aux_b,
+     generalized_continued_fraction.continuants_aux_recurrence nth_s_eq rfl rfl]
 end
 
 /-- Shows that `bₙ * Bₙ ≤ Bₙ₊₁`, where `bₙ` is the `n`th partial denominator and `Bₙ₊₁` and `Bₙ` are
@@ -515,8 +506,7 @@ begin
       simp only [stream_nth_fr_ne_zero, conts_eq.symm, pred_conts_eq.symm] at tmp,
       rw tmp,
       simp only [denom'],
-      ring_nf,
-      ac_refl },
+      ring_nf },
     rwa this },
   -- derive some tedious inequalities that we need to rewrite our goal
   have nextConts_b_ineq : (fib (n + 2) : K) ≤ (pred_conts.b + gp.b * conts.b), by
@@ -574,33 +564,21 @@ Shows that `|v - Aₙ / Bₙ| ≤ 1 / (bₙ * Bₙ * Bₙ)`. This bound is worse
  -/
 lemma abs_sub_convergents_le' {b : K}
   (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
-    |v - (of v).convergents n|
-  ≤ 1 / (b * ((of v).denominators n) * ((of v).denominators n)) :=
+  |v - (of v).convergents n| ≤ 1 / (b * ((of v).denominators n) * ((of v).denominators n)) :=
 begin
-  let g := of v,
-  let B := g.denominators n,
-  let nB := g.denominators (n + 1),
-  have not_terminated_at_n : ¬g.terminated_at n, by
-  { have : g.partial_denominators.nth n ≠ none, by simp [nth_part_denom_eq],
-    exact (not_iff_not_of_iff terminated_at_iff_part_denom_none).elim_right this },
-  suffices : 1 / (B * nB) ≤ (1 : K) / (b * B * B), by
-  { have : |v - g.convergents n| ≤ 1 / (B * nB), from abs_sub_convergents_le not_terminated_at_n,
-    transitivity;
-    assumption },
-  -- derive some inequalities needed to show the claim
-  have zero_lt_B : 0 < B, by
-  { have : (fib (n + 1) : K) ≤ B, from
-      succ_nth_fib_le_of_nth_denom (or.inr $
-        mt (terminated_stable n.pred_le) not_terminated_at_n),
-    exact (lt_of_lt_of_le
-      (by exact_mod_cast (fib_pos (lt_of_le_of_ne n.succ.zero_le n.succ_ne_zero.symm))) this) },
-  have denoms_ineq : b * B * B ≤ B * nB, by
-  { have : b * B ≤ nB, from le_of_succ_nth_denom nth_part_denom_eq,
-    rwa [(mul_comm B nB), (mul_le_mul_right zero_lt_B)] },
-  have : (0 : K) < b * B * B, by
-  { have : 0 < b, from lt_of_lt_of_le zero_lt_one (of_one_le_nth_part_denom nth_part_denom_eq),
-    any_goals { repeat { apply mul_pos } }; assumption },
-  exact (div_le_div_of_le_left zero_le_one this denoms_ineq)
+  have not_terminated_at_n : ¬(of v).terminated_at n,
+    by simp [terminated_at_iff_part_denom_none, nth_part_denom_eq],
+  refine (abs_sub_convergents_le not_terminated_at_n).trans _,
+  -- One can show that `0 < (generalized_continued_fraction.of v).denominators n` but it's easier
+  -- to consider the case `(generalized_continued_fraction.of v).denominators n = 0`.
+  rcases zero_le_of_denom.eq_or_gt
+    with (hB : (generalized_continued_fraction.of v).denominators n = 0) | hB,
+  { simp only [hB, mul_zero, zero_mul, div_zero] },
+  { apply one_div_le_one_div_of_le,
+    { have : 0 < b := zero_lt_one.trans_le (of_one_le_nth_part_denom nth_part_denom_eq),
+      apply_rules [mul_pos] },
+    { conv_rhs { rw [mul_comm] },
+      exact mul_le_mul_of_nonneg_right (le_of_succ_nth_denom nth_part_denom_eq) hB.le } }
 end
 
 end error_term

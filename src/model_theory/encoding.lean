@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import computability.encoding
+import logic.small.list
 import model_theory.syntax
 import set_theory.cardinal.ordinal
 
@@ -73,7 +74,7 @@ begin
         (fin_range n).map (option.some ∘ ts) ++ list_decode l,
       { induction (fin_range n) with i l' l'ih,
         { refl },
-        { rw [cons_bind, append_assoc, ih, map_cons, l'ih, cons_append] } },
+        { rw [cons_bind, list.append_assoc, ih, map_cons, l'ih, cons_append] } },
       have h' : ∀ i, (list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l)).nth
         ↑i = some (some (ts i)),
       { intro i,
@@ -113,19 +114,16 @@ theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ℵ₀ (# (α ⊕ �
 begin
   refine le_antisymm _ _,
   { rw mk_sigma,
-    refine (sum_le_sup_lift _).trans _,
+    refine (sum_le_supr_lift _).trans _,
     rw [mk_nat, lift_aleph_0, mul_eq_max_of_aleph_0_le_left le_rfl, max_le_iff,
-      cardinal.sup_le_iff],
+      csupr_le_iff' (bdd_above_range _)],
     { refine ⟨le_max_left _ _, λ i, card_le.trans _⟩,
-      rw max_le_iff,
-      refine ⟨le_max_left _ _, _⟩,
+      refine max_le (le_max_left _ _) _,
       rw [← add_eq_max le_rfl, mk_sum, mk_sum, mk_sum, add_comm (cardinal.lift (#α)), lift_add,
-        add_assoc, lift_lift, lift_lift],
-      refine add_le_add_right _ _,
-      rw [lift_le_aleph_0, ← encodable_iff],
-      exact ⟨infer_instance⟩ },
+        add_assoc, lift_lift, lift_lift, mk_fin, lift_nat_cast],
+      exact add_le_add_right (nat_lt_aleph_0 _).le _ },
     { rw [← one_le_iff_ne_zero],
-      refine trans _ (le_sup _ 1),
+      refine trans _ (le_csupr (bdd_above_range _) 1),
       rw [one_le_iff_ne_zero, mk_ne_zero_iff],
       exact ⟨var (sum.inr 0)⟩ } },
   { rw [max_le_iff, ← infinite_iff],
@@ -154,13 +152,12 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head'.join)
     simp only [option.join, head', list.map, option.some_bind, id.def],
   end)
 
-lemma card_le_aleph_0 [h1 : nonempty (encodable α)] [h2 : L.countable_functions] :
-  # (L.term α) ≤ ℵ₀ :=
+instance [h1 : countable α] [h2 : countable (Σl, L.functions l)] :
+  countable (L.term α) :=
 begin
-  refine (card_le.trans _),
-  rw [max_le_iff],
+  refine mk_le_aleph_0_iff.1 (card_le.trans (max_le_iff.2 _)),
   simp only [le_refl, mk_sum, add_le_aleph_0, lift_le_aleph_0, true_and],
-  exact ⟨encodable_iff.1 h1, L.card_functions_le_aleph_0⟩,
+  exact ⟨cardinal.mk_le_aleph_0, cardinal.mk_le_aleph_0⟩,
 end
 
 instance small [small.{u} α] :
@@ -271,7 +268,7 @@ begin
         rw [list.drop_append_eq_append_drop, length_map, length_fin_range, nat.sub_self, drop,
           drop_eq_nil_of_le, nil_append],
         rw [length_map, length_fin_range], }, },
-    { rw [list_encode, append_assoc, cons_append, list_decode],
+    { rw [list_encode, list.append_assoc, cons_append, list_decode],
       simp only [subtype.val_eq_coe] at *,
       rw [(ih1 _).1, (ih1 _).2, (ih2 _).1, (ih2 _).2, sigma_imp, dif_pos rfl],
       exact ⟨rfl, rfl⟩, },

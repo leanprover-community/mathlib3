@@ -41,7 +41,7 @@ open_locale matrix big_operators
 def hadamard [has_mul α] (A : matrix m n α) (B : matrix m n α) : matrix m n α
 | i j := A i j * B i j
 
-localized "infix ` ⊙ `:100 := matrix.hadamard" in matrix
+localized "infix (name := matrix.hadamard) ` ⊙ `:100 := matrix.hadamard" in matrix
 
 section basic_properties
 
@@ -65,11 +65,11 @@ ext $ λ _ _, right_distrib _ _ _
 /- scalar multiplication -/
 section scalar
 
-@[simp] lemma smul_hadamard [has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
+@[simp] lemma smul_hadamard [has_mul α] [has_smul R α] [is_scalar_tower R α α] (k : R) :
   (k • A) ⊙ B = k • A ⊙ B :=
 ext $ λ _ _, smul_mul_assoc _ _ _
 
-@[simp] lemma hadamard_smul [has_mul α] [has_scalar R α] [smul_comm_class R α α] (k : R):
+@[simp] lemma hadamard_smul [has_mul α] [has_smul R α] [smul_comm_class R α α] (k : R):
   A ⊙ (k • B) = k • A ⊙ B :=
 ext $ λ _ _, mul_smul_comm _ _ _
 

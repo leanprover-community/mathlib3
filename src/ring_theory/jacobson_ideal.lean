@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Devon Tuma
 -/
 import ring_theory.ideal.quotient
-import ring_theory.polynomial.basic
+import ring_theory.polynomial.quotient
 
 /-!
 # Jacobson radical
@@ -209,8 +209,8 @@ variables [comm_ring R] [comm_ring S] {I : ideal R}
 lemma radical_le_jacobson : radical I ≤ jacobson I :=
 le_Inf (λ J hJ, (radical_eq_Inf I).symm ▸ Inf_le ⟨hJ.left, is_maximal.is_prime hJ.right⟩)
 
-lemma eq_radical_of_eq_jacobson : jacobson I = I → radical I = I :=
-λ h, le_antisymm (le_trans radical_le_jacobson (le_of_eq h)) le_radical
+lemma is_radical_of_eq_jacobson (h : jacobson I = I) : I.is_radical :=
+radical_le_jacobson.trans h.le
 
 lemma is_unit_of_sub_one_mem_jacobson_bot (r : R)
   (h : r - 1 ∈ jacobson (⊥ : ideal R)) : is_unit r :=
@@ -277,7 +277,7 @@ open polynomial
 variables [comm_ring R]
 
 lemma jacobson_bot_polynomial_le_Inf_map_maximal :
-  jacobson (⊥ : ideal R[X]) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
+  jacobson (⊥ : ideal R[X]) ≤ Inf (map (C : R →+* R[X]) '' {J : ideal R | J.is_maximal}) :=
 begin
   refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
   haveI : j.is_maximal := hj.1,

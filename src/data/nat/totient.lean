@@ -3,13 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.big_operators.basic
-import data.nat.prime
-import data.zmod.basic
-import ring_theory.multiplicity
-import data.nat.periodic
 import algebra.char_p.two
-import number_theory.divisors
+import data.nat.factorization.basic
+import data.nat.periodic
+import data.zmod.basic
 
 /-!
 # Euler's totient function
@@ -30,7 +27,7 @@ namespace nat
 coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter n.coprime).card
 
-localized "notation `φ` := nat.totient" in nat
+localized "notation (name := nat.totient) `φ` := nat.totient" in nat
 
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
@@ -38,6 +35,17 @@ localized "notation `φ` := nat.totient" in nat
 by simp [totient]
 
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
+
+/-- A characterisation of `nat.totient` that avoids `finset`. -/
+lemma totient_eq_card_lt_and_coprime (n : ℕ) : φ n = nat.card {m | m < n ∧ n.coprime m} :=
+begin
+  let e : {m | m < n ∧ n.coprime m} ≃ finset.filter n.coprime (finset.range n) :=
+  { to_fun  := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    inv_fun := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    left_inv  := λ m, by simp only [subtype.coe_mk, subtype.coe_eta],
+    right_inv := λ m, by simp only [subtype.coe_mk, subtype.coe_eta] },
+  rw [totient_eq_card_coprime, card_congr e, card_eq_fintype_card, fintype.card_coe],
+end
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 ((range n).card_filter_le _).trans_eq (card_range n)
@@ -92,27 +100,22 @@ open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
 diamonds. -/
-@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [fact (0 < n)] [fintype ((zmod n)ˣ)] :
+@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [ne_zero n] [fintype ((zmod n)ˣ)] :
   fintype.card ((zmod n)ˣ) = φ n :=
 calc fintype.card ((zmod n)ˣ) = fintype.card {x : zmod n // x.val.coprime n} :
   fintype.card_congr zmod.units_equiv_coprime
 ... = φ n :
 begin
-  apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
-  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
-  { intros b hb,
-    rw [finset.mem_filter, finset.mem_range] at hb,
-    refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,
-    { let u := unit_of_coprime b hb.2.symm,
-      exact val_coe_unit_coprime u },
-    { show zmod.val (b : zmod n) = b,
-      rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
+  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero ne_zero.out },
+  simp only [totient, finset.card_eq_sum_ones, fintype.card_subtype, finset.sum_filter,
+    ← fin.sum_univ_eq_sum_range, @nat.coprime_comm (m + 1)],
+  refl
 end
 
 lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=
 begin
   haveI : fact (1 < n) := ⟨one_lt_two.trans hn⟩,
+  haveI : ne_zero n := ne_zero.of_gt hn,
   suffices : 2 = order_of (-1 : (zmod n)ˣ),
   { rw [← zmod.card_units_eq_totient, even_iff_two_dvd, this], exact order_of_dvd_card_univ },
   rw [←order_of_units, units.coe_neg_one, order_of_neg_one, ring_char.eq (zmod n) n, if_neg hn.ne'],
@@ -124,9 +127,9 @@ if hmn0 : m * n = 0
     simp only [totient_zero, mul_zero, zero_mul, h]
   else
   begin
-    haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
-    haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
-    haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
+    haveI : ne_zero (m * n) := ⟨hmn0⟩,
+    haveI : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
+    haveI : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
     simp only [← zmod.card_units_eq_totient],
     rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
@@ -193,8 +196,8 @@ calc φ (p ^ (n + 1))
       exact h b (lt_of_mul_lt_mul_left ha (zero_le _)) (mul_comm _ _) }
   end
 ... = _ :
-have h1 : set.inj_on (* p) (range (p ^ n)),
-  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+have h1 : function.injective (* p),
+  from mul_left_injective₀ hp.ne_zero,
 have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
   from λ a, begin
     simp only [mem_image, mem_range, exists_imp_distrib],
@@ -203,7 +206,7 @@ have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
     exact (mul_lt_mul_right hp.pos).2 h
   end,
 begin
-  rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
+  rw [card_sdiff h2, card_image_of_inj_on (h1.inj_on _), card_range,
     card_range, ← one_mul (p ^ n), pow_succ, ← tsub_mul,
     one_mul, mul_comm]
 end
@@ -216,21 +219,6 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
-
-lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
-  (p * n).totient = p * n.totient :=
-begin
-  by_cases hzero : n = 0,
-  { simp [hzero] },
-  { have hfin := (multiplicity.finite_nat_iff.2 ⟨hp.ne_one, zero_lt_iff.2 hzero⟩),
-    have h0 : 0 < (multiplicity p n).get hfin := multiplicity.pos_of_dvd hfin h,
-    obtain ⟨m, hm, hndiv⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
-    rw [hm, ← mul_assoc, ← pow_succ, nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd
-      hndiv)), nat.totient_mul (coprime_comm.mp (hp.coprime_pow_of_not_dvd hndiv)), ← mul_assoc],
-    congr,
-    rw [ ← succ_pred_eq_of_pos h0, totient_prime_pow_succ hp, totient_prime_pow_succ hp,
-      succ_pred_eq_of_pos h0, ← mul_assoc p, ← pow_succ, ← succ_pred_eq_of_pos h0, nat.pred_succ] }
-end
 
 lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin
@@ -250,7 +238,7 @@ end
 lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype ((zmod p)ˣ)] :
   fintype.card ((zmod p)ˣ) ≤ p - 1 :=
 begin
-  haveI : fact (0 < p) := ⟨zero_lt_one.trans hp⟩,
+  haveI : ne_zero p := ⟨(pos_of_gt hp).ne'⟩,
   rw zmod.card_units_eq_totient p,
   exact nat.le_pred_of_lt (nat.totient_lt p hp),
 end
@@ -258,14 +246,13 @@ end
 lemma prime_iff_card_units (p : ℕ) [fintype ((zmod p)ˣ)] :
   p.prime ↔ fintype.card ((zmod p)ˣ) = p - 1 :=
 begin
-  by_cases hp : p = 0,
+  casesI eq_zero_or_ne_zero p with hp hp,
   { substI hp,
     simp only [zmod, not_prime_zero, false_iff, zero_tsub],
     -- the substI created an non-defeq but subsingleton instance diamond; resolve it
     suffices : fintype.card ℤˣ ≠ 0, { convert this },
     simp },
-  haveI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
-  rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))],
+  rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime $ ne_zero.pos p],
 end
 
 @[simp] lemma totient_two : φ 2 = 1 :=
@@ -333,6 +320,59 @@ begin
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
   have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
+end
+
+lemma totient_gcd_mul_totient_mul (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
+begin
+  have shuffle : ∀ a1 a2 b1 b2 c1 c2 : ℕ, b1 ∣ a1 → b2 ∣ a2 →
+    (a1/b1 * c1) * (a2/b2 * c2) = (a1*a2)/(b1*b2) * (c1*c2),
+  { intros a1 a2 b1 b2 c1 c2 h1 h2,
+    calc
+      (a1/b1 * c1) * (a2/b2 * c2) = ((a1/b1) * (a2/b2)) * (c1*c2) : by apply mul_mul_mul_comm
+      ... = (a1*a2)/(b1*b2) * (c1*c2) : by { congr' 1, exact div_mul_div_comm h1 h2 } },
+  simp only [totient_eq_div_factors_mul],
+  rw [shuffle, shuffle],
+  rotate, repeat { apply prod_prime_factors_dvd },
+  { simp only [prod_factors_gcd_mul_prod_factors_mul],
+    rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
+    exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b) }
+end
+
+lemma totient_super_multiplicative (a b : ℕ) : φ a * φ b ≤ φ (a * b) :=
+begin
+  let d := a.gcd b,
+  rcases (zero_le a).eq_or_lt with rfl | ha0, { simp },
+  have hd0 : 0 < d, from nat.gcd_pos_of_pos_left _ ha0,
+  rw [←mul_le_mul_right hd0, ←totient_gcd_mul_totient_mul a b, mul_comm],
+  apply mul_le_mul_left' (nat.totient_le d),
+end
+
+lemma totient_dvd_of_dvd {a b : ℕ} (h : a ∣ b) : φ a ∣ φ b :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha0, { simp [zero_dvd_iff.1 h] },
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  have hab' : a.factorization.support ⊆ b.factorization.support,
+  { intro p,
+    simp only [support_factorization, list.mem_to_finset],
+    apply factors_subset_of_dvd h hb0 },
+  rw [totient_eq_prod_factorization ha0, totient_eq_prod_factorization hb0],
+  refine finsupp.prod_dvd_prod_of_subset_of_dvd hab' (λ p hp, mul_dvd_mul _ dvd_rfl),
+  exact pow_dvd_pow p (tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1),
+end
+
+lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
+  (p * n).totient = p * n.totient :=
+begin
+  have h1 := totient_gcd_mul_totient_mul p n,
+  rw [(gcd_eq_left h), mul_assoc] at h1,
+  simpa [(totient_pos hp.pos).ne', mul_comm] using h1,
+end
+
+lemma totient_mul_of_prime_of_not_dvd {p n : ℕ} (hp : p.prime) (h : ¬ p ∣ n) :
+  (p * n).totient = (p - 1) * n.totient :=
+begin
+  rw [totient_mul _, totient_prime hp],
+  simpa [h] using coprime_or_dvd_of_prime hp n,
 end
 
 end nat

@@ -5,11 +5,12 @@ Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 
 import algebra.group.defs
-import data.bracket
-import logic.function.basic
 
 /-!
 # Basic lemmas about semigroups, monoids, and groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file lists various basic lemmas about semigroups, monoids, and groups. Most proofs are
 one-liners from the corresponding axioms. For the definitions of semigroups, monoids and groups, see
@@ -19,7 +20,7 @@ one-liners from the corresponding axioms. For the definitions of semigroups, mon
 open function
 
 universe u
-variables {α G : Type*}
+variables {α β G : Type*}
 
 section associative
 variables (f : α → α → α) [is_associative α f] (x y : α)
@@ -116,6 +117,18 @@ by simp only [mul_left_comm, mul_comm]
 
 end comm_semigroup
 
+section add_comm_semigroup
+variables {M : Type u} [add_comm_semigroup M]
+
+lemma bit0_add (a b : M) : bit0 (a + b) = bit0 a + bit0 b :=
+add_add_add_comm _ _ _ _
+lemma bit1_add [has_one M] (a b : M) : bit1 (a + b) = bit0 a + bit1 b :=
+(congr_arg (+ (1 : M)) $ bit0_add a b : _).trans (add_assoc _ _ _)
+lemma bit1_add' [has_one M] (a b : M) : bit1 (a + b) = bit1 a + bit0 b :=
+by rw [add_comm, bit1_add, add_comm]
+
+end add_comm_semigroup
+
 local attribute [simp] mul_assoc sub_eq_add_neg
 
 section add_monoid
@@ -178,16 +191,8 @@ inv_involutive.injective
 @[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
 @[to_additive]
-lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
-by simp [h]
-
-@[to_additive]
-theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
-⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
-
-@[to_additive]
-theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
-eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
+theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
+⟨λ h, h ▸ (inv_inv a).symm, λ h, h.symm ▸ inv_inv b⟩
 
 variables (G)
 
@@ -231,6 +236,17 @@ by rw [div_eq_mul_inv, one_div]
 
 end div_inv_monoid
 
+section div_inv_one_monoid
+variables [div_inv_one_monoid G]
+
+@[simp, to_additive] lemma div_one (a : G) : a / 1 = a :=
+by simp [div_eq_mul_inv]
+
+@[to_additive] lemma one_div_one : (1 : G) / 1 = 1 :=
+div_one _
+
+end div_inv_one_monoid
+
 section division_monoid
 variables [division_monoid α] {a b c : α}
 
@@ -262,11 +278,13 @@ variables (a b c)
 @[to_additive] lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ := by simp
 @[simp, to_additive] lemma inv_div : (a / b)⁻¹ = b / a := by simp
 @[simp, to_additive] lemma one_div_div : 1 / (a / b) = b / a := by simp
-@[simp, to_additive] lemma inv_one : (1 : α)⁻¹ = 1 :=
-by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm
-@[simp, to_additive] lemma div_one : a / 1 = a := by simp
-@[to_additive] lemma one_div_one : (1 : α) / 1 = 1 := div_one _
 @[to_additive] lemma one_div_one_div : 1 / (1 / a) = a := by simp
+
+@[priority 100, to_additive subtraction_monoid.to_sub_neg_zero_monoid]
+instance division_monoid.to_div_inv_one_monoid :
+  div_inv_one_monoid α :=
+{ inv_one := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm,
+  ..division_monoid.to_div_inv_monoid α }
 
 variables {a b c}
 
@@ -373,7 +391,7 @@ theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
-by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
+by rw [mul_eq_one_iff_eq_inv, inv_eq_iff_eq_inv]
 
 @[to_additive]
 theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=
@@ -616,13 +634,56 @@ by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div, div_eq_iff_eq_mul', mul_div_assoc]
 
 end comm_group
 
-section commutator
+section subtraction_comm_monoid
+variables {M : Type u} [subtraction_comm_monoid M]
 
-/-- The commutator of two elements `g₁` and `g₂`. -/
-instance commutator_element {G : Type*} [group G] : has_bracket G G :=
-⟨λ g₁ g₂, g₁ * g₂ * g₁⁻¹ * g₂⁻¹⟩
+lemma bit0_sub (a b : M) : bit0 (a - b) = bit0 a - bit0 b :=
+sub_add_sub_comm _ _ _ _
+lemma bit1_sub [has_one M] (a b : M) : bit1 (a - b) = bit1 a - bit0 b :=
+(congr_arg (+ (1 : M)) $ bit0_sub a b : _).trans $ sub_add_eq_add_sub _ _ _
 
-lemma commutator_element_def  {G : Type*} [group G] (g₁ g₂ : G) :
-  ⁅g₁, g₂⁆ = g₁ * g₂ * g₁⁻¹ * g₂⁻¹ := rfl
+end subtraction_comm_monoid
 
-end commutator
+section multiplicative
+
+variables [monoid β] (p r : α → α → Prop) [is_total α r] (f : α → α → β)
+
+@[to_additive additive_of_symmetric_of_is_total]
+lemma multiplicative_of_symmetric_of_is_total
+  (hsymm : symmetric p) (hf_swap : ∀ {a b}, p a b → f a b * f b a = 1)
+  (hmul : ∀ {a b c}, r a b → r b c → p a b → p b c → p a c → f a c = f a b * f b c)
+  {a b c : α} (pab : p a b) (pbc : p b c) (pac : p a c) : f a c = f a b * f b c :=
+begin
+  suffices : ∀ {b c}, r b c → p a b → p b c → p a c → f a c = f a b * f b c,
+  { obtain rbc | rcb := total_of r b c,
+    { exact this rbc pab pbc pac },
+    { rw [this rcb pac (hsymm pbc) pab, mul_assoc, hf_swap (hsymm pbc), mul_one] } },
+  intros b c rbc pab pbc pac,
+  obtain rab | rba := total_of r a b,
+  { exact hmul rab rbc pab pbc pac },
+  rw [← one_mul (f a c), ← hf_swap pab, mul_assoc],
+  obtain rac | rca := total_of r a c,
+  { rw [hmul rba rac (hsymm pab) pac pbc] },
+  { rw [hmul rbc rca pbc (hsymm pac) (hsymm pab), mul_assoc, hf_swap (hsymm pac), mul_one] },
+end
+
+/-- If a binary function from a type equipped with a total relation `r` to a monoid is
+  anti-symmetric (i.e. satisfies `f a b * f b a = 1`), in order to show it is multiplicative
+  (i.e. satisfies `f a c = f a b * f b c`), we may assume `r a b` and `r b c` are satisfied.
+  We allow restricting to a subset specified by a predicate `p`. -/
+@[to_additive additive_of_is_total "If a binary function from a type equipped with a total relation
+  `r` to an additive monoid is anti-symmetric (i.e. satisfies `f a b + f b a = 0`), in order to show
+  it is additive (i.e. satisfies `f a c = f a b + f b c`), we may assume `r a b` and `r b c`
+  are satisfied. We allow restricting to a subset specified by a predicate `p`."]
+lemma multiplicative_of_is_total (p : α → Prop)
+  (hswap : ∀ {a b}, p a → p b → f a b * f b a = 1)
+  (hmul : ∀ {a b c}, r a b → r b c → p a → p b → p c → f a c = f a b * f b c)
+  {a b c : α} (pa : p a) (pb : p b) (pc : p c) : f a c = f a b * f b c :=
+begin
+  apply multiplicative_of_symmetric_of_is_total (λ a b, p a ∧ p b) r f (λ _ _, and.swap),
+  { simp_rw and_imp, exact @hswap },
+  { exact λ a b c rab rbc pab pbc pac, hmul rab rbc pab.1 pab.2 pac.2 },
+  exacts [⟨pa, pb⟩, ⟨pb, pc⟩, ⟨pa, pc⟩],
+end
+
+end multiplicative

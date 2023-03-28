@@ -5,14 +5,17 @@ Authors: Paul van Wamelen
 -/
 import algebra.field.basic
 import ring_theory.int.basic
-import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 import tactic.field_simp
+import data.int.nat_prime
 import data.zmod.basic
 
 /-!
 # Pythagorean Triples
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The main result is the classification of Pythagorean triples. The final result is for general
 Pythagorean triples. It follows from the more interesting relatively prime case. We use the

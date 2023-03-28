@@ -5,8 +5,8 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
-import tactic.linarith
 import tactic.field_simp
+import tactic.ring
 
 /-!
 # Equivalence of Recursive and Direct Computations of `gcf` Convergents
@@ -18,16 +18,13 @@ direct evaluation (`convergents'`)) for `gcf`s on linear ordered fields. We foll
 [hardy2008introduction], Chapter 10. Here's a sketch:
 
 Let `c` be a continued fraction `[h; (a₀, b₀), (a₁, b₁), (a₂, b₂),...]`, visually:
-                                a₀
-                h + ---------------------------
-                                  a₁
-                      b₀ + --------------------
-                                    a₂
-                            b₁ + --------------
-                                        a₃
-                                  b₂ + --------
-                                      b₃ + ...
-
+$$
+  c = h + \dfrac{a_0}
+                {b_0 + \dfrac{a_1}
+                             {b_1 + \dfrac{a_2}
+                                          {b_2 + \dfrac{a_3}
+                                                       {b_3 + \dots}}}}
+$$
 One can compute the convergents of `c` in two ways:
 1. Directly evaluating the fraction described by `c` up to a given `n` (`convergents'`)
 2. Using the recurrence (`convergents`):
@@ -111,7 +108,7 @@ squashed into position `n`. -/
 lemma squash_seq_nth_of_not_terminated {gp_n gp_succ_n : pair K}
   (s_nth_eq : s.nth n = some gp_n) (s_succ_nth_eq : s.nth (n + 1) = some gp_succ_n) :
   (squash_seq s n).nth n = some ⟨gp_n.a, gp_n.b + gp_succ_n.a / gp_succ_n.b⟩ :=
-by simp [*, squash_seq, (seq.zip_with_nth_some (seq.nats_nth n) s_nth_eq _)]
+by simp [*, squash_seq]
 
 /-- The values before the squashed position stay the same. -/
 lemma squash_seq_nth_of_lt {m : ℕ} (m_lt_n : m < n) : (squash_seq s n).nth m = s.nth m :=
@@ -123,8 +120,7 @@ begin
       s.ge_stable n.le_succ s_succ_nth_eq,
     obtain ⟨gp_m, s_mth_eq⟩ : ∃ gp_m, s.nth m = some gp_m, from
       s.ge_stable (le_of_lt m_lt_n) s_nth_eq,
-    simp [*, squash_seq, (seq.zip_with_nth_some (seq.nats_nth m) s_mth_eq _),
-      (ne_of_lt m_lt_n)] }
+    simp [*, squash_seq, m_lt_n.ne] }
 end
 
 /-- Squashing at position `n + 1` and taking the tail is the same as squashing the tail of the
@@ -141,19 +137,15 @@ begin
   { obtain ⟨gp_succ_n, s_succ_nth_eq⟩ : ∃ gp_succ_n, s.nth (n + 1) = some gp_succ_n, from
       s.ge_stable (n + 1).le_succ s_succ_succ_nth_eq,
     -- apply extensionality with `m` and continue by cases `m = n`.
-    ext m,
+    ext1 m,
     cases decidable.em (m = n) with m_eq_n m_ne_n,
     { have : s.tail.nth n = some gp_succ_n, from (s.nth_tail n).trans s_succ_nth_eq,
-      simp [*, squash_seq, seq.nth_tail, (seq.zip_with_nth_some (seq.nats_nth n) this),
-        (seq.zip_with_nth_some (seq.nats_nth (n + 1)) s_succ_nth_eq)] },
+      simp [*, squash_seq] },
     { have : s.tail.nth m = s.nth (m + 1), from s.nth_tail m,
       cases s_succ_mth_eq : s.nth (m + 1),
       all_goals { have s_tail_mth_eq, from this.trans s_succ_mth_eq },
-      { simp only [*, squash_seq, seq.nth_tail, (seq.zip_with_nth_none' s_succ_mth_eq),
-          (seq.zip_with_nth_none' s_tail_mth_eq)] },
-      { simp [*, squash_seq, seq.nth_tail,
-          (seq.zip_with_nth_some (seq.nats_nth (m + 1)) s_succ_mth_eq),
-          (seq.zip_with_nth_some (seq.nats_nth m) s_tail_mth_eq)] } } }
+      { simp only [*, squash_seq, seq.nth_tail, seq.nth_zip_with, option.map₂_none_right] },
+      { simp [*, squash_seq] } } }
 end
 
 /-- The auxiliary function `convergents'_aux` returns the same value for a sequence and the

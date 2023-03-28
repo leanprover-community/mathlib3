@@ -5,11 +5,13 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import algebra.big_operators.basic
-import data.finsupp.basic
+import algebra.big_operators.finsupp
 
 /-!
 # Products of associated, prime, and irreducible elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some theorems relating definitions in `algebra.associated`
 and products of multisets, finsets, and finsupps.
@@ -108,6 +110,10 @@ variables [comm_monoid α]
 
 theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
 multiset.induction_on p (by simp) $ λ a s ih, by simp [ih, associates.mk_mul_mk]
+
+theorem finset_prod_mk {p : finset β} {f : β → α} :
+  ∏ i in p, associates.mk (f i) = associates.mk (∏ i in p, f i) :=
+by rw [finset.prod_eq_multiset_prod, ← multiset.map_map, prod_mk, ← finset.prod_eq_multiset_prod]
 
 theorem rel_associated_iff_map_eq_map {p q : multiset α} :
   multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=

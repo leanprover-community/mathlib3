@@ -8,6 +8,9 @@ import data.real.basic
 /-!
 # Real sign function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces and contains some results about `real.sign` which maps negative
 real numbers to -1, positive real numbers to 1, and 0 to 0.
 

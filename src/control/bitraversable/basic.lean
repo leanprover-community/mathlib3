@@ -9,6 +9,9 @@ import control.traversable.basic
 /-!
 # Bitraversable type class
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Type class for traversing bifunctors.
 
 Simple examples of `bitraversable` are `prod` and `sum`. A more elaborate example is

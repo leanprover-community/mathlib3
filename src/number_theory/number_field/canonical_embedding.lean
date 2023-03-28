@@ -3,11 +3,11 @@ Copyright (c) 2022 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-
 import number_theory.number_field.embeddings
 
 /-!
 # Canonical embedding of a number field
+
 The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
 `K →+* ℝ^r₁ × ℂ^r₂` that sends `x ∈ K` to `(φ_₁(x),...,φ_r₁(x)) × (ψ_₁(x),..., ψ_r₂(x))` where
 `φ_₁,...,φ_r₁` are its real embeddings and `ψ_₁,..., ψ_r₂` are its complex embeddings (up to
@@ -51,7 +51,7 @@ begin
     fintype.card_subtype_compl, nat.add_sub_of_le (fintype.card_subtype_le _)],
 end
 
-lemma space_nontrivial [number_field K] : nontrivial (space K) :=
+instance [number_field K] : nontrivial (space K) :=
 begin
   obtain ⟨w⟩ := infinite_place.nonempty K,
   by_cases hw : is_real w,
@@ -66,17 +66,13 @@ begin
 end
 
 /-- The canonical embedding of a number field `K` of signature `(r₁, r₂)` into `ℝ^r₁ × ℂ^r₂`. -/
-def _root_.number_field.canonical_embedding : K →+* (space K) :=
+def _root_.number_field.canonical_embedding : K →+* space K :=
 ring_hom.prod
   (pi.ring_hom (λ w, w.prop.embedding))
   (pi.ring_hom (λ w, w.val.embedding))
 
 lemma _root_.number_field.canonical_embedding_injective [number_field K] :
-  function.injective (number_field.canonical_embedding K) :=
-begin
-  convert ring_hom.injective _,
-  exact (space_nontrivial K),
-end
+  function.injective (number_field.canonical_embedding K) := ring_hom.injective _
 
 open number_field
 
@@ -116,7 +112,7 @@ begin
 end
 
 lemma le_of_le [number_field K] (x : K) (r : ℝ) :
-  ‖(canonical_embedding K) x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
+  ‖canonical_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
 begin
   obtain hr | hr := lt_or_le r 0,
   { split,
@@ -141,7 +137,7 @@ subring.map (canonical_embedding K) (ring_hom.range (algebra_map (𝓞 K) K))
 
 /-- The ring equiv between `𝓞 K` and the integer lattice. -/
 def equiv_integer_lattice [number_field K] :
-  𝓞 K ≃ₗ[ℤ] (integer_lattice K) :=
+  𝓞 K ≃ₗ[ℤ] integer_lattice K :=
 begin
   refine linear_equiv.of_bijective _ _,
   { refine linear_map.mk _ _ _,
@@ -177,7 +173,7 @@ begin
       exact ⟨⟨x, ⟨⟨⟨x, hx1⟩, rfl⟩, rfl⟩⟩, (heq x).mpr hx2⟩, }},
 end
 
-lemma integer_lattice.countable [number_field K] : countable (integer_lattice K) :=
+instance [number_field K] : countable (integer_lattice K) :=
 begin
   suffices : (⋃ n : ℕ, ((integer_lattice K : set (space K)) ∩ (metric.closed_ball 0 n))).countable,
   { refine set.countable.to_subtype (set.countable.mono _ this),

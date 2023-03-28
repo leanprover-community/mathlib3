@@ -27,22 +27,25 @@ locally convex, bounded convergence
 
 open_locale topology uniform_convergence
 
-variables {E F : Type*}
+variables {𝕜 𝕜₂ E F : Type*}
 
 namespace continuous_linear_map
 
+variables [add_comm_group E] [topological_space E]
+  [add_comm_group F] [topological_space F] [topological_add_group F]
+
 section general
 
-variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [add_comm_group F] [module ℝ F] [topological_space F] [topological_add_group F]
-  [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+variables [normed_field 𝕜] [normed_field 𝕜₂] [module 𝕜 E] [module 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
+variables [module ℝ E] [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+  [smul_comm_class 𝕜₂ ℝ F]
 
 lemma strong_topology.locally_convex_space (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty)
   (h𝔖₂ : directed_on (⊆) 𝔖) :
-  @locally_convex_space ℝ (E →L[ℝ] F) _ _ _ (strong_topology (ring_hom.id ℝ) F 𝔖) :=
+  @locally_convex_space ℝ (E →SL[σ₁₂] F) _ _ _ (strong_topology σ₁₂ F 𝔖) :=
 begin
-  letI : topological_space (E →L[ℝ] F) := strong_topology (ring_hom.id ℝ) F 𝔖,
-  haveI : topological_add_group (E →L[ℝ] F) := strong_topology.topological_add_group _ _ _,
+  letI : topological_space (E →SL[σ₁₂] F) := strong_topology σ₁₂ F 𝔖,
+  haveI : topological_add_group (E →SL[σ₁₂] F) := strong_topology.topological_add_group _ _ _,
   refine locally_convex_space.of_basis_zero _ _ _ _
     (strong_topology.has_basis_nhds_zero_of_basis _ _ _ h𝔖₁ h𝔖₂
       (locally_convex_space.convex_basis_zero ℝ F)) _,
@@ -54,12 +57,12 @@ end general
 
 section bounded_sets
 
-variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [add_comm_group F] [module ℝ F] [topological_space F] [topological_add_group F]
-  [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+variables [normed_field 𝕜] [normed_field 𝕜₂] [module 𝕜 E] [module 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
+variables [module ℝ E] [module ℝ F] [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+  [smul_comm_class 𝕜₂ ℝ F]
 
-instance : locally_convex_space ℝ (E →L[ℝ] F) :=
-strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty ℝ E⟩
+instance : locally_convex_space ℝ (E →SL[σ₁₂] F) :=
+strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty 𝕜 E⟩
   (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
 
 end bounded_sets

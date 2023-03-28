@@ -923,7 +923,7 @@ namespace Class
 
 @[ext] theorem ext {x y : Class.{u}} : (∀ z : Set.{u}, x z ↔ y z) → x = y := set.ext
 
-theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Set.{u}, x z ↔ y z) := set.ext_iff
+theorem ext_iff {x y : Class.{u}} : x = y ↔ ∀ z, x z ↔ y z := set.ext_iff
 
 /-- Coerce a ZFC set into a class -/
 def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}

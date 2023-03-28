@@ -9,6 +9,9 @@ import linear_algebra.dfinsupp
 /-!
 # Direct sum of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The first part of the file provides constructors for direct sums of modules. It provides a
 construction of the direct sum using the universal property and proves its uniqueness
 (`direct_sum.to_module.unique`).
@@ -222,15 +225,19 @@ noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i
   sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
 
 /--`uncurry` as a linear map.-/
-noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
+def sigma_luncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { map_smul' := dfinsupp.sigma_uncurry_smul,
   ..sigma_uncurry }
 
-@[simp] lemma sigma_luncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+@[simp] lemma sigma_luncurry_apply [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)]
+  (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
 
 /--`curry_equiv` as a linear equiv.-/
-noncomputable def sigma_lcurry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
+noncomputable def sigma_lcurry_equiv
+  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
 { ..sigma_curry_equiv, ..sigma_lcurry R }
 
 end sigma

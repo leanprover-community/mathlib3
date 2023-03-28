@@ -207,6 +207,12 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 
 attribute [simps] functor_category_equivalence
 
+lemma functor_category_equivalence.functor_def :
+  (functor_category_equivalence V G).functor = functor_category_equivalence.functor := rfl
+
+lemma functor_category_equivalence.inverse_def :
+  (functor_category_equivalence V G).inverse = functor_category_equivalence.inverse := rfl
+
 instance [has_finite_products V] : has_finite_products (Action V G) :=
 { out := λ n, adjunction.has_limits_of_shape_of_equivalence
     (Action.functor_category_equivalence _ _).functor }
@@ -460,6 +466,59 @@ monoidal.from_transported (Action.functor_category_equivalence _ _).symm
 
 instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
 by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
+
+@[simp] lemma functor_category_monoidal_equivalence.μ_app (A B : Action V G) :
+  ((functor_category_monoidal_equivalence V G).μ A B).app punit.star = 𝟙 _ :=
+begin
+  dunfold functor_category_monoidal_equivalence,
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_μ],
+  show (𝟙 A.V ⊗ 𝟙 B.V) ≫ 𝟙 (A.V ⊗ B.V) ≫ (𝟙 A.V ⊗ 𝟙 B.V) = 𝟙 (A.V ⊗ B.V),
+  simp only [monoidal_category.tensor_id, category.comp_id],
+end
+
+@[simp] lemma functor_category_monoidal_equivalence.μ_iso_inv_app (A B : Action V G) :
+  ((functor_category_monoidal_equivalence V G).μ_iso A B).inv.app punit.star = 𝟙 _ :=
+begin
+  rw [←nat_iso.app_inv, ←is_iso.iso.inv_hom],
+  refine is_iso.inv_eq_of_hom_inv_id _,
+  rw [category.comp_id, nat_iso.app_hom, monoidal_functor.μ_iso_hom,
+    functor_category_monoidal_equivalence.μ_app],
+end
+
+@[simp] lemma functor_category_monoidal_equivalence.ε_app :
+  (functor_category_monoidal_equivalence V G).ε.app punit.star = 𝟙 _ :=
+begin
+  dunfold functor_category_monoidal_equivalence,
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_ε],
+  show 𝟙 (monoidal_category.tensor_unit V) ≫ _ = 𝟙 (monoidal_category.tensor_unit V),
+  rw [nat_iso.is_iso_inv_app, category.id_comp],
+  exact is_iso.inv_id,
+end
+
+@[simp] lemma functor_category_monoidal_equivalence.inv_counit_app_hom (A : Action V G) :
+  ((functor_category_monoidal_equivalence _ _).inv.adjunction.counit.app A).hom = 𝟙 _ :=
+rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.counit_app (A : single_obj G ⥤ V) :
+  ((functor_category_monoidal_equivalence _ _).adjunction.counit.app A).app punit.star = 𝟙 _ := rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.inv_unit_app_app
+  (A : single_obj G ⥤ V) :
+  ((functor_category_monoidal_equivalence _ _).inv.adjunction.unit.app A).app
+  punit.star = 𝟙 _ := rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.unit_app_hom (A : Action V G) :
+  ((functor_category_monoidal_equivalence _ _).adjunction.unit.app A).hom = 𝟙 _ :=
+rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.functor_map {A B : Action V G} (f : A ⟶ B) :
+  (functor_category_monoidal_equivalence _ _).map f
+    = functor_category_equivalence.functor.map f := rfl
+
+@[simp] lemma functor_category_monoidal_equivalence.inverse_map
+  {A B : single_obj G ⥤ V} (f : A ⟶ B) :
+  (functor_category_monoidal_equivalence _ _).inv.map f
+    = functor_category_equivalence.inverse.map f := rfl
 
 variables (H : Group.{u})
 

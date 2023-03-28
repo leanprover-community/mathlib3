@@ -10,6 +10,9 @@ import data.sym.sym2
 /-!
 # Simple graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines simple graphs on a vertex type `V` as an
 irreflexive symmetric relation.
 
@@ -40,8 +43,9 @@ finitely many vertices.
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
 
-* `boolean_algebra` instance: Under the subgraph relation, `simple_graph` forms a `boolean_algebra`.
-  In other words, this is the lattice of spanning subgraphs of the complete graph.
+* `complete_boolean_algebra` instance: Under the subgraph relation, `simple_graph` forms a
+  `complete_boolean_algebra`. In other words, this is the complete lattice of spanning subgraphs of
+  the complete graph.
 
 ## Notations
 
@@ -64,8 +68,6 @@ finitely many vertices.
 * If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`.
 
 ## Todo
-
-* Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
 
 * This is the simplest notion of an unoriented graph.  This should
   eventually fit into a more complete combinatorics hierarchy which
@@ -135,7 +137,7 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
   end }
 
 namespace simple_graph
-variables {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
+variables {ι : Sort*} {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
   (G' : simple_graph W) {a b c u v w : V} {e : sym2 V}
 
 @[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
@@ -154,6 +156,11 @@ protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a
 
 lemma ne_of_adj_of_not_adj {v w x : V} (h : G.adj v x) (hn : ¬ G.adj w x) : v ≠ w :=
 λ h', hn (h' ▸ h)
+
+lemma adj_injective : injective (adj : simple_graph V → V → V → Prop) :=
+λ G H h, by { cases G, cases H, congr' }
+
+@[simp] lemma adj_inj {G H : simple_graph V} : G.adj = H.adj ↔ G = H := adj_injective.eq_iff
 
 section order
 
@@ -202,7 +209,44 @@ instance : has_sdiff (simple_graph V) := ⟨λ x y,
 @[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
   (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
 
-instance : boolean_algebra (simple_graph V) :=
+instance : has_Sup (simple_graph V) :=
+⟨λ s, { adj := λ a b, ∃ G ∈ s, adj G a b,
+        symm := λ a b, Exists₂.imp $ λ _ _, adj.symm,
+        loopless := by { rintro a ⟨G, hG, ha⟩, exact ha.ne rfl } }⟩
+
+instance : has_Inf (simple_graph V) :=
+⟨λ s, { adj := λ a b, (∀ ⦃G⦄, G ∈ s → adj G a b) ∧ a ≠ b,
+        symm := λ _ _, and.imp (forall₂_imp $ λ _ _, adj.symm) ne.symm,
+        loopless := λ a h, h.2 rfl }⟩
+
+@[simp] lemma Sup_adj {s : set (simple_graph V)} {a b : V} : (Sup s).adj a b ↔ ∃ G ∈ s, adj G a b :=
+iff.rfl
+
+@[simp] lemma Inf_adj {s : set (simple_graph V)} : (Inf s).adj a b ↔ (∀ G ∈ s, adj G a b) ∧ a ≠ b :=
+iff.rfl
+
+@[simp] lemma supr_adj {f : ι → simple_graph V} : (⨆ i, f i).adj a b ↔ ∃ i, (f i).adj a b :=
+by simp [supr]
+
+@[simp] lemma infi_adj {f : ι → simple_graph V} :
+  (⨅ i, f i).adj a b ↔ (∀ i, (f i).adj a b) ∧ a ≠ b :=
+by simp [infi]
+
+lemma Inf_adj_of_nonempty {s : set (simple_graph V)} (hs : s.nonempty) :
+  (Inf s).adj a b ↔ ∀ G ∈ s, adj G a b :=
+Inf_adj.trans $ and_iff_left_of_imp $ by { obtain ⟨G, hG⟩ := hs, exact λ h, (h _ hG).ne }
+
+lemma infi_adj_of_nonempty [nonempty ι] {f : ι → simple_graph V} :
+  (⨅ i, f i).adj a b ↔ ∀ i, (f i).adj a b :=
+by simp [infi, Inf_adj_of_nonempty (set.range_nonempty _)]
+
+/-- For graphs `G`, `H`, `G ≤ H` iff `∀ a b, G.adj a b → H.adj a b`. -/
+instance : distrib_lattice (simple_graph V) :=
+{ le := λ G H, ∀ ⦃a b⦄, G.adj a b → H.adj a b,
+  ..show distrib_lattice (simple_graph V),
+    from adj_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl) }
+
+instance : complete_boolean_algebra (simple_graph V) :=
 { le := (≤),
   sup := (⊔),
   inf := (⊓),
@@ -212,19 +256,27 @@ instance : boolean_algebra (simple_graph V) :=
   bot := empty_graph V,
   le_top := λ x v w h, x.ne_of_adj h,
   bot_le := λ x v w h, h.elim,
-  sup_le := λ x y z hxy hyz v w h, h.cases_on (λ h, hxy h) (λ h, hyz h),
   sdiff_eq := λ x y, by { ext v w, refine ⟨λ h, ⟨h.1, ⟨_, h.2⟩⟩, λ h, ⟨h.1, h.2.2⟩⟩,
                           rintro rfl, exact x.irrefl h.1 },
-  le_sup_left := λ x y v w h, or.inl h,
-  le_sup_right := λ x y v w h, or.inr h,
-  le_inf := λ x y z hxy hyz v w h, ⟨hxy h, hyz h⟩,
-  le_sup_inf := λ a b c v w h, or.dcases_on h.2 or.inl $
-    or.dcases_on h.1 (λ h _, or.inl h) $ λ hb hc, or.inr ⟨hb, hc⟩,
   inf_compl_le_bot := λ a v w h, false.elim $ h.2.2 h.1,
   top_le_sup_compl := λ a v w ne, by { by_cases a.adj v w, exact or.inl h, exact or.inr ⟨ne, h⟩ },
-  inf_le_left := λ x y v w h, h.1,
-  inf_le_right := λ x y v w h, h.2,
-  .. partial_order.lift adj ext }
+  Sup := Sup,
+  le_Sup := λ s G hG a b hab, ⟨G, hG, hab⟩,
+  Sup_le := λ s G hG a b, by { rintro ⟨H, hH, hab⟩, exact hG _ hH hab },
+  Inf := Inf,
+  Inf_le := λ s G hG a b hab, hab.1 hG,
+  le_Inf := λ s G hG a b hab, ⟨λ H hH, hG _ hH hab, hab.ne⟩,
+  inf_Sup_le_supr_inf := λ G s a b hab, by simpa only [exists_prop, Sup_adj, and_imp,
+    forall_exists_index, Inf_adj, supr_adj, inf_adj, ←exists_and_distrib_right,
+    exists_and_distrib_left, and_assoc, and_self_right] using hab,
+  infi_sup_le_sup_Inf := λ G s a b hab, begin
+    simp only [sup_adj, Inf_adj, infi_adj] at ⊢ hab,
+    have : (∀ G' ∈ s, adj G a b ∨ adj G' a b) ∧ a ≠ b :=
+      (and_congr_left $ λ h, forall_congr $ λ H, _).1 hab,
+    simpa [forall_or_distrib_left, or_and_distrib_right, and_iff_left_of_imp adj.ne] using this,
+    exact and_iff_left h,
+  end,
+  ..simple_graph.distrib_lattice }
 
 @[simp] lemma top_adj (v w : V) : (⊤ : simple_graph V).adj v w ↔ v ≠ w := iff.rfl
 
@@ -606,13 +658,16 @@ attribute [mono] edge_finset_mono edge_finset_strict_mono
 
 @[simp] lemma edge_finset_bot : (⊥ : simple_graph V).edge_finset = ∅ := by simp [edge_finset]
 
-@[simp] lemma edge_finset_sup : (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
+@[simp] lemma edge_finset_sup [decidable_eq V] :
+  (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_inf : (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
+@[simp] lemma edge_finset_inf [decidable_eq V] :
+  (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_sdiff : (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
+@[simp] lemma edge_finset_sdiff [decidable_eq V] :
+  (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
 by simp [edge_finset]
 
 lemma edge_finset_card : G.edge_finset.card = fintype.card G.edge_set := set.to_finset_card _
@@ -1371,6 +1426,29 @@ abbreviation comp (f' : G' ↪g G'') (f : G ↪g G') : G ↪g G'' := f.trans f'
 @[simp] lemma coe_comp (f' : G' ↪g G'') (f : G ↪g G') : ⇑(f'.comp f) = f' ∘ f := rfl
 
 end embedding
+
+section induce_hom
+
+variables {G G'} {G'' : simple_graph X} {s : set V} {t : set W} {r : set X}
+          (φ : G →g G') (φst : set.maps_to φ s t) (ψ : G' →g G'') (ψtr : set.maps_to ψ t r)
+
+/-- The restriction of a morphism of graphs to induced subgraphs. -/
+def induce_hom : G.induce s →g G'.induce t :=
+{ to_fun := set.maps_to.restrict φ s t φst,
+  map_rel' := λ _ _,  φ.map_rel', }
+
+@[simp, norm_cast] lemma coe_induce_hom : ⇑(induce_hom φ φst) = set.maps_to.restrict φ s t φst :=
+rfl
+
+@[simp] lemma induce_hom_id (G : simple_graph V) (s) :
+  induce_hom (hom.id : G →g G) (set.maps_to_id s) = hom.id :=
+by { ext x, refl }
+
+@[simp] lemma induce_hom_comp :
+  (induce_hom ψ ψtr).comp (induce_hom φ φst) = induce_hom (ψ.comp φ) (ψtr.comp φst) :=
+by { ext x, refl }
+
+end induce_hom
 
 namespace iso
 variables {G G'} (f : G ≃g G')

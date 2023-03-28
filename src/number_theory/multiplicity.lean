@@ -7,6 +7,7 @@ import algebra.geom_sum
 import data.int.parity
 import data.zmod.basic
 import number_theory.padics.padic_val
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Multiplicity in Number Theory
@@ -251,6 +252,7 @@ begin
   push_cast,
   rw [← map_int_cast (zmod.cast_hom (show 2 ∣ 4, by norm_num) (zmod 2)) x] at hx,
   set y : zmod 4 := x,
+  change zmod.cast_hom _ (zmod 2) y = _ at hx,
   -- Now we can just consider each of the 4 possible values for y
   fin_cases y using hy;
     rw hy at ⊢ hx; revert hx; dec_trivial

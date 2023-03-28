@@ -15,6 +15,9 @@ import tactic.apply_fun
 /-!
 # Turing machines
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a sequence of simple machine languages, starting with Turing machines and working
 up to more complex languages based on Wang B-machines.
 
@@ -268,8 +271,9 @@ end
   (∀ i, L₁.nth i = L₂.nth i) → L₁ = L₂ :=
 list_blank.induction_on L₁ $ λ l₁, list_blank.induction_on L₂ $ λ l₂ H,
 begin
-  wlog h : l₁.length ≤ l₂.length using l₁ l₂,
-  swap, { exact (this $ λ i, (H i).symm).symm },
+  wlog h : l₁.length ≤ l₂.length,
+  { cases le_total l₁.length l₂.length; [skip, symmetry]; apply_assumption; try {assumption},
+    intro, rw H },
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
   { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_replicate] },

@@ -446,7 +446,8 @@ by classical; exact { Sup := λ S, if h : S ⊆ {⊥} then ⊥ else some
   end,
   ..interval.lattice, ..interval.bounded_order }
 
-@[simp, norm_cast] lemma coe_Inf (S : set (interval α)) : ↑(Inf S) = ⋂ s ∈ S, (s : set α) :=
+@[simp, norm_cast] lemma coe_Inf [@decidable_rel α (≤)] (S : set (interval α)) :
+  ↑(Inf S) = ⋂ s ∈ S, (s : set α) :=
 begin
   change coe (dite _ _ _) = _,
   split_ifs,
@@ -463,10 +464,11 @@ begin
     exact h (λ s ha t hb, (hx _ ha).1.trans (hx _ hb).2) }
 end
 
-@[simp, norm_cast] lemma coe_infi (f : ι → interval α) : ↑(⨅ i, f i) = ⋂ i, (f i : set α) :=
+@[simp, norm_cast] lemma coe_infi [@decidable_rel α (≤)] (f : ι → interval α) :
+  ↑(⨅ i, f i) = ⋂ i, (f i : set α) :=
 by simp [infi]
 
-@[simp, norm_cast] lemma coe_infi₂ (f : Π i, κ i → interval α) :
+@[simp, norm_cast] lemma coe_infi₂ [@decidable_rel α (≤)] (f : Π i, κ i → interval α) :
   ↑(⨅ i j, f i j) = ⋂ i j, (f i j : set α) :=
 by simp_rw [coe_infi]
 

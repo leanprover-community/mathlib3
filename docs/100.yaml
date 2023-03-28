@@ -133,6 +133,9 @@
   author : Moritz Doll
 36:
   title  : Brouwer Fixed Point Theorem
+  author : Brendan Seamas Murphy
+  links  :
+    result: https://github.com/Shamrock-Frost/BrouwerFixedPoint/blob/master/src/brouwer_fixed_point.lean
 37:
   title  : The Solution of a Cubic
   author : Jeoff Lee
@@ -144,9 +147,11 @@
   author : Yury G. Kudryashov
 39:
   title  : Solutions to Pell’s Equation
-  decl   : pell.eq_pell
-  author : Mario Carneiro
-  note   : "`d` is defined to be `a*a - 1` for an arbitrary `a > 1`."
+  decls  :
+    - pell.eq_pell
+    - pell.exists_of_not_is_square
+  author : Mario Carneiro (first), Michael Stoll (second)
+  note   : "In `pell.eq_pell`, `d` is defined to be `a*a - 1` for an arbitrary `a > 1`."
 40:
   title  : Minkowski’s Fundamental Theorem
 41:

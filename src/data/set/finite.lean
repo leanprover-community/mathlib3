@@ -10,6 +10,9 @@ import data.finite.basic
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines predicates for finite and infinite sets and provides
 `fintype` instances for many set constructions. It also proves basic facts
 about finite sets and gives ways to manipulate `set.finite` expressions.
@@ -193,7 +196,6 @@ by { ext, simp }
 @[simp] protected lemma to_finset_empty (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by { ext, simp }
 
--- Note: Not `simp` because `set.finite.to_finset_set_of` already proves it
 @[simp] protected lemma to_finset_univ [fintype α] (h : (set.univ : set α).finite) :
   h.to_finset = finset.univ :=
 by { ext, simp }

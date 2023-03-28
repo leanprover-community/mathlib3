@@ -13,7 +13,7 @@ of the sumset while keeping some invariant the same. This file defines a few of 
 
 ## Main declarations
 
-* `finset.mul_e_transform`: The Dyson e-transform. Replaces `(s, t)` by `(s ∪ e • t, t ∩ e⁻¹ • t)`.
+* `finset.mul_e_transform`: The Dyson e-transform. Replaces `(s, t)` by `(s ∪ e • t, t ∩ e⁻¹ • s)`.
   The additive version preserves `(s ∩ Icc 1 m).card + (t ∩ finset.range Icc 1 (m - e)).card`.
 * `finset.mul_transform₁`/`finset.mul_transform₂`: Replaces `(s, t)` by
   `(s ∩ op e • s, t ∪ e⁻¹ • t)` and `(s ∪ op e • s, t ∩ e⁻¹ • t)`. Preserve (together) the sum of

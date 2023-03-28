@@ -1769,27 +1769,6 @@ def iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
 
 end connected_component
 
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
-
-lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
-begin
-  split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
-  subst_vars
-end
-
-@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
-  (G.subgraph_of_adj hvw).connected :=
-begin
-  split,
-  rintro ⟨a, ha⟩ ⟨b, hb⟩,
-  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
-  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
-    refl <|> { apply adj.reachable, simp },
-end
-
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=
 by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }

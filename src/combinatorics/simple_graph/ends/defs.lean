@@ -331,12 +331,12 @@ begin
     obtain (h|⟨H₀, H₀H⟩) := set.eq_empty_or_nonempty {C : G.component_compl K' | C.supp.finite},
     { rwa [h, set.bUnion_empty, set.union_empty], },
     { rw [set.bUnion_eq_Union, @set.union_Union _ _ _], swap, exact ⟨⟨H₀, H₀H⟩⟩,
-      fapply induce_connected_union_of_pairwise_not_disjoint,
+      fapply induce_sUnion_connected_of_pairwise_not_disjoint,
       { rw set.range_nonempty_iff_nonempty, exact ⟨⟨H₀, H₀H⟩⟩, },
       { rintro _ ⟨H₁, rfl⟩ _ ⟨H₂, rfl⟩,
         exact ⟨Kn.some, ⟨or.inl $ KK' Kn.some_spec, or.inl $ KK' Kn.some_spec⟩⟩, },
       { rintro _ ⟨H₁, rfl⟩,
-        obtain ⟨⟨c, k⟩, cC, kK, a⟩ := component_compl.exists_adj_boundary_pair Gpc
+        obtain ⟨⟨c, k⟩, cC, kK, a⟩ := component_compl.exists_adj_boundary_pair Gpc.out
           ⟨_, finset.mem_coe.mpr (KK' Kn.some_spec)⟩ H₁.val,
         exact induce_connected_adj_union K'conn H₁.val.connected kK cC a.symm, }, }, },
   { let D := C.hom K'L,

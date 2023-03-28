@@ -1,11 +1,38 @@
+/-
+Copyright (c) 2023 Anand Rao, Rémi Bottinelli. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anand Rao, Rémi Bottinelli
+-/
 import combinatorics.simple_graph.ends.defs
 import combinatorics.simple_graph.ends.properties
+import combinatorics.simple_graph.metric
+/-!
+
+# Freudenthal-Hopf
+
+We prove a slightly generalized version of the Freudenthal-Hopf:
+```
+lemma Freudenthal_Hopf {V : Type u} {G : simple_graph V}
+  [locally_finite G] [Gpc : fact G.preconnected]
+  [Vi : infinite V]
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
+  (many_ends : fin 3 ↪ G.end) : G.end.infinite
+```
+that is, an infinite locally finite preconnected graph that has "enough automorphisms" and at least
+3 ends, has infinitely many ends.
+If `G` is transitive, it does have "enough automorphisms" (cf `good_automs_of_infinite_transitive`).
+
+The proof is essentially the textbook one, which goes:
+> If G has `3 ≤ n ≤ ∞` ends, there is a finset `K` separating `n` connected infinite components.
+> Moving `K` far enough from itself through the autom `φ`, two of those components are moved inside
+  one of the original components, and we get `≥n+1` components for `K ∪ φ K`; a contradiction.
+-/
+
 
 open classical function category_theory opposite
 
 universes u v w
 
-noncomputable theory
 local attribute [instance] prop_decidable
 
 namespace simple_graph
@@ -187,7 +214,8 @@ begin
   have eL: G.component_compl_functor.to_eventual_ranges.obj (op L) ≃
          G.component_compl_functor.to_eventual_ranges.obj (op φL), by
   { simp_rw component_compl_functor_to_eventual_ranges_obj_eq,
-    refine ((equiv.subtype_univ_equiv inf).trans lol.connected_component_equiv).trans (equiv.subtype_univ_equiv φinf).symm, },
+    refine ((equiv.subtype_univ_equiv inf).trans lol.connected_component_equiv).trans
+             (equiv.subtype_univ_equiv φinf).symm, },
   have iK: G.component_compl_functor.to_eventual_ranges.obj K ↪
          G.component_compl_functor.to_eventual_ranges.obj (op L), by
   { refine function.embedding.of_surjective
@@ -223,17 +251,30 @@ begin
   apply top,
 end
 
-lemma good_automs_of_infinite_transitive
-  [Vi : infinite V] [locally_finite G]
-  (Gpc : G.preconnected)
+lemma good_automs_of_infinite_transitive [Vi : infinite V]
   (trans : ∀ (x y : V), ∃ φ : G ≃g G, φ x = y) (K :finset V) :
   ∃ φ : G ≃g G, disjoint K (K.image φ) :=
 begin
-  sorry,
-  -- assume K has diameter m,
-  -- take x in K, and some y at distance ≥2m from x.
+  rcases K.eq_empty_or_nonempty with rfl|⟨x,xK⟩,
+  { simp, },
+  { obtain ⟨m, hm⟩ : ∃ m, ∀ {x y : V}, x ∈ K → y ∈ K → G.dist x y ≤ m := sorry,
+    obtain ⟨y, xy⟩ : ∃ y, G.dist x y > m+m := sorry,
+    -- ^ Because all balls are finite, by `locally_finite G`
+    obtain ⟨φ, rfl⟩ := trans x y,
+    refine ⟨φ, _⟩,
+    simp only [finset.disjoint_iff_inter_eq_empty, finset.eq_empty_iff_forall_not_mem,
+               finset.mem_inter, finset.mem_image, exists_prop, not_and, not_exists],
+    rintro _ φwK w wK rfl,
+    have xw : G.dist x (φ w) ≤ m := hm xK φwK,
+    have φxφw : G.dist (φ x) (φ w) ≤ m, by
+    { suffices : G.dist x w ≤ m,
+      { sorry, /- since φ is an autom, hence preseves distances -/ },
+      exact hm xK wK, },
+    apply xy.lt.not_le,
+    -- triangle inequality
+    sorry
+  },
 end
 
 end component_compl
 end simple_graph
-#lint

@@ -462,23 +462,22 @@ section clm
 
 /-! ### Construction of continuous linear maps between Schwartz spaces -/
 
-variables [normed_field 𝕜]
+variables [normed_field 𝕜] [normed_field 𝕜']
 variables [normed_add_comm_group D] [normed_space ℝ D]
 variables [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
-variables [normed_add_comm_group G] [normed_space ℝ G] [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
+variables [normed_add_comm_group G] [normed_space ℝ G] [normed_space 𝕜' G] [smul_comm_class ℝ 𝕜' G]
+variables {σ : 𝕜 →+* 𝕜'}
 
-variable (𝕜)
-
-/-- Create a linear map between Schwartz spaces.
+/-- Create a semilinear map between Schwartz spaces.
 
 Note: This is a helper definition for `mk_clm`. -/
 def mk_lm (A : (D → E) → (F → G))
   (hadd : ∀ (f g : 𝓢(D, E)) x, A (f + g) x = A f x + A g x)
-  (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = a • A f x)
+  (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = σ a • A f x)
   (hsmooth : ∀ (f : 𝓢(D, E)), cont_diff ℝ ⊤ (A f))
   (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 ≤ C), ∀ (f : 𝓢(D, E)) (x : F),
   ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * s.sup (schwartz_seminorm_family 𝕜 D E) f) :
-  𝓢(D, E) →ₗ[𝕜] 𝓢(F, G) :=
+  𝓢(D, E) →ₛₗ[σ] 𝓢(F, G) :=
 { to_fun := λ f,
   { to_fun := A f,
     smooth' := hsmooth f,
@@ -490,35 +489,30 @@ def mk_lm (A : (D → E) → (F → G))
   map_add' := λ f g, ext (hadd f g),
   map_smul' := λ a f, ext (hsmul a f), }
 
-/-- Create a linear map between Schwartz spaces.
+/-- Create a continuous semilinear map between Schwartz spaces.
 
 For an example of using this definition, see `fderiv_clm`. -/
-def mk_clm (A : (D → E) → (F → G))
+def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
   (hadd : ∀ (f g : 𝓢(D, E)) x, A (f + g) x = A f x + A g x)
-  (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = a • A f x)
+  (hsmul : ∀ (a : 𝕜) (f : 𝓢(D, E)) x, A (a • f) x = σ a • A f x)
   (hsmooth : ∀ (f : 𝓢(D, E)), cont_diff ℝ ⊤ (A f))
   (hbound : ∀ (n : ℕ × ℕ), ∃ (s : finset (ℕ × ℕ)) (C : ℝ) (hC : 0 ≤ C), ∀ (f : 𝓢(D, E)) (x : F),
   ‖x‖ ^ n.fst * ‖iterated_fderiv ℝ n.snd (A f) x‖ ≤ C * s.sup (schwartz_seminorm_family 𝕜 D E) f) :
-  𝓢(D, E) →L[𝕜] 𝓢(F, G) :=
+  𝓢(D, E) →SL[σ] 𝓢(F, G) :=
 { cont :=
   begin
-    change continuous (mk_lm 𝕜 A hadd hsmul hsmooth hbound : 𝓢(D, E) →ₗ[𝕜] 𝓢(F, G)),
+    change continuous (mk_lm A hadd hsmul hsmooth hbound : 𝓢(D, E) →ₛₗ[σ] 𝓢(F, G)),
     refine seminorm.continuous_from_bounded (schwartz_with_seminorms 𝕜 D E)
-      (schwartz_with_seminorms 𝕜 F G) _ _,
-    intro n,
+      (schwartz_with_seminorms 𝕜' F G) _ (λ n, _),
     rcases hbound n with ⟨s, C, hC, h⟩,
-    refine ⟨s, ⟨C, hC⟩, _⟩,
-    intros f,
+    refine ⟨s, ⟨C, hC⟩, (λ f, _)⟩,
     simp only [seminorm.comp_apply, seminorm.smul_apply],
-    refine (mk_lm 𝕜 A hadd hsmul hsmooth hbound f).seminorm_le_bound 𝕜 n.1 n.2 _ _,
+    refine (mk_lm A hadd hsmul hsmooth hbound f).seminorm_le_bound 𝕜' n.1 n.2 _ (λ x, _),
     { rw nnreal.smul_def,
       positivity },
-    intros x,
-    rw nnreal.smul_def,
-    simp only [algebra.id.smul_eq_mul, subtype.coe_mk],
-    exact h f x,
+    simpa only [nnreal.smul_def, algebra.id.smul_eq_mul, subtype.coe_mk] using h f x,
   end,
-  to_linear_map := mk_lm 𝕜 A hadd hsmul hsmooth hbound }
+  to_linear_map := mk_lm A hadd hsmul hsmooth hbound }
 
 end clm
 
@@ -529,9 +523,9 @@ section fderiv
 variables (𝕜)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
-/-- The derivative on Schwartz space as a continuous linear map. -/
+/-- The real derivative on Schwartz space as a continuous `𝕜`-linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
-mk_clm 𝕜 (fderiv ℝ)
+mk_clm (fderiv ℝ)
   (λ f g _, fderiv_add f.differentiable.differentiable_at g.differentiable.differentiable_at)
   (λ a f _, fderiv_const_smul f.differentiable.differentiable_at a)
   (λ f, (cont_diff_top_iff_fderiv.mp f.smooth').2)

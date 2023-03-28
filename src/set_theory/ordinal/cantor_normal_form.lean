@@ -134,13 +134,13 @@ begin
   refine CNF_rec b (by simp) (λ o ho IH, _) o,
   cases le_or_lt b 1 with hb hb,
   { simp [CNF_of_le_one hb ho] },
-  { cases lt_or_le o b with hob hbo,
-    { simp [CNF_of_lt ho hob] },
-    { rw [CNF_ne_zero ho, map_cons, sorted_cons],
-      refine ⟨λ a H, _, IH⟩,
-      rw mem_map at H,
-      rcases H with ⟨⟨a, a'⟩, H, rfl⟩,
-      exact (CNF_fst_le_log H).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } }
+  cases lt_or_le o b with hob hbo,
+  { simp [CNF_of_lt ho hob] },
+  rw [CNF_ne_zero ho, map_cons, sorted_cons],
+  refine ⟨λ a H, _, IH⟩,
+  rw mem_map at H,
+  rcases H with ⟨⟨a, a'⟩, H, rfl⟩,
+  exact (CNF_fst_le_log H).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo),
 end
 
 end ordinal

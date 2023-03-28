@@ -1007,10 +1007,10 @@ by { simp_rw ←coe_subset, push_cast, exact set.subset_set_smul_iff }
 image_inter _ _ $ mul_action.injective a
 
 @[to_additive] lemma smul_finset_sdiff : a • (s \ t) = a • s \ a • t :=
-image_sdiff (mul_action.injective a) _ _
+image_sdiff _ _ $ mul_action.injective a
 
 @[to_additive] lemma smul_finset_symm_diff : a • (s ∆ t) = (a • s) ∆ (a • t) :=
-image_symm_diff (mul_action.injective a) _ _
+image_symm_diff _ _ $ mul_action.injective a
 
 @[simp, to_additive] lemma smul_finset_univ [fintype β] : a • (univ : finset β) = univ :=
 image_univ_of_surjective $ mul_action.surjective a
@@ -1049,10 +1049,10 @@ lemma smul_finset_inter₀ (ha : a ≠ 0) : a • (s ∩ t) = a • s ∩ a • 
 image_inter _ _ $ mul_action.injective₀ ha
 
 lemma smul_finset_sdiff₀ (ha : a ≠ 0) : a • (s \ t) = a • s \ a • t :=
-image_sdiff (mul_action.injective₀ ha) _ _
+image_sdiff _ _ $ mul_action.injective₀ ha
 
 lemma smul_finset_symm_diff₀ (ha : a ≠ 0) : a • (s ∆ t) = (a • s) ∆ (a • t) :=
-image_symm_diff (mul_action.injective₀ ha) _ _
+image_symm_diff _ _ $ mul_action.injective₀ ha
 
 lemma smul_univ₀ [fintype β] {s : finset α} (hs : ¬ s ⊆ 0) : s • (univ : finset β) = univ :=
 coe_injective $ by { rw ←coe_subset at hs, push_cast at ⊢ hs, exact set.smul_univ₀ hs }

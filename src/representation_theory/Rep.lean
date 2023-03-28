@@ -158,9 +158,8 @@ on `k[X]`. -/
   (linearization k G).obj (Action.mk X 1) ≅ trivial k G (X →₀ k) :=
 Action.mk_iso (iso.refl _) $ λ g, by { ext1, ext1, exact linearization_of _ _ _ }
 
-end linearization
-
 variables (k G)
+
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G`. -/
 noncomputable abbreviation of_mul_action (H : Type u) [mul_action G H] : Rep k G :=

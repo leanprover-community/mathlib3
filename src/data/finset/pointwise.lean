@@ -876,6 +876,7 @@ instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [i
   is_scalar_tower (finset α) (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_assoc]⟩
 
+@[to_additive]
 instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (finset β) :=
 ⟨λ a s, coe_injective $ by simp only [coe_smul_finset, coe_smul, op_smul_eq_smul]⟩
@@ -1002,6 +1003,22 @@ by { simp_rw ←coe_subset, push_cast, exact set.set_smul_subset_iff }
 @[to_additive] lemma subset_smul_finset_iff : s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
 by { simp_rw ←coe_subset, push_cast, exact set.subset_set_smul_iff }
 
+@[to_additive] lemma smul_finset_inter : a • (s ∩ t) = a • s ∩ a • t :=
+image_inter _ _ $ mul_action.injective a
+
+@[to_additive] lemma smul_finset_sdiff : a • (s \ t) = a • s \ a • t :=
+image_sdiff _ _ $ mul_action.injective a
+
+@[to_additive] lemma smul_finset_symm_diff : a • (s ∆ t) = (a • s) ∆ (a • t) :=
+image_symm_diff _ _ $ mul_action.injective a
+
+@[simp, to_additive] lemma smul_finset_univ [fintype β] : a • (univ : finset β) = univ :=
+image_univ_of_surjective $ mul_action.surjective a
+
+@[simp, to_additive] lemma smul_univ [fintype β] {s : finset α} (hs : s.nonempty) :
+  s • (univ : finset β) = univ :=
+coe_injective $ by { push_cast, exact set.smul_univ hs }
+
 @[simp, to_additive] lemma card_smul_finset (a : α) (s : finset β) : (a • s).card = s.card :=
 card_image_of_injective _ $ mul_action.injective _
 
@@ -1027,6 +1044,15 @@ show units.mk0 a ha • _ ⊆ _ ↔ _, from smul_finset_subset_iff
 
 lemma subset_smul_finset_iff₀ (ha : a ≠ 0) : s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
 show _ ⊆ units.mk0 a ha • _ ↔ _, from subset_smul_finset_iff
+
+lemma smul_finset_inter₀ (ha : a ≠ 0) : a • (s ∩ t) = a • s ∩ a • t :=
+image_inter _ _ $ mul_action.injective₀ ha
+
+lemma smul_finset_sdiff₀ (ha : a ≠ 0) : a • (s \ t) = a • s \ a • t :=
+image_sdiff _ _ $ mul_action.injective₀ ha
+
+lemma smul_finset_symm_diff₀ (ha : a ≠ 0) : a • (s ∆ t) = (a • s) ∆ (a • t) :=
+image_symm_diff _ _ $ mul_action.injective₀ ha
 
 lemma smul_univ₀ [fintype β] {s : finset α} (hs : ¬ s ⊆ 0) : s • (univ : finset β) = univ :=
 coe_injective $ by { rw ←coe_subset at hs, push_cast at ⊢ hs, exact set.smul_univ₀ hs }

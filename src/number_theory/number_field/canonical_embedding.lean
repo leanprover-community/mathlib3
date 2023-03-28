@@ -20,6 +20,7 @@ image of the ring of integers by the canonical embedding and any ball centered a
 radius is finite.
 
 ## Tags
+
 number field, infinite places
 -/
 
@@ -134,7 +135,7 @@ variables (K)
 
 /-- The image of `𝓞 K` as a subring of `ℝ^r₁ × ℂ^r₂`. -/
 def integer_lattice : subring (space K) :=
-subring.map (canonical_embedding K) (ring_hom.range (algebra_map (𝓞 K) K))
+(ring_hom.range (algebra_map (𝓞 K) K)).map (canonical_embedding K)
 
 /-- The ring equiv between `𝓞 K` and the integer lattice. -/
 def equiv_integer_lattice [number_field K] :

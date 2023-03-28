@@ -252,7 +252,7 @@ variables {n A}
 the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. This lemma says that this
 sends a morphism of representations `f : k[Gⁿ⁺¹] ⟶ A` to the function
 `(g₁, ..., gₙ) ↦ f(1, g₁, g₁g₂, ..., g₁g₂...gₙ).` -/
-lemma diagonal_hom_equiv_apply {A : Rep k G} (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
+lemma diagonal_hom_equiv_apply (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
   (x : fin n → G) : diagonal_hom_equiv n A f x = f.hom (finsupp.single (fin.partial_prod x) 1) :=
 begin
   unfold diagonal_hom_equiv,
@@ -269,7 +269,7 @@ the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. 
 inverse map sends a function `f : Gⁿ → A` to the representation morphism sending
 `(g₀, ... gₙ) ↦ ρ(g₀)(f(g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ))`, where `ρ` is the representation attached
 to `A`. -/
-lemma diagonal_hom_equiv_symm_apply {A : Rep k G} (f : (fin n → G) → A) (x : fin (n + 1) → G) :
+lemma diagonal_hom_equiv_symm_apply (f : (fin n → G) → A) (x : fin (n + 1) → G) :
   ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
     = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
 begin

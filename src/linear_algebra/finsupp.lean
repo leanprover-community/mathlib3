@@ -380,7 +380,6 @@ noncomputable def llift : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
 
 @[simp] lemma llift_symm_apply (f : (X →₀ R) →ₗ[R] M) (x : X) :
   (llift M R S X).symm f x = f (single x 1) := rfl
-
 end
 
 section lmap_domain

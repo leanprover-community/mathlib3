@@ -195,14 +195,8 @@ begin
   -- `(s'', t'')` are both strictly smaller than `(s, t)` according to `devos_mul_rel`.
   replace hsg : (s ∩ op g • s).card < s.card := card_lt_card ⟨inter_subset_left _ _, λ h, hsg $
     eq_of_superset_of_card_ge (h.trans $ inter_subset_right _ _) (card_smul_finset _ _).le⟩,
-  have aux0 : op g • s * g⁻¹ • t = s * t,
-  { rw [op_smul_finset_mul_eq_mul_smul_finset, smul_inv_smul] },
-  have aux1 : (s ∩ op g • s) * (t ∪ g⁻¹ • t) ⊆ s * t,
-  { exact inter_mul_union_subset_union.trans (union_subset subset.rfl aux0.subset') },
-  have aux2 : (s ∪ op g • s) * (t ∩ g⁻¹ • t) ⊆ s * t,
-  { refine union_mul_inter_subset_union.trans (union_subset subset.rfl aux0.subset') },
-  replace aux1 := card_le_of_subset (mul_e_transform.fst_mul_snd_subset g (s, t)),
-  replace aux2 := card_le_of_subset (mul_e_transform'.fst_mul_snd_subset g (s, t)),
+  replace aux1 := card_le_of_subset (mul_transform₁.fst_mul_snd_subset g (s, t)),
+  replace aux2 := card_le_of_subset (mul_transform₂.fst_mul_snd_subset g (s, t)),
   -- If the left translate of `t` by ``
   obtain hgt | hgt := disjoint_or_nonempty_inter t (g⁻¹ • t),
   { rw ←card_smul_finset g⁻¹ t,
@@ -212,14 +206,11 @@ begin
   -- Else, we're done by induction on either `(s', t')` or `(s'', t'')` depending on whether
   -- `|s| + |t| ≤ |s'| + |t'|` or `|s| + |t| ≤ |s''| + |t''|`. One of those equalities must hold
   -- since `2 * (|s| + |t|) = |s'| + |t'| + |s''| + |t''|`.
-  obtain hstg | hstg : s.card + t.card ≤ (s ∩ op g • s).card + (t ∪ g⁻¹ • t).card
-    ∨ s.card + t.card < (s ∪ op g • s).card + (t ∩ g⁻¹ • t).card := le_or_lt_of_add_le_add _,
+  obtain hstg | hstg := mul_transform.card_ge g s t,
   { exact (ih _ _ hgs (hgt.mono inter_subset_union) $ devos_mul_rel_of_le_of_le aux1 hstg hsg).imp
       aux1.trans' (λ h, hstg.trans $ h.trans $ add_le_add_right aux1 _) },
   { exact (ih _ _ (hgs.mono inter_subset_union) hgt $ devos_mul_rel_of_le aux2 hstg).imp
-      aux2.trans' (λ h, hstg.le.trans $ h.trans $ add_le_add_right aux2 _) },
-  { rw [add_add_add_comm, add_add_add_comm (s ∩ op g • s).card, card_inter_add_card_union,
-    card_union_add_card_inter, card_smul_finset, card_smul_finset] }
+      aux2.trans' (λ h, hstg.le.trans $ h.trans $ add_le_add_right aux2 _) }
 end
 
 end finset

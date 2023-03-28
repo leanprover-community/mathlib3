@@ -101,6 +101,16 @@ end
     = x.1.card + x.2.card + (x.1.card + x.2.card) :=
 by rw [add_add_add_comm, mul_transform.card_fst, mul_transform.card_snd, ←mul_add, two_mul]
 
+@[simp, to_additive add_transform.card_le] protected lemma mul_transform.card_le :
+  (mul_transform₁ e x).1.card + (mul_transform₁ e x).2.card ≤ x.1.card + x.2.card
+    ∨ ((mul_transform₂ e x).1.card + (mul_transform₂ e x).2.card) ≤ x.1.card + x.2.card :=
+le_or_le_of_add_le_add (mul_transform.card _ _).le
+
+@[simp, to_additive add_transform.card_ge] protected lemma mul_transform.card_ge :
+  x.1.card + x.2.card ≤ (mul_transform₁ e x).1.card + (mul_transform₁ e x).2.card
+    ∨ x.1.card + x.2.card ≤ ((mul_transform₂ e x).1.card + (mul_transform₂ e x).2.card) :=
+le_or_le_of_add_le_add (mul_transform.card _ _).ge
+
 end group
 
 section comm_group

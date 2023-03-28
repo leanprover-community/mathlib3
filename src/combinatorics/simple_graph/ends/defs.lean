@@ -5,7 +5,8 @@ Authors: Anand Rao, Rémi Bottinelli
 -/
 import category_theory.cofiltered_system
 import combinatorics.simple_graph.connectivity
-import data.set_like.basic
+import combinatorics.simple_graph.connectivity.subgraph
+import data.finite.set
 
 /-!
 # Ends
@@ -45,7 +46,7 @@ end
 lemma component_compl.supp_inj {C D : G.component_compl K} : C.supp = D.supp ↔ C = D :=
 component_compl.supp_injective.eq_iff
 
-instance : set_like (G.component_compl K) V :=
+instance component_compl.set_like : set_like (G.component_compl K) V :=
 { coe := component_compl.supp,
   coe_injective' := λ C D, (component_compl.supp_inj).mp, }
 
@@ -58,6 +59,13 @@ lemma component_compl_mk_mem (G : simple_graph V) {v : V} (vK : v ∉ K) :
 lemma component_compl_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∉ K) (wK : w ∉ K)
   (a : G.adj v w) : G.component_compl_mk vK = G.component_compl_mk wK :=
 by { rw [connected_component.eq], apply adj.reachable, exact a }
+
+/--
+In an infinite graph, the set of components out of a finite set is nonempty.
+-/
+instance component_compl_nonempty_of_infinite (G : simple_graph V) [infinite V] (K : finset V) :
+  nonempty (G.component_compl K) :=
+let ⟨k, kK⟩ := K.finite_to_set.infinite_compl.nonempty in ⟨component_compl_mk _ kK⟩
 
 namespace component_compl
 
@@ -79,6 +87,19 @@ protected lemma ind {β : G.component_compl K → Prop}
 /-- The induced graph on the vertices `C`. -/
 @[reducible]
 protected def coe_graph (C : component_compl G K) : simple_graph C := G.induce (C : set V)
+
+-- This begs for a definition of `connected_component.supp`.
+@[simps] def supp_equiv (C : G.component_compl K) :
+  C.supp ≃ {v' | connected_component_mk (G.induce Kᶜ) v' = C} :=
+{ to_fun := λ v, ⟨⟨v.val, v.prop.some⟩, v.prop.some_spec⟩,
+  inv_fun := λ v, ⟨v.val.val, ⟨v.val.prop, by { simpa [component_compl_mk] using v.prop, }⟩⟩,
+  left_inv := by { rintro ⟨v, ⟨vnK, rfl⟩⟩, simp only, },
+  right_inv := by { rintro ⟨⟨v, vnK⟩, h⟩, simp only [subtype.mk_eq_mk], } }
+
+@[simps] def coe_graph_iso (C : G.component_compl K) :
+  C.coe_graph ≃g (G.induce Kᶜ).induce {v' | connected_component_mk (G.induce Kᶜ) v' = C} :=
+{ to_equiv := C.supp_equiv,
+  map_rel_iff' := λ u v, by simp, }
 
 lemma coe_inj {C D : G.component_compl K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
@@ -106,12 +127,32 @@ begin
   exact λ u ⟨uC, uD⟩, ne (uC.some_spec.symm.trans uD.some_spec),
 end
 
+lemma eq_of_subset {C D : G.component_compl K} (h : (C : set V) ⊆ D) : C = D :=
+begin
+  apply component_compl.pairwise_disjoint.eq,
+  simp only [set.not_disjoint_iff_nonempty_inter, set.inter_eq_left_iff_subset.mpr h, C.nonempty],
+end
+
+lemma not_subset_right {C : G.component_compl K} : ¬ (C : set V) ⊆ K :=
+begin
+  obtain ⟨v, vnK, rfl⟩ := C.exists_eq_mk,
+  exact λ h, vnK (h $ component_compl_mk_mem _ vnK)
+end
+
 /--
 Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
 lemma mem_of_adj : ∀ {C : G.component_compl K} (c d : V), c ∈ C → d ∉ K → G.adj c d → d ∈ C :=
 λ C c d ⟨cnK, h⟩ dnK cd,
   ⟨ dnK, by { rw [←h, connected_component.eq], exact adj.reachable cd.symm, } ⟩
+
+lemma eq_of_adj {C D: G.component_compl K} (c d : V) (cC : c ∈ C) (dD : d ∈ D) (a : G.adj c d) :
+  C = D := by
+begin
+  obtain ⟨_, _, rfl⟩ := cC,
+  obtain ⟨_, _, rfl⟩ := dD,
+  apply quot.sound, apply adj.reachable, exact a,
+end
 
 /--
 Assuming `G` is preconnected and `K` not empty, given any connected component `C` outside of `K`,
@@ -134,6 +175,31 @@ begin
   obtain ⟨⟨⟨x, y⟩, xy⟩, d, xC, ynC⟩ :=
     p.exists_boundary_dart (C : set V) (G.component_compl_mk_mem vnK) unC,
   exact ynC (mem_of_adj x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy),
+end
+
+protected lemma connected (C : G.component_compl K) : C.coe_graph.connected :=
+(induce_induce G Kᶜ {v : Kᶜ | (G.induce Kᶜ).connected_component_mk v = C}).connected_iff.mp
+  C.connected
+
+/--
+The unique `C : G.component_compl K` containing the set `D`.
+-/
+noncomputable def of_connected_disjoint_right {D : set V}
+  (Dc : (G.induce D).connected) (Dd : disjoint K D) : G.component_compl K :=
+component_compl_mk G (set.disjoint_right.mp Dd Dc.nonempty.some.prop)
+
+lemma subset_of_connected_disjoint_right {D : set V}
+  (Dc : (G.induce D).connected) (Dd : disjoint K D) : D ⊆ of_connected_disjoint_right Dc Dd :=
+begin
+  have : ∀ {u w : D} (p : (G.induce D).walk w u), u = Dc.nonempty.some
+           → ↑w ∈ of_connected_disjoint_right Dc Dd, by
+  { rintro _ _ p e,
+    induction p with _ _ _ _ a q ih,
+    { refine e.symm ▸ component_compl_mk_mem _ _, },
+    { obtain ⟨_, b⟩ := ih e,
+      rw [←b, ←component_compl_mk_eq_of_adj G (set.disjoint_right.mp Dd p_u.prop) _ a],
+      apply component_compl_mk_mem, } },
+  exact λ w wD, this (Dc.preconnected ⟨w, wD⟩ Dc.nonempty.some).some rfl,
 end
 
 /--
@@ -164,6 +230,13 @@ begin
   { apply C.ind (λ x xnL, _),
     rintro ⟨x, ⟨_, e₁⟩, _, rfl⟩,
     rw ←e₁, refl, },
+end
+
+lemma hom_eq_of_connected_disjoint_right  (C : G.component_compl L) (h : K ⊆ L) :
+  C.hom h = of_connected_disjoint_right C.connected (C.disjoint_right.mono_left h) :=
+begin
+  rw [hom_eq_iff_not_disjoint, set.not_disjoint_iff],
+  refine ⟨_, C.nonempty.some_spec, subset_of_connected_disjoint_right _ _ C.nonempty.some_spec⟩,
 end
 
 lemma hom_refl (C : G.component_compl L) : C.hom (subset_refl L) = C :=
@@ -198,6 +271,88 @@ end
 
 end component_compl
 
+variables (G)
+
+/-
+For a locally finite preconnected graph, the number of components outside of any finite set
+is finite.
+-/
+instance component_compl_finite [locally_finite G] [Gpc : fact $ preconnected G] (K : finset V) :
+  finite (G.component_compl K) :=
+begin
+  classical,
+  rcases K.eq_empty_or_nonempty with rfl|h,
+  -- If K is empty, then removing K doesn't change the graph, which is connected, hence has a
+  -- single connected component
+  { dsimp [component_compl],
+    rw set.compl_empty,
+    haveI := @finite.of_subsingleton _ Gpc.out.subsingleton_connected_component,
+    exact finite.of_equiv _ (induce_univ_iso G).connected_component_equiv.symm, },
+  -- Otherwise, we consider the function `touch` mapping a connected component to one of its
+  -- vertices adjacent to `K`.
+  { let touch : G.component_compl K → {v : V | ∃ k : V, k ∈ K ∧ G.adj k v} :=
+      λ C, let p := C.exists_adj_boundary_pair Gpc.out h in
+        ⟨p.some.1, p.some.2, p.some_spec.2.1, p.some_spec.2.2.symm⟩,
+    -- `touch` is injective
+    have touch_inj : touch.injective := λ C D h', component_compl.pairwise_disjoint.eq
+      (set.not_disjoint_iff.mpr ⟨touch C, (C.exists_adj_boundary_pair Gpc.out h).some_spec.1,
+                                 h'.symm ▸ (D.exists_adj_boundary_pair Gpc.out h).some_spec.1⟩),
+    -- `touch` has finite range
+    haveI : finite (set.range touch), by
+    { refine @subtype.finite _ (set.finite.to_subtype _) _,
+      have : {v : V | ∃ (k : V), k ∈ K ∧ G.adj k v} = finset.bUnion K (λ v, G.neighbor_finset v), by
+      { ext v,
+        simp only [set.mem_Union, exists_prop, set.mem_set_of_eq, finset.coe_bUnion,
+                  finset.mem_coe, mem_neighbor_finset], },
+      rw this,
+      apply finset.finite_to_set, },
+    -- hence `touch` has a finite domain
+    apply finite.of_injective_finite_range touch_inj, },
+end
+
+/--
+Given a nonempty finite set `K`, one can extend `K` to some `L` that is connected
+and all whose "outside components" are infinite.
+-/
+lemma component_compl.exists_saturated_connected_extension [locally_finite G]
+  [Gpc : fact G.preconnected] {K : finset V} (Kn : K.nonempty) :
+  ∃ (L : finset V), K ⊆ L ∧ (G.induce (L : set V)).connected ∧
+                              ∀ C : G.component_compl L, C.supp.infinite :=
+begin
+  classical,
+  obtain ⟨K', KK', K'conn⟩ := extend_finset_to_connected Gpc.out Kn,
+  --haveI := G.component_compl_finite K',
+  let finite_pieces : set V := ⋃ C ∈ {C : G.component_compl K' | C.supp.finite}, C.supp,
+  have : finite_pieces.finite := set.finite.bUnion (set.to_finite _) (λ _ h, h),
+  let L := K' ∪ ‹finite_pieces.finite›.to_finset,
+  let K'L := finset.subset_union_left K' ‹finite_pieces.finite›.to_finset,
+  refine ⟨L, KK'.trans $ K'L, _, λ C, _⟩,
+  { rw [finset.coe_union, set.finite.coe_to_finset], dsimp only [finite_pieces],
+    obtain (h|⟨H₀, H₀H⟩) := set.eq_empty_or_nonempty {C : G.component_compl K' | C.supp.finite},
+    { rwa [h, set.bUnion_empty, set.union_empty], },
+    { rw [set.bUnion_eq_Union, @set.union_Union _ _ _], swap, exact ⟨⟨H₀, H₀H⟩⟩,
+      fapply induce_sUnion_connected_of_pairwise_not_disjoint,
+      { rw set.range_nonempty_iff_nonempty, exact ⟨⟨H₀, H₀H⟩⟩, },
+      { rintro _ ⟨H₁, rfl⟩ _ ⟨H₂, rfl⟩,
+        exact ⟨Kn.some, ⟨or.inl $ KK' Kn.some_spec, or.inl $ KK' Kn.some_spec⟩⟩, },
+      { rintro _ ⟨H₁, rfl⟩,
+        obtain ⟨⟨c, k⟩, cC, kK, a⟩ := component_compl.exists_adj_boundary_pair Gpc.out
+          ⟨_, finset.mem_coe.mpr (KK' Kn.some_spec)⟩ H₁.val,
+        exact induce_connected_adj_union K'conn H₁.val.connected kK cC a.symm, }, }, },
+  { let D := C.hom K'L,
+    have Dinf : D.supp.infinite := λ Dfin, by
+    { have : (D : set V) ⊆ L, by
+      { simp only [finset.coe_union, set.finite.coe_to_finset],
+        refine set.subset_union_of_subset_right (set.subset_bUnion_of_mem Dfin) _, },
+      refine component_compl.not_subset_right ((C.subset_hom K'L).trans this), },
+    rw component_compl.eq_of_subset
+        ((C.subset_hom K'L).trans $ component_compl.subset_of_connected_disjoint_right _ _),
+    refine Dinf.mono (component_compl.subset_of_connected_disjoint_right D.connected _),
+    simp only [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
+               set.disjoint_Union₂_left, set.mem_set_of_eq],
+    exact ⟨D.disjoint_right, λ E Efin, component_compl.pairwise_disjoint (λ e, Dinf (e ▸ Efin))⟩, },
+end
+
 section ends
 
 variables (G)
@@ -225,12 +380,22 @@ begin
   apply component_compl.hom_mk,
 end
 
-lemma infinite_iff_in_eventual_range {K : (finset V)ᵒᵖ} (C : G.component_compl_functor.obj K) :
+lemma component_compl.infinite_iff_in_eventual_range {G : simple_graph V} {K : (finset V)ᵒᵖ}
+  (C : G.component_compl_functor.obj K) :
   C.supp.infinite ↔ C ∈ G.component_compl_functor.eventual_range K :=
 begin
   simp only [C.infinite_iff_in_all_ranges, category_theory.functor.eventual_range,
              set.mem_Inter, set.mem_range, component_compl_functor_map],
   exact ⟨λ h Lop KL, h Lop.unop (le_of_op_hom KL), λ h L KL, h (opposite.op L) (op_hom_of_le KL)⟩,
+end
+
+lemma component_compl_functor_to_eventual_ranges_obj_eq
+  [is_cofiltered_or_empty (finset V)ᵒᵖ] {G : simple_graph V} {K : (finset V)ᵒᵖ} :
+  G.component_compl_functor.to_eventual_ranges.obj K =
+  { C : G.component_compl K.unop | C.supp.infinite } :=
+begin
+  apply congr_arg subtype (funext $ λ x, eq.symm $ propext _),
+  apply component_compl.infinite_iff_in_eventual_range,
 end
 
 end ends

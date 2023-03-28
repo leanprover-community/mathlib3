@@ -939,6 +939,14 @@ lemma map_le_iff_le_comap (f : V ↪ W) (G : simple_graph V) (G' : simple_graph 
 lemma map_comap_le (f : V ↪ W) (G : simple_graph W) : (G.comap f).map f ≤ G :=
 by { rw map_le_iff_le_comap, exact le_refl _ }
 
+lemma le_comap_of_subsingleton (f : V → W) [subsingleton V] :
+  G ≤ G'.comap f :=
+by { intros v w, simp [subsingleton.elim v w] }
+
+lemma map_le_of_subsingleton (f : V ↪ W) [subsingleton V] :
+  G.map f ≤ G' :=
+by { rw [map_le_iff_le_comap], apply le_comap_of_subsingleton }
+
 /-! ## Induced graphs -/
 
 /- Given a set `s` of vertices, we can restrict a graph to those vertices by restricting its
@@ -950,6 +958,9 @@ There is also a notion of induced subgraphs (see `simple_graph.subgraph.induce`)
 outside the set. This is a wrapper around `simple_graph.comap`. -/
 @[reducible] def induce (s : set V) (G : simple_graph V) : simple_graph s :=
 G.comap (function.embedding.subtype _)
+
+@[simp] lemma induce_singleton_eq_top (v : V) : G.induce {v} = ⊤ :=
+by { rw [eq_top_iff], apply le_comap_of_subsingleton }
 
 /-- Given a graph on a set of vertices, we can make it be a `simple_graph V` by
 adding in the remaining vertices without adding in any additional edges.
@@ -1429,13 +1440,18 @@ end embedding
 
 section induce_hom
 
-variables {G G'} {G'' : simple_graph X} {s : set V} {t : set W} {r : set X}
+variables {G G'} {G'' : simple_graph X} {s s' : set V} {t : set W} {r : set X}
           (φ : G →g G') (φst : set.maps_to φ s t) (ψ : G' →g G'') (ψtr : set.maps_to ψ t r)
 
 /-- The restriction of a morphism of graphs to induced subgraphs. -/
 def induce_hom : G.induce s →g G'.induce t :=
 { to_fun := set.maps_to.restrict φ s t φst,
   map_rel' := λ _ _,  φ.map_rel', }
+
+/-- The restriction of a morphism of graphs to induced subgraphs. -/
+@[reducible]
+def induce_hom_of_le (ss' : s ≤ s') : G.induce s →g G.induce s' :=
+induce_hom (hom.id : G →g G) ((set.maps_to_id s).mono_right ss')
 
 @[simp, norm_cast] lemma coe_induce_hom : ⇑(induce_hom φ φst) = set.maps_to.restrict φ s t φst :=
 rfl
@@ -1534,5 +1550,29 @@ abbreviation comp (f' : G' ≃g G'') (f : G ≃g G') : G ≃g G'' := f.trans f'
 end iso
 
 end maps
+
+/-- The graph induced on `set.univ` is isomorphic to the original graph. -/
+@[simps]
+def induce_univ_iso (G : simple_graph V) : G.induce set.univ ≃g G :=
+{ to_equiv := equiv.set.univ V,
+  map_rel_iff' := by simp only [equiv.set.univ_apply, comap_adj, function.embedding.coe_subtype,
+                                iff_self, set_coe.forall, implies_true_iff] }
+
+-- Is it already somewhere?
+def induce.iso {V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') {s : set V} :
+  (G.induce s) ≃g (G'.induce $ φ '' s) :=
+{ to_fun := λ v, ⟨φ.to_fun v, by {simp [v.prop],}⟩,
+  inv_fun := λ v', ⟨φ.inv_fun v', set.mem_image_equiv.mp v'.prop⟩,
+  left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
+  right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v),
+  map_rel_iff' := λ a b, rel_iso.map_rel_iff φ }
+
+def induce_induce (G : simple_graph V) (s : set V) (t : set s) :
+  (G.induce s).induce t ≃g G.induce {v : V | ∃ h : v ∈ s, (⟨v,h⟩ : s) ∈ t} :=
+  { to_fun := λ ⟨⟨v, hvs⟩, hvt⟩, ⟨v, ⟨hvs, hvt⟩⟩,
+    inv_fun := λ ⟨v, h⟩, ⟨⟨v, h.fst⟩, h.snd⟩,
+    left_inv := λ ⟨⟨_, _⟩, _⟩, rfl,
+    right_inv := λ ⟨_, _⟩, rfl,
+    map_rel_iff' := by {rintro ⟨⟨_, _⟩, _⟩ ⟨⟨_, _⟩, _⟩, exact iff.rfl} }
 
 end simple_graph

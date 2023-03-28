@@ -799,6 +799,16 @@ begin
     apply G''.adj_sub, }
 end
 
+lemma coe_subgraph_le {H : G.subgraph} (H' : H.coe.subgraph) :
+  H'.coe_subgraph ≤ H :=
+begin
+  split,
+  { simp only [subgraph.map_verts, subgraph.hom_apply, set.image_subset_iff,
+      subtype.coe_preimage_self, set.subset_univ] },
+  { rintro v w ⟨_, _, h, rfl, rfl⟩,
+    exact H'.adj_sub h }
+end
+
 lemma coe_subgraph_injective (G' : G.subgraph) :
   function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
 function.left_inverse.injective restrict_coe_subgraph
@@ -923,6 +933,15 @@ lemma induce_mono_left (hg : G' ≤ G'') : G'.induce s ≤ G''.induce s := induc
 
 @[mono]
 lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce_mono (by refl) hs
+
+lemma le_induce_sup : G'.induce s ⊔ G'.induce s' ≤ G'.induce (s ⊔ s') :=
+begin
+  split,
+  { simp only [verts_sup, induce_verts, set.sup_eq_union], },
+  { simp only [sup_adj, induce_adj, set.sup_eq_union, set.mem_union],
+    rintro v w (⟨vs, ws, a⟩|⟨vs', ws', a⟩),
+    exacts [⟨or.inl vs, or.inl ws, a⟩, ⟨or.inr vs', or.inr ws', a⟩], },
+end
 
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
 by ext; simp

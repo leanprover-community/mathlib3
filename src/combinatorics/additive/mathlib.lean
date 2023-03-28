@@ -3,9 +3,9 @@ Copyright (c) 2023 Mantas Bakšys, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys, Yaël Dillies
 -/
-import data.zmod.basic
 import data.finset.pointwise
 import data.set.pointwise.finite
+import data.zmod.basic
 import group_theory.quotient_group
 import set_theory.cardinal.finite
 
@@ -135,14 +135,6 @@ begin
 end
 
 end nat
-
-section canonically_ordered_monoid
-variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
-
-@[to_additive] lemma le_mul_of_le_left : a ≤ b → a ≤ b * c := le_self_mul.trans'
-@[to_additive] lemma le_mul_of_le_right : a ≤ c → a ≤ b * c := le_mul_self.trans'
-
-end canonically_ordered_monoid
 
 alias set.not_infinite ↔ _ set.finite.not_infinite
 

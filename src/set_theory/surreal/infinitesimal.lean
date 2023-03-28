@@ -9,7 +9,7 @@ import set_theory.surreal.dyadic
 /-!
 # Infinitesimal pre-games
 
-We define the notions of an infinitesimal and a small pre-game, and prove the basic
+We define the notions of infinitesimal, small, and dicotic pre-games, and prove some basic
 results.
 
 ## Main definitions
@@ -56,7 +56,7 @@ zero_small.infinitesimal
 theorem small.neg {x} (hx : small x) : small (-x) :=
 λ n, by simpa [and.comm, neg_lt_iff] using hx n
 
-/-- A pre-game is dicotic or all-small when both players can move from any nonempty position.
+/-- A pre-game is dicotic when both players can move from any nonempty position.
 Equivalently, either none or both of its left and right move sets are empty, and all options are
 also dicotic. -/
 def dicotic_aux : pgame → Prop
@@ -112,12 +112,12 @@ by { rw dicotic_def, simpa using zero_dicotic }
 theorem dicotic_congr : ∀ {x y : pgame} (e : relabelling x y) [x.dicotic], y.dicotic
 | x y ⟨L, R, hL, hR⟩ := begin
   introI h,
-  refine dicotic_def.2 ⟨_, _, _⟩,
+  refine dicotic_def.2 ⟨_, λ i, _, λ j, _⟩,
   { rw [←L.is_empty_congr, ←R.is_empty_congr, is_empty_moves_iff] },
-  { intro i,
-    convert dicotic_congr (hL (L.symm i)),
-    rw equiv.apply_symm_apply },
-  { exact λ j, dicotic_congr (hR j) }
+  { rw ←L.apply_symm_apply i,
+    exact dicotic_congr (hL _) },
+  { rw ←R.apply_symm_apply j,
+    exact dicotic_congr (hR _) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

@@ -206,7 +206,7 @@ begin
   -- Else, we're done by induction on either `(s', t')` or `(s'', t'')` depending on whether
   -- `|s| + |t| ≤ |s'| + |t'|` or `|s| + |t| ≤ |s''| + |t''|`. One of those equalities must hold
   -- since `2 * (|s| + |t|) = |s'| + |t'| + |s''| + |t''|`.
-  obtain hstg | hstg := mul_transform.card_ge g s t,
+  obtain hstg | hstg := le_or_lt_of_add_le_add (mul_transform.card g (s, t)).ge,
   { exact (ih _ _ hgs (hgt.mono inter_subset_union) $ devos_mul_rel_of_le_of_le aux1 hstg hsg).imp
       aux1.trans' (λ h, hstg.trans $ h.trans $ add_le_add_right aux1 _) },
   { exact (ih _ _ (hgs.mono inter_subset_union) hgt $ devos_mul_rel_of_le aux2 hstg).imp

@@ -385,7 +385,12 @@ begin
   simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
 end
 
-lemma edge_set_disjoint_diag (G : simple_graph V) : disjoint G.edge_set {e | e.is_diag} := sorry
+lemma edge_set_disjoint_diag (G : simple_graph V) : disjoint G.edge_set {e | e.is_diag} :=
+begin
+  rw set.disjoint_iff,
+  rintro _ ⟨xG,xd⟩,
+  exact G.not_is_diag_of_mem_edge_set xG xd,
+end
 
 lemma edge_set_subset_iff {G G' : simple_graph V} :
   G.edge_set ⊆ G'.edge_set ↔ G ≤ G' :=

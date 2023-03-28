@@ -14,6 +14,7 @@ The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the
 complex conjugation).
 
 ## Main definitions and results
+
 * `number_field.canonical_embedding.ring_of_integers.inter_ball_finite`: the intersection of the
 image of the ring of integers by the canonical embedding and any ball centered at `0` of finite
 radius is finite.

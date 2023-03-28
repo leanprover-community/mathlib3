@@ -3,11 +3,14 @@ Copyright (c) 2022 Jake Levinson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jake Levinson
 -/
-import order.upper_lower
+import order.upper_lower.basic
 import data.finset.preimage
 
 /-!
 # Young diagrams
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A Young diagram is a finite set of up-left justified boxes:
 
@@ -46,6 +49,8 @@ Young diagram
 <https://en.wikipedia.org/wiki/Young_tableau>
 
 -/
+
+open function
 
 /-- A Young diagram is a finite collection of cells on the `ℕ × ℕ` grid such that whenever
 a cell is present, so are all the ones above and to the left of it. Like matrices, an `(i, j)` cell
@@ -273,5 +278,133 @@ lemma col_len_anti (μ : young_diagram) (j1 j2 : ℕ) (hj : j1 ≤ j2) : μ.col_
 by { convert μ.transpose.row_len_anti j1 j2 hj; simp }
 
 end columns
+
+section row_lens
+/-! ### The list of row lengths of a Young diagram
+
+This section defines `μ.row_lens : list ℕ`, the list of row lengths of a Young diagram `μ`.
+  1. `young_diagram.row_lens_sorted` : It is weakly decreasing (`list.sorted (≥)`).
+  2. `young_diagram.row_lens_pos` : It is strictly positive.
+
+-/
+
+/-- List of row lengths of a Young diagram -/
+def row_lens (μ : young_diagram) : list ℕ := (list.range $ μ.col_len 0).map μ.row_len
+
+@[simp] lemma nth_le_row_lens {μ : young_diagram} {i : ℕ} {hi : i < μ.row_lens.length} :
+  μ.row_lens.nth_le i hi = μ.row_len i :=
+by simp only [row_lens, list.nth_le_range, list.nth_le_map']
+
+@[simp] lemma length_row_lens {μ : young_diagram} : μ.row_lens.length = μ.col_len 0 :=
+by simp only [row_lens, list.length_map, list.length_range]
+
+lemma row_lens_sorted (μ : young_diagram) : μ.row_lens.sorted (≥) :=
+(list.pairwise_le_range _).map _ μ.row_len_anti
+
+lemma pos_of_mem_row_lens (μ : young_diagram) (x : ℕ) (hx : x ∈ μ.row_lens) : 0 < x :=
+begin
+  rw [row_lens, list.mem_map] at hx,
+  obtain ⟨i, hi, rfl : μ.row_len i = x⟩ := hx,
+  rwa [list.mem_range, ← mem_iff_lt_col_len, mem_iff_lt_row_len] at hi
+end
+
+end row_lens
+
+section equiv_list_row_lens
+/-! ### Equivalence between Young diagrams and lists of natural numbers
+
+This section defines the equivalence between Young diagrams `μ` and weakly decreasing lists `w`
+of positive natural numbers, corresponding to row lengths of the diagram:
+  `young_diagram.equiv_list_row_lens :`
+  `young_diagram ≃ {w : list ℕ // w.sorted (≥) ∧ ∀ x ∈ w, 0 < x}`
+
+The two directions are `young_diagram.row_lens` (defined above) and `young_diagram.of_row_lens`.
+
+-/
+
+/-- The cells making up a `young_diagram` from a list of row lengths -/
+protected def cells_of_row_lens : list ℕ → finset (ℕ × ℕ)
+| [] := ∅
+| (w :: ws) := (({0} : finset ℕ) ×ˢ finset.range w) ∪
+                 (cells_of_row_lens ws).map
+                   (embedding.prod_map ⟨_, nat.succ_injective⟩ (embedding.refl ℕ))
+
+protected lemma mem_cells_of_row_lens {w : list ℕ} {c : ℕ × ℕ} :
+  c ∈ young_diagram.cells_of_row_lens w ↔ ∃ (h : c.fst < w.length), c.snd < w.nth_le c.fst h :=
+begin
+  induction w generalizing c;
+  rw young_diagram.cells_of_row_lens,
+  { simp [young_diagram.cells_of_row_lens] },
+  { rcases c with ⟨⟨_, _⟩, _⟩,
+    { simp },
+    { simpa [w_ih, -finset.singleton_product, nat.succ_lt_succ_iff] } }
+end
+
+/-- Young diagram from a sorted list -/
+def of_row_lens (w : list ℕ) (hw : w.sorted (≥)) : young_diagram :=
+{ cells        := young_diagram.cells_of_row_lens w,
+  is_lower_set := begin
+    rintros ⟨i2, j2⟩ ⟨i1, j1⟩ ⟨hi : i1 ≤ i2, hj : j1 ≤ j2⟩ hcell,
+    rw [finset.mem_coe, young_diagram.mem_cells_of_row_lens] at hcell ⊢,
+    obtain ⟨h1, h2⟩ := hcell,
+    refine ⟨hi.trans_lt h1, _⟩,
+    calc j1 ≤ j2            : hj
+      ...   < w.nth_le i2 _ : h2
+      ...   ≤ w.nth_le i1 _ : _,
+    obtain (rfl | h) := eq_or_lt_of_le hi,
+    { refl },
+    { apply list.pairwise_iff_nth_le.mp hw _ _ _ h }
+  end }
+
+lemma mem_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} {c : ℕ × ℕ} :
+  c ∈ of_row_lens w hw ↔ ∃ (h : c.fst < w.length), c.snd < w.nth_le c.fst h :=
+young_diagram.mem_cells_of_row_lens
+
+/-- The number of rows in `of_row_lens w hw` is the length of `w` -/
+lemma row_lens_length_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x) :
+  (of_row_lens w hw).row_lens.length = w.length :=
+begin
+  simp only [length_row_lens, col_len, nat.find_eq_iff, mem_cells, mem_of_row_lens,
+             lt_self_iff_false, is_empty.exists_iff, not_not],
+  exact ⟨id, λ n hn, ⟨hn, hpos _ (list.nth_le_mem _ _ hn)⟩⟩,
+end
+
+/-- The length of the `i`th row in `of_row_lens w hw` is the `i`th entry of `w` -/
+lemma row_len_of_row_lens {w : list ℕ} {hw : w.sorted (≥)}
+  (i : ℕ) (hi : i < w.length) : (of_row_lens w hw).row_len i = w.nth_le i hi :=
+by simp [row_len, nat.find_eq_iff, mem_of_row_lens, hi]
+
+/-- The left_inv direction of the equivalence -/
+lemma of_row_lens_to_row_lens_eq_self {μ : young_diagram} :
+  of_row_lens _ (row_lens_sorted μ) = μ :=
+begin
+  ext ⟨i, j⟩,
+  simp only [mem_cells, mem_of_row_lens, length_row_lens, nth_le_row_lens],
+  simpa [← mem_iff_lt_col_len, mem_iff_lt_row_len] using j.zero_le.trans_lt,
+end
+
+/-- The right_inv direction of the equivalence -/
+lemma row_lens_of_row_lens_eq_self {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x) :
+  (of_row_lens w hw).row_lens = w :=
+begin
+  ext i r,
+  cases lt_or_ge i w.length,
+  { simp only [option.mem_def, ← list.nth_le_eq_iff, h, row_lens_length_of_row_lens hpos],
+    revert r,
+    simpa only [eq_iff_eq_cancel_right, nth_le_row_lens] using row_len_of_row_lens _ h },
+  { rw [list.nth_eq_none_iff.mpr h, list.nth_eq_none_iff.mpr],
+    rwa row_lens_length_of_row_lens hpos }
+end
+
+/-- Equivalence between Young diagrams and weakly decreasing lists of positive natural numbers.
+A Young diagram `μ` is equivalent to a list of row lengths. -/
+@[simps]
+def equiv_list_row_lens : young_diagram ≃ {w : list ℕ // w.sorted (≥) ∧ ∀ x ∈ w, 0 < x} :=
+{ to_fun    := λ μ, ⟨μ.row_lens, μ.row_lens_sorted, μ.pos_of_mem_row_lens⟩,
+  inv_fun   := λ ww, of_row_lens ww.1 ww.2.1,
+  left_inv  := λ μ, of_row_lens_to_row_lens_eq_self,
+  right_inv := λ ⟨w, hw⟩, subtype.mk_eq_mk.mpr (row_lens_of_row_lens_eq_self hw.2) }
+
+end equiv_list_row_lens
 
 end young_diagram

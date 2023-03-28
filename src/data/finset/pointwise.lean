@@ -5,10 +5,15 @@ Authors: Floris van Doorn, Yaël Dillies
 -/
 import data.finset.n_ary
 import data.finset.preimage
-import data.set.pointwise
+import data.set.pointwise.finite
+import data.set.pointwise.smul
+import data.set.pointwise.list_of_fn
 
 /-!
 # Pointwise operations of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines pointwise algebraic operations on finsets.
 
@@ -79,6 +84,7 @@ image_singleton _ _
 @[to_additive] lemma subset_one_iff_eq : s ⊆ 1 ↔ s = ∅ ∨ s = 1 := subset_singleton_iff
 @[to_additive] lemma nonempty.subset_one_iff (h : s.nonempty) : s ⊆ 1 ↔ s = 1 :=
 h.subset_singleton_iff
+@[simp, to_additive] lemma card_one : (1 : finset α).card = 1 := card_singleton _
 
 /-- The singleton operation as a `one_hom`. -/
 @[to_additive "The singleton operation as a `zero_hom`."]
@@ -87,6 +93,13 @@ def singleton_one_hom : one_hom α (finset α) := ⟨singleton, singleton_one⟩
 @[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → finset α) = singleton :=
 rfl
 @[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
+
+/-- Lift a `one_hom` to `finset` via `image`. -/
+@[to_additive "Lift a `zero_hom` to `finset` via `image`", simps]
+def image_one_hom [decidable_eq β] [has_one β] [one_hom_class F α β] (f : F) :
+  one_hom (finset α) (finset β) :=
+{ to_fun := finset.image f,
+  map_one' := by rw [image_one, map_one, singleton_one] }
 
 end has_one
 
@@ -142,7 +155,7 @@ end has_involutive_inv
 /-! ### Finset addition/multiplication -/
 
 section has_mul
-variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F)
+variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (f : F)
   {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
 /-- The pointwise multiplication of finsets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}`
@@ -207,8 +220,8 @@ image₂_inter_subset_right
 lemma subset_mul {s t : set α} : ↑u ⊆ s * t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
 subset_image₂
 
-@[to_additive] lemma image_mul : (s * t).image (m : α → β) = s.image m * t.image m :=
-image_image₂_distrib $ map_mul m
+@[to_additive] lemma image_mul : (s * t).image (f : α → β) = s.image f * t.image f :=
+image_image₂_distrib $ map_mul f
 
 /-- The singleton operation as a `mul_hom`. -/
 @[to_additive "The singleton operation as an `add_hom`."]
@@ -217,6 +230,12 @@ def singleton_mul_hom : α →ₙ* finset α := ⟨singleton, λ a b, (singleton
 @[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → finset α) = singleton :=
 rfl
 @[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
+
+/-- Lift a `mul_hom` to `finset` via `image`. -/
+@[to_additive "Lift an `add_hom` to `finset` via `image`", simps]
+def image_mul_hom : finset α →ₙ* finset β :=
+{ to_fun := finset.image f,
+  map_mul' := λ s t, image_mul _ }
 
 end has_mul
 
@@ -319,10 +338,20 @@ localized "attribute [instance] finset.has_nsmul finset.has_npow finset.has_zsmu
 protected def semigroup [semigroup α] : semigroup (finset α) :=
 coe_injective.semigroup _ coe_mul
 
+section comm_semigroup
+variables [comm_semigroup α] {s t : finset α}
+
 /-- `finset α` is a `comm_semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_comm_semigroup` under pointwise operations if `α` is. "]
-protected def comm_semigroup [comm_semigroup α] : comm_semigroup (finset α) :=
-coe_injective.comm_semigroup _ coe_mul
+protected def comm_semigroup : comm_semigroup (finset α) := coe_injective.comm_semigroup _ coe_mul
+
+@[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
+image₂_inter_union_subset mul_comm
+
+@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
+image₂_union_inter_subset mul_comm
+
+end comm_semigroup
 
 section mul_one_class
 variables [mul_one_class α]
@@ -359,6 +388,11 @@ def coe_monoid_hom : finset α →* set α :=
 
 @[simp, to_additive] lemma coe_coe_monoid_hom : (coe_monoid_hom : finset α → set α) = coe := rfl
 @[simp, to_additive] lemma coe_monoid_hom_apply (s : finset α) : coe_monoid_hom s = s := rfl
+
+/-- Lift a `monoid_hom` to `finset` via `image`. -/
+@[to_additive "Lift an `add_monoid_hom` to `finset` via `image`", simps]
+def image_monoid_hom [mul_one_class β] [monoid_hom_class F α β] (f : F) : finset α →* finset β :=
+{ ..image_mul_hom f, ..image_one_hom f }
 
 end mul_one_class
 
@@ -459,7 +493,7 @@ variables [division_monoid α] {s t : finset α}
 by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
 
 /-- `finset α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`finset α` is a subtraction monoid under pointwise operations if
+@[to_additive "`finset α` is a subtraction monoid under pointwise operations if
 `α` is."]
 protected def division_monoid : division_monoid (finset α) :=
 coe_injective.division_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
@@ -532,7 +566,7 @@ s.zero_mul_subset.antisymm $ by simpa [mem_mul] using hs
 end mul_zero_class
 
 section group
-variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s t : finset α} {a b : α}
+variables [group α] [division_monoid β] [monoid_hom_class F α β] (f : F) {s t : finset α} {a b : α}
 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
@@ -569,8 +603,8 @@ by simp
 lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) ((mul_left_injective _).inj_on _) :=
 by simp
 
-lemma image_div : (s / t).image (m : α → β) = s.image m / t.image m :=
-image_image₂_distrib $ map_div m
+lemma image_div : (s / t).image (f : α → β) = s.image f / t.image f :=
+image_image₂_distrib $ map_div f
 
 end group
 
@@ -659,9 +693,7 @@ nonempty.of_image₂_left
 nonempty.of_image₂_right
 @[to_additive] lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) :=
 image₂_singleton_right
-@[to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = t.image ((•) a) :=
-image₂_singleton_left
-@[simp, to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
+@[to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
   ({a} : finset α) • ({b} : finset β) = {a • b} :=
 image₂_singleton
 
@@ -782,6 +814,8 @@ lemma coe_smul_finset (a : α) (s : finset β) : (↑(a • s) : set β) = a •
 @[simp, to_additive] lemma smul_finset_nonempty : (a • s).nonempty ↔ s.nonempty :=
 nonempty.image_iff _
 @[to_additive] lemma nonempty.smul_finset (hs : s.nonempty) : (a • s).nonempty := hs.image _
+@[simp,  to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = a • t :=
+image₂_singleton_left
 
 @[to_additive, mono]
 lemma smul_finset_subset_smul_finset : s ⊆ t → a • s ⊆ a • t := image_subset_image
@@ -937,6 +971,16 @@ end
 
 open_locale pointwise
 
+@[to_additive] lemma image_smul_comm [decidable_eq β] [decidable_eq γ] [has_smul α β] [has_smul α γ]
+  (f : β → γ) (a : α) (s : finset β) :
+  (∀ b, f (a • b) = a • f b) → (a • s).image f = a • s.image f :=
+image_comm
+
+@[to_additive] lemma image_smul_distrib [decidable_eq α] [decidable_eq β] [monoid α] [monoid β]
+  [monoid_hom_class F α β] (f : F) (a : α) (s : finset α) :
+  (a • s).image f = f a • s.image f :=
+image_comm $ map_mul _ _
+
 section group
 variables [decidable_eq β] [group α] [mul_action α β] {s t : finset β} {a : α} {b : β}
 
@@ -957,6 +1001,9 @@ by { simp_rw ←coe_subset, push_cast, exact set.set_smul_subset_iff }
 
 @[to_additive] lemma subset_smul_finset_iff : s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
 by { simp_rw ←coe_subset, push_cast, exact set.subset_set_smul_iff }
+
+@[simp, to_additive] lemma card_smul_finset (a : α) (s : finset β) : (a • s).card = s.card :=
+card_image_of_injective _ $ mul_action.injective _
 
 end group
 
@@ -1009,7 +1056,7 @@ t.zero_smul_subset.antisymm $ by simpa [mem_smul] using ht
 
 /-- A nonempty set is scaled by zero to the singleton set containing 0. -/
 lemma zero_smul_finset {s : finset β} (h : s.nonempty) : (0 : α) • s = (0 : finset β) :=
-coe_injective $ by simpa using set.zero_smul_set h
+coe_injective $ by simpa using @set.zero_smul_set α _ _ _ _ _ h
 
 lemma zero_smul_finset_subset (s : finset β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, mem_zero.2 $ zero_smul α x
@@ -1051,3 +1098,74 @@ by { simp_rw ←image_neg, exact image₂_image_left_comm neg_smul }
 
 end ring
 end finset
+
+open_locale pointwise
+
+namespace set
+section has_one
+variables [has_one α]
+
+@[simp, to_additive] lemma to_finset_one : (1 : set α).to_finset = 1 := rfl
+
+@[simp, to_additive]
+lemma finite.to_finset_one (h : (1 : set α).finite := finite_one) : h.to_finset = 1 :=
+finite.to_finset_singleton _
+
+end has_one
+
+section has_mul
+variables [decidable_eq α] [has_mul α] {s t : set α}
+
+@[simp, to_additive] lemma to_finset_mul (s t : set α) [fintype s] [fintype t] [fintype ↥(s * t)] :
+  (s * t).to_finset = s.to_finset * t.to_finset :=
+to_finset_image2 _ _ _
+
+@[to_additive] lemma finite.to_finset_mul (hs : s.finite) (ht : t.finite) (hf := hs.mul ht) :
+  hf.to_finset = hs.to_finset * ht.to_finset :=
+finite.to_finset_image2 _ _ _
+
+end has_mul
+
+section has_smul
+variables [has_smul α β] [decidable_eq β] {a : α} {s : set α} {t : set β}
+
+@[simp, to_additive]
+lemma to_finset_smul (s : set α) (t : set β) [fintype s] [fintype t] [fintype ↥(s • t)] :
+  (s • t).to_finset = s.to_finset • t.to_finset :=
+to_finset_image2 _ _ _
+
+@[to_additive] lemma finite.to_finset_smul (hs : s.finite) (ht : t.finite) (hf := hs.smul ht) :
+  hf.to_finset = hs.to_finset • ht.to_finset :=
+finite.to_finset_image2 _ _ _
+
+end has_smul
+
+section has_smul
+variables [decidable_eq β] [has_smul α β] {a : α} {s : set β}
+
+@[simp, to_additive]
+lemma to_finset_smul_set (a : α) (s : set β) [fintype s] [fintype ↥(a • s)] :
+  (a • s).to_finset = a • s.to_finset :=
+to_finset_image _ _
+
+@[to_additive]
+lemma finite.to_finset_smul_set (hs : s.finite) (hf : (a • s).finite := hs.smul_set) :
+  hf.to_finset = a • hs.to_finset :=
+finite.to_finset_image _ _ _
+
+end has_smul
+
+section has_vsub
+variables [decidable_eq α] [has_vsub α β] {s t : set β}
+include α
+
+@[simp] lemma to_finset_vsub (s t : set β) [fintype s] [fintype t] [fintype ↥(s -ᵥ t)] :
+  (s -ᵥ t : set α).to_finset = s.to_finset -ᵥ t.to_finset :=
+to_finset_image2 _ _ _
+
+lemma finite.to_finset_vsub (hs : s.finite) (ht : t.finite) (hf := hs.vsub ht) :
+  hf.to_finset = hs.to_finset -ᵥ ht.to_finset :=
+finite.to_finset_image2 _ _ _
+
+end has_vsub
+end set

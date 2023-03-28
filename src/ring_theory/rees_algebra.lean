@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.finiteness
-import ring_theory.ideal.local_ring
-import ring_theory.nakayama
+import ring_theory.finite_type
 
 /-!
 

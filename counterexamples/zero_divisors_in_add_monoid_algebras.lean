@@ -3,12 +3,11 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.char_p.basic
 import algebra.geom_sum
+import algebra.group.unique_prods
 import algebra.monoid_algebra.basic
 import data.finsupp.lex
 import data.zmod.basic
-import group_theory.order_of_element
 
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
@@ -50,7 +49,7 @@ is zero.
 
 Observe that such an element `a` *cannot* be invertible.  In particular, this lemma never applies
 if `A` is a group. -/
-lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
+lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} (a : A)
   (n2 : 2 ≤ n) (na : n • a = a) (na1 : (n - 1) • a ≠ 0) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
 begin
@@ -203,9 +202,31 @@ end
 
 example {α} [ring α] [nontrivial α] :
   ∃ f g : add_monoid_algebra α F, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
-zero_divisors_of_periodic le_rfl ((two_smul _ _).trans (by refl)) z01.ne'
+zero_divisors_of_periodic (1 : F) le_rfl (by simp [two_smul]) (z01.ne')
 
 example {α} [has_zero α] : 2 • (single 0 1 : α →₀ F) = single 0 1 ∧ (single 0 1 : α →₀ F) ≠ 0 :=
 ⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩
 
 end F
+
+/-- A Type that does not have `unique_prods`. -/
+example : ¬ unique_prods ℕ :=
+begin
+  rintros ⟨h⟩,
+  refine not_not.mpr (h (finset.singleton_nonempty 0) (finset.insert_nonempty 0 {1})) _,
+  suffices : (∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 0) ∧ ∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 1,
+  { simpa [unique_mul] },
+  exact ⟨⟨1, by simp⟩, ⟨0, by simp⟩⟩,
+end
+
+/-- Some Types that do not have `unique_sums`. -/
+example (n : ℕ) (n2 : 2 ≤ n): ¬ unique_sums (zmod n) :=
+begin
+  haveI : fintype (zmod n) := @zmod.fintype n ⟨(zero_lt_two.trans_le n2).ne'⟩,
+  haveI : nontrivial (zmod n) := char_p.nontrivial_of_char_ne_one (one_lt_two.trans_le n2).ne',
+  rintros ⟨h⟩,
+  refine not_not.mpr (h finset.univ_nonempty finset.univ_nonempty) _,
+  suffices : ∀ (x y : zmod n), ∃ (x' y' : zmod n), x' + y' = x + y ∧ (x' = x → ¬y' = y),
+  { simpa [unique_add] },
+  exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
+end

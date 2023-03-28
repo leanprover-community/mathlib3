@@ -21,16 +21,17 @@ product space `E`.
   construction of oriented area should pass through `ω`.)
 
 * `orientation.right_angle_rotation`: an isometric automorphism `E ≃ₗᵢ[ℝ] E` (usual notation `J`).
-  This automorphism squares to -1.  TODO: this agrees with the rotation by 90 degrees defined in
-  `orientation.rotation`.
+  This automorphism squares to -1.  In a later file, rotations (`orientation.rotation`) are defined,
+  in such a way that this automorphism is equal to rotation by 90 degrees.
 
 * `orientation.basis_right_angle_rotation`: for a nonzero vector `x` in `E`, the basis `![x, J x]`
   for `E`.
 
 * `orientation.kahler`: a complex-valued real-bilinear map `E →ₗ[ℝ] E →ₗ[ℝ] ℂ`. Its real part is the
   inner product and its imaginary part is `orientation.area_form`.  For vectors `x` and `y` in `E`,
-  the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. TODO: the argument of `o.kahler x y` is
-  the oriented angle (`orientation.oangle`) from `x` to `y`.
+  the complex number `o.kahler x y` has modulus `‖x‖ * ‖y‖`. In a later file, oriented angles
+  (`orientation.oangle`) are defined, in such a way that the argument of `o.kahler x y` is the
+  oriented angle from `x` to `y`.
 
 ## Main results
 
@@ -39,7 +40,7 @@ product space `E`.
 * `orientation.nonneg_inner_and_area_form_eq_zero_iff_same_ray`: `x`, `y` are in the same ray, if
   and only if `0 ≤ ⟪x, y⟫` and `ω x y = 0`
 
-* `orientation.kahler_mul`: the identity `o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y`
+* `orientation.kahler_mul`: the identity `o.kahler x a * o.kahler a y = ‖a‖ ^ 2 * o.kahler x y`
 
 * `complex.area_form`, `complex.right_angle_rotation`, `complex.kahler`: the concrete
   interpretations of `area_form`, `right_angle_rotation`, `kahler` for the oriented real inner
@@ -70,7 +71,7 @@ open finite_dimensional
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
-variables {E : Type*} [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
   (o : orientation ℝ E (fin 2))
 
 namespace orientation
@@ -128,13 +129,13 @@ def area_form' : E →L[ℝ] (E →L[ℝ] ℝ) :=
   o.area_form' x = (o.area_form x).to_continuous_linear_map :=
 rfl
 
-lemma abs_area_form_le (x y : E) : |ω x y| ≤ ∥x∥ * ∥y∥ :=
+lemma abs_area_form_le (x y : E) : |ω x y| ≤ ‖x‖ * ‖y‖ :=
 by simpa [area_form_to_volume_form, fin.prod_univ_succ] using o.abs_volume_form_apply_le ![x, y]
 
-lemma area_form_le (x y : E) : ω x y ≤ ∥x∥ * ∥y∥ :=
+lemma area_form_le (x y : E) : ω x y ≤ ‖x‖ * ‖y‖ :=
 by simpa [area_form_to_volume_form, fin.prod_univ_succ] using o.volume_form_apply_le ![x, y]
 
-lemma abs_area_form_of_orthogonal {x y : E} (h : ⟪x, y⟫ = 0) : |ω x y| = ∥x∥ * ∥y∥ :=
+lemma abs_area_form_of_orthogonal {x y : E} (h : ⟪x, y⟫ = 0) : |ω x y| = ‖x‖ * ‖y‖ :=
 begin
   rw [o.area_form_to_volume_form, o.abs_volume_form_apply_of_pairwise_orthogonal],
   { simp [fin.prod_univ_succ] },
@@ -146,7 +147,8 @@ begin
   { simpa }
 end
 
-lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma area_form_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
 begin
@@ -178,7 +180,11 @@ let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
 
 @[simp] lemma inner_right_angle_rotation_aux₁_left (x y : E) :
   ⟪o.right_angle_rotation_aux₁ x, y⟫ = ω x y :=
-by simp [right_angle_rotation_aux₁]
+by simp only [right_angle_rotation_aux₁, linear_equiv.trans_symm, linear_equiv.coe_trans,
+              linear_equiv.coe_coe, inner_product_space.to_dual_symm_apply, eq_self_iff_true,
+              linear_map.coe_to_continuous_linear_map', linear_isometry_equiv.coe_to_linear_equiv,
+              linear_map.comp_apply, linear_equiv.symm_symm,
+              linear_isometry_equiv.to_linear_equiv_symm]
 
 @[simp] lemma inner_right_angle_rotation_aux₁_right (x y : E) :
   ⟪x, o.right_angle_rotation_aux₁ y⟫ = - ω x y :=
@@ -210,9 +216,9 @@ def right_angle_rotation_aux₂ : E →ₗᵢ[ℝ] E :=
         have : finrank ℝ E = 2 := fact.out _,
         linarith },
       obtain ⟨w, hw₀⟩ : ∃ w : Kᗮ, w ≠ 0 := exists_ne 0,
-      have hw' : ⟪x, (w:E)⟫ = 0 := inner_right_of_mem_orthogonal_singleton x w.2, -- hw'₀,
+      have hw' : ⟪x, (w:E)⟫ = 0 := submodule.mem_orthogonal_singleton_iff_inner_right.mp w.2,
       have hw : (w:E) ≠ 0 := λ h, hw₀ (submodule.coe_eq_zero.mp h),
-      refine le_of_mul_le_mul_right _ (by rwa norm_pos_iff : 0 < ∥(w:E)∥),
+      refine le_of_mul_le_mul_right _ (by rwa norm_pos_iff : 0 < ‖(w:E)‖),
       rw ← o.abs_area_form_of_orthogonal hw',
       rw ← o.inner_right_angle_rotation_aux₁_left x w,
       exact abs_real_inner_le_norm (o.right_angle_rotation_aux₁ x) w },
@@ -303,7 +309,8 @@ end
   (-o).right_angle_rotation = o.right_angle_rotation.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
 
-lemma right_angle_rotation_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma right_angle_rotation_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x
   = φ (o.right_angle_rotation (φ.symm x)) :=
@@ -330,7 +337,8 @@ begin
     rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
 end
 
-lemma right_angle_rotation_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma right_angle_rotation_map' {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation
   = (φ.symm.trans o.right_angle_rotation).trans φ :=
@@ -345,7 +353,7 @@ linear_isometry_equiv.ext $ o.linear_isometry_equiv_comp_right_angle_rotation φ
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
 def basis_right_angle_rotation (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
-@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _ ![x, J x]
+@basis_of_linear_independent_of_card_eq_finrank ℝ _ _ _ _ _ _ _ ![x, J x]
 (linear_independent_of_ne_zero_of_inner_eq_zero (λ i, by { fin_cases i; simp [hx] })
   begin
     intros i j hij,
@@ -361,10 +369,10 @@ def basis_right_angle_rotation (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
   ⇑(o.basis_right_angle_rotation x hx) = ![x, J x] :=
 coe_basis_of_linear_independent_of_card_eq_finrank _ _
 
-/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫`. (See
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ‖a‖ ^ 2 * ⟪x, y⟫`. (See
 `orientation.inner_mul_inner_add_area_form_mul_area_form` for the "applied" form.)-/
 lemma inner_mul_inner_add_area_form_mul_area_form' (a x : E) :
-  ⟪a, x⟫ • @innerₛₗ ℝ _ _ _ a + ω a x • ω a = ∥a∥ ^ 2 • @innerₛₗ ℝ _ _ _ x :=
+  ⟪a, x⟫ • innerₛₗ ℝ a + ω a x • ω a = ‖a‖ ^ 2 • innerₛₗ ℝ x :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
@@ -383,18 +391,18 @@ begin
     ring, }
 end
 
-/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫`. -/
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ‖a‖ ^ 2 * ⟪x, y⟫`. -/
 lemma inner_mul_inner_add_area_form_mul_area_form (a x y : E) :
-  ⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫ :=
+  ⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ‖a‖ ^ 2 * ⟪x, y⟫ :=
 congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_inner_add_area_form_mul_area_form' a x)
 
-lemma inner_sq_add_area_form_sq (a b : E) : ⟪a, b⟫ ^ 2 + ω a b ^ 2 = ∥a∥ ^ 2 * ∥b∥ ^ 2 :=
+lemma inner_sq_add_area_form_sq (a b : E) : ⟪a, b⟫ ^ 2 + ω a b ^ 2 = ‖a‖ ^ 2 * ‖b‖ ^ 2 :=
 by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_mul_area_form a b b
 
-/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y`. (See
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ‖a‖ ^ 2 * ω x y`. (See
 `orientation.inner_mul_area_form_sub` for the "applied" form.) -/
 lemma inner_mul_area_form_sub' (a x : E) :
-  ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ∥a∥ ^ 2 • ω x :=
+  ⟪a, x⟫ • ω a - ω a x • innerₛₗ ℝ a = ‖a‖ ^ 2 • ω x :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
@@ -412,8 +420,8 @@ begin
   ring},
 end
 
-/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y`. -/
-lemma inner_mul_area_form_sub (a x y : E) : ⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y :=
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ‖a‖ ^ 2 * ω x y`. -/
+lemma inner_mul_area_form_sub (a x y : E) : ⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ‖a‖ ^ 2 * ω x y :=
 congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_area_form_sub' a x)
 
 lemma nonneg_inner_and_area_form_eq_zero_iff_same_ray (x y : E) :
@@ -424,20 +432,18 @@ begin
   split,
   { let a : ℝ := (o.basis_right_angle_rotation x hx).repr y 0,
     let b : ℝ := (o.basis_right_angle_rotation x hx).repr y 1,
-    suffices : 0 ≤ a * ∥x∥ ^ 2 ∧ b * ∥x∥ ^ 2 = 0 → same_ray ℝ x (a • x + b • J x),
-    { -- TODO trace the `dsimp` lemmas in this block to make a single `simp only`
-      rw ← (o.basis_right_angle_rotation x hx).sum_repr y,
-      simp only [fin.sum_univ_succ, coe_basis_right_angle_rotation],
-      dsimp,
-      simp only [o.area_form_apply_self, map_smul, map_add, map_zero, inner_smul_left,
-        inner_smul_right, inner_add_left, inner_add_right, inner_zero_right, linear_map.add_apply,
-        matrix.cons_val_one],
-      dsimp,
-      simp only [o.area_form_right_angle_rotation_right, mul_zero, add_zero, zero_add, neg_zero,
-        o.inner_right_angle_rotation_right, o.area_form_apply_self, real_inner_self_eq_norm_sq],
+    suffices : 0 ≤ a * ‖x‖ ^ 2 ∧ b * ‖x‖ ^ 2 = 0 → same_ray ℝ x (a • x + b • J x),
+    { rw ← (o.basis_right_angle_rotation x hx).sum_repr y,
+      simp only [fin.sum_univ_succ, coe_basis_right_angle_rotation, matrix.cons_val_zero,
+        fin.succ_zero_eq_one', fintype.univ_of_is_empty, finset.sum_empty, o.area_form_apply_self,
+        map_smul, map_add, map_zero, inner_smul_left, inner_smul_right, inner_add_left,
+        inner_add_right, inner_zero_right, linear_map.add_apply, matrix.cons_val_one,
+        matrix.head_cons, algebra.id.smul_eq_mul, o.area_form_right_angle_rotation_right, mul_zero,
+        add_zero, zero_add, neg_zero, o.inner_right_angle_rotation_right, o.area_form_apply_self,
+        real_inner_self_eq_norm_sq],
       exact this },
     rintros ⟨ha, hb⟩,
-    have hx' : 0 < ∥x∥ := by simpa using hx,
+    have hx' : 0 < ‖x‖ := by simpa using hx,
     have ha' : 0 ≤ a := nonneg_of_mul_nonneg_left ha (by positivity),
     have hb' : b = 0 := eq_zero_of_ne_zero_of_mul_right_eq_zero (pow_ne_zero 2 hx'.ne') hb,
     simpa [hb'] using same_ray_nonneg_smul_right x ha' },
@@ -453,7 +459,7 @@ real part is the inner product and its imaginary part is `orientation.area_form`
 
 On `ℂ` with the standard orientation, `kahler w z = conj w * z`; see `complex.kahler`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
-(linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
+(linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ innerₛₗ ℝ
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω
 
 lemma kahler_apply_apply (x y : E) : o.kahler x y = ⟪x, y⟫ + ω x y • complex.I := rfl
@@ -465,7 +471,7 @@ begin
   simp,
 end
 
-@[simp] lemma kahler_apply_self (x : E) : o.kahler x x = ∥x∥ ^ 2 :=
+@[simp] lemma kahler_apply_self (x : E) : o.kahler x x = ‖x‖ ^ 2 :=
 by simp [kahler_apply_apply, real_inner_self_eq_norm_sq]
 
 @[simp] lemma kahler_right_angle_rotation_left (x y : E) :
@@ -493,9 +499,9 @@ end
 @[simp] lemma kahler_neg_orientation (x y : E) : (-o).kahler x y = conj (o.kahler x y) :=
 by simp [kahler_apply_apply]
 
-lemma kahler_mul (a x y : E) : o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y :=
+lemma kahler_mul (a x y : E) : o.kahler x a * o.kahler a y = ‖a‖ ^ 2 * o.kahler x y :=
 begin
-  transitivity (↑(∥a∥ ^ 2) : ℂ) * o.kahler x y,
+  transitivity (↑(‖a‖ ^ 2) : ℂ) * o.kahler x y,
   { ext,
     { simp only [o.kahler_apply_apply, complex.add_im, complex.add_re, complex.I_im, complex.I_re,
         complex.mul_im, complex.mul_re, complex.of_real_im, complex.of_real_re, complex.real_smul],
@@ -508,10 +514,10 @@ begin
   { norm_cast },
 end
 
-lemma norm_sq_kahler (x y : E) : complex.norm_sq (o.kahler x y) = ∥x∥ ^ 2 * ∥y∥ ^ 2 :=
+lemma norm_sq_kahler (x y : E) : complex.norm_sq (o.kahler x y) = ‖x‖ ^ 2 * ‖y‖ ^ 2 :=
 by simpa [kahler_apply_apply, complex.norm_sq, sq] using o.inner_sq_add_area_form_sq x y
 
-lemma abs_kahler (x y : E) : complex.abs (o.kahler x y) = ∥x∥ * ∥y∥ :=
+lemma abs_kahler (x y : E) : complex.abs (o.kahler x y) = ‖x‖ * ‖y‖ :=
 begin
   rw [← sq_eq_sq, complex.sq_abs],
   { linear_combination o.norm_sq_kahler x y },
@@ -519,11 +525,11 @@ begin
   { positivity }
 end
 
-lemma norm_kahler (x y : E) : ∥o.kahler x y∥ = ∥x∥ * ∥y∥ := by simpa using o.abs_kahler x y
+lemma norm_kahler (x y : E) : ‖o.kahler x y‖ = ‖x‖ * ‖y‖ := by simpa using o.abs_kahler x y
 
 lemma eq_zero_or_eq_zero_of_kahler_eq_zero {x y : E} (hx : o.kahler x y = 0) : x = 0 ∨ y = 0 :=
 begin
-  have : ∥x∥ * ∥y∥ = 0 := by simpa [hx] using (o.norm_kahler x y).symm,
+  have : ‖x‖ * ‖y‖ = 0 := by simpa [hx] using (o.norm_kahler x y).symm,
   cases eq_zero_or_eq_zero_of_mul_eq_zero this with h h,
   { left,
     simpa using h },
@@ -553,7 +559,8 @@ begin
   simp,
 end
 
-lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma kahler_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
 by simp [kahler_apply_apply, area_form_map]

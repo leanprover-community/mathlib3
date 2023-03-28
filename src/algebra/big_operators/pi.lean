@@ -3,11 +3,16 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import data.fintype.card
+import algebra.group.prod
 import algebra.big_operators.basic
 import algebra.ring.pi
 
 /-!
 # Big operators for Pi Types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains theorems relevant to big operators in binary and arbitrary product
 of monoids and groups

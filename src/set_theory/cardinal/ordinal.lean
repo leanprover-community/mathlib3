@@ -12,6 +12,9 @@ import tactic.linarith
 /-!
 # Cardinals and ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 
@@ -94,7 +97,7 @@ aleph_idx.initial_seg.to_rel_embedding.map_rel_iff
 by rw [← not_lt, ← not_lt, aleph_idx_lt]
 
 theorem aleph_idx.init {a b} : b < aleph_idx a → ∃ c, aleph_idx c = b :=
-aleph_idx.initial_seg.init _ _
+aleph_idx.initial_seg.init
 
 /-- The `aleph'` index function, which gives the ordinal index of a cardinal.
   (The `aleph'` part is because unlike `aleph` this counts also the
@@ -378,7 +381,7 @@ begin
   { simp },
   { intros o h,
     rw [aleph_succ, beth_succ, succ_le_iff],
-    exact (cantor _).trans_le (power_le_power_left two_ne_zero' h) },
+    exact (cantor _).trans_le (power_le_power_left two_ne_zero h) },
   { intros o ho IH,
     rw [aleph_limit ho, beth_limit ho],
     exact csupr_mono (bdd_above_of_small _) (λ x, IH x.1 x.2) }
@@ -508,6 +511,9 @@ begin
   rw [max_eq_left this],
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
+
+lemma mul_le_max_of_aleph_0_le_right {a b : cardinal} (h : ℵ₀ ≤ b) : a * b ≤ max a b :=
+by simpa only [mul_comm, max_comm] using mul_le_max_of_aleph_0_le_left h
 
 lemma mul_eq_max_of_aleph_0_le_right {a b : cardinal} (h' : a ≠ 0) (h : ℵ₀ ≤ b) : a * b = max a b :=
 begin

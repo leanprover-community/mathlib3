@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.asymptotics.asymptotics
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 
 /-!
 # Asymptotic equivalence
@@ -57,7 +57,7 @@ This is to enable `calc` support, as `calc` requires that the last two explicit 
 namespace asymptotics
 
 open filter function
-open_locale topological_space
+open_locale topology
 
 section normed_add_comm_group
 
@@ -243,18 +243,18 @@ begin
   refine hφ.mp (huv.mp $ hCuv.mono $ λ x hCuvx huvx hφx, _),
 
   have key :=
-    calc ∥φ x - 1∥ * ∥u x∥
-            ≤ (c/2) / C * ∥u x∥ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
-        ... ≤ (c/2) / C * (C*∥v x∥) : mul_le_mul_of_nonneg_left hCuvx (div_pos (by linarith) hC).le
-        ... = c/2 * ∥v x∥ : by {field_simp [hC.ne.symm], ring},
+    calc ‖φ x - 1‖ * ‖u x‖
+            ≤ (c/2) / C * ‖u x‖ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
+        ... ≤ (c/2) / C * (C*‖v x‖) : mul_le_mul_of_nonneg_left hCuvx (div_pos (by linarith) hC).le
+        ... = c/2 * ‖v x‖ : by {field_simp [hC.ne.symm], ring},
 
-  calc ∥((λ (x : α), φ x • u x) - v) x∥
-          = ∥(φ x - 1) • u x + (u x - v x)∥ : by simp [sub_smul, sub_add]
-      ... ≤ ∥(φ x - 1) • u x∥ + ∥u x - v x∥ : norm_add_le _ _
-      ... = ∥φ x - 1∥ * ∥u x∥ + ∥u x - v x∥ : by rw norm_smul
-      ... ≤ c / 2 * ∥v x∥ + ∥u x - v x∥ : add_le_add_right key _
-      ... ≤ c / 2 * ∥v x∥ + c / 2 * ∥v x∥ : add_le_add_left huvx _
-      ... = c * ∥v x∥ : by ring,
+  calc ‖((λ (x : α), φ x • u x) - v) x‖
+          = ‖(φ x - 1) • u x + (u x - v x)‖ : by simp [sub_smul, sub_add]
+      ... ≤ ‖(φ x - 1) • u x‖ + ‖u x - v x‖ : norm_add_le _ _
+      ... = ‖φ x - 1‖ * ‖u x‖ + ‖u x - v x‖ : by rw norm_smul
+      ... ≤ c / 2 * ‖v x‖ + ‖u x - v x‖ : add_le_add_right key _
+      ... ≤ c / 2 * ‖v x‖ + c / 2 * ‖v x‖ : add_le_add_left huvx _
+      ... = c * ‖v x‖ : by ring,
 end
 
 end smul

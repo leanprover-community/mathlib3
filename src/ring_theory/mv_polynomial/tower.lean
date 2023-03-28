@@ -10,6 +10,9 @@ import data.mv_polynomial.basic
 /-!
 # Algebra towers for multivariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some basic results about the algebra tower structure for the type
 `mv_polynomial σ R`.
 
@@ -51,7 +54,7 @@ lemma aeval_algebra_map_eq_zero_iff [no_zero_smul_divisors A B] [nontrivial B]
   (x : σ → A) (p : mv_polynomial σ R) :
   aeval (algebra_map A B ∘ x) p = 0 ↔ aeval x p = 0 :=
 by rw [aeval_algebra_map_apply, algebra.algebra_map_eq_smul_one, smul_eq_zero,
-  iff_false_intro (@one_ne_zero B _ _), or_false]
+  iff_false_intro (one_ne_zero' B), or_false]
 
 lemma aeval_algebra_map_eq_zero_iff_of_injective
   {x : σ → A} {p : mv_polynomial σ R}

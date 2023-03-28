@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.independent
+import linear_algebra.affine_space.basis
 import linear_algebra.finite_dimensional
 
 /-!
@@ -68,21 +68,22 @@ instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
-noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
-  {p : ι → P} (hi : affine_independent k p) : fintype ι :=
-by classical; exact if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+lemma finite_of_fin_dim_affine_independent [finite_dimensional k V] {p : ι → P}
+  (hi : affine_independent k p) : _root_.finite ι :=
 begin
-  let q := (not_is_empty_iff.mp hι).some,
-  rw affine_independent_iff_linear_independent_vsub k p q at hi,
+  nontriviality ι, inhabit ι,
+  rw affine_independent_iff_linear_independent_vsub k p default at hi,
   letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
-  exact fintype_of_fintype_ne _ (@fintype.of_finite _ hi.finite_of_is_noetherian),
+  exact (set.finite_singleton default).finite_of_compl
+    (set.finite_coe_iff.1 hi.finite_of_is_noetherian)
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
-lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
-  {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
-⟨fintype_of_fin_dim_affine_independent k hi⟩
+lemma finite_set_of_fin_dim_affine_independent [finite_dimensional k V] {s : set ι} {f : s → P}
+  (hi : affine_independent k f) : s.finite :=
+@set.to_finite _ s (finite_of_fin_dim_affine_independent k hi)
 
+open_locale classical
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent
@@ -226,9 +227,9 @@ lemma affine_independent.affine_span_image_finset_eq_of_le_of_card_eq_finrank_ad
   [finite_dimensional k sp.direction] (hle : affine_span k (s.image p : set P) ≤ sp)
   (hc : finset.card s = finrank k sp.direction + 1) : affine_span k (s.image p : set P) = sp :=
 begin
-  have hn : (s.image p).nonempty,
-  { rw [finset.nonempty.image_iff, ← finset.card_pos, hc], apply nat.succ_pos },
-  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_nonempty k _).2 hn) hle,
+  have hn : s.nonempty,
+  { rw [←finset.card_pos, hc], apply nat.succ_pos },
+  refine eq_of_direction_eq_of_nonempty_of_le _ ((hn.image _).to_set.affine_span _)hle,
   have hd := direction_le hle,
   rw direction_affine_span at ⊢ hd,
   exact hi.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hd hc
@@ -264,6 +265,12 @@ begin
     rw [← finrank_top, ← direction_top k V P] at hc,
     exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
 end
+
+lemma affine.simplex.span_eq_top [finite_dimensional k V] {n : ℕ} (T : affine.simplex k V n)
+  (hrank : finrank k V = n) :
+  affine_span k (set.range T.points) = ⊤ :=
+by rw [affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one T.independent,
+  fintype.card_fin, hrank]
 
 /-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
 instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
@@ -442,6 +449,33 @@ lemma collinear_iff_not_affine_independent {p : fin 3 → P} :
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
 
+/-- Three points are affinely independent if and only if they are not collinear. -/
+lemma affine_independent_iff_not_collinear_set {p₁ p₂ p₃ : P} :
+  affine_independent k ![p₁, p₂, p₃] ↔ ¬collinear k ({p₁, p₂, p₃} : set P) :=
+by simp [affine_independent_iff_not_collinear, -set.union_singleton]
+
+/-- Three points are collinear if and only if they are not affinely independent. -/
+lemma collinear_iff_not_affine_independent_set {p₁ p₂ p₃ : P} :
+  collinear k ({p₁, p₂, p₃} : set P) ↔ ¬affine_independent k ![p₁, p₂, p₃] :=
+affine_independent_iff_not_collinear_set.not_left.symm
+
+/-- Three points are affinely independent if and only if they are not collinear. -/
+lemma affine_independent_iff_not_collinear_of_ne {p : fin 3 → P} {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
+  (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) :
+  affine_independent k p ↔ ¬collinear k ({p i₁, p i₂, p i₃} : set P) :=
+begin
+  have hu : (finset.univ : finset (fin 3)) = {i₁, i₂, i₃}, by dec_trivial!,
+  rw [affine_independent_iff_not_collinear, ←set.image_univ, ←finset.coe_univ, hu,
+      finset.coe_insert, finset.coe_insert, finset.coe_singleton, set.image_insert_eq,
+      set.image_pair]
+end
+
+/-- Three points are collinear if and only if they are not affinely independent. -/
+lemma collinear_iff_not_affine_independent_of_ne {p : fin 3 → P} {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
+  (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) :
+  collinear k ({p i₁, p i₂, p i₃} : set P) ↔ ¬affine_independent k p:=
+(affine_independent_iff_not_collinear_of_ne h₁₂ h₁₃ h₂₃).not_left.symm
+
 /-- If three points are not collinear, the first and second are different. -/
 lemma ne₁₂_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₂ :=
 by { rintro rfl, simpa [collinear_pair] using h }
@@ -458,7 +492,7 @@ by { rintro rfl, simpa [collinear_pair] using h }
 that set. -/
 lemma collinear.mem_affine_span_of_mem_of_ne {s : set P} (h : collinear k s) {p₁ p₂ p₃ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  p₃ ∈ affine_span k ({p₁, p₂} : set P) :=
+  p₃ ∈ line[k, p₁, p₂] :=
 begin
   rw collinear_iff_of_mem hp₁ at h,
   rcases h with ⟨v, h⟩,
@@ -476,7 +510,7 @@ end
 span of the whole set. -/
 lemma collinear.affine_span_eq_of_ne {s : set P} (h : collinear k s) {p₁ p₂ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  affine_span k ({p₁, p₂} : set P) = affine_span k s :=
+  line[k, p₁, p₂] = affine_span k s :=
 le_antisymm (affine_span_mono _
   (set.insert_subset.2 ⟨hp₁, set.singleton_subset_iff.2 hp₂⟩))
   (affine_span_le.2 (λ p hp, h.mem_affine_span_of_mem_of_ne hp₁ hp₂ hp hp₁p₂))
@@ -498,6 +532,56 @@ end
 lemma collinear_insert_iff_of_mem_affine_span {s : set P} {p : P} (h : p ∈ affine_span k s) :
   collinear k (insert p s) ↔ collinear k s :=
 by rw [collinear, collinear, vector_span_insert_eq_vector_span h]
+
+/-- If a point lies in the affine span of two points, those three points are collinear. -/
+lemma collinear_insert_of_mem_affine_span_pair {p₁ p₂ p₃ : P} (h : p₁ ∈ line[k, p₂, p₃]) :
+  collinear k ({p₁, p₂, p₃} : set P) :=
+begin
+  rw collinear_insert_iff_of_mem_affine_span h,
+  exact collinear_pair _ _ _
+end
+
+/-- If two points lie in the affine span of two points, those four points are collinear. -/
+lemma collinear_insert_insert_of_mem_affine_span_pair {p₁ p₂ p₃ p₄ : P}
+  (h₁ : p₁ ∈ line[k, p₃, p₄]) (h₂ : p₂ ∈ line[k, p₃, p₄]) :
+  collinear k ({p₁, p₂, p₃, p₄} : set P) :=
+begin
+  rw [collinear_insert_iff_of_mem_affine_span ((affine_subspace.le_def' _ _).1
+        (affine_span_mono k (set.subset_insert _ _)) _ h₁),
+      collinear_insert_iff_of_mem_affine_span h₂],
+  exact collinear_pair _ _ _
+end
+
+/-- If three points lie in the affine span of two points, those five points are collinear. -/
+lemma collinear_insert_insert_insert_of_mem_affine_span_pair {p₁ p₂ p₃ p₄ p₅ : P}
+  (h₁ : p₁ ∈ line[k, p₄, p₅]) (h₂ : p₂ ∈ line[k, p₄, p₅]) (h₃ : p₃ ∈ line[k, p₄, p₅]) :
+  collinear k ({p₁, p₂, p₃, p₄, p₅} : set P) :=
+begin
+  rw [collinear_insert_iff_of_mem_affine_span ((affine_subspace.le_def' _ _).1
+        (affine_span_mono k ((set.subset_insert _ _).trans (set.subset_insert _ _))) _ h₁),
+      collinear_insert_iff_of_mem_affine_span ((affine_subspace.le_def' _ _).1
+        (affine_span_mono k (set.subset_insert _ _)) _ h₂),
+      collinear_insert_iff_of_mem_affine_span h₃],
+  exact collinear_pair _ _ _
+end
+
+/-- If three points lie in the affine span of two points, the first four points are collinear. -/
+lemma collinear_insert_insert_insert_left_of_mem_affine_span_pair {p₁ p₂ p₃ p₄ p₅ : P}
+  (h₁ : p₁ ∈ line[k, p₄, p₅]) (h₂ : p₂ ∈ line[k, p₄, p₅]) (h₃ : p₃ ∈ line[k, p₄, p₅]) :
+  collinear k ({p₁, p₂, p₃, p₄} : set P) :=
+begin
+  refine (collinear_insert_insert_insert_of_mem_affine_span_pair h₁ h₂ h₃).subset _,
+  simp [set.insert_subset_insert]
+end
+
+/-- If three points lie in the affine span of two points, the first three points are collinear. -/
+lemma collinear_triple_of_mem_affine_span_pair {p₁ p₂ p₃ p₄ p₅ : P}
+  (h₁ : p₁ ∈ line[k, p₄, p₅]) (h₂ : p₂ ∈ line[k, p₄, p₅]) (h₃ : p₃ ∈ line[k, p₄, p₅]) :
+  collinear k ({p₁, p₂, p₃} : set P) :=
+begin
+  refine (collinear_insert_insert_insert_left_of_mem_affine_span_pair h₁ h₂ h₃).subset _,
+  simp [set.insert_subset_insert]
+end
 
 variables (k)
 
@@ -564,14 +648,14 @@ by rw [coplanar, coplanar, vector_span_insert_eq_vector_span h]
 
 end affine_space'
 
-section field
+section division_ring
 
 variables {k : Type*} {V : Type*} {P : Type*}
 include V
 
 open affine_subspace finite_dimensional module
 
-variables [field k] [add_comm_group V] [module k V] [affine_space V P]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- Adding a point to a finite-dimensional subspace increases the dimension by at most one. -/
 lemma finrank_vector_span_insert_le (s : affine_subspace k P) (p : P) :
@@ -630,10 +714,67 @@ begin
   exact (finrank_vector_span_insert_le_set k s p).trans (add_le_add_right h.finrank_le_one _)
 end
 
+/-- A set of points in a two-dimensional space is coplanar. -/
+lemma coplanar_of_finrank_eq_two (s : set P) (h : finrank k V = 2) : coplanar k s :=
+begin
+  haveI := finite_dimensional_of_finrank_eq_succ h,
+  rw [coplanar_iff_finrank_le_two, ←h],
+  exact submodule.finrank_le _
+end
+
+/-- A set of points in a two-dimensional space is coplanar. -/
+lemma coplanar_of_fact_finrank_eq_two (s : set P) [h : fact (finrank k V = 2)] : coplanar k s :=
+coplanar_of_finrank_eq_two s h.out
+
 variables (k)
 
 /-- Three points are coplanar. -/
 lemma coplanar_triple (p₁ p₂ p₃ : P) : coplanar k ({p₁, p₂, p₃} : set P) :=
 (collinear_pair k p₂ p₃).coplanar_insert p₁
 
-end field
+end division_ring
+
+namespace affine_basis
+
+universes u₁ u₂ u₃ u₄
+
+variables {ι : Type u₁} {k : Type u₂} {V : Type u₃} {P : Type u₄}
+variables [add_comm_group V] [affine_space V P]
+
+section division_ring
+
+variables [division_ring k] [module k V]
+include V
+
+protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finite_dimensional k V :=
+let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
+
+protected lemma finite [finite_dimensional k V] (b : affine_basis ι k P) : finite ι :=
+finite_of_fin_dim_affine_independent k b.ind
+
+protected lemma finite_set [finite_dimensional k V] {s : set ι} (b : affine_basis s k P) :
+  s.finite :=
+finite_set_of_fin_dim_affine_independent k b.ind
+
+lemma card_eq_finrank_add_one [fintype ι] (b : affine_basis ι k P) :
+  fintype.card ι = finite_dimensional.finrank k V + 1 :=
+begin
+  haveI := b.finite_dimensional,
+  exact b.ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp b.tot
+end
+
+variables {k V P}
+
+lemma exists_affine_basis_of_finite_dimensional [fintype ι] [finite_dimensional k V]
+  (h : fintype.card ι = finite_dimensional.finrank k V + 1) :
+  nonempty (affine_basis ι k P) :=
+begin
+  obtain ⟨s, b, hb⟩ := affine_basis.exists_affine_basis k V P,
+  lift s to finset P using b.finite_set,
+  refine ⟨b.reindex $ fintype.equiv_of_card_eq _⟩,
+  rw [h, ← b.card_eq_finrank_add_one]
+end
+
+end division_ring
+
+end affine_basis

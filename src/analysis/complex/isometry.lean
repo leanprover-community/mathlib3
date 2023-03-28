@@ -5,7 +5,7 @@ Authors: François Sunatori
 -/
 import analysis.complex.circle
 import linear_algebra.determinant
-import linear_algebra.general_linear_group
+import linear_algebra.matrix.general_linear_group
 
 /-!
 # Isometries of the Complex Plane
@@ -75,7 +75,7 @@ function.left_inverse.injective rotation_of_rotation
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,
-         (show (2 : ℝ) ≠ 0, by simp [two_ne_zero'])] using (h₃ z).symm
+         (show (2 : ℝ) ≠ 0, by simp [two_ne_zero])] using (h₃ z).symm
 
 lemma linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re {f : ℂ →ₗᵢ[ℝ] ℂ}
   (h₂ : ∀ z, (f z).re = z.re) (z : ℂ) :
@@ -90,7 +90,7 @@ end
 lemma linear_isometry.im_apply_eq_im {f : ℂ →ₗᵢ[ℝ] ℂ} (h : f 1 = 1) (z : ℂ) :
   z + conj z = f z + conj (f z) :=
 begin
-  have : ∥f z - 1∥ = ∥z - 1∥ := by rw [← f.norm_map (z - 1), f.map_sub, h],
+  have : ‖f z - 1‖ = ‖z - 1‖ := by rw [← f.norm_map (z - 1), f.map_sub, h],
   apply_fun λ x, x ^ 2 at this,
   simp only [norm_eq_abs, ←norm_sq_eq_abs] at this,
   rw [←of_real_inj, ←mul_conj, ←mul_conj] at this,

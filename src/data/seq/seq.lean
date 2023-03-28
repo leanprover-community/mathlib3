@@ -47,6 +47,8 @@ def cons (a : α) (s : seq α) : seq α :=
   { exact s.2 h }
 end⟩
 
+@[simp] lemma val_cons (s : seq α) (x : α) : (cons x s).val = some x :: s.val := rfl
+
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
@@ -409,60 +411,35 @@ def split_at : ℕ → seq α → list α × seq α
 section zip_with
 
 /-- Combine two sequences with a function -/
-def zip_with (f : α → β → γ) : seq α → seq β → seq γ
-| ⟨f₁, a₁⟩ ⟨f₂, a₂⟩ := ⟨λ n,
-    match f₁ n, f₂ n with
-    | some a, some b := some (f a b)
-    | _, _ := none
-    end,
-  λ n, begin
-    induction h1 : f₁ n,
-    { intro H, simp only [(a₁ h1)], refl },
-    induction h2 : f₂ n; dsimp [seq.zip_with._match_1]; intro H,
-    { rw (a₂ h2), cases f₁ (n + 1); refl },
-    { rw [h1, h2] at H, contradiction }
-  end⟩
+def zip_with (f : α → β → γ) (s₁ : seq α) (s₂ : seq β) : seq γ :=
+⟨λ n, option.map₂ f (s₁.nth n) (s₂.nth n), λ n hn,
+  option.map₂_eq_none_iff.2 $ (option.map₂_eq_none_iff.1 hn).imp s₁.2 s₂.2⟩
 
 variables {s : seq α} {s' : seq β} {n : ℕ}
 
-lemma zip_with_nth_some {a : α} {b : β} (s_nth_eq_some : s.nth n = some a)
-(s_nth_eq_some' : s'.nth n = some b) (f : α → β → γ) :
-  (zip_with f s s').nth n = some (f a b) :=
-begin
-  cases s with st,
-  have : st n = some a, from s_nth_eq_some,
-  cases s' with st',
-  have : st' n = some b, from s_nth_eq_some',
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma zip_with_nth_none (s_nth_eq_none : s.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  cases s with st,
-  have : st n = none, from s_nth_eq_none,
-  cases s' with st',
-  cases st'_nth_eq : st' n;
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma zip_with_nth_none' (s'_nth_eq_none : s'.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  cases s' with st',
-  have : st' n = none, from s'_nth_eq_none,
-  cases s with st,
-  cases st_nth_eq : st n;
-  simp only [zip_with, seq.nth, *]
-end
+@[simp] lemma nth_zip_with (f : α → β → γ) (s s' n) :
+  (zip_with f s s').nth n = option.map₂ f (s.nth n) (s'.nth n) :=
+rfl
 
 end zip_with
 
 /-- Pair two sequences into a sequence of pairs -/
 def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 
+lemma nth_zip (s : seq α) (t : seq β) (n : ℕ) :
+  nth (zip s t) n = option.map₂ prod.mk (nth s n) (nth t n) :=
+nth_zip_with _ _ _ _
+
 /-- Separate a sequence of pairs into two sequences -/
 def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.snd s)
+
+/-- Enumerate a sequence by tagging each element with its index. -/
+def enum (s : seq α) : seq (ℕ × α) := seq.zip nats s
+
+@[simp] lemma nth_enum (s : seq α) (n : ℕ) : nth (enum s) n = option.map (prod.mk n) (nth s n) :=
+nth_zip _ _ _
+
+@[simp] lemma enum_nil : enum (nil : seq α) = nil := rfl
 
 /-- Convert a sequence which is known to terminate into a list -/
 def to_list (s : seq α) (h : s.terminates) : list α :=
@@ -676,6 +653,15 @@ end
 
 theorem mem_append_left {s₁ s₂ : seq α} {a : α} (h : a ∈ s₁) : a ∈ append s₁ s₂ :=
 by apply mem_rec_on h; intros; simp [*]
+
+@[simp] lemma enum_cons (s : seq α) (x : α) :
+  enum (cons x s) = cons (0, x) (map (prod.map nat.succ id) (enum s)) :=
+begin
+  ext ⟨n⟩ : 1,
+  { simp, },
+  { simp only [nth_enum, nth_cons_succ, map_nth, option.map_map],
+    congr }
+end
 
 end seq
 

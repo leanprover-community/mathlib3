@@ -3,10 +3,13 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.bounded_order
+import order.prop_instances
 
 /-!
 # Heyting algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines Heyting, co-Heyting and bi-Heyting algebras.
 
@@ -500,7 +503,7 @@ lemma sup_compl_le_himp : b ⊔ aᶜ ≤ a ⇨ b := sup_le le_himp compl_le_himp
 lemma himp_compl_comm (a b : α) : a ⇨ bᶜ = b ⇨ aᶜ := by simp_rw [←himp_bot, himp_left_comm]
 
 lemma le_compl_iff_disjoint_right : a ≤ bᶜ ↔ disjoint a b :=
-by rw [←himp_bot, le_himp_iff, disjoint]
+by rw [←himp_bot, le_himp_iff, disjoint_iff_inf_le]
 
 lemma le_compl_iff_disjoint_left : a ≤ bᶜ ↔ disjoint b a :=
 le_compl_iff_disjoint_right.trans disjoint.comm
@@ -513,7 +516,7 @@ alias le_compl_iff_disjoint_left ↔ _ disjoint.le_compl_left
 alias le_compl_comm ← le_compl_iff_le_compl
 alias le_compl_comm ↔ le_compl_of_le_compl _
 
-lemma disjoint_compl_left : disjoint aᶜ a := le_himp_iff.1 (himp_bot _).ge
+lemma disjoint_compl_left : disjoint aᶜ a := disjoint_iff_inf_le.mpr $ le_himp_iff.1 (himp_bot _).ge
 lemma disjoint_compl_right : disjoint a aᶜ := disjoint_compl_left.symm
 
 lemma has_le.le.disjoint_compl_left (h : b ≤ a) : disjoint aᶜ b := disjoint_compl_left.mono_right h
@@ -617,7 +620,7 @@ instance coheyting_algebra.to_distrib_lattice : distrib_lattice α :=
 lemma hnot_sdiff_comm (a b : α) : ￢a \ b = ￢b \ a := by simp_rw [←top_sdiff', sdiff_right_comm]
 
 lemma hnot_le_iff_codisjoint_right : ￢a ≤ b ↔ codisjoint a b :=
-by rw [←top_sdiff', sdiff_le_iff, codisjoint]
+by rw [←top_sdiff', sdiff_le_iff, codisjoint_iff_le_sup]
 
 lemma hnot_le_iff_codisjoint_left : ￢a ≤ b ↔ codisjoint b a :=
 hnot_le_iff_codisjoint_right.trans codisjoint.comm
@@ -628,7 +631,8 @@ by rw [hnot_le_iff_codisjoint_right, hnot_le_iff_codisjoint_left]
 alias hnot_le_iff_codisjoint_right ↔ _ codisjoint.hnot_le_right
 alias hnot_le_iff_codisjoint_left ↔ _ codisjoint.hnot_le_left
 
-lemma codisjoint_hnot_right : codisjoint a (￢a) := sdiff_le_iff.1 (top_sdiff' _).le
+lemma codisjoint_hnot_right : codisjoint a (￢a) :=
+codisjoint_iff_le_sup.2 $ sdiff_le_iff.1 (top_sdiff' _).le
 lemma codisjoint_hnot_left : codisjoint (￢a) a := codisjoint_hnot_right.symm
 
 lemma has_le.le.codisjoint_hnot_left (h : a ≤ b) : codisjoint (￢a) b :=
@@ -643,8 +647,8 @@ h.2.hnot_le_right.antisymm $ disjoint.le_of_codisjoint h.1.symm codisjoint_hnot_
 lemma is_compl.eq_hnot (h : is_compl a b) : a = ￢b :=
 h.2.hnot_le_left.antisymm' $ disjoint.le_of_codisjoint h.1 codisjoint_hnot_right
 
-@[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint_hnot_right.eq_top
-@[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint_hnot_left.eq_top
+@[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint.eq_top codisjoint_hnot_right
+@[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint.eq_top codisjoint_hnot_left
 
 @[simp] lemma hnot_bot : ￢(⊥ : α) = ⊤ :=
 eq_of_forall_ge_iff $ λ a, by rw [hnot_le_iff_codisjoint_left, codisjoint_bot, top_le_iff]

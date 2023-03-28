@@ -3,9 +3,7 @@ Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
-import algebra.regular.smul
 import linear_algebra.matrix.adjugate
-import linear_algebra.matrix.polynomial
 
 /-!
 # Nonsingular inverses
@@ -460,8 +458,11 @@ invertible.map (diagonal_ring_hom n α) v
 
 lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=
-by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _),
-  convert subsingleton.elim _ _, apply invertible.subsingleton }
+begin
+  letI := diagonal_invertible v,
+  haveI := invertible.subsingleton (diagonal v),
+  convert (rfl : ⅟(diagonal v) = _),
+end
 
 /-- `v` is invertible if `diagonal v` is -/
 def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=

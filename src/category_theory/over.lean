@@ -11,6 +11,9 @@ import category_theory.functor.epi_mono
 /-!
 # Over and under categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Over (and under) categories are special cases of comma categories.
 * If `L` is the identity functor and `R` is a constant functor, then `comma L R` is the "slice" or
   "over" category over the object `R` maps to.
@@ -40,6 +43,7 @@ def over (X : T) := costructured_arrow (𝟭 T) X
 instance over.inhabited [inhabited T] : inhabited (over (default : T)) :=
 { default :=
   { left := default,
+    right := default,
     hom := 𝟙 _ } }
 
 namespace over
@@ -222,9 +226,7 @@ variables {D : Type u₂} [category.{v₂} D]
 @[simps]
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
-  map := λ Y₁ Y₂ f,
-  { left := F.map f.left,
-    w' := by tidy; erw [← F.map_comp, w] } }
+  map := λ Y₁ Y₂ f, over.hom_mk (F.map f.left) (by tidy; erw [← F.map_comp, w]) }
 
 end
 
@@ -238,7 +240,8 @@ def under (X : T) := structured_arrow X (𝟭 T)
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default : T)) :=
 { default :=
-  { right := default,
+  { left := default,
+    right := default,
     hom := 𝟙 _ } }
 
 namespace under
@@ -369,9 +372,7 @@ variables {D : Type u₂} [category.{v₂} D]
 @[simps]
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
-  map := λ Y₁ Y₂ f,
-  { right := F.map f.right,
-    w' := by tidy; erw [← F.map_comp, w] } }
+  map := λ Y₁ Y₂ f, under.hom_mk (F.map f.right) (by tidy; erw [← F.map_comp, w]), }
 
 end
 

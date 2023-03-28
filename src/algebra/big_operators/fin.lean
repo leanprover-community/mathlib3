@@ -3,12 +3,16 @@ Copyright (c) 2020 Yury Kudryashov, Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Anne Baanen
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.fintype.fin
+import data.list.fin_range
 import logic.equiv.fin
 
 /-!
 # Big operators and `fin`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Some results about products and sums over the type `fin`.
 
@@ -146,7 +150,7 @@ begin
   rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
   { intro x,
     simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
-  apply prod_on_sum,
+  apply fintype.prod_sum_type,
 end
 
 @[to_additive]

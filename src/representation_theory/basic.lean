@@ -6,9 +6,9 @@ Authors: Antoine Labelle
 import algebra.module.basic
 import algebra.module.linear_map
 import algebra.monoid_algebra.basic
-import linear_algebra.trace
 import linear_algebra.dual
-import linear_algebra.free_module.basic
+import linear_algebra.contraction
+import ring_theory.tensor_product
 
 /-!
 # Monoid representations
@@ -244,6 +244,10 @@ noncomputable def of_mul_action : representation k G (H →₀ k) :=
 variables {k G H}
 
 lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
+
+lemma of_mul_action_single (g : G) (x : H) (r : k) :
+  of_mul_action k G H g (finsupp.single x r) = finsupp.single (g • x) r :=
+finsupp.map_domain_single
 
 end mul_action
 section group

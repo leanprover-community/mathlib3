@@ -5,7 +5,6 @@ Authors: Jiale Miao, Kevin Buzzard, Alexander Bentkamp
 -/
 
 import analysis.inner_product_space.pi_L2
-import order.well_founded_set
 import linear_algebra.matrix.block
 
 /-!
@@ -39,7 +38,7 @@ and outputs a set of orthogonal vectors which have the same span.
 open_locale big_operators
 open finset submodule finite_dimensional
 
-variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
 variables {ι : Type*} [linear_order ι] [locally_finite_order_bot ι] [is_well_order ι (<)]
 
 local attribute [instance] is_well_order.to_has_well_founded
@@ -65,7 +64,7 @@ by rw [gram_schmidt_def, sub_add_cancel]
 
 lemma gram_schmidt_def'' (f : ι → E) (n : ι):
   f n = gram_schmidt 𝕜 f n
-  + ∑ i in Iio n, (⟪gram_schmidt 𝕜 f i, f n⟫ / ∥gram_schmidt 𝕜 f i∥ ^ 2) • gram_schmidt 𝕜 f i :=
+  + ∑ i in Iio n, (⟪gram_schmidt 𝕜 f i, f n⟫ / ‖gram_schmidt 𝕜 f i‖ ^ 2) • gram_schmidt 𝕜 f i :=
 begin
   convert gram_schmidt_def' 𝕜 f n,
   ext i,
@@ -84,7 +83,7 @@ begin
   suffices : ∀ a b : ι, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
   { cases h₀.lt_or_lt with ha hb,
     { exact this _ _ ha, },
-    { rw inner_eq_zero_sym,
+    { rw inner_eq_zero_symm,
       exact this _ _ hb, }, },
   clear h₀ a b,
   intros a b h₀,
@@ -97,12 +96,12 @@ begin
   { by_cases h : gram_schmidt 𝕜 f a = 0,
     { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
-      rwa [ne.def, inner_self_eq_zero], }, },
+      rwa [inner_self_ne_zero], }, },
   simp_intros i hi hia only [finset.mem_range],
   simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
   right,
   cases hia.lt_or_lt with hia₁ hia₂,
-  { rw inner_eq_zero_sym,
+  { rw inner_eq_zero_symm,
     exact ih a h₀ i hia₁ },
   { exact ih i (mem_Iio.1 hi) a hia₂ }
 end
@@ -184,12 +183,12 @@ begin
     rw coe_eq_zero,
     suffices : span 𝕜 (f '' set.Iic j) ≤ (𝕜 ∙ f i)ᗮ,
     { apply orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
-      apply mem_orthogonal_singleton_of_inner_left,
-      apply inner_right_of_mem_orthogonal_singleton,
+      rw mem_orthogonal_singleton_iff_inner_left,
+      rw ←mem_orthogonal_singleton_iff_inner_right,
       exact this (gram_schmidt_mem_span 𝕜 f (le_refl j)) },
     rw span_le,
     rintros - ⟨k, hk, rfl⟩,
-    apply mem_orthogonal_singleton_of_inner_left,
+    rw [set_like.mem_coe, mem_orthogonal_singleton_iff_inner_left],
     apply hf,
     refine (lt_of_le_of_lt hk _).ne,
     simpa using hj },
@@ -238,7 +237,7 @@ begin
   have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
     from basis.repr_support_subset_of_mem_span b (set.Iio j) this,
   exact (finsupp.mem_supported' _ _).1
-    ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
+    ((finsupp.mem_supported 𝕜 _).2 this) j set.not_mem_Iio_self,
 end
 
 /-- `gram_schmidt` produces linearly independent vectors when given linearly independent vectors. -/
@@ -261,22 +260,22 @@ variables (𝕜)
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
 noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
-(∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
+(‖gram_schmidt 𝕜 f n‖ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
 variables {𝕜}
 
 lemma gram_schmidt_normed_unit_length_coe
     {f : ι → E} (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
-  ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
+  ‖gram_schmidt_normed 𝕜 f n‖ = 1 :=
 by simp only [gram_schmidt_ne_zero_coe n h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 lemma gram_schmidt_normed_unit_length {f : ι → E} (n : ι) (h₀ : linear_independent 𝕜 f) :
-  ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
+  ‖gram_schmidt_normed 𝕜 f n‖ = 1 :=
 gram_schmidt_normed_unit_length_coe _ (linear_independent.comp h₀ _ subtype.coe_injective)
 
 lemma gram_schmidt_normed_unit_length' {f : ι → E} {n : ι} (hn : gram_schmidt_normed 𝕜 f n ≠ 0) :
-  ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
+  ‖gram_schmidt_normed 𝕜 f n‖ = 1 :=
 begin
   rw gram_schmidt_normed at *,
   rw [norm_smul_inv_norm],
@@ -320,7 +319,7 @@ begin
   simp only [coe_singleton, set.image_singleton],
   by_cases h : gram_schmidt 𝕜 f i = 0,
   { simp [h] },
-  { refine mem_span_singleton.2 ⟨∥gram_schmidt 𝕜 f i∥, smul_inv_smul₀ _ _⟩,
+  { refine mem_span_singleton.2 ⟨‖gram_schmidt 𝕜 f i‖, smul_inv_smul₀ _ _⟩,
     exact_mod_cast (norm_ne_zero_iff.2 h) }
 end
 
@@ -346,9 +345,9 @@ lemma gram_schmidt_orthonormal_basis_apply {f : ι → E} {i : ι}
 
 lemma gram_schmidt_orthonormal_basis_apply_of_orthogonal {f : ι → E}
   (hf : pairwise (λ i j, ⟪f i, f j⟫ = 0)) {i : ι} (hi : f i ≠ 0) :
-  gram_schmidt_orthonormal_basis h f i = (∥f i∥⁻¹ : 𝕜) • f i :=
+  gram_schmidt_orthonormal_basis h f i = (‖f i‖⁻¹ : 𝕜) • f i :=
 begin
-  have H : gram_schmidt_normed 𝕜 f i = (∥f i∥⁻¹ : 𝕜) • f i,
+  have H : gram_schmidt_normed 𝕜 f i = (‖f i‖⁻¹ : 𝕜) • f i,
   { rw [gram_schmidt_normed, gram_schmidt_of_orthogonal 𝕜 hf] },
   rw [gram_schmidt_orthonormal_basis_apply h, H],
   simpa [H] using hi,
@@ -358,7 +357,7 @@ lemma inner_gram_schmidt_orthonormal_basis_eq_zero {f : ι → E} {i : ι}
   (hi : gram_schmidt_normed 𝕜 f i = 0) (j : ι) :
   ⟪gram_schmidt_orthonormal_basis h f i, f j⟫ = 0 :=
 begin
-  apply inner_right_of_mem_orthogonal_singleton,
+  rw ←mem_orthogonal_singleton_iff_inner_right,
   suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j)
     ≤ (𝕜 ∙ gram_schmidt_orthonormal_basis h f i)ᗮ,
   { apply this,
@@ -366,7 +365,7 @@ begin
     simpa using mem_span_gram_schmidt 𝕜 f (le_refl j) },
   rw span_le,
   rintros - ⟨k, -, rfl⟩,
-  apply mem_orthogonal_singleton_of_inner_left,
+  rw [set_like.mem_coe, mem_orthogonal_singleton_iff_inner_left],
   by_cases hk : gram_schmidt_normed 𝕜 f k = 0,
   { simp [hk] },
   rw ← gram_schmidt_orthonormal_basis_apply h hk,

@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Continuous open maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled continuous open maps.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -74,6 +77,9 @@ instance : has_coe_to_fun (α →CO β) (λ _, α → β) := fun_like.has_coe_to
 definitional equalities. -/
 protected def copy (f : α →CO β) (f' : α → β) (h : f' = f) : α →CO β :=
 ⟨f.to_continuous_map.copy f' $ by exact h, h.symm.subst f.map_open'⟩
+
+@[simp] lemma coe_copy (f : α →CO β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →CO β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

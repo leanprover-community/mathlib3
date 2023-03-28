@@ -9,6 +9,9 @@ import topology.sets.opens
 /-!
 # Local homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between open subsets of topological spaces. An element `e` of
 `local_homeomorph α β` is an extension of `local_equiv α β`, i.e., it is a pair of functions
 `e.to_fun` and `e.inv_fun`, inverse of each other on the sets `e.source` and `e.target`.
@@ -43,7 +46,7 @@ then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or
 -/
 
 open function set filter topological_space (second_countable_topology)
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -782,6 +785,19 @@ local_equiv.eq_on_source.trans' he hf
 lemma eq_on_source.restr {e e' : local_homeomorph α β} (he : e ≈ e') (s : set α) :
   e.restr s ≈ e'.restr s :=
 local_equiv.eq_on_source.restr he _
+
+lemma set.eq_on.restr_eq_on_source {e e' : local_homeomorph α β}
+  (h : eq_on e e' (e.source ∩ e'.source)) :
+  e.restr e'.source ≈ e'.restr e.source :=
+begin
+  split,
+  { rw e'.restr_source' _ e.open_source,
+    rw e.restr_source' _ e'.open_source,
+    exact set.inter_comm _ _ },
+  { rw e.restr_source' _ e'.open_source,
+    refine (eq_on.trans _ h).trans _;
+    simp only with mfld_simps },
+end
 
 /-- Composition of a local homeomorphism and its inverse is equivalent to the restriction of the
 identity to the source -/

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 -/
 import algebra.algebra.basic
 import algebra.field.basic
-import algebra.group.type_tags
 import logic.equiv.defs
 import ring_theory.ideal.local_ring
 

@@ -3,8 +3,11 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
+import analysis.normed.group.add_torsor
+import analysis.normed_space.basic
+import linear_algebra.affine_space.restrict
+import linear_algebra.affine_space.midpoint_zero
 
 /-!
 # Affine isometries
@@ -16,7 +19,7 @@ isometric equivalence between `P` and `P₂`.
 We also prove basic lemmas and provide convenience constructors.  The choice of these lemmas and
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
-Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
+Since many elementary properties don't require `‖x‖ = 0 → x = 0` we initially set up the theory for
 `seminormed_add_comm_group` and specialize to `normed_add_comm_group` only when needed.
 
 ## Notation
@@ -46,7 +49,7 @@ include V V₂
 /-- An `𝕜`-affine isometric embedding of one normed add-torsor over a normed `𝕜`-space into
 another. -/
 structure affine_isometry extends P →ᵃ[𝕜] P₂ :=
-(norm_map : ∀ x : V, ∥linear x∥ = ∥x∥)
+(norm_map : ∀ x : V, ‖linear x‖ = ‖x‖)
 
 omit V V₂
 variables {𝕜 P P₂}
@@ -228,7 +231,7 @@ include V V₂
 
 /-- A affine isometric equivalence between two normed vector spaces. -/
 structure affine_isometry_equiv extends P ≃ᵃ[𝕜] P₂ :=
-(norm_map : ∀ x, ∥linear x∥ = ∥x∥)
+(norm_map : ∀ x, ‖linear x‖ = ‖x‖)
 
 variables {𝕜 P P₂}
 omit V V₂
@@ -251,7 +254,7 @@ by { ext, refl }
 include V V₂
 instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
-@[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
+@[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ‖e.linear x‖ = ‖x‖) :
   ⇑(mk e he) = e :=
 rfl
 
@@ -315,18 +318,18 @@ variables (e : P ≃ᵃⁱ[𝕜] P₂)
 
 protected lemma isometry : isometry e := e.to_affine_isometry.isometry
 
-/-- Reinterpret a `affine_isometry_equiv` as an `isometric`. -/
-def to_isometric : P ≃ᵢ P₂ := ⟨e.to_affine_equiv.to_equiv, e.isometry⟩
+/-- Reinterpret a `affine_isometry_equiv` as an `isometry_equiv`. -/
+def to_isometry_equiv : P ≃ᵢ P₂ := ⟨e.to_affine_equiv.to_equiv, e.isometry⟩
 
-@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+@[simp] lemma coe_to_isometry_equiv : ⇑e.to_isometry_equiv = e := rfl
 
 include V V₂
 lemma range_eq_univ (e : P ≃ᵃⁱ[𝕜] P₂) : set.range e = set.univ :=
-by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+by { rw ← coe_to_isometry_equiv, exact isometry_equiv.range_eq_univ _, }
 omit V V₂
 
 /-- Reinterpret a `affine_isometry_equiv` as an `homeomorph`. -/
-def to_homeomorph : P ≃ₜ P₂ := e.to_isometric.to_homeomorph
+def to_homeomorph : P ≃ₜ P₂ := e.to_isometry_equiv.to_homeomorph
 
 @[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
 
@@ -349,7 +352,7 @@ instance : inhabited (P ≃ᵃⁱ[𝕜] P) := ⟨refl 𝕜 P⟩
 
 @[simp] lemma coe_refl : ⇑(refl 𝕜 P) = id := rfl
 @[simp] lemma to_affine_equiv_refl : (refl 𝕜 P).to_affine_equiv = affine_equiv.refl 𝕜 P := rfl
-@[simp] lemma to_isometric_refl : (refl 𝕜 P).to_isometric = isometric.refl P := rfl
+@[simp] lemma to_isometry_equiv_refl : (refl 𝕜 P).to_isometry_equiv = isometry_equiv.refl P := rfl
 @[simp] lemma to_homeomorph_refl : (refl 𝕜 P).to_homeomorph = homeomorph.refl P := rfl
 omit V
 
@@ -363,7 +366,7 @@ def symm : P₂ ≃ᵃⁱ[𝕜] P :=
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
 @[simp] lemma to_affine_equiv_symm : e.to_affine_equiv.symm = e.symm.to_affine_equiv := rfl
-@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_isometry_equiv_symm : e.to_isometry_equiv.symm = e.symm.to_isometry_equiv := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 include V₃
@@ -530,11 +533,11 @@ to_affine_equiv_injective $ affine_equiv.point_reflection_symm 𝕜 x
 by rw [← (point_reflection 𝕜 x).dist_map y x, point_reflection_self]
 
 lemma dist_point_reflection_self' (x y : P) :
-  dist (point_reflection 𝕜 x y) y = ∥bit0 (x -ᵥ y)∥ :=
+  dist (point_reflection 𝕜 x y) y = ‖bit0 (x -ᵥ y)‖ :=
 by rw [point_reflection_apply, dist_eq_norm_vsub V, vadd_vsub_assoc, bit0]
 
 lemma dist_point_reflection_self (x y : P) :
-  dist (point_reflection 𝕜 x y) y = ∥(2:𝕜)∥ * dist x y :=
+  dist (point_reflection 𝕜 x y) y = ‖(2:𝕜)‖ * dist x y :=
 by rw [dist_point_reflection_self', ← two_smul' 𝕜 (x -ᵥ y), norm_smul, ← dist_eq_norm_vsub V]
 
 lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :
@@ -586,3 +589,54 @@ begin
   rw this,
   simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
 end
+
+local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
+
+include V₁
+omit V
+
+namespace affine_subspace
+
+/--
+An affine subspace is isomorphic to its image under an injective affine map.
+This is the affine version of `submodule.equiv_map_of_injective`.
+-/
+@[simps]
+noncomputable def equiv_map_of_injective (E: affine_subspace 𝕜 P₁) [nonempty E]
+  (φ : P₁ →ᵃ[𝕜] P₂) (hφ : function.injective φ) : E ≃ᵃ[𝕜] E.map φ :=
+{ linear :=
+    (E.direction.equiv_map_of_injective φ.linear (φ.linear_injective_iff.mpr hφ)).trans
+      (linear_equiv.of_eq _ _ (affine_subspace.map_direction _ _).symm),
+  map_vadd' := λ p v, subtype.ext $ φ.map_vadd p v,
+  .. equiv.set.image _ (E : set P₁) hφ }
+
+/--
+Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
+subspace `E` and its image.
+
+This is an isometry version of `affine_subspace.equiv_map`, having a stronger premise and a stronger
+conclusion.
+-/
+noncomputable def isometry_equiv_map
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
+⟨E.equiv_map_of_injective φ.to_affine_map φ.injective, (λ _, φ.norm_map _)⟩
+
+@[simp]
+lemma isometry_equiv_map.apply_symm_apply
+  {E : affine_subspace 𝕜 P₁} [nonempty E]
+  {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
+  φ ((E.isometry_equiv_map φ).symm x) = x :=
+congr_arg coe $ (E.isometry_equiv_map φ).apply_symm_apply _
+
+@[simp]
+lemma isometry_equiv_map.coe_apply
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] (g: E) :
+  ↑(E.isometry_equiv_map φ g) = φ g := rfl
+
+@[simp]
+lemma isometry_equiv_map.to_affine_map_eq
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] :
+  (E.isometry_equiv_map φ).to_affine_map = E.equiv_map_of_injective φ.to_affine_map φ.injective :=
+rfl
+
+end affine_subspace

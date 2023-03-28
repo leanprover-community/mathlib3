@@ -8,6 +8,9 @@ import tactic.lint
 /-!
 # Bundled types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
 
 We provide `category` instances for these in `category_theory/unbundled_hom.lean`

@@ -13,7 +13,7 @@ import ring_theory.polynomial.scale_roots
 
 This file contains the rational root theorem and integral root theorem.
 The rational root theorem for a unique factorization domain `A`
-with localization `S`, states that the roots of `p : polynomial A` in `A`'s
+with localization `S`, states that the roots of `p : A[X]` in `A`'s
 field of fractions are of the form `x / y` with `x y : A`, `x ∣ p.coeff 0` and
 `y ∣ p.leading_coeff`.
 The corollary is the integral root theorem `is_integer_of_is_root_of_monic`:

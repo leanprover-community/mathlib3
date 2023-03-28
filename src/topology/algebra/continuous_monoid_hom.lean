@@ -224,7 +224,7 @@ variables (A B C D E)
   refine λ f, ⟨_, _⟩,
   { rintros ⟨f, rfl⟩,
     exact ⟨λ h, h (map_one f), λ x y U V W hU hV hW h ⟨⟨hfU, hfV⟩, hfW⟩,
-      h ⟨set.mul_mem_mul hfU hfV, (congr_arg (∈ W) (map_mul f x y)).mp hfW⟩⟩ },
+      h.le_bot ⟨set.mul_mem_mul hfU hfV, (congr_arg (∈ W) (map_mul f x y)).mp hfW⟩⟩ },
   { rintros ⟨hf1, hf2⟩,
     suffices : ∀ x y, f (x * y) = f x * f y,
     { refine ⟨({ map_one' := of_not_not hf1, map_mul' := this, .. f } : continuous_monoid_hom A B),

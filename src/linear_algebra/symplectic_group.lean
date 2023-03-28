@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matej Penciak, Moritz Doll, Fabien Clery
 -/
 
-import data.real.basic
 import linear_algebra.matrix.nonsingular_inverse
 
 /-!

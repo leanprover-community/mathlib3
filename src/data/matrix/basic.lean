@@ -3,15 +3,17 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
-import algebra.algebra.basic
+
+import algebra.algebra.pi
 import algebra.big_operators.pi
 import algebra.big_operators.ring
+import algebra.big_operators.ring_equiv
 import algebra.module.linear_map
 import algebra.module.pi
-import algebra.ring.equiv
+import algebra.star.big_operators
 import algebra.star.module
 import algebra.star.pi
-import data.fintype.card
+import data.fintype.big_operators
 
 /-!
 # Matrices
@@ -1535,7 +1537,7 @@ matrix.ext $ by simp
   [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_inv_nat_cast_smul [division_ring R] [add_comm_group α]
+@[simp] lemma conj_transpose_inv_nat_cast_smul [division_semiring R] [add_comm_monoid α]
   [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
 matrix.ext $ by simp
 
@@ -1651,8 +1653,12 @@ instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) :=
 { star_add := conj_transpose_add }
 
+instance [has_star α] [has_star β] [has_smul α β] [star_module α β] :
+  star_module α (matrix n n β) :=
+{ star_smul := conj_transpose_smul }
+
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
-instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+instance [fintype n] [non_unital_semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
 

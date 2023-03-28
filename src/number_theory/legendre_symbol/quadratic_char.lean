@@ -3,6 +3,7 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
+import data.fintype.parity
 import number_theory.legendre_symbol.zmod_char
 import field_theory.finite.basic
 import number_theory.legendre_symbol.gauss_sum
@@ -286,7 +287,7 @@ section special_values
 
 open zmod mul_char
 
-variables {F : Type} [field F] [fintype F]
+variables {F : Type*} [field F] [fintype F]
 
 /-- The value of the quadratic character at `-1` -/
 lemma quadratic_char_neg_one [decidable_eq F] (hF : ring_char F ≠ 2) :
@@ -310,7 +311,7 @@ begin
     exact (λ hf, one_ne_zero  $ (nat.odd_of_mod_four_eq_three hf).symm.trans
                               $ finite_field.even_card_of_char_two hF) },
   { have h₁ := finite_field.odd_card_of_char_ne_two hF,
-    rw [← quadratic_char_one_iff_is_square (neg_ne_zero.mpr (@one_ne_zero F _ _)),
+    rw [← quadratic_char_one_iff_is_square (neg_ne_zero.mpr (one_ne_zero' F)),
         quadratic_char_neg_one hF, χ₄_nat_eq_if_mod_four, h₁],
     simp only [nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def, (dec_trivial : (-1 : ℤ) ≠ 1),
                imp_false, not_not],
@@ -381,7 +382,7 @@ end
 /-- The relation between the values of the quadratic character of one field `F` at the
 cardinality of another field `F'` and of the quadratic character of `F'` at the cardinality
 of `F`. -/
-lemma quadratic_char_card_card [decidable_eq F] (hF : ring_char F ≠ 2) {F' : Type} [field F']
+lemma quadratic_char_card_card [decidable_eq F] (hF : ring_char F ≠ 2) {F' : Type*} [field F']
   [fintype F'] [decidable_eq F'] (hF' : ring_char F' ≠ 2) (h : ring_char F' ≠ ring_char F) :
   quadratic_char F (fintype.card F') = quadratic_char F' (quadratic_char F (-1) * fintype.card F) :=
 begin

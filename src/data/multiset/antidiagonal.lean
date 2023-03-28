@@ -3,11 +3,13 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.multiset.bind
 import data.multiset.powerset
 
 /-!
 # The antidiagonal on a multiset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The antidiagonal of a multiset `s` consists of all pairs `(t₁, t₂)`
 such that `t₁ + t₂ = s`. These pairs are counted with multiplicities.

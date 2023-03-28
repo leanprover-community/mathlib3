@@ -414,7 +414,9 @@ lemma le_sup_seminorm {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
 derivatives of lower order. -/
 lemma le_sup_seminorm_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) (f : 𝓢(E, F)) (x : E) :
   ‖x‖ ^ k' * ‖iterated_fderiv ℝ n' f x‖ ≤ (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) f :=
-le_trans (le_seminorm 𝕜 k' n' f x) (le_sup_seminorm 𝕜 hk hn f)
+le_trans (le_seminorm 𝕜 k' n' f x) (le_finset_sup_apply $ finset.mem_Iic.2 $ prod.mk_le_mk.2 ⟨hk, hn⟩)
+
+#exit
 
 /-- A more convenient version of `le_sup_seminorm_apply`.
 

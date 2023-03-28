@@ -301,6 +301,9 @@ begin
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
 
+lemma le_finset_sup_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {i : ι} (hi : i ∈ s) {x : E} :
+  p i x ≤ s.sup p x := (finset.le_sup hi : p i ≤ s.sup p) x
+
 lemma finset_sup_le_sum (p : ι → seminorm 𝕜 E) (s : finset ι) : s.sup p ≤ ∑ i in s, p i :=
 begin
   classical,

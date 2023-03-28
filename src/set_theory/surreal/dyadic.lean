@@ -169,6 +169,7 @@ lemma dyadic_aux {m₁ m₂ : ℤ} {y₁ y₂ : ℕ} (h₂ : m₁ * (2 ^ y₁) =
 begin
   revert m₁ m₂,
   wlog h : y₁ ≤ y₂,
+  { intros m₁ m₂ aux, exact (this (le_of_not_le h) aux.symm).symm },
   intros m₁ m₂ h₂,
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp h,
   rw [add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,

@@ -38,7 +38,7 @@ balanced
 
 
 open set
-open_locale pointwise topological_space filter
+open_locale pointwise topology filter
 
 
 variables {𝕜 E ι : Type*}

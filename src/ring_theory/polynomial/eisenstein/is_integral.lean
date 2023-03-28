@@ -3,7 +3,7 @@ Copyright (c) 2022 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
-
+import data.nat.choose.dvd
 import ring_theory.integrally_closed
 import ring_theory.norm
 import ring_theory.polynomial.cyclotomic.basic
@@ -54,10 +54,9 @@ begin
       rw [lcoeff_apply, ← C_eq_nat_cast, C_mul_X_pow_eq_monomial, coeff_monomial] },
     rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C, mul_one,
       nat_degree_cyclotomic, nat.totient_prime hp.out] at hi,
-    simp only [lt_of_lt_of_le hi (nat.sub_le _ _), sum_ite_eq', mem_range,
-      if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
-    exact int.coe_nat_dvd.2
-      (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out) },
+    simp only [hi.trans_le (nat.sub_le _ _), sum_ite_eq', mem_range, if_true,
+      ideal.submodule_span_eq, ideal.mem_span_singleton, int.coe_nat_dvd],
+    exact hp.out.dvd_choose_self i.succ_ne_zero (lt_tsub_iff_right.1 hi) },
   { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime, eval_add, eval_X,
       eval_one, zero_add, eval_geom_sum, one_geom_sum,
       ideal.submodule_span_eq, ideal.span_singleton_pow, ideal.mem_span_singleton],

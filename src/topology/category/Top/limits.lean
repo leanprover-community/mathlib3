@@ -935,8 +935,8 @@ This also applies to inverse limits, where `{J : Type u} [preorder J] [is_direct
 `F : Jᵒᵖ ⥤ Top`.
 
 The theorem is specialized to nonempty finite types (which are compact Hausdorff with the
-discrete topology) in `nonempty_sections_of_fintype_cofiltered_system` and
-`nonempty_sections_of_fintype_inverse_system`.
+discrete topology) in lemmas `nonempty_sections_of_finite_cofiltered_system` and
+`nonempty_sections_of_finite_inverse_system` in the file `category_theory.cofiltered_system`.
 
 (See <https://stacks.math.columbia.edu/tag/086J> for the Set version.)
 -/
@@ -957,11 +957,14 @@ def partial_sections {J : Type u} [small_category J] (F : J ⥤ Top.{u})
   {G : finset J} (H : finset (finite_diagram_arrow G)) : set (Π j, F.obj j) :=
 { u | ∀ {f : finite_diagram_arrow G} (hf : f ∈ H), F.map f.2.2.2.2 (u f.1) = u f.2.1 }
 
-lemma partial_sections.nonempty [is_cofiltered J] [h : Π (j : J), nonempty (F.obj j)]
+lemma partial_sections.nonempty [is_cofiltered_or_empty J] [h : Π (j : J), nonempty (F.obj j)]
   {G : finset J} (H : finset (finite_diagram_arrow G)) :
   (partial_sections F H).nonempty :=
 begin
   classical,
+  casesI is_empty_or_nonempty J,
+  { exact ⟨is_empty_elim, λ j, is_empty.elim' infer_instance j.1⟩ },
+  haveI : is_cofiltered J := ⟨⟩,
   use λ (j : J), if hj : j ∈ G
                  then F.map (is_cofiltered.inf_to G H hj) (h (is_cofiltered.inf G H)).some
                  else (h _).some,
@@ -1017,7 +1020,7 @@ end
 Cofiltered limits of nonempty compact Hausdorff spaces are nonempty topological spaces.
 -/
 lemma nonempty_limit_cone_of_compact_t2_cofiltered_system
-  [is_cofiltered J]
+  [is_cofiltered_or_empty J]
   [Π (j : J), nonempty (F.obj j)]
   [Π (j : J), compact_space (F.obj j)]
   [Π (j : J), t2_space (F.obj j)] :
@@ -1044,68 +1047,3 @@ end
 end topological_konig
 
 end Top
-
-section fintype_konig
-
-/-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
-the `F` functor is between categories of the same universe, and it is an easy
-corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
-lemma nonempty_sections_of_fintype_cofiltered_system.init
-  {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Type u)
-  [hf : Π (j : J), fintype (F.obj j)] [hne : Π (j : J), nonempty (F.obj j)] :
-  F.sections.nonempty :=
-begin
-  let F' : J ⥤ Top := F ⋙ Top.discrete,
-  haveI : Π (j : J), fintype (F'.obj j) := hf,
-  haveI : Π (j : J), nonempty (F'.obj j) := hne,
-  obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system F',
-  exact ⟨u, λ _ _ f, hu f⟩,
-end
-
-/-- The cofiltered limit of nonempty finite types is nonempty.
-
-See `nonempty_sections_of_fintype_inverse_system` for a specialization to inverse limits. -/
-theorem nonempty_sections_of_fintype_cofiltered_system
-  {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
-  [Π (j : J), fintype (F.obj j)] [Π (j : J), nonempty (F.obj j)] :
-  F.sections.nonempty :=
-begin
-  -- Step 1: lift everything to the `max u v w` universe.
-  let J' : Type (max w v u) := as_small.{max w v} J,
-  let down : J' ⥤ J := as_small.down,
-  let F' : J' ⥤ Type (max u v w) := down ⋙ F ⋙ ulift_functor.{(max u w) v},
-  haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
-  haveI : ∀ i, fintype (F'.obj i) := λ i, fintype.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
-  -- Step 2: apply the bootstrap theorem
-  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_cofiltered_system.init F',
-  -- Step 3: interpret the results
-  use λ j, (u ⟨j⟩).down,
-  intros j j' f,
-  have h := @hu (⟨j⟩ : J') (⟨j'⟩ : J') (ulift.up f),
-  simp only [as_small.down, functor.comp_map, ulift_functor_map, functor.op_map] at h,
-  simp_rw [←h],
-  refl,
-end
-
-/-- The inverse limit of nonempty finite types is nonempty.
-
-See `nonempty_sections_of_fintype_cofiltered_system` for a generalization to cofiltered limits.
-That version applies in almost all cases, and the only difference is that this version
-allows `J` to be empty.
-
-This may be regarded as a generalization of Kőnig's lemma.
-To specialize: given a locally finite connected graph, take `Jᵒᵖ` to be `ℕ` and
-`F j` to be length-`j` paths that start from an arbitrary fixed vertex.
-Elements of `F.sections` can be read off as infinite rays in the graph. -/
-theorem nonempty_sections_of_fintype_inverse_system
-  {J : Type u} [preorder J] [is_directed J (≤)] (F : Jᵒᵖ ⥤ Type v)
-  [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
-  F.sections.nonempty :=
-begin
-  casesI is_empty_or_nonempty J,
-  { haveI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
-    exact ⟨is_empty_elim, is_empty_elim⟩, },
-  { exact nonempty_sections_of_fintype_cofiltered_system _, },
-end
-
-end fintype_konig

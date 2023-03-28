@@ -337,7 +337,7 @@ Analysis:
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
     convolution: 'convolution'
-    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    approximation by convolution: 'cont_diff_bump.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
     change of variables formula: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
     divergence theorem: 'measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable'

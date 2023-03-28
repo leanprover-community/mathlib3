@@ -175,6 +175,14 @@ by { rw [inv_eq_one_div], exact div_lt_iff' ha }
 lemma div_le_of_nonneg_of_le_mul (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
 by { rcases eq_or_lt_of_le hb with rfl|hb', simp [hc], rwa [div_le_iff hb'] }
 
+/-- One direction of `div_le_iff` where `c` is allowed to be `0` (but `b` must be nonnegative) -/
+lemma mul_le_of_nonneg_of_le_div (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ b / c) : a * c ≤ b :=
+begin
+  obtain rfl | hc := hc.eq_or_lt,
+  { simpa using hb },
+  { rwa le_div_iff hc at h }
+end
+
 lemma div_le_one_of_le (h : a ≤ b) (hb : 0 ≤ b) : a / b ≤ 1 :=
 div_le_of_nonneg_of_le_mul hb zero_le_one $ by rwa one_mul
 
@@ -462,7 +470,7 @@ lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : str
 by simpa only [div_eq_mul_inv] using hf.mul_const (inv_pos.2 hc)
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
+instance linear_ordered_semifield.to_densely_ordered : densely_ordered α :=
 { dense := λ a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
       ... < (a₁ + a₂) / 2 : div_lt_div_of_lt zero_lt_two (add_lt_add_left h _),
@@ -801,13 +809,5 @@ eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
 lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
-
-lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
-begin
-  simp only [inv_nonneg, zpow_neg],
-  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
-  rw zpow_coe_nat,
-  apply sq_nonneg,
-end
 
 end

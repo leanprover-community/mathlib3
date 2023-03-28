@@ -35,7 +35,7 @@ We also generate additive versions of all theorems in this file using the `to_ad
   Elements of `s` that do not belong to any other translate of `s`.
 -/
 
-open_locale ennreal pointwise topological_space nnreal ennreal measure_theory
+open_locale ennreal pointwise topology nnreal ennreal measure_theory
 open measure_theory measure_theory.measure set function topological_space filter
 
 namespace measure_theory

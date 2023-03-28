@@ -120,5 +120,13 @@ lemma zeroth_convergent'_aux_eq_zero {s : seq $ pair K} : convergents'_aux s 0 =
 @[simp]
 lemma zeroth_convergent'_eq_h : g.convergents' 0 = g.h := by simp [convergents']
 
+lemma convergents'_aux_succ_none {s : seq (pair K)} (h : s.head = none) (n : ℕ) :
+  convergents'_aux s (n + 1) = 0 :=
+by rw [convergents'_aux, h, convergents'_aux._match_1]
+
+lemma convergents'_aux_succ_some {s : seq (pair K)} {p : pair K} (h : s.head = some p) (n : ℕ) :
+  convergents'_aux s (n + 1) = p.a / (p.b + convergents'_aux s.tail n) :=
+by rw [convergents'_aux, h, convergents'_aux._match_1]
+
 end with_division_ring
 end generalized_continued_fraction

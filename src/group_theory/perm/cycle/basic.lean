@@ -13,6 +13,9 @@ import logic.equiv.fintype
 /-!
 # Cyclic permutations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the theory of cycles in permutations.
 
 ## Main definitions
@@ -588,7 +591,8 @@ begin
     obtain ⟨x, hx, -⟩ := id hf,
     exact ⟨x, hx, by simp [h]⟩ },
   { rintro ⟨x, hx, hx'⟩,
-    wlog hab : a ≤ b,
+    wlog hab : a ≤ b generalizing a b,
+    { exact (this hx'.symm (le_of_not_le hab)).symm },
     suffices : f ^ (b - a) = 1,
     { rw [pow_sub _ hab, mul_inv_eq_one] at this,
       rw this },

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import data.finsupp.defs
+import data.finsupp.indicator
 import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.big_operators.order
@@ -12,6 +12,9 @@ import group_theory.submonoid.membership
 
 /-!
 # Big operators for finsupps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains theorems relevant to big operators in finitely supported functions.
 -/
@@ -483,6 +486,26 @@ begin
   apply dvd_mul_of_dvd_right,
   apply prod_dvd_prod_of_dvd,
   exact h2,
+end
+
+lemma indicator_eq_sum_single [add_comm_monoid M] (s : finset α) (f : Π a ∈ s, M) :
+  indicator s f = ∑ x in s.attach, single x (f x x.2) :=
+begin
+  rw [← sum_single (indicator s f), sum, sum_subset (support_indicator_subset _ _), ← sum_attach],
+  { refine finset.sum_congr rfl (λ x hx, _),
+    rw [indicator_of_mem], },
+  intros i _ hi,
+  rw [not_mem_support_iff.mp hi, single_zero],
+end
+
+@[simp, to_additive]
+lemma prod_indicator_index [has_zero M] [comm_monoid N]
+  {s : finset α} (f : Π a ∈ s, M) {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
+  (indicator s f).prod h = ∏ x in s.attach, h x (f x x.2) :=
+begin
+  rw [prod_of_support_subset _ (support_indicator_subset _ _) h h_zero, ← prod_attach],
+  refine finset.prod_congr rfl (λ x hx, _),
+  rw [indicator_of_mem],
 end
 
 end finsupp

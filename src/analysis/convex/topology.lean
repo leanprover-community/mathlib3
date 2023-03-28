@@ -22,10 +22,10 @@ We prove the following facts:
 
 assert_not_exists has_norm
 
-variables {ι : Type*} {E : Type*}
-
 open metric set
 open_locale pointwise convex
+
+variables {ι 𝕜 E : Type*}
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
 convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
@@ -69,9 +69,36 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
+section topological_space
+variables [linear_ordered_ring 𝕜] [densely_ordered 𝕜] [topological_space 𝕜] [order_topology 𝕜]
+  [add_comm_group E] [topological_space E] [has_continuous_add E] [module 𝕜 E]
+  [has_continuous_smul 𝕜 E] {x y : E}
+
+lemma segment_subset_closure_open_segment : [x -[𝕜] y] ⊆ closure (open_segment 𝕜 x y) :=
+begin
+  rw [segment_eq_image, open_segment_eq_image, ←closure_Ioo (zero_ne_one' 𝕜)],
+  exact image_closure_subset_closure_image (by continuity),
+end
+
+end topological_space
+
+section pseudo_metric_space
+variables [linear_ordered_ring 𝕜] [densely_ordered 𝕜] [pseudo_metric_space 𝕜] [order_topology 𝕜]
+  [proper_space 𝕜] [compact_Icc_space 𝕜] [add_comm_group E] [topological_space E] [t2_space E]
+  [has_continuous_add E] [module 𝕜 E] [has_continuous_smul 𝕜 E]
+
+@[simp] lemma closure_open_segment (x y : E) : closure (open_segment 𝕜 x y) = [x -[𝕜] y] :=
+begin
+  rw [segment_eq_image, open_segment_eq_image, ←closure_Ioo (zero_ne_one' 𝕜)],
+  exact (image_closure_of_is_compact (bounded_Ioo _ _).is_compact_closure $
+    continuous.continuous_on $ by continuity).symm,
+end
+
+end pseudo_metric_space
+
 section has_continuous_const_smul
 
-variables {𝕜 : Type*} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
   [topological_add_group E] [has_continuous_const_smul 𝕜 E]
 
 /-- If `s` is a convex set, then `a • interior s + b • closure s ⊆ interior s` for all `0 < a`,

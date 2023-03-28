@@ -29,7 +29,8 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 namespace category_theory.adjunction
 
 /-- If `G.op` is adjoint to `F.op` then `F` is adjoint to `G`. -/
-@[simps] def adjoint_of_op_adjoint_op (F : C ⥤ D) (G : D ⥤ C) (h : G.op ⊣ F.op) : F ⊣ G :=
+@[simps unit_app counit_app] def adjoint_of_op_adjoint_op
+  (F : C ⥤ D) (G : D ⥤ C) (h : G.op ⊣ F.op) : F ⊣ G :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   ((h.hom_equiv (opposite.op Y) (opposite.op X)).trans (op_equiv _ _)).symm.trans (op_equiv _ _) }
@@ -47,7 +48,8 @@ def unop_adjoint_unop_of_adjoint (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Cᵒ
 adjoint_unop_of_adjoint_op F.unop G (h.of_nat_iso_right F.op_unop_iso.symm)
 
 /-- If `G` is adjoint to `F` then `F.op` is adjoint to `G.op`. -/
-@[simps] def op_adjoint_op_of_adjoint (F : C ⥤ D) (G : D ⥤ C) (h : G ⊣ F) : F.op ⊣ G.op :=
+@[simps unit_app counit_app] def op_adjoint_op_of_adjoint
+  (F : C ⥤ D) (G : D ⥤ C) (h : G ⊣ F) : F.op ⊣ G.op :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   (op_equiv _ Y).trans ((h.hom_equiv _ _).symm.trans (op_equiv X (opposite.op _)).symm) }

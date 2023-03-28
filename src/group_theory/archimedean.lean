@@ -9,6 +9,9 @@ import group_theory.subgroup.basic
 /-!
 # Archimedean groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves a few facts about ordered groups which satisfy the `archimedean` property, that is:
 `class archimedean (α) [ordered_add_comm_monoid α] : Prop :=`
 `(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)`

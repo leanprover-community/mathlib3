@@ -9,6 +9,9 @@ import data.list.perm
 /-!
 # Sorting algorithms on lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `list.sorted r l` to be an alias for `pairwise r l`. This alias is preferred
 in the case that `r` is a `<` or `≤`-like relation. Then we define two sorting algorithms:
 `list.insertion_sort` and `list.merge_sort`, and prove their correctness.

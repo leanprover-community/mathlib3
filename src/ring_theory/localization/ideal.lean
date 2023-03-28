@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient_operations
 import ring_theory.localization.basic
 
 /-!
@@ -188,6 +188,18 @@ begin
     exact or.inl (mul_left_cancel₀ (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn
       (by rw [← ring_hom.map_mul, ← mk'_eq_mul_mk'_one, mk'_self, ring_hom.map_one]))) }
+end
+
+open_locale non_zero_divisors
+
+lemma bot_lt_comap_prime [is_domain R] (hM : M ≤ R⁰)
+  (p : ideal S) [hpp : p.is_prime] (hp0 : p ≠ ⊥) :
+  ⊥ < ideal.comap (algebra_map R S) p :=
+begin
+  haveI : is_domain S := is_domain_of_le_non_zero_divisors _ hM,
+  convert (order_iso_of_prime M S).lt_iff_lt.mpr
+    (show (⟨⊥, ideal.bot_prime⟩ : {p : ideal S // p.is_prime}) < ⟨p, hpp⟩, from hp0.bot_lt),
+  exact (ideal.comap_bot_of_injective (algebra_map R S) (is_localization.injective _ hM)).symm,
 end
 
 end comm_ring

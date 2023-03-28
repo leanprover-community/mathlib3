@@ -9,6 +9,9 @@ import linear_algebra.prod
 /-!
 # Projection to a subspace
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 * `linear_proj_of_is_compl (p q : submodule R E) (h : is_compl p q)`: the projection of a module `E`
   to a submodule `p` along its complement `q`; it is the unique linear map `f : E → p` such that

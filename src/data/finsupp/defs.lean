@@ -9,6 +9,9 @@ import group_theory.submonoid.basic
 /-!
 # Type of functions with finite support
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For any type `α` and any type `M` with zero, we define the type `finsupp α M` (notation: `α →₀ M`)
 of finitely supported functions from `α` to `M`, i.e. the functions which are zero everywhere
 on `α` except on a finite set.
@@ -193,6 +196,13 @@ If `α` has a unique term, the type of finitely supported functions `α →₀ �
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
 finsupp.equiv_fun_on_finite.trans (equiv.fun_unique ι M)
 
+@[ext]
+lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
+ext $ λ a, by rwa [unique.eq_default a]
+
+lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔ f default = g default :=
+⟨λ h, h ▸ rfl, unique_ext⟩
+
 end basic
 
 /-! ### Declarations about `single` -/
@@ -215,35 +225,38 @@ def single (a : α) (b : M) : α →₀ M :=
   end }
 
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
-by { simp_rw [@eq_comm _ a a'], convert pi.single_apply _ _ _, }
+by { classical, simp_rw [@eq_comm _ a a'], convert pi.single_apply _ _ _, }
 
 lemma single_apply_left {f : α → β} (hf : function.injective f)
   (x z : α) (y : M) :
   single (f x) y (f z) = single x y z :=
-by simp only [single_apply, hf.eq_iff]
+by { classical, simp only [single_apply, hf.eq_iff] }
 
-lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
-by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
+lemma single_eq_set_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
+by { classical, ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
 @[simp] lemma single_eq_same : (single a b : α →₀ M) a = b :=
-pi.single_eq_same a b
+by { classical, exact pi.single_eq_same a b }
 
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
-pi.single_eq_of_ne' h _
+by { classical, exact pi.single_eq_of_ne' h _ }
 
 lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
-by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
+by rw [single_eq_set_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
 lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
 single_eq_update a b
 
 @[simp] lemma single_zero (a : α) : (single a 0 : α →₀ M) = 0 :=
-coe_fn_injective $ by simpa only [single_eq_update, coe_zero]
-  using function.update_eq_self a (0 : α → M)
+coe_fn_injective $ begin
+  classical,
+  simpa only [single_eq_update, coe_zero] using function.update_eq_self a (0 : α → M)
+end
 
 lemma single_of_single_apply (a a' : α) (b : M) :
   single a ((single a' b) a) = single a' (single a' b) a :=
 begin
+  classical,
   rw [single_apply, single_apply],
   ext,
   split_ifs,
@@ -252,10 +265,10 @@ begin
 end
 
 lemma support_single_ne_zero (a : α) (hb : b ≠ 0) : (single a b).support = {a} :=
-if_neg hb
+by { classical, exact if_neg hb }
 
 lemma support_single_subset : (single a b).support ⊆ {a} :=
-show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
+by { classical, show ite _ _ _ ⊆ _, split_ifs; [exact empty_subset _, exact subset.refl _] }
 
 lemma single_apply_mem (x) : single a b x ∈ ({0, b} : set M) :=
 by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
@@ -271,7 +284,7 @@ have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq
 by rwa [single_eq_same, single_eq_same] at this
 
 lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
-by simp [single_eq_indicator]
+by simp [single_eq_set_indicator]
 
 lemma single_apply_ne_zero {a x : α} {b : M} : single a b x ≠ 0 ↔ (x = a ∧ b ≠ 0) :=
 by simp [single_apply_eq_zero]
@@ -324,10 +337,10 @@ lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α
 by rw [support_single_ne_zero _ hb, support_single_ne_zero _ hb', disjoint_singleton]
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-by simp [ext_iff, single_eq_indicator]
+by simp [ext_iff, single_eq_set_indicator]
 
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
-by simp only [single_apply]; ac_refl
+by { classical, simp only [single_apply], ac_refl }
 
 instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
 begin
@@ -338,13 +351,6 @@ end
 
 lemma unique_single [unique α] (x : α →₀ M) : x = single default (x default) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
-
-@[ext]
-lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
-ext $ λ a, by rwa [unique.eq_default a]
-
-lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔ f default = g default :=
-⟨λ h, h ▸ rfl, unique_ext⟩
 
 @[simp] lemma unique_single_eq_iff [unique α] {b' : M} :
   single a b = single a' b' ↔ b = b' :=

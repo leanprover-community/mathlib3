@@ -8,6 +8,9 @@ import topology.bornology.basic
 /-!
 # Locally bounded maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines locally bounded maps between bornologies.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to

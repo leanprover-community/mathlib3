@@ -10,6 +10,9 @@ import data.list.rotate
 /-!
 # Cycles of a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lists have an equivalence relation of whether they are rotational permutations of one another.
 This relation is defined as `is_rotated`.
 
@@ -621,6 +624,10 @@ rfl
 rfl
 
 @[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
+quotient.induction_on' s (by simp)
+
+@[simp] lemma mem_map {β : Type*} {f : α → β} {b : β} {s : cycle α} :
+  b ∈ s.map f ↔ ∃ a, a ∈ s ∧ f a = b :=
 quotient.induction_on' s (by simp)
 
 /-- The `multiset` of lists that can make the cycle. -/

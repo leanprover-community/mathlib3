@@ -15,6 +15,9 @@ import tactic.apply_fun
 /-!
 # Subgroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines multiplicative and additive subgroups as an extension of submonoids, in a bundled
 form (unbundled subgroups are in `deprecated/subgroups.lean`).
 
@@ -113,6 +116,11 @@ class add_subgroup_class (S G : Type*) [sub_neg_monoid G] [set_like S G]
 
 attribute [to_additive] inv_mem_class subgroup_class
 
+@[simp, to_additive]
+theorem inv_mem_iff {S G} [has_involutive_inv G] [set_like S G] [inv_mem_class S G] {H : S}
+  {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
+⟨λ h, inv_inv x ▸ inv_mem h, inv_mem⟩
+
 variables {M S : Type*} [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M] {H K : S}
 include hSM
 
@@ -129,9 +137,6 @@ lemma zpow_mem {x : M} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 omit hSM
 variables [set_like S G] [hSG : subgroup_class S G]
 include hSG
-
-@[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
-⟨λ h, inv_inv x ▸ inv_mem h, inv_mem⟩
 
 @[to_additive] lemma div_mem_comm_iff {a b : G} : a / b ∈ H ↔ b / a ∈ H :=
 by rw [← inv_mem_iff, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, inv_inv]

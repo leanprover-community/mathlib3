@@ -11,6 +11,9 @@ import tactic.nth_rewrite
 /-!
 # Prime numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with the factors of natural numbers.
 
 ## Important declarations

@@ -173,8 +173,11 @@ end⟩
 
 lemma lex.no_max_order' [preorder ι] [Π i, has_lt (β i)] (i : ι) [no_max_order (β i)] :
   no_max_order (lex (Π i, β i)) :=
-⟨λ a, let ⟨b, hb⟩ := exists_gt (a i) in ⟨a.update i b, i,
-  λ j hj, (a.update_noteq hj.ne b).symm, by rwa a.update_same i b⟩⟩
+⟨λ a, begin
+  classical,
+  obtain ⟨b, hb⟩ := exists_gt (a i),
+  exact ⟨a.update i b, i, λ j hj, (a.update_noteq hj.ne b).symm, by rwa a.update_same i b⟩
+end⟩
 
 instance [linear_order ι] [is_well_order ι (<)] [nonempty ι] [Π i, partial_order (β i)]
   [Π i, no_max_order (β i)] :

@@ -52,27 +52,25 @@ end
 
 lemma seq_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
-  cases h with x hx,
-  unfold series_sums_to at hx,
-  replace hx := filter.tendsto.cauchy_seq hx,
-  have := cauchy_seq.is_cau_seq hx,
   rw filter.tendsto_def,
   intros s hs,
   rw filter.mem_at_top_sets,
+
   rw metric.mem_nhds_iff at hs,
   rcases hs with ⟨ε, H, hε⟩,
+
+  cases h with x hx,
+  have : is_cau_seq norm (partial_sum a) := (filter.tendsto.cauchy_seq hx).is_cau_seq,
   replace this := is_cau_seq.cauchy₂ this H,
   cases this with i hi,
+
   use i + 1,
   intros b hb,
+
   rw set.mem_preimage,
-  refine set.mem_of_mem_of_subset _ hε,
-  rw metric.mem_ball,
-  rw dist_eq_norm,
-  rw sub_zero,
-  specialize hi (b + 1) (by linarith) b (by linarith),
-  rw partial_sum_next at hi,
-  simpa using hi,
+  apply hε,
+  rw [metric.mem_ball, dist_eq_norm, sub_zero],
+  simpa [partial_sum_next] using hi (b + 1) (by linarith) b (by linarith),
 end
 
 lemma partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, partial_sum a n ≤ partial_sum b n :=

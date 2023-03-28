@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
 import algebra.big_operators.ring
+import algebra.order.field.basic
 import combinatorics.double_counting
 import combinatorics.set_family.shadow
 import data.rat.order
 
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves the local LYM and LYM inequalities as well as Sperner's theorem.
 

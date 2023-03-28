@@ -10,6 +10,9 @@ import algebra.divisibility.units
 /-!
 # Divisibility in groups with zero.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lemmas about divisibility in groups and monoids with zero.
 
 -/

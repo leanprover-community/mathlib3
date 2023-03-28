@@ -12,6 +12,9 @@ import logic.equiv.basic
 
 /-!
 # Injective functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w x

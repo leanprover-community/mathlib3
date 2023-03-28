@@ -8,6 +8,9 @@ import algebra.group.units
 /-!
 # Monoid homomorphisms and units
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to lift monoid homomorphisms to group homomorphisms of their units subgroups. It
 also contains unrelated results about `units` that depend on `monoid_hom`.
 
@@ -314,6 +317,10 @@ by rw [←(hb.mul hd).mul_left_inj, ←mul_assoc, hb.div_mul_cancel, ←mul_asso
 
 @[to_additive] protected lemma div_div_cancel (h : is_unit a) : a / (a / b) = b :=
 by rw [div_div_eq_mul_div, h.mul_div_cancel_left]
+
+@[to_additive] protected lemma div_div_cancel_left (h : is_unit a) :
+  a / b / a = b⁻¹ :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_right_comm, h.mul_inv_cancel, one_mul]
 
 end division_comm_monoid
 end is_unit

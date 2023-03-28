@@ -8,13 +8,15 @@ import algebra.module.basic
 import algebra.order.group.inj_surj
 import data.countable.basic
 import group_theory.submonoid.centralizer
-import group_theory.submonoid.membership
 import logic.encodable.basic
 import order.atoms
-import order.sup_indep
+import tactic.apply_fun
 
 /-!
 # Subgroups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines multiplicative and additive subgroups as an extension of submonoids, in a bundled
 form (unbundled subgroups are in `deprecated/subgroups.lean`).
@@ -75,8 +77,6 @@ Definitions in the file:
 * `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that
   `f x = g x` form a subgroup of `G`
 
-* `is_simple_group G` : a class indicating that a group has exactly two normal subgroups
-
 ## Implementation notes
 
 Subgroup inclusion is denoted `≤` rather than `⊆`, although `∈` is defined as
@@ -86,46 +86,43 @@ membership of a subgroup's underlying set.
 subgroup, subgroups
 -/
 
-open_locale big_operators
+open function
 
-variables {G : Type*} [group G]
+variables {G G' : Type*} [group G] [group G']
 variables {A : Type*} [add_group A]
 
 section subgroup_class
 
 /-- `inv_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under inverses. -/
-class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] :=
+class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] : Prop :=
 (inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
 
 export inv_mem_class (inv_mem)
 
 /-- `neg_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under negation. -/
-class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] :=
+class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] : Prop :=
 (neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
 
 export neg_mem_class (neg_mem)
 
 /-- `subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are subgroups of `G`. -/
 class subgroup_class (S G : Type*) [div_inv_monoid G] [set_like S G]
-  extends submonoid_class S G :=
-(inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
+  extends submonoid_class S G, inv_mem_class S G : Prop
 
 /-- `add_subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are
 additive subgroups of `G`. -/
 class add_subgroup_class (S G : Type*) [sub_neg_monoid G] [set_like S G]
-  extends add_submonoid_class S G :=
-(neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
+  extends add_submonoid_class S G, neg_mem_class S G : Prop
 
 attribute [to_additive] inv_mem_class subgroup_class
 
-variables (M S : Type*) [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M]
+@[simp, to_additive]
+theorem inv_mem_iff {S G} [has_involutive_inv G] [set_like S G] [inv_mem_class S G] {H : S}
+  {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
+⟨λ h, inv_inv x ▸ inv_mem h, inv_mem⟩
+
+variables {M S : Type*} [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M] {H K : S}
 include hSM
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance subgroup_class.to_inv_mem_class : inv_mem_class S M :=
-{ .. hSM }
-
-variables {S M} {H K : S}
 
 /-- A subgroup is closed under division. -/
 @[to_additive "An additive subgroup is closed under subtraction."]
@@ -140,9 +137,6 @@ lemma zpow_mem {x : M} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K
 omit hSM
 variables [set_like S G] [hSG : subgroup_class S G]
 include hSG
-
-@[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
-⟨λ h, inv_inv x ▸ inv_mem h, inv_mem⟩
 
 @[to_additive] lemma div_mem_comm_iff {a b : G} : a / b ∈ H ↔ b / a ∈ H :=
 by rw [← inv_mem_iff, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, inv_inv]
@@ -227,17 +221,17 @@ include hSG
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an additive subgroup of `add_group` `G` to `G`."]
-def subtype : H →* G := monoid_hom.coe H G
+def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : (subtype H : H → G) = coe := rfl
 
 variables {H}
 
-@[norm_cast, to_additive coe_smul]
+@[simp, norm_cast, to_additive coe_smul]
 lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 (subtype H : H →* G).map_pow _ _
 
-@[norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
+@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 (subtype H : H →* G).map_zpow _ _
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
@@ -331,14 +325,6 @@ lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
 
 @[simp, to_additive]
 lemma mem_to_submonoid (K : subgroup G) (x : G) : x ∈ K.to_submonoid ↔ x ∈ K := iff.rfl
-
-@[to_additive]
-instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
-show fintype {g : G // g ∈ K}, from infer_instance
-
-@[to_additive]
-instance (K : subgroup G) [finite G] : finite K :=
-subtype.finite
 
 @[to_additive]
 theorem to_submonoid_injective :
@@ -465,37 +451,6 @@ mul_mem_cancel_right h
 @[to_additive] protected lemma mul_mem_cancel_left {x y : G} (h : x ∈ H) : x * y ∈ H ↔ y ∈ H :=
 mul_mem_cancel_left h
 
-/-- Product of a list of elements in a subgroup is in the subgroup. -/
-@[to_additive "Sum of a list of elements in an `add_subgroup` is in the `add_subgroup`."]
-protected lemma list_prod_mem {l : list G} : (∀ x ∈ l, x ∈ K) → l.prod ∈ K :=
-list_prod_mem
-
-/-- Product of a multiset of elements in a subgroup of a `comm_group` is in the subgroup. -/
-@[to_additive "Sum of a multiset of elements in an `add_subgroup` of an `add_comm_group`
-is in the `add_subgroup`."]
-protected lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
-  (∀ a ∈ g, a ∈ K) → g.prod ∈ K := multiset_prod_mem g
-
-@[to_additive]
-lemma multiset_noncomm_prod_mem (K : subgroup G) (g : multiset G) (comm) :
-  (∀ a ∈ g, a ∈ K) → g.noncomm_prod comm ∈ K :=
-K.to_submonoid.multiset_noncomm_prod_mem g comm
-
-/-- Product of elements of a subgroup of a `comm_group` indexed by a `finset` is in the
-    subgroup. -/
-@[to_additive "Sum of elements in an `add_subgroup` of an `add_comm_group` indexed by a `finset`
-is in the `add_subgroup`."]
-protected lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
-  {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
-  ∏ c in t, f c ∈ K :=
-prod_mem h
-
-@[to_additive]
-lemma noncomm_prod_mem (K : subgroup G) {ι : Type*} {t : finset ι} {f : ι → G} (comm) :
-  (∀ c ∈ t, f c ∈ K) → t.noncomm_prod f comm ∈ K :=
-K.to_submonoid.noncomm_prod_mem t f comm
-
-
 @[to_additive add_subgroup.nsmul_mem]
 protected lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := pow_mem hx
 
@@ -549,8 +504,8 @@ instance has_zpow : has_pow H ℤ := ⟨λ a n, ⟨a ^ n, H.zpow_mem a.2 n⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
 @[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
-@[norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
-@[norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[simp, norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
 
 @[simp, to_additive] lemma mk_eq_one_iff {g : G} {h} : (⟨g, h⟩ : H) = 1 ↔ g = 1 :=
 show (⟨g, h⟩ : H) = (⟨1, H.one_mem⟩ : H) ↔ g = 1, by simp
@@ -589,19 +544,6 @@ def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[to_additive] lemma subtype_injective : function.injective (subtype H) := subtype.coe_injective
 
-@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list H) :
-  (l.prod : G) = (l.map coe).prod :=
-submonoid_class.coe_list_prod l
-
-@[simp, norm_cast, to_additive] theorem coe_multiset_prod {G} [comm_group G] (H : subgroup G)
-  (m : multiset H) : (m.prod : G) = (m.map coe).prod :=
-submonoid_class.coe_multiset_prod m
-
-@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι G} [comm_group G] (H : subgroup G)
-  (f : ι → H) (s : finset ι) :
-  ↑(∏ i in s, f i) = (∏ i in s, f i : G) :=
-submonoid_class.coe_finset_prod f s
-
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
 @[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]
 def inclusion {H K : subgroup G} (h : H ≤ K) : H →* K :=
@@ -618,7 +560,7 @@ set.inclusion_injective h
 @[simp, to_additive]
 lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
   K.subtype.comp (inclusion hH) = H.subtype :=
-by { ext, simp }
+rfl
 
 /-- The subgroup `G` of the group `G`. -/
 @[to_additive "The `add_subgroup G` of the `add_group G`."]
@@ -672,35 +614,6 @@ end
 ⟨λ ⟨g, hg⟩, by { haveI : subsingleton (H : set G) := by { rw hg, apply_instance },
   exact H.eq_bot_of_subsingleton }, λ h, ⟨1, set_like.ext'_iff.mp h⟩⟩
 
-@[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
-by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
-
-/- curly brackets `{}` are used here instead of instance brackets `[]` because
-  the instance in a goal is often not the same as the one inferred by type class inference.  -/
-@[simp, to_additive] lemma card_bot {_ : fintype ↥(⊥ : subgroup G)} :
-  fintype.card (⊥ : subgroup G)  = 1 :=
-fintype.card_eq_one_iff.2
-  ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
-
-@[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
-  (h : fintype.card H = fintype.card G) : H = ⊤ :=
-begin
-  haveI : fintype (H : set G) := ‹fintype H›,
-  rw [set_like.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
-    ← finset.card_eq_iff_eq_univ, ← h, set.to_finset_card],
-  congr
-end
-
-@[to_additive] lemma eq_top_of_le_card [fintype H] [fintype G]
-  (h : fintype.card G ≤ fintype.card H) : H = ⊤ :=
-eq_top_of_card_eq H (le_antisymm (fintype.card_le_of_injective coe subtype.coe_injective) h)
-
-@[to_additive] lemma eq_bot_of_card_le [fintype H] (h : fintype.card H ≤ 1) : H = ⊥ :=
-let _ := fintype.card_le_one_iff_subsingleton.mp h in by exactI eq_bot_of_subsingleton H
-
-@[to_additive] lemma eq_bot_of_card_eq [fintype H] (h : fintype.card H = 1) : H = ⊥ :=
-H.eq_bot_of_card_le (le_of_eq h)
-
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
@@ -725,14 +638,6 @@ begin
   convert H.bot_or_nontrivial,
   rw nontrivial_iff_exists_ne_one
 end
-
-@[to_additive] lemma card_le_one_iff_eq_bot [fintype H] : fintype.card H ≤ 1 ↔ H = ⊥ :=
-⟨λ h, (eq_bot_iff_forall _).2
-    (λ x hx, by simpa [subtype.ext_iff] using fintype.card_le_one_iff.1 h ⟨x, hx⟩ 1),
-  λ h, by simp [h]⟩
-
-@[to_additive] lemma one_lt_card_iff_ne_bot [fintype H] : 1 < fintype.card H ↔ H ≠ ⊥ :=
-lt_iff_not_le.trans H.card_le_one_iff_eq_bot.not
 
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
@@ -1192,30 +1097,27 @@ by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-@[simp, to_additive] lemma comap_subtype_self_eq_top {G : Type*} [group G] {H : subgroup G} :
-  comap H.subtype H = ⊤ := by { ext, simp }
-
-@[simp, to_additive]
-lemma comap_subtype_inf_left {H K : subgroup G} : comap H.subtype (H ⊓ K) = comap H.subtype K :=
-ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
-
-@[simp, to_additive]
-lemma comap_subtype_inf_right {H K : subgroup G} : comap K.subtype (H ⊓ K) = comap K.subtype H :=
-ext $ λ x, and_iff_left_of_imp (λ _, x.prop)
+/-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
+@[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
+def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
 
 /-- If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`. -/
 @[to_additive "If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`.", simps]
-def comap_subtype_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
-  H.comap K.subtype ≃* H :=
+def subgroup_of_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  H.subgroup_of K ≃* H :=
 { to_fun := λ g, ⟨g.1, g.2⟩,
   inv_fun := λ g, ⟨⟨g.1, h g.2⟩, g.2⟩,
   left_inv := λ g, subtype.ext (subtype.ext rfl),
   right_inv := λ g, subtype.ext rfl,
   map_mul' := λ g h, rfl }
 
-/-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
-@[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
-def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
+@[simp, to_additive]
+lemma comap_subtype (H K : subgroup G) : H.comap K.subtype = H.subgroup_of K := rfl
+
+@[simp, to_additive]
+lemma comap_inclusion_subgroup_of {K₁ K₂ : subgroup G} (h : K₁ ≤ K₂) (H : subgroup G) :
+  (H.subgroup_of K₂).comap (inclusion h) = H.subgroup_of K₁ :=
+rfl
 
 @[to_additive] lemma coe_subgroup_of (H K : subgroup G) :
   (H.subgroup_of K : set K) = K.subtype ⁻¹' H := rfl
@@ -1224,13 +1126,9 @@ def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
   h ∈ H.subgroup_of K ↔ (h : G) ∈ H :=
 iff.rfl
 
-@[to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :
-  (H.subgroup_of K).map K.subtype = H ⊓ K := set_like.ext'
-begin
-  convert set.image_preimage_eq_inter_range,
-  simp only [subtype.range_coe_subtype, coe_subtype, coe_inf],
-  refl,
-end
+@[simp, to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :
+  (H.subgroup_of K).map K.subtype = H ⊓ K :=
+set_like.ext' $ subtype.image_preimage_coe _ _
 
 @[simp, to_additive] lemma bot_subgroup_of : (⊥ : subgroup G).subgroup_of H = ⊥ :=
 eq.symm (subgroup.ext (λ g, subtype.ext_iff))
@@ -1244,8 +1142,26 @@ subsingleton.elim _ _
 @[to_additive] lemma subgroup_of_bot_eq_top : H.subgroup_of ⊥ = ⊤ :=
 subsingleton.elim _ _
 
-@[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ :=
-top_le_iff.mp (λ g hg, g.2)
+@[simp, to_additive] lemma subgroup_of_self : H.subgroup_of H = ⊤ := top_unique (λ g hg, g.2)
+
+@[simp, to_additive] lemma subgroup_of_inj {H₁ H₂ K : subgroup G} :
+  H₁.subgroup_of K = H₂.subgroup_of K ↔ H₁ ⊓ K = H₂ ⊓ K :=
+by simpa only [set_like.ext_iff, mem_inf, mem_subgroup_of, and.congr_left_iff] using subtype.forall
+
+@[simp, to_additive] lemma inf_subgroup_of_right (H K : subgroup G) :
+  (H ⊓ K).subgroup_of K = H.subgroup_of K :=
+subgroup_of_inj.2 inf_right_idem
+
+@[simp, to_additive] lemma inf_subgroup_of_left (H K : subgroup G) :
+  (K ⊓ H).subgroup_of K = H.subgroup_of K :=
+by rw [inf_comm, inf_subgroup_of_right]
+
+@[simp, to_additive] lemma subgroup_of_eq_bot {H K : subgroup G} :
+  H.subgroup_of K = ⊥ ↔ disjoint H K :=
+by rw [disjoint_iff, ← bot_subgroup_of, subgroup_of_inj, bot_inf_eq]
+
+@[simp, to_additive] lemma subgroup_of_eq_top {H K : subgroup G} : H.subgroup_of K = ⊤ ↔ K ≤ H :=
+by rw [← top_subgroup_of, subgroup_of_inj, top_inf_eq, inf_eq_right]
 
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
@@ -1377,51 +1293,6 @@ begin
     by_cases heq : j = i,
     { subst heq, simpa using h hj, },
     { simp [heq, one_mem], }, }
-end
-
-@[to_additive]
-lemma pi_mem_of_mul_single_mem_aux [decidable_eq η] (I : finset η) {H : subgroup (Π i, f i) }
-  (x : Π i, f i) (h1 : ∀ i, i ∉ I → x i = 1) (h2 : ∀ i, i ∈ I → pi.mul_single i (x i) ∈ H ) :
-  x ∈ H :=
-begin
-  induction I using finset.induction_on with i I hnmem ih generalizing x,
-  { convert one_mem H,
-    ext i,
-    exact (h1 i (not_mem_empty i)) },
-  { have : x = function.update x i 1 * pi.mul_single i (x i),
-    { ext j,
-      by_cases heq : j = i,
-      { subst heq, simp, },
-      { simp [heq], }, },
-    rw this, clear this,
-    apply mul_mem,
-    { apply ih; clear ih,
-      { intros j hj,
-        by_cases heq : j = i,
-        { subst heq, simp, },
-        { simp [heq], apply h1 j, simpa [heq] using hj, } },
-      { intros j hj,
-        have : j ≠ i, by { rintro rfl, contradiction },
-        simp [this],
-        exact h2 _ (finset.mem_insert_of_mem hj), }, },
-    { apply h2, simp, } }
-end
-
-@[to_additive]
-lemma pi_mem_of_mul_single_mem [finite η] [decidable_eq η] {H : subgroup (Π i, f i)}
-  (x : Π i, f i) (h : ∀ i, pi.mul_single i (x i) ∈ H) : x ∈ H :=
-by { casesI nonempty_fintype η,
-   exact pi_mem_of_mul_single_mem_aux finset.univ x (by simp) (λ i _, h i) }
-
-/-- For finite index types, the `subgroup.pi` is generated by the embeddings of the groups.  -/
-@[to_additive "For finite index types, the `subgroup.pi` is generated by the embeddings of the
-additive groups."]
-lemma pi_le_iff [decidable_eq η] [finite η] {H : Π i, subgroup (f i)} {J : subgroup (Π i, f i)} :
-  pi univ H ≤ J ↔ ∀ i : η, map (monoid_hom.single f i) (H i) ≤ J :=
-begin
-  split,
-  { rintros h i _ ⟨x, hx, rfl⟩, apply h, simpa using hx },
-  { exact λ h x hx, pi_mem_of_mul_single_mem  x (λ i, h i (mem_map_of_mem _ (hx i trivial))), }
 end
 
 @[to_additive]
@@ -1573,8 +1444,8 @@ variable {G}
 
 @[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
 
-instance decidable_mem_center [decidable_eq G] [fintype G] : decidable_pred (∈ center G) :=
-λ _, decidable_of_iff' _ mem_center_iff
+instance decidable_mem_center (z : G) [decidable (∀ g, g * z = z * g)] : decidable (z ∈ center G) :=
+decidable_of_iff' _ mem_center_iff
 
 @[to_additive] instance center_characteristic : (center G).characteristic :=
 begin
@@ -1618,16 +1489,6 @@ def set_normalizer (S : set G) : subgroup G :=
   inv_mem' := λ a (ha : ∀ n, n ∈ S ↔ a * n * a⁻¹ ∈ S) n,
     by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
 
-lemma mem_normalizer_fintype {S : set G} [finite S] {x : G}
-  (h : ∀ n, n ∈ S → x * n * x⁻¹ ∈ S) : x ∈ subgroup.set_normalizer S :=
-by haveI := classical.prop_decidable; casesI nonempty_fintype S;
-haveI := set.fintype_image S (λ n, x * n * x⁻¹); exact
-λ n, ⟨h n, λ h₁,
-have heq : (λ n, x * n * x⁻¹) '' S = S := set.eq_of_subset_of_card_le
-  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective S conj_injective),
-have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' S := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
-
 variable {H}
 @[to_additive] lemma mem_normalizer_iff {g : G} :
   g ∈ H.normalizer ↔ ∀ h, h ∈ H ↔ g * h * g⁻¹ ∈ H :=
@@ -1645,7 +1506,7 @@ by rw [←inv_mem_iff, mem_normalizer_iff, inv_inv]
 λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]
 
 @[priority 100, to_additive]
-instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
+instance normal_in_normalizer : (H.subgroup_of H.normalizer).normal :=
 ⟨λ x xH g, by simpa using (g.2 x).1 xH⟩
 
 @[to_additive] lemma normalizer_eq_top : H.normalizer = ⊤ ↔ H.normal :=
@@ -1658,9 +1519,9 @@ eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
 open_locale classical
 
 @[to_additive]
-lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) : K ≤ H.normalizer :=
+lemma le_normalizer_of_normal [hK : (H.subgroup_of K).normal] (HK : H ≤ K) : K ≤ H.normalizer :=
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
-  λ yH, by simpa [mem_comap, mul_assoc] using
+  λ yH, by simpa [mem_subgroup_of, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
 variables {N : Type*} [group N]
@@ -1777,16 +1638,16 @@ instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
 instance center.is_commutative : (center G).is_commutative :=
 ⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
 
-@[to_additive] instance map_is_commutative {G' : Type*} [group G'] (f : G →* G')
-  [H.is_commutative] : (H.map f).is_commutative :=
+@[to_additive] instance map_is_commutative (f : G →* G') [H.is_commutative] :
+  (H.map f).is_commutative :=
 ⟨⟨begin
   rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
   rw [subtype.ext_iff, coe_mul, coe_mul, subtype.coe_mk, subtype.coe_mk, ←map_mul, ←map_mul],
   exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
 end⟩⟩
 
-@[to_additive] lemma comap_injective_is_commutative {G' : Type*} [group G'] {f : G' →* G}
-  (hf : function.injective f) [H.is_commutative] : (H.comap f).is_commutative :=
+@[to_additive] lemma comap_injective_is_commutative {f : G' →* G} (hf : injective f)
+  [H.is_commutative] : (H.comap f).is_commutative :=
 ⟨⟨λ a b, subtype.ext begin
   have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H),
   rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
@@ -1957,11 +1818,6 @@ open subgroup
 def range (f : G →* N) : subgroup N :=
 subgroup.copy ((⊤ : subgroup G).map f) (set.range f) (by simp [set.ext_iff])
 
-@[to_additive]
-instance decidable_mem_range (f : G →* N) [fintype G] [decidable_eq N] :
-  decidable_pred (∈ f.range) :=
-λ x, fintype.decidable_exists_fintype
-
 @[simp, to_additive] lemma coe_range (f : G →* N) :
   (f.range : set N) = set.range f := rfl
 
@@ -2076,9 +1932,7 @@ such that `f x = 0`"]
 def ker (f : G →* M) : subgroup G :=
 { inv_mem' := λ x (hx : f x = 1),
     calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
-           ... = f (x * x⁻¹) : by rw [f.map_mul]
-           ... = f 1 :         by rw [mul_right_inv]
-           ... = 1 :           f.map_one,
+           ... = 1           : by rw [← map_mul, mul_inv_self, map_one],
   ..f.mker }
 
 @[to_additive]
@@ -2086,6 +1940,10 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
+
+@[simp, to_additive]
+lemma ker_to_hom_units {M} [monoid M] (f : G →* M) : f.to_hom_units.ker = f.ker :=
+by { ext x, simp [mem_ker, units.ext_iff] }
 
 @[to_additive]
 lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
@@ -2117,6 +1975,7 @@ set_like.ext $ λ x, subtype.ext_iff
 ker_cod_restrict _ _ _
 
 @[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
+@[simp, to_additive] lemma ker_id : (monoid_hom.id G).ker = ⊥ := rfl
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
 ⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,
@@ -2147,30 +2006,39 @@ instance normal_ker (f : G →* M) : f.ker.normal :=
 
 end ker
 
+section eq_locus
+
+variables {M : Type*} [monoid M]
+
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
-def eq_locus (f g : G →* N) : subgroup G :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+def eq_locus (f g : G →* M) : subgroup G :=
+{ inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
+
+@[simp, to_additive] lemma eq_locus_same (f : G →* N) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
 closure."]
-lemma eq_on_closure {f g : G →* N} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
+lemma eq_on_closure {f g : G →* M} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_locus g, from (closure_le _).2 h
 
 @[to_additive]
-lemma eq_of_eq_on_top {f g : G →* N} (h : set.eq_on f g (⊤ : subgroup G)) :
+lemma eq_of_eq_on_top {f g : G →* M} (h : set.eq_on f g (⊤ : subgroup G)) :
   f = g :=
 ext $ λ x, h trivial
 
 @[to_additive]
-lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* M} (h : s.eq_on f g) :
   f = g :=
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
+end eq_locus
+
 @[to_additive]
-lemma gclosure_preimage_le (f : G →* N) (s : set N) :
+lemma closure_preimage_le (f : G →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 (closure_le _).2 $ λ x hx, by rw [set_like.mem_coe, mem_comap]; exact subset_closure hx
 
@@ -2183,37 +2051,20 @@ lemma map_closure (f : G →* N) (s : set G) :
 set.image_preimage.l_comm_of_u_comm
   (subgroup.gc_map_comap f) (subgroup.gi N).gc (subgroup.gi G).gc (λ t, rfl)
 
--- this instance can't go just after the definition of `mrange` because `fintype` is
--- not imported at that stage
-
-/-- The range of a finite monoid under a monoid homomorphism is finite.
-Note: this instance can form a diamond with `subtype.fintype` in the
-presence of `fintype N`. -/
-@[to_additive "The range of a finite additive monoid under an additive monoid homomorphism is
-finite.
-
-Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
-presence of `fintype N`."]
-instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidable_eq N]
-  (f : M →* N) : fintype (mrange f) :=
-set.fintype_range f
-
-/-- The range of a finite group under a group homomorphism is finite.
-
-Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
-presence of `fintype N`. -/
-@[to_additive "The range of a finite additive group under an additive group homomorphism is finite.
-
-Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
-presence of `fintype N`."]
-instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
-set.fintype_range f
-
 end monoid_hom
 
 namespace subgroup
 
 variables {N : Type*} [group N] (H : subgroup G)
+
+@[to_additive]
+lemma normal.map {H : subgroup G} (h : H.normal) (f : G →* N) (hf : function.surjective f) :
+  (H.map f).normal :=
+begin
+  rw [← normalizer_eq_top, ← top_le_iff, ← f.range_top_of_surjective hf, f.range_eq_map,
+    ← normalizer_eq_top.2 h],
+  exact le_normalizer_map _
+end
 
 @[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
 (gc_map_comap f).l_eq_bot
@@ -2306,6 +2157,22 @@ lemma comap_map_eq_self_of_injective {f : G →* N} (h : function.injective f) (
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
 
 @[to_additive]
+lemma map_le_map_iff {f : G →* N} {H K : subgroup G} : H.map f ≤ K.map f ↔ H ≤ K ⊔ f.ker :=
+by rw [map_le_iff_le_comap, comap_map_eq]
+
+@[to_additive] lemma map_le_map_iff' {f : G →* N} {H K : subgroup G} :
+  H.map f ≤ K.map f ↔ H ⊔ f.ker ≤ K ⊔ f.ker :=
+by simp only [map_le_map_iff, sup_le_iff, le_sup_right, and_true]
+
+@[to_additive] lemma map_eq_map_iff {f : G →* N} {H K : subgroup G} :
+  H.map f = K.map f ↔ H ⊔ f.ker = K ⊔ f.ker :=
+by simp only [le_antisymm_iff, map_le_map_iff']
+
+@[to_additive] lemma map_eq_range_iff {f : G →* N} {H : subgroup G} :
+  H.map f = f.range ↔ codisjoint H f.ker :=
+by rw [f.range_eq_map, map_eq_map_iff, codisjoint_iff, top_sup_eq]
+
+@[to_additive]
 lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :
   H.map f ≤ K.map f ↔ H ≤ K :=
 by rw [map_le_iff_le_comap, comap_map_eq_self_of_injective hf]
@@ -2334,13 +2201,6 @@ begin
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
 end
 
-@[to_additive] lemma subgroup_of_eq_bot {H K : subgroup G} : H.subgroup_of K = ⊥ ↔ disjoint H K :=
-by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype, map_bot, disjoint_iff]
-
-@[to_additive] lemma subgroup_of_eq_top {H K : subgroup G} : H.subgroup_of K = ⊤ ↔ K ≤ H :=
-by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype,
-  ←K.subtype.range_eq_map, K.subtype_range, inf_eq_right]
-
 @[to_additive] lemma closure_preimage_eq_top (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
 begin
@@ -2365,11 +2225,16 @@ comap_sup_eq_of_le_range f (le_top.trans (ge_of_eq (f.range_top_of_surjective hf
 
 @[to_additive] lemma sup_subgroup_of_eq {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
   H.subgroup_of L ⊔ K.subgroup_of L = (H ⊔ K).subgroup_of L :=
-comap_sup_eq_of_le_range L.subtype (hH.trans (ge_of_eq L.subtype_range))
-  (hK.trans (ge_of_eq L.subtype_range))
+comap_sup_eq_of_le_range L.subtype (hH.trans L.subtype_range.ge) (hK.trans L.subtype_range.ge)
 
-/-- A subgroup is isomorphic to its image under an injective function -/
-@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+@[to_additive] lemma codisjoint_subgroup_of_sup (H K : subgroup G) :
+  codisjoint (H.subgroup_of (H ⊔ K)) (K.subgroup_of (H ⊔ K)) :=
+by { rw [codisjoint_iff, sup_subgroup_of_eq, subgroup_of_self], exacts [le_sup_left, le_sup_right] }
+
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `mul_equiv.subgroup_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_equiv.add_subgroup_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective (H : subgroup G)
   (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
@@ -2409,8 +2274,8 @@ begin
 end
 
 @[to_additive]
-lemma comap_subtype_normalizer_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
-  comap N.subtype H.normalizer = (comap N.subtype H).normalizer :=
+lemma subgroup_of_normalizer_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
+  H.normalizer.subgroup_of N = (H.subgroup_of N).normalizer :=
 begin
   apply comap_normalizer_eq_of_injective_of_le_range,
   exact subtype.coe_injective,
@@ -2563,166 +2428,18 @@ lemma subgroup.normal.comap {H : subgroup N} (hH : H.normal) (f : G →* N) :
 instance subgroup.normal_comap {H : subgroup N}
   [nH : H.normal] (f : G →* N) :  (H.comap f).normal := nH.comap _
 
+-- Here `H.normal` is an explicit argument so we can use dot notation with `subgroup_of`.
+@[to_additive]
+lemma subgroup.normal.subgroup_of {H : subgroup G} (hH : H.normal) (K : subgroup G) :
+  (H.subgroup_of K).normal :=
+hH.comap _
+
 @[priority 100, to_additive]
-instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :
-  ((H ⊓ N).comap H.subtype).normal :=
-⟨λ x hx g, begin
-  simp only [subgroup.mem_inf, coe_subtype, subgroup.mem_comap] at hx,
-  simp only [subgroup.coe_mul, subgroup.mem_inf, coe_subtype, subgroup.coe_inv, subgroup.mem_comap],
-  exact ⟨H.mul_mem (H.mul_mem g.2 hx.1) (H.inv_mem g.2), hN.1 x hx.2 g⟩,
-end⟩
+instance subgroup.normal_subgroup_of {H N : subgroup G} [N.normal] : (N.subgroup_of H).normal :=
+subgroup.normal_comap _
 
-namespace subgroup
-
-/-- The subgroup generated by an element. -/
-def zpowers (g : G) : subgroup G :=
-subgroup.copy (zpowers_hom G g).range (set.range ((^) g : ℤ → G)) rfl
-
-@[simp] lemma mem_zpowers (g : G) : g ∈ zpowers g := ⟨1, zpow_one _⟩
-
-lemma zpowers_eq_closure (g : G) : zpowers g = closure {g} :=
-by { ext, exact mem_closure_singleton.symm }
-
-@[simp] lemma range_zpowers_hom (g : G) : (zpowers_hom G g).range = zpowers g := rfl
-
-lemma zpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : zpowers a ≤ K :=
-λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.zpow_mem h i end
-
-lemma mem_zpowers_iff {g h : G} :
-  h ∈ zpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
-iff.rfl
-
-@[simp] lemma zpow_mem_zpowers (g : G) (k : ℤ) : g^k ∈ zpowers g :=
-mem_zpowers_iff.mpr ⟨k, rfl⟩
-
-@[simp] lemma npow_mem_zpowers (g : G) (k : ℕ) : g^k ∈ zpowers g :=
-(zpow_coe_nat g k) ▸ zpow_mem_zpowers g k
-
-@[simp] lemma forall_zpowers {x : G} {p : zpowers x → Prop} :
-  (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
-set.forall_subtype_range_iff
-
-@[simp] lemma exists_zpowers {x : G} {p : zpowers x → Prop} :
-  (∃ g, p g) ↔ ∃ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
-set.exists_subtype_range_iff
-
-lemma forall_mem_zpowers {x : G} {p : G → Prop} :
-  (∀ g ∈ zpowers x, p g) ↔ ∀ m : ℤ, p (x ^ m) :=
-set.forall_range_iff
-
-lemma exists_mem_zpowers {x : G} {p : G → Prop} :
-  (∃ g ∈ zpowers x, p g) ↔ ∃ m : ℤ, p (x ^ m) :=
-set.exists_range_iff
-
-instance (a : G) : countable (zpowers a) :=
-((zpowers_hom G a).range_restrict_surjective.comp multiplicative.of_add.surjective).countable
-
-end subgroup
-
-namespace add_subgroup
-
-/-- The subgroup generated by an element. -/
-def zmultiples (a : A) : add_subgroup A :=
-add_subgroup.copy (zmultiples_hom A a).range (set.range ((• a) : ℤ → A)) rfl
-
-@[simp] lemma range_zmultiples_hom (a : A) : (zmultiples_hom A a).range = zmultiples a := rfl
-
-attribute [to_additive add_subgroup.zmultiples] subgroup.zpowers
-attribute [to_additive add_subgroup.mem_zmultiples] subgroup.mem_zpowers
-attribute [to_additive add_subgroup.zmultiples_eq_closure] subgroup.zpowers_eq_closure
-attribute [to_additive add_subgroup.range_zmultiples_hom] subgroup.range_zpowers_hom
-attribute [to_additive add_subgroup.zmultiples_subset] subgroup.zpowers_subset
-attribute [to_additive add_subgroup.mem_zmultiples_iff] subgroup.mem_zpowers_iff
-attribute [to_additive add_subgroup.zsmul_mem_zmultiples] subgroup.zpow_mem_zpowers
-attribute [to_additive add_subgroup.nsmul_mem_zmultiples] subgroup.npow_mem_zpowers
-attribute [to_additive add_subgroup.forall_zmultiples] subgroup.forall_zpowers
-attribute [to_additive add_subgroup.forall_mem_zmultiples] subgroup.forall_mem_zpowers
-attribute [to_additive add_subgroup.exists_zmultiples] subgroup.exists_zpowers
-attribute [to_additive add_subgroup.exists_mem_zmultiples] subgroup.exists_mem_zpowers
-
-instance (a : A) : countable (zmultiples a) :=
-(zmultiples_hom A a).range_restrict_surjective.countable
-
-section ring
-
-variables {R : Type*} [ring R] (r : R) (k : ℤ)
-
-@[simp] lemma int_cast_mul_mem_zmultiples :
-  ↑(k : ℤ) * r ∈ zmultiples r :=
-by simpa only [← zsmul_eq_mul] using zsmul_mem_zmultiples r k
-
-@[simp] lemma int_cast_mem_zmultiples_one :
-  ↑(k : ℤ) ∈ zmultiples (1 : R) :=
-mem_zmultiples_iff.mp ⟨k, by simp⟩
-
-end ring
-
-end add_subgroup
-
-lemma int.mem_zmultiples_iff {a b : ℤ} :
-  b ∈ add_subgroup.zmultiples a ↔ a ∣ b :=
-exists_congr (λ k, by rw [mul_comm, eq_comm, ← smul_eq_mul])
-
-lemma of_mul_image_zpowers_eq_zmultiples_of_mul { x : G } :
-  additive.of_mul '' ((subgroup.zpowers x) : set G) = add_subgroup.zmultiples (additive.of_mul x) :=
-begin
-  ext y,
-  split,
-  { rintro ⟨z, ⟨m, hm⟩, hz2⟩,
-    use m,
-    simp only,
-    rwa [← of_mul_zpow, hm] },
-  { rintros ⟨n, hn⟩,
-    refine ⟨x ^ n, ⟨n, rfl⟩, _⟩,
-    rwa of_mul_zpow }
-end
-
-lemma of_add_image_zmultiples_eq_zpowers_of_add {x : A} :
-  multiplicative.of_add '' ((add_subgroup.zmultiples x) : set A) =
-  subgroup.zpowers (multiplicative.of_add x) :=
-begin
-  symmetry,
-  rw equiv.eq_image_iff_symm_image_eq,
-  exact of_mul_image_zpowers_eq_zmultiples_of_mul,
-end
-
-namespace subgroup
-
-@[to_additive zmultiples_is_commutative]
-instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
-⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
-  subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
-
-@[simp, to_additive zmultiples_le]
-lemma zpowers_le {g : G} {H : subgroup G} : zpowers g ≤ H ↔ g ∈ H :=
-by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
-
-@[simp, to_additive zmultiples_eq_bot] lemma zpowers_eq_bot {g : G} : zpowers g = ⊥ ↔ g = 1 :=
-by rw [eq_bot_iff, zpowers_le, mem_bot]
-
-@[simp, to_additive zmultiples_zero_eq_bot] lemma zpowers_one_eq_bot :
-   subgroup.zpowers (1 : G) = ⊥ :=
-subgroup.zpowers_eq_bot.mpr rfl
-
-@[to_additive] lemma centralizer_closure (S : set G) :
-  (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
-le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
-  $ le_centralizer_iff.1 $ (closure_le _).2
-  $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
-
-@[to_additive] lemma center_eq_infi (S : set G) (hS : closure S = ⊤) :
-  center G = ⨅ g ∈ S, centralizer (zpowers g) :=
-by rw [←centralizer_top, ←hS, centralizer_closure]
-
-@[to_additive] lemma center_eq_infi' (S : set G) (hS : closure S = ⊤) :
-  center G = ⨅ g : S, centralizer (zpowers g) :=
-by rw [center_eq_infi S hS, ←infi_subtype'']
-
-end subgroup
 
 namespace monoid_hom
-
-variables {G' : Type*} [group G']
 
 /-- The `monoid_hom` from the preimage of a subgroup to itself. -/
 @[to_additive "the `add_monoid_hom` from the preimage of an additive subgroup to itself.", simps]
@@ -2742,7 +2459,6 @@ f.submonoid_map_surjective H.to_submonoid
 end monoid_hom
 
 namespace mul_equiv
-
 variables {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
@@ -2752,19 +2468,29 @@ two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
-/-- A `mul_equiv` `φ` between two groups `G` and `G'` induces a `mul_equiv` between
-a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. -/
-@[to_additive "An `add_equiv` `φ` between two additive groups `G` and `G'` induces an `add_equiv`
-between a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. "]
-def subgroup_map {G'} [group G'] (e : G ≃* G') (H : subgroup G) :
-  H ≃* H.map e.to_monoid_hom :=
-e.submonoid_map H.to_submonoid
+/-- A subgroup is isomorphic to its image under an isomorphism. If you only have an injective map,
+use `subgroup.equiv_map_of_injective`. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
+have an injective map, use `add_subgroup.equiv_map_of_injective`."]
+def subgroup_map (e : G ≃* G') (H : subgroup G) : H ≃* H.map (e : G →* G') :=
+mul_equiv.submonoid_map (e : G ≃* G') H.to_submonoid
+
+@[simp, to_additive]
+lemma coe_subgroup_map_apply (e : G ≃* G') (H : subgroup G) (g : H) :
+  ((subgroup_map e H g : H.map (e : G →* G')) : G') = e g := rfl
+
+@[simp, to_additive]
+lemma subgroup_map_symm_apply (e : G ≃* G') (H : subgroup G) (g : H.map (e : G →* G')) :
+  (e.subgroup_map H).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 end mul_equiv
 
--- TODO : ↥(⊤ : subgroup H) ≃* H ?
-
 namespace subgroup
+
+@[simp, to_additive]
+lemma equiv_map_of_injective_coe_mul_equiv (H : subgroup G) (e : G ≃* G') :
+  H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = e.subgroup_map H :=
+by { ext, refl }
 
 variables {C : Type*} [comm_group C] {s t : subgroup C} {x : C}
 
@@ -2804,49 +2530,6 @@ instance : is_modular_lattice (subgroup C) :=
 end⟩
 
 end subgroup
-
-section
-variables (G) (A)
-
-/-- A `group` is simple when it has exactly two normal `subgroup`s. -/
-class is_simple_group extends nontrivial G : Prop :=
-(eq_bot_or_eq_top_of_normal : ∀ H : subgroup G, H.normal → H = ⊥ ∨ H = ⊤)
-
-/-- An `add_group` is simple when it has exactly two normal `add_subgroup`s. -/
-class is_simple_add_group extends nontrivial A : Prop :=
-(eq_bot_or_eq_top_of_normal : ∀ H : add_subgroup A, H.normal → H = ⊥ ∨ H = ⊤)
-
-attribute [to_additive] is_simple_group
-
-variables {G} {A}
-
-@[to_additive]
-lemma subgroup.normal.eq_bot_or_eq_top [is_simple_group G] {H : subgroup G} (Hn : H.normal) :
-  H = ⊥ ∨ H = ⊤ :=
-is_simple_group.eq_bot_or_eq_top_of_normal H Hn
-
-namespace is_simple_group
-
-@[to_additive]
-instance {C : Type*} [comm_group C] [is_simple_group C] :
-  is_simple_order (subgroup C) :=
-⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
-
-open _root_.subgroup
-
-@[to_additive]
-lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]
-  [nontrivial H] (f : G →* H) (hf : function.surjective f) :
-  is_simple_group H :=
-⟨nontrivial.exists_pair_ne, λ H iH, begin
-  refine ((iH.comap f).eq_bot_or_eq_top).imp (λ h, _) (λ h, _),
-  { rw [←map_bot f, ←h, map_comap_eq_self_of_surjective hf] },
-  { rw [←comap_top f] at h, exact comap_injective hf h }
-end⟩
-
-end is_simple_group
-
-end
 
 namespace subgroup
 
@@ -2956,37 +2639,6 @@ begin
     ←subtype.ext_iff, ←subtype.ext_iff, eq_comm, ←prod.ext_iff] at hxy,
 end
 
-/-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
-generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
-@[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
-This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
-lemma eq_one_of_noncomm_prod_eq_one_of_independent {ι : Type*} (s : finset ι) (f : ι → G) (comm)
-  (K : ι → subgroup G) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
-  (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
-begin
-  classical,
-  revert heq1,
-  induction s using finset.induction_on with i s hnmem ih,
-  { simp, },
-  { have hcomm := comm.mono (finset.coe_subset.2 $ finset.subset_insert _ _),
-    simp only [finset.forall_mem_insert] at hmem,
-    have hmem_bsupr: s.noncomm_prod f hcomm ∈ ⨆ (i ∈ (s : set ι)), K i,
-    { refine subgroup.noncomm_prod_mem _ _ _,
-      intros x hx,
-      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
-      exact this (hmem.2 x hx), },
-    intro heq1,
-    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
-    have hnmem' : i ∉ (s : set ι), by simpa,
-    obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
-      subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
-    intros i h,
-    simp only [finset.mem_insert] at h,
-    rcases h with ⟨rfl | _⟩,
-    { exact heq1i },
-    { exact ih hcomm hmem.2 heq1S _ h } }
-end
-
 end subgroup
 
 namespace is_conj
@@ -3020,153 +2672,4 @@ end
 
 end is_conj
 
-/-! ### Actions by `subgroup`s
-
-These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
--/
-section actions
-
-namespace subgroup
-
-variables {α β : Type*}
-
-/-- The action by a subgroup is the action by the underlying group. -/
-@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
-add_group. "-/]
-instance [mul_action G α] (S : subgroup G) : mul_action S α :=
-S.to_submonoid.mul_action
-
-@[to_additive]
-lemma smul_def [mul_action G α] {S : subgroup G} (g : S) (m : α) : g • m = (g : G) • m := rfl
-
-@[to_additive]
-instance smul_comm_class_left
-  [mul_action G β] [has_smul α β] [smul_comm_class G α β] (S : subgroup G) :
-  smul_comm_class S α β :=
-S.to_submonoid.smul_comm_class_left
-
-@[to_additive]
-instance smul_comm_class_right
-  [has_smul α β] [mul_action G β] [smul_comm_class α G β] (S : subgroup G) :
-  smul_comm_class α S β :=
-S.to_submonoid.smul_comm_class_right
-
-/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc`. -/
-instance
-  [has_smul α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : subgroup G) :
-  is_scalar_tower S α β :=
-S.to_submonoid.is_scalar_tower
-
-instance [mul_action G α] [has_faithful_smul G α] (S : subgroup G) :
-  has_faithful_smul S α :=
-S.to_submonoid.has_faithful_smul
-
-/-- The action by a subgroup is the action by the underlying group. -/
-instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
-S.to_submonoid.distrib_mul_action
-
-/-- The action by a subgroup is the action by the underlying group. -/
-instance [monoid α] [mul_distrib_mul_action G α] (S : subgroup G) : mul_distrib_mul_action S α :=
-S.to_submonoid.mul_distrib_mul_action
-
-/-- The center of a group acts commutatively on that group. -/
-instance center.smul_comm_class_left : smul_comm_class (center G) G G :=
-submonoid.center.smul_comm_class_left
-
-/-- The center of a group acts commutatively on that group. -/
-instance center.smul_comm_class_right : smul_comm_class G (center G) G :=
-submonoid.center.smul_comm_class_right
-
-end subgroup
-
-end actions
-
-/-! ### Mul-opposite subgroups -/
-
-section mul_opposite
-
-namespace subgroup
-
-/-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
-@[to_additive "An additive subgroup `H` of `G` determines an additive subgroup `H.opposite` of the
-  opposite additive group `Gᵃᵒᵖ`."]
-def opposite : subgroup G ≃ subgroup Gᵐᵒᵖ :=
-{ to_fun := λ H, { carrier := mul_opposite.unop ⁻¹' (H : set G),
-                   one_mem' := H.one_mem,
-                   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
-                   inv_mem' := λ a, H.inv_mem },
-  inv_fun := λ H, { carrier := mul_opposite.op ⁻¹' (H : set Gᵐᵒᵖ),
-                   one_mem' := H.one_mem,
-                   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
-                   inv_mem' := λ a, H.inv_mem },
-  left_inv := λ H, set_like.coe_injective rfl,
-  right_inv := λ H, set_like.coe_injective rfl }
-
-/-- Bijection between a subgroup `H` and its opposite. -/
-@[to_additive "Bijection between an additive subgroup `H` and its opposite.", simps]
-def opposite_equiv (H : subgroup G) : H ≃ H.opposite :=
-mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
-
-@[to_additive] instance (H : subgroup G) [encodable H] : encodable H.opposite :=
-encodable.of_equiv H H.opposite_equiv.symm
-
-@[to_additive] instance (H : subgroup G) [countable H] : countable H.opposite :=
-countable.of_equiv H H.opposite_equiv
-
-@[to_additive] lemma smul_opposite_mul {H : subgroup G} (x g : G) (h : H.opposite) :
-  h • (g * x) = g * (h • x) :=
-begin
-  cases h,
-  simp [(•), mul_assoc],
-end
-
-end subgroup
-
-end mul_opposite
-
-/-! ### Saturated subgroups -/
-
-section saturated
-
-namespace subgroup
-
-/-- A subgroup `H` of `G` is *saturated* if for all `n : ℕ` and `g : G` with `g^n ∈ H`
-we have `n = 0` or `g ∈ H`. -/
-@[to_additive "An additive subgroup `H` of `G` is *saturated* if
-for all `n : ℕ` and `g : G` with `n•g ∈ H` we have `n = 0` or `g ∈ H`."]
-def saturated (H : subgroup G) : Prop := ∀ ⦃n g⦄, g ^ n ∈ H → n = 0 ∨ g ∈ H
-
-@[to_additive] lemma saturated_iff_npow {H : subgroup G} :
-  saturated H ↔ (∀ (n : ℕ) (g : G), g ^ n ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
-
-@[to_additive] lemma saturated_iff_zpow {H : subgroup G} :
-  saturated H ↔ (∀ (n : ℤ) (g : G), g ^ n ∈ H → n = 0 ∨ g ∈ H) :=
-begin
-  split,
-  { rintros hH ⟨n⟩ g hgn,
-    { simp only [int.coe_nat_eq_zero, int.of_nat_eq_coe, zpow_coe_nat] at hgn ⊢,
-      exact hH hgn },
-    { suffices : g ^ (n+1) ∈ H,
-      { refine (hH this).imp _ id, simp only [is_empty.forall_iff, nat.succ_ne_zero], },
-      simpa only [inv_mem_iff, zpow_neg_succ_of_nat] using hgn, } },
-  { intros h n g hgn,
-    specialize h n g,
-    simp only [int.coe_nat_eq_zero, zpow_coe_nat] at h,
-    apply h hgn }
-end
-
-end subgroup
-
-namespace add_subgroup
-
-lemma ker_saturated {A₁ A₂ : Type*} [add_comm_group A₁] [add_comm_group A₂]
-  [no_zero_smul_divisors ℕ A₂] (f : A₁ →+ A₂) :
-  (f.ker).saturated :=
-begin
-  intros n g hg,
-  simpa only [f.mem_ker, nsmul_eq_smul, f.map_nsmul, smul_eq_zero] using hg
-end
-
-end add_subgroup
-
-end saturated
+assert_not_exists multiset

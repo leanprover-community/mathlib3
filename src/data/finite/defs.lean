@@ -8,6 +8,9 @@ import logic.equiv.basic
 /-!
 # Definition of the `finite` typeclass
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a typeclass `finite` saying that `α : Sort*` is finite. A type is `finite` if it
 is equivalent to `fin n` for some `n`. We also define `infinite α` as a typeclass equivalent to
 `¬finite α`.

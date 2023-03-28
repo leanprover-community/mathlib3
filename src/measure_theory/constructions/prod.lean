@@ -60,7 +60,7 @@ product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal measure_theory
+open_locale classical topology ennreal measure_theory
 open set function real ennreal
 open measure_theory measurable_space measure_theory.measure
 open topological_space (hiding generate_from)
@@ -286,7 +286,7 @@ begin
       { refine eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ _),
         apply subset_closure,
         simp [-uncurry_apply_pair], } },
-    { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, } },
+    { simp [f', hfx, integral_undef], } },
   exact strongly_measurable_of_tendsto _ hf' h2f'
 end
 
@@ -904,7 +904,8 @@ lemma integrable.integral_norm_prod_right [sigma_finite μ] ⦃f : α × β → 
   (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ‖f (x, y)‖ ∂μ) ν :=
 hf.swap.integral_norm_prod_left
 
-lemma integrable_prod_mul {f : α → ℝ} {g : β → ℝ} (hf : integrable f μ) (hg : integrable g ν) :
+lemma integrable_prod_mul {L : Type*} [is_R_or_C L]
+  {f : α → L} {g : β → L} (hf : integrable f μ) (hg : integrable g ν) :
   integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν) :=
 begin
   refine (integrable_prod_iff _).2 ⟨_, _⟩,
@@ -1083,7 +1084,7 @@ begin
   exact integral_prod f hf
 end
 
-lemma integral_prod_mul (f : α → ℝ) (g : β → ℝ) :
+lemma integral_prod_mul {L : Type*} [is_R_or_C L] (f : α → L) (g : β → L) :
   ∫ z, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x, f x ∂μ) * (∫ y, g y ∂ν) :=
 begin
   by_cases h : integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν),
@@ -1096,7 +1097,8 @@ begin
   simp [integral_undef h, integral_undef H],
 end
 
-lemma set_integral_prod_mul (f : α → ℝ) (g : β → ℝ) (s : set α) (t : set β) :
+lemma set_integral_prod_mul {L : Type*} [is_R_or_C L]
+  (f : α → L) (g : β → L) (s : set α) (t : set β) :
   ∫ z in s ×ˢ t, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x in s, f x ∂μ) * (∫ y in t, g y ∂ν) :=
 by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
 

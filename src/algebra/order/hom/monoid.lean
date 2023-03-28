@@ -3,13 +3,17 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.pi.algebra
 import algebra.hom.group
 import algebra.order.group.instances
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.with_zero.defs
 import order.hom.basic
 
 /-!
 # Ordered monoid and group homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between (additive) ordered monoids.
 

@@ -245,6 +245,10 @@ variables {k G H}
 
 lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
 
+lemma of_mul_action_single (g : G) (x : H) (r : k) :
+  of_mul_action k G H g (finsupp.single x r) = finsupp.single (g • x) r :=
+finsupp.map_domain_single
+
 end mul_action
 section group
 
@@ -350,7 +354,7 @@ def lin_hom : representation k G (V →ₗ[k] W) :=
   map_one' := linear_map.ext $ λ x,
     by simp_rw [coe_mk, inv_one, map_one, one_apply, one_eq_id, comp_id, id_comp],
   map_mul' := λ g h,  linear_map.ext $ λ x,
-    by simp_rw [linear_map.coe_mul, coe_mk, function.comp_apply, mul_inv_rev, map_mul, mul_eq_comp,
+    by simp_rw [coe_mul, coe_mk, function.comp_apply, mul_inv_rev, map_mul, mul_eq_comp,
                 comp_assoc ]}
 
 @[simp]

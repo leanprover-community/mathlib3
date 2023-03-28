@@ -11,6 +11,9 @@ import topology.instances.ennreal
 /-!
 # Topological structure on `ereal`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We endow `ereal` with the order topology, and prove basic properties of this topology.
 
 ## Main results
@@ -28,7 +31,7 @@ Most proofs are adapted from the corresponding proofs on `ℝ≥0∞`.
 noncomputable theory
 
 open classical set filter metric topological_space
-open_locale classical topological_space ennreal nnreal big_operators filter
+open_locale classical topology ennreal nnreal big_operators filter
 
 variables {α : Type*} [topological_space α]
 
@@ -255,7 +258,7 @@ by simp only [continuous_at, nhds_coe_coe, ← coe_add, tendsto_map'_iff, (∘),
 lemma continuous_at_add_top_coe (a : ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊤, a) :=
 begin
-  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
+  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add_coe, nhds_prod_eq],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, ((r - (a - 1): ℝ) : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
@@ -278,7 +281,7 @@ end
 lemma continuous_at_add_top_top :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊤, ⊤) :=
 begin
-  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
+  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add_top, nhds_prod_eq],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, (r : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
@@ -292,12 +295,11 @@ end
 lemma continuous_at_add_bot_coe (a : ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊥, a) :=
 begin
-  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_coe],
+  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
-          λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds
-            (by simp [-coe_add, -ereal.coe_add, zero_lt_one]),
+          λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simp [-coe_add, zero_lt_one]),
           λ x hx y hy, _⟩,
   convert add_lt_add hx hy,
   rw sub_add_cancel,
@@ -315,7 +317,7 @@ end
 lemma continuous_at_add_bot_bot :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊥, ⊥) :=
 begin
-  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_bot],
+  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < r, Iio_mem_nhds (bot_lt_coe _),

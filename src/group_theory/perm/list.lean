@@ -10,6 +10,9 @@ import group_theory.perm.support
 /-!
 # Permutations from a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A list `l : list α` can be interpreted as a `equiv.perm α` where each element in the list
 is permuted to the next one, defined as `form_perm`. When we have that `nodup l`,
 we prove that `equiv.perm.support (form_perm l) = l.to_finset`, and that
@@ -205,7 +208,7 @@ begin
     { simp },
     { specialize IH (y :: l) h.of_cons _,
       { simpa [nat.succ_lt_succ_iff] using hn },
-      simp only [swap_apply_eq_iff, equiv.perm.coe_mul, form_perm_cons_cons, nth_le],
+      simp only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
       generalize_proofs at IH,
       rw [IH, swap_apply_of_ne_of_ne, nth_le];
       { rintro rfl,

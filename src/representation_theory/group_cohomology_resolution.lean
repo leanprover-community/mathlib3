@@ -169,12 +169,12 @@ variables {k G n}
 
 @[simp] lemma to_tensor_single (f : Gⁿ⁺¹) (m : k) :
   (to_tensor k G n).hom (single f m) = single (f 0) m ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) 1 :=
-to_tensor_aux_single _ _
+by apply to_tensor_aux_single f m
 
 @[simp] lemma of_tensor_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   (of_tensor k G n).hom ((single g m) ⊗ₜ x) =
   finsupp.lift (Rep.of_mul_action k G Gⁿ⁺¹) k Gⁿ (λ f, single (g • partial_prod f) m) x :=
-of_tensor_aux_single _ _ _
+by apply of_tensor_aux_single g m x
 
 lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (m : k) :
   (of_tensor k G n).hom (g ⊗ₜ single x m) =
@@ -233,6 +233,58 @@ module.free.of_basis (of_mul_action_basis k G n)
 
 end basis
 end group_cohomology.resolution
+namespace Rep
+variables (n) [group G]
+open group_cohomology.resolution
+
+/-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
+`Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
+noncomputable def diagonal_hom_equiv (A : Rep k G) :
+  (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
+linear.hom_congr k ((equiv_tensor k G n).trans
+  ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
+  ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
+  ≪≫ₗ (finsupp.llift A k k (fin n → G)).symm
+
+variables {n}
+
+/-- Given a `k`-linear `G`-representation `A`, `diagonal_hom_equiv` is a `k`-linear isomorphism of
+the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. This lemma says that this
+sends a morphism of representations `f : k[Gⁿ⁺¹] ⟶ A` to the function
+`(g₁, ..., gₙ) ↦ f(1, g₁, g₁g₂, ..., g₁g₂...gₙ).` -/
+lemma diagonal_hom_equiv_apply {A : Rep k G} (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
+  (x : fin n → G) : diagonal_hom_equiv n A f x = f.hom (finsupp.single (fin.partial_prod x) 1) :=
+begin
+  unfold diagonal_hom_equiv,
+  simpa only [linear_equiv.trans_apply, Rep.left_regular_hom_equiv_apply,
+    monoidal_closed.linear_hom_equiv_comm_hom, finsupp.llift_symm_apply, tensor_product.curry_apply,
+    linear.hom_congr_apply, iso.refl_hom, iso.trans_inv, Action.comp_hom, Module.comp_def,
+    linear_map.comp_apply, equiv_tensor_inv_def, representation.Rep_of_tprod_iso_inv_apply,
+    of_tensor_single (1 : G) (1 : k) (finsupp.single x (1 : k)), finsupp.lift_apply,
+    finsupp.sum_single_index, one_smul, zero_smul],
+end
+
+/-- Given a `k`-linear `G`-representation `A`, `diagonal_hom_equiv` is a `k`-linear isomorphism of
+the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. This lemma says that the
+inverse map sends a function `f : Gⁿ → A` to the representation morphism sending
+`(g₀, ... gₙ) ↦ ρ(g₀)(f(g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ))`, where `ρ` is the representation attached
+to `A`. -/
+lemma diagonal_hom_equiv_symm_apply {A : Rep k G} (f : (fin n → G) → A) (x : fin (n + 1) → G) :
+  ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
+    = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
+begin
+  unfold diagonal_hom_equiv,
+  simp only [linear_equiv.trans_symm, linear_equiv.symm_symm, linear_equiv.trans_apply,
+    Rep.left_regular_hom_equiv_symm_apply, linear.hom_congr_symm_apply, Action.comp_hom,
+    iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
+    iso.trans_hom, Module.comp_def, linear_map.comp_apply, representation.Rep_of_tprod_iso_apply,
+    equiv_tensor_def, to_tensor_single x (1 : k), tensor_product.uncurry_apply,
+    Rep.left_regular_hom_hom, finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply,
+    finsupp.sum_single_index, zero_smul, one_smul, Rep.of_ρ,
+    monoid_hom.one_apply, linear_map.one_apply, finsupp.llift_apply A k k],
+end
+
+end Rep
 variables (G)
 
 /-- The simplicial `G`-set sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/

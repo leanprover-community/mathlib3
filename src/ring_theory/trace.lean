@@ -161,6 +161,24 @@ lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
   (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
 
+@[simp]
+lemma trace_prod_apply
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T]
+  (x : S × T) : trace R (S × T) x = trace R S x.fst + trace R T x.snd :=
+begin
+  nontriviality R,
+  let f := (lmul R S).to_linear_map.prod_map (lmul R T).to_linear_map,
+  have : (lmul R (S × T)).to_linear_map = (prod_map_linear R S T S T R).comp f :=
+    linear_map.ext₂ prod.mul_def,
+  simp_rw [trace, this],
+  exact trace_prod_map' _ _,
+end
+
+lemma trace_prod
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T] :
+  trace R (S × T) = (trace R S).coprod (trace R T) :=
+linear_map.ext $ λ p, by rw [coprod_apply, trace_prod_apply]
+
 section trace_form
 
 variables (R S)
@@ -283,10 +301,10 @@ variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
 
 open polynomial
 
-lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (algebra.trace L F x) :=
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : is_integral R x) :
+  is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower hx,
+  have hx' : is_integral L x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,

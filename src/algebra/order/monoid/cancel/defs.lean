@@ -7,6 +7,9 @@ import algebra.order.monoid.defs
 
 /-!
 # Ordered cancellative monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universe u

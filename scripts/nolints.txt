@@ -18,12 +18,6 @@ apply_nolint partrec doc_blame
 apply_nolint partrec₂ doc_blame
 
 -- computability/primrec.lean
-apply_nolint nat.cases doc_blame
-apply_nolint nat.elim doc_blame
-apply_nolint nat.primrec'.vec doc_blame
-apply_nolint nat.unpaired doc_blame
-apply_nolint primcodable.of_equiv doc_blame
-apply_nolint primcodable.subtype doc_blame
 apply_nolint primrec.dom_fintype fintype_finite
 
 -- computability/turing_machine.lean
@@ -345,23 +339,12 @@ apply_nolint stream.unfolds doc_blame
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
 
--- geometry/euclidean/circumcenter.lean
-apply_nolint affine_independent.exists_unique_dist_eq fintype_finite
-
--- geometry/manifold/whitney_embedding.lean
-apply_nolint smooth_bump_covering.exists_immersion_euclidean fintype_finite
-
--- group_theory/coset.lean
-apply_nolint add_subgroup.card_quotient_dvd_card fintype_finite
-apply_nolint subgroup.card_quotient_dvd_card fintype_finite
-
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
 
--- linear_algebra/affine_space/basis.lean
+-- linear_algebra/affine_space/matrix.lean
 apply_nolint affine_basis.affine_independent_of_to_matrix_right_inv fintype_finite
 apply_nolint affine_basis.affine_span_eq_top_of_to_matrix_left_inv fintype_finite
-apply_nolint affine_basis.ext_elem fintype_finite
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -423,6 +406,9 @@ apply_nolint tactic.abel.eval_add doc_blame
 apply_nolint tactic.abel.eval_atom doc_blame
 apply_nolint tactic.abel.eval_neg doc_blame
 apply_nolint tactic.abel.eval_smul doc_blame
+apply_nolint tactic.abel.int_smul_instg doc_blame
+apply_nolint tactic.abel.nat_smul_inst doc_blame
+apply_nolint tactic.abel.nat_smul_instg doc_blame
 apply_nolint tactic.abel.normal_expr doc_blame
 apply_nolint tactic.abel.normal_expr.e doc_blame
 apply_nolint tactic.abel.normal_expr.pp doc_blame
@@ -885,6 +871,3 @@ apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
-
--- tactic/wlog.lean
-apply_nolint tactic.wlog doc_blame

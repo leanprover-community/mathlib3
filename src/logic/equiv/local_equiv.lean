@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Local equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files defines equivalences between subsets of given types.
 An element `e` of `local_equiv α β` is made of two maps `e.to_fun` and `e.inv_fun` respectively
 from α to β and from  β to α (just like equivs), which are inverse to each other on the subsets

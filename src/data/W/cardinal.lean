@@ -9,6 +9,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of W-types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some theorems about the cardinality of W-types. The main result is
 `cardinal_mk_le_max_aleph_0_of_fintype` which says that if for any `a : α`,
 `β a` is finite, then the cardinality of `W_type β` is at most the maximum of the

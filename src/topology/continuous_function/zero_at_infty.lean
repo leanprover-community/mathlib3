@@ -24,7 +24,7 @@ universes u v w
 
 variables {F : Type*} {α : Type u} {β : Type v} {γ : Type w} [topological_space α]
 
-open_locale bounded_continuous_function topological_space
+open_locale bounded_continuous_function topology
 open filter metric
 
 /-- `C₀(α, β)` is the type of continuous functions `α → β` which vanish at infinity from a
@@ -283,8 +283,17 @@ instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topologica
     rw [←smul_eq_mul, ←smul_eq_mul, smul_comm],
   end }
 
-
 end algebraic_structure
+
+section uniform
+
+variables [uniform_space β] [uniform_space γ] [has_zero γ]
+  [zero_at_infty_continuous_map_class F β γ]
+
+lemma uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
+(map_continuous f).uniform_continuous_of_tendsto_cocompact (zero_at_infty f)
+
+end uniform
 
 /-! ### Metric structure
 
@@ -402,7 +411,7 @@ normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x 
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ‖f.to_bcf‖ = ‖f‖ := rfl
 
 instance : normed_space 𝕜 C₀(α, β) :=
-{ norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }
+{ norm_smul_le := λ k f, norm_smul_le k f.to_bcf }
 
 end normed_space
 

@@ -6,10 +6,14 @@ Authors: Mario Carneiro
 import data.fintype.basic
 import data.finset.card
 import data.list.nodup_equiv_fin
+import tactic.positivity
 import tactic.wlog
 
 /-!
 # Cardinalities of finite types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main declarations
 
@@ -34,6 +38,11 @@ Some more pigeonhole-like statements can be found in `data.fintype.card_embeddin
 Types which have an injection from/a surjection to an `infinite` type are themselves `infinite`.
 See `infinite.of_injective` and `infinite.of_surjective`.
 
+## Instances
+
+We provide `infinite` instances for
+* specific types: `ℕ`, `ℤ`
+* type constructors: `multiset α`, `list α`
 
 -/
 
@@ -332,6 +341,7 @@ lemma finite_iff_nonempty_fintype (α : Type*) :
 ⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
   λ ⟨_⟩, by exactI infer_instance⟩
 
+/-- See also `nonempty_encodable`, `nonempty_denumerable`. -/
 lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
 (finite_iff_nonempty_fintype α).mp ‹_›
 
@@ -807,8 +817,22 @@ lemma of_surjective {α β} [infinite β] (f : α → β) (hf : surjective f) : 
 
 end infinite
 
+instance : infinite ℕ :=
+infinite.of_not_fintype $ by { introI h,
+  exact (finset.range _).card_le_univ.not_lt ((nat.lt_succ_self _).trans_eq (card_range _).symm) }
+
+instance : infinite ℤ :=
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
+
+instance [nonempty α] : infinite (multiset α) :=
+let ⟨x⟩ := ‹nonempty α› in
+  infinite.of_injective (λ n, multiset.replicate n x) (multiset.replicate_left_injective _)
+
+instance [nonempty α] : infinite (list α) :=
+infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
+
 instance infinite.set [infinite α] : infinite (set α) :=
-infinite.of_injective singleton (λ a b, set.singleton_eq_singleton_iff.1)
+infinite.of_injective singleton set.singleton_injective
 
 instance [infinite α] : infinite (finset α) :=
 infinite.of_injective singleton finset.singleton_injective
@@ -828,7 +852,6 @@ infinite.of_surjective prod.snd prod.snd_surjective
 instance prod.infinite_of_left [infinite α] [nonempty β] : infinite (α × β) :=
 infinite.of_surjective prod.fst prod.fst_surjective
 
-
 namespace infinite
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
@@ -841,7 +864,8 @@ private lemma nat_embedding_aux_injective (α : Type*) [infinite α] :
 begin
   rintro m n h,
   letI := classical.dec_eq α,
-  wlog hmlen : m ≤ n using m n,
+  wlog hmlen : m ≤ n generalizing m n,
+  { exact (this h.symm $ le_of_not_le hmlen).symm },
   by_contradiction hmn,
   have hmn : m < n, from lt_of_le_of_ne hmlen hmn,
   refine (classical.some_spec (exists_not_mem_finset
@@ -967,3 +991,22 @@ begin
     rw hn at hlt,
     exact (ih (fintype.card β) hlt _ rfl), }
 end
+
+namespace tactic
+open positivity
+
+private lemma card_univ_pos (α : Type*) [fintype α] [nonempty α] :
+  0 < (finset.univ : finset α).card :=
+finset.univ_nonempty.card_pos
+
+/-- Extension for the `positivity` tactic: `finset.card s` is positive if `s` is nonempty. -/
+@[positivity]
+meta def positivity_finset_card : expr → tactic strictness
+| `(finset.card %%s) := do -- TODO: Partial decision procedure for `finset.nonempty`
+                          p ← to_expr ``(finset.nonempty %%s) >>= find_assumption,
+                          positive <$> mk_app ``finset.nonempty.card_pos [p]
+| `(@fintype.card %%α %%i) := positive <$> mk_mapp ``fintype.card_pos [α, i, none]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` isn't of the form `finset.card s` or `fintype.card α`"
+
+end tactic

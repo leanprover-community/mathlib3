@@ -12,6 +12,9 @@ import data.int.cast.lemmas
 /-!
 # Lemmas about power operations on monoids and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about `monoid.pow`, `group.pow`, `nsmul`, `zsmul`
 which require additional imports besides those available in `algebra.group_power.basic`.
 -/
@@ -145,7 +148,7 @@ lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
   exact zpow_neg_succ_of_nat _ _
 end
 
-@[to_additive zsmul_sub_one]
+@[to_additive sub_one_zsmul]
 lemma zpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
 calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
              ... = a^n * a⁻¹             : by rw [← zpow_add_one, sub_add_cancel]
@@ -297,9 +300,9 @@ lemma abs_zsmul (n : ℤ) (a : α) : |n • a| = |n| • |a| :=
 begin
   obtain n0 | n0 := le_total 0 n,
   { lift n to ℕ using n0,
-    simp only [abs_nsmul, coe_nat_abs, coe_nat_zsmul] },
+    simp only [abs_nsmul, abs_coe_nat, coe_nat_zsmul] },
   { lift (- n) to ℕ using neg_nonneg.2 n0 with m h,
-    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, coe_nat_abs,
+    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, abs_coe_nat,
       coe_nat_zsmul],
     exact abs_nsmul m _ },
 end
@@ -358,14 +361,14 @@ instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
   end⟩
 
-@[norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero], exact nat.cast_one },
   { rw [pow_succ', pow_succ', nat.cast_mul, ih] }
 end
 
-@[norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -413,7 +416,7 @@ lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 
 lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simp
 
-@[norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero, int.cast_one] },
@@ -521,8 +524,7 @@ end linear_ordered_ring
 
 namespace int
 
-@[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
-by rw [sq, int.nat_abs_mul_self', sq]
+lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 := by rw [sq, int.nat_abs_mul_self', sq]
 
 alias nat_abs_sq ← nat_abs_pow_two
 
@@ -756,13 +758,12 @@ h.cast_nat_mul_left n
   commute (m * a : R) (n * b : R) :=
 h.cast_nat_mul_cast_nat_mul m n
 
-@[simp] theorem self_cast_nat_mul (n : ℕ) : commute a (n * a : R) :=
-(commute.refl a).cast_nat_mul_right n
+variables (a) (m n : ℕ)
 
-@[simp] theorem cast_nat_mul_self (n : ℕ) : commute ((n : R) * a) a :=
-(commute.refl a).cast_nat_mul_left n
+@[simp] lemma self_cast_nat_mul : commute a (n * a : R) := (commute.refl a).cast_nat_mul_right n
+@[simp] lemma cast_nat_mul_self : commute ((n : R) * a) a := (commute.refl a).cast_nat_mul_left n
 
-@[simp] theorem self_cast_nat_mul_cast_nat_mul (m n : ℕ) : commute (m * a : R) (n * a : R) :=
+@[simp] theorem self_cast_nat_mul_cast_nat_mul : commute (m * a : R) (n * a : R) :=
 (commute.refl a).cast_nat_mul_cast_nat_mul m n
 
 end
@@ -790,11 +791,8 @@ h.cast_int_mul_cast_int_mul m n
 
 variables (a) (m n : ℤ)
 
-@[simp] lemma cast_int_left : commute (m : R) a :=
-by { rw [← mul_one (m : R)], exact (one_left a).cast_int_mul_left m }
-
-@[simp] lemma cast_int_right : commute a m :=
-by { rw [← mul_one (m : R)], exact (one_right a).cast_int_mul_right m }
+@[simp] lemma cast_int_left : commute (m : R) a := int.cast_commute _ _
+@[simp] lemma cast_int_right : commute a m := int.commute_cast _ _
 
 @[simp] theorem self_cast_int_mul : commute a (n * a : R) := (commute.refl a).cast_int_mul_right n
 

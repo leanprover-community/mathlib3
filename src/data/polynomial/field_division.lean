@@ -10,6 +10,9 @@ import ring_theory.euclidean_domain
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file starts looking like the ring theory of $ R[X] $
 
 -/
@@ -36,12 +39,12 @@ begin
   have hn : n + 1 = _ := tsub_add_cancel_of_le ((root_multiplicity_pos hp).mpr hpt),
   rw ←hn,
   set q := p /ₘ (X - C t) ^ (n + 1) with hq,
-  convert_to root_multiplicity t ((X - C t) ^ n * (derivative q * (X - C t) + q * ↑(n + 1))) = n,
+  convert_to root_multiplicity t ((X - C t) ^ n * (derivative q * (X - C t) + q * C ↑(n + 1))) = n,
   { congr,
     rw [mul_add, mul_left_comm $ (X - C t) ^ n, ←pow_succ'],
     congr' 1,
     rw [mul_left_comm $ (X - C t) ^ n, mul_comm $ (X - C t) ^ n] },
-  have h : (derivative q * (X - C t) + q * ↑(n + 1)).eval t ≠ 0,
+  have h : (derivative q * (X - C t) + q * C ↑(n + 1)).eval t ≠ 0,
   { suffices : eval t q * ↑(n + 1) ≠ 0,
     { simpa },
     refine mul_ne_zero _ (nat.cast_ne_zero.mpr n.succ_ne_zero),
@@ -313,10 +316,6 @@ by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_if
 lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
 by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
-
-lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
-  x ∈ p.root_set k ↔ aeval x p = 0 :=
-iff.trans multiset.mem_to_finset (mem_roots_map hp)
 
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=

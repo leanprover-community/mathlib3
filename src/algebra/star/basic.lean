@@ -12,6 +12,9 @@ import data.set_like.basic
 /-!
 # Star monoids, rings, and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the basic algebraic notions of star monoids, star rings, and star modules.
 A star algebra is simply a star ring that is also a star module.
 
@@ -38,6 +41,8 @@ positive cone which is the closure of the sums of elements `star r * r`. A weake
 advantage of not requiring a topology.
 -/
 
+assert_not_exists finset
+assert_not_exists subgroup
 
 universes u v
 
@@ -164,16 +169,6 @@ op_injective $
   star (x / y) = star x / star y :=
 map_div (star_mul_aut : R ≃* R) _ _
 
-section
-open_locale big_operators
-
-@[simp] lemma star_prod [comm_monoid R] [star_semigroup R] {α : Type*}
-  (s : finset α) (f : α → R):
-  star (∏ x in s, f x) = ∏ x in s, star (f x) :=
-map_prod (star_mul_aut : R ≃* R) _ _
-
-end
-
 /--
 Any commutative monoid admits the trivial `*`-structure.
 
@@ -239,16 +234,6 @@ star_eq_zero.not
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
-section
-open_locale big_operators
-
-@[simp] lemma star_sum [add_comm_monoid R] [star_add_monoid R] {α : Type*}
-  (s : finset α) (f : α → R):
-  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-(star_add_equiv : R ≃+ R).map_sum _ _
-
-end
-
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
 which makes `R` with its multiplicative structure into a `*`-semigroup
@@ -309,19 +294,31 @@ lemma star_ring_end_apply [comm_semiring R] [star_ring R] {x : R} :
 @[simp] lemma star_ring_end_self_apply [comm_semiring R] [star_ring R] (x : R) :
   star_ring_end R (star_ring_end R x) = x := star_star x
 
+instance ring_hom.has_involutive_star {S : Type*} [non_assoc_semiring S] [comm_semiring R]
+  [star_ring R] : has_involutive_star (S →+* R) :=
+{ to_has_star := { star := λ f, ring_hom.comp (star_ring_end R) f },
+  star_involutive :=
+    by { intro _, ext, simp only [ring_hom.coe_comp, function.comp_app, star_ring_end_self_apply] }}
+
+lemma ring_hom.star_def {S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+  (f : S →+* R) : has_star.star f = ring_hom.comp (star_ring_end R) f := rfl
+
+lemma ring_hom.star_apply {S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+  (f : S →+* R) (s : S) : star f s = star (f s) := rfl
+
 -- A more convenient name for complex conjugation
 alias star_ring_end_self_apply ← complex.conj_conj
 alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 
-@[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+@[simp] lemma star_inv' [division_semiring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $ (map_inv₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_semiring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $ (map_zpow₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
+@[simp] lemma star_div' [semifield R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
 map_div₀ (star_ring_end R) _ _
 
 @[simp] lemma star_bit0 [add_monoid R] [star_add_monoid R] (r : R) :

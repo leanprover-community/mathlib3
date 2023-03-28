@@ -36,7 +36,7 @@ stalks, such as the Weierstrass preparation theorem.
 
 -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open complex
 
 namespace mdifferentiable

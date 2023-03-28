@@ -1,4 +1,5 @@
 import algebra.category.Module.images
+import algebra.category.Module.subobject
 import representation_theory.group_cohomology.basic
 import representation_theory.invariants
 universes v u
@@ -112,7 +113,107 @@ end
 def first : Module k :=
 Module.of k ((d_one A).ker ⧸ ((d_zero A).cod_restrict (d_one A).ker $
 λ c, d_zero_range_le_d_one_ker A ⟨c, rfl⟩).range)
+
+variables {R : Type u} [comm_ring R] (M N P : Module.{u} R) (f : M ⟶ N) (g : N ⟶ P)
 #exit
+/-/-- Bundle an element `m : M` such that `f m = 0` as a term of `kernel_subobject f`. -/
+noncomputable def to_kernel_subobject {M N : Module R} {f : M ⟶ N} :
+  linear_map.ker f →ₗ[R] kernel_subobject f :=
+(kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).inv
+
+@[simp] lemma to_kernel_subobject_arrow {M N : Module R} {f : M ⟶ N} (x : linear_map.ker f) :
+  (kernel_subobject f).arrow (to_kernel_subobject x) = x.1 :=
+by simp [to_kernel_subobject]
+-/
+def image_subobject_to {M N : Module R} (f : M ⟶ N) :
+  image_subobject f →ₗ[R] linear_map.range f :=
+(image_subobject_iso f ≪≫ Module.image_iso_range f).hom
+
+@[simp] lemma range_subtype_comp_image_subobject_to {M N : Module R} {f : M ⟶ N} :
+  (linear_map.range f).subtype.comp (image_subobject_to f) = (image_subobject f).arrow :=
+begin
+  dunfold image_subobject_to,
+  show _ ≫ Module.of_hom (linear_map.range f).subtype = _,
+  simp only [iso.trans_hom, category.assoc, Module.image_iso_range_hom_subtype],
+  apply image_subobject_arrow f,
+end.
+
+@[simp] lemma factor_thru_image_subobject_comp_image_subobject_to
+  {M N : Module R} {f : M ⟶ N} :
+  factor_thru_image_subobject f ≫ Module.of_hom (image_subobject_to f) =
+  Module.of_hom (linear_map.range_restrict f) :=
+begin
+  dunfold factor_thru_image_subobject image_subobject_to,
+  simp only [iso.trans_hom, category.assoc],
+  show _ ≫ _ ≫ _ ≫ _ = _,
+  rw iso.inv_hom_id_assoc,
+  exact is_image.e_iso_ext_hom _ _,
+end
+
+def to_image_subobject {M N : Module R} (f : M ⟶ N) :
+  linear_map.range f →ₗ[R] image_subobject f :=
+(image_subobject_iso f ≪≫ Module.image_iso_range f).inv
+
+@[simp] lemma to_image_subobject_arrow {M N : Module R} {f : M ⟶ N} :
+  Module.of_hom (to_image_subobject f) ≫ (image_subobject f).arrow =
+  Module.of_hom (linear_map.range f).subtype := sorry
+
+@[simp] lemma to_image_subobject_comp_range_restrict {M N : Module R} {f : M ⟶ N} :
+  to_image_subobject f ∘ₗ linear_map.range_restrict f
+    = factor_thru_image_subobject f := sorry
+
+lemma blah :
+  factor_thru_image_subobject f ≫ image_to_kernel f g sorry ≫ (kernel_subobject g).arrow = f :=
+begin
+  simp only [image_to_kernel_arrow, image_subobject_arrow_comp],
+end
+
+lemma ffs :
+  factor_thru_image f ≫ (Module.image_iso_range f).hom = linear_map.range_restrict f :=
+begin
+  rw ←iso.eq_comp_inv,
+  rw ←cancel_mono (limits.image.ι f),
+  rw category.assoc,
+  rw Module.image_iso_range_inv_image_ι,
+  simp only [image.fac],
+  ext, refl,
+end
+
+lemma yeugh : image_to_kernel f g sorry =
+  (image_subobject_iso f ≪≫ Module.image_iso_range f).hom ≫ Module.of_hom
+  (linear_map.cod_restrict (linear_map.ker g) (linear_map.range f).subtype sorry) ≫
+  (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).inv :=
+begin
+  rw ←cancel_mono (kernel_subobject g).arrow,
+  rw ←cancel_epi (factor_thru_image_subobject f),
+  rw image_to_kernel_arrow,
+  rw image_subobject_arrow_comp,
+  simp only [iso.trans_hom, iso.trans_inv, category.assoc, kernel_subobject_arrow',
+    Module.kernel_iso_ker_inv_kernel_ι],
+  show _ = _ ≫ _ ≫ _ ≫ Module.of_hom _,
+  dunfold factor_thru_image_subobject,
+  rw category.assoc,
+  rw iso.inv_hom_id_assoc,
+  simp only [←category.assoc],
+  rw ffs,
+  ext, refl,
+end
+#check cokernel.map_iso
+def FUCKSAKE {R : Type u} [comm_ring R] {M N P : Module.{u} R} (f : M ⟶ N) (g : N ⟶ P)
+  (H : f ≫ g = 0) :
+  homology f g H ≅ cokernel (Module.as_hom ((linear_map.range f).subtype.cod_restrict
+    (linear_map.ker g) sorry)) :=
+begin
+  apply cokernel.map_iso _ _ _ _ _,
+  exact image_subobject_iso f ≪≫ Module.image_iso_range f,
+  exact kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g,
+  rw yeugh,
+  simp only [category.assoc],
+  rw cancel_epi,
+  rw iso.inv_hom_id,
+  ext, refl,
+end
+
 lemma fucksake {R M N : Type*} [ring R] [add_comm_group M] [add_comm_group N]
   [module R M] [module R N] (S : submodule R N) (f : M →ₗ[R] N) (hf : f.range ≤ S) :
   (f.range.subtype.cod_restrict S sorry).range = (f.cod_restrict S sorry).range :=
@@ -123,27 +224,30 @@ begin
   { rintros ⟨y, rfl⟩, exact ⟨⟨f y, linear_map.mem_range_self _ _⟩, rfl⟩ },
 end
 
+def weugh {R M N P : Type*} [comm_ring R] [add_comm_group M] [add_comm_group N] [add_comm_group P]
+  [module R M] [module R N] [module R P] (f : M →ₗ[R] N) (g : N →ₗ[R] P) :
+  (g.ker ⧸ (f.range.subtype.cod_restrict g.ker sorry).range) ≃ₗ[R] (g.ker ⧸ (f.cod_restrict g.ker sorry).range) :=
+submodule.quotient.equiv _ _ (linear_equiv.refl _ _) $
+begin
+  rw fucksake,
+  exact submodule.map_id _,
+  sorry,
+end
+
+def heugh :
+  homology f g sorry ≅ Module.of R (g.ker ⧸ (f.cod_restrict g.ker sorry).range) :=
+FUCKSAKE f g sorry ≪≫ Module.cokernel_iso_range_quotient _ ≪≫ (weugh _ _).to_Module_iso
 section
 
-variables {R : Type u} [comm_ring R] {M N P : Module.{v} R} (f : M ⟶ N) (g : N ⟶ P)
-lemma fml (H : f ≫ g = 0) : (image_subobject_iso f).inv ≫ image_to_kernel f g H
-  = (Module.image_iso_range f).hom ≫
-    Module.as_hom ((linear_map.range f).subtype.cod_restrict (linear_map.ker g) sorry) ≫
-    (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).inv :=
-begin
-  ext,
-
-  simp only [iso.trans_inv, category.assoc, kernel_subobject_arrow', image_to_kernel_arrow,
-    iso.trans_hom, Module.kernel_iso_ker_inv_kernel_ι, Module.coe_comp, submodule.coe_subtype,
-    function.comp_app],
-
-end
 
 -- want map from kernel_subobject g -> g.ker/
 /-- The cokernel cocone induced by the projection onto the quotient. -/
 def cokernel_cocone (H : f ≫ g = 0) : cokernel_cofork (image_to_kernel f g H) :=
 cokernel_cofork.of_π ((kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).hom ≫
-  Module.as_hom (submodule.mkq (linear_map.cod_restrict (linear_map.ker g) f sorry).range)) sorry
+  Module.as_hom (submodule.mkq (linear_map.cod_restrict (linear_map.ker g) f sorry).range)) $
+begin
+
+end
 
 /-- The projection onto the quotient is a cokernel in the categorical sense. -/
 def cokernel_is_colimit (H : f ≫ g = 0) : is_colimit (cokernel_cocone f g H) :=
@@ -167,6 +271,7 @@ cofork.is_colimit.mk _
     apply (cancel_epi (as_hom f.range.mkq)).1,
     convert h,
     exact submodule.liftq_mkq _ _ _
+
   end)
 end
 

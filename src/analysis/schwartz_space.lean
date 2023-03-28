@@ -489,8 +489,6 @@ def mk_lm (A : (D → E) → (F → G))
     end, },
   map_add' := λ f g, ext (hadd f g),
   map_smul' := λ a f, ext (hsmul a f), }
-
-
 /-- Create a linear map between Schwartz spaces.
 
 For an example of using this definition, see `fderiv_clm`. -/

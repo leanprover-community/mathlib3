@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 
+
 import analysis.locally_convex.with_seminorms
 import topology.algebra.module.strong_topology
 import topology.algebra.module.locally_convex
@@ -37,12 +38,51 @@ section general
 
 variables [add_comm_group E] [topological_space E]
   [add_comm_group F] [topological_space F] [topological_add_group F]
-  [normed_field 𝕜] [normed_field 𝕜₂] [module 𝕜 E] [module 𝕜₂ F]
+  [normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [module 𝕜 E] [module 𝕜₂ F]
+  [has_continuous_const_smul 𝕜₂ F]
   {σ₁₂ : 𝕜 →+* 𝕜₂}
-/-
+
 #check normed_add_comm_group.tendsto_nhds_nhds
 
 #check filter.has_basis.tendsto_right_iff
+
+variable [nonempty ι]
+
+variables [module ℝ F] [module ℝ E]
+
+lemma with_seminorms.tendsto_nhds [ring_hom_isometric σ₁₂] {p : ι → seminorm 𝕜₂ F} (hp : with_seminorms p)
+  (u : E → F) (i : ι) {M : set E} (hM : bornology.is_vonN_bounded 𝕜 M)
+  (h : filter.tendsto u (𝓝 0) (𝓝 0)) : ∀ ε, 0 < ε →
+    ∃ (r : ℝ) (h : 0 < r), ∀ x, r • x ∈ M → p i (u x) < ε :=
+begin
+  intros ε hε,
+  rcases hM ((hp.tendsto_nhds u 0).1 h i ε hε) with ⟨r, hr, h⟩,
+  use [r, hr],
+  intros x hx,
+  specialize h (r • 1),
+  have h' := set.mem_of_subset_of_mem h hx,
+  rw set.mem_smul_set at h',
+  rcases h' with ⟨y, hy, h'⟩,
+  simp only [set.mem_set_of_eq] at hy,
+  sorry,
+end
+
+theorem bound' [ring_hom_isometric σ₁₂] {p : ι → seminorm 𝕜₂ F} (hp : with_seminorms p) {M : set E}
+  (hM : bornology.is_vonN_bounded 𝕜 M) (f : E →SL[σ₁₂] F) (i : ι) :
+  ∃ C, 0 < C ∧ (∀ x : E, x ∈ M → p i (f x) ≤ C) :=
+begin
+  have h := f.cont.tendsto 0,
+  simp only [continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe,
+    linear_map.to_fun_eq_coe, map_zero] at h,
+  rw hp.tendsto_nhds f 0 at h,
+  specialize h i 1 zero_lt_one,
+  rcases hM h with ⟨r, hr, h⟩,
+  simp only [sub_zero] at h,
+  --rcases hM ((hp.tendsto_nhds f 0).1 h i ε hε) with ⟨r, hr, h⟩,
+  sorry,
+end
+
+#exit
 
 lemma with_seminorms.tendsto_nhds {p : seminorm 𝕜₂ F} (hp : continuous p) (u : E → F) {f : filter E} (y₀ : F)
   (h : filter.tendsto u f (𝓝 y₀)) : ∀ ε, 0 < ε → ∀ᶠ x in f, p (u x - y₀) < ε :=
@@ -59,6 +99,9 @@ begin
   refine lt_of_le_of_lt _ hx,
   sorry,
 end
+
+/-
+
 /-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
 normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
 norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a

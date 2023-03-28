@@ -18,8 +18,9 @@ lemma Freudenthal_Hopf {V : Type u} {G : simple_graph V}
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (many_ends : fin 3 ↪ G.end) : G.end.infinite
 ```
-that is, an infinite locally finite preconnected graph that has "enough automorphisms" and at least
+that is, a locally finite preconnected graph that has "enough automorphisms" and at least
 3 ends, has infinitely many ends.
+Note that the `infinite V` hypothesis follows from `many_ends`, and should (TODO) thus be removed.
 If `G` is transitive, it does have "enough automorphisms" (cf `good_automs_of_infinite_transitive`).
 
 The proof is essentially the textbook one, which goes:

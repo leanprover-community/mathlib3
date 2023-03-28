@@ -280,21 +280,6 @@ end
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
 
-lemma le_sdiff :
-  x ≤ y \ z ↔ x ≤ y ∧ disjoint x z :=
-begin
-  split,
-  { rintro h,
-    exact ⟨h.trans sdiff_le, (@disjoint_sdiff_self_left _ z y _).mono_left h⟩, },
-  { rintro ⟨h,k⟩,
-    transitivity x \ z,
-    { suffices : x ≤ x \ (x ⊓ z), { simpa [sdiff_inf] using this, },
-      rw disjoint_iff at k,
-      simp only [k, sdiff_bot], },
-    { simp only [sdiff_le_iff, sup_sdiff_self],
-      apply h.trans le_sup_right, }, },
-end
-
 lemma sdiff_eq_self_of_disjoint (h : disjoint x y) : x \ y = x :=
 begin
   apply le_antisymm sdiff_le,

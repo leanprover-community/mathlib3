@@ -321,8 +321,9 @@ begin
   -- Since `u` can be reached from `u`, but `v` cannot, and there exists a walk from `u` to `v`
   -- **in `T`**, there exists an edge `e = ⟦(x,y)⟧` in `T` such that `x` can be reached from `u` in
   -- `G` but `y` cannot.
-  obtain ⟨x,y,e,hx',hy'⟩ :=
-    (hT.1 u v).some.disagreeing_adj_pair ({x | G.reachable u x}) (by { simp, }) h,
+  obtain ⟨⟨⟨x, y⟩, a⟩, b, hx', hy'⟩ :=
+    (hT.1 u v).some.exists_boundary_dart ({x | G.reachable u x}) (by { simp, }) h,
+  simp at hx' hy' a,
   -- In particular `y` is not reachable from `x` in `G`
   have hy : ¬ G.reachable x y := λ h, hy' (hx'.trans h),
   -- From now on we only care about `x` and `y`
@@ -333,7 +334,7 @@ begin
   -- Applying maximality of `G` to the edge `e = ⟦(x,y)⟧` means that adding `e` to `G`
   -- breaks acyclicity
   specialize Gmax ⟦⟨x,y⟩⟧
-    ( by { rw [set.mem_diff, mem_edge_set], exact ⟨e, xnay⟩ } ),
+    ( by { rw [set.mem_diff, mem_edge_set], exact ⟨a, xnay⟩ } ),
   dsimp only [is_acyclic] at Gmax,
   push_neg at Gmax,
   obtain ⟨v,w,wc⟩ := Gmax,

@@ -385,17 +385,7 @@ begin
   simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
 end
 
-@[mono]
-lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
-λ e, sym2.ind (λ v w, @h v w) e
-
-lemma edge_set_injective :
-  (simple_graph.edge_set : simple_graph V → set (sym2 V)).injective :=
-begin
-  intros G G' h,
-  ext v w,
-  rw [← mem_edge_set, h, mem_edge_set],
-end
+lemma edge_set_disjoint_diag (G : simple_graph V) : disjoint G.edge_set {e | e.is_diag} := sorry
 
 lemma edge_set_subset_iff {G G' : simple_graph V} :
   G.edge_set ⊆ G'.edge_set ↔ G ≤ G' :=
@@ -535,7 +525,8 @@ lemma from_edge_set_le_iff (s : set (sym2 V)) (G : simple_graph V) :
 begin
   nth_rewrite 0 ←from_edge_set_edge_set G,
   rw from_edge_set_le_from_edge_set_iff,
-  rw sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
+  rw _root_.sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
+
 end
 
 lemma from_edge_set_le {s : set (sym2 V)} {G : simple_graph V} (h : s ⊆ G.edge_set) :
@@ -594,9 +585,8 @@ begin
     simp only [sdiff_adj, from_edge_set_adj, set.mem_singleton, true_and, not_not] at a,
     exact huv a.right, },
   { rintro na,
-    rw [←from_edge_set_edge_set G, from_edge_set_sdiff],
-    congr,
-    rw set.diff_eq_self,
+    rw [←from_edge_set_edge_set G, sdiff_eq_left, from_edge_set_edge_set, disjoint.comm,
+        from_edge_set_disjoint_iff, set.disjoint_iff],
     rintro e ⟨euv,eG⟩,
     simp only [set.mem_singleton_iff] at euv,
     rw euv at eG,
@@ -608,11 +598,9 @@ lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
 begin
   rw [←from_edge_set_edge_set G, from_edge_set_sup, from_edge_set_sdiff],
   congr,
-  simp only [set.union_singleton, set.insert_diff_of_mem, set.mem_singleton, set.diff_eq_self],
-  rintro a ⟨auv,aG⟩,
-  simp only [set.mem_singleton_iff] at auv,
-  rw auv at aG,
-  exact h aG,
+  simp only [set.union_singleton, set.insert_diff_of_mem, set.mem_singleton, sdiff_eq_left,
+             set.disjoint_singleton_right, mem_edge_set],
+  exact h
 end
 
 lemma inf_from_edge_set_singleton_non_adj (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :

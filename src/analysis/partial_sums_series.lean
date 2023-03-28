@@ -2,6 +2,7 @@ import topology.algebra.ring.basic
 import algebra.big_operators.basic
 import order.filter.at_top_bot
 import analysis.specific_limits.normed
+import topology.metric_space.cau_seq_filter
 import tactic
 
 open_locale big_operators topology
@@ -22,14 +23,7 @@ lemma partial_sum_next {R : Type u} [add_comm_monoid R] {f : ℕ → R} (n : ℕ
   partial_sum f (n + 1) = f n + partial_sum f n :=
 begin
   unfold partial_sum,
-  have : finset.range (n + 1) = insert n (finset.range n),
-  { ext a,
-    rw finset.mem_insert,
-    rw finset.mem_range,
-    rw finset.mem_range,
-    rw ←le_iff_eq_or_lt,
-    exact nat.lt_succ_iff },
-  rw this,
+  rw finset.range_succ,
   apply finset.sum_insert,
   exact finset.not_mem_range_self
 end
@@ -56,10 +50,29 @@ begin
   exact h (b + 1) (nat.le_succ_of_le hb)
 end
 
-lemma tail_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
+lemma seq_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
+  cases h with x hx,
+  unfold series_sums_to at hx,
+  replace hx := filter.tendsto.cauchy_seq hx,
+  have := cauchy_seq.is_cau_seq hx,
   rw filter.tendsto_def,
-  sorry
+  intros s hs,
+  rw filter.mem_at_top_sets,
+  rw metric.mem_nhds_iff at hs,
+  rcases hs with ⟨ε, H, hε⟩,
+  replace this := is_cau_seq.cauchy₂ this H,
+  cases this with i hi,
+  use i + 1,
+  intros b hb,
+  rw set.mem_preimage,
+  refine set.mem_of_mem_of_subset _ hε,
+  rw metric.mem_ball,
+  rw dist_eq_norm,
+  rw sub_zero,
+  specialize hi (b + 1) (by linarith) b (by linarith),
+  rw partial_sum_next at hi,
+  simpa using hi,
 end
 
 lemma partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, partial_sum a n ≤ partial_sum b n :=

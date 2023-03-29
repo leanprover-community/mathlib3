@@ -21,7 +21,8 @@ types (thought of as indexing the possible moves for the players Left and Right)
 functions out of these types to `pgame` (thought of as describing the resulting game after making a
 move).
 
-Combinatorial games themselves, as a quotient of pregames, are constructed in `basic.lean`.
+Combinatorial games themselves, as a quotient of pregames, are constructed in
+`set_theory.game.basic`.
 
 ## Conway induction
 

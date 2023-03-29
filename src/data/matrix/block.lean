@@ -279,7 +279,12 @@ the diagonal and zero elsewhere.
 See also `matrix.block_diagonal'` if the matrices may not have the same size everywhere.
 -/
 def block_diagonal (M : o → matrix m n α) : matrix (m × o) (n × o) α :=
-of $ λ  ⟨i, k⟩ ⟨j, k'⟩, if k = k' then M k i j else 0
+of $ (λ ⟨i, k⟩ ⟨j, k'⟩, if k = k' then M k i j else 0 : m × o → n × o → α)
+
+-- TODO: set as an equation lemma for `block_diagonal`, see mathlib4#3024
+lemma block_diagonal_apply' (M : o → matrix m n α) (i k j k') :
+  block_diagonal M ⟨i, k⟩ ⟨j, k'⟩ = if k = k' then M k i j else 0 :=
+rfl
 
 lemma block_diagonal_apply (M : o → matrix m n α) (ik jk) :
   block_diagonal M ik jk = if ik.2 = jk.2 then M ik.2 ik.1 jk.1 else 0 :=
@@ -328,7 +333,7 @@ by { ext, simp [block_diagonal_apply] }
   block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, diagonal, prod.mk.inj_iff, ← ite_and],
+  simp only [block_diagonal_apply, diagonal_apply, prod.mk.inj_iff, ← ite_and],
   congr' 1,
   rw and_comm,
 end
@@ -435,14 +440,14 @@ rfl
   block_diag (diagonal d) k = diagonal (λ i, d (i, k)) :=
 ext $ λ i j, begin
   obtain rfl | hij := decidable.eq_or_ne i j,
-  { rw [block_diag, diagonal_apply_eq, diagonal_apply_eq] },
-  { rw [block_diag, diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt _ hij)],
+  { rw [block_diag_apply, diagonal_apply_eq, diagonal_apply_eq] },
+  { rw [block_diag_apply, diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt _ hij)],
     exact prod.fst_eq_iff.mpr },
 end
 
 @[simp] lemma block_diag_block_diagonal [decidable_eq o] (M : o → matrix m n α) :
   block_diag (block_diagonal M) = M :=
-funext $ λ k, ext $ λ i j, block_diagonal_apply_eq _ _ _ _
+funext $ λ k, ext $ λ i j, block_diagonal_apply_eq M i j _
 
 @[simp] lemma block_diag_one [decidable_eq o] [decidable_eq m] [has_one α] :
   block_diag (1 : matrix (m × o) (m × o) α) = 1 :=
@@ -491,7 +496,14 @@ and zero elsewhere.
 
 This is the dependently-typed version of `matrix.block_diagonal`. -/
 def block_diagonal' (M : Π i, matrix (m' i) (n' i) α) : matrix (Σ i, m' i) (Σ i, n' i) α :=
-of $ λ  ⟨k, i⟩ ⟨k', j⟩ := if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0
+of $ (λ ⟨k, i⟩ ⟨k', j⟩, if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0 :
+  (Σ i, m' i) → (Σ i, n' i) → α)
+
+-- TODO: set as an equation lemma for `block_diagonal'`, see mathlib4#3024
+lemma block_diagonal'_apply' (M : Π i, matrix (m' i) (n' i) α) (k i k' j) :
+  block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ =
+    if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0 :=
+rfl
 
 lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
   block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
@@ -661,14 +673,14 @@ rfl
   block_diag' (diagonal d) k = diagonal (λ i, d ⟨k, i⟩) :=
 ext $ λ i j, begin
   obtain rfl | hij := decidable.eq_or_ne i j,
-  { rw [block_diag', diagonal_apply_eq, diagonal_apply_eq] },
-  { rw [block_diag', diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt (λ h, _) hij)],
+  { rw [block_diag'_apply, diagonal_apply_eq, diagonal_apply_eq] },
+  { rw [block_diag'_apply, diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt (λ h, _) hij)],
     cases h, refl },
 end
 
 @[simp] lemma block_diag'_block_diagonal' [decidable_eq o] (M : Π i, matrix (m' i) (n' i) α) :
   block_diag' (block_diagonal' M) = M :=
-funext $ λ k, ext $ λ i j, block_diagonal'_apply_eq _ _ _ _
+funext $ λ k, ext $ λ i j, block_diagonal'_apply_eq M _ _ _
 
 @[simp] lemma block_diag'_one [decidable_eq o] [Π i, decidable_eq (m' i)] [has_one α] :
   block_diag' (1 : matrix (Σ i, m' i) (Σ i, m' i) α) = 1 :=

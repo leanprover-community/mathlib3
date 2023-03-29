@@ -378,6 +378,13 @@ def dual : representation k G (module.dual k V) :=
 @[simp]
 lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
 
+/--
+Given $k$-modules $V, W$, there is a homomorphism $φ : V^* ⊗ W → Hom_k(V, W)$
+(implemented by `linear_algebra.contraction.dual_tensor_hom`).
+Given representations of $G$ on $V$ and $W$,there are representations of $G$ on  $V^* ⊗ W$ and on
+$Hom_k(V, W)$.
+This lemma says that $φ$ is $G$-linear.
+-/
 lemma dual_tensor_hom_comm (g : G) :
   (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
   (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=

@@ -26,44 +26,29 @@ open_locale real big_operators upper_half_plane manifold
 /-- Jacobi's theta function `∑' (n : ℤ), exp (π * I * n ^ 2 * τ)`. -/
 noncomputable def jacobi_theta (τ : ℍ) : ℂ := ∑' (n : ℤ), cexp (π * I * n ^ 2 * τ)
 
-/-- Geometric bound for the terms in the series. (Formulated in a way that is logically non-optimal
-but easier to apply -- we don't want to be messing around checking that `exp (-π * im τ) < 1`, etc,
-further downstream.) -/
-lemma jacobi_theta_term_bound {t : ℝ} (ht : 0 < t) : ∃ y : ℝ, 0 < y ∧ y < 1 ∧
-  ∀ (z : ℂ) (hz : t ≤ z.im) (n : ℤ), ‖cexp (π * I * n ^ 2 * z)‖ ≤ y ^ n.nat_abs :=
-begin
-  refine ⟨_, exp_pos _,
-    exp_lt_one_iff.mpr (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) ht), (λ z hz n, _)⟩,
-  have : rexp (-π * z.im) ≤ rexp (-π * t),
-  { rw [exp_le_exp, neg_mul, neg_mul, neg_le_neg_iff],
-    exact mul_le_mul_of_nonneg_left hz pi_pos.le },
-  refine le_trans _ (pow_le_pow_of_le_left (exp_pos _).le this _),
-  let y := rexp (-π * z.im),
-  replace hz := ht.trans_le hz,
-  have h : y < 1, from exp_lt_one_iff.mpr (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) hz),
-  refine (le_of_eq _).trans (_ : y ^ (n ^ 2) ≤ y ^ (n.nat_abs)),
-  { rw [complex.norm_eq_abs, complex.abs_exp],
-    have : (↑π * I * n ^ 2 * z).re = (-π * z.im) * n ^ 2,
-    { rw [(by { push_cast, ring } : ↑π * I * n ^ 2 * z = ↑(π * n ^ 2) * (z * I)),
-        of_real_mul_re, mul_I_re],
-      ring },
-    obtain ⟨m, hm⟩ := int.eq_coe_of_zero_le (sq_nonneg n),
-    rw [this, exp_mul, ←int.cast_pow, rpow_int_cast, hm, zpow_coe_nat] },
-  { have : n ^ 2 = ↑(n.nat_abs ^ 2), by rw [nat.cast_pow, int.nat_abs_sq],
-    rw [this, zpow_coe_nat],
-    refine pow_le_pow_of_le_one (exp_pos _).le h.le _,
-    rw sq,
-    exact n.nat_abs.le_mul_self },
-end
-
 lemma jacobi_theta_unif_summable {R : ℝ} (hR : 0 < R) :
   ∃ (bd : ℤ → ℝ), (summable bd) ∧
   (∀ {τ : ℂ} (hτ : R ≤ τ.im) (n : ℤ), ‖cexp (π * I * n ^ 2 * τ)‖ ≤ bd n) :=
 begin
-  obtain ⟨y, hy1, hy2, hb⟩ := jacobi_theta_term_bound hR,
-  refine ⟨λ n, y ^ n.nat_abs, summable_int_of_summable_nat _ _, λ τ hτ n, hb _ hτ n⟩,
-  all_goals { simpa only [int.nat_abs_neg, int.nat_abs_of_nat]
-    using summable_geometric_of_lt_1 hy1.le hy2, },
+  let y := rexp (-π * R),
+  have h : y < 1, from exp_lt_one_iff.mpr (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) hR),
+  refine ⟨λ n, y ^ |n|, summable_int_of_summable_nat _ _, λ τ hτ n, _⟩, swap 3,
+  { refine le_trans _ (_ : y ^ (n ^ 2) ≤ y ^ |n|),
+    { rw [complex.norm_eq_abs, complex.abs_exp],
+      have : (↑π * I * n ^ 2 * τ).re = (-π * (τ : ℂ).im) * n ^ 2,
+      { rw [(by { push_cast, ring } : ↑π * I * n ^ 2 * τ = ↑(π * n ^ 2) * (τ * I)),
+          of_real_mul_re, mul_I_re],
+        ring },
+      obtain ⟨m, hm⟩ := int.eq_coe_of_zero_le (sq_nonneg n),
+      rw [this, exp_mul, ←int.cast_pow, rpow_int_cast, hm, zpow_coe_nat, zpow_coe_nat],
+      refine pow_le_pow_of_le_left (exp_pos _).le (real.exp_le_exp.mpr _) _,
+      rwa [mul_le_mul_left_of_neg (neg_lt_zero.mpr pi_pos)] },
+    { rw [←inv_inv y, inv_zpow' _ (|n|), inv_zpow' _ (n ^ 2)],
+      refine zpow_le_of_le (one_le_inv (exp_pos _) h.le) (neg_le_neg _),
+      rw [int.abs_eq_nat_abs, ←int.nat_abs_sq, ←nat.cast_pow, nat.cast_le, sq],
+      exact n.nat_abs.le_mul_self } },
+  all_goals { simp only [abs_neg, int.abs_coe_nat, zpow_coe_nat],
+    exact summable_geometric_of_lt_1 (real.exp_pos _).le h },
 end
 
 lemma jacobi_theta_summable {z : ℂ} (hz : 0 < z.im) :

@@ -406,7 +406,7 @@ open finset
 `trace_matrix A b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
 noncomputable
 def trace_matrix (b : κ → B) : matrix κ κ A :=
-of (λ i j, trace_form A B (b i) (b j))
+of $ λ i j, trace_form A B (b i) (b j)
 
 -- TODO: set as an equation lemma for `trace_matrix`, see mathlib4#3024
 @[simp]

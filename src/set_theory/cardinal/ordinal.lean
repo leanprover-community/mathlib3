@@ -1237,17 +1237,6 @@ namespace cardinal
 open_locale cardinal
 
 /--
-A variation on `cardinal.lt_ord` using `≤`: If `i` is no greater than the
-initial ordinal of cardinality `κ`, then the cardinal of any of its realizations
-is no greater than `κ`.
-
-The converse, however, is false (for instance, `i = ω+1` and `κ = ℵ₀`).
--/
-lemma card_le_of_le_ord {κ : cardinal} {i : ordinal} (hi : i ≤ κ.ord) :
-  i.card ≤ κ :=
-by { rw ← card_ord κ, exact ordinal.card_le_card hi }
-
-/--
 Bounding the cardinal of an ordinal-indexed union of sets.
 -/
 lemma mk_Union_ordinal_le_of_le {β : Type* } {κ : cardinal} {i : ordinal}

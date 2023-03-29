@@ -479,10 +479,11 @@ variable (A)
   `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is
   algebraically closed. -/
 def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C :=
-of $ λ i σ, σ (b i)
+of $ λ i (σ : B →ₐ[A] C), σ (b i)
 
 -- TODO: set as an equation lemma for `embeddings_matrix`, see mathlib4#3024
-@[simp] lemma embeddings_matrix_apply (b : κ → B) (i j) : embeddings_matrix b i j = σ (b i) := rfl
+@[simp] lemma embeddings_matrix_apply (b : κ → B) (i) (σ : B →ₐ[A] C) :
+  embeddings_matrix A C b i σ = σ (b i) := rfl
 
 /-- `embeddings_matrix_reindex A C b e : matrix κ κ C` is the matrix whose `(i, j)` coefficient
   is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : κ` given by a

@@ -160,9 +160,7 @@ begin
   { rw [sub_pos, exp_lt_one_iff, neg_lt_zero], exact pi_pos }
 end
 
--- Formulation of this result is somewhat roundabout, since functions on subtypes don't play well
--- with `differentiable_at`.
-lemma differentiable_at_jacobi_theta (τ : ℍ) :
+lemma differentiable_at_tsum_exp_mul_sq (τ : ℍ) :
   differentiable_at ℂ (λ z, ∑' (n : ℤ), cexp (π * I * n ^ 2 * z)) ↑τ :=
 begin
   suffices : ∀ (y : ℝ) (hy : 0 < y),
@@ -179,6 +177,6 @@ begin
 end
 
 lemma mdifferentiable_jacobi_theta : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) jacobi_theta :=
-λ τ, (differentiable_at_jacobi_theta τ).mdifferentiable_at.comp τ τ.mdifferentiable_coe
+λ τ, (differentiable_at_tsum_exp_mul_sq τ).mdifferentiable_at.comp τ τ.mdifferentiable_coe
 
 lemma continuous_jacobi_theta : continuous jacobi_theta := mdifferentiable_jacobi_theta.continuous

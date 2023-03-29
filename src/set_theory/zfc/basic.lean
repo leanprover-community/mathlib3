@@ -939,17 +939,14 @@ namespace Class
 theorem ext_iff {x y : Class.{u}} : x = y ↔ ∀ z, x z ↔ y z := set.ext_iff
 
 /-- Coerce a ZFC set into a class -/
-def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}
-instance : has_coe Set Class := ⟨of_Set⟩
+protected def coe (x : Set.{u}) : Class.{u} := {y | y ∈ x}
+instance : has_coe Set Class := ⟨Class.coe⟩
 
 /-- The universal class -/
 def univ : Class := set.univ
 
-/-- Assert that `A` is a ZFC set satisfying `B` -/
-def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
-
 /-- `A ∈ B` if `A` is a ZFC set which satisfies `B` -/
-protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
+protected def mem (A B : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 instance : has_mem Class Class := ⟨Class.mem⟩
 
 theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.rfl
@@ -1015,11 +1012,8 @@ theorem coe_injective : function.injective (@coe Set.{u} Class.{u} _) :=
 @[simp] theorem coe_inj {x y : Set.{u}} : (x : Class.{u}) = y ↔ x = y :=
 coe_injective.eq_iff
 
-@[simp] theorem to_Set_of_Set (A : Class.{u}) (x : Set.{u}) : to_Set A x ↔ A x :=
-⟨λ ⟨y, yx, py⟩, by rwa coe_injective yx at py, λ px, ⟨x, rfl, px⟩⟩
-
 @[simp, norm_cast] theorem coe_mem {x : Set.{u}} {A : Class.{u}} : (x : Class.{u}) ∈ A ↔ A x :=
-to_Set_of_Set _ _
+⟨λ ⟨y, yx, py⟩, by rwa coe_injective yx at py, λ px, ⟨x, rfl, px⟩⟩
 
 @[simp] theorem coe_apply {x y : Set.{u}} : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
 
@@ -1098,7 +1092,7 @@ mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, A y ↔ y = x)
  (λ hn, ⟨∅, ext (λ z, coe_empty.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/
-def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.pair x y)) A)
+def fval (F A : Class.{u}) : Class.{u} := iota $ λ y, Class.has_mem.mem A $ λ x, F (Set.pair x y)
 infixl ` ′ `:100 := fval
 
 theorem fval_ex (F A : Class.{u}) : F ′ A ∈ univ.{u} := iota_ex _
@@ -1110,7 +1104,7 @@ namespace Set
 @[simp] theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f]
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
-Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.coe_apply, mem_map], exact
+Class.iota_val _ _ (λ z, by { rw [Class.coe_mem, Class.coe_apply, mem_map], exact
   ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_injective pr in by rw[←fw, wy],
   λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
 

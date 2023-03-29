@@ -93,7 +93,7 @@ lsub (λ x : o.out.α × o.out.α, op (typein (<) x.1) (typein (<) x.2))
 theorem lt_blsub₂ (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : ordinal} (ha : a < o)
   (hb : b < o) : op a b < blsub₂ op o :=
 begin
-  convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
+  convert lt_lsub _ (prod.mk (enum (<) ⟨a, by rwa type_lt⟩) (enum (<) ⟨b, by rwa type_lt⟩)),
   simp only [typein_enum]
 end
 

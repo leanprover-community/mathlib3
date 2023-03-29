@@ -134,8 +134,8 @@ begin
       cases H _ h with b hb,
       rcases eq_or_lt_of_le (le_of_lt_succ hb.1.2) with rfl | hba,
       { exact has hb.2 },
-      { have : b < f (enum (<) b (by rwa type_lt)) := begin
-          have := (hf (enum (<) b (by rwa type_lt))).1.1,
+      { have : b < f (enum (<) ⟨b, by rwa type_lt⟩) := begin
+          have := (hf (enum (<) ⟨b, by rwa type_lt⟩)).1.1,
           rwa typein_enum at this
         end,
         have : b ≤ sup.{u u} f := this.le.trans (le_sup f _),

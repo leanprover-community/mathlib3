@@ -279,13 +279,13 @@ instance order_top_out_succ (o : ordinal) : order_top (succ o).out.α :=
 ⟨_, le_enum_succ⟩
 
 theorem enum_succ_eq_top {o : ordinal} :
-  enum (<) o (by { rw type_lt, exact lt_succ o }) = (⊤ : (succ o).out.α) :=
+  enum (<) ⟨o, by { rw type_lt, exact lt_succ o }⟩ = (⊤ : (succ o).out.α) :=
 rfl
 
 lemma has_succ_of_type_succ_lt {α} {r : α → α → Prop} [wo : is_well_order α r]
   (h : ∀ a < type r, succ a < type r) (x : α) : ∃ y, r x y :=
 begin
-  use enum r (succ (typein r x)) (h _ (typein_lt_type r x)),
+  use enum r ⟨succ (typein r x), h _ (typein_lt_type r x)⟩,
   convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ _), rw [enum_typein]
 end
 
@@ -295,7 +295,7 @@ theorem out_no_max_of_succ_lt {o : ordinal} (ho : ∀ a < o, succ a < o) : no_ma
 lemma bounded_singleton {r : α → α → Prop} [is_well_order α r] (hr : (type r).is_limit) (x) :
   bounded r {x} :=
 begin
-  refine ⟨enum r (succ (typein r x)) (hr.2 _ (typein_lt_type r x)), _⟩,
+  refine ⟨enum r ⟨succ (typein r x), hr.2 _ (typein_lt_type r x)⟩, _⟩,
   intros b hb,
   rw mem_singleton_iff.1 hb,
   nth_rewrite 0 ←enum_typein r x,
@@ -308,7 +308,7 @@ lemma type_subrel_lt (o : ordinal.{u}) :
 begin
   refine quotient.induction_on o _,
   rintro ⟨α, r, wo⟩, resetI, apply quotient.sound,
-  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (enum_iso r).symm
+  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (enum r).symm
 end
 
 lemma mk_initial_seg (o : ordinal.{u}) :
@@ -393,9 +393,9 @@ theorem add_le_of_limit {a b c : ordinal} (h : is_limit b) : a + b ≤ c ↔ ∀
 λ H, le_of_not_lt $
 induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
   resetI,
-  suffices : ∀ x : β, sum.lex r s (sum.inr x) (enum _ _ l),
-  { cases enum _ _ l with x x,
-    { cases this (enum s 0 h.pos) },
+  suffices : ∀ x : β, sum.lex r s (sum.inr x) (enum _ ⟨_, l⟩),
+  { cases enum _ ⟨_, l⟩ with x x,
+    { cases this (enum s ⟨0, h.pos⟩) },
     { exact irrefl _ (this _) } },
   intros x,
   rw [←typein_lt_typein (sum.lex r s), typein_enum],
@@ -595,8 +595,8 @@ private lemma mul_le_of_limit_aux {α β r s} [is_well_order α r] [is_well_orde
   {c} (h : is_limit (type s)) (H : ∀ b' < type s, type r * b' ≤ c)
   (l : c < type r * type s) : false :=
 begin
-  suffices : ∀ a b, prod.lex s r (b, a) (enum _ _ l),
-  { cases enum _ _ l with b a, exact irrefl _ (this _ _) },
+  suffices : ∀ a b, prod.lex s r (b, a) (enum _ ⟨_, l⟩),
+  { cases enum _ ⟨_, l⟩ with b a, exact irrefl _ (this _ _) },
   intros a b,
   rw [←typein_lt_typein (prod.lex s r), typein_enum],
   have := H _ (h.2 _ (typein_lt_type s b)),
@@ -854,7 +854,7 @@ claim on the other. -/
 well-ordering. -/
 def bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α) :
   Π a < type r, α :=
-λ a ha, f (enum r a ha)
+λ a ha, f (enum r ⟨a, ha⟩)
 
 /-- Converts a family indexed by a `Type u` to one indexed by an `ordinal.{u}` using a well-ordering
 given by the axiom of choice. -/
@@ -882,11 +882,12 @@ bfamily_of_family'_typein  _ f i
 
 @[simp] theorem family_of_bfamily'_enum {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o}
   (ho : type r = o) (f : Π a < o, α) (i hi) :
-  family_of_bfamily' r ho f (enum r i (by rwa ho)) = f i hi :=
+  family_of_bfamily' r ho f (enum r ⟨i, by rwa ho⟩) = f i hi :=
 by simp only [family_of_bfamily', typein_enum]
 
-@[simp] theorem family_of_bfamily_enum (o : ordinal) (f : Π a < o, α) (i hi) :
-  family_of_bfamily o f (enum (<) i (by { convert hi, exact type_lt _ })) = f i hi :=
+@[simp] theorem family_of_bfamily_enum (o : ordinal) (f : Π a < o, α) (i) (hi : i < o)
+  (h := hi.trans_eq (type_lt _).symm) :
+  family_of_bfamily o f (enum (<) ⟨i, h⟩) = f i hi :=
 family_of_bfamily'_enum _ (type_lt o) f _ _
 
 /-- The range of a family indexed by ordinals. -/
@@ -1045,7 +1046,7 @@ by { convert le_sup.{u u} _ ((@equiv_shrink s hs) ⟨a, ha⟩), rw symm_apply_ap
 
 instance small_Iio (o : ordinal.{u}) : small.{u} (set.Iio o) :=
 let f : o.out.α → set.Iio o := λ x, ⟨typein (<) x, typein_lt_self x⟩ in
-let hf : surjective f := λ b, ⟨enum (<) b.val (by { rw type_lt, exact b.prop }),
+let hf : surjective f := λ b, ⟨enum (<) ⟨b.val, by { rw type_lt, exact b.prop }⟩,
   subtype.ext (typein_enum _ _)⟩ in
 small_of_surjective hf
 
@@ -1295,7 +1296,7 @@ theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set
 (lsub_le.{u u} typein_lt_self).antisymm begin
   by_contra' h,
   nth_rewrite 0 ←type_lt o at h,
-  simpa [typein_enum] using lt_lsub.{u u} (typein (<)) (enum (<) _ h)
+  simpa [typein_enum] using lt_lsub.{u u} (typein (<)) (enum (<) ⟨_, h⟩)
 end
 
 theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
@@ -1423,7 +1424,7 @@ theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=
 eq_of_forall_ge_iff $ λ o,
 by rw [blsub_le_iff, lsub_le_iff]; exact
-  ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
+  ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r ⟨i, h⟩)⟩
 
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = succ a :=
 bsup_const.{u v} ho (succ a)
@@ -1572,8 +1573,8 @@ by { by_contra' h, exact bmex_not_mem_brange f (H _ h) }
 
 theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=
 begin
-  convert ne_mex _ (enum (<) i (by rwa type_lt)),
-  rw family_of_bfamily_enum
+  convert ne_mex _ (enum (<) ⟨i, by rwa type_lt⟩),
+  rw family_of_bfamily_enum,
 end
 
 theorem bmex_le_of_ne {o : ordinal} {f : Π a < o, ordinal} {a} (ha : ∀ i hi, f i hi ≠ a) :

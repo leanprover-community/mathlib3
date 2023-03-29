@@ -84,7 +84,7 @@ by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]
 @[simp] lemma image₂_subset_iff : image₂ f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image₂_iff
 
-lemma image₂_subset_iff_left : image₂ f s t ⊆ u ↔ ∀ a ∈ s, t.image (f a) ⊆ u :=
+lemma image₂_subset_iff_left : image₂ f s t ⊆ u ↔ ∀ a ∈ s, t.image (λ b, f a b) ⊆ u :=
 by simp_rw [image₂_subset_iff, image_subset_iff]
 
 lemma image₂_subset_iff_right : image₂ f s t ⊆ u ↔ ∀ b ∈ t, s.image (λ a, f a b) ⊆ u :=

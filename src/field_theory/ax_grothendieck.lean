@@ -26,8 +26,8 @@ open mv_polynomial
 lemma ax_grothendieck_of_locally_finite {ι K R : Type*} [field K] [finite K] [comm_ring R]
   [finite ι] [algebra K R] (alg : algebra.is_algebraic K R)
   (ps : ι → mv_polynomial ι R)
-  (hinj : function.injective (λ v i, mv_polynomial.eval v (ps i))) :
-  function.surjective (λ v i, mv_polynomial.eval v (ps i)) :=
+  (hinj : injective (λ v i, mv_polynomial.eval v (ps i))) :
+  surjective (λ v i, mv_polynomial.eval v (ps i)) :=
 begin
   have is_int : ∀ x : R, is_integral K x,
     from λ x, is_algebraic_iff_is_integral.1 (alg x),

@@ -745,7 +745,6 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} (σ : ι₁ ≃ ι₂) :
         multilinear_map A (λ i : ι₂, M₂) M₃) }
 
 variables (R M₁)
-set_option trace.simp_lemmas true
 /-- The dependent version of `multilinear_map.dom_dom_congr_linear_equiv`. -/
 @[simps apply symm_apply]
 def dom_dom_congr_linear_equiv' {ι' : Type*} (σ : ι ≃ ι') :

@@ -239,7 +239,7 @@ open group_cohomology.resolution
 `Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
 noncomputable def diagonal_hom_equiv (A : Rep k G) :
   (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
-linear.hom_congr k ((equiv_tensor k G n).trans
+linear.hom_congr k ((diagonal_succ k G n).trans
   ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
   ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
   ≪≫ₗ (finsupp.llift A k k (fin n → G)).symm
@@ -257,9 +257,8 @@ begin
   simpa only [linear_equiv.trans_apply, Rep.left_regular_hom_equiv_apply,
     monoidal_closed.linear_hom_equiv_comm_hom, finsupp.llift_symm_apply, tensor_product.curry_apply,
     linear.hom_congr_apply, iso.refl_hom, iso.trans_inv, Action.comp_hom, Module.comp_def,
-    linear_map.comp_apply, equiv_tensor_inv_def, representation.Rep_of_tprod_iso_inv_apply,
-    of_tensor_single (1 : G) (1 : k) (finsupp.single x (1 : k)), finsupp.lift_apply,
-    finsupp.sum_single_index, one_smul, zero_smul],
+    linear_map.comp_apply, representation.Rep_of_tprod_iso_inv_apply,
+    diagonal_succ_inv_single_single (1 : G) x, one_smul, one_mul],
 end
 
 /-- Given a `k`-linear `G`-representation `A`, `diagonal_hom_equiv` is a `k`-linear isomorphism of
@@ -276,10 +275,10 @@ begin
     Rep.left_regular_hom_equiv_symm_apply, linear.hom_congr_symm_apply, Action.comp_hom,
     iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
     iso.trans_hom, Module.comp_def, linear_map.comp_apply, representation.Rep_of_tprod_iso_apply,
-    equiv_tensor_def, to_tensor_single x (1 : k), tensor_product.uncurry_apply,
-    Rep.left_regular_hom_hom, finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply,
-    finsupp.sum_single_index, zero_smul, one_smul, Rep.of_ρ,
-    monoid_hom.one_apply, linear_map.one_apply, finsupp.llift_apply A k k],
+    diagonal_succ_hom_single x (1 : k), tensor_product.uncurry_apply, Rep.left_regular_hom_hom,
+    finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply, finsupp.sum_single_index,
+    zero_smul, one_smul, Rep.of_ρ, Rep.Action_ρ_eq_ρ, Rep.trivial_def (x 0)⁻¹,
+    finsupp.llift_apply A k k],
 end
 
 end Rep

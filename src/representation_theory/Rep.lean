@@ -84,6 +84,9 @@ Rep.of (@representation.trivial k G V _ _ _ _)
 
 variables {k G}
 
+lemma trivial_def {V : Type u} [add_comm_group V] [module k V] (g : G) (v : V) :
+  (trivial k G V).ρ g v = v := rfl
+
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance

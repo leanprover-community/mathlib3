@@ -91,13 +91,19 @@ end semigroup
 
 section monoid
 
-variables [monoid α]
+variables [monoid α] {a b : α}
 
 @[refl, simp] theorem dvd_refl (a : α) : a ∣ a := dvd.intro 1 (mul_one a)
 theorem dvd_rfl : ∀ {a : α}, a ∣ a := dvd_refl
 instance : is_refl α (∣) := ⟨dvd_refl⟩
 
 theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul a)
+
+lemma dvd_of_eq (h : a = b) : a ∣ b := by rw h
+lemma dvd_of_eq' (h : a = b) : b ∣ a := by rw h
+
+alias dvd_of_eq ← eq.dvd
+alias dvd_of_eq' ← eq.dvd'
 
 end monoid
 

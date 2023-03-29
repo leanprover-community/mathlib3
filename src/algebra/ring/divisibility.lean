@@ -21,6 +21,8 @@ variables [has_add α] [semigroup α]
 theorem dvd_add [left_distrib_class α] {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
+alias dvd_add ← has_dvd.dvd.add
+
 end distrib_semigroup
 
 @[simp] theorem two_dvd_bit0 [semiring α] {a : α} : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
@@ -53,6 +55,9 @@ iff a divides b. -/
 theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
 let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
 
+alias neg_dvd_of_dvd ← has_dvd.dvd.neg_left
+alias dvd_neg ↔ _ has_dvd.dvd.neg_right
+
 theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
 let t := neg_dvd_of_dvd h in by rwa neg_neg at t
 
@@ -68,6 +73,8 @@ variables [non_unital_ring α] {a b c : α}
 
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
 by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
+
+alias dvd_sub ← has_dvd.dvd.sub
 
 theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 ⟨λh₂, dvd_add h₂ h, λH, by have t := dvd_sub H h; rwa add_sub_cancel at t⟩

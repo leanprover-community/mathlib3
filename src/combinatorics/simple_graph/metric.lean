@@ -287,7 +287,6 @@ emetric_space.to_metric_space_of_dist (λ u v, (G.dist u v : ℝ))
 
 end preconnected
 
-
 lemma enough_space_of_transitive [lf : locally_finite G] [hV : infinite V] [decidable_eq V]
   [Gpc : fact G.preconnected] (ht : ∀ u v, ∃ φ : G ≃g G, φ u = v) (K : finset V) :
   ∃ φ : G ≃g G, disjoint (K.image φ) K :=

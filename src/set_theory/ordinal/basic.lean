@@ -772,7 +772,8 @@ instance unique_out_one : unique (1 : ordinal).out.α :=
     apply typein_lt_self
   end }
 
-theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) ⟨0, by simp [(∈)]⟩ := unique.eq_default x
+theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) ⟨0, by simp [(∈)]⟩ :=
+unique.eq_default x
 
 /-! ### Extra properties of typein and enum -/
 

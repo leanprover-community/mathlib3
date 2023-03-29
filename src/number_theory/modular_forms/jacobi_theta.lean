@@ -6,6 +6,7 @@ Authors: David Loeffler
 import number_theory.modular_forms.basic
 import analysis.special_functions.gaussian
 import analysis.calculus.series
+import analysis.complex.locally_uniform_limit
 
 /-! # Jacobi's theta function
 
@@ -194,44 +195,22 @@ begin
     differentiable_on ℂ (λ z, ∑' (n : ℤ), cexp (π * I * n ^ 2 * z)) {z : ℂ | y < im z},
   from let ⟨y, hy, hy'⟩ := exists_between τ.im_pos in (this y hy).differentiable_at
     ((complex.continuous_im.is_open_preimage _ is_open_Ioi).mem_nhds (τ.coe_im ▸ hy')),
-  intros y hy z hz,
-  -- Check the easy hypotheses for summability result
-  have h1 : is_open {w : ℂ | y < im w}, from continuous_im.is_open_preimage _ is_open_Ioi,
-  have h2 : is_preconnected {w : ℂ | y < im w}, from (convex_halfspace_im_gt _).is_preconnected,
-  have h3 : ∀ (n : ℤ) (w : ℂ), w ∈ {v : ℂ | y < v.im} →
-    has_deriv_at (λ (v : ℂ), cexp (↑π * I * ↑n ^ 2 * v))
-    (cexp (↑π * I * ↑n ^ 2 * w) * (↑π * I * ↑n ^ 2)) w,
-  { intros n w hw,
-    apply has_deriv_at.cexp,
-    convert (has_deriv_at_id w).const_mul _ using 1,
-    rw mul_one },
-  have h3' := (λ n w hw, (h3 n w hw).has_fderiv_at),
-  have h4 : z ∈ {w : ℂ | y < im w}, from hz,
-  have h5 : summable (λ (n : ℤ), cexp (↑π * I * ↑n ^ 2 * z)),
-    by apply jacobi_theta_summable ⟨z, hy.trans hz⟩,
-  -- The harder one: uniform summability of termwise derivatives
+  intros y hy,
+  -- Check the hypotheses for summability result
+  have h1 : ∀ (n : ℤ) (w : ℂ),
+    differentiable_at ℂ (λ (v : ℂ), cexp (↑π * I * ↑n ^ 2 * v)) w,
+  { refine λ n w, differentiable_at.cexp _,
+    exact differentiable_at_id.const_mul _, },
+  have h1' := λ n w hw, (h1 n w).differentiable_within_at,
+  have h2 : is_open {w : ℂ | y < im w}, from continuous_im.is_open_preimage _ is_open_Ioi,
   obtain ⟨q, hq, hq', hb⟩ := jacobi_theta_term_bound hy,
-  have h_le_bd : ∀ (n : ℤ) (w : ℂ) (hw : y < im w),
-    ‖cexp (↑π * I * ↑n ^ 2 * w) * (↑π * I * ↑n ^ 2)‖ ≤ π * n ^ 2 * q ^ n.nat_abs,
-  { intros n w hw,
-    rw [norm_mul, mul_comm ‖_‖],
-    refine mul_le_mul (le_of_eq _) (hb _ hw.le _) (norm_nonneg _)
-      (mul_nonneg pi_pos.le $ sq_nonneg _),
-    rw [norm_mul, norm_mul, is_R_or_C.norm_of_nonneg pi_pos.le, complex.norm_eq_abs, abs_I,
-        mul_one, ←of_real_int_cast, ←of_real_pow, is_R_or_C.norm_of_nonneg (sq_nonneg _)] },
-  have h_bd_s : summable (λ n : ℤ, π * n ^ 2 * q ^ n.nat_abs),
-  { simp_rw mul_assoc,
-    apply summable.mul_left,
-    have : summable (λ n : ℕ, ↑n ^ 2 * q ^ n), from summable_pow_mul_geometric_of_norm_lt_1 2
+  have h_bd_s : summable (λ n : ℤ, q ^ n.nat_abs),
+  { have : summable (λ n : ℕ, q ^ n), from summable_geometric_of_norm_lt_1
       ((norm_of_nonneg hq.le).symm ▸ hq'),
     refine summable_int_of_summable_nat this _,
-    simpa only [int.cast_neg, int.nat_abs_neg, neg_sq] using this},
-  -- now main proof
-  apply differentiable_at.differentiable_within_at,
-  apply has_fderiv_at.differentiable_at,
-  refine has_fderiv_at_tsum_of_is_preconnected h_bd_s h1 h2 h3' (λ n w hw, _) h4 h5 h4,
-  refine (le_of_eq _).trans (h_le_bd n w hw),
-  rw [continuous_linear_map.norm_smul_right_apply, norm_one, one_mul],
+    simpa only [int.cast_neg, int.nat_abs_neg, neg_sq] using this },
+  exact differentiable_on_tsum_of_summable_norm h_bd_s h1' h2
+    (λ i w hw, hb w (le_of_lt hw) i),
 end
 
 lemma jacobi_theta_mdifferentiable : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) jacobi_theta :=

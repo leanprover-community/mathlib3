@@ -39,8 +39,6 @@ then its value is equal to the capacity of a minimum cut in the same network.
 ## References
 
 - Some of the structure ideas and lemmas can be seen in https://github.com/Zetagon/maxflow-mincut.
-- A Lean 4 version of the proof can be found at
-  https://gitlab.com/Shreyas941/maxflowmincutlean4/-/blob/master/MaxFlowMinCut.lean.
 
 -/
 

@@ -687,7 +687,7 @@ end
 
 end pgame
 
--- This can also used to golf `pSet.equiv` lemmas, but I'm not sure where to put it.
+-- This can also be used to golf `pSet.equiv` lemmas, but I'm not sure where to put it.
 /-- An auxiliary definition for `pgame.identical`.
 
 `forall_exists_rel r s t` says that for every `s i` there is some `t j` such that `r (s i) (t j)`,

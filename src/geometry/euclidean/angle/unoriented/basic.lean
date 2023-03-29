@@ -21,13 +21,14 @@ assert_not_exists has_fderiv_at
 assert_not_exists conformal_at
 
 noncomputable theory
+open real set
 open_locale big_operators
 open_locale real
 open_locale real_inner_product_space
 
 namespace inner_product_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V] {x y : V}
 
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. See `orientation.oangle` for the corresponding oriented angle
@@ -47,6 +48,7 @@ by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smu
   mul_mul_mul_comm _ (‖x‖), abs_mul_abs_self, ← mul_assoc c c, mul_div_mul_left _ _ this]
 
 @[simp] lemma _root_.linear_isometry.angle_map {E F : Type*}
+  [normed_add_comm_group E] [normed_add_comm_group F]
   [inner_product_space ℝ E] [inner_product_space ℝ F] (f : E →ₗᵢ[ℝ] F) (u v : E) :
   angle (f u) (f v) = angle u v :=
 by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
@@ -111,8 +113,8 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_mul_norm, div_self (λ h, hx (inner_self_eq_zero.1 h)),
-      real.arccos_one]
+  rw [←real_inner_self_eq_norm_mul_norm, div_self (inner_self_ne_zero.2 hx : ⟪x, x⟫ ≠ 0),
+    real.arccos_one]
 end
 
 /-- The angle between a nonzero vector and its negation. -/
@@ -315,6 +317,41 @@ begin
   rw [← sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
       ← inner_eq_zero_iff_angle_eq_pi_div_two x y, norm_add_pow_two_real, norm_sub_pow_two_real],
   split; intro h; linarith,
+end
+
+/-- The cosine of the angle between two vectors is 1 if and only if the angle is 0. -/
+lemma cos_eq_one_iff_angle_eq_zero : cos (angle x y) = 1 ↔ angle x y = 0 :=
+begin
+  rw ← cos_zero,
+  exact inj_on_cos.eq_iff ⟨angle_nonneg x y, angle_le_pi x y⟩ (left_mem_Icc.2 pi_pos.le),
+end
+
+/-- The cosine of the angle between two vectors is 0 if and only if the angle is π / 2. -/
+lemma cos_eq_zero_iff_angle_eq_pi_div_two : cos (angle x y) = 0 ↔ angle x y = π / 2 :=
+begin
+  rw ← cos_pi_div_two,
+  apply inj_on_cos.eq_iff ⟨angle_nonneg x y, angle_le_pi x y⟩,
+  split; linarith [pi_pos],
+end
+
+/-- The cosine of the angle between two vectors is -1 if and only if the angle is π. -/
+lemma cos_eq_neg_one_iff_angle_eq_pi : cos (angle x y) = -1 ↔ angle x y = π :=
+begin
+  rw ← cos_pi,
+  exact inj_on_cos.eq_iff ⟨angle_nonneg x y, angle_le_pi x y⟩ (right_mem_Icc.2 pi_pos.le),
+end
+
+/-- The sine of the angle between two vectors is 0 if and only if the angle is 0 or π. -/
+lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi :
+  sin (angle x y) = 0 ↔ angle x y = 0 ∨ angle x y = π :=
+by rw [sin_eq_zero_iff_cos_eq, cos_eq_one_iff_angle_eq_zero, cos_eq_neg_one_iff_angle_eq_pi]
+
+/-- The sine of the angle between two vectors is 1 if and only if the angle is π / 2. -/
+lemma sin_eq_one_iff_angle_eq_pi_div_two : sin (angle x y) = 1 ↔ angle x y = π / 2 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h, sin_pi_div_two]⟩,
+  rw [←cos_eq_zero_iff_angle_eq_pi_div_two, ←abs_eq_zero, abs_cos_eq_sqrt_one_sub_sin_sq, h],
+  simp,
 end
 
 end inner_product_geometry

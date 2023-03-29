@@ -67,3 +67,5 @@ begin
 end
 
 end category_theory
+
+assert_not_exists Module.abelian

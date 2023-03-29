@@ -2132,9 +2132,9 @@ by simp [frontier, closure_Iio' ha, Iic_diff_Iio, Icc_self]
 lemma frontier_Iio [no_min_order α] {a : α} : frontier (Iio a) = {a} :=
 frontier_Iio' nonempty_Iio
 
-@[simp] lemma frontier_Icc [no_min_order α] [no_max_order α] {a b : α} (h : a < b) :
+@[simp] lemma frontier_Icc [no_min_order α] [no_max_order α] {a b : α} (h : a ≤ b) :
   frontier (Icc a b) = {a, b} :=
-by simp [frontier, le_of_lt h, Icc_diff_Ioo_same]
+by simp [frontier, h, Icc_diff_Ioo_same]
 
 @[simp] lemma frontier_Ioo {a b : α} (h : a < b) : frontier (Ioo a b) = {a, b} :=
 by rw [frontier, closure_Ioo h.ne, interior_Ioo, Icc_diff_Ioo_same h.le]

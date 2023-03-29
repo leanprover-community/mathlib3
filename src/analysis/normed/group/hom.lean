@@ -8,6 +8,9 @@ import analysis.normed.group.basic
 /-!
 # Normed groups homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers definitions and elementary constructions about bounded group homomorphisms
 between normed (abelian) groups (abbreviated to "normed group homs").
 

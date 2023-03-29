@@ -122,7 +122,7 @@ begin
   split; intro h,
   { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf (zero_lt_one.trans hm) hmn),
-    simpa [h, ennreal.add_eq_top] using (ennreal.tsum_condensed_le hf) },
+    simpa [h, ennreal.add_eq_top, ennreal.mul_eq_top] using ennreal.tsum_condensed_le hf },
   { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf hm hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.le_tsum_condensed hf) }
@@ -212,6 +212,15 @@ begin
   conv_rhs { rw [int.cast_neg, neg_eq_neg_one_mul, mul_pow, ←div_div] },
   conv_lhs { rw [mul_div, mul_one], },
   refl,
+end
+
+lemma real.summable_abs_int_rpow {b : ℝ} (hb : 1 < b) : summable (λ n : ℤ, |(n : ℝ)| ^ (-b)) :=
+begin
+  refine summable_int_of_summable_nat (_ : summable (λ n : ℕ, |(n : ℝ)| ^ _))
+    (_ : summable (λ n : ℕ, |((-n : ℤ) : ℝ)| ^ _)),
+  work_on_goal 2 { simp_rw [int.cast_neg, int.cast_coe_nat, abs_neg] },
+  all_goals { simp_rw (λ n : ℕ, abs_of_nonneg (n.cast_nonneg : 0 ≤ (n : ℝ))),
+    rwa [real.summable_nat_rpow, neg_lt_neg_iff] },
 end
 
 /-- Harmonic series is not unconditionally summable. -/

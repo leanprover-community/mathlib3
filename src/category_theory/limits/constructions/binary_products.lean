@@ -12,6 +12,9 @@ import category_theory.limits.preserves.shapes.terminal
 /-!
 # Constructing binary product from pullbacks and terminal object.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The product is the pullback over the terminal objects. In particular, if a category
 has pullbacks and a terminal object, then it has binary products.
 

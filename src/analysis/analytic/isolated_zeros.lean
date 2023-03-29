@@ -7,7 +7,6 @@ import analysis.analytic.basic
 import analysis.calculus.dslope
 import analysis.calculus.fderiv_analytic
 import analysis.calculus.formal_multilinear_series
-import topology.algebra.infinite_sum
 import analysis.analytic.uniqueness
 
 /-!

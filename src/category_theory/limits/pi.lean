@@ -9,6 +9,9 @@ import category_theory.limits.has_limits
 /-!
 # Limits in the category of indexed families of objects.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a functor `F : J ⥤ Π i, C i` into a category of indexed families,
 1. we can assemble a collection of cones over `F ⋙ pi.eval C i` into a cone over `F`
 2. if all those cones are limit cones, the assembled cone is a limit cone, and

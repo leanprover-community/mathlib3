@@ -47,7 +47,7 @@ Schwarz lemma
 -/
 
 open metric set function filter topological_space
-open_locale topological_space
+open_locale topology
 
 namespace complex
 

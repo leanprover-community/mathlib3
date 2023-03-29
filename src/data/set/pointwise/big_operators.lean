@@ -8,6 +8,9 @@ import data.set.pointwise.basic
 
 /-!
 # Results about pointwise operations on sets and big operators.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace set

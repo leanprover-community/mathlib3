@@ -442,11 +442,11 @@ begin
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
-then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `1 ≤ k`. -/
-lemma pow_sub_one_norm_prime_pow_of_one_le {k s : ℕ} (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
+then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `k ≠ 0` and `s ≤ k`. -/
+lemma pow_sub_one_norm_prime_pow_of_ne_zero {k s : ℕ} (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
   [hpri : fact (p : ℕ).prime] [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hs : s ≤ k)
-  (hk : 1 ≤ k) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+  (hk : k ≠ 0) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
   by_cases htwo : p ^ (k - s + 1) = 2,
   { have hp : p = 2,
@@ -463,7 +463,7 @@ begin
     simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
       pow_coe] at ⊢ hζ hirr hcycl,
     haveI := hcycl,
-    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),
+    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero hk,
     rw [hζ.pow_sub_one_norm_two hirr],
     rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,
       ← pow_succ] },

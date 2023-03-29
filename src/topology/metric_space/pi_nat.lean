@@ -49,7 +49,7 @@ in general), and `ι` is countable.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open topological_space set metric filter function
 
 local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
@@ -357,7 +357,7 @@ but it does not take care of a possible uniformity. If the `E n` have a uniform 
 there will be two non-defeq uniform structures on `Π n, E n`, the product one and the one coming
 from the metric structure. In this case, use `metric_space_of_discrete_uniformity` instead. -/
 protected def metric_space : metric_space (Π n, E n) :=
-metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
+metric_space.of_dist_topology dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
   is_open_iff_dist pi_nat.eq_of_dist_eq_zero
 
 /-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete uniformity,
@@ -801,7 +801,7 @@ lemma dist_le_dist_pi_of_dist_lt {x y : Π i, F i} {i : ι} (h : dist x y < (1/2
   dist (x i) (y i) ≤ dist x y :=
 by simpa only [not_le.2 h, false_or] using min_le_iff.1 (min_dist_le_dist_pi x y i)
 
-open_locale big_operators topological_space
+open_locale big_operators topology
 open filter
 
 open_locale nnreal

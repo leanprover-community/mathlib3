@@ -57,8 +57,8 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry points_with_circumcenter_index
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The Monge point of a simplex (in 2 or more dimensions) is a
@@ -126,7 +126,7 @@ include V
 `points_with_circumcenter`. -/
 lemma monge_point_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P (n + 2)) :
-  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination
+  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination ℝ
     s.points_with_circumcenter (monge_point_weights_with_circumcenter n) :=
 begin
   rw [monge_point_eq_smul_vsub_vadd_circumcenter,
@@ -443,8 +443,8 @@ namespace triangle
 
 open euclidean_geometry finset simplex affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The orthocenter of a triangle is the intersection of its
@@ -626,8 +626,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 
 include V
 

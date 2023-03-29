@@ -31,7 +31,7 @@ by a sequence of simple functions.
 -/
 
 open set function filter topological_space ennreal emetric finset
-open_locale classical topological_space ennreal measure_theory big_operators
+open_locale classical topology ennreal measure_theory big_operators
 variables {α β ι E F 𝕜 : Type*}
 
 noncomputable theory

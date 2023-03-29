@@ -14,7 +14,7 @@ These are mostly useful to avoid diamonds during type class inference.
 -/
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*}
 

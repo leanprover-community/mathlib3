@@ -22,7 +22,7 @@ exp
 noncomputable theory
 
 open finset filter metric asymptotics set function
-open_locale classical topological_space
+open_locale classical topology
 
 namespace complex
 

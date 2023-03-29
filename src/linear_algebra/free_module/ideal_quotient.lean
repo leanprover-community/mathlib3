@@ -96,5 +96,5 @@ let b := module.free.choose_basis ℤ S,
     a := I.smith_coeffs b hI,
     e := I.quotient_equiv_pi_zmod b hI
 in by haveI : ∀ i, ne_zero (a i).nat_abs :=
-    (λ i, ⟨int.nat_abs_ne_zero_of_ne_zero (ideal.smith_coeffs_ne_zero b I hI i)⟩);
+    (λ i, ⟨int.nat_abs_ne_zero_of_ne_zero (ideal.smith_coeffs_ne_zero b I hI i)⟩); classical;
   exact fintype.of_equiv (Π i, zmod (a i).nat_abs) e.symm

@@ -213,6 +213,7 @@ begin
     haveI := λ i, is_noetherian_submodule' (torsion_by R N $ p i ^ e i),
     exact λ i, torsion_by_prime_power_decomposition (hp i)
       ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
+  classical,
   refine ⟨Σ i, fin (this i).some, infer_instance,
     λ ⟨i, j⟩, p i, λ ⟨i, j⟩, hp i, λ ⟨i, j⟩, (this i).some_spec.some j,
     ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h).symm.trans $
@@ -233,7 +234,7 @@ begin
   haveI := is_noetherian_submodule' (torsion R N),
   haveI := module.finite.of_surjective _ (torsion R N).mkq_surjective,
   obtain ⟨I, fI, p, hp, e, ⟨h⟩⟩ := equiv_direct_sum_of_is_torsion (@torsion_is_torsion R N _ _ _),
-  obtain ⟨n, ⟨g⟩⟩ := @module.free_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
+  obtain ⟨n, ⟨g⟩⟩ := @module.basis_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
   haveI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
   obtain ⟨f, hf⟩ := module.projective_lifting_property _ linear_map.id (torsion R N).mkq_surjective,
   refine ⟨n, I, fI, p, hp, e,

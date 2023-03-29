@@ -43,6 +43,7 @@ profinite
 universe u
 
 open category_theory
+open_locale topology
 
 /-- The type of profinite topological spaces. -/
 structure Profinite :=
@@ -134,11 +135,14 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
   ↥(CompHaus.to_Profinite.obj X) = connected_components X := rfl
 
 /-- Finite types are given the discrete topology. -/
-def Fintype.discrete_topology (A : Fintype) : topological_space A := ⊥
+def Fintype.bot_topology (A : Fintype) : topological_space A := ⊥
 
 section discrete_topology
 
-local attribute [instance] Fintype.discrete_topology
+local attribute [instance] Fintype.bot_topology
+
+local attribute [instance]
+lemma Fintype.discrete_topology (A : Fintype) : discrete_topology A := ⟨rfl⟩
 
 /-- The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
 discrete topology. -/
@@ -254,17 +258,15 @@ lemma epi_iff_surjective {X Y : Profinite.{u}} (f : X ⟶ Y) : epi f ↔ functio
 begin
   split,
   { contrapose!,
-    rintros ⟨y, hy⟩ hf,
+    rintros ⟨y, hy⟩ hf, resetI,
     let C := set.range f,
     have hC : is_closed C := (is_compact_range f.continuous).is_closed,
     let U := Cᶜ,
-    have hU : is_open U := is_open_compl_iff.mpr hC,
     have hyU : y ∈ U,
     { refine set.mem_compl _, rintro ⟨y', hy'⟩, exact hy y' hy' },
-    have hUy : U ∈ nhds y := hU.mem_nhds hyU,
+    have hUy : U ∈ 𝓝 y := hC.compl_mem_nhds hyU,
     obtain ⟨V, hV, hyV, hVU⟩ := is_topological_basis_clopen.mem_nhds_iff.mp hUy,
     classical,
-    letI : topological_space (ulift.{u} $ fin 2) := ⊥,
     let Z := of (ulift.{u} $ fin 2),
     let g : Y ⟶ Z := ⟨(locally_constant.of_clopen hV).map ulift.up, locally_constant.continuous _⟩,
     let h : Y ⟶ Z := ⟨λ _, ⟨1⟩, continuous_const⟩,

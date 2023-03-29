@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.upper_half_plane.basic
 import analysis.convex.contractible
-import analysis.convex.topology
+import analysis.convex.normed
 import analysis.convex.complex
 import analysis.complex.re_im_topology
 import topology.homotopy.contractible
@@ -19,7 +19,7 @@ various instances.
 
 noncomputable theory
 open set filter function topological_space complex
-open_locale filter topological_space upper_half_plane
+open_locale filter topology upper_half_plane
 
 namespace upper_half_plane
 

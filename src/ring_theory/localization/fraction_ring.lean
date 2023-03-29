@@ -9,6 +9,9 @@ import ring_theory.localization.basic
 /-!
 # Fraction ring / fraction field Frac(R) as localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_fraction_ring R K` expresses that `K` is a field of fractions of `R`, as an abbreviation of
@@ -57,7 +60,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
     rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    apply mul_right_cancel₀ _ h,
+    apply mul_left_cancel₀ _ h,
     rwa mem_non_zero_divisors_iff_ne_zero at hc,
   end }
 
@@ -165,7 +168,7 @@ is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
   {y : non_zero_divisors R} : mk' K x y = 0 ↔ x = 0 :=
 begin
   refine ⟨λ hxy, _, λ h, by rw [h, mk'_zero]⟩,
-  { simp_rw [mk'_eq_zero_iff, mul_right_coe_non_zero_divisors_eq_zero_iff] at hxy,
+  { simp_rw [mk'_eq_zero_iff, mul_left_coe_non_zero_divisors_eq_zero_iff] at hxy,
     exact (exists_const _).mp hxy },
 end
 

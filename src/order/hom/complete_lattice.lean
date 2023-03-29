@@ -9,6 +9,9 @@ import order.hom.lattice
 /-!
 # Complete lattice homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines frame homorphisms and complete lattice homomorphisms.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -18,7 +21,7 @@ be satisfied by itself and all stricter types.
 
 * `Sup_hom`: Maps which preserve `⨆`.
 * `Inf_hom`: Maps which preserve `⨅`.
-* `frame_hom`: Frame homomorphisms. Maps which preserve `⨆`, `⊓` and `⊤`.
+* `frame_hom`: Frm homomorphisms. Maps which preserve `⨆`, `⊓` and `⊤`.
 * `complete_lattice_hom`: Complete lattice homomorphisms. Maps which preserve `⨆` and `⨅`.
 
 ## Typeclasses
@@ -34,7 +37,7 @@ be satisfied by itself and all stricter types.
 
 ## TODO
 
-Frame homs are Heyting homs.
+Frm homs are Heyting homs.
 -/
 
 open function order_dual set
@@ -362,7 +365,7 @@ instance : order_top (Inf_hom α β) := ⟨⊤, λ f a, le_top⟩
 
 end Inf_hom
 
-/-! ### Frame homomorphisms -/
+/-! ### Frm homomorphisms -/
 
 namespace frame_hom
 variables [complete_lattice α] [complete_lattice β] [complete_lattice γ] [complete_lattice δ]
@@ -627,17 +630,17 @@ See also `complete_lattice_hom.set_preimage`. -/
   map_rel_iff' :=
     λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
 
-section
-
-variables (α) [complete_lattice α]
-
-/-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
-@[simps] def inf_Inf_hom : Inf_hom (α × α) α :=
-{ to_fun := λ x, x.1 ⊓ x.2,
-  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq], }
+variables [complete_lattice α] (x : α × α)
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
-@[simps] def sup_Sup_hom : Sup_hom (α × α) α :=
-{ to_fun := λ x, x.1 ⊔ x.2, map_Sup' := (inf_Inf_hom αᵒᵈ).map_Inf' }
+def sup_Sup_hom : Sup_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊔ x.2,
+  map_Sup' := λ s, by simp_rw [prod.fst_Sup, prod.snd_Sup, Sup_image, supr_sup_eq] }
 
-end
+/-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
+def inf_Inf_hom : Inf_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊓ x.2,
+  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq] }
+
+@[simp, norm_cast] lemma sup_Sup_hom_apply : sup_Sup_hom x = x.1 ⊔ x.2 := rfl
+@[simp, norm_cast] lemma inf_Inf_hom_apply : inf_Inf_hom x = x.1 ⊓ x.2 := rfl

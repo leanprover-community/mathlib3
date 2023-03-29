@@ -26,29 +26,36 @@ open_locale real big_operators upper_half_plane manifold
 /-- Jacobi's theta function `∑' (n : ℤ), exp (π * I * n ^ 2 * τ)`. -/
 noncomputable def jacobi_theta (τ : ℍ) : ℂ := ∑' (n : ℤ), cexp (π * I * n ^ 2 * τ)
 
+lemma jacobi_theta_term_bound {z : ℂ} (hz : 0 < z.im) (n : ℤ) :
+  ‖cexp (π * I * n ^ 2 * z)‖ ≤ exp (-π * z.im) ^ n.nat_abs :=
+begin
+  let y := rexp (-π * z.im),
+  have h : y < 1, from exp_lt_one_iff.mpr (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) hz),
+  refine (le_of_eq _).trans (_ : y ^ (n ^ 2) ≤ _),
+  { rw [complex.norm_eq_abs, complex.abs_exp],
+    have : (↑π * I * n ^ 2 * z).re = (-π * z.im) * n ^ 2,
+    { rw [(by { push_cast, ring } : ↑π * I * n ^ 2 * z = ↑(π * n ^ 2) * (z * I)),
+        of_real_mul_re, mul_I_re],
+      ring },
+    obtain ⟨m, hm⟩ := int.eq_coe_of_zero_le (sq_nonneg n),
+    rw [this, exp_mul, ←int.cast_pow, rpow_int_cast, hm, zpow_coe_nat] },
+  { have : n ^ 2 = ↑(n.nat_abs ^ 2), by rw [nat.cast_pow, int.nat_abs_sq],
+    rw [this, zpow_coe_nat],
+    exact pow_le_pow_of_le_one (exp_pos _).le h.le ((sq n.nat_abs).symm ▸ n.nat_abs.le_mul_self) },
+end
+
 lemma jacobi_theta_unif_summable {R : ℝ} (hR : 0 < R) :
   ∃ (bd : ℤ → ℝ), (summable bd) ∧
   (∀ {τ : ℂ} (hτ : R ≤ τ.im) (n : ℤ), ‖cexp (π * I * n ^ 2 * τ)‖ ≤ bd n) :=
 begin
   let y := rexp (-π * R),
   have h : y < 1, from exp_lt_one_iff.mpr (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) hR),
-  refine ⟨λ n, y ^ |n|, summable_int_of_summable_nat _ _, λ τ hτ n, _⟩, swap 3,
-  { refine le_trans _ (_ : y ^ (n ^ 2) ≤ y ^ |n|),
-    { rw [complex.norm_eq_abs, complex.abs_exp],
-      have : (↑π * I * n ^ 2 * τ).re = (-π * (τ : ℂ).im) * n ^ 2,
-      { rw [(by { push_cast, ring } : ↑π * I * n ^ 2 * τ = ↑(π * n ^ 2) * (τ * I)),
-          of_real_mul_re, mul_I_re],
-        ring },
-      obtain ⟨m, hm⟩ := int.eq_coe_of_zero_le (sq_nonneg n),
-      rw [this, exp_mul, ←int.cast_pow, rpow_int_cast, hm, zpow_coe_nat, zpow_coe_nat],
-      refine pow_le_pow_of_le_left (exp_pos _).le (real.exp_le_exp.mpr _) _,
-      rwa [mul_le_mul_left_of_neg (neg_lt_zero.mpr pi_pos)] },
-    { rw [←inv_inv y, inv_zpow' _ (|n|), inv_zpow' _ (n ^ 2)],
-      refine zpow_le_of_le (one_le_inv (exp_pos _) h.le) (neg_le_neg _),
-      rw [int.abs_eq_nat_abs, ←int.nat_abs_sq, ←nat.cast_pow, nat.cast_le, sq],
-      exact n.nat_abs.le_mul_self } },
-  all_goals { simp only [abs_neg, int.abs_coe_nat, zpow_coe_nat],
-    exact summable_geometric_of_lt_1 (real.exp_pos _).le h },
+  refine ⟨λ n, y ^ n.nat_abs, summable_int_of_summable_nat _ _, λ τ hτ n, _⟩, swap 3,
+  { refine (jacobi_theta_term_bound (hR.trans_le hτ) n).trans _,
+    refine pow_le_pow_of_le_left (exp_pos _).le (real.exp_le_exp.mpr _) _,
+    rwa [mul_le_mul_left_of_neg (neg_lt_zero.mpr pi_pos)] },
+  all_goals { simpa only [int.nat_abs_neg, int.nat_abs_of_nat]
+    using summable_geometric_of_lt_1 (real.exp_pos _).le h },
 end
 
 lemma jacobi_theta_summable {z : ℂ} (hz : 0 < z.im) :
@@ -128,15 +135,8 @@ begin
     ... = 2 / (1 - rexp (-π * τ.im)) * rexp (-π * τ.im) : by rw [div_mul_comm, mul_comm] },
   have : ∀ (n : ℕ), ‖cexp (π * I * (n + 1) ^ 2 * τ)‖ ≤ exp (-π * τ.im) ^ (n + 1),
   { intro n,
-    rw [(by { push_cast, ring } : ↑π * I * (n + 1) ^ 2 * τ = ↑(π * (n + 1) ^ 2 : ℝ) * (τ * I)),
-      complex.norm_eq_abs, complex.abs_exp, of_real_mul_re, mul_I_re, upper_half_plane.coe_im,
-      mul_neg, ←neg_mul, ←neg_mul, mul_assoc, mul_comm, mul_assoc, mul_comm τ.im,
-      (by push_cast : ((n:ℝ) + 1) ^ 2 = ↑((n + 1) ^ 2)), real.exp_nat_mul],
-    exact pow_le_pow_of_le_one (exp_pos _).le
-      (exp_le_one_iff.mpr $ (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) τ.im_pos).le)
-      (nat.le_self_pow two_ne_zero _) },
-  have s : has_sum (λ n : ℕ, rexp (-π * τ.im) ^ (n + 1))
-    (rexp (-π * τ.im) / (1 - rexp (-π * τ.im))),
+    simpa only [int.cast_add, int.cast_one] using jacobi_theta_term_bound τ.im_pos (n + 1) },
+  have s : has_sum (λ n : ℕ, rexp (-π * τ.im) ^ (n + 1)) (exp (-π * τ.im) / (1 - exp (-π * τ.im))),
   { simp_rw [pow_succ, div_eq_mul_inv, has_sum_mul_left_iff (real.exp_ne_zero _)],
     exact has_sum_geometric_of_lt_1 (exp_pos (-π * τ.im)).le
       (exp_lt_one_iff.mpr $ (mul_neg_of_neg_of_pos (neg_lt_zero.mpr pi_pos) τ.im_pos)) },

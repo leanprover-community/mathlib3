@@ -12,6 +12,9 @@ import category_theory.limits.shapes.finite_limits
 
 /-!
 # Limits in lattice categories are given by infimums and supremums.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes w u

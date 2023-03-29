@@ -10,6 +10,9 @@ import category_theory.limits.constructions.binary_products
 /-!
 # Limits involving zero objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Binary products and coproducts with a zero object always exist,
 and pullbacks/pushouts over a zero object are products/coproducts.
 -/

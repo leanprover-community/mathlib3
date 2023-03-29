@@ -8,6 +8,9 @@ import analysis.normed.group.infinite_sum
 
 /-! # Multiplying two infinite sums in a normed ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove various results about `(∑' x : ι, f x) * (∑' y : ι', g y)` in a normed
 ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `tsum_mul_tsum`),
 but in a normed ring we get summability results which aren't true in general.

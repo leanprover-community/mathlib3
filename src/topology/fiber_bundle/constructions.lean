@@ -10,11 +10,11 @@ import topology.fiber_bundle.basic
 
 This file contains several standard constructions on fiber bundles:
 
-* `bundle.trivial.fiber_bundle 𝕜 B F`: the trivial fiber bundle with model fibre `F` over the base
+* `bundle.trivial.fiber_bundle 𝕜 B F`: the trivial fiber bundle with model fiber `F` over the base
   `B`
 
 * `fiber_bundle.prod`: for fiber bundles `E₁` and `E₂` over a common base, a fiber bundle structure
-  on their fibrewise product `E₁ ×ᵇ E₂` (the notation stands for `λ x, E₁ x × E₂ x`).
+  on their fiberwise product `E₁ ×ᵇ E₂` (the notation stands for `λ x, E₁ x × E₂ x`).
 
 * `fiber_bundle.pullback`: for a fiber bundle `E` over `B`, a fiber bundle structure on its
   pullback `f *ᵖ E` by a map `f : B' → B` (the notation is a type synonym for `E ∘ f`).
@@ -102,14 +102,14 @@ section defs
 variables (E₁ : B → Type*) (E₂ : B → Type*)
 variables [topological_space (total_space E₁)] [topological_space (total_space E₂)]
 
-/-- Equip the total space of the fibrewise product of two fiber bundles `E₁`, `E₂` with
+/-- Equip the total space of the fiberwise product of two fiber bundles `E₁`, `E₂` with
 the induced topology from the diagonal embedding into `total_space E₁ × total_space E₂`. -/
 instance fiber_bundle.prod.topological_space : topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced
   (λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)))
   (by apply_instance : topological_space (total_space E₁ × total_space E₂))
 
-/-- The diagonal map from the total space of the fibrewise product of two fiber bundles
+/-- The diagonal map from the total space of the fiberwise product of two fiber bundles
 `E₁`, `E₂` into `total_space E₁ × total_space E₂` is `inducing`. -/
 lemma fiber_bundle.prod.inducing_diag : inducing
   (λ p, (⟨p.1, p.2.1⟩, ⟨p.1, p.2.2⟩) :
@@ -129,7 +129,7 @@ variables {F₁ E₁ F₂ E₂} (e₁ : trivialization F₁ (π E₁)) (e₂ : t
 
 /-- Given trivializations `e₁`, `e₂` for fiber bundles `E₁`, `E₂` over a base `B`, the forward
 function for the construction `trivialization.prod`, the induced
-trivialization for the fibrewise product of `E₁` and `E₂`. -/
+trivialization for the fiberwise product of `E₁` and `E₂`. -/
 def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
 λ p, ⟨p.1, (e₁ ⟨p.1, p.2.1⟩).2, (e₂ ⟨p.1, p.2.2⟩).2⟩
 
@@ -161,7 +161,7 @@ variables (e₁ e₂) [Π x, has_zero (E₁ x)] [∀ x, has_zero (E₂ x)]
 
 /-- Given trivializations `e₁`, `e₂` for fiber bundles `E₁`, `E₂` over a base `B`, the inverse
 function for the construction `trivialization.prod`, the induced
-trivialization for the fibrewise product of `E₁` and `E₂`. -/
+trivialization for the fiberwise product of `E₁` and `E₂`. -/
 noncomputable def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
 ⟨p.1, e₁.symm p.1 p.2.1, e₂.symm p.1 p.2.2⟩
 
@@ -198,7 +198,7 @@ end
 variables (e₁ e₂ e₁ e₂)
 
 /-- Given trivializations `e₁`, `e₂` for bundle types `E₁`, `E₂` over a base `B`, the induced
-trivialization for the fibrewise product of `E₁` and `E₂`, whose base set is
+trivialization for the fiberwise product of `E₁` and `E₂`, whose base set is
 `e₁.base_set ∩ e₂.base_set`. -/
 noncomputable def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
 { to_fun := prod.to_fun' e₁ e₂,
@@ -263,7 +263,7 @@ instance {e₁ : trivialization F₁ (π E₁)} {e₂ : trivialization F₂ (π 
 
 end prod
 
-/-! ### Pullbacks of fibre bundles -/
+/-! ### Pullbacks of fiber bundles -/
 
 section
 variables {B : Type*} (F : Type*) (E : B → Type*) {B' : Type*} (f : B' → B)

@@ -52,9 +52,14 @@ variables {l m n p : Type*} {q r : Type*} {l' m' n' p' : Type*}
 section kronecker_map
 
 /-- Produce a matrix with `f` applied to every pair of elements from `A` and `B`. -/
-@[simp] def kronecker_map (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) :
-  matrix (l × n) (m × p) γ
-| i j := f (A i.1 j.1) (B i.2 j.2)
+def kronecker_map (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) :
+  matrix (l × n) (m × p) γ :=
+of $ λ i j, f (A i.1 j.1) (B i.2 j.2)
+
+-- TODO: set as an equation lemma for `kronecker_map`, see mathlib4#3024
+@[simp]
+lemma kronecker_map_apply (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) (i j) :
+  kronecker_map f A B i j = f (A i.1 j.1) (B i.2 j.2) := rfl
 
 lemma kronecker_map_transpose (f : α → β → γ)
   (A : matrix l m α) (B : matrix n p β) :

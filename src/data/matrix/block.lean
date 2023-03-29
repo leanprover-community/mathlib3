@@ -278,8 +278,8 @@ the diagonal and zero elsewhere.
 
 See also `matrix.block_diagonal'` if the matrices may not have the same size everywhere.
 -/
-def block_diagonal (M : o → matrix m n α) : matrix (m × o) (n × o) α
-| ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
+def block_diagonal (M : o → matrix m n α) : matrix (m × o) (n × o) α :=
+of $ λ  ⟨i, k⟩ ⟨j, k'⟩, if k = k' then M k i j else 0
 
 lemma block_diagonal_apply (M : o → matrix m n α) (ik jk) :
   block_diagonal M ik jk = if ik.2 = jk.2 then M ik.2 ik.1 jk.1 else 0 :=
@@ -404,8 +404,12 @@ section block_diag
 /-- Extract a block from the diagonal of a block diagonal matrix.
 
 This is the block form of `matrix.diag`, and the left-inverse of `matrix.block_diagonal`. -/
-def block_diag (M : matrix (m × o) (n × o) α) (k : o) : matrix m n α
-| i j := M (i, k) (j, k)
+def block_diag (M : matrix (m × o) (n × o) α) (k : o) : matrix m n α :=
+of $ λ i j, M (i, k) (j, k)
+
+-- TODO: set as an equation lemma for `block_diag`, see mathlib4#3024
+lemma block_diag_apply (M : matrix (m × o) (n × o) α) (k : o) (i j) :
+  block_diag M k i j = M (i, k) (j, k) := rfl
 
 lemma block_diag_map (M : matrix (m × o) (n × o) α) (f : α → β) :
   block_diag (M.map f) = λ k, (block_diag M k).map f :=
@@ -486,8 +490,8 @@ variables [has_zero α] [has_zero β]
 and zero elsewhere.
 
 This is the dependently-typed version of `matrix.block_diagonal`. -/
-def block_diagonal' (M : Π i, matrix (m' i) (n' i) α) : matrix (Σ i, m' i) (Σ i, n' i) α
-| ⟨k, i⟩ ⟨k', j⟩ := if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0
+def block_diagonal' (M : Π i, matrix (m' i) (n' i) α) : matrix (Σ i, m' i) (Σ i, n' i) α :=
+of $ λ  ⟨k, i⟩ ⟨k', j⟩ := if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0
 
 lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
   block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
@@ -625,8 +629,12 @@ section block_diag'
 /-- Extract a block from the diagonal of a block diagonal matrix.
 
 This is the block form of `matrix.diag`, and the left-inverse of `matrix.block_diagonal'`. -/
-def block_diag' (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) : matrix (m' k) (n' k) α
-| i j := M ⟨k, i⟩ ⟨k, j⟩
+def block_diag' (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) : matrix (m' k) (n' k) α :=
+of $ λ i j, M ⟨k, i⟩ ⟨k, j⟩
+
+-- TODO: set as an equation lemma for `block_diag'`, see mathlib4#3024
+lemma block_diag'_apply (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) (i j) :
+  block_diag' M k i j = M ⟨k, i⟩ ⟨k, j⟩ := rfl
 
 lemma block_diag'_map (M : matrix (Σ i, m' i) (Σ i, n' i) α) (f : α → β) :
   block_diag' (M.map f) = λ k, (block_diag' M k).map f :=

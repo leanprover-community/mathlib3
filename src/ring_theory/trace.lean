@@ -404,11 +404,14 @@ open finset
 
 /-- Given an `A`-algebra `B` and `b`, an `κ`-indexed family of elements of `B`, we define
 `trace_matrix A b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
-@[simp] noncomputable
-def trace_matrix (b : κ → B) : matrix κ κ A
-| i j := trace_form A B (b i) (b j)
+noncomputable
+def trace_matrix (b : κ → B) : matrix κ κ A :=
+of (λ i j, trace_form A B (b i) (b j))
 
-lemma trace_matrix_def (b : κ → B) : trace_matrix A b = of (λ i j, trace_form A B (b i) (b j)) :=
+-- TODO: set as an equation lemma for `trace_matrix`, see mathlib4#3024
+@[simp]
+lemma trace_matrix_apply (b : κ → B) (i j) :
+  trace_matrix A b i j = trace_form A B (b i) (b j) :=
 rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
@@ -421,7 +424,7 @@ lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ 
   trace_matrix A ((P.map (algebra_map A B)).vec_mul b) = Pᵀ ⬝ (trace_matrix A b) ⬝ P :=
 begin
   ext α β,
-  rw [trace_matrix, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
+  rw [trace_matrix_apply, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
     bilin_form.sum_left, fintype.sum_congr _ _ (λ (i : κ), @bilin_form.sum_right _ _ _ _ _ _ _ _
     (b i * P.map (algebra_map A B) i α) (λ (y : κ), b y * P.map (algebra_map A B) y β)), sum_comm],
   congr, ext x,
@@ -448,7 +451,7 @@ lemma trace_matrix_of_basis [fintype κ] [decidable_eq κ] (b : basis κ A B) :
   trace_matrix A b = bilin_form.to_matrix b (trace_form A B) :=
 begin
   ext i j,
-  rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
+  rw [trace_matrix_apply, trace_form_apply, trace_form_to_matrix]
 end
 
 lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
@@ -456,7 +459,7 @@ lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
 begin
   ext i,
   rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
-    matrix.mul_apply, trace_matrix_def],
+    matrix.mul_apply, trace_matrix],
   simp only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
@@ -475,8 +478,8 @@ variable (A)
 /-- `embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose `(i, σ)` coefficient is
   `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is
   algebraically closed. -/
-@[simp] def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C
-| i σ := σ (b i)
+@[simp] def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C :=
+of $ λ i σ, σ (b i)
 
 /-- `embeddings_matrix_reindex A C b e : matrix κ κ C` is the matrix whose `(i, j)` coefficient
   is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : κ` given by a

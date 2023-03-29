@@ -478,7 +478,7 @@ variable (A)
 /-- `embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose `(i, σ)` coefficient is
   `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is
   algebraically closed. -/
-@[simp] def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C :=
+def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C :=
 of $ λ i σ, σ (b i)
 
 -- TODO: set as an equation lemma for `embeddings_matrix`, see mathlib4#3024

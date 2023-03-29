@@ -12,33 +12,35 @@ import representation_theory.group_cohomology.resolution
 
 Let `k` be a commutative ring and `G` a group. This file defines the group cohomology of
 `A : Rep k G` to be the cohomology of the complex
-$0 \to \mathrm{Fun}(G^0, A) \to \mathrm{Fun}(G^1, A) \to \mathrm{Fun}(G^2, A) \to \dots$, with
-differential $d^n$ sending $f: G^n \to A$ to the function mapping $(g_0, \dots, g_n)$ to
-$$\rho(g_0)(f(g_1, \dots, g_n)) + \sum (-1)^{i + 1}\cdot f(g_0, \dots, g_ig_{i + 1}, \dots, g_n)$$
-$$+ (-1)^{n + 1}\cdot f(g_0, \dots, g_{n - 1})$$ (where `ρ` is the representation attached to `A`
-and the sum ranges from `i = 0` to `i = n - 1`).
+$$0 \to \mathrm{Fun}(G^0, A) \to \mathrm{Fun}(G^1, A) \to \mathrm{Fun}(G^2, A) \to \dots$$
+with differential $d^n$ sending $f: G^n \to A$ to the function mapping $(g_0, \dots, g_n)$ to
+$$\rho(g_0)(f(g_1, \dots, g_n))
++ \sum_{i = 0}^{n - 1} (-1)^{i + 1}\cdot f(g_0, \dots, g_ig_{i + 1}, \dots, g_n)$$
+$$+ (-1)^{n + 1}\cdot f(g_0, \dots, g_{n - 1})$$ (where `ρ` is the representation attached to `A`).
 
-We have a `k`-linear isomorphism Fun$(G^n, A) \cong \mathrm{Hom}(k[G^{n + 1}], A)$, where
+We have a `k`-linear isomorphism $\mathrm{Fun}(G^n, A) \cong \mathrm{Hom}(k[G^{n + 1}], A)$, where
 the righthand side is morphisms in `Rep k G`, and the representation on $k[G^{n + 1}]$
-is induced by the diagonal action of `G`. If we conjugate the $n$th differential in Hom$(P, A)$ by
-this isomorphism, where `P` is the standard resolution of `k` as a trivial `k`-linear
-`G`-representation, then the resulting map agrees with the differential $d^n$ defined above, a fact
-we prove.
+is induced by the diagonal action of `G`. If we conjugate the $n$th differential in
+$\mathrm{Hom}(P, A)$ by this isomorphism, where `P` is the standard resolution of `k` as a trivial
+`k`-linear `G`-representation, then the resulting map agrees with the differential $d^n$ defined
+above, a fact we prove.
 
 This gives us for free a proof that our $d^n$ squares to zero. It also gives us an isomorphism
-H$^n(G, A) \cong \mathrm{Ext}^n(k, A),$ where Ext is taken in the category `Rep k G`.
+$\mathrm{H}^n(G, A) \cong \mathrm{Ext}^n(k, A),$ where $\mathrm{Ext}$ is taken in the category
+`Rep k G`.
 
 ## Main definitions
 
 * `group_cohomology.linear_yoneda_obj_resolution A`: a complex whose objects are the representation
-morphisms Hom$(k[G^{n + 1}], A)$ and whose cohomology is the group cohomology H$^n(G, A)$.
-* `group_cohomology.inhomogeneous_cochains A`: a complex whose objects are Fun$(G^n, A)$ and whose
-cohomology is the group cohomology H$^n(G, A).$
+morphisms $\mathrm{Hom}(k[G^{n + 1}], A)$ and whose cohomology is the group cohomology
+$\mathrm{H}^n(G, A)$.
+* `group_cohomology.inhomogeneous_cochains A`: a complex whose objects are
+$\mathrm{Fun}(G^n, A)$ and whose cohomology is the group cohomology $\mathrm{H}^n(G, A).$
 * `group_cohomology.inhomogeneous_cochains_iso A`: an isomorphism between the above two complexes.
-* `group_cohomology A n`: this is H$^n(G, A),$ defined as the $n$th cohomology of the second
-complex, `inhomogeneous_cochains A`.
-* `group_cohomology_iso_Ext A n`: an isomorphism H$^n(G, A) \cong \mathrm{Ext}^n(k, A)$
-(where Ext is taken in the category `Rep k G`) induced by `inhomogeneous_cochains_iso A`.
+* `group_cohomology A n`: this is $\mathrm{H}^n(G, A),$ defined as the $n$th cohomology of the
+second complex, `inhomogeneous_cochains A`.
+* `group_cohomology_iso_Ext A n`: an isomorphism $\mathrm{H}^n(G, A) \cong \mathrm{Ext}^n(k, A)$
+(where $\mathrm{Ext}$ is taken in the category `Rep k G`) induced by `inhomogeneous_cochains_iso A`.
 
 ## Implementation notes
 
@@ -50,8 +52,8 @@ possible scalar action diamonds.
 
 ## TODO
 
-* API for cohomology in low degree: H$^0, \mathrm{H}^1$ and H$^2.$ For example, the
-inflation-restriction exact sequence.
+* API for cohomology in low degree: $\mathrm{H}^0, \mathrm{H}^1$ and $\mathrm{H}^2.$ For example,
+the inflation-restriction exact sequence.
 * The long exact sequence in cohomology attached to a short exact sequence of representations.
 * Upgrading `group_cohomology_iso_Ext` to an isomorphism of derived functors.
 * Profinite cohomology.

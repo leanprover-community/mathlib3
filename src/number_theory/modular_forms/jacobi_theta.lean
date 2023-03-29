@@ -112,18 +112,6 @@ begin
     ring_nf }
 end
 
-lemma jacobi_theta_continuous : continuous jacobi_theta :=
-begin
-  suffices : ∀ (y : ℝ) (hy : 0 < y), continuous_on jacobi_theta {z : ℍ | y < z.im},
-  { refine continuous_iff_continuous_at.mpr (λ τ, _),
-    exact let ⟨y, hy, hy'⟩ := exists_between τ.im_pos in continuous_on.continuous_at (this y hy)
-      ((upper_half_plane.continuous_im.is_open_preimage _ is_open_Ioi).mem_nhds hy') },
-  intros y hy,
-  obtain ⟨bd, h_bd, h_bd2⟩ := jacobi_theta_unif_summable hy,
-  refine continuous_on_tsum (λ n, continuous.continuous_on _) h_bd (λ n z h, h_bd2 (le_of_lt h) n),
-  exact complex.continuous_exp.comp (continuous_const.mul continuous_induced_dom)
-end
-
 lemma jacobi_theta_has_sum_nat (τ : ℍ) :
   has_sum (λ (n : ℕ), cexp (π * I * (n + 1) ^ 2 * τ)) ((jacobi_theta τ - 1) / 2) :=
 begin
@@ -206,5 +194,6 @@ begin
 end
 
 lemma jacobi_theta_mdifferentiable : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) jacobi_theta :=
-λ τ, (jacobi_theta_differentiable_at τ).mdifferentiable_at.comp τ
-  (upper_half_plane.mdifferentiable_coe τ)
+λ τ, (jacobi_theta_differentiable_at τ).mdifferentiable_at.comp τ τ.mdifferentiable_coe
+
+lemma jacobi_theta_continuous : continuous jacobi_theta := jacobi_theta_mdifferentiable.continuous

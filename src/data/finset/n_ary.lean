@@ -84,6 +84,12 @@ by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]
 @[simp] lemma image₂_subset_iff : image₂ f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image₂_iff
 
+lemma image₂_subset_iff_left : image₂ f s t ⊆ u ↔ ∀ a ∈ s, t.image (f a) ⊆ u :=
+by simp_rw [image₂_subset_iff, image_subset_iff]
+
+lemma image₂_subset_iff_right : image₂ f s t ⊆ u ↔ ∀ b ∈ t, s.image (λ a, f a b) ⊆ u :=
+by simp_rw [image₂_subset_iff, image_subset_iff, @forall₂_swap α]
+
 @[simp] lemma image₂_nonempty_iff : (image₂ f s t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 by { rw [←coe_nonempty, coe_image₂], exact image2_nonempty_iff }
 
@@ -112,6 +118,14 @@ coe_injective $ by { push_cast, exact image2_union_left }
 
 lemma image₂_union_right [decidable_eq β] : image₂ f s (t ∪ t') = image₂ f s t ∪ image₂ f s t' :=
 coe_injective $ by { push_cast, exact image2_union_right }
+
+@[simp] lemma image₂_insert_left [decidable_eq α] :
+  image₂ f (insert a s) t = t.image (f a) ∪ image₂ f s t :=
+coe_injective $ by { push_cast, exact image2_insert_left }
+
+@[simp] lemma image₂_insert_right [decidable_eq β] :
+  image₂ f s (insert b t) = s.image (λ a, f a b) ∪ image₂ f s t :=
+coe_injective $ by { push_cast, exact image2_insert_right }
 
 lemma image₂_inter_left [decidable_eq α] (hf : injective2 f) :
   image₂ f (s ∩ s') t = image₂ f s t ∩ image₂ f s' t :=
@@ -214,10 +228,6 @@ lemma image₂_image_right (f : α → γ → δ) (g : β → γ) :
   image₂ f s (t.image g) = image₂ (λ a b, f a (g b)) s t :=
 coe_injective $ by { push_cast, exact image2_image_right _ _ }
 
-lemma image₂_swap (f : α → β → γ) (s : finset α) (t : finset β) :
-  image₂ f s t = image₂ (λ a b, f b a) t s :=
-coe_injective $ by { push_cast, exact image2_swap _ _ _ }
-
 @[simp] lemma image₂_mk_eq_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   image₂ prod.mk s t = s ×ˢ t :=
 by ext; simp [prod.ext_iff]
@@ -228,6 +238,10 @@ by { classical, rw [←image₂_mk_eq_product, image_image₂, curry] }
 
 @[simp] lemma image_uncurry_product (f : α → β → γ) (s : finset α) (t : finset β) :
   (s ×ˢ t).image (uncurry f) = image₂ f s t := by rw [←image₂_curry, curry_uncurry]
+
+lemma image₂_swap (f : α → β → γ) (s : finset α) (t : finset β) :
+  image₂ f s t = image₂ (λ a b, f b a) t s :=
+coe_injective $ by { push_cast, exact image2_swap _ _ _ }
 
 @[simp] lemma image₂_left [decidable_eq α] (h : t.nonempty) : image₂ (λ x y, x) s t = s :=
 coe_injective $ by { push_cast, exact image2_left h }
@@ -345,6 +359,14 @@ lemma image₂_right_identity {f : γ → β → γ} {b : β} (h : ∀ a, f a b 
 by rw [image₂_singleton_right, funext h, image_id']
 
 variables [decidable_eq α] [decidable_eq β]
+
+lemma image₂_inter_union_subset_union :
+  image₂ f (s ∩ s') (t ∪ t') ⊆ image₂ f s t ∪ image₂ f s' t' :=
+coe_subset.1 $ by { push_cast, exact set.image2_inter_union_subset_union }
+
+lemma image₂_union_inter_subset_union :
+  image₂ f (s ∪ s') (t ∩ t') ⊆ image₂ f s t ∪ image₂ f s' t' :=
+coe_subset.1 $ by { push_cast, exact set.image2_union_inter_subset_union }
 
 lemma image₂_inter_union_subset {f : α → α → β} {s t : finset α} (hf : ∀ a b, f a b = f b a) :
   image₂ f (s ∩ t) (s ∪ t) ⊆ image₂ f s t :=

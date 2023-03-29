@@ -38,7 +38,7 @@ Appropriate definitions and results are also transported to the additive theory 
 
 -/
 
-open function
+open function mul_opposite
 
 variables {F α β γ : Type*}
 
@@ -108,6 +108,12 @@ attribute [mono] vadd_subset_vadd
 @[to_additive] lemma inter_smul_subset : (s₁ ∩ s₂) • t ⊆ s₁ • t ∩ s₂ • t := image2_inter_subset_left
 @[to_additive] lemma smul_inter_subset : s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
 image2_inter_subset_right
+@[to_additive] lemma inter_smul_union_subset_union :
+  (s₁ ∩ s₂) • (t₁ ∪ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_smul_inter_subset_union :
+  (s₁ ∪ s₂) • (t₁ ∩ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_smul_left_image : (⋃ a ∈ s, a • t) = s • t := Union_image_left _
 @[to_additive] lemma Union_smul_right_image : (⋃ a ∈ t, (• a) '' s) = s • t := Union_image_right _
@@ -142,6 +148,9 @@ image2_Inter₂_subset_left _ _ _
 lemma smul_Inter₂_subset (s : set α) (t : Π i, κ i → set β) :
   s • (⋂ i j, t i j) ⊆ ⋂ i j, s • t i j :=
 image2_Inter₂_subset_right _ _ _
+
+@[to_additive] lemma smul_set_subset_smul {s : set α} : a ∈ s → a • t ⊆ s • t :=
+image_subset_image2_right
 
 @[simp, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
   (⋃ a ∈ s, a • t) = s • t :=
@@ -192,11 +201,21 @@ image_Inter₂_subset _ _
 
 end has_smul_set
 
-variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
+section has_mul
+variables [has_mul α] {s t u : set α} {a : α}
 
-@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
-  (⋃ a ∈ t, mul_opposite.op a • s) = s * t :=
+@[to_additive] lemma op_smul_set_subset_smul : a ∈ t → op a • s ⊆ s • t := image_subset_image2_left
+
+@[simp, to_additive] lemma bUnion_op_smul_set (s t : set α) : (⋃ a ∈ t, op a • s) = s * t :=
 Union_image_right _
+
+@[to_additive] lemma mul_subset_iff_left : s * t ⊆ u ↔ ∀ a ∈ s, a • t ⊆ u := image2_subset_iff_left
+@[to_additive] lemma mul_subset_iff_right : s * t ⊆ u ↔ ∀ b ∈ t, op b • s ⊆ u :=
+image2_subset_iff_right
+
+end has_mul
+
+variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
 @[to_additive]
 theorem range_smul_range {ι κ : Type*} [has_smul α β] (b : ι → α) (c : κ → β) :
@@ -344,6 +363,10 @@ lemma union_vsub : (s₁ ∪ s₂) -ᵥ t = s₁ -ᵥ t ∪ (s₂ -ᵥ t) := ima
 lemma vsub_union : s -ᵥ (t₁ ∪ t₂) = s -ᵥ t₁ ∪ (s -ᵥ t₂) := image2_union_right
 lemma inter_vsub_subset : s₁ ∩ s₂ -ᵥ t ⊆ (s₁ -ᵥ t) ∩ (s₂ -ᵥ t) := image2_inter_subset_left
 lemma vsub_inter_subset : s -ᵥ t₁ ∩ t₂ ⊆ (s -ᵥ t₁) ∩ (s -ᵥ t₂) := image2_inter_subset_right
+lemma inter_vsub_union_subset_union : (s₁ ∩ s₂) -ᵥ (t₁ ∪ t₂) ⊆ (s₁ -ᵥ t₁) ∪ (s₂ -ᵥ t₂) :=
+image2_inter_union_subset_union
+lemma union_vsub_inter_subset_union : (s₁ ∪ s₂) -ᵥ (t₁ ∩ t₂) ⊆ (s₁ -ᵥ t₁) ∪ (s₂ -ᵥ t₂) :=
+image2_union_inter_subset_union
 
 lemma Union_vsub_left_image : (⋃ a ∈ s, ((-ᵥ) a) '' t) = s -ᵥ t := Union_image_left _
 lemma Union_vsub_right_image : (⋃ a ∈ t, (-ᵥ a) '' s) = s -ᵥ t := Union_image_right _
@@ -448,6 +471,19 @@ variables [left_cancel_semigroup α] {s t : set α}
 pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 
 end left_cancel_semigroup
+
+section monoid
+variables [monoid α] [mul_action α β]
+
+@[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (s : set α) (a : α) (t : set β) :
+  (op a • s) • t = s • a • t :=
+by simpa using mul_smul s {a} t
+
+@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (s : set α) (a : α) (t : set α) :
+  (op a • s) * t = s * a • t :=
+op_smul_set_smul_eq_smul_smul_set _ _ _
+
+end monoid
 
 section group
 variables [group α] [mul_action α β] {s t A B : set β} {a : α} {x : β}

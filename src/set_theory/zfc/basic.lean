@@ -720,6 +720,19 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+@[simp] theorem sUnion_pair {x y : Set.{u}} : ⋃₀ ({x, y} : Set.{u}) = x ∪ y :=
+begin
+  ext,
+  simp_rw [mem_union, mem_sUnion, mem_pair],
+  split,
+  { rintro ⟨w, (rfl | rfl), hw⟩,
+    { exact or.inl hw },
+    { exact or.inr hw } },
+  { rintro (hz | hz),
+    { exact ⟨x, or.inl rfl, hz⟩ },
+    { exact ⟨y, or.inr rfl, hz⟩ } }
+end
+
 theorem mem_wf : @well_founded Set (∈) :=
 well_founded_lift₂_iff.mpr pSet.mem_wf
 

@@ -1009,11 +1009,14 @@ def sUnion (x : Class) : Class := ⋃₀ (Class_to_Cong x)
 
 prefix (name := Class.sUnion) `⋃₀ `:110 := Class.sUnion
 
-theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
-Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
+theorem coe_injective : function.injective (@coe Set.{u} Class.{u} _) :=
+λ x y h, Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
+
+@[simp] theorem coe_inj {x y : Set.{u}} : (x : Class.{u}) = y ↔ x = y :=
+coe_injective.eq_iff
 
 @[simp] theorem to_Set_of_Set (A : Class.{u}) (x : Set.{u}) : to_Set A x ↔ A x :=
-⟨λ ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λ px, ⟨x, rfl, px⟩⟩
+⟨λ ⟨y, yx, py⟩, by rwa coe_injective yx at py, λ px, ⟨x, rfl, px⟩⟩
 
 @[simp, norm_cast] theorem coe_mem {x : Set.{u}} {A : Class.{u}} : (x : Class.{u}) ∈ A ↔ A x :=
 to_Set_of_Set _ _

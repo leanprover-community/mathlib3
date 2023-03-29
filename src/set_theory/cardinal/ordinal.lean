@@ -117,7 +117,7 @@ def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
   have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
   simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using le_csupr
     (cardinal.bdd_above_range.{u u} (λ a : α, inv_fun aleph_idx (ordinal.typein r a)))
-    (ordinal.enum r _ (h (succ s)))
+    (ordinal.enum r ⟨_, h (succ s)⟩)
 end
 
 @[simp] theorem aleph_idx.rel_iso_coe :

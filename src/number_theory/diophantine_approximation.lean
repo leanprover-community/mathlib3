@@ -322,7 +322,7 @@ see `real.continued_fraction_convergent_eq_convergent`.
 (Note that we use the fact that `1/0 = 0` here to make it work for rational `ξ`.) -/
 noncomputable def convergent : ℝ → ℕ → ℚ
 | ξ 0 := ⌊ξ⌋
-| ξ (n + 1) := ⌊ξ⌋ + 1 / convergent (1 / fract ξ) n
+| ξ (n + 1) := ⌊ξ⌋ + (convergent (fract ξ)⁻¹ n)⁻¹
 
 /-- The zeroth convergent of `ξ` is `⌊ξ⌋`. -/
 @[simp]
@@ -331,7 +331,7 @@ lemma convergent_zero (ξ : ℝ) : ξ.convergent 0 = ⌊ξ⌋ := rfl
 /-- The `(n+1)`th convergent of `ξ` is the `n`th convergent of `1/(fract ξ)`. -/
 @[simp]
 lemma convergent_succ (ξ : ℝ) (n : ℕ) :
-  ξ.convergent (n + 1) = ⌊ξ⌋ + 1 / (1 / fract ξ).convergent n :=
+  ξ.convergent (n + 1) = ⌊ξ⌋ + ((fract ξ)⁻¹.convergent n)⁻¹ :=
 convergent.equations._eqn_2 ξ n
 
 /-- All convergents of `0` are zero. -/
@@ -340,7 +340,7 @@ lemma convergent_of_zero (n : ℕ) : convergent 0 n = 0 :=
 begin
   induction n with n ih,
   { simp only [convergent_zero, floor_zero, cast_zero], },
-  { simp only [ih, convergent_succ, floor_zero, cast_zero, fract_zero, div_zero, add_zero], }
+  { simp only [ih, convergent_succ, floor_zero, cast_zero, fract_zero, add_zero, inv_zero], }
 end
 
 /-- If `ξ` is an integer, all its convergents equal `ξ`. -/
@@ -349,8 +349,8 @@ lemma convergent_of_int {ξ : ℤ} (n : ℕ) : convergent ξ n = ξ :=
 begin
   cases n,
   { simp only [convergent_zero, floor_int_cast], },
-  { simp only [convergent_succ, floor_int_cast, fract_int_cast, div_zero, convergent_of_zero,
-               add_zero], }
+  { simp only [convergent_succ, floor_int_cast, fract_int_cast, convergent_of_zero, add_zero,
+               inv_zero], }
 end
 
 /-!
@@ -366,7 +366,7 @@ lemma continued_fraction_convergent_eq_convergent (ξ : ℝ) (n : ℕ) :
 begin
   induction n with n ih generalizing ξ,
   { simp only [zeroth_convergent_eq_h, of_h_eq_floor, convergent_zero, rat.cast_coe_int], },
-  { rw [convergents_succ, ih (fract ξ)⁻¹, convergent_succ, one_div (fract ξ)],
+  { rw [convergents_succ, ih (fract ξ)⁻¹, convergent_succ, one_div],
     norm_cast, }
 end
 
@@ -378,40 +378,40 @@ end convergent
 ### The key technical condition for the induction proof
 -/
 
-section technical
-
-namespace real.contfrac_legendre
+namespace real
 
 open int
 
 /-- Define the technical condition to be used as assumption in the inductive proof. -/
-def ass (ξ : ℝ) (u v : ℤ) : Prop :=
-is_coprime u v ∧ (v = 1 → (-(1 / 2) : ℝ) < ξ - u) ∧ |ξ - u / v| < 1 / (v * (2 * v - 1))
+private def contfrac_legendre.ass (ξ : ℝ) (u v : ℤ) : Prop :=
+is_coprime u v ∧ (v = 1 → (-(1 / 2) : ℝ) < ξ - u) ∧ |ξ - u / v| < (v * (2 * v - 1))⁻¹
 
 /-!
 ### Auxiliary lemmas
 -/
 
 -- This saves a few lines below, as it is frequently needed.
-lemma aux₀ {v : ℤ} (hv : 0 < v) : (0 : ℝ) < v ∧ (0 : ℝ) < 2 * v - 1 :=
+private lemma aux₀ {v : ℤ} (hv : 0 < v) : (0 : ℝ) < v ∧ (0 : ℝ) < 2 * v - 1 :=
 ⟨cast_pos.mpr hv, by {norm_cast, linarith}⟩
 
 /-! In the following, we assume that `ass ξ u v` holds and `v ≥ 2`. -/
 
-variables {ξ : ℝ} {u v : ℤ} (hv : 2 ≤ v) (h : ass ξ u v)
+variables {ξ : ℝ} {u v : ℤ} (hv : 2 ≤ v) (h : contfrac_legendre.ass ξ u v)
 include hv h
 
 /-- The fractional part of `ξ` is positive. -/
-lemma aux₁ : 0 < fract ξ :=
+private lemma aux₁ : 0 < fract ξ :=
 begin
   have hv₀ : (0 : ℝ) < v := cast_pos.mpr (zero_lt_two.trans_le hv),
+  obtain ⟨hv₁, hv₂⟩ := aux₀ (zero_lt_two.trans_le hv),
   obtain ⟨hcop, _, h⟩ := h,
   refine fract_pos.mpr (λ hf, _),
   rw [hf] at h,
   have H : (2 * v - 1 : ℝ) < 1,
-  { refine (mul_lt_iff_lt_one_right hv₀).mp (lt_of_one_div_lt_one_div hv₀ (lt_of_le_of_lt _ h)),
+  { refine (mul_lt_iff_lt_one_right hv₀).mp
+             ((inv_lt_inv hv₀ (mul_pos hv₁ hv₂)).mp (lt_of_le_of_lt _ h)),
     have h' : (⌊ξ⌋ : ℝ) - u / v = (⌊ξ⌋ * v - u) / v := by field_simp [hv₀.ne'],
-    rw [h', abs_div, abs_of_pos hv₀, div_le_div_right hv₀],
+    rw [h', abs_div, abs_of_pos hv₀, ← one_div, div_le_div_right hv₀],
     norm_cast,
     rw [← zero_add (1 : ℤ), add_one_le_iff, abs_pos, sub_ne_zero],
     rintro rfl,
@@ -421,13 +421,13 @@ begin
 end
 
 /-- An auxiliary lemma for the inductive step. -/
-lemma aux₂ : 0 < u - ⌊ξ⌋ * v ∧ u - ⌊ξ⌋ * v < v :=
+private lemma aux₂ : 0 < u - ⌊ξ⌋ * v ∧ u - ⌊ξ⌋ * v < v :=
 begin
   obtain ⟨hcop, _, h⟩ := h,
   obtain ⟨hv₀, hv₀'⟩ := aux₀ (zero_lt_two.trans_le hv),
   have hv₁ : 0 < 2 * v - 1 := by linarith only [hv],
-  rw [lt_div_iff (mul_pos hv₀ hv₀'), ← abs_of_pos (mul_pos hv₀ hv₀'), ← abs_mul, sub_mul,
-      ← mul_assoc, ← mul_assoc, div_mul_cancel _ hv₀.ne', abs_sub_comm, abs_lt,
+  rw [← one_div, lt_div_iff (mul_pos hv₀ hv₀'), ← abs_of_pos (mul_pos hv₀ hv₀'), ← abs_mul,
+      sub_mul, ← mul_assoc, ← mul_assoc, div_mul_cancel _ hv₀.ne', abs_sub_comm, abs_lt,
       lt_sub_iff_add_lt, sub_lt_iff_lt_add, mul_assoc] at h,
   have hu₀ : 0 ≤ u - ⌊ξ⌋ * v,
   { refine (zero_le_mul_right hv₁).mp ((lt_iff_add_one_le (-1 : ℤ) _).mp _),
@@ -453,7 +453,8 @@ begin
 end
 
 /-- The key step: the relevant inequality persists in the inductive step. -/
-lemma aux₃ : |1 / fract ξ - v / (u - ⌊ξ⌋ * v)| < 1 / ((u - ⌊ξ⌋ * v) * (2 * (u - ⌊ξ⌋ * v) - 1)) :=
+private
+lemma aux₃ : |(fract ξ)⁻¹ - v / (u - ⌊ξ⌋ * v)| < ((u - ⌊ξ⌋ * v) * (2 * (u - ⌊ξ⌋ * v) - 1))⁻¹ :=
 begin
   obtain ⟨hu₀, huv⟩ := aux₂ hv h,
   have hξ₀ := aux₁ hv h,
@@ -465,11 +466,11 @@ begin
   obtain ⟨Hv, Hv'⟩ := aux₀ (zero_lt_two.trans_le hv),
   have H₁ := div_pos (div_pos Hv Hu) hξ₀,
   replace h := h.2.2,
-  have h' : |fract ξ - u' / v| < 1 / (v * (2 * v - 1)),
+  have h' : |fract ξ - u' / v| < (v * (2 * v - 1))⁻¹,
   { rwa [hu'ℝ, add_div, mul_div_cancel _ Hv.ne', ← sub_sub, sub_right_comm] at h, },
   have H : (2 * u' - 1 : ℝ) ≤ (2 * v - 1) * fract ξ,
   { replace h := (abs_lt.mp h).1,
-    have : (2 * (v : ℝ) - 1) * (-(1 / (v * (2 * v - 1))) + u' / v) = 2 * u' - (1 + u') / v,
+    have : (2 * (v : ℝ) - 1) * (-(v * (2 * v - 1))⁻¹ + u' / v) = 2 * u' - (1 + u') / v,
     { field_simp [Hv.ne', Hv'.ne'], ring, },
     rw [hu'ℝ, add_div, mul_div_cancel _ Hv.ne', ← sub_sub, sub_right_comm, self_sub_floor,
         lt_sub_iff_add_lt, ← mul_lt_mul_left Hv', this] at h,
@@ -477,58 +478,53 @@ begin
     rw [sub_le_sub_iff_left, div_le_one Hv, add_comm],
     exact_mod_cast huv, },
   have help₁ : ∀ {a b c : ℝ}, a ≠ 0 → b ≠ 0 → c ≠ 0 →
-                 |1 / a - b / c| = |(a - c / b) * (b / c / a)|,
+                 |a⁻¹ - b / c| = |(a - c / b) * (b / c / a)|,
   { intros, rw abs_sub_comm, congr' 1, field_simp, ring },
   have help₂ : ∀ {a b c d : ℝ}, a ≠ 0 → b ≠ 0 → c ≠ 0 → d ≠ 0 →
-                 1 / (b * c) * (b / d / a) = 1 / (d * c * a),
+                 (b * c)⁻¹ * (b / d / a) = (d * c * a)⁻¹,
   { intros, field_simp, ring },
   calc
-    |1 / fract ξ - v / u'|
+    |(fract ξ)⁻¹ - v / u'|
         = |(fract ξ - u' / v) * (v / u' / fract ξ)| : help₁ hξ₀.ne' Hv.ne' Hu.ne'
     ... = |fract ξ - u' / v| * (v / u' / fract ξ) :   by rw [abs_mul, abs_of_pos H₁, abs_sub_comm]
-    ... < 1 / (v * (2 * v - 1)) * (v / u' / fract ξ) : (mul_lt_mul_right H₁).mpr h'
-    ... = 1 / (u' * (2 * v - 1) * fract ξ) :          help₂ hξ₀.ne' Hv.ne' Hv'.ne' Hu.ne'
-    ... ≤ 1 / (u' * (2 * u' - 1)) : by rwa [one_div_le_one_div (mul_pos (mul_pos Hu Hv') hξ₀) $
+    ... < (v * (2 * v - 1))⁻¹ * (v / u' / fract ξ) :  (mul_lt_mul_right H₁).mpr h'
+    ... = (u' * (2 * v - 1) * fract ξ)⁻¹ :            help₂ hξ₀.ne' Hv.ne' Hv'.ne' Hu.ne'
+    ... ≤ (u' * (2 * u' - 1))⁻¹ : by rwa [inv_le_inv (mul_pos (mul_pos Hu Hv') hξ₀) $
                                               mul_pos Hu Hu', mul_assoc, mul_le_mul_left Hu],
 end
 
 /-- The conditions `ass ξ u v` persist in the inductive step. -/
-lemma invariant : ass (1 / fract ξ) v (u - ⌊ξ⌋ * v) :=
+private lemma invariant : contfrac_legendre.ass (fract ξ)⁻¹ v (u - ⌊ξ⌋ * v) :=
 begin
   refine ⟨_, λ huv, _, by exact_mod_cast aux₃ hv h⟩,
   { rw [sub_eq_add_neg, ← neg_mul, is_coprime_comm, is_coprime.add_mul_right_left_iff],
     exact h.1, },
   { obtain ⟨hv₀, hv₀'⟩ := aux₀ (zero_lt_two.trans_le hv),
-    have Hv : (1 : ℝ) / (v * (2 * v - 1)) + 1 / v = 2 / (2 * v - 1),
+    have Hv : (v * (2 * v - 1) : ℝ)⁻¹ + v⁻¹ = 2 / (2 * v - 1),
     { field_simp [hv₀.ne', hv₀'.ne'], ring, },
-    have Huv : (u / v : ℝ) = ⌊ξ⌋ + 1 / v,
+    have Huv : (u / v : ℝ) = ⌊ξ⌋ + v⁻¹,
     { rw [sub_eq_iff_eq_add'.mp huv], field_simp [hv₀.ne'], },
     have h' := (abs_sub_lt_iff.mp h.2.2).1,
     rw [Huv, ← sub_sub, sub_lt_iff_lt_add, self_sub_floor, Hv] at h',
     rwa [lt_sub_iff_add_lt', (by ring : (v : ℝ) + -(1 / 2) = (2 * v - 1) / 2),
-         lt_one_div (div_pos hv₀' zero_lt_two) (aux₁ hv h), one_div_div], }
+         lt_inv (div_pos hv₀' zero_lt_two) (aux₁ hv h), inv_div], }
 end
 
-end real.contfrac_legendre
-
-end technical
+omit h hv
 
 /-!
 ### The main result
 -/
 
-namespace real
-
-open contfrac_legendre int
-
 /-- The technical version of *Legendre's Theorem*. -/
-lemma exists_rat_eq_convergent' {ξ : ℝ} {u : ℤ} {v : ℕ} (h : ass ξ u v) :
+lemma exists_rat_eq_convergent' {v : ℕ} (h : contfrac_legendre.ass ξ u v) :
   ∃ n, (u / v : ℚ) = ξ.convergent n :=
 begin
   induction v using nat.strong_induction_on with v ih generalizing ξ u,
   rcases lt_trichotomy v 1 with ht | rfl | ht,
   { replace h := h.2.2,
-    simp only [nat.lt_one_iff.mp ht, nat.cast_zero, div_zero, tsub_zero, zero_mul, cast_zero] at h,
+    simp only [nat.lt_one_iff.mp ht, nat.cast_zero, div_zero, tsub_zero, zero_mul, cast_zero,
+               inv_zero] at h,
     exact false.elim (lt_irrefl _ $ (abs_nonneg ξ).trans_lt h), },
   { rw [nat.cast_one, div_one],
     obtain ⟨_, h₁, h₂⟩ := h,
@@ -543,36 +539,33 @@ begin
       cases eq_or_ne ξ ⌊ξ⌋ with Hξ Hξ,
       { rw [Hξ, hξ₁, cast_sub, cast_one, ← sub_eq_add_neg, sub_lt_sub_iff_left] at h₁,
         exact false.elim (lt_irrefl _ $ h₁.trans one_half_lt_one), },
-      { have hξ₂ : ⌊1 / fract ξ⌋ = 1,
-        { rw [floor_eq_iff, cast_one, le_one_div zero_lt_one (fract_pos.mpr Hξ), div_one,
-              one_add_one_eq_two, one_div_lt (fract_pos.mpr Hξ) zero_lt_two],
+      { have hξ₂ : ⌊(fract ξ)⁻¹⌋ = 1,
+        { rw [floor_eq_iff, cast_one, le_inv zero_lt_one (fract_pos.mpr Hξ), inv_one,
+              one_add_one_eq_two, inv_lt (fract_pos.mpr Hξ) zero_lt_two],
           refine ⟨(fract_lt_one ξ).le, _⟩,
           rw [fract, hξ₁, cast_sub, cast_one, lt_sub_iff_add_lt', sub_add],
           convert h₁,
           norm_num, },
         use 1,
-        simp only [convergent, hξ₁, hξ₂, cast_sub, cast_one, div_self,
-                   ne.def, one_ne_zero, not_false_iff, sub_add_cancel], } } },
+        simp [convergent, hξ₁, hξ₂, cast_sub, cast_one], } } },
   { obtain ⟨huv₀, huv₁⟩ := aux₂ (nat.cast_le.mpr  ht) h,
     have Hv : (v : ℚ) ≠ 0 := (nat.cast_pos.mpr (zero_lt_one.trans ht)).ne',
     have huv₁' : (u - ⌊ξ⌋ * v).to_nat < v := by { zify, rwa to_nat_of_nonneg huv₀.le, },
-    have inv : ass (1 / fract ξ) v (u - ⌊ξ⌋ * ↑v).to_nat :=
+    have inv : contfrac_legendre.ass (fract ξ)⁻¹ v (u - ⌊ξ⌋ * ↑v).to_nat :=
     (to_nat_of_nonneg huv₀.le).symm ▸ invariant (nat.cast_le.mpr ht) h,
     obtain ⟨n, hn⟩ := ih (u - ⌊ξ⌋ * v).to_nat huv₁' inv,
     use (n + 1),
     rw [convergent_succ, ← hn,
         (by exact_mod_cast to_nat_of_nonneg huv₀.le : ((u - ⌊ξ⌋ * v).to_nat : ℚ) = u - ⌊ξ⌋ * v),
-        ← coe_coe, one_div_div, sub_div, mul_div_cancel _ Hv, add_sub_cancel'_right], }
+        ← coe_coe, inv_div, sub_div, mul_div_cancel _ Hv, add_sub_cancel'_right], }
 end
-
-variables {ξ : ℝ} {q : ℚ} (h : |ξ - q| < 1 / (2 * q.denom ^ 2))
-include h
 
 /-- The main result, *Legendre's Theorem* on rational approximation:
 if `ξ` is a real number and  `q` is a rational number such that `|ξ - q| < 1/(2*q.denom^2)`,
 then `q` is a convergent of the continued fraction expansion of `ξ`.
 This version uses `real.convergent`. -/
-lemma exists_rat_eq_convergent : ∃ n, q = ξ.convergent n :=
+lemma exists_rat_eq_convergent {q : ℚ} (h : |ξ - q| < 1 / (2 * q.denom ^ 2)) :
+  ∃ n, q = ξ.convergent n :=
 begin
   refine q.num_div_denom ▸ exists_rat_eq_convergent' ⟨_, λ hd, _, _⟩,
   { exact coprime_iff_nat_coprime.mpr (nat_abs_of_nat q.denom ▸ q.cop), },
@@ -583,14 +576,15 @@ begin
     have hq₂ : (0 : ℝ) < 2 * (q.denom * q.denom) := mul_pos zero_lt_two (mul_pos hq₀ hq₀),
     rw ← coe_coe at *,
     rw [(by norm_cast : (q.num / q.denom : ℝ) = (q.num / q.denom : ℚ)), rat.num_div_denom],
-    exact h.trans (by {rw [sq, one_div_lt_one_div hq₂ hq₁, ← sub_pos], ring_nf, exact hq₀}) },
+    exact h.trans
+          (by {rw [← one_div, sq, one_div_lt_one_div hq₂ hq₁, ← sub_pos], ring_nf, exact hq₀}), }
 end
 
 /-- The main result, *Legendre's Theorem* on rational approximation:
 if `ξ` is a real number and  `q` is a rational number such that `|ξ - q| < 1/(2*q.denom^2)`,
 then `q` is a convergent of the continued fraction expansion of `ξ`.
 This is the version using `generalized_contined_fraction.convergents`. -/
-lemma exists_continued_fraction_convergent_eq_rat :
+lemma exists_continued_fraction_convergent_eq_rat {q : ℚ} (h : |ξ - q| < 1 / (2 * q.denom ^ 2)) :
   ∃ n, (generalized_continued_fraction.of ξ).convergents n = q :=
 begin
   obtain ⟨n, hn⟩ := exists_rat_eq_convergent h,

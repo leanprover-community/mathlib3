@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.homology.exact
-import category_theory.types
 import category_theory.limits.shapes.biproducts
 import category_theory.adjunction.limits
-import category_theory.preadditive.yoneda.basic
+import category_theory.limits.preserves.finite
 
 /-!
 # Projective objects and categories with enough projectives

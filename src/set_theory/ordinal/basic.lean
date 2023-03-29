@@ -374,13 +374,13 @@ def typein.principal_seg (r : α → α → Prop) [is_well_order α r] :
   That is, `enum` maps an initial segment of the ordinals, those
   less than the order type of `r`, to the elements of `α`. -/
 def enum (r : α → α → Prop) [is_well_order α r] (o) (h : o < type r) : α :=
-(typein.principal_seg r).iso_subrel.symm ⟨o, h⟩
+(typein.principal_seg r).subrel_iso ⟨o, h⟩
 
 theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : s ≺i r)
   {h : type s < type r} : enum r (type s) h = f.top :=
 (typein.principal_seg r).injective $
-  ((typein.principal_seg r).apply_iso_subrel_symm _).trans (typein_top _).symm
+  ((typein.principal_seg r).apply_subrel_iso _).trans (typein_top _).symm
 
 @[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α) :
   enum r (typein r a) (typein_lt_type r a) = a :=
@@ -414,7 +414,7 @@ rel_iso_enum' _ _ _ _
 
 theorem lt_wf : @well_founded ordinal (<) :=
 well_founded_iff_well_founded_subrel.mpr $ λ a, induction_on a $ λ α r wo, by exactI
-  rel_hom_class.well_founded (typein.principal_seg r).iso_subrel.symm wo.wf
+  rel_hom_class.well_founded (typein.principal_seg r).subrel_iso wo.wf
 
 instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 
@@ -804,13 +804,13 @@ by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ_iff], apply typein_lt_s
 
 @[simp] theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
-(typein.principal_seg r).iso_subrel.symm.injective.eq_iff.trans subtype.mk_eq_mk
+(typein.principal_seg r).subrel_iso.injective.eq_iff.trans subtype.mk_eq_mk
 
 /-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
 @[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
 { to_fun := λ x, enum r x.1 x.2,
   inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
-  ..(typein.principal_seg r).iso_subrel.symm }
+  ..(typein.principal_seg r).subrel_iso }
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=

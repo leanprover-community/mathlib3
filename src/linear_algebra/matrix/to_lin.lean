@@ -627,7 +627,7 @@ linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 begin
   ext,
   rw [linear_map.to_matrix_apply, distrib_mul_action.to_linear_map_apply, linear_equiv.map_smul,
-    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal,
+    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal_apply,
     pi.single_apply],
 end
 

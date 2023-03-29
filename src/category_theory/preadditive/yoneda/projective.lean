@@ -3,6 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import category_theory.preadditive.injective
 import category_theory.preadditive.projective
 import algebra.category.Group.epi_mono
 import algebra.category.Module.epi_mono
@@ -18,11 +19,13 @@ open category_theory.limits
 open opposite
 open category_theory.projective
 
-namespace category_theory.projective
+namespace category_theory
 variables {C : Type u} [category.{v} C]
 
 section preadditive
 variables [preadditive C]
+
+namespace projective
 
 lemma projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj (P : C) :
   projective P ↔ (preadditive_coyoneda.obj (op P)).preserves_epimorphisms :=
@@ -46,6 +49,8 @@ begin
     exact (infer_instance : (preadditive_coyoneda_obj (op P) ⋙ forget _).preserves_epimorphisms) }
 end
 
+end projective
+
 end preadditive
 
-end category_theory.projective
+end category_theory

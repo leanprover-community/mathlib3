@@ -206,8 +206,8 @@ begin
     have := typein_lt_self a,
     simp_rw [←hf, lt_lsub_iff] at this,
     cases this with i hi,
-    refine ⟨enum (<) (f i) _, _, _⟩,
-    { rw [type_lt, ←hf], apply lt_lsub },
+    refine ⟨enum (<) ⟨f i, _⟩, _, _⟩,
+    { rw [type_lt, ←hf], exact lt_lsub _ _ },
     { rw [mem_preimage, typein_enum], exact mem_range_self i },
     { rwa [←typein_le_typein, typein_enum] } },
   { rcases cof_eq (<) with ⟨S, hS, hS'⟩,
@@ -215,7 +215,7 @@ begin
     refine ⟨S, f, le_antisymm (lsub_le (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
       by rwa type_lt o at hS'⟩,
     rw ←type_lt o at ha,
-    rcases hS (enum (<) a ha) with ⟨b, hb, hb'⟩,
+    rcases hS (enum (<) ⟨a, ha⟩) with ⟨b, hb, hb'⟩,
     rw [←typein_le_typein, typein_enum] at hb',
     exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
 end
@@ -509,7 +509,7 @@ begin
   let r' := subrel r {i | ∀ j, r j i → f j < f i},
   let hrr' : r' ↪r r := subrel.rel_embedding _ _,
   haveI := hrr'.is_well_order,
-  refine ⟨_, _, hrr'.ordinal_type_le.trans _, λ i j _ h _, (enum r' j h).prop _ _,
+  refine ⟨_, _, hrr'.ordinal_type_le.trans _, λ i j _ h _, (enum r' ⟨j, h⟩).prop _ _,
     le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
   { rw [←hι, hr] },
   { change r (hrr'.1 _ ) (hrr'.1 _ ),
@@ -616,7 +616,7 @@ theorem cof_eq' (r : α → α → Prop) [is_well_order α r] (h : is_limit (typ
   ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = cof (type r) :=
 let ⟨S, H, e⟩ := cof_eq r in
 ⟨S, λ a,
-  let a' := enum r _ (h.2 _ (typein_lt_type r a)) in
+  let a' := enum r ⟨_, h.2 _ (typein_lt_type r a)⟩ in
   let ⟨b, h, ab⟩ := H a' in
   ⟨b, h, (is_order_connected.conn a b a' $ (typein_lt_typein r).1
     (by { rw typein_enum, exact lt_succ (typein _ _) })).resolve_right ab⟩,

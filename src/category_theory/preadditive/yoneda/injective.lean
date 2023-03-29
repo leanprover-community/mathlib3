@@ -8,16 +8,13 @@ import category_theory.preadditive.injective
 import algebra.category.Group.epi_mono
 import algebra.category.Module.epi_mono
 
-universes v u
-
 /-!
 An object is injective iff the preadditive yoneda functor on it preserves epimorphisms.
 -/
 
-open category_theory
-open category_theory.limits
+universes v u
+
 open opposite
-open category_theory.projective
 
 namespace category_theory
 variables {C : Type u} [category.{v} C]

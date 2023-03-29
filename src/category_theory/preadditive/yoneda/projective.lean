@@ -8,16 +8,13 @@ import category_theory.preadditive.projective
 import algebra.category.Group.epi_mono
 import algebra.category.Module.epi_mono
 
-universes v u
-
 /-!
 An object is projective iff the preadditive coyoneda functor on it preserves epimorphisms.
 -/
 
-open category_theory
-open category_theory.limits
+universes v u
+
 open opposite
-open category_theory.projective
 
 namespace category_theory
 variables {C : Type u} [category.{v} C]

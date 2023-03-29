@@ -58,7 +58,7 @@ end
 
 lemma jacobi_theta_unif_summable {R : ℝ} (hR : 0 < R) :
   ∃ (bd : ℤ → ℝ), (summable bd) ∧
-  (∀ {τ : ℍ} (hτ : R ≤ τ.im) (n : ℤ), ‖cexp (π * I * n ^ 2 * τ)‖ ≤ bd n) :=
+  (∀ {τ : ℂ} (hτ : R ≤ τ.im) (n : ℤ), ‖cexp (π * I * n ^ 2 * τ)‖ ≤ bd n) :=
 begin
   obtain ⟨y, hy1, hy2, hb⟩ := jacobi_theta_term_bound hR,
   refine ⟨λ n, y ^ n.nat_abs, summable_int_of_summable_nat _ _, λ τ hτ n, hb _ hτ n⟩,
@@ -66,8 +66,9 @@ begin
     using summable_geometric_of_lt_1 hy1.le hy2, },
 end
 
-lemma jacobi_theta_summable (τ : ℍ) : summable (λ n : ℤ, cexp (π * I * n ^ 2 * τ)) :=
-let ⟨bd, h, h'⟩ := jacobi_theta_unif_summable τ.im_pos in
+lemma jacobi_theta_summable {z : ℂ} (hz : 0 < z.im) :
+  summable (λ n : ℤ, cexp (π * I * n ^ 2 * z)) :=
+let ⟨bd, h, h'⟩ := jacobi_theta_unif_summable hz in
   summable_norm_iff.mp (summable_of_nonneg_of_le (λ n, norm_nonneg _) (h' $ le_refl _) h)
 
 lemma jacobi_theta_two_vadd (τ : ℍ) : jacobi_theta ((2 : ℝ) +ᵥ τ) = jacobi_theta τ :=
@@ -126,7 +127,7 @@ end
 lemma jacobi_theta_has_sum_nat (τ : ℍ) :
   has_sum (λ (n : ℕ), cexp (π * I * (n + 1) ^ 2 * τ)) ((jacobi_theta τ - 1) / 2) :=
 begin
-  have := (jacobi_theta_summable τ).has_sum.sum_nat_of_sum_int,
+  have := (jacobi_theta_summable τ.im_pos).has_sum.sum_nat_of_sum_int,
   rw ←@has_sum_nat_add_iff' ℂ _ _ _ _ 1 at this,
   simp_rw [finset.sum_range_one, int.cast_neg, int.cast_coe_nat, nat.cast_zero, neg_zero,
     int.cast_zero, sq (0:ℂ), mul_zero, zero_mul, neg_sq, ←mul_two, complex.exp_zero,
@@ -192,25 +193,16 @@ lemma jacobi_theta_differentiable_at (τ : ℍ) :
   differentiable_at ℂ (λ z, ∑' (n : ℤ), cexp (π * I * n ^ 2 * z)) ↑τ :=
 begin
   suffices : ∀ (y : ℝ) (hy : 0 < y),
-    differentiable_on ℂ (λ z, ∑' (n : ℤ), cexp (π * I * n ^ 2 * z)) {z : ℂ | y < im z},
+    differentiable_on ℂ (λ z, ∑' (n : ℤ), cexp (π * I * n ^ 2 * z)) {w : ℂ | y < im w},
   from let ⟨y, hy, hy'⟩ := exists_between τ.im_pos in (this y hy).differentiable_at
     ((complex.continuous_im.is_open_preimage _ is_open_Ioi).mem_nhds (τ.coe_im ▸ hy')),
   intros y hy,
-  -- Check the hypotheses for summability result
-  have h1 : ∀ (n : ℤ) (w : ℂ),
-    differentiable_at ℂ (λ (v : ℂ), cexp (↑π * I * ↑n ^ 2 * v)) w,
-  { refine λ n w, differentiable_at.cexp _,
-    exact differentiable_at_id.const_mul _, },
-  have h1' := λ n w hw, (h1 n w).differentiable_within_at,
+  have h1 : ∀ (n : ℤ) (w : ℂ) (hw : y < im w), differentiable_within_at ℂ
+    (λ (v : ℂ), cexp (↑π * I * ↑n ^ 2 * v)) {z : ℂ | y < im z} w,
+  from λ n w hw, (differentiable_at_id.const_mul _).cexp.differentiable_within_at,
   have h2 : is_open {w : ℂ | y < im w}, from continuous_im.is_open_preimage _ is_open_Ioi,
-  obtain ⟨q, hq, hq', hb⟩ := jacobi_theta_term_bound hy,
-  have h_bd_s : summable (λ n : ℤ, q ^ n.nat_abs),
-  { have : summable (λ n : ℕ, q ^ n), from summable_geometric_of_norm_lt_1
-      ((norm_of_nonneg hq.le).symm ▸ hq'),
-    refine summable_int_of_summable_nat this _,
-    simpa only [int.cast_neg, int.nat_abs_neg, neg_sq] using this },
-  exact differentiable_on_tsum_of_summable_norm h_bd_s h1' h2
-    (λ i w hw, hb w (le_of_lt hw) i),
+  obtain ⟨bd, bd_s, le_bd⟩ := jacobi_theta_unif_summable hy,
+  exact differentiable_on_tsum_of_summable_norm bd_s h1 h2 (λ i w hw, le_bd (le_of_lt hw) i),
 end
 
 lemma jacobi_theta_mdifferentiable : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) jacobi_theta :=

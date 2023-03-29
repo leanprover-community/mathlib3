@@ -183,11 +183,12 @@ section tsums
 
 /-- If the terms in the sum `∑' (i : ι), F i` are uniformly bounded on `U` by a
 summable function, and each term in the sum is differentiable on `U`, then so is the sum. -/
-lemma differentiable_on_tsum_of_summable_norm [decidable_eq ι] {u : ι → ℝ}
+lemma differentiable_on_tsum_of_summable_norm {u : ι → ℝ}
   (hu : summable u) (hf : ∀ (i : ι), differentiable_on ℂ (F i) U) (hU : is_open U)
   (hF_le : ∀ (i : ι) (w : ℂ), w ∈ U → ‖F i w‖ ≤ u i) :
   differentiable_on ℂ (λ w : ℂ, ∑' (i : ι), F i w) U :=
 begin
+  classical,
   have hc := (tendsto_uniformly_on_tsum hu hF_le).tendsto_locally_uniformly_on,
   refine hc.differentiable_on (eventually_of_forall $ λ s, _) hU,
   exact differentiable_on.sum (λ i hi, hf i),
@@ -196,7 +197,7 @@ end
 /-- If the terms in the sum `∑' (i : ι), F i` are uniformly bounded on `U` by a
 summable function, then the sum of `deriv F i` at a point in `U` is the derivative of the
 sum. -/
-lemma has_sum_deriv_of_summable_norm [decidable_eq ι] {u : ι → ℝ}
+lemma has_sum_deriv_of_summable_norm {u : ι → ℝ}
   (hu : summable u) (hf : ∀ (i : ι), differentiable_on ℂ (F i) U) (hU : is_open U)
   (hF_le : ∀ (i : ι) (w : ℂ), w ∈ U → ‖F i w‖ ≤ u i) (hz : z ∈ U) :
   has_sum (λ (i : ι), deriv (F i) z) (deriv (λ w : ℂ, ∑' (i : ι), F i w) z) :=

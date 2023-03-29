@@ -126,7 +126,7 @@ include V
 `points_with_circumcenter`. -/
 lemma monge_point_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P (n + 2)) :
-  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination
+  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination ℝ
     s.points_with_circumcenter (monge_point_weights_with_circumcenter n) :=
 begin
   rw [monge_point_eq_smul_vsub_vadd_circumcenter,

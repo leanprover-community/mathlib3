@@ -325,8 +325,7 @@ instance : add_monoid_with_one surreal := add_monoid_with_one.unary
 @[simp] lemma mk_nat_cast : ∀ n : ℕ, mk n (numeric_nat n) = n
 | 0       := rfl
 | (n + 1) := begin
-  simp_rw [nat.cast_succ, pgame.nat_succ, mk_add (numeric_nat n) numeric_one, mk_nat_cast],
-  refl
+  simpa [mk_add (numeric_nat n) numeric_one, mk_nat_cast]
 end
 
 /-- Casts a `surreal` number into a `game`. -/
@@ -341,15 +340,3 @@ theorem zero_to_game : to_game 0 = 0 := rfl
 @[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
 
 end surreal
-
-open surreal
-
-namespace ordinal
-
-/-- Converts an ordinal into the corresponding surreal. -/
-noncomputable def to_surreal : ordinal ↪o surreal :=
-{ to_fun := λ o, mk _ (numeric_to_pgame o),
-  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
-  map_rel_iff' := @to_pgame_le_iff }
-
-end ordinal

@@ -402,8 +402,7 @@ theorem deriv_bfamily_le_of_range_subset {f : Π b < o, ordinal → ordinal}
   (hfg : brange o f ⊆ brange o' g) (a) :
   deriv_bfamily o f a ≤ deriv_bfamily.{w (max u v w)} o' g a :=
 begin
-  apply deriv_family_le_of_range_subset,
-  { exact (λ i, hf _ _) },
+  apply deriv_family_le_of_range_subset (λ i, hf _ _),
   { simpa [range_family_of_bfamily] using hfg }
 end
 

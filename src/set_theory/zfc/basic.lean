@@ -597,9 +597,9 @@ iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (not_mem_empt
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
 
-theorem insert_nonempty (u v : Set) : (insert u v).nonempty := ⟨u, mem_insert u v⟩
+@[simp] theorem insert_nonempty (u v : Set) : (insert u v).nonempty := ⟨u, mem_insert u v⟩
 
-theorem singleton_nonempty (u : Set) : Set.nonempty {u} := insert_nonempty u ∅
+@[simp] theorem singleton_nonempty (u : Set) : Set.nonempty {u} := insert_nonempty u ∅
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
@@ -680,7 +680,7 @@ prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
 quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
   ⟨λ ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ ⟨z, h⟩, quotient.induction_on z (λ z h, ⟨z, h⟩) h⟩)
 
-theorem mem_sInter {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
+@[simp] theorem mem_sInter {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
 begin
   rw [sInter, dif_pos h],
   simp only [mem_to_set, mem_sep, and_iff_right_iff_imp],
@@ -691,11 +691,7 @@ end
 @[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ := dif_neg $ by simp
 
 theorem mem_of_mem_sInter {x y z : Set} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
-begin
-  rcases eq_empty_or_nonempty x with rfl | hx,
-  { exact (not_mem_empty z hz).elim },
-  { exact (mem_sInter hx).1 hy z hz }
-end
+(mem_sInter ⟨z, hz⟩).1 hy z hz
 
 theorem mem_sUnion_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃₀ x :=
 mem_sUnion.2 ⟨z, hz, hy⟩
@@ -751,18 +747,24 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
-@[simp] theorem sUnion_pair {x y : Set.{u}} : ⋃₀ ({x, y} : Set.{u}) = x ∪ y :=
-begin
-  ext,
-  simp_rw [mem_union, mem_sUnion, mem_pair],
-  split,
-  { rintro ⟨w, (rfl | rfl), hw⟩,
-    { exact or.inl hw },
-    { exact or.inr hw } },
-  { rintro (hz | hz),
-    { exact ⟨x, or.inl rfl, hz⟩ },
-    { exact ⟨y, or.inr rfl, hz⟩ } }
-end
+@[simp] theorem sUnion_insert (x y : Set.{u}) : ⋃₀ (insert x y) = x ∪ ⋃₀ y :=
+by { rw ←to_set_inj, simp }
+
+theorem sUnion_pair (x y : Set.{u}) : ⋃₀ ({x, y} : Set.{u}) = x ∪ y :=
+rfl
+
+theorem union_assoc (x y z : Set.{u}) : x ∪ y ∪ z = x ∪ (y ∪ z) :=
+by { ext, simp only [mem_union], tauto }
+
+@[simp] theorem sInter_insert (x : Set.{u}) {y : Set.{u}} (h : y.nonempty) :
+  ⋂₀ (insert x y) = x ∩ ⋂₀ y :=
+by { ext z, simp [h] }
+
+theorem sInter_pair (x y : Set.{u}) : ⋂₀ ({x, y} : Set.{u}) = x ∩ y :=
+by simp
+
+theorem inter_assoc (x y z : Set.{u}) : x ∩ y ∩ z = x ∩ (y ∩ z) :=
+by { ext, simp only [mem_inter], tauto }
 
 theorem mem_wf : @well_founded Set (∈) :=
 well_founded_lift₂_iff.mpr pSet.mem_wf

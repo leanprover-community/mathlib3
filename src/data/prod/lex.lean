@@ -137,6 +137,13 @@ instance linear_order (α β : Type*) [linear_order α] [linear_order β] : line
   decidable_eq := lex.decidable_eq _ _,
   .. prod.lex.partial_order α β }
 
+instance is_well_founded (r s) [is_well_founded α r] [is_well_founded β s] :
+  is_well_founded (α × β) (prod.lex r s) :=
+⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
+
+instance is_well_order (r s) [is_well_order α r] [is_well_order β s] :
+  is_well_order (α × β) (prod.lex r s) := { }
+
 instance is_well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
   is_well_founded (α ×ₗ β) (<) :=
 prod.lex.is_well_founded _ _

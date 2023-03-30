@@ -537,7 +537,7 @@ def iso_cycle' : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.
 notation `c[` l:(foldr `, ` (h t, list.cons h t) list.nil `]`) :=
   cycle.form_perm ↑l (cycle.nodup_coe_iff.mpr dec_trivial)
 
-instance repr_perm [has_repr α] : has_repr (perm α) :=
+meta instance repr_perm [has_repr α] : has_repr (perm α) :=
 ⟨λ f, repr (multiset.pmap (λ (g : perm α) (hg : g.is_cycle),
   iso_cycle ⟨g, hg⟩) -- to_cycle is faster?
   (perm.cycle_factors_finset f).val

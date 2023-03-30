@@ -7,6 +7,9 @@ import order.filter.bases
 
 /-!
 # Lift filters along filter and set functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open set

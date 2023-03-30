@@ -39,7 +39,7 @@ weak dual, seminorm
 
 variables {𝕜 E F ι : Type*}
 
-open_locale topological_space
+open_locale topology
 
 section bilin_form
 

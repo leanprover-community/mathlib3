@@ -11,6 +11,9 @@ import logic.equiv.fin
 /-!
 # Collections of tuples of naturals with the same sum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file generalizes `list.nat.antidiagonal n`, `multiset.nat.antidiagonal n`, and
 `finset.nat.antidiagonal n` from the pair of elements `x : ℕ × ℕ` such that `n = x.1 + x.2`, to
 the sequence of elements `x : fin k → ℕ` such that `n = ∑ i, x i`.

@@ -41,7 +41,7 @@ open_locale classical polynomial
 
 section comm_semiring
 
-variables {F : Type} [comm_semiring F] (q : ℕ)
+variables {F : Type*} [comm_semiring F] (q : ℕ)
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
@@ -86,7 +86,7 @@ end comm_semiring
 
 section field
 
-variables {F : Type} [field F]
+variables {F : Type*} [field F]
 variables (q : ℕ) {f : F[X]} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
@@ -109,7 +109,8 @@ theorem contraction_degree_eq_or_insep
   (hg : g.separable) (hg' : g'.separable) :
   g.nat_degree = g'.nat_degree :=
 begin
-  wlog hm : m ≤ m' := le_total m m' using [m m' g g', m' m g' g],
+  wlog hm : m ≤ m',
+  { exact (this g' g m' m h_expand.symm hg' hg (le_of_not_le hm)).symm },
   obtain ⟨s, rfl⟩ := exists_add_of_le hm,
   rw [pow_add, expand_mul, expand_inj (pow_pos (ne_zero.pos q) m)] at h_expand,
   subst h_expand,

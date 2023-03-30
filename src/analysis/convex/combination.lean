@@ -223,7 +223,7 @@ t.center_mass_mem_convex_hull hw₀ hws (λ i, mem_coe.2)
 
 lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → R}
   (hw₂ : ∑ i in t, w i = 1) :
-  affine_combination t p w = center_mass t w p :=
+  t.affine_combination R p w = center_mass t w p :=
 begin
   rw [affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
     finset.weighted_vsub_of_point_apply, vadd_eq_add, add_zero, t.center_mass_eq_of_sum_1 _ hw₂],
@@ -232,7 +232,7 @@ end
 
 lemma affine_combination_mem_convex_hull
   {s : finset ι} {v : ι → E} {w : ι → R} (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1) :
-  s.affine_combination v w ∈ convex_hull R (range v) :=
+  s.affine_combination R v w ∈ convex_hull R (range v) :=
 begin
   rw affine_combination_eq_center_mass hw₁,
   apply s.center_mass_mem_convex_hull hw₀,
@@ -258,7 +258,7 @@ end
 
 lemma convex_hull_range_eq_exists_affine_combination (v : ι → E) :
   convex_hull R (range v) = { x | ∃ (s : finset ι) (w : ι → R)
-    (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1), s.affine_combination v w = x } :=
+    (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1), s.affine_combination R v w = x } :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
@@ -461,19 +461,18 @@ lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
 
 /-- The convex hull of an affine basis is the intersection of the half-spaces defined by the
 corresponding barycentric coordinates. -/
-lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*} (b : affine_basis ι R E) :
-  convex_hull R (range b.points) = { x | ∀ i, 0 ≤ b.coord i x } :=
+lemma affine_basis.convex_hull_eq_nonneg_coord {ι : Type*} (b : affine_basis ι R E) :
+  convex_hull R (range b) = {x | ∀ i, 0 ≤ b.coord i x} :=
 begin
   rw convex_hull_range_eq_exists_affine_combination,
   ext x,
-  split,
+  refine ⟨_, λ hx, _⟩,
   { rintros ⟨s, w, hw₀, hw₁, rfl⟩ i,
     by_cases hi : i ∈ s,
     { rw b.coord_apply_combination_of_mem hi hw₁,
       exact hw₀ i hi, },
     { rw b.coord_apply_combination_of_not_mem hi hw₁, }, },
-  { intros hx,
-    have hx' : x ∈ affine_span R (range b.points),
+  { have hx' : x ∈ affine_span R (range b),
     { rw b.tot, exact affine_subspace.mem_top R E x, },
     obtain ⟨s, w, hw₁, rfl⟩ := (mem_affine_span_iff_eq_affine_combination R E).mp hx',
     refine ⟨s, w, _, hw₁, rfl⟩,

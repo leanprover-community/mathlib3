@@ -10,6 +10,9 @@ import order.filter.at_top_bot
 /-!
 # Convergence of intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If both `a` and `b` tend to some filter `l₁`, sometimes this implies that `Ixx a b` tends to
 `l₂.small_sets`, i.e., for any `s ∈ l₂` eventually `Ixx a b` becomes a subset of `s`.  Here and
 below `Ixx` is one of `Icc`, `Ico`, `Ioc`, and `Ioo`. We define `filter.tendsto_Ixx_class Ixx l₁ l₂`

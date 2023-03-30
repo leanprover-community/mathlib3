@@ -61,7 +61,7 @@ weak-star, weak dual, duality
 
 noncomputable theory
 open filter
-open_locale topological_space
+open_locale topology
 
 variables {α 𝕜 𝕝 R E F M : Type*}
 

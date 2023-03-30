@@ -12,6 +12,9 @@ import order.hom.set
 /-!
 # The finite type with `n` elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `fin n` is the type whose elements are natural numbers smaller than `n`.
 This file expands on the development in the core library.
 

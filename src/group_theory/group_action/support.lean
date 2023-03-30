@@ -8,6 +8,9 @@ import data.set.pointwise.smul
 /-!
 # Support of an element under an action action
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an action of a group `G` on a type `α`, we say that a set `s : set α` supports an element
 `a : α` if, for all `g` that fix `s` pointwise, `g` fixes `a`.
 

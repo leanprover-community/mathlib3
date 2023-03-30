@@ -6,12 +6,16 @@ Authors: Patrick Massot, Johannes Hölzl, Yaël Dillies
 import analysis.normed.group.seminorm
 import order.liminf_limsup
 import topology.algebra.uniform_group
+import topology.instances.rat
 import topology.metric_space.algebra
-import topology.metric_space.isometry
+import topology.metric_space.isometric_smul
 import topology.sequences
 
 /-!
 # Normed (semi)groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define 10 classes:
 
@@ -43,7 +47,7 @@ normed group
 variables {𝓕 𝕜 α ι κ E F G : Type*}
 
 open filter function metric
-open_locale big_operators ennreal filter nnreal uniformity pointwise topological_space
+open_locale big_operators ennreal filter nnreal uniformity pointwise topology
 
 /-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `‖x‖`. This
 class is designed to be extended in more interesting classes specifying the properties of the norm.
@@ -291,6 +295,9 @@ lemma dist_eq_norm_div' (a b : E) : dist a b = ‖b / a‖ := by rw [dist_comm, 
 alias dist_eq_norm_sub ← dist_eq_norm
 alias dist_eq_norm_sub' ← dist_eq_norm'
 
+@[to_additive] instance normed_group.to_has_isometric_smul_right : has_isometric_smul Eᵐᵒᵖ E :=
+⟨λ a, isometry.of_dist_eq $ λ b c, by simp [dist_eq_norm_div]⟩
+
 @[simp, to_additive] lemma dist_one_right (a : E) : dist a 1 = ‖a‖ :=
 by rw [dist_eq_norm_div, div_one]
 
@@ -312,17 +319,11 @@ by simpa only [dist_eq_norm_div] using dist_comm a b
 @[simp, to_additive norm_neg]
 lemma norm_inv' (a : E) : ‖a⁻¹‖ = ‖a‖ := by simpa using norm_div_rev 1 a
 
-@[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
-by simp [dist_eq_norm_div]
-
 @[simp, to_additive] lemma dist_mul_self_right (a b : E) : dist b (a * b) = ‖a‖ :=
 by rw [←dist_one_left, ←dist_mul_right 1 a b, one_mul]
 
 @[simp, to_additive] lemma dist_mul_self_left (a b : E) : dist (a * b) b = ‖a‖ :=
 by rw [dist_comm, dist_mul_self_right]
-
-@[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
-by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 
 @[simp, to_additive] lemma dist_div_eq_dist_mul_left (a b c : E) :
   dist (a / b) c = dist a (c * b) :=
@@ -493,30 +494,6 @@ def norm_group_seminorm : group_seminorm E := ⟨norm, norm_one', norm_mul_le', 
 
 variables {E}
 
-namespace isometric
--- TODO This material is superseded by similar constructions such as
--- `affine_isometry_equiv.const_vadd`; deduplicate
-
-/-- Multiplication `y ↦ y * x` as an `isometry`. -/
-@[to_additive "Addition `y ↦ y + x` as an `isometry`"]
-protected def mul_right (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_mul_right _ _ _,
-  .. equiv.mul_right x }
-
-@[simp, to_additive]
-lemma mul_right_to_equiv (x : E) : (isometric.mul_right x).to_equiv = equiv.mul_right x := rfl
-
-@[simp, to_additive]
-lemma coe_mul_right (x : E) : (isometric.mul_right x : E → E) = λ y, y * x := rfl
-
-@[to_additive] lemma mul_right_apply (x y : E) : (isometric.mul_right x : E → E) y = y * x := rfl
-
-@[simp, to_additive]
-lemma mul_right_symm (x : E) : (isometric.mul_right x).symm = isometric.mul_right x⁻¹ :=
-ext $ λ y, rfl
-
-end isometric
-
 @[to_additive] lemma normed_comm_group.tendsto_nhds_one {f : α → E} {l : filter α} :
   tendsto f l (𝓝 1) ↔ ∀ ε > 0, ∀ᶠ x in l, ‖ f x ‖ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_one_right]
@@ -669,12 +646,6 @@ by rw [edist_eq_coe_nnnorm_div, div_one]
 @[to_additive]
 lemma mem_emetric_ball_one_iff {r : ℝ≥0∞} : a ∈ emetric.ball (1 : E) r ↔ ↑‖a‖₊ < r :=
 by rw [emetric.mem_ball, edist_eq_coe_nnnorm']
-
-@[simp, to_additive] lemma edist_mul_right (a₁ a₂ b : E) : edist (a₁ * b) (a₂ * b) = edist a₁ a₂ :=
-by simp [edist_dist]
-
-@[simp, to_additive] lemma edist_div_right (a₁ a₂ b : E) : edist (a₁ / b) (a₂ / b) = edist a₁ a₂ :=
-by simpa only [div_eq_mul_inv] using edist_mul_right _ _ _
 
 @[to_additive] lemma monoid_hom_class.lipschitz_of_bound_nnnorm [monoid_hom_class 𝓕 E F] (f : 𝓕)
   (C : ℝ≥0) (h : ∀ x, ‖f x‖₊ ≤ C * ‖x‖₊) : lipschitz_with C f :=
@@ -869,7 +840,7 @@ by simp [metric.mem_closure_iff, dist_eq_norm_div]
 @[to_additive norm_le_zero_iff'] lemma norm_le_zero_iff''' [t0_space E] {a : E} : ‖a‖ ≤ 0 ↔ a = 1 :=
 begin
   letI : normed_group E :=
-    { to_metric_space := metric.of_t0_pseudo_metric_space E, ..‹seminormed_group E› },
+    { to_metric_space := metric_space.of_t0_pseudo_metric_space E, ..‹seminormed_group E› },
   rw [←dist_one_right, dist_le_zero],
 end
 
@@ -958,17 +929,11 @@ end induced
 section seminormed_comm_group
 variables [seminormed_comm_group E] [seminormed_comm_group F] {a a₁ a₂ b b₁ b₂ : E} {r r₁ r₂ : ℝ}
 
-@[simp, to_additive] lemma dist_mul_left (a b₁ b₂ : E) : dist (a * b₁) (a * b₂) = dist b₁ b₂ :=
-by simp [dist_eq_norm_div]
+@[to_additive] instance normed_group.to_has_isometric_smul_left : has_isometric_smul E E :=
+⟨λ a, isometry.of_dist_eq $ λ b c, by simp [dist_eq_norm_div]⟩
 
 @[to_additive] lemma dist_inv (x y : E) : dist x⁻¹ y = dist x y⁻¹ :=
 by simp_rw [dist_eq_norm_div, ←norm_inv' (x⁻¹ / y), inv_div, div_inv_eq_mul, mul_comm]
-
-@[simp, to_additive] lemma dist_inv_inv (a b : E) : dist a⁻¹ b⁻¹ = dist a b :=
-by rw [dist_inv, inv_inv]
-
-@[simp, to_additive] lemma dist_div_left (a b₁ b₂ : E) : dist (a / b₁) (a / b₂) = dist b₁ b₂ :=
-by simp only [div_eq_mul_inv, dist_mul_left, dist_inv_inv]
 
 @[simp, to_additive] lemma dist_self_mul_right (a b : E) : dist a (a * b) = ‖b‖ :=
 by rw [←dist_one_left, ←dist_mul_left a 1 b, mul_one]
@@ -1107,38 +1072,6 @@ by { ext, simp [mem_closed_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_
 by { ext, simp [mem_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
   ← eq_inv_mul_iff_mul_eq, mul_assoc], }
 
-namespace isometric
-
-/-- Multiplication `y ↦ x * y` as an `isometry`. -/
-@[to_additive "Addition `y ↦ x + y` as an `isometry`"]
-protected def mul_left (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_mul_left _ _ _,
-  to_equiv := equiv.mul_left x }
-
-@[simp, to_additive] lemma mul_left_to_equiv (x : E) :
-  (isometric.mul_left x).to_equiv = equiv.mul_left x := rfl
-
-@[simp, to_additive] lemma coe_mul_left (x : E) : ⇑(isometric.mul_left x) = (*) x := rfl
-
-@[simp, to_additive] lemma mul_left_symm (x : E) :
-  (isometric.mul_left x).symm = isometric.mul_left x⁻¹ :=
-ext $ λ y, rfl
-
-variables (E)
-
-/-- Inversion `x ↦ x⁻¹` as an `isometry`. -/
-@[to_additive "Negation `x ↦ -x` as an `isometry`."] protected def inv : E ≃ᵢ E :=
-{ isometry_to_fun := isometry.of_dist_eq $ λ x y, dist_inv_inv _ _,
-  to_equiv := equiv.inv E }
-
-variables {E}
-
-@[simp, to_additive] lemma inv_symm : (isometric.inv E).symm = isometric.inv E := rfl
-@[simp, to_additive] lemma inv_to_equiv : (isometric.inv E).to_equiv = equiv.inv E := rfl
-@[simp, to_additive] lemma coe_inv : ⇑(isometric.inv E) = has_inv.inv := rfl
-
-end isometric
-
 open finset
 
 @[to_additive] lemma controlled_prod_of_mem_closure {s : subgroup E} (hg : a ∈ closure (s : set E))
@@ -1199,18 +1132,6 @@ nnreal.coe_le_coe.1 $ dist_mul_mul_le a₁ a₂ b₁ b₂
 lemma edist_mul_mul_le (a₁ a₂ b₁ b₂ : E) : edist (a₁ * a₂) (b₁ * b₂) ≤ edist a₁ b₁ + edist a₂ b₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_mul_mul_le }
 
-@[simp, to_additive] lemma edist_mul_left (a b₁ b₂ : E) : edist (a * b₁) (a * b₂) = edist b₁ b₂ :=
-by simp [edist_dist]
-
-@[to_additive]
-lemma edist_inv (a b : E) : edist a⁻¹ b = edist a b⁻¹ := by simp_rw [edist_dist, dist_inv]
-
-@[simp, to_additive] lemma edist_inv_inv (x y : E) : edist x⁻¹ y⁻¹ = edist x y :=
-by rw [edist_inv, inv_inv]
-
-@[simp, to_additive] lemma edist_div_left (a b₁ b₂ : E) : edist (a / b₁) (a / b₂) = edist b₁ b₂ :=
-by simp only [div_eq_mul_inv, edist_mul_left, edist_inv_inv]
-
 @[to_additive]
 lemma nnnorm_multiset_prod_le (m : multiset E) : ‖m.prod‖₊ ≤ (m.map (λ x, ‖x‖₊)).sum :=
 nnreal.coe_le_coe.1 $ by { push_cast, rw multiset.map_map, exact norm_multiset_prod_le _ }
@@ -1269,6 +1190,61 @@ begin
 end
 
 end real
+
+namespace int
+
+instance : normed_add_comm_group ℤ :=
+{ norm := λ n, ‖(n : ℝ)‖,
+  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
+
+@[norm_cast] lemma norm_cast_real (m : ℤ) : ‖(m : ℝ)‖ = ‖m‖ := rfl
+
+lemma norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
+
+@[simp] lemma norm_coe_nat (n : ℕ) : ‖(n : ℤ)‖ = n := by simp [int.norm_eq_abs]
+
+lemma _root_.nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
+nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
+               = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
+           ... = |n|           : by simp only [int.coe_nat_abs, int.cast_abs]
+           ... = ‖n‖              : rfl
+
+lemma abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ‖z‖₊ ≤ c :=
+begin
+  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
+  congr',
+  exact nnreal.coe_nat_abs z,
+end
+
+end int
+
+namespace rat
+
+instance : normed_add_comm_group ℚ :=
+{ norm := λ r, ‖(r : ℝ)‖,
+  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+
+@[norm_cast, simp] lemma norm_cast_real (r : ℚ) : ‖(r : ℝ)‖ = ‖r‖ := rfl
+
+@[norm_cast, simp] lemma _root_.int.norm_cast_rat (m : ℤ) : ‖(m : ℚ)‖ = ‖m‖ :=
+by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
+
+end rat
+
+-- Now that we've installed the norm on `ℤ`,
+-- we can state some lemmas about `zsmul`.
+section
+variables [seminormed_comm_group α]
+
+@[to_additive norm_zsmul_le]
+lemma norm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖ ≤ ‖n‖ * ‖a‖ :=
+by rcases n.eq_coe_or_neg with ⟨n, rfl | rfl⟩; simpa using norm_pow_le_mul_norm n a
+
+@[to_additive nnnorm_zsmul_le]
+lemma nnnorm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul] using norm_zpow_le_mul_norm n a
+
+end
 
 namespace lipschitz_with
 variables [pseudo_emetric_space α] {K Kf Kg : ℝ≥0} {f g : α → E}
@@ -1413,6 +1389,23 @@ lemma continuous.bounded_above_of_compact_support (hf : continuous f) (h : has_c
 by simpa [bdd_above_def] using hf.norm.bdd_above_range_of_has_compact_support h.norm
 
 end normed_add_group
+
+section normed_add_group_source
+
+variables [normed_add_group α] {f : α → E}
+
+@[to_additive]
+lemma has_compact_mul_support.exists_pos_le_norm [has_one E] (hf : has_compact_mul_support f) :
+  ∃ (R : ℝ), (0 < R) ∧ (∀ (x : α), (R ≤ ‖x‖) → (f x = 1)) :=
+begin
+  obtain ⟨K, ⟨hK1, hK2⟩⟩ := exists_compact_iff_has_compact_mul_support.mpr hf,
+  obtain ⟨S, hS, hS'⟩ := hK1.bounded.exists_pos_norm_le,
+  refine ⟨S + 1, by positivity, λ x hx, hK2 x ((mt $ hS' x) _)⟩,
+  contrapose! hx,
+  exact lt_add_of_le_of_pos hx zero_lt_one
+end
+
+end normed_add_group_source
 
 /-! ### `ulift` -/
 
@@ -1698,6 +1691,40 @@ instance pi.normed_comm_group [Π i, normed_comm_group (π i)] : normed_comm_gro
 { ..pi.seminormed_group }
 
 end pi
+
+/-! ### Multiplicative opposite -/
+
+namespace mul_opposite
+
+/-- The (additive) norm on the multiplicative opposite is the same as the norm on the original type.
+
+Note that we do not provide this more generally as `has_norm Eᵐᵒᵖ`, as this is not always a good
+choice of norm in the multiplicative `seminormed_group E` case.
+
+We could repeat this instance to provide a `[seminormed_group E] : seminormed_group Eᵃᵒᵖ` instance,
+but that case would likely never be used.
+-/
+instance [seminormed_add_group E] : seminormed_add_group Eᵐᵒᵖ :=
+{ norm := λ x, ‖x.unop‖,
+  dist_eq := λ _ _, dist_eq_norm _ _,
+  to_pseudo_metric_space := mul_opposite.pseudo_metric_space }
+
+lemma norm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖ = ‖a‖ := rfl
+lemma norm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖ = ‖a‖ := rfl
+
+lemma nnnorm_op [seminormed_add_group E] (a : E) : ‖mul_opposite.op a‖₊ = ‖a‖₊ := rfl
+lemma nnnorm_unop [seminormed_add_group E] (a : Eᵐᵒᵖ) : ‖mul_opposite.unop a‖₊ = ‖a‖₊ := rfl
+
+instance [normed_add_group E] : normed_add_group Eᵐᵒᵖ :=
+{ .. mul_opposite.seminormed_add_group }
+
+instance [seminormed_add_comm_group E] : seminormed_add_comm_group Eᵐᵒᵖ :=
+{ dist_eq := λ _ _, dist_eq_norm _ _ }
+
+instance [normed_add_comm_group E] : normed_add_comm_group Eᵐᵒᵖ :=
+{ .. mul_opposite.seminormed_add_comm_group }
+
+end mul_opposite
 
 /-! ### Subgroups of normed groups -/
 

@@ -3,13 +3,18 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yaël Dillies
 -/
+import algebra.module.big_operators
 import data.finset.noncomm_prod
 import data.fintype.perm
 import data.int.modeq
+import group_theory.perm.list
 import group_theory.perm.sign
 import logic.equiv.fintype
 /-!
 # Cyclic permutations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the theory of cycles in permutations.
 
@@ -49,8 +54,9 @@ The following two definitions require that `β` is a `fintype`:
 -/
 
 open equiv function finset
+open_locale big_operators
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace equiv.perm
 
@@ -585,7 +591,8 @@ begin
     obtain ⟨x, hx, -⟩ := id hf,
     exact ⟨x, hx, by simp [h]⟩ },
   { rintro ⟨x, hx, hx'⟩,
-    wlog hab : a ≤ b,
+    wlog hab : a ≤ b generalizing a b,
+    { exact (this hx'.symm (le_of_not_le hab)).symm },
     suffices : f ^ (b - a) = 1,
     { rw [pow_sub _ hab, mul_inv_eq_one] at this,
       rw this },
@@ -787,6 +794,13 @@ lemma is_cycle_on.extend_domain {p : β → Prop} [decidable_pred p] (f : α ≃
   (h : g.is_cycle_on s) :
   (g.extend_domain f).is_cycle_on (coe ∘ f '' s) :=
 ⟨h.1.extend_domain, by { rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩, exact (h.2 ha hb).extend_domain }⟩
+
+protected lemma is_cycle_on.countable (hs : f.is_cycle_on s) : s.countable :=
+begin
+  obtain rfl | ⟨a, ha⟩ := s.eq_empty_or_nonempty,
+  { exact set.countable_empty },
+  { exact (set.countable_range $ λ n : ℤ, (⇑(f ^ n) : α → α) a).mono (hs.2 ha) }
+end
 
 end is_cycle_on
 
@@ -1609,3 +1623,145 @@ end
 end fixed_points
 
 end equiv.perm
+
+open equiv
+
+namespace list
+variables [decidable_eq α] {l : list α}
+
+lemma nodup.is_cycle_on_form_perm (h : l.nodup) : l.form_perm.is_cycle_on {a | a ∈ l} :=
+begin
+  refine ⟨l.form_perm.bij_on (λ _, form_perm_mem_iff_mem), λ a ha b hb, _⟩,
+  rw [set.mem_set_of, ←index_of_lt_length] at ha hb,
+  rw [←index_of_nth_le ha, ←index_of_nth_le hb],
+  refine ⟨l.index_of b - l.index_of a, _⟩,
+  simp only [sub_eq_neg_add, zpow_add, zpow_neg, equiv.perm.inv_eq_iff_eq, zpow_coe_nat,
+    equiv.perm.coe_mul, form_perm_pow_apply_nth_le _ h],
+  rw add_comm,
+end
+
+end list
+
+namespace int
+open equiv
+
+lemma add_left_one_is_cycle : (equiv.add_left 1 : perm ℤ).is_cycle :=
+⟨0, one_ne_zero, λ n _, ⟨n, by simp⟩⟩
+
+lemma add_right_one_is_cycle : (equiv.add_right 1 : perm ℤ).is_cycle :=
+⟨0, one_ne_zero, λ n _, ⟨n, by simp⟩⟩
+
+end int
+
+namespace finset
+variables [decidable_eq α] [fintype α]
+
+lemma exists_cycle_on (s : finset α) : ∃ f : perm α, f.is_cycle_on s ∧ f.support ⊆ s :=
+begin
+  refine ⟨s.to_list.form_perm, _,
+    λ x hx, by simpa using list.mem_of_form_perm_apply_ne _ _ (perm.mem_support.1 hx)⟩,
+  convert s.nodup_to_list.is_cycle_on_form_perm,
+  simp,
+end
+
+end finset
+
+namespace set
+variables {f : perm α} {s : set α}
+
+lemma countable.exists_cycle_on (hs : s.countable) :
+  ∃ f : perm α, f.is_cycle_on s ∧ {x | f x ≠ x} ⊆ s :=
+begin
+  classical,
+  obtain hs' | hs' := s.finite_or_infinite,
+  { refine ⟨hs'.to_finset.to_list.form_perm, _,
+      λ x hx, by simpa using list.mem_of_form_perm_apply_ne _ _ hx⟩,
+    convert hs'.to_finset.nodup_to_list.is_cycle_on_form_perm,
+    simp },
+  haveI := hs.to_subtype,
+  haveI := hs'.to_subtype,
+  obtain ⟨f⟩ : nonempty (ℤ ≃ s) := infer_instance,
+  refine ⟨(equiv.add_right 1).extend_domain f, _, λ x hx, of_not_not $ λ h, hx $
+    perm.extend_domain_apply_not_subtype _ _ h⟩,
+  convert int.add_right_one_is_cycle.is_cycle_on.extend_domain _,
+  rw [image_comp, equiv.image_eq_preimage],
+  ext,
+  simp,
+end
+
+lemma prod_self_eq_Union_perm (hf : f.is_cycle_on s) :
+  s ×ˢ s = ⋃ n : ℤ, (λ a, (a, (f ^ n) a)) '' s :=
+begin
+  ext ⟨a, b⟩,
+  simp only [mem_prod, mem_Union, mem_image],
+  refine ⟨λ hx, _, _⟩,
+  { obtain ⟨n, rfl⟩ := hf.2 hx.1 hx.2,
+    exact ⟨_, _, hx.1, rfl⟩ },
+  { rintro ⟨n, a, ha, ⟨⟩⟩,
+    exact ⟨ha, (hf.1.perm_zpow _).maps_to ha⟩ }
+end
+
+end set
+
+namespace finset
+variables {f : perm α} {s : finset α}
+
+lemma product_self_eq_disj_Union_perm_aux (hf : f.is_cycle_on s) :
+  (range s.card : set ℕ).pairwise_disjoint
+    (λ k, s.map ⟨λ i, (i, (f ^ k) i), λ i j, congr_arg prod.fst⟩) :=
+begin
+  obtain hs | hs := (s : set α).subsingleton_or_nontrivial,
+  { refine set.subsingleton.pairwise _ _,
+    simp_rw [set.subsingleton, mem_coe, ←card_le_one] at ⊢ hs,
+    rwa card_range },
+  classical,
+  rintro m hm n hn hmn,
+  simp only [disjoint_left, function.on_fun, mem_map, function.embedding.coe_fn_mk, exists_prop,
+    not_exists, not_and, forall_exists_index, and_imp, prod.forall, prod.mk.inj_iff],
+  rintro _ _ _ - rfl rfl a ha rfl h,
+  rw [hf.pow_apply_eq_pow_apply ha] at h,
+  rw [mem_coe, mem_range] at hm hn,
+  exact hmn.symm (h.eq_of_lt_of_lt hn hm),
+end
+
+/--
+We can partition the square `s ×ˢ s` into shifted diagonals as such:
+```
+01234
+40123
+34012
+23401
+12340
+```
+
+The diagonals are given by the cycle `f`.
+-/
+lemma product_self_eq_disj_Union_perm (hf : f.is_cycle_on s) :
+  s ×ˢ s =
+    (range s.card).disj_Union (λ k, s.map ⟨λ i, (i, (f ^ k) i), λ i j, congr_arg prod.fst⟩)
+      (product_self_eq_disj_Union_perm_aux hf) :=
+begin
+  ext ⟨a, b⟩,
+  simp only [mem_product, equiv.perm.coe_pow, mem_disj_Union, mem_range, mem_map,
+    function.embedding.coe_fn_mk, prod.mk.inj_iff, exists_prop],
+  refine ⟨λ hx, _, _⟩,
+  { obtain ⟨n, hn, rfl⟩ := hf.exists_pow_eq hx.1 hx.2,
+    exact ⟨n, hn, a, hx.1, rfl, by rw f.iterate_eq_pow⟩ },
+  { rintro ⟨n, -, a, ha, rfl, rfl⟩,
+    exact ⟨ha, (hf.1.iterate _).maps_to ha⟩ }
+end
+
+end finset
+
+namespace finset
+variables [semiring α] [add_comm_monoid β] [module α β] {s : finset ι} {σ : perm ι}
+
+lemma sum_smul_sum_eq_sum_perm (hσ : σ.is_cycle_on s) (f : ι → α) (g : ι → β) :
+  (∑ i in s, f i) • ∑ i in s, g i = ∑ k in range s.card, ∑ i in s, f i • g ((σ ^ k) i) :=
+by { simp_rw [sum_smul_sum, product_self_eq_disj_Union_perm hσ, sum_disj_Union, sum_map], refl }
+
+lemma sum_mul_sum_eq_sum_perm (hσ : σ.is_cycle_on s) (f g : ι → α) :
+  (∑ i in s, f i) * ∑ i in s, g i = ∑ k in range s.card, ∑ i in s, f i * g ((σ ^ k) i) :=
+sum_smul_sum_eq_sum_perm hσ f g
+
+end finset

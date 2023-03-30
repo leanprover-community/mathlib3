@@ -13,6 +13,9 @@ import group_theory.index
 /-!
 # Order of an element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the order of an element of a finite group. For a finite group `G` the order of
 `x ∈ G` is the minimal `n ≥ 1` such that `x ^ n = 1`.
 
@@ -410,7 +413,8 @@ by rw [modeq_zero_iff_dvd, order_of_dvd_iff_pow_eq_one]
 @[to_additive]
 lemma pow_eq_pow_iff_modeq : x ^ n = x ^ m ↔ n ≡ m [MOD (order_of x)] :=
 begin
-  wlog hmn : m ≤ n,
+  wlog hmn : m ≤ n generalizing m n,
+  { rw [eq_comm, modeq.comm, this (le_of_not_le hmn)], },
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
   rw [← mul_one (x ^ m), pow_add, mul_left_cancel_iff, pow_eq_one_iff_modeq],
   exact ⟨λ h, nat.modeq.add_left _ h, λ h, nat.modeq.add_left_cancel' _ h⟩,
@@ -571,7 +575,7 @@ variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : n ≠ 0) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
@@ -581,7 +585,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : 
   suffices : order_of x ≤ n ∧ order_of x ∣ n ↔ x ^ n = 1,
   { simpa [nat.lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
-    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+    λ h, ⟨order_of_le_of_pow_eq_one hn.bot_lt h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
 end finite_monoid

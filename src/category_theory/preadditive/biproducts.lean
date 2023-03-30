@@ -14,6 +14,9 @@ import tactic.abel
 /-!
 # Basic facts about biproducts in preadditive categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In (or between) preadditive categories,
 
 * Any biproduct satisfies the equality

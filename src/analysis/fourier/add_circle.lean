@@ -358,6 +358,32 @@ lemma fourier_coeff_on.const_mul {a b : ℝ} (f : ℝ → ℂ) (c : ℂ) (n : �
   fourier_coeff_on hab (λ x, c * f x) n = c * fourier_coeff_on hab f n :=
 fourier_coeff_on.const_smul _ _ _ _
 
+include hT
+
+lemma fourier_coeff_lift_Ioc_eq {a : ℝ} (f : ℝ → ℂ) (n : ℤ) :
+  fourier_coeff (add_circle.lift_Ioc T a f) n =
+  fourier_coeff_on (lt_add_of_pos_right a hT.out) f n :=
+begin
+  rw [fourier_coeff_on_eq_integral, fourier_coeff_eq_interval_integral, add_sub_cancel' a T],
+  congr' 1,
+  refine interval_integral.integral_congr_ae (ae_of_all _ (λ x hx, _)),
+  rw lift_Ioc_coe_apply,
+  rwa uIoc_of_le (lt_add_of_pos_right a hT.out).le at hx,
+end
+
+lemma fourier_coeff_lift_Ico_eq {a : ℝ} (f : ℝ → ℂ) (n : ℤ) :
+  fourier_coeff (add_circle.lift_Ico T a f) n =
+  fourier_coeff_on (lt_add_of_pos_right a hT.out) f n :=
+begin
+  rw [fourier_coeff_on_eq_integral, fourier_coeff_eq_interval_integral _ _ a, add_sub_cancel' a T],
+  congr' 1,
+  simp_rw [interval_integral.integral_of_le (lt_add_of_pos_right a hT.out).le,
+    integral_Ioc_eq_integral_Ioo],
+  refine set_integral_congr measurable_set_Ioo (λ x hx, _),
+  dsimp only,
+  rw lift_Ico_coe_apply (Ioo_subset_Ico_self hx),
+end
+
 end fourier_coeff
 
 section fourier_L2
@@ -400,7 +426,7 @@ begin
   { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_basis.repr f),
     norm_num },
   have H₂ : ‖fourier_basis.repr f‖ ^ 2 = ‖f‖ ^ 2 := by simp,
-  have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ f f),
+  have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
     rw [← H₁, H₂, H₃], },

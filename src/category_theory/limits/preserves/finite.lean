@@ -9,6 +9,9 @@ import category_theory.fin_category
 /-!
 # Preservation of finite (co)limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These functors are also known as left exact (flat) or right exact functors when the categories
 involved are abelian, or more generally, finitely (co)complete.
 

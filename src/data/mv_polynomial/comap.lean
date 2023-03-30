@@ -9,6 +9,9 @@ import data.mv_polynomial.rename
 /-!
 # `comap` operation on `mv_polynomial`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `comap` function on `mv_polynomial`.
 
 `mv_polynomial.comap` is a low-tech example of a map of "algebraic varieties," modulo the fact that

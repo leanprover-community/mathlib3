@@ -9,6 +9,9 @@ import tactic.by_contra
 /-!
 # Cardinality of a finite set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines the cardinality of a `finset` and provides induction principles for finsets.
 
 ## Main declarations

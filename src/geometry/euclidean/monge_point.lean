@@ -371,9 +371,7 @@ lemma vector_span_is_ortho_altitude_direction {n : ℕ} (s : simplex ℝ P (n + 
   vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ⟂ (s.altitude i).direction :=
 begin
   rw direction_altitude,
-  exact le_trans
-    (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).le_orthogonal_orthogonal
-    (submodule.orthogonal_le inf_le_left)
+  exact (submodule.self_is_ortho_orthogonal _).mono_right inf_le_left,
 end
 
 open finite_dimensional

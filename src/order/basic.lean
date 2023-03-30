@@ -242,10 +242,13 @@ by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
 lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
 h.lt_or_eq.symm.imp eq.symm id
+lemma gt_or_eq_of_le [partial_order α] {a b : α} (hab : a ≤ b) : a < b ∨ b = a :=
+(eq_or_gt_of_le hab).symm
 
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 alias eq_or_gt_of_le ← has_le.le.eq_or_gt
+alias gt_or_eq_of_le ← has_le.le.gt_or_eq
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 

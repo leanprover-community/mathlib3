@@ -10,6 +10,9 @@ import category_theory.is_connected
 /-!
 # Connected limits in the over category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Shows that the forgetful functor `over B ⥤ C` creates connected limits, in particular `over B` has
 any connected limit which `C` has.
 -/

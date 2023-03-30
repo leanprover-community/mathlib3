@@ -8,6 +8,9 @@ import category_theory.limits.creates
 /-!
 # Limits in full subcategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the notion of a property closed under taking limits and show that if `P` is closed
 under taking limits, then limits in `full_subcategory P` can be constructed from limits in `C`.
 More precisely, the inclusion creates such limits.

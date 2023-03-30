@@ -13,6 +13,9 @@ import order.copy
 /-!
 # Grothendieck topologies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition and lemmas about Grothendieck topologies.
 A Grothendieck topology for a category `C` is a set of sieves on each object `X` satisfying
 certain closure conditions.

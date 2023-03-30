@@ -761,6 +761,14 @@ theorem is_integral_algebra [algebra R A] [is_scalar_tower R A B] :
   algebra.is_integral R A :=
 λ x, is_integral_closure.is_integral R B x
 
+theorem no_zero_smul_divisors [algebra R A] [is_scalar_tower R A B] [no_zero_smul_divisors R B] :
+  no_zero_smul_divisors R A :=
+begin
+  refine function.injective.no_zero_smul_divisors
+      _ (is_integral_closure.algebra_map_injective A R B) (map_zero _) (λ _ _, _),
+  simp only [algebra.algebra_map_eq_smul_one, is_scalar_tower.smul_assoc],
+ end
+
 variables {R} (A) {B}
 
 /-- If `x : B` is integral over `R`, then it is an element of the integral closure of `R` in `B`. -/

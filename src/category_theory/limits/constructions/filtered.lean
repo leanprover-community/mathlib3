@@ -9,6 +9,9 @@ import category_theory.limits.opposites
 /-!
 # Constructing colimits from finite colimits and filtered colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct colimits of size `w` from finite colimits and filtered colimits of size `w`. Since
 `w`-sized colimits are constructured from coequalizers and `w`-sized coproducts, it suffices to
 construct `w`-sized coproducts from finite coproducts and `w`-sized filtered colimits.

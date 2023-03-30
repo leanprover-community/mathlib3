@@ -131,6 +131,7 @@ protected def stream (v : K) : stream $ option (int_fract_pair K)
 | (n + 1) := (stream n).bind $ λ ap_n,
   if ap_n.fr = 0 then none else some (int_fract_pair.of ap_n.fr⁻¹)
 
+
 /--
 Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at
 position `n`, we also return `none` at `n + 1`.
@@ -147,10 +148,11 @@ This is just an intermediate representation and users should not (need to) direc
 it. The setup of rewriting/simplification lemmas that make the definitions easy to use is done in
 `algebra.continued_fractions.computation.translations`.
 -/
-protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
+protected def seq1 (v : K) : stream.seq1 $ int_fract_pair K :=
 ⟨ int_fract_pair.of v,--the head
-  seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in the
-  -- head create a sequence from `int_fract_pair.stream`
+  stream.seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in
+  -- the head
+  -- create a sequence from `int_fract_pair.stream`
   ⟨ int_fract_pair.stream v, -- the underlying stream
     @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
 

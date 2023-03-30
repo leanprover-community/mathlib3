@@ -3,7 +3,7 @@ Copyright (c) 2022 Anand Rao, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
-import category_theory.mittag_leffler
+import category_theory.cofiltered_system
 import combinatorics.simple_graph.connectivity
 import data.set_like.basic
 
@@ -45,7 +45,7 @@ end
 lemma component_compl.supp_inj {C D : G.component_compl K} : C.supp = D.supp ↔ C = D :=
 component_compl.supp_injective.eq_iff
 
-instance : set_like (G.component_compl K) V :=
+instance component_compl.set_like : set_like (G.component_compl K) V :=
 { coe := component_compl.supp,
   coe_injective' := λ C D, (component_compl.supp_inj).mp, }
 

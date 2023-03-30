@@ -8,6 +8,9 @@ import analysis.convex.segment
 /-!
 # Star-convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files defines star-convex sets (aka star domains, star-shaped set, radially convex set).
 
 A set is star-convex at `x` if every segment from `x` to a point in the set is contained in the set.

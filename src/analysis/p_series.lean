@@ -214,6 +214,15 @@ begin
   refl,
 end
 
+lemma real.summable_abs_int_rpow {b : ℝ} (hb : 1 < b) : summable (λ n : ℤ, |(n : ℝ)| ^ (-b)) :=
+begin
+  refine summable_int_of_summable_nat (_ : summable (λ n : ℕ, |(n : ℝ)| ^ _))
+    (_ : summable (λ n : ℕ, |((-n : ℤ) : ℝ)| ^ _)),
+  work_on_goal 2 { simp_rw [int.cast_neg, int.cast_coe_nat, abs_neg] },
+  all_goals { simp_rw (λ n : ℕ, abs_of_nonneg (n.cast_nonneg : 0 ≤ (n : ℝ))),
+    rwa [real.summable_nat_rpow, neg_lt_neg_iff] },
+end
+
 /-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=
 have ¬summable (λ n, (n^1)⁻¹ : ℕ → ℝ), from mt real.summable_nat_pow_inv.1 (lt_irrefl 1),

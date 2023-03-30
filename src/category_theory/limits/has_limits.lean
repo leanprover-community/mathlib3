@@ -9,6 +9,9 @@ import category_theory.category.ulift
 /-!
 # Existence of limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `category_theory.limits.is_limit` we defined `is_limit c`,
 the data showing that a cone `c` is a limit cone.
 

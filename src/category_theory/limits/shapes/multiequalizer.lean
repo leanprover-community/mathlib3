@@ -11,6 +11,9 @@ import category_theory.limits.cone_category
 
 # Multi-(co)equalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A *multiequalizer* is an equalizer of two morphisms between two products.
 Since both products and equalizers are limits, such an object is again a limit.
 This file provides the diagram whose limit is indeed such an object.

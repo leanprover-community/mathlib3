@@ -93,7 +93,7 @@ theorem nth_inj_on (hf : (set_of p).finite) : (set.Iio hf.to_finset.card).inj_on
 
 theorem range_nth_of_finite (hf : (set_of p).finite) : set.range (nth p) = insert 0 (set_of p) :=
 by simpa only [← nth_eq_nthd_sort hf, mem_sort, set.finite.mem_to_finset]
-  using (hf.to_finset.sort (≤)).range_nthd 0
+  using set.range_list_nthd (hf.to_finset.sort (≤)) 0
 
 @[simp] theorem image_nth_Iio_card (hf : (set_of p).finite) :
   nth p '' set.Iio hf.to_finset.card = set_of p :=

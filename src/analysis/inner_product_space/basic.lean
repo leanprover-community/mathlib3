@@ -45,10 +45,6 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
 We globally denote the real and complex inner products by `⟪·, ·⟫_ℝ` and `⟪·, ·⟫_ℂ` respectively.
 We also provide two notation namespaces: `real_inner_product_space`, `complex_inner_product_space`,
 which respectively introduce the plain notation `⟪·, ·⟫` for the real and complex inner product.
-\
-
-The proposition that two submodules are orthogonal, `submodule.is_ortho`, is denoted by `U ⟂ V`.
-Note this is not the same unicode symbol as `⊥` (`has_bot`).
 
 ## Implementation notes
 

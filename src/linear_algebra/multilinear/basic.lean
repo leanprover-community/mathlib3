@@ -45,11 +45,29 @@ in linear functions), called respectively `multilinear_curry_left_equiv` and
 
 Expressing that a map is linear along the `i`-th coordinate when all other coordinates are fixed
 can be done in two (equivalent) different ways:
+
 * fixing a vector `m : Π(j : ι - i), M₁ j.val`, and then choosing separately the `i`-th coordinate
 * fixing a vector `m : Πj, M₁ j`, and then modifying its `i`-th coordinate
+
 The second way is more artificial as the value of `m` at `i` is not relevant, but it has the
 advantage of avoiding subtype inclusion issues. This is the definition we use, based on
 `function.update` that allows to change the value of `m` at `i`.
+
+Note that the use of `function.update` requires a `decidable_eq ι` term to appear somewhere in the
+statement of `multilinear_map.map_add'` and `multilinear_map.map_smul'`. Three possible choices
+are:
+
+1. Requiring `decidable_eq ι` as an argument to `multilinear_map` (as we did originally).
+2. Using `classical.dec_eq ι` in the statement of `map_add'` and `map_smul'`.
+3. Quantifying over all possible `decidable_eq ι` instances in the statement of `map_add'` and
+   `map_smul'`.
+
+Option 1 works fine, but puts unecessary constraints on the user (the zero map certainly does not
+need decidability). Option 2 looks great at first, but in the common case when `ι = fin n` it
+introduces non-defeq decidability instance diamonds in proof states of the form
+`fin.decidable_eq n = classical.dec_eq (fin n)`. Option 3 of course does something similar, but of
+the form `fin.decidable_eq n = _inst`, which is much easier to clean up since `_inst` is a free
+variable and so the equality can just be substituted.
 -/
 
 open function fin set

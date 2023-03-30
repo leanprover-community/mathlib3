@@ -1472,7 +1472,7 @@ lemma sub_zero (x : pgame) : x - 0 ≡ x :=
 trans (of_eq x.sub_zero_eq_add_zero) x.add_zero
 
 /-- Use the same name convention as global lemmas. -/
-lemma neg_sub' (x y : pgame.{u}) : -(x - y) = -x - -y := pgame.neg_add _ _
+protected lemma neg_sub' (x y : pgame.{u}) : -(x - y) = -x - -y := pgame.neg_add _ _
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w - y` has the same moves as `x - z`. -/

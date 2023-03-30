@@ -111,15 +111,7 @@ lemma smul (r : R) (hφ : is_symmetric φ) : is_symmetric (r • φ) :=
 
 lemma sum {α : Type*} [decidable_eq α] {s : finset α} {f : α → mv_polynomial σ R} :
   (∀ a ∈ s, (f a).is_symmetric) → (∑ a in s, f a).is_symmetric :=
-begin
-  apply s.induction_on,
-  { intros a s,
-    simp only [finset.sum_empty, map_zero], },
-  { intros a s ha h1 h2,
-    rw finset.sum_insert ha,
-    refine add (h2 _ (finset.mem_insert_self a s)) _,
-    exact h1 (λ a' ha', (h2 _ (finset.mem_insert_of_mem ha'))), },
-end
+  λ a, (symmetric_subalgebra σ R).sum_mem a
 
 @[simp]
 lemma map (hφ : is_symmetric φ) (f : R →+* S) : is_symmetric (map f φ) :=

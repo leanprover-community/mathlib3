@@ -349,6 +349,10 @@ begin
       measure_singleton] }
 end
 
+lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
+  μ (r • s) = ennreal.of_real (r ^ finrank ℝ E) * μ s :=
+by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
+
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
   μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :

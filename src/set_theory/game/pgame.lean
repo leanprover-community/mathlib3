@@ -765,7 +765,7 @@ pgame.rec_on x $ λ xl xr xL xR IHL IHR y, pgame.cases_on y $ λ yl yr yL yR ⟨
 @[symm] protected theorem identical.symm {x y} : x ≡ y → y ≡ x :=
 (identical.refl y).euc
 
-protected theorem identical_comm {x y} : x ≡ y ↔ y ≡ x :=
+theorem identical_comm {x y} : x ≡ y ↔ y ≡ x :=
 ⟨identical.symm, identical.symm⟩
 
 @[trans] protected theorem identical.trans {x y z} (h₁ : x ≡ y) (h₂ : y ≡ z) : x ≡ z :=
@@ -799,7 +799,7 @@ theorem identical_iff : Π {x y : pgame}, x ≡ y ↔
     ((∀ i, (x.move_right i) ∈ᵣ y) ∧ (∀ j, (y.move_right j) ∈ᵣ x))
 | (mk _ _ _ _) (mk _ _ _ _) := begin
   convert identical_iff';
-  exact pi_congr (λ i, propext (exists_congr $ λ j, by rw [identical.comm])),
+  exact pi_congr (λ i, propext (exists_congr $ λ j, by rw [identical_comm])),
 end
 
 theorem memₗ.congr_right : Π {x y : pgame.{u}},

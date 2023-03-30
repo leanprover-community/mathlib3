@@ -9,6 +9,9 @@ import set_theory.ordinal.fixed_point
 /-!
 ### Principal ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define principal or indecomposable ordinals, and we prove the standard properties about them.
 
 ### Main definitions and results
@@ -32,7 +35,7 @@ noncomputable theory
 open order
 
 namespace ordinal
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 
 /-! ### Principal ordinals -/
 
@@ -130,7 +133,7 @@ theorem principal_add_is_limit {o : ordinal} (ho₁ : 1 < o) (ho : principal (+)
 begin
   refine ⟨λ ho₀, _, λ a hao, _⟩,
   { rw ho₀ at ho₁,
-    exact not_lt_of_gt ordinal.zero_lt_one ho₁ },
+    exact not_lt_of_gt zero_lt_one ho₁ },
   { cases eq_or_ne a 0 with ha ha,
     { rw [ha, succ_zero],
       exact ho₁ },
@@ -211,7 +214,7 @@ begin
   { simp only [principal_zero, or.inl] },
   { rw [principal_add_iff_add_left_eq_self],
     simp only [ho, false_or],
-    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le_self _ (ordinal.pos_iff_ne_zero.2 ho)))
+    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le_self _ ho))
         .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
     have := H _ h,
     have := lt_opow_succ_log_self one_lt_omega o,
@@ -389,12 +392,12 @@ theorem mul_omega_dvd {a : ordinal}
   (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
 
-theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*) b) (hb₂ : 2 < b) :
+theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : a ≠ 0) (hb : principal (*) b) (hb₂ : 2 < b) :
   a * b = b ^ succ (log b a) :=
 begin
   apply le_antisymm,
   { have hbl := principal_mul_is_limit hb₂ hb,
-    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le_iff],
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal (ordinal.pos_iff_ne_zero.2 ha)) hbl, bsup_le_iff],
     intros c hcb,
     have hb₁ : 1 < b := (lt_succ 1).trans hb₂,
     have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),

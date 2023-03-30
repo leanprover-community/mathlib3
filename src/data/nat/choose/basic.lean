@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Bhavik Mehta
+Authors: Chris Hughes, Bhavik Mehta, Stuart Presnell
 -/
 import data.nat.factorial.basic
 
 /-!
 # Binomial coefficients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines binomial coefficients and proves simple lemmas (i.e. those not
 requiring more imports).
@@ -22,11 +25,16 @@ requiring more imports).
   factorial. This is used to prove `nat.choose_le_pow` and variants. We provide similar statements
   for the ascending factorial.
 * `nat.multichoose`: whereas `choose` counts combinations, `multichoose` counts multicombinations.
-* `nat.multichoose_eq` : a proof that `multichoose n k = (n + k - 1).choose k`
+The fact that this is indeed the correct counting function for multisets is proved in
+`sym.card_sym_eq_multichoose` in `data/sym/card`.
+* `nat.multichoose_eq` : a proof that `multichoose n k = (n + k - 1).choose k`.
+This is central to the "stars and bars" technique in informal mathematics, where we switch between
+counting multisets of size `k` over an alphabet of size `n` to counting strings of `k` elements
+("stars") separated by `n-1` dividers ("bars").  See `data/sym/card` for more detail.
 
 ## Tags
 
-binomial coefficient, combination, multicombination
+binomial coefficient, combination, multicombination, stars and bars
 -/
 
 open_locale nat
@@ -119,9 +127,8 @@ end
 lemma choose_mul {n k s : ℕ} (hkn : k ≤ n) (hsk : s ≤ k) :
   n.choose k * k.choose s = n.choose s * (n - s).choose (k - s) :=
 begin
-  have h : 0 < (n - k)! * (k - s)! * s! :=
-    mul_pos (mul_pos (factorial_pos _) (factorial_pos _)) (factorial_pos _),
-  refine eq_of_mul_eq_mul_right h _,
+  have h : (n - k)! * (k - s)! * s! ≠ 0, by apply_rules [mul_ne_zero, factorial_ne_zero],
+  refine mul_right_cancel₀ h _,
   calc
     n.choose k * k.choose s * ((n - k)! * (k - s)! * s!)
         = n.choose k * (k.choose s * s! * (k - s)!) * (n - k)!

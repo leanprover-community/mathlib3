@@ -201,7 +201,7 @@ end perfection
 
 /-- A perfection map to a ring of characteristic `p` is a map that is isomorphic
 to its perfection. -/
-@[nolint has_inhabited_instance] structure perfection_map (p : ℕ) [fact p.prime]
+@[nolint has_nonempty_instance] structure perfection_map (p : ℕ) [fact p.prime]
   {R : Type u₁} [comm_semiring R] [char_p R p]
   {P : Type u₂} [comm_semiring P] [char_p P p] [perfect_ring P p] (π : P →+* R) : Prop :=
 (injective : ∀ ⦃x y : P⦄, (∀ n, π (pth_root P p ^[n] x) = π (pth_root P p ^[n] y)) → x = y)
@@ -321,7 +321,7 @@ variables (p : ℕ)
 include hv
 
 /-- `O/(p)` for `O`, ring of integers of `K`. -/
-@[nolint unused_arguments has_inhabited_instance] def mod_p :=
+@[nolint unused_arguments has_nonempty_instance] def mod_p :=
 O ⧸ (ideal.span {p} : ideal O)
 
 variables [hp : fact p.prime] [hvp : fact (v p ≠ 1)]
@@ -431,7 +431,7 @@ end classical
 end mod_p
 
 /-- Perfection of `O/(p)` where `O` is the ring of integers of `K`. -/
-@[nolint has_inhabited_instance] def pre_tilt :=
+@[nolint has_nonempty_instance] def pre_tilt :=
 ring.perfection (mod_p K v O hv p) p
 
 include hp hvp
@@ -485,7 +485,9 @@ dif_neg $ λ ⟨n, hn⟩, hn rfl
 lemma val_aux_one : val_aux K v O hv p 1 = 1 :=
 (val_aux_eq $ show coeff (mod_p K v O hv p) p 0 1 ≠ 0, from one_ne_zero).trans $
 by { rw [pow_zero, pow_one, ring_hom.map_one, ← (ideal.quotient.mk _).map_one, mod_p.pre_val_mk,
-    ring_hom.map_one, v.map_one], exact @one_ne_zero (mod_p K v O hv p) _ _ }
+    ring_hom.map_one, v.map_one],
+  change (1 : mod_p K v O hv p) ≠ 0,
+  exact one_ne_zero }
 
 lemma val_aux_mul (f g : pre_tilt K v O hv p) :
   val_aux K v O hv p (f * g) = val_aux K v O hv p f * val_aux K v O hv p g :=
@@ -548,18 +550,20 @@ end
 end classical
 
 instance : is_domain (pre_tilt K v O hv p) :=
-{ exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
+begin
+  haveI : nontrivial (pre_tilt K v O hv p) := ⟨(char_p.nontrivial_of_char_ne_one hp.1.ne_one).1⟩,
+  haveI : no_zero_divisors (pre_tilt K v O hv p) := ⟨λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,
-      exact mul_ne_zero hfg.1 hfg.2 },
-  .. (infer_instance : comm_ring (pre_tilt K v O hv p)) }
+    exact mul_ne_zero hfg.1 hfg.2 }⟩,
+  exact no_zero_divisors.to_is_domain _
+end
 
 end pre_tilt
 
 /-- The tilt of a field, as defined in Perfectoid Spaces by Peter Scholze, as in
 [scholze2011perfectoid]. Given a field `K` with valuation `K → ℝ≥0` and ring of integers `O`,
 this is implemented as the fraction field of the perfection of `O/(p)`. -/
-@[nolint has_inhabited_instance] def tilt :=
+@[nolint has_nonempty_instance] def tilt :=
 fraction_ring (pre_tilt K v O hv p)
 
 namespace tilt

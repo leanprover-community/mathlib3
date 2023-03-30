@@ -138,7 +138,7 @@ begin
   { intros H, constructor, intros f hf a₀ h₁ h₂,
     specialize H f hf (residue R a₀),
     have aux := flip mem_nonunits_iff.mp h₂,
-    simp only [aeval_def, ring_hom.algebra_map_to_algebra, eval₂_at_apply,
+    simp only [aeval_def, residue_field.algebra_map_eq, eval₂_at_apply,
       ← ideal.quotient.eq_zero_iff_mem, ← local_ring.mem_maximal_ideal] at H h₁ aux,
     obtain ⟨a, ha₁, ha₂⟩ := H h₁ aux,
     refine ⟨a, ha₁, _⟩,
@@ -250,7 +250,7 @@ instance is_adic_complete.henselian_ring
       specialize ha 1,
       rw [hc, pow_one, ← ideal.one_eq_top, ideal.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
       rw [← smodeq.sub_mem, ← add_zero a₀],
-      refine ha.symm.trans (smodeq.refl.add _),
+      refine ha.symm.trans (smodeq.rfl.add _),
       rw [smodeq.zero, ideal.neg_mem_iff],
       exact ideal.mul_mem_right _ _ h₁, }
   end }

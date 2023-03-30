@@ -1,0 +1,19 @@
+# By default, the mathlib maintainers own everything in the repo.
+# Later matches will take precedence over this match.
+
+# Disabled until we have better coverage by other patterns. Reenable in the future.
+# *        @leanprover-community/mathlib-maintainers
+
+src/category_theory/    @leanprover-community/mathlib-CT
+
+src/measure_theory/     @leanprover-community/mathlib-meas
+
+src/algebraic_topology/ @leanprover-community/mathlib-CT # for now the category theory team can take care of this
+
+src/algebraic_geometry/ @leanprover-community/mathlib-AG
+
+src/combinatorics/      @leanprover-community/mathlib-CO
+
+src/probability/        @leanprover-community/mathlib-PR
+
+src/tactic/             @leanprover-community/mathlib-meta

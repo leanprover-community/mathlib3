@@ -47,8 +47,6 @@ attribute [measurability]
   subsingleton.measurable_set
   measurable_set.Union
   measurable_set.Inter
-  measurable_set.Union_Prop
-  measurable_set.Inter_Prop
   measurable_set.union
   measurable_set.inter
   measurable_set.diff
@@ -59,9 +57,7 @@ attribute [measurability]
   measurable_set.const
   measurable_set.insert
   measurable_set_eq
-  set.finite.measurable_set
   finset.measurable_set
-  set.countable.measurable_set
   measurable_space.measurable_set_top
 
 namespace tactic

@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 
 import category_theory.preadditive.injective
 import ring_theory.ideal.basic
+import linear_algebra.linear_pmap
 
 /-!
 # Injective modules

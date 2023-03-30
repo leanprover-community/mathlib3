@@ -126,6 +126,10 @@ lemma mem_quotient_iff_mem {I J : ideal R} (hIJ : I ≤ J) {x : R} :
   quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
 by rw [mem_quotient_iff_mem_sup, sup_eq_left.mpr hIJ]
 
+lemma comap_map_mk {I J : ideal R} (h : I ≤ J) :
+  ideal.comap (ideal.quotient.mk I) (ideal.map (ideal.quotient.mk I) J) = J :=
+by { ext, rw [← ideal.mem_quotient_iff_mem h, ideal.mem_comap], }
+
 section quotient_algebra
 
 variables (R₁ R₂ : Type*) {A B : Type*}

@@ -85,7 +85,7 @@ begin
                 ... = ∑ l, ∑ j, (A i j) * b.to_matrix p j l : by rw finset.sum_comm
                 ... = ∑ l, (A ⬝ b.to_matrix p) i l : rfl
                 ... = 1 : by simp [hA, matrix.one_apply, finset.filter_eq], },
-  have hbi : b i = finset.univ.affine_combination p (A i),
+  have hbi : b i = finset.univ.affine_combination k p (A i),
   { apply b.ext_elem,
     intros j,
     rw [b.coord_apply, finset.univ.map_affine_combination _ _ hAi,

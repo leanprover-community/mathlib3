@@ -42,6 +42,10 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 * We have not restricted the index type `ι` to be a `fintype`, as nothing we do here strictly
   requires it. However, problems may arise in the case where `ι` is infinite; use at your own
   caution.
+* Instead of requiring `decidable_eq ι` as an argument to `pi_tensor_product` itself, we include it
+  as an argument in the constructors of the relation. A decidability isntance still has to come
+  from somewhere due to the use of `function.update`, but this hides it from the downstream user.
+  See the implementation notes for `multilinear_map` for an extended discussion of this choice.
 
 ## TODO
 

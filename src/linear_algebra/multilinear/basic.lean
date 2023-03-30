@@ -64,10 +64,10 @@ are:
 
 Option 1 works fine, but puts unecessary constraints on the user (the zero map certainly does not
 need decidability). Option 2 looks great at first, but in the common case when `ι = fin n` it
-introduces non-defeq decidability instance diamonds in proof states of the form
-`fin.decidable_eq n = classical.dec_eq (fin n)`. Option 3 of course does something similar, but of
-the form `fin.decidable_eq n = _inst`, which is much easier to clean up since `_inst` is a free
-variable and so the equality can just be substituted.
+introduces non-defeq decidability instance diamonds within the context of proving `map_add'` and
+`map_smul'`, of the form `fin.decidable_eq n = classical.dec_eq (fin n)`. Option 3 of course does
+something similar, but of the form `fin.decidable_eq n = _inst`, which is much easier to clean up
+since `_inst` is a free variable and so the equality can just be substituted.
 -/
 
 open function fin set

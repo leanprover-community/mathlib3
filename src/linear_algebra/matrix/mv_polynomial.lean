@@ -25,8 +25,13 @@ namespace matrix
 variables (m n R)
 
 /-- The matrix with variable `X (i,j)` at location `(i,j)`. -/
-@[simp] noncomputable def mv_polynomial_X [comm_semiring R] : matrix m n (mv_polynomial (m × n) R)
-| i j := mv_polynomial.X (i, j)
+noncomputable def mv_polynomial_X [comm_semiring R] : matrix m n (mv_polynomial (m × n) R) :=
+of $ λ i j, mv_polynomial.X (i, j)
+
+-- TODO: set as an equation lemma for `mv_polynomial_X`, see mathlib4#3024
+@[simp]
+lemma mv_polynomial_X_apply [comm_semiring R] (i j) :
+  mv_polynomial_X m n R i j = mv_polynomial.X (i, j) := rfl
 
 variables {m n R S}
 

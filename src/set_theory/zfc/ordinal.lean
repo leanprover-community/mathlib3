@@ -63,7 +63,6 @@ end
 protected theorem is_transitive.union (hx : x.is_transitive) (hy : y.is_transitive) :
   (x ∪ y).is_transitive :=
 begin
-  rw ←sUnion_pair,
   apply is_transitive.sUnion' (λ z, _),
   rw mem_pair,
   rintro (rfl | rfl),

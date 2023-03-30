@@ -89,7 +89,7 @@ begin
   { ext i,
     have : ∀ j, (trace A B) (b i * b j) * g j = (trace A B) (((g j) • (b j)) * b i),
     { intro j, simp [mul_comm], },
-    simp only [mul_vec, dot_product, trace_matrix, pi.zero_apply, trace_form_apply,
+    simp only [mul_vec, dot_product, trace_matrix_apply, pi.zero_apply, trace_form_apply,
       λ j, this j, ← linear_map.map_sum, ← sum_mul, hg, zero_mul, linear_map.map_zero] },
   by_contra h,
   rw discr_def at h,

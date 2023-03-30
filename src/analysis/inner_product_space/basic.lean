@@ -39,7 +39,7 @@ product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_spac
   the sum of the norm-squares of the inner products `⟪v i, x⟫` is no more than the norm-square of
   `x`. For the existence of orthonormal bases, Hilbert bases, etc., see the file
   `analysis.inner_product_space.projection`.
-- The `orthogonal_complement` of a submodule `K` is defined, and basic API established.  Some of
+- The `orthogonal` complement of a submodule `K` is defined, and basic API established.  Some of
   the more subtle results about the orthogonal complement are delayed to
   `analysis.inner_product_space.projection`.
 
@@ -50,6 +50,9 @@ We also provide two notation namespaces: `real_inner_product_space`, `complex_in
 which respectively introduce the plain notation `⟪·, ·⟫` for the real and complex inner product.
 
 The orthogonal complement of a submodule `K` is denoted by `Kᗮ`.
+
+The proposition that two submodules are orthogonal, `submodule.is_ortho`, is denoted by `U ⟂ V`.
+Note this is not the same unicode symbol as `⊥` (`has_bot`).
 
 ## Implementation notes
 
@@ -2386,6 +2389,54 @@ lemma submodule.orthogonal_family_self :
 | tt ff := λ _ x y, submodule.inner_right_of_mem_orthogonal x.prop y.prop
 | ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop
 | ff ff := absurd rfl
+
+namespace submodule
+
+/-- The proposition that two submodules are orthogonal. Has notation `U ⟂ V`. -/
+def is_ortho (U V : submodule 𝕜 E) : Prop :=
+U ≤ Vᗮ
+
+infix ` ⟂ `:50 := submodule.is_ortho
+
+lemma is_ortho.le {U V : submodule 𝕜 E} (h : U ⟂ V) : U ≤ Vᗮ := h
+
+lemma is_ortho_iff {U V : submodule 𝕜 E} : U ⟂ V ↔ U ≤ Vᗮ := iff.rfl
+
+@[symm]
+lemma is_ortho.symm {U V : submodule 𝕜 E} (h : U ⟂ V) : V ⟂ U :=
+(le_orthogonal_orthogonal _).trans (orthogonal_le h)
+
+lemma is_ortho_comm {U V : submodule 𝕜 E} : U ⟂ V ↔ V ⟂ U :=
+⟨is_ortho.symm, is_ortho.symm⟩
+
+@[simp] lemma is_ortho_bot {U : submodule 𝕜 E} : U ⟂ ⊥ :=
+le_top.trans_eq bot_orthogonal_eq_top.symm
+
+@[simp] lemma bot_is_ortho {V : submodule 𝕜 E} : ⊥ ⟂ V :=
+bot_le
+
+@[simp]
+lemma is_ortho_self {U : submodule 𝕜 E} : U ⟂ U ↔ U = ⊥ :=
+⟨λ h, eq_bot_iff.mpr $ λ x hx, inner_self_eq_zero.mp (h hx x hx), λ h, h.symm ▸ bot_is_ortho⟩
+
+@[simp]
+lemma is_ortho_top {U : submodule 𝕜 E} : U ⟂ ⊤ ↔ U = ⊥ :=
+⟨λ h, eq_bot_iff.mpr $ λ x hx, inner_self_eq_zero.mp (h hx _ mem_top), λ h, h.symm ▸ bot_is_ortho⟩
+
+@[simp]
+lemma top_is_ortho {V : submodule 𝕜 E} : ⊤ ⟂ V ↔ V = ⊥ :=
+is_ortho_comm.trans is_ortho_top
+
+/-- Orthogonal submodules are disjoint. -/
+lemma is_ortho.disjoint {U V : submodule 𝕜 E} (h : U ⟂ V) : disjoint U V :=
+(submodule.orthogonal_disjoint _).mono_right h.symm
+
+@[simp] lemma is_ortho.inf {U₁ V₁ U₂ V₂ : submodule 𝕜 E} (h₁ : U₁ ⟂ V₁) (h₂ : U₂ ⟂ V₂) :
+  U₁ ⊓ U₂ ⟂ V₁ ⊓ V₂ :=
+(inf_le_inf h₁ h₂).trans $
+  (inf_orthogonal _ _).trans_le $ orthogonal_le inf_le_sup
+
+end submodule
 
 end orthogonal
 

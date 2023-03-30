@@ -144,8 +144,8 @@ instance is_well_founded (r s) [is_well_founded α r] [is_well_founded β s] :
 instance is_well_order (r s) [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) := { }
 
-instance is_well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
-  is_well_founded (α ×ₗ β) (<) :=
+instance well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
+  well_founded_lt (α ×ₗ β) :=
 prod.lex.is_well_founded _ _
 
 instance is_well_order_lt [linear_order α] [linear_order β]

@@ -267,9 +267,13 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_trichotomous α r, is_trans α r, is_well_founded α r : Prop
 
+/-- The preferred way to state `is_well_order α (<)` is `linear_order α` + `well_founded_lt α`, as
+it's much easier to recover the `is_well_order` instance than the other way around. -/
 theorem is_well_order_lt_of_wf_of_linear_order (α) [linear_order α] [well_founded_lt α] :
   is_well_order α (<) := { }
 
+/-- The preferred way to state `is_well_order α (>)` is `linear_order α` + `well_founded_gt α`, as
+it's much easier to recover the `is_well_order` instance than the other way around. -/
 theorem is_well_order_gt_of_wf_of_linear_order (α) [linear_order α] [well_founded_gt α] :
   is_well_order α (>) := is_well_order_lt_of_wf_of_linear_order αᵒᵈ
 

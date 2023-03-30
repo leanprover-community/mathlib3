@@ -70,6 +70,26 @@ lemma is_satisfiable.mono (h : T'.is_satisfiable) (hs : T ⊆ T') :
   T.is_satisfiable :=
 ⟨(Theory.model.mono (Model.is_model h.some) hs).bundled⟩
 
+lemma is_satisfiable_empty (L : language.{u v}) :
+  is_satisfiable (∅ : L.Theory) :=
+⟨default⟩
+
+lemma is_satisfiable_of_is_satisfiable_on_Theory {L' : language.{w w'}} (φ : L →ᴸ L')
+  (h : (φ.on_Theory T).is_satisfiable) :
+  T.is_satisfiable :=
+model.is_satisfiable (h.some.reduct φ)
+
+lemma is_satisfiable_on_Theory_iff {L' : language.{w w'}} {φ : L →ᴸ L'}
+  (h : φ.injective) :
+  (φ.on_Theory T).is_satisfiable ↔ T.is_satisfiable :=
+begin
+  classical,
+  refine ⟨is_satisfiable_of_is_satisfiable_on_Theory φ,
+    λ h', _⟩,
+  haveI : inhabited (h'.some) := classical.inhabited_of_nonempty',
+  exact model.is_satisfiable (h'.some.default_expansion h),
+end
+
 lemma is_satisfiable.is_finitely_satisfiable (h : T.is_satisfiable) :
   T.is_finitely_satisfiable :=
 λ _, h.mono
@@ -122,8 +142,8 @@ begin
     refine λ a as b bs ab, _,
     rw [← subtype.coe_mk a as, ← subtype.coe_mk b bs, ← subtype.ext_iff],
     exact h.some.injective
-      ((function.extend_apply subtype.coe_injective h.some default ⟨a, as⟩).symm.trans
-      (ab.trans (function.extend_apply subtype.coe_injective h.some default ⟨b, bs⟩))), },
+      ((subtype.coe_injective.extend_apply h.some default ⟨a, as⟩).symm.trans
+      (ab.trans (subtype.coe_injective.extend_apply h.some default ⟨b, bs⟩))), },
   exact model.is_satisfiable M,
 end
 
@@ -154,6 +174,20 @@ begin
   rw [← mk_univ],
   refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
   rw lift_lift,
+end
+
+lemma is_satisfiable_Union_iff_is_satisfiable_Union_finset {ι : Type*} (T : ι → L.Theory) :
+  is_satisfiable (⋃ i, T i) ↔ ∀ (s : finset ι), is_satisfiable (⋃ (i ∈ s), T i) :=
+begin
+  classical,
+  refine ⟨λ h s, h.mono (set.Union_mono (λ _, set.Union_subset_iff.2 (λ _, refl _))), λ h, _⟩,
+  rw is_satisfiable_iff_is_finitely_satisfiable,
+  intros s hs,
+  rw set.Union_eq_Union_finset at hs,
+  obtain ⟨t, ht⟩ := directed.exists_mem_subset_of_finset_subset_bUnion _ hs,
+  { exact (h t).mono ht },
+  { exact (monotone.directed_le (λ t1 t2 h, set.Union_mono (λ _, set.Union_mono'
+    (λ h1, ⟨h h1, refl _⟩)))) },
 end
 
 end Theory
@@ -260,7 +294,8 @@ variable (T)
 def models_bounded_formula (φ : L.bounded_formula α n) : Prop :=
   ∀ (M : Model.{u v (max u v)} T) (v : α → M) (xs : fin n → M), φ.realize v xs
 
-infix ` ⊨ `:51 := models_bounded_formula -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := models_bounded_formula) ` ⊨ `:51 := models_bounded_formula
 
 variable {T}
 
@@ -276,9 +311,92 @@ lemma models_sentence_of_mem {φ : L.sentence} (h : φ ∈ T) :
   T ⊨ φ :=
 models_sentence_iff.2 (λ _, realize_sentence_of_mem T h)
 
+lemma models_iff_not_satisfiable (φ : L.sentence) :
+  T ⊨ φ ↔ ¬ is_satisfiable (T ∪ {φ.not}) :=
+begin
+  rw [models_sentence_iff, is_satisfiable],
+  refine ⟨λ h1 h2, (sentence.realize_not _).1 (realize_sentence_of_mem (T ∪ {formula.not φ})
+    (set.subset_union_right _ _ (set.mem_singleton _)))
+    (h1 (h2.some.subtheory_Model (set.subset_union_left _ _))), λ h M, _⟩,
+  contrapose! h,
+  rw ← sentence.realize_not at h,
+  refine ⟨{ carrier := M,
+    is_model := ⟨λ ψ hψ, hψ.elim (realize_sentence_of_mem _) (λ h', _)⟩, }⟩,
+  rw set.mem_singleton_iff.1 h',
+  exact h,
+end
+
+lemma models_bounded_formula.realize_sentence {φ : L.sentence} (h : T ⊨ φ)
+  (M : Type*) [L.Structure M] [M ⊨ T] [nonempty M] :
+  M ⊨ φ :=
+begin
+  rw models_iff_not_satisfiable at h,
+  contrapose! h,
+  haveI : M ⊨ (T ∪ {formula.not φ}),
+  { simp only [set.union_singleton, model_iff, set.mem_insert_iff, forall_eq_or_imp,
+      sentence.realize_not],
+    rw ← model_iff,
+    exact ⟨h, infer_instance⟩ },
+  exact model.is_satisfiable M,
+end
+
 /-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
 def is_complete (T : L.Theory) : Prop :=
 T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
+
+namespace is_complete
+
+lemma models_not_iff (h : T.is_complete) (φ : L.sentence)  :
+  T ⊨ φ.not ↔ ¬ T ⊨ φ :=
+begin
+  cases h.2 φ with hφ hφn,
+  { simp only [hφ, not_true, iff_false],
+    rw [models_sentence_iff, not_forall],
+    refine ⟨h.1.some, _⟩,
+    simp only [sentence.realize_not, not_not],
+    exact models_sentence_iff.1 hφ _ },
+  { simp only [hφn, true_iff],
+    intro hφ,
+    rw models_sentence_iff at *,
+    exact hφn h.1.some (hφ _) }
+end
+
+lemma realize_sentence_iff (h : T.is_complete) (φ : L.sentence)
+  (M : Type*) [L.Structure M] [M ⊨ T] [nonempty M] :
+  M ⊨ φ ↔ T ⊨ φ :=
+begin
+  cases h.2 φ with hφ hφn,
+  { exact iff_of_true (hφ.realize_sentence M) hφ },
+  { exact iff_of_false ((sentence.realize_not M).1 (hφn.realize_sentence M))
+      ((h.models_not_iff φ).1 hφn), }
+end
+
+end is_complete
+
+/-- A theory is maximal when it is satisfiable and contains each sentence or its negation.
+  Maximal theories are complete. -/
+def is_maximal (T : L.Theory) : Prop :=
+T.is_satisfiable ∧ ∀ (φ : L.sentence), φ ∈ T ∨ φ.not ∈ T
+
+lemma is_maximal.is_complete (h : T.is_maximal) : T.is_complete :=
+h.imp_right (forall_imp (λ _, or.imp models_sentence_of_mem models_sentence_of_mem))
+
+lemma is_maximal.mem_or_not_mem (h : T.is_maximal) (φ : L.sentence) :
+  φ ∈ T ∨ φ.not ∈ T :=
+h.2 φ
+
+lemma is_maximal.mem_of_models (h : T.is_maximal) {φ : L.sentence}
+  (hφ : T ⊨ φ) :
+  φ ∈ T :=
+begin
+  refine (h.mem_or_not_mem φ).resolve_right (λ con, _),
+  rw [models_iff_not_satisfiable, set.union_singleton, set.insert_eq_of_mem con] at hφ,
+  exact hφ h.1,
+end
+
+lemma is_maximal.mem_iff_models (h : T.is_maximal) (φ : L.sentence) :
+  φ ∈ T ↔ T ⊨ φ :=
+⟨models_sentence_of_mem, h.mem_of_models⟩
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
@@ -374,9 +492,11 @@ lemma mem_or_not_mem (φ : L.sentence) :
   φ ∈ L.complete_theory M ∨ φ.not ∈ L.complete_theory M :=
 by simp_rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not, or_not]
 
+lemma is_maximal [nonempty M] : (L.complete_theory M).is_maximal :=
+⟨is_satisfiable L M, mem_or_not_mem L M⟩
+
 lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
-⟨is_satisfiable L M,
-  λ φ, ((mem_or_not_mem L M φ).imp Theory.models_sentence_of_mem Theory.models_sentence_of_mem)⟩
+(complete_theory.is_maximal L M).is_complete
 
 end complete_theory
 

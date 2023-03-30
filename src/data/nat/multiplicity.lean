@@ -8,10 +8,14 @@ import algebra.geom_sum
 import data.nat.bitwise
 import data.nat.log
 import data.nat.parity
-import ring_theory.int.basic
+import data.nat.prime
+import ring_theory.multiplicity
 
 /-!
 # Natural number multiplicity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas about the multiplicity function (the maximum prime power dividing a
 number) when applied to naturals, in particular calculating it for factorials and binomial
@@ -56,35 +60,34 @@ calc
 ... = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card
     : congr_arg coe $ congr_arg card $ finset.ext $ λ i,
       begin
-        rw [mem_filter, mem_Ico, mem_Ico, lt_succ_iff, ←@enat.coe_le_coe i, enat.coe_get,
+        rw [mem_filter, mem_Ico, mem_Ico, lt_succ_iff, ←@part_enat.coe_le_coe i, part_enat.coe_get,
           ←pow_dvd_iff_le_multiplicity, and.right_comm],
-        refine (and_iff_left_of_imp (λ h, _)).symm,
+        refine (and_iff_left_of_imp (λ h, lt_of_le_of_lt _ hb)).symm,
         cases m,
         { rw [zero_pow, zero_dvd_iff] at h,
-          exact (hn.ne' h.2).elim,
-          { exact h.1 } },
-        exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn).1 $
-          le_of_dvd hn h.2).trans_lt hb,
+          exacts [(hn.ne' h.2).elim, h.1] },
+        exact le_log_of_pow_le (one_lt_iff_ne_zero_and_ne_one.2 ⟨m.succ_ne_zero, hm⟩)
+          (le_of_dvd hn h.2)
       end
 
 namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) : multiplicity p 1 = 0 :=
-multiplicity.one_right (prime_iff.mp hp).not_unit
+multiplicity.one_right hp.prime.not_unit
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=
-multiplicity.mul $ prime_iff.mp hp
+multiplicity.mul hp.prime
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m ^ n) = n • (multiplicity p m) :=
-multiplicity.pow $ prime_iff.mp hp
+multiplicity.pow hp.prime
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
-multiplicity_self (prime_iff.mp hp).not_unit hp.ne_zero
+multiplicity_self hp.prime.not_unit hp.ne_zero
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
-multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
+multiplicity_pow_self hp.ne_zero hp.prime.not_unit n
 
 /-- **Legendre's Theorem**
 
@@ -109,7 +112,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
 lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   multiplicity p (p * (n + 1))! = multiplicity p (p * n)! + multiplicity p (n + 1) + 1 :=
 begin
-  have hp' := prime_iff.mp hp,
+  have hp' := hp.prime,
   have h0 : 2 ≤ p := hp.two_le,
   have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
   have h2 : p * n + 1 ≤ p * (n + 1), linarith,
@@ -119,15 +122,15 @@ begin
     exact ⟨hp.ne_one, factorial_pos _⟩ },
   revert hm,
   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
-  { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
-    rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
+  { intros m hm,
+    rw [multiplicity_eq_zero, ← not_dvd_iff_between_consec_multiples _ hp.pos],
     rw [mem_Ico] at hm,
     exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
   simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
     add_assoc], intro h,
-  rw [enat.add_left_cancel_iff h, sum_Ico_succ_top h2, multiplicity.mul hp',
+  rw [part_enat.add_left_cancel_iff h, sum_Ico_succ_top h2, multiplicity.mul hp',
     hp.multiplicity_self, sum_congr rfl h4, sum_const_zero, zero_add,
-    add_comm (1 : enat)]
+    add_comm (1 : part_enat)]
 end
 
 /-- The multiplicity of `p` in `(p * n)!` is `n` more than that of `n!`. -/
@@ -136,7 +139,7 @@ lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
 begin
   induction n with n ih,
   { simp },
-  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
+  { simp only [succ_eq_add_one, multiplicity.mul, hp, hp.prime, ih,
       multiplicity_factorial_mul_succ, ←add_assoc, nat.cast_one, nat.cast_add, factorial_succ],
     congr' 1,
     rw [add_comm, add_assoc] }
@@ -146,12 +149,12 @@ end
   This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
 lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
    p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-by rw [← enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
+by rw [← part_enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma multiplicity_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
   multiplicity p n! ≤ (n/(p - 1) : ℕ) :=
 begin
-  rw [hp.multiplicity_factorial (lt_succ_self _), enat.coe_le_coe],
+  rw [hp.multiplicity_factorial (lt_succ_self _), part_enat.coe_le_coe],
   exact nat.geom_sum_Ico_le hp.two_le _ _,
 end
 
@@ -184,8 +187,8 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
         multiplicity_choose_aux hp hkn],
     simp [add_comm],
   end,
-(enat.add_right_cancel_iff
-  (enat.ne_top_iff_dom.2 $
+(part_enat.add_right_cancel_iff
+  (part_enat.ne_top_iff_dom.2 $
     by exact finite_nat_iff.2
       ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
   h₁
@@ -203,8 +206,10 @@ begin
   exact dvd_mul_right _ _
 end
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+variables {p n k : ℕ}
+
+lemma multiplicity_choose_prime_pow_add_multiplicity (hp : p.prime) (hkn : k ≤ p ^ n)
+  (hk0 : k ≠ 0) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
   (have hdisj : disjoint
@@ -214,9 +219,9 @@ le_antisymm
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
-      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
+      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0.bot_lt
         (lt_succ_of_le (log_mono_right hkn)),
-      ← nat.cast_add, enat.coe_le_coe, log_pow hp.one_lt,
+      ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
     have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
     rwa card_Ico 1 n.succ at filter_le_Ico,
@@ -224,26 +229,44 @@ le_antisymm
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)
 
+lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  multiplicity p (choose (p ^ n) k) =
+    ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0.bot_lt⟩)) :=
+part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
+
+lemma dvd_choose_pow (hp : prime p) (hk : k ≠ 0) (hkp : k ≠ p ^ n) : p ∣ (p ^ n).choose k :=
+begin
+  obtain hkp | hkp := hkp.symm.lt_or_lt,
+  { simp [choose_eq_zero_of_lt hkp] },
+  refine multiplicity_ne_zero.1 (λ h, hkp.not_le $ nat.le_of_dvd hk.bot_lt _),
+  have H := hp.multiplicity_choose_prime_pow_add_multiplicity hkp.le hk,
+  rw [h, zero_add, eq_coe_iff] at H,
+  exact H.1,
+end
+
+lemma dvd_choose_pow_iff (hp : prime p) : p ∣ (p ^ n).choose k ↔ k ≠ 0 ∧ k ≠ p ^ n :=
+by refine ⟨λ h, ⟨_, _⟩, λ h, dvd_choose_pow hp h.1 h.2⟩; rintro rfl; simpa [hp.ne_one] using h
+
 end prime
 
 lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n :=
 begin
-  have h2 := prime_iff.mp prime_two,
+  have h2 := prime_two.prime,
   refine binary_rec _ _,
   { contradiction },
   { intros b n ih h,
     by_cases hn : n = 0,
-    { subst hn, simp at h, simp [h, one_right h2.not_unit, enat.zero_lt_one] },
+    { subst hn, simp at h, simp [h, one_right h2.not_unit] },
     have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
     { rw [prime_two.multiplicity_factorial_mul],
-      refine (enat.add_lt_add_right (ih hn) (enat.coe_ne_top _)).trans_le _,
+      refine (part_enat.add_lt_add_right (ih hn) (part_enat.coe_ne_top _)).trans_le _,
       rw [two_mul], norm_cast },
     cases b,
     { simpa [bit0_eq_two_mul n] },
     { suffices : multiplicity 2 (2 * n + 1) + multiplicity 2 (2 * n)! < ↑(2 * n) + 1,
       { simpa [succ_eq_add_one, multiplicity.mul, h2, prime_two, nat.bit1_eq_succ_bit0,
           bit0_eq_two_mul n] },
-      rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
+      rw [multiplicity_eq_zero.2 (two_not_dvd_two_mul_add_one n), zero_add],
       refine this.trans _, exact_mod_cast lt_succ_self _ }}
 end
 

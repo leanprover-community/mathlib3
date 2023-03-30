@@ -60,7 +60,7 @@ noncomputable def of_prenndist (d : X → X → ℝ≥0) (dist_self : ∀ x, d x
       refine reverse_surjective.infi_congr _ (λ l, _),
       rw [← sum_reverse, zip_with_distrib_reverse, reverse_append, reverse_reverse,
         reverse_singleton, singleton_append, reverse_cons, reverse_reverse,
-        zip_with_comm _ dist_comm],
+        zip_with_comm_of_comm _ dist_comm],
       simp only [length, length_append]
     end,
   dist_triangle := λ x y z,
@@ -116,9 +116,8 @@ begin
   set L := zip_with d (x :: l) (l ++ [y]),
   have hL_len : length L = length l + 1, by simp,
   cases eq_or_ne (d x y) 0 with hd₀ hd₀, { simp only [hd₀, zero_le] },
-  suffices : ∃ z z' : X, d x z ≤ L.sum ∧ d z z' ≤ L.sum ∧ d z' y ≤ L.sum,
-  { rcases this with ⟨z, z', hxz, hzz', hz'y⟩,
-    exact (hd x z z' y).trans (mul_le_mul_left' (max_le hxz (max_le hzz' hz'y)) _) },
+  rsuffices ⟨z, z', hxz, hzz', hz'y⟩ : ∃ z z' : X, d x z ≤ L.sum ∧ d z z' ≤ L.sum ∧ d z' y ≤ L.sum,
+  { exact (hd x z z' y).trans (mul_le_mul_left' (max_le hxz (max_le hzz' hz'y)) _) },
   set s : set ℕ := {m : ℕ | 2 * (take m L).sum ≤ L.sum},
   have hs₀ : 0 ∈ s, by simp [s],
   have hsne : s.nonempty, from ⟨0, hs₀⟩,
@@ -200,8 +199,8 @@ begin
   { intros x y, dsimp only [d],
     simp only [@symmetric_rel.mk_mem_comm _ _ (hU_symm _) x y] },
   have hr : (1 / 2 : ℝ≥0) ∈ Ioo (0 : ℝ≥0) 1,
-    from ⟨nnreal.half_pos one_pos, nnreal.half_lt_self one_ne_zero⟩,
-  letI I := pseudo_metric_space.of_prenndist d (λ x, hd₀.2 (setoid.refl _)) hd_symm, 
+    from ⟨half_pos one_pos, nnreal.half_lt_self one_ne_zero⟩,
+  letI I := pseudo_metric_space.of_prenndist d (λ x, hd₀.2 (setoid.refl _)) hd_symm,
   have hdist_le : ∀ x y, dist x y ≤ d x y,
     from pseudo_metric_space.dist_of_prenndist_le _ _ _,
   have hle_d : ∀ {x y : X} {n : ℕ}, (1 / 2) ^ n ≤ d x y ↔ (x, y) ∉ U n,
@@ -227,9 +226,9 @@ begin
   { refine λ n hn, ⟨n + 1, trivial, λ x hx, _⟩,
     rw [mem_set_of_eq] at hx,
     contrapose! hx,
-    refine le_trans _ ((div_le_iff' (@two_pos ℝ _ _)).2 (hd_le x.1 x.2)),
+    refine le_trans _ ((div_le_iff' (zero_lt_two' ℝ)).2 (hd_le x.1 x.2)),
     rwa [← nnreal.coe_two, ← nnreal.coe_div, ← nnreal.coe_pow, nnreal.coe_le_coe, pow_succ',
-      mul_one_div, nnreal.div_le_iff two_ne_zero, div_mul_cancel _ (@two_ne_zero ℝ≥0 _ _),
+      mul_one_div, nnreal.div_le_iff two_ne_zero, div_mul_cancel _ (two_ne_zero' ℝ≥0),
       hle_d, prod.mk.eta] }
 end
 
@@ -242,7 +241,7 @@ protected noncomputable def uniform_space.pseudo_metric_space (X : Type*) [unifo
 /-- A `metric_space` instance compatible with a given `uniform_space` structure. -/
 protected noncomputable def uniform_space.metric_space (X : Type*) [uniform_space X]
   [is_countably_generated (𝓤 X)] [t0_space X] : metric_space X :=
-@of_t0_pseudo_metric_space X (uniform_space.pseudo_metric_space X) _
+@metric_space.of_t0_pseudo_metric_space X (uniform_space.pseudo_metric_space X) _
 
 /-- A uniform space with countably generated `𝓤 X` is pseudo metrizable. -/
 @[priority 100]

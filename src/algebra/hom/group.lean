@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.group.commute
+import algebra.ne_zero
+import algebra.group.basic
 import algebra.group_with_zero.defs
 import data.fun_like.basic
 
 /-!
 # Monoid and group homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the bundled structures for monoid and group homomorphisms. Namely, we define
 `monoid_hom` (resp., `add_monoid_hom`) to be bundled homomorphisms between multiplicative (resp.,
@@ -89,6 +93,17 @@ class zero_hom_class (F : Type*) (M N : out_param $ Type*)
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
 end zero
+
+namespace ne_zero
+
+lemma of_map {R M} [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) {r : R}
+  [ne_zero (f r)] : ne_zero r := ⟨λ h, ne (f r) $ by convert zero_hom_class.map_zero f⟩
+
+lemma of_injective {R M} [has_zero R] {r : R} [ne_zero r] [has_zero M] [zero_hom_class F R M]
+  {f : F} (hf : function.injective f) : ne_zero (f r) :=
+⟨by { rw ← zero_hom_class.map_zero f, exact hf.ne (ne r) }⟩
+
+end ne_zero
 
 section add
 
@@ -202,6 +217,9 @@ ne_of_apply_ne f $ ne_of_ne_of_eq hx (map_one f).symm
 instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f }⟩
 
+@[simp, to_additive] lemma one_hom.coe_coe [one_hom_class F M N] (f : F) :
+  ((f : one_hom M N) : M → N) = f := rfl
+
 end one
 
 section mul
@@ -246,6 +264,9 @@ mul_hom_class.map_mul f x y
 instance [mul_hom_class F M N] : has_coe_t F (M →ₙ* N) :=
 ⟨λ f, { to_fun := f, map_mul' := map_mul f }⟩
 
+@[simp, to_additive] lemma mul_hom.coe_coe [mul_hom_class F M N] (f : F) :
+  ((f : mul_hom M N) : M → N) = f := rfl
+
 end mul
 
 section mul_one
@@ -288,6 +309,9 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 @[to_additive]
 instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
+
+@[simp, to_additive] lemma monoid_hom.coe_coe [monoid_hom_class F M N] (f : F) :
+  ((f : M →* N) : M → N) = f := rfl
 
 @[to_additive]
 lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :
@@ -398,6 +422,9 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
 
 instance [monoid_with_zero_hom_class F M N] : has_coe_t F (M →*₀ N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f }⟩
+
+@[simp] lemma monoid_with_zero_hom.coe_coe [monoid_with_zero_hom_class F M N] (f : F) :
+  ((f : M →*₀ N) : M → N) = f := rfl
 
 end mul_zero_one
 
@@ -579,11 +606,11 @@ fun_like.coe_injective h
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma mul_hom.ext_iff [has_mul M] [has_mul N] {f g : M →ₙ* N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma monoid_hom.ext_iff [mul_one_class M] [mul_one_class N]
   {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
@@ -621,6 +648,14 @@ protected def one_hom.copy {hM : has_one M} {hN : has_one N} (f : one_hom M N) (
 { to_fun := f',
   map_one' := h.symm ▸ f.map_one' }
 
+@[simp, to_additive] lemma one_hom.coe_copy {hM : has_one M} {hN : has_one N} (f : one_hom M N)
+  (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma one_hom.coe_copy_eq {hM : has_one M} {hN : has_one N} (f : one_hom M N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `mul_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 @[to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -630,6 +665,14 @@ protected def mul_hom.copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (
 { to_fun := f',
   map_mul' := h.symm ▸ f.map_mul' }
 
+@[simp, to_additive]
+lemma mul_hom.coe_copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (f' : M → N)
+  (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+@[to_additive] lemma mul_hom.coe_copy_eq {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 @[to_additive "Copy of an `add_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -638,11 +681,27 @@ protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f :
   (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_one_hom.copy f' h, ..f.to_mul_hom.copy f' h }
 
+@[simp, to_additive] lemma monoid_hom.coe_copy {hM : mul_one_class M} {hN : mul_one_class N}
+  (f : M →* N) (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma monoid_hom.copy_eq {hM : mul_one_class M} {hN : mul_one_class N}
+  (f : M →* N) (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 protected def monoid_with_zero_hom.copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
   (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
+
+@[simp] lemma monoid_with_zero_hom.coe_copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma monoid_with_zero_hom.copy_eq {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 @[to_additive]
 protected lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'
@@ -791,7 +850,8 @@ lemma monoid_with_zero_hom.comp_apply [mul_zero_one_class M] [mul_zero_one_class
   g.comp f x = g (f x) := rfl
 
 /-- Composition of monoid homomorphisms is associative. -/
-@[to_additive] lemma one_hom.comp_assoc {Q : Type*} [has_one M] [has_one N] [has_one P] [has_one Q]
+@[to_additive "Composition of additive monoid homomorphisms is associative."]
+lemma one_hom.comp_assoc {Q : Type*} [has_one M] [has_one N] [has_one P] [has_one Q]
   (f : one_hom M N) (g : one_hom N P) (h : one_hom P Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 @[to_additive] lemma mul_hom.comp_assoc {Q : Type*} [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
@@ -1061,14 +1121,6 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
-/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
-@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
-then they are equal at `-x`." ]
-lemma eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] {f g : F} {x : G}
-  (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
-  h.symm ▸ map_mul_eq_one g $ mul_inv_self x
-
 /-- Group homomorphisms preserve inverse. -/
 @[to_additive "Additive group homomorphisms preserve negation."]
 protected lemma map_inv [group α] [division_monoid β] (f : α →* β) (a : α) : f a⁻¹ = (f a)⁻¹ :=
@@ -1197,19 +1249,3 @@ instance {M N} {hM : mul_zero_one_class M} [comm_monoid_with_zero N] : has_mul (
   { to_fun := λ a, f a * g a,
     map_zero' := by rw [map_zero, zero_mul],
     ..(f * g : M →* N) }⟩
-
-section commute
-
-variables [has_mul M] [has_mul N] {a x y : M}
-
-@[simp, to_additive]
-protected lemma semiconj_by.map [mul_hom_class F M N] (h : semiconj_by a x y) (f : F) :
-  semiconj_by (f a) (f x) (f y) :=
-by simpa only [semiconj_by, map_mul] using congr_arg f h
-
-@[simp, to_additive]
-protected lemma commute.map [mul_hom_class F M N] (h : commute x y) (f : F) :
-  commute (f x) (f y) :=
-h.map f
-
-end commute

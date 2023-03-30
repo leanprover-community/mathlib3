@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.group.pi
 import category_theory.limits.shapes.biproducts
 import algebra.category.Module.limits
+import algebra.category.Module.abelian
 import algebra.homology.short_exact.abelian
 
 /-!
@@ -46,7 +47,9 @@ def binary_product_limit_cone (M N : Module.{v} R) : limits.limit_cone (pair M N
       naturality' := by rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟨⟩⟩⟩; refl,  }},
   is_limit :=
   { lift := λ s, linear_map.prod (s.π.app ⟨walking_pair.left⟩) (s.π.app ⟨walking_pair.right⟩),
-    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp, }, },
+    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp only
+      [binary_fan.π_app_right, binary_fan.π_app_left, Module.coe_comp, function.comp_app,
+        linear_map.fst_apply, linear_map.snd_apply, linear_map.prod_apply, pi.prod], }, },
     uniq' := λ s m w,
     begin
       ext; [rw ← w ⟨walking_pair.left⟩, rw ← w ⟨walking_pair.right⟩]; refl,

@@ -10,6 +10,9 @@ import data.stream.init
 /-!
 # Hindman's theorem on finite sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove Hindman's theorem on finite sums, using idempotent ultrafilters.
 
 Given an infinite sequence `a₀, a₁, a₂, …` of positive integers, the set `FS(a₀, …)` is the set
@@ -91,7 +94,8 @@ inductive FP {M} [semigroup M] : stream M → set M
 
 /-- If `m` and `m'` are finite products in `M`, then so is `m * m'`, provided that `m'` is obtained
 from a subsequence of `M` starting sufficiently late. -/
-@[to_additive]
+@[to_additive "If `m` and `m'` are finite sums in `M`, then so is `m + m'`, provided that `m'`
+is obtained from a subsequence of `M` starting sufficiently late."]
 lemma FP.mul {M} [semigroup M] {a : stream M} {m : M} (hm : m ∈ FP a) :
   ∃ n, ∀ m' ∈ FP (a.drop n), m * m' ∈ FP a :=
 begin
@@ -165,7 +169,8 @@ end
 
 /-- The strong form of **Hindman's theorem**: in any finite cover of an FP-set, one the parts
 contains an FP-set. -/
-@[to_additive FS_partition_regular]
+@[to_additive FS_partition_regular "The strong form of **Hindman's theorem**: in any finite cover of
+an FS-set, one the parts contains an FS-set."]
 lemma FP_partition_regular {M} [semigroup M] (a : stream M) (s : set (set M)) (sfin : s.finite)
   (scov : FP a ⊆ ⋃₀ s) : ∃ (c ∈ s) (b : stream M), FP b ⊆ c :=
 let ⟨U, idem, aU⟩ := exists_idempotent_ultrafilter_le_FP a in
@@ -174,7 +179,8 @@ let ⟨c, cs, hc⟩ := (ultrafilter.finite_sUnion_mem_iff sfin).mp (mem_of_super
 
 /-- The weak form of **Hindman's theorem**: in any finite cover of a nonempty semigroup, one of the
 parts contains an FP-set. -/
-@[to_additive exists_FS_of_finite_cover]
+@[to_additive exists_FS_of_finite_cover "The weak form of **Hindman's theorem**: in any finite cover
+of a nonempty additive semigroup, one of the parts contains an FS-set."]
 lemma exists_FP_of_finite_cover {M} [semigroup M] [nonempty M] (s : set (set M))
   (sfin : s.finite) (scov : ⊤ ⊆ ⋃₀ s) : ∃ (c ∈ s) (a : stream M), FP a ⊆ c :=
 let ⟨U, hU⟩ := exists_idempotent_of_compact_t2_of_continuous_mul_left

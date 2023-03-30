@@ -3,7 +3,6 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-import algebra.big_operators.nat_antidiagonal
 import data.finsupp.interval
 import data.mv_polynomial.basic
 import data.polynomial.algebra_map
@@ -210,6 +209,16 @@ begin
   exact le_add_left le_rfl
 end
 
+@[simp] lemma commute_monomial {a : R} {n} :
+  commute φ (monomial R n a) ↔ ∀ m, commute (coeff R m φ) a :=
+begin
+  refine ext_iff.trans ⟨λ h m, _, λ h m, _⟩,
+  { have := h (m + n),
+    rwa [coeff_add_mul_monomial, add_comm, coeff_add_monomial_mul] at this },
+  { rw [coeff_mul_monomial, coeff_monomial_mul],
+    split_ifs; [apply h, refl] }
+end
+
 protected lemma one_mul : (1 : mv_power_series σ R) * φ = φ :=
 ext $ λ n, by simpa using coeff_add_monomial_mul 0 n φ 1
 
@@ -324,6 +333,9 @@ coeff_monomial_same _ _
 lemma coeff_zero_X (s : σ) : coeff R (0 : σ →₀ ℕ) (X s : mv_power_series σ R) = 0 :=
 by { rw [coeff_X, if_neg], intro h, exact one_ne_zero (single_eq_zero.mp h.symm) }
 
+lemma commute_X (φ : mv_power_series σ R) (s : σ) : commute φ (X s) :=
+φ.commute_monomial.mpr $ λ m, commute.one_right _
+
 lemma X_def (s : σ) : X s = monomial R (single s 1) 1 := rfl
 
 lemma X_pow_eq (s : σ) (n : ℕ) :
@@ -354,11 +366,8 @@ begin
 end
 
 lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
- coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
-begin
-  have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
-  simp only [X, coeff_monomial_mul, if_neg this]
-end
+  coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
+by rw [← (φ.commute_X s).eq, coeff_zero_mul_X]
 
 variables (σ) (R)
 
@@ -533,8 +542,8 @@ end
 
 end trunc
 
-section comm_semiring
-variable [comm_semiring R]
+section semiring
+variable [semiring R]
 
 lemma X_pow_dvd_iff {s : σ} {n : ℕ} {φ : mv_power_series σ R} :
   (X s : mv_power_series σ R)^n ∣ φ ↔ ∀ m : σ →₀ ℕ, m s < n → coeff R m φ = 0 :=
@@ -576,7 +585,8 @@ begin
   { exact h m (hm.symm ▸ zero_lt_one) },
   { exact h m (nat.eq_zero_of_le_zero $ nat.le_of_succ_le_succ hm) }
 end
-end comm_semiring
+
+end semiring
 
 section ring
 variables [ring R]
@@ -764,8 +774,10 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
-by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
+instance : inv_one_class (mv_power_series σ k) :=
+{ inv_one := by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp },
+  ..mv_power_series.has_one,
+  ..mv_power_series.has_inv }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
 begin
@@ -874,8 +886,6 @@ variables (φ ψ)
 section algebra
 
 variables (A : Type*) [comm_semiring A] [algebra R A]
-
-lemma algebra_map_apply (r : R) : algebra_map R (mv_polynomial σ A) r = C (algebra_map R A r) := rfl
 
 /--
 The coercion from multivariable polynomials to multivariable power series
@@ -1008,6 +1018,8 @@ variable {R}
 
 /-- The variable of the formal power series ring.-/
 def X : power_series R := mv_power_series.X ()
+
+lemma commute_X (φ : power_series R) : commute φ X := φ.commute_X _
 
 @[simp] lemma coeff_zero_eq_constant_coeff :
   ⇑(coeff R 0) = constant_coeff R :=
@@ -1228,11 +1240,6 @@ by { ext, simp [coeff_X, apply_ite f] }
 
 end map
 
-end semiring
-
-section comm_semiring
-variables [comm_semiring R]
-
 lemma X_pow_dvd_iff {n : ℕ} {φ : power_series R} :
   (X : power_series R)^n ∣ φ ↔ ∀ m, m < n → coeff R m φ = 0 :=
 begin
@@ -1250,6 +1257,11 @@ begin
   { exact h 0 zero_lt_one },
   { intros m hm, rwa nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hm) }
 end
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R]
 
 open finset nat
 
@@ -1421,11 +1433,16 @@ end ring
 section comm_ring
 variables {A : Type*} [comm_ring A]
 
-@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+@[simp] lemma rescale_X (a : A) : rescale a X = C A a * X :=
 begin
-  ext, simp only [linear_map.map_neg, coeff_rescale, coeff_X],
-  split_ifs with h; simp [h]
+  ext,
+  simp only [coeff_rescale, coeff_C_mul, coeff_X],
+  split_ifs with h;
+  simp [h],
 end
+
+lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+by rw [rescale_X, map_neg, map_one, neg_one_mul]
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
@@ -1437,10 +1454,10 @@ rescale_neg_one_X
 end comm_ring
 
 section domain
-variables [ring R] [is_domain R]
+variables [ring R]
 
-lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
-  φ = 0 ∨ ψ = 0 :=
+lemma eq_zero_or_eq_zero_of_mul_eq_zero [no_zero_divisors R] (φ ψ : power_series R)
+  (h : φ * ψ = 0) : φ = 0 ∨ ψ = 0 :=
 begin
   rw or_iff_not_imp_left, intro H,
   have ex : ∃ m, coeff R m φ ≠ 0, { contrapose! H, exact ext H },
@@ -1468,9 +1485,11 @@ begin
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : is_domain (power_series R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nontrivial, }
+instance [no_zero_divisors R] : no_zero_divisors (power_series R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero }
+
+instance [is_domain R] : is_domain (power_series R) :=
+no_zero_divisors.to_is_domain _
 
 end domain
 
@@ -1598,8 +1617,7 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.inv_one
+instance : inv_one_class (power_series k) := mv_power_series.inv_one_class
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _
@@ -1632,9 +1650,9 @@ begin
   simp [power_series.ext_iff]
 end
 
-/-- The order of a formal power series `φ` is the greatest `n : enat`
+/-- The order of a formal power series `φ` is the greatest `n : part_enat`
 such that `X^n` divides `φ`. The order is `⊤` if and only if `φ = 0`. -/
-def order (φ : power_series R) : enat :=
+def order (φ : power_series R) : part_enat :=
 if h : φ = 0 then ⊤ else nat.find (exists_coeff_ne_zero_iff_ne_zero.mpr h)
 
 /-- The order of the `0` power series is infinite.-/
@@ -1657,7 +1675,7 @@ then the coefficient indexed by the order is nonzero.-/
 lemma coeff_order (h : (order φ).dom) :
   coeff R (φ.order.get h) φ ≠ 0 :=
 begin
-  simp only [order, order_finite_iff_ne_zero.mp h, not_false_iff, dif_neg, enat.get_coe'],
+  simp only [order, order_finite_iff_ne_zero.mp h, not_false_iff, dif_neg, part_enat.get_coe'],
   generalize_proofs h,
   exact nat.find_spec h
 end
@@ -1669,7 +1687,7 @@ lemma order_le (n : ℕ) (h : coeff R n φ ≠ 0) :
 begin
   have := exists.intro n h,
   rw [order, dif_neg],
-  { simp only [enat.coe_le_coe, nat.find_le_iff],
+  { simp only [part_enat.coe_le_coe, nat.find_le_iff],
     exact ⟨n, le_rfl, h⟩ },
   { exact exists_coeff_ne_zero_iff_ne_zero.mp ⟨n, h⟩ }
 end
@@ -1695,20 +1713,20 @@ lemma nat_le_order (φ : power_series R) (n : ℕ) (h : ∀ i < n, coeff R i φ 
   ↑n ≤ order φ :=
 begin
   by_contra H, rw not_le at H,
-  have : (order φ).dom := enat.dom_of_le_coe H.le,
-  rw [← enat.coe_get this, enat.coe_lt_coe] at H,
+  have : (order φ).dom := part_enat.dom_of_le_coe H.le,
+  rw [← part_enat.coe_get this, part_enat.coe_lt_coe] at H,
   exact coeff_order this (h _ H)
 end
 
 /-- The order of a formal power series is at least `n` if
 the `i`th coefficient is `0` for all `i < n`.-/
-lemma le_order (φ : power_series R) (n : enat) (h : ∀ i : ℕ, ↑i < n → coeff R i φ = 0) :
+lemma le_order (φ : power_series R) (n : part_enat) (h : ∀ i : ℕ, ↑i < n → coeff R i φ = 0) :
   n ≤ order φ :=
 begin
-  induction n using enat.cases_on,
+  induction n using part_enat.cases_on,
   { show _ ≤ _, rw [top_le_iff, order_eq_top],
-    ext i, exact h _ (enat.coe_lt_top i) },
-  { apply nat_le_order, simpa only [enat.coe_lt_coe] using h }
+    ext i, exact h _ (part_enat.coe_lt_top i) },
+  { apply nat_le_order, simpa only [part_enat.coe_lt_coe] using h }
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
@@ -1717,22 +1735,22 @@ lemma order_eq_nat {φ : power_series R} {n : ℕ} :
   order φ = n ↔ (coeff R n φ ≠ 0) ∧ (∀ i, i < n → coeff R i φ = 0) :=
 begin
   rcases eq_or_ne φ 0 with rfl|hφ,
-  { simpa using (enat.coe_ne_top _).symm },
+  { simpa using (part_enat.coe_ne_top _).symm },
   simp [order, dif_neg hφ, nat.find_eq_iff]
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
 and the `i`th coefficient is `0` for all `i < n`.-/
-lemma order_eq {φ : power_series R} {n : enat} :
+lemma order_eq {φ : power_series R} {n : part_enat} :
   order φ = n ↔ (∀ i:ℕ, ↑i = n → coeff R i φ ≠ 0) ∧ (∀ i:ℕ, ↑i < n → coeff R i φ = 0) :=
 begin
-  induction n using enat.cases_on,
+  induction n using part_enat.cases_on,
   { rw order_eq_top, split,
     { rintro rfl, split; intros,
-      { exfalso, exact enat.coe_ne_top ‹_› ‹_› },
+      { exfalso, exact part_enat.coe_ne_top ‹_› ‹_› },
       { exact (coeff _ _).map_zero } },
-    { rintro ⟨h₁, h₂⟩, ext i, exact h₂ i (enat.coe_lt_top i) } },
-  { simpa [enat.coe_inj] using order_eq_nat }
+    { rintro ⟨h₁, h₂⟩, ext i, exact h₂ i (part_enat.coe_lt_top i) } },
+  { simpa [part_enat.coe_inj] using order_eq_nat }
 end
 
 /-- The order of the sum of two formal power series
@@ -1796,8 +1814,8 @@ begin
   split_ifs with h,
   { rw [h, order_eq_top, linear_map.map_zero] },
   { rw [order_eq], split; intros i hi,
-    { rw [enat.coe_inj] at hi, rwa [hi, coeff_monomial_same] },
-    { rw [enat.coe_lt_coe] at hi, rw [coeff_monomial, if_neg], exact ne_of_lt hi } }
+    { rw [part_enat.coe_inj] at hi, rwa [hi, coeff_monomial_same] },
+    { rw [part_enat.coe_lt_coe] at hi, rw [coeff_monomial, if_neg], exact ne_of_lt hi } }
 end
 
 /-- The order of the monomial `a*X^n` is `n` if `a ≠ 0`.-/
@@ -1848,29 +1866,29 @@ begin
   { simp [tsub_add_cancel_of_le hn] },
   { simp only [finset.sum_empty],
     refine coeff_of_lt_order _ _,
-    simpa [enat.coe_lt_iff] using λ _, hn }
+    simpa [part_enat.coe_lt_iff] using λ _, hn }
 end
 
-lemma order_eq_multiplicity_X {R : Type*} [comm_semiring R] (φ : power_series R) :
+lemma order_eq_multiplicity_X {R : Type*} [semiring R] (φ : power_series R) :
   order φ = multiplicity X φ :=
 begin
   rcases eq_or_ne φ 0 with rfl|hφ,
   { simp },
-  induction ho : order φ using enat.cases_on with n,
+  induction ho : order φ using part_enat.cases_on with n,
   { simpa [hφ] using ho },
   have hn : φ.order.get (order_finite_iff_ne_zero.mpr hφ) = n,
   { simp [ho] },
   rw ←hn,
   refine le_antisymm (le_multiplicity_of_pow_dvd $ X_pow_order_dvd
-    (order_finite_iff_ne_zero.mpr hφ)) (enat.find_le _ _ _),
+    (order_finite_iff_ne_zero.mpr hφ)) (part_enat.find_le _ _ _),
   rintro ⟨ψ, H⟩,
   have := congr_arg (coeff R n) H,
-  rw [mul_comm, coeff_mul_of_lt_order, ←hn] at this,
+  rw [← (ψ.commute_X.pow_right _).eq, coeff_mul_of_lt_order, ←hn] at this,
   { exact coeff_order _ this },
   { rw [X_pow_eq, order_monomial],
     split_ifs,
-    { exact enat.coe_lt_top _ },
-    { rw [←hn, enat.coe_lt_coe],
+    { exact part_enat.coe_lt_top _ },
+    { rw [←hn, part_enat.coe_lt_coe],
       exact nat.lt_succ_self _ } }
 end
 
@@ -2027,9 +2045,9 @@ instance algebra_power_series : algebra (power_series R) (power_series A) :=
 (map (algebra_map R A)).to_algebra
 
 @[priority 100] -- see Note [lower instance priority]
-instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R (polynomial A)] :
+instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R A[X]] :
   algebra R (power_series A) :=
-ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R (polynomial A))
+ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R A[X])
 
 variables (A)
 

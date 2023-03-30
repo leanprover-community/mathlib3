@@ -10,6 +10,9 @@ import category_theory.structured_arrow
 /-!
 # Properties of comma categories relating to adjunctions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that for a functor `G : D ⥤ C` the data of an initial object in each
 `structured_arrow` category on `G` is equivalent to a left adjoint to `G`, as well as the dual.
 
@@ -19,14 +22,14 @@ provided a left adjoint.
 
 The duals are also shown.
 -/
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 noncomputable theory
 
 namespace category_theory
 open limits
 
-variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D] (G : D ⥤ C)
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] (G : D ⥤ C)
 
 section of_initials
 variables [∀ A, has_initial (structured_arrow A G)]
@@ -53,7 +56,7 @@ def left_adjoint_of_structured_arrow_initials_aux (A : C) (B : D) :
   end,
   right_inv := λ f,
   begin
-    let B' : structured_arrow A G := { right := B, hom := f },
+    let B' : structured_arrow A G := structured_arrow.mk f,
     apply (comma_morphism.w (initial.to B')).symm.trans (category.id_comp _),
   end }
 
@@ -120,7 +123,7 @@ def adjunction_of_costructured_arrow_terminals :
 adjunction.adjunction_of_equiv_right _ _
 
 /-- If each costructured arrow category on `G` has an terminal object, `G` is a left adjoint. -/
-def is_right_adjoint_of_costructured_arrow_terminals : is_left_adjoint G :=
+def is_left_adjoint_of_costructured_arrow_terminals : is_left_adjoint G :=
 { right := right_adjoint_of_costructured_arrow_terminals G,
   adj := adjunction.adjunction_of_equiv_right _ _ }
 
@@ -158,5 +161,15 @@ def mk_terminal_of_right_adjoint (h : F ⊣ G) (A : D) :
   end }
 
 end
+
+lemma nonempty_is_right_adjoint_iff_has_initial_structured_arrow {G : D ⥤ C} :
+  nonempty (is_right_adjoint G) ↔ ∀ A, has_initial (structured_arrow A G) :=
+⟨λ ⟨h⟩ A, by exactI (mk_initial_of_left_adjoint _ h.adj A).has_initial,
+ λ h, by exactI ⟨is_right_adjoint_of_structured_arrow_initials _⟩⟩
+
+lemma nonempty_is_left_adjoint_iff_has_terminal_costructured_arrow {F : C ⥤ D} :
+  nonempty (is_left_adjoint F) ↔ ∀ A, has_terminal (costructured_arrow F A) :=
+⟨λ ⟨h⟩ A, by exactI (mk_terminal_of_right_adjoint _ h.adj A).has_terminal,
+ λ h, by exactI ⟨is_left_adjoint_of_costructured_arrow_terminals _⟩⟩
 
 end category_theory

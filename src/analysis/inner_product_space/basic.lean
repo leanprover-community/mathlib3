@@ -2211,7 +2211,6 @@ by simp only [continuous_linear_map.map_smul, continuous_linear_map.re_apply_inn
 
 end re_apply_inner_self
 
-
 namespace uniform_space.completion
 
 open uniform_space function

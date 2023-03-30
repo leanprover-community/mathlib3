@@ -113,7 +113,7 @@ begin
       finset.mem_univ, ←infinite_place.not_is_real_iff_is_complex], },
 end
 
-lemma le_of_le [number_field K] (x : K) (r : ℝ) :
+lemma norm_le_iff [number_field K] (x : K) (r : ℝ) :
   ‖canonical_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
 begin
   obtain hr | hr := lt_or_le r 0,
@@ -165,7 +165,7 @@ begin
     exact set.inter_empty _, },
   { have heq : ∀ x : K, canonical_embedding K x ∈ (metric.closed_ball (0 : (space K)) r) ↔
       ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r,
-    { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, le_of_le],
+    { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, norm_le_iff],
       exact λ x, le_iff_le x r, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
     ext, split,

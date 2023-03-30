@@ -2387,6 +2387,13 @@ lemma submodule.orthogonal_family_self :
 | ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop
 | ff ff := absurd rfl
 
+/-- A submodule in an orthogonal family lies within the orthogonal complement of every other
+submodule. -/
+lemma orthogonal_family.le_orthogonal {ι} {V : ι → submodule 𝕜 E}
+  (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) {i j : ι} (hij : i ≠ j) :
+  V i ≤ (V j)ᗮ :=
+λ x hx y hy, hV hij.symm ⟨y, hy⟩ ⟨x, hx⟩
+
 end orthogonal
 
 namespace uniform_space.completion

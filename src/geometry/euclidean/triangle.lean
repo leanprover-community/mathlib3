@@ -50,7 +50,7 @@ most conveniently be developed in terms of vectors and then used to
 deduce corresponding results for Euclidean affine spaces.
 -/
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 
 /-- Law of cosines (cosine rule), vector angle form. -/
 lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
@@ -262,8 +262,8 @@ open inner_product_geometry
 
 open_locale euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- **Law of cosines** (cosine rule), angle-at-point form. -/

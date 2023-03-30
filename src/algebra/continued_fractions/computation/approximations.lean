@@ -296,9 +296,9 @@ theorem of_denom_mono : (of v).denominators n ≤ (of v).denominators (n + 1) :=
 begin
   let g := of v,
   cases (decidable.em $ g.partial_denominators.terminated_at n) with terminated not_terminated,
-  { have : g.partial_denominators.nth n = none, by rwa seq.terminated_at at terminated,
+  { have : g.partial_denominators.nth n = none, by rwa stream.seq.terminated_at at terminated,
     have : g.terminated_at n, from
-      terminated_at_iff_part_denom_none.elim_right (by rwa seq.terminated_at at terminated),
+      terminated_at_iff_part_denom_none.elim_right (by rwa stream.seq.terminated_at at terminated),
     have : g.denominators (n + 1) = g.denominators n, from
       denominators_stable_of_terminated n.le_succ this,
     rw this },

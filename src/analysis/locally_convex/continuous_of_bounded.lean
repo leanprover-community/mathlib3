@@ -25,7 +25,7 @@ continuous linear maps will require importing `analysis/locally_convex/bounded` 
 -/
 
 open topological_space bornology filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 variables {𝕜 𝕜' E F : Type*}
 variables [add_comm_group E] [uniform_space E] [uniform_add_group E]

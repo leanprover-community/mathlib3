@@ -10,6 +10,9 @@ import data.finsupp.basic
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides conversions between `finsupp` and `dfinsupp`.
 It is in its own file since neither `finsupp` or `dfinsupp` depend on each other.
 

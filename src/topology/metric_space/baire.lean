@@ -25,7 +25,7 @@ has the countable intersection property.
 
 noncomputable theory
 
-open_locale classical topological_space filter ennreal
+open_locale classical topology filter ennreal
 
 open filter encodable set topological_space
 

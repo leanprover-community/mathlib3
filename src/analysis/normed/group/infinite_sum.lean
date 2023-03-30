@@ -3,11 +3,15 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Heather Macbeth, Johannes Hölzl, Yury Kudryashov
 -/
+import algebra.big_operators.intervals
 import analysis.normed.group.basic
 import topology.instances.nnreal
 
 /-!
 # Infinite sums in (semi)normed groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In a complete (semi)normed group,
 
@@ -27,7 +31,7 @@ In a complete (semi)normed group,
 infinite series, absolute convergence, normed group
 -/
 
-open_locale classical big_operators topological_space nnreal
+open_locale classical big_operators topology nnreal
 open finset filter metric
 
 variables {ι α E F : Type*} [seminormed_add_comm_group E] [seminormed_add_comm_group F]

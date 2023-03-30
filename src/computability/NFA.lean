@@ -8,6 +8,9 @@ import data.fintype.powerset
 
 /-!
 # Nondeterministic Finite Automata
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file contains the definition of a Nondeterministic Finite Automaton (NFA), a state machine
 which determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular
 set by evaluating the string over every possible path.

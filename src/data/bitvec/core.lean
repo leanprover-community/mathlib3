@@ -10,6 +10,9 @@ import data.nat.pow
 /-!
 # Basic operations on bitvectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This is a work-in-progress, and contains additions to other theories.
 
 This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c.

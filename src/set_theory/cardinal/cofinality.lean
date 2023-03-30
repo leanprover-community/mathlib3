@@ -10,6 +10,9 @@ import set_theory.ordinal.fixed_point
 /-!
 # Cofinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions

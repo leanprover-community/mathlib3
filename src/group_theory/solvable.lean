@@ -13,6 +13,9 @@ import set_theory.cardinal.basic
 /-!
 # Solvable Groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we introduce the notion of a solvable group. We define a solvable group as one whose
 derived series is eventually trivial. This requires defining the commutator of two subgroups and
 the derived series of a group.

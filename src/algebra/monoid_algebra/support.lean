@@ -7,6 +7,9 @@ import algebra.monoid_algebra.basic
 
 /-!
 #  Lemmas about the support of a finitely supported function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u₁ u₂ u₃

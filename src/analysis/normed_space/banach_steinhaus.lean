@@ -94,7 +94,7 @@ begin
   exact coe_mono (real.to_nnreal_le_to_nnreal $ hC' i),
 end
 
-open_locale topological_space
+open_locale topology
 open filter
 
 /-- Given a *sequence* of continuous linear maps which converges pointwise and for which the

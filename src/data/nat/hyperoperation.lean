@@ -9,6 +9,9 @@ import data.nat.parity
 /-!
 # Hyperoperation sequence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Hyperoperation sequence.
 `hyperoperation 0 m k = k + 1`
 `hyperoperation 1 m k = m + k`

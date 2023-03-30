@@ -218,7 +218,7 @@ infix ` ⟂ `:50 := submodule.is_ortho
 
 lemma is_ortho.le {U V : submodule 𝕜 E} (h : U ⟂ V) : U ≤ Vᗮ := h
 
-lemma is_ortho_iff {U V : submodule 𝕜 E} : U ⟂ V ↔ U ≤ Vᗮ := iff.rfl
+lemma is_ortho_iff_le {U V : submodule 𝕜 E} : U ⟂ V ↔ U ≤ Vᗮ := iff.rfl
 
 @[symm]
 lemma is_ortho.symm {U V : submodule 𝕜 E} (h : U ⟂ V) : V ⟂ U :=
@@ -226,6 +226,10 @@ lemma is_ortho.symm {U V : submodule 𝕜 E} (h : U ⟂ V) : V ⟂ U :=
 lemma is_ortho_comm {U V : submodule 𝕜 E} : U ⟂ V ↔ V ⟂ U := ⟨is_ortho.symm, is_ortho.symm⟩
 lemma symmetric_is_ortho : symmetric (is_ortho : submodule 𝕜 E → submodule 𝕜 E → Prop) :=
 λ _ _, is_ortho.symm
+
+lemma is_ortho.inner_eq {U V : submodule 𝕜 E} (h : U ⟂ V) {u v : E} (hu : u ∈ U) (hv : v ∈ V) :
+  ⟪u, v⟫ = 0 :=
+h.symm hv _ hu
 
 @[simp] lemma is_ortho_bot_left {V : submodule 𝕜 E} : ⊥ ⟂ V := bot_le
 @[simp] lemma is_ortho_bot_right {U : submodule 𝕜 E} : U ⟂ ⊥ := is_ortho_bot_left.symm

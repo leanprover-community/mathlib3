@@ -80,6 +80,9 @@ by simp
 noncomputable def zero_to_pgame_relabelling : to_pgame 0 ≡r 0 :=
 relabelling.is_empty _
 
+theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 :=
+zero_to_pgame_relabelling.equiv
+
 noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left_moves :=
 (equiv.cast $ to_pgame_left_moves 1).unique
 
@@ -99,12 +102,15 @@ noncomputable def one_to_pgame_relabelling : to_pgame 1 ≡r 1 :=
 ⟨equiv.equiv_of_unique _ _, equiv.equiv_of_is_empty _ _,
   λ i, by simpa using zero_to_pgame_relabelling, is_empty_elim⟩
 
+theorem one_to_pgame_equiv : to_pgame 1 ≈ 1 :=
+one_to_pgame_relabelling.equiv
+
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
 by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin
-  refine le_of_forall_lf ⟨λ i, _, is_empty_elim⟩,
+  refine le_of_forall_lf (λ i, _) is_empty_elim,
   rw to_pgame_move_left',
   exact to_pgame_lf ((to_left_moves_to_pgame_symm_lt i).trans_le h)
 end

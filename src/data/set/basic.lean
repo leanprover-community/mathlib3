@@ -616,7 +616,8 @@ theorem union_inter_cancel_right {s t : set α} : (s ∪ t) ∩ t = t :=
 inter_eq_self_of_subset_right $ subset_union_right _ _
 
 lemma inter_set_of_eq_sep (s : set α) (p : α → Prop) : s ∩ {a | p a} = {a ∈ s | p a} := rfl
-lemma set_of_inter_eq_sep (p : α → Prop) (s : set α) : {a | p a} ∩ s = {a ∈ s | p a} := inter_comm _ _
+lemma set_of_inter_eq_sep (p : α → Prop) (s : set α) : {a | p a} ∩ s = {a ∈ s | p a} :=
+inter_comm _ _
 
 /-! ### Distributivity laws -/
 

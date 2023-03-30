@@ -316,7 +316,8 @@ section
 variables [linear_order α] [linear_order β] (f : ι → α) (g : ι → β) {s : set ι}
 
 /-- If `f : ι → α` and `g : ι → β` are monovarying, then `monovary_order f g` is a linear order on
-`ι` that makes `f` and `g` simultaneously monotone. -/
+`ι` that makes `f` and `g` simultaneously monotone.
+We define `i < j` if `f i < f j`, or if `f i = f j` and `g i < g j`, breaking ties arbitrarily. -/
 def monovary_order (i j : ι) : Prop :=
 prod.lex (<) (prod.lex (<) well_ordering_rel) (f i, g i, i) (f j, g j, j)
 

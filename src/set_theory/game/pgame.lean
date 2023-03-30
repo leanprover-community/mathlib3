@@ -1062,11 +1062,11 @@ lemma move_right_neg_symm' {x : pgame} (i) :
 by simp
 
 lemma memₗ_neg_iff : Π {x y : pgame},
-  x ∈ₗ -y ↔ (∃ i, x ≡ -(y.move_right i))
+  x ∈ₗ -y ↔ ∃ i, x ≡ -y.move_right i
 | (mk xl xr xL xR) (mk yl yr yL yR) := iff.rfl
 
 lemma memᵣ_neg_iff : Π {x y : pgame},
-  x ∈ᵣ -y ↔ (∃ i, x ≡ -(y.move_left i))
+  x ∈ᵣ -y ↔ ∃ i, x ≡ -y.move_left i
 | (mk xl xr xL xR) (mk yl yr yL yR) := iff.rfl
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
@@ -1077,12 +1077,12 @@ lemma identical.neg : Π {x₁ x₂ : pgame.{u}} (hx : x₁ ≡ x₂), -x₁ ≡
 using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma memₗ_neg_iff' : Π {x y : pgame},
-  x ∈ₗ -y ↔ (∃ z ∈ᵣ y, x ≡ -z)
+  x ∈ₗ -y ↔ ∃ z ∈ᵣ y, x ≡ -z
 | (mk xl xr xL xR) (mk yl yr yL yR) := memₗ_neg_iff.trans
   ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.neg⟩⟩
 
 lemma memᵣ_neg_iff' : Π {x y : pgame},
-  x ∈ᵣ -y ↔ (∃ z ∈ₗ y, x ≡ -z)
+  x ∈ᵣ -y ↔ ∃ z ∈ₗ y, x ≡ -z
 | (mk xl xr xL xR) (mk yl yr yL yR) := memᵣ_neg_iff.trans
   ⟨λ ⟨i, hi⟩, ⟨_, ⟨_, refl _⟩, hi⟩, λ ⟨_, ⟨i, hi⟩, h⟩, ⟨i, h.trans hi.neg⟩⟩
 
@@ -1468,7 +1468,7 @@ instance : has_sub pgame := ⟨λ x y, x + -y⟩
 @[simp] theorem sub_zero_eq_add_zero (x : pgame) : x - 0 = x + 0 :=
 show x + -0 = x + 0, by rw neg_zero
 
-lemma sub_zero (x : pgame) : x - 0 ≡ x :=
+protected lemma sub_zero (x : pgame) : x - 0 ≡ x :=
 trans (of_eq x.sub_zero_eq_add_zero) x.add_zero
 
 /-- Use the same name convention as global lemmas. -/

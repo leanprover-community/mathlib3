@@ -285,14 +285,6 @@ instance : has_add surreal  :=
 theorem mk_add {a b} (ha : numeric a) (hb : numeric b) :
   mk (a + b) (ha.add hb) = mk a ha + mk b hb := rfl
 
-@[simp] lemma mk_nat_cast : ∀ n : ℕ, mk n (numeric_nat n) = n
-| 0       := rfl
-| (n + 1) := begin
-  simp_rw nat.cast_succ,
-  rw [mk_add (numeric_nat n) numeric_one, mk_nat_cast],
-  refl
-end
-
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
@@ -329,6 +321,13 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   ..surreal.ordered_add_comm_group }
 
 instance : add_monoid_with_one surreal := add_monoid_with_one.unary
+
+@[simp] lemma mk_nat_cast : ∀ n : ℕ, mk n (numeric_nat n) = n
+| 0       := rfl
+| (n + 1) := begin
+  simp_rw [nat.cast_succ, pgame.nat_succ, mk_add (numeric_nat n) numeric_one, mk_nat_cast],
+  refl
+end
 
 /-- Casts a `surreal` number into a `game`. -/
 def to_game : surreal →+o game :=

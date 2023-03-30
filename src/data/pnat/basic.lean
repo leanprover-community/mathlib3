@@ -24,6 +24,9 @@ that `data.pnat.defs` can have very few imports.
 attribute [derive [add_left_cancel_semigroup, add_right_cancel_semigroup, add_comm_semigroup,
   linear_ordered_cancel_comm_monoid, has_add, has_mul, distrib]] pnat
 
+instance pnat.is_well_order : is_well_order ℕ+ (<) := { }
+instance pnat.well_founded_lt : well_founded_lt ℕ+ := ⟨pnat.is_well_order.wf⟩
+
 namespace pnat
 
 @[simp] lemma one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=

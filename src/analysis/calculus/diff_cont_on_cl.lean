@@ -14,7 +14,7 @@ this property and prove basic facts about this predicate.
 -/
 
 open set filter metric
-open_locale topological_space
+open_locale topology
 
 variables (𝕜 : Type*) {E F G : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
   [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_add_comm_group G]

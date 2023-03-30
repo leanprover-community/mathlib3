@@ -9,6 +9,9 @@ import data.finset.sort
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `polynomial R`, the type of univariate polynomials over the semiring `R`, builds
 a semiring structure on it, and gives basic definitions that are expanded in other files in this
 directory.

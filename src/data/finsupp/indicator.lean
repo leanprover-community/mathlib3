@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # Building finitely supported functions off finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `finsupp.indicator` to help create finsupps from finsets.
 
 ## Main declarations
@@ -62,5 +65,9 @@ begin
   by_contra,
   exact hi (indicator_of_not_mem h _),
 end
+
+lemma single_eq_indicator (i : ι) (b : α) :
+  single i b = indicator {i} (λ _ _, b) :=
+by { classical, ext, simp [single_apply, indicator_apply, @eq_comm _ a] }
 
 end finsupp

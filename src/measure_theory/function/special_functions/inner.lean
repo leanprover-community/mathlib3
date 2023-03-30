@@ -11,7 +11,8 @@ import measure_theory.constructions.borel_space
 # Measurability of scalar products
 -/
 
-variables {α : Type*} {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables {α : Type*} {𝕜 : Type*} {E : Type*}
+variables [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 @[measurability]

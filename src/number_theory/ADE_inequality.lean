@@ -16,6 +16,9 @@ import tactic.interval_cases
 /-!
 # The inequality `p⁻¹ + q⁻¹ + r⁻¹ > 1`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we classify solutions to the inequality
 `(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`, for positive natural numbers `p`, `q`, and `r`.
 

@@ -17,7 +17,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
 
-open_locale topological_space classical big_operators nnreal ennreal
+open_locale topology classical big_operators nnreal ennreal
 open set filter asymptotics
 
 noncomputable theory

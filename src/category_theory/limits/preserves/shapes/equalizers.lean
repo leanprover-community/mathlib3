@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving (co)equalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving (co)equalizers and reflecting (co)equalizers
 to concrete (co)forks.
 

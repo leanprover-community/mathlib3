@@ -20,7 +20,7 @@ modular form.
 
 open complex upper_half_plane
 
-open_locale topological_space manifold upper_half_plane
+open_locale topology manifold upper_half_plane
 
 noncomputable theory
 

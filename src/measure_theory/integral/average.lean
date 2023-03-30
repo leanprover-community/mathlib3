@@ -28,7 +28,7 @@ integral, center mass, average value
 -/
 
 open measure_theory measure_theory.measure metric set filter topological_space function
-open_locale topological_space big_operators ennreal convex
+open_locale topology big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]

@@ -24,7 +24,7 @@ lemma.
 metric space, partition of unity, locally finite
 -/
 
-open_locale topological_space ennreal big_operators nnreal filter
+open_locale topology ennreal big_operators nnreal filter
 open set function filter topological_space
 
 variables {ι X : Type*}

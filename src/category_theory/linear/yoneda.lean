@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.basic
 import category_theory.linear.basic
-import category_theory.preadditive.yoneda
+import category_theory.preadditive.yoneda.basic
 
 /-!
 # The Yoneda embedding for `R`-linear categories

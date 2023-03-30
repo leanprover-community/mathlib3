@@ -9,13 +9,16 @@ import topology.order.basic
 /-!
 # Maximum/minimum on the closure of a set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the following statement: if `f : X → Y` has a (local or
 not) maximum (or minimum) on a set `s` at a point `a` and is continuous on the closure of `s`, then
 `f` has an extremum of the same type on `closure s` at `a`.
 -/
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 variables {X Y : Type*} [topological_space X] [topological_space Y] [preorder Y]
   [order_closed_topology Y] {f g : X → Y} {s : set X} {a : X}

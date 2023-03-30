@@ -405,7 +405,7 @@ end equiv_lin
 
 namespace linear_map
 
-variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
+variables {R' : Type*} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
 
 /-- Apply a linear map on the output of a bilinear form. -/
 @[simps]
@@ -673,6 +673,8 @@ end
 
 end basis
 
+/-! ### Reflexivity, symmetry, and alternativity -/
+
 /-- The proposition that a bilinear form is reflexive -/
 def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 0
 
@@ -685,7 +687,25 @@ lemma eq_zero : ∀ {x y : M}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
+protected lemma neg {B : bilin_form R₁ M₁} (hB : B.is_refl) : (-B).is_refl :=
+λ x y, neg_eq_zero.mpr ∘ hB x y ∘ neg_eq_zero.mp
+
+protected lemma smul {α} [semiring α] [module α R] [smul_comm_class α R R]
+  [no_zero_smul_divisors α R] (a : α) {B : bilin_form R M} (hB : B.is_refl) : (a • B).is_refl :=
+λ x y h, (smul_eq_zero.mp h).elim
+  (λ ha, smul_eq_zero_of_left ha _)
+  (λ hBz, smul_eq_zero_of_right _ (hB _ _ hBz))
+
+protected lemma group_smul {α} [group α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) {B : bilin_form R M} (hB : B.is_refl) : (a • B).is_refl :=
+λ x y, (smul_eq_zero_iff_eq _).mpr ∘ hB x y ∘ (smul_eq_zero_iff_eq _).mp
+
 end is_refl
+
+@[simp] lemma is_refl_zero : (0 : bilin_form R M).is_refl := λ _ _ _, rfl
+
+@[simp] lemma is_refl_neg {B : bilin_form R₁ M₁} : (-B).is_refl ↔ B.is_refl :=
+⟨λ h, neg_neg B ▸ h.neg, is_refl.neg⟩
 
 /-- The proposition that a bilinear form is symmetric -/
 def is_symm (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = B y x
@@ -701,7 +721,29 @@ lemma is_refl : B.is_refl := λ x y H1, H x y ▸ H1
 lemma ortho_comm {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
+protected lemma add {B₁ B₂ : bilin_form R M} (hB₁ : B₁.is_symm) (hB₂ : B₂.is_symm) :
+  (B₁ + B₂).is_symm :=
+λ x y, (congr_arg2 (+) (hB₁ x y) (hB₂ x y) : _)
+
+protected lemma sub {B₁ B₂ : bilin_form R₁ M₁} (hB₁ : B₁.is_symm) (hB₂ : B₂.is_symm) :
+  (B₁ - B₂).is_symm :=
+λ x y, (congr_arg2 has_sub.sub (hB₁ x y) (hB₂ x y) : _)
+
+protected lemma neg {B : bilin_form R₁ M₁} (hB : B.is_symm) :
+  (-B).is_symm :=
+λ x y, congr_arg has_neg.neg (hB x y)
+
+protected lemma smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) {B : bilin_form R M} (hB : B.is_symm) :
+  (a • B).is_symm :=
+λ x y, congr_arg ((•) a) (hB x y)
+
 end is_symm
+
+@[simp] lemma is_symm_zero : (0 : bilin_form R M).is_symm := λ _ _, rfl
+
+@[simp] lemma is_symm_neg {B : bilin_form R₁ M₁} : (-B).is_symm ↔ B.is_symm :=
+⟨λ h, neg_neg B ▸ h.neg, is_symm.neg⟩
 
 lemma is_symm_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
@@ -721,7 +763,7 @@ namespace is_alt
 
 lemma self_eq_zero (H : B.is_alt) (x : M) : B x x = 0 := H x
 
-lemma neg (H : B₁.is_alt) (x y : M₁) :
+lemma neg_eq (H : B₁.is_alt) (x y : M₁) :
   - B₁ x y = B₁ y x :=
 begin
   have H1 : B₁ (x + y) (x + y) = 0,
@@ -735,13 +777,37 @@ end
 lemma is_refl (H : B₁.is_alt) : B₁.is_refl :=
 begin
   intros x y h,
-  rw [←neg H, h, neg_zero],
+  rw [←neg_eq H, h, neg_zero],
 end
 
 lemma ortho_comm (H : B₁.is_alt) {x y : M₁} :
   is_ortho B₁ x y ↔ is_ortho B₁ y x := H.is_refl.ortho_comm
 
+protected lemma add {B₁ B₂ : bilin_form R M} (hB₁ : B₁.is_alt) (hB₂ : B₂.is_alt) :
+  (B₁ + B₂).is_alt :=
+λ x, (congr_arg2 (+) (hB₁ x) (hB₂ x) : _).trans $ add_zero _
+
+protected lemma sub {B₁ B₂ : bilin_form R₁ M₁} (hB₁ : B₁.is_alt) (hB₂ : B₂.is_alt) :
+  (B₁ - B₂).is_alt :=
+λ x, (congr_arg2 has_sub.sub (hB₁ x) (hB₂ x)).trans $ sub_zero _
+
+protected lemma neg {B : bilin_form R₁ M₁} (hB : B.is_alt) :
+  (-B).is_alt :=
+λ x, neg_eq_zero.mpr $ hB x
+
+protected lemma smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (a : α) {B : bilin_form R M} (hB : B.is_alt) :
+  (a • B).is_alt :=
+λ x, (congr_arg ((•) a) (hB x)).trans $ smul_zero _
+
 end is_alt
+
+@[simp] lemma is_alt_zero : (0 : bilin_form R M).is_alt := λ _, rfl
+
+@[simp] lemma is_alt_neg {B : bilin_form R₁ M₁} : (-B).is_alt ↔ B.is_alt :=
+⟨λ h, neg_neg B ▸ h.neg, is_alt.neg⟩
+
+/-! ### Linear adjoints -/
 
 section linear_adjoints
 

@@ -12,6 +12,9 @@ import tactic.linarith
 /-!
 # Cardinals and ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 
@@ -103,7 +106,7 @@ aleph_idx.initial_seg.to_rel_embedding.map_rel_iff
 by rw [← not_lt, ← not_lt, aleph_idx_lt]
 
 theorem aleph_idx.init {a b} : b < aleph_idx a → ∃ c, aleph_idx c = b :=
-aleph_idx.initial_seg.init _ _
+aleph_idx.initial_seg.init
 
 /-- The `aleph'` index function, which gives the ordinal index of a cardinal.
   (The `aleph'` part is because unlike `aleph` this counts also the

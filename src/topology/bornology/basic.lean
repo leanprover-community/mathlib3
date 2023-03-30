@@ -8,6 +8,9 @@ import order.filter.cofinite
 /-!
 # Basic theory of bornology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We develop the basic theory of bornologies. Instead of axiomatizing bounded sets and defining
 bornologies in terms of those, we recognize that the cobounded sets form a filter and define a
 bornology as a filter of cobounded sets which contains the cofinite filter.  This allows us to make

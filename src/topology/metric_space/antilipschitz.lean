@@ -9,6 +9,9 @@ import topology.uniform_space.complete_separated
 /-!
 # Antilipschitz functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a map `f : α → β` between two (extended) metric spaces is
 `antilipschitz_with K`, `K ≥ 0`, if for all `x, y` we have `edist x y ≤ K * edist (f x) (f y)`.
 For a metric space, the latter inequality is equivalent to `dist x y ≤ K * dist (f x) (f y)`.
@@ -26,7 +29,7 @@ open_locale nnreal ennreal uniformity
 open set filter bornology
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
-`K * edist x y ≤ edist (f x) (f y)`. -/
+`edist x y ≤ K * edist (f x) (f y)`. -/
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 

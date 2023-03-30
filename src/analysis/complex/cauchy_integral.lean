@@ -143,7 +143,7 @@ Cauchy-Goursat theorem, Cauchy integral formula
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
-open_locale interval real nnreal ennreal topological_space big_operators
+open_locale interval real nnreal ennreal topology big_operators
 
 noncomputable theory
 

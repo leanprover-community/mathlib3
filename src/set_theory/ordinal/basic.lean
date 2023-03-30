@@ -378,7 +378,7 @@ That is, `enum` maps an initial segment of the ordinals, those
 less than the order type of `r`, to the elements of `α`.
 -/
 @[simps symm_apply_coe]
-def enum (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
+def enum (r : α → α → Prop) [is_well_order α r] : subrel (<) {o | o < type r} ≃r r :=
 (typein.principal_seg r).subrel_iso
 
 theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
@@ -763,7 +763,7 @@ instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
   uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
 
 instance unique_out_one : unique (1 : ordinal).out.α :=
-{ default := enum (<) ⟨0, by simp [(∈)]⟩,
+{ default := enum (<) ⟨0, by simp⟩,
   uniq := λ a, begin
     rw ←enum_typein (<) a,
     unfold default,
@@ -772,7 +772,7 @@ instance unique_out_one : unique (1 : ordinal).out.α :=
     apply typein_lt_self
   end }
 
-theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) ⟨0, by simp [(∈)]⟩ :=
+theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) ⟨0, by simp⟩ :=
 unique.eq_default x
 
 /-! ### Extra properties of typein and enum -/

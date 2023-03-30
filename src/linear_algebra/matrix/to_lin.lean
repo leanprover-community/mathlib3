@@ -742,7 +742,7 @@ variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V
   [module A W] [is_scalar_tower K A W]
 
 /-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, since they form a subspace of all `k`-linear maps. -/
+target are, as they form a subspace of all `k`-linear maps. -/
 instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
 finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
   (restrict_scalars_injective _)

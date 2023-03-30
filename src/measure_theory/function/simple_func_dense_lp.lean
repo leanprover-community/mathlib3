@@ -41,7 +41,7 @@ For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ --
 
 noncomputable theory
 open set function filter topological_space ennreal emetric finset
-open_locale classical topological_space ennreal measure_theory big_operators
+open_locale classical topology ennreal measure_theory big_operators
 variables {α β ι E F 𝕜 : Type*}
 
 namespace measure_theory
@@ -314,7 +314,7 @@ lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) 
   λ h, mem_ℒp_of_finite_measure_preimage p h⟩
 
 lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
-mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one.ne' ennreal.coe_ne_top
+mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff one_ne_zero ennreal.coe_ne_top
 
 lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ integrable f μ :=
@@ -849,7 +849,7 @@ lemma Lp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : Lp E p μ 
   ∀ f : Lp E p μ, P f :=
 begin
   refine λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed _,
-  refine Lp.simple_func.induction (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne' hp_ne_top _ _,
+  refine Lp.simple_func.induction (lt_of_lt_of_le zero_lt_one _i.elim).ne' hp_ne_top _ _,
   { exact λ c s, h_ind c },
   { exact λ f g hf hg, h_add hf hg },
 end
@@ -880,7 +880,7 @@ begin
     { intros c s hs h,
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, ext, simp [const] },
-      have hp_pos : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne',
+      have hp_pos : p ≠ 0 := (lt_of_lt_of_le zero_lt_one _i.elim).ne',
       exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs h) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add,

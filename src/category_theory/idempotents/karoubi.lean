@@ -209,6 +209,14 @@ def to_karoubi_is_equivalence [is_idempotent_complete C] :
   is_equivalence (to_karoubi C) :=
 equivalence.of_fully_faithfully_ess_surj (to_karoubi C)
 
+/-- The equivalence `C ≅ karoubi C` when `C` is idempotent complete. -/
+def to_karoubi_equivalence [is_idempotent_complete C] : C ≌ karoubi C :=
+by { haveI := to_karoubi_is_equivalence C, exact functor.as_equivalence (to_karoubi C), }
+
+instance to_karoubi_equivalence_functor_additive
+  [preadditive C] [is_idempotent_complete C] :
+  (to_karoubi_equivalence C).functor.additive := (infer_instance : (to_karoubi C).additive)
+
 namespace karoubi
 
 variables {C}

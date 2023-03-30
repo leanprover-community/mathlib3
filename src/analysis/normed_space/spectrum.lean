@@ -320,7 +320,7 @@ end one_sub_smul
 section gelfand_formula
 
 open filter ennreal continuous_multilinear_map
-open_locale topological_space
+open_locale topology
 
 variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]

@@ -31,7 +31,7 @@ and prove that $a = \sqrt{\pi}$. Here the main ingredient is the convergence of 
 formula for `π`.
 -/
 
-open_locale topological_space real big_operators nat
+open_locale topology real big_operators nat
 open finset filter nat real
 
 namespace stirling

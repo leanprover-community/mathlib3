@@ -8,6 +8,9 @@ import topology.constructions
 /-!
 # Neighborhoods and continuity relative to a subset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines relative versions
 
 * `nhds_within`           of `nhds`
@@ -27,7 +30,7 @@ equipped with the subspace topology.
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
@@ -212,9 +215,12 @@ theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
   𝓝[t] a = 𝓝[u] a :=
 by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 
+@[simp] theorem nhds_within_eq_nhds {a : α} {s : set α} : 𝓝[s] a = 𝓝 a ↔ s ∈ 𝓝 a :=
+by rw [nhds_within, inf_eq_left, le_principal_iff]
+
 theorem is_open.nhds_within_eq {a : α} {s : set α} (h : is_open s) (ha : a ∈ s) :
   𝓝[s] a = 𝓝 a :=
-inf_eq_left.2 $ le_principal_iff.2 $ is_open.mem_nhds h ha
+nhds_within_eq_nhds.2 $ is_open.mem_nhds h ha
 
 lemma preimage_nhds_within_coinduced {π : α → β} {s : set β} {t : set α} {a : α}
   (h : a ∈ t) (ht : is_open t)
@@ -229,6 +235,18 @@ theorem nhds_within_union (a : α) (s t : set α) :
   𝓝[s ∪ t] a = 𝓝[s] a ⊔ 𝓝[t] a :=
 by { delta nhds_within, rw [←inf_sup_left, sup_principal] }
 
+theorem nhds_within_bUnion {ι} {I : set ι} (hI : I.finite) (s : ι → set α) (a : α) :
+  𝓝[⋃ i ∈ I, s i] a = ⨆ i ∈ I, 𝓝[s i] a :=
+set.finite.induction_on hI (by simp) $ λ t T _ _ hT,
+  by simp only [hT, nhds_within_union, supr_insert, bUnion_insert]
+
+theorem nhds_within_sUnion {S : set (set α)} (hS : S.finite) (a : α) :
+  𝓝[⋃₀ S] a = ⨆ s ∈ S, 𝓝[s] a :=
+by rw [sUnion_eq_bUnion, nhds_within_bUnion hS]
+
+theorem nhds_within_Union {ι} [finite ι] (s : ι → set α) (a : α) : 𝓝[⋃ i, s i] a = ⨆ i, 𝓝[s i] a :=
+by rw [← sUnion_range, nhds_within_sUnion (finite_range s), supr_range]
+
 theorem nhds_within_inter (a : α) (s t : set α) :
   𝓝[s ∩ t] a = 𝓝[s] a ⊓ 𝓝[t] a :=
 by { delta nhds_within, rw [inf_left_comm, inf_assoc, inf_principal, ←inf_assoc, inf_idem] }
@@ -240,6 +258,10 @@ by { delta nhds_within, rw [←inf_principal, inf_assoc] }
 theorem nhds_within_inter_of_mem {a : α} {s t : set α} (h : s ∈ 𝓝[t] a) :
   𝓝[s ∩ t] a = 𝓝[t] a :=
 by { rw [nhds_within_inter, inf_eq_right], exact nhds_within_le_of_mem h }
+
+theorem nhds_within_inter_of_mem' {a : α} {s t : set α} (h : s ∈ 𝓝[t] a) :
+  𝓝[t ∩ s] a = 𝓝[t] a :=
+by rw [inter_comm, nhds_within_inter_of_mem h]
 
 @[simp] theorem nhds_within_singleton (a : α) : 𝓝[{a}] a = pure a :=
 by rw [nhds_within, principal_singleton, inf_eq_right.2 (pure_le_nhds a)]
@@ -595,6 +617,12 @@ lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : s
   (hf : continuous_on f s) (hg : continuous_on g t) :
   continuous_on (prod.map f g) (s ×ˢ t) :=
 λ ⟨x, y⟩ ⟨hx, hy⟩, continuous_within_at.prod_map (hf x hx) (hg y hy)
+
+lemma continuous_of_cover_nhds {ι : Sort*} {f : α → β} {s : ι → set α}
+  (hs : ∀ x : α, ∃ i, s i ∈ 𝓝 x) (hf : ∀ i, continuous_on f (s i)) :
+  continuous f :=
+continuous_iff_continuous_at.mpr $ λ x, let ⟨i, hi⟩ := hs x in
+  by { rw [continuous_at, ← nhds_within_eq_nhds.2 hi], exact hf _ _ (mem_of_mem_nhds hi) }
 
 lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
 λ x, false.elim

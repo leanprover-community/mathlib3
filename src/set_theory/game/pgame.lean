@@ -6,7 +6,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 import data.fin.basic
 import data.list.basic
 import logic.relation
-import logic.small
+import logic.small.basic
 import order.game_add
 
 /-!
@@ -502,7 +502,7 @@ theorem le_upper_bound {ι : Type u} (f : ι → pgame.{u}) (i : ι) : f i ≤ u
 begin
   rw [upper_bound, le_iff_forall_lf],
   dsimp,
-  simp only [forall_pempty, and_true],
+  simp only [and_true, is_empty.forall_iff],
   exact λ j, @move_left_lf (upper_bound f) ⟨i, j⟩
 end
 
@@ -528,7 +528,7 @@ theorem lower_bound_le {ι : Type u} (f : ι → pgame.{u}) (i : ι) : lower_bou
 begin
   rw [lower_bound, le_iff_forall_lf],
   dsimp,
-  simp only [forall_pempty, true_and],
+  simp only [is_empty.forall_iff, true_and],
   exact λ j, @lf_move_right (lower_bound f) ⟨i, j⟩
 end
 

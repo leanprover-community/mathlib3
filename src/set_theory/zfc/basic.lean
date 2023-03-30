@@ -60,6 +60,8 @@ Prove `Set.map_definable_aux` computably.
 
 universes u v
 
+/-! ### `n`-ary functions -/
+
 /-- The type of `n`-ary functions `α → α → ... → α`. -/
 def arity (α : Type u) : ℕ → Type u
 | 0     := α
@@ -82,6 +84,8 @@ theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) : const a n.s
 instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) := ⟨const default _⟩
 
 end arity
+
+/-! ### Pre-set equivalence -/
 
 /-- The type of pre-sets in universe `u`. A pre-set
   is a family of pre-sets indexed by a type in `Type u`.
@@ -145,6 +149,8 @@ equiv_iff.2 $ by simp
 
 instance setoid : setoid pSet :=
 ⟨pSet.equiv, equiv.refl, λ x y, equiv.symm, λ x y z, equiv.trans⟩
+
+/-! ### Basic relation on pre-sets -/
 
 /-- A pre-set is a subset of another pre-set if every element of the first family is extensionally
 equivalent to some element of the second family.-/
@@ -248,6 +254,8 @@ equiv_iff_mem.trans set.ext_iff.symm
 
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 
+/-! ### Basic pre-sets -/
+
 /-- The empty pre-set -/
 protected def empty : pSet := ⟨_, pempty.elim⟩
 
@@ -335,6 +343,8 @@ def embed : pSet.{max (u+1) v} := ⟨ulift.{v u+1} pSet, λ ⟨x⟩, pSet.lift.{
 theorem lift_mem_embed : Π (x : pSet.{u}), pSet.lift.{u (max (u+1) v)} x ∈ embed.{u v} :=
 λ x, ⟨⟨x⟩, equiv.rfl⟩
 
+/-! ### Equivalence-respecting functions -/
+
 /-- Function equivalence is defined so that `f ~ g` iff `∀ x y, x ~ y → f x ~ g y`. This extends to
 equivalence of `n`-ary functions. -/
 def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
@@ -379,6 +389,8 @@ instance resp.setoid {n} : setoid (resp n) :=
 ⟨resp.equiv, resp.equiv.refl, λ x y, resp.equiv.symm, λ x y z, resp.equiv.trans⟩
 
 end pSet
+
+/-! ### Definable functions -/
 
 /-- The ZFC universe of sets consists of the type of pre-sets,
   quotiented by extensional equivalence. -/
@@ -445,6 +457,8 @@ noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
   end
 
 end classical
+
+/-! ### Basic relations on sets -/
 
 namespace Set
 open pSet
@@ -527,6 +541,8 @@ theorem to_set_injective : function.injective to_set := λ x y h, ext $ set.ext_
 to_set_injective.eq_iff
 
 instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @hba c⟩⟩
+
+/-! ### Basic sets -/
 
 /-- The empty ZFC set -/
 protected def empty : Set := mk ∅
@@ -646,6 +662,8 @@ quotient.induction_on₂ x y ( λ ⟨α, A⟩ ⟨β, B⟩,
   show (⟨β, B⟩ : pSet.{u}) ∈ (pSet.powerset.{u} ⟨α, A⟩) ↔ _,
     by simp [mem_powerset, subset_iff])
 
+/-! ### Union and intersection -/
+
 theorem sUnion_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : ∀ a, ∃ b, equiv (A a) (B b)) :
   ∀ a, ∃ b, (equiv ((sUnion ⟨α, A⟩).func a) ((sUnion ⟨β, B⟩).func b))
 | ⟨a, c⟩ := let ⟨b, hb⟩ := αβ a in
@@ -764,6 +782,8 @@ begin
     { exact ⟨y, or.inr rfl, hz⟩ } }
 end
 
+/-! ### Regularity -/
+
 theorem mem_wf : @well_founded Set (∈) :=
 well_founded_lift₂_iff.mpr pSet.mem_wf
 
@@ -783,6 +803,8 @@ theorem regularity (x : Set.{u}) (h : x ≠ ∅) : ∃ y ∈ x, x ∩ y = ∅ :=
 classical.by_contradiction $ λ ne, h $ (eq_empty x).2 $ λ y,
 induction_on y $ λ z (IH : ∀ w : Set.{u}, w ∈ z → w ∉ x), show z ∉ x, from λ zx,
 ne ⟨z, zx, (eq_empty _).2 (λ w wxz, let ⟨wx, wz⟩ := mem_inter.1 wxz in IH w wz wx)⟩
+
+/-! ### ZFC functions -/
 
 /-- The image of a (definable) ZFC set function -/
 def image (f : Set → Set) [H : definable 1 f] : Set → Set :=
@@ -922,6 +944,8 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
 
+/-! ### Hereditary properties -/
+
 /-- Given a predicate `p` on ZFC sets. `hereditarily p x` means that `x` has property `p` and the
 members of `x` are all `hereditarily p`. -/
 def hereditarily (p : Set → Prop) : Set → Prop
@@ -953,6 +977,8 @@ end
 end hereditarily
 
 end Set
+
+/-! ### Basic classes -/
 
 /-- The collection of all classes.
 
@@ -1139,6 +1165,8 @@ eq_univ_of_forall begin
     λ hB, well_founded.not_lt_min Set.mem_wf _ hnA hB $ coe_apply.1 hx)
 end
 
+/-! ### Class functions -/
+
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}
 
@@ -1172,6 +1200,8 @@ Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.coe_apply, mem_map
   λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
 
 variables (x : Set.{u}) (h : ∅ ∉ x)
+
+/-! ### Axiom of choice -/
 
 /-- A choice function on the class of nonempty ZFC sets. -/
 noncomputable def choice : Set :=

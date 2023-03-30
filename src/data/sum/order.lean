@@ -409,8 +409,8 @@ instance densely_ordered_of_no_min_order [has_lt α] [has_lt β] [densely_ordere
                     ⟨to_lex (inr c), inr_lt_inr_iff.2 ha, inr_lt_inr_iff.2 hb⟩
 end⟩
 
-instance is_well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
-  is_well_founded (α ⊕ₗ β) (<) :=
+instance well_founded_lt [has_lt α] [has_lt β] [well_founded_lt α] [well_founded_lt β] :
+  well_founded_lt (α ⊕ₗ β) :=
 sum.lex.is_well_founded _ _
 
 instance is_well_order_lt [linear_order α] [linear_order β]

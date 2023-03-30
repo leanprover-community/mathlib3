@@ -53,6 +53,7 @@ begin
     fintype.card_subtype_compl, nat.add_sub_of_le (fintype.card_subtype_le _)],
 end
 
+@[nolint fails_quickly]
 instance [number_field K] : nontrivial (space K) :=
 begin
   obtain ⟨w⟩ := infinite_place.nonempty K,

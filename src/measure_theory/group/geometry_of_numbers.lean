@@ -62,7 +62,7 @@ begin
     { exact λ _, (hS.null_measurable_set.inter (fund.1.vadd _)).vadd _, }}
 end
 
-/-- Minkowksi theorem. If `T` is a convex symmetric domain of `E` whose volume is large enough
+/-- Minkowksi's theorem. If `T` is a convex symmetric domain of `E` whose volume is large enough
 compared to the covolume of the lattice `L` of `E`, then it contains a non-zero lattice point.  -/
 lemma exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
@@ -71,8 +71,7 @@ lemma exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
   (h : μ F * 2 ^ finrank ℝ E < μ T) (h_symm : ∀ x ∈ T, -x ∈ T) (h_conv : convex ℝ T) :
   ∃ x ≠ 0, ((x : L) : E) ∈ T :=
 begin
-  set S := (2⁻¹ : ℝ) • T with S_def,
-  have h_vol : μ F < μ S,
+  have h_vol : μ F < μ ((2⁻¹ : ℝ) • T),
   { rwa [add_haar_smul_of_nonneg μ (by norm_num : 0 ≤ (2 : ℝ)⁻¹) T, ← mul_lt_mul_right
       (pow_ne_zero (finrank ℝ E) (two_ne_zero' _)) (pow_ne_top two_ne_top), mul_right_comm,
       of_real_pow (by norm_num : 0 ≤ (2 : ℝ)⁻¹), ← of_real_inv_of_pos zero_lt_two, of_real_bit0,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.nilpotent
-import algebra.lie.centralizer
+import algebra.lie.normalizer
 
 /-!
 # Cartan subalgebras
@@ -47,10 +47,10 @@ class is_cartan_subalgebra : Prop :=
 
 instance [H.is_cartan_subalgebra] : lie_algebra.is_nilpotent R H := is_cartan_subalgebra.nilpotent
 
-@[simp] lemma centralizer_eq_self_of_is_cartan_subalgebra
+@[simp] lemma normalizer_eq_self_of_is_cartan_subalgebra
   (H : lie_subalgebra R L) [H.is_cartan_subalgebra] :
-  H.to_lie_submodule.centralizer = H.to_lie_submodule :=
-by rw [← lie_submodule.coe_to_submodule_eq_iff, coe_centralizer_eq_normalizer,
+  H.to_lie_submodule.normalizer = H.to_lie_submodule :=
+by rw [← lie_submodule.coe_to_submodule_eq_iff, coe_normalizer_eq_normalizer,
   is_cartan_subalgebra.self_normalizing, coe_to_lie_submodule]
 
 @[simp] lemma ucs_eq_self_of_is_cartan_subalgebra
@@ -70,8 +70,8 @@ begin
     have h₁ : _root_.lie_algebra.is_nilpotent R H := by apply_instance,
     obtain ⟨k, hk⟩ := H.to_lie_submodule.is_nilpotent_iff_exists_self_le_ucs.mp h₁,
     replace hk : H.to_lie_submodule = lie_submodule.ucs k ⊥ :=
-      le_antisymm hk (lie_submodule.ucs_le_of_centralizer_eq_self
-      H.centralizer_eq_self_of_is_cartan_subalgebra k),
+      le_antisymm hk (lie_submodule.ucs_le_of_normalizer_eq_self
+      H.normalizer_eq_self_of_is_cartan_subalgebra k),
     refine ⟨k, λ l hl, _⟩,
     rw [← nat.sub_add_cancel hl, lie_submodule.ucs_add, ← hk,
       lie_subalgebra.ucs_eq_self_of_is_cartan_subalgebra], },
@@ -90,7 +90,7 @@ begin
         have hk' := hk (k + 1) k.le_succ,
         rw [lie_submodule.ucs_succ, hk k (le_refl k)] at hk',
         rw [← lie_subalgebra.coe_to_submodule_eq_iff,
-          ← lie_subalgebra.coe_centralizer_eq_normalizer, hk',
+          ← lie_subalgebra.coe_normalizer_eq_normalizer, hk',
           lie_subalgebra.coe_to_lie_submodule],
       end } },
 end

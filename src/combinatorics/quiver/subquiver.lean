@@ -3,11 +3,14 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.set.basic
+import order.bounded_order
 import combinatorics.quiver.basic
 
 /-!
 ## Wide subquivers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A wide subquiver `H` of a quiver `H` consists of a subset of the edge set `a ⟶ b` for
 every pair of vertices `a b : V`. We include 'wide' in the name to emphasize that these
@@ -34,7 +37,7 @@ instance wide_subquiver_has_coe_to_sort {V} [quiver V] :
 
 /-- A wide subquiver viewed as a quiver on its own. -/
 instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=
-⟨λ a b, H a b⟩
+⟨λ a b, { f // f ∈ H a b }⟩
 
 namespace quiver
 

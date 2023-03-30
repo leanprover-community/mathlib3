@@ -8,6 +8,9 @@ import data.set.lattice
 /-!
 # Functoriality of `set`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the functor structure of `set`.
 -/
 
@@ -28,6 +31,12 @@ instance : monad.{u} set :=
 @[simp] lemma fmap_eq_image (f : α → β) : f <$> s = f '' s := rfl
 @[simp] lemma seq_eq_set_seq (s : set (α → β)) (t : set α) : s <*> t = s.seq t := rfl
 @[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
+
+/-- `set.image2` in terms of monadic operations. Note that this can't be taken as the definition
+because of the lack of universe polymorphism. -/
+lemma image2_def {α β γ : Type*} (f : α → β → γ) (s : set α) (t : set β) :
+  image2 f s t = f <$> s <*> t :=
+by { ext, simp }
 
 instance : is_lawful_monad set :=
 { id_map                := λ α, image_id,

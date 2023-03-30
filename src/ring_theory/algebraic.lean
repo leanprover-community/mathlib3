@@ -98,10 +98,10 @@ lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
-by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+by { rw ←_root_.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
-lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
-  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [algebra R A] (n : ℚ) :
+  is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A] [algebra R A]
@@ -112,7 +112,7 @@ open is_scalar_tower
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
-λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [←algebra_map_aeval, hf₂, map_zero]⟩
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [aeval_algebra_map_apply, hf₂, map_zero]⟩
 
 /-- This is slightly more general than `is_algebraic_algebra_map_of_is_algebraic` in that it
   allows noncommutative intermediate rings `A`. -/
@@ -130,7 +130,7 @@ lemma _root_.alg_equiv.is_algebraic_iff {B} [ring B] [algebra R B] (e : A ≃ₐ
 
 lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map S A)) :
   is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
-⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
+⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, ← aeval_algebra_map_apply])⟩,
   is_algebraic_algebra_map_of_is_algebraic⟩
 
 lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
@@ -227,11 +227,10 @@ theorem is_algebraic.alg_hom_bijective
 begin
   refine ⟨f.to_ring_hom.injective, λ b, _⟩,
   obtain ⟨p, hp, he⟩ := ha b,
-  let f' : p.root_set L → p.root_set L :=
-    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
+  let f' : p.root_set L → p.root_set L := (root_set_maps_to' id f).restrict f _ _,
   have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
-  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
+  obtain ⟨a, ha⟩ := this ⟨b, mem_root_set.2 ⟨hp, he⟩⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,
 end
 
@@ -300,7 +299,7 @@ lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
-  rw [inv_eq_iff_inv_eq, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  rw [inv_eq_iff_eq_inv, inv_div, eq_comm, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
   conv_lhs { rw ← div_X_mul_X_add p },
   rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
   exact aeval_ne

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import field_theory.minpoly
+import field_theory.minpoly.field
 import field_theory.subfield
 import field_theory.tower
 
@@ -61,10 +61,10 @@ instance : set_like (intermediate_field K L) L :=
 ⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
 
 instance : subfield_class (intermediate_field K L) L :=
-{ add_mem := λ s, s.add_mem',
+{ add_mem := λ s _ _, s.add_mem',
   zero_mem := λ s, s.zero_mem',
   neg_mem := neg_mem',
-  mul_mem := λ s, s.mul_mem',
+  mul_mem := λ s _ _, s.mul_mem',
   one_mem := λ s, s.one_mem',
   inv_mem := inv_mem' }
 
@@ -360,7 +360,7 @@ begin
 end
 
 lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
-  [is_scalar_tower R K L] {x : S} : is_integral R (x : L) ↔ _root_.is_integral R x :=
+  [is_scalar_tower R K L] {x : S} : is_integral R (x : L) ↔ is_integral R x :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { obtain ⟨P, hPmo, hProot⟩ := h,
@@ -370,7 +370,7 @@ begin
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, _⟩,
-    rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
+    rw [← aeval_def, aeval_coe, aeval_def, hProot, zero_mem_class.coe_zero] },
 end
 
 /-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.
@@ -485,7 +485,7 @@ by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
 
 lemma eq_of_le_of_finrank_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_finrank : finrank K E ≤ finrank K F) : F = E :=
-to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_finrank_le h_le h_finrank
+to_subalgebra_injective $ subalgebra.to_submodule.injective $ eq_of_le_of_finrank_le h_le h_finrank
 
 lemma eq_of_le_of_finrank_eq [finite_dimensional K L] (h_le : F ≤ E)
   (h_finrank : finrank K F = finrank K E) : F = E :=

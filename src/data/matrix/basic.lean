@@ -3,15 +3,17 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
-import algebra.algebra.basic
+
+import algebra.algebra.pi
 import algebra.big_operators.pi
 import algebra.big_operators.ring
+import algebra.big_operators.ring_equiv
 import algebra.module.linear_map
 import algebra.module.pi
-import algebra.ring.equiv
+import algebra.star.big_operators
 import algebra.star.module
 import algebra.star.pi
-import data.fintype.card
+import data.fintype.big_operators
 
 /-!
 # Matrices
@@ -119,13 +121,13 @@ lemma map_injective {f : α → β} (hf : function.injective f) :
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
 
-localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
+localized "postfix (name := matrix.transpose) `ᵀ`:1500 := matrix.transpose" in matrix
 
 /-- The conjugate transpose of a matrix defined in term of `star`. -/
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
 M.transpose.map star
 
-localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
+localized "postfix (name := matrix.conj_transpose) `ᴴ`:1500 := matrix.conj_transpose" in matrix
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
@@ -433,7 +435,7 @@ def dot_product [has_mul α] [add_comm_monoid α] (v w : m → α) : α :=
 
 /- The precedence of 72 comes immediately after ` • ` for `has_smul.smul`,
    so that `r₁ • a ⬝ᵥ r₂ • b` is parsed as `(r₁ • a) ⬝ᵥ (r₂ • b)` here. -/
-localized "infix  ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
+localized "infix (name := matrix.dot_product) ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
 
 lemma dot_product_assoc [non_unital_semiring α] (u : m → α) (w : n → α)
   (v : matrix m n α) :
@@ -549,7 +551,7 @@ protected def mul [fintype m] [has_mul α] [add_comm_monoid α]
   (M : matrix l m α) (N : matrix m n α) : matrix l n α :=
 λ i k, (λ j, M i j) ⬝ᵥ (λ j, N j k)
 
-localized "infixl ` ⬝ `:75 := matrix.mul" in matrix
+localized "infixl (name := matrix.mul) ` ⬝ `:75 := matrix.mul" in matrix
 
 theorem mul_apply [fintype m] [has_mul α] [add_comm_monoid α]
   {M : matrix l m α} {N : matrix m n α} {i k} : (M ⬝ N) i k = ∑ j, M i j * N j k := rfl
@@ -571,6 +573,18 @@ lemma sum_apply [add_comm_monoid α] (i : m) (j : n)
   (s : finset β) (g : β → matrix m n α) :
   (∑ c in s, g c) i j = ∑ c in s, g c i j :=
 (congr_fun (s.sum_apply i g) j).trans (s.sum_apply j _)
+
+lemma two_mul_expl {R : Type*} [comm_ring R] (A B : matrix (fin 2) (fin 2) R) :
+  (A * B) 0 0 = A 0 0 * B 0 0 + A 0 1 * B 1 0 ∧
+  (A * B) 0 1 = A 0 0 * B 0 1 + A 0 1 * B 1 1 ∧
+  (A * B) 1 0 = A 1 0 * B 0 0 + A 1 1 * B 1 0 ∧
+  (A * B) 1 1 = A 1 0 * B 0 1 + A 1 1 * B 1 1 :=
+begin
+  split, work_on_goal 2 {split}, work_on_goal 3 {split},
+  all_goals {simp only [matrix.mul_eq_mul],
+  rw [matrix.mul_apply, finset.sum_fin_eq_sum_range, finset.sum_range_succ, finset.sum_range_succ],
+  simp},
+end
 
 section add_comm_monoid
 
@@ -1244,6 +1258,10 @@ lemma vec_mul_conj_transpose [fintype n] [star_ring α] (A : matrix m n α) (x :
   vec_mul x Aᴴ = star (mul_vec A (star x)) :=
 funext $ λ i, dot_product_star _ _
 
+lemma mul_mul_apply [fintype n] (A B C : matrix n n α) (i j : n) :
+  (A ⬝ B ⬝ C) i j = A i ⬝ᵥ (B.mul_vec (Cᵀ j)) :=
+by { rw matrix.mul_assoc, simpa only [mul_apply, dot_product, mul_vec] }
+
 end non_unital_semiring
 
 section non_assoc_semiring
@@ -1519,7 +1537,7 @@ matrix.ext $ by simp
   [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_inv_nat_cast_smul [division_ring R] [add_comm_group α]
+@[simp] lemma conj_transpose_inv_nat_cast_smul [division_semiring R] [add_comm_monoid α]
   [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
 matrix.ext $ by simp
 
@@ -1635,8 +1653,12 @@ instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) :=
 { star_add := conj_transpose_add }
 
+instance [has_star α] [has_star β] [has_smul α β] [star_module α β] :
+  star_module α (matrix n n β) :=
+{ star_smul := conj_transpose_smul }
+
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
-instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+instance [fintype n] [non_unital_semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
 

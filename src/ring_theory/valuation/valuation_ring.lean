@@ -45,7 +45,7 @@ section
 variables (A : Type u) [comm_ring A]
 variables (K : Type v) [field K] [algebra A K]
 
-/-- The value group of the valuation ring `A`. -/
+/-- The value group of the valuation ring `A`. Note: this is actually a group with zero. -/
 def value_group : Type v := quotient (mul_action.orbit_rel Aˣ K)
 
 instance : inhabited (value_group A K) := ⟨quotient.mk' 0⟩
@@ -129,8 +129,7 @@ instance : linear_ordered_comm_group_with_zero (value_group A K) :=
       rw [← mul_smul, algebra.smul_def] at hf,
       nth_rewrite 1 ← one_mul b at hf,
       rw ← (algebra_map A K).map_one at hf,
-      exact is_fraction_ring.injective _ _
-        (cancel_comm_monoid_with_zero.mul_right_cancel_of_ne_zero hb hf).symm },
+      exact is_fraction_ring.injective _ _ (mul_right_cancel₀ hb hf).symm },
     apply quotient.sound',
     use [this.unit, rfl],
   end,

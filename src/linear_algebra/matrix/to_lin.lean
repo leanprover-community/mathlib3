@@ -9,6 +9,7 @@ import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
+import algebra.algebra.subalgebra.tower
 
 /-!
 # Linear maps and matrices
@@ -269,9 +270,9 @@ lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
 by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
 
 lemma matrix.range_to_lin' (M : matrix m n R) : M.to_lin'.range = span R (range Mᵀ) :=
-by simp_rw [range_eq_map, ←supr_range_std_basis, map_supr, range_eq_map, ←ideal.span_singleton_one,
-  ideal.span, submodule.map_span, image_image, image_singleton, matrix.to_lin'_apply,
-  M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
+by simp_rw [range_eq_map, ←supr_range_std_basis, submodule.map_supr, range_eq_map,
+  ←ideal.span_singleton_one, ideal.span, submodule.map_span, image_image, image_singleton,
+  matrix.to_lin'_apply, M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
 
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
@@ -444,7 +445,7 @@ end
 lemma linear_map.to_matrix_id : linear_map.to_matrix v₁ v₁ id = 1 :=
 begin
   ext i j,
-  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single, eq_comm]
+  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single_apply, eq_comm]
 end
 
 lemma linear_map.to_matrix_one : linear_map.to_matrix v₁ v₁ 1 = 1 :=
@@ -486,6 +487,14 @@ by { ext i,
          matrix.to_lin'_to_matrix', linear_equiv.arrow_congr_apply, v₂.equiv_fun_apply],
      congr,
      exact v₁.equiv_fun.symm_apply_apply x }
+
+@[simp] lemma linear_map.to_matrix_basis_equiv [fintype l] [decidable_eq l]
+  (b : basis l R M₁) (b' : basis l R M₂) :
+  linear_map.to_matrix b' b (b'.equiv b (equiv.refl l) : M₂ →ₗ[R] M₁) = 1 :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single_apply, eq_comm],
+end
 
 lemma matrix.to_lin_mul [fintype l] [decidable_eq m] (A : matrix l m R) (B : matrix m n R) :
   matrix.to_lin v₁ v₃ (A ⬝ B) =
@@ -613,28 +622,31 @@ lemma matrix.to_lin_fin_two_prod (a b c d : R) :
     (c • linear_map.fst R R R + d • linear_map.snd R R R) :=
 linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 
+@[simp] lemma to_matrix_distrib_mul_action_to_linear_map (x : R) :
+  linear_map.to_matrix v₁ v₁ (distrib_mul_action.to_linear_map R M₁ x) = matrix.diagonal (λ _, x) :=
+begin
+  ext,
+  rw [linear_map.to_matrix_apply, distrib_mul_action.to_linear_map_apply, linear_equiv.map_smul,
+    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal,
+    pi.single_apply],
+end
+
 end to_matrix
 
 namespace algebra
 
 section lmul
 
-variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
-variables {m n : Type*} [fintype m] [decidable_eq m] [decidable_eq n]
-variables (b : basis m R S) (c : basis n S T)
-
-open algebra
+variables {R S : Type*} [comm_ring R] [ring S] [algebra R S]
+variables {m : Type*} [fintype m] [decidable_eq m] (b : basis m R S)
 
 lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix b b (lmul R S x) i j = b.repr (x * b j) i :=
 by simp only [linear_map.to_matrix_apply', coe_lmul_eq_mul, linear_map.mul_apply']
 
-@[simp] lemma to_matrix_lsmul (x : R) (i j) :
-  linear_map.to_matrix b b (algebra.lsmul R S x) i j = if i = j then x else 0 :=
-by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_equiv.map_smul, finsupp.smul_apply,
-         b.repr_self_apply, smul_eq_mul, mul_boole],
-     congr' 1; simp only [eq_comm] }
+@[simp] lemma to_matrix_lsmul (x : R) :
+  linear_map.to_matrix b b (algebra.lsmul R S x) = matrix.diagonal (λ _, x) :=
+to_matrix_distrib_mul_action_to_linear_map b x
 
 /-- `left_mul_matrix b x` is the matrix corresponding to the linear map `λ y, x * y`.
 
@@ -649,8 +661,8 @@ noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
   map_one' := by rw [alg_hom.map_one, linear_map.to_matrix_one],
   map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
   map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
-  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
-                                  algebra_map_matrix_apply, id.map_eq_self] } }
+  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul, algebra_map_eq_diagonal,
+                                  pi.algebra_map_def, algebra.id.map_eq_self] } }
 
 lemma left_mul_matrix_apply (x : S) :
   left_mul_matrix b x = linear_map.to_matrix b b (lmul R S x) := rfl
@@ -674,7 +686,14 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
              ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix b b).injective h
              ... = x' : mul_one x'
 
-variable [fintype n]
+end lmul
+
+section lmul_tower
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables {m n : Type*} [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+variables (b : basis m R S) (c : basis n S T)
 
 lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =
@@ -699,7 +718,7 @@ lemma smul_left_mul_matrix_algebra_map_ne (x : S) (i j) {k k'}
   (h : k ≠ k') : left_mul_matrix (b.smul c) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
 by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_ne _ _ _ h]
 
-end lmul
+end lmul_tower
 
 end algebra
 
@@ -723,7 +742,7 @@ variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V
   [module A W] [is_scalar_tower K A W]
 
 /-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, since they form a subspace of all `k`-linear maps. -/
+target are, as they form a subspace of all `k`-linear maps. -/
 instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
 finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
   (restrict_scalars_injective _)

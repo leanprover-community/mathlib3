@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import logic.equiv.fintype
 import model_theory.semantics
 
 /-!
@@ -100,7 +99,7 @@ begin
   rcases hg with ⟨θ, hθ⟩,
   refine ⟨φ ⊔ θ, _⟩,
   ext,
-  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union_eq, mem_set_of_eq,
+  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union, mem_set_of_eq,
     mem_set_of_eq],
 end
 
@@ -180,9 +179,6 @@ begin
     simp }
 end
 
-lemma fin.coe_cast_add_zero {m : ℕ} : (fin.cast_add 0 : fin m → fin (m + 0)) = id :=
-funext (λ _, fin.ext rfl)
-
 /-- This lemma is only intended as a helper for `definable.image_comp. -/
 lemma definable.image_comp_sum_inl_fin (m : ℕ) {s : set ((α ⊕ fin m) → M)}
   (h : A.definable L s) :
@@ -192,7 +188,7 @@ begin
   refine ⟨(bounded_formula.relabel id φ).exs, _⟩,
   ext x,
   simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs,
-    bounded_formula.realize_relabel, function.comp.right_id, fin.coe_cast_add_zero],
+    bounded_formula.realize_relabel, function.comp.right_id, fin.cast_add_zero, fin.cast_refl],
   split,
   { rintro ⟨y, hy, rfl⟩,
     exact ⟨y ∘ sum.inr,
@@ -203,10 +199,11 @@ end
 
 /-- Shows that definability is closed under finite projections. -/
 lemma definable.image_comp_embedding {s : set (β → M)} (h : A.definable L s)
-  (f : α ↪ β) [fintype β] :
+  (f : α ↪ β) [finite β] :
   A.definable L ((λ g : β → M, g ∘ f) '' s) :=
 begin
   classical,
+  casesI nonempty_fintype β,
   refine (congr rfl (ext (λ x, _))).mp (((h.image_comp_equiv
     (equiv.set.sum_compl (range f))).image_comp_equiv (equiv.sum_congr
     (equiv.of_injective f f.injective) (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _),
@@ -217,10 +214,12 @@ end
 
 /-- Shows that definability is closed under finite projections. -/
 lemma definable.image_comp {s : set (β → M)} (h : A.definable L s)
-  (f : α → β) [fintype α] [fintype β] :
+  (f : α → β) [finite α] [finite β] :
   A.definable L ((λ g : β → M, g ∘ f) '' s) :=
 begin
   classical,
+  casesI nonempty_fintype α,
+  casesI nonempty_fintype β,
   have h := (((h.image_comp_equiv (equiv.set.sum_compl (range f))).image_comp_equiv
     (equiv.sum_congr (_root_.equiv.refl _)
     (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _).preimage_comp (range_splitting f),
@@ -233,7 +232,7 @@ begin
     refine (congr rfl (ext _)).mp (definable_finset_bInter h' finset.univ),
     simp },
   refine (congr rfl (ext (λ x, _))).mp (h.inter h'),
-  simp only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
+  simp only [equiv.coe_trans, mem_inter_iff, mem_preimage, mem_image,
     exists_exists_and_eq_and, mem_set_of_eq],
   split,
   { rintro ⟨⟨y, ys, hy⟩, hx⟩,
@@ -270,90 +269,42 @@ variables (L : first_order.language.{u v}) {M : Type w} [L.Structure M] (A : set
 def definable_set := { s : set (α → M) // A.definable L s}
 
 namespace definable_set
-variables {L} {A} {α}
-
-instance : has_top (L.definable_set A α) := ⟨⟨⊤, definable_univ⟩⟩
-
-instance : has_bot (L.definable_set A α) := ⟨⟨⊥, definable_empty⟩⟩
-
-instance : inhabited (L.definable_set A α) := ⟨⊥⟩
+variables {L A α} {s t : L.definable_set A α} {x : α → M}
 
 instance : set_like (L.definable_set A α) (α → M) :=
 { coe := subtype.val,
   coe_injective' := subtype.val_injective }
 
-@[simp]
-lemma mem_top {x : α → M} : x ∈ (⊤ : L.definable_set A α) := mem_univ x
+instance : has_top (L.definable_set A α) := ⟨⟨⊤, definable_univ⟩⟩
+instance : has_bot (L.definable_set A α) := ⟨⟨⊥, definable_empty⟩⟩
+instance : has_sup (L.definable_set A α) := ⟨λ s t, ⟨s ∪ t, s.2.union t.2⟩⟩
+instance : has_inf (L.definable_set A α) := ⟨λ s t, ⟨s ∩ t, s.2.inter t.2⟩⟩
+instance : has_compl (L.definable_set A α) := ⟨λ s, ⟨sᶜ, s.2.compl⟩⟩
+instance : has_sdiff (L.definable_set A α) := ⟨λ s t, ⟨s \ t, s.2.sdiff t.2⟩⟩
 
-@[simp]
-lemma coe_top : ((⊤ : L.definable_set A α) : set (α → M)) = ⊤ := rfl
+instance : inhabited (L.definable_set A α) := ⟨⊥⟩
 
-@[simp]
-lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set A α) := not_mem_empty x
+lemma le_iff : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
 
-@[simp]
-lemma coe_bot : ((⊥ : L.definable_set A α) : set (α → M)) = ⊥ := rfl
+@[simp] lemma mem_top : x ∈ (⊤ : L.definable_set A α) := mem_univ x
+@[simp] lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set A α) := not_mem_empty x
+@[simp] lemma mem_sup : x ∈ s ⊔ t ↔ x ∈ s ∨ x ∈ t := iff.rfl
+@[simp] lemma mem_inf : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
+@[simp] lemma mem_compl : x ∈ sᶜ ↔ ¬ x ∈ s := iff.rfl
+@[simp] lemma mem_sdiff : x ∈ s \ t ↔ x ∈ s ∧ ¬ x ∈ t := iff.rfl
 
-instance : lattice (L.definable_set A α) :=
-subtype.lattice (λ _ _, definable.union) (λ _ _, definable.inter)
-
-lemma le_iff {s t : L.definable_set A α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
-
-@[simp]
-lemma coe_sup {s t : L.definable_set A α} : ((s ⊔ t : L.definable_set A α) : set (α → M)) = s ∪ t :=
+@[simp, norm_cast] lemma coe_top : ((⊤ : L.definable_set A α) : set (α → M)) = univ := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : L.definable_set A α) : set (α → M)) = ∅ := rfl
+@[simp, norm_cast] lemma coe_sup (s t : L.definable_set A α) : (↑(s ⊔ t) : set (α → M)) = s ∪ t :=
 rfl
-
-@[simp]
-lemma mem_sup {s t : L.definable_set A α} {x : α → M} : x ∈ s ⊔ t ↔ x ∈ s ∨ x ∈ t := iff.rfl
-
-@[simp]
-lemma coe_inf {s t : L.definable_set A α} : ((s ⊓ t : L.definable_set A α) : set (α → M)) = s ∩ t :=
+@[simp, norm_cast] lemma coe_inf (s t : L.definable_set A α) : (↑(s ⊓ t) : set (α → M)) = s ∩ t :=
 rfl
-
-@[simp]
-lemma mem_inf {s t : L.definable_set A α} {x : α → M} : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
-
-instance : bounded_order (L.definable_set A α) :=
-{ bot_le := λ s x hx, false.elim hx,
-  le_top := λ s x hx, mem_univ x,
-  .. definable_set.has_top,
-  .. definable_set.has_bot }
-
-instance : distrib_lattice (L.definable_set A α) :=
-{ le_sup_inf := begin
-    intros s t u x,
-    simp only [and_imp, mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, mem_union_eq,
-      subtype.val_eq_coe],
-    tauto,
-  end,
-  .. definable_set.lattice }
-
-/-- The complement of a definable set is also definable. -/
-@[reducible] instance : has_compl (L.definable_set A α) :=
-⟨λ ⟨s, hs⟩, ⟨sᶜ, hs.compl⟩⟩
-
-@[simp]
-lemma mem_compl {s : L.definable_set A α} {x : α → M} : x ∈ sᶜ ↔ ¬ x ∈ s :=
-begin
-  cases s with s hs,
-  refl,
-end
-
-@[simp]
-lemma coe_compl {s : L.definable_set A α} : ((sᶜ : L.definable_set A α) : set (α → M)) = sᶜ :=
-begin
-  ext,
-  simp,
-end
+@[simp, norm_cast] lemma coe_compl (s : L.definable_set A α) : (↑(sᶜ) : set (α → M)) = sᶜ := rfl
+@[simp, norm_cast] lemma coe_sdiff (s t : L.definable_set A α) : (↑(s \ t) : set (α → M)) = s \ t :=
+rfl
 
 instance : boolean_algebra (L.definable_set A α) :=
-{ sdiff := λ s t, s ⊓ tᶜ,
-  sdiff_eq := λ s t, rfl,
-  inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
-  top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
-  .. definable_set.has_compl,
-  .. definable_set.bounded_order,
-  .. definable_set.distrib_lattice }
+subtype.coe_injective.boolean_algebra _ coe_sup coe_inf coe_top coe_bot coe_compl coe_sdiff
 
 end definable_set
 end language

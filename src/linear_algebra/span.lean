@@ -5,10 +5,14 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Fréd�
   Heather Macbeth
 -/
 import linear_algebra.basic
+import order.compactly_generated
 import order.omega_complete_partial_order
 
 /-!
 # The span of a set of vectors, as a submodule
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 * `submodule.span s` is defined to be the smallest submodule containing the set `s`.
 
@@ -50,6 +54,9 @@ lemma span_le {p} : span R s ≤ p ↔ s ⊆ p :=
 
 lemma span_mono (h : s ⊆ t) : span R s ≤ span R t :=
 span_le.2 $ subset.trans h subset_span
+
+lemma span_monotone : monotone (span R : set M → submodule R M) :=
+λ _ _, span_mono
 
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
@@ -202,7 +209,7 @@ by rw [submodule.span_union, p.span_eq]
 
 /- Note that the character `∙` U+2219 used below is different from the scalar multiplication
 character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+notation R` ∙ `:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
@@ -421,6 +428,9 @@ begin
   rw [exists_comm],
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
+
+lemma mem_span_pair {x y z : M} : z ∈ span R ({x, y} : set M) ↔ ∃ a b : R, a • x + b • y = z :=
+by simp_rw [mem_span_insert, mem_span_singleton, exists_prop, exists_exists_eq_and, eq_comm]
 
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]
@@ -739,18 +749,21 @@ section add_comm_group
 variables [semiring R] [semiring R₂]
 variables [add_comm_group M] [module R M] [add_comm_group M₂] [module R₂ M₂]
 variables {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂]
+variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
 
-lemma comap_map_eq (f : M →ₛₗ[τ₁₂] M₂) (p : submodule R M) :
-  comap f (map f p) = p ⊔ f.ker :=
+include sc
+lemma comap_map_eq (f : F) (p : submodule R M) :
+  comap f (map f p) = p ⊔ (linear_map.ker f) :=
 begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
   rintro x ⟨y, hy, e⟩,
   exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
 end
 
-lemma comap_map_eq_self {f : M →ₛₗ[τ₁₂] M₂} {p : submodule R M} (h : f.ker ≤ p) :
+lemma comap_map_eq_self {f : F} {p : submodule R M} (h : linear_map.ker f ≤ p) :
   comap f (map f p) = p :=
 by rw [submodule.comap_map_eq, sup_of_le_left h]
+omit sc
 
 end add_comm_group
 
@@ -766,20 +779,22 @@ variables [semiring R] [semiring R₂]
 variables [add_comm_group M] [add_comm_group M₂]
 variables [module R M] [module R₂ M₂]
 variables {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂]
+variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
 include R
 
-protected lemma map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
+include sc
+protected lemma map_le_map_iff (f : F) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
 by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
-theorem map_le_map_iff' {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) {p p'} :
+theorem map_le_map_iff' {f : F} (hf : ker f = ⊥) {p p'} :
   map f p ≤ map f p' ↔ p ≤ p' :=
 by rw [linear_map.map_le_map_iff, hf, sup_bot_eq]
 
-theorem map_injective {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) : injective (map f) :=
+theorem map_injective {f : F} (hf : ker f = ⊥) : injective (map f) :=
 λ p p' h, le_antisymm ((map_le_map_iff' hf).1 (le_of_eq h)) ((map_le_map_iff' hf).1 (ge_of_eq h))
 
-theorem map_eq_top_iff {f : M →ₛₗ[τ₁₂] M₂} (hf : range f = ⊤) {p : submodule R M} :
-  p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
+theorem map_eq_top_iff {f : F} (hf : range f = ⊤) {p : submodule R M} :
+  p.map f = ⊤ ↔ p ⊔ linear_map.ker f = ⊤ :=
 by simp_rw [← top_le_iff, ← hf, range_eq_map, linear_map.map_le_map_iff]
 
 end add_comm_group

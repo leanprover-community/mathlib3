@@ -9,6 +9,9 @@ import linear_algebra.prod
 /-!
 # Partially defined linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `linear_pmap R E F` or `E →ₗ.[R] F` is a linear map from a submodule of `E` to `F`.
 We define a `semilattice_inf` with `order_bot` instance on this this, and define three operations:
 
@@ -72,6 +75,8 @@ lemma ext_iff {f g : E →ₗ.[R] F} :
   ∃ (domain_eq : f.domain = g.domain),
     ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y :=
 ⟨λ EQ, EQ ▸ ⟨rfl, λ x y h, by { congr, exact_mod_cast h }⟩, λ ⟨deq, feq⟩, ext deq feq⟩
+
+lemma ext' {s : submodule R E} {f g : s →ₗ[R] F} (h : f = g) : mk s f = mk s g := h ▸ rfl
 
 lemma map_add (f : E →ₗ.[R] F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
@@ -168,6 +173,14 @@ instance : has_neg (E →ₗ.[R] F) :=
 
 instance : has_le (E →ₗ.[R] F) :=
 ⟨λ f g, f.domain ≤ g.domain ∧ ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y⟩
+
+lemma apply_comp_of_le {T S : E →ₗ.[R] F} (h : T ≤ S) (x : T.domain) :
+  T x = S (submodule.of_le h.1 x) :=
+h.2 rfl
+
+lemma exists_of_le {T S : E →ₗ.[R] F} (h : T ≤ S) (x : T.domain) :
+  ∃ (y : S.domain), (x : E) = y ∧ T x = S y :=
+⟨⟨x.1, h.1 x.2⟩, ⟨rfl, h.2 rfl⟩⟩
 
 lemma eq_of_le_of_domain_eq {f g : E →ₗ.[R] F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
@@ -322,18 +335,47 @@ instance : has_smul M (E →ₗ.[R] F) :=
   { domain := f.domain,
     to_fun := a • f.to_fun }⟩
 
+@[simp] lemma smul_domain (a : M) (f : E →ₗ.[R] F) : (a • f).domain = f.domain := rfl
+
 lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
   (a • f) x = a • f x := rfl
 
 @[simp] lemma coe_smul (a : M) (f : E →ₗ.[R] F) : ⇑(a • f) = a • f := rfl
 
 instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
-⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
+⟨λ a b f, ext' $ smul_comm a b f.to_fun⟩
 
 instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (E →ₗ.[R] F) :=
-⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
+⟨λ a b f, ext' $ smul_assoc a b f.to_fun⟩
+
+instance : mul_action M (E →ₗ.[R] F) :=
+{ smul := (•),
+  one_smul := λ ⟨s, f⟩, ext' $ one_smul M f,
+  mul_smul := λ a b f, ext' $ mul_smul a b f.to_fun }
 
 end smul
+
+section vadd
+
+instance : has_vadd (E →ₗ[R] F) (E →ₗ.[R] F) :=
+⟨λ f g,
+  { domain := g.domain,
+    to_fun := f.comp g.domain.subtype + g.to_fun }⟩
+
+@[simp] lemma vadd_domain (f : E →ₗ[R] F) (g : E →ₗ.[R] F) : (f +ᵥ g).domain = g.domain := rfl
+
+lemma vadd_apply (f : E →ₗ[R] F) (g : E →ₗ.[R] F) (x : (f +ᵥ g).domain) :
+  (f +ᵥ g) x = f x + g x := rfl
+
+@[simp] lemma coe_vadd (f : E →ₗ[R] F) (g : E →ₗ.[R] F) :
+  ⇑(f +ᵥ g) = f.comp g.domain.subtype + g := rfl
+
+instance : add_action (E →ₗ[R] F) (E →ₗ.[R] F) :=
+{ vadd := (+ᵥ),
+  zero_vadd := λ ⟨s, f⟩, ext' $ zero_add _,
+  add_vadd := λ f₁ f₂ ⟨s, g⟩, ext' $ linear_map.ext $ λ x, add_assoc _ _ _ }
+
+end vadd
 
 section
 
@@ -461,12 +503,33 @@ def coprod (f : E →ₗ.[R] G) (g : F →ₗ.[R] G) : (E × F) →ₗ.[R] G :=
   f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
 rfl
 
+/-- Restrict a partially defined linear map to a submodule of `E` contained in `f.domain`. -/
+def dom_restrict (f : E →ₗ.[R] F) (S : submodule R E) :
+  E →ₗ.[R] F :=
+⟨S ⊓ f.domain, f.to_fun.comp (submodule.of_le (by simp))⟩
+
+@[simp] lemma dom_restrict_domain (f : E →ₗ.[R] F) {S : submodule R E} :
+  (f.dom_restrict S).domain = S ⊓ f.domain := rfl
+
+lemma dom_restrict_apply {f : E →ₗ.[R] F} {S : submodule R E}
+  ⦃x : S ⊓ f.domain⦄ ⦃y : f.domain⦄ (h : (x : E) = y) :
+  f.dom_restrict S x = f y :=
+begin
+  have : submodule.of_le (by simp) x = y :=
+  by { ext, simp[h] },
+  rw ←this,
+  exact linear_pmap.mk_apply _ _ _,
+end
+
+lemma dom_restrict_le {f : E →ₗ.[R] F} {S : submodule R E} : f.dom_restrict S ≤ f :=
+⟨by simp, λ x y hxy, dom_restrict_apply hxy⟩
+
 /-! ### Graph -/
 section graph
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
 def graph (f : E →ₗ.[R] F) : submodule R (E × F) :=
-f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
+f.to_fun.graph.map (f.domain.subtype.prod_map (linear_map.id : F →ₗ[R] F))
 
 lemma mem_graph_iff' (f : E →ₗ.[R] F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
@@ -484,7 +547,8 @@ variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F
 
 /-- The graph of `z • f` as a pushforward. -/
 lemma smul_graph (f : E →ₗ.[R] F) (z : M) :
-  (z • f).graph = f.graph.map (linear_map.id.prod_map (z • linear_map.id)) :=
+  (z • f).graph =
+    f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (z • (linear_map.id : F →ₗ[R] F))) :=
 begin
   ext x, cases x,
   split; intros h,
@@ -510,7 +574,7 @@ end
 
 /-- The graph of `-f` as a pushforward. -/
 lemma neg_graph (f : E →ₗ.[R] F) :
-  (-f).graph = f.graph.map (linear_map.id.prod_map (-linear_map.id)) :=
+  (-f).graph = f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (-(linear_map.id : F →ₗ[R] F))) :=
 begin
   ext, cases x,
   split; intros h,
@@ -567,6 +631,10 @@ begin
   simp,
 end
 
+lemma mem_domain_of_mem_graph {f : E →ₗ.[R] F} {x : E} {y : F} (h : (x,y) ∈ f.graph) :
+  x ∈ f.domain :=
+by { rw mem_domain_iff, exact ⟨y, h⟩ }
+
 lemma image_iff {f : E →ₗ.[R] F} {x : E} {y : F} (hx : x ∈ f.domain) :
   y = f ⟨x, hx⟩ ↔ (x, y) ∈ f.graph :=
 begin
@@ -616,6 +684,22 @@ begin
   rw ←image_iff hx,
   simp [hxy],
 end
+
+lemma le_graph_of_le {f g : E →ₗ.[R] F} (h : f ≤ g) : f.graph ≤ g.graph :=
+begin
+  intros x hx,
+  rw mem_graph_iff at hx ⊢,
+  cases hx with y hx,
+  use y,
+  { exact h.1 y.2 },
+  simp only [hx, submodule.coe_mk, eq_self_iff_true, true_and],
+  convert hx.2,
+  refine (h.2 _).symm,
+  simp only [hx.1, submodule.coe_mk],
+end
+
+lemma le_graph_iff {f g : E →ₗ.[R] F} : f.graph ≤ g.graph ↔ f ≤ g :=
+⟨le_of_le_graph, le_graph_of_le⟩
 
 lemma eq_of_eq_graph {f g : E →ₗ.[R] F} (h : f.graph = g.graph) : f = g :=
 by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }

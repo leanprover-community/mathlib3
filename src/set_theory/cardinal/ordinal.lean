@@ -12,6 +12,9 @@ import tactic.linarith
 /-!
 # Cardinals and ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 
@@ -94,7 +97,7 @@ aleph_idx.initial_seg.to_rel_embedding.map_rel_iff
 by rw [← not_lt, ← not_lt, aleph_idx_lt]
 
 theorem aleph_idx.init {a b} : b < aleph_idx a → ∃ c, aleph_idx c = b :=
-aleph_idx.initial_seg.init _ _
+aleph_idx.initial_seg.init
 
 /-- The `aleph'` index function, which gives the ordinal index of a cardinal.
   (The `aleph'` part is because unlike `aleph` this counts also the
@@ -284,7 +287,7 @@ lemma aleph_0_lt_aleph_one : ℵ₀ < aleph 1 :=
 by { rw ←succ_aleph_0, apply lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : s.countable ↔ #s < aleph 1 :=
-by rw [←succ_aleph_0, lt_succ_iff, mk_set_le_aleph_0]
+by rw [←succ_aleph_0, lt_succ_iff, le_aleph_0_iff_set_countable]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
@@ -364,6 +367,8 @@ begin
     exact le_csupr (bdd_above_of_small _) (⟨_, hb.succ_lt h⟩ : Iio b) }
 end
 
+lemma beth_mono : monotone beth := beth_strict_mono.monotone
+
 @[simp] theorem beth_lt {o₁ o₂ : ordinal} : beth o₁ < beth o₂ ↔ o₁ < o₂ :=
 beth_strict_mono.lt_iff_lt
 
@@ -376,7 +381,7 @@ begin
   { simp },
   { intros o h,
     rw [aleph_succ, beth_succ, succ_le_iff],
-    exact (cantor _).trans_le (power_le_power_left two_ne_zero' h) },
+    exact (cantor _).trans_le (power_le_power_left two_ne_zero h) },
   { intros o ho IH,
     rw [aleph_limit ho, beth_limit ho],
     exact csupr_mono (bdd_above_of_small _) (λ x, IH x.1 x.2) }
@@ -391,6 +396,10 @@ aleph_0_pos.trans_le $ aleph_0_le_beth o
 theorem beth_ne_zero (o : ordinal) : beth o ≠ 0 :=
 (beth_pos o).ne'
 
+lemma beth_normal : is_normal.{u} (λ o, (beth o).ord) :=
+(is_normal_iff_strict_mono_limit _).2 ⟨ord_strict_mono.comp beth_strict_mono, λ o ho a ha,
+  by { rw [beth_limit ho, ord_le], exact csupr_le' (λ b, ord_le.1 (ha _ b.2)) }⟩
+
 /-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/
@@ -404,7 +413,7 @@ begin
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  letI := linear_order_of_STO' r,
+  letI := linear_order_of_STO r,
   haveI : is_well_order α (<) := wo,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.
@@ -502,6 +511,9 @@ begin
   rw [max_eq_left this],
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
+
+lemma mul_le_max_of_aleph_0_le_right {a b : cardinal} (h : ℵ₀ ≤ b) : a * b ≤ max a b :=
+by simpa only [mul_comm, max_comm] using mul_le_max_of_aleph_0_le_left h
 
 lemma mul_eq_max_of_aleph_0_le_right {a b : cardinal} (h' : a ≠ 0) (h : ℵ₀ ≤ b) : a * b = max a b :=
 begin
@@ -644,6 +656,9 @@ end
 lemma add_eq_right_iff {a b : cardinal} : a + b = b ↔ (max ℵ₀ a ≤ b ∨ a = 0) :=
 by { rw [add_comm, add_eq_left_iff] }
 
+lemma add_nat_eq {a : cardinal} (n : ℕ) (ha : ℵ₀ ≤ a) : a + n = a :=
+add_eq_left ha ((nat_lt_aleph_0 _).le.trans ha)
+
 lemma add_one_eq {a : cardinal} (ha : ℵ₀ ≤ a) : a + 1 = a :=
 add_eq_left ha (one_le_aleph_0.trans ha)
 
@@ -678,6 +693,35 @@ theorem principal_add_ord {c : cardinal} (hc : ℵ₀ ≤ c) : ordinal.principal
 
 theorem principal_add_aleph (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
 principal_add_ord $ aleph_0_le_aleph o
+
+lemma add_right_inj_of_lt_aleph_0 {α β γ : cardinal} (γ₀ : γ < aleph_0) :
+  α + γ = β + γ ↔ α = β :=
+⟨λ h, cardinal.eq_of_add_eq_add_right h γ₀, λ h, congr_fun (congr_arg (+) h) γ⟩
+
+@[simp] lemma add_nat_inj {α β : cardinal} (n : ℕ) :
+  α + n = β + n ↔ α = β :=
+add_right_inj_of_lt_aleph_0 (nat_lt_aleph_0 _)
+
+@[simp] lemma add_one_inj {α β : cardinal} :
+  α + 1 = β + 1 ↔ α = β :=
+add_right_inj_of_lt_aleph_0 one_lt_aleph_0
+
+lemma add_le_add_iff_of_lt_aleph_0 {α β γ : cardinal} (γ₀ : γ < cardinal.aleph_0) :
+  α + γ ≤ β + γ ↔ α ≤ β :=
+begin
+  refine ⟨λ h, _, λ h, add_le_add_right h γ⟩,
+  contrapose h,
+  rw [not_le, lt_iff_le_and_ne, ne] at h ⊢,
+  exact ⟨add_le_add_right h.1 γ, mt (add_right_inj_of_lt_aleph_0 γ₀).1 h.2⟩,
+end
+
+@[simp] lemma add_nat_le_add_nat_iff_of_lt_aleph_0 {α β : cardinal} (n : ℕ) :
+  α + n ≤ β + n ↔ α ≤ β :=
+add_le_add_iff_of_lt_aleph_0 (nat_lt_aleph_0 n)
+
+@[simp] lemma add_one_le_add_one_iff_of_lt_aleph_0 {α β : cardinal} :
+  α + 1 ≤ β + 1 ↔ α ≤ β :=
+add_le_add_iff_of_lt_aleph_0 one_lt_aleph_0
 
 /-! ### Properties about power -/
 
@@ -888,11 +932,12 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (h
   (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
-lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [fintype α]
+lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [finite α]
   {s : set α} {t : set β} (h1 : lift.{max v w} (#α) = lift.{max u w} (#β))
   (h2 : lift.{max v w} (#s) = lift.{max u w} (#t)) :
   lift.{max v w} (#(sᶜ : set α)) = lift.{max u w} (#(tᶜ : set β)) :=
 begin
+  casesI nonempty_fintype α,
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
   replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,
   classical,
@@ -903,11 +948,11 @@ begin
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 
-lemma mk_compl_eq_mk_compl_finite {α β : Type u} [fintype α] {s : set α} {t : set β}
+lemma mk_compl_eq_mk_compl_finite {α β : Type u} [finite α] {s : set α} {t : set β}
   (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
 by { rw ← lift_inj, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
 
-lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [fintype α] {s t : set α}
+lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [finite α] {s t : set α}
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite rfl h
 
@@ -924,7 +969,7 @@ begin
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
 
-theorem extend_function_finite {α β : Type*} [fintype α] {s : set α} (f : s ↪ β)
+theorem extend_function_finite {α β : Type*} [finite α] {s : set α} (f : s ↪ β)
   (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   apply extend_function f,

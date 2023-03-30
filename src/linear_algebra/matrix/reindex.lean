@@ -90,10 +90,10 @@ lemma reindex_linear_equiv_mul [fintype n] [fintype n']
     reindex_linear_equiv R A eₘ eₒ (M ⬝ N) :=
 submatrix_mul_equiv M N _ _ _
 
-lemma mul_reindex_linear_equiv_one [fintype n] [fintype o] [decidable_eq o] (e₁ : o ≃ n)
+lemma mul_reindex_linear_equiv_one [fintype n] [decidable_eq o] (e₁ : o ≃ n)
   (e₂ : o ≃ n') (M : matrix m n A) : M.mul (reindex_linear_equiv R A e₁ e₂ 1) =
     reindex_linear_equiv R A (equiv.refl m) (e₁.symm.trans e₂) M :=
-mul_submatrix_one _ _ _
+by { haveI := fintype.of_equiv _ e₁.symm, exact mul_submatrix_one _ _ _ }
 
 end semiring
 

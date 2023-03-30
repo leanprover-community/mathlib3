@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group_power.lemmas
+import data.int.bitwise
 
 /-!
 # Powers of elements of groups with an adjoined zero element
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define integer power functions for groups with an adjoined zero element.
 This generalises the integer power function on a division ring.

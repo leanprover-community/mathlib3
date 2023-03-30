@@ -9,6 +9,9 @@ import analysis.normed.group.basic
 /-!
 # Hamming spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Hamming metric counts the number of places two members of a (finite) Pi type
 differ. The Hamming norm is the same as the Hamming metric over additive groups, and
 counts the number of places a member of a (finite) Pi type differs from zero.
@@ -88,7 +91,7 @@ hamming_dist_eq_zero.not
 
 /-- Corresponds to `dist_pos`. -/
 @[simp] lemma hamming_dist_pos {x y : Π i, β i} : 0 < hamming_dist x y ↔ x ≠ y :=
-by rw [←hamming_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
+by rw [←hamming_dist_ne_zero, iff_not_comm, not_lt, le_zero_iff]
 
 @[simp] lemma hamming_dist_lt_one {x y : Π i, β i} : hamming_dist x y < 1 ↔ x = y :=
 by rw [nat.lt_one_iff, hamming_dist_eq_zero]
@@ -162,11 +165,11 @@ by {convert hamming_dist_comp f hf₁, simp_rw hf₂, refl}
 
 lemma hamming_norm_smul_le_hamming_norm [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
   {x : Π i, β i} : hamming_norm (k • x) ≤ hamming_norm x :=
-hamming_norm_comp_le_hamming_norm (λ i (c : β i), k • c) (λ i, by simp_rw smul_zero')
+hamming_norm_comp_le_hamming_norm (λ i (c : β i), k • c) (λ i, by simp_rw smul_zero)
 
 lemma hamming_norm_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
   (hk : ∀ i, is_smul_regular (β i) k) (x : Π i, β i) : hamming_norm (k • x) = hamming_norm x :=
-hamming_norm_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero')
+hamming_norm_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero)
 
 end has_zero
 
@@ -293,13 +296,13 @@ instance : metric_space (hamming β) :=
 instance [Π i, has_zero (β i)] : has_norm (hamming β) := ⟨λ x, hamming_norm (of_hamming x)⟩
 
 @[simp, push_cast] lemma norm_eq_hamming_norm [Π i, has_zero (β i)] (x : hamming β) :
-  ∥x∥ = hamming_norm (of_hamming x) := rfl
+  ‖x‖ = hamming_norm (of_hamming x) := rfl
 
 instance [Π i, add_comm_group (β i)] : seminormed_add_comm_group (hamming β) :=
 { dist_eq := by { push_cast, exact_mod_cast hamming_dist_eq_hamming_norm }, ..pi.add_comm_group }
 
 @[simp, push_cast] lemma nnnorm_eq_hamming_norm [Π i, add_comm_group (β i)] (x : hamming β) :
-  ∥x∥₊ = hamming_norm (of_hamming x) := rfl
+  ‖x‖₊ = hamming_norm (of_hamming x) := rfl
 
 instance [Π i, add_comm_group (β i)] : normed_add_comm_group (hamming β) :=
 { ..hamming.seminormed_add_comm_group }

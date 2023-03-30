@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.order
+import topology.nhds_set
 
 /-!
 # Specific classes of maps between topological spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces the following properties of a map `f : X → Y` between topological spaces:
 
@@ -42,7 +46,7 @@ open map, closed map, embedding, quotient map, identification map
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -76,6 +80,10 @@ lemma inducing_iff_nhds {f : α → β} : inducing f ↔ ∀ a, 𝓝 a = comap f
 lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
   ∀ (a : α), 𝓝 a = comap f (𝓝 $ f a) :=
 inducing_iff_nhds.1 hf
+
+lemma inducing.nhds_set_eq_comap {f : α → β} (hf : inducing f) (s : set α) :
+  𝓝ˢ s = comap f (𝓝ˢ (f '' s)) :=
+by simp only [nhds_set, Sup_image, comap_supr, hf.nhds_eq_comap, supr_image]
 
 lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) :
   (𝓝 a).map f = 𝓝[range f] (f a) :=
@@ -204,6 +212,13 @@ inducing.continuous hf.1
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
 he.1.closure_eq_preimage_closure_image s
+
+/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
+is the discrete topology on `X`. -/
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+discrete_topology_iff_nhds.2 $ λ x, by rw [hf.nhds_eq_comap, nhds_discrete, comap_pure,
+  ← image_singleton, hf.inj.preimage_image, principal_singleton]
 
 end embedding
 
@@ -360,7 +375,7 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
 
 lemma is_open_map_iff_interior [topological_space α] [topological_space β] {f : α → β} :
   is_open_map f ↔ ∀ s, f '' (interior s) ⊆ interior (f '' s) :=
-⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_open.mp $
+⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_is_open.mp $
   calc f '' u = f '' (interior u) : by rw hu.interior_eq
           ... ⊆ interior (f '' u) : hs u⟩
 
@@ -575,7 +590,7 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
 
 lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
   closure (f '' s) = f '' closure s :=
-le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+(hf.is_closed_map.closure_image_subset _).antisymm
   (image_closure_subset_closure_image hf.continuous)
 
 end closed_embedding

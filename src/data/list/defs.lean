@@ -3,14 +3,15 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.option.defs
 import logic.basic
 import tactic.cache
 import data.rbmap.basic
 import data.rbtree.default_lt
-
 /-!
 ## Definitions on lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`
@@ -23,6 +24,11 @@ universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
+
+/-- Create a list of `n` copies of `a`. Same as `function.swap list.repeat`. -/
+@[simp] def replicate : ℕ → α → list α
+| 0 _ := []
+| (succ n) a := a :: replicate n a
 
 /-- Split a list at an index.
 
@@ -70,14 +76,14 @@ def to_array (l : list α) : array l.length α :=
 
 /-- "default" `nth` function: returns `d` instead of `none` in the case
   that the index is out of bounds. -/
-def nthd (d : α) : Π (l : list α) (n : ℕ), α
-| []      _       := d
-| (x::xs) 0       := x
-| (x::xs) (n + 1) := nthd xs n
+def nthd : Π (l : list α) (n : ℕ) (d : α), α
+| []      _       d := d
+| (x::xs) 0       d := x
+| (x::xs) (n + 1) d := nthd xs n d
 
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd l n default
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.
@@ -240,23 +246,23 @@ mall id
 end
 
 /-- Auxiliary definition for `foldl_with_index`. -/
-def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β → α
+def foldl_with_index_aux {α : Sort*} {β : Type*} (f : ℕ → α → β → α) : ℕ → α → list β → α
 | _ a [] := a
 | i a (b :: l) := foldl_with_index_aux (i + 1) (f i a b) l
 
 /-- Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index. -/
-def foldl_with_index (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
+def foldl_with_index {α : Sort*} {β : Type*} (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
 foldl_with_index_aux f 0 a l
 
 /-- Auxiliary definition for `foldr_with_index`. -/
-def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α → β
+def foldr_with_index_aux {α : Type*} {β : Sort*} (f : ℕ → α → β → β) : ℕ → β → list α → β
 | _ b [] := b
 | i b (a :: l) := f i a (foldr_with_index_aux (i + 1) b l)
 
 /-- Fold a list from right to left as with `foldr`, but the combining function
 also receives each element's index. -/
-def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
+def foldr_with_index {α : Type*} {β : Sort*} (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
 
 /-- `find_indexes p l` is the list of indexes of elements of `l` that satisfy `p`. -/
@@ -541,7 +547,7 @@ def product (l₁ : list α) (l₂ : list β) : list (α × β) :=
 l₁.bind $ λ a, l₂.map $ prod.mk a
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := list.product
+infixr (name := list.product) ` ×ˢ `:82 := list.product
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
@@ -644,7 +650,7 @@ def nodup : list α → Prop := pairwise (≠)
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l) :=
 list.decidable_pairwise
 
-/-- `dedup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `dedup l` removes duplicates from `l` (taking only the last occurrence).
   Defined as `pw_filter (≠)`.
 
      dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/

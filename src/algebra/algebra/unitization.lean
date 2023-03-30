@@ -11,6 +11,9 @@ import algebra.hom.non_unital_alg
 /-!
 # Unitization of a non-unital algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a non-unital `R`-algebra `A` (given via the type classes
 `[non_unital_ring A] [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]`) we construct
 the minimal unital `R`-algebra containing `A` as an ideal. This object `algebra.unitization R A` is
@@ -213,7 +216,7 @@ ext neg_zero.symm rfl
 
 @[simp] lemma coe_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S A]
   (r : S) (m : A) : (↑(r • m) : unitization R A) = r • m :=
-ext (smul_zero' _ _).symm rfl
+ext (smul_zero _).symm rfl
 
 end
 

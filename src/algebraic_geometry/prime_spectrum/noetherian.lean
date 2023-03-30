@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Filippo A. E. Nuccio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Filippo A. E. Nuccio
+Authors: Filippo A. E. Nuccio, Andrew Yang
 -/
 import algebraic_geometry.prime_spectrum.basic
+import topology.noetherian_space
 /-!
 This file proves additional properties of the prime spectrum a ring is Noetherian.
 -/
@@ -20,12 +21,12 @@ variables {A : Type u} [comm_ring A] [is_domain A] [is_noetherian_ring A]
 /--In a noetherian ring, every ideal contains a product of prime ideals
 ([samuel, § 3.3, Lemma 3])-/
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
-  ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
+  ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map as_ideal) ≤ I :=
 begin
   refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
-    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton],
     exact le_rfl },
   by_cases htop : M = ⊤,
   { rw htop,
@@ -53,8 +54,8 @@ end
   product or prime ideals ([samuel, § 3.3, Lemma 3]) -/
 lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain
   (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
-  ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
-    multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
+  ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map as_ideal) ≤ I ∧
+    multiset.prod (Z.map as_ideal) ≠ ⊥ :=
 begin
   revert h_nzI,
   refine is_noetherian.induction (λ (M : ideal A) hgt, _) I,
@@ -66,10 +67,10 @@ begin
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,
     { apply ring.not_is_field_iff_exists_prime.mp h_fA },
     use [({⟨p_id, h_pp⟩} : multiset (prime_spectrum A)), le_top],
-    rwa [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk] },
+    rwa [multiset.map_singleton, multiset.prod_singleton] },
   by_cases h_prM : M.is_prime,
   { use ({⟨M, h_prM⟩} : multiset (prime_spectrum A)),
-    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton],
     exact ⟨le_rfl, h_nzM⟩ },
   obtain ⟨x, hx, y, hy, h_xy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left h_topM,
   have lt_add : ∀ z ∉ M, M < M + span A {z},
@@ -88,6 +89,16 @@ begin
     apply sup_le (show span A {x} * M ≤ M, from ideal.mul_le_left),
     rwa [span_mul_span, set.singleton_mul_singleton, span_singleton_le_iff_mem] },
   { rintro (hx | hy); contradiction },
+end
+
+open topological_space
+
+instance : noetherian_space (prime_spectrum R) :=
+begin
+  rw (noetherian_space_tfae $ prime_spectrum R).out 0 1,
+  have H := ‹is_noetherian_ring R›,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H,
+  exact (closeds_embedding R).dual.well_founded H
 end
 
 end prime_spectrum

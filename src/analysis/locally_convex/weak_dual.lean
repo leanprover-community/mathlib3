@@ -4,19 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import topology.algebra.module.weak_dual
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.locally_convex.with_seminorms
 
 /-!
 # Weak Dual in Topological Vector Spaces
 
 We prove that the weak topology induced by a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` is locally
-convex and we explicit give a neighborhood basis in terms of the family of seminorms `λ x, ∥B x y∥`
+convex and we explicit give a neighborhood basis in terms of the family of seminorms `λ x, ‖B x y‖`
 for `y : F`.
 
 ## Main definitions
 
-* `linear_map.to_seminorm`: turn a linear form `f : E →ₗ[𝕜] 𝕜` into a seminorm `λ x, ∥f x∥`.
+* `linear_map.to_seminorm`: turn a linear form `f : E →ₗ[𝕜] 𝕜` into a seminorm `λ x, ‖f x‖`.
 * `linear_map.to_seminorm_family`: turn a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` into a map
 `F → seminorm 𝕜 E`.
 
@@ -39,7 +39,7 @@ weak dual, seminorm
 
 variables {𝕜 E F ι : Type*}
 
-open_locale topological_space
+open_locale topology
 
 section bilin_form
 
@@ -48,20 +48,18 @@ namespace linear_map
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 
 /-- Construct a seminorm from a linear form `f : E →ₗ[𝕜] 𝕜` over a normed field `𝕜` by
-`λ x, ∥f x∥` -/
+`λ x, ‖f x‖` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
-{ to_fun := λ x, ∥f x∥,
-  smul' := λ a x, by simp only [map_smul, ring_hom.id_apply, smul_eq_mul, norm_mul],
-  triangle' := λ x x', by { simp only [map_add, add_apply], exact norm_add_le _ _ } }
+(norm_seminorm 𝕜 𝕜).comp f
 
 lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :
-  ⇑f.to_seminorm = λ x, ∥f x∥ := rfl
+  ⇑f.to_seminorm = λ x, ‖f x‖ := rfl
 
 @[simp] lemma to_seminorm_apply {f : E →ₗ[𝕜] 𝕜} {x : E} :
-  f.to_seminorm x = ∥f x∥ := rfl
+  f.to_seminorm x = ‖f x‖ := rfl
 
 lemma to_seminorm_ball_zero {f : E →ₗ[𝕜] 𝕜} {r : ℝ} :
-  seminorm.ball f.to_seminorm 0 r = { x : E | ∥f x∥ < r} :=
+  seminorm.ball f.to_seminorm 0 r = { x : E | ‖f x‖ < r} :=
 by simp only [seminorm.ball_zero_eq, to_seminorm_apply]
 
 lemma to_seminorm_comp (f : F →ₗ[𝕜] 𝕜) (g : E →ₗ[𝕜] F) :
@@ -73,7 +71,7 @@ def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : seminorm_famil
 λ y, (B.flip y).to_seminorm
 
 @[simp] lemma to_seminorm_family_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} :
-  (B.to_seminorm_family y) x = ∥B x y∥ := rfl
+  (B.to_seminorm_family y) x = ‖B x y‖ := rfl
 
 end linear_map
 
@@ -100,7 +98,7 @@ begin
     simp only [id.def],
     let U' := hU₁.to_finset,
     by_cases hU₃ : U.fst.nonempty,
-    { have hU₃' : U'.nonempty := hU₁.nonempty_to_finset.mpr hU₃,
+    { have hU₃' : U'.nonempty := hU₁.to_finset_nonempty.mpr hU₃,
       refine ⟨(U'.sup p).ball 0 $ U'.inf' hU₃' U.snd, p.basis_sets_mem _ $
         (finset.lt_inf'_iff _).2 $ λ y hy, hU₂ y $ (hU₁.mem_to_finset).mp hy, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
@@ -125,8 +123,8 @@ begin
   exact hx y hy,
 end
 
-instance : with_seminorms
-  (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
+lemma linear_map.weak_bilin_with_seminorms (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+  with_seminorms (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
 seminorm_family.with_seminorms_of_has_basis _ B.has_basis_weak_bilin
 
 end topology
@@ -137,6 +135,6 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
-seminorm_family.to_locally_convex_space B.to_seminorm_family
+(B.weak_bilin_with_seminorms).to_locally_convex_space
 
 end locally_convex

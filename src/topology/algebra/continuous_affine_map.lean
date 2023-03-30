@@ -45,30 +45,34 @@ variables [add_comm_group W] [module R W] [topological_space Q] [add_torsor W Q]
 
 include V W
 
-/-- see Note [function coercion] -/
-instance : has_coe_to_fun (P →A[R] Q) (λ _, P → Q) := ⟨λ f, f.to_affine_map.to_fun⟩
+instance : has_coe (P →A[R] Q) (P →ᵃ[R] Q) :=
+⟨to_affine_map⟩
+
+lemma to_affine_map_injective {f g : P →A[R] Q} (h : (f : P →ᵃ[R] Q) = (g : P →ᵃ[R] Q)) : f = g :=
+by { cases f, cases g, congr' }
+
+instance : continuous_map_class (P →A[R] Q) P Q :=
+{ coe := λ f, f.to_affine_map,
+  coe_injective' := λ f g h, to_affine_map_injective $ fun_like.coe_injective h,
+  map_continuous := cont }
+
+/-- Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
+instance : has_coe_to_fun (P →A[R] Q) (λ _, P → Q) := fun_like.has_coe_to_fun
 
 lemma to_fun_eq_coe (f : P →A[R] Q) : f.to_fun = ⇑f := rfl
 
-lemma coe_injective :
-  @function.injective (P →A[R] Q) (P → Q) coe_fn :=
-begin
-  rintros ⟨⟨f, ⟨f', hf₁, hf₂⟩, hf₀⟩, hf₁⟩ ⟨⟨g, ⟨g', hg₁, hg₂⟩, hg₀⟩, hg₁⟩ h,
-  have : f = g ∧ f' = g', { simpa only using affine_map.coe_fn_injective h, },
-  congr,
-  exacts [this.1, this.2],
-end
+lemma coe_injective : @function.injective (P →A[R] Q) (P → Q) coe_fn :=
+fun_like.coe_injective
 
 @[ext] lemma ext {f g : P →A[R] Q} (h : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext h
+fun_like.ext _ _ h
 
 lemma ext_iff {f g : P →A[R] Q} : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl, }, ext⟩
+fun_like.ext_iff
 
-lemma congr_fun {f g : P →A[R] Q} (h : f = g) (x : P) : f x = g x := h ▸ rfl
-
-instance : has_coe (P →A[R] Q) (P →ᵃ[R] Q) :=
-⟨to_affine_map⟩
+lemma congr_fun {f g : P →A[R] Q} (h : f = g) (x : P) : f x = g x :=
+fun_like.congr_fun h _
 
 /-- Forgetting its algebraic properties, a continuous affine map is a continuous map. -/
 def to_continuous_map (f : P →A[R] Q) : C(P, Q) :=
@@ -91,10 +95,6 @@ rfl
 @[simp, norm_cast] lemma coe_to_continuous_map (f : P →A[R] Q) :
   ((f : C(P, Q)) : P → Q) = f :=
 rfl
-
-lemma to_affine_map_injective {f g : P →A[R] Q}
-  (h : (f : P →ᵃ[R] Q) = (g : P →ᵃ[R] Q)) : f = g :=
-by { ext a, exact affine_map.congr_fun h a, }
 
 lemma to_continuous_map_injective {f g : P →A[R] Q}
   (h : (f : C(P, Q)) = (g : C(P, Q))) : f = g :=
@@ -167,7 +167,7 @@ section mul_action
 variables [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
 variables [has_continuous_const_smul S W]
 
-instance : has_scalar S (P →A[R] W) :=
+instance : has_smul S (P →A[R] W) :=
 { smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[R] W)) } }
 
 @[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[R] W) : ⇑(t • f) = t • f := rfl

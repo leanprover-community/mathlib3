@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
 import algebra.category.Mon.basic
-import category_theory.limits.concrete_category
 import category_theory.limits.preserves.filtered
+import category_theory.concrete_category.elementwise
+import category_theory.limits.types
 
 /-!
 # The forgetful functor from (commutative) (additive) monoids preserves filtered colimits.

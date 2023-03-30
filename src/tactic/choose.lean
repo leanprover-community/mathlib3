@@ -129,7 +129,7 @@ setup_tactic_parser
 /-- `choose a b h h' using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b`
 for some `P Q : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and two assumptions:
+into context two functions `a : X → Y → A`, `b : X → Y → B` and two assumptions:
 `h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and
 `h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`. It also works with dependent versions.
 

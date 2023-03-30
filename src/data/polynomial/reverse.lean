@@ -10,6 +10,9 @@ import data.polynomial.eval
 /-!
 # Reverse of a univariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition is `reverse`.  Applying `reverse` to a polynomial `f : R[X]` produces
 the polynomial with a reversed list of coefficients, equivalent to `X^f.nat_degree * f(1/X)`.
 
@@ -88,11 +91,11 @@ noncomputable def reflect (N : ℕ) : R[X] → R[X]
 | ⟨f⟩ := ⟨finsupp.emb_domain (rev_at N) f⟩
 
 lemma reflect_support (N : ℕ) (f : R[X]) :
-  (reflect N f).support = image (rev_at N) f.support :=
+  (reflect N f).support = finset.image (rev_at N) f.support :=
 begin
   rcases f,
   ext1,
-  rw [reflect, mem_image, support, support, support_emb_domain, mem_map],
+  simp only [reflect, support_of_finsupp, support_emb_domain, finset.mem_map, finset.mem_image],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : R[X]) (i : ℕ) :
@@ -265,7 +268,7 @@ lemma reverse_nat_trailing_degree  (f : R[X]) : f.reverse.nat_trailing_degree = 
 begin
   by_cases hf : f = 0,
   { rw [hf, reverse_zero, nat_trailing_degree_zero] },
-  { rw ← nat.le_zero_iff,
+  { rw ← le_zero_iff,
     apply nat_trailing_degree_le_of_ne_zero,
     rw [coeff_zero_reverse],
     exact mt leading_coeff_eq_zero.mp hf },

@@ -8,8 +8,13 @@ import data.finset.locally_finite
 /-!
 # Intervals as multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about all the `multiset.Ixx`, which are defined in
 `order.locally_finite`.
+
+Note that intervals of multisets themselves (`multiset.locally_finite_order`) are defined elsewhere.
 -/
 
 variables {α : Type*}
@@ -35,9 +40,9 @@ by rw [Ioc, finset.val_eq_zero, finset.Ioc_eq_empty_iff]
 @[simp] lemma Ioo_eq_zero_iff [densely_ordered α] : Ioo a b = 0 ↔ ¬a < b :=
 by rw [Ioo, finset.val_eq_zero, finset.Ioo_eq_empty_iff]
 
-alias Icc_eq_zero_iff ↔ _ multiset.Icc_eq_zero
-alias Ico_eq_zero_iff ↔ _ multiset.Ico_eq_zero
-alias Ioc_eq_zero_iff ↔ _ multiset.Ioc_eq_zero
+alias Icc_eq_zero_iff ↔ _ Icc_eq_zero
+alias Ico_eq_zero_iff ↔ _ Ico_eq_zero
+alias Ioc_eq_zero_iff ↔ _ Ioc_eq_zero
 
 @[simp] lemma Ioo_eq_zero (h : ¬a < b) : Ioo a b = 0 :=
 eq_zero_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)

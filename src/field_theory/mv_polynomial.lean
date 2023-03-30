@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import data.mv_polynomial.comm_ring
 import ring_theory.mv_polynomial.basic
 
 /-!

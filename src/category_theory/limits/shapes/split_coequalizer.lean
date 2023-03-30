@@ -8,6 +8,9 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Split coequalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define what it means for a triple of morphisms `f g : X ⟶ Y`, `π : Y ⟶ Z` to be a split
 coequalizer: there is a section `s` of `π` and a section `t` of `g`, which additionally satisfy
 `t ≫ f = π ≫ s`.
@@ -32,7 +35,7 @@ namespace category_theory
 universes v v₂ u u₂
 
 variables {C : Type u} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 variables {X Y : C} (f g : X ⟶ Y)
 

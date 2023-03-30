@@ -10,6 +10,9 @@ import category_theory.eq_to_hom
 /-!
 # Basic API for ulift
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a very basic API for working with the categorical
 instance on `ulift C` where `C` is a type with a category instance.
 
@@ -132,7 +135,7 @@ end ulift_hom
 def {w v u} as_small (C : Type u) [category.{v} C] := ulift.{max w v} C
 
 instance : small_category (as_small.{w₁} C) :=
-{ hom := λ X Y, ulift.{(max w₁ u₁)} $ X.down ⟶ Y.down,
+{ hom := λ X Y, ulift.{max w₁ u₁} $ X.down ⟶ Y.down,
   id := λ X, ⟨𝟙 _⟩,
   comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
 

@@ -18,7 +18,7 @@ namespace complex
 
 open set filter
 
-open_locale real topological_space
+open_locale real topology complex_conjugate
 
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
@@ -33,9 +33,9 @@ lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simp only [log_im, arg_le
 
 lemma exp_log {x : ℂ} (hx : x ≠ 0) : exp (log x) = x :=
 by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,
-  ← of_real_exp, real.exp_log (abs_pos.2 hx), mul_add, of_real_div, of_real_div,
-  mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
-  mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
+  ← of_real_exp, real.exp_log (abs.pos hx), mul_add, of_real_div, of_real_div,
+  mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), ← mul_assoc,
+  mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), re_add_im]
 
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
 set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
@@ -55,6 +55,18 @@ complex.ext
 
 lemma log_of_real_re (x : ℝ) : (log (x : ℂ)).re = real.log x := by simp [log_re]
 
+lemma log_of_real_mul {r : ℝ} (hr : 0 < r) {x : ℂ} (hx : x ≠ 0) :
+  log (r * x) = real.log r + log x :=
+begin
+  replace hx := complex.abs.ne_zero_iff.mpr hx,
+  simp_rw [log, map_mul, abs_of_real, arg_real_mul _ hr, abs_of_pos hr, real.log_mul hr.ne' hx,
+    of_real_add, add_assoc],
+end
+
+lemma log_mul_of_real (r : ℝ) (hr : 0 < r) (x : ℂ) (hx : x ≠ 0) :
+  log (x * r) = real.log r + log x :=
+by rw [mul_comm, log_of_real_mul hr hx, add_comm]
+
 @[simp] lemma log_zero : log 0 = 0 := by simp [log]
 
 @[simp] lemma log_one : log 1 = 0 := by simp [log]
@@ -64,6 +76,35 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma log_conj_eq_ite (x : ℂ) :
+  log (conj x) = if x.arg = π then log x else conj (log x) :=
+begin
+  simp_rw [log, abs_conj, arg_conj, map_add, map_mul, conj_of_real],
+  split_ifs with hx,
+  { rw hx },
+  simp_rw [of_real_neg, conj_I, mul_neg, neg_mul]
+end
+
+lemma log_conj (x : ℂ) (h : x.arg ≠ π) : log (conj x) = conj (log x) :=
+by rw [log_conj_eq_ite, if_neg h]
+
+lemma log_inv_eq_ite (x : ℂ) : log (x⁻¹) = if x.arg = π then -conj (log x) else -log x :=
+begin
+  by_cases hx : x = 0,
+  { simp [hx] },
+  rw [inv_def, log_mul_of_real, real.log_inv, of_real_neg, ←sub_eq_neg_add, log_conj_eq_ite],
+  { simp_rw [log, map_add, map_mul, conj_of_real, conj_I, norm_sq_eq_abs, real.log_pow,
+      nat.cast_two, of_real_mul, of_real_bit0, of_real_one, neg_add, mul_neg, two_mul, neg_neg],
+    split_ifs,
+    { rw [add_sub_right_comm, sub_add_cancel'] },
+    { rw [add_sub_right_comm, sub_add_cancel'] } },
+  { rwa [inv_pos, complex.norm_sq_pos] },
+  { rwa map_ne_zero },
+end
+
+lemma log_inv (x : ℂ) (hx : x.arg ≠ π) : log (x⁻¹) = -log x :=
+by rw [log_inv_eq_ite, if_neg hx]
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
@@ -86,7 +127,7 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
-@[simp] lemma countable_preimage_exp {s : set ℂ} : countable (exp ⁻¹' s) ↔ countable s :=
+@[simp] lemma countable_preimage_exp {s : set ℂ} : (exp ⁻¹' s).countable ↔ s.countable :=
 begin
   refine ⟨λ hs, _, λ hs, _⟩,
   { refine ((hs.image exp).insert 0).mono _,
@@ -100,7 +141,7 @@ begin
     { push_neg at hne, simp [preimage, hne] } }
 end
 
-alias countable_preimage_exp ↔ _ set.countable.preimage_cexp
+alias countable_preimage_exp ↔ _ _root_.set.countable.preimage_cexp
 
 lemma tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero
   {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
@@ -133,12 +174,21 @@ lemma tendsto_log_nhds_within_im_nonneg_of_re_neg_of_im_zero
 by simpa only [log, arg_eq_pi_iff.2 ⟨hre, him⟩]
   using (continuous_within_at_log_of_re_neg_of_im_zero hre him).tendsto
 
+@[simp] lemma map_exp_comap_re_at_bot : map exp (comap re at_bot) = 𝓝[≠] 0 :=
+by rw [← comap_exp_nhds_zero, map_comap, range_exp, nhds_within]
+
+@[simp] lemma map_exp_comap_re_at_top : map exp (comap re at_top) = comap abs at_top :=
+begin
+  rw [← comap_exp_comap_abs_at_top, map_comap, range_exp, inf_eq_left, le_principal_iff],
+  exact eventually_ne_of_tendsto_norm_at_top tendsto_comap 0
+end
+
 end complex
 
 section log_deriv
 
 open complex filter
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*}
 
@@ -148,7 +198,7 @@ begin
   refine continuous_at.add _ _,
   { refine continuous_of_real.continuous_at.comp _,
     refine (real.continuous_at_log _).comp complex.continuous_abs.continuous_at,
-    rw abs_ne_zero,
+    rw complex.abs.ne_zero_iff,
     rintro rfl,
     simpa using h },
   { have h_cont_mul : continuous (λ x : ℂ, x * I), from continuous_id'.mul continuous_const,

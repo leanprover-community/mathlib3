@@ -8,6 +8,9 @@ import data.polynomial.monic
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` respectively.
 
 ## Main results
@@ -142,7 +145,7 @@ lemma leading_coeff_multiset_prod' (h : (t.map leading_coeff).prod ≠ 0) :
   t.prod.leading_coeff = (t.map leading_coeff).prod :=
 begin
   induction t using multiset.induction_on with a t ih, { simp },
-  simp only [map_cons, multiset.prod_cons] at h ⊢,
+  simp only [multiset.map_cons, multiset.prod_cons] at h ⊢,
   rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul h }
 end
 
@@ -169,7 +172,7 @@ lemma nat_degree_multiset_prod' (h : (t.map (λ f, leading_coeff f)).prod ≠ 0)
 begin
   revert h,
   refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
-  rw [map_cons, multiset.prod_cons] at ht ⊢,
+  rw [multiset.map_cons, multiset.prod_cons] at ht ⊢,
   rw [multiset.sum_cons, polynomial.nat_degree_mul', ih],
   { apply right_ne_zero_of_mul ht },
   { rwa polynomial.leading_coeff_multiset_prod', apply right_ne_zero_of_mul ht },
@@ -192,8 +195,8 @@ begin
   nontriviality R,
   apply nat_degree_multiset_prod',
   suffices : (t.map (λ f, leading_coeff f)).prod = 1, { rw this, simp },
-  convert prod_repeat (1 : R) t.card,
-  { simp only [eq_repeat, multiset.card_map, eq_self_iff_true, true_and],
+  convert prod_replicate t.card (1 : R),
+  { simp only [eq_replicate, multiset.card_map, eq_self_iff_true, true_and],
     rintros i hi,
     obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hi,
     apply h, assumption },
@@ -227,7 +230,7 @@ lemma coeff_zero_multiset_prod :
   t.prod.coeff 0 = (t.map (λ f, coeff f 0)).prod :=
 begin
   refine multiset.induction_on t _ (λ a t ht, _), { simp },
-  rw [multiset.prod_cons, map_cons, multiset.prod_cons, polynomial.mul_coeff_zero, ht]
+  rw [multiset.prod_cons, multiset.map_cons, multiset.prod_cons, polynomial.mul_coeff_zero, ht]
 end
 
 lemma coeff_zero_prod :

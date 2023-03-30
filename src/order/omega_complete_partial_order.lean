@@ -6,11 +6,14 @@ Authors: Simon Hudon
 import control.monad.basic
 import data.part
 import order.hom.order
-import tactic.monotonicity
+import data.nat.order.basic
 import tactic.wlog
 
 /-!
 # Omega Complete Partial Orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we
@@ -97,10 +100,10 @@ variables [preorder α] [preorder β] [preorder γ]
 instance : has_coe_to_fun (chain α) (λ _, ℕ → α) := order_hom.has_coe_to_fun
 
 instance [inhabited α] : inhabited (chain α) :=
-⟨ ⟨ λ _, default, λ _ _ _, le_rfl ⟩ ⟩
+⟨⟨default, λ _ _ _, le_rfl⟩⟩
 
 instance : has_mem α (chain α) :=
-⟨λa (c : ℕ →o α), ∃ i, a = c i⟩
+⟨λ a (c : ℕ →o α), ∃ i, a = c i⟩
 
 variables (c c' : chain α)
 variables (f : α →o β)
@@ -281,7 +284,7 @@ lemma eq_of_chain {c : chain (part α)} {a b : α} (ha : some a ∈ c) (hb : som
 begin
   cases ha with i ha, replace ha := ha.symm,
   cases hb with j hb, replace hb := hb.symm,
-  wlog h : i ≤ j := le_total i j using [a b i j, b a j i],
+  wlog h : i ≤ j, { exact (this j hb i ha (le_of_not_le h)).symm },
   rw [eq_some_iff] at ha hb,
   have := c.monotone h _ ha, apply mem_unique this hb
 end

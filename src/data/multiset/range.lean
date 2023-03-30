@@ -6,7 +6,10 @@ Authors: Mario Carneiro
 import data.multiset.basic
 import data.list.range
 
-/-! # `multiset.range n` gives `{0, 1, ..., n-1}` as a multiset. -/
+/-! # `multiset.range n` gives `{0, 1, ..., n-1}` as a multiset. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open list nat
 
@@ -17,6 +20,8 @@ namespace multiset
 /-- `range n` is the multiset lifted from the list `range n`,
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
+
+theorem coe_range (n : ℕ) : ↑(list.range n) = range n := rfl
 
 @[simp] theorem range_zero : range 0 = 0 := rfl
 

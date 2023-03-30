@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group.defs
-import logic.equiv.basic
+import logic.equiv.defs
 import logic.nontrivial
 
 /-!
 # Multiplicative opposite and algebraic operations on it
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `mul_opposite α = αᵐᵒᵖ` to be the multiplicative opposite of `α`. It inherits
 all additive algebraic structures on `α` (in other files), and reverses the order of multipliers in
@@ -118,7 +121,7 @@ instance [has_involutive_neg α] : has_involutive_neg αᵐᵒᵖ :=
 { inv_inv := λ a, unop_injective $ inv_inv _,
   ..mul_opposite.has_inv α }
 
-@[to_additive] instance (R : Type*) [has_scalar R α] : has_scalar R αᵐᵒᵖ :=
+@[to_additive] instance (R : Type*) [has_smul R α] : has_smul R αᵐᵒᵖ :=
 { smul := λ c x, op (c • unop x) }
 
 section
@@ -147,10 +150,10 @@ variable {α}
 @[simp] lemma op_sub [has_sub α] (x y : α) : op (x - y) = op x - op y := rfl
 @[simp] lemma unop_sub [has_sub α] (x y : αᵐᵒᵖ) : unop (x - y) = unop x - unop y := rfl
 
-@[simp, to_additive] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) :
+@[simp, to_additive] lemma op_smul {R : Type*} [has_smul R α] (c : R) (a : α) :
   op (c • a) = c • op a := rfl
 
-@[simp, to_additive] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵐᵒᵖ) :
+@[simp, to_additive] lemma unop_smul {R : Type*} [has_smul R α] (c : R) (a : αᵐᵒᵖ) :
   unop (c • a) = c • unop a := rfl
 
 end
@@ -206,6 +209,6 @@ instance [has_involutive_inv α] : has_involutive_inv αᵃᵒᵖ :=
 instance [has_div α] : has_div αᵃᵒᵖ := { div := λ a b, op (unop a / unop b) }
 
 @[simp] lemma op_div [has_div α] (a b : α) : op (a / b) = op a / op b := rfl
-@[simp] lemma unop_div [has_div α] (a b : α) : unop (a / b) = unop a / unop b := rfl
+@[simp] lemma unop_div [has_div α] (a b : αᵃᵒᵖ) : unop (a / b) = unop a / unop b := rfl
 
 end add_opposite

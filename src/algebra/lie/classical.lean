@@ -9,6 +9,7 @@ import data.matrix.dmatrix
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
 import algebra.lie.skew_adjoint
+import linear_algebra.symplectic_group
 
 /-!
 # Classical Lie algebras
@@ -119,13 +120,10 @@ end special_linear
 
 namespace symplectic
 
-/-- The matrix defining the canonical skew-symmetric bilinear form. -/
-def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
-
 /-- The symplectic Lie algebra: skew-adjoint matrices with respect to the canonical skew-symmetric
 bilinear form. -/
 def sp [fintype l] : lie_subalgebra R (matrix (l ⊕ l) (l ⊕ l) R) :=
-  skew_adjoint_matrices_lie_subalgebra (J l R)
+  skew_adjoint_matrices_lie_subalgebra (matrix.J l R)
 
 end symplectic
 
@@ -331,7 +329,7 @@ begin
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
   simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_inl_inl,
-    matrix.reindex_lie_equiv_apply, matrix.minor_apply, equiv.symm_symm, matrix.reindex_apply,
+    matrix.reindex_lie_equiv_apply, matrix.submatrix_apply, equiv.symm_symm, matrix.reindex_apply,
     sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
     dmatrix.zero_apply, equiv.sum_assoc_apply_inl_inr, if_false, matrix.from_blocks_apply₁₂,
     matrix.from_blocks_apply₂₁, matrix.from_blocks_apply₂₂, equiv.sum_assoc_apply_inr,

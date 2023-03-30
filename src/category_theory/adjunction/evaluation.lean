@@ -5,11 +5,14 @@ Authors: Adam Topaz
 -/
 
 import category_theory.limits.shapes.products
-import category_theory.epi_mono
+import category_theory.functor.epi_mono
 
 /-!
 
 # Adjunctions involving evaluation
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that evaluation of functors have adjoints, given the existence of (co)products.
 
@@ -75,14 +78,14 @@ instance evaluation_is_right_adjoint (c : C) :
   is_right_adjoint ((evaluation _ D).obj c) :=
 ⟨_, evaluation_adjunction_right _ _⟩
 
-lemma nat_trans.mono_iff_app_mono {F G : C ⥤ D} (η : F ⟶ G) :
+lemma nat_trans.mono_iff_mono_app {F G : C ⥤ D} (η : F ⟶ G) :
   mono η ↔ (∀ c, mono (η.app c)) :=
 begin
   split,
-  { intros h c,
-    exact right_adjoint_preserves_mono (evaluation_adjunction_right D c) h },
+  { introsI h c,
+    exact (infer_instance : mono (((evaluation _ _).obj c).map η)) },
   { introsI _,
-    apply nat_trans.mono_app_of_mono }
+    apply nat_trans.mono_of_mono_app }
 end
 
 end
@@ -140,14 +143,14 @@ instance evaluation_is_left_adjoint (c : C) :
   is_left_adjoint ((evaluation _ D).obj c) :=
 ⟨_, evaluation_adjunction_left _ _⟩
 
-lemma nat_trans.epi_iff_app_epi {F G : C ⥤ D} (η : F ⟶ G) :
+lemma nat_trans.epi_iff_epi_app {F G : C ⥤ D} (η : F ⟶ G) :
   epi η ↔ (∀ c, epi (η.app c)) :=
 begin
   split,
-  { intros h c,
-    exact left_adjoint_preserves_epi (evaluation_adjunction_left D c) h },
+  { introsI h c,
+    exact (infer_instance : epi (((evaluation _ _).obj c).map η)) },
   { introsI,
-    apply nat_trans.epi_app_of_epi }
+    apply nat_trans.epi_of_epi_app }
 end
 
 end

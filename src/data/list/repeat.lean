@@ -7,7 +7,7 @@ import data.list.rotate
 import data.list.big_operators.lemmas
 
 /-!
-# List Repeat
+# List of a Constant Element
 
 This file proves basic results about `list.repeat x n`, the list of `x` repeated `n` times.
 -/
@@ -63,10 +63,10 @@ begin
 end
 
 lemma nth_repeat_eq_none_iff (m : ℕ) : (repeat x n).nth m = none ↔ n ≤ m :=
-by rw [nth_eq_none_iff, length_repeat]
+nth_eq_none_iff.trans ((length_repeat x n).symm ▸ iff.rfl)
 
 lemma nth_repeat_eq_some_iff (m : ℕ) (y : α) : (repeat x n).nth m = some y ↔ m < n ∧ x = y :=
-by simp only [ite_eq_iff, nth_repeat, and_false, or_false]
+by simp [ite_eq_iff]
 
 lemma find_repeat (p : α → Prop) [decidable_pred p] :
   (repeat x n).find p = if 0 < n ∧ p x then some x else none :=

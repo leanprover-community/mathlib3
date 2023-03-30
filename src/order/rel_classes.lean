@@ -239,9 +239,19 @@ theorem well_founded.asymmetric {α : Sort*} {r : α → α → Prop} (h : well_
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
                      dec_tac := tactic.assumption }
 
+theorem well_founded.asymmetric₃ {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
+  ∀ ⦃a b c⦄, r a b → r b c → ¬ r c a
+| a := λ b c hab hbc hca, well_founded.asymmetric₃ hca hab hbc
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
+                     dec_tac := tactic.assumption }
+
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_founded.is_asymm (r : α → α → Prop) [is_well_founded α r] : is_asymm α r :=
 ⟨is_well_founded.wf.asymmetric⟩
+
+theorem asymm₃ {α : Sort*} {r : α → α → Prop} [h : is_well_founded α r] :
+  ∀ ⦃a b c⦄, r a b → r b c → ¬ r c a :=
+h.wf.asymmetric₃
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α r] : is_irrefl α r :=
@@ -265,23 +275,31 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
-  extends is_trichotomous α r, is_trans α r, is_well_founded α r : Prop
+  extends is_trichotomous α r, is_well_founded α r : Prop
 
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
-  is_strict_total_order α r := { }
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
   is_trichotomous α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] :
-  is_trans α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] :
   is_irrefl α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
   is_asymm α r := by apply_instance
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] :
+  is_trans α r :=
+⟨λ a b c hab hbc, begin
+  rcases trichotomous_of r a c with (hac | rfl | hca),
+  { assumption },
+  { exact (asymm hab hbc).elim },
+  { exact (asymm₃ hab hbc hca).elim }
+end⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
+  is_strict_total_order α r := { }
 
 namespace well_founded_lt
 variables [has_lt α] [well_founded_lt α]
@@ -346,7 +364,6 @@ def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
 theorem subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
   is_well_order α r :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim a b,
-  trans        := λ a b c h, (not_rel_of_subsingleton r a b h).elim,
   wf           := ⟨λ a, ⟨_, λ y h, (not_rel_of_subsingleton r y a h).elim⟩⟩,
   ..hr }
 
@@ -356,7 +373,6 @@ subsingleton.is_well_order _
 @[priority 100]
 instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
 { trichotomous := is_empty_elim,
-  trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
 
 instance prod.lex.is_well_founded [is_well_founded α r] [is_well_founded β s] :
@@ -375,14 +391,6 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
-  trans := λ a b c h₁ h₂, begin
-    cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
-    cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
-    { exact prod.lex.left _ _ (trans ab bc) },
-    { exact prod.lex.left _ _ ab },
-    { exact prod.lex.left _ _ bc },
-    { exact prod.lex.right _ (trans ab bc) }
-  end,
   wf := prod.lex_wf is_well_founded.wf is_well_founded.wf }
 
 instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :

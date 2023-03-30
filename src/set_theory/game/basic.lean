@@ -263,7 +263,7 @@ begin
   { apply hr }
 end
 
-lemma exists_left_moves_mul {x y : pgame.{u}} {p : (x * y).left_moves → Prop} :
+lemma left_moves_mul.exists {x y : pgame.{u}} {p : (x * y).left_moves → Prop} :
   (∃ i, p i) ↔
     (∃ i j, p (to_left_moves_mul (sum.inl (i, j)))) ∨
     (∃ i j, p (to_left_moves_mul (sum.inr (i, j)))) :=
@@ -274,7 +274,7 @@ begin
   { rintros (⟨i, j, h⟩ | ⟨i, j, h⟩), exacts [⟨_, h⟩, ⟨_, h⟩], },
 end
 
-lemma exists_right_moves_mul {x y : pgame.{u}} {p : (x * y).right_moves → Prop} :
+lemma right_moves_mul.exists {x y : pgame.{u}} {p : (x * y).right_moves → Prop} :
   (∃ i, p i) ↔
     (∃ i j, p (to_right_moves_mul (sum.inl (i, j)))) ∨
     (∃ i j, p (to_right_moves_mul (sum.inr (i, j)))) :=
@@ -289,13 +289,13 @@ lemma memₗ_mul_iff : Π {x y₁ y₂ : pgame},
   x ∈ₗ y₁ * y₂ ↔
     (∃ i j, x ≡ y₁.move_left i * y₂ + y₁ * y₂.move_left j - y₁.move_left i * y₂.move_left j) ∨
     (∃ i j, x ≡ y₁.move_right i * y₂ + y₁ * y₂.move_right j - y₁.move_right i * y₂.move_right j)
-| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_left_moves_mul
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := left_moves_mul.exists
 
 lemma memᵣ_mul_iff : Π {x y₁ y₂ : pgame},
   x ∈ᵣ y₁ * y₂ ↔
     (∃ i j, x ≡ y₁.move_left i * y₂ + y₁ * y₂.move_right j - y₁.move_left i * y₂.move_right j) ∨
     (∃ i j, x ≡ y₁.move_right i * y₂ + y₁ * y₂.move_left j - y₁.move_right i * y₂.move_left j)
-| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := exists_right_moves_mul
+| (mk xl xr xL xR) (mk y₁l y₁r y₁L y₁R) (mk y₂l y₂r y₂L y₂R) := right_moves_mul.exists
 
 /-- `x * y` and `y * x` have the same moves. -/
 protected lemma mul_comm : Π (x y : pgame.{u}), x * y ≡ y * x

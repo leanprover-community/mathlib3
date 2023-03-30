@@ -765,7 +765,7 @@ pgame.rec_on x $ λ xl xr xL xR IHL IHR y, pgame.cases_on y $ λ yl yr yL yR ⟨
 @[symm] protected theorem identical.symm {x y} : x ≡ y → y ≡ x :=
 (identical.refl y).euc
 
-protected theorem identical.comm {x y} : x ≡ y ↔ y ≡ x :=
+protected theorem identical_comm {x y} : x ≡ y ↔ y ≡ x :=
 ⟨identical.symm, identical.symm⟩
 
 @[trans] protected theorem identical.trans {x y z} (h₁ : x ≡ y) (h₂ : y ≡ z) : x ≡ z :=

@@ -463,6 +463,15 @@ end
 
 end smul_with_zero
 
+section semigroup
+variables [semigroup α]
+
+@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (s : set α) (a : α) (t : set α) :
+  (op a • s) * t = s * a • t :=
+by simpa using mul_assoc s {a} t
+
+end semigroup
+
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
@@ -475,13 +484,10 @@ end left_cancel_semigroup
 section monoid
 variables [monoid α] [mul_action α β]
 
+-- TODO: Generalise so that `s` and `a` are in two different types
 @[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (s : set α) (a : α) (t : set β) :
   (op a • s) • t = s • a • t :=
 by simpa using mul_smul s {a} t
-
-@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (s : set α) (a : α) (t : set α) :
-  (op a • s) * t = s * a • t :=
-op_smul_set_smul_eq_smul_smul_set _ _ _
 
 end monoid
 

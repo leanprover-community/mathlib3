@@ -971,6 +971,15 @@ image₂_subset_iff_right
 
 end has_mul
 
+section semigroup
+variables [semigroup α] [decidable_eq α]
+
+@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (s : finset α) (a : α) (t : finset α) :
+  (op a • s) * t = s * a • t :=
+by simpa [mul_singleton, singleton_mul] using mul_assoc s {a} t
+
+end semigroup
+
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
 
@@ -1020,13 +1029,10 @@ image_comm $ map_mul _ _
 section monoid
 variables [decidable_eq α] [decidable_eq β] [monoid α] [mul_action α β]
 
+-- TODO: Generalise so that `s` and `a` are in two different types
 @[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (s : finset α) (a : α) (t : finset β) :
   (op a • s) • t = s • a • t :=
 by simpa [mul_singleton] using mul_smul s {a} t
-
-@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (s : finset α) (a : α) (t : finset α) :
-  (op a • s) * t = s * a • t :=
-op_smul_finset_smul_eq_smul_smul_finset _ _ _
 
 end monoid
 

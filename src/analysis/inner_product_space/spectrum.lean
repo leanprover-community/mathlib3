@@ -107,8 +107,8 @@ lemma orthogonal_supr_eigenspaces (μ : 𝕜) :
 begin
   set p : submodule 𝕜 E := (⨆ μ, eigenspace T μ)ᗮ,
   refine eigenspace_restrict_eq_bot hT.orthogonal_supr_eigenspaces_invariant _,
-  have H₂ : p ≤ (eigenspace T μ)ᗮ := submodule.orthogonal_le (le_supr _ _),
-  exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
+  have H₂ : p ⟂ eigenspace T μ := submodule.orthogonal_le (le_supr _ _),
+  exact H₂.disjoint.symm
 end
 
 /-! ### Finite-dimensional theory -/

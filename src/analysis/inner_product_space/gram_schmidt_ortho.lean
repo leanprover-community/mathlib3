@@ -358,12 +358,11 @@ lemma inner_gram_schmidt_orthonormal_basis_eq_zero {f : ι → E} {i : ι}
   ⟪gram_schmidt_orthonormal_basis h f i, f j⟫ = 0 :=
 begin
   rw ←mem_orthogonal_singleton_iff_inner_right,
-  suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j)
-    ≤ (𝕜 ∙ gram_schmidt_orthonormal_basis h f i)ᗮ,
+  suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j) ⟂ 𝕜 ∙ gram_schmidt_orthonormal_basis h f i,
   { apply this,
     rw span_gram_schmidt_normed,
     simpa using mem_span_gram_schmidt 𝕜 f (le_refl j) },
-  rw span_le,
+  refine span_le.2 _,
   rintros - ⟨k, -, rfl⟩,
   rw [set_like.mem_coe, mem_orthogonal_singleton_iff_inner_left],
   by_cases hk : gram_schmidt_normed 𝕜 f k = 0,

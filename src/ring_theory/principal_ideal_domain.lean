@@ -9,6 +9,9 @@ import ring_theory.unique_factorization_domain
 /-!
 # Principal ideal rings and principal ideal domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A principal ideal ring (PIR) is a ring in which all left ideals are principal. A
 principal ideal domain (PID) is an integral domain which is a principal ideal ring.
 

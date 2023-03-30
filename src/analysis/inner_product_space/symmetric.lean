@@ -35,8 +35,10 @@ open is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E E' F G : Type*} [is_R_or_C 𝕜]
-variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
-variables [inner_product_space ℝ E']
+variables [normed_add_comm_group E] [inner_product_space 𝕜 E]
+variables [normed_add_comm_group F] [inner_product_space 𝕜 F]
+variables [normed_add_comm_group G] [inner_product_space 𝕜 G]
+variables [normed_add_comm_group E'] [inner_product_space ℝ E']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace linear_map
@@ -89,7 +91,7 @@ lemma is_symmetric.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is
 begin
   -- We prove it by using the closed graph theorem
   refine T.continuous_of_seq_closed_graph (λ u x y hu hTu, _),
-  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  rw [←sub_eq_zero, ←@inner_self_eq_zero 𝕜],
   have hlhs : ∀ k : ℕ, ⟪T (u k) - T x, y - T x⟫ = ⟪u k - x, T (y - T x)⟫ :=
   by { intro k, rw [←T.map_sub, hT] },
   refine tendsto_nhds_unique ((hTu.sub_const _).inner tendsto_const_nhds) _,
@@ -119,7 +121,7 @@ lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric 
 λ v w, hT v w
 
 lemma is_symmetric.restrict_scalars {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
-  @linear_map.is_symmetric ℝ E _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
+  @linear_map.is_symmetric ℝ E _ _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
   (@linear_map.restrict_scalars ℝ 𝕜 _ _ _ _ _ _
     (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module
     (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module _ _ _ T) :=
@@ -128,7 +130,7 @@ lemma is_symmetric.restrict_scalars {T : E →ₗ[𝕜] E} (hT : T.is_symmetric)
 section complex
 
 variables {V : Type*}
-  [inner_product_space ℂ V]
+  [normed_add_comm_group V] [inner_product_space ℂ V]
 
 /-- A linear operator on a complex inner product space is symmetric precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/

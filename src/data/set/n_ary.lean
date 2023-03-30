@@ -339,4 +339,17 @@ lemma image2_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = 
   image2 f s {b} = s :=
 by rw [image2_singleton_right, funext h, image_id']
 
+lemma image2_inter_union_subset {f : α → α → β} {s t : set α} (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∩ t) (s ∪ t) ⊆ image2 f s t :=
+begin
+  rintro _ ⟨a, b, ha, hb | hb, rfl⟩,
+  { rw hf,
+    exact mem_image2_of_mem hb ha.2 },
+  { exact mem_image2_of_mem ha.1 hb }
+end
+
+lemma image2_union_inter_subset {f : α → α → β} {s t : set α} (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∪ t) (s ∩ t) ⊆ image2 f s t :=
+by { rw image2_comm hf, exact image2_inter_union_subset hf }
+
 end set

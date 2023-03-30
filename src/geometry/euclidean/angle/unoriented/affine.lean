@@ -27,8 +27,8 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The undirected angle at `p2` between the line segments to `p1` and
@@ -50,7 +50,8 @@ begin
       (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
 end
 
-@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*} [inner_product_space ℝ V₂]
+@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*}
+  [normed_add_comm_group V₂] [inner_product_space ℝ V₂]
   [metric_space P₂] [normed_add_torsor V₂ P₂] (f : P →ᵃⁱ[ℝ] P₂) (p₁ p₂ p₃ : P) :
   ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
 by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]

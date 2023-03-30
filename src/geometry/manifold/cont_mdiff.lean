@@ -1381,6 +1381,11 @@ begin
   { simp only with mfld_simps }
 end
 
+lemma cont_mdiff_within_at.fst {f : N → M × M'} {s : set N} {x : N}
+  (hf : cont_mdiff_within_at J (I.prod I') n f s x) :
+  cont_mdiff_within_at J I n (λ x, (f x).1) s x :=
+cont_mdiff_within_at_fst.comp x hf (maps_to_image f s)
+
 lemma cont_mdiff_at_fst {p : M × N} :
   cont_mdiff_at (I.prod J) I n prod.fst p :=
 cont_mdiff_within_at_fst
@@ -1435,6 +1440,11 @@ begin
     simp only [hy] with mfld_simps },
   { simp only with mfld_simps }
 end
+
+lemma cont_mdiff_within_at.snd {f : N → M × M'} {s : set N} {x : N}
+  (hf : cont_mdiff_within_at J (I.prod I') n f s x) :
+  cont_mdiff_within_at J I' n (λ x, (f x).2) s x :=
+cont_mdiff_within_at_snd.comp x hf (maps_to_image f s)
 
 lemma cont_mdiff_at_snd {p : M × N} :
   cont_mdiff_at (I.prod J) J n prod.snd p :=
@@ -1493,6 +1503,17 @@ lemma smooth_prod_assoc :
 smooth_fst.fst.prod_mk $ smooth_fst.snd.prod_mk smooth_snd
 
 end projections
+
+lemma cont_mdiff_within_at_prod_iff (f : M → M' × N') {s : set M} {x : M} :
+  cont_mdiff_within_at I (I'.prod J') n f s x ↔
+  cont_mdiff_within_at I I' n (prod.fst ∘ f) s x ∧
+  cont_mdiff_within_at I J' n (prod.snd ∘ f) s x :=
+by { refine ⟨λ h, ⟨h.fst, h.snd⟩, λ h, _⟩, simpa only [prod.mk.eta] using h.1.prod_mk h.2 }
+
+lemma cont_mdiff_at_prod_iff (f : M → M' × N') {x : M} :
+  cont_mdiff_at I (I'.prod J') n f x ↔
+  cont_mdiff_at I I' n (prod.fst ∘ f) x ∧ cont_mdiff_at I J' n (prod.snd ∘ f) x :=
+by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_prod_iff f }
 
 section prod_map
 

@@ -256,7 +256,6 @@ def _root_.continuous_linear_map.comp_continuous_multilinear_map
   (g : M₂ → M₃) ∘ (f : (Πi, M₁ i) → M₂) :=
 by { ext m, refl }
 
-
 /-- `continuous_multilinear_map.pi` as an `equiv`. -/
 @[simps]
 def pi_equiv {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]

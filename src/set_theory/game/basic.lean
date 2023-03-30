@@ -135,6 +135,17 @@ namespace pgame
 
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
+@[simp] theorem quot_zero : ⟦(0 : pgame)⟧ = 0 := rfl
+
+@[simp] theorem quot_one : ⟦(1 : pgame)⟧ = 1 := rfl
+
+@[simp] theorem quot_nat (n : ℕ) : ⟦(n : pgame)⟧ = n :=
+begin
+  induction n with n IH,
+  { refl },
+  { simp [IH] }
+end
+
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
   (hl : ∀ i, ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)

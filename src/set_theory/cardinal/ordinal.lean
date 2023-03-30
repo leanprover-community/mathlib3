@@ -828,8 +828,6 @@ eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
-set_option pp.universes true
-
 @[simp] lemma mk_finsupp_lift_of_infinite (α : Type u) (β : Type v) [infinite α] [has_zero β]
   [nontrivial β] : #(α →₀ β) = max (lift.{v} (#α)) (lift.{u} (#β)) :=
 begin

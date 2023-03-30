@@ -2405,19 +2405,32 @@ lemma is_ortho_iff {U V : submodule 𝕜 E} : U ⟂ V ↔ U ≤ Vᗮ := iff.rfl
 @[symm]
 lemma is_ortho.symm {U V : submodule 𝕜 E} (h : U ⟂ V) : V ⟂ U :=
 (le_orthogonal_orthogonal _).trans (orthogonal_le h)
+lemma is_ortho_comm {U V : submodule 𝕜 E} : U ⟂ V ↔ V ⟂ U := ⟨is_ortho.symm, is_ortho.symm⟩
+lemma symmetric_is_ortho : symmetric (is_ortho : submodule 𝕜 E → submodule 𝕜 E → Prop) :=
+is_ortho.symm
 
-lemma is_ortho_comm {U V : submodule 𝕜 E} : U ⟂ V ↔ V ⟂ U :=
-⟨is_ortho.symm, is_ortho.symm⟩
+@[simp] lemma is_ortho_bot_left {V : submodule 𝕜 E} : ⊥ ⟂ V := bot_le
+@[simp] lemma is_ortho_bot_right {U : submodule 𝕜 E} : U ⟂ ⊥ := is_ortho_bot_left.symm
 
-@[simp] lemma is_ortho_bot {U : submodule 𝕜 E} : U ⟂ ⊥ :=
-le_top.trans_eq bot_orthogonal_eq_top.symm
+lemma is_ortho.mono_left {U₁ U₂ V : submodule 𝕜 E} (hU : U₂ ≤ U₁) (h : U₁ ⟂ V) : U₂ ⟂ V :=
+hU.trans h
 
-@[simp] lemma bot_is_ortho {V : submodule 𝕜 E} : ⊥ ⟂ V :=
-bot_le
+lemma is_ortho.mono_right {U V₁ V₂ : submodule 𝕜 E} (hV : V₂ ≤ V₁) (h : U ⟂ V₁) : U ⟂ V₂ :=
+(h.symm.mono_left hV).symm
+
+lemma is_ortho.mono {U₁ V₁ U₂ V₂ : submodule 𝕜 E} (hU : U₂ ≤ U₁) (hV : V₂ ≤ V₁) (h : U₁ ⟂ V₁) :
+  U₂ ⟂ V₂ :=
+(h.mono_left hV).mono_right hU
 
 @[simp]
 lemma is_ortho_self {U : submodule 𝕜 E} : U ⟂ U ↔ U = ⊥ :=
 ⟨λ h, eq_bot_iff.mpr $ λ x hx, inner_self_eq_zero.mp (h hx x hx), λ h, h.symm ▸ bot_is_ortho⟩
+
+@[simp] lemma self_is_ortho_orthogonal (U : submodule 𝕜 E) : U ⟂ Uᗮ :=
+le_orthogonal_orthogonal _
+
+@[simp] lemma orthogonal_is_ortho_self (U : submodule 𝕜 E) : Uᗮ ⟂ U :=
+(self_is_ortho_orthogonal U).symm
 
 @[simp]
 lemma is_ortho_top {U : submodule 𝕜 E} : U ⟂ ⊤ ↔ U = ⊥ :=
@@ -2430,11 +2443,6 @@ is_ortho_comm.trans is_ortho_top
 /-- Orthogonal submodules are disjoint. -/
 lemma is_ortho.disjoint {U V : submodule 𝕜 E} (h : U ⟂ V) : disjoint U V :=
 (submodule.orthogonal_disjoint _).mono_right h.symm
-
-@[simp] lemma is_ortho.inf {U₁ V₁ U₂ V₂ : submodule 𝕜 E} (h₁ : U₁ ⟂ V₁) (h₂ : U₂ ⟂ V₂) :
-  U₁ ⊓ U₂ ⟂ V₁ ⊓ V₂ :=
-(inf_le_inf h₁ h₂).trans $
-  (inf_orthogonal _ _).trans_le $ orthogonal_le inf_le_sup
 
 end submodule
 

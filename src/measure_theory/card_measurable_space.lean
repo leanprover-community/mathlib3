@@ -129,7 +129,7 @@ begin
       exact mem_Union.2 ⟨j, compl_mem_generate_measurable_rec hj hi⟩ },
     { have : ∀ n, ∃ i, f n ∈ generate_measurable_rec s i := λ n, by simpa using IH n,
       choose I hI using this,
-      refine mem_Union.2 ⟨ordinal.enum (<) (ordinal.lsub (λ n, ordinal.typein.{u} (<) (I n))) _,
+      refine mem_Union.2 ⟨ordinal.enum (<) ⟨ordinal.lsub (λ n, ordinal.typein.{u} (<) (I n)), _⟩,
         Union_mem_generate_measurable_rec (λ n, ⟨I n, _, hI n⟩)⟩,
       { rw ordinal.type_lt,
         refine ordinal.lsub_lt_ord_lift _ (λ i, ordinal.typein_lt_self _),

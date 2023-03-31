@@ -1138,50 +1138,42 @@ hf.map (distrib_mul_action.to_add_monoid_hom α _) $ continuous_const_smul _
 lemma summable.const_smul (b : γ) (hf : summable f) : summable (λ i, b • f i) :=
 (hf.has_sum.const_smul _).summable
 
+/-- Infinite sums commute with scalar multiplication. Version for scalars living in a `monoid`, but
+  requiring a summability hypothesis. -/
 lemma tsum_const_smul [t2_space α] (b : γ) (hf : summable f) : ∑' i, b • f i = b • ∑' i, f i :=
 (hf.has_sum.const_smul _).tsum_eq
 
 
--- move to `group_theory.group_action.group`
+-- move to `group_theory.group_action.group` **NEEDS TO MOVE**
 def distrib_mul_action.to_add_equiv₀ {α : Type*} (β : Type*) [group_with_zero α] [add_monoid β]
   [distrib_mul_action α β] (x : α) (hx : x ≠ 0) : β ≃+ β :=
 { inv_fun := λ b, x⁻¹ • b,
   left_inv := inv_smul_smul₀ hx,
   right_inv := smul_inv_smul₀ hx,
   .. distrib_mul_action.to_add_monoid_hom β x, }
-
 -----------------------
 
-
--- move to `topology.algebra.infinite_sum.basic`
-
-theorem tsum_const_smul' {α : Type*} {β : Type*} {γ : Type*} [group γ] [topological_space α]
-  [add_comm_monoid α] [distrib_mul_action γ α] [has_continuous_const_smul γ α] {f : β → α}
-  [t2_space α] (g : γ) : ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
+/-- Infinite sums commute with scalar multiplication. Version for scalars living in a `group`, but
+  not requiring any summability hypothesis. -/
+lemma tsum_const_smul' {γ : Type*} [group γ] [distrib_mul_action γ α]
+  [has_continuous_const_smul γ α] [t2_space α] (g : γ) :
+  ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
 begin
   by_cases hf : summable f,
   { exact tsum_const_smul _ hf, },
   rw tsum_eq_zero_of_not_summable hf,
   simp only [smul_zero],
-  let mul_g := distrib_mul_action.to_add_equiv α g,
-  rw ← @summable.map_iff_of_equiv α β α _ _ f _ _ _ _ mul_g (continuous_const_smul _)
-    (continuous_const_smul _) at hf,
-  apply tsum_eq_zero_of_not_summable hf,
+  let mul_g : α ≃+ α := distrib_mul_action.to_add_equiv α g,
+  apply tsum_eq_zero_of_not_summable,
+  change ¬ summable (mul_g ∘ f),
+  rwa summable.map_iff_of_equiv mul_g; apply continuous_const_smul,
 end
 
-------------------------------------
-
-
--- move to `topology.algebra.infinite_sum.basic`
--- this would work for a `[group_with_zero γ]` if there was such a thing as
---  `distrib_mul_action_with_zero`...
-/-
-theorem tsum_const_smul' {α : Type*} {β : Type*} {γ : Type*} [group γ] [topological_space α]
-  [add_comm_monoid α] [distrib_mul_action γ α] [has_continuous_const_smul γ α] {f : β → α}
-  [t2_space α] (g : γ) : ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
--/
-theorem tsum_const_smul'' {α : Type*} {β : Type*} {γ : Type*} [division_ring γ] [topological_space α]
-  [add_comm_monoid α] [module γ α] [has_continuous_const_smul γ α] {f : β → α} [t2_space α] (g : γ) :
+/-- Infinite sums commute with scalar multiplication. Version for scalars living in a
+  `division_ring`; no summability hypothesis. This could be made to work for a
+  `[group_with_zero γ]` if there was such a thing as `distrib_mul_action_with_zero`. -/
+lemma tsum_const_smul'' {γ : Type*} [division_ring γ] [module γ α] [has_continuous_const_smul γ α]
+  [t2_space α] (g : γ) :
   ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
 begin
   by_cases hf : summable f,
@@ -1190,13 +1182,11 @@ begin
   simp only [smul_zero],
   by_cases hg : g = 0,
   { simp [hg], },
-  let mul_g := distrib_mul_action.to_add_equiv₀ α g hg,
-  rw ← @summable.map_iff_of_equiv α β α _ _ f _ _ _ _ mul_g (continuous_const_smul _)
-    (continuous_const_smul _) at hf,
-  apply tsum_eq_zero_of_not_summable hf,
+  let mul_g : α ≃+ α := distrib_mul_action.to_add_equiv₀ α g hg,
+  apply tsum_eq_zero_of_not_summable,
+  change ¬ summable (mul_g ∘ f),
+  rwa summable.map_iff_of_equiv mul_g; apply continuous_const_smul,
 end
-
-
 
 end const_smul
 
@@ -1307,28 +1297,29 @@ end has_continuous_star
 
 section automorphize
 
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [t2_space M] {R : Type*}
+  [division_ring R] [module R M] [has_continuous_const_smul R M]
 
---- move to `topology.algebra.infinite_sum.basic` if possible?
-/-- Given a group `α` acting on a type `β`, and a function `f : β → γ`, we "automorphize" `f` to a
-  function `β ⧸ α → γ` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
+/-- Given a group `α` acting on a type `β`, and a function `f : β → M`, we "automorphize" `f` to a
+  function `β ⧸ α → M` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
 @[to_additive]
-def mul_action.automorphize {α : Type*} {β : Type*} [group α] [mul_action α β] {γ : Type*}
-  [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : β → γ) :
-  quotient (mul_action.orbit_rel α β) → γ :=
+def mul_action.automorphize [group α] [mul_action α β] (f : β → M) :
+  quotient (mul_action.orbit_rel α β) → M :=
 @quotient.lift _ _ (mul_action.orbit_rel α β) (λ b, ∑' (a : α), f(a • b))
 begin
   rintros b₁ b₂ ⟨a, (rfl : a • b₂ = b₁)⟩,
   simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
 end
 
---- move to `topology.algebra.infinite_sum.basic` if possible?
-/-- Automorphization distributes. -/
-lemma mul_action.automorphize_smul_left {α : Type*} {β : Type*} [group α] [mul_action α β]
-  {γ : Type*} [topological_space γ] [add_comm_monoid γ] [t2_space γ] (f : β → γ)
-  {R : Type*} [division_ring R] [module R γ] [has_continuous_const_smul R γ]
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. This could be additivized if only `distrib_mul_action_with_zero` existed,
+  and in that case, the multiplicative version would have `R` be a `group_with_zero` instead of
+  `division_ring`; in the additive version, we would have `R` be a `add_group_with_minus_infinity`,
+  which doesn't exist. -/
+lemma mul_action.automorphize_smul_left [group α] [mul_action α β]  (f : β → M)
   (g : quotient (mul_action.orbit_rel α β) → R) :
   mul_action.automorphize ((g ∘ quotient.mk') • f)
-  = g • (mul_action.automorphize f : quotient (mul_action.orbit_rel α β) → γ) :=
+    = g • (mul_action.automorphize f : quotient (mul_action.orbit_rel α β) → M) :=
 begin
   ext x,
   apply quotient.induction_on' x,
@@ -1346,24 +1337,21 @@ begin
   exact tsum_const_smul'' _,
 end
 
+variables {G : Type*} [group G] {Γ : subgroup G}
 
---- move to `topology.algebra.infinite_sum.basic` if possible?
 /-- Given a subgroup `Γ` of a group `G`, and a function `f : G → M`, we "automorphize" `f` to a
   function `G ⧸ Γ → M` by summing over `Γ` orbits, `g ↦ ∑' (γ : Γ), f(γ • g)`. -/
 @[to_additive]
-def quotient_group.automorphize {G : Type*} [group G] {Γ : subgroup G} {M : Type*}
-  [topological_space M] [add_comm_monoid M] [t2_space M] (f : G → M) :
-  G ⧸ Γ → M :=
-mul_action.automorphize f
+def quotient_group.automorphize  (f : G → M) : G ⧸ Γ → M := mul_action.automorphize f
 
---- move to `topology.algebra.infinite_sum.basic` if possible?
-/-- Automorphization distributes. This could be additivized if only `distrib_mul_action_with_zero` existed, and in that case, the multiplicative version would have `R` be a `group_with_zero` instead of `division_ring`; in the additive version, we would have `R` be a `add_group_with_minus_infinity`, which doesn't exist. -/
-lemma quotient_group.automorphize_smul_left {G : Type*} [group G] {Γ : subgroup G}
-  {M : Type*} [topological_space M] [add_comm_monoid M] [t2_space M] (f : G → M)
-  {R : Type*} [division_ring R] [module R M] [has_continuous_const_smul R M]
-  (g : G ⧸ Γ → R) :
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. This could be additivized if only `distrib_mul_action_with_zero` existed,
+  and in that case, the multiplicative version would have `R` be a `group_with_zero` instead of
+  `division_ring`; in the additive version, we would have `R` be a `add_group_with_minus_infinity`,
+  which doesn't exist. -/
+lemma quotient_group.automorphize_smul_left (f : G → M) (g : G ⧸ Γ → R) :
   quotient_group.automorphize ((g ∘ quotient.mk') • f)
-  = g • (quotient_group.automorphize f : G ⧸ Γ → M) :=
+    = g • (quotient_group.automorphize f : G ⧸ Γ → M) :=
 mul_action.automorphize_smul_left f g
 
 end automorphize

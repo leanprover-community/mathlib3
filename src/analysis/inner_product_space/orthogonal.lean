@@ -291,8 +291,7 @@ is_ortho_comm.trans $ is_ortho_supr_left.trans $ by simp_rw is_ortho_comm
 
 end submodule
 
-/-- A submodule in an orthogonal family lies within the orthogonal complement of every other
-submodule. -/
+/-- Two submodules in an orthogonal family with different indices are orthogonal. -/
 lemma orthogonal_family.is_ortho {ι} {V : ι → submodule 𝕜 E}
   (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) {i j : ι} (hij : i ≠ j) :
   V i ⟂ V j :=

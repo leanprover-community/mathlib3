@@ -2639,7 +2639,7 @@ begin
   unfreezingI { induction n using nat.case_strong_induction_on with n IH generalizing Gu },
   { simpa only [norm_iterated_fderiv_within_zero, nat.factorial_zero, algebra_map.coe_one,
       one_mul, pow_zero, mul_one] using hC 0 le_rfl },
-  have M : (n : ℕ∞) < n.succ := nat.cast_lt.2 (nat.lt_succ_self n),
+  have M : (n : ℕ∞) < n.succ := nat.cast_lt.2 n.lt_succ_self,
   have Cnonneg : 0 ≤ C := (norm_nonneg _).trans (hC 0 bot_le),
   have Dnonneg : 0 ≤ D,
   { have : 1 ≤ n+1, by simp only [le_add_iff_nonneg_left, zero_le'],
@@ -2650,9 +2650,9 @@ begin
   { assume i hi,
     simp only [finset.mem_range_succ_iff] at hi,
     apply IH i hi,
-    apply hf.of_le (nat.cast_le.2 (hi.trans (nat.le_succ n))),
+    apply hf.of_le (nat.cast_le.2 (hi.trans n.le_succ)),
     { assume j hj h'j,
-      exact hD j hj (h'j.trans (hi.trans (nat.le_succ n))) },
+      exact hD j hj (h'j.trans (hi.trans n.le_succ)) },
     { apply hg.fderiv_within ht,
       simp only [nat.cast_succ],
       exact add_le_add_right (nat.cast_le.2 hi) _ },
@@ -2680,8 +2680,7 @@ begin
   ... = ‖iterated_fderiv_within 𝕜 n (λ (y : E), continuous_linear_map.compL 𝕜 E Fu Gu
         (fderiv_within 𝕜 g t (f y)) (fderiv_within 𝕜 f s y)) s x‖ :
   begin
-    have L : (1 : ℕ∞) ≤ n.succ,
-      by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
+    have L : (1 : ℕ∞) ≤ n.succ, by simpa only [enat.coe_one, nat.one_le_cast] using n.succ_pos,
     congr' 1,
     apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
     apply fderiv_within.comp _ _ _ hst (hs y hy),
@@ -2729,7 +2728,7 @@ begin
     congr' 2,
     { congr,
       apply inv_mul_cancel,
-      simpa only [ne.def, nat.cast_eq_zero] using nat.factorial_ne_zero i },
+      simpa only [ne.def, nat.cast_eq_zero] using i.factorial_ne_zero },
     { rw ← pow_add,
       congr' 1,
       rw [nat.add_succ, nat.succ_inj'],
@@ -2740,7 +2739,7 @@ begin
     apply finset.sum_le_sum (λ i hi, _),
     refine mul_le_mul_of_nonneg_left _ (by positivity),
     apply inv_le_one,
-    simpa only [nat.one_le_cast] using nat.factorial_pos (n-i),
+    simpa only [nat.one_le_cast] using (n-i).factorial_pos,
   end
   ... = (n+1)! * C * D^(n+1) :
   by simp only [mul_assoc, mul_one, finset.sum_const, finset.card_range, nsmul_eq_mul,

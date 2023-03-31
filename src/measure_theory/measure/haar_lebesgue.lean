@@ -353,19 +353,18 @@ lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
   μ (r • s) = ennreal.of_real (r ^ finrank ℝ E) * μ s :=
 by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
 
-variable {μ}
+variables {μ} {s : set E} {a : ℝ}
 
-lemma null_measurable_set.const_smul_of_ne_zero {s : set E} (hs : null_measurable_set s μ)
-  {a : ℝ} (ha : a ≠ 0) :
+lemma null_measurable_set.const_smul_of_ne_zero (hs : null_measurable_set s μ) (ha : a ≠ 0) :
   null_measurable_set (a • s) μ :=
 begin
-  obtain ⟨t, h_mes, h_evt⟩ := hs,
-  refine ⟨a • t, measurable_set.const_smul_of_ne_zero h_mes ha, _⟩,
-  rw ← measure_symm_diff_eq_zero_iff at ⊢ h_evt,
-  rw [← set.smul_set_symm_diff₀ ha, add_haar_smul μ, h_evt, mul_zero],
+  obtain ⟨t, ht, hst⟩ := hs,
+  refine ⟨_, ht.const_smul_of_ne_zero ha, _⟩,
+  rw ←measure_symm_diff_eq_zero_iff at ⊢ hst,
+  rw [←smul_set_symm_diff₀ ha, add_haar_smul μ, hst, mul_zero],
 end
 
-variable (μ)
+variables (μ)
 
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
   μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=

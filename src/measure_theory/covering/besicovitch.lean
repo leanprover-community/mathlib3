@@ -1140,7 +1140,7 @@ to `1` when `r` tends to `0`, for almost every `x` in `s`.
 This shows that almost every point of `s` is a Lebesgue density point for `s`.
 A stronger version holds for measurable sets, see `ae_tendsto_measure_inter_div_of_measurable_set`.
 
-See also `is_doubling_measure.ae_tendsto_measure_inter_div`. -/
+See also `is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div`. -/
 lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure μ] (s : set β) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=

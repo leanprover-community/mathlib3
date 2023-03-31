@@ -1874,7 +1874,7 @@ begin
   { exact snorm_indicator_const hs hp hp_top, },
 end
 
-lemma snorm_indicator_const_le (c : G) (p :ℝ≥0∞) :
+lemma snorm_indicator_const_le (c : G) (p : ℝ≥0∞) :
   snorm (s.indicator (λ x, c)) p μ ≤ ‖c‖₊ * (μ s) ^ (1 / p.to_real) :=
 begin
   rcases eq_or_ne p 0 with rfl|hp,
@@ -1951,8 +1951,8 @@ begin
   { exact or.inr hμsc.lt_top, },
 end
 
-/-- The `L^p` norm of the indicator of a set is uniformly small if the set itself is small.
-Given here as an existential `∀ ε > 0, ∃ η > 0, ...` to avoid later
+/-- The `L^p` norm of the indicator of a set is uniformly small if the set itself has small measure,
+for any `p < ∞`. Given here as an existential `∀ ε > 0, ∃ η > 0, ...` to avoid later
 management of `ℝ≥0∞`-arithmetic. -/
 lemma exists_snorm_indicator_le (hp : p ≠ ∞) (c : E) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (η : ℝ≥0), 0 < η ∧ ∀ (s : set α), μ s ≤ η → snorm (s.indicator (λ x, c)) p μ ≤ ε :=

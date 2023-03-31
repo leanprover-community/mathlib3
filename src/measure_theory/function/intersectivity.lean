@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import measure_theory.function.lp_space
 import measure_theory.integral.set_integral
+import order.upper_lower.locally_finite
 
 /-!
 # Bergelson's intersectivity lemma
@@ -23,43 +24,6 @@ Use the ergodic theorem to deduce the refinement of the Poincaré recurrence the
 Bergelson.
 -/
 
-namespace ennreal
-open_locale ennreal
-variables {a : ℝ≥0∞}
-
-@[simp] lemma of_real_to_real_eq_iff : ennreal.of_real a.to_real = a ↔ a ≠ ⊤ :=
-⟨λ h, by { rw ←h, exact of_real_ne_top }, of_real_to_real⟩
-
-@[simp] lemma to_real_of_real_eq_iff {a : ℝ} : (ennreal.of_real a).to_real = a ↔ 0 ≤ a :=
-⟨λ h, by { rw ←h, exact to_real_nonneg }, to_real_of_real⟩
-
-end ennreal
-
-namespace set
-variables {α : Type*}
-
-lemma inter_diff_distrib_left (s t u : set α) : s ∩ (t \ u) = (s ∩ t) \ (s ∩ u) :=
-inf_sdiff_distrib_left _ _ _
-
-lemma inter_diff_distrib_right (s t u : set α) : s \ t ∩ u = (s ∩ u) \ (t ∩ u) :=
-inf_sdiff_distrib_right _ _ _
-
-lemma inter_set_of (s : set α) (p : α → Prop) : s ∩ {a | p a} = {a ∈ s | p a} := rfl
-lemma set_of_inter (p : α → Prop) (s : set α) : {a | p a} ∩ s = {a ∈ s | p a} := inter_comm _ _
-
-variables [preorder α] {s : set α}
-
-protected lemma finite.upper_closure [locally_finite_order_top α] (hs : s.finite) :
-  (upper_closure s : set α).finite :=
-by { rw coe_upper_closure, exact hs.bUnion (λ _ _, finite_Ici _) }
-
-protected lemma finite.lower_closure [locally_finite_order_bot α] (hs : s.finite) :
-  (lower_closure s : set α).finite :=
-by { rw coe_lower_closure, exact hs.bUnion (λ _ _, finite_Iic _) }
-
-
-end set
-
 attribute [measurability] measurable_one
 
 section
@@ -72,13 +36,6 @@ variables {α β : Type*} [measurable_space α] [measurable_space β]
 @measurable_const α _ _ _ n
 
 end
-
-namespace pi
-variables {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)]
-
-lemma apply_monotone (i : ι) : monotone (λ f : Π i, α i, f i) := λ f g h, h _
-
-end pi
 
 namespace measure_theory
 namespace measure
@@ -112,7 +69,7 @@ lemma measure_le_set_integral_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤) (hf
 begin
   obtain ⟨t, hts, ht, hμts⟩ := hs.exists_measurable_subset_ae_eq,
   replace hf := hf.mono_set hts,
-  simp_rw [←set_of_inter, ←set_integral_congr_set_ae hμts, ←measure_congr hμts,
+  simp_rw [←set_of_inter_eq_sep, ←set_integral_congr_set_ae hμts, ←measure_congr hμts,
     ←measure_congr ((eventually_eq.refl _ _).inter hμts)],
   rw ←measure_congr hμts at hμ hμ₁,
   haveI : fact (μ t < ⊤) := ⟨lt_top_iff_ne_top.2 hμ₁⟩,
@@ -210,7 +167,8 @@ variables {α : Type*} [measurable_space α] {μ : measure α} {s N : set α} {f
 lemma set_lintegral_eq_top_of_measure_eq_top_pos (hf : ae_measurable f (μ.restrict s))
   (hs : null_measurable_set s μ) (hμf : 0 < μ {x ∈ s | f x = ⊤}) :
   ∫⁻ x in s, f x ∂μ = ⊤ :=
-lintegral_eq_top_of_measure_eq_top_pos hf $ by rwa [measure.restrict_apply₀' hs, set_of_inter]
+lintegral_eq_top_of_measure_eq_top_pos hf $
+  by rwa [measure.restrict_apply₀' hs, set_of_inter_eq_sep]
 
 --TODO: Rename `measure_theory.ae_lt_top'`
 
@@ -231,8 +189,8 @@ begin
   obtain h | h := eq_or_ne (∫⁻ a in s, f a ∂μ) ⊤,
   { simpa [h, top_div_of_ne_top hμ₁, pos_iff_ne_zero] using hμ },
   have := measure_le_set_integral_pos hμ hμ₁ (integrable_to_real_of_lintegral_ne_top hf h) hs,
-  rw [←set_of_inter, ←measure.restrict_apply₀' hs],
-  rw [←set_of_inter, ←measure.restrict_apply₀' hs,
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs],
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs,
     ←measure_diff_null (measure_lintegral_eq_top hf h)] at this,
   refine this.trans_le (measure_mono _),
   rintro x ⟨hfx, hx⟩,
@@ -252,8 +210,8 @@ begin
   obtain hμ₁ | hμ₁ := eq_or_ne (μ s) ⊤,
   { simp [hμ₁] },
   have := measure_set_integral_le_pos hμ hμ₁ (integrable_to_real_of_lintegral_ne_top hf hint) hs,
-  rw [←set_of_inter, ←measure.restrict_apply₀' hs],
-  rw [←set_of_inter, ←measure.restrict_apply₀' hs,
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs],
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs,
     ←measure_diff_null (measure_lintegral_eq_top hf hint)] at this,
   refine this.trans_le (measure_mono _),
   rintro x ⟨hfx, hx⟩,
@@ -331,27 +289,6 @@ end
 
 open filter measure_theory set
 open_locale big_operators ennreal nnreal
-
-namespace with_top
-variables {α : Type*} {s : set (with_top α)}
-
-open_locale classical
-
-lemma Sup_eq [preorder α] [has_Sup α] (hs : ⊤ ∉ s) (hs' : bdd_above (coe ⁻¹' s : set α)) :
-  Sup s = ↑(Sup (coe ⁻¹' s) : α) :=
-(if_neg hs).trans $ if_pos hs'
-
-lemma Inf_eq [has_Inf α] (hs : ¬ s ⊆ {⊤}) : Inf s = ↑(Inf (coe ⁻¹' s) : α) := if_neg hs
-
-end with_top
-
-namespace function
-variables {α β : Type*} [has_zero β] [has_one β] [ne_zero (1 : β)]
-
-@[simp] lemma support_one : support (1 : α → β) = univ := support_const one_ne_zero
-@[simp] lemma mul_support_zero : mul_support (0 : α → β) = univ := mul_support_const zero_ne_one
-
-end function
 
 section
 variables {α M : Type*} [measurable_space α] {μ : measure α} [has_one M] {f : α → M} {s : set α}

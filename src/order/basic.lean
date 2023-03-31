@@ -227,6 +227,9 @@ le_iff_lt_or_eq.trans or.comm
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, h1.lt_of_ne h2⟩
 
+lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
+by rw [lt_iff_le_and_ne, not_and, not_not, eq_comm]
+
 -- See Note [decidable namespace]
 protected lemma decidable.eq_iff_le_not_lt [partial_order α] [@decidable_rel α (≤)]
   {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=

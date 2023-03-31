@@ -84,7 +84,7 @@ end
 
 @[simp] lemma convex_hull_nonempty_iff : (convex_hull 𝕜 s).nonempty ↔ s.nonempty :=
 begin
-  rw [←ne_empty_iff_nonempty, ←ne_empty_iff_nonempty, ne.def, ne.def],
+  rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, ne.def],
   exact not_congr convex_hull_empty_iff,
 end
 

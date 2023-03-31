@@ -10,6 +10,9 @@ import topology.support
 /-!
 # Homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between two topological spaces. They are bijections with both
 directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 
@@ -27,7 +30,7 @@ directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -72,6 +75,8 @@ lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α �
 
 @[ext] lemma ext {h h' : α ≃ₜ β} (H : ∀ x, h x = h' x) : h = h' :=
 to_equiv_injective $ equiv.ext H
+
+@[simp] lemma symm_symm (h : α ≃ₜ β) : h.symm.symm = h := ext $ λ _, rfl
 
 /-- Identity map as a homeomorphism. -/
 @[simps apply {fully_applied := ff}]
@@ -175,23 +180,23 @@ protected lemma second_countable_topology [topological_space.second_countable_to
   topological_space.second_countable_topology α :=
 h.inducing.second_countable_topology
 
-lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
+lemma is_compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.is_compact_iff_is_compact_image.symm
 
-lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
-by rw ← image_symm; exact h.symm.compact_image
+lemma is_compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
+by rw ← image_symm; exact h.symm.is_compact_image
 
 @[simp] lemma comap_cocompact (h : α ≃ₜ β) : comap h (cocompact β) = cocompact α :=
 (comap_cocompact_le h.continuous).antisymm $
   (has_basis_cocompact.le_basis_iff (has_basis_cocompact.comap h)).2 $ λ K hK,
-    ⟨h ⁻¹' K, h.compact_preimage.2 hK, subset.rfl⟩
+    ⟨h ⁻¹' K, h.is_compact_preimage.2 hK, subset.rfl⟩
 
 @[simp] lemma map_cocompact (h : α ≃ₜ β) : map h (cocompact α) = cocompact β :=
 by rw [← h.comap_cocompact, map_comap_of_surjective h.surjective]
 
 protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
-{ compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
-    apply compact_space.compact_univ } }
+{ is_compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.is_compact_image],
+    apply compact_space.is_compact_univ } }
 
 protected lemma t0_space [t0_space α] (h : α ≃ₜ β) : t0_space β :=
 h.symm.embedding.t0_space
@@ -248,6 +253,9 @@ by rw [← preimage_symm, preimage_interior]
 
 lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
 h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
+
+lemma image_frontier (h : α ≃ₜ β) (s : set α) : h '' frontier s = frontier (h '' s) :=
+by rw [←preimage_symm, preimage_frontier]
 
 @[to_additive]
 lemma _root_.has_compact_mul_support.comp_homeomorph {M} [has_one M] {f : β → M}
@@ -469,6 +477,38 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
     (continuous_subtype_coe.snd.subtype_mk _),
   continuous_inv_fun := (continuous_subtype_coe.fst'.prod_mk
     continuous_subtype_coe.snd').subtype_mk _ }
+
+section
+
+variable {ι : Type*}
+
+/-- The topological space `Π i, β i` can be split as a product by separating the indices in ι
+  depending on whether they satisfy a predicate p or not.-/
+@[simps] def pi_equiv_pi_subtype_prod (p : ι → Prop) (β : ι → Type*) [Π i, topological_space (β i)]
+  [decidable_pred p] : (Π i, β i) ≃ₜ (Π i : {x // p x}, β i) × Π i : {x // ¬p x}, β i :=
+{ to_equiv := equiv.pi_equiv_pi_subtype_prod p β,
+  continuous_to_fun := by apply continuous.prod_mk; exact continuous_pi (λ j, continuous_apply j),
+  continuous_inv_fun := continuous_pi $ λ j, begin
+    dsimp only [equiv.pi_equiv_pi_subtype_prod], split_ifs,
+    exacts [(continuous_apply _).comp continuous_fst, (continuous_apply _).comp continuous_snd],
+  end }
+
+variables [decidable_eq ι] (i : ι)
+
+/-- A product of topological spaces can be split as the binary product of one of the spaces and
+  the product of all the remaining spaces. -/
+@[simps] def pi_split_at (β : ι → Type*) [Π j, topological_space (β j)] :
+  (Π j, β j) ≃ₜ β i × Π j : {j // j ≠ i}, β j :=
+{ to_equiv := equiv.pi_split_at i β,
+  continuous_to_fun := (continuous_apply i).prod_mk (continuous_pi $ λ j, continuous_apply j),
+  continuous_inv_fun := continuous_pi $ λ j, by { dsimp only [equiv.pi_split_at],
+    split_ifs, subst h, exacts [continuous_fst, (continuous_apply _).comp continuous_snd] } }
+
+/-- A product of copies of a topological space can be split as the binary product of one copy and
+  the product of all the remaining copies. -/
+@[simps] def fun_split_at : (ι → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _
+
+end
 
 end homeomorph
 

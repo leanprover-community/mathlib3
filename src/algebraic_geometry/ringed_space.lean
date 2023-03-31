@@ -68,7 +68,7 @@ begin
   choose V iVU m h_unit using λ x : U, X.is_unit_res_of_is_unit_germ U f x (h x),
   have hcover : U ≤ supr V,
   { intros x hxU,
-    rw [opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
   -- Let `g x` denote the inverse of `f` in `U x`.
   choose g hg using λ x : U, is_unit.exists_right_inv (h_unit x),
@@ -97,8 +97,8 @@ The basic open of a section `f` is the set of all points `x`, such that the germ
 `x` is a unit.
 -/
 def basic_open {U : opens X} (f : X.presheaf.obj (op U)) : opens X :=
-{ val := coe '' { x : U | is_unit (X.presheaf.germ x f) },
-  property := begin
+{ carrier := coe '' { x : U | is_unit (X.presheaf.germ x f) },
+  is_open' := begin
     rw is_open_iff_forall_mem_open,
     rintros _ ⟨x, hx, rfl⟩,
     obtain ⟨V, i, hxV, hf⟩ := X.is_unit_res_of_is_unit_germ U f x hx,
@@ -127,12 +127,12 @@ lemma mem_top_basic_open (f : X.presheaf.obj (op ⊤)) (x : X) :
   x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ ⟨x, show x ∈ (⊤ : opens X), by trivial⟩ f) :=
 mem_basic_open X f ⟨x, _⟩
 
-lemma basic_open_subset {U : opens X} (f : X.presheaf.obj (op U)) : X.basic_open f ⊆ U :=
+lemma basic_open_le {U : opens X} (f : X.presheaf.obj (op U)) : X.basic_open f ≤ U :=
 by { rintros _ ⟨x, hx, rfl⟩, exact x.2 }
 
 /-- The restriction of a section `f` to the basic open of `f` is a unit. -/
 lemma is_unit_res_basic_open {U : opens X} (f : X.presheaf.obj (op U)) :
-  is_unit (X.presheaf.map (@hom_of_le (opens X) _ _ _ (X.basic_open_subset f)).op f) :=
+  is_unit (X.presheaf.map (@hom_of_le (opens X) _ _ _ (X.basic_open_le f)).op f) :=
 begin
   apply is_unit_of_is_unit_germ,
   rintro ⟨_, ⟨x, hx, rfl⟩⟩,
@@ -142,7 +142,7 @@ begin
 end
 
 @[simp] lemma basic_open_res {U V : (opens X)ᵒᵖ} (i : U ⟶ V) (f : X.presheaf.obj U) :
-  @basic_open X (unop V) (X.presheaf.map i f) = (unop V) ∩ @basic_open X (unop U) f :=
+  @basic_open X (unop V) (X.presheaf.map i f) = (unop V) ⊓ @basic_open X (unop U) f :=
 begin
   induction U using opposite.rec,
   induction V using opposite.rec,
@@ -174,7 +174,7 @@ end
 begin
   ext1,
   dsimp [RingedSpace.basic_open],
-  rw set.image_inter subtype.coe_injective,
+  rw ←set.image_inter subtype.coe_injective,
   congr,
   ext,
   simp_rw map_mul,
@@ -185,7 +185,7 @@ lemma basic_open_of_is_unit {U : opens X} {f : X.presheaf.obj (op U)} (hf : is_u
   X.basic_open f = U :=
 begin
   apply le_antisymm,
-  { exact X.basic_open_subset f },
+  { exact X.basic_open_le f },
   intros x hx,
   erw X.mem_basic_open f (⟨x, hx⟩ : U),
   exact ring_hom.is_unit_map _ hf

@@ -5,9 +5,13 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.eq_to_hom
 import category_theory.functor.const
+import data.prod.basic
 
 /-!
 # Cartesian products of categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the category instance on `C × D` when `C` and `D` are categories.
 

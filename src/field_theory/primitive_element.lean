@@ -5,7 +5,6 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.fixed
 import field_theory.is_alg_closed.basic
 import field_theory.separable
 import ring_theory.integral_domain

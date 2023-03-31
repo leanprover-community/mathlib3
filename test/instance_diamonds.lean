@@ -108,17 +108,17 @@ end has_smul
 /-! ## `with_top` (Type with point at infinity) instances -/
 section with_top
 
-example (R : Type*) [h : ordered_semiring R] :
+example (R : Type*) [h : strict_ordered_semiring R] :
   (@with_top.add_comm_monoid R
     (@non_unital_non_assoc_semiring.to_add_comm_monoid R
       (@non_assoc_semiring.to_non_unital_non_assoc_semiring R
         (@semiring.to_non_assoc_semiring R
-          (@ordered_semiring.to_semiring R h)))))
+          (@strict_ordered_semiring.to_semiring R h)))))
         =
   (@ordered_add_comm_monoid.to_add_comm_monoid (with_top R)
     (@with_top.ordered_add_comm_monoid R
       (@ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid R
-        (@ordered_semiring.to_ordered_cancel_add_comm_monoid R h)))) :=
+        (@strict_ordered_semiring.to_ordered_cancel_add_comm_monoid R h)))) :=
 rfl
 
 end with_top
@@ -243,7 +243,7 @@ example : @euclidean_domain.to_comm_ring _ (@field.to_euclidean_domain _ (zmod.f
   zmod.comm_ring p :=
 rfl
 
-example (n : ℕ) : zmod.comm_ring (n + 1) = fin.comm_ring n := rfl
+example (n : ℕ) : zmod.comm_ring (n + 1) = fin.comm_ring (n + 1) := rfl
 example : zmod.comm_ring 0 = int.comm_ring := rfl
 
 end zmod

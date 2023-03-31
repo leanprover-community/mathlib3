@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import tactic.ring
 import tactic.doc_commands
+import algebra.group.commutator
 
 /-!
 # `group`

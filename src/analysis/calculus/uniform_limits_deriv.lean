@@ -16,12 +16,12 @@ _uniformly_. The formal statement appears as `has_fderiv_at_of_tendsto_locally_u
 
 ## Main statements
 
-* `uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv`: If
+* `uniform_cauchy_seq_on_filter_of_fderiv`: If
     1. `f : ℕ → E → G` is a sequence of functions which have derivatives
        `f' : ℕ → E → (E →L[𝕜] G)` on a neighborhood of `x`,
     2. the functions `f` converge at `x`, and
-    3. the derivatives `f'` converge uniformly on a neighborhood of `x`,
-  then the `f` converge _uniformly_ on a neighborhood of `x`
+    3. the derivatives `f'` form a Cauchy sequence uniformly on a neighborhood of `x`,
+  then the `f` form a Cauchy sequence _uniformly_ on a neighborhood of `x`
 * `has_fderiv_at_of_tendsto_uniformly_on_filter` : Suppose (1), (2), and (3) above are true. Let
   `g` (resp. `g'`) be the limiting function of the `f` (resp. `g'`). Then `f'` is the derivative of
   `g` on a neighborhood of `x`
@@ -93,28 +93,29 @@ uniform convergence, limits of derivatives
 -/
 
 open filter
-open_locale uniformity filter topological_space
+open_locale uniformity filter topology
 
 section limits_of_derivatives
 
-variables {ι : Type*} {l : filter ι} [ne_bot l]
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {ι : Type*} {l : filter ι}
+  {E : Type*} [normed_add_comm_group E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
   {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
   {x : E}
 
 /-- If a sequence of functions real or complex functions are eventually differentiable on a
-neighborhood of `x`, they converge pointwise _at_ `x`, and their derivatives
-converge uniformly in a neighborhood of `x`, then the functions form a uniform Cauchy sequence
-in a neighborhood of `x`. -/
-lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
+neighborhood of `x`, they are Cauchy _at_ `x`, and their derivatives
+are a uniform Cauchy sequence in a neighborhood of `x`, then the functions form a uniform Cauchy
+sequence in a neighborhood of `x`. -/
+lemma uniform_cauchy_seq_on_filter_of_fderiv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
+  rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
     hf' ⊢,
 
   suffices : tendsto_uniformly_on_filter
@@ -135,11 +136,11 @@ begin
     have hr : 0 < r, { simp [hR], },
     have hr' : ∀ ⦃y : E⦄, y ∈ metric.ball x r → c y,
     { exact (λ y hy, hR' (lt_of_lt_of_le (metric.mem_ball.mp hy) (min_le_right _ _))), },
-    have hxy : ∀ (y : E), y ∈ metric.ball x r → ∥y - x∥ < 1,
+    have hxy : ∀ (y : E), y ∈ metric.ball x r → ‖y - x‖ < 1,
     { intros y hy,
       rw [metric.mem_ball, dist_eq_norm] at hy,
       exact lt_of_lt_of_le hy (min_le_left _ _), },
-    have hxyε : ∀ (y : E), y ∈ metric.ball x r → ε * ∥y - x∥ < ε,
+    have hxyε : ∀ (y : E), y ∈ metric.ball x r → ε * ‖y - x‖ < ε,
     { intros y hy,
       exact (mul_lt_iff_lt_one_right hε.lt).mpr (hxy y hy), },
 
@@ -154,7 +155,7 @@ begin
       (convex_ball x r) (metric.mem_ball_self hr) hy, },
   { -- This is just `hfg` run through `eventually_prod_iff`
     refine metric.tendsto_uniformly_on_filter_iff.mpr (λ ε hε, _),
-    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg.cauchy_map).2 ε hε,
+    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg).2 ε hε,
     exact eventually_prod_iff.mpr
     ⟨ (λ (n : ι × ι), (f n.1 x ∈ t) ∧ (f n.2 x ∈ t)),
       eventually_prod_iff.mpr ⟨_, ht, _, ht, (λ n hn n' hn', ⟨hn, hn'⟩)⟩,
@@ -165,23 +166,26 @@ end
 
 /-- A variant of the second fundamental theorem of calculus (FTC-2): If a sequence of functions
 between real or complex normed spaces are differentiable on a ball centered at `x`, they
-converge pointwise _at_ `x`, and their derivatives converge uniformly on the ball, then the
+form a Cauchy sequence _at_ `x`, and their derivatives are Cauchy uniformly on the ball, then the
 functions form a uniform Cauchy sequence on the ball.
 
 NOTE: The fact that we work on a ball is typically all that is necessary to work with power series
 and Dirichlet series (our primary use case). However, this can be generalized by replacing the ball
 with any connected, bounded, open set and replacing uniform convergence with local uniform
-convergence.
+convergence. See `cauchy_map_of_uniform_cauchy_seq_on_fderiv`.
 -/
-lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv
-  {r : ℝ} (hr : 0 < r)
-  (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
+lemma uniform_cauchy_seq_on_ball_of_fderiv
+  {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : E, y ∈ metric.ball x r → has_fderiv_at (f n) (f' n y) y)
-  (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
-  rw normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero at hf' ⊢,
-
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
+  haveI : ne_bot l, from (cauchy_map_iff.1 hfg).1,
+  rcases le_or_lt r 0 with hr|hr,
+  { simp only [metric.ball_eq_empty.2 hr, uniform_cauchy_seq_on, set.mem_empty_iff_false,
+      is_empty.forall_iff, eventually_const, implies_true_iff] },
+  rw seminormed_add_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero at hf' ⊢,
   suffices : tendsto_uniformly_on
     (λ (n : ι × ι) (z : E), f n.1 z - f n.2 z - (f n.1 x - f n.2 x)) 0
       (l ×ᶠ l) (metric.ball x r) ∧
@@ -207,13 +211,13 @@ begin
       (λ z hz, ((hf n.1 z hz).sub (hf n.2 z hz)).has_fderiv_within_at)
       (λ z hz, (hn z hz).le) (convex_ball x r) (metric.mem_ball_self hr) hy,
     refine lt_of_le_of_lt mvt _,
-    have : q * ∥y - x∥ < q * r,
+    have : q * ‖y - x‖ < q * r,
     { exact mul_lt_mul' rfl.le (by simpa only [dist_eq_norm] using metric.mem_ball.mp hy)
         (norm_nonneg _) hqpos, },
     exact this.trans hq, },
   { -- This is just `hfg` run through `eventually_prod_iff`
     refine metric.tendsto_uniformly_on_iff.mpr (λ ε hε, _),
-    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg.cauchy_map).2 ε hε,
+    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg).2 ε hε,
     rw eventually_prod_iff,
     refine ⟨(λ n, f n x ∈ t), ht, (λ n, f n x ∈ t), ht, _⟩,
     intros n hn n' hn' z hz,
@@ -221,26 +225,63 @@ begin
     exact (ht' _ hn _ hn'), },
 end
 
+/-- If a sequence of functions between real or complex normed spaces are differentiable on a
+preconnected open set, they form a Cauchy sequence _at_ `x`, and their derivatives are Cauchy
+uniformly on the set, then the functions form a Cauchy sequence at any point in the set. -/
+lemma cauchy_map_of_uniform_cauchy_seq_on_fderiv
+  {s : set E} (hs : is_open s) (h's : is_preconnected s)
+  (hf' : uniform_cauchy_seq_on f' l s)
+  (hf : ∀ n : ι, ∀ y : E, y ∈ s → has_fderiv_at (f n) (f' n y) y)
+  {x₀ x : E} (hx₀ : x₀ ∈ s) (hx : x ∈ s)
+  (hfg : cauchy (map (λ n, f n x₀) l)) :
+  cauchy (map (λ n, f n x) l) :=
+begin
+  haveI : ne_bot l, from (cauchy_map_iff.1 hfg).1,
+  let t := {y | y ∈ s ∧ cauchy (map (λ n, f n y) l)},
+  suffices H : s ⊆ t, from (H hx).2,
+  have A : ∀ x ε, x ∈ t → metric.ball x ε ⊆ s → metric.ball x ε ⊆ t,
+  from λ x ε xt hx y hy, ⟨hx hy, (uniform_cauchy_seq_on_ball_of_fderiv (hf'.mono hx)
+    (λ n y hy, hf n y (hx hy)) xt.2).cauchy_map hy⟩,
+  have open_t : is_open t,
+  { rw metric.is_open_iff,
+    assume x hx,
+    rcases metric.is_open_iff.1 hs x hx.1 with ⟨ε, εpos, hε⟩,
+    exact ⟨ε, εpos, A x ε hx hε⟩ },
+  have st_nonempty : (s ∩ t).nonempty, from ⟨x₀, hx₀, ⟨hx₀, hfg⟩⟩,
+  suffices H : closure t ∩ s ⊆ t, from h's.subset_of_closure_inter_subset open_t st_nonempty H,
+  rintros x ⟨xt, xs⟩,
+  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), metric.ball x ε ⊆ s,
+    from metric.is_open_iff.1 hs x xs,
+  obtain ⟨y, yt, hxy⟩ : ∃ (y : E) (yt : y ∈ t), dist x y < ε / 2,
+    from metric.mem_closure_iff.1 xt _ (half_pos εpos),
+  have B : metric.ball y (ε / 2) ⊆ metric.ball x ε,
+  { apply metric.ball_subset_ball', rw dist_comm, linarith },
+  exact A y (ε / 2) yt (B.trans hε) (metric.mem_ball.2 hxy)
+end
+
 /-- If `f_n → g` pointwise and the derivatives `(f_n)' → h` _uniformly_ converge, then
-in fact for a fixed `y`, the difference quotients `∥z - y∥⁻¹ • (f_n z - f_n y)` converge
-_uniformly_ to `∥z - y∥⁻¹ • (g z - g y)` -/
+in fact for a fixed `y`, the difference quotients `‖z - y‖⁻¹ • (f_n z - f_n y)` converge
+_uniformly_ to `‖z - y‖⁻¹ • (g z - g y)` -/
 lemma difference_quotients_converge_uniformly
   (hf' : tendsto_uniformly_on_filter f' g' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
   (hfg : ∀ᶠ (y : E) in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y))) :
   tendsto_uniformly_on_filter
-    (λ n : ι, λ y : E, (∥y - x∥⁻¹ : 𝕜) • (f n y - f n x))
-    (λ y : E, (∥y - x∥⁻¹ : 𝕜) • (g y - g x))
+    (λ n : ι, λ y : E, (‖y - x‖⁻¹ : 𝕜) • (f n y - f n x))
+    (λ y : E, (‖y - x‖⁻¹ : 𝕜) • (g y - g x))
     l (𝓝 x) :=
 begin
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
+  rcases eq_or_ne l ⊥ with hl|hl,
+  { simp only [hl, tendsto_uniformly_on_filter, bot_prod, eventually_bot, implies_true_iff] },
+  haveI : ne_bot l := ⟨hl⟩,
   refine uniform_cauchy_seq_on_filter.tendsto_uniformly_on_filter_of_tendsto _
     ((hfg.and (eventually_const.mpr hfg.self_of_nhds)).mono (λ y hy, (hy.1.sub hy.2).const_smul _)),
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+  rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
   rw metric.tendsto_uniformly_on_filter_iff,
 
   have hfg' := hf'.uniform_cauchy_seq_on_filter,
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
-    hfg',
+  rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at hfg',
   rw metric.tendsto_uniformly_on_filter_iff at hfg',
   intros ε hε,
   obtain ⟨q, hqpos, hqε⟩ := exists_pos_rat_lt hε,
@@ -257,7 +298,7 @@ begin
   rw [← smul_sub, norm_smul, norm_inv, is_R_or_C.norm_coe_norm],
   refine lt_of_le_of_lt _ hqε,
   by_cases hyz' : x = y, { simp [hyz', hqpos.le], },
-  have hyz : 0 < ∥y - x∥,
+  have hyz : 0 < ‖y - x‖,
   {rw norm_pos_iff, intros hy', exact hyz' (eq_of_sub_eq_zero hy').symm, },
   rw [inv_mul_le_iff hyz, mul_comm, sub_sub_sub_comm],
   simp only [pi.zero_apply, dist_zero_left] at e,
@@ -276,7 +317,7 @@ In words the assumptions mean the following:
   * `hf`: For all `(y, n)` with `y` sufficiently close to `x` and `n` sufficiently large, `f' n` is
     the derivative of `f n`
   * `hfg`: The `f n` converge pointwise to `g` on a neighborhood of `x` -/
-lemma has_fderiv_at_of_tendsto_uniformly_on_filter
+lemma has_fderiv_at_of_tendsto_uniformly_on_filter [ne_bot l]
   (hf' : tendsto_uniformly_on_filter f' g' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
   (hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y))) :
@@ -292,7 +333,7 @@ begin
 
   -- Introduce extra quantifier via curried filters
   suffices : tendsto
-    (λ (y : ι × E), ∥y.2 - x∥⁻¹ * ∥g y.2 - g x - (g' x) (y.2 - x)∥) (l.curry (𝓝 x)) (𝓝 0),
+    (λ (y : ι × E), ‖y.2 - x‖⁻¹ * ‖g y.2 - g x - (g' x) (y.2 - x)‖) (l.curry (𝓝 x)) (𝓝 0),
   { rw metric.tendsto_nhds at this ⊢,
     intros ε hε,
     specialize this ε hε,
@@ -311,11 +352,11 @@ begin
     rw [←norm_norm, ←norm_inv,←@is_R_or_C.norm_of_real 𝕜 _ _,
       is_R_or_C.of_real_inv, ←norm_smul], },
   rw ←tendsto_zero_iff_norm_tendsto_zero,
-  have : (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • ((f a.1 a.2 - f a.1 x) -
+  have : (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • ((f a.1 a.2 - f a.1 x) -
       ((f' a.1 x) a.2 - (f' a.1 x) x))) +
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • ((f' a.1 x - g' x) (a.2 - x))),
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • ((f' a.1 x - g' x) (a.2 - x))),
   { ext, simp only [pi.add_apply], rw [←smul_add, ←smul_add], congr,
   simp only [map_sub, sub_add_sub_cancel, continuous_linear_map.coe_sub', pi.sub_apply], },
   simp_rw this,
@@ -357,7 +398,7 @@ begin
     intros n,
     simp_rw [norm_smul, norm_inv, is_R_or_C.norm_coe_norm],
     by_cases hx : x = n.2, { simp [hx], },
-    have hnx : 0 < ∥n.2 - x∥,
+    have hnx : 0 < ‖n.2 - x‖,
     { rw norm_pos_iff, intros hx', exact hx (eq_of_sub_eq_zero hx').symm, },
     rw [inv_mul_le_iff hnx, mul_comm],
     simp only [function.comp_app, prod_map],
@@ -365,34 +406,48 @@ begin
     exact (f' n.1 x - g' x).le_op_norm (n.2 - x), },
 end
 
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ n, ∀ x ∈ s, has_fderiv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
+  have h3 : set.univ ×ˢ s ∈ l ×ᶠ 𝓝 x := by simp only [h1, prod_mem_prod_iff, univ_mem, and_self],
+  have h4 : ∀ᶠ (n : ι × E) in l ×ᶠ 𝓝 x, has_fderiv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_of_mem h3 (λ ⟨n, z⟩ ⟨hn, hz⟩, hf n z hz),
+  refine has_fderiv_at_of_tendsto_uniformly_on_filter _ h4 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
+end
+
+/-- A slight variant of `has_fderiv_at_of_tendsto_locally_uniformly_on` with the assumption stated
+in terms of `differentiable_on` rather than `has_fderiv_at`. This makes a few proofs nicer in
+complex analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (fderiv 𝕜 ∘ f) g' l s)
+  (hf : ∀ n, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  refine has_fderiv_at_of_tendsto_locally_uniformly_on hs hf' (λ n z hz, _) hfg hx,
+  exact ((hf n z hz).differentiable_at (hs.mem_nhds hz)).has_fderiv_at
+end
+
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
 _uniformly_ to their limit on an open set containing `x`. -/
-lemma has_fderiv_at_of_tendsto_uniformly_on
+lemma has_fderiv_at_of_tendsto_uniformly_on [ne_bot l]
   {s : set E} (hs : is_open s)
   (hf' : tendsto_uniformly_on f' g' l s)
   (hf : ∀ (n : ι), ∀ (x : E), x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hfg : ∀ (x : E), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : E), x ∈ s → has_fderiv_at g (g' x) x :=
-begin
-  intros x hx,
-  have hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2,
-  { exact eventually_prod_iff.mpr ⟨(λ y, true), (by simp), (λ y, y ∈ s),
-      eventually_mem_set.mpr (mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩),
-      (λ n hn y hy, hf n y hy)⟩, },
-
-  have hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y)),
-  { exact eventually_iff.mpr (mem_nhds_iff.mpr ⟨s, set.subset_def.mpr hfg, hs, hx⟩), },
-
-  have hfg' := hf'.tendsto_uniformly_on_filter.mono_right (calc
-    𝓝 x = 𝓝[s] x : ((hs.nhds_within_eq hx).symm)
-    ... ≤ 𝓟 s : (by simp only [nhds_within, inf_le_right])),
-
-  exact has_fderiv_at_of_tendsto_uniformly_on_filter hfg' hf hfg,
-end
+λ x, has_fderiv_at_of_tendsto_locally_uniformly_on hs hf'.tendsto_locally_uniformly_on hf hfg
 
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
 _uniformly_ to their limit. -/
-lemma has_fderiv_at_of_tendsto_uniformly
+lemma has_fderiv_at_of_tendsto_uniformly [ne_bot l]
   (hf' : tendsto_uniformly f' g' l)
   (hf : ∀ (n : ι), ∀ (x : E), has_fderiv_at (f n) (f' n x) x)
   (hfg : ∀ (x : E), tendsto (λ n, f n x) l (𝓝 (g x))) :
@@ -431,7 +486,7 @@ begin
   -- metrics are written in terms of `<`. So we need to shrink `ε` utilizing the archimedean
   -- property of `ℝ`
 
-  rw [normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+  rw [seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
       metric.tendsto_uniformly_on_filter_iff] at hf' ⊢,
   intros ε hε,
   obtain ⟨q, hq, hq'⟩ := exists_between hε.lt,
@@ -447,24 +502,21 @@ begin
   exact mul_le_mul hn.le rfl.le (norm_nonneg _) hq.le,
 end
 
-variables [ne_bot l]
-
-lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_deriv
+lemma uniform_cauchy_seq_on_filter_of_deriv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
-  exact uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
+  exact uniform_cauchy_seq_on_filter_of_fderiv
     hf'.one_smul_right hf hfg,
 end
 
-lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
-  {r : ℝ} (hr : 0 < r)
-  (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
+lemma uniform_cauchy_seq_on_ball_of_deriv
+  {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : 𝕜, y ∈ metric.ball x r → has_deriv_at (f n) (f' n y) y)
-  (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
@@ -473,10 +525,10 @@ begin
     (metric.ball x r),
   { rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
     exact hf'.one_smul_right, },
-  exact uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv hr hf' hf hfg,
+  exact uniform_cauchy_seq_on_ball_of_fderiv hf' hf hfg,
 end
 
-lemma has_deriv_at_of_tendsto_uniformly_on_filter
+lemma has_deriv_at_of_tendsto_uniformly_on_filter [ne_bot l]
   (hf' : tendsto_uniformly_on_filter f' g' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2)
   (hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y))) :
@@ -508,34 +560,51 @@ begin
   exact has_fderiv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
 end
 
-lemma has_deriv_at_of_tendsto_uniformly_on
-  {s : set 𝕜} (hs : is_open s)
-  (hf' : tendsto_uniformly_on f' g' l s)
-  (hf : ∀ (n : ι), ∀ (x : 𝕜), x ∈ s → has_deriv_at (f n) (f' n x) x)
-  (hfg : ∀ (x : 𝕜), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
-  ∀ (x : 𝕜), x ∈ s → has_deriv_at g (g' x) x :=
+lemma has_deriv_at_of_tendsto_locally_uniformly_on [ne_bot l] {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ᶠ n in l, ∀ x ∈ s, has_deriv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
 begin
-  intros x hx,
-  have hsx : s ∈ 𝓝 x, { exact mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩, },
-  rw tendsto_uniformly_on_iff_tendsto_uniformly_on_filter at hf',
-  have hf' := hf'.mono_right (le_principal_iff.mpr hsx),
-  have hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y)),
-  { exact eventually_iff_exists_mem.mpr ⟨s, hsx, hfg⟩, },
-  have hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2,
-  { rw eventually_prod_iff,
-    refine ⟨(λ y, true), by simp, (λ y, y ∈ s), _, (λ n hn y hy, hf n y hy)⟩,
-    exact eventually_mem_set.mpr hsx, },
-  exact has_deriv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
+  have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
+  have h2 : ∀ᶠ (n : ι × 𝕜) in l ×ᶠ 𝓝 x, has_deriv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_prod_iff.2 ⟨_, hf, λ x, x ∈ s, h1, λ n, id⟩,
+  refine has_deriv_at_of_tendsto_uniformly_on_filter _ h2 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
 end
 
-lemma has_deriv_at_of_tendsto_uniformly
+/-- A slight variant of `has_deriv_at_of_tendsto_locally_uniformly_on` with the assumption stated in
+terms of `differentiable_on` rather than `has_deriv_at`. This makes a few proofs nicer in complex
+analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_deriv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (deriv ∘ f) g' l s)
+  (hf : ∀ᶠ n in l, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
+begin
+  refine has_deriv_at_of_tendsto_locally_uniformly_on hs hf' _ hfg hx,
+  filter_upwards [hf] with n h z hz using ((h z hz).differentiable_at (hs.mem_nhds hz)).has_deriv_at
+end
+
+lemma has_deriv_at_of_tendsto_uniformly_on [ne_bot l]
+  {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_uniformly_on f' g' l s)
+  (hf : ∀ᶠ n in l, ∀ (x : 𝕜), x ∈ s → has_deriv_at (f n) (f' n x) x)
+  (hfg : ∀ (x : 𝕜), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
+  ∀ (x : 𝕜), x ∈ s → has_deriv_at g (g' x) x :=
+λ x, has_deriv_at_of_tendsto_locally_uniformly_on hs hf'.tendsto_locally_uniformly_on hf hfg
+
+lemma has_deriv_at_of_tendsto_uniformly [ne_bot l]
   (hf' : tendsto_uniformly f' g' l)
-  (hf : ∀ (n : ι), ∀ (x : 𝕜), has_deriv_at (f n) (f' n x) x)
+  (hf : ∀ᶠ n in l, ∀ (x : 𝕜), has_deriv_at (f n) (f' n x) x)
   (hfg : ∀ (x : 𝕜), tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : 𝕜), has_deriv_at g (g' x) x :=
 begin
   intros x,
-  have hf : ∀ (n : ι), ∀ (x : 𝕜), x ∈ set.univ → has_deriv_at (f n) (f' n x) x, { simp [hf], },
+  have hf : ∀ᶠ n in l, ∀ (x : 𝕜), x ∈ set.univ → has_deriv_at (f n) (f' n x) x,
+    by filter_upwards [hf] with n h x hx using h x,
   have hfg : ∀ (x : 𝕜), x ∈ set.univ → tendsto (λ n, f n x) l (𝓝 (g x)), { simp [hfg], },
   have hf' : tendsto_uniformly_on f' g' l set.univ, { rwa tendsto_uniformly_on_univ, },
   exact has_deriv_at_of_tendsto_uniformly_on is_open_univ hf' hf hfg x (set.mem_univ x),

@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.mul_action
 import topology.algebra.uniform_group
+import topology.continuous_function.basic
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
-import linear_algebra.determinant
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -27,7 +27,7 @@ The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M�
 -/
 
 open filter linear_map (ker range)
-open_locale topological_space big_operators filter
+open_locale topology big_operators filter
 
 universes u v w u'
 
@@ -205,7 +205,7 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-lemma submodule.submodule_topological_closure (s : submodule R M) :
+lemma submodule.le_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -220,13 +220,13 @@ closure_minimal h ht
 
 lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
   s.topological_closure ≤ t.topological_closure :=
-s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+s.topological_closure_minimal (h.trans t.le_topological_closure)
   t.is_closed_topological_closure
 
 /-- The topological closure of a closed submodule `s` is equal to `s`. -/
 lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
   s.topological_closure = s :=
-le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.le_topological_closure
 
 /-- A subspace is dense iff its topological closure is the entire space. -/
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
@@ -238,7 +238,35 @@ instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
   complete_space U.topological_closure :=
 is_closed_closure.complete_space_coe
 
+/-- A maximal proper subspace of a topological module (i.e a `submodule` satisfying `is_coatom`)
+is either closed or dense. -/
+lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
+  is_closed (s : set M) ∨ dense (s : set M) :=
+(hs.le_iff.mp s.le_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
+  submodule.dense_iff_topological_closure_eq_top.mpr
+
 end closure
+
+section pi
+
+lemma linear_map.continuous_on_pi {ι : Type*} {R : Type*} {M : Type*} [finite ι] [semiring R]
+  [topological_space R] [add_comm_monoid M] [module R M] [topological_space M]
+  [has_continuous_add M] [has_continuous_smul R M] (f : (ι → R) →ₗ[R] M) :
+  continuous f :=
+begin
+  casesI nonempty_fintype ι,
+  classical,
+  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
+  -- function.
+  have : (f : (ι → R) → M) =
+         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
+    by { ext x, exact f.pi_apply_eq_sum_univ x },
+  rw this,
+  refine continuous_finset_sum _ (λi hi, _),
+  exact (continuous_apply i).smul continuous_const
+end
+
+end pi
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications `M` and `M₂` will be topological modules over the topological
@@ -473,6 +501,11 @@ definitional equalities. -/
 protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
 { to_linear_map := f.to_linear_map.copy f' h,
   cont := show continuous f', from h.symm ▸ f.continuous }
+
+@[simp]
+lemma coe_copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : f.copy f' h = f := fun_like.ext' h
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f
@@ -1297,12 +1330,6 @@ end smul_rightₗ
 
 section comm_ring
 
-/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
-write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
-@[reducible] noncomputable def det {R : Type*} [comm_ring R]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
-linear_map.det (A : M →ₗ[R] M)
-
 variables
 {R : Type*} [comm_ring R]
 {M : Type*} [topological_space M] [add_comm_group M]
@@ -1572,12 +1599,17 @@ def prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L
   (e.prod e' : (M₁ × M₃) →L[R₁] (M₂ × M₄)) = (e : M₁ →L[R₁] M₂).prod_map (e' : M₃ →L[R₁] M₄) :=
 rfl
 
+lemma prod_symm [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+  (e : M₁ ≃L[R₁] M₂) (e' : M₃ ≃L[R₁] M₄) :
+  (e.prod e').symm = e.symm.prod e'.symm :=
+rfl
+
 include σ₂₁
-theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
+protected theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
 e.to_linear_equiv.to_equiv.bijective
-theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
+protected theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
 e.to_linear_equiv.to_equiv.injective
-theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
+protected theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
 e.to_linear_equiv.to_equiv.surjective
 
 include σ₃₂ σ₃₁ σ₁₃
@@ -1716,6 +1748,14 @@ variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
   {σ₂₄ : R₂ →+* R₄} {σ₁₄ : R₁ →+* R₄}
   [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
   [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+
+/-- The continuous linear equivalence between `ulift M₁` and `M₁`. -/
+def ulift : ulift M₁ ≃L[R₁] M₁ :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
 
 include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
 
@@ -1902,11 +1942,6 @@ def fin_two_arrow : (fin 2 → M) ≃L[R] M × M :=
 { to_linear_equiv := linear_equiv.fin_two_arrow R M, .. pi_fin_two R (λ _, M) }
 
 end
-
-@[simp] lemma det_coe_symm {R : Type*} [field R]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
-  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
-linear_equiv.det_coe_symm A.to_linear_equiv
 
 end continuous_linear_equiv
 

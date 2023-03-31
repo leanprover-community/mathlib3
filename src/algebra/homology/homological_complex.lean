@@ -428,6 +428,14 @@ def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
   iso_app (iso_of_components f hf) i = f i :=
 by { ext, simp, }
 
+lemma is_iso_of_components (f : C₁ ⟶ C₂) [∀ (n : ι), is_iso (f.f n)] : is_iso f :=
+begin
+  convert is_iso.of_iso (homological_complex.hom.iso_of_components (λ n, as_iso (f.f n))
+    (by tidy)),
+  ext n,
+  refl,
+end
+
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
 /-- `f.prev j` is `f.f i` if there is some `r i j`, and `f.f j` otherwise. -/

@@ -3,7 +3,6 @@ Copyright (c) 2021 Sara Díaz Real. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sara Díaz Real
 -/
-import data.int.basic
 import algebra.associated
 import tactic.linarith
 import tactic.linear_combination

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard
+Authors: Kevin Buzzard, Antoine Labelle
 -/
 
 import algebra.module.basic
@@ -62,6 +62,8 @@ projective module
 
 universes u v
 
+open linear_map finsupp
+
 /- The actual implementation we choose: `P` is projective if the natural surjection
    from the free `R`-module on `P` to `P` splits. -/
 /-- An R-module is projective if it is a direct summand of a free module, or equivalently
@@ -81,6 +83,10 @@ variables {R : Type*} [semiring R] {P : Type*} [add_comm_monoid P] [module R P]
 lemma projective_def : projective R P ↔
   (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem projective_def' : projective R P ↔
+  (∃ s : P →ₗ[R] (P →₀ R), (finsupp.total P P R id) ∘ₗ s = id) :=
+by simp_rw [projective_def, fun_like.ext_iff, function.left_inverse, coe_comp, id_coe, id.def]
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem projective_lifting_property [h : projective R P] (f : M →ₗ[R] N) (g : P →ₗ[R] N)
@@ -103,6 +109,59 @@ begin
   ext p,
   conv_rhs {rw ← hs p},
   simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
+end
+
+variables {Q : Type*} [add_comm_monoid Q] [module R Q]
+
+instance [hP : projective R P] [hQ : projective R Q] : projective R (P × Q) :=
+begin
+  rw module.projective_def',
+  cases hP.out with sP hsP,
+  cases hQ.out with sQ hsQ,
+  use coprod (lmap_domain R R (inl R P Q)) (lmap_domain R R (inr R P Q)) ∘ₗ sP.prod_map sQ,
+  ext; simp only [coe_inl, coe_inr, coe_comp, function.comp_app, prod_map_apply, map_zero,
+    coprod_apply, lmap_domain_apply, map_domain_zero, add_zero, zero_add, id_comp,
+    total_map_domain],
+
+  { rw [←fst_apply _, apply_total R], exact hsP x, },
+  { rw [←snd_apply _, apply_total R], exact finsupp.total_zero_apply _ (sP x), },
+  { rw [←fst_apply _, apply_total R], exact finsupp.total_zero_apply _ (sQ x), },
+  { rw [←snd_apply _, apply_total R], exact hsQ x, },
+end
+
+variables {ι : Type*} (A : ι → Type*) [Π (i : ι), add_comm_monoid (A i)]
+  [Π (i : ι), module R (A i)]
+
+instance [h : Π (i : ι), projective R (A i)] : projective R (Π₀ i, A i) :=
+begin
+  classical,
+  rw module.projective_def',
+  simp_rw projective_def at h, choose s hs using h,
+
+  letI : Π (i : ι), add_comm_monoid (A i →₀ R) := λ i, by apply_instance,
+  letI : Π (i : ι), module R (A i →₀ R) := λ i, by apply_instance,
+  letI : add_comm_monoid (Π₀ (i : ι), A i →₀ R) := @dfinsupp.add_comm_monoid ι (λ i, A i →₀ R) _,
+  letI : module R (Π₀ (i : ι), A i →₀ R) := @dfinsupp.module ι R (λ i, A i →₀ R) _ _ _,
+
+  let f := λ i, lmap_domain R R (dfinsupp.single i : A i → Π₀ i, A i),
+  use dfinsupp.coprod_map f ∘ₗ dfinsupp.map_range.linear_map s,
+
+  ext i x j,
+  simp only [dfinsupp.coprod_map, direct_sum.lof, total_map_domain,
+    coe_comp, coe_lsum, id_coe, linear_equiv.coe_to_linear_map, finsupp_lequiv_dfinsupp_symm_apply,
+    function.comp_app, dfinsupp.lsingle_apply, dfinsupp.map_range.linear_map_apply,
+    dfinsupp.map_range_single, lmap_domain_apply, dfinsupp.to_finsupp_single,
+    finsupp.sum_single_index, id.def, function.comp.left_id, dfinsupp.single_apply],
+  rw [←dfinsupp.lapply_apply j, apply_total R],
+
+  obtain rfl | hij := eq_or_ne i j,
+
+  { convert (hs i) x,
+    { ext, simp },
+    { simp } },
+  { convert finsupp.total_zero_apply _ ((s i) x),
+    { ext, simp [hij] },
+    { simp [hij] } }
 end
 
 end semiring

@@ -131,10 +131,10 @@ begin
   { rw [← quotient.mk_eq_zero, mk_smul, f1.some_spec, ← f.map_smul],
     convert f.map_zero, change _ • submodule.quotient.mk _ = _,
     rw [← mk_smul, quotient.mk_eq_zero, algebra.id.smul_eq_mul, mul_one],
-    exact mem_span_singleton_self _ },
+    exact submodule.mem_span_singleton_self _ },
   obtain ⟨a, ha⟩ := p_pow_smul_lift hp hM hz this,
   refine ⟨f1.some - a • z, by rw [smul_sub, sub_eq_zero, ha], _⟩,
-  rw [mk_sub, mk_smul, (quotient.mk_eq_zero _).mpr $ mem_span_singleton_self _,
+  rw [mk_sub, mk_smul, (quotient.mk_eq_zero _).mpr $ submodule.mem_span_singleton_self _,
     smul_zero, sub_zero, f1.some_spec]
 end
 
@@ -194,7 +194,7 @@ begin
       rw [submodule.map_span, submodule.map_top, range_mkq] at hs', simp only [mkq_apply] at hs',
       simp only [s'], rw [set.range_comp (_ ∘ s), fin.range_succ_above],
       rw [← set.range_comp, ← set.insert_image_compl_eq_range _ j, function.comp_apply,
-        (quotient.mk_eq_zero _).mpr (mem_span_singleton_self _), span_insert_zero] at hs',
+        (quotient.mk_eq_zero _).mpr (submodule.mem_span_singleton_self _), span_insert_zero] at hs',
       exact hs' } }
 end
 end p_torsion
@@ -213,9 +213,10 @@ begin
     haveI := λ i, is_noetherian_submodule' (torsion_by R N $ p i ^ e i),
     exact λ i, torsion_by_prime_power_decomposition (hp i)
       ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
+  classical,
   refine ⟨Σ i, fin (this i).some, infer_instance,
     λ ⟨i, j⟩, p i, λ ⟨i, j⟩, hp i, λ ⟨i, j⟩, (this i).some_spec.some j,
-    ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h.1 h.2).symm.trans $
+    ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h).symm.trans $
       (dfinsupp.map_range.linear_equiv $ λ i, (this i).some_spec.some_spec.some).trans $
       (direct_sum.sigma_lcurry_equiv R).symm.trans
       (dfinsupp.map_range.linear_equiv $ λ i, quot_equiv_of_eq _ _ _)⟩⟩,
@@ -233,7 +234,7 @@ begin
   haveI := is_noetherian_submodule' (torsion R N),
   haveI := module.finite.of_surjective _ (torsion R N).mkq_surjective,
   obtain ⟨I, fI, p, hp, e, ⟨h⟩⟩ := equiv_direct_sum_of_is_torsion (@torsion_is_torsion R N _ _ _),
-  obtain ⟨n, ⟨g⟩⟩ := @module.free_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
+  obtain ⟨n, ⟨g⟩⟩ := @module.basis_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
   haveI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
   obtain ⟨f, hf⟩ := module.projective_lifting_property _ linear_map.id (torsion R N).mkq_surjective,
   refine ⟨n, I, fI, p, hp, e,

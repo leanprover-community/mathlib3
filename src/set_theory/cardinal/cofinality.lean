@@ -10,6 +10,9 @@ import set_theory.ordinal.fixed_point
 /-!
 # Cofinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions
@@ -762,7 +765,7 @@ begin
   { refine ⟨beth_ne_zero o, λ a ha, _⟩,
     rw beth_limit ⟨h, H⟩ at ha,
     rcases exists_lt_of_lt_csupr' ha with ⟨⟨i, hi⟩, ha⟩,
-    have := power_le_power_left two_ne_zero' ha.le,
+    have := power_le_power_left two_ne_zero ha.le,
     rw ←beth_succ at this,
     exact this.trans_lt (beth_lt.2 (H i hi)) }
 end

@@ -5,7 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.abelian.exact
 import category_theory.over
-import algebra.category.Module.abelian
+import algebra.category.Module.epi_mono
 
 /-!
 # Pseudoelements in abelian categories

@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.natural_isomorphism
-import category_theory.equivalence
 import category_theory.eq_to_hom
 
 /-!
 # Quotient category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Constructs the quotient of a category by an arbitrary family of relations on its hom-sets,
 by introducing a type synonym for the objects, and identifying homs as necessary.
@@ -126,7 +128,7 @@ include H
 def lift : quotient r ⥤ D :=
 { obj := λ a, F.obj a.as,
   map := λ a b hf, quot.lift_on hf (λ f, F.map f)
-    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simp [H _ _ _ _ h], }),
+    (by { rintro _ _ ⟨_, _, _, _, h⟩, simp [H _ _ _ _ h], }),
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
 
@@ -137,7 +139,7 @@ begin
   { rintro X Y f, simp, },
 end
 
-lemma lift_spec_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
+lemma lift_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
 begin
   subst_vars,
   apply functor.hext,

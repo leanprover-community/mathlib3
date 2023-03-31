@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.fin.fin2
 import data.pfun
 import data.vector3
-import number_theory.pell
+import number_theory.pell_matiyasevic
 
 /-!
 # Diophantine functions and Matiyasevic's theorem
@@ -383,7 +383,7 @@ lemma dioph_fn_compn : ∀ {n} {S : set (α ⊕ fin2 n → ℕ)} (d : dioph S)
   by { dsimp, congr', ext x, obtain (_ | _ | _) := x; refl },
   have dioph {v | v ⊗ f v :: (λ (i : fin2 n), fl i v) ∈ S},
   from @dioph_fn_compn n (λ v, S (v ∘ inl ⊗ f (v ∘ inl) :: v ∘ inr)) this _ dfl,
-  ext this $ λ v, by { dsimp, congr', ext x, obtain (_ | _ | _) := x; refl }
+  ext this $ λ v, by { dsimp, congr', ext x, obtain _ | _ | _ := x; refl }
 
 lemma dioph_comp {S : set (vector3 ℕ n)} (d : dioph S) (f : vector3 ((α → ℕ) → ℕ) n)
   (df : vector_allp dioph_fn f) : dioph {v | (λ i, f i v) ∈ S} :=

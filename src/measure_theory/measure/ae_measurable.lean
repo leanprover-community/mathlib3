@@ -129,9 +129,9 @@ lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
-  (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
@@ -208,10 +208,19 @@ let ⟨g, hgm, hg⟩ := h in hgm.null_measurable.congr hg.symm
 
 end ae_measurable
 
-lemma ae_measurable_interval_oc_iff [linear_order α] {f : α → β} {a b : α} :
+lemma ae_measurable_const' (h : ∀ᵐ x y ∂μ, f x = f y) : ae_measurable f μ :=
+begin
+  rcases eq_or_ne μ 0 with rfl | hμ,
+  { exact ae_measurable_zero_measure },
+  { haveI := ae_ne_bot.2 hμ,
+    rcases h.exists with ⟨x, hx⟩,
+    exact ⟨const α (f x), measurable_const, eventually_eq.symm hx⟩ }
+end
+
+lemma ae_measurable_uIoc_iff [linear_order α] {f : α → β} {a b : α} :
   (ae_measurable f $ μ.restrict $ Ι a b) ↔
     (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_measurable_union_iff]
+by rw [uIoc_eq_union, ae_measurable_union_iff]
 
 lemma ae_measurable_iff_measurable [μ.is_complete] :
   ae_measurable f μ ↔ measurable f :=
@@ -274,18 +283,15 @@ lemma ae_measurable_Ioi_of_forall_Ioc {β} {mβ : measurable_space β}
   ae_measurable g (μ.restrict (Ioi x)) :=
 begin
   haveI : nonempty α := ⟨x⟩,
-  haveI : (at_top : filter α).ne_bot := at_top_ne_bot,
   obtain ⟨u, hu_tendsto⟩ := exists_seq_tendsto (at_top : filter α),
   have Ioi_eq_Union : Ioi x = ⋃ n : ℕ, Ioc x (u n),
   { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
-    rw tendsto_at_top_at_top at hu_tendsto,
-    exact λ y _, ⟨(hu_tendsto y).some, (hu_tendsto y).some_spec (hu_tendsto y).some le_rfl⟩, },
+    exact λ y _, (hu_tendsto.eventually (eventually_ge_at_top y)).exists },
   rw [Ioi_eq_Union, ae_measurable_Union_iff],
   intros n,
   cases lt_or_le x (u n),
   { exact g_meas (u n) h, },
-  { rw Ioc_eq_empty (not_lt.mpr h),
-    simp only [measure.restrict_empty],
+  { rw [Ioc_eq_empty (not_lt.mpr h), measure.restrict_empty],
     exact ae_measurable_zero_measure, },
 end
 

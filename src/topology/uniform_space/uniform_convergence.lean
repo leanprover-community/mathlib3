@@ -3,10 +3,15 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import topology.separation
 import topology.uniform_space.basic
+import topology.uniform_space.cauchy
 
 /-!
 # Uniform convergence
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A sequence of functions `Fₙ` (with values in a metric space) converges uniformly on a set `s` to a
 function `f` if, for all `ε > 0`, for all large enough `n`, one has for all `y ∈ s` the inequality
@@ -58,7 +63,7 @@ Uniform limit, uniform convergence, tends uniformly to
  -/
 
 noncomputable theory
-open_locale topological_space classical uniformity filter
+open_locale topology classical uniformity filter
 
 open set filter
 
@@ -213,6 +218,11 @@ begin
   simp only [set.eq_on] at hff',
   simp only [mem_prod_principal, hff', mem_set_of_eq],
 end
+
+lemma tendsto_uniformly_on.congr_right {g : α → β}
+  (hf : tendsto_uniformly_on F f p s) (hfg : eq_on f g s) :
+  tendsto_uniformly_on F g p s :=
+λ u hu, by filter_upwards [hf u hu] with i hi a ha using hfg ha ▸ hi a ha
 
 protected lemma tendsto_uniformly.tendsto_uniformly_on
   (h : tendsto_uniformly F f p) : tendsto_uniformly_on F f p s :=
@@ -571,6 +581,18 @@ begin
   exact (hh.prod_map hh).eventually ((h.prod h') u hu),
 end
 
+/-- If a sequence of functions is uniformly Cauchy on a set, then the values at each point form
+a Cauchy sequence. -/
+lemma uniform_cauchy_seq_on.cauchy_map [hp : ne_bot p]
+  (hf : uniform_cauchy_seq_on F p s) (hx : x ∈ s) :
+  cauchy (map (λ i, F i x) p) :=
+begin
+  simp only [cauchy_map_iff, hp, true_and],
+  assume u hu,
+  rw mem_map,
+  filter_upwards [hf u hu] with p hp using hp x hx,
+end
+
 section seq_tendsto
 
 lemma tendsto_uniformly_on_of_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated]
@@ -682,6 +704,32 @@ begin
   exact ⟨t, nhds_within_mono x h' ht, H.mono (λ n, id)⟩
 end
 
+lemma tendsto_locally_uniformly_on_Union {S : γ → set α} (hS : ∀ i, is_open (S i))
+  (h : ∀ i, tendsto_locally_uniformly_on F f p (S i)) :
+  tendsto_locally_uniformly_on F f p (⋃ i, S i) :=
+begin
+  rintro v hv x ⟨_, ⟨i, rfl⟩, hi : x ∈ S i⟩,
+  obtain ⟨t, ht, ht'⟩ := h i v hv x hi,
+  refine ⟨t, _, ht'⟩,
+  rw (hS _).nhds_within_eq hi at ht,
+  exact mem_nhds_within_of_mem_nhds ht,
+end
+
+lemma tendsto_locally_uniformly_on_bUnion {s : set γ} {S : γ → set α}
+  (hS : ∀ i ∈ s, is_open (S i)) (h : ∀ i ∈ s, tendsto_locally_uniformly_on F f p (S i)) :
+  tendsto_locally_uniformly_on F f p (⋃ i ∈ s, S i) :=
+by { rw bUnion_eq_Union, exact tendsto_locally_uniformly_on_Union (λ i, hS _ i.2) (λ i, h _ i.2) }
+
+lemma tendsto_locally_uniformly_on_sUnion (S : set (set α)) (hS : ∀ s ∈ S, is_open s)
+  (h : ∀ s ∈ S, tendsto_locally_uniformly_on F f p s) :
+  tendsto_locally_uniformly_on F f p (⋃₀ S) :=
+by { rw sUnion_eq_bUnion, exact tendsto_locally_uniformly_on_bUnion hS h }
+
+lemma tendsto_locally_uniformly_on.union {s₁ s₂ : set α} (hs₁ : is_open s₁) (hs₂ : is_open s₂)
+  (h₁ : tendsto_locally_uniformly_on F f p s₁) (h₂ : tendsto_locally_uniformly_on F f p s₂) :
+  tendsto_locally_uniformly_on F f p (s₁ ∪ s₂) :=
+by { rw ←sUnion_pair, refine tendsto_locally_uniformly_on_sUnion _ _ _; simp [*] }
+
 lemma tendsto_locally_uniformly_on_univ :
   tendsto_locally_uniformly_on F f p univ ↔ tendsto_locally_uniformly F f p :=
 by simp [tendsto_locally_uniformly_on, tendsto_locally_uniformly, nhds_within_univ]
@@ -696,7 +744,7 @@ lemma tendsto_locally_uniformly_iff_tendsto_uniformly_of_compact_space [compact_
 begin
   refine ⟨λ h V hV, _, tendsto_uniformly.tendsto_locally_uniformly⟩,
   choose U hU using h V hV,
-  obtain ⟨t, ht⟩ := compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
+  obtain ⟨t, ht⟩ := is_compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
   replace hU := λ (x : t), (hU x).2,
   rw ← eventually_all at hU,
   refine hU.mono (λ i hi x, _),
@@ -736,6 +784,85 @@ begin
   rw ← tendsto_locally_uniformly_on_univ at h ⊢,
   rw continuous_iff_continuous_on_univ at cg,
   exact h.comp _ (maps_to_univ _ _) cg
+end
+
+lemma tendsto_locally_uniformly_on_tfae [locally_compact_space α]
+  (G : ι → α → β) (g : α → β) (p : filter ι) (hs : is_open s) :
+  tfae [(tendsto_locally_uniformly_on G g p s),
+    (∀ K ⊆ s, is_compact K → tendsto_uniformly_on G g p K),
+    (∀ x ∈ s, ∃ v ∈ 𝓝[s] x, tendsto_uniformly_on G g p v)] :=
+begin
+  tfae_have : 1 → 2,
+  { rintro h K hK1 hK2,
+    exact (tendsto_locally_uniformly_on_iff_tendsto_uniformly_on_of_compact hK2).mp (h.mono hK1) },
+  tfae_have : 2 → 3,
+  { rintro h x hx,
+    obtain ⟨K, ⟨hK1, hK2⟩, hK3⟩ := (compact_basis_nhds x).mem_iff.mp (hs.mem_nhds hx),
+    refine ⟨K, nhds_within_le_nhds hK1, h K hK3 hK2⟩ },
+  tfae_have : 3 → 1,
+  { rintro h u hu x hx,
+    obtain ⟨v, hv1, hv2⟩ := h x hx,
+    exact ⟨v, hv1, hv2 u hu⟩ },
+  tfae_finish
+end
+
+lemma tendsto_locally_uniformly_on_iff_forall_is_compact [locally_compact_space α]
+  (hs : is_open s) :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ K ⊆ s, is_compact K → tendsto_uniformly_on F f p K :=
+(tendsto_locally_uniformly_on_tfae F f p hs).out 0 1
+
+lemma tendsto_locally_uniformly_on_iff_filter :
+  tendsto_locally_uniformly_on F f p s ↔
+  ∀ x ∈ s, tendsto_uniformly_on_filter F f p (𝓝[s] x) :=
+begin
+  simp only [tendsto_uniformly_on_filter, eventually_prod_iff],
+  split,
+  { rintro h x hx u hu,
+    obtain ⟨s, hs1, hs2⟩ := h u hu x hx,
+    exact ⟨_, hs2, _, eventually_of_mem hs1 (λ x, id), λ i hi y hy, hi y hy⟩ },
+  { rintro h u hu x hx,
+    obtain ⟨pa, hpa, pb, hpb, h⟩ := h x hx u hu,
+    refine ⟨pb, hpb, eventually_of_mem hpa (λ i hi y hy, h hi hy)⟩ }
+end
+
+lemma tendsto_locally_uniformly_iff_filter :
+  tendsto_locally_uniformly F f p ↔
+  ∀ x, tendsto_uniformly_on_filter F f p (𝓝 x) :=
+by simpa [← tendsto_locally_uniformly_on_univ, ← nhds_within_univ] using
+    @tendsto_locally_uniformly_on_iff_filter _ _ _ _ F f univ p _
+
+lemma tendsto_locally_uniformly_on.tendsto_at (hf : tendsto_locally_uniformly_on F f p s)
+  {a : α} (ha : a ∈ s) :
+  tendsto (λ i, F i a) p (𝓝 (f a)) :=
+begin
+  refine ((tendsto_locally_uniformly_on_iff_filter.mp hf) a ha).tendsto_at _,
+  simpa only [filter.principal_singleton] using pure_le_nhds_within ha
+end
+
+lemma tendsto_locally_uniformly_on.unique [p.ne_bot] [t2_space β] {g : α → β}
+  (hf : tendsto_locally_uniformly_on F f p s) (hg : tendsto_locally_uniformly_on F g p s) :
+  s.eq_on f g :=
+λ a ha, tendsto_nhds_unique (hf.tendsto_at ha) (hg.tendsto_at ha)
+
+lemma tendsto_locally_uniformly_on.congr {G : ι → α → β}
+  (hf : tendsto_locally_uniformly_on F f p s) (hg : ∀ n, s.eq_on (F n) (G n)) :
+  tendsto_locally_uniformly_on G f p s :=
+begin
+  rintro u hu x hx,
+  obtain ⟨t, ht, h⟩ := hf u hu x hx,
+  refine ⟨s ∩ t, inter_mem self_mem_nhds_within ht, _⟩,
+  filter_upwards [h] with i hi y hy using hg i hy.1 ▸ hi y hy.2
+end
+
+lemma tendsto_locally_uniformly_on.congr_right {g : α → β}
+  (hf : tendsto_locally_uniformly_on F f p s) (hg : s.eq_on f g) :
+  tendsto_locally_uniformly_on F g p s :=
+begin
+  rintro u hu x hx,
+  obtain ⟨t, ht, h⟩ := hf u hu x hx,
+  refine ⟨s ∩ t, inter_mem self_mem_nhds_within ht, _⟩,
+  filter_upwards [h] with i hi y hy using hg hy.1 ▸ hi y hy.2
 end
 
 /-!

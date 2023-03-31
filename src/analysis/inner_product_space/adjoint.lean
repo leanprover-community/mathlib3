@@ -44,6 +44,7 @@ open is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -70,7 +71,7 @@ by { simp only [adjoint_aux_apply, to_dual_symm_apply, to_sesq_form_apply_coe, c
                 innerSL_apply_coe]}
 
 lemma adjoint_aux_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, adjoint_aux A y⟫ = ⟪A x, y⟫ :=
-by rw [←inner_conj_sym, adjoint_aux_inner_left, inner_conj_sym]
+by rw [←inner_conj_symm, adjoint_aux_inner_left, inner_conj_symm]
 
 variables [complete_space F]
 
@@ -81,7 +82,7 @@ begin
   rw [adjoint_aux_inner_right, adjoint_aux_inner_left],
 end
 
-@[simp] lemma adjoint_aux_norm (A : E →L[𝕜] F) : ∥adjoint_aux A∥ = ∥A∥ :=
+@[simp] lemma adjoint_aux_norm (A : E →L[𝕜] F) : ‖adjoint_aux A‖ = ‖A‖ :=
 begin
   refine le_antisymm _ _,
   { refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg _) (λ x, _),
@@ -123,20 +124,20 @@ begin
   simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
-lemma apply_norm_sq_eq_inner_adjoint_left (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪(A† * A) x, x⟫ :=
+lemma apply_norm_sq_eq_inner_adjoint_left (A : E →L[𝕜] E) (x : E) : ‖A x‖^2 = re ⟪(A† * A) x, x⟫ :=
 have h : ⟪(A† * A) x, x⟫ = ⟪A x, A x⟫ := by { rw [←adjoint_inner_left], refl },
 by rw [h, ←inner_self_eq_norm_sq _]
 
 lemma apply_norm_eq_sqrt_inner_adjoint_left (A : E →L[𝕜] E) (x : E) :
-  ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫) :=
+  ‖A x‖ = real.sqrt (re ⟪(A† * A) x, x⟫) :=
 by rw [←apply_norm_sq_eq_inner_adjoint_left, real.sqrt_sq (norm_nonneg _)]
 
-lemma apply_norm_sq_eq_inner_adjoint_right (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪x, (A† * A) x⟫ :=
+lemma apply_norm_sq_eq_inner_adjoint_right (A : E →L[𝕜] E) (x : E) : ‖A x‖^2 = re ⟪x, (A† * A) x⟫ :=
 have h : ⟪x, (A† * A) x⟫ = ⟪A x, A x⟫ := by { rw [←adjoint_inner_right], refl },
 by rw [h, ←inner_self_eq_norm_sq _]
 
 lemma apply_norm_eq_sqrt_inner_adjoint_right (A : E →L[𝕜] E) (x : E) :
-  ∥A x∥ = real.sqrt (re ⟪x, (A† * A) x⟫) :=
+  ‖A x‖ = real.sqrt (re ⟪x, (A† * A) x⟫) :=
 by rw [←apply_norm_sq_eq_inner_adjoint_right, real.sqrt_sq (norm_nonneg _)]
 
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
@@ -190,23 +191,25 @@ instance : cstar_ring (E →L[𝕜] E) :=
   intros A,
   rw [star_eq_adjoint],
   refine le_antisymm _ _,
-  { calc ∥A† * A∥ ≤ ∥A†∥ * ∥A∥      : op_norm_comp_le _ _
-              ... = ∥A∥ * ∥A∥       : by rw [linear_isometry_equiv.norm_map] },
+  { calc ‖A† * A‖ ≤ ‖A†‖ * ‖A‖      : op_norm_comp_le _ _
+              ... = ‖A‖ * ‖A‖       : by rw [linear_isometry_equiv.norm_map] },
   { rw [←sq, ←real.sqrt_le_sqrt_iff (norm_nonneg _), real.sqrt_sq (norm_nonneg _)],
     refine op_norm_le_bound _ (real.sqrt_nonneg _) (λ x, _),
     have := calc
-      re ⟪(A† * A) x, x⟫ ≤ ∥(A† * A) x∥ * ∥x∥     : re_inner_le_norm _ _
-                    ...  ≤ ∥A† * A∥ * ∥x∥ * ∥x∥   : mul_le_mul_of_nonneg_right
+      re ⟪(A† * A) x, x⟫ ≤ ‖(A† * A) x‖ * ‖x‖     : re_inner_le_norm _ _
+                    ...  ≤ ‖A† * A‖ * ‖x‖ * ‖x‖   : mul_le_mul_of_nonneg_right
                                                     (le_op_norm _ _) (norm_nonneg _),
-    calc ∥A x∥ = real.sqrt (re ⟪(A† * A) x, x⟫)     : by rw [apply_norm_eq_sqrt_inner_adjoint_left]
-          ...  ≤ real.sqrt (∥A† * A∥ * ∥x∥ * ∥x∥)   : real.sqrt_le_sqrt this
-          ...  = real.sqrt (∥A† * A∥) * ∥x∥
+    calc ‖A x‖ = real.sqrt (re ⟪(A† * A) x, x⟫)     : by rw [apply_norm_eq_sqrt_inner_adjoint_left]
+          ...  ≤ real.sqrt (‖A† * A‖ * ‖x‖ * ‖x‖)   : real.sqrt_le_sqrt this
+          ...  = real.sqrt (‖A† * A‖) * ‖x‖
             : by rw [mul_assoc, real.sqrt_mul (norm_nonneg _), real.sqrt_mul_self (norm_nonneg _)] }
 end⟩
 
 section real
 
-variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables {E' : Type*} {F' : Type*}
+variables [normed_add_comm_group E'] [normed_add_comm_group F']
+variables [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [complete_space E'] [complete_space F']
 
 -- Todo: Generalize this to `is_R_or_C`.
@@ -402,7 +405,9 @@ by { rw [is_self_adjoint_iff', is_symmetric, ← linear_map.eq_adjoint_iff], exa
 
 section real
 
-variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables {E' : Type*} {F' : Type*}
+variables [normed_add_comm_group E'] [normed_add_comm_group F']
+variables [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
 
 -- Todo: Generalize this to `is_R_or_C`.
@@ -434,14 +439,13 @@ open_locale complex_conjugate
 
 /-- The adjoint of the linear map associated to a matrix is the linear map associated to the
 conjugate transpose of that matrix. -/
-lemma conj_transpose_eq_adjoint (A : matrix m n 𝕜) :
-  to_lin' A.conj_transpose =
-  @linear_map.adjoint _ (euclidean_space 𝕜 n) (euclidean_space 𝕜 m) _ _ _ _ _ (to_lin' A) :=
+lemma to_euclidean_lin_conj_transpose_eq_adjoint (A : matrix m n 𝕜) :
+  A.conj_transpose.to_euclidean_lin = A.to_euclidean_lin.adjoint :=
 begin
-  rw @linear_map.eq_adjoint_iff _ (euclidean_space 𝕜 m) (euclidean_space 𝕜 n),
+  rw linear_map.eq_adjoint_iff,
   intros x y,
-  convert dot_product_assoc (conj ∘ (id x : m → 𝕜)) y A using 1,
-  simp [dot_product, mul_vec, ring_hom.map_sum,  ← star_ring_end_apply, mul_comm],
+  simp_rw [euclidean_space.inner_eq_star_dot_product, pi_Lp_equiv_to_euclidean_lin,
+    to_lin'_apply, star_mul_vec, conj_transpose_conj_transpose, dot_product_mul_vec],
 end
 
 end matrix

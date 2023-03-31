@@ -10,6 +10,9 @@ import ring_theory.valuation.basic
 /-!
 # Multiplicity of a divisor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
 several basic results on it.
 
@@ -145,8 +148,10 @@ end
 @[simp] lemma unit_left (a : α) (u : αˣ) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a u.is_unit
 
-lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
-by { rw [← nat.cast_zero, eq_coe_iff], simpa }
+lemma multiplicity_eq_zero {a b : α} : multiplicity a b = 0 ↔ ¬ a ∣ b :=
+by { rw [← nat.cast_zero, eq_coe_iff], simp }
+
+lemma multiplicity_ne_zero {a b : α} : multiplicity a b ≠ 0 ↔ a ∣ b := multiplicity_eq_zero.not_left
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 part.eq_none_iff'
@@ -274,10 +279,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 part.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
 
 @[simp] lemma multiplicity_zero_eq_zero_of_ne_zero (a : α) (ha : a ≠ 0) : multiplicity 0 a = 0 :=
-begin
-  apply multiplicity.multiplicity_eq_zero_of_not_dvd,
-  rwa zero_dvd_iff,
-end
+multiplicity.multiplicity_eq_zero.2 $ mt zero_dvd_iff.1 ha
 
 end monoid_with_zero
 

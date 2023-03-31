@@ -9,6 +9,9 @@ import algebra.monoid_algebra.basic
 /-!
 # Free algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a semiring `R` and a type `X`, we construct the free non-unital, non-associative algebra on
 `X` with coefficients in `R`, together with its universal property. The construction is valuable
 because it can be used to build free algebras with more structure, e.g., free Lie algebras.

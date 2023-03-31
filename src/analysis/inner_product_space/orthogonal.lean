@@ -29,7 +29,7 @@ Note this is not the same unicode symbol as `⊥` (`has_bot`).
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 variables [normed_add_comm_group E] [inner_product_space 𝕜 E]
-variables [normed_add_comm_group F] [inner_product_space ℝ F]
+variables [normed_add_comm_group F] [inner_product_space 𝕜 F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 namespace submodule
@@ -231,6 +231,9 @@ lemma is_ortho.inner_eq {U V : submodule 𝕜 E} (h : U ⟂ V) {u v : E} (hu : u
   ⟪u, v⟫ = 0 :=
 h.symm hv _ hu
 
+lemma is_ortho_iff_inner_eq {U V : submodule 𝕜 E} : U ⟂ V ↔ ∀ (u ∈ U) (v ∈ V), ⟪u, v⟫ = 0 :=
+forall₄_congr $ λ u hu v hv, inner_eq_zero_symm
+
 @[simp] lemma is_ortho_bot_left {V : submodule 𝕜 E} : ⊥ ⟂ V := bot_le
 @[simp] lemma is_ortho_bot_right {U : submodule 𝕜 E} : U ⟂ ⊥ := is_ortho_bot_left.symm
 
@@ -288,6 +291,21 @@ supr_le_iff
 @[simp] lemma is_ortho_supr_right {ι : Sort*} {U : submodule 𝕜 E} {V : ι → submodule 𝕜 E} :
   U ⟂ supr V ↔ ∀ i, U ⟂ V i :=
 is_ortho_comm.trans $ is_ortho_supr_left.trans $ by simp_rw is_ortho_comm
+
+@[simp] lemma is_ortho_span {s t : set E} : span 𝕜 s ⟂ span 𝕜 t ↔ ∀ (u ∈ s) (v ∈ t), ⟪u, v⟫ = 0 :=
+begin
+  simp_rw [span_eq_supr_of_singleton_spans s, span_eq_supr_of_singleton_spans t,
+    is_ortho_supr_left, is_ortho_supr_right, is_ortho_iff_le, span_le, set.subset_def,
+    set_like.mem_coe, mem_orthogonal_singleton_iff_inner_left, set.mem_singleton_iff, forall_eq],
+end
+
+lemma is_ortho.map (f : E →ₗᵢ[𝕜] F) {U V : submodule 𝕜 E} (h : U ⟂ V) : U.map f ⟂ V.map f :=
+begin
+  rw is_ortho_iff_inner_eq at *,
+  simp_rw [mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂,
+    linear_isometry.inner_map_map],
+  exact h,
+end
 
 end submodule
 

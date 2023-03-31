@@ -353,15 +353,21 @@ lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
   μ (r • s) = ennreal.of_real (r ^ finrank ℝ E) * μ s :=
 by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
 
-variables {μ} {s : set E} {a : ℝ}
+variables {μ} {s : set E}
 
-lemma null_measurable_set.const_smul_of_ne_zero (hs : null_measurable_set s μ) (ha : a ≠ 0) :
-  null_measurable_set (a • s) μ :=
+-- Note: We might want to rename this once we acquire the lemma corresponding to
+-- `measurable_set.const_smul`
+lemma null_measurable_set.const_smul (hs : null_measurable_set s μ) (r : ℝ) :
+  null_measurable_set (r • s) μ :=
 begin
+  obtain rfl | hs' := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | hr := eq_or_ne r 0,
+  { simpa [zero_smul_set hs'] using null_measurable_set_singleton _ },
   obtain ⟨t, ht, hst⟩ := hs,
-  refine ⟨_, ht.const_smul_of_ne_zero ha, _⟩,
+  refine ⟨_, ht.const_smul_of_ne_zero hr, _⟩,
   rw ←measure_symm_diff_eq_zero_iff at ⊢ hst,
-  rw [←smul_set_symm_diff₀ ha, add_haar_smul μ, hst, mul_zero],
+  rw [←smul_set_symm_diff₀ hr, add_haar_smul μ, hst, mul_zero],
 end
 
 variables (μ)

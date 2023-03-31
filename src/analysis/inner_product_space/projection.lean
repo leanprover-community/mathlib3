@@ -792,7 +792,7 @@ lemma submodule.is_ortho.orthogonal_projection_comp_subtypeL {U V : submodule �
 continuous_linear_map.ext $ λ v,
   orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero $ h.symm v.prop
 
-/-- The projection into `U` from `V` is the zero map if `U` and `V` are orthogonal. -/
+/-- The projection into `U` from `V` is the zero map if and only if `U` and `V` are orthogonal. -/
 lemma orthogonal_projection_comp_subtypeL_eq_zero_iff {U V : submodule 𝕜 E}
   [complete_space U] :
   orthogonal_projection U ∘L V.subtypeL = 0 ↔ U ⟂ V :=

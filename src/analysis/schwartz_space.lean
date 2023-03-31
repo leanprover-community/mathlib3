@@ -481,7 +481,8 @@ def mk_lm (A : (D → E) → (F → G))
 { to_fun := λ f,
   { to_fun := A f,
     smooth' := hsmooth f,
-    decay' := begin
+    decay' :=
+    begin
       intros k n,
       rcases hbound ⟨k, n⟩ with ⟨s, C, hC, h⟩,
       exact ⟨C * (s.sup (schwartz_seminorm_family 𝕜 D E)) f, h f⟩,
@@ -506,11 +507,9 @@ def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
       (schwartz_with_seminorms 𝕜' F G) _ (λ n, _),
     rcases hbound n with ⟨s, C, hC, h⟩,
     refine ⟨s, ⟨C, hC⟩, (λ f, _)⟩,
-    simp only [seminorm.comp_apply, seminorm.smul_apply],
-    refine (mk_lm A hadd hsmul hsmooth hbound f).seminorm_le_bound 𝕜' n.1 n.2 _ (λ x, _),
-    { rw nnreal.smul_def,
-      positivity },
-    simpa only [nnreal.smul_def, algebra.id.smul_eq_mul, subtype.coe_mk] using h f x,
+    simp only [seminorm.comp_apply, seminorm.smul_apply, nnreal.smul_def, algebra.id.smul_eq_mul,
+      subtype.coe_mk],
+    exact (mk_lm A hadd hsmul hsmooth hbound f).seminorm_le_bound 𝕜' n.1 n.2 (by positivity) (h f),
   end,
   to_linear_map := mk_lm A hadd hsmul hsmooth hbound }
 

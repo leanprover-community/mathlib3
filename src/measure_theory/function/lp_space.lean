@@ -1959,6 +1959,36 @@ begin
   { exact or.inr hμsc.lt_top, },
 end
 
+/-- The `L^p` norm of the indicator of a set is uniformly small if the set itself is small.
+Given here as an existential `∀ ε > 0, ∃ η > 0, ...` to avoid later
+management of `ℝ≥0∞`-arithmetic. -/
+lemma exists_snorm_indicator_le (hp : p ≠ ∞) (c : E) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (η : ℝ≥0), 0 < η ∧ ∀ (s : set α), μ s ≤ η → snorm (s.indicator (λ x, c)) p μ ≤ ε :=
+begin
+  rcases eq_or_ne p 0 with rfl|h'p,
+  { exact ⟨1, zero_lt_one, λ s hs, by simp⟩ },
+  have hp₀ : 0 < p := bot_lt_iff_ne_bot.2 h'p,
+  have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
+  have hp₀'' : 0 < p.to_real,
+  { simpa [← ennreal.to_real_lt_to_real ennreal.zero_ne_top hp] using hp₀ },
+  obtain ⟨η, hη_pos, hη_le⟩ : ∃ (η : ℝ≥0), 0 < η ∧ (‖c‖₊ * η ^ (1 / p.to_real) : ℝ≥0∞) ≤ ε,
+  { have : filter.tendsto (λ x : ℝ≥0, ((‖c‖₊ * x ^ (1 / p.to_real) : ℝ≥0) : ℝ≥0∞))
+      (𝓝 0) (𝓝 (0 : ℝ≥0)),
+    { rw ennreal.tendsto_coe,
+      convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto).const_mul _,
+      simp [hp₀''.ne'] },
+    have hε' : 0 < ε := hε.bot_lt,
+    obtain ⟨δ, hδ, hδε'⟩ :=
+      nnreal.nhds_zero_basis.eventually_iff.mp (eventually_le_of_tendsto_lt hε' this),
+    obtain ⟨η, hη, hηδ⟩ := exists_between hδ,
+    refine ⟨η, hη, _⟩,
+    rw [ennreal.coe_rpow_of_nonneg _ hp₀', ← ennreal.coe_mul],
+    exact hδε' hηδ },
+  refine ⟨η, hη_pos, λ s hs, _⟩,
+  refine (snorm_indicator_const_le _ _).trans (le_trans _ hη_le),
+  exact mul_le_mul_left' (ennreal.rpow_le_rpow hs hp₀') _,
+end
+
 end indicator
 
 section indicator_const_Lp

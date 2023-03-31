@@ -9,6 +9,9 @@ import algebra.lie.basic
 /-!
 # Lie algebras as non-unital, non-associative algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definition of Lie algebras uses the `has_bracket` typeclass for multiplication whereas we have a
 separate `has_mul` typeclass used for general algebras.
 

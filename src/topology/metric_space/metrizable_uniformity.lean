@@ -199,7 +199,7 @@ begin
   { intros x y, dsimp only [d],
     simp only [@symmetric_rel.mk_mem_comm _ _ (hU_symm _) x y] },
   have hr : (1 / 2 : ℝ≥0) ∈ Ioo (0 : ℝ≥0) 1,
-    from ⟨nnreal.half_pos one_pos, nnreal.half_lt_self one_ne_zero⟩,
+    from ⟨half_pos one_pos, nnreal.half_lt_self one_ne_zero⟩,
   letI I := pseudo_metric_space.of_prenndist d (λ x, hd₀.2 (setoid.refl _)) hd_symm,
   have hdist_le : ∀ x y, dist x y ≤ d x y,
     from pseudo_metric_space.dist_of_prenndist_le _ _ _,
@@ -241,7 +241,7 @@ protected noncomputable def uniform_space.pseudo_metric_space (X : Type*) [unifo
 /-- A `metric_space` instance compatible with a given `uniform_space` structure. -/
 protected noncomputable def uniform_space.metric_space (X : Type*) [uniform_space X]
   [is_countably_generated (𝓤 X)] [t0_space X] : metric_space X :=
-@of_t0_pseudo_metric_space X (uniform_space.pseudo_metric_space X) _
+@metric_space.of_t0_pseudo_metric_space X (uniform_space.pseudo_metric_space X) _
 
 /-- A uniform space with countably generated `𝓤 X` is pseudo metrizable. -/
 @[priority 100]

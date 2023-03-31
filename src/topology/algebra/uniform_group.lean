@@ -13,6 +13,9 @@ import tactic.abel
 /-!
 # Uniform structure on topological groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines uniform groups and its additive counterpart. These typeclasses should be
 preferred over using `[topological_space α] [topological_group α]` since every topological
 group naturally induces a uniform structure.

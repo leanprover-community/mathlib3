@@ -41,14 +41,17 @@ lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 
 lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
 
-noncomputable instance : inner_product_space ℝ ℍ :=
-inner_product_space.of_core
+noncomputable instance : normed_add_comm_group ℍ :=
+@inner_product_space.of_core.to_normed_add_comm_group ℝ ℍ _ _ _
 { inner := has_inner.inner,
-  conj_sym := λ x y, by simp [inner_def, mul_comm],
+  conj_symm := λ x y, by simp [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
+
+noncomputable instance : inner_product_space ℝ ℍ :=
+inner_product_space.of_core _
 
 lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ‖a‖ * ‖a‖ :=
 by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
@@ -74,7 +77,7 @@ noncomputable instance : normed_division_ring ℍ :=
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 instance : normed_algebra ℝ ℍ :=
-{ norm_smul_le := λ a x, (norm_smul a x).le,
+{ norm_smul_le := norm_smul_le,
   to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
 
 instance : cstar_ring ℍ :=
@@ -147,11 +150,39 @@ by simpa [←norm_sq_eq_norm_sq]
 @[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
 (continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
 
+@[continuity] lemma continuous_im : continuous (λ q : ℍ, q.im) :=
+by simpa only [←sub_self_re] using continuous_id.sub (continuous_coe.comp continuous_re)
+
 instance : complete_space ℍ :=
 begin
   have : uniform_embedding linear_isometry_equiv_tuple.to_linear_equiv.to_equiv.symm :=
     linear_isometry_equiv_tuple.to_continuous_linear_equiv.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
+
+section infinite_sum
+variables {α : Type*}
+
+@[simp, norm_cast] lemma has_sum_coe {f : α → ℝ} {r : ℝ} :
+  has_sum (λ a, (f a : ℍ)) (↑r : ℍ) ↔ has_sum f r :=
+⟨λ h, by simpa only using
+  h.map (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _) continuous_re,
+  λ h, by simpa only using h.map (algebra_map ℝ ℍ) (continuous_algebra_map _ _)⟩
+
+@[simp, norm_cast]
+lemma summable_coe {f : α → ℝ} : summable (λ a, (f a : ℍ)) ↔ summable f :=
+by simpa only using summable.map_iff_of_left_inverse (algebra_map ℝ ℍ)
+  (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _)
+  (continuous_algebra_map _ _) continuous_re coe_re
+
+@[norm_cast] lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ) = ↑(∑' a, f a) :=
+begin
+  by_cases hf : summable f,
+  { exact (has_sum_coe.mpr hf.has_sum).tsum_eq, },
+  { simp [tsum_eq_zero_of_not_summable hf,
+      tsum_eq_zero_of_not_summable (summable_coe.not.mpr hf)] },
+end
+
+end infinite_sum
 
 end quaternion

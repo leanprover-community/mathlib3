@@ -13,6 +13,9 @@ import group_theory.index
 /-!
 # Order of an element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the order of an element of a finite group. For a finite group `G` the order of
 `x ∈ G` is the minimal `n ≥ 1` such that `x ^ n = 1`.
 

@@ -1734,6 +1734,16 @@ begin
     simpa only [nnreal.coe_eq_zero, ne.def] using h'x }
 end
 
+--- delete this from `measure_theory/measure/haar_quotient` line 41
+@[to_additive ae_strongly_measurable_of_absolutely_continuous_add]
+lemma ae_strongly_measurable_of_absolutely_continuous {α β : Type*} [measurable_space α]
+  [topological_space β] {μ ν : measure α} (h : ν ≪ μ) (g : α → β)
+  (hμ : ae_strongly_measurable g μ) : ae_strongly_measurable g ν :=
+begin
+  obtain ⟨g₁, hg₁, hg₁'⟩ := hμ,
+  refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
+end
+
 end ae_strongly_measurable
 
 

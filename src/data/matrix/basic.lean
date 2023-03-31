@@ -76,10 +76,14 @@ The two sides of the equivalence are definitionally equal types. We want to use 
 to distinguish the types because `matrix` has different instances to pi types (such as `pi.has_mul`,
 which performs elementwise multiplication, vs `matrix.has_mul`).
 
-If you are defining a matrix, in terms of its entries, either use `of (λ i j, _)`, or use pattern
-matching in a definition as `| i j := _` (which can only be unfolded when fully-applied). The
-purpose of this approach is to ensure that terms of the form `(λ i j, _) * (λ i j, _)` do not
+If you are defining a matrix, in terms of its entries, use `of (λ i j, _)`. The
+purpose of this approach is to ensure that terms of th
+e form `(λ i j, _) * (λ i j, _)` do not
 appear, as the type of `*` can be misleading.
+
+Porting note: In Lean 3, it is also safe to use pattern matching in a definition as `| i j := _`,
+which can only be unfolded when fully-applied. leanprover/lean4#2042 means this does not
+(currently) work in Lean 4.
 -/
 def of : (m → n → α) ≃ matrix m n α := equiv.refl _
 @[simp] lemma of_apply (f : m → n → α) (i j) : of f i j = f i j := rfl
@@ -118,8 +122,12 @@ lemma map_injective {f : α → β} (hf : function.injective f) :
 λ M N h, ext $ λ i j, hf $ ext_iff.mpr h i j
 
 /-- The transpose of a matrix. -/
-def transpose (M : matrix m n α) : matrix n m α
-| x y := M y x
+def transpose (M : matrix m n α) : matrix n m α :=
+of $ λ x y, M y x
+
+-- TODO: set as an equation lemma for `transpose`, see mathlib4#3024
+@[simp] lemma transpose_apply (M : matrix m n α) (i j) :
+  transpose M i j = M j i := rfl
 
 localized "postfix (name := matrix.transpose) `ᵀ`:1500 := matrix.transpose" in matrix
 
@@ -130,12 +138,19 @@ M.transpose.map star
 localized "postfix (name := matrix.conj_transpose) `ᴴ`:1500 := matrix.conj_transpose" in matrix
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
-def col (w : m → α) : matrix m unit α
-| x y := w x
+def col (w : m → α) : matrix m unit α :=
+of $ λ x y, w x
+
+-- TODO: set as an equation lemma for `col`, see mathlib4#3024
+@[simp] lemma col_apply (w : m → α) (i j) :
+  col w i j = w i := rfl
 
 /-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
-def row (v : n → α) : matrix unit n α
-| x y := v y
+def row (v : n → α) : matrix unit n α :=
+of $ λ x y, v y
+
+-- TODO: set as an equation lemma for `row`, see mathlib4#3024
+@[simp] lemma row_apply (v : n → α) (i j) : row v i j = v j := rfl
 
 instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
 instance [has_add α] : has_add (matrix m n α) := pi.has_add
@@ -239,8 +254,12 @@ Note that bundled versions exist as:
 * `matrix.diagonal_ring_hom`
 * `matrix.diagonal_alg_hom`
 -/
-def diagonal [has_zero α] (d : n → α) : matrix n n α
-| i j := if i = j then d i else 0
+def diagonal [has_zero α] (d : n → α) : matrix n n α :=
+of $ λ i j, if i = j then d i else 0
+
+-- TODO: set as an equation lemma for `diagonal`, see mathlib4#3024
+lemma diagonal_apply [has_zero α] (d : n → α) (i j) : diagonal d i j = if i = j then d i else 0 :=
+rfl
 
 @[simp] theorem diagonal_apply_eq [has_zero α] (d : n → α) (i : n) : (diagonal d) i i = d i :=
 by simp [diagonal]
@@ -302,7 +321,7 @@ variables {n α R}
 
 @[simp] lemma diagonal_map [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) {d : n → α} :
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
-by { ext, simp only [diagonal, map_apply], split_ifs; simp [h], }
+by { ext, simp only [diagonal_apply, map_apply], split_ifs; simp [h], }
 
 @[simp] lemma diagonal_conj_transpose [add_monoid α] [star_add_monoid α] (v : n → α) :
   (diagonal v)ᴴ = diagonal (star v) :=
@@ -1113,8 +1132,13 @@ namespace matrix
 
 /-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.
     Put another way, `vec_mul_vec w v` is exactly `col w ⬝ row v`. -/
-def vec_mul_vec [has_mul α] (w : m → α) (v : n → α) : matrix m n α
-| x y := w x * v y
+def vec_mul_vec [has_mul α] (w : m → α) (v : n → α) : matrix m n α :=
+of $ λ x y, w x * v y
+
+-- TODO: set as an equation lemma for `vec_mul_vec`, see mathlib4#3024
+lemma vec_mul_vec_apply [has_mul α] (w : m → α) (v : n → α) (i j) :
+  vec_mul_vec w v i j = w i * v j :=
+rfl
 
 lemma vec_mul_vec_eq [has_mul α] [add_comm_monoid α] (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
@@ -1336,13 +1360,6 @@ section transpose
 
 open_locale matrix
 
-/--
-  Tell `simp` what the entries are in a transposed matrix.
-
-  Compare with `mul_apply`, `diagonal_apply_eq`, etc.
--/
-@[simp] lemma transpose_apply (M : matrix m n α) (i j) : M.transpose j i = M i j := rfl
-
 @[simp] lemma transpose_transpose (M : matrix m n α) :
   Mᵀᵀ = M :=
 by ext; refl
@@ -1353,7 +1370,7 @@ by ext i j; refl
 @[simp] lemma transpose_one [decidable_eq n] [has_zero α] [has_one α] : (1 : matrix n n α)ᵀ = 1 :=
 begin
   ext i j,
-  unfold has_one.one transpose,
+  rw [transpose_apply, ←diagonal_one],
   by_cases i = j,
   { simp only [h, diagonal_apply_eq] },
   { simp only [diagonal_apply_ne _ h, diagonal_apply_ne' _ h] }
@@ -1435,6 +1452,8 @@ def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
   inv_fun := λ M, M.unopᵀ,
   map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
     (mul_opposite.op_mul _ _),
+  left_inv := λ M, transpose_transpose M,
+  right_inv := λ M, mul_opposite.unop_injective $ transpose_transpose M.unop,
   ..(transpose_add_equiv m m α).trans mul_opposite.op_add_equiv }
 
 variables {m α}
@@ -1894,9 +1913,6 @@ by { ext, refl }
 @[simp] lemma row_add [has_add α] (v w : m → α) : row (v + w) = row v + row w := by { ext, refl }
 @[simp] lemma row_smul [has_smul R α] (x : R) (v : m → α) : row (x • v) = x • row v :=
 by { ext, refl }
-
-@[simp] lemma col_apply (v : m → α) (i j) : matrix.col v i j = v i := rfl
-@[simp] lemma row_apply (v : m → α) (i j) : matrix.row v i j = v j := rfl
 
 @[simp]
 lemma transpose_col (v : m → α) : (matrix.col v)ᵀ = matrix.row v := by { ext, refl }

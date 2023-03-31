@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.category.Lattice
+import order.category.Lat
 import order.hom.complete_lattice
 import topology.category.CompHaus.basic
 import topology.sets.opens
@@ -11,7 +11,7 @@ import topology.sets.opens
 /-!
 # The category of frames
 
-This file defines `Frame`, the category of frames.
+This file defines `Frm`, the category of frames.
 
 ## References
 
@@ -23,19 +23,19 @@ universes u
 open category_theory opposite order topological_space
 
 /-- The category of frames. -/
-def Frame := bundled frame
+def Frm := bundled frame
 
-namespace Frame
+namespace Frm
 
-instance : has_coe_to_sort Frame Type* := bundled.has_coe_to_sort
-instance (X : Frame) : frame X := X.str
+instance : has_coe_to_sort Frm Type* := bundled.has_coe_to_sort
+instance (X : Frm) : frame X := X.str
 
-/-- Construct a bundled `Frame` from a `frame`. -/
-def of (α : Type*) [frame α] : Frame := bundled.of α
+/-- Construct a bundled `Frm` from a `frame`. -/
+def of (α : Type*) [frame α] : Frm := bundled.of α
 
 @[simp] lemma coe_of (α : Type*) [frame α] : ↥(of α) = α := rfl
 
-instance : inhabited Frame := ⟨of punit⟩
+instance : inhabited Frm := ⟨of punit⟩
 
 /-- An abbreviation of `frame_hom` that assumes `frame` instead of the weaker `complete_lattice`.
 Necessary for the category theory machinery. -/
@@ -47,23 +47,23 @@ instance bundled_hom : bundled_hom hom :=
  λ α β γ [frame α] [frame β] [frame γ], by exactI frame_hom.comp,
  λ α β [frame α] [frame β], by exactI fun_like.coe_injective⟩
 
-attribute [derive [large_category, concrete_category]] Frame
+attribute [derive [large_category, concrete_category]] Frm
 
-instance has_forget_to_Lattice : has_forget₂ Frame Lattice :=
+instance has_forget_to_Lat : has_forget₂ Frm Lat :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, frame_hom.to_lattice_hom } }
 
 /-- Constructs an isomorphism of frames from an order isomorphism between them. -/
-@[simps] def iso.mk {α β : Frame.{u}} (e : α ≃o β) : α ≅ β :=
+@[simps] def iso.mk {α β : Frm.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply _ },
   inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
 
-end Frame
+end Frm
 
-/-- The forgetful functor from `Topᵒᵖ` to `Frame`. -/
-@[simps] def Top_op_to_Frame : Topᵒᵖ ⥤ Frame :=
-{ obj := λ X, Frame.of (opens (unop X : Top)),
+/-- The forgetful functor from `Topᵒᵖ` to `Frm`. -/
+@[simps] def Top_op_to_Frame : Topᵒᵖ ⥤ Frm :=
+{ obj := λ X, Frm.of (opens (unop X : Top)),
   map := λ X Y f, opens.comap $ quiver.hom.unop f,
   map_id' := λ X, opens.comap_id }
 

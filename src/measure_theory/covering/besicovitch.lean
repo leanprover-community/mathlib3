@@ -565,7 +565,7 @@ begin
     apply (ennreal.mul_lt_mul_left hμs.ne' (measure_lt_top μ s).ne).2,
     rw ennreal.inv_lt_inv,
     conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
   have B : μ (o ∩ v i) = ∑' (x : u i), μ (o ∩ closed_ball x (r x)),
   { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
@@ -750,13 +750,13 @@ begin
             ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
               by { rw u_succ, exact (hF (u n) (Pu n)).2.2 }
         ... ≤ (N/(N+1))^n.succ * μ s :
-          by { rw [pow_succ, mul_assoc], exact ennreal.mul_le_mul le_rfl IH } },
+          by { rw [pow_succ, mul_assoc], exact mul_le_mul_left' IH _ } },
     have C : tendsto (λ (n : ℕ), ((N : ℝ≥0∞)/(N+1))^n * μ s) at_top (𝓝 (0 * μ s)),
     { apply ennreal.tendsto.mul_const _ (or.inr (measure_lt_top μ s).ne),
       apply ennreal.tendsto_pow_at_top_nhds_0_of_lt_1,
       rw [ennreal.div_lt_iff, one_mul],
       { conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
       { simp only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
       { simp only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
     rw zero_mul at C,

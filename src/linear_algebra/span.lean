@@ -11,6 +11,9 @@ import order.omega_complete_partial_order
 /-!
 # The span of a set of vectors, as a submodule
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * `submodule.span s` is defined to be the smallest submodule containing the set `s`.
 
 ## Notations

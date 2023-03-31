@@ -15,6 +15,9 @@ import group_theory.submonoid.membership
 /-!
 # Periodicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define and then prove facts about periodic and antiperiodic functions.
 
 ## Main definitions
@@ -100,7 +103,7 @@ protected lemma periodic.const_smul [add_monoid α] [group γ] [distrib_mul_acti
   periodic (λ x, f (a • x)) (a⁻¹ • c) :=
 λ x, by simpa only [smul_add, smul_inv_smul] using h (a • x)
 
-lemma periodic.const_smul₀ [add_comm_monoid α] [division_ring γ] [module γ α]
+lemma periodic.const_smul₀ [add_comm_monoid α] [division_semiring γ] [module γ α]
   (h : periodic f c) (a : γ) :
   periodic (λ x, f (a • x)) (a⁻¹ • c) :=
 begin
@@ -109,7 +112,7 @@ begin
   simpa only [smul_add, smul_inv_smul₀ ha] using h (a • x),
 end
 
-protected lemma periodic.const_mul [division_ring α] (h : periodic f c) (a : α) :
+protected lemma periodic.const_mul [division_semiring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (a * x)) (a⁻¹ * c) :=
 h.const_smul₀ a
 
@@ -118,29 +121,29 @@ lemma periodic.const_inv_smul [add_monoid α] [group γ] [distrib_mul_action γ 
   periodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv] using h.const_smul a⁻¹
 
-lemma periodic.const_inv_smul₀ [add_comm_monoid α] [division_ring γ] [module γ α]
+lemma periodic.const_inv_smul₀ [add_comm_monoid α] [division_semiring γ] [module γ α]
   (h : periodic f c) (a : γ) :
   periodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv] using h.const_smul₀ a⁻¹
 
-lemma periodic.const_inv_mul [division_ring α] (h : periodic f c) (a : α) :
+lemma periodic.const_inv_mul [division_semiring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (a⁻¹ * x)) (a * c) :=
 h.const_inv_smul₀ a
 
-lemma periodic.mul_const [division_ring α] (h : periodic f c) (a : α) :
+lemma periodic.mul_const [division_semiring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a)) (c * a⁻¹) :=
 h.const_smul₀ $ mul_opposite.op a
 
-lemma periodic.mul_const' [division_ring α]
+lemma periodic.mul_const' [division_semiring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a)) (c / a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const a
 
-lemma periodic.mul_const_inv [division_ring α] (h : periodic f c) (a : α) :
+lemma periodic.mul_const_inv [division_semiring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a⁻¹)) (c * a) :=
 h.const_inv_smul₀ $ mul_opposite.op a
 
-lemma periodic.div_const [division_ring α] (h : periodic f c) (a : α) :
+lemma periodic.div_const [division_semiring α] (h : periodic f c) (a : α) :
   periodic (λ x, f (x / a)) (c * a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const_inv a
 
@@ -335,7 +338,7 @@ funext h
 
 protected lemma antiperiodic.funext' [has_add α] [has_involutive_neg β] (h : antiperiodic f c) :
   (λ x, -f (x + c)) = f :=
-(eq_neg_iff_eq_neg.mp h.funext).symm
+neg_eq_iff_eq_neg.mpr h.funext
 
 /-- If a function is `antiperiodic` with antiperiod `c`, then it is also `periodic` with period
   `2 * c`. -/
@@ -370,7 +373,7 @@ lemma antiperiodic.int_odd_mul_antiperiodic [ring α] [has_involutive_neg β]
 lemma antiperiodic.sub_eq [add_group α] [has_involutive_neg β]
   (h : antiperiodic f c) (x : α) :
   f (x - c) = -f x :=
-by simp only [eq_neg_iff_eq_neg.mp (h (x - c)), sub_add_cancel]
+by rw [← neg_eq_iff_eq_neg, ← h (x - c), sub_add_cancel]
 
 lemma antiperiodic.sub_eq' [add_comm_group α] [has_neg β] (h : antiperiodic f c) :
   f (c - x) = -f (-x) :=
@@ -422,12 +425,12 @@ lemma antiperiodic.const_smul [add_monoid α] [has_neg β] [group γ] [distrib_m
   antiperiodic (λ x, f (a • x)) (a⁻¹ • c) :=
 λ x, by simpa only [smul_add, smul_inv_smul] using h (a • x)
 
-lemma antiperiodic.const_smul₀ [add_comm_monoid α] [has_neg β] [division_ring γ] [module γ α]
+lemma antiperiodic.const_smul₀ [add_comm_monoid α] [has_neg β] [division_semiring γ] [module γ α]
   (h : antiperiodic f c) {a : γ} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a • x)) (a⁻¹ • c) :=
 λ x, by simpa only [smul_add, smul_inv_smul₀ ha] using h (a • x)
 
-lemma antiperiodic.const_mul [division_ring α] [has_neg β]
+lemma antiperiodic.const_mul [division_semiring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a * x)) (a⁻¹ * c) :=
 h.const_smul₀ ha
@@ -437,32 +440,33 @@ lemma antiperiodic.const_inv_smul [add_monoid α] [has_neg β] [group γ] [distr
   antiperiodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv] using h.const_smul a⁻¹
 
-lemma antiperiodic.const_inv_smul₀ [add_comm_monoid α] [has_neg β] [division_ring γ] [module γ α]
+lemma antiperiodic.const_inv_smul₀
+  [add_comm_monoid α] [has_neg β] [division_semiring γ] [module γ α]
   (h : antiperiodic f c) {a : γ} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv] using h.const_smul₀ (inv_ne_zero ha)
 
-lemma antiperiodic.const_inv_mul [division_ring α] [has_neg β]
+lemma antiperiodic.const_inv_mul [division_semiring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a⁻¹ * x)) (a * c) :=
 h.const_inv_smul₀ ha
 
-lemma antiperiodic.mul_const [division_ring α] [has_neg β]
+lemma antiperiodic.mul_const [division_semiring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a)) (c * a⁻¹) :=
 h.const_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
-lemma antiperiodic.mul_const' [division_ring α] [has_neg β]
+lemma antiperiodic.mul_const' [division_semiring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a)) (c / a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const ha
 
-lemma antiperiodic.mul_const_inv [division_ring α] [has_neg β]
+lemma antiperiodic.mul_const_inv [division_semiring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a⁻¹)) (c * a) :=
 h.const_inv_smul₀ $ (mul_opposite.op_ne_zero_iff a).mpr ha
 
-protected lemma antiperiodic.div_inv [division_ring α] [has_neg β]
+protected lemma antiperiodic.div_inv [division_semiring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x / a)) (c * a) :=
 by simpa only [div_eq_mul_inv] using h.mul_const_inv ha

@@ -10,6 +10,9 @@ import topology.continuous_function.basic
 /-!
 # Any T0 space embeds in a product of copies of the Sierpinski space.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We consider `Prop` with the Sierpinski topology. If `X` is a topological space, there is a
 continuous map `product_of_mem_opens` from `X` to `opens X → Prop` which is the product of the maps
 `X → Prop` given by `x ↦ x ∈ u`.
@@ -43,7 +46,7 @@ open subset `u` of `X`). The `u` coordinate of `product_of_mem_opens x` is given
 -/
 def product_of_mem_opens : C(X, opens X → Prop) :=
 { to_fun := λ x u, x ∈ u,
-  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.property) }
+  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.is_open) }
 
 lemma product_of_mem_opens_inducing : inducing (product_of_mem_opens X) :=
 begin

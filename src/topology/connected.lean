@@ -678,6 +678,10 @@ eq_of_subset_of_subset
     (set.mem_of_mem_of_subset mem_connected_component
       (is_connected_connected_component.subset_connected_component h)))
 
+theorem connected_component_eq_iff_mem {x y : α} :
+  connected_component x = connected_component y ↔ x ∈ connected_component y :=
+⟨λ h, h ▸ mem_connected_component, λ h, (connected_component_eq h).symm⟩
+
 lemma connected_component_in_eq {x y : α} {F : set α} (h : y ∈ connected_component_in F x) :
   connected_component_in F x = connected_component_in F y :=
 begin
@@ -1168,6 +1172,14 @@ begin
                 λ ⟨V, ⟨hV, hxV, _⟩, hVU⟩, mem_nhds_iff.mpr ⟨V, hVU, hV, hxV⟩⟩⟩ }
 end
 
+/-- A space with discrete topology is a locally connected space. -/
+@[priority 100]
+instance discrete_topology.to_locally_connected_space (α) [topological_space α]
+  [discrete_topology α] : locally_connected_space α :=
+locally_connected_space_iff_open_connected_subsets.2 $ λ x _U hU,
+  ⟨{x}, singleton_subset_iff.2 $ mem_of_mem_nhds hU, is_open_discrete _, mem_singleton _,
+    is_connected_singleton⟩
+
 lemma connected_component_in_mem_nhds [locally_connected_space α] {F : set α} {x : α}
   (h : F ∈ 𝓝 x) :
   connected_component_in F x ∈ 𝓝 x :=
@@ -1353,6 +1365,10 @@ begin
   exact mem_connected_component
 end
 
+@[simp] theorem connected_component_eq_singleton [totally_disconnected_space α] (x : α) :
+  connected_component x = {x} :=
+totally_disconnected_space_iff_connected_component_singleton.1 ‹_› x
+
 /-- The image of a connected component in a totally disconnected space is a singleton. -/
 @[simp] lemma continuous.image_connected_component_eq_singleton {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) (a : α) :
@@ -1463,7 +1479,7 @@ not_congr coe_eq_coe
 
 lemma coe_eq_coe' {x y : α} :
   (x : connected_components α) = y ↔ x ∈ connected_component y :=
-coe_eq_coe.trans ⟨λ h, h ▸ mem_connected_component, λ h, (connected_component_eq h).symm⟩
+coe_eq_coe.trans connected_component_eq_iff_mem
 
 instance [inhabited α] : inhabited (connected_components α) := ⟨↑(default : α)⟩
 

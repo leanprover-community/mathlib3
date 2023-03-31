@@ -30,11 +30,14 @@ Where possible, try to keep them in sync.
 open set
 open_locale pointwise
 
-variables {α G A S : Type*} [group G] [add_group A] {s : set G}
+variables {α G A S : Type*}
 
 @[simp, to_additive]
-lemma inv_coe_set [set_like S G] [subgroup_class S G] {H : S} : (H : set G)⁻¹ = H :=
-by { ext, simp }
+lemma inv_coe_set [has_involutive_inv G] [set_like S G] [inv_mem_class S G] {H : S} :
+  (H : set G)⁻¹ = H :=
+set.ext $ λ _, inv_mem_iff
+
+variables [group G] [add_group A] {s : set G}
 
 namespace subgroup
 

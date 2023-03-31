@@ -10,6 +10,9 @@ import data.set.pointwise.basic
 
 /-! # Pointwise instances on `subring`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the action `subring.pointwise_mul_action` which matches the action of
 `mul_action_set`.
 

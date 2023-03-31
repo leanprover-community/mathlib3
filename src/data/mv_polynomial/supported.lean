@@ -8,6 +8,9 @@ import data.mv_polynomial.variables
 /-!
 # Polynomials supported by a set of variables
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and lemmas about `mv_polynomial.supported`.
 
 ## Main definitions

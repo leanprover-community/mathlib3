@@ -1246,7 +1246,7 @@ sdiff_le.lt_iff_ne.trans $ sdiff_eq_left.not.trans $ by simp
   insert a (s \ {a}) = insert a s :=
 by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
-lemma insert_diff_singleton_comm {s : set α} {a b : α} (hab : a ≠ b) :
+lemma insert_diff_singleton_comm (hab : a ≠ b) (s : set α) :
   insert a (s \ {b}) = insert a s \ {b} :=
 by simp_rw [←union_singleton, union_diff_distrib,
   diff_singleton_eq_self (mem_singleton_iff.not.2 hab.symm)]

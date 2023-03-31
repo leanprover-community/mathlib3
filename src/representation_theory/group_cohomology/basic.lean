@@ -183,6 +183,6 @@ def group_cohomology [group G] (A : Rep k G) (n : ℕ) := (inhomogeneous_cochain
 `Extⁿ(k, A)` (taken in `Rep k G`), where `k` is a trivial `k`-linear `G`-representation. -/
 def group_cohomology_iso_Ext [group G] (A : Rep k G) (n : ℕ) :
   group_cohomology A n ≅ ((Ext k (Rep k G) n).obj
-    (opposite.op $ Rep.of representation.trivial)).obj A :=
+    (opposite.op $ Rep.trivial k G k)).obj A :=
 (homology_obj_iso_of_homotopy_equiv (homotopy_equiv.of_iso (inhomogeneous_cochains_iso _)) _)
   ≪≫ (homological_complex.homology_unop _ _) ≪≫ (Ext_iso k G A n).symm

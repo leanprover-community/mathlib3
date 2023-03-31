@@ -268,6 +268,7 @@ end measure_theory
 variables [second_countable_topology_either α E] [_i : fact (1 ≤ p)] (hp : p ≠ ∞)
 variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
 include _i hp
+variable (E)
 
 namespace bounded_continuous_function
 

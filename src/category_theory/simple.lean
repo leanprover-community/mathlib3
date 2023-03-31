@@ -71,6 +71,9 @@ lemma simple.of_iso {X Y : C} [simple Y] (i : X ≅ Y) : simple X :=
       apply_instance, },
   end }
 
+lemma simple.iff_of_iso {X Y : C} (i : X ≅ Y) : simple X ↔ simple Y :=
+⟨λ h, by exactI simple.of_iso i.symm, λ h, by exactI simple.of_iso i⟩
+
 lemma kernel_zero_of_nonzero_from_simple
   {X Y : C} [simple X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
   kernel.ι f = 0 :=
@@ -190,8 +193,9 @@ begin
   rw [biprod.is_iso_inl_iff_id_eq_fst_comp_inl, ←biprod.total, add_right_eq_self],
   split,
   { intro h, replace h := h =≫ biprod.snd,
-    simpa [←is_zero.iff_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y)] using h, },
-  { intro h, rw is_zero.iff_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h, rw [h, zero_comp], },
+    simpa [←is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y)] using h, },
+  { intro h, rw is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h,
+    rw [h, zero_comp], },
 end
 
 /-- Any simple object in a preadditive category is indecomposable. -/
@@ -199,7 +203,7 @@ lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
 ⟨simple.not_is_zero X,
 λ Y Z i, begin
   refine or_iff_not_imp_left.mpr (λ h, _),
-  rw is_zero.iff_split_mono_eq_zero (biprod.inl : Y ⟶ Y ⊞ Z) at h,
+  rw is_zero.iff_is_split_mono_eq_zero (biprod.inl : Y ⟶ Y ⊞ Z) at h,
   change biprod.inl ≠ 0 at h,
   rw ←(simple.mono_is_iso_iff_nonzero biprod.inl) at h,
   { rwa biprod.is_iso_inl_iff_is_zero at h, },
@@ -216,14 +220,11 @@ open_locale zero_object
 open subobject
 
 instance {X : C} [simple X] : nontrivial (subobject X) :=
-⟨⟨mk (0 : 0 ⟶ X), mk (𝟙 X), λ h, begin
-  haveI := simple.of_iso (iso_of_mk_eq_mk _ _ h),
-  exact zero_not_simple C,
-end⟩⟩
+nontrivial_of_not_is_zero (simple.not_is_zero X)
 
 instance {X : C} [simple X] : is_simple_order (subobject X) :=
 { eq_bot_or_eq_top := begin
-  rintro ⟨⟨⟨(Y : C), ⟨⟩, (f : Y ⟶ X)⟩, (m : mono f)⟩⟩, resetI,
+  rintro ⟨⟨⟨(Y : C), ⟨⟨⟩⟩, (f : Y ⟶ X)⟩, (m : mono f)⟩⟩, resetI,
   change mk f = ⊥ ∨ mk f = ⊤,
   by_cases h : f = 0,
   { exact or.inl (mk_eq_bot_iff_zero.mpr h), },
@@ -250,6 +251,12 @@ end
 lemma simple_iff_subobject_is_simple_order (X : C) : simple X ↔ is_simple_order (subobject X) :=
 ⟨by { introI h, apply_instance, },
  by { introI h, exact simple_of_is_simple_order_subobject X, }⟩
+
+/-- A subobject is simple iff it is an atom in the subobject lattice. -/
+lemma subobject_simple_iff_is_atom {X : C} (Y : subobject X) : simple (Y : C) ↔ is_atom Y :=
+(simple_iff_subobject_is_simple_order _).trans
+  ((order_iso.is_simple_order_iff (subobject_order_iso Y)).trans
+    set.is_simple_order_Iic_iff_is_atom)
 
 end subobject
 

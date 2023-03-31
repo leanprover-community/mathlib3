@@ -6,18 +6,23 @@ Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario
 -/
 import group_theory.subgroup.basic
 import deprecated.submonoid
-/-!
-# Unbundled subgroups
 
-This file defines unbundled multiplicative and additive subgroups `is_subgroup` and
-`is_add_subgroup`. These are not the preferred way to talk about subgroups and should
-not be used for any new projects. The preferred way in mathlib are the bundled
-versions `subgroup G` and `add_subgroup G`.
+/-!
+# Unbundled subgroups (deprecated)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines unbundled multiplicative and additive subgroups. Instead of using this file,
+please use `subgroup G` and `add_subgroup A`, defined in `group_theory.subgroup.basic`.
 
 ## Main definitions
 
-`is_add_subgroup (S : set G)` : the predicate that `S` is the underlying subset of an additive
-subgroup of `G`. The bundled variant `add_subgroup G` should be used in preference to this.
+`is_add_subgroup (S : set A)` : the predicate that `S` is the underlying subset of an additive
+subgroup of `A`. The bundled variant `add_subgroup A` should be used in preference to this.
 
 `is_subgroup (S : set G)` : the predicate that `S` is the underlying subset of a subgroup
 of `G`. The bundled variant `subgroup G` should be used in preference to this.
@@ -49,8 +54,8 @@ by simpa only [div_eq_mul_inv] using hs.mul_mem hx (hs.inv_mem hy)
 
 lemma additive.is_add_subgroup
   {s : set G} (hs : is_subgroup s) : @is_add_subgroup (additive G) _ s :=
-@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid hs.to_is_submonoid)
-  hs.inv_mem
+@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid hs.to_is_submonoid) $
+  λ _, hs.inv_mem
 
 theorem additive.is_add_subgroup_iff
   {s : set G} : @is_add_subgroup (additive G) _ s ↔ is_subgroup s :=
@@ -59,8 +64,8 @@ theorem additive.is_add_subgroup_iff
 
 lemma multiplicative.is_subgroup
   {s : set A} (hs : is_add_subgroup s) : @is_subgroup (multiplicative A) _ s :=
-@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid hs.to_is_add_submonoid)
-  hs.neg_mem
+@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid hs.to_is_add_submonoid) $
+  λ _, hs.neg_mem
 
 theorem multiplicative.is_subgroup_iff
   {s : set A} : @is_subgroup (multiplicative A) _ s ↔ is_add_subgroup s :=
@@ -484,7 +489,7 @@ theorem closure_eq_mclosure {s : set G} : closure s = monoid.closure (s ∪ has_
 set.subset.antisymm
   (@closure_subset _ _ _ (monoid.closure (s ∪ has_inv.inv ⁻¹' s))
     { one_mem := (monoid.closure.is_submonoid _).one_mem,
-      mul_mem := (monoid.closure.is_submonoid _).mul_mem,
+      mul_mem := λ _ _, (monoid.closure.is_submonoid _).mul_mem,
       inv_mem := λ x hx, monoid.in_closure.rec_on hx
       (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $
         show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
@@ -595,14 +600,14 @@ end group
 def subgroup.of [group G] {s : set G} (h : is_subgroup s) : subgroup G :=
 { carrier := s,
   one_mem' := h.1.1,
-  mul_mem' := h.1.2,
-  inv_mem' := h.2 }
+  mul_mem' := λ _ _, h.1.2,
+  inv_mem' := λ _, h.2 }
 
 @[to_additive]
 lemma subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set G) :=
 { one_mem := K.one_mem',
-  mul_mem := K.mul_mem',
-  inv_mem := K.inv_mem' }
+  mul_mem := λ _ _, K.mul_mem',
+  inv_mem := λ _, K.inv_mem' }
 
 -- this will never fire if it's an instance
 @[to_additive]

@@ -41,7 +41,7 @@ weak-* topology on (its type synonym) `weak_dual 𝕜 E`:
   coarser (not necessarily strictly) than the operator norm topology.
 * `weak_dual.is_compact_polar` (a version of the Banach-Alaoglu theorem): The polar set of a
   neighborhood of the origin in a normed space `E` over `𝕜` is compact in `weak_dual _ E`, if the
-  nondiscrete normed field `𝕜` is proper as a topological space.
+  nontrivially normed field `𝕜` is proper as a topological space.
 * `weak_dual.is_compact_closed_ball` (the most common special case of the Banach-Alaoglu theorem):
   Closed balls in the dual of a normed space `E` over `ℝ` or `ℂ` are compact in the weak-star
   topology.
@@ -87,7 +87,7 @@ weak-star, weak dual
 
 noncomputable theory
 open filter function metric set
-open_locale topological_space filter
+open_locale topology filter
 
 /-!
 ### Weak star topology on duals of normed spaces
@@ -98,8 +98,8 @@ i.e., that the weak-* topology is coarser (not necessarily strictly) than the to
 by the dual-norm (i.e. the operator-norm).
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 namespace normed_space
 
@@ -142,6 +142,8 @@ mapping). It is a linear equivalence. Here it is implemented as the inverse of t
 equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
 def to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E := normed_space.dual.to_weak_dual.symm
 
+lemma to_normed_dual_apply (x : weak_dual 𝕜 E) (y : E) : (to_normed_dual x) y = x y := rfl
+
 @[simp] lemma coe_to_normed_dual (x' : weak_dual 𝕜 E) : ⇑(x'.to_normed_dual) = x' := rfl
 
 @[simp] lemma to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
@@ -162,7 +164,7 @@ variables (𝕜)
 weak-star topology is `weak_dual.polar 𝕜 s`. -/
 def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' polar 𝕜 s
 
-lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
+lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ‖f x‖ ≤ 1} := rfl
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used. -/

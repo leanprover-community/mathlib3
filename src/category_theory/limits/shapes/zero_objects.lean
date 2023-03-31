@@ -3,12 +3,13 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.images
-import category_theory.isomorphism_classes
+import category_theory.limits.shapes.terminal
 
 /-!
 # Zero objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A category "has a zero object" if it has an object which is both initial and terminal. Having a
 zero object provides zero morphisms, as the unique morphisms factoring through the zero object;
@@ -101,6 +102,14 @@ begin
   { rw ← cancel_mono e.hom, apply hY.eq_of_tgt, },
 end
 
+lemma op (h : is_zero X) : is_zero (opposite.op X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_src _ _)⟩⟩⟩
+
+lemma unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
+
 end is_zero
 
 end limits
@@ -132,7 +141,7 @@ class has_zero_object : Prop :=
 (zero : ∃ X : C, is_zero X)
 
 instance has_zero_object_punit : has_zero_object (discrete punit) :=
-{ zero := ⟨punit.star, by tidy, by tidy⟩, }
+{ zero := ⟨⟨⟨⟩⟩, by tidy, by tidy⟩, }
 
 section
 
@@ -150,9 +159,14 @@ localized "attribute [instance] category_theory.limits.has_zero_object.has_zero"
 lemma is_zero_zero : is_zero (0 : C) :=
 has_zero_object.zero.some_spec
 
+instance has_zero_object_op : has_zero_object Cᵒᵖ := ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
+
 end
 
 open_locale zero_object
+
+lemma has_zero_object_unop [has_zero_object Cᵒᵖ] : has_zero_object C :=
+⟨⟨opposite.unop 0, is_zero.unop (is_zero_zero Cᵒᵖ)⟩⟩
 
 variables {C}
 
@@ -200,6 +214,10 @@ instance {X : C} (f : 0 ⟶ X) : mono f :=
 
 instance {X : C} (f : X ⟶ 0) : epi f :=
 { left_cancellation := λ Z g h w, by ext, }
+
+instance zero_to_zero_is_iso (f : (0 : C) ⟶ 0) :
+  is_iso f :=
+by convert (show is_iso (𝟙 (0 : C)), by apply_instance)
 
 /-- A zero object is in particular initial. -/
 def zero_is_initial : is_initial (0 : C) :=

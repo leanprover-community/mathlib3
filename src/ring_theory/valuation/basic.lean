@@ -5,12 +5,14 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import algebra.punit_instances
 import ring_theory.ideal.operations
 
 /-!
 
 # The basics of valuation theory.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The basic theory of valuations (non-archimedean norms) on a commutative ring,
 following T. Wedhorn's unpublished notes “Adic Spaces” ([wedhorn_adic]).
@@ -32,10 +34,6 @@ that the class of all valuations (as `Γ₀` varies) on a ring `R` is not a set.
 The "relation" is however reflexive, symmetric and transitive in the obvious
 sense. Note that we use 1.27(iii) of [wedhorn_adic] as the definition of equivalence.
 
-The support of a valuation `v : valuation R Γ₀` is `supp v`. If `J` is an ideal of `R`
-with `h : J ⊆ supp v` then the induced valuation
-on R / J = `ideal.quotient J` is `on_quot v h`.
-
 ## Main definitions
 
 * `valuation R Γ₀`, the type of valuations on `R` with values in `Γ₀`
@@ -49,6 +47,13 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 `add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
 
+## Notation
+
+In the `discrete_valuation` locale:
+
+ * `ℕₘ₀` is a shorthand for `with_zero (multiplicative ℕ)`
+ * `ℤₘ₀` is a shorthand for `with_zero (multiplicative ℤ)`
+
 ## TODO
 
 If ever someone extends `valuation`, we should fully comply to the `fun_like` by migrating the
@@ -60,7 +65,7 @@ noncomputable theory
 
 open function ideal
 
-variables {F R : Type*} -- This will be a ring, assumed commutative in some sections
+variables {K F R : Type*} [division_ring K]
 
 section
 variables (F R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
@@ -68,7 +73,7 @@ variables (F R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ri
 /-- The type of `Γ₀`-valued valuations on `R`.
 
 When you extend this structure, make sure to extend `valuation_class`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure valuation extends R →*₀ Γ₀ :=
 (map_add_le_max' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
 
@@ -163,13 +168,13 @@ lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = 
 def to_preorder : preorder R := preorder.lift v
 
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
-@[simp] lemma zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
-  (v : valuation K Γ₀) {x : K} : v x = 0 ↔ x = 0 :=
-v.to_monoid_with_zero_hom.map_eq_zero
+@[simp] lemma zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
+  v x = 0 ↔ x = 0 :=
+map_eq_zero v
 
-lemma ne_zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
-  (v : valuation K Γ₀) {x : K} : v x ≠ 0 ↔ x ≠ 0 :=
-v.to_monoid_with_zero_hom.map_ne_zero
+lemma ne_zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
+  v x ≠ 0 ↔ x ≠ 0 :=
+map_ne_zero v
 
 theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
@@ -210,17 +215,6 @@ end monoid
 section group
 variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp] lemma map_inv {K : Type*} [division_ring K]
-  (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.map_inv x
-
-@[simp] lemma map_zpow {K : Type*} [division_ring K] (v : valuation K Γ₀) {x : K} {n : ℤ} :
-  v (x^n) = (v x)^n :=
-v.to_monoid_with_zero_hom.map_zpow x n
-
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
-v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 
@@ -243,15 +237,13 @@ begin
   suffices : ¬v (x + y) < max (v x) (v y),
     from or_iff_not_imp_right.1 (le_iff_eq_or_lt.1 (v.map_add x y)) this,
   intro h',
-  wlog vyx : v y < v x using x y,
-  { apply lt_or_gt_of_ne h.symm },
-  { rw max_eq_left_of_lt vyx at h',
-    apply lt_irrefl (v x),
-    calc v x = v ((x+y) - y)         : by simp
-         ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
-         ... < v x                   : max_lt h' vyx },
-  { apply this h.symm,
-    rwa [add_comm, max_comm] at h' }
+  wlog vyx : v y < v x,
+  { refine this v h.symm _ (h.lt_or_lt.resolve_right vyx), rwa [add_comm, max_comm] },
+  rw max_eq_left_of_lt vyx at h',
+  apply lt_irrefl (v x),
+  calc v x = v ((x+y) - y)         : by simp
+        ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
+        ... < v x                   : max_lt h' vyx
 end
 
 lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=
@@ -272,6 +264,23 @@ begin
   rw max_eq_right (le_of_lt h) at this,
   simpa using this
 end
+
+lemma map_one_add_of_lt (h : v x < 1) : v (1 + x) = 1 :=
+begin
+  rw ← v.map_one at h,
+  simpa only [v.map_one] using v.map_add_eq_of_lt_left h
+end
+
+lemma map_one_sub_of_lt (h : v x < 1) : v (1 - x) = 1 :=
+begin
+  rw [← v.map_one, ← v.map_neg] at h,
+  rw sub_eq_add_neg 1 x,
+  simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
+end
+
+lemma one_lt_val_iff (v : valuation K Γ₀) {x : K} (h : x ≠ 0) :
+  1 < v x ↔ v x⁻¹ < 1 :=
+by simpa using (inv_lt_inv₀ (v.ne_zero_iff.2 h) one_ne_zero).symm
 
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
 def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
@@ -338,7 +347,6 @@ lemma is_equiv_of_map_strict_mono [linear_ordered_comm_monoid_with_zero Γ₀]
 
 lemma is_equiv_of_val_le_one [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) (h : ∀ {x:K}, v x ≤ 1 ↔ v' x ≤ 1) :
   v.is_equiv v' :=
 begin
@@ -362,7 +370,6 @@ end
 lemma is_equiv_iff_val_le_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v x ≤ 1 ↔ v' x ≤ 1 :=
 ⟨λ h x, by  simpa using h x 1, is_equiv_of_val_le_one _ _⟩
@@ -370,7 +377,6 @@ lemma is_equiv_iff_val_le_one
 lemma is_equiv_iff_val_eq_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v x = 1 ↔ v' x = 1 :=
 begin
@@ -397,6 +403,61 @@ begin
         refine le_trans (v.map_add _ _) _,
         simp [this] },
       { rw ← h at hx', exact le_of_eq hx' } } }
+end
+
+lemma is_equiv_iff_val_lt_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x < 1 ↔ v' x < 1 :=
+begin
+  split,
+  { intros h x,
+    simp only [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one _ _).1 h)
+      ((is_equiv_iff_val_eq_one _ _).1 h).not] },
+  { rw is_equiv_iff_val_eq_one,
+    intros h x,
+    by_cases hx : x = 0, { simp only [(zero_iff _).2 hx, zero_ne_one] },
+    split,
+    { intro hh,
+      by_contra h_1,
+      cases ne_iff_lt_or_gt.1 h_1,
+      { simpa [hh, lt_self_iff_false] using h.2 h_2 },
+      { rw [← inv_one, ← inv_eq_iff_eq_inv, ← map_inv₀] at hh,
+        exact hh.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
+    { intro hh,
+      by_contra h_1,
+      cases ne_iff_lt_or_gt.1 h_1,
+      { simpa [hh, lt_self_iff_false] using h.1 h_2 },
+      { rw [← inv_one, ← inv_eq_iff_eq_inv, ← map_inv₀] at hh,
+        exact hh.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
+end
+
+lemma is_equiv_iff_val_sub_one_lt_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
+begin
+  rw is_equiv_iff_val_lt_one,
+  exact (equiv.sub_right 1).surjective.forall
+end
+
+lemma is_equiv_tfae
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  [v.is_equiv v',
+   ∀ {x}, v x ≤ 1 ↔ v' x ≤ 1,
+   ∀ {x}, v x = 1 ↔ v' x = 1,
+   ∀ {x}, v x < 1 ↔ v' x < 1,
+   ∀ {x}, v (x-1) < 1 ↔ v' (x-1) < 1].tfae :=
+begin
+  tfae_have : 1 ↔ 2, { apply is_equiv_iff_val_le_one },
+  tfae_have : 1 ↔ 3, { apply is_equiv_iff_val_eq_one },
+  tfae_have : 1 ↔ 4, { apply is_equiv_iff_val_lt_one },
+  tfae_have : 1 ↔ 5, { apply is_equiv_iff_val_sub_one_lt_one },
+  tfae_finish
 end
 
 end
@@ -442,27 +503,6 @@ begin
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
 
-/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
-Note: it's just the function; the valuation is `on_quot hJ`. -/
-def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
-  R ⧸ J → Γ₀ :=
-λ q, quotient.lift_on' q v $ λ a b h,
-calc v a = v (b + -(-a + b)) : by simp
-     ... = v b             : v.map_add_supp b ((ideal.neg_mem_iff _).2 $ hJ h)
-
-/-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
-def on_quot {J : ideal R} (hJ : J ≤ supp v) :
-  valuation (R ⧸ J) Γ₀ :=
-{ to_fun := v.on_quot_val hJ,
-  map_zero' := v.map_zero,
-  map_one'  := v.map_one,
-  map_mul'  := λ xbar ybar, quotient.ind₂' v.map_mul xbar ybar,
-  map_add_le_max'  := λ xbar ybar, quotient.ind₂' v.map_add xbar ybar }
-
-@[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
-  (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
-ext $ λ r, rfl
-
 lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
   supp (v.comap f) = ideal.comap f v.supp :=
 ideal.ext $ λ x,
@@ -470,29 +510,6 @@ begin
   rw [mem_supp_iff, ideal.mem_comap, mem_supp_iff],
   refl,
 end
-
-lemma self_le_supp_comap (J : ideal R) (v : valuation (R ⧸ J) Γ₀) :
-  J ≤ (v.comap (ideal.quotient.mk J)).supp :=
-by { rw [comap_supp, ← ideal.map_le_iff_le_comap], simp }
-
-@[simp] lemma comap_on_quot_eq (J : ideal R) (v : valuation (R ⧸ J) Γ₀) :
-  (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=
-ext $ by { rintro ⟨x⟩, refl }
-
-/-- The quotient valuation on R/J has support supp(v)/J if J ⊆ supp v. -/
-lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
-  supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk J) :=
-begin
-  apply le_antisymm,
-  { rintro ⟨x⟩ hx,
-    apply ideal.subset_span,
-    exact ⟨x, hx, rfl⟩ },
-  { rw ideal.map_le_iff_le_comap,
-    intros x hx, exact hx }
-end
-
-lemma supp_quot_supp : supp (v.on_quot le_rfl) = 0 :=
-by { rw supp_quot, exact ideal.map_quotient_self _ }
 
 end supp -- end of section
 
@@ -503,7 +520,7 @@ section add_monoid
 variables (R) [ring R] (Γ₀ : Type*) [linear_ordered_add_comm_monoid_with_top Γ₀]
 
 /-- The type of `Γ₀`-valued additive valuations on `R`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def add_valuation := valuation R (multiplicative Γ₀ᵒᵈ)
 
 end add_monoid
@@ -584,12 +601,13 @@ valuation.ext_iff
 def to_preorder : preorder R := preorder.lift v
 
 /-- If `v` is an additive valuation on a division ring then `v(x) = ⊤` iff `x = 0`. -/
-@[simp] lemma top_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
-  (v : add_valuation K Γ₀) {x : K} : v x = ⊤ ↔ x = 0 :=
+@[simp] lemma top_iff [nontrivial Γ₀] (v : add_valuation K Γ₀) {x : K} :
+  v x = ⊤ ↔ x = 0 :=
 v.zero_iff
 
-lemma ne_top_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
-  (v : add_valuation K Γ₀) {x : K} : v x ≠ ⊤ ↔ x ≠ 0 := v.ne_zero_iff
+lemma ne_top_iff [nontrivial Γ₀] (v : add_valuation K Γ₀) {x : K} :
+  v x ≠ ⊤ ↔ x ≠ 0 :=
+v.ne_zero_iff
 
 /-- A ring homomorphism `S → R` induces a map `add_valuation R Γ₀ → add_valuation S Γ₀`. -/
 def comap {S : Type*} [ring S] (f : S →+* R) (v : add_valuation R Γ₀) :
@@ -623,12 +641,9 @@ end monoid
 section group
 variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valuation R Γ₀) {x y z : R}
 
-@[simp] lemma map_inv {K : Type*} [division_ring K]
-  (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = - (v x) :=
-v.map_inv
-
-lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
-v.map_units_inv x
+@[simp] lemma map_inv (v : add_valuation K Γ₀) {x : K} :
+  v x⁻¹ = - (v x) :=
+map_inv₀ v.valuation x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.map_neg x
@@ -705,41 +720,17 @@ def supp : ideal R := v.supp
 lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
 v.map_add_supp a h
 
-/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
-Note: it's just the function; the valuation is `on_quot hJ`. -/
-def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : (R ⧸ J) → Γ₀ := v.on_quot_val hJ
-
-/-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
-def on_quot {J : ideal R} (hJ : J ≤ supp v) :
-  add_valuation (R ⧸ J) Γ₀ :=
-v.on_quot hJ
-
-@[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
-  (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
-v.on_quot_comap_eq hJ
-
-lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
-  supp (v.comap f) = ideal.comap f v.supp :=
-v.comap_supp f
-
-lemma self_le_supp_comap (J : ideal R) (v : add_valuation (R ⧸ J) Γ₀) :
-  J ≤ (v.comap (ideal.quotient.mk J)).supp :=
-v.self_le_supp_comap J
-
-@[simp] lemma comap_on_quot_eq (J : ideal R) (v : add_valuation (R ⧸ J) Γ₀) :
-  (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=
-v.comap_on_quot_eq J
-
-/-- The quotient valuation on R/J has support supp(v)/J if J ⊆ supp v. -/
-lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
-  supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk J) :=
-v.supp_quot hJ
-
-lemma supp_quot_supp : supp (v.on_quot le_rfl) = 0 :=
-v.supp_quot_supp
-
 end supp -- end of section
 
 attribute [irreducible] add_valuation
 
 end add_valuation
+
+section valuation_notation
+
+localized "notation (name := nat.multiplicative_zero)
+  `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation (name := int.multiplicative_zero)
+  `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+
+end valuation_notation

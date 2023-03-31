@@ -6,6 +6,7 @@ Authors: María Inés de Frutos-Fernández
 import ring_theory.dedekind_domain.ideal
 import ring_theory.valuation.extend_to_localization
 import ring_theory.valuation.valuation_subring
+import ring_theory.polynomial.cyclotomic.basic
 import topology.algebra.valued_field
 
 /-!
@@ -35,8 +36,6 @@ We define the completion of `K` with respect to the `v`-adic valuation, denoted
   ideal `(r)`.
 - `is_dedekind_domain.height_one_spectrum.int_valuation_exists_uniformizer` : There exists `π ∈ R`
   with `v`-adic valuation `multiplicative.of_add (-1)`.
-- `is_dedekind_domain.height_one_spectrum.int_valuation_div_eq_div` : The valuation of `k ∈ K` is
-  independent on how we express `k` as a fraction.
 - `is_dedekind_domain.height_one_spectrum.valuation_of_mk'` : The `v`-adic valuation of `r/s ∈ K`
   is the valuation of `r` divided by the valuation of `s`.
 - `is_dedekind_domain.height_one_spectrum.valuation_of_algebra_map` : The `v`-adic valuation on `K`
@@ -57,7 +56,7 @@ dedekind domain, dedekind ring, adic valuation
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical discrete_valuation
 
 open multiplicative is_dedekind_domain
 
@@ -70,7 +69,7 @@ namespace is_dedekind_domain.height_one_spectrum
 /-- The additive `v`-adic valuation of `r ∈ R` is the exponent of `v` in the factorization of the
 ideal `(r)`, if `r` is nonzero, or infinity, if `r = 0`. `int_valuation_def` is the corresponding
 multiplicative valuation. -/
-def int_valuation_def (r : R) : with_zero (multiplicative ℤ) :=
+def int_valuation_def (r : R) : ℤₘ₀ :=
 if r = 0 then 0 else multiplicative.of_add
   (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)
 
@@ -207,7 +206,7 @@ begin
 end
 
 /-- The `v`-adic valuation on `R`. -/
-def int_valuation : valuation R (with_zero (multiplicative ℤ)) :=
+def int_valuation : valuation R ℤₘ₀ :=
 { to_fun          := v.int_valuation_def,
   map_zero'       := int_valuation.map_zero' v,
   map_one'        := int_valuation.map_one' v,
@@ -243,7 +242,7 @@ end
 
 /-- The `v`-adic valuation of `x ∈ K` is the valuation of `r` divided by the valuation of `s`,
 where `r` and `s` are chosen so that `x = r/s`. -/
-def valuation (v : height_one_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
+def valuation (v : height_one_spectrum R) : valuation K ℤₘ₀ :=
 v.int_valuation.extend_to_localization (λ r hr, set.mem_compl $ v.int_valuation_ne_zero' ⟨r, hr⟩) K
 
 lemma valuation_def (x : K) : v.valuation x = v.int_valuation.extend_to_localization
@@ -257,7 +256,7 @@ begin
   erw [valuation_def, (is_localization.to_localization_map (non_zero_divisors R) K).lift_mk',
     div_eq_mul_inv, mul_eq_mul_left_iff],
   left,
-  rw [units.coe_inv', inv_inj],
+  rw [units.coe_inv, inv_inj],
   refl,
 end
 
@@ -303,7 +302,7 @@ ring of integers, denoted `v.adic_completion_integers`. -/
 variable {K}
 
 /-- `K` as a valued field with the `v`-adic valuation. -/
-def adic_valued : valued K (with_zero (multiplicative ℤ)) := valued.mk' v.valuation
+def adic_valued : valued K ℤₘ₀ := valued.mk' v.valuation
 
 lemma adic_valued_apply {x : K} : (v.adic_valued.v : _) x = v.valuation x := rfl
 
@@ -313,11 +312,12 @@ variables (K)
 def adic_completion := @uniform_space.completion K v.adic_valued.to_uniform_space
 
 instance : field (v.adic_completion K) :=
-@field_completion K _ v.adic_valued.to_uniform_space _ _ v.adic_valued.to_uniform_add_group
+@uniform_space.completion.field K _ v.adic_valued.to_uniform_space _ _
+  v.adic_valued.to_uniform_add_group
 
 instance : inhabited (v.adic_completion K) := ⟨0⟩
 
-instance valued_adic_completion : valued (v.adic_completion K) (with_zero (multiplicative ℤ)) :=
+instance valued_adic_completion : valued (v.adic_completion K) ℤₘ₀ :=
 @valued.valued_completion _ _ _ _ v.adic_valued
 
 lemma valued_adic_completion_def {x : v.adic_completion K} :
@@ -331,5 +331,97 @@ instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 
 /-- The ring of integers of `adic_completion`. -/
 def adic_completion_integers : valuation_subring (v.adic_completion K) := valued.v.valuation_subring
+
+instance : inhabited (adic_completion_integers K v) := ⟨0⟩
+
+variables (R K)
+
+lemma mem_adic_completion_integers {x : v.adic_completion K} :
+  x ∈ v.adic_completion_integers K ↔ (valued.v x : ℤₘ₀) ≤ 1 :=
+iff.rfl
+
+section algebra_instances
+
+@[priority 100] instance adic_valued.has_uniform_continuous_const_smul' :
+  @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space _ :=
+@has_uniform_continuous_const_smul_of_continuous_const_smul R K _ _ _
+    v.adic_valued.to_uniform_space _ _
+
+instance adic_valued.has_uniform_continuous_const_smul :
+  @has_uniform_continuous_const_smul K K v.adic_valued.to_uniform_space _ :=
+@ring.has_uniform_continuous_const_smul K _ v.adic_valued.to_uniform_space _ _
+
+instance adic_completion.algebra' : algebra R (v.adic_completion K) :=
+@uniform_space.completion.algebra K _ v.adic_valued.to_uniform_space _ _ R _ _
+  (adic_valued.has_uniform_continuous_const_smul' R K v)
+
+@[simp] lemma coe_smul_adic_completion (r : R) (x : K) :
+  (↑(r • x) : v.adic_completion K) = r • (↑x : v.adic_completion K) :=
+@uniform_space.completion.coe_smul R K v.adic_valued.to_uniform_space _ _ r x
+
+instance : algebra K (v.adic_completion K) :=
+@uniform_space.completion.algebra' K _ v.adic_valued.to_uniform_space _ _
+
+lemma algebra_map_adic_completion' :
+  ⇑(algebra_map R $ v.adic_completion K) = coe ∘ algebra_map R K :=
+rfl
+
+lemma algebra_map_adic_completion :
+  ⇑(algebra_map K $ v.adic_completion K) = coe :=
+rfl
+
+instance : is_scalar_tower R K (v.adic_completion K) :=
+@uniform_space.completion.is_scalar_tower R K K v.adic_valued.to_uniform_space _ _ _
+  (adic_valued.has_uniform_continuous_const_smul' R K v) _ _
+
+instance : algebra R (v.adic_completion_integers K) :=
+{ smul      := λ r x, ⟨r • (x : v.adic_completion K), begin
+    have h : ((algebra_map R (adic_completion K v)) r) = (coe $ algebra_map R K r) := rfl,
+    rw algebra.smul_def,
+    refine valuation_subring.mul_mem _ _ _ _ x.2,
+    rw [mem_adic_completion_integers, h, valued.valued_completion_apply],
+    exact v.valuation_le_one _,
+  end⟩,
+  to_fun    := λ r, ⟨coe $ algebra_map R K r, by simpa only [mem_adic_completion_integers,
+    valued.valued_completion_apply] using v.valuation_le_one _⟩,
+  map_one'  := by simp only [map_one]; refl,
+  map_mul'  := λ x y,
+  begin
+    ext,
+    simp_rw [ring_hom.map_mul, subring.coe_mul, subtype.coe_mk, uniform_space.completion.coe_mul],
+  end,
+  map_zero' := by simp only [map_zero]; refl,
+  map_add'  := λ x y,
+  begin
+    ext,
+    simp_rw [ring_hom.map_add, subring.coe_add, subtype.coe_mk, uniform_space.completion.coe_add],
+  end,
+  commutes' := λ r x, by rw mul_comm,
+  smul_def' := λ r x, begin
+    ext,
+    simp only [subring.coe_mul, set_like.coe_mk, algebra.smul_def],
+    refl,
+  end }
+
+@[simp] lemma coe_smul_adic_completion_integers (r : R) (x : v.adic_completion_integers K) :
+  (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=
+rfl
+
+instance : no_zero_smul_divisors R (v.adic_completion_integers K) :=
+{ eq_zero_or_eq_zero_of_smul_eq_zero := λ c x hcx,
+  begin
+    rw [algebra.smul_def, mul_eq_zero] at hcx,
+    refine hcx.imp_left (λ hc, _),
+    letI : uniform_space K := v.adic_valued.to_uniform_space,
+    rw ← map_zero (algebra_map R (v.adic_completion_integers K)) at hc,
+    exact (is_fraction_ring.injective R K
+      (uniform_space.completion.coe_injective K (subtype.ext_iff.mp hc)))
+  end }
+
+instance adic_completion.is_scalar_tower' :
+  is_scalar_tower R (v.adic_completion_integers K) (v.adic_completion K) :=
+{ smul_assoc := λ x y z, by {simp only [algebra.smul_def], apply mul_assoc, }}
+
+end algebra_instances
 
 end is_dedekind_domain.height_one_spectrum

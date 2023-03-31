@@ -8,7 +8,6 @@ import category_theory.groupoid
 import algebraic_topology.fundamental_groupoid.basic
 import topology.category.Top.limits
 import topology.homotopy.product
-import category_theory.limits.preserves.shapes.products
 
 /-!
 # Fundamental groupoid preserves products
@@ -117,7 +116,7 @@ begin
   apply (limits.is_limit.of_cone_equiv (cone_discrete_comp X)).to_fun,
   simp only [cone_discrete_comp_obj_map_cone],
   apply limits.is_limit.of_iso_limit _ (as_iso (pi_Top_to_pi_cone X)).symm,
-  exact (Groupoid.pi_limit_cone _).is_limit,
+  exact Groupoid.pi_limit_fan_is_limit _,
 end
 
 end preserves

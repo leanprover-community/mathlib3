@@ -186,8 +186,12 @@ add_tactic_doc
   decl_names := [`tactic.interactive.replace],
   tags       := ["context management"] }
 
-/-- Make every proposition in the context decidable. -/
-meta def classical := tactic.classical
+/-- Make every proposition in the context decidable.
+
+`classical!` does this more aggressively, such that even if a decidable instance is already
+available for a specific proposition, the noncomputable one will be used instead. -/
+meta def classical (bang : parse $ (tk "!")?) :=
+tactic.classical bang.is_some
 
 add_tactic_doc
 { name       := "classical",
@@ -511,7 +515,7 @@ attribute from the list `attrs`, as well as the `assumption` tactic on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
 `n` is optional, equal to 50 by default.
 You can pass an `apply_cfg` option argument as `apply_rules hs n opt`.
-(A typical usage would be with `apply_rules hs n { md := reducible })`,
+(A typical usage would be with `apply_rules hs n { md := reducible }`,
 which asks `apply_rules` to not unfold `semireducible` definitions (i.e. most)
 when checking if a lemma matches the goal.)
 
@@ -824,7 +828,7 @@ end
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") *> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
-do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
+do tp ← i_to_expr $ let t := tp.get_or_else pexpr.mk_placeholder in ``(%%t : Sort*),
    pv ← to_expr ``(%%pv : %%tp),
    tp ← instantiate_mvars tp,
    definev a tp pv,

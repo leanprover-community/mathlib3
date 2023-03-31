@@ -5,6 +5,7 @@ Authors: Aaron Anderson, Jalex Stark
 -/
 
 import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.to_lin
 import ring_theory.power_basis
 
 /-!
@@ -44,18 +45,16 @@ In combination with `det_eq_sign_charpoly_coeff` or `trace_eq_neg_charpoly_coeff
 and a bit of rewriting, this will allow us to conclude the
 field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
 -/
-lemma charpoly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K S]
-  (h : power_basis K S) :
-  (left_mul_matrix h.basis h.gen).charpoly = minpoly K h.gen :=
+lemma charpoly_left_mul_matrix {S : Type*} [ring S] [algebra R S] (h : power_basis R S) :
+  (left_mul_matrix h.basis h.gen).charpoly = minpoly R h.gen :=
 begin
-  apply minpoly.unique,
-  { apply matrix.charpoly_monic },
+  casesI subsingleton_or_nontrivial R, { apply subsingleton.elim },
+  apply minpoly.unique' R h.gen (charpoly_monic _),
   { apply (injective_iff_map_eq_zero (left_mul_matrix _)).mp (left_mul_matrix_injective h.basis),
     rw [← polynomial.aeval_alg_hom_apply, aeval_self_charpoly] },
-  { intros q q_monic root_q,
-    rw [matrix.charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
-    apply with_bot.some_le_some.mpr,
-    exact h.dim_le_nat_degree_of_root q_monic.ne_zero root_q }
+  refine λ q hq, or_iff_not_imp_left.2 (λ h0, _),
+  rw [matrix.charpoly_degree_eq_dim, fintype.card_fin] at hq,
+  contrapose! hq, exact h.dim_le_degree_of_root h0 hq,
 end
 
 end power_basis

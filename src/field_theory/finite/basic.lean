@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import tactic.apply_fun
-import algebra.ring.equiv
-import data.zmod.algebra
-import linear_algebra.finite_dimensional
-import ring_theory.integral_domain
 import field_theory.separable
+import field_theory.splitting_field
+import ring_theory.integral_domain
+import tactic.apply_fun
 
 /-!
 # Finite fields
@@ -46,10 +44,10 @@ diamonds, as `fintype` carries data.
 variables {K : Type*} {R : Type*}
 local notation `q` := fintype.card K
 
+open finset function
 open_locale big_operators polynomial
 
 namespace finite_field
-open finset function
 
 section polynomial
 
@@ -103,7 +101,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
+    (λ a, by simp [@inv_eq_iff_eq_inv _ _ a])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -252,7 +250,7 @@ X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
 end
 
-variables (p : ℕ) [fact p.prime] [char_p K p]
+variables (p : ℕ) [fact p.prime] [algebra (zmod p) K]
 lemma roots_X_pow_card_sub_X : roots (X^q - X : K[X]) = finset.univ.val :=
 begin
   classical,
@@ -266,11 +264,11 @@ begin
   apply nodup_roots,
   rw separable_def,
   convert is_coprime_one_right.neg_right using 1,
-  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
+      zero_sub] },
   end
 
-instance : is_splitting_field (zmod p) K (X^q - X) :=
+instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
 { splits :=
   begin
     have h : (X^q - X : K[X]).nat_degree = q :=
@@ -281,8 +279,8 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   adjoin_roots :=
   begin
     classical,
-    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], convert rfl },
+    transitivity algebra.adjoin F ((roots (X^q - X : K[X])).to_finset : set K),
+    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 
@@ -337,7 +335,7 @@ end zmod
 namespace char_p
 
 lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
-  (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+  (p : ℕ) [ne_zero p] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,
@@ -353,18 +351,21 @@ open zmod
 
 /-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
-@[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : (zmod n)ˣ) : x ^ φ n = 1 :=
-by rw [← card_units_eq_totient, pow_card_eq_one]
+@[simp] lemma zmod.pow_totient {n : ℕ} (x : (zmod n)ˣ) : x ^ φ n = 1 :=
+begin
+  cases n,
+  { rw [nat.totient_zero, pow_zero] },
+  { rw [← card_units_eq_totient, pow_card_eq_one] }
+end
 
 /-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
-  cases n, {simp},
   rw ← zmod.eq_iff_modeq_nat,
-  let x' : units (zmod (n+1)) := zmod.unit_of_coprime _ h,
+  let x' : units (zmod n) := zmod.unit_of_coprime _ h,
   have := zmod.pow_totient x',
-  apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
+  apply_fun (coe : units (zmod n) → zmod n) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, coe_unit_of_coprime, units.coe_pow],
 end
@@ -416,6 +417,14 @@ theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a �
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
 
+theorem order_of_units_dvd_card_sub_one {p : ℕ} [fact p.prime] (u : (zmod p)ˣ) :
+  order_of u ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ units_pow_card_sub_one_eq_one _ _
+
+theorem order_of_dvd_card_sub_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
+  order_of a ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ pow_card_sub_one_eq_one ha
+
 open polynomial
 
 lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
@@ -435,4 +444,114 @@ begin
     { exact hpn.symm },
     exact zmod.char_p p },
   simpa [← zmod.int_coe_eq_int_coe_iff] using zmod.pow_card_sub_one_eq_one this
+end
+
+section
+
+namespace finite_field
+
+variables {F : Type*} [field F]
+
+section finite
+variables [finite F]
+
+/-- In a finite field of characteristic `2`, all elements are squares. -/
+lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
+begin
+  haveI hF' : char_p F 2 := ring_char.of_eq hF,
+  exact is_square_of_char_two' a,
+end
+
+/-- In a finite field of odd characteristic, not every element is a square. -/
+lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
+begin
+  -- Idea: the squaring map on `F` is not injective, hence not surjective
+  let sq : F → F := λ x, x ^ 2,
+  have h : ¬ injective sq,
+  { simp only [injective, not_forall, exists_prop],
+    refine ⟨-1, 1, _, ring.neg_one_ne_one_of_char_ne_two hF⟩,
+    simp only [sq, one_pow, neg_one_sq] },
+  rw finite.injective_iff_surjective at h, -- sq not surjective
+  simp_rw [is_square, ←pow_two, @eq_comm _ _ (_ ^ 2)],
+  push_neg at ⊢ h,
+  exact h,
+end
+
+end finite
+
+variables [fintype F]
+
+/-- The finite field `F` has even cardinality iff it has characteristic `2`. -/
+lemma even_card_iff_char_two : ring_char F = 2 ↔ fintype.card F % 2 = 0 :=
+begin
+  rcases finite_field.card F (ring_char F) with ⟨n, hp, h⟩,
+  rw [h, nat.pow_mod],
+  split,
+  { intro hF,
+    rw hF,
+    simp only [nat.bit0_mod_two, zero_pow', ne.def, pnat.ne_zero, not_false_iff, nat.zero_mod], },
+  { rw [← nat.even_iff, nat.even_pow],
+    rintros ⟨hev, hnz⟩,
+    rw [nat.even_iff, nat.mod_mod] at hev,
+    exact (nat.prime.eq_two_or_odd hp).resolve_right (ne_of_eq_of_ne hev zero_ne_one), },
+end
+
+lemma even_card_of_char_two (hF : ring_char F = 2) : fintype.card F % 2 = 0 :=
+even_card_iff_char_two.mp hF
+
+lemma odd_card_of_char_ne_two (hF : ring_char F ≠ 2) : fintype.card F % 2 = 1 :=
+nat.mod_two_ne_zero.mp (mt even_card_iff_char_two.mpr hF)
+
+/-- If `F` has odd characteristic, then for nonzero `a : F`, we have that `a ^ (#F / 2) = ±1`. -/
+lemma pow_dichotomy (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
+  a ^ (fintype.card F / 2) = 1 ∨ a ^ (fintype.card F / 2) = -1 :=
+begin
+  have h₁ := finite_field.pow_card_sub_one_eq_one a ha,
+  rw [← nat.two_mul_odd_div_two (finite_field.odd_card_of_char_ne_two hF),
+      mul_comm, pow_mul, pow_two] at h₁,
+  exact mul_self_eq_one_iff.mp h₁,
+end
+
+/-- A unit `a` of a finite field `F` of odd characteristic is a square
+if and only if `a ^ (#F / 2) = 1`. -/
+lemma unit_is_square_iff (hF : ring_char F ≠ 2) (a : Fˣ) :
+  is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
+begin
+  classical,
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator Fˣ,
+  obtain ⟨n, hn⟩ : a ∈ submonoid.powers g, { rw mem_powers_iff_mem_zpowers, apply hg },
+  have hodd := nat.two_mul_odd_div_two (finite_field.odd_card_of_char_ne_two hF),
+  split,
+  { rintro ⟨y, rfl⟩,
+    rw [← pow_two, ← pow_mul, hodd],
+    apply_fun (@coe Fˣ F _) using units.ext,
+    { push_cast,
+      exact finite_field.pow_card_sub_one_eq_one (y : F) (units.ne_zero y), }, },
+  { subst a, assume h,
+    have key : 2 * (fintype.card F / 2) ∣ n * (fintype.card F / 2),
+    { rw [← pow_mul] at h,
+      rw [hodd, ← fintype.card_units, ← order_of_eq_card_of_forall_mem_zpowers hg],
+      apply order_of_dvd_of_pow_eq_one h },
+    have : 0 < fintype.card F / 2 := nat.div_pos fintype.one_lt_card (by norm_num),
+    obtain ⟨m, rfl⟩ := nat.dvd_of_mul_dvd_mul_right this key,
+    refine ⟨g ^ m, _⟩,
+    rw [mul_comm, pow_mul, pow_two], },
+end
+
+/-- A non-zero `a : F` is a square if and only if `a ^ (#F / 2) = 1`. -/
+lemma is_square_iff (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
+  is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
+begin
+  apply (iff_congr _ (by simp [units.ext_iff])).mp
+        (finite_field.unit_is_square_iff hF (units.mk0 a ha)),
+  simp only [is_square, units.ext_iff, units.coe_mk0, units.coe_mul],
+  split,
+  { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
+  { rintro ⟨y, rfl⟩,
+    have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
+    refine ⟨units.mk0 y hy, _⟩, simp, }
+end
+
+end finite_field
+
 end

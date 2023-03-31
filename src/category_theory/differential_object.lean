@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.int.basic
-import category_theory.shift
+import category_theory.shift.basic
 import category_theory.concrete_category.basic
 
 /-!
@@ -27,7 +27,7 @@ namespace category_theory
 
 variables (C : Type u) [category.{v} C]
 
--- TODO: generaize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
+-- TODO: generalize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
 variables [has_zero_morphisms C] [has_shift C ℤ]
 
 /--
@@ -35,7 +35,7 @@ A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
 a morphism `d : X ⟶ X⟦1⟧`, such that `d^2 = 0`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure differential_object :=
 (X : C)
 (d : X ⟶ X⟦1⟧)
@@ -51,7 +51,7 @@ namespace differential_object
 /--
 A morphism of differential objects is a morphism commuting with the differentials.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure hom (X Y : differential_object C) :=
 (f : X.X ⟶ Y.X)
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
@@ -220,12 +220,14 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
         ←functor.map_comp_assoc, X.d_squared, functor.map_zero, zero_comp] },
   map := λ X Y f,
   { f := f.f⟦n⟧',
-    comm' := by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,
-      f.comm, functor.map_comp_assoc], }, },
+    comm' := begin
+      dsimp,
+      erw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc, f.comm,
+        functor.map_comp_assoc],
+      refl,
+    end, },
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
-
-local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
 @[simps] def shift_functor_add (m n : ℤ) :
@@ -233,25 +235,27 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
-      category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
-      μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
-    simp [opaque_eq_to_iso] },
+    rw [← cancel_epi ((shift_functor_add C m n).inv.app X.X)],
+    simp only [category.assoc, iso.inv_hom_id_app_assoc],
+    erw [← nat_trans.naturality_assoc],
+    dsimp,
+    simp only [functor.map_comp, category.assoc,
+      shift_functor_comm_hom_app_comp_shift_shift_functor_add_hom_app 1 m n X.X,
+      iso.inv_hom_id_app_assoc], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 
-local attribute [reducible] endofunctor_monoidal_category
-
 section
-local attribute [instance] endofunctor_monoidal_category
 
 /-- The shift by zero is naturally isomorphic to the identity. -/
 @[simps]
-def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
+def shift_zero : shift_functor C 0 ≅ 𝟭 (differential_object C) :=
 begin
-  refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
-  { dsimp, simp, dsimp, simp },
-  { introv, ext, dsimp, simp }
+  refine nat_iso.of_components (λ X, mk_iso ((shift_functor_zero C ℤ).app X.X) _) _,
+  { erw [← nat_trans.naturality],
+    dsimp,
+    simp only [shift_functor_zero_hom_app_shift, category.assoc], },
+  { tidy, },
 end
 
 end
@@ -259,8 +263,24 @@ end
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _
 { F := shift_functor C,
-  ε := shift_ε C,
-  μ := λ m n, (shift_functor_add C m n).symm }
+  zero := shift_zero C,
+  add := shift_functor_add C,
+  assoc_hom_app := λ m₁ m₂ m₃ X, begin
+    ext1,
+    convert shift_functor_add_assoc_hom_app m₁ m₂ m₃ X.X,
+    dsimp [shift_functor_add'],
+    simpa,
+  end,
+  zero_add_hom_app := λ n X, begin
+    ext1,
+    convert shift_functor_add_zero_add_hom_app n X.X,
+    simpa,
+  end,
+  add_zero_hom_app := λ n X, begin
+    ext1,
+    convert shift_functor_add_add_zero_hom_app n X.X,
+    simpa,
+  end, }
 
 end differential_object
 

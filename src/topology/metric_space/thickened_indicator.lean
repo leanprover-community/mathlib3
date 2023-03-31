@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.real.ennreal
 import topology.continuous_function.bounded
+import topology.metric_space.hausdorff_distance
 
 /-!
 # Thickened indicators
@@ -32,7 +33,7 @@ members of the approximating sequence are nonnegative bounded continuous functio
 
 -/
 noncomputable theory
-open_locale classical nnreal ennreal topological_space bounded_continuous_function
+open_locale classical nnreal ennreal topology bounded_continuous_function
 
 open nnreal ennreal set metric emetric filter
 
@@ -98,6 +99,15 @@ lemma thickened_indicator_aux_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (
   thickened_indicator_aux δ₁ E ≤ thickened_indicator_aux δ₂ E :=
 λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le (ennreal.div_le_div rfl.le (of_real_le_of_real hle))
 
+lemma indicator_le_thickened_indicator_aux (δ : ℝ) (E : set α) :
+  E.indicator (λ _, (1 : ℝ≥0∞)) ≤ thickened_indicator_aux δ E :=
+begin
+  intro a,
+  by_cases a ∈ E,
+  { simp only [h, indicator_of_mem, thickened_indicator_aux_one δ E h, le_refl], },
+  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+end
+
 lemma thickened_indicator_aux_subset (δ : ℝ) {E₁ E₂ : set α} (subset : E₁ ⊆ E₂) :
   thickened_indicator_aux δ E₁ ≤ thickened_indicator_aux δ E₂ :=
 λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le (ennreal.div_le_div (inf_edist_anti subset) rfl.le)
@@ -123,21 +133,14 @@ begin
     exact tendsto_const_nhds, },
   { rw (show (closure E).indicator (λ _, (1 : ℝ≥0∞)) x = 0,
         by simp only [x_mem_closure, indicator_of_not_mem, not_false_iff]),
-    rw mem_closure_iff_inf_edist_zero at x_mem_closure,
-    obtain ⟨ε, ⟨ε_pos, ε_le⟩⟩ : ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E,
-    { by_cases dist_infty : inf_edist x E = ∞,
-      { rw dist_infty,
-        use [1, zero_lt_one, le_top], },
-      { use (inf_edist x E).to_real,
-        exact ⟨(to_real_lt_to_real zero_ne_top dist_infty).mpr (pos_iff_ne_zero.mpr x_mem_closure),
-                of_real_to_real_le⟩, }, },
+    rcases exists_real_pos_lt_inf_edist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
     rw metric.tendsto_nhds at δseq_lim,
     specialize δseq_lim ε ε_pos,
     simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δseq_lim,
     rcases δseq_lim with ⟨N, hN⟩,
     apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
     intros n n_large,
-    have key : x ∉ thickening ε E, by rwa [thickening, mem_set_of_eq, not_lt],
+    have key : x ∉ thickening ε E, by simpa only [thickening, mem_set_of_eq, not_lt] using ε_lt.le,
     refine le_antisymm _ bot_le,
     apply (thickened_indicator_aux_mono (lt_of_abs_lt (hN n n_large)).le E x).trans,
     exact (thickened_indicator_aux_zero ε_pos E key).le, },
@@ -195,6 +198,15 @@ lemma thickened_indicator_zero
   {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
   thickened_indicator δ_pos E x = 0 :=
 by rw [thickened_indicator_apply, thickened_indicator_aux_zero δ_pos E x_out, zero_to_nnreal]
+
+lemma indicator_le_thickened_indicator {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
+  E.indicator (λ _, (1 : ℝ≥0)) ≤ thickened_indicator δ_pos E :=
+begin
+  intro a,
+  by_cases a ∈ E,
+  { simp only [h, indicator_of_mem, thickened_indicator_one δ_pos E h, le_refl], },
+  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+end
 
 lemma thickened_indicator_mono {δ₁ δ₂ : ℝ}
   (δ₁_pos : 0 < δ₁) (δ₂_pos : 0 < δ₂) (hle : δ₁ ≤ δ₂) (E : set α) :

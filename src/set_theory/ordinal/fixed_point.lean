@@ -5,9 +5,13 @@ Authors: Violeta Hernández Palacios, Mario Carneiro
 -/
 
 import set_theory.ordinal.arithmetic
+import set_theory.ordinal.exponential
 
 /-!
 # Fixed points of normal functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove various statements about the fixed points of normal ordinal functions. We state them in
 three forms: as statements about type-indexed families of normal functions, as statements about
@@ -29,7 +33,7 @@ noncomputable theory
 
 universes u v
 
-open function
+open function order
 
 namespace ordinal
 
@@ -39,6 +43,9 @@ section
 variables {ι : Type u} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
 
 /-- The next common fixed point, at least `a`, for a family of normal functions.
+
+This is defined for any family of functions, as the supremum of all values reachable by applying
+finitely many functions in the family to `a`.
 
 `ordinal.nfp_family_fp` shows this is a fixed point, `ordinal.le_nfp_family` shows it's at
 least `a`, and `ordinal.nfp_family_le_fp` shows this is the least ordinal with these properties. -/
@@ -74,7 +81,7 @@ let ⟨l, hl⟩ := lt_nfp_family.1 hb in lt_sup.2 ⟨i :: l, (H i).strict_mono h
 
 theorem apply_lt_nfp_family_iff [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∀ i, f i b < nfp_family f a) ↔ b < nfp_family f a :=
-⟨λ h, lt_nfp_family.2 $ let ⟨l, hl⟩ := lt_sup.1 (h (classical.arbitrary ι)) in
+⟨λ h, lt_nfp_family.2 $ let ⟨l, hl⟩ := lt_sup.1 $ h $ classical.arbitrary ι in
   ⟨l, ((H _).self_le b).trans_lt hl⟩, apply_lt_nfp_family H⟩
 
 theorem nfp_family_le_apply [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
@@ -85,7 +92,7 @@ theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : �
   nfp_family f a ≤ b :=
 sup_le $ λ l, begin
   by_cases hι : is_empty ι,
-  { rwa @unique.eq_default _ (@list.unique_of_is_empty ι hι) l },
+  { resetI, rwa unique.eq_default l },
   { haveI := not_is_empty_iff.1 hι,
     induction l with i l IH generalizing a, {exact ab},
     exact (H i (IH ab)).trans (h i) }
@@ -113,10 +120,11 @@ end
 
 theorem nfp_family_eq_self {f : ι → ordinal → ordinal} {a} (h : ∀ i, f i a = a) :
   nfp_family f a = a :=
-le_antisymm (sup_le (λ l, (by rw list.foldr_fixed' h l))) (le_nfp_family f a)
+le_antisymm (sup_le $ λ l, by rw list.foldr_fixed' h l) $ le_nfp_family f a
 
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
     has an unbounded set of common fixed points. -/
+-- Todo: This is actually a special case of the fact the intersection of club sets is a club set.
 theorem fp_family_unbounded (H : ∀ i, is_normal (f i)) :
   (⋂ i, function.fixed_points (f i)).unbounded (<) :=
 λ a, ⟨_, λ s ⟨i, hi⟩, begin
@@ -124,7 +132,10 @@ theorem fp_family_unbounded (H : ∀ i, is_normal (f i)) :
   exact nfp_family_fp (H i) a
 end, (le_nfp_family f a).not_lt⟩
 
-/-- The derivative of a family of normal functions is the sequence of their common fixed points. -/
+/-- The derivative of a family of normal functions is the sequence of their common fixed points.
+
+This is defined for all functions such that `ordinal.deriv_family_zero`,
+`ordinal.deriv_family_succ`, and `ordinal.deriv_family_limit` are satisfied. -/
 def deriv_family (f : ι → ordinal → ordinal) (o : ordinal) : ordinal :=
 limit_rec_on o (nfp_family f 0)
   (λ a IH, nfp_family f (succ IH))
@@ -143,7 +154,7 @@ theorem deriv_family_limit (f : ι → ordinal → ordinal) {o} : is_limit o →
 limit_rec_on_limit _ _ _ _
 
 theorem deriv_family_is_normal (f : ι → ordinal → ordinal) : is_normal (deriv_family f) :=
-⟨λ o, by rw [deriv_family_succ, ← succ_le]; apply le_nfp_family,
+⟨λ o, by rw [deriv_family_succ, ← succ_le_iff]; apply le_nfp_family,
  λ o l a, by rw [deriv_family_limit _ l, bsup_le_iff]⟩
 
 theorem deriv_family_fp {i} (H : is_normal (f i)) (o : ordinal.{max u v}) :
@@ -170,16 +181,17 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   { cases le_or_lt a (deriv_family f o), {exact IH h},
     refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_family_succ,
-    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le.2 h) ha },
+    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le_of_lt h) ha },
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_family_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩ i, e ▸ le_of_eq (deriv_family_fp (H i) _)⟩
+end, λ ⟨o, e⟩ i, e ▸ (deriv_family_fp (H i) _).le⟩
 
 theorem fp_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   (∀ i, f i a = a) ↔ ∃ o, deriv_family f o = a :=
 iff.trans ⟨λ h i, le_of_eq (h i), λ h i, (H i).le_iff_eq.1 (h i)⟩ (le_iff_deriv_family H)
 
+/-- For a family of normal functions, `ordinal.deriv_family` enumerates the common fixed points. -/
 theorem deriv_family_eq_enum_ord (H : ∀ i, is_normal (f i)) :
   deriv_family f = enum_ord (⋂ i, function.fixed_points (f i)) :=
 begin
@@ -202,6 +214,8 @@ section
 variables {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
 
 /-- The next common fixed point, at least `a`, for a family of normal functions indexed by ordinals.
+
+This is defined as `ordinal.nfp_family` of the type-indexed family associated to `f`.
 -/
 def nfp_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (family_of_bfamily o f)
@@ -233,20 +247,25 @@ sup_le
 theorem nfp_bfamily_monotone (hf : ∀ i hi, monotone (f i hi)) : monotone (nfp_bfamily o f) :=
 nfp_family_monotone (λ i, hf _ _)
 
-theorem apply_lt_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
-  (∀ i hi, f i hi b < nfp_bfamily o f a) ↔ b < nfp_bfamily o f a :=
+theorem apply_lt_nfp_bfamily (H : ∀ i hi, is_normal (f i hi)) {a b} (hb : b < nfp_bfamily o f a)
+  (i hi) : f i hi b < nfp_bfamily o f a :=
 begin
-  unfold nfp_bfamily,
-  rw ←@apply_lt_nfp_family_iff _ (family_of_bfamily o f) (out_nonempty_iff_ne_zero.2 ho)
-    (λ i, H _ _),
-  refine ⟨λ h i, h _ (typein_lt_self i), λ h i hio, _⟩,
   rw ←family_of_bfamily_enum o f,
-  apply h
+  apply apply_lt_nfp_family _ hb,
+  exact λ _, H _ _
 end
+
+theorem apply_lt_nfp_bfamily_iff (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
+  (∀ i hi, f i hi b < nfp_bfamily o f a) ↔ b < nfp_bfamily o f a :=
+⟨λ h, begin
+  haveI := out_nonempty_iff_ne_zero.2 ho,
+  refine (apply_lt_nfp_family_iff _).1 (λ _, h _ _),
+  exact λ _, H _ _,
+end, apply_lt_nfp_bfamily H⟩
 
 theorem nfp_bfamily_le_apply (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∃ i hi, nfp_bfamily o f a ≤ f i hi b) ↔ nfp_bfamily o f a ≤ b :=
-by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily ho H, simp only [not_le] }
+by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily_iff ho H, simp only [not_le] }
 
 theorem nfp_bfamily_le_fp (H : ∀ i hi, monotone (f i hi)) {a b} (ab : a ≤ b)
   (h : ∀ i hi, f i hi b ≤ b) : nfp_bfamily o f a ≤ b :=
@@ -262,8 +281,8 @@ begin
   refine ⟨λ h, _, λ h i hi, _⟩,
   { have ho' : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
     exact ((H 0 ho').self_le b).trans (h 0 ho') },
-  rw ←nfp_bfamily_fp (H i hi),
-  exact (H i hi).monotone h
+  { rw ←nfp_bfamily_fp (H i hi),
+    exact (H i hi).monotone h }
 end
 
 theorem nfp_bfamily_eq_self {a} (h : ∀ i hi, f i hi a = a) : nfp_bfamily o f a = a :=
@@ -276,7 +295,9 @@ theorem fp_bfamily_unbounded (H : ∀ i hi, is_normal (f i hi)) :
 λ a, ⟨_, by { rw set.mem_Inter₂, exact λ i hi, nfp_bfamily_fp (H i hi) _ },
   (le_nfp_bfamily f a).not_lt⟩
 
-/-- The derivative of a family of normal functions is the sequence of their common fixed points. -/
+/-- The derivative of a family of normal functions is the sequence of their common fixed points.
+
+This is defined as `ordinal.deriv_family` of the type-indexed family associated to `f`. -/
 def deriv_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (family_of_bfamily o f)
 
@@ -300,7 +321,7 @@ begin
   { refine ⟨λ h i, h _ _, λ h i hi, _⟩,
     rw ←family_of_bfamily_enum o f,
     apply h },
-  exact λ _, H _ _
+  { exact λ _, H _ _ }
 end
 
 theorem fp_iff_deriv_bfamily (H : ∀ i hi, is_normal (f i hi)) {a} :
@@ -312,6 +333,7 @@ begin
   exact h i hi
 end
 
+/-- For a family of normal functions, `ordinal.deriv_bfamily` enumerates the common fixed points. -/
 theorem deriv_bfamily_eq_enum_ord (H : ∀ i hi, is_normal (f i hi)) :
   deriv_bfamily o f = enum_ord (⋂ i hi, function.fixed_points (f i hi)) :=
 begin
@@ -331,7 +353,8 @@ section
 variable {f : ordinal.{u} → ordinal.{u}}
 
 /-- The next fixed point function, the least fixed point of the normal function `f`, at least `a`.
--/
+
+This is defined as `ordinal.nfp_family` applied to a family consisting only of `f`. -/
 def nfp (f : ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (λ _ : unit, f)
 
@@ -344,7 +367,7 @@ begin
   refine funext (λ a, le_antisymm _ (sup_le (λ l, _))),
   { rw sup_le_iff,
     intro n,
-    rw [←list.length_repeat unit.star n, ←list.foldr_const f a],
+    rw [←list.length_replicate n unit.star, ←list.foldr_const f a],
     apply le_sup },
   { rw list.foldr_const f a l,
     exact le_sup _ _ },
@@ -362,8 +385,7 @@ by { rw ←sup_iterate_eq_nfp, exact lt_sup }
 theorem nfp_le_iff {a b} : nfp f a ≤ b ↔ ∀ n, (f^[n]) a ≤ b :=
 by { rw ←sup_iterate_eq_nfp, exact sup_le_iff }
 
-theorem nfp_le {a b} : (∀ n, (f^[n]) a ≤ b) → nfp f a ≤ b :=
-nfp_le_iff.2
+theorem nfp_le {a b} : (∀ n, (f^[n]) a ≤ b) → nfp f a ≤ b := nfp_le_iff.2
 
 @[simp] theorem nfp_id : nfp id = id :=
 funext (λ a, begin
@@ -403,7 +425,9 @@ fixed points. -/
 theorem fp_unbounded (H : is_normal f) : (function.fixed_points f).unbounded (<) :=
 by { convert fp_family_unbounded (λ _ : unit, H), exact (set.Inter_const _).symm }
 
-/-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
+/-- The derivative of a normal function `f` is the sequence of fixed points of `f`.
+
+This is defined as `ordinal.deriv_family` applied to a trivial family consisting only of `f`. -/
 def deriv (f : ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (λ _ : unit, f)
 
@@ -423,7 +447,7 @@ theorem deriv_is_normal (f) : is_normal (deriv f) :=
 deriv_family_is_normal _
 
 theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h, succ_inj])
+((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h])
 
 theorem is_normal.deriv_fp {f} (H : is_normal f) : ∀ o, f (deriv f o) = deriv f o :=
 @deriv_family_fp unit (λ _, f) unit.star H
@@ -438,11 +462,12 @@ end
 theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_eq, H.le_iff_deriv]
 
+/-- `ordinal.deriv` enumerates the fixed points of a normal function. -/
 theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed_points f) :=
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 
 theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
+(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 $ by simp [h]
 
 end
 
@@ -490,13 +515,12 @@ begin
   { rw [deriv_zero, add_zero],
     exact nfp_add_zero a },
   { rw [deriv_succ, h, add_succ],
-    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans
-      (lt_succ_self _).le)) }
+    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans (le_succ _))) }
 end
 
 /-! ### Fixed points of multiplication -/
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 @[simp] theorem nfp_mul_one {a : ordinal} (ha : 0 < a) : nfp ((*) a) 1 = a ^ omega :=
 begin
   rw [←sup_iterate_eq_nfp, ←sup_opow_nat],
@@ -561,7 +585,7 @@ end
 theorem mul_eq_right_iff_opow_omega_dvd {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
-  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd],
+  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd_iff],
     exact eq_comm },
   refine ⟨λ hab, _, λ h, _⟩,
   { rw dvd_iff_mod_eq_zero,
@@ -579,7 +603,7 @@ theorem mul_le_right_iff_opow_omega_dvd {a b : ordinal} (ha : 0 < a) : a * b ≤
 by { rw ←mul_eq_right_iff_opow_omega_dvd, exact (mul_is_normal ha).le_iff_eq }
 
 theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hca : c ≤ a ^ omega) :
-  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * b.succ :=
+  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * (succ b) :=
 begin
   apply le_antisymm,
   { apply nfp_le_fp (mul_is_normal ha).monotone,
@@ -594,7 +618,7 @@ begin
     rw hd at this,
     have := (add_lt_add_left hc (a ^ omega * b)).trans_le this,
     rw [add_zero, mul_lt_mul_iff_left (opow_pos omega ha)] at this,
-    rwa succ_le }
+    rwa succ_le_iff }
 end
 
 theorem deriv_mul_eq_opow_omega_mul {a : ordinal.{u}} (ha : 0 < a) (b) :

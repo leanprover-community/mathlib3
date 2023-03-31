@@ -6,7 +6,6 @@ Authors: Bhavik Mehta
 
 import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
-import category_theory.full_subcategory
 
 /-!
 # Sheaves of types on a Grothendieck topology
@@ -663,7 +662,7 @@ Every presheaf is a sheaf for the maximal sieve.
 lemma is_sheaf_for_top_sieve (P : Cᵒᵖ ⥤ Type w) :
   is_sheaf_for P ((⊤ : sieve X) : presieve X) :=
 begin
-  rw ← generate_of_singleton_split_epi (𝟙 X),
+  rw ← generate_of_singleton_is_split_epi (𝟙 X),
   rw ← is_sheaf_for_iff_generate,
   apply is_sheaf_for_singleton_iso,
 end
@@ -874,7 +873,7 @@ begin
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
     rw types.limit_ext_iff' at t,
-    simpa [first_map, second_map] using t ⟨Y, Z, g, f, hf⟩ }
+    simpa [first_map, second_map] using t ⟨⟨Y, Z, g, f, hf⟩⟩ }
 end
 
 /-- `P` is a sheaf for `S`, iff the fork given by `w` is an equalizer. -/
@@ -953,7 +952,7 @@ begin
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
     rw types.limit_ext_iff' at t,
-    simpa [first_map, second_map] using t ⟨⟨Y, f, hf⟩, Z, g, hg⟩ }
+    simpa [first_map, second_map] using t ⟨⟨⟨Y, f, hf⟩, Z, g, hg⟩⟩ }
 end
 
 /--

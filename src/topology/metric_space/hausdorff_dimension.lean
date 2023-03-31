@@ -79,7 +79,7 @@ We use the following notation localized in `measure_theory`. It is defined in
 
 Hausdorff measure, Hausdorff dimension, dimension
 -/
-open_locale measure_theory ennreal nnreal topological_space
+open_locale measure_theory ennreal nnreal topology
 open measure_theory measure_theory.measure set topological_space finite_dimensional filter
 
 variables {ι X Y : Type*} [emetric_space X] [emetric_space Y]
@@ -176,25 +176,25 @@ begin
   exact ennreal.zero_ne_top
 end
 
-@[simp] lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
+@[simp] lemma dimH_bUnion {s : set ι} (hs : s.countable) (t : ι → set X) :
   dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
 begin
   haveI := hs.to_encodable,
   rw [bUnion_eq_Union, dimH_Union, ← supr_subtype'']
 end
 
-@[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
+@[simp] lemma dimH_sUnion {S : set (set X)} (hS : S.countable) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
 by rw [sUnion_eq_bUnion, dimH_bUnion hS]
 
 @[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
 by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
 
-lemma dimH_countable {s : set X} (hs : countable s) : dimH s = 0 :=
+lemma dimH_countable {s : set X} (hs : s.countable) : dimH s = 0 :=
 bUnion_of_singleton s ▸ by simp only [dimH_bUnion hs, dimH_singleton, ennreal.supr_zero_eq_zero]
 
 alias dimH_countable ← set.countable.dimH_zero
 
-lemma dimH_finite {s : set X} (hs : finite s) : dimH s = 0 := hs.countable.dimH_zero
+lemma dimH_finite {s : set X} (hs : s.finite) : dimH s = 0 := hs.countable.dimH_zero
 
 alias dimH_finite ← set.finite.dimH_zero
 
@@ -226,7 +226,7 @@ end
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
 of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
 `(𝓝[s] x).small_sets`. -/
-lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
+lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup dimH (𝓝[s] x).small_sets) = dimH s :=
 begin
   refine le_antisymm (supr₂_le $ λ x hx, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
@@ -241,7 +241,7 @@ end
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
 of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
 `(𝓝[s] x).small_sets`. -/
-lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
+lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup dimH (𝓝[s] x).small_sets) = dimH s :=
 begin
   refine le_antisymm (supr_le $ λ x, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
@@ -345,7 +345,7 @@ lemma dimH_image_le_of_locally_lipschitz_on [second_countable_topology X] {f : X
 begin
   have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
     by simpa only [holder_on_with_one] using hf,
-  simpa only [ennreal.coe_one, ennreal.div_one]
+  simpa only [ennreal.coe_one, div_one]
     using dimH_image_le_of_locally_holder_on zero_lt_one this
 end
 
@@ -387,7 +387,7 @@ end antilipschitz_with
 lemma isometry.dimH_image (hf : isometry f) (s : set X) : dimH (f '' s) = dimH s :=
 le_antisymm (hf.lipschitz.dimH_image_le _) (hf.antilipschitz.le_dimH_image _)
 
-namespace isometric
+namespace isometry_equiv
 
 @[simp] lemma dimH_image (e : X ≃ᵢ Y) (s : set X) : dimH (e '' s) = dimH s :=
 e.isometry.dimH_image s
@@ -398,12 +398,12 @@ by rw [← e.image_symm, e.symm.dimH_image]
 lemma dimH_univ (e : X ≃ᵢ Y) : dimH (univ : set X) = dimH (univ : set Y) :=
 by rw [← e.dimH_preimage univ, preimage_univ]
 
-end isometric
+end isometry_equiv
 
 namespace continuous_linear_equiv
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 @[simp] lemma dimH_image (e : E ≃L[𝕜] F) (s : set E) : dimH (e '' s) = dimH s :=
 le_antisymm (e.lipschitz.dimH_image_le s) $
@@ -423,7 +423,8 @@ end continuous_linear_equiv
 
 namespace real
 
-variables {E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*} [fintype ι] [normed_add_comm_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E]
 
 theorem dimH_ball_pi (x : ι → ℝ) {r : ℝ} (hr : 0 < r) :
   dimH (metric.ball x r) = fintype.card ι :=
@@ -435,7 +436,7 @@ begin
     have : μH[fintype.card ι] (metric.ball x r) = ennreal.of_real ((2 * r) ^ fintype.card ι),
       by rw [hausdorff_measure_pi_real, real.volume_pi_ball _ hr],
     refine dimH_of_hausdorff_measure_ne_zero_ne_top _ _; rw [nnreal.coe_nat_cast, this],
-    { simp [pow_pos (mul_pos zero_lt_two hr)] },
+    { simp [pow_pos (mul_pos (zero_lt_two' ℝ) hr)] },
     { exact ennreal.of_real_ne_top } }
 end
 
@@ -478,12 +479,12 @@ by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_self, nat.cast_one]
 end real
 
 variables {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-  [normed_group F] [normed_space ℝ F]
+  [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  [normed_add_comm_group F] [normed_space ℝ F]
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin
-  refine λ x, mem_closure_iff_nhds.2 (λ t ht, ne_empty_iff_nonempty.1 $ λ he, hs.not_le _),
+  refine λ x, mem_closure_iff_nhds.2 (λ t ht, nonempty_iff_ne_empty.2 $ λ he, hs.not_le _),
   rw [← diff_eq, diff_eq_empty] at he,
   rw [← real.dimH_of_mem_nhds ht],
   exact dimH_mono he
@@ -531,4 +532,4 @@ in `F`. -/
 lemma cont_diff.dense_compl_range_of_finrank_lt_finrank [finite_dimensional ℝ F] {f : E → F}
   (h : cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
   dense (range f)ᶜ :=
-dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ ennreal.coe_nat_lt_coe_nat.2 hEF
+dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ nat.cast_lt.2 hEF

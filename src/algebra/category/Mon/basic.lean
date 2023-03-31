@@ -3,13 +3,15 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.elementwise
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
 import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the bundled categories:
 * `Mon`
@@ -77,6 +79,8 @@ instance : inhabited Mon :=
 instance (M : Mon) : monoid M := M.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
+
+@[to_additive] instance {G : Type*} [group G] : group (Mon.of G) := by assumption
 
 end Mon
 

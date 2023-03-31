@@ -4,18 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 import combinatorics.quiver.basic
-import tactic.basic
 
 /-!
 # Categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines a category, as a type class parametrised by the type of objects.
 
 ## Notations
 
 Introduces notations
-* `X ⟶ Y` for the morphism spaces,
-* `f ≫ g` for composition in the 'arrows' convention.
+* `X ⟶ Y` for the morphism spaces (type as `\hom`),
+* `𝟙 X` for the identity morphism on `X` (type as `\b1`),
+* `f ≫ g` for composition in the 'arrows' convention (type as `\gg`).
 
 Users may like to add `f ⊚ g` for composition in the standard convention, using
 ```lean
@@ -148,6 +151,16 @@ lemma id_of_comp_left_id (f : X ⟶ X) (w : ∀ {Y : C} (g : X ⟶ Y), f ≫ g =
 by { convert w (𝟙 X), tidy }
 lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }
+
+lemma comp_ite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g g' : (Y ⟶ Z)) :
+  (f ≫ if P then g else g') = (if P then f ≫ g else f ≫ g') :=
+by { split_ifs; refl }
+
+lemma ite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f f' : (X ⟶ Y))  (g : Y ⟶ Z) :
+  (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
+by { split_ifs; refl }
 
 lemma comp_dite {P : Prop} [decidable P]
   {X Y Z : C} (f : X ⟶ Y) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :

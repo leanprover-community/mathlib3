@@ -51,7 +51,7 @@ universes u v w
 noncomputable theory
 
 open set topological_space
-open_locale nnreal ennreal
+open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -120,8 +120,8 @@ lemma inner_content_of_is_compact {K : set G} (h1K : is_compact K) (h2K : is_ope
 le_antisymm (supr₂_le $ λ K' hK', μ.mono _ ⟨K, h1K⟩ hK')
             (μ.le_inner_content _ _ subset.rfl)
 
-lemma inner_content_empty :
-  μ.inner_content ∅ = 0 :=
+lemma inner_content_bot :
+  μ.inner_content ⊥ = 0 :=
 begin
   refine le_antisymm _ (zero_le _), rw ←μ.empty,
   refine supr₂_le (λ K hK, _),
@@ -157,9 +157,9 @@ begin
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
   refine supr₂_le (λ K hK, _),
-  obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
-  { convert hK, rw [opens.supr_def, subtype.coe_mk] },
-  rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
+  obtain ⟨t, ht⟩ := K.is_compact.elim_finite_subcover  _ (λ i, (U i).is_open) _, swap,
+  { rwa [← opens.coe_supr] },
+  rcases K.is_compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).is_open) (by simp only [ht])
     with ⟨K', h1K', h2K', h3K'⟩,
   let L : ℕ → compacts G := λ n, ⟨K' n, h1K' n⟩,
   convert le_trans (h3 t L) _,
@@ -198,14 +198,14 @@ lemma inner_content_pos_of_is_mul_left_invariant [t2_space G] [group G] [topolog
   (K : compacts G) (hK : μ K ≠ 0) (U : opens G) (hU : (U : set G).nonempty) :
   0 < μ.inner_content U :=
 begin
-  have : (interior (U : set G)).nonempty, rwa [U.prop.interior_eq],
+  have : (interior (U : set G)).nonempty, rwa [U.is_open.interior_eq],
   rcases compact_covered_by_mul_left_translates K.2 this with ⟨s, hs⟩,
   suffices : μ K ≤ s.card * μ.inner_content U,
   { exact (ennreal.mul_pos_iff.mp $ hK.bot_lt.trans_le this).2 },
   have : (K : set G) ⊆ ↑⨆ (g ∈ s), opens.comap (homeomorph.mul_left g).to_continuous_map U,
   { simpa only [opens.supr_def, opens.coe_comap, subtype.coe_mk] },
   refine (μ.le_inner_content _ _ this).trans _,
-  refine (rel_supr_sum (μ.inner_content) (μ.inner_content_empty) (≤)
+  refine (rel_supr_sum (μ.inner_content) (μ.inner_content_bot) (≤)
     (μ.inner_content_Sup_nat) _ _).trans _,
   simp only [μ.is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
@@ -214,9 +214,11 @@ lemma inner_content_mono' ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V) (h
   μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
 bsupr_mono $ λ K hK, hK.trans h2
 
+section outer_measure
+
 /-- Extending a content on compact sets to an outer measure on all sets. -/
 protected def outer_measure : outer_measure G :=
-induced_outer_measure (λ U hU, μ.inner_content ⟨U, hU⟩) is_open_empty μ.inner_content_empty
+induced_outer_measure (λ U hU, μ.inner_content ⟨U, hU⟩) is_open_empty μ.inner_content_bot
 
 variables [t2_space G]
 
@@ -288,10 +290,10 @@ lemma is_mul_left_invariant_outer_measure [group G] [topological_group G]
 by convert μ.outer_measure_preimage (homeomorph.mul_left g) (λ K, h g) A
 
 lemma outer_measure_caratheodory (A : set G) :
-  μ.outer_measure.caratheodory.measurable_set' A ↔ ∀ (U : opens G),
+  measurable_set[μ.outer_measure.caratheodory] A ↔ ∀ (U : opens G),
   μ.outer_measure (U ∩ A) + μ.outer_measure (U \ A) ≤ μ.outer_measure U :=
 begin
-  dsimp [opens], rw subtype.forall,
+  rw [opens.forall],
   apply induced_outer_measure_caratheodory,
   apply inner_content_Union_nat,
   apply inner_content_mono'
@@ -316,7 +318,7 @@ begin
   intros U hU,
   rw μ.outer_measure_caratheodory,
   intro U',
-  rw μ.outer_measure_of_is_open ((U' : set G) ∩ U) (is_open.inter U'.prop hU),
+  rw μ.outer_measure_of_is_open ((U' : set G) ∩ U) (U'.is_open.inter hU),
   simp only [inner_content, supr_subtype'], rw [opens.coe_mk],
   haveI : nonempty {L : compacts G // (L : set G) ⊆ U' ∩ U} := ⟨⟨⊥, empty_subset _⟩⟩,
   rw [ennreal.supr_add],
@@ -361,6 +363,56 @@ begin
   refine ⟨K, hKU, K.2, hr.trans_le _⟩,
   exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _)
 end
+
+end outer_measure
+
+section regular_contents
+
+/-- A content `μ` is called regular if for every compact set `K`,
+  `μ(K) = inf {μ(K') : K ⊂ int K' ⊂ K'`. See Paul Halmos (1950), Measure Theory, §54-/
+def content_regular := ∀ ⦃K : topological_space.compacts G⦄,
+  μ K = ⨅ (K' : topological_space.compacts G) (hK: (K : set G) ⊆ interior (K' : set G) ), μ K'
+
+lemma content_regular_exists_compact (H : content_regular μ) (K : topological_space.compacts G)
+  {ε : nnreal} (hε : ε ≠ 0) :
+  ∃ (K' : topological_space.compacts G), (K.carrier ⊆ interior K'.carrier) ∧ μ K' ≤ μ K + ε :=
+begin
+  by_contra hc,
+  simp only [not_exists, not_and, not_le] at hc,
+  have lower_bound_infi : μ K + ε ≤ ⨅ (K' : topological_space.compacts G)
+    (h: (K : set G) ⊆ interior (K' : set G) ), μ K' :=
+    le_infi (λ K', le_infi ( λ K'_hyp, le_of_lt (hc K' K'_hyp))),
+  rw ← H at lower_bound_infi,
+  exact (lt_self_iff_false (μ K)).mp (lt_of_le_of_lt' lower_bound_infi
+    (ennreal.lt_add_right (ne_top_of_lt (μ.lt_top K)) (ennreal.coe_ne_zero.mpr hε))),
+end
+
+variables [measurable_space G] [t2_space G] [borel_space G]
+
+/--If `μ` is a regular content, then the measure induced by `μ` will agree with `μ`
+  on compact sets.-/
+lemma measure_eq_content_of_regular
+ (H : measure_theory.content.content_regular μ) (K : topological_space.compacts G) :
+  μ.measure ↑K = μ K :=
+begin
+  refine le_antisymm _ _,
+  { apply ennreal.le_of_forall_pos_le_add,
+    intros ε εpos content_K_finite,
+    obtain ⟨ K', K'_hyp ⟩ := content_regular_exists_compact μ H K (ne_bot_of_gt εpos),
+    calc μ.measure ↑K ≤ μ.measure (interior ↑K') : _
+                  ... ≤ μ K' : _
+                  ... ≤ μ K + ε : K'_hyp.right,
+
+    { rw [μ.measure_apply ((is_open_interior).measurable_set),
+        μ.measure_apply K.is_compact.measurable_set],
+      exact μ.outer_measure.mono K'_hyp.left },
+    { rw μ.measure_apply (is_open.measurable_set is_open_interior),
+      exact μ.outer_measure_interior_compacts K' } },
+  { rw (μ.measure_apply (is_compact.measurable_set K.is_compact)),
+    exact μ.le_outer_measure_compacts K },
+end
+
+end regular_contents
 
 end content
 

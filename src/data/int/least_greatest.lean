@@ -3,8 +3,12 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import data.int.basic
+import data.int.order.basic
+
 /-! # Least upper bound and greatest lower bound properties for integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that a bounded above nonempty set of integers has the greatest element, and a
 counterpart of this statement for the least element.

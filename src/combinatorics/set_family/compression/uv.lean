@@ -8,6 +8,9 @@ import combinatorics.set_family.shadow
 /-!
 # UV-compressions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines UV-compression. It is an operation on a set family that reduces its shadow.
 
 UV-compressing `a : α` along `u v : α` means replacing `a` by `(a ⊔ u) \ v` if `a` and `u` are
@@ -128,7 +131,7 @@ reduce the cardinality, so we keep all elements whose compression is already pre
 def compression (u v : α) (s : finset α) :=
 s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
 
-localized "notation `𝓒 ` := uv.compression" in finset_family
+localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
 
 /-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
 def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s
@@ -229,7 +232,7 @@ begin
   rw [compression, card_disjoint_union (compress_disjoint _ _), image_filter, card_image_of_inj_on,
     ←card_disjoint_union, filter_union_filter_neg_eq],
   { rw disjoint_iff_inter_eq_empty,
-    exact filter_inter_filter_neg_eq _ _ },
+    exact filter_inter_filter_neg_eq _ _ _ },
   intros a ha b hb hab,
   dsimp at hab,
   rw [mem_coe, mem_filter, function.comp_app] at ha hb,

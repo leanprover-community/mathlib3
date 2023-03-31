@@ -14,7 +14,7 @@ this fact is passed as the optional argument `mono_lem`, or the `mono` tactic ca
 -/
 meta def apply_fun_to_hyp (e : pexpr) (mono_lem : option pexpr) (hyp : expr) : tactic unit :=
 do
-{ t ← infer_type hyp,
+{ t ← infer_type hyp >>= instantiate_mvars,
   prf ← match t with
   | `(%%l = %%r) := do
       ltp ← infer_type l,

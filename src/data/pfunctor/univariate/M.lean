@@ -8,6 +8,9 @@ import data.pfunctor.univariate.basic
 /-!
 # M-types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 M types are potentially infinite tree-like structures. They are defined
 as the greatest fixpoint of a polynomial functor.
 -/
@@ -170,7 +173,7 @@ lemma M.default_consistent [inhabited F.A] :
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
 instance M.inhabited [inhabited F.A] : inhabited (M F) :=
-⟨ { approx := λ n, default,
+⟨ { approx := default,
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
@@ -295,7 +298,9 @@ begin
   { rw [← head_succ' n,h,head'], apply x.consistent },
   revert ch, rw h', intros, congr,
   { ext a, dsimp only [children],
-    h_generalize! hh : a == a'',
+    generalize hh : cast _ a = a'',
+    rw cast_eq_iff_heq at hh,
+    revert a'',
     rw h, intros, cases hh, refl },
 end
 
@@ -388,7 +393,7 @@ lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'} :
   is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩) → a = a' :=
 begin
   generalize h : (M.mk ⟨a,f⟩) = x,
-  rintro (_ | ⟨_, _, _, _, _, rfl, _⟩),
+  rintro (_ | ⟨_, _, _, _, rfl, _⟩),
   cases mk_inj h,
   refl
 end
@@ -397,7 +402,7 @@ lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a} :
   is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩) → is_path xs (f i) :=
 begin
   generalize h : (M.mk ⟨a,f⟩) = x,
-  rintro (_ | ⟨_, _, _, _, _, rfl, hp⟩),
+  rintro (_ | ⟨_, _, _, _, rfl, hp⟩),
   cases mk_inj h,
   exact hp
 end

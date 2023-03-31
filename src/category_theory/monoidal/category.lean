@@ -8,6 +8,9 @@ import category_theory.products.basic
 /-!
 # Monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A monoidal category is a category equipped with a tensor product, unitors, and an associator.
 In the definition, we provide the tensor product as a pair of functions
 * `tensor_obj : C → C → C`
@@ -67,7 +70,7 @@ See <https://stacks.math.columbia.edu/tag/0FFK>.
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
-(infixr ` ⊗ `:70          := tensor_obj) -- This notation is only temporary
+(infixr (name := tensor_obj) ` ⊗ `:70 := tensor_obj) -- This notation is only temporary
 -- curried tensor product of morphisms:
 (tensor_hom               :
   Π {X₁ Y₁ X₂ Y₂ : C}, (X₁ ⟶ Y₁) → (X₂ ⟶ Y₂) → ((X₁ ⊗ X₂) ⟶ (Y₁ ⊗ Y₂)))
@@ -124,8 +127,8 @@ attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
 
-infixr ` ⊗ `:70 := tensor_obj
-infixr ` ⊗ `:70 := tensor_hom
+infixr (name := tensor_obj) ` ⊗ `:70 := tensor_obj
+infixr (name := tensor_hom) ` ⊗ `:70 := tensor_hom
 
 notation `𝟙_` := tensor_unit
 notation `α_` := associator
@@ -142,7 +145,7 @@ def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.
   hom_inv_id' := by rw [←tensor_comp, iso.hom_inv_id, iso.hom_inv_id, ←tensor_id],
   inv_hom_id' := by rw [←tensor_comp, iso.inv_hom_id, iso.inv_hom_id, ←tensor_id] }
 
-infixr ` ⊗ `:70 := tensor_iso
+infixr (name := tensor_iso) ` ⊗ `:70 := tensor_iso
 
 namespace monoidal_category
 
@@ -476,31 +479,6 @@ rfl
 @[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
   (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
 by simp [tensor_right_tensor]
-
-variables {C}
-
-/--
-Any property closed under `𝟙_` and `⊗` induces a full monoidal subcategory of `C`, where
-the category on the subtype is given by `full_subcategory`.
--/
-def full_monoidal_subcategory (P : C → Prop) (h_id : P (𝟙_ C))
- (h_tensor : ∀ {X Y}, P X → P Y → P (X ⊗ Y)) : monoidal_category {X : C // P X} :=
-{ tensor_obj := λ X Y, ⟨X ⊗ Y, h_tensor X.2 Y.2⟩,
-  tensor_hom := λ X₁ Y₁ X₂ Y₂ f g, by { change X₁.1 ⊗ X₂.1 ⟶ Y₁.1 ⊗ Y₂.1,
-    change X₁.1 ⟶ Y₁.1 at f, change X₂.1 ⟶ Y₂.1 at g, exact f ⊗ g },
-  tensor_unit := ⟨𝟙_ C, h_id⟩,
-  associator := λ X Y Z,
-    ⟨(α_ X.1 Y.1 Z.1).hom, (α_ X.1 Y.1 Z.1).inv,
-     hom_inv_id (α_ X.1 Y.1 Z.1), inv_hom_id (α_ X.1 Y.1 Z.1)⟩,
-  left_unitor := λ X, ⟨(λ_ X.1).hom, (λ_ X.1).inv, hom_inv_id (λ_ X.1), inv_hom_id (λ_ X.1)⟩,
-  right_unitor := λ X, ⟨(ρ_ X.1).hom, (ρ_ X.1).inv, hom_inv_id (ρ_ X.1), inv_hom_id (ρ_ X.1)⟩,
-  tensor_id' := λ X Y, tensor_id X.1 Y.1,
-  tensor_comp' := λ X₁ Y₁ Z₁ X₂ Y₂ Z₂ f₁ f₂ g₁ g₂, tensor_comp f₁ f₂ g₁ g₂,
-  associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃, associator_naturality f₁ f₂ f₃,
-  left_unitor_naturality' := λ X Y f, left_unitor_naturality f,
-  right_unitor_naturality' := λ X Y f, right_unitor_naturality f,
-  pentagon' := λ W X Y Z, pentagon W.1 X.1 Y.1 Z.1,
-  triangle' := λ X Y, triangle X.1 Y.1 }
 
 end
 

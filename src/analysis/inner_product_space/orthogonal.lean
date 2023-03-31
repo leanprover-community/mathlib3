@@ -19,6 +19,8 @@ In this file, the `orthogonal` complement of a submodule `K` is defined, and bas
 Some of the more subtle results about the orthogonal complement are delayed to
 `analysis.inner_product_space.projection`.
 
+See also `bilin_form.orthogonal` for orthogonality with respect to a general bilinear form.
+
 ## Notation
 
 The orthogonal complement of a submodule `K` is denoted by `Kᗮ`.
@@ -202,6 +204,13 @@ lemma orthogonal_family_self :
 | ff tt := λ _ x y, inner_left_of_mem_orthogonal y.prop x.prop
 | ff ff := absurd rfl
 
+end submodule
+
+@[simp]
+lemma bilin_form_of_real_inner_orthogonal {E} [normed_add_comm_group E] [inner_product_space ℝ E]
+  (K : submodule ℝ E) :
+  bilin_form_of_real_inner.orthogonal K = Kᗮ := rfl
+
 /-!
 ### Orthogonality of submodules
 
@@ -209,6 +218,7 @@ In this section we define `submodule.is_ortho U V`, with notation `U ⟂ V`.
 
 The API roughly matches that of `disjoint`.
 -/
+namespace submodule
 
 /-- The proposition that two submodules are orthogonal. Has notation `U ⟂ V`. -/
 def is_ortho (U V : submodule 𝕜 E) : Prop :=

@@ -1882,6 +1882,24 @@ begin
   { exact snorm_indicator_const hs hp hp_top, },
 end
 
+lemma snorm_indicator_const_le (c : G) (p :ℝ≥0∞) :
+  snorm (s.indicator (λ x, c)) p μ ≤ ‖c‖₊ * (μ s) ^ (1 / p.to_real) :=
+begin
+  rcases eq_or_ne p 0 with rfl|hp,
+  { simp only [snorm_exponent_zero, ennreal.zero_to_real, div_zero, ennreal.rpow_zero, mul_one,
+      ennreal.coe_nonneg] },
+  rcases eq_or_ne p ∞ with rfl|h'p,
+  { simp only [snorm_exponent_top, ennreal.top_to_real, div_zero, ennreal.rpow_zero, mul_one],
+    apply snorm_ess_sup_indicator_const_le },
+  let t := to_measurable μ s,
+  calc snorm (s.indicator (λ x, c)) p μ
+      ≤ snorm (t.indicator (λ x, c)) p μ :
+    snorm_mono (norm_indicator_le_of_subset (subset_to_measurable _ _) _)
+  ... = ‖c‖₊ * (μ t) ^ (1 / p.to_real) :
+    snorm_indicator_const (measurable_set_to_measurable _ _) hp h'p
+  ... = ‖c‖₊ * (μ s) ^ (1 / p.to_real) : by rw measure_to_measurable
+end
+
 lemma mem_ℒp.indicator (hs : measurable_set s) (hf : mem_ℒp f p μ) :
   mem_ℒp (s.indicator f) p μ :=
 ⟨hf.ae_strongly_measurable.indicator hs, lt_of_le_of_lt (snorm_indicator_le f) hf.snorm_lt_top⟩

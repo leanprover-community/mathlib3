@@ -25,7 +25,12 @@ Hermann Minkowski.
 
 * Calculate the volume of the fundamental domain of a finite index subgroup
 * Voronoi diagrams
-* See https://arxiv.org/abs/1405.2119 for some more ideas.
+* See [Pete L. Clark, *Abstract Geometry of Numbers: Linear Forms* (arXiv)](https://arxiv.org/abs/1405.2119)
+  for some more ideas.
+
+## References
+
+* [Pete L. Clark, *Geometry of Numbers with Applications to Number Theory*][clark_gon] p.28
 -/
 
 namespace measure_theory

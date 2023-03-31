@@ -1143,16 +1143,6 @@ lemma summable.const_smul (b : γ) (hf : summable f) : summable (λ i, b • f i
 lemma tsum_const_smul [t2_space α] (b : γ) (hf : summable f) : ∑' i, b • f i = b • ∑' i, f i :=
 (hf.has_sum.const_smul _).tsum_eq
 
-
--- move to `group_theory.group_action.group` **NEEDS TO MOVE**
-def distrib_mul_action.to_add_equiv₀ {α : Type*} (β : Type*) [group_with_zero α] [add_monoid β]
-  [distrib_mul_action α β] (x : α) (hx : x ≠ 0) : β ≃+ β :=
-{ inv_fun := λ b, x⁻¹ • b,
-  left_inv := inv_smul_smul₀ hx,
-  right_inv := smul_inv_smul₀ hx,
-  .. distrib_mul_action.to_add_monoid_hom β x, }
------------------------
-
 /-- Infinite sums commute with scalar multiplication. Version for scalars living in a `group`, but
   not requiring any summability hypothesis. -/
 lemma tsum_const_smul' {γ : Type*} [group γ] [distrib_mul_action γ α]

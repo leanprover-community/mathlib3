@@ -955,10 +955,20 @@ coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
 
+section has_smul
+variables [decidable_eq β] [decidable_eq γ] [has_smul αᵐᵒᵖ β] [has_smul β γ] [has_smul α γ]
+
+@[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (a : α) (s : finset β) (t : finset γ)
+  (h : ∀ (a : α) (b : β) (c : γ), (op a • b) • c = b • a • c) :
+  (op a • s) • t = s • a • t :=
+by { ext, simp [mem_smul, mem_smul_finset, h] }
+
+end has_smul
+
 section has_mul
 variables [has_mul α] [decidable_eq α] {s t u : finset α} {a : α}
 
-@[to_additive] lemma op_smul_finset_subset_smul : a ∈ t → op a • s ⊆ s • t :=
+@[to_additive] lemma op_smul_finset_subset_mul : a ∈ t → op a • s ⊆ s * t :=
 image_subset_image₂_left
 
 @[simp, to_additive] lemma bUnion_op_smul_finset (s t : finset α) :
@@ -974,9 +984,9 @@ end has_mul
 section semigroup
 variables [semigroup α] [decidable_eq α]
 
-@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (s : finset α) (a : α) (t : finset α) :
+@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (a : α) (s : finset α) (t : finset α) :
   (op a • s) * t = s * a • t :=
-by simpa [mul_singleton, singleton_mul] using mul_assoc s {a} t
+op_smul_finset_smul_eq_smul_smul_finset _ _ _ $ λ _ _ _, mul_assoc _ _ _
 
 end semigroup
 
@@ -1025,16 +1035,6 @@ image_comm
   [monoid_hom_class F α β] (f : F) (a : α) (s : finset α) :
   (a • s).image f = f a • s.image f :=
 image_comm $ map_mul _ _
-
-section monoid
-variables [decidable_eq α] [decidable_eq β] [monoid α] [mul_action α β]
-
--- TODO: Generalise so that `s` and `a` are in two different types
-@[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (s : finset α) (a : α) (t : finset β) :
-  (op a • s) • t = s • a • t :=
-by simpa [mul_singleton] using mul_smul s {a} t
-
-end monoid
 
 section group
 variables [decidable_eq β] [group α] [mul_action α β] {s t : finset β} {a : α} {b : β}

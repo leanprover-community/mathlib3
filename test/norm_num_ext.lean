@@ -243,6 +243,13 @@ example : squarefree 10 := by norm_num
 example : squarefree (2*3*5*17) := by norm_num
 example : ¬ squarefree (2*3*5*5*17) := by norm_num
 example : squarefree 251 := by norm_num
+example : squarefree (3 : ℤ) :=
+begin
+  -- `norm_num` should fail on this example, instead of producing an incorrect proof.
+  success_if_fail { norm_num },
+  exact irreducible.squarefree (prime.irreducible
+    (int.prime_iff_nat_abs_prime.mpr (by norm_num)))
+end
 
 example : nat.fib 0 = 0 := by norm_num
 example : nat.fib 1 = 1 := by norm_num

@@ -244,6 +244,9 @@ h.symm hv _ hu
 lemma is_ortho_iff_inner_eq {U V : submodule 𝕜 E} : U ⟂ V ↔ ∀ (u ∈ U) (v ∈ V), ⟪u, v⟫ = 0 :=
 forall₄_congr $ λ u hu v hv, inner_eq_zero_symm
 
+/- TODO: generalize `submodule.map₂` to semilinear maps, so that we can state
+`U ⟂ V ↔ submodule.map₂ (innerₛₗ 𝕜) U V ≤ ⊥`. -/
+
 @[simp] lemma is_ortho_bot_left {V : submodule 𝕜 E} : ⊥ ⟂ V := bot_le
 @[simp] lemma is_ortho_bot_right {U : submodule 𝕜 E} : U ⟂ ⊥ := is_ortho_bot_left.symm
 

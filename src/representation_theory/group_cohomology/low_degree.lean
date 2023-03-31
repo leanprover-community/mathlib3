@@ -32,7 +32,7 @@ def one_cochains_iso : (inhomogeneous_cochains A).X 1 ≅ Module.of k (G → A) 
   map_smul' := λ r x, funext $ λ g, by dsimp; rw [map_smul, smul_sub] }
 
 -- what's the best statement here? one composition on each side of the = instead of 2 on the LHS?
-lemma d_zero_eq : (zero_cochains_iso A).hom ≫ Module.as_hom (d_zero A)
+lemma d_zero_eq : (zero_cochains_iso A).hom ≫ Module.of_hom (d_zero A)
   ≫ (one_cochains_iso A).inv = (inhomogeneous_cochains A).d 0 1 :=
 begin
   ext x y,
@@ -42,7 +42,7 @@ begin
     linear_equiv.to_Module_iso_inv, linear_equiv.fun_congr_left_symm, equiv.symm_symm,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_unique_apply,
     function.eval_apply, linear_equiv.fun_congr_left_apply, equiv.fun_unique_apply,
-    linear_map.fun_left_apply, fin.default_eq_zero, Module.as_hom, id.def, d_zero_apply,
+    linear_map.fun_left_apply, fin.default_eq_zero, Module.of_hom, id.def, d_zero_apply,
     sub_eq_add_neg],
   congr,
 end
@@ -64,7 +64,7 @@ def zeroth_iso : group_cohomology A 0 ≅ zeroth A :=
 (inhomogeneous_cochains A).homology_zero_iso ≪≫ kernel.map_iso _ _
   (zero_cochains_iso A) (one_cochains_iso A)
   (by rw [←iso.eq_comp_inv, category.assoc]; exact (d_zero_eq A).symm)
-  ≪≫ Module.kernel_iso_ker (Module.as_hom (d_zero A))
+  ≪≫ Module.kernel_iso_ker (Module.of_hom (d_zero A))
   ≪≫ (linear_equiv.of_eq _ _ (d_zero_ker_eq_invariants A)).to_Module_iso
 
 end zeroth
@@ -78,7 +78,7 @@ def two_cochains_iso : (inhomogeneous_cochains A).X 2 ≅ Module.of k (G × G �
   map_add' := λ x y, funext $ λ g, by dsimp; rw [map_add, add_add_add_comm, add_sub_add_comm],
   map_smul' := λ r x, funext $ λ g, by dsimp; rw [map_smul, smul_add, smul_sub], }
 
-lemma d_one_eq : (one_cochains_iso A).hom ≫ Module.as_hom (d_one A)
+lemma d_one_eq : (one_cochains_iso A).hom ≫ Module.of_hom (d_one A)
   ≫ (two_cochains_iso A).inv = (inhomogeneous_cochains A).d 1 2 :=
 begin
   ext x y,
@@ -88,7 +88,7 @@ begin
     linear_equiv.to_Module_iso_inv, linear_equiv.fun_congr_left_symm, equiv.symm_symm,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_unique_apply,
     function.eval_apply, linear_equiv.fun_congr_left_apply, equiv.fun_unique_apply,
-    linear_map.fun_left_apply, fin.default_eq_zero, Module.as_hom, id.def, d_one_apply,
+    linear_map.fun_left_apply, fin.default_eq_zero, Module.of_hom, id.def, d_one_apply,
     sub_eq_add_neg, pi_fin_two_equiv_apply, equiv.fun_unique_symm_apply, add_assoc],
   rw [finset.range_succ, finset.sum_insert finset.not_mem_range_self],
   simp only [finset.range_one, finset.sum_singleton, neg_one_sq, one_smul, pow_one,
@@ -114,129 +114,68 @@ def first : Module k :=
 Module.of k ((d_one A).ker ⧸ ((d_zero A).cod_restrict (d_one A).ker $
 λ c, d_zero_range_le_d_one_ker A ⟨c, rfl⟩).range)
 
-variables {R : Type u} [comm_ring R] (M N P : Module.{u} R) (f : M ⟶ N) (g : N ⟶ P)
-#exit
-/-/-- Bundle an element `m : M` such that `f m = 0` as a term of `kernel_subobject f`. -/
-noncomputable def to_kernel_subobject {M N : Module R} {f : M ⟶ N} :
-  linear_map.ker f →ₗ[R] kernel_subobject f :=
-(kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).inv
+variables {R : Type u} [comm_ring R] {M N P : Module.{u} R} (f : M ⟶ N) (g : N ⟶ P)
 
-@[simp] lemma to_kernel_subobject_arrow {M N : Module R} {f : M ⟶ N} (x : linear_map.ker f) :
-  (kernel_subobject f).arrow (to_kernel_subobject x) = x.1 :=
-by simp [to_kernel_subobject]
--/
-def image_subobject_to {M N : Module R} (f : M ⟶ N) :
-  image_subobject f →ₗ[R] linear_map.range f :=
-(image_subobject_iso f ≪≫ Module.image_iso_range f).hom
-
-@[simp] lemma range_subtype_comp_image_subobject_to {M N : Module R} {f : M ⟶ N} :
-  (linear_map.range f).subtype.comp (image_subobject_to f) = (image_subobject f).arrow :=
+@[reassoc] lemma Module.factor_thru_image_comp_image_iso_range_hom :
+  factor_thru_image f ≫ (Module.image_iso_range f).hom
+  = Module.of_hom (linear_map.range_restrict f) :=
 begin
-  dunfold image_subobject_to,
-  show _ ≫ Module.of_hom (linear_map.range f).subtype = _,
-  simp only [iso.trans_hom, category.assoc, Module.image_iso_range_hom_subtype],
-  apply image_subobject_arrow f,
-end.
-
-@[simp] lemma factor_thru_image_subobject_comp_image_subobject_to
-  {M N : Module R} {f : M ⟶ N} :
-  factor_thru_image_subobject f ≫ Module.of_hom (image_subobject_to f) =
-  Module.of_hom (linear_map.range_restrict f) :=
-begin
-  dunfold factor_thru_image_subobject image_subobject_to,
-  simp only [iso.trans_hom, category.assoc],
-  show _ ≫ _ ≫ _ ≫ _ = _,
-  rw iso.inv_hom_id_assoc,
-  exact is_image.e_iso_ext_hom _ _,
+  simp only [←iso.eq_comp_inv, ←cancel_mono (limits.image.ι f), category.assoc,
+    Module.image_iso_range_inv_image_ι, image.fac],
+  ext,
+  refl,
 end
 
-def to_image_subobject {M N : Module R} (f : M ⟶ N) :
-  linear_map.range f →ₗ[R] image_subobject f :=
-(image_subobject_iso f ≪≫ Module.image_iso_range f).inv
-
-@[simp] lemma to_image_subobject_arrow {M N : Module R} {f : M ⟶ N} :
-  Module.of_hom (to_image_subobject f) ≫ (image_subobject f).arrow =
-  Module.of_hom (linear_map.range f).subtype := sorry
-
-@[simp] lemma to_image_subobject_comp_range_restrict {M N : Module R} {f : M ⟶ N} :
-  to_image_subobject f ∘ₗ linear_map.range_restrict f
-    = factor_thru_image_subobject f := sorry
-
-lemma blah :
-  factor_thru_image_subobject f ≫ image_to_kernel f g sorry ≫ (kernel_subobject g).arrow = f :=
-begin
-  simp only [image_to_kernel_arrow, image_subobject_arrow_comp],
-end
-
-lemma ffs :
-  factor_thru_image f ≫ (Module.image_iso_range f).hom = linear_map.range_restrict f :=
-begin
-  rw ←iso.eq_comp_inv,
-  rw ←cancel_mono (limits.image.ι f),
-  rw category.assoc,
-  rw Module.image_iso_range_inv_image_ι,
-  simp only [image.fac],
-  ext, refl,
-end
-
-lemma yeugh : image_to_kernel f g sorry =
+lemma Module.image_to_kernel_eq : image_to_kernel f g sorry =
   (image_subobject_iso f ≪≫ Module.image_iso_range f).hom ≫ Module.of_hom
   (linear_map.cod_restrict (linear_map.ker g) (linear_map.range f).subtype sorry) ≫
   (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).inv :=
 begin
-  rw ←cancel_mono (kernel_subobject g).arrow,
-  rw ←cancel_epi (factor_thru_image_subobject f),
-  rw image_to_kernel_arrow,
-  rw image_subobject_arrow_comp,
-  simp only [iso.trans_hom, iso.trans_inv, category.assoc, kernel_subobject_arrow',
-    Module.kernel_iso_ker_inv_kernel_ι],
-  show _ = _ ≫ _ ≫ _ ≫ Module.of_hom _,
-  dunfold factor_thru_image_subobject,
-  rw category.assoc,
-  rw iso.inv_hom_id_assoc,
-  simp only [←category.assoc],
-  rw ffs,
-  ext, refl,
-end
-#check cokernel.map_iso
-def FUCKSAKE {R : Type u} [comm_ring R] {M N P : Module.{u} R} (f : M ⟶ N) (g : N ⟶ P)
-  (H : f ≫ g = 0) :
-  homology f g H ≅ cokernel (Module.as_hom ((linear_map.range f).subtype.cod_restrict
-    (linear_map.ker g) sorry)) :=
-begin
-  apply cokernel.map_iso _ _ _ _ _,
-  exact image_subobject_iso f ≪≫ Module.image_iso_range f,
-  exact kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g,
-  rw yeugh,
-  simp only [category.assoc],
-  rw cancel_epi,
-  rw iso.inv_hom_id,
-  ext, refl,
-end
-
-lemma fucksake {R M N : Type*} [ring R] [add_comm_group M] [add_comm_group N]
-  [module R M] [module R N] (S : submodule R N) (f : M →ₗ[R] N) (hf : f.range ≤ S) :
-  (f.range.subtype.cod_restrict S sorry).range = (f.cod_restrict S sorry).range :=
-begin
+  simp only [←cancel_mono (kernel_subobject g).arrow, ←cancel_epi (factor_thru_image_subobject f),
+    image_to_kernel_arrow, image_subobject_arrow_comp, iso.trans_hom, iso.trans_inv, category.assoc,
+    kernel_subobject_arrow', Module.kernel_iso_ker_inv_kernel_ι, factor_thru_image_subobject,
+    iso.inv_hom_id_assoc, image_subobject_arrow', image.fac],
+  simp only [←category.assoc, Module.factor_thru_image_comp_image_iso_range_hom],
   ext,
-  split,
-  { rintros ⟨⟨y, ⟨z, rfl⟩⟩, rfl⟩, exact ⟨z, rfl⟩ },
-  { rintros ⟨y, rfl⟩, exact ⟨⟨f y, linear_map.mem_range_self _ _⟩, rfl⟩ },
+  refl,
 end
 
-def weugh {R M N P : Type*} [comm_ring R] [add_comm_group M] [add_comm_group N] [add_comm_group P]
-  [module R M] [module R N] [module R P] (f : M →ₗ[R] N) (g : N →ₗ[R] P) :
-  (g.ker ⧸ (f.range.subtype.cod_restrict g.ker sorry).range) ≃ₗ[R] (g.ker ⧸ (f.cod_restrict g.ker sorry).range) :=
-submodule.quotient.equiv _ _ (linear_equiv.refl _ _) $
-begin
-  rw fucksake,
-  exact submodule.map_id _,
-  sorry,
-end
-
-def heugh :
+/-def Module.homology_iso {R : Type u} [comm_ring R] {M N P : Module.{u} R} (f : M ⟶ N) (g : N ⟶ P)
+  (H : f ≫ g = 0) :
+  homology f g H ≅ cokernel (Module.of_hom ((linear_map.range f).subtype.cod_restrict
+    (linear_map.ker g) sorry)) :=
+cokernel.map_iso (image_to_kernel f g sorry) _ (image_subobject_iso f ≪≫ Module.image_iso_range f)
+  (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g)
+  (by { simp only [Module.image_to_kernel_eq, category.assoc, cancel_epi, iso.inv_hom_id],
+    ext, refl })-/
+set_option profiler true --11.4s
+def Module.homology_iso :
   homology f g sorry ≅ Module.of R (g.ker ⧸ (f.cod_restrict g.ker sorry).range) :=
-FUCKSAKE f g sorry ≪≫ Module.cokernel_iso_range_quotient _ ≪≫ (weugh _ _).to_Module_iso
+cokernel.map_iso (image_to_kernel f g sorry) (Module.of_hom ((linear_map.range f).subtype.cod_restrict
+  (linear_map.ker g) sorry)) (image_subobject_iso f ≪≫ Module.image_iso_range f)
+  (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g)
+  (by { simp only [Module.image_to_kernel_eq, category.assoc, cancel_epi, iso.inv_hom_id],
+    ext, refl })
+  ≪≫ Module.cokernel_iso_range_quotient _
+  ≪≫ (submodule.quotient.equiv _ _ (linear_equiv.refl _ _)
+(begin
+  show submodule.map _ (linear_map.cod_restrict _ _ _).range = _,
+  simp only [linear_map.range_eq_map, linear_map.map_cod_restrict,
+    submodule.map_subtype_top, eq_self_iff_true],
+  exact submodule.map_id _,
+end)).to_Module_iso
+#check homology
+#exit
+lemma Module.homology_iso_hom :
+  (Module.homology_iso f g).hom = homology.desc _ _ _
+    ((kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).hom ≫ submodule.mkq _) sorry :=
+begin
+  dunfold Module.homology_iso,
+  simp only [iso.trans_hom, category.assoc, submodule.quotient.equiv_refl, cokernel.map_iso_hom,
+    linear_equiv.to_Module_iso_hom],
+  sorry
+end
+
 section
 
 
@@ -244,8 +183,11 @@ section
 /-- The cokernel cocone induced by the projection onto the quotient. -/
 def cokernel_cocone (H : f ≫ g = 0) : cokernel_cofork (image_to_kernel f g H) :=
 cokernel_cofork.of_π ((kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).hom ≫
-  Module.as_hom (submodule.mkq (linear_map.cod_restrict (linear_map.ker g) f sorry).range)) $
+  Module.of_hom (submodule.mkq (linear_map.cod_restrict (linear_map.ker g) f sorry).range)) $
 begin
+  rw Module.image_to_kernel_eq,
+  simp only [iso.trans_hom, iso.trans_inv, category.assoc, iso.inv_hom_id_assoc,
+    preadditive.is_iso.comp_left_eq_zero],
 
 end
 
@@ -301,11 +243,11 @@ colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
 end
 def fml {R M N : Type*} [ring R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
   (f : M →ₗ[R] N) :
-  cokernel (Module.as_hom f) ≅ Module.of R (N ⧸ f.range) :=
+  cokernel (Module.of_hom f) ≅ Module.of R (N ⧸ f.range) :=
 Module.cokernel_iso_range_quotient _
 
 def FUCKSAKE {R : Type*} [ring R] (M N P : Module R) (f : M ⟶ N) (g : N ⟶ P) (H : f ≫ g = 0) :
-  cokernel (Module.as_hom ((linear_map.range f).subtype.cod_restrict
+  cokernel (Module.of_hom ((linear_map.range f).subtype.cod_restrict
     (linear_map.ker g) sorry).range.mkq) ≅ homology f g H :=
 begin
   refine cokernel.map_iso _ _ _ _ _,
@@ -321,7 +263,7 @@ Module.of R
       (linear_map.ker g ⧸ ((linear_map.range f).subtype.cod_restrict (linear_map.ker g) sorry).range) ≅
     homology f g H :=
 begin
-  refine (Module.cokernel_iso_range_quotient (Module.as_hom $
+  refine (Module.cokernel_iso_range_quotient (Module.of_hom $
     ((linear_map.range f).subtype.cod_restrict (linear_map.ker g) sorry))).symm ≪≫ _,
 
 
@@ -332,22 +274,22 @@ end
 noncomputable! def fucksake2 {R M N P : Type*} [ring R] [add_comm_group M] [add_comm_group N] [add_comm_group P]
   [module R M] [module R N] [module R P] (f : M →ₗ[R] N) (g : N →ₗ[R] P) (H : g.comp f = 0) :
   Module.of R (g.ker ⧸ (f.cod_restrict g.ker sorry).range)
-  ≅ homology (Module.as_hom f) (Module.as_hom g) H :=
+  ≅ homology (Module.of_hom f) (Module.of_hom g) H :=
 (submodule.quotient.equiv (f.cod_restrict g.ker sorry).range
   (f.range.subtype.cod_restrict g.ker sorry).range (linear_equiv.refl _ _) sorry).to_Module_iso
   ≪≫ _
 
 
 #check cokernel.map_iso
-def fucksake2 : first A ≅ homology (Module.as_hom (d_zero A)) (Module.as_hom (d_one A)) sorry :=
+def fucksake2 : first A ≅ homology (Module.of_hom (d_zero A)) (Module.of_hom (d_one A)) sorry :=
 (submodule.quotient.equiv ((d_zero A).cod_restrict (d_one A).ker $
 λ c, d_zero_range_le_d_one_ker A ⟨c, rfl⟩).range ((d_zero A).range.subtype.cod_restrict
 (d_one A).ker sorry).range (linear_equiv.refl _ _) sorry).to_Module_iso ≪≫
-(Module.cokernel_iso_range_quotient (Module.as_hom $ (d_zero A).range.subtype.cod_restrict
+(Module.cokernel_iso_range_quotient (Module.of_hom $ (d_zero A).range.subtype.cod_restrict
 (d_one A).ker sorry).range (linear_equiv.refl _ _)).symm ≪≫ _
 
 #exit
-(Module.cokernel_iso_range_quotient (Module.as_hom $ (d_zero A).cod_restrict (d_one A).ker $
+(Module.cokernel_iso_range_quotient (Module.of_hom $ (d_zero A).cod_restrict (d_one A).ker $
 λ c, d_zero_range_le_d_one_ker A ⟨c, rfl⟩)).symm ≪≫
 cokernel.map_iso _ _ _ _ _
 
@@ -362,7 +304,7 @@ _
 
 #exit
 cokernel.map_iso _ _ (image_subobject_iso _ ≪≫ Module.image_iso_range _ ≪≫ _) _ _
-≪≫ (Module.cokernel_iso_range_quotient (Module.as_hom _))
+≪≫ (Module.cokernel_iso_range_quotient (Module.of_hom _))
 ≪≫ (submodule.quotient.equiv ((d_zero A).cod_restrict (d_one A).ker $
 λ c, d_zero_range_le_d_one_ker A ⟨c, rfl⟩).range ((d_zero A).range.subtype.cod_restrict (d_one A).ker
 sorry).range (linear_equiv.refl _ _)

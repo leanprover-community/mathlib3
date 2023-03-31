@@ -307,6 +307,29 @@ begin
   exact h,
 end
 
+lemma is_ortho.comap (f : E →ₗᵢ[𝕜] F) {U V : submodule 𝕜 F} (h : U ⟂ V) : U.comap f ⟂ V.comap f :=
+begin
+  rw is_ortho_iff_inner_eq at *,
+  simp_rw [mem_comap, ←f.inner_map_map],
+  intros u hu v hv,
+  exact h _ hu _ hv,
+end
+
+@[simp] lemma is_ortho.map_iff (f : E ≃ₗᵢ[𝕜] F) {U V : submodule 𝕜 E} : U.map f ⟂ V.map f ↔ U ⟂ V :=
+⟨λ h, begin
+  have hf : ∀ p : submodule 𝕜 E, (p.map f).comap f.to_linear_isometry = p :=
+    comap_map_eq_of_injective f.injective,
+  simpa only [hf] using h.comap f.to_linear_isometry,
+end, is_ortho.map f.to_linear_isometry⟩
+
+@[simp] lemma is_ortho.comap_iff (f : E ≃ₗᵢ[𝕜] F) {U V : submodule 𝕜 F} :
+  U.comap f ⟂ V.comap f ↔ U ⟂ V :=
+⟨λ h, begin
+  have hf : ∀ p : submodule 𝕜 F, (p.comap f).map f.to_linear_isometry = p :=
+    map_comap_eq_of_surjective f.surjective,
+  simpa only [hf] using h.map f.to_linear_isometry,
+end, is_ortho.comap f.to_linear_isometry⟩
+
 end submodule
 
 /-- Two submodules in an orthogonal family with different indices are orthogonal. -/

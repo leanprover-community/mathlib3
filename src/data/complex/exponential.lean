@@ -10,6 +10,9 @@ import data.nat.choose.sum
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definitions of the real and complex exponential, sine, cosine, tangent,
 hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 

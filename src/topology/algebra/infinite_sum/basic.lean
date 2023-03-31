@@ -11,6 +11,9 @@ import topology.algebra.star
 /-!
 # Infinite sum over a topological monoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This sum is known as unconditionally convergent, as it sums to the same value under all possible
 permutations. For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute
 convergence.

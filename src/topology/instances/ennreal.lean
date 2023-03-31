@@ -5,11 +5,15 @@ Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
 import topology.algebra.order.monotone_continuity
-import analysis.normed.group.basic
 import topology.algebra.infinite_sum.real
+import topology.algebra.order.liminf_limsup
+import topology.metric_space.lipschitz
 
 /-!
 # Extended non-negative reals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory
@@ -659,18 +663,18 @@ end topological_space
 section liminf
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, ((x n).nnabs : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
   simp_rw [not_exists, not_frequently, not_lt] at h,
   refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
   simp only [eventually_map, ennreal.coe_le_coe],
-  filter_upwards [h r] with i hi using hi.trans ((coe_nnnorm (x i)).symm ▸ le_abs_self (x i)),
+  filter_upwards [h r] with i hi using hi.trans (le_abs_self (x i))
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, ((x n).nnabs : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -682,7 +686,7 @@ end
 
 lemma exists_upcrossings_of_not_bounded_under
   {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf (λ i, (‖x i‖₊ : ℝ≥0∞)) l ≠ ∞)
+  (hf : liminf (λ i, ((x i).nnabs : ℝ≥0∞)) l ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin

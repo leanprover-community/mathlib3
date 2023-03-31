@@ -405,7 +405,7 @@ end equiv_lin
 
 namespace linear_map
 
-variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
+variables {R' : Type*} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
 
 /-- Apply a linear map on the output of a bilinear form. -/
 @[simps]

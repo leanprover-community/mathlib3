@@ -14,6 +14,9 @@ import data.zmod.basic
 /-!
 # Pythagorean Triples
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result is the classification of Pythagorean triples. The final result is for general
 Pythagorean triples. It follows from the more interesting relatively prime case. We use the
 "rational parametrization of the circle" method for the proof. The parametrization maps the point

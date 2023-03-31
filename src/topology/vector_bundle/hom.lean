@@ -20,7 +20,7 @@ type synonym for `λ x, E₁ x →SL[σ] E₂ x`. If the `E₁` and `E₂` are v
 
 The topology is constructed from the trivializations for `E₁` and `E₂` and the norm-topology on the
 model fiber `F₁ →SL[𝕜] F₂` using the `vector_prebundle` construction.  This is a bit awkward because
-it introduces a spurious (?) dependence on the normed space structure of the model fibre, rather
+it introduces a spurious (?) dependence on the normed space structure of the model fiber, rather
 than just its topological vector space structure; this might be fixable now that we have
 `continuous_linear_map.strong_topology`.
 

@@ -958,6 +958,7 @@ end instances
 section has_smul
 variables [decidable_eq β] [decidable_eq γ] [has_smul αᵐᵒᵖ β] [has_smul β γ] [has_smul α γ]
 
+-- TODO: replace hypothesis and conclusion with a typeclass
 @[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (a : α) (s : finset β) (t : finset γ)
   (h : ∀ (a : α) (b : β) (c : γ), (op a • b) • c = b • a • c) :
   (op a • s) • t = s • a • t :=

@@ -182,7 +182,7 @@ noncomputable def to_game : ordinal ↪o game :=
   inj' := λ a b h, by rwa [←equiv_iff_game_eq, to_pgame_equiv_iff] at h,
   map_rel_iff' := @to_pgame_le_iff }
 
-@[simp] theorem to_game_def (o : ordinal) : ⟦o.to_pgame⟧ = o.to_game := rfl
+@[simp] theorem quot_to_pgame (o : ordinal) : ⟦o.to_pgame⟧ = o.to_game := rfl
 
 theorem to_game_strict_mono : strict_mono to_game :=
 to_pgame_strict_mono

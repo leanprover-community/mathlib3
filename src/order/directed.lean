@@ -177,7 +177,7 @@ begin
     exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
 end
 
-lemma directed_on.singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
+lemma directed_on_singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
 λ x hx y hy, ⟨x, hx, h _, hx.symm ▸ hy.symm ▸ h _⟩
 
 lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab : a ≼ b) :

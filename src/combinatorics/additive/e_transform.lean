@@ -134,8 +134,8 @@ end
 (card_union_add_card_inter _ _).trans $ by rw [card_smul_finset, two_mul]
 
 /-- This statement is meant to be combined with `le_or_lt_of_add_le_add` and similar lemmas. -/
-@[to_additive "This statement is meant to be combined with `le_or_lt_of_add_le_add` and similar
-lemmas."]
+@[to_additive add_e_transform.card "This statement is meant to be combined with
+`le_or_lt_of_add_le_add` and similar lemmas."]
 protected lemma mul_e_transform.card :
   (mul_e_transform_left e x).1.card + (mul_e_transform_left e x).2.card
     + ((mul_e_transform_right e x).1.card + (mul_e_transform_right e x).2.card)

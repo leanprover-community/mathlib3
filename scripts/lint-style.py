@@ -133,7 +133,7 @@ def small_alpha_vrachy_check(lines, path):
 def instance_check(lines, path):
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if re.search(r'\b(?<!`)(_inst_)\d+', line) is not None:
+        if re.search(r'\b(_inst_)\d+', line) is not None:
             errors += [(ERR_NST, line_nr, path)]
     return errors
 

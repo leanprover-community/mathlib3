@@ -355,11 +355,15 @@ begin
     { refine or.inl ⟨hs, _⟩,
       rw compress,
       split_ifs with huvs,
-      { by_contra hsuv,
-        refine (H _ _ hsuv).2.2.2 _,
-        { sorry },
-        rwa [sdiff_union_self_eq_union, union_eq_left_iff_subset.2 (le_sup_of_le_left huvs.2),
-          huvs.1.symm.sup_sdiff_cancel_right] },
+      { rcases huvs with ⟨hus, hvs⟩,
+        rw [mem_shadow_iff] at hs',
+        rcases hs' with ⟨t, Ht, a, Hat, ta⟩,
+        have hav : a ∉ v := sorry, -- by hvs and the fact that a ∉ s
+        have ht : t ∈ 𝒜 := sorry, -- by mem_of_mem_compression and Ht
+        have ht' : (t ⊔ u) \ v ∈ 𝒜 := sorry, -- by sup_sdiff_mem_of_mem_compression and Ht
+        rw [mem_shadow_iff],
+        -- both sorries below follow from Hat and hav 
+        exact ⟨(t ⊔ u) \ v, ht', a, sorry, sorry⟩, },
       { exact hs } },
     { obtain ⟨hus, hvs, h, _⟩ := H _ hs' hs,
       exact or.inr ⟨hs, _, h, compress_of_disjoint_of_le' hvs hus⟩ } },

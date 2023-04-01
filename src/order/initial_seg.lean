@@ -109,7 +109,7 @@ end⟩
 
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
-@[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
+@[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : f.trans g a = g (f a) := rfl
 
 theorem unique_of_trichotomous_of_irrefl [is_trichotomous β s] [is_irrefl β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
@@ -180,7 +180,7 @@ def sum_lift_rel_map (f : r ≃r s) (g : t ≼i u) : sum.lift_rel r t ≼i sum.l
     simp },
   { simp },
   { simp },
-  { simpa using g.init' c d }
+  { simpa using g.init }
 end⟩
 
 @[simp] theorem sum_lift_rel_map_apply (f : r ≃r s) (g : t ≼i u) (a) :

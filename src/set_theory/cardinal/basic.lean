@@ -564,7 +564,7 @@ succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   Use `is_succ_limit` if you want to include the `c = 0` case. -/
 def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
 
-theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
+protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
 
 theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
 

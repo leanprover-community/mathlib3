@@ -18,8 +18,8 @@ It also proves the same results for approximation by continuous functions with c
 when the space is locally compact and `μ` is regular.
 
 The result is presented in several versions. First concrete versions giving an approximation
-up to `ε` in these various contexts, and then abstract versions stating that the toplogical closure
-of the relevant subgroups of `Lp` are the whole space.
+up to `ε` in these various contexts, and then abstract versions stating that the topological
+closure of the relevant subgroups of `Lp` are the whole space.
 
 * `mem_ℒp.exists_has_compact_support_snorm_sub_le` states that, in a locally compact space,
   an `ℒp` function can be approximated by continuous functions with compact support,
@@ -67,7 +67,7 @@ namespace measure_theory
 
 variables [normed_space ℝ E]
 
-/-- A variant of Urysohn lemma, `L^p` version for an outer regular measure `μ`:
+/-- A variant of Urysohn lemma, `ℒ^p` version for an outer regular measure `μ`:
 consider two sets `s ⊆ u` which are respectively closed and open with `μ s < ∞`, and a vector `c`.
 Then one may find a continuous function `f` equal to `c` on `s` and to `0` outside of `u`,
 bounded by `‖c‖` everywhere, and such that the `ℒ^p` norm of `f - s.indicator (λ y, c)` is
@@ -129,7 +129,7 @@ begin
 end
 
 /-- In a locally compact space, any function in `ℒp` can be approximated by compactly supported
-continuous functions when `1 ≤ p < ∞`, `snorm` version. -/
+continuous functions when `1 ≤ p < ∞`, version in terms of `snorm`. -/
 lemma mem_ℒp.exists_has_compact_support_snorm_sub_le
   [locally_compact_space α] [μ.regular] (hp : p ≠ ∞) (h'p : 1 ≤ p)
   {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
@@ -144,6 +144,7 @@ begin
   { rintros f ⟨f_cont, f_mem, hf⟩,
     exact f_mem.ae_strongly_measurable },
   -- We are left with approximating characteristic functions.
+  -- This follows from `exists_continuous_snorm_sub_le_of_closed`.
   assume c t ht htμ ε hε,
   have h'ε : ε / 2 ≠ 0, by simpa using hε,
   rcases exists_snorm_indicator_le hp c h'ε with ⟨η, ηpos, hη⟩,
@@ -180,7 +181,7 @@ begin
 end
 
 /-- In a locally compact space, any function in `ℒp` can be approximated by compactly supported
-continuous functions when `1 ≤ p < ∞`, version with `∫`. -/
+continuous functions when `1 ≤ p < ∞`, version in terms of `∫`. -/
 lemma mem_ℒp.exists_has_compact_support_integral_rpow_sub_le
   [locally_compact_space α] [μ.regular] {p : ℝ} (h'p : 1 ≤ p)
   {f : α → E} (hf : mem_ℒp f (ennreal.of_real p) μ) {ε : ℝ} (hε : 0 < ε) :
@@ -204,22 +205,22 @@ begin
 end
 
 /-- In a locally compact space, any integrable function can be approximated by compactly supported
-continuous functions, version with `∫⁻`. -/
+continuous functions, version in terms of `∫⁻`. -/
 lemma integrable.exists_has_compact_support_lintegral_sub_le [locally_compact_space α] [μ.regular]
   {f : α → E} (hf : integrable f μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
-  ∃ (g : α → E), ∫⁻ x, ‖f x - g x‖₊ ∂μ ≤ ε ∧ continuous g
-    ∧ integrable g μ ∧ has_compact_support g :=
+  ∃ (g : α → E), ∫⁻ x, ‖f x - g x‖₊ ∂μ ≤ ε ∧ continuous g ∧ integrable g μ
+    ∧ has_compact_support g :=
 begin
   simp only [← mem_ℒp_one_iff_integrable, ← snorm_one_eq_lintegral_nnnorm] at hf ⊢,
   exact hf.exists_has_compact_support_snorm_sub_le ennreal.one_ne_top le_rfl hε,
 end
 
 /-- In a locally compact space, any integrable function can be approximated by compactly supported
-continuous functions, version with `∫`. -/
+continuous functions, version in terms of `∫`. -/
 lemma integrable.exists_has_compact_support_integral_sub_le [locally_compact_space α] [μ.regular]
   {f : α → E} (hf : integrable f μ) {ε : ℝ} (hε : 0 < ε) :
-  ∃ (g : α → E), ∫ x, ‖f x - g x‖ ∂μ ≤ ε ∧ continuous g
-    ∧ integrable g μ ∧ has_compact_support g :=
+  ∃ (g : α → E), ∫ x, ‖f x - g x‖ ∂μ ≤ ε ∧ continuous g ∧ integrable g μ
+    ∧ has_compact_support g :=
 begin
   simp only [← mem_ℒp_one_iff_integrable, ← snorm_one_eq_lintegral_nnnorm,
     ← ennreal.of_real_one] at hf ⊢,
@@ -227,7 +228,7 @@ begin
 end
 
 /-- Any function in `ℒp` can be approximated by bounded continuous functions when `1 ≤ p < ∞`,
-`snorm` version. -/
+version in terms of `snorm`. -/
 lemma mem_ℒp.exists_bounded_continuous_snorm_sub_le [μ.weakly_regular] (hp : p ≠ ∞) (h'p : 1 ≤ p)
   {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (g : α →ᵇ E), snorm (f - g) p μ ≤ ε ∧ mem_ℒp g p μ :=
@@ -248,6 +249,7 @@ begin
   { rintros f ⟨f_cont, f_mem, hf⟩,
     exact f_mem.ae_strongly_measurable },
   -- We are left with approximating characteristic functions.
+  -- This follows from `exists_continuous_snorm_sub_le_of_closed`.
   assume c t ht htμ ε hε,
   have h'ε : ε / 2 ≠ 0, by simpa using hε,
   rcases exists_snorm_indicator_le hp c h'ε with ⟨η, ηpos, hη⟩,
@@ -280,7 +282,7 @@ begin
 end
 
 /-- Any function in `ℒp` can be approximated by bounded continuous functions when `1 ≤ p < ∞`,
-version with `∫`. -/
+version in terms of `∫`. -/
 lemma mem_ℒp.exists_bounded_continuous_integral_rpow_sub_le
   [μ.weakly_regular] {p : ℝ} (h'p : 1 ≤ p)
   {f : α → E} (hf : mem_ℒp f (ennreal.of_real p) μ) {ε : ℝ} (hε : 0 < ε) :
@@ -303,7 +305,7 @@ begin
 end
 
 /-- Any integrable function can be approximated by bounded continuous functions,
-version with `∫⁻`. -/
+version in terms of `∫⁻`. -/
 lemma integrable.exists_bounded_continuous_lintegral_sub_le [μ.weakly_regular]
   {f : α → E} (hf : integrable f μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (g : α →ᵇ E), ∫⁻ x, ‖f x - g x‖₊ ∂μ ≤ ε ∧ integrable g μ :=
@@ -313,7 +315,7 @@ begin
 end
 
 /-- Any integrable function can be approximated by bounded continuous functions,
-version with `∫`. -/
+version in terms of `∫`. -/
 lemma integrable.exists_bounded_continuous_integral_sub_le [μ.weakly_regular]
   {f : α → E} (hf : integrable f μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ (g : α →ᵇ E), ∫ x, ‖f x - g x‖ ∂μ ≤ ε ∧ integrable g μ :=

@@ -302,7 +302,7 @@ rel_embedding.trans_apply _ _ _
 lt_le f g
 
 @[simp] theorem trans_apply [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) :
-  (f.trans g) a = g (f a) :=
+  f.trans g a = g (f a) :=
 lt_le_apply _ _ _
 
 @[simp] theorem trans_top [is_trans γ t] (f : r ≺i s) (g : s ≺i t) :

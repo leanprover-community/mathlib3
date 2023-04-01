@@ -3,11 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.basic
+import topology.continuous_on
 import order.filter.small_sets
 
 /-!
 ### Locally finite families of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a family of sets in a topological space is *locally finite* if at every point `x : X`,
 there is a neighborhood of `x` which meets only finitely many sets in the family.
@@ -18,7 +21,7 @@ In this file we give the definition and prove basic properties of locally finite
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 
 open set function filter
-open_locale topological_space filter
+open_locale topology filter
 
 universe u
 variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]
@@ -66,6 +69,50 @@ lemma exists_mem_basis {ι' : Sort*} (hf : locally_finite f) {p : ι' → Prop}
 let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_small_sets x)
 in ⟨i, hpi, hi subset.rfl⟩
 
+protected theorem nhds_within_Union (hf : locally_finite f) (a : X) :
+  𝓝[⋃ i, f i] a = ⨆ i, 𝓝[f i] a :=
+begin
+  rcases hf a with ⟨U, haU, hfin⟩,
+  refine le_antisymm _ (supr_le $ λ i, nhds_within_mono _ (subset_Union _ _)),
+  calc 𝓝[⋃ i, f i] a = 𝓝[⋃ i, f i ∩ U] a :
+    by rw [← Union_inter, ← nhds_within_inter_of_mem' (nhds_within_le_nhds haU)]
+  ... = 𝓝[⋃ i ∈ {j | (f j ∩ U).nonempty}, (f i ∩ U)] a :
+    by simp only [mem_set_of_eq, Union_nonempty_self]
+  ... = ⨆ i ∈ {j | (f j ∩ U).nonempty}, 𝓝[f i ∩ U] a :
+    nhds_within_bUnion hfin _ _
+  ... ≤ ⨆ i, 𝓝[f i ∩ U] a : supr₂_le_supr _ _
+  ... ≤ ⨆ i, 𝓝[f i] a : supr_mono (λ i, nhds_within_mono _ $ inter_subset_left _ _)
+end
+
+lemma continuous_on_Union' {g : X → Y} (hf : locally_finite f)
+  (hc : ∀ i x, x ∈ closure (f i) → continuous_within_at g (f i) x) :
+  continuous_on g (⋃ i, f i) :=
+begin
+  rintro x -,
+  rw [continuous_within_at, hf.nhds_within_Union, tendsto_supr],
+  intro i,
+  by_cases hx : x ∈ closure (f i),
+  { exact hc i _ hx },
+  { rw [mem_closure_iff_nhds_within_ne_bot, not_ne_bot] at hx,
+    rw [hx],
+    exact tendsto_bot }
+end
+
+lemma continuous_on_Union {g : X → Y} (hf : locally_finite f) (h_cl : ∀ i, is_closed (f i))
+  (h_cont : ∀ i, continuous_on g (f i)) :
+  continuous_on g (⋃ i, f i) :=
+hf.continuous_on_Union' $ λ i x hx, h_cont i x $ (h_cl i).closure_subset hx
+
+protected lemma continuous' {g : X → Y} (hf : locally_finite f) (h_cov : (⋃ i, f i) = univ)
+  (hc : ∀ i x, x ∈ closure (f i) → continuous_within_at g (f i) x) :
+  continuous g :=
+continuous_iff_continuous_on_univ.2 $ h_cov ▸ hf.continuous_on_Union' hc
+
+protected lemma continuous {g : X → Y} (hf : locally_finite f) (h_cov : (⋃ i, f i) = univ)
+  (h_cl : ∀ i, is_closed (f i)) (h_cont : ∀ i, continuous_on g (f i)) :
+  continuous g :=
+continuous_iff_continuous_on_univ.2 $ h_cov ▸ hf.continuous_on_Union h_cl h_cont
+
 protected lemma closure (hf : locally_finite f) : locally_finite (λ i, closure (f i)) :=
 begin
   intro x,
@@ -75,26 +122,15 @@ begin
     (inter_subset_inter_right _ interior_subset)
 end
 
-lemma is_closed_Union (hf : locally_finite f) (hc : ∀i, is_closed (f i)) :
-  is_closed (⋃i, f i) :=
+lemma closure_Union (h : locally_finite f) : closure (⋃ i, f i) = ⋃ i, closure (f i) :=
 begin
-  simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
-  intros a ha,
-  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (hc i).is_open_compl.mem_nhds (ha i),
-  rcases hf a with ⟨t, h_nhds, h_fin⟩,
-  have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
-    from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
-  filter_upwards [this],
-  simp only [mem_inter_iff, mem_Inter],
-  rintros b ⟨hbt, hn⟩ i hfb,
-  exact hn i ⟨b, hfb, hbt⟩ hfb,
+  ext x,
+  simp only [mem_closure_iff_nhds_within_ne_bot, h.nhds_within_Union, supr_ne_bot, mem_Union]
 end
 
-lemma closure_Union (h : locally_finite f) : closure (⋃ i, f i) = ⋃ i, closure (f i) :=
-subset.antisymm
-  (closure_minimal (Union_mono $ λ _, subset_closure) $
-    h.closure.is_closed_Union $ λ _, is_closed_closure)
-  (Union_subset $ λ i, closure_mono $ subset_Union _ _)
+lemma is_closed_Union (hf : locally_finite f) (hc : ∀ i, is_closed (f i)) :
+  is_closed (⋃ i, f i) :=
+by simp only [← closure_eq_iff_is_closed, hf.closure_Union, (hc _).closure_eq]
 
 /-- If `f : β → set α` is a locally finite family of closed sets, then for any `x : α`, the
 intersection of the complements to `f i`, `x ∉ f i`, is a neighbourhood of `x`. -/

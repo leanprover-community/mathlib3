@@ -417,8 +417,8 @@ begin
     have mem_span_b :
       ((submodule.mkq (map (algebra_map R S) p)) x :
         S ⧸ map (algebra_map R S) p) ∈ submodule.span (R ⧸ p) (set.range b) := b.mem_span _,
-    rw [← @submodule.restrict_scalars_mem R, algebra.span_restrict_scalars_eq_span_of_surjective
-        (show function.surjective (algebra_map R (R ⧸ p)), from ideal.quotient.mk_surjective) _,
+    rw [← @submodule.restrict_scalars_mem R,
+        submodule.restrict_scalars_span R (R ⧸ p) ideal.quotient.mk_surjective,
         b_eq_b', set.range_comp, ← submodule.map_span]
       at mem_span_b,
     obtain ⟨y, y_mem, y_eq⟩ := submodule.mem_map.mp mem_span_b,

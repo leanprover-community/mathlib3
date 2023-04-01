@@ -21,7 +21,7 @@ The proof is based on the Cauchy integral formula for the derivative of an analy
 -/
 
 open topological_space metric set filter asymptotics function measure_theory
-open_locale topological_space filter nnreal real
+open_locale topology filter nnreal real
 
 universes u v
 variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E]

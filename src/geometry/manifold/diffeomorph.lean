@@ -43,7 +43,7 @@ practice.
 diffeomorphism, manifold
 -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open function set
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]

@@ -20,9 +20,9 @@ open function
 
 /-- Given `δ : α → Type*`, `pi.empty δ` is the trivial dependent function out of the empty
 multiset. -/
-def pi.empty (δ : α → Type*) : (Πa∈(0:multiset α), δ a) .
+def pi.empty (δ : α → Sort*) : (Πa∈(0:multiset α), δ a) .
 
-variables [decidable_eq α] {δ : α → Type*}
+variables [decidable_eq α] {β : α → Type*} {δ : α → Sort*}
 
 /-- Given `δ : α → Type*`, a multiset `m` and a term `a`, as well as a term `b : δ a` and a
 function `f` such that `f a' : δ a'` for all `a'` in `m`, `pi.cons m a b f` is a function `g` such
@@ -51,8 +51,8 @@ begin
 end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
-def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
-m.rec_on {pi.empty δ} (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+def pi (m : multiset α) (t : Πa, multiset (β a)) : multiset (Πa∈m, β a) :=
+m.rec_on {pi.empty β} (λa m (p : multiset (Πa∈m, β a)), (t a).bind $ λb, p.map $ pi.cons m a b)
 begin
   intros a a' m n,
   by_cases eq : a = a',
@@ -67,9 +67,9 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = {pi.empty δ} := rfl
+@[simp] lemma pi_zero (t : Πa, multiset (β a)) : pi 0 t = {pi.empty β} := rfl
 
-@[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
+@[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (β a)) (a : α) :
   pi (a ::ₘ m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
 rec_on_cons a m
 
@@ -82,11 +82,11 @@ calc f₁ a' h' = pi.cons s a b f₁ a' this : by rw [pi.cons_ne this ne.symm]
   ... = pi.cons s a b f₂ a' this : by rw [eq]
   ... = f₂ a' h' : by rw [pi.cons_ne this ne.symm]
 
-lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
+lemma card_pi (m : multiset α) (t : Πa, multiset (β a)) :
   card (pi m t) = prod (m.map $ λa, card (t a)) :=
 multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
 
-protected lemma nodup.pi {s : multiset α} {t : Π a, multiset (δ a)} :
+protected lemma nodup.pi {s : multiset α} {t : Π a, multiset (β a)} :
   nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
 multiset.induction_on s (assume _ _, nodup_singleton _)
 begin
@@ -112,12 +112,12 @@ begin
   { rw [pi.cons_ne _ h] }
 end
 
-lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
-  ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
+lemma mem_pi (m : multiset α) (t : Πa, multiset (β a)) :
+  ∀f:Πa∈m, β a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
 begin
   intro f,
   induction m using multiset.induction_on with a m ih,
-  { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
+  { simpa using show f = pi.empty β, by funext a ha; exact ha.elim },
   simp_rw [pi_cons, mem_bind, mem_map, ih],
   split,
   { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',

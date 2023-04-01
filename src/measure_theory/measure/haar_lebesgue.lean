@@ -42,7 +42,7 @@ small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
-open_locale ennreal pointwise topological_space nnreal
+open_locale ennreal pointwise topology nnreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
@@ -349,6 +349,29 @@ begin
       measure_singleton] }
 end
 
+lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
+  μ (r • s) = ennreal.of_real (r ^ finrank ℝ E) * μ s :=
+by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
+
+variables {μ} {s : set E}
+
+-- Note: We might want to rename this once we acquire the lemma corresponding to
+-- `measurable_set.const_smul`
+lemma null_measurable_set.const_smul (hs : null_measurable_set s μ) (r : ℝ) :
+  null_measurable_set (r • s) μ :=
+begin
+  obtain rfl | hs' := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | hr := eq_or_ne r 0,
+  { simpa [zero_smul_set hs'] using null_measurable_set_singleton _ },
+  obtain ⟨t, ht, hst⟩ := hs,
+  refine ⟨_, ht.const_smul_of_ne_zero hr, _⟩,
+  rw ←measure_symm_diff_eq_zero_iff at ⊢ hst,
+  rw [←smul_set_symm_diff₀ hr, add_haar_smul μ, hst, mul_zero],
+end
+
+variables (μ)
+
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
   μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
@@ -637,7 +660,7 @@ begin
       (eventually_of_forall (λ b, zero_le _)),
     filter_upwards [self_mem_nhds_within],
     rintros r (rpos : 0 < r),
-    apply ennreal.mul_le_mul (measure_mono (inter_subset_inter_right _ _)) le_rfl,
+    apply mul_le_mul_right' (measure_mono (inter_subset_inter_right _ _)) _,
     assume y hy,
     have : y - x ∈ r • closed_ball (0 : E) 1,
     { apply smul_set_mono t_bound,
@@ -650,8 +673,8 @@ begin
     filter_upwards [self_mem_nhds_within],
     rintros r (rpos : 0 < r),
     have : closed_ball x r = {x} + r • closed_ball 0 1,
-      by simp only [smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero, mul_one,
-        singleton_add_closed_ball, smul_zero],
+      by simp only [_root_.smul_closed_ball, real.norm_of_nonneg rpos.le, zero_le_one, add_zero,
+        mul_one, singleton_add_closed_ball, smul_zero],
     simp only [this, add_haar_singleton_add_smul_div_singleton_add_smul μ rpos.ne'],
     simp only [add_haar_closed_ball_center, image_add_left, measure_preimage_add, singleton_add] },
   have C : tendsto (λ (r : ℝ),
@@ -757,7 +780,7 @@ begin
     add_le_add le_rfl (measure_mono (inter_subset_right _ _)),
   calc μ (s ∩ ({x} + r • t)) / μ ({x} + r • t)
   ≤ (μ (s ∩ ({x} + r • (t ∩ closed_ball 0 n))) + μ ({x} + r • (t \ closed_ball 0 n))) /
-      μ ({x} + r • t) : ennreal.mul_le_mul I le_rfl
+      μ ({x} + r • t) : mul_le_mul_right' I _
   ... < ε / 2 + ε / 2 :
     begin
       rw ennreal.add_div,
@@ -836,8 +859,7 @@ begin
   { apply tendsto_add_haar_inter_smul_one_of_density_one_aux μ _
       (measurable_set_to_measurable _ _) _ _ t ht h't h''t,
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' h tendsto_const_nhds,
-    { apply eventually_of_forall (λ r, _),
-      apply ennreal.mul_le_mul _ le_rfl,
+    { refine eventually_of_forall (λ r, mul_le_mul_right' _ _),
       exact measure_mono (inter_subset_inter_left _ (subset_to_measurable _ _)) },
     { filter_upwards [self_mem_nhds_within],
       rintros r (rpos : 0 < r),
@@ -864,7 +886,7 @@ begin
       exists_subset_measure_lt_top ht h't.bot_lt,
   filter_upwards [(tendsto_order.1
     (tendsto_add_haar_inter_smul_one_of_density_one μ s x h t'
-      t'_meas t'pos.ne' t'top.ne)).1 0 ennreal.zero_lt_one],
+      t'_meas t'pos.ne' t'top.ne)).1 0 zero_lt_one],
   assume r hr,
   have : μ (s ∩ ({x} + r • t')) ≠ 0 :=
     λ h', by simpa only [ennreal.not_lt_zero, ennreal.zero_div, h'] using hr,

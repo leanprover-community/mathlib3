@@ -12,6 +12,9 @@ import tactic.apply_fun
 /-!
 # Symmetric powers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines symmetric powers of a type.  The nth symmetric power
 consists of homogeneous n-tuples modulo permutations by the symmetric
 group.

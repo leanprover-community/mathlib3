@@ -566,7 +566,7 @@ def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
 
 protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
 
-theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
+protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
 
 theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
 

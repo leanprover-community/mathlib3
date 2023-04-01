@@ -250,6 +250,22 @@ begin
   exact irreducible.squarefree (prime.irreducible
     (int.prime_iff_nat_abs_prime.mpr (by norm_num)))
 end
+example : @squarefree ℕ multiplicative.monoid 1 :=
+begin
+  -- `norm_num` should fail on this example, instead of producing an incorrect proof.
+  success_if_fail { norm_num },
+  -- the statement was deliberately wacky, let's fix it
+  change squarefree (multiplicative.of_add 1 : multiplicative ℕ),
+  rintros x ⟨dx, hd⟩,
+  revert x dx,
+  rw multiplicative.of_add.surjective.forall₂,
+  intros x dx h,
+  simp_rw [←of_add_add, multiplicative.of_add.injective.eq_iff] at h,
+  cases x,
+  { simp [is_unit_one], exact is_unit_one },
+  { simp only [nat.succ_add, nat.add_succ] at h,
+    cases h },
+end
 
 example : nat.fib 0 = 0 := by norm_num
 example : nat.fib 1 = 1 := by norm_num

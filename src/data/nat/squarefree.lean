@@ -513,7 +513,8 @@ end
 
 /-- Evaluates the `squarefree` predicate on naturals. -/
 @[norm_num] meta def eval_squarefree : expr → tactic (expr × expr)
-| `(@squarefree ℕ _ %%e) := do
+| `(@squarefree ℕ %%inst %%e) := do
+  is_def_eq inst `(nat.monoid),
   n ← e.to_nat,
   match n with
   | 0 := false_intro `(@not_squarefree_zero ℕ _ _)

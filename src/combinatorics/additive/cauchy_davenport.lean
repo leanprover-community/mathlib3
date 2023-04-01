@@ -112,12 +112,12 @@ open_locale pointwise
 namespace finset
 variables {α : Type*} [group α] [decidable_eq α] {x y : finset α × finset α} {s t : finset α}
 
-/-- The relation we induct along in the proof Károlyi's theorem. `(s₁, t₁) < (s₂, t₂)` iff
+/-- The relation we induct along in the proof of Cauchy-Davenport theorem. `(s₁, t₁) < (s₂, t₂)` iff
 * `|s₁ * t₁| < |s₂ * t₂|`
 * or `|s₁ * t₁| = |s₂ * t₂|` and `|s₂| + |t₂| < |s₁| + |t₁|`
 * or `|s₁ * t₁| = |s₂ * t₂|` and `|s₁| + |t₁| = |s₂| + |t₂|` and `|s₁| < |s₂|`. -/
-@[to_additive "The relation we induct along in the proof Károlyi's theorem. `(s₁, t₁) < (s₂, t₂)`
-iff
+@[to_additive "The relation we induct along in the proof of Cauchy-Davenport theorem.
+`(s₁, t₁) < (s₂, t₂)` iff
 * `|s₁ + t₁| < |s₂ + t₂|`
 * or `|s₁ + t₁| = |s₂ + t₂|` and `|s₂| + |t₂| < |s₁| + |t₁|`
 * or `|s₁ + t₁| = |s₂ + t₂|` and `|s₁| + |t₁| = |s₂| + |t₂|` and `|s₁| < |s₂|`."]

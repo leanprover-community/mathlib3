@@ -493,19 +493,6 @@ pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 
 end left_cancel_semigroup
 
-section monoid
-variables [monoid α] [mul_action α β]
-
-@[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (s : set α) (a : α) (t : set β) :
-  (op a • s) • t = s • a • t :=
-by simpa using mul_smul s {a} t
-
-@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (s : set α) (a : α) (t : set α) :
-  (op a • s) * t = s * a • t :=
-op_smul_set_smul_eq_smul_smul_set _ _ _
-
-end monoid
-
 section group
 variables [group α] [mul_action α β] {s t A B : set β} {a : α} {x : β}
 

@@ -339,6 +339,16 @@ begin
   { refl }
 end
 
+-- todo: moves
+
+lemma disjoint_sdiff_comm {A B C : finset α} : disjoint (A \ C) B ↔ disjoint A (B \ C) :=
+begin
+  simp only [finset.disjoint_iff_ne],
+  split; rintro h a ha b hb rfl; simp only [mem_sdiff] at * {fail_if_unchanged := ff},
+  exact h _ ⟨ha, hb.2⟩ _ hb.1 rfl,
+  exact h _ ha.1 _ ⟨hb, ha.2⟩ rfl
+end
+
 /-- UV-compression reduces the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v` such
 that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key fact about compression for
 Kruskal-Katona. -/
@@ -356,49 +366,46 @@ begin
       rw compress,
       split_ifs with huvs,
       { rcases huvs with ⟨hus, hvs⟩,
-        have hs' := hs',
         rw [mem_shadow_iff] at hs',
-        rcases hs' with ⟨t, Ht, a, Hat, ta⟩,
-        have hav : a ∉ v := by { 
-          apply not_mem_mono hvs,
-          rw [←ta],
-          exact not_mem_erase a t,
-        },
-        have hvt : v ≤ t := by {
-          rw [←ta] at hvs,
-          exact hvs.trans (erase_subset _ t),
-        },
-        have ht : t ∈ 𝒜 := by {
-          apply mem_of_mem_compression Ht hvt,
+        rcases hs' with ⟨t, Ht, a, Hat, rfl⟩,
+        have hav : a ∉ v := not_mem_mono hvs (not_mem_erase a t),
+        have hvt : v ≤ t := hvs.trans (erase_subset _ t),
+        have ht : t ∈ 𝒜,
+        { apply mem_of_mem_compression Ht hvt,
           contrapose!,
-          simp only [bot_eq_empty],
-          intro une,
+          rintro une rfl,
           rcases (finset.nonempty_iff_ne_empty.2 une).bex with ⟨x, pf⟩,
-          rcases (huv x pf) with ⟨y, yv, pf⟩,
-          exact ne_empty_of_mem yv,
-        },
+          rcases (huv x pf) with ⟨_, ⟨⟩, -⟩ },
         by_cases hau : a ∈ u,
         { rcases (huv a hau) with ⟨b, Hbv, Hcomp⟩,
           rw [is_compressed] at Hcomp,
           rw [←Hcomp] at ht,
-          have hsb := sup_sdiff_mem_of_mem_compression ht ((finset.erase_subset _ _).trans hvt) sorry, 
-          have : (t ⊔ u.erase a) \ v.erase b = ((s ⊔ u) \ v) ∪ {b} := sorry,
+          have hsb := sup_sdiff_mem_of_mem_compression ht ((finset.erase_subset _ _).trans hvt) _,
+          swap,
+          { rw erase_eq at ⊢ hus,
+            rwa disjoint_sdiff_comm },
+          have : (t ⊔ u.erase a) \ v.erase b = ((t.erase a ⊔ u) \ v) ∪ {b},
+          { rw [erase_eq v, sdiff_sdiff_eq_sdiff_sup, erase_eq, erase_eq],
+            congr' 2,
+            rw [sup_sdiff_eq_sup, @sup_comm _ _ (t \ {a}), sup_sdiff_eq_sup, sup_comm],
+            exact singleton_subset_iff.mpr hau,
+            exact singleton_subset_iff.mpr Hat,
+            exact singleton_subset_iff.mpr (mem_union_left _ $ mem_of_mem_erase $ hvs Hbv) },
           rw [mem_shadow_iff],
-          exact ⟨((s ⊔ u) \ v) ∪ {b}, sorry, b, sorry, sorry⟩,
-        },
-        have ht : (t ⊔ u) \ v ∈ 𝒜 := by {
-          apply sup_sdiff_mem_of_mem_compression Ht hvt,
-          have tmp : insert a (t.erase a) = t := by { exact finset.insert_erase Hat },
-          rw [ta] at tmp,
-          rw [←tmp, finset.disjoint_insert_right],
-          exact ⟨hau, hus⟩,
-        },
+          refine ⟨((t.erase a ⊔ u) \ v) ∪ {b}, this ▸ hsb, b,
+                  mem_union_right _ (mem_singleton_self b), _⟩,
+          rw [erase_union_distrib, erase_singleton, union_empty],
+          exact erase_eq_of_not_mem (not_mem_sdiff_of_mem_right Hbv) },
+        have ht : (t ⊔ u) \ v ∈ 𝒜,
+        { apply sup_sdiff_mem_of_mem_compression Ht hvt,
+          rw [←finset.insert_erase Hat, finset.disjoint_insert_right],
+          exact ⟨hau, hus⟩ },
         rw [mem_shadow_iff],
-        have atuv : a ∈ (t ⊔ u) \ v := by {
-           rw [sup_eq_union, mem_sdiff, mem_union],
-           exact ⟨or.inl Hat, hav⟩
-        },
-        exact ⟨(t ⊔ u) \ v, ht, a, atuv, sorry⟩, },
+        have atuv : a ∈ (t ⊔ u) \ v,
+        { rw [sup_eq_union, mem_sdiff, mem_union],
+          exact ⟨or.inl Hat, hav⟩ },
+        exact ⟨(t ⊔ u) \ v, ht, a, atuv, by rw [←erase_sdiff_comm, sup_eq_union,
+                                                erase_union_distrib, erase_eq_of_not_mem hau]⟩ },
       { exact hs } },
     { obtain ⟨hus, hvs, h, _⟩ := H _ hs' hs,
       exact or.inr ⟨hs, _, h, compress_of_disjoint_of_le' hvs hus⟩ } },

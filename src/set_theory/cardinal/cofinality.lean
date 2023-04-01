@@ -735,7 +735,7 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.ne_zero, is_succ_limit_of_succ_lt $
   λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.two_power_lt h)⟩
 
-theorem is_strong_limit.is_succ_limit {c} (H : is_strong_limit c) : is_succ_limit c :=
+protected theorem is_strong_limit.is_succ_limit {c} (H : is_strong_limit c) : is_succ_limit c :=
 H.is_limit.is_succ_limit
 
 theorem is_strong_limit_beth {o : ordinal} (H : is_succ_limit o) : is_strong_limit (beth o) :=

@@ -121,8 +121,8 @@ end
 lemma is_symm_from_blocks_iff
   {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
   (A.from_blocks B C D).is_symm ↔ A.is_symm ∧ Bᵀ = C ∧ Cᵀ = B ∧ D.is_symm :=
-⟨λ h, ⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₁ h,
-       congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₂ h⟩,
+⟨λ h, ⟨(congr_arg to_blocks₁₁ h : _), (congr_arg to_blocks₂₁ h : _),
+       (congr_arg to_blocks₁₂ h : _), (congr_arg to_blocks₂₂ h : _)⟩,
  λ ⟨hA, hBC, hCB, hD⟩, is_symm.from_blocks hA hBC hD⟩
 
 end matrix

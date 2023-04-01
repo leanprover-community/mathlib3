@@ -669,20 +669,51 @@ resp.eval 1 ⟨pSet.sUnion, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 
 prefix (name := Set.sUnion) `⋃₀ `:110 := Set.sUnion
 
+/-- The intersection operator, the collection of elements in all of the elements of a ZFC set. We
+special-case `⋂₀ ∅ = ∅`. -/
+noncomputable def sInter (x : Set) : Set :=
+by { classical, exact dite x.nonempty (λ h, {y ∈ h.some | ∀ z ∈ x, y ∈ z}) (λ _, ∅) }
+
+prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
+
 @[simp] theorem mem_sUnion {x y : Set.{u}} : y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z :=
 quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
   ⟨λ ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ ⟨z, h⟩, quotient.induction_on z (λ z h, ⟨z, h⟩) h⟩)
 
+theorem mem_sInter {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
+begin
+  rw [sInter, dif_pos h],
+  simp only [mem_to_set, mem_sep, and_iff_right_iff_imp],
+  exact λ H, H _ h.some_mem
+end
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set) = ∅ := by { ext, simp }
+@[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ := dif_neg $ by simp
+
+theorem mem_of_mem_sInter {x y z : Set} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
+begin
+  rcases eq_empty_or_nonempty x with rfl | hx,
+  { exact (not_mem_empty z hz).elim },
+  { exact (mem_sInter hx).1 hy z hz }
+end
+
 theorem mem_sUnion_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃₀ x :=
 mem_sUnion.2 ⟨z, hz, hy⟩
 
-@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
+theorem not_mem_sInter_of_not_mem {x y z : Set} (hy : ¬ y ∈ z) (hz : z ∈ x) : ¬ y ∈ ⋂₀ x :=
+λ hx, hy $ mem_of_mem_sInter hx hz
 
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
+@[simp] theorem sInter_singleton {x : Set.{u}} : ⋂₀ ({x} : Set) = x :=
+ext $ λ y, by simp_rw [mem_sInter (singleton_nonempty x), mem_singleton, forall_eq]
+
 @[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
 by { ext, simp }
+
+theorem to_set_sInter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
+by { ext, simp [mem_sInter h] }
 
 theorem singleton_injective : function.injective (@singleton Set Set _) :=
 λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
@@ -719,6 +750,19 @@ by { rw ←mem_to_set, simp }
 
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
+
+@[simp] theorem sUnion_pair {x y : Set.{u}} : ⋃₀ ({x, y} : Set.{u}) = x ∪ y :=
+begin
+  ext,
+  simp_rw [mem_union, mem_sUnion, mem_pair],
+  split,
+  { rintro ⟨w, (rfl | rfl), hw⟩,
+    { exact or.inl hw },
+    { exact or.inr hw } },
+  { rintro (hz | hz),
+    { exact ⟨x, or.inl rfl, hz⟩ },
+    { exact ⟨y, or.inr rfl, hz⟩ } }
+end
 
 theorem mem_wf : @well_founded Set (∈) :=
 well_founded_lift₂_iff.mpr pSet.mem_wf
@@ -996,6 +1040,11 @@ def sUnion (x : Class) : Class := ⋃₀ (Class_to_Cong x)
 
 prefix (name := Class.sUnion) `⋃₀ `:110 := Class.sUnion
 
+/-- The intersection of a class is the class of all members of ZFC sets in the class -/
+def sInter (x : Class) : Class := ⋂₀ Class_to_Cong x
+
+prefix (name := Class.sInter) `⋂₀ `:110 := Class.sInter
+
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
 
@@ -1054,8 +1103,32 @@ begin
     exact ⟨z, rfl, w, hwx, hwz⟩ }
 end
 
-@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=
-by { ext, simp }
+@[simp] theorem sInter_apply {x : Class.{u}} {y : Set.{u}} :
+  (⋂₀ x) y ↔ ∀ z : Set.{u}, x z → y ∈ z :=
+begin
+  refine ⟨λ hxy z hxz, hxy _ ⟨z, rfl, hxz⟩, _⟩,
+  rintro H - ⟨z, rfl, hxz⟩,
+  exact H _ hxz
+end
+
+@[simp, norm_cast] theorem sInter_coe {x : Set.{u}} (h : x.nonempty) : ⋂₀ (x : Class.{u}) = ⋂₀ x :=
+set.ext $ λ y, sInter_apply.trans (Set.mem_sInter h).symm
+
+theorem mem_of_mem_sInter {x y z : Class} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
+by { obtain ⟨w, rfl, hw⟩ := hy, exact coe_mem.2 (hw z hz) }
+
+theorem mem_sInter {x y : Class.{u}} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z, z ∈ x → y ∈ z :=
+begin
+  refine ⟨λ hy z, mem_of_mem_sInter hy, λ H, _⟩,
+  simp_rw [mem_def, sInter_apply],
+  obtain ⟨z, hz⟩ := h,
+  obtain ⟨y, rfl, hzy⟩ := H z (coe_mem.2 hz),
+  refine ⟨y, rfl, λ w hxw, _⟩,
+  simpa only [coe_mem, coe_apply] using H w (coe_mem.2 hxw),
+end
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = ∅ := by { ext, simp }
+@[simp] theorem sInter_empty : ⋂₀ (∅ : Class.{u}) = univ := by { ext, simp [sInter, ←univ] }
 
 /-- An induction principle for sets. If every subset of a class is a member, then the class is
   universal. -/

@@ -9,6 +9,9 @@ import ring_theory.ideal.operations
 /-!
 # An additional lemma about coprime ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This lemma generalises `exists_sum_eq_one_iff_pairwise_coprime` to the case of non-principal ideals.
 It is on a separate file due to import requirements.
 -/

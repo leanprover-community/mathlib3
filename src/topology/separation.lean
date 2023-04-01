@@ -168,6 +168,18 @@ by simp only [t0_space_iff_inseparable, ne.def, not_imp_not]
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 t0_space.t0 h
 
+protected lemma inducing.injective [topological_space β] [t0_space α] {f : α → β}
+  (hf : inducing f) : injective f :=
+λ x y h, inseparable.eq $ hf.inseparable_iff.1 $ h ▸ inseparable.refl _
+
+protected lemma inducing.embedding [topological_space β] [t0_space α] {f : α → β}
+  (hf : inducing f) : embedding f :=
+⟨hf, hf.injective⟩
+
+lemma embedding_iff_inducing [topological_space β] [t0_space α] {f : α → β} :
+  embedding f ↔ inducing f :=
+⟨embedding.to_inducing, inducing.embedding⟩
+
 lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
   t0_space α ↔ injective (𝓝 : α → filter α) :=
 t0_space_iff_inseparable α

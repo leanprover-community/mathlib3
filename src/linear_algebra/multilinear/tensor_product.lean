@@ -18,7 +18,6 @@ open_locale tensor_product
 
 variables {R ι₁ ι₂ ι₃ ι₄ : Type*}
 variables [comm_semiring R]
-variables [decidable_eq ι₁] [decidable_eq ι₂][decidable_eq ι₃] [decidable_eq ι₄]
 variables {N₁ : Type*} [add_comm_monoid N₁] [module R N₁]
 variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
 variables {N : Type*} [add_comm_monoid N] [module R N]
@@ -41,8 +40,16 @@ def dom_coprod
   (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
   multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
 { to_fun := λ v, a (λ i, v (sum.inl i)) ⊗ₜ b (λ i, v (sum.inr i)),
-  map_add' := λ v i p q, by cases i; simp [tensor_product.add_tmul, tensor_product.tmul_add],
-  map_smul' := λ v i c p, by cases i; simp [tensor_product.smul_tmul', tensor_product.tmul_smul] }
+  map_add' := λ _ v i p q, by
+  { resetI,
+    letI := (@sum.inl_injective ι₁ ι₂).decidable_eq,
+    letI := (@sum.inr_injective ι₁ ι₂).decidable_eq,
+    cases i; simp [tensor_product.add_tmul, tensor_product.tmul_add] },
+  map_smul' := λ _ v i c p, by
+  { resetI,
+    letI := (@sum.inl_injective ι₁ ι₂).decidable_eq,
+    letI := (@sum.inr_injective ι₁ ι₂).decidable_eq,
+    cases i; simp [tensor_product.smul_tmul', tensor_product.tmul_smul] } }
 
 /-- A more bundled version of `multilinear_map.dom_coprod` that maps
 `((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/

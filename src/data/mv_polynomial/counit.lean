@@ -9,6 +9,9 @@ import data.mv_polynomial.basic
 /-!
 ## Counit morphisms for multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 One may consider the ring of multivariate polynomials `mv_polynomial A R` with coefficients in `R`
 and variables indexed by `A`. If `A` is not just a type, but an algebra over `R`,
 then there is a natural surjective algebra homomorphism `mv_polynomial A R →ₐ[R] A`

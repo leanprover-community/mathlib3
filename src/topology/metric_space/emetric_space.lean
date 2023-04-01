@@ -12,6 +12,9 @@ import topology.uniform_space.uniform_embedding
 /-!
 # Extended metric spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is devoted to the definition and study of `emetric_spaces`, i.e., metric
 spaces in which the distance is allowed to take the value ∞. This extended distance is
 called `edist`, and takes values in `ℝ≥0∞`.
@@ -268,12 +271,10 @@ uniformity_basis_edist.uniform_continuous_iff uniformity_basis_edist
 theorem uniform_embedding_iff [pseudo_emetric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ :=
-uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
-⟨λ H δ δ0, let ⟨t, tu, ht⟩ := H _ (edist_mem_uniformity δ0),
-               ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 tu in
-  ⟨ε, ε0, λ a b h, ht _ _ (hε h)⟩,
- λ H s su, let ⟨δ, δ0, hδ⟩ := mem_uniformity_edist.1 su, ⟨ε, ε0, hε⟩ := H _ δ0 in
-  ⟨_, edist_mem_uniformity ε0, λ a b h, hδ (hε h)⟩⟩
+begin
+  simp only [uniformity_basis_edist.uniform_embedding_iff uniformity_basis_edist, exists_prop],
+  refl
+end
 
 /-- If a map between pseudoemetric spaces is a uniform embedding then the edistance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y`. -/
@@ -281,11 +282,7 @@ theorem controlled_of_uniform_embedding [pseudo_emetric_space β] {f : α → β
   uniform_embedding f →
   (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, edist a b < δ → edist (f a) (f b) < ε) ∧
   (∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ) :=
-begin
-  assume h,
-    exact ⟨uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1,
-          (uniform_embedding_iff.1 h).2.2⟩,
-end
+λ h, ⟨uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1, (uniform_embedding_iff.1 h).2.2⟩
 
 /-- ε-δ characterization of Cauchy sequences on pseudoemetric spaces -/
 protected lemma cauchy_iff {f : filter α} :
@@ -888,38 +885,28 @@ nonpos_iff_eq_zero.trans edist_eq_zero
 theorem eq_of_forall_edist_le {x y : γ} (h : ∀ε > 0, edist x y ≤ ε) : x = y :=
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 
-/-- A map between emetric spaces is a uniform embedding if and only if the edistance between `f x`
-and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
-theorem uniform_embedding_iff' [emetric_space β] {f : γ → β} :
-  uniform_embedding f ↔
-  (∀ ε > 0, ∃ δ > 0, ∀ {a b : γ}, edist a b < δ → edist (f a) (f b) < ε) ∧
-  (∀ δ > 0, ∃ ε > 0, ∀ {a b : γ}, edist (f a) (f b) < ε → edist a b < δ) :=
-begin
-  split,
-  { assume h,
-    exact ⟨emetric.uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1,
-          (uniform_embedding_iff.1 h).2.2⟩ },
-  { rintros ⟨h₁, h₂⟩,
-    refine uniform_embedding_iff.2 ⟨_, emetric.uniform_continuous_iff.2 h₁, h₂⟩,
-    assume x y hxy,
-    have : edist x y ≤ 0,
-    { refine le_of_forall_lt' (λδ δpos, _),
-      rcases h₂ δ δpos with ⟨ε, εpos, hε⟩,
-      have : edist (f x) (f y) < ε, by simpa [hxy],
-      exact hε this },
-    simpa using this }
-end
-
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
+/-- A map between emetric spaces is a uniform embedding if and only if the edistance between `f x`
+and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
+theorem emetric.uniform_embedding_iff' [emetric_space β] {f : γ → β} :
+  uniform_embedding f ↔
+    (∀ ε > 0, ∃ δ > 0, ∀ {a b : γ}, edist a b < δ → edist (f a) (f b) < ε) ∧
+    (∀ δ > 0, ∃ ε > 0, ∀ {a b : γ}, edist (f a) (f b) < ε → edist a b < δ) :=
+begin
+  simp only [uniform_embedding_iff_uniform_inducing,
+    uniformity_basis_edist.uniform_inducing_iff uniformity_basis_edist, exists_prop],
+  refl
+end
+
 /-- If a `pseudo_emetric_space` is a T₀ space, then it is an `emetric_space`. -/
-def emetric.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
+def emetric_space.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
   emetric_space α :=
-{ eq_of_edist_eq_zero := λ x y hdist, inseparable.eq $ emetric.inseparable_iff.2 hdist,
+{ eq_of_edist_eq_zero := λ x y hdist, (emetric.inseparable_iff.2 hdist).eq,
   ..‹pseudo_emetric_space α› }
 
 /-- Auxiliary function to replace the uniformity on an emetric space with
@@ -1039,7 +1026,7 @@ instance [pseudo_emetric_space X] : has_edist (uniform_space.separation_quotient
 rfl
 
 instance [pseudo_emetric_space X] : emetric_space (uniform_space.separation_quotient X) :=
-@emetric.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
+@emetric_space.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
   { edist_self := λ x, quotient.induction_on' x edist_self,
     edist_comm := λ x y, quotient.induction_on₂' x y edist_comm,
     edist_triangle := λ x y z, quotient.induction_on₃' x y z edist_triangle,

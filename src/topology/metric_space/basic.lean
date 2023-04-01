@@ -12,6 +12,9 @@ import topology.bornology.constructions
 /-!
 # Metric spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines metric spaces. Many definitions and theorems expected
 on metric spaces are already introduced on uniform spaces and topological spaces.
 For example: open and closed sets, compactness, completeness, continuity and uniform continuity

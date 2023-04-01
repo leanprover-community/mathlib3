@@ -627,7 +627,7 @@ linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 begin
   ext,
   rw [linear_map.to_matrix_apply, distrib_mul_action.to_linear_map_apply, linear_equiv.map_smul,
-    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal,
+    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal_apply,
     pi.single_apply],
 end
 
@@ -742,7 +742,7 @@ variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V
   [module A W] [is_scalar_tower K A W]
 
 /-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, since they form a subspace of all `k`-linear maps. -/
+target are, as they form a subspace of all `k`-linear maps. -/
 instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
 finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
   (restrict_scalars_injective _)

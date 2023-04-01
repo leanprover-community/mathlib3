@@ -86,6 +86,9 @@ namespace int
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
+@[simp] theorem sign_coe_add_one (n : ℕ) : int.sign (n + 1) = 1 := rfl
+@[simp] theorem sign_neg_succ_of_nat (n : ℕ) : int.sign -[1+ n] = -1 := rfl
+
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
@@ -147,7 +150,7 @@ theorem succ_neg_succ (a : ℤ) : succ (-succ a) = -a :=
 by rw [neg_succ, succ_pred]
 
 theorem neg_pred (a : ℤ) : -pred a = succ (-a) :=
-by rw [eq_neg_of_eq_neg (neg_succ (-a)).symm, neg_neg]
+by rw [neg_eq_iff_eq_neg.mp (neg_succ (-a)), neg_neg]
 
 theorem pred_neg_pred (a : ℤ) : pred (-pred a) = -a :=
 by rw [neg_pred, pred_succ]
@@ -337,9 +340,8 @@ end
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
-  rw [← sub_sub, neg_succ_of_nat_coe, sub_sub (n:ℤ)],
-  apply eq_neg_of_eq_neg,
-  rw [neg_sub, sub_sub_self, add_right_comm],
+  rw [← sub_sub, neg_succ_of_nat_coe, sub_sub (n:ℤ), eq_comm, neg_eq_iff_eq_neg,
+      neg_sub, sub_sub_self, add_right_comm],
   exact @congr_arg ℕ ℤ _ _ (λi, (i + 1 : ℤ)) (nat.mod_add_div _ _).symm
 end
 

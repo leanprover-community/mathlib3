@@ -70,12 +70,30 @@ product of the two sets. -/
 reduces the sum of the two sets.", simps]
 def mul_dyson_e_transform : finset α × finset α := (x.1 ∪ e • x.2, x.2 ∩ e⁻¹ • x.1)
 
-@[simp, to_additive] lemma mul_dyson_e_transform.subset :
+@[to_additive] lemma mul_dyson_e_transform.subset :
   (mul_dyson_e_transform e x).1 * (mul_dyson_e_transform e x).2 ⊆ x.1 * x.2 :=
 begin
   refine union_mul_inter_subset_union.trans (union_subset subset.rfl _),
   rw [mul_smul_comm,  smul_mul_assoc, inv_smul_smul, mul_comm],
   refl,
+end
+
+@[to_additive] lemma mul_dyson_e_transform.card :
+  (mul_dyson_e_transform e x).1.card + (mul_dyson_e_transform e x).2.card = x.1.card + x.2.card :=
+begin
+  dsimp,
+  rw [←card_smul_finset e (_ ∩ _), smul_finset_inter, smul_inv_smul, inter_comm,
+    card_union_add_card_inter, card_smul_finset],
+end
+
+@[simp, to_additive] lemma mul_dyson_e_transform_idem :
+  mul_dyson_e_transform e (mul_dyson_e_transform e x) = mul_dyson_e_transform e x :=
+begin
+  ext : 1; dsimp,
+  { rw [smul_finset_inter, smul_inv_smul, inter_comm, union_eq_left_iff_subset],
+    exact inter_subset_union },
+  { rw [smul_finset_union, inv_smul_smul, union_comm, inter_eq_left_iff_subset],
+    exact inter_subset_union }
 end
 
 variables {e x}
@@ -116,7 +134,7 @@ by simp [mul_e_transform_left]
 @[simp, to_additive] lemma mul_e_transform_right_one : mul_e_transform_right 1 x = x :=
 by simp [mul_e_transform_right]
 
-@[simp, to_additive] lemma mul_e_transform_left.fst_mul_snd_subset :
+@[to_additive] lemma mul_e_transform_left.fst_mul_snd_subset :
   (mul_e_transform_left e x).1 * (mul_e_transform_left e x).2 ⊆ x.1 * x.2 :=
 begin
   refine inter_mul_union_subset_union.trans (union_subset subset.rfl _),
@@ -124,7 +142,7 @@ begin
   refl,
 end
 
-@[simp, to_additive] lemma mul_e_transform_right.fst_mul_snd_subset :
+@[to_additive] lemma mul_e_transform_right.fst_mul_snd_subset :
   (mul_e_transform_right e x).1 * (mul_e_transform_right e x).2 ⊆ x.1 * x.2 :=
 begin
   refine union_mul_inter_subset_union.trans (union_subset subset.rfl _),
@@ -132,11 +150,11 @@ begin
   refl,
 end
 
-@[simp, to_additive] lemma mul_e_transform_left.card :
+@[to_additive] lemma mul_e_transform_left.card :
   (mul_e_transform_left e x).1.card + (mul_e_transform_right e x).1.card = 2 * x.1.card :=
 (card_inter_add_card_union _ _).trans $ by rw [card_smul_finset, two_mul]
 
-@[simp, to_additive] lemma mul_e_transform_right.card :
+@[to_additive] lemma mul_e_transform_right.card :
   (mul_e_transform_left e x).2.card + (mul_e_transform_right e x).2.card = 2 * x.2.card :=
 (card_union_add_card_inter _ _).trans $ by rw [card_smul_finset, two_mul]
 

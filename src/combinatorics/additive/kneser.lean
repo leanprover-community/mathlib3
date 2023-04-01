@@ -10,11 +10,13 @@ import tactic.linarith
 # Kneser's addition theorem
 
 This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤ |s + t|` where `s`,
-`t` are finite nonempty sets in a commutative group and `H` is the stabilizer of `s + t`.
+`t` are finite nonempty sets in a commutative group and `H` is the stabilizer of `s + t`. Further,
+if the inequality is strict, then we in fact have `|s + H| + |t + H| ≤ |s + t|`.
 
 ## Main declarations
 
 * `finset.mul_kneser`: Kneser's theorem.
+* `finset.mul_strict_kneser`: Strict Kneser theorem.
 
 ## References
 
@@ -284,9 +286,9 @@ add_lt_add_of_lt_of_le (by { rw [←tsub_pos_iff_lt, ←card_sdiff (mul_subset_m
 
 /-! ### Kneser's theorem -/
 
-/-- **Kneser's multiplication theorem**: A bound on the size of `s * t` in terms of its stabilizer.
--/
-@[to_additive "**Kneser's addition theorem**: A bound on the size of `s + t` in terms of its
+/-- **Kneser's multiplication theorem**: A lower bound on the size of `s * t` in terms of its
+stabilizer. -/
+@[to_additive "**Kneser's addition theorem**: A lower bound on the size of `s + t` in terms of its
 stabilizer."]
 lemma mul_kneser (s t : finset α) :
   (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card ≤

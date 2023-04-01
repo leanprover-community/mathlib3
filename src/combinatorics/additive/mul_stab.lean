@@ -116,6 +116,13 @@ end
 by simp_rw [←smul_eq_mul, ←bUnion_smul_finset, bUnion_subset,
   ←mem_mul_stab_iff_smul_finset_subset ht, subset_iff]
 
+@[to_additive] lemma mul_subset_right : s ⊆ t.mul_stab → s * t ⊆ t :=
+begin
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  { exact (mul_subset_right_iff ht).2 }
+end
+
 @[to_additive]
 lemma smul_mul_stab (ha : a ∈ s.mul_stab) : a • s.mul_stab = s.mul_stab :=
 begin
@@ -164,11 +171,18 @@ by { rw mul_comm, exact subset_mul_stab_mul_left hs }
 @[simp, to_additive] lemma mul_mul_stab (s : finset α) : s * s.mul_stab = s :=
 by { rw mul_comm, exact mul_stab_mul _ }
 
+@[simp] lemma mul_mul_stab_mul_mul_mul_mul_stab_mul :
+  s * (s * t).mul_stab * (t * (s * t).mul_stab) = s * t :=
+by rw [mul_mul_mul_comm, mul_stab_mul_mul_stab, mul_mul_stab]
+
 @[to_additive] lemma smul_finset_mul_stab_subset (ha : a ∈ s) : a • s.mul_stab ⊆ s :=
 (smul_finset_subset_smul ha).trans s.mul_mul_stab.subset'
 
 @[to_additive] lemma mul_subset_left_iff (hs : s.nonempty) : s * t ⊆ s ↔ t ⊆ s.mul_stab :=
 by rw [mul_comm, mul_subset_right_iff hs]
+
+@[to_additive] lemma mul_subset_left : t ⊆ s.mul_stab → s * t ⊆ s :=
+by { rw mul_comm, exact mul_subset_right }
 
 @[simp, to_additive] lemma mul_stab_idem (s : finset α) : s.mul_stab.mul_stab = s.mul_stab :=
 begin

@@ -43,6 +43,19 @@ begin
   exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
 end
 
+namespace nat
+variables {a b : ℕ}
+
+lemma add_sub_one_le_mul (ha : a ≠ 0) (hb : b ≠ 0) : a + b - 1 ≤ a * b :=
+begin
+  cases a,
+  { cases ha rfl },
+  { rw [succ_add, succ_sub_one, succ_mul],
+    exact add_le_add_right (le_mul_of_one_le_right' $ pos_iff_ne_zero.2 hb) _ }
+end
+
+end nat
+
 --TODO: Fix implicitness `subgroup.closure_eq_bot_iff`
 
 section
@@ -194,6 +207,24 @@ lemma nontrivial_iff_ne_singleton (ha : a ∈ s) : s.nontrivial' ↔ s ≠ {a} :
 ⟨nontrivial'.ne_singleton, (eq_singleton_or_nontrivial ha).resolve_left⟩
 
 lemma nontrivial'.one_lt_card : s.nontrivial' → 1 < s.card := finset.one_lt_card.2
+
+-- TODO: Fix implicitness of `finset.attach_nonempty_iff`
+protected lemma nonempty.attach : s.nonempty → s.attach.nonempty := s.attach_nonempty_iff.2
+
+end finset
+
+namespace finset
+variables {α : Type*} [has_mul α] [decidable_eq α] {s t u : finset α} {a : α}
+
+open mul_opposite
+open_locale pointwise
+
+@[to_additive] lemma op_smul_finset_subset_mul : a ∈ t → op a • s ⊆ s * t :=
+image_subset_image₂_left
+
+@[simp, to_additive] lemma bUnion_op_smul_finset (s t : finset α) :
+  t.bUnion (λ a, op a • s) = s * t :=
+bUnion_image_right
 
 end finset
 

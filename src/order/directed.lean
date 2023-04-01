@@ -226,7 +226,7 @@ begin
   have e1 : is_lub (f '' {a, b}) (f b),
   { apply h,
     { exact set.insert_nonempty _ _ },
-    { exact directed_on_ordered_pair le_refl _ _ hab },
+    { exact directed_on_pair le_refl hab },
     { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
         set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
       exact is_least_Ici } },

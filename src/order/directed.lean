@@ -182,7 +182,7 @@ lemma directed_on_singleton (h : reflexive r) (a : α) : directed_on r ({a} : se
 
 lemma directed_on_ordered_pair (h : reflexive r) (a b : α) (hab : a ≼ b) :
   directed_on r ({a, b} : set α) :=
-(directed_on.singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
+(directed_on_singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
 
 end reflexive
 

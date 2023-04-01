@@ -14,8 +14,6 @@ as internals of other proofs.
 
 ## Main declarations
 
-* `finset.mul_e_transform`: The general e-transform. Replaces `(s₁, s₂, t₁, t₂)` by
-  `(s₁ ∪ s₂ • e, t₁ ∩ e⁻¹ • t₂)`.
 * `finset.mul_dyson_e_transform`: The Dyson e-transform. Replaces `(s, t)` by
   `(s ∪ e • t, t ∩ e⁻¹ • s)`. The additive version preserves `|s ∩ [1, m]| + |t ∩ [1, m - e]|`.
 * `finset.mul_e_transform_left`/`finset.mul_e_transform_right`: Replace `(s, t)` by
@@ -35,29 +33,6 @@ open_locale pointwise
 variables {α  : Type*} [decidable_eq α]
 
 namespace finset
-
-/-! ### General e-transform -/
-
-section group
-variables [comm_group α] (e : α) (s₁ t₁ s₂ t₂ : finset α)
-
-/-- The general **e-transform**. Turns `(s₁, s₂, t₁, t₂)` into
-`(s', t') = (s₁ ∪ s₂ • e, t₁ ∩ e⁻¹ • t₂)`. This has the property that
-`s' * t' ⊆ s₁ * t₁ ∪ s₂ * t₂`. -/
-@[to_additive "The general **e-transform**. Turns `(s₁, s₂, t₁, t₂)` into
-`(s', t') = (s₁ ∪ s₂ +ᵥ e, t₁ ∩ e⁻¹ +ᵥ t₂)`. This has the property that
-`s' + t' ⊆ s₁ + t₁ ∪ s₂ + t₂`.", simps]
-def mul_e_transform : finset α × finset α := (s₁ ∪ op e • s₂, t₁ ∩ e⁻¹ • t₂)
-
-@[to_additive] lemma mul_e_transform.fst_mul_snd_subset :
-  (mul_e_transform e s₁ t₁ s₂ t₂).1 * (mul_e_transform e s₁ t₁ s₂ t₂).2 ⊆ s₁ * t₁ ∪ s₂ * t₂ :=
-begin
-  refine union_mul_inter_subset_union.trans (union_subset_union subset.rfl _),
-  rw [mul_smul_comm, smul_mul_assoc, op_smul_eq_smul, inv_smul_smul, mul_comm],
-  refl,
-end
-
-end group
 
 /-! ### Dyson e-transform -/
 

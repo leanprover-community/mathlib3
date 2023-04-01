@@ -155,11 +155,12 @@ begin
       (card_le_card_mul_left _ hx.1.1).trans_eq hx.2),
 end
 
-@[to_additive card_add_card_sub_one_le_min_nontrivial_size_card_add]
-lemma card_add_card_sub_one_le_min_nontrivial_size_card_mul (hs : s.nonempty) (ht : t.nonempty) :
+/-- A generalisation of the **Cauchy-Davenport Theorem** to arbitrary groups. -/
+@[to_additive "A generalisation of the **Cauchy-Davenport Theorem** to arbitrary groups."]
+lemma min_le_card_mul (hs : s.nonempty) (ht : t.nonempty) :
   min (nontrivial_size α) (s.card + t.card - 1) ≤ (s * t).card :=
 begin
-  -- Set up the induction on `x := (s, t)`.
+  -- Set up the induction on `x := (s, t)` along the `devos_mul_rel` relation.
   set x := (s, t) with hx,
   clear_value x,
   simp only [prod.ext_iff] at hx,
@@ -198,18 +199,18 @@ begin
   -- `(s'', t'')` are both strictly smaller than `(s, t)` according to `devos_mul_rel`.
   replace hsg : (s ∩ op g • s).card < s.card := card_lt_card ⟨inter_subset_left _ _, λ h, hsg $
     eq_of_superset_of_card_ge (h.trans $ inter_subset_right _ _) (card_smul_finset _ _).le⟩,
-  replace aux1 := card_le_of_subset (mul_transform₁.fst_mul_snd_subset g (s, t)),
-  replace aux2 := card_le_of_subset (mul_transform₂.fst_mul_snd_subset g (s, t)),
-  -- If the left translate of `t` by ``
+  replace aux1 := card_le_of_subset (mul_e_transform_left.fst_mul_snd_subset g (s, t)),
+  replace aux2 := card_le_of_subset (mul_e_transform_right.fst_mul_snd_subset g (s, t)),
+  -- If the left translate of `t` by `g⁻¹` is disjoint from `t`, then we're easily done.
   obtain hgt | hgt := disjoint_or_nonempty_inter t (g⁻¹ • t),
   { rw ←card_smul_finset g⁻¹ t,
     refine or.inr ((add_le_add_right hst _).trans _),
     rw ←card_union_eq hgt,
     exact (card_le_card_mul_left _ hgs).trans (le_add_of_le_left aux1) },
   -- Else, we're done by induction on either `(s', t')` or `(s'', t'')` depending on whether
-  -- `|s| + |t| ≤ |s'| + |t'|` or `|s| + |t| ≤ |s''| + |t''|`. One of those equalities must hold
-  -- since `2 * (|s| + |t|) = |s'| + |t'| + |s''| + |t''|`.
-  obtain hstg | hstg := mul_transform.card_ge g s t,
+  -- `|s| + |t| ≤ |s'| + |t'|` or `|s| + |t| < |s''| + |t''|`. One of those two inequalities must
+  -- hold since `2 * (|s| + |t|) = |s'| + |t'| + |s''| + |t''|`.
+  obtain hstg | hstg := le_or_lt_of_add_le_add (mul_e_transform.card g s t).ge,
   { exact (ih _ _ hgs (hgt.mono inter_subset_union) $ devos_mul_rel_of_le_of_le aux1 hstg hsg).imp
       aux1.trans' (λ h, hstg.trans $ h.trans $ add_le_add_right aux1 _) },
   { exact (ih _ _ (hgs.mono inter_subset_union) hgt $ devos_mul_rel_of_le aux2 hstg).imp
@@ -223,9 +224,9 @@ open finset
 namespace zmod
 variables {p : ℕ} [fact p.prime] {s t : finset (zmod p)}
 
-/-- The **Cauchy-Davenport theorem**. -/
+/-- The **Cauchy-Davenport Theorem**. -/
 lemma card_add_card_sub_one_le_min_card_add_zmod (hs : s.nonempty) (ht : t.nonempty) :
   min p (s.card + t.card - 1) ≤ (s + t).card :=
-by simpa using card_add_card_sub_one_le_min_nontrivial_size_card_add hs ht
+by simpa using min_le_card_add hs ht
 
 end zmod

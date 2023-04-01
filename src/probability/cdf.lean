@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import measure_theory.constructions.borel_space
+import measure_theory.measure.stieltjes
 
 /-!
 # Cdf
@@ -17,18 +18,6 @@ import measure_theory.constructions.borel_space
 
 * `foo_bar_unique`
 
-## Notation
-
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
-
 -/
 
 
@@ -38,159 +27,126 @@ open_locale topological_space ennreal
 
 section cdf
 
-variables {α β : Type*} {X : α → β} {m₀ : measurable_space α} {μ : measure α}
+/-- Cumulative distribution function of a real measure. -/
+def cdf (μ : measure ℝ) : ℝ → ℝ := λ x, (μ (Iic x)).to_real
 
-/-- Cumulative distribution function -/
-def cdf [preorder β] {m₀ : measurable_space α} (X : α → β) (μ : measure α) : β → ℝ≥0∞ :=
-λ b, μ (X ⁻¹' Iic b)
-
-lemma monotone_cdf [preorder β] {m₀ : measurable_space α} (X : α → β) (μ : measure α) :
-  monotone (cdf X μ) :=
-λ x y hxy, measure_mono (λ a ha, le_trans ha hxy)
-
-lemma cdf_eq_map_Iic [preorder β] [measurable_space β] [topological_space β]
-  [order_closed_topology β] [opens_measurable_space β] (hX : ae_measurable X μ) (x : β) :
-cdf X μ x = μ.map X (Iic x) :=
-by { rw [cdf, map_apply_of_ae_measurable hX], exact measurable_set_Iic, }
-
-lemma tendsto_cdf_nhds_within_Iio [topological_space β] [conditionally_complete_linear_order β]
-  [order_topology β] (x : β) :
-  tendsto (cdf X μ) (𝓝[<] x) (𝓝 $ Sup (cdf X μ '' Iio x)) :=
-monotone.tendsto_nhds_within_Iio (monotone_cdf X μ) x
-
-lemma tendsto_nhds_within_iff {α ι} [topological_space α] {l : filter ι}
-  (x : ι → α) (s : set α) (a : α) :
-  tendsto x l (𝓝[s] a) ↔ tendsto x l (𝓝 a) ∧ ∀ᶠ n in l, x n ∈ s :=
-⟨λ h, ⟨tendsto_nhds_of_tendsto_nhds_within h, eventually_mem_of_tendsto_nhds_within h⟩,
-  λ h, tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ h.1 h.2⟩
-
-lemma tendsto_nhds_within_iff_seq_tendsto [topological_space α]
-  {f : α → β} {x : α} {l : filter β} {s : set α} [(𝓝[s] x).is_countably_generated] (hx : x ∈ s) :
-  tendsto f (𝓝[s] x) l
-    ↔ (∀ xs : ℕ → α, (∀ n, xs n ∈ s) → tendsto xs at_top (𝓝 x) → tendsto (f ∘ xs) at_top l) :=
+lemma monotone_cdf (μ : measure ℝ) [is_finite_measure μ] :
+  monotone (cdf μ) :=
 begin
-  rw tendsto_iff_seq_tendsto,
-  simp_rw tendsto_nhds_within_iff,
-  refine ⟨λ h xs hxs_ge h_tendsto, h xs ⟨h_tendsto, eventually_of_forall hxs_ge⟩,
-    λ h xs h_tendsto, _⟩,
-  classical,
-  let ys : ℕ → α := λ n, if xs n ∈ s then xs n else x,
-  have hys_eq_xs : ys =ᶠ[at_top] xs,
-  { filter_upwards [h_tendsto.2] with n hxsn_mem,
-    simp_rw [ys, if_pos hxsn_mem], },
-  refine (tendsto_congr' _).mp (h ys _ _),
-  { filter_upwards [hys_eq_xs] with n hn,
-    rw [function.comp_apply, hn], },
-  { intros n,
-    simp_rw ys,
-    split_ifs with h' h',
-    exacts [h', hx], },
-  { rw tendsto_congr' hys_eq_xs,
-    exact h_tendsto.1, },
+  intros x y hxy,
+  refine (ennreal.to_real_le_to_real (measure_ne_top μ _) (measure_ne_top μ _)).mpr _,
+  exact measure_mono (λ a ha, le_trans ha hxy),
 end
 
-lemma tendsto_nhds_iff_monotone_tendsto [topological_space α] [linear_order α] [order_topology α]
-  {f : α → β} {x : α} {l : filter β} [(𝓝 x).is_countably_generated] :
-  tendsto f (𝓝 x) l
-    ↔ ((∀ xs : ℕ → α, antitone xs → tendsto xs at_top (𝓝 x) → tendsto (f ∘ xs) at_top l)
-      ∧ (∀ xs : ℕ → α, monotone xs → tendsto xs at_top (𝓝 x) → tendsto (f ∘ xs) at_top l)) :=
+lemma cdf_eq_add_of_le {μ : measure ℝ} [is_finite_measure μ] {x y : ℝ} (h : x ≤ y) :
+  cdf μ y = cdf μ x + (μ (Ioc x y)).to_real :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw tendsto_iff_seq_tendsto at h,
-    exact ⟨λ xs _ h_tendsto, h xs h_tendsto, λ xs _ h_tendsto, h xs h_tendsto⟩, },
-  refine tendsto_of_subseq_tendsto (λ xs hxs_tendsto, _),
-  sorry,
+  rw [cdf],
+  dsimp only,
+  rw [← Iic_union_Ioc_eq_Iic h, measure_union _ (measurable_set_Ioc : measurable_set (Ioc x y))],
+  { exact ennreal.to_real_add (measure_ne_top μ _) (measure_ne_top μ _), },
+  { rw set.disjoint_iff,
+    intro z,
+    simp only [mem_inter_iff, mem_Iic, mem_Ioc, mem_empty_iff_false, and_imp],
+    exact λ hzx hxz _, lt_irrefl _ (hzx.trans_lt hxz), },
 end
 
-lemma tendsto_nhds_Ici_iff_seq_tendsto [topological_space α] [linear_order α] [order_topology α]
-  {f : α → β} {x : α} {l : filter β}
-  [(𝓝[≥] x).is_countably_generated] :
-  tendsto f (𝓝[≥] x) l
-    ↔ (∀ xs : ℕ → α, (∀ n, x ≤ xs n) → antitone xs → tendsto xs at_top (𝓝 x)
-      → tendsto (f ∘ xs) at_top l) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw tendsto_nhds_within_iff_seq_tendsto at h,
-    swap, { exact le_rfl, },
-    exact λ xs h_mem h_anti h_tendsto, h xs h_mem h_tendsto, },
-  refine tendsto_of_subseq_tendsto (λ xs hxs_tendsto, _),
-  rw tendsto_nhds_within_iff at hxs_tendsto,
-  cases hxs_tendsto with hxs_tendsto hxs_mem,
-  obtain ⟨ns, hxns_anti, hxns_tendsto⟩ :
-    ∃ ns : ℕ → ℕ, antitone (xs ∘ ns) ∧ tendsto (xs ∘ ns) at_top (𝓝 x),
-  { sorry, },
-  exact ⟨ns, h (xs ∘ ns) sorry hxns_anti hxns_tendsto⟩,
-end
+lemma right_lim_eq_of_tendsto {α β : Type*} [linear_order α] [topological_space β]
+  [hα : topological_space α] [h'α : order_topology α] [t2_space β]
+  {f : α → β} {a : α} {y : β} (h : 𝓝[>] a ≠ ⊥) (h' : tendsto f (𝓝[>] a) (𝓝 y)) :
+  function.right_lim f a = y :=
+@left_lim_eq_of_tendsto αᵒᵈ β _ _ _ _ _ _ _ _ h h'
 
-lemma cdf_continuous_within_at_Ici [topological_space β] [conditionally_complete_linear_order β]
-  [order_topology β] {mβ : measurable_space β} [opens_measurable_space β] [is_finite_measure μ]
-  (x : β) [(𝓝[≥] x).is_countably_generated] (hX : measurable X) :
-  continuous_within_at (cdf X μ) (Ici x) x :=
+lemma tendsto_measure_Ioc_zero (μ : measure ℝ) [is_finite_measure μ] (x : ℝ) :
+  tendsto (λ y, μ (Ioc x y)) (𝓝[Ioi x] x) (𝓝 0) :=
 begin
-  refine tendsto_nhds_Ici_iff_seq_tendsto.mpr (λ xs h_ge h_anti h_tendsto, _),
-  simp_rw cdf,
-  have h_eq_infi : X ⁻¹' Iic x = ⋂ n, X ⁻¹' Iic (xs n),
+  have h := @tendsto_measure_bInter_gt ℝ _ μ ℝ _ _ _ _ _ (λ y, Ioc x y) x
+    (λ _ _, measurable_set_Ioc) _ ⟨x+1, lt_add_one _, measure_ne_top μ _⟩,
+  swap,
+  { intros i j hxi hij y hy,
+    dsimp only at hy ⊢,
+    rw mem_Ioc at hy ⊢,
+    exact ⟨hy.1, hy.2.trans hij⟩, },
+  dsimp at h,
+  have : (⋂ r (H : x < r), Ioc x r) = ∅,
   { ext1 y,
-    simp only [mem_preimage, mem_Iic, mem_Inter],
-    refine ⟨λ h_le i, h_le.trans (h_ge i), λ h, _⟩,
-    rw ← le_cinfi_iff at h,
-    { refine h.trans_eq _,
-      refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt h_ge (λ y hx_lt_y, _),
-      exact eventually.exists (eventually_lt_of_tendsto_lt hx_lt_y h_tendsto), },
-    { refine ⟨x, λ y hy, _⟩,
-      obtain ⟨n, rfl⟩ := hy,
-      exact h_ge n, }, },
-  rw h_eq_infi,
-  have h_anti_set : antitone (λ n, X ⁻¹' Iic (xs n)),
-  { intros i j hij a ha,
-    simp only [mem_preimage, mem_Iic] at ha ⊢,
-    refine ha.trans (h_anti hij), },
-  exact tendsto_measure_Inter (λ n, hX measurable_set_Iic) h_anti_set ⟨0, measure_ne_top _ _⟩,
+    simp only [mem_Inter, mem_Ioc, mem_empty_iff_false, iff_false, not_forall, not_and, not_le,
+      exists_prop],
+    cases le_or_lt y x with h' h',
+    { exact ⟨x+1, lt_add_one _, λ hxy, absurd hxy (not_lt.mpr h')⟩, },
+    { exact ⟨(x + y)/2, by linarith, λ _, by linarith⟩, }, },
+  rwa [this, measure_empty] at h,
 end
 
-lemma strict_anti_subseq_of_tendsto_at_bot {β : Type*} [linear_order β] [no_min_order β]
-  {u : ℕ → β} (hu : tendsto u at_top at_bot) :
-  ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_anti (u ∘ φ) :=
-let ⟨φ, h, h'⟩ := extraction_of_frequently_at_top (frequently_low_scores hu) in
-⟨φ, h, λ n m hnm, h' m _ (h hnm)⟩
-
-lemma tendsto_at_bot_iff_seq_tendsto [linear_order α] [no_min_order α]
-  [(at_bot : filter α).is_countably_generated] {f : α → β} {l : filter β} :
-  tendsto f at_bot l
-    ↔ ∀ x : ℕ → α, strict_anti x → tendsto x at_top at_bot → tendsto (f ∘ x) at_top l :=
+lemma tendsto_cdf (μ : measure ℝ) [is_finite_measure μ] (x : ℝ) :
+  tendsto (cdf μ) (𝓝[>] x) (𝓝 (cdf μ x)) :=
 begin
-  refine ⟨λ h x h_anti hx, h.comp hx, λ H, _⟩,
-  refine tendsto_of_subseq_tendsto (λ x hx_tendsto, _),
-  obtain ⟨ns, hxns_anti, hxns_tendsto⟩ :
-    ∃ ns : ℕ → ℕ, strict_anti (x ∘ ns) ∧ tendsto (x ∘ ns) at_top at_bot,
-  { obtain ⟨ns, hns_strict_mono, hns_comp_anti⟩ := strict_anti_subseq_of_tendsto_at_bot hx_tendsto,
-    exact ⟨ns, hns_comp_anti, hx_tendsto.comp (strict_mono.tendsto_at_top hns_strict_mono)⟩, },
-  exact ⟨ns, H (x ∘ ns) hxns_anti hxns_tendsto⟩,
+  have h_add : ∀ y, x ≤ y → cdf μ y = cdf μ x + (μ (Ioc x y)).to_real,
+  { intros y hxy,
+    exact cdf_eq_add_of_le hxy, },
+  suffices : tendsto (λ y, cdf μ x + (μ (Ioc x y)).to_real) (𝓝[>] x) (𝓝 (cdf μ x)),
+  { refine (tendsto_congr' _).mpr this,
+    rw [eventually_eq, eventually_nhds_within_iff],
+    refine eventually_of_forall (λ z hz, cdf_eq_add_of_le _),
+    rw mem_Ioi at hz,
+    exact hz.le, },
+  rw ← add_zero (cdf μ x),
+  refine tendsto.add _ _,
+  { rw add_zero, exact tendsto_const_nhds, },
+  { rw [← ennreal.zero_to_real, ennreal.tendsto_to_real_iff _ ennreal.zero_ne_top],
+    { exact tendsto_measure_Ioc_zero μ x, },
+    { exact λ i, measure_ne_top μ _, }, },
 end
 
-lemma tendsto_cdf_at_bot [topological_space β] [conditionally_complete_linear_order β]
-  [order_topology β] {mβ : measurable_space β} [opens_measurable_space β] [is_finite_measure μ]
-  (hX : measurable X) [(at_bot : filter β).is_countably_generated] [no_min_order β] :
-  tendsto (cdf X μ) at_bot (𝓝 0) :=
+lemma right_lim_cdf (μ : measure ℝ) [is_finite_measure μ] (x : ℝ) :
+  function.right_lim (cdf μ) x = cdf μ x :=
 begin
-  rw tendsto_at_bot_iff_seq_tendsto,
-  intros x hx_anti hx_tendsto,
-  have h_anti : antitone (λ n, X ⁻¹' Iic (x n)),
-  { change antitone ((λ y, X ⁻¹' Iic y) ∘ x),
-    refine monotone.comp_antitone _ hx_anti.antitone,
-    intros i j hij b,
-    simp only [mem_preimage, mem_Iic],
-    exact λ h, h.trans hij, },
-  have h_tendsto : tendsto (cdf X μ ∘ x) at_top (𝓝 (μ (⋂ n, X ⁻¹' Iic (x n)))),
-    from tendsto_measure_Inter (λ n, hX measurable_set_Iic) h_anti ⟨0, measure_ne_top _ _⟩,
-  convert h_tendsto,
-  rw ← @measure_empty _ _ μ,
-  congr,
-  ext1 a,
-  simp only [mem_empty_iff_false, mem_Inter, mem_preimage, mem_Iic, false_iff, not_forall, not_le],
-  obtain ⟨n, -, hn⟩ := exists_lt_of_tendsto_at_bot hx_tendsto 0 (X a),
-  exact ⟨n, hn⟩,
+  refine right_lim_eq_of_tendsto _ _,
+  { rw ← ne_bot_iff,
+    apply_instance, },
+  { exact tendsto_cdf μ x, },
 end
 
+lemma continuous_within_at_cdf_Ioi (μ : measure ℝ) [is_finite_measure μ] (x : ℝ) :
+  continuous_within_at (cdf μ) (Ioi x) x :=
+(monotone.continuous_within_at_Ioi_iff_right_lim_eq (monotone_cdf μ)).mpr (right_lim_cdf μ x)
+
+noncomputable
+def cdf_stieltjes (μ : measure ℝ) [is_finite_measure μ] : stieltjes_function :=
+monotone.stieltjes_function (monotone_cdf μ)
+
+@[simp]
+lemma cdf_stieltjes_apply (μ : measure ℝ) [is_finite_measure μ] (x : ℝ) :
+  cdf_stieltjes μ x = cdf μ x :=
+by rw [cdf_stieltjes, monotone.stieltjes_function_eq, right_lim_cdf]
+
+lemma cdf_stieltjes_coe (μ : measure ℝ) [is_finite_measure μ] : ⇑(cdf_stieltjes μ) = cdf μ :=
+by { ext1 x, exact cdf_stieltjes_apply μ x, }
+
+lemma cdf_inj {μ ν : measure ℝ} [is_finite_measure μ] [is_finite_measure ν] :
+  cdf μ = cdf ν ↔ μ = ν :=
+begin
+  refine ⟨λ h, ext_of_Iic μ ν (λ x, _), λ h, by rw h⟩,
+  refine (ennreal.to_real_eq_to_real (measure_ne_top μ _) (measure_ne_top ν _)).mp _,
+  have hx : cdf μ x = cdf ν x, by rw h,
+  assumption,
+end
+
+lemma cdf_stieltjes_inj {μ ν : measure ℝ} [is_finite_measure μ] [is_finite_measure ν] :
+  cdf_stieltjes μ = cdf_stieltjes ν ↔ μ = ν :=
+begin
+  refine ⟨λ h, cdf_inj.mp _, λ h, by simp_rw h⟩,
+  rw [← cdf_stieltjes_coe, h, cdf_stieltjes_coe],
+end
+
+lemma measure_cdf_stieltjes (μ : measure ℝ) [is_finite_measure μ] :
+  (cdf_stieltjes μ).measure = μ :=
+begin
+  refine ext_of_Ioc _ _ (λ x y hxy, _),
+  rw stieltjes_function.measure_Ioc,
+  simp_rw [cdf_stieltjes_apply],
+  rw [cdf_eq_add_of_le hxy.le, add_sub_cancel', ennreal.of_real_to_real (measure_ne_top μ _)],
+  apply_instance,
+end
 
 end cdf

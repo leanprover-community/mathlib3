@@ -184,6 +184,13 @@ lemma directed_on_pair (h : reflexive r) {a b : α} (hab : a ≼ b) :
   directed_on r ({a, b} : set α) :=
 (directed_on_singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
 
+lemma directed_on_pair' (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({b, a} : set α) :=
+begin
+  rw set.pair_comm,
+  apply directed_on_pair h hab,
+end
+
 end reflexive
 
 section preorder

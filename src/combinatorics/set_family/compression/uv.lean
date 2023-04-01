@@ -356,14 +356,49 @@ begin
       rw compress,
       split_ifs with huvs,
       { rcases huvs with ⟨hus, hvs⟩,
+        have hs' := hs',
         rw [mem_shadow_iff] at hs',
         rcases hs' with ⟨t, Ht, a, Hat, ta⟩,
-        have hav : a ∉ v := sorry, -- by hvs and the fact that a ∉ s
-        have ht : t ∈ 𝒜 := sorry, -- by mem_of_mem_compression and Ht
-        have ht' : (t ⊔ u) \ v ∈ 𝒜 := sorry, -- by sup_sdiff_mem_of_mem_compression and Ht
+        have hav : a ∉ v := by { 
+          apply not_mem_mono hvs,
+          rw [←ta],
+          exact not_mem_erase a t,
+        },
+        have hvt : v ≤ t := by {
+          rw [←ta] at hvs,
+          exact hvs.trans (erase_subset _ t),
+        },
+        have ht : t ∈ 𝒜 := by {
+          apply mem_of_mem_compression Ht hvt,
+          contrapose!,
+          simp only [bot_eq_empty],
+          intro une,
+          rcases (finset.nonempty_iff_ne_empty.2 une).bex with ⟨x, pf⟩,
+          rcases (huv x pf) with ⟨y, yv, pf⟩,
+          exact ne_empty_of_mem yv,
+        },
+        by_cases hau : a ∈ u,
+        { rcases (huv a hau) with ⟨b, Hbv, Hcomp⟩,
+          rw [is_compressed] at Hcomp,
+          rw [←Hcomp] at ht,
+          have hsb := sup_sdiff_mem_of_mem_compression ht ((finset.erase_subset _ _).trans hvt) sorry, 
+          have : (t ⊔ u.erase a) \ v.erase b = ((s ⊔ u) \ v) ∪ {b} := sorry,
+          rw [mem_shadow_iff],
+          exact ⟨((s ⊔ u) \ v) ∪ {b}, sorry, b, sorry, sorry⟩,
+        },
+        have ht : (t ⊔ u) \ v ∈ 𝒜 := by {
+          apply sup_sdiff_mem_of_mem_compression Ht hvt,
+          have tmp : insert a (t.erase a) = t := by { exact finset.insert_erase Hat },
+          rw [ta] at tmp,
+          rw [←tmp, finset.disjoint_insert_right],
+          exact ⟨hau, hus⟩,
+        },
         rw [mem_shadow_iff],
-        -- both sorries below follow from Hat and hav 
-        exact ⟨(t ⊔ u) \ v, ht', a, sorry, sorry⟩, },
+        have atuv : a ∈ (t ⊔ u) \ v := by {
+           rw [sup_eq_union, mem_sdiff, mem_union],
+           exact ⟨or.inl Hat, hav⟩
+        },
+        exact ⟨(t ⊔ u) \ v, ht, a, atuv, sorry⟩, },
       { exact hs } },
     { obtain ⟨hus, hvs, h, _⟩ := H _ hs' hs,
       exact or.inr ⟨hs, _, h, compress_of_disjoint_of_le' hvs hus⟩ } },

@@ -27,30 +27,6 @@ Bergelson.
 attribute [measurability] measurable_one
 
 section
-variables {α β : Type*} [measurable_space α] [measurable_space β]
-
-@[measurability] lemma measurable_nat_cast [has_nat_cast α] (n : ℕ) : measurable (n : β → α) :=
-@measurable_const α _ _ _ n
-
-@[measurability] lemma measurable_int_cast [has_int_cast α] (n : ℤ) : measurable (n : β → α) :=
-@measurable_const α _ _ _ n
-
-end
-
-namespace measure_theory
-namespace measure
-variables {α : Type*} {m0 : measurable_space α} {μ : measure_theory.measure α}
-
-open set
-
-lemma measure_univ_ne_zero : μ univ ≠ 0 ↔ μ ≠ 0 := measure_univ_eq_zero.not
-
-@[simp] lemma measure_univ_pos : 0 < μ univ ↔ μ ≠ 0 := pos_iff_ne_zero.trans measure_univ_ne_zero
-
-end measure
-end measure_theory
-
-section
 open filter function measure_theory set
 open_locale ennreal
 variables {α : Type*} [measurable_space α] {μ : measure α} {s N : set α} {f : α → ℝ} {r : ℝ}

@@ -5,11 +5,11 @@ Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import algebra.module.big_operators
 import linear_algebra.dfinsupp
+import linear_algebra.free_module.basic
 import linear_algebra.invariant_basis_number
 import linear_algebra.isomorphisms
 import linear_algebra.std_basis
 import set_theory.cardinal.cofinality
-import linear_algebra.free_module.basic
 
 /-!
 # Dimension of modules and vector spaces

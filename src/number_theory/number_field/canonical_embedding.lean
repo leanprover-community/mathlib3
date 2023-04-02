@@ -489,7 +489,7 @@ begin
   { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
 end
 
-lemma exists_ne_zero_mem_ring_of_integers_le {f : (infinite_place K) → nnreal}
+lemma exists_ne_zero_mem_ring_of_integers_lt {f : (infinite_place K) → nnreal}
   (hf : minkowski_bound K < (unit_measure K) (convex_body K f)) :
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin

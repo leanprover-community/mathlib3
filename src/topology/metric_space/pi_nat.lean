@@ -302,7 +302,7 @@ end
 
 variables (E) [∀ n, topological_space (E n)] [∀ n, discrete_topology (E n)]
 
-lemma is_open_cylinder (x : Π n, E n) (n : ℕ) : is_open (pi_nat.cylinder x n) :=
+lemma is_open_cylinder (x : Π n, E n) (n : ℕ) : is_open (cylinder x n) :=
 begin
   rw pi_nat.cylinder_eq_pi,
   exact is_open_set_pi (finset.range n).finite_to_set (λ a ha, is_open_discrete _),

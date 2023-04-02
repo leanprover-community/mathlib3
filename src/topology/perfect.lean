@@ -5,7 +5,7 @@ Authors: Felix Weilacher
 -/
 import topology.separation
 import topology.bases
-import topology.metric_space.pi_nat
+import topology.scheme
 
 /-!
 # Perfect Sets
@@ -220,234 +220,13 @@ end
 end kernel
 end basic
 
-section scheme
-
-/-- A `β`-scheme on `α` is a function from `list β` to `set α`.
-We typically think of this as a "tree" of subsets of `α`, and use the appropriate terminology
-(branch, children, etc.).
-The usefulness of such a scheme is that a map `(ℕ → β) → α` can often be thought of as
-a sort of "limiting object" of a `β`-scheme on `α`. -/
-def set.scheme (β α : Type*) := list β → set α
-
-namespace set.scheme
-open list metric function
-open_locale classical
-
-instance inhabited {β α : Type*} : inhabited (set.scheme β α) :=
-begin
-  rw set.scheme,
-  apply_instance,
-end
-
-variables {β α : Type*} (A : set.scheme β α)
-
-/-- `res x n`, or the restriction of `x` to `n`,
-is the list of length `n` whose `m`-th entry is `x m`.-/
-def res (x : ℕ → β) : ℕ → list β
-  | 0            := nil
-  | (nat.succ n) := (res n).concat (x n)
-
-@[simp] lemma res_zero (x : ℕ → α) : res x 0 = @nil α := rfl
-@[simp] lemma res_succ (x : ℕ → α) (n : ℕ) : res x n.succ = (res x n).concat (x n) := rfl
-
-@[simp] lemma res_length (x : ℕ → α) (n : ℕ) : (res x n).length = n :=
-begin
-  induction n with n ih,
-  { refl },
-  simp[ih],
-end
-
-/-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
-lemma res_eq_iff (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
-begin
-  split; intro h; induction n with n ih, { simp },
-  { intros m hm,
-    rw nat.lt_succ_iff_lt_or_eq at hm,
-    rw [← reverse_inj] at h,
-    simp only [res_succ, concat_eq_append, reverse_append, reverse_singleton,
-      singleton_append, reverse_inj] at h,
-    cases hm with hm hm,
-    { exact ih h.2 _ hm },
-    rw hm,
-    exact h.1, },
-  { simp },
-  simp only [res_succ],
-  rw [ih _, h _ (nat.lt_succ_self _)],
-  intros m hmn,
-  exact h m (hmn.trans (nat.lt_succ_self _)),
-end
-
-/-- Two infinite sequences are equal if and only if all their restrictions are.-/
-theorem eq_iff_res_eq (x y : ℕ → α) : (∀ n, res x n = res y n) ↔ x = y :=
-begin
-  split; intro h,
-  { ext n,
-    specialize h n.succ,
-    rw res_eq_iff at h,
-    exact h _ (nat.lt_succ_self _), },
-  rw h,
-  simp,
-end
-
-/-- `cylinder x n` is equal to the set of sequences `y` with the same restriction to `n` as `x`.-/
-theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : pi_nat.cylinder x n = {y | res y n = res x n} :=
-begin
-  ext y,
-  dsimp[pi_nat.cylinder],
-  rw res_eq_iff,
-end
-
-/-- From a `β`-scheme on `α` `A`, we define a partial function from `(ℕ → β)` to `α`
-which sends each infinite sequence `x` to an element of the intersection along the
-branch corresponding to `x`, if it exists.
-We call this the map induced by the scheme. -/
-noncomputable def map : Σ s : set (ℕ → β), s → α :=
-⟨λ x, set.nonempty ⋂ n : ℕ, A (res x n), λ ⟨x, hx⟩, hx.some⟩
-
-/-- A scheme is antitone if each set contains its children.  -/
-def antitone : Prop := ∀ l : list β, ∀ a : β, A (l.concat a) ⊆ A l
-
-/-- A useful strengthening of being antitone is to require that each set contains
-the closure of each of its children. -/
-def closure_antitone [topological_space α] : Prop :=
-∀ l : list β, ∀ a : β, closure(A (l.concat a)) ⊆ A l
-
-/-- A scheme is disjoint if the children of each set of pairwise disjoint. -/
-def disjoint : Prop := ∀ l : list β, ∀ a b : β, a ≠ b →
-  disjoint (A (l.concat a)) (A (l.concat b))
-
-/-- A scheme on a metric space has vanishing diameter if diameter approaches 0 along each branch. -/
-def vanishing_diam [pseudo_metric_space α] : Prop :=
-∀ x : ℕ → β, tendsto (λ n : ℕ, emetric.diam (A (res x n))) at_top (𝓝 0)
-
-variable {A}
-
-/-- If `x` is in the domain of the induced map of a scheme `A`,
-its image under this map is in each set along the corresponding branch. -/
-lemma map_mem {x : ℕ → β} (hx : x ∈ A.map.1) (n : ℕ) : A.map.2 ⟨x, hx⟩ ∈ A (res x n) :=
-begin
-  have := hx.some_mem,
-  rw mem_Inter at this,
-  exact this n,
-end
-
-lemma antitone_of_closure_antitoine [topological_space α] (hA : closure_antitone A) : antitone A :=
-λ l a, subset_closure.trans (hA l a)
-
-lemma closure_antitone_of_antitone_of_is_closed [topological_space α] (hanti : antitone A)
-  (hclosed : ∀ l, is_closed (A l)) : closure_antitone A :=
-begin
-  intros l a,
-  rw (hclosed _).closure_eq,
-  apply hanti,
-end
-
-@[nolint ge_or_gt]
-lemma small_dist_of_vanishing_diam [pseudo_metric_space α] (hA : vanishing_diam A)
-  (ε : ℝ) (ε_pos : 0 < ε) (x : ℕ → β) :
-  ∃ n : ℕ, ∀ y z ∈ A (res x n), dist y z < ε :=
-begin
-  specialize hA x,
-  rw ennreal.tendsto_at_top_zero at hA,
-  cases hA (ennreal.of_real (ε / 2))
-    (by { simp only [gt_iff_lt, ennreal.of_real_pos], linarith }) with n hn,
-  use n,
-  intros y hy z hz,
-  rw [← ennreal.of_real_lt_of_real_iff ε_pos, ← edist_dist],
-  apply lt_of_le_of_lt (emetric.edist_le_diam_of_mem hy hz),
-  apply lt_of_le_of_lt (hn _ (le_refl _)),
-  rw ennreal.of_real_lt_of_real_iff ε_pos,
-  linarith,
-end
-
-/-- A scheme with vanishing diameter along each branch induces a continuous map. -/
-theorem map_continuous_of_vanishing_diam [pseudo_metric_space α] [topological_space β]
-  [discrete_topology β] (hA : vanishing_diam A) : continuous A.map.2 :=
-begin
-  rw metric.continuous_iff',
-  rintros ⟨x, hx⟩ ε ε_pos,
-  cases small_dist_of_vanishing_diam hA _ ε_pos x with n hn,
-  rw _root_.eventually_nhds_iff,
-  refine ⟨coe ⁻¹' (pi_nat.cylinder x n), _, _, by simp⟩,
-  { rintros ⟨y, hy⟩ hyx,
-    rw [mem_preimage, subtype.coe_mk, cylinder_eq_res, mem_set_of] at hyx,
-    apply hn,
-    { rw ← hyx,
-      apply map_mem, },
-    apply map_mem, },
-  apply continuous_subtype_coe.is_open_preimage,
-  apply pi_nat.is_open_cylinder,
-end
-
-/-- A scheme with vanishing diameter such that each set contains the closure of its children
-induces a total map. -/
-theorem map_total_of_vanishing_diam_of_closure_antitone [pseudo_metric_space α] [complete_space α]
-  (hdiam : vanishing_diam A) (hanti : closure_antitone A) (hnonempty : ∀ l, (A l).nonempty ) :
-  A.map.1 = univ :=
-begin
-  rw eq_univ_iff_forall,
-  intro x,
-  have : ∀ n : ℕ, (A (res x n)).nonempty := λ n, hnonempty _,
-  choose u hu using this,
-  have umem : ∀ n m : ℕ, n ≤ m → u m ∈ A (res x n),
-  { have : _root_.antitone (λ n : ℕ, A (res x n)),
-    { refine antitone_nat_of_succ_le _,
-      intro n,
-      rw res_succ,
-      apply antitone_of_closure_antitoine hanti, },
-    intros n m hnm,
-    exact this hnm (hu _), },
-  have : cauchy_seq u,
-  { rw metric.cauchy_seq_iff,
-    intros ε ε_pos,
-    cases small_dist_of_vanishing_diam hdiam _ ε_pos x with n hn,
-    use n,
-    intros m₀ hm₀ m₁ hm₁,
-    apply hn; apply umem; assumption, },
-  cases cauchy_seq_tendsto_of_complete this with y hy,
-  use y,
-  rw mem_Inter,
-  intro n,
-  apply hanti _ (x n),
-  apply mem_closure_of_tendsto hy,
-  rw [← res_succ, eventually_at_top],
-  use n.succ,
-  intros m hm,
-  exact umem _ _ hm,
-end
-
-/-- A scheme where the children of each set are pairwise disjoint induces an injective map. -/
-theorem map_injective_of_disjoint (hA : disjoint A) : injective A.map.2 :=
-begin
-  rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-  rw [← subtype.val_inj, ← eq_iff_res_eq],
-  intro n,
-  induction n with n ih, { simp },
-  simp only [res_succ],
-  suffices : x n = y n, { rw [ih, this] },
-  contrapose hA,
-  simp only [disjoint, ne.def, not_forall, exists_prop],
-  refine ⟨res x n, _, _, hA, _⟩,
-  rw not_disjoint_iff,
-  use A.map.2 ⟨x, hx⟩,
-  split,
-  { rw ← res_succ,
-    apply map_mem, },
-  rw [hxy, ih, ← res_succ],
-  apply map_mem,
-end
-
-end set.scheme
-end scheme
-
 section cantor_inj
 
 open function
 variables {α : Type*} [metric_space α] {C : set α} (hC : perfect C)
 include hC
 
-@[nolint ge_or_gt]
-lemma perfect.small_diam_aux (ε : ennreal) (ε_pos : ε > 0) {x : α} (xC : x ∈ C) :
+private lemma perfect.small_diam_aux (ε : ennreal) (ε_pos : 0 < ε) {x : α} (xC : x ∈ C) :
   let D := closure (emetric.ball x (ε / 2) ∩ C) in
   perfect D ∧ D.nonempty ∧ D ⊆ C ∧ emetric.diam D ≤ ε :=
 begin
@@ -470,8 +249,7 @@ include hnonempty
 
 /-- A refinement of `perfect.splitting` for metric spaces, where we also control
 the diameter of the new perfect sets. -/
-@[nolint ge_or_gt]
-lemma perfect.small_diam_splitting (ε : ennreal) (ε_pos : ε > 0) : ∃ C₀ C₁ : set α,
+lemma perfect.small_diam_splitting (ε : ennreal) (ε_pos : 0 < ε) : ∃ C₀ C₁ : set α,
   (perfect C₀ ∧ C₀.nonempty ∧ C₀ ⊆ C ∧ emetric.diam C₀ ≤ ε) ∧
   (perfect C₁ ∧ C₁.nonempty ∧ C₁ ⊆ C ∧ emetric.diam C₁ ≤ ε) ∧ disjoint C₀ C₁ :=
 begin
@@ -485,11 +263,11 @@ begin
   apply disjoint.mono _ _ hdisj; assumption,
 end
 
-open set.scheme
+open scheme
 
 /-- Any nonempty perfect set in a complete metric space admits a continuous injection
 from the cantor space, `ℕ → bool`. -/
-theorem exists_nat_bool_injection_of_perfect_nonempty [complete_space α]
+theorem perfect.exists_nat_bool_injection [complete_space α]
   (hC : perfect C) (hnonempty : C.nonempty) :
   ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ injective f :=
 begin
@@ -497,32 +275,22 @@ begin
   have upos : ∀ n, 0 < (u n) := λ n, by simp,
   let P := subtype (λ E : set α, perfect E ∧ E.nonempty),
   choose C0 C1 h0 h1 hdisj using @perfect.small_diam_splitting α infer_instance,
-  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : ε > 0}, _ at h0,
-  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : ε > 0}, _ at h1,
-  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : ε > 0}, _ at hdisj,
+  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : 0 < ε}, _ at h0,
+  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : 0 < ε}, _ at h1,
+  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : 0 < ε}, _ at hdisj,
   let DP : list bool → P := λ l,
   begin
-    induction l using list.reverse_rec_on with l a ih, { exact ⟨C, ⟨hC, hnonempty⟩⟩ },
+    induction l with a l ih, { exact ⟨C, ⟨hC, hnonempty⟩⟩ },
     cases a,
     { use C0 ih.property.1 ih.property.2 (u l.length.succ) (upos _),
       exact ⟨h0.1, h0.2.1⟩, },
     use C1 ih.property.1 ih.property.2 (u l.length.succ) (upos _),
     exact ⟨h1.1, h1.2.1⟩,
   end,
-  let D : set.scheme bool α := λ l, (DP l).val,
-  have Ddef : ∀ l : list bool, ∀ a : bool, D (l.concat a) = bool.rec --this is terrible
-    (C0 (DP l).property.1 (DP l).property.2 (u l.length.succ) (upos l.length.succ))
-    (C1 (DP l).property.1 (DP l).property.2 (u l.length.succ) (upos l.length.succ)) a,
-  { intros l a,
-    dsimp[D, DP, list.reverse_rec_on],
-    rw list.reverse_concat,
-    dsimp,
-    rw list.reverse_reverse,
-    cases a; refl, },
+  let D : list bool → set α := λ l, (DP l).val,
   have hanti : closure_antitone D,
-  { refine closure_antitone_of_antitone_of_is_closed _ (λ l, (DP l).property.1.closed),
+  { refine antitone.closure_antitone _ (λ l, (DP l).property.1.closed),
     intros l a,
-    rw Ddef,
     cases a,
     { exact h0.2.2.1, },
     exact h1.2.2.1, },
@@ -533,26 +301,25 @@ begin
     { exact zero_le' },
     cases n, { simp },
     dsimp,
-    rw [Ddef, res_length],
     cases (x n),
-    { exact h0.2.2.2, },
-    exact h1.2.2.2, },
-  have hdisj : disjoint D,
+    { convert h0.2.2.2,
+      simp },
+    convert h1.2.2.2,
+    simp },
+  have hdisj : scheme.disjoint D,
   { intros l a b hab,
-    cases a; cases b; try { contradiction }; rw[Ddef, Ddef],
+    cases a; cases b; try { contradiction },
     { exact hdisj, },
     exact hdisj.symm,  },
-  have hdom : ∀ {x : ℕ → bool}, x ∈ D.map.1 := λ x,
-    by simp[map_total_of_vanishing_diam_of_closure_antitone hdiam hanti (λ l, (DP l).property.2)],
-  refine ⟨λ x, D.map.2 ⟨x, hdom⟩, _, _, _⟩,
+  have hdom : ∀ {x : ℕ → bool}, x ∈ (induced_map D).1 := λ x,
+    by simp[hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
+  refine ⟨λ x, (induced_map D).2 ⟨x, hdom⟩, _, _, _⟩,
   { rintros y ⟨x, rfl⟩,
-    convert map_mem hdom 0,
-    dsimp[D, DP, list.reverse_rec_on],
-    refl, },
+    exact map_mem hdom 0, },
   { continuity,
-    exact map_continuous_of_vanishing_diam hdiam, },
+    exact hdiam.map_continuous, },
   intros x y hxy,
-  have := map_injective_of_disjoint hdisj hxy,
+  have := hdisj.map_injective hxy,
   rwa ← subtype.val_inj at this,
 end
 

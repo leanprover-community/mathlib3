@@ -1,0 +1,224 @@
+/-
+Copyright (c) 2023 Felix Weilacher. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Felix Weilacher
+-/
+import topology.metric_space.pi_nat
+
+namespace scheme
+
+/- A `β`-scheme on `α` is a function from `list β` to `set α`.
+We typically think of this as a "tree" of subsets of `α`, and use the appropriate terminology
+(branch, children, etc.).
+The usefulness of such a scheme is that a map `(ℕ → β) → α` can often be thought of as
+a sort of "limiting object" of a `β`-scheme on `α`. -/
+
+open list function filter set
+open_locale classical topological_space
+
+variables {β α : Type*} (A : list β → set α)
+
+/-- `res x n`, or the restriction of `x` to `n`,
+is the list of length `n` whose `m`-th entry is `x m`.-/
+def res (x : ℕ → β) : ℕ → list β
+  | 0            := nil
+  | (nat.succ n) := x n :: res n
+
+@[simp] lemma res_zero (x : ℕ → α) : res x 0 = @nil α := rfl
+@[simp] lemma res_succ (x : ℕ → α) (n : ℕ) : res x n.succ = x n :: res x n := rfl
+
+@[simp] lemma res_length (x : ℕ → α) (n : ℕ) : (res x n).length = n :=
+begin
+  induction n with n ih,
+  { refl },
+  simp[ih],
+end
+
+/-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
+lemma res_eq_iff (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
+begin
+  split; intro h; induction n with n ih, { simp },
+  { intros m hm,
+    rw nat.lt_succ_iff_lt_or_eq at hm,
+    simp only [res_succ] at h,
+    cases hm with hm hm,
+    { exact ih h.2 _ hm },
+    rw hm,
+    exact h.1, },
+  { simp },
+  simp only [res_succ],
+  refine ⟨h _ (nat.lt_succ_self _), ih (λ m hm, _)⟩,
+  exact h _ (hm.trans (nat.lt_succ_self _)),
+end
+
+/-- Two infinite sequences are equal if and only if all their restrictions are.-/
+theorem eq_iff_res_eq (x y : ℕ → α) : (∀ n, res x n = res y n) ↔ x = y :=
+begin
+  split; intro h,
+  { ext n,
+    specialize h n.succ,
+    rw res_eq_iff at h,
+    exact h _ (nat.lt_succ_self _), },
+  rw h,
+  simp,
+end
+
+/-- `cylinder x n` is equal to the set of sequences `y` with the same restriction to `n` as `x`.-/
+theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : pi_nat.cylinder x n = {y | res y n = res x n} :=
+begin
+  ext y,
+  dsimp[pi_nat.cylinder],
+  rw res_eq_iff,
+end
+
+/-- From a `β`-scheme on `α` `A`, we define a partial function from `(ℕ → β)` to `α`
+which sends each infinite sequence `x` to an element of the intersection along the
+branch corresponding to `x`, if it exists.
+We call this the map induced by the scheme. -/
+noncomputable def induced_map : Σ s : set (ℕ → β), s → α :=
+⟨λ x, set.nonempty ⋂ n : ℕ, A (res x n), λ ⟨x, hx⟩, hx.some⟩
+
+section topology
+
+/-- A scheme is antitone if each set contains its children.  -/
+protected def antitone : Prop := ∀ l : list β, ∀ a : β, A (a :: l) ⊆ A l
+
+/-- A useful strengthening of being antitone is to require that each set contains
+the closure of each of its children. -/
+def closure_antitone [topological_space α] : Prop :=
+∀ l : list β, ∀ a : β, closure(A (a :: l)) ⊆ A l
+
+/-- A scheme is disjoint if the children of each set of pairwise disjoint. -/
+protected def disjoint : Prop :=
+∀ l : list β, _root_.pairwise $ λ a b, disjoint (A (a :: l)) (A (b :: l))
+
+variable {A}
+
+/-- If `x` is in the domain of the induced map of a scheme `A`,
+its image under this map is in each set along the corresponding branch. -/
+lemma map_mem {x : ℕ → β} (hx : x ∈ (induced_map A).1) (n : ℕ) :
+  (induced_map A).2 ⟨x, hx⟩ ∈ A (res x n) :=
+begin
+  have := hx.some_mem,
+  rw mem_Inter at this,
+  exact this n,
+end
+
+protected lemma closure_antitone.antitone [topological_space α] (hA : closure_antitone A) :
+  scheme.antitone A :=
+λ l a, subset_closure.trans (hA l a)
+
+protected lemma antitone.closure_antitone [topological_space α] (hanti : scheme.antitone A)
+  (hclosed : ∀ l, is_closed (A l)) : closure_antitone A :=
+λ l a, (hclosed _).closure_eq.subset.trans (hanti _ _)
+
+/-- A scheme where the children of each set are pairwise disjoint induces an injective map. -/
+theorem disjoint.map_injective (hA : scheme.disjoint A) : injective (induced_map A).2 :=
+begin
+  rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+  rw [← subtype.val_inj, ← eq_iff_res_eq],
+  intro n,
+  induction n with n ih, { simp },
+  simp only [res_succ],
+  refine ⟨_, ih⟩,
+  contrapose hA,
+  simp only [scheme.disjoint, _root_.pairwise, ne.def, not_forall, exists_prop],
+  refine ⟨res x n, _, _, hA, _⟩,
+  rw not_disjoint_iff,
+  use (induced_map A).2 ⟨x, hx⟩,
+  split,
+  { rw ← res_succ,
+    apply map_mem, },
+  rw [hxy, ih, ← res_succ],
+  apply map_mem,
+end
+
+end topology
+
+section metric
+
+variable [pseudo_metric_space α]
+
+variable (A)
+
+/-- A scheme on a metric space has vanishing diameter if diameter approaches 0 along each branch. -/
+def vanishing_diam : Prop :=
+∀ x : ℕ → β, tendsto (λ n : ℕ, emetric.diam (A (res x n))) at_top (𝓝 0)
+
+variable {A}
+
+lemma vanishing_diam.dist_lt (hA : vanishing_diam A) (ε : ℝ) (ε_pos : 0 < ε) (x : ℕ → β) :
+  ∃ n : ℕ, ∀ y z ∈ A (res x n), dist y z < ε :=
+begin
+  specialize hA x,
+  rw ennreal.tendsto_at_top_zero at hA,
+  cases hA (ennreal.of_real (ε / 2))
+    (by { simp only [gt_iff_lt, ennreal.of_real_pos], linarith }) with n hn,
+  use n,
+  intros y hy z hz,
+  rw [← ennreal.of_real_lt_of_real_iff ε_pos, ← edist_dist],
+  apply lt_of_le_of_lt (emetric.edist_le_diam_of_mem hy hz),
+  apply lt_of_le_of_lt (hn _ (le_refl _)),
+  rw ennreal.of_real_lt_of_real_iff ε_pos,
+  linarith,
+end
+
+/-- A scheme with vanishing diameter along each branch induces a continuous map. -/
+theorem vanishing_diam.map_continuous [topological_space β] [discrete_topology β]
+  (hA : vanishing_diam A) : continuous (induced_map A).2 :=
+begin
+  rw metric.continuous_iff',
+  rintros ⟨x, hx⟩ ε ε_pos,
+  cases hA.dist_lt _ ε_pos x with n hn,
+  rw _root_.eventually_nhds_iff,
+  refine ⟨coe ⁻¹' (pi_nat.cylinder x n), _, _, by simp⟩,
+  { rintros ⟨y, hy⟩ hyx,
+    rw [mem_preimage, subtype.coe_mk, cylinder_eq_res, mem_set_of] at hyx,
+    apply hn,
+    { rw ← hyx,
+      apply map_mem, },
+    apply map_mem, },
+  apply continuous_subtype_coe.is_open_preimage,
+  apply pi_nat.is_open_cylinder,
+end
+
+/-- A scheme on a complete space with vanishing diameter
+such that each set contains the closure of its children
+induces a total map. -/
+theorem closure_antitone.map_of_vanishing_diam [complete_space α]
+  (hdiam : vanishing_diam A) (hanti : closure_antitone A) (hnonempty : ∀ l, (A l).nonempty) :
+  (induced_map A).1 = univ :=
+begin
+  rw eq_univ_iff_forall,
+  intro x,
+  have : ∀ n : ℕ, (A (res x n)).nonempty := λ n, hnonempty _,
+  choose u hu using this,
+  have umem : ∀ n m : ℕ, n ≤ m → u m ∈ A (res x n),
+  { have : _root_.antitone (λ n : ℕ, A (res x n)),
+    { refine antitone_nat_of_succ_le _,
+      intro n,
+      apply hanti.antitone, },
+    intros n m hnm,
+    exact this hnm (hu _), },
+  have : cauchy_seq u,
+  { rw metric.cauchy_seq_iff,
+    intros ε ε_pos,
+    cases hdiam.dist_lt _ ε_pos x with n hn,
+    use n,
+    intros m₀ hm₀ m₁ hm₁,
+    apply hn; apply umem; assumption, },
+  cases cauchy_seq_tendsto_of_complete this with y hy,
+  use y,
+  rw mem_Inter,
+  intro n,
+  apply hanti _ (x n),
+  apply mem_closure_of_tendsto hy,
+  rw eventually_at_top,
+  use n.succ,
+  intros m hm,
+  exact umem _ _ hm,
+end
+
+end metric
+
+end scheme

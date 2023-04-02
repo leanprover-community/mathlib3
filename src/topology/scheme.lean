@@ -5,13 +5,41 @@ Authors: Felix Weilacher
 -/
 import topology.metric_space.pi_nat
 
-namespace scheme
+/-!
+# (Topological) Schemes and their induced maps
 
-/- A `β`-scheme on `α` is a function from `list β` to `set α`.
-We typically think of this as a "tree" of subsets of `α`, and use the appropriate terminology
-(branch, children, etc.).
-The usefulness of such a scheme is that a map `(ℕ → β) → α` can often be thought of as
-a sort of "limiting object" of a `β`-scheme on `α`. -/
+In topology, and especially descriptive set theory, one often constructs functions `(ℕ → β) → α`,
+where α is some topological space and β is a discrete space, as an appropriate limit of some map
+`list β → set α`. We call the latter type of map a "`β`-scheme on `α`".
+
+This file develops the basic, abstract theory of these schemes and the functions they induce.
+
+## Main Definitions
+
+* `induced_map A` : The aforementioned "limit" of a scheme `A : list β → set α`.
+  This is a partial function from `ℕ → β` to `a`,
+  implemented here as an object of type `Σ s : set (ℕ → β), s → α`.
+  That is, `(induced_map A).1` is the domain and `(induced_map A).2` is the function.
+
+## Implementation Notes
+
+We consider end-appending to be the fundamental way to build lists (say on `β`) inductively,
+as this interacts better with the topology on `ℕ → β`.
+As a result, functions like `list.nth` or `stream.take` do not have their intended meaning
+in this file. We define an analogue of `stream.take`, `res`, for our purposes.
+It is related by the equation `res x n = (stream.take n x).reverse`
+
+## References
+
+* [kechris1995] (Chapters 6-7)
+
+## Tags
+
+Scheme.
+
+-/
+
+namespace scheme
 
 open list function filter set
 open_locale classical topological_space

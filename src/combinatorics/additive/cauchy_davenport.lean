@@ -4,21 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import combinatorics.additive.e_transform
-import combinatorics.additive.mathlib
-import data.nat.prime
-import data.zmod.basic
+import combinatorics.additive.min_order
 
 /-!
 # The Cauchy-Davenport theorem
 
-This file proves the Cauchy-Davenport theorem as a corollary to a more general result.
+This file proves a generalisation of the Cauchy-Davenport theorem to arbitrary groups.
 
 ## Main declarations
 
-* `subgroup.nontrivial_size`: The minimum size of a finite nontrivial subgroup of a given group. If
-  the group is trivial, it is `1` by convention.
-* `finset.card_add_card_sub_one_le_min_nontrivial_size_card_mul`: A generalisation of Károlyi's
-  theorem.
+* `finset.min_le_card_mul`: A generalisation of the Cauchy-Davenport theorem to arbitrary groups.
+* `monoid.is_torsion_free.card_add_card_sub_one_le_card_mul`: The Cauchy-Davenport theorem in
+  torsion-free  groups.
 * `zmod.card_add_card_sub_one_le_min_card_add_zmod`: The Cauchy-Davenport theorem.
 
 ## References
@@ -27,94 +24,25 @@ This file proves the Cauchy-Davenport theorem as a corollary to a more general r
 
 ## Tags
 
-additive combinatorics, number theory, sumset, karolyi, cauchy-davenport
+additive combinatorics, number theory, sumset, cauchy-davenport
 -/
 
-namespace subgroup
-variables (α : Type*) [group α]
+/-! ### Cauchy-Davenport -/
 
-open_locale classical
-
-/-- The minimum size of a nontrivial subgroup of a given group. Returns `1` if there is no
-nontrivial finite subgroup. -/
-@[to_additive "The minimum size of a nontrivial subgroup of a given additive group. Returns `1` if
-there is no nontrivial finite subgroup."]
-noncomputable def nontrivial_size : ℕ :=
-if ∃ s : subgroup α, s ≠ ⊥ ∧ (s : set α).finite then
-  ⨅ s : {s : subgroup α // s ≠ ⊥ ∧ (s : set α).finite}, nat.card s.1 else 1
-
-@[to_additive] lemma nontrivial_size_of_subsingleton [subsingleton α] : nontrivial_size α = 1 :=
-by { convert if_neg _, rintro ⟨s, hs, hs'⟩, exact hs (subsingleton.elim _ _) }
-
-variables {α} {s : subgroup α} {n : ℕ}
-
-@[to_additive] lemma nontrivial_size_aux [finite α] [nontrivial α] :
-  ∃ s : subgroup α, s ≠ ⊥ ∧ (s : set α).finite :=
-⟨⊤, top_ne_bot, set.to_finite _⟩
-
-@[to_additive] instance nontrivial_size_nonempty_aux [finite α] [nontrivial α] :
-  nonempty {s : subgroup α // s ≠ ⊥ ∧ (s : set α).finite} :=
-⟨⟨⊤, top_ne_bot, set.to_finite _⟩⟩
-
-@[to_additive]
-lemma nontrivial_size_le_nat_card (hs : s ≠ ⊥) (hs' : (s : set α).finite) :
-  nontrivial_size α ≤ nat.card s :=
-(if_pos (⟨s, hs, hs'⟩ : ∃ s : subgroup α, s ≠ ⊥ ∧ (s : set α).finite)).trans_le $
-  cinfi_le' _ (⟨s, hs, hs'⟩ : {s : subgroup α // s ≠ ⊥ ∧ (s : set α).finite})
-
-@[to_additive]
-lemma le_nontrivial_size (hα : ∃ s : subgroup α, s ≠ ⊥ ∧ (s : set α).finite)
-  (hn : ∀ (s ≠ (⊥ : subgroup α)) (hs' : (s : set α).finite), n ≤ nat.card s) :
-  n ≤ nontrivial_size α :=
-(if_pos hα).symm.trans_ge $ begin
-  obtain ⟨s, hs, hs'⟩ := hα,
-  haveI : nonempty {s : subgroup α // s ≠ ⊥ ∧ (s : set α).finite} := ⟨⟨s, hs, hs'⟩⟩,
-  exact le_cinfi (λ s, hn _ s.2.1 s.2.2),
-end
-
-end subgroup
-
-namespace add_subgroup
-
-open nat set
-
-@[simp] lemma nontrivial_size_zmod {n : ℕ} (hn : n ≠ 0) : nontrivial_size (zmod n) = n.min_fac :=
-begin
-  obtain rfl | hn₁ := eq_or_ne n 1,
-  { exact nontrivial_size_of_subsingleton _ },
-  haveI : fact (1 < n) := by obtain _ | _ | n := n; contradiction <|> exact ⟨n.one_lt_succ_succ⟩,
-  classical,
-  have : (↑(n / n.min_fac) : zmod n) ≠ 0,
-  { rw [ne.def, ring_char.spec, ring_char.eq (zmod n) n],
-    exact not_dvd_of_pos_of_lt (nat.div_pos (min_fac_le hn.bot_lt) n.min_fac_pos)
-      (div_lt_self hn.bot_lt (min_fac_prime hn₁).one_lt) },
-  refine ((nontrivial_size_le_nat_card (zmultiples_eq_bot.not.2 this) $ to_finite _).trans
-    _).antisymm (le_nontrivial_size nontrivial_size_aux $ λ s hs _, _),
-  { rw [card_eq_fintype_card, ←add_order_eq_card_zmultiples, zmod.add_order_of_coe _ hn,
-      gcd_eq_right (div_dvd_of_dvd n.min_fac_dvd), nat.div_div_self n.min_fac_dvd hn] },
-  { rw card_eq_fintype_card,
-   haveI : nontrivial s := s.bot_or_nontrivial.resolve_left hs,
-    exact min_fac_le_of_dvd fintype.one_lt_card
-      ((card_add_subgroup_dvd_card _).trans (zmod.card _).dvd) }
-end
-
-@[simp] lemma nontrivial_size_zmod_prime {p : ℕ} [fact p.prime] : nontrivial_size (zmod p) = p :=
-by rw [nontrivial_size_zmod (ne_zero.out : p ≠ 0), (fact.out p.prime).min_fac_eq]
-
-end add_subgroup
-
-open mul_opposite order_dual subgroup
+open monoid mul_opposite order_dual subgroup
 open_locale pointwise
 
-namespace finset
-variables {α : Type*} [group α] [decidable_eq α] {x y : finset α × finset α} {s t : finset α}
+variables {α : Type*} [group α] [decidable_eq α]
 
-/-- The relation we induct along in the proof Károlyi's theorem. `(s₁, t₁) < (s₂, t₂)` iff
+namespace finset
+variables {x y : finset α × finset α} {s t : finset α}
+
+/-- The relation we induct along in the proof of Cauchy-Davenport theorem. `(s₁, t₁) < (s₂, t₂)` iff
 * `|s₁ * t₁| < |s₂ * t₂|`
 * or `|s₁ * t₁| = |s₂ * t₂|` and `|s₂| + |t₂| < |s₁| + |t₁|`
 * or `|s₁ * t₁| = |s₂ * t₂|` and `|s₁| + |t₁| = |s₂| + |t₂|` and `|s₁| < |s₂|`. -/
-@[to_additive "The relation we induct along in the proof Károlyi's theorem. `(s₁, t₁) < (s₂, t₂)`
-iff
+@[to_additive "The relation we induct along in the proof of Cauchy-Davenport theorem.
+`(s₁, t₁) < (s₂, t₂)` iff
 * `|s₁ + t₁| < |s₂ + t₂|`
 * or `|s₁ + t₁| = |s₂ + t₂|` and `|s₂| + |t₂| < |s₁| + |t₁|`
 * or `|s₁ + t₁| = |s₂ + t₂|` and `|s₁| + |t₁| = |s₂| + |t₂|` and `|s₁| < |s₂|`."]
@@ -152,11 +80,12 @@ begin
       (card_le_card_mul_left _ hx.1.1).trans_eq hx.2),
 end
 
-@[to_additive card_add_card_sub_one_le_min_nontrivial_size_card_add]
-lemma card_add_card_sub_one_le_min_nontrivial_size_card_mul (hs : s.nonempty) (ht : t.nonempty) :
-  min (nontrivial_size α) (s.card + t.card - 1) ≤ (s * t).card :=
+/-- A generalisation of the **Cauchy-Davenport Theorem** to arbitrary groups. -/
+@[to_additive "A generalisation of the **Cauchy-Davenport Theorem** to arbitrary groups."]
+lemma min_le_card_mul (hs : s.nonempty) (ht : t.nonempty) :
+  min (min_order α) ↑(s.card + t.card - 1) ≤ (s * t).card :=
 begin
-  -- Set up the induction on `x := (s, t)`.
+  -- Set up the induction on `x := (s, t)` along the `devos_mul_rel` relation.
   set x := (s, t) with hx,
   clear_value x,
   simp only [prod.ext_iff] at hx,
@@ -164,7 +93,8 @@ begin
   refine well_founded_on_devos_mul_rel.induction ⟨hs, ht⟩ _,
   clear_dependent x,
   rintro ⟨s, t⟩ ⟨hs, ht⟩ ih,
-  simp only [min_le_iff, tsub_le_iff_right, prod.forall, set.mem_set_of_eq, and_imp] at *,
+  simp only [min_le_iff, tsub_le_iff_right, prod.forall, set.mem_set_of_eq, and_imp,
+    nat.cast_le] at *,
   -- If `t.card < s.card`, we're done by the induction hypothesis on `(t⁻¹, s⁻¹)`.
   obtain hts | hst := lt_or_le t.card s.card,
   { simpa [←mul_inv_rev, add_comm] using ih _ _ ht.inv hs.inv
@@ -187,42 +117,50 @@ begin
        exact set.smul_mem_smul_set hc },
       { rwa [←op_smul_eq_mul, op_inv, ←set.mem_smul_set_iff_inv_smul_mem, smul_comm,
           ←coe_smul_finset, hsg] } },
-    exact or.inl ((nontrivial_size_le_nat_card (zpowers_ne_bot.2 hg) $
-      s.finite_to_set.smul_set.subset hS).trans $
+    exact or.inl ((min_order_le_nat_card (zpowers_ne_bot.2 hg) $
+      s.finite_to_set.smul_set.subset hS).trans $ with_top.coe_le_coe.2 $
       ((nat.card_mono s.finite_to_set.smul_set hS).trans_eq $ by simp).trans $
       card_le_card_mul_right _ ht) },
   -- Else, we can transform `s`, `t` to `s'`, `t'` and `s''`, `t''`, such that `(s', t')` and
   -- `(s'', t'')` are both strictly smaller than `(s, t)` according to `devos_mul_rel`.
   replace hsg : (s ∩ op g • s).card < s.card := card_lt_card ⟨inter_subset_left _ _, λ h, hsg $
     eq_of_superset_of_card_ge (h.trans $ inter_subset_right _ _) (card_smul_finset _ _).le⟩,
-  replace aux1 := card_le_of_subset (mul_transform₁.fst_mul_snd_subset g (s, t)),
-  replace aux2 := card_le_of_subset (mul_transform₂.fst_mul_snd_subset g (s, t)),
-  -- If the left translate of `t` by ``
+  replace aux1 := card_le_of_subset (mul_e_transform_left.fst_mul_snd_subset g (s, t)),
+  replace aux2 := card_le_of_subset (mul_e_transform_right.fst_mul_snd_subset g (s, t)),
+  -- If the left translate of `t` by `g⁻¹` is disjoint from `t`, then we're easily done.
   obtain hgt | hgt := disjoint_or_nonempty_inter t (g⁻¹ • t),
   { rw ←card_smul_finset g⁻¹ t,
     refine or.inr ((add_le_add_right hst _).trans _),
     rw ←card_union_eq hgt,
     exact (card_le_card_mul_left _ hgs).trans (le_add_of_le_left aux1) },
   -- Else, we're done by induction on either `(s', t')` or `(s'', t'')` depending on whether
-  -- `|s| + |t| ≤ |s'| + |t'|` or `|s| + |t| ≤ |s''| + |t''|`. One of those equalities must hold
-  -- since `2 * (|s| + |t|) = |s'| + |t'| + |s''| + |t''|`.
-  obtain hstg | hstg := le_or_lt_of_add_le_add (mul_transform.card g (s, t)).ge,
-  { exact (ih _ _ hgs (hgt.mono inter_subset_union) $ devos_mul_rel_of_le_of_le aux1 hstg hsg).imp
-      aux1.trans' (λ h, hstg.trans $ h.trans $ add_le_add_right aux1 _) },
+  -- `|s| + |t| ≤ |s'| + |t'|` or `|s| + |t| < |s''| + |t''|`. One of those two inequalities must
+  -- hold since `2 * (|s| + |t|) = |s'| + |t'| + |s''| + |t''|`.
+  obtain hstg | hstg := le_or_lt_of_add_le_add (mul_e_transform.card g (s, t)).ge,
+  { exact (ih _ _ hgs (hgt.mono inter_subset_union) $ devos_mul_rel_of_le_of_le
+      aux1 hstg hsg).imp (with_top.coe_le_coe.2 aux1).trans'
+      (λ h, hstg.trans $ h.trans $ add_le_add_right aux1 _) },
   { exact (ih _ _ (hgs.mono inter_subset_union) hgt $ devos_mul_rel_of_le aux2 hstg).imp
-      aux2.trans' (λ h, hstg.le.trans $ h.trans $ add_le_add_right aux2 _) }
+      (with_top.coe_le_coe.2 aux2).trans' (λ h, hstg.le.trans $ h.trans $ add_le_add_right aux2 _) }
 end
 
 end finset
 
 open finset
 
+/-- The **Cauchy-Davenport Theorem** for torsion-free groups. -/
+@[to_additive "The **Cauchy-Davenport Theorem** for torsion-free groups."]
+lemma monoid.is_torsion_free.card_add_card_sub_one_le_card_mul (h : is_torsion_free α)
+  {s t : finset α} (hs : s.nonempty) (ht : t.nonempty) :
+  s.card + t.card - 1 ≤ (s * t).card :=
+by simpa only [h.min_order, min_eq_right, le_top, nat.cast_le] using min_le_card_mul hs ht
+
 namespace zmod
 variables {p : ℕ} [fact p.prime] {s t : finset (zmod p)}
 
-/-- The **Cauchy-Davenport theorem**. -/
+/-- The **Cauchy-Davenport Theorem**. -/
 lemma card_add_card_sub_one_le_min_card_add_zmod (hs : s.nonempty) (ht : t.nonempty) :
   min p (s.card + t.card - 1) ≤ (s + t).card :=
-by simpa using card_add_card_sub_one_le_min_nontrivial_size_card_add hs ht
+by simpa only [zmod.min_order_of_prime, min_le_iff, nat.cast_le] using min_le_card_add hs ht
 
 end zmod

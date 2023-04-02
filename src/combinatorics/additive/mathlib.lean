@@ -5,8 +5,9 @@ Authors: Mantas Bakšys, Yaël Dillies
 -/
 import data.finset.pointwise
 import data.set.pointwise.finite
-import data.zmod.basic
+import data.zmod.quotient
 import group_theory.quotient_group
+import group_theory.torsion
 import set_theory.cardinal.finite
 
 /-!
@@ -28,15 +29,23 @@ alias dvd_sub ← has_dvd.dvd.sub
 
 end dvd
 
-lemma nat.le_of_lt_add_of_dvd {a b n : ℕ} (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
+namespace nat
+variables {a b m n : ℕ}
+
+lemma le_of_lt_add_of_dvd (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
 begin
   rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
   rw ←mul_add_one at h,
   exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
 end
 
-namespace nat
-variables {a b : ℕ}
+lemma eq_of_forall_dvd (h : ∀ c, a ∣ c ↔ b ∣ c) : a = b :=
+dvd_antisymm ((h _).2 dvd_rfl) $ (h _).1 dvd_rfl
+
+lemma eq_of_forall_dvd' (h : ∀ c, c ∣ a ↔ c ∣ b) : a = b :=
+dvd_antisymm ((h _).1 dvd_rfl) $ (h _).2 dvd_rfl
+
+lemma lcm_pos : 0 < m → 0 < n → 0 < m.lcm n := by { simp_rw pos_iff_ne_zero, exact lcm_ne_zero }
 
 lemma add_sub_one_le_mul (ha : a ≠ 0) (hb : b ≠ 0) : a + b - 1 ≤ a * b :=
 begin
@@ -47,6 +56,15 @@ begin
 end
 
 end nat
+
+namespace int
+variables {a b n : ℤ}
+
+lemma modeq_comm : a ≡ b [ZMOD n] ↔ b ≡ a [ZMOD n] := ⟨modeq.symm, modeq.symm⟩
+
+@[simp] lemma modeq_zero_iff : a ≡ b [ZMOD 0] ↔ a = b := by rw [modeq, mod_zero, mod_zero]
+
+end int
 
 --TODO: Fix implicitness `subgroup.closure_eq_bot_iff`
 
@@ -182,9 +200,6 @@ lemma card_mono (ht : t.finite) (h : s ⊆ t) : nat.card s ≤ nat.card t :=
 to_nat_le_of_le_of_lt_aleph_0 ht.lt_aleph_0 $ mk_le_mk_of_subset h
 
 end nat
-
-attribute [protected] subgroup.subtype
-attribute [protected] add_subgroup.subtype
 
 namespace finset
 variables {α : Type*} {s : finset α} {a : α}
@@ -576,6 +591,134 @@ begin
 end
 
 end subgroup
+
+section prod
+variables {α β : Type*} [monoid α] [monoid β] {x : α × β} {a : α} {b : β}
+
+@[to_additive is_of_fin_add_order.mono]
+lemma is_of_fin_order.mono (ha : is_of_fin_order a) (h : order_of b ∣ order_of a) :
+  is_of_fin_order b :=
+by { rw ←order_of_pos_iff at ⊢ ha, exact nat.pos_of_dvd_of_pos h ha }
+
+--TODO: `to_additive_reorder` on `prod.pow_fst`
+@[to_additive prod.add_order_of] protected lemma prod.order_of (x : α × β) :
+  order_of x = (order_of x.1).lcm (order_of x.2) :=
+nat.eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
+
+@[to_additive add_order_of_fst_dvd_add_order_of] lemma order_of_fst_dvd_order_of :
+  order_of x.1 ∣ order_of x :=
+by { rw prod.order_of, exact nat.dvd_lcm_left _ _ }
+
+@[to_additive add_order_of_snd_dvd_add_order_of] lemma order_of_snd_dvd_order_of :
+  order_of x.2 ∣ order_of x :=
+by { rw prod.order_of, exact nat.dvd_lcm_right _ _ }
+
+@[to_additive is_of_fin_add_order.fst]
+lemma is_of_fin_order.fst {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.1 :=
+hx.mono order_of_fst_dvd_order_of
+
+@[to_additive is_of_fin_add_order.snd]
+lemma is_of_fin_order.snd {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.2 :=
+hx.mono order_of_snd_dvd_order_of
+
+@[to_additive is_of_fin_add_order.prod_mk]
+lemma is_of_fin_order.prod_mk : is_of_fin_order a → is_of_fin_order b → is_of_fin_order (a, b) :=
+by simpa only [←order_of_pos_iff, prod.order_of] using nat.lcm_pos
+
+end prod
+
+section monoid
+variables {α : Type*} [monoid α] {a : α}
+
+open function set subgroup submonoid
+
+@[to_additive] lemma range_pow (a : α) : range (λ n : ℕ, a ^ n) = powers a := rfl
+
+--TODO: Fix name `order_eq_card_zpowers` to `order_of_eq_card_zpowers`
+/-- See also `order_eq_card_powers`. -/
+@[to_additive add_order_eq_card_multiples' "See also `add_order_eq_card_multiples`."]
+lemma order_of_eq_card_powers' : order_of a = nat.card (powers a) := sorry
+
+@[to_additive is_of_fin_add_order.finite_multiples]
+lemma is_of_fin_order.finite_powers (h : is_of_fin_order a) : (powers a : set α).finite :=
+begin
+  rw [←order_of_pos_iff, order_of_eq_card_powers'] at h,
+  exact finite_coe_iff.1 (nat.finite_of_card_ne_zero h.ne'),
+end
+
+end monoid
+
+namespace monoid
+variables {α : Type*} [monoid α]
+
+@[simp, to_additive] lemma is_torsion_free_of_subsingleton [subsingleton α] : is_torsion_free α :=
+λ a ha _, ha $ subsingleton.elim _ _
+
+end monoid
+
+section left_cancel_monoid
+variables {α : Type*} [left_cancel_monoid α] {a : α}
+
+open function set subgroup submonoid
+
+@[simp, to_additive finite_multiples] lemma finite_powers :
+  (powers a : set α).finite ↔ is_of_fin_order a :=
+⟨λ h, of_not_not $ λ h', infinite_range_of_injective (injective_pow_iff_not_is_of_fin_order.2 h')
+  h, is_of_fin_order.finite_powers⟩
+
+@[simp, to_additive infinite_zmultiples] lemma infinite_powers :
+  (powers a : set α).infinite ↔ ¬ is_of_fin_order a :=
+finite_powers.not
+
+end left_cancel_monoid
+
+section group
+variables {α : Type*} [group α] {s : subgroup α} {a : α} {m n : ℤ}
+
+open function int set subgroup submonoid
+
+@[to_additive] lemma range_zpow (a : α) : range (λ n : ℤ, a ^ n) = zpowers a := rfl
+
+--TODO: Turn `is_of_fin_order_iff_coe` around. Rename to `subgroup.is_of_fin_order_coe`
+
+@[to_additive] lemma zpow_eq_one_iff_modeq : a ^ n = 1 ↔ n ≡ 0 [ZMOD (order_of a)] :=
+by rw [modeq_zero_iff_dvd, order_of_dvd_iff_zpow_eq_one]
+
+@[to_additive] lemma zpow_eq_zpow_iff_modeq : a ^ m = a ^ n ↔ m ≡ n [ZMOD (order_of a)] :=
+by rw [←mul_inv_eq_one, ←zpow_sub, zpow_eq_one_iff_modeq, modeq_iff_dvd, modeq_iff_dvd, zero_sub,
+  neg_sub]
+
+@[simp, to_additive] lemma injective_zpow_iff_not_is_of_fin_order :
+  injective (λ n : ℤ, a ^ n) ↔ ¬ is_of_fin_order a :=
+begin
+  refine ⟨_, λ h n m hnm, _⟩,
+  { simp_rw is_of_fin_order_iff_pow_eq_one,
+    rintro h ⟨n, hn, ha⟩,
+    exact nat.cast_ne_zero.2 hn.ne' (h $ by simpa using ha) },
+  rwa [zpow_eq_zpow_iff_modeq, order_of_eq_zero_iff.mpr h, nat.cast_zero, modeq_zero_iff] at hnm,
+end
+
+@[simp, to_additive finite_zmultiples] lemma finite_zpowers :
+  (zpowers a : set α).finite ↔ is_of_fin_order a :=
+⟨λ h, of_not_not $ λ h', infinite_range_of_injective (injective_zpow_iff_not_is_of_fin_order.2 h')
+  h, λ h, finite_coe_iff.1 h.finite_zpowers⟩
+
+@[simp, to_additive infinite_zmultiples] lemma infinite_zpowers :
+  (zpowers a : set α).infinite ↔ ¬ is_of_fin_order a :=
+finite_zpowers.not
+
+@[to_additive is_of_fin_add_order.finite_zmultiples']
+lemma is_of_fin_order.finite_zpowers' (h : is_of_fin_order a) : (zpowers a : set α).finite :=
+finite_coe_iff.1 h.finite_zpowers
+
+@[simp, to_additive nat.card_zmultiples] lemma nat.card_zpowers (a : α) :
+  nat.card (zpowers a) = order_of a := (order_eq_card_zpowers' _).symm
+
+@[to_additive add_order_of_le_card]
+lemma order_of_le_card (hs : (s : set α).finite) (ha : a ∈ s) : order_of a ≤ nat.card s :=
+by { rw [←nat.card_zpowers], refine nat.card_mono hs (zpowers_le.2 ha) }
+
+end group
 
 namespace char_p
 variables {R : Type*} [add_group_with_one R] (p : ℕ) [char_p R p] {a b n : ℕ}

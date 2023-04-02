@@ -221,27 +221,6 @@ lemma is_bot_iff_is_min [is_directed α (≥)] : is_bot a ↔ is_min a :=
 
 lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
 
-/-- The property that a function preserves `is_lub` on directed sets. -/
-def preserves_lub_on_directed [preorder β] (f : α → β) : Prop :=
-∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f a)
-
-lemma preserves_lub_on_directed.monotone [preorder β] {f : α → β}
-  (h : preserves_lub_on_directed f) :
-  monotone f :=
-begin
-  intros a b hab,
-  have e1 : is_lub (f '' {a, b}) (f b),
-  { apply h,
-    { exact set.insert_nonempty _ _ },
-    { exact directed_on_pair le_refl hab },
-    { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
-        set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
-      exact is_least_Ici } },
-  apply e1.1,
-  rw set.image_pair,
-  exact set.mem_insert _ _,
-end
-
 variables (β) [partial_order β]
 
 theorem exists_lt_of_directed_ge [is_directed β (≥)] [nontrivial β] : ∃ a b : β, a < b :=
@@ -271,3 +250,34 @@ instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α
 @[priority 100]  -- see Note [lower instance priority]
 instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (≥) :=
 ⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩
+
+section scott_continuous
+
+variables [preorder α] {a : α}
+
+/--
+A function between preorders is said to be Scott continuous if it preserves `is_lub` on directed
+sets. It can be shown that a function is Scott continuous if and only if it is continuous wrt the
+Scott topology.
+-/
+def scott_continuous [preorder β] (f : α → β) : Prop :=
+∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f a)
+
+lemma scott_continuous.monotone [preorder β] {f : α → β}
+  (h : scott_continuous f) :
+  monotone f :=
+begin
+  intros a b hab,
+  have e1 : is_lub (f '' {a, b}) (f b),
+  { apply h,
+    { exact set.insert_nonempty _ _ },
+    { exact directed_on_pair le_refl hab },
+    { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
+        set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
+      exact is_least_Ici } },
+  apply e1.1,
+  rw set.image_pair,
+  exact set.mem_insert _ _,
+end
+
+end scott_continuous

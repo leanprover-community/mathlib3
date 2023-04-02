@@ -3,7 +3,6 @@ Copyright (c) 2022 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-
 import number_theory.number_field.embeddings
 import measure_theory.group.geometry_of_numbers
 import ring_theory.discriminant
@@ -294,10 +293,9 @@ begin
     { refine (linear_independent_equiv' (equiv.refl _) _).mp this,
       ext1 i,
       exact (commutes K (integral_basis K i)).symm, },
-    refine basis.mk this (le_of_eq (eq_of_le_of_finrank_le le_top _).symm),
-    rw [finrank_top, canonical_embedding.space_rank, ← set.finrank,
-      ← linear_independent_iff_card_eq_finrank_span.mp this, ← ring_of_integers.rank,
-      free.finrank_eq_card_choose_basis_index], },
+    refine basis_of_linear_independent_of_card_eq_finrank this _,
+    rw [canonical_embedding.space_rank, ← free.finrank_eq_card_choose_basis_index,
+      ← ring_of_integers.rank], },
   -- To prove that `full_embedding K (integral_basis K)` is `ℂ`-linear independent, we
   -- prove that the square of the determinant of its matrix on the standard basis of
   -- `((K →* ℂ) → ℂ)` is the discrimininant of the `ℚ`-algebra `K` and thus it is not zero.
@@ -321,7 +319,7 @@ end
 
 lemma lattice_basis_apply [number_field K] (i : free.choose_basis_index ℤ (𝓞 K)) :
   (lattice_basis K) i = (canonical_embedding K) (integral_basis K i) :=
-by simp only [lattice_basis, basis.coe_mk]
+by simp only [lattice_basis, coe_basis_of_linear_independent_of_card_eq_finrank]
 
 lemma lattice_basis_span [number_field K] :
   (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)) = integer_lattice K :=
@@ -491,7 +489,7 @@ begin
   { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
 end
 
-lemma exists_ne_zero_mem_ring_of_integers_le {f : (infinite_place K) → nnreal}
+lemma exists_ne_zero_mem_ring_of_integers_lt {f : (infinite_place K) → nnreal}
   (hf : minkowski_bound K < (unit_measure K) (convex_body K f)) :
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin
@@ -500,9 +498,8 @@ begin
     rw lattice_basis_span,
     exact integer_lattice.countable K, },
   have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),
-  obtain ⟨⟨x, hx⟩, hnz, hmem⟩ :=
-    exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
-    (unit_measure K) h_funddomain hf (convex_body.symmetric K f) (convex_body.convex K f),
+  obtain ⟨⟨x, hx⟩, hnz, hmem⟩ := exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure
+    h_funddomain hf (convex_body.symmetric K f) (convex_body.convex K f),
   rw [submodule.mem_to_add_subgroup, ← set_like.mem_coe, lattice_basis_span] at hx,
   obtain ⟨_, ⟨a, rfl⟩, rfl⟩ := hx,
   refine ⟨a, _, by { rwa ← convex_body_mem, }⟩,

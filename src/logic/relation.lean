@@ -668,6 +668,12 @@ def forall_exists_rel {ι₁ ι₂ α₁ α₂ : Type*} (r : α₁ → α₂ →
 namespace forall_exists_rel
 variables {ι₁ ι₂ ι₃ α₁ α₂ α₃ : Type*}
 
+lemma left {r : α₁ → α₂ → Prop} {s : ι₁ → α₁} {t : ι₂ → α₂} (h : forall_exists_rel r s t) :
+  ∀ i, ∃ j, r (s i) (t j) := h.1
+
+lemma right {r : α₁ → α₂ → Prop} {s : ι₁ → α₁} {t : ι₂ → α₂} (h : forall_exists_rel r s t) :
+  ∀ j, ∃ i, r (s i) (t j) := h.2
+
 lemma refl {r : α₁ → α₁ → Prop} (s : ι₁ → α₁) (hr : ∀ i, r (s i) (s i)) :
   forall_exists_rel r s s :=
 ⟨λ i, ⟨i, hr _⟩, λ i, ⟨i, hr _⟩⟩
@@ -676,20 +682,20 @@ lemma euc {r₁₂ : α₁ → α₂ → Prop} {r₃₂ : α₃ → α₂ → Pr
   {s : ι₁ → α₁} {t : ι₂ → α₂} {u : ι₃ → α₃}
   (hr : ∀ i j k, r₁₂ (s i) (t j) → r₃₂ (u k) (t j) → r₁₃ (s i) (u k)) :
   forall_exists_rel r₁₂ s t → forall_exists_rel r₃₂ u t → forall_exists_rel r₁₃ s u :=
-λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.1 i , ⟨k, hk⟩ := h₂.2 j in ⟨k, hr _ _ _ hj hk⟩,
-  λ k, let ⟨j, hj⟩ := h₂.1 k, ⟨i, hi⟩ := h₁.2 j in ⟨i, hr _ _ _ hi hj⟩⟩
+λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.left i, ⟨k, hk⟩ := h₂.right j in ⟨k, hr _ _ _ hj hk⟩,
+  λ k, let ⟨j, hj⟩ := h₂.left k, ⟨i, hi⟩ := h₁.right j in ⟨i, hr _ _ _ hi hj⟩⟩
 
 lemma symm {r₁₂ : α₁ → α₂ → Prop} {r₂₁ : α₂ → α₁ → Prop}
   {s : ι₁ → α₁} {t : ι₂ → α₂} (hr : ∀ i j, r₁₂ (s i) (t j) → r₂₁ (t j) (s i)) :
   forall_exists_rel r₁₂ s t → forall_exists_rel r₂₁ t s :=
-λ h, ⟨λ i, (h.2 i).imp (λ _, hr _ _), λ i, (h.1 i).imp (λ _, hr _ _)⟩
+λ h, ⟨λ i, (h.right i).imp (λ _, hr _ _), λ i, (h.left i).imp (λ _, hr _ _)⟩
 
 lemma trans {r₁₂ : α₁ → α₂ → Prop} {r₂₃ : α₂ → α₃ → Prop} {r₁₃ : α₁ → α₃ → Prop}
   {s : ι₁ → α₁} {t : ι₂ → α₂} {u : ι₃ → α₃}
   (hr : ∀ i j k, r₁₂ (s i) (t j) → r₂₃ (t j) (u k) → r₁₃ (s i) (u k)) :
   forall_exists_rel r₁₂ s t → forall_exists_rel r₂₃ t u → forall_exists_rel r₁₃ s u :=
-λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.1 i, ⟨k, hk⟩ := h₂.1 j in ⟨k, hr _ _ _ hj hk⟩,
-  λ k, let ⟨j, hj⟩ := h₂.2 k, ⟨i, hi⟩ := h₁.2 j in ⟨i, hr _ _ _ hi hj⟩⟩
+λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.left i, ⟨k, hk⟩ := h₂.left j in ⟨k, hr _ _ _ hj hk⟩,
+  λ k, let ⟨j, hj⟩ := h₂.right k, ⟨i, hi⟩ := h₁.right j in ⟨i, hr _ _ _ hi hj⟩⟩
 
 end forall_exists_rel
 end relation

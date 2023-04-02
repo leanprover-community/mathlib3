@@ -168,23 +168,33 @@ section group
 
 open subgroup
 
-variables {α : Type*} [group α] (a : α)
+variables {α : Type*} [group α] {s : subgroup α} (a : α)
 
 /-- See also `order_eq_card_zpowers`. -/
-@[to_additive add_order_eq_card_zmultiples' "See also `add_order_eq_card_zmultiples`."]
-lemma order_eq_card_zpowers' : order_of a = nat.card (zpowers a) :=
+@[to_additive nat.card_zmultiples "See also `add_order_eq_card_zmultiples`."]
+lemma nat.card_zpowers : nat.card (zpowers a) = order_of a :=
 begin
   have := nat.card_congr (mul_action.orbit_zpowers_equiv a (1 : α)),
-  rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
+  rwa [nat.card_zmod, orbit_subgroup_one_eq_self] at this,
 end
 
 variables {a}
 
-@[to_additive is_of_fin_add_order.finite_zmultiples]
-lemma is_of_fin_order.finite_zpowers (h : is_of_fin_order a) : finite $ zpowers a :=
-begin
-  rw [← order_of_pos_iff, order_eq_card_zpowers'] at h,
-  exact nat.finite_of_card_ne_zero h.ne.symm,
-end
+@[simp, to_additive finite_zmultiples] lemma finite_zpowers :
+  (zpowers a : set α).finite ↔ is_of_fin_order a :=
+by rw [←order_of_pos_iff, ←nat.card_zpowers, nat.card_pos]
+
+@[simp, to_additive infinite_zmultiples] lemma infinite_zpowers :
+  (zpowers a : set α).infinite ↔ ¬ is_of_fin_order a :=
+finite_zpowers.not
+
+alias finite_zpowers ↔ _ is_of_fin_order.finite_zpowers
+
+attribute [to_additive is_of_fin_add_order.finite_zmultiples] is_of_fin_order.finite_zpowers
+attribute [protected] is_of_fin_add_order.finite_zmultiples is_of_fin_order.finite_zpowers
+
+@[to_additive add_order_of_le_card]
+lemma order_of_le_card (hs : (s : set α).finite) (ha : a ∈ s) : order_of a ≤ nat.card s :=
+by { rw ←nat.card_zpowers, exact nat.card_mono hs (zpowers_le.2 ha) }
 
 end group

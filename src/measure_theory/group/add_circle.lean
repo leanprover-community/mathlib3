@@ -84,7 +84,7 @@ begin
       hI.trans closed_ball_ae_eq_ball.symm,
     haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
     have hG_card : (finset.univ : finset G).card = n,
-    { show _ = add_order_of u, rw [add_order_eq_card_zmultiples', nat.card_eq_fintype_card], refl },
+    { show _ = add_order_of u, rw add_order_eq_card_zmultiples, refl },
     simp_rw [measure_vadd],
     rw [add_circle.measure_univ, tsum_fintype, finset.sum_const, measure_congr hI,
       volume_closed_ball, ← ennreal.of_real_nsmul, mul_div, mul_div_mul_comm,
@@ -103,7 +103,7 @@ begin
   have hsG : ∀ (g : G), (g +ᵥ s : set $ add_circle T) =ᵐ[volume] s,
   { rintros ⟨y, hy⟩, exact (vadd_ae_eq_self_of_mem_zmultiples hs hy : _), },
   rw [(is_add_fundamental_domain_of_ae_ball I u x hu hI).measure_eq_card_smul_of_vadd_ae_eq_self
-    s hsG, add_order_eq_card_zmultiples' u, nat.card_eq_fintype_card],
+    s hsG, add_order_eq_card_zmultiples u],
 end
 
 end add_circle

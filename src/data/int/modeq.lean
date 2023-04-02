@@ -156,7 +156,7 @@ theorem of_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
 mul_comm m n ▸ of_mul_left _
 
 /-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c`. -/
-lemma cancel_left_div_gcd (hm : 0 < m) (h : c * a ≡ c * b [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
+lemma cancel_right_div_gcd (hm : 0 < m) (h : a * c ≡ b * c [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
 begin
   let d := gcd m c,
   have hmd := gcd_dvd_left m c,
@@ -164,14 +164,14 @@ begin
   rw modeq_iff_dvd at ⊢ h,
   refine int.dvd_of_dvd_mul_right_of_gcd_one _ _,
   show m / d ∣ c / d * (b - a),
-  { rw [mul_comm, ←int.mul_div_assoc (b - a) hcd, mul_comm],
-    apply int.div_dvd_div hmd,
-    rwa mul_sub },
+  { rw [mul_comm, ←int.mul_div_assoc (b - a) hcd, sub_mul],
+    exact int.div_dvd_div hmd h },
   { rw [gcd_div hmd hcd, nat_abs_of_nat, nat.div_self (gcd_pos_of_ne_zero_left c hm.ne')] }
 end
 
-lemma cancel_right_div_gcd (hm : 0 < m) (h : a * c ≡ b * c [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
-by { apply cancel_left_div_gcd hm, simpa [mul_comm] using h }
+/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c`. -/
+lemma cancel_left_div_gcd (hm : 0 < m) (h : c * a ≡ c * b [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
+cancel_right_div_gcd hm $ by simpa [mul_comm] using h
 
 lemma of_div (h : a / c ≡ b / c [ZMOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
   a ≡ b [ZMOD m] :=

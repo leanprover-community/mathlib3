@@ -49,6 +49,8 @@ protected lemma eq : a ≡ b [ZMOD n] → a % n = b % n := id
 
 end modeq
 
+lemma modeq_comm : a ≡ b [ZMOD n] ↔ b ≡ a [ZMOD n] := ⟨modeq.symm, modeq.symm⟩
+
 lemma coe_nat_modeq_iff {a b n : ℕ} : a ≡ b [ZMOD n] ↔ a ≡ b [MOD n] :=
 by unfold modeq nat.modeq; rw ← int.coe_nat_eq_coe_nat_iff; simp [coe_nat_mod]
 
@@ -181,6 +183,11 @@ theorem modeq_one : a ≡ b [ZMOD 1] := modeq_of_dvd (one_dvd _)
 
 lemma modeq_sub (a b : ℤ) : a ≡ b [ZMOD a - b] :=
 (modeq_of_dvd dvd_rfl).symm
+
+@[simp] lemma modeq_zero_iff : a ≡ b [ZMOD 0] ↔ a = b := by rw [modeq, mod_zero, mod_zero]
+
+@[simp] lemma add_modeq_left : n + a ≡ a [ZMOD n] := modeq.symm $ modeq_iff_dvd.2 $ by simp
+@[simp] lemma add_modeq_right : a + n ≡ a [ZMOD n] := modeq.symm $ modeq_iff_dvd.2 $ by simp
 
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : m.nat_abs.coprime n.nat_abs) :
   a ≡ b [ZMOD m] ∧ a ≡ b [ZMOD n] ↔ (a ≡ b [ZMOD m * n]) :=

@@ -463,18 +463,28 @@ end
 section rank_zero
 
 variables {R : Type u} {M : Type v}
-variables [ring R] [nontrivial R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+lemma dim_pos [nontrivial M] : 0 < module.rank R M :=
+begin
+  obtain ⟨x, hx⟩ := exists_ne (0 : M),
+  suffices : 1 ≤ module.rank R M,
+  { exact zero_lt_one.trans_le this },
+  letI := module.nontrivial R M,
+  suffices : linear_independent R (λ (y : ({x} : set M)), ↑y),
+  { simpa using (cardinal_le_dim_of_linear_independent this), },
+  exact linear_independent_singleton hx
+end
+
+variables [nontrivial R]
 
 lemma dim_zero_iff_forall_zero : module.rank R M = 0 ↔ ∀ x : M, x = 0 :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { contrapose! h,
     obtain ⟨x, hx⟩ := h,
-    suffices : 1 ≤ module.rank R M,
-    { intro h, exact this.not_lt (h.symm ▸ zero_lt_one) },
-    suffices : linear_independent R (λ (y : ({x} : set M)), ↑y),
-    { simpa using (cardinal_le_dim_of_linear_independent this), },
-    exact linear_independent_singleton hx },
+    letI : nontrivial M := nontrivial_of_ne _ _ hx,
+    exact dim_pos.ne' },
   { have : (⊤ : submodule R M) = ⊥,
     { ext x, simp [h x] },
     rw [←dim_top, this, dim_bot] }
@@ -491,9 +501,6 @@ end
 
 lemma dim_pos_iff_nontrivial : 0 < module.rank R M ↔ nontrivial M :=
 dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
-
-lemma dim_pos [h : nontrivial M] : 0 < module.rank R M :=
-dim_pos_iff_nontrivial.2 h
 
 end rank_zero
 

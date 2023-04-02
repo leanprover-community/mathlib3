@@ -144,6 +144,16 @@ lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
 @[simp]
 lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
 
+/-- When `d` is negative, then `x` or `y` must be zero in a solution. -/
+lemma eq_zero_of_d_neg (h₀ : d < 0) (a : solution₁ d) : a.x = 0 ∨ a.y = 0 :=
+begin
+  have h := a.prop,
+  contrapose! h,
+  have h1 := sq_pos_of_ne_zero a.x h.1,
+  have h2 := sq_pos_of_ne_zero a.y h.2,
+  nlinarith,
+end
+
 /-- A solution has `x ≠ 0`. -/
 lemma x_ne_zero (h₀ : 0 < d) (a : solution₁ d) : a.x ≠ 0 :=
 begin

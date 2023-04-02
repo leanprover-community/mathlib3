@@ -3,6 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
+import algebra.gcd_monoid.finset
 import algebra.hom.iterate
 import data.nat.modeq
 import data.set.pointwise.basic
@@ -35,14 +36,11 @@ order of an element
 open function nat
 open_locale pointwise
 
-universes u v
-
-variables {G : Type u} {A : Type v}
-variables {x y : G} {a b : A} {n m : ℕ}
+variables {G H A α β : Type*}
 
 section monoid_add_monoid
 
-variables [monoid G] [add_monoid A]
+variables [monoid G] [add_monoid A] {x y : G} {a b : A} {n m : ℕ}
 
 section is_of_fin_order
 
@@ -95,8 +93,7 @@ by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_c
 /-- The image of an element of finite order has finite order. -/
 @[to_additive add_monoid_hom.is_of_fin_order
   "The image of an element of finite additive order has finite additive order."]
-lemma monoid_hom.is_of_fin_order
-  {H : Type v} [monoid H] (f : G →* H) {x : G} (h : is_of_fin_order x) :
+lemma monoid_hom.is_of_fin_order [monoid H] (f : G →* H) {x : G} (h : is_of_fin_order x) :
   is_of_fin_order $ f x :=
 (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
@@ -170,6 +167,11 @@ end
   "A group element has finite additive order iff its order is positive."]
 lemma order_of_pos_iff : 0 < order_of x ↔ is_of_fin_order x :=
 by rwa [iff_not_comm.mp order_of_eq_zero_iff, pos_iff_ne_zero]
+
+@[to_additive is_of_fin_add_order.mono]
+lemma is_of_fin_order.mono [monoid β] {y : β} (hx : is_of_fin_order x)
+  (h : order_of y ∣ order_of x) : is_of_fin_order y :=
+by { rw ←order_of_pos_iff at ⊢ hx, exact nat.pos_of_dvd_of_pos h hx }
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
 lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
@@ -311,11 +313,11 @@ end
 lemma order_of_dvd_lcm_mul : order_of y ∣ nat.lcm (order_of x) (order_of (x * y)) :=
 begin
   by_cases h0 : order_of x = 0,
-  { rw [h0, lcm_zero_left], apply dvd_zero },
+  { rw [h0, nat.lcm_zero_left], apply dvd_zero },
   conv_lhs { rw [← one_mul y, ← pow_order_of_eq_one x,
     ← succ_pred_eq_of_pos (nat.pos_of_ne_zero h0), pow_succ', mul_assoc] },
   exact (((commute.refl x).mul_right h).pow_left _).order_of_mul_dvd_lcm.trans
-    (lcm_dvd_iff.2 ⟨trans (order_of_pow_dvd _) (dvd_lcm_left _ _), dvd_lcm_right _ _⟩),
+    (nat.lcm_dvd_iff.2 ⟨trans (order_of_pow_dvd _) (dvd_lcm_left _ _), dvd_lcm_right _ _⟩),
 end
 
 @[to_additive add_order_of_add_dvd_mul_add_order_of]
@@ -394,7 +396,7 @@ end p_prime
 end monoid_add_monoid
 
 section cancel_monoid
-variables [left_cancel_monoid G] (x y)
+variables [left_cancel_monoid G] (x y : G) {m n : ℕ}
 
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
@@ -451,7 +453,7 @@ end
 end cancel_monoid
 
 section group
-variables [group G] [add_group A] {x a} {i : ℤ}
+variables [group G] {x y : G} {i : ℤ}
 
 /-- Inverses of elements of finite order have finite order. -/
 @[to_additive "Inverses of elements of finite additive order have finite additive order."]
@@ -560,7 +562,7 @@ end group
 
 section comm_monoid
 
-variables [comm_monoid G]
+variables [comm_monoid G] {x y : G}
 
 /-- Elements of finite order are closed under multiplication. -/
 @[to_additive "Elements of finite additive order are closed under addition."]
@@ -571,7 +573,7 @@ lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
 end comm_monoid
 
 section finite_monoid
-variables [monoid G]
+variables [monoid G] {n : ℕ}
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
@@ -592,7 +594,7 @@ end finite_monoid
 
 section finite_cancel_monoid
 -- TODO: Of course everything also works for right_cancel_monoids.
-variables [left_cancel_monoid G] [add_left_cancel_monoid A]
+variables [left_cancel_monoid G] {x y : G} {n : ℕ}
 
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
 @[to_additive]
@@ -682,7 +684,7 @@ lemma order_eq_card_powers [fintype G] : order_of x = fintype.card (submonoid.po
 end finite_cancel_monoid
 
 section finite_group
-variables [group G] [add_group A]
+variables [group G] {x y : G} {n : ℕ}
 
 @[to_additive]
 lemma exists_zpow_eq_one [finite G] (x : G) : ∃ (i : ℤ) (H : i ≠ 0), x ^ (i : ℤ) = 1 :=
@@ -711,6 +713,23 @@ set.ext $ λ x, mem_powers_iff_mem_zpowers
 lemma mem_zpowers_iff_mem_range_order_of [finite G] [decidable_eq G] :
   y ∈ subgroup.zpowers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 by rw [← mem_powers_iff_mem_zpowers, mem_powers_iff_mem_range_order_of]
+
+@[to_additive] lemma zpow_eq_one_iff_modeq : a ^ n = 1 ↔ n ≡ 0 [ZMOD (order_of a)] :=
+by rw [modeq_zero_iff_dvd, order_of_dvd_iff_zpow_eq_one]
+
+@[to_additive] lemma zpow_eq_zpow_iff_modeq : a ^ m = a ^ n ↔ m ≡ n [ZMOD (order_of a)] :=
+by rw [←mul_inv_eq_one, ←zpow_sub, zpow_eq_one_iff_modeq, modeq_iff_dvd, modeq_iff_dvd, zero_sub,
+  neg_sub]
+
+@[simp, to_additive] lemma injective_zpow_iff_not_is_of_fin_order :
+  injective (λ n : ℤ, a ^ n) ↔ ¬ is_of_fin_order a :=
+begin
+  refine ⟨_, λ h n m hnm, _⟩,
+  { simp_rw is_of_fin_order_iff_pow_eq_one,
+    rintro h ⟨n, hn, ha⟩,
+    exact nat.cast_ne_zero.2 hn.ne' (h $ by simpa using ha) },
+  rwa [zpow_eq_zpow_iff_modeq, order_of_eq_zero_iff.mpr h, nat.cast_zero, modeq_zero_iff] at hnm,
+end
 
 @[to_additive decidable_zmultiples]
 noncomputable instance decidable_zpowers : decidable_pred (∈ subgroup.zpowers x) :=
@@ -756,7 +775,7 @@ end
 variables [fintype G]
 
 /-- See also `order_eq_card_zpowers'`. -/
-@[to_additive add_order_eq_card_zmultiples "See also `add_order_eq_card_zmultiples'`."]
+@[to_additive add_order_eq_card_zmultiples "See also `nat.card_zmultiples`."]
 lemma order_eq_card_zpowers : order_of x = fintype.card (zpowers x) :=
 (fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_zpowers x⟩)
 
@@ -846,8 +865,6 @@ begin
     (congr_arg (∣ fintype.card K) (order_of_subgroup ⟨x, hx.2⟩)).mpr order_of_dvd_card_univ⟩,
 end
 
-variable (a)
-
 /-- TODO: Generalise to `submonoid.powers`.-/
 @[to_additive image_range_add_order_of, nolint to_additive_doc]
 lemma image_range_order_of [decidable_eq G] :
@@ -909,7 +926,7 @@ end pow_is_subgroup
 
 section linear_ordered_ring
 
-variable [linear_ordered_ring G]
+variables [linear_ordered_ring G] {x : G}
 
 lemma order_of_abs_ne_one (h : |x| ≠ 1) : order_of x = 0 :=
 begin
@@ -931,3 +948,34 @@ begin
 end
 
 end linear_ordered_ring
+
+section prod
+variables [monoid α] [monoid β] {x : α × β} {a : α} {b : β}
+
+@[to_additive prod.add_order_of] protected lemma prod.order_of (x : α × β) :
+  order_of x = (order_of x.1).lcm (order_of x.2) :=
+nat.eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
+
+@[to_additive add_order_of_fst_dvd_add_order_of] lemma order_of_fst_dvd_order_of :
+  order_of x.1 ∣ order_of x :=
+by { rw prod.order_of, exact nat.dvd_lcm_left _ _ }
+
+@[to_additive add_order_of_snd_dvd_add_order_of] lemma order_of_snd_dvd_order_of :
+  order_of x.2 ∣ order_of x :=
+by { rw prod.order_of, exact nat.dvd_lcm_right _ _ }
+
+@[to_additive is_of_fin_add_order.fst]
+lemma is_of_fin_order.fst {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.1 :=
+hx.mono order_of_fst_dvd_order_of
+
+@[to_additive is_of_fin_add_order.snd]
+lemma is_of_fin_order.snd {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.2 :=
+hx.mono order_of_snd_dvd_order_of
+
+@[to_additive is_of_fin_add_order.prod_mk]
+lemma is_of_fin_order.prod_mk : is_of_fin_order a → is_of_fin_order b → is_of_fin_order (a, b) :=
+by simpa only [←order_of_pos_iff, prod.order_of] using nat.lcm_pos
+
+end prod
+
+-- TODO: Corresponding `pi` lemmas. We cannot currently state them here because of import cycles

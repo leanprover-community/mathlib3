@@ -7,7 +7,19 @@ import combinatorics.additive.mathlib
 import data.nat.prime
 import data.zmod.basic
 
-/-! ### Minimum size of a nontrivial subgroup -/
+/-!
+# Minimum order of an element
+
+This file defines the minimum order of an element of a monoid.
+
+## Main declarations
+
+* `monoid.min_order`: The minimum order of an element of a given monoid.
+* `monoid.min_order_eq_top`: The minimum order is infinite iff the monoid is torsion-free.
+* `zmod.min_order`: The minimum order of $$ℤ/nℤ$$ is the smallest factor of `n`, unless `n = 0, 1`.
+-/
+
+open subgroup
 
 variables {α : Type*}
 
@@ -15,10 +27,10 @@ namespace monoid
 section monoid
 variables (α) [monoid α]
 
-/-- The minimum size of a nontrivial subgroup of a given group. Returns `1` if there is no
-nontrivial finite subgroup. -/
-@[to_additive "The minimum size of a nontrivial subgroup of a given additive group. Returns `1` if
-there is no nontrivial finite subgroup."]
+/-- The minimum order of a non-identity element. Also the minimum size of a nontrivial subgroup.
+Returns `∞` if the monoid is torsion-free. -/
+@[to_additive "The minimum order of a non-identity element. Also the minimum size of a nontrivial
+subgroup. Returns `∞` if the monoid is torsion-free."]
 noncomputable def min_order : ℕ∞ := ⨅ (a : α) (ha : a ≠ 1) (ha' : is_of_fin_order a), order_of a
 
 variables {α} {a : α}
@@ -39,8 +51,6 @@ lemma min_order_le_order_of (ha : a ≠ 1) (ha' : is_of_fin_order a) : min_order
 le_min_order.1 le_rfl ha ha'
 
 end monoid
-
-open subgroup
 
 variables [group α] {s : subgroup α} {n : ℕ}
 

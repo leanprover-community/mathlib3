@@ -220,10 +220,9 @@ begin
   { rw [pow_succ],
     exact y_mul_pos hax hay (x_pow_pos h₀ hax _) ih, }
 end
-example (n : ℤ) (h : n ≤ 0) : 0 ≤ -n := neg_nonneg.mpr h
+
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
-lemma x_zpow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) :
-  0 < (a ^ n).x :=
+lemma x_zpow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) : 0 < (a ^ n).x :=
 begin
   cases le_or_lt 0 n with h h,
   { rw [← int.to_nat_of_nonneg h, zpow_coe_nat],

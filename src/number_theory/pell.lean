@@ -190,15 +190,18 @@ begin
 end
 
 /-- The set of solutions with `x > 0` is closed under multiplication. -/
-lemma x_mul_pos (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
-  0 < (a * b).x :=
+lemma x_mul_pos {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) : 0 < (a * b).x :=
 begin
   simp only [x_mul],
   refine neg_lt_iff_pos_add'.mp (abs_lt.mp _).1,
   rw [← abs_of_pos ha, ← abs_of_pos hb, ← abs_mul, ← sq_lt_sq, mul_pow a.x, a.prop_x, b.prop_x,
       ← sub_pos],
   ring_nf,
-  positivity,
+  cases le_or_lt 0 d with h h,
+  { positivity, },
+  { rw [(eq_zero_of_d_neg h a).resolve_left ha.ne', (eq_zero_of_d_neg h b).resolve_left hb.ne',
+        zero_pow two_pos, zero_add, zero_mul, zero_add],
+    exact one_pos, },
 end
 
 /-- The set of solutions with `x` and `y` positive is closed under multiplication. -/

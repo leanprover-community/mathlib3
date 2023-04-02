@@ -1345,8 +1345,6 @@ end dim
 
 end finsupp
 
-/- TODO: move these to a better location-/
-
 section module
 variables [field K]
 variables [add_comm_group V] [module K V]
@@ -1356,27 +1354,7 @@ variables [add_comm_group V'] [module K V']
 
 open module
 
-lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{v'} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
-  nonempty (V ≃ₗ[K] V') :=
-begin
-  haveI := classical.dec_eq V,
-  haveI := classical.dec_eq V',
-  let m := basis.of_vector_space K V,
-  let m' := basis.of_vector_space K V',
-  rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,
-  rcases quotient.exact h with ⟨e⟩,
-  let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
-  exact ⟨(m.repr ≪≫ₗ (finsupp.dom_lcongr e)) ≪≫ₗ m'.repr.symm⟩
-end
-
-/-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
-def equiv_of_dim_eq_dim (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
-begin
-  classical,
-  exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
-end
-
+-- TODO: merge with the `finrank` content
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
 def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
@@ -1386,7 +1364,7 @@ begin
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,
   rw ←@dim_fin_fun K _ n at hn,
-  exact classical.choice (equiv_of_dim_eq_lift_dim hn),
+  exact classical.choice (nonempty_linear_equiv_of_lift_dim_eq hn),
 end
 
 end module

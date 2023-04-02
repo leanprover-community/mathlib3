@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
--- import linear_algebra.dimension
 import linear_algebra.std_basis
 
 /-!
@@ -13,11 +12,6 @@ import linear_algebra.std_basis
 This file contains results on the `R`-module structure on functions of finite support from a type
 `ι` to an `R`-module `M`, in particular in the case that `R` is a field.
 
-Furthermore, it contains some facts about isomorphisms of vector spaces from equality of dimension.
-
-## TODO
-
-Move the second half of this file to more appropriate other files.
 -/
 
 noncomputable theory

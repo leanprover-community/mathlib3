@@ -65,7 +65,7 @@ instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
 
-variables {m n k l : ℕ}
+variables {a b m n k l : ℕ}
 namespace nat
 
 /-! ### Equalities and inequalities involving zero and one -/
@@ -95,29 +95,8 @@ eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 lemma zero_max : max 0 n = n := max_eq_right (zero_le _)
 
-@[simp] lemma min_eq_zero_iff : min m n = 0 ↔ m = 0 ∨ n = 0 :=
-begin
-  split,
-  { intro h,
-    cases le_total m n with H H,
-    { simpa [H] using or.inl h },
-    { simpa [H] using or.inr h } },
-  { rintro (rfl|rfl);
-    simp }
-end
-
-@[simp] lemma max_eq_zero_iff : max m n = 0 ↔ m = 0 ∧ n = 0 :=
-begin
-  split,
-  { intro h,
-    cases le_total m n with H H,
-    { simp only [H, max_eq_right] at h,
-      exact ⟨le_antisymm (H.trans h.le) (zero_le _), h⟩ },
-    { simp only [H, max_eq_left] at h,
-      exact ⟨h, le_antisymm (H.trans h.le) (zero_le _)⟩ } },
-  { rintro ⟨rfl, rfl⟩,
-    simp }
-end
+@[simp] lemma min_eq_zero_iff : min m n = 0 ↔ m = 0 ∨ n = 0 := min_eq_bot
+@[simp] lemma max_eq_zero_iff : max m n = 0 ↔ m = 0 ∧ n = 0 := max_eq_bot
 
 lemma add_eq_max_iff : m + n = max m n ↔ m = 0 ∨ n = 0 :=
 begin
@@ -298,6 +277,14 @@ end
 | 0 := iff_of_false (lt_irrefl _) zero_le_one.not_lt
 | (n + 1) := lt_mul_iff_one_lt_left n.succ_pos
 
+lemma add_sub_one_le_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) : a + b - 1 ≤ a * b :=
+begin
+  cases a,
+  { cases ha rfl },
+  { rw [succ_add, succ_sub_one, succ_mul],
+    exact add_le_add_right (le_mul_of_one_le_right' $ pos_iff_ne_zero.2 hb) _ }
+end
+
 /-!
 ### Recursion and induction principles
 
@@ -432,6 +419,13 @@ begin
   rcases nat.eq_zero_or_pos k with (rfl | hk),
   { exact lt_irrefl 0 h1 },
   { exact not_lt.2 (le_mul_of_pos_right hk) h2 },
+end
+
+lemma le_of_lt_add_of_dvd (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
+begin
+  rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
+  rw ←mul_add_one at h,
+  exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
 end
 
 /--  If `m` and `n` are equal mod `k`, `m - n` is zero mod `k`. -/

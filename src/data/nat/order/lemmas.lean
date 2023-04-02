@@ -21,7 +21,7 @@ mathlib4. After `data.rat.order` has been ported, please feel free to reorganize
 
 universes u v
 
-variables {m n k : ℕ}
+variables {a b m n k : ℕ}
 namespace nat
 
 /-! ### Sets -/
@@ -71,6 +71,12 @@ protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=
 (nat.div_eq_zero_iff $ (zero_le a).trans_lt hb).mpr hb
 
 /-! ### `mod`, `dvd` -/
+
+lemma eq_of_forall_dvd (h : ∀ c, a ∣ c ↔ b ∣ c) : a = b :=
+dvd_antisymm ((h _).2 dvd_rfl) $ (h _).1 dvd_rfl
+
+lemma eq_of_forall_dvd' (h : ∀ c, c ∣ a ↔ c ∣ b) : a = b :=
+dvd_antisymm ((h _).1 dvd_rfl) $ (h _).2 dvd_rfl
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_rfl⟩

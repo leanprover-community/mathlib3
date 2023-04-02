@@ -274,7 +274,6 @@ by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans decidable.le_iff_lt_or_eq
 
-
 /-!
 ### Recursion and induction principles
 

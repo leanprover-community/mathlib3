@@ -180,7 +180,7 @@ begin
 end
 
 /-- The set of solutions with `x > 0` is closed under multiplication. -/
-lemma x_mul_pos_of_x_pos (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
+lemma x_mul_pos (h₀ : 0 < d) {a b : solution₁ d} (ha : 0 < a.x) (hb : 0 < b.x) :
   0 < (a * b).x :=
 begin
   simp only [x_mul],
@@ -209,7 +209,7 @@ begin
   induction n with n ih,
   { simp only [hax, hay, pow_one, and_self], },
   { rw [pow_succ],
-    exact ⟨x_mul_pos_of_x_pos h₀ hax ih.1, y_mul_pos_of_x_pos_of_y_pos hax hay ih.1 ih.2⟩, }
+    exact ⟨x_mul_pos h₀ hax ih.1, y_mul_pos_of_x_pos_of_y_pos hax hay ih.1 ih.2⟩, }
 end
 
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
@@ -221,7 +221,7 @@ begin
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hax, zpow_one]) (λ m hm ih, _) m,
     rw zpow_add_one,
-    exact x_mul_pos_of_x_pos h₀ ih hax, },
+    exact x_mul_pos h₀ ih hax, },
   rcases lt_trichotomy 0 n with hpos | rfl | hneg,
   { exact H n hpos, },
   { simp only [zpow_zero, x_one, zero_lt_one], },

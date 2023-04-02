@@ -31,7 +31,6 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 * The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
 * Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
 * `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
-
 * `cardinal.aleph_0` or `ℵ₀` is the cardinality of `ℕ`. This definition is universe polymorphic:
   `cardinal.aleph_0.{u} : cardinal.{u}` (contrast with `ℕ : Type`, which lives in a specific
   universe). In some cases the universe level has to be given explicitly.
@@ -565,9 +564,9 @@ succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   Use `is_succ_limit` if you want to include the `c = 0` case. -/
 def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
 
-theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
+protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
 
-theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
+protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
 
 theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
 

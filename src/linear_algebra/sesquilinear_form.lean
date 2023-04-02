@@ -12,6 +12,9 @@ import ring_theory.non_zero_divisors
 /-!
 # Sesquilinear form
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files provides properties about sesquilinear forms. The maps considered are of the form
 `M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R`, where `I₁ : R₁ →+* R` and `I₂ : R₂ →+* R` are ring homomorphisms and
 `M₁` is a module over `R₁` and `M₂` is a module over `R₂`.

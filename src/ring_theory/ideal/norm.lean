@@ -445,8 +445,8 @@ begin
     simpa only [ne.def, int.nat_abs_eq_zero, algebra.norm_eq_zero_iff, nat.cast_eq_zero]
       using ne_of_gt hn, },
   { intros I hI J hJ h,
-    rw [← comap_quot_map_quot (span_singleton_abs_norm_le I), ← hI.symm,
-      ← comap_quot_map_quot (span_singleton_abs_norm_le J), ← hJ.symm],
+    rw [← comap_map_mk (span_singleton_abs_norm_le I), ← hI.symm,
+      ← comap_map_mk (span_singleton_abs_norm_le J), ← hJ.symm],
     exact congr_arg (ideal.comap (ideal.quotient.mk (@ideal.span S _ {n}))) h, },
 end
 

@@ -469,7 +469,7 @@ variables [ring R] [add_comm_group M] [module R M]
 begin
   haveI := module.subsingleton R M,
   haveI : nonempty {s : set M // linear_independent R (coe : s → M)},
-  { refine ⟨⟨∅, linear_independent_empty _ _⟩⟩ },
+  { exact ⟨⟨∅, linear_independent_empty _ _⟩⟩ },
   rw [module.rank, csupr_eq_of_forall_le_of_forall_lt_exists_gt],
   { rintros ⟨s, hs⟩,
     rw cardinal.mk_le_one_iff_set_subsingleton,

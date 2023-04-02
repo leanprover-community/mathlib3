@@ -23,7 +23,7 @@ import measure_theory.measure.stieltjes
 
 open measure_theory topological_space set measure_theory.measure filter
 
-open_locale topological_space ennreal
+open_locale topology ennreal
 
 lemma right_lim_eq_of_tendsto {α β : Type*} [linear_order α] [topological_space β]
   [hα : topological_space α] [h'α : order_topology α] [t2_space β]

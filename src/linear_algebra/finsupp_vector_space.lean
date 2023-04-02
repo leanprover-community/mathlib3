@@ -118,6 +118,8 @@ end semiring
 
 end finsupp
 
+/-! TODO: move this section to an earlier file. -/
+
 namespace basis
 
 variables {R M n : Type*}

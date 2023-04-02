@@ -144,7 +144,7 @@ begin
 end
 
 lemma card_doubleton (h : a ≠ b) : ({a, b} : set α).ncard = 2 :=
-by { rw [ncard_insert_of_not_mem, ncard_singleton], simpa}
+by { rw [ncard_insert_of_not_mem, ncard_singleton], simpa }
 
 lemma ncard_diff_singleton_add_one (h : a ∈ s) (hs : s.finite . to_finite_tac) :
   (s \ {a}).ncard + 1 = s.ncard :=

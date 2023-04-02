@@ -463,7 +463,25 @@ end
 section rank_zero
 
 variables {R : Type u} {M : Type v}
-variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+variables [ring R] [add_comm_group M] [module R M]
+
+@[simp] lemma dim_subsingleton [subsingleton R] [subsingleton M] : module.rank R M = 1 :=
+begin
+  haveI : inhabited {s : set M // linear_independent R (coe : s → M)},
+  { refine ⟨⟨∅, linear_independent_empty _ _⟩⟩ },
+  rw [module.rank, csupr_eq_of_forall_le_of_forall_lt_exists_gt],
+  { rintros ⟨s, hs⟩,
+    rw cardinal.mk_le_one_iff_set_subsingleton,
+    apply subsingleton_of_subsingleton },
+  intros w hw,
+  refine ⟨⟨{0}, _⟩, _⟩,
+  { rw linear_independent_iff',
+    intros,
+    exact subsingleton.elim _ _ },
+  { exact hw.trans_eq (cardinal.mk_singleton _).symm },
+end
+
+variables [no_zero_smul_divisors R M]
 
 lemma dim_pos [nontrivial M] : 0 < module.rank R M :=
 begin
@@ -490,6 +508,7 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
+/-- See `dim_subsingleton` for the reason that `nontrivial R` is needed. -/
 lemma dim_zero_iff : module.rank R M = 0 ↔ subsingleton M :=
 dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 

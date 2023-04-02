@@ -346,7 +346,7 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
-lemma coe_powers (x : M) : ↑(powers x) = set.range (λ n : ℕ, x ^ n) := rfl
+@[norm_cast] lemma coe_powers (x : M) : ↑(powers x) = set.range (λ n : ℕ, x ^ n) := rfl
 
 lemma mem_powers_iff (x z : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
 

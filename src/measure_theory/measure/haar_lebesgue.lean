@@ -566,7 +566,8 @@ calc
     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
   end
 
-@[priority 100] instance is_doubling_measure_of_is_add_haar_measure : is_doubling_measure μ :=
+@[priority 100] instance is_unif_loc_doubling_measure_of_is_add_haar_measure :
+  is_unif_loc_doubling_measure μ :=
 begin
   refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
   filter_upwards [self_mem_nhds_within] with r hr x,

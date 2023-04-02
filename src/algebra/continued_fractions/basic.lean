@@ -47,6 +47,7 @@ variable (α : Type*)
 protected structure generalized_continued_fraction.pair := (a : α) (b : α)
 
 open generalized_continued_fraction
+open stream.seq as seq
 
 /-! Interlude: define some expected coercions and instances. -/
 namespace generalized_continued_fraction.pair

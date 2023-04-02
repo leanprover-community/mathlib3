@@ -20,7 +20,7 @@ To have a vector bundle structure on `bundle.total_space E`, one should addition
 following properties:
 
 * The bundle trivializations in the trivialization atlas should be continuous linear equivs in the
-fibres;
+fibers;
 * For any two trivializations `e`, `e'` in the atlas the transition function considered as a map
 from `B` into `F →L[R] F` is continuous on `e.base_set ∩ e'.base_set` with respect to the operator
 norm topology on `F →L[R] F`.
@@ -49,8 +49,8 @@ section topological_vector_space
 variables {B F E} [semiring R]
   [topological_space F]  [topological_space B]
 
-/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fibrewise linear with
-respect to given module structures on its fibres and the model fibre. -/
+/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fiberwise linear with
+respect to given module structures on its fibers and the model fiber. -/
 protected class pretrivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : pretrivialization F (π E)) :
   Prop :=
@@ -138,8 +138,8 @@ end pretrivialization
 
 variables (R) [topological_space (total_space E)]
 
-/-- A mixin class for `trivialization`, stating that a trivialization is fibrewise linear with
-respect to given module structures on its fibres and the model fibre. -/
+/-- A mixin class for `trivialization`, stating that a trivialization is fiberwise linear with
+respect to given module structures on its fibers and the model fiber. -/
 protected class trivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : trivialization F (π E)) : Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
@@ -266,6 +266,21 @@ lemma coe_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_
   = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
 congr_arg linear_equiv.to_fun (dif_pos hb)
 
+lemma coe_coord_changeL' (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set) :
+  (coord_changeL R e e' b).to_linear_equiv
+  = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
+linear_equiv.coe_injective (coe_coord_changeL _ _ _)
+
+lemma symm_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+  (hb : b ∈ e'.base_set ∩ e.base_set) :
+  (e.coord_changeL R e' b).symm = e'.coord_changeL R e b :=
+begin
+  apply continuous_linear_equiv.to_linear_equiv_injective,
+  rw [coe_coord_changeL' e' e hb, (coord_changeL R e e' b).symm_to_linear_equiv,
+    coe_coord_changeL' e e' hb.symm, linear_equiv.trans_symm, linear_equiv.symm_symm],
+end
+
 lemma coord_changeL_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
   coord_changeL R e e' b y = (e' (total_space_mk b (e.symm b y))).2 :=
@@ -280,6 +295,11 @@ begin
     rw [e.proj_symm_apply' hb.1], exact hb.2 },
   { exact e.coord_changeL_apply e' hb y }
 end
+
+lemma apply_symm_apply_eq_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R]
+  [e'.is_linear R] {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  e' (e.to_local_homeomorph.symm (b, v)) = (b, e.coord_changeL R e' b v) :=
+by rw [e.mk_coord_changeL e' hb, e.mk_symm hb.1]
 
 /-- A version of `coord_change_apply` that fully unfolds `coord_change`. The right-hand side is
 ugly, but has good definitional properties for specifically defined trivializations. -/
@@ -299,6 +319,20 @@ end trivialization
 end topological_vector_space
 
 section
+
+namespace bundle
+
+/-- The zero section of a vector bundle -/
+def zero_section [∀ x, has_zero (E x)] : B → total_space E :=
+λ x, total_space_mk x 0
+
+@[simp, mfld_simps]
+lemma zero_section_proj [∀ x, has_zero (E x)] (x : B) : (zero_section E x).proj = x := rfl
+@[simp, mfld_simps]
+lemma zero_section_snd [∀ x, has_zero (E x)] (x : B) : (zero_section E x).2 = 0 := rfl
+
+end bundle
+open bundle
 
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_add_comm_group F] [normed_space R F] [topological_space B]
@@ -343,7 +377,7 @@ def continuous_linear_map_at (e : trivialization F (π E)) [e.is_linear R] (b : 
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
-    exact continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
+    exact continuous_snd.comp (e.continuous_on.comp_continuous
       (fiber_bundle.total_space_mk_inducing F E b).continuous
       (λ x, e.mem_source.mpr hb))
   end,
@@ -383,7 +417,7 @@ def continuous_linear_equiv_at (e : trivialization F (π E)) [e.is_linear R] (b 
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
   inv_fun := e.symm b, -- given explicitly to help `simps`
-  continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
+  continuous_to_fun := continuous_snd.comp (e.continuous_on.comp_continuous
     (fiber_bundle.total_space_mk_inducing F E b).continuous
     (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL R b).continuous,
@@ -409,7 +443,7 @@ variables (R)
 
 lemma apply_eq_prod_continuous_linear_equiv_at (e : trivialization F (π E)) [e.is_linear R] (b : B)
   (hb : b ∈ e.base_set) (z : E b) :
-  e.to_local_homeomorph ⟨b, z⟩ = (b, e.continuous_linear_equiv_at R b hb z) :=
+  e ⟨b, z⟩ = (b, e.continuous_linear_equiv_at R b hb z) :=
 begin
   ext,
   { refine e.coe_fst _,
@@ -418,6 +452,11 @@ begin
   { simp only [coe_coe, continuous_linear_equiv_at_apply] }
 end
 
+protected lemma zero_section (e : trivialization F (π E)) [e.is_linear R]
+  {x : B} (hx : x ∈ e.base_set) : e (zero_section E x) = (x, 0) :=
+by simp_rw [zero_section, total_space_mk, e.apply_eq_prod_continuous_linear_equiv_at R x hx 0,
+  map_zero]
+
 variables {R}
 
 lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization F (π E)) [e.is_linear R]
@@ -425,12 +464,12 @@ lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization F (π
   e.to_local_homeomorph.symm ⟨b, z⟩
   = total_space_mk b ((e.continuous_linear_equiv_at R b hb).symm z) :=
 begin
-  have h : (b, z) ∈ e.to_local_homeomorph.target,
+  have h : (b, z) ∈ e.target,
   { rw e.target_eq,
     exact ⟨hb, mem_univ _⟩ },
-  apply e.to_local_homeomorph.inj_on (e.to_local_homeomorph.map_target h),
-  { simp only [e.source_eq, hb, mem_preimage]},
-  simp_rw [e.apply_eq_prod_continuous_linear_equiv_at R b hb, e.to_local_homeomorph.right_inv h,
+  apply e.inj_on (e.map_target h),
+  { simp only [e.source_eq, hb, mem_preimage] },
+  simp_rw [e.right_inv h, coe_coe, e.apply_eq_prod_continuous_linear_equiv_at R b hb,
     continuous_linear_equiv.apply_symm_apply],
 end
 

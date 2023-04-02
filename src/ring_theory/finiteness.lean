@@ -12,6 +12,9 @@ import ring_theory.ideal.operations
 /-!
 # Finiteness conditions in commutative algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a notion of finiteness that is common in commutative algebra.
 
 ## Main declarations
@@ -99,8 +102,7 @@ begin
     { rw [sub_right_comm], exact I.sub_mem hr1 hci },
     { rw [sub_smul, ← hyz, add_sub_cancel'], exact hz } },
   rcases this with ⟨c, hc1, hci⟩, refine ⟨c * r, _, _, hs.2⟩,
-  { rw [← ideal.quotient.eq, ring_hom.map_one] at hr1 hc1 ⊢,
-    rw [ring_hom.map_mul, hc1, hr1, mul_one] },
+  { simpa only [mul_sub, mul_one, sub_add_sub_cancel] using I.add_mem (I.mul_mem_left c hr1) hc1 },
   { intros n hn, specialize hrn hn, rw [mem_comap, mem_sup] at hrn,
     rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • n at hyz,
     rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,

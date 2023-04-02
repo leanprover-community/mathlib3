@@ -192,24 +192,33 @@ begin
 end
 
 /-- The set of solutions with `x` and `y` positive is closed under multiplication. -/
-lemma y_mul_pos_of_x_pos_of_y_pos {a b : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
-  (hbx : 0 < b.x) (hby : 0 < b.y) :
+lemma y_mul_pos {a b : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (hbx : 0 < b.x)
+  (hby : 0 < b.y) :
   0 < (a * b).y :=
 begin
   simp only [y_mul],
   positivity,
 end
 
-/-- If `(x, y)` is a solution with `x` and `y` positive, then all its powers with positive
-natural exponents have positive `x` and `y`. -/
-lemma x_npow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
-  (n : ℕ) :
-  0 < (a ^ n.succ).x ∧ 0 < (a ^ n.succ).y :=
+/-- If `(x, y)` is a solution with `x` positive, then all its powers with natural exponents
+have positive `x`. -/
+lemma x_pow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℕ) : 0 < (a ^ n).x :=
 begin
   induction n with n ih,
-  { simp only [hax, hay, pow_one, and_self], },
+  { simp only [pow_zero, x_one, zero_lt_one], },
   { rw [pow_succ],
-    exact ⟨x_mul_pos h₀ hax ih.1, y_mul_pos_of_x_pos_of_y_pos hax hay ih.1 ih.2⟩, }
+    exact x_mul_pos h₀ hax ih, }
+end
+
+/-- If `(x, y)` is a solution with `x` and `y` positive, then all its powers with positive
+natural exponents have positive `x` and `y`. -/
+lemma y_pow_succ_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℕ) :
+  0 < (a ^ n.succ).y :=
+begin
+  induction n with n ih,
+  { simp only [hay, pow_one], },
+  { rw [pow_succ],
+    exact y_mul_pos hax hay (x_pow_pos h₀ hax _) ih, }
 end
 
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
@@ -239,7 +248,7 @@ begin
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hay, zpow_one]) (λ m hm ih, _) m,
     rw zpow_add_one,
-    exact y_mul_pos_of_x_pos_of_y_pos (x_zpow_pos_of_x_pos_of_y_pos h₀ hax m) ih hax hay, },
+    exact y_mul_pos (x_zpow_pos_of_x_pos_of_y_pos h₀ hax m) ih hax hay, },
   rcases lt_trichotomy 0 n with hpos | rfl | hneg,
   { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
     exact H n hpos, },

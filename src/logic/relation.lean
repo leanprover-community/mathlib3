@@ -30,14 +30,16 @@ the bundled version, see `rel`.
   the reflexive closure of the transitive closure, or the transitive closure of the reflexive
   closure. In terms of rewriting systems, this means that `a` can be rewritten to `b` in a number of
   rewrites.
-* `relation.comp`:  Relation composition. We provide notation `∘r`. For `r : α → β → Prop` and
-  `s : β → γ → Prop`, `r ∘r s`relates `a : α` and `c : γ` iff there exists `b : β` that's related to
-  both.
+* `relation.comp`: Relation composition. We provide notation `∘r`. For `r : α → β → Prop` and
+  `s : β → γ → Prop`, `r ∘r s` relates `a : α` and `c : γ` iff there exists `b : β` that's related
+  to both.
 * `relation.map`: Image of a relation under a pair of maps. For `r : α → β → Prop`, `f : α → γ`,
   `g : β → δ`, `map r f g` is the relation `γ → δ → Prop` relating `f a` and `g b` for all `a`, `b`
   related by `r`.
 * `relation.join`: Join of a relation. For `r : α → α → Prop`, `join r a b ↔ ∃ c, r a c ∧ r b c`. In
   terms of rewriting systems, this means that `a` and `b` can be rewritten to the same term.
+* `relation.forall_exists_rel r s t`: For every `s i` there is some `t j` such that `r (s i) (t j)`,
+  and viceversa.
 -/
 
 open function
@@ -647,3 +649,44 @@ begin
 end
 
 end eqv_gen
+
+namespace relation
+
+/--
+`forall_exists_rel r s t` says that for every `s i` there is some `t j` such that `r (s i) (t j)`,
+and for every `t j` there is some `s i` such that `r (s i) (t j)`.
+
+This finds use as an auxilary definition when defining relations on quotients of families `ι → α` by
+extensionality.
+-/
+def forall_exists_rel {ι₁ ι₂ α₁ α₂ : Type*} (r : α₁ → α₂ → Prop) (s : ι₁ → α₁) (t : ι₂ → α₂) :=
+  (∀ i, ∃ j, r (s i) (t j)) ∧ ∀ j, ∃ i, r (s i) (t j)
+
+namespace forall_exists_rel
+variables {ι₁ ι₂ ι₃ α₁ α₂ α₃ : Type*}
+
+lemma refl {r : α₁ → α₁ → Prop} (s : ι₁ → α₁) (hr : ∀ i, r (s i) (s i)) :
+  forall_exists_rel r s s :=
+⟨λ i, ⟨i, hr _⟩, λ i, ⟨i, hr _⟩⟩
+
+lemma euc {r₁₂ : α₁ → α₂ → Prop} {r₃₂ : α₃ → α₂ → Prop} {r₁₃ : α₁ → α₃ → Prop}
+  {s : ι₁ → α₁} {t : ι₂ → α₂} {u : ι₃ → α₃}
+  (hr : ∀ i j k, r₁₂ (s i) (t j) → r₃₂ (u k) (t j) → r₁₃ (s i) (u k)) :
+  forall_exists_rel r₁₂ s t → forall_exists_rel r₃₂ u t → forall_exists_rel r₁₃ s u :=
+λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.1 i , ⟨k, hk⟩ := h₂.2 j in ⟨k, hr _ _ _ hj hk⟩,
+  λ k, let ⟨j, hj⟩ := h₂.1 k, ⟨i, hi⟩ := h₁.2 j in ⟨i, hr _ _ _ hi hj⟩⟩
+
+lemma symm {r₁₂ : α₁ → α₂ → Prop} {r₂₁ : α₂ → α₁ → Prop}
+  {s : ι₁ → α₁} {t : ι₂ → α₂} (hr : ∀ i j, r₁₂ (s i) (t j) → r₂₁ (t j) (s i)) :
+  forall_exists_rel r₁₂ s t → forall_exists_rel r₂₁ t s :=
+λ h, ⟨λ i, (h.2 i).imp (λ _, hr _ _), λ i, (h.1 i).imp (λ _, hr _ _)⟩
+
+lemma trans {r₁₂ : α₁ → α₂ → Prop} {r₂₃ : α₂ → α₃ → Prop} {r₁₃ : α₁ → α₃ → Prop}
+  {s : ι₁ → α₁} {t : ι₂ → α₂} {u : ι₃ → α₃}
+  (hr : ∀ i j k, r₁₂ (s i) (t j) → r₂₃ (t j) (u k) → r₁₃ (s i) (u k)) :
+  forall_exists_rel r₁₂ s t → forall_exists_rel r₂₃ t u → forall_exists_rel r₁₃ s u :=
+λ h₁ h₂, ⟨λ i, let ⟨j, hj⟩ := h₁.1 i, ⟨k, hk⟩ := h₂.1 j in ⟨k, hr _ _ _ hj hk⟩,
+  λ k, let ⟨j, hj⟩ := h₂.2 k, ⟨i, hi⟩ := h₁.2 j in ⟨i, hr _ _ _ hi hj⟩⟩
+
+end forall_exists_rel
+end relation

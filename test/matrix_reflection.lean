@@ -1,4 +1,5 @@
 import data.matrix.auto
+import data.matrix.reflection
 
 variables {α: Type*}
 

@@ -151,7 +151,8 @@ volume `1` to the parallelepiped spanned by any orthonormal basis. We define the
 some arbitrary choice of orthonormal basis. The fact that it works with any orthonormal basis
 is proved in `orthonormal_basis.volume_parallelepiped`. -/
 @[priority 100] instance measure_space_of_inner_product_space
-  [inner_product_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E] :
+  [normed_add_comm_group E] [inner_product_space ℝ E] [finite_dimensional ℝ E]
+  [measurable_space E] [borel_space E] :
   measure_space E :=
 { volume := (std_orthonormal_basis ℝ E).to_basis.add_haar }
 

@@ -366,7 +366,7 @@ variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → �
 
 include mγ
 
-/-- The pushforward of a kernel along a measurable function. 
+/-- The pushforward of a kernel along a measurable function.
 We include measurability in the assumptions instead of using junk values
 to make sure that typeclass inference can infer that the `map` of a Markov kernel
 is again a Markov kernel. -/

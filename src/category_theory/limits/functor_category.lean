@@ -8,6 +8,9 @@ import category_theory.limits.preserves.limits
 /-!
 # (Co)limits in functor categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that if `D` has limits, then the functor category `C ⥤ D` also has limits
 (`category_theory.limits.functor_category_has_limits`),
 and the evaluation functors preserve limits

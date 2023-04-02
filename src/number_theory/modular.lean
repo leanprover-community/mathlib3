@@ -505,7 +505,7 @@ begin
     linarith, },
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
-    replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
+    replace hc : ↑ₘ(-g) 1 0 = 1, { simp [← neg_eq_iff_eq_neg.mpr hc], },
     replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,

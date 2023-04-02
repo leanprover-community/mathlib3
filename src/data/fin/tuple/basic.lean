@@ -310,6 +310,20 @@ begin
     simp [←nat_add_nat_add] },
 end
 
+/-- Appending a one-tuple to the left is the same as `fin.cons`. -/
+lemma append_left_eq_cons {α : Type*} {n : ℕ} (x₀ : fin 1 → α) (x : fin n → α):
+  fin.append x₀ x = fin.cons (x₀ 0) x ∘ fin.cast (add_comm _ _) :=
+begin
+  ext i,
+  refine fin.add_cases _ _ i; clear i,
+  { intro i,
+    rw [subsingleton.elim i 0, fin.append_left, function.comp_apply, eq_comm],
+    exact fin.cons_zero _ _, },
+  { intro i,
+    rw [fin.append_right, function.comp_apply, fin.cast_nat_add, eq_comm, fin.add_nat_one],
+    exact fin.cons_succ _ _ _ },
+end
+
 end append
 
 section repeat
@@ -532,6 +546,20 @@ begin
     simp [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
     simp }
+end
+
+/-- Appending a one-tuple to the right is the same as `fin.snoc`. -/
+lemma append_right_eq_snoc {α : Type*} {n : ℕ} (x : fin n → α) (x₀ : fin 1 → α) :
+  fin.append x x₀ = fin.snoc x (x₀ 0) :=
+begin
+  ext i,
+  refine fin.add_cases _ _ i; clear i,
+  { intro i,
+    rw [fin.append_left],
+    exact (@snoc_cast_succ _ (λ _, α) _ _ i).symm, },
+  { intro i,
+    rw [subsingleton.elim i 0, fin.append_right],
+    exact (@snoc_last _ (λ _, α) _ _).symm, },
 end
 
 lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :

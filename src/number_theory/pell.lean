@@ -7,6 +7,7 @@ Authors: Michael Geißer, Michael Stoll
 import tactic.qify
 import data.zmod.basic
 import number_theory.diophantine_approximation
+import number_theory.zsqrtd.basic
 
 /-!
 # Pell's Equation
@@ -40,13 +41,124 @@ Pell's equation
 
 namespace pell
 
+/-!
+### Group structure of the solution set
+
+We define a structure of a commutative multiplicative group with distributive negation
+on the set of all solutions to the Pell equation `x^2 - d*y^2 = 1`.
+
+The type of such solutions is `pell.solution₁ d`. It corresponds to a pair of integers `x` and `y`
+and a proof that `(x, y)` is indeed a solution.
+
+The multiplication is given by `(x, y) * (x', y') = (x*y' + d*y*y', x*y' + y*x')`.
+This is obtained by mapping `(x, y)` to `x + y*√d` and multiplying the results.
+In fact, we define `pell.solution₁ d` to be `↥(unitary (ℤ√d))` and transport
+the "commutative group with distributive negation" structure from `↥(unitary (ℤ√d))`.
+
+We then set up an API for `pell.solution₁ d`.
+-/
+
+open zsqrtd
+
+/-- An element of `ℤ√d` has norm one (i.e., `a.re^2 - d*a.im^2 = 1`) if and only if
+it is contained in the submonoid of unitary elements.
+
+TODO: merge this result with `pell.is_pell_iff_mem_unitary`. -/
+lemma is_pell_solution_iff_mem_unitary {d : ℤ} {a : ℤ√d} :
+  a.re ^ 2 - d * a.im ^ 2 = 1 ↔ a ∈ unitary ℤ√d :=
+by rw [← norm_eq_one_iff_mem_unitary, norm_def, sq, sq, ← mul_assoc]
+
+-- We use `solution₁ d` to allow for a more general structure `solution d m` that
+-- encodes solutions to `x^2 - d*y^2 = m` to be added later.
+
+/-- `pell.solution₁ d` is the type of solutions to the Pell equation `x^2 - d*y^2 = 1`.
+We define this in terms of elements of `ℤ√d` of norm one.
+-/
+@[derive [comm_group, has_distrib_neg, inhabited]]
+def solution₁ (d : ℤ) : Type := ↥(unitary ℤ√d)
+
+namespace solution₁
+
+variables {d : ℤ}
+
+instance : has_coe (solution₁ d) ℤ√d := { coe := subtype.val }
+
+/-- The `x` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+protected def x (a : solution₁ d) : ℤ := (a : ℤ√d).re
+
+/-- The `y` component of a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+protected def y (a : solution₁ d) : ℤ := (a : ℤ√d).im
+
+/-- The proof that `a` is a solution to the Pell equation `x^2 - d*y^2 = 1` -/
+lemma prop (a : solution₁ d) : a.x ^ 2 - d * a.y ^ 2 = 1 :=
+is_pell_solution_iff_mem_unitary.mpr a.property
+
+/-- An alternative form of the equation, suitable for rewriting `x^2`. -/
+lemma prop_x (a : solution₁ d) : a.x ^ 2 = 1 + d * a.y ^ 2 := by {rw ← a.prop, ring}
+
+/-- An alternative form of the equation, suitable for rewriting `d * y^2`. -/
+lemma prop_y (a : solution₁ d) : d * a.y ^ 2 = a.x ^ 2 - 1 := by {rw ← a.prop, ring}
+
+/-- Two solutions are equal if their `x` and `y` components are equal. -/
+@[ext]
+lemma ext {a b : solution₁ d} (hx : a.x = b.x) (hy : a.y = b.y) : a = b :=
+subtype.ext $ ext.mpr ⟨hx, hy⟩
+
+/-- Construct a solution from `x`, `y` and a proof that the equation is satisfied. -/
+def mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : solution₁ d :=
+{ val := ⟨x, y⟩,
+  property := is_pell_solution_iff_mem_unitary.mp prop }
+
+@[simp]
+lemma x_mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (mk x y prop).x = x := rfl
+
+@[simp]
+lemma y_mk (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (mk x y prop).y = y := rfl
+
+@[simp]
+lemma coe_mk  (x y : ℤ) (prop : x ^ 2 - d * y ^ 2 = 1) : (↑(mk x y prop) : ℤ√d) = ⟨x,y⟩ :=
+zsqrtd.ext.mpr ⟨x_mk x y prop, y_mk x y prop⟩
+
+@[simp]
+lemma x_one : (1 : solution₁ d).x = 1 := rfl
+
+@[simp]
+lemma y_one : (1 : solution₁ d).y = 0 := rfl
+
+@[simp]
+lemma x_mul (a b : solution₁ d) : (a * b).x = a.x * b.x + d * (a.y * b.y) :=
+by {rw ← mul_assoc, refl}
+
+@[simp]
+lemma y_mul (a b : solution₁ d) : (a * b).y = a.x * b.y + a.y * b.x := rfl
+
+@[simp]
+lemma x_inv (a : solution₁ d) : a⁻¹.x = a.x := rfl
+
+@[simp]
+lemma y_inv (a : solution₁ d) : a⁻¹.y = -a.y := rfl
+
+@[simp]
+lemma x_neg (a : solution₁ d) : (-a).x = -a.x := rfl
+
+@[simp]
+lemma y_neg (a : solution₁ d) : (-a).y = -a.y := rfl
+
+end solution₁
+
 section existence
+
+/-!
+### Existence of nontrivial solutions
+-/
+
+variables {d : ℤ}
 
 open set real
 
 /-- If `d` is a positive integer that is not a square, then there is a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1`. -/
-theorem exists_of_not_is_square {d : ℤ} (h₀ : 0 < d) (hd : ¬ is_square d) :
+theorem exists_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ y ≠ 0 :=
 begin
   let ξ : ℝ := sqrt d,
@@ -113,7 +225,7 @@ end
 
 /-- If `d` is a positive integer, then there is a nontrivial solution
 to the Pell equation `x^2 - d*y^2 = 1` if and only if `d` is not a square. -/
-theorem exists_iff_not_is_square {d : ℤ} (h₀ : 0 < d) :
+theorem exists_iff_not_is_square (h₀ : 0 < d) :
   (∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ y ≠ 0) ↔ ¬ is_square d :=
 begin
   refine ⟨_, exists_of_not_is_square h₀⟩,
@@ -122,6 +234,16 @@ begin
   simpa [mul_self_pos.mp h₀, sub_eq_add_neg, eq_neg_self_iff] using int.eq_of_mul_eq_one hxy,
 end
 
-end existence
+/-- If `d` is a positive integer that is not a square, then there exists a solution
+to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
+lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃ x y : ℤ, x ^ 2 - d * y ^ 2 = 1 ∧ 1 < x ∧ 0 < y :=
+begin
+  obtain ⟨x, y, h, hy⟩ := exists_of_not_is_square h₀ hd,
+  refine ⟨|x|, |y|, by rwa [sq_abs, sq_abs], _, abs_pos.mpr hy⟩,
+  rw [← one_lt_sq_iff_one_lt_abs, eq_add_of_sub_eq h, lt_add_iff_pos_right],
+  exact mul_pos h₀ (sq_pos_of_ne_zero y hy),
+end
 
+end existence
 end pell

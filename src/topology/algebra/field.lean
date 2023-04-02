@@ -11,6 +11,9 @@ import field_theory.subfield
 /-!
 # Topological fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological division ring is a topological ring whose inversion function is continuous at every
 non-zero element.
 

@@ -11,6 +11,9 @@ import topology.algebra.order.monotone_convergence
 /-!
 # Infinite sum in an order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides lemmas about the interaction of infinite sums and order operations.
 -/
 

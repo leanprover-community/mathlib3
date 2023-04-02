@@ -10,6 +10,9 @@ import algebra.order.lattice_group
 /-!
 # Normed lattice ordered groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Motivated by the theory of Banach Lattices, we then define `normed_lattice_add_comm_group` as a
 lattice with a covariant normed group addition satisfying the solid axiom.
 

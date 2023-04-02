@@ -101,7 +101,7 @@ begin
     (inter_subset_right _ _))⟩ },
   { obtain ⟨K, hK, h2K, h3K⟩ := exists_compact_subset hs hx,
     refine ⟨K, _, hf K h3K hK⟩,
-    simpa only [is_open.nhds_within_eq hs hx, interior_eq_nhds'] using h2K },
+    simpa only [is_open.nhds_within_eq hs hx, interior_eq_nhds'] using h2K }
 end
 
 end locally_integrable_on
@@ -121,6 +121,41 @@ lemma locally_integrable.locally_integrable_on (hf : locally_integrable f μ) (s
 
 lemma integrable.locally_integrable (hf : integrable f μ) : locally_integrable f μ :=
 λ x, hf.integrable_at_filter _
+
+/-- If `f` is locally integrable with respect to `μ.restrict s`, it is locally integrable on `s`.
+(See `locally_integrable_on_iff_locally_integrable_restrict` for an iff statement when `s` is
+closed.) -/
+lemma locally_integrable_on_of_locally_integrable_restrict [opens_measurable_space X]
+  (hf : locally_integrable f (μ.restrict s)) :
+  locally_integrable_on f s μ :=
+begin
+  intros x hx,
+  obtain ⟨t, ht_mem, ht_int⟩ := hf x,
+  obtain ⟨u, hu_sub, hu_o, hu_mem⟩ := mem_nhds_iff.mp ht_mem,
+  refine ⟨_, inter_mem_nhds_within s (hu_o.mem_nhds hu_mem), _⟩,
+  simpa only [integrable_on, measure.restrict_restrict hu_o.measurable_set, inter_comm]
+    using ht_int.mono_set hu_sub,
+end
+
+/-- If `s` is closed, being locally integrable on `s` wrt `μ` is equivalent to being locally
+integrable with respect to `μ.restrict s`. For the one-way implication without assuming `s` closed,
+see `locally_integrable_on_of_locally_integrable_restrict`. -/
+lemma locally_integrable_on_iff_locally_integrable_restrict [opens_measurable_space X]
+  (hs : is_closed s) :
+  locally_integrable_on f s μ ↔ locally_integrable f (μ.restrict s) :=
+begin
+  refine ⟨λ hf x, _, locally_integrable_on_of_locally_integrable_restrict⟩,
+  by_cases h : x ∈ s,
+  { obtain ⟨t, ht_nhds, ht_int⟩ := hf x h,
+    obtain ⟨u, hu_o, hu_x, hu_sub⟩ := mem_nhds_within.mp ht_nhds,
+    refine ⟨u, hu_o.mem_nhds hu_x, _⟩,
+    rw [integrable_on, restrict_restrict hu_o.measurable_set],
+    exact ht_int.mono_set hu_sub },
+  { rw ←is_open_compl_iff at hs,
+    refine ⟨sᶜ, hs.mem_nhds h, _⟩,
+    rw [integrable_on, restrict_restrict, inter_comm, inter_compl_self, ←integrable_on],
+    exacts [integrable_on_empty, hs.measurable_set] },
+end
 
 /-- If a function is locally integrable, then it is integrable on any compact set. -/
 lemma locally_integrable.integrable_on_is_compact {k : set X} (hf : locally_integrable f μ)

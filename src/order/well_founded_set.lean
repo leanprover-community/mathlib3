@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import data.sigma.lex
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
@@ -45,7 +46,7 @@ Prove that `s` is partial well ordered iff it has no infinite descending chain o
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
-variables {ι α β γ : Type*}
+variables {ι α β γ : Type*} {π : ι → Type*}
 
 namespace set
 
@@ -734,7 +735,9 @@ end
 section prod_lex
 variables {rα : α → α → Prop} {rβ : β → β → Prop} {f : γ → α} {g : γ → β} {s : set γ}
 
-lemma well_founded.prod_lex (hα : well_founded (rα on f))
+/-- Stronger version of `prod.lex_wf`. Instead of requiring `rβ on g` to be well-founded, we only
+require it to be well-founded on fibers of `f`.-/
+lemma well_founded.prod_lex_of_well_founded_on_fiber (hα : well_founded (rα on f))
   (hβ : ∀ a, (f ⁻¹' {a}).well_founded_on (rβ on g)) :
   well_founded (prod.lex rα rβ on λ c, (f c, g c)) :=
 begin
@@ -747,11 +750,12 @@ begin
     exacts [⟨c, h'.1⟩, psigma.subtype_ext (subtype.ext h'.1) rfl, h'.2] }
 end
 
-lemma set.well_founded_on.prod_lex (hα : s.well_founded_on (rα on f))
+lemma set.well_founded_on.prod_lex_of_well_founded_on_fiber (hα : s.well_founded_on (rα on f))
   (hβ : ∀ a, (s ∩ f ⁻¹' {a}).well_founded_on (rβ on g)) :
   s.well_founded_on (prod.lex rα rβ on λ c, (f c, g c)) :=
 begin
-  refine well_founded.prod_lex hα (λ a, subrelation.wf (λ b c h, _) (hβ a).on_fun),
+  refine well_founded.prod_lex_of_well_founded_on_fiber hα
+    (λ a, subrelation.wf (λ b c h, _) (hβ a).on_fun),
   exact λ x, ⟨x, x.1.2, x.2⟩,
   assumption,
 end

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Yaël Dillies. All rights reserved.
+Copyright (c) 2023 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies
+Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.additive.e_transform
 import combinatorics.additive.min_order
@@ -15,8 +15,10 @@ This file proves a generalisation of the Cauchy-Davenport theorem to arbitrary g
 
 * `finset.min_le_card_mul`: A generalisation of the Cauchy-Davenport theorem to arbitrary groups.
 * `monoid.is_torsion_free.card_add_card_sub_one_le_card_mul`: The Cauchy-Davenport theorem in
-  torsion-free  groups.
-* `zmod.card_add_card_sub_one_le_min_card_add_zmod`: The Cauchy-Davenport theorem.
+  torsion-free groups.
+* `zmod.min_le_card_add`: The Cauchy-Davenport theorem.
+* `finset.card_add_card_sub_one_le_card_mul`: The Cauchy-Davenport theorem in linear ordered
+  cancellative semigroups.
 
 ## References
 
@@ -27,15 +29,15 @@ This file proves a generalisation of the Cauchy-Davenport theorem to arbitrary g
 additive combinatorics, number theory, sumset, cauchy-davenport
 -/
 
-/-! ### Cauchy-Davenport -/
-
-open monoid mul_opposite order_dual subgroup
+open finset function monoid mul_opposite order_dual subgroup
 open_locale pointwise
 
-variables {α : Type*} [group α] [decidable_eq α]
+variables {α : Type*}
 
-namespace finset
-variables {x y : finset α × finset α} {s t : finset α}
+/-! ### General case -/
+
+section general
+variables [group α] [decidable_eq α] {x y : finset α × finset α} {s t : finset α}
 
 /-- The relation we induct along in the proof of Cauchy-Davenport theorem. `(s₁, t₁) < (s₂, t₂)` iff
 * `|s₁ * t₁| < |s₂ * t₂|`
@@ -82,7 +84,7 @@ end
 
 /-- A generalisation of the **Cauchy-Davenport Theorem** to arbitrary groups. -/
 @[to_additive "A generalisation of the **Cauchy-Davenport Theorem** to arbitrary groups."]
-lemma min_le_card_mul (hs : s.nonempty) (ht : t.nonempty) :
+lemma finset.min_le_card_mul (hs : s.nonempty) (ht : t.nonempty) :
   min (min_order α) ↑(s.card + t.card - 1) ≤ (s * t).card :=
 begin
   -- Set up the induction on `x := (s, t)` along the `devos_mul_rel` relation.
@@ -144,23 +146,42 @@ begin
       (with_top.coe_le_coe.2 aux2).trans' (λ h, hstg.le.trans $ h.trans $ add_le_add_right aux2 _) }
 end
 
-end finset
-
-open finset
-
 /-- The **Cauchy-Davenport Theorem** for torsion-free groups. -/
 @[to_additive "The **Cauchy-Davenport Theorem** for torsion-free groups."]
 lemma monoid.is_torsion_free.card_add_card_sub_one_le_card_mul (h : is_torsion_free α)
   {s t : finset α} (hs : s.nonempty) (ht : t.nonempty) :
   s.card + t.card - 1 ≤ (s * t).card :=
-by simpa only [h.min_order, min_eq_right, le_top, nat.cast_le] using min_le_card_mul hs ht
+by simpa only [h.min_order, min_eq_right, le_top, nat.cast_le] using finset.min_le_card_mul hs ht
 
-namespace zmod
-variables {p : ℕ} [fact p.prime] {s t : finset (zmod p)}
+end general
+
+/-! ### $$ℤ/nℤ$$ -/
 
 /-- The **Cauchy-Davenport Theorem**. -/
-lemma card_add_card_sub_one_le_min_card_add_zmod (hs : s.nonempty) (ht : t.nonempty) :
-  min p (s.card + t.card - 1) ≤ (s + t).card :=
-by simpa only [zmod.min_order_of_prime, min_le_iff, nat.cast_le] using min_le_card_add hs ht
+lemma zmod.min_le_card_add {p : ℕ} (hp : p.prime) {s t : finset (zmod p)} (hs : s.nonempty)
+  (ht : t.nonempty) : min p (s.card + t.card - 1) ≤ (s + t).card :=
+by simpa only [zmod.min_order_of_prime hp, min_le_iff, nat.cast_le]
+  using finset.min_le_card_add hs ht
 
-end zmod
+/-! ### Linearly ordered cancellative semigroups -/
+
+/-- The **Cauchy-Davenport Theorem** for linearly ordered cancellative semigroups. -/
+@[to_additive "The **Cauchy-Davenport Theorem** for linearly ordered additive cancellative
+semigroups."]
+lemma finset.card_add_card_sub_one_le_card_mul [linear_order α] [cancel_semigroup α]
+  [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)] {s t : finset α}
+  (hs : s.nonempty) (ht : t.nonempty) :
+  s.card + t.card - 1 ≤ (s * t).card :=
+begin
+  suffices : (s * {t.min' ht}) ∩ ({s.max' hs} * t) = {s.max' hs * t.min' ht},
+  { rw [←card_singleton_mul t (s.max' hs), ←card_mul_singleton s (t.min' ht),
+    ←card_union_add_card_inter, ←card_singleton _, ←this, nat.add_sub_cancel],
+    exact card_le_of_subset (union_subset (mul_subset_mul_left $ singleton_subset_iff.2 $
+      min'_mem _ _) $ mul_subset_mul_right $ singleton_subset_iff.2 $ max'_mem _ _) },
+  refine eq_singleton_iff_unique_mem.2 ⟨mem_inter.2 ⟨mul_mem_mul (max'_mem _ _) $
+    mem_singleton_self _, mul_mem_mul (mem_singleton_self _) $ min'_mem _ _⟩, _⟩,
+  simp only [mem_inter, and_imp, mem_mul, mem_singleton, exists_and_distrib_left, exists_eq_left,
+    forall_exists_index, and_imp, forall_apply_eq_imp_iff₂, mul_left_inj],
+  exact λ a' ha' b' hb' h, (le_max' _ _ ha').eq_of_not_lt
+    (λ ha, ((mul_lt_mul_right' ha _).trans_eq' h).not_le $mul_le_mul_left' (min'_le _ _ hb') _),
+end

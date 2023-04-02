@@ -95,8 +95,7 @@ begin
       (card_add_subgroup_dvd_card _).trans (zmod.card _).dvd) }
 end
 
-@[simp] lemma min_order_of_prime {p : ℕ} [fact p.prime] : min_order (zmod p) = p :=
-by rw [zmod.min_order (ne_zero.out : p ≠ 0) (fact.out p.prime).ne_one,
-  (fact.out p.prime).min_fac_eq]
+@[simp] lemma min_order_of_prime {p : ℕ} (hp : p.prime) : min_order (zmod p) = p :=
+by rw [zmod.min_order hp.ne_zero hp.ne_one, hp.min_fac_eq]
 
 end zmod

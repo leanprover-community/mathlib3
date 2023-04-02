@@ -1332,7 +1332,7 @@ end module
 section field
 variables [field K] [add_comm_group V] [module K V]
 
-lemma finsupp.dim_eq {ι : Type v} :  module.rank K (ι →₀ V) = #ι * module.rank K V :=
+lemma finsupp.dim_eq {ι : Type v} : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
   rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',

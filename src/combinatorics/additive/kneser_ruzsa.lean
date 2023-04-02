@@ -25,21 +25,6 @@ if the inequality is strict, then we in fact have `|s + H| + |t + H| ≤ |s + t|
 * Matt DeVos, *A short proof of Kneser's addition theorem*
 -/
 
-section
-variables {α : Type*} [canonically_ordered_comm_semiring α] [pos_mul_strict_mono α]
-  [mul_pos_strict_mono α] {a b c d : α}
-
---TODO: Fix implicitness of `eq_zero_or_pos`
-lemma mul_lt_mul_of_lt_of_lt'' (hab : a < b) (hcd : c < d) : a * c < b * d :=
-begin
-  obtain rfl | hc := @eq_zero_or_pos _ _ c,
-  { rw mul_zero,
-    exact mul_pos ((zero_le _).trans_lt hab) hcd },
-  { exact mul_lt_mul_of_lt_of_lt' hab hcd ((zero_le _).trans_lt hab) hc }
-end
-
-end
-
 open function mul_action
 open_locale classical pointwise
 
@@ -76,7 +61,8 @@ begin
   { sorry },
   have hl : ∀ a, (t \ s ∩ a • H).card = l a * (Ht.card - k a),
   { sorry },
-  suffices : Hs.card - H.card \le (s \ t ∩ a • H).card ≤  ∨ (t \ s ∩ a • H).card ≤ Ht.card - H.card,
+  suffices :
+    ∃ a : α, Hs.card - H.card ≤ (s \ t ∩ a • H).card ∨ Ht.card - H.card ≤ (t \ s ∩ a • H).card,
   { sorry },
   by_cases hkl : ∃ a, k a ≠ 0 ∧ k a < Ht.card ∧ l a ≠ 0 ∧ l a < Hs.card,
   { obtain ⟨a, hka, hka', hla, hla'⟩ := hkl,
@@ -89,10 +75,13 @@ begin
     obtain h | h : Hs.card - 1 ≤ (s \ t ∩ a • H).card ∨ Ht.card - 1 ≤ (t \ s ∩ a • H).card,
     { by_contra',
       exact hHst.not_lt (mul_lt_mul_of_lt_of_lt'' this.1 this.2) },
-    obtain h | h := le_or_le_of_mul_le_mul this,
-    },
+    { exact ⟨a, or.inl $
+        (tsub_le_tsub_left (one_le_card.2 $ hs.mul_stab.mul ht.mul_stab) _).trans h⟩ },
+    { exact ⟨a, or.inr $
+        (tsub_le_tsub_left (one_le_card.2 $ hs.mul_stab.mul ht.mul_stab) _).trans h⟩ } },
   by_cases hk : ∃ a, k a = 0,
-  sorry
+  sorry,
+  sorry,
 end
 
 -- Lemma 3.4 in Ruzsa's notes

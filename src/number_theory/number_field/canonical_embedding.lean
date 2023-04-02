@@ -498,9 +498,8 @@ begin
     rw lattice_basis_span,
     exact integer_lattice.countable K, },
   have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),
-  obtain ⟨⟨x, hx⟩, hnz, hmem⟩ :=
-    exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
-    (unit_measure K) h_funddomain hf (convex_body.symmetric K f) (convex_body.convex K f),
+  obtain ⟨⟨x, hx⟩, hnz, hmem⟩ := exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure
+    h_funddomain hf (convex_body.symmetric K f) (convex_body.convex K f),
   rw [submodule.mem_to_add_subgroup, ← set_like.mem_coe, lattice_basis_span] at hx,
   obtain ⟨_, ⟨a, rfl⟩, rfl⟩ := hx,
   refine ⟨a, _, by { rwa ← convex_body_mem, }⟩,

@@ -155,10 +155,10 @@ begin
 end
 
 /-- A solution has `x ≠ 0`. -/
-lemma x_ne_zero (h₀ : 0 < d) (a : solution₁ d) : a.x ≠ 0 :=
+lemma x_ne_zero (h₀ : 0 ≤ d) (a : solution₁ d) : a.x ≠ 0 :=
 begin
   intro hx,
-  have h : 0 ≤ d * a.y ^ 2 := mul_nonneg h₀.le (sq_nonneg _),
+  have h : 0 ≤ d * a.y ^ 2 := mul_nonneg h₀ (sq_nonneg _),
   rw [a.prop_y, hx, sq, zero_mul, zero_sub] at h,
   exact not_le.mpr (neg_one_lt_zero : (-1 : ℤ) < 0) h,
 end
@@ -173,10 +173,10 @@ begin
 end
 
 /-- A solution with `x = 1` is trivial. -/
-lemma eq_one_of_x_eq_one (h₀ : 0 < d) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
+lemma eq_one_of_x_eq_one (h₀ : d ≠ 0) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
 begin
   have prop := a.prop_y,
-  rw [ha, one_pow, sub_self, mul_eq_zero, or_iff_right h₀.ne', sq_eq_zero_iff] at prop,
+  rw [ha, one_pow, sub_self, mul_eq_zero, or_iff_right h₀, sq_eq_zero_iff] at prop,
   exact ext ha prop,
 end
 
@@ -215,46 +215,46 @@ end
 
 /-- If `(x, y)` is a solution with `x` positive, then all its powers with natural exponents
 have positive `x`. -/
-lemma x_pow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℕ) : 0 < (a ^ n).x :=
+lemma x_pow_pos {a : solution₁ d} (hax : 0 < a.x) (n : ℕ) : 0 < (a ^ n).x :=
 begin
   induction n with n ih,
   { simp only [pow_zero, x_one, zero_lt_one], },
   { rw [pow_succ],
-    exact x_mul_pos h₀ hax ih, }
+    exact x_mul_pos hax ih, }
 end
 
 /-- If `(x, y)` is a solution with `x` and `y` positive, then all its powers with positive
-natural exponents have positive `x` and `y`. -/
-lemma y_pow_succ_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℕ) :
+natural exponents have positive `y`. -/
+lemma y_pow_succ_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) (n : ℕ) :
   0 < (a ^ n.succ).y :=
 begin
   induction n with n ih,
   { simp only [hay, pow_one], },
   { rw [pow_succ],
-    exact y_mul_pos hax hay (x_pow_pos h₀ hax _) ih, }
+    exact y_mul_pos hax hay (x_pow_pos hax _) ih, }
 end
 
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
-lemma x_zpow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) : 0 < (a ^ n).x :=
+lemma x_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) : 0 < (a ^ n).x :=
 begin
   cases le_or_lt 0 n with h h,
   { rw [← int.to_nat_of_nonneg h, zpow_coe_nat],
-    exact x_pow_pos h₀ hax _, },
+    exact x_pow_pos hax _, },
   { rw [← neg_neg n, zpow_neg, x_inv, ← int.to_nat_of_nonneg (neg_nonneg.mpr h.le), zpow_coe_nat],
-    exact x_pow_pos h₀ hax _, },
+    exact x_pow_pos hax _, },
 end
 
-/-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of its powers
-have the same sign as the exponent. -/
-lemma sign_y_zpow_eq_sign_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x)
-  (hay : 0 < a.y) (n : ℤ) :
+/-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of any power
+has the same sign as the exponent. -/
+lemma sign_y_zpow_eq_sign_of_x_pos_of_y_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
+   (n : ℤ) :
   (a ^ n).y.sign = n.sign :=
 begin
   have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).y,
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hay, zpow_one]) (λ m hm ih, _) m,
     rw zpow_add_one,
-    exact y_mul_pos (x_zpow_pos h₀ hax m) ih hax hay, },
+    exact y_mul_pos (x_zpow_pos hax m) ih hax hay, },
   rcases lt_trichotomy 0 n with hpos | rfl | hneg,
   { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
     exact H n hpos, },
@@ -269,7 +269,8 @@ positive `x` and nonnegative `y`. -/
 lemma exists_pos_variant (h₀ : 0 < d) (a : solution₁ d) :
   ∃ b : solution₁ d, 0 < b.x ∧ 0 ≤ b.y ∧ a ∈ ({b, b⁻¹, -b, -b⁻¹} : set (solution₁ d)) :=
 begin
-  refine ⟨mk (|a.x|) (|a.y|) (by simp [a.prop]), abs_pos.mpr (a.x_ne_zero h₀), abs_nonneg a.y, _⟩,
+  refine ⟨mk (|a.x|) (|a.y|) (by simp [a.prop]),
+          abs_pos.mpr (a.x_ne_zero h₀.le), abs_nonneg a.y, _⟩,
   cases le_or_lt 0 a.x with hax hax; cases le_or_lt 0 a.y with hay hay,
   { exact or.inl (ext (abs_of_nonneg hax).symm (abs_of_nonneg hay).symm), },
   { exact or.inr (or.inl $ ext (by simp [abs_of_nonneg hax]) (by simp [abs_of_neg hay])), },
@@ -387,8 +388,8 @@ begin
   obtain ⟨a, ha₁, ha₂⟩ := exists_nontrivial_of_not_is_square h₀ hd,
   obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_pos_variant h₀ a,
   refine ⟨b, lt_iff_le_and_ne.mpr ⟨hb₁, λ hf, _⟩, lt_iff_le_and_ne.mpr ⟨hb₂, λ hf, _⟩⟩,
-  { have := eq_one_of_x_eq_one h₀ hf.symm,
-    rw [eq_one_of_x_eq_one h₀ hf.symm, inv_one] at hb₃,
+  { have := eq_one_of_x_eq_one h₀.ne' hf.symm,
+    rw [eq_one_of_x_eq_one h₀.ne' hf.symm, inv_one] at hb₃,
     simpa only [ha₁, ha₂, or_self, mem_insert_iff, mem_singleton_iff] using hb₃, },
   { cases eq_one_or_neg_one_iff_y_eq_zero.mpr hf.symm with h h; rw h at hb₃,
     { simpa only [ha₁, ha₂, inv_one, or_self, mem_insert_iff, mem_singleton_iff] using hb₃, },

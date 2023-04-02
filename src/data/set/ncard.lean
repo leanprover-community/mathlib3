@@ -113,7 +113,7 @@ by simp [ncard_eq_to_finset_card]
 
 section insert_erase
 
-@[simp] lemma ncard_insert_of_not_mem (h : a ∉ s) (hs : s.finite . to_finite_tac) :
+lemma ncard_insert_of_not_mem (h : a ∉ s) (hs : s.finite . to_finite_tac) :
   (insert a s).ncard = s.ncard + 1 :=
 begin
   haveI := hs.fintype,
@@ -143,10 +143,10 @@ begin
   { rw [ncard_insert_of_not_mem h hs, if_neg h] }
 end
 
-@[simp] lemma card_doubleton (h : a ≠ b) : ({a, b} : set α).ncard = 2 :=
+lemma card_doubleton (h : a ≠ b) : ({a, b} : set α).ncard = 2 :=
 by { rw [ncard_insert_of_not_mem, ncard_singleton], simpa}
 
-@[simp] lemma ncard_diff_singleton_add_one (h : a ∈ s) (hs : s.finite . to_finite_tac) :
+lemma ncard_diff_singleton_add_one (h : a ∈ s) (hs : s.finite . to_finite_tac) :
   (s \ {a}).ncard + 1 = s.ncard :=
 begin
   have h' : a ∉ s \ {a}, by { rw [mem_diff_singleton], tauto },
@@ -155,7 +155,7 @@ begin
   simpa,
 end
 
-@[simp] lemma ncard_diff_singleton_of_mem (h : a ∈ s) (hs : s.finite . to_finite_tac) :
+lemma ncard_diff_singleton_of_mem (h : a ∈ s) (hs : s.finite . to_finite_tac) :
   (s \ {a}).ncard = s.ncard - 1 :=
 eq_tsub_of_add_eq (ncard_diff_singleton_add_one h hs)
 

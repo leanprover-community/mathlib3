@@ -345,8 +345,16 @@ end, is_ortho.comap f.to_linear_isometry⟩
 
 end submodule
 
+lemma orthogonal_family_iff_pairwise {ι} {V : ι → submodule 𝕜 E} :
+  orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ) ↔ pairwise ((⟂) on V) :=
+forall₃_congr $ λ i j hij,
+  subtype.forall.trans $ forall₂_congr $ λ x hx, subtype.forall.trans $ forall₂_congr $ λ y hy,
+    inner_eq_zero_symm
+
+alias orthogonal_family_iff_pairwise ↔ orthogonal_family.pairwise orthogonal_family.of_pairwise
+
 /-- Two submodules in an orthogonal family with different indices are orthogonal. -/
 lemma orthogonal_family.is_ortho {ι} {V : ι → submodule 𝕜 E}
   (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) {i j : ι} (hij : i ≠ j) :
   V i ⟂ V j :=
-λ x hx y hy, hV hij.symm ⟨y, hy⟩ ⟨x, hx⟩
+hV.pairwise hij

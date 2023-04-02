@@ -50,6 +50,43 @@ begin
   exact h (b + 1) (nat.le_succ_of_le hb)
 end
 
+lemma terms_tendsto_zero (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
+  (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
+begin
+  letI φ : uniform_space R := topological_add_group.to_uniform_space R,
+  haveI hφ : uniform_add_group R := topological_add_comm_group_is_uniform,
+
+  unfold series_converges at h,
+  cases h with T h,
+  unfold series_sums_to at h,
+  rw filter.tendsto_def at h,
+  --rw tendsto_at_top_nhds at h,
+
+  rw filter.tendsto_def,
+  intros Z hZ,
+  rw uniform_space.mem_nhds_iff at hZ,
+  rcases hZ with ⟨U, hU₁, hU₂⟩,
+  obtain ⟨V, hV₁, hV₂⟩ := comp_mem_uniformity_sets hU₁,
+
+  specialize h (uniform_space.ball T V) (uniform_space.ball_mem_nhds T hV₁),
+  obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
+
+  rw filter.mem_at_top_sets,
+  use N + 1,
+  intros n hn,
+  rw set.mem_preimage,
+
+  have hn₁ := set.mem_preimage.mp (hN n (by linarith)),
+  have hn₂ := set.mem_preimage.mp (hN (n - 1) sorry),
+  unfold uniform_space.ball at hn₁ hn₂,
+  rw set.mem_preimage at hn₁ hn₂,
+  rw uniformity_eq_comap_nhds_zero R at hV₁,
+  rw filter.mem_comap at hV₁,
+  --specialize h (uniform_space.ball T V) (uniform_space.mem_ball_self T hV₁) (uniform_space.is_open_ball T _),
+  --rw tendsto_at_top_nhds,
+  --intros Z hZ₁ hZ₂,
+end
+
 lemma seq_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
   rw filter.tendsto_def,

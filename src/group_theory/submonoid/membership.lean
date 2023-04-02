@@ -346,7 +346,7 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
-lemma _root_.set.range_pow (x : M) : set.range (λ n : ℕ, x ^ n) = powers x := rfl
+lemma coe_powers (x : M) : ↑(powers x) = set.range (λ n : ℕ, x ^ n) := rfl
 
 lemma mem_powers_iff (x z : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
 
@@ -481,7 +481,7 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 attribute [to_additive multiples] submonoid.powers
 attribute [to_additive mem_multiples] submonoid.mem_powers
-attribute [to_additive set.range_nsmul] set.range_pow
+attribute [to_additive coe_multiples] submonoid.coe_powers
 attribute [to_additive mem_multiples_iff] submonoid.mem_powers_iff
 attribute [to_additive multiples_eq_closure] submonoid.powers_eq_closure
 attribute [to_additive multiples_subset] submonoid.powers_subset

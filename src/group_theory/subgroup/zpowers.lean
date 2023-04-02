@@ -29,7 +29,7 @@ subgroup.copy (zpowers_hom G g).range (set.range ((^) g : ℤ → G)) rfl
 
 @[simp] lemma mem_zpowers (g : G) : g ∈ zpowers g := ⟨1, zpow_one _⟩
 
-lemma _root_.set.range_zpow (g : G) : set.range (λ n : ℤ, g ^ n) = zpowers g := rfl
+lemma coe_zpowers (g : G) : ↑(zpowers g) = set.range (λ n : ℤ, g ^ n) := rfl
 
 lemma zpowers_eq_closure (g : G) : zpowers g = closure {g} :=
 by { ext, exact mem_closure_singleton.symm }
@@ -77,7 +77,7 @@ add_subgroup.copy (zmultiples_hom A a).range (set.range ((• a) : ℤ → A)) r
 
 attribute [to_additive add_subgroup.zmultiples] subgroup.zpowers
 attribute [to_additive add_subgroup.mem_zmultiples] subgroup.mem_zpowers
-attribute [to_additive set.range_zsmul] set.range_zpow
+attribute [to_additive add_subgroup.coe_zmultiples] subgroup.coe_zpowers
 attribute [to_additive add_subgroup.zmultiples_eq_closure] subgroup.zpowers_eq_closure
 attribute [to_additive add_subgroup.range_zmultiples_hom] subgroup.range_zpowers_hom
 attribute [to_additive add_subgroup.mem_zmultiples_iff] subgroup.mem_zpowers_iff

@@ -222,8 +222,7 @@ begin
 end
 
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
-lemma x_zpow_pos_of_x_pos_of_y_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x)
-  (n : ℤ) :
+lemma x_zpow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) :
   0 < (a ^ n).x :=
 begin
   have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).x,
@@ -248,7 +247,7 @@ begin
   { change ∀ m : ℤ, 1 ≤ m → _,
     refine λ m, int.le_induction (by simp only [hay, zpow_one]) (λ m hm ih, _) m,
     rw zpow_add_one,
-    exact y_mul_pos (x_zpow_pos_of_x_pos_of_y_pos h₀ hax m) ih hax hay, },
+    exact y_mul_pos (x_zpow_pos h₀ hax m) ih hax hay, },
   rcases lt_trichotomy 0 n with hpos | rfl | hneg,
   { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
     exact H n hpos, },

@@ -1329,30 +1329,15 @@ end division_ring
 
 end module
 
-namespace finsupp
-
-section dim
+section field
 variables [field K] [add_comm_group V] [module K V]
 
-lemma dim_eq {ι : Type v} : module.rank K (ι →₀ V) = #ι * module.rank K V :=
+lemma finsupp.dim_eq {ι : Type v} :  module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
   rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
     cardinal.mk_sigma, cardinal.sum_const']
 end
-
-end dim
-
-end finsupp
-
-section module
-variables [field K]
-variables [add_comm_group V] [module K V]
-variables [add_comm_group V₁] [module K V₁]
-variables [add_comm_group V₂] [module K V₂]
-variables [add_comm_group V'] [module K V']
-
-open module
 
 -- TODO: merge with the `finrank` content
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
@@ -1367,4 +1352,4 @@ begin
   exact classical.choice (nonempty_linear_equiv_of_lift_dim_eq hn),
 end
 
-end module
+end field

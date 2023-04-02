@@ -220,21 +220,16 @@ begin
   { rw [pow_succ],
     exact y_mul_pos hax hay (x_pow_pos h₀ hax _) ih, }
 end
-
+example (n : ℤ) (h : n ≤ 0) : 0 ≤ -n := neg_nonneg.mpr h
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
 lemma x_zpow_pos (h₀ : 0 < d) {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) :
   0 < (a ^ n).x :=
 begin
-  have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).x,
-  { change ∀ m : ℤ, 1 ≤ m → _,
-    refine λ m, int.le_induction (by simp only [hax, zpow_one]) (λ m hm ih, _) m,
-    rw zpow_add_one,
-    exact x_mul_pos h₀ ih hax, },
-  rcases lt_trichotomy 0 n with hpos | rfl | hneg,
-  { exact H n hpos, },
-  { simp only [zpow_zero, x_one, zero_lt_one], },
-  { rw [← neg_neg n, zpow_neg, x_inv],
-    exact H (-n) (lt_neg.mp hneg), }
+  cases le_or_lt 0 n with h h,
+  { rw [← int.to_nat_of_nonneg h, zpow_coe_nat],
+    exact x_pow_pos h₀ hax _, },
+  { rw [← neg_neg n, zpow_neg, x_inv, ← int.to_nat_of_nonneg (neg_nonneg.mpr h.le), zpow_coe_nat],
+    exact x_pow_pos h₀ hax _, },
 end
 
 /-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of its powers

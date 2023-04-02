@@ -465,9 +465,10 @@ section rank_zero
 variables {R : Type u} {M : Type v}
 variables [ring R] [add_comm_group M] [module R M]
 
-@[simp] lemma dim_subsingleton [subsingleton R] [subsingleton M] : module.rank R M = 1 :=
+@[simp] lemma dim_subsingleton [subsingleton R] : module.rank R M = 1 :=
 begin
-  haveI : inhabited {s : set M // linear_independent R (coe : s → M)},
+  haveI := module.subsingleton R M,
+  haveI : nonempty {s : set M // linear_independent R (coe : s → M)},
   { refine ⟨⟨∅, linear_independent_empty _ _⟩⟩ },
   rw [module.rank, csupr_eq_of_forall_le_of_forall_lt_exists_gt],
   { rintros ⟨s, hs⟩,

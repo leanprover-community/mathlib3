@@ -18,7 +18,7 @@ It also proves some basic results on definitions in core, such as `eqv_gen`.
 Note that this is about unbundled relations, that is terms of types of the form `α → β → Prop`. For
 the bundled version, see `rel`.
 
-## Definitions
+## Main definitions
 
 * `relation.refl_gen`: Reflexive closure. `refl_gen r` relates everything `r` related, plus for all
   `a` it relates `a` with itself. So `refl_gen r a b ↔ r a b ∨ a = b`.
@@ -30,6 +30,9 @@ the bundled version, see `rel`.
   the reflexive closure of the transitive closure, or the transitive closure of the reflexive
   closure. In terms of rewriting systems, this means that `a` can be rewritten to `b` in a number of
   rewrites.
+
+## Other definitions
+
 * `relation.comp`: Relation composition. We provide notation `∘r`. For `r : α → β → Prop` and
   `s : β → γ → Prop`, `r ∘r s` relates `a : α` and `c : γ` iff there exists `b : β` that's related
   to both.

@@ -1054,6 +1054,7 @@ variables (G) [topological_space G] [group G] [has_continuous_mul G]
 @[to_additive]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
+
 end
 
 section
@@ -1185,6 +1186,7 @@ begin
   rwa [← image_preimage_eq V op_surjective, ← image_op_mul, image_subset_iff,
     preimage_image_eq _ op_injective] at hV'
 end
+
 end
 
 section

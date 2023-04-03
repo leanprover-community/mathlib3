@@ -347,9 +347,6 @@ by rw [←not_is_real_iff_is_complex, not_not]
 lemma is_real_or_is_complex (w : infinite_place K) : is_real w ∨ is_complex w :=
 by { rw ←not_is_real_iff_is_complex, exact em _ }
 
-lemma is_complex_or_is_real (w : infinite_place K) : is_complex w ∨ is_real w :=
-by { rw ←not_is_complex_iff_is_real, exact em _ }
-
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
 noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
 (is_real_iff.mp hw).embedding

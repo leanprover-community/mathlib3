@@ -9,7 +9,7 @@ import data.nat.part_enat
 import data.set.countable
 import logic.small.basic
 import order.conditionally_complete_lattice.basic
-import order.succ_pred.basic
+import order.succ_pred.limit
 import set_theory.cardinal.schroeder_bernstein
 import tactic.positivity
 
@@ -30,6 +30,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 * Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α × β)`.
 * The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
 * Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
+* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
 * `cardinal.aleph_0` or `ℵ₀` is the cardinality of `ℕ`. This definition is universe polymorphic:
   `cardinal.aleph_0.{u} : cardinal.{u}` (contrast with `ℕ : Type`, which lives in a specific
   universe). In some cases the universe level has to be given explicitly.
@@ -560,6 +561,20 @@ instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
+/-- A cardinal is a limit if it is not zero or a successor cardinal. Note that `ℵ₀` is a limit
+  cardinal by this definition, but `0` isn't.
+
+  Use `is_succ_limit` if you want to include the `c = 0` case. -/
+def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
+
+protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
+
+protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
+
+theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
+
+theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
+
 theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
@@ -999,6 +1014,24 @@ lt_aleph_0_iff_finite.2 ‹_›
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
+
+theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+is_succ_limit_of_succ_lt $ λ a ha, begin
+  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
+  rw ←nat_succ,
+  apply nat_lt_aleph_0
+end
+
+theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
+
+theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
+  { exact h.ne_zero.irrefl },
+  { rw nat_succ at h,
+    exact not_is_succ_limit_succ _ h.is_succ_limit }
+end
 
 @[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
   #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=

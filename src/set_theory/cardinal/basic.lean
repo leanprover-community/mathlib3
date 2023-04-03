@@ -487,8 +487,6 @@ instance : linear_ordered_comm_monoid_with_zero cardinal.{u} :=
   ..cardinal.comm_semiring,
   ..cardinal.linear_order }
 
-protected theorem not_lt_zero (c : cardinal) : ¬ c < 0 := not_lt_bot
-
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 

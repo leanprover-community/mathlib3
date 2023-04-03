@@ -464,7 +464,7 @@ open mul_opposite
 
 @[to_additive]
 instance [has_inv α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
-⟨continuous_induced_rng.2 $ (@continuous_inv α _ _ _).comp continuous_unop⟩
+op_homeomorph.symm.inducing.has_continuous_inv unop_inv
 
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
 @[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]

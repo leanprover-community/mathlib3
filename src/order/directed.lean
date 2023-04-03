@@ -261,7 +261,7 @@ sets. It can be shown that a function is Scott continuous if and only if it is c
 Scott topology.
 -/
 def scott_continuous [preorder β] (f : α → β) : Prop :=
-∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f a)
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≤) d → ∀ ⦃a⦄, is_lub d a → is_lub (f '' d) (f a)
 
 lemma scott_continuous.monotone [preorder β] {f : α → β}
   (h : scott_continuous f) :

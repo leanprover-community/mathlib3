@@ -47,7 +47,6 @@ bundling.  But in this case the typical motivation for more bundling does not ap
 algebraic or order structure on the whole type of linear (say) trivializations of a bundle.
 Indeed, since trivializations only have meaning on their base sets (taking junk values outside), the
 type of linear trivializations is not even particularly well-behaved.
-
 -/
 
 open topological_space filter set bundle
@@ -60,7 +59,12 @@ variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z 
 below as `trivialization F proj`) if the total space has not been given a topology, but we
 have a topology on both the fiber and the base space. Through the construction
 `topological_fiber_prebundle F proj` it will be possible to promote a
-`pretrivialization F proj` to a `trivialization F proj`. -/
+`pretrivialization F proj` to a `trivialization F proj`.
+
+We require that a pretrivialization is fiberwise even outside the base set.
+This makes `pretrivialization.symm` (and variants) simpler and easier to work with.
+As long as every fiber of `proj` is non-empty, this isn't really an extra condition, since we don't
+put any other requirements on these junk values. -/
 @[ext, nolint has_nonempty_instance]
 structure pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
 (open_target   : is_open target)
@@ -201,7 +205,11 @@ variables [topological_space Z] [topological_space (total_space E)]
 A structure extending local homeomorphisms, defining a local trivialization of a projection
 `proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F` defined between two
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
--/
+
+We require that a trivialization is fiberwise even outside the base set.
+This makes `trivialization.symm` (and variants) simpler and easier to work with.
+As long as every fiber of `proj` is non-empty, this isn't really an extra condition, since we don't
+put any other requirements on these junk values. -/
 @[ext, nolint has_nonempty_instance]
 structure trivialization (proj : Z → B)
   extends local_homeomorph Z (B × F) :=

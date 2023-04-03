@@ -45,54 +45,54 @@ open_locale classical bundle
 
 variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 
+section
+
+namespace bundle
+
+/-- The zero section of a vector bundle -/
+def zero_section [∀ x, has_zero (E x)] : B → total_space E :=
+λ x, total_space_mk x 0
+
+@[simp, mfld_simps]
+lemma zero_section_proj [∀ x, has_zero (E x)] (x : B) : (zero_section E x).proj = x := rfl
+@[simp, mfld_simps]
+lemma zero_section_snd [∀ x, has_zero (E x)] (x : B) : (zero_section E x).2 = 0 := rfl
+
+end bundle
+open bundle
+
 section topological_vector_space
-variables {B F E} [semiring R]
-  [topological_space F]  [topological_space B]
+variables {B F E} [semiring R] [topological_space F]  [topological_space B]
+variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 
 /-- A mixin class for `pretrivialization`, stating that a pretrivialization is fiberwise linear with
-respect to given module structures on its fibers and the model fiber. -/
-protected class pretrivialization.is_linear [add_comm_monoid F] [module R F]
-  [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : pretrivialization F (π E)) :
+respect to given module structures on its fibers and the model fiber.
+
+We require linearity even outside the base set (also for the inverse). This makes operations like
+`pretrivialization.symmₗ` and `pretrivialization.linear_map_at` simpler and easier to work with.
+This is not really an extra condition, since we can set the value of `e` fiberwise to `0` outside
+the base set. -/
+protected class pretrivialization.is_linear (e : pretrivialization F (π E)) :
   Prop :=
-(linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
-(symm_eq_zero : ∀ (b ∉ e.base_set) (x : F), (e.to_local_equiv.symm (b, x)).2 = 0)
+(linear : ∀ b, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
+(linear_symm : ∀ b, is_linear_map R (e.symm b))
 
 namespace pretrivialization
 
 variables {F E} (e : pretrivialization F (π E)) {x : total_space E} {b : B} {y : E b}
 
-lemma linear [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [e.is_linear R] {b : B} (hb : b ∈ e.base_set) :
+lemma linear [e.is_linear R] (b : B) :
   is_linear_map R (λ x : E b, (e (total_space_mk b x)).2) :=
-pretrivialization.is_linear.linear b hb
+pretrivialization.is_linear.linear b
 
-lemma symm_eq_zero [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)]
-  [∀ x, module R (E x)] [e.is_linear R] {b : B} (hb : b ∉ e.base_set) (x : F) :
-  (e.to_local_equiv.symm (b, x)).2 = 0 :=
-pretrivialization.is_linear.symm_eq_zero R b hb x
-
-lemma symm_eq_zero' [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)]
-  [∀ x, module R (E x)] [e.is_linear R] {b : B} (hb : b ∉ e.base_set) :
-  e.symm b = 0 :=
-begin
-  have : ∀ (x y : B) (p : x = y), cast (congr_arg E p) 0 = 0,
-  { intros x y p, induction p, refl },
-  ext x, rw [e.symm_apply, e.symm_eq_zero R hb x, this, pi.zero_apply],
-end
-
-variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+lemma linear_symm [e.is_linear R] (b : B) :
+  is_linear_map R (e.symm b) :=
+pretrivialization.is_linear.linear_symm b
 
 /-- A fiberwise linear inverse to `e`. -/
 @[simps] protected def symmₗ (e : pretrivialization F (π E)) [e.is_linear R] (b : B) :
   F →ₗ[R] E b :=
-begin
-  refine is_linear_map.mk' (e.symm b) _,
-  by_cases hb : b ∈ e.base_set,
-  { exact (((e.linear R hb).mk' _).inverse (e.symm b) (e.symm_apply_apply_mk hb)
-      (λ v, congr_arg prod.snd $ e.apply_mk_symm hb v)).is_linear },
-  { rw [e.symm_eq_zero' R hb], exact (0 : F →ₗ[R] E b).is_linear }
-end
-
+is_linear_map.mk' (e.symm b) (e.linear_symm R b)
 
 /-- A pretrivialization for a vector bundle defines linear equivalences between the
 fibers and the model space. -/
@@ -103,90 +103,65 @@ fibers and the model space. -/
   inv_fun := e.symm b,
   left_inv := e.symm_apply_apply_mk hb,
   right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
-  map_add' := λ v w, (e.linear R hb).map_add v w,
-  map_smul' := λ c v, (e.linear R hb).map_smul c v }
+  map_add' := λ v w, (e.linear R b).map_add v w,
+  map_smul' := λ c v, (e.linear R b).map_smul c v }
 
 /-- A fiberwise linear map equal to `e` on `e.base_set`. -/
 protected def linear_map_at (e : pretrivialization F (π E)) [e.is_linear R] (b : B) : E b →ₗ[R] F :=
-if hb : b ∈ e.base_set then e.linear_equiv_at R b hb else 0
+is_linear_map.mk' (λ y, (e (total_space_mk b y)).2) (e.linear R b)
 
 variables {R}
 
-lemma coe_linear_map_at (e : pretrivialization F (π E)) [e.is_linear R] (b : B) :
-  ⇑(e.linear_map_at R b) = λ y, if b ∈ e.base_set then (e (total_space_mk b y)).2 else 0 :=
-by { rw [pretrivialization.linear_map_at], split_ifs; refl }
-
-lemma coe_linear_map_at_of_mem (e : pretrivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∈ e.base_set) :
-  ⇑(e.linear_map_at R b) = λ y, (e (total_space_mk b y)).2 :=
-by simp_rw [coe_linear_map_at, if_pos hb]
-
-lemma linear_map_at_apply (e : pretrivialization F (π E)) [e.is_linear R] {b : B} (y : E b) :
-  e.linear_map_at R b y = if b ∈ e.base_set then (e (total_space_mk b y)).2 else 0 :=
-by rw [coe_linear_map_at]
-
-lemma linear_map_at_def_of_mem (e : pretrivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∈ e.base_set) :
-  e.linear_map_at R b = e.linear_equiv_at R b hb :=
-dif_pos hb
-
-lemma linear_map_at_def_of_not_mem (e : pretrivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∉ e.base_set) :
-  e.linear_map_at R b = 0 :=
-dif_neg hb
-
-lemma linear_map_at_eq_zero (e : pretrivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∉ e.base_set) :
-  e.linear_map_at R b = 0 :=
-dif_neg hb
+lemma linear_map_at_apply (e : pretrivialization F (π E)) [e.is_linear R] (b : B) (y : E b) :
+  e.linear_map_at R b y = (e (total_space_mk b y)).2 :=
+rfl
 
 lemma symmₗ_linear_map_at (e : pretrivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∈ e.base_set) (y : E b) :
-  e.symmₗ R b (e.linear_map_at R b y) = y :=
-by { rw [e.linear_map_at_def_of_mem hb], exact (e.linear_equiv_at R b hb).left_inv y }
+  (hb : b ∈ e.base_set) (y : E b) : e.symmₗ R b (e.linear_map_at R b y) = y :=
+(e.linear_equiv_at R b hb).left_inv y
 
 lemma linear_map_at_symmₗ (e : pretrivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∈ e.base_set) (y : F) :
-  e.linear_map_at R b (e.symmₗ R b y) = y :=
-by { rw [e.linear_map_at_def_of_mem hb], exact (e.linear_equiv_at R b hb).right_inv y }
+  (hb : b ∈ e.base_set) (y : F) : e.linear_map_at R b (e.symmₗ R b y) = y :=
+(e.linear_equiv_at R b hb).right_inv y
 
 end pretrivialization
 
-variables (R) [topological_space (total_space E)]
+variables (R) [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
 /-- A mixin class for `trivialization`, stating that a trivialization is fiberwise linear with
-respect to given module structures on its fibers and the model fiber. -/
-protected class trivialization.is_linear [add_comm_monoid F] [module R F]
-  [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : trivialization F (π E)) : Prop :=
-(linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
-(symm_eq_zero : ∀ (b ∉ e.base_set) (x : F), (e.to_local_equiv.symm (b, x)).2 = 0)
+respect to given module structures on its fibers and the model fiber.
+
+We require that the trivialization is a fiberwise continuous linear map even outside the base set
+(also for the inverse). This makes operations like `trivialization.symmL` and
+`trivialization.continuous_linear_map_at` simpler and easier to work with.
+This is not really an extra condition, since we can set the value of `e` fiberwise to `0` outside
+the base set. See `trivialization.of_linear_and_zero` for this result. -/
+protected class trivialization.is_linear (e : trivialization F (π E)) : Prop :=
+(linear : ∀ b, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
+(linear_symm : ∀ b, is_linear_map R (e.symm b))
+(continuous : ∀ b, continuous (λ x : E b, (e (total_space_mk b x)).2))
+(continuous_symm : ∀ b, _root_.continuous (e.symm b))
 
 namespace trivialization
 
 variables (e : trivialization F (π E)) {x : total_space E} {b : B} {y : E b}
 
-protected lemma linear [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)]
-  [∀ x, module R (E x)] [e.is_linear R] {b : B} (hb : b ∈ e.base_set) :
+protected lemma linear [e.is_linear R] (b : B) :
   is_linear_map R (λ y : E b, (e (total_space_mk b y)).2) :=
-trivialization.is_linear.linear b hb
+trivialization.is_linear.linear b
 
-lemma symm_eq_zero [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)]
-  [∀ x, module R (E x)] [e.is_linear R] {b : B} (hb : b ∉ e.base_set) (x : F) :
-  (e.to_local_equiv.symm (b, x)).2 = 0 :=
-trivialization.is_linear.symm_eq_zero R b hb x
+lemma linear_symm [e.is_linear R] (b : B) : is_linear_map R (e.symm b) :=
+trivialization.is_linear.linear_symm b
 
-instance to_pretrivialization.is_linear [add_comm_monoid F] [module R F]
-  [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] [e.is_linear R] :
-  e.to_pretrivialization.is_linear R :=
+protected lemma continuous [e.is_linear R] (b : B) :
+  continuous (λ y : E b, (e (total_space_mk b y)).2) :=
+trivialization.is_linear.continuous R b
+
+lemma continuous_symm [e.is_linear R] (b : B) : continuous (e.symm b) :=
+trivialization.is_linear.continuous_symm R b
+
+instance to_pretrivialization.is_linear [e.is_linear R] : e.to_pretrivialization.is_linear R :=
 { ..(‹_› : e.is_linear R) }
-
-
-lemma symm_eq_zero' [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)]
-  [∀ x, module R (E x)] [e.is_linear R] {b : B} (hb : b ∉ e.base_set) :
-  e.symm b = 0 :=
-e.to_pretrivialization.symm_eq_zero' R hb
-
-variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 
 /-- A trivialization for a vector bundle defines linear equivalences between the
 fibers and the model space. -/
@@ -223,30 +198,9 @@ variables (R)
 protected def linear_map_at (e : trivialization F (π E)) [e.is_linear R] (b : B) : E b →ₗ[R] F :=
 e.to_pretrivialization.linear_map_at R b
 
-variables {R}
-
-lemma coe_linear_map_at (e : trivialization F (π E)) [e.is_linear R] (b : B) :
-  ⇑(e.linear_map_at R b) = λ y, if b ∈ e.base_set then (e (total_space_mk b y)).2 else 0 :=
-e.to_pretrivialization.coe_linear_map_at b
-
-lemma coe_linear_map_at_of_mem (e : trivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∈ e.base_set) :
-  ⇑(e.linear_map_at R b) = λ y, (e (total_space_mk b y)).2 :=
-by simp_rw [coe_linear_map_at, if_pos hb]
-
-lemma linear_map_at_apply (e : trivialization F (π E)) [e.is_linear R] {b : B} (y : E b) :
-  e.linear_map_at R b y = if b ∈ e.base_set then (e (total_space_mk b y)).2 else 0 :=
-by rw [coe_linear_map_at]
-
-lemma linear_map_at_def_of_mem (e : trivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∈ e.base_set) :
-  e.linear_map_at R b = e.linear_equiv_at R b hb :=
-dif_pos hb
-
-lemma linear_map_at_def_of_not_mem (e : trivialization F (π E)) [e.is_linear R] {b : B}
-  (hb : b ∉ e.base_set) :
-  e.linear_map_at R b = 0 :=
-dif_neg hb
+lemma linear_map_at_apply (e : trivialization F (π E)) [e.is_linear R] (b : B) (y : E b) :
+  e.linear_map_at R b y = (e (total_space_mk b y)).2 :=
+rfl
 
 lemma symmₗ_linear_map_at (e : trivialization F (π E)) [e.is_linear R] {b : B} (hb : b ∈ e.base_set)
   (y : E b) :
@@ -257,8 +211,6 @@ lemma linear_map_at_symmₗ (e : trivialization F (π E)) [e.is_linear R] {b : B
   (y : F) :
   e.linear_map_at R b (e.symmₗ R b y) = y :=
 e.to_pretrivialization.linear_map_at_symmₗ hb y
-
-variables (R)
 
 /-- A coordinate change function between two trivializations, as a continuous linear equivalence.
   Defined to be the identity when `b` does not lie in the base set of both trivializations. -/
@@ -341,58 +293,7 @@ lemma coord_changeL_symm_apply (e e' : trivialization F (π E)) [e.is_linear R] 
   = (e'.linear_equiv_at R b hb.2).symm.trans (e.linear_equiv_at R b hb.1) :=
 congr_arg linear_equiv.inv_fun (dif_pos hb)
 
-end trivialization
-
-end topological_vector_space
-
-section
-
-namespace bundle
-
-/-- The zero section of a vector bundle -/
-def zero_section [∀ x, has_zero (E x)] : B → total_space E :=
-λ x, total_space_mk x 0
-
-@[simp, mfld_simps]
-lemma zero_section_proj [∀ x, has_zero (E x)] (x : B) : (zero_section E x).proj = x := rfl
-@[simp, mfld_simps]
-lemma zero_section_snd [∀ x, has_zero (E x)] (x : B) : (zero_section E x).2 = 0 := rfl
-
-end bundle
-open bundle
-
-variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_add_comm_group F] [normed_space R F] [topological_space B]
-  [topological_space (total_space E)] [∀ x, topological_space (E x)] [fiber_bundle F E]
-
-/-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
-space) has a topological vector space structure with fiber `F` (denoted with
-`vector_bundle R F E`) if around every point there is a fiber bundle trivialization
-which is linear in the fibers. -/
-class vector_bundle : Prop :=
-(trivialization_linear' : ∀ (e : trivialization F (π E)) [mem_trivialization_atlas e],
-  e.is_linear R)
-(continuous_on_coord_change' [] : ∀ (e e' : trivialization F (π E)) [mem_trivialization_atlas e]
-  [mem_trivialization_atlas e'],
-  continuous_on
-  (λ b, by exactI trivialization.coord_changeL R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set))
-
-variables {F E}
-
-@[priority 100]
-instance trivialization_linear [vector_bundle R F E] (e : trivialization F (π E))
-  [mem_trivialization_atlas e] :
-  e.is_linear R :=
-vector_bundle.trivialization_linear' e
-
-lemma continuous_on_coord_change [vector_bundle R F E] (e e' : trivialization F (π E))
-  [he : mem_trivialization_atlas e]
-  [he' : mem_trivialization_atlas e'] :
-  continuous_on
-  (λ b, trivialization.coord_changeL R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set) :=
-vector_bundle.continuous_on_coord_change' R e e'
-
-namespace trivialization
+variables (R)
 
 /-- Forward map of `continuous_linear_equiv_at` (only propositionally equal),
   defined everywhere (`0` outside domain). -/
@@ -400,28 +301,14 @@ namespace trivialization
 def continuous_linear_map_at (e : trivialization F (π E)) [e.is_linear R] (b : B) :
   E b →L[R] F :=
 { to_fun := e.linear_map_at R b, -- given explicitly to help `simps`
-  cont := begin
-    dsimp,
-    rw [e.coe_linear_map_at b],
-    refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
-    exact continuous_snd.comp (e.continuous_on.comp_continuous
-      (fiber_bundle.total_space_mk_inducing F E b).continuous
-      (λ x, e.mem_source.mpr hb))
-  end,
+  cont := e.continuous R b,
   .. e.linear_map_at R b }
 
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/
 @[simps apply {fully_applied := ff}]
 def symmL (e : trivialization F (π E)) [e.is_linear R] (b : B) : F →L[R] E b :=
 { to_fun := e.symm b, -- given explicitly to help `simps`
-  cont := begin
-    by_cases hb : b ∈ e.base_set,
-    { rw (fiber_bundle.total_space_mk_inducing F E b).continuous_iff,
-      exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
-        (λ x, mk_mem_prod hb (mem_univ x)) },
-    { refine continuous_zero.congr (λ x, _),
-      rw [← e.symm_eq_zero' R hb] },
-  end,
+  cont := e.continuous_symm R b,
   .. e.symmₗ R b }
 
 variables {R}
@@ -429,12 +316,12 @@ variables {R}
 lemma symmL_continuous_linear_map_at (e : trivialization F (π E)) [e.is_linear R] {b : B}
   (hb : b ∈ e.base_set) (y : E b) :
   e.symmL R b (e.continuous_linear_map_at R b y) = y :=
-e.symmₗ_linear_map_at hb y
+e.symmₗ_linear_map_at R hb y
 
 lemma continuous_linear_map_at_symmL (e : trivialization F (π E)) [e.is_linear R] {b : B}
   (hb : b ∈ e.base_set) (y : F) :
   e.continuous_linear_map_at R b (e.symmL R b y) = y :=
-e.linear_map_at_symmₗ hb y
+e.linear_map_at_symmₗ R hb y
 
 variables (R)
 
@@ -445,10 +332,8 @@ def continuous_linear_equiv_at (e : trivialization F (π E)) [e.is_linear R] (b 
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
   inv_fun := e.symm b, -- given explicitly to help `simps`
-  continuous_to_fun := continuous_snd.comp (e.continuous_on.comp_continuous
-    (fiber_bundle.total_space_mk_inducing F E b).continuous
-    (λ x, e.mem_source.mpr hb)),
-  continuous_inv_fun := (e.symmL R b).continuous,
+  continuous_to_fun := e.continuous R b,
+  continuous_inv_fun := e.continuous_symm R b,
   .. e.to_pretrivialization.linear_equiv_at R b hb }
 
 variables {R}
@@ -456,7 +341,7 @@ variables {R}
 lemma coe_continuous_linear_equiv_at_eq (e : trivialization F (π E)) [e.is_linear R] {b : B}
   (hb : b ∈ e.base_set) :
   (e.continuous_linear_equiv_at R b hb : E b → F) = e.continuous_linear_map_at R b :=
-(e.coe_linear_map_at_of_mem hb).symm
+rfl
 
 lemma symm_continuous_linear_equiv_at_eq (e : trivialization F (π E)) [e.is_linear R] {b : B}
   (hb : b ∈ e.base_set) :
@@ -505,7 +390,71 @@ lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (
   = coord_changeL R e e' b :=
 by { ext v, rw [coord_changeL_apply e e' hb], refl }
 
+
+lemma of_linear_and_zero [fiber_bundle F E] (e : trivialization F (π E))
+  (h1 : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
+  (h2 : ∀ (b ∉ e.base_set) (x : E b), (e (total_space_mk b x)).2 = 0)
+  (h3 : ∀ (b ∉ e.base_set) (x : F), (e.to_local_homeomorph.symm (b, x)).2 = 0) : e.is_linear R :=
+have this : ∀ (x y : B) (p : x = y), cast (congr_arg E p) 0 = 0,
+by { intros x y p, induction p, refl },
+have h3 : ∀ (b ∉ e.base_set), e.symm b = 0,
+by { intros b hb, ext x, rw [e.symm_apply, h3 b hb, this, pi.zero_apply] },
+{ linear := λ b, by {
+    by_cases hb : b ∈ e.base_set,
+    { exact h1 b hb },
+    { simp_rw [h2 b hb], exact (0 : E b →ₗ[R] F).is_linear } },
+  linear_symm := λ b, by {
+    by_cases hb : b ∈ e.base_set,
+    { refine (((h1 b hb).mk' _).inverse (e.symm b) (e.symm_apply_apply_mk hb) _).is_linear,
+      exact λ x, congr_arg prod.snd (e.apply_mk_symm hb x) },
+    { simp_rw [h3 b hb], exact (0 : F →ₗ[R] E b).is_linear } },
+  continuous := λ b, by {
+    by_cases hb : b ∈ e.base_set,
+    { exact continuous_snd.comp (e.continuous_on.comp_continuous
+        (fiber_bundle.total_space_mk_inducing F E b).continuous
+        (λ x, e.mem_source.mpr hb)) },
+    { simp_rw [h2 b hb], exact continuous_const } },
+  continuous_symm := λ b, by {
+    by_cases hb : b ∈ e.base_set,
+    { rw (fiber_bundle.total_space_mk_inducing F E b).continuous_iff,
+      exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
+        (λ x, mk_mem_prod hb (mem_univ x)) },
+    { simp_rw [h3 b hb], exact continuous_zero } }, }
+
 end trivialization
+
+end topological_vector_space
+
+variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
+  [topological_space (total_space E)] [∀ x, topological_space (E x)] [fiber_bundle F E]
+
+/-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
+space) has a topological vector space structure with fiber `F` (denoted with
+`vector_bundle R F E`) if around every point there is a fiber bundle trivialization
+which is linear in the fibers. -/
+class vector_bundle : Prop :=
+(trivialization_linear' : ∀ (e : trivialization F (π E)) [mem_trivialization_atlas e],
+  e.is_linear R)
+(continuous_on_coord_change' [] : ∀ (e e' : trivialization F (π E)) [mem_trivialization_atlas e]
+  [mem_trivialization_atlas e'],
+  continuous_on
+  (λ b, by exactI trivialization.coord_changeL R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set))
+
+variables {F E}
+
+@[priority 100]
+instance trivialization_linear [vector_bundle R F E] (e : trivialization F (π E))
+  [mem_trivialization_atlas e] :
+  e.is_linear R :=
+vector_bundle.trivialization_linear' e
+
+lemma continuous_on_coord_change [vector_bundle R F E] (e e' : trivialization F (π E))
+  [he : mem_trivialization_atlas e]
+  [he' : mem_trivialization_atlas e'] :
+  continuous_on
+  (λ b, trivialization.coord_changeL R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set) :=
+vector_bundle.continuous_on_coord_change' R e e'
 
 include R F
 
@@ -524,7 +473,6 @@ structure vector_bundle_core (ι : Type*) :=
 (coord_change      : ι → ι → B → F →L[R] F)
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
 (continuous_on_coord_change : ∀ i j, continuous_on (coord_change i j) (base_set i ∩ base_set j))
-(coord_change_eq_zero : ∀ i j (b ∉ base_set i) (v : F), coord_change i j b v = 0)
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
@@ -539,7 +487,6 @@ def trivial_vector_bundle_core (ι : Type*) [inhabited ι] :
   coord_change := λ i j x, continuous_linear_map.id R F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
-  coord_change_eq_zero := λ i j b hb, hb.elim (mem_univ b),
   continuous_on_coord_change := λ i j, continuous_on_const }
 
 instance (ι : Type*) [inhabited ι] : inhabited (vector_bundle_core R B F ι) :=
@@ -609,6 +556,8 @@ that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space Z.total_space :=
 Z.to_fiber_bundle_core.to_topological_space
 
+instance fiber_bundle : fiber_bundle F Z.fiber := Z.to_fiber_bundle_core.fiber_bundle
+
 variables (b : B) (a : F)
 
 @[simp, mfld_simps] lemma coe_coord_change (i j : ι) :
@@ -621,10 +570,10 @@ by exact Z.to_fiber_bundle_core.local_triv i
 
 /-- The standard local trivializations of a vector bundle constructed from core are linear. -/
 instance local_triv.is_linear (i : ι) : (Z.local_triv i).is_linear R :=
-{ linear := λ x hx, by dsimp [vector_bundle_core.local_triv]; exact
-  { map_add := λ v w, by simp only [continuous_linear_map.map_add] with mfld_simps,
-    map_smul := λ r v, by simp only [continuous_linear_map.map_smul] with mfld_simps},
-  symm_eq_zero := λ b hb x, Z.coord_change_eq_zero _ _ _ hb _ }
+{ linear := λ x, (Z.coord_change (Z.index_at x) i x).is_linear,
+  linear_symm := sorry, -- λ x, (Z.coord_change (Z.index_at x) i x).is_linear,
+  continuous := λ x, (Z.coord_change (Z.index_at x) i x).continuous,
+  continuous_symm := λ x, sorry }
 
 variables (i j : ι)
 
@@ -680,8 +629,6 @@ Z.local_triv_at_apply _
 @[simp, mfld_simps] lemma mem_local_triv_at_base_set :
   b ∈ (Z.local_triv_at b).base_set :=
 fiber_bundle_core.mem_local_triv_at_base_set Z b
-
-instance fiber_bundle : fiber_bundle F Z.fiber := Z.to_fiber_bundle_core.fiber_bundle
 
 instance vector_bundle : vector_bundle R F Z.fiber :=
 { trivialization_linear' := begin
@@ -741,29 +688,26 @@ structure vector_prebundle :=
 
 namespace vector_prebundle
 
-variables {R E F}
+variables {R E F} (a : vector_prebundle R F E) {e e' : pretrivialization F (π E)}
+
 
 /-- A randomly chosen coordinate change on a `vector_prebundle`, given by
   the field `exists_coord_change`. -/
-def coord_change (a : vector_prebundle R F E)
-  {e e' : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas)
+def coord_change (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) (b : B) : F →L[R] F :=
 classical.some (a.exists_coord_change e he e' he') b
 
-lemma continuous_on_coord_change (a : vector_prebundle R F E)
-  {e e' : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas)
+lemma continuous_on_coord_change (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) :
   continuous_on (a.coord_change he he') (e.base_set ∩ e'.base_set) :=
 (classical.some_spec (a.exists_coord_change e he e' he')).1
 
-lemma coord_change_apply (a : vector_prebundle R F E)
-  {e e' : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas)
+lemma coord_change_apply (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
   a.coord_change he he' b v = (e' (total_space_mk b (e.symm b v))).2 :=
 (classical.some_spec (a.exists_coord_change e he e' he')).2 b hb v
 
-lemma mk_coord_change (a : vector_prebundle R F E)
-  {e e' : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas)
+lemma mk_coord_change (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
   (b, a.coord_change he he' b v) = e' (total_space_mk b (e.symm b v)) :=
 begin
@@ -773,8 +717,7 @@ begin
 end
 
 /-- Natural identification of `vector_prebundle` as a `fiber_prebundle`. -/
-def to_fiber_prebundle (a : vector_prebundle R F E) :
-  fiber_prebundle F E :=
+def to_fiber_prebundle : fiber_prebundle F E :=
 { continuous_triv_change := begin
     intros e he e' he',
     have := is_bounded_bilinear_map_apply.continuous.comp_continuous_on
@@ -795,9 +738,12 @@ def to_fiber_prebundle (a : vector_prebundle R F E) :
   .. a }
 
 /-- Topology on the total space that will make the prebundle into a bundle. -/
-def total_space_topology (a : vector_prebundle R F E) :
-  topological_space (total_space E) :=
+def total_space_topology : topological_space (total_space E) :=
 a.to_fiber_prebundle.total_space_topology
+
+/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
+def fiber_topology (b : B) : topological_space (E b) :=
+a.to_fiber_prebundle.fiber_topology b
 
 /-- Promotion from a `trivialization` in the `pretrivialization_atlas` of a
 `vector_prebundle` to a `trivialization`. -/
@@ -808,12 +754,13 @@ a.to_fiber_prebundle.trivialization_of_mem_pretrivialization_atlas he
 
 lemma linear_of_mem_pretrivialization_atlas (a : vector_prebundle R F E)
   {e : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas) :
-  @trivialization.is_linear R B F _ _ _ _ a.total_space_topology _ _ _ _
+  @trivialization.is_linear R B F _ _ _ _ _ _ _ _ a.total_space_topology a.fiber_topology
     (trivialization_of_mem_pretrivialization_atlas a he) :=
 { linear := (a.pretrivialization_linear' e he).linear,
-  symm_eq_zero := (a.pretrivialization_linear' e he).symm_eq_zero }
+  linear_symm := (a.pretrivialization_linear' e he).linear_symm,
+  continuous := λ b, sorry,
+  continuous_symm := sorry }
 
-variable (a : vector_prebundle R F E)
 
 lemma mem_trivialization_at_source (b : B) (x : E b) :
   total_space_mk b x ∈ (a.pretrivialization_at b).source :=
@@ -822,10 +769,6 @@ a.to_fiber_prebundle.mem_trivialization_at_source b x
 @[simp] lemma total_space_mk_preimage_source (b : B) :
   (total_space_mk b) ⁻¹' (a.pretrivialization_at b).source = univ :=
 a.to_fiber_prebundle.total_space_mk_preimage_source b
-
-/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
-def fiber_topology (b : B) : topological_space (E b) :=
-a.to_fiber_prebundle.fiber_topology b
 
 @[continuity] lemma inducing_total_space_mk (b : B) :
   @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=

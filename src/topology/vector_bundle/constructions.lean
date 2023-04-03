@@ -37,8 +37,10 @@ variables (𝕜 : Type*) (B : Type*) (F : Type*)
   [nontrivially_normed_field 𝕜] [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
 
 instance trivialization.is_linear : (trivialization B F).is_linear 𝕜 :=
-{ linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩,
-  symm_eq_zero := λ b hb, hb.elim (mem_univ b) }
+{ linear := λ x, ⟨λ y z, rfl, λ c y, rfl⟩,
+  linear_symm := λ x, ⟨λ y z, rfl, λ c y, rfl⟩,
+  continuous := λ x, continuous_id,
+  continuous_symm := λ x, by convert continuous_id }
 
 variables {𝕜}
 
@@ -81,11 +83,15 @@ namespace trivialization
 variables {F₁ E₁ F₂ E₂}
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
+  [∀ x, topological_space (E₁ x)] [∀ x, topological_space (E₂ x)]
   (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
 
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
-{ linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear,
-  symm_eq_zero := sorry }
+{ linear := λ x, ((e₁.linear_map_at 𝕜 x).prod_map (e₂.linear_map_at 𝕜 x)).is_linear,
+  linear_symm := λ x, by convert ((e₁.symmₗ 𝕜 x).prod_map (e₂.symmₗ 𝕜 x)).is_linear,
+  continuous := λ x,
+    ((e₁.continuous_linear_map_at 𝕜 x).prod_map (e₂.continuous_linear_map_at 𝕜 x)).continuous,
+  continuous_symm := λ x, by convert ((e₁.symmL 𝕜 x).prod_map (e₂.symmL 𝕜 x)).continuous }
 
 @[simp]
 lemma coord_changeL_prod [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜] ⦃b⦄
@@ -163,23 +169,36 @@ end
 /-! ### Pullbacks of vector bundles -/
 
 section
-variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*) {B' : Type*} (f : B' → B)
+variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*) {B' : Type*}
 
-instance [∀ (x : B), add_comm_monoid (E x)] : ∀ (x : B'), add_comm_monoid ((f *ᵖ E) x) :=
+instance [∀ (x : B), add_comm_monoid (E x)] (f : B' → B) :
+  ∀ (x : B'), add_comm_monoid ((f *ᵖ E) x) :=
 by delta_instance bundle.pullback
-instance [semiring R] [∀ (x : B), add_comm_monoid (E x)] [∀ x, module R (E x)] :
+instance [semiring R] [∀ (x : B), add_comm_monoid (E x)] [∀ x, module R (E x)] (f : B' → B) :
   ∀ (x : B'), module R ((f *ᵖ E) x) :=
 by delta_instance bundle.pullback
 
 variables {E F} [topological_space B'] [topological_space (total_space E)]
   [nontrivially_normed_field 𝕜] [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
-  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
-  {K : Type*} [continuous_map_class K B' B]
+  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)] [∀ x, topological_space (E x)]
+  {K : Type*} [continuous_map_class K B' B] (f : K)
+
+lemma trivialization.pullback_symm (e : trivialization F (π E)) (x : B') :
+  (e.pullback f).symm x = e.symm (f x) :=
+begin
+  ext y,
+  simp_rw [trivialization.symm_apply],
+  change cast _ (e.symm (f x) y) = cast _ ((e.to_local_homeomorph.symm (f x, y)).2),
+  simp_rw [trivialization.symm_apply, cast_cast],
+  refl,
+end
 
 instance trivialization.pullback_linear (e : trivialization F (π E)) [e.is_linear 𝕜] (f : K) :
   (@trivialization.pullback _ _ _ B' _ _ _ _ _ _ _ e f).is_linear 𝕜 :=
-{ linear := λ x h, e.linear 𝕜 h,
-  symm_eq_zero := λ b hb x, congr_fun (e.symm_eq_zero' 𝕜 hb) x }
+{ linear := λ x, e.linear 𝕜 (f x),
+  linear_symm := λ x, by { rw [e.pullback_symm f], exact e.linear_symm 𝕜 (f x) },
+  continuous := λ x, e.continuous 𝕜 (f x),
+  continuous_symm := λ x, by { rw [e.pullback_symm f], exact e.continuous_symm 𝕜 (f x) } }
 
 instance vector_bundle.pullback [∀ x, topological_space (E x)]
   [fiber_bundle F E] [vector_bundle 𝕜 F E] (f : K) : vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=

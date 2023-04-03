@@ -93,6 +93,7 @@ variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
   [topological_space (total_space E₂)]
 
 variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
+  [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
 
 namespace pretrivialization
 
@@ -110,8 +111,8 @@ def continuous_linear_map_coord_change
   (F₁ →SL[σ] F₂) ≃L[𝕜₂] F₁ →SL[σ] F₂)
 
 variables {σ e₁ e₁' e₂ e₂'}
-variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
-variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂]
+variables [fiber_bundle F₁ E₁]
+variables [fiber_bundle F₂ E₂]
 
 lemma continuous_on_continuous_linear_map_coord_change
   [vector_bundle 𝕜₁ F₁ E₁] [vector_bundle 𝕜₂ F₂ E₂]
@@ -174,7 +175,7 @@ def continuous_linear_map :
 instance continuous_linear_map.is_linear
   [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)] :
   (pretrivialization.continuous_linear_map σ e₁ e₂).is_linear 𝕜₂ :=
-{ linear := λ x h,
+{ linear := λ x,
   { map_add := λ L L',
     show (e₂.continuous_linear_map_at 𝕜₂ x).comp ((L + L').comp (e₁.symmL 𝕜₁ x)) = _,
     begin
@@ -187,7 +188,7 @@ instance continuous_linear_map.is_linear
       simp_rw [smul_comp, comp_smulₛₗ, ring_hom.id_apply],
       refl
     end, },
-  symm_eq_zero := sorry }
+  linear_symm := sorry, }
 
 lemma continuous_linear_map_apply
   (p : total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :
@@ -221,8 +222,8 @@ begin
     comp_apply, continuous_linear_equiv.coe_coe, continuous_linear_equiv.symm_symm,
     trivialization.continuous_linear_map_at_apply, trivialization.symmL_apply],
   dsimp only [total_space_mk],
-  rw [e₂.coord_changeL_apply e₂', e₁'.coord_changeL_apply e₁, e₁.coe_linear_map_at_of_mem hb.1.1,
-    e₂'.coe_linear_map_at_of_mem hb.2.2],
+  rw [e₂.coord_changeL_apply e₂', e₁'.coord_changeL_apply e₁, e₁.linear_map_at_apply 𝕜₁,
+    e₂'.linear_map_at_apply 𝕜₂],
   exacts [⟨hb.2.1, hb.1.1⟩, ⟨hb.1.2, hb.2.2⟩]
 end
 

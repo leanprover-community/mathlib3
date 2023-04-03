@@ -18,6 +18,9 @@ import data.fintype.big_operators
 /-!
 # Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines basic properties of matrices.
 
 Matrices with rows indexed by `m`, columns indexed by `n`, and entries of type `α` are represented

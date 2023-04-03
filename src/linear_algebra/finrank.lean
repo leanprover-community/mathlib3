@@ -133,6 +133,15 @@ module over itself. -/
 @[simp] lemma finrank_self : finrank K K = 1 :=
 finrank_eq_of_dim_eq (by simp)
 
+/-- The vector space of functions on a fintype ι has finrank equal to the cardinality of ι. -/
+@[simp] lemma finrank_fintype_fun_eq_card {ι : Type v} [fintype ι] :
+  finrank K (ι → K) = fintype.card ι :=
+finrank_eq_of_dim_eq dim_fun'
+
+/-- The vector space of functions on `fin n` has finrank equal to `n`. -/
+@[simp] lemma finrank_fin_fun {n : ℕ} : finrank K (fin n → K) = n :=
+by simp
+
 end
 
 end ring

@@ -464,7 +464,7 @@ open mul_opposite
 
 @[to_additive]
 instance [has_inv α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
-⟨continuous_induced_rng $ (@continuous_inv α _ _ _).comp continuous_unop⟩
+⟨continuous_induced_rng.2 $ (@continuous_inv α _ _ _).comp continuous_unop⟩
 
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
 @[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]
@@ -1075,27 +1075,11 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.t3_space [t0_space G] : t3_space G :=
-⟨assume s a hs ha,
- let f := λ p : G × G, p.1 * (p.2)⁻¹ in
- have hf : continuous f := continuous_fst.mul continuous_snd.inv,
- -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
- -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
- let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
-   is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
- begin
-   use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   rw [nhds_within, inf_principal_eq_bot, mem_nhds_iff],
-   refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
-   rintros x hx ⟨y, z, hy, hz, yz⟩,
-   have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
-   have : x * z⁻¹ ∈ s, rw ← yz, simpa,
-   contradiction
- end⟩
+lemma topological_group.t3_space [t0_space G] : t3_space G := ⟨⟩
 
 @[to_additive]
 lemma topological_group.t2_space [t0_space G] : t2_space G :=
-@t3_space.t2_space G _ (topological_group.t3_space G)
+by { haveI := topological_group.t3_space G, apply_instance }
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 

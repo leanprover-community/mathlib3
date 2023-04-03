@@ -74,19 +74,19 @@ include m_fin
 
 lemma rank_eq_finrank_range_to_lin
   {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂]
-  [module K M₁] [module K M₂] (A : matrix m n K) (v₁ : basis m K M₁) (v₂ : basis n K M₂) :
-  A.rank = finrank K (to_lin v₂ v₁ A).range :=
+  [module R M₁] [module R M₂] (A : matrix m n R) (v₁ : basis m R M₁) (v₂ : basis n R M₂) :
+  A.rank = finrank R (to_lin v₂ v₁ A).range :=
 begin
-  let e₁ := (pi.basis_fun K m).equiv v₁ (equiv.refl _),
-  let e₂ := (pi.basis_fun K n).equiv v₂ (equiv.refl _),
-  have range_e₂ : (e₂ : (n → K) →ₗ[K] M₂).range = ⊤,
+  let e₁ := (pi.basis_fun R m).equiv v₁ (equiv.refl _),
+  let e₂ := (pi.basis_fun R n).equiv v₂ (equiv.refl _),
+  have range_e₂ : (e₂ : (n → R) →ₗ[R] M₂).range = ⊤,
   { rw linear_map.range_eq_top, exact e₂.surjective },
   refine linear_equiv.finrank_eq (e₁.of_submodules _ _ _),
   rw [← linear_map.range_comp, ← linear_map.range_comp_of_range_eq_top (to_lin v₂ v₁ A) range_e₂],
   congr' 1,
   apply linear_map.pi_ext', rintro i, apply linear_map.ext_ring,
-  have aux₁ := to_lin_self (pi.basis_fun K n) (pi.basis_fun K m) A i,
-  have aux₂ := basis.equiv_apply (pi.basis_fun K n) i v₂,
+  have aux₁ := to_lin_self (pi.basis_fun R n) (pi.basis_fun R m) A i,
+  have aux₂ := basis.equiv_apply (pi.basis_fun R n) i v₂,
   rw [to_lin_eq_to_lin'] at aux₁,
   rw [pi.basis_fun_apply, linear_map.coe_std_basis] at aux₁ aux₂,
   simp only [linear_map.comp_apply, e₁, e₂, linear_equiv.coe_coe, equiv.refl_apply, aux₁, aux₂,

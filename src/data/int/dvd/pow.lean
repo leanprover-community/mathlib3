@@ -29,6 +29,6 @@ lemma pow_dvd_of_le_of_pow_dvd {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : �
 (pow_dvd_pow _ hmn).nat_cast.trans hdiv
 
 lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
-by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+(dvd_pow_self _ $ pos_iff_ne_zero.1 hk).nat_cast.trans hpk
 
 end int

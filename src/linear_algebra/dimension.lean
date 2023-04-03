@@ -1005,9 +1005,10 @@ variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)] [∀i, module.fr
 
 open linear_map
 
-lemma dim_pi [nontrivial K] [finite η] :
+lemma dim_pi [finite η] :
   module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
+  haveI := nontrivial_of_invariant_basis_number K,
   casesI nonempty_fintype η,
   let b := λ i, (module.free.exists_basis K (φ i)).some.2,
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
@@ -1018,20 +1019,20 @@ end
 
 variable [fintype η]
 
-lemma dim_fun {V η : Type u} [nontrivial K] [fintype η] [add_comm_group V] [module K V]
+lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V]
   [module.free K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
 by rw [dim_pi, cardinal.sum_const', cardinal.mk_fintype]
 
-lemma dim_fun_eq_lift_mul [nontrivial K] :
+lemma dim_fun_eq_lift_mul :
   module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
     cardinal.lift.{u₁'} (module.rank K V) :=
 by rw [dim_pi, cardinal.sum_const, cardinal.mk_fintype, cardinal.lift_nat_cast]
 
-lemma dim_fun' [nontrivial K] : module.rank K (η → K) = fintype.card η :=
+lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
 
-lemma dim_fin_fun [nontrivial K] (n : ℕ) : module.rank K (fin n → K) = n :=
+lemma dim_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
 by simp [dim_fun']
 
 end fintype
@@ -1053,7 +1054,7 @@ begin
     by simp,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,
-  rw ←@dim_fin_fun K _ _ _ n at hn,
+  rw ←@dim_fin_fun K _ _ n at hn,
   haveI : module.free K (fin n → K) := module.free.pi _ _,
   exact classical.choice (nonempty_linear_equiv_of_lift_dim_eq hn),
 end

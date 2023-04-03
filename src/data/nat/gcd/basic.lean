@@ -266,7 +266,8 @@ dvd_antisymm
 theorem lcm_ne_zero {m n : ℕ} (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 :=
 by { intro h, simpa [h, hm, hn] using gcd_mul_lcm m n, }
 
-lemma lcm_pos : 0 < m → 0 < n → 0 < m.lcm n := by { simp_rw pos_iff_ne_zero, exact lcm_ne_zero }
+lemma lcm_pos {m n : ℕ} : 0 < m → 0 < n → 0 < m.lcm n :=
+by { simp_rw pos_iff_ne_zero, exact lcm_ne_zero }
 
 /-!
 ### `coprime`

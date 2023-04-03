@@ -421,13 +421,6 @@ begin
   { exact not_lt.2 (le_mul_of_pos_right hk) h2 },
 end
 
-lemma le_of_lt_add_of_dvd (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
-begin
-  rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
-  rw ←mul_add_one at h,
-  exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
-end
-
 /--  If `m` and `n` are equal mod `k`, `m - n` is zero mod `k`. -/
 lemma sub_mod_eq_zero_of_mod_eq (h : m % k = n % k) : (m - n) % k = 0 :=
 by rw [←nat.mod_add_div m k, ←nat.mod_add_div n k, ←h, tsub_add_eq_tsub_tsub, add_tsub_cancel_left,

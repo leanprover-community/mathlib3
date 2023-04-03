@@ -54,19 +54,11 @@ eq_one_of_mul_eq_one_right H (by rw [mul_comm, H'])
 
 lemma of_nat_dvd_of_dvd_nat_abs {a : ℕ} : ∀ {z : ℤ} (haz : a ∣ z.nat_abs), ↑a ∣ z
 | (int.of_nat _) haz := int.coe_nat_dvd.2 haz
-| -[1+k] haz :=
-  begin
-    change ↑a ∣ -(k+1 : ℤ),
-    apply dvd_neg_of_dvd,
-    apply int.coe_nat_dvd.2,
-    exact haz
-  end
+| -[1+k] haz := (int.coe_nat_dvd.2 haz).neg_right
 
 lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a ∣ z.nat_abs
 | (int.of_nat _) haz := int.coe_nat_dvd.1 (int.dvd_nat_abs.2 haz)
-| -[1+k] haz :=
-  have haz' : (↑a:ℤ) ∣ (↑(k+1):ℤ), from dvd_of_dvd_neg haz,
-  int.coe_nat_dvd.1 haz'
+| -[1+k] haz := by { change ↑a ∣ -↑(k + 1) at haz, exact int.coe_nat_dvd.1 haz.of_neg_right }
 
 theorem dvd_antisymm {a b : ℤ} (H1 : 0 ≤ a) (H2 : 0 ≤ b) : a ∣ b → b ∣ a → a = b :=
 begin

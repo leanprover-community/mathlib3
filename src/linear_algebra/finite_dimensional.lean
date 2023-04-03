@@ -1027,13 +1027,6 @@ lemma ker_eq_bot_iff_range_eq_top_of_finrank_eq_finrank [finite_dimensional K V]
   f.ker = ⊥ ↔ f.range = ⊤ :=
 by rw [range_eq_top, ker_eq_bot, injective_iff_surjective_of_finrank_eq_finrank H]
 
-theorem finrank_le_finrank_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
-  {f : V →ₗ[K] V₂} (hf : function.injective f) : finrank K V ≤ finrank K V₂ :=
-calc  finrank K V
-    = finrank K f.range + finrank K f.ker : (finrank_range_add_finrank_ker f).symm
-... = finrank K f.range : by rw [ker_eq_bot.2 hf, finrank_bot, add_zero]
-... ≤ finrank K V₂ : submodule.finrank_le _
-
 /-- Given a linear map `f` between two vector spaces with the same dimension, if
 `ker f = ⊥` then `linear_equiv_of_injective` is the induced isomorphism
 between the two vector spaces. -/

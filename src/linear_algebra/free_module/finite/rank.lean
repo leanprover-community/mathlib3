@@ -47,6 +47,12 @@ end
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_aleph_0 (rank_lt_aleph_0 R M)] }
 
+lemma _root_.linear_map.finrank_le_finrank_of_injective
+  {f : M →ₗ[R] N} (hf : function.injective f) : finrank R M ≤ finrank R N :=
+by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
+  ((lift_strict_mono.{w v} (rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
+  (linear_map.lift_dim_le_of_injective _ hf)
+
 /-- The finrank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma finrank_eq_card_choose_basis_index : finrank R M = @card (choose_basis_index R M)
   (@choose_basis_index.fintype R M _ _ _ _ (nontrivial_of_invariant_basis_number R) _) :=

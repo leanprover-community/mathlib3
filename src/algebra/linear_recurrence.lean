@@ -167,15 +167,20 @@ def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
 
 end comm_semiring
 
-section field
+section strong_rank_condition
 
-variables {α : Type*} [field α] (E : linear_recurrence α)
+-- note: `strong_rank_condition` is the same as `nontrivial` on `comm_ring`s, but that result,
+-- `comm_ring_strong_rank_condition`, is in a much later file.
+variables {α : Type*} [comm_ring α] [strong_rank_condition α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
 lemma sol_space_dim : module.rank α E.sol_space = E.order :=
-@dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
+begin
+  letI := nontrivial_of_invariant_basis_number α,
+  exact @dim_fin_fun α _ _ _ E.order ▸ E.to_init.dim_eq
+end
 
-end field
+end strong_rank_condition
 
 section comm_ring
 

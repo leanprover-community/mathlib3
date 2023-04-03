@@ -36,14 +36,14 @@ open_locale big_operators
 
 universes u v w w₁ w₁' w₂ w₃ w₄
 variables {R : Type u} {ι : Type v} {n : ℕ} {M : fin n.succ → Type w} {M₁ : ι → Type w₁}
-  {M₁' : ι → Type w₁'} {M₂ : Type w₂} {M₃ : Type w₃} {M₄ : Type w₄} [decidable_eq ι]
+  {M₁' : ι → Type w₁'} {M₂ : Type w₂} {M₃ : Type w₃} {M₄ : Type w₄}
 
 /-- Continuous multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂`
 are modules over `R` with a topological structure. In applications, there will be compatibility
 conditions between the algebraic and the topological structures, but this is not needed for the
 definition. -/
 structure continuous_multilinear_map (R : Type u) {ι : Type v} (M₁ : ι → Type w₁) (M₂ : Type w₂)
-  [decidable_eq ι] [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
   [∀i, module R (M₁ i)] [module R M₂] [∀i, topological_space (M₁ i)] [topological_space M₂]
   extends multilinear_map R M₁ M₂ :=
 (cont : continuous to_fun)
@@ -88,11 +88,11 @@ to_multilinear_map_inj $ multilinear_map.ext H
 theorem ext_iff {f f' : continuous_multilinear_map R M₁ M₂} : f = f' ↔ ∀ x, f x = f' x :=
 by rw [← to_multilinear_map_inj.eq_iff, multilinear_map.ext_iff]; refl
 
-@[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+@[simp] lemma map_add [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
 
-@[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+@[simp] lemma map_smul [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
   f (update m i (c • x)) = c • f (update m i x) :=
 f.map_smul' m i c x
 
@@ -174,7 +174,7 @@ end has_continuous_add
 /-- If `f` is a continuous multilinear map, then `f.to_continuous_linear_map m i` is the continuous
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the
 `i`-th coordinate. -/
-def to_continuous_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →L[R] M₂ :=
+def to_continuous_linear_map [decidable_eq ι] (m : Πi, M₁ i) (i : ι) : M₁ i →L[R] M₂ :=
 { cont := f.cont.comp (continuous_const.update i continuous_id),
   .. f.to_multilinear_map.to_linear_map m i }
 
@@ -208,6 +208,26 @@ lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   pi f m j = f j m :=
 rfl
 
+section
+variables (R M₂)
+
+/-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
+-/
+@[simps to_multilinear_map apply]
+def of_subsingleton [subsingleton ι] (i' : ι) : continuous_multilinear_map R (λ _ : ι, M₂) M₂ :=
+{ to_multilinear_map := multilinear_map.of_subsingleton R _ i',
+  cont := continuous_apply _ }
+
+variables (M₁) {M₂}
+
+/-- The constant map is multilinear when `ι` is empty. -/
+@[simps to_multilinear_map apply]
+def const_of_is_empty [is_empty ι] (m : M₂) : continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := multilinear_map.const_of_is_empty R _ m,
+  cont := continuous_const }
+
+end
+
 /-- If `g` is continuous multilinear and `f` is a collection of continuous linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous multilinear map, that we call
 `g.comp_continuous_linear_map f`. -/
@@ -236,7 +256,6 @@ def _root_.continuous_linear_map.comp_continuous_multilinear_map
   (g : M₂ → M₃) ∘ (f : (Πi, M₁ i) → M₂) :=
 by { ext m, refl }
 
-
 /-- `continuous_multilinear_map.pi` as an `equiv`. -/
 @[simps]
 def pi_equiv {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
@@ -263,13 +282,13 @@ lemma cons_smul
   f (cons (c • x) m) = c • f (cons x m) :=
 f.to_multilinear_map.cons_smul m c x
 
-lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
+lemma map_piecewise_add [decidable_eq ι] (m m' : Πi, M₁ i) (t : finset ι) :
   f (t.piecewise (m + m') m') = ∑ s in t.powerset, f (s.piecewise m m') :=
 f.to_multilinear_map.map_piecewise_add _ _ _
 
 /-- Additivity of a continuous multilinear map along all coordinates at the same time,
 writing `f (m + m')` as the sum  of `f (s.piecewise m m')` over all sets `s`. -/
-lemma map_add_univ [fintype ι] (m m' : Πi, M₁ i) :
+lemma map_add_univ [decidable_eq ι] [fintype ι] (m m' : Πi, M₁ i) :
   f (m + m') = ∑ s : finset ι, f (s.piecewise m m') :=
 f.to_multilinear_map.map_add_univ _ _
 
@@ -284,14 +303,14 @@ sum of `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions wit
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. -/
 
-lemma map_sum_finset  :
+lemma map_sum_finset [decidable_eq ι] :
   f (λ i, ∑ j in A i, g i j) = ∑ r in pi_finset A, f (λ i, g i (r i)) :=
 f.to_multilinear_map.map_sum_finset _ _
 
 /-- If `f` is continuous multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
-lemma map_sum [∀ i, fintype (α i)] :
+lemma map_sum [decidable_eq ι] [∀ i, fintype (α i)] :
   f (λ i, ∑ j, g i j) = ∑ r : Π i, α i, f (λ i, g i (r i)) :=
 f.to_multilinear_map.map_sum _
 
@@ -322,7 +341,7 @@ variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
 [∀i, module R (M₁ i)] [module R M₂] [∀i, topological_space (M₁ i)] [topological_space M₂]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
-@[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+@[simp] lemma map_sub [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
 f.to_multilinear_map.map_sub _ _ _ _
 
@@ -355,7 +374,7 @@ variables [comm_semiring R]
 [∀i, topological_space (M₁ i)] [topological_space M₂]
 (f : continuous_multilinear_map R M₁ M₂)
 
-lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
+lemma map_piecewise_smul [decidable_eq ι] (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
   f (s.piecewise (λ i, c i • m i) m) = (∏ i in s, c i) • f m :=
 f.to_multilinear_map.map_piecewise_smul _ _ _
 

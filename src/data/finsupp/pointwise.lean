@@ -9,6 +9,9 @@ import algebra.ring.pi
 /-!
 # The pointwise product on `finsupp`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For the convolution product on `finsupp` when the domain has a binary operation,
 see the type synonyms `add_monoid_algebra`
 (which is in turn used to define `polynomial` and `mv_polynomial`)

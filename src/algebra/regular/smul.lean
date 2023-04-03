@@ -9,6 +9,9 @@ import algebra.regular.basic
 /-!
 # Action of regular elements on a module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce `M`-regular elements, in the context of an `R`-module `M`.  The corresponding
 predicate is called `is_smul_regular`.
 

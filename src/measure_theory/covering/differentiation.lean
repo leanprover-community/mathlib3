@@ -13,8 +13,8 @@ import measure_theory.decomposition.lebesgue
 /-!
 # Differentiation of measures
 
-On a metric space with a measure `μ`, consider a Vitali family (i.e., for each `x` one has a family
-of sets shrinking to `x`, with a good behavior with respect to covering theorems).
+On a second countable metric space with a measure `μ`, consider a Vitali family (i.e., for each `x`
+one has a family of sets shrinking to `x`, with a good behavior with respect to covering theorems).
 Consider also another measure `ρ`. Then, for almost every `x`, the ratio `ρ a / μ a` converges when
 `a` shrinks to `x` along the Vitali family, towards the Radon-Nikodym derivative of `ρ` with
 respect to `μ`. This is the main theorem on differentiation of measures.
@@ -56,15 +56,26 @@ almost everywhere measurable, again based on the disjoint subcovering argument
 (see `vitali_family.exists_measurable_supersets_lim_ratio`), and then proceed as sketched above
 but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas ρ`.
 
+## Counterexample
+
+The standing assumption in this file is that spaces are second countable. Without this assumption,
+measures may be zero locally but nonzero globally, which is not compatible with differentiation
+theory (which deduces global information from local one). Here is an example displaying this
+behavior.
+
+Define a measure `μ` by `μ s = 0` if `s` is covered by countably many balls of radius `1`,
+and `μ s = ∞` otherwise. This is indeed a countably additive measure, which is moreover
+locally finite and doubling at small scales. It vanishes on every ball of radius `1`, so all the
+quantities in differentiation theory (defined as ratios of measures as the radius tends to zero)
+make no sense. However, the measure is not globally zero if the space is big enough.
+
 ## References
 
 * [Herbert Federer, Geometric Measure Theory, Chapter 2.9][Federer1996]
 -/
 
 open measure_theory metric set filter topological_space measure_theory.measure
-open_locale filter ennreal measure_theory nnreal topological_space
-
-local attribute [instance] emetric.second_countable_of_sigma_compact
+open_locale filter ennreal measure_theory nnreal topology
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
@@ -113,7 +124,7 @@ end
 
 /-- If two measures `ρ` and `ν` have, at every point of a set `s`, arbitrarily small sets in a
 Vitali family satisfying `ρ a ≤ ν a`, then `ρ s ≤ ν s` if `ρ ≪ μ`.-/
-theorem measure_le_of_frequently_le [sigma_compact_space α] [borel_space α]
+theorem measure_le_of_frequently_le [second_countable_topology α] [borel_space α]
   {ρ : measure α} (ν : measure α) [is_locally_finite_measure ν]
   (hρ : ρ ≪ μ) (s : set α) (hs : ∀ x ∈ s, ∃ᶠ a in v.filter_at x, ρ a ≤ ν a) :
   ρ s ≤ ν s :=
@@ -141,13 +152,13 @@ end
 
 section
 
-variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
   {ρ : measure α} [is_locally_finite_measure ρ]
 
 /-- If a measure `ρ` is singular with respect to `μ`, then for `μ` almost every `x`, the ratio
 `ρ a / μ a` tends to zero when `a` shrinks to `x` along the Vitali family. This makes sense
 as `μ a` is eventually positive by `ae_eventually_measure_pos`. -/
-lemma ae_eventually_measure_zero_of_singular (hρ : ρ ⊥ₘ μ) :
+lemma ae_eventually_measure_zero_of_singular (hρ : ρ ⟂ₘ μ) :
   ∀ᵐ x ∂μ, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 0) :=
 begin
   have A : ∀ ε > (0 : ℝ≥0), ∀ᵐ x ∂μ, ∀ᶠ a in v.filter_at x, ρ a < ε * μ a,
@@ -167,14 +178,14 @@ begin
       rw [ennreal.mul_inv_cancel (ennreal.coe_pos.2 εpos).ne' ennreal.coe_ne_top, one_mul],
     end
     ... ≤ ε⁻¹ * ρ (s ∩ o) : begin
-      apply ennreal.mul_le_mul le_rfl,
+      refine mul_le_mul_left' _ _,
       refine v.measure_le_of_frequently_le ρ ((measure.absolutely_continuous.refl μ).smul ε) _ _,
       assume x hx,
       rw hs at hx,
       simp only [mem_inter_iff, not_lt, not_eventually, mem_set_of_eq] at hx,
       exact hx.1
     end
-    ... ≤ ε⁻¹ * ρ o : ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_right _ _))
+    ... ≤ ε⁻¹ * ρ o : mul_le_mul_left' (measure_mono (inter_subset_right _ _)) _
     ... = 0 : by rw [ρo, mul_zero] },
   obtain ⟨u, u_anti, u_pos, u_lim⟩ :
     ∃ (u : ℕ → ℝ≥0), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
@@ -191,7 +202,7 @@ begin
   filter_upwards [hx n, h'x, v.eventually_measure_lt_top x],
   assume a ha μa_pos μa_lt_top,
   rw ennreal.div_lt_iff (or.inl μa_pos.ne') (or.inl μa_lt_top.ne),
-  exact ha.trans_le (ennreal.mul_le_mul ((ennreal.coe_le_coe.2 hn.le).trans w_lt.le) le_rfl)
+  exact ha.trans_le (mul_le_mul_right' ((ennreal.coe_le_coe.2 hn.le).trans w_lt.le) _)
 end
 
 section absolutely_continuous
@@ -442,7 +453,7 @@ begin
     ... ≤ p * μ (s ∩ t) + 0 :
       add_le_add H ((measure_mono (inter_subset_right _ _)).trans (hρ A).le)
     ... ≤ p * μ s :
-      by { rw add_zero, exact ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_left _ _)) },
+      by { rw add_zero, exact mul_le_mul_left' (measure_mono (inter_subset_left _ _)) _ },
   refine v.measure_le_of_frequently_le _ hρ _ (λ x hx, _),
   have I : ∀ᶠ (b : set α) in v.filter_at x, ρ b / μ b < p := (tendsto_order.1 hx.2).2 _ (h hx.1),
   apply I.frequently.mono (λ a ha, _),
@@ -466,7 +477,7 @@ begin
     ... ≤ ρ (s ∩ t) + q * μ tᶜ : begin
         apply add_le_add H,
         rw [coe_nnreal_smul_apply],
-        exact ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_right _ _)),
+        exact mul_le_mul_left' (measure_mono (inter_subset_right _ _)) _,
       end
     ... ≤ ρ s :
       by { rw [A, mul_zero, add_zero], exact measure_mono (inter_subset_left _ _) },
@@ -573,7 +584,7 @@ begin
         abel,
       end
     ... ≤ t^2 * ρ (s ∩ f ⁻¹' I) : begin
-        apply ennreal.mul_le_mul le_rfl _,
+        refine mul_le_mul_left' _ _,
         rw ← ennreal.coe_zpow (zero_lt_one.trans ht).ne',
         apply v.mul_measure_le_of_subset_lt_lim_ratio_meas hρ,
         assume x hx,
@@ -583,7 +594,7 @@ begin
         conv_rhs { rw ← mul_one (t^ n) },
         refine mul_lt_mul' le_rfl _ (zero_le _) (nnreal.zpow_pos t_ne_zero' _),
         rw zpow_neg_one,
-        exact nnreal.inv_lt_one ht,
+        exact inv_lt_one ht,
       end },
   calc ν s = ν (s ∩ f⁻¹' {0}) + ν (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), ν (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
     measure_eq_measure_preimage_add_measure_tsum_Ico_zpow ν f_meas hs ht
@@ -635,7 +646,7 @@ begin
     ... ≤ ∫⁻ x in s ∩ f⁻¹' I, t * f x ∂μ : begin
         apply lintegral_mono_ae ((ae_restrict_iff' M).2 (eventually_of_forall (λ x hx, _))),
         rw [add_comm, ennreal.zpow_add t_ne_zero ennreal.coe_ne_top, zpow_one],
-        exact ennreal.mul_le_mul le_rfl hx.2.1,
+        exact mul_le_mul_left' hx.2.1 _,
       end
     ... = t * ∫⁻ x in s ∩ f⁻¹' I, f x ∂μ : lintegral_const_mul _ f_meas },
   calc ρ s = ρ (s ∩ f⁻¹' {0}) + ρ (s ∩ f⁻¹' {∞}) + ∑' (n : ℤ), ρ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))) :
@@ -797,7 +808,7 @@ begin
   A minor technical inconvenience is that constants are not integrable, so to apply previous lemmas
   we need to replace `c` with the restriction of `c` to a finite measure set `A n` in the
   above sketch. -/
-  let A := measure_theory.measure.finite_spanning_sets_in_open μ,
+  let A := measure_theory.measure.finite_spanning_sets_in_open' μ,
   rcases h'f.is_separable_range with ⟨t, t_count, ht⟩,
   have main : ∀ᵐ x ∂μ, ∀ (n : ℕ) (c : E) (hc : c ∈ t),
     tendsto (λ a, (∫⁻ y in a, ‖f y - (A.set n).indicator (λ y, c) y‖₊ ∂μ) / μ a)

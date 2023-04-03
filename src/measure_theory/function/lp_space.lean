@@ -76,7 +76,7 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory filter
-open_locale nnreal ennreal big_operators topological_space measure_theory
+open_locale nnreal ennreal big_operators topology measure_theory
 
 variables {α E F G : Type*} {m m0 : measurable_space α} {p : ℝ≥0∞} {q : ℝ} {μ ν : measure α}
   [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]
@@ -1243,8 +1243,7 @@ begin
       swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
       refine lintegral_mono_ae _,
       filter_upwards [@ennreal.ae_le_ess_sup _ _ μ (λ x, ↑‖φ x‖₊)] with x hx,
-      refine ennreal.mul_le_mul _ le_rfl,
-      exact ennreal.rpow_le_rpow hx ennreal.to_real_nonneg,
+      exact mul_le_mul_right' (ennreal.rpow_le_rpow hx ennreal.to_real_nonneg) _
     end
   ... = ess_sup (λ x, ↑‖φ x‖₊) μ * (∫⁻ x, ↑‖f x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
     begin
@@ -1283,12 +1282,12 @@ begin
   { simp [hp_zero], },
   have hq_ne_zero : q ≠ 0,
   { intro hq_zero,
-    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, ennreal.top_add,
+    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, top_add,
       ennreal.inv_eq_top] at hpqr,
     exact hpqr, },
   have hr_ne_zero : r ≠ 0,
   { intro hr_zero,
-    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, ennreal.add_top,
+    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, add_top,
       ennreal.inv_eq_top] at hpqr,
     exact hpqr, },
   by_cases hq_top : q = ∞,
@@ -1324,6 +1323,16 @@ lemma mem_ℒp.smul {p q r : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
   mem_ℒp (φ • f) p μ :=
 ⟨hφ.1.smul hf.1, (snorm_smul_le_mul_snorm hf.1 hφ.1 hpqr).trans_lt
   (ennreal.mul_lt_top hφ.snorm_ne_top hf.snorm_ne_top)⟩
+
+lemma mem_ℒp.smul_of_top_right {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f p μ) (hφ : mem_ℒp φ ∞ μ) :
+  mem_ℒp (φ • f) p μ :=
+by { apply hf.smul hφ, simp only [ennreal.div_top, zero_add] }
+
+lemma mem_ℒp.smul_of_top_left {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f ∞ μ) (hφ : mem_ℒp φ p μ) :
+  mem_ℒp (φ • f) p μ :=
+by { apply hf.smul hφ, simp only [ennreal.div_top, add_zero] }
 
 end normed_space
 
@@ -1365,11 +1374,8 @@ end
 lemma mem_ℒp.of_le_mul {f : α → E} {g : α → F} {c : ℝ}
   (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) :
   mem_ℒp f p μ :=
-begin
-  simp only [mem_ℒp, hf, true_and],
-  apply lt_of_le_of_lt (snorm_le_mul_snorm_of_ae_le_mul hfg p),
-  simp [lt_top_iff_ne_top, hg.snorm_ne_top],
-end
+⟨hf, lt_of_le_of_lt (snorm_le_mul_snorm_of_ae_le_mul hfg p) $
+  ennreal.mul_lt_top ennreal.of_real_ne_top hg.snorm_ne_top⟩
 
 end monotonicity
 
@@ -1412,7 +1418,7 @@ end
 end is_R_or_C
 
 section inner_product
-variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E']
+variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E'] [inner_product_space 𝕜 E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
@@ -1672,17 +1678,13 @@ by rw [norm_def, norm_def, snorm_congr_ae (coe_fn_neg _), snorm_neg]
 lemma norm_le_mul_norm_of_ae_le_mul {c : ℝ} {f : Lp E p μ} {g : Lp F p μ}
   (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) : ‖f‖ ≤ c * ‖g‖ :=
 begin
-  by_cases pzero : p = 0,
-  { simp [pzero, norm_def] },
+  simp only [norm_def],
   cases le_or_lt 0 c with hc hc,
-  { have := snorm_le_mul_snorm_aux_of_nonneg h hc p,
-    rw [← ennreal.to_real_le_to_real, ennreal.to_real_mul, ennreal.to_real_of_real hc] at this,
-    { exact this },
+  { have := snorm_le_mul_snorm_of_ae_le_mul h p,
+    rwa [← ennreal.to_real_le_to_real, ennreal.to_real_mul, ennreal.to_real_of_real hc] at this,
     { exact (Lp.mem_ℒp _).snorm_ne_top },
-    { simp [(Lp.mem_ℒp _).snorm_ne_top] } },
+    { exact ennreal.mul_ne_top ennreal.of_real_ne_top (Lp.mem_ℒp _).snorm_ne_top } },
   { have := snorm_le_mul_snorm_aux_of_neg h hc p,
-    simp only [snorm_eq_zero_iff (Lp.ae_strongly_measurable _) pzero, ← eq_zero_iff_ae_eq_zero]
-      at this,
     simp [this] }
 end
 
@@ -1741,7 +1743,7 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
         rw [snorm_congr_ae (coe_fn_add _ _)],
         exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
       end,
-      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ ennreal.zero_lt_one.trans_le hp.1).1 } }
+      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ zero_lt_one.trans_le hp.1).1 } }
 
 -- check no diamond is created
 example [fact (1 ≤ p)] :
@@ -1819,7 +1821,7 @@ lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
 begin
   by_cases hμ0 : μ = 0,
   { rw [hμ0, snorm_ess_sup_measure_zero],
-    exact ennreal.coe_nonneg },
+    exact zero_le _ },
   { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
 end
 
@@ -2675,7 +2677,7 @@ begin
   have h_cau' : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) (p.to_real) μ < B N,
   { intros N n m hn hm,
     specialize h_cau N n m hn hm,
-    rwa snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp).ne.symm hp_top at h_cau, },
+    rwa snorm_eq_snorm' (zero_lt_one.trans_le hp).ne.symm hp_top at h_cau, },
   exact ae_tendsto_of_cauchy_snorm' hf hp1 hB h_cau',
 end
 
@@ -2712,7 +2714,7 @@ lemma mem_ℒp_of_cauchy_tendsto (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀
 begin
   refine ⟨h_lim_meas, _⟩,
   rw ennreal.tendsto_at_top_zero at h_tendsto,
-  cases (h_tendsto 1 ennreal.zero_lt_one) with N h_tendsto_1,
+  cases (h_tendsto 1 zero_lt_one) with N h_tendsto_1,
   specialize h_tendsto_1 N (le_refl N),
   have h_add : f_lim = f_lim - f N + f N, by abel,
   rw h_add,
@@ -2826,11 +2828,11 @@ begin
     (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
 end
 
-variables (𝕜 : Type*)
+variables (𝕜 : Type*) [fact (1 ≤ p)]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
 as an element of `Lp`. -/
-def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
   (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
 linear_map.mk_continuous
   (linear_map.cod_restrict
@@ -2840,22 +2842,33 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
+lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] (f : α →ᵇ E) :
+  to_Lp p μ 𝕜 f =ᵐ[μ] f := ae_eq_fun.coe_fn_mk f _
+
 variables {𝕜}
 
-lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
   ((linear_map.range (to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ)).to_add_subgroup)
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 range_to_Lp_hom p μ
 
 variables {p}
 
-lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] (f : α →ᵇ E) :
-  to_Lp p μ 𝕜 f =ᵐ[μ] f :=
-ae_eq_fun.coe_fn_mk f _
-
-lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]:
   ‖(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))‖ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
+
+lemma to_Lp_inj {f g : α →ᵇ E} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
+begin
+  refine ⟨λ h, _, by tauto⟩,
+  rw [←fun_like.coe_fn_eq, ←(map_continuous f).ae_eq_iff_eq μ (map_continuous g)],
+  refine (coe_fn_to_Lp p μ 𝕜 f).symm.trans (eventually_eq.trans _ $ coe_fn_to_Lp p μ 𝕜 g),
+  rw h,
+end
+
+lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  function.injective ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ)) := λ f g hfg, (to_Lp_inj μ).mp hfg
 
 end bounded_continuous_function
 
@@ -2906,7 +2919,28 @@ rfl
   (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
-variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
+lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  function.injective ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ)) :=
+(bounded_continuous_function.to_Lp_injective _).comp
+  (linear_isometry_bounded_of_compact α E 𝕜).injective
+
+lemma to_Lp_inj {f g : C(α, E)} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
+(to_Lp_injective μ).eq_iff
+
+variables {μ}
+
+/-- If a sum of continuous functions `g n` is convergent, and the same sum converges in `Lᵖ` to `h`,
+then in fact `g n` converges uniformly to `h`.  -/
+lemma has_sum_of_has_sum_Lp {β : Type*} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
+  {g : β → C(α, E)} {f : C(α, E)} (hg : summable g)
+  (hg2 : has_sum (to_Lp p μ 𝕜 ∘ g) (to_Lp p μ 𝕜 f)) : has_sum g f :=
+begin
+  convert summable.has_sum hg,
+  exact to_Lp_injective μ (hg2.unique ((to_Lp p μ 𝕜).has_sum $ summable.has_sum hg)),
+end
+
+variables (μ) [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_norm_eq_to_Lp_norm_coe :
   ‖(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ))‖

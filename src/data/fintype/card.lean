@@ -12,6 +12,9 @@ import tactic.wlog
 /-!
 # Cardinalities of finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `fintype.card α`: Cardinality of a fintype. Equal to `finset.univ.card`.
@@ -822,7 +825,8 @@ instance : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
 
 instance [nonempty α] : infinite (multiset α) :=
-let ⟨x⟩ := ‹nonempty α› in infinite.of_injective (multiset.repeat x) (multiset.repeat_injective _)
+let ⟨x⟩ := ‹nonempty α› in
+  infinite.of_injective (λ n, multiset.replicate n x) (multiset.replicate_left_injective _)
 
 instance [nonempty α] : infinite (list α) :=
 infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
@@ -860,7 +864,8 @@ private lemma nat_embedding_aux_injective (α : Type*) [infinite α] :
 begin
   rintro m n h,
   letI := classical.dec_eq α,
-  wlog hmlen : m ≤ n using m n,
+  wlog hmlen : m ≤ n generalizing m n,
+  { exact (this h.symm $ le_of_not_le hmlen).symm },
   by_contradiction hmn,
   have hmn : m < n, from lt_of_le_of_ne hmlen hmn,
   refine (classical.some_spec (exists_not_mem_finset

@@ -9,6 +9,9 @@ import order.filter.archimedean
 /-!
 # Topology on the integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The structure of a metric space on `ℤ` is introduced in this file, induced from `ℝ`.
 -/
 noncomputable theory

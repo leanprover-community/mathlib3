@@ -7,10 +7,9 @@ import algebra.group.type_tags
 import algebra.order.monoid.cancel.defs
 import algebra.order.monoid.canonical.defs
 
-/-! # Ordered monoid structures on `multiplicative α` and `additive α`. 
+/-! # Ordered monoid structures on `multiplicative α` and `additive α`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/873
 > Any changes to this file require a corresponding PR to mathlib4.-/
 
 universes u

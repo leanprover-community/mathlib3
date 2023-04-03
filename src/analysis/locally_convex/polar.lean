@@ -37,6 +37,7 @@ polar
 
 
 variables {𝕜 E F : Type*}
+open_locale topology
 
 namespace linear_map
 
@@ -101,7 +102,7 @@ end
 
 /-- The polar set is closed in the weak topology induced by `B.flip`. -/
 lemma polar_weak_closed (s : set E) :
-  @is_closed _ (weak_bilin.topological_space B.flip) (B.polar s) :=
+  is_closed[weak_bilin.topological_space B.flip] (B.polar s) :=
 begin
   rw polar_eq_Inter,
   refine is_closed_Inter (λ x, is_closed_Inter (λ _, _)),

@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.independent
+import linear_algebra.affine_space.basis
 import linear_algebra.finite_dimensional
 
 /-!
@@ -227,9 +227,9 @@ lemma affine_independent.affine_span_image_finset_eq_of_le_of_card_eq_finrank_ad
   [finite_dimensional k sp.direction] (hle : affine_span k (s.image p : set P) ≤ sp)
   (hc : finset.card s = finrank k sp.direction + 1) : affine_span k (s.image p : set P) = sp :=
 begin
-  have hn : (s.image p).nonempty,
-  { rw [finset.nonempty.image_iff, ← finset.card_pos, hc], apply nat.succ_pos },
-  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_nonempty k _).2 hn) hle,
+  have hn : s.nonempty,
+  { rw [←finset.card_pos, hc], apply nat.succ_pos },
+  refine eq_of_direction_eq_of_nonempty_of_le _ ((hn.image _).to_set.affine_span _)hle,
   have hd := direction_le hle,
   rw direction_affine_span at ⊢ hd,
   exact hi.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hd hc
@@ -265,6 +265,12 @@ begin
     rw [← finrank_top, ← direction_top k V P] at hc,
     exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
 end
+
+lemma affine.simplex.span_eq_top [finite_dimensional k V] {n : ℕ} (T : affine.simplex k V n)
+  (hrank : finrank k V = n) :
+  affine_span k (set.range T.points) = ⊤ :=
+by rw [affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one T.independent,
+  fintype.card_fin, hrank]
 
 /-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
 instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
@@ -727,3 +733,48 @@ lemma coplanar_triple (p₁ p₂ p₃ : P) : coplanar k ({p₁, p₂, p₃} : se
 (collinear_pair k p₂ p₃).coplanar_insert p₁
 
 end division_ring
+
+namespace affine_basis
+
+universes u₁ u₂ u₃ u₄
+
+variables {ι : Type u₁} {k : Type u₂} {V : Type u₃} {P : Type u₄}
+variables [add_comm_group V] [affine_space V P]
+
+section division_ring
+
+variables [division_ring k] [module k V]
+include V
+
+protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finite_dimensional k V :=
+let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
+
+protected lemma finite [finite_dimensional k V] (b : affine_basis ι k P) : finite ι :=
+finite_of_fin_dim_affine_independent k b.ind
+
+protected lemma finite_set [finite_dimensional k V] {s : set ι} (b : affine_basis s k P) :
+  s.finite :=
+finite_set_of_fin_dim_affine_independent k b.ind
+
+lemma card_eq_finrank_add_one [fintype ι] (b : affine_basis ι k P) :
+  fintype.card ι = finite_dimensional.finrank k V + 1 :=
+begin
+  haveI := b.finite_dimensional,
+  exact b.ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp b.tot
+end
+
+variables {k V P}
+
+lemma exists_affine_basis_of_finite_dimensional [fintype ι] [finite_dimensional k V]
+  (h : fintype.card ι = finite_dimensional.finrank k V + 1) :
+  nonempty (affine_basis ι k P) :=
+begin
+  obtain ⟨s, b, hb⟩ := affine_basis.exists_affine_basis k V P,
+  lift s to finset P using b.finite_set,
+  refine ⟨b.reindex $ fintype.equiv_of_card_eq _⟩,
+  rw [h, ← b.card_eq_finrank_add_one]
+end
+
+end division_ring
+
+end affine_basis

@@ -68,7 +68,7 @@ function space, almost everywhere equal, `L⁰`, ae_eq_fun
 -/
 
 noncomputable theory
-open_locale classical ennreal topological_space
+open_locale classical ennreal topology
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}

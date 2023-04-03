@@ -9,6 +9,9 @@ import data.set.image
 /-!
 # The opposite of a set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The opposite of a set `s` is simply the set obtained by taking the opposite of each member of `s`.
 -/
 

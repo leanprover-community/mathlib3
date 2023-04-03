@@ -71,10 +71,8 @@ begin
   dsimp at ih,
   have := prod_cyclotomic_eq_geom_sum hn' R,
   apply_fun eval x at this,
-  rw [divisors_eq_proper_divisors_insert_self_of_pos hn', finset.erase_insert_of_ne hn''.ne',
-      finset.prod_insert, eval_mul, eval_geom_sum] at this,
-  swap,
-  { simp only [proper_divisors.not_self_mem, mem_erase, and_false, not_false_iff] },
+  rw [← cons_self_proper_divisors hn'.ne', finset.erase_cons_of_ne _ hn''.ne',
+      finset.prod_cons, eval_mul, eval_geom_sum] at this,
   rcases lt_trichotomy 0 (∑ i in finset.range n, x ^ i) with h | h | h,
   { apply pos_of_mul_pos_left,
     { rwa this },
@@ -232,7 +230,13 @@ begin
     simpa only [hq'.le, real.coe_to_nnreal', max_eq_left, sub_nonneg] using hex },
 end
 
-lemma cyclotomic_eval_lt_sub_one_pow_totient {n : ℕ} {q : ℝ} (hn' : 3 ≤ n) (hq' : 1 < q) :
+lemma sub_one_pow_totient_le_cyclotomic_eval {q : ℝ} (hq' : 1 < q) :
+  ∀ n, (q - 1) ^ totient n ≤ (cyclotomic n ℝ).eval q
+| 0 := by simp only [totient_zero, pow_zero, cyclotomic_zero, eval_one]
+| 1 := by simp only [totient_one, pow_one, cyclotomic_one, eval_sub, eval_X, eval_one]
+| (n + 2) := (sub_one_pow_totient_lt_cyclotomic_eval dec_trivial hq').le
+
+lemma cyclotomic_eval_lt_add_one_pow_totient {n : ℕ} {q : ℝ} (hn' : 3 ≤ n) (hq' : 1 < q) :
   (cyclotomic n ℝ).eval q < (q + 1) ^ totient n :=
 begin
   have hn : 0 < n := pos_of_gt hn',
@@ -297,33 +301,28 @@ begin
     exact ⟨ζ, hζ, by simp [hhζ]⟩ },
 end
 
-lemma sub_one_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq' : q ≠ 1) :
-  q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
+lemma cyclotomic_eval_le_add_one_pow_totient {q : ℝ} (hq' : 1 < q) :
+  ∀ n, (cyclotomic n ℝ).eval q ≤ (q + 1) ^ totient n
+| 0 := by simp
+| 1 := by simp [add_assoc, add_nonneg, zero_le_one]
+| 2 := by simp
+| (n + 3) := (cyclotomic_eval_lt_add_one_pow_totient dec_trivial hq').le
+
+lemma sub_one_pow_totient_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq : q ≠ 1) :
+  (q - 1) ^ totient n < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
 begin
-  rcases q with _ | _ | q,
-  iterate 2
-  { rw [pos_iff_ne_zero, ne.def, int.nat_abs_eq_zero],
-    intro h,
-    have := degree_eq_one_of_irreducible_of_root (cyclotomic.irreducible (pos_of_gt hn')) h,
-    rw [degree_cyclotomic, with_top.coe_eq_one, totient_eq_one_iff] at this,
-    rcases this with rfl|rfl; simpa using h },
-  suffices : (q.succ : ℝ) < (eval (↑q + 1 + 1) (cyclotomic n ℤ)).nat_abs,
-  { exact_mod_cast this },
-  calc _ ≤ ((q + 2 - 1) ^ n.totient : ℝ) : _
-    ...  < _ : _,
-  { norm_num,
-    convert pow_mono (by simp : 1 ≤ (q : ℝ) + 1) (totient_pos (pos_of_gt hn') : 1 ≤ n.totient),
-    { simp },
-    { ring }, },
-  convert sub_one_pow_totient_lt_cyclotomic_eval (show 2 ≤ n, by linarith)
-                          (show (1 : ℝ) < q + 2, by {norm_cast, linarith}),
-  norm_cast,
-  erw cyclotomic.eval_apply (q + 2 : ℤ) n (algebra_map ℤ ℝ),
-  simp only [int.coe_nat_succ, eq_int_cast],
-  norm_cast,
-  rw [int.coe_nat_abs_eq_normalize, int.normalize_of_nonneg],
-  simp only [int.coe_nat_succ],
-  exact cyclotomic_nonneg n (by linarith),
+  rcases hq.lt_or_lt.imp_left nat.lt_one_iff.mp with rfl | hq',
+  { rw [zero_tsub, zero_pow (nat.totient_pos (pos_of_gt hn')), pos_iff_ne_zero, int.nat_abs_ne_zero,
+      nat.cast_zero, ← coeff_zero_eq_eval_zero, cyclotomic_coeff_zero _ hn'],
+    exact one_ne_zero },
+  rw [← @nat.cast_lt ℝ, nat.cast_pow, nat.cast_sub hq'.le, nat.cast_one, int.cast_nat_abs],
+  refine (sub_one_pow_totient_lt_cyclotomic_eval hn' (nat.one_lt_cast.2 hq')).trans_le _,
+  exact (cyclotomic.eval_apply (q : ℤ) n (algebra_map ℤ ℝ)).trans_le (le_abs_self _)
 end
+
+lemma sub_one_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq : q ≠ 1) :
+  q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
+calc q - 1 ≤ (q - 1) ^ totient n : nat.le_self_pow (nat.totient_pos $ pos_of_gt hn').ne' _
+... < ((cyclotomic n ℤ).eval ↑q).nat_abs : sub_one_pow_totient_lt_nat_abs_cyclotomic_eval hn' hq
 
 end polynomial

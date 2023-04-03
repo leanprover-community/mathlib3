@@ -8,6 +8,9 @@ import order.conditionally_complete_lattice.finset
 /-!
 # Conditionally complete linear order structure on `ℕ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;

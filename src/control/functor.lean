@@ -10,7 +10,6 @@ import control.basic
 # Functors
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/612
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This module provides additional lemmas, definitions, and instances for `functor`s.

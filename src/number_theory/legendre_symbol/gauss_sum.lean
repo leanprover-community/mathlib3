@@ -207,7 +207,7 @@ end
 
 /-- When `F` and `F'` are finite fields and `χ : F → F'` is a nontrivial quadratic character,
 then `(χ(-1) * #F)^(#F'/2) = χ(#F')`. -/
-lemma char.card_pow_card {F : Type} [field F] [fintype F] {F' : Type} [field F'] [fintype F']
+lemma char.card_pow_card {F : Type*} [field F] [fintype F] {F' : Type*} [field F'] [fintype F']
   {χ : mul_char F F'} (hχ₁ : is_nontrivial χ) (hχ₂ : is_quadratic χ)
   (hch₁ : ring_char F' ≠ ring_char F) (hch₂ : ring_char F' ≠ 2) :
   (χ (-1) * fintype.card F) ^ (fintype.card F' / 2) = χ (fintype.card F') :=
@@ -290,7 +290,7 @@ begin
     { ext, congr, apply pow_one },
     convert_to (0 + 1 * τ ^ 1 + 0 + (-1) * τ ^ 3 + 0 + (-1) * τ ^ 5 + 0 + 1 * τ ^ 7) ^ 2 = _,
     { simp only [χ₈_apply, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
-        matrix.cons_vec_bit0_eq_alt0, matrix.cons_vec_bit1_eq_alt1, matrix.cons_append,
+        matrix.cons_vec_bit0_eq_alt0, matrix.cons_vec_bit1_eq_alt1, matrix.cons_vec_append,
         matrix.cons_vec_alt0, matrix.cons_vec_alt1, int.cast_zero, int.cast_one, int.cast_neg,
         zero_mul], refl },
     convert_to 8 + (τ ^ 4 + 1) * (τ ^ 10 - 2 * τ ^ 8 - 2 * τ ^ 6 + 6 * τ ^ 4 + τ ^ 2 - 8) = _,

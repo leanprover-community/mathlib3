@@ -11,6 +11,9 @@ import group_theory.group_action.group
 /-!
 # Group action on rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the typeclass of monoid acting on semirings `mul_semiring_action M R`,
 and the corresponding typeclass of invariant subrings.
 

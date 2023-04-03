@@ -9,6 +9,9 @@ import data.nat.basic
 /-!
 # The natural numbers as a linearly ordered commutative semiring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We also have a variety of lemmas which have been deferred from `data.nat.basic` because it is
 easier to prove them with this ordered semiring instance available.
 

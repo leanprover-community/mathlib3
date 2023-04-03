@@ -9,6 +9,9 @@ import data.set.prod
 /-!
 # Intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
 closed) using the following naming conventions:
 - `i`: infinite

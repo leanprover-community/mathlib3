@@ -11,7 +11,6 @@ import algebra.group.type_tags
 # Power operations on monoids and groups
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/874
 > Any changes to this file require a corresponding PR to mathlib4.
 
 The power operation on monoids and groups.

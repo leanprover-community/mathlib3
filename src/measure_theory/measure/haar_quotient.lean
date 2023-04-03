@@ -128,8 +128,6 @@ lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.n
     { exact hA, },
   end }
 
-variables [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)] (K : positive_compacts (G ⧸ Γ))
-
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
   right-invariant, and a finite volume fundamental domain `𝓕`, the pushforward to the quotient
   group `G ⧸ Γ` of the restriction of `μ` to `𝓕` is a multiple of Haar measure on `G ⧸ Γ`. -/
@@ -137,7 +135,8 @@ variables [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)] (K : posi
   `μ`, which is also right-invariant, and a finite volume fundamental domain `𝓕`, the pushforward
   to the quotient group `G ⧸ Γ` of the restriction of `μ` to `𝓕` is a multiple of Haar measure on
   `G ⧸ Γ`."]
-lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.normal Γ]
+lemma measure_theory.is_fundamental_domain.map_restrict_quotient [t2_space (G ⧸ Γ)]
+  [second_countable_topology (G ⧸ Γ)] (K : positive_compacts (G ⧸ Γ)) [subgroup.normal Γ]
   [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
   (h𝓕_finite : μ 𝓕 < ⊤) : measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)
   = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K)) • (measure_theory.measure.haar_measure K) :=
@@ -163,9 +162,10 @@ end
   topological group `G` with Haar measure `μ`, which is also right-invariant, and a finite volume
   fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is measure-preserving between appropriate
   multiples of Haar measure on `G` and `G ⧸ Γ`."]
-lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
-  [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
-  (h𝓕_finite : μ 𝓕 < ⊤) (c : ℝ≥0) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = c) :
+lemma measure_preserving_quotient_group.mk' [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)]
+  (K : positive_compacts (G ⧸ Γ)) [subgroup.normal Γ] [measure_theory.measure.is_haar_measure μ]
+  [μ.is_mul_right_invariant] (h𝓕_finite : μ 𝓕 < ⊤) (c : ℝ≥0)
+  (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = c) :
   measure_preserving
     (quotient_group.mk' Γ)
     (μ.restrict 𝓕)
@@ -173,16 +173,17 @@ lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
 { measurable := continuous_quotient_mk.measurable,
   map_eq := by rw [h𝓕.map_restrict_quotient K h𝓕_finite, h]; refl }
 
-
 ---------------------------- UNFOLDING TRICK ---------------
-
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
 
 /-- The `ess_sup` of a function `g` on the quotient space `G ⧸ Γ` with respect to the pushforward
   of the restriction, `μ_𝓕`, of a right-invariant measure `μ` to a fundamental domain `𝓕`, is the
   same as the `ess_sup` of `g`'s lift to the universal cover `G` with respect to `μ`. -/
-@[to_additive]
+@[to_additive "The `ess_sup` of a function `g` on the additive quotient space `G ⧸ Γ` with respect
+  to the pushforward of the restriction, `μ_𝓕`, of a right-invariant measure `μ` to a fundamental
+  domain `𝓕`, is the same as the `ess_sup` of `g`'s lift to the universal cover `G` with respect
+  to `μ`."]
 lemma ess_sup_comp_quotient_group_mk [μ.is_mul_right_invariant] {g : G ⧸ Γ → ℝ≥0∞}
   (g_ae_measurable : ae_measurable g μ_𝓕) :
   ess_sup g μ_𝓕 = ess_sup (λ (x : G), g x) μ :=
@@ -201,7 +202,11 @@ end
   in the quotient which has `μ_𝓕`-measure zero, also has measure zero under the
   folding of `μ` under the quotient. Note that, if `Γ` is infinite, then the folded map
   will take the value `∞` on any open set in the quotient! -/
-@[to_additive]
+@[to_additive "Given an additive quotient space `G ⧸ Γ` where `Γ` is `countable`, and the
+  restriction, `μ_𝓕`, of a right-invariant measure `μ` on `G` to a fundamental domain `𝓕`, a set
+  in the quotient which has `μ_𝓕`-measure zero, also has measure zero under the
+  folding of `μ` under the quotient. Note that, if `Γ` is infinite, then the folded map
+  will take the value `∞` on any open set in the quotient!"]
 lemma _root_.measure_theory.is_fundamental_domain.absolutely_continuous_map
   [μ.is_mul_right_invariant] :
   map (quotient_group.mk : G → G ⧸ Γ) μ ≪ map (quotient_group.mk : G → G ⧸ Γ) (μ.restrict 𝓕) :=
@@ -223,11 +228,11 @@ begin
   exact measurable_set_preimage meas_π s_meas,
 end
 
-
 omit h𝓕
 local attribute [-instance] quotient.measurable_space
 
-/- Move to commit message in PR: question: how to deduce `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
+/- Move to commit message in PR: question: how to deduce
+  `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
 
 include h𝓕
 
@@ -236,7 +241,9 @@ open quotient_group
 /-- This is a simple version of the **Unfolding Trick**: Given a subgroup `Γ` of a group `G`, the
   integral of a function `f` on `G` with respect to a right-invariant measure `μ` is equal to the
   integral over the quotient `G ⧸ Γ` of the automorphization of `f`. -/
-@[to_additive]
+@[to_additive "This is a simple version of the **Unfolding Trick**: Given a subgroup `Γ` of an
+  additive  group `G`, the integral of a function `f` on `G` with respect to a right-invariant
+  measure `μ` is equal to the integral over the quotient `G ⧸ Γ` of the automorphization of `f`."]
 lemma quotient_group.integral_eq_integral_automorphize {E : Type*} [normed_add_comm_group E]
   [complete_space E] [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E}
   (hf₁ : integrable f μ) (hf₂ : ae_strongly_measurable (automorphize f) μ_𝓕) :

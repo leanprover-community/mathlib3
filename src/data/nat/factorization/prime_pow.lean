@@ -9,6 +9,9 @@ import data.nat.factorization.basic
 /-!
 # Prime powers and factorizations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with factorizations of prime powers.
 -/
 
@@ -28,7 +31,7 @@ lemma is_prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { simpa using h },
-  refine ⟨_, _, nat.prime_iff.1 (nat.min_fac_prime hn), _, h⟩,
+  refine ⟨_, _, (nat.min_fac_prime hn).prime, _, h⟩,
   rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, nat.factor_iff_mem_factorization,
     nat.mem_factors_iff_dvd hn' (nat.min_fac_prime hn)],
   apply nat.min_fac_dvd
@@ -138,7 +141,7 @@ begin
   have : a.factorization p = 0 ∨ b.factorization p = 0,
   { rw [←finsupp.not_mem_support_iff, ←finsupp.not_mem_support_iff, ←not_and_distrib,
       ←finset.mem_inter],
-    exact λ t, nat.factorization_disjoint_of_coprime hab t },
+    exact λ t, (nat.factorization_disjoint_of_coprime hab).le_bot t },
   cases this;
   simp [this, imp_or_distrib],
 end

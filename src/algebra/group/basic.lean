@@ -9,6 +9,9 @@ import algebra.group.defs
 /-!
 # Basic lemmas about semigroups, monoids, and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lists various basic lemmas about semigroups, monoids, and groups. Most proofs are
 one-liners from the corresponding axioms. For the definitions of semigroups, monoids and groups, see
 `algebra/group/defs.lean`.
@@ -188,16 +191,8 @@ inv_involutive.injective
 @[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
 @[to_additive]
-lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
-by simp [h]
-
-@[to_additive]
-theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
-⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
-
-@[to_additive]
-theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
-eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
+theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
+⟨λ h, h ▸ (inv_inv a).symm, λ h, h.symm ▸ inv_inv b⟩
 
 variables (G)
 
@@ -285,7 +280,8 @@ variables (a b c)
 @[simp, to_additive] lemma one_div_div : 1 / (a / b) = b / a := by simp
 @[to_additive] lemma one_div_one_div : 1 / (1 / a) = a := by simp
 
-@[priority 100, to_additive] instance division_monoid.to_div_inv_one_monoid :
+@[priority 100, to_additive subtraction_monoid.to_sub_neg_zero_monoid]
+instance division_monoid.to_div_inv_one_monoid :
   div_inv_one_monoid α :=
 { inv_one := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm,
   ..division_monoid.to_div_inv_monoid α }
@@ -395,7 +391,7 @@ theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
-by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
+by rw [mul_eq_one_iff_eq_inv, inv_eq_iff_eq_inv]
 
 @[to_additive]
 theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=
@@ -647,3 +643,47 @@ lemma bit1_sub [has_one M] (a b : M) : bit1 (a - b) = bit1 a - bit0 b :=
 (congr_arg (+ (1 : M)) $ bit0_sub a b : _).trans $ sub_add_eq_add_sub _ _ _
 
 end subtraction_comm_monoid
+
+section multiplicative
+
+variables [monoid β] (p r : α → α → Prop) [is_total α r] (f : α → α → β)
+
+@[to_additive additive_of_symmetric_of_is_total]
+lemma multiplicative_of_symmetric_of_is_total
+  (hsymm : symmetric p) (hf_swap : ∀ {a b}, p a b → f a b * f b a = 1)
+  (hmul : ∀ {a b c}, r a b → r b c → p a b → p b c → p a c → f a c = f a b * f b c)
+  {a b c : α} (pab : p a b) (pbc : p b c) (pac : p a c) : f a c = f a b * f b c :=
+begin
+  suffices : ∀ {b c}, r b c → p a b → p b c → p a c → f a c = f a b * f b c,
+  { obtain rbc | rcb := total_of r b c,
+    { exact this rbc pab pbc pac },
+    { rw [this rcb pac (hsymm pbc) pab, mul_assoc, hf_swap (hsymm pbc), mul_one] } },
+  intros b c rbc pab pbc pac,
+  obtain rab | rba := total_of r a b,
+  { exact hmul rab rbc pab pbc pac },
+  rw [← one_mul (f a c), ← hf_swap pab, mul_assoc],
+  obtain rac | rca := total_of r a c,
+  { rw [hmul rba rac (hsymm pab) pac pbc] },
+  { rw [hmul rbc rca pbc (hsymm pac) (hsymm pab), mul_assoc, hf_swap (hsymm pac), mul_one] },
+end
+
+/-- If a binary function from a type equipped with a total relation `r` to a monoid is
+  anti-symmetric (i.e. satisfies `f a b * f b a = 1`), in order to show it is multiplicative
+  (i.e. satisfies `f a c = f a b * f b c`), we may assume `r a b` and `r b c` are satisfied.
+  We allow restricting to a subset specified by a predicate `p`. -/
+@[to_additive additive_of_is_total "If a binary function from a type equipped with a total relation
+  `r` to an additive monoid is anti-symmetric (i.e. satisfies `f a b + f b a = 0`), in order to show
+  it is additive (i.e. satisfies `f a c = f a b + f b c`), we may assume `r a b` and `r b c`
+  are satisfied. We allow restricting to a subset specified by a predicate `p`."]
+lemma multiplicative_of_is_total (p : α → Prop)
+  (hswap : ∀ {a b}, p a → p b → f a b * f b a = 1)
+  (hmul : ∀ {a b c}, r a b → r b c → p a → p b → p c → f a c = f a b * f b c)
+  {a b c : α} (pa : p a) (pb : p b) (pc : p c) : f a c = f a b * f b c :=
+begin
+  apply multiplicative_of_symmetric_of_is_total (λ a b, p a ∧ p b) r f (λ _ _, and.swap),
+  { simp_rw and_imp, exact @hswap },
+  { exact λ a b c rab rbc pab pbc pac, hmul rab rbc pab.1 pab.2 pac.2 },
+  exacts [⟨pa, pb⟩, ⟨pb, pc⟩, ⟨pa, pc⟩],
+end
+
+end multiplicative

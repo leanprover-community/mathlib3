@@ -3,6 +3,7 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import linear_algebra.orientation
 import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
@@ -78,9 +79,12 @@ instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
-instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+instance [distrib_smul R ℝ] : distrib_smul R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
   smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+
+instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+{ ..complex.distrib_smul }
 
 instance [semiring R] [module R ℝ] : module R ℂ :=
 { add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],
@@ -144,10 +148,9 @@ basis.of_equiv_fun
 @[simp] lemma coe_basis_one_I : ⇑basis_one_I = ![1, I] :=
 funext $ λ i, basis.apply_eq_iff.mpr $ finsupp.ext $ λ j,
 by fin_cases i; fin_cases j;
-    simp only [coe_basis_one_I_repr, finsupp.single_eq_same, finsupp.single_eq_of_ne,
-              matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
-              nat.one_ne_zero, fin.one_eq_zero_iff, fin.zero_eq_one_iff, ne.def, not_false_iff,
-              one_re, one_im, I_re, I_im]
+    simp only [coe_basis_one_I_repr, finsupp.single_eq_of_ne, matrix.cons_val_zero,
+      matrix.cons_val_one, matrix.head_cons, fin.one_eq_zero_iff, ne.def, not_false_iff, I_re,
+      nat.succ_succ_ne_one, one_im, I_im, one_re, finsupp.single_eq_same, fin.zero_eq_one_iff]
 
 instance : finite_dimensional ℝ ℂ := of_fintype_basis basis_one_I
 
@@ -163,6 +166,9 @@ by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
 lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
+
+/-- The standard orientation on `ℂ`. -/
+protected noncomputable def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
 
 end complex
 
@@ -205,8 +211,7 @@ by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_rea
 @[priority 900]
 instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
   [star_module ℂ E] : star_module ℝ E :=
-⟨λ r a, by rw [star_trivial r, restrict_scalars_smul_def, restrict_scalars_smul_def, star_smul,
-  complex.coe_algebra_map, complex.star_def, complex.conj_of_real]⟩
+⟨λ r a, by rw [←smul_one_smul ℂ r a, star_smul, star_smul, star_one, smul_one_smul]⟩
 
 namespace complex
 
@@ -259,6 +264,16 @@ begin
     refine λ h, alg_hom_ext _,
   exacts [h, conj_I.symm ▸ h],
 end
+
+/-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
+{ map_add' := by simp, .. equiv_real_prod }
+
+/-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
+{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
 
 section lift
 

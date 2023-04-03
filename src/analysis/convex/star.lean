@@ -8,6 +8,9 @@ import analysis.convex.segment
 /-!
 # Star-convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files defines star-convex sets (aka star domains, star-shaped set, radially convex set).
 
 A set is star-convex at `x` if every segment from `x` to a point in the set is contained in the set.
@@ -434,8 +437,7 @@ end
 
 lemma star_convex_iff_ord_connected [linear_ordered_field 𝕜] {x : 𝕜} {s : set 𝕜} (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ s.ord_connected :=
-by simp_rw [ord_connected_iff_interval_subset_left hx, star_convex_iff_segment_subset,
-  segment_eq_interval]
+by simp_rw [ord_connected_iff_uIcc_subset_left hx, star_convex_iff_segment_subset, segment_eq_uIcc]
 
 alias star_convex_iff_ord_connected ↔ star_convex.ord_connected _
 

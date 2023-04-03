@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # Locus of unequal values of finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `α N` be two Types, assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.
 
@@ -88,35 +91,44 @@ by { ext, simpa only [mem_ne_locus] using hF.ne_iff }
 
 end ne_locus_and_maps
 
-section cancel_and_group
 variables [decidable_eq N]
 
-@[simp] lemma add_ne_locus_add_eq_left [add_left_cancel_monoid N] (f g h : α →₀ N) :
-  (f + g).ne_locus (f + h) = g.ne_locus h  :=
+@[simp] lemma ne_locus_add_left [add_left_cancel_monoid N] (f g h : α →₀ N) :
+  (f + g).ne_locus (f + h) = g.ne_locus h :=
 zip_with_ne_locus_eq_left _ _ _ _ add_right_injective
 
-@[simp] lemma add_ne_locus_add_eq_right [add_right_cancel_monoid N] (f g h : α →₀ N) :
-  (f + h).ne_locus (g + h) = f.ne_locus g  :=
+@[simp] lemma ne_locus_add_right [add_right_cancel_monoid N] (f g h : α →₀ N) :
+  (f + h).ne_locus (g + h) = f.ne_locus g :=
 zip_with_ne_locus_eq_right _ _ _ _ add_left_injective
 
-@[simp] lemma neg_ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus (- g) = f.ne_locus g :=
+section add_group
+variables [add_group N] (f f₁ f₂ g g₁ g₂ : α →₀ N)
+
+@[simp] lemma ne_locus_neg_neg : ne_locus (-f) (-g) = f.ne_locus g :=
 map_range_ne_locus_eq _ _ neg_zero neg_injective
 
-lemma ne_locus_neg [add_group N] (f g : α →₀ N) : (- f).ne_locus g = f.ne_locus (- g) :=
-by rw [← neg_ne_locus_neg _ _, neg_neg]
+lemma ne_locus_neg : ne_locus (-f) g = f.ne_locus (-g) := by rw [←ne_locus_neg_neg, neg_neg]
 
-lemma ne_locus_eq_support_sub [add_group N] (f g : α →₀ N) :
-  f.ne_locus g = (f - g).support :=
-by rw [← add_ne_locus_add_eq_right _ _ (- g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
+lemma ne_locus_eq_support_sub : f.ne_locus g = (f - g).support :=
+by rw [←ne_locus_add_right _ _ (-g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
 
-@[simp] lemma sub_ne_locus_sub_eq_left [add_group N] (f g h : α →₀ N) :
-  (f - g).ne_locus (f - h) = g.ne_locus h  :=
-zip_with_ne_locus_eq_left _ _ _ _ (λ fn, sub_right_injective)
+@[simp] lemma ne_locus_sub_left : ne_locus (f - g₁) (f - g₂) = ne_locus g₁ g₂ :=
+by simp only [sub_eq_add_neg, ne_locus_add_left, ne_locus_neg_neg]
 
-@[simp] lemma sub_ne_locus_sub_eq_right [add_group N] (f g h : α →₀ N) :
-  (f - h).ne_locus (g - h) = f.ne_locus g  :=
-zip_with_ne_locus_eq_right _ _ _ _ (λ hn, sub_left_injective)
+@[simp] lemma ne_locus_sub_right : ne_locus (f₁ - g) (f₂ - g) = ne_locus f₁ f₂ :=
+by simpa only [sub_eq_add_neg] using ne_locus_add_right _ _ _
 
-end cancel_and_group
+@[simp] lemma ne_locus_self_add_right : ne_locus f (f + g) = g.support :=
+by rw [←ne_locus_zero_left, ←ne_locus_add_left f 0 g, add_zero]
 
+@[simp] lemma ne_locus_self_add_left : ne_locus (f + g) f = g.support :=
+by rw [ne_locus_comm, ne_locus_self_add_right]
+
+@[simp] lemma ne_locus_self_sub_right : ne_locus f (f - g) = g.support :=
+by rw [sub_eq_add_neg, ne_locus_self_add_right, support_neg]
+
+@[simp] lemma ne_locus_self_sub_left : ne_locus (f - g) f = g.support :=
+by rw [ne_locus_comm, ne_locus_self_sub_right]
+
+end add_group
 end finsupp

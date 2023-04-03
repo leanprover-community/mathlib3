@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import probability.notation
 import probability.independence
+import measure_theory.function.conditional_expectation.basic
 
 /-!
 

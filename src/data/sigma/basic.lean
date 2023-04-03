@@ -6,9 +6,13 @@ Authors: Johannes Hölzl
 import meta.univs
 import tactic.lint
 import tactic.ext
+import logic.function.basic
 
 /-!
 # Sigma types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic results about sigma types.
 

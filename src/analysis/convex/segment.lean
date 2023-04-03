@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
+Authors: Alexander Bentkamp, Yury Kudryashov, Yaël Dillies
 -/
 import algebra.order.invertible
 import algebra.order.smul
@@ -11,6 +11,9 @@ import tactic.positivity
 
 /-!
 # Segments in vector spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In a 𝕜-vector space, we define the following objects and properties.
 * `segment 𝕜 x y`: Closed segment joining `x` and `y`.
@@ -29,9 +32,10 @@ Should we rename `segment` and `open_segment` to `convex.Icc` and `convex.Ioo`? 
 define `clopen_segment`/`convex.Ico`/`convex.Ioc`?
 -/
 
-variables {𝕜 E F : Type*}
+variables {𝕜 E F G ι : Type*} {π : ι → Type*}
 
-open set
+open function set
+open_locale pointwise
 
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E]
@@ -110,14 +114,12 @@ begin
   simp only [subset_antisymm_iff, insert_subset, left_mem_segment, right_mem_segment,
     open_segment_subset_segment, true_and],
   rintro z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ _),
+  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ $ λ ha', _),
   { rintro rfl,
-    rw add_zero at hab,
-    rw [hab, one_smul, zero_smul, add_zero] },
+    rw [← add_zero a, hab, one_smul, zero_smul, add_zero] },
   { rintro rfl,
-    rw zero_add at hab,
-    rw [hab, one_smul, zero_smul, zero_add] },
-  { exact λ ha', ⟨a, b, ha', hb', hab, rfl⟩ }
+    rw [← zero_add b, hab, one_smul, zero_smul, zero_add] },
+  { exact ⟨a, b, ha', hb', hab, rfl⟩ }
 end
 
 variables {𝕜}
@@ -139,7 +141,8 @@ end ordered_semiring
 open_locale convex
 
 section ordered_ring
-variables (𝕜) [ordered_ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+variables (𝕜) [ordered_ring 𝕜] [add_comm_group E] [add_comm_group F] [add_comm_group G] [module 𝕜 E]
+  [module 𝕜 F]
 
 section densely_ordered
 variables [nontrivial 𝕜] [densely_ordered 𝕜]
@@ -182,28 +185,29 @@ lemma open_segment_eq_image_line_map (x y : E) :
   open_segment 𝕜 x y = affine_map.line_map x y '' Ioo (0 : 𝕜) 1 :=
 by { convert open_segment_eq_image 𝕜 x y, ext, exact affine_map.line_map_apply_module _ _ _ }
 
-lemma segment_image (f : E →ₗ[𝕜] F) (a b : E) : f '' [a -[𝕜] b] = [f a -[𝕜] f b] :=
-set.ext (λ x, by simp_rw [segment_eq_image, mem_image, exists_exists_and_eq_and, map_add, map_smul])
+@[simp] lemma image_segment (f : E →ᵃ[𝕜] F) (a b : E) : f '' [a -[𝕜] b] = [f a -[𝕜] f b] :=
+set.ext $ λ x, by simp_rw [segment_eq_image_line_map, mem_image, exists_exists_and_eq_and,
+  affine_map.apply_line_map]
 
-@[simp] lemma open_segment_image (f : E →ₗ[𝕜] F) (a b : E) :
+@[simp] lemma image_open_segment (f : E →ᵃ[𝕜] F) (a b : E) :
   f '' open_segment 𝕜 a b = open_segment 𝕜 (f a) (f b) :=
-set.ext (λ x, by simp_rw [open_segment_eq_image, mem_image, exists_exists_and_eq_and, map_add,
-  map_smul])
+set.ext $ λ x, by simp_rw [open_segment_eq_image_line_map, mem_image, exists_exists_and_eq_and,
+  affine_map.apply_line_map]
 
-lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b -[𝕜] a + c] ↔ x ∈ [b -[𝕜] c] :=
-begin
-  rw [segment_eq_image', segment_eq_image'],
-  refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
-end
+@[simp] lemma vadd_segment [add_torsor G E] [vadd_comm_class G E E] (a : G) (b c : E) :
+  a +ᵥ [b -[𝕜] c] = [a +ᵥ b -[𝕜] a +ᵥ c] :=
+image_segment 𝕜 ⟨_, linear_map.id, λ _ _, vadd_comm _ _ _⟩ b c
+
+@[simp] lemma vadd_open_segment [add_torsor G E] [vadd_comm_class G E E] (a : G) (b c : E) :
+  a +ᵥ open_segment 𝕜 b c = open_segment 𝕜 (a +ᵥ b) (a +ᵥ c) :=
+image_open_segment 𝕜 ⟨_, linear_map.id, λ _ _, vadd_comm _ _ _⟩ b c
+
+@[simp] lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b -[𝕜] a + c] ↔ x ∈ [b -[𝕜] c] :=
+by simp_rw [←vadd_eq_add, ←vadd_segment, vadd_mem_vadd_set_iff]
 
 @[simp] lemma mem_open_segment_translate (a : E) {x b c : E} :
   a + x ∈ open_segment 𝕜 (a + b) (a + c) ↔ x ∈ open_segment 𝕜 b c :=
-begin
-  rw [open_segment_eq_image', open_segment_eq_image'],
-  refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
-end
+by simp_rw [←vadd_eq_add, ←vadd_open_segment, vadd_mem_vadd_set_iff]
 
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b -[𝕜] a + c] = [b -[𝕜] c] :=
 set.ext $ λ x, mem_segment_translate 𝕜 a
@@ -306,6 +310,32 @@ begin
   rw [←sub_eq_neg_add, ←neg_sub, hxy, ←sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
 end
 
+open affine_map
+
+/-- If `z = line_map x y c` is a point on the line passing through `x` and `y`, then the open
+segment `open_segment 𝕜 x y` is included in the union of the open segments `open_segment 𝕜 x z`,
+`open_segment 𝕜 z y`, and the point `z`. Informally, `(x, y) ⊆ {z} ∪ (x, z) ∪ (z, y)`. -/
+lemma open_segment_subset_union (x y : E) {z : E} (hz : z ∈ range (line_map x y : 𝕜 → E)) :
+  open_segment 𝕜 x y ⊆ insert z (open_segment 𝕜 x z ∪ open_segment 𝕜 z y) :=
+begin
+  rcases hz with ⟨c, rfl⟩,
+  simp only [open_segment_eq_image_line_map, ← maps_to'],
+  rintro a ⟨h₀, h₁⟩,
+  rcases lt_trichotomy a c with hac|rfl|hca,
+  { right, left,
+    have hc : 0 < c, from h₀.trans hac,
+    refine ⟨a / c, ⟨div_pos h₀ hc, (div_lt_one hc).2 hac⟩, _⟩,
+    simp only [← homothety_eq_line_map, ← homothety_mul_apply, div_mul_cancel _ hc.ne'] },
+  { left, refl },
+  { right, right,
+    have hc : 0 < 1 - c, from sub_pos.2 (hca.trans h₁),
+    simp only [← line_map_apply_one_sub y],
+    refine ⟨(a - c) / (1 - c), ⟨div_pos (sub_pos.2 hca) hc,
+      (div_lt_one hc).2 $ sub_lt_sub_right h₁ _⟩, _⟩,
+    simp only [← homothety_eq_line_map, ← homothety_mul_apply, sub_mul, one_mul,
+      div_mul_cancel _ hc.ne', sub_sub_sub_cancel_right] }
+end
+
 end linear_ordered_field
 
 /-!
@@ -355,22 +385,22 @@ end ordered_cancel_add_comm_monoid
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E] {𝕜} {a b : 𝕜}
 
-lemma segment_subset_interval (x y : E) : [x -[𝕜] y] ⊆ interval x y :=
+lemma segment_subset_uIcc (x y : E) : [x -[𝕜] y] ⊆ uIcc x y :=
 begin
   cases le_total x y,
-  { rw interval_of_le h,
+  { rw uIcc_of_le h,
     exact segment_subset_Icc h },
-  { rw [interval_of_ge h, segment_symm],
+  { rw [uIcc_of_ge h, segment_symm],
     exact segment_subset_Icc h }
 end
 
 lemma convex.min_le_combo (x y : E) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min x y ≤ a • x + b • y :=
-(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).1
+(segment_subset_uIcc x y ⟨_, _, ha, hb, hab, rfl⟩).1
 
 lemma convex.combo_le_max (x y : E) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • x + b • y ≤ max x y :=
-(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).2
+(segment_subset_uIcc x y ⟨_, _, ha, hb, hab, rfl⟩).2
 
 end linear_ordered_add_comm_monoid
 end ordered_semiring
@@ -416,7 +446,7 @@ begin
   { rw [open_segment_symm, open_segment_eq_Ioo h, max_eq_left h.le, min_eq_right h.le] }
 end
 
-lemma segment_eq_interval (x y : 𝕜) : [x -[𝕜] y] = interval x y := segment_eq_Icc' _ _
+lemma segment_eq_uIcc (x y : 𝕜) : [x -[𝕜] y] = uIcc x y := segment_eq_Icc' _ _
 
 /-- A point is in an `Icc` iff it can be expressed as a convex combination of the endpoints. -/
 lemma convex.mem_Icc (h : x ≤ y) :
@@ -468,3 +498,95 @@ begin
 end
 
 end linear_ordered_field
+
+namespace prod
+variables [ordered_semiring 𝕜] [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F]
+
+lemma segment_subset (x y : E × F) : segment 𝕜 x y ⊆ segment 𝕜 x.1 y.1 ×ˢ segment 𝕜 x.2 y.2 :=
+begin
+  rintro z ⟨a, b, ha, hb, hab, hz⟩,
+  exact ⟨⟨a, b, ha, hb, hab, congr_arg prod.fst hz⟩, a, b, ha, hb, hab, congr_arg prod.snd hz⟩,
+end
+
+lemma open_segment_subset (x y : E × F) :
+  open_segment 𝕜 x y ⊆ open_segment 𝕜 x.1 y.1 ×ˢ open_segment 𝕜 x.2 y.2 :=
+begin
+  rintro z ⟨a, b, ha, hb, hab, hz⟩,
+  exact ⟨⟨a, b, ha, hb, hab, congr_arg prod.fst hz⟩, a, b, ha, hb, hab, congr_arg prod.snd hz⟩,
+end
+
+lemma image_mk_segment_left (x₁ x₂ : E) (y : F) :
+  (λ x, (x, y)) '' [x₁ -[𝕜] x₂] = [(x₁, y) -[𝕜] (x₂, y)] :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm E, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+lemma image_mk_segment_right (x : E) (y₁ y₂ : F) :
+  (λ y, (x, y)) '' [y₁ -[𝕜] y₂] = [(x, y₁) -[𝕜] (x, y₂)] :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm F, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+lemma image_mk_open_segment_left (x₁ x₂ : E) (y : F) :
+  (λ x, (x, y)) '' open_segment 𝕜 x₁ x₂ = open_segment 𝕜 (x₁, y) (x₂, y) :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, open_segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm E, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+@[simp] lemma image_mk_open_segment_right (x : E) (y₁ y₂ : F) :
+  (λ y, (x, y)) '' open_segment 𝕜 y₁ y₂ = open_segment 𝕜 (x, y₁) (x, y₂) :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, open_segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm F, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+end prod
+
+namespace pi
+variables [ordered_semiring 𝕜] [Π i, add_comm_monoid (π i)] [Π i, module 𝕜 (π i)] {s : set ι}
+
+lemma segment_subset (x y : Π i, π i) : segment 𝕜 x y ⊆ s.pi (λ i, segment 𝕜 (x i) (y i)) :=
+by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
+
+lemma open_segment_subset (x y : Π i, π i) :
+  open_segment 𝕜 x y ⊆ s.pi (λ i, open_segment 𝕜 (x i) (y i)) :=
+by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
+
+variables [decidable_eq ι]
+
+lemma image_update_segment (i : ι) (x₁ x₂ : π i) (y : Π i, π i) :
+  update y i '' [x₁ -[𝕜] x₂] = [update y i x₁ -[𝕜] update y i x₂] :=
+begin
+  ext z,
+  simp_rw [set.mem_image, segment, set.mem_set_of, ←update_smul, ←update_add, update_eq_iff,
+    ←exists_and_distrib_right, @exists_comm (π i), exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+lemma image_update_open_segment (i : ι) (x₁ x₂ : π i) (y : Π i, π i) :
+  update y i '' open_segment 𝕜 x₁ x₂ = open_segment 𝕜 (update y i x₁) (update y i x₂) :=
+begin
+  ext z,
+  simp_rw [set.mem_image, open_segment, set.mem_set_of, ←update_smul, ←update_add, update_eq_iff,
+    ←exists_and_distrib_right, @exists_comm (π i), exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+end pi

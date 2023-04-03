@@ -9,6 +9,9 @@ import data.list.count
 /-!
 # `list.count` as a bundled homomorphism
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `free_monoid.countp`, `free_monoid.count`, `free_add_monoid.countp`, and
 `free_add_monoid.count`. These are `list.countp` and `list.count` bundled as multiplicative and
 additive homomorphisms from `free_monoid` and `free_add_monoid`.

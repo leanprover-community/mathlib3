@@ -3,18 +3,21 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
-import logic.small
-import order.conditionally_complete_lattice
+import logic.small.basic
+import order.conditionally_complete_lattice.basic
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
 import tactic.positivity
 
 /-!
 # Cardinal Numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
 
@@ -187,11 +190,13 @@ instance : has_le cardinal.{u} :=
 ⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
   λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
-instance : partial_order cardinal.{u} :=
-{ le          := (≤),
-  le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
-  le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
-  le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
+instance : linear_order cardinal.{u} :=
+{ le           := (≤),
+  le_refl      := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
+  le_trans     := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
+  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) },
+  le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
+  decidable_le := classical.dec_rel _ }
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl
@@ -469,10 +474,17 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
-  ..cardinal.comm_semiring, ..cardinal.partial_order }
+  ..cardinal.comm_semiring, ..cardinal.linear_order }
 
-@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
-lt_of_le_of_ne (zero_le _) zero_ne_one
+instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring,
+  ..cardinal.linear_order }
+
+instance : linear_ordered_comm_monoid_with_zero cardinal.{u} :=
+{ mul_le_mul_left := @mul_le_mul_left' _ _ _ _,
+  zero_le_one := zero_le _,
+  ..cardinal.comm_semiring,
+  ..cardinal.linear_order }
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
@@ -500,13 +512,7 @@ begin
 end
 
 instance : no_max_order cardinal.{u} :=
-{ exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
-
-instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
-{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
-  decidable_le := classical.dec_rel _,
-  ..(infer_instance : canonically_ordered_add_monoid cardinal),
-  ..cardinal.partial_order }
+{ exists_gt := λ a, ⟨_, cantor a⟩ }
 
 -- short-circuit type class inference
 instance : distrib_lattice cardinal.{u} := by apply_instance
@@ -541,7 +547,6 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
-instance : well_founded_lt cardinal.{u} := ⟨cardinal.lt_wf⟩
 instance wo : @is_well_order cardinal.{u} (<) := { }
 
 instance : conditionally_complete_linear_order_bot cardinal :=
@@ -614,6 +619,13 @@ lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b 
   #α ≤ #β * c :=
 by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
+
+lemma lift_mk_le_lift_mk_mul_of_lift_mk_preimage_le {α : Type u} {β : Type v} {c : cardinal}
+  (f : α → β) (hf : ∀ b : β, lift.{v} #(f ⁻¹' {b}) ≤ c) :
+  lift.{v} #α ≤ lift.{u} #β * c :=
+mk_le_mk_mul_of_mk_preimage_le (λ x : ulift.{v} α, ulift.up.{u} (f x.1)) $ ulift.forall.2 $ λ b,
+  (mk_congr $ (equiv.ulift.image _).trans (equiv.trans
+    (by { rw [equiv.image_eq_preimage], simp [set.preimage] }) equiv.ulift.symm)).trans_le (hf b)
 
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
     inputs, is always bounded above. -/
@@ -886,28 +898,21 @@ lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α 
 
 @[simp] lemma mk_finsupp_lift_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
-by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
+by simpa using (@finsupp.equiv_fun_on_finite α β _ _).cardinal_eq
 
 lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
   #(α →₀ β) = (#β) ^ℕ fintype.card α :=
 by simp
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
-begin
-  rw (_ : (s.card : cardinal) = #s),
-  { exact ⟨function.embedding.subtype _⟩ },
-  rw [cardinal.mk_fintype, fintype.card_coe]
-end
+@mk_coe_finset _ s ▸ mk_set_le _
 
 @[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simp [pow_succ', power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
-begin
-  rw [←lift_mk_fin, ←lift_mk_fin, lift_le],
-  exact ⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
-    λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
-end
+by rw [← lift_mk_fin, ← lift_mk_fin, lift_le, le_def, function.embedding.nonempty_iff_card_le,
+  fintype.card_fin, fintype.card_fin]
 
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, ←not_le]
@@ -974,6 +979,9 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   rcases lt_aleph_0.1 hn with ⟨n, rfl⟩,
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
+
+@[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
+ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
@@ -1092,6 +1100,9 @@ by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
 
+@[simp] lemma mk_eq_aleph_0 (α : Type*) [countable α] [infinite α] : #α = ℵ₀ :=
+mk_le_aleph_0.antisymm $ aleph_0_le_mk _
+
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀ :=
 ⟨λ ⟨h⟩, mk_congr ((@denumerable.eqv α h).trans equiv.ulift.symm),
  λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
@@ -1103,8 +1114,20 @@ denumerable_iff.1 ⟨‹_›⟩
 
 lemma aleph_0_mul_aleph_0 : ℵ₀ * ℵ₀ = ℵ₀ := mk_denumerable _
 
+@[simp] lemma nat_mul_aleph_0 {n : ℕ} (hn : n ≠ 0) : ↑n * ℵ₀ = ℵ₀ :=
+le_antisymm (lift_mk_fin n ▸ mk_le_aleph_0) $ le_mul_of_one_le_left (zero_le _) $
+  by rwa [← nat.cast_one, nat_cast_le, nat.one_le_iff_ne_zero]
+
+@[simp] lemma aleph_0_mul_nat {n : ℕ} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
+by rw [mul_comm, nat_mul_aleph_0 hn]
+
 @[simp] lemma add_le_aleph_0 {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ℵ₀ ↔ c₁ ≤ ℵ₀ ∧ c₂ ≤ ℵ₀ :=
 ⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, aleph_0_add_aleph_0 ▸ add_le_add h.1 h.2⟩
+
+@[simp] lemma aleph_0_add_nat (n : ℕ) : ℵ₀ + n = ℵ₀ :=
+(add_le_aleph_0.2 ⟨le_rfl, (nat_lt_aleph_0 n).le⟩).antisymm le_self_add
+
+@[simp] lemma nat_add_aleph_0 (n : ℕ) : ↑n + ℵ₀ = ℵ₀ := by rw [add_comm, aleph_0_add_nat]
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
@@ -1154,6 +1177,10 @@ end
 lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
 
 lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+lemma exists_nat_eq_of_le_nat {c : cardinal} {n : ℕ} (h : c ≤ n) : ∃ m, m ≤ n ∧ c = m :=
+let he := cast_to_nat_of_lt_aleph_0 (h.trans_lt $ nat_lt_aleph_0 n) in
+⟨c.to_nat, nat_cast_le.1 (he.trans_le h), he.symm⟩
 
 @[simp] lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=
 dif_neg (infinite_iff.1 h).not_lt
@@ -1426,7 +1453,7 @@ lemma mk_union_le {α : Type u} (S T : set α) : #(S ∪ T : set α) ≤ #S + #T
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   #(S ∪ T : set α) = #S + #T :=
-quot.sound ⟨equiv.set.union H⟩
+quot.sound ⟨equiv.set.union H.le_bot⟩
 
 theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
   #(insert a s : set α) = #s + 1 :=

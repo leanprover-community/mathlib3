@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 import algebra.big_operators.fin
 import algebra.geom_sum
-import group_theory.perm.fin
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.nondegenerate
 

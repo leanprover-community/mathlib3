@@ -9,6 +9,9 @@ import data.two_pointing
 /-!
 # The category of two-pointed types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Twop`, the category of two-pointed types.
 
 ## References

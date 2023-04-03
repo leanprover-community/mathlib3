@@ -191,11 +191,13 @@ instance : has_le cardinal.{u} :=
 ⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
   λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
-instance : partial_order cardinal.{u} :=
-{ le          := (≤),
-  le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
-  le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
-  le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
+instance : linear_order cardinal.{u} :=
+{ le           := (≤),
+  le_refl      := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
+  le_trans     := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
+  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) },
+  le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
+  decidable_le := classical.dec_rel _ }
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl
@@ -473,7 +475,17 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
-  ..cardinal.comm_semiring, ..cardinal.partial_order }
+  ..cardinal.comm_semiring, ..cardinal.linear_order }
+
+instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring,
+  ..cardinal.linear_order }
+
+instance : linear_ordered_comm_monoid_with_zero cardinal.{u} :=
+{ mul_le_mul_left := @mul_le_mul_left' _ _ _ _,
+  zero_le_one := zero_le _,
+  ..cardinal.comm_semiring,
+  ..cardinal.linear_order }
 
 protected theorem not_lt_zero (c : cardinal) : ¬ c < 0 := not_lt_bot
 
@@ -503,13 +515,7 @@ begin
 end
 
 instance : no_max_order cardinal.{u} :=
-{ exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
-
-instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
-{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
-  decidable_le := classical.dec_rel _,
-  ..(infer_instance : canonically_ordered_add_monoid cardinal),
-  ..cardinal.partial_order }
+{ exists_gt := λ a, ⟨_, cantor a⟩ }
 
 -- short-circuit type class inference
 instance : distrib_lattice cardinal.{u} := by apply_instance
@@ -544,7 +550,6 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
-instance : well_founded_lt cardinal.{u} := ⟨cardinal.lt_wf⟩
 instance wo : @is_well_order cardinal.{u} (<) := { }
 
 instance : conditionally_complete_linear_order_bot cardinal :=

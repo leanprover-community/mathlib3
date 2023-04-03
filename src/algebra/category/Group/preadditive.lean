@@ -8,6 +8,9 @@ import category_theory.preadditive.basic
 
 /-!
 # The category of additive commutative groups is preadditive.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

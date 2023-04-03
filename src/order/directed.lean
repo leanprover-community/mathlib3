@@ -269,9 +269,6 @@ does not appear to play a significant role in the literature, so is omitted here
 def scott_continuous [preorder β] (f : α → β) : Prop :=
 ∀ ⦃d : set α⦄, d.nonempty → directed_on (≤) d → ∀ ⦃a⦄, is_lub d a → is_lub (f '' d) (f a)
 
-def dual_scott_continuous [preorder β] (f : α → β) : Prop :=
-∀ ⦃d : set α⦄, d.nonempty → directed_on (≥) d → ∀ ⦃a⦄, is_glb d a → is_glb (f '' d) (f a)
-
 lemma scott_continuous.monotone [preorder β] {f : α → β}
   (h : scott_continuous f) :
   monotone f :=

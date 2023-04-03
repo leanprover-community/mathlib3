@@ -270,9 +270,9 @@ lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
 by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
 
 lemma matrix.range_to_lin' (M : matrix m n R) : M.to_lin'.range = span R (range Mᵀ) :=
-by simp_rw [range_eq_map, ←supr_range_std_basis, map_supr, range_eq_map, ←ideal.span_singleton_one,
-  ideal.span, submodule.map_span, image_image, image_singleton, matrix.to_lin'_apply,
-  M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
+by simp_rw [range_eq_map, ←supr_range_std_basis, submodule.map_supr, range_eq_map,
+  ←ideal.span_singleton_one, ideal.span, submodule.map_span, image_image, image_singleton,
+  matrix.to_lin'_apply, M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
 
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
@@ -627,7 +627,7 @@ linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 begin
   ext,
   rw [linear_map.to_matrix_apply, distrib_mul_action.to_linear_map_apply, linear_equiv.map_smul,
-    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal,
+    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal_apply,
     pi.single_apply],
 end
 
@@ -637,12 +637,8 @@ namespace algebra
 
 section lmul
 
-variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
-variables {m n : Type*} [fintype m] [decidable_eq m] [decidable_eq n]
-variables (b : basis m R S) (c : basis n S T)
-
-open algebra
+variables {R S : Type*} [comm_ring R] [ring S] [algebra R S]
+variables {m : Type*} [fintype m] [decidable_eq m] (b : basis m R S)
 
 lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix b b (lmul R S x) i j = b.repr (x * b j) i :=
@@ -690,7 +686,14 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
              ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix b b).injective h
              ... = x' : mul_one x'
 
-variable [fintype n]
+end lmul
+
+section lmul_tower
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables {m n : Type*} [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+variables (b : basis m R S) (c : basis n S T)
 
 lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =
@@ -715,7 +718,7 @@ lemma smul_left_mul_matrix_algebra_map_ne (x : S) (i j) {k k'}
   (h : k ≠ k') : left_mul_matrix (b.smul c) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
 by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_ne _ _ _ h]
 
-end lmul
+end lmul_tower
 
 end algebra
 
@@ -739,7 +742,7 @@ variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V
   [module A W] [is_scalar_tower K A W]
 
 /-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, since they form a subspace of all `k`-linear maps. -/
+target are, as they form a subspace of all `k`-linear maps. -/
 instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
 finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
   (restrict_scalars_injective _)

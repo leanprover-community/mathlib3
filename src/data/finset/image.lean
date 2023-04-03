@@ -10,6 +10,9 @@ import data.int.order.basic
 
 /-! # Image and map operations on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Thie file provides the finite analog of `set.image`, along with some other similar functions.
 
 Note there are two ways to take the image over a finset; via `finset.image` which applies the
@@ -239,6 +242,9 @@ by simp only [mem_def, image_val, mem_dedup, multiset.mem_map, exists_prop]
 
 lemma mem_image_of_mem (f : α → β) {a} (h : a ∈ s) : f a ∈ s.image f := mem_image.2 ⟨_, h, rfl⟩
 
+lemma forall_image {p : β → Prop} : (∀ b ∈ s.image f, p b) ↔ ∀ a ∈ s, p (f a) :=
+by simp only [mem_image, forall_exists_index, forall_apply_eq_imp_iff₂]
+
 @[simp] lemma mem_image_const : c ∈ s.image (const α b) ↔ s.nonempty ∧ b = c :=
 by { rw mem_image, simp only [exists_prop, const_apply, exists_and_distrib_right], refl }
 
@@ -348,11 +354,7 @@ subset_inter (image_subset_image $ inter_subset_left _ _) $
 lemma image_inter_of_inj_on [decidable_eq α] {f : α → β} (s t : finset α)
   (hf : set.inj_on f (s ∪ t)) :
   (s ∩ t).image f = s.image f ∩ t.image f :=
-(image_inter_subset _ _ _).antisymm $ λ x, begin
-  simp only [mem_inter, mem_image],
-  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
-  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
-end
+coe_injective $ by { push_cast, exact set.image_inter_on (λ a ha b hb, hf (or.inr ha) $ or.inl hb) }
 
 lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : injective f) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
@@ -385,6 +387,14 @@ end
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
+
+lemma image_sdiff [decidable_eq α] {f : α → β} (s t : finset α) (hf : injective f) :
+  (s \ t).image f = s.image f \ t.image f :=
+coe_injective $ by { push_cast, exact set.image_diff hf _ _ }
+
+lemma image_symm_diff [decidable_eq α] {f : α → β} (s t : finset α) (hf : injective f) :
+  (s ∆ t).image f = s.image f ∆ t.image f :=
+coe_injective $ by { push_cast, exact set.image_symm_diff hf _ _ }
 
 @[simp] lemma _root_.disjoint.of_image_finset
   {s t : finset α} {f : α → β} (h : disjoint (s.image f) (t.image f)) :

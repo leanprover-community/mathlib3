@@ -327,8 +327,8 @@ section basic_open
 
 /-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
 def basic_open (r : A) : topological_space.opens (projective_spectrum 𝒜) :=
-{ val := { x | r ∉ x.as_homogeneous_ideal },
-  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+{ carrier := { x | r ∉ x.as_homogeneous_ideal },
+  is_open' := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
 @[simp] lemma mem_basic_open (f : A) (x : projective_spectrum 𝒜) :
   x ∈ basic_open 𝒜 f ↔ f ∉ x.as_homogeneous_ideal := iff.rfl
@@ -338,7 +338,7 @@ lemma mem_coe_basic_open (f : A) (x : projective_spectrum 𝒜) :
 
 lemma is_open_basic_open {a : A} : is_open ((basic_open 𝒜 a) :
   set (projective_spectrum 𝒜)) :=
-(basic_open 𝒜 a).property
+(basic_open 𝒜 a).is_open
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : A) :
   (basic_open 𝒜 r : set (projective_spectrum 𝒜)) = (zero_locus 𝒜 {r})ᶜ :=

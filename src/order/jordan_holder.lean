@@ -11,6 +11,9 @@ import data.fintype.card
 /-!
 # Jordan-Hölder Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Jordan Hölder theorem for a `jordan_holder_lattice`, a class also defined in
 this file. Examples of `jordan_holder_lattice` include `subgroup G` if `G` is a group, and
 `submodule R M` if `M` is an `R`-module. Using this approach the theorem need not be proved
@@ -411,89 +414,91 @@ begin
   ext; simp [this]
 end
 
-lemma append_cast_add_aux
-  {s₁ s₂ : composition_series X}
-  (i : fin s₁.length) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
-  (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-by { cases i, simp [fin.append, *] }
+section fin_lemmas
+-- TODO: move these to `vec_notation` and rename them to better describe their statement
 
-lemma append_succ_cast_add_aux
-  {s₁ s₂ : composition_series X}
-  (i : fin s₁.length)
-  (h : s₁ (fin.last _) = s₂ 0) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
-  (fin.cast_add s₂.length i).succ = s₁ i.succ :=
+variables {α : Type*} {m n : ℕ} (a : fin m.succ → α) (b : fin n.succ → α)
+
+lemma append_cast_add_aux (i : fin m) :
+  matrix.vec_append (nat.add_succ _ _).symm (a ∘ fin.cast_succ) b
+    (fin.cast_add n i).cast_succ = a i.cast_succ :=
+by { cases i, simp [matrix.vec_append_eq_ite, *] }
+
+lemma append_succ_cast_add_aux (i : fin m) (h : a (fin.last _) = b 0) :
+  matrix.vec_append (nat.add_succ _ _).symm (a ∘ fin.cast_succ) b
+  (fin.cast_add n i).succ = a i.succ :=
 begin
   cases i with i hi,
-  simp only [fin.append, hi, fin.succ_mk, function.comp_app, fin.cast_succ_mk,
+  simp only [matrix.vec_append_eq_ite, hi, fin.succ_mk, function.comp_app, fin.cast_succ_mk,
     fin.coe_mk, fin.cast_add_mk],
   split_ifs,
   { refl },
-  { have : i + 1 = s₁.length, from le_antisymm hi (le_of_not_gt h_1),
-    calc s₂ ⟨i + 1 - s₁.length, by simp [this]⟩
-        = s₂ 0 : congr_arg s₂ (by simp [fin.ext_iff, this])
-    ... = s₁ (fin.last _) : h.symm
-    ... = _ : congr_arg s₁ (by simp [fin.ext_iff, this]) }
+  { have : i + 1 = m, from le_antisymm hi (le_of_not_gt h_1),
+    calc b ⟨i + 1 - m, by simp [this]⟩
+        = b 0 : congr_arg b (by simp [fin.ext_iff, this])
+    ... = a (fin.last _) : h.symm
+    ... = _ : congr_arg a (by simp [fin.ext_iff, this]) }
 end
 
-lemma append_nat_add_aux
-  {s₁ s₂ : composition_series X}
-  (i : fin s₂.length) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
-  (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
+lemma append_nat_add_aux (i : fin n) :
+  matrix.vec_append (nat.add_succ _ _).symm (a ∘ fin.cast_succ) b
+  (fin.nat_add m i).cast_succ = b i.cast_succ :=
 begin
   cases i,
-  simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
+  simp only [matrix.vec_append_eq_ite, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
     add_tsub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
 end
 
-lemma append_succ_nat_add_aux
-  {s₁ s₂ : composition_series X}
-  (i : fin s₂.length) :
-  fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
-  (fin.nat_add s₁.length i).succ = s₂ i.succ :=
+lemma append_succ_nat_add_aux (i : fin n) :
+  matrix.vec_append (nat.add_succ _ _).symm (a ∘ fin.cast_succ) b
+  (fin.nat_add m i).succ = b i.succ :=
 begin
   cases i with i hi,
-  simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
+  simp only [matrix.vec_append_eq_ite, add_assoc, nat.not_lt_zero, fin.nat_add_mk,
+    add_lt_iff_neg_left, add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
+
+end fin_lemmas
 
 /-- Append two composition series `s₁` and `s₂` such that
 the least element of `s₁` is the maximum element of `s₂`. -/
 @[simps length] def append (s₁ s₂ : composition_series X)
   (h : s₁.top = s₂.bot) : composition_series X :=
 { length := s₁.length + s₂.length,
-  series := fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂,
+  series := matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂,
   step' := λ i, begin
     refine fin.add_cases  _ _ i,
     { intro i,
-      rw [append_succ_cast_add_aux _ h, append_cast_add_aux],
+      rw [append_succ_cast_add_aux _ _ _ h, append_cast_add_aux],
       exact s₁.step i },
     { intro i,
       rw [append_nat_add_aux, append_succ_nat_add_aux],
       exact s₂.step i }
   end }
 
+lemma coe_append (s₁ s₂ : composition_series X) (h) :
+  ⇑(s₁.append s₂ h) = matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂ :=
+rfl
+
 @[simp] lemma append_cast_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-append_cast_add_aux i
+by rw [coe_append, append_cast_add_aux _ _ i]
 
 @[simp] lemma append_succ_cast_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).succ = s₁ i.succ :=
-append_succ_cast_add_aux i h
+by rw [coe_append, append_succ_cast_add_aux _ _ _ h]
 
 @[simp] lemma append_nat_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
-append_nat_add_aux i
+by rw [coe_append, append_nat_add_aux _ _ i]
 
 @[simp] lemma append_succ_nat_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).succ = s₂ i.succ :=
-append_succ_nat_add_aux i
+by rw [coe_append, append_succ_nat_add_aux _ _ i]
 
 /-- Add an element to the top of a `composition_series` -/
 @[simps length] def snoc (s : composition_series X) (x : X)
@@ -522,7 +527,7 @@ fin.snoc_cast_succ _ _ _
 
 @[simp] lemma bot_snoc (s : composition_series X) (x : X) (hsat : is_maximal s.top x) :
   (snoc s x hsat).bot = s.bot :=
-by rw [bot, bot, ← fin.cast_succ_zero, snoc_cast_succ]
+by rw [bot, bot, ← snoc_cast_succ s _ _ 0, fin.cast_succ_zero]
 
 lemma mem_snoc {s : composition_series X} {x y: X}
   {hsat : is_maximal s.top x} : y ∈ snoc s x hsat ↔ y ∈ s ∨ y = x :=

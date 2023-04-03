@@ -8,6 +8,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of continuum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `cardinal.continuum` (notation: `𝔠`, localized in `cardinal`) to be `2 ^ ℵ₀`.
 We also prove some `simp` lemmas about cardinal arithmetic involving `𝔠`.
 

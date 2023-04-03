@@ -13,6 +13,9 @@ import algebra.order.field.basic
 /-!
 # Casts for Rational Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define the canonical injection from ℚ into an arbitrary division ring and prove various
@@ -306,20 +309,6 @@ monoid_with_zero_hom.ext_rat' $ ring_hom.congr_fun $
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
-
-namespace mul_opposite
-
-variables [division_ring α]
-
-@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
-by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
-
-@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
-by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
-
-end mul_opposite
 
 section smul
 

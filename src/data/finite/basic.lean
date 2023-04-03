@@ -12,6 +12,9 @@ import data.fintype.vector
 /-!
 # Finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some theorems about `finite` and provide some instances. This typeclass is a
 `Prop`-valued counterpart of the typeclass `fintype`. See more details in the file where `finite` is
 defined.

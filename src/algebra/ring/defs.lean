@@ -11,7 +11,6 @@ import data.int.cast.defs
 # Semirings and rings
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/655
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
@@ -293,9 +292,9 @@ class non_unital_ring (α : Type*) extends
   non_unital_non_assoc_ring α, non_unital_semiring α
 
 /-- A unital but not-necessarily-associative ring. -/
-@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring]
+@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring add_comm_group_with_one]
 class non_assoc_ring (α : Type*) extends
-  non_unital_non_assoc_ring α, non_assoc_semiring α, add_group_with_one α
+  non_unital_non_assoc_ring α, non_assoc_semiring α, add_comm_group_with_one α
 
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a

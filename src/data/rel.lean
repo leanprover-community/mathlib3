@@ -9,6 +9,9 @@ import order.galois_connection
 /-!
 # Relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled relations. A relation between `α` and `β` is a function `α → β → Prop`.
 Relations are also known as set-valued functions, or partial multifunctions.
 

@@ -11,6 +11,9 @@ import logic.relation
 /-!
 # Pairwise relations on a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about `list.pairwise` and `list.pw_filter` (definitions are in
 `data.list.defs`).
 `pairwise r [a 0, ..., a (n - 1)]` means `∀ i j, i < j → r (a i) (a j)`. For example,
@@ -310,10 +313,10 @@ theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
     exact H _ _ (succ_lt_succ h) (succ_pos _) }
 end
 
-lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
-  ∀ (n : ℕ), pairwise r (repeat x n)
+lemma pairwise_replicate {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
+  ∀ (n : ℕ), pairwise r (replicate n x)
 | 0 := by simp
-| (n+1) := by simp [hx, mem_repeat, pairwise_repeat n]
+| (n+1) := by simp [hx, mem_replicate, pairwise_replicate n]
 
 /-! ### Pairwise filtering -/
 

@@ -8,6 +8,9 @@ import logic.embedding.set
 /-!
 # Equivalences on embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows some advanced equivalences on embeddings, useful for constructing larger
 embeddings from smaller ones.
 -/

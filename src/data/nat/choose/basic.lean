@@ -8,6 +8,9 @@ import data.nat.factorial.basic
 /-!
 # Binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines binomial coefficients and proves simple lemmas (i.e. those not
 requiring more imports).
 
@@ -124,9 +127,8 @@ end
 lemma choose_mul {n k s : ℕ} (hkn : k ≤ n) (hsk : s ≤ k) :
   n.choose k * k.choose s = n.choose s * (n - s).choose (k - s) :=
 begin
-  have h : 0 < (n - k)! * (k - s)! * s! :=
-    mul_pos (mul_pos (factorial_pos _) (factorial_pos _)) (factorial_pos _),
-  refine eq_of_mul_eq_mul_right h _,
+  have h : (n - k)! * (k - s)! * s! ≠ 0, by apply_rules [mul_ne_zero, factorial_ne_zero],
+  refine mul_right_cancel₀ h _,
   calc
     n.choose k * k.choose s * ((n - k)! * (k - s)! * s!)
         = n.choose k * (k.choose s * s! * (k - s)!) * (n - k)!

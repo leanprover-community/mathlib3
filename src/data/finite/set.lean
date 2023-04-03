@@ -8,6 +8,9 @@ import data.fintype.card
 /-!
 # Lemmas about `finite` and `set`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove two lemmas about `finite` and `set`s.
 
 ## Tags

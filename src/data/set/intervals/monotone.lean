@@ -9,6 +9,9 @@ import order.succ_pred.basic
 /-!
 # Monotonicity on intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `set.Ici` etc are monotone/antitone functions. We also prove some lemmas
 about functions monotone on intervals in `succ_order`s.
 -/

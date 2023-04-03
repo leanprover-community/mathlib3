@@ -9,6 +9,9 @@ import data.list.range
 /-!
 # Lemmas about list.*_with_index functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
 and `list.foldr_with_index`.
 -/

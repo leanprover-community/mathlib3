@@ -10,7 +10,6 @@ import algebra.ring.defs
 # Lemmas about divisibility in rings
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/864
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -96,6 +95,8 @@ begin
     convert dvd_add h h',
     exact eq_add_of_sub_eq rfl }
 end
+
+lemma dvd_sub_comm : a ∣ b - c ↔ a ∣ c - b := by rw [←dvd_neg, neg_sub]
 
 end non_unital_ring
 

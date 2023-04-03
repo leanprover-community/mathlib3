@@ -6,7 +6,10 @@ Authors: Chris Hughes, Bhavik Mehta, Eric Wieser
 import data.list.big_operators.lemmas
 import algebra.big_operators.multiset.basic
 
-/-! # Lemmas about `multiset.sum` and `multiset.prod` requiring extra algebra imports -/
+/-! # Lemmas about `multiset.sum` and `multiset.prod` requiring extra algebra imports 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 variables {ι α β γ : Type*}
 

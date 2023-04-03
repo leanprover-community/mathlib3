@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.measure.probability_measure
+import measure_theory.measure.lebesgue
 
 /-!
 # Characterizations of weak convergence of finite measures and probability measures
@@ -72,7 +73,7 @@ open measure_theory
 open set
 open filter
 open bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
+open_locale topology ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 
@@ -436,5 +437,43 @@ begin
 end
 
 end convergence_implies_limsup_closed_le --section
+
+section limit_borel_implies_limsup_closed_le
+/-! ### Portmanteau implication: limit condition for Borel sets implies limsup for closed sets
+
+TODO: The proof of the implication is not yet here. Add it.
+-/
+
+variables {Ω : Type*} [pseudo_emetric_space Ω] [measurable_space Ω] [opens_measurable_space Ω]
+
+lemma exists_null_frontier_thickening
+  (μ : measure Ω) [sigma_finite μ] (s : set Ω) {a b : ℝ} (hab : a < b) :
+  ∃ r ∈ Ioo a b, μ (frontier (metric.thickening r s)) = 0 :=
+begin
+  have mbles : ∀ (r : ℝ), measurable_set (frontier (metric.thickening r s)),
+    from λ r, (is_closed_frontier).measurable_set,
+  have disjs := metric.frontier_thickening_disjoint s,
+  have key := @measure.countable_meas_pos_of_disjoint_Union Ω _ _ μ _ _ mbles disjs,
+  have aux := @measure_diff_null ℝ _ volume (Ioo a b) _ (set.countable.measure_zero key volume),
+  have len_pos : 0 < ennreal.of_real (b - a), by simp only [hab, ennreal.of_real_pos, sub_pos],
+  rw [← real.volume_Ioo, ← aux] at len_pos,
+  rcases nonempty_of_measure_ne_zero len_pos.ne.symm with ⟨r, ⟨r_in_Ioo, hr⟩⟩,
+  refine ⟨r, r_in_Ioo, _⟩,
+  simpa only [mem_set_of_eq, not_lt, le_zero_iff] using hr,
+end
+
+lemma exists_null_frontiers_thickening (μ : measure Ω) [sigma_finite μ] (s : set Ω) :
+  ∃ (rs : ℕ → ℝ), tendsto rs at_top (𝓝 0) ∧
+                  ∀ n, 0 < rs n ∧ μ (frontier (metric.thickening (rs n) s)) = 0 :=
+begin
+  rcases exists_seq_strict_anti_tendsto (0 : ℝ) with ⟨Rs, ⟨rubbish, ⟨Rs_pos, Rs_lim⟩⟩⟩,
+  have obs := λ (n : ℕ), exists_null_frontier_thickening μ s (Rs_pos n),
+  refine ⟨(λ (n : ℕ), (obs n).some), ⟨_, _⟩⟩,
+  { exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds Rs_lim
+              (λ n, (obs n).some_spec.some.1.le) (λ n, (obs n).some_spec.some.2.le), },
+  { exact λ n, ⟨(obs n).some_spec.some.1, (obs n).some_spec.some_spec⟩, },
+end
+
+end limit_borel_implies_limsup_closed_le --section
 
 end measure_theory --namespace

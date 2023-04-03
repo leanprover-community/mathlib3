@@ -9,6 +9,9 @@ import group_theory.submonoid.center
 /-!
 # Centralizers of magmas and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `submonoid.centralizer`: the centralizer of a subset of a monoid

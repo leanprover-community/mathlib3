@@ -12,6 +12,9 @@ import combinatorics.quiver.connected_component
 /-!
 # Groupoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `groupoid` as a typeclass extending `category`,
 asserting that all morphisms have inverses.
 
@@ -74,6 +77,12 @@ instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
   inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
 
 @[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
+
+instance functor_map_reverse {D : Type*} [groupoid D] (F : C ⥤ D) :
+  F.to_prefunctor.map_reverse :=
+{ map_reverse' := λ X Y f, by
+  simp only [quiver.reverse, quiver.has_reverse.reverse', groupoid.inv_eq_inv,
+               functor.to_prefunctor_map, functor.map_inv], }
 
 variables (X Y)
 

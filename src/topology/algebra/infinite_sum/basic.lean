@@ -1105,7 +1105,6 @@ begin
   refl,
 end
 
-
 end uniform_group
 
 section topological_group

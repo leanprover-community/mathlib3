@@ -168,7 +168,8 @@ def continuous_linear_map :
   open_base_set := e₁.open_base_set.inter e₂.open_base_set,
   source_eq := rfl,
   target_eq := rfl,
-  proj_to_fun := λ ⟨x, f⟩ h, rfl }
+  to_fun_fst := λ ⟨x, f⟩, rfl,
+  proj_inv_fun := λ x, rfl }
 
 instance continuous_linear_map.is_linear
   [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)] :
@@ -185,7 +186,8 @@ instance continuous_linear_map.is_linear
     begin
       simp_rw [smul_comp, comp_smulₛₗ, ring_hom.id_apply],
       refl
-    end, } }
+    end, },
+  symm_eq_zero := sorry }
 
 lemma continuous_linear_map_apply
   (p : total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :
@@ -204,9 +206,7 @@ lemma continuous_linear_map_symm_apply' {b : B} (hb : b ∈ e₁.base_set ∩ e�
   (L : F₁ →SL[σ] F₂) :
   (continuous_linear_map σ e₁ e₂).symm b L =
   (e₂.symmL 𝕜₂ b).comp (L.comp $ e₁.continuous_linear_map_at 𝕜₁ b) :=
-begin
-  rw [symm_apply], refl, exact hb
-end
+rfl
 
 lemma continuous_linear_map_coord_change_apply [ring_hom_isometric σ] (b : B)
   (hb : b ∈ (e₁.base_set ∩ e₂.base_set) ∩ (e₁'.base_set ∩ e₂'.base_set)) (L : F₁ →SL[σ] F₂) :

@@ -37,7 +37,8 @@ variables (𝕜 : Type*) (B : Type*) (F : Type*)
   [nontrivially_normed_field 𝕜] [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
 
 instance trivialization.is_linear : (trivialization B F).is_linear 𝕜 :=
-{ linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩ }
+{ linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩,
+  symm_eq_zero := λ b hb, hb.elim (mem_univ b) }
 
 variables {𝕜}
 
@@ -83,7 +84,8 @@ variables {F₁ E₁ F₂ E₂}
   (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
 
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
-{ linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear }
+{ linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear,
+  symm_eq_zero := sorry }
 
 @[simp]
 lemma coord_changeL_prod [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜] ⦃b⦄
@@ -176,7 +178,8 @@ variables {E F} [topological_space B'] [topological_space (total_space E)]
 
 instance trivialization.pullback_linear (e : trivialization F (π E)) [e.is_linear 𝕜] (f : K) :
   (@trivialization.pullback _ _ _ B' _ _ _ _ _ _ _ e f).is_linear 𝕜 :=
-{ linear := λ x h, e.linear 𝕜 h }
+{ linear := λ x h, e.linear 𝕜 h,
+  symm_eq_zero := λ b hb x, congr_fun (e.symm_eq_zero' 𝕜 hb) x }
 
 instance vector_bundle.pullback [∀ x, topological_space (E x)]
   [fiber_bundle F E] [vector_bundle 𝕜 F E] (f : K) : vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=

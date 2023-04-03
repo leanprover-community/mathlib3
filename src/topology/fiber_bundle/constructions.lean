@@ -63,7 +63,8 @@ def trivialization : trivialization F (π (bundle.trivial B F)) :=
   open_base_set := is_open_univ,
   source_eq := rfl,
   target_eq := by simp only [univ_prod_univ],
-  proj_to_fun := λ y hy, rfl }
+  to_fun_fst := λ y, rfl,
+  proj_inv_fun := λ y, rfl }
 
 @[simp]
 lemma trivialization_source : (trivialization B F).source = univ := rfl
@@ -151,10 +152,7 @@ begin
   { rw [e₁.source_eq, e₂.source_eq],
     exact maps_to_preimage _ _ },
   rintros ⟨b, v₁, v₂⟩ ⟨hb₁, hb₂⟩,
-  simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
-  rw e₁.coe_fst,
-  rw [e₁.source_eq, mem_preimage],
-  exact hb₁,
+  simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true, e₁.coe_fst]
 end
 
 variables (e₁ e₂) [Π x, has_zero (E₁ x)] [∀ x, has_zero (E₂ x)]
@@ -162,7 +160,7 @@ variables (e₁ e₂) [Π x, has_zero (E₁ x)] [∀ x, has_zero (E₂ x)]
 /-- Given trivializations `e₁`, `e₂` for fiber bundles `E₁`, `E₂` over a base `B`, the inverse
 function for the construction `trivialization.prod`, the induced
 trivialization for the fiberwise product of `E₁` and `E₂`. -/
-noncomputable def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
+def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
 ⟨p.1, e₁.symm p.1 p.2.1, e₂.symm p.1 p.2.2⟩
 
 variables {e₁ e₂}
@@ -200,7 +198,7 @@ variables (e₁ e₂ e₁ e₂)
 /-- Given trivializations `e₁`, `e₂` for bundle types `E₁`, `E₂` over a base `B`, the induced
 trivialization for the fiberwise product of `E₁` and `E₂`, whose base set is
 `e₁.base_set ∩ e₂.base_set`. -/
-noncomputable def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
+def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
 { to_fun := prod.to_fun' e₁ e₂,
   inv_fun := prod.inv_fun' e₁ e₂,
   source := (@total_space.proj B (E₁ ×ᵇ E₂)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
@@ -222,7 +220,8 @@ noncomputable def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
   open_base_set := e₁.open_base_set.inter e₂.open_base_set,
   source_eq := rfl,
   target_eq := rfl,
-  proj_to_fun := λ x h, rfl }
+  to_fun_fst := λ y, rfl,
+  proj_inv_fun := λ y, rfl  }
 
 @[simp] lemma base_set_prod : (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl
@@ -240,7 +239,7 @@ variables [Π x, has_zero (E₁ x)] [∀ x, has_zero (E₂ x)]
   [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
 
 /-- The product of two fiber bundles is a fiber bundle. -/
-noncomputable instance fiber_bundle.prod : fiber_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) :=
+instance fiber_bundle.prod : fiber_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { total_space_mk_inducing := λ b,
   begin
     rw (prod.inducing_diag E₁ E₂).inducing_iff,
@@ -320,7 +319,7 @@ end
 variables {E F} [∀ b, has_zero (E b)] {K : Type*} [continuous_map_class K B' B]
 
 /-- A fiber bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
-noncomputable def trivialization.pullback (e : trivialization F (π E)) (f : K) :
+def trivialization.pullback (e : trivialization F (π E)) (f : K) :
   trivialization F (π ((f : B' → B) *ᵖ E)) :=
 { to_fun := λ z, (z.proj, (e (pullback.lift f z)).2),
   inv_fun := λ y, @total_space_mk _ (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
@@ -352,9 +351,10 @@ noncomputable def trivialization.pullback (e : trivialization F (π E)) (f : K) 
   end,
   source_eq := by { dsimp only, rw e.source_eq, refl, },
   target_eq := rfl,
-  proj_to_fun := λ y h, rfl }
+  to_fun_fst := λ y, rfl,
+  proj_inv_fun := λ y, rfl }
 
-noncomputable instance fiber_bundle.pullback [∀ x, topological_space (E x)]
+instance fiber_bundle.pullback [∀ x, topological_space (E x)]
   [fiber_bundle F E] (f : K) : fiber_bundle F ((f : B' → B) *ᵖ E) :=
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk F E) (pullback.continuous_lift E f)

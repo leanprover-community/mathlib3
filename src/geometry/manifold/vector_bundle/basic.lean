@@ -91,8 +91,7 @@ lemma fiber_bundle.charted_space_chart_at (x : total_space E) :
 begin
   dsimp only [fiber_bundle.charted_space', charted_space.comp, fiber_bundle.charted_space,
     prod_charted_space, charted_space_self],
-  rw [trivialization.coe_coe,
-    trivialization.coe_fst' _ (mem_base_set_trivialization_at F E x.proj)]
+  rw [trivialization.coe_coe, trivialization.coe_fst _]
 end
 
 lemma fiber_bundle.charted_space_chart_at_symm_fst (x : total_space E) (y : model_prod HB F)
@@ -100,7 +99,7 @@ lemma fiber_bundle.charted_space_chart_at_symm_fst (x : total_space E) (y : mode
   ((chart_at (model_prod HB F) x).symm y).proj = (chart_at HB x.proj).symm y.1 :=
 begin
   simp only [fiber_bundle.charted_space_chart_at] with mfld_simps at hy ⊢,
-  exact (trivialization_at F E x.proj).proj_symm_apply hy.2,
+  exact (trivialization_at F E x.proj).proj_symm_apply _,
 end
 
 end
@@ -157,9 +156,8 @@ begin
       ((trivialization.open_base_set _).mem_nhds (mem_base_set_trivialization_at F E _)),
   refine and_congr (eventually_eq.cont_mdiff_within_at_iff (eventually_of_mem h1 $ λ x hx, _) _)
     iff.rfl,
-  { simp_rw [function.comp, local_homeomorph.coe_coe, trivialization.coe_coe],
-    rw [trivialization.coe_fst'],
-    exact hx },
+  { simp_rw [function.comp, local_homeomorph.coe_coe, trivialization.coe_coe,
+      trivialization.coe_fst] },
   { simp only with mfld_simps },
 end
 
@@ -180,9 +178,7 @@ begin
   apply cont_diff_within_at_fst.congr,
   { rintros ⟨a, b⟩ hab,
     simp only with mfld_simps at hab,
-    have : ((chart_at HB x.1).symm (IB.symm a), b) ∈ (trivialization_at F E x.fst).target,
-    { simp only [hab] with mfld_simps },
-    simp only [trivialization.proj_symm_apply _ this, hab] with mfld_simps },
+    simp only [(trivialization_at F E x.fst).proj_symm_apply, hab] with mfld_simps },
   { simp only with mfld_simps }
 end
 
@@ -282,12 +278,11 @@ instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
         rw e.symm_coord_changeL e' hb },
       { apply_instance },
       { apply_instance }, },
-    { simp only [e.symm_trans_source_eq e', fiberwise_linear.local_homeomorph,
-      trans_to_local_equiv, symm_to_local_equiv]},
+    { simp only [e.symm_trans_source_eq e', fiberwise_linear.local_homeomorph] },
     { rintros ⟨b, v⟩ hb,
       have hb' : b ∈ e.base_set ∩ e'.base_set,
-      { simpa only [trans_to_local_equiv, symm_to_local_equiv, e.symm_trans_source_eq e',
-          coe_coe_symm, prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb },
+      { simpa only [e.symm_trans_source_eq e', coe_coe_symm, prod_mk_mem_set_prod_eq, mem_univ,
+          and_true] using hb },
       exact e.apply_symm_apply_eq_coord_changeL e' hb' v, }
   end }
 

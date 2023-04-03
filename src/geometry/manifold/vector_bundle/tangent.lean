@@ -105,7 +105,8 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
     { intros x hx, exact mem_range_self _ },
     { exact I.unique_diff_at_image },
     { rw [function.comp_apply, i.1.extend_left_inv I hxi] }
-  end }
+  end,
+  coord_change_eq_zero := sorry }
 
 variables {M}
 

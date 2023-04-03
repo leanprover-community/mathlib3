@@ -229,8 +229,7 @@ is_open_map.of_nhds_le $ λ x, (map_proj_nhds F x).ge
 /-- The projection from a fiber bundle with a nonempty fiber to its base is a surjective
 map. -/
 lemma surjective_proj [nonempty F] : function.surjective (π E) :=
-λ b, let ⟨p, _, hpb⟩ :=
-  (trivialization_at F E b).proj_surj_on_base_set (mem_base_set_trivialization_at F E b) in ⟨p, hpb⟩
+λ b, (trivialization_at F E b).proj_surjective b
 
 /-- The projection from a fiber bundle with a nonempty fiber to its base is a quotient
 map. -/
@@ -247,10 +246,9 @@ lemma mem_trivialization_at_proj_source {x : total_space E} :
   x ∈ (trivialization_at F E x.proj).source :=
 (trivialization.mem_source _).mpr $ mem_base_set_trivialization_at F E x.proj
 
-@[simp, mfld_simps]
-lemma trivialization_at_proj_fst {x : total_space E} :
-  ((trivialization_at F E x.proj) x).1 = x.proj :=
-trivialization.coe_fst' _ $ mem_base_set_trivialization_at F E x.proj
+lemma trivialization_at_proj_fst {x y : total_space E} :
+  ((trivialization_at F E x.proj) y).1 = y.proj :=
+(trivialization_at F E x.proj).coe_fst y
 
 variable (F)
 open trivialization
@@ -266,9 +264,7 @@ begin
   have h1 : (λ x, (f x).proj) ⁻¹' (trivialization_at F E (f x₀).proj).base_set ∈ 𝓝[s] x₀ :=
     hf.preimage_mem_nhds_within ((open_base_set _).mem_nhds (mem_base_set_trivialization_at F E _)),
   have h2 : continuous_within_at (λ x, (trivialization_at F E (f x₀).proj (f x)).1) s x₀,
-  { refine hf.congr_of_eventually_eq (eventually_of_mem h1 $ λ x hx, _) trivialization_at_proj_fst,
-    rw [coe_fst'],
-    exact hx },
+  { simp_rw [trivialization.coe_fst], exact hf },
   rw [(trivialization_at F E (f x₀).proj).continuous_within_at_iff_continuous_within_at_comp_left],
   { simp_rw [continuous_within_at_prod_iff, function.comp, trivialization.coe_coe, h2, true_and] },
   { apply mem_trivialization_at_proj_source },
@@ -533,7 +529,8 @@ def local_triv (i : ι) : trivialization F Z.proj :=
   open_base_set := Z.is_open_base_set i,
   source_eq     := rfl,
   target_eq     := rfl,
-  proj_to_fun   := λ p hp, by { simp only with mfld_simps, refl },
+  to_fun_fst    := λ p, rfl,
+  proj_inv_fun  := λ p, rfl,
   open_source := Z.open_source' i,
   open_target := (Z.is_open_base_set i).prod is_open_univ,
   continuous_to_fun := begin
@@ -857,9 +854,7 @@ begin
   { exact ((hs.inter (a.pretrivialization_at z.proj).open_base_set).prod is_open_univ) },
   refine ⟨_, mem_univ _⟩,
   rw e.coe_fst,
-  { exact ⟨hz, a.mem_base_pretrivialization_at z.proj⟩ },
-  { rw e.mem_source,
-    exact a.mem_base_pretrivialization_at z.proj },
+  exact ⟨hz, a.mem_base_pretrivialization_at z.proj⟩
 end
 
 end fiber_prebundle

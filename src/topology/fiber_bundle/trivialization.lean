@@ -68,7 +68,8 @@ structure pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
 (open_base_set : is_open base_set)
 (source_eq     : source = proj ⁻¹' base_set)
 (target_eq     : target = base_set ×ˢ univ)
-(proj_to_fun   : ∀ p ∈ source, (to_fun p).1 = proj p)
+(to_fun_fst   : ∀ p, (to_fun p).1 = proj p)
+(proj_inv_fun   : ∀ p, proj (inv_fun p) = p.1)
 
 namespace pretrivialization
 
@@ -77,13 +78,9 @@ instance : has_coe_to_fun (pretrivialization F proj) (λ _, Z → (B × F)) := �
 variables {F} (e : pretrivialization F proj) {x : Z}
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_equiv = e := rfl
-@[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
+@[simp, mfld_simps] lemma coe_fst (x : Z) : (e x).1 = proj x := e.to_fun_fst x
 lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
-lemma coe_fst' (ex : proj x ∈ e.base_set) : (e x).1 = proj x := e.coe_fst (e.mem_source.2 ex)
-protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
-lemma mk_proj_snd (ex : x ∈ e.source) : (proj x, (e x).2) = e x := prod.ext (e.coe_fst ex).symm rfl
-lemma mk_proj_snd' (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
-prod.ext (e.coe_fst' ex).symm rfl
+lemma mk_proj_snd : (proj x, (e x).2) = e x := prod.ext (e.coe_fst x).symm rfl
 
 /-- Composition of inverse and coercion from the subtype of the target. -/
 def set_symm : e.target → Z := e.target.restrict e.to_local_equiv.symm
@@ -91,19 +88,14 @@ def set_symm : e.target → Z := e.target.restrict e.to_local_equiv.symm
 lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
 by rw [e.target_eq, prod_univ, mem_preimage]
 
-lemma proj_symm_apply {x : B × F} (hx : x ∈ e.target) : proj (e.to_local_equiv.symm x) = x.1 :=
-begin
-  have := (e.coe_fst (e.to_local_equiv.map_target hx)).symm,
-  rwa [← e.coe_coe, e.to_local_equiv.right_inv hx] at this
-end
+lemma proj_symm_apply (x : B × F) : proj (e.to_local_equiv.symm x) = x.1 :=
+e.proj_inv_fun x
 
-lemma proj_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
-  proj (e.to_local_equiv.symm (b, x)) = b :=
-e.proj_symm_apply (e.mem_target.2 hx)
+lemma proj_symm_apply' {b : B} {x : F} : proj (e.to_local_equiv.symm (b, x)) = b :=
+e.proj_symm_apply _
 
-lemma proj_surj_on_base_set [nonempty F] : set.surj_on proj e.source e.base_set :=
-λ b hb, let ⟨y⟩ := ‹nonempty F› in ⟨e.to_local_equiv.symm (b, y),
-  e.to_local_equiv.map_target $ e.mem_target.2 hb, e.proj_symm_apply' hb⟩
+lemma proj_surjective [nonempty F] : function.surjective proj :=
+λ b, let ⟨y⟩ := ‹nonempty F› in ⟨e.to_local_equiv.symm (b, y), e.proj_symm_apply'⟩
 
 lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_equiv.symm x) = x :=
 e.to_local_equiv.right_inv hx
@@ -115,15 +107,18 @@ e.apply_symm_apply (e.mem_target.2 hx)
 lemma symm_apply_apply {x : Z} (hx : x ∈ e.source) : e.to_local_equiv.symm (e x) = x :=
 e.to_local_equiv.left_inv hx
 
+lemma symm_apply_apply' {x : Z} (hx : proj x ∈ e.base_set) : e.to_local_equiv.symm (e x) = x :=
+e.symm_apply_apply $ e.mem_source.mpr hx
+
 @[simp, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
   e.to_local_equiv.symm (proj x, (e x).2) = x :=
-by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv ex]
+by rw [e.mk_proj_snd, e.symm_apply_apply ex]
 
 @[simp, mfld_simps] lemma preimage_symm_proj_base_set :
   (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' e.base_set)) ∩ e.target  = e.target :=
 begin
   refine inter_eq_right_iff_subset.mpr (λ x hx, _),
-  simp only [mem_preimage, local_equiv.inv_fun_as_coe, e.proj_symm_apply hx],
+  simp only [mem_preimage, local_equiv.inv_fun_as_coe, e.proj_symm_apply],
   exact e.mem_target.mp hx,
 end
 
@@ -134,7 +129,7 @@ begin
   suffices : x ∈ e.base_set → (proj (e.to_local_equiv.symm (x, y)) ∈ s ↔ x ∈ s),
     by simpa only [prod_mk_mem_set_prod_eq, mem_inter_iff, and_true, mem_univ, and.congr_left_iff],
   intro h,
-  rw [e.proj_symm_apply' h]
+  rw [e.proj_symm_apply']
 end
 
 lemma target_inter_preimage_symm_source_eq (e f : pretrivialization F proj) :
@@ -163,46 +158,32 @@ variables {B F} (e' : pretrivialization F (π E)) {x' : total_space E} {b : B} {
 
 lemma coe_mem_source : ↑y ∈ e'.source ↔ b ∈ e'.base_set := e'.mem_source
 
-@[simp, mfld_simps] lemma coe_coe_fst (hb : b ∈ e'.base_set) : (e' y).1 = b :=
-e'.coe_fst (e'.mem_source.2 hb)
+@[simp, mfld_simps] lemma coe_coe_fst : (e' y).1 = b :=
+e'.coe_fst _
 
 lemma mk_mem_target {x : B} {y : F} : (x, y) ∈ e'.target ↔ x ∈ e'.base_set :=
 e'.mem_target
 
-lemma symm_coe_proj {x : B} {y : F} (e' : pretrivialization F (π E)) (h : x ∈ e'.base_set) :
+lemma symm_coe_proj {x : B} {y : F} (e' : pretrivialization F (π E)) :
   (e'.to_local_equiv.symm (x, y)).1 = x :=
-e'.proj_symm_apply' h
-
-section has_zero
-variables [∀ x, has_zero (E x)]
+e'.proj_symm_apply'
 
 /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
 `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
-protected noncomputable def symm (e : pretrivialization F (π E)) (b : B) (y : F) : E b :=
-if hb : b ∈ e.base_set
-then cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_equiv.symm (b, y)).2
-else 0
+protected def symm (e : pretrivialization F (π E)) (b : B) (y : F) : E b :=
+cast (congr_arg E e.proj_symm_apply') (e.to_local_equiv.symm (b, y)).2
 
-lemma symm_apply (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e.symm b y = cast (congr_arg E (e.symm_coe_proj hb)) (e.to_local_equiv.symm (b, y)).2 :=
-dif_pos hb
+lemma symm_apply (e : pretrivialization F (π E)) {b : B} (y : F) :
+  e.symm b y = cast (congr_arg E e.symm_coe_proj) (e.to_local_equiv.symm (b, y)).2 :=
+rfl
 
-lemma symm_apply_of_not_mem (e : pretrivialization F (π E)) {b : B} (hb : b ∉ e.base_set) (y : F) :
-  e.symm b y = 0 :=
-dif_neg hb
-
-lemma coe_symm_of_not_mem (e : pretrivialization F (π E)) {b : B} (hb : b ∉ e.base_set) :
-  (e.symm b : F → E b) = 0 :=
-funext $ λ y, dif_neg hb
-
-lemma mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
+lemma mk_symm (e : pretrivialization F (π E)) (b : B) (y : F) :
   total_space_mk b (e.symm b y) = e.to_local_equiv.symm (b, y) :=
-by rw [e.symm_apply hb, total_space.mk_cast, total_space.eta]
+by rw [e.symm_apply, total_space.mk_cast, total_space.eta]
 
 lemma symm_proj_apply (e : pretrivialization F (π E)) (z : total_space E)
   (hz : z.proj ∈ e.base_set) : e.symm z.proj (e z).2 = z.2 :=
-by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
-  e.symm_apply_apply (e.mem_source.mpr hz)]
+by rw [e.symm_apply, cast_eq_iff_heq, e.mk_proj_snd, e.symm_apply_apply (e.mem_source.mpr hz)]
 
 lemma symm_apply_apply_mk (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : E b) :
   e.symm b (e (total_space_mk b y)).2 = y :=
@@ -210,9 +191,7 @@ e.symm_proj_apply (total_space_mk b y) hb
 
 lemma apply_mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
   e (total_space_mk b (e.symm b y)) = (b, y) :=
-by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
-
-end has_zero
+by rw [e.mk_symm, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
 
 end pretrivialization
 
@@ -230,7 +209,8 @@ structure trivialization (proj : Z → B)
 (open_base_set : is_open base_set)
 (source_eq     : source = proj ⁻¹' base_set)
 (target_eq     : target = base_set ×ˢ univ)
-(proj_to_fun   : ∀ p ∈ source, (to_local_homeomorph p).1 = proj p)
+(to_fun_fst   : ∀ p, (to_fun p).1 = proj p)
+(proj_inv_fun   : ∀ p, proj (inv_fun p) = p.1)
 
 namespace trivialization
 
@@ -249,20 +229,17 @@ by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
   ← local_homeomorph.to_local_equiv_injective.eq_iff], exact id }
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
-@[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
-protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
+@[simp, mfld_simps] lemma coe_fst (x : Z) : (e x).1 = proj x := e.to_fun_fst x
+lemma fst_comp_coe : prod.fst ∘ e = proj := funext $ e.coe_fst
 lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
-lemma coe_fst' (ex : proj x ∈ e.base_set) : (e x).1 = proj x := e.coe_fst (e.mem_source.2 ex)
-lemma mk_proj_snd (ex : x ∈ e.source) : (proj x, (e x).2) = e x := prod.ext (e.coe_fst ex).symm rfl
-lemma mk_proj_snd' (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
-prod.ext (e.coe_fst' ex).symm rfl
+lemma mk_proj_snd : (proj x, (e x).2) = e x := prod.ext (e.coe_fst x).symm rfl
 
 lemma source_inter_preimage_target_inter (s : set (B × F)) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
 e.to_local_homeomorph.source_inter_preimage_target_inter s
 
-@[simp, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
-  (trivialization.mk e i j k l m : trivialization F proj) x = e x := rfl
+@[simp, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m n) (x : Z) :
+  (trivialization.mk e i j k l m n : trivialization F proj) x = e x := rfl
 
 lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
 e.to_pretrivialization.mem_target
@@ -270,15 +247,14 @@ e.to_pretrivialization.mem_target
 lemma map_target {x : B × F} (hx : x ∈ e.target) : e.to_local_homeomorph.symm x ∈ e.source :=
 e.to_local_homeomorph.map_target hx
 
-lemma proj_symm_apply {x : B × F} (hx : x ∈ e.target) : proj (e.to_local_homeomorph.symm x) = x.1 :=
-e.to_pretrivialization.proj_symm_apply hx
+lemma proj_symm_apply (x : B × F) : proj (e.to_local_homeomorph.symm x) = x.1 :=
+e.proj_inv_fun x
 
-lemma proj_symm_apply' {b : B} {x : F}
-  (hx : b ∈ e.base_set) : proj (e.to_local_homeomorph.symm (b, x)) = b :=
-e.to_pretrivialization.proj_symm_apply' hx
+lemma proj_symm_apply' {b : B} {x : F} : proj (e.to_local_homeomorph.symm (b, x)) = b :=
+e.proj_symm_apply _
 
-lemma proj_surj_on_base_set [nonempty F] : set.surj_on proj e.source e.base_set :=
-e.to_pretrivialization.proj_surj_on_base_set
+lemma proj_surjective [nonempty F] : function.surjective proj :=
+e.to_pretrivialization.proj_surjective
 
 lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_homeomorph.symm x) = x :=
 e.to_local_homeomorph.right_inv hx
@@ -292,21 +268,17 @@ e.to_pretrivialization.apply_symm_apply' hx
 e.to_pretrivialization.symm_apply_mk_proj ex
 
 lemma symm_trans_source_eq (e e' : trivialization F proj) :
-  (e.to_local_equiv.symm.trans e'.to_local_equiv).source = (e.base_set ∩ e'.base_set) ×ˢ univ :=
+  (e.to_local_homeomorph.symm.trans e'.to_local_homeomorph).source =
+  (e.base_set ∩ e'.base_set) ×ˢ univ :=
 pretrivialization.symm_trans_source_eq e.to_pretrivialization e'
 
 lemma symm_trans_target_eq (e e' : trivialization F proj) :
-  (e.to_local_equiv.symm.trans e'.to_local_equiv).target = (e.base_set ∩ e'.base_set) ×ˢ univ :=
+  (e.to_local_homeomorph.symm.trans e'.to_local_homeomorph).target =
+  (e.base_set ∩ e'.base_set) ×ˢ univ :=
 pretrivialization.symm_trans_target_eq e.to_pretrivialization e'
 
-lemma coe_fst_eventually_eq_proj (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
-mem_nhds_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
-
-lemma coe_fst_eventually_eq_proj' (ex : proj x ∈ e.base_set) : prod.fst ∘ e =ᶠ[𝓝 x] proj :=
-e.coe_fst_eventually_eq_proj (e.mem_source.2 ex)
-
 lemma map_proj_nhds (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
-by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
+by rw [← e.coe_fst, show map proj (𝓝 x) = _, by rw ← e.fst_comp_coe, ← map_map, ← e.coe_coe,
   e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
 
 lemma preimage_subset_source {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ⊆ e.source :=
@@ -315,9 +287,9 @@ lemma preimage_subset_source {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s
 lemma image_preimage_eq_prod_univ {s : set B} (hb : s ⊆ e.base_set) :
   e '' (proj ⁻¹' s) = s ×ˢ univ :=
 subset.antisymm (image_subset_iff.mpr (λ p hp,
-  ⟨(e.proj_to_fun p (e.preimage_subset_source hb hp)).symm ▸ hp, trivial⟩)) (λ p hp,
+  ⟨(e.coe_fst p).symm ▸ hp, trivial⟩)) (λ p hp,
   let hp' : p ∈ e.target := e.mem_target.mpr (hb hp.1) in
-  ⟨e.inv_fun p, mem_preimage.mpr ((e.proj_symm_apply hp').symm ▸ hp.1), e.apply_symm_apply hp'⟩)
+  ⟨e.inv_fun p, mem_preimage.mpr ((e.proj_symm_apply p).symm ▸ hp.1), e.apply_symm_apply hp'⟩)
 
 /-- The preimage of a subset of the base set is homeomorphic to the product with the fiber. -/
 def preimage_homeomorph {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ≃ₜ s × F :=
@@ -327,7 +299,7 @@ def preimage_homeomorph {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ≃�
 
 @[simp] lemma preimage_homeomorph_apply {s : set B} (hb : s ⊆ e.base_set) (p : proj ⁻¹' s) :
   e.preimage_homeomorph hb p = (⟨proj p, p.2⟩, (e p).2) :=
-prod.ext (subtype.ext (e.proj_to_fun p (e.mem_source.mpr (hb p.2)))) rfl
+prod.ext (subtype.ext (e.coe_fst p)) rfl
 
 @[simp] lemma preimage_homeomorph_symm_apply {s : set B} (hb : s ⊆ e.base_set) (p : s × F) :
   (e.preimage_homeomorph hb).symm p = ⟨e.symm (p.1, p.2), ((e.preimage_homeomorph hb).symm p).2⟩ :=
@@ -357,7 +329,7 @@ rfl
 
 @[simp] lemma preimage_singleton_homeomorph_symm_apply {b : B} (hb : b ∈ e.base_set) (p : F) :
   (e.preimage_singleton_homeomorph hb).symm p =
-    ⟨e.symm (b, p), by rw [mem_preimage, e.proj_symm_apply' hb, mem_singleton_iff]⟩ :=
+    ⟨e.symm (b, p), by rw [mem_preimage, e.proj_symm_apply (b, p), mem_singleton_iff]⟩ :=
 rfl
 
 /-- In the domain of a bundle trivialization, the projection is continuous-/
@@ -372,9 +344,8 @@ protected def comp_homeomorph {Z' : Type*} [topological_space Z'] (h : Z' ≃ₜ
   open_base_set := e.open_base_set,
   source_eq := by simp [e.source_eq, preimage_preimage],
   target_eq := by simp [e.target_eq],
-  proj_to_fun := λ p hp,
-    have hp : h p ∈ e.source, by simpa using hp,
-    by simp [hp] }
+  to_fun_fst := λ p, by simp only with mfld_simps,
+  proj_inv_fun := λ p, by simp [e.proj_symm_apply] }
 
 /-- Read off the continuity of a function `f : Z → X` at `z : Z` by transferring via a
 trivialization of `Z` containing `z`. -/
@@ -412,8 +383,8 @@ lemma coe_mem_source : ↑y ∈ e'.source ↔ b ∈ e'.base_set := e'.mem_source
 lemma open_target : is_open e'.target :=
 by { rw e'.target_eq, exact e'.open_base_set.prod is_open_univ }
 
-@[simp, mfld_simps] lemma coe_coe_fst (hb : b ∈ e'.base_set) : (e' y).1 = b :=
-e'.coe_fst (e'.mem_source.2 hb)
+@[simp, mfld_simps] lemma coe_coe_fst : (e' y).1 = b :=
+e'.coe_fst _
 
 lemma mk_mem_target {y : F} : (b, y) ∈ e'.target ↔ b ∈ e'.base_set :=
 e'.to_pretrivialization.mem_target
@@ -422,29 +393,21 @@ lemma symm_apply_apply {x : total_space E} (hx : x ∈ e'.source) :
   e'.to_local_homeomorph.symm (e' x) = x :=
 e'.to_local_equiv.left_inv hx
 
-@[simp, mfld_simps] lemma symm_coe_proj {x : B} {y : F}
-  (e : trivialization F (π E)) (h : x ∈ e.base_set) :
-  (e.to_local_homeomorph.symm (x, y)).1 = x := e.proj_symm_apply' h
-
-section has_zero
-variables [∀ x, has_zero (E x)]
+@[simp, mfld_simps] lemma symm_coe_proj {x : B} {y : F} (e : trivialization F (π E)) :
+  (e.to_local_homeomorph.symm (x, y)).1 = x := e.proj_symm_apply'
 
 /-- A fiberwise inverse to `e'`. The function `F → E x` that induces a local inverse
 `B × F → total_space E` of `e'` on `e'.base_set`. It is defined to be `0` outside `e'.base_set`. -/
-protected noncomputable def symm (e : trivialization F (π E)) (b : B) (y : F) : E b :=
+protected def symm (e : trivialization F (π E)) (b : B) (y : F) : E b :=
 e.to_pretrivialization.symm b y
 
-lemma symm_apply (e : trivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e.symm b y = cast (congr_arg E (e.symm_coe_proj hb)) (e.to_local_homeomorph.symm (b, y)).2 :=
-dif_pos hb
+lemma symm_apply (e : trivialization F (π E)) (b : B) (y : F) :
+  e.symm b y = cast (congr_arg E e.symm_coe_proj) (e.to_local_homeomorph.symm (b, y)).2 :=
+rfl
 
-lemma symm_apply_of_not_mem (e : trivialization F (π E)) {b : B} (hb : b ∉ e.base_set) (y : F) :
-  e.symm b y = 0 :=
-dif_neg hb
-
-lemma mk_symm (e : trivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
+lemma mk_symm (e : trivialization F (π E)) (b : B) (y : F) :
   total_space_mk b (e.symm b y) = e.to_local_homeomorph.symm (b, y) :=
-e.to_pretrivialization.mk_symm hb y
+e.to_pretrivialization.mk_symm b y
 
 lemma symm_proj_apply (e : trivialization F (π E)) (z : total_space E)
   (hz : z.proj ∈ e.base_set) : e.symm z.proj (e z).2 = z.2 :=
@@ -463,13 +426,11 @@ lemma continuous_on_symm (e : trivialization F (π E)) :
 begin
   have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
     total_space_mk z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
-  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
+  { rintro x -, simp_rw [e.mk_symm, prod.mk.eta] },
   refine continuous_on.congr _ this,
   rw [← e.target_eq],
   exact e.to_local_homeomorph.continuous_on_symm
 end
-
-end has_zero
 
 /-- If `e` is a `trivialization` of `proj : Z → B` with fiber `F` and `h` is a homeomorphism
 `F ≃ₜ F'`, then `e.trans_fiber_homeomorph h` is the trivialization of `proj` with the fiber `F'`
@@ -481,7 +442,8 @@ def trans_fiber_homeomorph {F' : Type*} [topological_space F']
   open_base_set := e.open_base_set,
   source_eq := e.source_eq,
   target_eq := by simp [e.target_eq, prod_univ, preimage_preimage],
-  proj_to_fun := e.proj_to_fun }
+  to_fun_fst := e.to_fun_fst,
+  proj_inv_fun := λ p, by simp [e.proj_symm_apply] }
 
 @[simp] lemma trans_fiber_homeomorph_apply {F' : Type*} [topological_space F']
   (e : trivialization F proj) (h : F ≃ₜ F') (x : Z) :
@@ -495,13 +457,11 @@ def coord_change (e₁ e₂ : trivialization F proj) (b : B) (x : F) : F :=
 
 lemma mk_coord_change
   (e₁ e₂ : trivialization F proj) {b : B}
-  (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) (x : F) :
+  (h₁ : b ∈ e₁.base_set) (x : F) :
   (b, e₁.coord_change e₂ b x) = e₂ (e₁.to_local_homeomorph.symm (b, x)) :=
 begin
   refine prod.ext _ rfl,
-  rw [e₂.coe_fst', ← e₁.coe_fst', e₁.apply_symm_apply' h₁],
-  { rwa [e₁.proj_symm_apply' h₁] },
-  { rwa [e₁.proj_symm_apply' h₁] }
+  rw [e₂.coe_fst, ← e₁.coe_fst, e₁.apply_symm_apply' h₁]
 end
 
 lemma coord_change_apply_snd
@@ -525,9 +485,9 @@ lemma coord_change_coord_change
   (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) (x : F) :
   e₂.coord_change e₃ b (e₁.coord_change e₂ b x) = e₁.coord_change e₃ b x :=
 begin
-  rw [coord_change, e₁.mk_coord_change _ h₁ h₂, ← e₂.coe_coe,
+  rw [coord_change, e₁.mk_coord_change _ h₁, ← e₂.coe_coe,
     e₂.to_local_homeomorph.left_inv, coord_change],
-  rwa [e₂.mem_source, e₁.proj_symm_apply' h₁]
+  rwa [e₂.mem_source, e₁.proj_symm_apply']
 end
 
 lemma continuous_coord_change (e₁ e₂ : trivialization F proj) {b : B}
@@ -539,7 +499,7 @@ begin
   { exact continuous_const.prod_mk continuous_id },
   { exact λ x, e₁.mem_target.2 h₁ },
   { intro x,
-    rwa [e₂.mem_source, e₁.proj_symm_apply' h₁] }
+    rwa [e₂.mem_source, e₁.proj_symm_apply'] }
 end
 
 /-- Coordinate transformation in the fiber induced by a pair of bundle trivializations,
@@ -563,7 +523,7 @@ variables {F} {B' : Type*} [topological_space B']
 
 lemma is_image_preimage_prod (e : trivialization F proj) (s : set B) :
   e.to_local_homeomorph.is_image (proj ⁻¹' s) (s ×ˢ univ) :=
-λ x hx, by simp [e.coe_fst', hx]
+λ x hx, by simp only [e.coe_fst] with mfld_simps
 
 /-- Restrict a `trivialization` to an open set in the base. `-/
 protected def restr_open (e : trivialization F proj) (s : set B)
@@ -574,7 +534,8 @@ protected def restr_open (e : trivialization F proj) (s : set B)
   open_base_set := is_open.inter e.open_base_set hs,
   source_eq := by simp [e.source_eq],
   target_eq := by simp [e.target_eq, prod_univ],
-  proj_to_fun := λ p hp, e.proj_to_fun p hp.1 }
+  to_fun_fst := e.to_fun_fst,
+  proj_inv_fun := λ p, by simp [e.proj_symm_apply] }
 
 section piecewise
 
@@ -600,7 +561,9 @@ noncomputable def piecewise (e e' : trivialization F proj) (s : set B)
   open_base_set := e.open_base_set.ite e'.open_base_set Hs,
   source_eq := by simp [e.source_eq, e'.source_eq],
   target_eq := by simp [e.target_eq, e'.target_eq, prod_univ],
-  proj_to_fun := by rintro p (⟨he, hs⟩|⟨he, hs⟩); simp * }
+  to_fun_fst := λ p, by { by_cases hp : p ∈ proj ⁻¹' s; simp [hp] },
+  proj_inv_fun := λ p, by {
+    by_cases hp : p ∈ s ×ˢ (univ : set F); simp [hp, e.proj_symm_apply, e'.proj_symm_apply] } }
 
 /-- Given two bundle trivializations `e`, `e'` of a topological fiber bundle `proj : Z → B`
 over a linearly ordered base `B` and a point `a ∈ e.base_set ∩ e'.base_set` such that
@@ -628,7 +591,7 @@ noncomputable def piecewise_le [linear_order B] [order_topology B]
 e.piecewise_le_of_eq (e'.trans_fiber_homeomorph (e'.coord_change_homeomorph e He' He))
   a He He' $ by { unfreezingI {rintro p rfl },
     ext1,
-    { simp [e.coe_fst', e'.coe_fst', *] },
+    { simp * },
     { simp [e'.coord_change_apply_snd, *] } }
 
 /-- Given two bundle trivializations `e`, `e'` over disjoint sets, `e.disjoint_union e' H` is the
@@ -645,16 +608,12 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
   open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,
   target_eq := (congr_arg2 (∪) e.target_eq e'.target_eq).trans union_prod.symm,
-  proj_to_fun :=
-    begin
-      rintro p (hp|hp'),
-      { show (e.source.piecewise e e' p).1 = proj p,
-        rw [piecewise_eq_of_mem, e.coe_fst]; exact hp },
-      { show (e.source.piecewise e e' p).1 = proj p,
-        rw [piecewise_eq_of_not_mem, e'.coe_fst hp'],
-        simp only [e.source_eq, e'.source_eq] at hp' ⊢,
-        exact λ h, H.le_bot ⟨h, hp'⟩ }
-    end }
+  to_fun_fst := λ p, by {
+    show (e.source.piecewise e e' p).1 = proj p,
+    by_cases hp : p ∈ e.source; simp [hp, local_homeomorph.disjoint_union], },
+  proj_inv_fun := λ p, by {
+    show proj (e.target.piecewise e.to_local_homeomorph.symm e'.to_local_homeomorph.symm p) = p.1,
+    by_cases hp : p ∈ e.target; simp [hp, e.proj_symm_apply, e'.proj_symm_apply] } }
 
 end piecewise
 

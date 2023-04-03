@@ -48,9 +48,9 @@ classical.some_spec h.2
 
 lemma to_trivialization_apply {x : E} {I : Type*} [topological_space I]
   (h : is_evenly_covered f (f x) I) : (h.to_trivialization x).2 = ⟨x, rfl⟩ :=
-let e := classical.some h.2, h := classical.some_spec h.2, he := e.mk_proj_snd' h in
+let e := classical.some h.2, h := classical.some_spec h.2, he : _ = e x := e.mk_proj_snd in
   subtype.ext ((e.to_local_equiv.eq_symm_apply (e.mem_source.mpr h)
-    (by rwa [he, e.mem_target, e.coe_fst (e.mem_source.mpr h)])).mpr he.symm).symm
+    (by rwa [he, e.mem_target, e.coe_fst])).mpr he.symm).symm
 
 protected lemma continuous_at {x : E} {I : Type*} [topological_space I]
   (h : is_evenly_covered f (f x) I) : continuous_at f x :=
@@ -105,8 +105,8 @@ begin
     right_inv' := λ p hp, rfl,
     continuous_to_fun := continuous_fst.continuous_on,
     continuous_inv_fun := (continuous_id'.prod_mk continuous_const).continuous_on },
-    ⟨he, by rwa [e.to_local_homeomorph.symm_symm, e.proj_to_fun x he],
-      (hf (f x) hx).to_trivialization_apply⟩, λ p h, (e.proj_to_fun p h.1).symm⟩,
+    ⟨he, by rwa [e.symm_symm, e.coe_coe, e.coe_fst x],
+      (hf (f x) hx).to_trivialization_apply⟩, λ p h, (e.coe_fst p).symm⟩,
 end
 
 end is_covering_map_on

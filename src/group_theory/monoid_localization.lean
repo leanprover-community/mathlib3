@@ -41,6 +41,9 @@ This defines the localization as a quotient type, `localization`, but the majori
 subsequent lemmas in the file are given in terms of localizations up to isomorphism, using maps
 which satisfy the characteristic predicate.
 
+The Grothendieck group construction corresponds to localizing at the top submonoid, namely making
+every element invertible.
+
 ## Implementation notes
 
 In maths it is natural to reason up to isomorphism, but in Lean we cannot naturally `rewrite` one
@@ -61,9 +64,14 @@ localization as a quotient type satisfies the characteristic predicate). The lem
 `mk_eq_monoid_of_mk'` hence gives you access to the results in the rest of the file, which are
 about the `localization_map.mk'` induced by any localization map.
 
+## TODO
+
+* Show that the localization at top monoid is a group.
+* Generalise to (nonempty) subsemigroups.
+
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,
-commutative monoid
+commutative monoid, grothendieck group
 -/
 
 namespace add_submonoid
@@ -245,11 +253,11 @@ def mk (x : M) (y : S) : localization S := (r S).mk' (x, y)
 universes u
 
 /-- Dependent recursion principle for localizations: given elements `f a b : p (mk a b)`
-for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (wih the correct coercions),
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (with the correct coercions),
 then `f` is defined on the whole `localization S`. -/
 @[elab_as_eliminator, to_additive
 "Dependent recursion principle for `add_localizations`: given elements `f a b : p (mk a b)`
-for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (wih the correct coercions),
+for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (with the correct coercions),
 then `f` is defined on the whole `add_localization S`."]
 def rec {p : localization S → Sort u}
   (f : ∀ (a : M) (b : S), p (mk a b))
@@ -1431,3 +1439,83 @@ end localization_with_zero_map
 end submonoid
 
 end comm_monoid_with_zero
+
+/-! ### Order -/
+
+namespace localization
+variables {α : Type*}
+
+section ordered_cancel_comm_monoid
+variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a₂ b₂ : s}
+
+@[to_additive] instance : has_le (localization s) :=
+⟨λ a b, localization.lift_on₂ a b (λ a₁ a₂ b₁ b₂, ↑b₂ * a₁ ≤ a₂ * b₁) $
+    λ a₁ b₁ a₂ b₂ c₁ d₁ c₂ d₂ hab hcd, propext begin
+    obtain ⟨e, he⟩ := r_iff_exists.1 hab,
+    obtain ⟨f, hf⟩ := r_iff_exists.1 hcd,
+    simp only [mul_right_inj] at he hf,
+    dsimp,
+    rw [←mul_le_mul_iff_right, mul_right_comm, ←hf, mul_right_comm, mul_right_comm ↑a₂,
+      mul_le_mul_iff_right, ←mul_le_mul_iff_left, mul_left_comm, he, mul_left_comm,
+      mul_left_comm ↑b₂, mul_le_mul_iff_left],
+  end⟩
+
+@[to_additive] instance : has_lt (localization s) :=
+⟨λ a b, localization.lift_on₂ a b (λ a₁ a₂ b₁ b₂, ↑b₂ * a₁ < a₂ * b₁) $
+    λ a₁ b₁ a₂ b₂ c₁ d₁ c₂ d₂ hab hcd, propext begin
+    obtain ⟨e, he⟩ := r_iff_exists.1 hab,
+    obtain ⟨f, hf⟩ := r_iff_exists.1 hcd,
+    simp only [mul_right_inj] at he hf,
+    dsimp,
+    rw [←mul_lt_mul_iff_right, mul_right_comm, ←hf, mul_right_comm, mul_right_comm ↑a₂,
+      mul_lt_mul_iff_right, ←mul_lt_mul_iff_left, mul_left_comm, he, mul_left_comm,
+      mul_left_comm ↑b₂, mul_lt_mul_iff_left],
+  end⟩
+
+@[ to_additive] lemma mk_le_mk : mk a₁ a₂ ≤ mk b₁ b₂ ↔ ↑b₂ * a₁ ≤ a₂ * b₁ := iff.rfl
+@[ to_additive] lemma mk_lt_mk : mk a₁ a₂ < mk b₁ b₂ ↔ ↑b₂ * a₁ < a₂ * b₁ := iff.rfl
+
+@[to_additive] instance : ordered_cancel_comm_monoid (localization s) :=
+{ le_refl := λ a, localization.induction_on a $ λ a, le_rfl,
+  le_trans := λ a b c, localization.induction_on₃ a b c $ λ a b c hab hbc, begin
+    simp only [mk_le_mk] at ⊢ hab hbc,
+    refine le_of_mul_le_mul_left' _,
+    { exact b.2 },
+    rw [mul_left_comm],
+    refine (mul_le_mul_left' hab _).trans _,
+    rwa [mul_left_comm, mul_left_comm ↑b.2, mul_le_mul_iff_left],
+  end,
+  le_antisymm := λ a b, begin
+    induction a with a₁ a₂,
+    induction b with b₁ b₂,
+    simp_rw [mk_le_mk, mk_eq_mk_iff, r_iff_exists],
+    exact λ hab hba, ⟨1, by rw [hab.antisymm hba]⟩,
+    all_goals { intros, refl },
+  end,
+  lt_iff_le_not_le := λ a b, localization.induction_on₂ a b $ λ a b, lt_iff_le_not_le,
+  mul_le_mul_left := λ a b, localization.induction_on₂ a b $ λ a b hab c,
+    localization.induction_on c $ λ c, begin
+      simp only [mk_mul, mk_le_mk, submonoid.coe_mul, mul_mul_mul_comm _ _ c.1] at ⊢ hab,
+      exact mul_le_mul_left' hab _,
+    end,
+  le_of_mul_le_mul_left := λ a b c, localization.induction_on₃ a b c $ λ a b c hab, begin
+      simp only [mk_mul, mk_le_mk, submonoid.coe_mul, mul_mul_mul_comm _ _ a.1] at ⊢ hab,
+      exact le_of_mul_le_mul_left' hab,
+    end,
+  ..localization.comm_monoid _, ..localization.has_le, ..localization.has_lt }
+
+end ordered_cancel_comm_monoid
+
+@[to_additive] instance [linear_ordered_cancel_comm_monoid α] {s : submonoid α} :
+  linear_ordered_cancel_comm_monoid (localization s) :=
+{ le_total := λ a b, localization.induction_on₂ a b $ λ _ _,
+    by { simp_rw mk_le_mk, exact le_total _ _ },
+  decidable_le := λ a b, begin
+    induction a with a₁ a₂,
+    induction b with b₁ b₂,
+    exact decidable_of_iff' _ mk_le_mk,
+    all_goals { simp },
+  end,
+  ..localization.ordered_cancel_comm_monoid }
+
+end localization

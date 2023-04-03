@@ -74,6 +74,7 @@ namespace pretrivialization
 
 instance : has_coe_to_fun (pretrivialization F proj) (λ _, Z → (B × F)) := ⟨λ e, e.to_fun⟩
 
+section arbitrary_total_space
 variables {F} (e : pretrivialization F proj) {x : Z}
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_equiv = e := rfl
@@ -113,7 +114,10 @@ lemma apply_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
 e.apply_symm_apply (e.mem_target.2 hx)
 
 lemma symm_apply_apply {x : Z} (hx : x ∈ e.source) : e.to_local_equiv.symm (e x) = x :=
-e.to_local_equiv.left_inv hx
+e.left_inv hx
+
+lemma symm_apply_apply' {x : Z} (hx : proj x ∈ e.base_set) : e.to_local_equiv.symm (e x) = x :=
+e.left_inv $ e.mem_source.2 hx
 
 @[simp, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
   e.to_local_equiv.symm (proj x, (e x).2) = x :=
@@ -159,7 +163,11 @@ lemma symm_trans_target_eq (e e' : pretrivialization F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).target = (e.base_set ∩ e'.base_set) ×ˢ univ :=
 by rw [← local_equiv.symm_source, symm_trans_symm, symm_trans_source_eq, inter_comm]
 
-variables {B F} (e' : pretrivialization F (π E)) {x' : total_space E} {b : B} {y : E b}
+end arbitrary_total_space
+
+section fiberwise_space
+
+variables {B F} (e e' : pretrivialization F (π E)) {x' : total_space E} {b : B} {y : E b}
 
 lemma coe_mem_source : ↑y ∈ e'.source ↔ b ∈ e'.base_set := e'.mem_source
 
@@ -169,50 +177,110 @@ e'.coe_fst (e'.mem_source.2 hb)
 lemma mk_mem_target {x : B} {y : F} : (x, y) ∈ e'.target ↔ x ∈ e'.base_set :=
 e'.mem_target
 
-lemma symm_coe_proj {x : B} {y : F} (e' : pretrivialization F (π E)) (h : x ∈ e'.base_set) :
-  (e'.to_local_equiv.symm (x, y)).1 = x :=
-e'.proj_symm_apply' h
+lemma symm_coe_proj {x : B × F} (e' : pretrivialization F (π E)) (h : x.1 ∈ e'.base_set) :
+  (e'.to_local_equiv.symm x).1 = x.1 :=
+by { cases x, exact e'.proj_symm_apply' h }
 
-section has_zero
-variables [∀ x, has_zero (E x)]
+variables [∀ x, has_zero (E x)] [has_zero F]
+
+/-- We call a trivialization "nice" if it is a fiberwise map everywhere, even outside the base set,
+and the fiberwise map is fiberwise equal to the constant `0` map in both directions.
+We require this, since it makes various operations on trivializations simpler and have better
+equational lemmas. -/
+protected class nice (e : pretrivialization F (π E)) :=
+(to_fun_fst : ∀ (x : total_space E), (e x).1 = x.proj)
+(inv_fun_proj : ∀ (x : B × F), (e.symm x).proj = x.1)
+(to_fun_snd_eq_zero : ∀ (x : total_space E) (hx : x.1 ∉ e.base_set), (e x).2 = 0)
+(inv_fun_snd_eq_zero : ∀ (x : B × F) (hx : x.1 ∉ e.base_set), (e.symm x).2 = 0)
+
+/-- We can turn any pretrivialization into a nice one. -/
+noncomputable def mk_nice (e : pretrivialization F (π E)) :
+  pretrivialization F (π E) :=
+{ to_fun := λ x, (x.1, if x.1 ∈ e.base_set then (e x).2 else 0),
+  inv_fun := λ x, ⟨x.1, if x.1 ∈ e.base_set then let y := (e.symm x).2 in _ else 0⟩,
+  map_source' := λ x hx, by sorry { simp_rw [← e.mem_source, if_pos hx], exact e.map_source hx, },
+  map_target' := λ x hx, by sorry { simp_rw [← e.mem_target, if_pos hx], exact e.map_target hx, },
+  left_inv' := λ x hx, by sorry {
+    rw [mem_source] at hx,
+    simp_rw [if_pos hx, e.coe_fst' hx, if_pos hx],
+    exact e.symm_apply_apply' hx },
+  right_inv' := λ x hx, by sorry {
+    cases x,
+    rw [mem_target] at hx,
+    simp_rw [if_pos hx, e.symm_coe_proj hx, if_pos hx],
+    exact e.apply_symm_apply' hx },
+  proj_to_fun := λ x hx, rfl,
+  ..e }
+
+instance mk_nice_nice (e : pretrivialization F (π E)) : e.mk_nice.nice :=
+{ to_fun_fst := λ x, rfl,
+  inv_fun_proj := λ x, rfl,
+  to_fun_snd_eq_zero := λ x hx, if_neg hx,
+  inv_fun_snd_eq_zero := λ x hx, if_neg hx }
+
+lemma apply_fst (e : pretrivialization F (π E)) [e.nice] (x : total_space E) : (e x).1 = x.proj :=
+nice.to_fun_fst x
+
+lemma symm_apply_proj (e : pretrivialization F (π E)) [e.nice] (x : B × F) :
+  (e.symm x).proj = x.1 :=
+nice.inv_fun_proj x
+
+lemma symm_apply_fst (e : pretrivialization F (π E)) [e.nice] (x : B × F) :
+  (e.symm x).1 = x.1 :=
+e.symm_apply_proj x
+
+lemma apply_snd_eq_zero (e : pretrivialization F (π E)) [e.nice] (x : total_space E)
+  (hx : x.proj ∉ e.base_set) : (e x).2 = 0 :=
+nice.to_fun_snd_eq_zero x hx
+
+lemma symm_apply_snd_eq_zero (e : pretrivialization F (π E)) [e.nice] (x : B × F)
+  (hx : x.1 ∉ e.base_set) : (e.symm x).2 = 0 :=
+nice.inv_fun_snd_eq_zero x hx
 
 /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
 `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
-protected noncomputable def symm (e : pretrivialization F (π E)) (b : B) (y : F) : E b :=
-if hb : b ∈ e.base_set
-then cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_equiv.symm (b, y)).2
-else 0
+protected def symm (e : pretrivialization F (π E)) [e.nice] (b : B) (y : F) : E b :=
+cast (congr_arg E (e.symm_apply_proj (b, y))) (e.to_local_equiv.symm (b, y)).2
 
-lemma symm_apply (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e.symm b y = cast (congr_arg E (e.symm_coe_proj hb)) (e.to_local_equiv.symm (b, y)).2 :=
-dif_pos hb
+lemma symm_apply (e : pretrivialization F (π E)) [e.nice] {b : B} (y : F) :
+  e.symm b y = cast (congr_arg E (e.symm_apply_proj (b, y))) (e.to_local_equiv.symm (b, y)).2 :=
+rfl
 
-lemma symm_apply_of_not_mem (e : pretrivialization F (π E)) {b : B} (hb : b ∉ e.base_set) (y : F) :
-  e.symm b y = 0 :=
-dif_neg hb
+lemma symm_apply_of_not_mem (e : pretrivialization F (π E)) [e.nice] {b : B} (hb : b ∉ e.base_set)
+  (y : F) : e.symm b y = 0 :=
+begin
+  have : ∀ (x y : B) (p : x = y), cast (congr_arg E p) 0 = 0,
+  { intros x y p, induction p, refl },
+  rw [e.symm_apply, e.symm_apply_snd_eq_zero, this],
+  exact hb
+end
 
-lemma coe_symm_of_not_mem (e : pretrivialization F (π E)) {b : B} (hb : b ∉ e.base_set) :
+lemma coe_symm_of_not_mem (e : pretrivialization F (π E)) [e.nice] {b : B} (hb : b ∉ e.base_set) :
   (e.symm b : F → E b) = 0 :=
-funext $ λ y, dif_neg hb
+funext $ e.symm_apply_of_not_mem hb
 
-lemma mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
+lemma mk_symm (e : pretrivialization F (π E)) [e.nice] {b : B} (y : F) :
   total_space_mk b (e.symm b y) = e.to_local_equiv.symm (b, y) :=
-by rw [e.symm_apply hb, total_space.mk_cast, total_space.eta]
+by rw [e.symm_apply, total_space.mk_cast, total_space.eta]
 
-lemma symm_proj_apply (e : pretrivialization F (π E)) (z : total_space E)
+lemma symm_proj_apply (e : pretrivialization F (π E)) [e.nice] (z : total_space E)
   (hz : z.proj ∈ e.base_set) : e.symm z.proj (e z).2 = z.2 :=
-by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
+by rw [e.symm_apply, cast_eq_iff_heq, e.mk_proj_snd' hz,
   e.symm_apply_apply (e.mem_source.mpr hz)]
 
-lemma symm_apply_apply_mk (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : E b) :
-  e.symm b (e (total_space_mk b y)).2 = y :=
+lemma symm_apply_apply_mk (e : pretrivialization F (π E)) [e.nice] {b : B} (hb : b ∈ e.base_set)
+  (y : E b) : e.symm b (e (total_space_mk b y)).2 = y :=
 e.symm_proj_apply (total_space_mk b y) hb
 
-lemma apply_mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
+lemma apply_mk_symm (e : pretrivialization F (π E)) [e.nice] {b : B} (hb : b ∈ e.base_set) (y : F) :
   e (total_space_mk b (e.symm b y)) = (b, y) :=
-by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
+by rw [e.mk_symm, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
 
-end has_zero
+protected def symm_mk_nice (e : pretrivialization F (π E)) [e.nice] (b : B) (y : F) : E b :=
+cast (congr_arg E (e.symm_apply_proj (b, y))) (e.to_local_equiv.symm (b, y)).2
+
+
+end fiberwise_space
 
 end pretrivialization
 

@@ -50,7 +50,8 @@ variables {B F E} [semiring R]
   [topological_space F]  [topological_space B]
 
 /-- A mixin class for `pretrivialization`, stating that a pretrivialization is fiberwise linear with
-respect to given module structures on its fibers and the model fiber. -/
+respect to given module structures on its fibers and the model fiber.
+We assume that the pretrivialization is 0 outside the base set. -/
 protected class pretrivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : pretrivialization F (π E)) :
   Prop :=
@@ -489,7 +490,9 @@ variables (R B F)
 
 /-- Analogous construction of `fiber_bundle_core` for vector bundles. This
 construction gives a way to construct vector bundles from a structure registering how
-trivialization changes act on fibers. -/
+trivialization changes act on fibers.
+Coordinates changes are assumed to be 0 outside their base set. While this condition is not
+necessary, it is convenient, since then the linear maps-/
 structure vector_bundle_core (ι : Type*) :=
 (base_set          : ι → set B)
 (is_open_base_set  : ∀ i, is_open (base_set i))

@@ -3,7 +3,9 @@ Copyright (c) 2022 Ian Jauslin and Alex Kontorovich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ian Jauslin, Alex Kontorovich
 -/
-import measure_theory.measure.probability_measure
+import algebra.ring.units
+import data.pi.algebra
+import probability.notation
 
 /-!
 # Bell's Inequality
@@ -49,10 +51,16 @@ theorem.
 -/
 
 open filter measure_theory
+open_locale probability_theory
 
 namespace bell_inequality
-variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω} [is_probability_measure ℙ] {f g : Ω → ℤˣ}
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)] {f g : Ω → ℤˣ}
   {a b c : Ω → ℤˣ}
+
+/-- Lean has a hard time instantiating this instance. -/
+private def function.has_neg {α β : Type*} [has_neg β] : has_neg (α → β) := infer_instance
+
+local attribute [instance] function.has_neg
 
 private lemma norm_aux (a : ℤˣ) : ‖(a : ℝ)‖ ≤ 1 :=
 by obtain rfl | rfl := int.units_eq_one_or a; simp
@@ -77,13 +85,14 @@ private lemma integrable_mul_aux (hf : ae_measurable f ℙ) (hg : ae_measurable 
   integrable (λ ω, (f ω * g ω : ℝ)) ℙ :=
 (integrable_aux hg).bdd_mul (ae_strongly_measurable_aux hf) ⟨1, λ _, norm_aux _⟩
 
-/-- Given three random variables `a b c` taking values in `±1`, we have that
+/-- Given three random variables `a, b, c` taking values in `±1`, we have that
 `𝔼[a * -b] - 𝔼[a * -c] ≤ 1 + 𝔼[b * -c]`. -/
 private lemma bell_aux (ha : ae_measurable a ℙ) (hb : ae_measurable b ℙ) (hc : ae_measurable c ℙ) :
-  (∫ ω, a ω * -b ω ∂ℙ : ℝ) - ∫ ω, a ω * -c ω ∂ℙ ≤ 1 + ∫ ω, b ω * -c ω ∂ℙ :=
+  (𝔼[a * -b] : ℝ) - 𝔼[a * -c] ≤ 1 + 𝔼[b * -c] :=
 begin
-  have integral_one : ∫ ω, (1 : ℝ) ∂ℙ = 1, by simp,
-  have anticorrelation : (∫ ω, c ω * c ω ∂ℙ : ℝ) = 1, by simp [←units.coe_mul, ←int.cast_mul],
+  simp_rw [coe_coe, pi.mul_apply, pi.neg_apply, units.coe_mul, units.coe_neg, int.cast_mul,
+    int.cast_neg],
+  have integral_one : ∫ ω : Ω, (1 : ℝ) ∂ℙ = 1, by simp,
   rw [←integral_one, ←integral_sub, ←integral_add],
   refine integral_mono _ _ (λ _, CHSH_aux _ _ _),
   all_goals -- discharge all the integrability hypotheses
@@ -96,7 +105,8 @@ end
 `±1`, we have that `|𝔼[a * -b] - 𝔼[a * -c]| ≤ 1 + 𝔼[b * -c]`. -/
 theorem bell_inequality_1964 (ha : ae_measurable a ℙ) (hb : ae_measurable b ℙ)
   (hc : ae_measurable c ℙ) :
-  |(∫ ω, a ω * -b ω ∂ℙ - ∫ ω, a ω * -c ω ∂ℙ : ℝ)| ≤ 1 + ∫ ω, b ω * -c ω ∂ℙ :=
-abs_sub_le_iff.2 ⟨bell_aux ha hb hc, (bell_aux ha hc hb).trans_eq $ by simp_rw [mul_neg, mul_comm]⟩
+  |(𝔼[a * -b] - 𝔼[a * -c] : ℝ)| ≤ 1 + 𝔼[b * -c] :=
+abs_sub_le_iff.2 ⟨bell_aux ha hb hc, (bell_aux ha hc hb).trans_eq $
+  by simp_rw [pi.mul_apply, pi.neg_apply, mul_neg, mul_comm]⟩
 
 end bell_inequality

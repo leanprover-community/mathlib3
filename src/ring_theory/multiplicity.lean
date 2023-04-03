@@ -330,7 +330,7 @@ variables [ring α] [decidable_rel ((∣) : α → α → Prop)]
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
 part.ext' (by simp only [multiplicity, part_enat.find, dvd_neg])
   (λ h₁ h₂, part_enat.coe_inj.1 (by rw [part_enat.coe_get]; exact
-    eq.symm (unique (dvd_neg.2 (pow_multiplicity_dvd _))
+    eq.symm (unique (pow_multiplicity_dvd _).neg_right
       (mt dvd_neg.1 (is_greatest' _ (lt_succ_self _))))))
 
 theorem int.nat_abs (a : ℕ) (b : ℤ) : multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=

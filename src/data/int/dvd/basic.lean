@@ -58,7 +58,7 @@ lemma of_nat_dvd_of_dvd_nat_abs {a : ℕ} : ∀ {z : ℤ} (haz : a ∣ z.nat_abs
 
 lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a ∣ z.nat_abs
 | (int.of_nat _) haz := int.coe_nat_dvd.1 (int.dvd_nat_abs.2 haz)
-| -[1+k] haz := by { change ↑a ∣ -↑(k + 1) at haz, exact int.coe_nat_dvd.1 haz.of_neg_right }
+| -[1+k] haz := by { change _ ∣ -↑(k + 1) at haz, exact int.coe_nat_dvd.1 haz.of_neg_right }
 
 theorem dvd_antisymm {a b : ℤ} (H1 : 0 ≤ a) (H2 : 0 ≤ b) : a ∣ b → b ∣ a → a = b :=
 begin

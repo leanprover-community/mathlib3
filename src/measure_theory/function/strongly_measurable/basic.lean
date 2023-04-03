@@ -56,7 +56,7 @@ measurable functions, as a basis for the Bochner integral.
 -/
 
 open measure_theory filter topological_space function set measure_theory.measure
-open_locale ennreal topological_space measure_theory nnreal big_operators
+open_locale ennreal topology measure_theory nnreal big_operators
 
 /-- The typeclass `second_countable_topology_either α β` registers the fact that at least one of
 the two spaces has second countable topology. This is the right assumption to ensure that continuous
@@ -113,7 +113,7 @@ open_locale measure_theory
 
 /-! ## Strongly measurable functions -/
 
-lemma strongly_measurable.ae_strongly_measurable {α β} {m0 : measurable_space α}
+protected lemma strongly_measurable.ae_strongly_measurable {α β} {m0 : measurable_space α}
   [topological_space β] {f : α → β} {μ : measure α} (hf : strongly_measurable f) :
   ae_strongly_measurable f μ :=
 ⟨f, hf, eventually_eq.refl _ _⟩
@@ -234,7 +234,7 @@ lemma norm_approx_bounded_le {β} {f : α → β} [seminormed_add_comm_group β]
   ‖hf.approx_bounded c n x‖ ≤ c :=
 begin
   simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
-  refine (norm_smul _ _).le.trans _,
+  refine (norm_smul_le _ _).trans _,
   by_cases h0 : ‖hf.approx n x‖ = 0,
   { simp only [h0, div_zero, min_eq_right, zero_le_one, norm_zero, mul_zero],
     exact hc, },
@@ -1425,6 +1425,41 @@ protected lemma indicator [has_zero β]
   ae_strongly_measurable (s.indicator f) μ :=
 (ae_strongly_measurable_indicator_iff hs).mpr hfm.restrict
 
+lemma null_measurable_set_eq_fun {E} [topological_space E] [metrizable_space E]
+  {f g : α → E} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  null_measurable_set {x | f x = g x} μ :=
+begin
+  apply (hf.strongly_measurable_mk.measurable_set_eq_fun hg.strongly_measurable_mk)
+    .null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x = hg.mk g x) = (f x = g x),
+  simp only [hfx, hgx]
+end
+
+lemma null_measurable_set_lt
+  [linear_order β] [order_closed_topology β] [pseudo_metrizable_space β]
+  {f g : α → β} (hf : ae_strongly_measurable f μ)
+  (hg : ae_strongly_measurable g μ) :
+  null_measurable_set {a | f a < g a} μ :=
+begin
+  apply (hf.strongly_measurable_mk.measurable_set_lt hg.strongly_measurable_mk)
+    .null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x < hg.mk g x) = (f x < g x),
+  simp only [hfx, hgx]
+end
+
+lemma null_measurable_set_le [preorder β] [order_closed_topology β] [pseudo_metrizable_space β]
+  {f g : α → β} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  null_measurable_set {a | f a ≤ g a} μ :=
+begin
+  apply (hf.strongly_measurable_mk.measurable_set_le hg.strongly_measurable_mk)
+    .null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x ≤ hg.mk g x) = (f x ≤ g x),
+  simp only [hfx, hgx]
+end
+
 lemma _root_.ae_strongly_measurable_of_ae_strongly_measurable_trim {α} {m m0 : measurable_space α}
   {μ : measure α} (hm : m ≤ m0) {f : α → β} (hf : ae_strongly_measurable f (μ.trim hm)) :
   ae_strongly_measurable f μ :=
@@ -1603,12 +1638,12 @@ protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
     ae_strongly_measurable f (μ.restrict s) ∧ ae_strongly_measurable f (μ.restrict t) :=
 by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
-lemma ae_strongly_measurable_interval_oc_iff [linear_order α] [pseudo_metrizable_space β]
+lemma ae_strongly_measurable_uIoc_iff [linear_order α] [pseudo_metrizable_space β]
   {f : α → β} {a b : α} :
-  ae_strongly_measurable f (μ.restrict $ interval_oc a b) ↔
+  ae_strongly_measurable f (μ.restrict $ uIoc a b) ↔
   ae_strongly_measurable f (μ.restrict $ Ioc a b) ∧
   ae_strongly_measurable f (μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_strongly_measurable_union_iff]
+by rw [uIoc_eq_union, ae_strongly_measurable_union_iff]
 
 lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :

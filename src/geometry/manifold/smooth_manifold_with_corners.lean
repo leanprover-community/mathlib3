@@ -114,7 +114,7 @@ noncomputable theory
 universes u v w u' v' w'
 
 open set filter function
-open_locale manifold filter topological_space
+open_locale manifold filter topology
 
 localized "notation (name := with_top.nat.top) `∞` := (⊤ : ℕ∞)" in manifold
 
@@ -247,9 +247,16 @@ I.closed_embedding.closed_range
 lemma map_nhds_eq (x : H) : map I (𝓝 x) = 𝓝[range I] (I x) :=
 I.closed_embedding.to_embedding.map_nhds_eq x
 
+lemma map_nhds_within_eq (s : set H) (x : H) : map I (𝓝[s] x) = 𝓝[I '' s] (I x) :=
+I.closed_embedding.to_embedding.map_nhds_within_eq s x
+
 lemma image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
   I '' s ∈ 𝓝[range I] (I x) :=
 I.map_nhds_eq x ▸ image_mem_map hs
+
+lemma symm_map_nhds_within_image {x : H} {s : set H} :
+  map I.symm (𝓝[I '' s] (I x)) = 𝓝[s] x :=
+by rw [← I.map_nhds_within_eq, map_map, I.symm_comp_self, map_id]
 
 lemma symm_map_nhds_within_range (x : H) :
   map I.symm (𝓝[range I] (I x)) = 𝓝 x :=
@@ -265,6 +272,18 @@ I.unique_diff_preimage e.open_source
 
 lemma unique_diff_at_image {x : H} : unique_diff_within_at 𝕜 (range I) (I x) :=
 I.unique_diff _ (mem_range_self _)
+
+lemma symm_continuous_within_at_comp_right_iff {X} [topological_space X]
+  {f : H → X} {s : set H} {x : H} :
+  continuous_within_at (f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) (I x) ↔ continuous_within_at f s x :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have := h.comp I.continuous_within_at (maps_to_preimage _ _),
+    simp_rw [preimage_inter, preimage_preimage, I.left_inv, preimage_id', preimage_range,
+      inter_univ] at this,
+    rwa [function.comp.assoc, I.symm_comp_self] at this },
+  { rw [← I.left_inv x] at h, exact h.comp I.continuous_within_at_symm (inter_subset_left _ _) }
+end
 
 protected lemma locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
   locally_compact_space H :=
@@ -683,7 +702,7 @@ instance : smooth_manifold_with_corners I s := { ..s.has_groupoid (cont_diff_gro
 end topological_space.opens
 
 section extended_charts
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 E M H E' M' H' : Type*} [nontrivially_normed_field 𝕜]
   [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]
@@ -727,6 +746,9 @@ begin
     f.image_eq_target_inter_inv_preimage hs],
   exact image_subset _ (inter_subset_right _ _)
 end
+
+lemma extend_left_inv {x : M} (hxf : x ∈ f.source) : (f.extend I).symm (f.extend I x) = x :=
+(f.extend I).left_inv $ by rwa f.extend_source
 
 lemma extend_source_mem_nhds {x : M} (h : x ∈ f.source) :
   (f.extend I).source ∈ 𝓝 x :=
@@ -778,6 +800,12 @@ continuous_at_extend_symm' f I $ (f.extend I).map_source $ by rwa f.extend_sourc
 lemma continuous_on_extend_symm :
   continuous_on (f.extend I).symm (f.extend I).target :=
 λ y hy, (continuous_at_extend_symm' _ _ hy).continuous_within_at
+
+lemma extend_symm_continuous_within_at_comp_right_iff {X} [topological_space X] {g : M → X}
+  {s : set M} {x : M} :
+  continuous_within_at (g ∘ (f.extend I).symm) ((f.extend I).symm ⁻¹' s ∩ range I) (f.extend I x) ↔
+  continuous_within_at (g ∘ f.symm) (f.symm ⁻¹' s) (f x) :=
+by convert I.symm_continuous_within_at_comp_right_iff; refl
 
 lemma is_open_extend_preimage' {s : set E} (hs : is_open s) :
   is_open ((f.extend I).source ∩ f.extend I ⁻¹' s) :=
@@ -875,6 +903,25 @@ lemma extend_image_source_inter :
 by simp_rw [f.extend_coord_change_source, f.extend_coe, image_comp I f, trans_source'', symm_symm,
   symm_target]
 
+lemma extend_coord_change_source_mem_nhds_within {x : E}
+  (hx : x ∈ ((f.extend I).symm ≫ f'.extend I).source) :
+  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] x :=
+begin
+  rw [f.extend_coord_change_source] at hx ⊢,
+  obtain ⟨x, hx, rfl⟩ := hx,
+  refine I.image_mem_nhds_within _,
+  refine (local_homeomorph.open_source _).mem_nhds hx
+end
+
+lemma extend_coord_change_source_mem_nhds_within' {x : M}
+  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
+  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] f.extend I x :=
+begin
+  apply extend_coord_change_source_mem_nhds_within,
+  rw [← extend_image_source_inter],
+  exact mem_image_of_mem _ ⟨hxf, hxf'⟩,
+end
+
 variables {f f'}
 open smooth_manifold_with_corners
 
@@ -896,6 +943,16 @@ begin
   rw [extend_coord_change_source] at hx ⊢,
   obtain ⟨z, hz, rfl⟩ := hx,
   exact I.image_mem_nhds_within ((local_homeomorph.open_source _).mem_nhds hz)
+end
+
+lemma cont_diff_within_at_extend_coord_change' [charted_space H M]
+  (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) {x : M}
+  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
+  cont_diff_within_at 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm) (range I) (f'.extend I x) :=
+begin
+  refine cont_diff_within_at_extend_coord_change I hf hf' _,
+  rw [← extend_image_source_inter],
+  exact mem_image_of_mem _ ⟨hxf', hxf⟩
 end
 
 end local_homeomorph

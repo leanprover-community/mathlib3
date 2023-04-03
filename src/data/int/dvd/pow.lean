@@ -8,6 +8,9 @@ import data.nat.pow
 
 /-!
 # Basic lemmas about the divisibility relation in `ℤ` involving powers.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open nat

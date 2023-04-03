@@ -8,6 +8,9 @@ import algebra.group.prod
 
 /-!
 # The product of two `add_monoid_with_one`s.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

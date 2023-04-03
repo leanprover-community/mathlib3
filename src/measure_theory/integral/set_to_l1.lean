@@ -68,7 +68,7 @@ with finite measure. Its value on other sets is ignored.
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
+open_locale classical topology big_operators nnreal ennreal measure_theory pointwise
 open set filter topological_space ennreal emetric
 
 namespace measure_theory

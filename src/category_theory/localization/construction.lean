@@ -11,6 +11,9 @@ import category_theory.category.Quiv
 
 # Construction of the localized category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs the localized category, obtained by formally inverting
 a class of maps `W : morphism_property C` in a category `C`.
 

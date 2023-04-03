@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 
 import analysis.special_functions.pow
+import data.is_R_or_C.lemmas
 import measure_theory.constructions.borel_space
 
 /-!

@@ -8,6 +8,9 @@ import data.fintype.powerset
 /-!
 # Set-like fintype
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a fintype instance for set-like objects such as subgroups. If `set_like A B`
 and `fintype B` then `fintype A`.
 -/

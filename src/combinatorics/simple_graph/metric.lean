@@ -9,6 +9,9 @@ import data.nat.lattice
 /-!
 # Graph metric
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines the `simple_graph.dist` function, which takes
 pairs of vertices to the length of the shortest walk between them.
 

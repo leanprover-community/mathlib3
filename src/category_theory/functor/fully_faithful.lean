@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Full and faithful functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define typeclasses `full` and `faithful`, decorating functors.
 
 ## Main definitions and results

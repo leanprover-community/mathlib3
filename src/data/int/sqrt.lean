@@ -8,6 +8,9 @@ import data.nat.sqrt
 /-!
 # Square root of integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the square root function on integers. `int.sqrt z` is the greatest integer `r`
 such that `r * r ≤ z`. If `z ≤ 0`, then `int.sqrt z = 0`.
 -/

@@ -8,6 +8,9 @@ import category_theory.opposites
 /-!
 # The constant functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `const J : C ⥤ (J ⥤ C)` is the functor that sends an object `X : C` to the functor `J ⥤ C` sending
 every object in `J` to `X`, and every morphism to `𝟙 X`.
 

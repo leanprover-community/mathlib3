@@ -9,6 +9,9 @@ import algebra.order.ring.abs
 
 /-!
 # Further lemmas about the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 The distinction between this file and `data.int.order.basic` is not particularly clear.
 They are separated by now to minimize the porting requirements for tactics during the transition to
 mathlib4. After `data.rat.order` has been ported, please feel free to reorganize these two files.

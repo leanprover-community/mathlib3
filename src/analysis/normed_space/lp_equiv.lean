@@ -8,16 +8,16 @@ import analysis.normed_space.pi_Lp
 import topology.continuous_function.bounded
 
 /-!
-# Equivalences among $$L^p$$ spaces
+# Equivalences among $L^p$ spaces
 
-In this file we collect a variety of equivalences among various $$L^p$$ spaces.  In particular,
+In this file we collect a variety of equivalences among various $L^p$ spaces.  In particular,
 when `α` is a `fintype`, given `E : α → Type u` and `p : ℝ≥0∞`, there is a natural linear isometric
 equivalence `lp_pi_Lpₗᵢ : lp E p ≃ₗᵢ pi_Lp p E`. In addition, when `α` is a discrete topological
 space, the bounded continuous functions `α →ᵇ β` correspond exactly to `lp (λ _, β) ∞`. Here there
 can be more structure, including ring and algebra structures, and we implement these equivalences
 accordingly as well.
 
-We keep this as a separate file so that the various $$L^p$$ space files don't import the others.
+We keep this as a separate file so that the various $L^p$ space files don't import the others.
 
 Recall that `pi_Lp` is just a type synonym for `Π i, E i` but given a different metric and norm
 structure, although the topological, uniform and bornological structures coincide definitionally.

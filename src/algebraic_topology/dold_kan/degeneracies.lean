@@ -5,6 +5,7 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.dold_kan.decomposition
+import tactic.fin_cases
 
 /-!
 

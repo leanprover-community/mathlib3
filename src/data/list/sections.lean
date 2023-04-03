@@ -8,6 +8,9 @@ import data.list.forall2
 /-!
 # List sections
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some stuff about `list.sections` (definition in `data.list.defs`). A section of a
 list of lists `[l₁, ..., lₙ]` is a list whose `i`-th element comes from the `i`-th list.
 -/

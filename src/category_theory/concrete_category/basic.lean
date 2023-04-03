@@ -10,6 +10,9 @@ import category_theory.limits.constructions.epi_mono
 /-!
 # Concrete categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A concrete category is a category `C` with a fixed faithful functor
 `forget : C ⥤ Type*`.  We define concrete categories using `class
 concrete_category`.  In particular, we impose no restrictions on the

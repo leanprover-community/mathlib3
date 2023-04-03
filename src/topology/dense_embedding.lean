@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Dense embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines three properties of functions:
 
 * `dense_range f`      means `f` has dense image;
@@ -25,7 +28,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 

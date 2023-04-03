@@ -26,7 +26,7 @@ we prove that they coincide and study their properties (notably convergence).
 
 -/
 
-open_locale big_operators classical topological_space
+open_locale big_operators classical topology
 open finset filter
 
 namespace formal_multilinear_series
@@ -126,7 +126,7 @@ begin
     ext k,
     simp [h] },
   simp [formal_multilinear_series.comp, show n + 2 ≠ 1, by dec_trivial, A, finset.sum_union B,
-    apply_composition_ones, C, D],
+    apply_composition_ones, C, D, -set.to_finset_set_of],
 end
 
 /-! ### The right inverse of a formal multilinear series -/
@@ -196,7 +196,7 @@ begin
             = p 1 (λ (i : fin 1), q n v),
   { apply p.congr (composition.single_length hn) (λ j hj1 hj2, _),
     simp [apply_composition_single] },
-  simp [formal_multilinear_series.comp, A, finset.sum_union B, C],
+  simp [formal_multilinear_series.comp, A, finset.sum_union B, C, -set.to_finset_set_of],
 end
 
 lemma comp_right_inv_aux2
@@ -229,7 +229,7 @@ begin
       continuous_linear_equiv.coe_apply, continuous_multilinear_curry_fin1_symm_apply] },
   have N : 0 < n+2, by dec_trivial,
   simp [comp_right_inv_aux1 N, h, right_inv, lt_irrefl n, show n + 2 ≠ 1, by dec_trivial,
-        ← sub_eq_add_neg, sub_eq_zero, comp_right_inv_aux2],
+        ← sub_eq_add_neg, sub_eq_zero, comp_right_inv_aux2, -set.to_finset_set_of],
 end
 
 lemma right_inv_coeff (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) (n : ℕ) (hn : 2 ≤ n) :
@@ -244,7 +244,7 @@ begin
   ext v,
   have N : 0 < n + 2, by dec_trivial,
   have : (p 1) (λ (i : fin 1), 0) = 0 := continuous_multilinear_map.map_zero _,
-  simp [comp_right_inv_aux1 N, lt_irrefl n, this, comp_right_inv_aux2]
+  simp [comp_right_inv_aux1 N, lt_irrefl n, this, comp_right_inv_aux2, -set.to_finset_set_of],
 end
 
 /-! ### Coincidence of the left and the right inverse -/
@@ -393,7 +393,7 @@ begin
     (λ (k : ℕ), (fintype.pi_finset (λ (i : fin k), Ico 1 n) : finset (fin k → ℕ)))
     (λ n e, ∏ (j : fin n), r * (a ^ e j * p (e j)))],
   apply sum_congr rfl (λ j hj, _),
-  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ _ ℝ],
+  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ ℝ],
   simp only [← multilinear_map.map_sum_finset (multilinear_map.mk_pi_algebra ℝ (fin j) ℝ)
     (λ k (m : ℕ), r * (a ^ m * p m))],
   simp only [multilinear_map.mk_pi_algebra_apply],

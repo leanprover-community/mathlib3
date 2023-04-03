@@ -56,8 +56,8 @@ by rw [trinomial_def, coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow
 lemma trinomial_nat_degree (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
   (trinomial k m n u v w).nat_degree = n :=
 begin
-  refine nat_degree_eq_of_degree_eq_some (le_antisymm (sup_le (λ i h, _))
-    (le_degree_of_ne_zero (by rwa trinomial_leading_coeff' hkm hmn))),
+  refine nat_degree_eq_of_degree_eq_some ((finset.sup_le $ λ i h, _).antisymm $
+    le_degree_of_ne_zero $ by rwa trinomial_leading_coeff' hkm hmn),
   replace h := support_trinomial' k m n u v w h,
   rw [mem_insert, mem_insert, mem_singleton] at h,
   rcases h with rfl | rfl | rfl,
@@ -69,8 +69,8 @@ end
 lemma trinomial_nat_trailing_degree (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
   (trinomial k m n u v w).nat_trailing_degree = k :=
 begin
-  refine nat_trailing_degree_eq_of_trailing_degree_eq_some (le_antisymm (le_inf (λ i h, _))
-    (le_trailing_degree_of_ne_zero (by rwa trinomial_trailing_coeff' hkm hmn))).symm,
+  refine nat_trailing_degree_eq_of_trailing_degree_eq_some ((finset.le_inf $ λ i h, _).antisymm $
+    le_trailing_degree_of_ne_zero $ by rwa trinomial_trailing_coeff' hkm hmn).symm,
   replace h := support_trinomial' k m n u v w h,
   rw [mem_insert, mem_insert, mem_singleton] at h,
   rcases h with rfl | rfl | rfl,

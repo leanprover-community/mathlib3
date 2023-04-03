@@ -39,19 +39,22 @@ noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.to_lin'.range
 @[simp] lemma rank_one [strong_rank_condition R] : rank (1 : matrix n n R) = fintype.card n :=
 by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, module.free.finrank_pi]
 
-@[simp] lemma rank_zero [nontrivial R] : rank (0 : matrix n n R) = 0 :=
+@[simp] lemma rank_zero [nontrivial R] : rank (0 : matrix m n R) = 0 :=
 by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
 
-lemma rank_le_card_width (A : matrix m n K) : A.rank ≤ fintype.card n :=
+lemma rank_le_card_width [strong_rank_condition R] (A : matrix m n R) : A.rank ≤ fintype.card n :=
 begin
-  convert le_of_add_le_left (A.to_lin'.finrank_range_add_finrank_ker).le,
-  exact (module.free.finrank_pi K).symm,
+  haveI : module.finite R (n → R) := module.finite.pi,
+  haveI : module.free R (n → R) := module.free.pi _ _,
+  exact A.to_lin'.finrank_range_le.trans_eq (module.free.finrank_pi _)
 end
 
-lemma rank_le_width {m n : ℕ} (A : matrix (fin m) (fin n) K) : A.rank ≤ n :=
+lemma rank_le_width [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (fin n) R) :
+  A.rank ≤ n :=
 A.rank_le_card_width.trans $ (fintype.card_fin n).le
 
-lemma rank_mul_le (A : matrix m n K) (B : matrix n o K) : (A ⬝ B).rank ≤ A.rank :=
+lemma rank_mul_le (A : matrix m n K) (B : matrix n o K) :
+  (A ⬝ B).rank ≤ A.rank :=
 begin
   refine linear_map.finrank_le_finrank_of_injective (submodule.of_le_injective _),
   rw [to_lin'_mul],
@@ -94,12 +97,18 @@ begin
     basis.equiv_apply],
 end
 
-lemma rank_le_card_height (A : matrix m n K) : A.rank ≤ fintype.card m :=
-(submodule.finrank_le _).trans (module.free.finrank_pi K).le
+lemma rank_le_card_height [strong_rank_condition R] (A : matrix m n R) :
+  A.rank ≤ fintype.card m :=
+begin
+  haveI : module.finite R (m → R) := module.finite.pi,
+  haveI : module.free R (m → R) := module.free.pi _ _,
+  exact (submodule.finrank_le _).trans (module.free.finrank_pi R).le
+end
 
 omit m_fin
 
-lemma rank_le_height {m n : ℕ} (A : matrix (fin m) (fin n) K) : A.rank ≤ m :=
+lemma rank_le_height [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (fin n) R) :
+  A.rank ≤ m :=
 A.rank_le_card_height.trans $ (fintype.card_fin m).le
 
 end matrix

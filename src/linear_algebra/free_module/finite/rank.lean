@@ -47,12 +47,6 @@ end
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_aleph_0 (rank_lt_aleph_0 R M)] }
 
-lemma _root_.linear_map.finrank_le_finrank_of_injective
-  {f : M →ₗ[R] N} (hf : function.injective f) : finrank R M ≤ finrank R N :=
-by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  ((lift_strict_mono.{w v} (rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
-  (linear_map.lift_dim_le_of_injective _ hf)
-
 /-- The finrank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma finrank_eq_card_choose_basis_index : finrank R M = @card (choose_basis_index R M)
   (@choose_basis_index.fintype R M _ _ _ _ (nontrivial_of_invariant_basis_number R) _) :=
@@ -100,6 +94,7 @@ lemma finrank_matrix (m n : Type v) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 
+
 end ring
 
 section comm_ring
@@ -117,3 +112,31 @@ by { simp [finrank] }
 end comm_ring
 
 end module.free
+
+section
+
+variables {R M N}
+variables [ring R] [strong_rank_condition R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group N] [module R N]
+
+lemma linear_map.finrank_le_finrank_of_injective
+  [module.free R N] [module.finite R N] {f : M →ₗ[R] N} (hf : function.injective f) :
+  finrank R M ≤ finrank R N :=
+by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
+  ((lift_strict_mono.{w v} (module.free.rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
+  (linear_map.lift_dim_le_of_injective _ hf)
+
+lemma linear_map.finrank_range_le [module.free R M] [module.finite R M] (f : M →ₗ[R] N) :
+  finrank R f.range ≤ finrank R M :=
+by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
+  ((lift_strict_mono.{v w} (module.free.rank_lt_aleph_0 R M)).trans_eq lift_aleph_0)
+  (lift_dim_range_le f)
+
+/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
+lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule R M) :
+  finrank R s ≤ finrank R M :=
+by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
+  (module.free.rank_lt_aleph_0 _ _) (dim_submodule_le s)
+
+end

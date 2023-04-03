@@ -709,11 +709,6 @@ begin
     apply_instance },
 end
 
-/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
-lemma finrank_le [finite_dimensional K V] (s : submodule K V) : finrank K s ≤ finrank K V :=
-by simpa only [cardinal.nat_cast_le, ←finrank_eq_dim] using
-  s.subtype.dim_le_of_injective (injective_subtype s)
-
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
   finrank K (V ⧸ s) ≤ finrank K V :=

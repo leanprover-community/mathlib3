@@ -246,7 +246,7 @@ def _root_.bundle.continuous_linear_map.vector_prebundle :
     {e |  ∃ (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
     [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₂], by exactI
     e = pretrivialization.continuous_linear_map σ e₁ e₂},
-  pretrivialization_linear' := begin
+  pretrivialization_linear := begin
     rintro _ ⟨e₁, he₁, e₂, he₂, rfl⟩,
     apply_instance
   end,

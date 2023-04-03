@@ -676,7 +676,7 @@ This makes it inconvenient to explicitly define a `coord_change` function when c
 @[nolint has_nonempty_instance]
 structure vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization F (π E)))
-(pretrivialization_linear' : ∀ (e : pretrivialization F (π E)) (he : e ∈ pretrivialization_atlas),
+(pretrivialization_linear : ∀ (e : pretrivialization F (π E)) (he : e ∈ pretrivialization_atlas),
   e.is_linear R)
 (pretrivialization_at : B → pretrivialization F (π E))
 (mem_base_pretrivialization_at : ∀ x : B, x ∈ (pretrivialization_at x).base_set)
@@ -756,10 +756,10 @@ lemma linear_of_mem_pretrivialization_atlas (a : vector_prebundle R F E)
   {e : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas) :
   @trivialization.is_linear R B F _ _ _ _ _ _ _ _ a.total_space_topology a.fiber_topology
     (trivialization_of_mem_pretrivialization_atlas a he) :=
-{ linear := (a.pretrivialization_linear' e he).linear,
-  linear_symm := (a.pretrivialization_linear' e he).linear_symm,
-  continuous := λ b, sorry,
-  continuous_symm := sorry }
+{ linear := (a.pretrivialization_linear e he).linear,
+  linear_symm := (a.pretrivialization_linear e he).linear_symm,
+  continuous := λ b, sorry, -- not true
+  continuous_symm := λ b, sorry } -- not true
 
 
 lemma mem_trivialization_at_source (b : B) (x : E b) :

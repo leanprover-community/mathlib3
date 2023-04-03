@@ -156,35 +156,34 @@ section
 
 /-- Polarization identity for symmetric linear maps.
 See `inner_map_polarization` for the complex version without the symmetric assumption. -/
-lemma is_symmetric.inner_map_polarization
-  {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) (x y : E) :
-  ⟪x, T y⟫ = (⟪x + y, T (x + y)⟫ - ⟪x - y, T (x - y)⟫ -
-    I * ⟪x + (I : 𝕜) • y, T (x + (I : 𝕜) • y)⟫ +
-    I * ⟪x - (I : 𝕜) • y, T (x - (I : 𝕜) • y)⟫) / 4 :=
+lemma is_symmetric.inner_map_polarization {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) (x y : E) :
+  ⟪T x, y⟫ = (⟪T (x + y), x + y⟫ - ⟪T (x - y), x - y⟫ -
+    I * ⟪T (x + (I : 𝕜) • y), x + (I : 𝕜) • y⟫ +
+    I * ⟪T (x - (I : 𝕜) • y), x - (I : 𝕜) • y⟫) / 4 :=
 begin
   rcases @I_mul_I_ax 𝕜 _ with (h | h),
-  { simp_rw [h, zero_mul, sub_zero, add_zero, map_add, map_sub,
-             inner_add_left, inner_add_right, inner_sub_left, inner_sub_right,
-             ← hT x _, ← inner_conj_sym (T x) y],
-    suffices : (re ⟪y, T x⟫ : 𝕜) = ⟪y, T x⟫,
+  { simp_rw [h, zero_mul, sub_zero, add_zero, map_add, map_sub, inner_add_left,
+             inner_add_right, inner_sub_left, inner_sub_right, hT x _,
+             ← inner_conj_sym x (T y)],
+    suffices : (re ⟪T y, x⟫ : 𝕜) = ⟪T y, x⟫,
     { rw eq_conj_iff_re.mpr this,
       ring_nf, },
-    { rw ← re_add_im ⟪y, T x⟫,
+    { rw ← re_add_im ⟪T y, x⟫,
       simp_rw [h, mul_zero, add_zero],
       norm_cast, } },
   { simp_rw [map_add, map_sub, inner_add_left, inner_add_right, inner_sub_left, inner_sub_right,
              linear_map.map_smul, inner_smul_left, inner_smul_right, is_R_or_C.conj_I, mul_add,
              mul_sub, sub_sub, ← mul_assoc, mul_neg, h, neg_neg, one_mul, neg_one_mul],
-    ring, }
+    ring, },
 end
 
-/-- if `T` is symmetric, then `∀ x, ⟪x, T x⟫ = 0` if and only if `T = 0`,
-also see `inner_map_self_eq_zero` for the complex version without the symmetric assumption -/
-lemma is_symmetric.inner_self_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
-  (∀ x, ⟪x, T x⟫ = 0) ↔ T = 0 :=
+/-- A symmetric linear map `T` is zero if and only if `⟪T x, x⟫_ℝ = 0` for all `x`.
+See `inner_map_self_eq_zero` for the complex version without the symmetric assumption. -/
+lemma is_symmetric.inner_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
+  (∀ x, ⟪T x, x⟫ = 0) ↔ T = 0 :=
 begin
   simp_rw [linear_map.ext_iff, zero_apply],
-  refine ⟨λ h x, _, λ h, by simp_rw [h, inner_zero_right, forall_const]⟩,
+  refine ⟨λ h x, _, λ h, by simp_rw [h, inner_zero_left, forall_const]⟩,
   rw [← inner_self_eq_zero, hT.inner_map_polarization _ _],
   simp_rw [h _],
   ring,

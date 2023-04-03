@@ -1084,7 +1084,7 @@ by { haveI := topological_group.t3_space G, apply_instance }
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-instance subgroup.regular_quotient_of_is_closed
+instance subgroup.t3_quotient_of_is_closed
   (S : subgroup G) [subgroup.normal S] [hS : is_closed (S : set G)] : t3_space (G ⧸ S) :=
 begin
   rw ← quotient_group.ker_mk S at hS,

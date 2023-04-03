@@ -155,17 +155,6 @@ lemma basis.subset_extend {s : set V} (hs : linear_independent K (coe : s → V)
   s ⊆ hs.extend (set.subset_univ _) :=
 hs.subset_extend _
 
-variable (K)
-
-/-- The vector space of functions on a fintype ι has finrank equal to the cardinality of ι. -/
-@[simp] lemma finrank_fintype_fun_eq_card {ι : Type v} [fintype ι] :
-  finrank K (ι → K) = fintype.card ι :=
-finrank_eq_of_dim_eq dim_fun'
-
-/-- The vector space of functions on `fin n` has finrank equal to `n`. -/
-@[simp] lemma finrank_fin_fun {n : ℕ} : finrank K (fin n → K) = n :=
-by simp
-
 end division_ring
 
 end finite_dimensional
@@ -174,14 +163,16 @@ variables {K V}
 
 section zero_dim
 
-variables [division_ring K] [add_comm_group V] [module K V]
+variables [ring K] [strong_rank_condition K] [add_comm_group V] [module K V] [module.free K V]
 
 open finite_dimensional
 
 lemma finrank_eq_zero_of_basis_imp_not_finite
   (h : ∀ s : set V, basis.{v} (s : set V) K V → ¬ s.finite) : finrank K V = 0 :=
-dif_neg (λ dim_lt, h _ (basis.of_vector_space K V)
-  ((basis.of_vector_space K V).finite_index_of_dim_lt_aleph_0 dim_lt))
+begin
+  obtain ⟨_, ⟨b⟩⟩ := (module.free_iff_set K V).mp ‹_›,
+  exact dif_neg (λ dim_lt, h _ b (b.finite_index_of_dim_lt_aleph_0 dim_lt))
+end
 
 lemma finrank_eq_zero_of_basis_imp_false
   (h : ∀ s : finset V, basis.{v} (s : set V) K V → false) : finrank K V = 0 :=

@@ -1108,7 +1108,7 @@ lemma finrank_add_eq_of_is_compl
   finrank K U + finrank K W = finrank K V :=
 begin
   rw [← dim_sup_add_dim_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot, finrank_bot, add_zero],
-  exact finrank_top
+  exact finrank_top _ _
 end
 
 end division_ring

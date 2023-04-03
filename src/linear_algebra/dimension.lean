@@ -285,6 +285,10 @@ begin
   rw [this.dim_eq, dim_punit],
 end
 
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule R M} (h : 0 < module.rank R s) :
+  ∃ b : M, b ∈ s ∧ b ≠ 0 :=
+exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
+
 variables {R M}
 
 lemma exists_mem_ne_zero_of_dim_pos {s : submodule R M} (h : 0 < module.rank R s) :

@@ -20,7 +20,7 @@ This definition does not depend on the choice of basis, see `matrix.rank_eq_finr
 ## TODO
 
 * Show that `matrix.rank` is equal to the row-rank and column-rank
-* Generalize away from fields
+* Generalize more results away from fields
 
 -/
 
@@ -30,20 +30,19 @@ namespace matrix
 
 open finite_dimensional
 
-variables {m n o K : Type*} [m_fin : fintype m] [fintype n] [fintype o]
-variables [decidable_eq n] [decidable_eq o] [field K]
-variables (A : matrix m n K)
+variables {m n o R K : Type*} [m_fin : fintype m] [fintype n] [fintype o]
+variables [decidable_eq n] [decidable_eq o] [comm_ring R] [field K]
 
 /-- The rank of a matrix is the rank of its image. -/
-noncomputable def rank : ℕ := finrank K A.to_lin'.range
+noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.to_lin'.range
 
-@[simp] lemma rank_one : rank (1 : matrix n n K) = fintype.card n :=
+@[simp] lemma rank_one [strong_rank_condition R] : rank (1 : matrix n n R) = fintype.card n :=
 by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, module.free.finrank_pi]
 
-@[simp] lemma rank_zero : rank (0 : matrix n n K) = 0 :=
+@[simp] lemma rank_zero [nontrivial R] : rank (0 : matrix n n R) = 0 :=
 by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
 
-lemma rank_le_card_width : A.rank ≤ fintype.card n :=
+lemma rank_le_card_width (A : matrix m n K) : A.rank ≤ fintype.card n :=
 begin
   convert le_of_add_le_left (A.to_lin'.finrank_range_add_finrank_ker).le,
   exact (module.free.finrank_pi K).symm,
@@ -52,7 +51,7 @@ end
 lemma rank_le_width {m n : ℕ} (A : matrix (fin m) (fin n) K) : A.rank ≤ n :=
 A.rank_le_card_width.trans $ (fintype.card_fin n).le
 
-lemma rank_mul_le (B : matrix n o K) : (A ⬝ B).rank ≤ A.rank :=
+lemma rank_mul_le (A : matrix m n K) (B : matrix n o K) : (A ⬝ B).rank ≤ A.rank :=
 begin
   refine linear_map.finrank_le_finrank_of_injective (submodule.of_le_injective _),
   rw [to_lin'_mul],
@@ -75,7 +74,7 @@ include m_fin
 
 lemma rank_eq_finrank_range_to_lin
   {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂]
-  [module K M₁] [module K M₂] (v₁ : basis m K M₁) (v₂ : basis n K M₂) :
+  [module K M₁] [module K M₂] (A : matrix m n K) (v₁ : basis m K M₁) (v₂ : basis n K M₂) :
   A.rank = finrank K (to_lin v₂ v₁ A).range :=
 begin
   let e₁ := (pi.basis_fun K m).equiv v₁ (equiv.refl _),
@@ -95,7 +94,7 @@ begin
     basis.equiv_apply],
 end
 
-lemma rank_le_card_height : A.rank ≤ fintype.card m :=
+lemma rank_le_card_height (A : matrix m n K) : A.rank ≤ fintype.card m :=
 (submodule.finrank_le _).trans (module.free.finrank_pi K).le
 
 omit m_fin

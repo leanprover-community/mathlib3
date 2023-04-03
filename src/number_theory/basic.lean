@@ -10,6 +10,9 @@ import ring_theory.ideal.quotient
 /-!
 # Basic results in number theory
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file should contain basic results in number theory. So far, it only contains the essential
 lemma in the construction of the ring of Witt vectors.
 

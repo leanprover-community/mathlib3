@@ -3,11 +3,14 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
-import algebra.ring.basic
-import algebra.divisibility
+import algebra.divisibility.basic
+import algebra.ring.defs
 
 /-!
 # Lemmas about divisibility in rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}
@@ -108,6 +111,8 @@ theorem dvd_sub_left (h : a ∣ c) : a ∣ b - c ↔ a ∣ b :=
   and another element c iff a divides c. -/
 theorem dvd_sub_right (h : a ∣ b) : a ∣ b - c ↔ a ∣ c :=
 (dvd_sub_iff_right h).symm
+
+lemma dvd_sub_comm : a ∣ b - c ↔ a ∣ c - b := by rw [←dvd_neg, neg_sub]
 
 end non_unital_ring
 

@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import order.monotone.odd
 import analysis.special_functions.exp_deriv
 import analysis.special_functions.trigonometric.basic
 import data.set.intervals.monotone
@@ -21,7 +22,7 @@ sin, cos, tan, angle
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 namespace complex
@@ -43,7 +44,7 @@ lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
 
 lemma cont_diff_sin {n} : cont_diff ℂ n sin :=
 (((cont_diff_neg.mul cont_diff_const).cexp.sub
-  (cont_diff_id.mul cont_diff_const).cexp).mul cont_diff_const).div_const
+  (cont_diff_id.mul cont_diff_const).cexp).mul cont_diff_const).div_const _
 
 lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
@@ -71,7 +72,7 @@ lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
 
 lemma cont_diff_cos {n} : cont_diff ℂ n cos :=
 ((cont_diff_id.mul cont_diff_const).cexp.add
-  (cont_diff_neg.mul cont_diff_const).cexp).div_const
+  (cont_diff_neg.mul cont_diff_const).cexp).div_const _
 
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -100,7 +101,7 @@ lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 (has_strict_deriv_at_sinh x).has_deriv_at
 
 lemma cont_diff_sinh {n} : cont_diff ℂ n sinh :=
-(cont_diff_exp.sub cont_diff_neg.cexp).div_const
+(cont_diff_exp.sub cont_diff_neg.cexp).div_const _
 
 lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
@@ -126,7 +127,7 @@ lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
 (has_strict_deriv_at_cosh x).has_deriv_at
 
 lemma cont_diff_cosh {n} : cont_diff ℂ n cosh :=
-(cont_diff_exp.add cont_diff_neg.cexp).div_const
+(cont_diff_exp.add cont_diff_neg.cexp).div_const _
 
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at

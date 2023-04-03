@@ -11,6 +11,9 @@ import topology.instances.real
 /-!
 # Topology on the ratonal numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The structure of a metric space on `ℚ` is introduced in this file, induced from `ℝ`.
 -/
 open metric set filter

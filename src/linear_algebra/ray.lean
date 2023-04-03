@@ -3,10 +3,14 @@ Copyright (c) 2021 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import group_theory.subgroup.actions
 import linear_algebra.linear_independent
 
 /-!
 # Rays in modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines rays in modules.
 
@@ -330,7 +334,7 @@ lemma eq_zero_of_same_ray_self_neg [no_zero_smul_divisors R M] (h : same_ray R x
   x = 0 :=
 begin
   nontriviality M, haveI : nontrivial R := module.nontrivial R M,
-  refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (@one_pos R _ _)) _,
+  refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (zero_lt_one' R)) _,
   rwa [neg_one_smul]
 end
 
@@ -395,6 +399,12 @@ lemma units_smul_of_neg (u : Rˣ) (hu : (u : R) < 0) (v : module.ray R M) :
 begin
   rw [← neg_inj, neg_neg, ← neg_units_smul, units_smul_of_pos],
   rwa [units.coe_neg, right.neg_pos_iff]
+end
+
+@[simp] protected lemma map_neg (f : M ≃ₗ[R] N) (v : module.ray R M) : map f (-v) = - map f v :=
+begin
+  induction v using module.ray.ind with g hg,
+  simp,
 end
 
 end module.ray

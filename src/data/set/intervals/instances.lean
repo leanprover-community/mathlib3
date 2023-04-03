@@ -5,10 +5,12 @@ Authors: Stuart Presnell, Eric Wieser, Yaël Dillies, Patrick Massot, Scott Morr
 -/
 import algebra.group_power.order
 import algebra.ring.regular
-import data.set.intervals.proj_Icc
 
 /-!
 # Algebraic instances for unit intervals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For suitably structured underlying type `α`, we exhibit the structure of
 the unit intervals (`set.Icc`, `set.Ioc`, `set.Ioc`, and `set.Ioo`) from `0` to `1`.

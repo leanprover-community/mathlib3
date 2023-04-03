@@ -6,6 +6,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 import data.fin.basic
 import data.list.basic
 import logic.relation
+import order.game_add
 
 /-!
 # Combinatorial (pre-)games.
@@ -45,8 +46,8 @@ by Left as the second player.
 
 It turns out to be quite convenient to define various relations on top of these. We define the "less
 or fuzzy" relation `x ⧏ y` as `¬ y ≤ x`, the equivalence relation `x ≈ y` as `x ≤ y ∧ y ≤ x`, and
-the fuzzy relation `x ∥ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` can be won by Left as the
-first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ∥ 0`, then `x` can be won
+the fuzzy relation `x ‖ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` can be won by Left as the
+first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ‖ 0`, then `x` can be won
 by the first player.
 
 Statements like `zero_le_lf`, `zero_lf_le`, etc. unfold these definitions. The theorems `le_def` and
@@ -255,73 +256,58 @@ instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 
 /-! ### Pre-game order relations -/
 
-/-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
-  pre-games.
-
-  The ZFC definition says that `x = {xL | xR}` is less or equal to `y = {yL | yR}` if
-  `∀ x₁ ∈ xL, x₁ ⧏ y` and `∀ y₂ ∈ yR, x ⧏ y₂`, where `x ⧏ y` means `¬ y ≤ x`. This is a tricky
-  induction because it only decreases one side at a time, and it also swaps the arguments in the
-  definition of `≤`. The solution is to define `x ≤ y` and `x ⧏ y` simultaneously. -/
-def le_lf : Π (x y : pgame.{u}), Prop × Prop
-| (mk xl xr xL xR) (mk yl yr yL yR) :=
-  -- the orderings of the clauses here are carefully chosen so that
-  --   and.left/or.inl refer to moves by Left, and
-  --   and.right/or.inr refer to moves by Right.
-((∀ i, (le_lf (xL i) ⟨yl, yr, yL, yR⟩).2) ∧ ∀ j, (le_lf ⟨xl, xr, xL, xR⟩ (yR j)).2,
- (∃ i, (le_lf ⟨xl, xr, xL, xR⟩ (yL i)).1) ∨ ∃ j, (le_lf (xR j) ⟨yl, yr, yL, yR⟩).1)
-using_well_founded { dec_tac := pgame_wf_tac }
-
 /-- The less or equal relation on pre-games.
 
 If `0 ≤ x`, then Left can win `x` as the second player. -/
-instance : has_le pgame := ⟨λ x y, (le_lf x y).1⟩
+instance : has_le pgame :=
+⟨sym2.game_add.fix wf_is_option $ λ x y le,
+  (∀ i, ¬ le y (x.move_left i) (sym2.game_add.snd_fst $ is_option.move_left i)) ∧
+  (∀ j, ¬ le (y.move_right j) x (sym2.game_add.fst_snd $ is_option.move_right j))⟩
 
 /-- The less or fuzzy relation on pre-games.
 
 If `0 ⧏ x`, then Left can win `x` as the first player. -/
-def lf (x y : pgame) : Prop := (le_lf x y).2
+def lf (x y : pgame) : Prop := ¬ y ≤ x
 
 localized "infix (name := pgame.lf) ` ⧏ `:50 := pgame.lf" in pgame
+
+@[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := iff.rfl
+@[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_not
+theorem _root_.has_le.le.not_gf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
+theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := id
+
+/-- Definition of `x ≤ y` on pre-games, in terms of `⧏`.
+
+The ordering here is chosen so that `and.left` refer to moves by Left, and `and.right` refer to
+moves by Right. -/
+
+theorem le_iff_forall_lf {x y : pgame} :
+  x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
+by { unfold has_le.le, rw sym2.game_add.fix_eq, refl }
 
 /-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
   mk xl xr xL xR ≤ mk yl yr yL yR ↔
   (∀ i, xL i ⧏ mk yl yr yL yR) ∧ ∀ j, mk xl xr xL xR ⧏ yR j :=
-show (le_lf _ _).1 ↔ _, by { rw le_lf, refl }
-
-/-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
-theorem le_iff_forall_lf {x y : pgame} :
-  x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
-by { cases x, cases y, exact mk_le_mk }
+le_iff_forall_lf
 
 theorem le_of_forall_lf {x y : pgame} (h₁ : ∀ i, x.move_left i ⧏ y) (h₂ : ∀ j, x ⧏ y.move_right j) :
   x ≤ y :=
 le_iff_forall_lf.2 ⟨h₁, h₂⟩
 
+/-- Definition of `x ⧏ y` on pre-games, in terms of `≤`.
+
+The ordering here is chosen so that `or.inl` refer to moves by Left, and `or.inr` refer to
+moves by Right. -/
+theorem lf_iff_exists_le {x y : pgame} :
+  x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
+by { rw [lf, le_iff_forall_lf, not_and_distrib], simp }
+
 /-- Definition of `x ⧏ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lf_mk {xl xr xL xR yl yr yL yR} :
   mk xl xr xL xR ⧏ mk yl yr yL yR ↔
   (∃ i, mk xl xr xL xR ≤ yL i) ∨ ∃ j, xR j ≤ mk yl yr yL yR :=
-show (le_lf _ _).2 ↔ _, by { rw le_lf, refl }
-
-/-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
-theorem lf_iff_exists_le {x y : pgame} :
-  x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
-by { cases x, cases y, exact mk_lf_mk }
-
-private theorem not_le_lf {x y : pgame} : (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=
-begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
-  simp only [mk_le_mk, mk_lf_mk, IHxl, IHxr, IHyl, IHyr,
-    not_and_distrib, not_or_distrib, not_forall, not_exists,
-    and_comm, or_comm, iff_self, and_self]
-end
-
-@[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := not_le_lf.1
-@[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_le_lf.2
-theorem _root_.has_le.le.not_gf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
-theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
+lf_iff_exists_le
 
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }
@@ -364,8 +350,6 @@ le_of_forall_lf
   (λ i, pgame.not_le.1 $ λ h, (h₁ hyz h).not_gf $ hxy.move_left_lf i)
   (λ j, pgame.not_le.1 $ λ h, (h₂ h hxy).not_gf $ hyz.lf_move_right j)
 
-instance : has_lt pgame := ⟨λ x y, x ≤ y ∧ x ⧏ y⟩
-
 instance : preorder pgame :=
 { le_refl := λ x, begin
     induction x with _ _ _ _ IHl IHr,
@@ -383,8 +367,8 @@ instance : preorder pgame :=
       le_trans_aux (λ i, (IHyl i).2.2) (λ j, (IHxr j).1),
       le_trans_aux (λ i, (IHzl i).1) (λ j, (IHyr j).2.1)⟩
   end,
-  lt_iff_le_not_le := λ x y, by { rw pgame.not_le, refl },
-  ..pgame.has_le, ..pgame.has_lt }
+  lt := λ x y, x ≤ y ∧ x ⧏ y,
+  ..pgame.has_le, }
 
 theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y := iff.rfl
 theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y := ⟨h₁, h₂⟩
@@ -605,58 +589,58 @@ end
 
 /-- The fuzzy, confused, or incomparable relation on pre-games.
 
-If `x ∥ 0`, then the first player can always win `x`. -/
+If `x ‖ 0`, then the first player can always win `x`. -/
 def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
-localized "infix (name := pgame.fuzzy) ` ∥ `:50 := pgame.fuzzy" in pgame
+localized "infix (name := pgame.fuzzy) ` ‖ `:50 := pgame.fuzzy" in pgame
 
-@[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
-instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
-theorem fuzzy.swap_iff {x y : pgame} : x ∥ y ↔ y ∥ x := ⟨fuzzy.swap, fuzzy.swap⟩
+@[symm] theorem fuzzy.swap {x y : pgame} : x ‖ y → y ‖ x := and.swap
+instance : is_symm _ (‖) := ⟨λ x y, fuzzy.swap⟩
+theorem fuzzy.swap_iff {x y : pgame} : x ‖ y ↔ y ‖ x := ⟨fuzzy.swap, fuzzy.swap⟩
 
-theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
-instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
+theorem fuzzy_irrefl (x : pgame) : ¬ x ‖ x := λ h, lf_irrefl x h.1
+instance : is_irrefl _ (‖) := ⟨fuzzy_irrefl⟩
 
-theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
+theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ‖ y :=
 by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 
-theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y := lf_iff_lt_or_fuzzy.2 (or.inr h)
+theorem lf_of_fuzzy {x y : pgame} (h : x ‖ y) : x ⧏ y := lf_iff_lt_or_fuzzy.2 (or.inr h)
 alias lf_of_fuzzy ← fuzzy.lf
 
-theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
+theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ‖ y :=
 lf_iff_lt_or_fuzzy.1
 
-theorem fuzzy.not_equiv {x y : pgame} (h : x ∥ y) : ¬ x ≈ y :=
+theorem fuzzy.not_equiv {x y : pgame} (h : x ‖ y) : ¬ x ≈ y :=
 λ h', h'.1.not_gf h.2
-theorem fuzzy.not_equiv' {x y : pgame} (h : x ∥ y) : ¬ y ≈ x :=
+theorem fuzzy.not_equiv' {x y : pgame} (h : x ‖ y) : ¬ y ≈ x :=
 λ h', h'.2.not_gf h.2
 
-theorem not_fuzzy_of_le {x y : pgame} (h : x ≤ y) : ¬ x ∥ y :=
+theorem not_fuzzy_of_le {x y : pgame} (h : x ≤ y) : ¬ x ‖ y :=
 λ h', h'.2.not_ge h
-theorem not_fuzzy_of_ge {x y : pgame} (h : y ≤ x) : ¬ x ∥ y :=
+theorem not_fuzzy_of_ge {x y : pgame} (h : y ≤ x) : ¬ x ‖ y :=
 λ h', h'.1.not_ge h
 
-theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ∥ y :=
+theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ‖ y :=
 not_fuzzy_of_le h.1
-theorem equiv.not_fuzzy' {x y : pgame} (h : x ≈ y) : ¬ y ∥ x :=
+theorem equiv.not_fuzzy' {x y : pgame} (h : x ≈ y) : ¬ y ‖ x :=
 not_fuzzy_of_le h.2
 
-theorem fuzzy_congr {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ∥ y₁ ↔ x₂ ∥ y₂ :=
+theorem fuzzy_congr {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ‖ y₁ ↔ x₂ ‖ y₂ :=
 show _ ∧ _ ↔ _ ∧ _, by rw [lf_congr hx hy, lf_congr hy hx]
-theorem fuzzy_congr_imp {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ∥ y₁ → x₂ ∥ y₂ :=
+theorem fuzzy_congr_imp {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ‖ y₁ → x₂ ‖ y₂ :=
 (fuzzy_congr hx hy).1
-theorem fuzzy_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ∥ y ↔ x₂ ∥ y :=
+theorem fuzzy_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ‖ y ↔ x₂ ‖ y :=
 fuzzy_congr hx equiv_rfl
-theorem fuzzy_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ∥ y₁ ↔ x ∥ y₂ :=
+theorem fuzzy_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ‖ y₁ ↔ x ‖ y₂ :=
 fuzzy_congr equiv_rfl hy
 
-@[trans] theorem fuzzy_of_fuzzy_of_equiv {x y z} (h₁ : x ∥ y) (h₂ : y ≈ z) : x ∥ z :=
+@[trans] theorem fuzzy_of_fuzzy_of_equiv {x y z} (h₁ : x ‖ y) (h₂ : y ≈ z) : x ‖ z :=
 (fuzzy_congr_right h₂).1 h₁
-@[trans] theorem fuzzy_of_equiv_of_fuzzy {x y z} (h₁ : x ≈ y) (h₂ : y ∥ z) : x ∥ z :=
+@[trans] theorem fuzzy_of_equiv_of_fuzzy {x y z} (h₁ : x ≈ y) (h₂ : y ‖ z) : x ‖ z :=
 (fuzzy_congr_left h₁).2 h₂
 
 /-- Exactly one of the following is true (although we don't prove this here). -/
-theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ∥ y :=
+theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ‖ y :=
 begin
   cases le_or_gf x y with h₁ h₁;
   cases le_or_gf y x with h₂ h₂,
@@ -844,7 +828,7 @@ theorem is_option_neg {x y : pgame} : is_option x (-y) ↔ is_option (-x) y :=
 begin
   rw [is_option_iff, is_option_iff, or_comm],
   cases y, apply or_congr;
-  { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
+  { apply exists_congr, intro, rw neg_eq_iff_eq_neg, refl },
 end
 
 @[simp] theorem is_option_neg_neg {x y : pgame} : is_option (-x) (-y) ↔ is_option x y :=
@@ -928,7 +912,7 @@ by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
 @[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
 by rw [equiv, equiv, neg_le_neg_iff, neg_le_neg_iff, and.comm]
 
-@[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
+@[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ‖ -y ↔ x ‖ y :=
 by rw [fuzzy, fuzzy, neg_lf_neg_iff, neg_lf_neg_iff, and.comm]
 
 theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
@@ -943,7 +927,7 @@ by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
 theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ x ≈ -y :=
 by rw [←neg_neg y, neg_equiv_neg_iff, neg_neg]
 
-theorem neg_fuzzy_iff {x y : pgame} : -x ∥ y ↔ x ∥ -y :=
+theorem neg_fuzzy_iff {x y : pgame} : -x ‖ y ↔ x ‖ -y :=
 by rw [←neg_neg y, neg_fuzzy_neg_iff, neg_neg]
 
 theorem le_neg_iff {x y : pgame} : y ≤ -x ↔ x ≤ -y :=
@@ -976,13 +960,13 @@ by rw [lt_neg_iff, neg_zero]
 @[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
 by rw [neg_equiv_iff, neg_zero]
 
-@[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
+@[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ‖ 0 ↔ x ‖ 0 :=
 by rw [neg_fuzzy_iff, neg_zero]
 
 @[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
 by rw [←neg_equiv_iff, neg_zero]
 
-@[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
+@[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ‖ -x ↔ 0 ‖ x :=
 by rw [←neg_fuzzy_iff, neg_zero]
 
 /-! ### Addition and subtraction -/
@@ -1355,18 +1339,18 @@ def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 instance unique_star_left_moves : unique star.left_moves := punit.unique
 instance unique_star_right_moves : unique star.right_moves := punit.unique
 
-theorem star_fuzzy_zero : star ∥ 0 :=
+theorem star_fuzzy_zero : star ‖ 0 :=
 ⟨by { rw lf_zero, use default, rintros ⟨⟩ }, by { rw zero_lf, use default, rintros ⟨⟩ }⟩
 
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
 
-@[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
+@[simp] protected theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
-instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
+instance : zero_le_one_class pgame := ⟨pgame.zero_lt_one.le⟩
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
-zero_lt_one.lf
+pgame.zero_lt_one.lf
 
 end pgame

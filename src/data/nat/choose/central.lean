@@ -5,10 +5,13 @@ Authors: Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.basic
-import data.nat.choose.sum
+import tactic.linarith
 
 /-!
 # Central binomial coefficients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves properties of the central binomial coefficients (that is, `nat.choose (2 * n) n`).
 

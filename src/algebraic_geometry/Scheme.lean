@@ -212,7 +212,7 @@ RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
 
 @[simp]
 lemma basic_open_res (i : op U ⟶ op V) :
-  X.basic_open (X.presheaf.map i f) = V ∩ X.basic_open f :=
+  X.basic_open (X.presheaf.map i f) = V ⊓ X.basic_open f :=
 RingedSpace.basic_open_res _ i f
 
 -- This should fire before `basic_open_res`.
@@ -221,8 +221,9 @@ lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
   X.basic_open (X.presheaf.map i f) = X.basic_open f :=
 RingedSpace.basic_open_res_eq _ i f
 
-lemma basic_open_subset : X.basic_open f ⊆ U :=
-RingedSpace.basic_open_subset _ _
+@[sheaf_restrict]
+lemma basic_open_le : X.basic_open f ≤ U :=
+RingedSpace.basic_open_le _ _
 
 @[simp]
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
@@ -232,7 +233,7 @@ lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
 LocallyRingedSpace.preimage_basic_open f r
 
 @[simp]
-lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ⊥ :=
 LocallyRingedSpace.basic_open_zero _ U
 
 @[simp]

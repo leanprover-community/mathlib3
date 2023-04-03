@@ -94,7 +94,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { exact sup_eq_left.mp rfl },
+  { exact sup_eq_right.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -313,7 +313,7 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction H,
   simp at H,
-  interval_cases q (p'+2); clear H,
+  interval_cases q (p'+2), clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [mersenne] at h',
@@ -386,7 +386,7 @@ theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
-  { norm_num, },
+  { exact nat.prime_two, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
     replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :

@@ -50,7 +50,7 @@ end from_Bhavik
 
 lemma mem_zmod_2 (a : zmod 2) : a = 0 ∨ a = 1 :=
 begin
-  rcases a with ⟨_ | _ | _ | _ | a_val, _ | ⟨_, _ | ⟨_, ⟨⟩⟩⟩⟩,
+  rcases a with ⟨_|_, _|_|_|_⟩,
   { exact or.inl rfl },
   { exact or.inr rfl },
 end
@@ -140,7 +140,8 @@ instance socsN2 : strict_ordered_comm_semiring (ℕ × zmod 2) :=
   mul_lt_mul_of_pos_right := mul_lt_mul_of_pos_right,
   ..Nxzmod_2.csrN2_1,
   ..(infer_instance : partial_order (ℕ × zmod 2)),
-  ..(infer_instance : comm_semiring (ℕ × zmod 2)) }
+  ..(infer_instance : comm_semiring (ℕ × zmod 2)),
+  ..pullback_nonzero prod.fst prod.fst_zero prod.fst_one }
 
 end Nxzmod_2
 

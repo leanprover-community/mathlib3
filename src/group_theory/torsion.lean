@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Berman
 -/
 
-import algebra.is_prime_pow
 import group_theory.exponent
 import group_theory.order_of_element
 import group_theory.p_group
@@ -219,15 +218,12 @@ by simpa [primary_component] using g.property
 @[to_additive "The `p`- and `q`-primary components are disjoint for `p ≠ q`."]
 lemma primary_component.disjoint {p' : ℕ} [hp' : fact p'.prime] (hne : p ≠ p') :
   disjoint (comm_monoid.primary_component G p) (comm_monoid.primary_component G p') :=
-submonoid.disjoint_def.mpr $ λ g hgp hgp',
+submonoid.disjoint_def.mpr $
 begin
-  obtain ⟨n, hn⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp⟩,
-  obtain ⟨n', hn'⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp'⟩,
-  have := mt (eq_of_prime_pow_eq (nat.prime_iff.mp hp.out) (nat.prime_iff.mp hp'.out)),
-  simp only [not_forall, exists_prop, not_lt, le_zero_iff, and_imp] at this,
-  rw [←order_of_submonoid, set_like.coe_mk] at hn hn',
-  have hnzero := this (hn.symm.trans hn') hne,
-  rwa [hnzero, pow_zero, order_of_eq_one_iff] at hn,
+  rintro g ⟨(_|n), hn⟩ ⟨n', hn'⟩,
+  { rwa [pow_zero, order_of_eq_one_iff] at hn },
+  { exact absurd (eq_of_prime_pow_eq hp.out.prime hp'.out.prime n.succ_pos
+      (hn.symm.trans hn')) hne }
 end
 
 end comm_monoid
@@ -243,9 +239,15 @@ variable {G}
 lemma torsion_eq_top (tG : is_torsion G) : torsion G = ⊤ := by ext; tauto
 
 /-- A torsion monoid is isomorphic to its torsion submonoid. -/
-@[to_additive "An additive torsion monoid is isomorphic to its torsion submonoid.", simps]
+@[to_additive "An additive torsion monoid is isomorphic to its torsion submonoid."]
 def torsion_mul_equiv (tG : is_torsion G) : torsion G ≃* G :=
- (mul_equiv.submonoid_congr tG.torsion_eq_top).trans submonoid.top_equiv
+(mul_equiv.submonoid_congr tG.torsion_eq_top).trans submonoid.top_equiv
+
+@[to_additive] lemma torsion_mul_equiv_apply (tG : is_torsion G) (a : torsion G) :
+  tG.torsion_mul_equiv a = mul_equiv.submonoid_congr tG.torsion_eq_top a := rfl
+
+@[to_additive] lemma torsion_mul_equiv_symm_apply_coe (tG : is_torsion G) (a : G) :
+  tG.torsion_mul_equiv.symm a = ⟨submonoid.top_equiv.symm a, tG _⟩ := rfl
 
 end monoid.is_torsion
 

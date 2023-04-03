@@ -139,6 +139,12 @@ General algebra:
   Transcendental numbers:
     Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
 
+  Representation theory:
+    representation : 'representation'
+    category of finite dimensional representations : 'fdRep'
+    character : 'fdRep.character'
+    orthogonality of characters : 'fdRep.char_orthonormal'
+
 Linear algebra:
   Fundamentals:
     module: 'module'
@@ -205,7 +211,8 @@ Topology:
     connectedness: 'connected_space'
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'
-    topological fiber bundle: 'is_topological_fiber_bundle'
+    topological fiber bundle: 'fiber_bundle'
+    topological vector bundle: 'vector_bundle'
     Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
     Stone-Weierstrass theorem: 'continuous_map.subalgebra_topological_closure_eq_top_of_separates_points'
   Uniform notions:
@@ -233,8 +240,8 @@ Topology:
   Metric spaces:
     metric space: 'metric_space'
     ball: 'metric.ball'
-    sequential compactness is equivalent to compactness (Bolzano-Weierstrass): 'uniform_space.compact_iff_seq_compact'
-    Heine-Borel theorem (proper metric space version): 'metric.compact_iff_closed_bounded'
+    sequential compactness is equivalent to compactness (Bolzano-Weierstrass): 'uniform_space.is_compact_iff_is_seq_compact'
+    Heine-Borel theorem (proper metric space version): 'metric.is_compact_iff_is_closed_bounded'
     Lipschitz continuity: 'lipschitz_with'
     Hölder continuity: 'holder_with'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
@@ -330,7 +337,7 @@ Analysis:
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
     convolution: 'convolution'
-    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    approximation by convolution: 'cont_diff_bump.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
     change of variables formula: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
     divergence theorem: 'measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable'
@@ -339,6 +346,8 @@ Analysis:
     Cauchy integral formula: 'diff_cont_on_cl.circle_integral_sub_inv_smul'
     Liouville theorem: 'differentiable.apply_eq_apply_of_bounded'
     maximum modulus principle: 'complex.eventually_eq_of_is_local_max_norm'
+    principle of isolated zeros: 'analytic_at.eventually_eq_zero_or_eventually_ne_zero'
+    principle of analytic continuation: 'analytic_on.eq_on_of_preconnected_of_frequently_eq'
     analyticity of holomorphic functions: 'differentiable_on.analytic_at'
     Schwarz lemma: 'complex.abs_le_abs_of_maps_to_ball_self'
     removable singularity: 'complex.differentiable_on_update_lim_insert_of_is_o'
@@ -360,6 +369,7 @@ Probability Theory:
     probability density function: 'measure_theory.has_pdf'
     variance of a real-valued random variable: 'probability_theory.variance'
     independence of random variables: 'probability_theory.Indep_fun'
+    Kolmogorov's $0$-$1$ law: 'probability_theory.measure_zero_or_one_of_measurable_set_limsup_at_top'
     mean of product of independent random variables: 'probability_theory.indep_fun.integral_mul_of_integrable'
     moment of a random variable: 'probability_theory.moment'
     Bernoulli law: 'pmf.bernoulli'
@@ -383,7 +393,7 @@ Geometry:
     affine function: 'affine_map'
     affine subspace: 'affine_subspace'
     barycenter: 'finset.affine_combination'
-    affine span: 'span_points'
+    affine span: 'affine_span'
     Euclidean affine space: 'normed_add_torsor'
     angle: ' inner_product_geometry.angle'
 
@@ -435,8 +445,8 @@ Data structures:
     difference list: 'dlist'
     lazy list: 'lazy_list'
     stream: 'stream'
-    sequence: 'seq'
-    weak sequence: 'wseq'
+    sequence: 'stream.seq'
+    weak sequence: 'stream.wseq'
 
   Sets:
     set: 'set'

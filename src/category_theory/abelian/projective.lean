@@ -3,8 +3,11 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison, Jakob von Raumer
 -/
-import category_theory.abelian.exact
+import algebra.homology.quasi_iso
+import category_theory.abelian.homology
 import category_theory.preadditive.projective_resolution
+import category_theory.preadditive.yoneda.limits
+import category_theory.preadditive.yoneda.projective
 
 /-!
 # Abelian categories with enough projectives have projective resolutions
@@ -20,7 +23,7 @@ open category_theory
 open category_theory.limits
 open opposite
 
-universes v u
+universes v u v' u'
 
 namespace category_theory
 
@@ -93,5 +96,22 @@ instance : has_projective_resolutions C :=
 { out := λ Z, by apply_instance }
 
 end ProjectiveResolution
-
 end category_theory
+namespace homological_complex.hom
+
+variables {C : Type u} [category.{v} C] [abelian C]
+
+/-- If `X` is a chain complex of projective objects and we have a quasi-isomorphism `f : X ⟶ Y[0]`,
+then `X` is a projective resolution of `Y.` -/
+def to_single₀_ProjectiveResolution {X : chain_complex C ℕ} {Y : C}
+  (f : X ⟶ (chain_complex.single₀ C).obj Y) [quasi_iso f]
+  (H : ∀ n, projective (X.X n)) :
+  ProjectiveResolution Y :=
+{ complex := X,
+  π := f,
+  projective := H,
+  exact₀ := f.to_single₀_exact_d_f_at_zero,
+  exact := f.to_single₀_exact_at_succ,
+  epi := f.to_single₀_epi_at_zero }
+
+end homological_complex.hom

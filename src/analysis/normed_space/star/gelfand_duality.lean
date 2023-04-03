@@ -93,14 +93,24 @@ begin
     (haM (mem_span_singleton.mpr ⟨1, (mul_one a).symm⟩))⟩,
 end
 
+lemma weak_dual.character_space.mem_spectrum_iff_exists {a : A} {z : ℂ} :
+  z ∈ spectrum ℂ a ↔ ∃ f : character_space ℂ A, f a = z :=
+begin
+  refine ⟨λ hz, _, _⟩,
+  { obtain ⟨f, hf⟩ := weak_dual.character_space.exists_apply_eq_zero hz,
+    simp only [map_sub, sub_eq_zero, alg_hom_class.commutes, algebra.id.map_eq_id,
+      ring_hom.id_apply] at hf,
+    exact (continuous_map.spectrum_eq_range (gelfand_transform ℂ A a)).symm ▸ ⟨f, hf.symm⟩ },
+  { rintro ⟨f, rfl⟩,
+    exact alg_hom.apply_mem_spectrum f a, }
+end
+
 /-- The Gelfand transform is spectrum-preserving. -/
 lemma spectrum.gelfand_transform_eq (a : A) : spectrum ℂ (gelfand_transform ℂ A a) = spectrum ℂ a :=
 begin
-  refine set.subset.antisymm (alg_hom.spectrum_apply_subset (gelfand_transform ℂ A) a) (λ z hz, _),
-  obtain ⟨f, hf⟩ := weak_dual.character_space.exists_apply_eq_zero hz,
-  simp only [map_sub, sub_eq_zero, alg_hom_class.commutes, algebra.id.map_eq_id, ring_hom.id_apply]
-    at hf,
-  exact (continuous_map.spectrum_eq_range (gelfand_transform ℂ A a)).symm ▸ ⟨f, hf.symm⟩,
+  ext z,
+  rw [continuous_map.spectrum_eq_range, weak_dual.character_space.mem_spectrum_iff_exists],
+  exact iff.rfl,
 end
 
 instance [nontrivial A] : nonempty (character_space ℂ A) :=
@@ -110,24 +120,28 @@ end complex_banach_algebra
 
 section complex_cstar_algebra
 
-variables (A : Type*) [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
+variables {A : Type*} [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
 variables [star_ring A] [cstar_ring A] [star_module ℂ A]
+
+lemma gelfand_transform_map_star (a : A) :
+  gelfand_transform ℂ A (star a) = star (gelfand_transform ℂ A a) :=
+continuous_map.ext $ λ φ, map_star φ a
+
+variable (A)
 
 /-- The Gelfand transform is an isometry when the algebra is a C⋆-algebra over `ℂ`. -/
 lemma gelfand_transform_isometry : isometry (gelfand_transform ℂ A) :=
 begin
   nontriviality A,
   refine add_monoid_hom_class.isometry_of_norm (gelfand_transform ℂ A) (λ a, _),
-  have gt_map_star : gelfand_transform ℂ A (star a) = star (gelfand_transform ℂ A a),
-    from continuous_map.ext (λ φ, map_star φ a),
   /- By `spectrum.gelfand_transform_eq`, the spectra of `star a * a` and its
   `gelfand_transform` coincide. Therefore, so do their spectral radii, and since they are
   self-adjoint, so also do their norms. Applying the C⋆-property of the norm and taking square
   roots shows that the norm is preserved. -/
   have : spectral_radius ℂ (gelfand_transform ℂ A (star a * a)) = spectral_radius ℂ (star a * a),
   { unfold spectral_radius, rw spectrum.gelfand_transform_eq, },
-  simp only [map_mul, gt_map_star, (is_self_adjoint.star_mul_self _).spectral_radius_eq_nnnorm,
-    ennreal.coe_eq_coe, cstar_ring.nnnorm_star_mul_self, ←sq] at this,
+  simp only [map_mul, (is_self_adjoint.star_mul_self _).spectral_radius_eq_nnnorm,
+    gelfand_transform_map_star a, ennreal.coe_eq_coe, cstar_ring.nnnorm_star_mul_self, ←sq] at this,
   simpa only [function.comp_app, nnreal.sqrt_sq]
     using congr_arg ((coe : ℝ≥0 → ℝ) ∘ ⇑nnreal.sqrt) this,
 end
@@ -144,7 +158,7 @@ begin
   have h : (gelfand_transform ℂ A).range.topological_closure = (gelfand_transform ℂ A).range,
   from le_antisymm (subalgebra.topological_closure_minimal _ le_rfl
     (gelfand_transform_isometry A).closed_embedding.closed_range)
-    (subalgebra.subalgebra_topological_closure _),
+    (subalgebra.le_topological_closure _),
   refine h ▸ continuous_map.subalgebra_is_R_or_C_topological_closure_eq_top_of_separates_points
     _ (λ _ _, _) (λ f hf, _),
   /- Separating points just means that elements of the `character_space` which agree at all points
@@ -157,13 +171,17 @@ begin
   `weak_dual.star_hom_class`, which is a nontrivial result. -/
   { obtain ⟨f, ⟨a, rfl⟩, rfl⟩ := subalgebra.mem_map.mp hf,
     refine ⟨star a, continuous_map.ext $ λ ψ, _⟩,
-    simpa only [gelfand_transform_apply_apply, map_star, ring_hom.coe_monoid_hom,
-      alg_equiv.coe_alg_hom, ring_hom.to_monoid_hom_eq_coe, alg_equiv.to_alg_hom_eq_coe,
-      ring_hom.to_fun_eq_coe, continuous_map.coe_mk, is_R_or_C.conj_ae_coe,
-      alg_hom.coe_to_ring_hom, monoid_hom.to_fun_eq_coe, ring_hom.comp_left_continuous_apply,
-      monoid_hom.comp_left_continuous_apply, continuous_map.comp_apply,
-      alg_hom.to_ring_hom_eq_coe, alg_hom.comp_left_continuous_apply] },
+    simpa only [gelfand_transform_map_star a, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] }
 end
+
+/-- The Gelfand transform as a `star_alg_equiv` between a commutative unital C⋆-algebra over `ℂ`
+and the continuous functions on its `character_space`. -/
+@[simps]
+noncomputable def gelfand_star_transform : A ≃⋆ₐ[ℂ] C(character_space ℂ A, ℂ) :=
+star_alg_equiv.of_bijective
+  (show A →⋆ₐ[ℂ] C(character_space ℂ A, ℂ),
+    from { map_star' := λ x, gelfand_transform_map_star x, .. gelfand_transform ℂ A })
+  (gelfand_transform_bijective A)
 
 end complex_cstar_algebra
 

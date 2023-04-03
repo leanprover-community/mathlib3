@@ -3,10 +3,14 @@ Copyright (c) 2021 Chris Hughes, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Junyan Xu
 -/
+import data.finsupp.fintype
 import data.mv_polynomial.equiv
 import set_theory.cardinal.ordinal
 /-!
 # Cardinality of Multivariate Polynomial Ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The main result in this file is `mv_polynomial.cardinal_mk_le_max`, which says that
 the cardinality of `mv_polynomial σ R` is bounded above by the maximum of `#R`, `#σ`
@@ -25,11 +29,8 @@ variables {σ : Type u} {R : Type v} [comm_semiring R]
 
 @[simp] lemma cardinal_mk_eq_max_lift [nonempty σ] [nontrivial R] :
   #(mv_polynomial σ R) = max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
-begin
-  haveI : infinite (σ →₀ ℕ) := infinite_iff.2 ((le_max_right _ _).trans (mk_finsupp_nat σ).ge),
-  refine (mk_finsupp_lift_of_infinite _ R).trans _,
-  rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm],
-end
+(mk_finsupp_lift_of_infinite _ R).trans $
+by rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm]
 
 @[simp] lemma cardinal_mk_eq_lift [is_empty σ] : #(mv_polynomial σ R) = cardinal.lift.{u} (#R) :=
 ((is_empty_ring_equiv R σ).to_equiv.trans equiv.ulift.{u}.symm).cardinal_eq

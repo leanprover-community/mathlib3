@@ -76,7 +76,7 @@ lemma not_mem_iff (p : T.complete_type α) (φ : L[[α]].sentence) :
   φ.not ∈ p ↔ ¬ φ ∈ p :=
 ⟨λ hf ht, begin
   have h : ¬ is_satisfiable ({φ, φ.not} : L[[α]].Theory),
-  { rintros ⟨⟨_, _, h, _⟩⟩,
+  { rintro ⟨@⟨_, _, h, _⟩⟩,
     simp only [model_iff, mem_insert_iff, mem_singleton_iff, forall_eq_or_imp,
       forall_eq] at h,
     exact h.2 h.1 },
@@ -126,7 +126,7 @@ lemma nonempty_iff : nonempty (T.complete_type α) ↔
   T.is_satisfiable :=
 begin
   rw ← is_satisfiable_on_Theory_iff (Lhom_with_constants_injective L α),
-  rw [nonempty_iff_univ_nonempty, ← ne_empty_iff_nonempty, ne.def, not_iff_comm,
+  rw [nonempty_iff_univ_nonempty, nonempty_iff_ne_empty, ne.def, not_iff_comm,
     ← union_empty ((L.Lhom_with_constants α).on_Theory T), ← set_of_subset_eq_empty_iff],
   simp,
 end

@@ -3,6 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import probability.process.hitting_time
 import probability.martingale.basic
 
 /-!
@@ -52,7 +53,7 @@ We mostly follow the proof from [Kallenberg, *Foundations of modern probability*
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 
@@ -418,8 +419,7 @@ lemma submartingale.sum_sub_upcrossing_strat_mul [is_finite_measure μ] (hf : su
 begin
   refine hf.sum_mul_sub (λ n, (adapted_const ℱ 1 n).sub (hf.adapted.upcrossing_strat_adapted n))
     (_ : ∀ n ω, (1 - upcrossing_strat a b f N n) ω ≤ 1) _,
-  { refine λ n ω, sub_le.1 _,
-    simp [upcrossing_strat_nonneg] },
+  { exact λ n ω, sub_le_self _ upcrossing_strat_nonneg },
   { intros n ω,
     simp [upcrossing_strat_le_one] }
 end
@@ -841,7 +841,7 @@ lemma adapted.integrable_upcrossings_before [is_finite_measure μ]
   (hf : adapted ℱ f) (hab : a < b) :
   integrable (λ ω, (upcrossings_before a b f N ω : ℝ)) μ :=
 begin
-  have : ∀ᵐ ω ∂μ, ∥(upcrossings_before a b f N ω : ℝ)∥ ≤ N,
+  have : ∀ᵐ ω ∂μ, ‖(upcrossings_before a b f N ω : ℝ)‖ ≤ N,
   { refine eventually_of_forall (λ ω, _),
     rw [real.norm_eq_abs, nat.abs_cast, nat.cast_le],
     refine upcrossings_before_le _ _ hab },
@@ -873,10 +873,10 @@ begin
   simp_rw [this, upcrossings, supr_le_iff],
   split; rintro ⟨k, hk⟩,
   { obtain ⟨m, hm⟩ := exists_nat_ge k,
-    refine ⟨m, λ N, ennreal.coe_nat_le_coe_nat.1 ((hk N).trans _)⟩,
+    refine ⟨m, λ N, nat.cast_le.1 ((hk N).trans _)⟩,
     rwa [← ennreal.coe_nat, ennreal.coe_le_coe] },
   { refine ⟨k, λ N, _⟩,
-    simp only [ennreal.coe_nat, ennreal.coe_nat_le_coe_nat, hk N] }
+    simp only [ennreal.coe_nat, nat.cast_le, hk N] }
 end
 
 /-- A variant of Doob's upcrossing estimate obtained by taking the supremum on both sides. -/
@@ -905,7 +905,7 @@ begin
     { exact λ n, measurable_from_top.comp_ae_measurable
         (hf.adapted.measurable_upcrossings_before  hab).ae_measurable },
     { refine eventually_of_forall (λ ω N M hNM, _),
-      rw ennreal.coe_nat_le_coe_nat,
+      rw nat.cast_le,
       exact upcrossings_before_mono hab hNM ω } },
   { rw [not_lt, ← sub_nonpos] at hab,
     rw [ennreal.of_real_of_nonpos hab, zero_mul],

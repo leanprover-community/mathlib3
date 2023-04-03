@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import algebra.module.big_operators
 import linear_algebra.dfinsupp
+import linear_algebra.free_module.basic
 import linear_algebra.invariant_basis_number
 import linear_algebra.isomorphisms
 import linear_algebra.std_basis
@@ -1354,3 +1355,28 @@ end
 end division_ring
 
 end module
+
+section field
+variables [field K] [add_comm_group V] [module K V]
+
+lemma finsupp.dim_eq {ι : Type v} : module.rank K (ι →₀ V) = #ι * module.rank K V :=
+begin
+  let bs := basis.of_vector_space K V,
+  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
+    cardinal.mk_sigma, cardinal.sum_const']
+end
+
+-- TODO: merge with the `finrank` content
+/-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
+def fin_dim_vectorspace_equiv (n : ℕ)
+  (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
+begin
+  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
+    by simp,
+  have hn := cardinal.lift_inj.{v u}.2 hn,
+  rw this at hn,
+  rw ←@dim_fin_fun K _ n at hn,
+  exact classical.choice (nonempty_linear_equiv_of_lift_dim_eq hn),
+end
+
+end field

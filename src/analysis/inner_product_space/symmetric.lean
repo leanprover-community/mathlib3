@@ -154,8 +154,8 @@ end complex
 
 section
 
-/-- polarization identity for symmetric linear maps,
-also see `inner_map_polarization` for the complex version without the symmetric assumption -/
+/-- Polarization identity for symmetric linear maps.
+See `inner_map_polarization` for the complex version without the symmetric assumption. -/
 lemma is_symmetric.inner_map_polarization
   {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) (x y : E) :
   ⟪x, T y⟫ = (⟪x + y, T (x + y)⟫ - ⟪x - y, T (x - y)⟫ -

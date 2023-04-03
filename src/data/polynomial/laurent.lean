@@ -35,7 +35,7 @@ This choice differs from the current irreducible design of `polynomial`, that in
 the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
 
 As a consequence, `laurent_polynomial` plays well with polynomials, but there is a little roughness
-in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+in establishing the API, since the `finsupp` implementation of `R[X]` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
@@ -172,19 +172,17 @@ show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
 by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
-lemma _root_.polynomial.to_laurent_C (r : R) :
-  (polynomial.C r).to_laurent = C r :=
+lemma _root_.polynomial.to_laurent_C (r : R) : (polynomial.C r).to_laurent = C r :=
 begin
   convert polynomial.to_laurent_C_mul_T 0 r,
   simp only [int.coe_nat_zero, T_zero, mul_one],
 end
 
 @[simp]
-lemma _root_.polynomial.to_laurent_X :
-  (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
+lemma _root_.polynomial.to_laurent_X : (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
 begin
   have : (polynomial.X : R[X]) = monomial 1 1,
-  { simp [monomial_eq_C_mul_X] },
+  { simp [← C_mul_X_pow_eq_monomial] },
   simp [this, polynomial.to_laurent_C_mul_T],
 end
 
@@ -192,13 +190,12 @@ end
 map_one polynomial.to_laurent
 
 @[simp]
-lemma _root_.polynomial.to_laurent_C_mul_eq (r : R) (f : R[X]):
+lemma _root_.polynomial.to_laurent_C_mul_eq (r : R) (f : R[X]) :
   (polynomial.C r * f).to_laurent = C r * f.to_laurent :=
 by simp only [_root_.map_mul, polynomial.to_laurent_C]
 
 @[simp]
-lemma _root_.polynomial.to_laurent_X_pow (n : ℕ) :
-  (X ^ n : R[X]).to_laurent = T n :=
+lemma _root_.polynomial.to_laurent_X_pow (n : ℕ) : (X ^ n : R[X]).to_laurent = T n :=
 by simp only [map_pow, polynomial.to_laurent_X, T_pow, mul_one]
 
 @[simp]
@@ -314,6 +311,10 @@ left_inverse_trunc_to_laurent.injective
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 
+lemma _root_.polynomial.to_laurent_ne_zero {f : R[X]} :
+  f ≠ 0 ↔ f.to_laurent ≠ 0 :=
+(map_ne_zero_iff _ (by exact polynomial.to_laurent_injective)).symm
+
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
@@ -351,10 +352,118 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
 begin
   induction f using laurent_polynomial.induction_on_mul_T with f n,
   induction n with n hn,
-  { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
+  { simpa only [int.coe_nat_zero, neg_zero, T_zero, mul_one] using Qf _ },
   { convert QT _ _,
     simpa using hn }
 end
+
+section support
+
+lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
+by simpa only [← single_eq_C_mul_T] using support_single_subset
+
+lemma support_C_mul_T_of_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
+begin
+  rw ← single_eq_C_mul_T,
+  exact support_single_ne_zero _ a0,
+end
+
+/--  The support of a polynomial `f` is a finset in `ℕ`.  The lemma `to_laurent_support f`
+shows that the support of `f.to_laurent` is the same finset, but viewed in `ℤ` under the natural
+inclusion `ℕ ↪ ℤ`. -/
+lemma to_laurent_support (f : R[X]) :
+  f.to_laurent.support = f.support.map nat.cast_embedding :=
+begin
+  generalize' hd : f.support = s,
+  revert f,
+  refine finset.induction_on s _ _; clear s,
+  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, eq_self_iff_true,
+      implies_true_iff, finset.map_empty] {contextual := tt} },
+  { intros a s as hf f fs,
+    have : (erase a f).to_laurent.support = s.map nat.cast_embedding := hf (f.erase a) (by simp only
+      [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
+    rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
+      polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
+    { congr,
+      exact support_C_mul_T_of_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
+    { rw this,
+      exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
+end
+
+end support
+
+section degrees
+
+/--  The degree of a Laurent polynomial takes values in `with_bot ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of its support of `f`,
+or `⊥`, if `f = 0`. -/
+def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
+
+@[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
+
+@[simp] lemma degree_eq_bot_iff {f : R[T;T⁻¹]} : f.degree = ⊥ ↔ f = 0 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h, degree_zero]⟩,
+  rw [degree, finset.max_eq_sup_with_bot] at h,
+  ext n,
+  refine not_not.mp (λ f0, _),
+  simp_rw [finset.sup_eq_bot_iff, finsupp.mem_support_iff, ne.def, with_bot.coe_ne_bot] at h,
+  exact h n f0,
+end
+
+section exact_degrees
+
+open_locale classical
+
+@[simp] lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
+begin
+  rw degree,
+  convert finset.max_singleton,
+  refine support_eq_singleton.mpr _,
+  simp only [← single_eq_C_mul_T, single_eq_same, a0, ne.def, not_false_iff, eq_self_iff_true,
+    and_self],
+end
+
+lemma degree_C_mul_T_ite (n : ℤ) (a : R) : (C a * T n).degree = ite (a = 0) ⊥ n :=
+by split_ifs with h h;
+  simp only [h, map_zero, zero_mul, degree_zero, degree_C_mul_T, ne.def, not_false_iff]
+
+@[simp] lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
+begin
+  rw [← one_mul (T n), ← map_one C],
+  exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),
+end
+
+lemma degree_C {a : R} (a0 : a ≠ 0) : (C a).degree = 0 :=
+begin
+  rw [← mul_one (C a), ← T_zero],
+  exact degree_C_mul_T 0 a a0
+end
+
+lemma degree_C_ite (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+by split_ifs with h h;
+  simp only [h, map_zero, degree_zero, degree_C, ne.def, not_false_iff]
+
+end exact_degrees
+
+section degree_bounds
+
+lemma degree_C_mul_T_le (n : ℤ) (a : R) : (C a * T n).degree ≤ n :=
+begin
+  by_cases a0 : a = 0,
+  { simp only [a0, map_zero, zero_mul, degree_zero, bot_le] },
+  { exact (degree_C_mul_T n a a0).le }
+end
+
+lemma degree_T_le (n : ℤ) : (T n : R[T;T⁻¹]).degree ≤ n :=
+(le_of_eq (by rw [map_one, one_mul])).trans (degree_C_mul_T_le n (1 : R))
+
+lemma degree_C_le (a : R) : (C a).degree ≤ 0 :=
+(le_of_eq (by rw [T_zero, mul_one])).trans (degree_C_mul_T_le 0 a)
+
+end degree_bounds
+
+end degrees
 
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent
@@ -399,7 +508,7 @@ lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T
       exact ⟨1, rfl⟩ },
     { rintro ⟨⟨h, hX⟩, h⟩,
       rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
-      exact mul_X_pow_injective n (by simpa only [X_pow_mul] using h) }
+      exact mul_X_pow_injective n h }
   end }
 
 end comm_semiring

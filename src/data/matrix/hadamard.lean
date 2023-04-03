@@ -37,11 +37,14 @@ open_locale matrix big_operators
 
 /-- `matrix.hadamard` defines the Hadamard product,
     which is the pointwise product of two matrices of the same size.-/
-@[simp]
-def hadamard [has_mul α] (A : matrix m n α) (B : matrix m n α) : matrix m n α
-| i j := A i j * B i j
+def hadamard [has_mul α] (A : matrix m n α) (B : matrix m n α) : matrix m n α :=
+of $ λ i j, A i j * B i j
 
-localized "infix ` ⊙ `:100 := matrix.hadamard" in matrix
+-- TODO: set as an equation lemma for `hadamard`, see mathlib4#3024
+@[simp]
+lemma hadamard_apply [has_mul α] (A : matrix m n α) (B : matrix m n α) (i j) :
+  hadamard A B i j = A i j * B i j := rfl
+localized "infix (name := matrix.hadamard) ` ⊙ `:100 := matrix.hadamard" in matrix
 
 section basic_properties
 

@@ -47,8 +47,6 @@ attribute [measurability]
   subsingleton.measurable_set
   measurable_set.Union
   measurable_set.Inter
-  measurable_set.Union_Prop
-  measurable_set.Inter_Prop
   measurable_set.union
   measurable_set.inter
   measurable_set.diff
@@ -59,9 +57,7 @@ attribute [measurability]
   measurable_set.const
   measurable_set.insert
   measurable_set_eq
-  set.finite.measurable_set
   finset.measurable_set
-  set.countable.measurable_set
   measurable_space.measurable_set_top
 
 namespace tactic
@@ -124,11 +120,13 @@ do t ← tactic.target,
   | _ := skip
   end
 
-/-- List of tactics used by `measurability` internally. -/
+/-- List of tactics used by `measurability` internally. The option `use_exfalso := ff` is passed to
+the tactic `apply_assumption` in order to avoid loops in the presence of negated hypotheses in
+the context. -/
 meta def measurability_tactics (md : transparency := semireducible) : list (tactic string) :=
 [
-  propositional_goal >> apply_assumption
-                        >> pure "apply_assumption",
+  propositional_goal >> tactic.interactive.apply_assumption none {use_exfalso := ff}
+                        >> pure "apply_assumption {use_exfalso := ff}",
   goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
   apply_rules [] [``measurability] 50 { md := md }

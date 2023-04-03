@@ -11,6 +11,9 @@ import category_theory.functor.epi_mono
 /-!
 # Over and under categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Over (and under) categories are special cases of comma categories.
 * If `L` is the identity functor and `R` is a constant functor, then `comma L R` is the "slice" or
   "over" category over the object `R` maps to.
@@ -40,6 +43,7 @@ def over (X : T) := costructured_arrow (𝟭 T) X
 instance over.inhabited [inhabited T] : inhabited (over (default : T)) :=
 { default :=
   { left := default,
+    right := default,
     hom := 𝟙 _ } }
 
 namespace over
@@ -143,9 +147,10 @@ instance forget_faithful : faithful (forget X) := {}.
 /--
 If `k.left` is an epimorphism, then `k` is an epimorphism. In other words, `over.forget X` reflects
 epimorphisms.
-The converse does not hold without additional assumptions on the underlying category.
+The converse does not hold without additional assumptions on the underlying category, see
+`category_theory.over.epi_left_of_epi`.
 -/
--- TODO: Show the converse holds if `T` has binary products or pushouts.
+-- TODO: Show the converse holds if `T` has binary products.
 lemma epi_of_epi_left {f g : over X} (k : f ⟶ g) [hk : epi k.left] : epi k :=
 (forget X).epi_of_epi_map hk
 
@@ -221,9 +226,7 @@ variables {D : Type u₂} [category.{v₂} D]
 @[simps]
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
-  map := λ Y₁ Y₂ f,
-  { left := F.map f.left,
-    w' := by tidy; erw [← F.map_comp, w] } }
+  map := λ Y₁ Y₂ f, over.hom_mk (F.map f.left) (by tidy; erw [← F.map_comp, w]) }
 
 end
 
@@ -237,7 +240,8 @@ def under (X : T) := structured_arrow X (𝟭 T)
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default : T)) :=
 { default :=
-  { right := default,
+  { left := default,
+    right := default,
     hom := 𝟙 _ } }
 
 namespace under
@@ -324,6 +328,43 @@ instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
 
 instance forget_faithful : faithful (forget X) := {}.
 
+/--
+If `k.right` is a monomorphism, then `k` is a monomorphism. In other words, `under.forget X`
+reflects epimorphisms.
+The converse does not hold without additional assumptions on the underlying category, see
+`category_theory.under.mono_right_of_mono`.
+-/
+-- TODO: Show the converse holds if `T` has binary coproducts.
+lemma mono_of_mono_right {f g : under X} (k : f ⟶ g) [hk : mono k.right] : mono k :=
+(forget X).mono_of_mono_map hk
+
+/--
+If `k.right` is a epimorphism, then `k` is a epimorphism. In other words, `under.forget X` reflects
+epimorphisms.
+The converse of `category_theory.under.epi_right_of_epi`.
+
+This lemma is not an instance, to avoid loops in type class inference.
+-/
+lemma epi_of_epi_right {f g : under X} (k : f ⟶ g) [hk : epi k.right] : epi k :=
+(forget X).epi_of_epi_map hk
+
+/--
+If `k` is a epimorphism, then `k.right` is a epimorphism. In other words, `under.forget X` preserves
+epimorphisms.
+The converse of `category_theory.under.epi_of_epi_right`.
+-/
+instance epi_right_of_epi {f g : under X} (k : f ⟶ g) [epi k] : epi k.right :=
+begin
+  refine ⟨λ (Y : T) l m a, _⟩,
+  let l' : g ⟶ mk (g.hom ≫ m) := hom_mk l
+    (by { dsimp, rw [←under.w k, category.assoc, a, category.assoc] }),
+  suffices : l' = hom_mk m,
+  { apply congr_arg comma_morphism.right this },
+  rw ← cancel_epi k,
+  ext,
+  apply a,
+end
+
 section
 variables {D : Type u₂} [category.{v₂} D]
 
@@ -331,9 +372,7 @@ variables {D : Type u₂} [category.{v₂} D]
 @[simps]
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
-  map := λ Y₁ Y₂ f,
-  { right := F.map f.right,
-    w' := by tidy; erw [← F.map_comp, w] } }
+  map := λ Y₁ Y₂ f, under.hom_mk (F.map f.right) (by tidy; erw [← F.map_comp, w]), }
 
 end
 

@@ -6,10 +6,12 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import algebra.big_operators.basic
 import ring_theory.valuation.basic
-import data.nat.factorization.basic
 
 /-!
 # Multiplicity of a divisor
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
 several basic results on it.
@@ -30,13 +32,13 @@ open_locale big_operators
 /-- `multiplicity a b` returns the largest natural number `n` such that
   `a ^ n ∣ b`, as an `part_enat` or natural with infinity. If `∀ n, a ^ n ∣ b`,
   then it returns `⊤`-/
-def multiplicity [comm_monoid α] [decidable_rel ((∣) : α → α → Prop)] (a b : α) : part_enat :=
+def multiplicity [monoid α] [decidable_rel ((∣) : α → α → Prop)] (a b : α) : part_enat :=
 part_enat.find $ λ n, ¬a ^ (n + 1) ∣ b
 
 namespace multiplicity
 
-section comm_monoid
-variables [comm_monoid α]
+section monoid
+variables [monoid α]
 
 /-- `multiplicity.finite a b` indicates that the multiplicity of `a` in `b` is finite. -/
 @[reducible] def finite (a b : α) : Prop := ∃ n : ℕ, ¬a ^ (n + 1) ∣ b
@@ -45,6 +47,9 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
   finite a b ↔ (multiplicity a b).dom := iff.rfl
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
+
+lemma not_dvd_one_of_finite_one_right {a : α} : finite a 1 → ¬a ∣ 1 :=
+λ ⟨n, hn⟩ ⟨d, hd⟩, hn ⟨d ^ (n + 1), (pow_mul_pow_eq_one (n + 1) hd.symm).symm⟩
 
 @[norm_cast]
 theorem int.coe_nat_multiplicity (a b : ℕ) :
@@ -62,14 +67,10 @@ lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n 
   by simp [finite, multiplicity, not_not]; tauto⟩
 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
-let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit.pow (n + 1)) $
-λ h, hn (h b)
-
-lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
-λ ⟨n, hn⟩, ⟨n, λ h, hn (h.trans (by simp [mul_pow]))⟩
+let ⟨n, hn⟩ := h in hn ∘ is_unit.dvd ∘ is_unit.pow (n + 1)
 
 lemma finite_of_finite_mul_right {a b c : α} : finite a (b * c) → finite a b :=
-by rw mul_comm; exact finite_of_finite_mul_left
+λ ⟨n, hn⟩, ⟨n, λ h, hn (h.trans (dvd_mul_right _ _))⟩
 
 variable [decidable_rel ((∣) : α → α → Prop)]
 
@@ -134,31 +135,23 @@ by { simp only [not_not],
      exact ⟨λ h n, nat.cases_on n (by { rw pow_zero, exact one_dvd _}) (λ n, h _), λ h n, h _⟩ }
 
 @[simp] lemma is_unit_left {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
-eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
-
-lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
-  multiplicity a b = 0 :=
-eq_coe_iff.2 ⟨show a ^ 0 ∣ b, by simp only [pow_zero, one_dvd],
-  by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb }⟩
+eq_top_iff.2 (λ _, is_unit.dvd (ha.pow _))
 
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := is_unit_left b is_unit_one
-
-lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 := is_unit_right ha is_unit_one
 
 @[simp] lemma get_one_right {a : α} (ha : finite a 1) : get (multiplicity a 1) ha = 0 :=
 begin
   rw [part_enat.get_eq_iff_eq_coe, eq_coe_iff, pow_zero],
-  simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha,
+  simp [not_dvd_one_of_finite_one_right ha],
 end
 
 @[simp] lemma unit_left (a : α) (u : αˣ) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a u.is_unit
 
-lemma unit_right {a : α} (ha : ¬is_unit a) (u : αˣ) : multiplicity a u = 0 :=
-is_unit_right ha u.is_unit
+lemma multiplicity_eq_zero {a b : α} : multiplicity a b = 0 ↔ ¬ a ∣ b :=
+by { rw [← nat.cast_zero, eq_coe_iff], simp }
 
-lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
-by { rw [← nat.cast_zero, eq_coe_iff], simpa }
+lemma multiplicity_ne_zero {a b : α} : multiplicity a b ≠ 0 ↔ a ∣ b := multiplicity_eq_zero.not_left
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 part.eq_none_iff'
@@ -193,14 +186,11 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
       (not_finite_iff_forall.2 this)]⟩
 
-lemma multiplicity_le_multiplicity_of_dvd_left {a b c : α} (hdvd : a ∣ b) :
-  multiplicity b c ≤ multiplicity a c :=
-multiplicity_le_multiplicity_iff.2 $ λ n h, (pow_dvd_pow_of_dvd hdvd n).trans h
-
-lemma eq_of_associated_left {a b c : α} (h : associated a b) :
-  multiplicity b c = multiplicity a c :=
-le_antisymm (multiplicity_le_multiplicity_of_dvd_left h.dvd)
-  (multiplicity_le_multiplicity_of_dvd_left h.symm.dvd)
+lemma multiplicity_eq_multiplicity_iff {a b c d : α} : multiplicity a b = multiplicity c d ↔
+  (∀ n : ℕ, a ^ n ∣ b ↔ c ^ n ∣ d) :=
+⟨λ h n, ⟨multiplicity_le_multiplicity_iff.mp h.le n, multiplicity_le_multiplicity_iff.mp h.ge n⟩,
+ λ h, le_antisymm (multiplicity_le_multiplicity_iff.mpr (λ n, (h n).mp))
+                  (multiplicity_le_multiplicity_iff.mpr (λ n, (h n).mpr))⟩
 
 lemma multiplicity_le_multiplicity_of_dvd_right {a b c : α} (h : b ∣ c) :
   multiplicity a b ≤ multiplicity a c :=
@@ -228,7 +218,7 @@ lemma dvd_iff_multiplicity_pos {a b : α} : (0 : part_enat) < multiplicity a b �
 lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ 0 < b) :=
 begin
   rw [← not_iff_not, not_finite_iff_forall, not_and_distrib, ne.def,
-    not_not, not_lt, nat.le_zero_iff],
+    not_not, not_lt, le_zero_iff],
   exact ⟨λ h, or_iff_not_imp_right.2 (λ hb,
     have ha : a ≠ 0, from λ ha, by simpa [ha] using h 1,
     by_contradiction (λ ha1 : a ≠ 1,
@@ -241,11 +231,44 @@ end
 
 alias dvd_iff_multiplicity_pos ↔ _ _root_.has_dvd.dvd.multiplicity_pos
 
+end monoid
+
+section comm_monoid
+variables [comm_monoid α]
+
+lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
+by rw mul_comm; exact finite_of_finite_mul_right
+
+variable [decidable_rel ((∣) : α → α → Prop)]
+
+lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
+  multiplicity a b = 0 :=
+eq_coe_iff.2 ⟨show a ^ 0 ∣ b, by simp only [pow_zero, one_dvd],
+  by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb }⟩
+
+lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 := is_unit_right ha is_unit_one
+
+lemma unit_right {a : α} (ha : ¬is_unit a) (u : αˣ) : multiplicity a u = 0 :=
+is_unit_right ha u.is_unit
+
+open_locale classical
+
+lemma multiplicity_le_multiplicity_of_dvd_left {a b c : α} (hdvd : a ∣ b) :
+  multiplicity b c ≤ multiplicity a c :=
+multiplicity_le_multiplicity_iff.2 $ λ n h, (pow_dvd_pow_of_dvd hdvd n).trans h
+
+lemma eq_of_associated_left {a b c : α} (h : associated a b) :
+  multiplicity b c = multiplicity a c :=
+le_antisymm (multiplicity_le_multiplicity_of_dvd_left h.dvd)
+  (multiplicity_le_multiplicity_of_dvd_left h.symm.dvd)
+
+alias dvd_iff_multiplicity_pos ↔ _ _root_.has_dvd.dvd.multiplicity_pos
+
 end comm_monoid
 
-section comm_monoid_with_zero
+section monoid_with_zero
 
-variable [comm_monoid_with_zero α]
+variable [monoid_with_zero α]
 
 lemma ne_zero_of_finite {a b : α} (h : finite a b) : b ≠ 0 :=
 let ⟨n, hn⟩ := h in λ hb, by simpa [hb] using hn
@@ -256,10 +279,15 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 part.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
 
 @[simp] lemma multiplicity_zero_eq_zero_of_ne_zero (a : α) (ha : a ≠ 0) : multiplicity 0 a = 0 :=
-begin
-  apply multiplicity.multiplicity_eq_zero_of_not_dvd,
-  rwa zero_dvd_iff,
-end
+multiplicity.multiplicity_eq_zero.2 $ mt zero_dvd_iff.1 ha
+
+end monoid_with_zero
+
+section comm_monoid_with_zero
+
+variable [comm_monoid_with_zero α]
+
+variable [decidable_rel ((∣) : α → α → Prop)]
 
 lemma multiplicity_mk_eq_multiplicity [decidable_rel ((∣) : associates α → associates α → Prop)]
   {a b : α} : multiplicity (associates.mk a) (associates.mk b) = multiplicity a b :=
@@ -275,15 +303,15 @@ begin
   { suffices : ¬ (finite (associates.mk a) (associates.mk b)),
     { rw [finite_iff_dom, part_enat.not_dom_iff_eq_top] at h this,
       rw [h, this] },
-    refine not_finite_iff_forall.mpr (λ n, by {rw [← associates.mk_pow, associates.mk_dvd_mk],
+    refine not_finite_iff_forall.mpr (λ n, by { rw [← associates.mk_pow, associates.mk_dvd_mk],
       exact not_finite_iff_forall.mp h n }) }
 end
 
 end comm_monoid_with_zero
 
-section comm_semiring
+section semiring
 
-variables [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)]
+variables [semiring α] [decidable_rel ((∣) : α → α → Prop)]
 
 lemma min_le_multiplicity_add {p a b : α} :
   min (multiplicity p a) (multiplicity p b) ≤ multiplicity p (a + b) :=
@@ -293,13 +321,11 @@ lemma min_le_multiplicity_add {p a b : α} :
   (λ h, by rw [min_eq_right h, multiplicity_le_multiplicity_iff];
     exact λ n hn, dvd_add (multiplicity_le_multiplicity_iff.1 h n hn) hn)
 
-end comm_semiring
+end semiring
 
-section comm_ring
+section ring
 
-variables [comm_ring α] [decidable_rel ((∣) : α → α → Prop)]
-
-open_locale classical
+variables [ring α] [decidable_rel ((∣) : α → α → Prop)]
 
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
 part.ext' (by simp only [multiplicity, part_enat.find, dvd_neg])
@@ -341,7 +367,7 @@ begin
   { rw [multiplicity_add_of_gt hab, min_eq_right], exact le_of_lt hab},
 end
 
-end comm_ring
+end ring
 
 section cancel_comm_monoid_with_zero
 
@@ -477,7 +503,6 @@ lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=
 multiplicity_pow_self hp.ne_zero hp.not_unit n
 
-
 end cancel_comm_monoid_with_zero
 
 section valuation
@@ -511,23 +536,6 @@ begin
   have := nat.dvd_gcd h (hle _ h),
   rw [coprime.gcd_eq_one hab, nat.dvd_one, pow_one] at this,
   exact hp this
-end
-
-lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  multiplicity p n = n.factorization p :=
-multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
-
-@[to_additive sum_factors_gcd_add_sum_factors_mul]
-lemma prod_factors_gcd_mul_prod_factors_mul {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
-  (m.gcd n).factors.to_finset.prod f * (m * n).factors.to_finset.prod f
-    = m.factors.to_finset.prod f * n.factors.to_finset.prod f :=
-begin
-  rcases eq_or_ne n 0 with rfl | hm0, { simp },
-  rcases eq_or_ne m 0 with rfl | hn0, { simp },
-  rw [←@finset.prod_union_inter _ _ m.factors.to_finset n.factors.to_finset, mul_comm],
-  congr,
-  { apply factors_mul_to_finset; assumption },
-  { simp only [←support_factorization, factorization_gcd hn0 hm0, finsupp.support_inf] },
 end
 
 end nat

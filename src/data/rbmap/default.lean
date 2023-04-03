@@ -3,8 +3,8 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import data.rbtree
 import data.rbmap.basic
+import data.rbtree.main
 
 universes u v
 
@@ -70,7 +70,7 @@ lemma eq_some_of_to_value_eq_some {e : option (α × β)} {v : β} :
   to_value e = some v → ∃ k, e = some (k, v) :=
 begin
   cases e with val; simp [to_value, false_implies_iff],
-  { cases val, simp, intro h, subst v, constructor, refl }
+  { cases val, simp }
 end
 
 lemma eq_none_of_to_value_eq_none {e : option (α × β)} : to_value e = none → e = none :=

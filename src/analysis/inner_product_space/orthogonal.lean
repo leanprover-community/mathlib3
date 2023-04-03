@@ -226,9 +226,6 @@ U ≤ Vᗮ
 
 infix ` ⟂ `:50 := submodule.is_ortho
 
-lemma is_ortho.le {U V : submodule 𝕜 E} (h : U ⟂ V) : U ≤ Vᗮ := h
-lemma is_ortho.ge {U V : submodule 𝕜 E} (h : U ⟂ V) : V ≤ Uᗮ := h.symm
-
 lemma is_ortho_iff_le {U V : submodule 𝕜 E} : U ⟂ V ↔ U ≤ Vᗮ := iff.rfl
 
 @[symm]
@@ -268,9 +265,11 @@ lemma is_ortho_self {U : submodule 𝕜 E} : U ⟂ U ↔ U = ⊥ :=
 @[simp] lemma is_ortho_orthogonal_right (U : submodule 𝕜 E) : U ⟂ Uᗮ :=
 le_orthogonal_orthogonal _
 
-@[simp] lemma is_ortho_orthogonal_right (U : submodule 𝕜 E) : Uᗮ ⟂ U :=
-(self_is_ortho_orthogonal U).symm
+@[simp] lemma is_ortho_orthogonal_left (U : submodule 𝕜 E) : Uᗮ ⟂ U :=
+(is_ortho_orthogonal_right U).symm
 
+lemma is_ortho.le {U V : submodule 𝕜 E} (h : U ⟂ V) : U ≤ Vᗮ := h
+lemma is_ortho.ge {U V : submodule 𝕜 E} (h : U ⟂ V) : V ≤ Uᗮ := h.symm
 @[simp]
 lemma is_ortho_top_right {U : submodule 𝕜 E} : U ⟂ ⊤ ↔ U = ⊥ :=
 ⟨λ h, eq_bot_iff.mpr $ λ x hx, inner_self_eq_zero.mp (h hx _ mem_top),

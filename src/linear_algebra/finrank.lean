@@ -110,7 +110,6 @@ end
 
 end
 
-
 section
 variables [strong_rank_condition K]
 
@@ -128,6 +127,7 @@ lemma finrank_eq_card_finset_basis {ι : Type w} {b : finset ι}
 by rw [finrank_eq_card_basis h, fintype.card_coe]
 
 variable (K)
+
 /-- A ring satisfying `strong_rank_condition` (such as a `division_ring`) is one-dimensional as a
 module over itself. -/
 @[simp] lemma finrank_self : finrank K K = 1 :=

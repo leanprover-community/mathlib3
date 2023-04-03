@@ -227,6 +227,7 @@ U ≤ Vᗮ
 infix ` ⟂ `:50 := submodule.is_ortho
 
 lemma is_ortho.le {U V : submodule 𝕜 E} (h : U ⟂ V) : U ≤ Vᗮ := h
+lemma is_ortho.ge {U V : submodule 𝕜 E} (h : U ⟂ V) : V ≤ Uᗮ := h.symm
 
 lemma is_ortho_iff_le {U V : submodule 𝕜 E} : U ⟂ V ↔ U ≤ Vᗮ := iff.rfl
 
@@ -264,10 +265,10 @@ lemma is_ortho.mono {U₁ V₁ U₂ V₂ : submodule 𝕜 E} (hU : U₂ ≤ U₁
 lemma is_ortho_self {U : submodule 𝕜 E} : U ⟂ U ↔ U = ⊥ :=
 ⟨λ h, eq_bot_iff.mpr $ λ x hx, inner_self_eq_zero.mp (h hx x hx), λ h, h.symm ▸ is_ortho_bot_left⟩
 
-@[simp] lemma self_is_ortho_orthogonal (U : submodule 𝕜 E) : U ⟂ Uᗮ :=
+@[simp] lemma is_ortho_orthogonal_right (U : submodule 𝕜 E) : U ⟂ Uᗮ :=
 le_orthogonal_orthogonal _
 
-@[simp] lemma orthogonal_is_ortho_self (U : submodule 𝕜 E) : Uᗮ ⟂ U :=
+@[simp] lemma is_ortho_orthogonal_right (U : submodule 𝕜 E) : Uᗮ ⟂ U :=
 (self_is_ortho_orthogonal U).symm
 
 @[simp]
@@ -305,7 +306,8 @@ supr_le_iff
   U ⟂ supr V ↔ ∀ i, U ⟂ V i :=
 is_ortho_comm.trans $ is_ortho_supr_left.trans $ by simp_rw is_ortho_comm
 
-@[simp] lemma is_ortho_span {s t : set E} : span 𝕜 s ⟂ span 𝕜 t ↔ ∀ (u ∈ s) (v ∈ t), ⟪u, v⟫ = 0 :=
+@[simp] lemma is_ortho_span {s t : set E} :
+  span 𝕜 s ⟂ span 𝕜 t ↔ ∀ ⦃u⦄, u ∈ s → ∀ ⦃v⦄, v ∈ t → ⟪u, v⟫ = 0 :=
 begin
   simp_rw [span_eq_supr_of_singleton_spans s, span_eq_supr_of_singleton_spans t,
     is_ortho_supr_left, is_ortho_supr_right, is_ortho_iff_le, span_le, set.subset_def,

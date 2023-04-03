@@ -181,7 +181,7 @@ begin
     apply finset.sum_eq_zero,
     intros j hj,
     rw coe_eq_zero,
-    suffices : span 𝕜 (f '' set.Iic j) ⟂ (𝕜 ∙ f i),
+    suffices : span 𝕜 (f '' set.Iic j) ⟂ 𝕜 ∙ f i,
     { apply orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
       rw mem_orthogonal_singleton_iff_inner_left,
       rw ←mem_orthogonal_singleton_iff_inner_right,

@@ -47,13 +47,6 @@ end dvd
 namespace nat
 variables {a b m n : ℕ}
 
-lemma le_of_lt_add_of_dvd (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
-begin
-  rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
-  rw ←mul_add_one at h,
-  exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
-end
-
 lemma eq_of_forall_dvd (h : ∀ c, a ∣ c ↔ b ∣ c) : a = b :=
 dvd_antisymm ((h _).2 dvd_rfl) $ (h _).1 dvd_rfl
 
@@ -71,15 +64,6 @@ begin
 end
 
 end nat
-
-namespace int
-variables {a b n : ℤ}
-
-lemma modeq_comm : a ≡ b [ZMOD n] ↔ b ≡ a [ZMOD n] := ⟨modeq.symm, modeq.symm⟩
-
-@[simp] lemma modeq_zero_iff : a ≡ b [ZMOD 0] ↔ a = b := by rw [modeq, mod_zero, mod_zero]
-
-end int
 
 --TODO: Fix implicitness `subgroup.closure_eq_bot_iff`
 
@@ -738,63 +722,8 @@ end group
 namespace char_p
 variables {R : Type*} [add_group_with_one R] (p : ℕ) [char_p R p] {a b n : ℕ}
 
---TODO: Deduplicate `char_p.int_coe_eq_int_coe_iff`, `eq_iff_modeq_int`.
--- Rename to `char_p.int_cast_eq_int_cast`
-
-lemma cast_eq_cast : (a : R) = b ↔ a ≡ b [MOD p] :=
-begin
-  rw [←int.cast_coe_nat, ←int.cast_coe_nat b],
-  exact (int_coe_eq_int_coe_iff _ _ _ _).trans int.coe_nat_modeq_iff,
-end
-
 -- lemma add_order_of_cast (hn : n ≠ 0) : add_order_of (n : R) = p / p.gcd n := sorry
 
 end char_p
-
-namespace int
-
--- @[simp, norm_cast] lemma coe_nat_mod' (m n : ℤ) : (m.nat_mod n : ℤ) = m % n := sorry
-
-namespace modeq
-variables {a b c m : ℤ}
-
--- TODO: Rename `int.gcd_pos_of_non_zero_left` → `int.gcd_pos_of_ne_zero_left`
-
-/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
-lemma cancel_left_div_gcd (hm : 0 < m) (h : c * a ≡ c * b [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
-begin
-  let d := gcd m c,
-  have hmd := gcd_dvd_left m c,
-  have hcd := gcd_dvd_right m c,
-  rw modeq_iff_dvd at ⊢ h,
-  refine int.dvd_of_dvd_mul_right_of_gcd_one _ _,
-  show m / d ∣ c / d * (b - a),
-  { rw [mul_comm, ←int.mul_div_assoc (b - a) hcd, mul_comm],
-    apply int.div_dvd_div hmd,
-    rwa mul_sub },
-  { rw [gcd_div hmd hcd, nat_abs_of_nat, nat.div_self (gcd_pos_of_non_zero_left c hm.ne')] }
-end
-
-lemma cancel_right_div_gcd (hm : 0 < m) (h : a * c ≡ b * c [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
-by { apply cancel_left_div_gcd hm, simpa [mul_comm] using h }
-
--- TODO: Surely we don't need `0 ≤ c`?
-lemma of_div (hc : 0 ≤ c) (h : a / c ≡ b / c [ZMOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
-  a ≡ b [ZMOD m] :=
-by convert h.mul_left' hc; rwa int.mul_div_cancel'
-
-end modeq
-end int
-
-namespace nat
-namespace modeq
-variables {a b c m : ℕ}
-
-lemma of_div (h : a / c ≡ b / c [MOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
-  a ≡ b [MOD m] :=
-by convert h.mul_left' c; rwa nat.mul_div_cancel'
-
-end modeq
-end nat
 
 instance : unique (zmod 1) := fin.unique

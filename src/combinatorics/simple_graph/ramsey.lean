@@ -1,4 +1,4 @@
-import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.degree_sum
 import data.finite.card
 import data.finset.pairwise
 import data.sym.card
@@ -10,12 +10,36 @@ import data.fin.vec_notation
 import algebra.big_operators.fin
 import number_theory.legendre_symbol.quadratic_char
 import field_theory.finite.basic
+import data.fin.tuple.sort
+import algebra.char_p.pi
+import data.nat.choose.central
 
 namespace simple_graph
 variables {V V' : Type*} {G : simple_graph V} {K K' : Type*}
 
 open fintype (card)
 open finset
+
+section
+
+theorem exists_even_degree [fintype V] [decidable_rel G.adj] (hV : odd (card V)) :
+  ∃ v : V, even (G.degree v) :=
+begin
+  have := even_card_odd_degree_vertices G,
+  have : univ.filter (λ (v : V), odd (G.degree v)) ≠ univ,
+  { rw [←card_lt_iff_ne_univ, lt_iff_le_and_ne],
+    refine ⟨card_le_univ _, _⟩,
+    intro h,
+    rw [h, nat.even_iff_not_odd] at this,
+    exact this hV },
+  rw [ne.def, filter_eq_self] at this,
+  simpa using this
+end
+
+lemma central_binom_monotone : monotone nat.central_binom :=
+λ n m h, (nat.choose_le_choose n (nat.mul_le_mul_left 2 h)).trans (nat.choose_le_central_binom _ _)
+
+end
 
 def edge_labelling (G : simple_graph V) (K : Type*) := G.edge_set → K
 
@@ -568,6 +592,35 @@ open_locale big_operators
 
 variables [decidable_eq K] [fintype K] [decidable_eq K'] [fintype K'] {n : K → ℕ}
 
+theorem ramsey_fin_induct_aux {V : Type*} [decidable_eq V]
+  {n : K → ℕ} (N : K → ℕ) {C : top_edge_labelling V K}
+  (m : K → finset V) (x : V)
+  (hN : ∀ k, is_ramsey_valid (fin (N k)) (function.update n k (n k - 1)))
+  (hx : ∀ k, x ∉ m k) (h : ∃ k, N k ≤ (m k).card)
+  (hm : ∀ k (y : V) (hy : y ∈ m k), C.get x y (ne_of_mem_of_not_mem hy (hx k)).symm = k) :
+  ∃ (m : finset V) c, C.monochromatic_of m c ∧ n c ≤ m.card :=
+begin
+  classical,
+  obtain ⟨k, hk⟩ := h,
+  have : is_ramsey_valid (m k) (function.update n k (n k - 1)) := (hN k).card_fin (by simp [hk]),
+  obtain ⟨m', k', hm', hk'⟩ := this (C.pullback (function.embedding.subtype _)),
+  rcases ne_or_eq k k' with hk | rfl,
+  { exact ⟨_, _, hm'.map, by simpa [hk.symm] using hk'⟩ },
+  have : x ∉ (m'.map (function.embedding.subtype _) : set V),
+  { simp [hx k] },
+  refine ⟨insert (x : V) (m'.map (function.embedding.subtype _)), k, _, _⟩,
+  { rw [coe_insert, top_edge_labelling.monochromatic_of_insert this],
+    refine ⟨hm'.map, λ y hy, _⟩,
+    generalize_proofs,
+    simp only [mem_neighbor_finset, mem_coe, mem_map, function.embedding.coe_subtype, exists_prop,
+      subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right,
+      top_edge_labelling.label_graph_adj] at hy,
+    obtain ⟨hy, _⟩ := hy,
+    exact hm _ _ hy, },
+  rw [card_insert_of_not_mem this, card_map, ←tsub_le_iff_right],
+  rwa function.update_same at hk',
+end
+
 theorem ramsey_fin_induct (n : K → ℕ) (N : K → ℕ)
   (hN : ∀ k, is_ramsey_valid (fin (N k)) (function.update n k (n k - 1))) :
   is_ramsey_valid (fin (∑ k, (N k - 1) + 2)) n :=
@@ -610,23 +663,9 @@ begin
     simpa only [add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero] using this },
   obtain ⟨k, hk⟩ := this,
   rw [tsub_lt_iff_right (hN' _), nat.lt_add_one_iff] at hk,
-  have : is_ramsey_valid (m k) (function.update n k (n k - 1)) := (hN k).card_fin (by simp [hk]),
-  obtain ⟨m', k', hm', hk'⟩ := this (C.pullback (function.embedding.subtype _)),
-  rcases ne_or_eq k k' with hk | rfl,
-  { exact ⟨_, _, hm'.map, by simpa [hk.symm] using hk'⟩ },
-  have : x ∉ (m'.map (function.embedding.subtype _) : set V),
+  refine ramsey_fin_induct_aux _ m x hN _ ⟨k, hk⟩ _,
   { simp },
-  refine ⟨insert x (m'.map (function.embedding.subtype _)), k, _, _⟩,
-  { rw [coe_insert, top_edge_labelling.monochromatic_of_insert this],
-    refine ⟨hm'.map, λ y hy, _⟩,
-    generalize_proofs,
-    simp only [mem_neighbor_finset, mem_coe, mem_map, function.embedding.coe_subtype, exists_prop,
-      subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right,
-      top_edge_labelling.label_graph_adj] at hy,
-    obtain ⟨⟨_, t⟩, _⟩ := hy,
-    exact t },
-  rw [card_insert_of_not_mem this, card_map, ←tsub_le_iff_right],
-  rwa function.update_same at hk',
+  { simp },
 end
 
 theorem ramsey_fin_exists (n : K → ℕ) :
@@ -748,6 +787,69 @@ begin
     exact ⟨hi', hj'⟩ },
 end
 
+theorem ramsey_fin_induct_two_evens {i j Ni Nj : ℕ} (hi : 2 ≤ i) (hj : 2 ≤ j)
+  (hNi : even Ni) (hNj : even Nj)
+  (hi' : is_ramsey_valid (fin Ni) ![i - 1, j])
+  (hj' : is_ramsey_valid (fin Nj) ![i, j - 1]) :
+  is_ramsey_valid (fin (Ni + Nj - 1)) ![i, j] :=
+begin
+  have hNi' : 1 ≤ Ni,
+  { by_contra',
+    haveI : is_empty (fin Ni),
+    { rw [←fintype.card_eq_zero_iff, fintype.card_fin],
+      simpa only [nat.lt_one_iff] using this },
+    obtain ⟨k', hk'⟩ := hi'.exists_zero_of_is_empty,
+    revert k',
+    simp only [fin.forall_fin_two, imp_false, matrix.cons_val_zero, tsub_eq_zero_iff_le, not_le,
+      matrix.cons_val_one, matrix.head_cons],
+    exact ⟨hi, by linarith⟩ },
+  have hNj' : 1 ≤ Nj,
+  { by_contra',
+    haveI : is_empty (fin Nj),
+    { rw [←fintype.card_eq_zero_iff, fintype.card_fin],
+      simpa only [nat.lt_one_iff] using this },
+    obtain ⟨k', hk'⟩ := hj'.exists_zero_of_is_empty,
+    revert k',
+    simp only [fin.forall_fin_two, imp_false, matrix.cons_val_zero, tsub_eq_zero_iff_le, not_le,
+      matrix.cons_val_one, matrix.head_cons],
+    exact ⟨by linarith, hj⟩ },
+  have : odd (card (fin (Ni + Nj - 1))),
+  { rw [fintype.card_fin, nat.odd_sub (le_add_right hNi')],
+    simp [hNi, hNj] with parity_simps },
+  intro C,
+  obtain ⟨x, hx⟩ := @exists_even_degree (fin (Ni + Nj - 1)) (C.label_graph 0) _ _ this,
+  let m : fin 2 → finset (fin (Ni + Nj - 1)) := λ k, neighbor_finset (C.label_graph k) x,
+  change even (m 0).card at hx,
+  have : univ.bUnion m = {x}ᶜ,
+  { simp only [←finset.coe_inj, coe_bUnion, mem_coe, mem_univ, set.Union_true, coe_compl,
+      coe_singleton, m, coe_neighbor_finset],
+    rw [←neighbor_set_supr, edge_labelling.supr_label_graph C, neighbor_set_top] },
+  have e : ∑ k, (m k).card = Ni + Nj - 2,
+  { rw [←card_bUnion, this, card_compl, ←card_univ, card_fin, card_singleton, nat.sub_sub],
+    rintro x hx y hy h,
+    refine neighbor_finset_disjoint _,
+    exact edge_labelling.pairwise_disjoint (by simp) (by simp) h },
+  have : Ni ≤ (m 0).card ∨ Nj ≤ (m 1).card,
+  { have : (m 0).card + 1 ≠ Ni,
+    { intro h,
+      rw [←h] at hNi,
+      simpa [hx] with parity_simps using hNi },
+    rw [eq_tsub_iff_add_eq_of_le (add_le_add hNi' hNj'), fin.sum_univ_two] at e,
+    by_contra' h',
+    rw [nat.lt_iff_add_one_le, nat.lt_iff_add_one_le, le_iff_lt_or_eq, or_iff_left this,
+      nat.lt_iff_add_one_le, add_assoc] at h',
+    have := add_le_add h'.1 h'.2,
+    rw [add_add_add_comm, ←add_assoc, e] at this,
+    simpa only [add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero] using this },
+  refine ramsey_fin_induct_aux ![Ni, Nj] m x _ (by simp) _ _,
+  { rw [fin.forall_fin_two, function.update_head, function.update_one],
+    exact ⟨hi', hj'⟩ },
+  { rwa fin.exists_fin_two },
+  { rw [fin.forall_fin_two],
+    simp only [mem_neighbor_finset, label_graph_adj, forall_exists_index, imp_self,
+      implies_true_iff, and_self] }
+end
+
 theorem ramsey_fin_induct_three {i j k Ni Nj Nk : ℕ} (hi : 2 ≤ i) (hj : 2 ≤ j) (hk : 2 ≤ k)
   (hi' : is_ramsey_valid (fin Ni) ![i - 1, j, k])
   (hj' : is_ramsey_valid (fin Nj) ![i, j - 1, k])
@@ -802,14 +904,22 @@ lemma ramsey_number_equiv [decidable_eq K'] [fintype K'] (f : K' ≃ K) :
   ramsey_number (n ∘ f) = ramsey_number n :=
 ramsey_number_congr (λ _, is_ramsey_valid_equiv_right f)
 
-lemma ramsey_number_pair_swap (x y : ℕ) : ramsey_number ![x, y] = ramsey_number ![y, x] :=
+lemma ramsey_number_first_swap {i : ℕ} (x y : ℕ) (t : fin i → ℕ) :
+  ramsey_number (vec_cons x (vec_cons y t)) = ramsey_number (vec_cons y (vec_cons x t)) :=
 begin
-  have : ![x, y] ∘ equiv.swap 0 1 = ![y, x],
-  { ext i,
-    fin_cases i;
-    simp },
+  have : vec_cons x (vec_cons y t) ∘ equiv.swap 0 1 = vec_cons y (vec_cons x t),
+  { rw [function.funext_iff],
+    simp only [fin.forall_fin_succ],
+    refine ⟨rfl, rfl, λ j, _⟩,
+    simp only [vec_cons, fin.cons_succ, function.comp_apply],
+    rw [equiv.swap_apply_of_ne_of_ne, fin.cons_succ, fin.cons_succ],
+    { exact fin.succ_ne_zero _ },
+    exact (fin.succ_injective _).ne (fin.succ_ne_zero _) },
   rw [←this, ramsey_number_equiv],
 end
+
+lemma ramsey_number_pair_swap (x y : ℕ) : ramsey_number ![x, y] = ramsey_number ![y, x] :=
+by rw ramsey_number_first_swap
 
 lemma ramsey_number.eq_zero_iff : ramsey_number n = 0 ↔ ∃ c, n c = 0 :=
 begin
@@ -890,6 +1000,9 @@ by rw [ramsey_number_unique_colour, matrix.cons_val_fin_one]
 lemma ramsey_number.mono {n n' : K → ℕ} (h : n ≤ n') : ramsey_number n ≤ ramsey_number n' :=
 by { rw [ramsey_number_le_iff_fin], exact (ramsey_number_spec_fin _).mono_right h }
 
+lemma ramsey_number_monotone {i : ℕ} : monotone (ramsey_number : (fin i → ℕ) → ℕ) :=
+λ _ _ h, ramsey_number.mono h
+
 lemma ramsey_number_remove_two {n : K → ℕ} {n' : K' → ℕ} (f : K' → K)
   (hf : ∀ x : K', n' x ≠ 2 → n (f x) ≠ 2)
   (hf_inj : ∀ x y : K', n' x ≠ 2 → n' y ≠ 2 → f x = f y → x = y)
@@ -935,12 +1048,39 @@ end
 
 -- if the conditions `hi` or `hj` fail, we find a stronger bound from previous results
 -- cf `ramsey_number_le_one`
-lemma ramsey_number_two_colour_bound {i j : ℕ} (hi : 2 ≤ i) (hj : 2 ≤ j) :
+lemma ramsey_number_two_colour_bound_aux {i j : ℕ} (hi : 2 ≤ i) (hj : 2 ≤ j) :
   ramsey_number ![i, j] ≤ ramsey_number ![i - 1, j] + ramsey_number ![i, j - 1] :=
 begin
   rw ramsey_number_le_iff_fin,
   refine ramsey_fin_induct_two hi hj _ _;
   exact ramsey_number_spec_fin _
+end
+
+lemma ramsey_number_two_colour_bound (i j : ℕ) (hij : i ≠ 1 ∨ j ≠ 1) :
+  ramsey_number ![i, j] ≤ ramsey_number ![i - 1, j] + ramsey_number ![i, j - 1] :=
+begin
+  wlog h : i ≤ j,
+  { refine (ramsey_number_pair_swap _ _).trans_le ((this _ _ hij.symm (le_of_not_le h)).trans _),
+    rw [ramsey_number_pair_swap, add_comm, add_le_add_iff_right, ramsey_number_pair_swap] },
+  rcases i with (_ | _ | _),
+  { simp },
+  { rcases j with (_ | _ | _),
+    { simp },
+    { simpa using hij },
+    rw [ramsey_number_one_succ, nat.sub_self, ramsey_number_cons_zero, zero_add,
+      nat.succ_sub_succ_eq_sub, nat.sub_zero, ramsey_number_one_succ] },
+  have : 2 ≤ i + 2, { simp },
+  exact ramsey_number_two_colour_bound_aux this (this.trans h),
+end
+
+-- a slightly odd shaped bound to make it more practical for explicit computations
+lemma ramsey_number_two_colour_bound_even {i j} (Ni Nj : ℕ) (hi : 2 ≤ i) (hj : 2 ≤ j)
+  (hNi : ramsey_number ![i - 1, j] ≤ Ni) (hNj : ramsey_number ![i, j - 1] ≤ Nj)
+  (hNi' : even Ni) (hNj' : even Nj) :
+  ramsey_number ![i, j] ≤ Ni + Nj - 1 :=
+begin
+  rw ramsey_number_le_iff_fin at ⊢ hNi hNj,
+  exact ramsey_fin_induct_two_evens hi hj hNi' hNj' hNi hNj,
 end
 
 -- if the conditions `hi`, `hj` or `hk` fail, we find a stronger bound from previous results
@@ -963,17 +1103,23 @@ lemma diagonal_ramsey.def {k : ℕ} : diagonal_ramsey k = ramsey_number ![k, k] 
 by rw [diagonal_ramsey.def, ramsey_number_one_succ]
 @[simp] lemma diagonal_ramsey_two : diagonal_ramsey 2 = 2 :=
 by rw [diagonal_ramsey.def, ramsey_number_cons_two, ramsey_number_singleton]
-
-@[simp] lemma diagonal_ramsey_three_upper : diagonal_ramsey 3 ≤ 6 :=
+lemma diagonal_ramsey_monotone : monotone diagonal_ramsey :=
 begin
-  rw diagonal_ramsey.def,
-  refine (ramsey_number_two_colour_bound _ _).trans_eq (by simp);
-  norm_num,
+  intros n m hnm,
+  refine ramsey_number.mono _,
+  intro i,
+  revert i,
+  rw fin.forall_fin_two,
+  simpa using hnm,
 end
 
 section paley
 
 variables {F : Type*} [field F] [fintype F]
+
+lemma symmetric_is_square (hF : card F % 4 ≠ 3) :
+  symmetric (λ x y : F, is_square (x - y)) :=
+λ _ _ h, by simpa using h.mul (finite_field.is_square_neg_one_iff.2 hF)
 
 /--
 The definition should only be used if card F % 4 ≠ 3. If this condition fails, the graph is ⊤.
@@ -986,8 +1132,7 @@ def {u} paley_graph (F : Type*) [field F] [fintype F] : simple_graph F :=
     refine ⟨h₁.symm, _⟩,
     rw or_iff_not_imp_right,
     intro h,
-    simpa only [mul_neg, mul_one, neg_sub]
-      using (h₂.resolve_right h).mul (finite_field.is_square_neg_one_iff.2 h),
+    exact symmetric_is_square h (h₂.resolve_right h),
   end,
   loopless := λ _ h, h.1 rfl }
 
@@ -1002,6 +1147,11 @@ instance paley_decidable [decidable_eq F] :
 lemma paley_graph_adj (hF : card F % 4 ≠ 3) {x y : F} :
   (paley_graph F).adj x y ↔ x ≠ y ∧ is_square (x - y) :=
 and_congr_right' (or_iff_left hF)
+
+lemma is_square_sub_of_paley_graph_adj (hF : card F % 4 ≠ 3)  {x y : F}
+  (h : (paley_graph F).adj x y) : is_square (x - y) :=
+((paley_graph_adj hF).1 h).2
+-- and_congr_right' (or_iff_left hF)
 
 @[simps] def rotate (x : F) : paley_graph F ≃g paley_graph F :=
 { to_equiv := equiv.add_left x,
@@ -1053,12 +1203,14 @@ def paley_labelling (F : Type*) [field F] [fintype F] [decidable_eq F] :
   top_edge_labelling F (fin 2) := to_edge_labelling (paley_graph F)
 
 -- smaller `k` don't need the paley construction
-lemma no_paley_mono_set {k : ℕ} (hF : card F % 4 = 1)
-  {h : ∃ (m : finset F) c, (paley_labelling F).monochromatic_of m c ∧ k + 2 = m.card} :
-  false :=
+lemma no_paley_mono_set [decidable_eq F] {k : ℕ} (hF : card F % 4 = 1)
+  (h : ∃ (m : finset F) c, (paley_labelling F).monochromatic_of m c ∧ k + 2 = m.card) :
+  ∃ (m : finset F), m.card = k ∧ (0 : F) ∉ m ∧ (1 : F) ∉ m ∧
+    (∀ x ∈ m, is_square x) ∧ (∀ x ∈ m, is_square (x - 1 : F)) ∧
+      (m : set F).pairwise (λ x y, is_square (y - x)) :=
 begin
   have card_not_three_mod_four : card F % 4 ≠ 3,
-  { rw hF, simp },
+  { rw hF, simp only [ne.def, nat.one_eq_bit1, nat.one_ne_zero, not_false_iff]},
   have card_one_mod_two : card F % 2 = 1,
   { rw [←nat.mod_mod_of_dvd (card F) (show 2 ∣ 4, by norm_num), hF, nat.one_mod] },
   have : ∃ x : F, ¬ is_square x,
@@ -1073,48 +1225,389 @@ begin
     { obtain ⟨x, hx⟩ := this,
       exact ⟨h.trans (self_compl card_not_three_mod_four x hx).to_rel_embedding⟩ },
     exact h },
-
-
+  have : ∃ f : (⊤ : simple_graph (fin (k + 2))) ↪g paley_graph F, f 0 = 0,
+  { obtain ⟨f⟩ := this,
+    exact ⟨f.trans (rotate (- f 0)).to_rel_embedding, by simp⟩ },
+  have : ∃ f : (⊤ : simple_graph (fin (k + 2))) ↪g paley_graph F, f 0 = 0 ∧ f 1 = 1,
+  { obtain ⟨f, hf⟩ := this,
+    have hf1 : is_square (f 1),
+    { suffices : (paley_graph F).adj (f 1) (f 0),
+      { rw [paley_graph_adj card_not_three_mod_four, hf, sub_zero] at this,
+        exact this.2 },
+      rw f.map_rel_iff,
+      simp only [top_adj, ne.def, fin.one_eq_zero_iff, nat.succ_succ_ne_one, not_false_iff] },
+    have hf2 : f 1 ≠ 0,
+    { rw [←hf, ne.def, rel_embedding.inj],
+      simp only [fin.one_eq_zero_iff, nat.succ_succ_ne_one, not_false_iff] },
+    refine ⟨f.trans (rescale (f 1) hf1 hf2).symm.to_rel_embedding, _⟩,
+    simp only [hf2, hf, rel_iso.to_rel_embedding_eq_coe, embedding.coe_comp, rel_iso.coe_coe_fn,
+      function.comp_app, rescale_symm_apply, units.coe_inv, units.coe_mk0, mul_zero,
+      eq_self_iff_true, inv_mul_cancel, ne.def, not_false_iff, and_self] },
+  have hss : symmetric (λ x y : F, is_square (y - x)),
+  { intros x y h,
+    exact symmetric_is_square card_not_three_mod_four h },
+  suffices : ∃ m : finset F, k = m.card ∧ (0 : F) ∉ m ∧ (1 : F) ∉ m ∧
+    (insert (0 : F) (insert (1 : F) (m : set F))).pairwise (λ x y, is_square (y - x)),
+  { obtain ⟨m, hm_card, hm₀, hm₁, hm₂⟩ := this,
+    rw [set.pairwise_insert_of_symmetric_of_not_mem hss,
+      set.pairwise_insert_of_symmetric_of_not_mem hss] at hm₂,
+    simp only [mem_coe, set.mem_insert_iff, sub_zero, forall_eq_or_imp, is_square_one,
+      true_and] at hm₂,
+    { exact ⟨m, hm_card.symm, hm₀, hm₁, hm₂.2, hm₂.1.2, hm₂.1.1⟩ },
+    { exact hm₁ },
+    simp only [hm₀, set.mem_insert_iff, zero_ne_one, mem_coe, or_self, not_false_iff] },
+  simp only [←coe_insert],
+  obtain ⟨f, hf₀, hf₁⟩ := this,
+  have : ({0, 1} : finset F) ⊆ finset.map f.to_embedding univ,
+  { rw [insert_subset, singleton_subset_iff, ←hf₀, ←hf₁],
+    exact ⟨mem_map_of_mem _ (by simp), mem_map_of_mem _ (by simp)⟩ },
+  refine ⟨(univ : finset (fin (k + 2))).map f.to_embedding \ {0, 1}, _, _, _, _⟩,
+  { rw [card_sdiff, card_map, card_doubleton, card_fin, nat.add_sub_cancel],
+    { simp only [ne.def, zero_ne_one, not_false_iff] },
+    exact this },
+  { simp only [mem_sdiff, mem_insert, eq_self_iff_true, mem_singleton, zero_ne_one, or_false,
+      not_true, and_false, not_false_iff] },
+  { simp only [mem_sdiff, mem_insert, one_ne_zero, mem_singleton, eq_self_iff_true, false_or,
+      not_true, and_false, not_false_iff]},
+  rw [insert_eq, insert_eq, ←union_assoc, ←insert_eq, union_comm, sdiff_union_of_subset this],
+  simp only [set.pairwise, mem_coe, mem_map, exists_prop, mem_univ, true_and, forall_exists_index,
+    ne.def, rel_embedding.coe_fn_to_embedding, forall_apply_eq_imp_iff', rel_embedding.inj],
+  intros x y h,
+  exact is_square_sub_of_paley_graph_adj card_not_three_mod_four (f.map_rel_iff.2 (ne.symm h)),
 end
 
-example : 1 = 1 :=
+-- lemma is_square_fin_5 : ∀ (x : fin 5), is_square x → x ∈ ({0, 1, 4} : set (fin 5)) :=
+-- begin
+--   -- simp only [is_square, set.mem_insert_iff, set.mem_singleton_iff, forall_exists_index,
+--   --   forall_eq_apply_imp_iff'],
+--   -- intro x,
+--   -- fin_cases x;
+--   -- norm_num
+-- end
+
+-- #lint
+
+lemma card_non_zero_square_non_square {F : Type*} [fintype F] [field F] [decidable_eq F]
+  (hF : ring_char F ≠ 2) :
+  (univ.filter (λ x : F, x ≠ 0 ∧ is_square x)).card = card F / 2 ∧
+  (univ.filter (λ x : F, ¬ is_square x)).card = card F / 2 :=
 begin
-
+  have : (univ.filter (λ x : F, ¬ is_square x)) = (univ.filter (λ x : F, x ≠ 0 ∧ ¬ is_square x)),
+  { refine filter_congr _,
+    simp [not_imp_not] {contextual := tt} },
+  rw this,
+  have cf := quadratic_char_sum_zero hF,
+  simp only [quadratic_char_apply, quadratic_char_fun] at cf,
+  rw [sum_ite, sum_const_zero, zero_add, sum_ite, sum_const, sum_const, nsmul_eq_mul, nsmul_eq_mul,
+    mul_neg, mul_one, mul_one, add_neg_eq_zero, nat.cast_inj, filter_filter, filter_filter] at cf,
+  rw [←cf, and_self],
+  have : (univ.filter (λ x : F, x ≠ 0 ∧ is_square x)) ∪
+    (univ.filter (λ x : F, x ≠ 0 ∧ ¬ is_square x)) ∪ {0} = univ,
+  { simp only [←filter_or, ←and_or_distrib_left, em, and_true, filter_ne'],
+    rw [union_comm, ←insert_eq, insert_erase],
+    exact mem_univ _ },
+  have h' := congr_arg finset.card this,
+  rw [card_disjoint_union, card_disjoint_union, card_singleton, card_univ, ←cf, ←two_mul,
+    ←bit0_eq_two_mul, ←bit1] at h',
+  { rw [←h', nat.bit1_div_two] },
+  { rw finset.disjoint_left,
+    simp {contextual := tt} },
+  { simp },
 end
 
+lemma card_square (F : Type*) [fintype F] [field F] (hF : ring_char F ≠ 2) :
+  ((univ : finset F).filter is_square).card = card F / 2 + 1 :=
+begin
+  rw [←(card_non_zero_square_non_square hF).1],
+  simp only [and_comm, ←filter_filter, filter_ne'],
+  rw card_erase_add_one,
+  simp
+end
 
--- lemma is_ramsey_valid_paley_labelling_aux {n : ℕ} :
-  -- nonempty ((⊤ : simple_graph (fin n)) ↪g paley_graph F) ↔
+lemma paley_five_bound : ¬ is_ramsey_valid (zmod 5) ![3, 3] :=
+begin
+  haveI : fact (nat.prime 5) := ⟨by norm_num⟩,
+  classical,
+  rw is_ramsey_valid_iff_eq,
+  intro h,
+  specialize h (paley_labelling (zmod 5)),
+  have : ∃ (m : finset (zmod 5)) (c : fin 2),
+    (paley_labelling (zmod 5)).monochromatic_of m c ∧ 3 = m.card,
+  { simpa only [fin.exists_fin_two] using h },
+  have := no_paley_mono_set (by norm_num) this,
+  simp only [card_eq_one, ←exists_and_distrib_right, @exists_comm (finset (zmod 5)), exists_eq_left,
+    mem_singleton, forall_eq, coe_singleton, set.pairwise_singleton, and_true] at this,
+  revert this,
+  dec_trivial,
+end
+
+lemma paley_seventeen_helper :
+  ∀ (a : zmod 17), a ≠ 0 → a ≠ 1 → is_square a → is_square (a - 1) → a = 2 ∨ a = 9 ∨ a = 16 :=
+by dec_trivial
+
+lemma paley_seventeen_bound : ¬ is_ramsey_valid (zmod 17) ![4, 4] :=
+begin
+  haveI : fact (nat.prime 17) := ⟨by norm_num⟩,
+  classical,
+  rw is_ramsey_valid_iff_eq,
+  intro h,
+  specialize h (paley_labelling (zmod 17)),
+  have : ∃ (m : finset (zmod 17)) (c : fin 2),
+    (paley_labelling (zmod 17)).monochromatic_of m c ∧ 4 = m.card,
+  { simpa only [fin.exists_fin_two] using h },
+  have := no_paley_mono_set (by norm_num) this,
+  simp only [card_eq_two, ←exists_and_distrib_right, and_assoc, ne.def, exists_eq_left, mem_insert,
+    @exists_comm (finset (zmod 17)), exists_and_distrib_left, mem_singleton, forall_eq_or_imp,
+    forall_eq, coe_pair, not_or_distrib, @eq_comm (zmod 17) 0, @eq_comm (zmod 17) 1] at this,
+  obtain ⟨a, b, hab, ha₀, hb₀, ha₁, hb₁, ha, hb, ha₁', hb₁', h⟩ := this,
+  rw set.pairwise_insert_of_symmetric_of_not_mem at h,
+  rotate,
+  { intros x y h,
+    exact symmetric_is_square (by norm_num) h },
+  { exact hab },
+  simp only [set.pairwise_singleton, set.mem_singleton_iff, forall_eq, true_and] at h,
+  have : a = 2 ∨ a = 9 ∨ a = 16 := paley_seventeen_helper a ha₀ ha₁ ha ha₁',
+  have : b = 2 ∨ b = 9 ∨ b = 16 := paley_seventeen_helper b hb₀ hb₁ hb hb₁',
+  clear ha₀ ha₁ ha ha₁' hb₀ hb₁ hb hb₁',
+  revert h hab,
+  revert a b,
+  dec_trivial,
+end
 
 end paley
 
--- lemma is_ramsey_valid_iff_embedding_aux {n : K → ℕ} (c : K) :
---   (∃ (m : finset V), C.monochromatic_of m c ∧ n c = m.card) ↔
---     nonempty ((⊤ : simple_graph (fin (n c))) ↪g C.label_graph c) :=
+lemma diagonal_ramsey_three : diagonal_ramsey 3 = 6 :=
+begin
+  refine le_antisymm _ _,
+  { exact (ramsey_number_two_colour_bound 3 3 (by norm_num)).trans_eq (by simp) },
+  rw [←not_lt, nat.lt_succ_iff, ←zmod.card 5, diagonal_ramsey.def, ramsey_number_le_iff],
+  exact paley_five_bound
+end
 
--- lemma is_ramsey_valid_iff_embedding {n : K → ℕ} :
---   is_ramsey_valid V n ↔
---     ∀ C : top_edge_labelling V K,
---       ∃ c : K, nonempty ((⊤ : simple_graph (fin (n c))) ↪g C.label_graph c) :=
+lemma ramsey_number_three_four_upper : ramsey_number ![3, 4] ≤ 9 :=
+begin
+  refine (ramsey_number_two_colour_bound_even 4 6 _ _ _ _ _ _).trans_eq _,
+  { norm_num },
+  { norm_num },
+  { norm_num },
+  { rw [nat.succ_sub_succ_eq_sub, tsub_zero, ←diagonal_ramsey, diagonal_ramsey_three] },
+  { norm_num },
+  { norm_num },
+  { norm_num },
+end
 
--- def bad_five_colouring : top_edge_labelling (zmod 5) (fin 2) :=
--- top_edge_labelling.mk
---   (λ x y _, if y - x = 1 ∨ x - y = 1 then 0 else 1)
---   (by { intros x y h, simp only [or_comm] })
+lemma diagonal_ramsey_four : diagonal_ramsey 4 = 18 :=
+begin
+  refine le_antisymm _ _,
+  { refine (ramsey_number_two_colour_bound 4 4 (by norm_num)).trans _,
+    simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
+    rw ramsey_number_pair_swap 4,
+    linarith [ramsey_number_three_four_upper] },
+  rw [←not_lt, nat.lt_succ_iff, ←zmod.card 17, diagonal_ramsey.def, ramsey_number_le_iff],
+  exact paley_seventeen_bound
+end
 
--- lemma diagonal_ramsey_three_lower : 5 < diagonal_ramsey 3 :=
--- begin
---   rw [←not_le, diagonal_ramsey.def, ←zmod.card 5, ramsey_number_le_iff, is_ramsey_valid_iff_eq],
---   -- ramsey_number_le_iff, is_ramsey_valid],
---   simp only [not_forall, not_exists, not_and, not_le, fin.succ_one_eq_two'],
---   refine ⟨bad_five_colouring, _⟩,
--- end
+lemma ramsey_number_three_four : ramsey_number ![3, 4] = 9 :=
+begin
+  refine eq_of_le_of_not_lt ramsey_number_three_four_upper _,
+  intro h,
+  have : diagonal_ramsey 4 ≤ 16,
+  { refine (ramsey_number_two_colour_bound 4 4 (by norm_num)).trans _,
+    simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
+    rw ramsey_number_pair_swap 4,
+    linarith only [h] },
+  rw diagonal_ramsey_four at this,
+  norm_num at this,
+end
 
--- ramsey_fin_induct :
---   ∀ {K : Type u_5} [_inst_1 : decidable_eq K] [_inst_2 : fintype K] (n N : K → ℕ),
---     (∀ (k : K), is_ramsey_valid (fin (N k)) (function.update n k (n k - 1))) →
---     is_ramsey_valid (fin (∑ (k : K), (N k - 1) + 2)) n
+section
 
--- lemma ramsey_number_multicolour_bound
+def parts : fin 3 → finset (fin 4 → zmod 2) :=
+![{(![1, 1, 0, 0]), (![0, 0, 1, 1]), (![1, 0, 0, 1]), (![1, 1, 1, 0]), (![1, 0, 0, 0])},
+  {(![1, 0, 1, 0]), (![0, 1, 0, 1]), (![0, 1, 1, 0]), (![1, 1, 0, 1]), (![0, 1, 0, 0])},
+  {(![0, 0, 0, 1]), (![0, 0, 1, 0]), (![0, 1, 1, 1]), (![1, 0, 1, 1]), (![1, 1, 1, 1])}]
+
+lemma parts_property : ∀ i : fin 3, ∀ x y ∈ parts i, x + y ∉ parts i := by dec_trivial.
+lemma parts_cover : ∀ i : fin 4 → zmod 2, i ≠ 0 → ∃ j, i ∈ parts j := by dec_trivial.
+lemma parts_disjoint :
+  ∀ (i : fin 4 → zmod 2) (j : fin 3), i ∈ parts j → ∀ k : fin 3, i ∈ parts k → j = k :=
+dec_trivial
+
+lemma parts_get_aux : ∀ i : fin 4 → zmod 2, i ≠ 0 →
+  ∃! j, j ∈ (univ : finset (fin 3)) ∧ i ∈ parts j :=
+begin
+  intros i hi,
+  obtain ⟨j, hj⟩ := parts_cover i hi,
+  exact ⟨j, ⟨mem_univ _, hj⟩, λ k hk, parts_disjoint _ _ hk.2 _ hj⟩,
+end
+
+lemma parts_pair_get_aux : ∀ i j : fin 4 → zmod 2, i ≠ j →
+  ∃! k, k ∈ (univ : finset (fin 3)) ∧ i - j ∈ parts k :=
+λ i j hij, parts_get_aux _ (sub_ne_zero_of_ne hij)
+
+def parts_pair_get (i j : fin 4 → zmod 2) (hij : i ≠ j) : fin 3 :=
+finset.choose _ _ (parts_pair_get_aux i j hij)
+
+lemma parts_pair_get_spec {i j : fin 4 → zmod 2} (hij : i ≠ j) :
+  i - j ∈ parts (parts_pair_get i j hij) :=
+finset.choose_property _ _ (parts_pair_get_aux i j hij)
+
+lemma parts_pair_get_spec' {i j : fin 4 → zmod 2} {c : fin 3} {hij : i ≠ j}
+  (h : parts_pair_get i j hij = c) : i + j ∈ parts c :=
+by { rw [←h, ←char_two.sub_eq_add], exact parts_pair_get_spec _ }
+
+lemma parts_pair_get_symm (i j : fin 4 → zmod 2) (hij : i ≠ j) :
+  parts_pair_get j i hij.symm = parts_pair_get i j hij :=
+begin
+  have : i - j = j - i,
+  { rw [char_two.sub_eq_add, char_two.sub_eq_add, add_comm] },
+  refine parts_disjoint (j - i) _ (parts_pair_get_spec hij.symm) _ _,
+  rw ←this,
+  exact parts_pair_get_spec hij
+end
+
+def clebsch_colouring : top_edge_labelling (fin 4 → zmod 2) (fin 3) :=
+top_edge_labelling.mk parts_pair_get parts_pair_get_symm
+
+lemma clebsch_bound : ¬ is_ramsey_valid (fin 4 → zmod 2) ![3, 3, 3] :=
+begin
+  rw is_ramsey_valid_iff_eq,
+  push_neg,
+  refine ⟨clebsch_colouring, _⟩,
+  rintro m c hm hc,
+  have : m.card = 3,
+  { clear hm,
+    revert c,
+    simp only [fin.forall_fin_succ, fin.forall_fin_two, matrix.cons_val_zero, fin.succ_zero_eq_one',
+      matrix.cons_val_one, matrix.head_cons, fin.succ_one_eq_two', and_self, eq_comm, imp_self,
+      matrix.cons_vec_bit0_eq_alt0, matrix.cons_vec_append, matrix.empty_vec_append,
+      matrix.cons_vec_alt0] },
+  clear hc,
+  rw card_eq_three at this,
+  obtain ⟨x, y, z, hxy, hxz, hyz, rfl⟩ := this,
+  have hxyz : x ∉ ({y, z} : set (fin 4 → zmod 2)), { simp [hxy, hxz] },
+  have hyz' : y ∉ ({z} : set (fin 4 → zmod 2)), { simp [hyz] },
+  simp only [coe_insert, coe_pair, monochromatic_of_insert hxyz, monochromatic_of_insert hyz',
+    set.mem_singleton_iff, set.mem_insert_iff, monochromatic_of_singleton, true_and,
+    clebsch_colouring, top_edge_labelling.mk_get] at hm,
+  have hyz'' := parts_pair_get_spec' (hm.1 _ rfl),
+  have hxy'' := parts_pair_get_spec' (hm.2 _ (or.inl rfl)),
+  have hxz'' := parts_pair_get_spec' (hm.2 _ (or.inr rfl)),
+  apply parts_property _ _ hxz'' _ hyz'',
+  rwa [←char_two.sub_eq_add, add_sub_add_right_eq_sub, char_two.sub_eq_add],
+end
+
+end
+
+lemma ramsey_number_three_three_three : ramsey_number ![3, 3, 3] = 17 :=
+begin
+  refine le_antisymm _ _,
+  { refine (ramsey_number_three_colour_bound (nat.le_succ _) (nat.le_succ _)
+      (nat.le_succ _)).trans _,
+    rw [nat.succ_sub_succ_eq_sub, tsub_zero, ramsey_number_first_swap 3],
+    have : ramsey_number ![3, 3, 2] = ramsey_number ![2, 3, 3],
+    { have : ![2, 3, 3] ∘ ⇑(fin_rotate 3) = ![3, 3, 2],
+      { dec_trivial },
+      rw [←this, ramsey_number_equiv] },
+    rw [this, ramsey_number_cons_two, ←diagonal_ramsey, diagonal_ramsey_three] },
+  rw [←not_lt, nat.lt_succ_iff],
+  have := clebsch_bound,
+  rw [←ramsey_number_le_iff, fintype.card_fun, zmod.card, fintype.card_fin] at this,
+  exact this
+end
+
+lemma ramsey_number_le_choose : ∀ (i j : ℕ), ramsey_number ![i, j] ≤ (i + j - 2).choose (i - 1)
+| 0 _ := by simp
+| _ 0 := by { rw [ramsey_number_pair_swap, ramsey_number_cons_zero], exact zero_le' }
+| 1 (j+1) := by rw [ramsey_number_one_succ, nat.choose_zero_right]
+| (i+1) 1 := by rw [ramsey_number_succ_one, nat.succ_sub_succ_eq_sub, nat.choose_self]
+| (i+2) (j+2) :=
+  begin
+    refine (ramsey_number_two_colour_bound_aux (nat.le_add_left _ _) (nat.le_add_left _ _)).trans _,
+    rw [nat.add_succ_sub_one, nat.add_succ_sub_one, ←add_assoc, nat.add_sub_cancel],
+    refine (add_le_add (ramsey_number_le_choose _ _) (ramsey_number_le_choose _ _)).trans _,
+    rw [add_add_add_comm, nat.add_sub_cancel, ←add_assoc, nat.add_sub_cancel, add_add_add_comm,
+      add_right_comm i 2, nat.choose_succ_succ (i + j + 1) i],
+    refl,
+  end
+
+lemma diagonal_ramsey_le_central_binom (i : ℕ) : diagonal_ramsey i ≤ (i - 1).central_binom :=
+(ramsey_number_le_choose i i).trans_eq
+  (by rw [nat.central_binom_eq_two_mul_choose, nat.mul_sub_left_distrib, mul_one, two_mul])
+
+lemma diagonal_ramsey_le_central_binom' (i : ℕ) : diagonal_ramsey i ≤ i.central_binom :=
+(diagonal_ramsey_le_central_binom _).trans (central_binom_monotone (nat.sub_le _ _))
+
+section
+
+lemma nat.choose_le_two_pow {n k : ℕ} : n.choose k ≤ 2 ^ n :=
+begin
+  cases le_or_lt k n,
+  { rw ←nat.sum_range_choose n,
+    refine single_le_sum (λ _ _, zero_le') _,
+    rwa mem_range_succ_iff },
+  rw nat.choose_eq_zero_of_lt h,
+  exact zero_le'
+end
+
+lemma asc_le_pow_mul_factorial {s t : ℕ} : t.asc_factorial s ≤ s.factorial * (t + 1) ^ s :=
+begin
+  induction s with s ih,
+  { simp },
+  rw [nat.asc_factorial_succ, nat.factorial_succ, pow_succ, mul_mul_mul_comm],
+  refine nat.mul_le_mul _ ih,
+  rw [add_comm t, add_one_mul, mul_add_one, add_assoc],
+  simp,
+end
+
+lemma choose_add_le_pow_left (s t : ℕ) : (s + t).choose s ≤ (t + 1) ^ s :=
+begin
+  rw [add_comm, nat.choose_eq_asc_factorial_div_factorial],
+  exact nat.div_le_of_le_mul asc_le_pow_mul_factorial,
+end
+
+lemma choose_le_pow_left (s t : ℕ) : s.choose t ≤ (s + 1 - t) ^ t :=
+begin
+  cases le_or_lt t s,
+  { obtain ⟨s, rfl⟩ := exists_add_of_le h,
+    refine (choose_add_le_pow_left t s).trans _,
+    rw [add_assoc, nat.add_sub_cancel_left] },
+  rw nat.choose_eq_zero_of_lt h,
+  exact zero_le'
+end
+
+end
+
+lemma ramsey_number_pair_le_two_pow {i j : ℕ} : ramsey_number ![i, j] ≤ 2 ^ (i + j - 2) :=
+(ramsey_number_le_choose _ _).trans nat.choose_le_two_pow
+
+lemma ramsey_number_pair_le_two_pow' {i j : ℕ} : ramsey_number ![i, j] ≤ 2 ^ (i + j) :=
+ramsey_number_pair_le_two_pow.trans (pow_le_pow one_le_two (nat.sub_le _ _))
+
+lemma diagonal_ramsey_le_four_pow_sub_one {i : ℕ} : diagonal_ramsey i ≤ 4 ^ (i - 1) :=
+ramsey_number_pair_le_two_pow.trans_eq
+  (by rw [(show 4 = 2 ^ 2, from rfl), ←pow_mul, nat.mul_sub_left_distrib, two_mul, mul_one])
+
+lemma diagonal_ramsey_le_four_pow {i : ℕ} : diagonal_ramsey i ≤ 4 ^ i :=
+diagonal_ramsey_le_four_pow_sub_one.trans (pow_le_pow (by norm_num) (nat.sub_le _ _))
+
+/-- A good bound when i is small and j is large. For `i = 1, 2` this is equality (as long as
+`j ≠ 0`), and for `i = 3` it is the best possible polynomial upper bound. -/
+lemma ramsey_number_le_right_pow_left (i j : ℕ) : ramsey_number ![i, j] ≤ j ^ (i - 1) :=
+begin
+  rcases nat.eq_zero_or_pos j with rfl | hj,
+  { rw [ramsey_number_pair_swap, ramsey_number_cons_zero],
+    exact zero_le' },
+  refine (ramsey_number_le_choose i j).trans _,
+  refine (nat.choose_le_choose _ add_tsub_add_le_tsub_add_tsub).trans _,
+  refine (choose_add_le_pow_left _ _).trans_eq _,
+  rw nat.sub_add_cancel hj,
+end
+
+/-- A simplification of `ramsey_number_le_right_pow_left` which is more convenient for asymptotic
+reasoning. -/
+lemma ramsey_number_le_right_pow_left' {i j : ℕ} : ramsey_number ![i, j] ≤ j ^ i :=
+(ramsey_number_le_right_pow_left (i + 1) j).trans' $ ramsey_number_monotone $
+  by { rw [pi.le_def, fin.forall_fin_two], simp }
 
 end simple_graph

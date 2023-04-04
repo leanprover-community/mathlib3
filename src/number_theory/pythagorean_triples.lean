@@ -129,8 +129,8 @@ begin
   { -- x even, y even
     exfalso,
     apply nat.not_coprime_of_dvd_of_dvd (dec_trivial : 1 < 2) _ _ hc,
-    { apply int.dvd_nat_abs_of_of_nat_dvd, apply int.dvd_of_mod_eq_zero hx },
-    { apply int.dvd_nat_abs_of_of_nat_dvd, apply int.dvd_of_mod_eq_zero hy } },
+    { apply int.coe_nat_dvd_left.1, apply int.dvd_of_mod_eq_zero hx },
+    { apply int.coe_nat_dvd_left.1, apply int.dvd_of_mod_eq_zero hy } },
   { left, exact ⟨hx, hy⟩ },  -- x even, y odd
   { right, exact ⟨hx, hy⟩ }, -- x odd, y even
   { -- x odd, y odd

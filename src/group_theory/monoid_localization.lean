@@ -66,13 +66,15 @@ about the `localization_map.mk'` induced by any localization map.
 
 ## TODO
 
-* Show that the localization at top monoid is a group.
+* Show that the localization at the top monoid is a group.
 * Generalise to (nonempty) subsemigroups.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,
 commutative monoid, grothendieck group
 -/
+
+open function
 
 namespace add_submonoid
 variables {M : Type*} [add_comm_monoid M] (S : add_submonoid M) (N : Type*) [add_comm_monoid N]
@@ -1440,6 +1442,14 @@ end submonoid
 
 end comm_monoid_with_zero
 
+namespace localization
+variables {α : Type*} [cancel_comm_monoid α] {s : submonoid α}
+
+@[to_additive] lemma mk_left_injective (b : s) : injective (λ a, mk a b) :=
+λ c d h, by simpa [-mk_eq_monoid_of_mk', mk_eq_mk_iff, r_iff_exists] using h
+
+end localization
+
 /-! ### Order -/
 
 namespace localization
@@ -1472,8 +1482,8 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
       mul_left_comm ↑b₂, mul_lt_mul_iff_left],
   end⟩
 
-@[ to_additive] lemma mk_le_mk : mk a₁ a₂ ≤ mk b₁ b₂ ↔ ↑b₂ * a₁ ≤ a₂ * b₁ := iff.rfl
-@[ to_additive] lemma mk_lt_mk : mk a₁ a₂ < mk b₁ b₂ ↔ ↑b₂ * a₁ < a₂ * b₁ := iff.rfl
+@[to_additive] lemma mk_le_mk : mk a₁ a₂ ≤ mk b₁ b₂ ↔ ↑b₂ * a₁ ≤ a₂ * b₁ := iff.rfl
+@[to_additive] lemma mk_lt_mk : mk a₁ a₂ < mk b₁ b₂ ↔ ↑b₂ * a₁ < a₂ * b₁ := iff.rfl
 
 @[to_additive] instance : ordered_cancel_comm_monoid (localization s) :=
 { le_refl := λ a, localization.induction_on a $ λ a, le_rfl,
@@ -1503,6 +1513,12 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
       exact le_of_mul_le_mul_left' hab,
     end,
   ..localization.comm_monoid _, ..localization.has_le, ..localization.has_lt }
+
+/-- An ordered cancellative monoid injects into its localization. -/
+@[simps] def mk_order_embedding (b : s) : α ↪o localization s :=
+{ to_fun := λ a, mk a b,
+  inj' := mk_left_injective _,
+  map_rel_iff' := λ a b, by simp [-mk_eq_monoid_of_mk', mk_le_mk] }
 
 end ordered_cancel_comm_monoid
 

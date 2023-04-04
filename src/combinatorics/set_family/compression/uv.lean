@@ -166,8 +166,8 @@ variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _ _)]
 local attribute [instance] decidable_eq_of_decidable_le
 
 /-- UV-compressing `a` means removing `v` from it and adding `u` if `a` and `u` are disjoint and
-`v ≤ a` (in some sense, it replaces the `u` part of `a` by the `v` part). Else, UV-compressing `a`
-doesn't do anything. This is most useful when `u` and `v` are disjoint finsets of same size. -/
+`v ≤ a` (it replaces the `v` part of `a` by the `u` part). Else, UV-compressing `a` doesn't do
+anything. This is most useful when `u` and `v` are disjoint finsets of the same size. -/
 def compress (u v a : α) : α := if disjoint u a ∧ v ≤ a then (a ⊔ u) \ v else a
 
 /-- To UV-compress a set family, we compress each of its elements, except that we don't want to

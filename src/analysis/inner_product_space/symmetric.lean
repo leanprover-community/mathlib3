@@ -164,7 +164,7 @@ begin
   rcases @I_mul_I_ax 𝕜 _ with (h | h),
   { simp_rw [h, zero_mul, sub_zero, add_zero, map_add, map_sub, inner_add_left,
              inner_add_right, inner_sub_left, inner_sub_right, hT x _,
-             ← inner_conj_sym x (T y)],
+             ← inner_conj_symm x (T y)],
     suffices : (re ⟪T y, x⟫ : 𝕜) = ⟪T y, x⟫,
     { rw eq_conj_iff_re.mpr this,
       ring_nf, },

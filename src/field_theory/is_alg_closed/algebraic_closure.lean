@@ -264,6 +264,6 @@ instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
 
 instance : normal k (algebraic_closure k) :=
-  is_alg_closure.normal (algebraic_closure.is_alg_closure _)
+is_alg_closure.normal (algebraic_closure.is_alg_closure _)
 
 end algebraic_closure

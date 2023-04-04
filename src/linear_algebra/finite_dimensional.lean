@@ -157,7 +157,8 @@ instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K 
 begin
   letI : is_noetherian K V := iff_fg.2 _,
   exact iff_fg.1
-    (is_noetherian.iff_rank_lt_aleph_0.2 (lt_of_le_of_lt (rank_submodule_le _) (rank_lt_aleph_0 K V))),
+    (is_noetherian.iff_rank_lt_aleph_0.2
+      (lt_of_le_of_lt (rank_submodule_le _) (rank_lt_aleph_0 K V))),
   apply_instance,
 end
 
@@ -582,7 +583,8 @@ variables [division_ring K] [add_comm_group V] [module K V]
 
 open finite_dimensional
 
-lemma finite_dimensional_of_rank_eq_nat {n : ℕ} (h : module.rank K V = n) : finite_dimensional K V :=
+lemma finite_dimensional_of_rank_eq_nat {n : ℕ} (h : module.rank K V = n) :
+  finite_dimensional K V :=
 begin
   rw [finite_dimensional, ← is_noetherian.iff_fg, is_noetherian.iff_rank_lt_aleph_0, h],
   exact nat_lt_aleph_0 n,

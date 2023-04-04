@@ -199,8 +199,9 @@ calc module.rank K (R σ K) =
   ... = fintype.card (σ → K) : cardinal.mk_fintype _
 
 instance [finite σ] : finite_dimensional K (R σ K) :=
-by { casesI nonempty_fintype σ, exact is_noetherian.iff_fg.1 (is_noetherian.iff_rank_lt_aleph_0.mpr $
-  by simpa only [rank_R] using cardinal.nat_lt_aleph_0 (fintype.card (σ → K))) }
+by { casesI nonempty_fintype σ,
+  exact is_noetherian.iff_fg.1 (is_noetherian.iff_rank_lt_aleph_0.mpr $
+    by simpa only [rank_R] using cardinal.nat_lt_aleph_0 (fintype.card (σ → K))) }
 
 lemma finrank_R [fintype σ] : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=
 finite_dimensional.finrank_eq_of_rank_eq (rank_R σ K)

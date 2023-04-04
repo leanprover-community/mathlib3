@@ -169,7 +169,8 @@ begin
   rwa [linear_map.range_comp, range_subtype] at h,
 end
 
-lemma rank_map_le (f : M →ₗ[R] M₁) (p : submodule R M) : module.rank R (p.map f) ≤ module.rank R p :=
+lemma rank_map_le (f : M →ₗ[R] M₁) (p : submodule R M) :
+  module.rank R (p.map f) ≤ module.rank R p :=
 by simpa using lift_rank_map_le f p
 
 lemma rank_le_of_submodule (s t : submodule R M) (h : s ≤ t) :
@@ -1146,7 +1147,8 @@ end
 lemma rank_sup_add_rank_inf_eq (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) + module.rank K (s ⊓ t : submodule K V) =
     module.rank K s + module.rank K t :=
-rank_add_rank_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
+rank_add_rank_split
+  (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
     rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), submodule.map_sup, submodule.map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,

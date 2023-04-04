@@ -50,38 +50,51 @@ begin
   set Hs := s.mul_stab with hHs,
   set Ht := t.mul_stab with hHt,
   set H := Hs * Ht with hH,
+  have hHs : Hs.nonempty := hs.mul_stab,
+  have hHt : Ht.nonempty := ht.mul_stab,
+  have hH : H.nonempty := hHs.mul hHt,
   have : Hs ∩ Ht = 1,
   { sorry },
   have : H.card = Hs.card * Ht.card,
   { refine card_mul_iff.2 (λ a ha b hb hab, _),
     sorry },
+  suffices : Hs.card - H.card ≤ (s \ t).card ∨ Ht.card - H.card ≤ (t \ s).card,
+  { sorry },
   set k : α → ℕ := sorry,
   set l : α → ℕ := sorry,
+  have hkt : ∀ a, k a ≤ Ht.card := sorry,
+  have hls : ∀ a, l a ≤ Hs.card := sorry,
   have hk : ∀ a, (s \ t ∩ a • H).card = k a * (Hs.card - l a),
   { sorry },
   have hl : ∀ a, (t \ s ∩ a • H).card = l a * (Ht.card - k a),
   { sorry },
-  suffices :
-    ∃ a : α, Hs.card - H.card ≤ (s \ t ∩ a • H).card ∨ Ht.card - H.card ≤ (t \ s ∩ a • H).card,
-  { sorry },
-  by_cases hkl : ∃ a, k a ≠ 0 ∧ k a < Ht.card ∧ l a ≠ 0 ∧ l a < Hs.card,
-  { obtain ⟨a, hka, hka', hla, hla'⟩ := hkl,
-    have hHst :
-      (Hs.card - 1) * (Ht.card - 1) ≤ (s \ t ∩ a • H).card * (t \ s ∩ a • H).card,
-    { rw [hk, hl, mul_comm (k a), mul_mul_mul_comm, mul_comm (k a)],
-      refine le_trans _ (mul_le_mul' (nat.add_sub_one_le_mul (tsub_pos_of_lt hla').ne' hla) $
-        nat.add_sub_one_le_mul (tsub_pos_of_lt hka').ne' hka),
-      rw [tsub_add_cancel_of_le hka'.le, tsub_add_cancel_of_le hla'.le] },
-    obtain h | h : Hs.card - 1 ≤ (s \ t ∩ a • H).card ∨ Ht.card - 1 ≤ (t \ s ∩ a • H).card,
-    { by_contra',
-      exact hHst.not_lt (mul_lt_mul_of_lt_of_lt'' this.1 this.2) },
-    { exact ⟨a, or.inl $
-        (tsub_le_tsub_left (one_le_card.2 $ hs.mul_stab.mul ht.mul_stab) _).trans h⟩ },
-    { exact ⟨a, or.inr $
-        (tsub_le_tsub_left (one_le_card.2 $ hs.mul_stab.mul ht.mul_stab) _).trans h⟩ } },
-  by_cases hk : ∃ a, k a = 0,
-  sorry,
-  sorry,
+  by_cases hkl : (∀ a, k a = 0 ∨ k a = Ht.card ∨ l a = 0 ∨ l a = Hs.card) ∧
+    ((∀ a, k a = 0 → l a = 0) ∨ ∀ a, l a = 0 → k a = 0),
+  { obtain ⟨hkl, hkl' | hkl'⟩ := hkl,
+    { refine or.inl ((tsub_eq_zero_of_le $ card_mono _).trans_le zero_le'),
+      sorry },
+    { refine or.inr ((tsub_eq_zero_of_le $ card_mono _).trans_le zero_le'),
+      sorry } },
+  suffices hHst : (Hs.card - 1) * (Ht.card - 1) ≤ (s \ t).card * (t \ s).card,
+  { by_contra',
+    exact hHst.not_lt (mul_lt_mul_of_lt_of_lt''
+      (this.1.trans_le $ tsub_le_tsub_left (one_le_card.2 hH) _) $
+      this.2.trans_le $ tsub_le_tsub_left (one_le_card.2 hH) _) },
+  simp only [not_and_distrib, not_or_distrib, not_forall, not_ne_iff, not_imp] at hkl,
+  obtain ⟨a, hka, hka', hla, hla'⟩ | ⟨⟨a, hka, hla⟩, b, hlb, hkb⟩ := hkl,
+  { refine le_trans _ (mul_le_mul' (card_mono $ inter_subset_left _ $ a • H) $
+      card_mono $ inter_subset_left _ $ a • H),
+    rw [hk, hl, mul_comm (k a), mul_mul_mul_comm, mul_comm (k a)],
+    refine le_trans _ (mul_le_mul' (nat.add_sub_one_le_mul (tsub_pos_of_lt $
+      (hls _).lt_of_ne hla').ne' hla) $ nat.add_sub_one_le_mul
+      (tsub_pos_of_lt $ (hkt _).lt_of_ne hka').ne' hka),
+    rw [tsub_add_cancel_of_le (hkt _), tsub_add_cancel_of_le (hls _)] },
+  refine mul_le_mul' (tsub_le_self.trans $ le_trans _ $ card_mono $ inter_subset_left _ $ b • H)
+    (tsub_le_self.trans $ le_trans _ $ card_mono $ inter_subset_left _ $ a • H),
+  { rw [hk, hlb, tsub_zero],
+    exact le_mul_of_one_le_left' (pos_iff_ne_zero.2 hkb) },
+  { rw [hl, hka, tsub_zero],
+    exact le_mul_of_one_le_left' (pos_iff_ne_zero.2 hla) }
 end
 
 -- Lemma 3.4 in Ruzsa's notes
@@ -123,9 +136,9 @@ begin
   refine (le_inf' ht.attach _ $ λ b _, _).trans (le_card_sup_add_card_mul_stab_sup _),
   rw ←hstcard b,
   refine add_le_add (card_le_card_mul_right _ ⟨_, hbt' _⟩)
-    ((card_le_of_subset $ subset_mul_stab_mul_left ⟨_, hbt' _⟩).trans' _),
+    ((card_mono $ subset_mul_stab_mul_left ⟨_, hbt' _⟩).trans' _),
   rw ←card_smul_finset (b : α)⁻¹ (t' _),
-  refine card_le_of_subset ((mul_subset_left_iff $ hs.mono $ hs' _).1 _),
+  refine card_mono ((mul_subset_left_iff $ hs.mono $ hs' _).1 _),
   refine mul_subset_iff_left.2 (λ c hc, _),
   rw ←mul_smul,
   refine smul_finset_subset_iff.2 ((inter_eq_left_iff_subset _ _).1 $

@@ -127,8 +127,8 @@ begin
   -- `(s'', t'')` are both strictly smaller than `(s, t)` according to `devos_mul_rel`.
   replace hsg : (s ∩ op g • s).card < s.card := card_lt_card ⟨inter_subset_left _ _, λ h, hsg $
     eq_of_superset_of_card_ge (h.trans $ inter_subset_right _ _) (card_smul_finset _ _).le⟩,
-  replace aux1 := card_le_of_subset (mul_e_transform_left.fst_mul_snd_subset g (s, t)),
-  replace aux2 := card_le_of_subset (mul_e_transform_right.fst_mul_snd_subset g (s, t)),
+  replace aux1 := card_mono (mul_e_transform_left.fst_mul_snd_subset g (s, t)),
+  replace aux2 := card_mono (mul_e_transform_right.fst_mul_snd_subset g (s, t)),
   -- If the left translate of `t` by `g⁻¹` is disjoint from `t`, then we're easily done.
   obtain hgt | hgt := disjoint_or_nonempty_inter t (g⁻¹ • t),
   { rw ←card_smul_finset g⁻¹ t,
@@ -176,7 +176,7 @@ begin
   suffices : (s * {t.min' ht}) ∩ ({s.max' hs} * t) = {s.max' hs * t.min' ht},
   { rw [←card_singleton_mul t (s.max' hs), ←card_mul_singleton s (t.min' ht),
     ←card_union_add_card_inter, ←card_singleton _, ←this, nat.add_sub_cancel],
-    exact card_le_of_subset (union_subset (mul_subset_mul_left $ singleton_subset_iff.2 $
+    exact card_mono (union_subset (mul_subset_mul_left $ singleton_subset_iff.2 $
       min'_mem _ _) $ mul_subset_mul_right $ singleton_subset_iff.2 $ max'_mem _ _) },
   refine eq_singleton_iff_unique_mem.2 ⟨mem_inter.2 ⟨mul_mem_mul (max'_mem _ _) $
     mem_singleton_self _, mul_mem_mul (mem_singleton_self _) $ min'_mem _ _⟩, _⟩,

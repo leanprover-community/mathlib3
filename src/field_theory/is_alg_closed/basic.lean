@@ -169,9 +169,11 @@ theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
-theorem is_alg_closure.normal {R K : Type*} [field R] [field K] [algebra R K]
-  (h : is_alg_closure R K) : normal R K :=
-⟨h.algebraic, λ _, @is_alg_closed.splits_codomain _ _ _ h.alg_closed _ _ _⟩
+@[priority 100]
+instance is_alg_closure.normal (R K : Type*) [field R] [field K] [algebra R K] [is_alg_closure R K]:
+  normal R K :=
+⟨is_alg_closure.algebraic, λ _,
+  @is_alg_closed.splits_codomain _ _ _ (is_alg_closure.alg_closed R) _ _ _⟩
 
 namespace lift
 

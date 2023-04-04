@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import field_theory.normal
+import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
 import field_theory.fixed
 import group_theory.group_action.fixing_subgroup
@@ -424,3 +424,13 @@ end
 end is_galois
 
 end galois_equivalent_definitions
+
+section is_alg_closure
+
+lemma is_alg_closure.galois {R K : Type*} [field R] [field K] [algebra R K]
+  (h : is_alg_closure R K) : is_galois R K :=
+-- ⟨h.algebraic, λ _, @is_alg_closed.splits_codomain _ _ _ h.alg_closed _ _ _⟩
+
+instance : is_galois K (algebraic_closure K) :=
+  is_alg_closure.normal (algebraic_closure.is_alg_closure _)
+end is_alg_closure

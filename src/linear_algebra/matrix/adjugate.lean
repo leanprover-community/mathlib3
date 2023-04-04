@@ -40,8 +40,9 @@ cramer, cramer's rule, adjugate
 -/
 
 namespace matrix
-universes u v
-variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
+universes u v w
+variables {m : Type u} {n : Type v} {α : Type w}
+variables [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] [comm_ring α]
 open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
@@ -151,6 +152,18 @@ calc ∑ x in s, cramer A (λ j, f j x) i
 ... = cramer A (λ (j : n), ∑ x in s, f j x) i :
   by { rw [sum_cramer, cramer_apply], congr' with j, apply finset.sum_apply }
 
+lemma cramer_submatrix_equiv (A : matrix m m α) (e : n ≃ m) (b : n → α) :
+  cramer (A.submatrix e e) b = cramer A (b ∘ e.symm) ∘ e :=
+begin
+  ext i,
+  simp_rw [function.comp_apply, cramer_apply, update_column_submatrix_equiv,
+    det_submatrix_equiv_self e],
+end
+
+lemma cramer_reindex (e : m ≃ n) (A : matrix m m α) (b : n → α) :
+  cramer (reindex e e A) b = cramer A (b ∘ e) ∘ e.symm :=
+cramer_submatrix_equiv _ _ _
+
 end cramer
 
 section adjugate
@@ -208,6 +221,20 @@ begin
     intro h',
     exact h ((symm_apply_eq σ).mp h') }
 end
+
+lemma adjugate_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
+  adjugate (A.submatrix e e) = (adjugate A).submatrix e e :=
+begin
+  ext i j,
+  rw [adjugate_apply, submatrix_apply, adjugate_apply, ← det_submatrix_equiv_self e,
+    update_row_submatrix_equiv],
+  congr,
+  exact function.update_comp_equiv _ e.symm _ _,
+end
+
+lemma adjugate_reindex (e : m ≃ n) (A : matrix m m α) :
+  adjugate (reindex e e A) = reindex e e (adjugate A) :=
+adjugate_submatrix_equiv_self _ _
 
 /-- Since the map `b ↦ cramer A b` is linear in `b`, it must be multiplication by some matrix. This
 matrix is `A.adjugate`. -/

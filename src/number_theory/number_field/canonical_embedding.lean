@@ -34,7 +34,7 @@ variables (K : Type*) [field K]
 
 namespace number_field.canonical_embedding
 
-/-- The ambiant space `ℝ^r₁ × ℂ^r₂` with `(r₁, r₂)` the signature of `K`. -/
+/-- The ambient space `ℝ^r₁ × ℂ^r₂` with `(r₁, r₂)` the signature of `K`. -/
 @[reducible] def space :=
 ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)
 

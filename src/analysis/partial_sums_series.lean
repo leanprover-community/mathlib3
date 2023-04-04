@@ -28,11 +28,8 @@ begin
   exact finset.not_mem_range_self
 end
 
-def series_sums_to {R : Type u} [add_comm_monoid R] [topological_space R] (f : ℕ → R) (a : R) :=
-filter.tendsto (partial_sum f) filter.at_top (𝓝 a)
-
 def series_converges {R : Type u} [add_comm_monoid R] [topological_space R] (f : ℕ → R) :=
-∃ a : R, series_sums_to f a
+∃ a : R, filter.tendsto (partial_sum f) filter.at_top (𝓝 a)
 
 def series_converges_absolutely {R : Type u} [add_comm_monoid R] [topological_space R] [has_abs R] (f : ℕ → R) :=
 series_converges (λ x, |f x|)
@@ -95,7 +92,6 @@ begin
   -- within that neighbourhood. Because `W[T]` is a neighbourhood of `T`, we use this to find our
   -- desired `N`.
   cases h with T h,
-  unfold series_sums_to at h,
   rw filter.tendsto_def at h,
   specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
   obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,

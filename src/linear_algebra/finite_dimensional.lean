@@ -168,13 +168,10 @@ module.finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 variables (K V)
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
-`finrank`. -/
+`finrank`. This is a copy of `finrank_eq_rank _ _` which creates easier typeclass searches. -/
 lemma finrank_eq_dim [finite_dimensional K V] :
   (finrank K V : cardinal.{v}) = module.rank K V :=
-begin
-  letI : is_noetherian K V := iff_fg.2 infer_instance,
-  rw [finrank, cast_to_nat_of_lt_aleph_0 (dim_lt_aleph_0 K V)]
-end
+finrank_eq_rank _ _
 variables {K V}
 
 lemma finrank_of_infinite_dimensional (h : ¬finite_dimensional K V) : finrank K V = 0 :=
@@ -252,7 +249,7 @@ lemma cardinal_mk_le_finrank_of_linear_independent
   #ι ≤ finrank K V :=
 begin
   rw ← lift_le.{_ (max v w)},
-  simpa [← finrank_eq_dim, -module.free.finrank_eq_rank] using
+  simpa [← finrank_eq_dim, -finrank_eq_rank] using
     cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max v w)} h
 end
 
@@ -371,7 +368,7 @@ end
 /-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
 lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map f) ≤ finrank K p :=
-by simpa [← finrank_eq_dim, -module.free.finrank_eq_rank] using lift_dim_map_le f p
+by simpa [← finrank_eq_dim, -finrank_eq_rank] using lift_dim_map_le f p
 
 variable {K}
 

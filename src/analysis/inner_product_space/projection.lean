@@ -1234,7 +1234,7 @@ begin
   { refine (finset.sum_eq_single_of_mem i (finset.mem_univ _) $ λ j _ hij, _).trans
       (orthogonal_projection_eq_self_iff.mpr hx),
     rw [orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero, submodule.coe_zero],
-    exact hV.le_orthogonal hij.symm hx },
+    exact hV.is_ortho hij.symm hx },
   { simp_rw [map_zero, submodule.coe_zero, finset.sum_const_zero] },
   { simp_rw [map_add, submodule.coe_add, finset.sum_add_distrib],
     exact congr_arg2 (+) hx hy },
@@ -1254,7 +1254,7 @@ begin
     { rw [orthogonal_projection_mem_subspace_eq_self, dfinsupp.single_eq_same] },
     { rw [orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
         dfinsupp.single_eq_of_ne hij.symm],
-      exact hV.le_orthogonal hij.symm x.prop } },
+      exact hV.is_ortho hij.symm x.prop } },
   { simp_rw [map_add, dfinsupp.add_apply],
     exact congr_arg2 (+) hx hy },
 end

@@ -82,7 +82,7 @@ by rw [sub_eq_add_neg, add_right_inj, neg_eq]
 
 @[priority 100] -- Note [lower instance priority]
 instance boolean_ring.to_comm_ring : comm_ring α :=
-{ mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
+{ mul_comm := λ a b, by rw [←add_eq_zero', mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
 end boolean_ring

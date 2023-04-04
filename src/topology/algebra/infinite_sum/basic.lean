@@ -1295,7 +1295,9 @@ variables {M : Type*} [topological_space M] [add_comm_monoid M] [t2_space M] {R 
 
 /-- Given a group `α` acting on a type `β`, and a function `f : β → M`, we "automorphize" `f` to a
   function `β ⧸ α → M` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
-@[to_additive]
+@[to_additive "Given an additive group `α` acting on a type `β`, and a function `f : β → M`,
+  we automorphize `f` to a function `β ⧸ α → M` by summing over `α` orbits,
+  `b ↦ ∑' (a : α), f(a • b)`."]
 def mul_action.automorphize [group α] [mul_action α β] (f : β → M) :
   quotient (mul_action.orbit_rel α β) → M :=
 @quotient.lift _ _ (mul_action.orbit_rel α β) (λ b, ∑' (a : α), f(a • b))
@@ -1334,7 +1336,9 @@ variables {G : Type*} [group G] {Γ : subgroup G}
 
 /-- Given a subgroup `Γ` of a group `G`, and a function `f : G → M`, we "automorphize" `f` to a
   function `G ⧸ Γ → M` by summing over `Γ` orbits, `g ↦ ∑' (γ : Γ), f(γ • g)`. -/
-@[to_additive]
+@[to_additive "Given a subgroup `Γ` of an additive group `G`, and a function `f : G → M`, we
+  automorphize `f` to a function `G ⧸ Γ → M` by summing over `Γ` orbits,
+  `g ↦ ∑' (γ : Γ), f(γ • g)`."]
 def quotient_group.automorphize  (f : G → M) : G ⧸ Γ → M := mul_action.automorphize f
 
 /-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`

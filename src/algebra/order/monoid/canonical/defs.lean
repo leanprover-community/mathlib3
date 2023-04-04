@@ -138,6 +138,8 @@ le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 @[to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
 
+--TODO: This is a special case of `mul_eq_one`. We need the instance
+-- `canonically_ordered_monoid α → unique αˣ`
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 mul_eq_one_iff' (one_le _) (one_le _)
 

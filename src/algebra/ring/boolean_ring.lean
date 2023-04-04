@@ -63,7 +63,7 @@ calc -a = -a + 0      : by rw add_zero
     ... = -a + -a + a : by rw [←neg_add_self, add_assoc]
     ... = a           : by rw [add_self, zero_add]
 
-lemma add_eq_zero : a + b = 0 ↔ a = b :=
+lemma add_eq_zero' : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 

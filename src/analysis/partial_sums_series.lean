@@ -19,7 +19,7 @@ def partial_sum {R : Type u} [add_comm_monoid R] (f : ℕ → R) (n : ℕ) :=
 lemma partial_sum_zero (R : Type u) [add_comm_monoid R] (n : ℕ) : partial_sum (λ _ : ℕ, 0) n = 0 :=
 finset.sum_eq_zero (λ _ _, rfl)
 
-lemma partial_sum_next {R : Type u} [add_comm_monoid R] {f : ℕ → R} (n : ℕ) :
+lemma partial_sum_next {R : Type u} [add_comm_monoid R] (f : ℕ → R) (n : ℕ) :
   partial_sum f (n + 1) = f n + partial_sum f n :=
 begin
   unfold partial_sum,
@@ -49,23 +49,8 @@ begin
   intros b hb,
   exact h (b + 1) (nat.le_succ_of_le hb)
 end
-/--/
-lemma uniform_group_swap (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R]
-  [uniform_space R] [uniform_add_group R] {V : set (R × R)} (hV : V ∈ uniformity R) {x y : R}
-  (h : (x, y) ∈ V) : (y, x) ∈ V :=
-begin
-  rw uniformity_eq_comap_nhds_zero R at hV,
-  --rw filter.mem_comap at hV,
-  --rcases hV with ⟨t, ht₁, ht₂⟩,
-  --rw mem_interior at h,
-  --rcases h with ⟨u, hu₁, hu₂, hu₃⟩,
-  --apply ht₂,
-  --rw set.mem_preimage,
-  --change x - y ∈ t,
-end
--/
 
-lemma terms_tendtso_zero' (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
+lemma terms_tendsto_zero (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
   (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
   letI φ : uniform_space R := topological_add_group.to_uniform_space R,
@@ -104,7 +89,7 @@ begin
   specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
   obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
 
-  use N + 1,
+  use N,
   intros n hn,
   rw set.mem_preimage,
 
@@ -114,83 +99,23 @@ begin
   apply ht₂,
   rw set.mem_preimage,
   change a n - 0 ∈ t,
-  rw (show a n - 0 = partial_sum a n - partial_sum a (n - 1), by sorry),
+  rw sub_zero,
+  rw (show a n = partial_sum a (n + 1) - partial_sum a n, by simp [partial_sum_next a n]),
 
-  change m (partial_sum a (n - 1), partial_sum a n) ∈ t,
+  change m (partial_sum a n, partial_sum a (n + 1)) ∈ t,
   rw ←set.mem_preimage,
 
   have hn₁ := set.mem_preimage.mp (hN n (by linarith)),
-  have hn₂ := set.mem_preimage.mp (hN (n - 1) sorry),
+  have hn₂ := set.mem_preimage.mp (hN (n + 1) (by linarith)),
 
-  unfold uniform_space.ball at hn₁ hn₂,
-  rw set.mem_preimage at hn₁ hn₂,
-  rw symmetric_rel.mk_mem_comm hW₂ at hn₂,
-  replace hn₁ := hW₃ hn₁,
-  replace hn₂ := hW₃ hn₂,
-  have : (partial_sum a (n - 1), partial_sum a n) ∈ comp_rel X X := mem_comp_rel.mpr ⟨T, ⟨hn₂, hn₁⟩⟩,
-  have : (partial_sum a (n - 1), partial_sum a n) ∈ m ⁻¹' t := hX₂ this,
-  exact this,
-end
-
-lemma terms_tendsto_zero (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R]
-  [uniform_space R] [uniform_add_group R] (s : ℕ → R) (T : R) (h : filter.tendsto s filter.at_top (nhds T))
-  (V : set (R × R)) (hV : V ∈ uniformity R)
-  : ∃ N : ℕ, ∀ n : ℕ, N ≤ n → (s n, s (n - 1)) ∈ V :=
-begin
-  --letI φ : uniform_space R := topological_add_group.to_uniform_space R,
-  --haveI hφ : uniform_add_group R := topological_add_comm_group_is_uniform,
-
-  --unfold series_converges at h,
-  --cases h with T h,
-  --unfold series_sums_to at h,
-  rw filter.tendsto_def at h,
-  --rw tendsto_at_top_nhds at h,
-
-  --rw filter.tendsto_def,
-  --intros Z hZ,
-  --rw uniform_space.mem_nhds_iff at hZ,
-  --rcases hZ with ⟨U, hU₁, hU₂⟩,
-  --obtain ⟨V, hV₁, hV₂⟩ := comp_mem_uniformity_sets hU₁,
-  let W := symmetrize_rel V,
-  have hW₁ : W ∈ uniformity R := symmetrize_mem_uniformity hV,
-  have hW₂ : symmetric_rel W := symmetric_symmetrize_rel V,
-  have hW₃ : W ⊆ V := symmetrize_rel_subset_self V,
-  --rw uniformity_eq_comap_nhds_zero R at hV₁,
-  --rw filter.mem_comap at hV₁,
-  --obtain ⟨t, ht₁, ht₂⟩ := hV₁,
-
-  --specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
-  --specialize h (interior (uniform_space.ball T V)) (interior_mem_nhds.mpr (uniform_space.ball_mem_nhds T hV₁)),
-  --obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
-
-  --rw filter.mem_at_top_sets,
-  use N + 1,
-  intros n hn,
-  rw set.mem_preimage,
-
-  have hn₁ := set.mem_preimage.mp (hN n (by linarith)),
-  have hn₂ := set.mem_preimage.mp (hN (n - 1) sorry),
   unfold uniform_space.ball at hn₁ hn₂,
   rw set.mem_preimage at hn₁ hn₂,
   rw symmetric_rel.mk_mem_comm hW₂ at hn₁,
   replace hn₁ := hW₃ hn₁,
   replace hn₂ := hW₃ hn₂,
-  have : (partial_sum a n, partial_sum a (n - 1)) ∈ comp_rel V V := mem_comp_rel.mpr ⟨T, ⟨hn₁, hn₂⟩⟩,
-  have : (partial_sum a n, partial_sum a (n - 1)) ∈ U := hV₂ this,
-  --rw uniformity_eq_comap_nhds_zero R at hV₁,
-  --rw filter.mem_comap at hV₁,
-  --specialize h (uniform_space.ball T V) (uniform_space.mem_ball_self T hV₁) (uniform_space.is_open_ball T _),
-  --rw tendsto_at_top_nhds,
-  --intros Z hZ₁ hZ₂,
-
-  apply hU₂,
-  unfold uniform_space.ball,
-  rw set.mem_preimage,
-
-  rw uniformity_eq_comap_nhds_zero R at hU₁,
-  rw filter.mem_comap' at hU₁,
-  --rcases hU₁ with ⟨t, ht₁, ht₂⟩,
-  sorry
+  have : (partial_sum a n, partial_sum a (n + 1)) ∈ comp_rel X X := mem_comp_rel.mpr ⟨T, ⟨hn₁, hn₂⟩⟩,
+  have : (partial_sum a n, partial_sum a (n + 1)) ∈ m ⁻¹' t := hX₂ this,
+  exact this,
 end
 
 lemma seq_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=

@@ -427,10 +427,11 @@ end galois_equivalent_definitions
 
 section is_alg_closure
 
-lemma is_alg_closure.galois {R K : Type*} [field R] [field K] [algebra R K]
-  (h : is_alg_closure R K) : is_galois R K :=
--- ⟨h.algebraic, λ _, @is_alg_closed.splits_codomain _ _ _ h.alg_closed _ _ _⟩
+@[priority 100]
+instance is_alg_closure.is_galois (k K : Type*) [field k] [field K] [algebra k K]
+  [is_alg_closure k K] [char_zero k] : is_galois k K := { }
 
-instance : is_galois K (algebraic_closure K) :=
-  is_alg_closure.normal (algebraic_closure.is_alg_closure _)
+instance (k : Type*) [field k] [char_zero k] : is_galois k (algebraic_closure k) :=
+is_alg_closure.is_galois _ _
+
 end is_alg_closure

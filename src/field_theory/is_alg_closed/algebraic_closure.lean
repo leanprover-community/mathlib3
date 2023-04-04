@@ -265,4 +265,6 @@ instance : is_alg_closure k (algebraic_closure k) :=
 
 instance : normal k (algebraic_closure k) := is_alg_closure.normal _ _
 
+instance [char_zero k] : is_separable k (algebraic_closure k) := is_alg_closure.separable _ _
+
 end algebraic_closure

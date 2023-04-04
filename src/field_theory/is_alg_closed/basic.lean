@@ -175,6 +175,13 @@ instance is_alg_closure.normal (R K : Type*) [field R] [field K] [algebra R K] [
 ⟨is_alg_closure.algebraic, λ _,
   @is_alg_closed.splits_codomain _ _ _ (is_alg_closure.alg_closed R) _ _ _⟩
 
+@[priority 100]
+instance is_alg_closure.separable (R K : Type*) [field R] [field K] [algebra R K]
+[is_alg_closure R K] [char_zero R] :
+  is_separable R K :=
+⟨λ _, is_algebraic_iff_is_integral.mp (is_alg_closure.algebraic _), λ _, (minpoly.irreducible
+  (is_algebraic_iff_is_integral.mp (is_alg_closure.algebraic _))).separable⟩
+
 namespace lift
 
 /- In this section, the homomorphism from any algebraic extension into an algebraically

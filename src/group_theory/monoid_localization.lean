@@ -1514,8 +1514,9 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
     end,
   ..localization.comm_monoid _, ..localization.has_le, ..localization.has_lt }
 
-/-- An ordered cancellative monoid injects into its localization. -/
-@[simps] def mk_order_embedding (b : s) : α ↪o localization s :=
+/-- An ordered cancellative monoid injects into its localization by sending `a` to `a / b`. -/
+@[to_additive "An ordered cancellative monoid injects into its localization by sending `a` to
+`a - b`.", simps] def mk_order_embedding (b : s) : α ↪o localization s :=
 { to_fun := λ a, mk a b,
   inj' := mk_left_injective _,
   map_rel_iff' := λ a b, by simp [-mk_eq_monoid_of_mk', mk_le_mk] }

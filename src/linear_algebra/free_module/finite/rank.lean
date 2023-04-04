@@ -140,4 +140,10 @@ lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule 
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   (rank_lt_aleph_0 _ _) (dim_submodule_le s)
 
+/-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
+lemma submodule.finrank_quotient_le [module.free R M] [module.finite R M] (s : submodule R M) :
+  finrank R (M ⧸ s) ≤ finrank R M :=
+by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
+  (rank_lt_aleph_0 _ _) ((submodule.mkq s).dim_le_of_surjective (surjective_quot_mk _))
+
 end

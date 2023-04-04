@@ -694,17 +694,6 @@ begin
   exact submodule.finite_dimensional_finset_sup _ _,
 end
 
-/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
-lemma finrank_le [finite_dimensional K V] (s : submodule K V) : finrank K s ≤ finrank K V :=
-by simpa only [cardinal.nat_cast_le, ←finrank_eq_dim] using
-  s.subtype.dim_le_of_injective (injective_subtype s)
-
-/-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
-lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
-  finrank K (V ⧸ s) ≤ finrank K V :=
-by simpa only [cardinal.nat_cast_le, ←finrank_eq_dim] using
-  (mkq s).dim_le_of_surjective (surjective_quot_mk _)
-
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
 theorem finrank_quotient_add_finrank [finite_dimensional K V] (s : submodule K V) :

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.nat.order.basic
+import data.nat.units
 import data.set.basic
 import algebra.ring.divisibility
 import algebra.group_with_zero.divisibility

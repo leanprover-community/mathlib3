@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
+import algebra.direct_sum.decomposition
 
 /-! # Spectral theory of self-adjoint operators
 
@@ -130,6 +131,22 @@ show (⨆ μ : {μ // (eigenspace T μ) ≠ ⊥}, eigenspace T μ)ᗮ = ⊥,
 by rw [supr_ne_bot_subtype, hT.orthogonal_supr_eigenspaces_eq_bot]
 
 include dec_𝕜
+omit hT
+/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
+an internal direct sum decomposition of `E`. -/
+noncomputable instance direct_sum_decomposition [hT : fact T.is_symmetric] :
+  direct_sum.decomposition (λ μ : eigenvalues T, eigenspace T μ) :=
+begin
+  haveI h : ∀ μ : eigenvalues T, complete_space (eigenspace T μ) := λ μ, by apply_instance,
+  exact hT.out.orthogonal_family_eigenspaces'.decomposition
+    (submodule.orthogonal_eq_bot_iff.mp hT.out.orthogonal_supr_eigenspaces_eq_bot'),
+end
+
+lemma direct_sum_decompose_apply [hT : fact T.is_symmetric] (x : E) (μ : eigenvalues T) :
+  decompose (λ μ : eigenvalues T, eigenspace T μ) x μ = orthogonal_projection (eigenspace T μ) x :=
+rfl
+
+include hT
 
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
 an internal direct sum decomposition of `E`. -/

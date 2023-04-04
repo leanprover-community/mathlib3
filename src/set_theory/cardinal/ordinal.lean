@@ -933,7 +933,7 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (h
   (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
-lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [fintype α]
+lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [finite α]
   {s : set α} {t : set β} (h1 : lift.{v} (#α) = lift.{u} (#β))
   (h2 : lift.{v} (#s) = lift.{u} (#t)) :
   lift.{v} (#(sᶜ : set α)) = lift.{u} (#(tᶜ : set β)) :=

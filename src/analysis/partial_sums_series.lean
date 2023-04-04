@@ -123,9 +123,9 @@ begin
   induction n with n hi,
   { unfold partial_sum,
     simp },
-  calc partial_sum a (n + 1) = a n + partial_sum a n : partial_sum_next n
+  calc partial_sum a (n + 1) = a n + partial_sum a n : partial_sum_next a n
     ... ≤ b n + partial_sum b n : add_le_add (h n) (hi)
-    ... = partial_sum b (n + 1) : (partial_sum_next n).symm
+    ... = partial_sum b (n + 1) : (partial_sum_next b n).symm
 end
 
 lemma cau_seq_of_le (a b : ℕ → ℝ) (h : ∀ n, 0 < a n ∧ a n < b n) (hb : series_converges b) : is_cau_seq abs a :=

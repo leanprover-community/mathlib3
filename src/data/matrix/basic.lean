@@ -1947,11 +1947,11 @@ section update
 
 /-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
 def update_row [decidable_eq m] (M : matrix m n α) (i : m) (b : n → α) : matrix m n α :=
-function.update M i b
+of $ function.update M i b
 
 /-- Update, i.e. replace the `j`th column of matrix `A` with the values in `b`. -/
 def update_column [decidable_eq n] (M : matrix m n α) (j : n) (b : m → α) : matrix m n α :=
-λ i, function.update (M i) j (b i)
+of $ λ i, function.update (M i) j (b i)
 
 variables {M : matrix m n α} {i : m} {j : n} {b : n → α} {c : m → α}
 
@@ -2073,6 +2073,54 @@ end
 lemma diagonal_update_row_single [decidable_eq n] [has_zero α] (v : n → α) (i : n) (x : α):
   (diagonal v).update_row i (pi.single i x) = diagonal (function.update v i x) :=
 by rw [←diagonal_transpose, update_row_transpose, diagonal_update_column_single, diagonal_transpose]
+
+/-! Updating rows and columns commutes in the obvious way with reindexing the matrix. -/
+
+lemma update_row_submatrix_equiv [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : l) (r : o → α) (e : l ≃ m) (f : o ≃ n) :
+  update_row (A.submatrix e f) i r = (A.update_row (e i) (λ j, r (f.symm j))).submatrix e f :=
+begin
+  ext i' j,
+  simp only [submatrix_apply, update_row_apply, equiv.apply_eq_iff_eq, equiv.symm_apply_apply],
+end
+
+lemma submatrix_update_row_equiv [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : m) (r : n → α) (e : l ≃ m) (f : o ≃ n) :
+  (A.update_row i r).submatrix e f = update_row (A.submatrix e f) (e.symm i) (λ i, r (f i)) :=
+eq.trans (by simp_rw equiv.apply_symm_apply) (update_row_submatrix_equiv A _ _ e f).symm
+
+lemma update_column_submatrix_equiv [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : o) (c : l → α) (e : l ≃ m) (f : o ≃ n) :
+  update_column (A.submatrix e f) j c = (A.update_column (f j) (λ i, c (e.symm i))).submatrix e f :=
+by simpa only [←transpose_submatrix, update_row_transpose] using
+  congr_arg transpose (update_row_submatrix_equiv Aᵀ j c f e)
+
+lemma submatrix_update_column_equiv [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : n) (c : m → α) (e : l ≃ m) (f : o ≃ n) :
+  (A.update_column j c).submatrix e f = update_column (A.submatrix e f) (f.symm j) (λ i, c (e i)) :=
+eq.trans (by simp_rw equiv.apply_symm_apply) (update_column_submatrix_equiv A _ _ e f).symm
+
+/-! `reindex` versions of the above `submatrix` lemmas for convenience. -/
+
+lemma update_row_reindex [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : l) (r : o → α) (e : m ≃ l) (f : n ≃ o) :
+  update_row (reindex e f A) i r = reindex e f (A.update_row (e.symm i) (λ j, r (f j))) :=
+update_row_submatrix_equiv _ _ _ _ _
+
+lemma reindex_update_row [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : m) (r : n → α) (e : m ≃ l) (f : n ≃ o) :
+  reindex e f (A.update_row i r) = update_row (reindex e f A) (e i) (λ i, r (f.symm i)) :=
+submatrix_update_row_equiv _ _ _ _ _
+
+lemma update_column_reindex [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : o) (c : l → α) (e : m ≃ l) (f : n ≃ o) :
+  update_column (reindex e f A) j c = reindex e f (A.update_column (f.symm j) (λ i, c (e i))) :=
+update_column_submatrix_equiv _ _ _ _ _
+
+lemma reindex_update_column [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : n) (c : m → α) (e : m ≃ l) (f : n ≃ o) :
+  reindex e f (A.update_column j c) = update_column (reindex e f A) (f j) (λ i, c (e.symm i)) :=
+submatrix_update_column_equiv _ _ _ _ _
 
 end update
 

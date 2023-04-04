@@ -1885,6 +1885,7 @@ open_locale direct_sum
 The simple way to express this concept would be as a condition on `V : ι → submodule 𝕜 E`.  We
 We instead implement it as a condition on a family of inner product spaces each equipped with an
 isometric embedding into `E`, thus making it a property of morphisms rather than subobjects.
+The connection to the subobject spelling is shown in `orthogonal_family_iff_pairwise`.
 
 This definition is less lightweight, but allows for better definitional properties when the inner
 product space structure on each of the submodules is important -- for example, when considering

@@ -16,8 +16,7 @@ This is a basic API for the rank of finite free modules.
 
 -/
 
---TODO: `linear_algebra/finite_dimensional` should import this file, and a lot of results should
---be moved here.
+--TODO: many results from `linear_algebra/finite_dimensional` should be moved here.
 
 universes u v w
 
@@ -27,7 +26,8 @@ open_locale tensor_product direct_sum big_operators cardinal
 
 open cardinal finite_dimensional fintype
 
-namespace module.free
+namespace finite_dimensional
+open module.free
 
 section ring
 
@@ -111,9 +111,10 @@ by { simp [finrank] }
 
 end comm_ring
 
-end module.free
+end finite_dimensional
 
 section
+open finite_dimensional
 
 variables {R M N}
 variables [ring R] [strong_rank_condition R]
@@ -124,19 +125,19 @@ lemma linear_map.finrank_le_finrank_of_injective
   [module.free R N] [module.finite R N] {f : M →ₗ[R] N} (hf : function.injective f) :
   finrank R M ≤ finrank R N :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  ((lift_strict_mono.{w v} (module.free.rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
+  ((lift_strict_mono.{w v} (rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
   (linear_map.lift_dim_le_of_injective _ hf)
 
 lemma linear_map.finrank_range_le [module.free R M] [module.finite R M] (f : M →ₗ[R] N) :
   finrank R f.range ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  ((lift_strict_mono.{v w} (module.free.rank_lt_aleph_0 R M)).trans_eq lift_aleph_0)
+  ((lift_strict_mono.{v w} (rank_lt_aleph_0 R M)).trans_eq lift_aleph_0)
   (lift_dim_range_le f)
 
 /-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
 lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule R M) :
   finrank R s ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  (module.free.rank_lt_aleph_0 _ _) (dim_submodule_le s)
+  (rank_lt_aleph_0 _ _) (dim_submodule_le s)
 
 end

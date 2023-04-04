@@ -37,7 +37,7 @@ variables [decidable_eq n] [decidable_eq o] [comm_ring R] [field K]
 noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.to_lin'.range
 
 @[simp] lemma rank_one [strong_rank_condition R] : rank (1 : matrix n n R) = fintype.card n :=
-by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, module.free.finrank_pi]
+by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, finrank_pi]
 
 @[simp] lemma rank_zero [nontrivial R] : rank (0 : matrix m n R) = 0 :=
 by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
@@ -46,7 +46,7 @@ lemma rank_le_card_width [strong_rank_condition R] (A : matrix m n R) : A.rank �
 begin
   haveI : module.finite R (n → R) := module.finite.pi,
   haveI : module.free R (n → R) := module.free.pi _ _,
-  exact A.to_lin'.finrank_range_le.trans_eq (module.free.finrank_pi _)
+  exact A.to_lin'.finrank_range_le.trans_eq (finrank_pi _)
 end
 
 lemma rank_le_width [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (fin n) R) :
@@ -102,7 +102,7 @@ lemma rank_le_card_height [strong_rank_condition R] (A : matrix m n R) :
 begin
   haveI : module.finite R (m → R) := module.finite.pi,
   haveI : module.free R (m → R) := module.free.pi _ _,
-  exact (submodule.finrank_le _).trans (module.free.finrank_pi R).le
+  exact (submodule.finrank_le _).trans (finrank_pi R).le
 end
 
 omit m_fin

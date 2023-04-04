@@ -65,36 +65,105 @@ begin
 end
 -/
 
-lemma terms_tendsto_zero (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
+lemma terms_tendtso_zero' (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
   (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
   letI φ : uniform_space R := topological_add_group.to_uniform_space R,
   haveI hφ : uniform_add_group R := topological_add_comm_group_is_uniform,
 
-  unfold series_converges at h,
+  -- It suffices to show that for all neighborhoods of zero Z, There exists a N such that for all
+  -- n ≥ N, a n ∈ Z.
+  rw filter.tendsto_def,
+  intros Z hZ,
+  rw filter.mem_at_top_sets,
+
+  -- Because `Z ∈ 𝓝 0`, there exists an entourage `V` such that `V[0] ⊆ Z`
+  rcases uniform_space.mem_nhds_iff.mp hZ with ⟨V, hV₁, hV₂⟩,
+
+  have h_unif := uniformity_eq_comap_nhds_zero R,
+  rw h_unif at hV₁,
+  rcases filter.mem_comap.mp hV₁ with ⟨t, ht₁, ht₂⟩,
+
+  set m := λ (x : R × R), x.snd - x.fst,
+  have hm : m ⁻¹' t ∈ uniformity R := begin
+    rw h_unif,
+    rw filter.mem_comap,
+    use t,
+    use ht₁,
+  end,
+
+  obtain ⟨X, hX₁, hX₂⟩ := comp_mem_uniformity_sets hm,
+  let W := symmetrize_rel X,
+  have hW₁ : W ∈ uniformity R := symmetrize_mem_uniformity hX₁,
+  have hW₂ : symmetric_rel W := symmetric_symmetrize_rel X,
+  have hW₃ : W ⊆ X := symmetrize_rel_subset_self X,
+
   cases h with T h,
   unfold series_sums_to at h,
   rw filter.tendsto_def at h,
+  specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
+  obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
+
+  use N + 1,
+  intros n hn,
+  rw set.mem_preimage,
+
+  apply hV₂,
+  unfold uniform_space.ball,
+  rw set.mem_preimage,
+  apply ht₂,
+  rw set.mem_preimage,
+  change a n - 0 ∈ t,
+  rw (show a n - 0 = partial_sum a n - partial_sum a (n - 1), by sorry),
+
+  change m (partial_sum a (n - 1), partial_sum a n) ∈ t,
+  rw ←set.mem_preimage,
+
+  have hn₁ := set.mem_preimage.mp (hN n (by linarith)),
+  have hn₂ := set.mem_preimage.mp (hN (n - 1) sorry),
+
+  unfold uniform_space.ball at hn₁ hn₂,
+  rw set.mem_preimage at hn₁ hn₂,
+  rw symmetric_rel.mk_mem_comm hW₂ at hn₂,
+  replace hn₁ := hW₃ hn₁,
+  replace hn₂ := hW₃ hn₂,
+  have : (partial_sum a (n - 1), partial_sum a n) ∈ comp_rel X X := mem_comp_rel.mpr ⟨T, ⟨hn₂, hn₁⟩⟩,
+  have : (partial_sum a (n - 1), partial_sum a n) ∈ m ⁻¹' t := hX₂ this,
+  exact this,
+end
+
+lemma terms_tendsto_zero (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R]
+  [uniform_space R] [uniform_add_group R] (s : ℕ → R) (T : R) (h : filter.tendsto s filter.at_top (nhds T))
+  (V : set (R × R)) (hV : V ∈ uniformity R)
+  : ∃ N : ℕ, ∀ n : ℕ, N ≤ n → (s n, s (n - 1)) ∈ V :=
+begin
+  --letI φ : uniform_space R := topological_add_group.to_uniform_space R,
+  --haveI hφ : uniform_add_group R := topological_add_comm_group_is_uniform,
+
+  --unfold series_converges at h,
+  --cases h with T h,
+  --unfold series_sums_to at h,
+  rw filter.tendsto_def at h,
   --rw tendsto_at_top_nhds at h,
 
-  rw filter.tendsto_def,
-  intros Z hZ,
-  rw uniform_space.mem_nhds_iff at hZ,
-  rcases hZ with ⟨U, hU₁, hU₂⟩,
-  obtain ⟨V, hV₁, hV₂⟩ := comp_mem_uniformity_sets hU₁,
+  --rw filter.tendsto_def,
+  --intros Z hZ,
+  --rw uniform_space.mem_nhds_iff at hZ,
+  --rcases hZ with ⟨U, hU₁, hU₂⟩,
+  --obtain ⟨V, hV₁, hV₂⟩ := comp_mem_uniformity_sets hU₁,
   let W := symmetrize_rel V,
-  have hW₁ : W ∈ uniformity R := symmetrize_mem_uniformity hV₁,
+  have hW₁ : W ∈ uniformity R := symmetrize_mem_uniformity hV,
   have hW₂ : symmetric_rel W := symmetric_symmetrize_rel V,
   have hW₃ : W ⊆ V := symmetrize_rel_subset_self V,
   --rw uniformity_eq_comap_nhds_zero R at hV₁,
   --rw filter.mem_comap at hV₁,
   --obtain ⟨t, ht₁, ht₂⟩ := hV₁,
 
-  specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
+  --specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
   --specialize h (interior (uniform_space.ball T V)) (interior_mem_nhds.mpr (uniform_space.ball_mem_nhds T hV₁)),
-  obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
+  --obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
 
-  rw filter.mem_at_top_sets,
+  --rw filter.mem_at_top_sets,
   use N + 1,
   intros n hn,
   rw set.mem_preimage,
@@ -102,7 +171,6 @@ begin
   have hn₁ := set.mem_preimage.mp (hN n (by linarith)),
   have hn₂ := set.mem_preimage.mp (hN (n - 1) sorry),
   unfold uniform_space.ball at hn₁ hn₂,
-  --rw mem_interior at hn₁ hn₂,
   rw set.mem_preimage at hn₁ hn₂,
   rw symmetric_rel.mk_mem_comm hW₂ at hn₁,
   replace hn₁ := hW₃ hn₁,
@@ -121,8 +189,8 @@ begin
 
   rw uniformity_eq_comap_nhds_zero R at hU₁,
   rw filter.mem_comap' at hU₁,
-  rcases hU₁ with ⟨t, ht₁, ht₂⟩,
-
+  --rcases hU₁ with ⟨t, ht₁, ht₂⟩,
+  sorry
 end
 
 lemma seq_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=

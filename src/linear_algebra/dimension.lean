@@ -1047,7 +1047,7 @@ end
 
 -- TODO: merge with the `finrank` content
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
-def fin_rank_vectorspace_equiv (n : ℕ)
+def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
   haveI := nontrivial_of_invariant_basis_number K,

@@ -68,7 +68,7 @@ instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
-lemma finite_of_fin_rank_affine_independent [finite_dimensional k V] {p : ι → P}
+lemma finite_of_fin_dim_affine_independent [finite_dimensional k V] {p : ι → P}
   (hi : affine_independent k p) : _root_.finite ι :=
 begin
   nontriviality ι, inhabit ι,
@@ -79,9 +79,9 @@ begin
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
-lemma finite_set_of_fin_rank_affine_independent [finite_dimensional k V] {s : set ι} {f : s → P}
+lemma finite_set_of_fin_dim_affine_independent [finite_dimensional k V] {s : set ι} {f : s → P}
   (hi : affine_independent k f) : s.finite :=
-@set.to_finite _ s (finite_of_fin_rank_affine_independent k hi)
+@set.to_finite _ s (finite_of_fin_dim_affine_independent k hi)
 
 open_locale classical
 variables {k}
@@ -750,11 +750,11 @@ protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finit
 let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
 
 protected lemma finite [finite_dimensional k V] (b : affine_basis ι k P) : finite ι :=
-finite_of_fin_rank_affine_independent k b.ind
+finite_of_fin_dim_affine_independent k b.ind
 
 protected lemma finite_set [finite_dimensional k V] {s : set ι} (b : affine_basis s k P) :
   s.finite :=
-finite_set_of_fin_rank_affine_independent k b.ind
+finite_set_of_fin_dim_affine_independent k b.ind
 
 lemma card_eq_finrank_add_one [fintype ι] (b : affine_basis ι k P) :
   fintype.card ι = finite_dimensional.finrank k V + 1 :=

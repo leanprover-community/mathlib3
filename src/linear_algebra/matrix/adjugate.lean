@@ -177,7 +177,7 @@ lemma adjugate_def (A : matrix n n α) :
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (pi.single i 1)).det :=
-by { rw adjugate_def, simp only [of_apply], rw [cramer_apply, update_column_transpose, det_transpose], }
+by rw [adjugate_def, of_apply, cramer_apply, update_column_transpose, det_transpose]
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin

@@ -443,7 +443,7 @@ begin
   rw [integrable, and_iff_right this, has_finite_integral_const_iff]
 end
 
-lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
+@[simp] lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
 lemma mem_ℒp.integrable_norm_rpow {f : α → β} {p : ℝ≥0∞}

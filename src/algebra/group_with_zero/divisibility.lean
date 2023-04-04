@@ -99,6 +99,8 @@ begin
   obtain ⟨rfl, -⟩ | rfl := hcd; simp,
 end
 
+attribute [protected] nat.dvd_antisymm --This lemma is in core, so we protect it here
+
 lemma dvd_antisymm' : a ∣ b → b ∣ a → b = a := flip dvd_antisymm
 
 alias dvd_antisymm ← has_dvd.dvd.antisymm

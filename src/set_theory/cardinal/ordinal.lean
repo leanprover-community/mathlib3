@@ -191,7 +191,7 @@ theorem aleph'_le_of_limit {o : ordinal} (l : o.is_limit) {c} :
   exact h _ h'
 end⟩
 
-theorem aleph'_limit {o : ordinal} (ho : is_limit o) : aleph' o = ⨆ a : Iio o, aleph' a :=
+theorem aleph'_limit {o : ordinal} (ho : o.is_limit) : aleph' o = ⨆ a : Iio o, aleph' a :=
 begin
   refine le_antisymm _ (csupr_le' (λ i, aleph'_le.2 (le_of_lt i.2))),
   rw aleph'_le_of_limit ho,
@@ -232,7 +232,7 @@ by rw [aleph, add_succ, aleph'_succ, aleph]
 @[simp] theorem aleph_zero : aleph 0 = ℵ₀ :=
 by rw [aleph, add_zero, aleph'_omega]
 
-theorem aleph_limit {o : ordinal} (ho : is_limit o) : aleph o = ⨆ a : Iio o, aleph a :=
+theorem aleph_limit {o : ordinal} (ho : o.is_limit) : aleph o = ⨆ a : Iio o, aleph a :=
 begin
   apply le_antisymm _ (csupr_le' _),
   { rw [aleph, aleph'_limit (ho.add _)],
@@ -270,7 +270,7 @@ begin
   exact λ h, (ord_injective h).not_gt (aleph_pos o)
 end
 
-theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
+theorem ord_aleph_is_limit (o : ordinal) : (aleph o).ord.is_limit :=
 ord_is_limit $ aleph_0_le_aleph _
 
 instance (o : ordinal) : no_max_order (aleph o).ord.out.α :=
@@ -356,7 +356,7 @@ limit_rec_on_zero _ _ _
 @[simp] theorem beth_succ (o : ordinal) : beth (succ o) = 2 ^ beth o :=
 limit_rec_on_succ _ _ _ _
 
-theorem beth_limit {o : ordinal} : is_limit o → beth o = ⨆ a : Iio o, beth a :=
+theorem beth_limit {o : ordinal} : o.is_limit → beth o = ⨆ a : Iio o, beth a :=
 limit_rec_on_limit _ _ _ _
 
 theorem beth_strict_mono : strict_mono beth :=

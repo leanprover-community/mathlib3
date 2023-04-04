@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Vincent Beffara
 -/
 import analysis.complex.removable_singularity
-import analysis.calculus.uniform_limits_deriv
+import analysis.calculus.series
 
 /-!
 # Locally uniform limits of holomorphic functions
@@ -178,5 +178,38 @@ begin
 end
 
 end weierstrass
+
+section tsums
+
+/-- If the terms in the sum `∑' (i : ι), F i` are uniformly bounded on `U` by a
+summable function, and each term in the sum is differentiable on `U`, then so is the sum. -/
+lemma differentiable_on_tsum_of_summable_norm {u : ι → ℝ}
+  (hu : summable u) (hf : ∀ (i : ι), differentiable_on ℂ (F i) U) (hU : is_open U)
+  (hF_le : ∀ (i : ι) (w : ℂ), w ∈ U → ‖F i w‖ ≤ u i) :
+  differentiable_on ℂ (λ w : ℂ, ∑' (i : ι), F i w) U :=
+begin
+  classical,
+  have hc := (tendsto_uniformly_on_tsum hu hF_le).tendsto_locally_uniformly_on,
+  refine hc.differentiable_on (eventually_of_forall $ λ s, _) hU,
+  exact differentiable_on.sum (λ i hi, hf i),
+end
+
+/-- If the terms in the sum `∑' (i : ι), F i` are uniformly bounded on `U` by a
+summable function, then the sum of `deriv F i` at a point in `U` is the derivative of the
+sum. -/
+lemma has_sum_deriv_of_summable_norm {u : ι → ℝ}
+  (hu : summable u) (hf : ∀ (i : ι), differentiable_on ℂ (F i) U) (hU : is_open U)
+  (hF_le : ∀ (i : ι) (w : ℂ), w ∈ U → ‖F i w‖ ≤ u i) (hz : z ∈ U) :
+  has_sum (λ (i : ι), deriv (F i) z) (deriv (λ w : ℂ, ∑' (i : ι), F i w) z) :=
+begin
+  rw has_sum,
+  have hc := (tendsto_uniformly_on_tsum hu hF_le).tendsto_locally_uniformly_on,
+  convert (hc.deriv (eventually_of_forall $ λ s, differentiable_on.sum
+    (λ i hi, hf i)) hU).tendsto_at hz using 1,
+  ext1 s,
+  exact (deriv_sum (λ i hi, (hf i).differentiable_at (hU.mem_nhds hz))).symm,
+end
+
+end tsums
 
 end complex

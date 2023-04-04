@@ -50,71 +50,97 @@ begin
   exact h (b + 1) (nat.le_succ_of_le hb)
 end
 
-lemma terms_tendsto_zero {R : Type u} [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
-  (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
+theorem terms_tendsto_zero {R : Type u} [add_comm_group R] [topological_space R] [topological_add_group R]
+  (a : ℕ → R) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
-  letI φ : uniform_space R := topological_add_group.to_uniform_space R,
-  haveI hφ : uniform_add_group R := topological_add_comm_group_is_uniform,
+  -- Since R is a topological group, it has a uniform space.
+  -- Since R is abelian, it satisfies `uniform_add_group`
+  letI : uniform_space R := topological_add_group.to_uniform_space R,
+  haveI : uniform_add_group R := topological_add_comm_group_is_uniform,
 
-  -- It suffices to show that for all neighborhoods of zero Z, There exists a N such that for all
-  -- n ≥ N, a n ∈ Z.
+  -- It suffices to show that for all neighborhoods `X` of 0, There exists an `N` such that for all
+  -- `n ≥ N`, `a n ∈ X`.
   rw filter.tendsto_def,
-  intros Z hZ,
+  intros X hX,
   rw filter.mem_at_top_sets,
 
-  -- Because `Z ∈ 𝓝 0`, there exists an entourage `V` such that `V[0] ⊆ Z`
-  rcases uniform_space.mem_nhds_iff.mp hZ with ⟨V, hV₁, hV₂⟩,
+  -- Because `X ∈ 𝓝 0`, there exists an entourage `V` such that `V[0] ⊆ X`
+  rcases uniform_space.mem_nhds_iff.mp hX with ⟨V, hV₁, hV₂⟩,
 
-  have h_unif := uniformity_eq_comap_nhds_zero R,
-  rw h_unif at hV₁,
+  let m := λ (x : R × R), x.snd - x.fst,
+
+  -- By the definition of an entourage in a topological group, there exists a neighbourhood `t` of 0
+  -- such that `m ⁻¹' t ⊆ V`
+  rw uniformity_eq_comap_nhds_zero R at hV₁,
   rcases filter.mem_comap.mp hV₁ with ⟨t, ht₁, ht₂⟩,
 
-  set m := λ (x : R × R), x.snd - x.fst,
+  -- Note that `m ⁻¹' t` is itself an entourage.
   have hm : m ⁻¹' t ∈ uniformity R := begin
-    rw h_unif,
+    rw uniformity_eq_comap_nhds_zero R,
     rw filter.mem_comap,
     use t,
     use ht₁,
   end,
 
-  obtain ⟨X, hX₁, hX₂⟩ := comp_mem_uniformity_sets hm,
-  let W := symmetrize_rel X,
-  have hW₁ : W ∈ uniformity R := symmetrize_mem_uniformity hX₁,
-  have hW₂ : symmetric_rel W := symmetric_symmetrize_rel X,
-  have hW₃ : W ⊆ X := symmetrize_rel_subset_self X,
+  -- Let `U` by a "half-size" entourage of `m ⁻¹' t` (so that `comp_rel U U ⊆ m ⁻¹' t`)
+  -- Let `W` by the largest symmetric relation which is a subset of `U`. `W` is an entourage.
+  obtain ⟨U, hU₁, hU₂⟩ := comp_mem_uniformity_sets hm,
+  let W := symmetrize_rel U,
+  have hW₁ : W ∈ uniformity R := symmetrize_mem_uniformity hU₁,
+  have hW₂ : symmetric_rel W := symmetric_symmetrize_rel U,
+  have hW₃ : W ⊆ U := symmetrize_rel_subset_self U,
 
+  -- By hypothesis, the partial sums of `a` tend to some `T`. This means that given any
+  -- neighbourhood of T, there exists an `N : ℕ` such that for all `n ≥ N`, the nth partial sum lies
+  -- within that neighbourhood. Because `W[T]` is a neighbourhood of `T`, we use this to find our
+  -- desired `N`.
   cases h with T h,
   unfold series_sums_to at h,
   rw filter.tendsto_def at h,
   specialize h (uniform_space.ball T W) (uniform_space.ball_mem_nhds T hW₁),
   obtain ⟨N, hN⟩ := filter.mem_at_top_sets.mp h,
 
+  -- Using the `N` we just found, we need to show that for all `n ≥ N`, `a n ∈ X`. Since `V[0] ⊆ X`,
+  -- it suffices to show that `a n ∈ V[0]`, or that `(0, a n) ∈ V`.
   use N,
   intros n hn,
   rw set.mem_preimage,
-
   apply hV₂,
   unfold uniform_space.ball,
   rw set.mem_preimage,
+
+  -- Since `m ⁻¹ t ⊆ V`, it suffices to show that `(0, a n) ∈ m ⁻¹ t`, which is the same as showing
+  -- that `m (0, a n) ∈ t`. This is the same as showing that `a n - 0 ∈ t`.
   apply ht₂,
   rw set.mem_preimage,
   change a n - 0 ∈ t,
+
+  -- Note that `a n - 0` is the same as the difference between the nth and (n+1)th partial sums
+  -- (because of the way that partial sums are defined here).
   rw sub_zero,
   rw (show a n = partial_sum a (n + 1) - partial_sum a n, by simp [partial_sum_next a n]),
 
+  -- Therefore, we need to show that `partial_sum a (n + 1) - partial_sum a n ∈ t`, which is the
+  -- same as showing that `(partial_sum a n, partial_sum a (n + 1)) ∈ m ⁻¹ t`.
   change m (partial_sum a n, partial_sum a (n + 1)) ∈ t,
   rw ←set.mem_preimage,
 
-  have hn₁ := set.mem_preimage.mp (hN n (by linarith)),
+  -- Using what we deduced earlier from the hypothesis, `(T, partial_sum a n) ∈ W` and
+  -- `(T, partial_sum a (n + 1)) ∈ W` (since `n ≥ N` and `n + 1 ≥ N`)
+  have hn₁ := set.mem_preimage.mp (hN n hn),
   have hn₂ := set.mem_preimage.mp (hN (n + 1) (by linarith)),
-
   unfold uniform_space.ball at hn₁ hn₂,
   rw set.mem_preimage at hn₁ hn₂,
+
+  -- `W` is a symmetric relation so `(partial_sum a n, T) ∈ W`.
   rw symmetric_rel.mk_mem_comm hW₂ at hn₁,
+
+  -- Since `W ⊆ U`, `(partial_sum a n, T) ∈ U` and `(T, partial_sum a (n + 1)) ∈ U`,
   replace hn₁ := hW₃ hn₁,
   replace hn₂ := hW₃ hn₂,
-  have : (partial_sum a n, partial_sum a (n + 1)) ∈ comp_rel X X := mem_comp_rel.mpr ⟨T, ⟨hn₁, hn₂⟩⟩,
-  exact hX₂ this,
+
+  -- Because `comp_rel U U ⊆ m ⁻¹' t`, `(partial_sum a n, partial_sum a (n + 1)) ∈ m ⁻¹ t`.
+  show (partial_sum a n, partial_sum a (n + 1)) ∈ m ⁻¹' t, from hU₂ (mem_comp_rel.mpr ⟨T, ⟨hn₁, hn₂⟩⟩)
 end
 
 lemma partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, partial_sum a n ≤ partial_sum b n :=

@@ -50,7 +50,7 @@ begin
   exact h (b + 1) (nat.le_succ_of_le hb)
 end
 
-lemma terms_tendsto_zero (R : Type u) [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
+lemma terms_tendsto_zero {R : Type u} [add_comm_group R] [topological_space R] [topological_add_group R] (a : ℕ → R)
   (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
 begin
   letI φ : uniform_space R := topological_add_group.to_uniform_space R,
@@ -114,31 +114,7 @@ begin
   replace hn₁ := hW₃ hn₁,
   replace hn₂ := hW₃ hn₂,
   have : (partial_sum a n, partial_sum a (n + 1)) ∈ comp_rel X X := mem_comp_rel.mpr ⟨T, ⟨hn₁, hn₂⟩⟩,
-  have : (partial_sum a n, partial_sum a (n + 1)) ∈ m ⁻¹' t := hX₂ this,
-  exact this,
-end
-
-lemma seq_tendsto_zero (a : ℕ → ℝ) (h : series_converges a) : filter.tendsto a filter.at_top (𝓝 0) :=
-begin
-  rw filter.tendsto_def,
-  intros s hs,
-  rw filter.mem_at_top_sets,
-
-  rw metric.mem_nhds_iff at hs,
-  rcases hs with ⟨ε, H, hε⟩,
-
-  cases h with x hx,
-  have : is_cau_seq norm (partial_sum a) := (filter.tendsto.cauchy_seq hx).is_cau_seq,
-  replace this := is_cau_seq.cauchy₂ this H,
-  cases this with i hi,
-
-  use i + 1,
-  intros b hb,
-
-  rw set.mem_preimage,
-  apply hε,
-  rw [metric.mem_ball, dist_eq_norm, sub_zero],
-  simpa [partial_sum_next] using hi (b + 1) (by linarith) b (by linarith),
+  exact hX₂ this,
 end
 
 lemma partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, partial_sum a n ≤ partial_sum b n :=

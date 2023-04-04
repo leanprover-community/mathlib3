@@ -233,7 +233,7 @@ begin
   haveI : is_localization (algebra.algebra_map_submonoid C A⁰) L :=
     is_integral_closure.is_localization A K L C,
   let b := basis.localization_localization K A⁰ L (module.free.choose_basis A C),
-  rw [module.free.finrank_eq_card_choose_basis_index, finite_dimensional.finrank_eq_card_basis b],
+  rw [finrank_eq_card_choose_basis_index, finite_dimensional.finrank_eq_card_basis b],
 end
 
 variables {A K}

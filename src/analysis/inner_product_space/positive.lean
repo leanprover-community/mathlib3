@@ -352,7 +352,11 @@ namespace continuous_linear_map
 
 open continuous_linear_map
 
+variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
+variables [normed_add_comm_group E] [normed_add_comm_group F]
+variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
 variables [complete_space E] [complete_space F]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-- A continuous linear endomorphism `T` of a Hilbert space is **positive** if it is self adjoint
   and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
@@ -429,7 +433,7 @@ end
 
 section complex
 
-variables {E' : Type*} [inner_product_space ℂ E'] [complete_space E']
+variables {E' : Type*} [normed_add_comm_group E'] [inner_product_space ℂ E'] [complete_space E']
 
 lemma is_positive_iff_complex (T : E' →L[ℂ] E') :
   is_positive T ↔ ∀ x, (re ⟪T x, x⟫_ℂ : ℂ) = ⟪T x, x⟫_ℂ ∧ 0 ≤ re ⟪T x, x⟫_ℂ :=

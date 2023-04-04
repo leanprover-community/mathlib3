@@ -7,6 +7,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.algebra.basic
 import ring_theory.ideal.operations
 import ring_theory.jacobson_ideal
+import logic.equiv.transfer_instance
 
 /-!
 
@@ -129,6 +130,11 @@ begin
 end
 
 @[simp] lemma mem_maximal_ideal (x) : x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
+
+lemma is_field_iff_maximal_ideal_eq :
+  is_field R ↔ maximal_ideal R = ⊥ :=
+not_iff_not.mp ⟨ring.ne_bot_of_is_maximal_of_not_is_field infer_instance,
+  λ h, ring.not_is_field_iff_exists_prime.mpr ⟨_, h, ideal.is_maximal.is_prime' _⟩⟩
 
 end local_ring
 
@@ -324,9 +330,27 @@ ideal.quotient.algebra _
 
 lemma residue_field.algebra_map_eq : algebra_map R (residue_field R) = residue R := rfl
 
+instance : is_local_ring_hom (local_ring.residue R) :=
+⟨λ a ha, not_not.mp (ideal.quotient.eq_zero_iff_mem.not.mp (is_unit_iff_ne_zero.mp ha))⟩
+
 variables {R}
 
 namespace residue_field
+
+/-- A local ring homomorphism into a field can be descended onto the residue field. -/
+def lift {R S : Type*} [comm_ring R] [local_ring R] [field S]
+  (f : R →+* S) [is_local_ring_hom f] : local_ring.residue_field R →+* S :=
+ideal.quotient.lift _ f (λ a ha,
+  classical.by_contradiction (λ h, ha (is_unit_of_map_unit f a (is_unit_iff_ne_zero.mpr h))))
+
+lemma lift_comp_residue {R S : Type*} [comm_ring R] [local_ring R] [field S] (f : R →+* S)
+  [is_local_ring_hom f] : (lift f).comp (residue R) = f :=
+ring_hom.ext (λ _, rfl)
+
+@[simp]
+lemma lift_residue_apply {R S : Type*} [comm_ring R] [local_ring R] [field S] (f : R →+* S)
+  [is_local_ring_hom f] (x) : lift f (residue R x) = f x :=
+rfl
 
 /-- The map on residue fields induced by a local homomorphism between local rings -/
 def map (f : R →+* S) [is_local_ring_hom f] : residue_field R →+* residue_field S :=
@@ -433,3 +457,18 @@ local_ring.of_is_unit_or_is_unit_one_sub_self $ λ a,
   else or.inl $ is_unit.mk0 a h
 
 end field
+
+lemma local_ring.maximal_ideal_eq_bot {R : Type*} [field R] :
+  local_ring.maximal_ideal R = ⊥ :=
+local_ring.is_field_iff_maximal_ideal_eq.mp (field.to_is_field R)
+
+namespace ring_equiv
+
+@[reducible] protected lemma local_ring {A B : Type*} [comm_semiring A] [local_ring A]
+  [comm_semiring B] (e : A ≃+* B) : local_ring B :=
+begin
+  haveI := e.symm.to_equiv.nontrivial,
+  exact local_ring.of_surjective (e : A →+* B) e.surjective
+end
+
+end ring_equiv

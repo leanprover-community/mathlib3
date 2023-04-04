@@ -9,6 +9,9 @@ import number_theory.divisors
 /-!
 # Prime powers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with prime powers: numbers which are positive integer powers of a single prime.
 -/
 

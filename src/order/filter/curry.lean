@@ -8,6 +8,9 @@ import order.filter.prod
 /-!
 # Curried Filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides an operation (`filter.curry`) on filters which provides the equivalence
 `∀ᶠ a in l, ∀ᶠ b in l', p (a, b) ↔ ∀ᶠ c in (l.curry l'), p c` (see `filter.eventually_curry_iff`).
 

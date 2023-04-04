@@ -24,6 +24,8 @@ integers which are a multiple of 3.
 
 open nat
 
+namespace imo1964_q1
+
 lemma two_pow_three_mul_mod_seven (m : ℕ) : 2 ^ (3 * m) ≡ 1 [MOD 7] :=
 begin
   rw pow_mul,
@@ -78,6 +80,10 @@ begin
   { rintro ⟨m, rfl⟩,
     apply two_pow_three_mul_mod_seven }
 end
+
+end imo1964_q1
+
+open imo1964_q1
 
 theorem imo1964_q1b (n : ℕ) : ¬ (7 ∣ 2 ^ n + 1) :=
 begin

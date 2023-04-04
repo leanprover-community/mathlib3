@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Cocompact continuous maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of *cocompact continuous maps* are those which tend to the cocompact filter on the
 codomain along the cocompact filter on the domain. When the domain and codomain are Hausdorff, this
 is equivalent to many other conditions, including that preimages of compact sets are compact. -/

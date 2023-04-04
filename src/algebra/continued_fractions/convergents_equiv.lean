@@ -18,16 +18,13 @@ direct evaluation (`convergents'`)) for `gcf`s on linear ordered fields. We foll
 [hardy2008introduction], Chapter 10. Here's a sketch:
 
 Let `c` be a continued fraction `[h; (a₀, b₀), (a₁, b₁), (a₂, b₂),...]`, visually:
-                                a₀
-                h + ---------------------------
-                                  a₁
-                      b₀ + --------------------
-                                    a₂
-                            b₁ + --------------
-                                        a₃
-                                  b₂ + --------
-                                      b₃ + ...
-
+$$
+  c = h + \dfrac{a_0}
+                {b_0 + \dfrac{a_1}
+                             {b_1 + \dfrac{a_2}
+                                          {b_2 + \dfrac{a_3}
+                                                       {b_3 + \dots}}}}
+$$
 One can compute the convergents of `c` in two ways:
 1. Directly evaluating the fraction described by `c` up to a given `n` (`convergents'`)
 2. Using the recurrence (`convergents`):
@@ -68,6 +65,7 @@ fractions, recurrence, equivalence
 
 variables {K : Type*} {n : ℕ}
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 variables {g : generalized_continued_fraction K} {s : seq $ pair K}
 

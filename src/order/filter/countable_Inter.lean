@@ -9,6 +9,9 @@ import data.set.countable
 /-!
 # Filters with countable intersection property
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `countable_Inter_filter` to be the class of filters with the following
 property: for any countable collection of sets `s ∈ l` their intersection belongs to `l` as well.
 

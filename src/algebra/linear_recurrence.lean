@@ -177,7 +177,7 @@ variables {α : Type*} [comm_ring α] [strong_rank_condition α] (E : linear_rec
 lemma sol_space_dim : module.rank α E.sol_space = E.order :=
 begin
   letI := nontrivial_of_invariant_basis_number α,
-  exact @dim_fin_fun α _ _ _ E.order ▸ E.to_init.dim_eq
+  exact @dim_fin_fun α _ _ E.order ▸ E.to_init.dim_eq
 end
 
 end strong_rank_condition

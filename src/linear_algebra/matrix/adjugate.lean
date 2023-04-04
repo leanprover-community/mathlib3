@@ -98,7 +98,7 @@ begin
   split_ifs with h,
   { -- i = j: this entry should be `A.det`
     subst h,
-    simp only [update_column_transpose, det_transpose, update_row, function.update_eq_self] },
+    simp only [update_column_transpose, det_transpose, update_row_eq_self] },
   { -- i ≠ j: this entry should be 0
     rw [update_column_transpose, det_transpose],
     apply det_zero_of_row_eq h,

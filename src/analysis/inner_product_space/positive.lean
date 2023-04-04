@@ -47,25 +47,6 @@ open_locale inner_product complex_conjugate
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-/-- `U` is **pairwise orthogonal** to `V` if for all `u ∈ U` and for all `v ∈ V`
-we get `⟪u, v⟫ = 0` -/
-def submodule.pairwise_orthogonal (U V : submodule 𝕜 E) : Prop :=
-∀ u : U, ∀ v : V, ⟪(u : E), (v : E)⟫ = 0
-
-/-- `U` is pairwise orthogonal to `Uᗮ` -/
-lemma submodule.orthogonal_is_pairwise_orthogonal (U : submodule 𝕜 E) :
-  U.pairwise_orthogonal Uᗮ :=
-λ u v, (set_like.coe_mem v) u (set_like.coe_mem u)
-
-/-- `U` is pairwise orthogonal to `V` if and only if `V` is pairwise
-orthogonal to `U` -/
-lemma submodule.pairwise_orthogonal_symm_iff (U V : submodule 𝕜 E) :
-  U.pairwise_orthogonal V ↔ V.pairwise_orthogonal U :=
-begin
-  simp_rw [submodule.pairwise_orthogonal, inner_eq_zero_sym],
-  rw forall_swap,
-end
-
 namespace linear_map
 
 /-- `T` is (semi-definite) **positive** if `T` is symmetric
@@ -99,9 +80,9 @@ lemma is_positive.inner_nonneg_right {T : E →ₗ[𝕜] E} (hT : is_positive T)
 hT.2 x
 
 /-- a linear projection onto `U` along its complement `V` is positive if
-and only if `U` and `V` are pairwise orthogonal -/
+and only if `U` and `V` are orthogonal -/
 lemma linear_proj_is_positive_iff {U V : submodule 𝕜 E} (hUV : is_compl U V) :
-  (U.subtype.comp (U.linear_proj_of_is_compl V hUV)).is_positive ↔ U.pairwise_orthogonal V :=
+  (U.subtype.comp (U.linear_proj_of_is_compl V hUV)).is_positive ↔ U ⟂ V :=
 begin
   split,
   { intros h u v,

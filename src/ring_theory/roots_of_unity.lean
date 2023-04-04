@@ -331,7 +331,8 @@ h.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
 lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
   i = j :=
 begin
-  wlog hij : i ≤ j,
+  wlog hij : i ≤ j generalizing i j,
+  { exact (this hj hi H.symm (le_of_not_le hij)).symm },
   apply le_antisymm hij,
   rw ← tsub_eq_zero_iff_le,
   apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
@@ -678,7 +679,7 @@ begin
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_zpowers).to_equiv,
   refine @set.eq_of_subset_of_card_le Rˣ (subgroup.zpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
-    (subgroup.zpowers_subset $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
+    (subgroup.zpowers_le_of_mem $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
   calc fintype.card (roots_of_unity k R)
       ≤ k                                 : card_roots_of_unity R k
   ... = fintype.card (zmod k)             : (zmod.card k).symm

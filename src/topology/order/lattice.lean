@@ -9,6 +9,9 @@ import topology.constructions
 /-!
 # Topological lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define mixin classes `has_continuous_inf` and `has_continuous_sup`. We define the
 class `topological_lattice` as a topological space and lattice `L` extending `has_continuous_inf`
 and `has_continuous_sup`.

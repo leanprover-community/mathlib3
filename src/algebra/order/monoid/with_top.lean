@@ -11,7 +11,8 @@ import data.nat.cast.defs
 /-! # Adjoining top/bottom elements to ordered monoids.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.-/
+> Any changes to this file require a corresponding PR to mathlib4.
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -30,6 +31,9 @@ variables [has_one α]
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
+
+@[simp, to_additive] lemma untop_one : (1 : with_top α).untop coe_ne_top = 1 := rfl
+@[simp, to_additive] lemma untop_one' (d : α) : (1 : with_top α).untop' d = 1 := rfl
 
 @[simp, norm_cast, to_additive coe_nonneg]
 lemma one_le_coe [has_le α] {a : α} : 1 ≤ (a : with_top α) ↔ 1 ≤ a := coe_le_coe
@@ -74,8 +78,8 @@ by cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add]
 
 lemma add_ne_top : a + b ≠ ⊤ ↔ a ≠ ⊤ ∧ b ≠ ⊤ := add_eq_top.not.trans not_or_distrib
 
-lemma add_lt_top [partial_order α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
-by simp_rw [lt_top_iff_ne_top, add_ne_top]
+lemma add_lt_top [has_lt α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
+by simp_rw [with_top.lt_top_iff_ne_top, add_ne_top]
 
 lemma add_eq_coe : ∀ {a b : with_top α} {c : α},
   a + b = c ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a' + b' = c
@@ -347,6 +351,9 @@ lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
 with_top.coe_eq_one
 
+@[simp, to_additive] lemma unbot_one [has_one α] : (1 : with_bot α).unbot coe_ne_bot = 1 := rfl
+@[simp, to_additive] lemma unbot_one' [has_one α] (d : α) : (1 : with_bot α).unbot' d = 1 := rfl
+
 @[simp, norm_cast, to_additive coe_nonneg]
 lemma one_le_coe [has_one α] [has_le α] {a : α} : 1 ≤ (a : with_bot α) ↔ 1 ≤ a := coe_le_coe
 
@@ -380,7 +387,7 @@ lemma coe_bit1 [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
 @[simp] lemma add_eq_bot : a + b = ⊥ ↔ a = ⊥ ∨ b = ⊥ := with_top.add_eq_top
 lemma add_ne_bot : a + b ≠ ⊥ ↔ a ≠ ⊥ ∧ b ≠ ⊥ := with_top.add_ne_top
 
-lemma bot_lt_add [partial_order α] {a b : with_bot α} : ⊥ < a + b ↔ ⊥ < a ∧ ⊥ < b :=
+lemma bot_lt_add [has_lt α] {a b : with_bot α} : ⊥ < a + b ↔ ⊥ < a ∧ ⊥ < b :=
 @with_top.add_lt_top αᵒᵈ _ _ _ _
 
 lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a' + b' = x := with_top.add_eq_coe

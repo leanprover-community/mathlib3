@@ -613,7 +613,7 @@ instance fractional_ideal.cancel_comm_monoid_with_zero :
 
 instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
-{ .. ideal.comm_semiring,
+{ .. ideal.idem_comm_semiring,
   .. function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
     coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
     (ring_hom.map_pow _) }

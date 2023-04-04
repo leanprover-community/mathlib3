@@ -291,7 +291,7 @@ variables [uniform_space β] [uniform_space γ] [has_zero γ]
   [zero_at_infty_continuous_map_class F β γ]
 
 lemma uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
-(map_continuous f).uniform_continuous_of_zero_at_infty (zero_at_infty f)
+(map_continuous f).uniform_continuous_of_tendsto_cocompact (zero_at_infty f)
 
 end uniform
 
@@ -411,7 +411,7 @@ normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x 
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ‖f.to_bcf‖ = ‖f‖ := rfl
 
 instance : normed_space 𝕜 C₀(α, β) :=
-{ norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }
+{ norm_smul_le := λ k f, norm_smul_le k f.to_bcf }
 
 end normed_space
 

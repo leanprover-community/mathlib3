@@ -9,6 +9,9 @@ import data.set.intervals.ord_connected_component
 /-!
 # Linear order is a completely normal Hausdorff topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a linear order with order topology is a completely normal Hausdorff
 topological space.
 -/

@@ -47,15 +47,15 @@ namespace representation
 
 section trivial
 
-variables {k G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
+variables (k : Type*) {G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
 
 /--
-The trivial representation of `G` on the one-dimensional module `k`.
+The trivial representation of `G` on a `k`-module V.
 -/
-def trivial : representation k G k := 1
+def trivial : representation k G V := 1
 
 @[simp]
-lemma trivial_def (g : G) (v : k) : trivial g v = v := rfl
+lemma trivial_def (g : G) (v : V) : trivial k g v = v := rfl
 
 end trivial
 
@@ -245,6 +245,10 @@ variables {k G H}
 
 lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
 
+lemma of_mul_action_single (g : G) (x : H) (r : k) :
+  of_mul_action k G H g (finsupp.single x r) = finsupp.single (g • x) r :=
+finsupp.map_domain_single
+
 end mul_action
 section group
 
@@ -374,6 +378,13 @@ def dual : representation k G (module.dual k V) :=
 @[simp]
 lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
 
+/--
+Given $k$-modules $V, W$, there is a homomorphism $φ : V^* ⊗ W → Hom_k(V, W)$
+(implemented by `linear_algebra.contraction.dual_tensor_hom`).
+Given representations of $G$ on $V$ and $W$,there are representations of $G$ on  $V^* ⊗ W$ and on
+$Hom_k(V, W)$.
+This lemma says that $φ$ is $G$-linear.
+-/
 lemma dual_tensor_hom_comm (g : G) :
   (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
   (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=

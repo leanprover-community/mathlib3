@@ -10,6 +10,9 @@ import topology.noetherian_space
 /-!
 # Quasi-separated spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space is quasi-separated if the intersections of any pairs of compact open subsets
 are still compact.
 Notable examples include spectral spaces, Noetherian spaces, and Hausdorff spaces.

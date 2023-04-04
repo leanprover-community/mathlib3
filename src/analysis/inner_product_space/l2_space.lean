@@ -16,7 +16,7 @@ dependent functions `f : Π i, G i` for which `∑' i, ‖f i‖ ^ 2`, the sum o
 summable.  This construction is sometimes called the *Hilbert sum* of the family `G`.  By choosing
 `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this construction.
 
-We also define a *predicate* `is_hilbert_sum 𝕜 E V`, where `V : Π i, G i →ₗᵢ[𝕜] E`, expressing that
+We also define a *predicate* `is_hilbert_sum 𝕜 G V`, where `V : Π i, G i →ₗᵢ[𝕜] E`, expressing that
 `V` is an `orthogonal_family` and that the associated map `lp G 2 →ₗᵢ[𝕜] E` is surjective.
 
 ## Main definitions
@@ -28,7 +28,7 @@ We also define a *predicate* `is_hilbert_sum 𝕜 E V`, where `V : Π i, G i →
 
 * `is_hilbert_sum`: Given a Hilbert space `E`, a family `G` of inner product
   spaces and a family `V : Π i, G i →ₗᵢ[𝕜] E` of isometric embeddings of the `G i` into `E`,
-  `is_hilbert_sum 𝕜 E V` means that `V` is an `orthogonal_family` and that the above
+  `is_hilbert_sum 𝕜 G V` means that `V` is an `orthogonal_family` and that the above
   linear isometry is surjective.
 
 * `is_hilbert_sum.linear_isometry_equiv`: If a Hilbert space `E` is a Hilbert sum of the
@@ -85,8 +85,9 @@ open_locale big_operators nnreal ennreal classical complex_conjugate topology
 noncomputable theory
 
 variables {ι : Type*}
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E] [cplt : complete_space E]
-variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*}
+variables [normed_add_comm_group E] [inner_product_space 𝕜 E] [cplt : complete_space E]
+variables {G : ι → Type*} [Π i, normed_add_comm_group (G i)] [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 notation `ℓ²(`ι`, `𝕜`)` := lp (λ i : ι, 𝕜) 2
@@ -111,16 +112,16 @@ instance : inner_product_space 𝕜 (lp G 2) :=
     calc ‖f‖ ^ 2 = ‖f‖ ^ (2:ℝ≥0∞).to_real : by norm_cast
     ... = ∑' i, ‖f i‖ ^ (2:ℝ≥0∞).to_real : lp.norm_rpow_eq_tsum _ f
     ... = ∑' i, ‖f i‖ ^ 2 : by norm_cast
-    ... = ∑' i, re ⟪f i, f i⟫ : by simp only [norm_sq_eq_inner]
+    ... = ∑' i, re ⟪f i, f i⟫ : by simp only [@norm_sq_eq_inner 𝕜]
     ... = re (∑' i, ⟪f i, f i⟫) : (is_R_or_C.re_clm.map_tsum _).symm
     ... = _ : by congr,
     { norm_num },
     { exact summable_inner f f },
   end,
-  conj_sym := λ f g, begin
+  conj_symm := λ f g, begin
     calc conj _ = conj ∑' i, ⟪g i, f i⟫ : by congr
     ... = ∑' i, conj ⟪g i, f i⟫ : is_R_or_C.conj_cle.map_tsum
-    ... = ∑' i, ⟪f i, g i⟫ : by simp only [inner_conj_sym]
+    ... = ∑' i, ⟪f i, g i⟫ : by simp only [inner_conj_symm]
     ... = _ : by congr,
   end,
   add_left := λ f₁ f₂ g, begin
@@ -160,14 +161,14 @@ begin
 end
 
 lemma inner_single_right (i : ι) (a : G i) (f : lp G 2) : ⟪f, lp.single 2 i a⟫ = ⟪f i, a⟫ :=
-by simpa [inner_conj_sym] using congr_arg conj (inner_single_left i a f)
+by simpa [inner_conj_symm] using congr_arg conj (@inner_single_left _ 𝕜 _ _ _ _ i a f)
 
 end lp
 
 /-! ### Identification of a general Hilbert space `E` with a Hilbert sum -/
 
 namespace orthogonal_family
-variables {V : Π i, G i →ₗᵢ[𝕜] E} (hV : orthogonal_family 𝕜 V)
+variables {V : Π i, G i →ₗᵢ[𝕜] E} (hV : orthogonal_family 𝕜 G V)
 
 include cplt hV
 
@@ -186,7 +187,7 @@ protected def linear_isometry : lp G 2 →ₗᵢ[𝕜] E :=
   map_add' := λ f g, by simp only [tsum_add (hV.summable_of_lp f) (hV.summable_of_lp g),
     lp.coe_fn_add, pi.add_apply, linear_isometry.map_add],
   map_smul' := λ c f, by simpa only [linear_isometry.map_smul, pi.smul_apply, lp.coe_fn_smul]
-    using tsum_const_smul (hV.summable_of_lp f),
+    using tsum_const_smul c (hV.summable_of_lp f),
   norm_map' := λ f, begin
     classical, -- needed for lattice instance on `finset ι`, for `filter.at_top_ne_bot`
     have H : 0 < (2:ℝ≥0∞).to_real := by norm_num,
@@ -253,7 +254,7 @@ end orthogonal_family
 
 section is_hilbert_sum
 
-variables (𝕜 E) (V : Π i, G i →ₗᵢ[𝕜] E) (F : ι → submodule 𝕜 E)
+variables (𝕜 G) (V : Π i, G i →ₗᵢ[𝕜] E) (F : ι → submodule 𝕜 E)
 include cplt
 
 /-- Given a family of Hilbert spaces `G : ι → Type*`, a Hilbert sum of `G` consists of a Hilbert
@@ -263,17 +264,17 @@ space `E` and an orthogonal family `V : Π i, G i →ₗᵢ[𝕜] E` such that t
 Keeping in mind that `lp G 2` is "the" external Hilbert sum of `G : ι → Type*`, this is analogous
 to `direct_sum.is_internal`, except that we don't express it in terms of actual submodules. -/
 @[protect_proj] structure is_hilbert_sum : Prop := of_surjective ::
-(orthogonal_family : orthogonal_family 𝕜 V)
+(orthogonal_family : orthogonal_family 𝕜 G V)
 (surjective_isometry : function.surjective (orthogonal_family.linear_isometry))
 
-variables {𝕜 E V}
+variables {𝕜 G V}
 
 /-- If `V : Π i, G i →ₗᵢ[𝕜] E` is an orthogonal family such that the supremum of the ranges of
 `V i` is dense, then `(E, V)` is a Hilbert sum of `G`. -/
 lemma is_hilbert_sum.mk [Π i, complete_space $ G i]
-  (hVortho : orthogonal_family 𝕜 V)
+  (hVortho : orthogonal_family 𝕜 G V)
   (hVtotal : ⊤ ≤ (⨆ i, (V i).to_linear_map.range).topological_closure) :
-  is_hilbert_sum 𝕜 E V :=
+  is_hilbert_sum 𝕜 G V :=
 { orthogonal_family := hVortho,
   surjective_isometry :=
   begin
@@ -284,16 +285,16 @@ lemma is_hilbert_sum.mk [Π i, complete_space $ G i]
 
 /-- This is `orthogonal_family.is_hilbert_sum` in the case of actual inclusions from subspaces. -/
 lemma is_hilbert_sum.mk_internal [Π i, complete_space $ F i]
-  (hFortho : @orthogonal_family 𝕜 E _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ))
+  (hFortho : orthogonal_family 𝕜 (λ i, F i) (λ i, (F i).subtypeₗᵢ))
   (hFtotal : ⊤ ≤ (⨆ i, (F i)).topological_closure) :
-  @is_hilbert_sum _ 𝕜 _ E _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
+  is_hilbert_sum 𝕜 (λ i, F i) (λ i, (F i).subtypeₗᵢ) :=
 is_hilbert_sum.mk hFortho (by simpa [subtypeₗᵢ_to_linear_map, range_subtype] using hFtotal)
 
 /-- *A* Hilbert sum `(E, V)` of `G` is canonically isomorphic to *the* Hilbert sum of `G`,
 i.e `lp G 2`.
 
 Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
-noncomputable def is_hilbert_sum.linear_isometry_equiv (hV : is_hilbert_sum 𝕜 E V) :
+noncomputable def is_hilbert_sum.linear_isometry_equiv (hV : is_hilbert_sum 𝕜 G V) :
   E ≃ₗᵢ[𝕜] lp G 2 :=
 linear_isometry_equiv.symm $
 linear_isometry_equiv.of_surjective
@@ -302,7 +303,7 @@ hV.orthogonal_family.linear_isometry hV.surjective_isometry
 /-- In the canonical isometric isomorphism between a Hilbert sum `E` of `G` and `lp G 2`,
 a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`. -/
 protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply
-  (hV : is_hilbert_sum 𝕜 E V) (w : lp G 2) :
+  (hV : is_hilbert_sum 𝕜 G V) (w : lp G 2) :
   hV.linear_isometry_equiv.symm w = ∑' i, V i (w i) :=
 by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry_apply]
 
@@ -310,7 +311,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry
 a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`, and this
 sum indeed converges. -/
 protected lemma is_hilbert_sum.has_sum_linear_isometry_equiv_symm
-  (hV : is_hilbert_sum 𝕜 E V) (w : lp G 2) :
+  (hV : is_hilbert_sum 𝕜 G V) (w : lp G 2) :
   has_sum (λ i, V i (w i)) (hV.linear_isometry_equiv.symm w) :=
 by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.has_sum_linear_isometry]
 
@@ -318,7 +319,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.has_sum_linear_
 `lp G 2`, an "elementary basis vector" in `lp G 2` supported at `i : ι` is the image of the
 associated element in `E`. -/
 @[simp] protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply_single
-  (hV : is_hilbert_sum 𝕜 E V) {i : ι} (x : G i) :
+  (hV : is_hilbert_sum 𝕜 G V) {i : ι} (x : G i) :
   hV.linear_isometry_equiv.symm (lp.single 2 i x) = V i x :=
 by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry_apply_single]
 
@@ -326,7 +327,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry
 `lp G 2`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
 elements of `E`. -/
 @[simp] protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply_dfinsupp_sum_single
-  (hV : is_hilbert_sum 𝕜 E V) (W₀ : Π₀ (i : ι), G i) :
+  (hV : is_hilbert_sum 𝕜 G V) (W₀ : Π₀ (i : ι), G i) :
   hV.linear_isometry_equiv.symm (W₀.sum (lp.single 2)) = (W₀.sum (λ i, V i)) :=
 by simp [is_hilbert_sum.linear_isometry_equiv,
   orthogonal_family.linear_isometry_apply_dfinsupp_sum_single]
@@ -335,7 +336,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv,
 `lp G 2`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
 elements of `E`. -/
 @[simp] protected lemma is_hilbert_sum.linear_isometry_equiv_apply_dfinsupp_sum_single
-  (hV : is_hilbert_sum 𝕜 E V) (W₀ : Π₀ (i : ι), G i) :
+  (hV : is_hilbert_sum 𝕜 G V) (W₀ : Π₀ (i : ι), G i) :
   (hV.linear_isometry_equiv (W₀.sum (λ i, V i)) : Π i, G i) = W₀ :=
 begin
   rw ← hV.linear_isometry_equiv_symm_apply_dfinsupp_sum_single,
@@ -348,8 +349,7 @@ end
 the family of linear isometries `λ i, λ k, k • v i`. -/
 lemma orthonormal.is_hilbert_sum {v : ι → E} (hv : orthonormal 𝕜 v)
   (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
-  @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i : ι, 𝕜) _
-    (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=
+  is_hilbert_sum 𝕜 (λ i : ι, 𝕜) (λ i, linear_isometry.to_span_singleton 𝕜 E (hv.1 i)) :=
 is_hilbert_sum.mk hv.orthogonal_family
 begin
   convert hsp,
@@ -357,10 +357,9 @@ begin
 end
 
 lemma submodule.is_hilbert_sum_orthogonal (K : submodule 𝕜 E) [hK : complete_space K] :
-  @is_hilbert_sum _ 𝕜 _ E _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
-  (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
+  is_hilbert_sum 𝕜 (λ b, ↥(cond b K Kᗮ)) (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
 begin
-  haveI : Π b, complete_space ((cond b K Kᗮ : submodule 𝕜 E) : Type*),
+  haveI : Π b, complete_space ↥(cond b K Kᗮ),
   { intro b,
     cases b;
     exact orthogonal.complete_space K <|> assumption },
@@ -427,6 +426,7 @@ begin
     exact (↑(b.repr.symm.to_continuous_linear_equiv) : ℓ²(ι, 𝕜) →L[𝕜] E).has_sum this },
   ext i,
   apply b.repr.injective,
+  letI : normed_space 𝕜 ↥(lp (λ i : ι, 𝕜) 2) := by apply_instance,
   have : lp.single 2 i (f i * 1) = f i • lp.single 2 i 1 := lp.single_smul 2 i (1:𝕜) (f i),
   rw mul_one at this,
   rw [linear_isometry_equiv.map_smul, b.repr_self, ← this,
@@ -456,7 +456,7 @@ end
 protected lemma has_sum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   has_sum (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) ⟪x, y⟫ :=
 begin
-  convert (b.has_sum_repr y).mapL (innerSL x),
+  convert (b.has_sum_repr y).mapL (innerSL _ x),
   ext i,
   rw [innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
 end

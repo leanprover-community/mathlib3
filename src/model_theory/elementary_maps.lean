@@ -59,7 +59,7 @@ instance fun_like : fun_like (M ↪ₑ[L] N) M (λ _, N) :=
 
 instance : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) := fun_like.has_coe_to_fun
 
-@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type} {n : ℕ}
+@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type*} {n : ℕ}
   (φ : L.bounded_formula α n) (v : α → M) (xs : fin n → M) :
   φ.realize (f ∘ v) (f ∘ xs) ↔ φ.realize v xs :=
 begin
@@ -80,7 +80,7 @@ begin
     bounded_formula.realize_restrict_free_var set.subset.rfl],
 end
 
-@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} (φ : L.formula α) (x : α → M) :
+@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type*} (φ : L.formula α) (x : α → M) :
   φ.realize (f ∘ x) ↔ φ.realize x :=
 by rw [formula.realize, formula.realize, ← f.map_bounded_formula, unique.eq_default (f ∘ default)]
 

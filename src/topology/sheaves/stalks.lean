@@ -12,6 +12,7 @@ import category_theory.limits.preserves.filtered
 import category_theory.limits.final
 import tactic.elementwise
 import algebra.category.Ring.colimits
+import category_theory.sites.pushforward
 
 /-!
 # Stalks
@@ -193,7 +194,7 @@ lemma stalk_pushforward_iso_of_open_embedding {f : X ⟶ Y} (hf : open_embedding
      { intro U,
        refine F.map_iso (eq_to_iso _),
        dsimp only [functor.op],
-       exact congr_arg op (subtype.eq $ set.preimage_image_eq (unop U).1.1 hf.inj) },
+       exact congr_arg op (opens.ext $ set.preimage_image_eq (unop U).1.1 hf.inj) },
      { intros U V i, erw [← F.map_comp, ← F.map_comp], congr } },
    { ext U,
      rw ← iso.comp_inv_eq,
@@ -299,12 +300,12 @@ end
 @[simp, reassoc, elementwise]
 lemma germ_stalk_specializes (F : X.presheaf C) {U : opens X} {y : U} {x : X} (h : x ⤳ y) :
   F.germ y ≫ F.stalk_specializes h =
-    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 y.prop⟩ := colimit.ι_desc _ _
+    F.germ (⟨x, h.mem_open U.is_open y.prop⟩ : U) := colimit.ι_desc _ _
 
 @[simp, reassoc, elementwise]
 lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x ⤳ y) (hy : y ∈ U) :
   F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
-    F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
+    F.germ ⟨x, h.mem_open U.is_open hy⟩ := colimit.ι_desc _ _
 
 @[simp]
 lemma stalk_specializes_refl {C : Type*} [category C] [limits.has_colimits C]
@@ -417,7 +418,7 @@ begin
   -- neighborhoods form a cover of `U`.
   apply F.eq_of_locally_eq' V U i₁,
   { intros x hxU,
-    rw [opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
   { intro x,
     rw [heq, subsingleton.elim (i₁ x) (i₂ x)] }
@@ -481,7 +482,7 @@ begin
   -- These neighborhoods clearly cover all of `U`.
   have V_cover : U ≤ supr V,
   { intros x hxU,
-    rw [opens.mem_coe, opens.mem_supr],
+    rw [opens.mem_supr],
     exact ⟨⟨x, hxU⟩, mV ⟨x, hxU⟩⟩ },
   -- Since `F` is a sheaf, we can glue all the local preimages together to get a global preimage.
   obtain ⟨s, s_spec, -⟩ := F.exists_unique_gluing' V U iVU V_cover sf _,

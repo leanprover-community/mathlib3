@@ -10,7 +10,7 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
 import linear_algebra.matrix.to_lin
 import topology.algebra.module.finite_dimension
-import topology.algebra.module.infinite_sum
+import topology.algebra.infinite_sum.module
 import topology.instances.matrix
 
 /-!
@@ -244,9 +244,9 @@ lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :
   is_open {f : ι → E | linear_independent 𝕜 f} :=
 is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
-lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ rank (f : E →ₗ[𝕜] F)} :=
+lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ (f : E →ₗ[𝕜] F).rank } :=
 begin
-  simp only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
+  simp only [linear_map.le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
   refine is_open_bUnion (λ t ht, _),
   have : continuous (λ f : E →L[𝕜] F, (λ x : (t : set E), f x)),
     from continuous_pi (λ x, (continuous_linear_map.apply 𝕜 F (x : E)).continuous),

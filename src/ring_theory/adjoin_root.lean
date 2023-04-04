@@ -11,6 +11,7 @@ import ring_theory.finite_presentation
 import ring_theory.finite_type
 import ring_theory.power_basis
 import ring_theory.principal_ideal_domain
+import ring_theory.quotient_noetherian
 
 /-!
 # Adjoining roots of polynomials

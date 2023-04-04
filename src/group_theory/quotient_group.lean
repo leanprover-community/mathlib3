@@ -13,6 +13,9 @@ import group_theory.subgroup.pointwise
 /-!
 # Quotients of groups by normal subgroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files develops the basic theory of quotients of groups by normal subgroups. In particular it
 proves Noether's first and second isomorphism theorems.
 

@@ -174,10 +174,10 @@ section strong_rank_condition
 variables {α : Type*} [comm_ring α] [strong_rank_condition α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim : module.rank α E.sol_space = E.order :=
+lemma sol_space_rank : module.rank α E.sol_space = E.order :=
 begin
   letI := nontrivial_of_invariant_basis_number α,
-  exact @dim_fin_fun α _ _ E.order ▸ E.to_init.dim_eq
+  exact @rank_fin_fun α _ _ E.order ▸ E.to_init.rank_eq
 end
 
 end strong_rank_condition

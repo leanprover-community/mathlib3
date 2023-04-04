@@ -150,13 +150,6 @@ begin
     ... = partial_sum b (n + 1) : (partial_sum_next b n).symm
 end
 
-lemma cau_seq_of_le (a b : ℕ → ℝ) (h : ∀ n, 0 < a n ∧ a n < b n) (hb : series_converges b) : is_cau_seq abs a :=
-begin
-  cases hb with T hT,
-  intros ε hε,
-  sorry
-end
-
 theorem summable_of_series_absolute_convergence_real {f : ℕ → ℝ}
   (h : series_converges_absolutely f) : summable f :=
 summable_of_absolute_convergence_real h

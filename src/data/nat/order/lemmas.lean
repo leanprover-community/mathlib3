@@ -21,7 +21,7 @@ mathlib4. After `data.rat.order` has been ported, please feel free to reorganize
 
 universes u v
 
-variables {a b m n k : ℕ}
+variables {m n k : ℕ}
 namespace nat
 
 /-! ### Sets -/

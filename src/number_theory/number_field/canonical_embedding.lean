@@ -127,7 +127,7 @@ variables (K)
 def integer_lattice : subring (space K) :=
 (ring_hom.range (algebra_map (𝓞 K) K)).map (canonical_embedding K)
 
-/-- The ring equiv between `𝓞 K` and the integer lattice. -/
+/-- The linear equiv between `𝓞 K` and the integer lattice. -/
 def equiv_integer_lattice [number_field K] :
   𝓞 K ≃ₗ[ℤ] integer_lattice K :=
 linear_equiv.of_bijective

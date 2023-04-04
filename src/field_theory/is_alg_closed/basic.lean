@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import field_theory.normal
 import field_theory.perfect_closure
 import field_theory.separable
 import ring_theory.adjoin.field
@@ -169,6 +170,10 @@ class is_alg_closure (R : Type u) (K : Type v) [comm_ring R]
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+theorem is_alg_closure.normal {R K : Type*} [field R] [field K] [algebra R K]
+  (h : is_alg_closure R K) : normal R K :=
+⟨h.algebraic, λ _, @is_alg_closed.splits_codomain _ _ _ h.alg_closed _ _ _⟩
 
 namespace lift
 

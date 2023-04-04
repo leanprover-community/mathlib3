@@ -385,6 +385,9 @@ by rw [sdiff_inf, sdiff_eq_bot_iff.2 inf_le_left, bot_sup_eq, inf_sdiff_assoc]
 lemma inf_sdiff_distrib_right (a b c : α) : a \ b ⊓ c = (a ⊓ c) \ (b ⊓ c) :=
 by simp_rw [@inf_comm _ _ _ c, inf_sdiff_distrib_left]
 
+lemma disjoint_sdiff_comm : disjoint (x \ z) y ↔ disjoint x (y \ z) :=
+by simp_rw [disjoint_iff, inf_sdiff_right_comm, inf_sdiff_assoc]
+
 lemma sup_eq_sdiff_sup_sdiff_sup_inf : x ⊔ y = (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) :=
 eq.symm $
   calc (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) =

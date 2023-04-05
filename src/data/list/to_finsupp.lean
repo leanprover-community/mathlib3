@@ -39,7 +39,10 @@ variables {M : Type*} [has_zero M] (l : list M)
 
 /-- Indexing into a `l : list M`, as a finitely-supported function,
 where the support are all the indices within the length of the list
-that index to a non-zero value. Indices beyond the end of the list are sent to 0. -/
+that index to a non-zero value. Indices beyond the end of the list are sent to 0.
+
+This is a computable version of the `finsupp.on_finset` construction.
+-/
 def to_finsupp : ℕ →₀ M :=
 { to_fun := λ i, nthd l i 0,
   support := (finset.range l.length).filter (λ i, nthd l i 0 ≠ 0),

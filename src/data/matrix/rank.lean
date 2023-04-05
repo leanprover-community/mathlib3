@@ -38,7 +38,7 @@ variables (A : matrix m n K)
 noncomputable def rank : ℕ := finrank K A.to_lin'.range
 
 @[simp] lemma rank_one : rank (1 : matrix n n K) = fintype.card n :=
-by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, module.free.finrank_pi]
+by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, finrank_pi]
 
 @[simp] lemma rank_zero : rank (0 : matrix n n K) = 0 :=
 by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
@@ -46,7 +46,7 @@ by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
 lemma rank_le_card_width : A.rank ≤ fintype.card n :=
 begin
   convert le_of_add_le_left (A.to_lin'.finrank_range_add_finrank_ker).le,
-  exact (module.free.finrank_pi K).symm,
+  exact (finrank_pi K).symm,
 end
 
 lemma rank_le_width {m n : ℕ} (A : matrix (fin m) (fin n) K) : A.rank ≤ n :=
@@ -96,7 +96,7 @@ begin
 end
 
 lemma rank_le_card_height : A.rank ≤ fintype.card m :=
-(submodule.finrank_le _).trans (module.free.finrank_pi K).le
+(submodule.finrank_le _).trans (finrank_pi K).le
 
 omit m_fin
 

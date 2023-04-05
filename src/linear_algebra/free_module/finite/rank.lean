@@ -16,8 +16,7 @@ This is a basic API for the rank of finite free modules.
 
 -/
 
---TODO: `linear_algebra/finite_dimensional` should import this file, and a lot of results should
---be moved here.
+--TODO: many results from `linear_algebra/finite_dimensional` should be moved here.
 
 universes u v w
 
@@ -27,7 +26,8 @@ open_locale tensor_product direct_sum big_operators cardinal
 
 open cardinal finite_dimensional fintype
 
-namespace module.free
+namespace finite_dimensional
+open module.free
 
 section ring
 
@@ -110,4 +110,4 @@ by { simp [finrank] }
 
 end comm_ring
 
-end module.free
+end finite_dimensional

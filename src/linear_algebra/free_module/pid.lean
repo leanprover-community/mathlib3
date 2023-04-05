@@ -59,7 +59,7 @@ variables {ι : Type*} (b : basis ι R M)
 open submodule.is_principal submodule
 
 lemma eq_bot_of_generator_maximal_map_eq_zero (b : basis ι R M) {N : submodule R M}
-  {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ)
+  {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), ¬ N.map ϕ < N.map ψ)
   [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = (0 : R)) : N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
@@ -67,13 +67,13 @@ begin
   refine b.ext_elem (λ i, _),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ ⟨x, hx, rfl⟩
+  exact (submodule.eq_bot_iff _).mp (not_bot_lt_iff.1 $ hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr)) _
+    ⟨x, hx, rfl⟩
 end
 
 lemma eq_bot_of_generator_maximal_submodule_image_eq_zero {N O : submodule R M} (b : basis ι R O)
   (hNO : N ≤ O)
-  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ϕ.submodule_image N ≤ ψ.submodule_image N →
-    ψ.submodule_image N = ϕ.submodule_image N)
+  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ¬ ϕ.submodule_image N < ψ.submodule_image N)
   [(ϕ.submodule_image N).is_principal] (hgen : generator (ϕ.submodule_image N) = 0) :
   N = ⊥ :=
 begin
@@ -82,7 +82,7 @@ begin
   refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem (λ i, _)),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ _,
+  refine (submodule.eq_bot_iff _).mp (not_bot_lt_iff.1 $ hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr)) _ _,
   exact (linear_map.mem_submodule_image_of_le hNO).mpr ⟨x, hx, rfl⟩
 end
 
@@ -115,8 +115,7 @@ variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 open submodule.is_principal
 
 lemma generator_maximal_submodule_image_dvd {N O : submodule R M} (hNO : N ≤ O)
-  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ϕ.submodule_image N ≤ ψ.submodule_image N →
-    ψ.submodule_image N = ϕ.submodule_image N)
+  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ¬ ϕ.submodule_image N < ψ.submodule_image N)
   [(ϕ.submodule_image N).is_principal]
   (y : M) (yN : y ∈ N) (ϕy_eq : ϕ ⟨y, hNO yN⟩ = generator (ϕ.submodule_image N))
   (ψ : O →ₗ[R] R) : generator (ϕ.submodule_image N) ∣ ψ ⟨y, hNO yN⟩ :=
@@ -144,7 +143,7 @@ begin
   refine le_antisymm (this.trans (le_of_eq _))
     (ideal.span_singleton_le_span_singleton.mpr d_dvd_left),
   rw span_singleton_generator,
-  refine hϕ ψ' (le_trans _ this),
+  apply (le_trans _ this).eq_of_not_gt (hϕ ψ'),
   rw [← span_singleton_generator (ϕ.submodule_image N)],
   exact ideal.span_singleton_le_span_singleton.mpr d_dvd_left,
   { exact subset_span (mem_insert _ _) }
@@ -175,8 +174,7 @@ lemma submodule.basis_of_pid_aux [finite ι] {O : Type*} [add_comm_group O] [mod
 begin
   -- Let `ϕ` be a maximal projection of `M` onto `R`, in the sense that there is
   -- no `ψ` whose image of `N` is larger than `ϕ`'s image of `N`.
-  have : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R),
-    ϕ.submodule_image N ≤ ψ.submodule_image N → ψ.submodule_image N = ϕ.submodule_image N,
+  have : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R), ¬ ϕ.submodule_image N < ψ.submodule_image N,
   { obtain ⟨P, P_eq, P_max⟩ := set_has_maximal_iff_noetherian.mpr
         (infer_instance : is_noetherian R R) _
         (show (set.range (λ ψ : M →ₗ[R] R, ψ.submodule_image N)).nonempty,

@@ -7,6 +7,7 @@ import algebra.homology.quasi_iso
 import category_theory.abelian.homology
 import category_theory.preadditive.projective_resolution
 import category_theory.preadditive.yoneda.limits
+import category_theory.preadditive.yoneda.projective
 
 /-!
 # Abelian categories with enough projectives have projective resolutions

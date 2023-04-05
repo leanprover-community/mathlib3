@@ -100,10 +100,8 @@ instance : is_refl α (∣) := ⟨dvd_refl⟩
 theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul a)
 
 lemma dvd_of_eq (h : a = b) : a ∣ b := by rw h
-lemma dvd_of_eq' (h : a = b) : b ∣ a := by rw h
 
 alias dvd_of_eq ← eq.dvd
-alias dvd_of_eq' ← eq.dvd'
 
 end monoid
 

@@ -75,7 +75,7 @@ image₂_subset hs subset.rfl
 lemma image_subset_image₂_left (hb : b ∈ t) : s.image (λ a, f a b) ⊆ image₂ f s t :=
 image_subset_iff.2 $ λ a ha, mem_image₂_of_mem ha hb
 
-lemma image_subset_image₂_right (ha : a ∈ s) : t.image (f a) ⊆ image₂ f s t :=
+lemma image_subset_image₂_right (ha : a ∈ s) : t.image (λ b, f a b) ⊆ image₂ f s t :=
 image_subset_iff.2 $ λ b, mem_image₂_of_mem ha
 
 lemma forall_image₂_iff {p : γ → Prop} : (∀ z ∈ image₂ f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=
@@ -84,7 +84,7 @@ by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]
 @[simp] lemma image₂_subset_iff : image₂ f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image₂_iff
 
-lemma image₂_subset_iff_left : image₂ f s t ⊆ u ↔ ∀ a ∈ s, t.image (f a) ⊆ u :=
+lemma image₂_subset_iff_left : image₂ f s t ⊆ u ↔ ∀ a ∈ s, t.image (λ b, f a b) ⊆ u :=
 by simp_rw [image₂_subset_iff, image_subset_iff]
 
 lemma image₂_subset_iff_right : image₂ f s t ⊆ u ↔ ∀ b ∈ t, s.image (λ a, f a b) ⊆ u :=
@@ -120,7 +120,7 @@ lemma image₂_union_right [decidable_eq β] : image₂ f s (t ∪ t') = image�
 coe_injective $ by { push_cast, exact image2_union_right }
 
 @[simp] lemma image₂_insert_left [decidable_eq α] :
-  image₂ f (insert a s) t = t.image (f a) ∪ image₂ f s t :=
+  image₂ f (insert a s) t = t.image (λ b, f a b) ∪ image₂ f s t :=
 coe_injective $ by { push_cast, exact image2_insert_left }
 
 @[simp] lemma image₂_insert_right [decidable_eq β] :

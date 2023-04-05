@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
-import data.set.pairwise
+import data.set.pairwise.lattice
 import data.set.pointwise.basic
 import tactic.by_contra
 
@@ -204,12 +204,7 @@ end has_smul_set
 section has_mul
 variables [has_mul α] {s t u : set α} {a : α}
 
-@[simp, to_additive] lemma singleton_mul (a : α) (s : set α) : {a} * s = a • s :=
-image2_singleton_left
-@[simp, to_additive] lemma mul_singleton (s : set α) (a : α) : s * {a} = op a • s :=
-image2_singleton_right
-
-@[to_additive] lemma op_smul_set_subset_smul : a ∈ t → op a • s ⊆ s • t := image_subset_image2_left
+@[to_additive] lemma op_smul_set_subset_mul : a ∈ t → op a • s ⊆ s * t := image_subset_image2_left
 
 @[simp, to_additive] lemma bUnion_op_smul_set (s t : set α) : (⋃ a ∈ t, op a • s) = s * t :=
 Union_image_right _
@@ -267,6 +262,7 @@ instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [i
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
+@[to_additive]
 instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (set β) :=
 ⟨λ a S, congr_arg (λ f, f '' S) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
@@ -415,6 +411,17 @@ image_comm
   f '' (a • s) = f a • f '' s :=
 image_comm $ map_mul _ _
 
+section has_smul
+variables[has_smul αᵐᵒᵖ β] [has_smul β γ] [has_smul α γ]
+
+-- TODO: replace hypothesis and conclusion with a typeclass
+@[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (a : α) (s : set β) (t : set γ)
+  (h : ∀ (a : α) (b : β) (c : γ), (op a • b) • c = b • a • c) :
+  (op a • s) • t = s • a • t :=
+by { ext, simp [mem_smul, mem_smul_set, h] }
+
+end has_smul
+
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
 
@@ -467,6 +474,15 @@ begin
 end
 
 end smul_with_zero
+
+section semigroup
+variables [semigroup α]
+
+@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (a : α) (s : set α) (t : set α) :
+  (op a • s) * t = s * a • t :=
+op_smul_set_smul_eq_smul_smul_set _ _ _ $ λ _ _ _, mul_assoc _ _ _
+
+end semigroup
 
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}

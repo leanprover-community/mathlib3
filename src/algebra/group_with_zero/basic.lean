@@ -156,6 +156,15 @@ lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
 calc a * b = b ↔ a * b = 1 * b : by rw one_mul
      ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
 
+@[simp] lemma mul_eq_left₀ (ha : a ≠ 0) : a * b = a ↔ b = 1 :=
+by rw [iff.comm, ←mul_right_inj' ha, mul_one]
+
+@[simp] lemma mul_eq_right₀ (hb : b ≠ 0) : a * b = b ↔ a = 1 :=
+by rw [iff.comm, ←mul_left_inj' hb, one_mul]
+
+@[simp] lemma left_eq_mul₀ (ha : a ≠ 0) : a = a * b ↔ b = 1 := by rw [eq_comm, mul_eq_left₀ ha]
+@[simp] lemma right_eq_mul₀ (hb : b ≠ 0) : b = a * b ↔ a = 1 := by rw [eq_comm, mul_eq_right₀ hb]
+
 /-- An element of a `cancel_monoid_with_zero` fixed by right multiplication by an element other
 than one must be zero. -/
 theorem eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
@@ -226,6 +235,14 @@ instance group_with_zero.to_division_monoid : division_monoid G₀ :=
     simp [mul_assoc, ha, hb]
   end,
   inv_eq_of_mul := λ a b, inv_eq_of_mul,
+  ..‹group_with_zero G₀› }
+
+@[priority 10] -- see Note [lower instance priority]
+instance group_with_zero.to_cancel_monoid_with_zero : cancel_monoid_with_zero G₀ :=
+{ mul_left_cancel_of_ne_zero := λ x y z hx h,
+    by rw [← inv_mul_cancel_left₀ hx y, h, inv_mul_cancel_left₀ hx z],
+  mul_right_cancel_of_ne_zero := λ x y z hy h,
+    by rw [← mul_inv_cancel_right₀ hy x, h, mul_inv_cancel_right₀ hy z],
   ..‹group_with_zero G₀› }
 
 end group_with_zero

@@ -67,7 +67,7 @@ lemma forall_image2_iff {p : γ → Prop} :
   image2 f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image2_iff
 
-lemma image2_subset_iff_left : image2 f s t ⊆ u ↔ ∀ a ∈ s, f a '' t ⊆ u :=
+lemma image2_subset_iff_left : image2 f s t ⊆ u ↔ ∀ a ∈ s, (λ b, f a b) '' t ⊆ u :=
 by simp_rw [image2_subset_iff, image_subset_iff, subset_def, mem_preimage]
 
 lemma image2_subset_iff_right : image2 f s t ⊆ u ↔ ∀ b ∈ t, (λ a, f a b) '' s ⊆ u :=
@@ -141,7 +141,7 @@ by { rintro _ ⟨a, b, ha, ⟨h1b, h2b⟩, rfl⟩, split; exact ⟨_, _, ‹_›
 
 lemma image2_singleton : image2 f {a} {b} = {f a b} := by simp
 
-@[simp] lemma image2_insert_left : image2 f (insert a s) t = f a '' t ∪ image2 f s t :=
+@[simp] lemma image2_insert_left : image2 f (insert a s) t = (λ b, f a b) '' t ∪ image2 f s t :=
 by rw [insert_eq, image2_union_left, image2_singleton_left]
 
 @[simp] lemma image2_insert_right : image2 f s (insert b t) = (λ a, f a b) '' s  ∪ image2 f s t :=

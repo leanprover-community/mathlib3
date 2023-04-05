@@ -327,6 +327,14 @@ begin
       ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero q0), pow_ne_zero, ne.def, not_false_iff] }
 end
 
+@[simp] theorem nat_degree_iterate_comp (k : ℕ) :
+  (p.comp^[k] q).nat_degree = p.nat_degree ^ k * q.nat_degree :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [function.iterate_succ_apply', nat_degree_comp, IH, pow_succ, mul_assoc] }
+end
+
 lemma leading_coeff_comp (hq : nat_degree q ≠ 0) :
   leading_coeff (p.comp q) = leading_coeff p * leading_coeff q ^ nat_degree p :=
 by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp, coeff_nat_degree]

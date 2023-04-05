@@ -1487,22 +1487,14 @@ by simp_rw [erase_eq, union_sdiff_distrib]
 lemma insert_inter_distrib (s t : finset α) (a : α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
 by simp_rw [insert_eq, union_distrib_left]
 
-lemma erase_union_cancel (ha : a ∈ t) (s : finset α) : s.erase a ∪ t = s ∪ t :=
+lemma erase_union_of_mem (ha : a ∈ t) (s : finset α) : s.erase a ∪ t = s ∪ t :=
 by rw [←insert_erase (mem_union_right s ha), erase_union_distrib, ←union_insert, insert_erase ha]
 
-lemma union_erase_cancel (ha : a ∈ s) (t : finset α) : s ∪ t.erase a = s ∪ t :=
+lemma union_erase_of_mem (ha : a ∈ s) (t : finset α) : s ∪ t.erase a = s ∪ t :=
 by rw [←insert_erase (mem_union_left t ha), erase_union_distrib, ←insert_union, insert_erase ha]
 
-lemma insert_inter_cancel (ha : a ∉ t) (s : finset α) : insert a s ∩ t = s ∩ t :=
-by rw [insert_eq, inter_distrib_right, disjoint_iff_inter_eq_empty.1 (disjoint_singleton_left.2 ha),
-  empty_union]
-
-lemma inter_insert_cancel (ha : a ∉ s) (t : finset α) : s ∩ insert a t = s ∩ t :=
-by rw [insert_eq, inter_distrib_left, disjoint_iff_inter_eq_empty.1 (disjoint_singleton_right.2 ha),
-  empty_union]
-
-@[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
-by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
+@[simp] lemma sdiff_singleton_eq_self (ha : a ∉ s) : s \ {a} = s :=
+sdiff_eq_self_iff_disjoint.2 $ by simp [ha]
 
 lemma sdiff_sdiff_left' (s t u : finset α) :
   (s \ t) \ u = (s \ t) ∩ (s \ u) := sdiff_sdiff_left'
@@ -1511,10 +1503,7 @@ lemma sdiff_union_sdiff_cancel (hts : t ⊆ s) (hut : u ⊆ t) : s \ t ∪ t \ u
 sdiff_sup_sdiff_cancel hts hut
 
 lemma sdiff_union_erase_cancel (hts : t ⊆ s) (ha : a ∈ t) : s \ t ∪ t.erase a = s.erase a :=
-by simp_rw [←sdiff_singleton_eq_erase, sdiff_union_sdiff_cancel hts (singleton_subset_iff.2 ha)]
-
-lemma subset_sdiff_of_subset_left (hsu : disjoint s u) (h : s ⊆ t) : s ⊆ t \ u :=
-hsu.le_sdiff_of_le_left h
+by simp_rw [erase_eq, sdiff_union_sdiff_cancel hts (singleton_subset_iff.2 ha)]
 
 lemma sdiff_sdiff_eq_sdiff_union (h : u ⊆ s) : s \ (t \ u) = s \ t ∪ u := sdiff_sdiff_eq_sdiff_sup h
 

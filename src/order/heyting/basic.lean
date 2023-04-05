@@ -445,6 +445,7 @@ by rw [sup_sdiff, sdiff_self, bot_sup_eq, h.sdiff_eq_right]
 lemma disjoint.sup_sdiff_cancel_right (h : disjoint a b) : (a ⊔ b) \ b = a :=
 by rw [sup_sdiff, sdiff_self, sup_bot_eq, h.sdiff_eq_left]
 
+/-- See `le_sdiff` for a stronger version in generalised Boolean algebras. -/
 lemma disjoint.le_sdiff_of_le_left (hac : disjoint a c) (hab : a ≤ b) : a ≤ b \ c :=
 hac.sdiff_eq_left.ge.trans $ sdiff_le_sdiff_right hab
 

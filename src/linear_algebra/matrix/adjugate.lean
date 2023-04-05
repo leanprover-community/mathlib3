@@ -169,14 +169,15 @@ These will hold for any matrix over a commutative ring.
   matrix replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
-def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (pi.single i 1)
+def adjugate (A : matrix n n α) : matrix n n α :=
+of $ λ i, cramer Aᵀ (pi.single i 1)
 
 lemma adjugate_def (A : matrix n n α) :
-  adjugate A = λ i, cramer Aᵀ (pi.single i 1) := rfl
+  adjugate A = of (λ i, cramer Aᵀ (pi.single i 1)) := rfl
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (pi.single i 1)).det :=
-by { rw adjugate_def, simp only, rw [cramer_apply, update_column_transpose, det_transpose], }
+by rw [adjugate_def, of_apply, cramer_apply, update_column_transpose, det_transpose]
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
@@ -282,7 +283,7 @@ by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
   adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
 begin
   ext,
-  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  simp only [adjugate_def, cramer_apply, diagonal_transpose, of_apply],
   obtain rfl | hij := eq_or_ne i j,
   { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
       prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },

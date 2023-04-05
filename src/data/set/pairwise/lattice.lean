@@ -9,6 +9,9 @@ import data.set.pairwise.basic
 /-!
 # Relations holding pairwise
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove many facts about `pairwise` and the set lattice.
 -/
 

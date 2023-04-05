@@ -96,6 +96,8 @@ begin
     exact eq_add_of_sub_eq rfl }
 end
 
+lemma dvd_sub_comm : a ∣ b - c ↔ a ∣ c - b := by rw [←dvd_neg, neg_sub]
+
 end non_unital_ring
 
 section ring

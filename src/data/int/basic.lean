@@ -186,6 +186,8 @@ variables {a b : ℤ} {n : ℕ}
 
 attribute [simp] nat_abs_of_nat nat_abs_zero nat_abs_one
 
+lemma nat_abs_surjective : nat_abs.surjective := λ n, ⟨n, nat_abs_of_nat n⟩
+
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
   have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b),

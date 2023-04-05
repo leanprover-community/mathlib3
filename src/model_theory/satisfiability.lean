@@ -212,7 +212,7 @@ begin
   refine ⟨(equiv_shrink S).bundled_induced L,
     ⟨S.subtype.comp (equiv.bundled_induced_equiv L _).symm.to_elementary_embedding⟩,
     lift_inj.1 (trans _ hS)⟩,
-  simp only [equiv.bundled_induced_α, lift_mk_shrink'],
+  simp only [equiv.bundled_induced_α, lift_mk_shrink],
 end
 
 /-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`

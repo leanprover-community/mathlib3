@@ -16,6 +16,9 @@ import linear_algebra.pi
 /-!
 # Theory of topological modules and continuous linear maps.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We use the class `has_continuous_smul` for topological (semi) modules and topological vector spaces.
 
 In this file we define continuous (semi-)linear maps, as semilinear maps between topological

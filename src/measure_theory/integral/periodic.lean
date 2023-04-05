@@ -107,7 +107,7 @@ begin
   { simp [hε, min_eq_left (by linarith : T ≤ 2 * ε)], },
 end
 
-instance : is_doubling_measure (volume : measure (add_circle T)) :=
+instance : is_unif_loc_doubling_measure (volume : measure (add_circle T)) :=
 begin
   refine ⟨⟨real.to_nnreal 2, filter.eventually_of_forall $ λ ε x, _⟩⟩,
   simp only [volume_closed_ball],

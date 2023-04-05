@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
+import linear_algebra.dimension
 import linear_algebra.free_module.basic
 import ring_theory.finiteness
 

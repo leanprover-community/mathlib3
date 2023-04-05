@@ -815,7 +815,7 @@ begin
           finrank (R ⧸ p) (S ⧸ (P : ideal S)^(e P)) : _
   ... = finrank (R ⧸ p) (Π P : (factors (map (algebra_map R S) p)).to_finset,
           (S ⧸ (P : ideal S)^(e P))) :
-    (module.free.finrank_pi_fintype (R ⧸ p)).symm
+    (finrank_pi_fintype (R ⧸ p)).symm
   ... = finrank (R ⧸ p) (S ⧸ map (algebra_map R S) p) : _
   ... = finrank K L : _,
   { rw ← finset.sum_attach,

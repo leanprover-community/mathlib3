@@ -794,7 +794,7 @@ variables {μ : measure α} {s N : set α} {f : α → ℝ} {r : ℝ}
 
 /-- **First moment method**. An integrable function is smaller than its mean on a set of positive
 measure. -/
-lemma measure_le_set_integral_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤) (hf : integrable_on f s μ)
+lemma measure_le_set_integral_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ)
   (hs : null_measurable_set s μ) :
   0 < μ {x ∈ s | f x ≤ ∫ a in s, f a ∂μ / (μ s).to_real} :=
 begin
@@ -803,7 +803,7 @@ begin
   simp_rw [←set_of_inter_eq_sep, ←set_integral_congr_set_ae hμts, ←measure_congr hμts,
     ←measure_congr ((eventually_eq.refl _ _).inter hμts)],
   rw ←measure_congr hμts at hμ hμ₁,
-  haveI : fact (μ t < ⊤) := ⟨lt_top_iff_ne_top.2 hμ₁⟩,
+  haveI : fact (μ t < ∞) := ⟨lt_top_iff_ne_top.2 hμ₁⟩,
   refine pos_iff_ne_zero.2 (λ H, _),
   have : 0 < μ (support (f - const _ (∫ a in t, f a ∂μ / (μ t).to_real)) ∩ t),
   { rwa [pos_iff_ne_zero, inter_comm, ←diff_compl, ←diff_inter_self_eq_diff, measure_diff_null],
@@ -822,20 +822,20 @@ end
 
 /-- **First moment method**. An integrable function is greater than its mean on a set of positive
 measure. -/
-lemma measure_set_integral_le_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤) (hf : integrable_on f s μ)
+lemma measure_set_integral_le_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ)
   (hs : null_measurable_set s μ) :
   0 < μ {x ∈ s | ∫ a in s, f a ∂μ / (μ s).to_real ≤ f x} :=
 by simpa [integral_neg, neg_div] using measure_le_set_integral_pos hμ hμ₁ hf.neg hs
 
 /-- **First moment method**. The minimum of an integrable function is smaller than its mean. -/
-lemma exists_set_le_integral (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤) (hf : integrable_on f s μ)
+lemma exists_set_le_integral (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ)
   (hs : null_measurable_set s μ) :
   ∃ x ∈ s, f x ≤ ∫ a in s, f a ∂μ / (μ s).to_real :=
 let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_le_set_integral_pos hμ hμ₁ hf hs).ne'
   in ⟨x, hx, h⟩
 
 /-- **First moment method**. The maximum of an integrable function is greater than its mean. -/
-lemma exists_set_integral_le (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤) (hf : integrable_on f s μ)
+lemma exists_set_integral_le (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ)
   (hs : null_measurable_set s μ) :
   ∃ x ∈ s, ∫ a in s, f a ∂μ / (μ s).to_real ≤ f x :=
 let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_set_integral_le_pos hμ hμ₁ hf hs).ne'

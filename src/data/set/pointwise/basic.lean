@@ -205,8 +205,8 @@ image2_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-@[to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
-@[to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) := image₂_singleton_left
+@[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
+@[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
 @[simp, to_additive] lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} :=
 image2_singleton
 

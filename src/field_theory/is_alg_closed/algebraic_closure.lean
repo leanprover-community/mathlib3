@@ -263,8 +263,4 @@ hx ▸ map_is_integral (of_step_hom k n) (step.is_integral k n x)
 instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
 
-instance : normal k (algebraic_closure k) := is_alg_closure.normal _ _
-
-instance [char_zero k] : is_separable k (algebraic_closure k) := is_alg_closure.separable _ _
-
 end algebraic_closure

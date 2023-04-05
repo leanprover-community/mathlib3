@@ -431,7 +431,4 @@ section is_alg_closure
 instance is_alg_closure.is_galois (k K : Type*) [field k] [field K] [algebra k K]
   [is_alg_closure k K] [char_zero k] : is_galois k K := { }
 
-instance (k : Type*) [field k] [char_zero k] : is_galois k (algebraic_closure k) :=
-is_alg_closure.is_galois _ _
-
 end is_alg_closure

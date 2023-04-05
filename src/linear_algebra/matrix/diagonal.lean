@@ -77,8 +77,8 @@ begin
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := disjoint_compl_left,
   have B₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (set.to_finite _),
   have B₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
-  rw [rank, range_diagonal, B₁, ←@dim_fun' K],
-  apply linear_equiv.dim_eq,
+  rw [rank, range_diagonal, B₁, ←@rank_fun' K],
+  apply linear_equiv.rank_eq,
   apply B₂,
 end
 

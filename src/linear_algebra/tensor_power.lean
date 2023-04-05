@@ -46,8 +46,7 @@ namespace pi_tensor_product
 /-- Two dependent pairs of tensor products are equal if their index is equal and the contents
 are equal after a canonical reindexing. -/
 @[ext]
-lemma graded_monoid_eq_of_reindex_cast {ιι : Type*} {ι : ιι → Type*}
-  [dι : Π ii, decidable_eq (ι ii)] :
+lemma graded_monoid_eq_of_reindex_cast {ιι : Type*} {ι : ιι → Type*} :
   ∀ {a b : graded_monoid (λ ii, ⨂[R] i : ι ii, M)} (h : a.fst = b.fst),
     reindex R M (equiv.cast $ congr_arg ι h) a.snd = b.snd → a = b
 | ⟨ai, a⟩ ⟨bi, b⟩ := λ (hi : ai = bi) (h : reindex R M _ a = b),

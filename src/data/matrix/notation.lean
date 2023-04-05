@@ -285,7 +285,7 @@ by { ext i, refine fin.cases _ _ i; simp [vec_mul_vec] }
 
 @[simp] lemma vec_mul_vec_cons (v : m' → α) (x : α) (w : fin n → α) :
   vec_mul_vec v (vec_cons x w) = λ i, v i • vec_cons x w :=
-by { ext i j, rw [vec_mul_vec, pi.smul_apply, smul_eq_mul] }
+by { ext i j, rw [vec_mul_vec_apply, pi.smul_apply, smul_eq_mul] }
 
 end vec_mul_vec
 

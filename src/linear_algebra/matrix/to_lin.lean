@@ -349,7 +349,7 @@ begin
   rw [vec_mul_vec_eq, matrix.to_lin'_mul],
   refine le_trans (rank_comp_le1 _ _) _,
   refine (rank_le_domain _).trans_eq _,
-  rw [dim_fun', fintype.card_unit, nat.cast_one]
+  rw [rank_fun', fintype.card_unit, nat.cast_one]
 end
 
 end to_matrix'
@@ -627,7 +627,7 @@ linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 begin
   ext,
   rw [linear_map.to_matrix_apply, distrib_mul_action.to_linear_map_apply, linear_equiv.map_smul,
-    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal,
+    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal_apply,
     pi.single_apply],
 end
 

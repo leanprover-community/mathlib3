@@ -87,6 +87,8 @@ by rw [←sub_add_cancel b c, dvd_add_right h]
 
 lemma dvd_sub_comm : a ∣ b - c ↔ a ∣ c - b := by rw [←dvd_neg, neg_sub]
 
+lemma dvd_sub_comm : a ∣ b - c ↔ a ∣ c - b := by rw [←dvd_neg, neg_sub]
+
 end non_unital_ring
 
 section ring

@@ -21,7 +21,7 @@ there.
 namespace multilinear_map
 
 variables {ι R M₂ : Type*} {M₁ : ι → Type*}
-variables [decidable_eq ι] [finite ι]
+variables [finite ι]
 variables [comm_ring R] [add_comm_group M₂] [module R M₂]
 variables [Π i, add_comm_group (M₁ i)] [Π i, module R (M₁ i)]
 variables [module.finite R M₂] [module.free R M₂]

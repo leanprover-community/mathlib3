@@ -922,6 +922,9 @@ def mul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (linear_map.mul 𝕜 𝕜')
 @[simp] lemma op_norm_mul_apply_le (x : 𝕜') : ‖mul 𝕜 𝕜' x‖ ≤ ‖x‖ :=
 (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
 
+lemma op_norm_mul_le : ‖mul 𝕜 𝕜'‖ ≤ 1 :=
+linear_map.mk_continuous₂_norm_le _ zero_le_one _
+
 /-- Simultaneous left- and right-multiplication in a non-unital normed algebra, considered as a
 continuous trilinear map. This is akin to its non-continuous version `linear_map.mul_left_right`,
 but there is a minor difference: `linear_map.mul_left_right` is uncurried. -/

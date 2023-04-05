@@ -167,12 +167,12 @@ for the initial bundle.
 Fiber bundle, topological bundle, structure group
 -/
 
-variables {ι : Type*} {B : Type*} {F : Type*}
+variables {ι B F X : Type*} [topological_space X]
 
 open topological_space filter set bundle
 open_locale topology classical bundle
 
-attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
+attribute [mfld_simps] total_space_mk coe_fst coe_snd coe_snd_map_apply
   coe_snd_map_smul total_space.mk_cast
 
 /-! ### General definition of fiber bundles -/
@@ -239,6 +239,47 @@ lemma quotient_map_proj [nonempty F] : quotient_map (π E) :=
 
 lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
 (total_space_mk_inducing F E x).continuous
+
+variables {E F}
+
+@[simp, mfld_simps]
+lemma mem_trivialization_at_proj_source {x : total_space E} :
+  x ∈ (trivialization_at F E x.proj).source :=
+(trivialization.mem_source _).mpr $ mem_base_set_trivialization_at F E x.proj
+
+@[simp, mfld_simps]
+lemma trivialization_at_proj_fst {x : total_space E} :
+  ((trivialization_at F E x.proj) x).1 = x.proj :=
+trivialization.coe_fst' _ $ mem_base_set_trivialization_at F E x.proj
+
+variable (F)
+open trivialization
+
+/-- Characterization of continuous functions (at a point, within a set) into a fiber bundle. -/
+lemma continuous_within_at_total_space (f : X → total_space E) {s : set X} {x₀ : X} :
+  continuous_within_at f s x₀ ↔
+  continuous_within_at (λ x, (f x).proj) s x₀ ∧
+  continuous_within_at (λ x, ((trivialization_at F E (f x₀).proj) (f x)).2) s x₀ :=
+begin
+  refine (and_iff_right_iff_imp.2 $ λ hf, _).symm.trans (and_congr_right $ λ hf, _),
+  { refine (continuous_proj F E).continuous_within_at.comp hf (maps_to_image f s) },
+  have h1 : (λ x, (f x).proj) ⁻¹' (trivialization_at F E (f x₀).proj).base_set ∈ 𝓝[s] x₀ :=
+    hf.preimage_mem_nhds_within ((open_base_set _).mem_nhds (mem_base_set_trivialization_at F E _)),
+  have h2 : continuous_within_at (λ x, (trivialization_at F E (f x₀).proj (f x)).1) s x₀,
+  { refine hf.congr_of_eventually_eq (eventually_of_mem h1 $ λ x hx, _) trivialization_at_proj_fst,
+    rw [coe_fst'],
+    exact hx },
+  rw [(trivialization_at F E (f x₀).proj).continuous_within_at_iff_continuous_within_at_comp_left],
+  { simp_rw [continuous_within_at_prod_iff, function.comp, trivialization.coe_coe, h2, true_and] },
+  { apply mem_trivialization_at_proj_source },
+  { rwa [source_eq, preimage_preimage] }
+end
+
+/-- Characterization of continuous functions (at a point) into a fiber bundle. -/
+lemma continuous_at_total_space (f : X → total_space E) {x₀ : X} :
+  continuous_at f x₀ ↔ continuous_at (λ x, (f x).proj) x₀ ∧
+  continuous_at (λ x, ((trivialization_at F E (f x₀).proj) (f x)).2) x₀ :=
+by { simp_rw [← continuous_within_at_univ], exact continuous_within_at_total_space F f }
 
 end fiber_bundle
 

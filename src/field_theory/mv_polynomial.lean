@@ -5,6 +5,8 @@ Authors: Johannes Hölzl
 -/
 
 import data.mv_polynomial.comm_ring
+import linear_algebra.dimension
+import ring_theory.ideal.quotient
 import ring_theory.mv_polynomial.basic
 
 /-!

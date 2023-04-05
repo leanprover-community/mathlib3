@@ -977,6 +977,14 @@ end
 @[simp] theorem ord_one : ord 1 = 1 :=
 by simpa using ord_nat 1
 
+@[simp] theorem ord_aleph_0 : ord.{u} ℵ₀ = omega :=
+le_antisymm (ord_le.2 $ le_rfl) $
+le_of_forall_lt $ λ o h, begin
+  rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
+  rw [lt_ord, ←lift_card, ←lift_aleph_0.{0 u}, lift_lt, ←typein_enum (<) h'],
+  exact lt_aleph_0_iff_fintype.2 ⟨set.fintype_lt_nat _⟩
+end
+
 @[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=
 begin
   refine le_antisymm (le_of_forall_lt (λ a ha, _)) _,
@@ -1067,6 +1075,8 @@ end
 
 end cardinal
 
+open_locale ordinal
+
 namespace ordinal
 
 @[simp] theorem card_univ : card univ = cardinal.univ := rfl
@@ -1085,6 +1095,23 @@ le_iff_le_iff_lt_iff_lt.2 nat_lt_card
 
 @[simp] theorem card_eq_nat {o} {n : ℕ} : card o = n ↔ o = n :=
 by simp only [le_antisymm_iff, card_le_nat, nat_le_card]
+
+theorem lt_omega {o : ordinal} : o < ω ↔ ∃ n : ℕ, o = n :=
+by simp_rw [←cardinal.ord_aleph_0, cardinal.lt_ord, lt_aleph_0, card_eq_nat]
+
+theorem nat_lt_omega (n : ℕ) : ↑n < ω := lt_omega.2 ⟨_, rfl⟩
+
+theorem omega_pos : 0 < ω := nat_lt_omega 0
+
+theorem omega_ne_zero : ω ≠ 0 := omega_pos.ne'
+
+theorem one_lt_omega : 1 < ω := by simpa only [nat.cast_one] using nat_lt_omega 1
+
+theorem omega_le {o : ordinal} : ω ≤ o ↔ ∀ n : ℕ, ↑n ≤ o :=
+⟨λ h n, (nat_lt_omega _).le.trans h,
+ λ H, le_of_forall_lt $ λ a h,
+   let ⟨n, e⟩ := lt_omega.1 h in
+   by rw [e, ←succ_le_iff]; exact H (n+1)⟩
 
 @[simp] theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] :
   type r = fintype.card α :=

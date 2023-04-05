@@ -55,13 +55,22 @@ namespace cardinal
 section using_ordinals
 open ordinal
 
+theorem add_one_eq {c} (h : ℵ₀ ≤ c) : c + 1 = c :=
+begin
+  rw [add_comm, ←card_ord c, ←card_one, ←card_add, one_add_of_omega_le],
+  rwa [←ord_aleph_0, ord_le_ord]
+end
+
+@[simp] lemma mk_add_one_eq {α : Type*} [infinite α] : #α + 1 = #α :=
+add_one_eq (aleph_0_le_mk α)
+
 theorem ord_is_limit {c} (co : ℵ₀ ≤ c) : (ord c).is_limit :=
 begin
   refine ⟨λ h, aleph_0_ne_zero _, λ a, lt_imp_lt_of_le_imp_le (λ h, _)⟩,
   { rw [←ordinal.le_zero, ord_le] at h,
     simpa only [card_zero, nonpos_iff_eq_zero] using co.trans h },
   { rw ord_le at h ⊢,
-    rwa [←@add_one_of_aleph_0_le (card a), ←card_succ],
+    rwa [←@add_one_eq (card a), ←card_succ],
     rw [←ord_le, ←le_succ_of_is_limit, ord_le],
     { exact co.trans h },
     { rw ord_aleph_0, exact omega_is_limit } }
@@ -659,12 +668,6 @@ by { rw [add_comm, add_eq_left_iff] }
 lemma add_nat_eq {a : cardinal} (n : ℕ) (ha : ℵ₀ ≤ a) : a + n = a :=
 add_eq_left ha ((nat_lt_aleph_0 _).le.trans ha)
 
-lemma add_one_eq {a : cardinal} (ha : ℵ₀ ≤ a) : a + 1 = a :=
-add_eq_left ha (one_le_aleph_0.trans ha)
-
-@[simp] lemma mk_add_one_eq {α : Type*} [infinite α] : #α + 1 = #α :=
-add_one_eq (aleph_0_le_mk α)
-
 protected lemma eq_of_add_eq_add_left {a b c : cardinal} (h : a + b = a + c) (ha : a < ℵ₀) :
   b = c :=
 begin
@@ -1037,7 +1040,7 @@ by { rw ←not_iff_not, simp }
 @[simp] theorem bit1_eq_self_iff {c : cardinal} : bit1 c = c ↔ ℵ₀ ≤ c :=
 begin
   by_cases h : ℵ₀ ≤ c,
-  { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_aleph_0_le] },
+  { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_eq] },
   { refine iff_of_false (ne_of_gt _) h,
     rcases lt_aleph_0.1 (not_le.1 h) with ⟨n, rfl⟩,
     norm_cast,

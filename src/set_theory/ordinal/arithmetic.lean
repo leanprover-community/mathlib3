@@ -220,6 +220,18 @@ theorem limit_le {o} (h : is_limit o) {a} : o ≤ a ↔ ∀ x < o, x ≤ a :=
 theorem lt_limit {o} (h : is_limit o) {a} : a < o ↔ ∃ x < o, a < x :=
 by simpa only [not_ball, not_le] using not_congr (@limit_le _ h a)
 
+theorem omega_is_limit : is_limit ω :=
+⟨omega_ne_zero, λ o h,
+  let ⟨n, e⟩ := lt_omega.1 h in
+  by rw [e]; exact nat_lt_omega (n+1)⟩
+
+theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, ↑n < o
+| 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
+| (n+1) := h.2 _ (nat_lt_limit n)
+
+theorem omega_le_of_is_limit {o} (h : is_limit o) : ω ≤ o :=
+omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
+
 @[simp] theorem lift_is_limit (o) : is_limit (lift o) ↔ is_limit o :=
 and_congr (not_congr $ by simpa only [lift_zero] using @lift_inj o 0)
 ⟨λ H a h, lift_lt.1 $ by simpa only [lift_succ] using H _ (lift_lt.2 h),
@@ -500,6 +512,16 @@ end
 theorem one_add_of_omega_le {o} (h : ω ≤ o) : 1 + o = o :=
 by rw [← ordinal.add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
 
+theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : 0 < b) (h : ∀ d < b, a + d < c) :
+  a + b ≤ c :=
+begin
+  have H : a + (c - a) = c := ordinal.add_sub_cancel_of_le (by {rw ←add_zero a, exact (h _ hb).le}),
+  rw ←H,
+  apply add_le_add_left _ a,
+  by_contra' hb,
+  exact (h _ hb).ne H
+end
+
 /-! ### Multiplication of ordinals-/
 
 /-- The multiplication of ordinals `o₁` and `o₂` is the (well founded) lexicographic order on
@@ -680,6 +702,37 @@ theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
 | 0       a := by rw [zero_smul, nat.cast_zero, mul_zero]
 | (n + 1) a := by rw [succ_nsmul', nat.cast_add, mul_add, nat.cast_one, mul_one, smul_eq_mul]
 
+theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
+  (l : is_limit c)
+  (IH : ∀ c' < c, (a + b) * succ c' = a * succ c' + b) :
+  (a + b) * c = a * c :=
+le_antisymm
+  ((mul_le_of_limit l).2 $ λ c' h, begin
+    apply (mul_le_mul_left' (le_succ c') _).trans,
+    rw IH _ h,
+    apply (add_le_add_left _ _).trans,
+    { rw ← mul_succ, exact mul_le_mul_left' (succ_le_of_lt $ l.2 _ h) _ },
+    { apply_instance },
+    { rw ← ba, exact le_add_right _ _ }
+  end)
+  (mul_le_mul_right' (le_add_right _ _) _)
+
+theorem add_mul_succ {a b : ordinal} (c) (ba : b + a = a) :
+  (a + b) * succ c = a * succ c + b :=
+begin
+  apply limit_rec_on c,
+  { simp only [succ_zero, mul_one] },
+  { intros c IH,
+    rw [mul_succ, IH, ← add_assoc, add_assoc _ b, ba, ← mul_succ] },
+  { intros c l IH,
+    have := add_mul_limit_aux ba l IH,
+    rw [mul_succ, add_mul_limit_aux ba l IH, mul_succ, add_assoc] }
+end
+
+theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
+  (l : is_limit c) : (a + b) * c = a * c :=
+add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
+
 /-! ### Division on ordinals -/
 
 /-- The set in the definition of division is nonempty. -/
@@ -797,6 +850,21 @@ if b0 : b = 0 then by subst b; exact eq_zero_of_zero_dvd h₂ else
 (le_of_dvd b0 h₁).antisymm (le_of_dvd a0 h₂)
 
 instance : is_antisymm ordinal (∣) := ⟨@dvd_antisymm⟩
+
+theorem is_limit_iff_omega_dvd {a : ordinal} : is_limit a ↔ a ≠ 0 ∧ ω ∣ a :=
+begin
+  refine ⟨λ l, ⟨l.1, ⟨a / ω, le_antisymm _ (mul_div_le _ _)⟩⟩, λ h, _⟩,
+  { refine (limit_le l).2 (λ x hx, le_of_lt _),
+    rw [←div_lt omega_ne_zero, ←succ_le_iff, le_div omega_ne_zero, mul_succ,
+      add_le_of_limit omega_is_limit],
+    intros b hb,
+    rcases lt_omega.1 hb with ⟨n, rfl⟩,
+    exact (add_le_add_right (mul_div_le _ _) _).trans
+      (lt_sub.1 $ nat_lt_limit (sub_is_limit l hx) _).le },
+  { rcases h with ⟨a0, b, rfl⟩,
+    refine mul_is_limit_left omega_is_limit (ordinal.pos_iff_ne_zero.2 $ mt _ a0),
+    intro e, simp only [e, mul_zero] }
+end
 
 /-- `a % b` is the unique ordinal `o'` satisfying
   `a = b * o + o'` with `o' < b`. -/
@@ -1031,6 +1099,23 @@ csupr_const
 
 @[simp] theorem sup_unique {ι} [unique ι] (f : ι → ordinal) : sup f = f default :=
 supr_unique
+
+@[simp] theorem sup_nat_cast : sup nat.cast = ω :=
+(sup_le $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
+
+theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  sup.{0 u} (f ∘ nat.cast) = f ω :=
+by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf]
+
+@[simp] theorem sup_add_nat (o : ordinal) : sup (λ n : ℕ, o + n) = o + ω :=
+(add_is_normal o).apply_omega
+
+@[simp] theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * ω :=
+begin
+  rcases eq_zero_or_pos o with rfl | ho,
+  { rw zero_mul, exact sup_eq_zero_iff.2 (λ n, zero_mul n) },
+  { exact (mul_is_normal ho).apply_omega }
+end
 
 theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f ⊆ set.range g) : sup.{u (max v w)} f ≤ sup.{v (max u w)} g :=
@@ -1526,6 +1611,10 @@ theorem is_normal.eq_iff_zero_and_succ {f g : ordinal.{u} → ordinal.{u}} (hf :
   exact H b hb
 end)⟩
 
+theorem lt_add_of_limit {a b c : ordinal.{u}}
+  (h : is_limit c) : a < b + c ↔ ∃ c' < c, a < b + c' :=
+by rw [←is_normal.bsup_eq.{u u} (add_is_normal b) h, lt_bsup]
+
 /-! ### Minimum excluded ordinals -/
 
 /-- The minimum excluded ordinal in a family of ordinals. -/
@@ -1821,139 +1910,6 @@ by rw [←add_left_cancel, div_add_mod, ←nat_cast_div, ←nat_cast_mul, ←nat
 | (n+1) := by simp [lift_nat_cast n]
 
 end ordinal
-
-/-! ### Properties of `omega` -/
-
-namespace cardinal
-open ordinal
-
-@[simp] theorem ord_aleph_0 : ord.{u} ℵ₀ = ω :=
-le_antisymm (ord_le.2 $ le_rfl) $
-le_of_forall_lt $ λ o h, begin
-  rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
-  rw [lt_ord, ←lift_card, ←lift_aleph_0.{0 u}, lift_lt, ←typein_enum (<) h'],
-  exact lt_aleph_0_iff_fintype.2 ⟨set.fintype_lt_nat _⟩
-end
-
-@[simp] theorem add_one_of_aleph_0_le {c} (h : ℵ₀ ≤ c) : c + 1 = c :=
-begin
-  rw [add_comm, ←card_ord c, ←card_one, ←card_add, one_add_of_omega_le],
-  rwa [←ord_aleph_0, ord_le_ord]
-end
-
-end cardinal
-
-namespace ordinal
-
-theorem lt_add_of_limit {a b c : ordinal.{u}}
-  (h : is_limit c) : a < b + c ↔ ∃ c' < c, a < b + c' :=
-by rw [←is_normal.bsup_eq.{u u} (add_is_normal b) h, lt_bsup]
-
-theorem lt_omega {o : ordinal} : o < ω ↔ ∃ n : ℕ, o = n :=
-by simp_rw [←cardinal.ord_aleph_0, cardinal.lt_ord, lt_aleph_0, card_eq_nat]
-
-theorem nat_lt_omega (n : ℕ) : ↑n < ω :=
-lt_omega.2 ⟨_, rfl⟩
-
-theorem omega_pos : 0 < ω := nat_lt_omega 0
-
-theorem omega_ne_zero : ω ≠ 0 := omega_pos.ne'
-
-theorem one_lt_omega : 1 < ω := by simpa only [nat.cast_one] using nat_lt_omega 1
-
-theorem omega_is_limit : is_limit ω :=
-⟨omega_ne_zero, λ o h,
-  let ⟨n, e⟩ := lt_omega.1 h in
-  by rw [e]; exact nat_lt_omega (n+1)⟩
-
-theorem omega_le {o : ordinal} : ω ≤ o ↔ ∀ n : ℕ, ↑n ≤ o :=
-⟨λ h n, (nat_lt_omega _).le.trans h,
- λ H, le_of_forall_lt $ λ a h,
-   let ⟨n, e⟩ := lt_omega.1 h in
-   by rw [e, ←succ_le_iff]; exact H (n+1)⟩
-
-@[simp] theorem sup_nat_cast : sup nat.cast = ω :=
-(sup_le $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
-
-theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, ↑n < o
-| 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
-| (n+1) := h.2 _ (nat_lt_limit n)
-
-theorem omega_le_of_is_limit {o} (h : is_limit o) : ω ≤ o :=
-omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
-
-theorem is_limit_iff_omega_dvd {a : ordinal} : is_limit a ↔ a ≠ 0 ∧ ω ∣ a :=
-begin
-  refine ⟨λ l, ⟨l.1, ⟨a / ω, le_antisymm _ (mul_div_le _ _)⟩⟩, λ h, _⟩,
-  { refine (limit_le l).2 (λ x hx, le_of_lt _),
-    rw [←div_lt omega_ne_zero, ←succ_le_iff, le_div omega_ne_zero, mul_succ,
-      add_le_of_limit omega_is_limit],
-    intros b hb,
-    rcases lt_omega.1 hb with ⟨n, rfl⟩,
-    exact (add_le_add_right (mul_div_le _ _) _).trans
-      (lt_sub.1 $ nat_lt_limit (sub_is_limit l hx) _).le },
-  { rcases h with ⟨a0, b, rfl⟩,
-    refine mul_is_limit_left omega_is_limit (ordinal.pos_iff_ne_zero.2 $ mt _ a0),
-    intro e, simp only [e, mul_zero] }
-end
-
-theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
-  (l : is_limit c)
-  (IH : ∀ c' < c, (a + b) * succ c' = a * succ c' + b) :
-  (a + b) * c = a * c :=
-le_antisymm
-  ((mul_le_of_limit l).2 $ λ c' h, begin
-    apply (mul_le_mul_left' (le_succ c') _).trans,
-    rw IH _ h,
-    apply (add_le_add_left _ _).trans,
-    { rw ← mul_succ, exact mul_le_mul_left' (succ_le_of_lt $ l.2 _ h) _ },
-    { apply_instance },
-    { rw ← ba, exact le_add_right _ _ }
-  end)
-  (mul_le_mul_right' (le_add_right _ _) _)
-
-theorem add_mul_succ {a b : ordinal} (c) (ba : b + a = a) :
-  (a + b) * succ c = a * succ c + b :=
-begin
-  apply limit_rec_on c,
-  { simp only [succ_zero, mul_one] },
-  { intros c IH,
-    rw [mul_succ, IH, ← add_assoc, add_assoc _ b, ba, ← mul_succ] },
-  { intros c l IH,
-    have := add_mul_limit_aux ba l IH,
-    rw [mul_succ, add_mul_limit_aux ba l IH, mul_succ, add_assoc] }
-end
-
-theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
-  (l : is_limit c) : (a + b) * c = a * c :=
-add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
-
-theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : 0 < b) (h : ∀ d < b, a + d < c) :
-  a + b ≤ c :=
-begin
-  have H : a + (c - a) = c := ordinal.add_sub_cancel_of_le (by {rw ←add_zero a, exact (h _ hb).le}),
-  rw ←H,
-  apply add_le_add_left _ a,
-  by_contra' hb,
-  exact (h _ hb).ne H
-end
-
-theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
-  sup.{0 u} (f ∘ nat.cast) = f ω :=
-by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf]
-
-@[simp] theorem sup_add_nat (o : ordinal) : sup (λ n : ℕ, o + n) = o + ω :=
-(add_is_normal o).apply_omega
-
-@[simp] theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * ω :=
-begin
-  rcases eq_zero_or_pos o with rfl | ho,
-  { rw zero_mul, exact sup_eq_zero_iff.2 (λ n, zero_mul n) },
-  { exact (mul_is_normal ho).apply_omega }
-end
-
-end ordinal
-
 
 variables {α : Type u} {r : α → α → Prop} {a b : α}
 

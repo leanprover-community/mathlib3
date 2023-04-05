@@ -254,9 +254,14 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-@[priority 100]
-instance has_finite_biproducts : has_finite_biproducts C :=
+-- Porting note: this should be an instance,
+-- but triggers https://github.com/leanprover/lean4/issues/2055
+-- We set it as a local instance instead.
+-- @[priority 100] instance
+def has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
+
+local attribute [instance] has_finite_biproducts
 
 @[priority 100]
 instance has_binary_biproducts : has_binary_biproducts C :=

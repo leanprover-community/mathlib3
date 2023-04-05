@@ -5,7 +5,6 @@ Authors: Scott Morrison, Simon Hudon
 -/
 import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.terminal
 import category_theory.pempty
 
 /-!
@@ -321,7 +320,7 @@ a fixed choice of limit data for the empty functor, and for `pair X Y` for every
 
 This is an implementation detail for `symmetric_of_chosen_finite_products`.
 -/
-@[derive category, nolint unused_arguments has_inhabited_instance]
+@[derive category, nolint unused_arguments has_nonempty_instance]
 def monoidal_of_chosen_finite_products_synonym
   (𝒯 : limit_cone (functor.empty.{v} C)) (ℬ : Π (X Y : C), limit_cone (pair X Y)):= C
 

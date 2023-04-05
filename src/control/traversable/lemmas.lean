@@ -9,6 +9,9 @@ import control.traversable.basic
 /-!
 # Traversing collections
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic properties of traversable and applicative functors and defines
 `pure_transformation F`, the natural applicative transformation from the identity functor to `F`.
 

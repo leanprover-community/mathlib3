@@ -4,15 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.hom.group
 import algebra.hom.group_action
-import algebra.module.basic
 import algebra.module.pi
-import algebra.ring.comp_typeclasses
 import algebra.star.basic
+import data.set.pointwise.smul
+import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -53,8 +55,10 @@ To ensure that composition works smoothly for semilinear maps, we use the typecl
 linear map
 -/
 
+assert_not_exists submonoid
+assert_not_exists finset
+
 open function
-open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -191,6 +195,9 @@ protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) 
 { to_fun := f',
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul' }
+
+@[simp] lemma coe_copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : f.copy f' h = f := fun_like.ext' h
 
 /-- See Note [custom simps projection]. -/
 protected def simps.apply {R S : Type*} [semiring R] [semiring S] (σ : R →+* S)
@@ -361,10 +368,6 @@ lemma restrict_scalars_inj (fₗ gₗ : M →ₗ[S] M₂) :
 end restrict_scalars
 
 variable {R}
-
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
-f.to_add_monoid_hom.map_sum _ _
 
 theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=
@@ -705,7 +708,7 @@ include σ₁₃
 ext $ λ _, g.map_neg _
 omit σ₁₃
 
-/-- The negation of a linear map is linear. -/
+/-- The subtraction of two linear maps is linear. -/
 instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],
@@ -811,12 +814,26 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
   .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
+/-- See also `module.End.nat_cast_def`. -/
+@[simp] lemma _root_.module.End.nat_cast_apply (n : ℕ) (m : M) :
+  (↑n : module.End R M) m = n • m := rfl
+
 instance _root_.module.End.ring : ring (module.End R N₁) :=
-{ ..module.End.semiring, ..linear_map.add_comm_group }
+{ int_cast := λ z, z • 1,
+  int_cast_of_nat := of_nat_zsmul _,
+  int_cast_neg_succ_of_nat := zsmul_neg_succ_of_nat _,
+  ..module.End.semiring, ..linear_map.add_comm_group }
+
+/-- See also `module.End.int_cast_def`. -/
+@[simp] lemma _root_.module.End.int_cast_apply (z : ℤ) (m : N₁) :
+  (↑z : module.End R N₁) m = z • m := rfl
 
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -900,7 +917,7 @@ namespace module
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables [semiring S] [module S M] [smul_comm_class S R M]
 
-/-- Each element of the monoid defines a module endomorphism.
+/-- Each element of the semiring defines a module endomorphism.
 
 This is a stronger version of `distrib_mul_action.to_module_End`. -/
 @[simps]
@@ -929,5 +946,11 @@ def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
   left_inv := mul_one,
   right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
   ..module.to_module_End _ _ }
+
+lemma End.nat_cast_def (n : ℕ) [add_comm_monoid N₁] [module R N₁] :
+  (↑n : module.End R N₁) = module.to_module_End R N₁ n := rfl
+
+lemma End.int_cast_def (z : ℤ) [add_comm_group N₁] [module R N₁] :
+  (↑z : module.End R N₁) = module.to_module_End R N₁ z := rfl
 
 end module

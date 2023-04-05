@@ -5,8 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import geometry.manifold.algebra.structures
 import geometry.manifold.bump_function
-import topology.paracompact
-import topology.partition_of_unity
+import topology.metric_space.partition_of_unity
 import topology.shrinking_lemma
 
 /-!
@@ -59,13 +58,13 @@ smooth bump function, partition of unity
 universes uι uE uH uM uF
 
 open function filter finite_dimensional set
-open_locale topological_space manifold classical filter big_operators
+open_locale topology manifold classical filter big_operators
 
 noncomputable theory
 
 variables {ι : Type uι}
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-{F : Type uF} [normed_group F] [normed_space ℝ F]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{F : Type uF} [normed_add_comm_group F] [normed_space ℝ F]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -98,7 +97,7 @@ subordinate to `U`, see `smooth_bump_covering.exists_is_subordinate`.
 
 This covering can be used, e.g., to construct a partition of unity and to prove the weak
 Whitney embedding theorem. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure smooth_bump_covering (s : set M := univ) :=
 (c : ι → M)
 (to_fun : Π i, smooth_bump_function I (c i))
@@ -123,7 +122,7 @@ variables {ι I M}
 
 namespace smooth_partition_of_unity
 
-variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : with_top ℕ}
+variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : ℕ∞}
 
 instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s)
   (λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) :=
@@ -214,7 +213,7 @@ end smooth_partition_of_unity
 namespace bump_covering
 
 -- Repeat variables to drop [finite_dimensional ℝ E] and [smooth_manifold_with_corners I M]
-lemma smooth_to_partition_of_unity {E : Type uE} [normed_group E] [normed_space ℝ E]
+lemma smooth_to_partition_of_unity {E : Type uE} [normed_add_comm_group E] [normed_space ℝ E]
   {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}
   {M : Type uM} [topological_space M] [charted_space H M] {s : set M}
   (f : bump_covering ι M s) (hf : ∀ i, smooth I 𝓘(ℝ) (f i)) (i : ι) :
@@ -298,7 +297,7 @@ begin
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
     with ⟨ι, c, f, hf, hsub', hfin⟩, choose hcs hfU using hf,
   /- Then we use the shrinking lemma to get a covering by smaller open -/
-  rcases exists_subset_Union_closed_subset hs (λ i, (f i).open_support)
+  rcases exists_subset_Union_closed_subset hs (λ i, (f i).is_open_support)
     (λ x hx, hfin.point_finite x) hsub' with ⟨V, hsV, hVc, hVf⟩,
   choose r hrR hr using λ i, (f i).exists_r_pos_lt_subset_ball (hVc i) (hVf i),
   refine ⟨ι, ⟨c, λ i, (f i).update_r (r i) (hrR i), hcs, _, λ x hx, _⟩, λ i, _⟩,
@@ -459,7 +458,7 @@ end
 
 end smooth_partition_of_unity
 
-variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : with_top ℕ}
+variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : ℕ∞}
 
 /-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F`
 be a family of convex sets. Suppose that for each point `x : M` there exists a neighborhood
@@ -502,3 +501,34 @@ lemma exists_smooth_forall_mem_convex_of_local_const (ht : ∀ x, convex ℝ (t 
   ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
 exists_smooth_forall_mem_convex_of_local I ht $ λ x,
   let ⟨c, hc⟩ := Hloc x in ⟨_, hc, λ _, c, smooth_on_const, λ y, id⟩
+
+/-- Let `M` be a smooth σ-compact manifold with extended distance. Let `K : ι → set M` be a locally
+finite family of closed sets, let `U : ι → set M` be a family of open sets such that `K i ⊆ U i` for
+all `i`. Then there exists a positive smooth function `δ : M → ℝ≥0` such that for any `i` and
+`x ∈ K i`, we have `emetric.closed_ball x (δ x) ⊆ U i`. -/
+lemma emetric.exists_smooth_forall_closed_ball_subset {M} [emetric_space M] [charted_space H M]
+  [smooth_manifold_with_corners I M] [sigma_compact_space M] {K : ι → set M}
+  {U : ι → set M} (hK : ∀ i, is_closed (K i)) (hU : ∀ i, is_open (U i)) (hKU : ∀ i, K i ⊆ U i)
+  (hfin : locally_finite K) :
+  ∃ δ : C^∞⟮I, M; 𝓘(ℝ, ℝ), ℝ⟯, (∀ x, 0 < δ x) ∧
+    ∀ i (x ∈ K i), emetric.closed_ball x (ennreal.of_real (δ x)) ⊆ U i :=
+by simpa only [mem_inter_iff, forall_and_distrib, mem_preimage, mem_Inter, @forall_swap ι M]
+  using exists_smooth_forall_mem_convex_of_local_const I
+    emetric.exists_forall_closed_ball_subset_aux₂
+    (emetric.exists_forall_closed_ball_subset_aux₁ hK hU hKU hfin)
+
+/-- Let `M` be a smooth σ-compact manifold with a metric. Let `K : ι → set M` be a locally finite
+family of closed sets, let `U : ι → set M` be a family of open sets such that `K i ⊆ U i` for all
+`i`. Then there exists a positive smooth function `δ : M → ℝ≥0` such that for any `i` and `x ∈ K i`,
+we have `metric.closed_ball x (δ x) ⊆ U i`. -/
+lemma metric.exists_smooth_forall_closed_ball_subset {M} [metric_space M] [charted_space H M]
+  [smooth_manifold_with_corners I M] [sigma_compact_space M] {K : ι → set M}
+  {U : ι → set M} (hK : ∀ i, is_closed (K i)) (hU : ∀ i, is_open (U i)) (hKU : ∀ i, K i ⊆ U i)
+  (hfin : locally_finite K) :
+  ∃ δ : C^∞⟮I, M; 𝓘(ℝ, ℝ), ℝ⟯, (∀ x, 0 < δ x) ∧ ∀ i (x ∈ K i), metric.closed_ball x (δ x) ⊆ U i :=
+begin
+  rcases emetric.exists_smooth_forall_closed_ball_subset I hK hU hKU hfin with ⟨δ, hδ0, hδ⟩,
+  refine ⟨δ, hδ0, λ i x hx, _⟩,
+  rw [← metric.emetric_closed_ball (hδ0 _).le],
+  exact hδ i x hx
+end

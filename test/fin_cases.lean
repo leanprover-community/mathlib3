@@ -105,21 +105,18 @@ end
 In some circumstances involving `let`,
 the temporary hypothesis that `fin_cases` creates does not get deleted.
 We test that this is correctly named and that the name can be changed.
-
-Note: after `fin_cases`, we have `this : (a : fin 3) = (0 : fin (2 + 1))`
-for some reason. I don't know why, and it complicates the test.
 -/
 example (f : ℕ → fin 3) : true :=
 begin
   let a := f 3,
   fin_cases a,
   guard_hyp a := f 3,
-  guard_hyp this : a = (0 : fin (2 + 1)),
+  guard_hyp this : a = (0 : fin 3),
   trivial, trivial,
 
   let b := f 2,
   fin_cases b using what,
-  guard_hyp what : b = (0 : fin (2 + 1)),
+  guard_hyp what : b = (0 : fin 3),
 
   all_goals {trivial}
 end

@@ -8,31 +8,56 @@ import data.finsupp.basic
 
 /-!
 
-## Lists as finsupp
+# Lists as finsupp
+
+# Main definitions
+
+- `list.to_finsupp`: Interpret a list as a finitely supported function, where the indexing type
+is `ℕ`, and the values are either the elements of the list (accessing by indexing) or `0` outside
+of the list.
+
+# Main theorems
+
+- `list.to_finsupp_eq_sum_map_enum_single`: A `l : list M` over `M` an `add_monoid`,
+when interpreted as a finitely supported function, is equal to the sum of `finsupp.single`
+produced by mapping over `list.enum l`.
+
+## Implementation details
+
+The functions defined here rely on a decidability predicate that each element in the list
+can be decidably determined to be not equal to zero or that one can decide one is out of the
+bounds of a list. For concretely defined lists that are made up of elements of decidable terms,
+this holds. More work will be needed to support lists over non-dec-eq types like `ℝ`, where the
+elements are beyond the dec-eq terms of casted values from `ℕ, ℤ, ℚ`.
 
 -/
 
 namespace list
 
 variables {M : Type*} [has_zero M] (l : list M)
-  [decidable_pred (λ (i : ℕ), nthd 0 l i ≠ 0)] (n : ℕ)
+  [decidable_pred (λ i, nthd l i 0 ≠ 0)] (n : ℕ)
 
 /-- Indexing into a `l : list M`, as a finitely-supported function,
 where the support are all the indices within the length of the list
-that index to a non-zero value. -/
+that index to a non-zero value. Indices beyond the end of the list are sent to 0.
+
+This is a computable version of the `finsupp.on_finset` construction.
+-/
 def to_finsupp : ℕ →₀ M :=
-{ to_fun := nthd 0 l,
-  support := (finset.range l.length).filter (λ i, nthd 0 l i ≠ 0),
+{ to_fun := λ i, nthd l i 0,
+  support := (finset.range l.length).filter (λ i, nthd l i 0 ≠ 0),
   mem_support_to_fun := λ n, begin
     simp only [ne.def, finset.mem_filter, finset.mem_range, and_iff_right_iff_imp],
     contrapose!,
     exact nthd_eq_default _ _
   end }
 
-lemma to_finsupp_coe : (l.to_finsupp : ℕ → M) = l.nthd 0 := rfl
+@[norm_cast] lemma coe_to_finsupp : (l.to_finsupp : ℕ → M) = λ i, l.nthd i 0 := rfl
+@[simp, norm_cast] lemma to_finsupp_apply (i : ℕ) :
+  (l.to_finsupp : ℕ → M) i = l.nthd i 0 := rfl
 
 lemma to_finsupp_support :
-  l.to_finsupp.support = (finset.range l.length).filter (λ i, nthd 0 l i ≠ 0) :=
+  l.to_finsupp.support = (finset.range l.length).filter (λ i, nthd l i 0 ≠ 0) :=
 rfl
 
 lemma to_finsupp_apply_lt (hn : n < l.length) :
@@ -43,31 +68,31 @@ lemma to_finsupp_apply_le (hn : l.length ≤ n) :
   l.to_finsupp n = 0 :=
 nthd_eq_default _ _ hn
 
-@[simp] lemma to_finsupp_nil [decidable_pred (λ (i : ℕ), nthd 0 ([] : list M) i ≠ 0)] :
+@[simp] lemma to_finsupp_nil [decidable_pred (λ i, nthd ([] : list M) i 0 ≠ 0)] :
   to_finsupp ([] : list M) = 0 :=
-by { ext, simp [to_finsupp_coe] }
+by { ext, simp }
 
- lemma to_finsupp_singleton (x : M)
-  [decidable_pred (λ (i : ℕ), nthd 0 [x] i ≠ 0)] :
+lemma to_finsupp_singleton (x : M)
+  [decidable_pred (λ i, nthd [x] i 0 ≠ 0)] :
   to_finsupp [x] = finsupp.single 0 x :=
 begin
   ext ⟨_|i⟩;
-  simp [to_finsupp_coe, finsupp.single_apply, (nat.zero_lt_succ _).ne]
+  simp [finsupp.single_apply, (nat.zero_lt_succ _).ne]
 end
 
 @[simp] lemma to_finsupp_cons_apply_zero (x : M) (xs : list M)
-  [decidable_pred (λ (i : ℕ), nthd 0 (x :: xs) i ≠ 0)] :
+  [decidable_pred (λ i, nthd (x :: xs) i 0 ≠ 0)] :
   (x :: xs).to_finsupp 0 = x := rfl
 
 @[simp] lemma to_finsupp_cons_apply_succ (x : M) (xs : list M) (n : ℕ)
-  [decidable_pred (λ (i : ℕ), nthd 0 (x :: xs) i ≠ 0)]
-  [decidable_pred (λ (i : ℕ), nthd 0 xs i ≠ 0)] :
+  [decidable_pred (λ i, nthd (x :: xs) i 0 ≠ 0)]
+  [decidable_pred (λ i, nthd xs i 0 ≠ 0)] :
   (x :: xs).to_finsupp n.succ = xs.to_finsupp n := rfl
 
 lemma to_finsupp_cons_eq_single_add_emb_domain
   {R : Type*} [add_zero_class R] (x : R) (xs : list R)
-  [decidable_pred (λ (i : ℕ), nthd 0 (x :: xs) i ≠ 0)]
-  [decidable_pred (λ (i : ℕ), nthd 0 xs i ≠ 0)] :
+  [decidable_pred (λ i, nthd (x :: xs) i 0 ≠ 0)]
+  [decidable_pred (λ i, nthd xs i 0 ≠ 0)] :
   to_finsupp (x :: xs) = finsupp.single 0 x +
     (to_finsupp xs).emb_domain ⟨nat.succ, nat.succ_injective⟩ :=
 begin
@@ -85,8 +110,8 @@ end
 
 lemma to_finsupp_concat_eq_to_finsupp_add_single
   {R : Type*} [add_zero_class R] (x : R) (xs : list R)
-  [decidable_pred (λ (i : ℕ), nthd 0 (xs ++ [x]) i ≠ 0)]
-  [decidable_pred (λ (i : ℕ), nthd 0 xs i ≠ 0)] :
+  [decidable_pred (λ i, nthd (xs ++ [x]) i 0 ≠ 0)]
+  [decidable_pred (λ i, nthd xs i 0 ≠ 0)] :
   to_finsupp (xs ++ [x]) = to_finsupp xs + finsupp.single xs.length x :=
 begin
   ext i,
@@ -104,12 +129,8 @@ begin
     simpa using nat.lt_succ_of_lt hi }
 end
 
-lemma nthd_singleton_eq_update_const {α : Type*} (d x : α) :
-  nthd d [x] = function.update (function.const _ d) 0 x :=
-by { ext ⟨_|n⟩; simp }
-
 lemma to_finsupp_eq_sum_map_enum_single {R : Type*} [add_monoid R] (l : list R)
-  [decidable_pred (λ (i : ℕ), nthd 0 l i ≠ 0)] :
+  [decidable_pred (λ i, nthd l i 0 ≠ 0)] :
   to_finsupp l = (l.enum.map (λ (nr : ℕ × R), finsupp.single nr.1 nr.2)).sum :=
 begin
   unfreezingI { induction l using list.reverse_rec_on with xs x IH },

@@ -5,9 +5,11 @@ Authors: Kenny Lau
 -/
 import data.dfinsupp.basic
 import group_theory.submonoid.operations
-import group_theory.subgroup.basic
 /-!
 # Direct sum
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the direct sum of abelian groups, indexed by a discrete type.
 
@@ -36,7 +38,8 @@ def direct_sum [Π i, add_comm_monoid (β i)] : Type* := Π₀ i, β i
 instance [Π i, add_comm_monoid (β i)] : has_coe_to_fun (direct_sum ι β) (λ _, Π i : ι, β i) :=
 dfinsupp.has_coe_to_fun
 
-localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
+localized "notation (name := direct_sum)
+  `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
 namespace direct_sum
 
@@ -176,8 +179,10 @@ variables {β}
 
 omit dec_ι
 
+instance unique [∀ i, subsingleton (β i)] : unique (⨁ i, β i) := dfinsupp.unique
+
 /-- A direct sum over an empty type is trivial. -/
-instance [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique
+instance unique_of_is_empty [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique_of_is_empty
 
 /-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
@@ -228,16 +233,20 @@ noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ
 
 /--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-noncomputable def sigma_uncurry : (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
+def sigma_uncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := dfinsupp.sigma_uncurry,
   map_zero' := dfinsupp.sigma_uncurry_zero,
   map_add' := dfinsupp.sigma_uncurry_add }
 
-@[simp] lemma sigma_uncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+@[simp] lemma sigma_uncurry_apply [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)]
+  (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j
 
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
-noncomputable def sigma_curry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
+noncomputable def sigma_curry_equiv
+  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
 { ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
 
 end sigma
@@ -261,7 +270,7 @@ lemma coe_of_apply {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
 begin
   obtain rfl | h := decidable.eq_or_ne i j,
   { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid_class.coe_zero], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, zero_mem_class.coe_zero], },
 end
 
 /-- The `direct_sum` formed by a collection of additive submonoids (or subgroups, or submodules) of

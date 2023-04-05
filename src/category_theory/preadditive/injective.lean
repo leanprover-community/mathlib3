@@ -3,11 +3,7 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Kevin Buzzard
 -/
-
-import algebra.homology.exact
-import category_theory.types
 import category_theory.preadditive.projective
-import category_theory.limits.shapes.biproducts
 
 /-!
 # Injective objects and categories with enough injectives
@@ -21,10 +17,10 @@ open category_theory
 open category_theory.limits
 open opposite
 
-universes v u
+universes v v₁ v₂ u₁ u₂
 
 namespace category_theory
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 
 /--
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
@@ -37,12 +33,14 @@ section
 An injective presentation of an object `X` consists of a monomorphism `f : X ⟶ J`
 to some injective object `J`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure injective_presentation (X : C) :=
 (J : C)
 (injective : injective J . tactic.apply_instance)
 (f : X ⟶ J)
 (mono : mono f . tactic.apply_instance)
+
+attribute [instance] injective_presentation.injective injective_presentation.mono
 
 variables (C)
 
@@ -84,7 +82,7 @@ lemma iso_iff {P Q : C} (i : P ≅ Q) : injective P ↔ injective Q :=
 ⟨of_iso i, of_iso i.symm⟩
 
 /-- The axiom of choice says that every nonempty type is an injective object in `Type`. -/
-instance (X : Type u) [nonempty X] : injective X :=
+instance (X : Type u₁) [nonempty X] : injective X :=
 { factors := λ Y Z g f mono,
   ⟨λ z, by classical; exact
     if h : z ∈ set.range f
@@ -98,7 +96,7 @@ instance (X : Type u) [nonempty X] : injective X :=
     { exact false.elim (h ⟨y, rfl⟩) },
   end⟩ }
 
-instance Type.enough_injectives : enough_injectives (Type u) :=
+instance Type.enough_injectives : enough_injectives (Type u₁) :=
 { presentation := λ X, nonempty.intro
   { J := with_bot X,
     injective := infer_instance,
@@ -173,6 +171,18 @@ begin
   rw [injective_iff_projective_op, projective.projective_iff_preserves_epimorphisms_coyoneda_obj],
   exact functor.preserves_epimorphisms.iso_iff (coyoneda.obj_op_op _)
 end
+
+section adjunction
+open category_theory.functor
+
+variables {D : Type u₂} [category.{v₂} D]
+variables {L : C ⥤ D} {R : D ⥤ C} [preserves_monomorphisms L]
+
+lemma injective_of_adjoint (adj : L ⊣ R) (J : D) [injective J] : injective $ R.obj J :=
+⟨λ A A' g f im, by exactI ⟨adj.hom_equiv _ _ (factor_thru ((adj.hom_equiv A J).symm g) (L.map f)),
+ (adj.hom_equiv _ _).symm.injective (by simp)⟩⟩
+
+end adjunction
 
 section enough_injectives
 variable [enough_injectives C]
@@ -262,5 +272,64 @@ by convert congr_arg quiver.hom.unop
 end
 
 end injective
+namespace adjunction
 
+variables {D : Type*} [category D] {F : C ⥤ D} {G : D ⥤ C}
+
+lemma map_injective (adj : F ⊣ G) [F.preserves_monomorphisms] (I : D) (hI : injective I) :
+  injective (G.obj I) :=
+⟨λ X Y f g, begin
+  introI,
+  rcases hI.factors (F.map f ≫ adj.counit.app _) (F.map g),
+  use adj.unit.app Y ≫ G.map w,
+  rw [←unit_naturality_assoc, ←G.map_comp, h],
+  simp,
+end⟩
+
+lemma injective_of_map_injective (adj : F ⊣ G) [full G] [faithful G] (I : D)
+  (hI : injective (G.obj I)) : injective I :=
+⟨λ X Y f g, begin
+  introI,
+  haveI := adj.right_adjoint_preserves_limits,
+  rcases hI.factors (G.map f) (G.map g),
+  use inv (adj.counit.app _) ≫ F.map w ≫ adj.counit.app _,
+  refine faithful.map_injective G _,
+  simpa
+end⟩
+
+/-- Given an adjunction `F ⊣ G` such that `F` preserves monos, `G` maps an injective presentation
+of `X` to an injective presentation of `G(X)`. -/
+def map_injective_presentation (adj : F ⊣ G) [F.preserves_monomorphisms] (X : D)
+  (I : injective_presentation X) : injective_presentation (G.obj X) :=
+{ J := G.obj I.J,
+  injective := adj.map_injective _ I.injective,
+  f := G.map I.f,
+  mono := by haveI := adj.right_adjoint_preserves_limits; apply_instance }
+
+end adjunction
+namespace equivalence
+
+variables {D : Type*} [category D] (F : C ≌ D)
+
+/-- Given an equivalence of categories `F`, an injective presentation of `F(X)` induces an
+injective presentation of `X.` -/
+def injective_presentation_of_map_injective_presentation
+  (X : C) (I : injective_presentation (F.functor.obj X)) : injective_presentation X :=
+{ J := F.inverse.obj I.J,
+  injective := adjunction.map_injective F.to_adjunction I.J I.injective,
+  f := F.unit.app _ ≫ F.inverse.map I.f,
+  mono := mono_comp _ _ }
+
+lemma enough_injectives_iff (F : C ≌ D) :
+  enough_injectives C ↔ enough_injectives D :=
+begin
+  split,
+  all_goals { intro H, constructor, intro X, constructor },
+  { exact F.symm.injective_presentation_of_map_injective_presentation _
+      (nonempty.some (H.presentation (F.inverse.obj X))) },
+  { exact F.injective_presentation_of_map_injective_presentation X
+      (nonempty.some (H.presentation (F.functor.obj X))) },
+end
+
+end equivalence
 end category_theory

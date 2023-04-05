@@ -20,7 +20,7 @@ open measure topological_space
 open_locale ennreal
 
 variables {𝕜 M α G E F : Type*} [measurable_space G]
-variables [normed_group E] [normed_space ℝ E] [complete_space E] [normed_group F]
+variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] [normed_add_comm_group F]
 variables {μ : measure G} {f : G → E} {g : G}
 
 section measurable_inv
@@ -140,15 +140,7 @@ variables [has_measurable_inv G]
 lemma integrable.comp_div_left {f : G → F}
   [is_inv_invariant μ] [is_mul_left_invariant μ] (hf : integrable f μ) (g : G) :
   integrable (λ t, f (g / t)) μ :=
-begin
-  rw [← map_mul_right_inv_eq_self μ g⁻¹, integrable_map_measure, function.comp],
-  { simp_rw [div_inv_eq_mul, mul_inv_cancel_left], exact hf },
-  { refine ae_strongly_measurable.comp_measurable _ (measurable_id.const_div g),
-    simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
-      function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
-    exact hf.ae_strongly_measurable },
-  { exact (measurable_id'.const_mul g⁻¹).inv.ae_measurable }
-end
+((measure_preserving_div_left μ g).integrable_comp hf.ae_strongly_measurable).mpr hf
 
 @[simp, to_additive]
 lemma integrable_comp_div_left (f : G → F)
@@ -182,7 +174,6 @@ begin
 end
 
 end smul
-
 
 section topological_group
 

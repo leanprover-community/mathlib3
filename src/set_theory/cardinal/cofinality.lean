@@ -10,6 +10,9 @@ import set_theory.ordinal.fixed_point
 /-!
 # Cofinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions
@@ -17,7 +20,6 @@ This file contains the definition of cofinality of an ordinal number and regular
 * `ordinal.cof o` is the cofinality of the ordinal `o`.
   If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
   subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
-* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
 * `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
   `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
 * `cardinal.is_regular c` means that `c` is a regular cardinal: `ℵ₀ ≤ c ∧ c.ord.cof = c`.
@@ -172,11 +174,11 @@ begin
       exact irrefl _ h } },
   { intro a,
     have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
+    let b := (is_well_founded.wf).min _ this,
+    have ba : ¬r b a := (is_well_founded.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
+    exact (is_well_founded.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
 
@@ -445,8 +447,8 @@ variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}}
 protected theorem cof_eq (hf : is_fundamental_sequence a o f) : a.cof.ord = o :=
 hf.1.antisymm' $ by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) }
 
-protected theorem strict_mono (hf : is_fundamental_sequence a o f) :
-  ∀ {i j} (hi) (hj), i < j → f i hi < f j hj :=
+protected theorem strict_mono (hf : is_fundamental_sequence a o f) {i j} :
+  ∀ hi hj, i < j → f i hi < f j hj :=
 hf.2.1
 
 theorem blsub_eq (hf : is_fundamental_sequence a o f) : blsub.{u u} o f = a :=
@@ -498,9 +500,8 @@ end is_fundamental_sequence
 theorem exists_fundamental_sequence (a : ordinal.{u}) :
   ∃ f, is_fundamental_sequence a a.cof.ord f :=
 begin
-  suffices : ∃ o f, is_fundamental_sequence a o f,
-  { rcases this with ⟨o, f, hf⟩,
-    exact ⟨_, hf.ord_cof⟩ },
+  rsuffices ⟨o, f, hf⟩ : ∃ o f, is_fundamental_sequence a o f,
+  { exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
   haveI := wo,
@@ -514,9 +515,8 @@ begin
     rwa [hrr'.2, @enum_lt_enum _ r'] },
   { rw [←hf, lsub_le_iff],
     intro i,
-    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
-    { rcases this with ⟨i', hi', hfg⟩,
-      exact hfg.trans_lt (lt_blsub _ _ _) },
+    rsuffices ⟨i', hi', hfg⟩ : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
+    { exact hfg.trans_lt (lt_blsub _ _ _) },
     by_cases h : ∀ j, r j i → f j < f i,
     { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
       rw bfamily_of_family'_typein,
@@ -712,26 +712,7 @@ end ordinal
 namespace cardinal
 open ordinal
 
-local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
-
-/-- A cardinal is a limit if it is not zero or a successor
-  cardinal. Note that `ℵ₀` is a limit cardinal by this definition. -/
-def is_limit (c : cardinal) : Prop :=
-c ≠ 0 ∧ ∀ x < c, succ x < c
-
-theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 :=
-h.1
-
-theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
-h.2 x
-
-theorem is_limit.aleph_0_le {c} (h : is_limit c) : ℵ₀ ≤ c :=
-begin
-  by_contra' h',
-  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
-  { exact h.1.irrefl },
-  { simpa using h.2 n }
-end
+local infixr (name := cardinal.pow) ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ℵ₀` is a strong limit by this definition. -/
@@ -750,23 +731,23 @@ theorem is_strong_limit_aleph_0 : is_strong_limit ℵ₀ :=
   exact_mod_cast nat_lt_aleph_0 (pow 2 n)
 end⟩
 
+protected theorem is_strong_limit.is_succ_limit {c} (H : is_strong_limit c) : is_succ_limit c :=
+is_succ_limit_of_succ_lt $ λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.two_power_lt h)
+
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.2 _ h)⟩
+⟨H.ne_zero, H.is_succ_limit⟩
 
-theorem is_limit_aleph_0 : is_limit ℵ₀ :=
-is_strong_limit_aleph_0.is_limit
-
-theorem is_strong_limit_beth {o : ordinal} (H : ∀ a < o, succ a < o) : is_strong_limit (beth o) :=
+theorem is_strong_limit_beth {o : ordinal} (H : is_succ_limit o) : is_strong_limit (beth o) :=
 begin
   rcases eq_or_ne o 0 with rfl | h,
   { rw beth_zero,
     exact is_strong_limit_aleph_0 },
   { refine ⟨beth_ne_zero o, λ a ha, _⟩,
-    rw beth_limit ⟨h, H⟩ at ha,
+    rw beth_limit ⟨h, is_succ_limit_iff_succ_lt.1 H⟩ at ha,
     rcases exists_lt_of_lt_csupr' ha with ⟨⟨i, hi⟩, ha⟩,
-    have := power_le_power_left two_ne_zero' ha.le,
+    have := power_le_power_left two_ne_zero ha.le,
     rw ←beth_succ at this,
-    exact this.trans_lt (beth_lt.2 (H i hi)) }
+    exact this.trans_lt (beth_lt.2 (H.succ_lt hi)) }
 end
 
 theorem mk_bounded_subset {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) {r : α → α → Prop}

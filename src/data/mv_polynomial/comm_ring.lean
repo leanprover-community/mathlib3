@@ -9,6 +9,9 @@ import data.mv_polynomial.variables
 /-!
 # Multivariate polynomials over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many results about polynomials hold when the coefficient ring is a commutative semiring.
 Some stronger results can be derived when we assume this semiring is a ring.
 
@@ -116,7 +119,7 @@ variables (f : R →+* S) (g : σ → S)
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := (eval₂_hom f g).map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ →+* S) (n : ℤ) : f (C n) = (n : S) :=
-(f.comp C).eq_int_cast n
+eq_int_cast (f.comp C) n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -124,7 +127,7 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial R ℤ →+* S) (x : mv_polynomial R ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C], exact c.eq_int_cast n })
+(λ n, by { rw [hom_C f, eval₂_C], exact eq_int_cast c n })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (f.map_add _ _).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (f.map_mul _ _).symm })
 

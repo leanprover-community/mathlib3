@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.basic
-import data.nat.basic
-import algebra.order.ring
+import data.nat.order.basic
+import algebra.order.ring.defs
 
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true

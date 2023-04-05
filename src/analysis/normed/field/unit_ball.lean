@@ -9,6 +9,9 @@ import analysis.normed.group.ball_sphere
 /-!
 # Algebraic structures on unit balls and spheres
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define algebraic structures (`semigroup`, `comm_semigroup`, `monoid`, `comm_monoid`,
 `group`, `comm_group`) on `metric.ball (0 : 𝕜) 1`, `metric.closed_ball (0 : 𝕜) 1`, and
 `metric.sphere (0 : 𝕜) 1`. In each case we use the weakest possible typeclass assumption on `𝕜`,
@@ -34,8 +37,7 @@ instance [non_unital_semi_normed_ring 𝕜] : semigroup (ball (0 : 𝕜) 1) :=
 mul_mem_class.to_semigroup (subsemigroup.unit_ball 𝕜)
 
 instance [non_unital_semi_normed_ring 𝕜] : has_continuous_mul (ball (0 : 𝕜) 1) :=
-⟨continuous_subtype_mk _ $ continuous.mul (continuous_subtype_val.comp continuous_fst)
-  (continuous_subtype_val.comp continuous_snd)⟩
+(subsemigroup.unit_ball 𝕜).has_continuous_mul
 
 instance [semi_normed_comm_ring 𝕜] : comm_semigroup (ball (0 : 𝕜) 1) :=
 mul_mem_class.to_comm_semigroup (subsemigroup.unit_ball 𝕜)
@@ -63,8 +65,7 @@ instance [non_unital_semi_normed_ring 𝕜] : has_distrib_neg (closed_ball (0 : 
 subtype.coe_injective.has_distrib_neg (coe : closed_ball (0 : 𝕜) 1 → 𝕜) (λ _, rfl) (λ _ _, rfl)
 
 instance [non_unital_semi_normed_ring 𝕜] : has_continuous_mul (closed_ball (0 : 𝕜) 1) :=
-⟨continuous_subtype_mk _ $ continuous.mul (continuous_subtype_val.comp continuous_fst)
-  (continuous_subtype_val.comp continuous_snd)⟩
+(subsemigroup.unit_closed_ball 𝕜).has_continuous_mul
 
 @[simp, norm_cast]
 lemma coe_mul_unit_closed_ball [non_unital_semi_normed_ring 𝕜] (x y : closed_ball (0 : 𝕜) 1) :
@@ -157,10 +158,8 @@ instance [normed_division_ring 𝕜] : has_distrib_neg (sphere (0 : 𝕜) 1) :=
 subtype.coe_injective.has_distrib_neg (coe : sphere (0 : 𝕜) 1 → 𝕜) (λ _, rfl) (λ _ _, rfl)
 
 instance [normed_division_ring 𝕜] : topological_group (sphere (0 : 𝕜) 1) :=
-{ continuous_mul := continuous_subtype_mk _ $ (continuous_subtype_val.comp continuous_fst).mul
-    (continuous_subtype_val.comp continuous_snd),
-  continuous_inv := continuous_subtype_mk _ $
-    continuous_subtype_coe.inv₀ ne_zero_of_mem_unit_sphere }
+{ to_has_continuous_mul := (submonoid.unit_sphere 𝕜).has_continuous_mul,
+  continuous_inv := (continuous_subtype_coe.inv₀ ne_zero_of_mem_unit_sphere).subtype_mk _ }
 
 instance [normed_field 𝕜] : comm_group (sphere (0 : 𝕜) 1) :=
 { .. metric.sphere.group,

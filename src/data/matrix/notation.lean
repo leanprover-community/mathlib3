@@ -285,7 +285,7 @@ by { ext i, refine fin.cases _ _ i; simp [vec_mul_vec] }
 
 @[simp] lemma vec_mul_vec_cons (v : m' → α) (x : α) (w : fin n → α) :
   vec_mul_vec v (vec_cons x w) = λ i, v i • vec_cons x w :=
-by { ext i j, rw [vec_mul_vec, pi.smul_apply, smul_eq_mul] }
+by { ext i j, rw [vec_mul_vec_apply, pi.smul_apply, smul_eq_mul] }
 
 end vec_mul_vec
 
@@ -301,17 +301,17 @@ by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
 
-section minor
+section submatrix
 
-@[simp] lemma minor_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
-  minor A row col = ![] :=
+@[simp] lemma submatrix_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
+  submatrix A row col = ![] :=
 empty_eq _
 
-@[simp] lemma minor_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
-  minor A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (minor A row col) :=
-by { ext i j, refine fin.cases _ _ i; simp [minor] }
+@[simp] lemma submatrix_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
+  submatrix A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (submatrix A row col) :=
+by { ext i j, refine fin.cases _ _ i; simp [submatrix] }
 
-end minor
+end submatrix
 
 section vec2_and_vec3
 

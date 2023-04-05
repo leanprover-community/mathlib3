@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.bounds
+import data.set.pointwise.smul
 
 /-!
 # Pointwise operations on ordered algebraic objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas about the effect of pointwise operations on sets with an order structure.
 

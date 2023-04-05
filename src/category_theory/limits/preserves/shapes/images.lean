@@ -9,6 +9,9 @@ import category_theory.limits.constructions.epi_mono
 /-!
 # Preserving images
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show that if a functor preserves span and cospan, then it preserves images.
 -/
 

@@ -3,10 +3,14 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
+import data.fin.basic
 import order.succ_pred.basic
 
 /-!
 # Successors and predecessors of `fin n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we show that `fin n` is both a `succ_order` and a `pred_order`. Note that they are
 also archimedean, but this is derived from the general instance for well-orderings as opposed

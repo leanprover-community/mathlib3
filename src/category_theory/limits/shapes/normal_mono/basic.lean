@@ -10,6 +10,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Definitions and basic properties of normal monomorphisms and epimorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A normal monomorphism is a morphism that is the kernel of some other morphism.
 
 We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`)

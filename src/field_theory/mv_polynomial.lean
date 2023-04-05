@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import data.mv_polynomial.comm_ring
+import linear_algebra.dimension
+import ring_theory.ideal.quotient
 import ring_theory.mv_polynomial.basic
 
 /-!
@@ -47,7 +50,7 @@ variables {σ : Type u} {K : Type u} [field K]
 
 open_locale classical
 
-lemma dim_mv_polynomial : module.rank K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
-by rw [← cardinal.lift_inj, ← (basis_monomials σ K).mk_eq_dim]
+lemma rank_mv_polynomial : module.rank K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
+by rw [← cardinal.lift_inj, ← (basis_monomials σ K).mk_eq_rank]
 
 end mv_polynomial

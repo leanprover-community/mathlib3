@@ -3,7 +3,6 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import tactic.basic
 import data.int.range
 import data.zmod.basic
 import number_theory.legendre_symbol.mul_character
@@ -40,6 +39,14 @@ It corresponds to the extension `ℚ(√-1)/ℚ`. -/
 /-- `χ₄` takes values in `{0, 1, -1}` -/
 lemma is_quadratic_χ₄ : χ₄.is_quadratic := by { intro a, dec_trivial!, }
 
+/-- The value of `χ₄ n`, for `n : ℕ`, depends only on `n % 4`. -/
+lemma χ₄_nat_mod_four (n : ℕ) : χ₄ n = χ₄ (n % 4 : ℕ) :=
+by rw ← zmod.nat_cast_mod n 4
+
+/-- The value of `χ₄ n`, for `n : ℤ`, depends only on `n % 4`. -/
+lemma χ₄_int_mod_four (n : ℤ) : χ₄ n = χ₄ (n % 4 : ℤ) :=
+by { rw ← zmod.int_cast_mod n 4, norm_cast, }
+
 /-- An explicit description of `χ₄` on integers / naturals -/
 lemma χ₄_int_eq_if_mod_four (n : ℤ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
 begin
@@ -52,7 +59,7 @@ end
 lemma χ₄_nat_eq_if_mod_four (n : ℕ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
 by exact_mod_cast χ₄_int_eq_if_mod_four n
 
-/-- Alternative description for odd `n : ℕ` in terms of powers of `-1` -/
+/-- Alternative description of `χ₄ n` for odd `n : ℕ` in terms of powers of `-1` -/
 lemma χ₄_eq_neg_one_pow {n : ℕ} (hn : n % 2 = 1) : χ₄ n = (-1)^(n / 2) :=
 begin
   rw χ₄_nat_eq_if_mod_four,
@@ -67,6 +74,32 @@ begin
     ((nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn),
 end
 
+/-- If `n % 4 = 1`, then `χ₄ n = 1`. -/
+lemma χ₄_nat_one_mod_four {n : ℕ} (hn : n % 4 = 1) : χ₄ n = 1 :=
+by { rw [χ₄_nat_mod_four, hn], refl }
+
+/-- If `n % 4 = 3`, then `χ₄ n = -1`. -/
+lemma χ₄_nat_three_mod_four {n : ℕ} (hn : n % 4 = 3) : χ₄ n = -1 :=
+by { rw [χ₄_nat_mod_four, hn], refl }
+
+/-- If `n % 4 = 1`, then `χ₄ n = 1`. -/
+lemma χ₄_int_one_mod_four {n : ℤ} (hn : n % 4 = 1) : χ₄ n = 1 :=
+by { rw [χ₄_int_mod_four, hn], refl }
+
+/-- If `n % 4 = 3`, then `χ₄ n = -1`. -/
+lemma χ₄_int_three_mod_four {n : ℤ} (hn : n % 4 = 3) : χ₄ n = -1 :=
+by { rw [χ₄_int_mod_four, hn], refl }
+
+/-- If `n % 4 = 1`, then `(-1)^(n/2) = 1`. -/
+lemma _root_.neg_one_pow_div_two_of_one_mod_four {n : ℕ} (hn : n % 4 = 1) :
+  (-1 : ℤ) ^ (n / 2) = 1 :=
+by { rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_one hn), ← nat_cast_mod, hn], refl }
+
+/-- If `n % 4 = 3`, then `(-1)^(n/2) = -1`. -/
+lemma _root_.neg_one_pow_div_two_of_three_mod_four {n : ℕ} (hn : n % 4 = 3) :
+  (-1 : ℤ) ^ (n / 2) = -1 :=
+by { rw [← χ₄_eq_neg_one_pow (nat.odd_of_mod_four_eq_three hn), ← nat_cast_mod, hn], refl }
+
 /-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
 It corresponds to the extension `ℚ(√2)/ℚ`. -/
 @[simps] def χ₈ : mul_char (zmod 8) ℤ :=
@@ -75,6 +108,14 @@ It corresponds to the extension `ℚ(√2)/ℚ`. -/
 
 /-- `χ₈` takes values in `{0, 1, -1}` -/
 lemma is_quadratic_χ₈ : χ₈.is_quadratic := by { intro a, dec_trivial!, }
+
+/-- The value of `χ₈ n`, for `n : ℕ`, depends only on `n % 8`. -/
+lemma χ₈_nat_mod_eight (n : ℕ) : χ₈ n = χ₈ (n % 8 : ℕ) :=
+by rw ← zmod.nat_cast_mod n 8
+
+/-- The value of `χ₈ n`, for `n : ℤ`, depends only on `n % 8`. -/
+lemma χ₈_int_mod_eight (n : ℤ) : χ₈ n = χ₈ (n % 8 : ℤ) :=
+by { rw ← zmod.int_cast_mod n 8, norm_cast, }
 
 /-- An explicit description of `χ₈` on integers / naturals -/
 lemma χ₈_int_eq_if_mod_eight (n : ℤ) :
@@ -120,13 +161,7 @@ lemma χ₈'_eq_χ₄_mul_χ₈ (a : zmod 8) : χ₈' a = χ₄ a * χ₈ a := b
 
 lemma χ₈'_int_eq_χ₄_mul_χ₈ (a : ℤ) : χ₈' a = χ₄ a * χ₈ a :=
 begin
-  have h : (a : zmod 4) = (a : zmod 8),
-  { have help : ∀ m : ℤ, 0 ≤ m → m < 8 → ((m % 4 : ℤ) : zmod 4) = (m : zmod 8) := dec_trivial,
-    rw [← zmod.int_cast_mod a 8, ← zmod.int_cast_mod a 4,
-        (by norm_cast : ((8 : ℕ) : ℤ) = 8), (by norm_cast : ((4 : ℕ) : ℤ) = 4),
-        ← int.mod_mod_of_dvd a (by norm_num : (4 : ℤ) ∣ 8)],
-    exact help (a % 8) (int.mod_nonneg a (by norm_num)) (int.mod_lt a (by norm_num)), },
-  rw h,
+  rw ← @cast_int_cast 8 (zmod 4) _ 4 _ (by norm_num) a,
   exact χ₈'_eq_χ₄_mul_χ₈ a,
 end
 

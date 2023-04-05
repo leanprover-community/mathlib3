@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import linear_algebra.dimension
 import linear_algebra.std_basis
 
 /-!
@@ -13,11 +12,6 @@ import linear_algebra.std_basis
 This file contains results on the `R`-module structure on functions of finite support from a type
 `ι` to an `R`-module `M`, in particular in the case that `R` is a field.
 
-Furthermore, it contains some facts about isomorphisms of vector spaces from equality of dimension.
-
-## TODO
-
-Move the second half of this file to more appropriate other files.
 -/
 
 noncomputable theory
@@ -122,65 +116,9 @@ funext $ λ i, basis.apply_eq_iff.mpr rfl
 
 end semiring
 
-section dim
-variables {K : Type u} {V : Type v} {ι : Type v}
-variables [field K] [add_comm_group V] [module K V]
-
-lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
-begin
-  let bs := basis.of_vector_space K V,
-  rw [← bs.mk_eq_dim', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim',
-    cardinal.mk_sigma, cardinal.sum_const']
-end
-
-end dim
-
 end finsupp
 
-section module
-variables {K : Type u} {V V₁ V₂ : Type v} {V' : Type w}
-variables [field K]
-variables [add_comm_group V] [module K V]
-variables [add_comm_group V₁] [module K V₁]
-variables [add_comm_group V₂] [module K V₂]
-variables [add_comm_group V'] [module K V']
-
-open module
-
-lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
-  nonempty (V ≃ₗ[K] V') :=
-begin
-  haveI := classical.dec_eq V,
-  haveI := classical.dec_eq V',
-  let m := basis.of_vector_space K V,
-  let m' := basis.of_vector_space K V',
-  rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,
-  rcases quotient.exact h with ⟨e⟩,
-  let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
-  exact ⟨(m.repr ≪≫ₗ (finsupp.dom_lcongr e)) ≪≫ₗ m'.repr.symm⟩
-end
-
-/-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
-def equiv_of_dim_eq_dim (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
-begin
-  classical,
-  exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
-end
-
-/-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
-def fin_dim_vectorspace_equiv (n : ℕ)
-  (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
-begin
-  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
-    by simp,
-  have hn := cardinal.lift_inj.{v u}.2 hn,
-  rw this at hn,
-  rw ←@dim_fin_fun K _ n at hn,
-  exact classical.choice (equiv_of_dim_eq_lift_dim hn),
-end
-
-end module
+/-! TODO: move this section to an earlier file. -/
 
 namespace basis
 

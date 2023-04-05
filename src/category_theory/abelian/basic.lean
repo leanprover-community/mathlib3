@@ -258,7 +258,7 @@ variables {C : Type u} [category.{v} C] [abelian C]
 -- but triggers https://github.com/leanprover/lean4/issues/2055
 -- We set it as a local instance instead.
 -- @[priority 100] instance
-def has_finite_biproducts : has_finite_biproducts C :=
+theorem has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
 local attribute [instance] has_finite_biproducts

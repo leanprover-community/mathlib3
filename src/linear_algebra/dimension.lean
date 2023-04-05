@@ -1038,7 +1038,7 @@ end fintype
 lemma finsupp.dim_eq {ι : Type v} : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   obtain ⟨⟨_, bs⟩⟩ := module.free.exists_basis K V,
-  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
+  rw [← bs.mk_eq_dim', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim',
     cardinal.mk_sigma, cardinal.sum_const']
 end
 

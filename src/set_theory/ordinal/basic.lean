@@ -1054,7 +1054,7 @@ theorem lt_univ' {c} : c < univ.{u v} ↔ ∃ c', c = lift.{(max (u+1) v) u} c' 
 end, λ ⟨c', e⟩, e.symm ▸ lift_lt_univ' _⟩
 
 theorem small_iff_lift_mk_lt_univ {α : Type u} :
-  small.{v} α ↔ cardinal.lift (#α) < univ.{v (max u (v + 1))} :=
+  small.{v} α ↔ cardinal.lift.{(v+1) u} (#α) < univ.{v u} :=
 begin
   rw lt_univ',
   split,

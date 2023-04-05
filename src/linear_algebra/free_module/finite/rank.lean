@@ -94,7 +94,6 @@ lemma finrank_matrix (m n : Type v) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 
-
 end ring
 
 section comm_ring
@@ -126,24 +125,24 @@ lemma linear_map.finrank_le_finrank_of_injective
   finrank R M ≤ finrank R N :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   ((lift_strict_mono.{w v} (rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
-  (linear_map.lift_dim_le_of_injective _ hf)
+  (linear_map.lift_rank_le_of_injective _ hf)
 
 lemma linear_map.finrank_range_le [module.free R M] [module.finite R M] (f : M →ₗ[R] N) :
   finrank R f.range ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   ((lift_strict_mono.{v w} (rank_lt_aleph_0 R M)).trans_eq lift_aleph_0)
-  (lift_dim_range_le f)
+  (lift_rank_range_le f)
 
 /-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
 lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule R M) :
   finrank R s ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  (rank_lt_aleph_0 _ _) (dim_submodule_le s)
+  (rank_lt_aleph_0 _ _) (rank_submodule_le s)
 
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma submodule.finrank_quotient_le [module.free R M] [module.finite R M] (s : submodule R M) :
   finrank R (M ⧸ s) ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  (rank_lt_aleph_0 _ _) ((submodule.mkq s).dim_le_of_surjective (surjective_quot_mk _))
+  (rank_lt_aleph_0 _ _) ((submodule.mkq s).rank_le_of_surjective (surjective_quot_mk _))
 
 end

@@ -9,6 +9,9 @@ import data.matrix.basic
 /-!
 # Matrices of dual numbers are isomorphic to dual numbers over matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Showing this for the more general case of `triv_sq_zero_ext R M` would require an action between
 `matrix n n R` and `matrix n n M`, which would risk causing diamonds.
 -/

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import algebra.module.big_operators
 import linear_algebra.dfinsupp
+import linear_algebra.free_module.basic
 import linear_algebra.invariant_basis_number
 import linear_algebra.isomorphisms
 import linear_algebra.std_basis
@@ -285,6 +286,10 @@ begin
 end
 
 variables {R M}
+
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule R M} (h : 0 < module.rank R s) :
+  ∃ b : M, b ∈ s ∧ b ≠ 0 :=
+exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
 /-- A linearly-independent family of vectors in a module over a non-trivial ring must be finite if
 the module is Noetherian. -/
@@ -929,31 +934,28 @@ by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.m
 
 end strong_rank_condition
 
-section division_ring
-variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+section free
+variables [ring K] [strong_rank_condition K]
+variables [add_comm_group V] [module K V] [module.free K V]
+variables [add_comm_group V'] [module K V'] [module.free K V']
+variables [add_comm_group V₁] [module K V₁] [module.free K V₁]
 variables {K V}
-
-/-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
-lemma basis.finite_of_vector_space_index_of_dim_lt_aleph_0 (h : module.rank K V < ℵ₀) :
-  (basis.of_vector_space_index K V).finite :=
-finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_aleph_0 h
-
-variables [add_comm_group V'] [module K V']
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
 theorem nonempty_linear_equiv_of_lift_dim_eq
   (cond : cardinal.lift.{v'} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
-  let B := basis.of_vector_space K V,
-  let B' := basis.of_vector_space K V',
+  obtain ⟨⟨_, B⟩⟩ := module.free.exists_basis K V,
+  obtain ⟨⟨_, B'⟩⟩ := module.free.exists_basis K V',
   have : cardinal.lift.{v' v} (#_) = cardinal.lift.{v v'} (#_),
     by rw [B.mk_eq_dim'', cond, B'.mk_eq_dim''],
   exact (cardinal.lift_mk_eq.{v v' 0}.1 this).map (B.equiv B')
 end
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
-theorem nonempty_linear_equiv_of_dim_eq (cond : module.rank K V = module.rank K V₁) :
+theorem nonempty_linear_equiv_of_dim_eq
+  (cond : module.rank K V = module.rank K V₁) :
   nonempty (V ≃ₗ[K] V₁) :=
 nonempty_linear_equiv_of_lift_dim_eq $ congr_arg _ cond
 
@@ -984,26 +986,10 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq :
   nonempty (V ≃ₗ[K] V₁) ↔ module.rank K V = module.rank K V₁ :=
 ⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
--- TODO how far can we generalise this?
--- When `s` is finite, we could prove this for any ring satisfying the strong rank condition
--- using `linear_independent_le_span'`
-lemma dim_span_le (s : set V) : module.rank K (span K s) ≤ #s :=
-begin
-  obtain ⟨b, hb, hsab, hlib⟩ := exists_linear_independent K s,
-  convert cardinal.mk_le_mk_of_subset hb,
-  rw [← hsab, dim_span_set hlib]
-end
-
-lemma dim_span_of_finset (s : finset V) :
-  module.rank K (span K (↑s : set V)) < ℵ₀ :=
-calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_coe_finset]
-                             ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
-
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
 begin
-  let b := basis.of_vector_space K V,
-  let c := basis.of_vector_space K V₁,
+  obtain ⟨⟨_, b⟩⟩ := module.free.exists_basis K V,
+  obtain ⟨⟨_, c⟩⟩ := module.free.exists_basis K V₁,
   rw [← cardinal.lift_inj,
       ← (basis.prod b c).mk_eq_dim,
       cardinal.lift_add, ← cardinal.mk_ulift,
@@ -1015,22 +1001,26 @@ begin
 end
 
 section fintype
-variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
+variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)] [∀i, module.free K (φ i)]
 
 open linear_map
 
-lemma dim_pi [finite η] : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
+lemma dim_pi [finite η] :
+  module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
+  haveI := nontrivial_of_invariant_basis_number K,
   casesI nonempty_fintype η,
-  let b := assume i, basis.of_vector_space K (φ i),
+  let b := λ i, (module.free.exists_basis K (φ i)).some.2,
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
   rw [← cardinal.lift_inj, ← this.mk_eq_dim],
-  simp [← (b _).mk_range_eq_dim]
+  simp_rw [cardinal.mk_sigma, cardinal.lift_sum, ←(b _).mk_range_eq_dim,
+    cardinal.mk_range_eq _ (b _).injective],
 end
 
 variable [fintype η]
 
-lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
+lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V]
+  [module.free K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
 by rw [dim_pi, cardinal.sum_const', cardinal.mk_fintype]
 
@@ -1046,6 +1036,58 @@ lemma dim_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
 by simp [dim_fun']
 
 end fintype
+
+lemma finsupp.dim_eq {ι : Type v} : module.rank K (ι →₀ V) = #ι * module.rank K V :=
+begin
+  obtain ⟨⟨_, bs⟩⟩ := module.free.exists_basis K V,
+  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
+    cardinal.mk_sigma, cardinal.sum_const']
+end
+
+-- TODO: merge with the `finrank` content
+/-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
+def fin_dim_vectorspace_equiv (n : ℕ)
+  (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
+begin
+  haveI := nontrivial_of_invariant_basis_number K,
+  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
+    by simp,
+  have hn := cardinal.lift_inj.{v u}.2 hn,
+  rw this at hn,
+  rw ←@dim_fin_fun K _ _ n at hn,
+  haveI : module.free K (fin n → K) := module.free.pi _ _,
+  exact classical.choice (nonempty_linear_equiv_of_lift_dim_eq hn),
+end
+
+end free
+
+section division_ring
+variables [division_ring K]
+variables [add_comm_group V] [module K V]
+variables [add_comm_group V'] [module K V']
+variables [add_comm_group V₁] [module K V₁]
+variables {K V}
+
+/-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
+lemma basis.finite_of_vector_space_index_of_dim_lt_aleph_0 (h : module.rank K V < ℵ₀) :
+  (basis.of_vector_space_index K V).finite :=
+finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_aleph_0 h
+
+-- TODO how far can we generalise this?
+-- When `s` is finite, we could prove this for any ring satisfying the strong rank condition
+-- using `linear_independent_le_span'`
+lemma dim_span_le (s : set V) : module.rank K (span K s) ≤ #s :=
+begin
+  obtain ⟨b, hb, hsab, hlib⟩ := exists_linear_independent K s,
+  convert cardinal.mk_le_mk_of_subset hb,
+  rw [← hsab, dim_span_set hlib]
+end
+
+lemma dim_span_of_finset (s : finset V) :
+  module.rank K (span K (↑s : set V)) < ℵ₀ :=
+calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
+                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_coe_finset]
+                             ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
 
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
@@ -1125,66 +1167,11 @@ by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 end
 
-lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s) :
-  ∃ b : V, b ∈ s ∧ b ≠ 0 :=
-exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
-
 end division_ring
-
-section rank
-
-section
-variables [ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
-variables [add_comm_group V'] [module K V']
-
-/-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
-def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
-
-lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
-dim_submodule_le _
-
-@[simp] lemma rank_zero [nontrivial K] : rank (0 : V →ₗ[K] V') = 0 :=
-by rw [rank, linear_map.range_zero, dim_bot]
-
-variables [add_comm_group V''] [module K V'']
-
-lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
-begin
-  refine dim_le_of_submodule _ _ _,
-  rw [linear_map.range_comp],
-  exact linear_map.map_le_range,
-end
-
-variables [add_comm_group V'₁] [module K V'₁]
-
-lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
-by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
-
-end
-
-end rank
 
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables [add_comm_group V'] [module K V']
-
-lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
-by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
-
-lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
-calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
-  begin
-    refine dim_le_of_submodule _ _ _,
-    exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
-      assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
-        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
-  end
-  ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
-
-lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
-  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
-@finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
-      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
@@ -1249,7 +1236,7 @@ begin
     have h : (K ∙ v₀) = ⊤,
     { ext, simp [mem_span_singleton, hv₀] },
     rw [←dim_top, ←h],
-    convert dim_span_le _,
+    refine (dim_span_le _).trans_eq _,
     simp }
 end
 
@@ -1317,6 +1304,65 @@ lemma module.rank_le_one_iff_top_is_principal :
   module.rank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
 by rw [← submodule.rank_le_one_iff_is_principal, dim_top]
 
+end division_ring
+
+end module
+
+/-! ### The rank of a linear map -/
+
+namespace linear_map
+
+section ring
+variables [ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+
+/-- `rank f` is the rank of a `linear_map` `f`, defined as the dimension of `f.range`. -/
+def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
+
+lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
+dim_submodule_le _
+
+@[simp] lemma rank_zero [nontrivial K] : rank (0 : V →ₗ[K] V') = 0 :=
+by rw [rank, linear_map.range_zero, dim_bot]
+
+variables [add_comm_group V''] [module K V'']
+
+lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
+begin
+  refine dim_le_of_submodule _ _ _,
+  rw [linear_map.range_comp],
+  exact linear_map.map_le_range,
+end
+
+variables [add_comm_group V'₁] [module K V'₁]
+
+lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
+by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
+
+end ring
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+
+lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
+by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
+
+lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
+calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
+  begin
+    refine dim_le_of_submodule _ _ _,
+    exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
+      assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
+        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
+  end
+  ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
+
+lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
+  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
+@finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
+      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
+
 lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
   c ≤ rank f ↔
   ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧
@@ -1353,4 +1399,4 @@ end
 
 end division_ring
 
-end module
+end linear_map

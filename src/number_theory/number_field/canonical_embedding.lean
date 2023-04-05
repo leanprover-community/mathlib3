@@ -34,16 +34,17 @@ variables (K : Type*) [field K]
 
 namespace number_field.canonical_embedding
 
-/-- The ambient space `ℝ^r₁ × ℂ^r₂` with `(r₁, r₂)` the signature of `K`. -/
-@[reducible] def space :=
-({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)
+-- The ambient space `ℝ^r₁ × ℂ^r₂` with `(r₁, r₂)` the signature of `K`.
+localized "notation `E` :=
+  ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)"
+  in canonical_embedding
 
-instance : comm_ring (space K) := prod.comm_ring
+-- instance : comm_ring (space K) := prod.comm_ring
 
-instance : module ℝ (space K) := prod.module
+-- instance : module ℝ (space K) := prod.module
 
 lemma space_rank [number_field K] :
-  finrank ℝ (space K) = finrank ℚ K :=
+  finrank ℝ E = finrank ℚ K :=
 begin
   haveI : module.free ℝ ℂ := infer_instance,
   rw [module.free.finrank_prod, module.free.finrank_pi, module.free.finrank_pi_fintype,
@@ -52,7 +53,7 @@ begin
     fintype.card_subtype_compl, nat.add_sub_of_le (fintype.card_subtype_le _)],
 end
 
-instance [number_field K] : nontrivial (space K) :=
+lemma non_trivial_space [number_field K] : nontrivial E :=
 begin
   obtain ⟨w⟩ := infinite_place.nonempty K,
   obtain hw | hw := w.is_real_or_is_complex,
@@ -63,13 +64,12 @@ begin
 end
 
 /-- The canonical embedding of a number field `K` of signature `(r₁, r₂)` into `ℝ^r₁ × ℂ^r₂`. -/
-def _root_.number_field.canonical_embedding : K →+* space K :=
-ring_hom.prod
-  (pi.ring_hom (λ w, w.prop.embedding))
-  (pi.ring_hom (λ w, w.val.embedding))
+def _root_.number_field.canonical_embedding : K →+* E :=
+ring_hom.prod (pi.ring_hom (λ w, w.prop.embedding)) (pi.ring_hom (λ w, w.val.embedding))
 
 lemma _root_.number_field.canonical_embedding_injective [number_field K] :
-  injective (number_field.canonical_embedding K) := ring_hom.injective _
+  injective (number_field.canonical_embedding K) :=
+  @ring_hom.injective _ _ _ _ (non_trivial_space K) _
 
 open number_field
 
@@ -123,7 +123,7 @@ end
 variables (K)
 
 /-- The image of `𝓞 K` as a subring of `ℝ^r₁ × ℂ^r₂`. -/
-def integer_lattice : subring (space K) :=
+def integer_lattice : subring E :=
 (ring_hom.range (algebra_map (𝓞 K) K)).map (canonical_embedding K)
 
 /-- The linear equiv between `𝓞 K` and the integer lattice. -/
@@ -141,12 +141,12 @@ linear_equiv.of_bijective
   end
 
 lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
-  ((integer_lattice K : set (space K)) ∩ (closed_ball 0 r)).finite :=
+  ((integer_lattice K : set E) ∩ (closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
   {  simp [closed_ball_eq_empty.2 hr] },
   have heq :
-    ∀ x, canonical_embedding K x ∈ closed_ball (0 : (space K)) r ↔ ∀ φ : K →+* ℂ, ‖φ x‖ ≤ r,
+    ∀ x, canonical_embedding K x ∈ closed_ball (0 : E) r ↔ ∀ φ : K →+* ℂ, ‖φ x‖ ≤ r,
   { simp only [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, norm_le_iff],
     exact λ x, le_iff_le x r, },
   convert (embeddings.finite_of_norm_le K ℂ r).image (canonical_embedding K),
@@ -159,7 +159,7 @@ end
 
 instance [number_field K] : countable (integer_lattice K) :=
 begin
-  have : (⋃ n : ℕ, ((integer_lattice K : set (space K)) ∩ (closed_ball 0 n))).countable,
+  have : (⋃ n : ℕ, ((integer_lattice K : set E) ∩ (closed_ball 0 n))).countable,
   { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable) },
   refine (this.mono _).to_subtype,
   rintro _ ⟨x, hx, rfl⟩,

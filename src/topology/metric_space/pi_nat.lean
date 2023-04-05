@@ -193,6 +193,69 @@ lemma update_mem_cylinder (x : Π n, E n) (n : ℕ) (y : E n) :
   update x n y ∈ cylinder x n :=
 mem_cylinder_iff.2 (λ i hi, by simp [hi.ne])
 
+section res
+
+variable {α : Type*}
+open list
+
+/-- In the case where `E` has constant value `α`,
+the cylinder `cylinder x n` can be identified with the element of `list α`
+consisting of the first `n` entries of `x`. See `cylinder_eq_res`.
+We call this list `res x n`, the restriction of `x` to `n`.-/
+def res (x : ℕ → α) : ℕ → list α
+  | 0            := nil
+  | (nat.succ n) := x n :: res n
+
+@[simp] lemma res_zero (x : ℕ → α) : res x 0 = @nil α := rfl
+@[simp] lemma res_succ (x : ℕ → α) (n : ℕ) : res x n.succ = x n :: res x n := rfl
+
+@[simp] lemma res_length (x : ℕ → α) (n : ℕ) : (res x n).length = n :=
+begin
+  induction n with n ih,
+  { refl },
+  simp[ih],
+end
+
+/-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
+lemma res_eq_iff (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
+begin
+  split; intro h; induction n with n ih, { simp },
+  { intros m hm,
+    rw nat.lt_succ_iff_lt_or_eq at hm,
+    simp only [res_succ] at h,
+    cases hm with hm hm,
+    { exact ih h.2 _ hm },
+    rw hm,
+    exact h.1, },
+  { simp },
+  simp only [res_succ],
+  refine ⟨h _ (nat.lt_succ_self _), ih (λ m hm, _)⟩,
+  exact h _ (hm.trans (nat.lt_succ_self _)),
+end
+
+lemma res_injective : injective (@res α) :=
+begin
+  intros x y h,
+  ext n,
+  apply (res_eq_iff _ _ _).mp _ n (nat.lt_succ_self _),
+  rw h,
+end
+
+/-- Two infinite sequences are equal if and only if all their restrictions are.-/
+theorem res_eq_iff_eq (x y : ℕ → α) : (∀ n, res x n = res y n) ↔ x = y :=
+by rw [← funext_iff, res_injective.eq_iff]
+
+
+/-- `cylinder x n` is equal to the set of sequences `y` with the same restriction to `n` as `x`.-/
+theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : cylinder x n = {y | res y n = res x n} :=
+begin
+  ext y,
+  dsimp[cylinder],
+  rw res_eq_iff,
+end
+
+end res
+
 /-!
 ### A distance function on `Π n, E n`
 

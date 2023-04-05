@@ -5,7 +5,7 @@ Authors: Felix Weilacher
 -/
 import topology.separation
 import topology.bases
-import topology.scheme
+import topology.metric_space.cantor_scheme
 
 /-!
 # Perfect Sets
@@ -263,7 +263,7 @@ begin
   apply disjoint.mono _ _ hdisj; assumption,
 end
 
-open scheme
+open cantor_scheme
 
 /-- Any nonempty perfect set in a complete metric space admits a continuous injection
 from the cantor space, `ℕ → bool`. -/
@@ -306,9 +306,8 @@ begin
       simp },
     convert h1.2.2.2,
     simp },
-  have hdisj : scheme.disjoint D,
-  { intros l a b hab,
-    cases a; cases b; try { contradiction },
+  have hdisj : cantor_scheme.disjoint D,
+  { rintros l (a | a) (b | b) hab; try { contradiction },
     { exact hdisj, },
     exact hdisj.symm,  },
   have hdom : ∀ {x : ℕ → bool}, x ∈ (induced_map D).1 := λ x,

@@ -39,10 +39,6 @@ localized "notation `E` :=
   ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)"
   in canonical_embedding
 
--- instance : comm_ring (space K) := prod.comm_ring
-
--- instance : module ℝ (space K) := prod.module
-
 lemma space_rank [number_field K] :
   finrank ℝ E = finrank ℚ K :=
 begin

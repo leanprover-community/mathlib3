@@ -31,29 +31,8 @@ class cancel_semigroup (α : Type*) extends left_cancel_semigroup α, right_canc
 attribute [to_additive] cancel_semigroup.to_left_cancel_semigroup
   cancel_semigroup.to_right_cancel_semigroup
 
-section dvd
-variables {α : Type*} [monoid α] {a b : α}
-
-lemma dvd_of_eq (h : a = b) : a ∣ b := by rw h
-lemma dvd_of_eq' (h : a = b) : b ∣ a := by rw h
-
-alias dvd_of_eq ← eq.dvd
-alias dvd_of_eq' ← eq.dvd'
-alias dvd_add ← has_dvd.dvd.add
-alias dvd_sub ← has_dvd.dvd.sub
-
-end dvd
-
 namespace nat
 variables {a b m n : ℕ}
-
-lemma eq_of_forall_dvd (h : ∀ c, a ∣ c ↔ b ∣ c) : a = b :=
-dvd_antisymm ((h _).2 dvd_rfl) $ (h _).1 dvd_rfl
-
-lemma eq_of_forall_dvd' (h : ∀ c, c ∣ a ↔ c ∣ b) : a = b :=
-dvd_antisymm ((h _).1 dvd_rfl) $ (h _).2 dvd_rfl
-
-lemma lcm_pos : 0 < m → 0 < n → 0 < m.lcm n := by { simp_rw pos_iff_ne_zero, exact lcm_ne_zero }
 
 lemma add_sub_one_le_mul (ha : a ≠ 0) (hb : b ≠ 0) : a + b - 1 ≤ a * b :=
 begin
@@ -243,7 +222,7 @@ begin
   rw image₂_insert_left,
   by_cases h : disjoint (image (f a) t) (image₂ f s t),
   { rw card_union_eq h,
-    exact (card_image_of_injective _ $ hf _).dvd'.add ih },
+    exact (card_image_of_injective _ $ hf _).symm.dvd.add ih },
   simp_rw [←bUnion_image_left, disjoint_bUnion_right, not_forall] at h,
   obtain ⟨b, hb, h⟩ := h,
   rwa union_eq_right_iff_subset.2,
@@ -558,39 +537,6 @@ end
 
 end mul_action
 
-namespace subgroup
-variables {G : Type*} [group G] {s : set G} {g : G}
-
--- TODO: Rename `zpower_subset` → `zpowers_le`
-
-@[to_additive zmultiples_ne_bot] lemma zpowers_ne_bot : zpowers g ≠ ⊥ ↔ g ≠ 1 := zpowers_eq_bot.not
-
-@[to_additive coe_zmultiplies_subset] lemma coe_zpowers_subset (h_one : (1 : G) ∈ s)
-  (h_mul : ∀ a ∈ s, a * g ∈ s) (h_inv : ∀ a ∈ s, a * g⁻¹ ∈ s) : ↑(zpowers g) ⊆ s :=
-begin
-  rintro _ ⟨n, rfl⟩,
-  induction n using int.induction_on with n ih n ih,
-  { rwa zpow_zero },
-  { rw zpow_add_one,
-    exact h_mul _ ih },
-  { rw zpow_sub_one,
-    exact h_inv _ ih }
-end
-
-@[to_additive coe_zmultiplies_subset'] lemma coe_zpowers_subset' (h_one : (1 : G) ∈ s)
-  (h_mul : ∀ a ∈ s, g * a ∈ s) (h_inv : ∀ a ∈ s, g⁻¹ * a ∈ s) : ↑(zpowers g) ⊆ s :=
-begin
-  rintro _ ⟨n, rfl⟩,
-  induction n using int.induction_on with n ih n ih,
-  { rwa zpow_zero },
-  { rw [add_comm, zpow_add, zpow_one],
-    exact h_mul _ ih },
-  { rw [sub_eq_add_neg, add_comm, zpow_add, zpow_neg_one],
-    exact h_inv _ ih }
-end
-
-end subgroup
-
 section prod
 variables {α β : Type*} [monoid α] [monoid β] {x : α × β} {a : α} {b : β}
 
@@ -602,7 +548,7 @@ by { rw ←order_of_pos_iff at ⊢ ha, exact nat.pos_of_dvd_of_pos h ha }
 --TODO: `to_additive_reorder` on `prod.pow_fst`
 @[to_additive prod.add_order_of] protected lemma prod.order_of (x : α × β) :
   order_of x = (order_of x.1).lcm (order_of x.2) :=
-nat.eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
+eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
 
 @[to_additive add_order_of_fst_dvd_add_order_of] lemma order_of_fst_dvd_order_of :
   order_of x.1 ∣ order_of x :=

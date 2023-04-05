@@ -171,7 +171,7 @@ by { rw mul_comm, exact subset_mul_stab_mul_left hs }
 @[simp, to_additive] lemma mul_mul_stab (s : finset α) : s * s.mul_stab = s :=
 by { rw mul_comm, exact mul_stab_mul _ }
 
-@[simp] lemma mul_mul_stab_mul_mul_mul_mul_stab_mul :
+@[simp, to_additive] lemma mul_mul_stab_mul_mul_mul_mul_stab_mul :
   s * (s * t).mul_stab * (t * (s * t).mul_stab) = s * t :=
 by rw [mul_mul_mul_comm, mul_stab_mul_mul_stab, mul_mul_stab]
 

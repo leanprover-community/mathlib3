@@ -114,10 +114,12 @@ begin
   -- as wanted.
   obtain hsg | hsg := eq_or_ne (op g • s) s,
   { have hS : (zpowers g : set α) ⊆ a⁻¹ • s,
-    { refine coe_zpowers_subset ⟨_, ha, inv_mul_self _⟩ (λ c hc, _) (λ c hc, _),
+    { refine forall_mem_zpowers.2 (@zpow_induction_right _ _ _ (∈ a⁻¹ • (s : set α))
+        ⟨_, ha, inv_mul_self _⟩ (λ c hc, _) $ λ c hc, _),
       { rw [←hsg, coe_smul_finset, smul_comm],
-       exact set.smul_mem_smul_set hc },
-      { rwa [←op_smul_eq_mul, op_inv, ←set.mem_smul_set_iff_inv_smul_mem, smul_comm,
+        exact set.smul_mem_smul_set hc },
+      { simp only,
+        rwa [←op_smul_eq_mul, op_inv, ←set.mem_smul_set_iff_inv_smul_mem, smul_comm,
           ←coe_smul_finset, hsg] } },
     exact or.inl ((min_order_le_nat_card (zpowers_ne_bot.2 hg) $
       s.finite_to_set.smul_set.subset hS).trans $ with_top.coe_le_coe.2 $

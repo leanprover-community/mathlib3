@@ -35,14 +35,15 @@ namespace finset
 /-! ### Auxiliary results -/
 
 -- Lemma 3.3 in Ruzsa's notes
+@[to_additive]
 lemma le_card_union_add_card_mul_stab_union :
   min (s.card + s.mul_stab.card) (t.card + t.mul_stab.card)
     ≤ (s ∪ t).card + (s ∪ t).mul_stab.card :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp },
+  { simp [-zero_le'] }, -- TODO: `to_additive` chokes on `zero_le'`
   obtain rfl | ht := t.eq_empty_or_nonempty,
-  { simp },
+  { simp [-zero_le'] },
   obtain hst | hst := (subset_union_left s t).eq_or_ssubset,
   { simp [hst.symm] },
   obtain hts | hts := (subset_union_right s t).eq_or_ssubset,
@@ -71,9 +72,9 @@ begin
   by_cases hkl : (∀ a, k a = 0 ∨ k a = Ht.card ∨ l a = 0 ∨ l a = Hs.card) ∧
     ((∀ a, k a = 0 → l a = 0) ∨ ∀ a, l a = 0 → k a = 0),
   { obtain ⟨hkl, hkl' | hkl'⟩ := hkl,
-    { refine or.inl ((tsub_eq_zero_of_le $ card_mono _).trans_le zero_le'),
+    { refine or.inl ((tsub_eq_zero_of_le $ card_mono _).trans_le $ zero_le _),
       sorry },
-    { refine or.inr ((tsub_eq_zero_of_le $ card_mono _).trans_le zero_le'),
+    { refine or.inr ((tsub_eq_zero_of_le $ card_mono _).trans_le $ zero_le _),
       sorry } },
   suffices hHst : (Hs.card - 1) * (Ht.card - 1) ≤ (s \ t).card * (t \ s).card,
   { by_contra',
@@ -98,6 +99,7 @@ begin
 end
 
 -- Lemma 3.4 in Ruzsa's notes
+@[to_additive]
 lemma le_card_sup_add_card_mul_stab_sup {s : finset ι} {f : ι → finset α} (hs : s.nonempty) :
   s.inf' hs (λ i, (f i).card + (f i).mul_stab.card) ≤ (s.sup f).card + (s.sup f).mul_stab.card :=
 begin
@@ -111,7 +113,7 @@ end
 
 /-! ### Kneser's theorem -/
 
-lemma le_card_mul_add_card_mul_stab_mul (hs : s.nonempty) (ht : t.nonempty) :
+@[to_additive] lemma le_card_mul_add_card_mul_stab_mul (hs : s.nonempty) (ht : t.nonempty) :
   s.card + t.card ≤ (s * t).card + (s * t).mul_stab.card :=
 begin
   -- For every `b ∈ t`, consider sets `s_b, t_b` such that
@@ -152,8 +154,8 @@ end
 
 /-- **Kneser's multiplication theorem**: A lower bound on the size of `s * t` in terms of its
 stabilizer. -/
--- @[to_additive "**Kneser's addition theorem**: A lower bound on the size of `s + t` in terms of its
--- stabilizer."]
+@[to_additive "**Kneser's addition theorem**: A lower bound on the size of `s + t` in terms of its
+stabilizer."]
 lemma mul_kneser (s t : finset α) :
   (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card ≤
     (s * t).card + (s * t).mul_stab.card :=
@@ -170,8 +172,8 @@ end
 
 /-- The strict version of **Kneser's multiplication theorem**. If the LHS of `finset.mul_kneser`
 does not equal the RHS, then it is in fact much smaller. -/
--- @[to_additive "The strict version of **Kneser's addition theorem**. If the LHS of
--- `finset.add_kneser` does not equal the RHS, then it is in fact much smaller."]
+@[to_additive "The strict version of **Kneser's addition theorem**. If the LHS of
+`finset.add_kneser` does not equal the RHS, then it is in fact much smaller."]
 lemma mul_strict_kneser (h : (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card <
     (s * t).card + (s * t).mul_stab.card) :
   (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card ≤ (s * t).card :=

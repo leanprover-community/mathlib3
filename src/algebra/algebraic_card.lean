@@ -58,7 +58,7 @@ theorem cardinal_mk_lift_le_max :
 @[simp] lemma cardinal_mk_lift_of_infinite [infinite R] :
   cardinal.lift.{u} (#{x : A // is_algebraic R x}) = cardinal.lift.{v} (#R) :=
 ((cardinal_mk_lift_le_max R A).trans_eq (max_eq_left $ aleph_0_le_mk _)).antisymm $
-  lift_mk_le'.2 ⟨⟨λ x, ⟨algebra_map R A x, is_algebraic_algebra_map _⟩,
+  lift_mk_le.2 ⟨⟨λ x, ⟨algebra_map R A x, is_algebraic_algebra_map _⟩,
     λ x y h, no_zero_smul_divisors.algebra_map_injective R A (subtype.ext_iff.1 h)⟩⟩
 
 variable [countable R]

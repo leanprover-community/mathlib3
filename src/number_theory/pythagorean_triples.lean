@@ -129,8 +129,8 @@ begin
   { -- x even, y even
     exfalso,
     apply nat.not_coprime_of_dvd_of_dvd (dec_trivial : 1 < 2) _ _ hc,
-    { apply int.dvd_nat_abs_of_of_nat_dvd, apply int.dvd_of_mod_eq_zero hx },
-    { apply int.dvd_nat_abs_of_of_nat_dvd, apply int.dvd_of_mod_eq_zero hy } },
+    { apply int.coe_nat_dvd_left.1, apply int.dvd_of_mod_eq_zero hx },
+    { apply int.coe_nat_dvd_left.1, apply int.dvd_of_mod_eq_zero hy } },
   { left, exact ⟨hx, hy⟩ },  -- x even, y odd
   { right, exact ⟨hx, hy⟩ }, -- x odd, y even
   { -- x odd, y odd
@@ -334,8 +334,7 @@ begin
     apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpm)) hnp,
     apply (or_self _).mp, apply int.prime.dvd_mul' hp,
     rw (by ring : n * n = - (m ^ 2 - n ^ 2) + m * m),
-    apply dvd_add (dvd_neg_of_dvd hp1),
-    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m },
+    exact hp1.neg_right.add ((int.coe_nat_dvd_left.2 hpm).mul_right _) },
   rw int.gcd_comm at hnp,
   apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpn)) hnp,
   apply (or_self _).mp, apply int.prime.dvd_mul' hp,

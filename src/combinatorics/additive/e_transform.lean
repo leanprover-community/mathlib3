@@ -8,6 +8,9 @@ import data.finset.pointwise
 /-!
 # e-transforms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 e-transforms are a family of transformations of pairs of finite sets that aim to reduce the size
 of the sumset while keeping some invariant the same. This file defines a few of them, to be used
 as internals of other proofs.

@@ -250,7 +250,7 @@ lemma cardinal_mk_le_finrank_of_linear_independent
   #ι ≤ finrank K V :=
 begin
   rw ← lift_le,
-  simpa [← finrank_eq_rank, -finrank_eq_rank] using cardinal_lift_le_dim_of_linear_independent h
+  simpa [← finrank_eq_rank', -finrank_eq_rank] using cardinal_lift_le_rank_of_linear_independent h
 end
 
 lemma fintype_card_le_finrank_of_linear_independent

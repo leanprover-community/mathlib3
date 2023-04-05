@@ -186,7 +186,7 @@ lemma is_symmetric.inner_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric
 begin
   simp_rw [linear_map.ext_iff, zero_apply],
   refine ⟨λ h x, _, λ h, by simp_rw [h, inner_zero_left, forall_const]⟩,
-  rw [← inner_self_eq_zero, hT.inner_map_polarization _ _],
+  rw [← @inner_self_eq_zero 𝕜, hT.inner_map_polarization _ _],
   simp_rw [h _],
   ring,
 end

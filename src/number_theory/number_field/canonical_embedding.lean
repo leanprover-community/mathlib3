@@ -43,10 +43,10 @@ lemma space_rank [number_field K] :
   finrank ℝ E = finrank ℚ K :=
 begin
   haveI : module.free ℝ ℂ := infer_instance,
-  rw [module.free.finrank_prod, module.free.finrank_pi, module.free.finrank_pi_fintype,
-    complex.finrank_real_complex, finset.sum_const, finset.card_univ, ← card_real_embeddings,
-    algebra.id.smul_eq_mul, mul_comm, ← card_complex_embeddings, ← number_field.embeddings.card K ℂ,
-    fintype.card_subtype_compl, nat.add_sub_of_le (fintype.card_subtype_le _)],
+  rw [finrank_prod, finrank_pi, finrank_pi_fintype, complex.finrank_real_complex,
+    finset.sum_const, finset.card_univ, ← card_real_embeddings, algebra.id.smul_eq_mul, mul_comm,
+    ← card_complex_embeddings, ← number_field.embeddings.card K ℂ, fintype.card_subtype_compl,
+    nat.add_sub_of_le (fintype.card_subtype_le _)],
 end
 
 lemma non_trivial_space [number_field K] : nontrivial E :=

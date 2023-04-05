@@ -68,6 +68,8 @@ about the `localization_map.mk'` induced by any localization map.
 
 * Show that the localization at the top monoid is a group.
 * Generalise to (nonempty) subsemigroups.
+* If we acquire more bundlings, we can make `localization.mk_order_embedding` be an ordered monoid
+  embedding.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,

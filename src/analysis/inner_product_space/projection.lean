@@ -1047,7 +1047,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
 begin
   haveI := submodule.finite_dimensional_of_le h,
   haveI := proper_is_R_or_C 𝕜 K₁,
-  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
+  have hd := submodule.rank_sup_add_rank_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_complete_space h] at hd,
   rw add_zero at hd,

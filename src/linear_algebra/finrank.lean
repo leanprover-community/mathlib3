@@ -55,28 +55,28 @@ noncomputable def finrank (R V : Type*) [semiring R]
   [add_comm_group V] [module R V] : ℕ :=
 (module.rank R V).to_nat
 
-lemma finrank_eq_of_dim_eq {n : ℕ} (h : module.rank K V = ↑ n) : finrank K V = n :=
+lemma finrank_eq_of_rank_eq {n : ℕ} (h : module.rank K V = ↑ n) : finrank K V = n :=
 begin
   apply_fun to_nat at h,
   rw to_nat_cast at h,
   exact_mod_cast h,
 end
 
-lemma finrank_le_of_dim_le {n : ℕ} (h : module.rank K V ≤ ↑ n) : finrank K V ≤ n :=
+lemma finrank_le_of_rank_le {n : ℕ} (h : module.rank K V ≤ ↑ n) : finrank K V ≤ n :=
 begin
   rwa [← cardinal.to_nat_le_iff_le_of_lt_aleph_0, to_nat_cast] at h,
   { exact h.trans_lt (nat_lt_aleph_0 n) },
   { exact nat_lt_aleph_0 n },
 end
 
-lemma finrank_lt_of_dim_lt {n : ℕ} (h : module.rank K V < ↑ n) : finrank K V < n :=
+lemma finrank_lt_of_rank_lt {n : ℕ} (h : module.rank K V < ↑ n) : finrank K V < n :=
 begin
   rwa [← cardinal.to_nat_lt_iff_lt_of_lt_aleph_0, to_nat_cast] at h,
   { exact h.trans (nat_lt_aleph_0 n) },
   { exact nat_lt_aleph_0 n },
 end
 
-lemma dim_lt_of_finrank_lt {n : ℕ} (h : n < finrank K V) : ↑n < module.rank K V :=
+lemma rank_lt_of_finrank_lt {n : ℕ} (h : n < finrank K V) : ↑n < module.rank K V :=
 begin
   rwa [← cardinal.to_nat_lt_iff_lt_of_lt_aleph_0, to_nat_cast],
   { exact nat_lt_aleph_0 n },
@@ -91,7 +91,7 @@ variables [nontrivial K] [no_zero_smul_divisors K V]
 /-- A finite dimensional space is nontrivial if it has positive `finrank`. -/
 lemma nontrivial_of_finrank_pos (h : 0 < finrank K V) :
   nontrivial V :=
-dim_pos_iff_nontrivial.mp (dim_lt_of_finrank_lt h)
+rank_pos_iff_nontrivial.mp (rank_lt_of_finrank_lt h)
 
 /-- A finite dimensional space is nontrivial if it has `finrank` equal to the successor of a
 natural number. -/
@@ -117,7 +117,7 @@ variables [strong_rank_condition K]
 cardinality of the basis. -/
 lemma finrank_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
   finrank K V = fintype.card ι :=
-finrank_eq_of_dim_eq (dim_eq_card_basis h)
+finrank_eq_of_rank_eq (rank_eq_card_basis h)
 
 /-- If a vector space (or module) has a finite basis, then its dimension (or rank) is equal to the
 cardinality of the basis. This lemma uses a `finset` instead of indexed types. -/
@@ -131,12 +131,12 @@ variable (K)
 /-- A ring satisfying `strong_rank_condition` (such as a `division_ring`) is one-dimensional as a
 module over itself. -/
 @[simp] lemma finrank_self : finrank K K = 1 :=
-finrank_eq_of_dim_eq (by simp)
+finrank_eq_of_rank_eq (by simp)
 
 /-- The vector space of functions on a fintype ι has finrank equal to the cardinality of ι. -/
 @[simp] lemma finrank_fintype_fun_eq_card {ι : Type v} [fintype ι] :
   finrank K (ι → K) = fintype.card ι :=
-finrank_eq_of_dim_eq dim_fun'
+finrank_eq_of_rank_eq rank_fun'
 
 /-- The vector space of functions on `fin n` has finrank equal to `n`. -/
 @[simp] lemma finrank_fin_fun {n : ℕ} : finrank K (fin n → K) = n :=
@@ -161,7 +161,7 @@ end finite_dimensional
 
 variables {K V}
 
-section zero_dim
+section zero_rank
 
 variables [ring K] [strong_rank_condition K] [add_comm_group V] [module K V] [module.free K V]
 
@@ -171,7 +171,7 @@ lemma finrank_eq_zero_of_basis_imp_not_finite
   (h : ∀ s : set V, basis.{v} (s : set V) K V → ¬ s.finite) : finrank K V = 0 :=
 begin
   obtain ⟨_, ⟨b⟩⟩ := (module.free_iff_set K V).mp ‹_›,
-  exact dif_neg (λ dim_lt, h _ b (b.finite_index_of_dim_lt_aleph_0 dim_lt))
+  exact dif_neg (λ rank_lt, h _ b (b.finite_index_of_rank_lt_aleph_0 rank_lt))
 end
 
 lemma finrank_eq_zero_of_basis_imp_false
@@ -190,7 +190,7 @@ lemma finrank_eq_zero_of_not_exists_basis_finset
   (h : ¬ ∃ (s : finset V), nonempty (basis s K V)) : finrank K V = 0 :=
 finrank_eq_zero_of_basis_imp_false (λ s b, h ⟨s, ⟨b⟩⟩)
 
-end zero_dim
+end zero_rank
 
 namespace linear_equiv
 open finite_dimensional
@@ -203,7 +203,7 @@ variables [module R M] [module R M₂]
 
 /-- The dimension of a finite dimensional space is preserved under linear equivalence. -/
 theorem finrank_eq (f : M ≃ₗ[R] M₂) : finrank R M = finrank R M₂ :=
-by { unfold finrank, rw [← cardinal.to_nat_lift, f.lift_dim_eq, cardinal.to_nat_lift] }
+by { unfold finrank, rw [← cardinal.to_nat_lift, f.lift_rank_eq, cardinal.to_nat_lift] }
 
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
 lemma finrank_map_eq (f : M ≃ₗ[R] M₂) (p : submodule R M) :
@@ -236,11 +236,11 @@ variables [ring K] [add_comm_group V] [module K V]
 variables (K V)
 
 @[simp] lemma finrank_bot [nontrivial K] : finrank K (⊥ : submodule K V) = 0 :=
-finrank_eq_of_dim_eq (dim_bot _ _)
+finrank_eq_of_rank_eq (rank_bot _ _)
 
 @[simp]
 theorem finrank_top : finrank K (⊤ : submodule K V) = finrank K V :=
-by { unfold finrank, simp [dim_top] }
+by { unfold finrank, simp [rank_top] }
 
 end
 
@@ -281,7 +281,7 @@ variable {K}
 
 lemma finrank_span_le_card (s : set V) [fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
-finrank_le_of_dim_le (by simpa using dim_span_le s)
+finrank_le_of_rank_le (by simpa using rank_span_le s)
 
 lemma finrank_span_finset_le_card (s : finset V)  :
   (s : set V).finrank K ≤ s.card :=
@@ -295,9 +295,9 @@ lemma finrank_range_le_card {ι : Type*} [fintype ι] {b : ι → V} :
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   (hb : linear_independent K b) :
   finrank K (span K (set.range b)) = fintype.card ι :=
-finrank_eq_of_dim_eq
+finrank_eq_of_rank_eq
 begin
-  have : module.rank K (span K (set.range b)) = #(set.range b) := dim_span hb,
+  have : module.rank K (span K (set.range b)) = #(set.range b) := rank_span hb,
   rwa [←lift_inj, mk_range_eq_of_injective hb.injective, cardinal.mk_fintype, lift_nat_cast,
        lift_eq_nat_iff] at this,
 end
@@ -305,9 +305,9 @@ end
 lemma finrank_span_set_eq_card (s : set V) [fintype s]
   (hs : linear_independent K (coe : s → V)) :
   finrank K (span K s) = s.to_finset.card :=
-finrank_eq_of_dim_eq
+finrank_eq_of_rank_eq
 begin
-  have : module.rank K (span K s) = #s := dim_span_set hs,
+  have : module.rank K (span K s) = #s := rank_span_set hs,
   rwa [cardinal.mk_fintype, ←set.to_finset_card] at this,
 end
 
@@ -482,18 +482,18 @@ end
 
 end finrank_eq_one
 
-section subalgebra_dim
+section subalgebra_rank
 open module
 
 variables {F E : Type*} [comm_ring F] [ring E] [algebra F E]
 
-@[simp] lemma subalgebra.dim_to_submodule (S : subalgebra F E) :
+@[simp] lemma subalgebra.rank_to_submodule (S : subalgebra F E) :
   module.rank F S.to_submodule = module.rank F S := rfl
 
 @[simp] lemma subalgebra.finrank_to_submodule (S : subalgebra F E) :
   finrank F S.to_submodule = finrank F S := rfl
 
-lemma subalgebra_top_dim_eq_submodule_top_dim :
+lemma subalgebra_top_rank_eq_submodule_top_rank :
   module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=
 by { rw ← algebra.top_to_submodule, refl }
 
@@ -501,25 +501,25 @@ lemma subalgebra_top_finrank_eq_submodule_top_finrank :
   finrank F (⊤ : subalgebra F E) = finrank F (⊤ : submodule F E) :=
 by { rw ← algebra.top_to_submodule, refl }
 
-lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
-by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top F E }
+lemma subalgebra.rank_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
+by { rw subalgebra_top_rank_eq_submodule_top_rank, exact rank_top F E }
 
 section
 variables [strong_rank_condition F] [no_zero_smul_divisors F E] [nontrivial E]
 
-@[simp] lemma subalgebra.dim_bot :
+@[simp] lemma subalgebra.rank_bot :
   module.rank F (⊥ : subalgebra F E) = 1 :=
 ((subalgebra.to_submodule_equiv (⊥ : subalgebra F E)).symm.trans $
-  linear_equiv.of_eq _ _ algebra.to_submodule_bot).dim_eq.trans $ begin
+  linear_equiv.of_eq _ _ algebra.to_submodule_bot).rank_eq.trans $ begin
     letI := module.nontrivial F E,
-    rw dim_span_set,
+    rw rank_span_set,
     exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
   end
 
 @[simp]
 lemma subalgebra.finrank_bot : finrank F (⊥ : subalgebra F E) = 1 :=
-finrank_eq_of_dim_eq (by simp)
+finrank_eq_of_rank_eq (by simp)
 
 end
 
-end subalgebra_dim
+end subalgebra_rank

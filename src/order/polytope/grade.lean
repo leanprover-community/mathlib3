@@ -22,13 +22,6 @@ correspondence between these definitions in [Todo(Vi): Actually prove this].
 We define as many of the prerequisites for polytopes as we can, except for those that involve the
 notion of flags. These are separated into `flag.lean`.
 
-## Main definitions
-
-* `grade_order`: graded preorders.
-* `polytope.path`: a path between two elements in a graph.
-* `polytope.total_connected`: connectedness of a bounded poset – see remark on nomenclature.
-* `polytope.strong_connected`: strong connectedness of a bounded poset.
-
 ## Main results
 
 * `graded.ex_unique_of_grade`: graded linear orders have a unique element of each possible grade.
@@ -39,28 +32,11 @@ open_locale big_operators
 
 variables {ι 𝕆 α β : Type*} {σ : ι → Type*}
 
-section preorder
-variables [preorder α]
-
-section order_bot
-variables [order_bot α] [grade_order ℕ α] {a b : α}
-
-/-- The grade ℕ as a strict order homomorphism. -/
-def grade_order.rel_hom (α : Type*) [preorder α] [order_bot α] [grade_order ℕ α] :
-  @rel_hom α ℕ (<) (<) :=
-⟨_, grade_strict_mono⟩
-
-end order_bot
-end preorder
-
 section partial_order
 variables [partial_order α]
 
 section order_bot
 variables [order_bot α] [grade_min_order ℕ α] {a b : α}
-
-/-- The grade ℕ as an order homomorphism. -/
-def grade_order.order_hom : α →o ℕ := ⟨grade _, grade_mono⟩
 
 /-- A closed non-empty interval of a graded order is a graded order. -/
 def set.Icc.graded : grade_min_order ℕ (set.Icc a b) :=
@@ -137,7 +113,7 @@ variables [bounded_order α] [grade_min_order ℕ α]
 /-- `grade` is an order embedding into `fin` for linearly ordered `α` with a top element. -/
 def order_embedding.grade_fin : α ↪o fin (grade ℕ ⊤ + 1) :=
 { to_fun := λ x, ⟨grade ℕ x, by { rw nat.lt_add_one_iff, exact grade_le_grade_top _ }⟩,
-  inj' := λ a b hab, grade_injective (subtype.mk.inj hab),
+  inj' := λ a b hab, grade_injective (fin.coe_inj.2 hab),
   map_rel_iff' := λ _ _, fin.le_iff_coe_le_coe.trans grade_le_grade_iff }
 
 /-- A graded linear order has an element of grade `j` when `j ≤ grade ⊤`. This is generalized to a
@@ -193,7 +169,7 @@ def is_simple_order.to_grade_order [decidable_eq α] [partial_order α] [bounded
     convert zero_lt_one,
     { exact if_pos (is_simple_order.eq_bot_of_lt h) },
     { exact if_neg (ne_bot_of_lt h) },
-    { apply_instance }
+    all_goals { apply_instance },
   end,
   covby_grade := λ a b h, nat.covby_iff_succ_eq.2 begin
     convert zero_add 1,

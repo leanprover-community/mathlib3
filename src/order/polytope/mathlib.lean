@@ -3,14 +3,17 @@ Copyright (c) 2022 Yaël Dillies, Violeta Hernández Palacios. All rights reserv
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Vladimir Ivanov
 -/
+import algebra.big_operators.finsupp
 import algebra.big_operators.order
 import data.dfinsupp.order
 import data.finsupp.order
 import data.nat.succ_pred
 import data.sum.order
 import order.atoms
-import order.chain
 import order.locally_finite
+import order.grade
+import order.rel_iso.group
+import order.zorn
 
 /-!
 # To move
@@ -18,7 +21,7 @@ import order.locally_finite
 
 open finset function order
 
-variables {ι α β : Type*} {σ : ι → Type*}
+variables {ι 𝕆 ℙ α β γ : Type*} {σ : ι → Type*}
 
 section order_dual
 open order_dual
@@ -52,10 +55,8 @@ variables [preorder α]
 @[reducible] -- See note [reducible non-instances]
 def locally_finite_order.of_decidable_le_lt [decidable_rel ((≤) : α → α → Prop)]
   [decidable_rel ((<) : α → α → Prop)] (Icc Ico Ioc Ioo : α → α → finset α)
-  (hIcc : ∀ ⦃a b x⦄, a ≤ x → x ≤ b → x ∈ Icc a b)
-  (hIco : ∀ ⦃a b x⦄, a ≤ x → x < b → x ∈ Ico a b)
-  (hIoc : ∀ ⦃a b x⦄, a < x → x ≤ b → x ∈ Ioc a b)
-  (hIoo : ∀ ⦃a b x⦄, a < x → x < b → x ∈ Ioo a b) :
+  (hIcc : ∀ ⦃a b x⦄, a ≤ x → x ≤ b → x ∈ Icc a b) (hIco : ∀ ⦃a b x⦄, a ≤ x → x < b → x ∈ Ico a b)
+  (hIoc : ∀ ⦃a b x⦄, a < x → x ≤ b → x ∈ Ioc a b) (hIoo : ∀ ⦃a b x⦄, a < x → x < b → x ∈ Ioo a b) :
   locally_finite_order α :=
 { finset_Icc := λ a b, (Icc a b).filter (λ x, a ≤ x ∧ x ≤ b),
   finset_Ico := λ a b, (Ico a b).filter (λ x, a ≤ x ∧ x < b),
@@ -95,15 +96,6 @@ lemma is_chain_singleton (r : α → α → Prop) (a : α) : is_chain r {a} := s
 lemma is_chain_pair (r : α → α → Prop) {a b : α} (h : r a b) : is_chain r {a, b} :=
 (is_chain_singleton _ _).insert $ λ _ hb _, or.inl $ (set.eq_of_mem_singleton hb).symm.rec_on ‹_›
 
-/-- A preorder is isomorphic to the section from bottom to top. -/
-def set.Icc.self_order_iso_bot_top (α : Type*) [preorder α] [order_bot α] [order_top α] :
-  α ≃o set.Icc ⊥ (⊤ : α) :=
-{ to_fun := λ x, ⟨x, bot_le, le_top⟩,
-  inv_fun := subtype.val,
-  left_inv := λ _, rfl,
-  right_inv := λ _, subtype.eq rfl,
-  map_rel_iff' := by simp }
-
 section
 variables [preorder α] {a b c : α}
 
@@ -125,16 +117,150 @@ lemma subtype.coe_strict_mono : strict_mono (coe : subtype p → α) := λ _ _, 
 end
 end
 
+section preorder
+variables [preorder α] [preorder β]
+
+@[simp] lemma is_min_map (e : α ≃o β) {a : α} : is_min (e a) ↔ is_min a :=
+e.forall_congr_left.symm.trans $ by simp [is_min]
+
+@[simp] lemma is_max_map (e : α ≃o β) {a : α} : is_max (e a) ↔ is_max a :=
+e.forall_congr_left.symm.trans $ by simp [is_max]
+
+end preorder
+
+namespace order_iso
+
+/-- The tautological action by `α ≃o α` on `α`. -/
+instance apply_mul_action (α : Type*) [preorder α] : mul_action (α ≃o α) α :=
+{ smul := coe_fn,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma smul_def {α : Type*} [preorder α] (f : α ≃o α) (a : α) : f • a = f a := rfl
+
+end order_iso
+
+namespace flag
+section preorder
+variables [preorder α] {s : flag α} {c : set α} {a b : α}
+
+/-- Reinterpret a maximal chain as a flag. -/
+@[simps] protected def _root_.is_max_chain.flag (hc : is_max_chain (≤) c) : flag α :=
+⟨c, hc.is_chain, hc.2⟩
+
+lemma _root_.is_chain.exists_subset_flag (hc : is_chain (≤) c) : ∃ s : flag α, c ⊆ s :=
+let ⟨s, hs, hcs⟩ := hc.exists_max_chain in ⟨hs.flag, hcs⟩
+
+lemma exists_mem (a : α) : ∃ s : flag α, a ∈ s :=
+let ⟨s, hs⟩ := set.subsingleton_singleton.is_chain.exists_subset_flag in ⟨s, hs rfl⟩
+
+lemma exists_mem_mem (hab : a ≤ b) : ∃ s : flag α, a ∈ s ∧ b ∈ s :=
+by simpa [set.insert_subset] using (is_chain_pair _ hab).exists_subset_flag
+
+instance : nonempty (flag α) := ⟨max_chain_spec.flag⟩
+
+lemma mem_iff_forall_le_or_ge : a ∈ s ↔ ∀ ⦃b⦄, b ∈ s → a ≤ b ∨ b ≤ a :=
+⟨λ ha b, s.le_or_le ha, λ hb, of_not_not $ λ ha, set.ne_insert_of_not_mem _ ‹_› $ s.max_chain.2
+  (s.chain_le.insert $ λ c hc _, hb hc) $ set.subset_insert _ _⟩
+
+end preorder
+
+section partial_order
+variables [partial_order α] {s : flag α}
+
+@[simp] lemma coe_covby_coe {a b : s} : (a : α) ⋖ b ↔ a ⋖ b :=
+begin
+  refine and_congr_right' ⟨λ h c hac, h hac, λ h c hac hcb,
+    @h ⟨c, mem_iff_forall_le_or_ge.2 $ λ d hd, _⟩ hac hcb⟩,
+  classical,
+  obtain hda | had := le_or_lt (⟨d, hd⟩ : s) a,
+  { exact or.inr ((subtype.coe_le_coe.2 hda).trans hac.le) },
+  obtain hbd | hdb := le_or_lt b ⟨d, hd⟩,
+  { exact or.inl (hcb.le.trans hbd) },
+  { cases h had hdb }
+end
+
+@[simp] lemma is_max_coe {a : s} : is_max (a : α) ↔ is_max a :=
+⟨λ h b hab, h hab, λ h b hab, @h ⟨b, mem_iff_forall_le_or_ge.2 $ λ c hc,
+  by { classical, exact or.inr (hab.trans' $ h.is_top ⟨c, hc⟩) }⟩ hab⟩
+
+@[simp] lemma is_min_coe {a : s} : is_min (a : α) ↔ is_min a :=
+⟨λ h b hba, h hba, λ h b hba, @h ⟨b, mem_iff_forall_le_or_ge.2 $ λ c hc,
+  by { classical, exact or.inl (hba.trans $ h.is_bot ⟨c, hc⟩) }⟩ hba⟩
+
+instance [preorder 𝕆] [grade_order 𝕆 α] (s : flag α) : grade_order 𝕆 s :=
+grade_order.lift_right coe subtype.coe_strict_mono $ λ _ _, coe_covby_coe.2
+
+instance [preorder 𝕆] [grade_min_order 𝕆 α] (s : flag α) : grade_min_order 𝕆 s :=
+grade_min_order.lift_right coe subtype.coe_strict_mono (λ _ _, coe_covby_coe.2) $ λ _, is_min_coe.2
+
+instance [preorder 𝕆] [grade_max_order 𝕆 α] (s : flag α) : grade_max_order 𝕆 s :=
+grade_max_order.lift_right coe subtype.coe_strict_mono (λ _ _, coe_covby_coe.2) $ λ _, is_max_coe.2
+
+instance [preorder 𝕆] [grade_bounded_order 𝕆 α] (s : flag α) : grade_bounded_order 𝕆 s :=
+grade_bounded_order.lift_right coe subtype.coe_strict_mono (λ _ _, coe_covby_coe.2)
+  (λ _, is_min_coe.2) (λ _, is_max_coe.2)
+
+@[simp, norm_cast] lemma grade_coe [preorder 𝕆] [grade_order 𝕆 α] (a : s) :
+  grade 𝕆 (a : α) = grade 𝕆 a := rfl
+
+end partial_order
+end flag
+
+namespace flag
+variables [preorder α] [preorder β]
+open_locale pointwise
+
+instance : has_smul (α ≃o α) (flag α) :=
+⟨λ e s,
+  { carrier := e • s,
+    chain' := s.chain_le.image _ _ _ e.monotone,
+    max_chain' := λ t ht hst, (smul_eq_iff_eq_inv_smul _).2 $ s.max_chain.2
+      (ht.image _ _ _ e.symm.monotone) $ set.set_smul_subset_iff.1 hst }⟩
+
+@[simp, norm_cast] lemma coe_smul (e : α ≃o α) (s : flag α) : (↑(e • s) : set α) = e • s := rfl
+
+instance : mul_action (α ≃o α) (flag α) := set_like.coe_injective.mul_action _ coe_smul
+
+end flag
+
 section
-variables [has_lt α] [comm_group α] [covariant_class α α (*) (<)] {a b c : α}
+variables [preorder α] [comm_group α] [covariant_class α α (*) (≤)] {a b c : α}
 
-@[to_additive] lemma covby.mul_left (h : b ⋖ c) (a : α) : a * b ⋖ a * c :=
-⟨mul_lt_mul_left' h.lt _, λ d hb hc,
-  h.2 (lt_div_iff_mul_lt.2 $ by rwa mul_comm) (_root_.div_lt_iff_lt_mul'.2 hc)⟩
+open order_dual
 
-@[to_additive] lemma covby.mul_right (h : b ⋖ c) (a : α) : b * a ⋖ c * a :=
-⟨mul_lt_mul_right' h.lt _, λ d hb hc,
-  h.2 (lt_div_iff_mul_lt.2 hb) (_root_.div_lt_iff_lt_mul'.2 $ by rwa mul_comm)⟩
+/-- `equiv.div_left` as an `order_iso`. -/
+@[to_additive "`equiv.sub_left` as an `order_iso`.", simps to_equiv apply {simp_rhs := tt}]
+def order_iso.div_left (a : α) : α ≃o αᵒᵈ :=
+{ map_rel_iff' := λ b c, div_le_div_iff_left _, to_equiv := (equiv.div_left a).trans to_dual }
+
+/-- `equiv.div_right` as an `order_iso`. -/
+@[to_additive "`equiv.sub_right` as an `order_iso`.", simps to_equiv apply {simp_rhs := tt}]
+def order_iso.div_right (a : α) : α ≃o α :=
+{ map_rel_iff' := λ b c, div_le_div_iff_right _, to_equiv := equiv.div_right a }
+
+end
+
+section
+variables [preorder α] [comm_group α] [covariant_class α α (*) (≤)] {a b c : α}
+
+@[simp, to_additive] lemma mul_covby_mul_left : a * b ⋖ a * c ↔ b ⋖ c :=
+apply_covby_apply_iff $ order_iso.mul_left a
+
+@[simp, to_additive] lemma mul_covby_mul_right : a * c ⋖ b * c ↔ a ⋖ b :=
+apply_covby_apply_iff $ order_iso.mul_right c
+
+alias mul_covby_mul_left ↔ covby.of_mul_left covby.mul_left
+alias mul_covby_mul_right ↔ covby.of_mul_right covby.mul_right
+
+@[simp, to_additive] lemma div_covby_div_left : a / b ⋖ a / c ↔ c ⋖ b :=
+to_dual_covby_to_dual_iff.symm.trans $ apply_covby_apply_iff $ order_iso.div_left a
+
+@[simp, to_additive] lemma div_covby_div_right : a / c ⋖ b / c ↔ a ⋖ b :=
+apply_covby_apply_iff $ order_iso.div_right c
+
+alias div_covby_div_left ↔ covby.of_div_left covby.div_left
+alias div_covby_div_right ↔ covby.of_div_right covby.div_right
 
 end
 
@@ -210,7 +336,6 @@ end
 end sum
 
 section
-variables {γ : Type*}
 variables [preorder α] [preorder β] [preorder γ] {f : α → γ} {g : β → γ}
 
 open sum
@@ -224,6 +349,61 @@ lemma strict_anti.sum_elim (hf : strict_anti f) (hg : strict_anti g) : strict_an
 | (inr a) (inr b) (lift_rel.inr h) := hg h
 
 end
+
+/-! #### Lifting a graded order -/
+
+section grade_order
+variables [preorder 𝕆] [preorder ℙ] [preorder α] [preorder β]
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_order_left [grade_order 𝕆 α] (f : 𝕆 ≃o ℙ) : grade_order ℙ α :=
+grade_order.lift_left _ f.strict_mono $ λ _ _, (apply_covby_apply_iff f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_min_order_left [grade_min_order 𝕆 α] (f : 𝕆 ≃o ℙ) : grade_min_order ℙ α :=
+grade_min_order.lift_left _ f.strict_mono (λ _ _, (apply_covby_apply_iff f).2) $ λ _,
+  (is_min_map f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_max_order_left [grade_max_order 𝕆 α] (f : 𝕆 ≃o ℙ) : grade_max_order ℙ α :=
+grade_max_order.lift_left _ f.strict_mono (λ _ _, (apply_covby_apply_iff f).2) $ λ _,
+  (is_max_map f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_bounded_order_left [grade_bounded_order 𝕆 α] (f : 𝕆 ≃o ℙ) :
+  grade_bounded_order ℙ α :=
+grade_bounded_order.lift_left _ f.strict_mono (λ _ _, (apply_covby_apply_iff f).2)
+  (λ _, (is_min_map f).2) $ λ _, (is_max_map f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_order_right [grade_order 𝕆 β] (f : α ≃o β) : grade_order 𝕆 α :=
+grade_order.lift_right _ f.strict_mono $ λ _ _, (apply_covby_apply_iff f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_min_order_right [grade_min_order 𝕆 β] (f : α ≃o β) : grade_min_order 𝕆 α :=
+grade_min_order.lift_right _ f.strict_mono (λ _ _, (apply_covby_apply_iff f).2) $ λ _,
+  (is_min_map f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_max_order_right [grade_max_order 𝕆 β] (f : α ≃o β) : grade_max_order 𝕆 α :=
+grade_max_order.lift_right _ f.strict_mono (λ _ _, (apply_covby_apply_iff f).2) $ λ _,
+  (is_max_map f).2
+
+/-- Transfer a graded order across an order isomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+def order_iso.grade_bounded_order_right [grade_bounded_order 𝕆 β] (f : α ≃o β) :
+  grade_bounded_order 𝕆 α :=
+grade_bounded_order.lift_right _ f.strict_mono (λ _ _, (apply_covby_apply_iff f).2)
+  (λ _, (is_min_map f).2) $ λ _, (is_max_map f).2
+
+end grade_order
 
 namespace list
 variables {l : list α} {a : α}
@@ -263,24 +443,21 @@ end list
 namespace multiset
 variables {s t : multiset α} {a : α}
 
-@[simp] lemma cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
-
 @[simp] lemma cons_lt_cons_iff : a ::ₘ s < a ::ₘ t ↔ s < t :=
 lt_iff_lt_of_le_iff_le' (cons_le_cons_iff _) (cons_le_cons_iff _)
 
 lemma cons_lt_cons (a : α) (h : s < t) : a ::ₘ s < a ::ₘ t := cons_lt_cons_iff.2 h
 
 lemma le_singleton_iff : s ≤ {a} ↔ s = 0 ∨ s = {a} :=
-quot.induction_on s $ λ l, by simp only [singleton_eq_cons, singleton_coe, quot_mk_to_coe'', coe_le,
+quot.induction_on s $ λ l, by simp only [cons_zero, ←coe_singleton, quot_mk_to_coe'', coe_le,
   coe_eq_zero, coe_eq_coe, list.perm_singleton, list.subperm_singleton_iff']
 
 lemma lt_singleton_iff : s < {a} ↔ s = 0 :=
 begin
-  rw [lt_iff_le_and_ne, le_singleton_iff, or_and_distrib_right, or_iff_left (and_not_self _).1,
+  simp [lt_iff_le_and_ne, le_singleton_iff, or_and_distrib_right, or_iff_left (and_not_self _).1,
     and_iff_left_of_imp],
   rintro rfl,
-  rw singleton_eq_cons,
-  exact zero_ne_cons,
+  exact (singleton_ne_zero _).symm,
 end
 
 lemma covby_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m :=
@@ -299,14 +476,14 @@ lemma covby_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m :=
     exact hm h }
 end⟩
 
-lemma _root_.covby.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
+lemma _root_.covby.exists_multiset_cons (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
 (lt_iff_cons_le.1 h.lt).imp $ λ a ha, ha.eq_of_not_gt $ h.2 $ lt_cons_self _ _
 
 lemma covby_iff : s ⋖ t ↔ ∃ a, t = a ::ₘ s :=
-⟨covby.exists_cons_multiset, by { rintro ⟨a, rfl⟩, exact covby_cons _ _ }⟩
+⟨covby.exists_multiset_cons, by { rintro ⟨a, rfl⟩, exact covby_cons _ _ }⟩
 
 lemma _root_.covby.card_multiset (h : s ⋖ t) : s.card ⋖ t.card :=
-by { obtain ⟨a, rfl⟩ := h.exists_cons_multiset, rw card_cons, exact covby_succ _ }
+by { obtain ⟨a, rfl⟩ := h.exists_multiset_cons, rw card_cons, exact covby_succ _ }
 
 lemma card_strict_mono : strict_mono (card : multiset α → ℕ) := λ _ _, card_lt_of_lt
 
@@ -371,6 +548,12 @@ lemma sum_le_sum (h : f ≤ g) (hm : ∀ i, monotone (m i)) : f.sum m ≤ g.sum 
 
 end dfinsupp
 
+namespace fin
+variables {n : ℕ} {a b : fin n}
+
+@[simp] lemma coe_inj : (a : ℕ) = b ↔ a = b := coe_eq_coe _ _
+
+end fin
 
 namespace nat
 

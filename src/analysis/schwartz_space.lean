@@ -536,14 +536,14 @@ def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
 
 end clm
 
-section fderiv
+section derivatives
 
 /-! ### Derivatives of Schwartz functions -/
 
 variables (𝕜)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
-/-- The real derivative on Schwartz space as a continuous `𝕜`-linear map. -/
+/-- The Fréchet derivative on Schwartz space as a continuous `𝕜`-linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
 mk_clm (fderiv ℝ)
   (λ f g _, fderiv_add f.differentiable.differentiable_at g.differentiable.differentiable_at)
@@ -556,6 +556,7 @@ mk_clm (fderiv ℝ)
 @[simp] lemma fderiv_clm_apply (f : 𝓢(E, F)) (x : E) : fderiv_clm 𝕜 f x = fderiv ℝ f x :=
 rfl
 
+/-- The 1-dimensional derivative on Schwartz space as a continuous `𝕜`-linear map. -/
 def deriv_clm : 𝓢(ℝ, F) →L[𝕜] 𝓢(ℝ, F) :=
 mk_clm (λ f, deriv f)
   (λ f g _, deriv_add f.differentiable.differentiable_at g.differentiable.differentiable_at)
@@ -568,7 +569,7 @@ mk_clm (λ f, deriv f)
 
 @[simp] lemma deriv_clm_apply (f : 𝓢(ℝ, F)) (x : ℝ) : deriv_clm 𝕜 f x = deriv f x := rfl
 
-end fderiv
+end derivatives
 
 section bounded_continuous_function
 

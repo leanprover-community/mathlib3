@@ -233,11 +233,17 @@ def to_has_well_founded : has_well_founded α := ⟨r, is_well_founded.wf⟩
 
 end is_well_founded
 
+/-- There are no 2-cycles in a well-founded relation. -/
 theorem well_founded.asymmetric {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
   ∀ ⦃a b⦄, r a b → ¬ r b a
 | a := λ b hab hba, well_founded.asymmetric hba hab
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
                      dec_tac := tactic.assumption }
+
+/-- There are no 1-cycles in a well-founded relation. -/
+theorem well_founded.irreflexive {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
+  ∀ ⦃a⦄, ¬ r a a :=
+λ a ha, h.asymmetric ha ha
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_founded.is_asymm (r : α → α → Prop) [is_well_founded α r] : is_asymm α r :=

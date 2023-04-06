@@ -5,7 +5,6 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.fixed
 import field_theory.is_alg_closed.basic
 import field_theory.separable
 import ring_theory.integral_domain
@@ -47,7 +46,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-! ### Primitive element theorem for finite fields -/
 
 /-- **Primitive element theorem** assuming E is finite. -/
-lemma exists_primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
+lemma exists_primitive_element_of_finite_top [finite E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
   use α,
@@ -62,11 +61,11 @@ begin
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
-theorem exists_primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] :
+theorem exists_primitive_element_of_finite_bot [finite F] [finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  haveI : fintype E := fintype_of_fintype F E,
-  exact exists_primitive_element_of_fintype_top F E,
+  haveI : finite E := finite_of_finite F E,
+  exact exists_primitive_element_of_finite_top F E
 end
 
 end primitive_element_finite
@@ -113,9 +112,7 @@ begin
       { rw ← add_sub_cancel α (c • β),
         exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-    { rw [adjoin_le_iff, set.le_eq_subset],
-      change {γ} ⊆ _,
-      rw set.singleton_subset_iff,
+    { rw [adjoin_simple_le_iff],
       have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
       have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
       exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
@@ -127,7 +124,7 @@ begin
     (not_and.mpr (λ _, map_g_ne_zero)),
   suffices p_linear : p.map (algebra_map F⟮γ⟯ E) = (C h.leading_coeff) * (X - C β),
   { have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
-    { rw [ring_hom.map_div, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
+    { rw [map_div₀, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
       simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
@@ -187,7 +184,7 @@ begin
       cases primitive_element_inf_aux F α β with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
-  { exactI exists_primitive_element_of_fintype_bot F E }
+  { exactI exists_primitive_element_of_finite_bot F E }
 end
 
 /-- Alternative phrasing of primitive element theorem:

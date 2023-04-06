@@ -6,10 +6,12 @@ Authors: Bhavik Mehta
 
 import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
-import category_theory.full_subcategory
 
 /-!
 # Sheaves of types on a Grothendieck topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines the notion of a sheaf of types (usually called a sheaf of sets by mathematicians)
 on a category equipped with a Grothendieck topology, as well as a range of equivalent
@@ -663,7 +665,7 @@ Every presheaf is a sheaf for the maximal sieve.
 lemma is_sheaf_for_top_sieve (P : Cᵒᵖ ⥤ Type w) :
   is_sheaf_for P ((⊤ : sieve X) : presieve X) :=
 begin
-  rw ← generate_of_singleton_split_epi (𝟙 X),
+  rw ← generate_of_singleton_is_split_epi (𝟙 X),
   rw ← is_sheaf_for_iff_generate,
   apply is_sheaf_for_singleton_iso,
 end

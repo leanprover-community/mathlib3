@@ -5,11 +5,14 @@ Authors: Bolton Bailey, Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.central
-import number_theory.padics.padic_norm
+import data.nat.factorization.basic
 import data.nat.multiplicity
 
 /-!
 # Factorization of Binomial Coefficients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains a few results on the multiplicity of prime factors within certain size
 bounds in binomial coefficients. These include:
@@ -26,6 +29,8 @@ do not appear in the factorization of the `n`th central binomial coefficient.
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
 -/
 
+open_locale big_operators
+
 namespace nat
 
 variables {p n k : ℕ}
@@ -38,7 +43,7 @@ begin
   by_cases h : (choose n k).factorization p = 0, { simp [h] },
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
   have hkn : k ≤ n, { refine le_of_not_lt (λ hnk, h _), simp [choose_eq_zero_of_lt hnk] },
-  rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
+  rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
   simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
@@ -47,11 +52,7 @@ end
 A `pow` form of `nat.factorization_choose_le`
 -/
 lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization p ≤ n :=
-begin
-  cases le_or_lt p 1,
-  { exact (pow_le_pow_of_le h).trans ((le_of_eq (one_pow _)).trans hn) },
-  { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le_log },
-end
+pow_le_of_le_log hn.ne' factorization_choose_le_log
 
 /--
 Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the binomial coefficient.
@@ -59,10 +60,8 @@ Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the bin
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
   apply factorization_choose_le_log.trans,
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  refine lt_succ_iff.1 ((lt_pow_iff_log_lt _ hn0).1 p_large),
-  contrapose! hn0,
-  exact lt_succ_iff.1 (lt_of_lt_of_le p_large (pow_le_one' hn0 2)),
+  rcases eq_or_ne n 0 with rfl | hn0, { simp },
+  exact lt_succ_iff.1 (log_lt_of_lt_pow hn0 p_large),
 end
 
 lemma factorization_choose_of_lt_three_mul
@@ -73,7 +72,7 @@ begin
   { exact factorization_eq_zero_of_non_prime (choose n k) hp },
   cases lt_or_le n k with hnk hkn,
   { simp [choose_eq_zero_of_lt hnk] },
-  rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
+  rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
   simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe,
     finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
   intros i hi,
@@ -136,5 +135,32 @@ Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt`
 lemma le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
 le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt)
+
+/-- A binomial coefficient is the product of its prime factors, which are at most `n`. -/
+lemma prod_pow_factorization_choose (n k : ℕ) (hkn : k ≤ n) :
+  ∏ p in (finset.range (n + 1)),
+    p ^ ((nat.choose n k).factorization p)
+  = choose n k :=
+begin
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self (choose_pos hkn).ne',
+  rw eq_comm,
+  apply finset.prod_subset,
+  { intros p hp,
+    rw finset.mem_range,
+    contrapose! hp,
+    rw [finsupp.mem_support_iff, not_not, factorization_choose_eq_zero_of_lt hp] },
+  { intros p _ h2, simp [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
+end
+
+/-- The `n`th central binomial coefficient is the product of its prime factors, which are
+at most `2n`. -/
+lemma prod_pow_factorization_central_binom (n : ℕ) :
+  ∏ p in (finset.range (2 * n + 1)),
+    p ^ ((central_binom n).factorization p)
+  = central_binom n :=
+begin
+  apply prod_pow_factorization_choose,
+  linarith,
+end
 
 end nat

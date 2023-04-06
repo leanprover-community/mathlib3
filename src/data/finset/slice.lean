@@ -11,6 +11,9 @@ import order.polytope.grade
 /-!
 # `n`-sets and slice
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `n`-th slice of a set family and provides a way to say that a set family is
 made of `n`-sets.
 
@@ -135,7 +138,7 @@ variables [decidable_eq 𝕆] [preorder 𝕆] [preorder α] [grade_order 𝕆 α
 /-- The `n`-th slice of a set family is the subset of its elements which have cardinality `n`. -/
 def slice (s : finset α) (n : 𝕆) : finset α := s.filter (λ a, grade 𝕆 a = n)
 
-localized "infix ` # `:90 := finset.slice" in finset_family
+localized "infix (name := finset.slice) ` # `:90 := finset.slice" in finset_family
 
 /-- `a` is in the `n`-th slice of `s` iff it's in `s` and has grade `n`. -/
 lemma mem_slice : a ∈ s # n ↔ a ∈ s ∧ grade 𝕆 a = n := mem_filter
@@ -153,7 +156,7 @@ lemma eq_of_mem_slice (h₁ : a ∈ s # m) (h₂ : a ∈ s # n) : m = n :=
 lemma ne_of_mem_slice (ha : a ∈ s # m) (hb : b ∈ s # n) : m ≠ n → a ≠ b :=
 mt $ λ h, (sized_slice ha).symm.trans ((congr_arg (grade 𝕆) h).trans (sized_slice hb))
 
-lemma pairwise_disjoint_slice [decidable_eq α] : (set.univ : set 𝕆).pairwise_disjoint (slice s) :=
+lemma pairwise_disjoint_slice : (set.univ : set 𝕆).pairwise_disjoint (slice s) :=
 λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
 
 end preorder
@@ -165,8 +168,11 @@ subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
   mem_bUnion.2 ⟨s.card, mem_Iic.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
 
 @[simp] lemma sum_card_slice : ∑ r in Iic (fintype.card α), (𝒜 # r).card = 𝒜.card :=
-by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
-  exact classical.dec_eq _ }
+begin
+  letI := classical.dec_eq α,
+  rw [←card_bUnion, bUnion_slice],
+  exact finset.pairwise_disjoint_slice.subset (set.subset_univ _),
+end
 
 end slice
 end finset

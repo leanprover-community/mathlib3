@@ -3,8 +3,8 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.topology
-import tactic.by_contra
+import analysis.convex.hull
+import linear_algebra.affine_space.independent
 
 /-!
 # Simplicial complexes
@@ -91,7 +91,7 @@ begin
   classical,
   by_contra' h,
   refine h.2 (s ∩ t) (K.down_closed hs (inter_subset_left _ _) $ λ hst, h.1 $
-    (K.inter_subset_convex_hull hs ht).trans _) _,
+    disjoint_iff_inf_le.mpr $ (K.inter_subset_convex_hull hs ht).trans _) _,
   { rw [←coe_inter, hst, coe_empty, convex_hull_empty],
     refl },
   { rw [coe_inter, convex_hull_inter_convex_hull hs ht] }

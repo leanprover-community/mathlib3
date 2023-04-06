@@ -752,7 +752,7 @@ begin
     rw [hdisjoint, finrank_bot] },
   apply eq_top_of_finrank_eq,
   rw ←hdim,
-  convert s.rank_sup_add_rank_inf_eq t,
+  convert s.finrank_sup_add_finrank_inf_eq t,
   rw h_finrank_inf,
   refl,
 end
@@ -1094,7 +1094,8 @@ lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← rank_sup_add_rank_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot, finrank_bot, add_zero],
+  rw [← finrank_sup_add_finrank_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot, finrank_bot,
+    add_zero],
   exact finrank_top
 end
 

@@ -67,7 +67,7 @@ namespace measure_theory
 
 variables [normed_space ℝ E]
 
-/-- A variant of Urysohn lemma, `ℒ^p` version for an outer regular measure `μ`:
+/-- A variant of Urysohn's lemma, `ℒ^p` version, for an outer regular measure `μ`:
 consider two sets `s ⊆ u` which are respectively closed and open with `μ s < ∞`, and a vector `c`.
 Then one may find a continuous function `f` equal to `c` on `s` and to `0` outside of `u`,
 bounded by `‖c‖` everywhere, and such that the `ℒ^p` norm of `f - s.indicator (λ y, c)` is
@@ -83,11 +83,10 @@ begin
   obtain ⟨V, sV, V_open, h'V, hV⟩ : ∃ (V : set α) (H : V ⊇ s), is_open V ∧ μ V < ∞ ∧ μ (V \ s) < η,
     from s_closed.measurable_set.exists_is_open_diff_lt hs ηpos.ne',
   let v := u ∩ V,
-  have v_open : is_open v := u_open.inter V_open,
   have hsv : s ⊆ v := subset_inter hsu sV,
   have hμv : μ v < ∞ := (measure_mono (inter_subset_right _ _)).trans_lt h'V,
   obtain ⟨g, hgv, hgs, hg_range⟩ := exists_continuous_zero_one_of_closed
-    v_open.is_closed_compl s_closed (disjoint_compl_left_iff.2 hsv),
+    (u_open.inter V_open).is_closed_compl s_closed (disjoint_compl_left_iff.2 hsv),
   -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
   -- that this is pointwise bounded by the indicator of the set `v \ s`, which has small measure.
   have g_norm : ∀ x, ‖g x‖ = g x := λ x, by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
@@ -104,8 +103,7 @@ begin
       { simpa only [hsv.2, set.indicator_of_not_mem, not_false_iff, sub_zero, hsv,
           set.indicator_of_mem] using gc_bd0 x},
       { simp [hgs hs, hs] } },
-    { have : x ∉ s := λ h, hv (hsv h),
-      simp [hgv hv, this], } },
+    { simp [hgv hv, (λ h, hv (hsv h) : x ∉ s)], } },
   have gc_support : function.support (λ (x : α), g x • c) ⊆ v,
   { refine function.support_subset_iff'.2 (λ x hx, _),
     simp only [hgv hx, pi.zero_apply, zero_smul] },
@@ -113,19 +111,18 @@ begin
   { apply mem_ℒp.smul_of_top_left (mem_ℒp_top_const _),
     refine ⟨g.continuous.ae_strongly_measurable, _⟩,
     have : snorm (v.indicator (λ x, (1 : ℝ))) p μ < ⊤,
-    { apply (snorm_indicator_const_le _ _).trans_lt _,
+    { refine (snorm_indicator_const_le _ _).trans_lt _,
       simp only [lt_top_iff_ne_top, hμv.ne, nnnorm_one, ennreal.coe_one, one_div, one_mul, ne.def,
         ennreal.rpow_eq_top_iff, inv_lt_zero, false_and, or_false, not_and, not_lt,
         ennreal.to_real_nonneg, implies_true_iff] },
-    refine lt_of_le_of_lt (snorm_mono (λ x, _)) this,
+    refine (snorm_mono (λ x, _)).trans_lt this,
     by_cases hx : x ∈ v,
     { simp only [hx, abs_of_nonneg (hg_range x).1, (hg_range x).2, real.norm_eq_abs,
         indicator_of_mem, cstar_ring.norm_one] },
     { simp only [hgv hx, pi.zero_apply, real.norm_eq_abs, abs_zero, abs_nonneg] } },
   refine ⟨λ x, g x • c, (snorm_mono gc_bd).trans _, g.continuous.smul continuous_const, gc_bd0,
     gc_support.trans (inter_subset_left _ _), gc_mem⟩,
-  apply hη,
-  exact (measure_mono (diff_subset_diff (inter_subset_right _ _) subset.rfl)).trans hV.le,
+  exact hη _ ((measure_mono (diff_subset_diff (inter_subset_right _ _) subset.rfl)).trans hV.le),
 end
 
 /-- In a locally compact space, any function in `ℒp` can be approximated by compactly supported
@@ -136,7 +133,7 @@ lemma mem_ℒp.exists_has_compact_support_snorm_sub_le
   ∃ (g : α → E), snorm (f - g) p μ ≤ ε ∧ continuous g ∧ mem_ℒp g p μ ∧ has_compact_support g :=
 begin
   -- It suffices to check that the set of functions we consider approximates characteristic
-  -- functions, is stable under addition and made of ae strongly measurable functions.
+  -- functions, is stable under addition and consists of ae strongly measurable functions.
   -- First check the latter easy facts.
   apply hf.induction_dense hp h'p _ _ _ _ hε, rotate,
   { rintros f g ⟨f_cont, f_mem, hf⟩ ⟨g_cont, g_mem, hg⟩,
@@ -148,10 +145,10 @@ begin
   assume c t ht htμ ε hε,
   have h'ε : ε / 2 ≠ 0, by simpa using hε,
   rcases exists_snorm_indicator_le hp c h'ε with ⟨η, ηpos, hη⟩,
-  have hη_pos' : (0 : ℝ≥0∞) < η := ennreal.coe_pos.2 ηpos,
-  obtain ⟨s, st, s_compact, μs⟩ : ∃ s ⊆ t, is_compact s ∧ μ (t \ s) < η :=
-    ht.exists_is_compact_diff_lt htμ.ne hη_pos'.ne',
-  have hsμ : μ s < ∞ := (measure_mono st).trans_lt htμ,
+  have hη_pos' : (0 : ℝ≥0∞) < η, from ennreal.coe_pos.2 ηpos,
+  obtain ⟨s, st, s_compact, μs⟩ : ∃ s ⊆ t, is_compact s ∧ μ (t \ s) < η,
+    from ht.exists_is_compact_diff_lt htμ.ne hη_pos'.ne',
+  have hsμ : μ s < ∞, from (measure_mono st).trans_lt htμ,
   have I1 : snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ ≤ ε/2,
   { rw [← snorm_neg, neg_sub, ← indicator_diff st],
     exact (hη _ μs.le) },
@@ -165,7 +162,7 @@ begin
   ... ≤ snorm (f - s.indicator (λ y, c)) p μ
         + snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ :
     begin
-      apply snorm_add_le _ _ h'p,
+      refine snorm_add_le _ _ h'p,
       { exact f_mem.ae_strongly_measurable.sub
           (ae_strongly_measurable_const.indicator s_compact.measurable_set) },
       { exact (ae_strongly_measurable_const.indicator s_compact.measurable_set).sub
@@ -173,8 +170,7 @@ begin
     end
   ... ≤ ε/2 + ε/2 : add_le_add I2 I1
   ... = ε : ennreal.add_halves _,
-  refine ⟨f, I3, f_cont, f_mem, _⟩,
-  apply has_compact_support.intro k_compact (λ x hx, _),
+  refine ⟨f, I3, f_cont, f_mem, has_compact_support.intro k_compact (λ x hx, _)⟩,
   rw ← function.nmem_support,
   contrapose! hx,
   exact interior_subset (f_support hx)
@@ -246,17 +242,16 @@ begin
     let f' : α →ᵇ E := ⟨⟨f, f_cont⟩, metric.bounded_range_iff.1 f_bd⟩,
     let g' : α →ᵇ E := ⟨⟨g, g_cont⟩, metric.bounded_range_iff.1 g_bd⟩,
     exact (f' + g').bounded_range },
-  { rintros f ⟨f_cont, f_mem, hf⟩,
-    exact f_mem.ae_strongly_measurable },
+  { exact λ f ⟨_, h, _⟩, h.ae_strongly_measurable },
   -- We are left with approximating characteristic functions.
   -- This follows from `exists_continuous_snorm_sub_le_of_closed`.
   assume c t ht htμ ε hε,
   have h'ε : ε / 2 ≠ 0, by simpa using hε,
   rcases exists_snorm_indicator_le hp c h'ε with ⟨η, ηpos, hη⟩,
-  have hη_pos' : (0 : ℝ≥0∞) < η := ennreal.coe_pos.2 ηpos,
-  obtain ⟨s, st, s_closed, μs⟩ : ∃ s ⊆ t, is_closed s ∧ μ (t \ s) < η :=
-    ht.exists_is_closed_diff_lt htμ.ne hη_pos'.ne',
-  have hsμ : μ s < ∞ := (measure_mono st).trans_lt htμ,
+  have hη_pos' : (0 : ℝ≥0∞) < η, from ennreal.coe_pos.2 ηpos,
+  obtain ⟨s, st, s_closed, μs⟩ : ∃ s ⊆ t, is_closed s ∧ μ (t \ s) < η,
+    from ht.exists_is_closed_diff_lt htμ.ne hη_pos'.ne',
+  have hsμ : μ s < ∞, from (measure_mono st).trans_lt htμ,
   have I1 : snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ ≤ ε/2,
   { rw [← snorm_neg, neg_sub, ← indicator_diff st],
     exact (hη _ μs.le) },
@@ -269,7 +264,7 @@ begin
   ... ≤ snorm (f - s.indicator (λ y, c)) p μ
         + snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ :
     begin
-      apply snorm_add_le _ _ h'p,
+      refine snorm_add_le _ _ h'p,
       { exact f_mem.ae_strongly_measurable.sub
           (ae_strongly_measurable_const.indicator s_closed.measurable_set) },
       { exact (ae_strongly_measurable_const.indicator s_closed.measurable_set).sub

@@ -891,6 +891,12 @@ by rw [←lift_aleph_0, lift_le]
 @[simp] theorem lift_le_aleph_0 {c : cardinal.{u}} : lift.{v} c ≤ ℵ₀ ↔ c ≤ ℵ₀ :=
 by rw [←lift_aleph_0, lift_le]
 
+@[simp] theorem aleph_0_lt_lift {c : cardinal.{u}} : ℵ₀ < lift.{v} c ↔ ℵ₀ < c :=
+by rw [←lift_aleph_0, lift_lt]
+
+@[simp] theorem lift_lt_aleph_0 {c : cardinal.{u}} : lift.{v} c < ℵ₀ ↔ c < ℵ₀ :=
+by rw [←lift_aleph_0, lift_lt]
+
 /-! ### Properties about the cast from `ℕ` -/
 
 @[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
@@ -1245,9 +1251,9 @@ begin
   apply nat_cast_injective,
   cases lt_or_ge c ℵ₀ with hc hc,
   { rw [cast_to_nat_of_lt_aleph_0, ←lift_nat_cast, cast_to_nat_of_lt_aleph_0 hc],
-    rwa [←lift_aleph_0, lift_lt] },
+    rwa [lift_lt_aleph_0] },
   { rw [cast_to_nat_of_aleph_0_le, ←lift_nat_cast, cast_to_nat_of_aleph_0_le hc, lift_zero],
-    rwa [←lift_aleph_0, lift_le] },
+    rwa [aleph_0_le_lift] },
 end
 
 lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
@@ -1285,8 +1291,8 @@ map_prod to_nat_hom _ _
   (ha : a < ℵ₀) (hb : b < ℵ₀) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin
   apply cardinal.nat_cast_injective,
-  replace ha : (lift.{v u} a) < ℵ₀ := by { rw ←lift_aleph_0, exact lift_lt.2 ha },
-  replace hb : (lift.{u v} b) < ℵ₀ := by { rw ←lift_aleph_0, exact lift_lt.2 hb },
+  replace ha : (lift.{v u} a) < ℵ₀ := by rwa lift_lt_aleph_0,
+  replace hb : (lift.{u v} b) < ℵ₀ := by rwa lift_lt_aleph_0,
   rw [nat.cast_add, ←to_nat_lift.{v u} a, ←to_nat_lift.{u v} b, cast_to_nat_of_lt_aleph_0 ha,
     cast_to_nat_of_lt_aleph_0 hb, cast_to_nat_of_lt_aleph_0 (add_lt_aleph_0 ha hb)]
 end

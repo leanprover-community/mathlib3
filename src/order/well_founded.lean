@@ -23,45 +23,28 @@ and an induction principle `well_founded.induction_bot`.
 
 variables {α : Type*}
 
+/-! ### Minimal and maximal elements of sets -/
+
 namespace well_founded
-
-protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
-⟨h.asymmetric⟩
-
-instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
-has_well_founded.wf.is_asymm
-
-protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
-(@is_asymm.is_irrefl α r h.is_asymm)
-
-instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
-is_asymm.is_irrefl
+variables {r : α → α → Prop} (H : well_founded r)
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
-theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
-  (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
+theorem has_min (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
 | ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
-/-- A minimal element of a nonempty set in a well-founded order.
-
-If you're working with a nonempty linear order, consider defining a
-`conditionally_complete_linear_order_bot` instance via
-`well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
-noncomputable def min {r : α → α → Prop} (H : well_founded r)
-  (s : set α) (h : s.nonempty) : α :=
+/-- An arbitrary minimal element of a nonempty set in a well-founded order. -/
+noncomputable def min (s : set α) (h : s.nonempty) : α :=
 classical.some (H.has_min s h)
 
-theorem min_mem {r : α → α → Prop} (H : well_founded r)
-  (s : set α) (h : s.nonempty) : H.min s h ∈ s :=
+theorem min_mem (s : set α) (h : s.nonempty) : H.min s h ∈ s :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min s h) in h
 
-theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
-  (s : set α) (h : s.nonempty) {x} (hx : x ∈ s) : ¬ r x (H.min s h) :=
+theorem not_lt_min (s : set α) (h : s.nonempty) {x} (hx : x ∈ s) : ¬ r x (H.min s h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min s h) in h' _ hx
 
-theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
+theorem well_founded_iff_has_min {r : α → α → Prop} : well_founded r ↔
   ∀ (s : set α), s.nonempty → ∃ m ∈ s, ∀ x ∈ s, ¬ r x m :=
 begin
   refine ⟨λ h, h.has_min, λ h, ⟨λ x, _⟩⟩,
@@ -72,6 +55,107 @@ begin
   exact hm' y hy' hy
 end
 
+end well_founded
+
+namespace is_well_founded
+variables (r : α → α → Prop) [h : is_well_founded α r]
+
+/-- If `r` is a well-founded relation, then any nonempty set has a minimal element
+with respect to `r`. -/
+theorem has_min : ∀ s : set α, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a := h.wf.has_min
+
+/-- An arbitrary minimal element of a nonempty set in a well-founded order. -/
+noncomputable def min : Π s : set α, s.nonempty → α := h.wf.min
+
+theorem min_mem : ∀ (s : set α) (hs : s.nonempty), min r s hs ∈ s := h.wf.min_mem
+
+theorem not_lt_min : ∀ (s : set α) (hs : s.nonempty) {x} (hx : x ∈ s), ¬ r x (min r s hs) :=
+h.wf.not_lt_min
+
+theorem is_well_founded_iff_has_min {r : α → α → Prop} : is_well_founded α r ↔
+  ∀ s : set α, s.nonempty → ∃ m ∈ s, ∀ x ∈ s, ¬ r x m :=
+by rw [is_well_founded_iff, well_founded.well_founded_iff_has_min]
+
+end is_well_founded
+
+namespace well_founded_lt
+section has_lt
+variables [has_lt α] [h : well_founded_lt α]
+
+/-- If `<` is well-founded, then any nonempty set has a minimal element. -/
+theorem has_min : ∀ s : set α, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ x < a := h.wf.has_min
+
+/-- A minimal element of a nonempty set in a well-founded order.
+
+If you're working with a nonempty linear order, consider defining a
+`conditionally_complete_linear_order_bot` instance via
+`well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
+noncomputable def min : Π s : set α, s.nonempty → α := h.wf.min
+
+theorem min_mem : ∀ (s : set α) (hs : s.nonempty), min s hs ∈ s := h.wf.min_mem
+
+theorem not_lt_min : ∀ (s : set α) (hs : s.nonempty) {x} (hx : x ∈ s), ¬ x < min s hs :=
+h.wf.not_lt_min
+
+theorem well_founded_lt_iff_has_min' {α : Type*} [has_lt α] : well_founded_lt α ↔
+  ∀ s : set α, s.nonempty → ∃ m ∈ s, ∀ x ∈ s, ¬ x < m :=
+is_well_founded.is_well_founded_iff_has_min
+
+end has_lt
+
+section linear_order
+
+theorem min_le [linear_order α] [well_founded_lt α] (s : set α) (hs : s.nonempty) {x} (hx : x ∈ s) :
+  min s hs ≤ x :=
+by { rw ←not_lt, exact not_lt_min s hs hx }
+
+theorem well_founded_lt_iff_has_min {α : Type*} [linear_order α] : well_founded_lt α ↔
+  ∀ s : set α, s.nonempty → ∃ m ∈ s, ∀ x ∈ s, m ≤ x :=
+by { simp_rw ←not_lt, exact well_founded_lt_iff_has_min' }
+
+end linear_order
+end well_founded_lt
+
+namespace well_founded_gt
+section has_lt
+variables [has_lt α] [h : well_founded_gt α]
+
+/-- If `>` is well-founded, then any nonempty set has a maximal element. -/
+theorem has_max : ∀ s : set α, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ a < x := h.wf.has_min
+
+/-- A maximal element of a nonempty set in a well-founded order. -/
+noncomputable def max : Π s : set α, s.nonempty → α := h.wf.min
+
+theorem max_mem : ∀ (s : set α) (hs : s.nonempty), max s hs ∈ s := h.wf.min_mem
+
+theorem not_max_lt : ∀ (s : set α) (hs : s.nonempty) {x} (hx : x ∈ s), ¬ max s hs < x :=
+h.wf.not_lt_min
+
+theorem well_founded_gt_iff_has_max' {α : Type*} [has_lt α] : well_founded_gt α ↔
+  ∀ s : set α, s.nonempty → ∃ m ∈ s, ∀ x ∈ s, ¬ m < x :=
+is_well_founded.is_well_founded_iff_has_min
+
+end has_lt
+
+section linear_order
+
+theorem le_max [linear_order α] [well_founded_gt α] (s : set α) (hs : s.nonempty) {x} (hx : x ∈ s) :
+  x ≤ max s hs :=
+by { rw ←not_lt, exact not_max_lt s hs hx }
+
+theorem well_founded_gt_iff_has_max {α : Type*} [linear_order α] : well_founded_gt α ↔
+  ∀ s : set α, s.nonempty → ∃ m ∈ s, ∀ x ∈ s, x ≤ m :=
+by { simp_rw ←not_lt, exact well_founded_gt_iff_has_max' }
+
+end linear_order
+end well_founded_gt
+
+/-! ### Suprema and successors -/
+
+-- TODO: a lot of the following should either be ported to `well_founded_lt` and `well_founded_gt`,
+-- or removed outright.
+
+namespace well_founded
 open set
 /-- The supremum of a bounded, well-founded order -/
 protected noncomputable def sup {r : α → α → Prop} (wf : well_founded r) (s : set α)
@@ -148,6 +232,8 @@ end linear_order
 
 end well_founded
 
+/-! ### Minimum argument of function -/
+
 namespace function
 
 variables {β : Type*} (f : α → β)
@@ -195,6 +281,8 @@ not_lt.mp $ not_lt_argmin_on f h s ha hs
 end linear_order
 
 end function
+
+/-! ### Induction principles -/
 
 section induction
 

@@ -8,6 +8,9 @@ import data.matrix.basic
 /-!
 # Block Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `matrix.from_blocks`: build a block matrix out of 4 blocks

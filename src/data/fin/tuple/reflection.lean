@@ -9,6 +9,9 @@ import algebra.big_operators.fin
 /-!
 # Lemmas for tuples `fin m → α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains alternative definitions of common operators on vectors which expand
 definitionally to the expected expression when evaluated on `![]` notation.
 

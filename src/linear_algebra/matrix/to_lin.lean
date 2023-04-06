@@ -349,7 +349,7 @@ begin
   rw [vec_mul_vec_eq, matrix.to_lin'_mul],
   refine le_trans (rank_comp_le1 _ _) _,
   refine (rank_le_domain _).trans_eq _,
-  rw [dim_fun', fintype.card_unit, nat.cast_one]
+  rw [rank_fun', fintype.card_unit, nat.cast_one]
 end
 
 end to_matrix'

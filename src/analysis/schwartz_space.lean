@@ -5,6 +5,7 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
+import analysis.calculus.iterated_deriv
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
@@ -377,10 +378,30 @@ lemma seminorm_le_bound (k n : ℕ) (f : 𝓢(E, F)) {M : ℝ} (hMp: 0 ≤ M)
   (hM : ∀ x, ‖x‖^k * ‖iterated_fderiv ℝ n f x‖ ≤ M) : seminorm 𝕜 k n f ≤ M :=
 f.seminorm_aux_le_bound k n hMp hM
 
+/-- If one controls the seminorm for every `x`, then one controls the seminorm.
+
+Variant for functions `𝓢(ℝ, F)`. -/
+lemma seminorm_le_bound' (k n : ℕ) (f : 𝓢(ℝ, F)) {M : ℝ} (hMp: 0 ≤ M)
+  (hM : ∀ x, |x|^k * ‖iterated_deriv n f x‖ ≤ M) : seminorm 𝕜 k n f ≤ M :=
+begin
+  refine seminorm_le_bound 𝕜 k n f hMp _,
+  simpa only [real.norm_eq_abs, norm_iterated_fderiv_eq_norm_iterated_deriv],
+end
+
 /-- The seminorm controls the Schwartz estimate for any fixed `x`. -/
 lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
   ‖x‖ ^ k * ‖iterated_fderiv ℝ n f x‖ ≤ seminorm 𝕜 k n f :=
 f.le_seminorm_aux k n x
+
+/-- The seminorm controls the Schwartz estimate for any fixed `x`.
+
+Variant for functions `𝓢(ℝ, F)`. -/
+lemma le_seminorm' (k n : ℕ) (f : 𝓢(ℝ, F)) (x : ℝ) :
+  |x| ^ k * ‖iterated_deriv n f x‖ ≤ seminorm 𝕜 k n f :=
+begin
+  have := le_seminorm 𝕜 k n f x,
+  rwa [← real.norm_eq_abs, ← norm_iterated_fderiv_eq_norm_iterated_deriv],
+end
 
 lemma norm_iterated_fderiv_le_seminorm (f : 𝓢(E, F)) (n : ℕ) (x₀ : E) :
   ‖iterated_fderiv ℝ n f x₀‖ ≤ (schwartz_map.seminorm 𝕜 0 n) f :=
@@ -516,6 +537,18 @@ def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
 
 @[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) : fderiv_clm 𝕜 f = schwartz_map.fderiv f :=
 rfl
+
+def deriv_clm : 𝓢(ℝ, F) →L[𝕜] 𝓢(ℝ, F) :=
+mk_clm (λ f, deriv f)
+  (λ f g _, deriv_add f.differentiable.differentiable_at g.differentiable.differentiable_at)
+  (λ a f _, deriv_const_smul a f.differentiable.differentiable_at)
+  (λ f, (cont_diff_top_iff_deriv.mp f.smooth').2)
+  (λ ⟨k, n⟩, ⟨{⟨k, n+1⟩}, 1, zero_le_one, λ f x, by simpa only [real.norm_eq_abs,
+    finset.sup_singleton, schwartz_seminorm_family_apply, one_mul,
+    norm_iterated_fderiv_eq_norm_iterated_deriv, ← iterated_deriv_succ']
+    using f.le_seminorm' 𝕜 k (n + 1) x⟩)
+
+@[simp] lemma deriv_clm_apply (f : 𝓢(ℝ, F)) (x : ℝ) : deriv_clm 𝕜 f x = deriv f x := rfl
 
 end fderiv
 

@@ -20,7 +20,6 @@ This definition does not depend on the choice of basis, see `matrix.rank_eq_finr
 ## TODO
 
 * Show that `matrix.rank` is equal to the row-rank and column-rank
-* Generalize more results away from fields
 
 -/
 
@@ -30,8 +29,8 @@ namespace matrix
 
 open finite_dimensional
 
-variables {m n o R K : Type*} [m_fin : fintype m] [fintype n] [fintype o]
-variables [decidable_eq n] [decidable_eq o] [comm_ring R] [field K]
+variables {m n o R : Type*} [m_fin : fintype m] [fintype n] [fintype o]
+variables [decidable_eq n] [decidable_eq o] [comm_ring R]
 
 /-- The rank of a matrix is the rank of its image. -/
 noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.to_lin'.range
@@ -53,23 +52,26 @@ lemma rank_le_width [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (f
   A.rank ≤ n :=
 A.rank_le_card_width.trans $ (fintype.card_fin n).le
 
-lemma rank_mul_le (A : matrix m n K) (B : matrix n o K) :
+lemma rank_mul_le [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
   (A ⬝ B).rank ≤ A.rank :=
 begin
-  refine linear_map.finrank_le_finrank_of_injective (submodule.of_le_injective _),
-  rw [to_lin'_mul],
-  exact linear_map.range_comp_le_range _ _,
+  rw [rank, rank, to_lin'_mul],
+  refine cardinal.to_nat_le_of_le_of_lt_aleph_0 _ (linear_map.rank_comp_le1 _ _),
+  rw [←cardinal.lift_lt, cardinal.lift_aleph_0],
+  have := lift_rank_range_le A.to_lin',
+  rw [rank_fun', cardinal.lift_nat_cast] at this,
+  exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card n)),
 end
 
-lemma rank_unit (A : (matrix n n K)ˣ) :
-  (A : matrix n n K).rank = fintype.card n :=
+lemma rank_unit [strong_rank_condition R] (A : (matrix n n R)ˣ) :
+  (A : matrix n n R).rank = fintype.card n :=
 begin
   refine le_antisymm (rank_le_card_width A) _,
-  have := rank_mul_le (A : matrix n n K) (↑A⁻¹ : matrix n n K),
+  have := rank_mul_le (A : matrix n n R) (↑A⁻¹ : matrix n n R),
   rwa [← mul_eq_mul, ← units.coe_mul, mul_inv_self, units.coe_one, rank_one] at this,
 end
 
-lemma rank_of_is_unit (A : matrix n n K) (h : is_unit A) :
+lemma rank_of_is_unit [strong_rank_condition R] (A : matrix n n R) (h : is_unit A) :
   A.rank = fintype.card n :=
 by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 

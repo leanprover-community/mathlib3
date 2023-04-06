@@ -123,15 +123,12 @@ variables [add_comm_group N] [module R N]
 lemma linear_map.finrank_le_finrank_of_injective
   [module.free R N] [module.finite R N] {f : M →ₗ[R] N} (hf : function.injective f) :
   finrank R M ≤ finrank R N :=
-by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  ((lift_strict_mono.{w v} (rank_lt_aleph_0 R N)).trans_eq lift_aleph_0)
-  (linear_map.lift_rank_le_of_injective _ hf)
+finrank_le_finrank_of_rank_le_rank
+  (linear_map.lift_rank_le_of_injective _ hf) (rank_lt_aleph_0 _ _)
 
 lemma linear_map.finrank_range_le [module.free R M] [module.finite R M] (f : M →ₗ[R] N) :
   finrank R f.range ≤ finrank R M :=
-by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  ((lift_strict_mono.{v w} (rank_lt_aleph_0 R M)).trans_eq lift_aleph_0)
-  (lift_rank_range_le f)
+finrank_le_finrank_of_rank_le_rank (lift_rank_range_le f) (rank_lt_aleph_0 _ _)
 
 /-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
 lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule R M) :

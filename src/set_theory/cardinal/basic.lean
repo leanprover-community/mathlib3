@@ -236,8 +236,8 @@ It might be tempting to be more general and compare `cardinal.lift.{max v w} a` 
 elaboration problems it causes elsewhere. -/
 library_note "cardinal comparison in different universes"
 
-/- This is the sole exception to the rule established previously, as it's used to prove
-`cardinal.lift_le`. -/
+/- This is the sole exception to the rule established previously in
+note [cardinal comparison in different universes], as it's used to prove `cardinal.lift_le`. -/
 private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,

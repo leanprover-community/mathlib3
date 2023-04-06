@@ -123,8 +123,7 @@ lemma finrank_endomorphism_eq_one
   finrank 𝕜 (X ⟶ X) = 1 :=
 begin
   have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance),
-  refine finrank_eq_one (𝟙 X) _ _,
-  { exact id_nonzero, },
+  refine finrank_eq_one (𝟙 X) id_nonzero _,
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _

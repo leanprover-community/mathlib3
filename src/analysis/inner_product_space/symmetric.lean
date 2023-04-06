@@ -154,8 +154,6 @@ end
 
 end complex
 
-section
-
 /-- Polarization identity for symmetric linear maps.
 See `inner_map_polarization` for the complex version without the symmetric assumption. -/
 lemma is_symmetric.inner_map_polarization {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) (x y : E) :
@@ -189,8 +187,6 @@ begin
   rw [← @inner_self_eq_zero 𝕜, hT.inner_map_polarization _ _],
   simp_rw [h _],
   ring,
-end
-
 end
 
 end linear_map

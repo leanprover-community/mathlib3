@@ -111,35 +111,3 @@ by { simp [finrank] }
 end comm_ring
 
 end finite_dimensional
-
-section
-open finite_dimensional
-
-variables {R M N}
-variables [ring R] [strong_rank_condition R]
-variables [add_comm_group M] [module R M]
-variables [add_comm_group N] [module R N]
-
-lemma linear_map.finrank_le_finrank_of_injective
-  [module.free R N] [module.finite R N] {f : M →ₗ[R] N} (hf : function.injective f) :
-  finrank R M ≤ finrank R N :=
-finrank_le_finrank_of_rank_le_rank
-  (linear_map.lift_rank_le_of_injective _ hf) (rank_lt_aleph_0 _ _)
-
-lemma linear_map.finrank_range_le [module.free R M] [module.finite R M] (f : M →ₗ[R] N) :
-  finrank R f.range ≤ finrank R M :=
-finrank_le_finrank_of_rank_le_rank (lift_rank_range_le f) (rank_lt_aleph_0 _ _)
-
-/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
-lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule R M) :
-  finrank R s ≤ finrank R M :=
-by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  (rank_lt_aleph_0 _ _) (rank_submodule_le s)
-
-/-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
-lemma submodule.finrank_quotient_le [module.free R M] [module.finite R M] (s : submodule R M) :
-  finrank R (M ⧸ s) ≤ finrank R M :=
-by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
-  (rank_lt_aleph_0 _ _) ((submodule.mkq s).rank_le_of_surjective (surjective_quot_mk _))
-
-end

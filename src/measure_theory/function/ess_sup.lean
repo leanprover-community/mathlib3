@@ -48,11 +48,14 @@ limsup_congr hfg
 lemma ess_inf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = ess_inf g μ :=
 @ess_sup_congr_ae α βᵒᵈ _ _ _ _ _ hfg
 
+@[simp] lemma ess_sup_const' [μ.ae.ne_bot] (c : β) : ess_sup (λ x : α, c) μ = c := limsup_const _
+@[simp] lemma ess_inf_const' [μ.ae.ne_bot] (c : β) : ess_inf (λ x : α, c) μ = c := liminf_const _
+
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
-by { rw ←ae_ne_bot at hμ, exactI limsup_const c }
+by { rw ←ae_ne_bot at hμ, exactI ess_sup_const' _ }
 
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
-by { rw ←ae_ne_bot at hμ, exactI liminf_const c }
+by { rw ←ae_ne_bot at hμ, exactI ess_inf_const' _ }
 
 end conditionally_complete_lattice
 
@@ -77,18 +80,20 @@ filter.eventually_lt_of_lt_liminf hx hf
 
 variables [topological_space β] [first_countable_topology β] [densely_ordered β] [order_topology β]
 
-lemma ae_le_of_ess_sup_le [no_max_order β] (hx : ess_sup f μ ≤ x)
+lemma ae_le_of_ess_sup_le (hx : ess_sup f μ ≤ x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y ≤ x :=
 begin
-  obtain ⟨u, -, hu, hux⟩ := exists_seq_strict_anti_tendsto x,
-  have := λ n, ae_lt_of_ess_sup_lt (hx.trans_lt $ hu n) hf,
+  obtain hx | ⟨y, hxy⟩ := is_top_or_exists_gt x,
+  { exact eventually_of_forall (λ _, hx _) },
+  obtain ⟨u, -, hu, hux⟩ := exists_seq_strict_anti_tendsto' hxy,
+  have := λ n, ae_lt_of_ess_sup_lt (hx.trans_lt (hu n).1) hf,
   exact (eventually_countable_forall.2 this).mono
     (λ y hy, ge_of_tendsto hux $ eventually_of_forall $ λ n, (hy _).le),
 end
 
-lemma ae_le_of_le_ess_inf [no_min_order β] (hx : x ≤ ess_inf f μ)
+lemma ae_le_of_le_ess_inf (hx : x ≤ ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x ≤ f y :=
-@ae_le_of_ess_sup_le α βᵒᵈ _ _ _ _ _ _ _ _ _ _ hx hf
+@ae_le_of_ess_sup_le α βᵒᵈ _ _ _ _ _ _ _ _ _ hx hf
 
 lemma meas_lt_of_ess_sup_le [no_max_order β] (hx : ess_sup f μ ≤ x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : μ {y | x < f y} = 0 :=

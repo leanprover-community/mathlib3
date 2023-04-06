@@ -217,7 +217,6 @@ end⟩
 theorem mem_wf : @well_founded pSet (∈) := ⟨λ x, mem_wf_aux $ equiv.refl x⟩
 
 instance : has_well_founded pSet := ⟨_, mem_wf⟩
-instance : is_asymm pSet (∈) := mem_wf.is_asymm
 
 theorem mem_asymm {x y : pSet} : x ∈ y → y ∉ x := asymm
 theorem mem_irrefl (x : pSet) : x ∉ x := irrefl x
@@ -774,8 +773,6 @@ mem_wf.induction x h
 
 instance : has_well_founded Set := ⟨_, mem_wf⟩
 
-instance : is_asymm Set (∈) := mem_wf.is_asymm
-
 theorem mem_asymm {x y : Set} : x ∈ y → y ∉ x := asymm
 theorem mem_irrefl (x : Set) : x ∉ x := irrefl x
 
@@ -1009,7 +1006,6 @@ theorem mem_wf : @well_founded Class.{u} (∈) :=
 end⟩
 
 instance : has_well_founded Class := ⟨_, mem_wf⟩
-instance : is_asymm Class (∈) := mem_wf.is_asymm
 
 theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
 theorem mem_irrefl (x : Class) : x ∉ x := irrefl x

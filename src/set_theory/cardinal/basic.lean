@@ -911,6 +911,20 @@ lift_injective.eq_iff' (lift_nat_cast n)
   (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
 by rw [←lift_nat_cast.{v} n, lift_inj]
 
+@[simp] lemma lift_le_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a ≤ n ↔ a ≤ n :=
+by simp only [←lift_nat_cast, lift_le]
+
+@[simp] lemma nat_le_lift_iff {n : ℕ} {a : cardinal.{u}} :
+  (n : cardinal) ≤ lift.{v} a ↔ (n : cardinal) ≤ a :=
+by simp only [←lift_nat_cast, lift_le]
+
+@[simp] lemma lift_lt_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a < n ↔ a < n :=
+by simp only [←lift_nat_cast, lift_lt]
+
+@[simp] lemma nat_lt_lift_iff {n : ℕ} {a : cardinal.{u}} :
+  (n : cardinal) < lift.{v} a ↔ (n : cardinal) < a :=
+by simp only [←lift_nat_cast, lift_lt]
+
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 
 lemma mk_coe_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp

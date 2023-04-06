@@ -172,28 +172,31 @@ end well_founded_gt
 
 namespace well_founded
 open set
+
 /-- The supremum of a bounded, well-founded order -/
 protected noncomputable def sup {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
-wf.min { x | ∀a ∈ s, r a x } h
+wf.min { x | ∀ a ∈ s, r a x } h
 
 protected lemma lt_sup {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
-min_mem wf { x | ∀a ∈ s, r a x } h x hx
+min_mem wf { x | ∀ a ∈ s, r a x } h x hx
 
-section
+section classical
 open_locale classical
+
 /-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
 protected noncomputable def succ {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
-if h : ∃y, r x y then wf.min { y | r x y } h else x
+if h : ∃ y, r x y then wf.min { y | r x y } h else x
 
-protected lemma lt_succ {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
+protected lemma lt_succ {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃ y, r x y) :
   r x (wf.succ x) :=
 by { rw [well_founded.succ, dif_pos h], apply min_mem }
-end
 
-protected lemma lt_succ_iff {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
+end classical
+
+protected lemma lt_succ_iff {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃ y, r x y)
   (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
 begin
   split,

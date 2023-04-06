@@ -790,19 +790,13 @@ begin
   exact snorm'_add_lt_top_of_le_one hf.1 hf.2 hg.2 hp_pos hp1_real,
 end
 
-lemma ae_le_of_snorm_ess_sup_le {f : α → F} {x : ℝ≥0∞} (hx : snorm_ess_sup f μ ≤ x)
-  (hf : is_bounded_under (≤) μ.ae (λ y, ‖f y‖₊) . is_bounded_default) : ∀ᵐ y ∂μ, ↑‖f y‖₊ ≤ x :=
-begin
-  cases x,
-  { simp },
-  simp only [ennreal.some_eq_coe, ennreal.coe_le_coe],
-  refine ae_le_of_ess_sup_le _ hf,
-  rwa [←ennreal.coe_le_coe, ennreal.coe_ess_sup hf],
-end
+lemma ae_le_of_snorm_ess_sup_le {f : α → F} {x : ℝ≥0∞} :
+  snorm_ess_sup f μ ≤ x → ∀ᵐ y ∂μ, ↑‖f y‖₊ ≤ x :=
+ae_le_of_ess_sup_le
 
-lemma meas_lt_of_snorm_ess_sup_le {f : α → F} {x : ℝ≥0∞} (hx : snorm_ess_sup f μ ≤ x)
-  (hf : is_bounded_under (≤) μ.ae (λ y, ‖f y‖₊) . is_bounded_default) : μ {y | x < ‖f y‖₊} = 0 :=
-by { simp_rw ←not_le, exact ae_le_of_snorm_ess_sup_le hx hf }
+lemma meas_lt_of_snorm_ess_sup_le {f : α → F} {x : ℝ≥0∞} :
+  snorm_ess_sup f μ ≤ x → μ {y | x < ‖f y‖₊} = 0 :=
+meas_lt_of_ess_sup_le
 
 section map_measure
 

@@ -72,34 +72,27 @@ by { dsimp [ess_inf, liminf, Liminf], simp only [ae_iff, not_le] }
 
 lemma ae_lt_of_ess_sup_lt (hx : ess_sup f μ < x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y < x :=
-filter.eventually_lt_of_limsup_lt hx hf
+eventually_lt_of_limsup_lt hx hf
 
 lemma ae_lt_of_lt_ess_inf (hx : x < ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x < f y :=
-filter.eventually_lt_of_lt_liminf hx hf
+eventually_lt_of_lt_liminf hx hf
 
-variables [topological_space β] [first_countable_topology β] [densely_ordered β] [order_topology β]
+variables [topological_space β] [densely_ordered β] [order_topology β]
 
 lemma ae_le_of_ess_sup_le (hx : ess_sup f μ ≤ x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y ≤ x :=
-begin
-  obtain hx | ⟨y, hxy⟩ := is_top_or_exists_gt x,
-  { exact eventually_of_forall (λ _, hx _) },
-  obtain ⟨u, -, hu, hux⟩ := exists_seq_strict_anti_tendsto' hxy,
-  have := λ n, ae_lt_of_ess_sup_lt (hx.trans_lt (hu n).1) hf,
-  exact (eventually_countable_forall.2 this).mono
-    (λ y hy, ge_of_tendsto hux $ eventually_of_forall $ λ n, (hy _).le),
-end
+eventually_le_of_limsup_le hx hf
 
 lemma ae_le_of_le_ess_inf (hx : x ≤ ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x ≤ f y :=
-@ae_le_of_ess_sup_le α βᵒᵈ _ _ _ _ _ _ _ _ _ hx hf
+eventually_le_of_le_liminf hx hf
 
-lemma meas_lt_of_ess_sup_le [no_max_order β] (hx : ess_sup f μ ≤ x)
+lemma meas_lt_of_ess_sup_le (hx : ess_sup f μ ≤ x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : μ {y | x < f y} = 0 :=
 by { simp_rw ←not_le, exact ae_le_of_ess_sup_le hx hf }
 
-lemma meas_lt_of_le_ess_inf [no_min_order β] (hx : x ≤ ess_inf f μ)
+lemma meas_lt_of_le_ess_inf (hx : x ≤ ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : μ {y | f y < x} = 0 :=
 by { simp_rw ←not_le, exact ae_le_of_le_ess_inf hx hf }
 

@@ -8,6 +8,7 @@ import algebra.big_operators.order
 import algebra.indicator_function
 import order.liminf_limsup
 import order.filter.archimedean
+import order.filter.countable_Inter
 import topology.order.basic
 
 /-!
@@ -17,7 +18,7 @@ import topology.order.basic
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
-open filter
+open filter topological_space
 open_locale topology classical
 
 universes u v
@@ -214,6 +215,24 @@ begin
     frequently_lt_of_lt_limsup (is_bounded.is_cobounded_le h') bu,
   exact H a as b bs ab ⟨A, B⟩,
 end
+
+variables [densely_ordered α] [first_countable_topology α] {f : filter β} [countable_Inter_filter f]
+  {u : β → α} {a : α}
+
+lemma eventually_le_of_limsup_le (hfua : f.limsup u ≤ a)
+  (hf : is_bounded_under (≤) f u . is_bounded_default) : ∀ᶠ b in f, u b ≤ a :=
+begin
+  obtain ha | ha := is_top_or_exists_gt a,
+  { exact eventually_of_forall (λ _, ha _) },
+  obtain ⟨u, -, -, hua, hu⟩ := is_glb_Ioi.exists_seq_antitone_tendsto ha,
+  have := λ n, eventually_lt_of_limsup_lt (hfua.trans_lt $ hu n) hf,
+  exact (eventually_countable_forall.2 this).mono
+    (λ b hb, ge_of_tendsto hua $ eventually_of_forall $ λ n, (hb _).le),
+end
+
+lemma eventually_le_of_le_liminf (hfua : a ≤ f.liminf u)
+  (hf : is_bounded_under (≥) f u . is_bounded_default) : ∀ᶠ b in f, a ≤ u b :=
+@eventually_le_of_limsup_le αᵒᵈ _ _ _ _ _ _ _ _ _ _ hfua hf
 
 end conditionally_complete_linear_order
 

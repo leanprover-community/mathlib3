@@ -1113,7 +1113,7 @@ variables [add_comm_group V₂] [module K V₂]
 variables [add_comm_group V₃] [module K V₃]
 open linear_map
 
-/-- This is mostly an auxiliary lemma for `rank_sup_add_rank_inf_eq`. -/
+/-- This is mostly an auxiliary lemma for `submodule.rank_sup_add_rank_inf_eq`. -/
 lemma rank_add_rank_split
   (db : V₂ →ₗ[K] V) (eb : V₃ →ₗ[K] V) (cd : V₁ →ₗ[K] V₂) (ce : V₁ →ₗ[K] V₃)
   (hde : ⊤ ≤ db.range ⊔ eb.range)
@@ -1146,7 +1146,7 @@ begin
     rw [h₂, _root_.neg_neg] }
 end
 
-lemma rank_sup_add_rank_inf_eq (s t : submodule K V) :
+lemma submodule.rank_sup_add_rank_inf_eq (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) + module.rank K (s ⊓ t : submodule K V) =
     module.rank K s + module.rank K t :=
 rank_add_rank_split
@@ -1165,9 +1165,9 @@ rank_add_rank_split
     exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
   end
 
-lemma rank_add_le_rank_add_rank (s t : submodule K V) :
+lemma submodule.rank_add_le_rank_add_rank (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) ≤ module.rank K s + module.rank K t :=
-by { rw [← rank_sup_add_rank_inf_eq], exact self_le_add_right _ _ }
+by { rw [← submodule.rank_sup_add_rank_inf_eq], exact self_le_add_right _ _ }
 
 end
 
@@ -1360,7 +1360,7 @@ calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
       assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
         mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
   end
-  ... ≤ rank f + rank g : rank_add_le_rank_add_rank _ _
+  ... ≤ rank f + rank g : submodule.rank_add_le_rank_add_rank _ _
 
 lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
   rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=

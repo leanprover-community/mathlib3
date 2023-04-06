@@ -681,7 +681,7 @@ begin
     convert rfl;
       simp },
   { rw [affine_span_coe, direction_affine_span_insert hp₀, add_comm],
-    refine (submodule.rank_add_le_rank_add_rank _ _).trans (add_le_add_right _ _),
+    refine (submodule.finrank_add_le_finrank_add_finrank _ _).trans (add_le_add_right _ _),
     refine finrank_le_one ⟨p -ᵥ p₀, submodule.mem_span_singleton_self _⟩ (λ v, _),
     have h := v.property,
     rw submodule.mem_span_singleton at h,

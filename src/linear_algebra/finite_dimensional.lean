@@ -727,7 +727,7 @@ begin
 end
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
-theorem rank_sup_add_rank_inf_eq (s t : submodule K V)
+theorem finrank_sup_add_finrank_inf_eq (s t : submodule K V)
   [finite_dimensional K s] [finite_dimensional K t] :
   finrank K ↥(s ⊔ t) + finrank K ↥(s ⊓ t) = finrank K ↥s + finrank K ↥t :=
 begin
@@ -738,10 +738,10 @@ begin
   exact key
 end
 
-lemma rank_add_le_rank_add_rank (s t : submodule K V)
+lemma finrank_add_le_finrank_add_finrank (s t : submodule K V)
   [finite_dimensional K s] [finite_dimensional K t] :
   finrank K (s ⊔ t : submodule K V) ≤ finrank K s + finrank K t :=
-by { rw [← rank_sup_add_rank_inf_eq], exact self_le_add_right _ _ }
+by { rw [← finrank_sup_add_finrank_inf_eq], exact self_le_add_right _ _ }
 
 lemma eq_top_of_disjoint [finite_dimensional K V] (s t : submodule K V)
   (hdim : finrank K s + finrank K t = finrank K V)
@@ -752,7 +752,7 @@ begin
     rw [hdisjoint, finrank_bot] },
   apply eq_top_of_finrank_eq,
   rw ←hdim,
-  convert s.rank_sup_add_rank_inf_eq t,
+  convert s.finrank_sup_add_finrank_inf_eq t,
   rw h_finrank_inf,
   refl,
 end
@@ -1094,7 +1094,8 @@ lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← rank_sup_add_rank_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot, finrank_bot, add_zero],
+  rw [← finrank_sup_add_finrank_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot, finrank_bot,
+    add_zero],
   exact finrank_top
 end
 

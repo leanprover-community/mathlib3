@@ -942,6 +942,19 @@ variables [add_comm_group V'] [module K V'] [module.free K V']
 variables [add_comm_group V₁] [module K V₁] [module.free K V₁]
 variables {K V}
 
+
+namespace module.free
+variables (K V)
+
+/-- The rank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
+lemma rank_eq_card_choose_basis_index : module.rank K V = #(choose_basis_index K V) :=
+(choose_basis K V).mk_eq_rank''.symm
+
+end module.free
+
+open module.free
+open cardinal
+
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
 theorem nonempty_linear_equiv_of_lift_rank_eq
   (cond : cardinal.lift.{v'} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
@@ -987,35 +1000,31 @@ theorem linear_equiv.nonempty_equiv_iff_rank_eq :
   nonempty (V ≃ₗ[K] V₁) ↔ module.rank K V = module.rank K V₁ :=
 ⟨λ ⟨h⟩, linear_equiv.rank_eq h, λ h, nonempty_linear_equiv_of_rank_eq h⟩
 
-theorem rank_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
-begin
-  obtain ⟨⟨_, b⟩⟩ := module.free.exists_basis K V,
-  obtain ⟨⟨_, c⟩⟩ := module.free.exists_basis K V₁,
-  rw [← cardinal.lift_inj,
-      ← (basis.prod b c).mk_eq_rank,
-      cardinal.lift_add, ← cardinal.mk_ulift,
-      ← b.mk_eq_rank, ← c.mk_eq_rank,
-      ← cardinal.mk_ulift, ← cardinal.mk_ulift,
-      cardinal.add_def (ulift _)],
-  exact cardinal.lift_inj.1 (cardinal.lift_mk_eq.2
-      ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),
-end
+/-- The rank of `M × N` is `(module.rank R M).lift + (module.rank R N).lift`. -/
+@[simp] lemma rank_prod :
+  module.rank K (V × V') =
+    cardinal.lift.{v'} (module.rank K V) + cardinal.lift.{v v'} (module.rank K V') :=
+by simpa [rank_eq_card_choose_basis_index K V, rank_eq_card_choose_basis_index K V',
+  lift_umax, lift_umax'] using ((choose_basis K V).prod (choose_basis K V')).mk_eq_rank.symm
+
+/-- If `M` and `N` lie in the same universe, the rank of `M × N` is
+  `(module.rank R M) + (module.rank R N)`. -/
+theorem rank_prod' : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
+by simp
 
 section fintype
 variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)] [∀i, module.free K (φ i)]
 
 open linear_map
 
-lemma rank_pi [finite η] :
+/-- The rank of a finite product is the sum of the ranks. -/
+@[simp] lemma rank_pi [finite η] :
   module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
-  haveI := nontrivial_of_invariant_basis_number K,
   casesI nonempty_fintype η,
-  let b := λ i, (module.free.exists_basis K (φ i)).some.2,
-  let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
-  rw [← cardinal.lift_inj, ← this.mk_eq_rank],
-  simp_rw [cardinal.mk_sigma, cardinal.lift_sum, ←(b _).mk_range_eq_rank,
-    cardinal.mk_range_eq _ (b _).injective],
+  let B := λ i, choose_basis K (φ i),
+  let b : basis _ K (Π i, φ i) := pi.basis (λ i, B i),
+  simp [← b.mk_eq_rank'', λ i, (B i).mk_eq_rank''],
 end
 
 variable [fintype η]
@@ -1037,13 +1046,6 @@ lemma rank_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
 by simp [rank_fun']
 
 end fintype
-
-lemma finsupp.rank_eq {ι : Type v} : module.rank K (ι →₀ V) = #ι * module.rank K V :=
-begin
-  obtain ⟨⟨_, bs⟩⟩ := module.free.exists_basis K V,
-  rw [← bs.mk_eq_rank'', ← (finsupp.basis (λa:ι, bs)).mk_eq_rank'',
-    cardinal.mk_sigma, cardinal.sum_const']
-end
 
 -- TODO: merge with the `finrank` content
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
@@ -1092,7 +1094,7 @@ calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : rank_span_le �
 
 theorem rank_quotient_add_rank (p : submodule K V) :
   module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
-by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in rank_prod.symm.trans f.rank_eq
+by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in rank_prod'.symm.trans f.rank_eq
 
 /-- rank-nullity theorem -/
 theorem rank_range_add_rank_ker (f : V →ₗ[K] V₁) :
@@ -1111,7 +1113,7 @@ variables [add_comm_group V₂] [module K V₂]
 variables [add_comm_group V₃] [module K V₃]
 open linear_map
 
-/-- This is mostly an auxiliary lemma for `rank_sup_add_rank_inf_eq`. -/
+/-- This is mostly an auxiliary lemma for `submodule.rank_sup_add_rank_inf_eq`. -/
 lemma rank_add_rank_split
   (db : V₂ →ₗ[K] V) (eb : V₃ →ₗ[K] V) (cd : V₁ →ₗ[K] V₂) (ce : V₁ →ₗ[K] V₃)
   (hde : ⊤ ≤ db.range ⊔ eb.range)
@@ -1122,7 +1124,7 @@ lemma rank_add_rank_split
 have hf : surjective (coprod db eb),
 by rwa [←range_eq_top, range_coprod, eq_top_iff],
 begin
-  conv {to_rhs, rw [← rank_prod, rank_eq_of_surjective _ hf] },
+  conv {to_rhs, rw [← rank_prod', rank_eq_of_surjective _ hf] },
   congr' 1,
   apply linear_equiv.rank_eq,
   refine linear_equiv.of_bijective _ ⟨_, _⟩,
@@ -1144,7 +1146,7 @@ begin
     rw [h₂, _root_.neg_neg] }
 end
 
-lemma rank_sup_add_rank_inf_eq (s t : submodule K V) :
+lemma submodule.rank_sup_add_rank_inf_eq (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) + module.rank K (s ⊓ t : submodule K V) =
     module.rank K s + module.rank K t :=
 rank_add_rank_split
@@ -1163,9 +1165,9 @@ rank_add_rank_split
     exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
   end
 
-lemma rank_add_le_rank_add_rank (s t : submodule K V) :
+lemma submodule.rank_add_le_rank_add_rank (s t : submodule K V) :
   module.rank K (s ⊔ t : submodule K V) ≤ module.rank K s + module.rank K t :=
-by { rw [← rank_sup_add_rank_inf_eq], exact self_le_add_right _ _ }
+by { rw [← submodule.rank_sup_add_rank_inf_eq], exact self_le_add_right _ _ }
 
 end
 
@@ -1358,7 +1360,7 @@ calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
       assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
         mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
   end
-  ... ≤ rank f + rank g : rank_add_le_rank_add_rank _ _
+  ... ≤ rank f + rank g : submodule.rank_add_le_rank_add_rank _ _
 
 lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
   rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=

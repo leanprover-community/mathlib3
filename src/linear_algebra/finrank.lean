@@ -89,8 +89,7 @@ lemma finrank_le_finrank_of_rank_le_rank
   (h : lift.{v'} (module.rank K V) ≤ cardinal.lift.{v} (module.rank K V₂))
   (h' : module.rank K V₂ < ℵ₀):
     finrank K V ≤ finrank K V₂ :=
-by simpa only [to_nat_lift]
-    using to_nat_le_of_le_of_lt_aleph_0 ((lift_lt.mpr h').trans_eq lift_aleph_0) h
+by simpa only [to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0 (lift_lt_aleph_0.mpr h') h
 
 section
 variables [nontrivial K] [no_zero_smul_divisors K V]

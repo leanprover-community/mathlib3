@@ -872,6 +872,8 @@ by rwa [← cardinal.lift_lt, ← b.mk_eq_rank,
         cardinal.lift_aleph_0, ← cardinal.lift_aleph_0.{u_1 v},
         cardinal.lift_lt, cardinal.lt_aleph_0_iff_fintype] at h
 
+#exit -- TODO: golf the proof above once CI stops here
+
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
 noncomputable def basis.fintype_index_of_rank_lt_aleph_0 {ι : Type*}
   (b : basis ι R M) (h : module.rank R M < ℵ₀) :

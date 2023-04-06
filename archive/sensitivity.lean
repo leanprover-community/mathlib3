@@ -364,7 +364,7 @@ begin
   { convert ← rank_submodule_le (W ⊔ img),
     apply dim_V },
   have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
-  { convert ← rank_sup_add_rank_inf_eq W img,
+  { convert ← submodule.rank_sup_add_rank_inf_eq W img,
     rw ← rank_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,

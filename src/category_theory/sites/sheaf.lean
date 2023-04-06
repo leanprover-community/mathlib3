@@ -13,6 +13,9 @@ import category_theory.sites.sheaf_of_types
 /-!
 # Sheaves taking values in a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If C is a category with a Grothendieck topology, we define the notion of a sheaf taking values in
 an arbitrary category `A`. We follow the definition in https://stacks.math.columbia.edu/tag/00VR,
 noting that the presheaf of sets "defined above" can be seen in the comments between tags 00VQ and

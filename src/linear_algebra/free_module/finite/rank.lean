@@ -57,7 +57,7 @@ end
 
 /-- The finrank of `(ι →₀ R)` is `fintype.card ι`. -/
 @[simp] lemma finrank_finsupp {ι : Type v} [fintype ι] : finrank R (ι →₀ R) = card ι :=
-by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }
+by { rw [finrank, rank_finsupp'', ← mk_to_nat_eq_card, to_nat_lift] }
 
 /-- The finrank of `(ι → R)` is `fintype.card ι`. -/
 lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
@@ -84,7 +84,7 @@ lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
   [Π (i : ι), module.finite R (M i)] : finrank R (Π i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_finite,
+  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi,
     ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 

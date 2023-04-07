@@ -25,11 +25,7 @@ construction is mainly used for defining maps between proper cones. -/
 def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure ↑K,
   smul_mem' :=
-  begin
-    rw ← seq_closure_eq_closure,
-    rintros c hc x ⟨seq, mem, tends⟩,
-    exact ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c⟩⟩,
-  end,
+    λ c hc _ hx, map_mem_closure (continuous_id'.const_smul c) hx (λ _ hy, K.smul_mem hc hy),
   add_mem' :=
   begin
     rw ← seq_closure_eq_closure,

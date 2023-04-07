@@ -1038,19 +1038,6 @@ image_comm
   (a • s).image f = f a • s.image f :=
 image_comm $ map_mul _ _
 
-section monoid
-variables [decidable_eq α] [decidable_eq β] [monoid α] [mul_action α β]
-
-@[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (s : finset α) (a : α) (t : finset β) :
-  (op a • s) • t = s • a • t :=
-by rw [←mul_singleton, ←singleton_smul, mul_smul]
-
-@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (s : finset α) (a : α) (t : finset α) :
-  (op a • s) * t = s * a • t :=
-op_smul_finset_smul_eq_smul_smul_finset _ _ _
-
-end monoid
-
 section group
 variables [decidable_eq β] [group α] [mul_action α β] {s t : finset β} {a : α} {b : β}
 

@@ -369,7 +369,7 @@ begin
   rw image₂_insert_left,
   by_cases h : disjoint (image (f a) t) (image₂ f s t),
   { rw card_union_eq h,
-    exact (card_image_of_injective _ $ hf _).dvd'.add ih },
+    exact (card_image_of_injective _ $ hf _).symm.dvd.add ih },
   simp_rw [←bUnion_image_left, disjoint_bUnion_right, not_forall] at h,
   obtain ⟨b, hb, h⟩ := h,
   rwa union_eq_right_iff_subset.2,

@@ -34,6 +34,8 @@ decay faster than any power of `‖x‖`.
 * `schwartz_map.seminorm`: The family of seminorms as described above
 * `schwartz_map.fderiv_clm`: The differential as a continuous linear map
 `𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F)`
+* `schwartz_map.deriv_clm`: The one-dimensional derivative as a continuous linear map
+`𝓢(ℝ, F) →L[𝕜] 𝓢(ℝ, F)`
 
 ## Main statements
 
@@ -101,6 +103,10 @@ lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_l
 /-- Every Schwartz function is differentiable. -/
 @[protected] lemma differentiable (f : 𝓢(E, F)) : differentiable ℝ f :=
 (f.smooth 1).differentiable rfl.le
+
+/-- Every Schwartz function is differentiable at any point. -/
+@[protected] lemma differentiable_at (f : 𝓢(E, F)) {x : E} : differentiable_at ℝ f x :=
+f.differentiable.differentiable_at
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
 
@@ -546,8 +552,8 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 /-- The Fréchet derivative on Schwartz space as a continuous `𝕜`-linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
 mk_clm (fderiv ℝ)
-  (λ f g _, fderiv_add f.differentiable.differentiable_at g.differentiable.differentiable_at)
-  (λ a f _, fderiv_const_smul f.differentiable.differentiable_at a)
+  (λ f g _, fderiv_add f.differentiable_at g.differentiable_at)
+  (λ a f _, fderiv_const_smul f.differentiable_at a)
   (λ f, (cont_diff_top_iff_fderiv.mp f.smooth').2)
   (λ ⟨k, n⟩, ⟨{⟨k, n+1⟩}, 1, zero_le_one, λ f x, by simpa only [schwartz_seminorm_family_apply,
     seminorm.comp_apply, finset.sup_singleton, one_smul, norm_iterated_fderiv_fderiv, one_mul]
@@ -559,8 +565,8 @@ rfl
 /-- The 1-dimensional derivative on Schwartz space as a continuous `𝕜`-linear map. -/
 def deriv_clm : 𝓢(ℝ, F) →L[𝕜] 𝓢(ℝ, F) :=
 mk_clm (λ f, deriv f)
-  (λ f g _, deriv_add f.differentiable.differentiable_at g.differentiable.differentiable_at)
-  (λ a f _, deriv_const_smul a f.differentiable.differentiable_at)
+  (λ f g _, deriv_add f.differentiable_at g.differentiable_at)
+  (λ a f _, deriv_const_smul a f.differentiable_at)
   (λ f, (cont_diff_top_iff_deriv.mp f.smooth').2)
   (λ ⟨k, n⟩, ⟨{⟨k, n+1⟩}, 1, zero_le_one, λ f x, by simpa only [real.norm_eq_abs,
     finset.sup_singleton, schwartz_seminorm_family_apply, one_mul,

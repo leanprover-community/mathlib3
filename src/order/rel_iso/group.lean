@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.group.defs
+import group_theory.group_action.defs
 import order.rel_iso.basic
 
 /-!
@@ -36,5 +36,13 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 @[simp] lemma inv_apply_self (e : r ≃r r) (x) : e⁻¹ (e x) = x := e.symm_apply_apply x
 
 @[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
+
+/-- The tautological action by `r ≃r r` on `α`. -/
+instance apply_mul_action : mul_action (r ≃r r) α :=
+{ smul := coe_fn,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma smul_def (f : r ≃r r) (a : α) : f • a = f a := rfl
 
 end rel_iso

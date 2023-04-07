@@ -57,6 +57,8 @@ lemma set.subsingleton.is_chain (hs : s.subsingleton) : is_chain r s := hs.pairw
 
 lemma is_chain.mono : s ⊆ t → is_chain r t → is_chain r s := set.pairwise.mono
 
+lemma is_chain_singleton (r : α → α → Prop) (a : α) : is_chain r {a} := pairwise_singleton _ _
+
 lemma is_chain.mono_rel {r' : α → α → Prop} (h : is_chain r s)
   (h_imp : ∀ x y, r x y → r' x y) : is_chain r' s :=
 h.mono' $ λ x y, or.imp (h_imp x y) (h_imp y x)
@@ -70,6 +72,9 @@ lemma is_chain_of_trichotomous [is_trichotomous α r] (s : set α) : is_chain r 
 lemma is_chain.insert (hs : is_chain r s) (ha : ∀ b ∈ s, a ≠ b → a ≺ b ∨ b ≺ a) :
   is_chain r (insert a s) :=
 hs.insert_of_symmetric (λ _ _, or.symm) ha
+
+lemma is_chain_pair (r : α → α → Prop) {a b : α} (h : r a b) : is_chain r {a, b} :=
+(is_chain_singleton _ _).insert $ λ _ hb _, or.inl $ (eq_of_mem_singleton hb).symm.rec_on ‹_›
 
 lemma is_chain_univ_iff : is_chain r (univ : set α) ↔ is_trichotomous α r :=
 begin
@@ -260,7 +265,7 @@ structure flag (α : Type*) [has_le α] :=
 
 namespace flag
 section has_le
-variables [has_le α] {s t : flag α} {a : α}
+variables [has_le α] {s t : flag α} {c : set α} {a : α}
 
 instance : set_like (flag α) α :=
 { coe := carrier,
@@ -277,13 +282,21 @@ protected lemma max_chain (s : flag α) : is_max_chain (≤) (s : set α) := ⟨
 lemma top_mem [order_top α] (s : flag α) : (⊤ : α) ∈ s := s.max_chain.top_mem
 lemma bot_mem [order_bot α] (s : flag α) : (⊥ : α) ∈ s := s.max_chain.bot_mem
 
+/-- Reinterpret a maximal chain as a flag. -/
+@[simps] protected def _root_.is_max_chain.flag (hc : is_max_chain (≤) c) : flag α :=
+⟨c, hc.is_chain, hc.2⟩
+
 end has_le
 
 section preorder
-variables [preorder α] {a b : α}
+variables [preorder α] {s : flag α} {a b : α}
 
 protected lemma le_or_le (s : flag α) (ha : a ∈ s) (hb : b ∈ s) : a ≤ b ∨ b ≤ a :=
 s.chain_le.total ha hb
+
+lemma mem_iff_forall_le_or_ge : a ∈ s ↔ ∀ ⦃b⦄, b ∈ s → a ≤ b ∨ b ≤ a :=
+⟨λ ha b, s.le_or_le ha, λ hb, of_not_not $ λ ha, set.ne_insert_of_not_mem _ ‹_› $ s.max_chain.2
+  (s.chain_le.insert $ λ c hc _, hb hc) $ set.subset_insert _ _⟩
 
 instance [order_top α] (s : flag α) : order_top s := subtype.order_top s.top_mem
 instance [order_bot α] (s : flag α) : order_bot s := subtype.order_bot s.bot_mem

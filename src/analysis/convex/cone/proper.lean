@@ -20,18 +20,18 @@ namespace convex_cone
 
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
+example : continuous (function.uncurry (λ (x y : ℝ), x + y)) :=
+begin
+  exact continuous_add,
+end
+
 /-- The closure of a convex cone inside a real inner product space is a convex cone. This
 construction is mainly used for defining maps between proper cones. -/
 def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure ↑K,
-  smul_mem' :=
-    λ c hc _ hx, map_mem_closure (continuous_id'.const_smul c) hx (λ _ hy, K.smul_mem hc hy),
-  add_mem' :=
-  begin
-    rw ← seq_closure_eq_closure,
-    rintros x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
-    exact ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends⟩⟩,
-  end }
+  smul_mem' := λ c hc _ h₁,
+    map_mem_closure (continuous_id'.const_smul c) h₁ (λ _ h₂, K.smul_mem hc h₂),
+  add_mem' := λ _ h₁ _ h₂, map_mem_closure₂ continuous_add h₁ h₂ K.add_mem }
 
 @[simp] lemma coe_closure {K : convex_cone ℝ E} : (K.closure : set E) = _root_.closure K := rfl
 

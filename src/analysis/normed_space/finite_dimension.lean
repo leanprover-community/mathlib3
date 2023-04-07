@@ -244,9 +244,9 @@ lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :
   is_open {f : ι → E | linear_independent 𝕜 f} :=
 is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
-lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ rank (f : E →ₗ[𝕜] F)} :=
+lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ (f : E →ₗ[𝕜] F).rank } :=
 begin
-  simp only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
+  simp only [linear_map.le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
   refine is_open_bUnion (λ t ht, _),
   have : continuous (λ f : E →L[𝕜] F, (λ x : (t : set E), f x)),
     from continuous_pi (λ x, (continuous_linear_map.apply 𝕜 F (x : E)).continuous),
@@ -398,7 +398,7 @@ explicitly when needed. -/
 variables (𝕜 E)
 lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E :=
 begin
-  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
+  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ _ (finrank 𝕜 E)).symm,
   have : uniform_embedding e.to_linear_equiv.to_equiv.symm := e.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
@@ -626,7 +626,7 @@ properness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Decl
 explicitly when needed. -/
 lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
-  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
+  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ _ (finrank 𝕜 E)).symm,
   exact e.symm.antilipschitz.proper_space e.symm.continuous e.symm.surjective
 end
 

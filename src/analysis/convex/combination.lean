@@ -223,7 +223,7 @@ t.center_mass_mem_convex_hull hw₀ hws (λ i, mem_coe.2)
 
 lemma affine_combination_eq_center_mass {ι : Type*} {t : finset ι} {p : ι → E} {w : ι → R}
   (hw₂ : ∑ i in t, w i = 1) :
-  affine_combination t p w = center_mass t w p :=
+  t.affine_combination R p w = center_mass t w p :=
 begin
   rw [affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ w _ hw₂ (0 : E),
     finset.weighted_vsub_of_point_apply, vadd_eq_add, add_zero, t.center_mass_eq_of_sum_1 _ hw₂],
@@ -232,7 +232,7 @@ end
 
 lemma affine_combination_mem_convex_hull
   {s : finset ι} {v : ι → E} {w : ι → R} (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1) :
-  s.affine_combination v w ∈ convex_hull R (range v) :=
+  s.affine_combination R v w ∈ convex_hull R (range v) :=
 begin
   rw affine_combination_eq_center_mass hw₁,
   apply s.center_mass_mem_convex_hull hw₀,
@@ -258,7 +258,7 @@ end
 
 lemma convex_hull_range_eq_exists_affine_combination (v : ι → E) :
   convex_hull R (range v) = { x | ∃ (s : finset ι) (w : ι → R)
-    (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1), s.affine_combination v w = x } :=
+    (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : s.sum w = 1), s.affine_combination R v w = x } :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,

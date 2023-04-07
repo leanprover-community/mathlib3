@@ -1204,7 +1204,7 @@ begin
     exact hx₂ n hn },
   refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
   conv_rhs { rw ← add_zero (finrank K _) },
-  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+  rw [← finrank_bot K V, ← this, submodule.finrank_sup_add_finrank_inf_eq,
       finrank_add_finrank_orthogonal b₁],
   exact le_self_add,
 end

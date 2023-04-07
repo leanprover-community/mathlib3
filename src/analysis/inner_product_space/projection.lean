@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
+import analysis.inner_product_space.orthogonal
 import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 import data.is_R_or_C.lemmas
@@ -784,6 +785,23 @@ lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   orthogonal_projection K v = 0 :=
 by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
 
+/-- The projection into `U` from an orthogonal submodule `V` is the zero map. -/
+lemma submodule.is_ortho.orthogonal_projection_comp_subtypeL {U V : submodule 𝕜 E}
+  [complete_space U] (h : U ⟂ V) :
+  orthogonal_projection U ∘L V.subtypeL = 0 :=
+continuous_linear_map.ext $ λ v,
+  orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero $ h.symm v.prop
+
+/-- The projection into `U` from `V` is the zero map if and only if `U` and `V` are orthogonal. -/
+lemma orthogonal_projection_comp_subtypeL_eq_zero_iff {U V : submodule 𝕜 E}
+  [complete_space U] :
+  orthogonal_projection U ∘L V.subtypeL = 0 ↔ U ⟂ V :=
+⟨λ h u hu v hv, begin
+  convert orthogonal_projection_inner_eq_zero v u hu using 2,
+  have : orthogonal_projection U v = 0 := fun_like.congr_fun h ⟨_, hv⟩,
+  rw [this, submodule.coe_zero, sub_zero]
+end, submodule.is_ortho.orthogonal_projection_comp_subtypeL⟩
+
 lemma orthogonal_projection_eq_linear_proj [complete_space K] (x : E) :
   orthogonal_projection K x =
     K.linear_proj_of_is_compl _ submodule.is_compl_orthogonal_of_complete_space x :=
@@ -1029,7 +1047,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
 begin
   haveI := submodule.finite_dimensional_of_le h,
   haveI := proper_is_R_or_C 𝕜 K₁,
-  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
+  have hd := submodule.finrank_sup_add_finrank_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_complete_space h] at hd,
   rw add_zero at hd,

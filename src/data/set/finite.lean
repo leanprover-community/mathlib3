@@ -125,8 +125,13 @@ protected def infinite (s : set α) : Prop := ¬ s.finite
 
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite := not_not
 
+alias not_infinite ↔ _ finite.not_infinite
+
+attribute [simp] finite.not_infinite
+
 /-- See also `finite_or_infinite`, `fintype_or_infinite`. -/
 protected lemma finite_or_infinite (s : set α) : s.finite ∨ s.infinite := em _
+protected lemma infinite_or_finite (s : set α) : s.infinite ∨ s.finite := em' _
 
 /-! ### Basic properties of `set.finite.to_finset` -/
 
@@ -603,6 +608,9 @@ h.bUnion hf
 
 @[simp] theorem finite_empty : (∅ : set α).finite := to_finite _
 
+protected lemma infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
+nonempty_iff_ne_empty.2 $ by { rintro rfl, exact h finite_empty }
+
 @[simp] theorem finite_singleton (a : α) : ({a} : set α).finite := to_finite _
 
 theorem finite_pure (a : α) : (pure a : set α).finite := to_finite _
@@ -647,16 +655,48 @@ lemma finite_lt_nat (n : ℕ) : set.finite {i | i < n} := to_finite _
 
 lemma finite_le_nat (n : ℕ) : set.finite {i | i ≤ n} := to_finite _
 
-lemma finite.prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
-  (s ×ˢ t : set (α × β)).finite :=
+section prod
+variables {s : set α} {t : set β}
+
+protected lemma finite.prod (hs : s.finite) (ht : t.finite) : (s ×ˢ t : set (α × β)).finite :=
 by { casesI hs, casesI ht, apply to_finite }
 
-lemma finite.off_diag {s : set α} (hs : s.finite) : s.off_diag.finite :=
+lemma finite.of_prod_left (h : (s ×ˢ t : set (α × β)).finite) : t.nonempty → s.finite :=
+λ ⟨b, hb⟩, (h.image prod.fst).subset $ λ a ha, ⟨(a, b), ⟨ha, hb⟩, rfl⟩
+
+lemma finite.of_prod_right (h : (s ×ˢ t : set (α × β)).finite) : s.nonempty → t.finite :=
+λ ⟨a, ha⟩, (h.image prod.snd).subset $ λ b hb, ⟨(a, b), ⟨ha, hb⟩, rfl⟩
+
+protected lemma infinite.prod_left (hs : s.infinite) (ht : t.nonempty) : (s ×ˢ t).infinite :=
+λ h, hs $ h.of_prod_left ht
+
+protected lemma infinite.prod_right (ht : t.infinite) (hs : s.nonempty) : (s ×ˢ t).infinite :=
+λ h, ht $ h.of_prod_right hs
+
+protected lemma infinite_prod :
+  (s ×ˢ t).infinite ↔ s.infinite ∧ t.nonempty ∨ t.infinite ∧ s.nonempty :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { simp_rw [set.infinite, and_comm (¬ _), ←not_imp],
+    by_contra',
+    exact h ((this.1 h.nonempty.snd).prod $ this.2 h.nonempty.fst) },
+  { rintro (h | h),
+    { exact h.1.prod_left h.2 },
+    { exact h.1.prod_right h.2 } }
+end
+
+lemma finite_prod : (s ×ˢ t).finite ↔ (s.finite ∨ t = ∅) ∧ (t.finite ∨ s = ∅) :=
+by simp only [←not_infinite, set.infinite_prod, not_or_distrib, not_and_distrib,
+  not_nonempty_iff_eq_empty]
+
+protected lemma finite.off_diag (hs : s.finite) : s.off_diag.finite :=
 by { classical, casesI hs, apply set.to_finite }
 
-lemma finite.image2 (f : α → β → γ) {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
+protected lemma finite.image2 (f : α → β → γ) (hs : s.finite) (ht : t.finite) :
   (image2 f s t).finite :=
 by { casesI hs, casesI ht, apply to_finite }
+
+end prod
 
 theorem finite.seq {f : set (α → β)} {s : set α} (hf : f.finite) (hs : s.finite) :
   (f.seq s).finite :=
@@ -952,9 +992,6 @@ lemma infinite.exists_subset_card_eq {s : set α} (hs : s.infinite) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
 ⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
 
-lemma infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
-let a := infinite.nat_embedding s h 37 in ⟨a.1, a.2⟩
-
 lemma infinite_of_finite_compl [infinite α] {s : set α} (hs : sᶜ.finite) : s.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)
 
@@ -970,13 +1007,40 @@ lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) : (s \ t).i
 @[simp] lemma infinite_union {s t : set α} : (s ∪ t).infinite ↔ s.infinite ∨ t.infinite :=
 by simp only [set.infinite, finite_union, not_and_distrib]
 
-theorem infinite_of_infinite_image (f : α → β) {s : set α} (hs : (f '' s).infinite) :
-  s.infinite :=
+theorem infinite.of_image (f : α → β) {s : set α} (hs : (f '' s).infinite) : s.infinite :=
 mt (finite.image f) hs
 
 theorem infinite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   (f '' s).infinite ↔ s.infinite :=
 not_congr $ finite_image_iff hi
+
+alias infinite_image_iff ↔ _ infinite.image
+
+attribute [protected] infinite.image
+
+section image2
+variables {f : α → β → γ} {s : set α} {t : set β} {a : α} {b : β}
+
+protected lemma infinite.image2_left (hs : s.infinite) (hb : b ∈ t) (hf : inj_on (λ a, f a b) s) :
+  (image2 f s t).infinite :=
+(hs.image hf).mono $ image_subset_image2_left hb
+
+protected lemma infinite.image2_right (ht : t.infinite) (ha : a ∈ s) (hf : inj_on (f a) t) :
+  (image2 f s t).infinite :=
+(ht.image hf).mono $ image_subset_image2_right ha
+
+theorem infinite_image2 (hfs : ∀ b ∈ t, inj_on (λ a, f a b) s) (hft : ∀ a ∈ s, inj_on (f a) t) :
+  (image2 f s t).infinite ↔ s.infinite ∧ t.nonempty ∨ t.infinite ∧ s.nonempty :=
+begin
+  refine ⟨λ h, set.infinite_prod.1 _, _⟩,
+  { rw ←image_uncurry_prod at h,
+    exact h.of_image _ },
+  { rintro (⟨hs, b, hb⟩ | ⟨ht, a, ha⟩),
+    { exact hs.image2_left hb (hfs _ hb) },
+    { exact ht.image2_right ha (hft _ ha) } }
+end
+
+end image2
 
 theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
   (hi : inj_on f s) (hm : maps_to f s t) (hs : s.infinite) : t.infinite :=

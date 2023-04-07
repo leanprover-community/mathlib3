@@ -237,11 +237,11 @@ end
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
 lemma x_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) : 0 < (a ^ n).x :=
 begin
-  cases le_or_lt 0 n with h h,
-  { rw [← int.to_nat_of_nonneg h, zpow_coe_nat],
-    exact x_pow_pos hax _, },
-  { rw [← neg_neg n, zpow_neg, x_inv, ← int.to_nat_of_nonneg (neg_nonneg.mpr h.le), zpow_coe_nat],
-    exact x_pow_pos hax _, },
+  cases n,
+  { rw zpow_of_nat,
+    exact x_pow_pos hax n },
+  { rw zpow_neg_succ_of_nat,
+    exact x_pow_pos hax (n + 1) },
 end
 
 /-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of any power
@@ -250,18 +250,12 @@ lemma sign_y_zpow_eq_sign_of_x_pos_of_y_pos {a : solution₁ d} (hax : 0 < a.x) 
    (n : ℤ) :
   (a ^ n).y.sign = n.sign :=
 begin
-  have H : ∀ m : ℤ, 0 < m → 0 < (a ^ m).y,
-  { change ∀ m : ℤ, 1 ≤ m → _,
-    refine λ m, int.le_induction (by simp only [hay, zpow_one]) (λ m hm ih, _) m,
-    rw zpow_add_one,
-    exact y_mul_pos (x_zpow_pos hax m) ih hax hay, },
-  rcases lt_trichotomy 0 n with hpos | rfl | hneg,
-  { rw [(int.sign_eq_one_iff_pos n).mpr hpos, int.sign_eq_one_iff_pos],
-    exact H n hpos, },
-  { rw [int.sign_zero, int.sign_eq_zero_iff_zero, zpow_zero, y_one], },
-  { rw [(int.sign_eq_neg_one_iff_neg n).mpr hneg, int.sign_eq_neg_one_iff_neg, ← neg_neg n,
-        zpow_neg, y_inv, neg_lt, neg_zero],
-    exact H (-n) (lt_neg.mp hneg), }
+  rcases n with (_ | _) | _,
+  { refl },
+  { rw zpow_of_nat,
+    exact int.sign_eq_one_of_pos (y_pow_succ_pos hax hay n) },
+  { rw zpow_neg_succ_of_nat,
+    exact int.sign_eq_neg_one_of_neg (neg_neg_of_pos (y_pow_succ_pos hax hay n)) },
 end
 
 /-- If `a` is any solution, then one of `a`, `a⁻¹`, `-a`, `-a⁻¹` has
@@ -269,14 +263,12 @@ positive `x` and nonnegative `y`. -/
 lemma exists_pos_variant (h₀ : 0 < d) (a : solution₁ d) :
   ∃ b : solution₁ d, 0 < b.x ∧ 0 ≤ b.y ∧ a ∈ ({b, b⁻¹, -b, -b⁻¹} : set (solution₁ d)) :=
 begin
-  refine ⟨mk (|a.x|) (|a.y|) (by simp [a.prop]),
-          abs_pos.mpr (a.x_ne_zero h₀.le), abs_nonneg a.y, _⟩,
-  cases le_or_lt 0 a.x with hax hax; cases le_or_lt 0 a.y with hay hay,
-  { exact or.inl (ext (abs_of_nonneg hax).symm (abs_of_nonneg hay).symm), },
-  { exact or.inr (or.inl $ ext (by simp [abs_of_nonneg hax]) (by simp [abs_of_neg hay])), },
-  { exact or.inr (or.inr $ or.inr $ ext (by simp [abs_of_neg hax])
-                                        (by simp [abs_of_nonneg hay])), },
-  { exact or.inr (or.inr $ or.inl $ ext (by simp [abs_of_neg hax]) (by simp [abs_of_neg hay])),}
+  refine (lt_or_gt_of_ne (a.x_ne_zero h₀.le)).elim
+           ((le_total 0 a.y).elim (λ hy hx, ⟨-a⁻¹, _, _, _⟩) (λ hy hx, ⟨-a, _, _, _⟩))
+           ((le_total 0 a.y).elim (λ hy hx, ⟨a, hx, hy, _⟩) (λ hy hx, ⟨a⁻¹, hx, _, _⟩));
+      simp only [neg_neg, inv_inv, neg_inv, set.mem_insert_iff, set.mem_singleton_iff, true_or,
+                 eq_self_iff_true, x_neg, x_inv, y_neg, y_inv, neg_pos, neg_nonneg, or_true];
+      assumption,
 end
 
 end solution₁
@@ -377,7 +369,7 @@ theorem exists_nontrivial_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) 
   ∃ a : solution₁ d, a ≠ 1 ∧ a ≠ -1 :=
 begin
   obtain ⟨x, y, prop, hy⟩ := exists_of_not_is_square h₀ hd,
-  refine ⟨mk x y prop, λ H, _, λ H, _⟩; apply_fun solution₁.y at H; simpa [hy] using H,
+  refine ⟨mk x y prop, λ H, _, λ H, _⟩; apply_fun solution₁.y at H; simpa only [hy] using H,
 end
 
 /-- If `d` is a positive integer that is not a square, then there exists a solution
@@ -385,16 +377,10 @@ to the Pell equation `x^2 - d*y^2 = 1` with `x > 1` and `y > 0`. -/
 lemma exists_pos_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃ a : solution₁ d, 1 < a.x ∧ 0 < a.y :=
 begin
-  obtain ⟨a, ha₁, ha₂⟩ := exists_nontrivial_of_not_is_square h₀ hd,
-  obtain ⟨b, hb₁, hb₂, hb₃⟩ := exists_pos_variant h₀ a,
-  refine ⟨b, lt_iff_le_and_ne.mpr ⟨hb₁, λ hf, _⟩, lt_iff_le_and_ne.mpr ⟨hb₂, λ hf, _⟩⟩,
-  { have := eq_one_of_x_eq_one h₀.ne' hf.symm,
-    rw [eq_one_of_x_eq_one h₀.ne' hf.symm, inv_one] at hb₃,
-    simpa only [ha₁, ha₂, or_self, mem_insert_iff, mem_singleton_iff] using hb₃, },
-  { cases eq_one_or_neg_one_iff_y_eq_zero.mpr hf.symm with h h; rw h at hb₃,
-    { simpa only [ha₁, ha₂, inv_one, or_self, mem_insert_iff, mem_singleton_iff] using hb₃, },
-    { simpa only [ha₁, ha₂, inv_neg', inv_one, neg_neg, or_self, mem_insert_iff, mem_singleton_iff]
-        using hb₃, } }
+  obtain ⟨x, y, h, hy⟩ := exists_of_not_is_square h₀ hd,
+  refine ⟨mk (|x|) (|y|) (by rwa [sq_abs, sq_abs]), _, abs_pos.mpr hy⟩,
+  rw [x_mk, ← one_lt_sq_iff_one_lt_abs, eq_add_of_sub_eq h, lt_add_iff_pos_right],
+  exact mul_pos h₀ (sq_pos_of_ne_zero y hy),
 end
 
 end solution₁

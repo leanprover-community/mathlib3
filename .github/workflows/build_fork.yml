@@ -94,7 +94,7 @@ jobs:
         run: |
           set -o pipefail
           leanpkg configure
-          echo "::set-output name=started::true"
+          echo "started=true" >> $GITHUB_OUTPUT
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
           lean --json -T400000 --make src | python3 scripts/detect_errors.py
 
@@ -115,7 +115,7 @@ jobs:
           touch workspace.tar
           tar -cf workspace.tar --exclude=*.tar* .
           git_hash="$(git log -1 --pretty=format:%h)"
-          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+          echo "artifact_name=precompiled-mathlib-$short_lean_version-$git_hash" >> $GITHUB_OUTPUT
 
       - name: upload precompiled mathlib zip file
         if: always() && steps.build.outputs.started == 'true'

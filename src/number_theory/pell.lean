@@ -12,16 +12,27 @@ import number_theory.zsqrtd.basic
 /-!
 # Pell's Equation
 
-We prove the following
+*Pell's Equation* is the equation $x^2 - d y^2 = 1$, where $d$ is a positive integer
+that is not a square, and one is interested in solutions in integers $x$ and $y$.
+
+In this file, we aim at providing all of the essential theory of Pell's Equation for general $d$
+(as opposed to the contents of `number_theory.pell_matiyasevic`, which is specific to the case
+$d = a^2 - 1$ for some $a > 1$).
+
+We begin by defining a type `pell.solution₁ d` for solutions of the equation,
+show that it has a natural structure as an abelian group, and prove some basic
+properties.
+
+We then prove the following
 
 **Theorem.** Let $d$ be a positive integer that is not a square. Then the equation
 $x^2 - d y^2 = 1$ has a nontrivial (i.e., with $y \ne 0$) solution in integers.
 
-See `pell.exists_of_not_is_square`.
+See `pell.exists_of_not_is_square` and `pell.exists_nontrivial_of_not_is_square`.
 
-This is the beginning of a development that aims at providing all of the essential theory
-of Pell's Equation for general $d$ (as opposed to the contents of `number_theory.pell_matiyasevic`,
-which is specific to the case $d = a^2 - 1$ for some $a > 1$).
+The next step (TODO) will be to define the *fundamental solution* as the solution
+with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$ and to show
+that every solution is a power of the fundamental solution up to a (common) sign.
 
 ## References
 

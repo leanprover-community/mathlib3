@@ -18,8 +18,9 @@ In this file we prove the Riemann-Lebesgue lemma for functions on `ℝ`: for any
 
 `∫ (x : ℝ), exp (↑(t * x) * I) • f x`
 
-tends to zero as `t → ∞`. This is proved first for continuous compactly-supported functions, then we
-show the general case using the fact that continuous compactly-supported functions are dense in `L¹`.
+tends to zero as `t → ∞`. We prove this first for continuous compactly-supported functions, then
+deduce the general case from this and the density of continuous compactly-supported functions in
+the `L¹` space.
 
 ## Main results
 

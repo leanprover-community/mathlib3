@@ -18,7 +18,7 @@ open continuous_linear_map filter
 
 namespace convex_cone
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 /-- The closure of a convex cone inside a real inner product space is a convex cone. This
 construction is mainly used for defining maps between proper cones. -/

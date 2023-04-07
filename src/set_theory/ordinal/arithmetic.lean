@@ -1831,7 +1831,7 @@ open ordinal
 le_antisymm (ord_le.2 $ le_rfl) $
 le_of_forall_lt $ λ o h, begin
   rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
-  rw [lt_ord, ←lift_card, ←lift_aleph_0.{0 u}, lift_lt, ←typein_enum (<) h'],
+  rw [lt_ord, ←lift_card, lift_lt_aleph_0, ←typein_enum (<) h'],
   exact lt_aleph_0_iff_fintype.2 ⟨set.fintype_lt_nat _⟩
 end
 

@@ -867,10 +867,8 @@ by simpa using v.mk_eq_rank
 lemma basis.nonempty_fintype_index_of_rank_lt_aleph_0 {ι : Type*}
   (b : basis ι R M) (h : module.rank R M < ℵ₀) :
   nonempty (fintype ι) :=
-by rwa [← cardinal.lift_lt, ← b.mk_eq_rank,
-        -- ensure `aleph_0` has the correct universe
-        cardinal.lift_aleph_0, ← cardinal.lift_aleph_0.{u_1 v},
-        cardinal.lift_lt, cardinal.lt_aleph_0_iff_fintype] at h
+by rwa [← cardinal.lift_lt, ← b.mk_eq_rank, cardinal.lift_aleph_0, cardinal.lift_lt_aleph_0,
+        cardinal.lt_aleph_0_iff_fintype] at h
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
 noncomputable def basis.fintype_index_of_rank_lt_aleph_0 {ι : Type*}

@@ -78,7 +78,7 @@ lemma ae_lt_of_lt_ess_inf (hx : x < ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x < f y :=
 eventually_lt_of_lt_liminf hx hf
 
-variables [topological_space β] [first_countable_topology β] [densely_ordered β] [order_topology β]
+variables [topological_space β] [first_countable_topology β] [order_topology β]
 
 lemma ae_le_of_ess_sup_le (hx : ess_sup f μ ≤ x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y ≤ x :=

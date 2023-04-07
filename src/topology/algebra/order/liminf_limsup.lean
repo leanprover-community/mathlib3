@@ -216,7 +216,7 @@ begin
   exact H a as b bs ab ⟨A, B⟩,
 end
 
-variables [densely_ordered α] [first_countable_topology α] {f : filter β} [countable_Inter_filter f]
+variables [first_countable_topology α] {f : filter β} [countable_Inter_filter f]
   {u : β → α} {a : α}
 
 lemma eventually_le_of_limsup_le (hfua : f.limsup u ≤ a)
@@ -224,15 +224,23 @@ lemma eventually_le_of_limsup_le (hfua : f.limsup u ≤ a)
 begin
   obtain ha | ha := is_top_or_exists_gt a,
   { exact eventually_of_forall (λ _, ha _) },
-  obtain ⟨u, -, -, hua, hu⟩ := is_glb_Ioi.exists_seq_antitone_tendsto ha,
-  have := λ n, eventually_lt_of_limsup_lt (hfua.trans_lt $ hu n) hf,
-  exact (eventually_countable_forall.2 this).mono
-    (λ b hb, ge_of_tendsto hua $ eventually_of_forall $ λ n, (hb _).le),
+  by_cases H : is_glb (set.Ioi a) a,
+  { obtain ⟨u, -, -, hua, hu⟩ := H.exists_seq_antitone_tendsto ha,
+    have := λ n, eventually_lt_of_limsup_lt (hfua.trans_lt $ hu n) hf,
+    exact (eventually_countable_forall.2 this).mono
+      (λ b hb, ge_of_tendsto hua $ eventually_of_forall $ λ n, (hb _).le) },
+  { obtain ⟨x, hx, xa⟩ : ∃ (x : α), (∀ ⦃b : α⦄, a < b → x ≤ b) ∧ a < x,
+    { simp only [is_glb, is_greatest, lower_bounds, upper_bounds, set.mem_Ioi, set.mem_set_of_eq,
+        not_and, not_forall, not_le, exists_prop] at H,
+      exact H (λ x hx, le_of_lt hx) },
+    filter_upwards [eventually_lt_of_limsup_lt (hfua.trans_lt xa) hf] with y hy,
+    contrapose! hy,
+    exact hx hy }
 end
 
 lemma eventually_le_of_le_liminf (hfua : a ≤ f.liminf u)
   (hf : is_bounded_under (≥) f u . is_bounded_default) : ∀ᶠ b in f, a ≤ u b :=
-@eventually_le_of_limsup_le αᵒᵈ _ _ _ _ _ _ _ _ _ _ hfua hf
+@eventually_le_of_limsup_le αᵒᵈ _ _ _ _ _ _ _ _ _ hfua hf
 
 end conditionally_complete_linear_order
 

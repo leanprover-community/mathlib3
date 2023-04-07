@@ -217,7 +217,7 @@ begin
 end
 
 /-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
-lemma res_eq_iff (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
+lemma res_eq_res (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
 begin
   split; intro h; induction n with n ih, { simp },
   { intros m hm,
@@ -237,21 +237,16 @@ lemma res_injective : injective (@res α) :=
 begin
   intros x y h,
   ext n,
-  apply (res_eq_iff _ _ _).mp _ n (nat.lt_succ_self _),
+  apply (res_eq_res _ _ _).mp _ n (nat.lt_succ_self _),
   rw h,
 end
-
-/-- Two infinite sequences are equal if and only if all their restrictions are.-/
-theorem res_eq_iff_eq (x y : ℕ → α) : (∀ n, res x n = res y n) ↔ x = y :=
-by rw [← funext_iff, res_injective.eq_iff]
-
 
 /-- `cylinder x n` is equal to the set of sequences `y` with the same restriction to `n` as `x`.-/
 theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : cylinder x n = {y | res y n = res x n} :=
 begin
   ext y,
   dsimp[cylinder],
-  rw res_eq_iff,
+  rw res_eq_res,
 end
 
 end res

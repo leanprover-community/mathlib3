@@ -26,8 +26,7 @@ This file develops the basic, abstract theory of these schemes and the functions
 We consider end-appending to be the fundamental way to build lists (say on `β`) inductively,
 as this interacts better with the topology on `ℕ → β`.
 As a result, functions like `list.nth` or `stream.take` do not have their intended meaning
-in this file. We define an analogue of `stream.take`, `res`, for our purposes.
-It is related by the equation `res x n = (stream.take n x).reverse`
+in this file. See instead `pi_nat.res`.
 
 ## References
 
@@ -91,7 +90,9 @@ protected lemma antitone.closure_antitone [topological_space α] (hanti : cantor
 theorem disjoint.map_injective (hA : cantor_scheme.disjoint A) : injective (induced_map A).2 :=
 begin
   rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-  rw [← subtype.val_inj, ← res_eq_iff_eq],
+  refine subtype.coe_injective (res_injective _),
+  dsimp,
+  apply funext,
   intro n,
   induction n with n ih, { simp },
   simp only [res_succ],

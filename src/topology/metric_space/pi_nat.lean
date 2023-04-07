@@ -216,28 +216,30 @@ begin
   simp[ih],
 end
 
+--lemma res_eq_res {x y : ℕ → α} {n : ℕ} (h : res x n = res y n) {m} : m < n → x m = y m :=
+
 /-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
-lemma res_eq_res (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
+lemma res_eq_res {x y : ℕ → α} {n : ℕ} : res x n = res y n ↔ ∀ ⦃m⦄, m < n → x m = y m :=
 begin
   split; intro h; induction n with n ih, { simp },
   { intros m hm,
     rw nat.lt_succ_iff_lt_or_eq at hm,
     simp only [res_succ] at h,
     cases hm with hm hm,
-    { exact ih h.2 _ hm },
+    { exact ih h.2 hm },
     rw hm,
     exact h.1, },
   { simp },
   simp only [res_succ],
-  refine ⟨h _ (nat.lt_succ_self _), ih (λ m hm, _)⟩,
-  exact h _ (hm.trans (nat.lt_succ_self _)),
+  refine ⟨h (nat.lt_succ_self _), ih (λ m hm, _)⟩,
+  exact h (hm.trans (nat.lt_succ_self _)),
 end
 
 lemma res_injective : injective (@res α) :=
 begin
   intros x y h,
   ext n,
-  apply (res_eq_res _ _ _).mp _ n (nat.lt_succ_self _),
+  apply (res_eq_res).mp _ (nat.lt_succ_self _),
   rw h,
 end
 

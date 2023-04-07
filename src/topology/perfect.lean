@@ -318,8 +318,7 @@ begin
   { continuity,
     exact hdiam.map_continuous, },
   intros x y hxy,
-  have := hdisj.map_injective hxy,
-  rwa ← subtype.val_inj at this,
+  simpa only [← subtype.val_inj] using hdisj.map_injective hxy,
 end
 
 end cantor_inj

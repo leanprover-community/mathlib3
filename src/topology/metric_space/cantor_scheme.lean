@@ -167,7 +167,6 @@ theorem closure_antitone.map_of_vanishing_diam [complete_space α]
 begin
   rw eq_univ_iff_forall,
   intro x,
-  --have : ∀ n : ℕ, (A (res x n)).nonempty := λ n, hnonempty _,
   choose u hu using λ n, hnonempty (res x n),
   have umem : ∀ n m : ℕ, n ≤ m → u m ∈ A (res x n),
   { have : antitone (λ n : ℕ, A (res x n)),

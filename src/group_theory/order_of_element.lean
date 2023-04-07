@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.gcd_monoid.finset
 import algebra.hom.iterate
-import data.nat.modeq
+import data.int.modeq
 import data.set.pointwise.basic
 import data.set.intervals.infinite
 import dynamics.periodic_pts
@@ -714,21 +714,21 @@ lemma mem_zpowers_iff_mem_range_order_of [finite G] [decidable_eq G] :
   y ∈ subgroup.zpowers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 by rw [← mem_powers_iff_mem_zpowers, mem_powers_iff_mem_range_order_of]
 
-@[to_additive] lemma zpow_eq_one_iff_modeq : a ^ n = 1 ↔ n ≡ 0 [ZMOD (order_of a)] :=
-by rw [modeq_zero_iff_dvd, order_of_dvd_iff_zpow_eq_one]
+@[to_additive] lemma zpow_eq_one_iff_modeq {n : ℤ} : x ^ n = 1 ↔ n ≡ 0 [ZMOD (order_of x)] :=
+by rw [int.modeq_zero_iff_dvd, order_of_dvd_iff_zpow_eq_one]
 
-@[to_additive] lemma zpow_eq_zpow_iff_modeq : a ^ m = a ^ n ↔ m ≡ n [ZMOD (order_of a)] :=
-by rw [←mul_inv_eq_one, ←zpow_sub, zpow_eq_one_iff_modeq, modeq_iff_dvd, modeq_iff_dvd, zero_sub,
-  neg_sub]
+@[to_additive] lemma zpow_eq_zpow_iff_modeq {m n : ℤ} : x ^ m = x ^ n ↔ m ≡ n [ZMOD (order_of x)] :=
+by rw [←mul_inv_eq_one, ←zpow_sub, zpow_eq_one_iff_modeq, int.modeq_iff_dvd, int.modeq_iff_dvd,
+  zero_sub, neg_sub]
 
 @[simp, to_additive] lemma injective_zpow_iff_not_is_of_fin_order :
-  injective (λ n : ℤ, a ^ n) ↔ ¬ is_of_fin_order a :=
+  injective (λ n : ℤ, x ^ n) ↔ ¬ is_of_fin_order x :=
 begin
   refine ⟨_, λ h n m hnm, _⟩,
   { simp_rw is_of_fin_order_iff_pow_eq_one,
-    rintro h ⟨n, hn, ha⟩,
-    exact nat.cast_ne_zero.2 hn.ne' (h $ by simpa using ha) },
-  rwa [zpow_eq_zpow_iff_modeq, order_of_eq_zero_iff.mpr h, nat.cast_zero, modeq_zero_iff] at hnm,
+    rintro h ⟨n, hn, hx⟩,
+    exact nat.cast_ne_zero.2 hn.ne' (h $ by simpa using hx) },
+  rwa [zpow_eq_zpow_iff_modeq, order_of_eq_zero_iff.2 h, nat.cast_zero, int.modeq_zero_iff] at hnm,
 end
 
 @[to_additive decidable_zmultiples]
@@ -954,7 +954,7 @@ variables [monoid α] [monoid β] {x : α × β} {a : α} {b : β}
 
 @[to_additive prod.add_order_of] protected lemma prod.order_of (x : α × β) :
   order_of x = (order_of x.1).lcm (order_of x.2) :=
-nat.eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
+eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
 
 @[to_additive add_order_of_fst_dvd_add_order_of] lemma order_of_fst_dvd_order_of :
   order_of x.1 ∣ order_of x :=

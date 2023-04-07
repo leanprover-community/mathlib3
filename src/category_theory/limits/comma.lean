@@ -6,13 +6,14 @@ Authors: Bhavik Mehta
 import category_theory.arrow
 import category_theory.limits.constructions.epi_mono
 import category_theory.limits.creates
-import category_theory.limits.preserves.finite
-import category_theory.limits.shapes.finite_limits
 import category_theory.limits.unit
 import category_theory.structured_arrow
 
 /-!
 # Limits and colimits in comma categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We build limits in the comma category `comma L R` provided that the two source categories have
 limits and `R` preserves them.

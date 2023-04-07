@@ -6,7 +6,6 @@ Authors: Kenny Lau
 
 import algebra.geom_sum
 import linear_algebra.smodeq
-import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal
 
 /-!
@@ -118,7 +117,7 @@ instance : is_Hausdorff I (Hausdorffification I M) :=
 ⟨λ x, quotient.induction_on' x $ λ x hx, (quotient.mk_eq_zero _).2 $ (mem_infi _).2 $ λ n, begin
   have := comap_map_mkq (⨅ n : ℕ, I ^ n • ⊤ : submodule R M) (I ^ n • ⊤),
   simp only [sup_of_le_right (infi_le (λ n, (I ^ n • ⊤ : submodule R M)) n)] at this,
-  rw [← this, map_smul'', mem_comap, map_top, range_mkq, ← smodeq.zero], exact hx n
+  rw [← this, map_smul'', mem_comap, submodule.map_top, range_mkq, ← smodeq.zero], exact hx n
 end⟩
 
 variables {M} [h : is_Hausdorff I N]

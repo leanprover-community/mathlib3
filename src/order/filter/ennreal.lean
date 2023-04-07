@@ -11,6 +11,9 @@ import order.liminf_limsup
 /-!
 # Order properties of extended non-negative reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file compiles filter-related results about `ℝ≥0∞` (see data/real/ennreal.lean).
 -/
 
@@ -60,8 +63,8 @@ begin
   let g := λ x : ℝ≥0∞, a * x,
   have hg_bij : function.bijective g,
   from function.bijective_iff_has_inverse.mpr ⟨(λ x, a⁻¹ * x),
-    ⟨λ x, by simp [←mul_assoc, inv_mul_cancel ha_zero ha_top],
-    λ x, by simp [g, ←mul_assoc, mul_inv_cancel ha_zero ha_top]⟩⟩,
+    ⟨λ x, by simp [←mul_assoc, ennreal.inv_mul_cancel ha_zero ha_top],
+    λ x, by simp [g, ←mul_assoc, ennreal.mul_inv_cancel ha_zero ha_top]⟩⟩,
   have hg_mono : strict_mono g,
     from monotone.strict_mono_of_injective
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
@@ -94,6 +97,16 @@ begin
     have hfu : f.limsup u ≠ 0, from mt limsup_eq_zero_iff.1 hu,
     simp only [h_top_le, hfu, if_false], },
 end
+
+lemma limsup_mul_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
+  f.limsup (u * v) ≤ f.limsup u * f.limsup v :=
+calc f.limsup (u * v) ≤ f.limsup (λ x, (f.limsup u) * v x) :
+  begin
+    refine limsup_le_limsup _ _,
+    { filter_upwards [@eventually_le_limsup _ f _ u] with x hx using mul_le_mul_right' hx _ },
+    { is_bounded_default, },
+  end
+... = f.limsup u * f.limsup v : limsup_const_mul
 
 lemma limsup_add_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
   f.limsup (u + v) ≤ f.limsup u + f.limsup v :=

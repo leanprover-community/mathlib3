@@ -186,14 +186,14 @@ calc module.rank K (R σ K) =
     by rw [finsupp.dim_eq, dim_self, mul_one]
   ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
-    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
+    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_finite $ assume f, _⟩,
     refine forall_congr (assume n, le_tsub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
   ... = #(σ → {n // n < fintype.card K}) :
     (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
   ... = #(σ → fin (fintype.card K)) :
-    (equiv.arrow_congr (equiv.refl σ) (equiv.refl _)).cardinal_eq
+    (equiv.arrow_congr (equiv.refl σ) fin.equiv_subtype.symm).cardinal_eq
   ... = #(σ → K) :
     (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.mk_fintype _

@@ -3,16 +3,21 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import tactic.tfae
 import order.atoms
 import order.order_iso_nat
+import order.rel_iso.set
 import order.sup_indep
 import order.zorn
 import data.finset.order
-import data.finite.default
+import data.set.intervals.order_iso
+import data.finite.set
+import tactic.tfae
 
 /-!
 # Compactness properties for complete lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For complete lattices, there are numerous equivalent ways to express the fact that the relation `>`
 is well-founded. In this file we define three especially-useful characterisations and provide
@@ -283,7 +288,7 @@ begin
   obtain ⟨x, hx₀, hx₁, hx₂⟩ := contra,
   replace hs : x ⊓ Sup s = ⊥,
   { have := hs.mono (by simp [ht₁, hx₀, -set.union_singleton] : ↑t ∪ {x} ≤ s) (by simp : x ∈ _),
-    simpa [disjoint, hx₂, ← t.sup_id_eq_Sup, ← ht₂] using this, },
+    simpa [disjoint, hx₂, ← t.sup_id_eq_Sup, ← ht₂] using this.eq_bot, },
   apply hx₁,
   rw [← hs, eq_comm, inf_eq_left],
   exact le_Sup hx₀,
@@ -425,7 +430,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
     by_cases hS : S.nonempty,
     { exact ⟨Sup S, h.directed_Sup_lt_of_lt hS cC.directed_on SC, λ _, le_Sup⟩, },
     exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
-      set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
+      set.mem_empty_iff_false, forall_const, forall_prop_of_false, not_false_iff]⟩, },
 end⟩
 
 lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=
@@ -469,7 +474,7 @@ instance is_atomistic_of_complemented_lattice [complemented_lattice α] : is_ato
   { exact ne_of_lt con (subtype.ext_iff.1 (eq_top_of_is_compl_bot hc)) },
   { apply ha.1,
     rw eq_bot_iff,
-    apply le_trans (le_inf _ hac) hc.1,
+    apply le_trans (le_inf _ hac) hc.disjoint.le_bot,
     rw [← subtype.coe_le_coe, subtype.coe_mk],
     exact le_Sup ⟨ha.of_is_atom_coe_Iic, a.2⟩ }
 end, λ _, and.left⟩⟩
@@ -480,7 +485,8 @@ theorem complemented_lattice_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} =
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
-  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, h.symm.trans_le $ Sup_le_iff.2 $ λ a ha, _⟩,
+  { refine ⟨Sup s, disjoint_iff.mpr b_inf_Sup_s,
+      codisjoint_iff_le_sup.mpr $ h.symm.trans_le $ Sup_le_iff.2 $ λ a ha, _⟩,
     rw ← inf_eq_left,
     refine (ha.le_iff.mp inf_le_left).resolve_left (λ con, ha.1 _),
     rw [eq_bot_iff, ← con],

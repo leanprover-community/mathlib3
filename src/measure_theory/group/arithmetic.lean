@@ -336,13 +336,24 @@ begin
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end
 
+lemma null_measurable_set_eq_fun {E} [measurable_space E] [add_group E]
+  [measurable_singleton_class E] [has_measurable_sub₂ E] {f g : α → E}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  null_measurable_set {x | f x = g x} μ :=
+begin
+  apply (measurable_set_eq_fun hf.measurable_mk hg.measurable_mk).null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x = hg.mk g x) = (f x = g x),
+  simp only [hfx, hgx],
+end
+
 lemma measurable_set_eq_fun_of_countable {m : measurable_space α} {E} [measurable_space E]
   [measurable_singleton_class E] [countable E] {f g : α → E}
   (hf : measurable f) (hg : measurable g) :
   measurable_set {x | f x = g x} :=
 begin
   have : {x | f x = g x} = ⋃ j, {x | f x = j} ∩ {x | g x = j},
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_eq_right'], },
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_iff, exists_eq_right'], },
   rw this,
   refine measurable_set.Union (λ j, measurable_set.inter _ _),
   { exact hf (measurable_set_singleton j), },

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell, Eric Wieser, Yaël Dillies, Patrick Massot, Scott Morrison
 -/
 import algebra.group_power.order
-import data.set.intervals.proj_Icc
+import algebra.ring.regular
 
 /-!
 # Algebraic instances for unit intervals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For suitably structured underlying type `α`, we exhibit the structure of
 the unit intervals (`set.Icc`, `set.Ioc`, `set.Ioc`, and `set.Ioo`) from `0` to `1`.
@@ -32,9 +35,12 @@ The strongest typeclass provided on each interval is:
 
 -/
 
-variables {α : Type*} [ordered_semiring α]
-
 open set
+
+variables {α : Type*}
+
+section ordered_semiring
+variables [ordered_semiring α]
 
 /-! ### Instances for `↥(set.Icc 0 1)` -/
 
@@ -154,6 +160,10 @@ subtype.coe_injective.comm_semigroup _ coe_mul
 
 end set.Ico
 
+end ordered_semiring
+
+variables [strict_ordered_semiring α]
+
 /-! ### Instances for `↥(set.Ioc 0 1)` -/
 
 namespace set.Ioc
@@ -192,7 +202,15 @@ subtype.coe_injective.semigroup _ coe_mul
 instance monoid [nontrivial α] : monoid (Ioc (0:α) 1) :=
 subtype.coe_injective.monoid _ coe_one coe_mul coe_pow
 
-instance cancel_monoid {α : Type*} [ordered_comm_ring α] [is_domain α] :
+instance comm_semigroup {α : Type*} [strict_ordered_comm_semiring α] :
+  comm_semigroup (Ioc (0:α) 1) :=
+subtype.coe_injective.comm_semigroup _ coe_mul
+
+instance comm_monoid {α : Type*} [strict_ordered_comm_semiring α] [nontrivial α] :
+  comm_monoid (Ioc (0:α) 1) :=
+subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
+
+instance cancel_monoid {α : Type*} [strict_ordered_ring α] [is_domain α] :
   cancel_monoid (Ioc (0:α) 1) :=
 { mul_left_cancel := λ a b c h,
     subtype.ext $ mul_left_cancel₀ a.prop.1.ne' $ (congr_arg subtype.val h : _),
@@ -200,14 +218,7 @@ instance cancel_monoid {α : Type*} [ordered_comm_ring α] [is_domain α] :
     subtype.ext $ mul_right_cancel₀ b.prop.1.ne' $ (congr_arg subtype.val h : _),
   ..set.Ioc.monoid}
 
-instance comm_semigroup {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioc (0:α) 1) :=
-subtype.coe_injective.comm_semigroup _ coe_mul
-
-instance comm_monoid {α : Type*} [ordered_comm_semiring α] [nontrivial α] :
-  comm_monoid (Ioc (0:α) 1) :=
-subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
-
-instance cancel_comm_monoid {α : Type*} [ordered_comm_ring α] [is_domain α] :
+instance cancel_comm_monoid {α : Type*} [strict_ordered_comm_ring α] [is_domain α] :
   cancel_comm_monoid (Ioc (0:α) 1) :=
 { ..set.Ioc.cancel_monoid, ..set.Ioc.comm_monoid }
 
@@ -228,7 +239,8 @@ instance has_mul : has_mul (Ioo (0:α) 1) := { mul := λ p q, ⟨p.1 * q.1, ⟨m
 instance semigroup : semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.semigroup _ coe_mul
 
-instance comm_semigroup {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
+instance comm_semigroup {α : Type*} [strict_ordered_comm_semiring α] :
+  comm_semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_mul
 
 variables {β : Type*} [ordered_ring β]

@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import linear_algebra.free_module.finite.rank
+import linear_algebra.matrix.to_lin
 
 /-!
 # Rank of matrices

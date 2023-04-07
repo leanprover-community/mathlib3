@@ -37,3 +37,15 @@ lemma quotient' {R : Type*} [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
 end⟩
 
 end char_p
+
+lemma ideal.quotient.index_eq_zero {R : Type*} [comm_ring R] (I : ideal R) :
+  (I.to_add_subgroup.index : R ⧸ I) = 0 :=
+begin
+  rw [add_subgroup.index, nat.card_eq],
+  split_ifs with hq, swap, simp,
+  by_contra h,
+  -- TODO: can we avoid rewriting the `I.to_add_subgroup` here?
+  letI : fintype (R ⧸ I) := @fintype.of_finite _ hq,
+  have h : (fintype.card (R ⧸ I) : R ⧸ I) ≠ 0 := h,
+  simpa using h
+end

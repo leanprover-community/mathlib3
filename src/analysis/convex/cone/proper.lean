@@ -10,32 +10,27 @@ import analysis.inner_product_space.adjoint
 
 * https://ti.inf.ethz.ch/ew/lehre/ApproxSDP09/notes/conelp.pdf
 
+We define the closure of the convex cone over a real inner product space as a convex cone.
 -/
+
+-- TODO: add proper cones and farkas' lemma
+
 
 open continuous_linear_map filter
 
 namespace convex_cone
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
-/-- The closure of a convex cone inside a sequential space is a convex cone. This construction is
-mainly used for defining maps between proper cones. -/
+/-- The closure of a convex cone inside a real inner product space is a convex cone. This
+construction is mainly used for defining maps between proper cones. -/
 def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure ↑K,
-  smul_mem' :=
-  begin
-    rw ← seq_closure_eq_closure,
-    rintros c hc x ⟨seq, mem, tends⟩,
-    exact ⟨λ n, c • seq n, ⟨λ n, K.smul_mem hc (mem n), tendsto.const_smul tends c⟩⟩,
-  end,
-  add_mem' :=
-  begin
-    rw ← seq_closure_eq_closure,
-    rintros x ⟨xseq, xmem, xtends⟩ y ⟨yseq, ymem, ytends⟩,
-    exact ⟨λ n, xseq n + yseq n, ⟨λ n, K.add_mem (xmem n) (ymem n), tendsto.add xtends ytends⟩⟩,
-  end }
+  smul_mem' := λ c hc _ h₁,
+    map_mem_closure (continuous_id'.const_smul c) h₁ (λ _ h₂, K.smul_mem hc h₂),
+  add_mem' := λ _ h₁ _ h₂, map_mem_closure₂ continuous_add h₁ h₂ K.add_mem }
 
-@[simp] lemma coe_closure {K : convex_cone ℝ E} : (K.closure : set E) = _root_.closure ↑K := rfl
+@[simp] lemma coe_closure {K : convex_cone ℝ E} : (K.closure : set E) = _root_.closure K := rfl
 
 lemma mem_closure_iff_seq_limit {K : convex_cone ℝ E} {a : E} :
   a ∈ K.closure ↔ ∃ x : ℕ → E, (∀ n : ℕ, x n ∈ K) ∧ tendsto x at_top (nhds a) :=
@@ -46,7 +41,7 @@ end convex_cone
 section definitions
 
 /-- A proper cone is a convex cone `K` that is nonempty and closed. -/
-structure proper_cone (E : Type*) [inner_product_space ℝ E] [complete_space E]
+structure proper_cone (E : Type*) [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
   extends convex_cone ℝ E :=
 (nonempty'  : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
@@ -57,8 +52,8 @@ namespace proper_cone
 
 section complete_space
 
-variables {E : Type*} [inner_product_space ℝ E] [complete_space E]
-variables {F : Type*} [inner_product_space ℝ F] [complete_space F]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
 
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩

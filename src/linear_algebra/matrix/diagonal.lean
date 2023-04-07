@@ -37,7 +37,7 @@ linear_map.ext $ λ j, mul_vec_diagonal _ _ _
 lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin'.comp (linear_map.std_basis R (λ_:n, R) i) =
   (w i) • linear_map.std_basis R (λ_:n, R) i :=
-linear_map.ext $ λ x, (diagonal_mul_vec_single w _ _).trans (pi.single_smul' i (w i) _)
+linear_map.ext $ λ x, (diagonal_mul_vec_single w _ _).trans (pi.single_smul' i (w i) x)
 
 lemma diagonal_to_lin' (w : n → R) :
   (diagonal w).to_lin' = linear_map.pi (λi, w i • linear_map.proj i) :=
@@ -65,7 +65,7 @@ lemma range_diagonal [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin'.range = (⨆ i ∈ {i | w i ≠ 0}, (linear_map.std_basis K (λi, K) i).range) :=
 begin
   dsimp only [mem_set_of_eq],
-  rw [← map_top, ← supr_range_std_basis, map_supr],
+  rw [← submodule.map_top, ← supr_range_std_basis, submodule.map_supr],
   congr, funext i,
   rw [← linear_map.range_comp, diagonal_comp_std_basis, ← range_smul']
 end

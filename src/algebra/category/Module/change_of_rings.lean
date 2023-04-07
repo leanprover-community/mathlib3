@@ -70,7 +70,7 @@ def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
 @[simp] lemma restrict_scalars.smul_def {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
   {M : Module.{v} S} (r : R) (m : (restrict_scalars f).obj M) : r • m = (f r • m : M) := rfl
 
-@[simp] lemma restrict_scalars.smul_def' {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+lemma restrict_scalars.smul_def' {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
   {M : Module.{v} S} (r : R) (m : M) : (r • m : (restrict_scalars f).obj M) = (f r • m : M) := rfl
 
 @[priority 100]
@@ -110,7 +110,8 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
 def map' {M1 M2 : Module.{v} R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
-@linear_map.base_change R S M1 M2 _ _ ((algebra_map S _).comp f).to_algebra _ _ _ _ l
+-- The "by apply" part makes this require 75% fewer heartbeats to process (#16371).
+by apply (@linear_map.base_change R S M1 M2 _ _ ((algebra_map S _).comp f).to_algebra _ _ _ _ l)
 
 lemma map'_id {M : Module.{v} R} : map' f (𝟙 M) = 𝟙 _ :=
 linear_map.ext $ λ (x : obj' f M),

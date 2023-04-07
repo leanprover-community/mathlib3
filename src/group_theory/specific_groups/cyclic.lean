@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import data.nat.totient
 import group_theory.order_of_element
+import group_theory.subgroup.simple
 import tactic.group
 import group_theory.exponent
 
@@ -297,11 +298,11 @@ private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 begin
-  intros d hd hd0,
+  intros d hd hpos,
   induction d using nat.strong_rec' with d IH,
-  rcases d.eq_zero_or_pos with rfl | hd_pos,
+  rcases decidable.eq_or_ne d 0 with rfl | hd0,
   { cases fintype.card_ne_zero (eq_zero_of_zero_dvd hd) },
-  rcases card_pos.1 hd0 with ⟨a, ha'⟩,
+  rcases card_pos.1 hpos with ⟨a, ha'⟩,
   have ha : order_of a = d := (mem_filter.1 ha').2,
   have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
@@ -309,12 +310,12 @@ begin
     simp only [mem_filter, mem_range, mem_proper_divisors] at hm,
     refine IH m hm.2 (hm.1.trans hd) (finset.card_pos.2 ⟨a ^ (d / m), _⟩),
     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
-      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos] },
+      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd0] },
   have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.divisors, φ m,
-    { rw [←filter_dvd_eq_divisors hd_pos.ne', sum_card_order_of_eq_card_pow_eq_one hd_pos,
-      filter_dvd_eq_divisors hd_pos.ne', sum_totient, ←ha, card_pow_eq_one_eq_order_of_aux hn a] },
-  simpa [divisors_eq_proper_divisors_insert_self_of_pos hd_pos, ←h1] using h2,
+    { rw [←filter_dvd_eq_divisors hd0, sum_card_order_of_eq_card_pow_eq_one hd0,
+      filter_dvd_eq_divisors hd0, sum_totient, ←ha, card_pow_eq_one_eq_order_of_aux hn a] },
+  simpa [← cons_self_proper_divisors hd0, ←h1] using h2,
 end
 
 lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
@@ -328,7 +329,7 @@ begin
   apply lt_irrefl c,
   calc
     c = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
-  { simp only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0],
+  { simp only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0.ne'],
     apply congr_arg card,
     simp }
   ... = ∑ m in c.divisors.erase d, (univ.filter (λ a : α, order_of a = m)).card : by

@@ -3,12 +3,12 @@ Copyright (c) 2021 Alex Kontorovich and Heather Macbeth and Marc Masdeu. All rig
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
-
-import linear_algebra.special_linear_group
+import data.fintype.parity
+import linear_algebra.matrix.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
-import linear_algebra.general_linear_group
-
+import linear_algebra.matrix.general_linear_group
+import tactic.linear_combination
 
 /-!
 # The upper half plane and its automorphisms
@@ -30,11 +30,13 @@ open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
-/- Disable this instances as it is not the simp-normal form, and having them disabled ensures
+/- Disable these instances as they are not the simp-normal form, and having them disabled ensures
 we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
+local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
+local notation `↑ₘ[`:1024 R `]` := @coe _ (matrix (fin 2) (fin 2) R) _
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
@@ -47,6 +49,8 @@ localized "notation (name := upper_half_plane) `ℍ` := upper_half_plane" in upp
 namespace upper_half_plane
 
 instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
+
+instance can_lift : can_lift ℂ ℍ coe (λ z, 0 < z.im) := subtype.can_lift (λ z, 0 < z.im)
 
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im
@@ -81,6 +85,9 @@ lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 by { rw complex.norm_sq_pos, exact z.ne_zero }
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
+
+lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
+by simpa using div_pos z.property (norm_sq_pos z)
 
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def num (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)
@@ -154,7 +161,7 @@ begin
   change _ = (_ * (_ / _) + _) * _,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, denom, num, coe_coe, subgroup.coe_mul,
-    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_zero,
     finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end
@@ -167,7 +174,7 @@ begin
   rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, num, denom, coe_coe, subgroup.coe_mul,
-    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_zero,
     finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end
@@ -214,6 +221,11 @@ instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
 { smul_assoc := λ s g z, by { rw subgroup_on_SL_apply, apply mul_action.mul_smul } }
 
 end modular_scalar_towers
+
+lemma special_linear_group_apply {R : Type*} [comm_ring R] [algebra R ℝ] (g : SL(2, R)) (z : ℍ) :
+  g • z = mk ((((↑(↑ₘ[R] g 0 0) : ℝ) : ℂ) * z + ((↑(↑ₘ[R] g 0 1) : ℝ) : ℂ)) /
+              (((↑(↑ₘ[R] g 1 0) : ℝ) : ℂ) * z + ((↑(↑ₘ[R] g 1 1) : ℝ) : ℂ))) (g • z).property :=
+rfl
 
 @[simp] lemma coe_smul (g : GL(2, ℝ)⁺) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
@@ -266,5 +278,86 @@ lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2
   (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 := by simp
 
 end SL_modular_action
+
+section pos_real_action
+
+instance pos_real_action : mul_action {x : ℝ // 0 < x} ℍ :=
+{ smul := λ x z, mk ((x : ℝ) • z) $ by simpa using mul_pos x.2 z.2,
+  one_smul := λ z, subtype.ext $ one_smul _ _,
+  mul_smul := λ x y z, subtype.ext $ mul_smul (x : ℝ) y (z : ℂ) }
+
+variables (x : {x : ℝ // 0 < x}) (z : ℍ)
+
+@[simp] lemma coe_pos_real_smul : ↑(x • z) = (x : ℝ) • (z : ℂ) := rfl
+@[simp] lemma pos_real_im : (x • z).im = x * z.im := complex.smul_im _ _
+@[simp] lemma pos_real_re : (x • z).re = x * z.re := complex.smul_re _ _
+
+end pos_real_action
+
+section real_add_action
+
+instance : add_action ℝ ℍ :=
+{ vadd := λ x z, mk (x + z) $ by simpa using z.im_pos,
+  zero_vadd := λ z, subtype.ext $ by simp,
+  add_vadd := λ x y z, subtype.ext $ by simp [add_assoc] }
+
+variables (x : ℝ) (z : ℍ)
+
+@[simp] lemma coe_vadd : ↑(x +ᵥ z) = (x + z : ℂ) := rfl
+@[simp] lemma vadd_re : (x +ᵥ z).re = x + z.re := rfl
+@[simp] lemma vadd_im : (x +ᵥ z).im = z.im := zero_add _
+
+end real_add_action
+
+/- these next few lemmas are *not* flagged `@simp` because of the constructors on the RHS;
+instead we use the versions with coercions to `ℂ` as simp lemmas instead. -/
+lemma modular_S_smul (z : ℍ) : modular_group.S • z = mk (-z : ℂ)⁻¹ z.im_inv_neg_coe_pos :=
+by { rw special_linear_group_apply, simp [modular_group.S, neg_div, inv_neg], }
+
+lemma modular_T_zpow_smul (z : ℍ) (n : ℤ) : modular_group.T ^ n • z = (n : ℝ) +ᵥ z :=
+begin
+  rw [←subtype.coe_inj, coe_vadd, add_comm, special_linear_group_apply, coe_mk,
+    modular_group.coe_T_zpow],
+  simp only [of_apply, cons_val_zero, algebra_map.coe_one, complex.of_real_one, one_mul,
+    cons_val_one, head_cons, algebra_map.coe_zero, zero_mul, zero_add, div_one],
+end
+
+lemma modular_T_smul (z : ℍ) : modular_group.T • z = (1 : ℝ) +ᵥ z :=
+by simpa only [algebra_map.coe_one] using modular_T_zpow_smul z 1
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_eq_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 = 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v : ℝ),
+    ((•) g : ℍ → ℍ) = (λ z, v +ᵥ z) ∘ (λ z, u • z) :=
+begin
+  obtain ⟨a, b, ha, rfl⟩ := g.fin_two_exists_eq_mk_of_apply_zero_one_eq_zero hc,
+  refine ⟨⟨_, mul_self_pos.mpr ha⟩, b * a, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : ↑a * z * a + b * a = b * a + a * a * z,
+  { rw special_linear_group_apply, simpa [add_mul], },
+  ring,
+end
+
+lemma exists_SL2_smul_eq_of_apply_zero_one_ne_zero (g : SL(2, ℝ)) (hc : ↑ₘ[ℝ] g 1 0 ≠ 0) :
+  ∃ (u : {x : ℝ // 0 < x}) (v w : ℝ),
+    ((•) g : ℍ → ℍ) = ((+ᵥ) w : ℍ → ℍ) ∘ ((•) modular_group.S : ℍ → ℍ)
+                     ∘ ((+ᵥ) v : ℍ → ℍ) ∘ ((•) u : ℍ → ℍ) :=
+begin
+  have h_denom := denom_ne_zero g,
+  induction g using matrix.special_linear_group.fin_two_induction with a b c d h,
+  replace hc : c ≠ 0, { simpa using hc, },
+  refine ⟨⟨_, mul_self_pos.mpr hc⟩, c * d, a / c, _⟩,
+  ext1 ⟨z, hz⟩, ext1,
+  suffices : (↑a * z + b) / (↑c * z + d) = a / c - (c * d + ↑c * ↑c * z)⁻¹,
+  { rw special_linear_group_apply,
+    simpa only [inv_neg, modular_S_smul, subtype.coe_mk, coe_vadd, complex.of_real_mul,
+      coe_pos_real_smul, complex.real_smul, function.comp_app, complex.of_real_div] },
+  replace hc : (c : ℂ) ≠ 0, { norm_cast, assumption, },
+  replace h_denom : ↑c * z + d ≠ 0, { simpa using h_denom ⟨z, hz⟩, },
+  have h_aux : (c : ℂ) * d + ↑c * ↑c * z ≠ 0,
+  { rw [mul_assoc, ← mul_add, add_comm], exact mul_ne_zero hc h_denom, },
+  replace h : (a * d - b * c : ℂ) = (1 : ℂ), { norm_cast, assumption, },
+  field_simp,
+  linear_combination (-(z * ↑c ^ 2) - ↑c * ↑d) * h,
+end
 
 end upper_half_plane

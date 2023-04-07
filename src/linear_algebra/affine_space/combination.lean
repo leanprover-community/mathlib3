@@ -5,6 +5,8 @@ Authors: Joseph Myers
 -/
 import algebra.invertible
 import algebra.indicator_function
+import algebra.module.big_operators
+import data.fintype.big_operators
 import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
@@ -40,7 +42,7 @@ These definitions are for sums over a `finset`; versions for a
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 namespace finset
 
@@ -71,6 +73,17 @@ by simp [weighted_vsub_of_point, linear_map.sum_apply]
 @[simp] lemma weighted_vsub_of_point_apply_const (w : ι → k) (p : P) (b : P) :
   s.weighted_vsub_of_point (λ _, p) b w = (∑ i in s, w i) • (p -ᵥ b) :=
 by rw [weighted_vsub_of_point_apply, sum_smul]
+
+/-- `weighted_vsub_of_point` gives equal results for two families of weights and two families of
+points that are equal on `s`. -/
+lemma weighted_vsub_of_point_congr {w₁ w₂ : ι → k} (hw : ∀ i ∈ s, w₁ i = w₂ i) {p₁ p₂ : ι → P}
+  (hp : ∀ i ∈ s, p₁ i = p₂ i) (b : P) :
+  s.weighted_vsub_of_point p₁ b w₁ = s.weighted_vsub_of_point p₂ b w₂ :=
+begin
+  simp_rw weighted_vsub_of_point_apply,
+  convert sum_congr rfl (λ i hi, _),
+  rw [hw i hi, hp i hi]
+end
 
 /-- Given a family of points, if we use a member of the family as a base point, the
 `weighted_vsub_of_point` does not depend on the value of the weights at this point. -/
@@ -122,7 +135,7 @@ end
 
 /-- The weighted sum is unaffected by removing the base point, if
 present, from the set of points. -/
-@[simp] lemma weighted_vsub_of_point_erase (w : ι → k) (p : ι → P) (i : ι) :
+@[simp] lemma weighted_vsub_of_point_erase [decidable_eq ι] (w : ι → k) (p : ι → P) (i : ι) :
   (s.erase i).weighted_vsub_of_point p (p i) w = s.weighted_vsub_of_point p (p i) w :=
 begin
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],
@@ -179,6 +192,44 @@ lemma sum_smul_const_vsub_eq_sub_weighted_vsub_of_point (w : ι → k) (p₂ : �
   ∑ i in s, w i • (p₁ -ᵥ p₂ i) = (∑ i in s, w i) • (p₁ -ᵥ b) - s.weighted_vsub_of_point p₂ b w :=
 by rw [sum_smul_vsub_eq_weighted_vsub_of_point_sub, weighted_vsub_of_point_apply_const]
 
+/-- A weighted sum may be split into such sums over two subsets. -/
+lemma weighted_vsub_of_point_sdiff [decidable_eq ι] {s₂ : finset ι} (h : s₂ ⊆ s) (w : ι → k)
+  (p : ι → P) (b : P) : (s \ s₂).weighted_vsub_of_point p b w + s₂.weighted_vsub_of_point p b w =
+    s.weighted_vsub_of_point p b w :=
+by simp_rw [weighted_vsub_of_point_apply, sum_sdiff h]
+
+/-- A weighted sum may be split into a subtraction of such sums over two subsets. -/
+lemma weighted_vsub_of_point_sdiff_sub [decidable_eq ι] {s₂ : finset ι} (h : s₂ ⊆ s) (w : ι → k)
+  (p : ι → P) (b : P) : (s \ s₂).weighted_vsub_of_point p b w - s₂.weighted_vsub_of_point p b (-w) =
+    s.weighted_vsub_of_point p b w :=
+by rw [map_neg, sub_neg_eq_add, s.weighted_vsub_of_point_sdiff h]
+
+/-- A weighted sum over `s.subtype pred` equals one over `s.filter pred`. -/
+lemma weighted_vsub_of_point_subtype_eq_filter (w : ι → k) (p : ι → P) (b : P)
+  (pred : ι → Prop) [decidable_pred pred] :
+  (s.subtype pred).weighted_vsub_of_point (λ i, p i) b (λ i, w i) =
+    (s.filter pred).weighted_vsub_of_point p b w :=
+by rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←sum_subtype_eq_sum_filter]
+
+/-- A weighted sum over `s.filter pred` equals one over `s` if all the weights at indices in `s`
+not satisfying `pred` are zero. -/
+lemma weighted_vsub_of_point_filter_of_ne (w : ι → k) (p : ι → P) (b : P) {pred : ι → Prop}
+  [decidable_pred pred] (h : ∀ i ∈ s, w i ≠ 0 → pred i) :
+  (s.filter pred).weighted_vsub_of_point p b w = s.weighted_vsub_of_point p b w :=
+begin
+  rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, sum_filter_of_ne],
+  intros i hi hne,
+  refine h i hi _,
+  intro hw,
+  simpa [hw] using hne,
+end
+
+/-- A constant multiplier of the weights in `weighted_vsub_of_point` may be moved outside the
+sum. -/
+lemma weighted_vsub_of_point_const_smul (w : ι → k) (p : ι → P) (b : P) (c : k) :
+  s.weighted_vsub_of_point p b (c • w) = c • s.weighted_vsub_of_point p b w :=
+by simp_rw [weighted_vsub_of_point_apply, smul_sum, pi.smul_apply, smul_smul, smul_eq_mul]
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, as a linear map on the weights.  This is
 intended to be used when the sum of the weights is 0; that condition
@@ -213,6 +264,12 @@ by rw [weighted_vsub, weighted_vsub_of_point_apply_const, h, zero_smul]
   (∅ : finset ι).weighted_vsub p w = (0:V) :=
 by simp [weighted_vsub_apply]
 
+/-- `weighted_vsub` gives equal results for two families of weights and two families of points
+that are equal on `s`. -/
+lemma weighted_vsub_congr {w₁ w₂ : ι → k} (hw : ∀ i ∈ s, w₁ i = w₂ i) {p₁ p₂ : ι → P}
+  (hp : ∀ i ∈ s, p₁ i = p₂ i) : s.weighted_vsub p₁ w₁ = s.weighted_vsub p₂ w₂ :=
+s.weighted_vsub_of_point_congr hw hp _
+
 /-- The weighted sum is unaffected by changing the weights to the
 corresponding indicator function and adding points to the set. -/
 lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι} (h : s₁ ⊆ s₂) :
@@ -246,6 +303,36 @@ lemma sum_smul_const_vsub_eq_neg_weighted_vsub (w : ι → k) (p₂ : ι → P) 
   ∑ i in s, w i • (p₁ -ᵥ p₂ i) = -s.weighted_vsub p₂ w :=
 by rw [sum_smul_vsub_eq_weighted_vsub_sub, s.weighted_vsub_apply_const _ _ h, zero_sub]
 
+/-- A weighted sum may be split into such sums over two subsets. -/
+lemma weighted_vsub_sdiff [decidable_eq ι] {s₂ : finset ι} (h : s₂ ⊆ s) (w : ι → k)
+  (p : ι → P) : (s \ s₂).weighted_vsub p w + s₂.weighted_vsub p w = s.weighted_vsub p w :=
+s.weighted_vsub_of_point_sdiff h _ _ _
+
+/-- A weighted sum may be split into a subtraction of such sums over two subsets. -/
+lemma weighted_vsub_sdiff_sub [decidable_eq ι] {s₂ : finset ι} (h : s₂ ⊆ s) (w : ι → k)
+  (p : ι → P) : (s \ s₂).weighted_vsub p w - s₂.weighted_vsub p (-w) = s.weighted_vsub p w :=
+s.weighted_vsub_of_point_sdiff_sub h _ _ _
+
+/-- A weighted sum over `s.subtype pred` equals one over `s.filter pred`. -/
+lemma weighted_vsub_subtype_eq_filter (w : ι → k) (p : ι → P) (pred : ι → Prop)
+  [decidable_pred pred] :
+  (s.subtype pred).weighted_vsub (λ i, p i) (λ i, w i) = (s.filter pred).weighted_vsub p w :=
+s.weighted_vsub_of_point_subtype_eq_filter _ _ _ _
+
+/-- A weighted sum over `s.filter pred` equals one over `s` if all the weights at indices in `s`
+not satisfying `pred` are zero. -/
+lemma weighted_vsub_filter_of_ne (w : ι → k) (p : ι → P) {pred : ι → Prop}
+  [decidable_pred pred] (h : ∀ i ∈ s, w i ≠ 0 → pred i) :
+  (s.filter pred).weighted_vsub p w = s.weighted_vsub p w :=
+s.weighted_vsub_of_point_filter_of_ne _ _ _ h
+
+/-- A constant multiplier of the weights in `weighted_vsub_of` may be moved outside the sum. -/
+lemma weighted_vsub_const_smul (w : ι → k) (p : ι → P) (c : k) :
+  s.weighted_vsub p (c • w) = c • s.weighted_vsub p w :=
+s.weighted_vsub_of_point_const_smul _ _ _ _
+
+variables (k)
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, added to that base point, as an affine map on
 the weights.  This is intended to be used when the sum of the weights
@@ -261,8 +348,10 @@ def affine_combination (p : ι → P) : (ι → k) →ᵃ[k] P :=
 /-- The linear map corresponding to `affine_combination` is
 `weighted_vsub`. -/
 @[simp] lemma affine_combination_linear (p : ι → P) :
-  (s.affine_combination p : (ι → k) →ᵃ[k] P).linear = s.weighted_vsub p :=
+  (s.affine_combination k p).linear = s.weighted_vsub p :=
 rfl
+
+variables {k}
 
 /-- Applying `affine_combination` with given weights.  This is for the
 case where a result involving a default base point is OK (for example,
@@ -272,35 +361,41 @@ point with
 `affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one` and
 then using `weighted_vsub_of_point_apply`. -/
 lemma affine_combination_apply (w : ι → k) (p : ι → P) :
-  s.affine_combination p w =
+  s.affine_combination k p w =
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty) :=
 rfl
 
 /-- The value of `affine_combination`, where the given points are equal. -/
 @[simp] lemma affine_combination_apply_const (w : ι → k) (p : P) (h : ∑ i in s, w i = 1) :
-  s.affine_combination (λ _, p) w = p :=
+  s.affine_combination k (λ _, p) w = p :=
 by rw [affine_combination_apply, s.weighted_vsub_of_point_apply_const, h, one_smul, vsub_vadd]
+
+/-- `affine_combination` gives equal results for two families of weights and two families of
+points that are equal on `s`. -/
+lemma affine_combination_congr {w₁ w₂ : ι → k} (hw : ∀ i ∈ s, w₁ i = w₂ i) {p₁ p₂ : ι → P}
+  (hp : ∀ i ∈ s, p₁ i = p₂ i) : s.affine_combination k p₁ w₁ = s.affine_combination k p₂ w₂ :=
+by simp_rw [affine_combination_apply, s.weighted_vsub_of_point_congr hw hp]
 
 /-- `affine_combination` gives the sum with any base point, when the
 sum of the weights is 1. -/
 lemma affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one (w : ι → k) (p : ι → P)
     (h : ∑ i in s, w i = 1) (b : P) :
-  s.affine_combination p w = s.weighted_vsub_of_point p b w +ᵥ b :=
+  s.affine_combination k p w = s.weighted_vsub_of_point p b w +ᵥ b :=
 s.weighted_vsub_of_point_vadd_eq_of_sum_eq_one w p h _ _
 
 /-- Adding a `weighted_vsub` to an `affine_combination`. -/
 lemma weighted_vsub_vadd_affine_combination (w₁ w₂ : ι → k) (p : ι → P) :
-  s.weighted_vsub p w₁ +ᵥ s.affine_combination p w₂ = s.affine_combination p (w₁ + w₂) :=
+  s.weighted_vsub p w₁ +ᵥ s.affine_combination k p w₂ = s.affine_combination k p (w₁ + w₂) :=
 by rw [←vadd_eq_add, affine_map.map_vadd, affine_combination_linear]
 
 /-- Subtracting two `affine_combination`s. -/
 lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
-  s.affine_combination p w₁ -ᵥ s.affine_combination p w₂ = s.weighted_vsub p (w₁ - w₂) :=
+  s.affine_combination k p w₁ -ᵥ s.affine_combination k p w₂ = s.weighted_vsub p (w₁ - w₂) :=
 by rw [←affine_map.linear_map_vsub, affine_combination_linear, vsub_eq_sub]
 
-lemma attach_affine_combination_of_injective
+lemma attach_affine_combination_of_injective [decidable_eq P]
   (s : finset P) (w : P → k) (f : s → P) (hf : function.injective f) :
-  s.attach.affine_combination f (w ∘ f) = (image f univ).affine_combination id w :=
+  s.attach.affine_combination k f (w ∘ f) = (image f univ).affine_combination k id w :=
 begin
   simp only [affine_combination, weighted_vsub_of_point_apply, id.def, vadd_right_cancel_iff,
     function.comp_app, affine_map.coe_mk],
@@ -313,8 +408,8 @@ begin
 end
 
 lemma attach_affine_combination_coe (s : finset P) (w : P → k) :
-  s.attach.affine_combination (coe : s → P) (w ∘ coe) = s.affine_combination id w :=
-by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_injective,
+  s.attach.affine_combination k (coe : s → P) (w ∘ coe) = s.affine_combination k id w :=
+by classical; rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_injective,
   univ_eq_attach, attach_image_coe]
 
 omit S
@@ -330,7 +425,7 @@ by simp [s.weighted_vsub_apply, vsub_eq_sub, smul_sub, ← finset.sum_smul, hw]
 combinations. -/
 @[simp] lemma affine_combination_eq_linear_combination (s : finset ι) (p : ι → V) (w : ι → k)
   (hw : ∑ i in s, w i = 1) :
-  s.affine_combination p w = ∑ i in s, w i • p i :=
+  s.affine_combination k p w = ∑ i in s, w i • p i :=
 by simp [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p hw 0]
 
 include S
@@ -339,7 +434,7 @@ include S
 and has weight 1 and the other points in the set have weight 0. -/
 @[simp] lemma affine_combination_of_eq_one_of_eq_zero (w : ι → k) (p : ι → P) {i : ι}
     (his : i ∈ s) (hwi : w i = 1) (hw0 : ∀ i2 ∈ s, i2 ≠ i → w i2 = 0) :
-  s.affine_combination p w = p i :=
+  s.affine_combination k p w = p i :=
 begin
   have h1 : ∑ i in s, w i = 1 := hwi ▸ sum_eq_single i hw0 (λ h, false.elim (h his)),
   rw [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p h1 (p i),
@@ -356,7 +451,7 @@ end
 corresponding indicator function and adding points to the set. -/
 lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι}
     (h : s₁ ⊆ s₂) :
-  s₁.affine_combination p w = s₂.affine_combination p (set.indicator ↑s₁ w) :=
+  s₁.affine_combination k p w = s₂.affine_combination k p (set.indicator ↑s₁ w) :=
 by rw [affine_combination_apply, affine_combination_apply,
        weighted_vsub_of_point_indicator_subset _ _ _ h]
 
@@ -364,13 +459,13 @@ by rw [affine_combination_apply, affine_combination_apply,
 affine combination with the same points and weights over the original
 `finset`. -/
 lemma affine_combination_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
-  (s₂.map e).affine_combination p w = s₂.affine_combination (p ∘ e) (w ∘ e) :=
+  (s₂.map e).affine_combination k p w = s₂.affine_combination k (p ∘ e) (w ∘ e) :=
 by simp_rw [affine_combination_apply, weighted_vsub_of_point_map]
 
 /-- A weighted sum of pairwise subtractions, expressed as a subtraction of two `affine_combination`
 expressions. -/
 lemma sum_smul_vsub_eq_affine_combination_vsub (w : ι → k) (p₁ p₂ : ι → P) :
-  ∑ i in s, w i • (p₁ i -ᵥ p₂ i) = s.affine_combination p₁ w -ᵥ s.affine_combination p₂ w :=
+  ∑ i in s, w i • (p₁ i -ᵥ p₂ i) = s.affine_combination k p₁ w -ᵥ s.affine_combination k p₂ w :=
 begin
   simp_rw [affine_combination_apply, vadd_vsub_vadd_cancel_right],
   exact s.sum_smul_vsub_eq_weighted_vsub_of_point_sub _ _ _ _
@@ -380,15 +475,55 @@ end
 sum of the weights is 1. -/
 lemma sum_smul_vsub_const_eq_affine_combination_vsub (w : ι → k) (p₁ : ι → P) (p₂ : P)
   (h : ∑ i in s, w i = 1) :
-  ∑ i in s, w i • (p₁ i -ᵥ p₂) = s.affine_combination p₁ w -ᵥ p₂ :=
+  ∑ i in s, w i • (p₁ i -ᵥ p₂) = s.affine_combination k p₁ w -ᵥ p₂ :=
 by rw [sum_smul_vsub_eq_affine_combination_vsub, affine_combination_apply_const _ _ _ h]
 
 /-- A weighted sum of pairwise subtractions, where the point on the left is constant and the
 sum of the weights is 1. -/
 lemma sum_smul_const_vsub_eq_vsub_affine_combination (w : ι → k) (p₂ : ι → P) (p₁ : P)
   (h : ∑ i in s, w i = 1) :
-  ∑ i in s, w i • (p₁ -ᵥ p₂ i) = p₁ -ᵥ s.affine_combination p₂ w :=
+  ∑ i in s, w i • (p₁ -ᵥ p₂ i) = p₁ -ᵥ s.affine_combination k p₂ w :=
 by rw [sum_smul_vsub_eq_affine_combination_vsub, affine_combination_apply_const _ _ _ h]
+
+/-- A weighted sum may be split into a subtraction of affine combinations over two subsets. -/
+lemma affine_combination_sdiff_sub [decidable_eq ι] {s₂ : finset ι} (h : s₂ ⊆ s) (w : ι → k)
+  (p : ι → P) :
+  (s \ s₂).affine_combination k p w -ᵥ s₂.affine_combination k p (-w) = s.weighted_vsub p w :=
+begin
+  simp_rw [affine_combination_apply, vadd_vsub_vadd_cancel_right],
+  exact s.weighted_vsub_sdiff_sub h _ _
+end
+
+/-- If a weighted sum is zero and one of the weights is `-1`, the corresponding point is
+the affine combination of the other points with the given weights. -/
+lemma affine_combination_eq_of_weighted_vsub_eq_zero_of_eq_neg_one {w : ι → k} {p : ι → P}
+  (hw : s.weighted_vsub p w = (0 : V)) {i : ι} [decidable_pred (≠ i)] (his : i ∈ s)
+  (hwi : w i = -1) : (s.filter (≠ i)).affine_combination k p w = p i :=
+begin
+  classical,
+  rw [←@vsub_eq_zero_iff_eq V, ←hw,
+      ←s.affine_combination_sdiff_sub (singleton_subset_iff.2 his), sdiff_singleton_eq_erase,
+      ←filter_ne'],
+  congr,
+  refine (affine_combination_of_eq_one_of_eq_zero _ _ _ (mem_singleton_self _) _ _).symm,
+  { simp [hwi] },
+  { simp }
+end
+
+/-- An affine combination over `s.subtype pred` equals one over `s.filter pred`. -/
+lemma affine_combination_subtype_eq_filter (w : ι → k) (p : ι → P) (pred : ι → Prop)
+  [decidable_pred pred] :
+  (s.subtype pred).affine_combination k (λ i, p i) (λ i, w i) =
+  (s.filter pred).affine_combination k p w :=
+by rw [affine_combination_apply, affine_combination_apply, weighted_vsub_of_point_subtype_eq_filter]
+
+/-- An affine combination over `s.filter pred` equals one over `s` if all the weights at indices
+in `s` not satisfying `pred` are zero. -/
+lemma affine_combination_filter_of_ne (w : ι → k) (p : ι → P) {pred : ι → Prop}
+  [decidable_pred pred] (h : ∀ i ∈ s, w i ≠ 0 → pred i) :
+  (s.filter pred).affine_combination k p w = s.affine_combination k p w :=
+by rw [affine_combination_apply, affine_combination_apply,
+       s.weighted_vsub_of_point_filter_of_ne _ _ _ h]
 
 variables {V}
 
@@ -406,6 +541,7 @@ lemma eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype {v 
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = x),
     v = fs.weighted_vsub_of_point (λ (i : s), p i) b w :=
 begin
+  classical,
   simp_rw weighted_vsub_of_point_apply,
   split,
   { rintros ⟨fs, hfs, w, rfl, rfl⟩,
@@ -443,9 +579,9 @@ subset. -/
 lemma eq_affine_combination_subset_iff_eq_affine_combination_subtype {p0 : P} {s : set ι}
     {p : ι → P} :
   (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = 1),
-    p0 = fs.affine_combination p w) ↔
+    p0 = fs.affine_combination k p w) ↔
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = 1),
-    p0 = fs.affine_combination (λ (i : s), p i) w :=
+    p0 = fs.affine_combination k (λ (i : s), p i) w :=
 begin
   simp_rw [affine_combination_apply, eq_vadd_iff_vsub_eq],
   exact eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype
@@ -456,7 +592,7 @@ variables {k V}
 /-- Affine maps commute with affine combinations. -/
 lemma map_affine_combination {V₂ P₂ : Type*} [add_comm_group V₂] [module k V₂] [affine_space V₂ P₂]
   (p : ι → P) (w : ι → k) (hw : s.sum w = 1) (f : P →ᵃ[k] P₂) :
-  f (s.affine_combination p w) = s.affine_combination (f ∘ p) w :=
+  f (s.affine_combination k p w) = s.affine_combination k (f ∘ p) w :=
 begin
   have b := classical.choice (infer_instance : affine_space V P).nonempty,
   have b₂ := classical.choice (infer_instance : affine_space V₂ P₂).nonempty,
@@ -466,6 +602,120 @@ begin
   simp only [weighted_vsub_of_point_apply, ring_hom.id_apply, affine_map.map_vadd,
     linear_map.map_smulₛₗ, affine_map.linear_map_vsub, linear_map.map_sum],
 end
+
+variables (k)
+
+omit S
+
+/-- Weights for expressing a single point as an affine combination. -/
+def affine_combination_single_weights [decidable_eq ι] (i : ι) : ι → k :=
+function.update (function.const ι 0) i 1
+
+@[simp] lemma affine_combination_single_weights_apply_self [decidable_eq ι] (i : ι) :
+  affine_combination_single_weights k i i = 1 :=
+by simp [affine_combination_single_weights]
+
+@[simp] lemma affine_combination_single_weights_apply_of_ne [decidable_eq ι] {i j : ι} (h : j ≠ i) :
+  affine_combination_single_weights k i j = 0 :=
+by simp [affine_combination_single_weights, h]
+
+@[simp] lemma sum_affine_combination_single_weights [decidable_eq ι] {i : ι} (h : i ∈ s) :
+  ∑ j in s, affine_combination_single_weights k i j = 1 :=
+begin
+  rw ←affine_combination_single_weights_apply_self k i,
+  exact sum_eq_single_of_mem i h (λ j _ hj, affine_combination_single_weights_apply_of_ne k hj)
+end
+
+/-- Weights for expressing the subtraction of two points as a `weighted_vsub`. -/
+def weighted_vsub_vsub_weights [decidable_eq ι] (i j : ι) : ι → k :=
+affine_combination_single_weights k i - affine_combination_single_weights k j
+
+@[simp] lemma weighted_vsub_vsub_weights_self [decidable_eq ι] (i : ι) :
+  weighted_vsub_vsub_weights k i i = 0 :=
+by simp [weighted_vsub_vsub_weights]
+
+@[simp] lemma weighted_vsub_vsub_weights_apply_left [decidable_eq ι] {i j : ι} (h : i ≠ j) :
+  weighted_vsub_vsub_weights k i j i = 1 :=
+by simp [weighted_vsub_vsub_weights, h]
+
+@[simp] lemma weighted_vsub_vsub_weights_apply_right [decidable_eq ι] {i j : ι} (h : i ≠ j) :
+  weighted_vsub_vsub_weights k i j j = -1 :=
+by simp [weighted_vsub_vsub_weights, h.symm]
+
+@[simp] lemma weighted_vsub_vsub_weights_apply_of_ne [decidable_eq ι] {i j t : ι} (hi : t ≠ i)
+  (hj : t ≠ j) : weighted_vsub_vsub_weights k i j t = 0 :=
+by simp [weighted_vsub_vsub_weights, hi, hj]
+
+@[simp] lemma sum_weighted_vsub_vsub_weights [decidable_eq ι] {i j : ι} (hi : i ∈ s) (hj : j ∈ s) :
+  ∑ t in s, weighted_vsub_vsub_weights k i j t = 0 :=
+begin
+  simp_rw [weighted_vsub_vsub_weights, pi.sub_apply, sum_sub_distrib],
+  simp [hi, hj]
+end
+
+variables {k}
+
+/-- Weights for expressing `line_map` as an affine combination. -/
+def affine_combination_line_map_weights [decidable_eq ι] (i j : ι) (c : k) : ι → k :=
+c • weighted_vsub_vsub_weights k j i + affine_combination_single_weights k i
+
+@[simp] lemma affine_combination_line_map_weights_self [decidable_eq ι] (i : ι) (c : k) :
+  affine_combination_line_map_weights i i c = affine_combination_single_weights k i :=
+by simp [affine_combination_line_map_weights]
+
+@[simp] lemma affine_combination_line_map_weights_apply_left [decidable_eq ι] {i j : ι}
+  (h : i ≠ j) (c : k) : affine_combination_line_map_weights i j c i = 1 - c :=
+by simp [affine_combination_line_map_weights, h.symm, sub_eq_neg_add]
+
+@[simp] lemma affine_combination_line_map_weights_apply_right [decidable_eq ι] {i j : ι}
+  (h : i ≠ j) (c : k) : affine_combination_line_map_weights i j c j = c :=
+by simp [affine_combination_line_map_weights, h.symm]
+
+@[simp] lemma affine_combination_line_map_weights_apply_of_ne [decidable_eq ι] {i j t : ι}
+  (hi : t ≠ i) (hj : t ≠ j) (c : k) : affine_combination_line_map_weights i j c t = 0 :=
+by simp [affine_combination_line_map_weights, hi, hj]
+
+@[simp] lemma sum_affine_combination_line_map_weights [decidable_eq ι] {i j : ι} (hi : i ∈ s)
+  (hj : j ∈ s) (c : k) : ∑ t in s, affine_combination_line_map_weights i j c t = 1 :=
+begin
+  simp_rw [affine_combination_line_map_weights, pi.add_apply, sum_add_distrib],
+  simp [hi, hj, ←mul_sum]
+end
+
+include S
+
+variables (k)
+
+/-- An affine combination with `affine_combination_single_weights` gives the specified point. -/
+@[simp] lemma affine_combination_affine_combination_single_weights [decidable_eq ι] (p : ι → P)
+  {i : ι} (hi : i ∈ s) : s.affine_combination k p (affine_combination_single_weights k i) = p i :=
+begin
+  refine s.affine_combination_of_eq_one_of_eq_zero _ _ hi (by simp) _,
+  rintro j - hj,
+  simp [hj]
+end
+
+/-- A weighted subtraction with `weighted_vsub_vsub_weights` gives the result of subtracting the
+specified points. -/
+@[simp] lemma weighted_vsub_weighted_vsub_vsub_weights [decidable_eq ι] (p : ι → P) {i j : ι}
+  (hi : i ∈ s) (hj : j ∈ s) : s.weighted_vsub p (weighted_vsub_vsub_weights k i j) = p i -ᵥ p j :=
+begin
+  rw [weighted_vsub_vsub_weights, ←affine_combination_vsub,
+      s.affine_combination_affine_combination_single_weights k p hi,
+      s.affine_combination_affine_combination_single_weights k p hj]
+end
+
+variables {k}
+
+/-- An affine combination with `affine_combination_line_map_weights` gives the result of
+`line_map`. -/
+@[simp] lemma affine_combination_affine_combination_line_map_weights [decidable_eq ι] (p : ι → P)
+  {i j : ι} (hi : i ∈ s) (hj : j ∈ s) (c : k) :
+  s.affine_combination k p (affine_combination_line_map_weights i j c) =
+    affine_map.line_map (p i) (p j) c :=
+by rw [affine_combination_line_map_weights, ←weighted_vsub_vadd_affine_combination,
+       weighted_vsub_const_smul, s.affine_combination_affine_combination_single_weights k p hi,
+       s.weighted_vsub_weighted_vsub_vsub_weights k p hj hi, affine_map.line_map_apply]
 
 end finset
 
@@ -520,11 +770,11 @@ include V
 is intended to be used in the case where the number of points,
 converted to `k`, is not zero. -/
 def centroid (p : ι → P) : P :=
-s.affine_combination p (s.centroid_weights k)
+s.affine_combination k p (s.centroid_weights k)
 
 /-- The definition of the centroid. -/
 lemma centroid_def (p : ι → P) :
-  s.centroid k p = s.affine_combination p (s.centroid_weights k) :=
+  s.centroid k p = s.affine_combination k p (s.centroid_weights k) :=
 rfl
 
 lemma centroid_univ (s : finset P) :
@@ -538,7 +788,7 @@ by simp [centroid_def, affine_combination_apply]
 
 /-- The centroid of two points, expressed directly as adding a vector
 to a point. -/
-lemma centroid_pair [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
+lemma centroid_pair [decidable_eq ι] [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
   ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
 begin
   by_cases h : i₁ = i₂,
@@ -619,7 +869,7 @@ include V
 
 /-- The centroid as an affine combination over a `fintype`. -/
 lemma centroid_eq_affine_combination_fintype [fintype ι] (p : ι → P) :
-  s.centroid k p = univ.affine_combination p (s.centroid_weights_indicator k) :=
+  s.centroid k p = univ.affine_combination k p (s.centroid_weights_indicator k) :=
 affine_combination_indicator_subset _ _ (subset_univ _)
 
 /-- An indexed family of points that is injective on the given
@@ -662,8 +912,8 @@ have the same centroid. -/
 lemma centroid_eq_of_inj_on_of_image_eq {p : ι → P} (hi : ∀ i j ∈ s, p i = p j → i = j)
   {p₂ : ι₂ → P} (hi₂ : ∀ i j ∈ s₂, p₂ i = p₂ j → i = j) (he : p '' ↑s = p₂ '' ↑s₂) :
   s.centroid k p = s₂.centroid k p₂ :=
-by rw [s.centroid_eq_centroid_image_of_inj_on k hi rfl,
-       s₂.centroid_eq_centroid_image_of_inj_on k hi₂ he]
+by classical; rw [s.centroid_eq_centroid_image_of_inj_on k hi rfl,
+                  s₂.centroid_eq_centroid_image_of_inj_on k hi₂ he]
 
 end finset
 
@@ -680,6 +930,7 @@ lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub p w ∈ vector_span k (set.range p) :=
 begin
+  classical,
   rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩,
   { resetI, simp [finset.eq_empty_of_is_empty s] },
   { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
@@ -701,22 +952,23 @@ end
 nontrivial. -/
 lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 1) (p : ι → P) :
-  s.affine_combination p w ∈ affine_span k (set.range p) :=
+  s.affine_combination k p w ∈ affine_span k (set.range p) :=
 begin
+  classical,
   have hnz : ∑ i in s, w i ≠ 0 := h.symm ▸ one_ne_zero,
   have hn : s.nonempty := finset.nonempty_of_sum_ne_zero hnz,
   cases hn with i1 hi1,
   let w1 : ι → k := function.update (function.const ι 0) i1 1,
   have hw1 : ∑ i in s, w1 i = 1,
   { rw [finset.sum_update_of_mem hi1, finset.sum_const_zero, add_zero] },
-  have hw1s : s.affine_combination p w1 = p i1 :=
+  have hw1s : s.affine_combination k p w1 = p i1 :=
     s.affine_combination_of_eq_one_of_eq_zero w1 p hi1 (function.update_same _ _ _)
                                               (λ _ _ hne, function.update_noteq hne _ _),
-  have hv : s.affine_combination p w -ᵥ p i1 ∈ (affine_span k (set.range p)).direction,
+  have hv : s.affine_combination k p w -ᵥ p i1 ∈ (affine_span k (set.range p)).direction,
   { rw [direction_affine_span, ←hw1s, finset.affine_combination_vsub],
     apply weighted_vsub_mem_vector_span,
     simp [pi.sub_apply, h, hw1] },
-  rw ←vsub_vadd (s.affine_combination p w) (p i1),
+  rw ←vsub_vadd (s.affine_combination k p w) (p i1),
   exact affine_subspace.vadd_mem_of_mem_direction hv (mem_affine_span k (set.mem_range_self _))
 end
 
@@ -728,6 +980,7 @@ lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
   v ∈ vector_span k (set.range p) ↔
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub p w :=
 begin
+  classical,
   split,
   { rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩, swap,
     { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
@@ -770,8 +1023,9 @@ variables {k}
 `eq_affine_combination_of_mem_affine_span_of_fintype`. -/
 lemma eq_affine_combination_of_mem_affine_span {p1 : P} {p : ι → P}
     (h : p1 ∈ affine_span k (set.range p)) :
-  ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
+  ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination k p w :=
 begin
+  classical,
   have hn : ((affine_span k (set.range p)) : set P).nonempty := ⟨p1, h⟩,
   rw [affine_span_nonempty, set.range_nonempty_iff_nonempty] at hn,
   cases hn with i0,
@@ -790,7 +1044,7 @@ begin
   let w0 : ι → k := function.update (function.const ι 0) i0 1,
   have hw0 : ∑ i in s', w0 i = 1,
   { rw [finset.sum_update_of_mem (finset.mem_insert_self _ _), finset.sum_const_zero, add_zero] },
-  have hw0s : s'.affine_combination p w0 = p i0 :=
+  have hw0s : s'.affine_combination k p w0 = p i0 :=
     s'.affine_combination_of_eq_one_of_eq_zero w0 p
                                                (finset.mem_insert_self _ _)
                                                (function.update_same _ _ _)
@@ -803,8 +1057,9 @@ end
 
 lemma eq_affine_combination_of_mem_affine_span_of_fintype [fintype ι] {p1 : P} {p : ι → P}
   (h : p1 ∈ affine_span k (set.range p)) :
-  ∃ (w : ι → k) (hw : ∑ i, w i = 1), p1 = finset.univ.affine_combination p w :=
+  ∃ (w : ι → k) (hw : ∑ i, w i = 1), p1 = finset.univ.affine_combination k p w :=
 begin
+  classical,
   obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span h,
   refine ⟨(s : set ι).indicator w, _, finset.affine_combination_indicator_subset w p s.subset_univ⟩,
   simp only [finset.mem_coe, set.indicator_apply, ← hw],
@@ -818,7 +1073,7 @@ if it is an `affine_combination` with sum of weights 1, provided the
 underlying ring is nontrivial. -/
 lemma mem_affine_span_iff_eq_affine_combination [nontrivial k] {p1 : P} {p : ι → P} :
   p1 ∈ affine_span k (set.range p) ↔
-    ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
+    ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination k p w :=
 begin
   split,
   { exact eq_affine_combination_of_mem_affine_span },

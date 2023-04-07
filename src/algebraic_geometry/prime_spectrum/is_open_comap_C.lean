@@ -31,7 +31,7 @@ def image_of_Df (f) : set (prime_spectrum R) :=
 
 lemma is_open_image_of_Df : is_open (image_of_Df f) :=
 begin
-  rw [image_of_Df, set_of_exists (λ i (x : prime_spectrum R), coeff f i ∉ x.val)],
+  rw [image_of_Df, set_of_exists (λ i (x : prime_spectrum R), coeff f i ∉ x.as_ideal)],
   exact is_open_Union (λ i, is_open_basic_open),
 end
 
@@ -48,11 +48,13 @@ morphism `C⁺ : Spec R[x] → Spec R`. -/
 lemma image_of_Df_eq_comap_C_compl_zero_locus :
   image_of_Df f = prime_spectrum.comap (C : R →+* R[X]) '' (zero_locus {f})ᶜ :=
 begin
-  refine ext (λ x, ⟨λ hx, ⟨⟨map C x.val, (is_prime_map_C_of_is_prime x.property)⟩, ⟨_, _⟩⟩, _⟩),
-  { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],
+  ext x,
+  refine ⟨λ hx, ⟨⟨map C x.as_ideal, (is_prime_map_C_of_is_prime x.is_prime)⟩, ⟨_, _⟩⟩, _⟩,
+  { rw [mem_compl_iff, mem_zero_locus, singleton_subset_iff],
     cases hx with i hi,
     exact λ a, hi (mem_map_C_iff.mp a i) },
-  { refine subtype.ext (ext (λ x, ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩)),
+  { ext x,
+    refine ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩,
     rw ← @coeff_C_zero R x _,
     exact mem_map_C_iff.mp h 0 },
   { rintro ⟨xli, complement, rfl⟩,

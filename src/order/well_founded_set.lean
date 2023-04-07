@@ -6,9 +6,13 @@ Authors: Aaron Anderson
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
+import tactic.tfae
 
 /-!
 # Well-founded sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A well-founded subset of an ordered type is one on which the relation `<` is well-founded.
 
@@ -95,6 +99,28 @@ begin
 end
 
 lemma subset (h : t.well_founded_on r) (hst : s ⊆ t) : s.well_founded_on r := h.mono le_rfl hst
+
+open relation
+
+/-- `a` is accessible under the relation `r` iff `r` is well-founded on the downward transitive
+  closure of `a` under `r` (including `a` or not). -/
+lemma acc_iff_well_founded_on {α} {r : α → α → Prop} {a : α} :
+  [ acc r a,
+    {b | refl_trans_gen r b a}.well_founded_on r,
+    {b | trans_gen r b a}.well_founded_on r ].tfae :=
+begin
+  tfae_have : 1 → 2,
+  { refine λ h, ⟨λ b, _⟩, apply inv_image.accessible,
+    rw ← acc_trans_gen_iff at h ⊢,
+    obtain h'|h' := refl_trans_gen_iff_eq_or_trans_gen.1 b.2,
+    { rwa h' at h }, { exact h.inv h' } },
+  tfae_have : 2 → 3,
+  { exact λ h, h.subset (λ _, trans_gen.to_refl) },
+  tfae_have : 3 → 1,
+  { refine λ h, acc.intro _ (λ b hb, (h.apply ⟨b, trans_gen.single hb⟩).of_fibration subtype.val _),
+    exact λ ⟨c, hc⟩ d h, ⟨⟨d, trans_gen.head h hc⟩, h, rfl⟩ },
+  tfae_finish,
+end
 
 end well_founded_on
 end any_rel
@@ -228,7 +254,7 @@ lemma _root_.is_antichain.finite_of_partially_well_ordered_on (ha : is_antichain
   (hp : s.partially_well_ordered_on r) :
   s.finite :=
 begin
-  refine finite_or_infinite.resolve_right (λ hi, _),
+  refine not_infinite.1 (λ hi, _),
   obtain ⟨m, n, hmn, h⟩ := hp (λ n, hi.nat_embedding _ n) (λ n, (hi.nat_embedding _ n).2),
   exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
     ha.eq (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
@@ -666,22 +692,18 @@ partially well ordered, and also to consider the case of `set.partially_well_ord
 lemma pi.is_pwo {α : ι → Type*} [Π i, linear_order (α i)] [∀ i, is_well_order (α i) (<)] [finite ι]
   (s : set (Π i, α i)) : s.is_pwo :=
 begin
-  classical,
   casesI nonempty_fintype ι,
-  refine is_pwo.mono _ (subset_univ _),
-  rw is_pwo_iff_exists_monotone_subseq,
-  simp only [mem_univ, forall_const, function.comp_app],
   suffices : ∀ s : finset ι, ∀ (f : ℕ → Π s, α s), ∃ g : ℕ ↪o ℕ,
     ∀ ⦃a b : ℕ⦄, a ≤ b → ∀ (x : ι) (hs : x ∈ s), (f ∘ g) a x ≤ (f ∘ g) b x,
-  { simpa only [forall_true_left, finset.mem_univ] using this finset.univ },
-  apply' finset.induction,
+  { refine is_pwo_iff_exists_monotone_subseq.2 (λ f hf, _),
+    simpa only [finset.mem_univ, true_implies_iff] using this finset.univ f },
+  refine finset.cons_induction _ _,
   { intros f, existsi rel_embedding.refl (≤),
     simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f,
     obtain ⟨g, hg⟩ := (is_well_founded.wf.is_wf univ).is_pwo.exists_monotone_subseq (λ n, f n x)
       mem_univ,
     obtain ⟨g', hg'⟩ := ih (f ∘ g),
-    refine ⟨g'.trans g, λ a b hab, _⟩,
-    simp only [finset.mem_insert, rel_embedding.coe_trans, function.comp_app, forall_eq_or_imp],
+    refine ⟨g'.trans g, λ a b hab, (finset.forall_mem_cons _ _).2 _⟩,
     exact ⟨hg (order_hom_class.mono g' hab), hg' hab⟩ }
 end

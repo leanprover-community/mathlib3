@@ -8,6 +8,9 @@ import data.dfinsupp.basic
 /-!
 # Pointwise order on finitely supported dependent functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lifts order structures on the `α i` to `Π₀ i, α i`.
 
 ## Main declarations
@@ -15,9 +18,6 @@ This file lifts order structures on the `α i` to `Π₀ i, α i`.
 * `dfinsupp.order_embedding_to_fun`: The order embedding from finitely supported dependent functions
   to functions.
 
-## TODO
-
-Add `is_well_order (Π₀ i, α i) (<)`.
 -/
 
 open_locale big_operators
@@ -110,11 +110,6 @@ instance (α : ι → Type*) [Π i, ordered_cancel_add_comm_monoid (α i)] :
     specialize H i,
     rw [add_apply, add_apply] at H,
     exact le_of_add_le_add_left H,
-  end,
-  add_left_cancel := λ f g h H, ext $ λ i, begin
-    refine add_left_cancel _,
-    exact f i,
-    rw [←add_apply, ←add_apply, H],
   end,
   .. dfinsupp.ordered_add_comm_monoid α }
 

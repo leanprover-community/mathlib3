@@ -3,12 +3,13 @@ Copyright © 2021 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
-
-import tactic.basic
 import algebra.module.basic
 
 /-!
 # Bundle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
 
@@ -47,6 +48,9 @@ variables {E}
 total space to the base space. -/
 @[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
 
+-- this notation won't be used in the pretty-printer
+localized "notation `π` := @bundle.total_space.proj _" in bundle
+
 /-- Constructor for the total space of a bundle. -/
 @[simp, reducible] def total_space_mk (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
@@ -73,7 +77,7 @@ instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk x⟩
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = total_space_mk x v := rfl
 
 -- notation for the direct sum of two bundles over the same base
-notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
+notation E₁ ` ×ᵇ `:100 E₂ := λ x, E₁ x × E₂ x
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
 def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F

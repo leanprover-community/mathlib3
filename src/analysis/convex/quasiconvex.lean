@@ -21,11 +21,6 @@ quasiconcavity, and monotonicity implies quasilinearity.
 * `quasilinear_on 𝕜 s f`: Quasilinearity of the function `f` on the set `s` with scalars `𝕜`. This
   means that `f` is both quasiconvex and quasiconcave.
 
-## TODO
-
-Prove that a quasilinear function between two linear orders is either monotone or antitone. This is
-not hard but quite a pain to go about as there are many cases to consider.
-
 ## References
 
 * https://en.wikipedia.org/wiki/Quasiconvex_function
@@ -93,7 +88,7 @@ lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on �
   quasiconvex_on 𝕜 s (f ⊔ g) :=
 begin
   intro r,
-  simp_rw [pi.sup_def, sup_le_iff, ←set.sep_inter_sep],
+  simp_rw [pi.sup_def, sup_le_iff, set.sep_and],
   exact (hf r).inter (hg r),
 end
 
@@ -116,15 +111,15 @@ lemma quasiconcave_on_iff_min_le :
       min (f x) (f y) ≤ f (a • x + b • y) :=
 @quasiconvex_on_iff_le_max 𝕜 E βᵒᵈ _ _ _ _ _ _
 
-lemma quasilinear_on_iff_mem_interval :
+lemma quasilinear_on_iff_mem_uIcc :
   quasilinear_on 𝕜 s f ↔ convex 𝕜 s ∧
     ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
-      f (a • x + b • y) ∈ interval (f x) (f y) :=
+      f (a • x + b • y) ∈ uIcc (f x) (f y) :=
 begin
   rw [quasilinear_on, quasiconvex_on_iff_le_max, quasiconcave_on_iff_min_le, and_and_and_comm,
     and_self],
   apply and_congr_right',
-  simp_rw [←forall_and_distrib, interval, mem_Icc, and_comm],
+  simp_rw [←forall_and_distrib, ←Icc_min_max, mem_Icc, and_comm],
 end
 
 lemma quasiconvex_on.convex_lt (hf : quasiconvex_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | f x < r} :=
@@ -196,3 +191,21 @@ lemma antitone.quasilinear_on (hf : antitone f) : quasilinear_on 𝕜 univ f :=
 
 end linear_ordered_add_comm_monoid
 end ordered_semiring
+
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] [linear_ordered_add_comm_monoid β] {s : set 𝕜} {f : 𝕜 → β}
+
+lemma quasilinear_on.monotone_on_or_antitone_on (hf : quasilinear_on 𝕜 s f) :
+  monotone_on f s ∨ antitone_on f s :=
+begin
+  simp_rw [monotone_on_or_antitone_on_iff_uIcc, ←segment_eq_uIcc],
+  rintro a ha b hb c hc h,
+  refine ⟨((hf.2 _).segment_subset _ _ h).2, ((hf.1 _).segment_subset _ _ h).2⟩; simp [*],
+end
+
+lemma quasilinear_on_iff_monotone_on_or_antitone_on (hs : convex 𝕜 s) :
+  quasilinear_on 𝕜 s f ↔ monotone_on f s ∨ antitone_on f s :=
+⟨λ h, h.monotone_on_or_antitone_on,
+  λ h, h.elim (λ h, h.quasilinear_on hs) (λ h, h.quasilinear_on hs)⟩
+
+end linear_ordered_field

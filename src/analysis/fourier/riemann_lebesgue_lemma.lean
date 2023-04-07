@@ -13,24 +13,23 @@ import analysis.fourier.fourier_transform
 /-!
 # The Riemann-Lebesgue Lemma
 
-In this file we prove a weak form of the Riemann-Lebesgue lemma, stating that for any
-compactly-supported continuous function `f` on `ℝ` (valued in some complete normed space `E`), the
-integral
+In this file we prove the Riemann-Lebesgue lemma for functions on `ℝ`: for any `L¹` function `f`
+(valued in some complete normed space `E`), the integral
 
 `∫ (x : ℝ), exp (↑(t * x) * I) • f x`
 
-tends to zero as `t → ∞`. (The actual lemma is that this holds for all `L¹` functions `f`, which
-follows from the result proved here together with the fact that continuous, compactly-supported
-functions are dense in `L¹(ℝ)`, which will be proved in a future iteration.)
+tends to zero as `t → ∞`. This is proved first for continuous compactly-supported functions, then we
+show the general case using the fact that continuous compactly-supported functions are dense in `L¹`.
 
 ## Main results
 
-- `tendsto_integral_mul_exp_at_top_of_continuous_compact_support`: the Riemann-Lebesgue lemma for
-  continuous compactly-supported functions on `ℝ`.
+- `tendsto_integral_mul_exp_at_top`: the Riemann-Lebesgue lemma for `L¹` functions on `ℝ`.
+- `real.fourier_integral_zero_at_infty`: reformulation in terms of Fourier integrals.
 -/
 
 open measure_theory filter complex set
-open_locale filter topology real ennreal
+open_locale filter topology real ennreal fourier_transform
+
 
 section continuous_compact_support
 
@@ -142,37 +141,66 @@ begin
   exact lt_add_of_pos_left _ hε,
 end
 
-lemma tendsto_integral_mul_exp_at_bot_of_continuous_compact_support
-  (hf1 : continuous f) (hf2 : has_compact_support f) :
+
+end continuous_compact_support
+
+section L1
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E][complete_space E]
+
+/- If `f` and `g` are close in `L¹` norm, then their Fourier transforms are close in sup norm. -/
+lemma fourier_L1_cts {f g : ℝ → E} (hf : integrable f) (hg : integrable g) {ε : ℝ}
+  (hfg : ∫ (x : ℝ), ‖f x - g x‖ ≤ ε) (t : ℝ) :
+  ‖(∫ x:ℝ, exp (↑(t * x) * I) • f x) - (∫ x:ℝ, exp (↑(t * x) * I) • g x)‖ ≤ ε :=
+begin
+  rw ←integral_sub (fourier_integrand_integrable hf _) (fourier_integrand_integrable hg _),
+  refine (norm_integral_le_integral_norm _).trans _,
+  refine (integral_mono _ (hf.sub hg).norm _).trans hfg,
+  { exact ((fourier_integrand_integrable hf _).sub (fourier_integrand_integrable hg _)).norm },
+  intro x, convert le_refl _, dsimp,
+  rw [←smul_sub, norm_smul, norm_eq_abs, abs_exp_of_real_mul_I, one_mul],
+end
+
+/-- Riemann-Lebesgue lemma for integrable functions. -/
+theorem tendsto_integral_mul_exp_at_top {f : ℝ → E} (hfi : integrable f) :
+  tendsto (λ t:ℝ, ∫ x:ℝ, exp (↑(t * x) * I) • f x) at_top (𝓝 0) :=
+metric.tendsto_nhds.mpr $ λ ε hε, begin
+  haveI : normal_space ℝ := normal_space_of_t3_second_countable ℝ,
+  obtain ⟨g, hg3, hg1, -, hg2⟩ :=
+    integrable.exists_has_compact_support_integral_sub_le hfi (by linarith : 0 < ε/2),
+  refine ((metric.tendsto_nhds.mp (tendsto_integral_mul_exp_at_top_of_continuous_compact_support
+    hg1 hg2)) _ (by linarith : 0 < ε/2)).mp (eventually_of_forall (λ t hI, _)),
+  rw dist_eq_norm at hI ⊢,
+  have := add_lt_add_of_le_of_lt
+    (fourier_L1_cts hfi (hg1.integrable_of_has_compact_support hg2) hg3 t) hI,
+  rw add_halves at this,
+  refine ((le_of_eq _).trans (norm_add_le _ _)).trans_lt this,
+  simp only [sub_zero, sub_add_cancel],
+end
+
+lemma tendsto_integral_mul_exp_at_bot {f : ℝ → E} (hfi : integrable f) :
   tendsto (λ t:ℝ, ∫ x:ℝ, exp (↑(t * x) * I) • f x) at_bot (𝓝 0) :=
 begin
-  have hg2 : has_compact_support (f ∘ has_neg.neg),
-    by simpa only [neg_one_smul] using hf2.comp_smul (neg_ne_zero.mpr $ one_ne_zero' ℝ),
-  convert (tendsto_integral_mul_exp_at_top_of_continuous_compact_support (hf1.comp continuous_neg)
-    hg2).comp tendsto_neg_at_bot_at_top,
+  have hg2 : integrable (f ∘ has_neg.neg), from hfi.comp_neg,
+  convert (tendsto_integral_mul_exp_at_top hg2).comp tendsto_neg_at_bot_at_top,
   ext1 t,
   simp_rw [function.comp_app, neg_mul, ←mul_neg],
   rw ←integral_neg_eq_self,
 end
 
-lemma zero_at_infty_integral_mul_exp_of_continuous_compact_support
-  (hf1 : continuous f) (hf2 : has_compact_support f) :
-  tendsto (λ t:ℝ, ∫ x:ℝ, exp (↑(t * x) * I) • f x) (cocompact ℝ) (𝓝 0) :=
+lemma zero_at_infty_integral_mul_exp {f : ℝ → E} (hfi : integrable f) :
+   tendsto (λ t:ℝ, ∫ x:ℝ, exp (↑(t * x) * I) • f x) (cocompact ℝ) (𝓝 0) :=
 begin
   rw [real.cocompact_eq, tendsto_sup],
-  exact ⟨tendsto_integral_mul_exp_at_bot_of_continuous_compact_support hf1 hf2,
-    tendsto_integral_mul_exp_at_top_of_continuous_compact_support hf1 hf2⟩
+  exact ⟨tendsto_integral_mul_exp_at_bot hfi, tendsto_integral_mul_exp_at_top hfi⟩
 end
 
-open_locale fourier_transform
-
-/-- Riemann-Lebesgue lemma for continuous compactly-supported functions: the Fourier transform
-tends to 0 at infinity. -/
-lemma real.fourier_integral_zero_at_infty_of_continuous_compact_support
-  (hc : continuous f) (hs : has_compact_support f) :
+/-- Riemann-Lebesgue lemma: for an `L¹` function on `ℝ`, the Fourier transform of `f` tends to 0
+at infinity. -/
+lemma real.fourier_integral_zero_at_infty {f : ℝ → E} (hfi : integrable f) :
   tendsto (𝓕 f) (cocompact ℝ) (𝓝 0) :=
 begin
-  refine ((zero_at_infty_integral_mul_exp_of_continuous_compact_support hc hs).comp
+  refine ((zero_at_infty_integral_mul_exp hfi).comp
     (tendsto_cocompact_mul_left₀
     (mul_ne_zero (neg_ne_zero.mpr two_ne_zero) real.pi_pos.ne'))).congr (λ w, _),
   rw [real.fourier_integral_eq_integral_exp_smul, function.comp_app],
@@ -180,4 +208,4 @@ begin
   ring_nf,
 end
 
-end continuous_compact_support
+end L1

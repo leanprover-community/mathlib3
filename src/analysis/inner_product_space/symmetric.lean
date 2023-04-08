@@ -155,9 +155,8 @@ end
 lemma is_symmetric_iff_real_inner (T : V →ₗ[ℂ] V) :
   is_symmetric T ↔ ∀ x, (⟪x, T x⟫_ℂ.re : ℂ) = ⟪x, T x⟫_ℂ :=
 begin
-  simp_rw [is_symmetric_iff_inner_map_self_real,
-           inner_conj_sym, ← is_R_or_C.re_eq_complex_re, ← is_R_or_C.eq_conj_iff_re,
-           inner_conj_sym],
+  simp_rw [is_symmetric_iff_inner_map_self_real, inner_conj_symm,
+    ← is_R_or_C.re_eq_complex_re, ← is_R_or_C.eq_conj_iff_re, inner_conj_symm],
   exact ⟨λ h x, (h x).symm, λ h x, (h x).symm⟩,
 end
 

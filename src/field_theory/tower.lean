@@ -126,7 +126,7 @@ lemma finrank_linear_map (F : Type u) (V : Type v) (W : Type w)
   [finite_dimensional F V] [finite_dimensional F W] :
   finrank F (V →ₗ[F] W) = finrank F V * finrank F W :=
   let b := basis.of_vector_space F V, c := basis.of_vector_space F W in
-by rw [linear_equiv.finrank_eq (linear_map.to_matrix b c), matrix.finrank_matrix,
+by rw [linear_equiv.finrank_eq (linear_map.to_matrix b c), finite_dimensional.finrank_matrix,
       finrank_eq_card_basis b, finrank_eq_card_basis c, mul_comm]
 
 -- TODO: generalize by removing [finite_dimensional F K]

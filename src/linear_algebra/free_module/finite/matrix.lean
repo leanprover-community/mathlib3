@@ -33,7 +33,8 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
 variables [add_comm_group N] [module R N] [module.free R N]
 
-instance module.free.linear_map [module.finite R M] [module.finite R N] : module.free R (M →ₗ[R] N) :=
+instance module.free.linear_map [module.finite R M] [module.finite R N] :
+  module.free R (M →ₗ[R] N) :=
 begin
   casesI subsingleton_or_nontrivial R,
   { apply module.free.of_subsingleton' },

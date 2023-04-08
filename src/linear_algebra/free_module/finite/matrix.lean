@@ -78,7 +78,8 @@ variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
 variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 
 /-- The finrank of `M →ₗ[R] N` is `(finrank R M) * (finrank R N)`. -/
-lemma finite_dimensional.finrank_linear_map : finrank R (M →ₗ[R] N) = (finrank R M) * (finrank R N) :=
+lemma finite_dimensional.finrank_linear_map :
+  finrank R (M →ₗ[R] N) = (finrank R M) * (finrank R N) :=
 begin
   classical,
   letI := nontrivial_of_invariant_basis_number R,

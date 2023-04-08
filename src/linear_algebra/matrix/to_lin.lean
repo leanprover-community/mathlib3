@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import data.matrix.block
 import data.matrix.notation
-import linear_algebra.finite_dimensional
+import linear_algebra.dimension
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra

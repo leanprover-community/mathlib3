@@ -27,6 +27,19 @@ variables {R : Type u₁} [semiring R]
 variables {S : Type u₂} [comm_semiring S]
 variables {A : Type u₃} [semiring A] [algebra S A]
 
+namespace ring_con
+
+instance (c : ring_con A) : algebra S c.quotient :=
+{ smul := (•),
+  to_ring_hom := c.mk'.comp (algebra_map S A),
+  commutes' := λ r, quotient.ind' $ by exact λ a, congr_arg quotient.mk' $ algebra.commutes _ _,
+  smul_def' := λ r, quotient.ind' $ by exact λ a, congr_arg quotient.mk' $ algebra.smul_def _ _ }
+
+@[simp, norm_cast] lemma coe_algebra_map (c : ring_con A) (s : S) :
+  (↑(algebra_map S A s) : c.quotient) = algebra_map S _ s := rfl
+
+end ring_con
+
 namespace ring_quot
 
 /--
@@ -57,6 +70,67 @@ by simp only [sub_eq_add_neg, h.neg.add_right]
 
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
 by simp only [algebra.smul_def, rel.mul_right h]
+
+/-- `eqv_gen (ring_quot.rel r)` is a ring congruence. -/
+def ring_con (r : R → R → Prop) : ring_con R :=
+{ r := eqv_gen (rel r),
+  iseqv := eqv_gen.is_equivalence _,
+  add' := λ a b c d hab hcd, begin
+    induction hab with a' b' hab e a' b' hab' _ c' d' e hcd' hde' ihcd' ihde' generalizing c d,
+    { refine (eqv_gen.rel _ _ hab.add_left).trans _ _ _ _,
+      induction hcd with c' d' hcd f c' d' hcd' habcd' c' d' f' hcd' hdf' hbcd' hbcf',
+      { exact (eqv_gen.rel _ _ hcd.add_right), },
+      { exact (eqv_gen.refl _), },
+      { exact (habcd'.symm _ _), },
+      { exact hbcd'.trans _ _ _ hbcf', }, },
+    { induction hcd with c' d' hcd f c' d' hcd' habcd' c' d' f' hcd' hdf' hbcd' hbcf',
+      { exact (eqv_gen.rel _ _ hcd.add_right), },
+      { exact (eqv_gen.refl _), },
+      { exact (eqv_gen.symm _ _ habcd'), },
+      { exact hbcd'.trans _ _ _ hbcf' }, },
+    { exact (hab_ih _ _ $ hcd.symm _ _).symm _ _, },
+    { exact (ihcd' _ _ hcd).trans _ _ _ (ihde' _ _ $ eqv_gen.refl _), },
+  end,
+  mul' := λ a b c d hab hcd, begin
+    induction hab with a' b' hab e a' b' hab' _ c' d' e hcd' hde' ihcd' ihde' generalizing c d,
+    { refine (eqv_gen.rel _ _ hab.mul_left).trans _ _ _ _,
+      induction hcd with c' d' hcd f c' d' hcd' habcd' c' d' f' hcd' hdf' hbcd' hbcf',
+      { exact (eqv_gen.rel _ _ hcd.mul_right), },
+      { exact (eqv_gen.refl _), },
+      { exact (habcd'.symm _ _), },
+      { exact hbcd'.trans _ _ _ hbcf', }, },
+    { induction hcd with c' d' hcd f c' d' hcd' habcd' c' d' f' hcd' hdf' hbcd' hbcf',
+      { exact (eqv_gen.rel _ _ hcd.mul_right), },
+      { exact (eqv_gen.refl _), },
+      { exact (eqv_gen.symm _ _ habcd'), },
+      { exact hbcd'.trans _ _ _ hbcf' }, },
+    { exact (hab_ih _ _ $ hcd.symm _ _).symm _ _, },
+    { exact (ihcd' _ _ hcd).trans _ _ _ (ihde' _ _ $ eqv_gen.refl _), },
+  end }
+
+lemma eqv_gen_rel_eq (r : R → R → Prop) : eqv_gen (rel r) = ring_con_gen.rel r :=
+begin
+  ext x₁ x₂,
+  split,
+  { intro h,
+    induction h with x₃ x₄ h₃₄,
+    { induction h₃₄ with _ dfg h₃₄ x₃ x₄ x₅ h₃₄',
+      { exact ring_con_gen.rel.of _ _ ‹_› },
+      { exact h₃₄_ih.add (ring_con_gen.rel.refl _) },
+      { exact h₃₄_ih.mul (ring_con_gen.rel.refl _) },
+      { exact (ring_con_gen.rel.refl _).mul h₃₄_ih} },
+    { exact ring_con_gen.rel.refl _ },
+    { exact ring_con_gen.rel.symm ‹_› },
+    { exact ring_con_gen.rel.trans ‹_› ‹_› } },
+  { intro h,
+    induction h,
+    { exact eqv_gen.rel _ _ (rel.of ‹_›), },
+    { exact (ring_quot.ring_con r).refl _, },
+    { exact (ring_quot.ring_con r).symm ‹_›, },
+    { exact (ring_quot.ring_con r).trans ‹_› ‹_›, },
+    { exact (ring_quot.ring_con r).add ‹_› ‹_›, },
+    { exact (ring_quot.ring_con r).mul ‹_› ‹_›, } }
+end
 
 end ring_quot
 

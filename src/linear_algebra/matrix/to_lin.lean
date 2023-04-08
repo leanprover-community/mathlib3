@@ -342,7 +342,8 @@ lemma linear_map.to_matrix_alg_equiv'_mul
   (f * g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
 linear_map.to_matrix_alg_equiv'_comp f g
 
-lemma matrix.rank_vec_mul_vec {K m n : Type u} [field K] [fintype n] [decidable_eq n]
+lemma matrix.rank_vec_mul_vec {K m n : Type u}
+  [comm_ring K] [strong_rank_condition K] [fintype n] [decidable_eq n]
   (w : m → K) (v : n → K) :
   rank (vec_mul_vec w v).to_lin' ≤ 1 :=
 begin

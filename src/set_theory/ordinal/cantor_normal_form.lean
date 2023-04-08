@@ -96,11 +96,12 @@ CNF_rec b (by { rw CNF_zero, refl })
 theorem CNF_fst_le_log {b o : ordinal.{u}} {x : ordinal × ordinal} :
   x ∈ CNF b o → x.1 ≤ log b o :=
 begin
-  refine CNF_rec b (by simp) (λ o ho H, _) o,
-  rw [CNF_ne_zero ho, mem_cons_iff],
-  rintro (rfl | h),
-  { exact le_rfl },
-  { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ho).le) } 
+  refine CNF_rec b _ (λ o ho H, _) o,
+  { simp },
+  { rw [CNF_ne_zero ho, mem_cons_iff],
+    rintro (rfl | h),
+    { exact le_rfl },
+    { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ho).le) } }
 end
 
 /-- Every exponent in the Cantor normal form `CNF b o` is less or equal to `o`. -/
@@ -110,37 +111,40 @@ theorem CNF_fst_le {b o : ordinal.{u}} {x : ordinal × ordinal} (h : x ∈ CNF b
 /-- Every coefficient in a Cantor normal form is positive. -/
 theorem CNF_lt_snd {b o : ordinal.{u}} {x : ordinal × ordinal} : x ∈ CNF b o → 0 < x.2 :=
 begin
-  refine CNF_rec b (by simp) (λ o ho IH, _) o,
-  rw CNF_ne_zero ho,
-  rintro (rfl | h),
-  { exact div_opow_log_pos b ho },
-  { exact IH h }
+  refine CNF_rec b _ (λ o ho IH, _) o,
+  { simp },
+  { rw CNF_ne_zero ho,
+    rintro (rfl | h),
+    { exact div_opow_log_pos b ho },
+    { exact IH h } }
 end
 
 /-- Every coefficient in the Cantor normal form `CNF b o` is less than `b`. -/
 theorem CNF_snd_lt {b o : ordinal.{u}} (hb : 1 < b) {x : ordinal × ordinal} :
   x ∈ CNF b o → x.2 < b :=
 begin
-  refine CNF_rec b (by simp) (λ o ho IH, _) o,
-  rw CNF_ne_zero ho,
-  rintro (rfl | h),
-  { simpa using div_opow_log_lt o hb },
-  { exact IH h }
+  refine CNF_rec b _ (λ o ho IH, _) o,
+  { simp },
+  { rw CNF_ne_zero ho,
+    rintro (rfl | h),
+    { simpa using div_opow_log_lt o hb },
+    { exact IH h } }
 end
 
 /-- The exponents of the Cantor normal form are decreasing. -/
 theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
 begin
-  refine CNF_rec b (by simp) (λ o ho IH, _) o,
-  cases le_or_lt b 1 with hb hb,
-  { simp [CNF_of_le_one hb ho] },
-  cases lt_or_le o b with hob hbo,
-  { simp [CNF_of_lt ho hob] },
-  rw [CNF_ne_zero ho, map_cons, sorted_cons],
-  refine ⟨λ a H, _, IH⟩,
-  rw mem_map at H,
-  rcases H with ⟨⟨a, a'⟩, H, rfl⟩,
-  exact (CNF_fst_le_log H).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo),
+  refine CNF_rec b _ (λ o ho IH, _) o,
+  { simp },
+  { cases le_or_lt b 1 with hb hb,
+    { simp [CNF_of_le_one hb ho] },
+    { cases lt_or_le o b with hob hbo,
+      { simp [CNF_of_lt ho hob] },
+      { rw [CNF_ne_zero ho, list.map_cons, list.sorted_cons],
+        refine ⟨λ a H, _, IH⟩,
+        rw list.mem_map at H,
+        rcases H with ⟨⟨a, a'⟩, H, rfl⟩,
+        exact (CNF_fst_le_log H).trans_lt (log_mod_opow_log_lt_log_self hb ho hbo) } } }
 end
 
 end ordinal

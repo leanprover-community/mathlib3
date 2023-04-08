@@ -561,21 +561,11 @@ instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
-/-- A cardinal is a limit if it is not zero or a successor cardinal. Note that `ℵ₀` is a limit
-  cardinal by this definition, but `0` isn't.
-
-  Use `is_succ_limit` if you want to include the `c = 0` case. -/
-def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
-
-protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
-
-protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
-
-theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
-
-theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
-
 theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
+
+lemma succ_pos : ∀ c : cardinal, 0 < succ c := bot_lt_succ
+
+lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
@@ -589,9 +579,19 @@ begin
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_pos : ∀ c : cardinal, 0 < succ c := bot_lt_succ
+/-- A cardinal is a limit if it is not zero or a successor cardinal. Note that `ℵ₀` is a limit
+  cardinal by this definition, but `0` isn't.
 
-lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
+  Use `is_succ_limit` if you want to include the `c = 0` case. -/
+def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
+
+protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
+
+protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
+
+theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
+
+theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
 
 /-- The indexed sum of cardinals is the cardinality of the
   indexed disjoint union, i.e. sigma type. -/
@@ -1035,24 +1035,6 @@ lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
-theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
-is_succ_limit_of_succ_lt $ λ a ha, begin
-  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
-  rw ←nat_succ,
-  apply nat_lt_aleph_0
-end
-
-theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
-
-theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
-begin
-  by_contra' h',
-  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
-  { exact h.ne_zero.irrefl },
-  { rw nat_succ at h,
-    exact not_is_succ_limit_succ _ h.is_succ_limit }
-end
-
 @[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
   #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
 lt_aleph_0_iff_set_finite
@@ -1070,6 +1052,24 @@ alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
 @[simp] lemma le_aleph_0_iff_subtype_countable {p : α → Prop} :
   #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
 le_aleph_0_iff_set_countable
+
+theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+is_succ_limit_of_succ_lt $ λ a ha, begin
+  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
+  rw ←nat_succ,
+  apply nat_lt_aleph_0
+end
+
+theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
+
+theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
+  { exact h.ne_zero.irrefl },
+  { rw nat_succ at h,
+    exact not_is_succ_limit_succ _ h.is_succ_limit }
+end
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ coe (λ x, x < ℵ₀) :=
 ⟨λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩

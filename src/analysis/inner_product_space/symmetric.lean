@@ -163,7 +163,7 @@ lemma is_symmetric.inner_map_polarization {T : E →ₗ[𝕜] E} (hT : T.is_symm
 begin
   rcases @I_mul_I_ax 𝕜 _ with (h | h),
   { simp_rw [h, zero_mul, sub_zero, add_zero, map_add, map_sub, inner_add_left,
-      inner_add_right, inner_sub_left, inner_sub_right, hT x _, ← inner_conj_symm x (T y)],
+      inner_add_right, inner_sub_left, inner_sub_right, hT x, ← inner_conj_symm x (T y)],
     suffices : (re ⟪T y, x⟫ : 𝕜) = ⟪T y, x⟫,
     { rw eq_conj_iff_re.mpr this,
       ring_nf, },
@@ -183,7 +183,7 @@ lemma is_symmetric.inner_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric
 begin
   simp_rw [linear_map.ext_iff, zero_apply],
   refine ⟨λ h x, _, λ h, by simp_rw [h, inner_zero_left, forall_const]⟩,
-  rw [← @inner_self_eq_zero 𝕜, hT.inner_map_polarization _ _],
+  rw [← @inner_self_eq_zero 𝕜, hT.inner_map_polarization],
   simp_rw [h _],
   ring,
 end

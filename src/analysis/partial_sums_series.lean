@@ -31,8 +31,8 @@ end
 def series_converges {R : Type u} [add_comm_monoid R] [topological_space R] (f : ℕ → R) :=
 ∃ a : R, filter.tendsto (partial_sum f) filter.at_top (𝓝 a)
 
-def series_converges_absolutely {R : Type u} [add_comm_monoid R] [topological_space R] [has_abs R] (f : ℕ → R) :=
-series_converges (λ x, |f x|)
+def series_converges_absolutely {R : Type u} [add_comm_monoid R] [topological_space R] [has_norm R] (f : ℕ → R) :=
+series_converges (λ x, ‖f x‖)
 
 lemma tail_limit {R : Type u} [topological_space R] (f : ℕ → R) (T : R) (h : filter.tendsto f filter.at_top (𝓝 T)) :
   filter.tendsto (λ k, f (k + 1)) filter.at_top (𝓝 T) :=
@@ -153,3 +153,54 @@ end
 theorem summable_of_series_absolute_convergence_real {f : ℕ → ℝ}
   (h : series_converges_absolutely f) : summable f :=
 summable_of_absolute_convergence_real h
+
+noncomputable def pos_terms (a : ℕ → ℝ) (n : ℕ) := if 0 ≤ a n then a n else 0
+noncomputable def neg_terms (a : ℕ → ℝ) (n : ℕ) := if 0 ≤ a n then 0 else a n
+
+lemma monotone_partial_sums_norm_series {a : ℕ → ℝ} : monotone (partial_sum (λ n, ‖a n‖)) :=
+begin
+  unfold monotone,
+  intros n m hnm,
+  induction m with m ih,
+  { rw nat.eq_zero_of_le_zero hnm },
+  { by_cases h : n = m.succ,
+    { rw h },
+    { have : n ≤ m := nat.le_of_lt_succ (lt_of_le_of_ne hnm h),
+      calc partial_sum (λ n, ‖a n‖) n ≤ partial_sum (λ n, ‖a n‖) m : ih this
+                                  ... ≤ ‖a m‖ + partial_sum (λ n, ‖a n‖) m : by linarith [norm_nonneg (a m)]
+                                  ... = partial_sum (λ n, ‖a n‖) (m + 1) : by rw partial_sum_next } }
+end
+
+lemma tendsto_at_top_of_conditional_convergence {a : ℕ → ℝ}
+  (h₁ : series_converges a) (h₂ : ¬series_converges_absolutely a) :
+    filter.tendsto (partial_sum (λ n, ‖a n‖)) filter.at_top filter.at_top := sorry
+
+lemma partial_sums_pos_terms_tendsto_at_top_of_conditional_convergence {a : ℕ → ℝ}
+  (h₁ : series_converges a) (h₂ : ¬series_converges_absolutely a) :
+    filter.tendsto (partial_sum (pos_terms a)) filter.at_top filter.at_top :=
+begin
+  rw filter.tendsto_def,
+  intros s hs,
+  rw filter.mem_at_top_sets at ⊢,
+  unfold series_converges_absolutely at h₂,
+  unfold series_converges at h₁ h₂,
+  sorry
+end
+
+lemma exists_positive_of_series_converges {a : ℕ → ℝ} (h : series_converges a) (s : finset ℕ) :
+  ∃ (n : ℕ), 0 ≤ a n ∧ n ∉ s :=
+begin
+  sorry
+end
+
+noncomputable def riemann_permute_aux (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ × finset ℕ × ℝ
+| 0 := ⟨0, ∅, 0⟩
+| (k+1) :=
+  let ⟨σk, ak, sk⟩ := riemann_permute_aux k in
+  if sk ≤ M then sorry
+  else sorry
+
+
+theorem riemann_rearrangement_theorem {a : ℕ → ℝ} (h₁ : series_converges a)
+  (h₂ : ¬series_converges_absolutely a) (M : ℝ) : ∃ (p : equiv.perm ℕ),
+    filter.tendsto (partial_sum (λ n, a (p n))) filter.at_top (𝓝 M) := sorry

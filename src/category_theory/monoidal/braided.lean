@@ -221,7 +221,8 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 restate_axiom symmetric_category.symmetry'
 attribute [simp,reassoc] symmetric_category.symmetry
 
-initialize_simps_projections symmetric_category (to_braided_category_braiding → braiding)
+initialize_simps_projections symmetric_category
+  (to_braided_category_braiding → braiding, -to_braided_category)
 
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]

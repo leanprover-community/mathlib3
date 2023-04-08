@@ -62,7 +62,7 @@ theorem CNF_rec_pos (b : ordinal) {o : ordinal} {C : ordinal → Sort*} (ho : o 
   @CNF_rec b C H0 H o = H o ho (@CNF_rec b C H0 H _) :=
 by rw [CNF_rec, dif_neg ho]
 
-/-! ### Cantor normal form as a list -/
+/-! ### Cantor normal form as a `list` -/
 
 /-- The Cantor normal form unbundled from the proof that there's no duplicate keys. See
 `ordinal.CNF` for the bundled version. -/
@@ -149,7 +149,7 @@ begin
   { exact IH h }
 end
 
-/-! ### Cantor normal form as an alist -/
+/-! ### Cantor normal form as an `alist` -/
 
 /-- The Cantor normal form of an ordinal `o` is the association list of exponents and coefficients
 in the base-`b` expansion of `o`, ordered by decreasing exponents.

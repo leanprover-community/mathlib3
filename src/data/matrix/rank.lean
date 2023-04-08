@@ -56,7 +56,7 @@ lemma rank_mul_le [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R
   (A ⬝ B).rank ≤ A.rank :=
 begin
   rw [rank, rank, to_lin'_mul],
-  refine cardinal.to_nat_le_of_le_of_lt_aleph_0 _ (linear_map.rank_comp_le1 _ _),
+  refine cardinal.to_nat_le_of_le_of_lt_aleph_0 _ (linear_map.rank_comp_le_left _ _),
   rw [←cardinal.lift_lt_aleph_0],
   have := lift_rank_range_le A.to_lin',
   rw [rank_fun', cardinal.lift_nat_cast] at this,

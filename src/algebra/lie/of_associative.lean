@@ -220,13 +220,13 @@ end
 
 variables (N x)
 
-lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ N) :
-  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ N :=
+lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ (N : submodule R M)) :
+  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ (N : submodule R M) :=
 by simpa using N.lie_mem hm
 
 @[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
   (h := N.to_endomorphism_comp_subtype_mem x) :
-  ((to_endomorphism R L M x).restrict h : (N : submodule R M) →ₗ[R] N) = to_endomorphism R L N x :=
+  (to_endomorphism R L M x).restrict h = to_endomorphism R L N x :=
 by { ext, simp [linear_map.restrict_apply], }
 
 end lie_submodule

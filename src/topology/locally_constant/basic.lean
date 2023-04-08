@@ -5,13 +5,16 @@ Authors: Johan Commelin
 -/
 import topology.subset_properties
 import topology.connected
-import topology.algebra.monoid
 import topology.continuous_function.basic
+import algebra.indicator_function
 import tactic.tfae
 import tactic.fin_cases
 
 /-!
 # Locally constant functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up the theory of locally constant function from a topological space to a type.
 
@@ -28,7 +31,7 @@ This file sets up the theory of locally constant function from a topological spa
 variables {X Y Z α : Type*} [topological_space X]
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 /-- A function between topological spaces is locally constant if the preimage of any set is open. -/
 def is_locally_constant (f : X → Y) : Prop := ∀ s : set Y, is_open (f ⁻¹' s)
@@ -97,10 +100,6 @@ lemma iff_continuous {_ : topological_space Y} [discrete_topology Y] (f : X → 
   is_locally_constant f ↔ continuous f :=
 ⟨is_locally_constant.continuous, λ h s, h.is_open_preimage s (is_open_discrete _)⟩
 
-lemma iff_continuous_bot (f : X → Y) :
-  is_locally_constant f ↔ @continuous X Y _ ⊥ f :=
-iff_continuous f
-
 lemma of_constant (f : X → Y) (h : ∀ x y, f x = f y) :
   is_locally_constant f :=
 (iff_eventually_eq f).2 $ λ x, eventually_of_forall $ λ x', h _ _
@@ -141,6 +140,23 @@ begin
   { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs }
 end
 
+lemma apply_eq_of_preconnected_space [preconnected_space X]
+  {f : X → Y} (hf : is_locally_constant f) (x y : X) :
+  f x = f y :=
+hf.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial
+
+lemma eq_const [preconnected_space X] {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  f = function.const X (f x) :=
+funext $ λ y, hf.apply_eq_of_preconnected_space y x
+
+lemma exists_eq_const [preconnected_space X] [nonempty Y] {f : X → Y} (hf : is_locally_constant f) :
+  ∃ y, f = function.const X y :=
+begin
+  casesI is_empty_or_nonempty X,
+  { exact ⟨classical.arbitrary Y, funext $ h.elim⟩ },
+  { exact ⟨f (classical.arbitrary X), hf.eq_const _⟩ },
+end
+
 lemma iff_is_const [preconnected_space X] {f : X → Y} :
   is_locally_constant f ↔ ∀ x y, f x = f y :=
 ⟨λ h x y, h.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial, of_constant _⟩
@@ -148,8 +164,7 @@ lemma iff_is_const [preconnected_space X] {f : X → Y} :
 lemma range_finite [compact_space X] {f : X → Y} (hf : is_locally_constant f) :
   (set.range f).finite :=
 begin
-  letI : topological_space Y := ⊥,
-  haveI : discrete_topology Y := ⟨rfl⟩,
+  letI : topological_space Y := ⊥, haveI := discrete_topology_bot Y,
   rw @iff_continuous X Y ‹_› ‹_› at hf,
   exact (is_compact_range hf).finite_of_discrete
 end
@@ -202,6 +217,7 @@ of_constant_on_connected_components (λ x, h (connected_component x)
 end is_locally_constant
 
 /-- A (bundled) locally constant function from a topological space `X` to a type `Y`. -/
+@[protect_proj]
 structure locally_constant (X Y : Type*) [topological_space X] :=
 (to_fun : X → Y)
 (is_locally_constant : is_locally_constant to_fun)
@@ -276,8 +292,8 @@ def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x
     fin_cases e,
     { convert hU.1 using 1,
       ext,
-      simp only [nat.one_ne_zero, mem_singleton_iff, fin.one_eq_zero_iff,
-        mem_preimage, ite_eq_left_iff],
+      simp only [mem_singleton_iff, fin.one_eq_zero_iff, mem_preimage, ite_eq_left_iff,
+        nat.succ_succ_ne_one],
       tauto },
     { rw ← is_closed_compl_iff,
       convert hU.2,
@@ -289,8 +305,8 @@ def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x
   [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({0} : set (fin 2)) = U :=
 begin
   ext,
-  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff,
-    fin.one_eq_zero_iff, coe_mk, mem_preimage, ite_eq_left_iff],
+  simp only [of_clopen, mem_singleton_iff, fin.one_eq_zero_iff, coe_mk, mem_preimage,
+    ite_eq_left_iff, nat.succ_succ_ne_one],
   tauto,
 end
 
@@ -298,9 +314,8 @@ end
   [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({1} : set (fin 2)) = Uᶜ :=
 begin
   ext,
-  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
-    fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
-    mem_compl_eq],
+  simp only [of_clopen, mem_singleton_iff, coe_mk, fin.zero_eq_one_iff, mem_preimage,
+    ite_eq_right_iff, mem_compl_iff, nat.succ_succ_ne_one],
   tauto,
 end
 

@@ -3,11 +3,7 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import category_theory.concrete_category.bundled
-import data.fin.tuple.basic
 import data.fin.vec_notation
-import logic.encodable.basic
-import logic.small
 import set_theory.cardinal.basic
 
 
@@ -34,6 +30,10 @@ structures.
 * A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
+
+## TODO
+
+Use `[countable L.symbols]` instead of `[L.countable]`.
 
 ## References
 For the Flypitch project:
@@ -124,11 +124,6 @@ rfl
 /-- The cardinality of a language is the cardinality of its type of symbols. -/
 def card : cardinal := # L.symbols
 
-/-- A language is countable when it has countably many symbols. -/
-class countable : Prop := (card_le_aleph_0' : L.card ≤ ℵ₀)
-
-lemma card_le_aleph_0 [L.countable] : L.card ≤ ℵ₀ := countable.card_le_aleph_0'
-
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
 (empty_functions : ∀ n, is_empty (L.functions n))
@@ -136,12 +131,6 @@ class is_relational : Prop :=
 /-- A language is algebraic when it has no relation symbols. -/
 class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
-
-/-- A language is countable when it has countably many symbols. -/
-class countable_functions : Prop := (card_functions_le_aleph_0' : # (Σ l, L.functions l) ≤ ℵ₀)
-
-lemma card_functions_le_aleph_0 [L.countable_functions] : #(Σ l, L.functions l) ≤ ℵ₀ :=
-countable_functions.card_functions_le_aleph_0'
 
 variables {L} {L' : language.{u' v'}}
 
@@ -194,28 +183,18 @@ instance subsingleton_mk₂_relations {c f₁ f₂ : Type u} {r₁ r₂ : Type v
 nat.cases_on n ⟨λ x, pempty.elim x⟩
   (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
 
-lemma encodable.countable [h : encodable L.symbols] : L.countable :=
-⟨cardinal.encodable_iff.1 ⟨h⟩⟩
-
 @[simp] lemma empty_card : language.empty.card = 0 :=
 by simp [card_eq_card_functions_add_card_relations]
 
-instance countable_empty : language.empty.countable :=
-⟨by simp⟩
+instance is_empty_empty : is_empty language.empty.symbols :=
+begin
+  simp only [language.symbols, is_empty_sum, is_empty_sigma],
+  exact ⟨λ _, infer_instance, λ _, infer_instance⟩,
+end
 
-@[priority 100] instance countable.countable_functions [L.countable] : L.countable_functions :=
-⟨begin
-  refine lift_le_aleph_0.1 (trans _ L.card_le_aleph_0),
-  rw [card, symbols, mk_sum],
-  exact le_self_add
-end⟩
-
-lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] : L.countable_functions :=
-⟨cardinal.encodable_iff.1 ⟨h⟩⟩
-
-@[priority 100] instance is_relational.countable_functions [L.is_relational] :
-  L.countable_functions :=
-encodable.countable_functions
+instance countable.countable_functions [h : countable L.symbols] :
+  countable (Σl, L.functions l) :=
+@function.injective.countable _ _ h _ sum.inl_injective
 
 @[simp] lemma card_functions_sum (i : ℕ) :
   #((L.sum L').functions i) = (#(L.functions i)).lift + cardinal.lift.{u} (#(L'.functions i)) :=
@@ -255,7 +234,7 @@ variables (N : Type w') [L.Structure M] [L.Structure N]
 open Structure
 
 /-- Used for defining `first_order.language.Theory.Model.inhabited`. -/
-def trivial_unit_structure : L.Structure unit := ⟨default, default⟩
+def inhabited.trivial_structure {α : Type*} [inhabited α] : L.Structure α := ⟨default, default⟩
 
 /-! ### Maps -/
 
@@ -267,7 +246,8 @@ structure hom :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x) . obviously)
 
-localized "notation A ` →[`:25 L `] ` B := first_order.language.hom L A B" in first_order
+localized "notation (name := language.hom) A ` →[`:25 L `] ` B :=
+  first_order.language.hom L A B" in first_order
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
@@ -275,7 +255,8 @@ localized "notation A ` →[`:25 L `] ` B := first_order.language.hom L A B" in 
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ↪[`:25 L `] ` B := first_order.language.embedding L A B" in first_order
+localized "notation (name := language.embedding) A ` ↪[`:25 L `] ` B :=
+  first_order.language.embedding L A B" in first_order
 
 /-- An equivalence of first-order structures is an equivalence that commutes with the
   interpretations of functions and relations. -/
@@ -283,7 +264,8 @@ structure equiv extends M ≃ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ≃[`:25 L `] ` B := first_order.language.equiv L A B" in first_order
+localized "notation (name := language.equiv) A ` ≃[`:25 L `] ` B :=
+  first_order.language.equiv L A B" in first_order
 
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 

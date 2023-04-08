@@ -6,9 +6,13 @@ Authors: Mario Carneiro
 
 import data.list.alist
 import set_theory.ordinal.arithmetic
+import set_theory.ordinal.exponential
 
 /-!
 # Cantor Normal Form
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Cantor normal form of an ordinal is generally defined as its base `ω` expansion, with its
 non-zero exponents in decreasing order. Here, we more generally define a base `b` expansion

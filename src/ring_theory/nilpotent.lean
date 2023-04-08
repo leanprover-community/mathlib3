@@ -10,6 +10,9 @@ import ring_theory.ideal.operations
 /-!
 # Nilpotent elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
   * `is_nilpotent`
@@ -53,7 +56,7 @@ lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
 by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
 
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
-class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
+@[mk_iff] class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 (eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
 
 @[priority 900]
@@ -82,6 +85,35 @@ begin
   rw map_zero,
   exact (hx.map f).eq_zero,
 end
+
+lemma ring_hom.ker_is_radical_iff_reduced_of_surjective {S F} [comm_semiring R] [comm_ring S]
+  [ring_hom_class F R S] {f : F} (hf : function.surjective f) :
+  (ring_hom.ker f).is_radical ↔ is_reduced S :=
+by simp_rw [is_reduced_iff, hf.forall, is_nilpotent, ← map_pow, ← ring_hom.mem_ker]; refl
+
+/-- An element `y` in a monoid is radical if for any element `x`, `y` divides `x` whenever it
+  divides a power of `x`. -/
+def is_radical [has_dvd R] [has_pow R ℕ] (y : R) : Prop := ∀ (n : ℕ) x, y ∣ x ^ n → y ∣ x
+
+lemma zero_is_radical_iff [monoid_with_zero R] : is_radical (0 : R) ↔ is_reduced R :=
+by { simp_rw [is_reduced_iff, is_nilpotent, exists_imp_distrib, ← zero_dvd_iff], exact forall_swap }
+
+lemma is_radical_iff_span_singleton [comm_semiring R] :
+  is_radical y ↔ (ideal.span ({y} : set R)).is_radical :=
+begin
+  simp_rw [is_radical, ← ideal.mem_span_singleton],
+  exact forall_swap.trans (forall_congr $ λ r, exists_imp_distrib.symm),
+end
+
+lemma is_radical_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
+  is_radical y ↔ ∀ x, y ∣ x ^ k → y ∣ x :=
+⟨λ h x, h k x, λ h, k.cauchy_induction_mul
+  (λ n h x hd, h x $ (pow_succ' x n).symm ▸ hd.mul_right x) 0 hk
+  (λ x hd, pow_one x ▸ hd) (λ n _ hn x hd, h x $ hn _ $ (pow_mul x k n).subst hd)⟩
+
+lemma is_reduced_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
+  is_reduced R ↔ ∀ x : R, x ^ k = 0 → x = 0 :=
+by simp_rw [← zero_is_radical_iff, is_radical_iff_pow_one_lt k hk, zero_dvd_iff]
 
 namespace commute
 
@@ -194,40 +226,3 @@ begin
 end
 
 end module.End
-
-namespace ideal
-
-variables [comm_semiring R] [comm_ring S] [algebra R S] (I : ideal S)
-
-/-- Let `P` be a property on ideals. If `P` holds for square-zero ideals, and if
-  `P I → P (J ⧸ I) → P J`, then `P` holds for all nilpotent ideals. -/
-lemma is_nilpotent.induction_on
-  (hI : is_nilpotent I)
-  {P : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI ∀ I : ideal S, Prop}
-  (h₁ : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI ∀ I : ideal S, I ^ 2 = ⊥ → P I)
-  (h₂ : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI
-    ∀ I J : ideal S, I ≤ J → P I → P (J.map (ideal.quotient.mk I)) → P J) : P I :=
-begin
-  obtain ⟨n, hI : I ^ n = ⊥⟩ := hI,
-  unfreezingI { revert S },
-  apply nat.strong_induction_on n,
-  clear n,
-  introsI n H S _ I hI,
-  by_cases hI' : I = ⊥,
-  { subst hI', apply h₁, rw [← ideal.zero_eq_bot, zero_pow], exact zero_lt_two },
-  cases n,
-  { rw [pow_zero, ideal.one_eq_top] at hI,
-    haveI := subsingleton_of_bot_eq_top hI.symm,
-    exact (hI' (subsingleton.elim _ _)).elim },
-  cases n,
-  { rw [pow_one] at hI,
-    exact (hI' hI).elim },
-  apply h₂ (I ^ 2) _ (ideal.pow_le_self two_ne_zero),
-  { apply H n.succ _ (I ^ 2),
-    { rw [← pow_mul, eq_bot_iff, ← hI, nat.succ_eq_add_one, nat.succ_eq_add_one],
-      exact ideal.pow_le_pow (by linarith) },
-    { exact le_refl n.succ.succ } },
-  { apply h₁, rw [← ideal.map_pow, ideal.map_quotient_self] },
-end
-
-end ideal

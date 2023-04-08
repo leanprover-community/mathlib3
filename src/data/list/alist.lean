@@ -8,6 +8,9 @@ import data.list.sigma
 /-!
 # Association Lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines association lists. An association list is a list where every element consists of
 a key and a value, and no two entries have the same key. The type of the value is allowed to be
 dependent on the type of the key.
@@ -84,7 +87,7 @@ instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
 
 instance : inhabited (alist β) := ⟨∅⟩
 
-theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
+@[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
 not_mem_nil a
 
 @[simp] theorem empty_entries : (∅ : alist β).entries = [] := rfl
@@ -206,9 +209,12 @@ theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
 by rw [insert_entries, kerase_of_not_mem_keys h]
 
+-- Todo: rename to `insert_of_not_mem`.
 theorem insert_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   insert a b s = ⟨⟨a, b⟩ :: s.entries, nodupkeys_cons.2 ⟨h, s.2⟩⟩ :=
 ext $ insert_entries_of_neg h
+
+@[simp] theorem insert_empty (a) (b : β a) : insert a b ∅ = singleton a b := rfl
 
 @[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :
   a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=

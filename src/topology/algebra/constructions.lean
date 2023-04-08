@@ -8,6 +8,9 @@ import topology.homeomorph
 /-!
 # Topological space structure on the opposite monoid and on the units group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `topological_space` structure on `Mᵐᵒᵖ`, `Mᵃᵒᵖ`, `Mˣ`, and `add_units M`.
 This file does not import definitions of a topological monoid and/or a continuous multiplicative
 action, so we postpone the proofs of `has_continuous_mul Mᵐᵒᵖ` etc till we have these definitions.
@@ -20,12 +23,14 @@ topological space, opposite monoid, units
 variables {M X : Type*}
 
 open filter
-open_locale topological_space
+open_locale topology
 
 namespace mul_opposite
 
 /-- Put the same topological space structure on the opposite monoid as on the original space. -/
-@[to_additive] instance [topological_space M] : topological_space Mᵐᵒᵖ :=
+@[to_additive "Put the same topological space structure on the opposite monoid as on the original
+space."]
+instance [topological_space M] : topological_space Mᵐᵒᵖ :=
 topological_space.induced (unop : Mᵐᵒᵖ → M) ‹_›
 
 variables [topological_space M]
@@ -67,13 +72,34 @@ open mul_opposite
 variables [topological_space M] [monoid M] [topological_space X]
 
 /-- The units of a monoid are equipped with a topology, via the embedding into `M × M`. -/
-@[to_additive] instance : topological_space Mˣ :=
-topological_space.induced (embed_product M) prod.topological_space
+@[to_additive "The additive units of a monoid are equipped with a topology, via the embedding into
+`M × M`."]
+instance : topological_space Mˣ := prod.topological_space.induced (embed_product M)
 
 @[to_additive] lemma inducing_embed_product : inducing (embed_product M) := ⟨rfl⟩
 
 @[to_additive] lemma embedding_embed_product : embedding (embed_product M) :=
 ⟨inducing_embed_product, embed_product_injective M⟩
+
+@[to_additive] lemma topology_eq_inf :
+  units.topological_space = topological_space.induced (coe : Mˣ → M) ‹_› ⊓
+    topological_space.induced (λ u, ↑u⁻¹ : Mˣ → M) ‹_› :=
+by simp only [inducing_embed_product.1, prod.topological_space, induced_inf,
+  mul_opposite.topological_space, induced_compose]; refl
+
+/-- An auxiliary lemma that can be used to prove that coercion `Mˣ → M` is a topological embedding.
+Use `units.coe_embedding₀`, `units.coe_embedding`, or `to_units_homeomorph` instead. -/
+@[to_additive "An auxiliary lemma that can be used to prove that coercion `add_units M → M` is a
+topological embedding. Use `add_units.coe_embedding` or `to_add_units_homeomorph` instead."]
+lemma embedding_coe_mk {M : Type*} [division_monoid M] [topological_space M]
+  (h : continuous_on has_inv.inv {x : M | is_unit x}) : embedding (coe : Mˣ → M) :=
+begin
+  refine ⟨⟨_⟩, ext⟩,
+  rw [topology_eq_inf, inf_eq_left, ← continuous_iff_le_induced, continuous_iff_continuous_at],
+  intros u s hs,
+  simp only [coe_inv, nhds_induced, filter.mem_map] at hs ⊢,
+  exact ⟨_, mem_inf_principal.1 (h u u.is_unit hs), λ u' hu', hu' u'.is_unit⟩
+end
 
 @[to_additive] lemma continuous_embed_product : continuous (embed_product M) :=
 continuous_induced_dom

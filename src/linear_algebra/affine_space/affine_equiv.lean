@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.affine_map
+import linear_algebra.general_linear_group
 import algebra.invertible
 
 /-!
 # Affine equivalences
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `affine_equiv k P₁ P₂` (notation: `P₁ ≃ᵃ[k] P₂`) to be the type of affine
 equivalences between `P₁` and `P₂, i.e., equivalences such that both forward and inverse maps are
@@ -58,31 +62,12 @@ namespace affine_equiv
 
 include V₁ V₂
 
-instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) (λ _, P₁ → P₂) := ⟨λ e, e.to_fun⟩
-
-instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ ≃ P₂) := ⟨affine_equiv.to_equiv⟩
-
-variables {k P₁}
-
-@[simp] lemma map_vadd (e : P₁ ≃ᵃ[k] P₂) (p : P₁) (v : V₁) : e (v +ᵥ p) = e.linear v +ᵥ e p :=
-e.map_vadd' p v
-
-@[simp] lemma coe_to_equiv (e : P₁ ≃ᵃ[k] P₂) : ⇑e.to_equiv = e := rfl
-
 /-- Reinterpret an `affine_equiv` as an `affine_map`. -/
-def to_affine_map (e : P₁ ≃ᵃ[k] P₂) : P₁ →ᵃ[k] P₂ := { to_fun := e, .. e }
-
-instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ →ᵃ[k] P₂) := ⟨to_affine_map⟩
-
-@[simp] lemma coe_to_affine_map (e : P₁ ≃ᵃ[k] P₂) :
-  (e.to_affine_map : P₁ → P₂) = (e : P₁ → P₂) :=
-rfl
+def to_affine_map (e : P₁ ≃ᵃ[k] P₂) : P₁ →ᵃ[k] P₂ := { .. e }
 
 @[simp] lemma to_affine_map_mk (f : P₁ ≃ P₂) (f' : V₁ ≃ₗ[k] V₂) (h) :
   to_affine_map (mk f f' h) = ⟨f, f', h⟩ :=
 rfl
-
-@[norm_cast, simp] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
 
 @[simp] lemma linear_to_affine_map (e : P₁ ≃ᵃ[k] P₂) : e.to_affine_map.linear = e.linear := rfl
 
@@ -98,11 +83,39 @@ end
   e.to_affine_map = e'.to_affine_map ↔ e = e' :=
 to_affine_map_injective.eq_iff
 
+instance equiv_like : equiv_like (P₁ ≃ᵃ[k] P₂) P₁ P₂ :=
+{ coe := λ f, f.to_fun,
+  inv := λ f, f.inv_fun,
+  left_inv := λ f, f.left_inv,
+  right_inv := λ f, f.right_inv,
+  coe_injective' := λ f g h _, to_affine_map_injective (fun_like.coe_injective h) }
+
+instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) (λ _, P₁ → P₂) := fun_like.has_coe_to_fun
+
+instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ ≃ P₂) := ⟨affine_equiv.to_equiv⟩
+
+variables {k P₁}
+
+@[simp] lemma map_vadd (e : P₁ ≃ᵃ[k] P₂) (p : P₁) (v : V₁) : e (v +ᵥ p) = e.linear v +ᵥ e p :=
+e.map_vadd' p v
+
+@[simp] lemma coe_to_equiv (e : P₁ ≃ᵃ[k] P₂) : ⇑e.to_equiv = e := rfl
+
+instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ →ᵃ[k] P₂) := ⟨to_affine_map⟩
+
+@[simp] lemma coe_to_affine_map (e : P₁ ≃ᵃ[k] P₂) :
+  (e.to_affine_map : P₁ → P₂) = (e : P₁ → P₂) :=
+rfl
+
+@[norm_cast, simp] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
+
+@[simp] lemma coe_linear (e : P₁ ≃ᵃ[k] P₂) : (e : P₁ →ᵃ[k] P₂).linear = e.linear := rfl
+
 @[ext] lemma ext {e e' : P₁ ≃ᵃ[k] P₂} (h : ∀ x, e x = e' x) : e = e' :=
-to_affine_map_injective $ affine_map.ext h
+fun_like.ext _ _ h
 
 lemma coe_fn_injective : @injective (P₁ ≃ᵃ[k] P₂) (P₁ → P₂) coe_fn :=
-λ e e' H, ext $ congr_fun H
+fun_like.coe_injective
 
 @[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
 coe_fn_injective.eq_iff
@@ -158,6 +171,16 @@ protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
 protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.injective
 
+/-- Bijective affine maps are affine isomorphisms. -/
+@[simps]
+noncomputable def of_bijective {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) : P₁ ≃ᵃ[k] P₂ :=
+{ linear := linear_equiv.of_bijective φ.linear (φ.linear_bijective_iff.mpr hφ),
+  map_vadd' := φ.map_vadd,
+  ..(equiv.of_bijective _ hφ) }
+
+lemma of_bijective.symm_eq {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) :
+  (of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
+
 @[simp] lemma range_eq (e : P₁ ≃ᵃ[k] P₂) : range e = univ := e.surjective.range_eq
 
 @[simp] lemma apply_symm_apply (e : P₁ ≃ᵃ[k] P₂) (p : P₂) : e (e.symm p) = p :=
@@ -171,6 +194,12 @@ e.to_equiv.apply_eq_iff_eq_symm_apply
 
 @[simp] lemma apply_eq_iff_eq (e : P₁ ≃ᵃ[k] P₂) {p₁ p₂ : P₁} : e p₁ = e p₂ ↔ p₁ = p₂ :=
 e.to_equiv.apply_eq_iff_eq
+
+@[simp] lemma image_symm (f : P₁ ≃ᵃ[k] P₂) (s : set P₂) : f.symm '' s = f ⁻¹' s :=
+f.symm.to_equiv.image_eq_preimage _
+
+@[simp] lemma preimage_symm (f : P₁ ≃ᵃ[k] P₂) (s : set P₁) : f.symm ⁻¹' s = f '' s :=
+(f.symm.image_symm _).symm
 
 variables (k P₁)
 
@@ -205,6 +234,10 @@ include V₂ V₃
     equiv.coe_trans, map_vadd] }
 
 @[simp] lemma coe_trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : ⇑(e.trans e') = e' ∘ e := rfl
+
+@[simp] lemma coe_trans_to_affine_map (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) :
+  (e.trans e' : P₁ →ᵃ[k] P₃) = (e' : P₂ →ᵃ[k] P₃).comp e :=
+rfl
 
 @[simp]
 lemma trans_apply (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) (p : P₁) : e.trans e' p = e' (e p) := rfl

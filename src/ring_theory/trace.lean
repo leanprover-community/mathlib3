@@ -127,13 +127,14 @@ begin
   { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
-lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
+lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι] [finite κ]
   (b : basis ι R S) (c : basis κ S T) (x : T) :
   trace R S (trace S T x) = trace R T x :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
+  casesI nonempty_fintype ι,
+  casesI nonempty_fintype κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
       matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
@@ -143,9 +144,8 @@ begin
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
 
-lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
-  (b : basis ι R S) (c : basis κ S T) :
+lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι]
+  [fintype κ] (b : basis ι R S) (c : basis κ S T) :
   (trace R S).comp ((trace S T).restrict_scalars R) = trace R T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace_of_basis b c] }
 
@@ -160,6 +160,24 @@ lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
   [finite_dimensional K L] [finite_dimensional L T] :
   (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
+
+@[simp]
+lemma trace_prod_apply
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T]
+  (x : S × T) : trace R (S × T) x = trace R S x.fst + trace R T x.snd :=
+begin
+  nontriviality R,
+  let f := (lmul R S).to_linear_map.prod_map (lmul R T).to_linear_map,
+  have : (lmul R (S × T)).to_linear_map = (prod_map_linear R S T S T R).comp f :=
+    linear_map.ext₂ prod.mul_def,
+  simp_rw [trace, this],
+  exact trace_prod_map' _ _,
+end
+
+lemma trace_prod
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T] :
+  trace R (S × T) = (trace R S).coprod (trace R T) :=
+linear_map.ext $ λ p, by rw [coprod_apply, trace_prod_apply]
 
 section trace_form
 
@@ -232,7 +250,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_fintype_basis b) },
   { exact subset_adjoin K _ (set.mem_singleton x) }
 end
 
@@ -283,10 +301,10 @@ variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
 
 open polynomial
 
-lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (algebra.trace L F x) :=
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : is_integral R x) :
+  is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : is_integral L x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,
@@ -491,7 +509,7 @@ lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
   (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  transpose_minor, ← minor_mul_transpose_minor, ← equiv.coe_refl, equiv.refl_symm]
+  transpose_submatrix, ← submatrix_mul_transpose_submatrix, ← equiv.coe_refl, equiv.refl_symm]
 
 end field
 

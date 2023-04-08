@@ -9,6 +9,9 @@ import data.list.perm
 /-!
 # Utilities for lists of sigmas
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes several ways of interacting with `list (sigma β)`, treated as a key-value store.
 
 If `α : Type*` and `β : α → Type*`, then we regard `s : sigma β` as having key `s.1 : α` and value
@@ -268,7 +271,7 @@ theorem lookup_all_sublist (a : α) :
 theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   length (lookup_all a l) ≤ 1 :=
 by have := nodup.sublist ((lookup_all_sublist a l).map _) h;
-   rw map_map at this; rwa [← nodup_repeat, ← map_const _ a]
+   rw map_map at this; rwa [← nodup_replicate, ← map_const _ a]
 
 theorem lookup_all_eq_lookup (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   lookup_all a l = (lookup a l).to_list :=

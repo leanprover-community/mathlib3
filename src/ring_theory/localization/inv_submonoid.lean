@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
 import group_theory.submonoid.inverses
-import ring_theory.finiteness
+import ring_theory.finite_type
 import ring_theory.localization.basic
 import tactic.ring_exp
 
@@ -38,17 +38,17 @@ section inv_submonoid
 variables (M S)
 
 /-- The submonoid of `S = M⁻¹R` consisting of `{ 1 / x | x ∈ M }`. -/
-def inv_submonoid : submonoid S := (M.map (algebra_map R S : R →* S)).left_inv
+def inv_submonoid : submonoid S := (M.map (algebra_map R S)).left_inv
 
 variable [is_localization M S]
 
-lemma submonoid_map_le_is_unit : M.map (algebra_map R S : R →* S) ≤ is_unit.submonoid S :=
+lemma submonoid_map_le_is_unit : M.map (algebra_map R S) ≤ is_unit.submonoid S :=
 by { rintros _ ⟨a, ha, rfl⟩, exact is_localization.map_units S ⟨_, ha⟩ }
 
 /-- There is an equivalence of monoids between the image of `M` and `inv_submonoid`. -/
 noncomputable
-abbreviation equiv_inv_submonoid : M.map (algebra_map R S : R →* S) ≃* inv_submonoid M S :=
-((M.map (algebra_map R S : R →* S)).left_inv_equiv (submonoid_map_le_is_unit M S)).symm
+abbreviation equiv_inv_submonoid : M.map (algebra_map R S) ≃* inv_submonoid M S :=
+((M.map (algebra_map R S)).left_inv_equiv (submonoid_map_le_is_unit M S)).symm
 
 /-- There is a canonical map from `M` to `inv_submonoid` sending `x` to `1 / x`. -/
 noncomputable

@@ -9,6 +9,9 @@ import category_theory.full_subcategory
 /-!
 # Monoidal natural transformations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Natural transformations between (lax) monoidal functors must satisfy
 an additional compatibility relation with the tensorators:
 `F.μ X Y ≫ app (X ⊗ Y) = (app X ⊗ app Y) ≫ G.μ X Y`.

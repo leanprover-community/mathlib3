@@ -9,6 +9,9 @@ import analysis.normed.group.ball_sphere
 /-!
 # Algebraic structures on unit balls and spheres
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define algebraic structures (`semigroup`, `comm_semigroup`, `monoid`, `comm_monoid`,
 `group`, `comm_group`) on `metric.ball (0 : 𝕜) 1`, `metric.closed_ball (0 : 𝕜) 1`, and
 `metric.sphere (0 : 𝕜) 1`. In each case we use the weakest possible typeclass assumption on `𝕜`,
@@ -156,8 +159,7 @@ subtype.coe_injective.has_distrib_neg (coe : sphere (0 : 𝕜) 1 → 𝕜) (λ _
 
 instance [normed_division_ring 𝕜] : topological_group (sphere (0 : 𝕜) 1) :=
 { to_has_continuous_mul := (submonoid.unit_sphere 𝕜).has_continuous_mul,
-  continuous_inv := continuous_subtype_mk _ $
-    continuous_subtype_coe.inv₀ ne_zero_of_mem_unit_sphere }
+  continuous_inv := (continuous_subtype_coe.inv₀ ne_zero_of_mem_unit_sphere).subtype_mk _ }
 
 instance [normed_field 𝕜] : comm_group (sphere (0 : 𝕜) 1) :=
 { .. metric.sphere.group,

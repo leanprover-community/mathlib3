@@ -5,10 +5,9 @@ Authors: Markus Himmel, Johan Commelin, Scott Morrison
 -/
 
 import category_theory.limits.constructions.pullbacks
-import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.biproducts
 import category_theory.limits.shapes.images
 import category_theory.limits.constructions.limits_of_products_and_equalizers
-import category_theory.limits.constructions.epi_mono
 import category_theory.abelian.non_preadditive
 
 /-!
@@ -157,7 +156,7 @@ def image_factorisation {X Y : C} (f : X ⟶ Y) [is_iso (abelian.coimage_image_c
       simp only [image_mono_factorisation_m, is_iso.inv_comp_eq, category.assoc,
         abelian.coimage_image_comparison],
       ext,
-      rw [limits.coequalizer.π_desc_assoc, limits.coequalizer.π_desc_assoc, F.fac, kernel.lift_ι]
+      simp only [cokernel.π_desc_assoc, mono_factorisation.fac, image.fac],
     end } }
 
 instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [mono f]
@@ -382,10 +381,40 @@ abbreviation coimage_iso_image' : abelian.coimage f ≅ image f :=
 is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
   (image.is_image f)
 
+lemma coimage_iso_image'_hom :
+  (coimage_iso_image' f).hom = cokernel.desc _ (factor_thru_image f)
+    (by simp [←cancel_mono (limits.image.ι f)]) :=
+begin
+  ext,
+  simp only [←cancel_mono (limits.image.ι f), is_image.iso_ext_hom, cokernel.π_desc, category.assoc,
+    is_image.lift_ι, coimage_strong_epi_mono_factorisation_to_mono_factorisation_m,
+    limits.image.fac],
+end
+
+lemma factor_thru_image_comp_coimage_iso_image'_inv :
+  factor_thru_image f ≫ (coimage_iso_image' f).inv = cokernel.π _ :=
+by simp only [is_image.iso_ext_inv, image.is_image_lift, image.fac_lift,
+  coimage_strong_epi_mono_factorisation_to_mono_factorisation_e]
+
 /-- There is a canonical isomorphism between the abelian image and the categorical image of a
     morphism. -/
 abbreviation image_iso_image : abelian.image f ≅ image f :=
 is_image.iso_ext (image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
+
+lemma image_iso_image_hom_comp_image_ι :
+  (image_iso_image f).hom ≫ limits.image.ι _ = kernel.ι _ :=
+by simp only [is_image.iso_ext_hom, is_image.lift_ι,
+  image_strong_epi_mono_factorisation_to_mono_factorisation_m]
+
+lemma image_iso_image_inv :
+  (image_iso_image f).inv = kernel.lift _ (limits.image.ι f)
+    (by simp [←cancel_epi (factor_thru_image f)]) :=
+begin
+  ext,
+  simp only [is_image.iso_ext_inv, image.is_image_lift, limits.image.fac_lift,
+    image_strong_epi_mono_factorisation_to_mono_factorisation_e, category.assoc,
+    kernel.lift_ι, limits.image.fac],
+end
 
 end images
 

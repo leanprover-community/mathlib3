@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import data.matrix.basis
 import data.matrix.dmatrix
 import linear_algebra.matrix.determinant
-import linear_algebra.matrix.trace
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 
@@ -81,14 +80,14 @@ def transvection (c : R) : matrix n n R := 1 + matrix.std_basis_matrix i j c
 by simp [transvection]
 
 section
-variable [fintype n]
 
 /-- A transvection matrix is obtained from the identity by adding `c` times the `j`-th row to
 the `i`-th row. -/
-lemma update_row_eq_transvection (c : R) :
+lemma update_row_eq_transvection [finite n] (c : R) :
   update_row (1 : matrix n n R) i (((1 : matrix n n R)) i + c • (1 : matrix n n R) j) =
     transvection i j c :=
 begin
+  casesI nonempty_fintype n,
   ext a b,
   by_cases ha : i = a, by_cases hb : j = b,
   { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
@@ -100,6 +99,8 @@ begin
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
 end
+
+variables [fintype n]
 
 lemma transvection_mul_transvection_same (h : i ≠ j) (c d : R) :
   transvection i j c ⬝ transvection i j d = transvection i j (c + d) :=
@@ -269,7 +270,7 @@ begin
   cases t,
   ext a b,
   simp only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
-    minor_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
+    submatrix_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
   by_cases ha : e t_i = a; by_cases hb : e t_j = b; by_cases hab : a = b;
   simp [ha, hb, hab, ← e.apply_eq_iff_eq_symm_apply, std_basis_matrix]
 end
@@ -362,7 +363,7 @@ begin
     simp only [matrix.mul_assoc, A, matrix.mul_eq_mul, list.prod_cons],
     by_cases h : n' = i,
     { have hni : n = i,
-      { cases i, simp only [subtype.mk_eq_mk] at h, simp [h] },
+      { cases i, simp only [fin.mk_eq_mk] at h, simp [h] },
       rw [h, transvection_mul_apply_same, IH, list_transvec_col_mul_last_row_drop _ _ hn, ← hni],
       field_simp [hM] },
     { have hni : n ≠ i,
@@ -411,7 +412,7 @@ begin
     if k ≤ i then M (inr star) (inl i) else 0,
   { have A : (list_transvec_row M).length = r, by simp [list_transvec_row],
     rw [← list.take_length (list_transvec_row M), A],
-    have : ¬ (r ≤ i), by simpa using i.2,
+    have : ¬ (r ≤ i), by simp,
     simpa only [this, ite_eq_right_iff] using H r le_rfl },
   assume k hk,
   induction k with n IH,
@@ -425,7 +426,7 @@ begin
       matrix.mul_eq_mul, list.prod_cons, list.prod_nil, option.to_list_some],
     by_cases h : n' = i,
     { have hni : n = i,
-      { cases i, simp only [subtype.mk_eq_mk] at h, simp only [h, coe_mk] },
+      { cases i, simp only [fin.mk_eq_mk] at h, simp only [h, coe_mk] },
       have : ¬ (n.succ ≤ i), by simp only [← hni, n.lt_succ_self, not_le],
       simp only [h, mul_transvection_apply_same, list.take, if_false,
         mul_list_transvec_row_last_col_take _ _ hnr.le, hni.le, this, if_true, IH hnr.le],
@@ -585,12 +586,12 @@ begin
   rcases H with ⟨L₀, L₀', D₀, h₀⟩,
   refine ⟨L₀.map (reindex_equiv e.symm), L₀'.map (reindex_equiv e.symm), D₀ ∘ e, _⟩,
   have : M = reindex_alg_equiv 𝕜 e.symm (reindex_alg_equiv 𝕜 e M),
-    by simp only [equiv.symm_symm, minor_minor, reindex_apply, minor_id_id, equiv.symm_comp_self,
-      reindex_alg_equiv_apply],
+    by simp only [equiv.symm_symm, submatrix_submatrix, reindex_apply, submatrix_id_id,
+      equiv.symm_comp_self, reindex_alg_equiv_apply],
   rw this,
   simp only [to_matrix_reindex_equiv_prod, list.map_map, reindex_alg_equiv_apply],
   simp only [← reindex_alg_equiv_apply, ← reindex_alg_equiv_mul, h₀],
-  simp only [equiv.symm_symm, reindex_apply, minor_diagonal_equiv, reindex_alg_equiv_apply],
+  simp only [equiv.symm_symm, reindex_apply, submatrix_diagonal_equiv, reindex_alg_equiv_apply],
 end
 
 /-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type 0`

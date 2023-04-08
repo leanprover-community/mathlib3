@@ -611,12 +611,12 @@ begin
     ←mul_assoc],
 end
 
-lemma slightly_off_diagonal_lower_ramsey :
-  ∃ c : ℝ, 0 < c ∧ ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
-    real.exp (c * l ^ (3 / 4 : ℝ) * log k) ≤ ramsey_number ![k, ⌊(l : ℝ) ^ (3 / 4 : ℝ)⌋₊] :=
-begin
+-- lemma slightly_off_diagonal_lower_ramsey :
+--   ∃ c : ℝ, 0 < c ∧ ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
+--     real.exp (c * l ^ (3 / 4 : ℝ) * log k) ≤ ramsey_number ![k, ⌊(l : ℝ) ^ (3 / 4 : ℝ)⌋₊] :=
+-- begin
 
-end
+-- end
 
 end
 

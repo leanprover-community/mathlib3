@@ -759,7 +759,7 @@ domain and codomain.
 begin
   let hbV := basis.of_vector_space K V,
   let hbW := basis.of_vector_space K W,
-  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,
+  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), finite_dimensional.finrank_matrix,
     finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
     mul_comm],
 end

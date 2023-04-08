@@ -90,7 +90,7 @@ end
 
 /-- If `m` and `n` are `fintype`, the finrank of `m × n` matrices is
   `(fintype.card m) * (fintype.card n)`. -/
-lemma finrank_matrix (m n : Type v) [fintype m] [fintype n] :
+lemma finrank_matrix (m n : Type*) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 

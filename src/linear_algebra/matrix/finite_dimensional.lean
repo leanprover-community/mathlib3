@@ -15,7 +15,6 @@ and proves the `finrank` of that space is equal to `card m * card n`.
 ## Main definitions
 
  * `matrix.finite_dimensional`: matrices form a finite dimensional vector space over a field `K`
- * `matrix.finrank_matrix`: the `finrank` of `matrix m n R` is `card m * card n`
 
 ## Tags
 
@@ -32,16 +31,7 @@ section finite_dimensional
 variables {m n : Type*} {R : Type v} [field R]
 
 instance [finite m] [finite n] : finite_dimensional R (matrix m n R) :=
-linear_equiv.finite_dimensional (linear_equiv.curry R m n)
-
-/--
-The dimension of the space of finite dimensional matrices
-is the product of the number of rows and columns.
--/
-@[simp] lemma finrank_matrix [fintype m] [fintype n] :
-  finite_dimensional.finrank R (matrix m n R) = fintype.card m * fintype.card n :=
-by rw [@linear_equiv.finrank_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.curry R m n).symm,
-       finite_dimensional.finrank_fintype_fun_eq_card, fintype.card_prod]
+module.finite.matrix
 
 end finite_dimensional
 

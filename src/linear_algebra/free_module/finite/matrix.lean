@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.finrank
-import linear_algebra.free_module.finite.basic
+import linear_algebra.free_module.finite.rank
 import linear_algebra.matrix.to_lin
 
 /-!
@@ -21,9 +21,9 @@ We provide some instances for finite and free modules involving matrices.
   is finite.
 -/
 
-universes u u' v w
+universes u v w
 
-variables (R : Type u) (A : Type u') (M : Type v) (N : Type w)
+variables (R : Type u) (M : Type v) (N : Type w)
 
 open module.free (choose_basis)
 open finite_dimensional (finrank)

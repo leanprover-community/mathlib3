@@ -68,12 +68,14 @@ theorem to_multilinear_map_injective :
     continuous_multilinear_map R M₁ M₂ → multilinear_map R M₁ M₂)
 | ⟨f, hf⟩ ⟨g, hg⟩ rfl := rfl
 
-instance fun_like : fun_like (continuous_multilinear_map R M₁ M₂) (Π i, M₁ i) (λ _, M₂) :=
+instance continuous_map_class :
+  continuous_map_class (continuous_multilinear_map R M₁ M₂) (Π i, M₁ i) M₂ :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, to_multilinear_map_injective $ multilinear_map.coe_injective h }
+  coe_injective' := λ f g h, to_multilinear_map_injective $ multilinear_map.coe_injective h,
+  map_continuous := continuous_multilinear_map.cont }
 
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) (λ _, (Π i, M₁ i) → M₂) :=
-⟨λ f, f.to_fun⟩
+⟨λ f, f⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/

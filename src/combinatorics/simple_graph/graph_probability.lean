@@ -454,15 +454,40 @@ end
 
 open real
 
--- meant to be used when p *very* small
-lemma basic_off_diagonal_ramsey_bound {k l n : ℕ} {p : ℝ} (hp : 0 < p) (hp' : p < 1)
-  (hV : (n : ℝ) ^ k * p ^ (k ^ 2 / 2) + n ^ l * exp (-p * l ^ 2 / 2) < 1) :
-  n < ramsey_number ![k, l] :=
+lemma sq_div_four_le_choose_two {k : ℕ} (hk : 2 ≤ k) : (k ^ 2 / 4 : ℝ) ≤ k.choose 2 :=
 begin
-  apply basic_ramsey_bound,
+  rw [nat.cast_choose_two, sq, mul_div_assoc, mul_div_assoc],
+  refine mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
+  have : (2 : ℝ) ≤ k := by exact_mod_cast hk,
+  linarith,
 end
 
-#exit
+-- meant to be used when p *very* small
+lemma basic_off_diagonal_ramsey_bound {k l n : ℕ} {p : ℝ} (hp : 0 < p) (hp' : p < 1)
+  (hk : 2 ≤ k) (hl : 2 ≤ l)
+  (hV : (n : ℝ) ^ k * p ^ (k ^ 2 / 4 : ℝ) + n ^ l * exp (-p * l ^ 2 / 4) < 1) :
+  n < ramsey_number ![k, l] :=
+begin
+  refine basic_ramsey_bound hp hp' (hV.trans_le' (add_le_add _ _)),
+  { refine mul_le_mul _ _ (by positivity) (by positivity),
+    { refine (nat.choose_le_pow _ _).trans _,
+      refine div_le_self (by positivity) _,
+      rw [nat.one_le_cast, nat.succ_le_iff],
+      exact nat.factorial_pos _ },
+    { rw ←rpow_nat_cast,
+      exact rpow_le_rpow_of_exponent_ge hp hp'.le (sq_div_four_le_choose_two hk) } },
+  { refine mul_le_mul _ _ _ (by positivity),
+    { refine (nat.choose_le_pow _ _).trans _,
+      refine div_le_self (by positivity) _,
+      rw [nat.one_le_cast, nat.succ_le_iff],
+      exact nat.factorial_pos _ },
+    { refine (pow_le_pow_of_le_left (by linarith) (one_sub_le_exp_minus_of_pos hp.le) _).trans _,
+      rw [←rpow_nat_cast, ←exp_one_rpow, ←rpow_mul (exp_pos _).le, exp_one_rpow, exp_le_exp,
+        mul_div_assoc],
+      refine mul_le_mul_of_nonpos_left _ (by simpa using hp.le),
+      exact sq_div_four_le_choose_two hl },
+    exact pow_nonneg (by linarith) _ }
+end
 
 lemma basic_diagonal_ramsey_bound {k n : ℕ} (hV : (n.choose k : ℝ) * 2 ^ (1 - k.choose 2 : ℝ) < 1) :
   n < diagonal_ramsey k :=
@@ -584,6 +609,13 @@ begin
   refine (diagonal_ramsey_bound_refined_again hk).le.trans_eq' _,
   rw [neg_div, ←sub_eq_add_neg, div_eq_mul_inv, mul_comm (sqrt 2), mul_comm (_ * _) (_⁻¹),
     ←mul_assoc],
+end
+
+lemma slightly_off_diagonal_lower_ramsey :
+  ∃ c : ℝ, 0 < c ∧ ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
+    real.exp (c * l ^ (3 / 4 : ℝ) * log k) ≤ ramsey_number ![k, ⌊(l : ℝ) ^ (3 / 4 : ℝ)⌋₊] :=
+begin
+
 end
 
 end

@@ -1191,8 +1191,7 @@ begin
     λ _, hf.has_fderiv_within_at (by simp only [nat.cast_succ, self_le_add_left])⟩,
 end
 
-lemma has_ftaylor_series_up_to_on.cont_diff {s : set E} {f : E → F}
-  {f' : E → formal_multilinear_series 𝕜 E F}
+lemma has_ftaylor_series_up_to_on.cont_diff_on {f' : E → formal_multilinear_series 𝕜 E F}
   {n : ℕ} (hf : has_ftaylor_series_up_to_on n f f' s) (hs : unique_diff_on 𝕜 s) :
   cont_diff_on 𝕜 n f s :=
 begin
@@ -1222,12 +1221,29 @@ begin
   exact (isoE.symm.to_equiv.preimage_image _).symm.subset,
 end
 
+lemma has_ftaylor_series_up_to_on.cont_diff_on_of_le {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to_on n f f' s) (hn : m ≤ n) (hs : unique_diff_on 𝕜 s) :
+  cont_diff_on 𝕜 m f s :=
+begin
+  rw cont_diff_on_iff_forall_nat_le,
+  intros m' hm,
+  exact (hf.of_le (hm.trans hn)).cont_diff_on hs,
+end
+
 /-- If `f` has a Taylor series up to `n`, then it is `C^n`. -/
 lemma has_ftaylor_series_up_to.cont_diff {f : E → F} {f' : E → formal_multilinear_series 𝕜 E F}
   {n : ℕ} (hf : has_ftaylor_series_up_to n f f') : cont_diff 𝕜 n f :=
 begin
   simp only [← cont_diff_on_univ, ← has_ftaylor_series_up_to_on_univ_iff] at hf ⊢,
-  exact hf.cont_diff unique_diff_on_univ,
+  exact hf.cont_diff_on unique_diff_on_univ,
+end
+
+/-- If `f` has a Taylor series up to `n`, then it is `C^m` for all `m ≤ n`. -/
+lemma has_ftaylor_series_up_to.cont_diff_of_le {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to n f f') (hn : m ≤ n) : cont_diff 𝕜 m f :=
+begin
+  simp only [← cont_diff_on_univ, ← has_ftaylor_series_up_to_on_univ_iff] at hf ⊢,
+  exact hf.cont_diff_on_of_le hn unique_diff_on_univ,
 end
 
 /-!

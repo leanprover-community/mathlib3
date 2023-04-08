@@ -722,52 +722,6 @@ end lmul_tower
 
 end algebra
 
-namespace linear_map
-
--- TODO: merge with `linear_algebra.free_module.finite.matrix` which contains more general results
-section finite_dimensional
-
-open_locale classical
-
-variables {K : Type*} [field K]
-variables {V : Type*} [add_comm_group V] [module K V] [finite_dimensional K V]
-variables {W : Type*} [add_comm_group W] [module K W] [finite_dimensional K W]
-
-instance finite_dimensional : finite_dimensional K (V →ₗ[K] W) :=
-linear_equiv.finite_dimensional
-  (linear_map.to_matrix (basis.of_vector_space K V) (basis.of_vector_space K W)).symm
-
-section
-
-variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V]
-  [module A W] [is_scalar_tower K A W]
-
-/-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, as they form a subspace of all `k`-linear maps. -/
-instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
-finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
-  (restrict_scalars_injective _)
-
-end
-
-/--
-The dimension of the space of linear transformations is the product of the dimensions of the
-domain and codomain.
--/
-@[simp] lemma finrank_linear_map :
-  finite_dimensional.finrank K (V →ₗ[K] W) =
-  (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
-begin
-  let hbV := basis.of_vector_space K V,
-  let hbW := basis.of_vector_space K W,
-  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), finite_dimensional.finrank_matrix,
-    finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
-    mul_comm],
-end
-
-end finite_dimensional
-end linear_map
-
 section
 
 variables {R : Type v} [comm_ring R] {n : Type*} [decidable_eq n]

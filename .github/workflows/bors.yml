@@ -141,7 +141,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -178,7 +178,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 

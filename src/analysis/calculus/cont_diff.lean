@@ -1175,6 +1175,61 @@ begin
   exact cont_diff_on_fderiv_within_apply hf unique_diff_on_univ hmn
 end
 
+lemma has_taylor_series_up_to_on.cont_diff_aux {Eu Fu : Type u}
+  [normed_add_comm_group Eu] [normed_space 𝕜 Eu]
+  [normed_add_comm_group Fu] [normed_space 𝕜 Fu]
+  {s : set Eu} {f : Eu → Fu}
+  {f' : Eu → formal_multilinear_series 𝕜 Eu Fu}
+  {n : ℕ} (hf : has_ftaylor_series_up_to_on n f f' s) (hs : unique_diff_on 𝕜 s) :
+  cont_diff_on 𝕜 n f s :=
+begin
+  unfreezingI { induction n with m IH generalizing f Fu, },
+  { simp only [hf.continuous_on, char_p.cast_eq_zero, cont_diff_on_zero] },
+  rw cont_diff_on_succ_iff_has_fderiv_within hs,
+  exact ⟨(λ (x : Eu), (continuous_multilinear_curry_fin1 𝕜 Eu Fu) (f' x 1)),
+    IH (has_ftaylor_series_up_to_on_succ_iff_right.mp hf).2.2,
+    λ _, hf.has_fderiv_within_at (by simp only [nat.cast_succ, self_le_add_left])⟩,
+end
+
+lemma has_ftaylor_series_up_to_on.cont_diff {s : set E} {f : E → F}
+  {f' : E → formal_multilinear_series 𝕜 E F}
+  {n : ℕ} (hf : has_ftaylor_series_up_to_on n f f' s) (hs : unique_diff_on 𝕜 s) :
+  cont_diff_on 𝕜 n f s :=
+begin
+  let Eu : Type (max uE uF) := ulift.{uF uE} E,
+  let Fu : Type (max uE uF) := ulift.{uE uF} F,
+  have isoE : Eu ≃L[𝕜] E := continuous_linear_equiv.ulift,
+  have isoF : Fu ≃L[𝕜] F := continuous_linear_equiv.ulift,
+  let fu : Eu → Fu := isoF.symm ∘ f ∘ isoE,
+  have fu_inv : f = isoF ∘ fu ∘ isoE.symm :=
+  by { ext, simp only [comp_app, continuous_linear_equiv.apply_symm_apply], },
+  let fu' : Eu → formal_multilinear_series 𝕜 Eu Fu :=
+  λ x, (isoF.symm : F →L[𝕜] Fu).comp_formal_multilinear_series
+    ((f' (isoE x)).comp_continuous_linear_map (isoE : Eu →L[𝕜] E)),
+  let su : set Eu := isoE.symm '' s,
+  have hfu : has_ftaylor_series_up_to_on n fu fu' su :=
+  begin
+    have := (hf.continuous_linear_map_comp (isoF.symm : F →L[𝕜] Fu)).comp_continuous_linear_map
+      (isoE : Eu →L[𝕜] E),
+    simp only [continuous_linear_equiv.coe_coe] at this,
+    convert this,
+    exact (set.preimage_equiv_eq_image_symm s isoE.to_equiv).symm,
+  end,
+  have hsu : unique_diff_on 𝕜 su := isoE.symm.unique_diff_on_image hs,
+  have := has_taylor_series_up_to_on.cont_diff_aux hfu hsu,
+  rw [fu_inv],
+  refine isoF.cont_diff.comp_cont_diff_on (this.comp isoE.symm.cont_diff.cont_diff_on _),
+  exact (isoE.symm.to_equiv.preimage_image _).symm.subset,
+end
+
+/-- If `f` has a Taylor series up to `n`, then it is `C^n`. -/
+lemma has_ftaylor_series_up_to.cont_diff {f : E → F} {f' : E → formal_multilinear_series 𝕜 E F}
+  {n : ℕ} (hf : has_ftaylor_series_up_to n f f') : cont_diff 𝕜 n f :=
+begin
+  simp only [← cont_diff_on_univ, ← has_ftaylor_series_up_to_on_univ_iff] at hf ⊢,
+  exact hf.cont_diff unique_diff_on_univ,
+end
+
 /-!
 ### Smoothness of functions `f : E → Π i, F' i`
 -/

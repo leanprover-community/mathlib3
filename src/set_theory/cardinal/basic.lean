@@ -1015,6 +1015,24 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
 
+theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+is_succ_limit_of_succ_lt $ λ a ha, begin
+  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
+  rw ←nat_succ,
+  apply nat_lt_aleph_0
+end
+
+theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
+
+theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
+  { exact h.ne_zero.irrefl },
+  { rw nat_succ at h,
+    exact not_is_succ_limit_succ _ h.is_succ_limit }
+end
+
 @[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
 ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
@@ -1052,24 +1070,6 @@ alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
 @[simp] lemma le_aleph_0_iff_subtype_countable {p : α → Prop} :
   #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
 le_aleph_0_iff_set_countable
-
-theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
-is_succ_limit_of_succ_lt $ λ a ha, begin
-  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
-  rw ←nat_succ,
-  apply nat_lt_aleph_0
-end
-
-theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
-
-theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
-begin
-  by_contra' h',
-  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
-  { exact h.ne_zero.irrefl },
-  { rw nat_succ at h,
-    exact not_is_succ_limit_succ _ h.is_succ_limit }
-end
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ coe (λ x, x < ℵ₀) :=
 ⟨λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩

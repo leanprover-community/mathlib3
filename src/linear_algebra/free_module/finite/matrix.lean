@@ -90,3 +90,14 @@ begin
 end
 
 end comm_ring
+
+lemma matrix.rank_vec_mul_vec {K m n : Type u}
+  [comm_ring K] [strong_rank_condition K] [fintype n] [decidable_eq n]
+  (w : m → K) (v : n → K) :
+  (matrix.vec_mul_vec w v).to_lin'.rank ≤ 1 :=
+begin
+  rw [matrix.vec_mul_vec_eq, matrix.to_lin'_mul],
+  refine le_trans (linear_map.rank_comp_le_left _ _) _,
+  refine (linear_map.rank_le_domain _).trans_eq _,
+  rw [rank_fun', fintype.card_unit, nat.cast_one]
+end

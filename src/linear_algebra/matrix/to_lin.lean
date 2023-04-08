@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import data.matrix.block
 import data.matrix.notation
-import linear_algebra.matrix.finite_dimensional
+import linear_algebra.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
@@ -724,6 +724,7 @@ end algebra
 
 namespace linear_map
 
+-- TODO: merge with `linear_algebra.free_module.finite.matrix` which contains more general results
 section finite_dimensional
 
 open_locale classical

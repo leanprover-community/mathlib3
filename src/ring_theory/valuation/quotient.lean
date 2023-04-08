@@ -10,6 +10,9 @@ import ring_theory.ideal.quotient_operations
 /-!
 # The valuation on a quotient ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The support of a valuation `v : valuation R Γ₀` is `supp v`. If `J` is an ideal of `R`
 with `h : J ⊆ supp v` then the induced valuation
 on R / J = `ideal.quotient J` is `on_quot v h`.

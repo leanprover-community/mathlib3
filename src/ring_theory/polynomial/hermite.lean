@@ -34,6 +34,15 @@ noncomputable def hermite : ℕ → polynomial ℤ
 @[simp] lemma hermite_succ {n : ℕ} : hermite (n+1) =  X * (hermite n) - (hermite n).derivative :=
 by rw hermite
 
+lemma hermite_eq_iter {n : ℕ} : hermite n = nat.iterate (λp, X*p -p.derivative) n 1 :=
+begin
+  induction n with n ih,
+  { refl },
+  { rw function.iterate_succ_apply',
+    repeat {rw ← ih},
+    rw hermite_succ }
+end
+
 @[simp] lemma hermite_zero : hermite 0 = C 1 := rfl
 
 @[simp] lemma hermite_one : hermite 1 = X :=

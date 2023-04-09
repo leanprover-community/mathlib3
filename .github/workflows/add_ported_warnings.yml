@@ -25,5 +25,18 @@ jobs:
         uses: Ana06/get-changed-files@v1.2
 
       - name: run the script
+        id: script
         run: |
           python scripts/detect_ported_files.py ${{ steps.changed-files.outputs.all }}
+
+      - if: steps.script.outputs.modifies_ported == 'True'
+        uses: octokit/request-action@v2.x
+        id: add_label
+        name: Add label
+        with:
+          route: POST /repos/:repository/issues/:issue_number/labels
+          repository: ${{ github.repository }}
+          issue_number: ${{ github.event.issue.number }}
+          labels: '["modified-synchronized-file"]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

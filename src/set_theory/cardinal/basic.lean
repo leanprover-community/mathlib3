@@ -478,7 +478,7 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
-  ..cardinal.comm_semiring, ..cardinal.linear_order }
+  ..cardinal.comm_semiring, ..cardinal.partial_order }
 
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 { ..cardinal.canonically_ordered_comm_semiring,

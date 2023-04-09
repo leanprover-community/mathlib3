@@ -38,7 +38,7 @@ lemma tensor_product.to_matrix_map (f : M →ₗ[R] M') (g : N →ₗ[R] N') :
     = to_matrix bM bM' f ⊗ₖ to_matrix bN bN' g :=
 begin
   ext ⟨i, j⟩ ⟨i', j'⟩,
-  simp_rw [matrix.kronecker_map, to_matrix_apply, basis.tensor_product_apply,
+  simp_rw [matrix.kronecker_map_apply, to_matrix_apply, basis.tensor_product_apply,
     tensor_product.map_tmul, basis.tensor_product_repr_tmul_apply],
 end
 

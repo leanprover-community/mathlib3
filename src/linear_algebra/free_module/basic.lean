@@ -8,7 +8,7 @@ import linear_algebra.direct_sum.finsupp
 import logic.small.basic
 import linear_algebra.std_basis
 import linear_algebra.finsupp_vector_space
-import linear_algebra.tensor_product.basis
+import linear_algebra.tensor_product_basis
 
 /-!
 

@@ -34,7 +34,7 @@ open module.free
   module.rank R (ι →₀ M) = cardinal.lift.{v} #ι * cardinal.lift.{w} (module.rank R M) :=
 begin
   obtain ⟨⟨_, bs⟩⟩ := module.free.exists_basis R M,
-  rw [← bs.mk_eq_rank'', ← (finsupp.basis (λa:ι, bs)).mk_eq_rank'',
+  rw [← bs.mk_eq_rank', ← (finsupp.basis (λa:ι, bs)).mk_eq_rank',
     cardinal.mk_sigma, cardinal.sum_const]
 end
 

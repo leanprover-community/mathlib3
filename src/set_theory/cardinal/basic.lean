@@ -480,6 +480,14 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
 
+-- Computable instance.
+instance : canonically_ordered_add_monoid cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring }
+
+-- Computable instance.
+instance : comm_monoid_with_zero cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring }
+
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 { ..cardinal.canonically_ordered_comm_semiring,
   ..cardinal.linear_order }

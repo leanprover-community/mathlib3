@@ -138,7 +138,7 @@ General algebra:
     perfection of a ring: 'ring.perfection'
   Transcendental numbers:
     Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
-  
+
   Representation theory:
     representation : 'representation'
     category of finite dimensional representations : 'fdRep'
@@ -445,8 +445,8 @@ Data structures:
     difference list: 'dlist'
     lazy list: 'lazy_list'
     stream: 'stream'
-    sequence: 'seq'
-    weak sequence: 'wseq'
+    sequence: 'stream.seq'
+    weak sequence: 'stream.wseq'
 
   Sets:
     set: 'set'

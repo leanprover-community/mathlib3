@@ -26,7 +26,9 @@ namespace orientation
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 local attribute [instance] complex.finrank_real_complex_fact
 
-variables {V V' : Type*} [inner_product_space ℝ V] [inner_product_space ℝ V']
+variables {V V' : Type*}
+variables [normed_add_comm_group V] [normed_add_comm_group V']
+variables [inner_product_space ℝ V] [inner_product_space ℝ V']
 variables [fact (finrank ℝ V = 2)] [fact (finrank ℝ V' = 2)] (o : orientation ℝ V (fin 2))
 
 local notation `J` := o.right_angle_rotation

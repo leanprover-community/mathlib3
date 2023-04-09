@@ -7,6 +7,9 @@ import ring_theory.ideal.operations
 import ring_theory.ideal.quotient
 /-!
 # More operations on modules and ideals related to quotients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -125,6 +128,10 @@ by rw [← mem_comap, comap_map_of_surjective (quotient.mk I) quotient.mk_surjec
 lemma mem_quotient_iff_mem {I J : ideal R} (hIJ : I ≤ J) {x : R} :
   quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
 by rw [mem_quotient_iff_mem_sup, sup_eq_left.mpr hIJ]
+
+lemma comap_map_mk {I J : ideal R} (h : I ≤ J) :
+  ideal.comap (ideal.quotient.mk I) (ideal.map (ideal.quotient.mk I) J) = J :=
+by { ext, rw [← ideal.mem_quotient_iff_mem h, ideal.mem_comap], }
 
 section quotient_algebra
 

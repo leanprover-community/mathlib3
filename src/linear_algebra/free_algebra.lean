@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import linear_algebra.basis
 import algebra.free_algebra
+import linear_algebra.dimension
 import linear_algebra.finsupp_vector_space
 /-!
 # Linear algebra properties of `free_algebra R X`
@@ -26,8 +27,8 @@ finsupp.basis_single_one.map
   (equiv_monoid_algebra_free_monoid.symm.to_linear_equiv : _ ≃ₗ[R] free_algebra R X)
 
 -- TODO: generalize to `X : Type v`
-lemma dim_eq {K : Type u} {X : Type (max u v)} [field K] :
+lemma rank_eq {K : Type u} {X : Type (max u v)} [field K] :
   module.rank K (free_algebra K X) = cardinal.mk (list X) :=
-(cardinal.lift_inj.mp (basis_free_monoid K X).mk_eq_dim).symm
+(cardinal.lift_inj.mp (basis_free_monoid K X).mk_eq_rank).symm
 
 end free_algebra

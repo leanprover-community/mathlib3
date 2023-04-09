@@ -9,7 +9,7 @@ import data.nat.part_enat
 import data.set.countable
 import logic.small.basic
 import order.conditionally_complete_lattice.basic
-import order.succ_pred.basic
+import order.succ_pred.limit
 import set_theory.cardinal.schroeder_bernstein
 import tactic.positivity
 
@@ -30,6 +30,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 * Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α × β)`.
 * The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
 * Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
+* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
 * `cardinal.aleph_0` or `ℵ₀` is the cardinality of `ℕ`. This definition is universe polymorphic:
   `cardinal.aleph_0.{u} : cardinal.{u}` (contrast with `ℕ : Type`, which lives in a specific
   universe). In some cases the universe level has to be given explicitly.
@@ -190,11 +191,13 @@ instance : has_le cardinal.{u} :=
 ⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
   λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
-instance : partial_order cardinal.{u} :=
-{ le          := (≤),
-  le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
-  le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
-  le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
+instance : linear_order cardinal.{u} :=
+{ le           := (≤),
+  le_refl      := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
+  le_trans     := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
+  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) },
+  le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
+  decidable_le := classical.dec_rel _ }
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl
@@ -472,7 +475,17 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
-  ..cardinal.comm_semiring, ..cardinal.partial_order }
+  ..cardinal.comm_semiring, ..cardinal.linear_order }
+
+instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring,
+  ..cardinal.linear_order }
+
+instance : linear_ordered_comm_monoid_with_zero cardinal.{u} :=
+{ mul_le_mul_left := @mul_le_mul_left' _ _ _ _,
+  zero_le_one := zero_le _,
+  ..cardinal.comm_semiring,
+  ..cardinal.linear_order }
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
@@ -500,13 +513,7 @@ begin
 end
 
 instance : no_max_order cardinal.{u} :=
-{ exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
-
-instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
-{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
-  decidable_le := classical.dec_rel _,
-  ..(infer_instance : canonically_ordered_add_monoid cardinal),
-  ..cardinal.partial_order }
+{ exists_gt := λ a, ⟨_, cantor a⟩ }
 
 -- short-circuit type class inference
 instance : distrib_lattice cardinal.{u} := by apply_instance
@@ -541,7 +548,6 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
-instance : well_founded_lt cardinal.{u} := ⟨cardinal.lt_wf⟩
 instance wo : @is_well_order cardinal.{u} (<) := { }
 
 instance : conditionally_complete_linear_order_bot cardinal :=
@@ -554,6 +560,20 @@ dif_neg not_nonempty_empty
 instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
+
+/-- A cardinal is a limit if it is not zero or a successor cardinal. Note that `ℵ₀` is a limit
+  cardinal by this definition, but `0` isn't.
+
+  Use `is_succ_limit` if you want to include the `c = 0` case. -/
+def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
+
+protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
+
+protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
+
+theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
+
+theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
 
 theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
 
@@ -871,6 +891,12 @@ by rw [←lift_aleph_0, lift_le]
 @[simp] theorem lift_le_aleph_0 {c : cardinal.{u}} : lift.{v} c ≤ ℵ₀ ↔ c ≤ ℵ₀ :=
 by rw [←lift_aleph_0, lift_le]
 
+@[simp] theorem aleph_0_lt_lift {c : cardinal.{u}} : ℵ₀ < lift.{v} c ↔ ℵ₀ < c :=
+by rw [←lift_aleph_0, lift_lt]
+
+@[simp] theorem lift_lt_aleph_0 {c : cardinal.{u}} : lift.{v} c < ℵ₀ ↔ c < ℵ₀ :=
+by rw [←lift_aleph_0, lift_lt]
+
 /-! ### Properties about the cast from `ℕ` -/
 
 @[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
@@ -884,6 +910,20 @@ lift_injective.eq_iff' (lift_nat_cast n)
 @[simp] lemma nat_eq_lift_iff {n : ℕ} {a : cardinal.{u}} :
   (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
 by rw [←lift_nat_cast.{v} n, lift_inj]
+
+@[simp] lemma lift_le_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a ≤ n ↔ a ≤ n :=
+by simp only [←lift_nat_cast, lift_le]
+
+@[simp] lemma nat_le_lift_iff {n : ℕ} {a : cardinal.{u}} :
+  (n : cardinal) ≤ lift.{v} a ↔ (n : cardinal) ≤ a :=
+by simp only [←lift_nat_cast, lift_le]
+
+@[simp] lemma lift_lt_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a < n ↔ a < n :=
+by simp only [←lift_nat_cast, lift_lt]
+
+@[simp] lemma nat_lt_lift_iff {n : ℕ} {a : cardinal.{u}} :
+  (n : cardinal) < lift.{v} a ↔ (n : cardinal) < a :=
+by simp only [←lift_nat_cast, lift_lt]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 
@@ -994,6 +1034,24 @@ lt_aleph_0_iff_finite.2 ‹_›
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
+
+theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+is_succ_limit_of_succ_lt $ λ a ha, begin
+  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
+  rw ←nat_succ,
+  apply nat_lt_aleph_0
+end
+
+theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
+
+theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
+  { exact h.ne_zero.irrefl },
+  { rw nat_succ at h,
+    exact not_is_succ_limit_succ _ h.is_succ_limit }
+end
 
 @[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
   #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
@@ -1207,9 +1265,9 @@ begin
   apply nat_cast_injective,
   cases lt_or_ge c ℵ₀ with hc hc,
   { rw [cast_to_nat_of_lt_aleph_0, ←lift_nat_cast, cast_to_nat_of_lt_aleph_0 hc],
-    rwa [←lift_aleph_0, lift_lt] },
+    rwa [lift_lt_aleph_0] },
   { rw [cast_to_nat_of_aleph_0_le, ←lift_nat_cast, cast_to_nat_of_aleph_0_le hc, lift_zero],
-    rwa [←lift_aleph_0, lift_le] },
+    rwa [aleph_0_le_lift] },
 end
 
 lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
@@ -1247,8 +1305,8 @@ map_prod to_nat_hom _ _
   (ha : a < ℵ₀) (hb : b < ℵ₀) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin
   apply cardinal.nat_cast_injective,
-  replace ha : (lift.{v u} a) < ℵ₀ := by { rw ←lift_aleph_0, exact lift_lt.2 ha },
-  replace hb : (lift.{u v} b) < ℵ₀ := by { rw ←lift_aleph_0, exact lift_lt.2 hb },
+  replace ha : (lift.{v u} a) < ℵ₀ := by rwa lift_lt_aleph_0,
+  replace hb : (lift.{u v} b) < ℵ₀ := by rwa lift_lt_aleph_0,
   rw [nat.cast_add, ←to_nat_lift.{v u} a, ←to_nat_lift.{u v} b, cast_to_nat_of_lt_aleph_0 ha,
     cast_to_nat_of_lt_aleph_0 hb, cast_to_nat_of_lt_aleph_0 (add_lt_aleph_0 ha hb)]
 end

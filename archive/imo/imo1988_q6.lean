@@ -266,7 +266,7 @@ begin
     have x_sq_dvd : x*x ∣ x*x*k := dvd_mul_right (x*x) k,
     rw ← hx at x_sq_dvd,
     obtain ⟨y, hy⟩ : x * x ∣ 1 := by simpa only [nat.dvd_add_self_left, add_assoc] using x_sq_dvd,
-    obtain ⟨rfl,rfl⟩ : x = 1 ∧ y = 1 := by simpa [nat.mul_eq_one_iff] using hy.symm,
+    obtain ⟨rfl,rfl⟩ : x = 1 ∧ y = 1 := by simpa [mul_eq_one] using hy.symm,
     simpa using hx.symm, },
   { -- Show the descent step.
     intros x y x_lt_y hx h_base h z h_root hV₁ hV₀,

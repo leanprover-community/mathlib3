@@ -130,6 +130,28 @@ instance {X Y : C} (f : X ⟶ Y) [mono f] (r : R) [invertible r] : mono (r • f
   simpa [smul_smul] using congr_arg (λ f, ⅟r • f) H,
 end⟩
 
+/-- Given isomorphic objects `X ≅ Y, W ≅ Z` in a `k`-linear category, we have a `k`-linear
+isomorphism between `Hom(X, W)` and `Hom(Y, Z).` -/
+def hom_congr (k : Type*) {C : Type*} [category C] [semiring k]
+  [preadditive C] [linear k C] {X Y W Z : C} (f₁ : X ≅ Y) (f₂ : W ≅ Z) :
+  (X ⟶ W) ≃ₗ[k] (Y ⟶ Z) :=
+{ inv_fun := (left_comp k W f₁.hom).comp (right_comp k Y f₂.symm.hom),
+  left_inv := λ x, by simp only [iso.symm_hom, linear_map.to_fun_eq_coe, linear_map.coe_comp,
+    function.comp_app, left_comp_apply, right_comp_apply, category.assoc, iso.hom_inv_id,
+    category.comp_id, iso.hom_inv_id_assoc],
+  right_inv := λ x, by simp only [iso.symm_hom, linear_map.coe_comp, function.comp_app,
+    right_comp_apply, left_comp_apply, linear_map.to_fun_eq_coe, iso.inv_hom_id_assoc,
+    category.assoc, iso.inv_hom_id, category.comp_id],
+  ..(right_comp k Y f₂.hom).comp (left_comp k W f₁.symm.hom) }
+
+lemma hom_congr_apply (k : Type*) {C : Type*} [category C] [semiring k]
+  [preadditive C] [linear k C] {X Y W Z : C} (f₁ : X ≅ Y) (f₂ : W ≅ Z) (f : X ⟶ W) :
+  hom_congr k f₁ f₂ f = (f₁.inv ≫ f) ≫ f₂.hom := rfl
+
+lemma hom_congr_symm_apply (k : Type*) {C : Type*} [category C] [semiring k]
+  [preadditive C] [linear k C] {X Y W Z : C} (f₁ : X ≅ Y) (f₂ : W ≅ Z) (f : Y ⟶ Z) :
+  (hom_congr k f₁ f₂).symm f = f₁.hom ≫ f ≫ f₂.inv := rfl
+
 end
 
 section

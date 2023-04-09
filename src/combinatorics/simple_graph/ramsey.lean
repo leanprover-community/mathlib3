@@ -567,7 +567,7 @@ lemma neighbor_finset_inf [decidable_eq V] {G H : simple_graph V} {x : V}
   (G ⊓ H).neighbor_finset x = G.neighbor_finset x ∩ H.neighbor_finset x :=
 by { ext y, simp }
 
-instance finset.decidable_rel_sup
+instance _root_.finset.decidable_rel_sup
   {ι V : Type*} {s : finset ι} {f : ι → simple_graph V} [Π i, decidable_rel (f i).adj] :
   decidable_rel (s.sup f).adj :=
 λ x y, decidable_of_iff' _ adj_sup_iff

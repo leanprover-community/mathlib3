@@ -19,7 +19,7 @@ This definition does not depend on the choice of basis, see `matrix.rank_eq_finr
 
 ## TODO
 
-* Show that `matrix.rank` is equal to the row-rank and column-rank
+* Show that `matrix.rank` is equal to the row-rank, and that `rank Aᵀ = rank A`.
 
 -/
 
@@ -112,5 +112,10 @@ omit m_fin
 lemma rank_le_height [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (fin n) R) :
   A.rank ≤ m :=
 A.rank_le_card_height.trans $ (fintype.card_fin m).le
+
+/-- The rank of a matrix is the rank of the space spanned by its columns. -/
+lemma rank_eq_finrank_span_cols [strong_rank_condition R] (A : matrix m n R) :
+  A.rank = finrank R (submodule.span R (set.range Aᵀ)) :=
+by rw [rank, matrix.range_to_lin']
 
 end matrix

@@ -191,13 +191,16 @@ instance : has_le cardinal.{u} :=
 ⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
   λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
-instance : linear_order cardinal.{u} :=
+instance : partial_order cardinal.{u} :=
 { le           := (≤),
   le_refl      := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans     := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
-  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) },
-  le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
-  decidable_le := classical.dec_rel _ }
+  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) }, }
+
+instance : linear_order cardinal.{u} :=
+{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
+  decidable_le := classical.dec_rel _,
+  ..cardinal.partial_order.{u}, }
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl

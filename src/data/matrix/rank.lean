@@ -121,18 +121,18 @@ lemma rank_eq_finrank_span_cols [strong_rank_condition R] (A : matrix m n R) :
 by rw [rank, matrix.range_to_lin']
 
 
-lemma rank_mul_transpose_self {K} [decidable_eq m] [fintype m] [field K]
+lemma rank_mul_transpose_self {K} [decidable_eq m] [fintype m] [field K] [star_ring K]
   (A : matrix m n K) :
-  (Aᵀ ⬝ A).rank = A.rank :=
+  (Aᴴ ⬝ A).rank = A.rank :=
 begin
-  have : linear_map.ker (to_lin' A) = linear_map.ker (Aᵀ ⬝ A).to_lin',
+  have : linear_map.ker (to_lin' A) = linear_map.ker (Aᴴ ⬝ A).to_lin',
   { ext x,
     simp only [linear_map.mem_ker, to_lin'_apply, ←mul_vec_mul_vec],
     split,
     { intro h, rw [h, mul_vec_zero] },
     { intro h,
-      replace h := congr_arg (dot_product x) h,
-      rw [dot_product_mul_vec, dot_product_zero, vec_mul_transpose] at h,
+      replace h := congr_arg (dot_product (star x)) h,
+      rw [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star] at h,
       set y := A.mul_vec x with hy,
       rw ←hy at h ⊢,
       sorry } },

@@ -30,10 +30,12 @@ matrix, reindex
 -/
 
 universes v w
+variables {R : Type v} {n : Type w}
 
 namespace matrix
 
-variables {R : Type v} [semiring R] {n : Type w} [fintype n]
+section semiring
+variables [semiring R] [fintype n]
 
 @[simp] lemma dot_product_std_basis_eq_mul [decidable_eq n] (v : n → R) (c : R) (i : n) :
   dot_product v (linear_map.std_basis R (λ _, R) i c) = v i * c :=
@@ -64,5 +66,26 @@ dot_product_eq _ _ $ λ u, (h u).symm ▸ (zero_dot_product u).symm
 
 lemma dot_product_eq_zero_iff {v : n → R} : (∀ w, dot_product v w = 0) ↔ v = 0 :=
 ⟨λ h, dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩
+
+end semiring
+
+@[simp] lemma dot_product_self_eq_zero {n R} [fintype n] [linear_ordered_ring R] {v : n → R} :
+  dot_product v v = 0 ↔ v = 0 :=
+(finset.sum_eq_zero_iff_of_nonneg $ λ i _, mul_self_nonneg (v i)).trans $
+  by simp [function.funext_iff]
+
+/-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
+@[simp] lemma dot_product_star_self_eq_zero {n R} [fintype n]
+  [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
+  dot_product (star v) v = 0 ↔ v = 0 :=
+(finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg _ _ _ _ (v i)).trans $
+  by simp [function.funext_iff, mul_eq_zero]
+
+/-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
+@[simp] lemma dot_product_self_star_eq_zero {n R} [fintype n]
+  [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
+  dot_product v (star v) = 0 ↔ v = 0 :=
+(finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg' _ _ _ _ (v i)).trans $
+  by simp [function.funext_iff, mul_eq_zero]
 
 end matrix

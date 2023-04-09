@@ -817,7 +817,7 @@ namespace continuous_map
 section lattice
 variables {α : Type*} [topological_space α]
 variables {β : Type*} [linear_ordered_field β] [topological_space β]
-  [order_topology β] [topological_ring β]
+  [topological_ring β]
 
 open lattice_ordered_comm_group
 
@@ -829,6 +829,8 @@ begin
     simp only [to_fun_eq_coe, add_apply, add_le_add_iff_left],
     apply hg₁₂,
 end
+
+variable [order_topology β]
 
 lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
 begin

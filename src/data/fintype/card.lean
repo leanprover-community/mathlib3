@@ -716,27 +716,19 @@ end
 namespace finite
 variables [finite α]
 
-lemma well_founded_of_trans_of_irrefl (r : α → α → Prop) [is_trans α r] [is_irrefl α r] :
-  well_founded r :=
-by classical; casesI nonempty_fintype α; exact
+instance is_well_founded_of_strict_order (r : α → α → Prop) [is_strict_order α r] :
+  is_well_founded α r :=
+⟨by classical; casesI nonempty_fintype α; exact
 have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
   from λ x y hxy, finset.card_lt_card $
     by simp only [finset.lt_iff_ssubset.symm, lt_iff_le_not_le,
       finset.le_iff_subset, finset.subset_iff, mem_filter, true_and, mem_univ, hxy];
     exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
-subrelation.wf this (measure_wf _)
+subrelation.wf this (measure_wf _)⟩
 
-lemma preorder.well_founded_lt [preorder α] : well_founded ((<) : α → α → Prop) :=
-well_founded_of_trans_of_irrefl _
+@[priority 10] instance linear_order.is_well_order_lt [linear_order α] : is_well_order α (<) := { }
 
-lemma preorder.well_founded_gt [preorder α] : well_founded ((>) : α → α → Prop) :=
-well_founded_of_trans_of_irrefl _
-
-@[priority 10] instance linear_order.is_well_order_lt [linear_order α] : is_well_order α (<) :=
-{ wf := preorder.well_founded_lt }
-
-@[priority 10] instance linear_order.is_well_order_gt [linear_order α] : is_well_order α (>) :=
-{ wf := preorder.well_founded_gt }
+@[priority 10] instance linear_order.is_well_order_gt [linear_order α] : is_well_order α (>) := { }
 
 end finite
 
@@ -767,8 +759,8 @@ lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.no
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
   obtain ⟨c, hcs : c ∈ s⟩ := h,
-  have : well_founded (@has_lt.lt {x // x ∈ s} _) := finite.well_founded_of_trans_of_irrefl _,
-  obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
+  have : is_well_founded _ (@has_lt.lt {x // x ∈ s} _) := by apply_instance,
+  obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.wf.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
   exact ⟨m, hms, λ x hx hxm, H ⟨x, hx⟩ trivial hxm⟩,
 end
 

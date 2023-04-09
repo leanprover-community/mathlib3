@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import algebra.algebra.pi
+import algebra.order.lattice_group
 import algebra.periodic
 import algebra.algebra.subalgebra.basic
 import algebra.star.star_alg_hom
@@ -811,22 +812,6 @@ We now provide formulas for `f ⊓ g` and `f ⊔ g`, where `f g : C(α, β)`,
 in terms of `continuous_map.abs`.
 -/
 
-section
-variables {R : Type*} [linear_ordered_field R]
-
--- TODO:
--- This lemma (and the next) could go all the way back in `algebra.order.field`,
--- except that it is tedious to prove without tactics.
--- Rather than stranding it at some intermediate location,
--- it's here, immediately prior to the point of use.
-lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - |x - y|) :=
-by cases le_total x y with h h; field_simp [h, abs_of_nonneg, abs_of_nonpos, mul_two]; abel
-
-lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + |x - y|) :=
-by cases le_total x y with h h; field_simp [h, abs_of_nonneg, abs_of_nonpos, mul_two]; abel
-
-end
-
 namespace continuous_map
 
 section lattice
@@ -834,12 +819,28 @@ variables {α : Type*} [topological_space α]
 variables {β : Type*} [linear_ordered_field β] [topological_space β]
   [order_topology β] [topological_ring β]
 
-lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
-ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)
+open lattice_ordered_comm_group
 
--- Not sure why this is grosser than `inf_eq`:
+/- C(α, β) is a lattice ordered group -/
+instance : covariant_class C(α, β) C(α, β) (+) (≤) :=
+begin
+    refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
+    intro x,
+    simp only [to_fun_eq_coe, add_apply, add_le_add_iff_left],
+    apply hg₁₂,
+end
+
+lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
+begin
+  rw [← inv_smul_eq_iff₀, inv_inv, abs_neg_comm, ← two_inf_eq_add_sub_abs_sub, two_smul, two_smul],
+  finish,
+end
+
 lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + |f - g|) :=
-ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
+begin
+  rw [← inv_smul_eq_iff₀, inv_inv, abs_neg_comm, ← two_sup_eq_add_add_abs_sub, two_smul, two_smul],
+  finish,
+end
 
 end lattice
 

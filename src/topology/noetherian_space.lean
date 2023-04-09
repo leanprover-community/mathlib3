@@ -13,8 +13,8 @@ import topology.sets.closeds
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A Noetherian space is a topological space that satisfies any of the following equivalent conditions:
-- `well_founded ((>) : opens α → opens α → Prop)`
-- `well_founded ((<) : closeds α → closeds α → Prop)`
+- `well_founded_gt (opens α)`
+- `well_founded_lt (closeds α)`
 - `∀ s : set α, is_compact s`
 - `∀ s : opens α, is_compact s`
 
@@ -43,14 +43,12 @@ variables (α β : Type*) [topological_space α] [topological_space β]
 namespace topological_space
 
 /-- Type class for noetherian spaces. It is defined to be spaces whose open sets satisfies ACC. -/
-@[mk_iff]
-class noetherian_space : Prop :=
-(well_founded : well_founded ((>) : opens α → opens α → Prop))
+@[reducible] def noetherian_space : Prop := well_founded_gt (opens α)
 
 lemma noetherian_space_iff_opens :
   noetherian_space α ↔ ∀ s : opens α, is_compact (s : set α) :=
 begin
-  rw [noetherian_space_iff, complete_lattice.well_founded_iff_is_Sup_finite_compact,
+  rw [noetherian_space, complete_lattice.well_founded_gt_iff_is_Sup_finite_compact,
     complete_lattice.is_Sup_finite_compact_iff_all_elements_compact],
   exact forall_congr opens.is_compact_element_iff,
 end
@@ -82,12 +80,14 @@ example (α : Type*) : set α ≃o (set α)ᵒᵈ := by refine order_iso.compl (
 
 lemma noetherian_space_tfae :
   tfae [noetherian_space α,
-    well_founded (λ s t : closeds α, s < t),
+    well_founded_lt (closeds α),
     ∀ s : set α, is_compact s,
     ∀ s : opens α, is_compact (s : set α)] :=
 begin
   tfae_have : 1 ↔ 2,
-  { refine (noetherian_space_iff _).trans (surjective.well_founded_iff opens.compl_bijective.2 _),
+  { rw [noetherian_space, well_founded_gt, well_founded_lt,
+      is_well_founded_iff, is_well_founded_iff],
+    refine (surjective.well_founded_iff opens.compl_bijective.2 _),
     exact λ s t, (order_iso.compl (set α)).lt_iff_lt.symm },
   tfae_have : 1 ↔ 4,
   { exact noetherian_space_iff_opens α },
@@ -97,6 +97,9 @@ begin
   { exact λ H s, H s },
   tfae_finish
 end
+
+instance [h : noetherian_space α] : well_founded_lt (closeds α) :=
+((noetherian_space_tfae α).out 0 1).mp h
 
 variables {α β}
 
@@ -180,8 +183,7 @@ lemma noetherian_space.exists_finset_irreducible [noetherian_space α] (s : clos
   ∃ S : finset (closeds α), (∀ k : S, is_irreducible (k : set α)) ∧ s = S.sup id :=
 begin
   classical,
-  have := ((noetherian_space_tfae α).out 0 1).mp infer_instance,
-  apply well_founded.induction this s, clear s,
+  apply well_founded_lt.induction s, clear s,
   intros s H,
   by_cases h₁ : is_preirreducible s.1,
   cases h₂ : s.1.eq_empty_or_nonempty,

@@ -60,7 +60,7 @@ end
 
 /-- If `m` and `n` are `fintype`, the rank of `m × n` matrices is `(# m).lift * (# n).lift`. -/
 @[simp] lemma rank_matrix (m : Type v) (n : Type w) [finite m] [finite n] :
-  module.rank R (matrix m n R) = (lift.{(max v w u) v} (# m)) * (lift.{(max v w u) w} (# n)) :=
+  module.rank R (matrix m n R) = (lift.{(max w u) v} (# m)) * (lift.{(max v u) w} (# n)) :=
 begin
   casesI nonempty_fintype m,
   casesI nonempty_fintype n,

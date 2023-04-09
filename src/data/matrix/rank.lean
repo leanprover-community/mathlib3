@@ -6,6 +6,8 @@ Authors: Johan Commelin
 
 import linear_algebra.free_module.finite.rank
 import linear_algebra.matrix.to_lin
+import linear_algebra.finite_dimensional
+import linear_algebra.matrix.dot_product
 
 /-!
 # Rank of matrices
@@ -117,5 +119,31 @@ A.rank_le_card_height.trans $ (fintype.card_fin m).le
 lemma rank_eq_finrank_span_cols [strong_rank_condition R] (A : matrix m n R) :
   A.rank = finrank R (submodule.span R (set.range Aᵀ)) :=
 by rw [rank, matrix.range_to_lin']
+
+
+lemma rank_mul_transpose_self {K} [decidable_eq m] [fintype m] [field K]
+  (A : matrix m n K) :
+  (Aᵀ ⬝ A).rank = A.rank :=
+begin
+  have : linear_map.ker (to_lin' A) = linear_map.ker (Aᵀ ⬝ A).to_lin',
+  { ext x,
+    simp only [linear_map.mem_ker, to_lin'_apply, ←mul_vec_mul_vec],
+    split,
+    { intro h, rw [h, mul_vec_zero] },
+    { intro h,
+      replace h := congr_arg (dot_product x) h,
+      rw [dot_product_mul_vec, dot_product_zero, vec_mul_transpose] at h,
+      set y := A.mul_vec x with hy,
+      rw ←hy at h ⊢,
+      sorry } },
+  -- refine le_antisymm _ _,
+  -- apply rank_mul_le,
+  dunfold rank,
+  refine add_left_injective (finrank K (A.to_lin').ker) _,
+  dsimp only,
+  rw [linear_map.finrank_range_add_finrank_ker, ←((Aᵀ ⬝ A).to_lin').finrank_range_add_finrank_ker],
+  congr' 1,
+  rw this,
+end
 
 end matrix

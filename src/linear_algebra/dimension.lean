@@ -1340,6 +1340,10 @@ variables [add_comm_group V'₁] [module K V'₁]
 lemma rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
 by rw [rank, rank, linear_map.range_comp]; exact rank_map_le _ _
 
+lemma lift_rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
+  cardinal.lift.{v'} (rank (f.comp g)) ≤ cardinal.lift.{v''} (rank g) :=
+by rw [rank, rank, linear_map.range_comp]; exact lift_rank_map_le _ _
+
 end ring
 
 section division_ring

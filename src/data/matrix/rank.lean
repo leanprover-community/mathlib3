@@ -52,7 +52,7 @@ lemma rank_le_width [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (f
   A.rank ≤ n :=
 A.rank_le_card_width.trans $ (fintype.card_fin n).le
 
-lemma rank_mul_le [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
+lemma rank_mul_le_left [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
   (A ⬝ B).rank ≤ A.rank :=
 begin
   rw [rank, rank, to_lin'_mul],
@@ -63,11 +63,27 @@ begin
   exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card n)),
 end
 
+lemma rank_mul_le_right [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
+  (A ⬝ B).rank ≤ B.rank :=
+begin
+  rw [rank, rank, to_lin'_mul],
+  refine finrank_le_finrank_of_rank_le_rank
+    (linear_map.lift_rank_comp_le_right B.to_lin' A.to_lin') _,
+  rw [←cardinal.lift_lt_aleph_0],
+  have := lift_rank_range_le B.to_lin',
+  rw [rank_fun', cardinal.lift_nat_cast] at this,
+  exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card o)),
+end
+
+lemma rank_mul_le [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
+  (A ⬝ B).rank ≤ min A.rank B.rank :=
+le_min (rank_mul_le_left _ _) (rank_mul_le_right _ _)
+
 lemma rank_unit [strong_rank_condition R] (A : (matrix n n R)ˣ) :
   (A : matrix n n R).rank = fintype.card n :=
 begin
   refine le_antisymm (rank_le_card_width A) _,
-  have := rank_mul_le (A : matrix n n R) (↑A⁻¹ : matrix n n R),
+  have := rank_mul_le_left (A : matrix n n R) (↑A⁻¹ : matrix n n R),
   rwa [← mul_eq_mul, ← units.coe_mul, mul_inv_self, units.coe_one, rank_one] at this,
 end
 

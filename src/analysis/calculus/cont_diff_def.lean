@@ -621,8 +621,7 @@ def cont_diff_on (n : ℕ∞) (f : E → F) (s : set E) : Prop :=
 variable {𝕜}
 
 lemma has_ftaylor_series_up_to_on.cont_diff_on {f' : E → formal_multilinear_series 𝕜 E F}
-  (hf : has_ftaylor_series_up_to_on n f f' s) (hs : unique_diff_on 𝕜 s) :
-  cont_diff_on 𝕜 n f s :=
+  (hf : has_ftaylor_series_up_to_on n f f' s) : cont_diff_on 𝕜 n f s :=
 begin
   intros x hx m hm,
   use s,

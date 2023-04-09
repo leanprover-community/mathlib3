@@ -759,7 +759,7 @@ lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.no
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
   obtain ⟨c, hcs : c ∈ s⟩ := h,
-  have : is_well_founded _ (@has_lt.lt {x // x ∈ s} _) := by apply_instance,
+  have : well_founded_lt {x // x ∈ s} := by apply_instance,
   obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.wf.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
   exact ⟨m, hms, λ x hx hxm, H ⟨x, hx⟩ trivial hxm⟩,
 end

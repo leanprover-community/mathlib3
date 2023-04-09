@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import data.matrix.block
 import data.matrix.notation
-import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
@@ -341,17 +340,6 @@ lemma linear_map.to_matrix_alg_equiv'_mul
   (f g : (n → R) →ₗ[R] (n → R)) :
   (f * g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
 linear_map.to_matrix_alg_equiv'_comp f g
-
-lemma matrix.rank_vec_mul_vec {K m n : Type u}
-  [comm_ring K] [strong_rank_condition K] [fintype n] [decidable_eq n]
-  (w : m → K) (v : n → K) :
-  rank (vec_mul_vec w v).to_lin' ≤ 1 :=
-begin
-  rw [vec_mul_vec_eq, matrix.to_lin'_mul],
-  refine le_trans (rank_comp_le_left _ _) _,
-  refine (rank_le_domain _).trans_eq _,
-  rw [rank_fun', fintype.card_unit, nat.cast_one]
-end
 
 end to_matrix'
 
@@ -722,51 +710,6 @@ by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_ne _ _ _ h]
 end lmul_tower
 
 end algebra
-
-namespace linear_map
-
-section finite_dimensional
-
-open_locale classical
-
-variables {K : Type*} [field K]
-variables {V : Type*} [add_comm_group V] [module K V] [finite_dimensional K V]
-variables {W : Type*} [add_comm_group W] [module K W] [finite_dimensional K W]
-
-instance finite_dimensional : finite_dimensional K (V →ₗ[K] W) :=
-linear_equiv.finite_dimensional
-  (linear_map.to_matrix (basis.of_vector_space K V) (basis.of_vector_space K W)).symm
-
-section
-
-variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V]
-  [module A W] [is_scalar_tower K A W]
-
-/-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, as they form a subspace of all `k`-linear maps. -/
-instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
-finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
-  (restrict_scalars_injective _)
-
-end
-
-/--
-The dimension of the space of linear transformations is the product of the dimensions of the
-domain and codomain.
--/
-@[simp] lemma finrank_linear_map :
-  finite_dimensional.finrank K (V →ₗ[K] W) =
-  (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
-begin
-  let hbV := basis.of_vector_space K V,
-  let hbW := basis.of_vector_space K W,
-  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,
-    finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
-    mul_comm],
-end
-
-end finite_dimensional
-end linear_map
 
 section
 

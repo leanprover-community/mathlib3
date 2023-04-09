@@ -38,9 +38,7 @@ lemma hermite_eq_iter {n : ℕ} : hermite n = nat.iterate (λp, X*p -p.derivativ
 begin
   induction n with n ih,
   { refl },
-  { rw function.iterate_succ_apply',
-    repeat {rw ← ih},
-    rw hermite_succ }
+{ rw [function.iterate_succ_apply', ← ih, hermite_succ] }
 end
 
 @[simp] lemma hermite_zero : hermite 0 = C 1 := rfl

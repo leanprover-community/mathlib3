@@ -35,6 +35,7 @@ jobs:
         # https://github.com/8BitJonny/gh-get-current-pr/issues/8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ github.event.pull_request.head.sha }}
           # Only return if PR is still open
           filterOutClosed: true
 

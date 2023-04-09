@@ -29,11 +29,13 @@ neighbor_finset (χ.label_graph k) x
 
 variables [fintype V] [decidable_eq V]
 
-lemma mem_red_neighbors' {χ : top_edge_labelling V (fin 2)} {x y : V} :
-  y ∈ red_neighbors χ x ↔ sorry :=
-begin
-  rw [col_neighbor_finset],
-end
+lemma mem_col_neighbor_finset [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
+  y ∈ col_neighbor_finset χ k x ↔ ∃ (H : x ≠ y), χ.get x y = k :=
+by rw [col_neighbor_finset, mem_neighbor_finset, top_edge_labelling.label_graph_adj]
+
+lemma mem_col_neighbor_finset' [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
+  y ∈ col_neighbor_finset χ k x ↔ ∃ (H : y ≠ x), χ.get y x = k :=
+by rw [col_neighbor_finset, mem_neighbor_finset, adj_comm, top_edge_labelling.label_graph_adj]
 
 -- (3)
 noncomputable def pair_weight (χ : top_edge_labelling V (fin 2)) (X Y : finset V) (x y : V) : ℝ :=
@@ -229,9 +231,8 @@ def red_step (C : book_config χ) (x : V) (hx : x ∈ C.X) : book_config χ :=
     rw [←inter_distrib_left, insert_eq, top_edge_labelling.monochromatic_between_union_right,
       top_edge_labelling.monochromatic_between_singleton_right],
     split,
-    { simp only [mem_inter, and_imp, red_neighbors, col_neighbor_finset, mem_neighbor_finset,
-        top_edge_labelling.label_graph_adj, forall_exists_index],
-      intros y hy,
+    { simp only [mem_inter, and_imp, red_neighbors, mem_col_neighbor_finset'],
+      -- intros y hy,
 
     },
   end,

@@ -946,7 +946,7 @@ variables (K V)
 
 /-- The rank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma rank_eq_card_choose_basis_index : module.rank K V = #(choose_basis_index K V) :=
-(choose_basis K V).mk_eq_rank''.symm
+(choose_basis K V).mk_eq_rank'.symm
 
 end module.free
 
@@ -1022,7 +1022,7 @@ begin
   casesI nonempty_fintype η,
   let B := λ i, choose_basis K (φ i),
   let b : basis _ K (Π i, φ i) := pi.basis (λ i, B i),
-  simp [← b.mk_eq_rank'', λ i, (B i).mk_eq_rank''],
+  simp [← b.mk_eq_rank', λ i, (B i).mk_eq_rank'],
 end
 
 variable [fintype η]

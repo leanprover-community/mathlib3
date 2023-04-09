@@ -103,16 +103,15 @@ begin
     { intros x y,
       nth_rewrite 0 ← submodule.linear_proj_add_linear_proj_of_is_compl_eq_self hUV y,
       nth_rewrite 1 ← submodule.linear_proj_add_linear_proj_of_is_compl_eq_self hUV x,
-      simp_rw [inner_add_right, inner_add_left, comp_apply,
-        submodule.subtype_apply _, ← submodule.coe_inner,
-        submodule.is_ortho_iff_inner_eq.mp h _ (submodule.coe_mem _) _ (submodule.coe_mem _),
-        submodule.is_ortho_iff_inner_eq.mp h.symm _ (submodule.coe_mem _) _ (submodule.coe_mem _)], },
+      simp_rw [inner_add_right, inner_add_left, comp_apply, submodule.subtype_apply _,
+        ← submodule.coe_inner, submodule.is_ortho_iff_inner_eq.mp h _
+          (submodule.coe_mem _) _ (submodule.coe_mem _),
+        submodule.is_ortho_iff_inner_eq.mp h.symm _
+          (submodule.coe_mem _) _ (submodule.coe_mem _)], },
     refine ⟨this, _⟩,
     intros x,
-    rw [comp_apply, submodule.subtype_apply,
-        ← submodule.linear_proj_of_is_compl_idempotent,
-        ← submodule.subtype_apply, ← comp_apply,
-        ← this _ ((U.linear_proj_of_is_compl V hUV) x)],
+    rw [comp_apply, submodule.subtype_apply, ← submodule.linear_proj_of_is_compl_idempotent,
+        ← submodule.subtype_apply, ← comp_apply, ← this _ ((U.linear_proj_of_is_compl V hUV) x)],
     exact inner_self_nonneg, },
 end
 
@@ -167,22 +166,22 @@ end
 
 /-- given a symmetric linear map `T` and a real number `r`,
 we can define a linear map `S` such that `S = T ^ r` -/
-noncomputable def re_pow [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
+noncomputable def rpow [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
   (hT : T.is_symmetric) (r : ℝ) : E →ₗ[𝕜] E :=
 { to_fun := λ v, ∑ i : fin n, ((((α hT hn i : ℝ) ^ r : ℝ)) : 𝕜) • ⟪e hT hn i, v⟫ • e hT hn i,
   map_add' := λ x y, by simp_rw [inner_add_right, add_smul, smul_add, finset.sum_add_distrib],
   map_smul' := λ r x, by simp_rw [inner_smul_right, ← smul_smul, finset.smul_sum,
                            ring_hom.id_apply, smul_smul, ← mul_assoc, mul_comm] }
 
-lemma re_pow_apply [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
+lemma rpow_apply [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
   (hT : T.is_symmetric) (r : ℝ) (v : E) :
-  T.re_pow hn hT r v = ∑ i : fin n, (((α hT hn i : ℝ) ^ r : ℝ) : 𝕜) • ⟪e hT hn i, v⟫ • e hT hn i :=
+  T.rpow hn hT r v = ∑ i : fin n, (((α hT hn i : ℝ) ^ r : ℝ) : 𝕜) • ⟪e hT hn i, v⟫ • e hT hn i :=
 rfl
 
 /-- the square root of a symmetric linear map can then directly be defined with `re_pow` -/
 noncomputable def sqrt [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
   (h : T.is_symmetric) :
-  E →ₗ[𝕜] E := T.re_pow hn h (1 / 2 : ℝ)
+  E →ₗ[𝕜] E := T.rpow hn h (1 / 2 : ℝ)
 
 /-- the square root of a symmetric linear map `T`
 is written as `T x = ∑ i, √ (α i) • ⟪e i, x⟫ • e i` for any `x ∈ E`,

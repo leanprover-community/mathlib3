@@ -195,8 +195,8 @@ lemma sorted.insertion_sort_eq : ∀ {l : list α} (h : sorted r l), insertion_s
     exacts [rel_of_sorted_cons h _ (or.inl rfl), h.tail]
   end
 
-section total_and_transitive
-variables [is_total α r] [is_trans α r]
+section total_preorder
+variables [is_total_preorder α r]
 
 theorem sorted.ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered_insert r a l)
 | []       h := sorted_singleton a
@@ -219,7 +219,7 @@ theorem sorted_insertion_sort : ∀ l, sorted r (insertion_sort r l)
 | []       := sorted_nil
 | (a :: l) := (sorted_insertion_sort l).ordered_insert a _
 
-end total_and_transitive
+end total_preorder
 end correctness
 end insertion_sort
 
@@ -331,8 +331,8 @@ using_well_founded
 @[simp] lemma length_merge_sort (l : list α) : (merge_sort r l).length = l.length :=
 (perm_merge_sort r _).length_eq
 
-section total_and_transitive
-variables {r} [is_total α r] [is_trans α r]
+section total_preorder
+variables {r} [is_total_preorder α r]
 
 theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
 | []       []        h₁ h₂ := by simp [merge]
@@ -382,7 +382,7 @@ theorem merge_sort_eq_insertion_sort [is_antisymm α r] (l : list α) :
 eq_of_perm_of_sorted ((perm_merge_sort r l).trans (perm_insertion_sort r l).symm)
   (sorted_merge_sort r l) (sorted_insertion_sort r l)
 
-end total_and_transitive
+end total_preorder
 end correctness
 
 @[simp] theorem merge_sort_nil : [].merge_sort r = [] :=

@@ -17,9 +17,11 @@ namespace multiset
 open list
 variables {α : Type*}
 
+-- TODO: move to core.
+instance (r : α → α → Prop) [is_linear_order α r] : is_total_preorder α r := { }
+
 section sort
-variables (r : α → α → Prop) [decidable_rel r]
-  [is_trans α r] [is_antisymm α r] [is_total α r]
+variables (r : α → α → Prop) [decidable_rel r] [is_linear_order α r]
 
 /-- `sort s` constructs a sorted list from the multiset `s`.
   (Uses merge sort algorithm.) -/

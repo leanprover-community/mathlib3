@@ -633,7 +633,7 @@ end
   partially well-ordered on a set `s`, the relation `list.sublist_forall₂ r` is partially
   well-ordered on the set of lists of elements of `s`. That relation is defined so that
   `list.sublist_forall₂ r l₁ l₂` whenever `l₁` related pointwise by `r` to a sublist of `l₂`.  -/
-lemma partially_well_ordered_on_sublist_forall₂ (r : α → α → Prop) [is_refl α r] [is_trans α r]
+lemma partially_well_ordered_on_sublist_forall₂ (r : α → α → Prop) [is_preorder α r]
   {s : set α} (h : s.partially_well_ordered_on r) :
   { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (list.sublist_forall₂ r) :=
 begin

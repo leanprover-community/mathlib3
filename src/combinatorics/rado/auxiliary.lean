@@ -52,24 +52,8 @@ section α
 
 variables {α : Type*} [decidable_eq α]
 
-/- lemma insert_sdiff_singleton_self {a : α} {s : finset α} (h : a ∈ s) : s = insert a (s \ {a}) :=
-begin
-  ext b,
-  simp only [mem_insert, mem_sdiff, mem_singleton],
-  by_cases H : b = a; simp [h, H],
-end
- -/
-/- lemma insert_sdiff_singleton_self' {a : α} {s : finset α} (h : a ∉ s) : s = insert a s \ {a} :=
-begin
-  rw insert_sdiff_of_mem _ (mem_singleton_self _),
-  exact (sdiff_singleton_not_mem_eq_self _ h).symm,
-end -/
-
 lemma card_insert_eq_card_iff (a : α) (s : finset α) : (insert a s).card = s.card ↔ a ∈ s :=
-begin
-  rw card_insert_eq_ite,
-  simp only [imp_false, ite_eq_left_iff, nat.succ_ne_self, not_not],
-end
+by simp only [card_insert_eq_ite, imp_false, ite_eq_left_iff, nat.succ_ne_self, not_not]
 
 end α
 

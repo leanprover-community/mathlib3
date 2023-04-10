@@ -621,6 +621,15 @@ def cont_diff_on (n : ℕ∞) (f : E → F) (s : set E) : Prop :=
 
 variable {𝕜}
 
+lemma has_ftaylor_series_up_to_on.cont_diff_on {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to_on n f f' s) : cont_diff_on 𝕜 n f s :=
+begin
+  intros x hx m hm,
+  use s,
+  simp only [set.insert_eq_of_mem hx, self_mem_nhds_within, true_and],
+  exact ⟨f', hf.of_le hm⟩,
+end
+
 lemma cont_diff_on.cont_diff_within_at (h : cont_diff_on 𝕜 n f s) (hx : x ∈ s) :
   cont_diff_within_at 𝕜 n f s x :=
 h x hx
@@ -1326,6 +1335,10 @@ def cont_diff (n : ℕ∞) (f : E → F) : Prop :=
 
 variable {𝕜}
 
+/-- If `f` has a Taylor series up to `n`, then it is `C^n`. -/
+lemma has_ftaylor_series_up_to.cont_diff {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to n f f') : cont_diff 𝕜 n f := ⟨f', hf⟩
+
 theorem cont_diff_on_univ : cont_diff_on 𝕜 n f univ ↔ cont_diff 𝕜 n f :=
 begin
   split,
@@ -1389,7 +1402,6 @@ differentiable_on_univ.1 $ (cont_diff_on_univ.2 h).differentiable_on hn
 lemma cont_diff_iff_forall_nat_le :
   cont_diff 𝕜 n f ↔ ∀ m : ℕ, ↑m ≤ n → cont_diff 𝕜 m f :=
 by { simp_rw [← cont_diff_on_univ], exact cont_diff_on_iff_forall_nat_le }
-
 
 /-! ### Iterated derivative -/
 

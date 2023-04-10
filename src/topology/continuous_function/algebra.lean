@@ -816,21 +816,23 @@ namespace continuous_map
 
 section lattice
 variables {α : Type*} [topological_space α]
-variables {β : Type*} [linear_ordered_field β] [topological_space β]
-  [topological_ring β]
-
-open lattice_ordered_comm_group
+variables {β : Type*} [topological_space β]
 
 /- C(α, β) is a lattice ordered group -/
-instance : covariant_class C(α, β) C(α, β) (+) (≤) :=
+
+@[to_additive continuous_map.has_le.le.add_covariant_class]
+instance [lattice β] [comm_group β] [topological_group β] [covariant_class β β (*) (≤)] :
+  covariant_class C(α, β) C(α, β) (*) (≤) :=
 begin
     refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
     intro x,
-    simp only [to_fun_eq_coe, add_apply, add_le_add_iff_left],
+    simp only [to_fun_eq_coe, mul_apply, mul_le_mul_iff_left],
     apply hg₁₂,
 end
 
-variable [order_topology β]
+variables [linear_ordered_field β] [topological_ring β] [order_topology β]
+
+open lattice_ordered_comm_group
 
 lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
 begin

@@ -163,7 +163,7 @@ begin
   have H : image f (s' ∪ t) ⊆ image f s' ∪ t.bUnion F,
   { rw [image_union],
     exact union_subset_union subset_rfl
-      (image_subset_iff.mpr $ λ i hi, mem_bUnion.mpr ⟨i, hi, h'₁ i (mem_union_right  _ hi)⟩), },
+      (image_subset_iff.mpr $ λ i hi, mem_bUnion.mpr ⟨i, hi, h'₁ (mem_union_right  _ hi)⟩), },
   rw [r.stationary (t'.bUnion F) H (le_antisymm (r.mono H) (ht₂.symm.trans_le h'₂))],
   convert h₄ (t ∪ t') (union_subset ht₁ $ ht'.trans $ sdiff_subset _ _) using 1,
   { rw [card_union_eq ht₃, card_union_eq (disjoint_of_subset_left ht' sdiff_disjoint).symm,

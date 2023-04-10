@@ -172,7 +172,7 @@ begin
   { rcases eq_or_ne j i with rfl | hj',
     { rwa function.update_same, },
     { rw [function.update_noteq hj'],
-      exact h₁ j ((mem_insert.mp hj).resolve_left hj'), } },
+      exact h₁ ((mem_insert.mp hj).resolve_left hj'), } },
   { exact hi (hf ▸ hj), },
   { rw [independent_on_def, card_insert_of_not_mem hi],
     convert ha₂,

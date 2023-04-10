@@ -27,7 +27,8 @@ def is_section (F : ι → finset α) (f : ι → α) : Prop := ∀ i, f i ∈ F
 
 /-- A function `f : ι → α` is a *section* of `F : ι → finset α` on a finite set `s` if it maps
 `i` into `F i` for all `i ∈ s`. -/
-def is_section_on (F : ι → finset α) (f : ι → α) (s : finset ι) : Prop := ∀ i ∈ s, f i ∈ F i
+def is_section_on (F : ι → finset α) (f : ι → α) (s : finset ι) : Prop :=
+∀ ⦃i⦄ (hi : i ∈ s), f i ∈ F i
 
 protected
 lemma is_section.is_section_on {F : ι → finset α} {f : ι → α} (h : is_section F f) (s : finset ι) :
@@ -36,26 +37,26 @@ lemma is_section.is_section_on {F : ι → finset α} {f : ι → α} (h : is_se
 
 lemma is_section_iff_is_section_on {F : ι → finset α} {f : ι → α} :
   is_section F f ↔ ∀ s : finset ι, is_section_on F f s :=
-⟨λ H, H.is_section_on, λ H i, H {i} i (mem_singleton_self i)⟩
+⟨λ H, H.is_section_on, λ H i, H {i} (mem_singleton_self i)⟩
 
 lemma is_section_on.congr {F : ι → finset α} {f g : ι → α} {s : finset ι}
   (h₁ : is_section_on F f s) (h₂ : s.eq_on f g) : is_section_on F g s :=
-λ i hi, h₂ hi ▸ h₁ i hi
+λ i hi, h₂ hi ▸ h₁ hi
 
 lemma is_section_on.subset {F : ι → finset α} {f : ι → α} {t s : finset ι}
   (h₁ : is_section_on F f s) (h₂ : t ⊆ s) : is_section_on F f t :=
-λ i hi, h₁ i (h₂ hi)
+λ i hi, h₁ (h₂ hi)
 
 lemma is_section_on_iff_is_section_restrict {F : ι → finset α} {f : ι → α} {s : finset ι} :
   is_section_on F f s ↔ is_section (s.restrict F) (s.restrict f) :=
-⟨λ H i, H i.val i.property, λ H i hi, H ⟨i, hi⟩⟩
+⟨λ H i, H i.property, λ H i hi, H ⟨i, hi⟩⟩
 
 lemma is_section_on.image_subset_bUnion [decidable_eq α] {F : ι → finset α} {f : ι → α}
   {s : finset ι} (h : is_section_on F f s) : s.image f ⊆ s.bUnion F :=
 begin
   refine λ i hi, mem_bUnion.mpr _,
   obtain ⟨j, hj, rfl⟩ := mem_image.mp hi,
-  exact ⟨j, hj, h j hj⟩,
+  exact ⟨j, hj, h hj⟩,
 end
 
 end finset

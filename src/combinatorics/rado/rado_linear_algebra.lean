@@ -107,12 +107,12 @@ begin
   { have H₁ := comp H (coe : s → ι) subtype.coe_injective,
     convert linear_independent_iff_card_le_finrank_span.mp H₁ using 1,
     { exact (fintype.card_coe s).symm, },
-    { rw image_eq_range_coe, refl, } },
+    { rw [coe_image, set.image_eq_range], refl, } },
   { rw linear_independent_iff',
     refine λ s g hg i hi, _,
     rw ← sum_finset_coe at hg,
     specialize H s,
-    rw [← fintype.card_coe, image_eq_range_coe] at H,
+    rw [← fintype.card_coe, coe_image, set.image_eq_range] at H,
     replace H := fintype.linear_independent_iff.mp
                    (linear_independent_iff_card_le_finrank_span.mpr H) (g ∘ coe) hg ⟨i, hi⟩,
     exact H, }

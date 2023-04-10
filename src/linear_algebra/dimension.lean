@@ -1335,14 +1335,27 @@ begin
   exact linear_map.map_le_range,
 end
 
-variables [add_comm_group V'₁] [module K V'₁]
-
-lemma rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
-by rw [rank, rank, linear_map.range_comp]; exact rank_map_le _ _
-
 lemma lift_rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
   cardinal.lift.{v'} (rank (f.comp g)) ≤ cardinal.lift.{v''} (rank g) :=
 by rw [rank, rank, linear_map.range_comp]; exact lift_rank_map_le _ _
+
+/-- The rank of the composition of two maps is less than the minimum of their ranks. -/
+lemma lift_rank_comp_le (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
+  cardinal.lift.{v'} (rank (f.comp g)) ≤
+    min (cardinal.lift.{v'} (rank f)) (cardinal.lift.{v''} (rank g)) :=
+le_min (cardinal.lift_le.mpr $ rank_comp_le_left _ _) (lift_rank_comp_le_right _ _)
+
+variables [add_comm_group V'₁] [module K V'₁]
+
+lemma rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
+by simpa only [cardinal.lift_id] using lift_rank_comp_le_right g f
+
+/-- The rank of the composition of two maps is less than the minimum of their ranks.
+
+See `lift_rank_comp_le` for the universe-polymorphic version. -/
+lemma rank_comp_le (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) :
+  rank (f.comp g) ≤ min (rank f) (rank g) :=
+by simpa only [cardinal.lift_id] using lift_rank_comp_le g f
 
 end ring
 

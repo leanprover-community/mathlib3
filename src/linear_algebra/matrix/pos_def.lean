@@ -34,6 +34,39 @@ lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermiti
 def pos_semidef (M : matrix n n 𝕜) :=
 M.is_hermitian ∧ ∀ x : n → 𝕜, 0 ≤ is_R_or_C.re (dot_product (star x) (M.mul_vec x))
 
+lemma pos_semidef.conj_transpose_mul_self (x : matrix n n 𝕜) :
+  (x.conj_transpose.mul x).pos_semidef :=
+begin
+  refine ⟨is_hermitian_transpose_mul_self _, λ y, _⟩,
+  have : is_R_or_C.re (dot_product (star y) ((x.conj_transpose.mul x).mul_vec y))
+    = is_R_or_C.re (dot_product (star (x.mul_vec y)) (x.mul_vec y)),
+  { simp only [star_mul_vec, dot_product_mul_vec,
+      vec_mul_vec_mul], },
+  rw [this],
+  clear this,
+  simp_rw [dot_product, map_sum],
+  apply finset.sum_nonneg',
+  intros i,
+  simp_rw [pi.star_apply, is_R_or_C.star_def, ← is_R_or_C.inner_apply],
+  exact inner_self_nonneg,
+end
+
+lemma pos_semidef.conj_transpose {x : matrix n n 𝕜} (hx : x.pos_semidef) :
+  x.conj_transpose.pos_semidef :=
+begin
+  refine ⟨is_hermitian.conj_transpose hx.1, λ y, _⟩,
+  rw [star_dot_product, star_mul_vec, conj_transpose_conj_transpose,
+    ← dot_product_mul_vec, is_R_or_C.star_def, is_R_or_C.conj_re],
+  exact hx.2 _,
+end
+
+lemma pos_semidef.self_mul_conj_transpose (x : matrix n n 𝕜) :
+  (x.mul x.conj_transpose).pos_semidef :=
+begin
+  nth_rewrite 0 ← conj_transpose_conj_transpose x,
+  exact pos_semidef.conj_transpose_mul_self _,
+end
+
 lemma pos_def.pos_semidef {M : matrix n n 𝕜} (hM : M.pos_def) : M.pos_semidef :=
 begin
   refine ⟨hM.1, _⟩,

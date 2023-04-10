@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import analysis.inner_product_space.adjoint
 import analysis.inner_product_space.spectrum
+import linear_algebra.matrix.pos_def
 
 /-!
 # Positive operators
@@ -275,4 +276,20 @@ begin
   simp_rw [continuous_linear_map.re_apply_inner_self, ← submodule.adjoint_orthogonal_projection,
     continuous_linear_map.comp_apply, continuous_linear_map.adjoint_inner_left],
   exact inner_self_nonneg,
+end
+
+lemma matrix.pos_semidef_eq_linear_map_positive
+  {n : Type*} [fintype n] [decidable_eq n] (x : matrix n n 𝕜) :
+  (x.pos_semidef) ↔  x.to_euclidean_lin.is_positive :=
+begin
+  have : x.to_euclidean_lin = ((pi_Lp.linear_equiv 2 𝕜 (λ _ : n, 𝕜)).symm.conj
+    x.to_lin' : module.End 𝕜 (pi_Lp 2 _)) := rfl,
+  simp_rw [linear_map.is_positive, ← matrix.is_hermitian_iff_is_symmetric, matrix.pos_semidef,
+    this, pi_Lp.inner_apply, is_R_or_C.inner_apply, map_sum, linear_equiv.conj_apply,
+    linear_map.comp_apply, linear_equiv.coe_coe, pi_Lp.linear_equiv_symm_apply,
+    linear_equiv.symm_symm, pi_Lp.linear_equiv_apply, matrix.to_lin'_apply,
+    pi_Lp.equiv_symm_apply, ← is_R_or_C.star_def, matrix.mul_vec, matrix.dot_product,
+    pi_Lp.equiv_apply, ← pi.mul_apply (x _) _, ← matrix.dot_product, map_sum, pi.star_apply,
+    matrix.mul_vec, matrix.dot_product, pi.mul_apply],
+  refl,
 end

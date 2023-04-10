@@ -71,10 +71,6 @@ begin
   simp only [imp_false, ite_eq_left_iff, nat.succ_ne_self, not_not],
 end
 
-lemma card_insert_eq_card_add_one {a : α} {s : finset α} (h : a ∉ s) :
-  (insert a s).card = s.card + 1 :=
-by simp only [card_insert_eq_ite, h, if_false]
-
 end α
 
 section β

@@ -25,7 +25,7 @@ variables {ι : Type*} {α : Type*} [decidable_eq α]
 
 /-- A function `f : ι → α` is independent on a finset `s` (with respect to a rank function
 `r` on `α`) if the image of `s` under `f` has rank equal to the cardinality of `s`.
-(In the definition, we use `≤` insted of `=`, since this is easier to work with; the opposite
+(In the definition, we use `≤` instead of `=`, since this is easier to work with; the opposite
 inequality is always true; see `rank_fn.independen_on.card_eq_rank_image`.) -/
 def independent_on (r : rank_fn α) (f : ι → α) (s : finset ι) : Prop := s.card ≤ r (s.image f)
 

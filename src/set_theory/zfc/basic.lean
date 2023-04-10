@@ -10,6 +10,9 @@ import order.well_founded
 /-!
 # A model of ZFC
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we model Zermelo-Fraenkel set theory (+ Choice) using Lean's underlying type theory.
 We do this in four main steps:
 * Define pre-sets inductively.

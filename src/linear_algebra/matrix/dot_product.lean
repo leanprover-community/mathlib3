@@ -10,6 +10,9 @@ import linear_algebra.std_basis
 /-!
 # Dot product of two vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results on the map `matrix.dot_product`, which maps two
 vectors `v w : n → R` to the sum of the entrywise products `v i * w i`.
 

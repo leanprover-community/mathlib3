@@ -571,7 +571,8 @@ begin
         change ((p' y 0) (init (@cons 0 (λ i, E) z 0))) (@cons 0 (λ i, E) z 0 (last 0))
           = ((p' y 0) 0) z,
         unfold_coes,
-        congr },
+        congr,
+        dec_trivial },
       { convert (Hp'.mono (inter_subset_left v u)).congr (λ x hx, Hp'.zero_eq x hx.1),
         { ext x y,
           change p' x 0 (init (@snoc 0 (λ i : fin 1, E) 0 y)) y = p' x 0 0 y,

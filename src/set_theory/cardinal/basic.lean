@@ -561,21 +561,11 @@ instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
-/-- A cardinal is a limit if it is not zero or a successor cardinal. Note that `ℵ₀` is a limit
-  cardinal by this definition, but `0` isn't.
-
-  Use `is_succ_limit` if you want to include the `c = 0` case. -/
-def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
-
-protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
-
-protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
-
-theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
-
-theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
-
 theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
+
+lemma succ_pos : ∀ c : cardinal, 0 < succ c := bot_lt_succ
+
+lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
@@ -589,9 +579,19 @@ begin
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_pos : ∀ c : cardinal, 0 < succ c := bot_lt_succ
+/-- A cardinal is a limit if it is not zero or a successor cardinal. Note that `ℵ₀` is a limit
+  cardinal by this definition, but `0` isn't.
 
-lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
+  Use `is_succ_limit` if you want to include the `c = 0` case. -/
+def is_limit (c : cardinal) : Prop := c ≠ 0 ∧ is_succ_limit c
+
+protected theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 := h.1
+
+protected theorem is_limit.is_succ_limit {c} (h : is_limit c) : is_succ_limit c := h.2
+
+theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c := h.is_succ_limit.succ_lt
+
+theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
 
 /-- The indexed sum of cardinals is the cardinality of the
   indexed disjoint union, i.e. sigma type. -/
@@ -891,6 +891,12 @@ by rw [←lift_aleph_0, lift_le]
 @[simp] theorem lift_le_aleph_0 {c : cardinal.{u}} : lift.{v} c ≤ ℵ₀ ↔ c ≤ ℵ₀ :=
 by rw [←lift_aleph_0, lift_le]
 
+@[simp] theorem aleph_0_lt_lift {c : cardinal.{u}} : ℵ₀ < lift.{v} c ↔ ℵ₀ < c :=
+by rw [←lift_aleph_0, lift_lt]
+
+@[simp] theorem lift_lt_aleph_0 {c : cardinal.{u}} : lift.{v} c < ℵ₀ ↔ c < ℵ₀ :=
+by rw [←lift_aleph_0, lift_lt]
+
 /-! ### Properties about the cast from `ℕ` -/
 
 @[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
@@ -904,6 +910,20 @@ lift_injective.eq_iff' (lift_nat_cast n)
 @[simp] lemma nat_eq_lift_iff {n : ℕ} {a : cardinal.{u}} :
   (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
 by rw [←lift_nat_cast.{v} n, lift_inj]
+
+@[simp] lemma lift_le_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a ≤ n ↔ a ≤ n :=
+by simp only [←lift_nat_cast, lift_le]
+
+@[simp] lemma nat_le_lift_iff {n : ℕ} {a : cardinal.{u}} :
+  (n : cardinal) ≤ lift.{v} a ↔ (n : cardinal) ≤ a :=
+by simp only [←lift_nat_cast, lift_le]
+
+@[simp] lemma lift_lt_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a < n ↔ a < n :=
+by simp only [←lift_nat_cast, lift_lt]
+
+@[simp] lemma nat_lt_lift_iff {n : ℕ} {a : cardinal.{u}} :
+  (n : cardinal) < lift.{v} a ↔ (n : cardinal) < a :=
+by simp only [←lift_nat_cast, lift_lt]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 
@@ -995,6 +1015,24 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
 
+theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+is_succ_limit_of_succ_lt $ λ a ha, begin
+  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
+  rw ←nat_succ,
+  apply nat_lt_aleph_0
+end
+
+theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
+
+theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
+  { exact h.ne_zero.irrefl },
+  { rw nat_succ at h,
+    exact not_is_succ_limit_succ _ h.is_succ_limit }
+end
+
 @[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
 ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
@@ -1014,24 +1052,6 @@ lt_aleph_0_iff_finite.2 ‹_›
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
-
-theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
-is_succ_limit_of_succ_lt $ λ a ha, begin
-  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
-  rw ←nat_succ,
-  apply nat_lt_aleph_0
-end
-
-theorem is_limit_aleph_0 : is_limit ℵ₀ := ⟨aleph_0_ne_zero, is_succ_limit_aleph_0⟩
-
-theorem is_limit.aleph_0_le {c : cardinal} (h : is_limit c) : ℵ₀ ≤ c :=
-begin
-  by_contra' h',
-  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
-  { exact h.ne_zero.irrefl },
-  { rw nat_succ at h,
-    exact not_is_succ_limit_succ _ h.is_succ_limit }
-end
 
 @[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
   #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
@@ -1245,9 +1265,9 @@ begin
   apply nat_cast_injective,
   cases lt_or_ge c ℵ₀ with hc hc,
   { rw [cast_to_nat_of_lt_aleph_0, ←lift_nat_cast, cast_to_nat_of_lt_aleph_0 hc],
-    rwa [←lift_aleph_0, lift_lt] },
+    rwa [lift_lt_aleph_0] },
   { rw [cast_to_nat_of_aleph_0_le, ←lift_nat_cast, cast_to_nat_of_aleph_0_le hc, lift_zero],
-    rwa [←lift_aleph_0, lift_le] },
+    rwa [aleph_0_le_lift] },
 end
 
 lemma to_nat_congr {β : Type v} (e : α ≃ β) : (#α).to_nat = (#β).to_nat :=
@@ -1285,8 +1305,8 @@ map_prod to_nat_hom _ _
   (ha : a < ℵ₀) (hb : b < ℵ₀) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin
   apply cardinal.nat_cast_injective,
-  replace ha : (lift.{v u} a) < ℵ₀ := by { rw ←lift_aleph_0, exact lift_lt.2 ha },
-  replace hb : (lift.{u v} b) < ℵ₀ := by { rw ←lift_aleph_0, exact lift_lt.2 hb },
+  replace ha : (lift.{v u} a) < ℵ₀ := by rwa lift_lt_aleph_0,
+  replace hb : (lift.{u v} b) < ℵ₀ := by rwa lift_lt_aleph_0,
   rw [nat.cast_add, ←to_nat_lift.{v u} a, ←to_nat_lift.{u v} b, cast_to_nat_of_lt_aleph_0 ha,
     cast_to_nat_of_lt_aleph_0 hb, cast_to_nat_of_lt_aleph_0 (add_lt_aleph_0 ha hb)]
 end

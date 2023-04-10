@@ -266,12 +266,12 @@ end
 | 0 := iff_of_false (lt_irrefl _) zero_le_one.not_lt
 | (n + 1) := lt_mul_iff_one_lt_left n.succ_pos
 
-lemma add_sub_one_le_mul (hm : m ≠ 0) (hn : n ≠ 0) : m + n - 1 ≤ m * n :=
+lemma add_sub_one_le_mul (ha : a ≠ 0) (hb : b ≠ 0) : a + b - 1 ≤ a * b :=
 begin
-  cases m,
-  { cases hm rfl },
+  cases a,
+  { cases ha rfl },
   { rw [succ_add, succ_sub_one, succ_mul],
-    exact add_le_add_right (le_mul_of_one_le_right' $ pos_iff_ne_zero.2 hn) _ }
+    exact add_le_add_right (le_mul_of_one_le_right' $ pos_iff_ne_zero.2 hb) _ }
 end
 
 /-!

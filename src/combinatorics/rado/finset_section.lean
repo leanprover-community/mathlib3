@@ -29,6 +29,7 @@ def is_section (F : ι → finset α) (f : ι → α) : Prop := ∀ i, f i ∈ F
 `i` into `F i` for all `i ∈ s`. -/
 def is_section_on (F : ι → finset α) (f : ι → α) (s : finset ι) : Prop := ∀ i ∈ s, f i ∈ F i
 
+protected
 lemma is_section.is_section_on {F : ι → finset α} {f : ι → α} (h : is_section F f) (s : finset ι) :
   is_section_on F f s :=
 λ i _, h i

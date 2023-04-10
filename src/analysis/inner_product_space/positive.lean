@@ -115,22 +115,23 @@ begin
     exact inner_self_nonneg, },
 end
 
-/-- set over `𝕜` is **non-negative** if all its elements are real and non-negative -/
-def set.is_nonneg (A : set 𝕜) : Prop :=
-∀ x : 𝕜, x ∈ A → ↑(re x) = x ∧ 0 ≤ re x
+open_locale nnreal
 
 /-- the spectrum of a positive linear map is non-negative -/
 lemma is_positive.nonneg_spectrum [finite_dimensional 𝕜 E] {T : E →ₗ[𝕜] E} (h : T.is_positive) :
-  (spectrum 𝕜 T).is_nonneg :=
+  spectrum 𝕜 T ⊆ set.range (algebra_map ℝ≥0 𝕜) :=
 begin
   cases h with hT h,
   intros μ hμ,
+  rw [set.mem_range, nnreal.exists],
   simp_rw [← module.End.has_eigenvalue_iff_mem_spectrum] at hμ,
   have : ↑(re μ) = μ,
   { simp_rw [← eq_conj_iff_re],
     exact is_symmetric.conj_eigenvalue_eq_self hT hμ, },
   rw ← this at hμ,
-  exact ⟨this, eigenvalue_nonneg_of_nonneg hμ h⟩,
+  existsi re μ,
+  existsi eigenvalue_nonneg_of_nonneg hμ h,
+  exact this,
 end
 
 section complex

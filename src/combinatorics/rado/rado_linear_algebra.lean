@@ -14,7 +14,7 @@ We show that `s ↦ rank (span s)` defines a rank function on a module `M`
 over a division ring `R`.
 
 We also show that a family `f : ι → M` is linearly independent if and only if
-`#s ≤ rank K (span (f '' s))` for all finite subsets `s` of `ι`; see
+`#s ≤ rank (span (f '' s))` for all finite subsets `s` of `ι`; see
 `linear_independent.iff_card_le_rank_span_on_finsets`.
 
 We then use this show the linear algebra version of Rado's Theorem:

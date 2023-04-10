@@ -29,7 +29,7 @@ namespace matrix
 
 open finite_dimensional
 
-variables {m n o R : Type*} [m_fin : fintype m] [fintype n] [fintype o]
+variables {l m n o R : Type*} [m_fin : fintype m] [fintype n] [fintype o]
 variables [decidable_eq n] [decidable_eq o] [comm_ring R]
 
 /-- The rank of a matrix is the rank of its image. -/
@@ -63,17 +63,22 @@ begin
   exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card n)),
 end
 
-lemma rank_mul_le_right [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
+include m_fin
+
+lemma rank_mul_le_right [strong_rank_condition R] (A : matrix l m R) (B : matrix m n R) :
   (A ⬝ B).rank ≤ B.rank :=
 begin
+  classical,
   rw [rank, rank, to_lin'_mul],
   refine finrank_le_finrank_of_rank_le_rank
     (linear_map.lift_rank_comp_le_right B.to_lin' A.to_lin') _,
   rw [←cardinal.lift_lt_aleph_0],
   have := lift_rank_range_le B.to_lin',
   rw [rank_fun', cardinal.lift_nat_cast] at this,
-  exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card o)),
+  exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card n)),
 end
+
+omit m_fin
 
 lemma rank_mul_le [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
   (A ⬝ B).rank ≤ min A.rank B.rank :=

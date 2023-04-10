@@ -20,7 +20,7 @@ variables (α : Type*) [decidable_eq α]
 
 /-- A *rank function* on a type `α` is a function `r` from `finset α` to natural numbers such that:
 * `r ∅ = 0`
-* `r s ≤ r ({a} ∪ s)`
+* `r s ≤ r t` if `s ⊆ t`
 * `r ({a} ∪ s) ≤ r s + 1`,
 * `r ({a} ∪ s) = r s` and `r ({b} ∪ s) = r s` imply `r ({a, b} ∪ s) = r s`
 
@@ -32,7 +32,7 @@ But note that we do not assume that the base type `α` is finite.)
 structure rank_fn :=
 (to_fun : finset α → ℕ)
 (empty' : to_fun ∅ = 0)
-(le_insert' : ∀ a s, to_fun s ≤ to_fun (insert a s))
+(mono' : monotone to_fun)
 (insert_le' : ∀ a s, to_fun (insert a s) ≤ to_fun s + 1)
 (dep' : ∀ {s a b}, to_fun (insert a s) = to_fun s → to_fun (insert b s) = to_fun s →
           to_fun (insert b (insert a s)) = to_fun s)
@@ -57,7 +57,8 @@ partial_order.lift (coe_fn : rank_fn α → (finset α → ℕ)) coe_fn_injectiv
 @[simp]
 lemma empty (r : rank_fn α) : r ∅ = 0 := r.empty'
 
-lemma le_insert (r : rank_fn α) (a : α) (s : finset α) : r s ≤ r (insert a s) := r.le_insert' a s
+lemma le_insert (r : rank_fn α) (a : α) (s : finset α) : r s ≤ r (insert a s) :=
+r.mono' (subset_insert a s)
 
 lemma insert_le (r : rank_fn α) (a : α) (s : finset α) : r (insert a s) ≤ r s + 1 :=
 r.insert_le' a s
@@ -72,19 +73,7 @@ lemma insert_eq_or (r : rank_fn α) (a : α) (s : finset α) :
 (r.insert_le a s).eq_or_lt.elim or.inr (λ h, or.inl $ nat.eq_of_le_of_lt_succ (r.le_insert _ _) h)
 
 /-- A rank function is monotone with respect to subsets. -/
-lemma mono_union (r : rank_fn α) (s t : finset α) : r s ≤ r (s ∪ t) :=
-begin
-  refine t.induction_on _ (λ a t h ih, _),
-  { rw union_empty },
-  { exact ih.trans ((union_insert a s t).symm ▸ r.le_insert a (s ∪ t)), }
-end
-
-/-- A rank function is monotone with respect to subsets. -/
-lemma mono (r : rank_fn α) {s t : finset α} (h : s ⊆ t) : r s ≤ r t :=
-begin
-  convert r.mono_union s t,
-  exact right_eq_union_iff_subset.mpr h,
-end
+lemma mono (r : rank_fn α) {s t : finset α} (h : s ⊆ t) : r s ≤ r t := r.mono' h
 
 /-- If adding `a` to `s` does not increase the rank, then adding `a` to `insert b s`
 also does not increase the rank. -/
@@ -185,7 +174,7 @@ variables (α)
 def card_rk : rank_fn α :=
 { to_fun := card,
   empty' := card_empty,
-  le_insert' := λ a s, card_le_of_subset $ subset_insert _ _,
+  mono' := card_mono,
   insert_le' := card_insert_le,
   dep' := λ s a b ha hb, begin
     have h : insert b (insert a s) = s,

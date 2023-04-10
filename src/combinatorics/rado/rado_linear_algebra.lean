@@ -85,8 +85,7 @@ noncomputable
 def rank_rk : rank_fn M :=
 { to_fun := λ s, finrank R (span R (s : set M)), -- there is `set.finrank`, but no API for it...
   empty' := by { rw [coe_empty, span_empty, finrank_bot], },
-  le_insert' :=
-    λ a s, finrank_le_finrank_of_le (span_mono $ coe_subset.mpr $ subset_insert _ _),
+  mono' := λ s t h, finrank_le_finrank_of_le (span_mono $ coe_subset.mpr h),
   insert_le' := λ a s, by
   { rw [insert_eq, union_comm, coe_union, coe_singleton, span_union],
     exact (finrank_add_le_finrank_add_finrank _ _).trans

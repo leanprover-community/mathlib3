@@ -129,9 +129,7 @@ begin
   { simp_rw [← eq_conj_iff_re],
     exact is_symmetric.conj_eigenvalue_eq_self hT hμ, },
   rw ← this at hμ,
-  existsi re μ,
-  existsi eigenvalue_nonneg_of_nonneg hμ h,
-  exact this,
+  exact ⟨re μ, eigenvalue_nonneg_of_nonneg hμ h, this⟩,
 end
 
 section complex

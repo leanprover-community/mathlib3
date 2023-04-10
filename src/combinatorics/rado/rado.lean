@@ -79,7 +79,7 @@ def rado_cond (r : rank_fn α) (F : ι → finset α) : Prop :=
 function `r` on `s` if for subsets `t ⊆ s`, the rank of `⋃ i in t, F i` is at least
 the cardinality of `t`. -/
 def rado_cond_on (r : rank_fn α) (F : ι → finset α) (s : finset ι) : Prop :=
-∀ t, t ⊆ s → t.card ≤ r (t.bUnion F)
+∀ ⦃t : finset ι⦄, t ⊆ s → t.card ≤ r (t.bUnion F)
 
 /-- A family `F : ι → finset α` and a function `f : ι → α` satisfy the Rado condition
 on finite subsets `s'` and `s` of `ι` if `s'` and `s` are disjoint, `f` is an independent
@@ -87,14 +87,14 @@ section on `s'`, and for each subset `t ⊆ s`, the rank of `(f '' s') ∪ ⋃ i
 at least the sum of the cardinalities of `s'` and of `t`. -/
 def rado_cond_on' (r : rank_fn α) (F : ι → finset α) (f : ι → α) (s' s : finset ι) : Prop :=
 disjoint s' s ∧ is_section_on F f s' ∧ independent_on r f s' ∧
-  ∀ t : finset ι, t ⊆ s → s'.card + t.card ≤ r (s'.image f ∪ t.bUnion F)
+  ∀ ⦃t : finset ι⦄, t ⊆ s → s'.card + t.card ≤ r (s'.image f ∪ t.bUnion F)
 
 lemma rado_cond_on'.congr {r : rank_fn α} {F : ι → finset α} {f g : ι → α} {s' s : finset ι}
   (hf : rado_cond_on' r F f s' s) (h : s'.eq_on f g) :
   rado_cond_on' r F g s' s :=
 begin
   obtain ⟨hf₁, hf₂, hf₃, hf₄⟩ := hf,
-  refine ⟨hf₁, hf₂.congr h, hf₃.congr h, λ t ht, (hf₄ t ht).trans_eq _⟩,
+  refine ⟨hf₁, hf₂.congr h, hf₃.congr h, λ t ht, (hf₄ ht).trans_eq _⟩,
   congr' 2,
   exact image_congr h,
 end
@@ -105,14 +105,14 @@ def rado_cond_on'_strong (r : rank_fn α) (F : ι → finset α) (f : ι → α)
   Prop :=
 disjoint s' s ∧ is_section_on F f s' ∧ independent_on r f s' ∧
   s'.card + s.card ≤ r (s'.image f ∪ s.bUnion F) ∧
-  ∀ t : finset ι, t ⊂ s → t.nonempty → s'.card + t.card < r (s'.image f ∪ t.bUnion F)
+  ∀ ⦃t : finset ι⦄, t ⊂ s → t.nonempty → s'.card + t.card < r (s'.image f ∪ t.bUnion F)
 
 lemma rado_cond_on'_strong.congr {r : rank_fn α} {F : ι → finset α} {f g : ι → α}
   {s s' : finset ι} (hf : rado_cond_on'_strong r F f s' s) (h : s'.eq_on f g) :
   rado_cond_on'_strong r F g s' s :=
 begin
   obtain ⟨hf₁, hf₂, hf₃, hf₄, hf₅⟩ := hf,
-  refine ⟨hf₁, hf₂.congr h, hf₃.congr h, hf₄.trans_eq _, λ t ht ht', (hf₅ t ht ht').trans_eq _⟩;
+  refine ⟨hf₁, hf₂.congr h, hf₃.congr h, hf₄.trans_eq _, λ t ht ht', (hf₅ ht ht').trans_eq _⟩;
     { congr' 2, exact image_congr h, },
 end
 
@@ -120,7 +120,7 @@ end
 lemma rado_cond_on'.subset {r : rank_fn α} {F : ι → finset α} {f : ι → α}
   {s' t s : finset ι} (h : rado_cond_on' r F f s' s) (hts : t ⊆ s) :
   rado_cond_on' r F f s' t :=
-⟨disjoint_of_subset_right hts h.1, h.2.1, h.2.2.1, λ t' ht', h.2.2.2 t' $ ht'.trans hts⟩
+⟨disjoint_of_subset_right hts h.1, h.2.1, h.2.2.1, λ t' ht', h.2.2.2 $ ht'.trans hts⟩
 
 /-- If the strong Rado condition holds for `(f, s', insert i s)` (and `i ∉ s' ∪ s`)
 and `f` is a section and independent on `insert i s'`, then the Rado condition holds
@@ -140,7 +140,7 @@ begin
     { simp only [his', card_empty, add_zero, card_insert_of_not_mem, not_false_iff], },
     { simp only [insert_eq, image_union, bUnion_empty, union_empty, image_singleton],
       exact union_comm _ _, } },
-  { refine (nat.lt_iff_add_one_le.mp (h.2.2.2.2 t (finset.ssubset_of_subset_of_ssubset ht $
+  { refine (nat.lt_iff_add_one_le.mp (h.2.2.2.2 (finset.ssubset_of_subset_of_ssubset ht $
              ssubset_insert his) ht₁)).trans _,
     rw [union_insert],
     exact r.le_insert _ _, }
@@ -165,7 +165,7 @@ begin
     exact union_subset_union subset_rfl
       (image_subset_iff.mpr $ λ i hi, mem_bUnion.mpr ⟨i, hi, h'₁ (mem_union_right  _ hi)⟩), },
   rw [r.stationary (t'.bUnion F) H (le_antisymm (r.mono H) (ht₂.symm.trans_le h'₂))],
-  convert h₄ (t ∪ t') (union_subset ht₁ $ ht'.trans $ sdiff_subset _ _) using 1,
+  convert h₄ (union_subset ht₁ $ ht'.trans $ sdiff_subset _ _) using 1,
   { rw [card_union_eq ht₃, card_union_eq (disjoint_of_subset_left ht' sdiff_disjoint).symm,
         add_assoc], },
   { rw [bUnion_union, union_assoc], }
@@ -220,16 +220,16 @@ begin
       rw [insert_union, ← union_insert, insert_erase hi] at hf₂,
       exact ⟨f₁, λ j hj, (hf₁ $ mem_insert_of_mem hj).trans (hg₂ hj).symm, hf₂⟩, },
     { exact nat.add_one_le_iff.mp (by simpa only [card_singleton, singleton_bUnion]
-                                        using hr.2.2.2 {i} (singleton_subset_iff.mpr hi)), } },
+                                        using hr.2.2.2 (singleton_subset_iff.mpr hi)), } },
   { -- for some nonempty proper subset `t`, we have equality
     have hr' := hr,
     obtain ⟨hr₁, hr₂, hr₃, hr₄⟩ := hr',
     dsimp only [rado_cond_on'_strong] at H,
     push_neg at H,
-    obtain ⟨t, ht₁, ht₂, ht₃⟩ := H hr₁ hr₂ hr₃ (hr₄ s subset_rfl),
+    obtain ⟨t, ht₁, ht₂, ht₃⟩ := H hr₁ hr₂ hr₃ (hr₄ subset_rfl),
     -- use the inductive hypothesis for `t`
     obtain ⟨f', hf'₁, hf'₃, hf'₄⟩ := ih t ht₁ (hr.subset ht₁.subset),
-    replace ht₃ := le_antisymm (hr₄ t ht₁.subset) ht₃,
+    replace ht₃ := le_antisymm (hr₄ ht₁.subset) ht₃,
     have hc : s'.image f = s'.image f' := (image_congr hf'₁).symm,
     -- use `rado_cond_on'.prop₂`
     have hrc := (hr.congr $ λ i hi, (hf'₁ hi).symm).prop₂ ht₁.subset hf'₃ hf'₄ (hc ▸ ht₃),

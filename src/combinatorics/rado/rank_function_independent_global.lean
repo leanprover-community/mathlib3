@@ -174,10 +174,9 @@ begin
     { rw [function.update_noteq hj'],
       exact h₁ j ((mem_insert.mp hj).resolve_left hj'), } },
   { exact hi (hf ▸ hj), },
-  { rw [independent_on_def, card_insert_eq_card_add_one hi],
+  { rw [independent_on_def, card_insert_of_not_mem hi],
     convert ha₂,
-    rw [image_update f $ mem_insert_self _ _, ← insert_sdiff_singleton_self' hi, insert_eq,
-        union_comm], }
+    rw [image_update f $ mem_insert_self _ _, erase_insert hi, insert_eq, union_comm], }
 end
 
 end rank_fn

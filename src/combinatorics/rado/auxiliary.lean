@@ -52,18 +52,18 @@ section α
 
 variables {α : Type*} [decidable_eq α]
 
-lemma insert_sdiff_singleton_self {a : α} {s : finset α} (h : a ∈ s) : s = insert a (s \ {a}) :=
+/- lemma insert_sdiff_singleton_self {a : α} {s : finset α} (h : a ∈ s) : s = insert a (s \ {a}) :=
 begin
   ext b,
   simp only [mem_insert, mem_sdiff, mem_singleton],
   by_cases H : b = a; simp [h, H],
 end
-
-lemma insert_sdiff_singleton_self' {a : α} {s : finset α} (h : a ∉ s) : s = insert a s \ {a} :=
+ -/
+/- lemma insert_sdiff_singleton_self' {a : α} {s : finset α} (h : a ∉ s) : s = insert a s \ {a} :=
 begin
   rw insert_sdiff_of_mem _ (mem_singleton_self _),
   exact (sdiff_singleton_not_mem_eq_self _ h).symm,
-end
+end -/
 
 lemma card_insert_eq_card_iff (a : α) (s : finset α) : (insert a s).card = s.card ↔ a ∈ s :=
 begin
@@ -82,14 +82,6 @@ lemma image_eq_image_restrict_univ (s : finset α) (f : α → β) :
 by {ext, simp only [mem_image, univ_eq_attach, mem_attach, exists_true_left, subtype.coe_mk,
                     restrict, finset.exists_coe]}
 
-lemma image_eq_range_coe (s : finset α) (f : α → β) :
-  (s.image f : set β) = set.range (f ∘ (coe : s → α)) :=
-begin
-  ext,
-  simp only [finset.coe_image, set.mem_image, finset.mem_coe, set.mem_range,
-             function.comp_app, finset.exists_coe, subtype.coe_mk, exists_prop],
-end
-
 end β
 
 section αβ
@@ -97,18 +89,18 @@ section αβ
 variables {α β : Type*} [decidable_eq α] [decidable_eq β]
 
 lemma image_update {s : finset α} (f : α → β) {a : α} (h : a ∈ s) (b : β) :
-  s.image (function.update f a b) = (s \ {a}).image f ∪ {b} :=
+  s.image (function.update f a b) = insert b ((s.erase a).image f) :=
 begin
   ext c,
-  simp only [mem_image, exists_prop, mem_union, mem_sdiff, mem_singleton],
+  simp only [mem_image, exists_prop, mem_insert, mem_erase, ne.def],
   refine ⟨λ H, _, λ H, _⟩,
   { obtain ⟨j, hj₁, hj₂⟩ := H,
     rcases eq_or_ne j a with rfl | hji,
-    { exact or.inr (hj₂ ▸ function.update_same j b f), },
-    { exact or.inl ⟨j, ⟨hj₁, hji⟩, hj₂ ▸ (function.update_noteq hji b f).symm⟩, } },
-  { rcases H with ⟨j, ⟨hj₁, hj₂⟩, hj₃⟩ | rfl,
-    { exact ⟨j, hj₁, hj₃ ▸ function.update_noteq hj₂ b f⟩, },
-    { exact ⟨a, h, function.update_same a c f⟩, } }
+    { refine or.inl (hj₂ ▸ function.update_same j b f), },
+    { exact or.inr ⟨j, ⟨hji, hj₁⟩, hj₂ ▸ (function.update_noteq hji b f).symm⟩, } },
+  { rcases H with rfl | ⟨j, ⟨hj₁, hj₂⟩, hj₃⟩,
+    { exact ⟨a, h, function.update_same a c f⟩, },
+    { exact ⟨j, hj₂, hj₃ ▸ function.update_noteq hj₁ b f⟩, } }
 end
 
 lemma image_restrict_eq_image_image_coe (s : finset α) (f : α → β) (t : finset s) :

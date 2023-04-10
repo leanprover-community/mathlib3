@@ -209,16 +209,15 @@ begin
     have H' := H,
     obtain ⟨H₁, H₂, H₃, _⟩ := H',
     obtain ⟨i, hi⟩ := nonempty.bex hs,
-    have hi₁ : i ∉ s' ∪ s \ {i} :=
-      not_mem_union.mpr
-        ⟨disjoint_right.mp H₁ hi, not_mem_sdiff_of_mem_right $ mem_singleton_self _⟩,
+    have hi₁ : i ∉ s' ∪ s.erase i :=
+      not_mem_union.mpr ⟨disjoint_right.mp H₁ hi, not_mem_erase i s⟩,
     obtain ⟨g, hg₁, hg₂, hg₃⟩ := H₃.extends (disjoint_right.mp H₁ hi) H₂ _,
-    { rw insert_sdiff_singleton_self hi at H,
+    { rw ← insert_erase hi at H,
       -- use `rado_cond_on'.prop₁` and the inductive hypothesis
       obtain ⟨f₁, hf₁, hf₂⟩ :=
-        ih (s \ {i}) (sdiff_ssubset (singleton_subset_iff.mpr hi) (singleton_nonempty i))
+        ih (s.erase i) (erase_ssubset hi)
            (rado_cond_on'.prop₁ hi₁ (H.congr hg₂) hg₁ hg₃),
-      rw [insert_union, ← union_insert, ← insert_sdiff_singleton_self hi] at hf₂,
+      rw [insert_union, ← union_insert, insert_erase hi] at hf₂,
       exact ⟨f₁, λ j hj, (hf₁ $ mem_insert_of_mem hj).trans (hg₂ hj).symm, hf₂⟩, },
     { exact nat.add_one_le_iff.mp (by simpa only [card_singleton, singleton_bUnion]
                                         using hr.2.2.2 {i} (singleton_subset_iff.mpr hi)), } },

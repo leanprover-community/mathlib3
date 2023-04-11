@@ -274,8 +274,8 @@ begin
   classical,
   exact if hq0 : q = 0 then by simp [hq0]
   else
-  by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-    simp [coeff_map f],
+  by rw [div_def, div_def, polynomial.map_mul,
+    map_div_by_monic f (monic_mul_leading_coeff_inv hq0)]; simp [coeff_map f],
 end
 
 lemma map_mod [field k] (f : R →+* k) :

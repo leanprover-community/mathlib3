@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 
-import combinatorics.rado.finset_section
 import combinatorics.rado.rank_function_independent
 import category_theory.cofiltered_system
 
@@ -32,17 +31,17 @@ variables {ι : Type u} {α : Type v} [decidable_eq α]
 
 /-- The type of independent sections on a finite subset `s` of `ι` -/
 def independent_sections_on (r : rank_fn α) (F : ι → finset α) (s : finset ι) : Type (max u v) :=
-{f : s → α // is_section (set.restrict ↑s F) f ∧ independent r f}
+{f : s → α // (∀ ⦃i⦄ (hi : i ∈ s), f ⟨i, hi⟩ ∈ F i) ∧ independent r f}
 
 variables {r : rank_fn α} {F : ι → finset α}
 
 instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
-{ default := ⟨λ _, default,
-              by simp only [is_section, is_empty.forall_iff, set_coe.forall, mem_coe,
-                            not_mem_empty, implies_true_iff],
-              λ s, independent_on_def.mpr
-                      (by simp only [(eq_iff_true_of_subsingleton s ∅).mpr trivial, card_empty,
-                                     image_empty, empty])⟩ }
+{ default :=
+    ⟨λ _, default,
+     by simp only [is_empty.forall_iff, mem_coe, set_coe.forall, not_mem_empty, implies_true_iff],
+     λ s, independent_on_def.mpr
+            (by simp only [(eq_iff_true_of_subsingleton s ∅).mpr trivial, card_empty,
+                           image_empty, empty])⟩ }
 
 /- It would be more convenient to use `{f : ι → α // is_section_on F f s ∧ independent_on r f s}`
    (as that would avoid fiddling with subtypes), but then the type would not always be finite,
@@ -55,12 +54,12 @@ instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
 is also an independent section. -/
 lemma independent_sections_on.restrict_prop {s' s : finset ι} (h : s' ⊆ s)
   (f : independent_sections_on r F s) :
-  is_section (set.restrict ↑s' F) (λ i : s', f.val ⟨i, h i.property⟩) ∧
+  (∀ ⦃i⦄ (hi : i ∈ s'), (λ i : s', f.val ⟨i, h i.property⟩) ⟨i, hi⟩ ∈ F i) ∧
     independent r (λ i : s', f.val ⟨i, h i.property⟩) :=
 begin
   classical,
   obtain ⟨hf₁, hf₂⟩ := f.property,
-  refine ⟨λ i, (by simpa only using hf₁ ⟨i.val, h i.property⟩), λ t, _⟩,
+  refine ⟨λ i hi, (by simpa only using hf₁ (h hi)), λ t, _⟩,
   letI : has_coe s' s := { coe := λ i, ⟨i.val, h i.property⟩ },
   have hci : function.injective (coe : s' → s),
   { refine λ i j hij, subtype.ext_val _,
@@ -87,7 +86,7 @@ def independent_sections_on.restrict {s' s : finset ι} (h : s' ⊆ s)
 
 lemma independent_sections_on.apply_mem {s : finset ι} (f : independent_sections_on r F s)
   (i : s) : f.val i ∈ F i :=
-by simpa only [set.restrict_apply] using f.property.1 i
+by simpa only [subtype.val_eq_coe, mk_coe] using f.property.1 i.property
 
 variables (r F)
 
@@ -125,7 +124,7 @@ lemma rado_functor.map_apply {s t : finset ι} (hst : s ⊆ t) (f : (rado_functo
 /-- If the set of independent sections on each finite subset `s` of `ι` is nonempty,
 then there is a global independent section on all of `ι`. -/
 lemma independent.section (hnonempty : ∀ s : finset ι, nonempty (independent_sections_on r F s)) :
-  ∃ f : ι → α, is_section F f ∧ independent r f :=
+  ∃ f : ι → α, (∀ i, f i ∈ F i) ∧ independent r f :=
 begin
   classical,
   haveI : ∀ (s : (finset ι)ᵒᵖ), nonempty ((rado_functor r F).obj s) := λ s, hnonempty s.unop,
@@ -147,8 +146,8 @@ begin
     simp only [independent_sections_on.restrict, subtype.val_eq_coe, subtype.coe_mk, mk_coe], },
   refine ⟨f, λ i, _, λ s, _⟩,
   { have H := (u $ op {i}).property.1,
-    simp_rw [H₁, H₂] at H,
-    exact H ⟨i, mem_singleton_self i⟩, },
+    simp_rw [unop_op, H₂] at H,
+    exact H (mem_singleton_self i), },
   { have H := (u $ op s).property.2,
     simp_rw [H₁, H₂] at H,
     exact independent_on_iff_independent_restrict.mpr H, }
@@ -159,8 +158,8 @@ variables {r F}
 /-- If `f` is an independent section of `F` on `s`, `i ∉ s`, and `#s < r ((f '' s) ∪ F i)`,
 then `f` extends to an independent section `g` on `insert i s`. -/
 lemma independent_on.extends [decidable_eq ι] {f : ι → α} {s : finset ι} {i : ι} (hi : i ∉ s)
-  (h₁ : is_section_on F f s) (h₂ : independent_on r f s) (hr : s.card < r (s.image f ∪ F i)) :
-  ∃ g : ι → α, is_section_on F g (insert i s) ∧ set.eq_on f g ↑s ∧
+  (h₁ : ∀ ⦃j⦄, j ∈ s → f j ∈ F j) (h₂ : independent_on r f s) (hr : s.card < r (s.image f ∪ F i)) :
+  ∃ g : ι → α, (∀ ⦃j⦄, j ∈ insert i s → g j ∈ F j) ∧ set.eq_on f g ↑s ∧
                  independent_on r g (insert i s) :=
 begin
   obtain ⟨a, ha₁, ha₂⟩ : ∃ a ∈ F i, s.card + 1 ≤ r (insert a (s.image f)),

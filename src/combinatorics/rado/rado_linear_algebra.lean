@@ -126,7 +126,7 @@ has dimension at least `#s` for all finite subsets `s` of `ι` if and only if th
 a section `f : ι → M` of `F` (i.e., `f i ∈ F i` for all `i : ι`) that is linearly independent. -/
 theorem rado {F : ι → finset M} :
   (∀ s : finset ι, s.card ≤ set.finrank R (s.bUnion F : set M)) ↔
-    ∃ f : ι → M, is_section F f ∧ linear_independent R f :=
+    ∃ f : ι → M, (∀ i, f i ∈ F i) ∧ linear_independent R f :=
 begin
   simp_rw [← rank_rk_eq_finrank, iff_card_le_rank_span_on_finsets],
   exact rado,

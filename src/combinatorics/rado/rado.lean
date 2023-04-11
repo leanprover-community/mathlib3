@@ -86,7 +86,7 @@ on finite subsets `s'` and `s` of `ι` if `s'` and `s` are disjoint, `f` is an i
 section on `s'`, and for each subset `t ⊆ s`, the rank of `(f '' s') ∪ ⋃ i in t, F t` is
 at least the sum of the cardinalities of `s'` and of `t`. -/
 def rado_cond_on' (r : rank_fn α) (F : ι → finset α) (f : ι → α) (s' s : finset ι) : Prop :=
-disjoint s' s ∧ is_section_on F f s' ∧ independent_on r f s' ∧
+disjoint s' s ∧ (∀ ⦃i⦄, i ∈ s' → f i ∈ F i) ∧ independent_on r f s' ∧
   ∀ ⦃t : finset ι⦄, t ⊆ s → s'.card + t.card ≤ r (s'.image f ∪ t.bUnion F)
 
 lemma rado_cond_on'.congr {r : rank_fn α} {F : ι → finset α} {f g : ι → α} {s' s : finset ι}
@@ -94,7 +94,7 @@ lemma rado_cond_on'.congr {r : rank_fn α} {F : ι → finset α} {f g : ι → 
   rado_cond_on' r F g s' s :=
 begin
   obtain ⟨hf₁, hf₂, hf₃, hf₄⟩ := hf,
-  refine ⟨hf₁, hf₂.congr h, hf₃.congr h, λ t ht, (hf₄ ht).trans_eq _⟩,
+  refine ⟨hf₁, λ i hi, h hi ▸ hf₂ hi, hf₃.congr h, λ t ht, (hf₄ ht).trans_eq _⟩,
   congr' 2,
   exact image_congr h,
 end
@@ -103,7 +103,7 @@ end
 for nonempty proper subsets `t` of `s`, the rank inequality is strict. -/
 def rado_cond_on'_strong (r : rank_fn α) (F : ι → finset α) (f : ι → α) (s' s : finset ι) :
   Prop :=
-disjoint s' s ∧ is_section_on F f s' ∧ independent_on r f s' ∧
+disjoint s' s ∧ (∀ ⦃i⦄, i ∈ s' → f i ∈ F i) ∧ independent_on r f s' ∧
   s'.card + s.card ≤ r (s'.image f ∪ s.bUnion F) ∧
   ∀ ⦃t : finset ι⦄, t ⊂ s → t.nonempty → s'.card + t.card < r (s'.image f ∪ t.bUnion F)
 
@@ -112,7 +112,8 @@ lemma rado_cond_on'_strong.congr {r : rank_fn α} {F : ι → finset α} {f g : 
   rado_cond_on'_strong r F g s' s :=
 begin
   obtain ⟨hf₁, hf₂, hf₃, hf₄, hf₅⟩ := hf,
-  refine ⟨hf₁, hf₂.congr h, hf₃.congr h, hf₄.trans_eq _, λ t ht ht', (hf₅ ht ht').trans_eq _⟩;
+  refine ⟨hf₁, λ i hi, h hi ▸ hf₂ hi, hf₃.congr h, hf₄.trans_eq _, λ t ht ht',
+          (hf₅ ht ht').trans_eq _⟩;
     { congr' 2, exact image_congr h, },
 end
 
@@ -127,7 +128,7 @@ and `f` is a section and independent on `insert i s'`, then the Rado condition h
 for `(f, insert i s', s)`. -/
 lemma rado_cond_on'.prop₁ [decidable_eq ι] {r : rank_fn α} {F : ι → finset α} {f : ι → α}
   {s' s : finset ι} {i : ι} (hi : i ∉ s' ∪ s) (h : rado_cond_on'_strong r F f s' (insert i s))
-  (h'₁ : is_section_on F f (insert i s')) (h'₂ : independent_on r f (insert i s')) :
+  (h'₁ : ∀ ⦃j⦄, j ∈ insert i s' →  f j ∈ F j) (h'₂ : independent_on r f (insert i s')) :
   rado_cond_on' r F f (insert i s') s :=
 begin
   obtain ⟨his', his⟩ := not_mem_union.mp hi,
@@ -151,7 +152,7 @@ we have equality in the Rado rank condition for `t`, and `f` is a section and in
 on `s' ∪ t`, then the Rado condition also holds for `(f, s' ∪ t, s \ t)`. -/
 lemma rado_cond_on'.prop₂ [decidable_eq ι] {r : rank_fn α} {F : ι → finset α} {f : ι → α}
   {s' s t : finset ι} (ht₁ : t ⊆ s) (h : rado_cond_on' r F f s' s)
-  (h'₁ : is_section_on F f (s' ∪ t)) (h'₂ : independent_on r f (s' ∪ t))
+  (h'₁ : ∀ ⦃i⦄, i ∈ s' ∪ t → f i ∈ F i) (h'₂ : independent_on r f (s' ∪ t))
   (ht₂ : s'.card + t.card = r (s'.image f ∪ t.bUnion F)) :
   rado_cond_on' r F f (s' ∪ t) (s \ t) :=
 begin
@@ -197,7 +198,7 @@ variables {r : rank_fn α} {F : ι → finset α}
 
 /-- Auxiliary statment for Rado's Theorem. -/
 lemma rado_aux [decidable_eq ι] {f : ι → α} {s' s : finset ι} (h : rado_cond_on' r F f s' s) :
-  ∃ g : ι → α, set.eq_on g f ↑s' ∧ is_section_on F g (s' ∪ s) ∧ independent_on r g (s' ∪ s) :=
+  ∃ g : ι → α, set.eq_on g f ↑s' ∧ (∀ ⦃i⦄, i ∈ s' ∪ s → g i ∈ F i) ∧ independent_on r g (s' ∪ s) :=
 begin
   revert f s',
   refine finset.strong_induction_on s (λ s ih f s' hr, _),
@@ -259,8 +260,8 @@ begin
   obtain ⟨f, _, hf₁, hf₂⟩ := rado_aux h',
   rw empty_union at hf₁ hf₂,
   exact ⟨classical.indefinite_description _
-          ⟨(s : set ι).restrict f,
-           is_section_on_iff_is_section_restrict.mp hf₁,
+          ⟨set.restrict ↑s f,
+           λ i hi, by simpa only [set.restrict_apply, subtype.coe_mk] using hf₁ hi,
            independent_on_iff_independent_restrict.mp hf₂⟩⟩,
 end
 
@@ -280,7 +281,7 @@ end
 /-- **Rado's Theorem** for arbitrary families of finite sets: the family `F : ι → finset α`
 satsifies the Rado condition with respect to a rank function `r` on `α` if and only if there
 is a function `f : ι → α` that is an independent (w.r.t. `r`) section of `F`. -/
-theorem rado : rado_cond r F ↔ ∃ f : ι → α, is_section F f ∧ independent r f :=
+theorem rado : rado_cond r F ↔ ∃ f : ι → α, (∀ i, f i ∈ F i) ∧ independent r f :=
 begin
   refine ⟨λ h, _, λ h s, _⟩,
   { cases is_empty_or_nonempty α with hα hα,
@@ -292,7 +293,9 @@ begin
     { haveI := classical.inhabited_of_nonempty hα,
       exact independent.section _ _ (independent_sections_on.nonempty h), } },
   { obtain ⟨f, hf₁, hf₂⟩ := h,
-    exact le_trans (hf₂ s) (r.mono (hf₁.is_section_on s).image_subset_bUnion), }
+    refine le_trans (hf₂ s) (r.mono $ λ i hi, finset.mem_bUnion.mpr _),
+    obtain ⟨j, hj, rfl⟩ := finset.mem_image.mp hi,
+    exact ⟨j, hj, hf₁ j⟩, }
 end
 
 end rank_fn
@@ -315,7 +318,7 @@ open rank_fn
 /-- **Halls' Theorem** ("*Marriage Theorem*") -/
 theorem marriage {ι : Type*} {α : Type*} [decidable_eq α] {F : ι → finset α} :
   (∀ s : finset ι, (s.card ≤ (s.bUnion F).card)) ↔
-    ∃ f : ι → α, is_section F f ∧ function.injective f :=
+    ∃ f : ι → α, (∀ i, f i ∈ F i) ∧ function.injective f :=
 begin
   classical,
   simp_rw [← card_rk_eq_card (finset.bUnion _ F), ← independent_card_iff_injective],

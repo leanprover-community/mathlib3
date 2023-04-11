@@ -134,8 +134,7 @@ lemma rado_cond_on'.prop₁ [decidable_eq ι] {r : rank_fn α} {F : ι → finse
   rado_cond_on' r F f (insert i s') s :=
 begin
   obtain ⟨his', his⟩ := not_mem_union.mp hi,
-  refine ⟨disjoint_insert_left.mpr ⟨his, (disjoint_insert_right.mp h.1).2⟩,
-          h'₁, h'₂, λ t ht, _⟩,
+  refine ⟨disjoint_insert_left.mpr ⟨his, (disjoint_insert_right.mp h.1).2⟩, h'₁, h'₂, λ t ht, _⟩,
   simp only [card_insert_eq_ite, his', if_false, image_insert, insert_union],
   rw [← union_insert, add_assoc, add_comm 1, ← add_assoc],
   rcases eq_empty_or_nonempty t with rfl | ht₁,

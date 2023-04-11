@@ -111,11 +111,10 @@ end ring
 
 variables [comm_ring R] [is_domain R] [group G]
 
-lemma card_nth_roots_subgroup_units [fintype G] (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n)
-  (g₀ : G) :
+lemma card_nth_roots_subgroup_units [fintype G] [decidable_eq R]
+  (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
   ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
 begin
-  haveI : decidable_eq R := classical.dec_eq _,
   refine le_trans _ (nth_roots n (f g₀)).to_finset_card_le,
   apply card_le_card_of_inj_on f,
   { intros g hg,

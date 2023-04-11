@@ -42,11 +42,11 @@ instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
     (by simp only [(eq_iff_true_of_subsingleton s ∅).mpr trivial, card_empty, image_empty, empty]),
    by simp only [is_empty.forall_iff, mem_coe, set_coe.forall, not_mem_empty, implies_true_iff]⟩ }
 
-/- It would be more convenient to use `{f : ι → α // is_section_on F f s ∧ independent_on r f s}`
+/- It would be more convenient to use `{f : ι → α // independent_on r f s ∧ ...}`
    (as that would avoid fiddling with subtypes), but then the type would not always be finite,
    which is a crucial input for the compactness statement. -/
 
-/- Everything below except for `rank_fn.independent.section` could be marked as `private`,
+/- Everything from here to `rank_fn.independent.section` (exclusive) could be marked as `private`,
    since it is only used in its proof and unlikely to be useful outside of it. -/
 
 /-- If we restrict an independent section on `s` to a subset `s'`, then the restriction

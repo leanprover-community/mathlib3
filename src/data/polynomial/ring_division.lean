@@ -529,7 +529,8 @@ end
 @[simp] lemma mem_roots' [decidable_eq R] : a ∈ p.roots ↔ p ≠ 0 ∧ is_root p a :=
 by rw [← count_pos, count_roots p, root_multiplicity_pos']
 
-lemma mem_roots [decidable_eq R] (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a := mem_roots'.trans $ and_iff_right hp
+lemma mem_roots [decidable_eq R] (hp : p ≠ 0) :
+  a ∈ p.roots ↔ is_root p a := mem_roots'.trans $ and_iff_right hp
 
 lemma ne_zero_of_mem_roots [decidable_eq R] (h : a ∈ p.roots) : p ≠ 0 := (mem_roots'.1 h).1
 

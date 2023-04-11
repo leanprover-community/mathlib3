@@ -90,7 +90,7 @@ disjoint s' s ∧ is_section_on F f s' ∧ independent_on r f s' ∧
   ∀ ⦃t : finset ι⦄, t ⊆ s → s'.card + t.card ≤ r (s'.image f ∪ t.bUnion F)
 
 lemma rado_cond_on'.congr {r : rank_fn α} {F : ι → finset α} {f g : ι → α} {s' s : finset ι}
-  (hf : rado_cond_on' r F f s' s) (h : s'.eq_on f g) :
+  (hf : rado_cond_on' r F f s' s) (h : set.eq_on f g ↑s') :
   rado_cond_on' r F g s' s :=
 begin
   obtain ⟨hf₁, hf₂, hf₃, hf₄⟩ := hf,
@@ -108,7 +108,7 @@ disjoint s' s ∧ is_section_on F f s' ∧ independent_on r f s' ∧
   ∀ ⦃t : finset ι⦄, t ⊂ s → t.nonempty → s'.card + t.card < r (s'.image f ∪ t.bUnion F)
 
 lemma rado_cond_on'_strong.congr {r : rank_fn α} {F : ι → finset α} {f g : ι → α}
-  {s s' : finset ι} (hf : rado_cond_on'_strong r F f s' s) (h : s'.eq_on f g) :
+  {s s' : finset ι} (hf : rado_cond_on'_strong r F f s' s) (h : set.eq_on f g ↑s') :
   rado_cond_on'_strong r F g s' s :=
 begin
   obtain ⟨hf₁, hf₂, hf₃, hf₄, hf₅⟩ := hf,
@@ -197,7 +197,7 @@ variables {r : rank_fn α} {F : ι → finset α}
 
 /-- Auxiliary statment for Rado's Theorem. -/
 lemma rado_aux [decidable_eq ι] {f : ι → α} {s' s : finset ι} (h : rado_cond_on' r F f s' s) :
-  ∃ g : ι → α, s'.eq_on g f ∧ is_section_on F g (s' ∪ s) ∧ independent_on r g (s' ∪ s) :=
+  ∃ g : ι → α, set.eq_on g f ↑s' ∧ is_section_on F g (s' ∪ s) ∧ independent_on r g (s' ∪ s) :=
 begin
   revert f s',
   refine finset.strong_induction_on s (λ s ih f s' hr, _),

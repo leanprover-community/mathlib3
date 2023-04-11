@@ -37,7 +37,7 @@ lemma independent_on.card_eq_rank_image {r : rank_fn α}{f : ι → α} {s : fin
 le_antisymm h ((r.le_card _).trans card_image_le)
 
 lemma independent_on.congr {r : rank_fn α} {f g : ι → α} {s : finset ι}
-  (hf : independent_on r f s) (h : s.eq_on f g) : independent_on r g s :=
+  (hf : independent_on r f s) (h : set.eq_on f g ↑s) : independent_on r g s :=
 le_of_le_of_eq hf $ congr_arg _ $ image_congr h
 
 /-- A function `f : ι → α` is independent (with respect to a rank function `r` on `α`)
@@ -67,7 +67,7 @@ by {classical, exact
 /-- A function is independent on `s` with respect to cardinality if and only if
 it is injective on `s`. -/
 lemma independent_on_card_iff_inj_on {s : finset ι} :
-  independent_on (card_rk α) f s ↔ s.inj_on f :=
+  independent_on (card_rk α) f s ↔ set.inj_on f ↑s :=
 ⟨λ H, card_image_iff.mp $ le_antisymm card_image_le H, λ H, (card_image_of_inj_on H).symm.le⟩
 
 /-- If `f` is independent, then `f` is injective. -/
@@ -75,7 +75,7 @@ lemma independent.injective (h : independent r f) : function.injective f :=
 independent_card_iff_injective.mp $ h.mono r.le_card_rk
 
 /-- If `f` is independent on `s`, then `f` is injective on `s`. -/
-lemma independent_on.inj_on {s : finset ι} (h : independent_on r f s) : s.inj_on f :=
+lemma independent_on.inj_on {s : finset ι} (h : independent_on r f s) : set.inj_on f ↑s :=
 independent_on_card_iff_inj_on.mp $ h.mono r.le_card_rk
 
 /-- If `f` is independent on `t`, then it is independent on every subset `s` of `t`. -/
@@ -90,7 +90,7 @@ end
 /-- `f` is independent on `s` if and only if the restriction of `f` to `s`
 is independent. -/
 lemma independent_on_iff_independent_restrict {s : finset ι} :
-  independent_on r f s ↔ independent r (s.restrict f) :=
+  independent_on r f s ↔ independent r (set.restrict ↑s f) :=
 begin
   classical,
   refine ⟨λ H t, _, λ H, _⟩,

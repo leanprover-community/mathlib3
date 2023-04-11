@@ -32,13 +32,14 @@ variables {ι : Type u} {α : Type v} [decidable_eq α]
 
 /-- The type of independent sections on a finite subset `s` of `ι` -/
 def independent_sections_on (r : rank_fn α) (F : ι → finset α) (s : finset ι) : Type (max u v) :=
-{f : s → α // is_section (s.restrict F) f ∧ independent r f}
+{f : s → α // is_section (set.restrict ↑s F) f ∧ independent r f}
 
 variables {r : rank_fn α} {F : ι → finset α}
 
 instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
 { default := ⟨λ _, default,
-              by simp only [is_section, is_empty.forall_iff],
+              by simp only [is_section, is_empty.forall_iff, set_coe.forall, mem_coe,
+                            not_mem_empty, implies_true_iff],
               λ s, independent_on_def.mpr
                       (by simp only [(eq_iff_true_of_subsingleton s ∅).mpr trivial, card_empty,
                                      image_empty, empty])⟩ }
@@ -54,7 +55,7 @@ instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
 is also an independent section. -/
 lemma independent_sections_on.restrict_prop {s' s : finset ι} (h : s' ⊆ s)
   (f : independent_sections_on r F s) :
-  is_section (s'.restrict F) (λ i : s', f.val ⟨i, h i.property⟩) ∧
+  is_section (set.restrict ↑s' F) (λ i : s', f.val ⟨i, h i.property⟩) ∧
     independent r (λ i : s', f.val ⟨i, h i.property⟩) :=
 begin
   classical,
@@ -135,11 +136,11 @@ begin
   -- extract the desired function from the section of the functor
   let f : ι → α := λ i, (u (op ({i} : finset ι))).val
                           ⟨i, by simp only [unop_op, mem_singleton]⟩,
-  have H₁ : ∀ s : finset ι, (unop $ op s).restrict F = s.restrict F := λ s, rfl,
-  have H₂ : ∀ s : finset ι, (u $ op s).val = s.restrict f,
+  have H₁ : ∀ s : finset ι, set.restrict ↑(unop $ op s) F = set.restrict ↑s F := λ s, rfl,
+  have H₂ : ∀ s : finset ι, (u $ op s).val = set.restrict ↑s f,
   { intro s,
     ext i,
-    simp only [subtype.val_eq_coe, restrict, f],
+    simp only [subtype.val_eq_coe, set.restrict, f],
     have his : ({i} : finset ι) ⊆ s,
     { simpa only [singleton_subset_iff, unop_op s] using i.property, },
     rw [← hu (category_theory.hom_of_le (le his)).op, rado_functor.map_apply r F his],
@@ -159,7 +160,8 @@ variables {r F}
 then `f` extends to an independent section `g` on `insert i s`. -/
 lemma independent_on.extends [decidable_eq ι] {f : ι → α} {s : finset ι} {i : ι} (hi : i ∉ s)
   (h₁ : is_section_on F f s) (h₂ : independent_on r f s) (hr : s.card < r (s.image f ∪ F i)) :
-  ∃ g : ι → α, is_section_on F g (insert i s) ∧ s.eq_on f g ∧ independent_on r g (insert i s) :=
+  ∃ g : ι → α, is_section_on F g (insert i s) ∧ set.eq_on f g ↑s ∧
+                 independent_on r g (insert i s) :=
 begin
   obtain ⟨a, ha₁, ha₂⟩ : ∃ a ∈ F i, s.card + 1 ≤ r (insert a (s.image f)),
   { by_contra' H,

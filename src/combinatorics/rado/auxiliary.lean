@@ -15,39 +15,6 @@ These should probably go into `data.finset.basic`, `data.finset.image` or `data.
 
 namespace finset
 
-/-!
-Define versions of `eq_on`, `inj_on` and `restrict` for `finset`s.
-
-This is mostly for convenience so that we can use dot notation for these on `finset`s.
--/
-
-section finset_versions
-
-variables {α : Type*} {β : Type*}
-
-/-- The restriction of `f` to a `finset` `s` -/
-def restrict (s : finset α) (f : α →  β) (a : ↥s) : β := f a
-
-/-- The statement that two functions `f` and `g` agree on a `finset` `s` -/
-def eq_on (f g : α → β) (s : finset α) : Prop := (s : set α).eq_on f g
-
-/-- The statement that a function `f` is injective on a `finset` `s` -/
-def inj_on (f : α → β) (s : finset α) : Prop := (s : set α).inj_on f
-
--- We don't need the next two, but include them for completeness
-
-/-- The statement that a function `f` is surjective from a `finset` `s` to a `finset` `t` -/
-def surj_on (f : α → β) (s : finset α) (t : finset β) : Prop := (s : set α).surj_on f t
-
-/-- The statement that a function `f` is bijective from a `finset` `s` to a `finset` `t` -/
-def bij_on (f : α → β) (s : finset α) (t : finset β) : Prop := (s : set α).bij_on f t
-
-end finset_versions
-
-/-!
-Auxiliary `finset` lemmas.
--/
-
 section α
 
 variables {α : Type*} [decidable_eq α]
@@ -62,9 +29,9 @@ section β
 variables {α β : Type*} [decidable_eq β]
 
 lemma image_eq_image_restrict_univ (s : finset α) (f : α → β) :
-  s.image f = univ.image (s.restrict f) :=
+  s.image f = univ.image (set.restrict ↑s f) :=
 by {ext, simp only [mem_image, univ_eq_attach, mem_attach, exists_true_left, subtype.coe_mk,
-                    restrict, finset.exists_coe]}
+                    set.restrict_apply, set_coe.exists, mem_coe],}
 
 end β
 
@@ -88,9 +55,9 @@ begin
 end
 
 lemma image_restrict_eq_image_image_coe (s : finset α) (f : α → β) (t : finset s) :
-  t.image (s.restrict f) = (t.image coe).image f :=
+  t.image (set.restrict ↑s f) = (t.image coe).image f :=
 by {ext, simp only [mem_image, exists_prop, subtype.coe_mk, exists_and_distrib_right,
-                    exists_eq_right, restrict, finset.exists_coe]}
+                    exists_eq_right, finset.exists_coe, set.restrict_apply]}
 
 lemma bUnion_union (s t : finset α) (f : α → finset β) :
   (s ∪ t).bUnion f = s.bUnion f ∪ t.bUnion f :=

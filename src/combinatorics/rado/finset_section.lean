@@ -40,7 +40,7 @@ lemma is_section_iff_is_section_on {F : ι → finset α} {f : ι → α} :
 ⟨λ H, H.is_section_on, λ H i, H {i} (mem_singleton_self i)⟩
 
 lemma is_section_on.congr {F : ι → finset α} {f g : ι → α} {s : finset ι}
-  (h₁ : is_section_on F f s) (h₂ : s.eq_on f g) : is_section_on F g s :=
+  (h₁ : is_section_on F f s) (h₂ : set.eq_on f g ↑s) : is_section_on F g s :=
 λ i hi, h₂ hi ▸ h₁ hi
 
 lemma is_section_on.subset {F : ι → finset α} {f : ι → α} {t s : finset ι}
@@ -48,7 +48,7 @@ lemma is_section_on.subset {F : ι → finset α} {f : ι → α} {t s : finset 
 λ i hi, h₁ (h₂ hi)
 
 lemma is_section_on_iff_is_section_restrict {F : ι → finset α} {f : ι → α} {s : finset ι} :
-  is_section_on F f s ↔ is_section (s.restrict F) (s.restrict f) :=
+  is_section_on F f s ↔ is_section (set.restrict ↑s F) (set.restrict ↑s f) :=
 ⟨λ H i, H i.property, λ H i hi, H ⟨i, hi⟩⟩
 
 lemma is_section_on.image_subset_bUnion [decidable_eq α] {F : ι → finset α} {f : ι → α}

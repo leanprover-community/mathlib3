@@ -317,7 +317,7 @@ open rank_fn
 /-- **Halls' Theorem** ("*Marriage Theorem*") -/
 theorem marriage {ι : Type*} {α : Type*} [decidable_eq α] {F : ι → finset α} :
   (∀ s : finset ι, (s.card ≤ (s.bUnion F).card)) ↔
-    ∃ f : ι → α,  function.injective f ∧ ∀ i, f i ∈ F i :=
+    ∃ f : ι → α, function.injective f ∧ ∀ i, f i ∈ F i :=
 begin
   classical,
   simp_rw [← card_rk_eq_card (finset.bUnion _ F), ← independent_card_iff_injective],

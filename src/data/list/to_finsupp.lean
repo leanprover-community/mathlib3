@@ -10,6 +10,9 @@ import data.finsupp.basic
 
 # Lists as finsupp
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 # Main definitions
 
 - `list.to_finsupp`: Interpret a list as a finitely supported function, where the indexing type

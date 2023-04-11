@@ -14,6 +14,9 @@ import set_theory.cardinal.cofinality
 /-!
 # Dimension of modules and vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * The rank of a module is defined as `module.rank : cardinal`.

@@ -820,7 +820,7 @@ variables {𝕜 ι}
 
 lemma mk_pi_field_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G) :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
-to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
+to_multilinear_map_injective f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
 @[simp] lemma norm_mk_pi_field (z : G) : ‖continuous_multilinear_map.mk_pi_field 𝕜 ι z‖ = ‖z‖ :=
 (multilinear_map.mk_continuous_norm_le _ (norm_nonneg z) _).antisymm $
@@ -830,7 +830,7 @@ lemma mk_pi_field_eq_iff {z₁ z₂ : G} :
   continuous_multilinear_map.mk_pi_field 𝕜 ι z₁ = continuous_multilinear_map.mk_pi_field 𝕜 ι z₂ ↔
   z₁ = z₂ :=
 begin
-  rw [← to_multilinear_map_inj.eq_iff],
+  rw [← to_multilinear_map_injective.eq_iff],
   exact multilinear_map.mk_pi_ring_eq_iff
 end
 
@@ -1225,7 +1225,7 @@ end
 
 @[simp] lemma continuous_multilinear_map.uncurry_curry_left
   (f : continuous_multilinear_map 𝕜 Ei G) : f.curry_left.uncurry_left = f :=
-continuous_multilinear_map.to_multilinear_map_inj $ f.to_multilinear_map.uncurry_curry_left
+continuous_multilinear_map.to_multilinear_map_injective $ f.to_multilinear_map.uncurry_curry_left
 
 variables (𝕜 Ei G)
 

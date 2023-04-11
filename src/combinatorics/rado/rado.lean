@@ -251,12 +251,10 @@ begin
   -- `rado_cond r F` ⇒ `rado_cond_on' r F _ ∅ s` ⇒ `∃ f, independent_on r F f s`
   -- We need `[inhabited α]` to be able to write down some function `ι → α`.
   haveI : inhabited α := classical.inhabited_of_nonempty',
-  have h' : rado_cond_on' r F default ∅ s,
-  { refine ⟨disjoint_empty_left s,
-            λ i hi, false.elim (not_mem_empty i hi), card_empty.trans_le $ zero_le _,
-            λ t ht, _⟩,
-    rw [card_empty, zero_add, image_empty, empty_union],
-    exact h t, },
+  have h' : rado_cond_on' r F default ∅ s :=
+    ⟨disjoint_empty_left s,
+     λ i hi, false.elim (not_mem_empty i hi), card_empty.trans_le $ zero_le _,
+     λ t ht, by simpa only [card_empty, zero_add, image_empty, empty_union] using h t⟩,
   classical,
   obtain ⟨f, _, hf₁, hf₂⟩ := rado_aux h',
   rw empty_union at hf₁ hf₂,

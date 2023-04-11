@@ -1087,6 +1087,17 @@ begin
   rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A
 end
 
+lemma cont_diff_on_succ_iff_has_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
+  cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔ ∃ (f' : E → (E →L[𝕜] F)),
+    cont_diff_on 𝕜 n f' s ∧ ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
+begin
+  rw cont_diff_on_succ_iff_fderiv_within hs,
+  refine ⟨λ h, ⟨fderiv_within 𝕜 f s, h.2, λ x hx, (h.1 x hx).has_fderiv_within_at⟩, λ h, _⟩,
+  rcases h with ⟨f', h1, h2⟩,
+  refine ⟨λ x hx, (h2 x hx).differentiable_within_at, λ x hx, _⟩,
+  exact (h1 x hx).congr' (λ y hy, (h2 y hy).fderiv_within (hs y hy)) hx,
+end
+
 /-- A function is `C^(n + 1)` on an open domain if and only if it is
 differentiable there, and its derivative (expressed with `fderiv`) is `C^n`. -/
 theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
@@ -1402,6 +1413,12 @@ differentiable_on_univ.1 $ (cont_diff_on_univ.2 h).differentiable_on hn
 lemma cont_diff_iff_forall_nat_le :
   cont_diff 𝕜 n f ↔ ∀ m : ℕ, ↑m ≤ n → cont_diff 𝕜 m f :=
 by { simp_rw [← cont_diff_on_univ], exact cont_diff_on_iff_forall_nat_le }
+
+/-- A function is `C^(n+1)` iff it has a `C^n` derivative. -/
+lemma cont_diff_succ_iff_has_fderiv {n : ℕ} : cont_diff 𝕜 ((n + 1) : ℕ) f ↔
+  ∃ (f' : E → (E →L[𝕜] F)), cont_diff 𝕜 n f' ∧ ∀ x, has_fderiv_at f (f' x) x :=
+by simp only [← cont_diff_on_univ, ← has_fderiv_within_at_univ,
+    cont_diff_on_succ_iff_has_fderiv_within (unique_diff_on_univ), set.mem_univ, forall_true_left]
 
 /-! ### Iterated derivative -/
 

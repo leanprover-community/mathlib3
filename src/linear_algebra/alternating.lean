@@ -80,7 +80,12 @@ open function
 /-! Basic coercion simp lemmas, largely copied from `ring_hom` and `multilinear_map` -/
 section coercions
 
-instance : has_coe_to_fun (alternating_map R M N ι) (λ _, (ι → M) → N) := ⟨λ x, x.to_fun⟩
+instance fun_like : fun_like (alternating_map R M N ι) (ι → M) (λ _, N) :=
+{ coe := alternating_map.to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' } }
+
+-- shortcut instance
+instance : has_coe_to_fun (alternating_map R M N ι) (λ _, (ι → M) → N) := ⟨fun_like.coe⟩
 
 initialize_simps_projections alternating_map (to_fun → apply)
 
@@ -96,14 +101,14 @@ theorem congr_arg (f : alternating_map R M N ι) {x y : ι → M} (h : x = y) : 
 congr_arg (λ x : ι → M, f x) h
 
 theorem coe_injective : injective (coe_fn : alternating_map R M N ι → ((ι → M) → N)) :=
-λ f g h, by { cases f, cases g, cases h, refl }
+fun_like.coe_injective
 
 @[simp, norm_cast] theorem coe_inj {f g : alternating_map R M N ι} :
   (f : (ι → M) → N) = g ↔ f = g :=
 coe_injective.eq_iff
 
 @[ext] theorem ext {f f' : alternating_map R M N ι} (H : ∀ x, f x = f' x) : f = f' :=
-coe_injective (funext H)
+fun_like.ext _ _ H
 
 theorem ext_iff {f g : alternating_map R M N ι} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩

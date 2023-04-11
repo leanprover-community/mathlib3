@@ -64,10 +64,6 @@ For vector spaces (i.e. modules over a field), we have
 
 ## Implementation notes
 
-There is a naming discrepancy: most of the theorem names refer to `rank`,
-even though the definition is of `module.rank`.
-This reflects that `module.rank` was originally called `rank`, and only defined for vector spaces.
-
 Many theorems in this file are not universe-generic when they relate dimensions
 in different universes. They should be as general as they can be without
 inserting `lift`s. The types `V`, `V'`, ... all live in different universes,
@@ -1321,15 +1317,18 @@ variables [add_comm_group V'] [module K V']
 /-- `rank f` is the rank of a `linear_map` `f`, defined as the dimension of `f.range`. -/
 def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
 
-lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
+lemma rank_le_range (f : V →ₗ[K] V') : rank f ≤ module.rank K V' :=
 rank_submodule_le _
+
+lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
+rank_range_le _
 
 @[simp] lemma rank_zero [nontrivial K] : rank (0 : V →ₗ[K] V') = 0 :=
 by rw [rank, linear_map.range_zero, rank_bot]
 
 variables [add_comm_group V''] [module K V'']
 
-lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
+lemma rank_comp_le_left (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
 begin
   refine rank_le_of_submodule _ _ _,
   rw [linear_map.range_comp],
@@ -1338,7 +1337,7 @@ end
 
 variables [add_comm_group V'₁] [module K V'₁]
 
-lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
+lemma rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
 by rw [rank, rank, linear_map.range_comp]; exact rank_map_le _ _
 
 end ring
@@ -1346,9 +1345,6 @@ end ring
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables [add_comm_group V'] [module K V']
-
-lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
-by { rw [← rank_range_add_rank_ker f], exact self_le_add_right _ _ }
 
 lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
 calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :

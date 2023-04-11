@@ -12,6 +12,9 @@ import linear_algebra.free_module.basic
 
 # Projective modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a definition of a projective module, the proof that
 our definition is equivalent to a lifting property, and the
 proof that all free modules are projective.

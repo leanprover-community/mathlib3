@@ -32,10 +32,12 @@ us a linearly independent section of `F` (under the obvious necessary condition)
 
 ## Implementation Notes
 
-We first prove a more general statement, where we consider an additional
-finite subset `t` of `α` such that `r t = #t` and ask that `r (f '' s ∪ t) = #s + #t`.
-This version can be proved by induction on `s` (with varying `t`). We then
-obtain (the interesting direction of) Rado's theorem by specializing `t` to be the empty set.
+We first prove a more general statement that says that we can extend a given independent
+section `f` on a finite subset `s'` to `s' ∪ s` assuming that a "relative Rado condition"
+is satisfied (which asks that for each subset `t ⊆ s`, we have
+`#s' + #t ≤ r (f '' t ∪ ⋃ i in s, F i))`. This version can be proved by induction on `s`
+(with varying `s'`). We then obtain (the interesting direction of) Rado's theorem by
+specializing `s'` to be the empty set.
 -/
 
 namespace rank_fn
@@ -124,7 +126,7 @@ lemma rado_cond_on'.subset {r : rank_fn α} {F : ι → finset α} {f : ι → �
 ⟨disjoint_of_subset_right hts h.1, h.2.1, h.2.2.1, λ t' ht', h.2.2.2 $ ht'.trans hts⟩
 
 /-- If the strong Rado condition holds for `(f, s', insert i s)` (and `i ∉ s' ∪ s`)
-and `f` is a section and independent on `insert i s'`, then the Rado condition holds
+and `f` is an independent section on `insert i s'`, then the Rado condition also holds
 for `(f, insert i s', s)`. -/
 lemma rado_cond_on'.prop₁ [decidable_eq ι] {r : rank_fn α} {F : ι → finset α} {f : ι → α}
   {s' s : finset ι} {i : ι} (hi : i ∉ s' ∪ s) (h : rado_cond_on'_strong r F f s' (insert i s))
@@ -148,7 +150,7 @@ begin
 end
 
 /-- If the Rado condition holds for `(f, s', s)`, `t` is a subset of `s` such that
-we have equality in the Rado rank condition for `t`, and `f` is a section and independent
+we have equality in the Rado rank condition for `t`, and `f` is an independent section
 on `s' ∪ t`, then the Rado condition also holds for `(f, s' ∪ t, s \ t)`. -/
 lemma rado_cond_on'.prop₂ [decidable_eq ι] {r : rank_fn α} {F : ι → finset α} {f : ι → α}
   {s' s t : finset ι} (ht₁ : t ⊆ s) (h : rado_cond_on' r F f s' s)
@@ -177,7 +179,7 @@ end
 
 The idea of the proof is as follows. We are given a family `F : ι → finset α` that satisfies
 the Rado condition with respect to a rank fuction `r`. We want to show that for each
-finite subset `s` of `ι` there is a function `f : ι → α` that has the Rado property.
+finite subset `s` of `ι` there is an independent section `f` of `F` on `s`.
 
 We do this by proving the following more general statement.
 

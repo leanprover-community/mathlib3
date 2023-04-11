@@ -377,6 +377,50 @@ begin
   exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
 end
 
+/-- Minkowski's inequality for functions `α → ℝ≥0∞`: the `ℒp` seminorm of the sum of two
+functions is bounded by the sum of their `ℒp` seminorms. -/
+theorem lintegral_Lp_add_le_of_le_one {p : ℝ} {f g : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
+  (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤
+    2^(1/p-1) * ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p)) :=
+begin
+  rcases eq_or_lt_of_le hp0 with rfl|hp,
+  sorry { simp only [pi.add_apply, rpow_zero, lintegral_one, _root_.div_zero, zero_sub],
+    norm_num,
+    rw [rpow_neg, rpow_one, ennreal.inv_mul_cancel two_ne_zero two_ne_top],
+    exact le_rfl },
+  have A : ∫⁻ a, ((f + g) a)^p ∂ μ ≤ ∫⁻ a, (f a)^p ∂ μ + ∫⁻ a, (g a)^p ∂ μ,
+  sorry { rw ← lintegral_add_left' (hf.pow_const p),
+    exact lintegral_mono (λ a, rpow_add_le_add_rpow _ _ hp0 hp1) },
+  have B : ∀ (u v : ℝ≥0∞), (u + v) ^ (1/p) ≤ 2^(1/p-1) * (u ^ (1/p) + v^(1/p)),
+  { assume u v,
+    apply rpow_add_le_add_rpow
+
+  },
+
+  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
+  by_cases hf_top : ∫⁻ a, (f a) ^ p ∂μ = ⊤,
+  { simp [hf_top, hp_pos], },
+  by_cases hg_top : ∫⁻ a, (g a) ^ p ∂μ = ⊤,
+  { simp [hg_top, hp_pos], },
+  by_cases h1 : p = 1,
+  { refine le_of_eq _,
+    simp_rw [h1, one_div_one, ennreal.rpow_one],
+    exact lintegral_add_left' hf _, },
+  have hp1_lt : 1 < p, by { refine lt_of_le_of_ne hp1 _, symmetry, exact h1, },
+  have hpq := real.is_conjugate_exponent_conjugate_exponent hp1_lt,
+  by_cases h0 : ∫⁻ a, ((f+g) a) ^ p ∂ μ = 0,
+  { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1])],
+    exact zero_le _, },
+  have htop : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤,
+  { rw ← ne.def at hf_top hg_top,
+    rw ← lt_top_iff_ne_top at hf_top hg_top ⊢,
+    exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg_top hp1, },
+  exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
+end
+
+#exit
+
 end ennreal
 
 /-- Hölder's inequality for functions `α → ℝ≥0`. The integral of the product of two functions

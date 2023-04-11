@@ -54,7 +54,7 @@ is also an independent section. -/
 lemma independent_sections_on.restrict_prop {s' s : finset ι} (h : s' ⊆ s)
   (f : independent_sections_on r F s) :
   independent r (λ i : s', f.val ⟨i, h i.property⟩) ∧
-    ∀ ⦃i⦄ (hi : i ∈ s'), (λ i : s', f.val ⟨i, h i.property⟩) ⟨i, hi⟩ ∈ F i :=
+    ∀ ⦃i⦄ (hi : i ∈ s'), f.val ⟨i, h hi⟩ ∈ F i :=
 begin
   classical,
   obtain ⟨hf₁, hf₂⟩ := f.property,

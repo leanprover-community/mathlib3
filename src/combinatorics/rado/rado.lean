@@ -198,13 +198,13 @@ variables {r : rank_fn α} {F : ι → finset α}
 
 /-- Auxiliary statment for Rado's Theorem. -/
 lemma rado_aux [decidable_eq ι] {f : ι → α} {s' s : finset ι} (h : rado_cond_on' r F f s' s) :
-  ∃ g : ι → α, set.eq_on g f ↑s' ∧ (∀ ⦃i⦄, i ∈ s' ∪ s → g i ∈ F i) ∧ independent_on r g (s' ∪ s) :=
+  ∃ g : ι → α, set.eq_on g f ↑s' ∧ independent_on r g (s' ∪ s) ∧ ∀ ⦃i⦄, i ∈ s' ∪ s → g i ∈ F i :=
 begin
   revert f s',
   refine finset.strong_induction_on s (λ s ih f s' hr, _),
   rcases eq_empty_or_nonempty s with rfl | hs,
   { -- case `s = ∅`
-    exact ⟨f, λ _ _, rfl, by {rw union_empty, exact ⟨hr.2.1, hr.2.2.1⟩}⟩, },
+    exact ⟨f, λ _ _, rfl, by {rw union_empty, exact ⟨hr.2.2.1, hr.2.1⟩}⟩, },
   by_cases H : rado_cond_on'_strong r F f s' s,
   { -- all nonempty proper subsets satisfy the strict rank inequality
     have H' := H,
@@ -217,9 +217,9 @@ begin
       -- use `rado_cond_on'.prop₁` and the inductive hypothesis
       obtain ⟨f₁, hf₁, hf₂⟩ :=
         ih (s.erase i) (erase_ssubset hi)
-           (rado_cond_on'.prop₁ hi₁ (H.congr hg₂) hg₁ hg₃),
+           (rado_cond_on'.prop₁ hi₁ (H.congr hg₁) hg₃ hg₂),
       rw [insert_union, ← union_insert, insert_erase hi] at hf₂,
-      exact ⟨f₁, λ j hj, (hf₁ $ mem_insert_of_mem hj).trans (hg₂ hj).symm, hf₂⟩, },
+      exact ⟨f₁, λ j hj, (hf₁ $ mem_insert_of_mem hj).trans (hg₁ hj).symm, hf₂⟩, },
     { exact nat.add_one_le_iff.mp (by simpa only [card_singleton, singleton_bUnion]
                                         using hr.2.2.2 (singleton_subset_iff.mpr hi)), } },
   { -- for some nonempty proper subset `t`, we have equality
@@ -233,7 +233,7 @@ begin
     replace ht₃ := le_antisymm (hr₄ ht₁.subset) ht₃,
     have hc : s'.image f = s'.image f' := (image_congr hf'₁).symm,
     -- use `rado_cond_on'.prop₂`
-    have hrc := (hr.congr $ λ i hi, (hf'₁ hi).symm).prop₂ ht₁.subset hf'₃ hf'₄ (hc ▸ ht₃),
+    have hrc := (hr.congr $ λ i hi, (hf'₁ hi).symm).prop₂ ht₁.subset hf'₄ hf'₃ (hc ▸ ht₃),
     -- use the inductive hypothesis again for `s \t`
     obtain ⟨g, hg₁, hg₂⟩ := ih (s \ t) (sdiff_ssubset ht₁.subset ht₂) hrc,
     rw [union_assoc, union_sdiff_self_eq_union, union_eq_right_iff_subset.mpr ht₁.subset] at hg₂,
@@ -261,8 +261,8 @@ begin
   rw empty_union at hf₁ hf₂,
   exact ⟨classical.indefinite_description _
           ⟨set.restrict ↑s f,
-           λ i hi, by simpa only [set.restrict_apply, subtype.coe_mk] using hf₁ hi,
-           independent_on_iff_independent_restrict.mp hf₂⟩⟩,
+           independent_on_iff_independent_restrict.mp hf₁,
+           λ i hi, by simpa only [set.restrict_apply, subtype.coe_mk] using hf₂ hi ⟩⟩,
 end
 
 variables {r F}
@@ -281,21 +281,21 @@ end
 /-- **Rado's Theorem** for arbitrary families of finite sets: the family `F : ι → finset α`
 satsifies the Rado condition with respect to a rank function `r` on `α` if and only if there
 is a function `f : ι → α` that is an independent (w.r.t. `r`) section of `F`. -/
-theorem rado : rado_cond r F ↔ ∃ f : ι → α, (∀ i, f i ∈ F i) ∧ independent r f :=
+theorem rado : rado_cond r F ↔ ∃ f : ι → α, independent r f ∧ ∀ i, f i ∈ F i :=
 begin
   refine ⟨λ h, _, λ h s, _⟩,
   { cases is_empty_or_nonempty α with hα hα,
     { haveI := hα,
       haveI hι := rado_cond_empty h,
-      refine ⟨hι.elim, λ i, false.elim (is_empty_iff.mp hι i), λ s, _⟩,
+      refine ⟨hι.elim, λ s, _, λ i, false.elim (is_empty_iff.mp hι i)⟩,
       { rw [independent_on_def, eq_empty_of_is_empty s, card_empty],
         exact nat.zero_le _, } },
     { haveI := classical.inhabited_of_nonempty hα,
       exact independent.section _ _ (independent_sections_on.nonempty h), } },
   { obtain ⟨f, hf₁, hf₂⟩ := h,
-    refine le_trans (hf₂ s) (r.mono $ λ i hi, finset.mem_bUnion.mpr _),
+    refine le_trans (hf₁ s) (r.mono $ λ i hi, finset.mem_bUnion.mpr _),
     obtain ⟨j, hj, rfl⟩ := finset.mem_image.mp hi,
-    exact ⟨j, hj, hf₁ j⟩, }
+    exact ⟨j, hj, hf₂ j⟩, }
 end
 
 end rank_fn
@@ -318,7 +318,7 @@ open rank_fn
 /-- **Halls' Theorem** ("*Marriage Theorem*") -/
 theorem marriage {ι : Type*} {α : Type*} [decidable_eq α] {F : ι → finset α} :
   (∀ s : finset ι, (s.card ≤ (s.bUnion F).card)) ↔
-    ∃ f : ι → α, (∀ i, f i ∈ F i) ∧ function.injective f :=
+    ∃ f : ι → α,  function.injective f ∧ ∀ i, f i ∈ F i :=
 begin
   classical,
   simp_rw [← card_rk_eq_card (finset.bUnion _ F), ← independent_card_iff_injective],

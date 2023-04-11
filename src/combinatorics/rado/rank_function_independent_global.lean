@@ -31,17 +31,16 @@ variables {ι : Type u} {α : Type v} [decidable_eq α]
 
 /-- The type of independent sections on a finite subset `s` of `ι` -/
 def independent_sections_on (r : rank_fn α) (F : ι → finset α) (s : finset ι) : Type (max u v) :=
-{f : s → α // (∀ ⦃i⦄ (hi : i ∈ s), f ⟨i, hi⟩ ∈ F i) ∧ independent r f}
+{f : s → α // independent r f ∧ ∀ ⦃i⦄ (hi : i ∈ s), f ⟨i, hi⟩ ∈ F i}
 
 variables {r : rank_fn α} {F : ι → finset α}
 
 instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
 { default :=
-    ⟨λ _, default,
-     by simp only [is_empty.forall_iff, mem_coe, set_coe.forall, not_mem_empty, implies_true_iff],
-     λ s, independent_on_def.mpr
-            (by simp only [(eq_iff_true_of_subsingleton s ∅).mpr trivial, card_empty,
-                           image_empty, empty])⟩ }
+  ⟨λ _, default,
+   λ s, independent_on_def.mpr
+    (by simp only [(eq_iff_true_of_subsingleton s ∅).mpr trivial, card_empty, image_empty, empty]),
+   by simp only [is_empty.forall_iff, mem_coe, set_coe.forall, not_mem_empty, implies_true_iff]⟩ }
 
 /- It would be more convenient to use `{f : ι → α // is_section_on F f s ∧ independent_on r f s}`
    (as that would avoid fiddling with subtypes), but then the type would not always be finite,
@@ -54,21 +53,21 @@ instance [inhabited α] : inhabited (independent_sections_on r F ∅) :=
 is also an independent section. -/
 lemma independent_sections_on.restrict_prop {s' s : finset ι} (h : s' ⊆ s)
   (f : independent_sections_on r F s) :
-  (∀ ⦃i⦄ (hi : i ∈ s'), (λ i : s', f.val ⟨i, h i.property⟩) ⟨i, hi⟩ ∈ F i) ∧
-    independent r (λ i : s', f.val ⟨i, h i.property⟩) :=
+  independent r (λ i : s', f.val ⟨i, h i.property⟩) ∧
+    ∀ ⦃i⦄ (hi : i ∈ s'), (λ i : s', f.val ⟨i, h i.property⟩) ⟨i, hi⟩ ∈ F i :=
 begin
   classical,
   obtain ⟨hf₁, hf₂⟩ := f.property,
-  refine ⟨λ i hi, (by simpa only using hf₁ (h hi)), λ t, _⟩,
+  refine ⟨λ t, _, λ i hi, (by simpa only using hf₂ (h hi))⟩,
   letI : has_coe s' s := { coe := λ i, ⟨i.val, h i.property⟩ },
   have hci : function.injective (coe : s' → s),
   { refine λ i j hij, subtype.ext_val _,
     replace hij := subtype.ext_iff_val.mp hij,
     exact hij, },
-  specialize hf₂ (t.image (coe : s' → s)),
-  rw independent_on_def at hf₂ ⊢,
-  rw [subtype.val_eq_coe, card_image_of_injective _ hci] at hf₂,
-  refine hf₂.trans_eq (congr_arg _ _),
+  specialize hf₁ (t.image (coe : s' → s)),
+  rw independent_on_def at hf₁ ⊢,
+  rw [subtype.val_eq_coe, card_image_of_injective _ hci] at hf₁,
+  refine hf₁.trans_eq (congr_arg _ _),
   ext,
   simp_rw [mem_image],
   refine ⟨λ H, _, λ H, _⟩,
@@ -86,7 +85,7 @@ def independent_sections_on.restrict {s' s : finset ι} (h : s' ⊆ s)
 
 lemma independent_sections_on.apply_mem {s : finset ι} (f : independent_sections_on r F s)
   (i : s) : f.val i ∈ F i :=
-by simpa only [subtype.val_eq_coe, mk_coe] using f.property.1 i.property
+by simpa only [subtype.val_eq_coe, mk_coe] using f.property.2 i.property
 
 variables (r F)
 
@@ -124,7 +123,7 @@ lemma rado_functor.map_apply {s t : finset ι} (hst : s ⊆ t) (f : (rado_functo
 /-- If the set of independent sections on each finite subset `s` of `ι` is nonempty,
 then there is a global independent section on all of `ι`. -/
 lemma independent.section (hnonempty : ∀ s : finset ι, nonempty (independent_sections_on r F s)) :
-  ∃ f : ι → α, (∀ i, f i ∈ F i) ∧ independent r f :=
+  ∃ f : ι → α, independent r f ∧ ∀ i, f i ∈ F i :=
 begin
   classical,
   haveI : ∀ (s : (finset ι)ᵒᵖ), nonempty ((rado_functor r F).obj s) := λ s, hnonempty s.unop,
@@ -144,13 +143,13 @@ begin
     { simpa only [singleton_subset_iff, unop_op s] using i.property, },
     rw [← hu (category_theory.hom_of_le (le his)).op, rado_functor.map_apply r F his],
     simp only [independent_sections_on.restrict, subtype.val_eq_coe, subtype.coe_mk, mk_coe], },
-  refine ⟨f, λ i, _, λ s, _⟩,
-  { have H := (u $ op {i}).property.1,
-    simp_rw [unop_op, H₂] at H,
-    exact H (mem_singleton_self i), },
-  { have H := (u $ op s).property.2,
+  refine ⟨f, λ s, _, λ i, _⟩,
+  { have H := (u $ op s).property.1,
     simp_rw [H₁, H₂] at H,
-    exact independent_on_iff_independent_restrict.mpr H, }
+    exact independent_on_iff_independent_restrict.mpr H, },
+  { have H := (u $ op {i}).property.2,
+    simp_rw [unop_op, H₂] at H,
+    exact H (mem_singleton_self i), }
 end
 
 variables {r F}
@@ -159,8 +158,8 @@ variables {r F}
 then `f` extends to an independent section `g` on `insert i s`. -/
 lemma independent_on.extends [decidable_eq ι] {f : ι → α} {s : finset ι} {i : ι} (hi : i ∉ s)
   (h₁ : ∀ ⦃j⦄, j ∈ s → f j ∈ F j) (h₂ : independent_on r f s) (hr : s.card < r (s.image f ∪ F i)) :
-  ∃ g : ι → α, (∀ ⦃j⦄, j ∈ insert i s → g j ∈ F j) ∧ set.eq_on f g ↑s ∧
-                 independent_on r g (insert i s) :=
+  ∃ g : ι → α, set.eq_on f g ↑s ∧ independent_on r g (insert i s) ∧
+                 ∀ ⦃j⦄, j ∈ insert i s → g j ∈ F j :=
 begin
   obtain ⟨a, ha₁, ha₂⟩ : ∃ a ∈ F i, s.card + 1 ≤ r (insert a (s.image f)),
   { by_contra' H,
@@ -169,15 +168,15 @@ begin
     exact nat.lt_irrefl _ (((hr.trans_eq (r.stationary' H')).trans_le (r.le_card _)).trans_le
             card_image_le), },
   -- We obtain the desired function by replacing the value of `f` at `i` by `a`.
-  refine ⟨function.update f i a, λ j hj, _, λ j hj, (function.update_noteq (λ hf, _) _ _).symm, _⟩,
+  refine ⟨function.update f i a, λ j hj, (function.update_noteq (λ hf, _) _ _).symm, _, λ j hj, _⟩,
+  { exact hi (hf ▸ hj), },
+  { rw [independent_on_def, card_insert_of_not_mem hi],
+    convert ha₂,
+    rw [image_update f $ mem_insert_self _ _, erase_insert hi, insert_eq, union_comm], },
   { rcases eq_or_ne j i with rfl | hj',
     { rwa function.update_same, },
     { rw [function.update_noteq hj'],
       exact h₁ ((mem_insert.mp hj).resolve_left hj'), } },
-  { exact hi (hf ▸ hj), },
-  { rw [independent_on_def, card_insert_of_not_mem hi],
-    convert ha₂,
-    rw [image_update f $ mem_insert_self _ _, erase_insert hi, insert_eq, union_comm], }
 end
 
 end rank_fn

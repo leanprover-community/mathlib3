@@ -805,7 +805,8 @@ begin
     exact infinite_basis_le_maximal_linear_independent b v i m, }
 end
 
-theorem basis.mk_eq_rank' {ι : Type v} (v : basis ι R M) : #ι = module.rank R M :=
+-- TODO: rename this to mk_eq_rank'
+theorem basis.mk_eq_rank'' {ι : Type v} (v : basis ι R M) : #ι = module.rank R M :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   rw module.rank,
@@ -822,7 +823,7 @@ end
 
 theorem basis.mk_range_eq_rank (v : basis ι R M) :
   #(range v) = module.rank R M :=
-v.reindex_range.mk_eq_rank'
+v.reindex_range.mk_eq_rank''
 
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
@@ -940,7 +941,7 @@ variables (K V)
 
 /-- The rank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma rank_eq_card_choose_basis_index : module.rank K V = #(choose_basis_index K V) :=
-(choose_basis K V).mk_eq_rank'.symm
+(choose_basis K V).mk_eq_rank''.symm
 
 end module.free
 
@@ -955,7 +956,7 @@ begin
   obtain ⟨⟨_, B⟩⟩ := module.free.exists_basis K V,
   obtain ⟨⟨_, B'⟩⟩ := module.free.exists_basis K V',
   have : cardinal.lift.{v' v} (#_) = cardinal.lift.{v v'} (#_),
-    by rw [B.mk_eq_rank', cond, B'.mk_eq_rank'],
+    by rw [B.mk_eq_rank'', cond, B'.mk_eq_rank''],
   exact (cardinal.lift_mk_eq.1 this).map (B.equiv B')
 end
 
@@ -1016,7 +1017,7 @@ begin
   casesI nonempty_fintype η,
   let B := λ i, choose_basis K (φ i),
   let b : basis _ K (Π i, φ i) := pi.basis (λ i, B i),
-  simp [← b.mk_eq_rank', λ i, (B i).mk_eq_rank'],
+  simp [← b.mk_eq_rank'', λ i, (B i).mk_eq_rank''],
 end
 
 variable [fintype η]
@@ -1191,7 +1192,7 @@ begin
   split,
   { intro h,
     let t := basis.of_vector_space K V,
-    rw [← t.mk_eq_rank', cardinal.le_mk_iff_exists_subset] at h,
+    rw [← t.mk_eq_rank'', cardinal.le_mk_iff_exists_subset] at h,
     rcases h with ⟨s, hst, hsc⟩,
     exact ⟨s, hsc, (of_vector_space_index.linear_independent K V).mono hst⟩ },
   { rintro ⟨s, rfl, si⟩,
@@ -1217,7 +1218,7 @@ begin
   let b := basis.of_vector_space K V,
   split,
   { intro hd,
-    rw [← b.mk_eq_rank', cardinal.le_one_iff_subsingleton, subsingleton_coe] at hd,
+    rw [← b.mk_eq_rank'', cardinal.le_one_iff_subsingleton, subsingleton_coe] at hd,
     rcases eq_empty_or_nonempty (of_vector_space_index K V) with hb | ⟨⟨v₀, hv₀⟩⟩,
     { use 0,
       have h' : ∀ v : V, v = 0, { simpa [hb, submodule.eq_bot_iff] using b.span_eq.symm },

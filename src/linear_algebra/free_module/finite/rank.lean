@@ -39,7 +39,7 @@ variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 lemma rank_lt_aleph_0 : module.rank R M < ℵ₀ :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  rw [← (choose_basis R M).mk_eq_rank', lt_aleph_0_iff_fintype],
+  rw [← (choose_basis R M).mk_eq_rank'', lt_aleph_0_iff_fintype],
   exact nonempty.intro infer_instance
 end
 

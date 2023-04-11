@@ -34,7 +34,7 @@ open module.free
   module.rank R (ι →₀ M) = cardinal.lift.{v} #ι * cardinal.lift.{w} (module.rank R M) :=
 begin
   obtain ⟨⟨_, bs⟩⟩ := module.free.exists_basis R M,
-  rw [← bs.mk_eq_rank', ← (finsupp.basis (λa:ι, bs)).mk_eq_rank',
+  rw [← bs.mk_eq_rank'', ← (finsupp.basis (λa:ι, bs)).mk_eq_rank'',
     cardinal.mk_sigma, cardinal.sum_const]
 end
 
@@ -55,7 +55,7 @@ lemma rank_finsupp_self' {ι : Type u} : module.rank R (ι →₀ R) = # ι := b
 begin
   let B := λ i, choose_basis R (M i),
   let b : basis _ R (⨁ i, M i) := dfinsupp.basis (λ i, B i),
-  simp [← b.mk_eq_rank', λ i, (B i).mk_eq_rank'],
+  simp [← b.mk_eq_rank'', λ i, (B i).mk_eq_rank''],
 end
 
 /-- If `m` and `n` are `fintype`, the rank of `m × n` matrices is `(# m).lift * (# n).lift`. -/

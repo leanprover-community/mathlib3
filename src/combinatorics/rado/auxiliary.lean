@@ -31,7 +31,7 @@ begin
   refine ⟨λ H, _, λ H, _⟩,
   { obtain ⟨j, hj₁, hj₂⟩ := H,
     rcases eq_or_ne j a with rfl | hji,
-    { refine or.inl (hj₂ ▸ function.update_same j b f), },
+    { exact or.inl (hj₂ ▸ function.update_same j b f), },
     { exact or.inr ⟨j, ⟨hji, hj₁⟩, hj₂ ▸ (function.update_noteq hji b f).symm⟩, } },
   { rcases H with rfl | ⟨j, ⟨hj₁, hj₂⟩, hj₃⟩,
     { exact ⟨a, h, function.update_same a c f⟩, },

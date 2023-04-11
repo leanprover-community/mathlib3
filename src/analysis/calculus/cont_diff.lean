@@ -174,10 +174,10 @@ begin
     continuous_linear_map.zero_apply],
 end
 
-lemma iterated_fderiv_const_of_pos {n : ℕ} (hn : 0 < n) (c : F) :
+lemma iterated_fderiv_const_of_ne {n : ℕ} (hn : n ≠ 0) (c : F) :
   iterated_fderiv 𝕜 n (λ (y : E), c) = 0 :=
 begin
-  cases nat.exists_eq_succ_of_ne_zero hn.ne.symm with k hk,
+  cases nat.exists_eq_succ_of_ne_zero hn with k hk,
   rw [hk, iterated_fderiv_succ_const],
 end
 
@@ -2635,9 +2635,7 @@ begin
     refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ f, _),
     simp only [continuous_linear_map.coe_id', id.def, one_mul],
   end,
-  refine (B.norm_iterated_fderiv_within_le_of_bilinear hf hg hs hx hn).trans _,
-  exact le_of_le_of_eq (mul_le_mul_of_nonneg_right hB (finset.sum_nonneg (λ _ _, by positivity)))
-    (one_mul _),
+  exact B.norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn hB,
 end
 
 lemma norm_iterated_fderiv_clm_apply {f : E → (F →L[𝕜] G)} {g : E → F}
@@ -2661,8 +2659,8 @@ begin
   simp only [nat.choose_self, algebra_map.coe_one, one_mul, norm_iterated_fderiv_zero,
     add_left_eq_self],
   refine finset.sum_eq_zero (λ i hi, _),
-  rw finset.mem_range at hi,
-  simp only [iterated_fderiv_const_of_pos (nat.sub_pos_of_lt hi), pi.zero_apply, norm_zero,
+  rw [finset.mem_range] at hi,
+  simp only [iterated_fderiv_const_of_ne (nat.sub_pos_of_lt hi).ne', pi.zero_apply, norm_zero,
     mul_zero],
 end
 

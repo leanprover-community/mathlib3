@@ -19,6 +19,7 @@ section α
 
 variables {α : Type*} [decidable_eq α]
 
+@[simp]
 lemma card_insert_eq_card_iff (a : α) (s : finset α) : (insert a s).card = s.card ↔ a ∈ s :=
 by simp only [card_insert_eq_ite, imp_false, ite_eq_left_iff, nat.succ_ne_self, not_not]
 

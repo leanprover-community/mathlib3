@@ -58,7 +58,7 @@ lemma independent_sections_on.restrict_prop {s' s : finset ι} (h : s' ⊆ s)
 begin
   classical,
   obtain ⟨hf₁, hf₂⟩ := f.property,
-  refine ⟨λ t, _, λ i hi, (by simpa only using hf₂ (h hi))⟩,
+  refine ⟨λ t, _, λ i hi, hf₂ (h hi)⟩,
   letI : has_coe s' s := { coe := λ i, ⟨i.val, h i.property⟩ },
   have hci : function.injective (coe : s' → s),
   { refine λ i j hij, subtype.ext_val _,

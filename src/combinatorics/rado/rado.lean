@@ -241,7 +241,7 @@ begin
     exact ⟨g, λ i hi, (hg₁ $ mem_union_left _ hi).trans $ hf'₁ hi, hg₂⟩, }
 end
 
-/-- Rado's Theorem for finite families. If `F : ι → finset α` satsifies the Rado condition
+/-- Rado's Theorem for finite families. If `F : ι → finset α` satisfies the Rado condition
 with respect to a rank function `r` on `α`, then for each finite subset `s` of `ι` there
 is an independent section `f : ι → α` on `s`. Note that `f` here depends on `s`.
 We state this here in the form that `rank_fn.independent_sections_on r F s` is nonempty. -/

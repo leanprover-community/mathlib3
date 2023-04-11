@@ -25,17 +25,6 @@ by simp only [card_insert_eq_ite, imp_false, ite_eq_left_iff, nat.succ_ne_self, 
 
 end α
 
-section β
-
-variables {α β : Type*} [decidable_eq β]
-
-lemma image_eq_image_restrict_univ (s : finset α) (f : α → β) :
-  s.image f = univ.image (set.restrict ↑s f) :=
-by {ext, simp only [mem_image, univ_eq_attach, mem_attach, exists_true_left, subtype.coe_mk,
-                    set.restrict_apply, set_coe.exists, mem_coe],}
-
-end β
-
 section αβ
 
 variables {α β : Type*} [decidable_eq α] [decidable_eq β]

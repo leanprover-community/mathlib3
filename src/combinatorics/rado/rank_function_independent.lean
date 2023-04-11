@@ -102,8 +102,7 @@ begin
     exact H.subset hts, },
   { specialize H univ,
     rw independent_on_def at H ⊢,
-    rw ← image_eq_image_restrict_univ at H,
-    simpa only [univ_eq_attach, card_attach] using H, }
+    rwa [image_restrict_eq_image_image_coe, univ_eq_attach, attach_image_coe, card_attach] at H, }
 end
 
 end rank_fn

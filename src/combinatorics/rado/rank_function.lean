@@ -180,9 +180,9 @@ def card_rk : rank_fn α :=
     have h : insert b (insert a s) = s,
     { refine subset_antisymm (λ c hc, _) _,
       { rcases mem_insert.mp hc with rfl | hc₁,
-        { exact (card_insert_eq_card_iff c s).mp hb, },
+        { exact card_insert_eq_card_iff.mp hb, },
         { rcases mem_insert.mp hc₁ with rfl | hc₂,
-          exacts [(card_insert_eq_card_iff c s).mp ha, hc₂], } },
+          exacts [card_insert_eq_card_iff.mp ha, hc₂], } },
       { exact subset_trans (subset_insert _ _) (subset_insert _ _), } },
     rw h,
   end }

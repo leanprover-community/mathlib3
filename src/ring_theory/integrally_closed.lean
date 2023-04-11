@@ -136,6 +136,7 @@ theorem mem_lifts_of_monic_of_dvd_map
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
   g ∈ lifts (algebra_map (integral_closure R K) K) :=
 begin
+  classical,
   haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
   have := mem_lift_of_splits_of_roots_mem_range (integral_closure R g.splitting_field)
     ((splits_id_iff_splits _).2 $ splitting_field.splits g) (hg.map _)

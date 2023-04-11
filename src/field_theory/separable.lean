@@ -24,7 +24,7 @@ properties about separable polynomials here.
 -/
 
 universes u v w
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 open finset
 
 namespace polynomial
@@ -79,11 +79,11 @@ by { rw mul_comm at h, exact h.of_mul_left }
 lemma separable.of_dvd {f g : R[X]} (hf : f.separable) (hfg : g ∣ f) : g.separable :=
 by { rcases hfg with ⟨f', rfl⟩, exact separable.of_mul_left hf }
 
-lemma separable_gcd_left {F : Type*} [field F] {f : F[X]}
+lemma separable_gcd_left {F : Type*} [field F] [decidable_eq F] {f : F[X]}
   (hf : f.separable) (g : F[X]) : (euclidean_domain.gcd f g).separable :=
 separable.of_dvd hf (euclidean_domain.gcd_dvd_left f g)
 
-lemma separable_gcd_right {F : Type*} [field F] {g : F[X]}
+lemma separable_gcd_right {F : Type*} [field F] [decidable_eq F] {g : F[X]}
   (f : F[X]) (hg : g.separable) : (euclidean_domain.gcd f g).separable :=
 separable.of_dvd hg (euclidean_domain.gcd_dvd_right f g)
 
@@ -125,7 +125,7 @@ begin
 end
 
 lemma multiplicity_le_one_of_separable {p q : R[X]} (hq : ¬ is_unit q)
-  (hsep : separable p) : multiplicity q p ≤ 1 :=
+  (hsep : separable p) [decidable_rel ((∣) : R[X] → R[X] → Prop)] : multiplicity q p ≤ 1 :=
 begin
   contrapose! hq,
   apply is_unit_of_self_mul_dvd_separable hsep,
@@ -136,6 +136,7 @@ end
 
 lemma separable.squarefree {p : R[X]} (hsep : separable p) : squarefree p :=
 begin
+  classical,
   rw multiplicity.squarefree_iff_multiplicity_le_one p,
   intro f,
   by_cases hunit : is_unit f,
@@ -160,10 +161,13 @@ by { rw [separable_def, derivative_mul], exact ((hf.mul_right h).add_mul_left_ri
 lemma separable_prod' {ι : Sort*} {f : ι → R[X]} {s : finset ι} :
   (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) →
   (∏ x in s, f x).separable :=
-finset.induction_on s (λ _ _, separable_one) $ λ a s has ih h1 h2, begin
-  simp_rw [finset.forall_mem_insert, forall_and_distrib] at h1 h2, rw prod_insert has,
-  exact h2.1.mul (ih h1.2.2 h2.2) (is_coprime.prod_right $ λ i his, h1.1.2 i his $
-    ne.symm $ ne_of_mem_of_not_mem his has)
+begin
+  classical,
+  exact finset.induction_on s (λ _ _, separable_one) (λ a s has ih h1 h2, begin
+    simp_rw [finset.forall_mem_insert, forall_and_distrib] at h1 h2, rw prod_insert has,
+    exact h2.1.mul (ih h1.2.2 h2.2) (is_coprime.prod_right $ λ i his, h1.1.2 i his $
+      ne.symm $ ne_of_mem_of_not_mem his has)
+  end)
 end
 
 lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → R[X]}
@@ -174,6 +178,7 @@ lemma separable.inj_of_prod_X_sub_C [nontrivial R] {ι : Sort*} {f : ι → R} {
   (hfs : (∏ i in s, (X - C (f i))).separable)
   {x y : ι} (hx : x ∈ s) (hy : y ∈ s) (hfxy : f x = f y) : x = y :=
 begin
+  classical,
   by_contra hxy,
   rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
       ← insert_erase (mem_erase_of_ne_of_mem (ne.symm hxy) hy),
@@ -215,6 +220,7 @@ end
 lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : R[X]}
   (hsep : separable p) (x : R) : root_multiplicity x p ≤ 1 :=
 begin
+  classical,
   by_cases hp : p = 0,
   { simp [hp], },
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← part_enat.coe_le_coe, part_enat.coe_get,
@@ -228,14 +234,14 @@ section is_domain
 
 variables {R : Type u} [comm_ring R] [is_domain R]
 
-lemma count_roots_le_one {p : R[X]} (hsep : separable p) (x : R) :
+lemma count_roots_le_one [decidable_eq R] {p : R[X]} (hsep : separable p) (x : R) :
   p.roots.count x ≤ 1 :=
 begin
   rw count_roots p,
   exact root_multiplicity_le_one_of_separable hsep x
 end
 
-lemma nodup_roots {p : R[X]} (hsep : separable p) : p.roots.nodup :=
+lemma nodup_roots [decidable_eq R] {p : R[X]} (hsep : separable p) : p.roots.nodup :=
 multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 
 end is_domain
@@ -275,21 +281,24 @@ include HF
 
 theorem separable_or {f : F[X]} (hf : irreducible f) : f.separable ∨
   ¬f.separable ∧ ∃ g : F[X], irreducible g ∧ expand F p g = f :=
-if H : f.derivative = 0 then
 begin
-  unfreezingI { rcases p.eq_zero_or_pos with rfl | hp },
-  { haveI := char_p.char_p_to_char_zero F,
-    have := nat_degree_eq_zero_of_derivative_eq_zero H,
-    have := (nat_degree_pos_iff_degree_pos.mpr $ degree_pos_of_irreducible hf).ne',
-    contradiction },
-  haveI := is_local_ring_hom_expand F hp,
-  exact or.inr
-        ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
-        contract p f,
-        of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H hp.ne' at hf),
-        expand_contract p H hp.ne'⟩
+  classical,
+  exact if H : f.derivative = 0 then
+  begin
+    unfreezingI { rcases p.eq_zero_or_pos with rfl | hp },
+    { haveI := char_p.char_p_to_char_zero F,
+      have := nat_degree_eq_zero_of_derivative_eq_zero H,
+      have := (nat_degree_pos_iff_degree_pos.mpr $ degree_pos_of_irreducible hf).ne',
+      contradiction },
+    haveI := is_local_ring_hom_expand F hp,
+    exact or.inr
+          ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
+          contract p f,
+          of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H hp.ne' at hf),
+          expand_contract p H hp.ne'⟩
+  end
+  else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 end
-else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 
 theorem exists_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : p ≠ 0) :
   ∃ (n : ℕ) (g : F[X]), g.separable ∧ expand F (p ^ n) g = f :=
@@ -371,7 +380,7 @@ end
 
 section splits
 
-lemma card_root_set_eq_nat_degree [algebra F K] {p : F[X]} (hsep : p.separable)
+lemma card_root_set_eq_nat_degree [algebra F K] [decidable_eq K] {p : F[X]} (hsep : p.separable)
   (hsplit : splits (algebra_map F K) p) : fintype.card (p.root_set K) = p.nat_degree :=
 begin
   simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
@@ -381,7 +390,7 @@ end
 
 variable {i : F →+* K}
 
-lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : F[X]}
+lemma eq_X_sub_C_of_separable_of_root_eq [decidable_eq K] {x : F} {h : F[X]}
   (h_sep : h.separable) (h_root : h.eval x = 0) (h_splits : splits i h)
   (h_roots : ∀ y ∈ (h.map i).roots, y = i x) : h = (C (leading_coeff h)) * (X - C x) :=
 begin
@@ -403,6 +412,7 @@ lemma exists_finset_of_splits
   (i : F →+* K) {f : F[X]} (sep : separable f) (sp : splits i f) :
   ∃ (s : finset K), f.map i = C (i f.leading_coeff) * (s.prod (λ a : K, X - C a)) :=
 begin
+  classical,
   obtain ⟨s, h⟩ := (splits_iff_exists_multiset _).1 sp,
   use s.to_finset,
   rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
@@ -520,6 +530,7 @@ lemma alg_hom.card_of_power_basis (pb : power_basis K S) (h_sep : (minpoly K pb.
   (h_splits : (minpoly K pb.gen).splits (algebra_map K L)) :
   @fintype.card (S →ₐ[K] L) (power_basis.alg_hom.fintype pb) = pb.dim :=
 begin
+  classical,
   let s := ((minpoly K pb.gen).map (algebra_map K L)).roots.to_finset,
   have H := λ x, multiset.mem_to_finset,
   rw [fintype.card_congr pb.lift_equiv', fintype.card_of_subtype s H,

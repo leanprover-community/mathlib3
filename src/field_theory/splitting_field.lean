@@ -31,7 +31,7 @@ if it is the smallest field extension of `K` such that `f` splits.
 -/
 
 noncomputable theory
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 
 universes u v w
 
@@ -46,7 +46,10 @@ section splitting_field
 
 /-- Non-computably choose an irreducible factor from a polynomial. -/
 def factor (f : K[X]) : K[X] :=
-if H : ∃ g, irreducible g ∧ g ∣ f then classical.some H else X
+begin
+  by_cases H : ∃ g, irreducible g ∧ g ∣ f,
+  exacts [classical.some H, X],
+end
 
 lemma irreducible_factor (f : K[X]) : irreducible (factor f) :=
 begin
@@ -61,6 +64,7 @@ local attribute [instance] fact_irreducible_factor
 
 theorem factor_dvd_of_not_is_unit {f : K[X]} (hf1 : ¬is_unit f) : factor f ∣ f :=
 begin
+  classical,
   by_cases hf2 : f = 0, { rw hf2, exact dvd_zero _ },
   rw [factor, dif_pos (wf_dvd_monoid.exists_irreducible_factor hf1 hf2)],
   exact (classical.some_spec $ wf_dvd_monoid.exists_irreducible_factor hf1 hf2).2
@@ -103,6 +107,9 @@ recursion.
 def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]), Type u :=
 nat.rec_on n (λ K _ _, K) $ λ n ih K _ f, by exactI
 ih f.remove_factor
+
+instance (n : ℕ) (K : Type u) [field K] (f : K[X]) :
+  decidable_eq (splitting_field_aux n f) := classical.dec_eq _
 
 namespace splitting_field_aux
 
@@ -301,7 +308,7 @@ end splitting_field
 
 variables (K L) [algebra K L]
 /-- Typeclass characterising splitting fields. -/
-class is_splitting_field (f : K[X]) : Prop :=
+class is_splitting_field [decidable_eq L] (f : K[X]) : Prop :=
 (splits [] : splits (algebra_map K L) f)
 (adjoin_roots [] : algebra.adjoin K (↑(f.map (algebra_map K L)).roots.to_finset : set L) = ⊤)
 
@@ -316,7 +323,7 @@ section scalar_tower
 variables {K L F} [algebra F K] [algebra F L] [is_scalar_tower F K L]
 
 variables {K}
-instance map (f : F[X]) [is_splitting_field F L f] :
+instance map (f : F[X]) [decidable_eq L] [is_splitting_field F L f] :
   is_splitting_field K L (f.map $ algebra_map F K) :=
 ⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
  subalgebra.restrict_scalars_injective F $
@@ -325,18 +332,21 @@ instance map (f : F[X]) [is_splitting_field F L f] :
   exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
 variables {K} (L)
-theorem splits_iff (f : K[X]) [is_splitting_field K L f] :
+theorem splits_iff (f : K[X]) [decidable_eq L][is_splitting_field K L f] :
   polynomial.splits (ring_hom.id K) f ↔ (⊤ : subalgebra K L) = ⊥ :=
-⟨λ h, eq_bot_iff.2 $ adjoin_roots L f ▸ (roots_map (algebra_map K L) h).symm ▸
-  algebra.adjoin_le_iff.2 (λ y hy,
-    let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
-    hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
- λ h, @ring_equiv.to_ring_hom_refl K _ ▸
-  ring_equiv.self_trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
-  by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩
+begin
+  classical,
+  exact ⟨λ h, eq_bot_iff.2 $ adjoin_roots L f ▸ (roots_map (algebra_map K L) h).symm ▸
+    algebra.adjoin_le_iff.2 (λ y hy,
+      let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
+      hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
+   λ h, @ring_equiv.to_ring_hom_refl K _ ▸
+    ring_equiv.self_trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
+    by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩
+end
 
-theorem mul (f g : F[X]) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f]
-  [is_splitting_field K L (g.map $ algebra_map F K)] :
+theorem mul (f g : F[X]) (hf : f ≠ 0) (hg : g ≠ 0) [decidable_eq K] [decidable_eq L]
+  [is_splitting_field F K f] [is_splitting_field K L (g.map $ algebra_map F K)] :
   is_splitting_field F L (f * g) :=
 ⟨(is_scalar_tower.algebra_map_eq F K L).symm ▸ splits_mul _
   (splits_comp_of_splits _ _ (splits K f))
@@ -353,7 +363,7 @@ theorem mul (f g : F[X]) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f
 end scalar_tower
 
 /-- Splitting field of `f` embeds into any field that splits `f`. -/
-def lift [algebra K F] (f : K[X]) [is_splitting_field K L f]
+def lift [algebra K F] (f : K[X]) [decidable_eq K] [decidable_eq L] [is_splitting_field K L f]
   (hf : polynomial.splits (algebra_map K F) f) : L →ₐ[K] F :=
 if hf0 : f = 0 then (algebra.of_id K F).comp $
   (algebra.bot_equiv K L : (⊥ : subalgebra K L) →ₐ[K] K).comp $
@@ -366,19 +376,23 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
       splits_of_splits_of_dvd _ hf0 hf $ minpoly.dvd _ _ this⟩) })
   algebra.to_top
 
-theorem finite_dimensional (f : K[X]) [is_splitting_field K L f] : finite_dimensional K L :=
-⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
-  fg_adjoin_of_finite (finset.finite_to_set _) (λ y hy,
-  if hf : f = 0
-  then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
-  else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
-    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
+theorem finite_dimensional (f : K[X]) [decidable_eq L] [is_splitting_field K L f] :
+  finite_dimensional K L :=
+begin
+  classical,
+  exact ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+    fg_adjoin_of_finite (finset.finite_to_set _) (λ y hy,
+    if hf : f = 0
+    then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
+    else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
+      (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩,
+end
 
 instance (f : K[X]) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f
 
 /-- Any splitting field is isomorphic to `splitting_field f`. -/
-def alg_equiv (f : K[X]) [is_splitting_field K L f] : L ≃ₐ[K] splitting_field f :=
+def alg_equiv (f : K[X]) [decidable_eq K] [decidable_eq L] [is_splitting_field K L f] : L ≃ₐ[K] splitting_field f :=
 begin
   refine alg_equiv.of_bijective (lift L f $ splits (splitting_field f) f)
     ⟨ring_hom.injective (lift L f $ splits (splitting_field f) f).to_ring_hom, _⟩,
@@ -397,7 +411,8 @@ begin
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 
-lemma of_alg_equiv [algebra K F] (p : K[X]) (f : F ≃ₐ[K] L) [is_splitting_field K F p] :
+lemma of_alg_equiv [algebra K F] [decidable_eq F] [decidable_eq L]
+  (p : K[X]) (f : F ≃ₐ[K] L) [is_splitting_field K F p] :
   is_splitting_field K L p :=
 begin
   split,
@@ -419,8 +434,9 @@ open polynomial
 
 variables [field K] [field L] [algebra K L] {p : K[X]}
 
-lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
-  (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=
+lemma splits_of_splits [decidable_eq L] {F : intermediate_field K L}
+  (h : p.splits (algebra_map K L)) (hF : ∀ x ∈ p.root_set L, x ∈ F) :
+  p.splits (algebra_map K F) :=
 begin
   simp_rw [root_set, finset.mem_coe, multiset.mem_to_finset] at hF,
   rw splits_iff_exists_multiset,

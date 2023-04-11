@@ -251,9 +251,8 @@ X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 end
 
 variables (p : ℕ) [fact p.prime] [algebra (zmod p) K]
-lemma roots_X_pow_card_sub_X : roots (X^q - X : K[X]) = finset.univ.val :=
+lemma roots_X_pow_card_sub_X [decidable_eq K] : roots (X^q - X : K[X]) = finset.univ.val :=
 begin
-  classical,
   have aux : (X^q - X : K[X]) ≠ 0 := X_pow_card_sub_X_ne_zero K fintype.one_lt_card,
   have : (roots (X^q - X : K[X])).to_finset = finset.univ,
   { rw eq_univ_iff_forall,
@@ -266,11 +265,12 @@ begin
   convert is_coprime_one_right.neg_right using 1,
   { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
       zero_sub] },
-  end
+end
 
 instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
 { splits :=
   begin
+    classical,
     have h : (X^q - X : K[X]).nat_degree = q :=
       X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
     rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,

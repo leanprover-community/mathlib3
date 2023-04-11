@@ -15,19 +15,13 @@ These should probably go into `data.finset.basic`, `data.finset.image` or `data.
 
 namespace finset
 
-section α
-
 variables {α : Type*} [decidable_eq α]
 
 @[simp]
 lemma card_insert_eq_card_iff (a : α) (s : finset α) : (insert a s).card = s.card ↔ a ∈ s :=
 by simp only [card_insert_eq_ite, imp_false, ite_eq_left_iff, nat.succ_ne_self, not_not]
 
-end α
-
-section αβ
-
-variables {α β : Type*} [decidable_eq α] [decidable_eq β]
+variables {β : Type*} [decidable_eq β]
 
 lemma image_update {s : finset α} (f : α → β) {a : α} (h : a ∈ s) (b : β) :
   s.image (function.update f a b) = insert b ((s.erase a).image f) :=
@@ -67,7 +61,5 @@ begin
   rw card_doubleton hh at h₂,
   cases h₂,
 end
-
-end αβ
 
 end finset

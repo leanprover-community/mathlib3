@@ -18,7 +18,7 @@ This file starts looking like the ring theory of $ R[X] $
 -/
 
 noncomputable theory
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 
 namespace polynomial
 universes u v w y z
@@ -98,7 +98,7 @@ lemma monic.normalize_eq_self {p : R[X]} (hp : p.monic) :
 by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
   units.coe_one, polynomial.C.map_one, mul_one]
 
-lemma roots_normalize {p : R[X]} : (normalize p).roots = p.roots :=
+lemma roots_normalize [decidable_eq R] {p : R[X]} : (normalize p).roots = p.roots :=
 by rw [normalize_apply, mul_comm, coe_norm_unit,
   roots_C_mul _ (norm_unit (leading_coeff p)).ne_zero]
 
@@ -160,10 +160,13 @@ p %ₘ (q * C (leading_coeff q)⁻¹)
 
 private lemma quotient_mul_add_remainder_eq_aux (p q : R[X]) :
   q * div p q + mod p q = p :=
-if h : q = 0 then by simp only [h, zero_mul, mod, mod_by_monic_zero, zero_add]
-else begin
-  conv {to_rhs, rw ← mod_by_monic_add_div p (monic_mul_leading_coeff_inv h)},
-  rw [div, mod, add_comm, mul_assoc]
+begin
+  classical,
+  exact if h : q = 0 then by simp only [h, zero_mul, mod, mod_by_monic_zero, zero_add]
+  else begin
+    conv {to_rhs, rw ← mod_by_monic_add_div p (monic_mul_leading_coeff_inv h)},
+    rw [div, mod, add_comm, mul_assoc]
+  end,
 end
 
 private lemma remainder_lt_aux (p : R[X]) (hq : q ≠ 0) :
@@ -209,6 +212,7 @@ lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
 λ h, have ¬degree (q * C (leading_coeff q)⁻¹) ≤ degree p :=
   not_le_of_gt $ by rwa degree_mul_leading_coeff_inv q hq0,
 begin
+  classical,
   rw [mod_def, mod_by_monic, dif_pos (monic_mul_leading_coeff_inv hq0)],
   unfold div_mod_by_monic_aux,
   simp only [this, false_and, if_false]
@@ -231,9 +235,12 @@ by conv_rhs { rw [← euclidean_domain.div_add_mod p q,
     degree_add_eq_left_of_degree_lt this, degree_mul] }
 
 lemma degree_div_le (p q : R[X]) : degree (p / q) ≤ degree p :=
-if hq : q = 0 then by simp [hq]
-else by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq];
-  exact degree_div_by_monic_le _ _
+begin
+  classical,
+  exact if hq : q = 0 then by simp [hq]
+  else by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq];
+    exact degree_div_by_monic_le _ _,
+end
 
 lemma degree_div_lt (hp : p ≠ 0) (hq : 0 < degree q) : degree (p / q) < degree p :=
 have hq0 : q ≠ 0, from λ hq0, by simpa [hq0] using hq,
@@ -263,77 +270,90 @@ by simp_rw [is_unit_iff_degree_eq_zero, degree_map]
 
 lemma map_div [field k] (f : R →+* k) :
   (p / q).map f = p.map f / q.map f :=
-if hq0 : q = 0 then by simp [hq0]
-else
-by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [coeff_map f]
+begin
+  classical,
+  exact if hq0 : q = 0 then by simp [hq0]
+  else
+  by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
+    simp [coeff_map f],
+end
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
-if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← map_inv₀ f, ← map_C f,
-  ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
+begin
+  classical,
+  exact if hq0 : q = 0 then by simp [hq0]
+  else by rw [mod_def, mod_def, leading_coeff_map f, ← map_inv₀ f, ← map_C f,
+    ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)],
+end
 
 section
 open euclidean_domain
-theorem gcd_map [field k] (f : R →+* k) :
+theorem gcd_map [decidable_eq k] [decidable_eq R] [field k] (f : R →+* k) :
   gcd (p.map f) (q.map f) = (gcd p q).map f :=
 gcd.induction p q (λ x, by simp_rw [polynomial.map_zero, euclidean_domain.gcd_zero_left]) $
                     λ x y hx ih,
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
-lemma eval₂_gcd_eq_zero [comm_semiring k] {ϕ : R →+* k} {f g : R[X]} {α : k}
+lemma eval₂_gcd_eq_zero [comm_semiring k] [decidable_eq R] {ϕ : R →+* k} {f g : R[X]} {α : k}
   (hf : f.eval₂ ϕ α = 0) (hg : g.eval₂ ϕ α = 0) : (euclidean_domain.gcd f g).eval₂ ϕ α = 0 :=
 by rw [euclidean_domain.gcd_eq_gcd_ab f g, polynomial.eval₂_add, polynomial.eval₂_mul,
        polynomial.eval₂_mul, hf, hg, zero_mul, zero_mul, zero_add]
 
-lemma eval_gcd_eq_zero {f g : R[X]} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
+lemma eval_gcd_eq_zero [decidable_eq R] {f g : R[X]} {α : R}
+  (hf : f.eval α = 0) (hg : g.eval α = 0) :
   (euclidean_domain.gcd f g).eval α = 0 := eval₂_gcd_eq_zero hf hg
 
-lemma root_left_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : R[X]} {α : k}
+lemma root_left_of_root_gcd [comm_semiring k] [decidable_eq R] {ϕ : R →+* k} {f g : R[X]} {α : k}
   (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : f.eval₂ ϕ α = 0 :=
 by { cases euclidean_domain.gcd_dvd_left f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
-lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : R[X]} {α : k}
+lemma root_right_of_root_gcd [comm_semiring k] [decidable_eq R] {ϕ : R →+* k} {f g : R[X]} {α : k}
   (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : g.eval₂ ϕ α = 0 :=
 by { cases euclidean_domain.gcd_dvd_right f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
-lemma root_gcd_iff_root_left_right [comm_semiring k] {ϕ : R →+* k} {f g : R[X]} {α : k} :
+lemma root_gcd_iff_root_left_right [comm_semiring k] [decidable_eq R]
+  {ϕ : R →+* k} {f g : R[X]} {α : k} :
   (euclidean_domain.gcd f g).eval₂ ϕ α = 0 ↔ (f.eval₂ ϕ α = 0) ∧ (g.eval₂ ϕ α = 0) :=
 ⟨λ h, ⟨root_left_of_root_gcd h, root_right_of_root_gcd h⟩, λ h, eval₂_gcd_eq_zero h.1 h.2⟩
 
-lemma is_root_gcd_iff_is_root_left_right {f g : R[X]} {α : R} :
+lemma is_root_gcd_iff_is_root_left_right [decidable_eq R] {f g : R[X]} {α : R} :
   (euclidean_domain.gcd f g).is_root α ↔ f.is_root α ∧ g.is_root α :=
 root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
-by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map]
+begin
+  classical,
+  rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map],
+end
 
-lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
+lemma mem_roots_map [comm_ring k] [is_domain k] [decidable_eq k]
+  {f : R →+* k} {x : k} (hp : p ≠ 0) :
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
 by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
-lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
+lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S] [decidable_eq S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
 by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map R S)).2 ha),
   multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton, finset.coe_singleton]
 
-lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
+lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S] [decidable_eq S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
 by rw [C_mul_X_pow_eq_monomial, root_set_monomial hn ha]
 
-lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S]
+lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S] [decidable_eq S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=
 by { rw [←one_mul (X ^ n : R[X]), ←C_1, root_set_C_mul_X_pow hn], exact one_ne_zero }
 
-lemma root_set_prod [comm_ring S] [is_domain S] [algebra R S]
+lemma root_set_prod [comm_ring S] [is_domain S] [algebra R S] [decidable_eq S]
   {ι : Type*} (f : ι → R[X]) (s : finset ι) (h : s.prod f ≠ 0) :
   (s.prod f).root_set S = ⋃ (i ∈ s), (f i).root_set S :=
 begin
+  classical,
   simp only [root_set, ←finset.mem_coe],
   rw [polynomial.map_prod, roots_prod, finset.bind_to_finset, s.val_to_finset, finset.coe_bUnion],
   rwa [←polynomial.map_prod, ne, map_eq_zero],
@@ -359,7 +379,7 @@ begin
   { simp }
 end
 
-lemma monic_normalize (hp0 : p ≠ 0) : monic (normalize p) :=
+lemma monic_normalize [decidable_eq R] (hp0 : p ≠ 0) : monic (normalize p) :=
 begin
   rw [ne.def, ← leading_coeff_eq_zero, ← ne.def, ← is_unit_iff_ne_zero] at hp0,
   rw [monic, leading_coeff_normalize, normalize_eq_one],
@@ -398,34 +418,43 @@ lemma dvd_C_mul (ha : a ≠ 0) : p ∣ polynomial.C a * q ↔ p ∣ q :=
          C.map_one, one_mul]⟩,
  λ h, dvd_trans h (dvd_mul_left _ _)⟩
 
-lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : R[X]) = C p.leading_coeff⁻¹ :=
+lemma coe_norm_unit_of_ne_zero [decidable_eq R] (hp : p ≠ 0) :
+  (norm_unit p : R[X]) = C p.leading_coeff⁻¹ :=
 have p.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp hp,
 by simp [comm_group_with_zero.coe_norm_unit _ this]
 
-lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
+lemma normalize_monic [decidable_eq R] (h : monic p) : normalize p = p := by simp [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : R[X]} : x.map f ∣ y.map f ↔ x ∣ y :=
-if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
-else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
-    normalize_apply, normalize_apply,
-    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
-    leading_coeff_map, ← map_inv₀ f, ← map_C, ← polynomial.map_mul,
-    map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
+begin
+  classical,
+  exact if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
+  else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
+      normalize_apply, normalize_apply,
+      coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
+      leading_coeff_map, ← map_inv₀ f, ← map_C, ← polynomial.map_mul,
+      map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)],
+end
 
-lemma degree_normalize : degree (normalize p) = degree p := by simp
+lemma degree_normalize [decidable_eq R] : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
-have prime (normalize p),
-  from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
+begin
+  classical,
+  have : prime (normalize p) := monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
     (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
-(normalize_associated _).prime this
+  exact (normalize_associated _).prime this,
+end
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
 (prime_of_degree_eq_one hp1).irreducible
 
 theorem not_irreducible_C (x : R) : ¬irreducible (C x) :=
-if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }
-else λ hx, irreducible.not_unit hx $ is_unit_C.2 $ is_unit_iff_ne_zero.2 H
+begin
+  classical,
+  exact if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }
+  else λ hx, irreducible.not_unit hx $ is_unit_C.2 $ is_unit_iff_ne_zero.2 H,
+end
 
 theorem degree_pos_of_irreducible (hp : irreducible p) : 0 < p.degree :=
 lt_of_not_ge $ λ hp0, have _ := eq_C_of_degree_le_zero hp0,

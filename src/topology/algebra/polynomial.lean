@@ -142,7 +142,7 @@ variables {F K : Type*} [comm_ring F] [normed_field K]
 
 open multiset
 
-lemma eq_one_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (hB : B < 0)
+lemma eq_one_of_roots_le [decidable_eq K] {p : F[X]} {f : F →+* K} {B : ℝ} (hB : B < 0)
   (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ‖z‖ ≤ B) :
   p = 1 :=
 h1.nat_degree_eq_zero_iff_eq_one.mp begin
@@ -152,7 +152,7 @@ h1.nat_degree_eq_zero_iff_eq_one.mp begin
   exact le_trans (norm_nonneg _) (h3 z hz),
 end
 
-lemma coeff_le_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (i : ℕ)
+lemma coeff_le_of_roots_le [decidable_eq K] {p : F[X]} {f : F →+* K} {B : ℝ} (i : ℕ)
   (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ‖z‖ ≤ B) :
   ‖ (map f p).coeff i ‖ ≤ B^(p.nat_degree - i) * p.nat_degree.choose i  :=
 begin
@@ -181,7 +181,7 @@ end
 
 /-- The coefficients of the monic polynomials of bounded degree with bounded roots are
 uniformely bounded. -/
-lemma coeff_bdd_of_roots_le {B : ℝ} {d : ℕ} (f : F →+* K) {p : F[X]}
+lemma coeff_bdd_of_roots_le [decidable_eq K] {B : ℝ} {d : ℕ} (f : F →+* K) {p : F[X]}
   (h1 : p.monic) (h2 : splits f p) (h3 : p.nat_degree ≤ d) (h4 : ∀ z ∈ (map f p).roots, ‖z‖ ≤ B)
   (i : ℕ) : ‖(map f p).coeff i‖ ≤ (max B 1) ^ d * d.choose (d / 2) :=
 begin

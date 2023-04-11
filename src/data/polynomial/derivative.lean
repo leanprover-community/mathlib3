@@ -20,7 +20,7 @@ import data.polynomial.eval
 noncomputable theory
 
 open finset
-open_locale big_operators classical polynomial
+open_locale big_operators polynomial
 
 namespace polynomial
 universes u v w y z
@@ -152,7 +152,10 @@ theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p
 (with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
 
 theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
-if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else (degree_derivative_lt H).le
+begin
+  classical,
+  exact if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else (degree_derivative_lt H).le
+end
 
 theorem nat_degree_derivative_lt {p : R[X]} (hp : p.nat_degree ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
@@ -477,7 +480,7 @@ polynomial.induction_on p
       @derivative_mul _ _ _ X, derivative_X, mul_one, eval₂_add, @eval₂_mul _ _ _ _ X, eval₂_X,
       add_mul, mul_right_comm])
 
-theorem derivative_prod {s : multiset ι} {f : ι → R[X]} :
+theorem derivative_prod {s : multiset ι} [decidable_eq ι] {f : ι → R[X]} :
   (multiset.map f s).prod.derivative =
   (multiset.map (λ i, (multiset.map f (s.erase i)).prod * (f i).derivative) s).sum :=
 begin
@@ -550,7 +553,8 @@ begin
   { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
 end
 
-lemma eval_multiset_prod_X_sub_C_derivative {S : multiset R} {r : R} (hr : r ∈ S) :
+lemma eval_multiset_prod_X_sub_C_derivative
+  [decidable_eq R] {S : multiset R} {r : R} (hr : r ∈ S) :
   eval r (multiset.map (λ a, X - C a) S).prod.derivative =
   (multiset.map (λ a, r - a) (S.erase r)).prod :=
 begin

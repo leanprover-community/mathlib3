@@ -24,7 +24,6 @@ euclidean domain
 -/
 
 noncomputable theory
-open_locale classical
 open euclidean_domain set ideal
 
 section gcd_monoid
@@ -62,7 +61,7 @@ end gcd_monoid
 namespace euclidean_domain
 
 /-- Create a `gcd_monoid` whose `gcd_monoid.gcd` matches `euclidean_domain.gcd`. -/
-def gcd_monoid (R) [euclidean_domain R] : gcd_monoid R :=
+def gcd_monoid (R) [euclidean_domain R] [decidable_eq R] : gcd_monoid R :=
 { gcd := gcd,
   lcm := lcm,
   gcd_dvd_left := gcd_dvd_left,
@@ -72,16 +71,15 @@ def gcd_monoid (R) [euclidean_domain R] : gcd_monoid R :=
   lcm_zero_left := lcm_zero_left,
   lcm_zero_right := lcm_zero_right }
 
-variables {α : Type*} [euclidean_domain α] [decidable_eq α]
+variables {α : Type*} [euclidean_domain α]
 
-theorem span_gcd {α} [euclidean_domain α] (x y : α) :
+theorem span_gcd [decidable_eq α] (x y : α) :
   span ({gcd x y} : set α) = span ({x, y} : set α) :=
 begin
   letI := euclidean_domain.gcd_monoid α,
   exact span_gcd x y,
 end
-
-theorem gcd_is_unit_iff {α} [euclidean_domain α] {x y : α} :
+theorem gcd_is_unit_iff [decidable_eq α]{x y : α} :
   is_unit (gcd x y) ↔ is_coprime x y :=
 begin
   letI := euclidean_domain.gcd_monoid α,
@@ -89,18 +87,20 @@ begin
 end
 
 -- this should be proved for UFDs surely?
-theorem is_coprime_of_dvd {α} [euclidean_domain α] {x y : α}
+theorem is_coprime_of_dvd {x y : α}
   (nonzero : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
 begin
+  classical,
   letI := euclidean_domain.gcd_monoid α,
   exact is_coprime_of_dvd x y nonzero H,
 end
 
 -- this should be proved for UFDs surely?
-theorem dvd_or_coprime {α} [euclidean_domain α] (x y : α)
+theorem dvd_or_coprime (x y : α)
   (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
 begin
+  classical,
   letI := euclidean_domain.gcd_monoid α,
   exact dvd_or_coprime x y h,
 end

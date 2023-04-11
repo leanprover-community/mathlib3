@@ -120,7 +120,7 @@ end
 /-- Vieta's formula for the coefficients and the roots of a polynomial over an integral domain
   with as many roots as its degree. -/
 theorem _root_.polynomial.coeff_eq_esymm_roots_of_card [is_domain R] {p : R[X]}
-  (hroots : p.roots.card = p.nat_degree) {k : ℕ} (h : k ≤ p.nat_degree) :
+  [decidable_eq R] (hroots : p.roots.card = p.nat_degree) {k : ℕ} (h : k ≤ p.nat_degree) :
   p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) * p.roots.esymm (p.nat_degree - k) :=
 begin
   conv_lhs { rw ← C_leading_coeff_mul_prod_multiset_X_sub_C hroots },
@@ -130,6 +130,7 @@ end
 
 /-- Vieta's formula for split polynomials over a field. -/
 theorem _root_.polynomial.coeff_eq_esymm_roots_of_splits {F} [field F] {p : F[X]}
+  [decidable_eq F]
   (hsplit : p.splits (ring_hom.id F)) {k : ℕ} (h : k ≤ p.nat_degree) :
   p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) * p.roots.esymm (p.nat_degree - k) :=
 polynomial.coeff_eq_esymm_roots_of_card (splits_iff_card_roots.1 hsplit) h

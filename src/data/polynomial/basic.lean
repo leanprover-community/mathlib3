@@ -65,6 +65,14 @@ localized "notation (name := polynomial) R`[X]`:9000 := polynomial R" in polynom
 open add_monoid_algebra finsupp function
 open_locale big_operators polynomial
 
+instance (R : Type*) [semiring R] [decidable_eq R] : decidable_eq (polynomial R) :=
+begin
+  rintro ⟨a⟩ ⟨b⟩,
+  obtain (h | h) := (infer_instance : decidable (a = b)),
+  { exact decidable.is_false (λ h', h (by simpa using h')), },
+  { exact decidable.is_true (by simpa using h), },
+end
+
 namespace polynomial
 universes u
 variables {R : Type u} {a b : R} {m n : ℕ}
@@ -863,18 +871,21 @@ end nonzero_semiring
 
 section repr
 variables [semiring R]
-open_locale classical
 
 instance [has_repr R] : has_repr R[X] :=
-⟨λ p, if p = 0 then "0"
-  else (p.support.sort (≤)).foldr
-    (λ n a, a ++ (if a = "" then "" else " + ") ++
-      if n = 0
-        then "C (" ++ repr (coeff p n) ++ ")"
-        else if n = 1
-          then if (coeff p n) = 1 then "X" else "C (" ++ repr (coeff p n) ++ ") * X"
-          else if (coeff p n) = 1 then "X ^ " ++ repr n
-            else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
+begin
+  classical,
+  exact
+  ⟨λ p, if p = 0 then "0"
+    else (p.support.sort (≤)).foldr
+      (λ n a, a ++ (if a = "" then "" else " + ") ++
+        if n = 0
+          then "C (" ++ repr (coeff p n) ++ ")"
+          else if n = 1
+            then if (coeff p n) = 1 then "X" else "C (" ++ repr (coeff p n) ++ ") * X"
+            else if (coeff p n) = 1 then "X ^ " ++ repr n
+              else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
+end
 
 end repr
 

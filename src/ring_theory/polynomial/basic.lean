@@ -30,7 +30,7 @@ import ring_theory.unique_factorization_domain
 -/
 
 noncomputable theory
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 open finset
 
 universes u v w
@@ -64,7 +64,7 @@ by simp only [degree_le, submodule.mem_infi, degree_le_iff_coeff_zero, linear_ma
   degree_le R m ≤ degree_le R n :=
 λ f hf, mem_degree_le.2 (le_trans (mem_degree_le.1 hf) H)
 
-theorem degree_le_eq_span_X_pow {n : ℕ} :
+theorem degree_le_eq_span_X_pow [decidable_eq R] {n : ℕ} :
   degree_le R n = submodule.span R ↑((finset.range (n+1)).image (λ n, (X : R[X])^n)) :=
 begin
   apply le_antisymm,
@@ -92,7 +92,7 @@ by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree, finset.
   degree_lt R m ≤ degree_lt R n :=
 λ f hf, mem_degree_lt.2 (lt_of_lt_of_le (mem_degree_lt.1 hf) $ with_bot.coe_le_coe.2 H)
 
-theorem degree_lt_eq_span_X_pow {n : ℕ} :
+theorem degree_lt_eq_span_X_pow [decidable_eq R] {n : ℕ} :
   degree_lt R n = submodule.span R ↑((finset.range n).image (λ n, X^n) : finset R[X]) :=
 begin
   apply le_antisymm,
@@ -147,17 +147,17 @@ begin
 end
 
 /-- The finset of nonzero coefficients of a polynomial. -/
-def frange (p : R[X]) : finset R :=
+def frange [decidable_eq R] (p : R[X]) : finset R :=
 finset.image (λ n, p.coeff n) p.support
 
-lemma frange_zero : frange (0 : R[X]) = ∅ :=
+lemma frange_zero [decidable_eq R] : frange (0 : R[X]) = ∅ :=
 rfl
 
-lemma mem_frange_iff {p : R[X]} {c : R} :
+lemma mem_frange_iff [decidable_eq R] {p : R[X]} {c : R} :
   c ∈ p.frange ↔ ∃ n ∈ p.support, c = p.coeff n :=
 by simp [frange, eq_comm]
 
-lemma frange_one : frange (1 : R[X]) ⊆ {1} :=
+lemma frange_one [decidable_eq R] : frange (1 : R[X]) ⊆ {1} :=
 begin
   simp [frange, finset.image_subset_iff],
   simp only [← C_1, coeff_C],
@@ -166,7 +166,7 @@ begin
   simp [hn],
 end
 
-lemma coeff_mem_frange (p : R[X]) (n : ℕ) (h : p.coeff n ≠ 0) :
+lemma coeff_mem_frange [decidable_eq R] (p : R[X]) (n : ℕ) (h : p.coeff n ≠ 0) :
   p.coeff n ∈ p.frange :=
 begin
   simp only [frange, exists_prop, mem_support_iff, finset.mem_image, ne.def],
@@ -225,12 +225,12 @@ variables [ring R]
 
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
-def restriction (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
+def restriction [decidable_eq R] (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
   else subring.subset_closure (p.coeff_mem_frange _ H)⟩ : (subring.closure (↑p.frange : set R)))
 
-@[simp] theorem coeff_restriction {p : R[X]} {n : ℕ} :
+@[simp] theorem coeff_restriction [decidable_eq R] {p : R[X]} {n : ℕ} :
   ↑(coeff (restriction p) n) = coeff p n :=
 begin
   simp only [restriction, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
@@ -240,11 +240,11 @@ begin
   { refl }
 end
 
-@[simp] theorem coeff_restriction' {p : R[X]} {n : ℕ} :
+@[simp] theorem coeff_restriction' [decidable_eq R] {p : R[X]} {n : ℕ} :
   (coeff (restriction p) n).1 = coeff p n :=
 coeff_restriction
 
-@[simp] lemma support_restriction (p : R[X]) :
+@[simp] lemma support_restriction [decidable_eq R] (p : R[X]) :
   support (restriction p) = support p :=
 begin
   ext i,
@@ -253,37 +253,38 @@ begin
   exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
 end
 
-@[simp] theorem map_restriction {R : Type u} [comm_ring R]
+@[simp] theorem map_restriction {R : Type u} [comm_ring R] [decidable_eq R]
   (p : R[X]) : p.restriction.map (algebra_map _ _) = p :=
 ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subring_apply, coeff_restriction]
 
-@[simp] theorem degree_restriction {p : R[X]} : (restriction p).degree = p.degree :=
+@[simp] theorem degree_restriction [decidable_eq R] {p : R[X]} :
+  (restriction p).degree = p.degree :=
 by simp [degree]
 
-@[simp] theorem nat_degree_restriction {p : R[X]} :
+@[simp] theorem nat_degree_restriction [decidable_eq R] {p : R[X]} :
   (restriction p).nat_degree = p.nat_degree :=
 by simp [nat_degree]
 
-@[simp] theorem monic_restriction {p : R[X]} : monic (restriction p) ↔ monic p :=
+@[simp] theorem monic_restriction [decidable_eq R]{p : R[X]} : monic (restriction p) ↔ monic p :=
 begin
   simp only [monic, leading_coeff, nat_degree_restriction],
-  rw [←@coeff_restriction _ _ p],
+  rw [←@coeff_restriction _ _ _ p],
   exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
 end
 
-@[simp] theorem restriction_zero : restriction (0 : R[X]) = 0 :=
+@[simp] theorem restriction_zero [decidable_eq R] : restriction (0 : R[X]) = 0 :=
 by simp only [restriction, finset.sum_empty, support_zero]
 
-@[simp] theorem restriction_one : restriction (1 : R[X]) = 1 :=
+@[simp] theorem restriction_one [decidable_eq R] : restriction (1 : R[X]) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
 variables [semiring S] {f : R →+* S} {x : S}
 
-theorem eval₂_restriction {p : R[X]} :
+theorem eval₂_restriction [decidable_eq R] {p : R[X]} :
   eval₂ f x p =
   eval₂ (f.comp (subring.subtype (subring.closure (p.frange : set R)))) x p.restriction :=
 begin
-  simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
+  simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ _ p],
   refl,
 end
 
@@ -293,12 +294,12 @@ variables (p : R[X]) (T : subring R)
 
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
 return the corresponding polynomial whose coefficients are in `T`. -/
-def to_subring (hp : (↑p.frange : set R) ⊆ T) : T[X] :=
+def to_subring [decidable_eq R] (hp : (↑p.frange : set R) ⊆ T) : T[X] :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ T.zero_mem
   else hp (p.coeff_mem_frange _ H)⟩ : T)
 
-variables (hp : (↑p.frange : set R) ⊆ T)
+variables [decidable_eq R] (hp : (↑p.frange : set R) ⊆ T)
 include hp
 
 @[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n :=
@@ -365,7 +366,7 @@ begin
   refl
 end
 
-@[simp] theorem frange_of_subring {p : T[X]} :
+@[simp] theorem frange_of_subring [decidable_eq R] {p : T[X]} :
   (↑(p.of_subring T).frange : set R) ⊆ T :=
 begin
   assume i hi,
@@ -644,8 +645,11 @@ lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
 
 theorem is_fg_degree_le [is_noetherian_ring R] (I : ideal R[X]) (n : ℕ) :
   submodule.fg (I.degree_le n) :=
-is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
-  ⟨_, degree_le_eq_span_X_pow.symm⟩) _
+begin
+  classical,
+  exact is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
+    ⟨_, degree_le_eq_span_X_pow.symm⟩) _,
+end
 
 end comm_ring
 
@@ -960,6 +964,7 @@ end
 instance {R : Type u} [comm_semiring R] [no_zero_divisors R] {σ : Type v} :
   no_zero_divisors (mv_polynomial σ R) :=
 ⟨λ p q h, begin
+  classical,
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
   have :
@@ -1059,6 +1064,7 @@ namespace polynomial
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid D[X] :=
 begin
+  classical,
   haveI := arbitrary (normalization_monoid D),
   haveI := to_normalized_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid

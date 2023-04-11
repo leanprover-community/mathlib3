@@ -208,7 +208,7 @@ lemma support_esymm (n : ℕ) [decidable_eq σ] [nontrivial R] :
   (powerset_len n (univ : finset σ)).image (λ t, ∑ (i : σ) in t, finsupp.single i 1) :=
 by { rw support_esymm', exact bUnion_singleton }
 
-lemma degrees_esymm [nontrivial R]
+lemma degrees_esymm [nontrivial R] [decidable_eq σ]
   (n : ℕ) (hpos : 0 < n) (hn : n ≤ fintype.card σ) :
   (esymm σ R n).degrees = (univ : finset σ).val :=
 begin

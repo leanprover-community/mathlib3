@@ -43,7 +43,7 @@ components.
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale big_operators
 
 open set function finset finsupp add_monoid_algebra
 
@@ -185,6 +185,7 @@ end
 lemma is_weighted_homogeneous_monomial (w : σ → M) (d : σ →₀ ℕ) (r : R) {m : M}
   (hm : weighted_degree' w d = m) : is_weighted_homogeneous w (monomial d r) m :=
 begin
+  classical,
   intros c hc,
   rw coeff_monomial at hc,
   split_ifs at hc with h,
@@ -270,6 +271,7 @@ lemma prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ι
   (∀ i ∈ s, is_weighted_homogeneous w (φ i) (n i)) →
   is_weighted_homogeneous w (∏ i in s, φ i) (∑ i in s, n i) :=
 begin
+  classical,
   apply finset.induction_on s,
   { intro, simp only [is_weighted_homogeneous_one, finset.sum_empty, finset.prod_empty] },
   { intros i s his IH h,
@@ -316,12 +318,12 @@ section weighted_homogeneous_component
 
 variables {w : σ → M} (n : M) (φ ψ : mv_polynomial σ R)
 
-lemma coeff_weighted_homogeneous_component (d : σ →₀ ℕ) :
+lemma coeff_weighted_homogeneous_component [decidable_eq M] (d : σ →₀ ℕ) :
   coeff d (weighted_homogeneous_component w n φ) =
     if weighted_degree' w d = n then coeff d φ else 0 :=
 finsupp.filter_apply (λ d : σ →₀ ℕ, weighted_degree' w d = n) φ d
 
-lemma weighted_homogeneous_component_apply :
+lemma weighted_homogeneous_component_apply [decidable_eq M] :
   weighted_homogeneous_component w n φ =
   ∑ d in φ.support.filter (λ d, weighted_degree' w d = n), monomial d (coeff d φ) :=
 finsupp.filter_eq_sum (λ d : σ →₀ ℕ, weighted_degree' w d = n) φ
@@ -331,6 +333,7 @@ weighted degree `n`. -/
 lemma weighted_homogeneous_component_is_weighted_homogeneous :
   (weighted_homogeneous_component w n φ).is_weighted_homogeneous w n :=
 begin
+  classical,
   intros d hd,
   contrapose! hd,
   rw [coeff_weighted_homogeneous_component, if_neg hd]
@@ -343,6 +346,7 @@ by simp only [C_mul', linear_map.map_smul]
 lemma weighted_homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support →
   weighted_degree' w d ≠ n) : weighted_homogeneous_component w n φ = 0 :=
 begin
+  classical,
   rw [weighted_homogeneous_component_apply, sum_eq_zero],
   intros d hd, rw mem_filter at hd,
   exfalso, exact h _ hd.1 hd.2
@@ -351,6 +355,7 @@ end
 lemma weighted_homogeneous_component_eq_zero [semilattice_sup M] [order_bot M]
   (h : weighted_total_degree w φ < n) : weighted_homogeneous_component w n φ = 0 :=
 begin
+  classical,
   rw [weighted_homogeneous_component_apply, sum_eq_zero],
   intros d hd, rw mem_filter at hd,
   exfalso,
@@ -378,6 +383,7 @@ variable (w)
 lemma sum_weighted_homogeneous_component :
   finsum (λ m, weighted_homogeneous_component w m φ) = φ :=
 begin
+  classical,
   rw finsum_eq_sum _ (weighted_homogeneous_component_finsupp φ),
   ext1 d,
   simp only [coeff_sum, coeff_weighted_homogeneous_component],
@@ -386,7 +392,7 @@ begin
   { intros m hm hm', rw if_neg hm'.symm, },
   { intro hm, rw if_pos rfl,
     simp only [finite.mem_to_finset, mem_support, ne.def, not_not] at hm,
-    have := coeff_weighted_homogeneous_component _ φ d,
+    have := coeff_weighted_homogeneous_component ((weighted_degree' w) d) φ d,
     rw [hm, if_pos rfl, coeff_zero] at this,
     exact this.symm, },
 end
@@ -394,7 +400,7 @@ end
 variable {w}
 
 /-- The weighted homogeneous components of a weighted homogeneous polynomial. -/
-lemma weighted_homogeneous_component_weighted_homogeneous_polynomial (m n : M)
+lemma weighted_homogeneous_component_weighted_homogeneous_polynomial [decidable_eq M] (m n : M)
   (p : mv_polynomial σ R) (h : p ∈ weighted_homogeneous_submodule R w n) :
   weighted_homogeneous_component w m p = if m = n then p else 0 :=
 begin
@@ -424,6 +430,7 @@ variables [canonically_ordered_add_monoid M] {w : σ → M} (φ : mv_polynomial 
 @[simp] lemma weighted_homogeneous_component_zero [no_zero_smul_divisors ℕ M]
   (hw : ∀ i : σ, w i ≠ 0) : weighted_homogeneous_component w 0 φ = C (coeff 0 φ) :=
 begin
+  classical,
   ext1 d,
   rcases em (d = 0) with (rfl|hd),
   { simp only [coeff_weighted_homogeneous_component, if_pos, map_zero, coeff_zero_C] },

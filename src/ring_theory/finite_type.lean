@@ -71,10 +71,8 @@ lemma self : finite_type R R := ⟨⟨{1}, subsingleton.elim _ _⟩⟩
 protected lemma polynomial : finite_type R R[X] :=
 ⟨⟨{polynomial.X}, by { rw finset.coe_singleton, exact polynomial.adjoin_X }⟩⟩
 
-open_locale classical
-
 protected lemma mv_polynomial (ι : Type*) [finite ι] : finite_type R (mv_polynomial ι R) :=
-by casesI nonempty_fintype ι; exact ⟨⟨finset.univ.image mv_polynomial.X,
+by classical; casesI nonempty_fintype ι; exact ⟨⟨finset.univ.image mv_polynomial.X,
   by {rw [finset.coe_image, finset.coe_univ, set.image_univ], exact mv_polynomial.adjoin_range_X}⟩⟩
 
 lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :

@@ -340,12 +340,13 @@ section extension
 variables {P : cubic R} [comm_ring R] [comm_ring S] {φ : R →+* S}
 
 /-- The roots of a cubic polynomial. -/
-def roots [is_domain R] (P : cubic R) : multiset R := P.to_poly.roots
+def roots [is_domain R] [decidable_eq R] (P : cubic R) : multiset R := P.to_poly.roots
 
-lemma map_roots [is_domain S] : (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
+lemma map_roots [is_domain S] [decidable_eq S] :
+  (map φ P).roots = (polynomial.map φ P.to_poly).roots :=
 by rw [roots, map_to_poly]
 
-theorem mem_roots_iff [is_domain R] (h0 : P.to_poly ≠ 0) (x : R) :
+theorem mem_roots_iff [is_domain R] [decidable_eq R] (h0 : P.to_poly ≠ 0) (x : R) :
   x ∈ P.roots ↔ P.a * x ^ 3 + P.b * x ^ 2 + P.c * x + P.d = 0 :=
 begin
   rw [roots, mem_roots h0, is_root, to_poly],
@@ -368,7 +369,8 @@ variables {P : cubic F} [field F] [field K] {φ : F →+* K} {x y z : K}
 
 section split
 
-theorem splits_iff_card_roots (ha : P.a ≠ 0) : splits φ P.to_poly ↔ (map φ P).roots.card = 3 :=
+theorem splits_iff_card_roots [decidable_eq K] (ha : P.a ≠ 0) :
+  splits φ P.to_poly ↔ (map φ P).roots.card = 3 :=
 begin
   replace ha : (map φ P).a ≠ 0 := (_root_.map_ne_zero φ).mpr ha,
   nth_rewrite_lhs 0 [← ring_hom.id_comp φ],
@@ -377,11 +379,11 @@ begin
           degree_of_a_ne_zero ha : _ = 3)]
 end
 
-theorem splits_iff_roots_eq_three (ha : P.a ≠ 0) :
+theorem splits_iff_roots_eq_three [decidable_eq K] (ha : P.a ≠ 0) :
   splits φ P.to_poly ↔ ∃ x y z : K, (map φ P).roots = {x, y, z} :=
 by rw [splits_iff_card_roots ha, card_eq_three]
 
-theorem eq_prod_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem eq_prod_three_roots [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   (map φ P).to_poly = C (φ P.a) * (X - C x) * (X - C y) * (X - C z) :=
 begin
   rw [map_to_poly, eq_prod_roots_of_splits $ (splits_iff_roots_eq_three ha).mpr $ exists.intro x $
@@ -390,7 +392,7 @@ begin
   rw [prod_cons, prod_cons, prod_singleton, mul_assoc, mul_assoc]
 end
 
-theorem eq_sum_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem eq_sum_three_roots [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   map φ P = ⟨φ P.a, φ P.a * -(x + y + z), φ P.a * (x * y + x * z + y * z), φ P.a * -(x * y * z)⟩ :=
 begin
   apply_fun to_poly,
@@ -398,15 +400,15 @@ begin
   rw [eq_prod_three_roots ha h3, C_mul_prod_X_sub_C_eq]
 end
 
-theorem b_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem b_eq_three_roots [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.b = φ P.a * -(x + y + z) :=
 by injection eq_sum_three_roots ha h3
 
-theorem c_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem c_eq_three_roots [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.c = φ P.a * (x * y + x * z + y * z) :=
 by injection eq_sum_three_roots ha h3
 
-theorem d_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem d_eq_three_roots [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.d = φ P.a * -(x * y * z) :=
 by injection eq_sum_three_roots ha h3
 
@@ -421,7 +423,8 @@ def disc {R : Type*} [ring R] (P : cubic R) : R :=
 P.b ^ 2 * P.c ^ 2 - 4 * P.a * P.c ^ 3 - 4 * P.b ^ 3 * P.d - 27 * P.a ^ 2 * P.d ^ 2
   + 18 * P.a * P.b * P.c * P.d
 
-theorem disc_eq_prod_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem disc_eq_prod_three_roots
+  [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.disc = (φ P.a * φ P.a * (x - y) * (x - z) * (y - z)) ^ 2 :=
 begin
   simp only [disc, ring_hom.map_add, ring_hom.map_sub, ring_hom.map_mul, map_pow],
@@ -430,14 +433,16 @@ begin
   ring1
 end
 
-theorem disc_ne_zero_iff_roots_ne (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem disc_ne_zero_iff_roots_ne
+  [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   P.disc ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
   rw [←_root_.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
   simp_rw [mul_ne_zero_iff, sub_ne_zero, _root_.map_ne_zero, and_self, and_iff_right ha, and_assoc],
 end
 
-theorem disc_ne_zero_iff_roots_nodup (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
+theorem disc_ne_zero_iff_roots_nodup
+  [decidable_eq K] (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   P.disc ≠ 0 ↔ (map φ P).roots.nodup :=
 begin
   rw [disc_ne_zero_iff_roots_ne ha h3, h3],

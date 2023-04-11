@@ -100,9 +100,8 @@ begin
     { convert image_subset_image (subset_univ t),
       simp only [univ_eq_attach, attach_image_coe], },
     exact H.subset hts, },
-  { specialize H univ,
-    rw independent_on_def at H ⊢,
-    rwa [image_restrict_eq_image_image_coe, univ_eq_attach, attach_image_coe, card_attach] at H, }
+  { simpa only [independent_on_def, image_restrict_eq_image_image_coe, univ_eq_attach,
+                attach_image_coe, card_attach] using H univ, }
 end
 
 end rank_fn

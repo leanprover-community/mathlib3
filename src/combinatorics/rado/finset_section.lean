@@ -28,7 +28,7 @@ def is_section (F : ι → finset α) (f : ι → α) : Prop := ∀ i, f i ∈ F
 /-- A function `f : ι → α` is a *section* of `F : ι → finset α` on a finite set `s` if it maps
 `i` into `F i` for all `i ∈ s`. -/
 def is_section_on (F : ι → finset α) (f : ι → α) (s : finset ι) : Prop :=
-∀ ⦃i⦄ (hi : i ∈ s), f i ∈ F i
+∀ ⦃i⦄, i ∈ s → f i ∈ F i
 
 protected
 lemma is_section.is_section_on {F : ι → finset α} {f : ι → α} (h : is_section F f) (s : finset ι) :

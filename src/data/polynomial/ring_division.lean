@@ -486,57 +486,61 @@ using_well_founded {dec_tac := tactic.assumption}
 
 /-- `roots p` noncomputably gives a multiset containing all the roots of `p`,
 including their multiplicities. -/
-noncomputable def roots [decidable_eq R] (p : R[X]) : multiset R :=
-if h : p = 0 then ∅ else classical.some (exists_multiset_roots h)
+noncomputable def roots (p : R[X]) : multiset R :=
+by haveI := classical.dec_eq R; exact
+  if h : p = 0 then 0 else classical.some (exists_multiset_roots h)
 
-@[simp] lemma roots_zero [decidable_eq R] : (0 : R[X]).roots = 0 :=
-dif_pos rfl
+@[simp] lemma roots_zero : (0 : R[X]).roots = 0 :=
+by { letI := classical.dec_eq R, exact dif_pos rfl, }
 
-lemma card_roots [decidable_eq R] (hp0 : p ≠ 0) : ((roots p).card : with_bot ℕ) ≤ degree p :=
+lemma card_roots (hp0 : p ≠ 0) : ((roots p).card : with_bot ℕ) ≤ degree p :=
 begin
-  unfold roots,
-  rw dif_neg hp0,
-  exact (classical.some_spec (exists_multiset_roots hp0)).1
+  letI := classical.dec_eq R,
+  rw [roots, dif_neg hp0],
+  exact (classical.some_spec (exists_multiset_roots hp0)).1,
 end
 
-lemma card_roots' [decidable_eq R] (p : R[X]) : p.roots.card ≤ nat_degree p :=
+lemma card_roots' (p : R[X]) : p.roots.card ≤ nat_degree p :=
 begin
   by_cases hp0 : p = 0,
   { simp [hp0], },
   exact with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
 end
 
-lemma card_roots_sub_C [decidable_eq R] {p : R[X]} {a : R} (hp0 : 0 < degree p) :
+lemma card_roots_sub_C {p : R[X]} {a : R} (hp0 : 0 < degree p) :
   ((p - C a).roots.card : with_bot ℕ) ≤ degree p :=
 calc ((p - C a).roots.card : with_bot ℕ) ≤ degree (p - C a) :
   card_roots $ mt sub_eq_zero.1 $ λ h, not_le_of_gt hp0 $ h.symm ▸ degree_C_le
 ... = degree p : by rw [sub_eq_add_neg, ← C_neg]; exact degree_add_C hp0
 
-lemma card_roots_sub_C' [decidable_eq R] {p : R[X]} {a : R} (hp0 : 0 < degree p) :
+lemma card_roots_sub_C' {p : R[X]} {a : R} (hp0 : 0 < degree p) :
   (p - C a).roots.card ≤ nat_degree p :=
 with_bot.coe_le_coe.1 (le_trans (card_roots_sub_C hp0) (le_of_eq $ degree_eq_nat_degree
   (λ h, by simp [*, lt_irrefl] at *)))
 
 @[simp] lemma count_roots [decidable_eq R] (p : R[X]) : p.roots.count a = root_multiplicity a p :=
 begin
-  classical,
+  letI := classical.dec_eq R,
   by_cases hp : p = 0,
   { simp [hp], },
   rw [roots, dif_neg hp],
-  exact (classical.some_spec (exists_multiset_roots hp)).2 a
+  convert (classical.some_spec (exists_multiset_roots hp)).2 a
 end
 
-@[simp] lemma mem_roots' [decidable_eq R] : a ∈ p.roots ↔ p ≠ 0 ∧ is_root p a :=
-by rw [← count_pos, count_roots p, root_multiplicity_pos']
+@[simp] lemma mem_roots' : a ∈ p.roots ↔ p ≠ 0 ∧ is_root p a :=
+begin
+  letI := classical.dec_eq R,
+  rw [← count_pos, count_roots p, root_multiplicity_pos']
+end
 
-lemma mem_roots [decidable_eq R] (hp : p ≠ 0) :
+lemma mem_roots (hp : p ≠ 0) :
   a ∈ p.roots ↔ is_root p a := mem_roots'.trans $ and_iff_right hp
 
-lemma ne_zero_of_mem_roots [decidable_eq R] (h : a ∈ p.roots) : p ≠ 0 := (mem_roots'.1 h).1
+lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 := (mem_roots'.1 h).1
 
-lemma is_root_of_mem_roots [decidable_eq R] (h : a ∈ p.roots) : is_root p a := (mem_roots'.1 h).2
+lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a := (mem_roots'.1 h).2
 
-theorem card_le_degree_of_subset_roots [decidable_eq R] {p : R[X]} {Z : finset R}
+theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R}
   (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
 (multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)

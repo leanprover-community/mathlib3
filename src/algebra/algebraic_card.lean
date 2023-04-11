@@ -40,6 +40,7 @@ variables (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [is_domain A] [a
 theorem cardinal_mk_lift_le_mul :
   cardinal.lift.{u} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v} #(R[X]) * ℵ₀ :=
 begin
+  classical,
   rw [←mk_ulift, ←mk_ulift],
   choose g hg₁ hg₂ using λ x : {x : A | is_algebraic R x}, x.coe_prop,
   refine lift_mk_le_lift_mk_mul_of_lift_mk_preimage_le g (λ f, _),

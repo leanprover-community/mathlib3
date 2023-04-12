@@ -390,7 +390,6 @@ lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (
   = coord_changeL R e e' b :=
 by { ext v, rw [coord_changeL_apply e e' hb], refl }
 
-
 lemma of_linear_and_zero [fiber_bundle F E] (e : trivialization F (π E))
   (h1 : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
   (h2 : ∀ (b ∉ e.base_set) (x : E b), (e (total_space_mk b x)).2 = 0)
@@ -568,13 +567,6 @@ considering this in particular as a fiber bundle constructed from core. -/
 def local_triv (i : ι) : trivialization F (π Z.fiber) :=
 by exact Z.to_fiber_bundle_core.local_triv i
 
-/-- The standard local trivializations of a vector bundle constructed from core are linear. -/
-instance local_triv.is_linear (i : ι) : (Z.local_triv i).is_linear R :=
-{ linear := λ x, (Z.coord_change (Z.index_at x) i x).is_linear,
-  linear_symm := sorry, -- λ x, (Z.coord_change (Z.index_at x) i x).is_linear,
-  continuous := λ x, (Z.coord_change (Z.index_at x) i x).continuous,
-  continuous_symm := λ x, sorry }
-
 variables (i j : ι)
 
 @[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
@@ -597,6 +589,13 @@ Z.to_fiber_bundle_core.mem_local_triv_target i p
 @[simp, mfld_simps] lemma local_triv_symm_apply (b : B) (v : F) :
   (Z.local_triv i).symm b v = Z.coord_change i (Z.index_at b) b v :=
 by apply (Z.local_triv i).symm_apply b v
+
+/-- The standard local trivializations of a vector bundle constructed from core are linear. -/
+instance local_triv.is_linear (i : ι) : (Z.local_triv i).is_linear R :=
+{ linear := λ x, (Z.coord_change (Z.index_at x) i x).is_linear,
+  linear_symm := λ x, by convert (Z.coord_change i (Z.index_at x) x).is_linear,
+  continuous := λ x, (Z.coord_change (Z.index_at x) i x).continuous,
+  continuous_symm := λ x, by convert (Z.coord_change i (Z.index_at x) x).continuous }
 
 @[simp, mfld_simps] lemma local_triv_coord_change_eq {b : B} (hb : b ∈ Z.base_set i ∩ Z.base_set j)
   (v : F) :

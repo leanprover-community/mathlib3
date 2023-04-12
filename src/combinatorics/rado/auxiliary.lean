@@ -50,16 +50,4 @@ begin
   simp only [or_and_distrib_right, exists_or_distrib, mem_bUnion, mem_union, exists_prop],
 end
 
-lemma eq_of_apply_eq_apply_of_card_le_card {f : α → β} {a b : α} (h₁ : f a = f b)
-  (h₂ : ({a, b} : finset α).card ≤ (image f ({a, b} : finset α)).card) : a = b :=
-begin
-  replace h₂ := le_antisymm h₂ card_image_le,
-  simp only [image_insert, image_singleton] at h₂,
-  rw h₁ at h₂,
-  simp only [pair_eq_singleton, card_singleton] at h₂,
-  refine (eq_or_ne a b).elim id (λ hh, _),
-  rw card_doubleton hh at h₂,
-  cases h₂,
-end
-
 end finset

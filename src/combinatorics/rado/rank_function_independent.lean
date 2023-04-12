@@ -60,9 +60,13 @@ variables {r : rank_fn α} {f : ι → α}
 
 /-- A function is independent with respect to cardinality if and only if it is injective. -/
 lemma independent_card_iff_injective : independent (card_rk α) f ↔ function.injective f :=
-by {classical, exact
-    ⟨λ H i j h, eq_of_apply_eq_apply_of_card_le_card h (H {i, j}),
-     λ H s, (card_image_of_injective _ H).symm.le⟩}
+begin
+  classical,
+  refine ⟨λ H i j h, _, λ H s, (card_image_of_injective _ H).symm.le⟩,
+  replace H := le_antisymm (H {i, j}) ((card_rk_eq_card (image f {i, j})).symm ▸ card_image_le),
+  rw [card_rk_eq_card, image_insert, h, image_singleton, pair_eq_singleton, card_singleton] at H,
+  refine (eq_or_ne i j).elim id (λ hh, by {cases (card_doubleton hh).symm.trans H,}),
+end
 
 /-- A function is independent on `s` with respect to cardinality if and only if
 it is injective on `s`. -/

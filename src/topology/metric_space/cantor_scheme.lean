@@ -34,7 +34,7 @@ in this file. See instead `pi_nat.res`.
 
 ## Tags
 
-scheme, Cantor scheme, Lusin scheme, approximation.
+scheme, cantor scheme, lusin scheme, approximation.
 
 -/
 

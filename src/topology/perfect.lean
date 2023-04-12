@@ -45,7 +45,7 @@ see `preperfect_iff_perfect_closure`.
 
 ## Tags
 
-accumulation point, perfect set, Cantor-Bendixson.
+accumulation point, perfect set, cantor-bendixson.
 
 -/
 

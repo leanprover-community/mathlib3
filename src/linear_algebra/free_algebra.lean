@@ -10,6 +10,9 @@ import linear_algebra.finsupp_vector_space
 /-!
 # Linear algebra properties of `free_algebra R X`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides a `free_monoid X` basis on the `free_algebra R X`, and uses it to show the
 dimension of the algebra is the cardinality of `list X`
 -/

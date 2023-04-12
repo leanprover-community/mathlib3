@@ -222,7 +222,7 @@ begin
     exact h ((symm_apply_eq σ).mp h') }
 end
 
-lemma adjugate_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
+@[simp] lemma adjugate_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
   adjugate (A.submatrix e e) = (adjugate A).submatrix e e :=
 begin
   ext i j,

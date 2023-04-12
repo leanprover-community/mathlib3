@@ -750,16 +750,6 @@ def trivialization_of_mem_pretrivialization_atlas (a : vector_prebundle R F E)
   @trivialization B F _ _ _ a.total_space_topology (π E) :=
 a.to_fiber_prebundle.trivialization_of_mem_pretrivialization_atlas he
 
-lemma linear_of_mem_pretrivialization_atlas (a : vector_prebundle R F E)
-  {e : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas) :
-  @trivialization.is_linear R B F _ _ _ _ _ _ _ _ a.total_space_topology a.fiber_topology
-    (trivialization_of_mem_pretrivialization_atlas a he) :=
-{ linear := (a.pretrivialization_linear e he).linear,
-  linear_symm := (a.pretrivialization_linear e he).linear_symm,
-  continuous := λ b, sorry, -- not true
-  continuous_symm := λ b, sorry } -- not true
-
-
 lemma mem_trivialization_at_source (b : B) (x : E b) :
   total_space_mk b x ∈ (a.pretrivialization_at b).source :=
 a.to_fiber_prebundle.mem_trivialization_at_source b x
@@ -780,6 +770,15 @@ a.to_fiber_prebundle.continuous_total_space_mk b
 `vector_prebundle.vector_bundle`. -/
 def to_fiber_bundle : @fiber_bundle B F _ _ _ a.total_space_topology a.fiber_topology :=
 a.to_fiber_prebundle.to_fiber_bundle
+
+lemma linear_of_mem_pretrivialization_atlas (a : vector_prebundle R F E)
+  {e : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas) :
+  @trivialization.is_linear R B F _ _ _ _ _ _ _ _ a.total_space_topology a.fiber_topology
+    (trivialization_of_mem_pretrivialization_atlas a he) :=
+{ linear := (a.pretrivialization_linear e he).linear,
+  linear_symm := (a.pretrivialization_linear e he).linear_symm,
+  continuous := λ b, sorry, -- not true
+  continuous_symm := λ b, sorry } -- not true
 
 /-- Make a `vector_bundle` from a `vector_prebundle`.  Concretely this means
 that, given a `vector_prebundle` structure for a sigma-type `E` -- which consists of a

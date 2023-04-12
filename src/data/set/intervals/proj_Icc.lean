@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import data.set.function
-import data.set.intervals.basic
+import data.set.intervals.ord_connected
 
 /-!
 # Projection of a line onto a closed interval
@@ -125,6 +125,13 @@ def Iic_extend (f : Iic b → β) : α → β := f ∘ proj_Iic b
 def Icc_extend {a b : α} (h : a ≤ b) (f : Icc a b → β) : α → β :=
 f ∘ proj_Icc a b h
 
+@[simp] lemma Ici_extend_apply (f : Ici a → β) (x : α) :
+  Ici_extend f x = f ⟨max a x, le_max_left _ _⟩ := rfl
+@[simp] lemma Iic_extend_apply (f : Iic b → β) (x : α) :
+  Iic_extend f x = f ⟨min b x, min_le_left _ _⟩ := rfl
+lemma Icc_extend_apply (h : a ≤ b) (f : Icc a b → β) (x : α) :
+  Icc_extend h f x = f ⟨max a (min b x), le_max_left _ _, max_le h (min_le_left _ _)⟩ := rfl
+
 @[simp] lemma range_Ici_extend (f : Ici a → β) : range (Ici_extend f) = range f :=
 by simp only [Ici_extend, range_comp f, range_proj_Ici, range_id']
 
@@ -187,7 +194,7 @@ end set
 
 open set
 
-variables [preorder β] {a b : α} (h : a ≤ b) {f : Icc a b → β}
+variables [preorder β] {s t : set α} {a b : α} (h : a ≤ b) {f : Icc a b → β}
 
 protected lemma monotone.Ici_extend {f : Ici a → β} (hf : monotone f) : monotone (Ici_extend f) :=
 hf.comp monotone_proj_Ici
@@ -209,3 +216,15 @@ hf.comp_strict_mono_on strict_mono_on_proj_Iic
 lemma strict_mono.strict_mono_on_Icc_extend (hf : strict_mono f) :
   strict_mono_on (Icc_extend h f) (Icc a b) :=
 hf.comp_strict_mono_on (strict_mono_on_proj_Icc h)
+
+protected lemma set.ord_connected.Ici_extend {s : set (Ici a)} (hs : s.ord_connected) :
+  {x | Ici_extend (∈ s) x}.ord_connected :=
+⟨λ x hx y hy z hz, hs.out hx hy ⟨max_le_max le_rfl hz.1, max_le_max le_rfl hz.2⟩⟩
+
+protected lemma set.ord_connected.Iic_extend {s : set (Iic b)} (hs : s.ord_connected) :
+  {x | Iic_extend (∈ s) x}.ord_connected :=
+⟨λ x hx y hy z hz, hs.out hx hy ⟨min_le_min le_rfl hz.1, min_le_min le_rfl hz.2⟩⟩
+
+protected lemma set.ord_connected.restrict (hs : s.ord_connected) :
+  {x | restrict t (∈ s) x}.ord_connected :=
+⟨λ x hx y hy z hz, hs.out hx hy hz⟩

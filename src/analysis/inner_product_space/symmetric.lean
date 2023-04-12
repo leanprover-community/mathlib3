@@ -178,7 +178,7 @@ end
 
 /-- A symmetric linear map `T` is zero if and only if `⟪T x, x⟫_ℝ = 0` for all `x`.
 See `inner_map_self_eq_zero` for the complex version without the symmetric assumption. -/
-lemma is_symmetric.inner_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
+lemma is_symmetric.inner_map_self_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
   (∀ x, ⟪T x, x⟫ = 0) ↔ T = 0 :=
 begin
   simp_rw [linear_map.ext_iff, zero_apply],

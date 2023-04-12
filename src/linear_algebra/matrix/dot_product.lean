@@ -69,23 +69,28 @@ lemma dot_product_eq_zero_iff {v : n → R} : (∀ w, dot_product v w = 0) ↔ v
 
 end semiring
 
-@[simp] lemma dot_product_self_eq_zero {n R} [fintype n] [linear_ordered_ring R] {v : n → R} :
+section self
+variables [fintype n]
+
+@[simp] lemma dot_product_self_eq_zero [linear_ordered_ring R] {v : n → R} :
   dot_product v v = 0 ↔ v = 0 :=
 (finset.sum_eq_zero_iff_of_nonneg $ λ i _, mul_self_nonneg (v i)).trans $
   by simp [function.funext_iff]
 
 /-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
-@[simp] lemma dot_product_star_self_eq_zero {n R} [fintype n]
+@[simp] lemma dot_product_star_self_eq_zero
   [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
   dot_product (star v) v = 0 ↔ v = 0 :=
 (finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg _ _ _ _ (v i)).trans $
   by simp [function.funext_iff, mul_eq_zero]
 
 /-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
-@[simp] lemma dot_product_self_star_eq_zero {n R} [fintype n]
+@[simp] lemma dot_product_self_star_eq_zero
   [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
   dot_product v (star v) = 0 ↔ v = 0 :=
 (finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg' _ _ _ _ (v i)).trans $
   by simp [function.funext_iff, mul_eq_zero]
+
+end self
 
 end matrix

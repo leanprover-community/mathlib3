@@ -5,6 +5,8 @@ Authors: Christopher Hoskin
 -/
 import algebra.group_power.basic -- Needed for squares
 import algebra.order.group.abs
+import algebra.invertible
+import algebra.module.basic
 import tactic.nth_rewrite
 
 /-!
@@ -60,7 +62,8 @@ lattices.
 lattice, ordered, group
 -/
 
-universe u
+universes u v
+variables {α : Type u} {β : Type v}
 
 -- A linearly ordered additive commutative group is a lattice ordered commutative group
 @[priority 100, to_additive] -- see Note [lower instance priority]
@@ -68,7 +71,8 @@ instance linear_ordered_comm_group.to_covariant_class (α : Type u)
   [linear_ordered_comm_group α] : covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, linear_ordered_comm_group.mul_le_mul_left _ _ bc a }
 
-variables {α : Type u} [lattice α] [comm_group α]
+section
+variables [lattice α] [comm_group α]
 
 -- Special case of Bourbaki A.VI.9 (1)
 -- c + (a ⊔ b) = (c + a) ⊔ (c + b)
@@ -108,7 +112,10 @@ calc (a ⊓ b) * (a ⊔ b) = (a ⊓ b) * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 ... = (a ⊓ b) * ((a * b) * (a ⊓ b)⁻¹) : by rw [inv_inf_eq_sup_inv, sup_comm]
 ... = a * b                       : by rw [mul_comm, inv_mul_cancel_right]
 
+end
+
 namespace lattice_ordered_comm_group
+variables [lattice α] [comm_group α]
 
 /--
 Let `α` be a lattice ordered commutative group with identity `1`. For an element `a` of type `α`,
@@ -460,3 +467,21 @@ begin
 end
 
 end lattice_ordered_comm_group
+
+section
+
+variables (α)
+variables [semiring α] [invertible (2 : α)] [lattice β] [add_comm_group β] [module α β]
+  [covariant_class β β (+) (≤)]
+
+lemma inf_eq_half_smul_add_sub_abs_sub (x y : β) :
+  x ⊓ y = (⅟2 : α) • (x + y - |y - x|) :=
+by rw [←lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub x y, two_smul, ←two_smul α,
+    smul_smul, inv_of_mul_self, one_smul]
+
+lemma sup_eq_half_smul_add_add_abs_sub (x y : β) :
+  x ⊔ y = (⅟2 : α) • (x + y + |y - x|) :=
+by rw [←lattice_ordered_comm_group.two_sup_eq_add_add_abs_sub x y, two_smul, ←two_smul α,
+    smul_smul, inv_of_mul_self, one_smul]
+
+end

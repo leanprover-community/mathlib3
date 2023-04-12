@@ -706,6 +706,20 @@ end
 ... ≤ snorm' f q μ + snorm' g q μ :
   ennreal.lintegral_Lp_add_le hf.ennnorm hg.ennnorm hq1
 
+lemma snorm'_add_le_of_le_one {f g : α → E}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)(hq0 : 0 ≤ q) (hq1 : q ≤ 1) :
+  snorm' (f + g) q μ ≤ 2^(1/q-1) * (snorm' f q μ + snorm' g q μ) :=
+calc (∫⁻ a, ↑‖(f + g) a‖₊ ^ q ∂μ) ^ (1 / q)
+    ≤ (∫⁻ a, (((λ a, (‖f a‖₊ : ℝ≥0∞))
+        + (λ a, (‖g a‖₊ : ℝ≥0∞))) a) ^ q ∂μ) ^ (1 / q) :
+begin
+  refine ennreal.rpow_le_rpow _ (by simp [hq0] : 0 ≤ 1 / q),
+  refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ hq0),
+  simp [←ennreal.coe_add, nnnorm_add_le],
+end
+... ≤ 2^(1/q-1) * (snorm' f q μ + snorm' g q μ) :
+  ennreal.lintegral_Lp_add_le_of_le_one hf.ennnorm hq0 hq1
+
 lemma snorm_ess_sup_add_le {f g : α → F} :
   snorm_ess_sup (f + g) μ ≤ snorm_ess_sup f μ + snorm_ess_sup g μ :=
 begin
@@ -728,6 +742,13 @@ begin
   repeat { rw snorm_eq_snorm' hp0 hp_top, },
   exact snorm'_add_le hf hg hp1_real,
 end
+
+/-- A constant for the inequality `‖f + g‖_{L^p} ≤ C * (‖f‖_{L^p} + ‖g‖_{L^p})`. It is equal to `1`
+for `p ≥ 1` or `p = 0`, and `2^(1/p-1)` in the more ticky interval `(0, 1)`. -/
+def Lp_mul_const (p : ℝ≥0∞) : ℝ≥0∞ :=
+if p ∈ set.Ioo (0 : ℝ≥0∞) 1 then 2^(1/p.to_real-1) else 1
+
+
 
 lemma snorm_sub_le
   {f g : α → E} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) (hp1 : 1 ≤ p) :

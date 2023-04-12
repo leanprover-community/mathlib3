@@ -445,7 +445,7 @@ end
 
 -- |a - b| = |b - a|
 @[to_additive]
-lemma abs_inv_comm (a b : α) : |a/b| = |b/a| :=
+lemma abs_div_comm (a b : α) : |a/b| = |b/a| :=
 begin
   unfold has_abs.abs,
   rw [inv_div a b, ← inv_inv (a / b), inv_div, sup_comm],
@@ -461,14 +461,14 @@ begin
     convert mabs_mul_le (a/b) b,
     rw div_mul_cancel',
     exact covariant_swap_mul_le_of_covariant_mul_le α, },
-  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, abs_inv_comm],
+  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, abs_div_comm],
     convert  mabs_mul_le (b/a) a,
     { rw div_mul_cancel', }, },
 end
 
 end lattice_ordered_comm_group
 
-section
+section invertible
 
 variables (α)
 variables [semiring α] [invertible (2 : α)] [lattice β] [add_comm_group β] [module α β]
@@ -484,4 +484,26 @@ lemma sup_eq_half_smul_add_add_abs_sub (x y : β) :
 by rw [←lattice_ordered_comm_group.two_sup_eq_add_add_abs_sub x y, two_smul, ←two_smul α,
     smul_smul, inv_of_mul_self, one_smul]
 
+end invertible
+
+section division_semiring
+
+variables (α)
+variables [division_semiring α] [ne_zero (2 : α)] [lattice β] [add_comm_group β] [module α β]
+  [covariant_class β β (+) (≤)]
+
+lemma inf_eq_half_smul_add_sub_abs_sub' (x y : β) :
+  x ⊓ y = (2⁻¹ : α) • (x + y - |y - x|) :=
+begin
+  letI := invertible_of_nonzero (two_ne_zero' α),
+  exact inf_eq_half_smul_add_sub_abs_sub α x y
 end
+
+lemma sup_eq_half_smul_add_add_abs_sub' (x y : β) :
+  x ⊔ y = (2⁻¹ : α) • (x + y + |y - x|) :=
+begin
+  letI := invertible_of_nonzero (two_ne_zero' α),
+  exact sup_eq_half_smul_add_add_abs_sub α x y
+end
+
+end division_semiring

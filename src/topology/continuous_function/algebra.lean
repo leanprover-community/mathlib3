@@ -818,33 +818,19 @@ section lattice
 variables {α : Type*} [topological_space α]
 variables {β : Type*} [topological_space β]
 
-/- C(α, β) is a lattice ordered group -/
+/-! C(α, β) is a lattice ordered group -/
 
-@[to_additive continuous_map.has_le.le.add_covariant_class]
-instance [lattice β] [comm_group β] [topological_group β] [covariant_class β β (*) (≤)] :
+@[to_additive]
+instance covariant_class_mul_le_left [partial_order β] [has_mul β] [has_continuous_mul β]
+  [covariant_class β β (*) (≤)] :
   covariant_class C(α, β) C(α, β) (*) (≤) :=
-begin
-    refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
-    intro x,
-    simp only [to_fun_eq_coe, mul_apply, mul_le_mul_iff_left],
-    apply hg₁₂,
-end
+⟨λ f g₁ g₂ hg₁₂ x, mul_le_mul_left' (hg₁₂ x) _⟩
 
-variables [linear_ordered_field β] [topological_ring β] [order_topology β]
-
-open lattice_ordered_comm_group
-
-lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
-begin
-  rw [← inv_smul_eq_iff₀, inv_inv, abs_neg_comm, ← two_inf_eq_add_sub_abs_sub, two_smul, two_smul],
-  finish,
-end
-
-lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + |f - g|) :=
-begin
-  rw [← inv_smul_eq_iff₀, inv_inv, abs_neg_comm, ← two_sup_eq_add_add_abs_sub, two_smul, two_smul],
-  finish,
-end
+@[to_additive]
+instance covariant_class_mul_le_right [partial_order β] [has_mul β] [has_continuous_mul β]
+  [covariant_class β β (function.swap (*)) (≤)] :
+  covariant_class C(α, β) C(α, β) (function.swap (*)) (≤) :=
+⟨λ f g₁ g₂ hg₁₂ x, mul_le_mul_right' (hg₁₂ x) _⟩
 
 end lattice
 

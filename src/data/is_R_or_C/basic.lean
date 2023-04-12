@@ -44,11 +44,19 @@ section
 local notation `𝓚` := algebra_map ℝ _
 open_locale complex_conjugate
 
+
+#print strict_ordered_comm_ring
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
 class is_R_or_C (K : Type*)
-  extends densely_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
+  extends densely_normed_field K, partial_order K,
+    star_ordered_ring K, normed_algebra ℝ K, complete_space K :=
+-- TODO: extend `strict_ordered_comm_ring` to get these fields, but that needs Lean4 inheritance
+-- (add_le_add_left : ∀ a b : K, a ≤ b → ∀ c : K, c + a ≤ c + b)
+(zero_le_one : 0 ≤ (1 : K))
+(mul_pos     : ∀ a b : K, 0 < a → 0 < b → 0 < a * b)
+
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (I : K)                 -- Meant to be set to 0 for K=ℝ
@@ -74,6 +82,8 @@ mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 variables {K E : Type*} [is_R_or_C K]
 
 namespace is_R_or_C
+
+instance : strict_ordered_comm_ring K := { ..‹is_R_or_C K› }
 
 open_locale complex_conjugate
 

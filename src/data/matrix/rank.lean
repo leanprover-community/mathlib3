@@ -8,6 +8,7 @@ import linear_algebra.free_module.finite.rank
 import linear_algebra.matrix.to_lin
 import linear_algebra.finite_dimensional
 import linear_algebra.matrix.dot_product
+import data.complex.module
 
 /-!
 # Rank of matrices
@@ -117,9 +118,11 @@ lemma rank_eq_finrank_span_cols [strong_rank_condition R] (A : matrix m n R) :
   A.rank = finrank R (submodule.span R (set.range Aᵀ)) :=
 by rw [rank, matrix.range_to_lin']
 
+#print instances strict_ordered_comm_ring
 
-lemma rank_mul_transpose_self {K} [decidable_eq m] [fintype m] [field K] [star_ring K]
-  (A : matrix m n K) :
+
+-- TODO: generalize once `dot_product_star_self_eq_zero` doesn't require a stupid order
+lemma rank_mul_conj_transpose_self [decidable_eq m] [fintype m] (A : matrix m n ℂ) :
   (Aᴴ ⬝ A).rank = A.rank :=
 begin
   have : linear_map.ker (to_lin' A) = linear_map.ker (Aᴴ ⬝ A).to_lin',
@@ -129,7 +132,8 @@ begin
     { intro h, rw [h, mul_vec_zero] },
     { intro h,
       replace h := congr_arg (dot_product (star x)) h,
-      rw [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star] at h,
+      rw [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star,
+        dot_product_star_self_eq_zero] at h,
       set y := A.mul_vec x with hy,
       rw ←hy at h ⊢,
       sorry } },

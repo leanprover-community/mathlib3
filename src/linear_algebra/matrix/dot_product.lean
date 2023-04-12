@@ -79,9 +79,11 @@ variables [fintype n]
 
 /-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
 @[simp] lemma dot_product_star_self_eq_zero
-  [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
+  [partial_order R] [ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
   dot_product (star v) v = 0 ↔ v = 0 :=
-(finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg _ _ _ _ (v i)).trans $
+(finset.sum_eq_zero_iff_of_nonneg $ λ i _, begin
+  have := @star_mul_self_nonneg _ _ _ _ (v i)
+end).trans $
   by simp [function.funext_iff, mul_eq_zero]
 
 /-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/

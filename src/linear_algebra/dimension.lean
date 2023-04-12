@@ -733,6 +733,12 @@ begin
   exact le_top,
 end
 
+/-- A version of `linear_independent_le_span` for `finset`. -/
+lemma linear_independent_le_span_finset {ι : Type*} (v : ι → M) (i : linear_independent R v)
+  (w : finset M) (s : span R (w : set M) = ⊤) :
+  #ι ≤ w.card :=
+by simpa only [finset.coe_sort_coe, fintype.card_coe] using linear_independent_le_span v i w s
+
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
 we handle the case where the basis `b` is infinite.

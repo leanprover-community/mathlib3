@@ -829,8 +829,7 @@ lemma snorm_sub_le
 by simpa [Lp_add_const_of_one_le hp] using snorm_sub_le' hf hg p
 
 lemma snorm_add_lt_top {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
-  snorm (f + g) p μ < ∞ :=
-calc
+  snorm (f + g) p μ < ∞ := calc
 snorm (f + g) p μ ≤ Lp_add_const p * (snorm f p μ + snorm g p μ) :
   snorm_add_le' hf.ae_strongly_measurable hg.ae_strongly_measurable p
 ... < ∞ :

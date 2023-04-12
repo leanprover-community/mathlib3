@@ -689,7 +689,6 @@ namespace vector_prebundle
 
 variables {R E F} (a : vector_prebundle R F E) {e e' : pretrivialization F (π E)}
 
-
 /-- A randomly chosen coordinate change on a `vector_prebundle`, given by
   the field `exists_coord_change`. -/
 def coord_change (he : e ∈ a.pretrivialization_atlas)

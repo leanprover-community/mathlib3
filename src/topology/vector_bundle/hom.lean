@@ -300,6 +300,16 @@ def trivialization.continuous_linear_map :
   trivialization (F₁ →SL[σ] F₂) (π (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :=
 vector_prebundle.trivialization_of_mem_pretrivialization_atlas _ ⟨e₁, e₂, he₁, he₂, rfl⟩
 
+instance trivialization.continuous_linear_map.is_linear :
+  (trivialization.continuous_linear_map σ e₁ e₂).is_linear 𝕜₂ :=
+{ continuous := λ b, begin
+    have : continuous (λ L : bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ b,
+      (e₂.continuous_linear_map_at 𝕜₂ b).comp $ L.comp $ e₁.symmL 𝕜₁ b),
+    sorry, sorry, -- likely true
+  end,
+  continuous_symm := sorry, -- maybe true?
+  .. pretrivialization.continuous_linear_map.is_linear σ e₁ e₂ }
+
 instance _root_.bundle.continuous_linear_map.mem_trivialization_atlas :
   mem_trivialization_atlas (e₁.continuous_linear_map σ e₂ :
     trivialization (F₁ →SL[σ] F₂) (π (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂))) :=

@@ -875,7 +875,7 @@ module.finite.of_surjective f $ range_eq_top.1 hf
 /-- The range of a linear map defined on a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_range [finite_dimensional K V] (f : V →ₗ[K] V₂) :
   finite_dimensional K f.range :=
-f.quot_ker_equiv_range.finite_dimensional
+module.finite.range f
 
 /-- On a finite-dimensional space, a linear map is injective if and only if it is surjective. -/
 lemma injective_iff_surjective [finite_dimensional K V] {f : V →ₗ[K] V} :

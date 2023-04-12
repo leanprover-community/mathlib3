@@ -32,20 +32,30 @@ open module.free
 section ring
 
 variables [ring R] [strong_rank_condition R]
-variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
-variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
+variables [add_comm_group M] [module R M] [module.finite R M]
+variables [add_comm_group N] [module R N] [module.finite R N]
 
-/-- The rank of a finite and free module is finite. -/
+/-- The rank of a finite module is finite. -/
 lemma rank_lt_aleph_0 : module.rank R M < ℵ₀ :=
 begin
+  dunfold module.rank,
   letI := nontrivial_of_invariant_basis_number R,
-  rw [← (choose_basis R M).mk_eq_rank'', lt_aleph_0_iff_fintype],
-  exact nonempty.intro infer_instance
+  obtain ⟨S, hS⟩ := module.finite_def.mp ‹_›,
+  refine (csupr_le' $ λ i, _).trans_lt (nat_lt_aleph_0 S.card),
+  exact linear_independent_le_span_finset _ i.prop S hS,
 end
 
-/-- If `M` is finite and free, `finrank M = rank M`. -/
+/-- If `M` is finite, `finrank M = rank M`. -/
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_aleph_0 (rank_lt_aleph_0 R M)] }
+
+end ring
+
+section ring_free
+
+variables [ring R] [strong_rank_condition R]
+variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
+variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 
 /-- The finrank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma finrank_eq_card_choose_basis_index : finrank R M = @card (choose_basis_index R M)
@@ -94,7 +104,7 @@ lemma finrank_matrix (m n : Type*) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 
-end ring
+end ring_free
 
 section comm_ring
 
@@ -120,24 +130,23 @@ variables [ring R] [strong_rank_condition R]
 variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
-lemma linear_map.finrank_le_finrank_of_injective
-  [module.free R N] [module.finite R N] {f : M →ₗ[R] N} (hf : function.injective f) :
-  finrank R M ≤ finrank R N :=
+lemma linear_map.finrank_le_finrank_of_injective [module.finite R N] {f : M →ₗ[R] N}
+  (hf : function.injective f) : finrank R M ≤ finrank R N :=
 finrank_le_finrank_of_rank_le_rank
   (linear_map.lift_rank_le_of_injective _ hf) (rank_lt_aleph_0 _ _)
 
-lemma linear_map.finrank_range_le [module.free R M] [module.finite R M] (f : M →ₗ[R] N) :
+lemma linear_map.finrank_range_le [module.finite R M] (f : M →ₗ[R] N) :
   finrank R f.range ≤ finrank R M :=
 finrank_le_finrank_of_rank_le_rank (lift_rank_range_le f) (rank_lt_aleph_0 _ _)
 
 /-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
-lemma submodule.finrank_le [module.free R M] [module.finite R M] (s : submodule R M) :
+lemma submodule.finrank_le [module.finite R M] (s : submodule R M) :
   finrank R s ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   (rank_lt_aleph_0 _ _) (rank_submodule_le s)
 
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
-lemma submodule.finrank_quotient_le [module.free R M] [module.finite R M] (s : submodule R M) :
+lemma submodule.finrank_quotient_le [module.finite R M] (s : submodule R M) :
   finrank R (M ⧸ s) ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   (rank_lt_aleph_0 _ _) ((submodule.mkq s).rank_le_of_surjective (surjective_quot_mk _))

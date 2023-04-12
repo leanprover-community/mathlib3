@@ -56,11 +56,8 @@ lemma rank_mul_le_left [strong_rank_condition R] (A : matrix m n R) (B : matrix 
   (A ⬝ B).rank ≤ A.rank :=
 begin
   rw [rank, rank, to_lin'_mul],
-  refine cardinal.to_nat_le_of_le_of_lt_aleph_0 _ (linear_map.rank_comp_le_left _ _),
-  rw [←cardinal.lift_lt_aleph_0],
-  have := lift_rank_range_le A.to_lin',
-  rw [rank_fun', cardinal.lift_nat_cast] at this,
-  exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card n)),
+  exact cardinal.to_nat_le_of_le_of_lt_aleph_0
+    (rank_lt_aleph_0 _ _) (linear_map.rank_comp_le_left _ _),
 end
 
 include m_fin
@@ -70,12 +67,8 @@ lemma rank_mul_le_right [strong_rank_condition R] (A : matrix l m R) (B : matrix
 begin
   classical,
   rw [rank, rank, to_lin'_mul],
-  refine finrank_le_finrank_of_rank_le_rank
-    (linear_map.lift_rank_comp_le_right B.to_lin' A.to_lin') _,
-  rw [←cardinal.lift_lt_aleph_0],
-  have := lift_rank_range_le B.to_lin',
-  rw [rank_fun', cardinal.lift_nat_cast] at this,
-  exact this.trans_lt (cardinal.nat_lt_aleph_0 (fintype.card n)),
+  exact finrank_le_finrank_of_rank_le_rank
+    (linear_map.lift_rank_comp_le_right B.to_lin' A.to_lin') (rank_lt_aleph_0 _ _),
 end
 
 omit m_fin

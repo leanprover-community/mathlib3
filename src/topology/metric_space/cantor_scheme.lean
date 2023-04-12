@@ -34,7 +34,7 @@ in this file. See instead `pi_nat.res`.
 
 ## Tags
 
-Scheme.
+scheme, Cantor scheme, Lusin scheme, approximation.
 
 -/
 
@@ -60,7 +60,7 @@ protected def antitone : Prop := ∀ l : list β, ∀ a : β, A (a :: l) ⊆ A l
 /-- A useful strengthening of being antitone is to require that each set contains
 the closure of each of its children. -/
 def closure_antitone [topological_space α] : Prop :=
-∀ l : list β, ∀ a : β, closure(A (a :: l)) ⊆ A l
+∀ l : list β, ∀ a : β, closure (A (a :: l)) ⊆ A l
 
 /-- A scheme is disjoint if the children of each set of pairwise disjoint. -/
 protected def disjoint : Prop :=

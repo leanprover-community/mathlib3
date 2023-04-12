@@ -203,18 +203,14 @@ the cylinder `cylinder x n` can be identified with the element of `list α`
 consisting of the first `n` entries of `x`. See `cylinder_eq_res`.
 We call this list `res x n`, the restriction of `x` to `n`.-/
 def res (x : ℕ → α) : ℕ → list α
-  | 0            := nil
-  | (nat.succ n) := x n :: res n
+| 0            := nil
+| (nat.succ n) := x n :: res n
 
 @[simp] lemma res_zero (x : ℕ → α) : res x 0 = @nil α := rfl
 @[simp] lemma res_succ (x : ℕ → α) (n : ℕ) : res x n.succ = x n :: res x n := rfl
 
 @[simp] lemma res_length (x : ℕ → α) (n : ℕ) : (res x n).length = n :=
-begin
-  induction n with n ih,
-  { refl },
-  simp[ih],
-end
+by induction n ; simp[*]
 
 --lemma res_eq_res {x y : ℕ → α} {n : ℕ} (h : res x n = res y n) {m} : m < n → x m = y m :=
 
@@ -247,7 +243,7 @@ end
 theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : cylinder x n = {y | res y n = res x n} :=
 begin
   ext y,
-  dsimp[cylinder],
+  dsimp [cylinder],
   rw res_eq_res,
 end
 

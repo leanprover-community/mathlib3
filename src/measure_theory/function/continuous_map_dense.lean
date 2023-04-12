@@ -12,7 +12,7 @@ import measure_theory.integral.bochner
 /-!
 # Approximation in Lᵖ by continuous functions
 
-This file proves that bounded continuous functions are dense in `Lp E p μ`, for `1 ≤ p < ∞`, if the
+This file proves that bounded continuous functions are dense in `Lp E p μ`, for `p < ∞`, if the
 domain `α` of the functions is a normal topological space and the measure `μ` is weakly regular.
 It also proves the same results for approximation by continuous functions with compact support
 when the space is locally compact and `μ` is regular.
@@ -129,7 +129,7 @@ end
 /-- In a locally compact space, any function in `ℒp` can be approximated by compactly supported
 continuous functions when `1 ≤ p < ∞`, version in terms of `snorm`. -/
 lemma mem_ℒp.exists_has_compact_support_snorm_sub_le
-  [locally_compact_space α] [μ.regular] (hp : p ≠ ∞) (h'p : 1 ≤ p)
+  [locally_compact_space α] [μ.regular] (hp : p ≠ ∞)
   {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (g : α → E), has_compact_support g ∧ snorm (f - g) p μ ≤ ε ∧ continuous g ∧ mem_ℒp g p μ :=
 begin
@@ -140,7 +140,7 @@ begin
   -- It suffices to check that the set of functions we consider approximates characteristic
   -- functions, is stable under addition and consists of ae strongly measurable functions.
   -- First check the latter easy facts.
-  apply hf.induction_dense hp h'p _ _ _ _ hε, rotate,
+  apply hf.induction_dense hp _ _ _ _ hε, rotate,
   -- stability under addition
   { rintros f g ⟨f_cont, f_mem, hf⟩ ⟨g_cont, g_mem, hg⟩,
     exact ⟨f_cont.add g_cont, f_mem.add g_mem, hf.add hg⟩ },

@@ -934,29 +934,15 @@ begin
   { rcases h0P (0 : E) measurable_set.empty
       (by simp only [measure_empty, with_top.zero_lt_top]) hε with ⟨g, hg, Pg⟩,
     exact ⟨g, by simp only [snorm_exponent_zero, zero_le'], Pg⟩ },
-  have A : ∀ (δ : ℝ≥0∞), δ ≠ 0 → ∃ η, η ≠ 0 ∧ Lp_add_const p * (η + η) ≤ δ,
-  { assume δ hδ,
-    have : tendsto (λ (η : ℝ≥0∞), Lp_add_const p * (η + η)) (𝓝[>] 0) (𝓝 (Lp_add_const p * (0 + 0))),
-      from (ennreal.tendsto.const_mul (tendsto_id.add tendsto_id)
-        (or.inr (Lp_add_const_lt_top p).ne)).mono_left nhds_within_le_nhds,
-    simp only [add_zero, mul_zero] at this,
-    rcases (((tendsto_order.1 this).2 δ hδ.bot_lt).and self_mem_nhds_within).exists
-      with ⟨η, hη, ηpos⟩,
-    exact ⟨η, ηpos.ne', hη.le⟩ },
   suffices H : ∀ (f' : α →ₛ E) (δ : ℝ≥0∞) (hδ : δ ≠ 0), mem_ℒp f' p μ →
     ∃ g, snorm (f' - g) p μ ≤ δ ∧ P g,
-  { obtain ⟨η, ηpos, hη⟩ : ∃ (η : ℝ≥0∞), η ≠ 0 ∧ Lp_add_const p * (η + η) ≤ ε := A ε hε,
-    rcases hf.exists_simple_func_snorm_sub_lt hp_ne_top ηpos with ⟨f', hf', f'_mem⟩,
-    rcases H f' η ηpos f'_mem with ⟨g, hg, Pg⟩,
+  { obtain ⟨η, ηpos, hη⟩ := exists_Lp_half E μ p hε,
+    rcases hf.exists_simple_func_snorm_sub_lt hp_ne_top ηpos.ne' with ⟨f', hf', f'_mem⟩,
+    rcases H f' η ηpos.ne' f'_mem with ⟨g, hg, Pg⟩,
     refine ⟨g, _, Pg⟩,
-    calc snorm (f - g) p μ
-        = snorm ((f - f') + (f' - g)) p μ : by { congr, abel }
-    ... ≤ Lp_add_const p * (snorm (f - f') p μ + snorm (f' - g) p μ) :
-        snorm_add_le' (hf.ae_strongly_measurable.sub f'.ae_strongly_measurable)
-          (f'.ae_strongly_measurable.sub (h2P g Pg)) p
-    ... ≤ Lp_add_const p * (η + η) :
-      mul_le_mul_of_nonneg_left (add_le_add hf'.le hg) bot_le
-    ... ≤ ε : hη },
+    convert (hη _ _ (hf.ae_strongly_measurable.sub f'.ae_strongly_measurable)
+      (f'.ae_strongly_measurable.sub (h2P g Pg)) hf'.le hg).le,
+    simp only [sub_add_sub_cancel] },
   refine simple_func.induction _ _,
   { intros c s hs ε εpos Hs,
     rcases eq_or_ne c 0 with rfl|hc,
@@ -974,20 +960,15 @@ begin
       rw [← snorm_neg, neg_sub] at hg,
       exact ⟨g, hg, Pg⟩ } },
   { intros f f' hff' hf hf' δ δpos int_ff',
-    obtain ⟨η, ηpos, hη⟩ : ∃ (η : ℝ≥0∞), η ≠ 0 ∧ Lp_add_const p * (η + η) ≤ δ := A δ δpos,
+    obtain ⟨η, ηpos, hη⟩ := exists_Lp_half E μ p δpos,
     rw [simple_func.coe_add,
       mem_ℒp_add_of_disjoint hff' f.strongly_measurable f'.strongly_measurable] at int_ff',
-    rcases hf η ηpos int_ff'.1 with ⟨g, hg, Pg⟩,
-    rcases hf' η ηpos int_ff'.2 with ⟨g', hg', Pg'⟩,
+    rcases hf η ηpos.ne' int_ff'.1 with ⟨g, hg, Pg⟩,
+    rcases hf' η ηpos.ne' int_ff'.2 with ⟨g', hg', Pg'⟩,
     refine ⟨g + g', _, h1P g g' Pg Pg'⟩,
-    calc snorm ((f + f') - (g + g')) p μ
-        = snorm ((f - g) + (f' - g')) p μ : by { congr, abel }
-    ... ≤ Lp_add_const p * (snorm (f - g) p μ + snorm (f' - g') p μ) :
-        snorm_add_le' (f.ae_strongly_measurable.sub (h2P g Pg))
-          (f'.ae_strongly_measurable.sub (h2P g' Pg')) p
-    ... ≤ Lp_add_const p * (η + η) :
-      mul_le_mul_of_nonneg_left (add_le_add hg hg') bot_le
-    ... ≤ δ : hη },
+    convert (hη _ _ (f.ae_strongly_measurable.sub (h2P g Pg))
+          (f'.ae_strongly_measurable.sub (h2P g' Pg')) hg hg').le,
+    abel }
 end
 
 section integrable

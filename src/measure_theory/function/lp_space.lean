@@ -789,6 +789,26 @@ begin
     exact snorm_add_le hf hg h'p }
 end
 
+variables (μ E)
+/-- Technical lemma to control the addition of functions in `L^p` even for `p < 1`. -/
+lemma exists_Lp_half (p : ℝ≥0∞) {δ : ℝ≥0∞} (hδ : δ ≠ 0) :
+  ∃ (η : ℝ≥0∞), 0 < η ∧ ∀ (f g : α → E) (hf : ae_strongly_measurable f μ)
+    (hg : ae_strongly_measurable g μ) (Hf : snorm f p μ ≤ η) (Hg : snorm g p μ ≤ η),
+      snorm (f + g) p μ < δ :=
+begin
+  have : tendsto (λ (η : ℝ≥0∞), Lp_add_const p * (η + η)) (𝓝[>] 0) (𝓝 (Lp_add_const p * (0 + 0))),
+    from (ennreal.tendsto.const_mul (tendsto_id.add tendsto_id)
+      (or.inr (Lp_add_const_lt_top p).ne)).mono_left nhds_within_le_nhds,
+  simp only [add_zero, mul_zero] at this,
+  rcases (((tendsto_order.1 this).2 δ hδ.bot_lt).and self_mem_nhds_within).exists
+    with ⟨η, hη, ηpos⟩,
+  refine ⟨η, ηpos, λ f g hf hg Hf Hg, _⟩,
+  calc snorm (f + g) p μ ≤ Lp_add_const p * (snorm f p μ + snorm g p μ) : snorm_add_le' hf hg p
+  ... ≤ Lp_add_const p * (η + η) : mul_le_mul_of_nonneg_left (add_le_add Hf Hg) bot_le
+  ... < δ : hη
+end
+variables {μ E}
+
 lemma snorm_sub_le'
   {f g : α → E} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) (p : ℝ≥0∞) :
   snorm (f - g) p μ ≤ Lp_add_const p * (snorm f p μ + snorm g p μ) :=

@@ -74,20 +74,38 @@ This is not really an extra condition, since we can set the value of `e` fiberwi
 the base set. -/
 protected class pretrivialization.is_linear (e : pretrivialization F (π E)) :
   Prop :=
-(linear : ∀ b, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
-(linear_symm : ∀ b, is_linear_map R (e.symm b))
+(linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
+(eq_zero : ∀ (b ∉ e.base_set) (x : E b), (e (total_space_mk b x)).2 = 0)
+(symm_eq_zero : ∀ (b ∉ e.base_set) (x : F), e.symm b x = 0)
 
 namespace pretrivialization
 
 variables {F E} (e : pretrivialization F (π E)) {x : total_space E} {b : B} {y : E b}
 
+lemma eq_zero [e.is_linear R] {b : B} (hb : b ∉ e.base_set) (x : E b) :
+  (e (total_space_mk b x)).2 = 0 :=
+pretrivialization.is_linear.eq_zero R b hb x
+
+lemma symm_eq_zero [e.is_linear R] {b : B} (hb : b ∉ e.base_set) (x : F) :
+  e.symm b x = 0 :=
+pretrivialization.is_linear.symm_eq_zero R b hb x
+
 lemma linear [e.is_linear R] (b : B) :
   is_linear_map R (λ x : E b, (e (total_space_mk b x)).2) :=
-pretrivialization.is_linear.linear b
+begin
+  by_cases hb : b ∈ e.base_set,
+  { exact pretrivialization.is_linear.linear b hb },
+  { convert (0 : E b →ₗ[R] F).is_linear, ext x, rw [e.eq_zero R hb, linear_map.zero_apply] }
+end
 
 lemma linear_symm [e.is_linear R] (b : B) :
   is_linear_map R (e.symm b) :=
-pretrivialization.is_linear.linear_symm b
+begin
+  by_cases hb : b ∈ e.base_set,
+  { exact (((e.linear R b).mk' _).inverse (e.symm b) (e.symm_apply_apply_mk hb)
+      (λ v, congr_arg prod.snd $ e.apply_mk_symm hb v)).is_linear },
+  { convert (0 : F →ₗ[R] E b).is_linear, ext x, rw [e.symm_eq_zero R hb, linear_map.zero_apply] }
+end
 
 /-- A fiberwise linear inverse to `e`. -/
 @[simps] protected def symmₗ (e : pretrivialization F (π E)) [e.is_linear R] (b : B) :

@@ -54,14 +54,14 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 namespace linear_map
 
 /-- `T` is (semi-definite) **positive** if `T` is symmetric
-and `∀ x : V, 0 ≤ re ⟪x, T x⟫` -/
+and `∀ x : V, 0 ≤ re ⟪T x, x⟫` -/
 def is_positive (T : E →ₗ[𝕜] E) : Prop :=
-T.is_symmetric ∧ ∀ x : E, 0 ≤ re ⟪x, T x⟫
+T.is_symmetric ∧ ∀ x : E, 0 ≤ re ⟪T x, x⟫
 
 lemma is_positive_zero : (0 : E →ₗ[𝕜] E).is_positive :=
 begin
   refine ⟨is_symmetric_zero, λ x, _⟩,
-  simp_rw [zero_apply, inner_re_zero_right],
+  simp_rw [zero_apply, inner_re_zero_left],
 end
 
 lemma is_positive_one : (1 : E →ₗ[𝕜] E).is_positive :=
@@ -71,17 +71,21 @@ lemma is_positive.add {S T : E →ₗ[𝕜] E} (hS : S.is_positive) (hT : T.is_p
   (S + T).is_positive :=
 begin
   refine ⟨is_symmetric.add hS.1 hT.1, λ x, _⟩,
-  rw [add_apply, inner_add_right, map_add],
+  rw [add_apply, inner_add_left, map_add],
   exact add_nonneg (hS.2 _) (hT.2 _),
 end
 
+lemma is_positive.is_symmetric {T : E →ₗ[𝕜] E} (hT : is_positive T) :
+  T.is_symmetric :=
+hT.1
+
 lemma is_positive.inner_nonneg_left {T : E →ₗ[𝕜] E} (hT : is_positive T) (x : E) :
   0 ≤ re ⟪T x, x⟫ :=
-by { rw inner_re_symm, exact hT.2 x, }
+hT.2 x
 
 lemma is_positive.inner_nonneg_right {T : E →ₗ[𝕜] E} (hT : is_positive T) (x : E) :
   0 ≤ re ⟪x, T x⟫ :=
-hT.2 x
+by { rw inner_re_symm, exact hT.2 x, }
 
 /-- a linear projection onto `U` along its complement `V` is positive if
 and only if `U` and `V` are orthogonal -/
@@ -95,9 +99,8 @@ begin
     have hau : u = a := rfl,
     have hbv : v = b := rfl,
     rw [hau, ← submodule.linear_proj_of_is_compl_apply_left hUV a,
-        ← submodule.subtype_apply _, ← comp_apply, ← h.1 _ _,
-        comp_apply, hbv, submodule.linear_proj_of_is_compl_apply_right hUV b,
-        map_zero, inner_zero_left], },
+      ← submodule.subtype_apply _, ← comp_apply, ← h.1 _ _, comp_apply, hbv,
+      submodule.linear_proj_of_is_compl_apply_right hUV b, map_zero, inner_zero_left], },
   { intro h,
     have : (U.subtype.comp (U.linear_proj_of_is_compl V hUV)).is_symmetric,
     { intros x y,
@@ -111,7 +114,7 @@ begin
     refine ⟨this, _⟩,
     intros x,
     rw [comp_apply, submodule.subtype_apply, ← submodule.linear_proj_of_is_compl_idempotent,
-        ← submodule.subtype_apply, ← comp_apply, ← this _ ((U.linear_proj_of_is_compl V hUV) x)],
+      ← submodule.subtype_apply, ← comp_apply, this ((U.linear_proj_of_is_compl V hUV) x) _],
     exact inner_self_nonneg, },
 end
 
@@ -129,18 +132,19 @@ begin
   { simp_rw [← eq_conj_iff_re],
     exact is_symmetric.conj_eigenvalue_eq_self hT hμ, },
   rw ← this at hμ,
+  simp_rw [hT _] at h,
   exact ⟨re μ, eigenvalue_nonneg_of_nonneg hμ h, this⟩,
 end
 
 section complex
 
 /-- for spaces `V` over `ℂ`, it suffices to define positivity with
-`0 ≤ ⟪v, T v⟫_ℂ` for all `v ∈ V` -/
+`0 ≤ ⟪T v, v⟫_ℂ` for all `v ∈ V` -/
 lemma complex_is_positive {V : Type*} [normed_add_comm_group V]
   [inner_product_space ℂ V] (T : V →ₗ[ℂ] V) :
-  T.is_positive ↔ ∀ v : V, ↑(re ⟪v, T v⟫_ℂ) = ⟪v, T v⟫_ℂ ∧ 0 ≤ re ⟪v, T v⟫_ℂ :=
+  T.is_positive ↔ ∀ v : V, ↑(re ⟪T v, v⟫_ℂ) = ⟪T v, v⟫_ℂ ∧ 0 ≤ re ⟪T v, v⟫_ℂ :=
 by simp_rw [is_positive, is_symmetric_iff_inner_map_self_real, inner_conj_symm,
-     ← eq_conj_iff_re, inner_conj_symm, ← forall_and_distrib, and_comm, eq_comm]
+     ← eq_conj_iff_re, inner_conj_symm, ← forall_and_distrib]
 
 end complex
 
@@ -153,7 +157,7 @@ begin
   simp_rw [comp_apply, ← adjoint_inner_left _ (T _), ← adjoint_inner_right _ (T _)],
   exact h.1 _ _,
   intros v,
-  simp_rw [comp_apply, ← adjoint_inner_left _ (T _)],
+  simp_rw [comp_apply, ← adjoint_inner_right _ (T _)],
   exact h.2 _,
 end
 
@@ -166,7 +170,7 @@ begin
   simp_rw [comp_apply, adjoint_inner_left, adjoint_inner_right],
   exact h.1 _ _,
   intros v,
-  simp_rw [comp_apply, adjoint_inner_right],
+  simp_rw [comp_apply, adjoint_inner_left],
   exact h.2 _,
 end
 
@@ -187,7 +191,7 @@ def is_positive (T : E →L[𝕜] E) : Prop :=
 lemma is_positive.to_linear_map (T : E →L[𝕜] E) :
   T.to_linear_map.is_positive ↔ T.is_positive :=
 by simp_rw [to_linear_map_eq_coe, linear_map.is_positive, continuous_linear_map.coe_coe,
-     is_positive, is_self_adjoint_iff_is_symmetric, re_apply_inner_self_apply T, inner_re_symm]
+     is_positive, is_self_adjoint_iff_is_symmetric, re_apply_inner_self_apply T]
 
 lemma is_positive.is_self_adjoint {T : E →L[𝕜] E} (hT : is_positive T) :
   is_self_adjoint T :=

@@ -25,6 +25,8 @@ corresponding `*_eq` lemmas to be used in a place where they are definitionally 
 * `matrix.transposeᵣ`
 * `matrix.dot_productᵣ`
 * `matrix.mulᵣ`
+* `matrix.mul_vecᵣ`
+* `matrix.vec_mulᵣ`
 * `matrix.eta_expand`
 
 -/
@@ -134,13 +136,13 @@ of $ fin_vec.map (λ v₁, fin_vec.map (λ v₂, dot_productᵣ v₁ v₂) (tran
 
 /-- This can be used to prove
 ```lean
-example [add_comm_monoid α] [has_mul α]
-  (a₁₁ a₁₂ a₁₃ a₂₁ a₂₂ a₂₃ a₃₁ a₃₂ a₃₃ b₁₁ b₁₂ b₁₃ b₂₁ b₂₂ b₂₃ b₃₁ b₃₂ b₃₃ : α) :
+example [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
   !![a₁₁, a₁₂;
      a₂₁, a₂₂] ⬝ !![b₁₁, b₁₂;
                     b₂₁, b₂₂] =
   !![a₁₁*b₁₁ + a₁₂*b₂₁, a₁₁*b₁₂ + a₁₂*b₂₂;
      a₂₁*b₁₁ + a₂₂*b₂₁, a₂₁*b₁₂ + a₂₂*b₂₂] :=
+(mulᵣ_eq _ _).symm
 ```
 -/
 @[simp]
@@ -152,14 +154,67 @@ begin
   refl,
 end
 
-example [add_comm_monoid α] [has_mul α]
-  (a₁₁ a₁₂ a₁₃ a₂₁ a₂₂ a₂₃ a₃₁ a₃₂ a₃₃ b₁₁ b₁₂ b₁₃ b₂₁ b₂₂ b₂₃ b₃₁ b₃₂ b₃₃ : α) :
+example [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
   !![a₁₁, a₁₂;
      a₂₁, a₂₂].mul !![b₁₁, b₁₂;
                       b₂₁, b₂₂] =
   !![a₁₁*b₁₁ + a₁₂*b₂₁, a₁₁*b₁₂ + a₁₂*b₂₂;
      a₂₁*b₁₁ + a₂₂*b₂₁, a₂₁*b₁₂ + a₂₂*b₂₂] :=
 (mulᵣ_eq _ _).symm
+
+/-- `matrix.mul_vec` with better defeq for `fin` -/
+def mul_vecᵣ [has_mul α] [has_add α] [has_zero α] (A : matrix (fin l) (fin m) α) (v : fin m → α) :
+  fin l → α :=
+fin_vec.map (λ a, dot_productᵣ a v) A
+
+/-- This can be used to prove
+```lean
+example [non_unital_non_assoc_semiring α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁ b₂ : α) :
+  !![a₁₁, a₁₂;
+     a₂₁, a₂₂].mul_vec ![b₁, b₂] = ![a₁₁*b₁ + a₁₂*b₂, a₂₁*b₁ + a₂₂*b₂] :=
+(mul_vecᵣ_eq _ _).symm
+```
+-/
+@[simp]
+lemma mul_vecᵣ_eq [non_unital_non_assoc_semiring α]
+  (A : matrix (fin l) (fin m) α) (v : fin m → α) :
+  mul_vecᵣ A v = A.mul_vec v :=
+begin
+  simp [mul_vecᵣ, function.comp],
+  refl,
+end
+
+example [non_unital_non_assoc_semiring α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁ b₂ : α) :
+  !![a₁₁, a₁₂;
+     a₂₁, a₂₂].mul_vec ![b₁, b₂] = ![a₁₁*b₁ + a₁₂*b₂, a₂₁*b₁ + a₂₂*b₂] :=
+(mul_vecᵣ_eq _ _).symm
+
+/-- `matrix.vec_mul` with better defeq for `fin` -/
+def vec_mulᵣ [has_mul α] [has_add α] [has_zero α] (v : fin l → α) (A : matrix (fin l) (fin m) α):
+  fin m → α :=
+fin_vec.map (λ a, dot_productᵣ v a) (transposeᵣ A)
+
+/-- This can be used to prove
+```lean
+example [non_unital_non_assoc_semiring α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁ b₂ : α) :
+  vec_mul ![b₁, b₂] !![a₁₁, a₁₂;
+                       a₂₁, a₂₂] = ![b₁*a₁₁ + b₂*a₂₁, b₁*a₁₂ + b₂*a₂₂] :=
+(vec_mulᵣ_eq _ _).symm
+```
+-/
+@[simp]
+lemma vec_mulᵣ_eq [non_unital_non_assoc_semiring α]
+  (v : fin l → α) (A : matrix (fin l) (fin m) α)  :
+  vec_mulᵣ v A = vec_mul v A :=
+begin
+  simp [vec_mulᵣ, function.comp],
+  refl,
+end
+
+example [non_unital_non_assoc_semiring α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁ b₂ : α) :
+  vec_mul ![b₁, b₂] !![a₁₁, a₁₂;
+                       a₂₁, a₂₂] = ![b₁*a₁₁ + b₂*a₂₁, b₁*a₁₂ + b₂*a₂₂] :=
+(vec_mulᵣ_eq _ _).symm
 
 /-- Expand `A` to `!![A 0 0, ...; ..., A m n]` -/
 def eta_expand {m n} (A : matrix (fin m) (fin n) α) : matrix (fin m) (fin n) α :=

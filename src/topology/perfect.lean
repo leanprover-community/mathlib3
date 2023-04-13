@@ -223,10 +223,11 @@ end basic
 section cantor_inj
 
 open function
-variables {α : Type*} [metric_space α] {C : set α} (hC : perfect C)
+open_locale ennreal
+variables {α : Type*} [metric_space α] {C : set α} (hC : perfect C) {ε : ℝ≥0∞}
 include hC
 
-private lemma perfect.small_diam_aux (ε : ennreal) (ε_pos : 0 < ε) {x : α} (xC : x ∈ C) :
+private lemma perfect.small_diam_aux (ε_pos : 0 < ε) {x : α} (xC : x ∈ C) :
   let D := closure (emetric.ball x (ε / 2) ∩ C) in
   perfect D ∧ D.nonempty ∧ D ⊆ C ∧ emetric.diam D ≤ ε :=
 begin
@@ -249,15 +250,15 @@ include hnonempty
 
 /-- A refinement of `perfect.splitting` for metric spaces, where we also control
 the diameter of the new perfect sets. -/
-lemma perfect.small_diam_splitting (ε : ennreal) (ε_pos : 0 < ε) : ∃ C₀ C₁ : set α,
+lemma perfect.small_diam_splitting (ε_pos : 0 < ε) : ∃ C₀ C₁ : set α,
   (perfect C₀ ∧ C₀.nonempty ∧ C₀ ⊆ C ∧ emetric.diam C₀ ≤ ε) ∧
   (perfect C₁ ∧ C₁.nonempty ∧ C₁ ⊆ C ∧ emetric.diam C₁ ≤ ε) ∧ disjoint C₀ C₁ :=
 begin
   rcases hC.splitting hnonempty with ⟨D₀, D₁, ⟨perf0, non0, sub0⟩, ⟨perf1, non1, sub1⟩, hdisj⟩,
   cases non0 with x₀ hx₀,
   cases non1 with x₁ hx₁,
-  rcases perf0.small_diam_aux _ ε_pos hx₀ with ⟨perf0', non0', sub0', diam0⟩,
-  rcases perf1.small_diam_aux _ ε_pos hx₁ with ⟨perf1', non1', sub1', diam1⟩,
+  rcases perf0.small_diam_aux ε_pos hx₀ with ⟨perf0', non0', sub0', diam0⟩,
+  rcases perf1.small_diam_aux ε_pos hx₁ with ⟨perf1', non1', sub1', diam1⟩,
   refine ⟨closure (emetric.ball x₀ (ε / 2) ∩ D₀), closure (emetric.ball x₁ (ε / 2) ∩ D₁),
     ⟨perf0', non0', sub0'.trans sub0, diam0⟩, ⟨perf1', non1', sub1'.trans sub1, diam1⟩, _⟩,
   apply disjoint.mono _ _ hdisj; assumption,
@@ -267,24 +268,21 @@ open cantor_scheme
 
 /-- Any nonempty perfect set in a complete metric space admits a continuous injection
 from the cantor space, `ℕ → bool`. -/
-theorem perfect.exists_nat_bool_injection [complete_space α]
-  (hC : perfect C) (hnonempty : C.nonempty) :
+theorem perfect.exists_nat_bool_injection [complete_space α] :
   ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ injective f :=
 begin
-  let u : ℕ → ennreal := λ n, n⁻¹,
-  have upos : ∀ n, 0 < (u n) := λ n, by simp,
+  obtain ⟨u, -, upos', hu⟩ := exists_seq_strict_anti_tendsto' (zero_lt_one' ℝ≥0∞),
+  have upos := λ n, (upos' n).1,
   let P := subtype (λ E : set α, perfect E ∧ E.nonempty),
-  choose C0 C1 h0 h1 hdisj using @perfect.small_diam_splitting α infer_instance,
-  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : 0 < ε}, _ at h0,
-  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : 0 < ε}, _ at h1,
-  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : 0 < ε}, _ at hdisj,
+  choose C0 C1 h0 h1 hdisj using λ {C : set α} {hC : perfect C} {hnonempty : C.nonempty}
+    {ε : ℝ≥0∞} {hε : 0 < ε}, hC.small_diam_splitting hnonempty hε,
   let DP : list bool → P := λ l,
   begin
     induction l with a l ih, { exact ⟨C, ⟨hC, hnonempty⟩⟩ },
     cases a,
-    { use C0 ih.property.1 ih.property.2 (u l.length.succ) (upos _),
+    { use @C0 _ ih.property.1 ih.property.2 _ (upos l.length.succ),
       exact ⟨h0.1, h0.2.1⟩, },
-    use C1 ih.property.1 ih.property.2 (u l.length.succ) (upos _),
+    use @C1 _ ih.property.1 ih.property.2 _ (upos l.length.succ),
     exact ⟨h1.1, h1.2.1⟩,
   end,
   let D : list bool → set α := λ l, (DP l).val,
@@ -296,25 +294,27 @@ begin
     exact h1.2.2.1, },
   have hdiam : vanishing_diam D,
   { intro x,
-    apply tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
-      ennreal.tendsto_inv_nat_nhds_zero; intro n,
-    { exact zero_le' },
-    cases n, { simp },
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hu,
+    { simp },
+    rw eventually_at_top,
+    refine ⟨1, λ m (hm : 1 ≤ m), _⟩,
+    rw nat.one_le_iff_ne_zero at hm,
+    rcases nat.exists_eq_succ_of_ne_zero hm with ⟨n, rfl⟩,
     dsimp,
     cases (x n),
     { convert h0.2.2.2,
-      simp },
+      rw pi_nat.res_length },
     convert h1.2.2.2,
-    simp },
+    rw pi_nat.res_length, },
   have hdisj : cantor_scheme.disjoint D,
   { rintros l (a | a) (b | b) hab; try { contradiction },
     { exact hdisj, },
     exact hdisj.symm,  },
   have hdom : ∀ {x : ℕ → bool}, x ∈ (induced_map D).1 := λ x,
-    by simp[hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
+    by simp[ hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
   refine ⟨λ x, (induced_map D).2 ⟨x, hdom⟩, _, _, _⟩,
   { rintros y ⟨x, rfl⟩,
-    exact map_mem hdom 0, },
+    exact map_mem ⟨_, hdom⟩ 0, },
   { continuity,
     exact hdiam.map_continuous, },
   intros x y hxy,

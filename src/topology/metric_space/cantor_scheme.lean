@@ -50,7 +50,7 @@ which sends each infinite sequence `x` to an element of the intersection along t
 branch corresponding to `x`, if it exists.
 We call this the map induced by the scheme. -/
 noncomputable def induced_map : Σ s : set (ℕ → β), s → α :=
-⟨λ x, set.nonempty ⋂ n : ℕ, A (res x n), λ ⟨x, hx⟩, hx.some⟩
+⟨λ x, set.nonempty ⋂ n : ℕ, A (res x n), λ x, x.property.some⟩
 
 section topology
 
@@ -70,10 +70,10 @@ variable {A}
 
 /-- If `x` is in the domain of the induced map of a scheme `A`,
 its image under this map is in each set along the corresponding branch. -/
-lemma map_mem {x : ℕ → β} (hx : x ∈ (induced_map A).1) (n : ℕ) :
-  (induced_map A).2 ⟨x, hx⟩ ∈ A (res x n) :=
+lemma map_mem (x : (induced_map A).1) (n : ℕ) :
+  (induced_map A).2 x ∈ A (res x n) :=
 begin
-  have := hx.some_mem,
+  have := x.property.some_mem,
   rw mem_Inter at this,
   exact this n,
 end

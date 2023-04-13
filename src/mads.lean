@@ -98,10 +98,10 @@ variables [fact (a + a' = 0)] [fact (b + b' = 0)] [fact (c + c' = 0)]
 
 axiom tensor_shift_triangle :
   upper_triangle_commutes_up_to_sign ((-1:ℤˣ) ^ ((a+b) * (b+c)))
-  (M⟦a⟧ ⊗ N⟦a'⟧) /- ⟶ -/ (M⟦b⟧ ⊗ N⟦b'⟧)
---             \              |
---              ↘             v
-                    (M⟦c⟧ ⊗ N⟦c'⟧)
+  (M⟦a⟧ ⊗ N⟦a'⟧)  /- ⟶ -/  (M⟦b⟧ ⊗ N⟦b'⟧)
+--                 \             |
+--                  ↘            v
+                           (M⟦c⟧ ⊗ N⟦c'⟧)
 
 axiom Rcomp_shift_square :
   square_commutes_up_to_sign 1

@@ -58,7 +58,7 @@ and `∀ x : V, 0 ≤ re ⟪T x, x⟫` -/
 def is_positive (T : E →ₗ[𝕜] E) : Prop :=
 T.is_symmetric ∧ ∀ x : E, 0 ≤ re ⟪T x, x⟫
 
-lemma is_positive.is_symmetric {T : E →ₗ[𝕜] E} (hT : is_positive T) :
+protected lemma is_positive.is_symmetric {T : E →ₗ[𝕜] E} (hT : is_positive T) :
   T.is_symmetric :=
 hT.1
 
@@ -189,9 +189,9 @@ def is_positive (T : E →L[𝕜] E) : Prop :=
   is_self_adjoint T ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
 
 @[simp] lemma is_positive_to_linear_map (T : E →L[𝕜] E) :
-  T.to_linear_map.is_positive ↔ T.is_positive :=
-by simp_rw [to_linear_map_eq_coe, linear_map.is_positive, continuous_linear_map.coe_coe,
-     is_positive, is_self_adjoint_iff_is_symmetric, re_apply_inner_self_apply T]
+  (T : E →ₗ[𝕜] E).is_positive ↔ T.is_positive :=
+by simp_rw [linear_map.is_positive, continuous_linear_map.coe_coe, is_positive,
+     is_self_adjoint_iff_is_symmetric, re_apply_inner_self_apply T]
 
 lemma is_positive.is_self_adjoint {T : E →L[𝕜] E} (hT : is_positive T) :
   is_self_adjoint T :=

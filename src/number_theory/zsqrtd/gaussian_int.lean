@@ -243,7 +243,7 @@ hp.1.eq_two_or_odd.elim
             (λ hx0, (show (1 : ℤ) ≠ 0, from dec_trivial) $
                 by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2
-        (by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
+        (by rw [norm_nat_cast, int.nat_abs_mul, mul_eq_one];
         exact λ h, (ne_of_lt hp.1.one_lt).symm h.1),
       obtain ⟨y, hy⟩ := hpk,
       have := hpi.2.2 ⟨k, 1⟩ ⟨k, -1⟩ ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩,
@@ -253,7 +253,7 @@ hp.1.eq_two_or_odd.elim
 lemma sq_add_sq_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
   (hpi : ¬irreducible (p : ℤ[i])) : ∃ a b, a^2 + b^2 = p :=
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
-  by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
+  by rw [norm_nat_cast, int.nat_abs_mul, mul_eq_one];
     exact λ h, (ne_of_lt hp.1.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
   by simpa [irreducible_iff, hpu, not_forall, not_or_distrib] using hpi,

@@ -9,6 +9,9 @@ import linear_algebra.bilinear_map
 /-!
 # Weak dual topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the weak topology given two vector spaces `E` and `F` over a commutative semiring
 `𝕜` and a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`. The weak topology on `E` is the coarsest topology
 such that for all `y : F` every map `λ x, B x y` is continuous.

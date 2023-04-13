@@ -38,10 +38,13 @@ def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0∞ // has_sum f 1 }
 
 namespace pmf
 
-instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0∞) := ⟨λ p a, p.1 a⟩
+instance fun_like : fun_like (pmf α) α (λ p, ℝ≥0∞) :=
+{ coe := λ p a, p.1 a,
+  coe_injective' := λ p q h, subtype.eq h }
 
-@[ext] protected lemma ext : ∀ {p q : pmf α}, (∀ a, p a = q a) → p = q
-| ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
+@[ext] protected lemma ext {p q : pmf α} (h : ∀ x, p x = q x) : p = q := fun_like.ext p q h
+
+lemma ext_iff {p q : pmf α} : p = q ↔ ∀ x, p x = q x := fun_like.ext_iff
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
@@ -53,10 +56,17 @@ lemma tsum_coe_indicator_ne_top (p : pmf α) (s : set α) : ∑' a, s.indicator 
 ne_of_lt (lt_of_le_of_lt (tsum_le_tsum (λ a, set.indicator_apply_le (λ _, le_rfl))
   ennreal.summable ennreal.summable) (lt_of_le_of_ne le_top p.tsum_coe_ne_top))
 
+@[simp] lemma coe_ne_zero (p : pmf α) : ⇑p ≠ 0 :=
+λ hp, zero_ne_one ((tsum_zero.symm.trans (tsum_congr $
+  λ x, symm (congr_fun hp x))).trans p.tsum_coe)
+
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
 
 @[simp] lemma mem_support_iff (p : pmf α) (a : α) : a ∈ p.support ↔ p a ≠ 0 := iff.rfl
+
+@[simp] lemma support_nonempty (p : pmf α) : p.support.nonempty :=
+function.support_nonempty_iff.2 p.coe_ne_zero
 
 lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]

@@ -458,7 +458,11 @@ invertible.map (diagonal_ring_hom n α) v
 
 lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=
-by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
+begin
+  letI := diagonal_invertible v,
+  haveI := invertible.subsingleton (diagonal v),
+  convert (rfl : ⅟(diagonal v) = _),
+end
 
 /-- `v` is invertible if `diagonal v` is -/
 def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=

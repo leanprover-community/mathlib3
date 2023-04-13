@@ -10,6 +10,9 @@ import order.basic
 /-!
 # Binary tree
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Provides binary tree storage for values of any type, with O(lg n) retrieval.
 See also `data.rbtree` for red-black trees - this version allows more operations
 to be defined and is better suited for in-kernel computation.

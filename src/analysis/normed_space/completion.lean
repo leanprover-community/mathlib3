@@ -91,7 +91,7 @@ instance [semi_normed_comm_ring A] [normed_algebra 𝕜 A] [has_uniform_continuo
     { exact is_closed_le (continuous.comp (continuous_norm) (continuous_const_smul r))
       (continuous.comp (continuous_mul_left _) continuous_norm), },
     { intros x,
-      simp only [← coe_smul, norm_coe], exact normed_space.norm_smul_le r x }
+      simp only [← coe_smul, norm_coe], exact norm_smul_le r x }
   end,
   ..completion.algebra A 𝕜}
 

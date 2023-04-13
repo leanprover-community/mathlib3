@@ -349,6 +349,29 @@ begin
       measure_singleton] }
 end
 
+lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
+  μ (r • s) = ennreal.of_real (r ^ finrank ℝ E) * μ s :=
+by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
+
+variables {μ} {s : set E}
+
+-- Note: We might want to rename this once we acquire the lemma corresponding to
+-- `measurable_set.const_smul`
+lemma null_measurable_set.const_smul (hs : null_measurable_set s μ) (r : ℝ) :
+  null_measurable_set (r • s) μ :=
+begin
+  obtain rfl | hs' := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | hr := eq_or_ne r 0,
+  { simpa [zero_smul_set hs'] using null_measurable_set_singleton _ },
+  obtain ⟨t, ht, hst⟩ := hs,
+  refine ⟨_, ht.const_smul_of_ne_zero hr, _⟩,
+  rw ←measure_symm_diff_eq_zero_iff at ⊢ hst,
+  rw [←smul_set_symm_diff₀ hr, add_haar_smul μ, hst, mul_zero],
+end
+
+variables (μ)
+
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
   μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
@@ -543,7 +566,8 @@ calc
     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
   end
 
-@[priority 100] instance is_doubling_measure_of_is_add_haar_measure : is_doubling_measure μ :=
+@[priority 100] instance is_unif_loc_doubling_measure_of_is_add_haar_measure :
+  is_unif_loc_doubling_measure μ :=
 begin
   refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
   filter_upwards [self_mem_nhds_within] with r hr x,

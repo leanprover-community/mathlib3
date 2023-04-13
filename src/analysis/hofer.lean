@@ -8,6 +8,9 @@ import analysis.specific_limits.basic
 /-!
 # Hofer's lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This is an elementary lemma about complete metric spaces. It is motivated by an
 application to the bubbling-off analysis for holomorphic curves in symplectic topology.
 We are *very* far away from having these applications, but the proof here is a nice

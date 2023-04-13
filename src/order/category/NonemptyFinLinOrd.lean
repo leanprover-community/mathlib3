@@ -5,12 +5,15 @@ Authors: Johan Commelin
 -/
 import data.fintype.order
 import data.set.finite
-import order.category.LinearOrder
+import order.category.LinOrd
 import category_theory.limits.shapes.images
 import category_theory.limits.shapes.regular_mono
 
 /-!
 # Nonempty finite linear orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This defines `NonemptyFinLinOrd`, the category of nonempty finite linear orders with monotone maps.
 This is the index category for simplicial objects.
@@ -62,7 +65,7 @@ instance : inhabited NonemptyFinLinOrd := ⟨of punit⟩
 
 instance (α : NonemptyFinLinOrd) : nonempty_fin_lin_ord α := α.str
 
-instance has_forget_to_LinearOrder : has_forget₂ NonemptyFinLinOrd LinearOrder :=
+instance has_forget_to_LinOrd : has_forget₂ NonemptyFinLinOrd LinOrd :=
 bundled_hom.forget₂ _ _
 
 /-- Constructs an equivalence between nonempty finite linear orders from an order isomorphism
@@ -77,7 +80,7 @@ between them. -/
 @[simps] def dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
 { obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
-/-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `FinPartOrd` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
 equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
@@ -176,6 +179,6 @@ end⟩
 
 end NonemptyFinLinOrd
 
-lemma NonemptyFinLinOrd_dual_comp_forget_to_LinearOrder :
-  NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd LinearOrder =
-    forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.dual := rfl
+lemma NonemptyFinLinOrd_dual_comp_forget_to_LinOrd :
+  NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd LinOrd =
+    forget₂ NonemptyFinLinOrd LinOrd ⋙ LinOrd.dual := rfl

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import topology.algebra.uniform_convergence
-import topology.algebra.module.locally_convex
 
 /-!
 # Strong topologies on the space of continuous linear maps

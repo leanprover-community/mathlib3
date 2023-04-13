@@ -10,6 +10,9 @@ import topology.algebra.uniform_group
 /-!
 # Uniform properties of neighborhood bases in topological algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files contains properties of filter bases on algebraic structures that also require the theory
 of uniform spaces.
 

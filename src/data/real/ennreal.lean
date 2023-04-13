@@ -9,6 +9,9 @@ import algebra.order.sub.with_top
 /-!
 # Extended non-negative reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `ennreal = ℝ≥0∞ := with_top ℝ≥0` to be the type of extended nonnegative real numbers,
 i.e., the interval `[0, +∞]`. This type is used as the codomain of a `measure_theory.measure`,
 and of the extended distance `edist` in a `emetric_space`.
@@ -206,6 +209,12 @@ by rw [ennreal.to_real, nnreal.coe_eq_one, ennreal.to_nnreal_eq_one_iff]
 @[simp] lemma of_real_ne_top {r : ℝ} : ennreal.of_real r ≠ ∞ := by simp [ennreal.of_real]
 @[simp] lemma of_real_lt_top {r : ℝ} : ennreal.of_real r < ∞ := lt_top_iff_ne_top.2 of_real_ne_top
 @[simp] lemma top_ne_of_real {r : ℝ} : ∞ ≠ ennreal.of_real r := by simp [ennreal.of_real]
+
+@[simp] lemma of_real_to_real_eq_iff : ennreal.of_real a.to_real = a ↔ a ≠ ⊤ :=
+⟨λ h, by { rw ←h, exact of_real_ne_top }, of_real_to_real⟩
+
+@[simp] lemma to_real_of_real_eq_iff {a : ℝ} : (ennreal.of_real a).to_real = a ↔ 0 ≤ a :=
+⟨λ h, by { rw ←h, exact to_real_nonneg }, to_real_of_real⟩
 
 @[simp] lemma zero_ne_top : 0 ≠ ∞ := coe_ne_top
 @[simp] lemma top_ne_zero : ∞ ≠ 0 := top_ne_coe

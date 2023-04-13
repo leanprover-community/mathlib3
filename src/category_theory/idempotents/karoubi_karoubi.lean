@@ -9,6 +9,9 @@ import category_theory.idempotents.karoubi
 /-!
 # Idempotence of the Karoubi envelope
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we construct the equivalence of categories
 `karoubi_karoubi.equivalence C : karoubi C ≌ karoubi (karoubi C)` for any category `C`.
 

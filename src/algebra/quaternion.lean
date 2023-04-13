@@ -309,13 +309,13 @@ basis.of_equiv_fun $ linear_equiv_tuple c₁ c₂
 instance : module.finite R ℍ[R, c₁, c₂] := module.finite.of_basis (basis_one_i_j_k c₁ c₂)
 instance : module.free R ℍ[R, c₁, c₂] := module.free.of_basis (basis_one_i_j_k c₁ c₂)
 
-lemma dim_eq_four [strong_rank_condition R] : module.rank R ℍ[R, c₁, c₂] = 4 :=
-by { rw [dim_eq_card_basis (basis_one_i_j_k c₁ c₂), fintype.card_fin], norm_num }
+lemma rank_eq_four [strong_rank_condition R] : module.rank R ℍ[R, c₁, c₂] = 4 :=
+by { rw [rank_eq_card_basis (basis_one_i_j_k c₁ c₂), fintype.card_fin], norm_num }
 
 lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R, c₁, c₂] = 4 :=
 have cardinal.to_nat 4 = 4,
   by rw [←cardinal.to_nat_cast 4, nat.cast_bit0, nat.cast_bit0, nat.cast_one],
-by rw [finite_dimensional.finrank, dim_eq_four, this]
+by rw [finite_dimensional.finrank, rank_eq_four, this]
 
 end
 
@@ -415,13 +415,20 @@ lemma eq_re_iff_mem_range_coe {a : ℍ[R, c₁, c₂]} :
   a = a.re ↔ a ∈ set.range (coe : R → ℍ[R, c₁, c₂]) :=
 ⟨λ h, ⟨a.re, h.symm⟩, λ ⟨x, h⟩, eq_re_of_eq_coe h.symm⟩
 
+section char_zero
+variables [no_zero_divisors R] [char_zero R]
+
 @[simp]
-lemma conj_fixed {R : Type*} [comm_ring R] [no_zero_divisors R] [char_zero R]
-  {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
+lemma conj_eq_self {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
   conj a = a ↔ a = a.re :=
 by simp [ext_iff, neg_eq_iff_add_eq_zero, add_self_eq_zero]
 
--- Can't use `rw ← conj_fixed` in the proof without additional assumptions
+lemma conj_eq_neg {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
+  conj a = -a ↔ a.re = 0 :=
+by simp [ext_iff, eq_neg_iff_add_eq_zero]
+
+end char_zero
+-- Can't use `rw ← conj_eq_self` in the proof without additional assumptions
 
 lemma conj_mul_eq_coe : conj a * a = (conj a * a).re := by ext; simp; ring_exp
 
@@ -624,8 +631,8 @@ lemma smul_coe : x • (y : ℍ[R]) = ↑(x * y) := quaternion_algebra.smul_coe 
 instance : module.finite R ℍ[R] := quaternion_algebra.module.finite _ _
 instance : module.free R ℍ[R] := quaternion_algebra.module.free _ _
 
-lemma dim_eq_four [strong_rank_condition R] : module.rank R ℍ[R] = 4 :=
-quaternion_algebra.dim_eq_four _ _
+lemma rank_eq_four [strong_rank_condition R] : module.rank R ℍ[R] = 4 :=
+quaternion_algebra.rank_eq_four _ _
 
 lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R] = 4 :=
 quaternion_algebra.finrank_eq_four _ _
@@ -687,9 +694,14 @@ quaternion_algebra.eq_re_of_eq_coe h
 lemma eq_re_iff_mem_range_coe {a : ℍ[R]} : a = a.re ↔ a ∈ set.range (coe : R → ℍ[R]) :=
 quaternion_algebra.eq_re_iff_mem_range_coe
 
-@[simp] lemma conj_fixed {R : Type*} [comm_ring R] [no_zero_divisors R] [char_zero R] {a : ℍ[R]} :
-  conj a = a ↔ a = a.re :=
-quaternion_algebra.conj_fixed
+section char_zero
+variables [no_zero_divisors R] [char_zero R]
+
+@[simp] lemma conj_eq_self {a : ℍ[R]} : conj a = a ↔ a = a.re := quaternion_algebra.conj_eq_self
+
+@[simp] lemma conj_eq_neg {a : ℍ[R]} : conj a = -a ↔ a.re = 0 := quaternion_algebra.conj_eq_neg
+
+end char_zero
 
 lemma conj_mul_eq_coe : conj a * a = (conj a * a).re := a.conj_mul_eq_coe
 
@@ -749,6 +761,16 @@ lemma coe_norm_sq_add :
   (norm_sq (a + b) : ℍ[R]) = norm_sq a + a * b.conj + b * a.conj + norm_sq b :=
 by simp [← self_mul_conj, mul_add, add_mul, add_assoc]
 
+lemma norm_sq_smul (r : R) (q : ℍ[R]) : norm_sq (r • q) = r^2 * norm_sq q :=
+by simp_rw [norm_sq_def, conj_smul, smul_mul_smul, smul_re, sq, smul_eq_mul]
+
+lemma norm_sq_add (a b : ℍ[R]) : norm_sq (a + b) = norm_sq a + norm_sq b + 2 * (a * conj b).re :=
+calc norm_sq (a + b) = (norm_sq a + (a * conj b).re) + ((b * conj a).re + norm_sq b)
+                     : by simp_rw [norm_sq_def, conj_add, add_mul, mul_add, add_re]
+                 ... = norm_sq a + norm_sq b + ((a * conj b).re + (b * conj a).re) : by abel
+                 ... = norm_sq a + norm_sq b + 2 * (a * conj b).re
+                     : by rw [←add_re, ←conj_mul_conj a b, self_add_conj', coe_re]
+
 end quaternion
 
 namespace quaternion
@@ -786,6 +808,22 @@ instance : no_zero_divisors ℍ[R] :=
 
 instance : is_domain ℍ[R] :=
 no_zero_divisors.to_is_domain _
+
+lemma sq_eq_norm_sq : a^2 = norm_sq a ↔ a = a.re :=
+begin
+  simp_rw [←conj_eq_self],
+  obtain rfl | hq0 := eq_or_ne a 0,
+  { simp },
+  { rw [←conj_mul_self, sq, mul_left_inj' hq0, eq_comm] }
+end
+
+lemma sq_eq_neg_norm_sq : a^2 = -norm_sq a ↔ a.re = 0 :=
+begin
+  simp_rw [←conj_eq_neg],
+  obtain rfl | hq0 := eq_or_ne a 0,
+  { simp },
+  rw [←conj_mul_self, ←mul_neg, ←neg_sq, sq, mul_left_inj' (neg_ne_zero.mpr hq0), eq_comm],
+end
 
 end linear_ordered_comm_ring
 

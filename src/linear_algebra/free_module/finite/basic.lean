@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
+import linear_algebra.dimension
 import linear_algebra.free_module.basic
 import ring_theory.finiteness
 
 /-!
 # Finite and free modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide some instances for finite and free modules.
 

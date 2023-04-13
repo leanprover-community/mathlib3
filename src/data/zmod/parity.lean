@@ -8,6 +8,9 @@ import data.zmod.basic
 /-!
 # Relating parity to natural numbers mod 2
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides lemmas relating `zmod 2` to `even` and `odd`.
 
 ## Tags

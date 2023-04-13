@@ -213,12 +213,11 @@ ext $ λ x, real.smul_max _ _
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
 
-lemma coe_le_coe (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
-lemma coe_lt_coe (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) < q ↔ p < q := iff.rfl
 
 lemma le_def {p q : seminorm 𝕜 E} : p ≤ q ↔ ∀ x, p x ≤ q x := iff.rfl
-lemma lt_def {p q : seminorm 𝕜 E} : p < q ↔ ((∀ x, p x ≤ q x) ∧ ∃ x, p x < q x) :=
-by rw [coe_lt_coe, pi.lt_def, pi.le_def]
+lemma lt_def {p q : seminorm 𝕜 E} : p < q ↔ p ≤ q ∧ ∃ x, p x < q x := pi.lt_def
 
 instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup

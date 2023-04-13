@@ -571,7 +571,8 @@ begin
         change ((p' y 0) (init (@cons 0 (λ i, E) z 0))) (@cons 0 (λ i, E) z 0 (last 0))
           = ((p' y 0) 0) z,
         unfold_coes,
-        congr },
+        congr,
+        dec_trivial },
       { convert (Hp'.mono (inter_subset_left v u)).congr (λ x hx, Hp'.zero_eq x hx.1),
         { ext x y,
           change p' x 0 (init (@snoc 0 (λ i : fin 1, E) 0 y)) y = p' x 0 0 y,
@@ -619,6 +620,15 @@ def cont_diff_on (n : ℕ∞) (f : E → F) (s : set E) : Prop :=
 ∀ x ∈ s, cont_diff_within_at 𝕜 n f s x
 
 variable {𝕜}
+
+lemma has_ftaylor_series_up_to_on.cont_diff_on {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to_on n f f' s) : cont_diff_on 𝕜 n f s :=
+begin
+  intros x hx m hm,
+  use s,
+  simp only [set.insert_eq_of_mem hx, self_mem_nhds_within, true_and],
+  exact ⟨f', hf.of_le hm⟩,
+end
 
 lemma cont_diff_on.cont_diff_within_at (h : cont_diff_on 𝕜 n f s) (hx : x ∈ s) :
   cont_diff_within_at 𝕜 n f s x :=
@@ -1077,6 +1087,17 @@ begin
   rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A
 end
 
+lemma cont_diff_on_succ_iff_has_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
+  cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔ ∃ (f' : E → (E →L[𝕜] F)),
+    cont_diff_on 𝕜 n f' s ∧ ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
+begin
+  rw cont_diff_on_succ_iff_fderiv_within hs,
+  refine ⟨λ h, ⟨fderiv_within 𝕜 f s, h.2, λ x hx, (h.1 x hx).has_fderiv_within_at⟩, λ h, _⟩,
+  rcases h with ⟨f', h1, h2⟩,
+  refine ⟨λ x hx, (h2 x hx).differentiable_within_at, λ x hx, _⟩,
+  exact (h1 x hx).congr' (λ y hy, (h2 y hy).fderiv_within (hs y hy)) hx,
+end
+
 /-- A function is `C^(n + 1)` on an open domain if and only if it is
 differentiable there, and its derivative (expressed with `fderiv`) is `C^n`. -/
 theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
@@ -1325,6 +1346,10 @@ def cont_diff (n : ℕ∞) (f : E → F) : Prop :=
 
 variable {𝕜}
 
+/-- If `f` has a Taylor series up to `n`, then it is `C^n`. -/
+lemma has_ftaylor_series_up_to.cont_diff {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to n f f') : cont_diff 𝕜 n f := ⟨f', hf⟩
+
 theorem cont_diff_on_univ : cont_diff_on 𝕜 n f univ ↔ cont_diff 𝕜 n f :=
 begin
   split,
@@ -1389,6 +1414,11 @@ lemma cont_diff_iff_forall_nat_le :
   cont_diff 𝕜 n f ↔ ∀ m : ℕ, ↑m ≤ n → cont_diff 𝕜 m f :=
 by { simp_rw [← cont_diff_on_univ], exact cont_diff_on_iff_forall_nat_le }
 
+/-- A function is `C^(n+1)` iff it has a `C^n` derivative. -/
+lemma cont_diff_succ_iff_has_fderiv {n : ℕ} : cont_diff 𝕜 ((n + 1) : ℕ) f ↔
+  ∃ (f' : E → (E →L[𝕜] F)), cont_diff 𝕜 n f' ∧ ∀ x, has_fderiv_at f (f' x) x :=
+by simp only [← cont_diff_on_univ, ← has_fderiv_within_at_univ,
+    cont_diff_on_succ_iff_has_fderiv_within (unique_diff_on_univ), set.mem_univ, forall_true_left]
 
 /-! ### Iterated derivative -/
 

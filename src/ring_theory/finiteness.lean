@@ -475,6 +475,10 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   exact hM.1.map f
 end⟩
 
+/-- The range of a linear map from a finite module is finite. -/
+instance range [finite R M] (f : M →ₗ[R] N) : finite R f.range :=
+of_surjective f.range_restrict $ λ ⟨x, y, hy⟩, ⟨y, subtype.ext hy⟩
+
 variables (R)
 
 instance self : finite R R :=

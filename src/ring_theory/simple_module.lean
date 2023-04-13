@@ -9,6 +9,9 @@ import order.jordan_holder
 /-!
 # Simple Modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
   * `is_simple_module` indicates that a module has no proper submodules
   (the only submodules are `⊥` and `⊤`).

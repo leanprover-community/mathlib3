@@ -9,6 +9,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of Multivariate Polynomial Ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result in this file is `mv_polynomial.cardinal_mk_le_max`, which says that
 the cardinality of `mv_polynomial σ R` is bounded above by the maximum of `#R`, `#σ`
 and `ℵ₀`.

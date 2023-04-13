@@ -10,6 +10,9 @@ import topology.algebra.module.basic
 /-!
 # Topology on `triv_sq_zero_ext R M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type `triv_sq_zero_ext R M` inherits the topology from `R × M`.
 
 Note that this is not the topology induced by the seminorm on the dual numbers suggested by

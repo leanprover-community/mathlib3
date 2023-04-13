@@ -9,6 +9,9 @@ import topology.algebra.module.basic
 /-!
 # Group and ring filter bases
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `group_filter_basis` is a `filter_basis` on a group with some properties relating
 the basis to the group structure. The main theorem is that a `group_filter_basis`
 on a group gives a topology on the group which makes it into a topological group

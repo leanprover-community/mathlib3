@@ -300,17 +300,28 @@ end
 protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
+protected theorem is_well_founded (f : r ↪r s) [is_well_founded β s] : is_well_founded α r :=
+⟨f.well_founded is_well_founded.wf⟩
+
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
+end rel_embedding
+
+instance subtype.well_founded_lt [has_lt α] [well_founded_lt α] (p : α → Prop) :
+  well_founded_lt (subtype p) := (subtype.rel_embedding (<) p).is_well_founded
+
+instance subtype.well_founded_gt [has_lt α] [well_founded_gt α] (p : α → Prop) :
+  well_founded_gt (subtype p) := (subtype.rel_embedding (>) p).is_well_founded
+
 /-- `quotient.mk` as a relation homomorphism between the relation and the lift of a relation. -/
-@[simps] def _root_.quotient.mk_rel_hom [setoid α] {r : α → α → Prop} (H) :
+@[simps] def quotient.mk_rel_hom [setoid α] {r : α → α → Prop} (H) :
   r →r quotient.lift₂ r H :=
 ⟨@quotient.mk α _, λ _ _, id⟩
 
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
 @[simps]
-noncomputable def _root_.quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
+noncomputable def quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
   quotient.lift₂ r H ↪r r :=
 ⟨embedding.quotient_out α, begin
   refine λ x y, quotient.induction_on₂ x y (λ a b, _),
@@ -320,12 +331,12 @@ end⟩
 
 /-- `quotient.out'` as a relation embedding between the lift of a relation and the relation. -/
 @[simps]
-noncomputable def _root_.quotient.out'_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
+noncomputable def quotient.out'_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
   (λ a b, quotient.lift_on₂' a b r H) ↪r r :=
 { to_fun := quotient.out',
   ..quotient.out_rel_embedding _ }
 
-@[simp] theorem _root_.acc_lift₂_iff [setoid α] {r : α → α → Prop} {H} {a} :
+@[simp] theorem acc_lift₂_iff [setoid α] {r : α → α → Prop} {H} {a} :
   acc (quotient.lift₂ r H) ⟦a⟧ ↔ acc r a :=
 begin
   split,
@@ -337,12 +348,12 @@ begin
     exact IH a' h, },
 end
 
-@[simp] theorem _root_.acc_lift_on₂'_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
+@[simp] theorem acc_lift_on₂'_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
   acc (λ x y, quotient.lift_on₂' x y r H) (quotient.mk' a : quotient s) ↔ acc r a :=
 acc_lift₂_iff
 
 /-- A relation is well founded iff its lift to a quotient is. -/
-theorem _root_.well_founded_lift₂_iff [setoid α] {r : α → α → Prop} {H} :
+theorem well_founded_lift₂_iff [setoid α] {r : α → α → Prop} {H} :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
 begin
   split,
@@ -352,15 +363,16 @@ begin
     exact acc_lift₂_iff.2 (wf.apply a), },
 end
 
-alias _root_.well_founded_lift₂_iff ↔
-  _root_.well_founded.of_quotient_lift₂ _root_.well_founded.quotient_lift₂
+alias well_founded_lift₂_iff ↔ well_founded.of_quotient_lift₂ well_founded.quotient_lift₂
 
-@[simp] theorem _root_.well_founded_lift_on₂'_iff {s : setoid α} {r : α → α → Prop} {H} :
+@[simp] theorem well_founded_lift_on₂'_iff {s : setoid α} {r : α → α → Prop} {H} :
   well_founded (λ x y : quotient s, quotient.lift_on₂' x y r H) ↔ well_founded r :=
 well_founded_lift₂_iff
 
-alias _root_.well_founded_lift_on₂'_iff ↔
-  _root_.well_founded.of_quotient_lift_on₂' _root_.well_founded.quotient_lift_on₂'
+alias well_founded_lift_on₂'_iff ↔
+  well_founded.of_quotient_lift_on₂' well_founded.quotient_lift_on₂'
+
+namespace rel_embedding
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it

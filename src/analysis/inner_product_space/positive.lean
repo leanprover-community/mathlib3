@@ -188,7 +188,7 @@ variables [complete_space E] [complete_space F]
 def is_positive (T : E →L[𝕜] E) : Prop :=
   is_self_adjoint T ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
 
-lemma is_positive.to_linear_map (T : E →L[𝕜] E) :
+@[simp] lemma is_positive_to_linear_map (T : E →L[𝕜] E) :
   T.to_linear_map.is_positive ↔ T.is_positive :=
 by simp_rw [to_linear_map_eq_coe, linear_map.is_positive, continuous_linear_map.coe_coe,
      is_positive, is_self_adjoint_iff_is_symmetric, re_apply_inner_self_apply T]

@@ -1000,6 +1000,10 @@ by rw [ramsey_number_unique_colour, matrix.cons_val_fin_one]
 lemma ramsey_number.mono {n n' : K → ℕ} (h : n ≤ n') : ramsey_number n ≤ ramsey_number n' :=
 by { rw [ramsey_number_le_iff_fin], exact (ramsey_number_spec_fin _).mono_right h }
 
+lemma ramsey_number.mono_two {a b c d : ℕ} (hab : a ≤ b) (hcd : c ≤ d) :
+  ramsey_number ![a, c] ≤ ramsey_number ![b, d] :=
+ramsey_number.mono (by { rw [pi.le_def, fin.forall_fin_two], exact ⟨hab, hcd⟩ })
+
 lemma ramsey_number_monotone {i : ℕ} : monotone (ramsey_number : (fin i → ℕ) → ℕ) :=
 λ _ _ h, ramsey_number.mono h
 
@@ -1104,14 +1108,7 @@ by rw [diagonal_ramsey.def, ramsey_number_one_succ]
 @[simp] lemma diagonal_ramsey_two : diagonal_ramsey 2 = 2 :=
 by rw [diagonal_ramsey.def, ramsey_number_cons_two, ramsey_number_singleton]
 lemma diagonal_ramsey_monotone : monotone diagonal_ramsey :=
-begin
-  intros n m hnm,
-  refine ramsey_number.mono _,
-  intro i,
-  revert i,
-  rw fin.forall_fin_two,
-  simpa using hnm,
-end
+λ n m hnm, ramsey_number.mono_two hnm hnm
 
 section paley
 
@@ -1607,7 +1604,6 @@ end
 /-- A simplification of `ramsey_number_le_right_pow_left` which is more convenient for asymptotic
 reasoning. -/
 lemma ramsey_number_le_right_pow_left' {i j : ℕ} : ramsey_number ![i, j] ≤ j ^ i :=
-(ramsey_number_le_right_pow_left (i + 1) j).trans' $ ramsey_number_monotone $
-  by { rw [pi.le_def, fin.forall_fin_two], simp }
+(ramsey_number_le_right_pow_left (i + 1) j).trans' $ ramsey_number.mono_two (by simp) le_rfl
 
 end simple_graph

@@ -69,7 +69,8 @@ begin
   rwa [← mul_eq_mul, ← units.coe_mul, mul_inv_self, units.coe_one, rank_one] at this,
 end
 
-lemma rank_of_is_unit [strong_rank_condition R] [decidable_eq n] (A : matrix n n R) (h : is_unit A) :
+lemma rank_of_is_unit [strong_rank_condition R] [decidable_eq n] (A : matrix n n R)
+  (h : is_unit A) :
   A.rank = fintype.card n :=
 by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 

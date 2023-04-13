@@ -9,6 +9,9 @@ import linear_algebra.dimension
 /-!
 # A module over a division ring is noetherian if and only if it is finite.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 universes u v
@@ -24,10 +27,10 @@ variables {K : Type u} {V : Type v} [division_ring K] [add_comm_group V] [module
 A module over a division ring is noetherian if and only if
 its dimension (as a cardinal) is strictly less than the first infinite cardinal `ℵ₀`.
 -/
-lemma iff_dim_lt_aleph_0 : is_noetherian K V ↔ module.rank K V < ℵ₀ :=
+lemma iff_rank_lt_aleph_0 : is_noetherian K V ↔ module.rank K V < ℵ₀ :=
 begin
   let b := basis.of_vector_space K V,
-  rw [← b.mk_eq_dim'', lt_aleph_0_iff_set_finite],
+  rw [← b.mk_eq_rank'', lt_aleph_0_iff_set_finite],
   split,
   { introI,
     exact finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V) },
@@ -42,15 +45,15 @@ variables (K V)
 
 /-- The dimension of a noetherian module over a division ring, as a cardinal,
 is strictly less than the first infinite cardinal `ℵ₀`. -/
-lemma dim_lt_aleph_0 : ∀ [is_noetherian K V], module.rank K V < ℵ₀ :=
-is_noetherian.iff_dim_lt_aleph_0.1
+lemma rank_lt_aleph_0 : ∀ [is_noetherian K V], module.rank K V < ℵ₀ :=
+is_noetherian.iff_rank_lt_aleph_0.1
 
 variables {K V}
 
 /-- In a noetherian module over a division ring, all bases are indexed by a finite type. -/
 noncomputable def fintype_basis_index {ι : Type*} [is_noetherian K V] (b : basis ι K V) :
   fintype ι :=
-b.fintype_index_of_dim_lt_aleph_0 (dim_lt_aleph_0 K V)
+b.fintype_index_of_rank_lt_aleph_0 (rank_lt_aleph_0 K V)
 
 /-- In a noetherian module over a division ring,
 `basis.of_vector_space` is indexed by a finite type. -/
@@ -61,7 +64,7 @@ fintype_basis_index (basis.of_vector_space K V)
 if a basis is indexed by a set, that set is finite. -/
 lemma finite_basis_index {ι : Type*} {s : set ι} [is_noetherian K V] (b : basis s K V) :
   s.finite :=
-b.finite_index_of_dim_lt_aleph_0 (dim_lt_aleph_0 K V)
+b.finite_index_of_rank_lt_aleph_0 (rank_lt_aleph_0 K V)
 
 variables (K V)
 
@@ -103,8 +106,8 @@ begin
   { introI h,
     exact ⟨⟨finset_basis_index K V, by { convert (finset_basis K V).span_eq, simp }⟩⟩ },
   { rintros ⟨s, hs⟩,
-    rw [is_noetherian.iff_dim_lt_aleph_0, ← dim_top, ← hs],
-    exact lt_of_le_of_lt (dim_span_le _) s.finite_to_set.lt_aleph_0 }
+    rw [is_noetherian.iff_rank_lt_aleph_0, ← rank_top, ← hs],
+    exact lt_of_le_of_lt (rank_span_le _) s.finite_to_set.lt_aleph_0 }
 end
 
 end is_noetherian

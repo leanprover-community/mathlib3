@@ -12,6 +12,9 @@ import topology.algebra.module.basic
 /-!
 # Normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (semi)normed spaces and algebras. We also prove some theorems
 about these definitions.
 -/

@@ -76,6 +76,17 @@ lemma of_ρ_apply {V : Type u} [add_comm_group V] [module k V]
   (ρ : representation k G V) (g : Mon.of G) :
   (Rep.of ρ).ρ g = ρ (g : G) := rfl
 
+variables (k G)
+
+/-- The trivial `k`-linear `G`-representation on a `k`-module `V.` -/
+def trivial (V : Type u) [add_comm_group V] [module k V] : Rep k G :=
+Rep.of (@representation.trivial k G V _ _ _ _)
+
+variables {k G}
+
+lemma trivial_def {V : Type u} [add_comm_group V] [module k V] (g : G) (v : V) :
+  (trivial k G V).ρ g v = v := rfl
+
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
@@ -101,22 +112,54 @@ noncomputable def linearization :
 variables {k G}
 
 @[simp] lemma linearization_obj_ρ (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V →₀ k) :
-  ((linearization k G).1.1.obj X).ρ g x = finsupp.lmap_domain k k (X.ρ g) x := rfl
+  ((linearization k G).obj X).ρ g x = finsupp.lmap_domain k k (X.ρ g) x := rfl
 
 @[simp] lemma linearization_of (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V) :
-  ((linearization k G).1.1.obj X).ρ g (finsupp.single x (1 : k))
+  ((linearization k G).obj X).ρ g (finsupp.single x (1 : k))
     = finsupp.single (X.ρ g x) (1 : k) :=
 by rw [linearization_obj_ρ, finsupp.lmap_domain_apply, finsupp.map_domain_single]
 
-variables (X Y : Action (Type u) (Mon.of G)) (f : X ⟶ Y)
+variables {X Y : Action (Type u) (Mon.of G)} (f : X ⟶ Y)
 
 @[simp] lemma linearization_map_hom :
-  ((linearization k G).1.1.map f).hom = finsupp.lmap_domain k k f.hom := rfl
+  ((linearization k G).map f).hom = finsupp.lmap_domain k k f.hom := rfl
 
-lemma linearization_map_hom_of (x : X.V) :
-  ((linearization k G).1.1.map f).hom (finsupp.single x (1 : k))
-    = finsupp.single (f.hom x) (1 : k) :=
+lemma linearization_map_hom_single (x : X.V) (r : k) :
+  ((linearization k G).map f).hom (finsupp.single x r)
+    = finsupp.single (f.hom x) r :=
 by rw [linearization_map_hom, finsupp.lmap_domain_apply, finsupp.map_domain_single]
+
+@[simp] lemma linearization_μ_hom (X Y : Action (Type u) (Mon.of G)) :
+  ((linearization k G).μ X Y).hom = (finsupp_tensor_finsupp' k X.V Y.V).to_linear_map :=
+rfl
+
+@[simp] lemma linearization_μ_inv_hom (X Y : Action (Type u) (Mon.of G)) :
+  (inv ((linearization k G).μ X Y)).hom = (finsupp_tensor_finsupp' k X.V Y.V).symm.to_linear_map :=
+begin
+  simp_rw [←Action.forget_map, functor.map_inv, Action.forget_map, linearization_μ_hom],
+  apply is_iso.inv_eq_of_hom_inv_id _,
+  exact linear_map.ext (λ x, linear_equiv.symm_apply_apply _ _),
+end
+
+@[simp] lemma linearization_ε_hom :
+  (linearization k G).ε.hom = finsupp.lsingle punit.star :=
+rfl
+
+@[simp] lemma linearization_ε_inv_hom_apply (r : k) :
+  (inv (linearization k G).ε).hom (finsupp.single punit.star r) = r :=
+begin
+  simp_rw [←Action.forget_map, functor.map_inv, Action.forget_map],
+  rw [←finsupp.lsingle_apply punit.star r],
+  apply is_iso.hom_inv_id_apply _ _,
+end
+
+variables (k G)
+
+/-- The linearization of a type `X` on which `G` acts trivially is the trivial `G`-representation
+on `k[X]`. -/
+@[simps] noncomputable def linearization_trivial_iso (X : Type u) :
+  (linearization k G).obj (Action.mk X 1) ≅ trivial k G (X →₀ k) :=
+Action.mk_iso (iso.refl _) $ λ g, by { ext1, ext1, exact linearization_of _ _ _ }
 
 variables (k G)
 
@@ -125,11 +168,19 @@ variables (k G)
 noncomputable abbreviation of_mul_action (H : Type u) [mul_action G H] : Rep k G :=
 of $ representation.of_mul_action k G H
 
+/-- The `k`-linear `G`-representation on `k[G]`, induced by left multiplication. -/
+noncomputable def left_regular : Rep k G :=
+of_mul_action k G G
+
+/-- The `k`-linear `G`-representation on `k[Gⁿ]`, induced by left multiplication. -/
+noncomputable def diagonal (n : ℕ) : Rep k G :=
+of_mul_action k G (fin n → G)
+
 /-- The linearization of a type `H` with a `G`-action is definitionally isomorphic to the
 `k`-linear `G`-representation on `k[H]` induced by the `G`-action on `H`. -/
-noncomputable def linearization_of_mul_action_iso (n : ℕ) :
-  (linearization k G).1.1.obj (Action.of_mul_action G (fin n → G))
-    ≅ of_mul_action k G (fin n → G) := iso.refl _
+noncomputable def linearization_of_mul_action_iso (H : Type u) [mul_action G H] :
+  (linearization k G).obj (Action.of_mul_action G H)
+    ≅ of_mul_action k G H := iso.refl _
 
 variables {k G}
 

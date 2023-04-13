@@ -86,13 +86,15 @@ instance shift_hom_default (M N : Dmodule X) (i : ℤ) [inhabited (M ⟶ N)] :
   inhabited (M⟦i⟧ ⟶ N⟦i⟧) :=
 { default := (default : M ⟶ N)⟦i⟧' }
 
+meta def hom_tac : tactic unit := `[exact default <|> assumption]
+
 def upper_triangle_commutes_up_to_sign (n : ℤˣ) (M N P : Dmodule X)
-  [inhabited (M ⟶ N)] [inhabited (N ⟶ P)] [inhabited (M ⟶ P)] : Prop :=
-(default : M ⟶ N) ≫ (default : N ⟶ P) = n • (default : M ⟶ P)
+  (f : M ⟶ N . hom_tac) (g : N ⟶ P . hom_tac) (h : M ⟶ P . hom_tac) : Prop :=
+f ≫ g = n • h
 
 def square_commutes_up_to_sign (n : ℤˣ) (A B C D : Dmodule X)
-  [inhabited (A ⟶ B)] [inhabited (B ⟶ D)] [inhabited (A ⟶ C)] [inhabited (C ⟶ D)] : Prop :=
-(default : A ⟶ B) ≫ (default : B ⟶ D) = n • ((default : A ⟶ C) ≫ (default : C ⟶ D))
+  (α : A ⟶ B . hom_tac) (β : B ⟶ D . hom_tac) (γ : A ⟶ C . hom_tac) (δ : C ⟶ D . hom_tac) : Prop :=
+α ≫ β = n • (γ ≫ δ)
 
 variables [fact (a + a' = 0)] [fact (b + b' = 0)] [fact (c + c' = 0)]
 

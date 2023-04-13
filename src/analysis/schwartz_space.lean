@@ -405,6 +405,10 @@ begin
   rwa [pow_zero, one_mul] at this,
 end
 
+lemma _root_.finset.le_sup_of_le {α : Type*} {ι : Sort*} [semilattice_sup α] [order_bot α]
+  {f : ι → α} {s : finset ι} {a : α} {i : ι} (hi : i ∈ s) (h : a ≤ f i) : a ≤ s.sup f :=
+h.trans (finset.le_sup hi)
+
 /-- Every seminorm can be bounded by the supremum of all seminorms with `k ≤ m.1` and `n ≤ m.2`.
 
 The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`. -/

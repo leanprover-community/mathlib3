@@ -311,7 +311,7 @@ begin
     { exact hdisj, },
     exact hdisj.symm,  },
   have hdom : ∀ {x : ℕ → bool}, x ∈ (induced_map D).1 := λ x,
-    by simp[ hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
+    by simp [hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
   refine ⟨λ x, (induced_map D).2 ⟨x, hdom⟩, _, _, _⟩,
   { rintros y ⟨x, rfl⟩,
     exact map_mem ⟨_, hdom⟩ 0, },

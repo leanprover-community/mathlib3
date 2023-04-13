@@ -58,6 +58,18 @@ and `∀ x : V, 0 ≤ re ⟪T x, x⟫` -/
 def is_positive (T : E →ₗ[𝕜] E) : Prop :=
 T.is_symmetric ∧ ∀ x : E, 0 ≤ re ⟪T x, x⟫
 
+lemma is_positive.is_symmetric {T : E →ₗ[𝕜] E} (hT : is_positive T) :
+  T.is_symmetric :=
+hT.1
+
+lemma is_positive.inner_nonneg_left {T : E →ₗ[𝕜] E} (hT : is_positive T) (x : E) :
+  0 ≤ re ⟪T x, x⟫ :=
+hT.2 x
+
+lemma is_positive.inner_nonneg_right {T : E →ₗ[𝕜] E} (hT : is_positive T) (x : E) :
+  0 ≤ re ⟪x, T x⟫ :=
+by { rw inner_re_symm, exact hT.2 x, }
+
 lemma is_positive_zero : (0 : E →ₗ[𝕜] E).is_positive :=
 begin
   refine ⟨is_symmetric_zero, λ x, _⟩,
@@ -74,18 +86,6 @@ begin
   rw [add_apply, inner_add_left, map_add],
   exact add_nonneg (hS.2 _) (hT.2 _),
 end
-
-lemma is_positive.is_symmetric {T : E →ₗ[𝕜] E} (hT : is_positive T) :
-  T.is_symmetric :=
-hT.1
-
-lemma is_positive.inner_nonneg_left {T : E →ₗ[𝕜] E} (hT : is_positive T) (x : E) :
-  0 ≤ re ⟪T x, x⟫ :=
-hT.2 x
-
-lemma is_positive.inner_nonneg_right {T : E →ₗ[𝕜] E} (hT : is_positive T) (x : E) :
-  0 ≤ re ⟪x, T x⟫ :=
-by { rw inner_re_symm, exact hT.2 x, }
 
 /-- a linear projection onto `U` along its complement `V` is positive if
 and only if `U` and `V` are orthogonal -/

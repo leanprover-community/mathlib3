@@ -48,7 +48,7 @@ We show additionally that this equivalence sends `quaternion_algebra.conj` to th
 and vice-versa:
 
 * `clifford_algebra_quaternion.to_quaternion_star`
-* `clifford_algebra_quaternion.of_quaternion_conj`
+* `clifford_algebra_quaternion.of_quaternion_star`
 
 ## Dual numbers
 
@@ -339,8 +339,8 @@ alg_equiv.of_alg_hom to_quaternion of_quaternion
   of_quaternion_comp_to_quaternion
 
 /-- The quaternion conjugate maps to the "clifford conjugate" (aka `star`). -/
-@[simp] lemma of_quaternion_conj (q : ℍ[R,c₁,c₂]) :
-  of_quaternion (q.conj) = star (of_quaternion q) :=
+@[simp] lemma of_quaternion_star (q : ℍ[R,c₁,c₂]) :
+  of_quaternion (star q) = star (of_quaternion q) :=
 clifford_algebra_quaternion.equiv.injective $
   by rw [equiv_apply, equiv_apply, to_quaternion_star, to_quaternion_of_quaternion,
     to_quaternion_of_quaternion]

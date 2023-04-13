@@ -163,7 +163,7 @@ This should eventually be remedied.
 section to_matrix'
 
 variables {R : Type*} [comm_semiring R]
-variables {l m n : Type*}
+variables {k l m n : Type*}
 
 /-- `matrix.mul_vec M` is a linear map. -/
 @[simps] def matrix.mul_vec_lin [fintype n] (M : matrix m n R) : (n → R) →ₗ[R] (m → R) :=

@@ -33,7 +33,10 @@ namespace matrix
 open finite_dimensional
 
 variables {m n o R : Type*} [m_fin : fintype m] [fintype n] [fintype o]
-variables [decidable_eq n] [decidable_eq o] [comm_ring R]
+variables [decidable_eq n] [decidable_eq o]
+
+section comm_ring
+variables [comm_ring R]
 
 /-- The rank of a matrix is the rank of its image. -/
 noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.to_lin'.range
@@ -75,7 +78,16 @@ lemma rank_of_is_unit [strong_rank_condition R] (A : matrix n n R) (h : is_unit 
   A.rank = fintype.card n :=
 by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 
+
 include m_fin
+
+@[simp] lemma rank_reindex [decidable_eq m] (A : matrix m m R) (e : m ≃ n) :
+  rank (matrix.reindex e e A) = rank A :=
+begin
+  dunfold rank,
+  dsimp only [to_lin', linear_map.to_matrix', linear_equiv.coe_symm_mk],
+  rw [←reindex_linear_equiv_apply R R e e, rank, ←linear_equiv.trans_apply],
+end
 
 lemma rank_eq_finrank_range_to_lin
   {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂]
@@ -114,15 +126,17 @@ lemma rank_le_height [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (
 A.rank_le_card_height.trans $ (fintype.card_fin m).le
 
 /-- The rank of a matrix is the rank of the space spanned by its columns. -/
-lemma rank_eq_finrank_span_cols [strong_rank_condition R] (A : matrix m n R) :
+lemma rank_eq_finrank_span_cols (A : matrix m n R) :
   A.rank = finrank R (submodule.span R (set.range Aᵀ)) :=
 by rw [rank, matrix.range_to_lin']
 
-#print instances strict_ordered_comm_ring
+end comm_ring
 
+section field
+variables [decidable_eq m] [fintype m]
 
--- TODO: generalize once `dot_product_star_self_eq_zero` doesn't require a stupid order
-lemma rank_mul_conj_transpose_self [decidable_eq m] [fintype m] (A : matrix m n ℂ) :
+lemma rank_conj_transpose_mul_self [field R] [partial_order R] [star_ordered_ring R]
+  (A : matrix m n R) :
   (Aᴴ ⬝ A).rank = A.rank :=
 begin
   have : linear_map.ker (to_lin' A) = linear_map.ker (Aᴴ ⬝ A).to_lin',
@@ -132,19 +146,44 @@ begin
     { intro h, rw [h, mul_vec_zero] },
     { intro h,
       replace h := congr_arg (dot_product (star x)) h,
-      rw [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star,
-        dot_product_star_self_eq_zero] at h,
-      set y := A.mul_vec x with hy,
-      rw ←hy at h ⊢,
-      sorry } },
-  -- refine le_antisymm _ _,
-  -- apply rank_mul_le,
+      rwa [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star,
+        dot_product_star_self_eq_zero] at h } },
   dunfold rank,
-  refine add_left_injective (finrank K (A.to_lin').ker) _,
+  refine add_left_injective (finrank R (A.to_lin').ker) _,
+  dsimp only,
+  rw [linear_map.finrank_range_add_finrank_ker, ←((Aᴴ ⬝ A).to_lin').finrank_range_add_finrank_ker],
+  congr' 1,
+  rw this,
+end
+
+lemma rank_transpose_mul_self [linear_ordered_field R]
+  (A : matrix m n R) :
+  (Aᵀ ⬝ A).rank = A.rank :=
+begin
+  have : linear_map.ker (to_lin' A) = linear_map.ker (Aᵀ ⬝ A).to_lin',
+  { ext x,
+    simp only [linear_map.mem_ker, to_lin'_apply, ←mul_vec_mul_vec],
+    split,
+    { intro h, rw [h, mul_vec_zero] },
+    { intro h,
+      replace h := congr_arg (dot_product x) h,
+      rwa [dot_product_mul_vec, dot_product_zero, vec_mul_transpose,
+        dot_product_self_eq_zero] at h } },
+  dunfold rank,
+  refine add_left_injective (finrank R (A.to_lin').ker) _,
   dsimp only,
   rw [linear_map.finrank_range_add_finrank_ker, ←((Aᵀ ⬝ A).to_lin').finrank_range_add_finrank_ker],
   congr' 1,
   rw this,
 end
+
+
+lemma rank_transpose [linear_ordered_field R] (A : matrix m n R) :
+  Aᵀ.rank = A.rank :=
+begin
+  apply le_antisymm
+end
+
+end field
 
 end matrix

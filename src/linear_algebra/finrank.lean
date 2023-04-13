@@ -8,6 +8,9 @@ import linear_algebra.dimension
 /-!
 # Finite dimension of vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition of the rank of a module, or dimension of a vector space, as a natural number.
 
 ## Main definitions

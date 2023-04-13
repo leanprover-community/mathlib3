@@ -493,6 +493,19 @@ by simp [dot_product, mul_add, finset.sum_add_distrib]
   (sum.elim u x) ⬝ᵥ (sum.elim v y) = u ⬝ᵥ v + x ⬝ᵥ y :=
 by simp [dot_product]
 
+/-- Permuting a vector on the left of a dot product can be transferred to the right. -/
+@[simp] lemma comp_equiv_symm_dot_product (e : m ≃ n) : (u ∘ e.symm) ⬝ᵥ x = u ⬝ᵥ (x ∘ e) :=
+(e.sum_comp _).symm.trans $ finset.sum_congr rfl $ λ _ _,
+  by simp only [function.comp, equiv.symm_apply_apply]
+
+/-- Permuting a vector on the right of a dot product can be transferred to the left. -/
+@[simp] lemma dot_product_comp_equiv_symm (e : n ≃ m) : u ⬝ᵥ (x ∘ e.symm) = (u ∘ e) ⬝ᵥ x :=
+by simpa only [equiv.symm_symm] using (comp_equiv_symm_dot_product u x e.symm).symm
+
+/-- Permuting vectors on both sides of a dot product is a no-op. -/
+@[simp] lemma comp_equiv_dot_product_comp_equiv (e : m ≃ n) : (x ∘ e) ⬝ᵥ (y ∘ e) = x ⬝ᵥ y :=
+by simp only [←dot_product_comp_equiv_symm, function.comp, equiv.apply_symm_apply]
+
 end non_unital_non_assoc_semiring
 
 section non_unital_non_assoc_semiring_decidable
@@ -1792,6 +1805,16 @@ lemma submatrix_mul_equiv [fintype n] [fintype o] [add_comm_monoid α] [has_mul 
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
   (M.submatrix e₁ e₂) ⬝ (N.submatrix e₂ e₃) = (M ⬝ N).submatrix e₁ e₃ :=
 (submatrix_mul M N e₁ e₂ e₃ e₂.bijective).symm
+
+lemma submatrix_mul_vec_equiv [fintype n] [fintype o] [non_unital_non_assoc_semiring α]
+  (M : matrix m n α) (v : o → α) (e₁ : l → m) (e₂ : o ≃ n) :
+  (M.submatrix e₁ e₂).mul_vec v = M.mul_vec (v ∘ e₂.symm) ∘ e₁ :=
+funext $ λ i, eq.symm (dot_product_comp_equiv_symm _ _ _)
+
+lemma submatrix_vec_mul_equiv [fintype l] [fintype m] [non_unital_non_assoc_semiring α]
+  (M : matrix m n α) (v : l → α) (e₁ : l ≃ m) (e₂ : o → n) :
+  vec_mul v (M.submatrix e₁ e₂) = vec_mul (v ∘ e₁.symm) M ∘ e₂ :=
+funext $ λ i, eq.symm (comp_equiv_symm_dot_product _ _ _)
 
 lemma mul_submatrix_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
   (e₂ : l → o) (M : matrix m n α) :

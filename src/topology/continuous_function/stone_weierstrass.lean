@@ -121,7 +121,7 @@ end
 theorem inf_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
   (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A.topological_closure :=
 begin
-  rw inf_eq,
+  rw (inf_eq_half_smul_add_sub_abs_sub' ℝ),
   refine A.topological_closure.smul_mem
     (A.topological_closure.sub_mem
       (A.topological_closure.add_mem (A.le_topological_closure f.property)
@@ -142,7 +142,7 @@ end
 theorem sup_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
   (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A.topological_closure :=
 begin
-  rw sup_eq,
+  rw (sup_eq_half_smul_add_add_abs_sub' ℝ),
   refine A.topological_closure.smul_mem
     (A.topological_closure.add_mem
       (A.topological_closure.add_mem (A.le_topological_closure f.property)

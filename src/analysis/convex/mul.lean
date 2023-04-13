@@ -11,7 +11,7 @@ import analysis.convex.function
 
 ## TODO
 
-Still missing half the variants.
+Introduce `has_distrib_smul`?
 -/
 
 variables {𝕜 E F : Type*} [linear_ordered_comm_ring 𝕜] [linear_ordered_comm_ring E]
@@ -66,6 +66,24 @@ begin
     all_goals { apply_instance } }
 end
 
+lemma convex_on.smul'' {f : 𝕜 → E} {g : 𝕜 → F} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g)
+  (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0) (hfg : antivary_on f g s) :
+  concave_on 𝕜 s (f • g) :=
+begin
+  letI : module (𝕜 → E) (𝕜 → F) := pi.module',
+  rw ←neg_smul_neg,
+  exact hf.neg.smul' hg.neg (λ x hx, neg_nonneg.2 $ hf₀ hx) (λ x hx, neg_nonneg.2 $ hg₀ hx) hfg.neg,
+end
+
+lemma concave_on.smul'' {f : 𝕜 → E} {g : 𝕜 → F} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 s g)
+  (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0) (hfg : monovary_on f g s) :
+  convex_on 𝕜 s (f • g) :=
+begin
+  letI : module (𝕜 → E) (𝕜 → F) := pi.module',
+  rw ←neg_smul_neg,
+  exact hf.neg.smul' hg.neg (λ x hx, neg_nonneg.2 $ hf₀ hx) (λ x hx, neg_nonneg.2 $ hg₀ hx) hfg.neg,
+end
+
 lemma convex_on.smul_concave_on {f : 𝕜 → E} {g : 𝕜 → F} (hf : convex_on 𝕜 s f)
   (hg : concave_on 𝕜 s g) (hf₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ f x) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0)
   (hfg : antivary_on f g s) : concave_on 𝕜 s (f • g) :=
@@ -82,6 +100,22 @@ begin
   exact hf.smul' hg.neg hf₀ (λ x hx, neg_nonneg.2 $ hg₀ hx) hfg.neg_right,
 end
 
+lemma convex_on.smul_concave_on' {f : 𝕜 → E} {g : 𝕜 → F} (hf : convex_on 𝕜 s f)
+  (hg : concave_on 𝕜 s g) (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ g x)
+  (hfg : monovary_on f g s) : convex_on 𝕜 s (f • g) :=
+begin
+  rw [←neg_concave_on_iff, ←smul_neg],
+  exact hf.smul'' hg.neg hf₀ (λ x hx, neg_nonpos.2 $ hg₀ hx) hfg.neg_right,
+end
+
+lemma concave_on.smul_convex_on' {f : 𝕜 → E} {g : 𝕜 → F} (hf : concave_on 𝕜 s f)
+  (hg : convex_on 𝕜 s g) (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ g x)
+  (hfg : antivary_on f g s) : concave_on 𝕜 s (f • g) :=
+begin
+  rw [←neg_convex_on_iff, ←smul_neg],
+  exact hf.smul'' hg.neg hf₀ (λ x hx, neg_nonpos.2 $ hg₀ hx) hfg.neg_right,
+end
+
 variables [is_scalar_tower 𝕜 E E] [smul_comm_class 𝕜 E E]
 
 lemma convex_on.mul {f g : 𝕜 → E} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g)
@@ -94,6 +128,16 @@ lemma concave_on.mul {f g : 𝕜 → E} (hf : concave_on 𝕜 s f) (hg : concave
   concave_on 𝕜 s (f * g) :=
 hf.smul' hg hf₀ hg₀ hfg
 
+lemma convex_on.mul' {f g : 𝕜 → E} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g)
+  (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0) (hfg : antivary_on f g s) :
+  concave_on 𝕜 s (f * g) :=
+hf.smul'' hg hf₀ hg₀ hfg
+
+lemma concave_on.mul' {f g : 𝕜 → E} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 s g)
+  (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0) (hfg : monovary_on f g s) :
+  convex_on 𝕜 s (f * g) :=
+hf.smul'' hg hf₀ hg₀ hfg
+
 lemma convex_on.mul_concave_on {f g : 𝕜 → E} (hf : convex_on 𝕜 s f) (hg : concave_on 𝕜 s g)
   (hf₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ f x) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0) (hfg : antivary_on f g s) :
   concave_on 𝕜 s (f * g) :=
@@ -103,3 +147,13 @@ lemma concave_on.mul_convex_on {f g : 𝕜 → E} (hf : concave_on 𝕜 s f) (hg
   (hf₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ f x) (hg₀ : ∀ ⦃x⦄, x ∈ s → g x ≤ 0) (hfg : monovary_on f g s) :
   convex_on 𝕜 s (f * g) :=
 hf.smul_convex_on hg hf₀ hg₀ hfg
+
+lemma convex_on.mul_concave_on' {f g : 𝕜 → E} (hf : convex_on 𝕜 s f) (hg : concave_on 𝕜 s g)
+  (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ g x) (hfg : monovary_on f g s) :
+  convex_on 𝕜 s (f * g) :=
+hf.smul_concave_on' hg hf₀ hg₀ hfg
+
+lemma concave_on.mul_convex_on' {f g : 𝕜 → E} (hf : concave_on 𝕜 s f) (hg : convex_on 𝕜 s g)
+ (hf₀ : ∀ ⦃x⦄, x ∈ s → f x ≤ 0) (hg₀ : ∀ ⦃x⦄, x ∈ s → 0 ≤ g x) (hfg : antivary_on f g s) :
+  concave_on 𝕜 s (f • g) :=
+hf.smul_convex_on' hg hf₀ hg₀ hfg

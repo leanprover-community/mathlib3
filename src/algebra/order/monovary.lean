@@ -38,6 +38,9 @@ by simpa [monovary_on, antivary_on] using forall₂_swap
 @[simp, to_additive] lemma antivary_on_inv_right : antivary_on f g⁻¹ s ↔ monovary_on f g s :=
 by simpa [monovary_on, antivary_on] using forall₂_swap
 
+@[to_additive] lemma monovary_on_inv : monovary_on f⁻¹ g⁻¹ s ↔ monovary_on f g s := by simp
+@[to_additive] lemma antivary_on_inv : antivary_on f⁻¹ g⁻¹ s ↔ antivary_on f g s := by simp
+
 @[simp, to_additive] lemma monovary_inv_left : monovary f⁻¹ g ↔ antivary f g :=
 by simp [monovary, antivary]
 
@@ -50,24 +53,35 @@ by simpa [monovary, antivary] using forall_swap
 @[simp, to_additive] lemma antivary_inv_right : antivary f g⁻¹ ↔ monovary f g :=
 by simpa [monovary, antivary] using forall_swap
 
+@[to_additive] lemma monovary_inv : monovary f⁻¹ g⁻¹ ↔ monovary f g := by simp
+@[to_additive] lemma antivary_inv : antivary f⁻¹ g⁻¹ ↔ antivary f g := by simp
+
 alias monovary_on_inv_left ↔ monovary_on.of_inv_left antivary_on.inv_left
 alias antivary_on_inv_left ↔ antivary_on.of_inv_left monovary_on.inv_left
 alias monovary_on_inv_right ↔ monovary_on.of_inv_right antivary_on.inv_right
 alias antivary_on_inv_right ↔ antivary_on.of_inv_right monovary_on.inv_right
+alias monovary_on_inv ↔ monovary_on.of_inv monovary_on.inv
+alias antivary_on_inv ↔ antivary_on.of_inv antivary_on.inv
 alias monovary_inv_left ↔ monovary.of_inv_left antivary.inv_left
 alias antivary_inv_left ↔ antivary.of_inv_left monovary.inv_left
 alias monovary_inv_right ↔ monovary.of_inv_right antivary.inv_right
 alias antivary_inv_right ↔ antivary.of_inv_right monovary.inv_right
+alias monovary_inv ↔ monovary.of_inv monovary.inv
+alias antivary_inv ↔ antivary.of_inv antivary.inv
 
 attribute [to_additive]
   monovary_on.of_inv_left antivary_on.inv_left
   antivary_on.of_inv_left monovary_on.inv_left
   monovary_on.of_inv_right antivary_on.inv_right
   antivary_on.of_inv_right monovary_on.inv_right
+  monovary_on.of_inv monovary_on.inv
+  antivary_on.of_inv antivary_on.inv
   monovary.of_inv_left antivary.inv_left
   antivary.of_inv_left monovary.inv_left
   monovary.of_inv_right antivary.inv_right
   antivary.of_inv_right monovary.inv_right
+  monovary.of_inv monovary.inv
+  antivary.of_inv antivary.inv
 
 @[to_additive] lemma monovary_on.mul_left (h₁ : monovary_on f₁ g s) (h₂ : monovary_on f₂ g s) :
   monovary_on (f₁ * f₂) g s :=

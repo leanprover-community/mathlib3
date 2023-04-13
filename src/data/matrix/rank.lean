@@ -65,7 +65,7 @@ include m_fin
 lemma rank_mul_le_right [strong_rank_condition R] (A : matrix l m R) (B : matrix m n R) :
   (A ⬝ B).rank ≤ B.rank :=
 begin
-  classical,
+  letI := classical.dec_eq m,
   rw [rank, rank, to_lin'_mul],
   exact finrank_le_finrank_of_rank_le_rank
     (linear_map.lift_rank_comp_le_right B.to_lin' A.to_lin') (rank_lt_aleph_0 _ _),

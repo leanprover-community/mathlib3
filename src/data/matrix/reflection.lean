@@ -132,7 +132,7 @@ example (a b c d : α) [has_mul α] [add_comm_monoid α] :
 def mulᵣ [has_mul α] [has_add α] [has_zero α]
   (A : matrix (fin l) (fin m) α) (B : matrix (fin m) (fin n) α) :
   matrix (fin l) (fin n) α :=
-of $ fin_vec.map (λ v₁, fin_vec.map (λ v₂, dot_productᵣ v₁ v₂) (transposeᵣ B)) A
+of $ fin_vec.map (λ v₁, fin_vec.map (λ v₂, dot_productᵣ v₁ v₂) Bᵀ) A
 
 /-- This can be used to prove
 ```lean
@@ -192,7 +192,7 @@ example [non_unital_non_assoc_semiring α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁
 /-- `matrix.vec_mul` with better defeq for `fin` -/
 def vec_mulᵣ [has_mul α] [has_add α] [has_zero α] (v : fin l → α) (A : matrix (fin l) (fin m) α):
   fin m → α :=
-fin_vec.map (λ a, dot_productᵣ v a) (transposeᵣ A)
+fin_vec.map (λ a, dot_productᵣ v a) Aᵀ
 
 /-- This can be used to prove
 ```lean

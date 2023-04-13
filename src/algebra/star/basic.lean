@@ -126,23 +126,23 @@ class star_semigroup (R : Type u) [semigroup R] extends has_involutive_star R :=
 export star_semigroup (star_mul)
 attribute [simp] star_mul
 
-lemma star_star_mul [semigroup R] [star_semigroup R] (x y : R) : star (star x * y) = star y * x :=
-by rw [star_mul, star_star]
+section star_semigroup
+variables [semigroup R] [star_semigroup R]
 
-lemma star_mul_star [semigroup R] [star_semigroup R] (x y : R) : star (x * star y) = y * star x :=
-by rw [star_mul, star_star]
+lemma star_star_mul (x y : R) : star (star x * y) = star y * x := by rw [star_mul, star_star]
 
-lemma commute.star_star [semigroup R] [star_semigroup R] {x y : R} (h : commute x y) :
-  commute (star x) (star y) :=
+lemma star_mul_star (x y : R) : star (x * star y) = y * star x := by rw [star_mul, star_star]
+
+lemma commute.star_star {x y : R} (h : commute x y) : commute (star x) (star y) :=
 (star_mul _ _).symm.trans $ (congr_arg star h.symm).trans $ star_mul _ _
 
-@[simp] lemma commute_star_star [semigroup R] [star_semigroup R] {x y : R} :
-  commute (star x) (star y) ↔ commute x y :=
+@[simp] lemma commute_star_star {x y : R} : commute (star x) (star y) ↔ commute x y :=
 ⟨λ h, by simpa only [star_star] using h.star_star, commute.star_star⟩
 
-lemma commute_star_comm [semigroup R] [star_semigroup R] {x y : R} :
-  commute (star x) y ↔ commute x (star y) :=
+lemma commute_star_comm {x y : R} : commute (star x) y ↔ commute x (star y) :=
 by rw [←commute_star_star, star_star]
+
+end star_semigroup
 
 /-- In a commutative ring, make `simp` prefer leaving the order unchanged. -/
 @[simp] lemma star_mul' [comm_semigroup R] [star_semigroup R] (x y : R) :

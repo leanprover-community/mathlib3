@@ -405,33 +405,39 @@ begin
   rwa [pow_zero, one_mul] at this,
 end
 
-lemma le_sup_seminorm {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) :
-  (seminorm 𝕜 k' n' : seminorm 𝕜 𝓢(E, F)) ≤ (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) :=
-@finset.le_sup _ _ _ _ _ (λ n : ℕ × ℕ, seminorm 𝕜 n.1 n.2) _ $ finset.mem_Iic.2 $
+/-- Every seminorm can be bounded by the supremum of all seminorms with `k ≤ m.1` and `n ≤ m.2`.
+
+The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`. -/
+lemma le_sup_seminorm {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2) :
+  (seminorm 𝕜 k n : seminorm 𝕜 𝓢(E, F)) ≤ (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) :=
+@finset.le_sup _ _ _ _ _ (λ m : ℕ × ℕ, seminorm 𝕜 m.1 m.2) _ $ finset.mem_Iic.2 $
   prod.mk_le_mk.2 ⟨hk, hn⟩
 
 /-- The seminorm `(finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2)` can bound all powers and
-derivatives of lower order. -/
-lemma le_sup_seminorm_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n) (f : 𝓢(E, F)) (x : E) :
-  ‖x‖ ^ k' * ‖iterated_fderiv ℝ n' f x‖ ≤ (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) f :=
-le_trans (le_seminorm 𝕜 k' n' f x) (le_sup_seminorm 𝕜 hk hn f)
+derivatives of lower order.
+
+The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`. -/
+lemma le_sup_seminorm_apply {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2) (f : 𝓢(E, F))
+  (x : E) :
+  ‖x‖ ^ k * ‖iterated_fderiv ℝ n f x‖ ≤ (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) f :=
+le_trans (le_seminorm 𝕜 k n f x) (le_sup_seminorm 𝕜 hk hn f)
 
 /-- A more convenient version of `le_sup_seminorm_apply`.
 
+The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`.
 Note that the constant is far from optimal. -/
-lemma one_add_le_sup_seminorm_apply {k n k' n' : ℕ} (hk : k' ≤ k) (hn : n' ≤ n)
+lemma one_add_le_sup_seminorm_apply {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2)
   (f : 𝓢(E, F)) (x : E) :
-  (1 + ‖x‖) ^ k' * ‖iterated_fderiv ℝ n' f x‖
-    ≤ 2^k * (finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2) f :=
+  (1 + ‖x‖) ^ k * ‖iterated_fderiv ℝ n f x‖
+    ≤ 2^m.1 * (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) f :=
 begin
   rw [add_comm, add_pow],
-  simp only [one_pow, mul_one, finset.sum_congr],
-  rw [finset.sum_mul],
+  simp only [one_pow, mul_one, finset.sum_congr, finset.sum_mul],
   norm_cast,
-  rw ← nat.sum_range_choose k,
+  rw ← nat.sum_range_choose m.1,
   push_cast,
   rw [finset.sum_mul],
-  have hk' : finset.range (k' + 1) ⊆ finset.range (k + 1) :=
+  have hk' : finset.range (k + 1) ⊆ finset.range (m.1 + 1) :=
   by rwa [finset.range_subset, add_le_add_iff_right],
   refine le_trans (finset.sum_le_sum_of_subset_of_nonneg hk' (λ _ _ _, by positivity)) _,
   refine finset.sum_le_sum (λ i hi, _),
@@ -439,7 +445,7 @@ begin
   refine mul_le_mul _ _ (by positivity) (by positivity),
   { norm_cast,
     exact i.choose_le_choose hk },
-  { apply le_sup_seminorm_apply 𝕜 (finset.mem_range_succ_iff.mp hi) hn },
+  { exact le_sup_seminorm_apply 𝕜 (finset.mem_range_succ_iff.mp hi) hn _ _ },
 end
 
 end seminorms
@@ -453,7 +459,7 @@ variables (𝕜 E F)
 
 /-- The family of Schwartz seminorms. -/
 def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
-λ n, seminorm 𝕜 n.1 n.2
+λ m, seminorm 𝕜 m.1 m.2
 
 @[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
   schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl

@@ -413,7 +413,7 @@ lemma le_sup_seminorm {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ 
 @finset.le_sup _ _ _ _ _ (λ m : ℕ × ℕ, seminorm 𝕜 m.1 m.2) _ $ finset.mem_Iic.2 $
   prod.mk_le_mk.2 ⟨hk, hn⟩
 
-/-- The seminorm `(finset.Iic (k, n)).sup (λ n, seminorm 𝕜 n.1 n.2)` can bound all powers and
+/-- The seminorm `(finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2)` can bound all powers and
 derivatives of lower order.
 
 The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`. -/

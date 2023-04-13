@@ -698,7 +698,7 @@ begin
   { norm_smul_le := λ a b, le_of_eq (map_smul_eq_mul (s.sup p) a b) },
   -- The inclusion `hε` tells us exactly that `q` is *still* continuous for this new topology
   have : continuous q,
-    from seminorm.continuous (mem_of_superset (metric.ball_mem_nhds _ ε_pos) hε),
+    from seminorm.continuous one_pos (mem_of_superset (metric.ball_mem_nhds _ ε_pos) hε),
   -- Hence we can conclude by applying `bound_of_continuous_normed_space`.
   rcases bound_of_continuous_normed_space q this with ⟨C, C_pos, hC⟩,
   exact ⟨s, ⟨C, C_pos.le⟩, λ H, C_pos.ne.symm (congr_arg coe H), hC⟩

@@ -370,9 +370,9 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 
 @[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
-lemma conj_conj_mul : (a.conj * b).conj = b.conj * a := star_star_mul _
+lemma conj_conj_mul : (a.conj * b).conj = b.conj * a := star_star_mul _ _
 
-lemma conj_mul_conj : (a * b.conj).conj = b * a.conj := star_mul_star _
+lemma conj_mul_conj : (a * b.conj).conj = b * a.conj := star_mul_star _ _
 
 lemma self_add_conj' : a + a.conj = ↑(2 * a.re) := by ext; simp [two_mul]
 
@@ -402,9 +402,9 @@ h.star_star
 @[simp] lemma conj_im : conj a.im = - a.im := im_conj _
 
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R, c₁, c₂]) = n :=
-by rw [←coe_nat_cast, conj_coe]
+@star_nat_cast ℍ[R, c₁, c₂] _ _ n
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
-by rw [←coe_int_cast, conj_coe]
+@star_int_cast ℍ[R, c₁, c₂] _ _ z
 
 @[simp] lemma conj_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R, c₁, c₂]) :
   conj (s • a) = s • conj a :=

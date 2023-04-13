@@ -323,7 +323,13 @@ begin
   have := convex_on_exp.2 (set.mem_univ (-1)) (set.mem_univ 0) ha ha' (by simp),
   simp only [smul_eq_mul, mul_neg, ←neg_mul, mul_one, mul_zero, add_zero, real.exp_zero, a] at this,
   refine this.trans _,
-  rw [add_comm, sub_add, sub_le_sub_iff_left, ←mul_one_sub],
+  rw [add_comm, sub_add, sub_le_sub_iff_left, ←mul_one_sub, mul_right_comm],
+  refine le_mul_of_one_le_left hx₀ _,
+  rw [←div_le_iff', le_sub_comm, real.exp_neg, inv_le],
+  { exact exp_one_gt_d9.le.trans' (by norm_num) },
+  { exact exp_pos _ },
+  { norm_num1 },
+  { norm_num1 },
 end
 
 -- lemma four_two_right {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) :

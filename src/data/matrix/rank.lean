@@ -72,12 +72,12 @@ lemma rank_of_is_unit [strong_rank_condition R] (A : matrix n n R) (h : is_unit 
   A.rank = fintype.card n :=
 by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 
-lemma rank_reindex [decidable_eq m] [fintype m] (e f : m ≃ n) (A : matrix m m K) :
+lemma rank_reindex [decidable_eq m] [fintype m] (e f : m ≃ n) (A : matrix m m R) :
   rank (reindex e f A) = rank A :=
 by rw [rank, rank, to_lin'_reindex, linear_map.range_comp, linear_map.range_comp,
     linear_equiv.range, submodule.map_top, linear_equiv.finrank_map_eq]
 
-@[simp] lemma rank_submatrix [decidable_eq m] [fintype m] (A : matrix m m K) (e f : n ≃ m) :
+@[simp] lemma rank_submatrix [decidable_eq m] [fintype m] (A : matrix m m R) (e f : n ≃ m) :
   rank (A.submatrix e f) = rank A :=
 by simpa only [reindex_apply] using rank_reindex e.symm f.symm A
 

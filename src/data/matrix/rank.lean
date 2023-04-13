@@ -30,22 +30,23 @@ namespace matrix
 open finite_dimensional
 
 variables {m n o R : Type*} [m_fin : fintype m] [fintype n] [fintype o]
-variables [decidable_eq n] [decidable_eq o] [comm_ring R]
+variables [comm_ring R]
 
 /-- The rank of a matrix is the rank of its image. -/
-noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.to_lin'.range
+noncomputable def rank (A : matrix m n R) : ℕ := finrank R A.mul_vec_lin.range
 
-@[simp] lemma rank_one [strong_rank_condition R] : rank (1 : matrix n n R) = fintype.card n :=
-by rw [rank, to_lin'_one, linear_map.range_id, finrank_top, finrank_pi]
+@[simp] lemma rank_one [strong_rank_condition R] [decidable_eq n] :
+  rank (1 : matrix n n R) = fintype.card n :=
+by rw [rank, mul_vec_lin_one, linear_map.range_id, finrank_top, finrank_pi]
 
 @[simp] lemma rank_zero [nontrivial R] : rank (0 : matrix m n R) = 0 :=
-by rw [rank, linear_equiv.map_zero, linear_map.range_zero, finrank_bot]
+by rw [rank, mul_vec_lin_zero, linear_map.range_zero, finrank_bot]
 
 lemma rank_le_card_width [strong_rank_condition R] (A : matrix m n R) : A.rank ≤ fintype.card n :=
 begin
   haveI : module.finite R (n → R) := module.finite.pi,
   haveI : module.free R (n → R) := module.free.pi _ _,
-  exact A.to_lin'.finrank_range_le.trans_eq (finrank_pi _)
+  exact A.mul_vec_lin.finrank_range_le.trans_eq (finrank_pi _)
 end
 
 lemma rank_le_width [strong_rank_condition R] {m n : ℕ} (A : matrix (fin m) (fin n) R) :
@@ -55,12 +56,12 @@ A.rank_le_card_width.trans $ (fintype.card_fin n).le
 lemma rank_mul_le [strong_rank_condition R] (A : matrix m n R) (B : matrix n o R) :
   (A ⬝ B).rank ≤ A.rank :=
 begin
-  rw [rank, rank, to_lin'_mul],
+  rw [rank, rank, mul_vec_lin_mul],
   exact cardinal.to_nat_le_of_le_of_lt_aleph_0
     (rank_lt_aleph_0 _ _) (linear_map.rank_comp_le_left _ _),
 end
 
-lemma rank_unit [strong_rank_condition R] (A : (matrix n n R)ˣ) :
+lemma rank_unit [strong_rank_condition R] [decidable_eq n] (A : (matrix n n R)ˣ) :
   (A : matrix n n R).rank = fintype.card n :=
 begin
   refine le_antisymm (rank_le_card_width A) _,
@@ -68,13 +69,13 @@ begin
   rwa [← mul_eq_mul, ← units.coe_mul, mul_inv_self, units.coe_one, rank_one] at this,
 end
 
-lemma rank_of_is_unit [strong_rank_condition R] (A : matrix n n R) (h : is_unit A) :
+lemma rank_of_is_unit [strong_rank_condition R] [decidable_eq n] (A : matrix n n R) (h : is_unit A) :
   A.rank = fintype.card n :=
 by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 
 include m_fin
 
-lemma rank_eq_finrank_range_to_lin
+lemma rank_eq_finrank_range_to_lin [decidable_eq n]
   {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂]
   [module R M₁] [module R M₂] (A : matrix m n R) (v₁ : basis m R M₁) (v₂ : basis n R M₂) :
   A.rank = finrank R (to_lin v₂ v₁ A).range :=
@@ -89,7 +90,7 @@ begin
   apply linear_map.pi_ext', rintro i, apply linear_map.ext_ring,
   have aux₁ := to_lin_self (pi.basis_fun R n) (pi.basis_fun R m) A i,
   have aux₂ := basis.equiv_apply (pi.basis_fun R n) i v₂,
-  rw [to_lin_eq_to_lin'] at aux₁,
+  rw [to_lin_eq_to_lin', to_lin'_apply'] at aux₁,
   rw [pi.basis_fun_apply, linear_map.coe_std_basis] at aux₁ aux₂,
   simp only [linear_map.comp_apply, e₁, e₂, linear_equiv.coe_coe, equiv.refl_apply, aux₁, aux₂,
     linear_map.coe_single, to_lin_self, linear_equiv.map_sum, linear_equiv.map_smul,
@@ -113,6 +114,6 @@ A.rank_le_card_height.trans $ (fintype.card_fin m).le
 /-- The rank of a matrix is the rank of the space spanned by its columns. -/
 lemma rank_eq_finrank_span_cols (A : matrix m n R) :
   A.rank = finrank R (submodule.span R (set.range Aᵀ)) :=
-by rw [rank, matrix.range_to_lin']
+by rw [rank, matrix.range_mul_vec_lin]
 
 end matrix

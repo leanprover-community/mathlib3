@@ -394,7 +394,8 @@ end
 lemma commute_self_conj : commute a a.conj :=
 a.commute_conj_self.symm
 
-lemma commute_conj_conj {a b : ℍ[R, c₁, c₂]} (h : commute a b) : commute a.conj b.conj := h.star
+lemma commute_conj_conj {a b : ℍ[R, c₁, c₂]} (h : commute a b) : commute a.conj b.conj :=
+h.star_star
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
 

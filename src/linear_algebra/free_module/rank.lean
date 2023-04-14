@@ -94,13 +94,9 @@ open module.free
 @[simp] lemma rank_tensor_product : module.rank R (M ⊗[R] N) = lift.{w v} (module.rank R M) *
   lift.{v w} (module.rank R N) :=
 begin
-  let ιM := choose_basis_index R M,
-  let ιN := choose_basis_index R N,
-
-  have h₁ := linear_equiv.lift_rank_eq (tensor_product.congr (repr R M) (repr R N)),
-  let b : basis (ιM × ιN) R (_ →₀ R) := finsupp.basis_single_one,
-  rw [linear_equiv.rank_eq (finsupp_tensor_finsupp' R ιM ιN), ← b.mk_eq_rank, mk_prod] at h₁,
-  rw [lift_inj.1 h₁, rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R N],
+  obtain ⟨⟨_, bM⟩⟩ := module.free.exists_basis R M,
+  obtain ⟨⟨_, bN⟩⟩ := module.free.exists_basis R N,
+  rw [← bM.mk_eq_rank'', ← bN.mk_eq_rank'', ← (bM.tensor_product bN).mk_eq_rank'', cardinal.mk_prod]
 end
 
 /-- If `M` and `N` lie in the same universe, the rank of `M ⊗[R] N` is

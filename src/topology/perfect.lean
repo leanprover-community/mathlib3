@@ -309,7 +309,7 @@ begin
   have hdisj' : cantor_scheme.disjoint D,
   { rintros l (a | a) (b | b) hab; try { contradiction },
     { exact hdisj _ _ _, },
-    exact (hdisj _ _ _).symm,  },
+    exact (hdisj _ _ _).symm, },
   have hdom : ∀ {x : ℕ → bool}, x ∈ (induced_map D).1 := λ x,
     by simp [hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
   refine ⟨λ x, (induced_map D).2 ⟨x, hdom⟩, _, _, _⟩,

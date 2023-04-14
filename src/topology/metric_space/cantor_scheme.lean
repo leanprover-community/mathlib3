@@ -54,7 +54,7 @@ noncomputable def induced_map : Σ s : set (ℕ → β), s → α :=
 
 section topology
 
-/-- A scheme is antitone if each set contains its children.  -/
+/-- A scheme is antitone if each set contains its children. -/
 protected def antitone : Prop := ∀ l : list β, ∀ a : β, A (a :: l) ⊆ A l
 
 /-- A useful strengthening of being antitone is to require that each set contains

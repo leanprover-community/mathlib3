@@ -364,7 +364,7 @@ begin
   exact is_open_set_pi (finset.range n).finite_to_set (λ a ha, is_open_discrete _),
 end
 
-lemma is_topological_basis_cylinders  :
+lemma is_topological_basis_cylinders :
   is_topological_basis {s : set (Π n, E n) | ∃ (x : Π n, E n) (n : ℕ), s = cylinder x n} :=
 begin
   apply is_topological_basis_of_open_of_nhds,

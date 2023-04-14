@@ -466,14 +466,11 @@ begin
   refine le_trans (finset.sum_le_sum_of_subset_of_nonneg hk' (λ _ _ _, by positivity)) _,
   refine finset.sum_le_sum (λ i hi, _),
   rw [mul_comm (‖x‖^i), mul_assoc],
-  refine mul_le_mul _ _ (by positivity) (by positivity),
-  { norm_cast,
-    exact i.choose_le_choose hk },
-  { have : schwartz_seminorm_family 𝕜 E F (i, n)
-      ≤ (finset.Iic m).sup (schwartz_seminorm_family 𝕜 E F) :=
-    finset.le_sup (finset.mem_Iic.2 $ prod.mk_le_mk.2 ⟨finset.mem_range_succ_iff.mp hi, hn⟩),
-    rw seminorm.le_def at this,
-    exact (le_seminorm 𝕜 i n f x).trans (this f) },
+  refine mul_le_mul _ ((le_seminorm 𝕜 i n f x).trans $ seminorm.le_def.1 (finset.le_sup_of_le
+    (finset.mem_Iic.2 $ prod.mk_le_mk.2 ⟨finset.mem_range_succ_iff.mp hi, hn⟩) le_rfl) _)
+    (by positivity) (by positivity),
+  norm_cast,
+  exact i.choose_le_choose hk,
 end
 
 end seminorms

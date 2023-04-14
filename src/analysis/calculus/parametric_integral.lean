@@ -265,48 +265,56 @@ begin
 end
 
 /-- Iterated derivative under integral of `x ↦ ∫ f x a` is given by `x ↦ ∫ a, p x a` where
-`p` is the Taylor series of `f` assuming that `f` is smooth. -/
-lemma has_ftaylor_series_up_to_top_of_dominated_of_has_ftaylor_series_up_to_top_le {f : H → α → E}
-  {p : H → α → formal_multilinear_series 𝕜 H E} {bound : ℕ → α → ℝ}
-  (hp_meas : ∀ m x, ae_strongly_measurable (λ a, p x a m) μ)
-  (h_bound : ∀ m, ∀ᵐ a ∂μ, ∀ x, ‖p x a m‖ ≤ bound m a)
-  (bound_integrable : ∀ m, integrable (bound m : α → ℝ) μ)
-  (h_diff : ∀ᵐ a ∂μ, has_ftaylor_series_up_to ⊤ (λ x, f x a) (λ x, p x a)) :
-  has_ftaylor_series_up_to ⊤ (λ x, ∫ a, f x a ∂μ) (λ x n, ∫ a, p x a n ∂μ) :=
-begin
-  -- We use the fact that we don't have to show continuity of the integrals:
-  rw has_ftaylor_series_up_to_top_iff',
-  split,
-  { -- The fact that `(∫ a, p x a 0 ∂μ).uncurry0` is equal to `∫ a, f x a ∂μ` is trivial.
-    intros x,
+`p` is the Taylor series of `f`. -/
+lemma has_ftaylor_series_up_to_of_dominated_of_has_ftaylor_series_up_to_le {f : H → α → E}
+  {p : H → α → formal_multilinear_series 𝕜 H E} {bound : ℕ → α → ℝ} {n : ℕ∞}
+  (hp_meas : ∀ (m : ℕ) (hm : (m : ℕ∞) ≤ n) x, ae_strongly_measurable (λ a, p x a m) μ)
+  (h_bound : ∀ (m : ℕ) (hm : (m : ℕ∞) ≤ n), ∀ᵐ a ∂μ, ∀ x, ‖p x a m‖ ≤ bound m a)
+  (bound_integrable : ∀ (m : ℕ) (hm : (m : ℕ∞) ≤ n), integrable (bound m : α → ℝ) μ)
+  (h_diff : ∀ᵐ a ∂μ, has_ftaylor_series_up_to n (λ x, f x a) (λ x, p x a)) :
+  has_ftaylor_series_up_to n (λ x, ∫ a, f x a ∂μ) (λ x n, ∫ a, p x a n ∂μ) :=
+{ zero_eq := λ x,
+  begin
+    -- The fact that `(∫ a, p x a 0 ∂μ).uncurry0` is equal to `∫ a, f x a ∂μ` is trivial.
     refine ((continuous_multilinear_curry_fin0 𝕜 H E).to_linear_isometry.integral_comp_comm
       (λ a, p x a 0)).symm.trans (measure_theory.integral_congr_ae _),
     filter_upwards [h_diff] with a ha,
     simpa only [linear_isometry_equiv.coe_to_linear_isometry,
-      continuous_multilinear_curry_fin0_apply] using ha.zero_eq x },
-  intros m x₀,
-  let q' := λ y a, (p y a (m + 1)).curry_left,
-  let iso := (continuous_multilinear_curry_left_equiv 𝕜 (λ (i : fin (m + 1)), H) E)
-        .symm.to_linear_isometry,
-  -- Currying and integration commute:
-  have hintegral : (∫ (a : α), p x₀ a (m + 1) ∂μ).curry_left = integral μ (q' x₀) :=
-  begin
-    refine (iso.integral_comp_comm (λ a, p x₀ a (m + 1))).symm.trans _,
-    refine measure_theory.integral_congr_ae _,
-    filter_upwards [h_diff] with a ha,
-    refl,
+      continuous_multilinear_curry_fin0_apply] using ha.zero_eq x,
   end,
-  rw [hintegral],
-  -- it remains to show that `has_fderiv_at (λ x, ∫ a, p x a m ∂μ) (∫ a, q' x₀ a ∂μ) x₀`:
-  apply has_fderiv_at_integral_of_dominated_of_fderiv_le zero_lt_one
-    (filter.eventually_of_forall (hp_meas m)) _ _ _ (bound_integrable (m+1)),
-  { filter_upwards [h_diff] with a ha x hx,
-    rw has_ftaylor_series_up_to_top_iff' at ha,
-    exact ha.2 m x, },
-  { refine (bound_integrable m).mono (hp_meas m x₀) _,
-    filter_upwards [h_bound m] with a ha,
-    exact (ha x₀).trans (le_abs_self _) },
-  { exact iso.continuous.comp_ae_strongly_measurable (hp_meas (m+1) x₀), },
-  { filter_upwards [h_bound (m + 1)] with a ha x hx,
-    exact le_of_eq_of_le (iso.norm_map _) (ha x) },
-end
+  fderiv := λ m hm x₀,
+  begin
+    let q' := λ y a, (p y a (m + 1)).curry_left,
+    let iso := (continuous_multilinear_curry_left_equiv 𝕜 (λ (i : fin (m + 1)), H) E)
+      .symm.to_linear_isometry,
+    -- Currying and integration commute:
+    have hintegral : (∫ (a : α), p x₀ a (m + 1) ∂μ).curry_left = integral μ (q' x₀) :=
+    begin
+      refine (iso.integral_comp_comm (λ a, p x₀ a (m + 1))).symm.trans _,
+      refine measure_theory.integral_congr_ae _,
+      filter_upwards [h_diff] with a ha,
+      refl,
+    end,
+    rw [hintegral],
+    have hm' : ↑(m + 1) ≤ n := by simp only [enat.coe_add, enat.coe_one, enat.add_one_le_of_lt hm],
+    -- it remains to show that `has_fderiv_at (λ x, ∫ a, p x a m ∂μ) (∫ a, q' x₀ a ∂μ) x₀`:
+    apply has_fderiv_at_integral_of_dominated_of_fderiv_le zero_lt_one
+      (filter.eventually_of_forall (hp_meas m hm.le)) _ _ _ (bound_integrable (m+1) hm'),
+    { filter_upwards [h_diff] with a ha x hx,
+      --rw has_ftaylor_series_up_to_top_iff' at ha,
+      exact ha.2 m hm x, },
+    { refine (bound_integrable m hm.le).mono (hp_meas m hm.le x₀) _,
+      filter_upwards [h_bound m hm.le] with a ha,
+      exact (ha x₀).trans (le_abs_self _) },
+    { exact iso.continuous.comp_ae_strongly_measurable (hp_meas (m+1) hm' x₀), },
+    { filter_upwards [h_bound (m + 1) hm'] with a ha x hx,
+      exact le_of_eq_of_le (iso.norm_map _) (ha x) },
+  end,
+  cont := λ m hm,
+  begin
+    refine measure_theory.continuous_of_dominated (hp_meas m hm) (λ x, _) (bound_integrable m hm) _,
+    { filter_upwards [h_bound m hm] with a ha,
+      exact ha x },
+    filter_upwards [h_diff] with a ha,
+    exact ha.3 m hm,
+  end }

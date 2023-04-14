@@ -1307,10 +1307,7 @@ begin
 end
 
 /-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
-  -scalar multiplication. This could be additivized if only `distrib_mul_action_with_zero` existed,
-  and in that case, the multiplicative version would have `R` be a `group_with_zero` instead of
-  `division_ring`; in the additive version, we would have `R` be a `add_group_with_minus_infinity`,
-  which doesn't exist. -/
+  -scalar multiplication. -/
 lemma mul_action.automorphize_smul_left [group α] [mul_action α β]  (f : β → M)
   (g : quotient (mul_action.orbit_rel α β) → R) :
   mul_action.automorphize ((g ∘ quotient.mk') • f)
@@ -1321,7 +1318,7 @@ begin
   intro b,
   simp only [mul_action.automorphize, pi.smul_apply', function.comp_app],
   set π : β → quotient (mul_action.orbit_rel α β) := quotient.mk',
-  have H₁ : ∀ a : α, π (a • b) = π b, --- make this a lemma in `group_theory.group_action.basic`
+  have H₁ : ∀ a : α, π (a • b) = π b,
   { intro a,
     rw quotient.eq_rel,
     fconstructor,
@@ -1331,6 +1328,33 @@ begin
   simp_rw [H₁],
   exact tsum_const_smul'' _,
 end
+
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. -/
+lemma add_action.automorphize_smul_left [add_group α] [add_action α β]  (f : β → M)
+  (g : quotient (add_action.orbit_rel α β) → R) :
+  add_action.automorphize ((g ∘ quotient.mk') • f)
+    = g • (add_action.automorphize f : quotient (add_action.orbit_rel α β) → M) :=
+begin
+  ext x,
+  apply quotient.induction_on' x,
+  intro b,
+  simp only [add_action.automorphize, pi.smul_apply', function.comp_app],
+  set π : β → quotient (add_action.orbit_rel α β) := quotient.mk',
+  have H₁ : ∀ a : α, π (a +ᵥ b) = π b,
+  { intro a,
+    rw quotient.eq_rel,
+    fconstructor,
+    exact a,
+    simp, },
+  change ∑' a : α, g (π (a +ᵥ b)) • f (a +ᵥ b) = g (π b) • ∑' a : α, f (a +ᵥ b),
+  simp_rw [H₁],
+  exact tsum_const_smul'' _,
+end
+
+attribute [to_additive mul_action.automorphize_smul_left] add_action.automorphize_smul_left
+
+section
 
 variables {G : Type*} [group G] {Γ : subgroup G}
 
@@ -1342,13 +1366,28 @@ variables {G : Type*} [group G] {Γ : subgroup G}
 def quotient_group.automorphize  (f : G → M) : G ⧸ Γ → M := mul_action.automorphize f
 
 /-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
-  -scalar multiplication. This could be additivized if only `distrib_mul_action_with_zero` existed,
-  and in that case, the multiplicative version would have `R` be a `group_with_zero` instead of
-  `division_ring`; in the additive version, we would have `R` be a `add_group_with_minus_infinity`,
-  which doesn't exist. -/
+  -scalar multiplication. -/
 lemma quotient_group.automorphize_smul_left (f : G → M) (g : G ⧸ Γ → R) :
   quotient_group.automorphize ((g ∘ quotient.mk') • f)
     = g • (quotient_group.automorphize f : G ⧸ Γ → M) :=
 mul_action.automorphize_smul_left f g
+
+end
+
+section
+
+variables {G : Type*} [add_group G] {Γ : add_subgroup G}
+
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. -/
+lemma quotient_add_group.automorphize_smul_left (f : G → M) (g : G ⧸ Γ → R) :
+  quotient_add_group.automorphize ((g ∘ quotient.mk') • f)
+    = g • (quotient_add_group.automorphize f : G ⧸ Γ → M) :=
+add_action.automorphize_smul_left f g
+
+end
+
+attribute [to_additive quotient_group.automorphize_smul_left]
+  quotient_add_group.automorphize_smul_left
 
 end automorphize

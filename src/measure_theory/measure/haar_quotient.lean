@@ -32,7 +32,7 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 
 noncomputable theory
 
-open set measure_theory topological_space measure_theory.measure
+open set measure_theory topological_space measure_theory.measure quotient_group
 open_locale pointwise measure_theory topology big_operators nnreal ennreal
 
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
@@ -160,7 +160,7 @@ lemma measure_preserving_quotient_group.mk' [t2_space (G ⧸ Γ)] [second_counta
 { measurable := continuous_quotient_mk.measurable,
   map_eq := by rw [h𝓕.map_restrict_quotient K h𝓕_finite, h]; refl }
 
----------------------------- UNFOLDING TRICK ---------------
+section
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
 
@@ -215,15 +215,10 @@ begin
   exact measurable_set_preimage meas_π s_meas,
 end
 
-omit h𝓕
 local attribute [-instance] quotient.measurable_space
 
 /- Move to commit message in PR: question: how to deduce
   `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
-
-include h𝓕
-
-open quotient_group
 
 /-- This is a simple version of the **Unfolding Trick**: Given a subgroup `Γ` of a group `G`, the
   integral of a function `f` on `G` with respect to a right-invariant measure `μ` is equal to the
@@ -251,7 +246,6 @@ calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) 
   function `f` on `G` times the lift to `G` of a function `g` on the quotient `G ⧸ Γ` with respect
   to a right-invariant measure `μ` on `G`, is equal to the integral over the quotient of the
   automorphization of `f` times `g`. -/
---- To Do : `[@to_additive]`
 lemma quotient_group.integral_mul_eq_integral_automorphize_mul {K : Type*} [normed_field K]
   [complete_space K] [normed_space ℝ K] [μ.is_mul_right_invariant] {f : G → K}
   (f_ℒ_1 : integrable f μ) {g : G ⧸ Γ → K} (hg : ae_strongly_measurable g μ_𝓕)
@@ -280,3 +274,60 @@ begin
     exact hg.mul F_ae_measurable },
   apply quotient_group.integral_eq_integral_automorphize h𝓕 H₁ H₂,
 end
+
+end
+
+---- trying to additivize 4/14/23
+ --- ALEX HOMEWORK
+
+section
+
+variables {G' : Type*} [add_group G'] [measurable_space G'] [topological_space G']
+  [topological_add_group G'] [borel_space G']
+  {μ' : measure G'}
+  {Γ' : add_subgroup G'}
+  {𝓕' : set G'} (h𝓕' : is_add_fundamental_domain Γ'.opposite 𝓕' μ')
+
+local notation `μ_𝓕` := measure.map (@quotient_add_group.mk G' _ Γ') (μ'.restrict 𝓕')
+
+/-- This is the **Unfolding Trick**: Given an additive subgroup `Γ'` of an additive group `G'`,
+
+**** FIx
+
+ the integral of a
+  function `f` on `G'` times the lift to `G'` of a function `g` on the quotient `G' ⧸ Γ'` with respect
+  to a right-invariant measure `μ` on `G'`, is equal to the integral over the quotient of the
+  automorphization of `f` times `g`. -/
+lemma quotient_add_group.integral_mul_eq_integral_automorphize_mul
+{K : Type*} [normed_field K]
+  [complete_space K] [normed_space ℝ K] [μ'.is_add_right_invariant] {f : G' → K}
+  (f_ℒ_1 : integrable f μ') {g : G' ⧸ Γ' → K} (hg : ae_strongly_measurable g μ_𝓕)
+  (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)
+  (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f) μ_𝓕) :
+  ∫ x : G', g (x : G' ⧸ Γ') * (f x) ∂μ' = ∫ x : G' ⧸ Γ', g x * (quotient_add_group.automorphize f x) ∂μ_𝓕 :=
+begin
+  let π : G' → G' ⧸ Γ' := quotient_add_group.mk,
+  have H₀ : quotient_add_group.automorphize ((g ∘ π) * f) = g * (quotient_add_group.automorphize f) :=
+    quotient_add_group.automorphize_smul_left f g,
+  calc ∫ (x : G'), g (π x) * f x ∂μ' =
+       ∫ (x : G' ⧸ Γ'), quotient_add_group.automorphize ((g ∘ π) * f) x ∂μ_𝓕 : _
+  ... = ∫ (x : G' ⧸ Γ'), g x * (quotient_add_group.automorphize f x) ∂μ_𝓕 : by simp [H₀],
+  have meas_π : measurable π := continuous_quotient_mk.measurable,
+  have H₁ : integrable ((g ∘ π) * f) μ',
+  { have : ae_strongly_measurable (λ x : G', g (x : G' ⧸ Γ')) μ',
+    { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,
+      exact h𝓕'.absolutely_continuous_map },
+    refine integrable.ess_sup_smul f_ℒ_1 this _,
+    { have hg' : ae_strongly_measurable (λ x, ↑‖g x‖₊) μ_𝓕 :=
+        (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
+      rw [← ess_sup_comp_quotient_add_group_mk h𝓕' hg'.ae_measurable],
+      exact g_ℒ_infinity } },
+  have H₂ : ae_strongly_measurable (quotient_add_group.automorphize ((g ∘ π) * f)) μ_𝓕,
+  { simp_rw [H₀],
+    exact hg.mul F_ae_measurable },
+  apply quotient_add_group.integral_eq_integral_automorphize h𝓕' H₁ H₂,
+end
+
+end
+
+-- add `attribute` pairing line (ALEX HOMEWORK)

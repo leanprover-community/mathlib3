@@ -119,7 +119,7 @@ theorem nonempty_linear_equiv_iff_finrank_eq [module.finite R M] [module.finite 
 variables (M N)
 
 /-- Two finite modules are isomorphic if they have the same (finite) rank. -/
-noncomputable def linear_equiv.of_finrank_eq [module.finite R M] [module.finite R N]
+noncomputable def _root_.linear_equiv.of_finrank_eq [module.finite R M] [module.finite R N]
   (cond : finrank R M = finrank R N) : M ≃ₗ[R] N :=
 classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
 

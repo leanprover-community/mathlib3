@@ -301,7 +301,6 @@ lemma has_ftaylor_series_up_to_of_dominated_of_has_ftaylor_series_up_to_le {f : 
     apply has_fderiv_at_integral_of_dominated_of_fderiv_le zero_lt_one
       (filter.eventually_of_forall (hp_meas m hm.le)) _ _ _ (bound_integrable (m+1) hm'),
     { filter_upwards [h_diff] with a ha x hx,
-      --rw has_ftaylor_series_up_to_top_iff' at ha,
       exact ha.2 m hm x, },
     { refine (bound_integrable m hm.le).mono (hp_meas m hm.le x₀) _,
       filter_upwards [h_bound m hm.le] with a ha,

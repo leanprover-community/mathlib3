@@ -30,6 +30,18 @@ namespace finite_dimensional
 open module.free
 
 section ring
+variables [ring R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group N] [module R N]
+
+@[simp]
+lemma submodule.finrank_map_subtype_eq (p : submodule R M) (q : submodule R p) :
+  finrank R (q.map p.subtype) = finrank R q :=
+(submodule.equiv_subtype_map p q).symm.finrank_eq
+
+end ring
+
+section ring_finite
 
 variables [ring R] [strong_rank_condition R]
 variables [add_comm_group M] [module R M] [module.finite R M]
@@ -49,7 +61,7 @@ end
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_aleph_0 (rank_lt_aleph_0 R M)] }
 
-end ring
+end ring_finite
 
 section ring_free
 
@@ -107,20 +119,20 @@ by { simp [finrank] }
 variables {R M N}
 
 /-- Two finite and free modules are isomorphic if they have the same (finite) rank. -/
-theorem nonempty_linear_equiv_of_finrank_eq [module.finite R M] [module.finite R N]
+theorem nonempty_linear_equiv_of_finrank_eq
   (cond : finrank R M = finrank R N) : nonempty (M ≃ₗ[R] N) :=
 nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
 
 /-- Two finite and free modules are isomorphic if and only if they have the same (finite) rank. -/
-theorem nonempty_linear_equiv_iff_finrank_eq [module.finite R M] [module.finite R N] :
+theorem nonempty_linear_equiv_iff_finrank_eq :
   nonempty (M ≃ₗ[R] N) ↔ finrank R M = finrank R N :=
 ⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
 
 variables (M N)
 
 /-- Two finite and free modules are isomorphic if they have the same (finite) rank. -/
-noncomputable def _root_.linear_equiv.of_finrank_eq [module.finite R M] [module.finite R N]
-  (cond : finrank R M = finrank R N) : M ≃ₗ[R] N :=
+noncomputable def _root_.linear_equiv.of_finrank_eq (cond : finrank R M = finrank R N) :
+  M ≃ₗ[R] N :=
 classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
 
 end ring_free
@@ -174,11 +186,6 @@ by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
 lemma submodule.finrank_map_le (f : M →ₗ[R] N) (p : submodule R M) [module.finite R p] :
   finrank R (p.map f) ≤ finrank R p :=
 finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _)
-
-@[simp]
-lemma submodule.finrank_map_subtype_eq (p : submodule R M) (q : submodule R p) :
-  finrank R (q.map p.subtype) = finrank R q :=
-(submodule.equiv_subtype_map p q).symm.finrank_eq
 
 lemma submodule.finrank_le_finrank_of_le {s t : submodule R M} [module.finite R t]
   (hst : s ≤ t) : finrank R s ≤ finrank R t :=

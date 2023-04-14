@@ -106,19 +106,19 @@ by { simp [finrank] }
 
 variables {R M N}
 
-/-- Two finite modules are isomorphic if they have the same (finite) rank. -/
+/-- Two finite and free modules are isomorphic if they have the same (finite) rank. -/
 theorem nonempty_linear_equiv_of_finrank_eq [module.finite R M] [module.finite R N]
   (cond : finrank R M = finrank R N) : nonempty (M ≃ₗ[R] N) :=
 nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
 
-/-- Two finite modules are isomorphic if and only if they have the same (finite) rank. -/
+/-- Two finite and free modules are isomorphic if and only if they have the same (finite) rank. -/
 theorem nonempty_linear_equiv_iff_finrank_eq [module.finite R M] [module.finite R N] :
   nonempty (M ≃ₗ[R] N) ↔ finrank R M = finrank R N :=
 ⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
 
 variables (M N)
 
-/-- Two finite modules are isomorphic if they have the same (finite) rank. -/
+/-- Two finite and free modules are isomorphic if they have the same (finite) rank. -/
 noncomputable def _root_.linear_equiv.of_finrank_eq [module.finite R M] [module.finite R N]
   (cond : finrank R M = finrank R N) : M ≃ₗ[R] N :=
 classical.choice $ nonempty_linear_equiv_of_finrank_eq cond

@@ -268,9 +268,9 @@ end
 `p` is the Taylor series of `f`. -/
 lemma has_ftaylor_series_up_to_of_dominated_of_has_ftaylor_series_up_to_le {f : H → α → E}
   {p : H → α → formal_multilinear_series 𝕜 H E} {bound : ℕ → α → ℝ} {n : ℕ∞}
-  (hp_meas : ∀ (m : ℕ) (hm : (m : ℕ∞) ≤ n) x, ae_strongly_measurable (λ a, p x a m) μ)
-  (h_bound : ∀ (m : ℕ) (hm : (m : ℕ∞) ≤ n), ∀ᵐ a ∂μ, ∀ x, ‖p x a m‖ ≤ bound m a)
-  (bound_integrable : ∀ (m : ℕ) (hm : (m : ℕ∞) ≤ n), integrable (bound m : α → ℝ) μ)
+  (hp_meas : ∀ {m : ℕ} (hm : (m : ℕ∞) ≤ n) x, ae_strongly_measurable (λ a, p x a m) μ)
+  (h_bound : ∀ {m : ℕ} (hm : (m : ℕ∞) ≤ n), ∀ᵐ a ∂μ, ∀ x, ‖p x a m‖ ≤ bound m a)
+  (bound_integrable : ∀ {m : ℕ} (hm : (m : ℕ∞) ≤ n), integrable (bound m : α → ℝ) μ)
   (h_diff : ∀ᵐ a ∂μ, has_ftaylor_series_up_to n (λ x, f x a) (λ x, p x a)) :
   has_ftaylor_series_up_to n (λ x, ∫ a, f x a ∂μ) (λ x n, ∫ a, p x a n ∂μ) :=
 { zero_eq := λ x,
@@ -288,31 +288,29 @@ lemma has_ftaylor_series_up_to_of_dominated_of_has_ftaylor_series_up_to_le {f : 
     let iso := (continuous_multilinear_curry_left_equiv 𝕜 (λ (i : fin (m + 1)), H) E)
       .symm.to_linear_isometry,
     -- Currying and integration commute:
-    have hintegral : (∫ (a : α), p x₀ a (m + 1) ∂μ).curry_left = integral μ (q' x₀) :=
-    begin
-      refine (iso.integral_comp_comm (λ a, p x₀ a (m + 1))).symm.trans _,
+    have hintegral : (∫ (a : α), p x₀ a (m + 1) ∂μ).curry_left = integral μ (q' x₀),
+    { refine (iso.integral_comp_comm (λ a, p x₀ a (m + 1))).symm.trans _,
       refine measure_theory.integral_congr_ae _,
       filter_upwards [h_diff] with a ha,
-      refl,
-    end,
+      refl },
     rw [hintegral],
     have hm' : ↑(m + 1) ≤ n := by simp only [enat.coe_add, enat.coe_one, enat.add_one_le_of_lt hm],
     -- it remains to show that `has_fderiv_at (λ x, ∫ a, p x a m ∂μ) (∫ a, q' x₀ a ∂μ) x₀`:
     apply has_fderiv_at_integral_of_dominated_of_fderiv_le zero_lt_one
-      (filter.eventually_of_forall (hp_meas m hm.le)) _ _ _ (bound_integrable (m+1) hm'),
+      (filter.eventually_of_forall (hp_meas hm.le)) _ _ _ (bound_integrable hm'),
     { filter_upwards [h_diff] with a ha x hx,
       exact ha.2 m hm x, },
-    { refine (bound_integrable m hm.le).mono (hp_meas m hm.le x₀) _,
-      filter_upwards [h_bound m hm.le] with a ha,
+    { refine (bound_integrable hm.le).mono (hp_meas hm.le x₀) _,
+      filter_upwards [h_bound hm.le] with a ha,
       exact (ha x₀).trans (le_abs_self _) },
-    { exact iso.continuous.comp_ae_strongly_measurable (hp_meas (m+1) hm' x₀), },
-    { filter_upwards [h_bound (m + 1) hm'] with a ha x hx,
+    { exact iso.continuous.comp_ae_strongly_measurable (hp_meas hm' x₀), },
+    { filter_upwards [h_bound hm'] with a ha x hx,
       exact le_of_eq_of_le (iso.norm_map _) (ha x) },
   end,
   cont := λ m hm,
   begin
-    refine measure_theory.continuous_of_dominated (hp_meas m hm) (λ x, _) (bound_integrable m hm) _,
-    { filter_upwards [h_bound m hm] with a ha,
+    refine measure_theory.continuous_of_dominated (hp_meas hm) (λ x, _) (bound_integrable hm) _,
+    { filter_upwards [h_bound hm] with a ha,
       exact ha x },
     filter_upwards [h_diff] with a ha,
     exact ha.3 m hm,

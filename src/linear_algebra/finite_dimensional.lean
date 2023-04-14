@@ -770,32 +770,6 @@ section division_ring
 variables [division_ring K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
-/--
-Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
--/
-theorem nonempty_linear_equiv_of_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂]
-  (cond : finrank K V = finrank K V₂) : nonempty (V ≃ₗ[K] V₂) :=
-nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
-
-/--
-Two finite-dimensional vector spaces are isomorphic if and only if they have the same (finite)
-dimension.
--/
-theorem nonempty_linear_equiv_iff_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂] :
-  nonempty (V ≃ₗ[K] V₂) ↔ finrank K V = finrank K V₂ :=
-⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
-
-variables (V V₂)
-
-/--
-Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
--/
-noncomputable def linear_equiv.of_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂]
-  (cond : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
-classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
-
-variables {V}
-
 lemma eq_of_le_of_finrank_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
   (hd : finrank K S₂ ≤ finrank K S₁) : S₁ = S₂ :=
 begin
@@ -810,12 +784,7 @@ lemma eq_of_le_of_finrank_eq {S₁ S₂ : submodule K V} [finite_dimensional K S
   (hd : finrank K S₁ = finrank K S₂) : S₁ = S₂ :=
 eq_of_le_of_finrank_le hle hd.ge
 
-@[simp]
-lemma finrank_map_subtype_eq (p : submodule K V) (q : submodule K p) :
-  finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
-(submodule.equiv_subtype_map p q).symm.finrank_eq
-
-variables {V₂} [finite_dimensional K V] [finite_dimensional K V₂]
+variables [finite_dimensional K V] [finite_dimensional K V₂]
 
 /-- Given isomorphic subspaces `p q` of vector spaces `V` and `V₁` respectively,
   `p.quotient` is isomorphic to `q.quotient`. -/

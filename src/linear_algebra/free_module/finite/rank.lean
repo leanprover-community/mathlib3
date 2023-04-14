@@ -104,6 +104,25 @@ lemma finrank_matrix (m n : Type*) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 
+variables {R M N}
+
+/-- Two finite modules are isomorphic if they have the same (finite) rank. -/
+theorem nonempty_linear_equiv_of_finrank_eq [module.finite R M] [module.finite R N]
+  (cond : finrank R M = finrank R N) : nonempty (M ≃ₗ[R] N) :=
+nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
+
+/-- Two finite modules are isomorphic if and only if they have the same (finite) rank. -/
+theorem nonempty_linear_equiv_iff_finrank_eq [module.finite R M] [module.finite R N] :
+  nonempty (M ≃ₗ[R] N) ↔ finrank R M = finrank R N :=
+⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
+
+variables (M N)
+
+/-- Two finite modules are isomorphic if they have the same (finite) rank. -/
+noncomputable def linear_equiv.of_finrank_eq [module.finite R M] [module.finite R N]
+  (cond : finrank R M = finrank R N) : M ≃ₗ[R] N :=
+classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
+
 end ring_free
 
 section comm_ring
@@ -115,7 +134,7 @@ variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 /-- The finrank of `M ⊗[R] N` is `(finrank R M) * (finrank R N)`. -/
 @[simp] lemma finrank_tensor_product (M : Type v) (N : Type w) [add_comm_group M] [module R M]
   [module.free R M] [add_comm_group N] [module R N] [module.free R N] :
-finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
+  finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
 by { simp [finrank] }
 
 end comm_ring
@@ -155,6 +174,11 @@ by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
 lemma submodule.finrank_map_le (f : M →ₗ[R] N) (p : submodule R M) [module.finite R p] :
   finrank R (p.map f) ≤ finrank R p :=
 finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _)
+
+@[simp]
+lemma submodule.finrank_map_subtype_eq (p : submodule R M) (q : submodule R p) :
+  finrank R (q.map p.subtype) = finrank R q :=
+(submodule.equiv_subtype_map p q).symm.finrank_eq
 
 lemma submodule.finrank_le_finrank_of_le {s t : submodule R M} [module.finite R t]
   (hst : s ≤ t) : finrank R s ≤ finrank R t :=

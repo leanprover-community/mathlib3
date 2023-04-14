@@ -358,18 +358,7 @@ span_of_finite K $ s.finite_to_set
 /-- Pushforwards of finite-dimensional submodules are finite-dimensional. -/
 instance (f : V →ₗ[K] V₂) (p : submodule K V) [h : finite_dimensional K p] :
   finite_dimensional K (p.map f) :=
-begin
-  unfreezingI { rw [finite_dimensional, ← iff_fg, is_noetherian.iff_rank_lt_aleph_0] at h ⊢ },
-  rw [← cardinal.lift_lt.{v' v}],
-  rw [← cardinal.lift_lt.{v v'}] at h,
-  rw [cardinal.lift_aleph_0] at h ⊢,
-  exact (lift_rank_map_le f p).trans_lt h
-end
-
-/-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
-lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
-  finrank K (p.map f) ≤ finrank K p :=
-by simpa [← finrank_eq_rank', -finrank_eq_rank] using lift_rank_map_le f p
+module.finite.map _ _
 
 variable {K}
 

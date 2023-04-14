@@ -151,4 +151,9 @@ lemma submodule.finrank_quotient_le [module.finite R M] (s : submodule R M) :
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   (rank_lt_aleph_0 _ _) ((submodule.mkq s).rank_le_of_surjective (surjective_quot_mk _))
 
+/-- Pushforwards of finite submodules have a smaller finrank. -/
+lemma submodule.finrank_map_le (f : M →ₗ[R] N) (p : submodule R M) [module.finite R p] :
+  finrank R (p.map f) ≤ finrank R p :=
+finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _)
+
 end

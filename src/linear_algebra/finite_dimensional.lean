@@ -1043,11 +1043,6 @@ lemma eq_top_of_finrank_eq [finite_dimensional K V] {S : submodule K V}
   (h : finrank K S = finrank K V) :
   S = ⊤ := finite_dimensional.eq_of_le_of_finrank_eq le_top (by simp [h, finrank_top])
 
-lemma finrank_le_finrank_of_le {s t : submodule K V} [finite_dimensional K t]
-  (hst : s ≤ t) : finrank K s ≤ finrank K t :=
-calc  finrank K s = finrank K (comap t.subtype s) : (comap_subtype_equiv_of_le hst).finrank_eq.symm
-... ≤ finrank K t : finrank_le _
-
 lemma finrank_mono [finite_dimensional K V] :
   monotone (λ (s : submodule K V), finrank K s) :=
 λ s t, finrank_le_finrank_of_le

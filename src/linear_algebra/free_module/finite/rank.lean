@@ -156,4 +156,10 @@ lemma submodule.finrank_map_le (f : M →ₗ[R] N) (p : submodule R M) [module.f
   finrank R (p.map f) ≤ finrank R p :=
 finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _)
 
+lemma submodule.finrank_le_finrank_of_le {s t : submodule R M} [module.finite R t]
+  (hst : s ≤ t) : finrank R s ≤ finrank R t :=
+calc finrank R s = finrank R (s.comap t.subtype)
+      : (submodule.comap_subtype_equiv_of_le hst).finrank_eq.symm
+... ≤ finrank R t : submodule.finrank_le _
+
 end

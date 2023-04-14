@@ -62,6 +62,8 @@ variables (f : X ⟶ Y) (g : Y ⟶ Z)
 variables (M N P : Dmodule X)
 variables (a a' b b' c c' d i j k : ℤ)
 
+notation `⋆` := default
+
 /-- The map from a component in the Leray spectral sequence. -/
 constant R_comp : R i g (R j f M) ⟶ R (i+j) (f ≫ g) M
 
@@ -80,11 +82,11 @@ instance tensor_shift_default [fact (a + a' = 0)] [fact (b + b' = 0)] :
 
 instance tensor_hom_default (M N P Q : Dmodule X)
   [inhabited (M ⟶ P)] [inhabited (N ⟶ Q)] : inhabited (M ⊗ N ⟶ P ⊗ Q) :=
-{ default := (default : M ⟶ P) ⊗' (default : N ⟶ Q) }
+{ default := ⋆ ⊗' ⋆ }
 
 instance shift_hom_default (M N : Dmodule X) (i : ℤ) [inhabited (M ⟶ N)] :
   inhabited (M⟦i⟧ ⟶ N⟦i⟧) :=
-{ default := (default : M ⟶ N)⟦i⟧' }
+{ default := ⋆⟦i⟧' }
 
 meta def hom_tac : tactic unit := `[exact default <|> assumption]
 

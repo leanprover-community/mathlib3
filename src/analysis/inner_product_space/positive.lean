@@ -145,61 +145,33 @@ by simp_rw [is_positive, is_symmetric_iff_inner_map_self_real, inner_conj_symm,
 
 end complex
 
-lemma is_positive.conj_adjoint [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
-  (T : E →ₗ[𝕜] E) (S : E →ₗ[𝕜] F) (h : T.is_positive) :
-  (S.comp (T.comp S.adjoint)).is_positive :=
-begin
-  split,
-  intros u v,
-  simp_rw [comp_apply, ← adjoint_inner_left _ (T _), ← adjoint_inner_right _ (T _)],
-  exact h.1 _ _,
-  intros v,
-  simp_rw [comp_apply, ← adjoint_inner_right _ (T _)],
-  exact h.2 _,
-end
-
-lemma is_positive.adjoint_conj [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
-  (T : E →ₗ[𝕜] E) (S : F →ₗ[𝕜] E) (h : T.is_positive) :
-  (S.adjoint.comp (T.comp S)).is_positive :=
-begin
-  split,
-  intros u v,
-  simp_rw [comp_apply, adjoint_inner_left, adjoint_inner_right],
-  exact h.1 _ _,
-  intros v,
-  simp_rw [comp_apply, adjoint_inner_left],
-  exact h.2 _,
-end
-
-end linear_map
-
-
-namespace continuous_linear_map
-
-open continuous_linear_map
+section continuous_linear_map
 
 variables [complete_space E] [complete_space F]
 
-lemma is_positive_iff (T : E →L[𝕜] E) :
+open continuous_linear_map
+
+lemma is_positiveL_iff (T : E →L[𝕜] E) :
   (T : E →ₗ[𝕜] E).is_positive ↔ is_self_adjoint T ∧ ∀ x, 0 ≤ T.re_apply_inner_self x :=
-by simp_rw [linear_map.is_positive, continuous_linear_map.coe_coe,
+by simp_rw [is_positive, continuous_linear_map.coe_coe,
      is_self_adjoint_iff_is_symmetric, re_apply_inner_self_apply T]
 
 lemma is_positive.is_self_adjoint {T : E →L[𝕜] E} (hT : (T : E →ₗ[𝕜] E).is_positive) :
   is_self_adjoint T :=
-((is_positive_iff T).mp hT).1
+((is_positiveL_iff T).mp hT).1
 
 lemma is_positive.adjoint {T : E →L[𝕜] E} (hT : (T : E →ₗ[𝕜] E).is_positive) :
   (T.adjoint : E →ₗ[𝕜] E).is_positive :=
-by { rw [(is_positive.is_self_adjoint hT).adjoint_eq], exact hT, }
+by { rw [hT.is_self_adjoint.adjoint_eq], exact hT, }
 
 lemma is_positive.conj_adjoint {T : E →L[𝕜] E}
   (hT : (T : E →ₗ[𝕜] E).is_positive) (S : E →L[𝕜] F) :
   (S ∘L T ∘L S† : F →ₗ[𝕜] F).is_positive :=
 begin
-  rw is_positive_iff,
-  refine ⟨(is_positive.is_self_adjoint hT).conj_adjoint S, λ x, _⟩,
-  rw [re_apply_inner_self, comp_apply, ← adjoint_inner_right],
+  rw is_positiveL_iff,
+  refine ⟨hT.is_self_adjoint.conj_adjoint S, λ x, _⟩,
+  rw [re_apply_inner_self, continuous_linear_map.comp_apply,
+    ← continuous_linear_map.adjoint_inner_right],
   exact hT.inner_nonneg_left _,
 end
 
@@ -207,8 +179,8 @@ lemma is_positive.adjoint_conj {T : E →L[𝕜] E}
   (hT : (T : E →ₗ[𝕜] E).is_positive) (S : F →L[𝕜] E) :
   (S† ∘L T ∘L S : F →ₗ[𝕜] F).is_positive :=
 begin
-  nth_rewrite 1 ← adjoint_adjoint S,
-  exact is_positive.conj_adjoint hT _,
+  nth_rewrite 1 ← S.adjoint_adjoint,
+  exact hT.conj_adjoint _,
 end
 
 lemma is_positive.conj_orthogonal_projection (U : submodule 𝕜 E) {T : E →L[𝕜] E}
@@ -216,7 +188,7 @@ lemma is_positive.conj_orthogonal_projection (U : submodule 𝕜 E) {T : E →L[
   (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
     orthogonal_projection U : E →ₗ[𝕜] E).is_positive :=
 begin
-  have := is_positive.conj_adjoint hT (U.subtypeL ∘L orthogonal_projection U),
+  have := hT.conj_adjoint (U.subtypeL ∘L orthogonal_projection U),
   rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this,
 end
 
@@ -224,11 +196,13 @@ lemma is_positive.orthogonal_projection_comp {T : E →L[𝕜] E}
   (hT : T.is_positive) (U : submodule 𝕜 E) [complete_space U] :
   (orthogonal_projection U ∘L T ∘L U.subtypeL).is_positive :=
 begin
-  have := is_positive.conj_adjoint hT (orthogonal_projection U : E →L[𝕜] U),
+  have := hT.conj_adjoint (orthogonal_projection U : E →L[𝕜] U),
   rwa [U.adjoint_orthogonal_projection] at this,
 end
 
 end continuous_linear_map
+
+end linear_map
 
 lemma orthogonal_projection_is_positive (U : submodule 𝕜 E) [complete_space U] :
   (U.subtypeL ∘L (orthogonal_projection U) : E →ₗ[𝕜] E).is_positive :=

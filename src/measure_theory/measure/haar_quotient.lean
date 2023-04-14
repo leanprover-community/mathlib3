@@ -35,19 +35,6 @@ noncomputable theory
 open set measure_theory topological_space measure_theory.measure
 open_locale pointwise measure_theory topology big_operators nnreal ennreal
 
-
-------------------------------------
-
--- move to `ae_strongly_measurable` file
-@[to_additive ae_strongly_measurable_of_absolutely_continuous_add]
-lemma ae_strongly_measurable_of_absolutely_continuous {α β : Type*} [measurable_space α]
-  [topological_space β] {μ ν : measure α} (h : ν ≪ μ) (g : α → β)
-  (hμ : ae_strongly_measurable g μ) : ae_strongly_measurable g ν :=
-begin
-  obtain ⟨g₁, hg₁, hg₁'⟩ := hμ,
-  refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
-end
-
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]
   {μ : measure G}
@@ -265,9 +252,9 @@ calc ∫ x : G, f x ∂μ  = ∑' γ : Γ.opposite, ∫ x in 𝓕, f (γ • x) 
   to a right-invariant measure `μ` on `G`, is equal to the integral over the quotient of the
   automorphization of `f` times `g`. -/
 --- To Do : `[@to_additive]`
-lemma quotient_group.integral_mul_eq_integral_automorphize_mul {E : Type*} [normed_field E]
-  [complete_space E] [normed_space ℝ E] [μ.is_mul_right_invariant] {f : G → E}
-  (f_ℒ_1 : integrable f μ) {g : G ⧸ Γ → E} (hg : ae_strongly_measurable g μ_𝓕)
+lemma quotient_group.integral_mul_eq_integral_automorphize_mul {K : Type*} [normed_field K]
+  [complete_space K] [normed_space ℝ K] [μ.is_mul_right_invariant] {f : G → K}
+  (f_ℒ_1 : integrable f μ) {g : G ⧸ Γ → K} (hg : ae_strongly_measurable g μ_𝓕)
   (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)
   (F_ae_measurable : ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕) :
   ∫ x : G, g (x : G ⧸ Γ) * (f x) ∂μ = ∫ x : G ⧸ Γ, g x * (quotient_group.automorphize f x) ∂μ_𝓕 :=

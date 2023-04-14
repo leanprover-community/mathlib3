@@ -10,29 +10,26 @@ import analysis.inner_product_space.spectrum
 # Positive operators
 
 In this file we define positive operators in a Hilbert space. We follow Bourbaki's choice
-of requiring self adjointness in the definition.
+of requiring symmetry (self adjointness) in the definition.
 
 ## Main definitions
 
 for linear maps:
 * `is_positive` : a linear map is positive if it is symmetric and `∀ x, 0 ≤ re ⟪T x, x⟫`
 
-for continuous linear maps:
-* `is_positive` : a continuous linear map is positive if it is self adjoint and
-  `∀ x, 0 ≤ re ⟪T x, x⟫`
-
 ## Main statements
 
 for linear maps:
+* `linear_map.is_positive_iff_complex` : in a ***complex*** hilbert space,
+  checking that `⟪T x, x⟫` is a nonnegative real number for all `x` suffices to prove that
+  `T` is positive
+
 * `linear_map.is_positive.conj_adjoint` : if `T : E →ₗ[𝕜] E` and `E` is a finite-dimensional space,
   then for any `S : E →ₗ[𝕜] F`, we have `S.comp (T.comp S.adjoint)` is also positive.
 
 for continuous linear maps:
 * `continuous_linear_map.is_positive.conj_adjoint` : if `T : E →L[𝕜] E` is positive,
   then for any `S : E →L[𝕜] F`, `S ∘L T ∘L S†` is also positive.
-* `continuous_linear_map.is_positive_iff_complex` : in a ***complex*** hilbert space,
-  checking that `⟪T x, x⟫` is a nonnegative real number for all `x` suffices to prove that
-  `T` is positive
 
 ## References
 
@@ -233,7 +230,7 @@ end
 
 end continuous_linear_map
 
-lemma orthogonal_projection_is_positive [complete_space E] (U : submodule 𝕜 E) [complete_space U] :
+lemma orthogonal_projection_is_positive (U : submodule 𝕜 E) [complete_space U] :
   (U.subtypeL ∘L (orthogonal_projection U) : E →ₗ[𝕜] E).is_positive :=
 begin
   rw [continuous_linear_map.coe_comp, orthogonal_projection_coe_linear_map_eq_linear_proj,

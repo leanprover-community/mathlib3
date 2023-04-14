@@ -432,26 +432,19 @@ begin
   rwa [pow_zero, one_mul] at this,
 end
 
-lemma _root_.finset.le_sup_of_le {α : Type*} {ι : Sort*} [semilattice_sup α] [order_bot α]
-  {f : ι → α} {s : finset ι} {a : α} {i : ι} (hi : i ∈ s) (h : a ≤ f i) : a ≤ s.sup f :=
-h.trans (finset.le_sup hi)
+variables (𝕜 E F)
 
-/-- Every seminorm can be bounded by the supremum of all seminorms with `k ≤ m.1` and `n ≤ m.2`.
+/-- The family of Schwartz seminorms. -/
+def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
+λ m, seminorm 𝕜 m.1 m.2
 
-The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`. -/
-lemma le_sup_seminorm {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2) :
-  (seminorm 𝕜 k n : seminorm 𝕜 𝓢(E, F)) ≤ (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) :=
-@finset.le_sup _ _ _ _ _ (λ m : ℕ × ℕ, seminorm 𝕜 m.1 m.2) _ $ finset.mem_Iic.2 $
-  prod.mk_le_mk.2 ⟨hk, hn⟩
+@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
+  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
 
-/-- The seminorm `(finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2)` can bound all powers and
-derivatives of lower order.
+@[simp] lemma schwartz_seminorm_family_apply_zero :
+  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
 
-The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`. -/
-lemma le_sup_seminorm_apply {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2) (f : 𝓢(E, F))
-  (x : E) :
-  ‖x‖ ^ k * ‖iterated_fderiv ℝ n f x‖ ≤ (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) f :=
-le_trans (le_seminorm 𝕜 k n f x) (le_sup_seminorm 𝕜 hk hn f)
+variables {𝕜 E F}
 
 /-- A more convenient version of `le_sup_seminorm_apply`.
 
@@ -476,7 +469,11 @@ begin
   refine mul_le_mul _ _ (by positivity) (by positivity),
   { norm_cast,
     exact i.choose_le_choose hk },
-  { exact le_sup_seminorm_apply 𝕜 (finset.mem_range_succ_iff.mp hi) hn _ _ },
+  { have : schwartz_seminorm_family 𝕜 E F (i, n)
+      ≤ (finset.Iic m).sup (schwartz_seminorm_family 𝕜 E F) :=
+    finset.le_sup (finset.mem_Iic.2 $ prod.mk_le_mk.2 ⟨finset.mem_range_succ_iff.mp hi, hn⟩),
+    rw seminorm.le_def at this,
+    exact (le_seminorm 𝕜 i n f x).trans (this f) },
 end
 
 end seminorms
@@ -487,16 +484,6 @@ section topology
 
 variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 variables (𝕜 E F)
-
-/-- The family of Schwartz seminorms. -/
-def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
-λ m, seminorm 𝕜 m.1 m.2
-
-@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
-  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
-
-@[simp] lemma schwartz_seminorm_family_apply_zero :
-  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
 
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'

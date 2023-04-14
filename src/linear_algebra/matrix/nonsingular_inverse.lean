@@ -3,6 +3,7 @@ Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
+import data.matrix.basic
 import linear_algebra.matrix.adjugate
 
 /-!
@@ -622,5 +623,35 @@ by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_
        matrix.row_mul_col_apply]
 
 end det
+
+end matrix
+
+namespace matrix
+open matrix
+open_locale matrix
+open equiv equiv.perm finset
+
+variables {α : Type*} {m n : Type*}
+variables [fintype m] [fintype n]
+variables  [decidable_eq m] [decidable_eq n]
+variables [field α]
+
+lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) [invertible A]:
+(A.submatrix e e)⁻¹ =  (A⁻¹).submatrix e e :=
+begin
+  rw [matrix.inv_def, matrix.inv_def,
+      det_submatrix_equiv_self,
+      adjugate_submatrix_equiv_self,
+      submatrix_smul],
+  simp only [pi.smul_apply],
+end
+
+lemma inv_reindex (e : n ≃ m) (A : matrix n n α) [invertible A]:
+  (reindex e e A)⁻¹ = reindex e e (A⁻¹) :=
+begin
+  rw reindex_apply,
+  rw reindex_apply,
+  apply inv_submatrix_equiv_self,
+end
 
 end matrix

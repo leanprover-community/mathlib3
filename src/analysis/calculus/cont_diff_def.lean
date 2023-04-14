@@ -1548,6 +1548,22 @@ begin
   rw iterated_fderiv_within_univ
 end
 
+lemma has_ftaylor_series_up_to.eq_ftaylor_series {p : E → formal_multilinear_series 𝕜 E F}
+  (h : has_ftaylor_series_up_to n f p) {m : ℕ} (hmn : ↑m ≤ n) : p x m = iterated_fderiv 𝕜 m f x :=
+begin
+  rw ← iterated_fderiv_within_univ,
+  rw ← has_ftaylor_series_up_to_on_univ_iff at h,
+  exact h.eq_ftaylor_series_of_unique_diff_on hmn unique_diff_on_univ (set.mem_univ x),
+end
+
+lemma cont_diff.ftaylor_series (h : cont_diff 𝕜 n f) :
+  has_ftaylor_series_up_to n f (ftaylor_series 𝕜 f) :=
+begin
+  simp_rw [← ftaylor_series_within_univ, ← has_ftaylor_series_up_to_on_univ_iff],
+  rw [← cont_diff_on_univ] at h,
+  exact h.ftaylor_series_within unique_diff_on_univ,
+end
+
 theorem iterated_fderiv_succ_apply_right {n : ℕ} (m : fin (n + 1) → E) :
   (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
     = iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y) x (init m) (m (last n)) :=

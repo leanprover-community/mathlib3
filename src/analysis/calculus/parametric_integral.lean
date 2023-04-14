@@ -315,3 +315,24 @@ lemma has_ftaylor_series_up_to_of_dominated_of_has_ftaylor_series_up_to_le {f : 
     filter_upwards [h_diff] with a ha,
     exact ha.3 m hm,
   end }
+
+/-- Iterated derivative under integral of `x ↦ ∫ f x a` is given by
+`x ↦ ∫ a, iterated_fderiv 𝕜 n (λ y, f y a) x` provided that the norm of the iterated derivative
+is bounded by an integrable function. -/
+lemma iterated_fderiv_of_dominated_of_iterated_fderiv_le {f : H → α → E}
+  {bound : ℕ → α → ℝ} {n : ℕ}
+  (h_cont_diff : ∀ᵐ a ∂μ, cont_diff 𝕜 n (λ x, f x a))
+  (hp_meas : ∀ {m : ℕ} (hm : m ≤ n) x, ae_strongly_measurable
+    (λ a, iterated_fderiv 𝕜 m (λ y, f y a) x) μ)
+  (h_bound : ∀ {m : ℕ} (hm : m ≤ n), ∀ᵐ a ∂μ, ∀ x,
+    ‖iterated_fderiv 𝕜 m (λ y, f y a) x‖ ≤ bound m a)
+  (bound_integrable : ∀ {m : ℕ} (hm : m ≤ n), integrable (bound m : α → ℝ) μ) {x : H} :
+  iterated_fderiv 𝕜 n (λ x, ∫ a, f x a ∂μ) x = ∫ a, iterated_fderiv 𝕜 n (λ y, f y a) x ∂μ :=
+begin
+  refine ((has_ftaylor_series_up_to_of_dominated_of_has_ftaylor_series_up_to_le
+    (λ _ hm, hp_meas (with_top.coe_le_coe.mp hm))
+    (λ _ hm, h_bound (with_top.coe_le_coe.mp hm))
+    (λ _ hm, bound_integrable (with_top.coe_le_coe.mp hm)) _).eq_ftaylor_series (le_refl _)).symm,
+  filter_upwards [h_cont_diff] with a ha,
+  exact ha.ftaylor_series,
+end

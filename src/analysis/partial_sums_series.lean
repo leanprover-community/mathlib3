@@ -16,7 +16,14 @@ the term `f n`.
 def partial_sum {R : Type u} [add_comm_monoid R] (f : ℕ → R) (n : ℕ) :=
 ∑ i in finset.range n, f i
 
-lemma partial_sum_zero (R : Type u) [add_comm_monoid R] (n : ℕ) : partial_sum (λ _ : ℕ, 0) n = 0 :=
+@[simp]
+lemma partial_sum_zero {R : Type u} [add_comm_monoid R] (f : ℕ → R) : partial_sum f 0 = 0 :=
+begin
+  unfold partial_sum,
+  simp,
+end
+
+lemma partial_sum_const_zero (R : Type u) [add_comm_monoid R] (n : ℕ) : partial_sum (λ _ : ℕ, 0) n = 0 :=
 finset.sum_eq_zero (λ _ _, rfl)
 
 lemma partial_sum_next {R : Type u} [add_comm_monoid R] (f : ℕ → R) (n : ℕ) :
@@ -143,8 +150,7 @@ lemma partial_sums_le (a b : ℕ → ℝ) (h : ∀ n, a n ≤ b n) : ∀ n, part
 begin
   intro n,
   induction n with n hi,
-  { unfold partial_sum,
-    simp },
+  { simp },
   calc partial_sum a (n + 1) = a n + partial_sum a n : partial_sum_next a n
     ... ≤ b n + partial_sum b n : add_le_add (h n) (hi)
     ... = partial_sum b (n + 1) : (partial_sum_next b n).symm
@@ -180,17 +186,35 @@ begin
   { contradiction }
 end
 
+lemma pos_terms_ge_absolute_value (a : ℕ → ℝ) (n : ℕ) :
+   partial_sum (pos_terms a) n ≤ partial_sum (λ k : ℕ, |a k|) n :=
+begin
+  revert n,
+  apply partial_sums_le,
+  intro k,
+  unfold pos_terms,
+  by_cases h : 0 ≤ a k,
+  { simp [h, abs_eq_self.mpr h] },
+  { simp [h] }
+end
+
 lemma partial_sums_pos_terms_tendsto_at_top_of_conditional_convergence {a : ℕ → ℝ}
-  /-(h₁ : series_converges a)-/ (h₂ : ¬series_converges_absolutely a) :
+  (h₁ : ¬series_converges_absolutely a) :
     filter.tendsto (partial_sum (pos_terms a)) filter.at_top filter.at_top :=
 begin
+  /-
   rw filter.tendsto_def,
   intros s hs,
   rw filter.mem_at_top_sets at ⊢,
   unfold series_converges_absolutely at h₂,
   unfold series_converges at h₂,
-  -- filter.tendsto_at_top_at_top_of_monotone,
-
+  -- filter.tendsto_at_top_at_top_of_monotone,-/
+  replace h₁ := tendsto_at_top_of_conditional_convergence h₁,
+  rw filter.tendsto_iff_eventually at h₁ ⊢,
+  /-rw filter.tendsto_def at h₁ ⊢,
+  intros s hs,
+  specialize h₁ s hs,
+  rw filter.mem_at_top_sets at h₁ ⊢,-/
   sorry
 end
 

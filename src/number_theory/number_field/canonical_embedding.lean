@@ -188,7 +188,7 @@ def _root_.number_field.full_embedding : K →+* (K →+* ℂ) → ℂ :=
 
 /-- The map from `(K →+* ℂ) → ℂ` to `space K` that gives a commuting diagramm, see
 `number_field.canonical_embedding.commutes`. -/
-def comm_map : ((K →+* ℂ) → ℂ) →ₗ[ℝ] (space K):=
+def comm_map : ((K →+* ℂ) → ℂ) →ₗ[ℝ] E :=
 { to_fun := λ e, ⟨λ w, (e w.val.embedding).re, λ w, (e w.val.embedding)⟩,
   map_smul' := λ _ _, by simp_rw [ring_hom.id_apply, prod.smul_mk, pi.smul_def, smul_eq_mul,
     complex.real_smul, complex.of_real_mul_re],
@@ -220,11 +220,11 @@ begin
   by_cases hφ : complex_embedding.is_real φ,
   { rw (_ : x φ = (x φ).re),
     { convert congr_arg (coe : ℝ → ℂ)
-        (congr_arg (λ x : (space K), x.1 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc),
+        (congr_arg (λ x : E, x.1 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc),
       exact (complex_embeddings.is_real.embedding_mk hφ).symm, },
     { rw [eq_comm, ← complex.eq_conj_iff_re, ← full_embedding.conj_apply K _ hx,
         complex_embedding.is_real_iff.mp hφ], }},
-  { have heqz := congr_arg (λ x : (space K), x.2 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc,
+  { have heqz := congr_arg (λ x : E, x.2 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc,
     by_cases h_same : φ = (infinite_place.mk φ).embedding,
     { convert heqz using 2, },
     { rw [ ← map_eq_zero_iff (star_ring_end ℂ) star_injective, ← full_embedding.conj_apply K _ hx],
@@ -251,7 +251,7 @@ begin
 end
 
 /-- A `ℝ`-basis of `(space K)` that is also a `ℤ`-basis of the `unit_lattice`. -/
-def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℝ (space K) :=
+def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℝ E :=
 begin
   let e : (K →+* ℂ) ≃ free.choose_basis_index ℤ (𝓞 K) :=
     equiv_of_card_eq ((embeddings.card K ℂ).trans (finrank_eq_card_basis (integral_basis K))),
@@ -273,7 +273,7 @@ begin
       ext1 i,
       exact (commutes K (integral_basis K i)).symm, },
     refine basis_of_linear_independent_of_card_eq_finrank this _,
-    rw [canonical_embedding.space_rank, ← free.finrank_eq_card_choose_basis_index,
+    rw [canonical_embedding.space_rank, ← finrank_eq_card_choose_basis_index,
       ← ring_of_integers.rank], },
   -- To prove that `full_embedding K (integral_basis K)` is `ℂ`-linear independent, we
   -- prove that the square of the determinant of its matrix on the standard basis of
@@ -301,7 +301,7 @@ lemma lattice_basis_apply [number_field K] (i : free.choose_basis_index ℤ (�
 by simp only [lattice_basis, coe_basis_of_linear_independent_of_card_eq_finrank]
 
 lemma lattice_basis_span [number_field K] :
-  (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)) = integer_lattice K :=
+  (submodule.span ℤ (set.range (lattice_basis K)) : set E) = integer_lattice K :=
 begin
   rw (_ : set.range (lattice_basis K) =
     (canonical_embedding K).to_int_alg_hom.to_linear_map '' (set.range (integral_basis K))),
@@ -339,13 +339,13 @@ def convex_body_complex (f : infinite_place K → nnreal) :
   set ({w : infinite_place K // is_complex w} → ℂ) :=
 set.pi set.univ (λ w, metric.ball 0 (f w))
 
-/-- The convex body defined by `f`: the set of points `x : space K` such that `x w < f w` for all
+/-- The convex body defined by `f`: the set of points `x : E` such that `x w < f w` for all
 infinite places `w`. -/
 @[reducible]
-def convex_body (f : infinite_place K → nnreal): set (space K) :=
+def convex_body (f : infinite_place K → nnreal): set E :=
 (convex_body_real K f) ×ˢ (convex_body_complex K f)
 
-lemma convex_body.symmetric (f : infinite_place K → nnreal) (x : space K)
+lemma convex_body.symmetric (f : infinite_place K → nnreal) (x : E)
   (hx : x ∈ (convex_body K f)) : -x ∈ (convex_body K f) :=
 begin
   refine set.mem_prod.1 ⟨_, _⟩,
@@ -377,7 +377,7 @@ variable [number_field K]
 
 /-- The complex Haar measure giving measure 1 to the unit box in `ℂ ≃ ℝ × ℝ`. -/
 @[reducible]
-def unit_measure : measure (space K) :=
+def unit_measure : measure E :=
 measure.prod (measure.pi (λ _, volume)) (measure.pi (λ _, complex.basis_one_I.add_haar))
 
 instance : measure.is_add_haar_measure (unit_measure K) :=
@@ -459,7 +459,7 @@ end
 /-- The bound that appears in Minkowski theorem, see
 `exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure`.-/
 def minkowski_bound : ennreal := (unit_measure K) (zspan.fundamental_domain (lattice_basis K)) *
-  2 ^ (finrank ℝ (space K))
+  2 ^ (finrank ℝ E)
 
 lemma minkowski_bound_lt_top : minkowski_bound K < ⊤ :=
 begin
@@ -473,7 +473,7 @@ lemma exists_ne_zero_mem_ring_of_integers_lt {f : (infinite_place K) → nnreal}
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin
   haveI : countable (submodule.span ℤ (set.range (lattice_basis K))).to_add_subgroup,
-  { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)),
+  { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set E),
     rw lattice_basis_span,
     exact integer_lattice.countable K, },
   have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),

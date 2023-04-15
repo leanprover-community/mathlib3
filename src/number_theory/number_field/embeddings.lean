@@ -352,7 +352,7 @@ noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K 
 (is_real_iff.mp hw).embedding
 
 @[simp]
-lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K) :
+lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K):
   place (is_real.embedding hw) x = w x :=
 begin
   rw [is_real.embedding, complex_embedding.is_real.place_embedding, ← coe_mk],

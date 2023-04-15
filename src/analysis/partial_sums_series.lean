@@ -157,7 +157,7 @@ summable_of_absolute_convergence_real h
 noncomputable def pos_terms (a : ℕ → ℝ) (n : ℕ) := if 0 ≤ a n then a n else 0
 noncomputable def neg_terms (a : ℕ → ℝ) (n : ℕ) := if 0 ≤ a n then 0 else a n
 
-lemma monotone_partial_sums_norm_series {a : ℕ → ℝ} : monotone (partial_sum (λ n, ‖a n‖)) :=
+lemma monotone_partial_sums_norm_series (a : ℕ → ℝ) : monotone (partial_sum (λ n, ‖a n‖)) :=
 begin
   unfold monotone,
   intros n m hnm,
@@ -172,18 +172,25 @@ begin
 end
 
 lemma tendsto_at_top_of_conditional_convergence {a : ℕ → ℝ}
-  (h₁ : series_converges a) (h₂ : ¬series_converges_absolutely a) :
-    filter.tendsto (partial_sum (λ n, ‖a n‖)) filter.at_top filter.at_top := sorry
+  (h : ¬series_converges_absolutely a) :
+    filter.tendsto (partial_sum (λ n, ‖a n‖)) filter.at_top filter.at_top :=
+begin
+  cases tendsto_of_monotone (monotone_partial_sums_norm_series a),
+  { assumption },
+  { contradiction }
+end
 
 lemma partial_sums_pos_terms_tendsto_at_top_of_conditional_convergence {a : ℕ → ℝ}
-  (h₁ : series_converges a) (h₂ : ¬series_converges_absolutely a) :
+  /-(h₁ : series_converges a)-/ (h₂ : ¬series_converges_absolutely a) :
     filter.tendsto (partial_sum (pos_terms a)) filter.at_top filter.at_top :=
 begin
   rw filter.tendsto_def,
   intros s hs,
   rw filter.mem_at_top_sets at ⊢,
   unfold series_converges_absolutely at h₂,
-  unfold series_converges at h₁ h₂,
+  unfold series_converges at h₂,
+  -- filter.tendsto_at_top_at_top_of_monotone,
+
   sorry
 end
 

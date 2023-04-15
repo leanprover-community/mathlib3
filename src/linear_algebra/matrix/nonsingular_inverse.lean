@@ -627,9 +627,6 @@ end det
 end matrix
 
 namespace matrix
-open matrix
-open_locale matrix
-open equiv equiv.perm finset
 
 variables {α : Type*} {m n : Type*}
 variables [fintype m] [fintype n]

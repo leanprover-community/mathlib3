@@ -199,6 +199,31 @@ end
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
 by linear_combination with {normalization_tactic := `[simp [add_comm]]}
 
+/-! ### Cases with exponent -/
+
+example (x y z : ℚ) (h : x = y) (h2 : x * y = 0) : x + y*z = 0 :=
+by linear_combination (-y * z ^ 2 + x) * h + (z ^ 2 + 2 * z + 1) * h2 with {exponent := 2}
+
+example (x y z : ℚ) (h : x = y) (h2 : x * y = 0) : y*z = -x :=
+begin
+  linear_combination (-y * z ^ 2 + x) * h + (z ^ 2 + 2 * z + 1) * h2
+    with {exponent := 2, normalize := ff},
+  ring
+end
+
+example (K : Type)
+  [field K]
+  [char_zero K]
+  {x y z : K}
+  (h₂ : y ^ 3 + x * (3 * z ^ 2) = 0)
+  (h₁ : x ^ 3 + z * (3 * y ^ 2) = 0)
+  (h₀ : y * (3 * x ^ 2) + z ^ 3 = 0)
+  (h : x ^ 3 * y + y ^ 3 * z + z ^ 3 * x = 0) :
+  x = 0 :=
+by linear_combination 2 * y * z ^ 2 * h₂ / 7 + (x ^ 3  - y ^ 2 * z / 7) * h₁ -
+  x * y * z * h₀ + y * z * h / 7 with {exponent := 6}
+
+
 /-! ### Cases where the goal is not closed -/
 
 example (x y : ℚ) (h1 : x + y = 3) (h2 : 3*x = 7) :

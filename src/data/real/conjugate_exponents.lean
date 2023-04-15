@@ -68,8 +68,8 @@ ne_of_gt (h.one_div_pos)
 lemma conj_eq : q = p/(p-1) :=
 begin
   have := h.inv_add_inv_conj,
-  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff_inv_eq] at this,
-  field_simp [← this, h.ne_zero]
+  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff_eq_inv] at this,
+  field_simp [this, h.ne_zero]
 end
 
 lemma conjugate_eq : conjugate_exponent p = q := h.conj_eq.symm

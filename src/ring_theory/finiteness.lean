@@ -12,6 +12,9 @@ import ring_theory.ideal.operations
 /-!
 # Finiteness conditions in commutative algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a notion of finiteness that is common in commutative algebra.
 
 ## Main declarations
@@ -471,6 +474,14 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   rw [← linear_map.range_eq_top.2 hf, ← submodule.map_top],
   exact hM.1.map f
 end⟩
+
+/-- The range of a linear map from a finite module is finite. -/
+instance range [finite R M] (f : M →ₗ[R] N) : finite R f.range :=
+of_surjective f.range_restrict $ λ ⟨x, y, hy⟩, ⟨y, subtype.ext hy⟩
+
+/-- Pushforwards of finite submodules are finite. -/
+instance map (p : submodule R M) [finite R p] (f : M →ₗ[R] N) : finite R (p.map f) :=
+of_surjective (f.restrict $ λ _, mem_map_of_mem) $ λ ⟨x, y, hy, hy'⟩, ⟨⟨_, hy⟩, subtype.ext hy'⟩
 
 variables (R)
 

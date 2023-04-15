@@ -10,6 +10,9 @@ import data.polynomial.eval
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that `A[X]` is an R-algebra when `A` is an R-algebra.
 We promote `eval₂` to an algebra hom in `aeval`.
 -/

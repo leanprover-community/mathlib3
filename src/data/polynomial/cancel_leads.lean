@@ -9,6 +9,9 @@ import data.polynomial.degree.lemmas
 /-!
 # Cancel the leading terms of two polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Definition
 
 * `cancel_leads p q`: the polynomial formed by multiplying `p` and `q` by monomials so that they

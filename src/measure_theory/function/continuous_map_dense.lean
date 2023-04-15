@@ -7,14 +7,30 @@ Authors: Heather Macbeth
 import measure_theory.measure.regular
 import measure_theory.function.simple_func_dense_lp
 import topology.urysohns_lemma
+import measure_theory.integral.bochner
 
 /-!
 # Approximation in Lᵖ by continuous functions
 
 This file proves that bounded continuous functions are dense in `Lp E p μ`, for `1 ≤ p < ∞`, if the
 domain `α` of the functions is a normal topological space and the measure `μ` is weakly regular.
+It also proves the same results for approximation by continuous functions with compact support
+when the space is locally compact and `μ` is regular.
 
-The result is presented in several versions:
+The result is presented in several versions. First concrete versions giving an approximation
+up to `ε` in these various contexts, and then abstract versions stating that the topological
+closure of the relevant subgroups of `Lp` are the whole space.
+
+* `mem_ℒp.exists_has_compact_support_snorm_sub_le` states that, in a locally compact space,
+  an `ℒp` function can be approximated by continuous functions with compact support,
+  in the sense that `snorm (f - g) p μ` is small.
+* `mem_ℒp.exists_has_compact_support_integral_rpow_sub_le`: same result, but expressed in
+  terms of `∫ ‖f - g‖^p`.
+
+Versions with `integrable` instead of `mem_ℒp` are specialized to the case `p = 1`.
+Versions with `bounded_continuous` instead of `has_compact_support` drop the locally
+compact assumption and give only approximation by a bounded continuous function.
+
 * `measure_theory.Lp.bounded_continuous_function_dense`: The subgroup
   `measure_theory.Lp.bounded_continuous_function` of `Lp E p μ`, the additive subgroup of
   `Lp E p μ` consisting of equivalence classes containing a continuous representative, is dense in
@@ -42,137 +58,324 @@ Vitali-Carathéodory theorem, in the file `measure_theory.vitali_caratheodory`.
 -/
 
 open_locale ennreal nnreal topology bounded_continuous_function
-open measure_theory topological_space continuous_map
+open measure_theory topological_space continuous_map set
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
-variables (E : Type*) [normed_add_comm_group E]
-  [second_countable_topology_either α E]
-variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
+variables {E : Type*} [normed_add_comm_group E] {μ : measure α} {p : ℝ≥0∞}
 
-include _i hp
-
-namespace measure_theory.Lp
+namespace measure_theory
 
 variables [normed_space ℝ E]
 
+/-- A variant of Urysohn's lemma, `ℒ^p` version, for an outer regular measure `μ`:
+consider two sets `s ⊆ u` which are respectively closed and open with `μ s < ∞`, and a vector `c`.
+Then one may find a continuous function `f` equal to `c` on `s` and to `0` outside of `u`,
+bounded by `‖c‖` everywhere, and such that the `ℒ^p` norm of `f - s.indicator (λ y, c)` is
+arbitrarily small. Additionally, this function `f` belongs to `ℒ^p`. -/
+lemma exists_continuous_snorm_sub_le_of_closed [μ.outer_regular]
+  (hp : p ≠ ∞) {s u : set α} (s_closed : is_closed s) (u_open : is_open u) (hsu : s ⊆ u)
+  (hs : μ s ≠ ∞) (c : E) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (f : α → E), continuous f ∧ snorm (λ x, f x - s.indicator (λ y, c) x) p μ ≤ ε ∧
+    (∀ x, ‖f x‖ ≤ ‖c‖) ∧ function.support f ⊆ u ∧ mem_ℒp f p μ :=
+begin
+  obtain ⟨η, η_pos, hη⟩ : ∃ (η : ℝ≥0), 0 < η ∧ ∀ (s : set α), μ s ≤ η →
+    snorm (s.indicator (λ x, c)) p μ ≤ ε, from exists_snorm_indicator_le hp c hε,
+  have ηpos : (0 : ℝ≥0∞) < η := ennreal.coe_lt_coe.2 η_pos,
+  obtain ⟨V, sV, V_open, h'V, hV⟩ : ∃ (V : set α) (H : V ⊇ s), is_open V ∧ μ V < ∞ ∧ μ (V \ s) < η,
+    from s_closed.measurable_set.exists_is_open_diff_lt hs ηpos.ne',
+  let v := u ∩ V,
+  have hsv : s ⊆ v := subset_inter hsu sV,
+  have hμv : μ v < ∞ := (measure_mono (inter_subset_right _ _)).trans_lt h'V,
+  obtain ⟨g, hgv, hgs, hg_range⟩ := exists_continuous_zero_one_of_closed
+    (u_open.inter V_open).is_closed_compl s_closed (disjoint_compl_left_iff.2 hsv),
+  -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
+  -- that this is pointwise bounded by the indicator of the set `v \ s`, which has small measure.
+  have g_norm : ∀ x, ‖g x‖ = g x := λ x, by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
+  have gc_bd0 : ∀ x, ‖g x • c‖ ≤ ‖c‖,
+  { assume x,
+    simp only [norm_smul, g_norm x],
+    apply mul_le_of_le_one_left (norm_nonneg _),
+    exact (hg_range x).2 },
+  have gc_bd : ∀ x, ‖g x • c - s.indicator (λ x, c) x‖ ≤ ‖(v \ s).indicator (λ x, c) x‖,
+  { intros x,
+    by_cases hv : x ∈ v,
+    { rw ← set.diff_union_of_subset hsv at hv,
+      cases hv with hsv hs,
+      { simpa only [hsv.2, set.indicator_of_not_mem, not_false_iff, sub_zero, hsv,
+          set.indicator_of_mem] using gc_bd0 x},
+      { simp [hgs hs, hs] } },
+    { simp [hgv hv, (λ h, hv (hsv h) : x ∉ s)], } },
+  have gc_support : function.support (λ (x : α), g x • c) ⊆ v,
+  { refine function.support_subset_iff'.2 (λ x hx, _),
+    simp only [hgv hx, pi.zero_apply, zero_smul] },
+  have gc_mem : mem_ℒp (λ x, g x • c) p μ,
+  { apply mem_ℒp.smul_of_top_left (mem_ℒp_top_const _),
+    refine ⟨g.continuous.ae_strongly_measurable, _⟩,
+    have : snorm (v.indicator (λ x, (1 : ℝ))) p μ < ⊤,
+    { refine (snorm_indicator_const_le _ _).trans_lt _,
+      simp only [lt_top_iff_ne_top, hμv.ne, nnnorm_one, ennreal.coe_one, one_div, one_mul, ne.def,
+        ennreal.rpow_eq_top_iff, inv_lt_zero, false_and, or_false, not_and, not_lt,
+        ennreal.to_real_nonneg, implies_true_iff] },
+    refine (snorm_mono (λ x, _)).trans_lt this,
+    by_cases hx : x ∈ v,
+    { simp only [hx, abs_of_nonneg (hg_range x).1, (hg_range x).2, real.norm_eq_abs,
+        indicator_of_mem, cstar_ring.norm_one] },
+    { simp only [hgv hx, pi.zero_apply, real.norm_eq_abs, abs_zero, abs_nonneg] } },
+  refine ⟨λ x, g x • c, g.continuous.smul continuous_const, (snorm_mono gc_bd).trans _, gc_bd0,
+    gc_support.trans (inter_subset_left _ _), gc_mem⟩,
+  exact hη _ ((measure_mono (diff_subset_diff (inter_subset_right _ _) subset.rfl)).trans hV.le),
+end
+
+/-- In a locally compact space, any function in `ℒp` can be approximated by compactly supported
+continuous functions when `1 ≤ p < ∞`, version in terms of `snorm`. -/
+lemma mem_ℒp.exists_has_compact_support_snorm_sub_le
+  [locally_compact_space α] [μ.regular] (hp : p ≠ ∞) (h'p : 1 ≤ p)
+  {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : α → E), has_compact_support g ∧ snorm (f - g) p μ ≤ ε ∧ continuous g ∧ mem_ℒp g p μ :=
+begin
+  suffices H : ∃ (g : α → E), snorm (f - g) p μ ≤ ε ∧ continuous g ∧ mem_ℒp g p μ ∧
+    has_compact_support g,
+  { rcases H with ⟨g, hg, g_cont, g_mem, g_support⟩,
+    exact ⟨g, g_support, hg, g_cont, g_mem⟩ },
+  -- It suffices to check that the set of functions we consider approximates characteristic
+  -- functions, is stable under addition and consists of ae strongly measurable functions.
+  -- First check the latter easy facts.
+  apply hf.induction_dense hp h'p _ _ _ _ hε, rotate,
+  -- stability under addition
+  { rintros f g ⟨f_cont, f_mem, hf⟩ ⟨g_cont, g_mem, hg⟩,
+    exact ⟨f_cont.add g_cont, f_mem.add g_mem, hf.add hg⟩ },
+  -- ae strong measurability
+  { rintros f ⟨f_cont, f_mem, hf⟩,
+    exact f_mem.ae_strongly_measurable },
+  -- We are left with approximating characteristic functions.
+  -- This follows from `exists_continuous_snorm_sub_le_of_closed`.
+  assume c t ht htμ ε hε,
+  have h'ε : ε / 2 ≠ 0, by simpa using hε,
+  obtain ⟨η, ηpos, hη⟩ : ∃ (η : ℝ≥0), 0 < η ∧ ∀ (s : set α), μ s ≤ η →
+    snorm (s.indicator (λ x, c)) p μ ≤ ε / 2, from exists_snorm_indicator_le hp c h'ε,
+  have hη_pos' : (0 : ℝ≥0∞) < η, from ennreal.coe_pos.2 ηpos,
+  obtain ⟨s, st, s_compact, μs⟩ : ∃ s ⊆ t, is_compact s ∧ μ (t \ s) < η,
+    from ht.exists_is_compact_diff_lt htμ.ne hη_pos'.ne',
+  have hsμ : μ s < ∞, from (measure_mono st).trans_lt htμ,
+  have I1 : snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ ≤ ε/2,
+  { rw [← snorm_neg, neg_sub, ← indicator_diff st],
+    exact (hη _ μs.le) },
+  obtain ⟨k, k_compact, sk, -⟩ : ∃ (k : set α), is_compact k ∧ s ⊆ interior k ∧ k ⊆ univ,
+    from exists_compact_between s_compact is_open_univ (subset_univ _),
+  rcases exists_continuous_snorm_sub_le_of_closed hp s_compact.is_closed is_open_interior sk
+    hsμ.ne c h'ε with ⟨f, f_cont, I2, f_bound, f_support, f_mem⟩,
+  have I3 : snorm (f - t.indicator (λ y, c)) p μ ≤ ε, from calc
+    snorm (f - t.indicator (λ y, c)) p μ
+      = snorm ((f - s.indicator (λ y, c)) + (s.indicator (λ y, c) - t.indicator (λ y, c))) p μ :
+    by simp only [sub_add_sub_cancel]
+  ... ≤ snorm (f - s.indicator (λ y, c)) p μ
+        + snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ :
+    begin
+      refine snorm_add_le _ _ h'p,
+      { exact f_mem.ae_strongly_measurable.sub
+          (ae_strongly_measurable_const.indicator s_compact.measurable_set) },
+      { exact (ae_strongly_measurable_const.indicator s_compact.measurable_set).sub
+          (ae_strongly_measurable_const.indicator ht) },
+    end
+  ... ≤ ε/2 + ε/2 : add_le_add I2 I1
+  ... = ε : ennreal.add_halves _,
+  refine ⟨f, I3, f_cont, f_mem, has_compact_support.intro k_compact (λ x hx, _)⟩,
+  rw ← function.nmem_support,
+  contrapose! hx,
+  exact interior_subset (f_support hx)
+end
+
+/-- In a locally compact space, any function in `ℒp` can be approximated by compactly supported
+continuous functions when `1 ≤ p < ∞`, version in terms of `∫`. -/
+lemma mem_ℒp.exists_has_compact_support_integral_rpow_sub_le
+  [locally_compact_space α] [μ.regular] {p : ℝ} (h'p : 1 ≤ p)
+  {f : α → E} (hf : mem_ℒp f (ennreal.of_real p) μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (g : α → E), has_compact_support g ∧ ∫ x, ‖f x - g x‖^p ∂μ ≤ ε ∧ continuous g
+    ∧ mem_ℒp g (ennreal.of_real p) μ :=
+begin
+  have I : 0 < ε ^ (1/p) := real.rpow_pos_of_pos hε _,
+  have A : ennreal.of_real (ε ^ (1/p)) ≠ 0,
+    by simp only [ne.def, ennreal.of_real_eq_zero, not_le, I],
+  have B : 1 ≤ ennreal.of_real p,
+  { convert ennreal.of_real_le_of_real h'p, exact ennreal.of_real_one.symm },
+  rcases hf.exists_has_compact_support_snorm_sub_le ennreal.coe_ne_top B A
+    with ⟨g, g_support, hg, g_cont, g_mem⟩,
+  change snorm _ (ennreal.of_real p) _ ≤ _ at hg,
+  refine ⟨g, g_support, _, g_cont, g_mem⟩,
+  rwa [(hf.sub g_mem).snorm_eq_integral_rpow_norm (zero_lt_one.trans_le B).ne'
+    ennreal.coe_ne_top, ennreal.of_real_le_of_real_iff I.le, one_div,
+    ennreal.to_real_of_real (zero_le_one.trans h'p), real.rpow_le_rpow_iff _ hε.le _] at hg,
+  { exact integral_nonneg (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
+  { exact inv_pos.2 (zero_lt_one.trans_le h'p) }
+end
+
+/-- In a locally compact space, any integrable function can be approximated by compactly supported
+continuous functions, version in terms of `∫⁻`. -/
+lemma integrable.exists_has_compact_support_lintegral_sub_le [locally_compact_space α] [μ.regular]
+  {f : α → E} (hf : integrable f μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : α → E), has_compact_support g ∧ ∫⁻ x, ‖f x - g x‖₊ ∂μ ≤ ε ∧ continuous g
+    ∧ integrable g μ :=
+begin
+  simp only [← mem_ℒp_one_iff_integrable, ← snorm_one_eq_lintegral_nnnorm] at hf ⊢,
+  exact hf.exists_has_compact_support_snorm_sub_le ennreal.one_ne_top le_rfl hε,
+end
+
+/-- In a locally compact space, any integrable function can be approximated by compactly supported
+continuous functions, version in terms of `∫`. -/
+lemma integrable.exists_has_compact_support_integral_sub_le [locally_compact_space α] [μ.regular]
+  {f : α → E} (hf : integrable f μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (g : α → E), has_compact_support g ∧ ∫ x, ‖f x - g x‖ ∂μ ≤ ε ∧ continuous g
+    ∧ integrable g μ :=
+begin
+  simp only [← mem_ℒp_one_iff_integrable, ← snorm_one_eq_lintegral_nnnorm,
+    ← ennreal.of_real_one] at hf ⊢,
+  simpa using hf.exists_has_compact_support_integral_rpow_sub_le le_rfl hε,
+end
+
+/-- Any function in `ℒp` can be approximated by bounded continuous functions when `1 ≤ p < ∞`,
+version in terms of `snorm`. -/
+lemma mem_ℒp.exists_bounded_continuous_snorm_sub_le [μ.weakly_regular] (hp : p ≠ ∞) (h'p : 1 ≤ p)
+  {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : α →ᵇ E), snorm (f - g) p μ ≤ ε ∧ mem_ℒp g p μ :=
+begin
+  suffices H : ∃ (g : α → E), snorm (f - g) p μ ≤ ε ∧ continuous g ∧ mem_ℒp g p μ ∧
+    metric.bounded (range g),
+  { rcases H with ⟨g, hg, g_cont, g_mem, g_bd⟩,
+    exact ⟨⟨⟨g, g_cont⟩, metric.bounded_range_iff.1 g_bd⟩, hg, g_mem⟩ },
+  -- It suffices to check that the set of functions we consider approximates characteristic
+  -- functions, is stable under addition and made of ae strongly measurable functions.
+  -- First check the latter easy facts.
+  apply hf.induction_dense hp h'p _ _ _ _ hε, rotate,
+  -- stability under addition
+  { rintros f g ⟨f_cont, f_mem, f_bd⟩ ⟨g_cont, g_mem, g_bd⟩,
+    refine ⟨f_cont.add g_cont, f_mem.add g_mem, _⟩,
+    let f' : α →ᵇ E := ⟨⟨f, f_cont⟩, metric.bounded_range_iff.1 f_bd⟩,
+    let g' : α →ᵇ E := ⟨⟨g, g_cont⟩, metric.bounded_range_iff.1 g_bd⟩,
+    exact (f' + g').bounded_range },
+  -- ae strong measurability
+  { exact λ f ⟨_, h, _⟩, h.ae_strongly_measurable },
+  -- We are left with approximating characteristic functions.
+  -- This follows from `exists_continuous_snorm_sub_le_of_closed`.
+  assume c t ht htμ ε hε,
+  have h'ε : ε / 2 ≠ 0, by simpa using hε,
+  obtain ⟨η, ηpos, hη⟩ : ∃ (η : ℝ≥0), 0 < η ∧ ∀ (s : set α), μ s ≤ η →
+    snorm (s.indicator (λ x, c)) p μ ≤ ε / 2, from exists_snorm_indicator_le hp c h'ε,
+  have hη_pos' : (0 : ℝ≥0∞) < η, from ennreal.coe_pos.2 ηpos,
+  obtain ⟨s, st, s_closed, μs⟩ : ∃ s ⊆ t, is_closed s ∧ μ (t \ s) < η,
+    from ht.exists_is_closed_diff_lt htμ.ne hη_pos'.ne',
+  have hsμ : μ s < ∞, from (measure_mono st).trans_lt htμ,
+  have I1 : snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ ≤ ε/2,
+  { rw [← snorm_neg, neg_sub, ← indicator_diff st],
+    exact (hη _ μs.le) },
+  rcases exists_continuous_snorm_sub_le_of_closed hp s_closed is_open_univ (subset_univ _)
+    hsμ.ne c h'ε with ⟨f, f_cont, I2, f_bound, -, f_mem⟩,
+  have I3 : snorm (f - t.indicator (λ y, c)) p μ ≤ ε, from calc
+    snorm (f - t.indicator (λ y, c)) p μ
+      = snorm ((f - s.indicator (λ y, c)) + (s.indicator (λ y, c) - t.indicator (λ y, c))) p μ :
+    by simp only [sub_add_sub_cancel]
+  ... ≤ snorm (f - s.indicator (λ y, c)) p μ
+        + snorm (s.indicator (λ y, c) - t.indicator (λ y, c)) p μ :
+    begin
+      refine snorm_add_le _ _ h'p,
+      { exact f_mem.ae_strongly_measurable.sub
+          (ae_strongly_measurable_const.indicator s_closed.measurable_set) },
+      { exact (ae_strongly_measurable_const.indicator s_closed.measurable_set).sub
+          (ae_strongly_measurable_const.indicator ht) },
+    end
+  ... ≤ ε/2 + ε/2 : add_le_add I2 I1
+  ... = ε : ennreal.add_halves _,
+  refine ⟨f, I3, f_cont, f_mem, _⟩,
+  exact (bounded_continuous_function.of_normed_add_comm_group f f_cont _ f_bound).bounded_range,
+end
+
+/-- Any function in `ℒp` can be approximated by bounded continuous functions when `1 ≤ p < ∞`,
+version in terms of `∫`. -/
+lemma mem_ℒp.exists_bounded_continuous_integral_rpow_sub_le
+  [μ.weakly_regular] {p : ℝ} (h'p : 1 ≤ p)
+  {f : α → E} (hf : mem_ℒp f (ennreal.of_real p) μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (g : α →ᵇ E), ∫ x, ‖f x - g x‖^p ∂μ ≤ ε ∧ mem_ℒp g (ennreal.of_real p) μ :=
+begin
+  have I : 0 < ε ^ (1/p) := real.rpow_pos_of_pos hε _,
+  have A : ennreal.of_real (ε ^ (1/p)) ≠ 0,
+    by simp only [ne.def, ennreal.of_real_eq_zero, not_le, I],
+  have B : 1 ≤ ennreal.of_real p,
+  { convert ennreal.of_real_le_of_real h'p, exact ennreal.of_real_one.symm },
+  rcases hf.exists_bounded_continuous_snorm_sub_le ennreal.coe_ne_top B A
+    with ⟨g, hg, g_mem⟩,
+  change snorm _ (ennreal.of_real p) _ ≤ _ at hg,
+  refine ⟨g, _, g_mem⟩,
+  rwa [(hf.sub g_mem).snorm_eq_integral_rpow_norm (zero_lt_one.trans_le B).ne'
+    ennreal.coe_ne_top, ennreal.of_real_le_of_real_iff I.le, one_div,
+    ennreal.to_real_of_real (zero_le_one.trans h'p), real.rpow_le_rpow_iff _ hε.le _] at hg,
+  { exact integral_nonneg (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
+  { exact inv_pos.2 (zero_lt_one.trans_le h'p) }
+end
+
+/-- Any integrable function can be approximated by bounded continuous functions,
+version in terms of `∫⁻`. -/
+lemma integrable.exists_bounded_continuous_lintegral_sub_le [μ.weakly_regular]
+  {f : α → E} (hf : integrable f μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : α →ᵇ E), ∫⁻ x, ‖f x - g x‖₊ ∂μ ≤ ε ∧ integrable g μ :=
+begin
+  simp only [← mem_ℒp_one_iff_integrable, ← snorm_one_eq_lintegral_nnnorm] at hf ⊢,
+  exact hf.exists_bounded_continuous_snorm_sub_le ennreal.one_ne_top le_rfl hε,
+end
+
+/-- Any integrable function can be approximated by bounded continuous functions,
+version in terms of `∫`. -/
+lemma integrable.exists_bounded_continuous_integral_sub_le [μ.weakly_regular]
+  {f : α → E} (hf : integrable f μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (g : α →ᵇ E), ∫ x, ‖f x - g x‖ ∂μ ≤ ε ∧ integrable g μ :=
+begin
+  simp only [← mem_ℒp_one_iff_integrable, ← snorm_one_eq_lintegral_nnnorm,
+    ← ennreal.of_real_one] at hf ⊢,
+  simpa using hf.exists_bounded_continuous_integral_rpow_sub_le le_rfl hε,
+end
+
+namespace Lp
+
+variables (E)
+
 /-- A function in `Lp` can be approximated in `Lp` by continuous functions. -/
-lemma bounded_continuous_function_dense [μ.weakly_regular] :
+lemma bounded_continuous_function_dense
+  [second_countable_topology_either α E] [_i : fact (1 ≤ p)] (hp : p ≠ ∞) [μ.weakly_regular] :
   (bounded_continuous_function E p μ).topological_closure = ⊤ :=
 begin
-  have hp₀ : 0 < p := lt_of_lt_of_le zero_lt_one _i.elim,
-  have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
-  have hp₀'' : 0 < p.to_real,
-  { simpa [← ennreal.to_real_lt_to_real ennreal.zero_ne_top hp] using hp₀ },
-  -- It suffices to prove that scalar multiples of the indicator function of a finite-measure
-  -- measurable set can be approximated by continuous functions
-  suffices :  ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ⊤),
-    (Lp.simple_func.indicator_const p hs hμs.ne c : Lp E p μ)
-      ∈ (bounded_continuous_function E p μ).topological_closure,
-  { rw add_subgroup.eq_top_iff',
-    refine Lp.induction hp _ _ _ _,
-    { exact this },
-    { exact λ f g hf hg hfg', add_subgroup.add_mem _ },
-    { exact add_subgroup.is_closed_topological_closure _ } },
-  -- Let `s` be a finite-measure measurable set, let's approximate `c` times its indicator function
-  intros c s hs hsμ,
+  rw add_subgroup.eq_top_iff',
+  assume f,
   refine mem_closure_iff_frequently.mpr _,
   rw metric.nhds_basis_closed_ball.frequently_iff,
   intros ε hε,
-  -- A little bit of pre-emptive work, to find `η : ℝ≥0` which will be a margin small enough for
-  -- our purposes
-  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, 0 < η ∧ (↑(‖bit0 (‖c‖)‖₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε,
-  { have : filter.tendsto (λ x : ℝ≥0, ‖bit0 (‖c‖)‖₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
-    { have : filter.tendsto (λ x : ℝ≥0, 2 * x) (𝓝 0) (𝓝 (2 * 0)) := filter.tendsto_id.const_mul 2,
-      convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto.comp this).const_mul _,
-      simp [hp₀''.ne'] },
-    let ε' : ℝ≥0 := ⟨ε, hε.le⟩,
-    have hε' : 0 < ε' := by exact_mod_cast hε,
-    obtain ⟨δ, hδ, hδε'⟩ :=
-      nnreal.nhds_zero_basis.eventually_iff.mp (eventually_le_of_tendsto_lt hε' this),
-    obtain ⟨η, hη, hηδ⟩ := exists_between hδ,
-    refine ⟨η, hη, _⟩,
-    exact_mod_cast hδε' hηδ },
-  have hη_pos' : (0 : ℝ≥0∞) < η := ennreal.coe_pos.2 hη_pos,
-  -- Use the regularity of the measure to `η`-approximate `s` by an open superset and a closed
-  -- subset
-  obtain ⟨u, su, u_open, μu⟩ : ∃ u ⊇ s, is_open u ∧ μ u < μ s + ↑η,
-  { refine s.exists_is_open_lt_of_lt _ _,
-    simpa using ennreal.add_lt_add_left hsμ.ne hη_pos' },
-  obtain ⟨F, Fs, F_closed, μF⟩ : ∃ F ⊆ s, is_closed F ∧ μ s < μ F + ↑η :=
-    hs.exists_is_closed_lt_add hsμ.ne hη_pos'.ne',
-  have : disjoint uᶜ F := (Fs.trans su).disjoint_compl_left,
-  have h_μ_sdiff : μ (u \ F) ≤ 2 * η,
-  { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
-    refine ennreal.le_of_add_le_add_left hFμ.ne _,
-    have : μ u < μ F + ↑η + ↑η,
-      from μu.trans (ennreal.add_lt_add_right ennreal.coe_ne_top μF),
-    convert this.le using 1,
-    { rw [add_comm, ← measure_union, set.diff_union_of_subset (Fs.trans su)],
-      exacts [disjoint_sdiff_self_left, F_closed.measurable_set] },
-    have : (2:ℝ≥0∞) * η = η + η := by simpa using add_mul (1:ℝ≥0∞) 1 η,
-    rw this,
-    abel },
-  -- Apply Urysohn's lemma to get a continuous approximation to the characteristic function of
-  -- the set `s`
-  obtain ⟨g, hgu, hgF, hg_range⟩ :=
-    exists_continuous_zero_one_of_closed u_open.is_closed_compl F_closed this,
-  -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
-  -- that this is pointwise bounded by the indicator of the set `u \ F`
-  have g_norm : ∀ x, ‖g x‖ = g x := λ x, by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
-  have gc_bd : ∀ x, ‖g x • c - s.indicator (λ x, c) x‖ ≤ ‖(u \ F).indicator (λ x, bit0 ‖c‖) x‖,
-  { intros x,
-    by_cases hu : x ∈ u,
-    { rw ← set.diff_union_of_subset (Fs.trans su) at hu,
-      cases hu with hFu hF,
-      { refine (norm_sub_le _ _).trans _,
-        refine (add_le_add_left (norm_indicator_le_norm_self (λ x, c) x) _).trans _,
-        have h₀ : g x * ‖c‖ + ‖c‖ ≤ 2 * ‖c‖,
-        { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
-        have h₁ : (2:ℝ) * ‖c‖ = bit0 (‖c‖) := by simpa using add_mul (1:ℝ) 1 (‖c‖),
-        simp [hFu, norm_smul, h₀, ← h₁, g_norm x] },
-      { simp [hgF hF, Fs hF] } },
-    { have : x ∉ s := λ h, hu (su h),
-      simp [hgu hu, this] } },
-  -- The rest is basically just `ennreal`-arithmetic
-  have gc_snorm : snorm ((λ x, g x • c) - s.indicator (λ x, c)) p μ
-    ≤ (↑(‖bit0 (‖c‖)‖₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
-  { refine (snorm_mono_ae (filter.eventually_of_forall gc_bd)).trans _,
-    rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp,
-    push_cast [← ennreal.coe_rpow_of_nonneg _ hp₀'],
-    exact ennreal.mul_left_mono (ennreal.monotone_rpow_of_nonneg hp₀' h_μ_sdiff) },
-  have gc_cont : continuous (λ x, g x • c) := g.continuous.smul continuous_const,
-  have gc_mem_ℒp : mem_ℒp (λ x, g x • c) p μ,
-  { have : mem_ℒp ((λ x, g x • c) - s.indicator (λ x, c)) p μ :=
-    ⟨gc_cont.ae_strongly_measurable.sub (strongly_measurable_const.indicator hs)
-        .ae_strongly_measurable,
-      gc_snorm.trans_lt ennreal.coe_lt_top⟩,
-    simpa using this.add (mem_ℒp_indicator_const p hs c (or.inr hsμ.ne)) },
-  refine ⟨gc_mem_ℒp.to_Lp _, _, _⟩,
-  { rw mem_closed_ball_iff_norm,
-    refine le_trans _ hη_le,
-    rw [simple_func.coe_indicator_const, indicator_const_Lp, ← mem_ℒp.to_Lp_sub, Lp.norm_to_Lp],
-    exact ennreal.to_real_le_coe_of_le_coe gc_snorm },
-  { rw [set_like.mem_coe, mem_bounded_continuous_function_iff],
-    refine ⟨bounded_continuous_function.of_normed_add_comm_group _ gc_cont (‖c‖) _, rfl⟩,
-    intros x,
-    have h₀ : g x * ‖c‖ ≤ ‖c‖,
-    { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
-    simp [norm_smul, g_norm x, h₀] },
+  have A : ennreal.of_real ε ≠ 0, by simp only [ne.def, ennreal.of_real_eq_zero, not_le, hε],
+  obtain ⟨g, hg, g_mem⟩ : ∃ (g : α →ᵇ E), snorm (f - g) p μ ≤ ennreal.of_real ε ∧ mem_ℒp g p μ,
+    from (Lp.mem_ℒp f).exists_bounded_continuous_snorm_sub_le hp _i.out A,
+  refine ⟨g_mem.to_Lp _, _, ⟨g, rfl⟩⟩,
+  simp only [dist_eq_norm, metric.mem_closed_ball'],
+  rw Lp.norm_def,
+  convert ennreal.to_real_le_of_le_of_real hε.le hg using 2,
+  apply snorm_congr_ae,
+  filter_upwards [coe_fn_sub f (g_mem.to_Lp g), g_mem.coe_fn_to_Lp] with x hx h'x,
+  simp only [hx, pi.sub_apply, sub_right_inj, h'x],
 end
 
-end measure_theory.Lp
+end Lp
 
+end measure_theory
+
+variables [second_countable_topology_either α E] [_i : fact (1 ≤ p)] (hp : p ≠ ∞)
 variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
+include _i hp
+variables (E) (μ)
 
 namespace bounded_continuous_function
-open linear_map (range)
 
 lemma to_Lp_dense_range [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
-  suffices : (range (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ)).to_add_subgroup.topological_closure = ⊤,
+  suffices : (linear_map.range (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ))
+    .to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
   simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp],
 end
@@ -180,14 +383,14 @@ end
 end bounded_continuous_function
 
 namespace continuous_map
-open linear_map (range)
 
 lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
-  suffices : (range (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ)).to_add_subgroup.topological_closure = ⊤,
+  suffices : (linear_map.range (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ))
+    .to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
   simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
 end

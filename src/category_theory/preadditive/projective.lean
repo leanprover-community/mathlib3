@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.homology.exact
-import category_theory.types
 import category_theory.limits.shapes.biproducts
-import category_theory.preadditive.yoneda
-import algebra.category.Group.epi_mono
-import algebra.category.Module.epi_mono
+import category_theory.adjunction.limits
+import category_theory.limits.preserves.finite
 
 /-!
 # Projective objects and categories with enough projectives
@@ -138,33 +136,6 @@ lemma projective_iff_preserves_epimorphisms_coyoneda_obj (P : C) :
   by exactI ⟨factor_thru g f, factor_thru_comp _ _⟩⟩,
  λ h, ⟨λ E X f e he, by exactI (epi_iff_surjective _).1
   (infer_instance : epi ((coyoneda.obj (op P)).map e)) f⟩⟩
-
-section preadditive
-variables [preadditive C]
-
-lemma projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj (P : C) :
-  projective P ↔ (preadditive_coyoneda.obj (op P)).preserves_epimorphisms :=
-begin
-  rw projective_iff_preserves_epimorphisms_coyoneda_obj,
-  refine ⟨λ (h : (preadditive_coyoneda.obj (op P) ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
-  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_coyoneda.obj (op P))
-      (forget _) },
-  { introI,
-    exact (infer_instance : (preadditive_coyoneda.obj (op P) ⋙ forget _).preserves_epimorphisms) }
-end
-
-lemma projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj' (P : C) :
-  projective P ↔ (preadditive_coyoneda_obj (op P)).preserves_epimorphisms :=
-begin
-  rw projective_iff_preserves_epimorphisms_coyoneda_obj,
-  refine ⟨λ (h : (preadditive_coyoneda_obj (op P) ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
-  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_coyoneda_obj (op P))
-      (forget _) },
-  { introI,
-    exact (infer_instance : (preadditive_coyoneda_obj (op P) ⋙ forget _).preserves_epimorphisms) }
-end
-
-end preadditive
 
 section enough_projectives
 variables [enough_projectives C]

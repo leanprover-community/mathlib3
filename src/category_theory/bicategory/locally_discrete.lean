@@ -10,6 +10,9 @@ import category_theory.bicategory.strict
 /-!
 # Locally discrete bicategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category `C` can be promoted to a strict bicategory `locally_discrete C`. The objects and the
 1-morphisms in `locally_discrete C` are the same as the objects and the morphisms, respectively,
 in `C`, and the 2-morphisms in `locally_discrete C` are the equalities between 1-morphisms. In

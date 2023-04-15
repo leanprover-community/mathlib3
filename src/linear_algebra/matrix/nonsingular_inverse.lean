@@ -639,6 +639,6 @@ end
 
 lemma inv_reindex (e : n ≃ m) (A : matrix n n α) :
   (reindex e e A)⁻¹ = reindex e e (A⁻¹) :=
-  by simp only [inv_submatrix_equiv_self, reindex_apply]
+  inv_submatrix_equiv_self _ _
 
 end matrix

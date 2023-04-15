@@ -457,14 +457,14 @@ begin
 end
 
 /-- The bound that appears in Minkowski theorem, see
-`exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure`.-/
+`exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure`.-/
 def minkowski_bound : ennreal := (unit_measure K) (zspan.fundamental_domain (lattice_basis K)) *
   2 ^ (finrank ℝ E)
 
 lemma minkowski_bound_lt_top : minkowski_bound K < ⊤ :=
 begin
   refine ennreal.mul_lt_top _ _,
-  { exact ne_of_lt (zspan.fundamental_domain_metric_bounded (lattice_basis K)).measure_lt_top, },
+  { exact ne_of_lt (zspan.fundamental_domain_bounded (lattice_basis K)).measure_lt_top, },
   { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
 end
 

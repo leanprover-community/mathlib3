@@ -633,7 +633,7 @@ variables [fintype m] [fintype n]
 variables  [decidable_eq m] [decidable_eq n]
 variables [field α]
 
-lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) [invertible A]:
+lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α):
 (A.submatrix e e)⁻¹ =  (A⁻¹).submatrix e e :=
 begin
   rw [matrix.inv_def, matrix.inv_def,
@@ -643,7 +643,7 @@ begin
   simp only [pi.smul_apply],
 end
 
-lemma inv_reindex (e : n ≃ m) (A : matrix n n α) [invertible A]:
+lemma inv_reindex (e : n ≃ m) (A : matrix n n α) :
   (reindex e e A)⁻¹ = reindex e e (A⁻¹) :=
 begin
   rw reindex_apply,

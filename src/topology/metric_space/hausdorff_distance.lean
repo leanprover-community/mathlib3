@@ -10,6 +10,9 @@ import topology.instances.ennreal
 /-!
 # Hausdorff distance
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Hausdorff distance on subsets of a metric (or emetric) space.
 
 Given two subsets `s` and `t` of a metric space, their Hausdorff distance is the smallest `d`

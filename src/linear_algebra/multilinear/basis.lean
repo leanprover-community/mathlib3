@@ -9,6 +9,9 @@ import linear_algebra.multilinear.basic
 /-!
 # Multilinear maps in relation to bases.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves lemmas about the action of multilinear maps on basis vectors.
 
 ## TODO

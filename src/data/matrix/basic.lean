@@ -18,6 +18,9 @@ import data.fintype.big_operators
 /-!
 # Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines basic properties of matrices.
 
 Matrices with rows indexed by `m`, columns indexed by `n`, and entries of type `α` are represented
@@ -489,6 +492,19 @@ by simp [dot_product, mul_add, finset.sum_add_distrib]
 @[simp] lemma sum_elim_dot_product_sum_elim :
   (sum.elim u x) ⬝ᵥ (sum.elim v y) = u ⬝ᵥ v + x ⬝ᵥ y :=
 by simp [dot_product]
+
+/-- Permuting a vector on the left of a dot product can be transferred to the right. -/
+@[simp] lemma comp_equiv_symm_dot_product (e : m ≃ n) : (u ∘ e.symm) ⬝ᵥ x = u ⬝ᵥ (x ∘ e) :=
+(e.sum_comp _).symm.trans $ finset.sum_congr rfl $ λ _ _,
+  by simp only [function.comp, equiv.symm_apply_apply]
+
+/-- Permuting a vector on the right of a dot product can be transferred to the left. -/
+@[simp] lemma dot_product_comp_equiv_symm (e : n ≃ m) : u ⬝ᵥ (x ∘ e.symm) = (u ∘ e) ⬝ᵥ x :=
+by simpa only [equiv.symm_symm] using (comp_equiv_symm_dot_product u x e.symm).symm
+
+/-- Permuting vectors on both sides of a dot product is a no-op. -/
+@[simp] lemma comp_equiv_dot_product_comp_equiv (e : m ≃ n) : (x ∘ e) ⬝ᵥ (y ∘ e) = x ⬝ᵥ y :=
+by simp only [←dot_product_comp_equiv_symm, function.comp, equiv.apply_symm_apply]
 
 end non_unital_non_assoc_semiring
 
@@ -1790,6 +1806,16 @@ lemma submatrix_mul_equiv [fintype n] [fintype o] [add_comm_monoid α] [has_mul 
   (M.submatrix e₁ e₂) ⬝ (N.submatrix e₂ e₃) = (M ⬝ N).submatrix e₁ e₃ :=
 (submatrix_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
+lemma submatrix_mul_vec_equiv [fintype n] [fintype o] [non_unital_non_assoc_semiring α]
+  (M : matrix m n α) (v : o → α) (e₁ : l → m) (e₂ : o ≃ n) :
+  (M.submatrix e₁ e₂).mul_vec v = M.mul_vec (v ∘ e₂.symm) ∘ e₁ :=
+funext $ λ i, eq.symm (dot_product_comp_equiv_symm _ _ _)
+
+lemma submatrix_vec_mul_equiv [fintype l] [fintype m] [non_unital_non_assoc_semiring α]
+  (M : matrix m n α) (v : l → α) (e₁ : l ≃ m) (e₂ : o → n) :
+  vec_mul v (M.submatrix e₁ e₂) = vec_mul (v ∘ e₁.symm) M ∘ e₂ :=
+funext $ λ i, eq.symm (comp_equiv_symm_dot_product _ _ _)
+
 lemma mul_submatrix_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
   (e₂ : l → o) (M : matrix m n α) :
   M ⬝ (1 : matrix o o α).submatrix e₁ e₂ = submatrix M id (e₁.symm ∘ e₂) :=
@@ -1944,11 +1970,11 @@ section update
 
 /-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
 def update_row [decidable_eq m] (M : matrix m n α) (i : m) (b : n → α) : matrix m n α :=
-function.update M i b
+of $ function.update M i b
 
 /-- Update, i.e. replace the `j`th column of matrix `A` with the values in `b`. -/
 def update_column [decidable_eq n] (M : matrix m n α) (j : n) (b : m → α) : matrix m n α :=
-λ i, function.update (M i) j (b i)
+of $ λ i, function.update (M i) j (b i)
 
 variables {M : matrix m n α} {i : m} {j : n} {b : n → α} {c : m → α}
 
@@ -2070,6 +2096,54 @@ end
 lemma diagonal_update_row_single [decidable_eq n] [has_zero α] (v : n → α) (i : n) (x : α):
   (diagonal v).update_row i (pi.single i x) = diagonal (function.update v i x) :=
 by rw [←diagonal_transpose, update_row_transpose, diagonal_update_column_single, diagonal_transpose]
+
+/-! Updating rows and columns commutes in the obvious way with reindexing the matrix. -/
+
+lemma update_row_submatrix_equiv [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : l) (r : o → α) (e : l ≃ m) (f : o ≃ n) :
+  update_row (A.submatrix e f) i r = (A.update_row (e i) (λ j, r (f.symm j))).submatrix e f :=
+begin
+  ext i' j,
+  simp only [submatrix_apply, update_row_apply, equiv.apply_eq_iff_eq, equiv.symm_apply_apply],
+end
+
+lemma submatrix_update_row_equiv [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : m) (r : n → α) (e : l ≃ m) (f : o ≃ n) :
+  (A.update_row i r).submatrix e f = update_row (A.submatrix e f) (e.symm i) (λ i, r (f i)) :=
+eq.trans (by simp_rw equiv.apply_symm_apply) (update_row_submatrix_equiv A _ _ e f).symm
+
+lemma update_column_submatrix_equiv [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : o) (c : l → α) (e : l ≃ m) (f : o ≃ n) :
+  update_column (A.submatrix e f) j c = (A.update_column (f j) (λ i, c (e.symm i))).submatrix e f :=
+by simpa only [←transpose_submatrix, update_row_transpose] using
+  congr_arg transpose (update_row_submatrix_equiv Aᵀ j c f e)
+
+lemma submatrix_update_column_equiv [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : n) (c : m → α) (e : l ≃ m) (f : o ≃ n) :
+  (A.update_column j c).submatrix e f = update_column (A.submatrix e f) (f.symm j) (λ i, c (e i)) :=
+eq.trans (by simp_rw equiv.apply_symm_apply) (update_column_submatrix_equiv A _ _ e f).symm
+
+/-! `reindex` versions of the above `submatrix` lemmas for convenience. -/
+
+lemma update_row_reindex [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : l) (r : o → α) (e : m ≃ l) (f : n ≃ o) :
+  update_row (reindex e f A) i r = reindex e f (A.update_row (e.symm i) (λ j, r (f j))) :=
+update_row_submatrix_equiv _ _ _ _ _
+
+lemma reindex_update_row [decidable_eq l] [decidable_eq m]
+  (A : matrix m n α) (i : m) (r : n → α) (e : m ≃ l) (f : n ≃ o) :
+  reindex e f (A.update_row i r) = update_row (reindex e f A) (e i) (λ i, r (f.symm i)) :=
+submatrix_update_row_equiv _ _ _ _ _
+
+lemma update_column_reindex [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : o) (c : l → α) (e : m ≃ l) (f : n ≃ o) :
+  update_column (reindex e f A) j c = reindex e f (A.update_column (f.symm j) (λ i, c (e i))) :=
+update_column_submatrix_equiv _ _ _ _ _
+
+lemma reindex_update_column [decidable_eq o] [decidable_eq n]
+  (A : matrix m n α) (j : n) (c : m → α) (e : m ≃ l) (f : n ≃ o) :
+  reindex e f (A.update_column j c) = update_column (reindex e f A) (f j) (λ i, c (e.symm i)) :=
+submatrix_update_column_equiv _ _ _ _ _
 
 end update
 

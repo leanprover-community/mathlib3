@@ -73,7 +73,7 @@ def fract : E → E := λ m, m - floor b m
 lemma fract_def (m : E) : fract b m = m - floor b m := rfl
 
 @[simp]
-lemma fract_single (m : E) (i : ι):
+lemma fract_single (m : E) (i : ι) :
   b.repr (fract b m) i = int.fract (b.repr m i) :=
 by rw [fract, map_sub, finsupp.coe_sub, pi.sub_apply, floor_single, int.fract]
 
@@ -158,49 +158,25 @@ end
 open subtype
 
 /-- The map `zspan.fract_map` lift to an equiv between `E ⧸ span ℤ (set.range b)`
-and `zspan.fundamental_domain b` . -/
-def zspan.quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (zspan.fundamental_domain b) :=
+and `zspan.fundamental_domain b`. -/
+def quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (fundamental_domain b) :=
 begin
   refine equiv.of_bijective _ _,
   { refine λ q, quotient.lift_on' q _ _,
-    { exact λ x, ⟨zspan.fract_map b x, zspan.fract_map_mem_fundamental_domain b x⟩, },
+    { exact λ x, ⟨fract b x, fract_mem_fundamental_domain b x⟩, },
     { exact λ _ _ h, mk_eq_mk.mpr
-        ((zspan.fract_map_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
+      ((fract_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
   { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
-      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← zspan.fract_map_eq_iff,
-      ← @mk_eq_mk _ (zspan.fundamental_domain b)], }),
-      λ y, ⟨quotient.mk' y, ext_iff.mpr ((zspan.mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
+      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← fract_eq_iff,
+      ← @mk_eq_mk _ (fundamental_domain b)], }),
+      λ y, ⟨quotient.mk' y, ext_iff.mpr ((mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
 end
 
-lemma zspan.sub_quo_fract_mem (x : E) [fintype ι] :
-  x - zspan.quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
+lemma sub_quo_fract_mem (x : E) [fintype ι] :
+  x - quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
 begin
-  change x - zspan.fract_map b x ∈ span ℤ (set.range b),
-  simp only [zspan.fract_map_def, sub_sub_cancel, coe_mem],
-end
-
-open subtype
-
-/-- The map `zspan.fract_map` lift to an equiv between `E ⧸ span ℤ (set.range b)`
-and `zspan.fundamental_domain b` . -/
-def zspan.quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (zspan.fundamental_domain b) :=
-begin
-  refine equiv.of_bijective _ _,
-  { refine λ q, quotient.lift_on' q _ _,
-    { exact λ x, ⟨zspan.fract_map b x, zspan.fract_map_mem_fundamental_domain b x⟩, },
-    { exact λ _ _ h, mk_eq_mk.mpr
-        ((zspan.fract_map_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
-  { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
-      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← zspan.fract_map_eq_iff,
-      ← @mk_eq_mk _ (zspan.fundamental_domain b)], }),
-      λ y, ⟨quotient.mk' y, ext_iff.mpr ((zspan.mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
-end
-
-lemma zspan.sub_quo_fract_mem (x : E) [fintype ι] :
-  x - zspan.quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
-begin
-  change x - zspan.fract_map b x ∈ span ℤ (set.range b),
-  simp only [zspan.fract_map_def, sub_sub_cancel, coe_mem],
+  change x - fract b x ∈ span ℤ (set.range b),
+  simp only [fract_def, sub_sub_cancel, coe_mem],
 end
 
 end normed_lattice_field
@@ -212,7 +188,7 @@ variables (b : basis ι ℝ E)
 
 @[measurability]
 lemma fundamental_domain_measurable_set [measurable_space E] [opens_measurable_space E]
-  [finite ι]:
+  [finite ι] :
   measurable_set (fundamental_domain b) :=
 begin
   haveI : finite_dimensional ℝ E := finite_dimensional.of_fintype_basis b,
@@ -258,7 +234,7 @@ begin
   { rwa [fg_iff_add_subgroup_fg, add_subgroup.to_int_submodule_to_add_subgroup] at this, },
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent K (L.to_int_submodule : set E),
   -- Let `s` be a maximal `K`-linear independent family of elements of `L`. We show that
-  -- `L` is finitely generated (as a ℤ-module) because its fits in the exact sequence
+  -- `L` is finitely generated (as a ℤ-module) because it fits in the exact sequence
   -- `0 → L ∩ ker (span ℤ s) → L → L / ker (span ℤ s) → 0`
   -- with `L ∩ ker (span ℤ s)` and `L / ker (span ℤ s)` finitely generated.
   refine fg_of_fg_map_of_fg_inf_ker (mkq (span ℤ s)) _ _,
@@ -269,11 +245,11 @@ begin
       let b := basis.mk h3 (by
         simp only [h2, hs, subtype.range_coe, add_subgroup.coe_to_int_submodule, top_le_iff]),
       rw (_ : submodule.span ℤ s = submodule.span ℤ (set.range b)),
-      -- Elements of `L / ker (span ℤ s)` are in bijection with element of
+      -- Elements of `L / ker (span ℤ s)` are in bijection with elements of
       -- `L ∩ fundamental_domain s` so there are finitely many since
       -- `fundamental_domain s` is bounded.
       refine @set.finite.of_finite_image _ _ _ ((coe : _ → E) ∘ (zspan.quo_fract_equiv b)) _ _,
-      { obtain ⟨C, hC⟩ := metric.bounded.subset_ball (zspan.fundamental_domain_metric_bounded b) 0,
+      { obtain ⟨C, hC⟩ := metric.bounded.subset_ball (zspan.fundamental_domain_bounded b) 0,
         refine set.finite.subset (hd C) _,
         rintros _ ⟨_, ⟨⟨x, ⟨hx, rfl⟩⟩, rfl⟩⟩,
         split,
@@ -284,7 +260,7 @@ begin
           { simpa only [submodule.span_le, add_subgroup.coe_to_int_submodule, basis.coe_mk,
               subtype.range_coe_subtype, set.set_of_mem_eq], }},
         { simp only [mkq_apply, function.comp_app, mem_closed_ball_zero_iff],
-          exact mem_closed_ball_zero_iff.mp (hC (zspan.fract_map_mem_fundamental_domain b x)), }},
+          exact mem_closed_ball_zero_iff.mp (hC (zspan.fract_mem_fundamental_domain b x)), }},
       { refine function.injective.inj_on (function.injective.comp subtype.coe_injective
         (zspan.quo_fract_equiv b).injective) _, },
       { congr,
@@ -327,7 +303,7 @@ begin
     { rw map_subtype_top, }},
   have h_spantop : submodule.span K (set.range ((coe : L → E) ∘ b)) = ⊤,
   { rwa [← @submodule.span_span_of_tower ℤ E K _, h_spaneq], },
-  rw module.free.finrank_eq_card_choose_basis_index,
+  rw finrank_eq_card_choose_basis_index,
   apply le_antisymm,
   { -- The proof proceeds by proving that there is ℤ-relation between the
     -- vectors of `b` otherwise.
@@ -345,8 +321,7 @@ begin
     rsuffices ⟨v, hv⟩ : ((set.range ((coe : L → E) ∘ b)) \ (set.range e)).nonempty,
     { -- and there exist `n, m : ℕ`, `n ≠ m` such that `(n - m) • v ∈ span ℤ e`.
       obtain ⟨n, -, m, -, hnm, heq⟩ := @set.infinite.exists_ne_map_eq_of_maps_to ℤ _ _ _
-        (λ n : ℤ, zspan.fract_map e (n • v)) set.infinite_univ _
-        (hd (finset.univ.sum (λ j, ‖e j‖))),
+        (λ n : ℤ, zspan.fract e (n • v)) set.infinite_univ _ (hd (finset.univ.sum (λ j, ‖e j‖))),
       -- from this we will prove that `e ∪ {v}` is not ℤ-linear independent which will give
       -- the required contradiction
       { suffices : ¬ linear_independent ℤ (λ x : has_insert.insert v (set.range e), (x : E)),
@@ -366,16 +341,16 @@ begin
           apply (submodule.smul_mem_iff (span ℚ (set.range e)) hnz).mp,
           refine (submodule.span_subset_span ℤ ℚ (set.range e)) _,
           rwa [(by push_cast : - (n : ℚ) + (m : ℚ) = (-n + m : ℤ)), ← zsmul_eq_smul_cast ℚ,
-            set_like.mem_coe, add_smul, neg_smul, ← zspan.fract_map_eq_iff], }},
+            set_like.mem_coe, add_smul, neg_smul, ← zspan.fract_eq_iff], }},
       intros n _,
       split,
       { change _ ∈ L.to_int_submodule,
-        simp_rw [zspan.fract_map_def e, ← h_spaneq],
+        simp_rw [zspan.fract_def e, ← h_spaneq],
         refine sub_mem _ _,
         { exact zsmul_mem (submodule.subset_span (set.diff_subset _ _ hv)) _, },
-        { refine ((span_mono _) (coe_mem (zspan.floor_map e (n • v)))),
+        { refine ((span_mono _) (coe_mem (zspan.floor e (n • v)))),
           simp only [ht1, basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq], }},
-      { exact mem_closed_ball_zero_iff.mpr (zspan.fract_map_le e _), }},
+      { exact mem_closed_ball_zero_iff.mpr (zspan.fract_le e _), }},
     { rwa [basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq, ← set.to_finset_nonempty,
         ← finset.card_pos, set.to_finset_diff, finset.card_sdiff (set.to_finset_mono ht1),
         set.to_finset_range, set.to_finset_card, ← finrank_eq_card_basis e, tsub_pos_iff_lt,

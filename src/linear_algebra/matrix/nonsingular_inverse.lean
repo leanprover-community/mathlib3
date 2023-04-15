@@ -633,7 +633,7 @@ variables [fintype m] [fintype n]
 variables [decidable_eq m] [decidable_eq n]
 variables [comm_ring α]
 
-lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α):
+lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
   (A.submatrix e e)⁻¹ = (A⁻¹).submatrix e e :=
 begin
   rw [matrix.inv_def, matrix.inv_def,

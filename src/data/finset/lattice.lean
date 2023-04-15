@@ -523,7 +523,7 @@ you may instead use `finset.sup` which does not require `s` nonempty. -/
 def sup' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
 with_bot.unbot (s.sup (coe ∘ f)) (by simpa using H)
 
-variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
+variables {s : finset β} (H : s.nonempty) (f : β → α)
 
 @[simp] lemma coe_sup' : ((s.sup' H f : α) : with_bot α) = s.sup (coe ∘ f) :=
 by rw [sup', with_bot.coe_unbot]
@@ -546,7 +546,8 @@ by { rw [←with_bot.coe_le_coe, coe_sup'],
 lemma le_sup' {b : β} (h : b ∈ s) : f b ≤ s.sup' ⟨b, h⟩ f :=
 by { rw [←with_bot.coe_le_coe, coe_sup'], exact le_sup h, }
 
-lemma le_sup'_of_le (hb : b ∈ s) (h : a ≤ f b) : a ≤ s.sup' ⟨b, hb⟩ f := h.trans $ le_sup' _ hb
+lemma le_sup'_of_le {a : α} {b : β} (hb : b ∈ s) (h : a ≤ f b) : a ≤ s.sup' ⟨b, hb⟩ f :=
+h.trans $ le_sup' _ hb
 
 @[simp] lemma sup'_const (a : α) : s.sup' H (λ b, a) = a :=
 begin

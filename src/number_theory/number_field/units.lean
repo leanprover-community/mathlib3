@@ -367,7 +367,7 @@ end
 def unit_rank : ℕ := fintype.card (infinite_place K) - 1
 
 lemma rank_space : finrank ℝ ({w : infinite_place K // w ≠ w₀} → ℝ) = unit_rank K :=
-by { convert @module.free.finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
+by { convert @finrank_pi ℝ _ _ {w : infinite_place K // w ≠ w₀} _,
     simp only [unit_rank, fintype.card_subtype_compl, fintype.card_subtype_eq] }
 
 end log_embedding
@@ -431,7 +431,7 @@ begin
   { simp only [hx, ne.def, nonneg.mk_eq_zero, div_eq_zero_iff, map_eq_zero, or_self, not_false_iff,
       zero_mem_class.coe_eq_zero, bit0_eq_zero, one_ne_zero, implies_true_iff], },
   rw ← (seq.volume w hf B) at hB,
-  have exists_sol := exists_ne_zero_mem_ring_of_integers_le K hB,
+  have exists_sol := exists_ne_zero_mem_ring_of_integers_lt K hB,
   refine ⟨exists_sol.some, exists_sol.some_spec.1, _, _⟩,
   { intros z hz,
     convert exists_sol.some_spec.2 z,

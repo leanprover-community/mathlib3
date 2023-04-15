@@ -210,9 +210,7 @@ def res (x : ℕ → α) : ℕ → list α
 @[simp] lemma res_succ (x : ℕ → α) (n : ℕ) : res x n.succ = x n :: res x n := rfl
 
 @[simp] lemma res_length (x : ℕ → α) (n : ℕ) : (res x n).length = n :=
-by induction n; simp[*]
-
---lemma res_eq_res {x y : ℕ → α} {n : ℕ} (h : res x n = res y n) {m} : m < n → x m = y m :=
+by induction n; simp [*]
 
 /-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
 lemma res_eq_res {x y : ℕ → α} {n : ℕ} : res x n = res y n ↔ ∀ ⦃m⦄, m < n → x m = y m :=

@@ -143,13 +143,12 @@ lemma exist_unique_vadd_mem_fundamental_domain [finite ι] (x : E) :
   ∃! v : span ℤ (set.range b), v +ᵥ x ∈ fundamental_domain b :=
 begin
   casesI nonempty_fintype ι,
-  refine ⟨-floor b x, _, _⟩,
+  refine ⟨-floor b x, _, λ y _, _⟩,
   { simp_rw [fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add, add_subgroup_class.coe_neg,
     neg_add_eq_sub, ← fract_def],
     simp only [fract_single, int.fract_nonneg, int.fract_lt_one, true_and, set.mem_set_of_eq,
       implies_true_iff], },
-  { intros y _,
-    rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
+  { rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
       ← fract_def, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
       eq_comm, ← mem_fundamental_domain], },
 end

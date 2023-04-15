@@ -624,16 +624,10 @@ by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_
 
 end det
 
-end matrix
+variables [fintype m]
+variables [decidable_eq m]
 
-namespace matrix
-
-variables {α : Type*} {m n : Type*}
-variables [fintype m] [fintype n]
-variables [decidable_eq m] [decidable_eq n]
-variables [comm_ring α]
-
-lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
+@[simp] lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
   (A.submatrix e e)⁻¹ = (A⁻¹).submatrix e e :=
 begin
   rw [matrix.inv_def, matrix.inv_def,
@@ -645,10 +639,6 @@ end
 
 lemma inv_reindex (e : n ≃ m) (A : matrix n n α) :
   (reindex e e A)⁻¹ = reindex e e (A⁻¹) :=
-begin
-  rw reindex_apply,
-  rw reindex_apply,
-  apply inv_submatrix_equiv_self,
-end
+  by simp only [inv_submatrix_equiv_self, reindex_apply]
 
 end matrix

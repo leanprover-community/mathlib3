@@ -292,7 +292,7 @@ lemma integral_union_eq_left_of_ae (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   have ht : integrable_on f t μ,
-  { apply integrable_on.congr_fun' integrable_on_zero, symmetry, exact ht_eq },
+  { apply integrable_on_zero.congr_fun_ae, symmetry, exact ht_eq },
   by_cases H : integrable_on f (s ∪ t) μ, swap,
   { rw [integral_undef H, integral_undef], simpa [integrable_on_union, ht] using H },
   let f' := H.1.mk f,
@@ -301,7 +301,7 @@ begin
   ... = ∫ x in s, f' x ∂μ :
     begin
       apply integral_union_eq_left_of_ae_aux _ H.1.strongly_measurable_mk
-        (H.congr_fun' H.1.ae_eq_mk),
+        (H.congr_fun_ae H.1.ae_eq_mk),
       filter_upwards [ht_eq, ae_mono (measure.restrict_mono (subset_union_right s t) le_rfl)
         H.1.ae_eq_mk] with x hx h'x,
       rw [← h'x, hx]
@@ -1126,13 +1126,19 @@ end
 
 section inner
 
-variables {E' : Type*} [inner_product_space 𝕜 E'] [complete_space E'] [normed_space ℝ E']
+variables {E' : Type*}
+variables [normed_add_comm_group E'] [inner_product_space 𝕜 E']
+variables [complete_space E'] [normed_space ℝ E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
 lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
   ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
-((@innerSL 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+((innerSL 𝕜 c).restrict_scalars ℝ).integral_comp_comm hf
+
+variables (𝕜)
+-- variable binder update doesn't work for lemmas which refer to `𝕜` only via the notation
+local notation (name := inner_with_explicit) `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
 lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
   (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :

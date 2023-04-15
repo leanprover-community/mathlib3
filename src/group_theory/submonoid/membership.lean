@@ -294,8 +294,8 @@ by rw [free_monoid.mrange_lift, subtype.range_coe]
 @[to_additive] lemma closure_eq_image_prod (s : set M) :
   (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=
 begin
-  rw [closure_eq_mrange, coe_mrange, ← list.range_map_coe, ← set.range_comp, function.comp],
-  exact congr_arg _ (funext $ free_monoid.lift_apply _),
+  rw [closure_eq_mrange, coe_mrange, ← set.range_list_map_coe, ← set.range_comp],
+  exact congr_arg _ (funext $ free_monoid.lift_apply _)
 end
 
 @[to_additive]
@@ -345,6 +345,8 @@ submonoid.copy (powers_hom M n).mrange (set.range ((^) n : ℕ → M)) $
 set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
+
+@[norm_cast] lemma coe_powers (x : M) : ↑(powers x) = set.range (λ n : ℕ, x ^ n) := rfl
 
 lemma mem_powers_iff (x z : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
 
@@ -479,6 +481,7 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 attribute [to_additive multiples] submonoid.powers
 attribute [to_additive mem_multiples] submonoid.mem_powers
+attribute [to_additive coe_multiples] submonoid.coe_powers
 attribute [to_additive mem_multiples_iff] submonoid.mem_powers_iff
 attribute [to_additive multiples_eq_closure] submonoid.powers_eq_closure
 attribute [to_additive multiples_subset] submonoid.powers_subset

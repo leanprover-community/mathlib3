@@ -383,7 +383,7 @@ lemma norm_def' (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.to_prod_mul_opposite_hom‖
 lemma nnnorm_def' (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.to_prod_mul_opposite_hom‖₊ := rfl
 
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
-{ norm_smul_le := λ k a, (norm_smul k a.to_prod_mul_opposite).le,
+{ norm_smul_le := λ k a, norm_smul_le k a.to_prod_mul_opposite,
   .. double_centralizer.module }
 
 instance : normed_algebra 𝕜 𝓜(𝕜, A) :=

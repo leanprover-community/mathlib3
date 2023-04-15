@@ -12,6 +12,9 @@ import group_theory.quotient_group
 /-!
 # Reducing to an interval modulo its length
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines operations that reduce a number (in an `archimedean`
 `linear_ordered_add_comm_group`) to a number in a given interval, modulo the length of that
 interval.
@@ -320,7 +323,7 @@ lemma to_Ico_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
 begin
   suffices : to_Ico_div a hb (-x) = -(to_Ioc_div (-(a + b)) hb x),
   { rwa [neg_add, ←sub_eq_add_neg, ←to_Ioc_div_add_right', to_Ioc_div_add_right] at this },
-  rw [eq_neg_iff_eq_neg, eq_comm],
+  rw [← neg_eq_iff_eq_neg],
   apply eq_to_Ioc_div_of_sub_zsmul_mem_Ioc,
   obtain ⟨hc, ho⟩ := sub_to_Ico_div_zsmul_mem_Ico a hb (-x),
   rw [←neg_lt_neg_iff, neg_sub' (-x), neg_neg, ←neg_smul] at ho,

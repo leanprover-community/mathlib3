@@ -8,6 +8,9 @@ import topology.sets.opens
 /-!
 # Properties of maps that are local at the target.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that the following properties of continuous maps are local at the target :
 - `inducing`
 - `embedding`

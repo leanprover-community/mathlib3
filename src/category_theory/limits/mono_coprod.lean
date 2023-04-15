@@ -11,6 +11,9 @@ import category_theory.limits.shapes.zero_morphisms
 
 # Categories where inclusions into coproducts are monomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` is a category, the class `mono_coprod C` expresses that left
 inclusions `A ⟶ A ⨿ B` are monomorphisms when `has_coproduct A B`
 is satisfied. If it is so, it is shown that right inclusions are

@@ -44,7 +44,7 @@ self-adjoint operator, spectral theorem, diagonalization theorem
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [dec_𝕜 : decidable_eq 𝕜]
-variables {E : Type*} [inner_product_space 𝕜 E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
@@ -76,7 +76,7 @@ end
 
 /-- The eigenspaces of a self-adjoint operator are mutually orthogonal. -/
 lemma orthogonal_family_eigenspaces :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
+  orthogonal_family 𝕜 (λ μ, eigenspace T μ) (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 begin
   rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
@@ -88,8 +88,7 @@ begin
 end
 
 lemma orthogonal_family_eigenspaces' :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
-    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
+  orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
@@ -108,8 +107,8 @@ lemma orthogonal_supr_eigenspaces (μ : 𝕜) :
 begin
   set p : submodule 𝕜 E := (⨆ μ, eigenspace T μ)ᗮ,
   refine eigenspace_restrict_eq_bot hT.orthogonal_supr_eigenspaces_invariant _,
-  have H₂ : p ≤ (eigenspace T μ)ᗮ := submodule.orthogonal_le (le_supr _ _),
-  exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
+  have H₂ : eigenspace T μ ⟂ p := (submodule.is_ortho_orthogonal_right _).mono_left (le_supr _ _),
+  exact H₂.disjoint
 end
 
 /-! ### Finite-dimensional theory -/

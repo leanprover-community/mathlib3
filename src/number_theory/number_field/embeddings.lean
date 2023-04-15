@@ -338,16 +338,21 @@ begin
   { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
 
-lemma not_is_real_iff_is_complex {w : infinite_place K} :
-  ¬ is_real w ↔ is_complex w :=
+@[simp] lemma not_is_real_iff_is_complex {w : infinite_place K} : ¬ is_real w ↔ is_complex w :=
 by rw [is_complex_iff, is_real_iff]
+
+@[simp] lemma not_is_complex_iff_is_real {w : infinite_place K} : ¬ is_complex w ↔ is_real w :=
+by rw [←not_is_real_iff_is_complex, not_not]
+
+lemma is_real_or_is_complex (w : infinite_place K) : is_real w ∨ is_complex w :=
+by { rw ←not_is_real_iff_is_complex, exact em _ }
 
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
 noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
 (is_real_iff.mp hw).embedding
 
 @[simp]
-lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K) :
+lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K):
   place (is_real.embedding hw) x = w x :=
 begin
   rw [is_real.embedding, complex_embedding.is_real.place_embedding, ← coe_mk],
@@ -356,7 +361,7 @@ end
 
 @[simp]
 lemma is_real.abs_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K) :
-  abs (is_real.embedding hw x) = w x :=
+  |is_real.embedding hw x| = w x :=
 by { rw ← is_real.place_embedding_apply hw x, congr, }
 
 variable (K)

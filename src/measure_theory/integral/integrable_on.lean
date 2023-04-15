@@ -114,20 +114,25 @@ lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t)
   integrable_on f s μ :=
 h.mono_set_ae hst.le
 
-lemma integrable_on.congr_fun' (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
+lemma integrable_on.congr_fun_ae (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
   integrable_on g s μ :=
 integrable.congr h hst
+
+lemma integrable_on_congr_fun_ae (hst : f =ᵐ[μ.restrict s] g) :
+  integrable_on f s μ ↔ integrable_on g s μ :=
+⟨λ h, h.congr_fun_ae hst, λ h, h.congr_fun_ae hst.symm⟩
 
 lemma integrable_on.congr_fun (h : integrable_on f s μ) (hst : eq_on f g s)
   (hs : measurable_set s) :
   integrable_on g s μ :=
-h.congr_fun' ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+h.congr_fun_ae ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+
+lemma integrable_on_congr_fun (hst : eq_on f g s) (hs : measurable_set s) :
+  integrable_on f s μ ↔ integrable_on g s μ :=
+⟨λ h, h.congr_fun hst hs, λ h, h.congr_fun hst.symm hs⟩
 
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
-
-lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
-h
 
 lemma integrable_on.restrict (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable_on f s (μ.restrict t) :=

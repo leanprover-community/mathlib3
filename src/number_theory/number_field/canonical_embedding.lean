@@ -10,14 +10,17 @@ import algebra.module.zlattice
 
 /-!
 # Canonical embedding of a number field
-The `canonical_embedding` of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
+
+The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
 `K →+* ℝ^r₁ × ℂ^r₂` that sends `x ∈ K` to `(φ_₁(x),...,φ_r₁(x)) × (ψ_₁(x),..., ψ_r₂(x))` where
 `φ_₁,...,φ_r₁` are its real embeddings and `ψ_₁,..., ψ_r₂` are its complex embeddings (up to
 complex conjugation).
 
 ## Main definitions and results
+
 * `number_field.canonical_embedding.ring_of_integers.inter_ball_finite`: the intersection of the
-image of `𝓞 K` by `canonical_embedding` and any ball centered at `0` of finite radius is finite.
+image of the ring of integers by the canonical embedding and any ball centered at `0` of finite
+radius is finite.
 * `number_field.canonical_embedding.lattice_basis`:  a `ℝ`-basis of `ℝ^r₁ × ℂ^r₂` that is also
 a `ℤ`-basis of the image of `𝓞 K` by `canonical_embedding`.
 * `number_field.canonical_embedding.exists_ne_zero_mem_ring_of_integers_le`: for
@@ -25,62 +28,52 @@ a `ℤ`-basis of the image of `𝓞 K` by `canonical_embedding`.
 `a ≠ 0` and `∀ w : infinite_place K, w a < f w`.
 
 ## Tags
+
 number field, infinite places
 -/
 
-open_locale classical number_field
-
 noncomputable theory
 
-open number_field number_field.infinite_place module fintype finite_dimensional
+open function finite_dimensional finset fintype number_field number_field.infinite_place metric
+module
+open_locale classical number_field
 
 variables (K : Type*) [field K]
 
 namespace number_field.canonical_embedding
 
-/-- The ambiant space `ℝ^r₁ × ℂ^r₂` with `(r₁, r₂)` the signature of `K`. -/
-@[reducible]
-def space :=
-  ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)
-
-instance : comm_ring (space K) := prod.comm_ring
-
-instance : module ℝ (space K) := prod.module
+-- The ambient space `ℝ^r₁ × ℂ^r₂` with `(r₁, r₂)` the signature of `K`.
+localized "notation `E` :=
+  ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)"
+  in canonical_embedding
 
 lemma space_rank [number_field K] :
-  finrank ℝ (space K) = finrank ℚ K :=
+  finrank ℝ E = finrank ℚ K :=
 begin
   haveI : module.free ℝ ℂ := infer_instance,
-  rw [module.free.finrank_prod, module.free.finrank_pi, module.free.finrank_pi_fintype,
-    complex.finrank_real_complex, finset.sum_const, finset.card_univ, ← card_real_embeddings,
-    algebra.id.smul_eq_mul, mul_comm, ← card_complex_embeddings, ← number_field.embeddings.card K ℂ,
-    fintype.card_subtype_compl, nat.add_sub_of_le (fintype.card_subtype_le _)],
+  rw [finrank_prod, finrank_pi, finrank_pi_fintype, complex.finrank_real_complex,
+    finset.sum_const, finset.card_univ, ← card_real_embeddings, algebra.id.smul_eq_mul, mul_comm,
+    ← card_complex_embeddings, ← number_field.embeddings.card K ℂ, fintype.card_subtype_compl,
+    nat.add_sub_of_le (fintype.card_subtype_le _)],
 end
 
-lemma space_nontrivial [number_field K] : nontrivial (space K) :=
+lemma non_trivial_space [number_field K] : nontrivial E :=
 begin
   obtain ⟨w⟩ := infinite_place.nonempty K,
-  by_cases hw : is_real w,
-  { convert nontrivial_prod_left,
-    { convert @function.nontrivial _ _ _ real.nontrivial,
-      use ⟨w, hw⟩, },
-    exact nonempty_of_inhabited, },
- { convert nontrivial_prod_right,
-   {  exact nonempty_of_inhabited, },
-   {  convert @function.nontrivial _ _ _ complex.nontrivial,
-      use ⟨w, not_is_real_iff_is_complex.mp hw⟩, }},
+  obtain hw | hw := w.is_real_or_is_complex,
+  { haveI : nonempty {w : infinite_place K // is_real w} := ⟨⟨w, hw⟩⟩,
+    exact nontrivial_prod_left },
+  { haveI : nonempty {w : infinite_place K // is_complex w} := ⟨⟨w, hw⟩⟩,
+    exact nontrivial_prod_right }
 end
 
 /-- The canonical embedding of a number field `K` of signature `(r₁, r₂)` into `ℝ^r₁ × ℂ^r₂`. -/
-def _root_.number_field.canonical_embedding : K →+* (space K) :=
+def _root_.number_field.canonical_embedding : K →+* E :=
 ring_hom.prod (pi.ring_hom (λ w, w.prop.embedding)) (pi.ring_hom (λ w, w.val.embedding))
 
 lemma _root_.number_field.canonical_embedding_injective [number_field K] :
-  function.injective (number_field.canonical_embedding K) :=
-begin
-  convert ring_hom.injective _,
-  exact (space_nontrivial K),
-end
+  injective (number_field.canonical_embedding K) :=
+  @ring_hom.injective _ _ _ _ (non_trivial_space K) _
 
 open number_field
 
@@ -115,81 +108,67 @@ begin
       simp only [apply_at_complex_infinite_place, subtype.val_eq_coe, coe_nnnorm,
         complex.norm_eq_abs, function.embedding.coe_subtype, subtype.coe_mk, abs_embedding], }},
   { ext w,
-    simp only [em (is_real w), set.mem_set_of_eq, finset.mem_union, set.mem_to_finset,
-      finset.mem_univ, ←infinite_place.not_is_real_iff_is_complex], },
+    simp only [w.is_real_or_is_complex, set.mem_set_of_eq, finset.mem_union, set.mem_to_finset,
+      finset.mem_univ], },
 end
 
-lemma le_of_le [number_field K] (x : K) (r : ℝ) :
+lemma norm_le_iff [number_field K] (x : K) (r : ℝ) :
   ‖canonical_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
 begin
   obtain hr | hr := lt_or_le r 0,
-  { split,
-    { intro h,
-      exfalso,
-      exact (not_le.mpr (lt_of_le_of_lt h hr)) (norm_nonneg _), },
-    { intro h,
-      exfalso,
-      obtain ⟨w⟩ := infinite_place.nonempty K,
-      exact (not_le.mpr (lt_of_le_of_lt (h w) hr)) (map_nonneg w _), }},
+  { obtain ⟨w⟩ := infinite_place.nonempty K,
+    exact iff_of_false (hr.trans_le $ norm_nonneg _).not_le
+      (λ h, hr.not_le $ (map_nonneg w _).trans $ h _) },
   { lift r to nnreal using hr,
     simp_rw [← coe_nnnorm, nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff, finset.mem_univ,
-      forall_true_left],
-    split; { exact λ h w, h w, }},
+      forall_true_left, ←nnreal.coe_le_coe, subtype.coe_mk] }
 end
 
 variables (K)
 
 /-- The image of `𝓞 K` as a subring of `ℝ^r₁ × ℂ^r₂`. -/
-def integer_lattice : subring (space K) :=
-subring.map (canonical_embedding K) (ring_hom.range (algebra_map (𝓞 K) K))
+def integer_lattice : subring E :=
+(ring_hom.range (algebra_map (𝓞 K) K)).map (canonical_embedding K)
 
-/-- The ring equiv between `𝓞 K` and the integer lattice. -/
+/-- The linear equiv between `𝓞 K` and the integer lattice. -/
 def equiv_integer_lattice [number_field K] :
-  𝓞 K ≃ₗ[ℤ] (integer_lattice K) :=
-begin
-  refine linear_equiv.of_bijective _ _,
-  { refine linear_map.mk _ _ _,
-    { exact λ x, ⟨canonical_embedding K (algebra_map (𝓞 K) K x), algebra_map (𝓞 K) K x,
-      by simp only [subring.mem_carrier, ring_hom.mem_range, exists_apply_eq_apply], rfl⟩, } ,
-    { intros _ _,
-      simpa only [map_add], },
-    { intros _ _,
-      simpa only [zsmul_eq_mul, map_mul, map_int_cast], }},
-  { split,
-    { intros _ _ h,
-      rw [linear_map.coe_mk, subtype.mk_eq_mk] at h,
-      exact (is_fraction_ring.injective (𝓞 K) K) (canonical_embedding_injective K h), },
-    { exact λ ⟨_, _, ⟨a, rfl⟩, rfl⟩, ⟨a, rfl⟩, }}
-end
+  𝓞 K ≃ₗ[ℤ] integer_lattice K :=
+linear_equiv.of_bijective
+  { to_fun := λ x, ⟨canonical_embedding K (algebra_map (𝓞 K) K x), algebra_map (𝓞 K) K x,
+      by simp only [subring.mem_carrier, ring_hom.mem_range, exists_apply_eq_apply], rfl⟩,
+    map_add' := λ x y, by simpa only [map_add],
+    map_smul' := λ c x, by simpa only [zsmul_eq_mul, map_mul, map_int_cast] }
+  begin
+    refine ⟨λ _ _ h, _,  λ ⟨_, _, ⟨a, rfl⟩, rfl⟩, ⟨a, rfl⟩⟩,
+    rw [linear_map.coe_mk, subtype.mk_eq_mk] at h,
+    exact is_fraction_ring.injective (𝓞 K) K (canonical_embedding_injective K h),
+  end
 
 lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
-  ((integer_lattice K : set (space K)) ∩ (metric.closed_ball 0 r)).finite :=
+  ((integer_lattice K : set E) ∩ (closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
-  { convert set.finite_empty,
-    rw metric.closed_ball_eq_empty.mpr hr,
-    exact set.inter_empty _, },
-  { have heq : ∀ x : K, canonical_embedding K x ∈ (metric.closed_ball (0 : (space K)) r) ↔
-      ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r,
-    { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, le_of_le],
-      exact λ x, le_iff_le x r, },
-    convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
-    ext, split,
-    { rintros ⟨⟨_, ⟨x, rfl⟩, rfl⟩, hx2⟩,
-      exact ⟨x, ⟨⟨set_like.coe_mem x, (heq x).mp hx2⟩, rfl⟩⟩, },
-    { rintros ⟨x, ⟨ hx1, hx2⟩, rfl⟩,
-      exact ⟨⟨x, ⟨⟨x, hx1⟩, rfl⟩, rfl⟩, (heq x).mpr hx2⟩, }},
+  {  simp [closed_ball_eq_empty.2 hr] },
+  have heq :
+    ∀ x, canonical_embedding K x ∈ closed_ball (0 : E) r ↔ ∀ φ : K →+* ℂ, ‖φ x‖ ≤ r,
+  { simp only [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff, norm_le_iff],
+    exact λ x, le_iff_le x r, },
+  convert (embeddings.finite_of_norm_le K ℂ r).image (canonical_embedding K),
+  ext, split,
+  { rintro ⟨⟨_, ⟨x, rfl⟩, rfl⟩, hx2⟩,
+    exact ⟨x, ⟨set_like.coe_mem x, (heq x).mp hx2⟩, rfl⟩, },
+  { rintro ⟨x, ⟨hx1, hx2⟩, rfl⟩,
+    exact ⟨⟨x, ⟨⟨x, hx1⟩, rfl⟩, rfl⟩, (heq x).mpr hx2⟩, }
 end
 
-lemma integer_lattice.countable [number_field K] : countable (integer_lattice K) :=
+instance [number_field K] : countable (integer_lattice K) :=
 begin
-  suffices : (⋃ n : ℕ, ((integer_lattice K : set (space K)) ∩ (metric.closed_ball 0 n))).countable,
-  { refine set.countable.to_subtype (set.countable.mono _ this),
-    rintros _ ⟨x, ⟨hx, rfl⟩⟩,
-    rw set.mem_Union,
-    use nat.ceil (‖canonical_embedding K x‖),
-    exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
-  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable), },
+  have : (⋃ n : ℕ, ((integer_lattice K : set E) ∩ (closed_ball 0 n))).countable,
+  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable) },
+  refine (this.mono _).to_subtype,
+  rintro _ ⟨x, hx, rfl⟩,
+  rw set.mem_Union,
+  exact ⟨⌈‖canonical_embedding K x‖⌉₊, ⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.2 (nat.le_ceil _)⟩,
 end
 
 section basis
@@ -209,7 +188,7 @@ def _root_.number_field.full_embedding : K →+* (K →+* ℂ) → ℂ :=
 
 /-- The map from `(K →+* ℂ) → ℂ` to `space K` that gives a commuting diagramm, see
 `number_field.canonical_embedding.commutes`. -/
-def comm_map : ((K →+* ℂ) → ℂ) →ₗ[ℝ] (space K):=
+def comm_map : ((K →+* ℂ) → ℂ) →ₗ[ℝ] E :=
 { to_fun := λ e, ⟨λ w, (e w.val.embedding).re, λ w, (e w.val.embedding)⟩,
   map_smul' := λ _ _, by simp_rw [ring_hom.id_apply, prod.smul_mk, pi.smul_def, smul_eq_mul,
     complex.real_smul, complex.of_real_mul_re],
@@ -241,11 +220,11 @@ begin
   by_cases hφ : complex_embedding.is_real φ,
   { rw (_ : x φ = (x φ).re),
     { convert congr_arg (coe : ℝ → ℂ)
-        (congr_arg (λ x : (space K), x.1 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc),
+        (congr_arg (λ x : E, x.1 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc),
       exact (complex_embeddings.is_real.embedding_mk hφ).symm, },
     { rw [eq_comm, ← complex.eq_conj_iff_re, ← full_embedding.conj_apply K _ hx,
         complex_embedding.is_real_iff.mp hφ], }},
-  { have heqz := congr_arg (λ x : (space K), x.2 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc,
+  { have heqz := congr_arg (λ x : E, x.2 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc,
     by_cases h_same : φ = (infinite_place.mk φ).embedding,
     { convert heqz using 2, },
     { rw [ ← map_eq_zero_iff (star_ring_end ℂ) star_injective, ← full_embedding.conj_apply K _ hx],
@@ -272,7 +251,7 @@ begin
 end
 
 /-- A `ℝ`-basis of `(space K)` that is also a `ℤ`-basis of the `unit_lattice`. -/
-def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℝ (space K) :=
+def lattice_basis [number_field K] : basis (free.choose_basis_index ℤ (𝓞 K)) ℝ E :=
 begin
   let e : (K →+* ℂ) ≃ free.choose_basis_index ℤ (𝓞 K) :=
     equiv_of_card_eq ((embeddings.card K ℂ).trans (finrank_eq_card_basis (integral_basis K))),
@@ -294,7 +273,7 @@ begin
       ext1 i,
       exact (commutes K (integral_basis K i)).symm, },
     refine basis_of_linear_independent_of_card_eq_finrank this _,
-    rw [canonical_embedding.space_rank, ← free.finrank_eq_card_choose_basis_index,
+    rw [canonical_embedding.space_rank, ← finrank_eq_card_choose_basis_index,
       ← ring_of_integers.rank], },
   -- To prove that `full_embedding K (integral_basis K)` is `ℂ`-linear independent, we
   -- prove that the square of the determinant of its matrix on the standard basis of
@@ -322,7 +301,7 @@ lemma lattice_basis_apply [number_field K] (i : free.choose_basis_index ℤ (�
 by simp only [lattice_basis, coe_basis_of_linear_independent_of_card_eq_finrank]
 
 lemma lattice_basis_span [number_field K] :
-  (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)) = integer_lattice K :=
+  (submodule.span ℤ (set.range (lattice_basis K)) : set E) = integer_lattice K :=
 begin
   rw (_ : set.range (lattice_basis K) =
     (canonical_embedding K).to_int_alg_hom.to_linear_map '' (set.range (integral_basis K))),
@@ -360,13 +339,13 @@ def convex_body_complex (f : infinite_place K → nnreal) :
   set ({w : infinite_place K // is_complex w} → ℂ) :=
 set.pi set.univ (λ w, metric.ball 0 (f w))
 
-/-- The convex body defined by `f`: the set of points `x : space K` such that `x w < f w` for all
+/-- The convex body defined by `f`: the set of points `x : E` such that `x w < f w` for all
 infinite places `w`. -/
 @[reducible]
-def convex_body (f : infinite_place K → nnreal): set (space K) :=
+def convex_body (f : infinite_place K → nnreal): set E :=
 (convex_body_real K f) ×ˢ (convex_body_complex K f)
 
-lemma convex_body.symmetric (f : infinite_place K → nnreal) (x : space K)
+lemma convex_body.symmetric (f : infinite_place K → nnreal) (x : E)
   (hx : x ∈ (convex_body K f)) : -x ∈ (convex_body K f) :=
 begin
   refine set.mem_prod.1 ⟨_, _⟩,
@@ -398,7 +377,7 @@ variable [number_field K]
 
 /-- The complex Haar measure giving measure 1 to the unit box in `ℂ ≃ ℝ × ℝ`. -/
 @[reducible]
-def unit_measure : measure (space K) :=
+def unit_measure : measure E :=
 measure.prod (measure.pi (λ _, volume)) (measure.pi (λ _, complex.basis_one_I.add_haar))
 
 instance : measure.is_add_haar_measure (unit_measure K) :=
@@ -480,7 +459,7 @@ end
 /-- The bound that appears in Minkowski theorem, see
 `exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure`.-/
 def minkowski_bound : ennreal := (unit_measure K) (zspan.fundamental_domain (lattice_basis K)) *
-  2 ^ (finrank ℝ (space K))
+  2 ^ (finrank ℝ E)
 
 lemma minkowski_bound_lt_top : minkowski_bound K < ⊤ :=
 begin
@@ -494,7 +473,7 @@ lemma exists_ne_zero_mem_ring_of_integers_lt {f : (infinite_place K) → nnreal}
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin
   haveI : countable (submodule.span ℤ (set.range (lattice_basis K))).to_add_subgroup,
-  { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set (space K)),
+  { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set E),
     rw lattice_basis_span,
     exact integer_lattice.countable K, },
   have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),

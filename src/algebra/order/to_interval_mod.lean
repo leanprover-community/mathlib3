@@ -516,30 +516,6 @@ lemma mem_Ioo_mod_iff_to_Ico_mod_ne_left :
 
 alias mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod ↔ mem_Ioo_mod.to_Ico_mod_eq_to_Ioc_mod _
 
-@[simp] lemma to_Ico_mod_inj :
-  to_Ico_mod c hp a = to_Ico_mod c hp b ↔ ¬ mem_Ioo_mod a p b :=
-begin
-  rw [to_Ico_mod_eq_to_Ico_mod, mem_Ioo_mod, not_exists],
-  split,
-  { rintro ⟨n, h⟩,
-    rw sub_eq_iff_eq_add at h,
-    subst h,
-    rintro m,
-    sorry },
-  sorry,
-end
-
-lemma to_Ico_mod_ne_to_Ico_mod :
-  to_Ico_mod c hp a ≠ to_Ico_mod c hp b ↔ mem_Ioo_mod a p b :=
-(to_Ico_mod_inj hp).not_left
-
-alias to_Ico_mod_ne_to_Ico_mod ↔ _ mem_Ioo_mod.to_Ico_mod_ne_to_Ico_mod
-
-lemma mem_Ioo_mod_comm (hp : 0 < p) : mem_Ioo_mod a p b ↔ mem_Ioo_mod b p a :=
-by rw [←to_Ico_mod_ne_to_Ico_mod hp, ne_comm, to_Ico_mod_ne_to_Ico_mod]; assumption
-
-alias mem_Ioo_mod_comm ↔ mem_Ioo_mod.symm _
-
 lemma not_mem_Ioo_mod_iff_to_Ico_mod_add_period_eq_to_Ioc_mod :
   ¬mem_Ioo_mod a b x ↔ to_Ico_mod a hb x + b = to_Ioc_mod a hb x :=
 (mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hb).not_left
@@ -573,6 +549,7 @@ lemma not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one :
   ¬mem_Ioo_mod a b x ↔ to_Ico_div a hb x = to_Ioc_div a hb x + 1 :=
 (mem_Ioo_mod_iff_to_Ico_div_ne_to_Ioc_div_add_one hb).not_left
 
+section
 include hb
 
 lemma mem_Ioo_mod_iff_ne_add_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, x ≠ a + z • b :=
@@ -628,6 +605,28 @@ begin
     (zsmul_strict_mono_left hb).le_iff_le],
   apply (to_Ioc_div_wcovby_to_Ico_div _ _ _).le_succ,
 end
+
+end
+
+/-- If `a` and `b` fall within the same cycle WRT `c`, then they are not within `p` of one another.
+-/
+@[simp] lemma to_Ico_mod_inj :
+  to_Ico_mod c hp a = to_Ico_mod c hp b ↔ ¬ mem_Ioo_mod a p b :=
+begin
+  rw [to_Ico_mod_eq_to_Ico_mod, not_mem_Ioo_mod_iff_eq_add_zsmul hp],
+  simp_rw sub_eq_iff_eq_add',
+end
+
+lemma to_Ico_mod_ne_to_Ico_mod :
+  to_Ico_mod c hp a ≠ to_Ico_mod c hp b ↔ mem_Ioo_mod a p b :=
+(to_Ico_mod_inj hp).not_left
+
+alias to_Ico_mod_ne_to_Ico_mod ↔ _ mem_Ioo_mod.to_Ico_mod_ne_to_Ico_mod
+
+lemma mem_Ioo_mod_comm (hp : 0 < p) : mem_Ioo_mod a p b ↔ mem_Ioo_mod b p a :=
+by rw [←to_Ico_mod_ne_to_Ico_mod hp, ne_comm, to_Ico_mod_ne_to_Ico_mod]; assumption
+
+alias mem_Ioo_mod_comm ↔ mem_Ioo_mod.symm _
 
 end Ico_Ioc
 

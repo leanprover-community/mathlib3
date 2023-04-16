@@ -38,7 +38,7 @@ jobs:
         if: ${{ 'bors' == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
-          sudo apt-get install  --no-install-recommends -y bibtool
+          sudo apt-get install -y bibtool
 
       - name: install Python
         if: ${{ 'bors' == 'ubuntu-latest' }}

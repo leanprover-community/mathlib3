@@ -835,9 +835,12 @@ begin
 end
 
 private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
-  (h₁₂₃ : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁)
-  (h₂₃₄ : to_Ico_mod x₂ hb.out x₄ ≤ to_Ioc_mod x₂ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₂) :
-  to_Ico_mod x₁ hb.out x₄ ≤ to_Ioc_mod x₁ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₁ :=
+  (h₁₂₃ : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃
+    ∧ ¬to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁)
+  (h₂₃₄ : to_Ico_mod x₂ hb.out x₄ ≤ to_Ioc_mod x₂ hb.out x₃
+    ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₂) :
+  to_Ico_mod x₁ hb.out x₄ ≤ to_Ioc_mod x₁ hb.out x₃
+    ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₁ :=
 begin
   have h₁₂₃' := (to_Ixx_mod_iff hb.out _ _ _).mp
      (to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₁₂₃.1)),

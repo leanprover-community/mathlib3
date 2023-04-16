@@ -163,6 +163,12 @@ summable_of_absolute_convergence_real h
 noncomputable def pos_terms (a : ℕ → ℝ) (n : ℕ) := if 0 ≤ a n then a n else 0
 noncomputable def neg_terms (a : ℕ → ℝ) (n : ℕ) := if 0 ≤ a n then 0 else a n
 
+lemma pos_terms_nonneg (a : ℕ → ℝ) (n : ℕ) : 0 ≤ pos_terms a n :=
+begin
+  unfold pos_terms,
+  by_cases h : 0 ≤ a n; simp [h],
+end
+
 lemma monotone_partial_sums_norm_series (a : ℕ → ℝ) : monotone (partial_sum (λ n, ‖a n‖)) :=
 begin
   unfold monotone,
@@ -177,6 +183,21 @@ begin
                                   ... = partial_sum (λ n, ‖a n‖) (m + 1) : by rw partial_sum_next } }
 end
 
+lemma monotone_partial_sums_pos_terms (a : ℕ → ℝ) : monotone (partial_sum (pos_terms a)) :=
+begin
+  unfold monotone,
+  intros n m hnm,
+  induction m with m ih,
+  { rw nat.eq_zero_of_le_zero hnm },
+  { by_cases h : n = m.succ,
+    { rw h },
+    { have : n ≤ m := nat.le_of_lt_succ (lt_of_le_of_ne hnm h),
+      have pt_nonneg : 0 ≤ pos_terms a m := pos_terms_nonneg a m,
+      calc partial_sum (λ n, pos_terms a n) n ≤ partial_sum (λ n, pos_terms a n) m : ih this
+                                  ... ≤ pos_terms a m + partial_sum (λ n, pos_terms a n) m : by linarith
+                                  ... = partial_sum (pos_terms a) (m + 1) : by rw partial_sum_next } }
+end
+
 lemma tendsto_at_top_of_conditional_convergence {a : ℕ → ℝ}
   (h : ¬series_converges_absolutely a) :
     filter.tendsto (partial_sum (λ n, ‖a n‖)) filter.at_top filter.at_top :=
@@ -186,6 +207,7 @@ begin
   { contradiction }
 end
 
+/-TODO: I'm not actually sure this lemma is useful-/
 lemma pos_terms_ge_absolute_value (a : ℕ → ℝ) (n : ℕ) :
    partial_sum (pos_terms a) n ≤ partial_sum (λ k : ℕ, |a k|) n :=
 begin

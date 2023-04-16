@@ -339,11 +339,10 @@ begin
   { norm_cast, exact le_of_lt (nat.lt_succ_sqrt' a), },
 end
 
+-- TODO: move to an earlier file since this doesn't mention `sqrt`
 instance : star_ordered_ring ℝ :=
-{ nonneg_iff := λ r, by
-  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
-    rintros ⟨s, rfl⟩,
-    exact mul_self_nonneg s },
+{ star_mul_self_nonneg := (star_ordered_ring_of_comm ℝ).star_mul_self_nonneg,
+  conjugate_nonneg := (star_ordered_ring_of_comm ℝ).conjugate_nonneg,
   ..real.ordered_add_comm_group }
 
 end real

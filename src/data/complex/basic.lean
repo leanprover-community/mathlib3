@@ -666,17 +666,13 @@ With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring
 (That is, a star ring in which the nonnegative elements are those of the form `star z * z`.)
 -/
 protected def star_ordered_ring : star_ordered_ring ℂ :=
-{ nonneg_iff := λ r, by
-  { refine ⟨λ hr, ⟨real.sqrt r.re, _⟩, λ h, _⟩,
-    { have h₁ : 0 ≤ r.re := by { rw [le_def] at hr, exact hr.1 },
-      have h₂ : r.im = 0 := by { rw [le_def] at hr, exact hr.2.symm },
-      ext,
-      { simp only [of_real_im, star_def, of_real_re, sub_zero, conj_re, mul_re, mul_zero,
-                   ←real.sqrt_mul h₁ r.re, real.sqrt_mul_self h₁] },
-      { simp only [h₂, add_zero, of_real_im, star_def, zero_mul, conj_im,
-                   mul_im, mul_zero, neg_zero] } },
-    { obtain ⟨s, rfl⟩ := h,
-      simp only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
+{ star_mul_self_nonneg := λ z,
+    (zero_le_real.mpr $ norm_sq_nonneg z).trans_eq norm_sq_eq_conj_mul_self,
+  conjugate_nonneg := λ c z hc, begin
+    rw mul_right_comm,
+    apply mul_nonneg _ hc,
+    exact (zero_le_real.mpr $ norm_sq_nonneg z).trans_eq norm_sq_eq_conj_mul_self,
+  end,
   ..complex.strict_ordered_comm_ring }
 
 localized "attribute [instance] complex.star_ordered_ring" in complex_order

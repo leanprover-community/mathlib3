@@ -23,8 +23,7 @@ one needs to write `(R : Type) [ring R] [star_ring R]`.
 This avoids difficulties with diamond inheritance.
 
 We also define the class `star_ordered_ring R`, which says that the order on `R` respects the
-star operation, i.e. an element `r` is nonnegative iff there exists an `s` such that
-`r = star s * s`.
+star operation, i.e. `star s * s` is non-negative, and `star s * c * s` is non-negative when `c` is.
 
 For now we simply do not introduce notations,
 as different users are expected to feel strongly about the relative merits of
@@ -341,12 +340,25 @@ def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 
 /--
 An ordered `*`-ring is a ring which is both an `ordered_add_comm_group` and a `*`-ring,
-and `0 ≤ r ↔ ∃ s, r = star s * s`.
+and `0 ≤ star r * r` and `0 ≤ c → 0 ≤ star r * c * r`.
 -/
 class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
   extends star_ring R :=
 (add_le_add_left       : ∀ a b : R, a ≤ b → ∀ c : R, c + a ≤ c + b)
-(nonneg_iff            : ∀ r : R, 0 ≤ r ↔ ∃ s, r = star s * s)
+(conjugate_nonneg      : ∀ c r : R, 0 ≤ c → 0 ≤ star r * c * r)
+(star_mul_self_nonneg  : ∀ r : R, 0 ≤ star r * r)
+
+/--
+Any linearly-ordered commutative semiring admits the trivial `*`-ordered structure.
+
+See note [reducible non-instances].
+-/
+@[reducible]
+def star_ordered_ring_of_comm (R : Type u) [linear_ordered_comm_ring R] : star_ordered_ring R :=
+{ add_le_add_left := λ _ _, add_le_add_left,
+  conjugate_nonneg := λ c r hc, (mul_nonneg (mul_self_nonneg r) hc).trans_eq $ mul_right_comm _ _ _,
+  star_mul_self_nonneg := mul_self_nonneg,
+  ..(star_ring_of_comm : star_ring R) }
 
 namespace star_ordered_ring
 
@@ -363,16 +375,13 @@ section non_unital_semiring
 variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
 
 lemma star_mul_self_nonneg {r : R} : 0 ≤ star r * r :=
-(star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
+star_ordered_ring.star_mul_self_nonneg _
 
 lemma star_mul_self_nonneg' {r : R} : 0 ≤ r * star r :=
 by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
 
 lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
-begin
-  obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
-  exact (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
-end
+star_ordered_ring.conjugate_nonneg _ _ ha
 
 lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
 by simpa only [star_star] using conjugate_nonneg ha (star c)

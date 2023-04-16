@@ -9,6 +9,9 @@ import algebra.ring.defs
 /-!
 # Division (semi)rings and (semi)fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces fields and division rings (also known as skewfields) and proves some basic
 statements about them. For a more extensive theory of fields, see the `field_theory` folder.
 

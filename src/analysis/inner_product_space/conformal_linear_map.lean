@@ -12,7 +12,9 @@ import analysis.inner_product_space.basic
 In an inner product space, a map is conformal iff it preserves inner products up to a scalar factor.
 -/
 
-variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F]
+variables {E F : Type*}
+variables [normed_add_comm_group E] [normed_add_comm_group F]
+variables [inner_product_space ℝ E] [inner_product_space ℝ F]
 
 open linear_isometry continuous_linear_map
 open_locale real_inner_product_space
@@ -32,9 +34,8 @@ begin
     obtain ⟨c, hc, rfl⟩ : ∃ c : ℝ, 0 < c ∧ c₁ = c * c,
       from ⟨real.sqrt c₁, real.sqrt_pos.2 hc₁, (real.mul_self_sqrt hc₁.le).symm⟩,
     refine ⟨c, hc.ne', (c⁻¹ • f : E →ₗ[ℝ] F).isometry_of_inner (λ u v, _), _⟩,
-    { simp only [real_inner_smul_left, real_inner_smul_right, huv, mul_assoc,
-        linear_map.coe_smul, inv_mul_cancel_left₀ hc.ne', linear_map.smul_apply,
-        continuous_linear_map.coe_coe] },
+    { simp only [real_inner_smul_left, real_inner_smul_right, huv, mul_assoc, coe_smul,
+        inv_mul_cancel_left₀ hc.ne', linear_map.smul_apply, continuous_linear_map.coe_coe] },
     { ext1 x,
       exact (smul_inv_smul₀ hc.ne' (f x)).symm } }
 end

@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.formal_multilinear_series
 import analysis.specific_limits.normed
 import logic.equiv.fin
+import topology.algebra.infinite_sum.module
 
 /-!
 # Analytic functions
@@ -71,7 +72,7 @@ noncomputable theory
 
 variables {𝕜 E F G : Type*}
 
-open_locale topological_space classical big_operators nnreal filter ennreal
+open_locale topology classical big_operators nnreal filter ennreal
 open set filter asymptotics
 
 namespace formal_multilinear_series

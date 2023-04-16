@@ -11,6 +11,9 @@ import ring_theory.ideal.operations
 /-!
 # Subalgebras over Commutative Semiring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `subalgebra`s and the usual operations on them (`map`, `comap`).
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
@@ -219,24 +222,23 @@ instance to_linear_ordered_comm_ring {R A}
 
 end
 
-/-- Convert a `subalgebra` to `submodule` -/
-def to_submodule : submodule R A :=
-{ carrier := S,
-  zero_mem' := (0:S).2,
-  add_mem' := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
-  smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
-    (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
+/-- The forgetful map from `subalgebra` to `submodule` as an `order_embedding` -/
+def to_submodule : subalgebra R A ↪o submodule R A :=
+{ to_embedding :=
+  { to_fun := λ S,
+    { carrier := S,
+      zero_mem' := (0:S).2,
+      add_mem' := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
+      smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
+        (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 },
+    inj' := λ S T h, ext $ by apply set_like.ext_iff.1 h },
+  map_rel_iff' := λ S T, set_like.coe_subset_coe.symm.trans set_like.coe_subset_coe }
+/- TODO: bundle other forgetful maps between algebraic substructures, e.g.
+  `to_subsemiring` and `to_subring` in this file. -/
 
 @[simp] lemma mem_to_submodule {x} : x ∈ S.to_submodule ↔ x ∈ S := iff.rfl
 
 @[simp] lemma coe_to_submodule (S : subalgebra R A) : (↑S.to_submodule : set A) = S := rfl
-
-theorem to_submodule_injective :
-  function.injective (to_submodule : subalgebra R A → submodule R A) :=
-λ S T h, ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
-
-theorem to_submodule_inj {S U : subalgebra R A} : S.to_submodule = U.to_submodule ↔ S = U :=
-to_submodule_injective.eq_iff
 
 section
 
@@ -573,7 +575,7 @@ set.mem_univ x
   (⊤ : subalgebra R A).to_subring = ⊤ := rfl
 
 @[simp] lemma to_submodule_eq_top {S : subalgebra R A} : S.to_submodule = ⊤ ↔ S = ⊤ :=
-subalgebra.to_submodule_injective.eq_iff' top_to_submodule
+subalgebra.to_submodule.injective.eq_iff' top_to_submodule
 
 @[simp] lemma to_subsemiring_eq_top {S : subalgebra R A} : S.to_subsemiring = ⊤ ↔ S = ⊤ :=
 subalgebra.to_subsemiring_injective.eq_iff' top_to_subsemiring

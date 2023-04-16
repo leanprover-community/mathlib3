@@ -3,10 +3,13 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn, Mario Carneiro, Martin Dvorak
 -/
-import data.list.big_operators
+import data.list.big_operators.basic
 
 /-!
 # Join of a list of lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic properties of `list.join`, which concatenates a list of lists. It is defined
 in [`data.list.defs`](./defs).

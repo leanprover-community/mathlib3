@@ -41,7 +41,7 @@ For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ --
 
 noncomputable theory
 open set function filter topological_space ennreal emetric finset
-open_locale classical topological_space ennreal measure_theory big_operators
+open_locale classical topology ennreal measure_theory big_operators
 variables {α β ι E F 𝕜 : Type*}
 
 namespace measure_theory
@@ -314,7 +314,7 @@ lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) 
   λ h, mem_ℒp_of_finite_measure_preimage p h⟩
 
 lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
-mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one.ne' ennreal.coe_ne_top
+mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff one_ne_zero ennreal.coe_ne_top
 
 lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ integrable f μ :=
@@ -849,7 +849,7 @@ lemma Lp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : Lp E p μ 
   ∀ f : Lp E p μ, P f :=
 begin
   refine λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed _,
-  refine Lp.simple_func.induction (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne' hp_ne_top _ _,
+  refine Lp.simple_func.induction (lt_of_lt_of_le zero_lt_one _i.elim).ne' hp_ne_top _ _,
   { exact λ c s, h_ind c },
   { exact λ f g hf hg, h_add hf hg },
 end
@@ -880,7 +880,7 @@ begin
     { intros c s hs h,
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, ext, simp [const] },
-      have hp_pos : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne',
+      have hp_pos : p ≠ 0 := (lt_of_lt_of_le zero_lt_one _i.elim).ne',
       exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs h) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add,
@@ -893,6 +893,60 @@ begin
   have : ∀ (f : Lp E p μ), P f :=
     λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed this,
   exact λ f hf, h_ae hf.coe_fn_to_Lp (Lp.mem_ℒp _) (this (hf.to_Lp f)),
+end
+
+/-- If a set of ae strongly measurable functions is stable under addition and approximates
+characteristic functions in `ℒp`, then it is dense in `ℒp`. -/
+lemma mem_ℒp.induction_dense (hp_ne_top : p ≠ ∞) (h'p : 1 ≤ p) (P : (α → E) → Prop)
+  (h0P : ∀ (c : E) ⦃s : set α⦄, measurable_set s → μ s < ∞ → ∀ {ε : ℝ≥0∞}, ε ≠ 0 →
+    (∃ (g : α → E), snorm (g - s.indicator (λ x, c)) p μ ≤ ε ∧ P g))
+  (h1P : ∀ f g, P f → P g → P (f + g))
+  (h2P : ∀ f, P f → ae_strongly_measurable f μ)
+  {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : α → E), snorm (f - g) p μ ≤ ε ∧ P g :=
+begin
+  haveI : fact (1 ≤ p) := ⟨h'p⟩,
+  revert f hf ε,
+  refine mem_ℒp.induction hp_ne_top _ _ _ _ _,
+  { assume c s hs hμs ε εpos,
+    rcases h0P c hs hμs εpos with ⟨g, hg, Pg⟩,
+    rw [← snorm_neg, neg_sub] at hg,
+    exact ⟨g, hg, Pg⟩ },
+  { assume f f' hff' hf hf' Hf Hf' ε εpos,
+    have A : ε / 2 ≠ 0, by simp [εpos],
+    rcases Hf A with ⟨g, hfg, Pg⟩,
+    rcases Hf' A with ⟨g', hf'g', Pg'⟩,
+    refine ⟨g + g', _, h1P g g' Pg Pg'⟩,
+    calc snorm (f + f' - (g + g')) p μ
+        = snorm ((f - g) + (f' - g')) p μ : by { congr' 1, abel }
+    ... ≤ snorm (f - g) p μ + snorm (f' - g') p μ :
+      snorm_add_le (hf.ae_strongly_measurable.sub (h2P g Pg))
+        (hf'.ae_strongly_measurable.sub (h2P g' Pg')) h'p
+    ... ≤ ε / 2 + ε / 2 : add_le_add hfg hf'g'
+    ... = ε : ennreal.add_halves _ },
+  { rw is_closed_iff_nhds,
+    assume f hf ε εpos,
+    have A : ε / 2 ≠ 0, by simp [εpos],
+    rcases hf (emetric.ball f (ε/2)) (emetric.ball_mem_nhds _ A.bot_lt) with ⟨f', hf', h'f'⟩,
+    rcases h'f' A with ⟨g, hg, Pg⟩,
+    refine ⟨g, _, Pg⟩,
+    calc snorm (f - g) p μ = snorm ((f - f') + (f' - g)) p μ : by simp only [sub_add_sub_cancel]
+    ... ≤ snorm (f - f') p μ + snorm (f' - g) p μ :
+      snorm_add_le ((Lp.mem_ℒp f).sub (Lp.mem_ℒp f')).ae_strongly_measurable
+        ((Lp.mem_ℒp f').ae_strongly_measurable.sub (h2P g Pg)) h'p
+    ... ≤ ε / 2 + ε / 2 :
+      begin
+        refine add_le_add _ hg,
+        rw [← snorm_neg, neg_sub],
+        simp only [Lp.edist_def, emetric.mem_ball] at hf',
+        exact hf'.le
+      end
+    ... = ε : ennreal.add_halves _ },
+  { assume f f' hff' hf Hf ε εpos,
+    rcases Hf εpos with ⟨g, hg, Pg⟩,
+    refine ⟨g, _, Pg⟩,
+    have : f - g =ᵐ[μ] f' - g := hff'.sub (filter.germ.coe_eq.mp rfl),
+    rwa ← snorm_congr_ae this }
 end
 
 section integrable

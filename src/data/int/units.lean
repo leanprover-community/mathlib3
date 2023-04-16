@@ -10,6 +10,9 @@ import algebra.ring.units
 
 /-!
 # Lemmas about units in `ℤ`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace int
@@ -53,6 +56,9 @@ begin
   rcases eq_one_or_neg_one_of_mul_eq_one h' with rfl | rfl;
   tauto,
 end
+
+theorem eq_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = w :=
+(eq_one_or_neg_one_of_mul_eq_one' h).elim (λ h, h.1.trans h.2.symm) (λ h, h.1.trans h.2.symm)
 
 lemma mul_eq_one_iff_eq_one_or_neg_one {z w : ℤ} :
   z * w = 1 ↔ z = 1 ∧ w = 1 ∨ z = -1 ∧ w = -1 :=

@@ -59,7 +59,7 @@ We also set up the theory for `pseudo_emetric_space` and `pseudo_metric_space`.
 -/
 
 open real set filter is_R_or_C bornology
-open_locale big_operators uniformity topological_space nnreal ennreal
+open_locale big_operators uniformity topology nnreal ennreal
 
 noncomputable theory
 
@@ -75,7 +75,7 @@ instance (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) [Π i, inhabited (α 
 
 namespace pi_Lp
 
-variables (p : ℝ≥0∞) (𝕜 : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ≥0∞) (𝕜 𝕜' : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -368,7 +368,7 @@ begin
 end
 
 lemma aux_uniformity_eq :
-  𝓤 (pi_Lp p β) = @uniformity _ (Pi.uniform_space _) :=
+  𝓤 (pi_Lp p β) = 𝓤[Pi.uniform_space _] :=
 begin
   have A : uniform_inducing (pi_Lp.equiv p β) :=
     (antilipschitz_with_equiv_aux p β).uniform_inducing
@@ -393,6 +393,22 @@ end aux
 instance uniform_space [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β) :=
 Pi.uniform_space _
 
+lemma uniform_continuous_equiv [Π i, uniform_space (β i)] :
+  uniform_continuous (pi_Lp.equiv p β) :=
+uniform_continuous_id
+
+lemma uniform_continuous_equiv_symm [Π i, uniform_space (β i)] :
+  uniform_continuous (pi_Lp.equiv p β).symm :=
+uniform_continuous_id
+
+@[continuity]
+lemma continuous_equiv [Π i, uniform_space (β i)] : continuous (pi_Lp.equiv p β) :=
+continuous_id
+
+@[continuity]
+lemma continuous_equiv_symm [Π i, uniform_space (β i)] : continuous (pi_Lp.equiv p β).symm :=
+continuous_id
+
 variable [fintype ι]
 
 instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
@@ -408,7 +424,7 @@ instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β)
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
 instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
-@emetric.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
+@emetric_space.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
@@ -419,7 +435,7 @@ instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
 instance [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
-metric.of_t0_pseudo_metric_space _
+metric_space.of_t0_pseudo_metric_space _
 
 lemma nndist_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, pseudo_metric_space (β i)] (hp : p ≠ ∞) (x y : pi_Lp p β) :
@@ -510,7 +526,7 @@ lemma edist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)
   edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
 by simp [pi_Lp.edist_eq_sum]
 
-variables [normed_field 𝕜]
+variables [normed_field 𝕜] [normed_field 𝕜']
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [Π i, seminormed_add_comm_group (β i)]
@@ -530,6 +546,16 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)]
   end,
   .. (pi.module ι β 𝕜) }
 
+instance is_scalar_tower [Π i, seminormed_add_comm_group (β i)]
+  [has_smul 𝕜 𝕜'] [Π i, normed_space 𝕜 (β i)] [Π i, normed_space 𝕜' (β i)]
+  [Π i, is_scalar_tower 𝕜 𝕜' (β i)] : is_scalar_tower 𝕜 𝕜' (pi_Lp p β) :=
+pi.is_scalar_tower
+
+instance smul_comm_class [Π i, seminormed_add_comm_group (β i)]
+  [Π i, normed_space 𝕜 (β i)] [Π i, normed_space 𝕜' (β i)]
+  [Π i, smul_comm_class 𝕜 𝕜' (β i)] : smul_comm_class 𝕜 𝕜' (pi_Lp p β) :=
+pi.smul_comm_class
+
 instance finite_dimensional [Π i, seminormed_add_comm_group (β i)]
   [Π i, normed_space 𝕜 (β i)] [I : ∀ i, finite_dimensional 𝕜 (β i)] :
   finite_dimensional 𝕜 (pi_Lp p β) :=
@@ -537,7 +563,7 @@ finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 𝕜' p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
@@ -698,8 +724,7 @@ basis.of_equiv_fun (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜))
 
 @[simp] lemma basis_fun_apply [decidable_eq ι] (i) :
   basis_fun p 𝕜 ι i = (pi_Lp.equiv p _).symm (pi.single i 1) :=
-by { simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single],
-     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+by simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single]
 
 @[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
   (basis_fun p 𝕜 ι).repr x i = x i :=

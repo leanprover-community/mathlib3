@@ -4,12 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import data.pnat.defs
+import data.nat.bits
 import data.nat.order.basic
+import data.set.basic
 import algebra.group_with_zero.divisibility
 import algebra.order.positive.ring
 
 /-!
 # The positive natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
 It is defined in `data.pnat.defs`, but most of the development is deferred to here so
@@ -20,6 +25,8 @@ attribute [derive [add_left_cancel_semigroup, add_right_cancel_semigroup, add_co
   linear_ordered_cancel_comm_monoid, has_add, has_mul, distrib]] pnat
 
 namespace pnat
+
+instance : is_well_order ℕ+ (<) := { }
 
 @[simp] lemma one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
 by rw [nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]

@@ -19,7 +19,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 ## Main results
 
 - `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining `S ∪ T`.
-- `bot_eq_top_of_dim_adjoin_eq_one`: if `F⟮x⟯` has dimension `1` over `F` for every `x`
+- `bot_eq_top_of_rank_adjoin_eq_one`: if `F⟮x⟯` has dimension `1` over `F` for every `x`
   in `E` then `F = E`
 
 ## Notation
@@ -500,7 +500,7 @@ lemma exists_finset_of_mem_supr'' {ι : Type*} {f : ι → intermediate_field F 
 begin
   refine exists_finset_of_mem_supr (set_like.le_def.mp (supr_le (λ i x hx, set_like.le_def.mp
     (le_supr_of_le ⟨i, x, hx⟩ le_rfl) (subset_adjoin F _ _))) hx),
-  rw [intermediate_field.minpoly_eq, subtype.coe_mk, polynomial.mem_root_set, minpoly.aeval],
+  rw [intermediate_field.minpoly_eq, subtype.coe_mk, mem_root_set_of_ne, minpoly.aeval],
   exact minpoly.ne_zero (is_integral_iff.mp (is_algebraic_iff_is_integral.mp (h i ⟨x, hx⟩)))
 end
 
@@ -528,30 +528,30 @@ adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 @[simp] lemma adjoin_nat (n : ℕ) : F⟮(n : E)⟯ = ⊥ :=
 adjoin_simple_eq_bot_iff.mpr (coe_nat_mem ⊥ n)
 
-section adjoin_dim
+section adjoin_rank
 open finite_dimensional module
 
 variables {K L : intermediate_field F E}
 
-@[simp] lemma dim_eq_one_iff : module.rank F K = 1 ↔ K = ⊥ :=
-by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
-  subalgebra.dim_eq_one_iff, bot_to_subalgebra]
+@[simp] lemma rank_eq_one_iff : module.rank F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← rank_eq_rank_subalgebra,
+  subalgebra.rank_eq_one_iff, bot_to_subalgebra]
 
 @[simp] lemma finrank_eq_one_iff : finrank F K = 1 ↔ K = ⊥ :=
 by rw [← to_subalgebra_eq_iff, ← finrank_eq_finrank_subalgebra,
   subalgebra.finrank_eq_one_iff, bot_to_subalgebra]
 
-@[simp] lemma dim_bot : module.rank F (⊥ : intermediate_field F E) = 1 :=
-by rw dim_eq_one_iff
+@[simp] lemma rank_bot : module.rank F (⊥ : intermediate_field F E) = 1 :=
+by rw rank_eq_one_iff
 
 @[simp] lemma finrank_bot : finrank F (⊥ : intermediate_field F E) = 1 :=
 by rw finrank_eq_one_iff
 
-lemma dim_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-iff.trans dim_eq_one_iff adjoin_eq_bot_iff
+lemma rank_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+iff.trans rank_eq_one_iff adjoin_eq_bot_iff
 
-lemma dim_adjoin_simple_eq_one_iff : module.rank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
-by { rw dim_adjoin_eq_one_iff, exact set.singleton_subset_iff }
+lemma rank_adjoin_simple_eq_one_iff : module.rank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+by { rw rank_adjoin_eq_one_iff, exact set.singleton_subset_iff }
 
 lemma finrank_adjoin_eq_one_iff : finrank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
 iff.trans finrank_eq_one_iff adjoin_eq_bot_iff
@@ -560,12 +560,12 @@ lemma finrank_adjoin_simple_eq_one_iff : finrank F F⟮α⟯ = 1 ↔ α ∈ (⊥
 by { rw [finrank_adjoin_eq_one_iff], exact set.singleton_subset_iff }
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
+lemma bot_eq_top_of_rank_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
   rw iff_true_right intermediate_field.mem_top,
-  exact dim_adjoin_simple_eq_one_iff.mp (h x),
+  exact rank_adjoin_simple_eq_one_iff.mp (h x),
 end
 
 lemma bot_eq_top_of_finrank_adjoin_eq_one (h : ∀ x : E, finrank F F⟮x⟯ = 1) :
@@ -576,9 +576,9 @@ begin
   exact finrank_adjoin_simple_eq_one_iff.mp (h x),
 end
 
-lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
+lemma subsingleton_of_rank_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
-subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h)
+subsingleton_of_bot_eq_top (bot_eq_top_of_rank_adjoin_eq_one h)
 
 lemma subsingleton_of_finrank_adjoin_eq_one (h : ∀ x : E, finrank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
@@ -596,7 +596,7 @@ lemma subsingleton_of_finrank_adjoin_le_one [finite_dimensional F E]
   (h : ∀ x : E, finrank F F⟮x⟯ ≤ 1) : subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_finrank_adjoin_le_one h)
 
-end adjoin_dim
+end adjoin_rank
 end adjoin_intermediate_field_lattice
 
 section adjoin_integral_element

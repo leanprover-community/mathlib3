@@ -38,7 +38,7 @@ and outputs a set of orthogonal vectors which have the same span.
 open_locale big_operators
 open finset submodule finite_dimensional
 
-variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
 variables {ι : Type*} [linear_order ι] [locally_finite_order_bot ι] [is_well_order ι (<)]
 
 local attribute [instance] is_well_order.to_has_well_founded
@@ -83,7 +83,7 @@ begin
   suffices : ∀ a b : ι, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
   { cases h₀.lt_or_lt with ha hb,
     { exact this _ _ ha, },
-    { rw inner_eq_zero_sym,
+    { rw inner_eq_zero_symm,
       exact this _ _ hb, }, },
   clear h₀ a b,
   intros a b h₀,
@@ -96,12 +96,12 @@ begin
   { by_cases h : gram_schmidt 𝕜 f a = 0,
     { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
-      rwa [ne.def, inner_self_eq_zero], }, },
+      rwa [inner_self_ne_zero], }, },
   simp_intros i hi hia only [finset.mem_range],
   simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
   right,
   cases hia.lt_or_lt with hia₁ hia₂,
-  { rw inner_eq_zero_sym,
+  { rw inner_eq_zero_symm,
     exact ih a h₀ i hia₁ },
   { exact ih i (mem_Iio.1 hi) a hia₂ }
 end
@@ -181,17 +181,15 @@ begin
     apply finset.sum_eq_zero,
     intros j hj,
     rw coe_eq_zero,
-    suffices : span 𝕜 (f '' set.Iic j) ≤ (𝕜 ∙ f i)ᗮ,
+    suffices : span 𝕜 (f '' set.Iic j) ⟂ 𝕜 ∙ f i,
     { apply orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
-      apply mem_orthogonal_singleton_of_inner_left,
-      apply inner_right_of_mem_orthogonal_singleton,
+      rw mem_orthogonal_singleton_iff_inner_left,
+      rw ←mem_orthogonal_singleton_iff_inner_right,
       exact this (gram_schmidt_mem_span 𝕜 f (le_refl j)) },
-    rw span_le,
-    rintros - ⟨k, hk, rfl⟩,
-    apply mem_orthogonal_singleton_of_inner_left,
+    rw is_ortho_span,
+    rintros u ⟨k, hk, rfl⟩ v (rfl : v = f i),
     apply hf,
-    refine (lt_of_le_of_lt hk _).ne,
-    simpa using hj },
+    exact (lt_of_le_of_lt hk (finset.mem_Iio.mp hj)).ne },
   { simp },
 end
 
@@ -357,17 +355,15 @@ lemma inner_gram_schmidt_orthonormal_basis_eq_zero {f : ι → E} {i : ι}
   (hi : gram_schmidt_normed 𝕜 f i = 0) (j : ι) :
   ⟪gram_schmidt_orthonormal_basis h f i, f j⟫ = 0 :=
 begin
-  apply inner_right_of_mem_orthogonal_singleton,
-  suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j)
-    ≤ (𝕜 ∙ gram_schmidt_orthonormal_basis h f i)ᗮ,
+  rw ←mem_orthogonal_singleton_iff_inner_right,
+  suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j) ⟂ 𝕜 ∙ gram_schmidt_orthonormal_basis h f i,
   { apply this,
     rw span_gram_schmidt_normed,
-    simpa using mem_span_gram_schmidt 𝕜 f (le_refl j) },
-  rw span_le,
-  rintros - ⟨k, -, rfl⟩,
-  apply mem_orthogonal_singleton_of_inner_left,
+    exact mem_span_gram_schmidt 𝕜 f le_rfl },
+  rw is_ortho_span,
+  rintros u ⟨k, hk, rfl⟩ v (rfl : v = _),
   by_cases hk : gram_schmidt_normed 𝕜 f k = 0,
-  { simp [hk] },
+  { rw [hk, inner_zero_left] },
   rw ← gram_schmidt_orthonormal_basis_apply h hk,
   have : k ≠ i,
   { rintros rfl,

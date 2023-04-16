@@ -5,9 +5,13 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.prod
+import algebra.module.prod
 
 /-!
 # `star` on product types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We put a `has_star` structure on product types that operates elementwise.
 -/
@@ -24,6 +28,10 @@ instance [has_star R] [has_star S] : has_star (R × S) :=
 @[simp] lemma snd_star [has_star R] [has_star S] (x : R × S) : (star x).2 = star x.2 := rfl
 
 lemma star_def [has_star R] [has_star S] (x : R × S) : star x = (star x.1, star x.2) := rfl
+
+instance [has_star R] [has_star S] [has_trivial_star R] [has_trivial_star S] :
+  has_trivial_star (R × S) :=
+{ star_trivial := λ _, prod.ext (star_trivial _) (star_trivial _) }
 
 instance [has_involutive_star R] [has_involutive_star S] : has_involutive_star (R × S) :=
 { star_involutive := λ _, prod.ext (star_star _) (star_star _) }

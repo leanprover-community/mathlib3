@@ -142,7 +142,8 @@ begin
   intros X U,
   apply h₁,
   intro x,
-  obtain ⟨_,⟨j,rfl⟩,hx,i⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open x.prop U.2,
+  obtain ⟨_, ⟨j, rfl⟩, hx, i⟩ := X.affine_basis_cover_is_basis.exists_subset_of_mem_open
+    (set_like.mem_coe.2 x.prop) U.is_open,
   let U' : opens _ := ⟨_, (X.affine_basis_cover.is_open j).base_open.open_range⟩,
   let i' : U' ⟶ U :=
     hom_of_le i,
@@ -151,7 +152,7 @@ begin
   apply h₂',
   apply h₃
 end
-.
+
 lemma reduce_to_affine_nbhd (P : ∀ (X : Scheme) (x : X.carrier), Prop)
   (h₁ : ∀ (R : CommRing) (x : prime_spectrum R), P (Scheme.Spec.obj $ op R) x)
   (h₂ : ∀ {X Y} (f : X ⟶ Y) [is_open_immersion f] (x : X.carrier), P X x → P Y (f.1.base x)) :
@@ -176,17 +177,17 @@ begin
     obtain ⟨V, hx, i, H⟩ := hx x,
     unfreezingI { specialize H (X.presheaf.map i.op s) },
     erw Scheme.basic_open_res at H,
-    rw [hs, ← subtype.coe_injective.eq_iff, inf_bot_eq] at H,
-    specialize H rfl ⟨x, hx⟩,
+    rw [hs] at H,
+    specialize H inf_bot_eq ⟨x, hx⟩,
     erw Top.presheaf.germ_res_apply at H,
     exact H },
   { rintros X Y f hf,
-    have e : (f.val.base) ⁻¹' set.range ⇑(f.val.base) = ⊤,
-    { rw [← set.image_univ, set.preimage_image_eq _ hf.base_open.inj, set.top_eq_univ] },
+    have e : (f.val.base) ⁻¹' set.range ⇑(f.val.base) = set.univ,
+    { rw [← set.image_univ, set.preimage_image_eq _ hf.base_open.inj] },
     refine ⟨_, _, e, rfl, _⟩,
     rintros H hX s hs ⟨_, x, rfl⟩,
     unfreezingI { haveI := is_reduced_of_open_immersion f },
-    specialize H (f.1.c.app _ s) _ ⟨x, by { change x ∈ (f.val.base) ⁻¹' _, rw e, trivial }⟩,
+    specialize H (f.1.c.app _ s) _ ⟨x, by { rw [opens.mem_mk, e], trivial }⟩,
     { rw [← Scheme.preimage_basic_open, hs], ext1, simp [opens.map] },
     { erw ← PresheafedSpace.stalk_map_germ_apply f.1 ⟨_,_⟩ ⟨x,_⟩ at H,
       apply_fun (inv $ PresheafedSpace.stalk_map f.val x) at H,
@@ -229,8 +230,8 @@ instance is_reduced_of_is_integral [is_integral X] : is_reduced X :=
 begin
   constructor,
   intro U,
-  cases U.1.eq_empty_or_nonempty,
-  { have : U = ∅ := subtype.eq h,
+  cases U.1.eq_empty_or_nonempty with h h,
+  { have : U = ⊥ := set_like.ext' h,
     haveI := CommRing.subsingleton_of_is_terminal (X.sheaf.is_terminal_of_eq_empty this),
     change _root_.is_reduced (X.sheaf.val.obj (op U)),
     apply_instance },
@@ -267,20 +268,23 @@ end
 lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_space X.carrier] :
   is_integral X :=
 begin
-  split, refine λ U hU, ⟨λ a b e, _,
-    (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1⟩,
-  simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
-  by_contra' h,
-  obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
-    (X.basic_open a).2 (X.basic_open b).2
-    h.1 h.2,
-  replace e' := subtype.eq e',
-  subst e',
-  replace e := congr_arg (X.presheaf.germ x) e,
-  rw [ring_hom.map_mul, ring_hom.map_zero] at e,
-  refine zero_ne_one' (X.presheaf.stalk x.1) (is_unit_zero_iff.1 _),
-  convert hx₁.mul hx₂,
-  exact e.symm
+  split, intros U hU,
+  haveI := (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
+  haveI : no_zero_divisors
+    (X.to_LocallyRingedSpace.to_SheafedSpace.to_PresheafedSpace.presheaf.obj (op U)),
+  { refine ⟨λ a b e, _⟩,
+    simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
+    by_contra' h,
+    obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
+      (X.basic_open a).2 (X.basic_open b).2 h.1 h.2,
+    replace e' := subtype.eq e',
+    subst e',
+    replace e := congr_arg (X.presheaf.germ x) e,
+    rw [ring_hom.map_mul, ring_hom.map_zero] at e,
+    refine zero_ne_one' (X.presheaf.stalk x.1) (is_unit_zero_iff.1 _),
+    convert hx₁.mul hx₂,
+    exact e.symm },
+  exact no_zero_divisors.to_is_domain _
 end
 
 lemma is_integral_iff_is_irreducible_and_is_reduced :
@@ -336,7 +340,7 @@ begin
   revert hx,
   contrapose!,
   simp_rw [← opens.not_nonempty_iff_eq_bot, not_not],
-  apply nonempty_preirreducible_inter U.prop (RingedSpace.basic_open _ _).prop,
+  apply nonempty_preirreducible_inter U.is_open (RingedSpace.basic_open _ _).is_open,
   simpa using H
 end
 

@@ -10,6 +10,9 @@ import linear_algebra.prod
 /-!
 # The star operation, bundled as a star-linear equiv
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `star_linear_equiv`, which is the star operation bundled as a star-linear map.
 It is defined on a star algebra `A` over the base ring `R`.
 
@@ -30,21 +33,21 @@ This file also provides some lemmas that need `algebra.module.basic` imported to
 section smul_lemmas
 variables {R M : Type*}
 
-@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [star_add_monoid M]
-  (n : ℤ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
-map_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
-
 @[simp] lemma star_nat_cast_smul [semiring R] [add_comm_monoid M] [module R M] [star_add_monoid M]
   (n : ℕ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
 map_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
 
+@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [star_add_monoid M]
+  (n : ℤ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
+map_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
+@[simp] lemma star_inv_nat_cast_smul [division_semiring R] [add_comm_monoid M] [module R M]
+  [star_add_monoid M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
+map_inv_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
 @[simp] lemma star_inv_int_cast_smul [division_ring R] [add_comm_group M] [module R M]
   [star_add_monoid M] (n : ℤ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
 map_inv_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
-
-@[simp] lemma star_inv_nat_cast_smul [division_ring R] [add_comm_group M] [module R M]
-  [star_add_monoid M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
-map_inv_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
 
 @[simp] lemma star_rat_cast_smul [division_ring R] [add_comm_group M] [module R M]
   [star_add_monoid M] (n : ℚ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
@@ -72,7 +75,7 @@ variables (R : Type*) (A : Type*)
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
 def self_adjoint.submodule : submodule R A :=
-{ smul_mem' := is_self_adjoint.smul,
+{ smul_mem' := λ r x, (is_self_adjoint.all _).smul,
   ..self_adjoint A }
 
 /-- The skew-adjoint elements of a star module, as a submodule. -/

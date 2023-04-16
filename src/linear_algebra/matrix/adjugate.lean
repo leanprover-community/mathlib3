@@ -169,14 +169,15 @@ These will hold for any matrix over a commutative ring.
   matrix replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
-def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (pi.single i 1)
+def adjugate (A : matrix n n α) : matrix n n α :=
+of $ λ i, cramer Aᵀ (pi.single i 1)
 
 lemma adjugate_def (A : matrix n n α) :
-  adjugate A = λ i, cramer Aᵀ (pi.single i 1) := rfl
+  adjugate A = of (λ i, cramer Aᵀ (pi.single i 1)) := rfl
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (pi.single i 1)).det :=
-by { rw adjugate_def, simp only, rw [cramer_apply, update_column_transpose, det_transpose], }
+by rw [adjugate_def, of_apply, cramer_apply, update_column_transpose, det_transpose]
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
@@ -282,7 +283,7 @@ by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
   adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
 begin
   ext,
-  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  simp only [adjugate_def, cramer_apply, diagonal_transpose, of_apply],
   obtain rfl | hij := eq_or_ne i j,
   { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
       prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
@@ -344,9 +345,12 @@ begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
   fin_cases i; fin_cases j;
-  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
-    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
+  simp only [one_mul, fin.one_eq_zero_iff, pi.single_eq_same, mul_zero, sub_zero,
+    pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self, update_row_ne, cons_val_zero,
+    of_apply, nat.succ_succ_ne_one, pi.single_eq_of_ne, update_row_self, pi.single_eq_of_ne, ne.def,
+    fin.zero_eq_one_iff, nat.succ_succ_ne_one, not_false_iff, update_row_ne, fin.one_eq_zero_iff,
+    zero_mul, pi.single_eq_same, one_mul, zero_sub, of_apply, cons_val', cons_val_fin_one,
+    cons_val_one, head_fin_const, neg_inj, eq_self_iff_true, cons_val_zero, head_cons, mul_one]
 end
 
 @[simp] lemma adjugate_fin_two_of (a b c d : α) :

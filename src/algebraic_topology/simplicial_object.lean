@@ -11,6 +11,9 @@ import category_theory.opposites
 /-!
 # Simplicial objects in a category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A simplicial object in a category `C` is a `C`-valued presheaf on `simplex_category`.
 (Similarly a cosimplicial object is functor `simplex_category ⥤ C`.)
 

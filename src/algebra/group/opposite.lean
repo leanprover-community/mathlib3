@@ -11,6 +11,9 @@ import data.int.cast.defs
 
 /-!
 # Group structures on the multiplicative and additive opposites
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v
 variables (α : Type u)
@@ -20,6 +23,9 @@ namespace mul_opposite
 /-!
 ### Additive structures on `αᵐᵒᵖ`
 -/
+
+@[to_additive] instance [has_nat_cast α] : has_nat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
+@[to_additive] instance [has_int_cast α] : has_int_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 
 instance [add_semigroup α] : add_semigroup (αᵐᵒᵖ) :=
 unop_injective.add_semigroup _ (λ x y, rfl)
@@ -39,20 +45,25 @@ unop_injective.add_zero_class _ rfl (λ x y, rfl)
 instance [add_monoid α] : add_monoid αᵐᵒᵖ :=
 unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
-instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
-{ nat_cast := λ n, op n,
-  nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp [nat.cast_zero],
-  nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,
-  .. mul_opposite.add_monoid α, .. mul_opposite.has_one α }
-
 instance [add_comm_monoid α] : add_comm_monoid αᵐᵒᵖ :=
 unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
+{ nat_cast_zero := show op ((0 : ℕ) : α) = 0, by rw [nat.cast_zero, op_zero],
+  nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,
+  .. mul_opposite.add_monoid α, .. mul_opposite.has_one α, ..mul_opposite.has_nat_cast _ }
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵐᵒᵖ :=
+{ .. mul_opposite.add_monoid_with_one α, ..mul_opposite.add_comm_monoid α }
 
 instance [sub_neg_monoid α] : sub_neg_monoid αᵐᵒᵖ :=
 unop_injective.sub_neg_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_group α] : add_group αᵐᵒᵖ :=
 unop_injective.add_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
+unop_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_group_with_one α] : add_group_with_one αᵐᵒᵖ :=
 { int_cast := λ n, op n,
@@ -61,8 +72,8 @@ instance [add_group_with_one α] : add_group_with_one αᵐᵒᵖ :=
     by erw [unop_op, int.cast_neg_succ_of_nat]; refl,
   .. mul_opposite.add_monoid_with_one α, .. mul_opposite.add_group α }
 
-instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
-unop_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+instance [add_comm_group_with_one α] : add_comm_group_with_one αᵐᵒᵖ :=
+{ .. mul_opposite.add_group_with_one α, ..mul_opposite.add_comm_group α }
 
 /-!
 ### Multiplicative structures on `αᵐᵒᵖ`
@@ -138,6 +149,15 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 { .. mul_opposite.group α, .. mul_opposite.comm_monoid α }
 
 variable {α}
+
+@[simp, norm_cast, to_additive] lemma op_nat_cast [has_nat_cast α] (n : ℕ) : op (n : α) = n := rfl
+@[simp, norm_cast, to_additive] lemma op_int_cast [has_int_cast α] (n : ℤ) : op (n : α) = n := rfl
+
+@[simp, norm_cast, to_additive]
+lemma unop_nat_cast [has_nat_cast α] (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
+
+@[simp, norm_cast, to_additive]
+lemma unop_int_cast [has_int_cast α] (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 @[simp, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
   unop (x / y) = (unop y)⁻¹ * unop x :=
@@ -228,6 +248,19 @@ unop_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [comm_group α] : comm_group αᵃᵒᵖ :=
 unop_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+-- NOTE: `add_monoid_with_one α → add_monoid_with_one αᵃᵒᵖ` does not hold
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵃᵒᵖ :=
+{ nat_cast_zero := show op ((0 : ℕ) : α) = 0, by rw [nat.cast_zero, op_zero],
+  nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp [add_comm],
+  ..add_opposite.add_comm_monoid α, ..add_opposite.has_one, ..add_opposite.has_nat_cast _ }
+
+instance [add_comm_group_with_one α] : add_comm_group_with_one αᵃᵒᵖ :=
+{ int_cast_of_nat := λ n, congr_arg op $ int.cast_of_nat n,
+  int_cast_neg_succ_of_nat := λ _, congr_arg op $ int.cast_neg_succ_of_nat _,
+  ..add_opposite.add_comm_monoid_with_one _, ..add_opposite.add_comm_group α,
+  ..add_opposite.has_int_cast α }
 
 variable {α}
 

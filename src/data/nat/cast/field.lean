@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yaël Dillies, Patrick Stevens
 -/
 import algebra.order.field.basic
-import algebra.order.ring.nontrivial
+import algebra.order.ring.char_zero
 import data.nat.cast.basic
 
 /-!
 # Cast of naturals into fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file concerns the canonical homomorphism `ℕ → F`, where `F` is a field.
 
@@ -22,12 +25,21 @@ namespace nat
 
 variables {α : Type*}
 
-@[simp] theorem cast_div [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n : α) ≠ 0) :
+@[simp] theorem cast_div [division_semiring α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n : α) ≠ 0) :
   ((m / n : ℕ) : α) = m / n :=
 begin
   rcases n_dvd with ⟨k, rfl⟩,
   have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
-  rw [nat.mul_div_cancel_left _ this.bot_lt, cast_mul, mul_div_cancel_left _ n_nonzero],
+  rw [nat.mul_div_cancel_left _ this.bot_lt, mul_comm n k, cast_mul, mul_div_cancel _ n_nonzero],
+end
+
+lemma cast_div_div_div_cancel_right [division_semiring α] [char_zero α] {m n d : ℕ}
+  (hn : d ∣ n) (hm : d ∣ m) :
+  (↑(m / d) : α) / (↑(n / d) : α) = (m : α) / n :=
+begin
+  rcases eq_or_ne d 0 with rfl | hd, { simp [zero_dvd_iff.mp hm], },
+  replace hd : (d : α) ≠ 0, { norm_cast, assumption, },
+  simp [hd, hm, hn, div_div_div_cancel_right _ hd],
 end
 
 section linear_ordered_semifield

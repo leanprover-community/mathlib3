@@ -36,7 +36,7 @@ instance : abelian (Cᵒᵖ ⥤ D) := @abelian.functor_category_abelian.{v} Cᵒ
 
 -- This also needs to be specified manually, but I don't know why.
 instance : has_finite_products (Sheaf J D) :=
-{ out := λ j ij, { has_limit := by { introI, apply_instance } } }
+{ out := λ j, { has_limit := λ F, by apply_instance } }
 
 -- sheafification assumptions
 variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]

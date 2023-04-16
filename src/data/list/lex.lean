@@ -8,6 +8,9 @@ import order.rel_classes
 /-!
 # Lexicographic ordering of lists.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The lexicographic order on `list α` is defined by `L < M` iff
 * `[] < (a :: L)` for any `a` and `L`,
 * `(a :: L) < (b :: M)` where `a < b`, or

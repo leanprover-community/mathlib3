@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import linear_algebra.matrix.to_lin
+import linear_algebra.free_module.rank
 
 /-!
 # Diagonal matrices
@@ -65,7 +66,7 @@ lemma range_diagonal [decidable_eq m] (w : m → K) :
   (diagonal w).to_lin'.range = (⨆ i ∈ {i | w i ≠ 0}, (linear_map.std_basis K (λi, K) i).range) :=
 begin
   dsimp only [mem_set_of_eq],
-  rw [← map_top, ← supr_range_std_basis, map_supr],
+  rw [← submodule.map_top, ← supr_range_std_basis, submodule.map_supr],
   congr, funext i,
   rw [← linear_map.range_comp, diagonal_comp_std_basis, ← range_smul']
 end
@@ -77,8 +78,8 @@ begin
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := disjoint_compl_left,
   have B₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (set.to_finite _),
   have B₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
-  rw [rank, range_diagonal, B₁, ←@dim_fun' K],
-  apply linear_equiv.dim_eq,
+  rw [rank, range_diagonal, B₁, ←@rank_fun' K],
+  apply linear_equiv.rank_eq,
   apply B₂,
 end
 

@@ -259,7 +259,7 @@ map_sum p.subtype _ _
 
 section add_action
 
-/-! ### Actions by `submodule`s
+/-! ### Additive actions by `submodule`s
 
 These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
 onto the action by an element `s : S` of a submodule `S : submodule R M` such that

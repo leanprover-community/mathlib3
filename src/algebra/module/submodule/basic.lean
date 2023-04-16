@@ -194,7 +194,6 @@ p.to_sub_mul_action.smul_mem_iff' g
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
   has_smul S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
@@ -258,6 +257,8 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
 map_sum p.subtype _ _
 
+section add_action
+
 /-! ### Actions by `submodule`s
 
 These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
@@ -285,6 +286,8 @@ instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.
 variable {p}
 
 lemma vadd_def [has_vadd M α] (g : p) (m : α) : g +ᵥ m = (g : M) +ᵥ m := rfl
+
+end add_action
 
 section restrict_scalars
 variables (S) [semiring S] [module S M] [module R M] [has_smul S R] [is_scalar_tower S R M]

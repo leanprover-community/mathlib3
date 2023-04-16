@@ -19,7 +19,7 @@ spaces.
 noncomputable theory
 open classical set function filter finset metric asymptotics
 
-open_locale classical topological_space nat big_operators uniformity nnreal ennreal
+open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 

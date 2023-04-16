@@ -104,7 +104,7 @@ begin
   { intros x y hxy,
     obtain ⟨c, eq⟩ := (is_localization.eq_iff_exists M S).mp hxy,
     obtain ⟨u, hu⟩ := H c,
-    rwa [← hu, units.mul_left_inj] at eq },
+    rwa [← hu, units.mul_right_inj] at eq },
   { intros y,
     obtain ⟨⟨x, s⟩, eq⟩ := is_localization.surj M y,
     obtain ⟨u, hu⟩ := H s,
@@ -140,7 +140,7 @@ lemma away_of_is_unit_of_bijective {R : Type*} (S : Type*) [comm_ring R] [comm_r
     erw H.1.eq_iff,
     split,
     { rintro rfl, exact ⟨1, rfl⟩ },
-    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_left_inj.mp e }
+    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_right_inj.mp e }
   end }
 
 end at_units

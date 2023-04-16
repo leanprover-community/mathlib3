@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Properties of the module `α →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
@@ -341,7 +344,7 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
 end lsum
 
 section
-variables (M) (R) (X : Type*)
+variables (M) (R) (X : Type*) (S) [module S M] [smul_comm_class R S M]
 
 /--
 A slight rearrangement from `lsum` gives us
@@ -359,6 +362,24 @@ lemma lift_apply (f) (g) :
   ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
+/-- Given compatible `S` and `R`-module structures on `M` and a type `X`, the set of functions
+`X → M` is `S`-linearly equivalent to the `R`-linear maps from the free `R`-module
+on `X` to `M`. -/
+noncomputable def llift : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+{ map_smul' :=
+  begin
+    intros,
+    dsimp,
+    ext,
+    simp only [coe_comp, function.comp_app, lsingle_apply, lift_apply, pi.smul_apply,
+      sum_single_index, zero_smul, one_smul, linear_map.smul_apply],
+  end, ..lift M R X }
+
+@[simp] lemma llift_apply (f : X → M) (x : X →₀ R) :
+  llift M R S X f x = lift M R X f x := rfl
+
+@[simp] lemma llift_symm_apply (f : (X →₀ R) →ₗ[R] M) (x : X) :
+  (llift M R S X).symm f x = f (single x 1) := rfl
 end
 
 section lmap_domain

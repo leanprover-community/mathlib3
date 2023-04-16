@@ -8,6 +8,9 @@ import data.finset.card
 /-!
 # Finsets in product types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines finset constructions on the product type `α × β`. Beware not to confuse with the
 `finset.prod` operation which computes the multiplicative product.
 

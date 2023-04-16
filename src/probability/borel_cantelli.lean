@@ -22,7 +22,7 @@ filtration.
 
 -/
 
-open_locale measure_theory probability_theory ennreal big_operators topological_space
+open_locale measure_theory probability_theory ennreal big_operators topology
 
 open measure_theory probability_theory measurable_space topological_space
 

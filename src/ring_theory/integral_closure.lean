@@ -59,7 +59,7 @@ def is_integral (x : A) : Prop :=
 variable (A)
 
 /-- An algebra is integral if every element of the extension is integral over the base ring -/
-def algebra.is_integral : Prop :=
+protected def algebra.is_integral : Prop :=
 (algebra_map R A).is_integral
 
 variables {R A}
@@ -123,6 +123,18 @@ begin
   refine ⟨P, hP.1, _⟩,
   rw [← aeval_def, show (aeval (f b)) P = (aeval (f b)) (P.map (algebra_map R A)), by simp,
     aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
+end
+
+lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [comm_ring R] [comm_ring S]
+  [comm_ring T] [comm_ring U] [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) {a : S} (ha : is_integral R a) :
+  is_integral T (ψ a) :=
+begin
+  rw [is_integral, ring_hom.is_integral_elem] at ⊢ ha,
+  obtain ⟨p, hp⟩ := ha,
+  refine ⟨p.map φ, hp.left.map _, _⟩,
+  rw [← eval_map, map_map, h, ← map_map, eval_map, eval₂_at_apply,
+    eval_map, hp.right, ring_hom.map_zero],
 end
 
 theorem is_integral_alg_hom_iff {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
@@ -749,6 +761,14 @@ theorem is_integral_algebra [algebra R A] [is_scalar_tower R A B] :
   algebra.is_integral R A :=
 λ x, is_integral_closure.is_integral R B x
 
+theorem no_zero_smul_divisors [algebra R A] [is_scalar_tower R A B] [no_zero_smul_divisors R B] :
+  no_zero_smul_divisors R A :=
+begin
+  refine function.injective.no_zero_smul_divisors
+      _ (is_integral_closure.algebra_map_injective A R B) (map_zero _) (λ _ _, _),
+  simp only [algebra.algebra_map_eq_smul_one, is_scalar_tower.smul_assoc],
+ end
+
 variables {R} (A) {B}
 
 /-- If `x : B` is integral over `R`, then it is an element of the integral closure of `R` in `B`. -/
@@ -853,7 +873,7 @@ variables [algebra R A] [is_scalar_tower R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
-lemma is_integral_trans (A_int : is_integral R A) (x : B) (hx : is_integral A x) :
+lemma is_integral_trans (A_int : algebra.is_integral R A) (x : B) (hx : is_integral A x) :
   is_integral R x :=
 begin
   rcases hx with ⟨p, pmonic, hp⟩,
@@ -871,7 +891,8 @@ end
 /-- If A is an R-algebra all of whose elements are integral over R,
 and B is an A-algebra all of whose elements are integral over A,
 then all elements of B are integral over R.-/
-lemma algebra.is_integral_trans (hA : is_integral R A) (hB : is_integral A B) : is_integral R B :=
+lemma algebra.is_integral_trans (hA : algebra.is_integral R A) (hB : algebra.is_integral A B) :
+  algebra.is_integral R B :=
 λ x, is_integral_trans hA x (hB x)
 
 lemma ring_hom.is_integral_trans (hf : f.is_integral) (hg : g.is_integral) :
@@ -883,8 +904,8 @@ lemma ring_hom.is_integral_trans (hf : f.is_integral) (hg : g.is_integral) :
 lemma ring_hom.is_integral_of_surjective (hf : function.surjective f) : f.is_integral :=
 λ x, (hf x).rec_on (λ y hy, (hy ▸ f.is_integral_map : f.is_integral_elem x))
 
-lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) : is_integral R A :=
-(algebra_map R A).is_integral_of_surjective h
+lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) :
+  algebra.is_integral R A := (algebra_map R A).is_integral_of_surjective h
 
 /-- If `R → A → B` is an algebra tower with `A → B` injective,
 then if the entire tower is an integral extension so is `R → A` -/
@@ -937,8 +958,8 @@ begin
   simpa only [hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
 
-lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
-  is_integral (R ⧸ I.comap (algebra_map R A)) (A ⧸ I) :=
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : algebra.is_integral R A) :
+  algebra.is_integral (R ⧸ I.comap (algebra_map R A)) (A ⧸ I) :=
 (algebra_map R A).is_integral_quotient_of_is_integral hRA
 
 lemma is_integral_quotient_map_iff {I : ideal S} :
@@ -955,7 +976,7 @@ end
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field. -/
 lemma is_field_of_is_integral_of_is_field
   {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S]
-  [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
+  [algebra R S] (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,

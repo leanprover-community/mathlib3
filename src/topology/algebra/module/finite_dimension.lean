@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
+import linear_algebra.free_module.finite.matrix
+import topology.algebra.module.simple
 import topology.algebra.module.determinant
 
 /-!
@@ -45,29 +47,6 @@ noncomputable theory
 
 open set finite_dimensional topological_space filter
 open_locale big_operators
-
-section semiring
-
-variables {ι 𝕜 F : Type*} [finite ι] [semiring 𝕜] [topological_space 𝕜]
-  [add_comm_monoid F] [module 𝕜 F] [topological_space F]
-  [has_continuous_add F] [has_continuous_smul 𝕜 F]
-
-/-- A linear map on `ι → 𝕜` (where `ι` is finite) is continuous -/
-lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
-begin
-  casesI nonempty_fintype ι,
-  classical,
-  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
-  -- function.
-  have : (f : (ι → 𝕜) → F) =
-         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
-    by { ext x, exact f.pi_apply_eq_sum_univ x },
-  rw this,
-  refine continuous_finset_sum _ (λi hi, _),
-  exact (continuous_apply i).smul continuous_const
-end
-
-end semiring
 
 section field
 

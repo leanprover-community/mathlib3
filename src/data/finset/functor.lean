@@ -10,6 +10,9 @@ import data.multiset.functor
 /-!
 # Functoriality of `finset`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the functor structure of `finset`.
 
 ## TODO

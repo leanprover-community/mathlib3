@@ -11,6 +11,9 @@ import ring_theory.ideal.operations
 /-!
 # Subalgebras over Commutative Semiring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `subalgebra`s and the usual operations on them (`map`, `comap`).
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.

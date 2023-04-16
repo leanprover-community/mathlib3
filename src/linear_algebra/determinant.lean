@@ -3,6 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.finite_dimensional
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
@@ -451,12 +453,14 @@ multilinear map. -/
 def basis.det : alternating_map R M R ι :=
 { to_fun := λ v, det (e.to_matrix v),
   map_add' := begin
-    intros v i x y,
-    simp only [e.to_matrix_update, linear_equiv.map_add],
-    apply det_update_column_add
+    intros inst v i x y,
+    cases subsingleton.elim inst ‹_›,
+    simp only [e.to_matrix_update, linear_equiv.map_add, finsupp.coe_add],
+    exact det_update_column_add _ _ _ _,
   end,
   map_smul' := begin
-    intros u i c x,
+    intros inst u i c x,
+    cases subsingleton.elim inst ‹_›,
     simp only [e.to_matrix_update, algebra.id.smul_eq_mul, linear_equiv.map_smul],
     apply det_update_column_smul
   end,
@@ -515,13 +519,16 @@ begin
   simp [alternating_map.map_perm, basis.det_self]
 end
 
-@[simp] lemma alternating_map.map_basis_eq_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+@[simp] lemma alternating_map.map_basis_eq_zero_iff {ι : Type*} [finite ι]
   (e : basis ι R M) (f : alternating_map R M R ι) :
   f e = 0 ↔ f = 0 :=
-⟨λ h, by { casesI nonempty_fintype ι, simpa [h] using f.eq_smul_basis_det e },
-  λ h, h.symm ▸ alternating_map.zero_apply _⟩
+⟨λ h, begin
+  casesI nonempty_fintype ι,
+  letI := classical.dec_eq ι,
+  simpa [h] using f.eq_smul_basis_det e
+end, λ h, h.symm ▸ alternating_map.zero_apply _⟩
 
-lemma alternating_map.map_basis_ne_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+lemma alternating_map.map_basis_ne_zero_iff {ι : Type*} [finite ι]
   (e : basis ι R M) (f : alternating_map R M R ι) :
   f e ≠ 0 ↔ f ≠ 0 :=
 not_congr $ f.map_basis_eq_zero_iff e

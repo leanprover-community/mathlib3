@@ -40,7 +40,7 @@ variables (X : Profinite.{u})
 
 /-- The functor `discrete_quotient X ⥤ Fintype` whose limit is isomorphic to `X`. -/
 def fintype_diagram : discrete_quotient X ⥤ Fintype :=
-{ obj := λ S, Fintype.of S,
+{ obj := λ S, by haveI := fintype.of_finite S; exact Fintype.of S,
   map := λ S T f, discrete_quotient.of_le f.le }
 
 /-- An abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`. -/
@@ -56,9 +56,8 @@ instance is_iso_as_limit_cone_lift :
   is_iso ((limit_cone_is_limit X.diagram).lift X.as_limit_cone) :=
 is_iso_of_bijective _
 begin
-  refine ⟨λ a b, _, λ a, _⟩,
-  { intro h,
-    refine discrete_quotient.eq_of_proj_eq (λ S, _),
+  refine ⟨λ a b h, _, λ a, _⟩,
+  { refine discrete_quotient.eq_of_forall_proj_eq (λ S, _),
     apply_fun (λ f : (limit_cone X.diagram).X, f.val S) at h,
     exact h },
   { obtain ⟨b, hb⟩ := discrete_quotient.exists_of_compat

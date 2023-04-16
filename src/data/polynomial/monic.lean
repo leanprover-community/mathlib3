@@ -9,6 +9,9 @@ import algebra.regular.smul
 /-!
 # Theory of monic polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give several tools for proving that polynomials are monic, e.g.
 `monic.mul`, `monic.map`, `monic.pow`.
 -/
@@ -345,6 +348,9 @@ begin
   apply hf,
   rw [← leading_coeff_of_injective hf, hp.leading_coeff, f.map_one]
 end
+
+theorem _root_.function.injective.monic_map_iff {p : R[X]} : p.monic ↔ (p.map f).monic :=
+⟨monic.map _, polynomial.monic_of_injective hf⟩
 
 end injective
 

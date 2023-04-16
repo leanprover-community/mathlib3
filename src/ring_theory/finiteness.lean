@@ -12,6 +12,9 @@ import ring_theory.ideal.operations
 /-!
 # Finiteness conditions in commutative algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a notion of finiteness that is common in commutative algebra.
 
 ## Main declarations
@@ -99,8 +102,7 @@ begin
     { rw [sub_right_comm], exact I.sub_mem hr1 hci },
     { rw [sub_smul, ← hyz, add_sub_cancel'], exact hz } },
   rcases this with ⟨c, hc1, hci⟩, refine ⟨c * r, _, _, hs.2⟩,
-  { rw [← ideal.quotient.eq, ring_hom.map_one] at hr1 hc1 ⊢,
-    rw [ring_hom.map_mul, hc1, hr1, mul_one] },
+  { simpa only [mul_sub, mul_one, sub_add_sub_cancel] using I.add_mem (I.mul_mem_left c hr1) hc1 },
   { intros n hn, specialize hrn hn, rw [mem_comap, mem_sup] at hrn,
     rcases hrn with ⟨y, hy, z, hz, hyz⟩, change y + z = r • n at hyz,
     rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,
@@ -125,6 +127,22 @@ lemma _root_.subalgebra.fg_bot_to_submodule {R A : Type*}
   [comm_semiring R] [semiring A] [algebra R A] :
   (⊥ : subalgebra R A).to_submodule.fg :=
 ⟨{1}, by simp [algebra.to_submodule_bot] ⟩
+
+lemma fg_unit {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  (I : (submodule R A)ˣ) : (I : submodule R A).fg :=
+begin
+  have : (1 : A) ∈ (I * ↑I⁻¹ : submodule R A),
+  { rw I.mul_inv, exact one_le.mp le_rfl },
+  obtain ⟨T, T', hT, hT', one_mem⟩ := mem_span_mul_finite_of_mem_mul this,
+  refine ⟨T, span_eq_of_le _ hT _⟩,
+  rw [← one_mul ↑I, ← mul_one (span R ↑T)],
+  conv_rhs { rw [← I.inv_mul, ← mul_assoc] },
+  refine mul_le_mul_left (le_trans _ $ mul_le_mul_right $ span_le.mpr hT'),
+  rwa [one_le, span_mul_span],
+end
+
+lemma fg_of_is_unit {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  {I : submodule R A} (hI : is_unit I) : I.fg := fg_unit hI.unit
 
 theorem fg_span {s : set M} (hs : s.finite) : fg (span R s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
@@ -284,7 +302,7 @@ lemma fg_restrict_scalars {R S M : Type*} [comm_semiring R] [semiring S] [algebr
 begin
   obtain ⟨X, rfl⟩ := hfin,
   use X,
-  exact submodule.span_eq_restrict_scalars R S M X h
+  exact (submodule.restrict_scalars_span R S h ↑X).symm
 end
 
 lemma fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg)
@@ -457,6 +475,14 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   exact hM.1.map f
 end⟩
 
+/-- The range of a linear map from a finite module is finite. -/
+instance range [finite R M] (f : M →ₗ[R] N) : finite R f.range :=
+of_surjective f.range_restrict $ λ ⟨x, y, hy⟩, ⟨y, subtype.ext hy⟩
+
+/-- Pushforwards of finite submodules are finite. -/
+instance map (p : submodule R M) [finite R p] (f : M →ₗ[R] N) : finite R (p.map f) :=
+of_surjective (f.restrict $ λ _, mem_map_of_mem) $ λ ⟨x, y, hy, hy'⟩, ⟨⟨_, hy⟩, subtype.ext hy'⟩
+
 variables (R)
 
 instance self : finite R R :=
@@ -533,14 +559,6 @@ instance module.finite.tensor_product [comm_semiring R]
   [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
   [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
 { out := (tensor_product.map₂_mk_top_top_eq_top R M N).subst (hM.out.map₂ _ hN.out) }
-
-namespace algebra
-
-variables [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
-variables [add_comm_group M] [module R M]
-variables [add_comm_group N] [module R N]
-
-end algebra
 
 end module_and_algebra
 

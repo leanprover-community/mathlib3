@@ -3,12 +3,15 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.array.lemmas
 import data.finset.sort
+import data.vector.basic
 import logic.denumerable
 
 /-!
 # Equivalences involving `list`-like types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines some additional constructive equivalences using `encodable` and the pairing
 function on `ℕ`.
@@ -129,14 +132,6 @@ of_equiv _ (equiv.vector_equiv_fin _ _).symm
 
 instance fin_pi (n) (π : fin n → Type*) [∀ i, encodable (π i)] : encodable (Π i, π i) :=
 of_equiv _ (equiv.pi_equiv_subtype_sigma (fin n) π)
-
-/-- If `α` is encodable, then so is `array n α`. -/
-instance _root_.array.encodable [encodable α] {n} : encodable (array n α) :=
-of_equiv _ (equiv.array_equiv_fin _ _)
-
-/-- If `α` is countable, then so is `array n α`. -/
-instance _root_.array.countable [countable α] {n} : countable (array n α) :=
-countable.of_equiv _ (equiv.vector_equiv_array _ _)
 
 /-- If `α` is encodable, then so is `finset α`. -/
 instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
@@ -352,7 +347,7 @@ def list_unit_equiv : list unit ≃ ℕ :=
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
 
 /-- If `α` is equivalent to `ℕ`, then `list α` is equivalent to `α`. -/
-def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
+def list_equiv_self_of_equiv_nat {α : Type*} (e : α ≃ ℕ) : list α ≃ α :=
 calc list α ≃ list ℕ : list_equiv_of_equiv e
         ... ≃ ℕ      : list_nat_equiv_nat
         ... ≃ α      : e.symm

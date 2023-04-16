@@ -8,6 +8,9 @@ import algebra.big_operators.basic
 
 /-! # Lemmas about coprimality with big products.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These lemmas are kept separate from `data.nat.gcd.basic` in order to minimize imports.
 -/
 

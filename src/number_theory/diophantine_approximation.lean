@@ -27,12 +27,20 @@ The main results are three variants of Dirichlet's approximation theorem:
   satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
 
 and
-* `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`, the set
-  `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite,
+* `real.infinite_rat_abs_sub_lt_one_div_denom_sq_of_irrational`, which states that
+  for irrational `ξ`, the set `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite.
+
+We also show a converse,
+* `rat.finite_rat_abs_sub_lt_one_div_denom_sq`, which states that the set above is finite
+  when `ξ` is a rational number.
+
+Both statements are combined to give an equivalence,
+`real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational`.
 
 ## Implementation notes
 
-We use the namespace `real` for the results.
+We use the namespace `real` for the results on real numbers and `rat` for the results
+on rational numbers.
 
 ## References
 
@@ -179,3 +187,81 @@ end
 end rat_approx
 
 end real
+
+namespace rat
+
+/-!
+### Finitely many good approximations to rational numbers
+
+We now show that a rational number `ξ` has only finitely many good rational
+approximations.
+-/
+
+open set
+
+/-- If `ξ` is rational, then the good rational approximations to `ξ` have bounded
+numerator and denominator. -/
+lemma denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq {ξ q : ℚ} (h : |ξ - q| < 1 / q.denom ^ 2) :
+  q.denom ≤ ξ.denom ∧ ⌈ξ * q.denom⌉ - 1 ≤ q.num ∧ q.num ≤ ⌊ξ * q.denom⌋ + 1 :=
+begin
+  have hq₀ : (0 : ℚ) < q.denom := nat.cast_pos.mpr q.pos,
+  replace h : |ξ * q.denom - q.num| < 1 / q.denom,
+  { rw ← mul_lt_mul_right hq₀ at h,
+    conv_lhs at h { rw [← abs_of_pos hq₀, ← abs_mul, sub_mul, mul_denom_eq_num], },
+    rwa [sq, div_mul, mul_div_cancel_left _ hq₀.ne'] at h, },
+  split,
+  { rcases eq_or_ne ξ q with rfl | H,
+    { exact le_rfl, },
+    { have hξ₀ : (0 : ℚ) < ξ.denom := nat.cast_pos.mpr ξ.pos,
+      rw [← rat.num_div_denom ξ, div_mul_eq_mul_div, div_sub' _ _ _ hξ₀.ne', abs_div,
+          abs_of_pos hξ₀, div_lt_iff hξ₀, div_mul_comm, mul_one] at h,
+      refine nat.cast_le.mp (((one_lt_div hq₀).mp $ lt_of_le_of_lt _ h).le),
+      norm_cast,
+      rw [mul_comm _ q.num],
+      exact int.one_le_abs (sub_ne_zero_of_ne $ mt rat.eq_iff_mul_eq_mul.mpr H), } },
+  { obtain ⟨h₁, h₂⟩ := abs_sub_lt_iff.mp (h.trans_le $ (one_div_le zero_lt_one hq₀).mp $
+                        (@one_div_one ℚ _).symm ▸ nat.cast_le.mpr q.pos),
+    rw [sub_lt_iff_lt_add, add_comm] at h₁ h₂,
+    rw [← sub_lt_iff_lt_add] at h₂,
+    norm_cast at h₁ h₂,
+    exact ⟨sub_le_iff_le_add.mpr (int.ceil_le.mpr h₁.le),
+           sub_le_iff_le_add.mp (int.le_floor.mpr h₂.le)⟩, }
+end
+
+/-- A rational number has only finitely many good rational approximations. -/
+lemma finite_rat_abs_sub_lt_one_div_denom_sq (ξ : ℚ) :
+  {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.finite :=
+begin
+  let f : ℚ → ℤ × ℕ := λ q, (q.num, q.denom),
+  set s := {q : ℚ | |ξ - q| < 1 / q.denom ^ 2},
+  have hinj : function.injective f,
+  { intros a b hab,
+    simp only [prod.mk.inj_iff] at hab,
+    rw [← rat.num_div_denom a, ← rat.num_div_denom b, hab.1, hab.2], },
+  have H : f '' s ⊆ ⋃ (y : ℕ) (hy : y ∈ Ioc 0 ξ.denom), Icc (⌈ξ * y⌉ - 1) (⌊ξ * y⌋ + 1) ×ˢ {y},
+  { intros xy hxy,
+    simp only [mem_image, mem_set_of_eq] at hxy,
+    obtain ⟨q, hq₁, hq₂⟩ := hxy,
+    obtain ⟨hd, hn⟩ := denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq hq₁,
+    simp_rw [mem_Union],
+    refine ⟨q.denom, set.mem_Ioc.mpr ⟨q.pos, hd⟩, _⟩,
+    simp only [prod_singleton, mem_image, mem_Icc, (congr_arg prod.snd (eq.symm hq₂)).trans rfl],
+    exact ⟨q.num, hn, hq₂⟩, },
+  refine finite.of_finite_image (finite.subset _ H) (inj_on_of_injective hinj s),
+  exact finite.bUnion (finite_Ioc _ _) (λ x hx, finite.prod (finite_Icc _ _) (finite_singleton _)),
+end
+
+end rat
+
+/-- The set of good rational approximations to a real number `ξ` is infinite if and only if
+`ξ` is irrational. -/
+lemma real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational (ξ : ℝ) :
+  {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite ↔ irrational ξ :=
+begin
+  refine ⟨λ h, (irrational_iff_ne_rational ξ).mpr (λ a b H, set.not_infinite.mpr _ h),
+          real.infinite_rat_abs_sub_lt_one_div_denom_sq_of_irrational⟩,
+  convert rat.finite_rat_abs_sub_lt_one_div_denom_sq ((a : ℚ) / b),
+  ext q,
+  rw [H, (by push_cast : (1 : ℝ) / q.denom ^ 2 = (1 / q.denom ^ 2 : ℚ))],
+  norm_cast,
+end

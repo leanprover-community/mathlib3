@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.fintype.card
-import order.upper_lower
+import order.upper_lower.basic
 
 /-!
 # Intersecting families
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines intersecting families and proves their basic properties.
 

@@ -6,10 +6,14 @@ Authors: Aaron Anderson
 
 import algebra.group.conj_finite
 import group_theory.perm.fin
+import group_theory.subgroup.simple
 import tactic.interval_cases
 
 /-!
 # Alternating Groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The alternating group on a finite type `α` is the subgroup of the permutation group `perm α`
 consisting of the even permutations.

@@ -65,7 +65,7 @@ local extremum, Fermat's Theorem, Rolle's Theorem
 universes u v
 
 open filter set
-open_locale topological_space classical polynomial
+open_locale topology classical polynomial
 
 section module
 

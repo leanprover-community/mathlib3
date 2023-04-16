@@ -12,6 +12,9 @@ import algebra.order.group.min_max
 /-!
 # (Pre)images of intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a bunch of trivial lemmas like “if we add `a` to all points of `[b, c]`,
 then we get `[a + b, a + c]`”. For the functions `x ↦ x ± a`, `x ↦ a ± x`, and `x ↦ -x` we prove
 lemmas about preimages and images of all intervals. We also prove a few lemmas about images under
@@ -507,7 +510,7 @@ begin
 end
 
 lemma inv_Ioi {a : α} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
-by rw [inv_eq_iff_inv_eq, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
+by rw [inv_eq_iff_eq_inv, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
 
 lemma image_const_mul_Ioi_zero {k : Type*} [linear_ordered_field k]
   {x : k} (hx : 0 < x) :

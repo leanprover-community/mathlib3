@@ -157,7 +157,7 @@ Show `extend_along_yoneda` is left adjoint to `restricted_yoneda`.
 
 The construction of [MM92], Chapter I, Section 5, Theorem 2.
 -/
-def yoneda_adjunction : extend_along_yoneda A ⊣ restricted_yoneda A :=
+def yoeda_adjunction : extend_along_yoneda A ⊣ restricted_yoneda A :=
 adjunction.adjunction_of_equiv_left _ _
 
 /--

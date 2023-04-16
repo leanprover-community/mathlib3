@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Eric Wieer
 -/
 
 import linear_algebra.free_module.finite.rank
@@ -22,7 +22,8 @@ This definition does not depend on the choice of basis, see `matrix.rank_eq_finr
 
 ## TODO
 
-* Show that `matrix.rank` is equal to the row-rank, and that `rank Aᵀ = rank A`.
+* Do a better job of generalizing over `ℚ`, `ℝ`, and `ℂ` in `matrix.rank_transpose` and
+  `matrix.rank_conj_transpose`.
 
 -/
 
@@ -103,8 +104,7 @@ begin
   rw [rank, rank, mul_vec_lin_submatrix, linear_map.range_comp, linear_map.range_comp,
     (show linear_map.fun_left R R e.symm = linear_equiv.fun_congr_left R R e.symm, from rfl),
     linear_equiv.range, submodule.map_top],
-  -- TODO: generalize `finite_dimensional.finrank_map_le` and use it here
-  exact finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _),
+  exact submodule.finrank_map_le _ _,
 end
 
 lemma rank_reindex [fintype m] (e₁ e₂ : m ≃ n) (A : matrix m m R) :
@@ -161,11 +161,19 @@ by rw [rank, matrix.range_mul_vec_lin]
 
 end comm_ring
 
-section field
-variables [fintype m]
+/-! ### Lemmas about transpose and conjugate transpose
 
-lemma rank_conj_transpose_mul_self [field R] [partial_order R] [star_ordered_ring R]
-  (A : matrix m n R) :
+This section contains lemmas about the rank of `matrix.transpose` and `matrix.conj_transpose`.
+
+Unfortunately the proofs are essentially duplicated between the two; `ℚ` is a linearly-ordered ring
+but can't be a star-ordered ring, while `ℂ` is star-ordered (with `open_locale complex_order`) but
+not linearly ordered. For now we don't prove the transpose case for `ℂ`.
+-/
+
+section star_ordered_field
+variables [fintype m] [field R] [partial_order R] [star_ordered_ring R]
+
+lemma rank_conj_transpose_mul_self (A : matrix m n R) :
   (Aᴴ ⬝ A).rank = A.rank :=
 begin
   have : linear_map.ker (mul_vec_lin A) = linear_map.ker (Aᴴ ⬝ A).mul_vec_lin,
@@ -186,8 +194,21 @@ begin
   rw this,
 end
 
-lemma rank_transpose_mul_self [linear_ordered_field R] (A : matrix m n R) :
-  (Aᵀ ⬝ A).rank = A.rank :=
+-- this follows the proof here https://math.stackexchange.com/a/81903/1896
+@[simp] lemma rank_conj_transpose [field R] [partial_order R] [star_ordered_ring R]
+  (A : matrix m n R) :
+  Aᴴ.rank = A.rank :=
+le_antisymm
+  (((rank_conj_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _).trans_eq $
+    congr_arg _ $ conj_transpose_conj_transpose _)
+  ((rank_conj_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)
+
+end star_ordered_field
+
+section linear_ordered_field
+variables [fintype m] [linear_ordered_field R]
+
+lemma rank_transpose_mul_self (A : matrix m n R) : (Aᵀ ⬝ A).rank = A.rank :=
 begin
   have : linear_map.ker (mul_vec_lin A) = linear_map.ker (Aᵀ ⬝ A).mul_vec_lin,
   { ext x,
@@ -207,15 +228,19 @@ begin
   rw this,
 end
 
-
-lemma rank_transpose [linear_ordered_field R] (A : matrix m n R) :
+@[simp] lemma rank_transpose [linear_ordered_field R] (A : matrix m n R) :
   Aᵀ.rank = A.rank :=
-begin
-  apply le_antisymm,
-  sorry,
-  sorry,
-end
+le_antisymm
+  ((rank_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)
+  ((rank_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)
 
-end field
+/-- The rank of a matrix is the rank of the space spanned by its rows.
+
+TODO: prove this in a generality that works for `ℂ` too, not just `ℚ` and `ℝ`. -/
+lemma rank_eq_finrank_span_row (A : matrix m n R) :
+  A.rank = finrank R (submodule.span R (set.range A)) :=
+by rw [←rank_transpose, rank_eq_finrank_span_cols, transpose_transpose]
+
+end linear_ordered_field
 
 end matrix

@@ -253,6 +253,45 @@ noncomputable def riemann_permute_aux (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ 
   if sk ≤ M then sorry
   else sorry
 
+noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
+| 0 := 0
+| (n+1) :=
+  let fₙ : fin (n + 1) → ℕ := λ x,
+    have h : (x : ℕ) < n + 1 := fin.is_lt x,
+    rearrangement (x : ℕ) in
+  if ∑ x in finset.univ, a (fₙ x) ≤ M then
+    have h : ∃ k, k ∉ set.range fₙ ∧ 0 ≤ a k := sorry,
+    nat.find h
+  else
+    have h : ∃ k, k ∉ set.range fₙ ∧ a k ≤ 0 := sorry,
+    nat.find h
+
+lemma injective_rearrangement (a : ℕ → ℝ) (M : ℝ) : function.injective (rearrangement a M) :=
+begin
+  unfold function.injective,
+  by_contra h,
+  push_neg at h,
+  rcases h with ⟨n, m, h₁, h₂⟩,
+  wlog h : n < m,
+  { apply this a M m n h₁.symm h₂.symm,
+    push_neg at h,
+    exact h₂.symm.lt_of_le h },
+  cases m,
+  { exact nat.not_lt_zero n h },
+  { unfold rearrangement at h₁,
+    set fₙ := λ x : fin (n + 1), rearrangement a M (x : ℕ),
+    by_cases h : ∑ x in finset.univ, a (fₙ x) ≤ M,
+    {
+      sorry
+    },
+    {
+      sorry
+    }
+    --change rearrangement a M n = ite (∑ x in finset.univ, a (fₙ x) ≤ M) _ _ at h₁,
+    --cases a m,
+    }
+
+end
 
 theorem riemann_rearrangement_theorem {a : ℕ → ℝ} (h₁ : series_converges a)
   (h₂ : ¬series_converges_absolutely a) (M : ℝ) : ∃ (p : equiv.perm ℕ),

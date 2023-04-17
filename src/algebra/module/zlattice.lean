@@ -26,7 +26,7 @@ The ℤ-lattice `L` can be defined in two ways:
 
 -/
 
-open_locale classical
+open_locale big_operators classical
 
 noncomputable theory
 
@@ -44,7 +44,7 @@ variables (b : basis ι K E)
 
 /-- The fundamental domain of the ℤ-lattice spanned by `b`. See `zspan.is_add_fundamental_domain`
 for the proof that it is the fundamental domain. -/
-def fundamental_domain : set E := { m | ∀ i : ι, b.repr m i ∈ set.Ico (0 : K) 1 }
+def fundamental_domain : set E := { m | ∀ i, b.repr m i ∈ set.Ico (0 : K) 1 }
 
 variables [floor_ring K]
 
@@ -54,21 +54,22 @@ variable [fintype ι]
 
 /-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
 by rounding down its coordinates on the basis `b`. -/
-def floor : E → span ℤ (set.range b) :=
-λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • b.restrict_scalars ℤ i)
+def floor (m : E) : span ℤ (set.range b) := ∑ i, ⌊b.repr m i⌋ • b.restrict_scalars ℤ i
 
+@[simp]
 lemma floor_single (m : E) (i : ι) :
-  b.repr (floor b m) i = int.floor (b.repr m i) :=
+  b.repr (floor b m) i = ⌊b.repr m i⌋ :=
 by simp only [floor, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
   finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
   finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply,
   linear_equiv.map_sum]
 
+
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
 def fract : E → E := λ m, m - floor b m
 
-lemma fract_def (m : E) : fract b m = m - floor b m := rfl
+lemma fract_apply (m : E) : fract b m = m - floor b m := rfl
 
 @[simp]
 lemma fract_single (m : E) (i : ι):
@@ -86,14 +87,14 @@ begin
     ← (eq_int_cast (algebra_map ℤ K) _), basis.restrict_scalars_repr_apply, coe_mk],
 end
 
-lemma mem_fundamental_domain {x : E} :
-  x ∈ (fundamental_domain b) ↔ fract b x = x :=
+lemma mem_fundamental_domain_iff {x : E} :
+  x ∈ fundamental_domain b ↔ fract b x = x :=
 by simp only [basis.ext_elem_iff b, fundamental_domain, set.mem_Ico, set.mem_set_of_eq,
   fract_single, int.fract_eq_self]
 
 lemma fract_mem_fundamental_domain (x : E) :
   fract b x ∈ fundamental_domain b :=
-by simp only [mem_fundamental_domain, basis.ext_elem_iff b, fract_single, int.fract_fract,
+by simp only [mem_fundamental_domain_iff, basis.ext_elem_iff b, fract_single, int.fract_fract,
   eq_self_iff_true, implies_true_iff]
 
 lemma fract_eq_iff (m n : E) :
@@ -107,15 +108,14 @@ begin
 end
 
 lemma fract_le (m : E) :
-  ‖fract b m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
+  ‖fract b m‖ ≤ ∑ i, ‖b i‖ :=
 begin
   calc
-    ‖fract b m‖
-        = ‖finset.univ.sum (λ i, b.repr (fract b m) i • b i)‖ : by rw b.sum_repr
-    ... = ‖finset.univ.sum (λ i, int.fract (b.repr m i) • b i)‖ : by simp_rw fract_single
-    ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i) • b i‖) : norm_sum_le _ _
-    ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i)‖ * ‖b i‖) : by simp_rw norm_smul
-    ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum (λ i _, _),
+    ‖fract b m‖ = ‖∑ i, b.repr (fract b m) i • b i‖ : by rw b.sum_repr
+            ... = ‖∑ i, int.fract (b.repr m i) • b i‖ : by simp_rw fract_single
+            ... ≤ ∑ i, ‖int.fract (b.repr m i) • b i‖ : norm_sum_le _ _
+            ... ≤ ∑ i, ‖int.fract (b.repr m i)‖ * ‖b i‖ : by simp_rw norm_smul
+            ... ≤ ∑ i, ‖b i‖ : finset.sum_le_sum (λ i _, _),
     suffices : ‖int.fract (((b.repr) m) i)‖ ≤ 1,
     { convert mul_le_mul_of_nonneg_right this (norm_nonneg _ : 0 ≤ ‖b i ‖),
       exact (one_mul _).symm, },
@@ -125,16 +125,30 @@ begin
     exact le_of_lt (int.fract_lt_one _),
 end
 
+section unique
+
+variable [unique ι]
+
+@[simp] lemma coe_floor_self (k : K) : (floor (basis.singleton ι K) k : K) = ⌊k⌋ :=
+(basis.ext_elem_iff _).mpr
+  (λ _, by { rw [floor_single, basis.singleton_repr, basis.singleton_repr], })
+
+@[simp] lemma coe_fract_self (k : K) : (fract (basis.singleton ι K) k : K) = int.fract k :=
+(basis.ext_elem_iff _).mpr
+  (λ _, by { rw [fract_single, basis.singleton_repr, basis.singleton_repr], })
+
+end unique
+
 end fintype
 
 lemma fundamental_domain_bounded [finite ι] :
   metric.bounded (fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,
-  use 2 * finset.univ.sum (λ j, ‖b j‖),
+  use 2 * ∑ j, ‖b j‖,
   intros x hx y hy,
   refine le_trans (dist_le_norm_add_norm x y) _,
-  rw [← (mem_fundamental_domain b).mp hx, ← (mem_fundamental_domain b).mp hy],
+  rw [← (mem_fundamental_domain_iff b).mp hx, ← (mem_fundamental_domain_iff b).mp hy],
   refine (add_le_add (fract_le b x) (fract_le b y)).trans _,
   rw ← two_mul,
 end
@@ -145,12 +159,12 @@ begin
   casesI nonempty_fintype ι,
   refine ⟨-floor b x, _, λ y _, _⟩,
   { simp_rw [fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add, add_subgroup_class.coe_neg,
-    neg_add_eq_sub, ← fract_def],
+    neg_add_eq_sub, ← fract_apply],
     simp only [fract_single, int.fract_nonneg, int.fract_lt_one, true_and, set.mem_set_of_eq,
       implies_true_iff], },
   { rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
-      ← fract_def, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
-      eq_comm, ← mem_fundamental_domain], },
+      ← fract_apply, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
+      eq_comm, ← mem_fundamental_domain_iff], },
 end
 
 end normed_lattice_field

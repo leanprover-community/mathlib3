@@ -179,8 +179,9 @@ by rw [← neg_sub, abv.map_neg]
 end ordered_comm_ring
 
 instance {R S : Type*} [ring R] [ordered_comm_ring S] [nontrivial R] [is_domain S] :
-  mul_ring_norm_class (absolute_value R S) R S :=
-{ map_neg_eq_map := λ f, f.map_neg,
+  absolute_value_class (absolute_value R S) R S :=
+{ map_nonneg := λ f, f.nonneg,
+  map_neg_eq_map := λ f, f.map_neg,
   eq_zero_of_map_eq_zero := λ f a, f.eq_zero.1,
   ..absolute_value.subadditive_hom_class, ..absolute_value.monoid_with_zero_hom_class }
 

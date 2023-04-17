@@ -219,7 +219,7 @@ end mul_ring_seminorm
 namespace mul_ring_norm
 variable [non_assoc_ring R]
 
-instance mul_ring_norm_class : mul_ring_norm_class (mul_ring_norm R) R ℝ :=
+instance absolute_value_class : absolute_value_class (mul_ring_norm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',

@@ -33,7 +33,7 @@ Ring norms
 * `ring_seminorm_class`: Homs are submultiplicative group norms.
 * `ring_norm_class`: Homs are ring seminorms that are also additive group norms.
 * `mul_ring_seminorm_class`: Homs are ring seminorms that are multiplicative.
-* `mul_ring_norm_class`: Homs are ring norms that are multiplicative.
+* `absolute_value_class`: Homs are ring norms that are multiplicative, aka absolute values.
 
 ## Notes
 
@@ -136,7 +136,7 @@ group `α`.
 
 You should extend this class when you extend `add_group_seminorm`. -/
 class add_group_seminorm_class (F : Type*) (α β : out_param $ Type*) [add_group α]
-  [ordered_add_comm_monoid β] extends subadditive_hom_class F α β :=
+  [ordered_add_comm_monoid β] extends subadditive_hom_class F α β, nonneg_hom_class F α β :=
 (map_zero (f : F) : f 0 = 0)
 (map_neg_eq_map (f : F) (a : α) : f (-a) = f a)
 
@@ -145,7 +145,7 @@ class add_group_seminorm_class (F : Type*) (α β : out_param $ Type*) [add_grou
 You should extend this class when you extend `group_seminorm`. -/
 @[to_additive]
 class group_seminorm_class (F : Type*) (α β : out_param $ Type*) [group α]
-  [ordered_add_comm_monoid β] extends mul_le_add_hom_class F α β :=
+  [ordered_add_comm_monoid β] extends mul_le_add_hom_class F α β, nonneg_hom_class F α β :=
 (map_one_eq_zero (f : F) : f 1 = 0)
 (map_inv_eq_map (f : F) (a : α) : f a⁻¹ = f a)
 
@@ -196,8 +196,6 @@ by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x
 
 end group_seminorm_class
 
-example [ordered_add_comm_group β] : ordered_add_comm_monoid β := infer_instance
-
 @[to_additive] lemma abs_sub_map_le_div [group α] [linear_ordered_add_comm_group β]
   [group_seminorm_class F α β] (f : F) (x y : α) : |f x - f y| ≤ f (x / y) :=
 begin
@@ -205,13 +203,22 @@ begin
   exact ⟨le_map_add_map_div _ _ _, le_map_add_map_div' _ _ _⟩
 end
 
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance group_seminorm_class.to_nonneg_hom_class [group α] [linear_ordered_add_comm_monoid β]
-  [group_seminorm_class F α β] :
-  nonneg_hom_class F α β :=
-{ map_nonneg := λ f a, (nsmul_nonneg_iff two_ne_zero).1 $
-    by { rw [two_nsmul, ←map_one_eq_zero f, ←div_self' a], exact map_div_le_add _ _ _ },
-  ..‹group_seminorm_class F α β› }
+/-- When the target monoid is linearly ordered, it is enough to check `f 1 = 0`, `f a⁻¹ = f a` for
+`f` to be a group norm. -/
+@[to_additive "When the target monoid is linearly ordered, it is enough to check `f 0 = 0`,
+`f (-a) = f a` for `f` to be a group norm.", priority 100] -- See note [lower instance priority]
+def group_seminorm_class_of_map_inv [group α] [linear_ordered_add_comm_monoid β]
+  [mul_le_add_hom_class F α β] (map_one_eq_zero : ∀ f : F, f 1 = 0)
+  (map_inv_eq_map : ∀ (f : F) a, f a⁻¹ = f a) :
+  group_seminorm_class F α β :=
+{ map_one_eq_zero := map_one_eq_zero,
+  map_inv_eq_map := map_inv_eq_map,
+  map_nonneg := λ f a, (nsmul_nonneg_iff two_ne_zero).1 $ begin
+    rw [two_nsmul, ←map_one_eq_zero f, ←div_self' a, div_eq_mul_inv],
+    refine (map_mul_le_add _ _ _).trans _,
+    rw map_inv_eq_map,
+  end,
+  ..‹mul_le_add_hom_class F α β› }
 
 section group_norm_class
 variables [group α] [ordered_add_comm_monoid β] [group_norm_class F α β] (f : F) {x : α}
@@ -249,18 +256,18 @@ You should extend this class when you extend `mul_ring_seminorm`. -/
 class mul_ring_seminorm_class (F : Type*) (α β : out_param $ Type*) [non_assoc_ring α]
   [ordered_semiring β] extends add_group_seminorm_class F α β, monoid_with_zero_hom_class F α β
 
-/-- `mul_ring_norm_class F α` states that `F` is a type of `β`-valued multiplicative norms on the
-ring `α`.
+/-- `absolute_value_class F α` states that `F` is a type of `β`-valued multiplicative norms (aka
+absolute values) on the ring `α`.
 
 You should extend this class when you extend `mul_ring_norm`. -/
-class mul_ring_norm_class (F : Type*) (α β : out_param $ Type*) [non_assoc_ring α]
+class absolute_value_class (F : Type*) (α β : out_param $ Type*) [non_assoc_ring α]
   [ordered_semiring β] extends mul_ring_seminorm_class F α β, add_group_norm_class F α β
 
 -- See note [out-param inheritance]
 @[priority 100] -- See note [lower instance priority]
 instance ring_seminorm_class.to_nonneg_hom_class [non_unital_non_assoc_ring α]
   [linear_ordered_semiring β] [ring_seminorm_class F α β] : nonneg_hom_class F α β :=
-add_group_seminorm_class.to_nonneg_hom_class
+add_group_seminorm_class.to_nonneg_hom_class _ _ _
 
 @[priority 100] -- See note [lower instance priority]
 instance mul_ring_seminorm_class.to_ring_seminorm_class [non_assoc_ring α] [ordered_semiring β]
@@ -269,6 +276,6 @@ instance mul_ring_seminorm_class.to_ring_seminorm_class [non_assoc_ring α] [ord
   ..‹mul_ring_seminorm_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance mul_ring_norm_class.to_ring_norm_class [non_assoc_ring α] [ordered_semiring β]
-  [mul_ring_norm_class F α β] : ring_norm_class F α β :=
-{ ..‹mul_ring_norm_class F α β›, ..mul_ring_seminorm_class.to_ring_seminorm_class }
+instance absolute_value_class.to_ring_norm_class [non_assoc_ring α] [ordered_semiring β]
+  [absolute_value_class F α β] : ring_norm_class F α β :=
+{ ..‹absolute_value_class F α β›, ..mul_ring_seminorm_class.to_ring_seminorm_class }

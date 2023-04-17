@@ -8,6 +8,9 @@ import order.filter.bases
 /-!
 # (Co)product of a family of filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two filters on `Π i, α i` and prove some basic properties of these filters.
 
 * `filter.pi (f : Π i, filter (α i))` to be the maximal filter on `Π i, α i` such that

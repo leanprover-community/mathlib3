@@ -10,7 +10,6 @@ import logic.embedding.set
 # Interactions between relation homomorphisms and sets
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1005
 > Any changes to this file require a corresponding PR to mathlib4.
 
 It is likely that there are better homes for many of these statement,

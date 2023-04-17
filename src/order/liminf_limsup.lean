@@ -9,6 +9,9 @@ import order.hom.complete_lattice
 /-!
 # liminfs and limsups of functions and filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines the Liminf/Limsup of a function taking values in a conditionally complete lattice, with
 respect to an arbitrary filter.
 
@@ -543,6 +546,23 @@ by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
 theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
   (h : f.has_basis p s) : limsup u f = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
 (h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
+
+lemma blimsup_congr' {f : filter β} {p q : β → Prop} {u : β → α}
+  (h : ∀ᶠ x in f, u x ≠ ⊥ → (p x ↔ q x)) :
+  blimsup u f p = blimsup u f q :=
+begin
+  simp only [blimsup_eq],
+  congr,
+  ext a,
+  refine eventually_congr (h.mono $ λ b hb, _),
+  cases eq_or_ne (u b) ⊥ with hu hu, { simp [hu], },
+  rw hb hu,
+end
+
+lemma bliminf_congr' {f : filter β} {p q : β → Prop} {u : β → α}
+  (h : ∀ᶠ x in f, u x ≠ ⊤ → (p x ↔ q x)) :
+  bliminf u f p = bliminf u f q :=
+@blimsup_congr' αᵒᵈ β _ _ _ _ _ h
 
 lemma blimsup_eq_infi_bsupr {f : filter β} {p : β → Prop} {u : β → α} :
   blimsup u f p = ⨅ s ∈ f, ⨆ b (hb : p b ∧ b ∈ s), u b :=

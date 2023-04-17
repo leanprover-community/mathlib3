@@ -8,6 +8,9 @@ import data.set.basic
 /-!
 # Circular order hierarchy
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines circular preorders, circular partial orders and circular orders.
 
 ## Hierarchy

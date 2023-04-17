@@ -9,6 +9,9 @@ import topology.metric_space.lipschitz
 /-!
 # Compatibility of algebraic operations with metric space structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define mixin typeclasses `has_lipschitz_mul`, `has_lipschitz_add`,
 `has_bounded_smul` expressing compatibility of multiplication, addition and scalar-multiplication
 operations with an underlying metric space structure.  The intended use case is to abstract certain

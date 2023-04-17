@@ -47,9 +47,9 @@ seminorm, locally convex
 -/
 
 open normed_field set seminorm topological_space
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
-variables {𝕜 𝕜₂ E F G ι ι' : Type*}
+variables {𝕜 𝕜₂ 𝕝 𝕝₂ E F G ι ι' : Type*}
 
 section filter_basis
 
@@ -221,46 +221,42 @@ variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 
 /-- The proposition that a linear map is bounded between spaces with families of seminorms. -/
 def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜₂ F) (f : E →ₛₗ[σ₁₂] F) : Prop :=
-  ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
+  ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, (q i).comp f ≤ C • s.sup p
 
 lemma is_bounded_const (ι' : Type*) [nonempty ι']
   {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜₂ F} (f : E →ₛₗ[σ₁₂] F) :
-  is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
+  is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, q.comp f ≤ C • s.sup p :=
 by simp only [is_bounded, forall_const]
 
 lemma const_is_bounded (ι : Type*) [nonempty ι]
   {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜₂ F} (f : E →ₛₗ[σ₁₂] F) :
-  is_bounded (λ _ : ι, p) q f ↔ ∀ i, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
+  is_bounded (λ _ : ι, p) q f ↔ ∀ i, ∃ C : ℝ≥0, (q i).comp f ≤ C • p :=
 begin
   split; intros h i,
-  { rcases h i with ⟨s, C, hC, h⟩,
-    exact ⟨C, hC, le_trans h (smul_le_smul (finset.sup_le (λ _ _, le_rfl)) le_rfl)⟩ },
+  { rcases h i with ⟨s, C, h⟩,
+    exact ⟨C, le_trans h (smul_le_smul (finset.sup_le (λ _ _, le_rfl)) le_rfl)⟩ },
   use [{classical.arbitrary ι}],
   simp only [h, finset.sup_singleton],
 end
 
 lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜₂ F}
   {f : E →ₛₗ[σ₁₂] F} (hf : is_bounded p q f) (s' : finset ι') :
-  ∃ (C : ℝ≥0) (s : finset ι), 0 < C ∧ (s'.sup q).comp f ≤ C • (s.sup p) :=
+  ∃ (C : ℝ≥0) (s : finset ι), (s'.sup q).comp f ≤ C • (s.sup p) :=
 begin
   classical,
   obtain rfl | hs' := s'.eq_empty_or_nonempty,
-  { exact ⟨1, ∅, zero_lt_one, by simp [seminorm.bot_eq_zero]⟩ },
+  { exact ⟨1, ∅, by simp [seminorm.bot_eq_zero]⟩ },
   choose fₛ fC hf using hf,
   use [s'.card • s'.sup fC, finset.bUnion s' fₛ],
-  split,
-  { refine nsmul_pos _ (ne_of_gt (finset.nonempty.card_pos hs')),
-    cases finset.nonempty.bex hs' with j hj,
-    exact lt_of_lt_of_le (zero_lt_iff.mpr (and.elim_left (hf j))) (finset.le_sup hj) },
   have hs : ∀ i : ι', i ∈ s' → (q i).comp f ≤ s'.sup fC • ((finset.bUnion s' fₛ).sup p) :=
   begin
     intros i hi,
-    refine le_trans (and.elim_right (hf i)) (smul_le_smul _ (finset.le_sup hi)),
+    refine (hf i).trans (smul_le_smul _ (finset.le_sup hi)),
     exact finset.sup_mono (finset.subset_bUnion_of_mem fₛ hi),
   end,
-  refine le_trans (comp_mono f (finset_sup_le_sum q s')) _,
+  refine (comp_mono f (finset_sup_le_sum q s')).trans _,
   simp_rw [←pullback_apply, add_monoid_hom.map_sum, pullback_apply],
-  refine le_trans (finset.sum_le_sum hs) _,
+  refine (finset.sum_le_sum hs).trans _,
   rw [finset.sum_const, smul_assoc],
   exact le_rfl,
 end
@@ -371,6 +367,39 @@ end
 
 end topology
 
+section tendsto
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι] [topological_space E]
+variables {p : seminorm_family 𝕜 E ι}
+
+/-- Convergence along filters for `with_seminorms`.
+
+Variant with `finset.sup`. -/
+lemma with_seminorms.tendsto_nhds' (hp : with_seminorms p) (u : F → E) {f : filter F} (y₀ : E) :
+  filter.tendsto u f (𝓝 y₀) ↔ ∀ (s : finset ι) ε, 0 < ε → ∀ᶠ x in f, s.sup p (u x - y₀) < ε :=
+by simp [hp.has_basis_ball.tendsto_right_iff]
+
+/-- Convergence along filters for `with_seminorms`. -/
+lemma with_seminorms.tendsto_nhds (hp : with_seminorms p) (u : F → E) {f : filter F} (y₀ : E) :
+  filter.tendsto u f (𝓝 y₀) ↔ ∀ i ε, 0 < ε → ∀ᶠ x in f, p i (u x - y₀) < ε :=
+begin
+  rw hp.tendsto_nhds' u y₀,
+  exact ⟨λ h i, by simpa only [finset.sup_singleton] using h {i},
+    λ h s ε hε, (s.eventually_all.2 $ λ i _, h i ε hε).mono (λ _, finset_sup_apply_lt hε)⟩,
+end
+
+variables [semilattice_sup F] [nonempty F]
+
+/-- Limit `→ ∞` for `with_seminorms`. -/
+lemma with_seminorms.tendsto_nhds_at_top (hp : with_seminorms p) (u : F → E) (y₀ : E) :
+  filter.tendsto u filter.at_top (𝓝 y₀) ↔ ∀ i ε, 0 < ε → ∃ x₀, ∀ x, x₀ ≤ x → p i (u x - y₀) < ε :=
+begin
+  rw hp.tendsto_nhds u y₀,
+  exact forall₃_congr (λ _ _ _, filter.eventually_at_top),
+end
+
+end tendsto
+
 section topological_add_group
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
@@ -404,11 +433,11 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
-lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
-  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
+lemma with_seminorms.continuous_seminorm [nontrivially_normed_field 𝕝]
+  [module 𝕝 E] [has_continuous_const_smul 𝕝 E] {p : seminorm_family 𝕝 E ι} (hp : with_seminorms p)
   (i : ι) : continuous (p i) :=
 begin
-  refine seminorm.continuous _,
+  refine seminorm.continuous one_pos _,
   rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
   exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
 end
@@ -488,7 +517,7 @@ begin
     rcases h with ⟨r, hr, h⟩,
     cases normed_field.exists_lt_norm 𝕜 r with a ha,
     specialize h a (le_of_lt ha),
-    rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
+    rw [seminorm.smul_ball_zero (norm_pos_iff.1 $ hr.trans ha), mul_one] at h,
     refine ⟨‖a‖, lt_trans hr ha, _⟩,
     intros x hx,
     specialize h hx,
@@ -539,15 +568,18 @@ section continuous_bounded
 
 namespace seminorm
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [normed_field 𝕜₂] [add_comm_group F] [module 𝕜₂ F]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [normed_field 𝕝] [module 𝕝 E]
+variables [nontrivially_normed_field 𝕜₂] [add_comm_group F] [module 𝕜₂ F]
+variables [normed_field 𝕝₂] [module 𝕝₂ F]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {τ₁₂ : 𝕝 →+* 𝕝₂} [ring_hom_isometric τ₁₂]
 variables [nonempty ι] [nonempty ι']
 
-lemma continuous_of_continuous_comp {q : seminorm_family 𝕜₂ F ι'}
+lemma continuous_of_continuous_comp {q : seminorm_family 𝕝₂ F ι'}
   [topological_space E] [topological_add_group E]
   [topological_space F] [topological_add_group F] (hq : with_seminorms q)
-  (f : E →ₛₗ[σ₁₂] F) (hf : ∀ i, continuous ((q i).comp f)) : continuous f :=
+  (f : E →ₛₗ[τ₁₂] F) (hf : ∀ i, continuous ((q i).comp f)) : continuous f :=
 begin
   refine continuous_of_continuous_at_zero f _,
   simp_rw [continuous_at, f.map_zero, q.with_seminorms_iff_nhds_eq_infi.mp hq, filter.tendsto_infi,
@@ -557,48 +589,50 @@ begin
   exact (map_zero _).symm
 end
 
-lemma continuous_iff_continuous_comp [normed_algebra ℝ 𝕜₂] [module ℝ F] [is_scalar_tower ℝ 𝕜₂ F]
+lemma continuous_iff_continuous_comp
   {q : seminorm_family 𝕜₂ F ι'} [topological_space E] [topological_add_group E]
-  [topological_space F] [topological_add_group F] [has_continuous_const_smul ℝ F]
+  [topological_space F] [topological_add_group F] [has_continuous_const_smul 𝕜₂ F]
   (hq : with_seminorms q) (f : E →ₛₗ[σ₁₂] F) :
   continuous f ↔ ∀ i, continuous ((q i).comp f) :=
 ⟨λ h i, continuous.comp (hq.continuous_seminorm i) h, continuous_of_continuous_comp hq f⟩
 
-lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜₂ F ι'}
+lemma continuous_from_bounded {p : seminorm_family 𝕝 E ι} {q : seminorm_family 𝕝₂ F ι'}
   [topological_space E] [topological_add_group E] (hp : with_seminorms p)
   [topological_space F] [topological_add_group F] (hq : with_seminorms q)
-  (f : E →ₛₗ[σ₁₂] F) (hf : seminorm.is_bounded p q f) : continuous f :=
+  (f : E →ₛₗ[τ₁₂] F) (hf : seminorm.is_bounded p q f) : continuous f :=
 begin
   refine continuous_of_continuous_comp hq _ (λ i, seminorm.continuous_of_continuous_at_zero _),
   rw [metric.continuous_at_iff', map_zero],
   intros r hr,
-  rcases hf i with ⟨s₁, C, hC, hf⟩,
-  have hC' : 0 < C := hC.bot_lt,
+  rcases hf i with ⟨s₁, C, hf⟩,
+  have hC' : 0 < C + 1 := by positivity,
   rw hp.has_basis.eventually_iff,
-  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (by positivity), _⟩,
+  refine ⟨(s₁.sup p).ball 0 (r/(C + 1)), p.basis_sets_mem _ (by positivity), _⟩,
   simp_rw [ ←metric.mem_ball, ←mem_preimage, ←ball_zero_eq_preimage_ball],
   refine subset.trans _ (ball_antitone hf),
-  rw ball_smul (s₁.sup p) hC',
-  refl
+  norm_cast,
+  rw ← ball_smul (s₁.sup p) hC',
+  refine ball_antitone (smul_le_smul le_rfl _),
+  simp only [le_add_iff_nonneg_right, zero_le'],
 end
 
-lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕜₂ F]
+lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕝₂ F]
   [uniform_space E] [uniform_add_group E]
-  {p : ι → seminorm 𝕜 E} (hp : with_seminorms p) (f : E →ₛₗ[σ₁₂] F)
-  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕜₂ F).comp f ≤ C • s.sup p) :
+  {p : ι → seminorm 𝕝 E} (hp : with_seminorms p) (f : E →ₛₗ[τ₁₂] F)
+  (hf : ∃ (s : finset ι) C : ℝ≥0, (norm_seminorm 𝕝₂ F).comp f ≤ C • s.sup p) :
   continuous f :=
 begin
   rw ←seminorm.is_bounded_const (fin 1) at hf,
-  exact continuous_from_bounded hp (norm_with_seminorms 𝕜₂ F) f hf,
+  exact continuous_from_bounded hp (norm_with_seminorms 𝕝₂ F) f hf,
 end
 
-lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [normed_space 𝕜 E]
+lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [normed_space 𝕝 E]
   [uniform_space F] [uniform_add_group F]
-  {q : ι → seminorm 𝕜₂ F} (hq : with_seminorms q) (f : E →ₛₗ[σ₁₂] F)
-  (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕜 E)) : continuous f :=
+  {q : ι → seminorm 𝕝₂ F} (hq : with_seminorms q) (f : E →ₛₗ[τ₁₂] F)
+  (hf : ∀ i : ι, ∃ C : ℝ≥0, (q i).comp f ≤ C • (norm_seminorm 𝕝 E)) : continuous f :=
 begin
   rw ←seminorm.const_is_bounded (fin 1) at hf,
-  exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
+  exact continuous_from_bounded (norm_with_seminorms 𝕝 E) hq f hf,
 end
 
 end seminorm

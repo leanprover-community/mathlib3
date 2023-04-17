@@ -10,7 +10,6 @@ import order.rel_iso.basic
 # Relation isomorphisms form a group
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/813
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

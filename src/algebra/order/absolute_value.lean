@@ -13,6 +13,9 @@ import algebra.ring.regular
 /-!
 # Absolute values
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a bundled type of absolute values `absolute_value R S`.
 
 ## Main definitions
@@ -35,8 +38,6 @@ structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
 namespace absolute_value
 
 attribute [nolint doc_blame] absolute_value.to_mul_hom
-
-initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
 
 section ordered_semiring
 
@@ -64,6 +65,11 @@ instance subadditive_hom_class : subadditive_hom_class (absolute_value R S) R S 
 @[simp] lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
 
 @[ext] lemma ext ⦃f g : absolute_value R S⦄ : (∀ x, f x = g x) → f = g := fun_like.ext _ _
+
+/-- See Note [custom simps projection]. -/
+def simps.apply (f : absolute_value R S) : R → S := f
+
+initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
@@ -171,6 +177,12 @@ protected theorem map_sub (a b : R) : abv (a - b) = abv (b - a) :=
 by rw [← neg_sub, abv.map_neg]
 
 end ordered_comm_ring
+
+instance {R S : Type*} [ring R] [ordered_comm_ring S] [nontrivial R] [is_domain S] :
+  mul_ring_norm_class (absolute_value R S) R S :=
+{ map_neg_eq_map := λ f, f.map_neg,
+  eq_zero_of_map_eq_zero := λ f a, f.eq_zero.1,
+  ..absolute_value.subadditive_hom_class, ..absolute_value.monoid_with_zero_hom_class }
 
 section linear_ordered_ring
 

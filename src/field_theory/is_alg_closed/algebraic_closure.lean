@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.direct_limit
 import field_theory.is_alg_closed.basic
-import field_theory.splitting_field
+
 /-!
 # Algebraic Closure
 

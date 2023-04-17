@@ -24,7 +24,7 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
           {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open filter set metric continuous_linear_map
-open_locale topological_space
+open_locale topology
 local attribute [mono] prod_mono
 
 /-- If a function `f` is differentiable in a convex open set and continuous on its closure, and its

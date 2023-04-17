@@ -10,6 +10,9 @@ import topology.metric_space.cantor_scheme
 /-!
 # Perfect Sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define perfect subsets of a topological space, and prove some basic properties,
 including a version of the Cantor-Bendixson Theorem.
 
@@ -49,7 +52,7 @@ accumulation point, perfect set, cantor-bendixson.
 
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set
 
 section basic

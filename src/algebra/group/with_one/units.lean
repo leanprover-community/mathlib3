@@ -10,7 +10,6 @@ import algebra.group_with_zero.units.basic
 # Isomorphism between a group and the units of itself adjoined with `0`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/955
 > Any changes to this file require a corresponding PR to mathlib4.
 
 ## Notes

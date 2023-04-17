@@ -10,6 +10,9 @@ import category_theory.products.basic
 /-!
 # (Lax) monoidal functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A lax monoidal functor `F` between monoidal categories `C` and `D`
 is a functor between the underlying categories equipped with morphisms
 * `ε : 𝟙_ D ⟶ F.obj (𝟙_ C)` (called the unit morphism)

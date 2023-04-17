@@ -49,7 +49,7 @@ Compact operator
 
 open function set filter bornology metric
 
-open_locale pointwise big_operators topological_space
+open_locale pointwise big_operators topology
 
 /-- A compact operator between two topological vector spaces. This definition is usually
 given as "there exists a neighborhood of zero whose image is contained in a compact set",

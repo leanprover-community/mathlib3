@@ -9,6 +9,9 @@ import data.set.intervals.basic
 /-!
 # Projection of a line onto a closed interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a linearly ordered type `α`, in this file we define
 
 * `set.proj_Icc (a b : α) (h : a ≤ b)` to be the map `α → [a, b]` sending `(-∞, a]` to `a`, `[b, ∞)`

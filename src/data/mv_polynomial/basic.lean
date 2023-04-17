@@ -13,6 +13,9 @@ import ring_theory.adjoin.basic
 /-!
 # Multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines polynomial rings over a base ring (or even semiring),
 with variables from a general type `σ` (which could be infinite).
 
@@ -419,6 +422,10 @@ by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
+lemma support_smul [distrib_mul_action R S₁] {a : R} {f : mv_polynomial σ S₁} :
+  (a • f).support ⊆ f.support :=
+finsupp.support_smul
+
 lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
   (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
@@ -667,6 +674,9 @@ variables (R)
 @[simp] lemma constant_coeff_X (i : σ) : constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
 variables {R}
+
+@[simp] lemma constant_coeff_smul [distrib_mul_action R S₁] (a : R) (f : mv_polynomial σ S₁) :
+  constant_coeff (a • f) = a • constant_coeff f := rfl
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
@@ -1091,6 +1101,9 @@ section aeval
 
 variables [algebra R S₁] [comm_semiring S₂]
 variables (f : σ → S₁)
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/

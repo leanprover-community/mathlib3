@@ -12,6 +12,9 @@ import data.finset.powerset
 /-!
 # Results about big operators with values in a (semi)ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove results about big operators that involve some interaction between
 multiplicative and additive structures on the values being combined.
 -/

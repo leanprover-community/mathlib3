@@ -6,9 +6,14 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 import algebra.module.linear_map
 import algebra.module.equiv
 import group_theory.group_action.sub_mul_action
+import group_theory.submonoid.membership
+
 /-!
 
 # Submodules of a module
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -30,8 +35,11 @@ variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
-/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`. -/
-class submodule_class (S : Type*) (R M : out_param $ Type*) [add_zero_class M]
+/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`.
+
+Note that only `R` is marked as `out_param` since `M` is already supplied by the `set_like` class.
+-/
+class submodule_class (S : Type*) (R : out_param $ Type*) (M : Type*) [add_zero_class M]
   [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
 
 /-- A submodule of a module is one which is closed under vector operations.
@@ -247,7 +255,39 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
-p.subtype.map_sum
+map_sum p.subtype _ _
+
+section add_action
+
+/-! ### Additive actions by `submodule`s
+
+These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
+onto the action by an element `s : S` of a submodule `S : submodule R M` such that
+`s +ᵥ a = (s : M) +ᵥ a`.
+
+These instances work particularly well in conjunction with `add_group.to_add_action`, enabling
+`s +ᵥ m` as an alias for `↑s + m`.
+
+-/
+
+variables {α β : Type*}
+
+instance [has_vadd M α] : has_vadd p α := p.to_add_submonoid.has_vadd
+
+instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α β] :
+  vadd_comm_class p α β := ⟨λ a, (vadd_comm (a : M) : _)⟩
+
+instance [has_vadd M α] [has_faithful_vadd M α] :
+  has_faithful_vadd p α := ⟨λ x y h, subtype.ext $ eq_of_vadd_eq_vadd h⟩
+
+/-- The action by a submodule is the action by the underlying module. -/
+instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.to_add_monoid_hom
+
+variable {p}
+
+lemma vadd_def [has_vadd M α] (g : p) (m : α) : g +ᵥ m = (g : M) +ᵥ m := rfl
+
+end add_action
 
 section restrict_scalars
 variables (S) [semiring S] [module S M] [module R M] [has_smul S R] [is_scalar_tower S R M]

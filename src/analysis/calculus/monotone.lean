@@ -30,8 +30,8 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure is_doubling_measure
-open_locale topological_space
+open set filter function metric measure_theory measure_theory.measure is_unif_loc_doubling_measure
+open_locale topology
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
 `y` is shifted a little bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.

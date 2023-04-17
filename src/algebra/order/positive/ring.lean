@@ -10,7 +10,6 @@ import algebra.ring.inj_surj
 # Algebraic structures on the set of positive numbers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/911
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various instances (`add_semigroup`, `ordered_comm_monoid` etc) on the

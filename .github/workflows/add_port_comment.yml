@@ -29,7 +29,7 @@ jobs:
           script: |
             proc = await exec.getExecOutput("python", ["./scripts/add_port_comments.py"]);
             console.log(proc.stdout);
-            core.setOutput("PR_LIST", proc.stdout); 
+            core.setOutput("FILE_LIST", proc.stdout);
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
@@ -40,12 +40,11 @@ jobs:
           author: leanprover-community-bot <leanprover.community@gmail.com>
           body: |
             Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status).
-            Relates to the following PRs:
-            ${{ steps.generate-message.outputs.PR_LIST }}
+            Relates to the following files:
+            ${{ steps.generate-message.outputs.FILE_LIST }}
 
             ---
             I am a bot; please check that I have not put a comment in a bad place before running `bors merge`!
-            If the PRs above don't match the file they are listed after, that means the port status page is wrong.
           labels: |
             easy
             awaiting-review

@@ -6,7 +6,10 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.nat.pow
 import data.nat.bits
 
-/-! Lemmas about `size`. -/
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ Lemmas about `size`. -/
 
 namespace nat
 

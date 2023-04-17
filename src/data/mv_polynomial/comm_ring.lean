@@ -9,6 +9,9 @@ import data.mv_polynomial.variables
 /-!
 # Multivariate polynomials over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many results about polynomials hold when the coefficient ring is a commutative semiring.
 Some stronger results can be derived when we assume this semiring is a ring.
 

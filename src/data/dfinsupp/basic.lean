@@ -13,6 +13,9 @@ import data.finset.preimage
 /-!
 # Dependent functions with finite support
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a non-dependent version see `data/finsupp.lean`.
 
 ## Notation
@@ -1221,7 +1224,8 @@ begin
       sigma_curry_apply, smul_apply]
 end
 
-@[simp] lemma sigma_curry_single [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
+@[simp] lemma sigma_curry_single [decidable_eq ι] [Π i, decidable_eq (α i)]
+  [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
   @sigma_curry _ _ _ _ (single ij x) = single ij.1 (single ij.2 x : Π₀ j, δ ij.1 j) :=
 begin
   obtain ⟨i, j⟩ := ij,
@@ -1240,7 +1244,8 @@ end
 
 /--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
+def sigma_uncurry [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] (f : Π₀ i j, δ i j) :
   Π₀ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := λ i, f i.1 i.2,
   support' := f.support'.map $ λ s,
@@ -1255,24 +1260,32 @@ noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i
         rw [hi, zero_apply] }
     end⟩ }
 
-@[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
+@[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j :=
 rfl
 
-@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)] :
+@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]:
   sigma_uncurry (0 : Π₀ i j, δ i j) = 0 :=
 rfl
 
-@[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)] (f g : Π₀ i j, δ i j) :
+@[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  (f g : Π₀ i j, δ i j) :
   sigma_uncurry (f + g) = sigma_uncurry f + sigma_uncurry g :=
 coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ i j, δ i j) :
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
 coe_fn_injective rfl
 
-@[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)] (i) (j : α i) (x : δ i j) :
+@[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)]
+  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  (i) (j : α i) (x : δ i j) :
   sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=
 begin
   ext ⟨i', j'⟩,
@@ -1291,7 +1304,8 @@ end
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
 
 This is the dfinsupp version of `equiv.Pi_curry`. -/
-noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)] :
+noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] :
   (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
 { to_fun := sigma_curry,
   inv_fun := sigma_uncurry,

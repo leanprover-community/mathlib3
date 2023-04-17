@@ -170,7 +170,7 @@ begin
   have g_eq_G_on : ∀ t, g =ᵐ[volume.restrict (Ioc 0 t)] G,
     from λ t, ae_mono (measure.restrict_mono Ioc_subset_Ioi_self le_rfl) g_eq_G,
   have G_intble : ∀ t > 0, interval_integrable G volume 0 t,
-  { refine λ t t_pos, ⟨integrable_on.congr_fun' (g_intble t t_pos).1 (g_eq_G_on t), _⟩,
+  { refine λ t t_pos, ⟨(g_intble t t_pos).1.congr_fun_ae (g_eq_G_on t), _⟩,
     rw Ioc_eq_empty_of_le t_pos.lt.le,
     exact integrable_on_empty, },
   have eq₁ : ∫⁻ t in Ioi 0, μ {a : α | t ≤ f a} * ennreal.of_real (g t)
@@ -181,7 +181,7 @@ begin
   have eq₂ : ∀ ω, ∫ t in 0..f ω, g t = ∫ t in 0..f ω, G t,
   { refine λ ω, interval_integral.integral_congr_ae _,
     have fω_nn : 0 ≤ f ω := f_nn ω,
-    rw [interval_oc_of_le fω_nn,
+    rw [uIoc_of_le fω_nn,
         ← ae_restrict_iff' (measurable_set_Ioc : measurable_set (Ioc (0 : ℝ) (f ω)))],
     exact g_eq_G_on (f ω), },
   simp_rw [eq₁, eq₂],

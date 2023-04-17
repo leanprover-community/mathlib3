@@ -15,6 +15,9 @@ import measure_theory.tactic
 /-!
 # Measurable spaces and measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides properties of measurable spaces and the functions and isomorphisms
 between them. The definition of a measurable space is in `measure_theory.measurable_space_def`.
 
@@ -205,6 +208,12 @@ begin
   { exact measurable_of_empty f },
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
+
+@[measurability] lemma measurable_nat_cast [has_nat_cast α] (n : ℕ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
+@[measurability] lemma measurable_int_cast [has_int_cast α] (n : ℤ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
 
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set

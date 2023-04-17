@@ -9,6 +9,9 @@ import algebra.parity
 
 /-!
 # Associated, prime, and irreducible elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}

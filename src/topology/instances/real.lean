@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.uniform_mul_action
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.star
 import topology.algebra.order.field
 import ring_theory.subring.basic
@@ -17,11 +17,14 @@ import topology.instances.int
 
 /-!
 # Topological properties of ℝ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory
 open classical filter int metric set topological_space
-open_locale classical topological_space filter uniformity interval
+open_locale classical topology filter uniformity interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

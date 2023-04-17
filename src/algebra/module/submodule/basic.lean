@@ -258,7 +258,9 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
 map_sum p.subtype _ _
 
-/-! ### Actions by `submodule`s
+section add_action
+
+/-! ### Additive actions by `submodule`s
 
 These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
 onto the action by an element `s : S` of a submodule `S : submodule R M` such that
@@ -285,6 +287,8 @@ instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.
 variable {p}
 
 lemma vadd_def [has_vadd M α] (g : p) (m : α) : g +ᵥ m = (g : M) +ᵥ m := rfl
+
+end add_action
 
 section restrict_scalars
 variables (S) [semiring S] [module S M] [module R M] [has_smul S R] [is_scalar_tower S R M]

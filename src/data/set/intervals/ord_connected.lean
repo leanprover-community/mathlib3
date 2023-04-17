@@ -177,7 +177,7 @@ end preorder
 section partial_order
 variables {α : Type*} [partial_order α] {s : set α}
 
-protected lemma is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
+protected lemma _root_.is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
 ⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
   rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
 

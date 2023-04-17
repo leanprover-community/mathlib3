@@ -185,7 +185,8 @@ lemma concyclic_pair (p₁ p₂ : P) : concyclic ({p₁, p₂} : set P) :=
 end normed_space
 
 section euclidean_space
-variables [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+variables
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- Any three points in a cospherical set are affinely independent. -/

@@ -14,6 +14,9 @@ import linear_algebra.tensor_product_basis
 
 # Free modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce a class `module.free R M`, for `R` a `semiring` and `M` an `R`-module and we provide
 several basic instances for this class.
 

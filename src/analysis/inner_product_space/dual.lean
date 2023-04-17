@@ -42,7 +42,7 @@ namespace inner_product_space
 open is_R_or_C continuous_linear_map
 
 variables (𝕜 : Type*)
-variables (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables (E : Type*) [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local postfix `†`:90 := star_ring_end _
 

@@ -10,6 +10,9 @@ import linear_algebra.direct_sum.tensor_product
 /-!
 # Results on finitely supported functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N).
 -/
 

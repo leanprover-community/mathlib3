@@ -18,8 +18,9 @@ the canonical `volume` from the `measure_space` instance.
 
 open finite_dimensional measure_theory measure_theory.measure set
 
-variables {ι F : Type*} [fintype ι] [inner_product_space ℝ F] [finite_dimensional ℝ F]
-[measurable_space F] [borel_space F]
+variables {ι F : Type*}
+variables [fintype ι] [normed_add_comm_group F] [inner_product_space ℝ F] [finite_dimensional ℝ F]
+  [measurable_space F] [borel_space F]
 
 section
 

@@ -1418,7 +1418,7 @@ end
 end is_R_or_C
 
 section inner_product
-variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E']
+variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E'] [inner_product_space 𝕜 E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
@@ -1874,6 +1874,23 @@ begin
   { exact snorm_indicator_const hs hp hp_top, },
 end
 
+lemma snorm_indicator_const_le (c : G) (p : ℝ≥0∞) :
+  snorm (s.indicator (λ x, c)) p μ ≤ ‖c‖₊ * (μ s) ^ (1 / p.to_real) :=
+begin
+  rcases eq_or_ne p 0 with rfl|hp,
+  { simp only [snorm_exponent_zero, zero_le'] },
+  rcases eq_or_ne p ∞ with rfl|h'p,
+  { simp only [snorm_exponent_top, ennreal.top_to_real, div_zero, ennreal.rpow_zero, mul_one],
+    exact snorm_ess_sup_indicator_const_le _ _ },
+  let t := to_measurable μ s,
+  calc snorm (s.indicator (λ x, c)) p μ
+      ≤ snorm (t.indicator (λ x, c)) p μ :
+    snorm_mono (norm_indicator_le_of_subset (subset_to_measurable _ _) _)
+  ... = ‖c‖₊ * (μ t) ^ (1 / p.to_real) :
+    snorm_indicator_const (measurable_set_to_measurable _ _) hp h'p
+  ... = ‖c‖₊ * (μ s) ^ (1 / p.to_real) : by rw measure_to_measurable
+end
+
 lemma mem_ℒp.indicator (hs : measurable_set s) (hf : mem_ℒp f p μ) :
   mem_ℒp (s.indicator f) p μ :=
 ⟨hf.ae_strongly_measurable.indicator hs, lt_of_le_of_lt (snorm_indicator_le f) hf.snorm_lt_top⟩
@@ -1931,6 +1948,36 @@ begin
   cases hμsc,
   { exact or.inl hμsc, },
   { exact or.inr hμsc.lt_top, },
+end
+
+/-- The `ℒ^p` norm of the indicator of a set is uniformly small if the set itself has small measure,
+for any `p < ∞`. Given here as an existential `∀ ε > 0, ∃ η > 0, ...` to avoid later
+management of `ℝ≥0∞`-arithmetic. -/
+lemma exists_snorm_indicator_le (hp : p ≠ ∞) (c : E) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (η : ℝ≥0), 0 < η ∧ ∀ (s : set α), μ s ≤ η → snorm (s.indicator (λ x, c)) p μ ≤ ε :=
+begin
+  rcases eq_or_ne p 0 with rfl|h'p,
+  { exact ⟨1, zero_lt_one, λ s hs, by simp⟩ },
+  have hp₀ : 0 < p := bot_lt_iff_ne_bot.2 h'p,
+  have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
+  have hp₀'' : 0 < p.to_real,
+  { simpa [← ennreal.to_real_lt_to_real ennreal.zero_ne_top hp] using hp₀ },
+  obtain ⟨η, hη_pos, hη_le⟩ : ∃ (η : ℝ≥0), 0 < η ∧ (‖c‖₊ * η ^ (1 / p.to_real) : ℝ≥0∞) ≤ ε,
+  { have : filter.tendsto (λ x : ℝ≥0, ((‖c‖₊ * x ^ (1 / p.to_real) : ℝ≥0) : ℝ≥0∞))
+      (𝓝 0) (𝓝 (0 : ℝ≥0)),
+    { rw ennreal.tendsto_coe,
+      convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto).const_mul _,
+      simp [hp₀''.ne'] },
+    have hε' : 0 < ε := hε.bot_lt,
+    obtain ⟨δ, hδ, hδε'⟩ :=
+      nnreal.nhds_zero_basis.eventually_iff.mp (eventually_le_of_tendsto_lt hε' this),
+    obtain ⟨η, hη, hηδ⟩ := exists_between hδ,
+    refine ⟨η, hη, _⟩,
+    rw [ennreal.coe_rpow_of_nonneg _ hp₀', ← ennreal.coe_mul],
+    exact hδε' hηδ },
+  refine ⟨η, hη_pos, λ s hs, _⟩,
+  refine (snorm_indicator_const_le _ _).trans (le_trans _ hη_le),
+  exact mul_le_mul_left' (ennreal.rpow_le_rpow hs hp₀') _,
 end
 
 end indicator

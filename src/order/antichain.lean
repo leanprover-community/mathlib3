@@ -3,7 +3,10 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.set.pairwise
+import data.set.pairwise.basic
+import order.bounds.basic
+import order.directed
+import order.hom.set
 
 /-!
 # Antichains

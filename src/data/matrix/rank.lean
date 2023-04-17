@@ -23,7 +23,8 @@ This definition does not depend on the choice of basis, see `matrix.rank_eq_finr
 ## TODO
 
 * Do a better job of generalizing over `ℚ`, `ℝ`, and `ℂ` in `matrix.rank_transpose` and
-  `matrix.rank_conj_transpose`.
+  `matrix.rank_conj_transpose`. See
+  [this Zulip thread](https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/row.20rank.20equals.20column.20rank/near/350462992).
 
 -/
 
@@ -195,13 +196,15 @@ begin
 end
 
 -- this follows the proof here https://math.stackexchange.com/a/81903/1896
-@[simp] lemma rank_conj_transpose [field R] [partial_order R] [star_ordered_ring R]
-  (A : matrix m n R) :
-  Aᴴ.rank = A.rank :=
+@[simp] lemma rank_conj_transpose (A : matrix m n R) : Aᴴ.rank = A.rank :=
 le_antisymm
   (((rank_conj_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _).trans_eq $
     congr_arg _ $ conj_transpose_conj_transpose _)
   ((rank_conj_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)
+
+@[simp] lemma rank_self_mul_conj_transpose (A : matrix m n R) : (A ⬝ Aᴴ).rank = A.rank :=
+by simpa only [rank_conj_transpose, conj_transpose_conj_transpose]
+  using rank_conj_transpose_mul_self Aᴴ
 
 end star_ordered_field
 
@@ -228,19 +231,24 @@ begin
   rw this,
 end
 
-@[simp] lemma rank_transpose [linear_ordered_field R] (A : matrix m n R) :
-  Aᵀ.rank = A.rank :=
+@[simp] lemma rank_transpose (A : matrix m n R) : Aᵀ.rank = A.rank :=
 le_antisymm
   ((rank_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)
   ((rank_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)
 
+@[simp] lemma rank_self_mul_transpose (A : matrix m n R) : (A ⬝ Aᵀ).rank = A.rank :=
+by simpa only [rank_transpose, transpose_transpose] using rank_transpose_mul_self Aᵀ
+
+end linear_ordered_field
+
 /-- The rank of a matrix is the rank of the space spanned by its rows.
 
 TODO: prove this in a generality that works for `ℂ` too, not just `ℚ` and `ℝ`. -/
-lemma rank_eq_finrank_span_row (A : matrix m n R) :
+lemma rank_eq_finrank_span_row [linear_ordered_field R] [finite m] (A : matrix m n R) :
   A.rank = finrank R (submodule.span R (set.range A)) :=
-by rw [←rank_transpose, rank_eq_finrank_span_cols, transpose_transpose]
-
-end linear_ordered_field
+begin
+  casesI nonempty_fintype m,
+  rw [←rank_transpose, rank_eq_finrank_span_cols, transpose_transpose]
+end
 
 end matrix

@@ -1125,7 +1125,6 @@ basis_of_linear_independent_of_card_eq_finrank lin_ind (trans s.to_finset_card.s
   ⇑(set_basis_of_linear_independent_of_card_eq_finrank lin_ind card_eq) = coe :=
 basis.coe_mk _ _
 
-
 variables {ι : Type*} (R : Type*) [comm_ring R] [module R V] [algebra R K] [is_scalar_tower R K V]
 variables [no_zero_smul_divisors R K] (b : basis ι K V)
 
@@ -1152,17 +1151,15 @@ begin
 end
 
 lemma basis.restrict_scalars_mem_span_iff [_root_.finite ι] (m : V) :
-  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) := 
+  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) :=
 begin
   casesI nonempty_fintype ι,
-  split,
-  { exact λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
-    (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i).symm⟩, },
-  { intros h,
-    rw ← b.sum_repr m,
-    refine sum_mem (λ i _ , _),
-    rw [(h i).some_spec, @is_scalar_tower.algebra_map_smul R K],
-    exact smul_mem _ _ (subset_span (set.mem_range_self i)), }
+  refine ⟨λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
+    (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i)⟩, λ h, _⟩,
+  rw ← b.sum_repr m,
+  refine sum_mem (λ i _, _),
+  rw [← (h i).some_spec, @is_scalar_tower.algebra_map_smul R K],
+  exact smul_mem _ _ (subset_span (set.mem_range_self i)),
 end
 
 end basis

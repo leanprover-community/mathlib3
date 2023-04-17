@@ -790,7 +790,10 @@ begin
 end
 
 variables (μ E)
-/-- Technical lemma to control the addition of functions in `L^p` even for `p < 1`. -/
+/-- Technical lemma to control the addition of functions in `L^p` even for `p < 1`: Given `δ > 0`,
+there exists `η` such that two functions bounded by `η` in `L^p` have a sum bounded by `δ`. One
+could take `η = δ / 2` for `p ≥ 1`, but the point of the lemma is that it works also for `p < 1`.
+-/
 lemma exists_Lp_half (p : ℝ≥0∞) {δ : ℝ≥0∞} (hδ : δ ≠ 0) :
   ∃ (η : ℝ≥0∞), 0 < η ∧ ∀ (f g : α → E) (hf : ae_strongly_measurable f μ)
     (hg : ae_strongly_measurable g μ) (Hf : snorm f p μ ≤ η) (Hg : snorm g p μ ≤ η),

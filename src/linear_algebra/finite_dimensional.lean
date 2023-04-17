@@ -1152,7 +1152,7 @@ begin
 end
 
 lemma basis.restrict_scalars_mem_span_iff [_root_.finite ι] (m : V) :
-  m ∈ span R (set.range b) ↔ ∀ i, ∃ c : R, b.repr m i = algebra_map R K c :=
+  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) := 
 begin
   casesI nonempty_fintype ι,
   split,

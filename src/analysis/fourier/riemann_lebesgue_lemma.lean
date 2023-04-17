@@ -65,13 +65,9 @@ lemma fourier_integrand_integrable (w : V) :
   integrable f ↔ integrable (λ v : V, e [-⟪v, w⟫] • f v) :=
 begin
   have hL : continuous (λ p : V × V, bilin_form_of_real_inner.to_lin p.1 p.2) := continuous_inner,
-  split,
-  { intro hf,
-    simpa only [bilin_form.to_lin_apply, bilin_form_of_real_inner_apply] using
-      (vector_fourier.fourier_integral_convergent_iff real.continuous_fourier_char hL w).mp hf },
-  { intro hf,
-    simpa only [bilin_form.to_lin_apply, bilin_form_of_real_inner_apply] using
-      (vector_fourier.fourier_integral_convergent_iff real.continuous_fourier_char hL w).mpr hf}
+  rw vector_fourier.fourier_integral_convergent_iff real.continuous_fourier_char hL w,
+  { simp only [bilin_form.to_lin_apply, bilin_form_of_real_inner_apply] },
+  { apply_instance },
 end
 
 variables [complete_space E]
@@ -210,7 +206,7 @@ begin
     rwa ←fourier_integrand_integrable w },
   refine metric.tendsto_nhds.mpr (λ ε hε, _),
   haveI : normal_space V := normal_space_of_t3_second_countable V,
-  obtain ⟨g, hfg, hg_cont, -, hg_supp⟩ :=
+  obtain ⟨g, hg_supp, hfg, hg_cont, -⟩ :=
     hfi.exists_has_compact_support_integral_sub_le (div_pos hε two_pos),
   refine ((metric.tendsto_nhds.mp
     (tendsto_integral_exp_inner_smul_cocompact_of_continuous_compact_support hg_cont hg_supp)) _

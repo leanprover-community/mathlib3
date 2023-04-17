@@ -86,11 +86,10 @@ begin
 end
 
 /-- The uniform norm of the Fourier integral of `f` is bounded by the `L¹` norm of `f`. -/
-lemma fourier_integral_norm_le (e : (multiplicative 𝕜) →* 𝕊) {μ : measure V}
-  (L : V →ₗ[𝕜] W →ₗ[𝕜] 𝕜) {f : V → E} (hf : integrable f μ) (w : W) :
-  ‖fourier_integral e μ L f w‖ ≤ ‖hf.to_L1 f‖ :=
+lemma norm_fourier_integral_le_integral_norm (e : (multiplicative 𝕜) →* 𝕊) (μ : measure V)
+  (L : V →ₗ[𝕜] W →ₗ[𝕜] 𝕜) (f : V → E) (w : W) :
+  ‖fourier_integral e μ L f w‖ ≤ ∫ (v : V), ‖f v‖ ∂μ :=
 begin
-  rw L1.norm_of_fun_eq_integral_norm,
   refine (norm_integral_le_integral_norm _).trans (le_of_eq _),
   simp_rw [norm_smul, complex.norm_eq_abs, abs_coe_circle, one_mul],
 end
@@ -204,10 +203,10 @@ lemma fourier_integral_smul_const
 vector_fourier.fourier_integral_smul_const _ _ _ _ _
 
 /-- The uniform norm of the Fourier transform of `f` is bounded by the `L¹` norm of `f`. -/
-lemma fourier_integral_norm_le (e : (multiplicative 𝕜) →* 𝕊) {μ : measure 𝕜}
-  {f : 𝕜 → E} (hf : integrable f μ) (w : 𝕜) :
-  ‖fourier_integral e μ f w‖ ≤ ‖hf.to_L1 f‖ :=
-vector_fourier.fourier_integral_norm_le _ _ _ _
+lemma norm_fourier_integral_le_integral_norm
+  (e : (multiplicative 𝕜) →* 𝕊) (μ : measure 𝕜) (f : 𝕜 → E) (w : 𝕜) :
+  ‖fourier_integral e μ f w‖ ≤ ∫ x : 𝕜, ‖f x‖ ∂μ :=
+vector_fourier.norm_fourier_integral_le_integral_norm _ _ _ _ _
 
 /-- The Fourier transform converts right-translation into scalar multiplication by a phase factor.-/
 lemma fourier_integral_comp_add_right [has_measurable_add 𝕜]

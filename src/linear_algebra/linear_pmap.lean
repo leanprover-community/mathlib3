@@ -470,6 +470,8 @@ def to_pmap (f : E →ₗ[R] F) (p : submodule R E) : E →ₗ.[R] F :=
 @[simp] lemma to_pmap_apply (f : E →ₗ[R] F) (p : submodule R E) (x : p) :
   f.to_pmap p x = f x := rfl
 
+@[simp] lemma to_pmap_domain (f : E →ₗ[R] F) (p : submodule R E) : (f.to_pmap p).domain = p := rfl
+
 /-- Compose a linear map with a `linear_pmap` -/
 def comp_pmap (g : F →ₗ[R] G) (f : E →ₗ.[R] F) : E →ₗ.[R] G :=
 { domain := f.domain,

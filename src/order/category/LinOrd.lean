@@ -9,6 +9,9 @@ import order.category.Lat
 /-!
 # Category of linear orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `LinOrd`, the category of linear orders with monotone maps.
 -/
 

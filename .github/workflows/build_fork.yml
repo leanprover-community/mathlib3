@@ -42,7 +42,9 @@ jobs:
 
       - name: Install bibtool
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
-        run: sudo apt install -y bibtool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bibtool
 
       - name: install Python
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}

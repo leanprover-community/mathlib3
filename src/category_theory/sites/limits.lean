@@ -34,7 +34,7 @@ open opposite
 section limits
 
 universes w v u z
-variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
+variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
 variables {K : Type z} [small_category K]
 
@@ -166,7 +166,7 @@ end limits
 section colimits
 
 universes w v u
-variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
+variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
 variables {K : Type (max v u)} [small_category K]
 -- Now we need a handful of instances to obtain sheafification...

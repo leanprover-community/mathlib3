@@ -152,6 +152,9 @@ def adjoint : F →ₗ.[𝕜] E :=
 
 localized "postfix (name := adjoint) `†`:1100 := linear_pmap.adjoint" in linear_pmap
 
+lemma mem_adjoint_domain_iff (y : F) :
+  y ∈ T†.domain ↔ continuous ((innerₛₗ 𝕜 y).comp T.to_fun) := iff.rfl
+
 variable {T}
 
 lemma adjoint_apply_of_not_dense (hT : ¬ dense (T.domain : set E)) (y : T†.domain) : T† y = 0 :=
@@ -176,14 +179,11 @@ begin
   exact adjoint_elem_spec hT x y,
 end
 
-lemma mem_adjoint_domain_iff (y : F) :
-  y ∈ T†.domain ↔ continuous ((innerₛₗ 𝕜 y).comp T.to_fun) := iff.rfl
-
 lemma mem_adjoint_domain_of_exists (y : F) (h : ∃ w : E, ∀ (x : T.domain), ⟪w, x⟫ = ⟪y, T x⟫) :
   y ∈ T†.domain :=
 begin
   cases h with w hw,
-  rw mem_adjoint_domain_iff hT,
+  rw T.mem_adjoint_domain_iff,
   have : continuous ((innerSL 𝕜 w).comp T.domain.subtypeL) := by continuity,
   convert this using 1,
   exact funext (λ x, (hw x).symm),
@@ -201,27 +201,22 @@ end linear_pmap
 namespace continuous_linear_map
 
 variables [complete_space E] [complete_space F]
-variable (A : E →L[𝕜] F)
+variables (A : E →L[𝕜] F) {p : submodule 𝕜 E}
 
-/-- The adjoint of `linear_pmap` and the adjoint of `continuous_linear_map` coincide. -/
-lemma to_pmap_adjoint_eq_adjoint_to_pmap : (A.to_pmap ⊤).adjoint = A.adjoint.to_pmap ⊤ :=
+/-- Restricting `A` to a dense submodule and taking the `linear_pmap.adjoint` is the same
+as taking the `continuous_linear_map.adjoint` interpreted as a `linear_pmap`. -/
+lemma to_pmap_adjoint_eq_adjoint_to_pmap_of_dense (hp : dense (p : set E)) :
+  (A.to_pmap p).adjoint = A.adjoint.to_pmap ⊤ :=
 begin
-  have hT : dense ((A.to_pmap ⊤).domain : set E) :=
-  begin
-    change dense (⊤ : set E),
-    simp only [set.top_eq_univ, dense_univ],
-  end,
+  have hp' : dense ((A.to_pmap p).domain : set E) := hp,
   ext,
-  { change _ ↔ x ∈ ⊤,
-    simp only [submodule.mem_top, iff_true],
-    rw linear_pmap.mem_adjoint_domain_iff hT x,
-    dsimp only [linear_map.coe_comp, innerₛₗ_apply_coe],
-    exact (innerSL 𝕜 x).cont.comp (A.continuous.comp continuous_subtype_coe) },
+  { simp only [to_linear_map_eq_coe, linear_map.to_pmap_domain, submodule.mem_top, iff_true,
+      linear_pmap.mem_adjoint_domain_iff, linear_map.coe_comp, innerₛₗ_apply_coe],
+    exact ((innerSL 𝕜 x).comp $ A.comp $ submodule.subtypeL _).cont },
   intros x y hxy,
-  simp only [linear_map.to_pmap_apply, to_linear_map_eq_coe, coe_coe],
-  refine hT.eq_of_inner_left (λ v, _),
-  rw [linear_pmap.adjoint_is_formal_adjoint hT x v, adjoint_inner_left, hxy],
-  simp only [linear_map.to_pmap_apply, to_linear_map_eq_coe, coe_coe],
+  refine hp'.eq_of_inner_left (λ v, _),
+  simp only [linear_pmap.adjoint_is_formal_adjoint hp' x v, adjoint_inner_left, hxy,
+    linear_map.to_pmap_apply, to_linear_map_eq_coe, coe_coe],
 end
 
 end continuous_linear_map

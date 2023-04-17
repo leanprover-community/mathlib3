@@ -41,7 +41,7 @@ scheme, cantor scheme, lusin scheme, approximation.
 namespace cantor_scheme
 
 open list function filter set pi_nat
-open_locale classical topological_space
+open_locale classical topology
 
 variables {β α : Type*} (A : list β → set α)
 

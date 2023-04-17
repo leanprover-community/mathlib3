@@ -36,7 +36,7 @@ noncomputable theory
 
 universe u
 
-open order
+open list
 
 namespace ordinal
 
@@ -90,16 +90,15 @@ by simp [CNF_ne_zero ho, log_eq_zero hb]
 /-- Evaluating the Cantor normal form of an ordinal returns the ordinal. -/
 theorem CNF_foldr (b o : ordinal) : (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
 CNF_rec b (by { rw CNF_zero, refl })
-  (λ o ho IH, by rw [CNF_ne_zero ho, list.foldr_cons, IH, div_add_mod]) o
+  (λ o ho IH, by rw [CNF_ne_zero ho, foldr_cons, IH, div_add_mod]) o
 
 /-- Every exponent in the Cantor normal form `CNF b o` is less or equal to `log b o`. -/
 theorem CNF_fst_le_log {b o : ordinal.{u}} {x : ordinal × ordinal} :
   x ∈ CNF b o → x.1 ≤ log b o :=
 begin
   refine CNF_rec b _ (λ o ho H, _) o,
-  { rw CNF_zero,
-    exact false.elim },
-  { rw [CNF_ne_zero ho, list.mem_cons_iff],
+  { simp },
+  { rw [CNF_ne_zero ho, mem_cons_iff],
     rintro (rfl | h),
     { exact le_rfl },
     { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ho).le) } }
@@ -114,17 +113,10 @@ theorem CNF_lt_snd {b o : ordinal.{u}} {x : ordinal × ordinal} : x ∈ CNF b o 
 begin
   refine CNF_rec b _ (λ o ho IH, _) o,
   { simp },
-  { rcases eq_zero_or_pos b with rfl | hb,
-    { rw [zero_CNF ho, list.mem_singleton],
-      rintro rfl,
-      exact ordinal.pos_iff_ne_zero.2 ho },
-    { rw CNF_ne_zero ho,
-      rintro (rfl | h),
-      { simp,
-        rw div_pos,
-        { exact opow_log_le_self _ ho },
-        { exact (opow_pos _ hb).ne' } },
-      { exact IH h } } }
+  { rw CNF_ne_zero ho,
+    rintro (rfl | h),
+    { exact div_opow_log_pos b ho },
+    { exact IH h } }
 end
 
 /-- Every coefficient in the Cantor normal form `CNF b o` is less than `b`. -/

@@ -203,8 +203,8 @@ lemma is_clopen_of_is_clopen_coe (Y:Type*) [topological_space Y] (A: set Y)
 
 theorem clopen_equalizer_of_discrete {X Y : Type*} [topological_space X] [topological_space Y]
   [discrete_topology Y] {f g : X → Y} (hf : continuous f) (hg : continuous g) :
-  is_clopen {x : X | f x = g x} :=
-sorry
+  is_clopen {x : X | f x = g x} := (is_clopen_discrete (set.diagonal Y)).preimage (hf.prod_mk hg)
+
 
 lemma tautology : true := sorry
 
@@ -241,7 +241,14 @@ theorem uniqueness_of_homotopy_lifting (Y : Type*) [topological_space Y] (hf: is
       let g₂ : d → f ⁻¹' {composition x} := prod.snd ∘ c.1 ∘ f₂,
       change is_clopen {y : d | f₁ y = f₂ y},
       haveI := (hf (composition x)).1,
-      have key : ∀ y : d, f₁ y = f₂ y ↔ g₁ y = g₂ y := sorry,
+      have key'': f₁ = coe ∘ g₁,
+
+      have key : ∀ y : d, f₁ y = f₂ y ↔ g₁ y = g₂ y,
+      intro y,
+      split,
+      sorry,
+      sorry,
+
       simp_rw [key],
       have key₁ : continuous g₁ := sorry,
       have key₂ : continuous g₂ := sorry,

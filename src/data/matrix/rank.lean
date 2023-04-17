@@ -174,28 +174,33 @@ not linearly ordered. For now we don't prove the transpose case for `ℂ`.
 section star_ordered_field
 variables [fintype m] [field R] [partial_order R] [star_ordered_ring R]
 
+lemma ker_mul_vec_lin_conj_transpose_mul_self (A : matrix m n R) :
+  linear_map.ker (Aᴴ ⬝ A).mul_vec_lin = linear_map.ker (mul_vec_lin A):=
+begin
+  ext x,
+  simp only [linear_map.mem_ker, mul_vec_lin_apply, ←mul_vec_mul_vec],
+  split,
+  { intro h,
+    replace h := congr_arg (dot_product (star x)) h,
+    rwa [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star,
+      dot_product_star_self_eq_zero] at h },
+  { intro h, rw [h, mul_vec_zero] },
+end
+
 lemma rank_conj_transpose_mul_self (A : matrix m n R) :
   (Aᴴ ⬝ A).rank = A.rank :=
 begin
-  have : linear_map.ker (mul_vec_lin A) = linear_map.ker (Aᴴ ⬝ A).mul_vec_lin,
-  { ext x,
-    simp only [linear_map.mem_ker, mul_vec_lin_apply, ←mul_vec_mul_vec],
-    split,
-    { intro h, rw [h, mul_vec_zero] },
-    { intro h,
-      replace h := congr_arg (dot_product (star x)) h,
-      rwa [dot_product_mul_vec, dot_product_zero, vec_mul_conj_transpose, star_star,
-        dot_product_star_self_eq_zero] at h } },
   dunfold rank,
   refine add_left_injective (finrank R (A.mul_vec_lin).ker) _,
   dsimp only,
   rw [linear_map.finrank_range_add_finrank_ker,
     ←((Aᴴ ⬝ A).mul_vec_lin).finrank_range_add_finrank_ker],
   congr' 1,
-  rw this,
+  rw ker_mul_vec_lin_conj_transpose_mul_self,
 end
 
 -- this follows the proof here https://math.stackexchange.com/a/81903/1896
+/-- TODO: prove this in greater generality. -/
 @[simp] lemma rank_conj_transpose (A : matrix m n R) : Aᴴ.rank = A.rank :=
 le_antisymm
   (((rank_conj_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _).trans_eq $
@@ -211,26 +216,31 @@ end star_ordered_field
 section linear_ordered_field
 variables [fintype m] [linear_ordered_field R]
 
+lemma ker_mul_vec_lin_transpose_mul_self  (A : matrix m n R) :
+  linear_map.ker (Aᵀ ⬝ A).mul_vec_lin = linear_map.ker (mul_vec_lin A):=
+begin
+  ext x,
+  simp only [linear_map.mem_ker, mul_vec_lin_apply, ←mul_vec_mul_vec],
+  split,
+  { intro h,
+    replace h := congr_arg (dot_product x) h,
+    rwa [dot_product_mul_vec, dot_product_zero, vec_mul_transpose,
+      dot_product_self_eq_zero] at h },
+  { intro h, rw [h, mul_vec_zero] },
+end
+
 lemma rank_transpose_mul_self (A : matrix m n R) : (Aᵀ ⬝ A).rank = A.rank :=
 begin
-  have : linear_map.ker (mul_vec_lin A) = linear_map.ker (Aᵀ ⬝ A).mul_vec_lin,
-  { ext x,
-    simp only [linear_map.mem_ker, mul_vec_lin_apply, ←mul_vec_mul_vec],
-    split,
-    { intro h, rw [h, mul_vec_zero] },
-    { intro h,
-      replace h := congr_arg (dot_product x) h,
-      rwa [dot_product_mul_vec, dot_product_zero, vec_mul_transpose,
-        dot_product_self_eq_zero] at h } },
   dunfold rank,
   refine add_left_injective (finrank R (A.mul_vec_lin).ker) _,
   dsimp only,
   rw [linear_map.finrank_range_add_finrank_ker,
     ←((Aᵀ ⬝ A).mul_vec_lin).finrank_range_add_finrank_ker],
   congr' 1,
-  rw this,
+  rw ker_mul_vec_lin_transpose_mul_self,
 end
 
+/-- TODO: prove this in greater generality. -/
 @[simp] lemma rank_transpose (A : matrix m n R) : Aᵀ.rank = A.rank :=
 le_antisymm
   ((rank_transpose_mul_self _).symm.trans_le $ rank_mul_le_left _ _)

@@ -2644,24 +2644,32 @@ lemma norm_iterated_fderiv_clm_apply {f : E → (F →L[𝕜] G)} {g : E → F}
       (finset.range (n + 1)).sum (λ (i : ℕ), ↑(n.choose i) * ‖iterated_fderiv 𝕜 i f x‖ *
         ‖iterated_fderiv 𝕜 (n - i) g x‖) :=
 begin
-  simp_rw [← iterated_fderiv_within_univ],
+  simp only [← iterated_fderiv_within_univ],
   exact norm_iterated_fderiv_within_clm_apply hf.cont_diff_on hg.cont_diff_on unique_diff_on_univ
     (set.mem_univ x) hn,
 end
 
-lemma norm_iterated_fderiv_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {x : E}
-  {N : ℕ∞} {n : ℕ} (hf : cont_diff 𝕜 N f) (hn : ↑n ≤ N) :
+lemma norm_iterated_fderiv_within_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {s : set E} {x : E}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff_on 𝕜 N f s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
+  (hn : ↑n ≤ N) : ‖iterated_fderiv_within 𝕜 n (λ (y : E), (f y) c) s x‖ ≤
+    ‖c‖ * ‖iterated_fderiv_within 𝕜 n f s x‖ :=
+begin
+  let g : (F →L[𝕜] G) →L[𝕜] G := continuous_linear_map.apply 𝕜 G c,
+  have h := g.norm_comp_continuous_multilinear_map_le (iterated_fderiv_within 𝕜 n f s x),
+  rw ← g.iterated_fderiv_within_comp_left hf hs hx hn at h,
+  refine h.trans (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
+  refine g.op_norm_le_bound (norm_nonneg _) (λ f, _),
+  rw [continuous_linear_map.apply_apply, mul_comm],
+  exact f.le_op_norm c,
+end
+
+lemma norm_iterated_fderiv_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {x : E} {N : ℕ∞} {n : ℕ}
+  (hf : cont_diff 𝕜 N f) (hn : ↑n ≤ N) :
     ‖iterated_fderiv 𝕜 n (λ (y : E), (f y) c) x‖ ≤ ‖c‖ * ‖iterated_fderiv 𝕜 n f x‖ :=
 begin
-  rw [mul_comm],
-  refine le_of_le_of_eq (norm_iterated_fderiv_clm_apply hf cont_diff_const x hn) _,
-  rw [finset.sum_range_succ, n.sub_self],
-  simp only [nat.choose_self, algebra_map.coe_one, one_mul, norm_iterated_fderiv_zero,
-    add_left_eq_self],
-  refine finset.sum_eq_zero (λ i hi, _),
-  rw [finset.mem_range] at hi,
-  simp only [iterated_fderiv_const_of_ne (nat.sub_pos_of_lt hi).ne', pi.zero_apply, norm_zero,
-    mul_zero],
+  simp only [← iterated_fderiv_within_univ],
+  refine norm_iterated_fderiv_within_clm_apply_const hf.cont_diff_on unique_diff_on_univ
+    (set.mem_univ x) hn,
 end
 
 end apply

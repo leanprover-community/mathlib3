@@ -125,20 +125,29 @@ section continuous
 variables [topological_space 𝕜] [topological_ring 𝕜] [topological_space V] [borel_space V]
   [topological_space W] {e : (multiplicative 𝕜) →* 𝕊} {μ : measure V} {L : V →ₗ[𝕜] W →ₗ[𝕜] 𝕜}
 
-/-- If `f` is integrable, then the Fourier integral is convergent for all `w`. -/
-lemma fourier_integral_convergent
-  (he : continuous e) (hL : continuous (λ p : V × W, L p.1 p.2))
-  {f : V → E} (hf : integrable f μ) (w : W) :
-  integrable (λ (v : V), (e [-L v w]) • f v) μ :=
+/-- For any `w`, the Fourier integral is convergent iff  `f` is integrable. -/
+lemma fourier_integral_convergent_iff (he : continuous e) (hL : continuous (λ p : V × W, L p.1 p.2))
+  {f : V → E} (w : W) :
+  integrable f μ ↔ integrable (λ (v : V), (e [-L v w]) • f v) μ :=
 begin
-  rw continuous_induced_rng at he,
-  have c : continuous (λ v, e[-L v w]),
-  { refine he.comp (continuous_of_add.comp (continuous.neg _)),
-    exact hL.comp (continuous_prod_mk.mpr ⟨continuous_id, continuous_const⟩) },
-  rw ←integrable_norm_iff (c.ae_strongly_measurable.smul hf.1),
-  convert hf.norm,
+  -- first prove one-way implication
+  have aux : ∀ {g : V → E} (hg : integrable g μ) (x : W),
+    integrable (λ (v : V), (e [-L v x]) • g v) μ,
+  { intros g hg x,
+    have c : continuous (λ v, e[-L v x]),
+    { refine (continuous_induced_rng.mp he).comp (continuous_of_add.comp (continuous.neg _)),
+      exact hL.comp (continuous_prod_mk.mpr ⟨continuous_id, continuous_const⟩) },
+    rw ←integrable_norm_iff (c.ae_strongly_measurable.smul hg.1),
+    convert hg.norm,
+    ext1 v,
+    rw [norm_smul, complex.norm_eq_abs, abs_coe_circle, one_mul] },
+  -- then use it for both directions
+  refine ⟨λ hf, aux hf w, λ hf, _⟩,
+  convert aux hf (-w),
   ext1 v,
-  rw [norm_smul, complex.norm_eq_abs, abs_coe_circle, one_mul]
+  rw [←smul_assoc, smul_eq_mul, ←submonoid.coe_mul, ←monoid_hom.map_mul,
+    ←of_add_add, linear_map.map_neg, neg_neg, ←sub_eq_add_neg, sub_self, of_add_zero,
+    monoid_hom.map_one, submonoid.coe_one, one_smul],
 end
 
 variables [complete_space E]
@@ -152,8 +161,8 @@ begin
   dsimp only [pi.add_apply, fourier_integral],
   simp_rw smul_add,
   rw integral_add,
-  { exact fourier_integral_convergent he hL hf w },
-  { exact fourier_integral_convergent he hL hg w },
+  { exact (fourier_integral_convergent_iff he hL w).mp hf },
+  { exact (fourier_integral_convergent_iff he hL w).mp hg },
 end
 
 /-- The Fourier integral of an `L^1` function is a continuous function. -/
@@ -163,7 +172,7 @@ lemma fourier_integral_continuous [topological_space.first_countable_topology W]
   continuous (fourier_integral e μ L f) :=
 begin
   apply continuous_of_dominated,
-  { exact λ w, (fourier_integral_convergent he hL hf w).1 },
+  { exact λ w, ((fourier_integral_convergent_iff he hL w).mp hf).1 },
   { refine λ w, ae_of_all _ (λ v, _),
     { exact λ v, ‖f v‖ },
     { rw [norm_smul, complex.norm_eq_abs, abs_coe_circle, one_mul] } },

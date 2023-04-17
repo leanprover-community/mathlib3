@@ -479,6 +479,10 @@ end⟩
 instance range [finite R M] (f : M →ₗ[R] N) : finite R f.range :=
 of_surjective f.range_restrict $ λ ⟨x, y, hy⟩, ⟨y, subtype.ext hy⟩
 
+/-- Pushforwards of finite submodules are finite. -/
+instance map (p : submodule R M) [finite R p] (f : M →ₗ[R] N) : finite R (p.map f) :=
+of_surjective (f.restrict $ λ _, mem_map_of_mem) $ λ ⟨x, y, hy, hy'⟩, ⟨⟨_, hy⟩, subtype.ext hy'⟩
+
 variables (R)
 
 instance self : finite R R :=

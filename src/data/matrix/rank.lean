@@ -90,6 +90,27 @@ lemma rank_of_is_unit [strong_rank_condition R] [decidable_eq n] (A : matrix n n
   A.rank = fintype.card n :=
 by { obtain ⟨A, rfl⟩ := h, exact rank_unit A }
 
+/-- Taking a subset of the rows and permuting the columns reduces the rank. -/
+lemma rank_submatrix_le [strong_rank_condition R] [fintype m] (f : n → m) (e : n ≃ m)
+  (A : matrix m m R) :
+  rank (A.submatrix f e) ≤ rank A :=
+begin
+  rw [rank, rank, mul_vec_lin_submatrix, linear_map.range_comp, linear_map.range_comp,
+    (show linear_map.fun_left R R e.symm = linear_equiv.fun_congr_left R R e.symm, from rfl),
+    linear_equiv.range, submodule.map_top],
+  -- TODO: generalize `finite_dimensional.finrank_map_le` and use it here
+  exact finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _),
+end
+
+lemma rank_reindex [fintype m] (e₁ e₂ : m ≃ n) (A : matrix m m R) :
+  rank (reindex e₁ e₂ A) = rank A :=
+by rw [rank, rank, mul_vec_lin_reindex, linear_map.range_comp, linear_map.range_comp,
+    linear_equiv.range, submodule.map_top, linear_equiv.finrank_map_eq]
+
+@[simp] lemma rank_submatrix [fintype m] (A : matrix m m R) (e₁ e₂ : n ≃ m) :
+  rank (A.submatrix e₁ e₂) = rank A :=
+by simpa only [reindex_apply] using rank_reindex e₁.symm e₂.symm A
+
 include m_fin
 
 lemma rank_eq_finrank_range_to_lin [decidable_eq n]

@@ -10,6 +10,9 @@ import linear_algebra.dimension
 
 # Extra results about `module.rank`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some extra results not in `linear_algebra.dimension`.
 
 -/

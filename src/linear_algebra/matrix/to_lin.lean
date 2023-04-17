@@ -163,7 +163,7 @@ This should eventually be remedied.
 section to_matrix'
 
 variables {R : Type*} [comm_semiring R]
-variables {l m n : Type*}
+variables {k l m n : Type*}
 
 /-- `matrix.mul_vec M` is a linear map. -/
 def matrix.mul_vec_lin [fintype n] (M : matrix m n R) : (n → R) →ₗ[R] (m → R) :=
@@ -180,6 +180,18 @@ linear_map.ext zero_mul_vec
 @[simp] lemma matrix.mul_vec_lin_add [fintype n] (M N : matrix m n R) :
   (M + N).mul_vec_lin = M.mul_vec_lin + N.mul_vec_lin :=
 linear_map.ext $ λ _, add_mul_vec _ _ _
+
+lemma matrix.mul_vec_lin_submatrix [fintype n] [fintype l] (f₁ : m → k) (e₂ : n ≃ l)
+  (M : matrix k l R) :
+  (M.submatrix f₁ e₂).mul_vec_lin = fun_left R R f₁ ∘ₗ M.mul_vec_lin ∘ₗ fun_left _ _ e₂.symm :=
+linear_map.ext $ λ x, submatrix_mul_vec_equiv _ _ _ _
+
+/-- A variant of `matrix.mul_vec_lin_submatrix` that keeps around `linear_equiv`s. -/
+lemma matrix.mul_vec_lin_reindex [fintype n] [fintype l] (e₁ : k ≃ m) (e₂ : l ≃ n)
+  (M : matrix k l R) :
+  (reindex e₁ e₂ M).mul_vec_lin = ↑(linear_equiv.fun_congr_left R R e₁.symm)
+      ∘ₗ M.mul_vec_lin ∘ₗ ↑(linear_equiv.fun_congr_left R R e₂) :=
+matrix.mul_vec_lin_submatrix _ _ _
 
 variables [fintype n]
 
@@ -278,6 +290,18 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
 matrix.mul_vec_lin_mul _ _
+
+@[simp] lemma matrix.to_lin'_submatrix [fintype l] [decidable_eq l] (f₁ : m → k) (e₂ : n ≃ l)
+  (M : matrix k l R) :
+  (M.submatrix f₁ e₂).to_lin' = fun_left R R f₁ ∘ₗ M.to_lin' ∘ₗ fun_left _ _ e₂.symm :=
+matrix.mul_vec_lin_submatrix _ _ _
+
+/-- A variant of `matrix.to_lin'_submatrix` that keeps around `linear_equiv`s. -/
+lemma matrix.to_lin'_reindex [fintype l] [decidable_eq l] (e₁ : k ≃ m) (e₂ : l ≃ n)
+  (M : matrix k l R) :
+  (reindex e₁ e₂ M).to_lin' = ↑(linear_equiv.fun_congr_left R R e₁.symm)
+      ∘ₗ M.to_lin' ∘ₗ ↑(linear_equiv.fun_congr_left R R e₂) :=
+matrix.mul_vec_lin_reindex _ _ _
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)

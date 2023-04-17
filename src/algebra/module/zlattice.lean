@@ -235,8 +235,8 @@ begin
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent K (L.to_int_submodule : set E),
   -- Let `s` be a maximal `K`-linear independent family of elements of `L`. We show that
   -- `L` is finitely generated (as a ℤ-module) because it fits in the exact sequence
-  -- `0 → L ∩ ker (span ℤ s) → L → L / ker (span ℤ s) → 0`
-  -- with `L ∩ ker (span ℤ s)` and `L / ker (span ℤ s)` finitely generated.
+  -- `0 → span ℤ s → L → L / span ℤ s → 0`
+  -- with `span ℤ s` and `L / span ℤ s` finitely generated.
   refine fg_of_fg_map_of_fg_inf_ker (mkq (span ℤ s)) _ _,
   { rw submodule.fg_def,
     use (map (span ℤ s).mkq (add_subgroup.to_int_submodule L)),
@@ -245,7 +245,7 @@ begin
       let b := basis.mk h3 (by
         simp only [h2, hs, subtype.range_coe, add_subgroup.coe_to_int_submodule, top_le_iff]),
       rw (_ : submodule.span ℤ s = submodule.span ℤ (set.range b)),
-      -- Elements of `L / ker (span ℤ s)` are in bijection with elements of
+      -- Elements of `L / span ℤ s` are in bijection with elements of
       -- `L ∩ fundamental_domain s` so there are finitely many since
       -- `fundamental_domain s` is bounded.
       refine @set.finite.of_finite_image _ _ _ ((coe : _ → E) ∘ (zspan.quo_fract_equiv b)) _ _,
@@ -266,7 +266,7 @@ begin
       { congr,
         simp only [basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq], }},
     { exact submodule.span_eq _, }},
-  -- `L ∩ ker (span ℤ s)` is finitely generated because `s` is finite.
+  -- `span ℤ s` is finitely generated because `s` is finite.
   { rw [submodule.ker_mkq (submodule.span ℤ s), inf_of_le_right (submodule.span_le.mpr h1)],
     exact submodule.fg_span (linear_independent.finite h3), }
 end

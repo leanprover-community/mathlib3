@@ -309,13 +309,13 @@ basis.of_equiv_fun $ linear_equiv_tuple c₁ c₂
 instance : module.finite R ℍ[R, c₁, c₂] := module.finite.of_basis (basis_one_i_j_k c₁ c₂)
 instance : module.free R ℍ[R, c₁, c₂] := module.free.of_basis (basis_one_i_j_k c₁ c₂)
 
-lemma dim_eq_four [strong_rank_condition R] : module.rank R ℍ[R, c₁, c₂] = 4 :=
-by { rw [dim_eq_card_basis (basis_one_i_j_k c₁ c₂), fintype.card_fin], norm_num }
+lemma rank_eq_four [strong_rank_condition R] : module.rank R ℍ[R, c₁, c₂] = 4 :=
+by { rw [rank_eq_card_basis (basis_one_i_j_k c₁ c₂), fintype.card_fin], norm_num }
 
 lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R, c₁, c₂] = 4 :=
 have cardinal.to_nat 4 = 4,
   by rw [←cardinal.to_nat_cast 4, nat.cast_bit0, nat.cast_bit0, nat.cast_one],
-by rw [finite_dimensional.finrank, dim_eq_four, this]
+by rw [finite_dimensional.finrank, rank_eq_four, this]
 
 end
 
@@ -631,8 +631,8 @@ lemma smul_coe : x • (y : ℍ[R]) = ↑(x * y) := quaternion_algebra.smul_coe 
 instance : module.finite R ℍ[R] := quaternion_algebra.module.finite _ _
 instance : module.free R ℍ[R] := quaternion_algebra.module.free _ _
 
-lemma dim_eq_four [strong_rank_condition R] : module.rank R ℍ[R] = 4 :=
-quaternion_algebra.dim_eq_four _ _
+lemma rank_eq_four [strong_rank_condition R] : module.rank R ℍ[R] = 4 :=
+quaternion_algebra.rank_eq_four _ _
 
 lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R] = 4 :=
 quaternion_algebra.finrank_eq_four _ _

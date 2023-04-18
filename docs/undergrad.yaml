@@ -28,7 +28,7 @@ Linear algebra:
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
-    rank of a linear map: 'rank'
+    rank of a linear map: 'linear_map.rank'
     rank of a set of vectors: 'set.finrank'
     rank of a system of linear equations: 'https://www.math.tamu.edu/~fnarc/psfiles/rank2005.pdf'
     isomorphism with bidual: 'module.eval_equiv'

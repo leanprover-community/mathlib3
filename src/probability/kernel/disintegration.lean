@@ -156,8 +156,14 @@ begin
   exact_mod_cast h_le,
 end
 
+lemma todo_r_univ (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r univ = ρ (univ ×ˢ Iic r) :=
+by rw [todo_r_apply ρ r measurable_set.univ]
+
 noncomputable
 def todo (ρ : measure (α × ℝ)) : measure α := ρ.map prod.fst
+
+lemma todo_univ (ρ : measure (α × ℝ)) : todo ρ univ = ρ univ :=
+by rw [todo, measure.map_apply measurable_fst measurable_set.univ, preimage_univ]
 
 lemma todo_r_le_todo (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≤ todo ρ :=
 begin
@@ -316,9 +322,6 @@ begin
   exact_mod_cast hqr,
 end
 
-lemma todo_univ (ρ : measure (α × ℝ)) : todo ρ univ = ρ univ :=
-by rw [todo, measure.map_apply measurable_fst measurable_set.univ, preimage_univ]
-
 lemma tendsto_lintegral_rnd_r_at_top (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂(todo ρ)) at_top (𝓝 (ρ univ)) :=
 begin
@@ -449,7 +452,24 @@ begin
         exact measure_ne_top _ _, }, },
     have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, rnd_r ρ (-r) a ∂(todo ρ)) at_top
       (𝓝 0),
-    { sorry, },
+    { have h_lintegral_eq : (λ r : ℕ, ∫⁻ a, rnd_r ρ (-r) a ∂(todo ρ)) = λ r, ρ (univ ×ˢ Iic (-r)),
+      { ext1 n,
+        rw [← set_lintegral_univ, set_lintegral_rnd_r_todo ρ _ measurable_set.univ, todo_r_univ],
+        norm_cast, },
+      rw h_lintegral_eq,
+      have h_zero_eq_measure_Inter : (0 : ℝ≥0∞) = ρ (⋂ r : ℕ, univ ×ˢ Iic (-r)),
+      { suffices : (⋂ r : ℕ, univ ×ˢ Iic (-(r : ℝ))) = ∅, by rwa [this, measure_empty],
+        ext1 x,
+        simp only [mem_Inter, mem_prod, mem_univ, mem_Iic, true_and, mem_empty_iff_false, iff_false,
+          not_forall, not_le],
+        simp_rw neg_lt,
+        exact exists_nat_gt _, },
+      rw h_zero_eq_measure_Inter,
+      refine tendsto_measure_Inter (λ n, measurable_set.univ.prod measurable_set_Iic)
+        (λ i j hij x, _) ⟨0, measure_ne_top ρ _⟩,
+      simp only [mem_prod, mem_univ, mem_Iic, true_and],
+      refine λ hxj, hxj.trans (neg_le_neg _),
+      exact_mod_cast hij, },
     exact tendsto_nhds_unique h_lintegral h_lintegral', },
   rwa [lintegral_eq_zero_iff' hF_ae_meas] at h_lintegral_eq,
 end

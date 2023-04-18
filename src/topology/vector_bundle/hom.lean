@@ -45,9 +45,9 @@ variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂
 variables (σ : 𝕜₁ →+* 𝕜₂)
 variables {B : Type*}
 variables (F₁ : Type*) (E₁ : B → Type*) [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜₁ (E₁ x)]
-variables [Π x : B, topological_space (E₁ x)]
+variables [Π x, topological_space (E₁ x)]
 variables (F₂ : Type*) (E₂ : B → Type*) [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜₂ (E₂ x)]
-variables [Π x : B, topological_space (E₂ x)]
+variables [Π x, topological_space (E₂ x)]
 
 include F₁ F₂
 
@@ -94,6 +94,61 @@ variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
 
 variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
 
+section in_coordinates
+
+variables {σ} {B' : Type*} [topological_space B']
+
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜₁ F]
+  {E : B → Type*} [Π x, add_comm_monoid (E x)] [Π x, module 𝕜₁ (E x)]
+  [topological_space (total_space E)]
+variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜₂ F']
+  {E' : B' → Type*} [Π x, add_comm_monoid (E' x)] [Π x, module 𝕜₂ (E' x)]
+  [topological_space (total_space E')]
+variables [Π x, topological_space (E x)] [fiber_bundle F E] [vector_bundle 𝕜₁ F E]
+variables [Π x, topological_space (E' x)] [fiber_bundle F' E'] [vector_bundle 𝕜₂ F' E']
+variables (F E F' E')
+
+/-- When `ϕ` is a continuous linear map that changes vectors in charts around `x` to vectors
+in charts around `y`, `in_coordinates Z Z₂ x₀ x y₀ y ϕ` is a coordinate change of this continuous
+linear map that makes sense from charts around `x₀` to charts around `y₀`
+by composing it with appropriate coordinate changes given by smooth vector bundles `Z` and `Z₂`.
+
+This is the underlying function of the hom trivializations, but note that this is defined even when
+`x` and `y` live in different base sets.
+-/
+def in_coordinates (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y) : F →SL[σ] F' :=
+((trivialization_at F' E' y₀).continuous_linear_map_at 𝕜₂ y).comp $ ϕ.comp $
+(trivialization_at F E x₀).symmL 𝕜₁ x
+
+/-- rewrite `in_coordinates` using continuous linear equivalences. -/
+lemma in_coordinates_eq (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y)
+  (hx : x ∈ (trivialization_at F E x₀).base_set)
+  (hy : y ∈ (trivialization_at F' E' y₀).base_set) :
+  in_coordinates F E F' E' x₀ x y₀ y ϕ =
+  ((trivialization_at F' E' y₀).continuous_linear_equiv_at 𝕜₂ y hy : E' y →L[𝕜₂] F').comp (ϕ.comp $
+  (((trivialization_at F E x₀).continuous_linear_equiv_at 𝕜₁ x hx).symm : F →L[𝕜₁] E x)) :=
+begin
+  ext,
+  simp_rw [in_coordinates, continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe,
+    trivialization.coe_continuous_linear_equiv_at_eq,
+    trivialization.symm_continuous_linear_equiv_at_eq]
+end
+
+/-- rewrite `in_coordinates` in a `vector_bundle_core`. -/
+protected lemma vector_bundle_core.in_coordinates_eq {ι ι'} (Z : vector_bundle_core 𝕜₁ B F ι)
+  (Z' : vector_bundle_core 𝕜₂ B' F' ι')
+  {x₀ x : B} {y₀ y : B'} (ϕ : F →SL[σ] F')
+  (hx : x ∈ Z.base_set (Z.index_at x₀))
+  (hy : y ∈ Z'.base_set (Z'.index_at y₀)) :
+    in_coordinates F Z.fiber F' Z'.fiber x₀ x y₀ y ϕ =
+    (Z'.coord_change (Z'.index_at y) (Z'.index_at y₀) y).comp (ϕ.comp $
+    Z.coord_change (Z.index_at x₀) (Z.index_at x) x) :=
+by simp_rw [in_coordinates, Z'.trivialization_at_continuous_linear_map_at hy,
+  Z.trivialization_at_symmL hx]
+
+end in_coordinates
+
+
 namespace pretrivialization
 
 include iσ
@@ -110,8 +165,8 @@ def continuous_linear_map_coord_change
   (F₁ →SL[σ] F₂) ≃L[𝕜₂] F₁ →SL[σ] F₂)
 
 variables {σ e₁ e₁' e₂ e₂'}
-variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
-variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂]
+variables [Π x, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
+variables [Π x, topological_space (E₂ x)] [fiber_bundle F₂ E₂]
 
 lemma continuous_on_continuous_linear_map_coord_change
   [vector_bundle 𝕜₁ F₁ E₁] [vector_bundle 𝕜₂ F₂ E₂]
@@ -314,4 +369,23 @@ lemma trivialization.continuous_linear_map_apply
   (p : total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :
   e₁.continuous_linear_map σ e₂ p =
   ⟨p.1, (e₂.continuous_linear_map_at 𝕜₂ p.1).comp $ p.2.comp $ e₁.symmL 𝕜₁ p.1⟩ :=
+rfl
+
+lemma hom_trivialization_at_apply (x₀ : B)
+  (x : total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :
+  trivialization_at (F₁ →SL[σ] F₂) (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) x₀ x =
+  ⟨x.1, in_coordinates F₁ E₁ F₂ E₂ x₀ x.1 x₀ x.1 x.2⟩ :=
+rfl
+
+@[simp, mfld_simps]
+lemma hom_trivialization_at_source (x₀ : B) :
+  (trivialization_at (F₁ →SL[σ] F₂) (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) x₀).source =
+  π (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) ⁻¹'
+    ((trivialization_at F₁ E₁ x₀).base_set ∩ (trivialization_at F₂ E₂ x₀).base_set) :=
+rfl
+
+@[simp, mfld_simps]
+lemma hom_trivialization_at_target (x₀ : B) :
+  (trivialization_at (F₁ →SL[σ] F₂) (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) x₀).target =
+  ((trivialization_at F₁ E₁ x₀).base_set ∩ (trivialization_at F₂ E₂ x₀).base_set) ×ˢ set.univ :=
 rfl

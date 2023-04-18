@@ -102,8 +102,8 @@ instance bundle.continuous_linear_map.vector_prebundle.is_smooth :
     rintro _ ⟨e₁, e₂, he₁, he₂, rfl⟩ _ ⟨e₁', e₂', he₁', he₂', rfl⟩,
     resetI,
     refine ⟨continuous_linear_map_coord_change (ring_hom.id 𝕜) e₁ e₁' e₂ e₂',
-    smooth_on_continuous_linear_map_coord_change IB,
-    continuous_linear_map_coord_change_apply (ring_hom.id 𝕜) e₁ e₁' e₂ e₂'⟩
+      smooth_on_continuous_linear_map_coord_change IB,
+      continuous_linear_map_coord_change_apply (ring_hom.id 𝕜) e₁ e₁' e₂ e₂'⟩
   end }
 
 /-- Todo: remove this definition. It is probably needed because of the type-class pi bug

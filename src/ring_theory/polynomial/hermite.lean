@@ -31,7 +31,7 @@ noncomputable def hermite : ℕ → polynomial ℤ
 | 0     := 1
 | (n+1) := X * (hermite n) - (hermite n).derivative
 
-@[simp] lemma hermite_succ (n : ℕ) : hermite (n+1) =  X * (hermite n) - (hermite n).derivative :=
+@[simp] lemma hermite_succ (n : ℕ) : hermite (n+1) = X * (hermite n) - (hermite n).derivative :=
 by rw hermite
 
 lemma hermite_eq_iterate (n : ℕ) : hermite n = ((λ p, X*p - p.derivative)^[n] 1) :=

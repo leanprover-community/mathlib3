@@ -23,6 +23,9 @@ domain of `T` and `y` in the domain of `S`, we have that `⟪T x, y⟫ = ⟪x, S
 ## Main statements
 
 * `linear_pmap.adjoint_is_formal_adjoint`: The adjoint is a formal adjoint
+* `linear_pmap.is_formal_adjoint.le_adjoint`: Every formal adjoint is contained in the adjoint
+* `continuous_linear_map.to_pmap_adjoint_eq_adjoint_to_pmap_of_dense`: The adjoint on
+`continuous_linear_map` and `linear_pmap` coincide.
 
 ## Notation
 
@@ -157,6 +160,16 @@ lemma mem_adjoint_domain_iff (y : F) :
 
 variable {T}
 
+lemma mem_adjoint_domain_of_exists (y : F) (h : ∃ w : E, ∀ (x : T.domain), ⟪w, x⟫ = ⟪y, T x⟫) :
+  y ∈ T†.domain :=
+begin
+  cases h with w hw,
+  rw T.mem_adjoint_domain_iff,
+  have : continuous ((innerSL 𝕜 w).comp T.domain.subtypeL) := by continuity,
+  convert this using 1,
+  exact funext (λ x, (hw x).symm),
+end
+
 lemma adjoint_apply_of_not_dense (hT : ¬ dense (T.domain : set E)) (y : T†.domain) : T† y = 0 :=
 begin
   change (if hT : dense (T.domain : set E) then adjoint_aux hT else 0) y = _,
@@ -179,19 +192,10 @@ begin
   exact adjoint_elem_spec hT x y,
 end
 
-lemma mem_adjoint_domain_of_exists (y : F) (h : ∃ w : E, ∀ (x : T.domain), ⟪w, x⟫ = ⟪y, T x⟫) :
-  y ∈ T†.domain :=
-begin
-  cases h with w hw,
-  rw T.mem_adjoint_domain_iff,
-  have : continuous ((innerSL 𝕜 w).comp T.domain.subtypeL) := by continuity,
-  convert this using 1,
-  exact funext (λ x, (hw x).symm),
-end
-
+/-- The adjoint is maximal in the sense that it contains every formal adjoint. -/
 lemma is_formal_adjoint.le_adjoint (h : T.is_formal_adjoint S) : S ≤ T† :=
 -- Trivially, every `x : S.domain` is in `T.adjoint.domain`
-⟨λ x hx, mem_adjoint_domain_of_exists hT _ ⟨S ⟨x, hx⟩, h.symm ⟨x, hx⟩⟩,
+⟨λ x hx, mem_adjoint_domain_of_exists _ ⟨S ⟨x, hx⟩, h.symm ⟨x, hx⟩⟩,
   -- Equality on `S.domain` follows from equality
   -- `⟪v, S x⟫ = ⟪v, T.adjoint y⟫` for all `v : T.domain`:
   λ _ _ hxy, hT.eq_of_inner_right (λ _, by rw [← h, hxy, ← (adjoint_is_formal_adjoint hT).symm])⟩

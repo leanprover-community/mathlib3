@@ -3,7 +3,6 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
-import linear_algebra.orientation
 import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
@@ -166,9 +165,6 @@ by simp [← finrank_eq_rank, finrank_real_complex, bit0]
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
 lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
-
-/-- The standard orientation on `ℂ`. -/
-protected noncomputable def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
 
 end complex
 

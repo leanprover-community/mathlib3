@@ -3,6 +3,24 @@ import analysis.normed_space.star.background
 .
 open_locale nnreal
 
+/-
+Functions between `ℂ`, `ℝ` and `ℝ≥0` where the domain and codomain are different.
+We just don't have that many.
+
+Try this: exact complex.re
+Try this: exact complex.im
+Try this: exact complex.arg
+Try this: exact norm
+Try this: exact is_R_or_C.abs
+Try this: refine dist _
+Try this: exact nnnorm
+Try this: refine circle_map _ _
+Try this: refine nnreal.rpow _
+Try this: refine nndist _
+-/
+
+#exit
+
 local notation `C⋆(` a `)` := elemental_star_algebra ℂ a
 .
 
@@ -193,7 +211,6 @@ def continuous_map.complex_re : C(ℂ, ℝ) := continuous_map.mk complex.re comp
 @[simps]
 def continuous_map.complex_im : C(ℂ, ℝ) := continuous_map.mk complex.im complex.continuous_im
 
-#exit
 open_locale complex_star_module
 
 lemma cfc_star_alg_hom₂_real_map_re_comp (f : C(ℂ, ℂ)) :
@@ -391,7 +408,6 @@ end
 
 end cfc2
 
-#exit
 section positive
 
 open_locale complex_order
@@ -560,7 +576,7 @@ open complex
 
 lemma real_smul (ha : is_positive a) {r : ℝ} (hr : 0 ≤ r) : is_positive (r • a) :=
 begin
-  refine ⟨ha.is_self_adjoint.smul r, _⟩,
+  refine ⟨(is_self_adjoint.all r).smul ha.is_self_adjoint, _⟩,
   nontriviality A,
   rw [←complex.coe_smul, spectrum.smul_eq_smul _ _ (spectrum.nonempty a)],
   rintro _ ⟨x, hx, rfl⟩,
@@ -918,6 +934,8 @@ instance {R : Type*} [add_group R] [star_add_monoid R] : has_trivial_star (self_
 { star_trivial := λ r, subtype.ext r.prop }
 
 .
+
+#exit
 
 open_locale complex_star_module
 

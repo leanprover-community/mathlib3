@@ -4,7 +4,7 @@ open_locale nnreal
 
 instance : complete_space ℝ≥0 := is_closed_Ici.complete_space_coe
 
-instance star_ordered_ring.has_trivial_star {X R : Type*} [topological_space X]
+instance continuous_map.has_trivial_star {X R : Type*} [topological_space X]
   [topological_space R] [has_star R] [has_continuous_star R] [has_trivial_star R] :
   has_trivial_star C(X, R) :=
 { star_trivial := λ _, continuous_map.ext $ λ _, star_trivial _ }

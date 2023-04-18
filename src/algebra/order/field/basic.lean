@@ -595,6 +595,10 @@ lt_iff_lt_of_le_iff_le $ div_le_iff_of_neg hc
 lemma lt_div_iff_of_neg' (hc : c < 0) : a < b / c ↔ b < c * a :=
 by rw [mul_comm, lt_div_iff_of_neg hc]
 
+lemma div_le_one_of_ge
+  (h : b ≤ a) (hb : b ≤ 0) : a / b ≤ 1 :=
+by simpa only [neg_div_neg_eq] using div_le_one_of_le (neg_le_neg h) (neg_nonneg_of_nonpos hb)
+
 /-! ### Bi-implications of inequalities using inversions -/
 
 lemma inv_le_inv_of_neg (ha : a < 0) (hb : b < 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=

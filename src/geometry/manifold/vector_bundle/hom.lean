@@ -69,25 +69,27 @@ end
 
 variables [∀ x, has_continuous_add (E₂ x)] [∀ x, has_continuous_smul 𝕜 (E₂ x)]
 
--- @[reducible]
--- def topological_space.continuous_linear_map' (x) : topological_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂ x) :=
--- by apply_instance
--- local attribute [instance, priority 1] topological_space.continuous_linear_map'
--- -- ^ probably needed because of the type-class pi bug
--- -- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue
-
 lemma hom_chart (x₀ x : LE₁E₂) :
   chart_at (model_prod HB (F₁ →L[𝕜] F₂)) x₀ x =
   (chart_at HB x₀.1 x.1, in_coordinates F₁ E₁ F₂ E₂ x₀.1 x.1 x₀.1 x.1 x.2) :=
 by simp_rw [fiber_bundle.charted_space_chart_at, trans_apply, local_homeomorph.prod_apply,
   trivialization.coe_coe, local_homeomorph.refl_apply, function.id_def, hom_trivialization_at_apply]
 
-lemma smooth_at_hom_bundle {f : M → LE₁E₂} {x₀ : M} :
+variables {IB}
+
+lemma cont_mdiff_at_hom_bundle (f : M → LE₁E₂) {x₀ : M} {n : ℕ∞} :
+  cont_mdiff_at IM (IB.prod 𝓘(𝕜, F₁ →L[𝕜] F₂)) n f x₀ ↔
+  cont_mdiff_at IM IB n (λ x, (f x).1) x₀ ∧
+  cont_mdiff_at IM 𝓘(𝕜, F₁ →L[𝕜] F₂) n
+  (λ x, in_coordinates F₁ E₁ F₂ E₂ (f x₀).1 (f x).1 (f x₀).1 (f x).1 (f x).2) x₀ :=
+by  apply cont_mdiff_at_total_space
+
+lemma smooth_at_hom_bundle (f : M → LE₁E₂) {x₀ : M} :
   smooth_at IM (IB.prod 𝓘(𝕜, F₁ →L[𝕜] F₂)) f x₀ ↔
   smooth_at IM IB (λ x, (f x).1) x₀ ∧
   smooth_at IM 𝓘(𝕜, F₁ →L[𝕜] F₂)
   (λ x, in_coordinates F₁ E₁ F₂ E₂ (f x₀).1 (f x).1 (f x₀).1 (f x).1 (f x).2) x₀ :=
-by { simp_rw [smooth_at, cont_mdiff_at_total_space], refl }
+cont_mdiff_at_hom_bundle f
 
 variables [smooth_manifold_with_corners IB B]
   [smooth_vector_bundle F₁ E₁ IB] [smooth_vector_bundle F₂ E₂ IB]
@@ -102,6 +104,14 @@ instance bundle.continuous_linear_map.vector_prebundle.is_smooth :
     refine ⟨continuous_linear_map_coord_change (ring_hom.id 𝕜) e₁ e₁' e₂ e₂',
     smooth_on_continuous_linear_map_coord_change IB,
     continuous_linear_map_coord_change_apply (ring_hom.id 𝕜) e₁ e₁' e₂ e₂'⟩ } }
+
+/-- Todo: remove this definition. It is probably needed because of the type-class pi bug
+https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue
+-/
+@[reducible]
+def smooth_vector_bundle.continuous_linear_map.aux (x) : topological_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂ x) :=
+by apply_instance
+local attribute [instance, priority 1] smooth_vector_bundle.continuous_linear_map.aux
 
 instance smooth_vector_bundle.continuous_linear_map :
   smooth_vector_bundle (F₁ →L[𝕜] F₂) (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂) IB :=

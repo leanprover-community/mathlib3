@@ -237,10 +237,7 @@ end
 
 /-! ### Smooth vector bundles -/
 
-variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
-  [normed_add_comm_group F] [normed_space 𝕜 F]
-  [topological_space (total_space E)] [∀ x, topological_space (E x)]
-
+variables [nontrivially_normed_field 𝕜]
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
   [topological_space B] [charted_space HB B] [smooth_manifold_with_corners IB B]
@@ -248,6 +245,12 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {HM : Type*} [topological_space HM] {IM : model_with_corners 𝕜 EM HM}
   [topological_space M] [charted_space HM M] [Is : smooth_manifold_with_corners IM M]
   {n : ℕ∞}
+  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
+
+section with_topology
+
+variables [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
 variables (F E) [fiber_bundle F E] [vector_bundle 𝕜 F E]
 
@@ -380,3 +383,66 @@ instance bundle.prod.smooth_vector_bundle :
   end }
 
 end prod
+
+end with_topology
+
+/-! ### Prebundle construction for smooth vector bundles -/
+
+namespace vector_prebundle
+
+variables {F E}
+
+/-- Mixin for a `vector_prebundle` stating smoothness of coordinate changes. -/
+class is_smooth (a : vector_prebundle 𝕜 F E) : Prop :=
+(exists_smooth_coord_change : ∀ (e e' ∈ a.pretrivialization_atlas), ∃ f : B → F →L[𝕜] F,
+  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) f (e.base_set ∩ e'.base_set) ∧
+  ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
+    f b v = (e' (total_space_mk b (e.symm b v))).2)
+
+variables (a : vector_prebundle 𝕜 F E) [ha : a.is_smooth IB] {e e' : pretrivialization F (π E)}
+include ha
+
+/-- A randomly chosen coordinate change on a `smooth_vector_prebundle`, given by
+  the field `exists_coord_change`. Note that `a.smooth_coord_change` need not be the same as
+  `a.coord_change`. -/
+noncomputable def smooth_coord_change (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) (b : B) : F →L[𝕜] F :=
+classical.some (ha.exists_smooth_coord_change e he e' he') b
+
+variables {IB}
+lemma smooth_on_smooth_coord_change (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) :
+  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (a.smooth_coord_change IB he he') (e.base_set ∩ e'.base_set) :=
+(classical.some_spec (ha.exists_smooth_coord_change e he e' he')).1
+
+lemma smooth_coord_change_apply (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  a.smooth_coord_change IB he he' b v = (e' (total_space_mk b (e.symm b v))).2 :=
+(classical.some_spec (ha.exists_smooth_coord_change e he e' he')).2 b hb v
+
+lemma mk_smooth_coord_change (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  (b, (a.smooth_coord_change IB he he' b v)) = e' (total_space_mk b (e.symm b v)) :=
+begin
+  ext,
+  { rw [e.mk_symm hb.1 v, e'.coe_fst', e.proj_symm_apply' hb.1],
+    rw [e.proj_symm_apply' hb.1], exact hb.2 },
+  { exact a.smooth_coord_change_apply he he' hb v }
+end
+
+variables (IB)
+/-- Make a `smooth_vector_bundle` from a `smooth_vector_prebundle`.  -/
+lemma to_smooth_vector_bundle :
+  @smooth_vector_bundle _ _ F E _ _ _ _ _ _ IB _ _ _ _ _ _ _
+    a.total_space_topology a.fiber_topology a.to_fiber_bundle a.to_vector_bundle :=
+{ smooth_on_coord_change := begin
+    rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
+    refine (a.smooth_on_smooth_coord_change he he').congr _,
+    intros b hb,
+    ext v,
+    rw [a.smooth_coord_change_apply he he' hb v, continuous_linear_equiv.coe_coe,
+      trivialization.coord_changeL_apply],
+    exacts [rfl, hb]
+  end }
+
+end vector_prebundle

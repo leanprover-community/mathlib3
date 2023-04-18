@@ -572,6 +572,12 @@ by rw [←le_compl_iff_disjoint_left, compl_compl]
 lemma disjoint_compl_right_iff : disjoint x yᶜ ↔ x ≤ y :=
 by rw [←le_compl_iff_disjoint_right, compl_compl]
 
+lemma codisjoint_himp_self_left : codisjoint (x ⇨ y) x := @disjoint_sdiff_self_left αᵒᵈ _ _ _
+lemma codisjoint_himp_self_right : codisjoint x (x ⇨ y) := @disjoint_sdiff_self_right αᵒᵈ _ _ _
+
+lemma himp_le : x ⇨ y ≤ z ↔ y ≤ z ∧ codisjoint x z :=
+(@le_sdiff αᵒᵈ _ _ _ _).trans $ and_congr_right' codisjoint.comm
+
 end boolean_algebra
 
 instance Prop.boolean_algebra : boolean_algebra Prop :=

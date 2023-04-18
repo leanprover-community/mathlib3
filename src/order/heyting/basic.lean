@@ -295,6 +295,7 @@ by rw [himp_inf_distrib, himp_self, top_inf_eq, h.himp_eq_left]
 lemma codisjoint.himp_inf_cancel_left (h : codisjoint a b) : b ⇨ (a ⊓ b) = a :=
 by rw [himp_inf_distrib, himp_self, inf_top_eq, h.himp_eq_right]
 
+/-- See `himp_le` for a stronger version in Boolean algebras. -/
 lemma codisjoint.himp_le_of_right_le (hac : codisjoint a c) (hba : b ≤ a) : c ⇨ b ≤ a :=
 (himp_le_himp_left hba).trans_eq hac.himp_eq_right
 

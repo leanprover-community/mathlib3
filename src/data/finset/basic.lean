@@ -1,3 +1,4 @@
+
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -1450,9 +1451,12 @@ lemma sdiff_union_distrib (s t₁ t₂ : finset α) : s \ (t₁ ∪ t₂) = (s \
 
 lemma union_sdiff_self (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
 
+-- TODO: Do we want to delete this lemma and `finset.disj_union_singleton`,
+-- or instead add `finset.union_singleton`/`finset.singleton_union`?
 lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
 by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
+-- This lemma matches `finset.insert_eq` in functionality.
 lemma erase_eq (s : finset α) (a : α) : s.erase a = s \ {a} := (sdiff_singleton_eq_erase _ _).symm
 
 lemma disjoint_erase_comm : disjoint (s.erase a) t ↔ disjoint s (t.erase a) :=
@@ -1486,6 +1490,13 @@ by simp_rw [erase_eq, union_sdiff_distrib]
 
 lemma insert_inter_distrib (s t : finset α) (a : α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
 by simp_rw [insert_eq, union_distrib_left]
+
+lemma cons_inter_distrib (hs : a ∉ s) (ht : a ∉ t) :
+  cons a (s ∩ t) (not_mem_mono (inter_subset_left _ _) hs) = cons a s hs ∩ cons a t ht :=
+by simp_rw [cons_eq_insert, insert_inter_distrib]
+
+lemma erase_sdiff_distrib (s t : finset α) (a : α) : (s \ t).erase a = s.erase a \ t.erase a :=
+by simp_rw [erase_eq, sdiff_sdiff, sup_sdiff_eq_sup le_rfl, sup_comm]
 
 lemma erase_union_of_mem (ha : a ∈ t) (s : finset α) : s.erase a ∪ t = s ∪ t :=
 by rw [←insert_erase (mem_union_right s ha), erase_union_distrib, ←union_insert, insert_erase ha]

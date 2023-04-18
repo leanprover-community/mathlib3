@@ -104,12 +104,13 @@ include Is I's Js
 where the derivative is taken as a continuous linear map.
 We have to assume that `f` is `C^(n+1)` at `(x₀, g(x₀))` and `g` is `C^n` at `x₀`.
 We have to insert a coordinate change from `x₀` to `x` to make the derivative sensible.
+This result is used to show that maps into the 1-jet bundle and cotangent bundle are smooth.
 `cont_mdiff_at.mfderiv_id` and `cont_mdiff_at.mfderiv_const` are special cases of this.
 
-This lemma should be generalized to a `cont_mdiff_within_at` for `mfderiv_within`. If we do that, we
+This result should be generalized to a `cont_mdiff_within_at` for `mfderiv_within`. If we do that, we
 can deduce `cont_mdiff_on.cont_mdiff_on_tangent_map_within` from this.
 -/
-lemma cont_mdiff_at.mfderiv {x₀ : N} (f : N → M → M') (g : N → M)
+theorem cont_mdiff_at.mfderiv {x₀ : N} (f : N → M → M') (g : N → M)
   (hf : cont_mdiff_at (J.prod I) I' n (function.uncurry f) (x₀, g x₀))
   (hg : cont_mdiff_at J I m g x₀) (hmn : m + 1 ≤ n) :
   cont_mdiff_at J 𝓘(𝕜, E →L[𝕜] E') m

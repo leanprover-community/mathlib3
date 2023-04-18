@@ -1017,7 +1017,15 @@ begin
         exact measurable_prod_mk_left ht,
       end
     ... = ∫⁻ a, rnd_kernel ρ a univ ∂todo ρ - ∫⁻ a, rnd_kernel ρ a {x : ℝ | (a, x) ∈ t} ∂todo ρ :
-      by { rw lintegral_sub, sorry, sorry, sorry, }
+      begin
+        have h_le : (λ a, rnd_kernel ρ a {x : ℝ | (a, x) ∈ t}) ≤ᵐ[todo ρ] λ a, rnd_kernel ρ a univ,
+        { exact eventually_of_forall (λ a, measure_mono (subset_univ _)), },
+        rw lintegral_sub _ _ h_le,
+        { exact kernel.measurable_prod_mk_mem _ ht, },
+        { refine ((lintegral_mono_ae h_le).trans_lt _).ne,
+          rw lintegral_rnd_kernel_univ,
+          exact measure_lt_top ρ univ, },
+      end
     ... = ρ univ - ρ t : by rw [ht_eq, lintegral_rnd_kernel_univ]
     ... = ρ tᶜ : (measure_compl ht (measure_ne_top _ _)).symm, },
   { intros f hf_disj hf_meas hf_eq,

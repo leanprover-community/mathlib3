@@ -98,12 +98,13 @@ variables [∀ x, has_continuous_add (E₂ x)] [∀ x, has_continuous_smul 𝕜 
 
 instance bundle.continuous_linear_map.vector_prebundle.is_smooth :
   (bundle.continuous_linear_map.vector_prebundle (ring_hom.id 𝕜) F₁ E₁ F₂ E₂).is_smooth IB :=
-{ exists_smooth_coord_change := by {
+{ exists_smooth_coord_change := begin
     rintro _ ⟨e₁, e₂, he₁, he₂, rfl⟩ _ ⟨e₁', e₂', he₁', he₂', rfl⟩,
     resetI,
     refine ⟨continuous_linear_map_coord_change (ring_hom.id 𝕜) e₁ e₁' e₂ e₂',
     smooth_on_continuous_linear_map_coord_change IB,
-    continuous_linear_map_coord_change_apply (ring_hom.id 𝕜) e₁ e₁' e₂ e₂'⟩ } }
+    continuous_linear_map_coord_change_apply (ring_hom.id 𝕜) e₁ e₁' e₂ e₂'⟩
+  end }
 
 /-- Todo: remove this definition. It is probably needed because of the type-class pi bug
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue

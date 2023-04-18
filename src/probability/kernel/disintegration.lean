@@ -41,6 +41,16 @@ namespace probability_theory
 
 variables {α β ι : Type*} {mα : measurable_space α}
 
+lemma tendsto_of_antitone {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : antitone f) :
+  tendsto f at_top at_bot ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
+@tendsto_of_monotone ι αᵒᵈ _ _ _ _ _ h_mono
+
+lemma tendsto_at_top_at_bot_iff_of_antitone [nonempty α] [semilattice_sup α] [preorder β]
+  {f : α → β} (hf : antitone f) :
+  tendsto f at_top at_bot ↔ ∀ b : β, ∃ a : α, f a ≤ b :=
+@tendsto_at_top_at_top_iff_of_monotone α βᵒᵈ _ _ _ _ hf
+
 lemma image_fst_prod (s : set α) (t : set β) (ht : t.nonempty) :
   prod.fst '' s ×ˢ t = s :=
 begin
@@ -442,7 +452,21 @@ lemma tendsto_rnd_r_at_bot_zero (ρ : measure (α × ℝ)) [is_finite_measure ρ
 begin
   have h_mono := rnd_r_mono ρ,
   have h_exists : ∀ᵐ a ∂(todo ρ), ∃ l, tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 l),
-  { sorry, },
+  { suffices : ∀ᵐ a ∂(todo ρ), ∃ l, tendsto (λ r, rnd_r ρ (-r) a) at_top (𝓝 l),
+    { filter_upwards [this] with a ha,
+      obtain ⟨l, hal⟩ := ha,
+      refine ⟨l, _⟩,
+      have h_eq_neg : (λ (r : ℚ), rnd_r ρ r a) = (λ (r : ℚ), rnd_r ρ (- -r) a),
+      { simp_rw neg_neg, },
+      rw h_eq_neg,
+      exact hal.comp tendsto_neg_at_bot_at_top, },
+    filter_upwards [h_mono] with a ha,
+    have h_anti : antitone (λ r, rnd_r ρ (-r) a) := λ p q hpq, ha (neg_le_neg hpq),
+    have h_tendsto : tendsto (λ r, rnd_r ρ (-r) a) at_top at_bot
+      ∨ ∃ l, tendsto (λ r, rnd_r ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
+    cases h_tendsto with h_bot h_tendsto,
+    { sorry, },
+    { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,
     if h : ∃ l, tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 l) then h.some else 0,

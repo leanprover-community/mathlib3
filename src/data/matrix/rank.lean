@@ -169,6 +169,11 @@ This section contains lemmas about the rank of `matrix.transpose` and `matrix.co
 Unfortunately the proofs are essentially duplicated between the two; `ℚ` is a linearly-ordered ring
 but can't be a star-ordered ring, while `ℂ` is star-ordered (with `open_locale complex_order`) but
 not linearly ordered. For now we don't prove the transpose case for `ℂ`.
+
+TODO: the lemmas `matrix.rank_transpose` and `matrix.rank_conj_transpose` current follow a short
+proof that is a simple consequence of `matrix.rank_transpose_mul_self` and
+`matrix.rank_conj_transpose_mul_self`. This proof pulls in unecessary assumptions on `R`, and should
+be replaced with a proof that uses Gaussian reduction or argues via linear combinations.
 -/
 
 section star_ordered_field

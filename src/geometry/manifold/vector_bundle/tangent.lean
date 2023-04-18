@@ -302,6 +302,11 @@ by { unfold_coes, simp_rw [tangent_bundle_model_space_chart_at], refl }
 by { unfold_coes,
   simp_rw [local_homeomorph.symm_to_local_equiv, tangent_bundle_model_space_chart_at], refl }
 
+lemma tangent_bundle_core_coord_change_model_space (x x' z : H) :
+  (tangent_bundle_core I H).coord_change (achart H x) (achart H x') z =
+  continuous_linear_map.id 𝕜 E :=
+by { ext v, exact (tangent_bundle_core I H).coord_change_self (achart _ z) z (mem_univ _) v }
+
 variable (H)
 /-- The canonical identification between the tangent bundle to the model space and the product,
 as a homeomorphism -/

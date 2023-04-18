@@ -107,8 +107,8 @@ We have to insert a coordinate change from `x₀` to `x` to make the derivative 
 This result is used to show that maps into the 1-jet bundle and cotangent bundle are smooth.
 `cont_mdiff_at.mfderiv_id` and `cont_mdiff_at.mfderiv_const` are special cases of this.
 
-This result should be generalized to a `cont_mdiff_within_at` for `mfderiv_within`. If we do that, we
-can deduce `cont_mdiff_on.cont_mdiff_on_tangent_map_within` from this.
+This result should be generalized to a `cont_mdiff_within_at` for `mfderiv_within`.
+If we do that, we can deduce `cont_mdiff_on.cont_mdiff_on_tangent_map_within` from this.
 -/
 theorem cont_mdiff_at.mfderiv {x₀ : N} (f : N → M → M') (g : N → M)
   (hf : cont_mdiff_at (J.prod I) I' n (function.uncurry f) (x₀, g x₀))

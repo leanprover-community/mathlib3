@@ -105,6 +105,48 @@ begin
       neg_zero, finset.univ_unique] },
 end
 
+-- TODO: move
+lemma div_le_one_of_ge {α} [linear_ordered_field α] {a b : α}
+  (h : b ≤ a) (hb : b ≤ 0) : a / b ≤ 1 :=
+by simpa only [neg_div_neg_eq] using div_le_one_of_le (neg_le_neg h) (neg_nonneg_of_nonpos hb)
+
+lemma le_mul_of_le_one_left {α} {a b : α} [strict_ordered_ring α] (hb : b ≤ 0) (ha : a ≤ 1) :
+  b ≤ a * b :=
+by simpa only [mul_neg, neg_le_neg_iff] using mul_le_of_le_one_left (neg_nonneg_of_nonpos hb) ha
+
+/-- The axis aligned parallepiped over `ι → ℝ` is a parallepiped. -/
+lemma parallelepiped_single {ι} [decidable_eq ι] [fintype ι] (a : ι → ℝ) :
+  parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=
+begin
+  ext,
+  simp_rw [set.uIcc, mem_parallelepiped_iff, set.mem_Icc, pi.le_def, ←forall_and_distrib,
+    pi.inf_apply, pi.sup_apply, ←pi.single_smul', pi.one_apply, pi.zero_apply, ←pi.smul_apply',
+    finset.univ_sum_single (_ : ι → ℝ)],
+  split,
+  { rintros ⟨t, ht, rfl⟩ i,
+    have hi := ht i,
+    simp_rw [smul_eq_mul, pi.mul_apply],
+    cases le_total (a i) 0 with hai hai,
+    { rw [sup_eq_left.mpr hai, inf_eq_right.mpr hai],
+      refine ⟨le_mul_of_le_one_left hai hi.2, mul_nonpos_of_nonneg_of_nonpos hi.1 hai⟩ },
+    { rw [sup_eq_right.mpr hai, inf_eq_left.mpr hai],
+      exact ⟨mul_nonneg hi.1 hai, mul_le_of_le_one_left hai hi.2⟩ } },
+  { intro h,
+    refine ⟨λ i, x i / a i, λ i, _, funext $ λ i, _⟩,
+    { have hi := h i,
+      cases le_total (a i) 0 with hai hai,
+      { rw [sup_eq_left.mpr hai, inf_eq_right.mpr hai] at hi,
+        refine ⟨div_nonneg_of_nonpos hi.2 hai, div_le_one_of_ge hi.1 hai⟩ },
+      { rw [sup_eq_right.mpr hai, inf_eq_left.mpr hai] at hi,
+        exact ⟨div_nonneg hi.1 hai, div_le_one_of_le hi.2 hai⟩ } },
+    { have hi := h i,
+      simp only [smul_eq_mul, pi.mul_apply],
+      cases eq_or_ne (a i) 0 with hai hai,
+      { rw [hai, inf_idem, sup_idem, ←le_antisymm_iff] at hi,
+        rw [hai, ← hi, zero_div, zero_mul] },
+      { rw div_mul_cancel _ hai } } },
+end
+
 end add_comm_group
 
 section normed_space

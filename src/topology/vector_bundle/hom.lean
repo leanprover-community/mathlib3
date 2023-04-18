@@ -61,7 +61,7 @@ include F₁ F₂
 We intentionally add `F₁` and `F₂` as arguments to this type, so that instances on this type
 (that depend on `F₁` and `F₂`) actually refer to `F₁` and `F₂`. -/
 @[derive inhabited, nolint unused_arguments]
-def bundle.continuous_linear_map (x : B) : Type* :=
+protected def bundle.continuous_linear_map (x : B) : Type* :=
 E₁ x →SL[σ] E₂ x
 
 instance bundle.continuous_linear_map.add_monoid_hom_class (x : B) :
@@ -315,6 +315,8 @@ lemma trivialization.continuous_linear_map_apply
   e₁.continuous_linear_map σ e₂ p =
   ⟨p.1, (e₂.continuous_linear_map_at 𝕜₂ p.1).comp $ p.2.comp $ e₁.symmL 𝕜₁ p.1⟩ :=
 rfl
+
+omit he₁ he₂
 
 lemma hom_trivialization_at_apply (x₀ : B)
   (x : total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :

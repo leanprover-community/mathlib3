@@ -893,6 +893,8 @@ def in_coordinates (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y) : F →S
 ((trivialization_at F' E' y₀).continuous_linear_map_at 𝕜₂ y).comp $ ϕ.comp $
 (trivialization_at F E x₀).symmL 𝕜₁ x
 
+variables {F F'}
+
 /-- rewrite `in_coordinates` using continuous linear equivalences. -/
 lemma in_coordinates_eq (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y)
   (hx : x ∈ (trivialization_at F E x₀).base_set)

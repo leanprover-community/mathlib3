@@ -24,6 +24,7 @@ This file defines `hermite n`, the nth probabilist's Hermite polynomial.
 noncomputable theory
 open polynomial
 
+
 /-- the nth probabilist's Hermite polynomial -/
 noncomputable def hermite : ℕ → polynomial ℤ
 | 0     := 1

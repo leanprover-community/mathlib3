@@ -24,16 +24,17 @@ This file defines `hermite n`, the nth probabilist's Hermite polynomial.
 noncomputable theory
 open polynomial
 
+namespace polynomial
 
 /-- the nth probabilist's Hermite polynomial -/
 noncomputable def hermite : ℕ → polynomial ℤ
 | 0     := 1
 | (n+1) := X * (hermite n) - (hermite n).derivative
 
-@[simp] lemma hermite_succ {n : ℕ} : hermite (n+1) =  X * (hermite n) - (hermite n).derivative :=
+@[simp] lemma hermite_succ (n : ℕ) : hermite (n+1) =  X * (hermite n) - (hermite n).derivative :=
 by rw hermite
 
-lemma hermite_eq_iter {n : ℕ} : hermite n = nat.iterate (λp, X*p - p.derivative) n 1 :=
+lemma hermite_eq_iter (n : ℕ) : hermite n = nat.iterate (λp, X*p - p.derivative) n 1 :=
 begin
   induction n with n ih,
   { refl },
@@ -47,3 +48,5 @@ begin
   rw [hermite_succ, hermite_zero],
   simp only [map_one, mul_one, derivative_one, sub_zero]
 end
+
+end polynomial

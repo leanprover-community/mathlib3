@@ -41,6 +41,18 @@ namespace probability_theory
 
 variables {α β ι : Type*} {mα : measurable_space α}
 
+lemma ennreal.tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
+  {f : ι → ℝ≥0∞} (h : tendsto f at_top at_bot) :
+  tendsto f at_top (𝓝 0) :=
+begin
+  rw tendsto_at_bot at h,
+  specialize h 0,
+  rw eventually_at_top at h,
+  obtain ⟨i, hi⟩ := h,
+  rw ennreal.tendsto_at_top_zero,
+  exact λ ε hε, ⟨i, λ n hn, (hi n hn).trans (zero_le _)⟩,
+end
+
 lemma tendsto_of_antitone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : antitone f) :
   tendsto f at_top at_bot ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
@@ -465,7 +477,7 @@ begin
     have h_tendsto : tendsto (λ r, rnd_r ρ (-r) a) at_top at_bot
       ∨ ∃ l, tendsto (λ r, rnd_r ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
     cases h_tendsto with h_bot h_tendsto,
-    { sorry, },
+    { exact ⟨0, ennreal.tendsto_at_top_at_bot h_bot⟩, },
     { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,

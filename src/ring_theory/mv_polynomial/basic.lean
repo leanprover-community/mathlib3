@@ -12,6 +12,9 @@ import linear_algebra.finsupp_vector_space
 /-!
 # Multivariate polynomials over commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basic facts about multivariate polynomials over commutative rings, for example
 that the monomials form a basis.
 

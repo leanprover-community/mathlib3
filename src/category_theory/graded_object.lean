@@ -11,6 +11,9 @@ import category_theory.concrete_category.basic
 /-!
 # The category of graded objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For any type `β`, a `β`-graded object over some category `C` is just
 a function `β → C` into the objects of `C`.
 We put the "pointwise" category structure on these, as the non-dependent specialization of

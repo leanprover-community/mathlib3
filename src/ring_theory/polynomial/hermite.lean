@@ -13,9 +13,7 @@ This file defines `hermite n`, the nth probabilist's Hermite polynomial.
 
 ## Main definitions
 
-* `x_sub_dx`  : the operation `(x - d/dx)` used to recursively define the Hermite polynomials
-* `hermite n` : the nth probabilist's Hermite polynomial, defined as a `polynomial ℤ`, using
-                `x_sub_dx` recursively
+* `hermite n` : the nth probabilist's Hermite polynomial, defined recursively as a `polynomial ℤ`
 
 ## References
 
@@ -38,7 +36,7 @@ lemma hermite_eq_iter {n : ℕ} : hermite n = nat.iterate (λp, X*p -p.derivativ
 begin
   induction n with n ih,
   { refl },
-{ rw [function.iterate_succ_apply', ← ih, hermite_succ] }
+  { rw [function.iterate_succ_apply', ← ih, hermite_succ] }
 end
 
 @[simp] lemma hermite_zero : hermite 0 = C 1 := rfl

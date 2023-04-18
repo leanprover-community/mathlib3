@@ -5,11 +5,15 @@ Authors: Rémy Degenne
 -/
 import measure_theory.constructions.borel_space
 import measure_theory.measure.stieltjes
-import probability.kernel.invariance
+import probability.kernel.composition
 import measure_theory.decomposition.radon_nikodym
 
 /-!
 # Disintegration of measures
+
+We prove that for any finite measure `ρ` on `α × ℝ`, there exists a kernel
+`rnd_kernel ρ : kernel α ℝ` and a measure `todo ρ : measure α` such that
+`ρ = ((kernel.const unit (todo ρ)) ⊗ₖ (kernel.prod_mk_left (rnd_kernel ρ) unit)) (unit.star)`.
 
 ## Main definitions
 
@@ -18,6 +22,14 @@ import measure_theory.decomposition.radon_nikodym
 ## Main statements
 
 * `foo_bar_unique`
+
+## Future extensions
+
+* We can obtain a disintegration for measures on `α × E` for a standard borel space `E` by using
+  that `E` is measurably equivalent to `ℝ`, `ℤ` or a finite set.
+* The finite measure hypothesis can be weakened to σ-finite. The proof uses the finite case.
+* Using the Radon-Nikodym theorem for kernels, we can extend this to disintegration of
+  kernels.
 
 -/
 
@@ -50,8 +62,13 @@ begin
   refine le_antisymm _ _,
   { refine le_cinfi (λ a, (ennreal.to_real_le_to_real h_ne_top (hf a)).mpr _),
     exact infi_le _ _, },
-  {
-    sorry, },
+  { rw ← @ennreal.to_real_of_real (⨅ i, (f i).to_real),
+    swap, { exact le_cinfi (λ i, ennreal.to_real_nonneg), },
+    rw ennreal.to_real_le_to_real ennreal.of_real_ne_top h_ne_top,
+    refine le_infi (λ i, ennreal.of_real_le_of_le_to_real _),
+    refine cinfi_le ⟨0, λ i hi, _⟩ i,
+    obtain ⟨j, rfl⟩ := mem_range.mpr hi,
+    exact ennreal.to_real_nonneg, },
 end
 
 lemma is_pi_system_Ioc_rat : @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
@@ -573,7 +590,7 @@ begin
   exact (measure.measurable_rn_deriv _ _).ennreal_to_real,
 end
 
-lemma zero_le_rnd' (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
+lemma rnd'_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   0 ≤ rnd' ρ a r :=
 begin
   by_cases h : a ∈ rnd_prop_set ρ,
@@ -723,16 +740,16 @@ begin
   { refine ⟨0, λ z, _⟩,
     rw mem_range,
     rintros ⟨u, rfl⟩,
-    exact zero_le_rnd' ρ a _, },
+    exact rnd'_nonneg ρ a _, },
   { refl, },
 end
 
-lemma zero_le_rnd'' (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
+lemma rnd''_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
   0 ≤ rnd'' ρ a r :=
 begin
   haveI : nonempty {r' : ℚ // r < ↑r'},
   { obtain ⟨r, hrx⟩ := exists_rat_gt r, exact ⟨⟨r, hrx⟩⟩, },
-  exact le_cinfi (λ r', zero_le_rnd' ρ a _),
+  exact le_cinfi (λ r', rnd'_nonneg ρ a _),
 end
 
 lemma tendsto_rnd''_Ioi (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
@@ -752,7 +769,7 @@ begin
       { refine ⟨0, λ z, _⟩,
         rw mem_image,
         rintros ⟨u, hux, rfl⟩,
-        exact zero_le_rnd'' ρ a u, },
+        exact rnd''_nonneg ρ a u, },
       { rw mem_Ioi,
         refine hxy.trans _,
         exact_mod_cast hyr, }, },
@@ -765,7 +782,7 @@ begin
       { refine ⟨0, λ z, _⟩,
         rw mem_range,
         rintros ⟨u, rfl⟩,
-        exact zero_le_rnd'' ρ a _, },
+        exact rnd''_nonneg ρ a _, },
       { refine monotone_rnd'' ρ a (le_trans _ hyq.le),
         norm_cast, }, }, },
   have h'' : (⨅ r : {r' : ℚ // x < r'}, rnd'' ρ a r) = ⨅ r : {r' : ℚ // x < r'}, rnd' ρ a r,

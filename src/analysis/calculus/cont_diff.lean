@@ -1059,19 +1059,24 @@ begin
   exact this m le_rfl
 end
 
-/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that `s ⊆ g⁻¹(t)`. -/
+/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that `x₀ ∈ s` and there
+  are unique derivatives everywhere within `t`. -/
 lemma cont_diff_within_at.fderiv_within' {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ∞}
-  (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))
+  (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (s ×ˢ t) (x₀, g x₀))
   (hg : cont_diff_within_at 𝕜 m g s x₀)
-  (ht : ∀ᶠ x in 𝓝[insert x₀ s] x₀, unique_diff_within_at 𝕜 t (g x))
-  (hmn : m + 1 ≤ n)
-  (hst : s ⊆ g ⁻¹' t) :
+  (ht : unique_diff_on 𝕜 t)
+  (hmn : m + 1 ≤ n) (hx₀ : x₀ ∈ s)
+  (hgt : t ∈ 𝓝[g '' s] g x₀) :
   cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x₀ :=
-hf.fderiv_within'' hg ht hmn $ mem_of_superset self_mem_nhds_within $ image_subset_iff.mpr hst
+begin
+  have : ∀ᶠ x' in 𝓝[s] x₀, g x' ∈ t :=
+    hg.continuous_within_at.tendsto_nhds_within (maps_to_image _ _) hgt,
+  rw [← insert_eq_self.mpr hx₀] at hf this,
+  exact hf.fderiv_within'' hg (this.mono (λ y hy, ht _ hy)) hmn hgt
+end
 
-/-- A special case of `cont_diff_within_at.fderiv_within'` where we require that `x₀ ∈ s` and there
-  are unique derivatives everywhere within `t`. -/
+/-- A special case of `cont_diff_within_at.fderiv_within'` where we require that `s ⊆ g⁻¹(t)`. -/
 lemma cont_diff_within_at.fderiv_within {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (s ×ˢ t) (x₀, g x₀))
@@ -1080,12 +1085,7 @@ lemma cont_diff_within_at.fderiv_within {f : E → F → G} {g : E → F}
   (hmn : m + 1 ≤ n) (hx₀ : x₀ ∈ s)
   (hst : s ⊆ g ⁻¹' t) :
   cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x₀ :=
-begin
-  rw [← insert_eq_self.mpr hx₀] at hf,
-  refine hf.fderiv_within' hg _ hmn hst,
-  rw [insert_eq_self.mpr hx₀],
-  exact eventually_of_mem self_mem_nhds_within (λ x hx, ht _ (hst hx))
-end
+hf.fderiv_within' hg ht hmn hx₀ $ mem_of_superset self_mem_nhds_within $ image_subset_iff.mpr hst
 
 /-- `x ↦ fderiv_within 𝕜 (f x) t (g x) (k x)` is smooth at a point within a set. -/
 lemma cont_diff_within_at.fderiv_within_apply {f : E → F → G} {g k : E → F}

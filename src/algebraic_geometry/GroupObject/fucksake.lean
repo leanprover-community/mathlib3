@@ -14,5 +14,5 @@ def comultiplication :
   R[T;T⁻¹] →+* R[T;T⁻¹] ⊗[R] R[T;T⁻¹] :=
 @is_localization.lift (polynomial R) _ _ _ _ _ _ _ laurent_polynomial.is_localization
 (polynomial.eval₂_ring_hom (algebra_map R (R[T;T⁻¹] ⊗[R] R[T;T⁻¹])) x) sorry
-
+#exit
 #check Scheme.Spec_map (CommRing.of_hom $ comultiplication R x)

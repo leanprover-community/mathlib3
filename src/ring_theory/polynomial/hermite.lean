@@ -9,11 +9,11 @@ import data.polynomial.derivative
 /-!
 # Hermite polynomials
 
-This file defines `hermite n`, the nth probabilist's Hermite polynomial.
+This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomial.
 
 ## Main definitions
 
-* `hermite n` : the nth probabilist's Hermite polynomial, defined recursively as a `polynomial ℤ`
+* `polynomial.hermite n`: the `n`th probabilist's Hermite polynomial, defined recursively as a `polynomial ℤ`
 
 ## References
 

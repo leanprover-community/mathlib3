@@ -17,7 +17,7 @@ This file defines `hermite n`, the nth probabilist's Hermite polynomial.
 
 ## References
 
-[Hermite Polynomials](https://en.wikipedia.org/wiki/Hermite_polynomials)
+* [Hermite Polynomials](https://en.wikipedia.org/wiki/Hermite_polynomials)
 
 -/
 

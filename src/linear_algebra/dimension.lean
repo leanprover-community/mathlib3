@@ -14,6 +14,9 @@ import set_theory.cardinal.cofinality
 /-!
 # Dimension of modules and vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * The rank of a module is defined as `module.rank : cardinal`.
@@ -63,10 +66,6 @@ For vector spaces (i.e. modules over a field), we have
 * `rank_range_add_rank_ker`: the rank-nullity theorem.
 
 ## Implementation notes
-
-There is a naming discrepancy: most of the theorem names refer to `rank`,
-even though the definition is of `module.rank`.
-This reflects that `module.rank` was originally called `rank`, and only defined for vector spaces.
 
 Many theorems in this file are not universe-generic when they relate dimensions
 in different universes. They should be as general as they can be without
@@ -734,6 +733,12 @@ begin
   exact le_top,
 end
 
+/-- A version of `linear_independent_le_span` for `finset`. -/
+lemma linear_independent_le_span_finset {ι : Type*} (v : ι → M) (i : linear_independent R v)
+  (w : finset M) (s : span R (w : set M) = ⊤) :
+  #ι ≤ w.card :=
+by simpa only [finset.coe_sort_coe, fintype.card_coe] using linear_independent_le_span v i w s
+
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
 we handle the case where the basis `b` is infinite.
@@ -1321,34 +1326,51 @@ variables [add_comm_group V'] [module K V']
 /-- `rank f` is the rank of a `linear_map` `f`, defined as the dimension of `f.range`. -/
 def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
 
-lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
+lemma rank_le_range (f : V →ₗ[K] V') : rank f ≤ module.rank K V' :=
 rank_submodule_le _
+
+lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
+rank_range_le _
 
 @[simp] lemma rank_zero [nontrivial K] : rank (0 : V →ₗ[K] V') = 0 :=
 by rw [rank, linear_map.range_zero, rank_bot]
 
 variables [add_comm_group V''] [module K V'']
 
-lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
+lemma rank_comp_le_left (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
 begin
   refine rank_le_of_submodule _ _ _,
   rw [linear_map.range_comp],
   exact linear_map.map_le_range,
 end
 
+lemma lift_rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
+  cardinal.lift.{v'} (rank (f.comp g)) ≤ cardinal.lift.{v''} (rank g) :=
+by rw [rank, rank, linear_map.range_comp]; exact lift_rank_map_le _ _
+
+/-- The rank of the composition of two maps is less than the minimum of their ranks. -/
+lemma lift_rank_comp_le (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
+  cardinal.lift.{v'} (rank (f.comp g)) ≤
+    min (cardinal.lift.{v'} (rank f)) (cardinal.lift.{v''} (rank g)) :=
+le_min (cardinal.lift_le.mpr $ rank_comp_le_left _ _) (lift_rank_comp_le_right _ _)
+
 variables [add_comm_group V'₁] [module K V'₁]
 
-lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
-by rw [rank, rank, linear_map.range_comp]; exact rank_map_le _ _
+lemma rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
+by simpa only [cardinal.lift_id] using lift_rank_comp_le_right g f
+
+/-- The rank of the composition of two maps is less than the minimum of their ranks.
+
+See `lift_rank_comp_le` for the universe-polymorphic version. -/
+lemma rank_comp_le (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) :
+  rank (f.comp g) ≤ min (rank f) (rank g) :=
+by simpa only [cardinal.lift_id] using lift_rank_comp_le g f
 
 end ring
 
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables [add_comm_group V'] [module K V']
-
-lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
-by { rw [← rank_range_add_rank_ker f], exact self_le_add_right _ _ }
 
 lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
 calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :

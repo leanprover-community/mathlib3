@@ -3,7 +3,6 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import ring_theory.localization.away
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
 import ring_theory.unique_factorization_domain
@@ -100,5 +99,7 @@ lemma is_unit_denom_of_num_eq_zero {x : K} (h : num A x = 0) : is_unit (denom A 
 num_denom_reduced A x (h.symm ▸ dvd_zero _) dvd_rfl
 
 end num_denom
+
+variables (S)
 
 end is_fraction_ring

@@ -109,10 +109,13 @@ instance bundle.continuous_linear_map.vector_prebundle.is_smooth :
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue
 -/
 @[reducible]
-def smooth_vector_bundle.continuous_linear_map.aux (x) : topological_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂ x) :=
+def smooth_vector_bundle.continuous_linear_map.aux (x) :
+  topological_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂ x) :=
 by apply_instance
 local attribute [instance, priority 1] smooth_vector_bundle.continuous_linear_map.aux
 
 instance smooth_vector_bundle.continuous_linear_map :
-  smooth_vector_bundle (F₁ →L[𝕜] F₂) (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂) IB :=
-(bundle.continuous_linear_map.vector_prebundle (ring_hom.id 𝕜) F₁ E₁ F₂ E₂).to_smooth_vector_bundle IB
+  smooth_vector_bundle (F₁ →L[𝕜] F₂) (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂)
+    IB :=
+(bundle.continuous_linear_map.vector_prebundle (ring_hom.id 𝕜) F₁ E₁ F₂ E₂).to_smooth_vector_bundle
+  IB

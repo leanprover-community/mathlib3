@@ -110,11 +110,12 @@ lemma div_le_one_of_ge {α} [linear_ordered_field α] {a b : α}
   (h : b ≤ a) (hb : b ≤ 0) : a / b ≤ 1 :=
 by simpa only [neg_div_neg_eq] using div_le_one_of_le (neg_le_neg h) (neg_nonneg_of_nonpos hb)
 
+-- TODO: move
 lemma le_mul_of_le_one_left {α} {a b : α} [strict_ordered_ring α] (hb : b ≤ 0) (ha : a ≤ 1) :
   b ≤ a * b :=
 by simpa only [mul_neg, neg_le_neg_iff] using mul_le_of_le_one_left (neg_nonneg_of_nonpos hb) ha
 
-/-- The axis aligned parallepiped over `ι → ℝ` is a parallepiped. -/
+/-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
 lemma parallelepiped_single {ι} [decidable_eq ι] [fintype ι] (a : ι → ℝ) :
   parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=
 begin

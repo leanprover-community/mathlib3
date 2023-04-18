@@ -12,8 +12,10 @@ import measure_theory.decomposition.radon_nikodym
 # Disintegration of measures
 
 We prove that for any finite measure `ρ` on `α × ℝ`, there exists a kernel
-`rnd_kernel ρ : kernel α ℝ` and a measure `todo ρ : measure α` such that
+`rnd_kernel ρ : kernel α ℝ` and a measure `ρ.fst : measure α` such that
 `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (rnd_kernel ρ) unit)) (unit.star)`.
+Equivalently, for any measurable space `γ`,
+`kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (rnd_kernel ρ) γ)`.
 
 ## Main definitions
 
@@ -35,13 +37,20 @@ We prove that for any finite measure `ρ` on `α × ℝ`, there exists a kernel
 
 open measure_theory set filter
 
-open_locale ennreal measure_theory topology
+open_locale ennreal measure_theory topology probability_theory
 
-namespace probability_theory
+section aux_lemmas_to_be_moved
 
-variables {α β ι : Type*} {mα : measurable_space α}
+variables {α β ι : Type*}
 
-section aux_lemmas_to_be_moved_lated
+lemma lintegral_sub' {m : measurable_space α} {μ : measure α} {f g : α → ℝ≥0∞}
+  (hg : ae_measurable g μ) (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
+  ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
+begin
+  refine ennreal.eq_sub_of_add_eq hg_fin _,
+  rw [← lintegral_add_right' _ hg],
+  exact lintegral_congr_ae (h_le.mono $ λ x hx, tsub_add_cancel_of_le hx)
+end
 
 lemma ennreal.tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
   {f : ι → ℝ≥0∞} (h : tendsto f at_top at_bot) :
@@ -149,8 +158,7 @@ begin
 end
 
 lemma borel_eq_generate_from_Iic_rat :
-  borel ℝ
-    = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
+  borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
 begin
   refine le_antisymm _ _,
   swap,
@@ -169,7 +177,49 @@ begin
   { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, },
 end
 
-end aux_lemmas_to_be_moved_lated
+end aux_lemmas_to_be_moved
+
+namespace measure_theory.measure
+
+variables {α β ι : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+
+include mα mβ
+
+/-- Marginal measure on `α` obtained from a measure on `α × β`. -/
+noncomputable
+def fst (ρ : measure (α × β)) : measure α := ρ.map prod.fst
+
+lemma fst_apply (ρ : measure (α × β)) {s : set α} (hs : measurable_set s) :
+  ρ.fst s = ρ (prod.fst ⁻¹' s) :=
+by rw [fst, measure.map_apply measurable_fst hs]
+
+lemma fst_univ (ρ : measure (α × β)) : ρ.fst univ = ρ univ :=
+by rw [fst_apply ρ measurable_set.univ, preimage_univ]
+
+instance {ρ : measure (α × β)} [is_finite_measure ρ] : is_finite_measure ρ.fst :=
+by { rw fst, apply_instance, }
+
+/-- Marginal measure on `β` obtained from a measure on `α × β`. -/
+noncomputable
+def snd (ρ : measure (α × β)) : measure β := ρ.map prod.snd
+
+lemma snd_apply (ρ : measure (α × β)) {s : set β} (hs : measurable_set s) :
+  ρ.snd s = ρ (prod.snd ⁻¹' s) :=
+by rw [snd, measure.map_apply measurable_snd hs]
+
+lemma snd_univ (ρ : measure (α × β)) : ρ.snd univ = ρ univ :=
+by rw [snd_apply ρ measurable_set.univ, preimage_univ]
+
+instance {ρ : measure (α × β)} [is_finite_measure ρ] : is_finite_measure ρ.snd :=
+by { rw snd, apply_instance, }
+
+end measure_theory.measure
+
+open measure_theory
+
+namespace probability_theory
+
+variables {α β ι : Type*} {mα : measurable_space α}
 
 include mα
 
@@ -189,6 +239,9 @@ lemma todo_r_apply (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measu
   todo_r ρ r s = ρ (s ×ˢ Iic r) :=
 measure.of_measurable_apply s hs
 
+lemma todo_r_univ (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r univ = ρ (univ ×ˢ Iic r) :=
+todo_r_apply ρ r measurable_set.univ
+
 lemma todo_r_mono (ρ : measure (α × ℝ)) {r r' : ℚ} (h_le : r ≤ r') :
   todo_r ρ r ≤ todo_r ρ r' :=
 begin
@@ -200,19 +253,7 @@ begin
   exact_mod_cast h_le,
 end
 
-lemma todo_r_univ (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r univ = ρ (univ ×ˢ Iic r) :=
-by rw [todo_r_apply ρ r measurable_set.univ]
-
--- todo: change all lemma names
-noncomputable
-def _root_.measure_theory.measure.fst (ρ : measure (α × ℝ)) : measure α := ρ.map prod.fst
-
-open measure_theory
-
-lemma todo_univ (ρ : measure (α × ℝ)) : ρ.fst univ = ρ univ :=
-by rw [measure.fst, measure.map_apply measurable_fst measurable_set.univ, preimage_univ]
-
-lemma todo_r_le_todo (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≤ ρ.fst :=
+lemma todo_r_le_fst (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≤ ρ.fst :=
 begin
   intros s hs,
   simp_rw [measure.fst, todo_r_apply ρ r hs, measure.map_apply measurable_fst hs],
@@ -221,14 +262,11 @@ begin
   exact hx.1,
 end
 
-lemma todo_r_ac_todo (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≪ ρ.fst :=
-measure.absolutely_continuous_of_le (todo_r_le_todo ρ r)
-
-instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] : is_finite_measure ρ.fst :=
-by { rw measure.fst, apply_instance, }
+lemma todo_r_ac_fst (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≪ ρ.fst :=
+measure.absolutely_continuous_of_le (todo_r_le_fst ρ r)
 
 instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℚ) : is_finite_measure (todo_r ρ r) :=
-is_finite_measure_of_le _ (todo_r_le_todo ρ _)
+is_finite_measure_of_le _ (todo_r_le_fst ρ _)
 
 lemma infi_todo_r_gt (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
   [is_finite_measure ρ] :
@@ -253,90 +291,7 @@ begin
   { exact ⟨⟨t+1, lt_add_one _⟩, measure_ne_top ρ _⟩, },
 end
 
-noncomputable
-def rnd_r (ρ : measure (α × ℝ)) (r : ℚ) : α → ℝ≥0∞ := measure.rn_deriv (todo_r ρ r) ρ.fst
-
-lemma with_density_rnd_r (ρ : measure (α × ℝ)) (r : ℚ) [is_finite_measure ρ] :
-  ρ.fst.with_density (rnd_r ρ r) = todo_r ρ r :=
-measure.absolutely_continuous_iff_with_density_rn_deriv_eq.mp (todo_r_ac_todo ρ r)
-
-lemma set_lintegral_rnd_r_todo (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measurable_set s)
-  [is_finite_measure ρ] :
-  ∫⁻ x in s, rnd_r ρ r x ∂ρ.fst = todo_r ρ r s :=
-begin
-  have : ∀ r, ∫⁻ x in s, rnd_r ρ r x ∂ρ.fst = ∫⁻ x in s, (rnd_r ρ r * 1) x ∂ρ.fst,
-  { simp only [mul_one, eq_self_iff_true, forall_const], },
-  rw [this, ← set_lintegral_with_density_eq_set_lintegral_mul _ _ _ hs],
-  { rw with_density_rnd_r ρ r,
-    simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
-      univ_inter], },
-  { exact measure.measurable_rn_deriv _ _, },
-  { rw (_ : (1 : α → ℝ≥0∞) = (λ _, 1)),
-    { exact measurable_const, },
-    { refl, }, },
-end
-
-lemma rnd_r_mono (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, monotone (λ r, rnd_r ρ r a) :=
-begin
-  simp_rw [monotone, ae_all_iff],
-  intros r r' hrr',
-  refine ae_le_of_forall_set_lintegral_le_of_sigma_finite _ _ _,
-  { exact measure.measurable_rn_deriv _ _, },
-  { exact measure.measurable_rn_deriv _ _, },
-  { intros s hs hs_fin,
-    rw [set_lintegral_rnd_r_todo ρ r hs, set_lintegral_rnd_r_todo ρ r' hs],
-    refine todo_r_mono ρ _ s hs,
-    exact_mod_cast hrr', },
-end
-
-lemma set_lintegral_infi_gt_rnd_r (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
-  [is_finite_measure ρ] :
-  ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst = todo_r ρ t s :=
-begin
-  refine le_antisymm _ _,
-  { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst ≤ todo_r ρ q s,
-    { intros q,
-      calc ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst
-          ≤ ∫⁻ x in s, rnd_r ρ q x ∂ρ.fst :
-        begin
-          refine set_lintegral_mono_ae _ _ _,
-          { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
-          { exact measure.measurable_rn_deriv _ _, },
-          { filter_upwards [rnd_r_mono] with a ha_mono,
-            exact λ _, infi_le _ q, },
-        end
-      ... = todo_r ρ q s : set_lintegral_rnd_r_todo ρ _ hs, },
-    calc ∫⁻ x in s, (⨅ (r : Ioi t), rnd_r ρ r x) ∂ρ.fst
-        ≤ ⨅ q : Ioi t, todo_r ρ q s : le_infi h
-    ... = todo_r ρ t s : infi_todo_r_gt ρ t hs, },
-  { calc todo_r ρ t s
-      = ∫⁻ x in s, rnd_r ρ t x ∂ρ.fst : (set_lintegral_rnd_r_todo ρ t hs).symm
-  ... ≤ ∫⁻ x in s, ⨅ (r : Ioi t), rnd_r ρ ↑r x ∂ρ.fst :
-    begin
-      refine set_lintegral_mono_ae _ _ _,
-      { exact measure.measurable_rn_deriv _ _, },
-      { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
-      { filter_upwards [rnd_r_mono] with a ha_mono,
-        exact λ _, le_infi (λ r, ha_mono (le_of_lt r.prop)), },
-    end, },
-end
-
-lemma rnd_r_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, ∀ r, rnd_r ρ r a ≤ 1 :=
-begin
-  rw ae_all_iff,
-  intros r,
-  refine ae_le_of_forall_set_lintegral_le_of_sigma_finite _ measurable_const _,
-  { exact measure.measurable_rn_deriv _ _, },
-  intros s hs hs_fin,
-  rw set_lintegral_rnd_r_todo ρ r hs,
-  simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
-  exact todo_r_le_todo ρ r s hs,
-end
-
-lemma tendsto_todo_r_at_top (ρ : measure (α × ℝ))
-  {s : set α} (hs : measurable_set s) :
+lemma tendsto_todo_r_at_top (ρ : measure (α × ℝ)) {s : set α} (hs : measurable_set s) :
   tendsto (λ r, todo_r ρ r s) at_top (𝓝 (ρ.fst s)) :=
 begin
   simp_rw [todo_r, measure.fst, measure.of_measurable_apply _ hs,
@@ -389,23 +344,102 @@ begin
   exact_mod_cast hqr,
 end
 
+noncomputable
+def rnd_r (ρ : measure (α × ℝ)) (r : ℚ) : α → ℝ≥0∞ := measure.rn_deriv (todo_r ρ r) ρ.fst
+
+lemma with_density_rnd_r (ρ : measure (α × ℝ)) (r : ℚ) [is_finite_measure ρ] :
+  ρ.fst.with_density (rnd_r ρ r) = todo_r ρ r :=
+measure.absolutely_continuous_iff_with_density_rn_deriv_eq.mp (todo_r_ac_fst ρ r)
+
+lemma set_lintegral_rnd_r_fst (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measurable_set s)
+  [is_finite_measure ρ] :
+  ∫⁻ x in s, rnd_r ρ r x ∂ρ.fst = todo_r ρ r s :=
+begin
+  have : ∀ r, ∫⁻ x in s, rnd_r ρ r x ∂ρ.fst = ∫⁻ x in s, (rnd_r ρ r * 1) x ∂ρ.fst,
+  { simp only [mul_one, eq_self_iff_true, forall_const], },
+  rw [this, ← set_lintegral_with_density_eq_set_lintegral_mul _ _ _ hs],
+  { rw with_density_rnd_r ρ r,
+    simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
+      univ_inter], },
+  { exact measure.measurable_rn_deriv _ _, },
+  { rw (_ : (1 : α → ℝ≥0∞) = (λ _, 1)),
+    { exact measurable_const, },
+    { refl, }, },
+end
+
+lemma rnd_r_mono (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, monotone (λ r, rnd_r ρ r a) :=
+begin
+  simp_rw [monotone, ae_all_iff],
+  intros r r' hrr',
+  refine ae_le_of_forall_set_lintegral_le_of_sigma_finite _ _ _,
+  { exact measure.measurable_rn_deriv _ _, },
+  { exact measure.measurable_rn_deriv _ _, },
+  { intros s hs hs_fin,
+    rw [set_lintegral_rnd_r_fst ρ r hs, set_lintegral_rnd_r_fst ρ r' hs],
+    refine todo_r_mono ρ _ s hs,
+    exact_mod_cast hrr', },
+end
+
+lemma set_lintegral_infi_gt_rnd_r (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
+  [is_finite_measure ρ] :
+  ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst = todo_r ρ t s :=
+begin
+  refine le_antisymm _ _,
+  { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst ≤ todo_r ρ q s,
+    { intros q,
+      calc ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst
+          ≤ ∫⁻ x in s, rnd_r ρ q x ∂ρ.fst :
+        begin
+          refine set_lintegral_mono_ae _ _ _,
+          { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
+          { exact measure.measurable_rn_deriv _ _, },
+          { filter_upwards [rnd_r_mono] with a ha_mono,
+            exact λ _, infi_le _ q, },
+        end
+      ... = todo_r ρ q s : set_lintegral_rnd_r_fst ρ _ hs, },
+    calc ∫⁻ x in s, (⨅ (r : Ioi t), rnd_r ρ r x) ∂ρ.fst
+        ≤ ⨅ q : Ioi t, todo_r ρ q s : le_infi h
+    ... = todo_r ρ t s : infi_todo_r_gt ρ t hs, },
+  { calc todo_r ρ t s
+      = ∫⁻ x in s, rnd_r ρ t x ∂ρ.fst : (set_lintegral_rnd_r_fst ρ t hs).symm
+  ... ≤ ∫⁻ x in s, ⨅ (r : Ioi t), rnd_r ρ ↑r x ∂ρ.fst :
+    begin
+      refine set_lintegral_mono_ae _ _ _,
+      { exact measure.measurable_rn_deriv _ _, },
+      { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
+      { filter_upwards [rnd_r_mono] with a ha_mono,
+        exact λ _, le_infi (λ r, ha_mono (le_of_lt r.prop)), },
+    end, },
+end
+
+lemma rnd_r_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, ∀ r, rnd_r ρ r a ≤ 1 :=
+begin
+  rw ae_all_iff,
+  intros r,
+  refine ae_le_of_forall_set_lintegral_le_of_sigma_finite _ measurable_const _,
+  { exact measure.measurable_rn_deriv _ _, },
+  intros s hs hs_fin,
+  rw set_lintegral_rnd_r_fst ρ r hs,
+  simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
+  exact todo_r_le_fst ρ r s hs,
+end
+
 lemma tendsto_lintegral_rnd_r_at_top (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_top (𝓝 (ρ univ)) :=
 begin
   suffices : tendsto (λ r, todo_r ρ r univ) at_top (𝓝 (ρ.fst univ)),
   { convert this,
     { ext1 r,
-      rw [← set_lintegral_univ, set_lintegral_rnd_r_todo ρ _ measurable_set.univ], },
-    { exact (todo_univ ρ).symm }, },
+      rw [← set_lintegral_univ, set_lintegral_rnd_r_fst ρ _ measurable_set.univ], },
+    { exact (measure.fst_univ ρ).symm }, },
   exact tendsto_todo_r_at_top ρ measurable_set.univ,
 end
 
 lemma tendsto_lintegral_rnd_r_at_top' (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_top (𝓝 (∫⁻ a, 1 ∂ρ.fst)) :=
-begin
-  convert tendsto_lintegral_rnd_r_at_top ρ,
-  rw [lintegral_one, todo_univ],
-end
+by { convert tendsto_lintegral_rnd_r_at_top ρ, rw [lintegral_one, measure.fst_univ], }
 
 lemma tendsto_lintegral_rnd_r_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_bot (𝓝 0) :=
@@ -413,17 +447,8 @@ begin
   suffices : tendsto (λ r, todo_r ρ r univ) at_bot (𝓝 0),
   { convert this,
     ext1 r,
-    rw [← set_lintegral_univ, set_lintegral_rnd_r_todo ρ _ measurable_set.univ], },
+    rw [← set_lintegral_univ, set_lintegral_rnd_r_fst ρ _ measurable_set.univ], },
   exact tendsto_todo_r_at_bot ρ measurable_set.univ,
-end
-
-lemma lintegral_sub' {μ : measure α} {f g : α → ℝ≥0∞} (hg : ae_measurable g μ)
-  (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
-  ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
-begin
-  refine ennreal.eq_sub_of_add_eq hg_fin _,
-  rw [← lintegral_add_right' _ hg],
-  exact lintegral_congr_ae (h_le.mono $ λ x hx, tsub_add_cancel_of_le hx)
 end
 
 lemma tendsto_rnd_r_at_top_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
@@ -477,7 +502,7 @@ begin
   { rw [lintegral_sub' hF_ae_meas _ hF_le_one, h_lintegral_eq, tsub_self],
     calc ∫⁻ a, F a ∂ρ.fst = ∫⁻ a, 1 ∂ρ.fst : h_lintegral_eq
     ... = ρ.fst univ : lintegral_one
-    ... = ρ univ : todo_univ ρ
+    ... = ρ univ : measure.fst_univ ρ
     ... ≠ ⊤ : measure_ne_top ρ _, },
   rw lintegral_eq_zero_iff' at this,
   { filter_upwards [this, hF_le_one] with ha h_one_sub_eq_zero h_le_one,
@@ -535,7 +560,7 @@ begin
       (𝓝 0),
     { have h_lintegral_eq : (λ r : ℕ, ∫⁻ a, rnd_r ρ (-r) a ∂ρ.fst) = λ r, ρ (univ ×ˢ Iic (-r)),
       { ext1 n,
-        rw [← set_lintegral_univ, set_lintegral_rnd_r_todo ρ _ measurable_set.univ, todo_r_univ],
+        rw [← set_lintegral_univ, set_lintegral_rnd_r_fst ρ _ measurable_set.univ, todo_r_univ],
         norm_cast, },
       rw h_lintegral_eq,
       have h_zero_eq_measure_Inter : (0 : ℝ≥0∞) = ρ (⋂ r : ℕ, univ ×ˢ Iic (-r)),
@@ -564,10 +589,14 @@ begin
   { exact measurable_infi (λ i, measure.measurable_rn_deriv _ _), },
   { exact measure.measurable_rn_deriv _ _, },
   intros s hs hs_fin,
-  rw [set_lintegral_infi_gt_rnd_r ρ t hs, set_lintegral_rnd_r_todo ρ t hs],
+  rw [set_lintegral_infi_gt_rnd_r ρ t hs, set_lintegral_rnd_r_fst ρ t hs],
 end
 
+
 open_locale classical
+
+
+section rnd_prop
 
 def rnd_prop (ρ : measure (α × ℝ)) (a : α) : Prop :=
 monotone (λ r, rnd_r ρ r a) ∧ (∀ r, rnd_r ρ r a ≤ 1)
@@ -601,17 +630,18 @@ lemma rnd_prop_set_subset (ρ : measure (α × ℝ)) :
   rnd_prop_set ρ ⊆ {a | rnd_prop ρ a} :=
 λ x, rnd_prop_of_mem_rnd_prop_set
 
-lemma todo_compl_rnd_prop_set (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+lemma fst_compl_rnd_prop_set (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ.fst (rnd_prop_set ρ)ᶜ = 0 :=
-begin
-  rw [rnd_prop_set, compl_compl, measure_to_measurable],
-  exact rnd_prop_ae ρ,
-end
+by { rw [rnd_prop_set, compl_compl, measure_to_measurable], exact rnd_prop_ae ρ, }
 
 lemma mem_rnd_prop_set_ae (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, a ∈ rnd_prop_set ρ :=
-todo_compl_rnd_prop_set ρ
+fst_compl_rnd_prop_set ρ
 
+end rnd_prop
+
+
+-- todo : explain the default value
 noncomputable
 def rnd' (ρ : measure (α × ℝ)) : α → ℚ → ℝ :=
 λ a, if a ∈ rnd_prop_set ρ then (λ r, (rnd_r ρ r a).to_real) else (λ r, if r < 0 then 0 else 1)
@@ -638,10 +668,7 @@ begin
     intros x y hxy,
     dsimp only,
     split_ifs,
-    { refl, },
-    { exact zero_le_one, },
-    { exact absurd (hxy.trans_lt h_2) h_1, },
-    { refl, }, },
+    exacts [le_rfl, zero_le_one, absurd (hxy.trans_lt h_2) h_1, le_rfl], },
 end
 
 lemma measurable_rnd' (ρ : measure (α × ℝ)) (q : ℚ) :
@@ -719,10 +746,7 @@ end
 
 lemma rnd'_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
   (λ a, rnd' ρ a r) =ᵐ[ρ.fst] λ a, (rnd_r ρ r a).to_real :=
-begin
-  filter_upwards [mem_rnd_prop_set_ae ρ] with a ha,
-  exact rnd'_of_rnd_prop ρ a ha r,
-end
+by filter_upwards [mem_rnd_prop_set_ae ρ] with a ha using rnd'_of_rnd_prop ρ a ha r
 
 lemma of_real_rnd'_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
   (λ a, ennreal.of_real (rnd' ρ a r)) =ᵐ[ρ.fst] rnd_r ρ r :=
@@ -778,7 +802,6 @@ lemma rnd''_eq_rnd' (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   rnd'' ρ a r = rnd' ρ a r :=
 begin
   rw [← rnd'_eq_inf_gt ρ a r, rnd''],
-  dsimp only,
   refine equiv.infi_congr _ _,
   { exact
     { to_fun := λ t, ⟨t.1, by exact_mod_cast t.2⟩,
@@ -891,8 +914,7 @@ begin
       { simp_rw neg_neg, },
       rw this,
       exact h_neg_top.comp tendsto_neg_at_bot_at_top, },
-    refine tendsto_measure_Union _,
-    intros r r' hrr' x,
+    refine tendsto_measure_Union (λ r r' hrr' x, _),
     simp only [rat.cast_neg, mem_Ioc, and_imp],
     refine λ hrx hxq, ⟨(neg_le_neg _).trans_lt hrx, hxq⟩,
     exact_mod_cast hrr', },
@@ -959,8 +981,7 @@ def rnd_kernel (ρ : measure (α × ℝ)) : kernel α ℝ :=
 { val := λ a, rnd_measure ρ a,
   property := measurable_rnd_measure ρ }
 
-lemma rnd_kernel_apply (ρ : measure (α × ℝ)) (a : α) :
-  rnd_kernel ρ a = rnd_measure ρ a := rfl
+lemma rnd_kernel_apply (ρ : measure (α × ℝ)) (a : α) : rnd_kernel ρ a = rnd_measure ρ a := rfl
 
 lemma rnd_kernel_Iic (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   rnd_kernel ρ a (Iic r) = ennreal.of_real (rnd' ρ a r) :=
@@ -976,7 +997,7 @@ begin
   simp_rw [rnd_kernel_Iic ρ],
   have : ∀ᵐ a ∂ρ.fst, a ∈ s → ennreal.of_real (rnd' ρ a r) = rnd_r ρ r a,
   { filter_upwards [of_real_rnd'_ae_eq ρ r] with a ha using λ _, ha, },
-  rw [set_lintegral_congr_fun hs this, set_lintegral_rnd_r_todo ρ r hs],
+  rw [set_lintegral_congr_fun hs this, set_lintegral_rnd_r_fst ρ r hs],
   exact todo_r_apply ρ r hs,
 end
 
@@ -1153,16 +1174,19 @@ begin
     ... = ρ (Union f) : (measure_Union hf_disj hf_meas).symm, },
 end
 
-open_locale probability_theory
+theorem disintegration' (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+  (γ : Type*) [measurable_space γ] :
+  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (rnd_kernel ρ) γ) :=
+begin
+  ext a s hs : 2,
+  rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply, kernel.const_apply],
+  simp_rw kernel.prod_mk_left_apply,
+  rw lintegral_rnd_kernel ρ hs,
+end
 
 -- todo define someting to have a nicer expression?
 theorem disintegration (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (rnd_kernel ρ) unit)) (unit.star) :=
-begin
-  ext1 s hs,
-  rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply],
-  simp_rw kernel.prod_mk_left_apply,
-  rw lintegral_rnd_kernel ρ hs,
-end
+by rw [← disintegration' ρ unit, kernel.const_apply]
 
 end probability_theory

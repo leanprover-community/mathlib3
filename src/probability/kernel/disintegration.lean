@@ -53,6 +53,80 @@ begin
     sorry, },
 end
 
+lemma is_pi_system_Ioc_rat : @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
+begin
+  rintros s ⟨ls, us, hlus, rfl⟩ t ⟨lt, ut, hlut, rfl⟩ hst,
+  rw [Ioc_inter_Ioc, sup_eq_max, inf_eq_min] at hst ⊢,
+  refine ⟨max ls lt, min us ut, _, _⟩,
+  { rw [nonempty_Ioc] at hst,
+    exact_mod_cast hst, },
+  { norm_cast, },
+end
+
+lemma is_pi_system_Iic_rat : @is_pi_system ℝ {S | ∃ (u : ℚ), Iic (u : ℝ) = S} :=
+begin
+  rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ hst,
+  rw [Iic_inter_Iic, inf_eq_min] at hst ⊢,
+  refine ⟨min us ut, _⟩,
+  norm_cast,
+end
+
+lemma borel_eq_generate_from_Ioc_rat :
+  borel ℝ
+    = measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S} :=
+begin
+  refine le_antisymm _ _,
+  swap,
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨l, u, hlu, rfl⟩ := ht,
+    exact measurable_set_Ioc, },
+  rw real.borel_eq_generate_from_Ioo_rat,
+  refine measurable_space.generate_from_le (λ t ht, _),
+  simp_rw mem_Union at ht,
+  obtain ⟨l, u, hlu, ht⟩ := ht,
+  rw mem_singleton_iff at ht,
+  have : t = ⋃ (r : Iio u), Ioc l r,
+  { rw ht,
+    ext1 x,
+    simp only [mem_Ioo, coe_coe, Union_coe_set, mem_Iio, subtype.coe_mk, mem_Union, mem_Ioc,
+      exists_prop],
+    refine ⟨λ h, _, λ h, _⟩,
+    { obtain ⟨r, hxr, hru⟩ := exists_rat_btwn h.2,
+      exact ⟨r, by exact_mod_cast hru, h.1, hxr.le⟩, },
+    { obtain ⟨r, hru, hlx, hxr⟩ := h,
+      refine ⟨hlx, hxr.trans_lt _⟩,
+      exact_mod_cast hru, }, },
+  rw this,
+  refine measurable_set.Union (λ r, _),
+  by_cases hlr : l < r,
+  { exact measurable_space.measurable_set_generate_from ⟨l, r, hlr, rfl⟩, },
+  { rw Ioc_eq_empty,
+    { exact @measurable_set.empty _
+      (measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S}), },
+    { exact_mod_cast hlr, }, },
+end
+
+lemma borel_eq_generate_from_Iic_rat :
+  borel ℝ
+    = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
+begin
+  refine le_antisymm _ _,
+  swap,
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨l, u, hlu, rfl⟩ := ht,
+    exact measurable_set_Iic, },
+  rw borel_eq_generate_from_Ioc_rat,
+  refine measurable_space.generate_from_le (λ t ht, _),
+  obtain ⟨l, u, hlu, rfl⟩ := ht,
+  have : Ioc (l : ℝ) u = Iic u \ Iic l,
+  { ext1 x,
+    simp only [Iic_diff_Iic], },
+  rw this,
+  refine measurable_set.diff _ _,
+  { exact measurable_space.measurable_set_generate_from ⟨u, rfl⟩, },
+  { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, },
+end
+
 include mα
 
 noncomputable
@@ -557,7 +631,7 @@ begin
   exact ((ha_le_one r).trans_lt ennreal.one_lt_top).ne,
 end
 
-lemma rnd'_eq_inf_gt (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) (t : ℚ) :
+lemma rnd'_eq_inf_gt (ρ : measure (α × ℝ)) (a : α) (t : ℚ) :
   (⨅ r : Ioi t, rnd' ρ a r) = rnd' ρ a t :=
 begin
   by_cases ha : a ∈ rnd_prop_set ρ,
@@ -599,7 +673,7 @@ noncomputable
 def rnd'' (ρ : measure (α × ℝ)) : α → ℝ → ℝ :=
 λ a t, ⨅ r : {r' : ℚ // t < r'}, rnd' ρ a r
 
-lemma rnd''_eq_rnd' (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) (r : ℚ) :
+lemma rnd''_eq_rnd' (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   rnd'' ρ a r = rnd' ρ a r :=
 begin
   rw [← rnd'_eq_inf_gt ρ a r, rnd''],
@@ -640,7 +714,7 @@ begin
   exact le_cinfi (λ r', zero_le_rnd' ρ a _),
 end
 
-lemma tendsto_rnd''_Ioi (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) (x : ℝ) :
+lemma tendsto_rnd''_Ioi (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   tendsto (rnd'' ρ a) (𝓝[Ioi x] x) (𝓝 (rnd'' ρ a x)) :=
 begin
   have h := monotone.tendsto_nhds_within_Ioi (monotone_rnd'' ρ a) x,
@@ -680,25 +754,25 @@ begin
   refl,
 end
 
-lemma continuous_within_at_rnd'' (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) (x : ℝ) :
+lemma continuous_within_at_rnd'' (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   continuous_within_at (rnd'' ρ a) (Ici x) x :=
 by { rw ← continuous_within_at_Ioi_iff_Ici, exact tendsto_rnd''_Ioi ρ a x, }
 
 noncomputable
-def rnd_stieltjes (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) : stieltjes_function :=
+def rnd_stieltjes (ρ : measure (α × ℝ)) (a : α) : stieltjes_function :=
 { to_fun := rnd'' ρ a,
   mono' := monotone_rnd'' ρ a,
   right_continuous' := continuous_within_at_rnd'' ρ a }
 
 noncomputable
-def rnd_measure (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) : measure ℝ :=
+def rnd_measure (ρ : measure (α × ℝ)) (a : α) : measure ℝ :=
 (rnd_stieltjes ρ a).measure
 
-lemma rnd_measure_Ioc (ρ : measure (α × ℝ)) (a : α) (q q' : ℚ) [is_finite_measure ρ] :
+lemma rnd_measure_Ioc (ρ : measure (α × ℝ)) (a : α) (q q' : ℚ) :
   rnd_measure ρ a (Ioc q q') = ennreal.of_real (rnd' ρ a q' - rnd' ρ a q) :=
 by { rw [rnd_measure, stieltjes_function.measure_Ioc, ← rnd''_eq_rnd', ← rnd''_eq_rnd'], refl, }
 
-lemma rnd_measure_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℚ) [is_finite_measure ρ] :
+lemma rnd_measure_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℚ) :
   rnd_measure ρ a (Iic q) = ennreal.of_real (rnd' ρ a q) :=
 begin
   have h_tendsto_1 : tendsto (λ r : ℚ, rnd_measure ρ a (Ioc r q)) at_bot
@@ -731,7 +805,7 @@ begin
   exact tendsto_nhds_unique h_tendsto_1 h_tendsto_2,
 end
 
-lemma rnd_measure_univ (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) :
+lemma rnd_measure_univ (ρ : measure (α × ℝ)) (a : α) :
   rnd_measure ρ a univ = 1 :=
 begin
   have h_tendsto1 :
@@ -755,89 +829,10 @@ begin
   exact tendsto_nhds_unique h_tendsto1 h_tendsto2,
 end
 
-instance (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) :
-  is_probability_measure (rnd_measure ρ a) :=
+instance (ρ : measure (α × ℝ)) (a : α) : is_probability_measure (rnd_measure ρ a) :=
 ⟨rnd_measure_univ ρ a⟩
 
-omit mα
-
-lemma is_pi_system_Ioc_rat : @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
-begin
-  rintros s ⟨ls, us, hlus, rfl⟩ t ⟨lt, ut, hlut, rfl⟩ hst,
-  rw [Ioc_inter_Ioc, sup_eq_max, inf_eq_min] at hst ⊢,
-  refine ⟨max ls lt, min us ut, _, _⟩,
-  { rw [nonempty_Ioc] at hst,
-    exact_mod_cast hst, },
-  { norm_cast, },
-end
-
-lemma is_pi_system_Iic_rat : @is_pi_system ℝ {S | ∃ (u : ℚ), Iic (u : ℝ) = S} :=
-begin
-  rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ hst,
-  rw [Iic_inter_Iic, inf_eq_min] at hst ⊢,
-  refine ⟨min us ut, _⟩,
-  norm_cast,
-end
-
-lemma borel_eq_generate_from_Ioc_rat :
-  borel ℝ
-    = measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S} :=
-begin
-  refine le_antisymm _ _,
-  swap,
-  { refine measurable_space.generate_from_le (λ t ht, _),
-    obtain ⟨l, u, hlu, rfl⟩ := ht,
-    exact measurable_set_Ioc, },
-  rw real.borel_eq_generate_from_Ioo_rat,
-  refine measurable_space.generate_from_le (λ t ht, _),
-  simp_rw mem_Union at ht,
-  obtain ⟨l, u, hlu, ht⟩ := ht,
-  rw mem_singleton_iff at ht,
-  have : t = ⋃ (r : Iio u), Ioc l r,
-  { rw ht,
-    ext1 x,
-    simp only [mem_Ioo, coe_coe, Union_coe_set, mem_Iio, subtype.coe_mk, mem_Union, mem_Ioc,
-      exists_prop],
-    refine ⟨λ h, _, λ h, _⟩,
-    { obtain ⟨r, hxr, hru⟩ := exists_rat_btwn h.2,
-      exact ⟨r, by exact_mod_cast hru, h.1, hxr.le⟩, },
-    { obtain ⟨r, hru, hlx, hxr⟩ := h,
-      refine ⟨hlx, hxr.trans_lt _⟩,
-      exact_mod_cast hru, }, },
-  rw this,
-  refine measurable_set.Union (λ r, _),
-  by_cases hlr : l < r,
-  { exact measurable_space.measurable_set_generate_from ⟨l, r, hlr, rfl⟩, },
-  { rw Ioc_eq_empty,
-    { exact @measurable_set.empty _
-      (measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S}), },
-    { exact_mod_cast hlr, }, },
-end
-
-lemma borel_eq_generate_from_Iic_rat :
-  borel ℝ
-    = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
-begin
-  refine le_antisymm _ _,
-  swap,
-  { refine measurable_space.generate_from_le (λ t ht, _),
-    obtain ⟨l, u, hlu, rfl⟩ := ht,
-    exact measurable_set_Iic, },
-  rw borel_eq_generate_from_Ioc_rat,
-  refine measurable_space.generate_from_le (λ t ht, _),
-  obtain ⟨l, u, hlu, rfl⟩ := ht,
-  have : Ioc (l : ℝ) u = Iic u \ Iic l,
-  { ext1 x,
-    simp only [Iic_diff_Iic], },
-  rw this,
-  refine measurable_set.diff _ _,
-  { exact measurable_space.measurable_set_generate_from ⟨u, rfl⟩, },
-  { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, },
-end
-
-include mα
-
-lemma measurable_rnd_measure (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+lemma measurable_rnd_measure (ρ : measure (α × ℝ)) :
   measurable (rnd_measure ρ) :=
 begin
   rw measure.measurable_measure,
@@ -859,18 +854,18 @@ begin
 end
 
 noncomputable
-def rnd_kernel (ρ : measure (α × ℝ)) [is_finite_measure ρ] : kernel α ℝ :=
+def rnd_kernel (ρ : measure (α × ℝ)) : kernel α ℝ :=
 { val := λ a, rnd_measure ρ a,
   property := measurable_rnd_measure ρ }
 
-lemma rnd_kernel_apply (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) :
+lemma rnd_kernel_apply (ρ : measure (α × ℝ)) (a : α) :
   rnd_kernel ρ a = rnd_measure ρ a := rfl
 
-lemma rnd_kernel_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (a : α) (r : ℚ) :
+lemma rnd_kernel_Iic (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   rnd_kernel ρ a (Iic r) = ennreal.of_real (rnd' ρ a r) :=
 by rw [rnd_kernel_apply, rnd_measure_Iic ρ]
 
-instance (ρ : measure (α × ℝ)) [is_finite_measure ρ] : is_markov_kernel (rnd_kernel ρ) :=
+instance (ρ : measure (α × ℝ)) : is_markov_kernel (rnd_kernel ρ) :=
 ⟨λ a, by { rw rnd_kernel, apply_instance, } ⟩
 
 lemma set_lintegral_rnd_kernel_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)

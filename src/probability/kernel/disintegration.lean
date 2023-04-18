@@ -3,7 +3,8 @@ Copyright (c) 2023 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import probability.cdf
+import measure_theory.constructions.borel_space
+import measure_theory.measure.stieltjes
 import probability.kernel.invariance
 import measure_theory.decomposition.radon_nikodym
 

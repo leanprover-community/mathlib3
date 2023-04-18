@@ -13,6 +13,8 @@ import ring_theory.localization.basic
 
  * `is_localization.away (x : R) S` expresses that `S` is a localization away from `x`, as an
    abbreviation of `is_localization (submonoid.powers x) S`
+ * `exists_reduced_fraction (hb : b ≠ 0)` produces a reduced fraction of the form `b = a * x^n` for
+   some `n : ℤ` and some `a : R` that is not divisible by `x`.
 
 ## Implementation notes
 
@@ -197,33 +199,33 @@ lemma is_localization.away.finite_presentation (r : R) {S} [comm_ring S] [algebr
 
 section num_denom
 
-variables {A : Type*} [comm_ring A] [is_domain A] [normalization_monoid A]
-variables [unique_factorization_monoid A]
-variables [decidable_eq A] [dec_dvd : decidable_rel (has_dvd.dvd : A → A → Prop)]
-variable (x : A)
+variables [is_domain R] [normalization_monoid R]
+variables [unique_factorization_monoid R]
+variables [decidable_eq R] [dec_dvd : decidable_rel (has_dvd.dvd : R → R → Prop)]
+variable (x : R)
 
 include dec_dvd
 
 open multiplicity unique_factorization_monoid is_localization
 
-lemma max_power_factor {a₀ : A} (h : a₀ ≠ 0) [nontrivial A] (hx : irreducible x) :
-  ∃ n : ℕ, ∃ a : A, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
+lemma max_power_factor {a₀ : R} (h : a₀ ≠ 0) [nontrivial R] (hx : irreducible x) :
+  ∃ n : ℕ, ∃ a : R, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
 begin
   let n := (normalized_factors a₀).count (normalize x),
-  obtain ⟨a, ha1, ha2⟩ := (@exists_eq_pow_mul_and_not_dvd A _ _ x a₀
+  obtain ⟨a, ha1, ha2⟩ := (@exists_eq_pow_mul_and_not_dvd R _ _ x a₀
     (ne_top_iff_finite.mp (part_enat.ne_top_iff.mpr _))),
   simp_rw [← (multiplicity_eq_count_normalized_factors hx h).symm] at ha1,
   use [n, a, ha2, ha1],
   use [n, (multiplicity_eq_count_normalized_factors hx h)],
 end
 
-variables (B : Type*) [comm_ring B] [algebra A B] [is_localization.away x B]
+variables (B : Type*) [comm_ring B] [algebra R B] [is_localization.away x B]
 variable (hx : irreducible x)
 
 noncomputable def self_as_unit : Bˣ := ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
     by {rw mul_comm, exact away.mul_inv_self _}⟩
 
-lemma self_as_unit_pow_sub (a : A) (b : B) (m d : ℤ) :
+lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
   (((self_as_unit x B ^ (m - d)) : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b ↔
   (((self_as_unit x B ^ m) : Bˣ) : B) * mk' B a (1 : submonoid.powers x) =
     (((self_as_unit x B ^ d) : Bˣ) : B) * b :=
@@ -231,20 +233,20 @@ by {simp only [zpow_sub, units.coe_mul, mul_comm (((self_as_unit x B ^ m) : Bˣ)
   units.inv_mul_eq_iff_eq_mul]}
 
 lemma pow_eq_algebra_map (d : ℕ) : (((self_as_unit x B)^(d : ℤ) : Bˣ) : B) =
-  (algebra_map A B x)^d := by {simp only [self_as_unit, zpow_coe_nat, units.coe_pow, units.coe_mk]}
+  (algebra_map R B x)^d := by {simp only [self_as_unit, zpow_coe_nat, units.coe_pow, units.coe_mk]}
 
 include hx
 
-lemma exists_reduced_fraction (b : B) (hb : b ≠ 0) : ∃ (a : A) (n : ℤ), ¬ x ∣ a ∧
+lemma exists_reduced_fraction {b : B} (hb : b ≠ 0) : ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
   (((self_as_unit x B)^n : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b :=
 begin
   obtain ⟨⟨a₀, y⟩, H⟩ := surj (submonoid.powers x) b,
   obtain ⟨d, hy⟩ := (submonoid.mem_powers_iff y.1 x).mp y.2,
   have ha₀ : a₀ ≠ 0,
-  { haveI := @is_domain_of_le_non_zero_divisors B _ A _ _ _ (submonoid.powers x) _
+  { haveI := @is_domain_of_le_non_zero_divisors B _ R _ _ _ (submonoid.powers x) _
       (powers_le_non_zero_divisors_of_no_zero_divisors hx.ne_zero),
     simp only [map_zero, ← subtype.val_eq_coe, ← hy, map_pow] at H,
-    apply ((injective_iff_map_eq_zero' (algebra_map A B)).mp _ a₀).mpr.mt,
+    apply ((injective_iff_map_eq_zero' (algebra_map R B)).mp _ a₀).mpr.mt,
     rw ← H,
     apply mul_ne_zero hb (pow_ne_zero _ _),
     exact is_localization.to_map_ne_zero_of_mem_non_zero_divisors B
@@ -252,7 +254,7 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mpr hx.ne_zero),
     exact is_localization.injective B (powers_le_non_zero_divisors_of_no_zero_divisors
       (hx.ne_zero)) },
-  simp only [← subtype.val_eq_coe, ← hy] at H,--needed?
+  simp only [← subtype.val_eq_coe, ← hy] at H,
   obtain ⟨m, a, hyp1, hyp2⟩ := max_power_factor x ha₀ hx,
   refine ⟨a, m-d, _⟩,
   rw [self_as_unit_pow_sub x B a b m d, pow_eq_algebra_map x B d, mul_comm _ b, ← map_pow, H, hyp2,

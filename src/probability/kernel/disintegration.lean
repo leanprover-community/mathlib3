@@ -269,18 +269,6 @@ begin
     { refl, }, },
 end
 
-lemma set_lintegral_infi_gt_rnd_r (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
-  [is_finite_measure ρ] :
-  ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂(todo ρ) = todo_r ρ t s :=
-calc ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂(todo ρ)
-    = ⨅ r : Ioi t, ∫⁻ x in s, rnd_r ρ r x ∂(todo ρ) :
-  begin
-    sorry,
-  end
-... = ⨅ r : Ioi t, todo_r ρ r s :
-  by { congr' with r : 1, exact set_lintegral_rnd_r_todo ρ r hs, }
-... = todo_r ρ t s : infi_todo_r_gt ρ t hs
-
 lemma rnd_r_mono (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂(todo ρ), monotone (λ r, rnd_r ρ r a) :=
 begin
@@ -293,6 +281,38 @@ begin
     rw [set_lintegral_rnd_r_todo ρ r hs, set_lintegral_rnd_r_todo ρ r' hs],
     refine todo_r_mono ρ _ s hs,
     exact_mod_cast hrr', },
+end
+
+lemma set_lintegral_infi_gt_rnd_r (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
+  [is_finite_measure ρ] :
+  ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂(todo ρ) = todo_r ρ t s :=
+begin
+  refine le_antisymm _ _,
+  { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂(todo ρ) ≤ todo_r ρ q s,
+    { intros q,
+      calc ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂(todo ρ)
+          ≤ ∫⁻ x in s, rnd_r ρ q x ∂(todo ρ) :
+        begin
+          refine set_lintegral_mono_ae _ _ _,
+          { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
+          { exact measure.measurable_rn_deriv _ _, },
+          { filter_upwards [rnd_r_mono] with a ha_mono,
+            exact λ _, infi_le _ q, },
+        end
+      ... = todo_r ρ q s : set_lintegral_rnd_r_todo ρ _ hs, },
+    calc ∫⁻ x in s, (⨅ (r : Ioi t), rnd_r ρ r x) ∂todo ρ
+        ≤ ⨅ q : Ioi t, todo_r ρ q s : le_infi h
+    ... = todo_r ρ t s : infi_todo_r_gt ρ t hs, },
+  { calc todo_r ρ t s
+      = ∫⁻ x in s, rnd_r ρ t x ∂(todo ρ) : (set_lintegral_rnd_r_todo ρ t hs).symm
+  ... ≤ ∫⁻ x in s, ⨅ (r : Ioi t), rnd_r ρ ↑r x ∂(todo ρ) :
+    begin
+      refine set_lintegral_mono_ae _ _ _,
+      { exact measure.measurable_rn_deriv _ _, },
+      { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
+      { filter_upwards [rnd_r_mono] with a ha_mono,
+        exact λ _, le_infi (λ r, ha_mono (le_of_lt r.prop)), },
+    end, },
 end
 
 lemma rnd_r_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :

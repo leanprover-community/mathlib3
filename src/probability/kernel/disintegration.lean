@@ -245,18 +245,10 @@ instance [is_finite_measure ρ] : is_finite_measure ρ.snd := by { rw snd, apply
 instance [is_probability_measure ρ] : is_probability_measure ρ.snd :=
 { measure_univ := by { rw snd_univ, exact measure_univ, } }
 
-end measure_theory.measure
-
-open measure_theory
-
-namespace probability_theory
-
-variables {α β ι : Type*} {mα : measurable_space α}
-
-include mα
+omit mβ
 
 noncomputable
-def todo_r (ρ : measure (α × ℝ)) (r : ℚ) : measure α :=
+def Iic_snd (ρ : measure (α × ℝ)) (r : ℚ) : measure α :=
 measure.of_measurable (λ s hs, ρ (s ×ˢ (Iic r))) (by simp only [empty_prod, measure_empty])
   (λ f hf_meas hf_disj,
   begin
@@ -267,44 +259,44 @@ measure.of_measurable (λ s hs, ρ (s ×ˢ (Iic r))) (by simp only [empty_prod, 
     { exact λ i, measurable_set.prod (hf_meas i) measurable_set_Iic, }
   end)
 
-lemma todo_r_apply (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measurable_set s) :
-  todo_r ρ r s = ρ (s ×ˢ Iic r) :=
+lemma Iic_snd_apply (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measurable_set s) :
+  ρ.Iic_snd r s = ρ (s ×ˢ Iic r) :=
 measure.of_measurable_apply s hs
 
-lemma todo_r_univ (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r univ = ρ (univ ×ˢ Iic r) :=
-todo_r_apply ρ r measurable_set.univ
+lemma Iic_snd_univ (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r univ = ρ (univ ×ˢ Iic r) :=
+Iic_snd_apply ρ r measurable_set.univ
 
-lemma todo_r_mono (ρ : measure (α × ℝ)) {r r' : ℚ} (h_le : r ≤ r') :
-  todo_r ρ r ≤ todo_r ρ r' :=
+lemma Iic_snd_mono (ρ : measure (α × ℝ)) {r r' : ℚ} (h_le : r ≤ r') :
+  ρ.Iic_snd r ≤ ρ.Iic_snd r' :=
 begin
   intros s hs,
-  simp_rw todo_r_apply ρ _ hs,
+  simp_rw Iic_snd_apply ρ _ hs,
   refine measure_mono (λ x hx, _),
   simp only [mem_preimage, mem_prod, mem_Iic] at hx ⊢,
   refine ⟨hx.1, hx.2.trans _⟩,
   exact_mod_cast h_le,
 end
 
-lemma todo_r_le_fst (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≤ ρ.fst :=
+lemma Iic_snd_le_fst (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r ≤ ρ.fst :=
 begin
   intros s hs,
-  simp_rw [measure.fst, todo_r_apply ρ r hs, measure.map_apply measurable_fst hs],
+  simp_rw [fst_apply _ hs, Iic_snd_apply ρ r hs],
   refine measure_mono (λ x hx, _),
   simp only [mem_preimage, mem_prod, mem_Iic] at hx ⊢,
   exact hx.1,
 end
 
-lemma todo_r_ac_fst (ρ : measure (α × ℝ)) (r : ℚ) : todo_r ρ r ≪ ρ.fst :=
-measure.absolutely_continuous_of_le (todo_r_le_fst ρ r)
+lemma Iic_snd_ac_fst (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r ≪ ρ.fst :=
+measure.absolutely_continuous_of_le (Iic_snd_le_fst ρ r)
 
-instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℚ) : is_finite_measure (todo_r ρ r) :=
-is_finite_measure_of_le _ (todo_r_le_fst ρ _)
+instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℚ) : is_finite_measure (ρ.Iic_snd r) :=
+is_finite_measure_of_le _ (Iic_snd_le_fst ρ _)
 
-lemma infi_todo_r_gt (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
+lemma infi_Iic_snd_gt (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
   [is_finite_measure ρ] :
-  (⨅ r : {r' : ℚ // t < r'}, todo_r ρ r s) = todo_r ρ t s :=
+  (⨅ r : {r' : ℚ // t < r'}, ρ.Iic_snd r s) = ρ.Iic_snd t s :=
 begin
-  simp_rw [todo_r_apply ρ _ hs],
+  simp_rw [ρ.Iic_snd_apply _ hs],
   rw ← measure_Inter_eq_infi,
   { congr,
     ext1 x,
@@ -323,11 +315,10 @@ begin
   { exact ⟨⟨t+1, lt_add_one _⟩, measure_ne_top ρ _⟩, },
 end
 
-lemma tendsto_todo_r_at_top (ρ : measure (α × ℝ)) {s : set α} (hs : measurable_set s) :
-  tendsto (λ r, todo_r ρ r s) at_top (𝓝 (ρ.fst s)) :=
+lemma tendsto_Iic_snd_at_top (ρ : measure (α × ℝ)) {s : set α} (hs : measurable_set s) :
+  tendsto (λ r, ρ.Iic_snd r s) at_top (𝓝 (ρ.fst s)) :=
 begin
-  simp_rw [todo_r, measure.fst, measure.of_measurable_apply _ hs,
-    measure.map_apply measurable_fst hs, ← prod_univ],
+  simp_rw [ρ.Iic_snd_apply _ hs, fst_apply ρ hs, ← prod_univ],
   have : s ×ˢ univ = ⋃ r : ℚ, (s ×ˢ Iic (r : ℝ)),
   { ext1 x,
     simp only [mem_prod, mem_univ, and_true, mem_Union, mem_Iic, exists_and_distrib_left,
@@ -342,11 +333,11 @@ begin
   exact_mod_cast hr_le_q,
 end
 
-lemma tendsto_todo_r_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+lemma tendsto_Iic_snd_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   {s : set α} (hs : measurable_set s) :
-  tendsto (λ r, todo_r ρ r s) at_bot (𝓝 0) :=
+  tendsto (λ r, ρ.Iic_snd r s) at_bot (𝓝 0) :=
 begin
-  simp_rw [todo_r, measure.of_measurable_apply _ hs],
+  simp_rw [ρ.Iic_snd_apply _ hs],
   have h_empty : ρ (s ×ˢ ∅) = 0,
   { simp only [prod_empty, measure_empty], },
   rw ← h_empty,
@@ -376,21 +367,31 @@ begin
   exact_mod_cast hqr,
 end
 
+end measure_theory.measure
+
+open measure_theory
+
+namespace probability_theory
+
+variables {α β ι : Type*} {mα : measurable_space α}
+
+include mα
+
 noncomputable
-def rnd_r (ρ : measure (α × ℝ)) (r : ℚ) : α → ℝ≥0∞ := measure.rn_deriv (todo_r ρ r) ρ.fst
+def pre_cdf (ρ : measure (α × ℝ)) (r : ℚ) : α → ℝ≥0∞ := measure.rn_deriv (ρ.Iic_snd r) ρ.fst
 
-lemma with_density_rnd_r (ρ : measure (α × ℝ)) (r : ℚ) [is_finite_measure ρ] :
-  ρ.fst.with_density (rnd_r ρ r) = todo_r ρ r :=
-measure.absolutely_continuous_iff_with_density_rn_deriv_eq.mp (todo_r_ac_fst ρ r)
+lemma with_density_pre_cdf (ρ : measure (α × ℝ)) (r : ℚ) [is_finite_measure ρ] :
+  ρ.fst.with_density (pre_cdf ρ r) = ρ.Iic_snd r :=
+measure.absolutely_continuous_iff_with_density_rn_deriv_eq.mp (measure.Iic_snd_ac_fst ρ r)
 
-lemma set_lintegral_rnd_r_fst (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measurable_set s)
-  [is_finite_measure ρ] :
-  ∫⁻ x in s, rnd_r ρ r x ∂ρ.fst = todo_r ρ r s :=
+lemma set_lintegral_pre_cdf_fst (ρ : measure (α × ℝ)) (r : ℚ) {s : set α}
+  (hs : measurable_set s) [is_finite_measure ρ] :
+  ∫⁻ x in s, pre_cdf ρ r x ∂ρ.fst = ρ.Iic_snd r s :=
 begin
-  have : ∀ r, ∫⁻ x in s, rnd_r ρ r x ∂ρ.fst = ∫⁻ x in s, (rnd_r ρ r * 1) x ∂ρ.fst,
+  have : ∀ r, ∫⁻ x in s, pre_cdf ρ r x ∂ρ.fst = ∫⁻ x in s, (pre_cdf ρ r * 1) x ∂ρ.fst,
   { simp only [mul_one, eq_self_iff_true, forall_const], },
   rw [this, ← set_lintegral_with_density_eq_set_lintegral_mul _ _ _ hs],
-  { rw with_density_rnd_r ρ r,
+  { rw with_density_pre_cdf ρ r,
     simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
       univ_inter], },
   { exact measure.measurable_rn_deriv _ _, },
@@ -399,8 +400,8 @@ begin
     { refl, }, },
 end
 
-lemma rnd_r_mono (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, monotone (λ r, rnd_r ρ r a) :=
+lemma monotone_pre_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, monotone (λ r, pre_cdf ρ r a) :=
 begin
   simp_rw [monotone, ae_all_iff],
   intros r r' hrr',
@@ -408,91 +409,91 @@ begin
   { exact measure.measurable_rn_deriv _ _, },
   { exact measure.measurable_rn_deriv _ _, },
   { intros s hs hs_fin,
-    rw [set_lintegral_rnd_r_fst ρ r hs, set_lintegral_rnd_r_fst ρ r' hs],
-    refine todo_r_mono ρ _ s hs,
+    rw [set_lintegral_pre_cdf_fst ρ r hs, set_lintegral_pre_cdf_fst ρ r' hs],
+    refine measure.Iic_snd_mono ρ _ s hs,
     exact_mod_cast hrr', },
 end
 
-lemma set_lintegral_infi_gt_rnd_r (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
+lemma set_lintegral_infi_gt_pre_cdf (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
   [is_finite_measure ρ] :
-  ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst = todo_r ρ t s :=
+  ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst = ρ.Iic_snd t s :=
 begin
   refine le_antisymm _ _,
-  { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst ≤ todo_r ρ q s,
+  { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst ≤ ρ.Iic_snd q s,
     { intros q,
-      calc ∫⁻ x in s, ⨅ r : Ioi t, rnd_r ρ r x ∂ρ.fst
-          ≤ ∫⁻ x in s, rnd_r ρ q x ∂ρ.fst :
+      calc ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst
+          ≤ ∫⁻ x in s, pre_cdf ρ q x ∂ρ.fst :
         begin
           refine set_lintegral_mono_ae _ _ _,
           { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
           { exact measure.measurable_rn_deriv _ _, },
-          { filter_upwards [rnd_r_mono] with a ha_mono,
+          { filter_upwards [monotone_pre_cdf] with a ha_mono,
             exact λ _, infi_le _ q, },
         end
-      ... = todo_r ρ q s : set_lintegral_rnd_r_fst ρ _ hs, },
-    calc ∫⁻ x in s, (⨅ (r : Ioi t), rnd_r ρ r x) ∂ρ.fst
-        ≤ ⨅ q : Ioi t, todo_r ρ q s : le_infi h
-    ... = todo_r ρ t s : infi_todo_r_gt ρ t hs, },
-  { calc todo_r ρ t s
-      = ∫⁻ x in s, rnd_r ρ t x ∂ρ.fst : (set_lintegral_rnd_r_fst ρ t hs).symm
-  ... ≤ ∫⁻ x in s, ⨅ (r : Ioi t), rnd_r ρ ↑r x ∂ρ.fst :
+      ... = ρ.Iic_snd q s : set_lintegral_pre_cdf_fst ρ _ hs, },
+    calc ∫⁻ x in s, (⨅ (r : Ioi t), pre_cdf ρ r x) ∂ρ.fst
+        ≤ ⨅ q : Ioi t, ρ.Iic_snd q s : le_infi h
+    ... = ρ.Iic_snd t s : measure.infi_Iic_snd_gt ρ t hs, },
+  { calc ρ.Iic_snd t s
+      = ∫⁻ x in s, pre_cdf ρ t x ∂ρ.fst : (set_lintegral_pre_cdf_fst ρ t hs).symm
+  ... ≤ ∫⁻ x in s, ⨅ (r : Ioi t), pre_cdf ρ ↑r x ∂ρ.fst :
     begin
       refine set_lintegral_mono_ae _ _ _,
       { exact measure.measurable_rn_deriv _ _, },
       { refine measurable_infi (λ _, measure.measurable_rn_deriv _ _), },
-      { filter_upwards [rnd_r_mono] with a ha_mono,
+      { filter_upwards [monotone_pre_cdf] with a ha_mono,
         exact λ _, le_infi (λ r, ha_mono (le_of_lt r.prop)), },
     end, },
 end
 
-lemma rnd_r_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, ∀ r, rnd_r ρ r a ≤ 1 :=
+lemma pre_cdf_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, ∀ r, pre_cdf ρ r a ≤ 1 :=
 begin
   rw ae_all_iff,
   intros r,
   refine ae_le_of_forall_set_lintegral_le_of_sigma_finite _ measurable_const _,
   { exact measure.measurable_rn_deriv _ _, },
   intros s hs hs_fin,
-  rw set_lintegral_rnd_r_fst ρ r hs,
+  rw set_lintegral_pre_cdf_fst ρ r hs,
   simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
-  exact todo_r_le_fst ρ r s hs,
+  exact measure.Iic_snd_le_fst ρ r s hs,
 end
 
-lemma tendsto_lintegral_rnd_r_at_top (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_top (𝓝 (ρ univ)) :=
+lemma tendsto_lintegral_pre_cdf_at_top (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  tendsto (λ r, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top (𝓝 (ρ univ)) :=
 begin
-  suffices : tendsto (λ r, todo_r ρ r univ) at_top (𝓝 (ρ.fst univ)),
+  suffices : tendsto (λ r, ρ.Iic_snd r univ) at_top (𝓝 (ρ.fst univ)),
   { convert this,
     { ext1 r,
-      rw [← set_lintegral_univ, set_lintegral_rnd_r_fst ρ _ measurable_set.univ], },
+      rw [← set_lintegral_univ, set_lintegral_pre_cdf_fst ρ _ measurable_set.univ], },
     { exact (measure.fst_univ ρ).symm }, },
-  exact tendsto_todo_r_at_top ρ measurable_set.univ,
+  exact ρ.tendsto_Iic_snd_at_top measurable_set.univ,
 end
 
-lemma tendsto_lintegral_rnd_r_at_top' (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_top (𝓝 (∫⁻ a, 1 ∂ρ.fst)) :=
-by { convert tendsto_lintegral_rnd_r_at_top ρ, rw [lintegral_one, measure.fst_univ], }
+lemma tendsto_lintegral_pre_cdf_at_top' (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  tendsto (λ r, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top (𝓝 (∫⁻ a, 1 ∂ρ.fst)) :=
+by { convert tendsto_lintegral_pre_cdf_at_top ρ, rw [lintegral_one, measure.fst_univ], }
 
-lemma tendsto_lintegral_rnd_r_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  tendsto (λ r, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_bot (𝓝 0) :=
+lemma tendsto_lintegral_pre_cdf_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  tendsto (λ r, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_bot (𝓝 0) :=
 begin
-  suffices : tendsto (λ r, todo_r ρ r univ) at_bot (𝓝 0),
+  suffices : tendsto (λ r, ρ.Iic_snd r univ) at_bot (𝓝 0),
   { convert this,
     ext1 r,
-    rw [← set_lintegral_univ, set_lintegral_rnd_r_fst ρ _ measurable_set.univ], },
-  exact tendsto_todo_r_at_bot ρ measurable_set.univ,
+    rw [← set_lintegral_univ, set_lintegral_pre_cdf_fst ρ _ measurable_set.univ], },
+  exact ρ.tendsto_Iic_snd_at_bot measurable_set.univ,
 end
 
-lemma tendsto_rnd_r_at_top_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, tendsto (λ r, rnd_r ρ r a) at_top (𝓝 1) :=
+lemma tendsto_pre_cdf_at_top_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1) :=
 begin
-  have h_mono := rnd_r_mono ρ,
-  have h_le_one := rnd_r_le_one ρ,
-  have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l ≤ (1 : ℝ≥0∞), tendsto (λ r, rnd_r ρ r a) at_top (𝓝 l),
+  have h_mono := monotone_pre_cdf ρ,
+  have h_le_one := pre_cdf_le_one ρ,
+  have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l ≤ (1 : ℝ≥0∞), tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 l),
   { filter_upwards [h_mono, h_le_one] with a ha_mono ha_le_one,
     -- todo: no direct way to get the or.inr of this?
-    have h_tendsto : tendsto (λ r, rnd_r ρ r a) at_top at_top
-      ∨ ∃ l, tendsto (λ r, rnd_r ρ r a) at_top (𝓝 l) := tendsto_of_monotone ha_mono,
+    have h_tendsto : tendsto (λ r, pre_cdf ρ r a) at_top at_top
+      ∨ ∃ l, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 l) := tendsto_of_monotone ha_mono,
     cases h_tendsto with h_absurd h_tendsto,
     { rw monotone.tendsto_at_top_at_top_iff ha_mono at h_absurd,
       obtain ⟨r, hr⟩ := h_absurd 2,
@@ -501,12 +502,12 @@ begin
     exact ⟨l, le_of_tendsto' hl ha_le_one, hl⟩, },
   classical,
   let F : α → ℝ≥0∞ := λ a,
-    if h : ∃ l ≤ (1 : ℝ≥0∞), tendsto (λ r, rnd_r ρ r a) at_top (𝓝 l) then h.some else 0,
-  have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, rnd_r ρ r a) at_top (𝓝 (F a)),
+    if h : ∃ l ≤ (1 : ℝ≥0∞), tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 l) then h.some else 0,
+  have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 (F a)),
   { filter_upwards [h_exists] with a ha,
     simp_rw [F, dif_pos ha],
     exact ha.some_spec.some_spec },
-  have h_tendsto_ℕ : ∀ᵐ a ∂ρ.fst, tendsto (λ n : ℕ, rnd_r ρ n a) at_top (𝓝 (F a)),
+  have h_tendsto_ℕ : ∀ᵐ a ∂ρ.fst, tendsto (λ n : ℕ, pre_cdf ρ n a) at_top (𝓝 (F a)),
   { filter_upwards [h_tendsto_ℚ] with a ha using ha.comp tendsto_coe_nat_at_top_at_top, },
   have hF_ae_meas : ae_measurable F ρ.fst,
   { refine ae_measurable_of_tendsto_metrizable_ae' (λ n, _) h_tendsto_ℕ,
@@ -519,16 +520,16 @@ begin
   { filter_upwards [h_tendsto_ℚ, this] with a ha_tendsto ha_eq,
     rwa ha_eq at ha_tendsto, },
   have h_lintegral_eq : ∫⁻ a, F a ∂ρ.fst = ∫⁻ a, 1 ∂ρ.fst,
-  { have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_top
+  { have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top
       (𝓝 (∫⁻ a, F a ∂ρ.fst)),
     { refine lintegral_tendsto_of_tendsto_of_monotone
         (λ _, (measure.measurable_rn_deriv _ _).ae_measurable) _ h_tendsto_ℕ,
       filter_upwards [h_mono] with a ha,
       refine λ n m hnm, ha _,
       exact_mod_cast hnm, },
-    have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, rnd_r ρ r a ∂ρ.fst) at_top
+    have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top
       (𝓝 (∫⁻ a, 1 ∂ρ.fst)),
-    { exact (tendsto_lintegral_rnd_r_at_top' ρ).comp tendsto_coe_nat_at_top_at_top, },
+    { exact (tendsto_lintegral_pre_cdf_at_top' ρ).comp tendsto_coe_nat_at_top_at_top, },
     exact tendsto_nhds_unique h_lintegral h_lintegral', },
   have : ∫⁻ a, (1 - F a) ∂ρ.fst = 0,
   { rw [lintegral_sub' hF_ae_meas _ hF_le_one, h_lintegral_eq, tsub_self],
@@ -543,34 +544,34 @@ begin
   { exact ae_measurable_const.sub hF_ae_meas, },
 end
 
-lemma tendsto_rnd_r_at_bot_zero (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 0) :=
+lemma tendsto_pre_cdf_at_bot_zero (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0) :=
 begin
-  have h_mono := rnd_r_mono ρ,
-  have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 l),
-  { suffices : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, rnd_r ρ (-r) a) at_top (𝓝 l),
+  have h_mono := monotone_pre_cdf ρ,
+  have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 l),
+  { suffices : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l),
     { filter_upwards [this] with a ha,
       obtain ⟨l, hal⟩ := ha,
       refine ⟨l, _⟩,
-      have h_eq_neg : (λ (r : ℚ), rnd_r ρ r a) = (λ (r : ℚ), rnd_r ρ (- -r) a),
+      have h_eq_neg : (λ (r : ℚ), pre_cdf ρ r a) = (λ (r : ℚ), pre_cdf ρ (- -r) a),
       { simp_rw neg_neg, },
       rw h_eq_neg,
       exact hal.comp tendsto_neg_at_bot_at_top, },
     filter_upwards [h_mono] with a ha,
-    have h_anti : antitone (λ r, rnd_r ρ (-r) a) := λ p q hpq, ha (neg_le_neg hpq),
-    have h_tendsto : tendsto (λ r, rnd_r ρ (-r) a) at_top at_bot
-      ∨ ∃ l, tendsto (λ r, rnd_r ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
+    have h_anti : antitone (λ r, pre_cdf ρ (-r) a) := λ p q hpq, ha (neg_le_neg hpq),
+    have h_tendsto : tendsto (λ r, pre_cdf ρ (-r) a) at_top at_bot
+      ∨ ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
     cases h_tendsto with h_bot h_tendsto,
     { exact ⟨0, ennreal.tendsto_at_top_at_bot h_bot⟩, },
     { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,
-    if h : ∃ l, tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 l) then h.some else 0,
-  have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 (F a)),
+    if h : ∃ l, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 l) then h.some else 0,
+  have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 (F a)),
   { filter_upwards [h_exists] with a ha,
     simp_rw [F, dif_pos ha],
     exact ha.some_spec, },
-  have h_tendsto_ℕ : ∀ᵐ a ∂ρ.fst, tendsto (λ n : ℕ, rnd_r ρ (-n) a) at_top (𝓝 (F a)),
+  have h_tendsto_ℕ : ∀ᵐ a ∂ρ.fst, tendsto (λ n : ℕ, pre_cdf ρ (-n) a) at_top (𝓝 (F a)),
   { filter_upwards [h_tendsto_ℚ] with a ha,
     exact (ha.comp tendsto_neg_at_top_at_bot).comp tendsto_coe_nat_at_top_at_top, },
   have hF_ae_meas : ae_measurable F ρ.fst,
@@ -580,19 +581,20 @@ begin
   { filter_upwards [h_tendsto_ℚ, this] with a ha_tendsto ha_eq,
     rwa ha_eq at ha_tendsto, },
   have h_lintegral_eq : ∫⁻ a, F a ∂ρ.fst = 0,
-  { have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, rnd_r ρ (-r) a ∂ρ.fst) at_top
+  { have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) at_top
       (𝓝 (∫⁻ a, F a ∂ρ.fst)),
     { refine tendsto_lintegral_of_dominated_convergence (λ _, 1) _ _ _ h_tendsto_ℕ,
       { exact λ _, measure.measurable_rn_deriv _ _, },
       { intros n,
-        filter_upwards [rnd_r_le_one ρ] with a ha using ha _, },
+        filter_upwards [pre_cdf_le_one ρ] with a ha using ha _, },
       { rw lintegral_one,
         exact measure_ne_top _ _, }, },
-    have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, rnd_r ρ (-r) a ∂ρ.fst) at_top
+    have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) at_top
       (𝓝 0),
-    { have h_lintegral_eq : (λ r : ℕ, ∫⁻ a, rnd_r ρ (-r) a ∂ρ.fst) = λ r, ρ (univ ×ˢ Iic (-r)),
+    { have h_lintegral_eq : (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) = λ r, ρ (univ ×ˢ Iic (-r)),
       { ext1 n,
-        rw [← set_lintegral_univ, set_lintegral_rnd_r_fst ρ _ measurable_set.univ, todo_r_univ],
+        rw [← set_lintegral_univ, set_lintegral_pre_cdf_fst ρ _ measurable_set.univ,
+          measure.Iic_snd_univ],
         norm_cast, },
       rw h_lintegral_eq,
       have h_zero_eq_measure_Inter : (0 : ℝ≥0∞) = ρ (⋂ r : ℕ, univ ×ˢ Iic (-r)),
@@ -612,8 +614,8 @@ begin
   rwa [lintegral_eq_zero_iff' hF_ae_meas] at h_lintegral_eq,
 end
 
-lemma inf_gt_rnd_r_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ∀ᵐ a ∂ρ.fst, ∀ t : ℚ, (⨅ r : Ioi t, rnd_r ρ r a) = rnd_r ρ t a :=
+lemma inf_gt_pre_cdf_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+  ∀ᵐ a ∂ρ.fst, ∀ t : ℚ, (⨅ r : Ioi t, pre_cdf ρ r a) = pre_cdf ρ t a :=
 begin
   rw ae_all_iff,
   intros t,
@@ -621,7 +623,7 @@ begin
   { exact measurable_infi (λ i, measure.measurable_rn_deriv _ _), },
   { exact measure.measurable_rn_deriv _ _, },
   intros s hs hs_fin,
-  rw [set_lintegral_infi_gt_rnd_r ρ t hs, set_lintegral_rnd_r_fst ρ t hs],
+  rw [set_lintegral_infi_gt_pre_cdf ρ t hs, set_lintegral_pre_cdf_fst ρ t hs],
 end
 
 
@@ -630,19 +632,19 @@ open_locale classical
 
 section rnd_prop
 
-/-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `rnd_r` is monotone
+/-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `pre_cdf` is monotone
 with limit 0 at -∞ and 1 at +∞, and is right continuous. -/
 def has_cond_cdf (ρ : measure (α × ℝ)) (a : α) : Prop :=
-monotone (λ r, rnd_r ρ r a) ∧ (∀ r, rnd_r ρ r a ≤ 1)
-  ∧ (tendsto (λ r, rnd_r ρ r a) at_top (𝓝 1)) ∧ (tendsto (λ r, rnd_r ρ r a) at_bot (𝓝 0))
-  ∧ (∀ t : ℚ, (⨅ r : Ioi t, rnd_r ρ r a) = rnd_r ρ t a)
+monotone (λ r, pre_cdf ρ r a) ∧ (∀ r, pre_cdf ρ r a ≤ 1)
+  ∧ (tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1)) ∧ (tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0))
+  ∧ (∀ t : ℚ, (⨅ r : Ioi t, pre_cdf ρ r a) = pre_cdf ρ t a)
 
 lemma has_cond_cdf_ae (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, has_cond_cdf ρ a :=
 begin
   simp_rw [has_cond_cdf, eventually_and],
-  exact ⟨rnd_r_mono ρ, rnd_r_le_one ρ, tendsto_rnd_r_at_top_one ρ,
-    tendsto_rnd_r_at_bot_zero ρ, inf_gt_rnd_r_ae_eq ρ⟩,
+  exact ⟨monotone_pre_cdf ρ, pre_cdf_le_one ρ, tendsto_pre_cdf_at_top_one ρ,
+    tendsto_pre_cdf_at_bot_zero ρ, inf_gt_pre_cdf_ae_eq ρ⟩,
 end
 
 /-- A measurable set of elements of `α` such that `ρ` has a conditional cdf at all
@@ -677,18 +679,18 @@ fst_compl_cond_cdf_set ρ
 end rnd_prop
 
 
-/-- Conditional cdf of the measure on the `ℝ` given the value on `α`. It is defined to be `rnd_r`
+/-- Conditional cdf of the measure on the `ℝ` given the value on `α`. It is defined to be `pre_cdf`
 if it verifies a list of properties, and a default cdf-like function otherwise. -/
 noncomputable
 def cond_cdf_rat (ρ : measure (α × ℝ)) : α → ℚ → ℝ :=
-λ a, if a ∈ cond_cdf_set ρ then (λ r, (rnd_r ρ r a).to_real) else (λ r, if r < 0 then 0 else 1)
+λ a, if a ∈ cond_cdf_set ρ then (λ r, (pre_cdf ρ r a).to_real) else (λ r, if r < 0 then 0 else 1)
 
 lemma cond_cdf_rat_of_not_rnd_prop (ρ : measure (α × ℝ)) (a : α) (h : a ∉ cond_cdf_set ρ) {r : ℚ} :
   cond_cdf_rat ρ a r = if r < 0 then 0 else 1 :=
 by simp only [cond_cdf_rat, h, if_false]
 
 lemma cond_cdf_rat_of_rnd_prop (ρ : measure (α × ℝ)) (a : α) (h : a ∈ cond_cdf_set ρ) (r : ℚ) :
-  cond_cdf_rat ρ a r = (rnd_r ρ r a).to_real :=
+  cond_cdf_rat ρ a r = (pre_cdf ρ r a).to_real :=
 by simp only [cond_cdf_rat, h, if_true]
 
 lemma monotone_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) :
@@ -698,7 +700,7 @@ begin
   { simp only [cond_cdf_rat, h, if_true, forall_const, and_self],
     intros r r' hrr',
     have h' := rnd_prop_of_mem_cond_cdf_set h,
-    have h_ne_top : ∀ r, rnd_r ρ r a ≠ ∞ := λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne,
+    have h_ne_top : ∀ r, pre_cdf ρ r a ≠ ∞ := λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne,
     rw ennreal.to_real_le_to_real (h_ne_top _) (h_ne_top _),
     exact h'.1 hrr', },
   { simp only [cond_cdf_rat, h, if_false],
@@ -781,13 +783,13 @@ begin
 end
 
 lemma cond_cdf_rat_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
-  (λ a, cond_cdf_rat ρ a r) =ᵐ[ρ.fst] λ a, (rnd_r ρ r a).to_real :=
+  (λ a, cond_cdf_rat ρ a r) =ᵐ[ρ.fst] λ a, (pre_cdf ρ r a).to_real :=
 by filter_upwards [mem_cond_cdf_set_ae ρ] with a ha using cond_cdf_rat_of_rnd_prop ρ a ha r
 
 lemma of_real_cond_cdf_rat_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
-  (λ a, ennreal.of_real (cond_cdf_rat ρ a r)) =ᵐ[ρ.fst] rnd_r ρ r :=
+  (λ a, ennreal.of_real (cond_cdf_rat ρ a r)) =ᵐ[ρ.fst] pre_cdf ρ r :=
 begin
-  filter_upwards [cond_cdf_rat_ae_eq ρ r, rnd_r_le_one ρ] with a ha ha_le_one,
+  filter_upwards [cond_cdf_rat_ae_eq ρ r, pre_cdf_le_one ρ] with a ha ha_le_one,
   rw [ha, ennreal.of_real_to_real],
   exact ((ha_le_one r).trans_lt ennreal.one_lt_top).ne,
 end
@@ -799,7 +801,7 @@ begin
   { simp_rw cond_cdf_rat_of_rnd_prop ρ a ha,
     have ha' := rnd_prop_of_mem_cond_cdf_set ha,
     rw ← to_real_infi,
-    { suffices : (⨅ (i : ↥(Ioi t)), rnd_r ρ ↑i a) = rnd_r ρ t a, by rw this,
+    { suffices : (⨅ (i : ↥(Ioi t)), pre_cdf ρ ↑i a) = pre_cdf ρ t a, by rw this,
       rw ← ha'.2.2.2.2, },
     { exact λ r, ((ha'.2.1 r).trans_lt ennreal.one_lt_top).ne, }, },
   { simp_rw cond_cdf_rat_of_not_rnd_prop ρ a ha,
@@ -1015,10 +1017,10 @@ lemma set_lintegral_cond_kernel_Iic_rat (ρ : measure (α × ℝ)) [is_finite_me
   ∫⁻ a in s, cond_kernel ρ a (Iic r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
 begin
   simp_rw [cond_kernel_Iic ρ],
-  have : ∀ᵐ a ∂ρ.fst, a ∈ s → ennreal.of_real (cond_cdf_rat ρ a r) = rnd_r ρ r a,
+  have : ∀ᵐ a ∂ρ.fst, a ∈ s → ennreal.of_real (cond_cdf_rat ρ a r) = pre_cdf ρ r a,
   { filter_upwards [of_real_cond_cdf_rat_ae_eq ρ r] with a ha using λ _, ha, },
-  rw [set_lintegral_congr_fun hs this, set_lintegral_rnd_r_fst ρ r hs],
-  exact todo_r_apply ρ r hs,
+  rw [set_lintegral_congr_fun hs this, set_lintegral_pre_cdf_fst ρ r hs],
+  exact ρ.Iic_snd_apply r hs,
 end
 
 lemma set_lintegral_cond_kernel_univ (ρ : measure (α × ℝ)) [is_finite_measure ρ]

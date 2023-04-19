@@ -261,6 +261,4 @@ begin
   exact ⟨hyp1, (congr_arg _ (is_localization.mk'_one _ _))⟩,
 end
 
-#lint
-
 end num_denom

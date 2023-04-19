@@ -24,10 +24,12 @@ namespace Module
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is full. -/
 instance forget₂_AddCommGroup_full : full (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 { preimage := λ A B f,
-  -- TODO: why `add_monoid_hom.to_int_linear_map` doesn't work here?
+  -- `add_monoid_hom.to_int_linear_map` doesn't work here because `A` and `B` are not definitionally
+  -- equal to the canonical `add_comm_group.int_module` module instances it expects.
   { to_fun := f,
     map_add' := add_monoid_hom.map_add f,
-    map_smul' := λ n x, by convert add_monoid_hom.map_int_module_smul f n x } }
+    map_smul' := λ n x, by rw [int_smul_eq_zsmul, int_smul_eq_zsmul, map_zsmul,
+                               ring_hom.id_apply] } }
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
 instance forget₂_AddCommGroup_ess_surj : ess_surj (forget₂ (Module ℤ) AddCommGroup.{u}) :=
@@ -35,6 +37,6 @@ instance forget₂_AddCommGroup_ess_surj : ess_surj (forget₂ (Module ℤ) AddC
 
 noncomputable instance forget₂_AddCommGroup_is_equivalence :
   is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
-equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)
+equivalence.of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)
 
 end Module

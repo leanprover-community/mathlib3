@@ -217,11 +217,11 @@ end add_coinductive_predicate
 
 open add_coinductive_predicate
 
-/- compact_relation bs as_ps: Product a relation of the form:
+/-- compact_relation bs as_ps: Product a relation of the form:
   R := λ as, ∃ bs, Λ_i a_i = p_i[bs]
 This relation is user visible, so we compact it by removing each `b_j` where a `p_i = b_j`, and
 hence `a_i = b_j`. We need to take care when there are `p_i` and `p_j` with `p_i = p_j = b_k`. -/
-private meta def compact_relation :
+meta def compact_relation :
   list expr → list (expr × expr) → list expr × list (expr × expr)
 | [] ps      := ([], ps)
 | (list.cons b bs) ps :=
@@ -448,8 +448,7 @@ meta def add_coinductive_predicate
 
   try triv -- we setup a trivial goal for the tactic framework
 
-open lean.parser
-open interactive
+setup_tactic_parser
 
 @[user_command]
 meta def coinductive_predicate (meta_info : decl_meta_info) (_ : parse $ tk "coinductive") :
@@ -518,7 +517,7 @@ do
 namespace interactive
 open interactive interactive.types expr lean.parser
 local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.many) *:9001 := many
 
 meta def coinduction (corec_name : parse ident)
   (ns : parse with_ident_list)

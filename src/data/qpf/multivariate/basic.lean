@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
-universe u
 
 /-!
 # Multivariate quotients of polynomial functors.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Basic definition of multivariate QPF. QPFs form a compositional framework
 for defining inductive and coinductive types, their quotients and nesting.
@@ -69,10 +71,12 @@ matched because they preserve the properties of QPF. The latter example,
 
 each proves that some operations on functors preserves the QPF structure
 
-##reference
+## Reference
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
+
+universe u
 
 open_locale mvfunctor
 

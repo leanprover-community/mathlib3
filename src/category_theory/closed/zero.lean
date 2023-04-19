@@ -5,9 +5,9 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.closed.cartesian
-import category_theory.limits.shapes.zero
 import category_theory.punit
 import category_theory.conj
+import category_theory.limits.shapes.zero_objects
 
 /-!
 # A cartesian closed category with zero object is trivial
@@ -43,8 +43,7 @@ calc (X ⟶ Y) ≃ (X ⨯ ⊤_ C ⟶ Y) : iso.hom_congr (prod.right_unitor _).sy
          ... ≃ (X ⨯ ⊥_ C ⟶ Y) : iso.hom_congr (prod.map_iso (iso.refl _) i.symm) (iso.refl _)
          ... ≃ (⊥_ C ⟶ Y ^^ X) : (exp.adjunction _).hom_equiv _ _
 
-local attribute [instance] has_zero_object.has_zero
-local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
+open_locale zero_object
 
 /-- If a cartesian closed category has a zero object, each homset has exactly one element. -/
 def unique_homset_of_zero [has_zero_object C] (X Y : C) :
@@ -52,8 +51,7 @@ def unique_homset_of_zero [has_zero_object C] (X Y : C) :
 begin
   haveI : has_initial C := has_zero_object.has_initial,
   apply unique_homset_of_initial_iso_terminal _ X Y,
-  refine ⟨default _, default (⊤_ C ⟶ 0) ≫ default _, _, _⟩;
-  simp,
+  refine ⟨default, (default : ⊤_ C ⟶ 0) ≫ default, _, _⟩; simp
 end
 
 local attribute [instance] unique_homset_of_zero
@@ -67,8 +65,7 @@ equivalence.mk
   (functor.star C)
   (functor.from_punit 0)
   (nat_iso.of_components
-    (λ X, { hom := default (X ⟶ 0),
-            inv := default (0 ⟶ X) })
+    (λ X, { hom := default, inv := default })
     (λ X Y f, dec_trivial))
   (functor.punit_ext _ _)
 

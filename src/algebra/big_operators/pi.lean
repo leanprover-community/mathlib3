@@ -3,12 +3,16 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.ring.pi
-import algebra.big_operators.basic
-import data.fintype.basic
+import data.fintype.card
 import algebra.group.prod
+import algebra.big_operators.basic
+import algebra.ring.pi
+
 /-!
 # Big operators for Pi Types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains theorems relevant to big operators in binary and arbitrary product
 of monoids and groups
@@ -21,19 +25,25 @@ namespace pi
 @[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [Πa, monoid (β a)] (a : α) (l : list (Πa, β a)) :
   l.prod a = (l.map (λf:Πa, β a, f a)).prod :=
-(monoid_hom.apply β a).map_list_prod _
+(eval_monoid_hom β a).map_list_prod _
 
 @[to_additive]
 lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
   (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
-(monoid_hom.apply β a).map_multiset_prod _
+(eval_monoid_hom β a).map_multiset_prod _
 
 end pi
 
 @[simp, to_additive]
 lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
-(monoid_hom.apply β a).map_prod _ _
+(pi.eval_monoid_hom β a).map_prod _ _
+
+/-- An 'unapplied' analogue of `finset.prod_apply`. -/
+@[to_additive "An 'unapplied' analogue of `finset.sum_apply`."]
+lemma finset.prod_fn {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)]
+  (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) = (λ a, ∏ c in s, g c a) :=
+funext (λ a, finset.prod_apply _ _ _)
 
 @[simp, to_additive]
 lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype γ]
@@ -55,19 +65,19 @@ lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
   ∑ i, pi.single i (f i) = f :=
 by { ext a, simp }
 
-lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
-  [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
-  (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
+lemma add_monoid_hom.functions_ext [finite I] (G : Type*) [add_comm_monoid G]
+  (g h : (Π i, Z i) →+ G) (H : ∀ i x, g (pi.single i x) = h (pi.single i x)) : g = h :=
 begin
+  casesI nonempty_fintype I,
   ext k,
   rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
-  simp only [w]
+  simp only [H]
 end
 
 /-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
 note [partially-applied ext lemmas]. -/
 @[ext]
-lemma add_monoid_hom.functions_ext' [fintype I] (M : Type*) [add_comm_monoid M]
+lemma add_monoid_hom.functions_ext' [finite I] (M : Type*) [add_comm_monoid M]
   (g h : (Π i, Z i) →+ M)
   (H : ∀ i, g.comp (add_monoid_hom.single Z i) = h.comp (add_monoid_hom.single Z i)) :
   g = h :=
@@ -79,12 +89,12 @@ end single
 section ring_hom
 open pi
 variables {I : Type*} [decidable_eq I] {f : I → Type*}
-variables [Π i, semiring (f i)]
+variables [Π i, non_assoc_semiring (f i)]
 
-@[ext] lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
-  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+@[ext] lemma ring_hom.functions_ext [finite I] (G : Type*) [non_assoc_semiring G]
+  (g h : (Π i, f i) →+* G) (H : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
 ring_hom.coe_add_monoid_hom_injective $
- add_monoid_hom.functions_ext G (g : (Π i, f i) →+ G) h w
+  @add_monoid_hom.functions_ext I _ f _ _ G _ (g : (Π i, f i) →+ G) h H
 
 end ring_hom
 

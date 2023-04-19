@@ -9,6 +9,9 @@ import category_theory.essentially_small
 /-!
 # Well-powered categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category `(C : Type u) [category.{v} C]` is `[well_powered C]` if
 for every `X : C`, we have `small.{v} (subobject X)`.
 
@@ -24,11 +27,11 @@ and
 `equiv_shrink (subobject X) : subobject X ≃ shrink (subobject X)`.
 -/
 
-universes v u
+universes v u₁ u₂
 
 namespace category_theory
 
-variables (C : Type u) [category.{v} C]
+variables (C : Type u₁) [category.{v} C]
 
 /--
 A category (with morphisms in `Type v`) is well-powered if `subobject X` is `v`-small for every `X`.
@@ -43,7 +46,7 @@ instance small_subobject [well_powered C] (X : C) : small.{v} (subobject X) :=
 well_powered.subobject_small X
 
 @[priority 100]
-instance well_powered_of_small_category (C : Type u) [small_category C] : well_powered C :=
+instance well_powered_of_small_category (C : Type u₁) [small_category C] : well_powered C :=
 {}
 
 variables {C}
@@ -57,10 +60,27 @@ theorem well_powered_of_essentially_small_mono_over
   well_powered C :=
 { subobject_small := λ X, (essentially_small_mono_over_iff_small_subobject X).mp (h X), }
 
+section
 variables [well_powered C]
 
 instance essentially_small_mono_over (X : C) :
   essentially_small.{v} (mono_over X) :=
 (essentially_small_mono_over_iff_small_subobject X).mpr (well_powered.subobject_small X)
+
+end
+
+section equivalence
+variables {D : Type u₂} [category.{v} D]
+
+theorem well_powered_of_equiv (e : C ≌ D) [well_powered C] : well_powered D :=
+well_powered_of_essentially_small_mono_over $
+  λ X, (essentially_small_congr (mono_over.congr X e.symm)).2 $ by apply_instance
+
+/-- Being well-powered is preserved by equivalences, as long as the two categories involved have
+    their morphisms in the same universe. -/
+theorem well_powered_congr (e : C ≌ D) : well_powered C ↔ well_powered D :=
+⟨λ i, by exactI well_powered_of_equiv e, λ i, by exactI well_powered_of_equiv e.symm⟩
+
+end equivalence
 
 end category_theory

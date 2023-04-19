@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.times_cont_mdiff
+import geometry.manifold.cont_mdiff_map
 
 /-!
 # Smooth monoid
@@ -16,9 +16,7 @@ additive counterpart `has_smooth_add`. These structures are general enough to al
 semigroups.
 -/
 
-section
-
-set_option old_structure_cmd true
+open_locale manifold
 
 /--
 1. All smooth algebraic structures on `G` are `Prop`-valued classes that extend
@@ -44,9 +42,9 @@ semigroup. A smooth additive monoid over `α`, for example, is obtained by requi
 instances `add_monoid α` and `has_smooth_add α`. -/
 -- See note [Design choices about smooth algebraic structures]
 @[ancestor smooth_manifold_with_corners]
-class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+class has_smooth_add {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_add G] [topological_space G] [charted_space H G]
   extends smooth_manifold_with_corners I G : Prop :=
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
@@ -56,22 +54,20 @@ A smooth monoid over `G`, for example, is obtained by requiring both the instanc
 and `has_smooth_mul I G`. -/
 -- See note [Design choices about smooth algebraic structures]
 @[ancestor smooth_manifold_with_corners, to_additive]
-class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+class has_smooth_mul {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_mul G] [topological_space G] [charted_space H G]
   extends smooth_manifold_with_corners I G : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 
-end
-
 section has_smooth_mul
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [has_mul G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M]
 
@@ -93,10 +89,49 @@ lemma has_continuous_mul_of_smooth : has_continuous_mul G :=
 
 end
 
+section
+
+variables {f g : M → G} {s : set M} {x : M} {n : ℕ∞}
+
 @[to_additive]
-lemma smooth.mul {f : M → G} {g : M → G} (hf : smooth I' I f) (hg : smooth I' I g) :
+lemma cont_mdiff_within_at.mul (hf : cont_mdiff_within_at I' I n f s x)
+  (hg : cont_mdiff_within_at I' I n g s x) : cont_mdiff_within_at I' I n (f * g) s x :=
+((smooth_mul I).smooth_at.of_le le_top).comp_cont_mdiff_within_at x (hf.prod_mk hg)
+
+@[to_additive]
+lemma cont_mdiff_at.mul (hf : cont_mdiff_at I' I n f x) (hg : cont_mdiff_at I' I n g x) :
+  cont_mdiff_at I' I n (f * g) x :=
+hf.mul hg
+
+@[to_additive]
+lemma cont_mdiff_on.mul (hf : cont_mdiff_on I' I n f s) (hg : cont_mdiff_on I' I n g s) :
+  cont_mdiff_on I' I n (f * g) s :=
+λ x hx, (hf x hx).mul (hg x hx)
+
+@[to_additive]
+lemma cont_mdiff.mul (hf : cont_mdiff I' I n f) (hg : cont_mdiff I' I n g) :
+  cont_mdiff I' I n (f * g) :=
+λ x, (hf x).mul (hg x)
+
+@[to_additive]
+lemma smooth_within_at.mul (hf : smooth_within_at I' I f s x)
+  (hg : smooth_within_at I' I g s x) : smooth_within_at I' I (f * g) s x :=
+hf.mul hg
+
+@[to_additive]
+lemma smooth_at.mul (hf : smooth_at I' I f x) (hg : smooth_at I' I g x) :
+  smooth_at I' I (f * g) x :=
+hf.mul hg
+
+@[to_additive]
+lemma smooth_on.mul (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) :
+  smooth_on I' I (f * g) s :=
+hf.mul hg
+
+@[to_additive]
+lemma smooth.mul (hf : smooth I' I f) (hg : smooth I' I g) :
   smooth I' I (f * g) :=
-(smooth_mul I).comp (hf.prod_mk hg)
+hf.mul hg
 
 @[to_additive]
 lemma smooth_mul_left {a : G} : smooth I I (λ b : G, a * b) :=
@@ -106,20 +141,57 @@ smooth_const.mul smooth_id
 lemma smooth_mul_right {a : G} : smooth I I (λ b : G, b * a) :=
 smooth_id.mul smooth_const
 
-@[to_additive]
-lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
-  (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) :
-  smooth_on I' I (f * g) s :=
-((smooth_mul I).comp_smooth_on (hf.prod_mk hg) : _)
+end
+
+variables (I) (g h : G)
+
+/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups.
+Lemmas involving `smooth_left_mul` with the notation `𝑳` usually use `L` instead of `𝑳` in the
+names. -/
+def smooth_left_mul : C^∞⟮I, G; I, G⟯ := ⟨(left_mul g), smooth_mul_left⟩
+
+/-- Right multiplication by `g`. It is meant to mimic the usual notation in Lie groups.
+Lemmas involving `smooth_right_mul` with the notation `𝑹` usually use `R` instead of `𝑹` in the
+names. -/
+def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
+
+/- Left multiplication. The abbreviation is `MIL`. -/
+localized "notation (name := smooth_left_mul) `𝑳` := smooth_left_mul" in lie_group
+
+/- Right multiplication. The abbreviation is `MIR`. -/
+localized "notation (name := smooth_right_mul) `𝑹` := smooth_right_mul" in lie_group
+
+open_locale lie_group
+
+@[simp] lemma L_apply : (𝑳 I g) h = g * h := rfl
+@[simp] lemma R_apply : (𝑹 I g) h = h * g := rfl
+
+@[simp] lemma L_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
+  [has_smooth_mul I G] (g h : G) : 𝑳 I (g * h) = (𝑳 I g).comp (𝑳 I h) :=
+by { ext, simp only [cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
+
+@[simp] lemma R_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
+  [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
+by { ext, simp only [cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
+
+section
+
+variables {G' : Type*} [monoid G'] [topological_space G'] [charted_space H G']
+  [has_smooth_mul I G'] (g' : G')
+
+lemma smooth_left_mul_one : (𝑳 I g') 1 = g' := mul_one g'
+lemma smooth_right_mul_one : (𝑹 I g') 1 = g' := one_mul g'
+
+end
 
 /- Instance of product -/
 @[to_additive]
-instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+instance has_smooth_mul.prod {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (G : Type*) [topological_space G] [charted_space H G]
   [has_mul G] [has_smooth_mul I G]
-  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
   (G' : Type*) [topological_space G'] [charted_space H' G']
   [has_mul G'] [has_smooth_mul I' G'] :
@@ -128,23 +200,21 @@ instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
     ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
   .. smooth_manifold_with_corners.prod G G' }
 
-variable (I)
-
 end has_smooth_mul
 
 section monoid
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
 {H' : Type*} [topological_space H']
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E'] {I' : model_with_corners 𝕜 E' H'}
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] {I' : model_with_corners 𝕜 E' H'}
 {G' : Type*} [monoid G'] [topological_space G'] [charted_space H' G'] [has_smooth_mul I' G']
 
 lemma smooth_pow : ∀ n : ℕ, smooth I I (λ a : G, a ^ n)
 | 0 := by { simp only [pow_zero], exact smooth_const }
-| (k+1) := show smooth I I (λ (a : G), a * a ^ k), from smooth_id.mul (smooth_pow _)
+| (k+1) := by simpa [pow_succ] using smooth_id.mul (smooth_pow _)
 
 /-- Morphism of additive smooth monoids. -/
 structure smooth_add_monoid_morphism
@@ -170,6 +240,133 @@ instance : has_one (smooth_monoid_morphism I I' G G') :=
 instance : inhabited (smooth_monoid_morphism I I' G G') := ⟨1⟩
 
 @[to_additive]
-instance : has_coe_to_fun (smooth_monoid_morphism I I' G G') := ⟨_, λ a, a.to_fun⟩
+instance : has_coe_to_fun (smooth_monoid_morphism I I' G G') (λ _, G → G') := ⟨λ a, a.to_fun⟩
 
 end monoid
+
+section comm_monoid
+
+open_locale big_operators
+
+variables {ι 𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{H : Type*} [topological_space H]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{G : Type*} [comm_monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+{M : Type*} [topological_space M] [charted_space H' M] {s : set M} {x : M}
+{t : finset ι} {f : ι → M → G} {n : ℕ∞} {p : ι → Prop}
+
+@[to_additive]
+lemma cont_mdiff_within_at_finset_prod' (h : ∀ i ∈ t, cont_mdiff_within_at I' I n (f i) s x) :
+  cont_mdiff_within_at I' I n (∏ i in t, f i) s x :=
+finset.prod_induction f (λ f, cont_mdiff_within_at I' I n f s x)
+    (λ f g hf hg, hf.mul hg) cont_mdiff_within_at_const h
+
+@[to_additive]
+lemma cont_mdiff_at_finset_prod' (h : ∀ i ∈ t, cont_mdiff_at I' I n (f i) x) :
+  cont_mdiff_at I' I n (∏ i in t, f i) x :=
+cont_mdiff_within_at_finset_prod' h
+
+@[to_additive]
+lemma cont_mdiff_on_finset_prod' (h : ∀ i ∈ t, cont_mdiff_on I' I n (f i) s) :
+  cont_mdiff_on I' I n (∏ i in t, f i) s :=
+λ x hx, cont_mdiff_within_at_finset_prod' $ λ i hi, h i hi x hx
+
+@[to_additive]
+lemma cont_mdiff_finset_prod' (h : ∀ i ∈ t, cont_mdiff I' I n (f i)) :
+  cont_mdiff I' I n (∏ i in t, f i) :=
+λ x, cont_mdiff_at_finset_prod' $ λ i hi, h i hi x
+
+@[to_additive]
+lemma cont_mdiff_within_at_finset_prod (h : ∀ i ∈ t, cont_mdiff_within_at I' I n (f i) s x) :
+  cont_mdiff_within_at I' I n (λ x, ∏ i in t, f i x) s x :=
+by { simp only [← finset.prod_apply], exact cont_mdiff_within_at_finset_prod' h }
+
+@[to_additive]
+lemma cont_mdiff_at_finset_prod (h : ∀ i ∈ t, cont_mdiff_at I' I n (f i) x) :
+  cont_mdiff_at I' I n (λ x, ∏ i in t, f i x) x :=
+cont_mdiff_within_at_finset_prod h
+
+@[to_additive]
+lemma cont_mdiff_on_finset_prod (h : ∀ i ∈ t, cont_mdiff_on I' I n (f i) s) :
+  cont_mdiff_on I' I n (λ x, ∏ i in t, f i x) s :=
+λ x hx, cont_mdiff_within_at_finset_prod $ λ i hi, h i hi x hx
+
+@[to_additive]
+lemma cont_mdiff_finset_prod (h : ∀ i ∈ t, cont_mdiff I' I n (f i)) :
+  cont_mdiff I' I n (λ x, ∏ i in t, f i x) :=
+λ x, cont_mdiff_at_finset_prod $ λ i hi, h i hi x
+
+@[to_additive]
+lemma smooth_within_at_finset_prod' (h : ∀ i ∈ t, smooth_within_at I' I (f i) s x) :
+  smooth_within_at I' I (∏ i in t, f i) s x :=
+cont_mdiff_within_at_finset_prod' h
+
+@[to_additive]
+lemma smooth_at_finset_prod' (h : ∀ i ∈ t, smooth_at I' I (f i) x) :
+  smooth_at I' I (∏ i in t, f i) x :=
+cont_mdiff_at_finset_prod' h
+
+@[to_additive]
+lemma smooth_on_finset_prod' (h : ∀ i ∈ t, smooth_on I' I (f i) s) :
+  smooth_on I' I (∏ i in t, f i) s :=
+cont_mdiff_on_finset_prod' h
+
+@[to_additive]
+lemma smooth_finset_prod' (h : ∀ i ∈ t, smooth I' I (f i)) : smooth I' I (∏ i in t, f i) :=
+cont_mdiff_finset_prod' h
+
+@[to_additive]
+lemma smooth_within_at_finset_prod (h : ∀ i ∈ t, smooth_within_at I' I (f i) s x) :
+  smooth_within_at I' I (λ x, ∏ i in t, f i x) s x :=
+cont_mdiff_within_at_finset_prod h
+
+@[to_additive]
+lemma smooth_at_finset_prod (h : ∀ i ∈ t, smooth_at I' I (f i) x) :
+  smooth_at I' I (λ x, ∏ i in t, f i x) x :=
+cont_mdiff_at_finset_prod h
+
+@[to_additive]
+lemma smooth_on_finset_prod (h : ∀ i ∈ t, smooth_on I' I (f i) s) :
+  smooth_on I' I (λ x, ∏ i in t, f i x) s :=
+cont_mdiff_on_finset_prod h
+
+@[to_additive]
+lemma smooth_finset_prod (h : ∀ i ∈ t, smooth I' I (f i)) :
+  smooth I' I (λ x, ∏ i in t, f i x) :=
+cont_mdiff_finset_prod h
+
+open function filter
+
+@[to_additive]
+lemma cont_mdiff_finprod (h : ∀ i, cont_mdiff I' I n (f i))
+  (hfin : locally_finite (λ i, mul_support (f i))) :
+  cont_mdiff I' I n (λ x, ∏ᶠ i, f i x) :=
+begin
+  intro x,
+  rcases finprod_eventually_eq_prod hfin x with ⟨s, hs⟩,
+  exact (cont_mdiff_finset_prod (λ i hi, h i) x).congr_of_eventually_eq hs,
+end
+
+@[to_additive]
+lemma cont_mdiff_finprod_cond (hc : ∀ i, p i → cont_mdiff I' I n (f i))
+  (hf : locally_finite (λ i, mul_support (f i))) :
+  cont_mdiff I' I n (λ x, ∏ᶠ i (hi : p i), f i x) :=
+begin
+  simp only [← finprod_subtype_eq_finprod_cond],
+  exact cont_mdiff_finprod (λ i, hc i i.2) (hf.comp_injective subtype.coe_injective)
+end
+
+@[to_additive]
+lemma smooth_finprod (h : ∀ i, smooth I' I (f i)) (hfin : locally_finite (λ i, mul_support (f i))) :
+  smooth I' I (λ x, ∏ᶠ i, f i x) :=
+cont_mdiff_finprod h hfin
+
+@[to_additive]
+lemma smooth_finprod_cond (hc : ∀ i, p i → smooth I' I (f i))
+  (hf : locally_finite (λ i, mul_support (f i))) :
+  smooth I' I (λ x, ∏ᶠ i (hi : p i), f i x) :=
+cont_mdiff_finprod_cond hc hf
+
+end comm_monoid

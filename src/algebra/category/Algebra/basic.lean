@@ -3,10 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.algebra.basic
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.free_algebra
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import algebra.category.Module.basic
 
 /-!
@@ -34,31 +33,38 @@ attribute [instance] Algebra.is_ring Algebra.is_algebra
 
 namespace Algebra
 
-instance : has_coe_to_sort (Algebra R) :=
-{ S := Type v, coe := Algebra.carrier }
+instance : has_coe_to_sort (Algebra R) (Type v) := ⟨Algebra.carrier⟩
 
 instance : category (Algebra.{v} R) :=
 { hom   := λ A B, A →ₐ[R] B,
   id    := λ A, alg_hom.id R A,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Algebra.{v} R) :=
+instance : concrete_category.{v} (Algebra.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
-instance has_forget_to_Ring : has_forget₂ (Algebra R) Ring.{v} :=
+instance has_forget_to_Ring : has_forget₂ (Algebra.{v} R) Ring.{v} :=
 { forget₂ :=
   { obj := λ A, Ring.of A,
     map := λ A₁ A₂ f, alg_hom.to_ring_hom f, } }
 
-instance has_forget_to_Module : has_forget₂ (Algebra R) (Module R) :=
+instance has_forget_to_Module : has_forget₂ (Algebra.{v} R) (Module.{v} R) :=
 { forget₂ :=
   { obj := λ M, Module.of R M,
     map := λ M₁ M₂ f, alg_hom.to_linear_map f, } }
 
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate
 typeclasses. -/
-def of (X : Type v) [ring X] [algebra R X] : Algebra R := ⟨X⟩
+def of (X : Type v) [ring X] [algebra R X] : Algebra.{v} R := ⟨X⟩
+
+/-- Typecheck a `alg_hom` as a morphism in `Algebra R`. -/
+def of_hom {R : Type u} [comm_ring R] {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y]
+  (f : X →ₐ[R] Y) : of R X ⟶ of R Y := f
+
+@[simp] lemma of_hom_apply {R : Type u} [comm_ring R]
+  {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y] (f : X →ₐ[R] Y) (x : X) :
+  of_hom f x = f x := rfl
 
 instance : inhabited (Algebra R) := ⟨of R R⟩
 
@@ -70,7 +76,7 @@ variables {R}
 /-- Forgetting to the underlying type and then building the bundled object returns the original
 algebra. -/
 @[simps]
-def of_self_iso (M : Algebra R) : Algebra.of R M ≅ M :=
+def of_self_iso (M : Algebra.{v} R) : Algebra.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 variables {R} {M N U : Module.{v} R}
@@ -83,19 +89,30 @@ variables {R} {M N U : Module.{v} R}
 variables (R)
 /-- The "free algebra" functor, sending a type `S` to the free algebra on `S`. -/
 @[simps]
-def free : Type* ⥤ Algebra R :=
+def free : Type u ⥤ Algebra.{u} R :=
 { obj := λ S,
   { carrier := free_algebra R S,
     is_ring := algebra.semiring_to_ring R },
-  map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f }
+  map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f,
+  -- obviously can fill the next two goals, but it is slow
+  map_id' := by { intros X, ext1, simp only [free_algebra.ι_comp_lift], refl },
+  map_comp' := by { intros, ext1, simp only [free_algebra.ι_comp_lift], ext1,
+    simp only [free_algebra.lift_ι_apply, category_theory.coe_comp, function.comp_app,
+      types_comp_apply] } }
 
-/-- The free/forget ajunction for `R`-algebras. -/
-def adj : free R ⊣ forget (Algebra R) :=
+/-- The free/forget adjunction for `R`-algebras. -/
+def adj : free.{u} R ⊣ forget (Algebra.{u} R) :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X A, (free_algebra.lift _).symm,
   -- Relying on `obviously` to fill out these proofs is very slow :(
-  hom_equiv_naturality_left_symm' := by {intros, ext, simp},
-  hom_equiv_naturality_right' := by {intros, ext, simp} }
+  hom_equiv_naturality_left_symm' := by { intros, ext,
+    simp only [free_map, equiv.symm_symm, free_algebra.lift_ι_apply, category_theory.coe_comp,
+      function.comp_app, types_comp_apply] },
+  hom_equiv_naturality_right' := by { intros, ext,
+    simp only [forget_map_eq_coe, category_theory.coe_comp, function.comp_app,
+      free_algebra.lift_symm_apply, types_comp_apply] } }
+
+instance : is_right_adjoint (forget (Algebra.{u} R)) := ⟨_, adj R⟩
 
 end Algebra
 

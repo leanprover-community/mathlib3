@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
-import data.complex.is_R_or_C
+import analysis.normed_space.operator_norm
+import algebra.algebra.restrict_scalars
+import data.is_R_or_C.basic
 
 /-!
 # Extending a continuous `ℝ`-linear map to a continuous `𝕜`-linear map
@@ -31,21 +33,19 @@ Alternate forms which operate on `[is_scalar_tower ℝ 𝕜 F]` instead are prov
 
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [seminormed_add_comm_group F] [normed_space 𝕜 F]
 local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
-bounded by `∥fr∥` if `fr` is continuous. -/
+bounded by `‖fr‖` if `fr` is continuous. -/
 noncomputable def linear_map.extend_to_𝕜'
-  [semimodule ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →ₗ[ℝ] ℝ) : F →ₗ[𝕜] 𝕜 :=
+  [module ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →ₗ[ℝ] ℝ) : F →ₗ[𝕜] 𝕜 :=
 begin
   let fc : F → 𝕜 := λ x, (fr x : 𝕜) - (I : 𝕜) * (fr ((I : 𝕜) • x)),
   have add : ∀ x y : F, fc (x + y) = fc x + fc y,
   { assume x y,
     simp only [fc],
-    unfold_coes,
-    simp only [smul_add, ring_hom.map_add, ring_hom.to_fun_eq_coe, linear_map.to_fun_eq_coe,
-               linear_map.map_add],
+    simp only [smul_add, linear_map.map_add, of_real_add],
     rw mul_add,
     abel, },
   have A : ∀ (c : ℝ) (x : F), (fr ((c : 𝕜) • x) : 𝕜) = (c : 𝕜) * (fr x : 𝕜),
@@ -64,8 +64,8 @@ begin
     simp only [fc],
     cases @I_mul_I_ax 𝕜 _ with h h, { simp [h] },
     rw [mul_sub, ← mul_assoc, smul_smul, h],
-    simp only [neg_mul_eq_neg_mul_symm, linear_map.map_neg, one_mul, one_smul,
-      mul_neg_eq_neg_mul_symm, of_real_neg, neg_smul, sub_neg_eq_add, add_comm] },
+    simp only [neg_mul, linear_map.map_neg, one_mul, one_smul,
+      mul_neg, of_real_neg, neg_smul, sub_neg_eq_add, add_comm] },
   have smul_𝕜 : ∀ (c : 𝕜) (x : F), fc (c • x) = c • fc x,
   { assume c x,
     rw [← re_add_im c, add_smul, add_smul, add, smul_ℝ, ← smul_smul, smul_ℝ, smul_I, ← mul_assoc],
@@ -73,18 +73,18 @@ begin
   exact { to_fun := fc, map_add' := add, map_smul' := smul_𝕜 }
 end
 
-lemma linear_map.extend_to_𝕜'_apply [semimodule ℝ F] [is_scalar_tower ℝ 𝕜 F]
+lemma linear_map.extend_to_𝕜'_apply [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →ₗ[ℝ] ℝ) (x : F) :
   fr.extend_to_𝕜' x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
 
-/-- The norm of the extension is bounded by `∥fr∥`. -/
+/-- The norm of the extension is bounded by `‖fr‖`. -/
 lemma norm_bound [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →L[ℝ] ℝ) (x : F) :
-  ∥(fr.to_linear_map.extend_to_𝕜' x : 𝕜)∥ ≤ ∥fr∥ * ∥x∥ :=
+  ‖(fr.to_linear_map.extend_to_𝕜' x : 𝕜)‖ ≤ ‖fr‖ * ‖x‖ :=
 begin
   let lm : F →ₗ[𝕜] 𝕜 := fr.to_linear_map.extend_to_𝕜',
   -- We aim to find a `t : 𝕜` such that
   -- * `lm (t • x) = fr (t • x)` (so `lm (t • x) = t * lm x ∈ ℝ`)
-  -- * `∥lm x∥ = ∥lm (t • x)∥` (so `t.abs` must be 1)
+  -- * `‖lm x‖ = ‖lm (t • x)‖` (so `t.abs` must be 1)
   -- If `lm x ≠ 0`, `(lm x)⁻¹` satisfies the first requirement, and after normalizing, it
   -- satisfies the second.
   -- (If `lm x = 0`, the goal is trivial.)
@@ -108,21 +108,21 @@ begin
       ... = im (1 / (abs𝕜 (lm x)⁻¹ : 𝕜)) : by rw [div_mul_eq_mul_div, inv_mul_cancel h]
       ... = 0 : by rw [← of_real_one, ← of_real_div, of_real_im]
       ... = im (fr (t • x) : 𝕜) : by rw [of_real_im] } },
-  calc ∥lm x∥ = abs𝕜 t * ∥lm x∥ : by rw [ht, one_mul]
-  ... = ∥t * lm x∥ : by rw [← norm_eq_abs, normed_field.norm_mul]
-  ... = ∥lm (t • x)∥ : by rw [←smul_eq_mul, lm.map_smul]
-  ... = ∥(fr (t • x) : 𝕜)∥ : by rw h1
-  ... = ∥fr (t • x)∥ : by rw [norm_eq_abs, abs_of_real, norm_eq_abs, abs_to_real]
-  ... ≤ ∥fr∥ * ∥t • x∥ : continuous_linear_map.le_op_norm _ _
-  ... = ∥fr∥ * (∥t∥ * ∥x∥) : by rw norm_smul
-  ... ≤ ∥fr∥ * ∥x∥ : by rw [norm_eq_abs, ht, one_mul]
+  calc ‖lm x‖ = abs𝕜 t * ‖lm x‖ : by rw [ht, one_mul]
+  ... = ‖t * lm x‖ : by rw [← norm_eq_abs, norm_mul]
+  ... = ‖lm (t • x)‖ : by rw [←smul_eq_mul, lm.map_smul]
+  ... = ‖(fr (t • x) : 𝕜)‖ : by rw h1
+  ... = ‖fr (t • x)‖ : by rw [norm_eq_abs, abs_of_real, norm_eq_abs, abs_to_real]
+  ... ≤ ‖fr‖ * ‖t • x‖ : continuous_linear_map.le_op_norm _ _
+  ... = ‖fr‖ * (‖t‖ * ‖x‖) : by rw norm_smul
+  ... ≤ ‖fr‖ * ‖x‖ : by rw [norm_eq_abs, ht, one_mul]
 end
 
 /-- Extend `fr : F →L[ℝ] ℝ` to `F →L[𝕜] 𝕜`. -/
 noncomputable def continuous_linear_map.extend_to_𝕜' [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →L[ℝ] ℝ) :
   F →L[𝕜] 𝕜 :=
-fr.to_linear_map.extend_to_𝕜'.mk_continuous (∥fr∥) (norm_bound _)
+linear_map.mk_continuous _ (‖fr‖) (norm_bound _)
 
 lemma continuous_linear_map.extend_to_𝕜'_apply [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →L[ℝ] ℝ) (x : F) :
@@ -133,7 +133,7 @@ noncomputable def linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) 
 fr.extend_to_𝕜'
 
 lemma linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →ₗ[ℝ] ℝ) (x : F) :
-  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
+  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl
 
 /-- Extend `fr : restrict_scalars ℝ 𝕜 F →L[ℝ] ℝ` to `F →L[𝕜] 𝕜`. -/
 noncomputable def continuous_linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) :
@@ -141,4 +141,4 @@ noncomputable def continuous_linear_map.extend_to_𝕜 (fr : (restrict_scalars �
 fr.extend_to_𝕜'
 
 lemma continuous_linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) (x : F) :
-  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
+  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl

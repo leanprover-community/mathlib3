@@ -3,7 +3,7 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import category_theory.category
+import category_theory.category.basic
 
 /-!
 # Tools to reformulate category-theoretic axioms in a more associativity-friendly way
@@ -49,7 +49,7 @@ attribute [simp, reassoc] some_class.bar
 
 namespace tactic
 
-open interactive lean.parser category_theory
+open category_theory
 
 /-- From an expression `f ≫ g`, extract the expression representing the category instance. -/
 meta def get_cat_inst : expr → tactic expr
@@ -65,10 +65,10 @@ do
    (vs,t) ← infer_type h >>= open_pis,
    (lhs,rhs) ← match_eq t,
    struct_inst ← get_cat_inst lhs <|> get_cat_inst rhs <|> fail "no composition found in statement",
-   `(@has_hom.hom _ %%hom_inst %%X %%Y) ← infer_type lhs,
+   `(@quiver.hom _ %%hom_inst %%X %%Y) ← infer_type lhs,
    C ← infer_type X,
    X' ← mk_local' `X' binder_info.implicit C,
-   ft ← to_expr ``(@has_hom.hom _ %%hom_inst %%Y %%X'),
+   ft ← to_expr ``(@quiver.hom _ %%hom_inst %%Y %%X'),
    f' ← mk_local_def `f' ft,
    t' ← to_expr ``(@category_struct.comp _ %%struct_inst _ _ _%%lhs %%f' =
                      @category_struct.comp _ %%struct_inst _ _ _ %%rhs %%f'),
@@ -96,6 +96,8 @@ do d ← get_decl n,
    (t'',pr') ← prove_reassoc c,
    add_decl $ declaration.thm n' d.univ_params t'' (pure pr'),
    copy_attribute `simp n n'
+
+setup_tactic_parser
 
 /--
 The `reassoc` attribute can be applied to a lemma
@@ -169,8 +171,6 @@ add_tactic_doc
   tags                     := ["category theory"] }
 
 namespace interactive
-
-setup_tactic_parser
 
 /-- `reassoc h`, for assumption `h : x ≫ y = z`, creates a new assumption
 `h : ∀ {W} (f : Z ⟶ W), x ≫ y ≫ f = z ≫ f`.

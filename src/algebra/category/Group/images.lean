@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.abelian
 import category_theory.limits.shapes.images
-import category_theory.limits.types
 
 /-!
 # The category of commutative additive groups has images.
@@ -37,7 +36,7 @@ def image.ι : image f ⟶ H := f.range.subtype
 instance : mono (image.ι f) := concrete_category.mono_of_injective (image.ι f) subtype.val_injective
 
 /-- the corestriction map to the image -/
-def factor_thru_image : G ⟶ image f := f.to_range
+def factor_thru_image : G ⟶ image f := f.range_restrict
 
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
 by { ext, refl, }
@@ -69,8 +68,7 @@ noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
     rw (classical.indefinite_description (λ z, f z = _) _).2,
     rw (classical.indefinite_description (λ z, f z = _) _).2,
     refl,
-  end,
- }
+  end, }
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
 begin
   ext x,

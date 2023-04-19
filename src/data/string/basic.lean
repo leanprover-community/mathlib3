@@ -2,14 +2,22 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+import data.list.lex
+import data.char
+
+/-!
+# Strings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Supplementary theorems about the `string` type.
 -/
-import data.list.basic
-import data.char
 
 namespace string
 
+/-- `<` on string iterators. This coincides with `<` on strings as lists. -/
 def ltb : iterator → iterator → bool
 | s₁ s₂ := begin
   cases s₂.has_next, {exact ff},
@@ -73,7 +81,7 @@ lemma to_list_nonempty : ∀ {s : string}, s ≠ string.empty →
   s.to_list = s.head :: (s.popn 1).to_list
 | ⟨s⟩ h := by cases s; [cases h rfl, refl]
 
-@[simp] lemma head_empty : "".head = default _ := rfl
+@[simp] lemma head_empty : "".head = default := rfl
 
 @[simp] lemma popn_empty {n : ℕ} : "".popn n = "" :=
 begin
@@ -87,13 +95,15 @@ begin
 end
 
 instance : linear_order string :=
-by refine_struct {
-    lt := (<), le := (≤),
-    decidable_lt := by apply_instance,
-    decidable_le := string.decidable_le,
-    decidable_eq := by apply_instance, .. };
-  { simp only [le_iff_to_list_le, lt_iff_to_list_lt, ← to_list_inj], introv,
-    apply_field }
+{ lt := (<), le := (≤),
+  decidable_lt := by apply_instance,
+  decidable_le := string.decidable_le,
+  decidable_eq := by apply_instance,
+  le_refl := λ a, le_iff_to_list_le.2 le_rfl,
+  le_trans := λ a b c, by { simp only [le_iff_to_list_le], exact λ h₁ h₂, h₁.trans h₂ },
+  le_total := λ a b, by { simp only [le_iff_to_list_le], exact le_total _ _ },
+  le_antisymm := λ a b, by { simp only [le_iff_to_list_le, ← to_list_inj], apply le_antisymm },
+  lt_iff_le_not_le := λ a b, by simp only [le_iff_to_list_le, lt_iff_to_list_lt, lt_iff_le_not_le] }
 
 end string
 

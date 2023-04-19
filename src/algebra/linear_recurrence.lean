@@ -3,12 +3,14 @@ Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import data.polynomial.ring_division
+import data.polynomial.eval
 import linear_algebra.dimension
-import algebra.polynomial.big_operators
 
 /-!
 # Linear recurrence
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Informally, a "linear recurrence" is an assertion of the form
 `∀ n : ℕ, u (n + d) = a 0 * u n + a 1 * u (n+1) + ... + a (d-1) * u (n+d-1)`,
@@ -38,14 +40,14 @@ properties of eigenvalues and eigenvectors.
 
 noncomputable theory
 open finset
-open_locale big_operators
+open_locale big_operators polynomial
 
 /-- A "linear recurrence relation" over a commutative semiring is given by its
   order `n` and `n` coefficients. -/
 structure linear_recurrence (α : Type*) [comm_semiring α] := (order : ℕ) (coeffs : fin order → α)
 
 instance (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
-⟨⟨0, default _⟩⟩
+⟨⟨0, default⟩⟩
 
 namespace linear_recurrence
 
@@ -65,7 +67,7 @@ def mk_sol (init : fin E.order → α) : ℕ → α
   ∑ k : fin E.order,
     have n - E.order + k < n :=
     begin
-      rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h), nat.sub_lt_left_iff_lt_add],
+      rw [add_comm, ← add_tsub_assoc_of_le (not_lt.mp h), tsub_lt_iff_left],
       { exact add_lt_add_right k.is_lt n },
       { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h),
         simp only [zero_add] }
@@ -88,12 +90,12 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
 | n := if h' : n < E.order
   then by rw mk_sol; simp only [h', dif_pos]; exact_mod_cast heq ⟨n, h'⟩
   else begin
-    rw [mk_sol, ← nat.sub_add_cancel (le_of_not_lt h'), h (n-E.order)],
+    rw [mk_sol, ← tsub_add_cancel_of_le (le_of_not_lt h'), h (n-E.order)],
     simp [h'],
     congr' with k,
     exact have wf : n - E.order + k < n :=
       begin
-        rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h'), nat.sub_lt_left_iff_lt_add],
+        rw [add_comm, ← add_tsub_assoc_of_le (not_lt.mp h'), tsub_lt_iff_left],
         { exact add_lt_add_right k.is_lt n },
         { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h'),
           simp only [zero_add] }
@@ -108,7 +110,7 @@ lemma eq_mk_of_is_sol_of_eq_init' {u : ℕ → α} {init : fin E.order → α}
   (h : E.is_solution u) (heq : ∀ n : fin E.order, u n = init n) : u = E.mk_sol init :=
   funext (E.eq_mk_of_is_sol_of_eq_init h heq)
 
-/-- The space of solutions of `E`, as a `submodule` over `α` of the semimodule `ℕ → α`. -/
+/-- The space of solutions of `E`, as a `submodule` over `α` of the module `ℕ → α`. -/
 def sol_space : submodule α (ℕ → α) :=
 { carrier := {u | E.is_solution u},
   zero_mem' := λ n, by simp,
@@ -168,15 +170,20 @@ def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
 
 end comm_semiring
 
-section field
+section strong_rank_condition
 
-variables {α : Type*} [field α] (E : linear_recurrence α)
+-- note: `strong_rank_condition` is the same as `nontrivial` on `comm_ring`s, but that result,
+-- `comm_ring_strong_rank_condition`, is in a much later file.
+variables {α : Type*} [comm_ring α] [strong_rank_condition α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim : vector_space.dim α E.sol_space = E.order :=
-@dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
+lemma sol_space_rank : module.rank α E.sol_space = E.order :=
+begin
+  letI := nontrivial_of_invariant_basis_number α,
+  exact @rank_fin_fun α _ _ E.order ▸ E.to_init.rank_eq
+end
 
-end field
+end strong_rank_condition
 
 section comm_ring
 
@@ -184,7 +191,7 @@ variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
 /-- The characteristic polynomial of `E` is
 `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
-def char_poly : polynomial α :=
+def char_poly : α[X] :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
 /-- The geometric sequence `q^n` is a solution of `E` iff

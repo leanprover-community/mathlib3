@@ -5,7 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
-import category_theory.reflects_isomorphisms
+import category_theory.functor.epi_mono
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
@@ -48,7 +48,7 @@ variables {T : monad C}
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
-(h' : T.map f ≫ B.a = A.a ≫ f . obviously)
+(h' : (T : C ⥤ C).map f ≫ B.a = A.a ≫ f . obviously)
 
 restate_axiom hom.h'
 attribute [simp, reassoc] hom.h
@@ -90,7 +90,8 @@ To construct an isomorphism of algebras, it suffices to give an isomorphism of t
 commutes with the structure morphisms.
 -/
 @[simps]
-def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : T.map h.hom ≫ B.a = A.a ≫ h.hom) : A ≅ B :=
+def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : (T : C ⥤ C).map h.hom ≫ B.a = A.a ≫ h.hom) :
+  A ≅ B :=
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
@@ -116,13 +117,13 @@ variables (T : monad C)
     h' := T.μ.naturality _ } }
 
 instance [inhabited C] : inhabited (algebra T) :=
-⟨(free T).obj (default C)⟩
+⟨(free T).obj default⟩
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for
   a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
-@[simps unit counit {rhs_md := semireducible}]
+@[simps unit counit]
 def adj : T.free ⊣ T.forget :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
@@ -143,12 +144,26 @@ Given an algebra morphism whose carrier part is an isomorphism, we get an algebr
 -/
 lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simp } }, by tidy⟩⟩
 
-instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
+instance forget_reflects_iso : reflects_isomorphisms T.forget :=
 { reflects := λ A B, algebra_iso_of_iso T }
 
-instance forget_faithful : faithful (forget T) := {}
+instance forget_faithful : faithful T.forget := {}
+
+/-- Given an algebra morphism whose carrier part is an epimorphism, we get an algebra epimorphism.
+-/
+lemma algebra_epi_of_epi {X Y : algebra T} (f : X ⟶ Y) [h : epi f.f] : epi f :=
+(forget T).epi_of_epi_map h
+
+/-- Given an algebra morphism whose carrier part is a monomorphism, we get an algebra monomorphism.
+-/
+lemma algebra_mono_of_mono {X Y : algebra T} (f : X ⟶ Y) [h : mono f.f] : mono f :=
+(forget T).mono_of_mono_map h
+
+instance : is_right_adjoint T.forget := ⟨T.free, T.adj⟩
+@[simp] lemma left_adjoint_forget : left_adjoint T.forget = T.free := rfl
+@[simp] lemma of_right_adjoint_forget : adjunction.of_right_adjoint T.forget = T.adj := rfl
 
 /--
 Given a monad morphism from `T₂` to `T₁`, we get a functor from the algebras of `T₁` to algebras of
@@ -226,10 +241,10 @@ end monad
 namespace comonad
 
 /-- An Eilenberg-Moore coalgebra for a comonad `T`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure coalgebra (G : comonad C) : Type (max u₁ v₁) :=
 (A : C)
-(a : A ⟶ G.obj A)
+(a : A ⟶ (G : C ⥤ C).obj A)
 (counit' : a ≫ G.ε.app A = 𝟙 A . obviously)
 (coassoc' : a ≫ G.δ.app A = a ≫ G.map a . obviously)
 
@@ -241,9 +256,9 @@ namespace coalgebra
 variables {G : comonad C}
 
 /-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
-@[ext, nolint has_inhabited_instance] structure hom (A B : coalgebra G) :=
+@[ext, nolint has_nonempty_instance] structure hom (A B : coalgebra G) :=
 (f : A.A ⟶ B.A)
-(h' : A.a ≫ G.map f = f ≫ B.a . obviously)
+(h' : A.a ≫ (G : C ⥤ C).map f = f ≫ B.a . obviously)
 
 restate_axiom hom.h'
 attribute [simp, reassoc] hom.h
@@ -283,7 +298,8 @@ To construct an isomorphism of coalgebras, it suffices to give an isomorphism of
 commutes with the structure morphisms.
 -/
 @[simps]
-def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.hom ≫ B.a) : A ≅ B :=
+def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ (G : C ⥤ C).map h.hom = h.hom ≫ B.a) :
+  A ≅ B :=
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
@@ -298,16 +314,6 @@ structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
-
-/--
-Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
--/
-lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
-
-instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
-{ reflects := λ A B, coalgebra_iso_of_iso G }
 
 /-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any
 object. -/
@@ -327,7 +333,7 @@ for a comonad.
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
 @[simps unit counit]
-def adj : forget G ⊣ cofree G :=
+def adj : G.forget ⊣ G.cofree :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f,
@@ -343,7 +349,31 @@ adjunction.mk_of_hom_equiv
       apply comp_id,
     end }}
 
+/--
+Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
+-/
+lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+⟨⟨{ f := inv f.f,
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], simp } }, by tidy⟩⟩
+
+instance forget_reflects_iso : reflects_isomorphisms G.forget :=
+{ reflects := λ A B, coalgebra_iso_of_iso G }
+
 instance forget_faithful : faithful (forget G) := {}
+
+/-- Given a coalgebra morphism whose carrier part is an epimorphism, we get an algebra epimorphism.
+-/
+lemma algebra_epi_of_epi {X Y : coalgebra G} (f : X ⟶ Y) [h : epi f.f] : epi f :=
+(forget G).epi_of_epi_map h
+
+/-- Given a coalgebra morphism whose carrier part is a monomorphism, we get an algebra monomorphism.
+-/
+lemma algebra_mono_of_mono {X Y : coalgebra G} (f : X ⟶ Y) [h : mono f.f] : mono f :=
+(forget G).mono_of_mono_map h
+
+instance : is_left_adjoint G.forget := ⟨_, G.adj⟩
+@[simp] lemma right_adjoint_forget : right_adjoint G.forget = G.cofree := rfl
+@[simp] lemma of_left_adjoint_forget : adjunction.of_left_adjoint G.forget = G.adj := rfl
 
 end comonad
 

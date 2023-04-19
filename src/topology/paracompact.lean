@@ -10,6 +10,9 @@ import data.option.basic
 /-!
 # Paracompact topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space `X` is said to be paracompact if every open covering of `X` admits a locally
 finite refinement.
 
@@ -34,13 +37,11 @@ We also prove the following facts.
   the instance graph.
 
 * Every `emetric_space` is a paracompact space, see instance `emetric_space.paracompact_space` in
-  `topology/metric_space/emetric_space`.
+  `topology/metric_space/emetric_paracompact`.
 
 ## TODO
 
-* Define partition of unity.
-
-* Prove (some of) [Michael's theorems](https://ncatlab.org/nlab/show/Michael%27s+theorem).
+Prove (some of) [Michael's theorems](https://ncatlab.org/nlab/show/Michael%27s+theorem).
 
 ## Tags
 
@@ -48,7 +49,7 @@ compact space, paracompact space, locally finite covering
 -/
 
 open set filter function
-open_locale filter topological_space
+open_locale filter topology
 
 universes u v
 
@@ -83,7 +84,7 @@ begin
   { simp only [eq_univ_iff_forall, mem_Union],
     exact λ x, ⟨ind (t_inv x), _, rfl, ht_inv _⟩ },
   { refine λ x, ⟨U x, hxU x, ((hU x).image ind).subset _⟩,
-    simp only [subset_def, mem_Union, mem_set_of_eq, set.nonempty, mem_inter_eq],
+    simp only [subset_def, mem_Union, mem_set_of_eq, set.nonempty, mem_inter_iff],
     rintro i ⟨y, ⟨a, rfl, hya⟩, hyU⟩,
     exact mem_image_of_mem _ ⟨y, hya, hyU⟩ },
   { simp only [subset_def, mem_Union],
@@ -97,7 +98,7 @@ lemma precise_refinement_set [paracompact_space X] {s : set X} (hs : is_closed s
   (u : ι → set X) (uo : ∀ i, is_open (u i)) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, (∀ i, is_open (v i)) ∧ (s ⊆ ⋃ i, v i) ∧ locally_finite v ∧ (∀ i, v i ⊆ u i) :=
 begin
-  rcases precise_refinement (λ i, option.elim i sᶜ u)
+  rcases precise_refinement (option.elim sᶜ u)
     (option.forall.2 ⟨is_open_compl_iff.2 hs, uo⟩) _ with ⟨v, vo, vc, vf, vu⟩,
   refine ⟨v ∘ some, λ i, vo _, _, vf.comp_injective (option.some_injective _), λ i, vu _⟩,
   { simp only [Union_option, ← compl_subset_iff_union] at vc,
@@ -111,11 +112,11 @@ instance paracompact_of_compact [compact_space X] : paracompact_space X :=
 begin
   -- the proof is trivial: we choose a finite subcover using compactness, and use it
   refine ⟨λ ι s ho hu, _⟩,
-  rcases compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
+  rcases is_compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
-  refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_fintype _, λ t, ⟨t, subset.rfl⟩⟩,
-  rwa [Union_subtype, finset.set_bUnion_coe, ← univ_subset_iff],
+  refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_finite _, λ t, ⟨t, subset.rfl⟩⟩,
+  simpa only [Union_coe_set, ← univ_subset_iff]
 end
 
 /-- Let `X` be a locally compact sigma compact Hausdorff topological space, let `s` be a closed set
@@ -156,11 +157,11 @@ begin
     simpa only [K'.find_shiftr]
       using diff_subset_diff_right interior_subset (K'.shiftr.mem_diff_shiftr_find x) },
   have Kdiffc : ∀ n, is_compact (Kdiff n ∩ s),
-    from λ n, (compact_diff (K.is_compact _) is_open_interior).inter_right hs,
+    from λ n, ((K.is_compact _).diff is_open_interior).inter_right hs,
   -- Next we choose a finite covering `B (c n i) (r n i)` of each
   -- `Kdiff (n + 1) ∩ s` such that `B (c n i) (r n i) ∩ s` is disjoint with `K n`
   have : ∀ n (x : Kdiff (n + 1) ∩ s), (K n)ᶜ ∈ 𝓝 (x : X),
-    from λ n x, mem_nhds_sets (K.is_closed n).is_open_compl
+    from λ n x, is_open.mem_nhds (K.is_closed n).is_open_compl
       (λ hx', x.2.1.2 $ K.subset_interior_succ _ hx'),
   haveI : ∀ n (x : Kdiff n ∩ s), nonempty (ι x) := λ n x, (hB x x.2.2).nonempty,
   choose! r hrp hr using (λ n (x : Kdiff (n + 1) ∩ s), (hB x x.2.2).mem_iff.1 (this n x)),
@@ -172,15 +173,15 @@ begin
   refine ⟨Σ n, T' n, λ a, a.2, λ a, r a.1 a.2, _, _, _⟩,
   { rintro ⟨n, x, hx⟩, exact ⟨x.2.2, hrp _ _⟩ },
   { refine (λ x hx, mem_Union.2 _),
-    rcases mem_bUnion_iff.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
+    rcases mem_Union₂.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
     exact ⟨⟨_, ⟨c, hc⟩, hcT⟩, hcx⟩ },
   { intro x,
     refine ⟨interior (K (K'.find x + 3)),
-      mem_nhds_sets is_open_interior (K.subset_interior_succ _ (hKcov x).1), _⟩,
+      is_open.mem_nhds is_open_interior (K.subset_interior_succ _ (hKcov x).1), _⟩,
     have : (⋃ k ≤ K'.find x + 2, (range $ sigma.mk k) : set (Σ n, T' n)).finite,
       from (finite_le_nat _).bUnion (λ k hk, finite_range _),
     apply this.subset, rintro ⟨k, c, hc⟩,
-    simp only [mem_Union, mem_set_of_eq, mem_image_eq, subtype.coe_mk],
+    simp only [mem_Union, mem_set_of_eq, mem_image, subtype.coe_mk],
     rintro ⟨x, hxB : x ∈ B c (r k c), hxK⟩,
     refine ⟨k, _, ⟨c, hc⟩, rfl⟩,
     have := (mem_compl_iff _ _).1 (hr k c hxB),
@@ -226,7 +227,7 @@ begin
   refine ⟨λ α s ho hc, _⟩,
   choose i hi using Union_eq_univ_iff.1 hc,
   have : ∀ x : X, (𝓝 x).has_basis (λ t : set X, (x ∈ t ∧ is_open t) ∧ t ⊆ s (i x)) id,
-    from λ x : X, (nhds_basis_opens x).restrict_subset (mem_nhds_sets (ho (i x)) (hi x)),
+    from λ x : X, (nhds_basis_opens x).restrict_subset (is_open.mem_nhds (ho (i x)) (hi x)),
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis this
     with ⟨β, c, t, hto, htc, htf⟩,
   exact ⟨β, t, λ x, (hto x).1.2, htc, htf, λ b, ⟨i $ c b, (hto b).2⟩⟩
@@ -250,12 +251,11 @@ begin
       hcov', _, disjoint_compl_right.mono le_rfl (compl_le_compl subset_closure)⟩,
     rw [hu'fin.closure_Union, compl_Union, subset_Inter_iff],
     refine λ i x hxt hxu, absurd (htv i hxt) (closure_minimal _ (is_closed_compl_iff.2 $ hv _) hxu),
-    exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩ },
+    exact λ y hyu hyv, (huv i).le_bot ⟨hsub _ hyu, hyv⟩ },
   /- Now we apply the lemma twice: first to `s` and `t`, then to `t` and each point of `s`. -/
   refine ⟨λ s t hs ht hst, this s t hs ht (λ x hx, _)⟩,
-  rcases this t {x} ht is_closed_singleton (λ y hyt, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
+  rcases this t {x} ht is_closed_singleton (λ y hy, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
   { exact ⟨u, v, hu, hv, singleton_subset_iff.1 hxu, htv, huv.symm⟩ },
-  { have : x ≠ y, by { rintro rfl, exact hst ⟨hx, hyt⟩ },
-    rcases t2_separation this with ⟨v, u, hv, hu, hxv, hyu, hd⟩,
-    exact ⟨u, v, hu, hv, hyu, singleton_subset_iff.2 hxv, disjoint.symm hd.le⟩ }
+  { simp_rw singleton_subset_iff,
+    exact t2_separation (hst.symm.ne_of_mem hy hx) }
 end

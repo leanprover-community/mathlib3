@@ -3,40 +3,45 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import linear_algebra.basic
+import data.matrix.basis
 import linear_algebra.basis
 import linear_algebra.pi
 
 /-!
 # The standard basis
 
-This file defines the standard basis `std_basis R φ i b j`, which is `b` where `i = j` and `0`
-elsewhere.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
-To give a concrete example, `std_basis R (λ (i : fin 3), R) i 1` gives the `i`th unit basis vector
-in `R³`, and `pi.is_basis_fun` proves this is a basis over `fin 3 → R`.
+This file defines the standard basis `pi.basis (s : ∀ j, basis (ι j) R (M j))`,
+which is the `Σ j, ι j`-indexed basis of Π j, M j`. The basis vectors are given by
+`pi.basis s ⟨j, i⟩ j' = linear_map.std_basis R M j' (s j) i = if j = j' then s i else 0`.
+
+The standard basis on `R^η`, i.e. `η → R` is called `pi.basis_fun`.
+
+To give a concrete example, `linear_map.std_basis R (λ (i : fin 3), R) i 1`
+gives the `i`th unit basis vector in `R³`, and `pi.basis_fun R (fin 3)` proves
+this is a basis over `fin 3 → R`.
 
 ## Main definitions
 
- - `linear_map.std_basis R ϕ i b`: the `i`'th standard `R`-basis vector on `Π i, ϕ i`,
-   scaled by `b`.
-
-## Main results
-
- - `pi.is_basis_std_basis`: `std_basis` turns a component-wise basis into a basis on the product
-   type.
- - `pi.is_basis_fun`: `std_basis R (λ _, R) i 1` is a basis for `n → R`.
+ - `linear_map.std_basis R M`: if `x` is a basis vector of `M i`, then
+   `linear_map.std_basis R M i x` is the `i`th standard basis vector of `Π i, M i`.
+ - `pi.basis s`: given a basis `s i` for each `M i`, the standard basis on `Π i, M i`
+ - `pi.basis_fun R η`: the standard basis on `R^η`, i.e. `η → R`, given by
+   `pi.basis_fun R η i j = if i = j then 1 else 0`.
+ - `matrix.std_basis R n m`: the standard basis on `matrix n m R`, given by
+   `matrix.std_basis R n m (i, j) i' j' = if (i, j) = (i', j') then 1 else 0`.
 
 -/
 
 open function submodule
 open_locale big_operators
-open_locale big_operators
 
 namespace linear_map
 
 variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
-  [Π i, add_comm_monoid (φ i)] [Π i, semimodule R (φ i)] [decidable_eq ι]
+  [Π i, add_comm_monoid (φ i)] [Π i, module R (φ i)] [decidable_eq ι]
 
 /-- The standard basis of the product of `φ`. -/
 def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
@@ -44,14 +49,21 @@ def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
+@[simp] lemma std_basis_apply' (i i' : ι) : (std_basis R (λ (_x : ι), R) i) 1 i' =
+  ite (i = i') 1 0  :=
+begin
+  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
+  congr' 1, rw [eq_iff_iff, eq_comm],
+end
+
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
-funext $ std_basis_apply R φ i
+rfl
 
 @[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis R φ i b i = b :=
-by rw [std_basis_apply, update_same]
+pi.single_eq_same i b
 
 lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 0 :=
-by rw [std_basis_apply, update_noteq h]; refl
+pi.single_eq_of_ne h b
 
 lemma std_basis_eq_pi_diag (i : ι) : std_basis R φ i = pi (diag i) :=
 begin
@@ -61,31 +73,30 @@ begin
 end
 
 lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
-ker_eq_bot_of_injective $ assume f g hfg,
-  have std_basis R φ i f i = std_basis R φ i g i := hfg ▸ rfl,
-  by simpa only [std_basis_same]
+ker_eq_bot_of_injective $ pi.single_injective _ _
 
 lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis R φ j) = diag j i :=
 by rw [std_basis_eq_pi_diag, proj_pi]
 
 lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis R φ i) = id :=
-by ext b; simp
+linear_map.ext $ std_basis_same R φ i
 
 lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (std_basis R φ j) = 0 :=
-by ext b; simp [std_basis_ne R φ _ _ h]
+linear_map.ext $ std_basis_ne R φ _ _ h
 
 lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
-  refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
+  refine (supr_le $ λ i, supr_le $ λ hi, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
-  assume b hb j hj,
-  have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
-  rw [proj_std_basis_ne R φ j i this.symm, zero_apply]
+  rintro b - j hj,
+  rw [proj_std_basis_ne R φ j i, zero_apply],
+  rintro rfl,
+  exact h.le_bot ⟨hi, hj⟩
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
-  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
+  (⨅ i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
 set_like.le_def.2
 begin
   assume b hb,
@@ -97,28 +108,26 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
-    (std_basis R φ i).mem_range_self (b i))
+  exact sum_mem_bsupr (λ i hi, mem_range_self (std_basis R φ i) (b i))
 end
 
 lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) (hI : set.finite I) :
-  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
-  refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_le_supr $ assume i, _),
+  refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_mono $ assume i, _),
   rw [set.finite.mem_to_finset],
-  exact le_refl _
+  exact le_rfl
 end
 
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
+lemma supr_range_std_basis [finite ι] : (⨆ i, range (std_basis R φ i)) = ⊤ :=
 begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis R φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis R φ i)) $ finset.mem_univ i).symm)
+  casesI nonempty_fintype ι,
+  convert top_unique (infi_emptyset.ge.trans $ infi_ker_proj_le_supr_range_std_basis R φ _),
+  { exact funext (λ i, (@supr_pos _ _ _ (λ h, range $ std_basis R φ i) $ finset.mem_univ i).symm) },
+  { rw [finset.coe_univ, set.union_empty] }
 end
 
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
@@ -127,26 +136,20 @@ begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
-  simp only [disjoint, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
+  simp only [disjoint_iff_inf_le, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,
   classical,
   by_cases hiI : i ∈ I,
   { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact (h.le_bot ⟨hiI, hiJ⟩).elim },
     { exact hJ i hiJ } },
   { exact hI i hiI }
 end
 
 lemma std_basis_eq_single {a : R} :
   (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
-begin
-  ext i j,
-  rw [std_basis_apply, finsupp.single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-end
+funext $ λ i, (finsupp.single_eq_pi_single i a).symm
 
 end linear_map
 
@@ -158,10 +161,9 @@ variables {R : Type*}
 
 section module
 variables {η : Type*} {ιs : η → Type*} {Ms : η → Type*}
-variables [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
 
-lemma linear_independent_std_basis [decidable_eq η]
-  (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
+lemma linear_independent_std_basis [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
+  [decidable_eq η] (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
   linear_independent R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (v ji.1 ji.2)) :=
 begin
   have hs' : ∀j : η, linear_independent R (λ i : ιs j, std_basis R Ms j (v j i)),
@@ -181,69 +183,103 @@ begin
       apply h₀ },
     have h₂ : (⨆ j ∈ J, span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))) ≤
                ⨆ j ∈ J, range (std_basis R (λ (j : η), Ms j) j) :=
-      supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
+      supr₂_mono (λ i _, h₀ i),
     have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
     { convert set.disjoint_singleton_left.2 hiJ using 0 },
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
 end
 
+variables [semiring R] [∀i, add_comm_monoid (Ms i)] [∀i, module R (Ms i)]
+
 variable [fintype η]
 
-lemma is_basis_std_basis [decidable_eq η] (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) :
-  is_basis R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (s ji.1 ji.2)) :=
+section
+
+open linear_equiv
+
+/-- `pi.basis (s : ∀ j, basis (ιs j) R (Ms j))` is the `Σ j, ιs j`-indexed basis on `Π j, Ms j`
+given by `s j` on each component.
+
+For the standard basis over `R` on the finite-dimensional space `η → R` see `pi.basis_fun`.
+-/
+protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
+  basis (Σ j, ιs j) R (Π j, Ms j) :=
+-- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
+-- Defining this in tactic mode seems to shake up instance search enough that it works by itself.
+by { refine basis.of_repr (_ ≪≫ₗ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
+     exact linear_equiv.Pi_congr_right (λ j, (s j).repr) }
+
+@[simp] lemma basis_repr_std_basis [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (j i) :
+  (pi.basis s).repr (std_basis R _ j (s j i)) = finsupp.single ⟨j, i⟩ 1 :=
 begin
-  split,
-  { apply linear_independent_std_basis _ (assume i, (hs i).1) },
-  have h₁ : Union (λ j, set.range (std_basis R Ms j ∘ s j))
-    ⊆ range (λ (ji : Σ (j : η), ιs j), (std_basis R Ms (ji.fst)) (s (ji.fst) (ji.snd))),
-  { apply Union_subset, intro i,
-    apply range_comp_subset_range (λ x : ιs i, (⟨i, x⟩ : Σ (j : η), ιs j))
-        (λ (ji : Σ (j : η), ιs j), std_basis R Ms (ji.fst) (s (ji.fst) (ji.snd))) },
-  have h₂ : ∀ i, span R (range (std_basis R Ms i ∘ s i)) = range (std_basis R Ms i),
-  { intro i,
-    rw [set.range_comp, submodule.span_image, (assume i, (hs i).2), submodule.map_top] },
-  apply eq_top_mono,
-  apply span_mono h₁,
-  rw span_Union,
-  simp only [h₂],
-  apply supr_range_std_basis
+  ext ⟨j', i'⟩,
+  by_cases hj : j = j',
+  { subst hj,
+    simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
+        linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
+    symmetry,
+    exact finsupp.single_apply_left
+      (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
+  simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
+      linear_equiv.Pi_congr_right_apply],
+  dsimp,
+  rw [std_basis_ne _ _ _ _ (ne.symm hj), linear_equiv.map_zero, finsupp.zero_apply,
+      finsupp.single_eq_of_ne],
+  rintros ⟨⟩,
+  contradiction
+end
+
+@[simp] lemma basis_apply [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (ji) :
+  pi.basis s ji = std_basis R _ ji.1 (s ji.1 ji.2) :=
+basis.apply_eq_iff.mpr (by simp)
+
+@[simp] lemma basis_repr (s : ∀ j, basis (ιs j) R (Ms j)) (x) (ji) :
+  (pi.basis s).repr x ji = (s ji.1).repr (x ji.1) ji.2 :=
+rfl
+
 end
 
 section
 variables (R η)
 
-lemma is_basis_fun₀ [decidable_eq η] : is_basis R
-    (λ (ji : Σ (j : η), unit),
-       (std_basis R (λ (i : η), R) (ji.fst)) 1) :=
-@is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ _ (λ _ _, (1 : R))
-  (assume i, @is_basis_singleton_one _ _ _ _)
+/-- The basis on `η → R` where the `i`th basis vector is `function.update 0 i 1`. -/
+noncomputable def basis_fun : basis η R (Π (j : η), R) :=
+basis.of_equiv_fun (linear_equiv.refl _ _)
 
-lemma is_basis_fun [decidable_eq η] : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
-begin
-  apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
-  apply bijective_iff_has_inverse.2,
-  use sigma.fst,
-  simp [function.left_inverse, function.right_inverse]
-end
+@[simp] lemma basis_fun_apply [decidable_eq η] (i) :
+  basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
+by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
+                linear_equiv.refl_apply, std_basis_apply] }
 
-@[simp] lemma is_basis_fun_repr [decidable_eq η] (x : η → R) (i : η) :
-  (pi.is_basis_fun R η).repr x i = x i :=
-begin
-  conv_rhs { rw ← (pi.is_basis_fun R η).total_repr x },
-  rw [finsupp.total_apply, finsupp.sum_fintype],
-  show (pi.is_basis_fun R η).repr x i =
-    (∑ j, λ i, (pi.is_basis_fun R η).repr x j • std_basis R (λ _, R) j 1 i) i,
-  rw [finset.sum_apply, finset.sum_eq_single i],
-  { simp only [pi.smul_apply, smul_eq_mul, std_basis_same, mul_one] },
-  { rintros b - hb, simp only [std_basis_ne _ _ _ _ hb.symm, smul_zero] },
-  { intro,
-    have := finset.mem_univ i,
-    contradiction },
-  { intros, apply zero_smul },
-end
+@[simp] lemma basis_fun_repr (x : η → R) (i : η) :
+  (pi.basis_fun R η).repr x i = x i :=
+by simp [basis_fun]
 
 end
 
 end module
 
 end pi
+
+namespace matrix
+
+variables (R : Type*) (m n : Type*) [fintype m] [fintype n] [semiring R]
+
+/-- The standard basis of `matrix m n R`. -/
+noncomputable def std_basis : basis (m × n) R (matrix m n R) :=
+basis.reindex (pi.basis (λ (i : m), pi.basis_fun R n)) (equiv.sigma_equiv_prod _ _)
+
+variables {n m}
+
+lemma std_basis_eq_std_basis_matrix (i : n) (j : m) [decidable_eq n] [decidable_eq m] :
+  std_basis R n m (i, j) = std_basis_matrix i j (1 : R) :=
+begin
+  ext a b,
+  by_cases hi : i = a; by_cases hj : j = b,
+  { simp [std_basis, hi, hj] },
+  { simp [std_basis, hi, hj, ne.symm hj, linear_map.std_basis_ne] },
+  { simp [std_basis, hi, hj, ne.symm hi, linear_map.std_basis_ne] },
+  { simp [std_basis, hi, hj, ne.symm hj, ne.symm hi, linear_map.std_basis_ne] }
+end
+
+end matrix

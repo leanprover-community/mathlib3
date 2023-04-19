@@ -3,17 +3,31 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
-import data.list.basic
+import data.list.big_operators.basic
+import algebra.order.monoid.min_max
 
-universes u v w z
+/-!
+# zip & unzip
 
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type z}
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file provides results about `list.zip_with`, `list.zip` and `list.unzip` (definitions are in
+core Lean).
+`zip_with f l₁ l₂` applies `f : α → β → γ` pointwise to a list `l₁ : list α` and `l₂ : list β`. It
+applies, until one of the lists is exhausted. For example,
+`zip_with f [0, 1, 2] [6.28, 31] = [f 0 6.28, f 1 31]`.
+`zip` is `zip_with` applied to `prod.mk`. For example,
+`zip [a₁, a₂] [b₁, b₂, b₃] = [(a₁, b₁), (a₂, b₂)]`.
+`unzip` undoes `zip`. For example, `unzip [(a₁, b₁), (a₂, b₂)] = ([a₁, a₂], [b₁, b₂])`.
+-/
+
+universe u
 
 open nat
 
 namespace list
-
-/- zip & unzip -/
+variables {α : Type u} {β γ δ ε : Type*}
 
 @[simp] theorem zip_with_cons_cons (f : α → β → γ) (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
   zip_with f (a :: l₁) (b :: l₂) = f a b :: zip_with f l₁ l₂ := rfl
@@ -46,11 +60,18 @@ zip_with_nil_right _ l
    length (zip_with f l₁ l₂) = min (length l₁) (length l₂)
 | []      l₂      := rfl
 | l₁      []      := by simp only [length, min_zero, zip_with_nil_right]
-| (a::l₁) (b::l₂) := by by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
+| (a::l₁) (b::l₂) := by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
 
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
    length (zip l₁ l₂) = min (length l₁) (length l₂) :=
 length_zip_with _
+
+theorem all₂_zip_with {f : α → β → γ} {p : γ → Prop} :
+  ∀ {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂),
+  all₂ p (zip_with f l₁ l₂) ↔ forall₂ (λ x y, p (f x y)) l₁ l₂
+| [] [] _ := by simp
+| (a :: l₁) (b :: l₂) h :=
+  by { simp only [length_cons, add_left_inj] at h, simp [all₂_zip_with h] }
 
 lemma lt_length_left_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
   (h : i < (zip_with f l l').length) :
@@ -116,6 +137,16 @@ theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
 | []     := rfl
 | (a::l) := by simp only [map, zip_cons_cons, zip_map' l]; split; refl
 
+lemma map_zip_with {δ : Type*} (f : α → β) (g : γ → δ → α) (l : list γ) (l' : list δ) :
+  map f (zip_with g l l') = zip_with (λ x y, f (g x y)) l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l',
+    { simp },
+    { simp [hl] } }
+end
+
 theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
    (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
@@ -161,7 +192,7 @@ theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ length l₂ →
   (unzip (zip l₁ l₂)).1 = l₁
 | []      l₂      h := rfl
-| l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
+| l₁      []      h := by rw eq_nil_of_length_eq_zero (nat.eq_zero_of_le_zero h); refl
 | (a::l₁) (b::l₂) h := by simp only [zip_cons_cons, unzip_cons,
     unzip_zip_left (le_of_succ_le_succ h)]; split; refl
 
@@ -184,6 +215,71 @@ by { rw ←zip_map', congr, exact map_id _ }
 
 lemma map_prod_right_eq_zip {l : list α} (f : α → β) : l.map (λ x, (f x, x)) = (l.map f).zip l :=
 by { rw ←zip_map', congr, exact map_id _ }
+
+lemma zip_with_comm (f : α → β → γ) : ∀ (la : list α) (lb : list β),
+  zip_with f la lb = zip_with (λ b a, f a b) lb la
+| [] _ := (list.zip_with_nil_right _ _).symm
+| (a :: as) [] := rfl
+| (a :: as) (b :: bs) := congr_arg _ (zip_with_comm as bs)
+
+@[congr]
+lemma zip_with_congr (f g : α → β → γ) (la : list α) (lb : list β)
+  (h : list.forall₂ (λ a b, f a b = g a b) la lb) :
+  zip_with f la lb = zip_with g la lb :=
+begin
+  induction h with a b as bs hfg habs ih,
+  { refl },
+  { exact congr_arg2 _ hfg ih }
+end
+
+lemma zip_with_comm_of_comm (f : α → α → β) (comm : ∀ (x y : α), f x y = f y x) (l l' : list α) :
+  zip_with f l l' = zip_with f l' l :=
+by { rw zip_with_comm, simp only [comm] }
+
+@[simp]
+lemma zip_with_same (f : α → α → δ) : ∀ (l : list α), zip_with f l l = l.map (λ a, f a a)
+| [] := rfl
+| (x :: xs) := congr_arg _ (zip_with_same xs)
+
+lemma zip_with_zip_with_left (f : δ → γ → ε) (g : α → β → δ) :
+  ∀ (la : list α) (lb : list β) (lc : list γ),
+    zip_with f (zip_with g la lb) lc = zip_with3 (λ a b c, f (g a b) c) la lb lc
+| [] _ _ := rfl
+| (a :: as) [] _ := rfl
+| (a :: as) (b :: bs) [] := rfl
+| (a :: as) (b :: bs) (c :: cs) := congr_arg (cons _) $ zip_with_zip_with_left as bs cs
+
+lemma zip_with_zip_with_right (f : α → δ → ε) (g : β → γ → δ) :
+  ∀ (la : list α) (lb : list β) (lc : list γ),
+    zip_with f la (zip_with g lb lc) = zip_with3 (λ a b c, f a (g b c)) la lb lc
+| [] _ _ := rfl
+| (a :: as) [] _ := rfl
+| (a :: as) (b :: bs) [] := rfl
+| (a :: as) (b :: bs) (c :: cs) := congr_arg (cons _) $ zip_with_zip_with_right as bs cs
+
+@[simp]
+lemma zip_with3_same_left (f : α → α → β → γ) : ∀ (la : list α) (lb : list β),
+  zip_with3 f la la lb = zip_with (λ a b, f a a b) la lb
+| [] _ := rfl
+| (a :: as) [] := rfl
+| (a :: as) (b :: bs) := congr_arg (cons _) $ zip_with3_same_left as bs
+
+@[simp]
+lemma zip_with3_same_mid (f : α → β → α → γ) : ∀ (la : list α) (lb : list β),
+  zip_with3 f la lb la = zip_with (λ a b, f a b a) la lb
+| [] _ := rfl
+| (a :: as) [] := rfl
+| (a :: as) (b :: bs) := congr_arg (cons _) $ zip_with3_same_mid as bs
+
+@[simp]
+lemma zip_with3_same_right (f : α → β → β → γ) : ∀ (la : list α) (lb : list β),
+  zip_with3 f la lb lb = zip_with (λ a b, f a b b) la lb
+| [] _ := rfl
+| (a :: as) [] := rfl
+| (a :: as) (b :: bs) := congr_arg (cons _) $ zip_with3_same_right as bs
+
+instance (f : α → α → β) [is_symm_op α β f] : is_symm_op (list α) (list β) (zip_with f) :=
+⟨zip_with_comm_of_comm f is_symm_op.symm_op⟩
 
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]
@@ -286,5 +382,87 @@ begin
     { simp, },
     { simp [hl, mul_add] } }
 end
+
+section distrib
+
+/-! ### Operations that can be applied before or after a `zip_with` -/
+
+variables (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
+
+lemma zip_with_distrib_take :
+  (zip_with f l l').take n = zip_with f (l.take n) (l'.take n) :=
+begin
+  induction l with hd tl hl generalizing l' n,
+  { simp },
+  { cases l',
+    { simp },
+    { cases n,
+      { simp },
+      { simp [hl] } } }
+end
+
+lemma zip_with_distrib_drop :
+  (zip_with f l l').drop n = zip_with f (l.drop n) (l'.drop n) :=
+begin
+  induction l with hd tl hl generalizing l' n,
+  { simp },
+  { cases l',
+    { simp },
+    { cases n,
+      { simp },
+      { simp [hl] } } }
+end
+
+lemma zip_with_distrib_tail :
+  (zip_with f l l').tail = zip_with f l.tail l'.tail :=
+by simp_rw [←drop_one, zip_with_distrib_drop]
+
+lemma zip_with_append (f : α → β → γ) (l la : list α) (l' lb : list β) (h : l.length = l'.length) :
+  zip_with f (l ++ la) (l' ++ lb) = zip_with f l l' ++ zip_with f la lb :=
+begin
+  induction l with hd tl hl generalizing l',
+  { have : l' = [] := eq_nil_of_length_eq_zero (by simpa using h.symm),
+    simp [this], },
+  { cases l',
+    { simpa using h },
+    { simp only [add_left_inj, length] at h,
+      simp [hl _ h] } }
+end
+
+lemma zip_with_distrib_reverse (h : l.length = l'.length) :
+  (zip_with f l l').reverse = zip_with f l.reverse l'.reverse :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp only [add_left_inj, length] at h,
+      have : tl.reverse.length = tl'.reverse.length := by simp [h],
+      simp [hl _ h, zip_with_append _ _ _ _ _ this] } }
+end
+
+end distrib
+
+section comm_monoid
+
+variables [comm_monoid α]
+
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with_mul_prod_drop : ∀ (L L' : list α), L.prod * L'.prod =
+  (zip_with (*) L L').prod * (L.drop L'.length).prod * (L'.drop L.length).prod
+| [] ys := by simp [nat.zero_le]
+| xs [] := by simp [nat.zero_le]
+| (x :: xs) (y :: ys) := begin
+  simp only [drop, length, zip_with_cons_cons, prod_cons],
+  rw [mul_assoc x, mul_comm xs.prod, mul_assoc y, mul_comm ys.prod,
+    prod_mul_prod_eq_prod_zip_with_mul_prod_drop xs ys, mul_assoc, mul_assoc, mul_assoc, mul_assoc]
+end
+
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with_of_length_eq (L L' : list α) (h : L.length = L'.length) :
+  L.prod * L'.prod = (zip_with (*) L L').prod :=
+(prod_mul_prod_eq_prod_zip_with_mul_prod_drop L L').trans (by simp [h])
+
+end comm_monoid
 
 end list

@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import control.functor
+import tactic.ext
 
 /-!
 # Traversable type class
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Type classes for traversing collections. The concepts and laws are taken from
 <http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html>
@@ -61,7 +65,7 @@ section applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-/-- A transformation between applicative functors.  It a natural
+/-- A transformation between applicative functors.  It is a natural
 transformation such that `app` preserves the `has_pure.pure` and
 `functor.map` (`<*>`) operations. See
 `applicative_transformation.preserves_map` for naturality. -/
@@ -77,9 +81,8 @@ namespace applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-instance : has_coe_to_fun (applicative_transformation F G) :=
-{ F := λ _, Π {α}, F α → G α,
-  coe := λ a, a.app }
+instance : has_coe_to_fun (applicative_transformation F G) (λ _, Π {α}, F α → G α) :=
+⟨applicative_transformation.app⟩
 
 variables {F G}
 
@@ -116,11 +119,10 @@ section preserves
 variables (η : applicative_transformation F G)
 
 @[functor_norm]
-lemma preserves_pure : ∀ {α} (x : α), η (pure x) = pure x := η.preserves_pure'
+lemma preserves_pure {α} : ∀ (x : α), η (pure x) = pure x := η.preserves_pure'
 
 @[functor_norm]
-lemma preserves_seq :
-  ∀ {α β : Type u} (x : F (α → β)) (y : F α), η (x <*> y) = η x <*> η y :=
+lemma preserves_seq {α β : Type u} : ∀ (x : F (α → β)) (y : F α), η (x <*> y) = η x <*> η y :=
 η.preserves_seq'
 
 @[functor_norm]

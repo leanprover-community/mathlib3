@@ -7,6 +7,9 @@ import data.multiset.nodup
 
 /-!
 # The cartesian product of multisets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -17,9 +20,9 @@ open function
 
 /-- Given `δ : α → Type*`, `pi.empty δ` is the trivial dependent function out of the empty
 multiset. -/
-def pi.empty (δ : α → Type*) : (Πa∈(0:multiset α), δ a) .
+def pi.empty (δ : α → Sort*) : (Πa∈(0:multiset α), δ a) .
 
-variables [decidable_eq α] {δ : α → Type*}
+variables [decidable_eq α] {β : α → Type*} {δ : α → Sort*}
 
 /-- Given `δ : α → Type*`, a multiset `m` and a term `a`, as well as a term `b : δ a` and a
 function `f` such that `f a' : δ a'` for all `a'` in `m`, `pi.cons m a b f` is a function `g` such
@@ -39,17 +42,17 @@ dif_neg h
 lemma pi.cons_swap {a a' : α} {b : δ a} {b' : δ a'} {m : multiset α} {f : Πa∈m, δ a} (h : a ≠ a') :
   pi.cons (a' ::ₘ m) a b (pi.cons m a' b' f) == pi.cons (a ::ₘ m) a' b' (pi.cons m a b f) :=
 begin
-  apply hfunext, { refl }, intros a'' _ h, subst h,
-  apply hfunext, { rw [cons_swap] }, intros ha₁ ha₂ h,
-  by_cases h₁ : a'' = a; by_cases h₂ : a'' = a';
-    simp [*, pi.cons_same, pi.cons_ne] at *,
-  { subst h₁, rw [pi.cons_same, pi.cons_same] },
-  { subst h₂, rw [pi.cons_same, pi.cons_same] }
+  apply hfunext rfl,
+  rintro a'' _ rfl,
+  refine hfunext (by rw [cons_swap]) (λ ha₁ ha₂ _, _),
+  rcases ne_or_eq a'' a with h₁ | rfl,
+  rcases eq_or_ne a'' a' with rfl | h₂,
+  all_goals { simp [*, pi.cons_same, pi.cons_ne] },
 end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
-def pi (m : multiset α) (t : Πa, multiset (δ a)) : multiset (Πa∈m, δ a) :=
-m.rec_on {pi.empty δ} (λa m (p : multiset (Πa∈m, δ a)), (t a).bind $ λb, p.map $ pi.cons m a b)
+def pi (m : multiset α) (t : Πa, multiset (β a)) : multiset (Πa∈m, β a) :=
+m.rec_on {pi.empty β} (λa m (p : multiset (Πa∈m, β a)), (t a).bind $ λb, p.map $ pi.cons m a b)
 begin
   intros a a' m n,
   by_cases eq : a = a',
@@ -64,9 +67,9 @@ begin
     exact pi.cons_swap eq }
 end
 
-@[simp] lemma pi_zero (t : Πa, multiset (δ a)) : pi 0 t = pi.empty δ ::ₘ 0 := rfl
+@[simp] lemma pi_zero (t : Πa, multiset (β a)) : pi 0 t = {pi.empty β} := rfl
 
-@[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (δ a)) (a : α) :
+@[simp] lemma pi_cons (m : multiset α) (t : Πa, multiset (β a)) (a : α) :
   pi (a ::ₘ m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
 rec_on_cons a m
 
@@ -79,11 +82,11 @@ calc f₁ a' h' = pi.cons s a b f₁ a' this : by rw [pi.cons_ne this ne.symm]
   ... = pi.cons s a b f₂ a' this : by rw [eq]
   ... = f₂ a' h' : by rw [pi.cons_ne this ne.symm]
 
-lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
+lemma card_pi (m : multiset α) (t : Πa, multiset (β a)) :
   card (pi m t) = prod (m.map $ λa, card (t a)) :=
 multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
 
-lemma nodup_pi {s : multiset α} {t : Πa, multiset (δ a)} :
+protected lemma nodup.pi {s : multiset α} {t : Π a, multiset (β a)} :
   nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
 multiset.induction_on s (assume _ _, nodup_singleton _)
 begin
@@ -91,34 +94,39 @@ begin
   have has : a ∉ s, by simp at hs; exact hs.1,
   have hs : nodup s, by simp at hs; exact hs.2,
   simp,
-  split,
-  { assume b hb,
-    from nodup_map (pi_cons_injective has) (ih hs $ assume a' h', ht a' $ mem_cons_of_mem h') },
-  { apply pairwise_of_nodup _ (ht a $ mem_cons_self _ _),
-    from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
-      have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),
-        by rw [eq],
-      neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this) }
+  refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi_cons_injective has), _⟩,
+  refine (ht a $ mem_cons_self _ _).pairwise _,
+  from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
+    have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),
+      by rw [eq],
+    neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this)
 end
 
-lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
-  ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
+@[simp]
+lemma pi.cons_ext {m : multiset α} {a : α} (f : Π a' ∈ a ::ₘ m, δ a') :
+  pi.cons m a (f _ (mem_cons_self _ _)) (λ a' ha', f a' (mem_cons_of_mem ha')) = f :=
 begin
-  refine multiset.induction_on m (λ f, _) (λ a m ih f, _),
-  { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
-  simp only [mem_bind, exists_prop, mem_cons, pi_cons, mem_map], split,
+  ext a' h',
+  by_cases a' = a,
+  { subst h, rw [pi.cons_same] },
+  { rw [pi.cons_ne _ h] }
+end
+
+lemma mem_pi (m : multiset α) (t : Πa, multiset (β a)) :
+  ∀f:Πa∈m, β a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
+begin
+  intro f,
+  induction m using multiset.induction_on with a m ih,
+  { simpa using show f = pi.empty β, by funext a ha; exact ha.elim },
+  simp_rw [pi_cons, mem_bind, mem_map, ih],
+  split,
   { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',
-    rw [ih] at hf',
     by_cases a' = a,
     { subst h, rwa [pi.cons_same] },
     { rw [pi.cons_ne _ h], apply hf' } },
   { intro hf,
-    refine ⟨_, hf a (mem_cons_self a _), λa ha, f a (mem_cons_of_mem ha),
-      (ih _).2 (λ a' h', hf _ _), _⟩,
-    funext a' h',
-    by_cases a' = a,
-    { subst h, rw [pi.cons_same] },
-    { rw [pi.cons_ne _ h] } }
+    refine ⟨_, hf a (mem_cons_self _ _), _, λ a ha, hf a (mem_cons_of_mem ha), _⟩,
+    rw pi.cons_ext }
 end
 
 end pi

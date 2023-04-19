@@ -9,6 +9,9 @@ import topology.uniform_space.complete_separated
 /-!
 # Antilipschitz functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a map `f : α → β` between two (extended) metric spaces is
 `antilipschitz_with K`, `K ≥ 0`, if for all `x, y` we have `edist x y ≤ K * edist (f x) (f y)`.
 For a metric space, the latter inequality is equivalent to `dist x y ≤ K * dist (f x) (f y)`.
@@ -22,34 +25,60 @@ we do not have a `posreal` type.
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale nnreal
-open set
+open_locale nnreal ennreal uniformity
+open set filter bornology
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
-`K * edist x y ≤ edist (f x) (f y)`. -/
+`edist x y ≤ K * edist (f x) (f y)`. -/
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 
-lemma antilipschitz_with_iff_le_mul_dist [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
-  {f : α → β} : antilipschitz_with K f ↔ ∀ x y, dist x y ≤ K * dist (f x) (f y) :=
-by { simp only [antilipschitz_with, edist_nndist, dist_nndist], norm_cast }
+lemma antilipschitz_with.edist_lt_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y < ⊤ :=
+(h x y).trans_lt $ ennreal.mul_lt_top ennreal.coe_ne_top (edist_ne_top _ _)
+
+lemma antilipschitz_with.edist_ne_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y ≠ ⊤ :=
+(h.edist_lt_top x y).ne
+
+section metric
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : α → β}
+
+lemma antilipschitz_with_iff_le_mul_nndist :
+  antilipschitz_with K f ↔ ∀ x y, nndist x y ≤ K * nndist (f x) (f y) :=
+by { simp only [antilipschitz_with, edist_nndist], norm_cast }
+
+alias antilipschitz_with_iff_le_mul_nndist ↔ antilipschitz_with.le_mul_nndist
+  antilipschitz_with.of_le_mul_nndist
+
+lemma antilipschitz_with_iff_le_mul_dist :
+  antilipschitz_with K f ↔ ∀ x y, dist x y ≤ K * dist (f x) (f y) :=
+by { simp only [antilipschitz_with_iff_le_mul_nndist, dist_nndist], norm_cast }
 
 alias antilipschitz_with_iff_le_mul_dist ↔ antilipschitz_with.le_mul_dist
   antilipschitz_with.of_le_mul_dist
 
-lemma antilipschitz_with.mul_le_dist [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
-  {f : α → β} (hf : antilipschitz_with K f) (x y : α) : ↑K⁻¹ * dist x y ≤ dist (f x) (f y) :=
-begin
-  by_cases hK : K = 0, by simp [hK, dist_nonneg],
-  rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw div_le_iff' (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hK),
-  exact hf.le_mul_dist x y
-end
+namespace antilipschitz_with
+
+lemma mul_le_nndist (hf : antilipschitz_with K f) (x y : α) :
+  K⁻¹ * nndist x y ≤ nndist (f x) (f y) :=
+by simpa only [div_eq_inv_mul] using nnreal.div_le_of_le_mul' (hf.le_mul_nndist x y)
+
+lemma mul_le_dist (hf : antilipschitz_with K f) (x y : α) :
+  (K⁻¹ * dist x y : ℝ) ≤ dist (f x) (f y) :=
+by exact_mod_cast hf.mul_le_nndist x y
+
+end antilipschitz_with
+
+end metric
 
 namespace antilipschitz_with
 
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables {K : ℝ≥0} {f : α → β}
+
+open emetric
 
 /-- Extract the constant from `hf : antilipschitz_with K f`. This is useful, e.g.,
 if `K` is given by a long formula, and we want to reuse this value. -/
@@ -61,14 +90,17 @@ protected lemma injective {α : Type*} {β : Type*} [emetric_space α] [pseudo_e
 λ x y h, by simpa only [h, edist_self, mul_zero, edist_le_zero] using hf x y
 
 lemma mul_le_edist (hf : antilipschitz_with K f) (x y : α) :
-  ↑K⁻¹ * edist x y ≤ edist (f x) (f y) :=
+  (K⁻¹ * edist x y : ℝ≥0∞) ≤ edist (f x) (f y) :=
 begin
-  by_cases hK : K = 0, by simp [hK],
-  rw [ennreal.coe_inv hK, mul_comm, ← div_eq_mul_inv],
-  apply ennreal.div_le_of_le_mul,
-  rw mul_comm,
-  exact hf x y
+  rw [mul_comm, ← div_eq_mul_inv],
+  exact ennreal.div_le_of_le_mul' (hf x y)
 end
+
+lemma ediam_preimage_le (hf : antilipschitz_with K f) (s : set β) : diam (f ⁻¹' s) ≤ K * diam s :=
+diam_le $ λ x hx y hy, (hf x y).trans $ mul_le_mul_left' (edist_le_diam_of_mem hx hy) K
+
+lemma le_mul_ediam_image (hf : antilipschitz_with K f) (s : set α) : diam s ≤ K * diam (f '' s) :=
+(diam_mono (subset_preimage_image _ _)).trans (hf.ediam_preimage_le (f '' s))
 
 protected lemma id : antilipschitz_with 1 (id : α → α) :=
 λ x y, by simp only [ennreal.coe_one, one_mul, id, le_refl]
@@ -108,33 +140,39 @@ begin
   rwa [hg x, hg y] at this
 end
 
-lemma uniform_embedding_of_injective (hfinj : function.injective f) (hf : antilipschitz_with K f)
-  (hfc : uniform_continuous f) : uniform_embedding f :=
+lemma comap_uniformity_le (hf : antilipschitz_with K f) :
+  (𝓤 β).comap (prod.map f f) ≤ 𝓤 α :=
 begin
-  refine emetric.uniform_embedding_iff.2 ⟨hfinj, hfc, λ δ δ0, _⟩,
-  by_cases hK : K = 0,
-  { refine ⟨1, ennreal.zero_lt_one, λ x y _, lt_of_le_of_lt _ δ0⟩,
-    simpa only [hK, ennreal.coe_zero, zero_mul] using hf x y },
-  { refine ⟨K⁻¹ * δ, _, λ x y hxy, lt_of_le_of_lt (hf x y) _⟩,
-    { exact canonically_ordered_semiring.mul_pos.2 ⟨ennreal.inv_pos.2 ennreal.coe_ne_top, δ0⟩ },
-    { rw [mul_comm, ← div_eq_mul_inv] at hxy,
-      have := ennreal.mul_lt_of_lt_div hxy,
-      rwa mul_comm } }
+  refine ((uniformity_basis_edist.comap _).le_basis_iff uniformity_basis_edist).2 (λ ε h₀, _),
+  refine ⟨K⁻¹ * ε, ennreal.mul_pos (ennreal.inv_ne_zero.2 ennreal.coe_ne_top) h₀.ne', _⟩,
+  refine λ x hx, (hf x.1 x.2).trans_lt _,
+  rw [mul_comm, ← div_eq_mul_inv] at hx,
+  rw mul_comm,
+  exact ennreal.mul_lt_of_lt_div hx
 end
 
-lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
-  {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : uniform_embedding f :=
-uniform_embedding_of_injective hf.injective hf hfc
+protected lemma uniform_inducing (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  uniform_inducing f :=
+⟨le_antisymm hf.comap_uniformity_le hfc.le_comap⟩
+
+protected lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β]
+  {K : ℝ≥0} {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  uniform_embedding f :=
+⟨hf.uniform_inducing hfc, hf.injective⟩
+
+lemma is_complete_range [complete_space α] (hf : antilipschitz_with K f)
+  (hfc : uniform_continuous f) : is_complete (range f) :=
+(hf.uniform_inducing hfc).is_complete_range
+
+lemma is_closed_range {α β : Type*} [pseudo_emetric_space α] [emetric_space β] [complete_space α]
+  {f : α → β} {K : ℝ≥0} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  is_closed (range f) :=
+(hf.is_complete_range hfc).is_closed
 
 lemma closed_embedding {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
   {f : α → β} [complete_space α] (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
   closed_embedding f :=
-{ closed_range :=
-  begin
-    apply is_complete.is_closed,
-    rw ← complete_space_iff_is_complete_range (hf.uniform_embedding hfc),
-    apply_instance,
-  end,
+{ closed_range := hf.is_closed_range hfc,
   .. (hf.uniform_embedding hfc).embedding }
 
 lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
@@ -142,6 +180,11 @@ antilipschitz_with.id.restrict s
 
 lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :=
 λ x y, by simp only [subsingleton.elim x y, edist_self, zero_le]
+
+/-- If `f : α → β` is `0`-antilipschitz, then `α` is a `subsingleton`. -/
+protected lemma subsingleton {α β} [emetric_space α] [pseudo_emetric_space β] {f : α → β}
+  (h : antilipschitz_with 0 f) : subsingleton α :=
+⟨λ x y, edist_le_zero.1 $ (h x y).trans_eq $ zero_mul _⟩
 
 end antilipschitz_with
 
@@ -154,9 +197,13 @@ variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : �
 lemma bounded_preimage (hf : antilipschitz_with K f)
   {s : set β} (hs : bounded s) :
   bounded (f ⁻¹' s) :=
-exists.intro (K * diam s) $ λ x y hx hy,
+exists.intro (K * diam s) $ λ x hx y hy,
 calc dist x y ≤ K * dist (f x) (f y) : hf.le_mul_dist x y
 ... ≤ K * diam s : mul_le_mul_of_nonneg_left (dist_le_diam_of_mem hs hx hy) K.2
+
+lemma tendsto_cobounded (hf : antilipschitz_with K f) : tendsto f (cobounded α) (cobounded β) :=
+compl_surjective.forall.2 $ λ s (hs : is_bounded s), metric.is_bounded_iff.2 $
+  hf.bounded_preimage $ metric.is_bounded_iff.1 hs
 
 /-- The image of a proper space under an expanding onto map is proper. -/
 protected lemma proper_space {α : Type*} [metric_space α] {K : ℝ≥0} {f : α → β} [proper_space α]
@@ -167,7 +214,7 @@ begin
   let K := f ⁻¹' (closed_ball x₀ r),
   have A : is_closed K := is_closed_ball.preimage f_cont,
   have B : bounded K := hK.bounded_preimage bounded_closed_ball,
-  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  have : is_compact K := is_compact_iff_is_closed_bounded.2 ⟨A, B⟩,
   convert this.image f_cont,
   exact (hf.image_preimage _).symm
 end
@@ -178,3 +225,10 @@ lemma lipschitz_with.to_right_inverse [pseudo_emetric_space α] [pseudo_emetric_
   {f : α → β} (hf : lipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   antilipschitz_with K g :=
 λ x y, by simpa only [hg _] using hf (g x) (g y)
+
+/-- The preimage of a proper space under a Lipschitz homeomorphism is proper. -/
+@[protected]
+theorem lipschitz_with.proper_space [pseudo_metric_space α] [metric_space β] [proper_space β]
+  {K : ℝ≥0} {f : α ≃ₜ β} (hK : lipschitz_with K f) :
+  proper_space α :=
+(hK.to_right_inverse f.right_inv).proper_space f.symm.continuous f.symm.surjective

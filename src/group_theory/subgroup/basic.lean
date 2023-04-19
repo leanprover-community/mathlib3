@@ -794,7 +794,7 @@ See note [partially-applied ext lemmas]-/
 generators.
 
 See note [partially-applied ext lemmas]"]
-lemma _root_.monoid_hom.closure_ext {s : set G} ⦃f g : closure s →* G'⦄
+lemma _root_.monoid_hom.ext_closure {s : set G} ⦃f g : closure s →* G'⦄
   (h : f ∘ set.inclusion subset_closure = g ∘ set.inclusion subset_closure) : f = g :=
 begin
   ext ⟨x, hx⟩,

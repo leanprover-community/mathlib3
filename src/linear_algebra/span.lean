@@ -141,7 +141,7 @@ end
 /-- Two linear maps from a span are equal if they agree on the generators.
 
 See note [partially-applied ext lemmas]-/
-@[ext] lemma _root_.linear_map.span_ext {s : set M} ⦃f g : span R s →ₛₗ[σ₁₂] M₂⦄
+@[ext] lemma _root_.linear_map.ext_span {s : set M} ⦃f g : span R s →ₛₗ[σ₁₂] M₂⦄
   (h : f ∘ set.inclusion subset_span = g ∘ set.inclusion subset_span) : f = g :=
 begin
   ext ⟨x, hx⟩,

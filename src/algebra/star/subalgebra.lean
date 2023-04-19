@@ -445,24 +445,6 @@ begin
     λ x hx, exists.elim hx (λ hx' hx, ⟨star_mem hx', Hstar _ hx⟩)]
 end
 
-/-- Two algebra morphisms from `star_subalgebra.adjoin` are equal if they agree on the generators.
-
-See note [partially-applied ext lemmas]-/
-@[ext] lemma _root_.star_alg_hom.adjoin_ext {s : set A} ⦃f g : adjoin R s →⋆ₐ[R] B⦄
-  (h : f ∘ set.inclusion (subset_adjoin _ _) = g ∘ set.inclusion (subset_adjoin _ _)) : f = g :=
-begin
-  ext x,
-  refine adjoin_induction' x _ _ _ _ _,
-  { intros x hx,
-    exact (congr_fun h ⟨x, hx⟩ : _) },
-  { intro r,
-    exact (alg_hom_class.commutes f _).trans (alg_hom_class.commutes g _).symm },
-  { intros x y hfgx hfgy,
-    exact (map_add f _ _).trans ((congr_arg2 (+) hfgx hfgy).trans (map_add g _ _).symm) },
-  { intros x y hfgx hfgy,
-    exact (map_mul f _ _).trans ((congr_arg2 (*) hfgx hfgy).trans (map_mul g _ _).symm) },
-end
-
 variables (R)
 
 /-- If all elements of `s : set A` commute pairwise and also commute pairwise with elements of
@@ -631,17 +613,33 @@ lemma map_adjoin [star_module R B] (f : A →⋆ₐ[R] B) (s : set A) :
 galois_connection.l_comm_of_u_comm set.image_preimage (gc_map_comap f) star_subalgebra.gc
   star_subalgebra.gc (λ _, rfl)
 
-lemma ext_adjoin {s : set A} [star_alg_hom_class F R (adjoin R s) B] {f g : F}
-  (h : ∀ x : adjoin R s, (x : A) ∈ s → f x = g x) : f = g :=
+/-- Two star algebra morphisms from `star_subalgebra.adjoin` are equal if they agree on the
+generators -/
+lemma _root_.star_alg_hom_class.ext_adjoin
+  {s : set A} [star_alg_hom_class F R (adjoin R s) B] ⦃f g : F⦄
+  (h : f ∘ set.inclusion (subset_adjoin _ _) = g ∘ set.inclusion (subset_adjoin _ _)) : f = g :=
 begin
-  refine fun_like.ext f g (λ a, adjoin_induction' a (λ x hx, _) (λ r, _) (λ x y hx hy, _)
-    (λ x y hx hy, _) (λ x hx, _)),
-  { exact h ⟨x, subset_adjoin R s hx⟩ hx },
-  { simp only [alg_hom_class.commutes] },
-  { rw [map_add, map_add, hx, hy] },
-  { rw [map_mul, map_mul, hx, hy] },
-  { rw [map_star, map_star, hx] },
+  refine fun_like.ext _ _ (λ x, _),
+  refine adjoin_induction' x _ _ _ _ _,
+  { intros x hx,
+    exact (congr_fun h ⟨x, hx⟩ : _) },
+  { intro r,
+    exact (alg_hom_class.commutes f _).trans (alg_hom_class.commutes g _).symm },
+  { intros x y hfgx hfgy,
+    exact (map_add f _ _).trans ((congr_arg2 (+) hfgx hfgy).trans (map_add g _ _).symm) },
+  { intros x y hfgx hfgy,
+    exact (map_mul f _ _).trans ((congr_arg2 (*) hfgx hfgy).trans (map_mul g _ _).symm) },
+  { intros x hfg,
+    exact (map_star f _).trans ((congr_arg star hfg).trans (map_star g _).symm) },
 end
+
+/-- Two star algebra morphisms from `star_subalgebra.adjoin` are equal if they agree on the
+generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext] lemma ext_adjoin {s : set A} ⦃f g : adjoin R s →⋆ₐ[R] B⦄
+  (h : f ∘ set.inclusion (subset_adjoin _ _) = g ∘ set.inclusion (subset_adjoin _ _)) : f = g :=
+star_alg_hom_class.ext_adjoin h
 
 lemma ext_adjoin_singleton {a : A} [star_alg_hom_class F R (adjoin R ({a} : set A)) B] {f g : F}
   (h : f ⟨a, self_mem_adjoin_singleton R a⟩ = g ⟨a, self_mem_adjoin_singleton R a⟩) : f = g :=

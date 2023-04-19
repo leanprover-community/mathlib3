@@ -469,7 +469,7 @@ See note [partially-applied ext lemmas]-/
 generators.
 
 See note [partially-applied ext lemmas]"]
-lemma _root_.mul_hom.closure_ext {s : set M} ⦃f g : closure s →ₙ* N⦄
+lemma _root_.mul_hom.ext_closure {s : set M} ⦃f g : closure s →ₙ* N⦄
   (h : f ∘ set.inclusion subset_closure = g ∘ set.inclusion subset_closure) : f = g :=
 begin
   ext ⟨x, hx⟩,

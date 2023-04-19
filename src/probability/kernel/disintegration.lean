@@ -117,19 +117,8 @@ begin
   casesI is_empty_or_nonempty α,
   { -- todo: real.cinfi_empty should be a simp lemma
     simp only [with_top.cinfi_empty, ennreal.top_to_real, real.cinfi_empty], },
-  have h_ne_top : (⨅ i, f i) ≠ ∞,
-  { refine ne_of_lt (lt_of_le_of_lt _ (hf h.some).lt_top),
-    exact infi_le _ _, },
-  refine le_antisymm _ _,
-  { refine le_cinfi (λ a, (ennreal.to_real_le_to_real h_ne_top (hf a)).mpr _),
-    exact infi_le _ _, },
-  { rw ← @ennreal.to_real_of_real (⨅ i, (f i).to_real),
-    swap, { exact le_cinfi (λ i, ennreal.to_real_nonneg), },
-    rw ennreal.to_real_le_to_real ennreal.of_real_ne_top h_ne_top,
-    refine le_infi (λ i, ennreal.of_real_le_of_le_to_real _),
-    refine cinfi_le ⟨0, λ i hi, _⟩ i,
-    obtain ⟨j, rfl⟩ := mem_range.mpr hi,
-    exact ennreal.to_real_nonneg, },
+  lift f to α → ℝ≥0 using hf,
+  simp_rw [← with_top.coe_infi, ennreal.coe_to_real, nnreal.coe_infi],
 end
 
 lemma is_pi_system_Ioc_rat : @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=

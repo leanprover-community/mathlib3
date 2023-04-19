@@ -48,8 +48,8 @@ end convex_cone
 section definitions
 
 /-- A proper cone is a convex cone `K` that is nonempty and closed. -/
-structure proper_cone (E : Type*) [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
-  extends convex_cone ℝ E :=
+structure proper_cone (E : Type*) [normed_add_comm_group E] [inner_product_space ℝ E]
+  [complete_space E] extends convex_cone ℝ E :=
 (nonempty'  : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
 
@@ -109,10 +109,9 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 
 @[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
   y ∈ K.map f ↔
-  ∃ (y' : ℕ → F), (∀ (n : ℕ), ∃ (x : E) (h : x ∈ K), f x = y' n) ∧ tendsto y' at_top (nhds y)
-:=
-by simp_rw [mem_coe, coe_map, convex_cone.mem_closure_iff_seq_limit, convex_cone.mem_map,
-  continuous_linear_map.coe_coe]
+  ∃ (y' : ℕ → F), (∀ (n : ℕ), ∃ (x : E) (h : x ∈ K), f x = y' n) ∧ tendsto y' at_top (nhds y) :=
+by simp only [mem_coe, coe_map, convex_cone.mem_closure, mem_closure_iff_seq_limit,
+  set_like.mem_coe, convex_cone.mem_map, continuous_linear_map.coe_coe]
 
 theorem farkas_lemma (K : proper_cone E) {f : E →L[ℝ] F} {b : F} :
   b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ star K → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
